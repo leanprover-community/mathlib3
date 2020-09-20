@@ -1,28 +1,39 @@
-/-
-Copyright (c) 2019 Seul Baek. All rights reserved.
+/- Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
-Linear integer arithmetic terms in pre-normalized form.
--/
-
-import tactic.split_ifs tactic.omega.term
+Linear integer arithmetic terms in pre-normalized form. -/
+import tactic.omega.term
 
 namespace omega
 namespace int
 
-@[derive has_reflect]
+/-- The shadow syntax for arithmetic terms. All constants are reified to `cst`
+(e.g., `-5` is reified to `cst -5`) and all other atomic terms are reified to
+`exp` (e.g., `-5 * (gcd 14 -7)` is reified to `exp -5 \`(gcd 14 -7)`).
+`exp` accepts a coefficient of type `int` as its first argument because
+multiplication by constant is allowed by the omega test. -/
+meta inductive exprterm : Type
+| cst : int → exprterm
+| exp : int → expr → exprterm
+| add : exprterm → exprterm → exprterm
+
+/-- Similar to `exprterm`, except that all exprs are now replaced with
+de Brujin indices of type `nat`. This is akin to generalizing over
+the terms represented by the said exprs. -/
+@[derive has_reflect, derive inhabited]
 inductive preterm : Type
 | cst : int → preterm
 | var : int → nat → preterm
 | add : preterm → preterm → preterm
 
-local notation `&` k    := preterm.cst k
-local infix ` ** ` : 300 := preterm.var
-local notation t `+*` s := preterm.add t s
+localized "notation `&` k    := omega.int.preterm.cst k" in omega.int
+localized "infix ` ** ` : 300 := omega.int.preterm.var" in omega.int
+localized "notation t `+*` s := omega.int.preterm.add t s" in omega.int
 
 namespace preterm
 
+/-- Preterm evaluation -/
 @[simp] def val (v : nat → int) : preterm → int
 | (& i) := i
 | (i ** n) :=
@@ -33,6 +44,7 @@ namespace preterm
        else (v n) * i
 | (t1 +* t2) := t1.val + t2.val
 
+/-- Fresh de Brujin index not used by any variable in argument -/
 def fresh_index : preterm → nat
 | (& _) := 0
 | (i ** n) := n + 1
@@ -47,8 +59,10 @@ def repr : preterm → string
 
 end preterm
 
-local notation as ` {` m ` ↦ ` a `}` := list.func.set a as m
+open_locale list.func -- get notation for list.func.set
 
+/-- Return a term (which is in canonical form by definition)
+    that is equivalent to the input preterm -/
 @[simp] def canonize : preterm → term
 | (& i)      := ⟨i, []⟩
 | (i ** n)   := ⟨0, [] {n ↦ i}⟩

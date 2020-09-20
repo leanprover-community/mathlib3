@@ -1,19 +1,21 @@
-/-
-Copyright (c) 2019 Seul Baek. All rights reserved.
+/- Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
-Normalized linear integer arithmetic terms.
--/
-
+Normalized linear integer arithmetic terms. -/
 import tactic.omega.coeffs
 
 namespace omega
 
+/-- Shadow syntax of normalized terms. The first element
+    represents the constant term and the list represents
+    the coefficients. -/
+@[derive inhabited]
 def term : Type := int × list int
 
 namespace term
 
+/-- Evaluate a term using the valuation v. -/
 @[simp] def val (v : nat → int) : term → int
 | (b,as) := b + coeffs.val v as
 
@@ -55,7 +57,6 @@ begin
     val, add_comm, add_left_comm]
 end
 
-
 @[simp] lemma val_mul {v : nat → int} {i : int} {t : term} :
 val v (mul i t) = i * (val v t) :=
 begin
@@ -73,6 +74,7 @@ begin
   rw ← coeffs.val_map_div h2
 end
 
+/-- Fresh de Brujin index not used by any variable ocurring in the term -/
 def fresh_index (t : term) : nat := t.snd.length
 
 def to_string (t : term) : string :=
@@ -83,6 +85,7 @@ instance : has_to_string term := ⟨to_string⟩
 
 end term
 
+/-- Fresh de Brujin index not used by any variable ocurring in the list of terms -/
 def terms.fresh_index : list term → nat
 | []      := 0
 | (t::ts) := max t.fresh_index (terms.fresh_index ts)

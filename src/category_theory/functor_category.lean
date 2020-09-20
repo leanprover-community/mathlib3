@@ -1,7 +1,8 @@
--- Copyright (c) 2017 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
-
+/-
+Copyright (c) 2017 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
+-/
 import category_theory.natural_transformation
 
 namespace category_theory
@@ -10,9 +11,9 @@ universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `categor
 
 open nat_trans category category_theory.functor
 
-variables (C : Sort u₁) [𝒞 : category.{v₁} C] (D : Sort u₂) [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
+variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
 
+local attribute [simp] vcomp_app
 /--
 `functor.category C D` gives the category structure on functors and natural transformations
 between categories `C` and `D`.
@@ -22,24 +23,25 @@ this is another small category at that level.
 However if `C` and `D` are both large categories at the same universe level,
 this is a small category at the next higher level.
 -/
-instance functor.category : category.{(max u₁ v₂ 1)} (C ⥤ D) :=
+instance functor.category : category.{(max u₁ v₂)} (C ⥤ D) :=
 { hom     := λ F G, nat_trans F G,
   id      := λ F, nat_trans.id F,
   comp    := λ _ _ _ α β, vcomp α β }
 
-variables {C D} {E : Sort u₃} [ℰ : category.{v₃} E]
+variables {C D} {E : Type u₃} [category.{v₃} E]
 variables {F G H I : C ⥤ D}
 
 namespace nat_trans
 
 @[simp] lemma vcomp_eq_comp (α : F ⟶ G) (β : G ⟶ H) : vcomp α β = α ≫ β := rfl
 
+lemma vcomp_app' (α : F ⟶ G) (β : G ⟶ H) (X : C) :
+  (α ≫ β).app X = (α.app X) ≫ (β.app X) := rfl
+
 lemma congr_app {α β : F ⟶ G} (h : α = β) (X : C) : α.app X = β.app X := by rw h
 @[simp] lemma id_app (F : C ⥤ D) (X : C) : (𝟙 F : F ⟶ F).app X = 𝟙 (F.obj X) := rfl
 @[simp] lemma comp_app {F G H : C ⥤ D} (α : F ⟶ G) (β : G ⟶ H) (X : C) :
   (α ≫ β).app X = α.app X ≫ β.app X := rfl
-
-include ℰ
 
 lemma app_naturality {F G : C ⥤ (D ⥤ E)} (T : F ⟶ G) (X : C) {Y Z : D} (f : Y ⟶ Z) :
   ((F.obj X).map f) ≫ ((T.app X).app Z) = ((T.app X).app Y) ≫ ((G.obj X).map f) :=
@@ -52,28 +54,36 @@ congr_fun (congr_arg app (T.naturality f)) Z
 /-- `hcomp α β` is the horizontal composition of natural transformations. -/
 def hcomp {H I : D ⥤ E} (α : F ⟶ G) (β : H ⟶ I) : (F ⋙ H) ⟶ (G ⋙ I) :=
 { app         := λ X : C, (β.app (F.obj X)) ≫ (I.map (α.app X)),
-  naturality' := begin
-                   intros, rw [functor.comp_map, functor.comp_map, assoc_symm, naturality, assoc],
-                   rw [← map_comp I, naturality, map_comp, assoc]
-                 end }
+  naturality' := λ X Y f,
+  begin
+    rw [functor.comp_map, functor.comp_map, ←assoc, naturality, assoc,
+        ←map_comp I, naturality, map_comp, assoc]
+  end }
 
 infix ` ◫ `:80 := hcomp
 
 @[simp] lemma hcomp_app {H I : D ⥤ E} (α : F ⟶ G) (β : H ⟶ I) (X : C) :
   (α ◫ β).app X = (β.app (F.obj X)) ≫ (I.map (α.app X)) := rfl
 
--- Note that we don't yet prove a `hcomp_assoc` lemma here: even stating it is painful, because we need to use associativity of functor composition
+@[simp] lemma hcomp_id_app {H : D ⥤ E} (α : F ⟶ G) (X : C) : (α ◫ 𝟙 H).app X = H.map (α.app X) :=
+  by {dsimp, simp} -- See note [dsimp, simp].
+
+lemma id_hcomp_app {H : E ⥤ C} (α : F ⟶ G) (X : E) : (𝟙 H ◫ α).app X = α.app _ := by simp
+
+-- Note that we don't yet prove a `hcomp_assoc` lemma here: even stating it is painful, because we
+-- need to use associativity of functor composition. (It's true without the explicit associator,
+-- because functor composition is definitionally associative, but relying on the definitional equality
+-- causes bad problems with elaboration later.)
 
 lemma exchange {I J K : D ⥤ E} (α : F ⟶ G) (β : G ⟶ H)
   (γ : I ⟶ J) (δ : J ⟶ K) : (α ≫ β) ◫ (γ ≫ δ) = (α ◫ γ) ≫ (β ◫ δ) :=
-by { ext, dsimp, rw [assoc, assoc, map_comp, assoc_symm (δ.app _), ← naturality, assoc] }
+by ext; simp
 
 end nat_trans
 open nat_trans
 namespace functor
 
-include ℰ
-
+/-- Flip the arguments of a bifunctor. See also `currying.lean`. -/
 protected def flip (F : C ⥤ (D ⥤ E)) : D ⥤ (C ⥤ E) :=
 { obj := λ k,
   { obj := λ j, (F.obj j).obj k,

@@ -41,7 +41,7 @@ do hs ← local_context,
 /-
   The following definitions maintain a path compression datastructure, i.e. a forest such that:
     - every node is the type of a hypothesis
-    - there is a edge between two nodes if they are provably equivalent
+    - there is a edge between two nodes only if they are provably equivalent
     - every edge is labelled with a proof of equivalence for its vertices
     - edges are added when normalizing propositions.
 -/

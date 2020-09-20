@@ -112,7 +112,7 @@ end
 
 section minimal_polynomial
 
-variables [field K] [vector_space K V] [finite_dimensional K V] (f : End K V)
+variables [finite_dimensional K V] (f : End K V)
 
 protected theorem is_integral : is_integral K f :=
 is_integral_of_noetherian (by apply_instance) f

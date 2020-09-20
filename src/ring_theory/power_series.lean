@@ -943,6 +943,10 @@ mv_power_series.coeff_mul_C _ φ a
   coeff α n (C α a * φ) = a * coeff α n φ :=
 mv_power_series.coeff_C_mul _ φ a
 
+@[simp] lemma coeff_smul (n : ℕ) (φ : power_series α) (a : α) :
+  coeff α n (a • φ) = a * coeff α n φ :=
+coeff_C_mul _ _ _
+
 @[simp] lemma coeff_succ_mul_X (n : ℕ) (φ : power_series α) :
   coeff α (n+1) (φ * X) = coeff α n φ :=
 begin

@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import algebra.category.Module.monoidal
 import algebra.category.Algebra.basic
-import category_theory.monoidal.internal
+import category_theory.monoidal.Mon_
 
 
 /-!
@@ -163,7 +163,7 @@ is naturally compatible with the forgetful functors to `Module R`.
 -/
 def Mon_Module_equivalence_Algebra_forget :
   Mon_Module_equivalence_Algebra.functor ⋙ forget₂ (Algebra.{u} R) (Module.{u} R) ≅
-    Mon_.forget (Module.{u} R) :=
+    Mon_.forget (Module.{u} R):=
 nat_iso.of_components (λ A,
 { hom :=
   { to_fun := id,

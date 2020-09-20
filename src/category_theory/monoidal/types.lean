@@ -43,4 +43,9 @@ symmetric_of_chosen_finite_products (types.terminal_limit_cone) (types.binary_pr
 @[simp] lemma associator_inv_apply {X Y Z : Type u} {x : X} {y : Y} {z : Z} :
   ((α_ X Y Z).inv : X ⊗ (Y ⊗ Z) → (X ⊗ Y) ⊗ Z) (x, (y, z)) = ((x, y), z) := rfl
 
+@[simp] lemma braiding_hom_apply {X Y : Type u} {x : X} {y : Y} :
+  ((β_ X Y).hom : X ⊗ Y → Y ⊗ X) (x, y) = (y, x) := rfl
+@[simp] lemma braiding_inv_apply {X Y : Type u} {x : X} {y : Y} :
+  ((β_ X Y).inv : Y ⊗ X → X ⊗ Y) (y, x) = (x, y) := rfl
+
 end category_theory.monoidal

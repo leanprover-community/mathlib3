@@ -41,8 +41,9 @@ do hs ← local_context,
 /-
   The following definitions maintain a path compression datastructure, i.e. a forest such that:
     - every node is the type of a hypothesis
-    - there is a edge between two nodes if and only if they are provably equivalent
-    - every edge is labelled with a proof of equivalence for its vertices.
+    - there is a edge between two nodes if they are provably equivalent
+    - every edge is labelled with a proof of equivalence for its vertices
+    - edges are added when normalizing propositions.
 -/
 
 meta def tauto_state := ref $ expr_map (option (expr × expr))
@@ -56,6 +57,10 @@ do m ← read_ref r,
    write_ref r $ m.insert e none,
    return (e,p)
 
+/--
+  If there exists a symmetry lemma that can be applied to the hypothesis `e`,
+  store it.
+-/
 meta def add_symm_proof (r : tauto_state) (e : expr) : tactic (expr × expr) :=
 do env ← get_env,
    let rel := e.get_app_fn.const_name,

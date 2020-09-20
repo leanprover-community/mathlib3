@@ -200,37 +200,40 @@ do { ctx ← local_context,
 meta def assumption_symm :=
 using_new_ref (native.rb_map.mk _ _) assumption_with
 
-
+/--
+  Configuration options for `tauto`.
+  If `classical` is `tt`, runs `classical` before the rest of `tauto`.
+  `closer` is run on any remaining subgoals left by `tauto_core; basic_tauto_tacs`.
+-/
 meta structure tauto_cfg :=
-(basic_tauto_tacs : list (tactic unit) := [reflexivity,
-                                           solve_by_elim,
-                                           constructor_matching none
-                                             [``(_ ∧ _),``(_ ↔ _),``(Exists _),``(true)]])
-(classical : bool                        := ff)
-(closer : tactic unit                  := pure ())
-
-attribute [nolint doc_blame] tauto_cfg
+(classical : bool     := ff)
+(closer : tactic unit := pure ())
 
 meta def tautology (cfg : tauto_cfg := {}) : tactic unit := focus1 $
-  let tauto_core (r : tauto_state) : tactic unit :=
-    do try (contradiction_with r);
-       try (assumption_with r);
-       repeat (do
-         gs ← get_goals,
-         repeat (() <$ tactic.intro1);
-         distrib_not;
-         casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(Exists _),``(false)];
-         try (contradiction_with r);
-         try (target >>= match_or >> refine ``( or_iff_not_imp_left.mpr _));
-         try (target >>= match_or >> refine ``( or_iff_not_imp_right.mpr _));
-         repeat (() <$ tactic.intro1);
-         constructor_matching (some ()) [``(_ ∧ _),``(_ ↔ _),``(true)];
-         try (assumption_with r),
-         gs' ← get_goals,
-         guard (gs ≠ gs') ) in
+  let basic_tauto_tacs : list (tactic unit) :=
+        [reflexivity, solve_by_elim,
+          constructor_matching none [``(_ ∧ _),``(_ ↔ _),``(Exists _),``(true)]],
+
+      tauto_core (r : tauto_state) : tactic unit :=
+        do try (contradiction_with r);
+           try (assumption_with r);
+           repeat (do
+             gs ← get_goals,
+             repeat (() <$ tactic.intro1);
+             distrib_not;
+             casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(Exists _),``(false)];
+             try (contradiction_with r);
+             try (target >>= match_or >> refine ``( or_iff_not_imp_left.mpr _));
+             try (target >>= match_or >> refine ``( or_iff_not_imp_right.mpr _));
+             repeat (() <$ tactic.intro1);
+             constructor_matching (some ()) [``(_ ∧ _),``(_ ↔ _),``(true)];
+             try (assumption_with r),
+             gs' ← get_goals,
+             guard (gs ≠ gs') ) in
+
     do when cfg.classical classical,
        using_new_ref (expr_map.mk _) tauto_core;
-       repeat (first cfg.basic_tauto_tacs); cfg.closer, done
+       repeat (first basic_tauto_tacs); cfg.closer, done
 
 namespace interactive
 local postfix `?`:9001 := optional

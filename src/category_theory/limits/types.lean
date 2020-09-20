@@ -180,11 +180,6 @@ lemma colimit.ι_desc_apply (F : J ⥤ Type u) (s : cocone F) (j : J) (x : F.obj
   colimit.desc F s (colimit.ι F j x) = s.ι.app j x :=
 congr_fun (colimit.ι_desc s j) x
 
-@[simp]
-lemma colimit.w_apply (F : J ⥤ Type u) {j j' : J} (f : j ⟶ j') (x : F.obj j) :
-  colimit.ι F j' (F.map f x) = colimit.ι F j x :=
-congr_fun (colimit.w F f) x
-
 lemma ι_map_apply {F G : J ⥤ Type u} (α : F ⟶ G) (j : J) (x) :
   colim.map α (colimit.ι F j x) = colimit.ι G j (α.app j x) :=
 congr_fun (colimit.ι_map α j) x

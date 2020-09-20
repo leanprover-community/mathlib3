@@ -3800,6 +3800,22 @@ theorem disjoint_of_disjoint_append_right_right {l₁ l₂ l : list α} (d : dis
   disjoint l l₂ :=
 (disjoint_append_right.1 d).2
 
+theorem disjoint_take_drop {l : list α} {m n : ℕ} (hl : l.nodup) (h : m ≤ n) :
+  disjoint (l.take m) (l.drop n) :=
+begin
+    induction l generalizing m n,
+    case list.nil : m n
+    { simp },
+    case list.cons : x xs xs_ih m n
+    { cases m; cases n; simp only [disjoint_cons_left, mem_cons_iff, disjoint_cons_right, drop,
+                                   true_or, eq_self_iff_true, not_true, false_and,
+                                   disjoint_nil_left, take],
+      { cases h },
+      cases hl with _ _ h₀ h₁, split,
+      { intro h, exact h₀ _ (mem_of_mem_drop h) rfl, },
+      solve_by_elim [le_of_succ_le_succ] { max_depth := 4 } },
+end
+
 end disjoint
 
 /-! ### union -/
@@ -3886,22 +3902,6 @@ theorem subset_inter {l l₁ l₂ : list α} (h₁ : l ⊆ l₁) (h₂ : l ⊆ l
 
 theorem inter_eq_nil_iff_disjoint {l₁ l₂ : list α} : l₁ ∩ l₂ = [] ↔ disjoint l₁ l₂ :=
 by simp only [eq_nil_iff_forall_not_mem, mem_inter, not_and]; refl
-
-theorem disjoint_take_drop {l : list α} {m n : ℕ} (hl : l.nodup) (h : m ≤ n) :
-  disjoint (l.take m) (l.drop n) :=
-begin
-    induction l generalizing m n,
-    case list.nil : m n
-    { simp },
-    case list.cons : x xs xs_ih m n
-    { cases m; cases n; simp only [disjoint_cons_left, mem_cons_iff, disjoint_cons_right, drop,
-                                   true_or, eq_self_iff_true, not_true, false_and,
-                                   disjoint_nil_left, take],
-      { cases h },
-      cases hl with _ _ h₀ h₁, split,
-      { intro h, exact h₀ _ (mem_of_mem_drop h) rfl, },
-      solve_by_elim [le_of_succ_le_succ] { max_depth := 4 } },
-end
 
 theorem forall_mem_inter_of_forall_left {p : α → Prop} {l₁ : list α} (h : ∀ x ∈ l₁, p x)
      (l₂ : list α) :

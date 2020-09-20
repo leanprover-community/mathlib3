@@ -7,11 +7,13 @@
 import category_theory.category
 import category_theory.eq_to_hom
 import category_theory.equivalence
-import data.fin data.finset data.fintype
+import data.fin
+import data.finset
+import data.fintype.basic
 import category_theory.opposites
 import tactic
 
-@[simp] lemma fin.last_val (n : ℕ) : (fin.last n).val = n := rfl
+attribute [simp] fin.last_val
 
 lemma squeeze {a b : ℕ} (h : a ≤ b) (h' : b < a + 1) : a = b :=
 begin

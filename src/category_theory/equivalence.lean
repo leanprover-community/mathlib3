@@ -463,7 +463,7 @@ See https://stacks.math.columbia.edu/tag/02C3.
 -/
 def equivalence_of_fully_faithfully_ess_surj
   (F : C ⥤ D) [full F] [faithful F] [ess_surj F] : is_equivalence F :=
-is_equivalence.mk (equivalence_inverse F)
+is_equivalence.mk (construct_inverse F)
   (nat_iso.of_components
     (λ X, (preimage_iso $ F.fun_obj_preimage_iso $ F.obj X).symm)
     (λ X Y f, by { apply F.map_injective, obviously }))
@@ -485,6 +485,6 @@ begin
   { rintro ⟨rfl⟩, refl, }
 end
 
-end equivalence
+end is_equivalence
 
 end category_theory

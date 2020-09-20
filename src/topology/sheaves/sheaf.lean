@@ -38,6 +38,8 @@ namespace Top
 variables {C : Type u} [category.{v} C] [has_products C]
 variables {X : Top.{v}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
 
+namespace presheaf
+
 namespace sheaf_condition
 
 /-- The product of the sections of a presheaf over a family of open sets. -/
@@ -281,6 +283,8 @@ equiv_of_subsingleton_of_subsingleton
   ((is_limit.postcompose_inv_equiv _ _).symm (c U)) (sheaf_condition.fork.iso_of_iso U α.symm).symm)
 (λ c ι U, is_limit.of_iso_limit
   ((is_limit.postcompose_inv_equiv _ _).symm (c U)) (sheaf_condition.fork.iso_of_iso U α).symm)
+
+end presheaf
 
 variables (C X)
 

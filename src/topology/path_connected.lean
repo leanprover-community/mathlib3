@@ -716,7 +716,7 @@ end
 
 lemma is_path_connected.exists_path_through_family
   {X : Type*} [topological_space X] {n : ℕ} {s : set X} (h : is_path_connected s)
-  (p : fin (n+1) → X) (hp : ∀ i, p i ∈ s) : ∃ γ : path (p 0) (p n), (∀ i, p i ∈ range γ) ∧ (range γ ⊆ s) :=
+  (p : fin (n+1) → X) (hp : ∀ i, p i ∈ s) : ∃ γ : path (p 0) (p n), (range γ ⊆ s) ∧ (∀ i, p i ∈ range γ) :=
 begin
   let p' : ℕ → X := λ k, if h : k < n+1 then p ⟨k, h⟩ else p ⟨0, n.zero_lt_succ⟩,
   obtain ⟨γ, hγ⟩ : ∃ (γ : path (p' 0) (p' n)), (∀ i ≤ n, p' i ∈ range γ) ∧ range γ ⊆ s,
@@ -755,7 +755,7 @@ begin
   { intros k hk, simp only [p', hk, dif_pos], congr, ext, rw fin.coe_coe_of_lt hk, norm_cast },
   use γ.cast (hpp' 0 n.zero_lt_succ) (hpp' n n.lt_succ_self),
   simp only [γ.cast_coe],
-  refine and.intro _ hγ.2,
+  refine and.intro hγ.2 _,
   rintros ⟨i, hi⟩,
   convert hγ.1 i (nat.le_of_lt_succ hi), rw ← hpp' i hi,
   congr,
@@ -771,10 +771,10 @@ lemma is_path_connected.exists_path_through_family'
 begin
   rcases h.exists_path_through_family p hp with ⟨γ, hγ⟩,
   rcases hγ with ⟨h₁, h₂⟩,
-  simp only [range, mem_set_of_eq] at h₁,
-  rw range_subset_iff at h₂,
-  choose! t ht using h₁,
-  exact ⟨γ, t, h₂, ht⟩
+  simp only [range, mem_set_of_eq] at h₂,
+  rw range_subset_iff at h₁,
+  choose! t ht using h₂,
+  exact ⟨γ, t, h₁, ht⟩
 end
 
 /-! ### Path connected spaces -/
@@ -859,7 +859,7 @@ lemma exists_path_through_family {n : ℕ} (p : fin (n+1) → X) :
   ∃ γ : path (p 0) (p n), (∀ i, p i ∈ range γ) :=
 begin
   have : is_path_connected (univ : set X) := path_connected_space_iff_univ.mp (by apply_instance),
-  rcases this.exists_path_through_family p (λ i, true.intro) with ⟨γ, h, -⟩,
+  rcases this.exists_path_through_family p (λ i, true.intro) with ⟨γ, -, h⟩,
   exact ⟨γ, h⟩
 end
 

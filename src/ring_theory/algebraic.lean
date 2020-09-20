@@ -68,7 +68,7 @@ section zero_ne_one
 variables (R : Type u) {A : Type v} [comm_ring R] [nontrivial R] [comm_ring A] [algebra R A]
 
 /-- An integral element of an algebra is algebraic.-/
-lemma is_integral_alg.is_algebraic {x : A} (h : is_integral_alg R x) : is_algebraic R x :=
+lemma is_integral.is_algebraic {x : A} (h : is_integral R x) : is_algebraic R x :=
 by { rcases h with ⟨p, hp, hpx⟩, exact ⟨p, hp.ne_zero, hpx⟩ }
 
 end zero_ne_one
@@ -78,9 +78,9 @@ variables (K : Type u) {A : Type v} [field K] [comm_ring A] [algebra K A]
 
 /-- An element of an algebra over a field is algebraic if and only if it is integral.-/
 lemma is_algebraic_iff_is_integral {x : A} :
-  is_algebraic K x ↔ is_integral_alg K x :=
+  is_algebraic K x ↔ is_integral K x :=
 begin
-  refine ⟨_, is_integral_alg.is_algebraic K⟩,
+  refine ⟨_, is_integral.is_algebraic K⟩,
   rintro ⟨p, hp, hpx⟩,
   refine ⟨_, monic_mul_leading_coeff_inv hp, _⟩,
   rw [← aeval_def, alg_hom.map_mul, hpx, zero_mul],
@@ -120,8 +120,8 @@ begin
   set n := p.nat_degree with n_def,
   set a := p.leading_coeff with a_def,
   have a_ne_zero : a ≠ 0 := mt polynomial.leading_coeff_eq_zero.mp p_ne_zero,
-  have y_integral : is_integral_alg R (algebra_map R S a) := is_integral_algebra_map,
-  have x_integral : is_integral_alg R (z * algebra_map R S a) :=
+  have y_integral : is_integral R (algebra_map R S a) := is_integral_algebra_map,
+  have x_integral : is_integral R (z * algebra_map R S a) :=
     ⟨ p.integral_normalization,
       monic_integral_normalization p_ne_zero,
       integral_normalization_aeval_eq_zero p_ne_zero px inj ⟩,

@@ -151,7 +151,7 @@ instance adjoin_monic.algebra : algebra k (adjoin_monic k) :=
 theorem adjoin_monic.algebra_map : algebra_map k (adjoin_monic k) = (ideal.quotient.mk _).comp C :=
 rfl
 
-theorem adjoin_monic.is_integral (z : adjoin_monic k) : is_integral_alg k z :=
+theorem adjoin_monic.is_integral (z : adjoin_monic k) : is_integral k z :=
 let ⟨p, hp⟩ := ideal.quotient.mk_surjective z in hp ▸
 mv_polynomial.induction_on p (λ x, is_integral_algebra_map) (λ p q, is_integral_add)
   (λ p f ih, @is_integral_mul _ _ _ _ _ _ (ideal.quotient.mk _ _) ih ⟨f, f.2.1,
@@ -225,7 +225,7 @@ instance step.scalar_tower (n) : is_scalar_tower k (step k n) (step k (n + 1)) :
 is_scalar_tower.of_algebra_map_eq $ λ z,
   @nat.le_rec_on_succ (step k) 0 n n.zero_le (n + 1).zero_le (λ n, to_step_succ k n) z
 
-theorem step.is_integral (n) : ∀ z : step k n, is_integral_alg k z :=
+theorem step.is_integral (n) : ∀ z : step k n, is_integral k z :=
 nat.rec_on n (λ z, is_integral_algebra_map) $ λ n ih z,
   is_integral_trans ih _ (adjoin_monic.is_integral (step k n) z : _)
 

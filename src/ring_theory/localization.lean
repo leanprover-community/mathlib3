@@ -1427,7 +1427,7 @@ We can localize to a submonoid containing the leading coefficient to make it int
 Explicitly, the map between the localizations will be an integral ring morphism -/
 theorem is_integral_localization_at_leading_coeff {x : S} (p : polynomial R)
   (hp : aeval x p = 0) (hM' : p.leading_coeff ∈ M) :
-  is_integral (f.map (@algebra.mem_algebra_map_submonoid_of_mem R S _ _ _ _) g) (g.to_map x) :=
+  (f.map (@algebra.mem_algebra_map_submonoid_of_mem R S _ _ _ _) g).is_integral_elem (g.to_map x) :=
 begin
   by_cases triv : (1 : Rₘ) = 0,
   { exact ⟨0, ⟨trans leading_coeff_zero triv.symm, eval₂_zero _ _⟩⟩ },

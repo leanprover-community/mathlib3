@@ -173,7 +173,7 @@ theorem irreducible : irreducible (minpoly G F x) :=
 
 end minpoly
 
-theorem is_integral : is_integral_alg (fixed_points G F) x :=
+theorem is_integral : is_integral (fixed_points G F) x :=
 ⟨minpoly G F x, minpoly.monic G F x, minpoly.eval₂ G F x⟩
 
 theorem minpoly.minimal_polynomial :

@@ -117,14 +117,14 @@ let ⟨p, p_ne_zero, hp⟩ := hx
 in comap_ne_bot_of_root_mem x_ne_zero x_mem p_ne_zero hp
 
 lemma comap_ne_bot_of_integral_mem [nontrivial R] {x : S}
-  (x_ne_zero : x ≠ 0) (x_mem : x ∈ I) (hx : is_integral_alg R x) : I.comap (algebra_map R S) ≠ ⊥ :=
+  (x_ne_zero : x ≠ 0) (x_mem : x ∈ I) (hx : is_integral R x) : I.comap (algebra_map R S) ≠ ⊥ :=
 comap_ne_bot_of_algebraic_mem x_ne_zero x_mem (hx.is_algebraic R)
 
 lemma mem_of_one_mem (h : (1 : S) ∈ I) (x) : x ∈ I :=
 (I.eq_top_iff_one.mpr h).symm ▸ mem_top
 
 lemma comap_lt_comap_of_integral_mem_sdiff [hI : I.is_prime] (hIJ : I ≤ J)
-  {x : S} (mem : x ∈ (J : set S) \ I) (integral : is_integral_alg R x) :
+  {x : S} (mem : x ∈ (J : set S) \ I) (integral : is_integral R x) :
   I.comap (algebra_map R S) < J.comap (algebra_map _ _) :=
 begin
   obtain ⟨p, p_monic, hpx⟩ := integral,
@@ -156,7 +156,7 @@ end
 lemma integral_closure.comap_ne_bot [nontrivial R] {I : ideal (integral_closure R S)}
   (I_ne_bot : I ≠ ⊥) : I.comap (algebra_map R (integral_closure R S)) ≠ ⊥ :=
 let ⟨x, x_mem, x_ne_zero⟩ := I.ne_bot_iff.mp I_ne_bot in
-comap_ne_bot_of_integral_mem x_ne_zero x_mem (integral_closure.is_integral_alg x)
+comap_ne_bot_of_integral_mem x_ne_zero x_mem (integral_closure.is_integral x)
 
 lemma integral_closure.eq_bot_of_comap_eq_bot [nontrivial R] {I : ideal (integral_closure R S)} :
   I.comap (algebra_map R (integral_closure R S)) = ⊥ → I = ⊥ :=
@@ -166,12 +166,12 @@ lemma integral_closure.comap_lt_comap {I J : ideal (integral_closure R S)} [I.is
   (I_lt_J : I < J) :
   I.comap (algebra_map R (integral_closure R S)) < J.comap (algebra_map _ _) :=
 let ⟨I_le_J, x, hxJ, hxI⟩ := lt_iff_le_and_exists.mp I_lt_J in
-comap_lt_comap_of_integral_mem_sdiff I_le_J ⟨hxJ, hxI⟩ (integral_closure.is_integral_alg x)
+comap_lt_comap_of_integral_mem_sdiff I_le_J ⟨hxJ, hxI⟩ (integral_closure.is_integral x)
 
 lemma integral_closure.is_maximal_of_is_maximal_comap
   (I : ideal (integral_closure R S)) [I.is_prime]
   (hI : is_maximal (I.comap (algebra_map R (integral_closure R S)))) : is_maximal I :=
-is_maximal_of_is_integral_of_is_maximal_comap (λ x, integral_closure.is_integral_alg x) I hI
+is_maximal_of_is_integral_of_is_maximal_comap (λ x, integral_closure.is_integral x) I hI
 
 /-- `comap (algebra_map R S)` is a surjection from the prime spec of `R` to prime spec of `S`.
 `hP : (algebra_map R S).ker ≤ P` is a slight generalization of the extension being injective -/

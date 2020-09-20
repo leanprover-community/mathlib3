@@ -4,7 +4,6 @@ Author: Seul Baek
 
 Correctness lemmas for equality elimination.
 See 5.5 of <http://www.decision-procedures.org/> for details. -/
-
 import tactic.omega.clause
 
 open list.func
@@ -186,7 +185,7 @@ begin
         a_n * coeffs.val_except n v (as.map (λ x, symmod x m))) :
           begin
             simp only [term.val, rhs, mul_add, m, a_n,
-              add_assoc, add_left_inj, add_comm, add_left_comm],
+              add_assoc, add_right_inj, add_comm, add_left_comm],
             rw [← coeffs.val_except_add_eq n,
               get_set, update_eq, mul_add],
             apply fun_mono_2,

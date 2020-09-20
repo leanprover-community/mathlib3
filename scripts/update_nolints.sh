@@ -9,8 +9,8 @@ owner_name=leanprover-community
 git fetch $remote_name
 git rev-parse --verify --quiet refs/remotes/$remote_name/$branch_name && exit 0
 
-# Exit if there are no changes
-git diff-index --quiet HEAD -- scripts/nolints.txt && exit 0
+# Exit if there are no changes relative to master
+git diff-index --quiet refs/remotes/$remote_name/master -- scripts/nolints.txt && exit 0
 
 pr_title='chore(scripts): update nolints.txt'
 pr_body='I am happy to remove some nolints for you!'
@@ -22,7 +22,7 @@ git commit -m "$pr_title"
 gh_api() {
   local url="$1"
   shift
-  curl -s -H "Authorization: token $DEPLOY_NIGHTLY_GITHUB_TOKEN" \
+  curl -s -H "Authorization: token $DEPLOY_GITHUB_TOKEN" \
     "https://api.github.com/$url" "$@"
 }
 

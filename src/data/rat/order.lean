@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.rat.basic
+
 /-!
 # Order for Rational Numbers
 
@@ -47,7 +48,7 @@ num_denom_cases_on' b $ λ n₂ d₂ h₂,
 begin
   have d₁0 : 0 < (d₁:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₁),
   have d₂0 : 0 < (d₂:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₂),
-  simp [d₁0, d₂0, h₁, h₂, mul_pos' d₁0 d₂0],
+  simp [d₁0, d₂0, h₁, h₂, mul_pos d₁0 d₂0],
   intros n₁0 n₂0,
   apply add_nonneg; apply mul_nonneg; {assumption <|> apply int.coe_zero_le},
 end
@@ -58,7 +59,7 @@ num_denom_cases_on' b $ λ n₂ d₂ h₂,
 begin
   have d₁0 : 0 < (d₁:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₁),
   have d₂0 : 0 < (d₂:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₂),
-  simp [d₁0, d₂0, h₁, h₂, mul_pos' d₁0 d₂0],
+  simp [d₁0, d₂0, h₁, h₂, mul_pos d₁0 d₂0],
   exact mul_nonneg
 end
 
@@ -89,7 +90,7 @@ protected theorem le_def {a b c d : ℤ} (b0 : 0 < b) (d0 : 0 < d) :
 begin
   show rat.nonneg _ ↔ _,
   rw ← sub_nonneg,
-  simp [sub_eq_add_neg, ne_of_gt b0, ne_of_gt d0, mul_pos' d0 b0]
+  simp [sub_eq_add_neg, ne_of_gt b0, ne_of_gt d0, mul_pos d0 b0]
 end
 
 protected theorem le_refl : a ≤ a :=
@@ -222,20 +223,4 @@ begin
     rw [int.nat_abs_of_nonneg hq, num_denom] }
 end
 
-section sqrt
-
-def sqrt (q : ℚ) : ℚ := rat.mk (int.sqrt q.num) (nat.sqrt q.denom)
-
-theorem sqrt_eq (q : ℚ) : rat.sqrt (q*q) = abs q :=
-by rw [sqrt, mul_self_num, mul_self_denom, int.sqrt_eq, nat.sqrt_eq, abs_def]
-
-theorem exists_mul_self (x : ℚ) : (∃ q, q * q = x) ↔ rat.sqrt x * rat.sqrt x = x :=
-⟨λ ⟨n, hn⟩, by rw [← hn, sqrt_eq, abs_mul_abs_self],
-λ h, ⟨rat.sqrt x, h⟩⟩
-
-theorem sqrt_nonneg (q : ℚ) : 0 ≤ rat.sqrt q :=
-nonneg_iff_zero_le.1 $ (mk_nonneg _ $ int.coe_nat_pos.2 $
-nat.pos_of_ne_zero $ λ H, nat.pos_iff_ne_zero.1 q.pos $ nat.sqrt_eq_zero.1 H).2 trivial
-
-end sqrt
 end rat

@@ -16,12 +16,14 @@ open sum
 
 namespace category_theory.sum
 
-variables (C : Type u) [𝒞 : category.{v} C]
-          (D : Type u) [𝒟 : category.{v} D]
-          (E : Type u) [ℰ : category.{v} E]
-include 𝒞 𝒟 ℰ
+variables (C : Type u) [category.{v} C]
+          (D : Type u) [category.{v} D]
+          (E : Type u) [category.{v} E]
 
-def associator : ((C ⊕ D) ⊕ E) ⥤ (C ⊕ (D ⊕ E)) :=
+/--
+The associator functor `(C ⊕ D) ⊕ E ⥤ C ⊕ (D ⊕ E)` for sums of categories.
+-/
+def associator : (C ⊕ D) ⊕ E ⥤ C ⊕ (D ⊕ E) :=
 { obj := λ X, match X with
   | inl (inl X) := inl X
   | inl (inr X) := inr (inl X)
@@ -43,7 +45,10 @@ def associator : ((C ⊕ D) ⊕ E) ⥤ (C ⊕ (D ⊕ E)) :=
 @[simp] lemma associator_map_inr {X Y : E} (f : inr X ⟶ inr Y) :
   (associator C D E).map f = f := rfl
 
-def inverse_associator : (C ⊕ (D ⊕ E)) ⥤ ((C ⊕ D) ⊕ E) :=
+/--
+The inverse associator functor `C ⊕ (D ⊕ E) ⥤ (C ⊕ D) ⊕ E` for sums of categories.
+-/
+def inverse_associator : C ⊕ (D ⊕ E) ⥤ (C ⊕ D) ⊕ E :=
 { obj := λ X, match X with
   | inl X := inl (inl X)
   | inr (inl X) := inl (inr X)
@@ -65,6 +70,9 @@ def inverse_associator : (C ⊕ (D ⊕ E)) ⥤ ((C ⊕ D) ⊕ E) :=
 @[simp] lemma inverse_associator_map_inr_inr {X Y : E} (f : inr (inr X) ⟶ inr (inr Y)) :
   (inverse_associator C D E).map f = f := rfl
 
+/--
+The equivalence of categories expressing associativity of sums of categories.
+-/
 def associativity : (C ⊕ D) ⊕ E ≌ C ⊕ (D ⊕ E) :=
 equivalence.mk (associator C D E) (inverse_associator C D E)
   (nat_iso.of_components (λ X, eq_to_iso (by tidy)) (by tidy))

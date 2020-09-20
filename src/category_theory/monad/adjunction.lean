@@ -11,13 +11,12 @@ open category
 
 universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 variables (R : D ⥤ C)
 
 namespace adjunction
 
-instance monad (R : D ⥤ C) [is_right_adjoint R] : monad.{v₁} ((left_adjoint R) ⋙ R) :=
+instance monad (R : D ⥤ C) [is_right_adjoint R] : monad ((left_adjoint R) ⋙ R) :=
 let L := left_adjoint R in
 let h : L ⊣ R := is_right_adjoint.adj in
 { η := h.unit,
@@ -56,8 +55,6 @@ def comparison_forget [is_right_adjoint R] : comparison R ⋙ forget ((left_adjo
 
 end monad
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A functor is *reflective*, or *a reflective inclusion*, if it is fully faithful and right adjoint. -/
 class reflective (R : D ⥤ C) extends is_right_adjoint R, full R, faithful R.
 
@@ -65,7 +62,6 @@ class reflective (R : D ⥤ C) extends is_right_adjoint R, full R, faithful R.
 category of Eilenberg-Moore algebras for the adjunction is an equivalence. -/
 class monadic_right_adjoint (R : D ⥤ C) extends is_right_adjoint R :=
 (eqv : is_equivalence (monad.comparison R))
-end prio
 
 instance μ_iso_of_reflective [reflective R] : is_iso (μ_ ((left_adjoint R) ⋙ R)) :=
 by { dsimp [adjunction.monad], apply_instance }
@@ -134,7 +130,7 @@ let h : L ⊣ R := is_right_adjoint.adj in
 instance comparison_full [full R] [is_right_adjoint R] : full (monad.comparison R) :=
 { preimage := λ X Y f, R.preimage f.f }
 instance comparison_faithful [faithful R] [is_right_adjoint R] : faithful (monad.comparison R) :=
-{ injectivity' := λ X Y f g w, by { have w' := (congr_arg monad.algebra.hom.f w), exact R.injectivity w' } }
+{ map_injective' := λ X Y f g w, by { have w' := (congr_arg monad.algebra.hom.f w), exact R.map_injective w' } }
 
 end reflective
 

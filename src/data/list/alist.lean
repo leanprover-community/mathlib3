@@ -2,10 +2,12 @@
 Copyright (c) 2018 Sean Leather. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sean Leather, Mario Carneiro
-
-Association lists.
 -/
 import data.list.sigma
+
+/-!
+# Association lists
+-/
 
 universes u v w
 open list
@@ -18,6 +20,8 @@ structure alist (β : α → Type v) : Type (max u v) :=
 (entries : list (sigma β))
 (nodupkeys : entries.nodupkeys)
 
+/-- Given `l : list (sigma β)`, create a term of type `alist β` by removing
+entries with duplicate keys. -/
 def list.to_alist [decidable_eq α] {β : α → Type v} (l : list (sigma β)) : alist β :=
 { entries := _,
   nodupkeys := nodupkeys_erase_dupkeys l }
@@ -33,14 +37,14 @@ lemma ext_iff {s t : alist β} : s = t ↔ s.entries = t.entries :=
 instance [decidable_eq α] [∀ a, decidable_eq (β a)] : decidable_eq (alist β) :=
 λ xs ys, by rw ext_iff; apply_instance
 
-/- keys -/
+/-! ### keys -/
 
 /-- The list of keys of an association list. -/
 def keys (s : alist β) : list α := s.entries.keys
 
 theorem keys_nodup (s : alist β) : s.keys.nodup := s.nodupkeys
 
-/- mem -/
+/-! ### mem -/
 
 /-- The predicate `a ∈ s` means that `s` has a value associated to the key `a`. -/
 instance : has_mem α (alist β) := ⟨λ a s, a ∈ s.keys⟩
@@ -48,9 +52,9 @@ instance : has_mem α (alist β) := ⟨λ a s, a ∈ s.keys⟩
 theorem mem_keys {a : α} {s : alist β} : a ∈ s ↔ a ∈ s.keys := iff.rfl
 
 theorem mem_of_perm {a : α} {s₁ s₂ : alist β} (p : s₁.entries ~ s₂.entries) : a ∈ s₁ ↔ a ∈ s₂ :=
-mem_of_perm $ perm_map sigma.fst p
+(p.map sigma.fst).mem_iff
 
-/- empty -/
+/-! ### empty -/
 
 /-- The empty association list. -/
 instance : has_emptyc (alist β) := ⟨⟨[], nodupkeys_nil⟩⟩
@@ -64,7 +68,7 @@ not_mem_nil a
 
 @[simp] theorem keys_empty : (∅ : alist β).keys = [] := rfl
 
-/- singleton -/
+/-! ### singleton -/
 
 /-- The singleton association list. -/
 def singleton (a : α) (b : β a) : alist β :=
@@ -75,9 +79,11 @@ def singleton (a : α) (b : β a) : alist β :=
 
 @[simp] theorem keys_singleton (a : α) (b : β a) : (singleton a b).keys = [a] := rfl
 
-variables [decidable_eq α]
+/-! ### lookup -/
 
-/- lookup -/
+section
+
+variables [decidable_eq α]
 
 /-- Look up the value associated to a key in an association list. -/
 def lookup (a : α) (s : alist β) : option (β a) :=
@@ -100,7 +106,7 @@ perm_lookup _ s₁.nodupkeys s₂.nodupkeys p
 instance (a : α) (s : alist β) : decidable (a ∈ s) :=
 decidable_of_iff _ lookup_is_some
 
-/- replace -/
+/-! ### replace -/
 
 /-- Replace a key with a given value in an association list.
   If the key is not present it does nothing. -/
@@ -117,15 +123,21 @@ by rw [mem_keys, keys_replace, ←mem_keys]
 
 theorem perm_replace {a : α} {b : β a} {s₁ s₂ : alist β} :
   s₁.entries ~ s₂.entries → (replace a b s₁).entries ~ (replace a b s₂).entries :=
-perm_kreplace s₁.nodupkeys
+perm.kreplace s₁.nodupkeys
+
+end
 
 /-- Fold a function over the key-value pairs in the map. -/
 def foldl {δ : Type w} (f : δ → Π a, β a → δ) (d : δ) (m : alist β) : δ :=
 m.entries.foldl (λ r a, f r a.1 a.2) d
 
-/- erase -/
+/-! ### erase -/
 
-/-- Erase a key from the map. If the key is not present it does nothing. -/
+section
+
+variables [decidable_eq α]
+
+/-- Erase a key from the map. If the key is not present, do nothing. -/
 def erase (a : α) (s : alist β) : alist β :=
 ⟨kerase a s.entries, kerase_nodupkeys _ s.nodupkeys⟩
 
@@ -138,7 +150,7 @@ by rw [mem_keys, keys_erase, mem_erase_iff_of_nodup s.keys_nodup, ←mem_keys]
 
 theorem perm_erase {a : α} {s₁ s₂ : alist β} :
   s₁.entries ~ s₂.entries → (erase a s₁).entries ~ (erase a s₂).entries :=
-perm_kerase s₁.nodupkeys
+perm.kerase s₁.nodupkeys
 
 @[simp] theorem lookup_erase (a) (s : alist β) : lookup a (erase a s) = none :=
 lookup_kerase a s.nodupkeys
@@ -151,7 +163,7 @@ theorem erase_erase (a a' : α) (s : alist β) :
   (s.erase a).erase a' = (s.erase a').erase a :=
 ext $ kerase_kerase
 
-/- insert -/
+/-! ### insert -/
 
 /-- Insert a key-value pair into an association list and erase any existing pair
   with the same key. -/
@@ -176,7 +188,7 @@ by simp [insert, keys, keys_kerase]
 
 theorem perm_insert {a} {b : β a} {s₁ s₂ : alist β} (p : s₁.entries ~ s₂.entries) :
   (insert a b s₁).entries ~ (insert a b s₂).entries :=
-by simp only [insert_entries]; exact perm_kinsert s₁.nodupkeys p
+by simp only [insert_entries]; exact p.kinsert s₁.nodupkeys
 
 @[simp] theorem lookup_insert {a} {b : β a} (s : alist β) : lookup a (insert a b s) = some b :=
 by simp only [lookup, insert, lookup_kinsert]
@@ -188,7 +200,8 @@ lookup_kinsert_ne h
 @[simp] theorem lookup_to_alist {a} (s : list (sigma β)) : lookup a s.to_alist = s.lookup a :=
 by rw [list.to_alist,lookup,lookup_erase_dupkeys]
 
-@[simp] theorem insert_insert {a} {b b' : β a} (s : alist β) : (s.insert a b).insert a b' = s.insert a b' :=
+@[simp] theorem insert_insert {a} {b b' : β a} (s : alist β) :
+  (s.insert a b).insert a b' = s.insert a b' :=
 by ext : 1; simp only [alist.insert_entries, list.kerase_cons_eq];
    constructor_matching* [_ ∧ _]; refl
 
@@ -197,14 +210,18 @@ theorem insert_insert_of_ne {a a'} {b : β a} {b' : β a'} (s : alist β) (h : a
 by simp only [insert_entries]; rw [kerase_cons_ne,kerase_cons_ne,kerase_comm];
    [apply perm.swap, exact h, exact h.symm]
 
-@[simp] lemma insert_singleton_eq {a : α} {b b' : β a} : insert a b (singleton a b') = singleton a b :=
-ext (by simp only [alist.insert_entries, list.kerase_cons_eq, and_self, alist.singleton_entries, heq_iff_eq, eq_self_iff_true])
+@[simp] lemma insert_singleton_eq {a : α} {b b' : β a} :
+  insert a b (singleton a b') = singleton a b :=
+ext $ by simp only [alist.insert_entries, list.kerase_cons_eq, and_self, alist.singleton_entries,
+  heq_iff_eq, eq_self_iff_true]
 
-@[simp] theorem entries_to_alist (xs : list (sigma β)) : (list.to_alist xs).entries = erase_dupkeys xs := rfl
+@[simp] theorem entries_to_alist (xs : list (sigma β)) :
+  (list.to_alist xs).entries = erase_dupkeys xs := rfl
 
-theorem to_alist_cons (a : α) (b : β a) (xs : list (sigma β)) : list.to_alist (⟨a,b⟩ :: xs) = insert a b xs.to_alist := rfl
+theorem to_alist_cons (a : α) (b : β a) (xs : list (sigma β)) :
+  list.to_alist (⟨a,b⟩ :: xs) = insert a b xs.to_alist := rfl
 
-/- extract -/
+/-! ### extract -/
 
 /-- Erase a key from the map, and return the corresponding value, if found. -/
 def extract (a : α) (s : alist β) : option (β a) × alist β :=
@@ -218,7 +235,7 @@ end
   extract a s = (lookup a s, erase a s) :=
 by simp [extract]; split; refl
 
-/- union -/
+/-! ### union -/
 
 /-- `s₁ ∪ s₂` is the key-based union of two association lists. It is
 left-biased: if there exists an `a ∈ s₁`, `lookup a (s₁ ∪ s₂) = lookup a s₁`.
@@ -245,7 +262,7 @@ mem_keys_kunion
 theorem perm_union {s₁ s₂ s₃ s₄ : alist β}
   (p₁₂ : s₁.entries ~ s₂.entries) (p₃₄ : s₃.entries ~ s₄.entries) :
   (s₁ ∪ s₃).entries ~ (s₂ ∪ s₄).entries :=
-by simp [perm_kunion s₃.nodupkeys p₁₂ p₃₄]
+by simp [p₁₂.kunion s₃.nodupkeys p₃₄]
 
 theorem union_erase (a : α) (s₁ s₂ : alist β) : erase a (s₁ ∪ s₂) = erase a s₁ ∪ erase a s₂ :=
 ext kunion_kerase.symm
@@ -274,12 +291,18 @@ theorem union_assoc {s₁ s₂ s₃ : alist β} : ((s₁ ∪ s₂) ∪ s₃).ent
 lookup_ext (alist.nodupkeys _) (alist.nodupkeys _)
 (by simp [decidable.not_or_iff_and_not,or_assoc,and_or_distrib_left,and_assoc])
 
-/- disjoint -/
+end
 
-def disjoint (s₁ s₂ : alist β) :=
+/-! ### disjoint -/
+
+/-- Two associative lists are disjoint if they have no common keys. -/
+def disjoint (s₁ s₂ : alist β) : Prop :=
 ∀ k ∈ s₁.keys, ¬ k ∈ s₂.keys
 
-theorem union_comm_of_disjoint {s₁ s₂ : alist β} (h : disjoint s₁ s₂) : (s₁ ∪ s₂).entries ~ (s₂ ∪ s₁).entries :=
+variables [decidable_eq α]
+
+theorem union_comm_of_disjoint {s₁ s₂ : alist β} (h : disjoint s₁ s₂) :
+  (s₁ ∪ s₂).entries ~ (s₂ ∪ s₁).entries :=
 lookup_ext (alist.nodupkeys _) (alist.nodupkeys _)
 (begin
    intros, simp,

@@ -3,7 +3,6 @@ Copyright (c) 2020 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import linear_algebra.tensor_product
 import linear_algebra.dual
 
 /-!
@@ -20,7 +19,6 @@ contraction, dual module, tensor product
 
 universes u v
 
-set_option class.instance_max_depth 50
 
 section contraction
 open tensor_product
@@ -33,7 +31,8 @@ variables [comm_ring R] [add_comm_group M] [add_comm_group N] [module R M] [modu
 def contract_left : (module.dual R M) ⊗ M →ₗ[R] R := (uncurry _ _ _ _).to_fun linear_map.id
 
 /-- The natural right-handed pairing between a module and its dual. -/
-def contract_right : M ⊗ (module.dual R M) →ₗ[R] R := (uncurry _ _ _ _).to_fun linear_map.id.flip
+def contract_right : M ⊗ (module.dual R M) →ₗ[R] R :=
+(uncurry _ _ _ _).to_fun (linear_map.flip linear_map.id)
 
 /-- The natural map associating a linear map to the tensor product of two modules. -/
 def dual_tensor_hom : (module.dual R M) ⊗ N →ₗ M →ₗ N :=

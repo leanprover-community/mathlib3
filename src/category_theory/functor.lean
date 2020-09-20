@@ -12,8 +12,7 @@ Introduces notations
   `C ⥤ D` for the type of all functors from `C` to `D`.
     (I would like a better arrow here, unfortunately ⇒ (`\functor`) is taken by core.)
 -/
-
-import category_theory.category tactic.reassoc_axiom
+import tactic.reassoc_axiom
 
 namespace category_theory
 
@@ -26,6 +25,8 @@ To apply a functor `F` to an object use `F.obj X`, and to a morphism use `F.map 
 
 The axiom `map_id` expresses preservation of identities, and
 `map_comp` expresses functoriality.
+
+See https://stacks.math.columbia.edu/tag/001B.
 -/
 structure functor (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D] :
   Type (max v₁ v₂ u₁ u₂) :=
@@ -46,15 +47,16 @@ attribute [reassoc, simp] functor.map_comp
 namespace functor
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁} C]
-include 𝒞
+variables (C : Type u₁) [category.{v₁} C]
 
 /-- `𝟭 C` is the identity functor on a category `C`. -/
 protected def id : C ⥤ C :=
 { obj := λ X, X,
   map := λ _ _ f, f }
 
-notation `𝟭` := functor.id
+notation `𝟭` := functor.id -- Type this as `\sb1`
+
+instance : inhabited (C ⥤ C) := ⟨functor.id C⟩
 
 variable {C}
 
@@ -63,10 +65,9 @@ variable {C}
 end
 
 section
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-          {D : Type u₂} [𝒟 : category.{v₂} D]
-          {E : Type u₃} [ℰ : category.{v₃} E]
-include 𝒞 𝒟 ℰ
+variables {C : Type u₁} [category.{v₁} C]
+          {D : Type u₂} [category.{v₂} D]
+          {E : Type u₃} [category.{v₃} E]
 
 /--
 `F ⋙ G` is the composition of a functor `F` and a functor `G` (`F` first, then `G`).
@@ -80,8 +81,6 @@ infixr ` ⋙ `:80 := comp
 @[simp] lemma comp_obj (F : C ⥤ D) (G : D ⥤ E) (X : C) : (F ⋙ G).obj X = G.obj (F.obj X) := rfl
 @[simp] lemma comp_map (F : C ⥤ D) (G : D ⥤ E) {X Y : C} (f : X ⟶ Y) :
   (F ⋙ G).map f = G.map (F.map f) := rfl
-
-omit ℰ
 
 -- These are not simp lemmas because rewriting along equalities between functors
 -- is not necessarily a good idea.
@@ -97,20 +96,6 @@ variables {B : Type u} [ℬ : category.{v} B]
           {E : Type u₃} [ℰ : category.{v₃} E]
 include ℬ 𝒞 𝒟 ℰ
 protected lemma assoc (F : B ⥤ C) (G : C ⥤ D) (H : D ⥤ E) : (F ⋙ G) ⋙ H = F ⋙ (G ⋙ H) := rfl
-end
-
-section
-variables (C : Type u₁) [𝒞 : category.{v₁} C]
-include 𝒞
-
-@[simp] def ulift_down : (ulift.{u₂} C) ⥤ C :=
-{ obj := λ X, X.down,
-  map := λ X Y f, f }
-
-@[simp] def ulift_up : C ⥤ (ulift.{u₂} C) :=
-{ obj := λ X, ⟨ X ⟩,
-  map := λ X Y f, f }
-
 end
 
 end functor

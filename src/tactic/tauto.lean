@@ -3,7 +3,7 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import logic.basic tactic.solve_by_elim tactic.hint
+import tactic.hint
 
 namespace tactic
 
@@ -17,24 +17,24 @@ open tactic.interactive ( casesm constructor_matching )
 meta def distrib_not : tactic unit :=
 do hs ← local_context,
    hs.for_each $ λ h,
-    all_goals $
-    iterate_at_most 3 $
+    all_goals' $
+    iterate_at_most' 3 $
       do h ← get_local h.local_pp_name,
          e ← infer_type h,
          match e with
          | `(¬ _ = _) := replace h.local_pp_name ``(mt iff.to_eq %%h)
          | `(_ ≠ _)   := replace h.local_pp_name ``(mt iff.to_eq %%h)
          | `(_ = _)   := replace h.local_pp_name ``(eq.to_iff %%h)
-         | `(¬ (_ ∧ _))  := replace h.local_pp_name ``(not_and_distrib'.mp %%h) <|>
-                            replace h.local_pp_name ``(not_and_distrib.mp %%h)
+         | `(¬ (_ ∧ _))  := replace h.local_pp_name ``(decidable.not_and_distrib'.mp %%h) <|>
+                            replace h.local_pp_name ``(decidable.not_and_distrib.mp %%h)
          | `(¬ (_ ∨ _))  := replace h.local_pp_name ``(not_or_distrib.mp %%h)
-         | `(¬ ¬ _)      := replace h.local_pp_name ``(of_not_not %%h)
-         | `(¬ (_ → (_ : Prop))) := replace h.local_pp_name ``(not_imp.mp %%h)
-         | `(¬ (_ ↔ _)) := replace h.local_pp_name ``(not_iff.mp %%h)
-         | `(_ ↔ _) := replace h.local_pp_name ``(iff_iff_and_or_not_and_not.mp %%h) <|>
-                       replace h.local_pp_name ``(iff_iff_and_or_not_and_not.mp (%%h).symm) <|>
+         | `(¬ ¬ _)      := replace h.local_pp_name ``(decidable.of_not_not %%h)
+         | `(¬ (_ → (_ : Prop))) := replace h.local_pp_name ``(decidable.not_imp.mp %%h)
+         | `(¬ (_ ↔ _)) := replace h.local_pp_name ``(decidable.not_iff.mp %%h)
+         | `(_ ↔ _) := replace h.local_pp_name ``(decidable.iff_iff_and_or_not_and_not.mp %%h) <|>
+                       replace h.local_pp_name ``(decidable.iff_iff_and_or_not_and_not.mp (%%h).symm) <|>
                        () <$ tactic.cases h
-         | `(_ → _)     := replace h.local_pp_name ``(not_or_of_imp %%h)
+         | `(_ → _)     := replace h.local_pp_name ``(decidable.not_or_of_imp %%h)
          | _ := failed
          end
 

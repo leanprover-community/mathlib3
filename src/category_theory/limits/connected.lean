@@ -3,12 +3,10 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-
 import category_theory.limits.shapes.pullbacks
-import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.equalizers
-import category_theory.limits.preserves
-import category_theory.connected
+import category_theory.limits.preserves.basic
+import category_theory.is_connected
 
 /-!
 # Connected limits
@@ -20,54 +18,50 @@ by `(X × -)` preserves any connected limit. That is, any limit of shape `J`
 where `J` is a connected category is preserved by the functor `(X × -)`.
 -/
 
+noncomputable theory
+
 universes v₁ v₂ u₁ u₂
 
 open category_theory category_theory.category category_theory.limits
 namespace category_theory
 
 section examples
-instance cospan_inhabited : inhabited walking_cospan := ⟨walking_cospan.one⟩
 
-instance cospan_connected : connected (walking_cospan) :=
+instance wide_pullback_shape_connected (J : Type v₁) : is_connected (wide_pullback_shape J) :=
 begin
-  apply connected.of_induct,
+  apply is_connected.of_induct,
   introv _ t,
   cases j,
-  { rwa t walking_cospan.hom.inl },
-  { rwa t walking_cospan.hom.inr },
-  { assumption }
+  { exact a },
+  { rwa t (wide_pullback_shape.hom.term j) }
 end
 
-instance span_inhabited : inhabited walking_span := ⟨walking_span.zero⟩
-
-instance span_connected : connected (walking_span) :=
+instance wide_pushout_shape_connected (J : Type v₁) : is_connected (wide_pushout_shape J) :=
 begin
-  apply connected.of_induct,
+  apply is_connected.of_induct,
   introv _ t,
   cases j,
-  { assumption },
-  { rwa ← t walking_span.hom.fst },
-  { rwa ← t walking_span.hom.snd },
+  { exact a },
+  { rwa ← t (wide_pushout_shape.hom.init j) }
 end
 
 instance parallel_pair_inhabited : inhabited walking_parallel_pair := ⟨walking_parallel_pair.one⟩
 
-instance parallel_pair_connected : connected (walking_parallel_pair) :=
+instance parallel_pair_connected : is_connected (walking_parallel_pair) :=
 begin
-  apply connected.of_induct,
-  introv _ t, cases j,
+  apply is_connected.of_induct,
+  introv _ t,
+  cases j,
   { rwa t walking_parallel_pair_hom.left },
   { assumption }
 end
-
 end examples
 
 local attribute [tidy] tactic.case_bash
 
-variables {C : Type u₂} [𝒞 : category.{v₂} C]
-include 𝒞
+variables {C : Type u₂} [category.{v₂} C]
 
-variables [has_binary_products.{v₂} C]
+variables [has_binary_products C]
 
 variables {J : Type v₂} [small_category J]
 
@@ -99,22 +93,23 @@ Note that this functor does not preserve the two most obvious disconnected limit
 `(X × -)` does not preserve products or terminal object, eg `(X ⨯ A) ⨯ (X ⨯ B)` is not isomorphic to
 `X ⨯ (A ⨯ B)` and `X ⨯ 1` is not isomorphic to `1`.
 -/
-def prod_preserves_connected_limits [connected J] (X : C) :
+noncomputable
+def prod_preserves_connected_limits [is_connected J] (X : C) :
   preserves_limits_of_shape J (prod_functor.obj X) :=
 { preserves_limit := λ K,
   { preserves := λ c l,
-    { lift := λ s, prod.lift (s.π.app (default _) ≫ limits.prod.fst) (l.lift (forget_cone s)),
+    { lift := λ s, prod.lift (s.π.app (classical.arbitrary _) ≫ limits.prod.fst) (l.lift (forget_cone s)),
       fac' := λ s j,
       begin
         apply prod.hom_ext,
         { erw [assoc, limit.map_π, comp_id, limit.lift_π],
-          exact (nat_trans_from_connected (s.π ≫ γ₁ X) j).symm },
+          exact (nat_trans_from_is_connected (s.π ≫ γ₁ X) j (classical.arbitrary _)).symm },
         { simp [← l.fac (forget_cone s) j] }
       end,
       uniq' := λ s m L,
       begin
         apply prod.hom_ext,
-        { erw [limit.lift_π, ← L (default J), assoc, limit.map_π, comp_id],
+        { erw [limit.lift_π, ← L (classical.arbitrary J), assoc, limit.map_π, comp_id],
           refl },
         { rw limit.lift_π,
           apply l.uniq (forget_cone s),

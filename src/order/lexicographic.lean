@@ -7,7 +7,6 @@ Lexicographic preorder / partial_order / linear_order / decidable_linear_order,
 for pairs and dependent pairs.
 -/
 import tactic.basic
-import algebra.order
 
 universes u v
 

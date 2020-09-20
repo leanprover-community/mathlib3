@@ -3,7 +3,8 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import data.dlist tactic.core
+import data.dlist
+import tactic.core
 
 namespace tactic
 open expr list
@@ -206,7 +207,7 @@ add_tactic_doc
 { name                     := "assoc_rewrite",
   category                 := doc_category.tactic,
   decl_names               := [`tactic.interactive.assoc_rewrite, `tactic.interactive.assoc_rw],
-  tags                     := ["rewrite"],
+  tags                     := ["rewriting"],
   inherit_description_from := `tactic.interactive.assoc_rewrite }
 
 end interactive

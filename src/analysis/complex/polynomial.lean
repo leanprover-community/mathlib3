@@ -3,7 +3,14 @@ Copyright (c) 2019 Chris Hughes All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.polynomial topology.algebra.polynomial analysis.complex.exponential
+import topology.algebra.polynomial
+import analysis.special_functions.pow
+
+/-!
+# The fundamental theorem of algebra
+
+This file proves that every nonconstant complex polynomial has a root.
+-/
 
 open complex polynomial metric filter is_absolute_value set
 
@@ -56,8 +63,8 @@ have hF₁ : F.eval z' = f.eval z₀ - f.eval z₀ * (g.eval z₀).abs * δ ^ n 
       neg_mul_eq_neg_mul_symm, mul_one, div_eq_mul_inv];
     simp only [mul_comm, mul_left_comm, mul_assoc],
 have hδs : (g.eval z₀).abs * δ ^ n / (f.eval z₀).abs < 1,
-  by rw [div_eq_mul_inv, mul_right_comm, mul_comm, ← @inv_inv' _ _ (complex.abs _ * _), mul_inv',
-      inv_inv', ← div_eq_mul_inv, div_lt_iff hfg0, one_mul];
+  by rw [div_eq_mul_inv, mul_right_comm, mul_comm, ← @inv_inv' _ _ (complex.abs _ * _),
+      mul_inv_rev', inv_inv', ← div_eq_mul_inv, div_lt_iff hfg0, one_mul];
     calc δ ^ n ≤ δ ^ 1 : pow_le_pow_of_le_one (le_of_lt hδ0) hδ1 hn0
       ... = δ : pow_one _
       ... ≤ ((f.eval z₀).abs / (g.eval z₀).abs) / 2 : min_le_right _ _
@@ -84,7 +91,7 @@ have hF₃ : (f.eval z' - F.eval z').abs < (g.eval z₀).abs * δ ^ n,
         by rw [← eq_sub_iff_add_eq.1 hg, ← is_absolute_value.abv_pow complex.abs,
             ← complex.abs_mul, sub_mul];
           simp [F, eval_pow, eval_add, eval_mul, eval_sub, eval_C, eval_X, eval_neg, add_sub_cancel,
-                sub_eq_add_neg]
+                sub_eq_add_neg, add_assoc]
   ... = (g.eval z' - g.eval z₀).abs * δ ^ n : by rw hz'z₀
   ... < _ : (mul_lt_mul_right (pow_pos hδ0 _)).2 (hδ _ hz'z₀),
 lt_irrefl (f.eval z₀).abs $

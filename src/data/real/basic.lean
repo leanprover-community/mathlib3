@@ -6,8 +6,9 @@ Authors: Mario Carneiro, Floris van Doorn
 The (classical) real numbers ℝ. This is a direct construction
 from Cauchy sequences.
 -/
-import order.conditionally_complete_lattice data.real.cau_seq_completion
-  algebra.archimedean order.bounds
+import order.conditionally_complete_lattice
+import data.real.cau_seq_completion
+import algebra.archimedean
 
 def real := @cau_seq.completion.Cauchy ℚ _ _ _ abs _
 notation `ℝ` := real
@@ -16,10 +17,6 @@ namespace real
 open cau_seq cau_seq.completion
 
 variables {x y : ℝ}
-
-def of_rat (x : ℚ) : ℝ := of_rat x
-
-def mk (x : cau_seq ℚ abs) : ℝ := cau_seq.completion.mk x
 
 def comm_ring_aux : comm_ring ℝ := cau_seq.completion.comm_ring
 
@@ -42,6 +39,13 @@ instance : monoid ℝ             := by apply_instance
 instance : comm_semigroup ℝ     := by apply_instance
 instance : semigroup ℝ          := by apply_instance
 instance : inhabited ℝ := ⟨0⟩
+
+/-- Coercion `ℚ` → `ℝ` as a `ring_hom`. Note that this
+is `cau_seq.completion.of_rat`, not `rat.cast`. -/
+def of_rat : ℚ →+* ℝ := ⟨of_rat, rfl, of_rat_mul, rfl, of_rat_add⟩
+
+/-- Make a real number from a Cauchy sequence of rationals (by taking the equivalence class). -/
+def mk (x : cau_seq ℚ abs) : ℝ := cau_seq.completion.mk x
 
 theorem of_rat_sub (x y : ℚ) : of_rat (x - y) = of_rat x - of_rat y :=
 congr_arg mk (const_sub _ _)
@@ -100,10 +104,10 @@ quotient.induction_on₂ a b $ λ f g,
 instance : linear_ordered_comm_ring ℝ :=
 { add_le_add_left := λ a b h c,
     (le_iff_le_iff_lt_iff_lt.2 $ real.add_lt_add_iff_left c).2 h,
-  zero_ne_one := ne_of_lt real.zero_lt_one,
-  mul_pos := @real.mul_pos,
+  exists_pair_ne  := ⟨0, 1, ne_of_lt real.zero_lt_one⟩,
+  mul_pos     := @real.mul_pos,
   zero_lt_one := real.zero_lt_one,
-  ..real.comm_ring, ..real.linear_order, ..real.semiring }
+  .. real.comm_ring, .. real.linear_order, .. real.semiring }
 
 /- Extra instances to short-circuit type class resolution -/
 instance : linear_ordered_ring ℝ        := by apply_instance
@@ -137,7 +141,7 @@ noncomputable instance : decidable_linear_ordered_add_comm_group ℝ := by apply
 noncomputable instance field : field ℝ := by apply_instance
 noncomputable instance : division_ring ℝ           := by apply_instance
 noncomputable instance : integral_domain ℝ         := by apply_instance
-noncomputable instance : nonzero_comm_ring ℝ       := by apply_instance
+instance : nontrivial ℝ                            := by apply_instance
 noncomputable instance : decidable_linear_order ℝ  := by apply_instance
 noncomputable instance : distrib_lattice ℝ := by apply_instance
 noncomputable instance : lattice ℝ         := by apply_instance
@@ -145,8 +149,11 @@ noncomputable instance : semilattice_inf ℝ := by apply_instance
 noncomputable instance : semilattice_sup ℝ := by apply_instance
 noncomputable instance : has_inf ℝ         := by apply_instance
 noncomputable instance : has_sup ℝ         := by apply_instance
+noncomputable instance decidable_lt (a b : ℝ) : decidable (a < b) := by apply_instance
+noncomputable instance decidable_le (a b : ℝ) : decidable (a ≤ b) := by apply_instance
+noncomputable instance decidable_eq (a b : ℝ) : decidable (a = b) := by apply_instance
 
-lemma le_of_forall_epsilon_le {a b : real} (h : ∀ε, ε > 0 → a ≤ b + ε) : a ≤ b :=
+lemma le_of_forall_epsilon_le {a b : real} (h : ∀ε, 0 < ε → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,
 calc  a ≤ b + (x - b) : h (x-b) $ sub_pos.2 hxb
     ... = x : by rw [add_comm]; simp
@@ -154,7 +161,7 @@ calc  a ≤ b + (x - b) : h (x-b) $ sub_pos.2 hxb
 open rat
 
 @[simp] theorem of_rat_eq_cast : ∀ x : ℚ, of_rat x = x :=
-eq_cast of_rat rfl of_rat_add of_rat_mul
+of_rat.eq_rat_cast
 
 theorem le_mk_of_forall_le {f : cau_seq ℚ abs} :
   (∃ i, ∀ j ≥ i, x ≤ f j) → x ≤ mk f :=
@@ -440,7 +447,7 @@ end,
       ← le_div_iff (div_pos h _30), div_div_cancel' (ne_of_gt h)],
     apply add_le_add,
     { simpa using (mul_le_mul_left (@two_pos ℝ _)).2 (Sup_le_ub _ ⟨_, lb⟩ ub) },
-    { rw [div_le_one_iff_le _30],
+    { rw [div_le_one _30],
       refine le_trans (sub_le_self _ (mul_self_nonneg _)) (le_trans x1 _),
       exact (le_add_iff_nonneg_left _).2 (le_of_lt two_pos) } }
 end
@@ -451,7 +458,7 @@ def sqrt_aux (f : cau_seq ℚ abs) : ℕ → ℚ
 
 theorem sqrt_aux_nonneg (f : cau_seq ℚ abs) : ∀ i : ℕ, 0 ≤ sqrt_aux f i
 | 0       := by rw [sqrt_aux, mk_nat_eq, mk_eq_div];
-  apply div_nonneg'; exact int.cast_nonneg.2 (int.of_nat_nonneg _)
+  apply div_nonneg; exact int.cast_nonneg.2 (int.of_nat_nonneg _)
 | (n + 1) := le_max_left _ _
 
 /- TODO(Mario): finish the proof
@@ -469,7 +476,8 @@ begin
      }
 end -/
 
-noncomputable def sqrt (x : ℝ) : ℝ :=
+/-- The square root of a real number. This returns 0 for negative inputs. -/
+@[pp_nodot] noncomputable def sqrt (x : ℝ) : ℝ :=
 classical.some (sqrt_exists (le_max_left 0 x))
 /-quotient.lift_on x
   (λ f, mk ⟨sqrt_aux f, (sqrt_aux_converges f).fst⟩)
@@ -590,7 +598,7 @@ lt_iff_lt_of_le_iff_le (iff.trans
 @[simp] theorem sqrt_mul' (x) {y : ℝ} (hy : 0 ≤ y) : sqrt (x * y) = sqrt x * sqrt y :=
 begin
   cases le_total 0 x with hx hx,
-  { refine (mul_self_inj_of_nonneg _ (mul_nonneg _ _)).1 _; try {apply sqrt_nonneg},
+  { refine iff.mp (mul_self_inj_of_nonneg _ (mul_nonneg _ _)) _; try {apply sqrt_nonneg},
     rw [mul_self_sqrt (mul_nonneg hx hy), mul_assoc,
         mul_left_comm (sqrt y), mul_self_sqrt hy, ← mul_assoc, mul_self_sqrt hx] },
   { rw [sqrt_eq_zero'.2 (mul_nonpos_of_nonpos_of_nonneg hx hy),

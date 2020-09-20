@@ -99,7 +99,7 @@ end
 -- Verifying that `solve_by_elim*` backtracks when given multiple goals.
 example (n m : ℕ) (f : ℕ → ℕ → Prop) (h : f n m) : ∃ p : ℕ × ℕ, f p.1 p.2 :=
 begin
-  repeat { split },
+  repeat { fsplit },
   solve_by_elim*,
 end
 

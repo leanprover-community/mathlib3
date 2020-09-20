@@ -3,9 +3,7 @@ Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Seul Baek
 -/
-import data.list.defs
 import data.nat.basic
-import tactic.interactive
 
 open list
 
@@ -220,7 +218,8 @@ lemma nil_pointwise {f : α → β → γ} : ∀ bs : list β, pointwise f [] bs
   by simp only [nil_pointwise bs, pointwise,
      eq_self_iff_true, and_self, map]
 
-lemma pointwise_nil {f : α → β → γ} : ∀ as : list α, pointwise f as [] = as.map (λ a, f a $ default β)
+lemma pointwise_nil {f : α → β → γ} :
+  ∀ as : list α, pointwise f as [] = as.map (λ a, f a $ default β)
 | []      := rfl
 | (a::as) :=
   by simp only [pointwise_nil as, pointwise,
@@ -280,7 +279,7 @@ by {apply get_pointwise, apply zero_add}
 begin
   rw [add, @nil_pointwise α α α ⟨0⟩ ⟨0⟩],
   apply eq.trans _ (map_id as),
-  congr, ext,
+  congr' with x,
   have : @default α ⟨0⟩ = 0 := rfl,
   rw [this, zero_add], refl
 end
@@ -290,7 +289,7 @@ end
 begin
   rw [add, @pointwise_nil α α α ⟨0⟩ ⟨0⟩],
   apply eq.trans _ (map_id as),
-  congr, ext,
+  congr' with x,
   have : @default α ⟨0⟩ = 0 := rfl,
   rw [this, add_zero], refl
 end
@@ -327,7 +326,7 @@ by {apply get_pointwise, apply sub_zero}
   (as : list α) : sub [] as = neg as :=
 begin
   rw [sub, nil_pointwise],
-  congr, ext,
+  congr' with x,
   have : @default α ⟨0⟩ = 0 := rfl,
   rw [this, zero_sub]
 end
@@ -337,7 +336,7 @@ end
 begin
   rw [sub, pointwise_nil],
   apply eq.trans _ (map_id as),
-  congr, ext,
+  congr' with x,
   have : @default α ⟨0⟩ = 0 := rfl,
   rw [this, sub_zero], refl
 end

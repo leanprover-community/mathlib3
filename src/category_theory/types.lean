@@ -3,7 +3,6 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl
 -/
-import category_theory.functor_category
 import category_theory.fully_faithful
 import data.equiv.basic
 
@@ -48,6 +47,12 @@ lemma types_id_apply (X : Type u) (x : X) : ((𝟙 X) : X → X) x = x := rfl
 @[simp]
 lemma types_comp_apply {X Y Z : Type u} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) : (f ≫ g) x = g (f x) := rfl
 
+@[simp]
+lemma hom_inv_id_apply {X Y : Type u} (f : X ≅ Y) (x : X) : f.inv (f.hom x) = x :=
+congr_fun f.hom_inv_id x
+@[simp]
+lemma inv_hom_id_apply {X Y : Type u} (f : X ≅ Y) (y : Y) : f.hom (f.inv y) = y :=
+congr_fun f.inv_hom_id y
 
 /-- `as_hom f` helps Lean type check a function as a morphism in the category `Type`. -/
 -- Unfortunately without this wrapper we can't use `category_theory` idioms, such as `is_iso f`.
@@ -64,8 +69,7 @@ example [is_iso ↾f] : ↾f ≫ inv ↾f = 𝟙 α := by simp
 end
 
 namespace functor
-variables {J : Type u} [𝒥 : category.{v} J]
-include 𝒥
+variables {J : Type u} [category.{v} J]
 
 /--
 The sections of a functor `J ⥤ Type` are
@@ -79,8 +83,7 @@ def sections (F : J ⥤ Type w) : set (Π j, F.obj j) :=
 end functor
 
 namespace functor_to_types
-variables {C : Type u} [𝒞 : category.{v} C] (F G H : C ⥤ Type w) {X Y Z : C}
-include 𝒞
+variables {C : Type u} [category.{v} C] (F G H : C ⥤ Type w) {X Y Z : C}
 variables (σ : F ⟶ G) (τ : G ⟶ H)
 
 @[simp] lemma map_comp_apply (f : X ⟶ Y) (g : Y ⟶ Z) (a : F.obj X) : (F.map (f ≫ g)) a = (F.map g) ((F.map f) a) :=
@@ -103,6 +106,11 @@ congr_fun (F.map_iso f).hom_inv_id x
 @[simp] lemma map_hom_map_inv_apply (f : X ≅ Y) (y : F.obj Y) : F.map f.hom (F.map f.inv y) = y :=
 congr_fun (F.map_iso f).inv_hom_id y
 
+@[simp] lemma hom_inv_id_app_apply (α : F ≅ G) (X) (x) : α.inv.app X (α.hom.app X x) = x :=
+congr_fun (α.hom_inv_id_app X) x
+@[simp] lemma inv_hom_id_app_apply (α : F ≅ G) (X) (x) : α.hom.app X (α.inv.app X x) = x :=
+congr_fun (α.inv_hom_id_app X) x
+
 end functor_to_types
 
 /--
@@ -122,10 +130,10 @@ def ulift_functor : Type u ⥤ Type (max u v) :=
 @[simp] lemma ulift_functor_map {X Y : Type u} (f : X ⟶ Y) (x : ulift.{v} X) :
   ulift_functor.map f x = ulift.up (f x.down) := rfl
 
-instance ulift_functor_full : full ulift_functor :=
+instance ulift_functor_full : full.{u} ulift_functor :=
 { preimage := λ X Y f x, (f (ulift.up x)).down }
 instance ulift_functor_faithful : faithful ulift_functor :=
-{ injectivity' := λ X Y f g p, funext $ λ x,
+{ map_injective' := λ X Y f g p, funext $ λ x,
     congr_arg ulift.down ((congr_fun p (ulift.up x)) : ((ulift.up (f x)) = (ulift.up (g x)))) }
 
 /-- Any term `x` of a type `X` corresponds to a morphism `punit ⟶ X`. -/
@@ -137,6 +145,11 @@ lemma hom_of_element_eq_iff {X : Type u} (x y : X) :
   hom_of_element x = hom_of_element y ↔ x = y :=
 ⟨λ H, congr_fun H punit.star, by cc⟩
 
+/--
+A morphism in `Type` is a monomorphism if and only if it is injective.
+
+See https://stacks.math.columbia.edu/tag/003C.
+-/
 lemma mono_iff_injective {X Y : Type u} (f : X ⟶ Y) : mono f ↔ function.injective f :=
 begin
   split,
@@ -150,6 +163,11 @@ begin
     exact H H₂ }
 end
 
+/--
+A morphism in `Type` is an epimorphism if and only if it is surjective.
+
+See https://stacks.math.columbia.edu/tag/003C.
+-/
 lemma epi_iff_surjective {X Y : Type u} (f : X ⟶ Y) : epi f ↔ function.surjective f :=
 begin
   split,
@@ -224,10 +242,10 @@ def to_iso (e : X ≃ Y) : X ≅ Y :=
 
 end equiv
 
+universe u
+
 namespace category_theory.iso
 open category_theory
-
-universe u
 
 variables {X Y : Type u}
 
@@ -249,8 +267,16 @@ def to_equiv (i : X ≅ Y) : X ≃ Y :=
 
 end category_theory.iso
 
+namespace category_theory
 
-universe u
+/-- A morphism in `Type u` is an isomorphism if and only if it is bijective. -/
+noncomputable
+def is_iso_equiv_bijective {X Y : Type u} (f : X ⟶ Y) : is_iso f ≃ function.bijective f :=
+equiv_of_subsingleton_of_subsingleton
+  (λ i, ({ hom := f, .. i } : X ≅ Y).to_equiv.bijective)
+  (λ b, { .. (equiv.of_bijective f b).to_iso })
+
+end category_theory
 
 -- We prove `equiv_iso_iso` and then use that to sneakily construct `equiv_equiv_iso`.
 -- (In this order the proofs are handled by `obviously`.)

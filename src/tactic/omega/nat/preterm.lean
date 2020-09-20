@@ -3,7 +3,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
 Linear natural number arithmetic terms in pre-normalized form. -/
-
 import tactic.omega.term
 
 open tactic

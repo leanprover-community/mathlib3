@@ -21,7 +21,8 @@ and the appropriate definition of instances:
  * `has_coe_variable` checks that there is no instance of type `has_coe α t`
  * `inhabited_nonempty` checks whether `[inhabited α]` arguments could be generalized
    to `[nonempty α]`
- * `decidable_classical` checks propositions for `[decidable_... p]` hypotheses that are not used in the statement, and could thus be removed by using `classical` in the proof.
+ * `decidable_classical` checks propositions for `[decidable_... p]` hypotheses that are not used
+   in the statement, and could thus be removed by using `classical` in the proof.
 -/
 
 open tactic
@@ -74,18 +75,6 @@ Therefore, if we create an instance that always applies, we set the priority of 
 -/
 library_note "lower instance priority"
 
-/--
-Instances that always apply should be applied after instances that only apply in specific cases,
-see note [lower instance priority] above.
-
-Classes that use the `extends` keyword automatically generate instances that always apply.
-Therefore, we set the priority of these instances to 100 (or something similar, which is below the
-default value of 1000) using `set_option default_priority 100`.
-We have to put this option inside a section, so that the default priority is the default
-1000 outside the section.
--/
-library_note "default priority"
-
 /-- A linter object for checking instance priorities of instances that always apply.
 This is in the default linter set. -/
 @[linter] meta def linter.instance_priority : linter :=
@@ -94,9 +83,7 @@ This is in the default linter set. -/
   errors_found := "DANGEROUS INSTANCE PRIORITIES.
 The following instances always apply, and therefore should have a priority < 1000.
 If you don't know what priority to choose, use priority 100.
-
-If this is an automatically generated instance (using the keywords `class` and `extends`),
-see note [lower instance priority] and see note [default priority] for instructions to change the priority",
+See note [lower instance priority] for instructions to change the priority.",
   auto_decls := tt }
 
 /-- Reports declarations of types that do not have an associated `inhabited` instance. -/
@@ -104,7 +91,7 @@ private meta def has_inhabited_instance (d : declaration) : tactic (option strin
 tt ← pure d.is_trusted | pure none,
 ff ← has_attribute' `reducible d.to_name | pure none,
 ff ← has_attribute' `class d.to_name | pure none,
-(_, ty) ← mk_local_pis d.type,
+(_, ty) ← open_pis d.type,
 ty ← whnf ty,
 if ty = `(Prop) then pure none else do
 `(Sort _) ← whnf ty | pure none,
@@ -122,6 +109,7 @@ else
 @[linter]
 meta def linter.has_inhabited_instance : linter :=
 { test := has_inhabited_instance,
+  auto_decls := ff,
   no_errors_found := "No types have missing inhabited instances",
   errors_found := "TYPES ARE MISSING INHABITED INSTANCES",
   is_fast := ff }
@@ -131,7 +119,7 @@ attribute [nolint has_inhabited_instance] pempty
 /-- Checks whether an instance can never be applied. -/
 private meta def impossible_instance (d : declaration) : tactic (option string) := do
   tt ← is_instance d.to_name | return none,
-  (binders, _) ← get_pi_binders_dep d.type,
+  (binders, _) ← get_pi_binders_nondep d.type,
   let bad_arguments := binders.filter $ λ nb, nb.2.info ≠ binder_info.inst_implicit,
   _ :: _ ← return bad_arguments | return none,
   (λ s, some $ "Impossible to infer " ++ s) <$> print_arguments bad_arguments
@@ -139,6 +127,7 @@ private meta def impossible_instance (d : declaration) : tactic (option string) 
 /-- A linter object for `impossible_instance`. -/
 @[linter] meta def linter.impossible_instance : linter :=
 { test := impossible_instance,
+  auto_decls := tt,
   no_errors_found := "All instances are applicable",
   errors_found := "IMPOSSIBLE INSTANCES FOUND.
 These instances have an argument that cannot be found during type-class resolution, and therefore can never succeed. Either mark the arguments with square brackets (if it is a class), or don't make it an instance" }
@@ -152,7 +141,7 @@ private meta def incorrect_type_class_argument (d : declaration) : tactic (optio
   A local constant is allowed, because that could be a class when applied to the
   proper arguments. -/
   bad_arguments ← instance_arguments.mfilter (λ ⟨_, b⟩, do
-    (_, head) ← mk_local_pis b.type,
+    (_, head) ← open_pis b.type,
     if head.get_app_fn.is_local_constant then return ff else do
     bnot <$> is_class head),
   _ :: _ ← return bad_arguments | return none,
@@ -161,6 +150,7 @@ private meta def incorrect_type_class_argument (d : declaration) : tactic (optio
 /-- A linter object for `incorrect_type_class_argument`. -/
 @[linter] meta def linter.incorrect_type_class_argument : linter :=
 { test := incorrect_type_class_argument,
+  auto_decls := tt,
   no_errors_found := "All declarations have correct type-class arguments",
   errors_found := "INCORRECT TYPE-CLASS ARGUMENTS.
 Some declarations have non-classes between [square brackets]" }
@@ -169,7 +159,7 @@ Some declarations have non-classes between [square brackets]" }
 arguments. -/
 private meta def dangerous_instance (d : declaration) : tactic (option string) := do
   tt ← is_instance d.to_name | return none,
-  (local_constants, target) ← mk_local_pis d.type,
+  (local_constants, target) ← open_pis d.type,
   let instance_arguments := local_constants.indexes_values $
     λ e : expr, e.local_binding_info = binder_info.inst_implicit,
   let bad_arguments := local_constants.indexes_values $ λ x,
@@ -194,7 +184,7 @@ private meta def dangerous_instance (d : declaration) : tactic (option string) :
   `Type`-valued sorts. -/
 meta def apply_to_fresh_variables (e : expr) : tactic expr := do
 t ← infer_type e,
-(xs, b) ← mk_local_pis t,
+(xs, b) ← open_pis t,
 xs.mmap' $ λ x, try $ do {
   u ← mk_meta_univ,
   tx ← infer_type x,
@@ -223,22 +213,31 @@ meta def fails_quickly (max_steps : ℕ) (d : declaration) : tactic (option stri
   As of 5 Mar 2020 the longest trace (for `is_add_hom`) takes 2900-3000 "heartbeats". -/
 @[linter] meta def linter.fails_quickly : linter :=
 { test := fails_quickly 3000,
+  auto_decls := tt,
   no_errors_found := "No type-class searches timed out",
   errors_found := "TYPE CLASS SEARCHES TIMED OUT.
 For the following classes, there is an instance that causes a loop, or an excessively long search.",
   is_fast := ff }
 
-/-- Tests whether there is no instance of type `has_coe α t` where `α` is a variable.
-See note [use has_coe_t]. -/
+/--
+Tests whether there is no instance of type `has_coe α t` where `α` is a variable,
+or `has_coe t α` where `α` does not occur in `t`.
+See note [use has_coe_t].
+-/
 private meta def has_coe_variable (d : declaration) : tactic (option string) := do
-  tt ← is_instance d.to_name | return none,
-  `(has_coe %%a _) ← return d.type.pi_codomain | return none,
-  tt ← return a.is_var | return none,
-  return $ some $ "illegal instance"
+tt ← is_instance d.to_name | return none,
+`(has_coe %%a %%b) ← return d.type.pi_codomain | return none,
+if a.is_var then
+  return $ some $ "illegal instance, first argument is variable"
+else if b.is_var ∧ ¬ b.occurs a then
+  return $ some $ "illegal instance, second argument is variable not occurring in first argument"
+else
+  return none
 
 /-- A linter object for `has_coe_variable`. -/
 @[linter] meta def linter.has_coe_variable : linter :=
 { test := has_coe_variable,
+  auto_decls := tt,
   no_errors_found := "No invalid `has_coe` instances",
   errors_found := "INVALID `has_coe` INSTANCES.
 Make the following declarations instances of the class `has_coe_t` instead of `has_coe`." }
@@ -247,7 +246,7 @@ Make the following declarations instances of the class `has_coe_t` instead of `h
 elsewhere in the type. In this case, that argument can be replaced with `nonempty _`. -/
 private meta def inhabited_nonempty (d : declaration) : tactic (option string) :=
 do tt ← is_prop d.type | return none,
-   (binders, _) ← get_pi_binders_dep d.type,
+   (binders, _) ← get_pi_binders_nondep d.type,
    let inhd_binders := binders.filter $ λ pr, pr.2.type.is_app_of `inhabited,
    if inhd_binders.length = 0 then return none
    else (λ s, some $ "The following `inhabited` instances should be `nonempty`. " ++ s) <$>
@@ -256,14 +255,17 @@ do tt ← is_prop d.type | return none,
 /-- A linter object for `inhabited_nonempty`. -/
 @[linter] meta def linter.inhabited_nonempty : linter :=
 { test := inhabited_nonempty,
+  auto_decls := ff,
   no_errors_found := "No uses of `inhabited` arguments should be replaced with `nonempty`",
   errors_found := "USES OF `inhabited` SHOULD BE REPLACED WITH `nonempty`." }
 
 /-- Checks whether a declaration is `Prop`-valued and takes a `decidable* _` hypothesis that is unused
-elsewhere in the type. In this case, that hypothesis can be replaced with `classical` in the proof. -/
+elsewhere in the type. In this case, that hypothesis can be replaced with `classical` in the proof.
+Theorems in the `decidable` namespace are exempt from the check. -/
 private meta def decidable_classical (d : declaration) : tactic (option string) :=
 do tt ← is_prop d.type | return none,
-   (binders, _) ← get_pi_binders_dep d.type,
+   ff ← pure $ (`decidable).is_prefix_of d.to_name | return none,
+   (binders, _) ← get_pi_binders_nondep d.type,
    let deceq_binders := binders.filter $ λ pr, pr.2.type.is_app_of `decidable_eq
      ∨ pr.2.type.is_app_of `decidable_pred ∨ pr.2.type.is_app_of `decidable_rel
      ∨ pr.2.type.is_app_of `decidable,
@@ -275,15 +277,40 @@ do tt ← is_prop d.type | return none,
 /-- A linter object for `decidable_classical`. -/
 @[linter] meta def linter.decidable_classical : linter :=
 { test := decidable_classical,
+  auto_decls := ff,
   no_errors_found := "No uses of `decidable` arguments should be replaced with `classical`",
   errors_found := "USES OF `decidable` SHOULD BE REPLACED WITH `classical` IN THE PROOF." }
 
 /- The file `logic/basic.lean` emphasizes the differences between what holds under classical
 and non-classical logic. It makes little sense to make all these lemmas classical, so we add them
 to the list of lemmas which are not checked by the linter `decidable_classical`. -/
-attribute [nolint decidable_classical] dec_em by_contradiction not_not of_not_not of_not_imp
-not.imp_symm not_imp_comm or_iff_not_imp_left or_iff_not_imp_right not_imp_not not_or_of_imp
-imp_iff_not_or imp_or_distrib imp_or_distrib' not_imp peirce not_iff_not not_iff_comm not_iff
-iff_not_comm iff_iff_and_or_not_and_not not_and_not_right not_and_distrib not_and_distrib'
-or_iff_not_and_not and_iff_not_or_not not_forall not_forall_not forall_or_distrib_left
-forall_or_distrib_right not_ball
+attribute [nolint decidable_classical] dec_em not.decidable_imp_symm
+
+private meta def has_coe_to_fun_linter (d : declaration) : tactic (option string) :=
+retrieve $ do
+mk_meta_var d.type >>= set_goals ∘ pure,
+args ← unfreezing intros,
+expr.sort _ ← target | pure none,
+let ty : expr := (expr.const d.to_name d.univ_levels).mk_app args,
+some coe_fn_inst ←
+  try_core $ to_expr ``(_root_.has_coe_to_fun %%ty) >>= mk_instance | pure none,
+some trans_inst@(expr.app (expr.app _ trans_inst_1) trans_inst_2) ←
+  try_core $ to_expr ``(@_root_.coe_fn_trans %%ty _ _ _) | pure none,
+tt ← succeeds $ unify trans_inst coe_fn_inst transparency.reducible | pure none,
+set_bool_option `pp.all true,
+trans_inst_1 ← pp trans_inst_1,
+trans_inst_2 ← pp trans_inst_2,
+pure $ format.to_string $
+  "`has_coe_to_fun` instance is definitionally equal to a transitive instance composed of: " ++
+  trans_inst_1.group.indent 2 ++
+  format.line ++ "and" ++
+  trans_inst_2.group.indent 2
+
+/-- Linter that checks whether `has_coe_to_fun` instances comply with Note [function coercion]. -/
+@[linter] meta def linter.has_coe_to_fun : linter :=
+{ test := has_coe_to_fun_linter,
+  auto_decls := tt,
+  no_errors_found := "has_coe_to_fun is used correctly",
+  errors_found := "INVALID/MISSING `has_coe_to_fun` instances.
+You should add a `has_coe_to_fun` instance for the following types.
+See Note function coercions]." }

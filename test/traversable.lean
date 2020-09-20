@@ -1,4 +1,4 @@
-import category.traversable.derive
+import control.traversable.derive
 import tactic
 
 universes u

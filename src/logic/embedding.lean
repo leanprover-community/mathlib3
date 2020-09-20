@@ -275,3 +275,19 @@ def mul_right_embedding {G : Type u} [right_cancel_semigroup G] (g : G) : G ↪ 
 lemma mul_right_embedding_apply {G : Type u} [right_cancel_semigroup G] (g h : G) :
   mul_right_embedding g h = h * g :=
 rfl
+
+namespace embedding
+
+variables {α₁ : Type*} {α₂ : Type*} {β₁ : Type*} {β₂ : Type*} (f : α₁ ↪ α₂) (g : β₁ ↪ β₂)
+
+def prod_map : (α₁ × β₁) ↪ α₂ × β₂ :=
+{ to_fun := prod.map f g,
+  inj' := λ x y h, prod.ext (f.injective (prod.ext_iff.1 h).1) (g.injective (prod.ext_iff.1 h).2) }
+
+variables {f} {g}
+
+@[simp]
+def coe_prod_map :
+  ⇑(prod_map f g) = prod.map f g := rfl
+
+end embedding

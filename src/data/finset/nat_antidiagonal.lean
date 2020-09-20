@@ -32,6 +32,42 @@ by simp [antidiagonal]
 @[simp] lemma antidiagonal_zero : antidiagonal 0 = {(0, 0)} :=
 rfl
 
+lemma antidiagonal_succ {n : ℕ} :
+  finset.nat.antidiagonal (n + 1) = insert (0,n + 1) ((finset.nat.antidiagonal n).map ⟨prod.map nat.succ id, function.injective.prod_map nat.succ_injective function.injective_id⟩ ) :=
+begin
+  apply finset.eq_of_veq,
+  rw [finset.insert_val_of_not_mem, finset.map_val],
+  {apply multiset.nat.antidiagonal_succ},
+  { intro con, rcases finset.mem_map.1 con with ⟨⟨a,b⟩, ⟨h1, h2⟩⟩,
+    simp only [id.def, prod.mk.inj_iff, function.embedding.coe_fn_mk, prod.map_mk] at h2,
+    apply nat.succ_ne_zero a h2.1, }
+end
+
+lemma sum_antidiagonal_succ {α : Type*} [add_comm_monoid α] {n : ℕ} {f : ℕ × ℕ → α} :
+  (finset.nat.antidiagonal (n + 1)).sum f = f (0, n + 1) + ((finset.nat.antidiagonal n).map ⟨prod.map nat.succ id, function.injective.prod_map nat.succ_injective function.injective_id⟩).sum f :=
+begin
+  rw [finset.nat.antidiagonal_succ, finset.sum_insert],
+  intro con, rcases finset.mem_map.1 con with ⟨⟨a,b⟩, ⟨h1, h2⟩⟩,
+  simp only [id.def, prod.mk.inj_iff, function.embedding.coe_fn_mk, prod.map_mk] at h2,
+  apply nat.succ_ne_zero a h2.1,
+end
+
+lemma map_swap_antidiagonal {n : ℕ} :
+  (finset.nat.antidiagonal n).map ⟨prod.swap, prod.swap_right_inverse.injective⟩ = finset.nat.antidiagonal n :=
+begin
+  ext,
+  simp only [exists_prop, finset.mem_map, finset.nat.mem_antidiagonal, function.embedding.coe_fn_mk, prod.swap_prod_mk,
+ prod.exists],
+  rw add_comm,
+  split,
+  { rintro ⟨b, c, ⟨rfl, rfl⟩⟩,
+    simp },
+  { rintro rfl,
+    use a.snd,
+    use a.fst,
+    simp }
+end
+
 end nat
 
 end finset

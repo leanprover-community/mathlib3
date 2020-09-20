@@ -82,7 +82,7 @@ def id (X : PresheafedSpace C) : hom X X :=
 instance hom_inhabited (X : PresheafedSpace C) : inhabited (hom X X) := ⟨id X⟩
 
 /-- Composition of morphisms of `PresheafedSpace`s. -/
-def comp (X Y Z : PresheafedSpace C) (α : hom X Y) (β : hom Y Z) : hom X Z :=
+def comp {X Y Z : PresheafedSpace C} (α : hom X Y) (β : hom Y Z) : hom X Z :=
 { base := α.base ≫ β.base,
   c := β.c ≫ (whisker_left (opens.map β.base).op α.c) ≫ (Top.presheaf.pushforward.comp _ _ _).inv }
 
@@ -98,7 +98,7 @@ local attribute [simp] id comp presheaf.pushforward
 instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
 { hom := hom,
   id := id,
-  comp := comp,
+  comp := λ X Y Z f g, comp f g,
   id_comp' := λ X Y f,
   begin
     ext1, swap,
@@ -296,3 +296,32 @@ def on_presheaf {F G : C ⥤ D} (α : F ⟶ G) : G.map_presheaf ⟶ F.map_preshe
 end nat_trans
 
 end category_theory
+
+namespace algebraic_geometry
+
+namespace PresheafedSpace
+
+variables (C)
+def open_embeddings := PresheafedSpace C
+
+variables {C}
+namespace open_embeddings
+
+@[ext]
+structure hom (X Y : open_embeddings C) extends to_hom : PresheafedSpace.hom X Y :=
+(open_embedding : open_embedding to_hom.base)
+
+instance : category (open_embeddings C) :=
+{ hom := λ X Y, hom X Y,
+  id := λ X,
+  { open_embedding := begin dsimp, end,
+    ..PresheafedSpace.id X },
+  comp := λ X Y Z f g,
+  { open_embedding := sorry,
+    ..PresheafedSpace.comp f.to_hom g.to_hom },   }
+
+end open_embeddings
+
+end PresheafedSpace
+
+end algebraic_geometry

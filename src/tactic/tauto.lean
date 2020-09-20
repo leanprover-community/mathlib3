@@ -200,6 +200,7 @@ do { ctx ← local_context,
 meta def assumption_symm :=
 using_new_ref (native.rb_map.mk _ _) assumption_with
 
+
 meta structure tauto_cfg :=
 (basic_tauto_tacs : list (tactic unit) := [reflexivity,
                                            solve_by_elim,
@@ -207,6 +208,8 @@ meta structure tauto_cfg :=
                                              [``(_ ∧ _),``(_ ↔ _),``(Exists _),``(true)]])
 (classical : bool                        := ff)
 (closer : tactic unit                  := pure ())
+
+attribute [nolint doc_blame] tauto_cfg
 
 meta def tautology (cfg : tauto_cfg := {}) : tactic unit := focus1 $
   let tauto_core (r : tauto_state) : tactic unit :=

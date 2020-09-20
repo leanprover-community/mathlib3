@@ -38,6 +38,13 @@ do hs ← local_context,
          | _ := failed
          end
 
+/-
+  The following definitions maintain a path compression datastructure, i.e. a forest such that:
+    - every node is the type of a hypothesis
+    - there is a edge between two nodes if and only if they are provably equivalent
+    - every edge is labelled with a proof of equivalence for its vertices.
+-/
+
 meta def tauto_state := ref $ expr_map (option (expr × expr))
 
 meta def modify_ref {α : Type} (r : ref α) (f : α → α) :=
@@ -67,6 +74,10 @@ do env ← get_env,
 meta def add_edge (r : tauto_state) (x y p : expr) : tactic unit :=
 modify_ref r $ λ m, m.insert x (y,p)
 
+/--
+  Retrieve the root of the hypothesis `e` from the proof forest.
+  If `e` has not been internalized, add it to the proof forest.
+-/
 meta def root (r : tauto_state) : expr → tactic (expr × expr) | e :=
 do m ← read_ref r,
    let record_e : tactic (expr × expr) :=
@@ -88,6 +99,11 @@ do m ← read_ref r,
    | none := prod.mk e <$> mk_mapp `rfl [none,some e]
    end
 
+/--
+  Given hypotheses `a` and `b`, build a proof that `a` is equivalent to `b`,
+  applying congruence and recursing into arguments if `a` and `b`
+  are applications of function symbols.
+-/
 meta def symm_eq (r : tauto_state) : expr → expr → tactic expr | a b :=
 do m ← read_ref r,
    (a',pa) ← root r a,

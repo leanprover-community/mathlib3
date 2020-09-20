@@ -167,22 +167,55 @@ def colimit_cocone (F : J ⥤ PresheafedSpace C) : cocone F :=
          }
     end, }, }
 
-def colimit_cocone_is_colimit (F : J ⥤ PresheafedSpace C) : is_colimit (colimit_cocone F) :=
-{ desc := λ s,
-  { base := colimit.desc (F ⋙ PresheafedSpace.forget C) ((PresheafedSpace.forget C).map_cocone s),
-    c :=
-    begin
-      dsimp,
       -- have := limit.lift (pushforward_diagram_to_colimit F).left_op _,
       -- have := pushforward_map _ this,
       -- convert this,
       -- -- I think we need to restrict to just open embeddings for this to work.
       -- repeat { sorry },
-      fsplit,
-      intro U,
+
+namespace colimit_cocone_is_colimit
+
+def desc_c_app (F : J ⥤ PresheafedSpace C) (s : cocone F) (U : (opens ↥(s.X.carrier))ᵒᵖ) :
+  s.X.presheaf.obj U ⟶
+    (colimit.desc (F ⋙ PresheafedSpace.forget C)
+         ((PresheafedSpace.forget C).map_cocone s) _*
+       limit (pushforward_diagram_to_colimit F).left_op).obj
+      U :=
+begin
       dsimp [pushforward],
-    end, },
-  fac' := sorry,
+      refine limit.lift _ { X := s.X.presheaf.obj U, π := _} ≫ (limit_obj_iso_limit_comp_evaluation _ _).inv,
+      dsimp,
+      fsplit,
+      { intro j,
+      dsimp [pushforward],
+      -- simp,
+      have := (s.ι.app (unop j)).c.app U,
+      dsimp at this,
+      refine this ≫ (F.obj (unop j)).presheaf.map (eq_to_hom _),
+      dsimp,
+      congr' 1,
+      rw ←opens.map_comp_obj,
+      congr' 2,
+      simp,
+      refl, },
+      { intros j j' f, dsimp, simp,
+        have := s.w f.unop,
+        have := (PresheafedSpace.congr_app this.symm U).symm,
+        rw ←this, dsimp, simp,
+        congr' 1, sorry, },
+    end
+
+end colimit_cocone_is_colimit
+
+open colimit_cocone_is_colimit
+
+def colimit_cocone_is_colimit (F : J ⥤ PresheafedSpace C) : is_colimit (colimit_cocone F) :=
+{ desc := λ s,
+  { base := colimit.desc (F ⋙ PresheafedSpace.forget C) ((PresheafedSpace.forget C).map_cocone s),
+    c :=
+    { app := λ U, desc_c_app F s U,
+      naturality' := λ U V i, begin dsimp [desc_c_app, limit_obj_iso_limit_comp_evaluation], simp, sorry, end, }, },
+  fac' := begin sorry, end,
   uniq' := sorry, }
 
 end algebraic_geometry

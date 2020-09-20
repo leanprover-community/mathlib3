@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.category.Cat
 import category_theory.elements
+import category_theory.limits.limits
 
 /-!
 # The Grothendieck construction
@@ -138,25 +139,53 @@ end
 universe w
 variables (G : C ⥤ Type w)
 
-/--
-The Grothendieck construction applied to a functor to `Type`
-(thought of as a functor to `Cat` by realising a type as a discrete category)
-is the same as the 'category of elements' construction.
--/
-def grothendieck_Type_to_Cat : grothendieck (G ⋙ Type_to_Cat) ≌ G.elements :=
-{ functor :=
-  { obj := λ X, ⟨X.1, X.2⟩,
-    map := λ X Y f, ⟨f.1, f.2.1.1⟩ },
-  inverse :=
-  { obj := λ X, ⟨X.1, X.2⟩,
-    map := λ X Y f, ⟨f.1, ⟨⟨f.2⟩⟩⟩ },
-  unit_iso := nat_iso.of_components (λ X, by { cases X, exact iso.refl _, })
-    (by { rintro ⟨⟩ ⟨⟩ ⟨base, ⟨⟨f⟩⟩⟩, dsimp at *, subst f, simp, }),
-  counit_iso := nat_iso.of_components (λ X, by { cases X, exact iso.refl _, })
-    (by { rintro ⟨⟩ ⟨⟩ ⟨f, e⟩, dsimp at *, subst e, simp }),
-  functor_unit_iso_comp' := by { rintro ⟨⟩, dsimp, simp, refl, } }
+-- /--
+-- The Grothendieck construction applied to a functor to `Type`
+-- (thought of as a functor to `Cat` by realising a type as a discrete category)
+-- is the same as the 'category of elements' construction.
+-- -/
+-- def grothendieck_Type_to_Cat : grothendieck (G ⋙ Type_to_Cat) ≌ G.elements :=
+-- { functor :=
+--   { obj := λ X, ⟨X.1, X.2⟩,
+--     map := λ X Y f, ⟨f.1, f.2.1.1⟩ },
+--   inverse :=
+--   { obj := λ X, ⟨X.1, X.2⟩,
+--     map := λ X Y f, ⟨f.1, ⟨⟨f.2⟩⟩⟩ },
+--   unit_iso := nat_iso.of_components (λ X, by { cases X, exact iso.refl _, })
+--     (by { rintro ⟨⟩ ⟨⟩ ⟨base, ⟨⟨f⟩⟩⟩, dsimp at *, subst f, simp, }),
+--   counit_iso := nat_iso.of_components (λ X, by { cases X, exact iso.refl _, })
+--     (by { rintro ⟨⟩ ⟨⟩ ⟨f, e⟩, dsimp at *, subst e, simp }),
+--   functor_unit_iso_comp' := by { rintro ⟨⟩, dsimp, simp, refl, } }
 
 
 end grothendieck
+
+end category_theory
+
+namespace category_theory
+
+open grothendieck
+
+open category_theory.limits
+
+noncomputable theory
+
+universes v
+
+variables {C : Type u} [category.{v} C]
+variables (F : C ⥤ Cat.{v u})
+variables [has_colimits C]
+variables [∀ X : C, has_limits (F.obj X)]
+variables {J : Type v} [small_category J] (G : J ⥤ grothendieck F)
+
+def pushforward_diagram_to_colimit : J ⥤ F.obj (colimit (G ⋙ grothendieck.forget F)) :=
+{ obj := λ j, (F.map (colimit.ι (G ⋙ grothendieck.forget F) j)).obj (G.obj j).fiber,
+  map := λ j j' f,
+  begin
+    have := (F.map (colimit.ι (G ⋙ grothendieck.forget F) j')).map (G.map f).fiber,
+    refine _ ≫ this,
+    have := F.map_comp,
+  end, }
+
 
 end category_theory

@@ -139,12 +139,20 @@ instance evaluation_preserves_limits_of_shape [has_limits_of_shape J C] (k : K) 
     is_limit.of_iso_limit (limit.is_limit _)
       (evaluate_combined_cones F _ k).symm }
 
+def limit_obj_iso_limit_comp_evaluation [has_limits_of_shape J C] (F : J ⥤ (K ⥤ C)) (k : K) :
+  (limit F).obj k ≅ limit (F ⋙ ((evaluation K C).obj k)) :=
+preserves_limit_iso F ((evaluation K C).obj k)
+
 instance evaluation_preserves_colimits_of_shape [has_colimits_of_shape J C] (k : K) :
   preserves_colimits_of_shape J ((evaluation K C).obj k) :=
 { preserves_colimit :=
   λ F, preserves_colimit_of_preserves_colimit_cocone (combined_is_colimit _ _) $
     is_colimit.of_iso_colimit (colimit.is_colimit _)
       (evaluate_combined_cocones F _ k).symm }
+
+def colimit_obj_iso_colimit_comp_evaluation [has_colimits_of_shape J C] (F : J ⥤ (K ⥤ C)) (k : K) :
+  (colimit F).obj k ≅ colimit (F ⋙ ((evaluation K C).obj k)) :=
+preserves_colimit_iso F ((evaluation K C).obj k)
 
 instance evaluation_preserves_limits [has_limits C] (k : K) :
   preserves_limits ((evaluation K C).obj k) :=

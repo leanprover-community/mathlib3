@@ -152,6 +152,15 @@ by { op_induction U, cases U, simp only [id_c], dsimp, simp, }
   (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.base)).obj (unop U))) ≫
     (Top.presheaf.pushforward.comp _ _ _).inv.app U := rfl
 
+lemma congr_app {X Y : PresheafedSpace C} {α β : X ⟶ Y} (h : α = β) (U) :
+  α.c.app U = β.c.app U ≫ X.presheaf.map (eq_to_hom (by subst h)) :=
+begin
+  subst h,
+  dsimp,
+  simp,
+  erw [category.comp_id],
+end
+
 section
 variables (C)
 

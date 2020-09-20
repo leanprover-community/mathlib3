@@ -156,7 +156,7 @@ meta def wlog
   (cases : parse (tk ":=" *> texpr)?)
   (perms : parse (tk "using" *> (list_of (ident*) <|> (λx, [x]) <$> ident*))?)
   (discharger : tactic unit :=
-    (tactic.solve_by_elim <|> tactic.tautology {classic := tt} <|>
+    (tactic.solve_by_elim <|> tactic.tautology {classical := tt} <|>
       using_smt (smt_tactic.intros >> smt_tactic.solve_goals))) :
   tactic unit := do
 perms ← parse_permutations perms,

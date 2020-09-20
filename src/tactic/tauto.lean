@@ -184,7 +184,7 @@ meta structure tauto_cfg :=
                                            solve_by_elim,
                                            constructor_matching none
                                              [``(_ ∧ _),``(_ ↔ _),``(Exists _),``(true)]])
-(classic : bool                        := ff)
+(classical : bool                        := ff)
 (closer : tactic unit                  := pure ())
 
 meta def tautology (cfg : tauto_cfg := {}) : tactic unit := focus1 $
@@ -204,7 +204,7 @@ meta def tautology (cfg : tauto_cfg := {}) : tactic unit := focus1 $
          try (assumption_with r),
          gs' ← get_goals,
          guard (gs ≠ gs') ) in
-    do when cfg.classic classical,
+    do when cfg.classical classical,
        using_new_ref (expr_map.mk _) tauto_core;
        repeat (first cfg.basic_tauto_tacs); cfg.closer, done
 
@@ -223,7 +223,7 @@ The variant `tautology!` uses the law of excluded middle.
 that it is unable to solve before failing.
 -/
 meta def tautology (c : parse $ (tk "!")?) (cfg : tactic.tauto_cfg := {}) :=
-tactic.tautology $ { classic := c.is_some, ..cfg }
+tactic.tautology $ { classical := c.is_some, ..cfg }
 
 -- Now define a shorter name for the tactic `tautology`.
 

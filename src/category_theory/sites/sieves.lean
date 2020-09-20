@@ -34,8 +34,8 @@ left-composition. In practice it seems easier to work with this if left-composit
 quantifying over objects `Y` and arrows `Y ⟶ X` rather than quantifying over `over X`.
 -/
 structure sieve {C : Type u} [category.{v} C] (X : C) :=
-(arrows : set (over X))
-(subs : ∀ {Y Z : C} {f : Y ⟶ X} (g : Z ⟶ Y), over.mk f ∈ arrows → over.mk (g ≫ f) ∈ arrows)
+(arrows : Π {Y : C}, set (Y ⟶ X))
+(subs : ∀ {Y Z : C} {f : Y ⟶ X} (g : Z ⟶ Y), arrows f → arrows (g ≫ f))
 
 namespace sieve
 
@@ -44,47 +44,46 @@ variables {C : Type u} [category.{v} C]
 variables {X Y Z : C} {S R : sieve X}
 
 @[simp, priority 100]
-lemma downward_closed (S : sieve X) {f : Y ⟶ X} (Hf : over.mk f ∈ S.arrows) (g : Z ⟶ Y) :
-  over.mk (g ≫ f) ∈ S.arrows :=
+lemma downward_closed (S : sieve X) {f : Y ⟶ X} (Hf : S.arrows f) (g : Z ⟶ Y) :
+  S.arrows (g ≫ f) :=
 S.subs g Hf
 
 lemma arrows_ext : Π {R S : sieve X}, R.arrows = S.arrows → R = S
 | ⟨Ra, _⟩ ⟨Sa, _⟩ rfl := rfl
 
 @[ext] lemma ext {R S : sieve X}
-  (h : ∀ ⦃Y⦄ (f : Y ⟶ X), over.mk f ∈ R.arrows ↔ over.mk f ∈ S.arrows) :
+  (h : ∀ ⦃Y⦄ (f : Y ⟶ X), R.arrows f ↔ S.arrows f) :
   R = S :=
 begin
   apply arrows_ext,
-  ext ⟨_, _, f'⟩,
-  convert h f';
-  apply subsingleton.elim,
+  ext Y f,
+  apply h,
 end
 
 lemma ext_iff {R S : sieve X} :
-  R = S ↔ (∀ {Y} (f : Y ⟶ X), over.mk f ∈ R.arrows ↔ over.mk f ∈ S.arrows) :=
+  R = S ↔ (∀ {Y} (f : Y ⟶ X), R.arrows f ↔ S.arrows f) :=
 ⟨λ h Y f, h ▸ iff.rfl, sieve.ext⟩
 
 open lattice
 
 /-- The supremum of a collection of sieves: just the union of them all. -/
 protected def Sup (𝒮 : set (sieve X)) : (sieve X) :=
-{ arrows := {f | ∃ S ∈ 𝒮, f ∈ sieve.arrows S},
+{ arrows := λ Y, {f | ∃ S ∈ 𝒮, sieve.arrows S f},
   subs := λ Y Z f g, by { rintro ⟨S, hS, hf⟩, exact ⟨S, hS, S.downward_closed hf _⟩ } }
 
 /-- The infimum of a collection of sieves: the intersection of them all. -/
 protected def Inf (𝒮 : set (sieve X)) : (sieve X) :=
-{ arrows := {f | ∀ S ∈ 𝒮, f ∈ sieve.arrows S},
+{ arrows := λ Y, {f | ∀ S ∈ 𝒮, sieve.arrows S f},
   subs := λ Y Z f g hf S H, S.downward_closed (hf S H) g }
 
 /-- The union of two sieves is a sieve. -/
 protected def union (S R : sieve X) : sieve X :=
-{ arrows := S.arrows ∪ R.arrows,
+{ arrows := λ Y f, S.arrows f ∨ R.arrows f,
   subs := by { rintros Y Z f g (h | h); simp [h] } }
 
 /-- The intersection of two sieves is a sieve. -/
 protected def inter (S R : sieve X) : sieve X :=
-{ arrows := S.arrows ∩ R.arrows,
+{ arrows := λ Y f, S.arrows f ∧ R.arrows f,
   subs := by { rintros Y Z f g ⟨h₁, h₂⟩; simp [h₁, h₂] } }
 
 /--
@@ -93,12 +92,12 @@ We generate this directly rather than using the galois insertion for nicer defin
 properties.
 -/
 instance : complete_lattice (sieve X) :=
-{ le           := λ S R, ∀ Y (f : Y ⟶ X), over.mk f ∈ S.arrows → over.mk f ∈ R.arrows,
+{ le           := λ S R, ∀ Y (f : Y ⟶ X), S.arrows f → R.arrows f,
   le_refl      := λ S f q, id,
   le_trans     := λ S₁ S₂ S₃ S₁₂ S₂₃ Y f h, S₂₃ _ _ (S₁₂ _ _ h),
   le_antisymm  := λ S R p q, sieve.ext (λ Y f, ⟨p _ _, q _ _⟩),
-  top          := { arrows := set.univ, subs := λ Y Z f g h, ⟨⟩ },
-  bot          := { arrows := ∅, subs := λ _ _ _ _, false.elim },
+  top          := { arrows := λ _, set.univ, subs := λ Y Z f g h, ⟨⟩ },
+  bot          := { arrows := λ _, ∅, subs := λ _ _ _ _, false.elim },
   sup          := sieve.union,
   inf          := sieve.inter,
   Sup          := sieve.Sup,
@@ -121,35 +120,35 @@ instance sieve_inhabited : inhabited (sieve X) := ⟨⊤⟩
 
 @[simp]
 lemma mem_Inf {Ss : set (sieve X)} {Y} (f : Y ⟶ X) :
-  over.mk f ∈ (Inf Ss).arrows ↔ ∀ S ∈ Ss, over.mk f ∈ sieve.arrows S :=
+  (Inf Ss).arrows f ↔ ∀ S ∈ Ss, sieve.arrows S f :=
 iff.rfl
 
 @[simp]
 lemma mem_Sup {Ss : set (sieve X)} {Y} (f : Y ⟶ X) :
-  over.mk f ∈ (Sup Ss).arrows ↔ ∃ S ∈ Ss, over.mk f ∈ sieve.arrows S :=
+  (Sup Ss).arrows f ↔ ∃ S ∈ Ss, sieve.arrows S f :=
 iff.rfl
 
 @[simp]
 lemma mem_inter {R S : sieve X} {Y} (f : Y ⟶ X) :
-  over.mk f ∈ (R ⊓ S).arrows ↔ over.mk f ∈ R.arrows ∧ over.mk f ∈ S.arrows :=
+  (R ⊓ S).arrows f ↔ R.arrows f ∧ S.arrows f :=
 iff.rfl
 
 @[simp]
 lemma mem_union {R S : sieve X} {Y} (f : Y ⟶ X) :
-  over.mk f ∈ (R ⊔ S).arrows ↔ over.mk f ∈ R.arrows ∨ over.mk f ∈ S.arrows :=
+  (R ⊔ S).arrows f ↔ R.arrows f ∨ S.arrows f :=
 iff.rfl
 
 @[simp]
-lemma mem_top (f : Y ⟶ X) : over.mk f ∈ (⊤ : sieve X).arrows := trivial
+lemma mem_top (f : Y ⟶ X) : (⊤ : sieve X).arrows f := trivial
 
 /-- Take the downward-closure of a set of morphisms to `X`. -/
-inductive generate_sets (𝒢 : set (over X)) : set (over X)
-| basic : Π {f : over X}, f ∈ 𝒢 → generate_sets f
-| subs  : Π {Y Z} {f : Y ⟶ X} (g : Z ⟶ Y), generate_sets (over.mk f) → generate_sets (over.mk (g ≫ f))
+inductive generate_sets (𝒢 : Π {Y : C}, set (Y ⟶ X)) : Π (Y : C), set (Y ⟶ X)
+| basic : Π {Y : C} {f : Y ⟶ X}, 𝒢 f → generate_sets _ f
+| subs  : Π {Y Z} {f : Y ⟶ X} (g : Z ⟶ Y), generate_sets _ f → generate_sets _ (g ≫ f)
 
 /-- Generate the smallest sieve containing the given set of arrows. -/
-def generate (𝒢 : set (over X)) : sieve X :=
-{ arrows := generate_sets 𝒢,
+def generate (𝒢 : Π {Y : C}, set (Y ⟶ X)) : sieve X :=
+{ arrows := generate_sets _ 𝒢,
   subs   := λ _ _ _, generate_sets.subs }
 
 open order lattice

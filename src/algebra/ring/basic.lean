@@ -227,6 +227,12 @@ lemma to_fun_eq_coe (f : α →+* β) : f.to_fun = f := rfl
 
 variables (f : α →+* β) {x y : α} {rα rβ}
 
+theorem congr_fun {f g : α →+* β} (h : f = g) (x : α) : f x = g x :=
+congr_arg (λ h : α →+* β, h x) h
+
+theorem congr_arg (f : α →+* β) {x y : α} (h : x = y) : f x = f y :=
+congr_arg (λ x : α, f x) h
+
 theorem coe_inj ⦃f g : α →+* β⦄ (h : (f : α → β) = g) : f = g :=
 by cases f; cases g; cases h; refl
 
@@ -237,10 +243,10 @@ theorem ext_iff {f g : α →+* β} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
 theorem coe_add_monoid_hom_injective : function.injective (coe : (α →+* β) → (α →+ β)) :=
-λ f g h, coe_inj $ show ((f : α →+ β) : α → β) = (g : α →+ β), from congr_arg coe_fn h
+λ f g h, ext (λ x, add_monoid_hom.congr_fun h x)
 
 theorem coe_monoid_hom_injective : function.injective (coe : (α →+* β) → (α →* β)) :=
-λ f g h, coe_inj $ show ((f : α →* β) : α → β) = (g : α →* β), from congr_arg coe_fn h
+λ f g h, ext (λ x, monoid_hom.congr_fun h x)
 
 /-- Ring homomorphisms map zero to zero. -/
 @[simp] lemma map_zero (f : α →+* β) : f 0 = 0 := f.map_zero'
@@ -582,12 +588,6 @@ protected def function.surjective.comm_ring [has_zero β] [has_one β] [has_add 
 
 local attribute [simp] add_assoc add_comm add_left_comm mul_comm
 
-lemma mul_self_sub_mul_self_eq (a b : α) : a * a - b * b = (a + b) * (a - b) :=
-by simp [right_distrib, left_distrib, sub_eq_add_neg]
-
-lemma mul_self_sub_one_eq (a : α) : a * a - 1 = (a + 1) * (a - 1) :=
-by rw [← mul_self_sub_mul_self_eq, mul_one]
-
 theorem dvd_neg_of_dvd (h : a ∣ b) : (a ∣ -b) :=
 dvd.elim h
   (assume c, assume : b = a * c,
@@ -624,6 +624,9 @@ theorem two_dvd_bit1 : 2 ∣ bit1 a ↔ (2 : α) ∣ 1 := (dvd_add_iff_right (@t
 /-- Representation of a difference of two squares in a commutative ring as a product. -/
 theorem mul_self_sub_mul_self (a b : α) : a * a - b * b = (a + b) * (a - b) :=
 by rw [add_mul, mul_sub, mul_sub, mul_comm a b, sub_add_sub_cancel]
+
+lemma mul_self_sub_one (a : α) : a * a - 1 = (a + 1) * (a - 1) :=
+by rw [← mul_self_sub_mul_self, mul_one]
 
 /-- An element a of a commutative ring divides the additive inverse of an element b iff a
   divides b. -/

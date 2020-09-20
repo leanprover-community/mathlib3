@@ -120,7 +120,13 @@ begin
       convert @classical.some_spec _ (λ i, x ∈ (U i : set X)) _, },
     -- Now, we can just assert that `s₂` is the droid you are looking for,
     -- and do a little patching up afterwards.
-    convert s₂, },
+    convert s₂,
+    { simp only [sheaf_condition.res, presheaf_to_Types_map, types.pi_lift_π_apply, types_comp_apply],
+      dsimp [inf_le_left_apply],
+      simp,
+      refl, },
+    { simp,
+      refl, }, },
   { -- On the home stretch now,
     -- we just need to check that the lift we picked was the only possible one.
 
@@ -140,7 +146,9 @@ begin
 
     -- Now it's just a matter of plugging in all the values;
     -- `j` gets solved for during unification.
-    convert congr_fun (congr_fun (w =≫ pi.π _ j) f) ⟨x, _⟩, }
+    convert congr_fun (congr_fun (w =≫ pi.π _ j) f) ⟨x, _⟩,
+    simp [sheaf_condition.res],
+    refl, }
 end.
 
 -- We verify that the non-dependent version is an immediate consequence:

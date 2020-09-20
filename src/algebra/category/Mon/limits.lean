@@ -16,6 +16,8 @@ the underlying types are just the limits in the category of types.
 
 -/
 
+noncomputable theory
+
 open category_theory
 open category_theory.limits
 
@@ -93,10 +95,10 @@ end has_limits
 open has_limits
 
 /-- The category of monoids has all limits. -/
-@[irreducible, to_additive]
+@[to_additive]
 instance has_limits : has_limits Mon :=
 { has_limits_of_shape := λ J 𝒥, by exactI
-  { has_limit := λ F,
+  { has_limit := λ F, has_limit.mk
     { cone     := limit_cone F,
       is_limit := limit_cone_is_limit F } } }
 
@@ -162,7 +164,7 @@ def limit_cone_is_limit (F : J ⥤ CommMon) : is_limit (limit_cone F) :=
 lifted_limit_is_limit _
 
 /-- The category of commutative monoids has all limits. -/
-@[irreducible, to_additive]
+@[to_additive]
 instance has_limits : has_limits CommMon :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit_of_created F (forget₂ CommMon Mon) } }

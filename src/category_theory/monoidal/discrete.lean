@@ -39,6 +39,7 @@ variables {M} {N : Type u} [monoid N]
 A multiplicative morphism between monoids gives a monoidal functor between the corresponding
 discrete monoidal categories.
 -/
+@[simps]
 def discrete.monoidal_functor (F : M →* N) : monoidal_functor (discrete M) (discrete N) :=
 { obj := F,
   map := λ X Y f, eq_to_hom (F.congr_arg (eq_of_hom f)),

@@ -41,7 +41,7 @@ instance has_limits_of_complete_lattice [complete_lattice α] : has_limits α :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit.mk
     { cone :=
-      { X := Inf (set.range F.obj),
+      { X := infi F.obj,
         π :=
         { app := λ j, hom_of_le (complete_lattice.Inf_le _ _ (set.mem_range_self _)) } },
       is_limit :=
@@ -53,7 +53,7 @@ instance has_colimits_of_complete_lattice [complete_lattice α] : has_colimits �
 { has_colimits_of_shape := λ J 𝒥, by exactI
   { has_colimit := λ F, has_colimit.mk
     { cocone :=
-      { X := Sup (set.range F.obj),
+      { X := supr F.obj,
         ι :=
         { app := λ j, hom_of_le (complete_lattice.le_Sup _ _ (set.mem_range_self _)) } },
       is_colimit :=

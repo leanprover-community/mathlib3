@@ -577,6 +577,9 @@ lemma bot_ne_top [nontrivial M] : (⊥ : submodule R M) ≠ ⊤ :=
 by rw [infi, Inf_coe]; ext a; simp; exact
 ⟨λ h i, h _ i rfl, λ h i x e, e ▸ h _⟩
 
+@[simp] lemma mem_Inf {S : set (submodule R M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p :=
+set.mem_bInter_iff
+
 @[simp] theorem mem_infi {ι} (p : ι → submodule R M) :
   x ∈ (⨅ i, p i) ↔ ∀ i, x ∈ p i :=
 by rw [← mem_coe, infi_coe, mem_Inter]; refl

@@ -3803,17 +3803,17 @@ theorem disjoint_of_disjoint_append_right_right {l₁ l₂ l : list α} (d : dis
 theorem disjoint_take_drop {l : list α} {m n : ℕ} (hl : l.nodup) (h : m ≤ n) :
   disjoint (l.take m) (l.drop n) :=
 begin
-    induction l generalizing m n,
-    case list.nil : m n
-    { simp },
-    case list.cons : x xs xs_ih m n
-    { cases m; cases n; simp only [disjoint_cons_left, mem_cons_iff, disjoint_cons_right, drop,
-                                   true_or, eq_self_iff_true, not_true, false_and,
-                                   disjoint_nil_left, take],
-      { cases h },
-      cases hl with _ _ h₀ h₁, split,
-      { intro h, exact h₀ _ (mem_of_mem_drop h) rfl, },
-      solve_by_elim [le_of_succ_le_succ] { max_depth := 4 } },
+  induction l generalizing m n,
+  case list.nil : m n
+  { simp },
+  case list.cons : x xs xs_ih m n
+  { cases m; cases n; simp only [disjoint_cons_left, mem_cons_iff, disjoint_cons_right, drop,
+                                 true_or, eq_self_iff_true, not_true, false_and,
+                                 disjoint_nil_left, take],
+    { cases h },
+    cases hl with _ _ h₀ h₁, split,
+    { intro h, exact h₀ _ (mem_of_mem_drop h) rfl, },
+    solve_by_elim [le_of_succ_le_succ] { max_depth := 4 } },
 end
 
 end disjoint

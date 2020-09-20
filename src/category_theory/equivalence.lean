@@ -416,7 +416,7 @@ def fun_obj_preimage_iso (F : C ⥤ D) [ess_surj F] (d : D) : F.obj (F.obj_preim
 ess_surj.iso d
 end functor
 
-namespace is_equivalence
+namespace equivalence
 
 /--
 An equivalence is essentially surjective.
@@ -450,7 +450,7 @@ instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=
   witness' := λ X Y f, F.inv.map_injective
   (by simpa only [is_equivalence.inv_fun_map, assoc, iso.hom_inv_id_app_assoc, iso.hom_inv_id_app] using comp_id _) }
 
-@[simp] private def construct_inverse (F : C ⥤ D) [full F] [faithful F] [ess_surj F] : D ⥤ C :=
+@[simp] private def equivalence_inverse (F : C ⥤ D) [full F] [faithful F] [ess_surj F] : D ⥤ C :=
 { obj  := λ X, F.obj_preimage X,
   map := λ X Y f, F.preimage ((F.fun_obj_preimage_iso X).hom ≫ f ≫ (F.fun_obj_preimage_iso Y).inv),
   map_id' := λ X, begin apply F.map_injective, tidy end,
@@ -463,7 +463,7 @@ See https://stacks.math.columbia.edu/tag/02C3.
 -/
 def equivalence_of_fully_faithfully_ess_surj
   (F : C ⥤ D) [full F] [faithful F] [ess_surj F] : is_equivalence F :=
-is_equivalence.mk (construct_inverse F)
+is_equivalence.mk (equivalence_inverse F)
   (nat_iso.of_components
     (λ X, (preimage_iso $ F.fun_obj_preimage_iso $ F.obj X).symm)
     (λ X Y f, by { apply F.map_injective, obviously }))
@@ -485,6 +485,6 @@ begin
   { rintro ⟨rfl⟩, refl, }
 end
 
-end is_equivalence
+end equivalence
 
 end category_theory

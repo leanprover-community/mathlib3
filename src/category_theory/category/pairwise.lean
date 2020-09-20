@@ -131,7 +131,6 @@ def cone : cone (diagram U) :=
 { X := op (supr U),
   π := { app := cone_π_app U, } }
 
-
 /--
 Given a function `U : ι → α` for `[complete_lattice α]`,
 `supr U` provides a limit cone over `diagram U`.

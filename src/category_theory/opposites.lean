@@ -306,7 +306,7 @@ rfl
 universes v
 variables {α : Type v} [preorder α]
 
-lemma op_hom_of_le {U V : αᵒᵖ} (h : unop V ≤ unop U) : U ⟶ V :=
+def op_hom_of_le {U V : αᵒᵖ} (h : unop V ≤ unop U) : U ⟶ V :=
 has_hom.hom.op (hom_of_le h)
 
 lemma le_of_op_hom {U V : αᵒᵖ} (h : U ⟶ V) : unop V ≤ unop U :=

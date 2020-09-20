@@ -485,22 +485,22 @@ and the result on simple functions.
 -/
 
 variables {μ : measure α} [normed_space ℝ E]
-variables [normed_group F] [normed_space ℝ F] [measurable_space F]
+variables [normed_group F] [normed_space ℝ F]
 
 namespace continuous_linear_map
 
-lemma integrable_comp [borel_space F] [opens_measurable_space E] {φ : α → E} (L : E →L[ℝ] F)
+lemma norm_comp_l1_apply_le [opens_measurable_space E] [second_countable_topology E] (φ : α →₁[μ] E)
+  (L : E →L[ℝ] F) : ∀ᵐ a ∂μ, ∥L (φ a)∥ ≤ ∥L∥ * ∥φ a∥ :=
+eventually_of_forall (λ a, L.le_op_norm (φ a))
+
+variables [measurable_space F] [borel_space F]
+
+lemma integrable_comp [opens_measurable_space E] {φ : α → E} (L : E →L[ℝ] F)
   (φ_int : integrable φ μ) : integrable (λ (a : α), L (φ a)) μ :=
 ((integrable.norm φ_int).const_mul ∥L∥).mono' (L.measurable.comp φ_int.measurable)
   (eventually_of_forall $ λ a, L.le_op_norm (φ a))
 
-variables [second_countable_topology E]
-
-lemma norm_comp_l1_apply_le [opens_measurable_space E] (φ : α →₁[μ] E) (L : E →L[ℝ] F) :
-  ∀ᵐ a ∂μ, ∥L (φ a)∥ ≤ ∥L∥*∥φ a∥ :=
-eventually_of_forall (λ a, L.le_op_norm (φ a))
-
-variables [borel_space E] [borel_space F]
+variables [borel_space E] [second_countable_topology E]
 
 /-- Composing `φ : α →₁[μ] E` with `L : E →L[ℝ] F`. -/
 def comp_l1 [second_countable_topology F] (L : E →L[ℝ] F) (φ : α →₁[μ] E) : α →₁[μ] F :=
@@ -739,3 +739,5 @@ end
 
 end integral_on
 -/
+
+#lint

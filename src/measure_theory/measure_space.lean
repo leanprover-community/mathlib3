@@ -377,7 +377,8 @@ begin
   exact tendsto_at_top_infi_nat (μ ∘ s) (assume n m hnm, measure_mono $ hm _ _ $ hnm),
 end
 
-/-- The Borel-Cantelli lemma. -/
+/-- One direction of the Borel-Cantelli lemma: if (sᵢ) is a sequence of measurable sets such that
+  ∑ sᵢ exists, then the limit superior of the sᵢ is a null set. -/
 lemma measure_limsup_eq_zero {s : ℕ → set α} (hs : ∀ i, is_measurable (s i))
   (hs' : (∑' i, μ (s i)) ≠ ⊤) : μ (limsup at_top s) = 0 :=
 begin
@@ -395,6 +396,8 @@ begin
   simp only [set.mem_Union],
   exact λ ⟨i, hi⟩, ⟨i + (m - n), by simpa only [add_assoc, nat.sub_add_cancel hnm] using hi⟩
 end
+
+
 
 end
 

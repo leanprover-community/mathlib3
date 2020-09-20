@@ -809,7 +809,7 @@ rfl
 rfl
 
 @[simp, norm_cast]
-lemma comp_coe (f :  M ≃L[R] M₂) (f' :  M₂ ≃L[R] M₃) :
+lemma comp_coe (f : M ≃L[R] M₂) (f' : M₂ ≃L[R] M₃) :
   (f' : M₂ →L[R] M₃).comp (f : M →L[R] M₂) = (f.trans f' : M →L[R] M₃) :=
 rfl
 

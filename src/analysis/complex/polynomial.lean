@@ -3,9 +3,16 @@ Copyright (c) 2019 Chris Hughes All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.polynomial topology.instances.polynomial analysis.complex.exponential
+import topology.algebra.polynomial
+import analysis.special_functions.pow
 
-open complex polynomial metric filter is_absolute_value set lattice
+/-!
+# The fundamental theorem of algebra
+
+This file proves that every nonconstant complex polynomial has a root.
+-/
+
+open complex polynomial metric filter is_absolute_value set
 
 namespace complex
 
@@ -13,21 +20,20 @@ lemma exists_forall_abs_polynomial_eval_le (p : polynomial ℂ) :
   ∃ x, ∀ y, (p.eval x).abs ≤ (p.eval y).abs :=
 if hp0 : 0 < degree p
 then let ⟨r, hr0, hr⟩ := polynomial.tendsto_infinity complex.abs hp0 ((p.eval 0).abs) in
-  let ⟨x, hx₁, hx₂⟩ := exists_forall_le_of_compact_of_continuous (λ y, (p.eval y).abs)
-    (continuous_abs.comp p.continuous_eval)
-    (closed_ball 0 r) (proper_space.compact_ball _ _)
-    (set.ne_empty_iff_exists_mem.2 ⟨0, by simp [le_of_lt hr0]⟩) in
+  let ⟨x, hx₁, hx₂⟩ := (proper_space.compact_ball (0:ℂ) r).exists_forall_le
+    ⟨0, by simp [le_of_lt hr0]⟩
+    (continuous_abs.comp p.continuous_eval).continuous_on in
   ⟨x, λ y, if hy : y.abs ≤ r then hx₂ y $ by simpa [complex.dist_eq] using hy
     else le_trans (hx₂ _ (by simp [le_of_lt hr0])) (le_of_lt (hr y (lt_of_not_ge hy)))⟩
 else ⟨p.coeff 0, by rw [eq_C_of_degree_le_zero (le_of_not_gt hp0)]; simp⟩
 
 /- The following proof uses the method given at
-  https://ncatlab.org/nlab/show/fundamental+theorem+of+algebra#classical_fta_via_advanced_calculus -/
+  <https://ncatlab.org/nlab/show/fundamental+theorem+of+algebra#classical_fta_via_advanced_calculus> -/
 /-- The fundamental theorem of algebra. Every non constant complex polynomial
   has a root -/
 lemma exists_root {f : polynomial ℂ} (hf : 0 < degree f) : ∃ z : ℂ, is_root f z :=
 let ⟨z₀, hz₀⟩ := exists_forall_abs_polynomial_eval_le f in
-exists.intro z₀ $ by_contradiction $ λ hf0,
+exists.intro z₀ $ classical.by_contradiction $ λ hf0,
 have hfX : f - C (f.eval z₀) ≠ 0,
   from mt sub_eq_zero.1 (λ h, not_le_of_gt hf (h.symm ▸ degree_C_le)),
 let n := root_multiplicity z₀ (f - C (f.eval z₀)) in
@@ -57,8 +63,8 @@ have hF₁ : F.eval z' = f.eval z₀ - f.eval z₀ * (g.eval z₀).abs * δ ^ n 
       neg_mul_eq_neg_mul_symm, mul_one, div_eq_mul_inv];
     simp only [mul_comm, mul_left_comm, mul_assoc],
 have hδs : (g.eval z₀).abs * δ ^ n / (f.eval z₀).abs < 1,
-  by rw [div_eq_mul_inv, mul_right_comm, mul_comm, ← @inv_inv' _ _ (complex.abs _ * _), mul_inv',
-      inv_inv', ← div_eq_mul_inv, div_lt_iff hfg0, one_mul];
+  by rw [div_eq_mul_inv, mul_right_comm, mul_comm, ← @inv_inv' _ _ (complex.abs _ * _),
+      mul_inv_rev', inv_inv', ← div_eq_mul_inv, div_lt_iff hfg0, one_mul];
     calc δ ^ n ≤ δ ^ 1 : pow_le_pow_of_le_one (le_of_lt hδ0) hδ1 hn0
       ... = δ : pow_one _
       ... ≤ ((f.eval z₀).abs / (g.eval z₀).abs) / 2 : min_le_right _ _
@@ -69,7 +75,7 @@ have hF₂ : (F.eval z').abs = (f.eval z₀).abs - (g.eval z₀).abs * δ ^ n,
   ... = abs (f.eval z₀) * complex.abs (1 - (g.eval z₀).abs * δ ^ n /
       (f.eval z₀).abs : ℝ) : by rw [← complex.abs_mul];
         exact congr_arg complex.abs
-          (by simp [mul_add, add_mul, mul_assoc, div_eq_mul_inv])
+          (by simp [mul_add, add_mul, mul_assoc, div_eq_mul_inv, sub_eq_add_neg])
   ... = _ : by rw [complex.abs_of_nonneg (sub_nonneg.2 (le_of_lt hδs)),
       mul_sub, mul_div_cancel' _ (ne.symm (ne_of_lt hf0')), mul_one],
 have hef0 : abs (eval z₀ g) * (eval z₀ f).abs ≠ 0,
@@ -84,7 +90,8 @@ have hF₃ : (f.eval z' - F.eval z').abs < (g.eval z₀).abs * δ ^ n,
       = (g.eval z' - g.eval z₀).abs * (z' - z₀).abs ^ n :
         by rw [← eq_sub_iff_add_eq.1 hg, ← is_absolute_value.abv_pow complex.abs,
             ← complex.abs_mul, sub_mul];
-          simp [F, eval_pow, eval_add, eval_mul, eval_sub, eval_C, eval_X, eval_neg, add_sub_cancel]
+          simp [F, eval_pow, eval_add, eval_mul, eval_sub, eval_C, eval_X, eval_neg, add_sub_cancel,
+                sub_eq_add_neg, add_assoc]
   ... = (g.eval z' - g.eval z₀).abs * δ ^ n : by rw hz'z₀
   ... < _ : (mul_lt_mul_right (pow_pos hδ0 _)).2 (hδ _ hz'z₀),
 lt_irrefl (f.eval z₀).abs $

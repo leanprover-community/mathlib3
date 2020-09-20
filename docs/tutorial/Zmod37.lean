@@ -42,7 +42,7 @@ begin
   -- Hl : l * 37 = b - a, and Hm : m * 37 = c - b
   -- Goal : ∃ k, k * 37 = c - a
   use (l + m),
-  simp [add_mul, Hl, Hm],
+  rw [add_mul, Hl, Hm], ring
 end
 
 -- so we've now seen a general technique for proving a ≈ b -- use (the k that works)
@@ -95,7 +95,7 @@ begin
   apply quotient.sound,
   -- goal now a₁ + a₂ ≈ b₁ + b₂, and we know how to do these.
   use (m + n),
-  simp [add_mul, Hm, Hn]
+  rw [add_mul, Hm, Hn], ring
 end
 
 -- That lemma above is *exactly* what we need to make sure addition is

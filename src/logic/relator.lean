@@ -20,11 +20,11 @@ predicate? For now we stick to the recursor approach.
 -/
 
 section
-variables {α : Type u₁} {β : Type u₂} {γ : Type v₁} {δ : Type v₂}
+variables {α : Sort u₁} {β : Sort u₂} {γ : Sort v₁} {δ : Sort v₂}
 variables (R : α → β → Prop) (S : γ → δ → Prop)
 
 def lift_fun (f : α → γ) (g : β → δ) : Prop :=
-∀{a b}, R a b → S (f a) (g b)
+∀⦃a b⦄, R a b → S (f a) (g b)
 
 infixr ⇒ := lift_fun
 
@@ -45,10 +45,12 @@ variables {α : Type u₁} {β : Type u₂} (R : α → β → Prop)
 @[class] def left_unique := ∀{a b c}, R a b → R c b → a = c
 @[class] def right_unique := ∀{a b c}, R a b → R a c → b = c
 
-lemma rel_forall_of_right_total [t : right_total R] : ((R ⇒ implies) ⇒ implies) (λp, ∀i, p i) (λq, ∀i, q i) :=
+lemma rel_forall_of_right_total [t : right_total R] :
+  ((R ⇒ implies) ⇒ implies) (λp, ∀i, p i) (λq, ∀i, q i) :=
 assume p q Hrel H b, exists.elim (t b) (assume a Rab, Hrel Rab (H _))
 
-lemma rel_exists_of_left_total [t : left_total R] : ((R ⇒ implies) ⇒ implies) (λp, ∃i, p i) (λq, ∃i, q i) :=
+lemma rel_exists_of_left_total [t : left_total R] :
+  ((R ⇒ implies) ⇒ implies) (λp, ∃i, p i) (λq, ∃i, q i) :=
 assume p q Hrel ⟨a, pa⟩, let ⟨b, Rab⟩ := t a in ⟨b, Hrel Rab pa⟩
 
 lemma rel_forall_of_total [t : bi_total R] : ((R ⇒ iff) ⇒ iff) (λp, ∀i, p i) (λq, ∀i, q i) :=
@@ -75,6 +77,8 @@ assume p q h r s l, imp_congr h l
 lemma rel_not : (iff ⇒ iff) not not :=
 assume p q h, not_congr h
 
+@[priority 100] -- see Note [lower instance priority]
+-- (this is an instance is always applies, since the relation is an out-param)
 instance bi_total_eq {α : Type u₁} : relator.bi_total (@eq α) :=
 ⟨assume a, ⟨a, rfl⟩, assume a, ⟨a, rfl⟩⟩
 

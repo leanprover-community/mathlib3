@@ -138,15 +138,14 @@ do m ← read_ref r,
                  guard $ a'' =ₐ b',
                  pure pa' )
            end,
-           p' ← mk_eq_trans pa p,
-           add_edge r a' b' p',
-           mk_eq_symm pb >>= mk_eq_trans p'
+    p' ← mk_eq_trans pa p,
+    add_edge r a' b' p',
+    mk_eq_symm pb >>= mk_eq_trans p'
 
 meta def find_eq_type (r : tauto_state) : expr → list expr → tactic (expr × expr)
 | e []         := failed
 | e (H :: Hs) :=
   do t  ← infer_type H,
-     t' ← infer_type e,
      (prod.mk H <$> symm_eq r e t) <|> find_eq_type e Hs
 
 private meta def contra_p_not_p (r : tauto_state) : list expr → list expr → tactic unit
@@ -180,33 +179,38 @@ do { ctx ← local_context,
 meta def assumption_symm :=
 using_new_ref (native.rb_map.mk _ _) assumption_with
 
-meta def tautology (c : bool := ff) : tactic unit :=
-do when c classical,
-   using_new_ref (expr_map.mk _) $ λ r,
-   do try (contradiction_with r);
-      try (assumption_with r);
-      repeat (do
-        gs ← get_goals,
-        repeat (() <$ tactic.intro1);
-        distrib_not;
-        casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(Exists _),``(false)];
-        try (contradiction_with r);
-        try (target >>= match_or >> refine ``( or_iff_not_imp_left.mpr _));
-        try (target >>= match_or >> refine ``( or_iff_not_imp_right.mpr _));
-        repeat (() <$ tactic.intro1);
-        constructor_matching (some ()) [``(_ ∧ _),``(_ ↔ _),``(true)];
-        try (assumption_with r),
-        gs' ← get_goals,
-        guard (gs ≠ gs') ) ;
-      repeat
-      (reflexivity <|> solve_by_elim <|>
-       constructor_matching none [``(_ ∧ _),``(_ ↔ _),``(Exists _),``(true)] ) ;
-      done
+meta structure tauto_cfg :=
+(basic_tauto_tacs : list (tactic unit) := [reflexivity,
+                                           solve_by_elim,
+                                           constructor_matching none
+                                             [``(_ ∧ _),``(_ ↔ _),``(Exists _),``(true)]])
+(classic : bool                        := ff)
+(closer : tactic unit                  := pure ())
 
-open interactive lean.parser
+meta def tautology (cfg : tauto_cfg := {}) : tactic unit := focus1 $
+  let tauto_core (r : tauto_state) : tactic unit :=
+    do try (contradiction_with r);
+       try (assumption_with r);
+       repeat (do
+         gs ← get_goals,
+         repeat (() <$ tactic.intro1);
+         distrib_not;
+         casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(Exists _),``(false)];
+         try (contradiction_with r);
+         try (target >>= match_or >> refine ``( or_iff_not_imp_left.mpr _));
+         try (target >>= match_or >> refine ``( or_iff_not_imp_right.mpr _));
+         repeat (() <$ tactic.intro1);
+         constructor_matching (some ()) [``(_ ∧ _),``(_ ↔ _),``(true)];
+         try (assumption_with r),
+         gs' ← get_goals,
+         guard (gs ≠ gs') ) in
+    do when cfg.classic classical,
+       using_new_ref (expr_map.mk _) tauto_core;
+       repeat (first cfg.basic_tauto_tacs); cfg.closer, done
 
 namespace interactive
 local postfix `?`:9001 := optional
+setup_tactic_parser
 
 /--
 `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
@@ -214,8 +218,12 @@ and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be
 using `reflexivity` or `solve_by_elim`.
 This is a finishing tactic: it either closes the goal or raises an error.
 The variant `tautology!` uses the law of excluded middle.
+
+`tautology {closer := tac}` will use `tac` on any subgoals created by `tautology`
+that it is unable to solve before failing.
 -/
-meta def tautology (c : parse $ (tk "!")?) := tactic.tautology c.is_some
+meta def tautology (c : parse $ (tk "!")?) (cfg : tactic.tauto_cfg := {}) :=
+tactic.tautology $ { classic := c.is_some, ..cfg }
 
 -- Now define a shorter name for the tactic `tautology`.
 
@@ -225,8 +233,12 @@ and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be
 using `reflexivity` or `solve_by_elim`.
 This is a finishing tactic: it either closes the goal or raises an error.
 The variant `tauto!` uses the law of excluded middle.
+
+`tauto {closer := tac}` will use `tac` on any subgoals created by `tauto`
+that it is unable to solve before failing.
 -/
-meta def tauto (c : parse $ (tk "!")?) := tautology c
+meta def tauto (c : parse $ (tk "!")?) (cfg : tactic.tauto_cfg := {}) : tactic unit :=
+tautology c cfg
 
 add_hint_tactic "tauto"
 
@@ -245,6 +257,9 @@ example (p q r : Prop) [decidable p] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ 
 ```
 and the decidability assumptions can be dropped if `tauto!` is used
 instead of `tauto`.
+
+`tauto {closer := tac}` will use `tac` on any subgoals created by `tauto`
+that it is unable to solve before failing.
 -/
 add_tactic_doc
 { name       := "tautology",

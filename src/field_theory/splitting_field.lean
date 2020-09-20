@@ -42,7 +42,7 @@ have hia : i a ≠ 0, from mt ((is_add_group_hom.injective_iff i).1
 or.inr $ λ g hg ⟨p, hp⟩, absurd hg.1 (not_not.2 (is_unit_iff_degree_eq_zero.2 $
   by have := congr_arg degree hp;
     simp [degree_C hia, @eq_comm (with_bot ℕ) 0,
-      nat.with_bot.add_eq_zero_iff] at this; clear _fun_match; tautology))
+      nat.with_bot.add_eq_zero_iff] at this; clear _fun_match; tauto))
 
 lemma splits_of_degree_eq_one {f : polynomial α} (hf : degree f = 1) : splits i f :=
 or.inr $ λ g hg ⟨p, hp⟩,

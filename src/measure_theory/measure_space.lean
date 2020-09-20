@@ -378,26 +378,26 @@ begin
 end
 
 /-- One direction of the Borel-Cantelli lemma: if (sᵢ) is a sequence of measurable sets such that
-  ∑ sᵢ exists, then the limit superior of the sᵢ is a null set. -/
+  ∑ μ sᵢ exists, then the limit superior of the sᵢ is a null set. -/
 lemma measure_limsup_eq_zero {s : ℕ → set α} (hs : ∀ i, is_measurable (s i))
   (hs' : (∑' i, μ (s i)) ≠ ⊤) : μ (limsup at_top s) = 0 :=
 begin
   rw limsup_eq_infi_supr_of_nat',
-
+  -- We will show that both `μ (⨅ n, ⨆ i, s (i + n))` and `0` are the limit of `μ (⊔ i, s (i + n))`
+  -- as `n` tends to infinity. For the former, we use continuity from above.
   refine tendsto_nhds_unique
     (tendsto_measure_Inter (λ i, is_measurable.Union (λ b, hs (b + i))) _
-      ⟨0, lt_of_le_of_lt (measure_Union_le s) (ennreal.lt_top_iff_ne_top.2 hs')⟩)
-    (tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds
+      ⟨0, lt_of_le_of_lt (measure_Union_le s) (ennreal.lt_top_iff_ne_top.2 hs')⟩) _,
+  { intros n m hnm x,
+    simp only [set.mem_Union],
+    exact λ ⟨i, hi⟩, ⟨i + (m - n), by simpa only [add_assoc, nat.sub_add_cancel hnm] using hi⟩ },
+  { -- For the latter, notice that, `μ (⨆ i, s (i + n)) ≤ ∑' s (i + n)`. Since the right hand side
+    -- converges to `0` by hypothesis, so does the former and the proof is complete.
+    exact (tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds
       (ennreal.tendsto_sum_nat_add (μ ∘ s) hs')
       (eventually_of_forall (by simp only [forall_const, zero_le]))
-      (eventually_of_forall (λ i, measure_Union_le _))),
-
-  intros n m hnm x,
-  simp only [set.mem_Union],
-  exact λ ⟨i, hi⟩, ⟨i + (m - n), by simpa only [add_assoc, nat.sub_add_cancel hnm] using hi⟩
+      (eventually_of_forall (λ i, measure_Union_le _))) }
 end
-
-
 
 end
 
@@ -1005,6 +1005,21 @@ ae_eq_bot.trans measure.restrict_eq_zero
 
 @[simp] lemma ae_restrict_ne_bot {s} : (μ.restrict s).ae.ne_bot ↔ 0 < μ s :=
 (not_congr ae_restrict_eq_bot).trans zero_lt_iff_ne_zero.symm
+
+/-- A version of the Borel-Cantelli lemma: if sᵢ is a sequence of measurable sets such that
+∑ μ sᵢ exists, then for almost all x, x does not belong to almost all sᵢ. -/
+lemma ae_eventually_not_mem {s : ℕ → set α} (hs : ∀ i, is_measurable (s i))
+  (hs' : (∑' i, μ (s i)) ≠ ⊤) : ∀ᵐ x ∂ μ, ∀ᶠ n in at_top, x ∉ s n :=
+begin
+  refine measure_mono_null _ (measure_limsup_eq_zero hs hs'),
+  rw ←set.le_eq_subset,
+  refine le_Inf (λ t ht x hx, _),
+  simp only [le_eq_subset, not_exists, eventually_map, exists_prop, ge_iff_le, mem_set_of_eq,
+    eventually_at_top, mem_compl_eq, not_forall, not_not_mem] at hx ht,
+  rcases ht with ⟨i, hi⟩,
+  rcases hx i with ⟨j, ⟨hj, hj'⟩⟩,
+  exact hi j hj hj'
+end
 
 lemma mem_dirac_ae_iff {a : α} {s : set α} (hs : is_measurable s) :
   s ∈ (measure.dirac a).ae ↔ a ∈ s :=

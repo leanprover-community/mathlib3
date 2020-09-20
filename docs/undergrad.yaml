@@ -538,7 +538,8 @@ Probability Theory:
     sigma-algebra: 'measurable_space'
     independent sigma-algebra:
     $0$-$1$ law:
-    Borel-Cantelli lemma: 'measure_theory.measure_limsup_eq_zero'
+    Borel-Cantelli lemma (easy direction): 'measure_theory.measure_limsup_eq_zero'
+    Borel-Cantelli lemma (difficult direction):
     conditional probability:
     law of total probability:
   Random variables and their laws:

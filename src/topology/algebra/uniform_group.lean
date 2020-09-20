@@ -21,7 +21,7 @@ import tactic.abel
 -/
 
 noncomputable theory
-open_locale classical uniformity topological_space
+open_locale classical uniformity topological_space filter
 
 section uniform_add_group
 open filter set
@@ -355,7 +355,7 @@ begin
   let Nx := 𝓝 x₀,
   let ee := λ u : β × β, (e u.1, e u.2),
 
-  have lim1 : tendsto (λ a : β × β, (a.2 - a.1, y₁)) (filter.prod (comap e Nx) (comap e Nx)) (𝓝 (0, y₁)),
+  have lim1 : tendsto (λ a : β × β, (a.2 - a.1, y₁)) (comap e Nx ×ᶠ comap e Nx) (𝓝 (0, y₁)),
   { have := tendsto.prod_mk (tendsto_sub_comap_self de x₀) (tendsto_const_nhds : tendsto (λ (p : β × β), y₁) (comap ee $ 𝓝 (x₀, x₀)) (𝓝 y₁)),
     rw [nhds_prod_eq, prod_comap_comap_eq, ←nhds_prod_eq],
     exact (this : _) },
@@ -380,9 +380,9 @@ begin
     rwa [is_Z_bilin.zero φ] at this },
 
   have lim_φ_sub_sub : tendsto (λ (p : (β × β) × (δ × δ)), φ (p.1.2 - p.1.1, p.2.2 - p.2.1))
-    (filter.prod (comap ee $ 𝓝 (x₀, x₀)) (comap ff $ 𝓝 (y₀, y₀))) (𝓝 0),
+    ((comap ee $ 𝓝 (x₀, x₀)) ×ᶠ (comap ff $ 𝓝 (y₀, y₀))) (𝓝 0),
   { have lim_sub_sub :  tendsto (λ (p : (β × β) × δ × δ), (p.1.2 - p.1.1, p.2.2 - p.2.1))
-      (filter.prod (comap ee (𝓝 (x₀, x₀))) (comap ff (𝓝 (y₀, y₀)))) (filter.prod (𝓝 0) (𝓝 0)),
+      ((comap ee (𝓝 (x₀, x₀))) ×ᶠ (comap ff (𝓝 (y₀, y₀)))) (𝓝 0 ×ᶠ 𝓝 0),
     { have := filter.prod_mono (tendsto_sub_comap_self de x₀) (tendsto_sub_comap_self df y₀),
       rwa prod_map_map_eq at this },
     rw ← nhds_prod_eq at lim_sub_sub,
@@ -450,7 +450,7 @@ begin
     cc },
   { suffices : map (λ (p : (β × δ) × (β × δ)), φ p.2 - φ p.1)
       (comap (λ (p : (β × δ) × β × δ), ((e p.1.1, f p.1.2), (e p.2.1, f p.2.2)))
-         (filter.prod (𝓝 (x₀, y₀)) (𝓝 (x₀, y₀)))) ≤ 𝓝 0,
+         (𝓝 (x₀, y₀) ×ᶠ 𝓝 (x₀, y₀))) ≤ 𝓝 0,
     by rwa [uniformity_eq_comap_nhds_zero G, prod_map_map_eq, ←map_le_iff_le_comap, filter.map_map,
         prod_comap_comap_eq],
 

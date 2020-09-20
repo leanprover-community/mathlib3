@@ -130,11 +130,17 @@ dvd.elim h (assume c, assume H' : a = 0 * c, eq.trans H' (zero_mul c))
 
 end monoid_with_zero
 
-/-- Given two elements `b`, `c` of an integral domain and a nonzero element `a`,
+/-- Given two elements `b`, `c` of a `cancel_monoid_with_zero` and a nonzero element `a`,
  `a*b` divides `a*c` iff `b` divides `c`. -/
 theorem mul_dvd_mul_iff_left [cancel_monoid_with_zero α] {a b c : α}
   (ha : a ≠ 0) : a * b ∣ a * c ↔ b ∣ c :=
 exists_congr $ λ d, by rw [mul_assoc, mul_right_inj' ha]
+
+/-- Given two elements `a`, `b` of a commutative `cancel_monoid_with_zero` and a nonzero
+  element `c`, `a*c` divides `b*c` iff `a` divides `b`. -/
+theorem mul_dvd_mul_iff_right [comm_cancel_monoid_with_zero α] {a b c : α} (hc : c ≠ 0) :
+  a * c ∣ b * c ↔ a ∣ b :=
+exists_congr $ λ d, by rw [mul_right_comm, mul_left_inj' hc]
 
 /-!
 ### Units in various monoids
@@ -216,3 +222,23 @@ by { rcases hu with ⟨u, rfl⟩, apply units.mul_left_dvd, }
 end comm_monoid
 
 end is_unit
+
+section comm_monoid_with_zero
+
+variable [comm_monoid_with_zero α]
+
+/-- `dvd_not_unit a b` expresses that `a` divides `b` "strictly", i.e. that `b` divided by `a` is not a unit. -/
+def dvd_not_unit (a b : α) : Prop := a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ b = a * x
+
+lemma dvd_not_unit_of_dvd_of_not_dvd {a b : α} (hd : a ∣ b) (hnd : ¬ b ∣ a) :
+  dvd_not_unit a b :=
+begin
+  split,
+  { rintro rfl, exact hnd (dvd_zero _) },
+  { rcases hd with ⟨c, rfl⟩,
+    refine ⟨c, _, rfl⟩,
+    rintro ⟨u, rfl⟩,
+    simpa using hnd }
+end
+
+end comm_monoid_with_zero

@@ -22,7 +22,7 @@ namespace add_monoid_hom
 /-- A continuous additive map between two vector spaces over `ℝ` is `ℝ`-linear. -/
 lemma map_real_smul (f : E →+ F) (hf : continuous f) (c : ℝ) (x : E) :
   f (c • x) = c • f x :=
-suffices (λ c : ℝ, f (c • x)) = λ c : ℝ, c • f x, from congr_fun this c,
+suffices (λ c : ℝ, f (c • x)) = λ c : ℝ, c • f x, from _root_.congr_fun this c,
 dense_embedding_of_rat.dense.equalizer
   (hf.comp $ continuous_id.smul continuous_const)
   (continuous_id.smul continuous_const)

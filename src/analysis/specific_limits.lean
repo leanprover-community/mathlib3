@@ -31,7 +31,7 @@ lemma tendsto_at_top_mul_left [decidable_linear_ordered_semiring α] [archimedea
   tendsto (λx, r * f x) l at_top :=
 begin
   apply (tendsto_at_top _ _).2 (λb, _),
-  obtain ⟨n, hn⟩ : ∃ (n : ℕ), (1 : α) ≤ n • r := archimedean.arch 1 hr,
+  obtain ⟨n : ℕ, hn : 1 ≤ n •ℕ r⟩ := archimedean.arch 1 hr,
   have hn' : 1 ≤ r * n, by rwa nsmul_eq_mul' at hn,
   filter_upwards [(tendsto_at_top _ _).1 hf (n * max b 0)],
   assume x hx,
@@ -50,7 +50,7 @@ lemma tendsto_at_top_mul_right [decidable_linear_ordered_semiring α] [archimede
   tendsto (λx, f x * r) l at_top :=
 begin
   apply (tendsto_at_top _ _).2 (λb, _),
-  obtain ⟨n, hn⟩ : ∃ (n : ℕ), (1 : α) ≤ n • r := archimedean.arch 1 hr,
+  obtain ⟨n : ℕ, hn : 1 ≤ n •ℕ r⟩ := archimedean.arch 1 hr,
   have hn' : 1 ≤ (n : α) * r, by rwa nsmul_eq_mul at hn,
   filter_upwards [(tendsto_at_top _ _).1 hf (max b 0 * n)],
   assume x hx,
@@ -116,7 +116,7 @@ end
 
 lemma tendsto_inv_at_top_zero [discrete_linear_ordered_field α] [topological_space α]
   [order_topology α] : tendsto (λr:α, r⁻¹) at_top (𝓝 0) :=
-tendsto_le_right inf_le_left tendsto_inv_at_top_zero'
+tendsto_inv_at_top_zero'.mono_right inf_le_left
 
 lemma summable_of_absolute_convergence_real {f : ℕ → ℝ} :
   (∃r, tendsto (λn, (∑ i in range n, abs (f i))) at_top (𝓝 r)) → summable f
@@ -160,11 +160,8 @@ sub_add_cancel r 1 ▸ tendsto_add_one_pow_at_top_at_top_of_pos (sub_pos.2 h)
 
 lemma nat.tendsto_pow_at_top_at_top_of_one_lt {m : ℕ} (h : 1 < m) :
   tendsto (λn:ℕ, m ^ n) at_top at_top :=
-begin
-  simp only [← nat.pow_eq_pow],
-  exact nat.sub_add_cancel (le_of_lt h) ▸
-    tendsto_add_one_pow_at_top_at_top_of_pos (nat.sub_pos_of_lt h)
-end
+nat.sub_add_cancel (le_of_lt h) ▸
+  tendsto_add_one_pow_at_top_at_top_of_pos (nat.sub_pos_of_lt h)
 
 lemma lim_norm_zero' {𝕜 : Type*} [normed_group 𝕜] :
   tendsto (norm : 𝕜 → ℝ) (𝓝[{x | x ≠ 0}] 0) (𝓝[set.Ioi 0] 0) :=
@@ -697,7 +694,7 @@ lemma self_div_two_le_harmonic_two_pow (n : ℕ) : (n / 2 : ℝ) ≤ harmonic_se
 begin
   induction n with n hn,
   unfold harmonic_series,
-  simp only [one_div_eq_inv, nat.cast_zero, euclidean_domain.zero_div, nat.cast_succ, sum_singleton,
+  simp only [one_div, nat.cast_zero, zero_div, nat.cast_succ, sum_singleton,
     inv_one, zero_add, nat.pow_zero, range_one, zero_le_one],
   have : harmonic_series (2^n) + 1 / 2 ≤ harmonic_series (2^(n+1)),
   { have := half_le_harmonic_double_sub_harmonic (2^n) (by {apply nat.pow_pos, linarith}),

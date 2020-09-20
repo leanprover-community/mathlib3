@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau.
 -/
 
+import algebra.polynomial.big_operators
 import field_theory.minimal_polynomial
+import field_theory.splitting_field
 
 /-!
 
@@ -65,6 +67,9 @@ end
 
 lemma separable.of_mul_right {f g : polynomial R} (h : (f * g).separable) : g.separable :=
 by { rw mul_comm at h, exact h.of_mul_left }
+
+lemma separable.of_dvd {f g : polynomial R} (hf : f.separable) (hfg : g ∣ f) : g.separable :=
+by { rcases hfg with ⟨f', rfl⟩, exact separable.of_mul_left hf }
 
 lemma separable.is_coprime {f g : polynomial R} (h : (f * g).separable) : is_coprime f g :=
 begin
@@ -186,6 +191,10 @@ begin
     rw [coeff_expand_mul hp, ← leading_coeff], exact mt leading_coeff_eq_zero.1 hf }
 end
 
+theorem map_expand {p : ℕ} (hp : 0 < p) {f : R →+* S} {q : polynomial R} :
+  map f (expand R p q) = expand S p (map f q) :=
+by { ext, rw [coeff_map, coeff_expand hp, coeff_expand hp], split_ifs; simp, }
+
 end comm_semiring
 
 section comm_ring
@@ -227,6 +236,19 @@ lemma separable.injective_of_prod_X_sub_C [nontrivial R] {ι : Sort*} [fintype �
   (hfs : (∏ i, (X - C (f i))).separable) : function.injective f :=
 λ x y hfxy, hfs.inj_of_prod_X_sub_C (mem_univ _) (mem_univ _) hfxy
 
+lemma is_unit_of_self_mul_dvd_separable {p q : polynomial R}
+  (hp : p.separable) (hq : q * q ∣ p) : is_unit q :=
+begin
+  obtain ⟨p, rfl⟩ := hq,
+  apply is_coprime_self.mp,
+  have : is_coprime (q * (q * p)) (q * (q.derivative * p + q.derivative * p + q * p.derivative)),
+  { simp only [← mul_assoc, mul_add],
+    convert hp,
+    rw [derivative_mul, derivative_mul],
+    ring },
+  exact is_coprime.of_mul_right_left (is_coprime.of_mul_left_left this)
+end
+
 end comm_ring
 
 section integral_domain
@@ -266,7 +288,7 @@ include hp
 
 /-- The opposite of `expand`: sends `∑ aₙ xⁿᵖ` to `∑ aₙ xⁿ`. -/
 noncomputable def contract (f : polynomial F) : polynomial F :=
-⟨@finset.preimage ℕ ℕ (*p) f.support $ λ _ _ _ _, (nat.mul_left_inj hp.pos).1,
+⟨f.support.preimage (*p) $ λ _ _ _ _, (nat.mul_left_inj hp.pos).1,
 λ n, f.coeff (n * p),
 λ n, by { rw [finset.mem_preimage, finsupp.mem_support_iff], refl }⟩
 
@@ -279,10 +301,29 @@ theorem of_irreducible_expand {f : polynomial F} (hf : irreducible (expand F p f
 theorem of_irreducible_expand_pow {f : polynomial F} {n : ℕ} :
   irreducible (expand F (p ^ n) f) → irreducible f :=
 nat.rec_on n (λ hf, by rwa [nat.pow_zero, expand_one] at hf) $ λ n ih hf,
-ih $ of_irreducible_expand p $ by rwa [expand_expand, mul_comm]
+ih $ of_irreducible_expand p $ by rwa [expand_expand]
 
 variables [HF : char_p F p]
 include HF
+
+theorem expand_char (f : polynomial F) :
+  map (frobenius F p) (expand F p f) = f ^ p :=
+begin
+  refine f.induction_on' (λ a b ha hb, _) (λ n a, _),
+  { rw [alg_hom.map_add, map_add, ha, hb, add_pow_char], },
+  { rw [expand_monomial, map_monomial, single_eq_C_mul_X, single_eq_C_mul_X,
+        mul_pow, ← C.map_pow, frobenius_def],
+    ring_exp }
+end
+
+theorem map_expand_pow_char (f : polynomial F) (n : ℕ) :
+   map ((frobenius F p) ^ n) (expand F (p ^ n) f) = f ^ (p ^ n) :=
+begin
+  induction n, {simp [ring_hom.one_def]},
+  symmetry,
+  rw [nat.pow_succ, pow_mul, ← n_ih, ← expand_char, pow_succ, ring_hom.mul_def, ← map_map, mul_comm,
+      expand_mul, ← map_expand (nat.prime.pos hp)],
+end
 
 theorem expand_contract {f : polynomial F} (hf : f.derivative = 0) :
   expand F p (contract p f) = f :=
@@ -332,7 +373,7 @@ end
 theorem is_unit_or_eq_zero_of_separable_expand {f : polynomial F} (n : ℕ)
   (hf : (expand F (p ^ n) f).separable) : is_unit f ∨ n = 0 :=
 begin
-  rw classical.or_iff_not_imp_right, intro hn,
+  rw or_iff_not_imp_right, intro hn,
   have hf2 : (expand F (p ^ n) f).derivative = 0,
   { by rw [derivative_expand, nat.cast_pow, char_p.cast_eq_zero,
       zero_pow (nat.pos_of_ne_zero hn), zero_mul, mul_zero] },
@@ -370,6 +411,57 @@ lemma separable_prod_X_sub_C_iff' {ι : Sort*} {f : ι → F} {s : finset ι} :
 lemma separable_prod_X_sub_C_iff {ι : Sort*} [fintype ι] {f : ι → F} :
   (∏ i, (X - C (f i))).separable ↔ function.injective f :=
 separable_prod_X_sub_C_iff'.trans $ by simp_rw [mem_univ, true_implies_iff]
+
+section splits
+
+open_locale big_operators
+
+variables {i : F →+* K}
+
+lemma not_unit_X_sub_C (a : F) : ¬ is_unit (X - C a) :=
+λ h, have one_eq_zero : (1 : with_bot ℕ) = 0, by simpa using degree_eq_zero_of_is_unit h,
+one_ne_zero (option.some_injective _ one_eq_zero)
+
+lemma nodup_of_separable_prod {s : multiset F}
+  (hs : separable (multiset.map (λ a, X - C a) s).prod) : s.nodup :=
+begin
+  rw multiset.nodup_iff_ne_cons_cons,
+  rintros a t rfl,
+  refine not_unit_X_sub_C a (is_unit_of_self_mul_dvd_separable hs _),
+  simpa only [multiset.map_cons, multiset.prod_cons] using mul_dvd_mul_left _ (dvd_mul_right _ _)
+end
+
+lemma multiplicity_le_one_of_seperable {p q : polynomial F} (hq : ¬ is_unit q)
+  (hsep : separable p) : multiplicity q p ≤ 1 :=
+begin
+  contrapose! hq,
+  apply is_unit_of_self_mul_dvd_separable hsep,
+  rw ← pow_two,
+  apply multiplicity.pow_dvd_of_le_multiplicity,
+  exact_mod_cast (enat.add_one_le_of_lt hq)
+end
+
+lemma root_multiplicity_le_one_of_seperable {p : polynomial F} (hp : p ≠ 0)
+  (hsep : separable p) (x : F) : root_multiplicity x p ≤ 1 :=
+begin
+  rw [root_multiplicity_eq_multiplicity, dif_neg hp, ← enat.coe_le_coe, enat.coe_get],
+  exact multiplicity_le_one_of_seperable (not_unit_X_sub_C _) hsep
+end
+
+lemma count_roots_le_one {p : polynomial F} (hsep : separable p) (x : F) :
+  p.roots.count x ≤ 1 :=
+begin
+  by_cases hp : p = 0,
+  { simp [hp] },
+  rw count_roots hp,
+  exact root_multiplicity_le_one_of_seperable hp hsep x
+end
+
+lemma nodup_roots {p : polynomial F} (hsep : separable p) :
+  p.roots.nodup :=
+multiset.nodup_iff_count_le_one.mpr (count_roots_le_one hsep)
+
+end splits
 
 end field
 

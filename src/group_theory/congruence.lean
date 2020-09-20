@@ -447,8 +447,7 @@ underlying binary relation."]
 lemma Sup_def {S : set (con M)} : Sup S = con_gen (Sup (r '' S)) :=
 begin
   rw [Sup_eq_con_gen, Sup_image],
-  congr,
-  ext x y,
+  congr' with x y,
   simp only [Sup_image, supr_apply, supr_Prop_eq, exists_prop, rel_eq_coe]
 end
 
@@ -516,8 +515,7 @@ open quotient
 @[to_additive "Given an additive congruence relation `c` on a type `M` with an addition,
 the order-preserving bijection between the set of additive congruence relations containing `c` and
 the additive congruence relations on the quotient of `M` by `c`."]
-def correspondence : ((≤) : {d // c ≤ d} → {d // c ≤ d} → Prop) ≃o
-  ((≤) : con c.quotient → con c.quotient → Prop) :=
+def correspondence : {d // c ≤ d} ≃o (con c.quotient) :=
 { to_fun := λ d, d.1.map_of_surjective coe _
     (by rw mul_ker_mk_eq; exact d.2) $ @exists_rep _ c.to_setoid,
   inv_fun := λ d, ⟨comap (coe : M → c.quotient) (λ x y, rfl) d, λ _ _ h,
@@ -531,7 +529,7 @@ def correspondence : ((≤) : {d // c ≤ d} → {d // c ≤ d} → Prop) ≃o
       λ x y h, show d _ _, by rw mul_ker_mk_eq at h; exact c.eq.2 h ▸ d.refl _ in
     ext $ λ x y, ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in hx ▸ hy ▸ H,
       con.induction_on₂ x y $ λ w z h, ⟨w, z, rfl, rfl, h⟩⟩,
-  ord' := λ s t, ⟨λ h _ _ hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩,
+  map_rel_iff' := λ s t, ⟨λ h _ _ hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩,
     λ h _ _ hs, let ⟨a, b, hx, hy, ht⟩ := h ⟨_, _, rfl, rfl, hs⟩ in
       t.1.trans (t.1.symm $ t.2 $ eq_rel.1 hx) $ t.1.trans ht $ t.2 $ eq_rel.1 hy⟩ }
 

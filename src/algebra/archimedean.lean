@@ -38,15 +38,15 @@ lemma pow_unbounded_of_one_lt (x : α) {y : α} (hy1 : 1 < y) :
   ∃ n : ℕ, x < y ^ n :=
 sub_add_cancel y 1 ▸ add_one_pow_unbounded_of_pos _ (sub_pos.2 hy1)
 
-/-- Every x greater than 1 is between two successive natural-number
-powers of another y greater than one. -/
-lemma exists_nat_pow_near {x : α} {y : α} (hx : 1 < x) (hy : 1 < y) :
+/-- Every x greater than or equal to 1 is between two successive
+natural-number powers of every y greater than one. -/
+lemma exists_nat_pow_near {x : α} {y : α} (hx : 1 ≤ x) (hy : 1 < y) :
   ∃ n : ℕ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
 have h : ∃ n : ℕ, x < y ^ n, from pow_unbounded_of_one_lt _ hy,
 by classical; exact let n := nat.find h in
   have hn  : x < y ^ n, from nat.find_spec h,
   have hnp : 0 < n,     from nat.pos_iff_ne_zero.2 (λ hn0,
-    by rw [hn0, pow_zero] at hn; exact (not_lt_of_gt hn hx)),
+    by rw [hn0, pow_zero] at hn; exact (not_le_of_gt hn hx)),
   have hnsp : nat.pred n + 1 = n,     from nat.succ_pred_eq_of_pos hnp,
   have hltn : nat.pred n < n,         from nat.pred_lt (ne_of_gt hnp),
   ⟨nat.pred n, le_of_not_lt (nat.find_min h hltn), by rwa hnsp⟩
@@ -194,7 +194,7 @@ begin
   rw [int.cast_add, int.cast_one],
   refine lt_of_le_of_lt (add_le_add_right ((zh _).1 (le_refl _)) _) _,
   rwa [← lt_sub_iff_add_lt', ← sub_mul,
-       ← div_lt_iff' (sub_pos.2 h), one_div_eq_inv],
+       ← div_lt_iff' (sub_pos.2 h), one_div],
   { rw [rat.coe_int_denom, nat.cast_one], exact one_ne_zero },
   { intro H, rw [rat.coe_nat_num, ← coe_coe, nat.cast_eq_zero] at H, subst H, cases n0 },
   { rw [rat.coe_nat_denom, nat.cast_one], exact one_ne_zero }

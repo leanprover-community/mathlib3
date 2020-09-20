@@ -30,7 +30,6 @@ All the following declarations exist in the namespace `nat`.
 open bool subtype
 
 namespace nat
-open decidable
 
 /-- `prime p` means that `p` is a prime number, that is, a natural number
   at least 2 whose only divisors are `p` and `1`. -/
@@ -44,7 +43,7 @@ theorem prime.one_lt {p : ℕ} : prime p → 1 < p := prime.two_le
 instance prime.one_lt' (p : ℕ) [hp : _root_.fact p.prime] : _root_.fact (1 < p) := hp.one_lt
 
 lemma prime.ne_one {p : ℕ} (hp : p.prime) : p ≠ 1 :=
-ne.symm $ (ne_of_lt hp.one_lt)
+ne.symm $ ne_of_lt hp.one_lt
 
 theorem prime_def_lt {p : ℕ} : prime p ↔ 2 ≤ p ∧ ∀ m < p, m ∣ p → m = 1 :=
 and_congr_right $ λ p2, forall_congr $ λ m,
@@ -90,9 +89,7 @@ decidable_of_iff' _ prime_def_lt'
 local attribute [instance] decidable_prime_1
 
 lemma prime.ne_zero {n : ℕ} (h : prime n) : n ≠ 0 :=
-assume hn : n = 0,
-have h2 : ¬ prime 0, from dec_trivial,
-h2 (hn ▸ h)
+by { rintro rfl, revert h, dec_trivial }
 
 theorem prime.pos {p : ℕ} (pp : prime p) : 0 < p :=
 lt_of_succ_lt pp.one_lt
@@ -414,7 +411,7 @@ mt pp.dvd_mul.1 $ by simp [Hm, Hn]
 theorem prime.dvd_of_dvd_pow {p m n : ℕ} (pp : prime p) (h : p ∣ m^n) : p ∣ m :=
 by induction n with n IH;
    [exact pp.not_dvd_one.elim h,
-    exact (pp.dvd_mul.1 h).elim IH id]
+    exact (pp.dvd_mul.1 h).elim id IH]
 
 lemma prime.pow_not_prime {x n : ℕ} (hn : 2 ≤ n) : ¬ (x ^ n).prime :=
 λ hp, (hp.2 x $ dvd_trans ⟨x, nat.pow_two _⟩ (nat.pow_dvd_pow _ hn)).elim
@@ -469,7 +466,7 @@ begin
   { cases h with a e, subst e,
     rw [nat.pow_succ, mul_comm (p^m) p, nat.mul_dvd_mul_iff_left pp.pos, IH],
     split; intro h; rcases h with ⟨k, h, e⟩,
-    { exact ⟨succ k, succ_le_succ h, by rw [mul_comm, e]; refl⟩ },
+    { exact ⟨succ k, succ_le_succ h, by rw [e]; refl⟩ },
     cases k with k,
     { apply pp.not_dvd_one.elim,
       simp at e, rw ← e, apply dvd_mul_right },
@@ -551,12 +548,12 @@ end
 lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul {p : ℕ} (p_prime : prime p) {m n k l : ℕ}
       (hpm : p ^ k ∣ m) (hpn : p ^ l ∣ n) (hpmn : p ^ (k+l+1) ∣ m*n) :
       p ^ (k+1) ∣ m ∨ p ^ (l+1) ∣ n :=
-have hpd : p^(k+l) * p ∣ m*n, from hpmn,
+have hpd : p^(k+l)*p ∣ m*n, by rwa pow_succ' at hpmn,
 have hpd2 : p ∣ (m*n) / p ^ (k+l), from dvd_div_of_mul_dvd hpd,
 have hpd3 : p ∣ (m*n) / (p^k * p^l), by simpa [nat.pow_add] using hpd2,
 have hpd4 : p ∣ (m / p^k) * (n / p^l), by simpa [nat.div_mul_div hpm hpn] using hpd3,
 have hpd5 : p ∣ (m / p^k) ∨ p ∣ (n / p^l), from (prime.dvd_mul p_prime).1 hpd4,
-show p^k*p ∣ m ∨ p^l*p ∣ n, from
+suffices p^k*p ∣ m ∨ p^l*p ∣ n, by rwa [pow_succ', pow_succ'],
   hpd5.elim
     (assume : p ∣ m / p ^ k, or.inl $ mul_dvd_of_dvd_div hpm this)
     (assume : p ∣ n / p ^ l, or.inr $ mul_dvd_of_dvd_div hpn this)

@@ -187,7 +187,7 @@ begin
     from (hZc i₀).elim_finite_subfamily_closed Z'
       (assume i, is_closed_inter (hZcl i) (hZcl i₀)) (by rw [H, inter_empty]),
   obtain ⟨i₁, hi₁⟩ : ∃ i₁ : ι, Z i₁ ⊆ Z i₀ ∧ ∀ i ∈ t, Z i₁ ⊆ Z' i,
-  { rcases directed.finset_le hι hZd t with ⟨i, hi⟩,
+  { rcases directed.finset_le hZd t with ⟨i, hi⟩,
     rcases hZd i i₀ with ⟨i₁, hi₁, hi₁₀⟩,
     use [i₁, hi₁₀],
     intros j hj,
@@ -708,13 +708,10 @@ closure_eq_iff_is_closed.1 $ eq_irreducible_component
 class preirreducible_space (α : Type u) [topological_space α] : Prop :=
 (is_preirreducible_univ [] : is_preirreducible (univ : set α))
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- An irreducible space is one that is nonempty
 and where there is no non-trivial pair of disjoint opens. -/
 class irreducible_space (α : Type u) [topological_space α] extends preirreducible_space α : Prop :=
 (to_nonempty [] : nonempty α)
-end prio
 
 attribute [instance, priority 50] irreducible_space.to_nonempty -- see Note [lower instance priority]
 
@@ -1050,12 +1047,9 @@ class preconnected_space (α : Type u) [topological_space α] : Prop :=
 
 export preconnected_space (is_preconnected_univ)
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A connected space is a nonempty one where there is no non-trivial open partition. -/
 class connected_space (α : Type u) [topological_space α] extends preconnected_space α : Prop :=
 (to_nonempty : nonempty α)
-end prio
 
 attribute [instance, priority 50] connected_space.to_nonempty -- see Note [lower instance priority]
 
@@ -1158,8 +1152,8 @@ begin
     rw ne_empty_iff_nonempty,
     simp [not_subset] at huv,
     rcases huv with ⟨⟨x, hxs, hxu⟩, ⟨y, hys, hyv⟩⟩,
-    have hxv : x ∈ v := classical.or_iff_not_imp_left.mp (hs hxs) hxu,
-    have hyu : y ∈ u := classical.or_iff_not_imp_right.mp (hs hys) hyv,
+    have hxv : x ∈ v := or_iff_not_imp_left.mp (hs hxs) hxu,
+    have hyu : y ∈ u := or_iff_not_imp_right.mp (hs hys) hyv,
     exact h ⟨y, hys, hyu⟩ ⟨x, hxs, hxv⟩ },
   { intros u v hu hv hs hsu hsv,
     rw ← ne_empty_iff_nonempty,

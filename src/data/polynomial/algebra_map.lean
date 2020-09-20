@@ -97,17 +97,15 @@ end comm_semiring
 section aeval
 variables [comm_semiring R] {p : polynomial R}
 
--- TODO this could be generalized: there's no need for `A` to be commutative,
--- we just need that `x` is central.
-variables [comm_semiring A] [algebra R A]
-variables {B : Type*} [comm_semiring B] [algebra R B]
+variables [semiring A] [algebra R A]
+variables {B : Type*} [semiring B] [algebra R B]
 variables (x : A)
 
 /-- Given a valuation `x` of the variable in an `R`-algebra `A`, `aeval R A x` is
 the unique `R`-algebra homomorphism from `R[X]` to `A` sending `X` to `x`. -/
 def aeval : polynomial R →ₐ[R] A :=
 { commutes' := λ r, eval₂_C _ _,
-  ..eval₂_ring_hom (algebra_map R A) x }
+  ..eval₂_ring_hom' (algebra_map R A) algebra.commutes x }
 
 variables {R A}
 
@@ -125,7 +123,8 @@ begin
   { intros f g ih1 ih2,
     rw [φ.map_add, ih1, ih2, eval₂_add] },
   { intros n r ih,
-    rw [pow_succ', ← mul_assoc, φ.map_mul, eval₂_mul (algebra_map R A), eval₂_X, ih] }
+    rw [pow_succ', ← mul_assoc, φ.map_mul,
+        eval₂_mul_noncomm (algebra_map R A) _ algebra.commutes, eval₂_X, ih] }
 end
 
 theorem aeval_alg_hom (f : A →ₐ[R] B) (x : A) : aeval (f x) = f.comp (aeval x) :=
@@ -217,5 +216,11 @@ theorem not_is_unit_X_sub_C [nontrivial R] {r : R} : ¬ is_unit (X - C r) :=
 λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ $ by erw [← eval_mul_X_sub_C, hgf, eval_one]
 
 end ring
+
+lemma aeval_endomorphism {M : Type*}
+  [comm_ring R] [add_comm_group M] [module R M]
+  (f : M →ₗ[R] M) (v : M) (p : polynomial R) :
+  aeval f p v = p.sum (λ n b, b • (f ^ n) v) :=
+eval₂_endomorphism_algebra_map f v p
 
 end polynomial

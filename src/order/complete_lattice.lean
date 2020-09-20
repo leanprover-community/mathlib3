@@ -47,9 +47,9 @@ add_decl_doc has_Sup.Sup
 add_decl_doc has_Inf.Inf
 
 /-- Indexed supremum -/
-def supr [has_Sup α] (s : ι → α) : α := Sup (range s)
+def supr [has_Sup α] {ι} (s : ι → α) : α := Sup (range s)
 /-- Indexed infimum -/
-def infi [has_Inf α] (s : ι → α) : α := Inf (range s)
+def infi [has_Inf α] {ι} (s : ι → α) : α := Inf (range s)
 
 @[priority 50] instance has_Inf_to_nonempty (α) [has_Inf α] : nonempty α := ⟨Inf ∅⟩
 @[priority 50] instance has_Sup_to_nonempty (α) [has_Sup α] : nonempty α := ⟨Sup ∅⟩
@@ -60,8 +60,6 @@ notation `⨅` binders `, ` r:(scoped f, infi f) := r
 instance (α) [has_Inf α] : has_Sup (order_dual α) := ⟨(Inf : set α → α)⟩
 instance (α) [has_Sup α] : has_Inf (order_dual α) := ⟨(Sup : set α → α)⟩
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A complete lattice is a bounded lattice which
   has suprema and infima for every subset. -/
 class complete_lattice (α : Type*) extends bounded_lattice α, has_Sup α, has_Inf α :=
@@ -124,7 +122,6 @@ def complete_lattice_of_Sup (α : Type*) [H1 : partial_order α]
 
 /-- A complete linear order is a linear order whose lattice structure is complete. -/
 class complete_linear_order (α : Type*) extends complete_lattice α, decidable_linear_order α
-end prio
 
 namespace order_dual
 variable (α)
@@ -178,6 +175,12 @@ is_lub_le_iff (is_lub_Sup s)
 @[simp] theorem le_Inf_iff : a ≤ Inf s ↔ (∀b ∈ s, a ≤ b) :=
 le_is_glb_iff (is_glb_Inf s)
 
+theorem Sup_le_Sup_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, x ≤ y) : Sup s ≤ Sup t :=
+le_of_forall_le' (by simp only [Sup_le_iff]; introv h₀ h₁; rcases h _ h₁ with ⟨y,hy,hy'⟩; solve_by_elim [le_trans hy'])
+
+theorem Inf_le_Inf_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, y ≤ x) : Inf t ≤ Inf s :=
+le_of_forall_le (by simp only [le_Inf_iff]; introv h₀ h₁; rcases h _ h₁ with ⟨y,hy,hy'⟩; solve_by_elim [le_trans _ hy'])
+
 theorem Inf_le_Sup (hs : s.nonempty) : Inf s ≤ Sup s :=
 is_glb_le_is_lub (is_glb_Inf s) (is_lub_Sup s) hs
 
@@ -215,6 +218,12 @@ is_glb_univ.Inf_eq
 
 @[simp] theorem Inf_insert {a : α} {s : set α} : Inf (insert a s) = a ⊓ Inf s :=
 ((is_glb_Inf s).insert a).Inf_eq
+
+theorem Sup_le_Sup_of_subset_instert_bot (h : s ⊆ insert ⊥ t) : Sup s ≤ Sup t :=
+le_trans (Sup_le_Sup h) (le_of_eq (trans Sup_insert bot_sup_eq))
+
+theorem Inf_le_Inf_of_subset_insert_top (h : s ⊆ insert ⊤ t) : Inf t ≤ Inf s :=
+le_trans (le_of_eq (trans top_inf_eq.symm Inf_insert.symm)) (Inf_le_Inf h)
 
 -- We will generalize this to conditionally complete lattices in `cSup_singleton`.
 theorem Sup_singleton {a : α} : Sup {a} = a :=
@@ -256,7 +265,6 @@ iff.intro
     let ⟨a, ha, h⟩ := h _ h' in
     lt_irrefl a $ lt_of_le_of_lt (le_Sup ha) h)
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma Inf_eq_bot : Inf s = ⊥ ↔ (∀b>⊥, ∃a∈s, a < b) :=
 @Sup_eq_top (order_dual α) _ _
 
@@ -268,7 +276,7 @@ Inf_lt_iff.trans exists_range_iff
 
 end complete_linear_order
 
-/- 
+/-
 ### supr & infi
 -/
 
@@ -310,6 +318,9 @@ Sup_le $ assume b ⟨i, eq⟩, eq ▸ h i
 theorem bsupr_le {p : ι → Prop} {f : Π i (h : p i), α} (h : ∀ i hi, f i hi ≤ a) :
   (⨆ i (hi : p i), f i hi) ≤ a :=
 supr_le $ λ i, supr_le $ h i
+
+theorem bsupr_le_supr (p : ι → Prop) (f : ι → α) : (⨆ i (H : p i), f i) ≤ ⨆ i, f i :=
+bsupr_le (λ i hi, le_supr f i)
 
 theorem supr_le_supr (h : ∀i, s i ≤ t i) : supr s ≤ supr t :=
 supr_le $ assume i, le_supr_of_le i (h i)
@@ -397,6 +408,9 @@ le_Inf $ assume b ⟨i, eq⟩, eq ▸ h i
 theorem le_binfi {p : ι → Prop} {f : Π i (h : p i), α} (h : ∀ i hi, a ≤ f i hi) :
   a ≤ ⨅ i hi, f i hi :=
 le_infi $ λ i, le_infi $ h i
+
+theorem infi_le_binfi (p : ι → Prop) (f : ι → α) : (⨅ i, f i) ≤ ⨅ i (H : p i), f i :=
+le_binfi (λ i hi, infi_le f i)
 
 theorem infi_le_infi (h : ∀i, s i ≤ t i) : infi s ≤ infi t :=
 le_infi $ assume i, infi_le_of_le i (h i)
@@ -829,7 +843,6 @@ variables [complete_linear_order α]
 lemma supr_eq_top (f : ι → α) : supr f = ⊤ ↔ (∀b<⊤, ∃i, b < f i) :=
 by simp only [← Sup_range, Sup_eq_top, set.exists_range_iff]
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma infi_eq_bot (f : ι → α) : infi f = ⊥ ↔ (∀b>⊥, ∃i, f i < b) :=
 by simp only [← Inf_range, Inf_eq_bot, set.exists_range_iff]
 

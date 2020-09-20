@@ -30,7 +30,7 @@ of a finite group is semisimple (i.e. a direct sum of irreducibles).
 universes u
 
 noncomputable theory
-open module
+open semimodule
 open monoid_algebra
 open_locale big_operators
 
@@ -53,7 +53,7 @@ just as a `k`-linear map.
 
 We now construct a retraction of the inclusion as a `k[G]`-linear map,
 by the formula
-$$ \frac{1}{|G|} \sum_{g \mem G} g⁻¹ • π(g • -). $$
+$$ \frac{1}{|G|} \sum_{g \in G} g⁻¹ • π(g • -). $$
 -/
 
 variables (π : (restrict_scalars k (monoid_algebra k G) W) →ₗ[k]
@@ -118,7 +118,7 @@ section
 local attribute [instance] linear_map_algebra_module
 /--
 We construct our `k[G]`-linear retraction of `i` as
-$$ \frac{1}{|G|} \sum_{g \mem G} g⁻¹ • π(g • -). $$
+$$ \frac{1}{|G|} \sum_{g \in G} g⁻¹ • π(g • -). $$
 -/
 def equivariant_projection :
   W →ₗ[monoid_algebra k G] V :=

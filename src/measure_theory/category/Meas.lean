@@ -38,6 +38,8 @@ instance (X : Meas) : measurable_space X := X.str
 /-- Construct a bundled `Meas` from the underlying type and the typeclass. -/
 def of (α : Type u) [measurable_space α] : Meas := ⟨α⟩
 
+@[simp] lemma coe_of (X : Type u) [measurable_space X] : (of X : Type u) = X := rfl
+
 instance unbundled_hom : unbundled_hom @measurable := ⟨@measurable_id, @measurable.comp⟩
 
 attribute [derive [large_category, concrete_category]] Meas

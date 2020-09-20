@@ -35,7 +35,6 @@ instance [has_forget₂ C D] [reflects_isomorphisms (forget C)] :
     haveI : is_iso ((forget C).map f) :=
     begin
       have := has_forget₂.forget_comp,
-      dsimp at this,
       rw ←this,
       exact i',
     end,

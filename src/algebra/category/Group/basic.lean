@@ -80,6 +80,8 @@ local attribute [instance] has_forget₂.has_coe
 example (G : Group.{u}) : Mon.of G = (G : Mon.{u}) := rfl
 end
 
+end Group
+
 /-- The category of commutative groups and group morphisms. -/
 @[to_additive AddCommGroup]
 def CommGroup : Type (u+1) := bundled comm_group

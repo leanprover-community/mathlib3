@@ -411,6 +411,10 @@ def path_graph (n : ℕ) : simple_graph_on (fin (n + 1)) :=
   symm' := λ x y h, or.elim h or.inr or.inl,
   loopless' := by { intros x h, cases h; linarith } }
 
+lemma path_graph_adj (n : ℕ) (a b : fin (n + 1)) :
+  @adj' ↟(path_graph n) a b ↔ b.1 = a.1 + 1 ∨ a.1 = b.1 + 1 :=
+by refl
+
 /--
 A graph on `n` vertices with `n` edges in a cycle
 -/

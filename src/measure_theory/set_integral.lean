@@ -591,9 +591,8 @@ begin
   all_goals { assumption }
 end
 
-lemma integral_comp_l1_comm (L : E →L[ℝ] F) (φ : α →₁[μ] E) :
-  ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
-L.integral_comp_comm φ.measurable φ.integrable
+lemma integral_comp_l1_comm (L : E →L[ℝ] F) (φ : α →₁[μ] E) : ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
+L.integral_comp_comm φ.integrable
 
 end continuous_linear_map
 

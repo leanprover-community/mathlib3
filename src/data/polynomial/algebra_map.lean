@@ -248,6 +248,9 @@ lemma aeval_endomorphism {M : Type*}
   [comm_ring R] [add_comm_group M] [module R M]
   (f : M →ₗ[R] M) (v : M) (p : polynomial R) :
   aeval f p v = p.sum (λ n b, b • (f ^ n) v) :=
-eval₂_endomorphism_algebra_map f v p
+begin
+  rw [aeval_def, eval₂],
+  exact (finset.sum_hom p.support (λ h : M →ₗ[R] M, h v)).symm
+end
 
 end polynomial

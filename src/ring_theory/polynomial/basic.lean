@@ -426,15 +426,6 @@ theorem exists_irreducible_of_nat_degree_ne_zero {R : Type u} [integral_domain R
   {f : polynomial R} (hf : f.nat_degree ≠ 0) : ∃ g, irreducible g ∧ g ∣ f :=
 exists_irreducible_of_nat_degree_pos $ nat.pos_of_ne_zero hf
 
-lemma aeval_endomorphism {M : Type w}
-  [add_comm_group M] [module R M]
-  (f : M →ₗ[R] M) (v : M) (p : polynomial R) :
-  aeval f p v = p.sum (λ n b, b • (f ^ n) v) :=
-begin
-  rw [aeval_def, eval₂],
-  exact (finset.sum_hom p.support (λ h : M →ₗ[R] M, h v)).symm
-end
-
 lemma linear_independent_powers_iff_eval₂
   (f : M →ₗ[R] M) (v : M) :
   linear_independent R (λ n : ℕ, (f ^ n) v)

@@ -7,6 +7,7 @@ import algebraic_geometry.presheafed_space
 import topology.category.Top.limits
 import category_theory.limits.functor_category
 
+noncomputable theory
 
 universes v u
 
@@ -30,7 +31,7 @@ instance (X : Top) : has_limits (presheaf C X) := by { dsimp [presheaf], apply_i
 
 @[simp]
 lemma bar {X Y : PresheafedSpace C} {f g : X ⟶ Y} (e : f = g) (U) :
-  f.c.app (op U) = g.c.app (op U) ≫ (pushforward_eq (congr_arg PresheafedSpace.hom.base e.symm) X.𝒪).hom.app (op U) :=
+  f.c.app (op U) = g.c.app (op U) ≫ (pushforward_eq (congr_arg PresheafedSpace.hom.base e.symm) X.presheaf).hom.app (op U) :=
 begin
   subst e,
   simp only [pushforward_eq_rfl, comp_id],
@@ -38,7 +39,7 @@ end
 
 @[simp]
 lemma foo (F : J ⥤ PresheafedSpace C) (j) (U) : (F.map (𝟙 j)).c.app (op U) =
-  (pushforward.id (F.obj j).𝒪).inv.app (op U) ≫ (pushforward_eq (by { simp, refl }) (F.obj j).𝒪).hom.app (op U) :=
+  (pushforward.id (F.obj j).presheaf).inv.app (op U) ≫ (pushforward_eq (by { simp, refl }) (F.obj j).presheaf).hom.app (op U) :=
 begin
   cases U,
   dsimp,
@@ -48,7 +49,7 @@ end
 
 @[simp]
 lemma foo' (F : J ⥤ PresheafedSpace C) {j₁ j₂ j₃} (f : j₁ ⟶ j₂) (g : j₂ ⟶ j₃) (U) : (F.map (f ≫ g)).c.app (op U) =
-  (F.map g).c.app (op U) ≫ begin refine (pushforward_map (F.map g).base _).app _, refine (F.map f).c, end ≫ (pushforward.comp (F.obj j₁).𝒪 (F.map f).base (F.map g).base).inv.app (op U) ≫
+  (F.map g).c.app (op U) ≫ begin refine (pushforward_map (F.map g).base _).app _, refine (F.map f).c, end ≫ (pushforward.comp (F.obj j₁).presheaf (F.map f).base (F.map g).base).inv.app (op U) ≫
     begin refine (pushforward_eq _ _).hom.app _, erw F.map_comp, refl, end :=
 begin
   cases U,
@@ -65,13 +66,13 @@ obtaining a diagram in `(presheaf C X)ᵒᵖ`.
 -/
 @[simps]
 def pushforward_diagram_to_colimit (F : J ⥤ PresheafedSpace C) :
-  J ⥤ (presheaf C (colimit (F ⋙ PresheafedSpace.forget)))ᵒᵖ :=
-{ obj := λ j, op ((F.obj j).𝒪.pushforward (colimit.ι (F ⋙ PresheafedSpace.forget) j)),
+  J ⥤ (presheaf C (colimit (F ⋙ PresheafedSpace.forget C)))ᵒᵖ :=
+{ obj := λ j, op ((F.obj j).presheaf.pushforward (colimit.ι (F ⋙ PresheafedSpace.forget C) j)),
   map := λ j j' f,
-  (pushforward_map (colimit.ι (F ⋙ PresheafedSpace.forget) j') (F.map f).c ≫
-    (pushforward.comp (F.obj j).𝒪 ((F ⋙ PresheafedSpace.forget).map f)
-      (colimit.ι (F ⋙ PresheafedSpace.forget) j')).inv ≫
-    (pushforward_eq (colimit.w (F ⋙ PresheafedSpace.forget) f) (F.obj j).𝒪).hom).op,
+  (pushforward_map (colimit.ι (F ⋙ PresheafedSpace.forget C) j') (F.map f).c ≫
+    (pushforward.comp (F.obj j).presheaf ((F ⋙ PresheafedSpace.forget C).map f)
+      (colimit.ι (F ⋙ PresheafedSpace.forget C) j')).inv ≫
+    (pushforward_eq (colimit.w (F ⋙ PresheafedSpace.forget C) f) (F.obj j).presheaf).hom).op,
   map_id' :=
   begin
     intro j,
@@ -102,13 +103,13 @@ def pushforward_diagram_to_colimit (F : J ⥤ PresheafedSpace C) :
     congr' 1,
     rw (F.map f).c.congr,
     swap 3,
-    refine op ⟨⇑(colimit.ι (F ⋙ PresheafedSpace.forget) j₂) ⁻¹' U_val, _⟩,
+    refine op ⟨⇑(colimit.ι (F ⋙ PresheafedSpace.forget C) j₂) ⁻¹' U_val, _⟩,
     swap 3,
     apply unop_injective,
     simp [set.preimage_preimage],
     congr,
     funext,
-    exact Top.colimit.w_apply (F ⋙ PresheafedSpace.forget) g _,
+    exact Top.colimit.w_apply (F ⋙ PresheafedSpace.forget C) g _,
     swap 2,
     simp,
     refl,
@@ -116,8 +117,8 @@ def pushforward_diagram_to_colimit (F : J ⥤ PresheafedSpace C) :
 
 @[simps]
 def colimit (F : J ⥤ PresheafedSpace C) : PresheafedSpace C :=
-{ to_Top := colimit (F ⋙ PresheafedSpace.forget),
-  𝒪 := limit (pushforward_diagram_to_colimit F).left_op, }
+{ carrier := colimit (F ⋙ PresheafedSpace.forget C),
+  presheaf := limit (pushforward_diagram_to_colimit F).left_op, }
 
 lemma quux {X Y Z : C} (f : X ⟶ Z) (g : X = Y) (h : Y ⟶ Z) :
   f = eq_to_hom g ≫ h ↔ eq_to_hom g.symm ≫ f = h :=
@@ -134,7 +135,7 @@ def colimit_cocone (F : J ⥤ PresheafedSpace C) : cocone F :=
 { X := colimit F,
   ι :=
   { app := λ j,
-    { base := colimit.ι (F ⋙ PresheafedSpace.forget) j,
+    { base := colimit.ι (F ⋙ PresheafedSpace.forget C) j,
       c := limit.π _ (op j), },
     naturality' :=
     begin
@@ -168,15 +169,18 @@ def colimit_cocone (F : J ⥤ PresheafedSpace C) : cocone F :=
 
 def colimit_cocone_is_colimit (F : J ⥤ PresheafedSpace C) : is_colimit (colimit_cocone F) :=
 { desc := λ s,
-  { base := colimit.desc (F ⋙ PresheafedSpace.forget) (PresheafedSpace.forget.map_cocone s),
+  { base := colimit.desc (F ⋙ PresheafedSpace.forget C) ((PresheafedSpace.forget C).map_cocone s),
     c :=
     begin
       dsimp,
-      have := limit.lift (pushforward_diagram_to_colimit F).left_op _,
-      have := pushforward_map _ this,
-      convert this,
-      -- I think we need to restrict to just open embeddings for this to work.
-      repeat { sorry },
+      -- have := limit.lift (pushforward_diagram_to_colimit F).left_op _,
+      -- have := pushforward_map _ this,
+      -- convert this,
+      -- -- I think we need to restrict to just open embeddings for this to work.
+      -- repeat { sorry },
+      fsplit,
+      intro U,
+      dsimp [pushforward],
     end, },
   fac' := sorry,
   uniq' := sorry, }

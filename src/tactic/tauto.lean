@@ -38,7 +38,7 @@ do hs ← local_context,
          | _ := failed
          end
 
-/-
+/-!
   The following definitions maintain a path compression datastructure, i.e. a forest such that:
     - every node is the type of a hypothesis
     - there is a edge between two nodes only if they are provably equivalent

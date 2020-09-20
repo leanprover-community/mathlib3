@@ -3980,14 +3980,6 @@ begin
     tauto! },
 end
 
-/--
-`list.slice n m xs` removes a slice of length `m` at index `n` in list `xs`.
--/
-def slice {α} : ℕ → ℕ → list α → list α
-| 0 n xs := xs.drop n
-| (succ n) m [] := []
-| (succ n) m (x :: xs) := x :: slice n m xs
-
 lemma slice_eq {α} (xs : list α) (n m : ℕ) :
   slice n m xs = xs.take n ++ xs.drop (n+m) :=
 begin

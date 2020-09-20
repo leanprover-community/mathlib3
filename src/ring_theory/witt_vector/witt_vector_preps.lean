@@ -3,7 +3,7 @@
 -- import algebra.inj_surj
 import data.nat.choose
 import data.int.gcd
-import data.mv_polynomial
+import data.mv_polynomial.comap
 import data.mv_polynomial.monad
 import data.zmod.basic
 import data.fintype.card
@@ -314,7 +314,7 @@ begin
     rw [rename_monomial, coeff_monomial, coeff_monomial],
     simp only [(finsupp.map_domain_injective hf).eq_iff],
     split_ifs; refl, },
-  { intros, simp only [*, ring_hom.map_add, coeff_add], }
+  { intros, simp only [*, alg_hom.map_add, coeff_add], }
 end
 
 lemma coeff_rename_eq_zero (f : σ → τ) (φ : mv_polynomial σ R) (d : τ →₀ ℕ)
@@ -327,7 +327,7 @@ begin
     split_ifs,
     { exact (h _ ‹_›).elim },
     { refl } },
-  { intros,  simp only [*, ring_hom.map_add, coeff_add, add_zero], }
+  { intros,  simp only [*, alg_hom.map_add, coeff_add, add_zero], }
 end
 
 lemma coeff_rename_ne_zero (f : σ → τ) (φ : mv_polynomial σ R) (d : τ →₀ ℕ)
@@ -380,13 +380,15 @@ variable {σ}
 begin
   apply φ.induction_on,
   { intro a, simp only [constant_coeff_C, rename_C]},
-  { intros p q hp hq, simp only [hp, hq, ring_hom.map_add] },
-  { intros p n hp, simp only [hp, rename_X, constant_coeff_X, ring_hom.map_mul]}
+  { intros p q hp hq, simp only [hp, hq, ring_hom.map_add, alg_hom.map_add] },
+  { intros p n hp, simp only [hp, rename_X, constant_coeff_X, ring_hom.map_mul, alg_hom.map_mul] }
 end
 
-@[simp] lemma constant_coeff_comp_rename {τ : Type*} (f : σ → τ) :
-  (constant_coeff : mv_polynomial τ R →+* R).comp (rename f) = constant_coeff :=
-by { ext, apply constant_coeff_rename }
+-- @[simp] lemma constant_coeff_comp_rename {τ : Type*} (f : σ → τ) :
+--   (constant_coeff : mv_polynomial τ R →+* R).comp
+--   (rename f) =
+--   constant_coeff :=
+-- by { ext, apply constant_coeff_rename }
 
 end move_this
 

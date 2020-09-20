@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Robert Y. Lewis
 -/
 
-import data.mv_polynomial
+import data.mv_polynomial.comap
 import algebra.invertible
 
 import ring_theory.witt_vector.witt_vector_preps

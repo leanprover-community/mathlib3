@@ -68,18 +68,17 @@ but thinking that it corresponds to the `F` coming from the choice of one trivia
 This has several practical advantages:
 * without any work, one gets a topological space structure on the fiber. And if `F` has more
 structure it is inherited for free by the fiber.
-* In the trivial situation of the trivial bundle where there is only one chart and one
-trivialization, this construction gives the product space `B × F` with the product topology. In the
-case of the tangent bundle of manifolds, this also implies that on vector spaces the derivative and
-the manifold derivative are equal.
+* In the case of the tangent bundle of manifolds, this implies that on vector spaces the derivative
+(from `F` to `F`) and the manifold derivative (from `tangent_space I x` to `tangent_space I' (f x)`)
+are equal.
 
 A drawback is that some silly constructions will typecheck: in the case of the tangent bundle, one
 can add two vectors in different tangent spaces (as they both are elements of `F` from the point of
 view of Lean). To solve this, one could mark the tangent space as irreducible, but then one would
 lose the identification of the tangent space to `F` with `F`. There is however a big advantage of
 this situation: even if Lean can not check that two basepoints are defeq, it will accept the fact
-that the tangent spaces are the same. For instance, if two maps f and g are locally inverse to each
-other, one can express that the composition of their derivatives is the identity of
+that the tangent spaces are the same. For instance, if two maps `f` and `g` are locally inverse to
+each other, one can express that the composition of their derivatives is the identity of
 `tangent_space I x`. One could fear issues as this composition goes from `tangent_space I x` to
 `tangent_space I (g (f x))` (which should be the same, but should not be obvious to Lean
 as it does not know that `g (f x) = x`). As these types are the same to Lean (equal to `F`), there
@@ -91,7 +90,7 @@ of the `topological_fiber_bundle_core`, as it makes some constructions more
 functorial and it is a nice way to say that the trivializations cover the whole space `B`.
 
 With this definition, the type of the fiber bundle space constructed from the core data is just
-`B × F`, but the topology is not the product one.
+`Σ (b : B), F `, but the topology is not the product one, in general.
 
 We also take the indexing type (indexing all the trivializations) as a parameter to the fiber bundle
 core: it could always be taken as a subtype of all the maps from open subsets of `B` to continuous
@@ -283,11 +282,11 @@ def fiber (x : B) := F
 instance topological_space_fiber (x : B) : topological_space (Z.fiber x) :=
 by { dsimp [fiber], apply_instance }
 
-/-- Total space of a topological bundle created from core. It is equal to `B × F`, but as it is
-not marked as reducible, typeclass inference will not infer the wrong topology, and will use the
-instance `topological_fiber_bundle_core.to_topological_space` with the right topology. -/
+/-- Total space of a topological bundle created from core. It is equal to `Σ (x : B), F` as a type,
+but the fiber above `x` is registered as `Z.fiber x` to make sure that it is possible to register
+additional type classes on these fibers. -/
 @[nolint unused_arguments]
-def total_space := B × F
+def total_space := Σ (x : B), Z.fiber x
 
 /-- The projection from the total space of a topological fiber bundle core, on its base. -/
 @[simp, mfld_simps] def proj : Z.total_space → B := λp, p.1
@@ -485,7 +484,7 @@ Z.is_topological_fiber_bundle.is_open_map_proj
 /-- Preferred local trivialization of a fiber bundle constructed from core, at a given point, as
 a local homeomorphism -/
 def local_triv_at (p : Z.total_space) : local_homeomorph Z.total_space (B × F) :=
-  Z.local_triv (Z.index_at (Z.proj p))
+Z.local_triv (Z.index_at (Z.proj p))
 
 @[simp, mfld_simps] lemma mem_local_triv_at_source (p : Z.total_space) : p ∈ (Z.local_triv_at p).source :=
 by simp [local_triv_at]
@@ -499,7 +498,7 @@ by simp [local_triv_at]
 /-- Preferred local trivialization of a fiber bundle constructed from core, at a given point, as
 a bundle trivialization -/
 def local_triv_at_ext (p : Z.total_space) : bundle_trivialization F Z.proj :=
-  Z.local_triv_ext (Z.index_at (Z.proj p))
+Z.local_triv_ext (Z.index_at (Z.proj p))
 
 @[simp, mfld_simps] lemma local_triv_at_ext_to_local_homeomorph (p : Z.total_space) :
   (Z.local_triv_at_ext p).to_local_homeomorph = Z.local_triv_at p := rfl

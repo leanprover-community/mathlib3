@@ -34,8 +34,6 @@ class has_inf (α : Type u) := (inf : α → α → α)
 infix ⊔ := has_sup.sup
 infix ⊓ := has_inf.inf
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A `semilattice_sup` is a join-semilattice, that is, a partial order
   with a join (a.k.a. lub / least upper bound, sup / supremum) operation
   `⊔` which is the least element larger than both factors. -/
@@ -43,7 +41,6 @@ class semilattice_sup (α : Type u) extends has_sup α, partial_order α :=
 (le_sup_left : ∀ a b : α, a ≤ a ⊔ b)
 (le_sup_right : ∀ a b : α, b ≤ a ⊔ b)
 (sup_le : ∀ a b c : α, a ≤ c → b ≤ c → a ⊔ b ≤ c)
-end prio
 
 section semilattice_sup
 variables [semilattice_sup α] {a b c d : α}
@@ -110,6 +107,9 @@ lemma sup_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : 
 ⟨λ h, ⟨lt_of_le_of_lt le_sup_left h, lt_of_le_of_lt le_sup_right h⟩,
   λ h, sup_ind b c h.1 h.2⟩
 
+@[simp] lemma le_sup_iff [is_total α (≤)] {a b c : α} : a ≤ b ⊔ c ↔ a ≤ b ∨ a ≤ c :=
+by rw [← not_iff_not]; simp only [not_or_distrib, @sup_lt_iff α, @not_le (as_linear_order α)]
+
 @[simp] theorem sup_idem : a ⊔ a = a :=
 by apply le_antisymm; simp
 
@@ -163,8 +163,6 @@ end
 
 end semilattice_sup
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A `semilattice_inf` is a meet-semilattice, that is, a partial order
   with a meet (a.k.a. glb / greatest lower bound, inf / infimum) operation
   `⊓` which is the greatest element smaller than both factors. -/
@@ -172,7 +170,6 @@ class semilattice_inf (α : Type u) extends has_inf α, partial_order α :=
 (inf_le_left : ∀ a b : α, a ⊓ b ≤ a)
 (inf_le_right : ∀ a b : α, a ⊓ b ≤ b)
 (le_inf : ∀ a b c : α, a ≤ b → a ≤ c → a ≤ b ⊓ c)
-end prio
 
 section semilattice_inf
 variables [semilattice_inf α] {a b c d : α}
@@ -239,6 +236,9 @@ lemma inf_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : 
 ⟨λ h, ⟨lt_of_lt_of_le h inf_le_left, lt_of_lt_of_le h inf_le_right⟩,
   λ h, inf_ind b c h.1 h.2⟩
 
+@[simp] lemma inf_le_iff [is_total α (≤)] {a b c : α} : b ⊓ c ≤ a ↔ b ≤ a ∨ c ≤ a :=
+by rw [← not_iff_not]; simp only [not_or_distrib, @lt_inf_iff α, @not_le (as_linear_order α)]
+
 @[simp] theorem inf_idem : a ⊓ a = a :=
 by apply le_antisymm; simp
 
@@ -295,11 +295,8 @@ end semilattice_inf
 
 /- Lattices -/
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A lattice is a join-semilattice which is also a meet-semilattice. -/
 class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
-end prio
 
 section lattice
 variables [lattice α] {a b c d : α}
@@ -330,8 +327,6 @@ end
 
 end lattice
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A distributive lattice is a lattice that satisfies any of four
   equivalent distribution properties (of sup over inf or inf over sup,
   on the left or right). A classic example of a distributive lattice
@@ -340,7 +335,6 @@ set_option default_priority 100 -- see Note [default priority]
   as a sublattice of a powerset lattice. -/
 class distrib_lattice α extends lattice α :=
 (le_sup_inf : ∀x y z : α, (x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z))
-end prio
 
 section distrib_lattice
 variables [distrib_lattice α] {x y z : α}

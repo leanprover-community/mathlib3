@@ -15,6 +15,14 @@ with the only morphisms being equalities.
 -/
 def discrete (α : Type u₁) := α
 
+/--
+The "discrete" category on a type, whose morphisms are equalities.
+
+Because we do not allow morphisms in `Prop` (only in `Type`),
+somewhat annoyingly we have to define `X ⟶ Y` as `ulift (plift (X = Y))`.
+
+See https://stacks.math.columbia.edu/tag/001A
+-/
 instance discrete_category (α : Type u₁) : small_category (discrete α) :=
 { hom  := λ X Y, ulift (plift (X = Y)),
   id   := λ X, ulift.up (plift.up rfl),
@@ -30,9 +38,15 @@ by { dsimp [discrete], apply_instance }
 instance [subsingleton α] : subsingleton (discrete α) :=
 by { dsimp [discrete], apply_instance }
 
+/-- Extract the equation from a morphism in a discrete category. -/
+lemma eq_of_hom {X Y : discrete α} (i : X ⟶ Y) : X = Y := i.down.down
+
 @[simp] lemma id_def (X : discrete α) : ulift.up (plift.up (eq.refl X)) = 𝟙 X := rfl
 
 variables {C : Type u₂} [category.{v₂} C]
+
+instance {I : Type u₁} {i j : discrete I} (f : i ⟶ j) : is_iso f :=
+{ inv := eq_to_hom (eq_of_hom f).symm, }
 
 /--
 Any function `I → C` gives a functor `discrete I ⥤ C`.
@@ -109,8 +123,8 @@ def equivalence {I J : Type u₁} (e : I ≃ J) : discrete I ≌ discrete J :=
 def equiv_of_equivalence {α β : Type u₁} (h : discrete α ≌ discrete β) : α ≃ β :=
 { to_fun := h.functor.obj,
   inv_fun := h.inverse.obj,
-  left_inv := λ a, (h.unit_iso.app a).2.1.1,
-  right_inv := λ a, (h.counit_iso.app a).1.1.1 }
+  left_inv := λ a, eq_of_hom (h.unit_iso.app a).2,
+  right_inv := λ a, eq_of_hom (h.counit_iso.app a).1 }
 
 end discrete
 

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import ring_theory.algebra_tower
+import ring_theory.polynomial.scale_roots
 
 /-!
 # Integral closure of a subring.
@@ -20,25 +21,76 @@ Let `R` be a `comm_ring` and let `A` be an R-algebra.
                            coefficients in `R`.
 * `integral_closure R A` : the integral closure of `R` in `A`, regarded as a sub-`R`-algebra of `A`.
 -/
-universes u v w
 
 open_locale classical
+open_locale big_operators
 open polynomial submodule
 
-section
-variables (R : Type u) {A : Type v} {B : Type w}
-variables [comm_ring R] [comm_ring A] [comm_ring B]
-variables [algebra R A] [algebra R B]
+section ring
+variables (R : Type*) {A : Type*}
+variables [comm_ring R] [ring A]
+variables [algebra R A]
 
 /-- An element `x` of an algebra `A` over a commutative ring `R` is said to be *integral*,
 if it is a root of some monic polynomial `p : polynomial R`. -/
 def is_integral (x : A) : Prop :=
 ∃ p : polynomial R, monic p ∧ aeval x p = 0
 
-variables {R}
+variable {R}
+
 theorem is_integral_algebra_map {x : R} : is_integral R (algebra_map R A x) :=
 ⟨X - C x, monic_X_sub_C _,
 by rw [alg_hom.map_sub, aeval_def, aeval_def, eval₂_X, eval₂_C, sub_self]⟩
+
+theorem is_integral_of_noetherian (H : is_noetherian R A) (x : A) :
+  is_integral R x :=
+begin
+  let leval : @linear_map R (polynomial R) A _ _ _ _ _ := (aeval x).to_linear_map,
+  let D : ℕ → submodule R A := λ n, (degree_le R n).map leval,
+  let M := well_founded.min (is_noetherian_iff_well_founded.1 H)
+    (set.range D) ⟨_, ⟨0, rfl⟩⟩,
+  have HM : M ∈ set.range D := well_founded.min_mem _ _ _,
+  cases HM with N HN,
+  have HM : ¬M < D (N+1) := well_founded.not_lt_min
+    (is_noetherian_iff_well_founded.1 H) (set.range D) _ ⟨N+1, rfl⟩,
+  rw ← HN at HM,
+  have HN2 : D (N+1) ≤ D N := classical.by_contradiction (λ H, HM
+    (lt_of_le_not_le (map_mono (degree_le_mono
+      (with_bot.coe_le_coe.2 (nat.le_succ N)))) H)),
+  have HN3 : leval (X^(N+1)) ∈ D N,
+  { exact HN2 (mem_map_of_mem (mem_degree_le.2 (degree_X_pow_le _))) },
+  rcases HN3 with ⟨p, hdp, hpe⟩,
+  refine ⟨X^(N+1) - p, monic_X_pow_sub (mem_degree_le.1 hdp), _⟩,
+  show leval (X ^ (N + 1) - p) = 0,
+  rw [linear_map.map_sub, hpe, sub_self]
+end
+
+theorem is_integral_of_submodule_noetherian (S : subalgebra R A)
+  (H : is_noetherian R (S : submodule R A)) (x : A) (hx : x ∈ S) :
+  is_integral R x :=
+begin
+  letI : algebra R S := S.algebra,
+  letI : ring S := S.ring R A,
+  suffices : is_integral R (⟨x, hx⟩ : S),
+  { rcases this with ⟨p, hpm, hpx⟩,
+    replace hpx := congr_arg subtype.val hpx,
+    refine ⟨p, hpm, eq.trans _ hpx⟩,
+    simp only [aeval_def, eval₂, finsupp.sum],
+    rw ← p.support.sum_hom subtype.val,
+    { refine finset.sum_congr rfl (λ n hn, _),
+      change _ = _ * _,
+      rw is_monoid_hom.map_pow coe, refl,
+      split; intros; refl },
+    refine { map_add := _, map_zero := _ }; intros; refl },
+  refine is_integral_of_noetherian H ⟨x, hx⟩
+end
+
+end ring
+
+section
+variables {R : Type*} {A : Type*} {B : Type*}
+variables [comm_ring R] [comm_ring A] [comm_ring B]
+variables [algebra R A] [algebra R B]
 
 theorem is_integral_alg_hom (f : A →ₐ[R] B) {x : A} (hx : is_integral R x) : is_integral R (f x) :=
 let ⟨p, hp, hpx⟩ := hx in ⟨p, hp, by rw [aeval_alg_hom_apply, hpx, f.map_zero]⟩
@@ -99,49 +151,6 @@ set.finite.induction_on hfs (λ _, ⟨{1}, submodule.ext $ λ x,
   fg_mul _ _ (ih $ λ i hi, his i $ set.mem_insert_of_mem a hi)
     (fg_adjoin_singleton_of_integral _ $ his a $ set.mem_insert a s)) his
 
-theorem is_integral_of_noetherian' (H : is_noetherian R A) (x : A) :
-  is_integral R x :=
-begin
-  let leval : @linear_map R (polynomial R) A _ _ _ _ _ := (aeval x).to_linear_map,
-  let D : ℕ → submodule R A := λ n, (degree_le R n).map leval,
-  let M := well_founded.min (is_noetherian_iff_well_founded.1 H)
-    (set.range D) ⟨_, ⟨0, rfl⟩⟩,
-  have HM : M ∈ set.range D := well_founded.min_mem _ _ _,
-  cases HM with N HN,
-  have HM : ¬M < D (N+1) := well_founded.not_lt_min
-    (is_noetherian_iff_well_founded.1 H) (set.range D) _ ⟨N+1, rfl⟩,
-  rw ← HN at HM,
-  have HN2 : D (N+1) ≤ D N := classical.by_contradiction (λ H, HM
-    (lt_of_le_not_le (map_mono (degree_le_mono
-      (with_bot.coe_le_coe.2 (nat.le_succ N)))) H)),
-  have HN3 : leval (X^(N+1)) ∈ D N,
-  { exact HN2 (mem_map_of_mem (mem_degree_le.2 (degree_X_pow_le _))) },
-  rcases HN3 with ⟨p, hdp, hpe⟩,
-  refine ⟨X^(N+1) - p, monic_X_pow_sub (mem_degree_le.1 hdp), _⟩,
-  show leval (X ^ (N + 1) - p) = 0,
-  rw [linear_map.map_sub, hpe, sub_self]
-end
-
-theorem is_integral_of_noetherian (S : subalgebra R A)
-  (H : is_noetherian R (S : submodule R A)) (x : A) (hx : x ∈ S) :
-  is_integral R x :=
-begin
-  letI : algebra R S := S.algebra,
-  letI : comm_ring S := S.comm_ring R A,
-  suffices : is_integral R (⟨x, hx⟩ : S),
-  { rcases this with ⟨p, hpm, hpx⟩,
-    replace hpx := congr_arg subtype.val hpx,
-    refine ⟨p, hpm, eq.trans _ hpx⟩,
-    simp only [aeval_def, eval₂, finsupp.sum],
-    rw ← p.support.sum_hom subtype.val,
-    { refine finset.sum_congr rfl (λ n hn, _),
-      change _ = _ * _,
-      rw is_monoid_hom.map_pow coe, refl,
-      split; intros; refl },
-    refine { map_add := _, map_zero := _ }; intros; refl },
-  refine is_integral_of_noetherian' H ⟨x, hx⟩
-end
-
 theorem is_integral_of_mem_of_fg (S : subalgebra R A)
   (HS : (S : submodule R A).fg) (x : A) (hx : x ∈ S) : is_integral R x :=
 begin
@@ -186,7 +195,7 @@ begin
     rw algebra.algebra_map_eq_smul_one,
     exact smul_mem (span S₀ (insert 1 ↑y : set A)) _ (subset_span $ or.inl rfl) },
   haveI : is_noetherian_ring ↥S₀ := is_noetherian_ring_closure _ (finset.finite_to_set _),
-  refine is_integral_of_noetherian (algebra.adjoin S₀ ↑y)
+  refine is_integral_of_submodule_noetherian (algebra.adjoin S₀ ↑y)
     (is_noetherian_of_fg_of_noetherian _ ⟨insert 1 y, by rw [finset.coe_insert, this]⟩) _ _,
   rw [← hlx2, finsupp.total_apply, finsupp.sum], refine subalgebra.sum_mem _ (λ r hr, _),
   have : lx r ∈ S₀ := ring.subset_closure (finset.mem_union_left _ (finset.mem_image_of_mem _ hr)),
@@ -252,9 +261,32 @@ theorem mem_integral_closure_iff_mem_fg {r : A} :
 
 variables {R} {A}
 
+/-- Mapping an integral closure along an `alg_equiv` gives the integral closure. -/
+lemma integral_closure_map_alg_equiv (f : A ≃ₐ[R] B) :
+  (integral_closure R A).map (f : A →ₐ[R] B) = integral_closure R B :=
+begin
+  ext y,
+  rw subalgebra.mem_map,
+  split,
+  { rintros ⟨x, hx, rfl⟩,
+    exact is_integral_alg_hom f hx },
+  { intro hy,
+    use [f.symm y, is_integral_alg_hom (f.symm : B →ₐ[R] A) hy],
+    simp }
+end
+
 lemma integral_closure.is_integral (x : integral_closure R A) : is_integral R x :=
 let ⟨p, hpm, hpx⟩ := x.2 in ⟨p, hpm, subtype.eq $
 by rwa [subtype.val_eq_coe, ← subalgebra.val_apply, aeval_alg_hom_apply] at hpx⟩
+
+theorem is_integral_of_is_integral_mul_unit {x y : A} {r : R} (hr : algebra_map R A r * y = 1)
+  (hx : is_integral R (x * y)) : is_integral R x :=
+begin
+  obtain ⟨p, ⟨p_monic, hp⟩⟩ := hx,
+  refine ⟨scale_roots p r, ⟨(monic_scale_roots_iff r).2 p_monic, _⟩⟩,
+  convert scale_roots_aeval_eq_zero hp,
+  rw [mul_comm x y, ← mul_assoc, hr, one_mul],
+end
 
 end
 
@@ -339,12 +371,64 @@ begin
   exact hp',
 end
 
+lemma is_integral_quotient_of_is_integral {I : ideal A} (hRS : ∀ (x : A), is_integral R x) :
+  ∀ (x : I.quotient), is_integral (I.comap (algebra_map R A)).quotient x :=
+begin
+  rintros ⟨x⟩,
+  obtain ⟨p, ⟨p_monic, hpx⟩⟩ := hRS x,
+  refine ⟨p.map (ideal.quotient.mk _), ⟨monic_map _ p_monic, _⟩⟩,
+  simpa only [aeval_def, hom_eval₂, eval₂_map] using congr_arg (ideal.quotient.mk I) hpx
+end
+
+/-- If the integral extension `R → S` is injective, and `S` is a field, then `R` is also a field -/
+lemma is_field_of_is_integral_of_is_field {R S : Type*} [integral_domain R] [integral_domain S]
+  [algebra R S] (H : ∀ x : S, is_integral R x) (hRS : function.injective (algebra_map R S))
+  (hS : is_field S) : is_field R :=
+begin
+  refine ⟨⟨0, 1, zero_ne_one⟩, mul_comm, λ a ha, _⟩,
+  -- Let `a_inv` be the inverse of `algebra_map R S a`,
+  -- then we need to show that `a_inv` is of the form `algebra_map R S b`.
+  obtain ⟨a_inv, ha_inv⟩ := hS.mul_inv_cancel (λ h, ha (hRS (trans h (ring_hom.map_zero _).symm))),
+
+  -- Let `p : polynomial R` be monic with root `a_inv`,
+  -- and `q` be `p` with coefficients reversed (so `q(a) = q'(a) * a + 1`).
+  -- We claim that `q(a) = 0`, so `-q'(a)` is the inverse of `a`.
+  obtain ⟨p, p_monic, hp⟩ := H a_inv,
+  use -∑ (i : ℕ) in finset.range p.nat_degree, (p.coeff i) * a ^ (p.nat_degree - i - 1),
+
+  -- `q(a) = 0`, because multiplying everything with `a_inv^n` gives `p(a_inv) = 0`.
+  -- TODO: this could be a lemma for `polynomial.reverse`.
+  have hq : ∑ (i : ℕ) in finset.range (p.nat_degree + 1), (p.coeff i) * a ^ (p.nat_degree - i) = 0,
+  { apply (algebra_map R S).injective_iff.mp hRS,
+    have a_inv_ne_zero : a_inv ≠ 0 := right_ne_zero_of_mul (mt ha_inv.symm.trans one_ne_zero),
+    refine (mul_eq_zero.mp _).resolve_right (pow_ne_zero p.nat_degree a_inv_ne_zero),
+    rw [aeval_def, eval₂_eq_sum_range] at hp,
+    rw [ring_hom.map_sum, finset.sum_mul],
+    refine (finset.sum_congr rfl (λ i hi, _)).trans hp,
+    rw [ring_hom.map_mul, mul_assoc],
+    congr,
+    have : a_inv ^ p.nat_degree = a_inv ^ (p.nat_degree - i) * a_inv ^ i,
+    { rw [← pow_add a_inv, nat.sub_add_cancel (nat.le_of_lt_succ (finset.mem_range.mp hi))] },
+    rw [ring_hom.map_pow, this, ← mul_assoc, ← mul_pow, ha_inv, one_pow, one_mul] },
+
+  -- Since `q(a) = 0` and `q(a) = q'(a) * a + 1`, we have `a * -q'(a) = 1`.
+  -- TODO: we could use a lemma for `polynomial.div_X` here.
+  rw [finset.sum_range_succ, p_monic.coeff_nat_degree, one_mul, nat.sub_self, pow_zero,
+      add_eq_zero_iff_eq_neg, eq_comm] at hq,
+  rw [mul_comm, ← neg_mul_eq_neg_mul, finset.sum_mul],
+  convert hq using 2,
+  refine finset.sum_congr rfl (λ i hi, _),
+  have : 1 ≤ p.nat_degree - i := nat.le_sub_left_of_add_le (finset.mem_range.mp hi),
+  rw [mul_assoc, ← pow_succ', nat.sub_add_cancel this]
+end
+
 end algebra
 
 theorem integral_closure_idem {R : Type*} {A : Type*} [comm_ring R] [comm_ring A] [algebra R A] :
   integral_closure (integral_closure R A : set A) A = ⊥ :=
 eq_bot_iff.2 $ λ x hx, algebra.mem_bot.2
-⟨⟨x, is_integral_trans integral_closure.is_integral _ hx⟩, rfl⟩
+⟨⟨x, @is_integral_trans _ _ _ _ _ _ _ _ (integral_closure R A).algebra
+     _ integral_closure.is_integral x hx⟩, rfl⟩
 
 section integral_domain
 variables {R S : Type*} [comm_ring R] [integral_domain S] [algebra R S]

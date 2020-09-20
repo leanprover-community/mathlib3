@@ -139,10 +139,10 @@ end
 
 def my_semigroup := semigroup
 
-example {α} (mul : α → α → α) : my_semigroup α :=
+example {α} (mul : α → α → α) (h : false) : my_semigroup α :=
 begin
   refine_struct { mul := mul, .. },
   field mul_assoc {
     guard_target ∀ a b c : α, mul (mul a b) c = mul a (mul b c),
-    admit }
+    exact h.elim }
 end

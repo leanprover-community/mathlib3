@@ -116,7 +116,7 @@ end
 
 lemma tendsto_inv_at_top_zero [discrete_linear_ordered_field α] [topological_space α]
   [order_topology α] : tendsto (λr:α, r⁻¹) at_top (𝓝 0) :=
-tendsto_inv_at_top_zero'.mono_right inf_le_left 
+tendsto_inv_at_top_zero'.mono_right inf_le_left
 
 lemma summable_of_absolute_convergence_real {f : ℕ → ℝ} :
   (∃r, tendsto (λn, (∑ i in range n, abs (f i))) at_top (𝓝 r)) → summable f
@@ -160,11 +160,8 @@ sub_add_cancel r 1 ▸ tendsto_add_one_pow_at_top_at_top_of_pos (sub_pos.2 h)
 
 lemma nat.tendsto_pow_at_top_at_top_of_one_lt {m : ℕ} (h : 1 < m) :
   tendsto (λn:ℕ, m ^ n) at_top at_top :=
-begin
-  simp only [← nat.pow_eq_pow],
-  exact nat.sub_add_cancel (le_of_lt h) ▸
-    tendsto_add_one_pow_at_top_at_top_of_pos (nat.sub_pos_of_lt h)
-end
+nat.sub_add_cancel (le_of_lt h) ▸
+  tendsto_add_one_pow_at_top_at_top_of_pos (nat.sub_pos_of_lt h)
 
 lemma lim_norm_zero' {𝕜 : Type*} [normed_group 𝕜] :
   tendsto (norm : 𝕜 → ℝ) (𝓝[{x | x ≠ 0}] 0) (𝓝[set.Ioi 0] 0) :=

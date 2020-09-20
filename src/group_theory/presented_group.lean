@@ -39,9 +39,8 @@ local notation `F` := free_group.to_group f
 
 variable (h : ∀ r ∈ rels, F r = 1)
 
--- FIXME why is apply_instance needed here? surely this should be a [] argument in `subgroup.normal_closure_le_normal`
 lemma closure_rels_subset_ker : subgroup.normal_closure rels ≤ monoid_hom.ker F :=
-subgroup.normal_closure_le_normal (by apply_instance) (λ x w, (monoid_hom.mem_ker _).2 (h x w))
+subgroup.normal_closure_le_normal (λ x w, (monoid_hom.mem_ker _).2 (h x w))
 
 lemma to_group_eq_one_of_mem_closure : ∀ x ∈ subgroup.normal_closure rels, F x = 1 :=
 λ x w, (monoid_hom.mem_ker _).1 $ closure_rels_subset_ker h w
@@ -52,17 +51,6 @@ def to_group : presented_group rels →* β :=
 quotient_group.lift (subgroup.normal_closure rels) (monoid_hom.of F) (to_group_eq_one_of_mem_closure h)
 
 @[simp] lemma to_group.of {x : α} : to_group h (of x) = f x := free_group.to_group.of
-
--- FIXME remove the next three, they're now unnecessary
-
-@[simp] lemma to_group.mul {x y} : to_group h (x * y) = to_group h x * to_group h y :=
-is_mul_hom.map_mul _ _ _
-
-@[simp] lemma to_group.one : to_group h 1 = 1 :=
-is_group_hom.map_one _
-
-@[simp] lemma to_group.inv {x}: to_group h x⁻¹ = (to_group h x)⁻¹ :=
-is_group_hom.map_inv _ _
 
 theorem to_group.unique (g : presented_group rels →* β)
   (hg : ∀ x : α, g (of x) = f x) : ∀ {x}, g x = to_group h x :=

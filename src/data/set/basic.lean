@@ -125,8 +125,12 @@ subtype.forall
 subtype.exists
 
 theorem set_coe.exists' {s : set α} {p : Π x, x ∈ s → Prop} :
-  (∃ x (h : x ∈ s), p x h) ↔ (∃ x : s, p x.1 x.2)  :=
+  (∃ x (h : x ∈ s), p x h) ↔ (∃ x : s, p x x.2)  :=
 (@set_coe.exists _ _ $ λ x, p x.1 x.2).symm
+
+theorem set_coe.forall' {s : set α} {p : Π x, x ∈ s → Prop} :
+  (∀ x (h : x ∈ s), p x h) ↔ (∀ x : s, p x x.2)  :=
+(@set_coe.forall _ _ $ λ x, p x.1 x.2).symm
 
 @[simp] theorem set_coe_cast : ∀ {s t : set α} (H' : s = t) (H : @eq (Type u) s t) (x : s),
   cast H x = ⟨x.1, H' ▸ x.2⟩
@@ -142,6 +146,9 @@ end set_coe
 
 /-- See also `subtype.prop` -/
 lemma subtype.mem {α : Type*} {s : set α} (p : s) : (p : α) ∈ s := p.prop
+
+lemma eq.subset {α} {s t : set α} : s = t → s ⊆ t :=
+by { rintro rfl x hx, exact hx }
 
 namespace set
 
@@ -894,6 +901,8 @@ by finish [ext_iff]
 theorem inter_union_diff (s t : set α) : (s ∩ t) ∪ (s \ t) = s :=
 by finish [ext_iff, iff_def]
 
+theorem inter_union_compl (s t : set α) : (s ∩ t) ∪ (s ∩ tᶜ) = s := inter_union_diff _ _
+
 theorem diff_subset (s t : set α) : s \ t ⊆ s :=
 by finish [subset_def]
 
@@ -921,6 +930,10 @@ ext $ assume x, ⟨assume ⟨hx, _⟩, hx, assume h, ⟨h, not_false⟩⟩
 
 theorem diff_diff {u : set α} : s \ t \ u = s \ (t ∪ u) :=
 ext $ by simp [not_or_distrib, and.comm, and.left_comm]
+
+-- the following statement contains parentheses to help the reader
+lemma diff_diff_comm {s t u : set α} : (s \ t) \ u = (s \ u) \ t :=
+by simp_rw [diff_diff, union_comm]
 
 lemma diff_subset_iff {s t u : set α} : s \ t ⊆ u ↔ s ⊆ t ∪ u :=
 ⟨assume h x xs, classical.by_cases or.inl (assume nxt, or.inr (h ⟨xs, nxt⟩)),
@@ -1327,7 +1340,7 @@ lemma image_preimage_inter (f : α → β) (s : set α) (t : set β) :
   f '' (f ⁻¹' t ∩ s) = t ∩ f '' s :=
 by simp only [inter_comm, image_inter_preimage]
 
-lemma image_compl_preimage {f : α → β} {s : set α} {t : set β} : f '' (s \ f ⁻¹' t) = f '' s \ t :=
+lemma image_diff_preimage {f : α → β} {s : set α} {t : set β} : f '' (s \ f ⁻¹' t) = f '' s \ t :=
 by simp_rw [diff_eq, ← preimage_compl, image_inter_preimage]
 
 theorem compl_image : image (compl : set α → set α) = preimage compl :=
@@ -1434,7 +1447,7 @@ def range (f : ι → α) : set α := {x | ∃y, f y = x}
 @[simp] theorem mem_range_self (i : ι) : f i ∈ range f := ⟨i, rfl⟩
 
 theorem forall_range_iff {p : α → Prop} : (∀ a ∈ range f, p a) ↔ (∀ i, p (f i)) :=
-⟨assume h i, h (f i) (mem_range_self _), assume h a ⟨i, (hi : f i = a)⟩, hi ▸ h i⟩
+by simp
 
 theorem exists_range_iff {p : α → Prop} : (∃ a ∈ range f, p a) ↔ (∃ i, p (f i)) :=
 by simp
@@ -1480,6 +1493,10 @@ range_nonempty_iff_nonempty.2 h
 @[simp] lemma range_eq_empty {f : ι → α} : range f = ∅ ↔ ¬ nonempty ι :=
 not_nonempty_iff_eq_empty.symm.trans $ not_congr range_nonempty_iff_nonempty
 
+@[simp] lemma image_union_image_compl_eq_range (f : α → β) :
+  (f '' s) ∪ (f '' sᶜ) = range f :=
+by rw [← image_union, ← image_univ, ← union_compl_self]
+
 theorem image_preimage_eq_inter_range {f : α → β} {t : set β} :
   f '' (f ⁻¹' t) = t ∩ range f :=
 ext $ assume x, ⟨assume ⟨x, hx, heq⟩, heq ▸ ⟨hx, mem_range_self _⟩,
@@ -1489,6 +1506,9 @@ ext $ assume x, ⟨assume ⟨x, hx, heq⟩, heq ▸ ⟨hx, mem_range_self _⟩,
 lemma image_preimage_eq_of_subset {f : α → β} {s : set β} (hs : s ⊆ range f) :
   f '' (f ⁻¹' s) = s :=
 by rw [image_preimage_eq_inter_range, inter_eq_self_of_subset_left hs]
+
+lemma image_preimage_eq_iff {f : α → β} {s : set β} : f '' (f ⁻¹' s) = s ↔ s ⊆ range f :=
+⟨by { intro h, rw [← h], apply image_subset_range }, image_preimage_eq_of_subset⟩
 
 lemma preimage_subset_preimage_iff {s t : set α} {f : β → α} (hs : s ⊆ range f) :
   f ⁻¹' s ⊆ f ⁻¹' t ↔ s ⊆ t :=
@@ -1537,6 +1557,12 @@ iff.rfl
 theorem preimage_singleton_eq_empty {f : α → β} {y : β} :
   f ⁻¹' {y} = ∅ ↔ y ∉ range f :=
 not_nonempty_iff_eq_empty.symm.trans $ not_congr preimage_singleton_nonempty
+
+lemma range_subset_singleton {f : ι → α} {x : α} : range f ⊆ {x} ↔ f = const ι x :=
+by simp [range_subset_iff, funext_iff, mem_singleton]
+
+lemma image_compl_preimage {f : α → β} {s : set β} : f '' ((f ⁻¹' s)ᶜ) = range f \ s :=
+by rw [compl_eq_univ_diff, image_diff_preimage, image_univ]
 
 @[simp] theorem range_sigma_mk {β : α → Type*} (a : α) :
   range (sigma.mk a : β a → Σ a, β a) = sigma.fst ⁻¹' {a} :=

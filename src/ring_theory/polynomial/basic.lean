@@ -8,7 +8,8 @@ Ring-theoretic supplement of data.polynomial.
 Main result: Hilbert basis theorem, that if a ring is noetherian then so is its polynomial ring.
 -/
 import algebra.char_p
-import data.mv_polynomial
+import data.mv_polynomial.comm_ring
+import data.mv_polynomial.equiv
 import data.polynomial.field_division
 import ring_theory.principal_ideal_domain
 
@@ -413,7 +414,7 @@ namespace polynomial
 
 theorem exists_irreducible_of_degree_pos {R : Type u} [integral_domain R] [is_noetherian_ring R]
   {f : polynomial R} (hf : 0 < f.degree) : ∃ g, irreducible g ∧ g ∣ f :=
-is_noetherian_ring.exists_irreducible_factor
+wf_dvd_monoid.exists_irreducible_factor
   (λ huf, ne_of_gt hf $ degree_eq_zero_of_is_unit huf)
   (λ hf0, not_lt_of_lt hf $ hf0.symm ▸ (@degree_zero R _).symm ▸ with_bot.bot_lt_coe _)
 
@@ -428,10 +429,10 @@ exists_irreducible_of_nat_degree_pos $ nat.pos_of_ne_zero hf
 lemma linear_independent_powers_iff_eval₂
   (f : M →ₗ[R] M) (v : M) :
   linear_independent R (λ n : ℕ, (f ^ n) v)
-    ↔ ∀ (p : polynomial R), polynomial.eval₂ (algebra_map _ _) f p v = 0 → p = 0 :=
+    ↔ ∀ (p : polynomial R), polynomial.aeval f p v = 0 → p = 0 :=
 begin
   rw linear_independent_iff,
-  simp only [finsupp.total_apply, eval₂_endomorphism_algebra_map],
+  simp only [finsupp.total_apply, aeval_endomorphism],
   refl
 end
 

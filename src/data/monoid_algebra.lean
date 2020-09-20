@@ -337,6 +337,7 @@ by conv_lhs { rw lift_unique' F, simp [lift_apply] }
 
 /-- A `k`-algebra homomorphism from `monoid_algebra k G` is uniquely defined by its
 values on the functions `single a 1`. -/
+-- @[ext] -- FIXME I would really like to make this an `ext` lemma, but it seems to cause `ext` to loop.
 lemma alg_hom_ext ⦃φ₁ φ₂ : monoid_algebra k G →ₐ[k] R⦄
   (h : ∀ x, φ₁ (single x 1) = φ₂ (single x 1)) : φ₁ = φ₂ :=
 (lift k G R).symm.injective $ monoid_hom.ext h
@@ -418,7 +419,7 @@ f.single_mul_apply_aux $ λ z, eq_inv_mul_iff_mul_eq.symm
 
 lemma mul_apply_left (f g : monoid_algebra k G) (x : G) :
   (f * g) x = (f.sum $ λ a b, b * (g (a⁻¹ * x))) :=
-calc (f * g) x = sum f (λ a b, (single a (f a) * g) x) :
+calc (f * g) x = sum f (λ a b, (single a b * g) x) :
   by rw [← finsupp.sum_apply, ← finsupp.sum_mul, f.sum_single]
 ... = _ : by simp only [single_mul_apply, finsupp.sum]
 
@@ -426,7 +427,7 @@ calc (f * g) x = sum f (λ a b, (single a (f a) * g) x) :
 -- If we'd assumed `comm_semiring`, we could deduce this from `mul_apply_left`.
 lemma mul_apply_right (f g : monoid_algebra k G) (x : G) :
   (f * g) x = (g.sum $ λa b, (f (x * a⁻¹)) * b) :=
-calc (f * g) x = sum g (λ a b, (f * single a (g a)) x) :
+calc (f * g) x = sum g (λ a b, (f * single a b) x) :
   by rw [← finsupp.sum_apply, ← finsupp.mul_sum, g.sum_single]
 ... = _ : by simp only [mul_single_apply, finsupp.sum]
 
@@ -667,6 +668,16 @@ def lift [comm_semiring k] [add_monoid G] {R : Type u₃} [semiring R] [algebra 
 
 -- It is hard to state the equivalent of `distrib_mul_action G (monoid_algebra k G)`
 -- because we've never discussed actions of additive groups.
+
+lemma alg_hom_ext {R : Type u₃} [comm_semiring k] [add_monoid G]
+  [semiring R] [algebra k R] ⦃φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] R⦄
+  (h : ∀ x, φ₁ (finsupp.single x 1) = φ₂ (finsupp.single x 1)) : φ₁ = φ₂ :=
+lift.symm.injective $ by {ext, apply h}
+
+lemma alg_hom_ext_iff {R : Type u₃} [comm_semiring k] [add_monoid G]
+  [semiring R] [algebra k R] ⦃φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] R⦄ :
+  (∀ x, φ₁ (finsupp.single x 1) = φ₂ (finsupp.single x 1)) ↔ φ₁ = φ₂ :=
+⟨λ h, alg_hom_ext h, by rintro rfl _; refl⟩
 
 universe ui
 variable {ι : Type ui}

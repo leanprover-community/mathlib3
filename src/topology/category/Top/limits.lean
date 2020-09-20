@@ -13,6 +13,8 @@ open category_theory.limits
 
 universe u
 
+noncomputable theory
+
 namespace Top
 
 variables {J : Type u} [small_category J]
@@ -42,7 +44,7 @@ by { refine is_limit.of_faithful forget (types.limit_cone_is_limit _) (λ s, ⟨
 
 instance Top_has_limits : has_limits.{u} Top.{u} :=
 { has_limits_of_shape := λ J 𝒥, by exactI
-  { has_limit := λ F, { cone := limit_cone F, is_limit := limit_cone_is_limit F } } }
+  { has_limit := λ F, has_limit.mk { cone := limit_cone F, is_limit := limit_cone_is_limit F } } }
 
 instance forget_preserves_limits : preserves_limits (forget : Top.{u} ⥤ Type u) :=
 { preserves_limits_of_shape := λ J 𝒥,
@@ -73,7 +75,7 @@ by { refine is_colimit.of_faithful forget (types.colimit_cocone_is_colimit _) (�
 
 instance Top_has_colimits : has_colimits.{u} Top.{u} :=
 { has_colimits_of_shape := λ J 𝒥, by exactI
-  { has_colimit := λ F, { cocone := colimit_cocone F, is_colimit := colimit_cocone_is_colimit F } } }
+  { has_colimit := λ F, has_colimit.mk { cocone := colimit_cocone F, is_colimit := colimit_cocone_is_colimit F } } }
 
 instance forget_preserves_colimits : preserves_colimits (forget : Top.{u} ⥤ Type u) :=
 { preserves_colimits_of_shape := λ J 𝒥,

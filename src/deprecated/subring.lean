@@ -12,11 +12,8 @@ open group
 
 variables {R : Type u} [ring R]
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- `S` is a subring: a set containing 1 and closed under multiplication, addition and and additive inverse. -/
 class is_subring (S : set R) extends is_add_subgroup S, is_submonoid S : Prop.
-end prio
 
 instance subset.ring {S : set R} [is_subring S] : ring S :=
 { left_distrib := λ x y z, subtype.eq $ left_distrib x.1 y.1 z.1,

@@ -69,9 +69,13 @@ The Bochner integral is defined following these steps:
 Some tips on how to prove a proposition if the API for the Bochner integral is not enough so that
 you need to unfold the definition of the Bochner integral and go back to simple functions.
 
+One method is to use the theorem `integrable.induction` in the file `set_integral`, which allows
+you to prove something for an arbitrary measurable + integrable function.
+
+Another method is using the following steps.
 See `integral_eq_lintegral_max_sub_lintegral_min` for a complicated example, which proves that
 `∫ f = ∫⁻ f⁺ - ∫⁻ f⁻`, with the first integral sign being the Bochner integral of a real-valued
-function f : α → ℝ, and second and third integral sign being the integral on ennreal-valued
+function `f : α → ℝ`, and second and third integral sign being the integral on ennreal-valued
 functions (called `lintegral`). The proof of `integral_eq_lintegral_max_sub_lintegral_min` is
 scattered in sections with the name `pos_part`.
 
@@ -899,6 +903,10 @@ calc ∥integral f∥ = ∥Integral f∥ : rfl
   ... ≤ 1 * ∥f∥ : mul_le_mul_of_nonneg_right norm_Integral_le_one $ norm_nonneg _
   ... = ∥f∥ : one_mul _
 
+@[continuity]
+lemma continuous_integral : continuous (λ (f : α →₁[μ] E), f.integral) :=
+by simp [l1.integral, l1.integral_clm.continuous]
+
 section pos_part
 
 lemma integral_eq_norm_pos_part_sub (f : α →₁[μ] ℝ) : integral f = ∥pos_part f∥ - ∥neg_part f∥ :=
@@ -948,6 +956,9 @@ variables {f g : α → E} {μ : measure α}
 lemma integral_eq (f : α → E) (h₁ : measurable f) (h₂ : integrable f μ) :
   ∫ a, f a ∂μ = (l1.of_fun f h₁ h₂).integral :=
 dif_pos ⟨h₁, h₂⟩
+
+lemma l1.integral_eq_integral (f : α →₁[μ] E) : f.integral = ∫ a, f a ∂μ :=
+by rw [integral_eq, l1.of_fun_to_fun]
 
 lemma integral_undef (h : ¬ (measurable f ∧ integrable f μ)) : ∫ a, f a ∂μ = 0 :=
 dif_neg h
@@ -1012,6 +1023,18 @@ begin
     rw [integral_eq f hfm hfi, integral_eq g hgm hgi, (l1.of_fun_eq_of_fun f g hfm hfi hgm hgi).2 h] },
   { have hgi : ¬ integrable g μ, { rw integrable_congr h at hfi, exact hfi },
     rw [integral_non_integrable hfi, integral_non_integrable hgi] },
+end
+
+@[simp] lemma l1.integral_of_fun_eq_integral {f : α → E} (f_m : measurable f) (f_i : integrable f μ) :
+  ∫ a, (l1.of_fun f f_m f_i) a ∂μ = ∫ a, f a ∂μ :=
+integral_congr_ae (l1.measurable _) f_m (l1.to_fun_of_fun f f_m f_i)
+
+@[continuity]
+lemma continuous_integral : continuous (λ (f : α →₁[μ] E), ∫ a, f a ∂μ) :=
+begin
+  convert l1.continuous_integral,
+  ext f,
+  rw l1.integral_eq_integral
 end
 
 lemma norm_integral_le_lintegral_norm (f : α → E) :
@@ -1181,6 +1204,27 @@ begin
   have : 0 ≤ ∫ a, -f a ∂μ := integral_nonneg_of_ae hf,
   rwa [integral_neg, neg_nonneg] at this,
 end
+
+section normed_group
+variables {H : Type*} [normed_group H] [second_countable_topology H] [measurable_space H]
+          [borel_space H]
+
+lemma l1.norm_eq_integral_norm (f : α →₁[μ] H) : ∥f∥ = ∫ a, ∥f a∥ ∂μ :=
+by rw [l1.norm_eq_norm_to_fun,
+       integral_eq_lintegral_of_nonneg_ae (eventually_of_forall $ by simp [norm_nonneg])
+       (continuous_norm.measurable.comp f.measurable)]
+
+lemma l1.norm_of_fun_eq_integral_norm {f : α → H} (f_m : measurable f) (f_i : integrable f μ) :
+  ∥l1.of_fun f f_m f_i∥ = ∫ a, ∥f a∥ ∂μ :=
+begin
+  rw l1.norm_eq_integral_norm,
+  refine integral_congr_ae (l1.measurable_norm _) f_m.norm _,
+  apply (l1.to_fun_of_fun f f_m f_i).mono,
+  intros a ha,
+  simp [ha]
+end
+
+end normed_group
 
 lemma integral_mono {f g : α → ℝ} (hfm : measurable f) (hfi : integrable f μ)
   (hgm : measurable g) (hgi : integrable g μ) (h : f ≤ᵐ[μ] g) : ∫ a, f a ∂μ ≤ ∫ a, g a ∂μ :=

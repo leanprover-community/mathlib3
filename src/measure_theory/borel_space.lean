@@ -744,7 +744,7 @@ variables {𝕜 : Type*} [normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E] [opens_measurable_space E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F] [measurable_space F] [borel_space F]
 
-protected lemma measurable [opens_measurable_space E] (L : E →L[𝕜] F) : measurable L :=
+protected lemma measurable (L : E →L[𝕜] F) : measurable L :=
 L.continuous.measurable
 
 lemma measurable_comp (L : E →L[𝕜] F) {φ : α → E} (φ_meas : measurable φ) :

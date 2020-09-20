@@ -484,12 +484,12 @@ Then we can prove the commutation result using continuity of all relevant operat
 and the result on simple functions.
 -/
 
-variables {μ : measure α} [normed_group E] [normed_space ℝ E]
-variables [normed_group F] [normed_space ℝ F] [measurable_space F] [borel_space F]
+variables {μ : measure α} [normed_space ℝ E]
+variables [normed_group F] [normed_space ℝ F] [measurable_space F]
 
 namespace continuous_linear_map
 
-lemma integrable_comp [opens_measurable_space E] {φ : α → E} (L : E →L[ℝ] F)
+lemma integrable_comp [borel_space F] [opens_measurable_space E] {φ : α → E} (L : E →L[ℝ] F)
   (φ_int : integrable φ μ) : integrable (λ (a : α), L (φ a)) μ :=
 ((integrable.norm φ_int).const_mul ∥L∥).mono' (L.measurable.comp φ_int.measurable)
   (eventually_of_forall $ λ a, L.le_op_norm (φ a))
@@ -500,7 +500,7 @@ lemma norm_comp_l1_apply_le [opens_measurable_space E] (φ : α →₁[μ] E) (L
   ∀ᵐ a ∂μ, ∥L (φ a)∥ ≤ ∥L∥*∥φ a∥ :=
 eventually_of_forall (λ a, L.le_op_norm (φ a))
 
-variables [borel_space E]
+variables [borel_space E] [borel_space F]
 
 /-- Composing `φ : α →₁[μ] E` with `L : E →L[ℝ] F`. -/
 def comp_l1 [second_countable_topology F] (L : E →L[ℝ] F) (φ : α →₁[μ] E) : α →₁[μ] F :=
@@ -513,7 +513,7 @@ l1.to_fun_of_fun _ _
 lemma integrable_comp_l1 (L : E →L[ℝ] F) (φ : α →₁[μ] E) : integrable (λ a, L (φ a)) μ :=
 L.integrable_comp φ.integrable
 
-lemma measurable_comp_l1 [borel_space F] (L : E →L[ℝ] F) (φ : α →₁[μ] E) :
+lemma measurable_comp_l1 (L : E →L[ℝ] F) (φ : α →₁[μ] E) :
   measurable (λ a, L (φ a)) := L.measurable.comp φ.measurable
 
 variables [second_countable_topology F]
@@ -570,8 +570,8 @@ end
 
 variables [complete_space E]
 
-lemma integral_comp_comm (L : E →L[ℝ] F) {φ : α → E} (φ_meas : measurable φ)
-  (φ_int : integrable φ μ) : ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
+lemma integral_comp_comm (L : E →L[ℝ] F) {φ : α → E} (φ_int : integrable φ μ) :
+  ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
 begin
   apply integrable.induction (λ φ, ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ)),
   { intros e s s_meas s_finite,

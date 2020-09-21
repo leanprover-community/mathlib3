@@ -3,14 +3,15 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.category.Group.basic
+import algebra.category.Group.abelian
 import category_theory.limits.shapes.images
 import category_theory.limits.types
 
 /-!
 # The category of commutative additive groups has images.
 
-Note that TODO TODO TODO
+Note that we don't need to register any of the constructions here as instances, because we get them
+from the fact that `AddCommGroup` is an abelian category.
 -/
 
 open category_theory
@@ -88,12 +89,6 @@ def mono_factorisation : mono_factorisation f :=
 noncomputable def is_image : is_image (mono_factorisation f) :=
 { lift := image.lift,
   lift_fac' := image.lift_fac }
-
-instance : has_image f :=
-has_image.mk ⟨_, is_image f⟩
-
-instance : has_images AddCommGroup.{0} :=
-{ has_image := by apply_instance }
 
 /--
 The categorical image of a morphism in `AddCommGroup`

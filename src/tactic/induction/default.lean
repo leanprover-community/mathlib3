@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jannis Limperg
 -/
 
-import tactic.type_based_naming
+import tactic.induction.type_based_naming
 import tactic.induction.util
 import tactic.induction.unify_equations
 

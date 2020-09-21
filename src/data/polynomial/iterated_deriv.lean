@@ -133,7 +133,7 @@ end
 lemma iterated_deriv_mul :
   iterated_deriv (p * q) n =
   ∑ k in range n.succ,
-    (C (n.choose k : R)) * (iterated_deriv p (n-k)) * (iterated_deriv q k) :=
+    (C (n.choose k : R)) * iterated_deriv p (n - k) * iterated_deriv q k :=
 begin
   induction n with n IH,
   { simp },

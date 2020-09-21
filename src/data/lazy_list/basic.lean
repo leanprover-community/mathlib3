@@ -173,6 +173,13 @@ protected def mem {α} (x : α) : lazy_list α → Prop
 instance {α} : has_mem α (lazy_list α) :=
 ⟨ lazy_list.mem ⟩
 
+instance mem.decidable {α} [decidable_eq α] (x : α) : Π xs : lazy_list α, decidable (x ∈ xs)
+| lazy_list.nil := decidable.false
+| (lazy_list.cons y ys) :=
+  if h : x = y
+    then decidable.is_true (or.inl h)
+    else decidable_of_decidable_of_iff (mem.decidable (ys ())) (by simp [*, (∈), lazy_list.mem])
+
 @[simp]
 lemma mem_nil {α} (x : α) : x ∈ @lazy_list.nil α ↔ false := iff.rfl
 

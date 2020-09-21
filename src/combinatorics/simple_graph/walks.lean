@@ -727,7 +727,7 @@ def walk_join {n m : ℕ} (pn : ↟(path_graph n) →g G) (pm : ↟(path_graph m
 --    split_ifs,
 --    simp, --split_ifs,
 --    {apply pn.map_adj',   },
-
+    sorry, sorry, sorry, sorry,
   end }
 
 /--

@@ -543,7 +543,14 @@ variable (C)
 /-- A category has strong epi-mono factorisations if every morphism admits a strong epi-mono
     factorisation. -/
 class has_strong_epi_mono_factorisations : Prop :=
-(has_fac : Π {X Y : C} (f : X ⟶ Y), nonempty (strong_epi_mono_factorisation f))
+mk' :: (has_fac : Π {X Y : C} (f : X ⟶ Y), nonempty (strong_epi_mono_factorisation f))
+
+variable {C}
+
+lemma has_strong_epi_mono_factorisations.mk
+  (d : Π {X Y : C} (f : X ⟶ Y), strong_epi_mono_factorisation f) :
+  has_strong_epi_mono_factorisations C :=
+⟨λ X Y f, nonempty.intro $ d f⟩
 
 @[priority 100]
 instance has_images_of_has_strong_epi_mono_factorisations

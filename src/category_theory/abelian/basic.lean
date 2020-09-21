@@ -236,7 +236,7 @@ section has_strong_epi_mono_factorisations
 
 /-- An abelian category has strong epi-mono factorisations. -/
 @[priority 100] instance : has_strong_epi_mono_factorisations C :=
-⟨λ X Y f, images.image_strong_epi_mono_factorisation f⟩
+has_strong_epi_mono_factorisations $ λ X Y f, images.image_strong_epi_mono_factorisation f
 
 /- In particular, this means that it has well-behaved images. -/
 example : has_images C := by apply_instance

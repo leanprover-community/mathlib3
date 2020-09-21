@@ -10,6 +10,22 @@ import measure_theory.l1_space
 
 Show that each Borel measurable function can be approximated,
 both pointwise and in `L¹` norm, by a sequence of simple functions.
+
+## Main definitions
+
+* `measure_theory.simple_func.nearest_pt (e : ℕ → α) (N : ℕ) : α →ₛ ℕ`: the `simple_func` sending
+  each `x : α` to the point `e k` which is the nearest to `x` among `e 0`, ..., `e N`.
+* `measure_theory.simple_func.approx_on (f : β → α) (hf : measurable f) (s : set α) (y₀ : α)
+  (h₀ : y₀ ∈ s) [separable_space s] (n : ℕ) : β →ₛ α` : a simple function that takes values in `s`
+  and approximates `f`. If `f x ∈ s`, then `measure_theory.simple_func.approx_on f hf s y₀ h₀ n x`
+  tends to `f x` as `n` tends to `∞`. If `α` is a `normed_group`, `f x - y₀`
+  is `measure_theory.integrable`, and `f x ∈ s` for a.e. `x`, then
+  `simple_func.approx_on f hf s y₀ h₀ n` tends to `f` in `L₁`. The main use case is `s = univ`,
+  `y₀ = 0`.
+
+## Notations
+
+* `α →ₛ β` (local notation): the type of simple functions `α → β`.
 -/
 
 open set filter topological_space
@@ -25,9 +41,9 @@ namespace simple_func
 
 variables [measurable_space α] [emetric_space α] [opens_measurable_space α]
 
-/-- `nearest_pt e N x` is the index `k` such that `e k` is the nearest point to `x` among the points
-`e 0`, ..., `e N`. If more than one point are at the same distance from `x`, then `nearest_pt e N x`
-returns the least of their indexes. -/
+/-- `nearest_pt_ind e N x` is the index `k` such that `e k` is the nearest point to `x` among the
+points `e 0`, ..., `e N`. If more than one point are at the same distance from `x`, then
+`nearest_pt_ind e N x` returns the least of their indexes. -/
 noncomputable def nearest_pt_ind (e : ℕ → α) : ℕ → α →ₛ ℕ
 | 0 := const α 0
 | (N + 1) := piecewise (⋂ k ≤ N, {x | edist (e (N + 1)) x < edist (e k) x})
@@ -35,6 +51,9 @@ noncomputable def nearest_pt_ind (e : ℕ → α) : ℕ → α →ₛ ℕ
       is_measurable_lt measurable_edist_right measurable_edist_right)
     (const α $ N + 1) (nearest_pt_ind N)
 
+/-- `nearest_pt e N x` is the nearest point to `x` among the points `e 0`, ..., `e N`. If more than
+one point are at the same distance from `x`, then `nearest_pt e N x` returns the point with the
+least possible index. -/
 noncomputable def nearest_pt (e : ℕ → α) (N : ℕ) : α →ₛ α :=
 (nearest_pt_ind e N).map e
 

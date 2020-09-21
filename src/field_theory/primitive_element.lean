@@ -225,7 +225,7 @@ begin
     simp only [←adjoin_simple_adjoin_simple, subalgebra.ext_iff, algebra.mem_top, iff_true, *] at *,
     exact ⟨γ, λ x, hγ algebra.mem_top⟩, },
   { push_neg at key,
-    rw top_eq_bot_of_adjoin_findim_le_one F_findim key,
+    rw ← bot_eq_top_of_findim_adjoin_le_one key,
     exact ⟨0, by rw adjoin_zero⟩, },
 end
 

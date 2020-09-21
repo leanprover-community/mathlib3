@@ -158,7 +158,7 @@ begin
         rw succ_sub_succ,
         exact succ_le_iff.mpr hx, },
         rw [triv, add_mul],
-      ring},
+      ring },
       { simp only [one_mul, cast_one, nat.sub_self, ring_hom.map_one,
           iterated_deriv_zero_right, choose_self],
         ring,}

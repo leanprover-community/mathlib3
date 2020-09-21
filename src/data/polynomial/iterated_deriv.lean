@@ -88,7 +88,6 @@ begin
   ext,
   rw iterated_deriv_coeff,
   simp only [cast_one, cast_add, coeff_zero],
-
   rw mul_eq_zero, right,
   apply polynomial.coeff_eq_zero_of_nat_degree_lt, linarith,
 end

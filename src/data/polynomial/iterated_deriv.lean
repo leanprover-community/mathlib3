@@ -99,23 +99,19 @@ begin
 end
 
 lemma iterated_deriv_coeff_as_prod_range :
-  ∀ m : ℕ, (iterated_deriv f k).coeff m = (∏ i in finset.range k, (m+k-i)) * (f.coeff (m+k)) :=
+  ∀ m : ℕ, (iterated_deriv f k).coeff m = f.coeff (m + k) * (∏ i in finset.range k, ↑(m + k - i)) :=
 begin
   induction k with k ih,
-  { simp only [add_zero, forall_const, one_mul, range_zero, eq_self_iff_true,
-      iterated_deriv_zero_right, prod_empty] },
-  { intro m, rw iterated_deriv_succ,
-    rw [polynomial.coeff_derivative, ih (m+1), prod_range_succ],
-    simp only [nat.cast_succ, succ_eq_add_one],
-    conv_rhs { rw [mul_assoc, mul_comm] },
-    have triv : (∏ (i : ℕ) in range k, (m + 1 + k - i : R)) = ∏ (x : ℕ) in range k, (m + (k + 1) - x),
-    { apply congr_arg, ext, ring },
-    rw triv,
-    replace triv : (m + 1 : R) = (m + (k+1) - k:R),
-    { rw add_sub_assoc, simp only [add_sub_cancel'], }, rw ←triv,
-      replace triv : f.coeff (m + 1 + k) = f.coeff (m + (k + 1)),
-    { apply congr_arg, ring},
-    rw triv }
+  { simp },
+
+  intro m,
+  calc (f.iterated_deriv k.succ).coeff m
+      = f.coeff (m + k.succ) * (∏ i in finset.range k, ↑(m + k.succ - i)) * (m + 1) :
+    by rw [iterated_deriv_succ, coeff_derivative, ih m.succ, succ_add, add_succ]
+  ... = f.coeff (m + k.succ) * (↑(m + 1) * (∏ (i : ℕ) in range k, ↑(m + k.succ - i))) :
+    by { push_cast, ring }
+  ... = f.coeff (m + k.succ) * (∏ (i : ℕ) in range k.succ, ↑(m + k.succ - i)) :
+    by { rw [prod_range_succ, nat.add_sub_assoc (le_succ k), nat.succ_sub le_rfl, nat.sub_self] }
 end
 
 

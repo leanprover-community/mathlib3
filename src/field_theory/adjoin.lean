@@ -195,7 +195,7 @@ begin
   exact bot_eq_top_of_findim_adjoin_eq_one this,
 end
 
-lemma adjoin_self (hα : α ∈ (⊥ : subalgebra F E)) : F⟮α⟯ = (⊥ : subalgebra F E) :=
+lemma adjoin_simple_eq_bot (hα : α ∈ (⊥ : subalgebra F E)) : F⟮α⟯ = (⊥ : subalgebra F E) :=
 begin
   rw eq_bot_iff,
   intros x,
@@ -205,10 +205,10 @@ begin
 end
 
 lemma adjoin_zero : F⟮0⟯ = (⊥ : subalgebra F E) :=
-adjoin_self (algebra.mem_bot.mpr (is_add_submonoid.zero_mem))
+adjoin_simple_eq_bot (algebra.mem_bot.mpr (is_add_submonoid.zero_mem))
 
 lemma adjoin_one : F⟮1⟯ = (⊥ : subalgebra F E) :=
-adjoin_self (algebra.mem_bot.mpr (is_submonoid.one_mem))
+adjoin_simple_eq_bot (algebra.mem_bot.mpr (is_submonoid.one_mem))
 
 end adjoin_dim
 

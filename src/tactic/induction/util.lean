@@ -10,10 +10,10 @@ import data.buffer.parser
 
 universes u v w
 
+open native
+
 
 namespace list
-
-open native
 
 variables {α : Type u} {β : Type v}
 
@@ -426,5 +426,72 @@ them. See `revert_lst''`.
 -/
 meta def revert_lst' (hs : list expr) : tactic (ℕ × list (expr × expr)) :=
 revert_lst'' $ name_set.of_list $ hs.map expr.local_uniq_name
+
+-- TODO the implementation is a bit of an 'orrible hack
+meta def get_unused_name'_aux (n : name) (reserved : name_set) :
+  option nat → tactic name :=
+λ suffix, do
+  n ← get_unused_name n suffix,
+  if ¬ reserved.contains n
+    then pure n
+    else do
+      let new_suffix :=
+        match suffix with
+        | none := some 1
+        | some n := some (n + 1)
+        end,
+      get_unused_name'_aux new_suffix
+
+meta def get_unused_name' (ns : list name) (reserved : name_set) : tactic name := do
+  let fallback := match ns with | [] := `x | x :: _ := x end,
+  (first $ ns.map $ λ n, do {
+    guard (¬ reserved.contains n),
+    fail_if_success (resolve_name n),
+    pure n
+  })
+  <|>
+  get_unused_name'_aux fallback reserved none
+
+/- Precond: ns is nonempty. -/
+meta def intro_fresh_reserved (ns : list name) (reserved : name_set) : tactic expr := do
+  n ← get_unused_name' ns reserved,
+  intro n
+
+/- Precond: each of the name lists is nonempty. -/
+meta def intro_lst_fresh_reserved (ns : list (name ⊕ list name)) (reserved : name_set) :
+  tactic (list expr) := do
+  let fixed := name_set.of_list $ ns.filter_map sum.get_left,
+  let reserved := reserved.union fixed,
+  ns.mmap $ λ spec,
+    match spec with
+    | sum.inl n := intro n
+    | sum.inr ns := intro_fresh_reserved ns reserved
+    end
+
+-- TODO integrate into tactic.rename?
+-- Precond: each of the name lists in `renames` must be nonempty.
+meta def rename_fresh (renames : name_map (list name)) (reserved : name_set) :
+  tactic (name_map name) := do
+  ctx ← revertible_local_context,
+  let ctx_suffix := ctx.drop_while (λ h, (renames.find h.local_pp_name).is_none),
+  let new_names :=
+    ctx_suffix.map $ λ h,
+      match renames.find h.local_pp_name with
+      | none := sum.inl h.local_pp_name
+      | some new_names := sum.inr new_names
+      end,
+  revert_lst ctx_suffix,
+  new_hyps ← intro_lst_fresh_reserved new_names reserved,
+  pure $ rb_map.of_list $
+    list.map₂ (λ (old new : expr), (old.local_pp_name, new.local_pp_name))
+      ctx_suffix new_hyps
+
+meta def intron_fresh : ℕ → tactic (list expr)
+| 0 := pure []
+| (n + 1) := do
+  nam ← mk_fresh_name,
+  h ← intro nam,
+  hs ← intron_fresh n,
+  pure $ h :: hs
 
 end tactic

@@ -53,8 +53,8 @@ section rename
 variables {α} [comm_semiring α]
 
 /-- Rename all the variables in a multivariable polynomial. -/
-def rename (f : β → γ) : mv_polynomial β α →+* mv_polynomial γ α :=
-eval₂_hom C (X ∘ f)
+def rename (f : β → γ) : mv_polynomial β α →ₐ[α] mv_polynomial γ α :=
+aeval (X ∘ f)
 
 @[simp] lemma rename_C (f : β → γ) (a : α) : rename f (C a) = C a :=
 eval₂_C _ _ _
@@ -74,9 +74,10 @@ mv_polynomial.induction_on p
   rename g (rename f p) = rename (g ∘ f) p :=
 show rename g (eval₂ C (X ∘ f) p) = _,
 begin
-  simp only [eval₂_comp_left (rename g) C (X ∘ f) p, (∘), rename_C, rename_X],
+  simp only [rename, aeval_eq_eval₂_hom],
+  simp [eval₂_comp_left _ C (X ∘ f) p, (∘), eval₂_C, eval_X],
   apply eval₂_hom_congr _ rfl rfl,
-  ext1, simp only [comp_app, ring_hom.coe_comp, rename_C]
+  ext1, simp only [comp_app, ring_hom.coe_comp, eval₂_hom_C],
 end
 
 @[simp] lemma rename_id (p : mv_polynomial β α) : rename id p = p :=
@@ -85,8 +86,8 @@ eval₂_eta p
 lemma rename_monomial (f : β → γ) (p : β →₀ ℕ) (a : α) :
   rename f (monomial p a) = monomial (p.map_domain f) a :=
 begin
-  rw [rename, eval₂_hom, ring_hom.coe_of, eval₂_monomial,
-    monomial_eq, finsupp.prod_map_domain_index],
+  rw [rename, aeval_monomial, monomial_eq, finsupp.prod_map_domain_index],
+  { refl },
   { exact assume n, pow_zero _ },
   { exact assume n i₁ i₂, pow_add _ _ _ }
 end
@@ -94,7 +95,7 @@ end
 lemma rename_eq (f : β → γ) (p : mv_polynomial β α) :
   rename f p = finsupp.map_domain (finsupp.map_domain f) p :=
 begin
-  simp only [rename, eval₂_hom, eval₂, finsupp.map_domain, ring_hom.coe_of],
+  simp only [rename, aeval_def, eval₂, finsupp.map_domain, ring_hom.coe_of],
   congr' with s a : 2,
   rw [← monomial, monomial_eq, finsupp.prod_sum_index],
   congr' with n i : 2,
@@ -166,12 +167,12 @@ begin
     refine ⟨s ∪ t, ⟨_, _⟩⟩,
     { refine rename (subtype.map id _) p + rename (subtype.map id _) q;
       simp only [id.def, true_or, or_true, finset.mem_union, forall_true_iff] {contextual := tt}, },
-    { simp only [rename_rename, ring_hom.map_add], refl, }, },
+    { simp only [rename_rename, alg_hom.map_add], refl, }, },
   { rintro p n ⟨s, p, rfl⟩,
     refine ⟨insert n s, ⟨_, _⟩⟩,
   { refine rename (subtype.map id _) p * X ⟨n, s.mem_insert_self n⟩,
     simp only [id.def, or_true, finset.mem_insert, forall_true_iff] {contextual := tt}, },
-    { simp only [rename_rename, rename_X, subtype.coe_mk, ring_hom.map_mul], refl, }, },
+    { simp only [rename_rename, rename_X, subtype.coe_mk, alg_hom.map_mul], refl, }, },
 end
 
 /-- Every polynomial is a polynomial in finitely many variables. -/
@@ -192,7 +193,7 @@ lemma eval₂_cast_comp {β : Type u} {γ : Type v} (f : γ → β)
   eval₂ c (g ∘ f) x = eval₂ c g (rename f x) :=
 mv_polynomial.induction_on x
 (λ n, by simp only [eval₂_C, rename_C])
-(λ p q hp hq, by simp only [hp, hq, rename, eval₂_add, ring_hom.map_add])
-(λ p n hp, by simp only [hp, rename, eval₂_hom, ring_hom.coe_of, eval₂_X, eval₂_mul])
+(λ p q hp hq, by simp only [hp, hq, rename, eval₂_add, alg_hom.map_add])
+(λ p n hp, by simp only [hp, rename, aeval_def, eval₂_X, eval₂_mul])
 
 end mv_polynomial

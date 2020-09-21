@@ -905,6 +905,8 @@ by finish [ext_iff]
 theorem inter_union_diff (s t : set α) : (s ∩ t) ∪ (s \ t) = s :=
 by finish [ext_iff, iff_def]
 
+theorem inter_union_compl (s t : set α) : (s ∩ t) ∪ (s ∩ tᶜ) = s := inter_union_diff _ _
+
 theorem diff_subset (s t : set α) : s \ t ⊆ s :=
 by finish [subset_def]
 
@@ -1494,6 +1496,10 @@ range_nonempty_iff_nonempty.2 h
 
 @[simp] lemma range_eq_empty {f : ι → α} : range f = ∅ ↔ ¬ nonempty ι :=
 not_nonempty_iff_eq_empty.symm.trans $ not_congr range_nonempty_iff_nonempty
+
+@[simp] lemma image_union_image_compl_eq_range (f : α → β) :
+  (f '' s) ∪ (f '' sᶜ) = range f :=
+by rw [← image_union, ← image_univ, ← union_compl_self]
 
 theorem image_preimage_eq_inter_range {f : α → β} {t : set β} :
   f '' (f ⁻¹' t) = t ∩ range f :=

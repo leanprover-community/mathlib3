@@ -1812,6 +1812,13 @@ lemma times_cont_diff_on.prod {n : with_top ℕ} {s : set E} {f : E → F} {g : 
   times_cont_diff_on 𝕜 n (λx:E, (f x, g x)) s :=
 λ x hx, (hf x hx).prod (hg x hx)
 
+/-- The cartesian product of `C^n` functions at a point is `C^n`. -/
+lemma times_cont_diff_at.prod {n : with_top ℕ} {f : E → F} {g : E → G}
+  (hf : times_cont_diff_at 𝕜 n f x) (hg : times_cont_diff_at 𝕜 n g x) :
+  times_cont_diff_at 𝕜 n (λx:E, (f x, g x)) x :=
+times_cont_diff_within_at_univ.1 $ times_cont_diff_within_at.prod (times_cont_diff_within_at_univ.2 hf)
+  (times_cont_diff_within_at_univ.2 hg)
+
 /--
 The cartesian product of `C^n` functions is `C^n`.
 -/
@@ -2273,8 +2280,8 @@ open normed_ring continuous_linear_map ring
 /-- In a complete normed algebra, the operation of inversion is `C^n`, for all `n`, at each
 invertible element.  The proof is by induction, bootstrapping using an identity expressing the
 derivative of inversion as a bilinear map of inversion itself. -/
-lemma times_cont_diff_at_inverse [complete_space R] {n : with_top ℕ} (x : units R) :
-  times_cont_diff_at 𝕜 n inverse (x : R) :=
+lemma times_cont_diff_at_ring_inverse [complete_space R] {n : with_top ℕ} (x : units R) :
+  times_cont_diff_at 𝕜 n ring.inverse (x : R) :=
 begin
   induction n using with_top.nat_induction with n IH Itop,
   { intros m hm,
@@ -2294,13 +2301,50 @@ begin
       intros y hy,
       cases mem_set_of_eq.mp hy with y' hy',
       rw [← hy', inverse_unit],
-      exact @has_fderiv_at_inverse 𝕜 _ _ _ _ _ y' },
+      exact @has_fderiv_at_ring_inverse 𝕜 _ _ _ _ _ y' },
     { exact (lmul_left_right_is_bounded_bilinear 𝕜 R).times_cont_diff.neg.comp_times_cont_diff_at
         (x : R) (IH.prod IH) } },
   { exact times_cont_diff_at_top.mpr Itop }
 end
 
 end algebra_inverse
+
+/-! ### Inversion of continuous linear maps between Banach spaces -/
+
+section map_inverse
+open continuous_linear_map
+
+/-- At a continuous linear equivalence `e : E ≃L[𝕜] F` between Banach spaces, the operation of
+inversion is `C^n`, for all `n`. -/
+lemma times_cont_diff_at_map_inverse [complete_space E] {n : with_top ℕ} (e : E ≃L[𝕜] F) :
+  times_cont_diff_at 𝕜 n inverse (e : E →L[𝕜] F) :=
+begin
+  -- first, we use the lemma `to_ring_inverse` to rewrite in terms of `ring.inverse` in the ring
+  -- `E →L[𝕜] E`
+  let O₁ : (E →L[𝕜] E) → (F →L[𝕜] E) := λ f, f.comp (e.symm : (F →L[𝕜] E)),
+  let O₂ : (E →L[𝕜] F) → (E →L[𝕜] E) := λ f, (e.symm : (F →L[𝕜] E)).comp f,
+  have : continuous_linear_map.inverse = O₁ ∘ ring.inverse ∘ O₂,
+  { funext f,
+    rw to_ring_inverse e},
+  rw this,
+  -- `O₁` and `O₂` are `times_cont_diff`, so we reduce to proving that `ring.inverse` is `times_cont_diff`
+  have h₁ : times_cont_diff 𝕜 n O₁,
+  { exact is_bounded_bilinear_map_comp.times_cont_diff.comp (times_cont_diff_const.prod times_cont_diff_id) },
+  have h₂ : times_cont_diff 𝕜 n O₂,
+  { exact is_bounded_bilinear_map_comp.times_cont_diff.comp (times_cont_diff_id.prod times_cont_diff_const) },
+  refine h₁.times_cont_diff_at.comp _ (times_cont_diff_at.comp _ _ h₂.times_cont_diff_at),
+  -- this works differently depending on whether or not `E` is `nontrivial` (the condition for
+  -- `E →L[𝕜] E` to be a `normed_algebra`)
+  cases subsingleton_or_nontrivial E with _i _i; resetI,
+  { convert @times_cont_diff_at_const _ _ _ _ _ _ _ _ _ _ (0 :  E →L[𝕜] E),
+    ext,
+    simp },
+  { convert times_cont_diff_at_ring_inverse 𝕜 (E →L[𝕜] E) 1,
+    simp [O₂],
+    refl },
+end
+
+end map_inverse
 
 section real
 /-!

@@ -128,29 +128,31 @@ meta def simps_get_raw_projections (e : environment) (str : name) :
       is_def_eq custom_proj raw_expr <|>
         fail!"Invalid custom projection:\n {custom_proj}\nExpression is not definitionally equal to {raw_expr}.",
       return custom_proj),
-    /- check for other coercions and type-class arguments to use as projections instead. -/
+    /- Check for other coercions and type-class arguments to use as projections instead. -/
     (args, _) ← open_pis d_str.type,
     let e_str := (expr.const str raw_levels).mk_app args,
     automatic_projs ← attribute.get_instances `notation_class,
     raw_exprs ← automatic_projs.mfoldl (λ (raw_exprs : list expr) class_nm, (do
       (is_class, proj_nm) ← notation_class_attr.get_param class_nm,
       proj_nm ← proj_nm <|> (e.structure_fields_full class_nm).map list.head,
+      /- For this class, find the projection. `raw_expr` is the projection found applied to `args`,
+        and `lambda_raw_expr` has the arguments `args` abstracted. -/
       (raw_expr, lambda_raw_expr) ← if is_class then (do
         guard $ args.length = 1,
         let e_inst_type := (expr.const class_nm raw_levels).mk_app args,
         (hyp, e_inst) ← try_for 1000 (mk_conditional_instance e_str e_inst_type),
         raw_expr ← mk_mapp proj_nm [args.head, e_inst],
         clear hyp,
-        raw_expr_lambda ← lambdas [hyp] raw_expr, -- expr.bind_lambda doesn't give the correct type
+        raw_expr_lambda ← lambdas [hyp] raw_expr, -- `expr.bind_lambda` doesn't give the correct type
         return (raw_expr, raw_expr_lambda.lambdas args))
       else (do
         e_inst_type ← to_expr ((expr.const class_nm []).app (pexpr.of_expr e_str)),
         e_inst ← try_for 1000 (mk_instance e_inst_type),
         raw_expr ← mk_mapp proj_nm [e_str, e_inst],
         return (raw_expr, raw_expr.lambdas args)),
-      raw_expr_whnf ← whnf raw_expr.binding_body,
-      let relevant_proj := raw_expr_whnf.get_app_fn.const_name,
-      /- use this as projection, if the function reduces to a projection, and this projection has
+      raw_expr_whnf ← whnf raw_expr,
+      let relevant_proj := raw_expr_whnf.binding_body.get_app_fn.const_name,
+      /- Use this as projection, if the function reduces to a projection, and this projection has
         not been overrriden by the user. -/
       guard (projs.any (= relevant_proj) ∧ ¬ e.contains (str ++ `simps ++ relevant_proj.last)),
       let pos := projs.find_index (= relevant_proj),
@@ -216,7 +218,10 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
   * `attrs` specifies the list of attributes given to the generated lemmas. Default: ``[`simp]``.
     If ``[`simp]`` is in the list, then ``[`_refl_lemma]`` is added automatically if appropriate.
     The attributes can be either basic attributes, or user attributes without parameters.
-  * `short_name` gives the generated lemmas a shorter name
+  * `short_name` gives the generated lemmas a shorter name. This only has an effect when multiple
+    projections are applied in a lemma. When this is `ff` (default) all projection names will be
+    appended to the definition name to form the lemma name, and when this is `tt`, only the
+    last projection name will be appended.
   * if `simp_rhs` is `tt` then the right-hand-side of the generated lemmas will be put simp-normal form
   * `type_md` specifies how aggressively definitions are unfolded in the type of expressions
     for the purposes of finding out whether the type is a function type.

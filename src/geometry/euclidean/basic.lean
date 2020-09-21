@@ -5,7 +5,9 @@ Author: Joseph Myers.
 -/
 import analysis.normed_space.real_inner_product
 import analysis.normed_space.add_torsor
+import data.matrix.notation
 import linear_algebra.affine_space.combination
+import tactic.fin_cases
 
 noncomputable theory
 open_locale big_operators
@@ -405,7 +407,129 @@ begin
   exact inner_weighted_vsub p h p h
 end
 
-open affine_subspace
+/-- Suppose that `c₁` is equidistant from `p₁` and `p₂`, and the same
+applies to `c₂`.  Then the vector between `c₁` and `c₂` is orthogonal
+to that between `p₁` and `p₂`.  (In two dimensions, this says that the
+diagonals of a kite are orthogonal.) -/
+lemma inner_vsub_vsub_of_dist_eq_of_dist_eq {c₁ c₂ p₁ p₂ : P} (hc₁ : dist p₁ c₁ = dist p₂ c₁)
+  (hc₂ : dist p₁ c₂ = dist p₂ c₂) : inner (c₂ -ᵥ c₁) (p₂ -ᵥ p₁) = 0 :=
+begin
+  have h : inner ((c₂ -ᵥ c₁) + (c₂ -ᵥ c₁)) (p₂ -ᵥ p₁) = 0,
+  { conv_lhs { congr, congr, rw ←vsub_sub_vsub_cancel_right c₂ c₁ p₁,
+               skip, rw ←vsub_sub_vsub_cancel_right c₂ c₁ p₂ },
+    rw [←add_sub_comm, inner_sub_left],
+    conv_lhs { congr, rw ←vsub_sub_vsub_cancel_right p₂ p₁ c₂,
+               skip, rw ←vsub_sub_vsub_cancel_right p₂ p₁ c₁ },
+    rw [dist_comm p₁, dist_comm p₂, dist_eq_norm_vsub V _ p₁,
+        dist_eq_norm_vsub V _ p₂, ←inner_add_sub_eq_zero_iff] at hc₁ hc₂,
+    simp_rw [←neg_vsub_eq_vsub_rev c₁, ←neg_vsub_eq_vsub_rev c₂, sub_neg_eq_add,
+             neg_add_eq_sub, hc₁, hc₂, sub_zero] },
+  simpa [inner_add_left, ←mul_two, (by norm_num : (2 : ℝ) ≠ 0)] using h
+end
+
+/-- The squared distance between points on a line (expressed as a
+multiple of a fixed vector added to a point) and another point,
+expressed as a quadratic. -/
+lemma dist_smul_vadd_square (r : ℝ) (v : V) (p₁ p₂ : P) :
+  dist (r • v +ᵥ p₁) p₂ * dist (r • v +ᵥ p₁) p₂ =
+    inner v v * r * r + 2 * inner v (p₁ -ᵥ p₂) * r + inner (p₁ -ᵥ p₂) (p₁ -ᵥ p₂) :=
+begin
+  rw [dist_eq_norm_vsub V _ p₂, ←inner_self_eq_norm_square, vadd_vsub_assoc, inner_add_add_self,
+      inner_smul_left, inner_smul_left, inner_smul_right],
+  ring
+end
+
+/-- The condition for two points on a line to be equidistant from
+another point. -/
+lemma dist_smul_vadd_eq_dist {v : V} (p₁ p₂ : P) (hv : v ≠ 0) (r : ℝ) :
+  dist (r • v +ᵥ p₁) p₂ = dist p₁ p₂ ↔ (r = 0 ∨ r = -2 * inner v (p₁ -ᵥ p₂) / inner v v) :=
+begin
+  conv_lhs { rw [←mul_self_inj_of_nonneg dist_nonneg dist_nonneg, dist_smul_vadd_square,
+                 ←sub_eq_zero_iff_eq, add_sub_assoc, dist_eq_norm_vsub V p₁ p₂,
+                 ←inner_self_eq_norm_square, sub_self] },
+  have hvi : inner v v ≠ 0, by simpa using hv,
+  have hd : discrim (inner v v) (2 * inner v (p₁ -ᵥ p₂)) 0 =
+    (2 * inner v (p₁ -ᵥ p₂)) * (2 * inner v (p₁ -ᵥ p₂)),
+  { rw discrim, ring },
+  rw [quadratic_eq_zero_iff hvi hd, add_left_neg, zero_div, neg_mul_eq_neg_mul,
+      ←mul_sub_right_distrib, sub_eq_add_neg, ←mul_two, mul_assoc, mul_div_assoc,
+      mul_div_mul_left, mul_div_assoc],
+  norm_num
+end
+
+open affine_subspace finite_dimensional
+
+/-- Distances `r₁` `r₂` of `p` from two different points `c₁` `c₂` determine at
+most two points `p₁` `p₂` in a two-dimensional subspace containing those points
+(two circles intersect in at most two points). -/
+lemma eq_of_dist_eq_of_dist_eq_of_mem_of_findim_eq_two {s : affine_subspace ℝ P}
+  [finite_dimensional ℝ s.direction] (hd : findim ℝ s.direction = 2) {c₁ c₂ p₁ p₂ p : P}
+  (hc₁s : c₁ ∈ s) (hc₂s : c₂ ∈ s) (hp₁s : p₁ ∈ s) (hp₂s : p₂ ∈ s) (hps : p ∈ s) {r₁ r₂ : ℝ}
+  (hc : c₁ ≠ c₂) (hp : p₁ ≠ p₂) (hp₁c₁ : dist p₁ c₁ = r₁) (hp₂c₁ : dist p₂ c₁ = r₁)
+  (hpc₁ : dist p c₁ = r₁) (hp₁c₂ : dist p₁ c₂ = r₂) (hp₂c₂ : dist p₂ c₂ = r₂)
+  (hpc₂ : dist p c₂ = r₂) : p = p₁ ∨ p = p₂ :=
+begin
+  have ho : inner (c₂ -ᵥ c₁) (p₂ -ᵥ p₁) = 0 :=
+    inner_vsub_vsub_of_dist_eq_of_dist_eq (by cc) (by cc),
+  let b : fin 2 → V := ![c₂ -ᵥ c₁, p₂ -ᵥ p₁],
+  have hb : linear_independent ℝ b,
+  { refine linear_independent_of_ne_zero_of_inner_eq_zero _ _,
+    { intro i,
+      fin_cases i; simp [b, hc.symm, hp.symm] },
+    { intros i j hij,
+      fin_cases i; fin_cases j; try { exact false.elim (hij rfl) },
+      { exact ho },
+      { rw inner_comm, exact ho } } },
+  have hbs : submodule.span ℝ (set.range b) = s.direction,
+  { refine eq_of_le_of_findim_eq _ _,
+    { rw [submodule.span_le, set.range_subset_iff],
+      intro i,
+      fin_cases i,
+      { exact vsub_mem_direction hc₂s hc₁s },
+      { exact vsub_mem_direction hp₂s hp₁s } },
+    { rw [findim_span_eq_card hb, fintype.card_fin, hd] } },
+  have hv : ∀ v ∈ s.direction, ∃ t₁ t₂ : ℝ, v = t₁ • (c₂ -ᵥ c₁) + t₂ • (p₂ -ᵥ p₁),
+  { intros v hv,
+    have hr : set.range b = {c₂ -ᵥ c₁, p₂ -ᵥ p₁},
+    { have hu : (finset.univ : finset (fin 2)) = {0, 1}, by dec_trivial,
+      rw [←fintype.coe_image_univ, hu],
+      simp,
+      refl },
+    rw [←hbs, hr, submodule.mem_span_insert] at hv,
+    rcases hv with ⟨t₁, v', hv', hv⟩,
+    rw submodule.mem_span_singleton at hv',
+    rcases hv' with ⟨t₂, rfl⟩,
+    exact ⟨t₁, t₂, hv⟩ },
+  rcases hv (p -ᵥ p₁) (vsub_mem_direction hps hp₁s) with ⟨t₁, t₂, hpt⟩,
+  have hop : inner (c₂ -ᵥ c₁) (p -ᵥ p₁) = 0 :=
+    inner_vsub_vsub_of_dist_eq_of_dist_eq (by cc) (by cc),
+  simp only [hpt, inner_add_right, inner_smul_right, ho, mul_zero, add_zero, mul_eq_zero,
+             inner_self_eq_zero, vsub_eq_zero_iff_eq, hc.symm, or_false] at hop,
+  rw [hop, zero_smul, zero_add, ←eq_vadd_iff_vsub_eq] at hpt,
+  subst hpt,
+  have hp' : (p₂ -ᵥ p₁ : V) ≠ 0, { simp [hp.symm] },
+  have hp₂ : dist ((1 : ℝ) • (p₂ -ᵥ p₁) +ᵥ p₁) c₁ = r₁, { simp [hp₂c₁] },
+  rw [←hp₁c₁, dist_smul_vadd_eq_dist _ _ hp'] at hpc₁ hp₂,
+  simp only [one_ne_zero, false_or] at hp₂,
+  rw hp₂.symm at hpc₁,
+  cases hpc₁; simp [hpc₁]
+end
+
+/-- Distances `r₁` `r₂` of `p` from two different points `c₁` `c₂` determine at
+most two points `p₁` `p₂` in two-dimensional space (two circles intersect in at
+most two points). -/
+lemma eq_of_dist_eq_of_dist_eq_of_findim_eq_two [finite_dimensional ℝ V] (hd : findim ℝ V = 2)
+  {c₁ c₂ p₁ p₂ p : P} {r₁ r₂ : ℝ} (hc : c₁ ≠ c₂) (hp : p₁ ≠ p₂) (hp₁c₁ : dist p₁ c₁ = r₁)
+  (hp₂c₁ : dist p₂ c₁ = r₁) (hpc₁ : dist p c₁ = r₁) (hp₁c₂ : dist p₁ c₂ = r₂)
+  (hp₂c₂ : dist p₂ c₂ = r₂) (hpc₂ : dist p c₂ = r₂) : p = p₁ ∨ p = p₂ :=
+begin
+  have hd' : findim ℝ (⊤ : affine_subspace ℝ P).direction = 2,
+  { rw [direction_top, findim_top],
+    exact hd },
+  exact eq_of_dist_eq_of_dist_eq_of_mem_of_findim_eq_two hd'
+    (mem_top ℝ V _) (mem_top ℝ V _) (mem_top ℝ V _) (mem_top ℝ V _) (mem_top ℝ V _)
+    hc hp hp₁c₁ hp₂c₁ hpc₁ hp₁c₂ hp₂c₂ hpc₂
+end
 
 variables {V}
 
@@ -857,5 +981,62 @@ lemma reflection_vadd_smul_vsub_orthogonal_projection {s : affine_subspace ℝ P
     -(r • (p₂ -ᵥ orthogonal_projection s p₂)) +ᵥ p₁ :=
 reflection_orthogonal_vadd hc hp₁
   (submodule.smul_mem _ _ (vsub_orthogonal_projection_mem_direction_orthogonal s _))
+
+omit V
+
+/-- A set of points is cospherical if they are equidistant from some
+point.  In two dimensions, this is the same thing as being
+concyclic. -/
+def cospherical (ps : set P) : Prop :=
+∃ (center : P) (radius : ℝ), ∀ p ∈ ps, dist p center = radius
+
+/-- The definition of `cospherical`. -/
+lemma cospherical_def (ps : set P) :
+  cospherical ps ↔ ∃ (center : P) (radius : ℝ), ∀ p ∈ ps, dist p center = radius :=
+iff.rfl
+
+/-- A subset of a cospherical set is cospherical. -/
+lemma cospherical_subset {ps₁ ps₂ : set P} (hs : ps₁ ⊆ ps₂) (hc : cospherical ps₂) :
+  cospherical ps₁ :=
+begin
+  rcases hc with ⟨c, r, hcr⟩,
+  exact ⟨c, r, λ p hp, hcr p (hs hp)⟩
+end
+
+include V
+
+/-- The empty set is cospherical. -/
+lemma cospherical_empty : cospherical (∅ : set P) :=
+begin
+  use add_torsor.nonempty.some,
+  simp,
+end
+
+omit V
+
+/-- A single point is cospherical. -/
+lemma cospherical_singleton (p : P) : cospherical ({p} : set P) :=
+begin
+  use p,
+  simp
+end
+
+include V
+
+/-- Two points are cospherical. -/
+lemma cospherical_insert_singleton (p₁ p₂ : P) : cospherical ({p₁, p₂} : set P) :=
+begin
+  use [(2⁻¹ : ℝ) • (p₂ -ᵥ p₁) +ᵥ p₁, (2⁻¹ : ℝ) * (dist p₂ p₁)],
+  intro p,
+  rw [set.mem_insert_iff, set.mem_singleton_iff],
+  rintro ⟨_|_⟩,
+  { rw [dist_eq_norm_vsub V p₁, vsub_vadd_eq_vsub_sub, vsub_self, zero_sub, norm_neg, norm_smul,
+        dist_eq_norm_vsub V p₂],
+    simp },
+  { rw [H, dist_eq_norm_vsub V p₂, vsub_vadd_eq_vsub_sub, dist_eq_norm_vsub V p₂],
+    conv_lhs { congr, congr, rw ←one_smul ℝ (p₂ -ᵥ p₁ : V) },
+    rw [←sub_smul, norm_smul],
+    norm_num }
+end
 
 end euclidean_geometry

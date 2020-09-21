@@ -57,7 +57,7 @@ instance : order_topology ℝ≥0 :=
 
 section coe
 variable {α : Type*}
-open filter
+open filter finset
 
 lemma continuous_of_real : continuous nnreal.of_real :=
 continuous_subtype_mk _ $ continuous_id.max continuous_const
@@ -98,7 +98,7 @@ begin
   exact assume ⟨a, ha⟩, ⟨a.1, has_sum_coe.2 ha⟩
 end
 
-open_locale classical
+open_locale classical big_operators
 
 @[norm_cast] lemma coe_tsum {f : α → nnreal} : ↑(∑'a, f a) = (∑'a, (f a : ℝ)) :=
 if hf : summable f
@@ -110,6 +110,14 @@ lemma summable_comp_injective {β : Type*} {f : α → nnreal} (hf : summable f)
   summable (f ∘ i) :=
 nnreal.summable_coe.1 $
 show summable ((coe ∘ f) ∘ i), from (nnreal.summable_coe.2 hf).comp_injective hi
+
+lemma summable_nat_add (f : ℕ → nnreal) (hf : summable f) (k : ℕ) : summable (λ i, f (i + k)) :=
+summable_comp_injective hf $ add_left_injective k
+
+lemma sum_add_tsum_nat_add {f : ℕ → nnreal} (k : ℕ) (hf : summable f) :
+  (∑' i, f i) = (∑ i in range k, f i) + ∑' i, f (i + k) :=
+by rw [←nnreal.coe_eq, coe_tsum, nnreal.coe_add, coe_sum, coe_tsum,
+  sum_add_tsum_nat_add k (nnreal.summable_coe.2 hf)]
 
 end coe
 

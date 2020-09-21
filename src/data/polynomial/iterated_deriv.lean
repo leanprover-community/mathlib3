@@ -114,12 +114,6 @@ begin
     by { rw [prod_range_succ, nat.add_sub_assoc (le_succ k), nat.succ_sub le_rfl, nat.sub_self] }
 end
 
-end comm_semiring
-
-section integral_domain
-variable [integral_domain R]
-variables (f p q : polynomial R) (n k : ℕ)
-
 lemma iterated_deriv_eq_zero_of_nat_degree_lt (h : f.nat_degree < n) : iterated_deriv f n = 0 :=
 begin
   ext m,
@@ -175,6 +169,6 @@ begin
   { rw [choose_zero_right, nat.sub_zero] },
 end
 
-end integral_domain
+end comm_semiring
 
 end polynomial

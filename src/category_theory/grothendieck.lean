@@ -129,13 +129,8 @@ instance : category (grothendieck F) :=
   hom.fiber (𝟙 X) = eq_to_hom (by erw [category_theory.functor.map_id, functor.id_obj X.fiber]) :=
 id_fiber X
 
--- move, rename
-lemma congr_foo (F : C ⥤ Cat) {X Y : C} {f g : X ⟶ Y} (h : f = g) (Z : F.obj X) :
-  (F.map f).obj Z = (F.map g).obj Z :=
-by subst h
-
 lemma congr {X Y : grothendieck F} {f g : X ⟶ Y} (h : f = g) :
-  f.fiber = eq_to_hom (congr_foo F (by subst h) X.fiber) ≫ g.fiber :=
+  f.fiber = eq_to_hom (by subst h) ≫ g.fiber :=
 by { subst h, dsimp, simp, }
 
 section
@@ -152,80 +147,24 @@ end
 universe w
 variables (G : C ⥤ Type w)
 
--- /--
--- The Grothendieck construction applied to a functor to `Type`
--- (thought of as a functor to `Cat` by realising a type as a discrete category)
--- is the same as the 'category of elements' construction.
--- -/
--- def grothendieck_Type_to_Cat : grothendieck (G ⋙ Type_to_Cat) ≌ G.elements :=
--- { functor :=
---   { obj := λ X, ⟨X.1, X.2⟩,
---     map := λ X Y f, ⟨f.1, f.2.1.1⟩ },
---   inverse :=
---   { obj := λ X, ⟨X.1, X.2⟩,
---     map := λ X Y f, ⟨f.1, ⟨⟨f.2⟩⟩⟩ },
---   unit_iso := nat_iso.of_components (λ X, by { cases X, exact iso.refl _, })
---     (by { rintro ⟨⟩ ⟨⟩ ⟨base, ⟨⟨f⟩⟩⟩, dsimp at *, subst f, simp, }),
---   counit_iso := nat_iso.of_components (λ X, by { cases X, exact iso.refl _, })
---     (by { rintro ⟨⟩ ⟨⟩ ⟨f, e⟩, dsimp at *, subst e, simp }),
---   functor_unit_iso_comp' := by { rintro ⟨⟩, dsimp, simp, refl, } }
-
+/--
+The Grothendieck construction applied to a functor to `Type`
+(thought of as a functor to `Cat` by realising a type as a discrete category)
+is the same as the 'category of elements' construction.
+-/
+def grothendieck_Type_to_Cat : grothendieck (G ⋙ Type_to_Cat) ≌ G.elements :=
+{ functor :=
+  { obj := λ X, ⟨X.1, X.2⟩,
+    map := λ X Y f, ⟨f.1, f.2.1.1⟩ },
+  inverse :=
+  { obj := λ X, ⟨X.1, X.2⟩,
+    map := λ X Y f, ⟨f.1, ⟨⟨f.2⟩⟩⟩ },
+  unit_iso := nat_iso.of_components (λ X, by { cases X, exact iso.refl _, })
+    (by { rintro ⟨⟩ ⟨⟩ ⟨base, ⟨⟨f⟩⟩⟩, dsimp at *, subst f, simp, }),
+  counit_iso := nat_iso.of_components (λ X, by { cases X, exact iso.refl _, })
+    (by { rintro ⟨⟩ ⟨⟩ ⟨f, e⟩, dsimp at *, subst e, simp }),
+  functor_unit_iso_comp' := by { rintro ⟨⟩, dsimp, simp, refl, } }
 
 end grothendieck
 
 end category_theory
-
--- namespace category_theory
-
--- open grothendieck
-
--- open category_theory.limits
-
--- noncomputable theory
-
--- universes v
-
--- variables {C : Type u} [category.{v} C]
--- variables {F : C ⥤ Cat.{v u}}
--- variables [has_colimits C]
--- variables {J : Type v} [small_category J] (G : J ⥤ grothendieck F)
-
--- @[simps]
--- def pushforward_diagram_to_colimit : J ⥤ F.obj (colimit (G ⋙ grothendieck.forget F)) :=
--- { obj := λ j, (F.map (colimit.ι (G ⋙ grothendieck.forget F) j)).obj (G.obj j).fiber,
---   map := λ j j' f,
---   begin
---     have := (F.map (colimit.ι (G ⋙ grothendieck.forget F) j')).map (G.map f).fiber,
---     refine _ ≫ this,
---     have := eq_to_hom (functor.congr_obj (F.map_comp _ _) (G.obj j).fiber),
---     refine _ ≫ this,
---     have := congr_foo F (colimit.w (G ⋙ grothendieck.forget F) f).symm _,
---     exact eq_to_hom this,
---   end,
---   map_id' := λ j, by simp [grothendieck.congr (G.map_id j)],
---   map_comp' := sorry, }
-
--- variables [∀ X : C, has_colimits (F.obj X)]
-
--- @[simps]
--- def colimit : grothendieck F :=
--- { base := colimit (G ⋙ grothendieck.forget F),
---   fiber := colimit (pushforward_diagram_to_colimit G), }
-
--- @[simps]
--- def colimit_cocone : cocone G :=
--- { X := colimit G,
---   ι :=
---   { app := λ j,
---     { base := colimit.ι (G ⋙ grothendieck.forget F) j,
---       fiber := colimit.ι (pushforward_diagram_to_colimit G) j, },
---     naturality' := sorry, } }
-
--- def colimit_cocone_is_colimit : is_colimit (colimit_cocone G) :=
--- { desc := λ s,
---   { base := colimit.desc (G ⋙ grothendieck.forget F) ((grothendieck.forget F).map_cocone s),
---     fiber := begin dsimp, end, },
---   fac' := begin sorry, end,
---   uniq' := sorry, }
-
--- end category_theory

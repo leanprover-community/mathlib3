@@ -68,8 +68,7 @@ end
 lemma poly_add_comp_neg_eq : poly_add_comp_neg p = witt_sub p :=
 begin
   apply poly_eq_of_witt_polynomial_bind_eq' p,
-  delta poly_add_comp_neg,
-  witt_simp, simp only [prod.map], refl,
+  witt_simp [prod.map, poly_add_comp_neg], refl,
 end
 
 lemma bind₁_poly_add_comp_neg_witt_polynomial (n : ℕ) :

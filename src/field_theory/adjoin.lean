@@ -5,8 +5,7 @@ Authors: Thomas Browning and Patrick Lutz
 -/
 
 import field_theory.intermediate_field
-import field_theory.subfield
-import linear_algebra.finite_dimensional
+import ring_theory.adjoin
 
 /-!
 # Adjoining Elements to Fields
@@ -35,6 +34,9 @@ variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (S : set E)
 def adjoin : intermediate_field F E :=
 { algebra_map_mem' := λ x, subfield.subset_closure (or.inl (set.mem_range.mpr ⟨x,rfl⟩)),
   ..subfield.closure (set.range (algebra_map F E) ∪ S) }
+
+lemma adjoin.algebra_map_mem (x : F) : algebra_map F E x ∈ adjoin F S :=
+subfield.subset_closure (or.inl (set.mem_range_self x))
 
 lemma subset_adjoin_of_subset_left {F : subfield E} {T : set E} (HT : T ⊆ F) :
   T ⊆ adjoin F S :=
@@ -85,6 +87,10 @@ lemma adjoin_le {K : intermediate_field F E} (HS : S ⊆ K) :
   adjoin F S ≤ K :=
 show (adjoin F S).to_subfield ≤ K.to_subfield,
 from adjoin_le_subfield _ S K.set_range_subset HS
+
+lemma algebra_adjoin_le_adjoin :
+  algebra.adjoin F S ≤ (field.adjoin F S).to_subalgebra :=
+algebra.adjoin_le (subset_adjoin _ _)
 
 lemma adjoin_le_algebra_adjoin (inv_mem : ∀ x ∈ algebra.adjoin F S, x⁻¹ ∈ algebra.adjoin F S) :
   (field.adjoin F S).to_subalgebra ≤ algebra.adjoin F S :=

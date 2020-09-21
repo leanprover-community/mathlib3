@@ -127,7 +127,7 @@ begin
     exact is_submonoid.pow_mem (algebra.subset_adjoin (set.mem_singleton _)) },
   intros r hr, change r ∈ algebra.adjoin R ({x} : set A) at hr,
   rw algebra.adjoin_singleton_eq_range at hr,
-  rcases hr with ⟨p, rfl⟩,
+  rcases (aeval x).mem_range.mp hr with ⟨p, rfl⟩,
   rw ← mod_by_monic_add_div p hfm,
   rw [alg_hom.map_add, alg_hom.map_mul, hfx, zero_mul, add_zero],
   have : degree (p %ₘ f) ≤ degree f := degree_mod_by_monic_le p hfm,

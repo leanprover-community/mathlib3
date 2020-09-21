@@ -1,3 +1,4 @@
+import algebra.ring.ulift
 import ring_theory.witt_vector.basic
 import ring_theory.witt_vector.witt_vector_preps
 import data.mv_polynomial.funext
@@ -266,17 +267,17 @@ begin
   simp only [hom_bind₁],
   specialize h (ulift ℤ) (mk p $ λ i, ⟨x i⟩) k,
   simp only [ghost_component_apply, aeval_eq_eval₂_hom] at h,
-  have : function.injective (ulift.up_ring_hom.{0 u} ℤ) := (ulift.up_injective ℤ),
-  apply this,
+  apply (ulift.ring_equiv.{0 u}).symm.injective,
   simp only [map_eval₂_hom],
   convert h,
   all_goals {
     funext i,
-    show (ulift.up_ring_hom.{0 u} ℤ) (eval₂_hom _ _ _) = _,
-    simp only [hf, hg, map_eval₂_hom],
-    apply eval₂_hom_congr _ _ rfl,
-    { ext, simp only [ring_hom.eq_int_cast] },
-    { ext, simp only [coeff_mk], refl } }
+    rw [← ring_equiv.coe_ring_hom],
+    simp only [hf, hg, mv_polynomial.eval, map_eval₂_hom],
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    ext1,
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    simp only [coeff_mk], refl }
 end
 
 -- unfortunately this is not universe polymorphic, merely because `f` isn't
@@ -366,17 +367,18 @@ begin
   simp only [hom_bind₁],
   specialize h (ulift ℤ) (mk p $ λ i, ⟨x (0, i)⟩) (mk p $ λ i, ⟨x (1, i)⟩) k,
   simp only [ghost_component_apply, aeval_eq_eval₂_hom] at h,
-  have : function.injective (ulift.up_ring_hom.{0 u} ℤ) := (ulift.up_injective ℤ),
-  apply this,
+  apply (ulift.ring_equiv.{0 u}).symm.injective,
   simp only [map_eval₂_hom],
   convert h; clear h,
   all_goals {
     funext i,
-    show (ulift.up_ring_hom.{0 u} ℤ) (eval₂_hom _ _ _) = _,
-    simp only [hf, hg, map_eval₂_hom],
-    apply eval₂_hom_congr _ _ rfl,
-    { ext, simp only [ring_hom.eq_int_cast] },
-    { ext ⟨b, _⟩, fin_cases b; simp only [coeff_mk, uncurry]; refl } }
+    rw [← ring_equiv.coe_ring_hom],
+    simp only [hf, hg, mv_polynomial.eval, map_eval₂_hom],
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    ext1,
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    ext ⟨b, _⟩,
+    fin_cases b; simp only [coeff_mk, uncurry]; refl }
 end
 
 -- unfortunately this is not universe polymorphic, merely because `f` isn't

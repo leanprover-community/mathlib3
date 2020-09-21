@@ -739,5 +739,3 @@ end
 
 end integral_on
 -/
-
-#lint

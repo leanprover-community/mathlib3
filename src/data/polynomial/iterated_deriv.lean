@@ -34,7 +34,7 @@ def iterated_deriv : polynomial R := derivative ^[n] f
 lemma iterated_deriv_succ : iterated_deriv f (n + 1) = (iterated_deriv f n).derivative :=
 by rw [iterated_deriv, iterated_deriv, function.iterate_succ']
 
-@[simp] lemma iterated_deriv_zero : iterated_deriv (0 : polynomial R) n = 0 :=
+@[simp] lemma iterated_deriv_zero_left : iterated_deriv (0 : polynomial R) n = 0 :=
 begin
   induction n with n hn;
   simp only [iterated_deriv, id.def, function.iterate_zero],

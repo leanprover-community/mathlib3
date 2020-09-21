@@ -51,7 +51,7 @@ end
 theorem primitive_element_fin [fintype F] [hfd : finite_dimensional F E] :
   ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
-  haveI : fintype E := finite_of_findim_over_finite F E,
+  haveI : fintype E := fintype_of_fintype F E,
   exact primitive_element_fin_aux F,
 end
 

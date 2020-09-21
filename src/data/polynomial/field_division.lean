@@ -203,7 +203,7 @@ gcd.induction p q (λ x, by simp_rw [map_zero, euclidean_domain.gcd_zero_left]) 
 by rw [gcd_val, ← map_mod, ih, ← gcd_val]
 end
 
-lemma gcd_eval_zero (f g : polynomial R) (α : R) (hf : f.eval α = 0) (hg : g.eval α = 0) :
+lemma eval_gcd_eq_zero {f g : polynomial R} {α : R} (hf : f.eval α = 0) (hg : g.eval α = 0) :
   (euclidean_domain.gcd f g).eval α = 0 :=
 by rw [euclidean_domain.gcd_eq_gcd_ab f g,
        polynomial.eval_add, polynomial.eval_mul, polynomial.eval_mul, hf, hg,

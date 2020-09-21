@@ -22,7 +22,6 @@ def trailing_degree (p : polynomial R) : with_top ℕ := p.support.inf some
 lemma trailing_degree_lt_wf : well_founded (λp q : polynomial R, trailing_degree p < trailing_degree q) :=
 inv_image.wf trailing_degree (with_top.well_founded_lt nat.lt_wf)
 
---instance : has_well_founded (polynomial R) := ⟨_, trailing_degree_lt_wf⟩
 /-- `nat_trailing_degree p` forces `trailing_degree p` to ℕ, by defining nat_trailing_degree 0 = 0. -/
 def nat_trailing_degree (p : polynomial R) : ℕ := (trailing_degree p).get_or_else 0
 

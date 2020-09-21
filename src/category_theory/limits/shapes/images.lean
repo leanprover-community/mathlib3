@@ -197,6 +197,11 @@ lemma image.lift_fac (F' : mono_factorisation f) : image.lift F' ≫ F'.m = imag
 lemma image.fac_lift (F' : mono_factorisation f) : factor_thru_image f ≫ image.lift F' = F'.e :=
 (image.is_image f).fac_lift F'
 
+@[simp, reassoc]
+lemma is_image.lift_ι {F : mono_factorisation f} (hF : is_image F) :
+  hF.lift (image.mono_factorisation f) ≫ image.ι f = F.m :=
+hF.lift_fac _
+
 -- TODO we could put a category structure on `mono_factorisation f`,
 -- with the morphisms being `g : I ⟶ I'` commuting with the `m`s
 -- (they then automatically commute with the `e`s)
@@ -406,12 +411,26 @@ lemma image_map.factor_map {f g : arrow C} [has_image f.hom] [has_image g.hom] (
   factor_thru_image f.hom ≫ m.map = sq.left ≫ factor_thru_image g.hom :=
 (cancel_mono (image.ι g.hom)).1 $ by simp [arrow.w]
 
+/-- To give an image map for a commutative square with `f` at the top and `g` at the bottom, it
+    suffices to give a map between any mono factorisation of `f` and any image factorisation of
+    `g`. -/
+def image_map.transport {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g)
+  (F : mono_factorisation f.hom) {F' : mono_factorisation g.hom} (hF' : is_image F')
+  {map : F.I ⟶ F'.I} (map_ι : map ≫ F'.m = F.m ≫ sq.right) : image_map sq :=
+{ map := image.lift F ≫ map ≫ hF'.lift (image.mono_factorisation g.hom),
+  map_ι' := by simp [map_ι] }
+
 class has_image_map {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g) : Prop :=
 mk' :: (has_image_map : nonempty (image_map sq))
 
 lemma has_image_map.mk {f g : arrow C} [has_image f.hom] [has_image g.hom] {sq : f ⟶ g}
   (m : image_map sq) : has_image_map sq :=
 ⟨nonempty.intro m⟩
+
+lemma has_image_map.transport {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g)
+  (F : mono_factorisation f.hom) {F' : mono_factorisation g.hom} (hF' : is_image F')
+  (map : F.I ⟶ F'.I) (map_ι : map ≫ F'.m = F.m ≫ sq.right) : has_image_map sq :=
+has_image_map.mk $ image_map.transport sq F hF' map_ι
 
 def has_image_map.image_map {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g)
   [has_image_map sq] : image_map sq :=

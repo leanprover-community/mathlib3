@@ -120,13 +120,11 @@ section integral_domain
 variable [integral_domain R]
 variables (f p q : polynomial R) (n k : ℕ)
 
-lemma zero_of_iterated_deriv_nat_degree_succ : (iterated_deriv f (f.nat_degree + 1)) = 0 :=
+lemma iterated_deriv_eq_zero_of_nat_degree_lt (h : f.nat_degree < n) : iterated_deriv f n = 0 :=
 begin
-  ext,
-  rw coeff_iterated_deriv_as_prod_range,
-  simp only [cast_one, cast_add, coeff_zero],
-  rw mul_eq_zero, left,
-  apply polynomial.coeff_eq_zero_of_nat_degree_lt, linarith,
+  ext m,
+  rw [coeff_iterated_deriv_as_prod_range, coeff_zero, coeff_eq_zero_of_nat_degree_lt, zero_mul],
+  linarith
 end
 
 

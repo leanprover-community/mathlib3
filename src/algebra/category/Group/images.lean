@@ -86,6 +86,8 @@ def mono_factorisation : mono_factorisation f :=
   m := image.ι f,
   e := factor_thru_image f }
 
+/-- the factorisation of any morphism in AddCommGroup through a mono has the universal property of
+the image. -/
 noncomputable def is_image : is_image (mono_factorisation f) :=
 { lift := image.lift,
   lift_fac' := image.lift_fac }

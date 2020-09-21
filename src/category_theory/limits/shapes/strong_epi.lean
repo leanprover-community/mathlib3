@@ -52,7 +52,7 @@ section
 variables {R : C} (f : P ⟶ Q) (g : Q ⟶ R)
 
 /-- The composition of two strong epimorphisms is a strong epimorphism. -/
-def strong_epi_comp [strong_epi f] [strong_epi g] : strong_epi (f ≫ g) :=
+lemma strong_epi_comp [strong_epi f] [strong_epi g] : strong_epi (f ≫ g) :=
 { epi := epi_comp _ _,
   has_lift :=
   begin
@@ -64,7 +64,7 @@ def strong_epi_comp [strong_epi f] [strong_epi g] : strong_epi (f ≫ g) :=
   end }
 
 /-- If `f ≫ g` is a strong epimorphism, then so is g. -/
-def strong_epi_of_strong_epi [strong_epi (f ≫ g)] : strong_epi g :=
+lemma strong_epi_of_strong_epi [strong_epi (f ≫ g)] : strong_epi g :=
 { epi := epi_of_epi f g,
   has_lift :=
   begin

@@ -76,6 +76,11 @@ def hom_mk' {X Y : T} {f : X ⟶ Y} {P Q : T} {g : P ⟶ Q} {u : X ⟶ P} {v : Y
 (fac_left : f.hom ≫ lift = sq.left)
 (fac_right : lift ≫ g.hom = sq.right)
 
+instance lift_struct_inhabited {X : T} : inhabited (lift_struct (𝟙 (arrow.mk (𝟙 X)))) :=
+⟨⟨𝟙 _, category.id_comp _, category.comp_id _⟩⟩
+
+/-- `has_lift sq` says that there is some `lift_struct sq`, i.e., that it is possible to find a
+    diagonal morphism making the two triangles commute. -/
 class has_lift {f g : arrow T} (sq : f ⟶ g) : Prop :=
 mk' :: (exists_lift : nonempty (lift_struct sq))
 
@@ -84,10 +89,11 @@ lemma has_lift.mk {f g : arrow T} {sq : f ⟶ g} (s : lift_struct sq) : has_lift
 
 attribute [simp, reassoc] lift_struct.fac_left lift_struct.fac_right
 
+/-- Given `has_lift sq`, obtain a lift. -/
 noncomputable def has_lift.struct {f g : arrow T} (sq : f ⟶ g) [has_lift sq] : lift_struct sq :=
 classical.choice has_lift.exists_lift
 
-/-- If we have chosen a lift of a commutative square `sq`, we can access it by saying `lift sq`. -/
+/-- If there is a lift of a commutative square `sq`, we can access it by saying `lift sq`. -/
 noncomputable abbreviation lift {f g : arrow T} (sq : f ⟶ g) [has_lift sq] : f.right ⟶ g.left :=
 (has_lift.struct sq).lift
 

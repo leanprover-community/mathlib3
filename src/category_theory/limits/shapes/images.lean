@@ -155,6 +155,9 @@ structure image_factorisation (f : X ⟶ Y) :=
 (F : mono_factorisation f)
 (is_image : is_image F)
 
+instance inhabited_image_factorisation (f : X ⟶ Y) [mono f] : inhabited (image_factorisation f) :=
+⟨⟨_, is_image.self f⟩⟩
+
 /-- `has_image f` means that there exists an image factorisation of `f`. -/
 class has_image (f : X ⟶ Y) : Prop :=
 mk' :: (exists_image : nonempty (image_factorisation f))
@@ -401,6 +404,9 @@ section has_image_map
 structure image_map {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g) :=
 (map : image f.hom ⟶ image g.hom)
 (map_ι' : map ≫ image.ι g.hom = image.ι f.hom ≫ sq.right . obviously)
+
+instance inhabited_image_map {f : arrow C} [has_image f.hom] : inhabited (image_map (𝟙 f)) :=
+⟨⟨𝟙 _, by tidy⟩⟩
 
 restate_axiom image_map.map_ι'
 attribute [simp, reassoc] image_map.map_ι

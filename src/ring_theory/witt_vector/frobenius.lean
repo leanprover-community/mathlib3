@@ -290,7 +290,13 @@ begin
   rw [mul_assoc, mul_assoc, ← pow_add, map_frobenius_poly.key₂ p n i j hi hj],
   ring_exp,
 end
-.
+
+lemma frobenius_poly_zmod (n : ℕ) :
+  mv_polynomial.map (int.cast_ring_hom (zmod p)) (frobenius_poly p n) = X n ^ p :=
+begin
+  rw [frobenius_poly, ring_hom.map_add, ring_hom.map_pow, ring_hom.map_mul, map_X, map_C],
+  simp only [int.cast_coe_nat, add_zero, ring_hom.eq_int_cast, zmod.cast_self, zero_mul, C_0],
+end
 
 @[ghost_simps]
 lemma bind₁_frobenius_poly_witt_polynomial (n : ℕ) :
@@ -301,12 +307,6 @@ begin
     map_witt_polynomial],
 end
 
-lemma frobenius_poly_zmod (n : ℕ) :
-  mv_polynomial.map (int.cast_ring_hom (zmod p)) (frobenius_poly p n) = X n ^ p :=
-begin
-  rw [frobenius_poly, ring_hom.map_add, ring_hom.map_pow, ring_hom.map_mul, map_X, map_C],
-  simp only [int.cast_coe_nat, add_zero, ring_hom.eq_int_cast, zmod.cast_self, zero_mul, C_0],
-end
 
 variables {p}
 
@@ -317,60 +317,69 @@ mk p $ λ n, mv_polynomial.aeval x.coeff (frobenius_poly p n)
 
 lemma coeff_frobenius_fun (x : 𝕎 R) (n : ℕ) :
   coeff (frobenius_fun x) n = mv_polynomial.aeval x.coeff (frobenius_poly p n) :=
-coeff_mk _ _ _
+by rw [frobenius_fun, coeff_mk]
 
 variables (p)
 
 /-- `frobenius_fun` is tautologically a polynomial function.
 
 See also `frobenius_is_poly`. -/
-def frobenius_fun_is_poly : is_poly p (λ R _Rcr, @frobenius_fun p R _ _Rcr) (frobenius_poly p) :=
-⟨by { introsI, funext n, apply coeff_frobenius_fun }⟩
+def frobenius_fun_is_poly : is_poly p (λ R _Rcr, @frobenius_fun p R _ _Rcr) :=
+⟨frobenius_poly p, by { introsI, funext n, apply coeff_frobenius_fun }⟩
 
 variable {p}
+
+@[simp] lemma ghost_component_frobenius_fun (n : ℕ) (x : 𝕎 R) :
+  ghost_component n (frobenius_fun x) = ghost_component (n + 1) x :=
+by simp only [ghost_component_apply, frobenius_fun, coeff_mk,
+    ← bind₁_frobenius_poly_witt_polynomial, aeval_bind₁]
 
 def frobenius : 𝕎 R →+* 𝕎 R :=
 { to_fun := frobenius_fun,
   map_zero' :=
   begin
-    refine is_poly.ext'
+    refine is_poly.ext
       ((frobenius_fun_is_poly p).comp (zero_is_poly p))
       ((zero_is_poly p).comp (frobenius_fun_is_poly p)) _ _ 0,
-    witt_simp,
+    introsI,
+    simp only [ghost_component_frobenius_fun, ring_hom.map_zero],
   end,
   map_one' :=
   begin
-    refine is_poly.ext'
+    refine is_poly.ext
       ((frobenius_fun_is_poly p).comp (one_is_poly p))
       ((one_is_poly p).comp (frobenius_fun_is_poly p)) _ _ 0,
-    witt_simp
+    introsI,
+    simp only [ghost_component_frobenius_fun, ring_hom.map_one],
   end,
   map_add' :=
   begin
-    apply is_poly₂.ext'
+    apply is_poly₂.ext
       ((frobenius_fun_is_poly p).comp₂ (add_is_poly₂ p))
       ((add_is_poly₂ p).comp (frobenius_fun_is_poly p) (frobenius_fun_is_poly p)),
-    witt_simp
+    introsI, simp only [ghost_component_frobenius_fun, ring_hom.map_add],
   end,
   map_mul' :=
   begin
-    apply is_poly₂.ext'
+    apply is_poly₂.ext
       ((frobenius_fun_is_poly p).comp₂ (mul_is_poly₂ p))
       ((mul_is_poly₂ p).comp (frobenius_fun_is_poly p) (frobenius_fun_is_poly p)),
-    witt_simp
+    introsI, simp only [ghost_component_frobenius_fun, ring_hom.map_mul]
   end }
 
 lemma coeff_frobenius (x : 𝕎 R) (n : ℕ) :
   coeff (frobenius x) n = mv_polynomial.aeval x.coeff (frobenius_poly p n) :=
-coeff_mk _ _ _
+coeff_frobenius_fun _ _
+
+@[simp] lemma ghost_component_frobenius (n : ℕ) (x : 𝕎 R) :
+  ghost_component n (frobenius x) = ghost_component (n + 1) x :=
+ghost_component_frobenius_fun _ _
 
 variables (p)
 
-/-- `frobenius_fun` is tautologically a polynomial function.
-
-TODO: Once `frobenius_fun` is bundled as a ring hom, upgrade this to use the bundled version. -/
-def frobenius_is_poly : is_poly p (λ R _Rcr, @frobenius p R _ _Rcr) (frobenius_poly p) :=
-⟨by { introsI, funext n, apply coeff_frobenius_fun }⟩
+/-- `frobenius` is tautologically a polynomial function. -/
+def frobenius_is_poly : is_poly p (λ R _Rcr, @frobenius p R _ _Rcr) :=
+frobenius_fun_is_poly _
 
 section char_p
 variables [char_p R p]

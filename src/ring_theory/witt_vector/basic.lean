@@ -80,9 +80,8 @@ funext $ λ n, h n
 lemma ext_iff {x y : 𝕎 R} : x = y ↔ ∀ n, x.coeff n = y.coeff n :=
 ⟨λ h n, by rw h, ext⟩
 
-@[simp] lemma coeff_mk (x : ℕ → R) (i : ℕ) :
-  (mk p x).coeff i = x i := rfl
-
+@[simp] lemma coeff_mk (x : ℕ → R) :
+  (mk p x).coeff = x := rfl
 
 /-
 These instances are not needed for the rest of the development, but it is interesting to establish
@@ -243,7 +242,7 @@ section tactic
 setup_tactic_parser
 open tactic
 /--
-An auxiliary tactic for proving that `ghost_component` respects the ring operations.
+An auxiliary tactic for proving that `ghost_component_fun` respects the ring operations.
 -/
 meta def tactic.interactive.ghost_component (poly fn : parse parser.pexpr) : tactic unit :=
 do fn ← to_expr ```(%%fn : fin _ → ℕ → R),
@@ -251,7 +250,7 @@ do fn ← to_expr ```(%%fn : fin _ → ℕ → R),
   to_expr ```(witt_structure_int_prop p (%%poly : mv_polynomial (fin %%k) ℤ) n) >>= note `aux none >>=
      apply_fun_to_hyp ```(aeval (function.uncurry %%fn)) none,
 `[simp only [aeval_bind₁] at aux,
-  simp only [ghost_component_apply],
+  simp only [ghost_component_fun_apply],
   convert aux using 1; clear aux;
   simp only [alg_hom.map_zero, alg_hom.map_one, alg_hom.map_add, alg_hom.map_mul, alg_hom.map_neg,
     aeval_X];
@@ -265,25 +264,25 @@ Evaluates the `n`th Witt polynomial using the first `n` coefficients of `x`,
 producing a value in `R`. This is effectively a truncating operation.
 -/
 -- TODO: turn this into a ring hom
-noncomputable def ghost_component (n : ℕ) (x : 𝕎 R) : R :=
+noncomputable def ghost_component_fun (n : ℕ) (x : 𝕎 R) : R :=
 aeval x.coeff (W_ ℤ n)
 
-lemma ghost_component_apply (n : ℕ) (x : 𝕎 R) :
-  ghost_component n x = aeval x.coeff (W_ ℤ n) := rfl
+lemma ghost_component_fun_apply (n : ℕ) (x : 𝕎 R) :
+  ghost_component_fun n x = aeval x.coeff (W_ ℤ n) := rfl
 
-lemma ghost_component_apply' (n : ℕ) (x : 𝕎 R) :
-  ghost_component n x = aeval x.coeff (W_ R n) :=
+lemma ghost_component_fun_apply' (n : ℕ) (x : 𝕎 R) :
+  ghost_component_fun n x = aeval x.coeff (W_ R n) :=
 begin
-  simp only [ghost_component_apply, aeval_eq_eval₂_hom,
+  simp only [ghost_component_fun_apply, aeval_eq_eval₂_hom,
     ← map_witt_polynomial p (int.cast_ring_hom R), eval₂_hom_map_hom],
   exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl,
 end
 
-/-- Reorders the arguments of `ghost_component`.
+/-- Reorders the arguments of `ghost_component_fun`.
 This function will be bundled as the ring homomorphism `witt_vector.ghost_map`
 once the ring structure is available,
 but we rely on it to set up the ring structure in the first place. -/
-noncomputable def ghost_map_fun : 𝕎 R → (ℕ → R) := λ w n, ghost_component n w
+noncomputable def ghost_map_fun : 𝕎 R → (ℕ → R) := λ w n, ghost_component_fun n w
 
 section p_prime
 open finset mv_polynomial function set
@@ -291,54 +290,54 @@ open finset mv_polynomial function set
 variable {p}
 
 @[simp] lemma ghost_map_fun_apply (x : 𝕎 R) (n : ℕ) :
-  ghost_map_fun x n = ghost_component n x := rfl
+  ghost_map_fun x n = ghost_component_fun n x := rfl
 
 variable [hp : fact p.prime]
 include hp
 
-@[simp] lemma ghost_component_zero (n : ℕ) :
-  ghost_component n (0 : 𝕎 R) = 0 :=
+@[simp] lemma ghost_component_fun_zero (n : ℕ) :
+  ghost_component_fun n (0 : 𝕎 R) = 0 :=
 by ghost_component 0 ![]
 
-@[simp] lemma ghost_component_one (n : ℕ) :
-  ghost_component n (1 : 𝕎 R) = 1 :=
+@[simp] lemma ghost_component_fun_one (n : ℕ) :
+  ghost_component_fun n (1 : 𝕎 R) = 1 :=
 by ghost_component 1 ![]
 
 variable {R}
 
-@[simp] lemma ghost_component_add (n : ℕ) (x y : 𝕎 R) :
-  ghost_component n (x + y) = ghost_component n x + ghost_component n y :=
+@[simp] lemma ghost_component_fun_add (n : ℕ) (x y : 𝕎 R) :
+  ghost_component_fun n (x + y) = ghost_component_fun n x + ghost_component_fun n y :=
 by ghost_component (X 0 + X 1) ![x.coeff, y.coeff]
 
-@[simp] lemma ghost_component_mul (n : ℕ) (x y : 𝕎 R) :
-  ghost_component n (x * y) = ghost_component n x * ghost_component n y :=
+@[simp] lemma ghost_component_fun_mul (n : ℕ) (x y : 𝕎 R) :
+  ghost_component_fun n (x * y) = ghost_component_fun n x * ghost_component_fun n y :=
 by ghost_component (X 0 * X 1) ![x.coeff, y.coeff]
 
-@[simp] lemma ghost_component_neg (n : ℕ) (x : 𝕎 R) :
-  ghost_component n (-x) = - ghost_component n x :=
+@[simp] lemma ghost_component_fun_neg (n : ℕ) (x : 𝕎 R) :
+  ghost_component_fun n (-x) = - ghost_component_fun n x :=
 by ghost_component (-X 0) ![x.coeff]
 
 variables (R)
 
 @[simp] lemma ghost_map_fun.zero : ghost_map_fun (0 : 𝕎 R) = 0 :=
-by { ext n, simp only [pi.zero_apply, ghost_map_fun_apply, ghost_component_zero], }
+by { ext n, simp only [pi.zero_apply, ghost_map_fun_apply, ghost_component_fun_zero], }
 
 @[simp] lemma ghost_map_fun.one : ghost_map_fun (1 : 𝕎 R) = 1 :=
-by { ext n, simp only [pi.one_apply, ghost_map_fun_apply, ghost_component_one], }
+by { ext n, simp only [pi.one_apply, ghost_map_fun_apply, ghost_component_fun_one], }
 
 variable {R}
 
 @[simp] lemma ghost_map_fun.add (x y : 𝕎 R) :
   ghost_map_fun (x + y) = ghost_map_fun x + ghost_map_fun y :=
-by { ext n, simp only [ghost_component_add, pi.add_apply, ghost_map_fun_apply], }
+by { ext n, simp only [ghost_component_fun_add, pi.add_apply, ghost_map_fun_apply], }
 
 @[simp] lemma ghost_map_fun.mul (x y : 𝕎 R) :
   ghost_map_fun (x * y) = ghost_map_fun x * ghost_map_fun y :=
-by { ext n, simp only [ghost_component_mul, pi.mul_apply, ghost_map_fun_apply], }
+by { ext n, simp only [ghost_component_fun_mul, pi.mul_apply, ghost_map_fun_apply], }
 
 @[simp] lemma ghost_map_fun.neg (x : 𝕎 R) :
   ghost_map_fun (-x) = - ghost_map_fun x :=
-by { ext n, simp only [ghost_component_neg, pi.neg_apply, ghost_map_fun_apply], }
+by { ext n, simp only [ghost_component_fun_neg, pi.neg_apply, ghost_map_fun_apply], }
 
 end p_prime
 
@@ -354,7 +353,7 @@ lemma ghost_map_fun_eq [invertible (p : R)] :
   (ghost_map_fun : 𝕎 R → ℕ → R) = ghost_map_fun.equiv_of_invertible p R :=
 begin
   ext w n,
-  rw [ghost_map_fun_apply, ghost_component_apply'],
+  rw [ghost_map_fun_apply, ghost_component_fun_apply'],
   dsimp [ghost_map_fun.equiv_of_invertible, witt.alg_equiv],
   rw bind₁_X_right, refl
 end
@@ -421,6 +420,20 @@ lemma map_coeff (f : R →+* S) (x : 𝕎 R) (n : ℕ) :
   (map f x).coeff n = f (x.coeff n) := rfl
 
 end map
+
+/--
+`witt_vector.ghost_map` is a ring homomorphism that maps each Witt vector
+to the sequence of its ghost components.
+-/
+noncomputable def ghost_component (n : ℕ) : 𝕎 R →+* R :=
+{ to_fun := ghost_component_fun n,
+  map_zero' := ghost_component_fun_zero n,
+  map_one' := ghost_component_fun_one n,
+  map_add' := ghost_component_fun_add n,
+  map_mul' := ghost_component_fun_mul n }
+
+lemma ghost_component_apply (n : ℕ) (x : 𝕎 R) :
+  ghost_component n x = aeval x.coeff (W_ ℤ n) := rfl
 
 /--
 `witt_vector.ghost_map` is a ring homomorphism that maps each Witt vector

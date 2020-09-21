@@ -864,6 +864,9 @@ is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _
   (w : ∀ j, f ≫ limit.π F j = f' ≫ limit.π F j) : f = f' :=
 (limit.is_limit F).hom_ext w
 
+@[simp] lemma limit.lift_cone {F : J ⥤ C} [has_limit F] : limit.lift F (limit.cone F) = 𝟙 (limit F) :=
+by { ext, dsimp, simp, }
+
 /--
 The isomorphism (in `Type`) between
 morphisms from a specified object `W` to the limit object,

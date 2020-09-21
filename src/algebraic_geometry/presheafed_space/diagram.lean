@@ -214,7 +214,18 @@ def colimit_cocone_is_colimit (F : J ⥤ PresheafedSpace C) : is_colimit (colimi
   { base := colimit.desc (F ⋙ PresheafedSpace.forget C) ((PresheafedSpace.forget C).map_cocone s),
     c :=
     { app := λ U, desc_c_app F s U,
-      naturality' := λ U V i, begin dsimp [desc_c_app, limit_obj_iso_limit_comp_evaluation, preserves_limit_iso, is_limit.cone_point_unique_up_to_iso], simp, sorry, end, }, },
+      naturality' := λ U V i, begin dsimp [desc_c_app, limit_obj_iso_limit_comp_evaluation, preserves_limit_iso, is_limit.cone_point_unique_up_to_iso], simp,
+      convert is_limit.hom_ext (preserves_limit.preserves (limit.is_limit (pushforward_diagram_to_colimit F).left_op)) _,
+      { dsimp,
+        simp,
+        refl, },
+      { dsimp, simp, refl, },
+      { dsimp, simp, },
+      swap,
+      intros j, dsimp, simp, dsimp [pushforward], simp, dsimp [preserves_limit_of_preserves_limit_cone, combined_is_limit, evaluate_combined_cones, evaluation_jointly_reflects_limits, combine_cones],
+      simp, dsimp [is_limit.unique_up_to_iso, is_limit.of_iso_limit],
+      simp,
+      sorry, end, }, },
   fac' := begin sorry, end,
   uniq' := sorry, }
 

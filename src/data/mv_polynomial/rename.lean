@@ -212,21 +212,22 @@ begin
 end
 
 lemma coeff_rename_eq_zero (f : σ → τ) (φ : mv_polynomial σ R) (d : τ →₀ ℕ)
-  (h : ∀ u : σ →₀ ℕ, u.map_domain f ≠ d) :
+  (h : ∀ u : σ →₀ ℕ, u.map_domain f = d → φ.coeff u = 0) :
   (rename f φ).coeff d = 0 :=
 begin
-  apply induction_on' φ,
-  { intros u r,
-    rw [rename_monomial, coeff_monomial],
-    split_ifs,
-    { exact (h _ ‹_›).elim },
-    { refl } },
-  { intros,  simp only [*, alg_hom.map_add, coeff_add, add_zero], }
+  rw [rename_eq, coeff, ← not_mem_support_iff],
+  intro H,
+  replace H := map_domain_support H,
+  rw [finset.mem_image] at H,
+  obtain ⟨u, hu, rfl⟩ := H,
+  specialize h u rfl,
+  simp [mem_support_iff, coeff] at h hu,
+  contradiction
 end
 
 lemma coeff_rename_ne_zero (f : σ → τ) (φ : mv_polynomial σ R) (d : τ →₀ ℕ)
   (h : (rename f φ).coeff d ≠ 0) :
-  ∃ u : σ →₀ ℕ, u.map_domain f = d :=
+  ∃ u : σ →₀ ℕ, u.map_domain f = d ∧ φ.coeff u ≠ 0 :=
 by { contrapose! h, apply coeff_rename_eq_zero _ _ _ h }
 
 end coeff

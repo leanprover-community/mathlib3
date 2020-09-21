@@ -5,12 +5,12 @@ Authors: Reid Barton, Scott Morrison
 -/
 import category_theory.opposites
 
-universes v v' u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
 open opposite
 
-variables {C : Type u} [category.{v} C]
+variables {C : Type u₁} [category.{v₁} C]
 
 /--
 An equality `X = Y` gives us a morphism `X ⟶ Y`.
@@ -54,7 +54,7 @@ instance {X Y : C} (h : X = Y) : is_iso (eq_to_hom h) := { .. eq_to_iso h }
 
 @[simp] lemma inv_eq_to_hom {X Y : C} (h : X = Y) : inv (eq_to_hom h) = eq_to_hom h.symm := rfl
 
-variables {D : Type u'} [category.{v'} D]
+variables {D : Type u₂} [category.{v₂} D]
 
 namespace functor
 

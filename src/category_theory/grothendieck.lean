@@ -125,6 +125,19 @@ instance : category (grothendieck F) :=
       refl, },
   end, }
 
+@[simp] lemma id_fiber' (X : grothendieck F) :
+  hom.fiber (𝟙 X) = eq_to_hom (by erw [category_theory.functor.map_id, functor.id_obj X.fiber]) :=
+id_fiber X
+
+-- move, rename
+lemma congr_foo (F : C ⥤ Cat) {X Y : C} {f g : X ⟶ Y} (h : f = g) (Z : F.obj X) :
+  (F.map f).obj Z = (F.map g).obj Z :=
+by subst h
+
+lemma congr {X Y : grothendieck F} {f g : X ⟶ Y} (h : f = g) :
+  f.fiber = eq_to_hom (congr_foo F (by subst h) X.fiber) ≫ g.fiber :=
+by { subst h, dsimp, simp, }
+
 section
 variables (F)
 
@@ -173,19 +186,46 @@ noncomputable theory
 universes v
 
 variables {C : Type u} [category.{v} C]
-variables (F : C ⥤ Cat.{v u})
+variables {F : C ⥤ Cat.{v u}}
 variables [has_colimits C]
-variables [∀ X : C, has_limits (F.obj X)]
 variables {J : Type v} [small_category J] (G : J ⥤ grothendieck F)
 
+@[simps]
 def pushforward_diagram_to_colimit : J ⥤ F.obj (colimit (G ⋙ grothendieck.forget F)) :=
 { obj := λ j, (F.map (colimit.ι (G ⋙ grothendieck.forget F) j)).obj (G.obj j).fiber,
   map := λ j j' f,
   begin
     have := (F.map (colimit.ι (G ⋙ grothendieck.forget F) j')).map (G.map f).fiber,
     refine _ ≫ this,
-    have := F.map_comp,
-  end, }
+    have := eq_to_hom (functor.congr_obj (F.map_comp _ _) (G.obj j).fiber),
+    refine _ ≫ this,
+    have := congr_foo F (colimit.w (G ⋙ grothendieck.forget F) f).symm _,
+    exact eq_to_hom this,
+  end,
+  map_id' := λ j, by simp [grothendieck.congr (G.map_id j)],
+  map_comp' := sorry, }
 
+variables [∀ X : C, has_colimits (F.obj X)]
+
+@[simps]
+def colimit : grothendieck F :=
+{ base := colimit (G ⋙ grothendieck.forget F),
+  fiber := colimit (pushforward_diagram_to_colimit G), }
+
+@[simps]
+def colimit_cocone : cocone G :=
+{ X := colimit G,
+  ι :=
+  { app := λ j,
+    { base := colimit.ι (G ⋙ grothendieck.forget F) j,
+      fiber := colimit.ι (pushforward_diagram_to_colimit G) j, },
+    naturality' := sorry, } }
+
+def colimit_cocone_is_colimit : is_colimit (colimit_cocone G) :=
+{ desc := λ s,
+  { base := colimit.desc (G ⋙ grothendieck.forget F) ((grothendieck.forget F).map_cocone s),
+    fiber := begin dsimp, end, },
+  fac' := begin sorry, end,
+  uniq' := sorry, }
 
 end category_theory

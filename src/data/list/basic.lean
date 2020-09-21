@@ -1493,7 +1493,7 @@ begin
   case list.nil : n h
   { simpa using h },
   case list.cons : l_hd l_tl l_ih n h
-  { cases n; simp at h ⊢,
+  { cases n; simp only [mem_cons_iff, drop] at h ⊢,
     { exact h },
     right, apply l_ih h },
 end
@@ -3999,10 +3999,14 @@ begin
     { cases j, cases h,
       dsimp only [drop], unfold_wf,
       apply @lt_of_le_of_lt _ _ _ xs.sizeof,
-      { clear_except, induction xs generalizing j; unfold_wf, refl,
-        cases j; unfold_wf, refl,
-        transitivity, apply xs_ih,
-        simp, },
+      { clear_except,
+        induction xs generalizing j; unfold_wf,
+        case list.nil : j
+        { refl },
+        case list.cons : xs_hd xs_tl xs_ih j
+        { cases j; unfold_wf, refl,
+          transitivity, apply xs_ih,
+          simp }, },
       unfold_wf, apply zero_lt_one_add, },
     { unfold_wf, apply xs_ih _ _ h,
       apply lt_of_succ_lt_succ hi, } },

@@ -27,7 +27,7 @@ symmetric powers
 
 -/
 
-universes u
+universes u v
 
 /--
 The nth symmetric power is n-tuples up to permutation.  We define it

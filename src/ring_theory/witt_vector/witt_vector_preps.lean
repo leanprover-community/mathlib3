@@ -66,20 +66,13 @@ lemma C_dvd_iff_map_hom_eq_zero {σ : Type*} {R : Type*} {S : Type*} [comm_ring 
   (φ : mv_polynomial σ R) :
   C r ∣ φ ↔ map q φ = 0 :=
 begin
-  rw C_dvd_iff_dvd_coeff,
-  split,
-  { intro h, apply mv_polynomial.ext, intro i,
-    simp only [coeff_map, *, ring_hom.coe_of, coeff_zero], },
-  { rw mv_polynomial.ext_iff,
-    simp only [coeff_map, *, ring_hom.coe_of, coeff_zero, imp_self] }
+  rw [C_dvd_iff_dvd_coeff, mv_polynomial.ext_iff],
+  simp only [coeff_map, ring_hom.coe_of, coeff_zero, hr],
 end
 
 lemma C_dvd_iff_zmod {σ : Type*} (n : ℕ) (φ : mv_polynomial σ ℤ) :
   C (n:ℤ) ∣ φ ↔ map (int.cast_ring_hom (zmod n)) φ = 0 :=
-begin
-  apply C_dvd_iff_map_hom_eq_zero,
-  { exact char_p.int_cast_eq_zero_iff (zmod n) n, }
-end
+C_dvd_iff_map_hom_eq_zero _ _ (char_p.int_cast_eq_zero_iff (zmod n) n) _
 
 end mv_polynomial
 

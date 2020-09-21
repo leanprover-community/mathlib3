@@ -84,7 +84,7 @@ variables {R}
 @[trans] protected def trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') : R ≃+* S' :=
 { .. (e₁.to_mul_equiv.trans e₂.to_mul_equiv), .. (e₁.to_add_equiv.trans e₂.to_add_equiv) }
 
-@[simp] lemma ring_equiv.trans_apply {A B C : Type*}
+@[simp] lemma trans_apply {A B C : Type*}
   [semiring A] [semiring B] [semiring C] (e : A ≃+* B) (f : B ≃+* C) (a : A) :
   e.trans f a = f (e a) := rfl
 

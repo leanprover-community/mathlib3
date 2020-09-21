@@ -21,12 +21,13 @@ namespace finset
 namespace nat
 
 lemma sum_antidiagonal_succ {n : ℕ} {f : ℕ × ℕ → α} :
-  (antidiagonal (n + 1)).sum f = f (0, n + 1) + ((antidiagonal n).map ⟨prod.map nat.succ id,
-    function.injective.prod_map nat.succ_injective function.injective_id⟩).sum f :=
+  (antidiagonal (n + 1)).sum f = f (0, n + 1) + ((antidiagonal n).map
+  (function.embedding.prod_map ⟨nat.succ, nat.succ_injective⟩ (function.embedding.refl _))).sum f :=
 begin
   rw [antidiagonal_succ, sum_insert],
   intro con, rcases mem_map.1 con with ⟨⟨a,b⟩, ⟨h1, h2⟩⟩,
-  simp only [id.def, prod.mk.inj_iff, function.embedding.coe_fn_mk, prod.map_mk] at h2,
+  simp only [prod.mk.inj_iff, function.embedding.coe_fn_mk, function.embedding.refl_apply,
+               function.embedding.coe_prod_map, prod.map_mk] at h2,
   apply nat.succ_ne_zero a h2.1,
 end
 

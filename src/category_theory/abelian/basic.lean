@@ -236,7 +236,7 @@ section has_strong_epi_mono_factorisations
 
 /-- An abelian category has strong epi-mono factorisations. -/
 @[priority 100] instance : has_strong_epi_mono_factorisations C :=
-has_strong_epi_mono_factorisations $ λ X Y f, images.image_strong_epi_mono_factorisation f
+has_strong_epi_mono_factorisations.mk $ λ X Y f, images.image_strong_epi_mono_factorisation f
 
 /- In particular, this means that it has well-behaved images. -/
 example : has_images C := by apply_instance
@@ -246,10 +246,6 @@ end has_strong_epi_mono_factorisations
 
 section images
 variables {X Y : C} (f : X ⟶ Y)
-
-lemma image_eq_image : limits.image f = images.image f := rfl
-lemma image_ι_eq_image_ι : limits.image.ι f = images.image.ι f := rfl
-lemma kernel_cokernel_eq_image_ι : kernel.ι (cokernel.π f) = images.image.ι f := rfl
 
 /-- There is a canonical isomorphism between the coimage and the image of a morphism. -/
 abbreviation coimage_iso_image : coimages.coimage f ≅ images.image f :=

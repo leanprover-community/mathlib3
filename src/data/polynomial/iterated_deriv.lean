@@ -61,7 +61,6 @@ begin
   induction k with k ih,
   { simp only [add_zero, forall_const, one_mul, range_zero, eq_self_iff_true,
       iterated_deriv_zero_right, prod_empty] },
-
   { intro m, rw iterated_deriv_succ,
     rw [polynomial.coeff_derivative, ih (m+1), prod_range_succ],
     simp only [nat.cast_succ, succ_eq_add_one],

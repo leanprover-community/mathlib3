@@ -298,9 +298,10 @@ lemma measurable.smul [semiring α] [second_countable_topology α]
   measurable (λ c, f c • g c) :=
 continuous_smul.measurable2 hf hg
 
-lemma measurable.const_smul {α : Type*} [topological_space α] [semiring α]
-  [add_comm_monoid γ] [semimodule α γ] [topological_semimodule α γ]
-  {f : δ → γ} (hf : measurable f) (c : α) :
+lemma measurable.const_smul {R M : Type*} [topological_space R] [semiring R]
+  [add_comm_monoid M] [semimodule R M] [topological_space M] [topological_semimodule R M]
+  [measurable_space M] [borel_space M]
+  {f : δ → M} (hf : measurable f) (c : R) :
   measurable (λ x, c • f x) :=
 (continuous_const.smul continuous_id).measurable.comp hf
 
@@ -312,6 +313,18 @@ lemma measurable_const_smul_iff {α : Type*} [topological_space α]
 ⟨λ h, by simpa only [smul_smul, inv_mul_cancel hc, one_smul] using h.const_smul c⁻¹,
   λ h, h.const_smul c⟩
 
+lemma measurable.const_mul {R : Type*} [topological_space R] [measurable_space R]
+  [borel_space R] [semiring R] [topological_semiring R]
+  {f : δ → R} (hf : measurable f) (c : R) :
+  measurable (λ x, c * f x) :=
+hf.const_smul c
+
+lemma measurable.mul_const {R : Type*} [topological_space R] [measurable_space R]
+  [borel_space R] [semiring R] [topological_semiring R]
+  {f : δ → R} (hf : measurable f) (c : R) :
+  measurable (λ x, f x * c) :=
+(continuous_id.mul continuous_const).measurable.comp hf
+
 lemma is_measurable_le' [partial_order α] [order_closed_topology α] [second_countable_topology α] :
   is_measurable {p : α × α | p.1 ≤ p.2} :=
 order_closed_topology.is_closed_le'.is_measurable
@@ -320,6 +333,15 @@ lemma is_measurable_le [partial_order α] [order_closed_topology α] [second_cou
   {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   is_measurable {a | f a ≤ g a} :=
 hf.prod_mk hg is_measurable_le'
+
+lemma is_measurable_lt' [linear_order α] [order_closed_topology α] [second_countable_topology α] :
+  is_measurable {p : α × α | p.1 < p.2} :=
+(is_open_lt continuous_fst continuous_snd).is_measurable
+
+lemma is_measurable_lt [linear_order α] [order_closed_topology α] [second_countable_topology α]
+  {f g : δ → α} (hf : measurable f) (hg : measurable g) :
+  is_measurable {a | f a < g a} :=
+hf.prod_mk hg is_measurable_lt'
 
 lemma measurable.max [decidable_linear_order α] [order_closed_topology α] [second_countable_topology α]
   {f g : δ → α} (hf : measurable f) (hg : measurable g) :
@@ -497,17 +519,6 @@ instance nnreal.borel_space : borel_space nnreal := ⟨rfl⟩
 instance ennreal.measurable_space : measurable_space ennreal := borel ennreal
 instance ennreal.borel_space : borel_space ennreal := ⟨rfl⟩
 
-section real_mul
-variables [measurable_space α]
-
-lemma measurable.const_mul {f : α → ℝ} (h : measurable f) (c : ℝ) : measurable (λ x, c*f x) :=
-(measurable.const_smul h c : _)
-
-lemma measurable.mul_const {f : α → ℝ} (h : measurable f) (c : ℝ) : measurable (λ x, f x*c) :=
-by simp only [h.const_mul c, mul_comm]
-
-end real_mul
-
 section metric_space
 
 variables [metric_space α] [measurable_space α] [opens_measurable_space α] {x : α} {ε : ℝ}
@@ -541,6 +552,12 @@ variables [emetric_space α] [measurable_space α] [opens_measurable_space α] {
 
 lemma is_measurable_eball : is_measurable (emetric.ball x ε) :=
 emetric.is_open_ball.is_measurable
+
+lemma measurable_edist_right : measurable (edist x) :=
+(continuous_const.edist continuous_id).measurable
+
+lemma measurable_edist_left : measurable (λ y, edist y x) :=
+(continuous_id.edist continuous_const).measurable
 
 lemma measurable_edist [second_countable_topology α] :
   measurable (λp:α×α, edist p.1 p.2) :=

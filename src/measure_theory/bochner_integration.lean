@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Zhouhang Zhou
+Authors: Zhouhang Zhou, Yury Kudryashov
 -/
 import measure_theory.simple_func_dense
 import analysis.normed_space.bounded_linear_maps
@@ -1031,11 +1031,7 @@ integral_congr_ae (l1.measurable _) f_m (l1.to_fun_of_fun f f_m f_i)
 
 @[continuity]
 lemma continuous_integral : continuous (λ (f : α →₁[μ] E), ∫ a, f a ∂μ) :=
-begin
-  convert l1.continuous_integral,
-  ext f,
-  rw l1.integral_eq_integral
-end
+by { simp only [← l1.integral_eq_integral], exact l1.continuous_integral }
 
 lemma norm_integral_le_lintegral_norm (f : α → E) :
   ∥∫ a, f a ∂μ∥ ≤ ennreal.to_real (∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ) :=

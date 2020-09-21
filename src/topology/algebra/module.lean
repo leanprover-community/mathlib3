@@ -68,6 +68,11 @@ tendsto_smul.comp (hf.prod_mk_nhds hg)
 
 end
 
+instance topological_semiring.to_semimodule {R : Type*} [topological_space R]
+  [semiring R] [topological_semiring R] :
+  topological_semimodule R R :=
+{ continuous_smul := continuous_mul }
+
 /-- A topological module, over a ring which is also a topological space, is a module in which
 scalar multiplication is continuous. In applications, `R` will be a topological ring and `M` a
 topological additive group, but this is not needed for the definition -/

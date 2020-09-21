@@ -214,7 +214,7 @@ begin
   rintros n ih F hF hFE F_sep F_findim F_inf rfl,
   by_cases key : ∃ α : E, findim F F⟮α⟯ > 1,
   { cases key with α hα,
-    haveI Fα_findim : finite_dimensional F⟮α⟯ E := findim_of_tower_findim F F⟮α⟯ E,
+    haveI Fα_findim : finite_dimensional F⟮α⟯ E := finite_dimensional.right F F⟮α⟯ E,
     have Fα_dim_lt_F_dim : findim F⟮α⟯ E < findim F E,
     { rw ← findim_mul_findim F F⟮α⟯ E,
       nlinarith [show 0 < findim F⟮α⟯ E, from findim_pos, show 0 < findim F F⟮α⟯, from findim_pos], },
@@ -246,7 +246,7 @@ theorem primitive_element (F_sep : is_separable F E)  (F_findim : finite_dimensi
   ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
   have F'_sep : is_separable F⟮(0 : E)⟯ E := is_separable_top F F⟮(0 : E)⟯ E F_sep,
-  have F'_findim : finite_dimensional F⟮(0 : E)⟯ E := findim_of_tower_findim F F⟮(0 : E)⟯ E,
+  have F'_findim : finite_dimensional F⟮(0 : E)⟯ E := finite_dimensional.right F F⟮(0 : E)⟯ E,
   obtain ⟨α, hα⟩ := primitive_element_aux F⟮(0 : E)⟯ E F'_sep F'_findim,
   have : (F⟮(0 : E)⟯⟮α⟯ : set E) = F⟮α⟯,
   { rw [adjoin_simple_comm, adjoin_zero, adjoin_eq_range_algebra_map_adjoin],

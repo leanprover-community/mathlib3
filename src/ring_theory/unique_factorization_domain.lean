@@ -657,7 +657,7 @@ lemma reducible_not_mem_factor_set {p : associates α} (hp : ¬ irreducible p)
 
 omit dec_irr
 
-variable [unique_factorization_domain α]
+variable [unique_factorization_monoid α]
 
 theorem unique' {p q : multiset (associates α)} :
   (∀a∈p, irreducible a) → (∀a∈q, irreducible a) → p.prod = q.prod → p = q :=
@@ -870,16 +870,13 @@ begin
   exact ⟨⟨p, hp⟩, mem_factor_set_some.mp hm, rfl⟩
 end
 
-omit dec
-omit dec_irr
-
 lemma dvd_of_mem_factors' {a : α} {p : associates α} {hp : irreducible p} {hz : a ≠ 0}
-  (h_mem : subtype.mk p hp ∈ factors' a hz) : p ∣ associates.mk a :=
-by { classical, apply @dvd_of_mem_factors _ _ _ _ _ _ _ hp, rw factors_mk _ hz,
-  exact mem_factor_set_some.mpr h_mem }
+  (h_mem : subtype.mk p hp ∈ factors' a) : p ∣ associates.mk a :=
+by { apply @dvd_of_mem_factors _ _ _ _ _ _ _ _ _ _ hp, rw factors_mk _ hz,
+  apply mem_factor_set_some.2 h_mem }
 
 lemma mem_factors'_of_dvd {a p : α} (ha0 : a ≠ 0) (hp : irreducible p) (hd : p ∣ a) :
-  subtype.mk (associates.mk p) ((irreducible_mk _).2 hp) ∈ factors' a ha0 :=
+  subtype.mk (associates.mk p) ((irreducible_mk _).2 hp) ∈ factors' a :=
 begin
   obtain ⟨q, hq, hpq⟩ := exists_mem_factors_of_dvd ha0 hp hd,
   apply multiset.mem_pmap.mpr, use q, use hq,
@@ -887,19 +884,16 @@ begin
 end
 
 lemma mem_factors'_iff_dvd {a p : α} (ha0 : a ≠ 0) (hp : irreducible p) :
-  subtype.mk (associates.mk p) ((irreducible_mk _).2 hp) ∈ factors' a ha0 ↔ p ∣ a :=
+  subtype.mk (associates.mk p) ((irreducible_mk _).2 hp) ∈ factors' a ↔ p ∣ a :=
 begin
   split,
-  { rw ← mk_dvd_mk, exact dvd_of_mem_factors' },
-  { apply mem_factors'_of_dvd }
+  { rw ← mk_dvd_mk, apply dvd_of_mem_factors', apply ha0 },
+  { apply mem_factors'_of_dvd ha0 }
 end
 
 lemma associates_irreducible_iff_prime : ∀{p : associates α}, irreducible p ↔ prime p :=
 associates.forall_associated.2 $ assume a,
 by rw [associates.irreducible_mk, associates.prime_mk, irreducible_iff_prime]
-
-include dec
-include dec_irr
 
 lemma mem_factors_of_dvd {a p : α} (ha0 : a ≠ 0) (hp : irreducible p) (hd : p ∣ a) :
   (associates.mk p) ∈ factors (associates.mk a) :=
@@ -914,8 +908,6 @@ begin
   { rw ← mk_dvd_mk, apply dvd_of_mem_factors, exact (irreducible_mk p).mpr hp },
   { apply mem_factors_of_dvd ha0 hp }
 end
-
-omit dec_irr
 
 lemma exists_prime_dvd_of_not_inf_one {a b : α}
   (ha : a ≠ 0) (hb : b ≠ 0) (h : (associates.mk a) ⊓ (associates.mk b) ≠ 1)  :
@@ -934,9 +926,11 @@ begin
   { rw [← irreducible_iff_prime, ← irreducible_mk],
     exact p0_irr },
   { apply dvd_of_mk_le_mk,
-    exact dvd_of_mem_factors' (multiset.mem_inter.mp p0_mem).left },
+    apply dvd_of_mem_factors' (multiset.mem_inter.mp p0_mem).left,
+    apply ha, },
   { apply dvd_of_mk_le_mk,
-    exact dvd_of_mem_factors' (multiset.mem_inter.mp p0_mem).right }
+    apply dvd_of_mem_factors' (multiset.mem_inter.mp p0_mem).right,
+    apply hb }
 end
 
 theorem coprime_iff_inf_one {a b : α} (ha0 : a ≠ 0) (hb0 : b ≠ 0) :
@@ -957,8 +951,6 @@ theorem factors_prime_pow {p : associates α} (hp : irreducible p)
   (k : ℕ) : factors (p ^ k) = some (multiset.repeat ⟨p, hp⟩ k) :=
 eq_of_prod_eq_prod (by rw [associates.factors_prod, factor_set.prod, multiset.map_repeat,
                            multiset.prod_repeat, subtype.coe_mk])
-
-include dec_irr
 
 theorem prime_pow_dvd_iff_le {m p : associates α} (h₁ : m ≠ 0)
   (h₂ : irreducible p) {k : ℕ} : p ^ k ≤ m ↔ k ≤ count p m.factors :=
@@ -1065,7 +1057,7 @@ theorem is_pow_of_dvd_count {a : associates α} (ha : a ≠ 0) {k : ℕ}
 begin
   obtain ⟨a0, hz, rfl⟩ := exists_non_zero_rep ha,
   rw [factors_mk a0 hz] at hk,
-  have hk' : ∀ (p : {a : associates α // irreducible a}), k ∣ (factors' a0 hz).count p,
+  have hk' : ∀ (p : {a : associates α // irreducible a}), k ∣ (factors' a0).count p,
   { intro p,
     have pp : p = ⟨p.val, p.2⟩, { simp only [subtype.coe_eta, subtype.val_eq_coe] },
     rw [pp, ← count_some p.2], exact hk p.val p.2 },

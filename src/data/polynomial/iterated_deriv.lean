@@ -135,70 +135,45 @@ lemma iterated_deriv_mul :
     (C (n.choose k : R)) * (iterated_deriv p (n-k)) * (iterated_deriv q k) :=
 begin
   induction n with n IH,
-  { simp only [one_mul, cast_one, id.def, sum_singleton, C_eq_nat_cast,
-      iterated_deriv_zero_right, choose_self, range_one]},
+  { simp },
 
-  { rw [iterated_deriv_succ, IH],
-    simp only [derivative_mul, derivative_sum, derivative_C, zero_mul, zero_add],
+  calc (p * q).iterated_deriv n.succ
+      = (∑ (k : ℕ) in range n.succ,
+           C ↑(n.choose k) * p.iterated_deriv (n - k) * q.iterated_deriv k).derivative :
+    by rw [iterated_deriv_succ, IH]
+  ... = ∑ (k : ℕ) in range n.succ,
+          C ↑(n.choose k) * p.iterated_deriv (n - k + 1) * q.iterated_deriv k +
+        ∑ (k : ℕ) in range n.succ,
+          C ↑(n.choose k) * p.iterated_deriv (n - k) * q.iterated_deriv (k + 1) :
+    by simp_rw [derivative_sum, derivative_mul, derivative_C, zero_mul, zero_add,
+                iterated_deriv_succ, sum_add_distrib]
+  ... = (∑ (k : ℕ) in range n.succ,
+            C ↑(n.choose k.succ) * p.iterated_deriv (n - k) * q.iterated_deriv (k + 1) +
+          C ↑1 * p.iterated_deriv n.succ * q.iterated_deriv 0) +
+        ∑ (k : ℕ) in range n.succ,
+          C ↑(n.choose k) * p.iterated_deriv (n - k) * q.iterated_deriv (k + 1) : _
+  ... = ∑ (k : ℕ) in range n.succ,
+          C ↑(n.choose k) * p.iterated_deriv (n - k) * q.iterated_deriv (k + 1) +
+        ∑ (k : ℕ) in range n.succ,
+            C ↑(n.choose k.succ) * p.iterated_deriv (n - k) * q.iterated_deriv (k + 1) +
+        C ↑1 * p.iterated_deriv n.succ * q.iterated_deriv 0 :
+    by ring
+  ... = ∑ (i : ℕ) in range n.succ,
+          C ↑(n.succ.choose (i + 1)) * p.iterated_deriv (n + 1 - (i + 1)) * q.iterated_deriv (i + 1) +
+        C ↑1 * p.iterated_deriv n.succ * q.iterated_deriv 0 :
+    by simp_rw [choose_succ_succ, succ_sub_succ, cast_add, C.map_add, add_mul, sum_add_distrib]
+  ... = ∑ (k : ℕ) in range n.succ.succ,
+          C ↑(n.succ.choose k) * p.iterated_deriv (n.succ - k) * q.iterated_deriv k :
+    by rw [sum_range_succ' _ n.succ, choose_zero_right, nat.sub_zero],
 
-    conv_lhs {rw [sum_add_distrib] },
-    simp_rw [←iterated_deriv_succ],
-    conv {
-      congr,
-      { congr,
-        { rw [sum_range_succ'],
-          simp only [choose_zero_right, cast_one, C_1, one_mul,
-            nat.sub_zero, iterated_deriv_zero_right] },
-        { rw [sum_range_succ]}, },
-      { rw [sum_range_succ'],
-        simp only [choose_zero_right, cast_one, C_1, one_mul,
-          nat.sub_zero, iterated_deriv_zero_right],
-        congr,
-        {rw [sum_range_succ]}, },
-    },
-
-    have lhs_eq :
-      ∑ (i : ℕ) in range n,
-        C ↑(n.choose (i + 1)) * p.iterated_deriv (n - (i + 1) + 1) * q.iterated_deriv (i + 1) +
-      p.iterated_deriv (n + 1) * q +
-      (C ↑(n.choose n) * p.iterated_deriv (n - n) * q.iterated_deriv (n + 1) +
-        ∑ (x : ℕ) in range n, C ↑(n.choose x) * p.iterated_deriv (n - x) * q.iterated_deriv (x+1)) =
-      (∑ (i : ℕ) in range n,
-        C ↑(n.choose (i + 1)) * p.iterated_deriv (n - (i + 1) + 1) * q.iterated_deriv (i + 1) +
-        ∑ (x : ℕ) in range n, C ↑(n.choose x) * p.iterated_deriv (n - x) * q.iterated_deriv (x+1)) +
-      (p.iterated_deriv (n + 1) * q +
-       C ↑(n.choose n) * p.iterated_deriv (n - n) * q.iterated_deriv (n + 1)) := by ring,
-    rw lhs_eq,
-    clear lhs_eq,
-
-    have rhs_eq :
-      C ↑(n.succ.choose (n + 1)) * p.iterated_deriv (n.succ - (n + 1)) * q.iterated_deriv (n + 1) +
-      ∑ (x : ℕ) in range n,
-        C ↑(n.succ.choose (x + 1)) * p.iterated_deriv (n.succ - (x + 1)) * q.iterated_deriv (x+1) +
-      p.iterated_deriv n.succ * q =
-      ∑ (x : ℕ) in range n,
-        C ↑(n.succ.choose (x + 1)) * p.iterated_deriv (n.succ - (x + 1)) * q.iterated_deriv (x+1) +
-      (C ↑(n.succ.choose (n + 1)) * p.iterated_deriv (n.succ - (n + 1)) * q.iterated_deriv (n+1) +
-        p.iterated_deriv n.succ * q) := by ring,
-    rw rhs_eq,
-    clear rhs_eq,
-
-    apply congr_arg2,
-    { rw ←sum_add_distrib,
-      apply sum_congr rfl,
-      intros x hx,
-      simp only [mem_range, succ_sub_succ_eq_sub, C_eq_nat_cast,
-        succ_eq_add_one, choose_succ_succ] at *,
-      push_cast,
-      have triv : (n - (x + 1) + 1)  = n - x,
-      { rw ←nat.sub_add_comm,
-        rw succ_sub_succ,
-        exact succ_le_iff.mpr hx, },
-        rw [triv, add_mul],
-      ring },
-      { simp only [one_mul, cast_one, nat.sub_self, ring_hom.map_one,
-          iterated_deriv_zero_right, choose_self],
-        ring, } }
+  congr,
+  refine (sum_range_succ' _ _).trans (congr_arg2 (+) _ _),
+  { rw [sum_range_succ, nat.choose_succ_self, cast_zero, C.map_zero, zero_mul, zero_mul, zero_add],
+    refine sum_congr rfl (λ k hk, _),
+    rw mem_range at hk,
+    congr,
+    rw [← nat.sub_add_comm (nat.succ_le_of_lt hk), nat.succ_sub_succ] },
+  { rw [choose_zero_right, nat.sub_zero] },
 end
 
 end integral_domain

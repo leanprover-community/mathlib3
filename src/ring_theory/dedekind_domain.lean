@@ -224,7 +224,12 @@ begin
       subst hax,exact ha,
       rw hI, exact hM_inclMinv,
     },
-  have h_Itop : I=⊤,apply and.elim_right hM I,sorry,--this replaces a proof that M < I
+
+  have one_I : (1 : R)∈ I,sorry,
+  have h_Itop : I=⊤,apply and.elim_right hM I,
+
+
+  sorry,--this replaces a proof that M < I
   have h_okI : ↑I=(1 : fractional_ideal f),apply fractional_ideal.ext_iff.mp,
     intros x,split,
       {intro hx,

@@ -8,7 +8,7 @@ import tactic.type_based_naming
 import tactic.induction.util
 import tactic.induction.unify_equations
 
-open expr native tactic.interactive
+open expr native
 
 namespace tactic
 namespace eliminate
@@ -820,33 +820,6 @@ meta def simplify_ih (num_generalized : ℕ) (num_index_vars : ℕ) (ih : expr) 
   ih' ← note ih.local_pp_name none new_ih,
   clear ih,
   pure ih'
-
-
---------------------------------------------------------------------------------
--- MISCELLANEOUS UTILITY FUNCTIONS
---------------------------------------------------------------------------------
-
--- TODO move these to util file
-
-/--
-  Updates the tags of new subgoals produced by `cases` or `induction`. `in_tag`
-  is the initial tag, i.e. the tag of the goal on which `cases`/`induction` was
-  applied. `rs` should contain, for each subgoal, the constructor name
-  associated with that goal and the hypotheses that were introduced.
--/
--- TODO copied from init.meta.interactive
-meta def set_cases_tags (in_tag : tag) (rs : list (name × list expr)) : tactic unit :=
-do gs ← get_goals,
-   match gs with
-    -- if only one goal was produced, we should not make the tag longer
-   | [g] := set_tag g in_tag
-   | _   :=
-     let tgs : list (name × list expr × expr) :=
-       rs.map₂ (λ ⟨n, new_hyps⟩ g, ⟨n, new_hyps, g⟩) gs in
-     tgs.mmap' $ λ ⟨n, new_hyps, g⟩, with_enable_tags $
-        set_tag g $
-          (case_tag.from_tag_hyps (n :: in_tag) (new_hyps.map expr.local_uniq_name)).render
-   end
 
 end eliminate
 

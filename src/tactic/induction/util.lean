@@ -10,7 +10,7 @@ import data.buffer.parser
 
 universes u v w
 
-open native
+open native tactic.interactive
 
 
 namespace list
@@ -493,5 +493,25 @@ meta def intron_fresh : ℕ → tactic (list expr)
   h ← intro nam,
   hs ← intron_fresh n,
   pure $ h :: hs
+
+/--
+  Updates the tags of new subgoals produced by `cases` or `induction`. `in_tag`
+  is the initial tag, i.e. the tag of the goal on which `cases`/`induction` was
+  applied. `rs` should contain, for each subgoal, the constructor name
+  associated with that goal and the hypotheses that were introduced.
+-/
+-- TODO copied from init.meta.interactive
+meta def set_cases_tags (in_tag : tag) (rs : list (name × list expr)) : tactic unit :=
+do gs ← get_goals,
+   match gs with
+    -- if only one goal was produced, we should not make the tag longer
+   | [g] := set_tag g in_tag
+   | _   :=
+     let tgs : list (name × list expr × expr) :=
+       rs.map₂ (λ ⟨n, new_hyps⟩ g, ⟨n, new_hyps, g⟩) gs in
+     tgs.mmap' $ λ ⟨n, new_hyps, g⟩, with_enable_tags $
+        set_tag g $
+          (case_tag.from_tag_hyps (n :: in_tag) (new_hyps.map expr.local_uniq_name)).render
+   end
 
 end tactic

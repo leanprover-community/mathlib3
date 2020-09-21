@@ -3,6 +3,23 @@ import combinatorics.simple_graph.hom
 import combinatorics.simple_graph.subgraph
 open simple_graph
 
+/-!
+# Walks in a simple graph
+
+We define two ways of dealing with walks in a simple graph.  The
+first, `walk`, is by using an inductive type that is essentially lists
+of adjacent vertices.  The second, `walk'`, is graph homomorphisms
+from path graphs.  We prove these are equivalent in
+`walk_equiv_walk'`, and there are supporting simp lemmas that show these
+are structurally equivalent.
+
+As a convenience, we also supply `===` between different paths, which
+is a heterogeneous equality that equates indices (hence `heqi`).  This
+can be useful in case the endpoints of a walk after some
+transformation are not definitionally equal to what is expected.
+
+-/
+
 namespace simple_graph
 universes u v
 
@@ -243,6 +260,13 @@ lemma get_vert_0 {u v : V G} (p : walk u v) : p.get_vert 0 = u := rfl
 lemma get_vert_n {u v : V G} (p : walk u v) : p.get_vert p.length = v :=
 by { induction p, refl, exact p_ih }
 
+@[simp]
+lemma get_vert_nil {u : V G} (i : ℕ) : (@nil _ u).get_vert i = u :=
+by { cases i, simp, dsimp [get_vert], refl, }
+
+@[simp]
+lemma get_vert_cons {u v w : V G} (h : u ~g v) (p : walk v w) (i : ℕ) : (cons h p).get_vert (i + 1) = p.get_vert i := rfl
+
 lemma walk_ext_aux {u v : V G} (n : ℕ) (p : walk u v) (p' : walk u v)
   (h₁ : p.length = n) (h₁' : p'.length = n)
   (h₂ : ∀ i, i < n + 1 → p.get_vert i = p'.get_vert i) :
@@ -359,10 +383,6 @@ def cons {u v w : V G} (h : u ~g v) (p : walk' v w) : walk' u w :=
     dsimp [walk'.cons._match_1], exact p.fn,
   end }
 
-def of_walk : Π {u v : V G}, walk u v → walk' u v
-| _ _ walk.nil := nil
-| _ _ (walk.cons h p) := cons h (of_walk p)
-.
 
 def get_vert {u v : V G} (i : ℕ) (p : walk' u v) : V G :=
 if h : i < p.length + 1 then p.f ⟨i, h⟩ else v
@@ -374,6 +394,13 @@ by { dsimp [get_vert], simp, exact p.f0 }
 @[simp]
 lemma get_vert_n {u v : V G} (p : walk' u v) : p.get_vert p.length = v :=
 by { dsimp [get_vert], simp, exact p.fn, }
+
+@[simp]
+lemma get_vert_cons {u v w : V G} (h : u ~g v) (p : walk' v w) (i : ℕ) : (cons h p).get_vert (i + 1) = p.get_vert i :=
+begin
+  dsimp [get_vert, cons], cases p, subst v, subst w, dsimp,
+  have k : i + 1 < p_length + 1 + 1 ↔ i < p_length + 1, omega, simp [k],
+end
 
 @[ext]
 def ext {u v : V G} (p : walk' u v) (p' : walk' u v)
@@ -389,6 +416,9 @@ end
 
 @[simp]
 lemma nil_length {u : V G} : (@nil _ u).length = 0 := rfl
+
+lemma length_0 {u v : V G} (p : walk' u v) (h : p.length = 0) : u = v :=
+by { cases p, dsimp at h, subst p_length, subst u, subst v }
 
 @[simp]
 lemma cons_length {u v w : V G} (h : u ~g v) (p : walk' v w) : (cons h p).length = p.length + 1 := rfl
@@ -464,350 +494,189 @@ begin
   simp,
 end
 
-def rec_aux (n : ℕ) {C : Π (u v : V G), walk' u v → Sort*} {u v : V G}
-  (hnil : Π {v : V G}, C v v nil)
-  (hcons : Π (m : ℕ) (hm : m < n) {u v w : V G} (h : u ~g v) (p : walk' v w) (heq : p.length = m), C v w p → C u w (cons h p))
-  (p : walk' u v) (heq : p.length = n) :
-  C u v p :=
-begin
-  induction n generalizing C hnil hcons u v p heq,
-  { cases p, subst u, subst v, dsimp at heq, subst p_length, have hh := @hnil (p_f 0), convert hh, ext, cases x, have hh : x_val = 0, linarith, subst x_val, refl, },
-  have key := cons_tail_eq p _, rw ←key,
-  swap, rw heq, apply nat.succ_pos,
-  apply hcons p.tail.length,
-  rw ← heq, simp, rw heq, change n_n+1-1 < n_n+1, apply nat.sub_lt, apply nat.succ_pos, apply nat.succ_pos, refl,
-  apply n_ih,
-  intro v, apply hnil,
-  swap, simp, rw heq, refl,
-  rintros _ hm u v w h p rfl hc,
-  apply hcons p.length, change p.length < n_n+1, linarith, refl, exact hc,
-end.
+--def tail_cons {u v w : V G} (h : u ~g v) (p : walk' v w) (heq : v = (cons h p).get_vert 1) : tail (cons h p) = eq.rec p heq :=
+--begin
+--  ext, simp, tidy,
+--end
 
-@[elab_as_eliminator]
-def rec_on_cons {C : Π (u v : V G), walk' u v → Sort*} {u v : V G} (p : walk' u v)
-  (hnil : Π {v : V G}, C v v nil)
-  (hcons : Π {u v w : V G} (h : u ~g v) (p : walk' v w), C v w p → C u w (cons h p)) :
-  C u v p :=
-begin
-  refine @rec_aux _ p.length C u v _ _ p rfl,
-  intro v, apply hnil,
-  intros m hm u v w h p rfl hc,
-  apply hcons, exact hc,
-end
-
---def to_walk {u v : V G} (p : walk' u v) : walk u v :=
---rec_on_cons p (λ v, walk.nil) (λ u v w h p p' f, walk.cons h (f p'))
-
-def to_walk' {u v : V G} (p : walk u v) : walk' u v :=
-{ n := p.length,
-  f := { to_fun := λ n, p.get_vert n.val,
-         map_rel' := begin
-           rintros ⟨v, hv⟩ ⟨w, hw⟩ h,
-           rw path_graph_adj at h,
-           dsimp at h, dsimp [get_vert],
-           cases h,
-           { subst h, apply get_vert_rel, linarith, },
-           { subst h,
-             rw adj_symm,
-             apply get_vert_rel, linarith, }
-         end },
-  f0 := by simp,
-  fn := by simp }
-
--- 340:1: walk.rec :
---   Π {G : simple_graph} {C : Π (a a_1 : G.V), walk a a_1 → Sort u_2},
---     (Π {v : G.V}, C v v nil) →
---     (Π {u v w : G.V} (h : u ~g v) (p : walk v w), C v w p → C u w (cons h p)) →
---     Π {a a_1 : G.V} (n : walk a a_1), C a a_1 n
-
-
-def path_map_drop {n : ℕ} (f : ↟(path_graph (n+1)) →g G) : ↟(path_graph n) →g G :=
-{ to_fun := λ n, f ⟨n.val + 1, by { cases n, linarith }⟩,
-  map_rel' := begin
-    rintros ⟨v, hv⟩ ⟨w, hw⟩ h,
-    apply f.map_rel',
-    rw path_graph_adj at h ⊢, dsimp at h ⊢,
-    cases h; subst h, left, refl, right, refl,
-  end }
-
-lemma path_graph_adj (n : ℕ) (i : ℕ) (h : i < n) :
-  @adj' ↟(path_graph n) (⟨i, by linarith⟩ : fin (n+1)) (⟨i + 1, by linarith⟩ : fin (n+1)) :=
-by { rw path_graph_adj, left, refl }
-
-/--
-Convert a walk (as a graph homomorphism) to a `walk`.
--/
-protected
-def to_walk_aux : Π {n : ℕ} (f : ↟(path_graph n) →g G), walk (f (⟨0, by linarith⟩ : fin (n+1))) (f (⟨n, by linarith⟩ : fin (n+1)))
-| 0 f := nil
-| (n+1) f := cons (f.map_rel' (path_graph_adj (n+1) 0 (by linarith))) (to_walk_aux (path_map_drop f))
-
-
+def of_walk : Π {u v : V G}, walk u v → walk' u v
+| _ _ walk.nil := nil
+| _ _ (walk.cons h p) := cons h (of_walk p)
 
 @[simp]
-lemma get_vert_to_walk_aux {n : ℕ} (f : ↟(path_graph n) →g G) (i : ℕ) (h : i < n+1) :
-  get_vert i (walk.to_walk_aux f) = f (⟨i, h⟩ : fin (n+1)) :=
-begin
-  induction n generalizing f i h,
-  { have : i = 0, linarith, subst i, refl },
-  dsimp [walk.to_walk_aux],
-  cases i, refl,
-  dsimp [get_vert],
-  rw n_ih, refl,
-  change i+1 < n_n+1+1 at h, linarith,
-end
+lemma of_walk_nil {u : V G} : of_walk (@walk.nil _ u) = nil := rfl
 
 @[simp]
-protected
-lemma length_of_to_walk_aux {n : ℕ} (f : ↟(path_graph n) →g G) :
-  (walk.to_walk_aux f).length = n :=
-by { induction n, refl, dsimp [walk.to_walk_aux], rw n_ih }
+lemma of_walk_cons {u v w : V G} (h : u ~g v) (p : walk v w) : of_walk (walk.cons h p) = cons h (of_walk p) := rfl
+
+@[simp]
+lemma of_walk_length {u v : V G} (p : walk u v) : (of_walk p).length = p.length :=
+by { induction p, refl, simpa using p_ih }
+
+@[simp]
+lemma of_walk_get_vert {u v : V G} (i : ℕ) (p : walk u v) : (of_walk p).get_vert i = p.get_vert i :=
+begin
+  induction p generalizing i, simp,
+  simp, induction i, refl, simp, apply p_ih,
+end
 
 def to_walk {u v : V G} (p : walk' u v) : walk u v :=
-@eq.rec_on _ _ (λ x, walk u x) _ p.fn $
-@eq.rec_on _ _ (λ x, walk x (p.f (⟨p.n, by linarith⟩ : fin (p.n + 1)))) _ p.f0 $
-walk.to_walk_aux p.f
-
-lemma to_walk_nil {u : V G} : to_walk (@nil _ u) = @n
-
--- lemma to_walk_heq {u v : V G} (p : walk' u v) :
---   to_walk p == walk.to_walk_aux p.f :=
--- rec_heq_of_heq p.fn (rec_heq_of_heq p.f0 heq.rfl)
-
-lemma walk_rec_heqi_head {u v u' : V G} (eq : u = u') (p : walk u v) :
-  @eq.rec _ _ (λ x, walk x v) p _ eq === p :=
-by subst eq
-
-lemma walk_rec_heqi_tail {u v v' : V G} (eq : v = v') (p : walk u v) :
-  @eq.rec _ _ (λ x, walk u x) p _ eq === p :=
-by subst eq
-
-lemma to_walk_heq_to_walk_aux {u v : V G} (p : walk' u v) :
-  to_walk p === walk.to_walk_aux p.f :=
-by { refine heqi.trans (walk_rec_heqi_tail _ _) _,
-     refine heqi.trans (walk_rec_heqi_head _ _) _,
-     refl, }
+@nat.rec_on (λ n, Π (u v : V G) (p : walk' u v) (h : p.length = n), walk u v)
+p.length
+(λ u v p h, begin have h := length_0 p h, subst u, end)
+(λ n f u v p h, begin refine walk.cons (walk_adj₀ p _) (f _ _ (tail p) _), rw h, apply nat.succ_pos, simp [h], end)
+u v p (rfl : p.length = p.length)
 
 @[simp]
-lemma length_of_to_walk' {u v : V G} (p : walk u v) :
-  (to_walk' p).n = p.length := rfl
+def to_walk_nil {u : V G} : to_walk (@nil _ u) = walk.nil := rfl
+
+lemma simp_nat_rec {C : ℕ → Sort*} (h0 : C 0) (hn : Π (n : ℕ), C n → C n.succ) (n : ℕ) :
+  @nat.rec C h0 hn (n + 1) = hn n (@nat.rec C h0 hn n) :=
+begin change @nat.rec C h0 hn n.succ = _, simp, end
+
+lemma simp_nat_rec0 {C : ℕ → Sort*} (h0 : C 0) (hn : Π (n : ℕ), C n → C n.succ) :
+  @nat.rec C h0 hn 0 = h0 :=
+begin change @nat.rec C h0 hn nat.zero = h0, simp, end
 
 @[simp]
-lemma length_of_to_walk {u v : V G} (p : walk' u v) :
-  (to_walk p).length = p.n :=
+lemma to_walk_cons {u v w : V G} (h : u ~g v) (p : walk' v w) : to_walk (cons h p) = walk.cons h (to_walk p) :=
 begin
-  have h := heqi.subst _ _ (λ u v p, p.length) (to_walk_heq_to_walk_aux p),
-  dsimp at h, rw h, simp,
+  dunfold to_walk, simp, rw simp_nat_rec,
+  cases p, subst v, subst w, dsimp at *, simp, congr, dsimp [tail], simp, ext, cases p_f, simp [get_vert],
+  cases x, simp at x_property, simp [x_property],
+end
+
+@[simp]
+lemma to_walk_get_vert_aux {u v : V G} (i : ℕ) (p : walk' u v) (n : ℕ) (h : p.length = n) : (to_walk p).get_vert i = p.get_vert i :=
+begin
+  induction n generalizing u v i p,
+  { cases p, subst u, subst v, dsimp at h, subst p_length, dsimp [to_walk], simp [simp_nat_rec0], dsimp [get_vert], split_ifs,
+    have hh : i = 0, omega, subst i, refl, refl, },
+  have key := cons_tail_eq p (by omega),
+  rw ←key, simp, cases i, refl, simp, rw n_ih, simp, simp, rw h, refl,
+end
+
+@[simp]
+lemma to_walk_get_vert {u v : V G} (i : ℕ) (p : walk' u v) : (to_walk p).get_vert i = p.get_vert i :=
+to_walk_get_vert_aux i p p.length rfl
+
+@[simp]
+lemma to_walk_length_aux {u v : V G} (p : walk' u v) (n : ℕ) (h : p.length = n) : (to_walk p).length = p.length :=
+begin
+  induction n generalizing p u v,
+  { cases p, subst u, subst v, dsimp at h, subst p_length, refl, },
+  have key := cons_tail_eq p (by omega), rw ← key, simp, rw n_ih, simp, simp, rw h, refl,
+end
+
+@[simp]
+lemma to_walk_length {u v : V G} (p : walk' u v) : (to_walk p).length = p.length :=
+to_walk_length_aux p p.length rfl
+
+@[simp]
+def to_walk_right_inv {u v : V G} (x : walk' u v) :
+  of_walk (to_walk x) = x :=
+begin
+  ext, simp,
+  intros i h, simp at h, simp,
 end
 
 @[simp]
 def to_walk_left_inv {u v : V G} (x : walk u v) :
-  to_walk (to_walk' x) = x :=
-begin
-  apply eq_of_heqi,
-  refine heqi.trans (to_walk_heq_to_walk_aux _) _,
-  induction x,
-  { refl, },
-  dsimp [walk.to_walk_aux, to_walk'],
-  rw heqi.cons_iff,
-  dsimp [get_vert],
-  simp only [true_and, eq_self_iff_true],
-  exact x_ih,
-end
+  to_walk (of_walk x) = x :=
+by { induction x, refl, simpa using x_ih }
 
-
-
--- REMOVE probably not true!
--- def path_heq_iff_eq {n n' : ℕ} (f : ↟(path_graph n) →g G) (f' : ↟(path_graph n') →g G) :
---   f == f' ↔ (∃ (h : n = n'), @eq.rec _ _ (λ m, ↟(path_graph m) →g G) f _ h = f') :=
+-- def rec_aux (n : ℕ) {C : Π (u v : V G), walk' u v → Sort*} {u v : V G}
+--   (hnil : Π {v : V G}, C v v nil)
+--   (hcons : Π (m : ℕ) (hm : m < n) {u v w : V G} (h : u ~g v) (p : walk' v w) (heq : p.length = m), C v w p → C u w (cons h p))
+--   (p : walk' u v) (heq : p.length = n) :
+--   C u v p :=
 -- begin
---   split, swap, rintro ⟨rfl, rfl⟩, refl,
---   intro h, wlog : n ≤ n',
---   swap,
---   { rcases this f' f h.symm with ⟨h, he⟩, use h.symm, subst h, symmetry, simpa using he, },
---   cases lt_or_eq_of_le case,
---   swap,
---   { subst n', use rfl, simpa using h, },
---   exfalso,
---   let f'' := cast (type_eq_of_heq h) f, have oeu := @heq.refl,
+--   induction n generalizing C hnil hcons u v p heq,
+--   { cases p, subst u, subst v, dsimp at heq, subst p_length, have hh := @hnil (p_f 0), convert hh, ext, cases x, have hh : x_val = 0, linarith, subst x_val, refl, },
+--   have key := cons_tail_eq p _, rw ←key,
+--   swap, rw heq, apply nat.succ_pos,
+--   apply hcons p.tail.length,
+--   rw ← heq, simp, rw heq, change n_n+1-1 < n_n+1, apply nat.sub_lt, apply nat.succ_pos, apply nat.succ_pos, refl,
+--   apply n_ih,
+--   intro v, apply hnil,
+--   swap, simp, rw heq, refl,
+--   rintros _ hm u v w h p rfl hc,
+--   apply hcons p.length, change p.length < n_n+1, linarith, refl, exact hc,
+-- end.
+
+-- @[elab_as_eliminator]
+-- def rec_on_cons {C : Π (u v : V G), walk' u v → Sort*} {u v : V G} (p : walk' u v)
+--   (hnil : Π {v : V G}, C v v nil)
+--   (hcons : Π {u v w : V G} (h : u ~g v) (p : walk' v w), C v w p → C u w (cons h p)) :
+--   C u v p :=
+-- begin
+--   refine @rec_aux _ p.length C u v _ _ p rfl,
+--   intro v, apply hnil,
+--   intros m hm u v w h p rfl hc,
+--   apply hcons, exact hc,
 -- end
 
-@[simp]
-def to_walk_right_inv_aux {u v : V G} (n : ℕ) (x : walk' u v) (hx : x.n = n) :
-  to_walk' (to_walk x) = x :=
-begin
-  induction n generalizing x u v,
-  dsimp [to_walk, to_walk'], 
-  cases x, change x_n = 0 at hx, subst u, subst v, subst x_n, simp, ext n, cases n, dsimp,
-  induction n_val, refl, dsimp at n_property, simp at n_property, change n_val_n + 1 < 1 at n_property, exfalso, linarith,
-  cases x, subst u, subst v, change x_n = n_n+1 at hx, subst x_n, dsimp [to_walk, walk.to_walk_aux, to_walk'],
-  have h' := n_ih (path_map_drop x_f),
-end
+-- @[simp]
+-- lemma rec_on_cons_nil {C : Π (u v : V G), walk' u v → Sort*} {u : V G}
+--   (hnil : Π {v : V G}, C v v nil)
+--   (hcons : Π {u v w : V G} (h : u ~g v) (p : walk' v w), C v w p → C u w (cons h p)) :
+--   @rec_on_cons _ C u u nil @hnil @hcons = @hnil u := rfl
 
-@[simp]
-def to_walk_right_inv {u v : V G} (x : walk' u v) :
-  to_walk' (to_walk x) = x :=
-begin
-  ext1, simp,
-  generalize eq : (to_walk x).to_walk'.f = ff,
-  have h : (to_walk x).to_walk'.n = x.n, simp,
-  have h' := congr_arg (λ n, ↟(path_graph n) →g G) h, dsimp at h',
-  have hc := cast_heq h' ff,
-  simp [h],
-
-  rw length_of_to_walk' at ff,
-  rw length_of_to_walk at ff,
-  cases x,  cases ff,
-  -- cases x, subst u, subst v,
-  -- dsimp [to_walk'], congr,
-  -- simp,
-  -- swap, apply proof_irrel_heq,
-  -- dsimp [to_walk], cases x_f, congr,
-  -- repeat { rw [walk.length_of_to_walk_aux], },
-  -- simp,
-  -- ext n, rw get_vert_to_walk_aux, cases n, dsimp, congr,
-  -- apply proof_irrel_heq,
-end
-
-def walk_equiv_walk' (u v : V G) : walk u v ≃ walk' u v :=
-{ to_fun := to_walk',
-  inv_fun := to_walk,
-  right_inv := begin
-    intro x,
-    have h := to_walk_right_inv x,
-  end,
-  left_inv := begin
-    intro x,
-  end
-}
+-- @[simp]
+-- lemma rec_on_cons_cons {C : Π (u v : V G), walk' u v → Sort*} {u v w : V G} (h : u ~g v) (p : walk' v w)
+--   (hnil : Π {v : V G}, C v v nil)
+--   (hcons : Π {u v w : V G} (h : u ~g v) (p : walk' v w), C v w p → C u w (cons h p)) :
+--   @rec_on_cons _ C u w (cons h p) @hnil @hcons = @hcons u v w h p (@rec_on_cons _ C v w p @hnil @hcons) :=
+-- begin
+--   refine rec_on_cons (cons h p) _ _,
+--   intro v, simp,
+-- --  cases p, subst v, subst w, dsimp,
+-- --  induction p_length, simp,
+-- --  dsimp [rec_on_cons, rec_aux], cases p, subst v, subst w, dsimp,
+-- --  induction p_length generalizing p_f u hnil hcons, dsimp [], have h' : 0 + 1 = 1 := rfl, simp [h'],
+-- end
 
 
+
+-- def path_map_drop {n : ℕ} (f : ↟(path_graph (n+1)) →g G) : ↟(path_graph n) →g G :=
+-- { to_fun := λ n, f ⟨n.val + 1, by { cases n, linarith }⟩,
+--   map_rel' := begin
+--     rintros ⟨v, hv⟩ ⟨w, hw⟩ h,
+--     apply f.map_rel',
+--     rw path_graph_adj at h ⊢, dsimp at h ⊢,
+--     cases h; subst h, left, refl, right, refl,
+--   end }
+
+-- lemma path_graph_adj (n : ℕ) (i : ℕ) (h : i < n) :
+--   @adj' ↟(path_graph n) (⟨i, by linarith⟩ : fin (n+1)) (⟨i + 1, by linarith⟩ : fin (n+1)) :=
+-- by { rw path_graph_adj, left, refl }
+
+end walk'
+
+def walk_equiv_walk' {G : simple_graph} (u v : V G) : walk u v ≃ walk' u v :=
+{ to_fun := walk'.of_walk,
+  inv_fun := walk'.to_walk,
+  right_inv := λ x, by simp,
+  left_inv := λ x, by simp }
+
+namespace walk
+variables {G : simple_graph}
 
 /--
 Convert a walk (as a `walk`) to a graph homomorphism.
 -/
 def to_map {u v : V G} (p : walk u v) : ↟(path_graph p.length) →g G :=
-{ to_fun := λ n, p.get_vert n.val,
-  map_rel' := begin
-    rintros ⟨v, hv⟩ ⟨w, hw⟩ h,
-    rw path_graph_adj at h,
-    dsimp at h, dsimp [get_vert],
-    cases h,
-    { subst h, apply get_vert_rel, linarith, },
-    { subst h,
-      rw adj_symm,
-      apply get_vert_rel, linarith, }
-  end }
+begin
+  have h := walk'.of_walk_length p,
+  rw ←h,
+  exact (walk'.of_walk p).f,
+end
 
-/--
-Convert a walk (as a graph homomorphism) to a `walk`.
+end walk
+
+/-!
+## old stuff
 -/
-def of_map : Π {n : ℕ} (f : ↟(path_graph n) →g G), walk (f (⟨0, by linarith⟩ : fin (n+1))) (f (⟨n, by linarith⟩ : fin (n+1)))
-| 0 f := nil
-| (n+1) f := cons (f.map_rel' (path_graph_adj (n+1) 0 (by linarith))) (of_map (path_map_drop f))
-
-@[simp]
-lemma of_map_length_eq {n : ℕ} (f : ↟(path_graph n) →g G) :
-  (of_map f).length = n :=
-begin
-  induction n, refl,
-  dsimp [of_map], rw n_ih,
-end
-
-@[simp]
-def of_map_of_to_map {u v : V G} (x : walk u v) :
-  of_map x.to_map == x :=
-begin
-  induction x, refl,
-  dsimp [to_map, of_map], congr,
-  dsimp [get_vert'], apply get_vert_n,
-  dsimp [path_map_drop], exact x_ih,
-end
-
-def of_map' {n : ℕ} {u v : V G} (f : ↟(path_graph n) →g G)
-  (hu : f (⟨0, by linarith⟩ : fin (n+1)) = u)
-  (hv : f (⟨n, by linarith⟩ : fin (n+1)) = v) : walk u v :=
-begin
-  let w := of_map f,
-  rw [hu, hv] at w,
-  exact w,
-end
-
-@[simp]
-def of_map'_heq {n : ℕ} {u v : V G} (f : ↟(path_graph n) →g G)
-  (hu : f (⟨0, by linarith⟩ : fin (n+1)) = u)
-  (hv : f (⟨n, by linarith⟩ : fin (n+1)) = v) : of_map' f hu hv == of_map f :=
-by { dsimp [of_map'], tidy }
-
-@[simp]
-def of_map'_heq' {X : Sort*} {C : Π {u v : V G}, walk u v → X}
-  {n : ℕ} {u v : V G} (f : ↟(path_graph n) →g G)
-  (hu : f (⟨0, by linarith⟩ : fin (n+1)) = u)
-  (hv : f (⟨n, by linarith⟩ : fin (n+1)) = v) : C (of_map' f hu hv) = C (of_map f) :=
-by { dsimp [of_map'], tidy }
-
-
-def of_map'_length_eq {n : ℕ} {u v : V G} (f : ↟(path_graph n) →g G)
-  (hu : f (⟨0, by linarith⟩ : fin (n+1)) = u)
-  (hv : f (⟨n, by linarith⟩ : fin (n+1)) = v) : (of_map' f hu hv).length = n :=
-begin
-  have h' := @of_map'_heq' _ _ (λ _ _ x, length x = n) _ _ _ f hu hv,
-  apply eq.mpr h',
-  simp,
-end
-
-@[simp]
-def of_map'_of_to_map {u v : V G} (x : walk u v)
-  (hu : x.to_map (⟨0, by linarith⟩ : fin (x.length+1)) = u)
-  (hv : x.to_map (⟨x.length, by linarith⟩ : fin (x.length+1)) = v) :
-  of_map' x.to_map hu hv = x :=
-begin
-  dsimp [of_map', to_map], 
-end
-
-def walk_equiv_walk' (u v : V G) : walk u v ≃ walk' u v :=
-{ to_fun := λ p,
-  { n := p.length,
-    f := p.to_map,
-    f0 := by { dsimp [to_map], refl },
-    fn := by { dsimp [to_map], simp } },
-  inv_fun := λ p, of_map' p.f p.f0 p.fn,
-  left_inv := begin
-    tidy,
-  end,
-  right_inv := begin
-    intros p',
-    cases p', dsimp [],
-    tidy, rw of_map'_length_eq,
-  end
-}
-
-
-
-def walk_concat {n m : ℕ} (pn : ↟(path_graph n) →g G) (pm : ↟(path_graph m) →g G)
-  (h : pn (⟨n, by linarith⟩ : fin (n+1)) = pm 0)  :
-  ↟(path_graph (n + m)) →g G :=
-begin
-  let w1 := of_map pn,
-  let w2 := of_map pm,
-  have hw1 : n = w1.length,
-  { rw of_map_length_eq, },
-  have hw2 : m = w2.length,
-  { rw of_map_length_eq, },
-  rw hw1, rw hw2,
-  rw h at w1,
-  let f := to_map (w1.concat w2),
-  convert f,
-  rw concat_length,
-  simp, rw ←of_map_length_eq pn,
-  rw ←of_map_length_eq pm,
-
-  exact f,
-  rw concat_length at f,
-  repeat { rw of_map_length_eq at f },
-end
-
-end walk'
 
 -- First step, defining the monoid of path graphs.
 --set_option pp.notation false
@@ -901,22 +770,6 @@ begin
 end
 
 /--
-A walk of length `n` in a graph between vertices `v` and `w` is a sequence of `n + 1` vertices,
-each related to the next by adjacency -- the `n` counts the edges along the way.
-We model a walk as a graph homomorphism from a length-`n` path graph.
--/
-def walk (n : ℕ) (v w : V G) := { f : ↟(path_graph n) →g G // v = f 0 ∧ w = f n }
-
-/--
-Reverse a walk.
--/
-def walk.symm {n : ℕ} {v w : V G} (p : walk G n v w) : walk G n w v :=
-⟨p.val.comp ↑(path_graph.invol n), begin
-  simp, erw [path_graph.invol.prop₁ n, path_graph.invol.prop₂ n],
-  use [p.2.2, p.2.1],
-end⟩
-
-/--
 A path of length `n` in a graph between vertices `v` and `w` is a sequence of `n + 1` *distinct* vertices,
 each related to the next by adjacency -- the `n` counts the edges along the way.
 We model a path as a graph embedding from a length-`n` path graph.
@@ -924,25 +777,22 @@ We model a path as a graph embedding from a length-`n` path graph.
 def path (n : ℕ) (v w : V G) := { f : ↟(path_graph n) →g G // function.injective f ∧ v = f 0 ∧ w = f n }
 
 /-- The relation that there exists a walk of any length between two vertices. -/
-def exists_walk : V G → V G → Prop := λ v w, nonempty (Σ (n : ℕ), walk G n v w)
+def exists_walk : V G → V G → Prop := λ v w, nonempty (walk v w)
 
 /-- The relation that there exists a path of any length between two vertices. -/
 def exists_path : V G → V G → Prop := λ v w, nonempty (Σ (n : ℕ), path G n v w)
 
 @[refl] lemma exists_walk.refl (v : V G) : exists_walk G v v :=
-by { use [0, λ _, v], delta path_graph, sorry, sorry, }
+by { use walk.nil, }
 
 @[symm] lemma exists_walk.symm ⦃v w : V G⦄ (hvw : exists_walk G v w) : exists_walk G w v :=
-by { tactic.unfreeze_local_instances, cases hvw, rcases hvw with ⟨n, p⟩, use [n, walk.symm G p], }
+by { tactic.unfreeze_local_instances, cases hvw, use hvw.reverse, }
 
 @[trans] lemma exists_walk.trans ⦃u v w : V G⦄ (huv : exists_walk G u v) (hvw : exists_walk G v w) : exists_walk G u w :=
 begin
-  tactic.unfreeze_local_instances, cases hvw, rcases hvw with ⟨m, pv⟩,
-  tactic.unfreeze_local_instances, cases huv, rcases huv with ⟨n, pu⟩,
-  --rcases huv with ⟨n, ⟨pu⟩⟩, rcases hvw with ⟨m, ⟨pv⟩⟩,
-  use n+m,
-  -- now need to concatenate walks  probably better to define path concatenation elsewhere and then use it here!
-  sorry
+  tactic.unfreeze_local_instances, cases hvw,
+  tactic.unfreeze_local_instances, cases huv,
+  use huv.concat hvw,
 end
 
 lemma exists_walk.is_equivalence : equivalence (exists_walk G) :=

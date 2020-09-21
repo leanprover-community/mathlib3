@@ -870,10 +870,16 @@ begin
   exact ⟨⟨p, hp⟩, mem_factor_set_some.mp hm, rfl⟩
 end
 
+omit dec'
+
 lemma dvd_of_mem_factors' {a : α} {p : associates α} {hp : irreducible p} {hz : a ≠ 0}
   (h_mem : subtype.mk p hp ∈ factors' a) : p ∣ associates.mk a :=
-by { apply @dvd_of_mem_factors _ _ _ _ _ _ _ _ _ _ hp, rw factors_mk _ hz,
+by { haveI := classical.dec_eq (associates α),
+  apply @dvd_of_mem_factors _ _ _ _ _ _ _ _ _ _ hp,
+  rw factors_mk _ hz,
   apply mem_factor_set_some.2 h_mem }
+
+omit dec_irr
 
 lemma mem_factors'_of_dvd {a p : α} (ha0 : a ≠ 0) (hp : irreducible p) (hd : p ∣ a) :
   subtype.mk (associates.mk p) ((irreducible_mk _).2 hp) ∈ factors' a :=
@@ -883,6 +889,8 @@ begin
   exact subtype.eq (eq.symm (mk_eq_mk_iff_associated.mpr hpq))
 end
 
+include dec_irr
+
 lemma mem_factors'_iff_dvd {a p : α} (ha0 : a ≠ 0) (hp : irreducible p) :
   subtype.mk (associates.mk p) ((irreducible_mk _).2 hp) ∈ factors' a ↔ p ∣ a :=
 begin
@@ -891,9 +899,7 @@ begin
   { apply mem_factors'_of_dvd ha0 }
 end
 
-lemma associates_irreducible_iff_prime : ∀{p : associates α}, irreducible p ↔ prime p :=
-associates.forall_associated.2 $ assume a,
-by rw [associates.irreducible_mk, associates.prime_mk, irreducible_iff_prime]
+include dec'
 
 lemma mem_factors_of_dvd {a p : α} (ha0 : a ≠ 0) (hp : irreducible p) (hd : p ∣ a) :
   (associates.mk p) ∈ factors (associates.mk a) :=
@@ -947,10 +953,14 @@ begin
     exact hc hpa hpb hp }
 end
 
+omit dec_irr
+
 theorem factors_prime_pow {p : associates α} (hp : irreducible p)
   (k : ℕ) : factors (p ^ k) = some (multiset.repeat ⟨p, hp⟩ k) :=
 eq_of_prod_eq_prod (by rw [associates.factors_prod, factor_set.prod, multiset.map_repeat,
                            multiset.prod_repeat, subtype.coe_mk])
+
+include dec_irr
 
 theorem prime_pow_dvd_iff_le {m p : associates α} (h₁ : m ≠ 0)
   (h₂ : irreducible p) {k : ℕ} : p ^ k ≤ m ↔ k ≤ count p m.factors :=
@@ -990,7 +1000,7 @@ begin
   intro hca,
   contrapose! hab with hcb,
   exact ⟨p, le_of_count_ne_zero ha hp hca, le_of_count_ne_zero hb hp hcb,
-    (associates_irreducible_iff_prime.mp hp)⟩,
+    (irreducible_iff_prime.mp hp)⟩,
 end
 
 theorem count_mul_of_coprime {a : associates α} (ha : a ≠ 0) {b : associates α} (hb : b ≠ 0)
@@ -1070,6 +1080,7 @@ end
 
 omit dec
 omit dec_irr
+omit dec'
 
 theorem eq_pow_of_mul_eq_pow {a b c : associates α} (ha : a ≠ 0) (hb : b ≠ 0)
   (hab : ∀ d, d ∣ a → d ∣ b → ¬ prime d) {k : ℕ} (h : a * b = c ^ k) :

@@ -50,8 +50,8 @@ end
 
 end semiring
 
-section comm_ring
-variable [comm_ring R]
+section comm_semiring
+variable [comm_semiring R]
 variables (f p q : polynomial R) (n k : ℕ)
 
 lemma iterated_deriv_coeff_as_prod_Ico :

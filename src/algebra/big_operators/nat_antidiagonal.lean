@@ -5,7 +5,7 @@ Authors: Aaron Anderson
 -/
 
 import data.finset.nat_antidiagonal
-import algebra.big_operators
+import algebra.big_operators.basic
 
 /-!
 # Big operators for `nat_antidiagonal`

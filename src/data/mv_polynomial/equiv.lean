@@ -54,6 +54,7 @@ section equiv
 variables (α) [comm_semiring α]
 
 /-- The ring isomorphism between multivariable polynomials in no variables and the ground ring. -/
+@[simps]
 def pempty_ring_equiv : mv_polynomial pempty α ≃+* α :=
 { to_fun    := mv_polynomial.eval₂ (ring_hom.id _) $ pempty.elim,
   inv_fun   := C,
@@ -67,6 +68,7 @@ def pempty_ring_equiv : mv_polynomial pempty α ≃+* α :=
 The ring isomorphism between multivariable polynomials in a single variable and
 polynomials over the ground ring.
 -/
+@[simps]
 def punit_ring_equiv : mv_polynomial punit α ≃+* polynomial α :=
 { to_fun    := eval₂ polynomial.C (λu:punit, polynomial.X),
   inv_fun   := polynomial.eval₂ mv_polynomial.C (X punit.star),
@@ -91,6 +93,7 @@ def punit_ring_equiv : mv_polynomial punit α ≃+* polynomial α :=
   map_add'  := λ _ _, eval₂_add _ _ }
 
 /-- The ring isomorphism between multivariable polynomials induced by an equivalence of the variables.  -/
+@[simps]
 def ring_equiv_of_equiv (e : β ≃ γ) : mv_polynomial β α ≃+* mv_polynomial γ α :=
 { to_fun    := rename e,
   inv_fun   := rename e.symm,
@@ -100,6 +103,7 @@ def ring_equiv_of_equiv (e : β ≃ γ) : mv_polynomial β α ≃+* mv_polynomia
   map_add'  := (rename e).map_add }
 
 /-- The ring isomorphism between multivariable polynomials induced by a ring isomorphism of the ground ring. -/
+@[simps]
 def ring_equiv_congr [comm_semiring γ] (e : α ≃+* γ) : mv_polynomial β α ≃+* mv_polynomial β γ :=
 { to_fun    := map (e : α →+* γ),
   inv_fun   := map (e.symm : γ →+* α),
@@ -130,12 +134,15 @@ eval₂_hom (C.comp C) (λbc, sum.rec_on bc X (C ∘ X))
 instance is_semiring_hom_sum_to_iter : is_semiring_hom (sum_to_iter α β γ) :=
 eval₂.is_semiring_hom _ _
 
+@[simp]
 lemma sum_to_iter_C (a : α) : sum_to_iter α β γ (C a) = C (C a) :=
 eval₂_C _ _ a
 
+@[simp]
 lemma sum_to_iter_Xl (b : β) : sum_to_iter α β γ (X (sum.inl b)) = X b :=
 eval₂_X _ _ (sum.inl b)
 
+@[simp]
 lemma sum_to_iter_Xr (c : γ) : sum_to_iter α β γ (X (sum.inr c)) = C (X c) :=
 eval₂_X _ _ (sum.inr c)
 
@@ -159,6 +166,7 @@ lemma iter_to_sum_C_X (c : γ) : iter_to_sum α β γ (C (X c)) = X (sum.inr c) 
 eq.trans (eval₂_C _ _ (X c)) (eval₂_X _ _ _)
 
 /-- A helper function for `sum_ring_equiv`. -/
+@[simps]
 def mv_polynomial_equiv_mv_polynomial [comm_semiring δ]
   (f : mv_polynomial β α →+* mv_polynomial γ δ)
   (g : mv_polynomial γ δ →+* mv_polynomial β α)
@@ -198,7 +206,7 @@ The ring isomorphism between multivariable polynomials in `option β` and
 polynomials with coefficients in `mv_polynomial β α`.
 -/
 def option_equiv_left : mv_polynomial (option β) α ≃+* polynomial (mv_polynomial β α) :=
-(ring_equiv_of_equiv α $ (equiv.option_equiv_sum_punit β).trans (equiv.sum_comm _ _)).trans $
+(ring_equiv_of_equiv α $ (equiv.option_equiv_sum_punit.{0} β).trans (equiv.sum_comm _ _)).trans $
 (sum_ring_equiv α _ _).trans $
 punit_ring_equiv _
 
@@ -219,6 +227,28 @@ def fin_succ_equiv (n : ℕ) :
   mv_polynomial (fin (n + 1)) α ≃+* polynomial (mv_polynomial (fin n) α) :=
 (ring_equiv_of_equiv α (fin_succ_equiv n)).trans
   (option_equiv_left α (fin n))
+
+@[simp] lemma fin_succ_equiv_apply (n : ℕ) (p : mv_polynomial (fin (n + 1)) α) :
+  fin_succ_equiv α n p =
+  eval₂_hom (polynomial.C.comp (C : α →+* mv_polynomial (fin n) α))
+    (λ i : fin (n+1), fin.cases polynomial.X (λ k, polynomial.C (X k)) i) p :=
+begin
+  apply induction_on p,
+  { intro r,
+    dsimp [fin_succ_equiv, option_equiv_left, sum_ring_equiv],
+    simp only [sum_to_iter_C, eval₂_C, rename_C, ring_hom.coe_comp], },
+  { intros, simp only [*, ring_equiv.map_add, ring_hom.map_add] },
+  { intros q i h,
+    dsimp at h,
+    rw [ring_equiv.map_mul, h],
+    dsimp [fin_succ_equiv, option_equiv_left, sum_ring_equiv, _root_.fin_succ_equiv],
+    simp only [rename_X, equiv.sum_comm_apply, function.comp_app, eval₂_mul, eval₂_X],
+    by_cases hi : i = 0,
+    { subst hi,
+      simp only [fin.cases_zero, sum.swap, equiv.option_equiv_sum_punit_none, sum_to_iter_Xl, eval₂_X] },
+    { rw [← fin.succ_pred i hi],
+      simp only [equiv.option_equiv_sum_punit_some, sum.swap, fin.cases_succ, sum_to_iter_Xr, eval₂_C] } }
+end
 
 end
 

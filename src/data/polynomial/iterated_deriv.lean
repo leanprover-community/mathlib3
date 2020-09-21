@@ -118,12 +118,6 @@ begin
     rw triv }
 end
 
-end comm_ring
-
-section integral_domain
-variables [integral_domain R]
-variables (f p q: polynomial R) (n k : ℕ)
-
 
 lemma zero_of_iterated_deriv_nat_degree_succ : (iterated_deriv f (f.nat_degree + 1)) = 0 :=
 begin

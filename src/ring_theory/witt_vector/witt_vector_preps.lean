@@ -89,87 +89,46 @@ variables {σ : Type*} {τ : Type*} {υ : Type*} {R : Type*} [comm_semiring R]
 
 
 lemma equiv_of_family_aux (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (h : ∀ i, aeval g (f i) = X i) (φ : mv_polynomial σ R) :
-  (aeval g) (aeval f φ) = φ :=
+  (h : ∀ i, bind₁ g (f i) = X i) (φ : mv_polynomial σ R) :
+  (bind₁ g) (bind₁ f φ) = φ :=
 begin
   rw ← alg_hom.comp_apply,
-  suffices : (aeval g).comp (aeval f) = alg_hom.id _ _,
+  suffices : (bind₁ g).comp (bind₁ f) = alg_hom.id _ _,
   { rw [this, alg_hom.id_apply], },
   refine mv_polynomial.alg_hom_ext _ (alg_hom.id _ _) _,
   intro i,
-  rw [alg_hom.comp_apply, alg_hom.id_apply, aeval_X, h],
+  rw [alg_hom.comp_apply, alg_hom.id_apply, bind₁_X_right, h],
 end
 
 /-- I think this has been PR'd to mathlib already. If not, fix this docstring. -/
 noncomputable def equiv_of_family (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (hfg : ∀ i, aeval g (f i) = X i) (hgf : ∀ i, aeval f (g i) = X i) :
+  (hfg : ∀ i, bind₁ g (f i) = X i) (hgf : ∀ i, bind₁ f (g i) = X i) :
   mv_polynomial σ R ≃ₐ[R] mv_polynomial τ R :=
-{ to_fun    := aeval f,
-  inv_fun   := aeval g,
+{ to_fun    := bind₁ f,
+  inv_fun   := bind₁ g,
   left_inv  := equiv_of_family_aux f g hfg,
   right_inv := equiv_of_family_aux g f hgf,
-  .. aeval f}
+  .. bind₁ f}
 
 @[simp] lemma equiv_of_family_coe (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (hfg : ∀ i, aeval g (f i) = X i) (hgf : ∀ i, aeval f (g i) = X i) :
-  (equiv_of_family f g hfg hgf : mv_polynomial σ R →ₐ[R] mv_polynomial τ R) = aeval f := rfl
+  (hfg : ∀ i, bind₁ g (f i) = X i) (hgf : ∀ i, bind₁ f (g i) = X i) :
+  (equiv_of_family f g hfg hgf : mv_polynomial σ R →ₐ[R] mv_polynomial τ R) = bind₁ f := rfl
 
 @[simp] lemma equiv_of_family_symm_coe (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (hfg : ∀ i, aeval g (f i) = X i) (hgf : ∀ i, aeval f (g i) = X i) :
-  ((equiv_of_family f g hfg hgf).symm : mv_polynomial τ R →ₐ[R] mv_polynomial σ R) = aeval g := rfl
+  (hfg : ∀ i, bind₁ g (f i) = X i) (hgf : ∀ i, bind₁ f (g i) = X i) :
+  ((equiv_of_family f g hfg hgf).symm : mv_polynomial τ R →ₐ[R] mv_polynomial σ R) = bind₁ g := rfl
 
 @[simp] lemma equiv_of_family_apply (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (hfg : ∀ i, aeval g (f i) = X i) (hgf : ∀ i, aeval f (g i) = X i)
+  (hfg : ∀ i, bind₁ g (f i) = X i) (hgf : ∀ i, bind₁ f (g i) = X i)
   (φ : mv_polynomial σ R) :
-  equiv_of_family f g hfg hgf φ = aeval f φ := rfl
+  equiv_of_family f g hfg hgf φ = bind₁ f φ := rfl
 
 @[simp] lemma equiv_of_family_symm_apply (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (hfg : ∀ i, aeval g (f i) = X i) (hgf : ∀ i, aeval f (g i) = X i)
+  (hfg : ∀ i, bind₁ g (f i) = X i) (hgf : ∀ i, bind₁ f (g i) = X i)
   (φ : mv_polynomial τ R) :
-  (equiv_of_family f g hfg hgf).symm φ = aeval g φ := rfl
-
--- -- I think this stuff should move back to the witt_vector file
--- namespace witt_structure_machine
--- variable {idx : Type*}
--- variables (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
--- variables (hfg : ∀ i, aeval g (f i) = X i) (hgf : ∀ i, aeval f (g i) = X i)
-
--- noncomputable def structure_polynomial (Φ : mv_polynomial idx R) (t : τ) :
---   mv_polynomial (idx × τ) R :=
--- aeval (λ s : σ, (aeval (λ i, (rename (λ t', (i,t')) (f s)))) Φ) (g t)
-
--- include hfg
-
--- theorem structure_polynomial_prop (Φ : mv_polynomial idx R) (s : σ) :
---   aeval (structure_polynomial f g Φ) (f s) = aeval (λ b, (rename (λ i, (b,i)) (f s))) Φ :=
--- calc aeval (structure_polynomial f g Φ) (f s) =
---       aeval (λ s', aeval (λ b, (rename (prod.mk b)) (f s')) Φ) (aeval g (f s)) :
---       by { conv_rhs { rw [aeval_eq_eval₂_hom, map_aeval] },
---            apply eval₂_hom_congr _ rfl rfl,
---            ext1 r, symmetry, apply eval₂_hom_C, }
--- ... = aeval (λ i, (rename (λ t', (i,t')) (f s))) Φ : by rw [hfg, aeval_X]
-
--- include hgf
-
--- theorem exists_unique (Φ : mv_polynomial idx R) :
---   ∃! (φ : τ → mv_polynomial (idx × τ) R),
---     ∀ (s : σ), aeval φ (f s) = aeval (λ i, (rename (λ t', (i,t')) (f s))) Φ :=
--- begin
---   refine ⟨structure_polynomial f g Φ, structure_polynomial_prop _ _ hfg _, _⟩,
---   { intros φ H,
---     funext t,
---     calc φ t = aeval φ (aeval (f) (g t))    : by rw [hgf, aeval_X]
---          ... = structure_polynomial f g Φ t : _,
---     rw [aeval_eq_eval₂_hom, map_aeval],
---     apply eval₂_hom_congr _ _ rfl,
---     { ext1 r, exact eval₂_C _ _ r, },
---     { funext k, exact H k } }
--- end
-
--- end witt_structure_machine
+  (equiv_of_family f g hfg hgf).symm φ = bind₁ g φ := rfl
 
 section monadic_stuff
-
 
 open_locale classical
 variables (φ : mv_polynomial σ R) (f : σ → mv_polynomial τ R)
@@ -227,21 +186,6 @@ eval₂_hom_X' _ _ _
   expand p (monomial d r) = C r * ∏ i in d.support, ((X i) ^ p) ^ (d i) :=
 bind₁_monomial _ _ _
 
--- @[simp] lemma expand_zero (f : mv_polynomial σ R) :
---   expand 0 f = C (∑ d in f.support, f.coeff d) :=
--- begin
---   apply induction_on' f,
---   { intros d r,
---     rw [expand_monomial],
---     simp only [finset.prod_const_one, one_pow, mul_one, finsupp.mem_support_iff,
---       coeff_monomial, ne.def, pow_zero, finset.sum_ite_eq],
---     by_cases hr : r = 0,
---     { simp only [hr, monomial_zero, eq_self_iff_true, not_true, finsupp.zero_apply, if_false], },
---     { rw [if_pos],
---       rwa [← coeff, coeff_monomial, if_pos rfl], } },
---   { simp only [alg_hom.map_add] {contextual := tt}, }
--- end
-
 lemma expand_one_apply (f : mv_polynomial σ R) : expand 1 f = f :=
 by simp only [expand, bind₁_X_left, alg_hom.id_apply, ring_hom.to_fun_eq_coe,
   eval₂_hom_C_left, alg_hom.coe_to_ring_hom, pow_one, alg_hom.coe_mk]
@@ -265,12 +209,14 @@ lemma map_expand (f : R →+* S) (p : ℕ) (φ : mv_polynomial σ R) :
   map f (expand p φ) = expand p (map f φ) :=
 by simp [expand, map_bind₁]
 
--- TODO: prove `rename_comp_expand`
-
 @[simp]
 lemma rename_expand (f : σ → τ) (p : ℕ) (φ : mv_polynomial σ R) :
   rename f (expand p φ) = expand p (rename f φ) :=
 by simp [expand, bind₁_rename, rename_bind₁]
+
+@[simp] lemma rename_comp_expand (f : σ → τ) (p : ℕ) :
+  (rename f).comp (expand p) = (expand p).comp (rename f : mv_polynomial σ R →ₐ[R] mv_polynomial τ R) :=
+by { ext1 φ, simp only [rename_expand, alg_hom.comp_apply] }
 
 open_locale classical
 

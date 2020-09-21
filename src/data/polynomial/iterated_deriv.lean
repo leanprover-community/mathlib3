@@ -41,7 +41,7 @@ begin
   rwa ←iterated_deriv
 end
 
-lemma iterated_deriv_add : (iterated_deriv (p+q) n) = (iterated_deriv p n) + (iterated_deriv q n) :=
+@[simp] lemma iterated_deriv_add : (iterated_deriv (p+q) n) = (iterated_deriv p n) + (iterated_deriv q n) :=
 begin
   induction n with n ih,
   { simp only [iterated_deriv_zero_right], },

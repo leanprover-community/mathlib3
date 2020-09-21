@@ -870,6 +870,12 @@ more significant differences:
 
 If `with_names` is nonempty, `eliminate_hyp` uses the given names for the new
 hypotheses it introduces (like `cases with` and `induction with`).
+
+To debug this tactic, use
+
+```
+set_option trace.eliminate_hyp true
+```
 -/
 meta def eliminate_hyp (generate_ihs : bool) (eliminee : expr)
   (gm := generalization_mode.generalize_all_except [])
@@ -1128,6 +1134,12 @@ generalises the goal over `t`, then performs induction on the generalised goal.
 
 `induction' h : t = x` is similar, but also adds an equation `h : t = x` to
 remember the value of `t`.
+
+To debug this tactic, use
+
+```
+set_option trace.eliminate_hyp true
+```
 -/
 meta def induction' (eliminee : parse cases_arg_p)
   (gm : parse generalisation_mode_parser)
@@ -1145,12 +1157,19 @@ A variant of `tactic.interactive.cases`, with minor changes:
   introduces.
 
 This tactic supports the same modifiers as `cases`, e.g.
+
 ```
 cases' H : e = x with n m o
 ```
 
 This is almost exactly the same as `tactic.interactive.induction'`, only that no
 induction hypotheses are generated.
+
+To debug this tactic, use
+
+```
+set_option trace.eliminate_hyp true
+```
 -/
 meta def cases' (eliminee : parse cases_arg_p)
   (with_names : parse (optional with_ident_list)) : tactic unit := do

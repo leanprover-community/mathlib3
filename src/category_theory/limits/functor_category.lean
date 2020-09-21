@@ -154,6 +154,37 @@ def limit_obj_iso_limit_comp_evaluation [has_limits_of_shape J C] (F : J ⥤ (K 
   (limit F).obj k ≅ limit (F ⋙ ((evaluation K C).obj k)) :=
 preserves_limit_iso F ((evaluation K C).obj k)
 
+@[simp, reassoc]
+lemma limit_obj_iso_limit_comp_evaluation_hom_π
+  [has_limits_of_shape J C] (F : J ⥤ (K ⥤ C)) (j : J) (k : K) :
+  (limit_obj_iso_limit_comp_evaluation F k).hom ≫ limit.π (F ⋙ ((evaluation K C).obj k)) j =
+    (limit.π F j).app k :=
+begin
+  dsimp [limit_obj_iso_limit_comp_evaluation, limits.preserves_limit_iso],
+  simp,
+end
+
+@[simp, reassoc]
+lemma limit_obj_iso_limit_comp_evaluation_inv_π_app
+  [has_limits_of_shape J C] (F : J ⥤ (K ⥤ C)) (j : J) (k : K):
+  (limit_obj_iso_limit_comp_evaluation F k).inv ≫ (limit.π F j).app k =
+    limit.π (F ⋙ ((evaluation K C).obj k)) j :=
+begin
+  dsimp [limit_obj_iso_limit_comp_evaluation, limits.preserves_limit_iso],
+  rw iso.inv_comp_eq,
+  simp,
+end
+
+@[ext]
+lemma limit_obj_ext {H : J ⥤ K ⥤ C} [has_limits_of_shape J C]
+  {k : K} {W : C} {f g : W ⟶ (limit H).obj k}
+  (w : ∀ j, f ≫ (limits.limit.π H j).app k = g ≫ (limits.limit.π H j).app k) : f = g :=
+begin
+  apply (cancel_mono (limit_obj_iso_limit_comp_evaluation H k).hom).1,
+  ext,
+  simpa using w j,
+end
+
 instance evaluation_preserves_colimits_of_shape [has_colimits_of_shape J C] (k : K) :
   preserves_colimits_of_shape J ((evaluation K C).obj k) :=
 { preserves_colimit :=
@@ -164,6 +195,37 @@ instance evaluation_preserves_colimits_of_shape [has_colimits_of_shape J C] (k :
 def colimit_obj_iso_colimit_comp_evaluation [has_colimits_of_shape J C] (F : J ⥤ (K ⥤ C)) (k : K) :
   (colimit F).obj k ≅ colimit (F ⋙ ((evaluation K C).obj k)) :=
 preserves_colimit_iso F ((evaluation K C).obj k)
+
+@[simp, reassoc]
+lemma colimit_obj_iso_colimit_comp_evaluation_ι_inv
+  [has_colimits_of_shape J C] (F : J ⥤ (K ⥤ C)) (j : J) (k : K) :
+  colimit.ι (F ⋙ ((evaluation K C).obj k)) j ≫ (colimit_obj_iso_colimit_comp_evaluation F k).inv =
+    (colimit.ι F j).app k :=
+begin
+  dsimp [colimit_obj_iso_colimit_comp_evaluation, limits.preserves_colimit_iso],
+  simp,
+end
+
+@[simp, reassoc]
+lemma colimit_obj_iso_colimit_comp_evaluation_ι_app_hom
+  [has_colimits_of_shape J C] (F : J ⥤ (K ⥤ C)) (j : J) (k : K) :
+  (colimit.ι F j).app k ≫ (colimit_obj_iso_colimit_comp_evaluation F k).hom =
+     colimit.ι (F ⋙ ((evaluation K C).obj k)) j :=
+begin
+  dsimp [colimit_obj_iso_colimit_comp_evaluation, limits.preserves_colimit_iso],
+  rw ←iso.eq_comp_inv,
+  simp,
+end
+
+@[ext]
+lemma colimit_obj_ext {H : J ⥤ K ⥤ C} [has_colimits_of_shape J C]
+  {k : K} {W : C} {f g : (colimit H).obj k ⟶ W}
+  (w : ∀ j, (colimit.ι H j).app k ≫ f = (colimit.ι H j).app k ≫ g) : f = g :=
+begin
+  apply (cancel_epi (colimit_obj_iso_colimit_comp_evaluation H k).inv).1,
+  ext,
+  simpa using w j,
+end
 
 instance evaluation_preserves_limits [has_limits C] (k : K) :
   preserves_limits ((evaluation K C).obj k) :=

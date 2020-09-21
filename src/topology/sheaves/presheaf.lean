@@ -42,6 +42,9 @@ def pushforward {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) : Y.presheaf 
 
 infix ` _* `: 80 := pushforward
 
+@[simp] lemma pushforward_obj {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) (U : (opens Y)ᵒᵖ) :
+  (f _* ℱ).obj U = ℱ.obj ((opens.map f).op.obj U) := rfl
+
 def pushforward_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) :
   f _* ℱ ≅ g _* ℱ :=
 iso_whisker_right (nat_iso.op (opens.map_iso f g h).symm) ℱ
@@ -56,7 +59,6 @@ lemma pushforward_eq_rfl {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) (U) 
 begin
   dsimp [pushforward_eq],
   erw ℱ.map_id,
-  refl,
 end
 
 @[simp]

@@ -815,12 +815,8 @@ def limit (F : J ⥤ C) [has_limit F] := (limit.cone F).X
 def limit.π (F : J ⥤ C) [has_limit F] (j : J) : limit F ⟶ F.obj j :=
 (limit.cone F).π.app j
 
--- @[simp] lemma get_limit_cone_cone (F : J ⥤ C) [has_limit F] :
---   (get_limit_cone F).cone = limit.cone F :=
--- rfl
-
-@[simp] lemma get_limit_cone_cone_X (F : J ⥤ C) [has_limit F] :
-  (get_limit_cone F).cone.X = limit F :=
+@[simp] lemma get_limit_cone_cone (F : J ⥤ C) [has_limit F] :
+  (get_limit_cone F).cone = limit.cone F :=
 rfl
 
 @[simp] lemma limit.cone_X {F : J ⥤ C} [has_limit F] :

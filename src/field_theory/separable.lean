@@ -494,17 +494,8 @@ the minimal polynomial of every `x : K` is separable. -/
 
 lemma is_separable_top (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]
   [algebra K E] [is_scalar_tower F K E] (h : is_separable F E) : is_separable K E :=
-begin
-  intro x,
-  cases h x with hx hs,
-  have hx' : is_integral K x := is_integral_of_is_scalar_tower x hx,
-  use hx',
-  have key : (minimal_polynomial hx') ∣ (minimal_polynomial hx).map(algebra_map F K),
-  { apply minimal_polynomial.dvd,
-    rw [aeval_def,eval₂_map, ←is_scalar_tower.algebra_map_eq F K E],
-    apply minimal_polynomial.aeval, },
-  exact hs.map.of_dvd key,
-end
+λ x, Exists.cases_on (h x) (λ hx hs, ⟨is_integral_of_is_scalar_tower x hx,
+hs.map.of_dvd (minimal_polynomial.dvd_map_of_is_scalar_tower K hx)⟩)
 
 lemma is_separable_bottom (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]
   [algebra K E] [is_scalar_tower F K E] (h : is_separable F E) : is_separable F K :=

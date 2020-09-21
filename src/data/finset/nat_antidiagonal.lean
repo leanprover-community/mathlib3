@@ -34,13 +34,14 @@ rfl
 
 lemma antidiagonal_succ {n : ℕ} :
   antidiagonal (n + 1) = insert (0,n + 1) ((antidiagonal n).map
-  ⟨prod.map nat.succ id, function.injective.prod_map nat.succ_injective function.injective_id⟩ ) :=
+  (function.embedding.prod_map ⟨nat.succ, nat.succ_injective⟩ (function.embedding.refl _))) :=
 begin
   apply eq_of_veq,
   rw [insert_val_of_not_mem, map_val],
   {apply multiset.nat.antidiagonal_succ},
   { intro con, rcases mem_map.1 con with ⟨⟨a,b⟩, ⟨h1, h2⟩⟩,
-    simp only [id.def, prod.mk.inj_iff, function.embedding.coe_fn_mk, prod.map_mk] at h2,
+    simp only [prod.mk.inj_iff, function.embedding.coe_fn_mk, function.embedding.refl_apply,
+               function.embedding.coe_prod_map, prod.map_mk] at h2,
     apply nat.succ_ne_zero a h2.1, }
 end
 

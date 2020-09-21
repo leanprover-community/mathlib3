@@ -306,6 +306,7 @@ rfl
 universes v
 variables {α : Type v} [preorder α]
 
+/-- Construct a morphism in the opposite of a preorder category from an inequality. -/
 def op_hom_of_le {U V : αᵒᵖ} (h : unop V ≤ unop U) : U ⟶ V :=
 has_hom.hom.op (hom_of_le h)
 

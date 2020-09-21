@@ -119,12 +119,10 @@ namespace category_theory.abelian
 variables {C : Type u} [category.{v} C] [abelian C]
 
 /-- An abelian category has finite biproducts. -/
-lemma has_finite_biproducts : has_finite_biproducts C :=
+instance has_finite_biproducts : has_finite_biproducts C :=
 limits.has_finite_biproducts.of_has_finite_products
 
 section to_non_preadditive_abelian
-
-local attribute [instance] has_finite_biproducts
 
 /-- Every abelian category is, in particular, `non_preadditive_abelian`. -/
 def non_preadditive_abelian : non_preadditive_abelian C := { ..‹abelian C› }

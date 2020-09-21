@@ -221,6 +221,14 @@ lemma root_right_of_root_gcd [comm_semiring k] {ϕ : R →+* k} {f g : polynomia
 by { cases euclidean_domain.gcd_dvd_right f g with p hp,
      rw [hp, polynomial.eval₂_mul, hα, zero_mul] }
 
+lemma root_gcd_iff_root_left_right [comm_semiring k] (ϕ : R →+* k) (f g : polynomial R) (α : k) :
+  (euclidean_domain.gcd f g).eval₂ ϕ α = 0 ↔ (f.eval₂ ϕ α = 0) ∧ (g.eval₂ ϕ α = 0) :=
+⟨λ h, ⟨root_left_of_root_gcd h,root_right_of_root_gcd h⟩, λ h, eval₂_gcd_eq_zero h.1 h.2⟩
+
+lemma is_root_gcd_iff_is_root_left_right (f g : polynomial R) (α : R) :
+  (euclidean_domain.gcd f g).is_root α  ↔ f.is_root α ∧ g.is_root α :=
+root_gcd_iff_root_left_right (ring_hom.id R) f g α
+
 theorem is_coprime_map [field k] (f : R →+* k) :
   is_coprime (p.map f) (q.map f) ↔ is_coprime p q :=
 by rw [← gcd_is_unit_iff, ← gcd_is_unit_iff, gcd_map, is_unit_map]

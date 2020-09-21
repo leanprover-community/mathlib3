@@ -751,6 +751,21 @@ begin
   }
 end
 
+/- ... and with clashing variable names: -/
+
+lemma tc_trans' {α : Type} (r : α → α → Prop) {x y z} :
+  tc r x y → tc r y z → tc r x z :=
+begin
+  intros h₁ h₂,
+  induction' h₁,
+  case base {
+    exact tc.step _ _ _ hr h₂
+  },
+  case step {
+    exact tc.step _ _ _ hr (ih h₂)
+  }
+end
+
 end transitive_closure
 
 

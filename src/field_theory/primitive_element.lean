@@ -126,7 +126,7 @@ begin
   let γ := α+(ιFE c)*β,
   let f' := (f.map ιFE).comp(polynomial.C γ-(polynomial.C (ιFE c))*(polynomial.X)),
   let h := euclidean_domain.gcd f' g',
-  have h_sep : h.separable := polynomial.separable_gcd_right f' g' (polynomial.separable.map hg),
+  have h_sep : h.separable := polynomial.separable_gcd_right f' (polynomial.separable.map hg),
   have g'_ne_zero : g' ≠ 0 := polynomial.map_monic_ne_zero (minimal_polynomial.monic hβ),
   have h_ne_zero : h ≠ 0 := by simp [euclidean_domain.gcd_eq_zero_iff, g'_ne_zero],
   have h_root : h.eval β = 0,

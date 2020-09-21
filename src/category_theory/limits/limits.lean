@@ -815,6 +815,14 @@ def limit (F : J ⥤ C) [has_limit F] := (limit.cone F).X
 def limit.π (F : J ⥤ C) [has_limit F] (j : J) : limit F ⟶ F.obj j :=
 (limit.cone F).π.app j
 
+-- @[simp] lemma get_limit_cone_cone (F : J ⥤ C) [has_limit F] :
+--   (get_limit_cone F).cone = limit.cone F :=
+-- rfl
+
+@[simp] lemma get_limit_cone_cone_X (F : J ⥤ C) [has_limit F] :
+  (get_limit_cone F).cone.X = limit F :=
+rfl
+
 @[simp] lemma limit.cone_X {F : J ⥤ C} [has_limit F] :
   (limit.cone F).X = limit F := rfl
 
@@ -827,6 +835,10 @@ def limit.π (F : J ⥤ C) [has_limit F] (j : J) : limit F ⟶ F.obj j :=
 /-- Evidence that the arbitrary choice of cone provied by `limit.cone F` is a limit cone. -/
 def limit.is_limit (F : J ⥤ C) [has_limit F] : is_limit (limit.cone F) :=
 (get_limit_cone F).is_limit
+
+@[simp] lemma get_limit_cone_is_limit (F : J ⥤ C) [has_limit F] :
+  (get_limit_cone F).is_limit = limit.is_limit F :=
+rfl
 
 /-- The morphism from the cone point of any other cone to the limit object. -/
 def limit.lift (F : J ⥤ C) [has_limit F] (c : cone F) : c.X ⟶ limit F :=

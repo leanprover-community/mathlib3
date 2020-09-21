@@ -182,16 +182,13 @@ def desc_c_app (F : J ⥤ PresheafedSpace C) (s : cocone F) (U : (opens ↥(s.X.
        limit (pushforward_diagram_to_colimit F).left_op).obj
       U :=
 begin
-      dsimp [pushforward],
+      -- dsimp [pushforward],
       refine limit.lift _ { X := s.X.presheaf.obj U, π := _} ≫ (limit_obj_iso_limit_comp_evaluation _ _).inv,
-      dsimp,
+      -- dsimp,
       fsplit,
       { intro j,
-      dsimp [pushforward],
-      -- simp,
-      have := (s.ι.app (unop j)).c.app U,
-      dsimp at this,
-      refine this ≫ (F.obj (unop j)).presheaf.map (eq_to_hom _),
+      -- dsimp [pushforward],
+      refine (s.ι.app (unop j)).c.app U ≫ (F.obj (unop j)).presheaf.map (eq_to_hom _),
       dsimp,
       congr' 1,
       rw ←opens.map_comp_obj,
@@ -208,23 +205,27 @@ begin
 end colimit_cocone_is_colimit
 
 open colimit_cocone_is_colimit
+#check get_limit_cone
 
 def colimit_cocone_is_colimit (F : J ⥤ PresheafedSpace C) : is_colimit (colimit_cocone F) :=
 { desc := λ s,
   { base := colimit.desc (F ⋙ PresheafedSpace.forget C) ((PresheafedSpace.forget C).map_cocone s),
     c :=
     { app := λ U, desc_c_app F s U,
-      naturality' := λ U V i, begin dsimp [desc_c_app, limit_obj_iso_limit_comp_evaluation, preserves_limit_iso, is_limit.cone_point_unique_up_to_iso], simp,
+      naturality' := λ U V i,
+      begin
+        dsimp [desc_c_app],
+      dsimp [limit_obj_iso_limit_comp_evaluation, preserves_limit_iso, is_limit.cone_point_unique_up_to_iso], simp,
       convert is_limit.hom_ext (preserves_limit.preserves (limit.is_limit (pushforward_diagram_to_colimit F).left_op)) _,
       { dsimp,
         simp,
         refl, },
       { dsimp, simp, refl, },
-      { dsimp, simp, },
+      { dsimp, simp, refl, },
       swap,
       intros j, dsimp, simp, dsimp [pushforward], simp, dsimp [preserves_limit_of_preserves_limit_cone, combined_is_limit, evaluate_combined_cones, evaluation_jointly_reflects_limits, combine_cones],
       simp, dsimp [is_limit.unique_up_to_iso, is_limit.of_iso_limit],
-      simp,
+      simp, dsimp, simp_rw get_limit_cone_cone_X,
       sorry, end, }, },
   fac' := begin sorry, end,
   uniq' := sorry, }

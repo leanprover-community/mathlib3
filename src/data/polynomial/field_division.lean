@@ -211,15 +211,13 @@ by rw [euclidean_domain.gcd_eq_gcd_ab f g, polynomial.eval₂_add, polynomial.ev
 lemma eval_gcd_eq_zero {f g : polynomial R} {α : R} (hf : f.eval α = 0) (hg : g.eval α = 0) :
   (euclidean_domain.gcd f g).eval α = 0 := eval₂_gcd_eq_zero hf hg
 
-lemma gcd_root_left [field k] [algebra R k] (f g : polynomial R) (α : k)
-  (hα : (euclidean_domain.gcd f g).eval₂ (algebra_map R k) α = 0) :
-  f.eval₂ (algebra_map R k) α = 0 :=
+lemma root_left_of_root_gcd [comm_semiring k] {ϕ : R →+* k} {f g : polynomial R} {α : k}
+  (hα : (euclidean_domain.gcd f g).eval₂ ϕ α = 0) : f.eval₂ ϕ α = 0 :=
 by { cases euclidean_domain.gcd_dvd_left f g with p hp,
      rw [hp, polynomial.eval₂_mul, hα, zero_mul] }
 
-lemma gcd_root_right [field k] [algebra R k] (f g : polynomial R) (α : k)
-  (hα : (euclidean_domain.gcd f g).eval₂ (algebra_map R k) α = 0) :
-  g.eval₂ (algebra_map R k) α = 0 :=
+lemma root_right_of_root_gcd [comm_semiring k] {ϕ : R →+* k} {f g : polynomial R} {α : k}
+  (hα : (euclidean_domain.gcd f g).eval₂ ϕ α = 0) : g.eval₂ ϕ α = 0 :=
 by { cases euclidean_domain.gcd_dvd_right f g with p hp,
      rw [hp, polynomial.eval₂_mul, hα, zero_mul] }
 

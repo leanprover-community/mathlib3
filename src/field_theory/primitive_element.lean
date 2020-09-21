@@ -143,14 +143,14 @@ begin
     rw polynomial.mem_roots_of_map h_ne_zero at hx,
     specialize hc ((ιEE' γ) - (ιFE' c) * x) (begin
       rw [polynomial.mem_roots_of_map (minimal_polynomial.ne_zero hα),←polynomial.eval₂_map],
-      have f_root : f'.eval₂ (algebra_map E E') x = 0 := polynomial.gcd_root_left f' g' x hx,
+      have f_root : f'.eval₂ (algebra_map E E') x = 0 := polynomial.root_left_of_root_gcd hx,
       rw [polynomial.eval₂_comp,polynomial.eval₂_sub,polynomial.eval₂_mul,polynomial.eval₂_C,
           polynomial.eval₂_C,polynomial.eval₂_X] at f_root,
       exact f_root,
     end),
     specialize hc x (begin
       rw [polynomial.mem_roots_of_map (minimal_polynomial.ne_zero hβ),←polynomial.eval₂_map],
-      exact polynomial.gcd_root_right f' g' x hx,
+      exact polynomial.root_right_of_root_gcd hx,
     end),
     by_contradiction a,
     apply hc,

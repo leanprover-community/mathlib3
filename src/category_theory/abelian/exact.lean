@@ -62,17 +62,20 @@ begin
     simp [h.2] }
 end
 
-/-- If `(f, g)` is exact, then `image.ι f` is a kernel of `g`. -/
+/-- If `(f, g)` is exact, then `images.image.ι f` is a kernel of `g`. -/
 def is_limit_image [h : exact f g] :
-  is_limit (kernel_fork.of_ι (image.ι f) (image_ι_comp_eq_zero h.1)) :=
+  is_limit (kernel_fork.of_ι (images.image.ι f) (images.image_ι_comp_eq_zero h.1) : kernel_fork g) :=
 begin
   rw exact_iff at h,
   refine is_limit.of_ι _ _ _ _ _,
-  { refine λ W u hu, kernel.lift (cokernel.π f) u _ ≫ (image_iso_image f).hom,
+  { refine λ W u hu, kernel.lift (cokernel.π f) u _,
     rw [←kernel.lift_ι g u hu, category.assoc, h.2, has_zero_morphisms.comp_zero] },
-  { tidy },
-  { intros, simp [w, ←cancel_mono (image.ι f)] }
+  tidy
 end
 
+/-- If `(f, g)` is exact, then `image.ι f` is a kernel of `g`. -/
+def is_limit_image' [h : exact f g] :
+  is_limit (kernel_fork.of_ι (image.ι f) (image_ι_comp_eq_zero h.1)) :=
+is_kernel.iso_kernel _ _ (is_limit_image f g) (image_iso_image f).symm $ is_image.lift_fac _ _
 
 end category_theory.abelian

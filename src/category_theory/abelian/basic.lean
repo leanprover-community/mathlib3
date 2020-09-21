@@ -177,6 +177,14 @@ kernel.lift_ι _ _ _
 instance : epi (images.factor_thru_image f) :=
 show epi (non_preadditive_abelian.factor_thru_image f), by apply_instance
 
+section
+variables {f}
+
+lemma image_ι_comp_eq_zero {R : C} {g : Q ⟶ R} (h : f ≫ g = 0) : images.image.ι f ≫ g = 0 :=
+zero_of_epi_comp (images.factor_thru_image f) $ by simp [h]
+
+end
+
 instance mono_factor_thru_image [mono f] : mono (images.factor_thru_image f) :=
 mono_of_mono_fac $ image.fac f
 

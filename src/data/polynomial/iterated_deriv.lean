@@ -45,7 +45,7 @@ end
 begin
   induction n with n ih,
   { simp only [iterated_deriv_zero_right], },
-  { rw [iterated_deriv_succ, ih, polynomial.derivative_add, iterated_deriv_succ, iterated_deriv_succ] }
+  { simp only [iterated_deriv_succ, ih, derivative_add] }
 end
 
 end semiring

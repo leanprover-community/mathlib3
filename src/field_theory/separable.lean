@@ -501,9 +501,8 @@ lemma is_separable_bottom (F K E : Type*) [field F] [field K] [field E] [algebra
   [algebra K E] [is_scalar_tower F K E] (h : is_separable F E) : is_separable F K :=
 begin
   intro x,
-  have main : ∀ p : polynomial F, algebra_map K E (aeval x p) = aeval (algebra_map K E x) p,
-  { intro p,
-    rw [aeval_def, aeval_def, hom_eval₂, ← is_scalar_tower.algebra_map_eq] },
+  have main : ∀ p : polynomial F, algebra_map K E (aeval x p) = aeval (algebra_map K E x) p :=
+    λ p, is_scalar_tower.algebra_map_aeval F K E x p,
   have swap : ∀ p : polynomial F, aeval (algebra_map K E x) p = 0 → aeval x p = 0,
   { intros p hp,
     rw [←main p,←(algebra_map K E).map_zero] at hp,

@@ -36,9 +36,9 @@ by rw [iterated_deriv, iterated_deriv, function.iterate_succ']
 
 @[simp] lemma iterated_deriv_zero_left : iterated_deriv (0 : polynomial R) n = 0 :=
 begin
-  induction n with n hn;
-  simp only [iterated_deriv, id.def, function.iterate_zero],
-  rwa ←iterated_deriv
+  induction n with n hn,
+  { exact iterated_deriv_zero_right _ },
+  { rw [iterated_deriv_succ, hn, derivative_zero] },
 end
 
 @[simp] lemma iterated_deriv_add : (iterated_deriv (p+q) n) = (iterated_deriv p n) + (iterated_deriv q n) :=

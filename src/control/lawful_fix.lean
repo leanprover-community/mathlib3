@@ -27,10 +27,6 @@ variables {α : Type*} {β : α → Type*}
 
 open omega_complete_partial_order
 
-section prio
-
-set_option default_priority 100  -- see Note [default priority]
-
 /-- Intuitively, a fixed point operator `fix` is lawful if it satisfies `fix f = f (fix f)` for all
 `f`, but this is inconsistent / uninteresting in most cases due to the existence of "exotic"
 functions `f`, such as the function that is defined iff its argument is not, familiar from the
@@ -44,8 +40,6 @@ lemma lawful_fix.fix_eq' {α} [omega_complete_partial_order α] [lawful_fix α]
   {f : α → α} (hf : continuous' f) :
   has_fix.fix f = f (has_fix.fix f) :=
 lawful_fix.fix_eq (continuous.to_bundled _ hf)
-
-end prio
 
 namespace roption
 
@@ -181,7 +175,7 @@ namespace roption
 @[simps]
 def to_unit_mono (f : roption α →ₘ roption α) : (unit → roption α) →ₘ (unit → roption α) :=
 { to_fun := λ x u, f (x u),
-  monotone := λ x y (h : x ≤ y) u, f.monotone $ h u }
+  monotone' := λ x y (h : x ≤ y) u, f.monotone $ h u }
 
 lemma to_unit_cont (f : roption α →ₘ roption α) (hc : continuous f) : continuous (to_unit_mono f)
 | c := begin
@@ -212,14 +206,14 @@ variables (α β γ)
 def monotone_curry [∀ x y, preorder $ γ x y] :
   (Π x : Σ a, β a, γ x.1 x.2) →ₘ (Π a (b : β a), γ a b) :=
 { to_fun := curry,
-  monotone := λ x y h a b, h ⟨a,b⟩ }
+  monotone' := λ x y h a b, h ⟨a,b⟩ }
 
 /-- `sigma.uncurry` as a monotone function. -/
 @[simps]
 def monotone_uncurry [∀ x y, preorder $ γ x y] :
   (Π a (b : β a), γ a b) →ₘ (Π x : Σ a, β a, γ x.1 x.2) :=
 { to_fun := uncurry,
-  monotone := λ x y h a, h a.1 a.2 }
+  monotone' := λ x y h a, h a.1 a.2 }
 
 variables [∀ x y, omega_complete_partial_order $ γ x y]
 

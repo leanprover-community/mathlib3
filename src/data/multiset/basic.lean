@@ -630,6 +630,9 @@ quot.induction_on s $ λ l, rfl
 
 lemma map_singleton (f : α → β) (a : α) : ({a} : multiset α).map f = {f a} := rfl
 
+theorem map_repeat (f : α → β) (a : α) (k : ℕ) : (repeat a k).map f = repeat (f a) k := by
+{ induction k, simp, simpa }
+
 @[simp] theorem map_add (f : α → β) (s t) : map f (s + t) = map f s + map f t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
 
@@ -1692,9 +1695,12 @@ begin
   rw [← count_add, sub_add_inter, count_sub, sub_add_min],
 end
 
+lemma count_sum {m : multiset β} {f : β → multiset α} {a : α} :
+  count a (map f m).sum = sum (m.map $ λb, count a $ f b) :=
+multiset.induction_on m (by simp) ( by simp)
+
 lemma count_bind {m : multiset β} {f : β → multiset α} {a : α} :
-  count a (bind m f) = sum (m.map $ λb, count a $ f b) :=
-multiset.induction_on m (by simp) (by simp)
+  count a (bind m f) = sum (m.map $ λb, count a $ f b) := count_sum
 
 theorem le_count_iff_repeat_le {a : α} {s : multiset α} {n : ℕ} : n ≤ count a s ↔ repeat a n ≤ s :=
 quot.induction_on s $ λ l, le_count_iff_repeat_sublist.trans repeat_le_coe.symm

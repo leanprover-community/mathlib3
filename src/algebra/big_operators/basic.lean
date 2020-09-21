@@ -986,6 +986,19 @@ by haveI := classical.dec_eq α;
 calc (∏ x in s, f x) = ∏ x in insert a (erase s a), f x : by rw insert_erase ha
                  ... = 0 : by rw [prod_insert (not_mem_erase _ _), h, zero_mul]
 
+lemma prod_boole {s : finset α} {p : α → Prop} [decidable_pred p] :
+  ∏ i in s, ite (p i) (1 : β) (0 : β) = ite (∀ i ∈ s, p i) 1 0 :=
+begin
+  split_ifs,
+  { apply prod_eq_one,
+    intros i hi,
+    rw if_pos (h i hi) },
+  { push_neg at h,
+    rcases h with ⟨i, hi, hq⟩,
+    apply prod_eq_zero hi,
+    rw [if_neg hq] },
+end
+
 variables [nontrivial β] [no_zero_divisors β]
 
 lemma prod_eq_zero_iff : (∏ x in s, f x) = 0 ↔ (∃a∈s, f a = 0) :=
@@ -1028,5 +1041,35 @@ multiset.induction_on s rfl
           rw [to_finset_cons, finset.sum_insert h, if_pos rfl, finset.sum_add_distrib, this,
             finset.sum_const_zero, ih, count_eq_zero_of_not_mem ha, zero_add, add_comm, card_cons] }
       end)
+
+lemma count_sum' {s : finset β} {a : α} {f : β → multiset α} :
+  count a (∑ x in s, f x) = ∑ x in s, count a (f x) :=
+by { dunfold finset.sum, rw count_sum }
+
+lemma to_finset_sum_count_smul_eq (s : multiset α) :
+  (∑ a in s.to_finset, s.count a •ℕ (a :: 0)) = s :=
+begin
+  apply ext', intro b,
+  rw count_sum',
+  have h : count b s = count b (count b s •ℕ (b :: 0)),
+  { rw [singleton_coe, count_smul, ← singleton_coe, count_singleton, mul_one] },
+  rw h, clear h,
+  apply finset.sum_eq_single b,
+  { intros c h hcb, rw count_smul, convert mul_zero (count c s),
+    apply count_eq_zero.mpr, exact finset.not_mem_singleton.mpr (ne.symm hcb) },
+  { intro hb, rw [count_eq_zero_of_not_mem (mt mem_to_finset.2 hb), count_smul, zero_mul]}
+end
+
+theorem exists_smul_of_dvd_count (s : multiset α) {k : ℕ} (h : ∀ (a : α), k ∣ multiset.count a s) :
+  ∃ (u : multiset α), s = k •ℕ u :=
+begin
+  use ∑ a in s.to_finset, (s.count a / k) •ℕ (a :: 0),
+  have h₂ : ∑ (x : α) in s.to_finset, k •ℕ (count x s / k •ℕ (x :: 0)) =
+    ∑ (x : α) in s.to_finset, count x s •ℕ (x :: 0),
+  { refine congr_arg s.to_finset.sum _,
+    apply funext, intro x,
+    rw [← mul_nsmul, nat.mul_div_cancel' (h x)] },
+  rw [← finset.sum_nsmul, h₂, to_finset_sum_count_smul_eq]
+end
 
 end multiset

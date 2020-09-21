@@ -75,18 +75,6 @@ Therefore, if we create an instance that always applies, we set the priority of 
 -/
 library_note "lower instance priority"
 
-/--
-Instances that always apply should be applied after instances that only apply in specific cases,
-see note [lower instance priority] above.
-
-Classes that use the `extends` keyword automatically generate instances that always apply.
-Therefore, we set the priority of these instances to 100 (or something similar, which is below the
-default value of 1000) using `set_option default_priority 100`.
-We have to put this option inside a section, so that the default priority is the default
-1000 outside the section.
--/
-library_note "default priority"
-
 /-- A linter object for checking instance priorities of instances that always apply.
 This is in the default linter set. -/
 @[linter] meta def linter.instance_priority : linter :=
@@ -95,9 +83,7 @@ This is in the default linter set. -/
   errors_found := "DANGEROUS INSTANCE PRIORITIES.
 The following instances always apply, and therefore should have a priority < 1000.
 If you don't know what priority to choose, use priority 100.
-
-If this is an automatically generated instance (using the keywords `class` and `extends`),
-see note [lower instance priority] and see note [default priority] for instructions to change the priority",
+See note [lower instance priority] for instructions to change the priority.",
   auto_decls := tt }
 
 /-- Reports declarations of types that do not have an associated `inhabited` instance. -/

@@ -51,8 +51,6 @@ set_option old_structure_cmd true
 
 
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- Normalization monoid: multiplying with `norm_unit` gives a normal form for associated elements. -/
 @[protect_proj] class normalization_monoid (α : Type*) [nontrivial α]
   [comm_cancel_monoid_with_zero α] :=
@@ -60,7 +58,6 @@ set_option default_priority 100 -- see Note [default priority]
 (norm_unit_zero      : norm_unit 0 = 1)
 (norm_unit_mul       : ∀{a b}, a ≠ 0 → b ≠ 0 → norm_unit (a * b) = norm_unit a * norm_unit b)
 (norm_unit_coe_units : ∀(u : units α), norm_unit u = u⁻¹)
-end prio
 
 export normalization_monoid (norm_unit norm_unit_zero norm_unit_mul norm_unit_coe_units)
 
@@ -174,8 +171,6 @@ quotient.induction_on a normalize_idem
 
 end associates
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- GCD monoid: a `comm_cancel_monoid_with_zero` with normalization and `gcd`
 (greatest common divisor) and `lcm` (least common multiple) operations. In this setting `gcd` and
 `lcm` form a bounded lattice on the associated elements where `gcd` is the infimum, `lcm` is the
@@ -193,7 +188,6 @@ corresponding `lcm` facts from `gcd`.
 (gcd_mul_lcm    : ∀a b, gcd a b * lcm a b = normalize (a * b))
 (lcm_zero_left  : ∀a, lcm 0 a = 0)
 (lcm_zero_right : ∀a, lcm a 0 = 0)
-end prio
 
 export gcd_monoid (gcd lcm gcd_dvd_left gcd_dvd_right dvd_gcd  lcm_zero_left lcm_zero_right)
 
@@ -727,14 +721,12 @@ lemma units_eq_one (u : units α) : u = 1 := subsingleton.elim u 1
 
 variable [nontrivial α]
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
+@[priority 100] -- see Note [lower instance priority]
 instance normalization_monoid_of_unique_units : normalization_monoid α :=
 { norm_unit := λ x, 1,
   norm_unit_zero := rfl,
   norm_unit_mul := λ x y hx hy, (mul_one 1).symm,
   norm_unit_coe_units := λ u, subsingleton.elim _ _ }
-end prio
 
 @[simp] lemma norm_unit_eq_one (x : α) : norm_unit x = 1 := rfl
 

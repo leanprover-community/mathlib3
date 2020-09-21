@@ -598,96 +598,6 @@ meta def generalize_hyps (eliminee : expr) (gm : generalization_mode) : tactic �
 
 
 --------------------------------------------------------------------------------
--- STRUCTURE INDEX SIMPLIFICATION
---------------------------------------------------------------------------------
-
--- TODO remove
-
--- TODO remove
-meta def structure_info (struct : name) : tactic (name × list name × ℕ) := do
-  env ← get_env,
-  fields ← env.structure_fields struct,
-  let fields := fields.map $ λ f, struct ++ f,
-  [constructor] ← pure $ env.constructors_of struct,
-  let num_params := env.inductive_num_params struct,
-  pure (constructor, fields, num_params)
-
--- TODO remove
-meta def decompose_structure_value_aux : expr → expr →
-  tactic (list (expr × expr) × name_set) :=
-λ e f, do
-  t ← infer_type e,
-  ⟨struct, levels, params, constructor, fields, num_params⟩ ← do {
-    ⟨const struct levels, params⟩ ← decompose_app_normalizing t,
-    i ← structure_info struct,
-    pure (struct, levels, params, i)
-  }
-  <|> fail! "decompose_structure_value: {e} : {t} is not a value of a structure",
-  args ← do {
-    ⟨const c _, args⟩ ← decompose_app_normalizing e,
-    guard $ c = constructor,
-    pure args
-  }
-  <|> fail!
-    "decompose_structure_value: {e} is not an application of the structure constructor {constructor}",
-  let args := (args.drop num_params).zip fields,
-  rec ← args.mmap $ λ ⟨a, field⟩, do {
-    let f := (const field levels).mk_app (params ++ [f]),
-    rec ← try_core $ decompose_structure_value_aux a f,
-    match rec with
-    | some (es_fs, fields) := pure (es_fs, fields.insert field)
-    | none := pure ([(a, f)], mk_name_set.insert field)
-    end
-  },
-  let es_fs := (rec.map prod.fst).join,
-  let fields := (rec.map prod.snd).foldl name_set.union mk_name_set,
-  pure (es_fs, fields)
-
-/--
-If `e` is an application of a structure constructor, say `e = (x, y)`,
-`decompose_structure_value` returns a list of fields:
-
-    [(x, (x, y).fst), (y, (x, y).snd)]
-
-This also works recursively: `(x, y, z)` yields
-
-    [(x, (x, y, z).fst), (y, (x, y, z).snd.fst), (z, (x, y, z).snd.snd)]
-
-Additionally, `decompose_structure_value` returns the fully qualified names of
-all field accessors that appear in the output, e.g. `[prod.fst, prod.snd]` for
-the above examples.
-
-If `e` is not an application of a structure constructor, this tactic fails.
--/
--- TODO remove
-meta def decompose_structure_value (e : expr) :
-  tactic (list (expr × expr) × name_set) :=
-decompose_structure_value_aux e e
-
--- TODO remove
-meta def replace_structure_index_args (eliminee : expr) (index_args : list expr) :
-  tactic name_set := do
-  structure_args ←
-    index_args.mmap_filter (try_core ∘ decompose_structure_value),
-  let fields := (structure_args.map prod.snd).foldl name_set.union mk_name_set,
-  let structure_args := (structure_args.map prod.fst).join,
-
-  ctx ← revertible_local_context,
-  eliminee_deps ← dependencies_of_local eliminee,
-  relevant_ctx ← ctx.mfilter $ λ h, do {
-    ff ← pure $ eliminee_deps.contains h.local_uniq_name | pure ff,
-    H ← infer_type h,
-    (structure_args.map prod.fst).many $ λ a, kdepends_on H a
-  },
-  n ← revert_lst relevant_ctx,
-  tgt ← target,
-  tgt ← structure_args.mfoldl (λ tgt ⟨e, f⟩, kreplace tgt e f) tgt,
-  change tgt,
-  intron n,
-  pure fields
-
-
---------------------------------------------------------------------------------
 -- COMPLEX INDEX GENERALISATION
 --------------------------------------------------------------------------------
 
@@ -707,24 +617,16 @@ Output:
   the old eliminee hypothesis is invalidated.
 - The number of index placeholders we introduced.
 - The index placeholder hypotheses we introduced.
-- The set of field projections introduced during structure index simplification.
 - The number of hypotheses which were reverted because they contain complex
   indices.
 -/
 meta def generalize_complex_index_args (eliminee : expr) (num_params : ℕ)
-  (generate_induction_hyps : bool) : tactic (expr × ℕ × list name × name_set × ℕ) :=
+  (generate_induction_hyps : bool) : tactic (expr × ℕ × list name × ℕ) :=
 focus1 $ do
   eliminee_type ← infer_type eliminee,
   (eliminee_head, eliminee_args) ← decompose_app_normalizing eliminee_type,
   let ⟨eliminee_param_args, eliminee_index_args⟩ :=
     eliminee_args.split_at num_params,
-
-  -- If any of the index arguments are values of a structure, e.g. `(x, y)`,
-  -- replace `x` by `(x, y).fst` and `y` by `(x, y).snd` everywhere in the goal.
-  -- This makes sure that when we abstract over `(x, y)`, we don't lose the
-  -- connection to `x` and `y`.
-  -- TODO Is this ever actually necessary?
-  fields ← replace_structure_index_args eliminee eliminee_index_args,
 
   -- TODO Add equations only for complex index args (not all index args).
   -- This shouldn't matter semantically, but we'd get simpler terms.
@@ -796,7 +698,7 @@ focus1 $ do
   revert_lst index_equations,
 
   let index_vars := index_vars.map local_pp_name,
-  pure (eliminee, index_vars.length, index_vars, fields, relevant_ctx_size)
+  pure (eliminee, index_vars.length, index_vars, relevant_ctx_size)
 
 
 --------------------------------------------------------------------------------
@@ -927,23 +829,6 @@ meta def simplify_ih (num_generalized : ℕ) (num_index_vars : ℕ) (ih : expr) 
 -- TODO move these to util file
 
 /--
-Returns the unique names of all hypotheses (local constants) in the context.
--/
--- TODO copied from init.meta.interactive
-meta def hyp_unique_names : tactic name_set :=
-do ctx ← local_context,
-   pure $ ctx.foldl (λ r h, r.insert h.local_uniq_name) mk_name_set
-
-/--
-Returns all hypotheses (local constants) from the context except those whose
-unique names are in `hyp_uids`.
--/
--- TODO copied from init.meta.interactive
-meta def hyps_except (hyp_uids : name_set) : tactic (list expr) :=
-do ctx ← local_context,
-   pure $ ctx.filter (λ (h : expr), ¬ hyp_uids.contains h.local_uniq_name)
-
-/--
   Updates the tags of new subgoals produced by `cases` or `induction`. `in_tag`
   is the initial tag, i.e. the tag of the goal on which `cases`/`induction` was
   applied. `rs` should contain, for each subgoal, the constructor name
@@ -962,51 +847,6 @@ do gs ← get_goals,
         set_tag g $
           (case_tag.from_tag_hyps (n :: in_tag) (new_hyps.map expr.local_uniq_name)).render
    end
-
-/--
-`unfold_only to_unfold e fail_if_unchanged` unfolds the definitions in
-`to_unfold` in the expression `e`. Returns the changed expression. If
-`fail_if_unchanged` is true and `e` does not contain any of the definitions in
-`to_unfold`, the tactic fails.
--/
-meta def unfold_only (to_unfold : list name) (e : expr) (fail_if_unchanged := tt) :
-  tactic expr :=
-simp_lemmas.dsimplify simp_lemmas.mk to_unfold e
-  { eta := ff, zeta := ff, beta := ff, iota := ff
-  , fail_if_unchanged := fail_if_unchanged }
-
-/--
-Apply `unfold_only` to the target.
-`unfold_only_target to_unfold fail_if_unchanged` unfolds the definitions in
-`to_unfold` in the target. If `fail_if_unchanged` is true and the target does
-not contain any of the definitions in `to_unfold`, the tactic fails.
--/
-meta def unfold_only_target (to_unfold : list name) (fail_if_unchanged := tt) :
-  tactic unit := do
-  tgt ← target,
-  tgt ← unfold_only to_unfold tgt fail_if_unchanged,
-  unsafe_change tgt
-
-/--
-TODO doc
--/
--- Note: frozen local instances.
--- Note: changes all unique names.
-meta def unfold_only_everywhere (to_unfold : list name) (fail_if_unchanged := tt) :
-  tactic unit := do
-  n ← revert_all,
-  unfold_only_target to_unfold fail_if_unchanged,
-  intron n
-
-/--
-`revert_all_except hyp_unique_names` reverts all revertible hypotheses except
-those whose unique names appear in `hyp_unique_names`. See
-`tactic.revertible_local_context` for what 'revertible' means.
--/
-meta def revert_all_except (hyp_unique_names : name_set) : tactic ℕ := do
-  ctx ← revertible_local_context,
-  let ctx := ctx.filter (λ h, ¬ hyp_unique_names.contains h.local_uniq_name),
-  revert_lst ctx
 
 end eliminate
 
@@ -1082,7 +922,7 @@ focus1 $ do
   trace_state_eliminate_hyp "State before complex index generalisation:",
 
   -- Generalise complex indices
-  (eliminee, num_index_vars, index_var_names, structure_field_names, num_index_generalized) ←
+  (eliminee, num_index_vars, index_var_names, num_index_generalized) ←
     generalize_complex_index_args eliminee iinfo.num_params generate_ihs,
 
   trace_state_eliminate_hyp
@@ -1098,7 +938,6 @@ focus1 $ do
   -- Record the current case tag and the unique names of all hypotheses in the
   -- context.
   in_tag ← get_main_tag,
-  old_hyps ← hyp_unique_names,
 
   trace_state_eliminate_hyp
     "State after auto-generalisation and before recursor application:",
@@ -1152,23 +991,7 @@ focus1 $ do
       eliminee_args.mmap' (try ∘ clear),
 
       trace_state_eliminate_hyp
-        "State after clearing the eliminee (and its arguments) and before unfolding structure projections:",
-
-      -- Unfold structure projections which may have been introduced by the
-      -- structure equation simplification step of generalize_complex_index_args.
-      -- TODO This method reduces every occurrence of the given structure field
-      -- projections, not only those which we actually introduced. This may
-      -- yield some surprising results, but I don't see an easy way to prevent
-      -- it.
-      n ← revert_all_except old_hyps,
-      unfold_only_target structure_field_names.to_list ff,
-      intron n,
-
-      trace_state_eliminate_hyp
-        "State after unfolding structure projections and before introductions:",
-
-      -- NOTE: The previous step invalidates all unique names (except those of
-      -- the old hyps).
+        "State after clearing the eliminee (and its arguments) and before introductions:",
 
       -- Introduce the constructor arguments
       (constructor_arg_names, ih_names) ←

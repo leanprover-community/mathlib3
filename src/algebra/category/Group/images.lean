@@ -9,6 +9,8 @@ import category_theory.limits.types
 
 /-!
 # The category of commutative additive groups has images.
+
+Note that TODO TODO TODO
 -/
 
 open category_theory
@@ -83,40 +85,22 @@ def mono_factorisation : mono_factorisation f :=
   m := image.ι f,
   e := factor_thru_image f }
 
-noncomputable instance : has_image f :=
-{ F := mono_factorisation f,
-  is_image :=
-  { lift := image.lift,
-    lift_fac' := image.lift_fac } }
+noncomputable def is_image : is_image (mono_factorisation f) :=
+{ lift := image.lift,
+  lift_fac' := image.lift_fac }
 
-noncomputable instance : has_images AddCommGroup.{0} :=
-{ has_image := infer_instance }
+instance : has_image f :=
+has_image.mk ⟨_, is_image f⟩
 
--- We'll later get this as a consequence of `[abelian AddCommGroup]`.
--- Nevertheless this instance has the desired definitional behaviour,
--- and is useful in the meantime for doing cohomology.
-
--- When the `[abelian AddCommGroup]` instance is available
--- this instance should be reviewed, and ideally removed if the `[abelian]` instance
--- provides something definitionally equivalent.
-noncomputable instance : has_image_maps AddCommGroup.{0} :=
-{ has_image_map := λ f g st,
-  { map :=
-    { to_fun := image.map ((forget AddCommGroup).map_arrow.map st),
-      map_zero' := by { ext, simp, },
-      map_add' := λ x y, by { ext, simp, refl, } } } }
-
-@[simp] lemma image_map {f g : arrow AddCommGroup.{0}} (st : f ⟶ g) (x : image f.hom):
-  (image.map st x).val = st.right x.1 :=
-rfl
+instance : has_images AddCommGroup.{0} :=
+{ has_image := by apply_instance }
 
 /--
 The categorical image of a morphism in `AddCommGroup`
 agrees with the usual group-theoretical range.
 -/
-def image_iso_range {G H : AddCommGroup} (f : G ⟶ H) :
-  image f ≅ AddCommGroup.of f.range :=
-iso.refl _
-
+noncomputable def image_iso_range {G H : AddCommGroup.{0}} (f : G ⟶ H) :
+  limits.image f ≅ AddCommGroup.of f.range :=
+is_image.iso_ext (image.is_image f) (is_image f)
 
 end AddCommGroup

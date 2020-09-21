@@ -33,7 +33,7 @@ by simp [antidiagonal]
 rfl
 
 lemma antidiagonal_succ {n : ℕ} :
-  antidiagonal (n + 1) = insert (0,n + 1) ((antidiagonal n).map
+  antidiagonal (n + 1) = insert (0, n + 1) ((antidiagonal n).map
   (function.embedding.prod_map ⟨nat.succ, nat.succ_injective⟩ (function.embedding.refl _))) :=
 begin
   apply eq_of_veq,
@@ -56,8 +56,7 @@ begin
   { rintro ⟨b, c, ⟨rfl, rfl⟩⟩,
     simp },
   { rintro rfl,
-    use a.snd,
-    use a.fst,
+    use [a.snd, a.fst],
     simp }
 end
 

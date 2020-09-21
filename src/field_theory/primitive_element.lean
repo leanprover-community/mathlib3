@@ -130,7 +130,7 @@ begin
     rw euclidean_domain.gcd_eq_zero_iff at h_eq_zero,
     apply polynomial.map_monic_ne_zero (minimal_polynomial.monic hβ) h_eq_zero.2, },
   have h_root : h.eval β = 0,
-  { apply polynomial.gcd_eval_zero,
+  { apply polynomial.eval_gcd_eq_zero,
     { rw [polynomial.eval_comp,polynomial.eval_sub,polynomial.eval_mul,polynomial.eval_C,
           polynomial.eval_C,polynomial.eval_X,add_sub_cancel,
           polynomial.eval_map,←polynomial.aeval_def, minimal_polynomial.aeval] },

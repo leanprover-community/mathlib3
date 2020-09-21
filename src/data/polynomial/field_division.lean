@@ -203,11 +203,13 @@ gcd.induction p q (λ x, by simp_rw [map_zero, euclidean_domain.gcd_zero_left]) 
 by rw [gcd_val, ← map_mod, ih, ← gcd_val]
 end
 
+lemma eval₂_gcd_eq_zero [comm_semiring k] {ϕ : R →+* k} {f g : polynomial R} {α : k}
+  (hf : f.eval₂ ϕ α = 0) (hg : g.eval₂ ϕ α = 0) : (euclidean_domain.gcd f g).eval₂ ϕ α = 0 :=
+by rw [euclidean_domain.gcd_eq_gcd_ab f g, polynomial.eval₂_add, polynomial.eval₂_mul,
+       polynomial.eval₂_mul, hf, hg, zero_mul, zero_mul, zero_add]
+
 lemma eval_gcd_eq_zero {f g : polynomial R} {α : R} (hf : f.eval α = 0) (hg : g.eval α = 0) :
-  (euclidean_domain.gcd f g).eval α = 0 :=
-by rw [euclidean_domain.gcd_eq_gcd_ab f g,
-       polynomial.eval_add, polynomial.eval_mul, polynomial.eval_mul, hf, hg,
-       zero_mul, zero_mul,zero_add]
+  (euclidean_domain.gcd f g).eval α = 0 := eval₂_gcd_eq_zero hf hg
 
 lemma gcd_root_left [field k] [algebra R k] (f g : polynomial R) (α : k)
   (hα : (euclidean_domain.gcd f g).eval₂ (algebra_map R k) α = 0) :

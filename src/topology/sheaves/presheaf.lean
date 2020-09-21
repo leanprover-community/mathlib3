@@ -12,7 +12,7 @@ We define `presheaf C X` simply as `(opens X)ᵒᵖ ⥤ C`,
 and inherit the category structure with natural transformations as morphisms.
 
 We define
-* `pushforward {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) : Y.presheaf C`
+* `pushforward_obj {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) : Y.presheaf C`
 with notation `f _* ℱ`
 and for `ℱ : X.presheaf C` provide the natural isomorphisms
 * `pushforward.id : (𝟙 X) _* ℱ ≅ ℱ``
@@ -37,13 +37,18 @@ variables {C}
 
 namespace presheaf
 
-def pushforward {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) : Y.presheaf C :=
+/-- Pushforward a presheaf on `X` along a continuous map `f : X ⟶ Y`, obtaining a presheaf on `Y`. -/
+def pushforward_obj {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) : Y.presheaf C :=
 (opens.map f).op ⋙ ℱ
 
-infix ` _* `: 80 := pushforward
+infix ` _* `: 80 := pushforward_obj
 
-@[simp] lemma pushforward_obj {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) (U : (opens Y)ᵒᵖ) :
+@[simp] lemma pushforward_obj_obj {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) (U : (opens Y)ᵒᵖ) :
   (f _* ℱ).obj U = ℱ.obj ((opens.map f).op.obj U) := rfl
+
+@[simp] lemma pushforward_obj_map {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C)
+  {U V : (opens Y)ᵒᵖ} (i : U ⟶ V) :
+  (f _* ℱ).map i = ℱ.map ((opens.map f).op.map i) := rfl
 
 def pushforward_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) :
   f _* ℱ ≅ g _* ℱ :=
@@ -98,16 +103,10 @@ def comp {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) : (f ≫ g) _* ℱ ≅ g _*
 iso_whisker_right (nat_iso.op (opens.map_comp f g).symm) ℱ
 
 @[simp] lemma comp_hom_app {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (comp ℱ f g).hom.app U = 𝟙 _ :=
-begin
-  dsimp [pushforward, comp],
-  tidy,
-end
+by { dsimp [comp], tidy, }
 
 @[simp] lemma comp_inv_app {Y Z : Top.{v}} (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (comp ℱ f g).inv.app U = 𝟙 _ :=
-begin
-  dsimp [pushforward, comp],
-  tidy,
-end
+by { dsimp [comp], tidy, }
 
 end pushforward
 

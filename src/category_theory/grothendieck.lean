@@ -175,57 +175,57 @@ end grothendieck
 
 end category_theory
 
-namespace category_theory
+-- namespace category_theory
 
-open grothendieck
+-- open grothendieck
 
-open category_theory.limits
+-- open category_theory.limits
 
-noncomputable theory
+-- noncomputable theory
 
-universes v
+-- universes v
 
-variables {C : Type u} [category.{v} C]
-variables {F : C ⥤ Cat.{v u}}
-variables [has_colimits C]
-variables {J : Type v} [small_category J] (G : J ⥤ grothendieck F)
+-- variables {C : Type u} [category.{v} C]
+-- variables {F : C ⥤ Cat.{v u}}
+-- variables [has_colimits C]
+-- variables {J : Type v} [small_category J] (G : J ⥤ grothendieck F)
 
-@[simps]
-def pushforward_diagram_to_colimit : J ⥤ F.obj (colimit (G ⋙ grothendieck.forget F)) :=
-{ obj := λ j, (F.map (colimit.ι (G ⋙ grothendieck.forget F) j)).obj (G.obj j).fiber,
-  map := λ j j' f,
-  begin
-    have := (F.map (colimit.ι (G ⋙ grothendieck.forget F) j')).map (G.map f).fiber,
-    refine _ ≫ this,
-    have := eq_to_hom (functor.congr_obj (F.map_comp _ _) (G.obj j).fiber),
-    refine _ ≫ this,
-    have := congr_foo F (colimit.w (G ⋙ grothendieck.forget F) f).symm _,
-    exact eq_to_hom this,
-  end,
-  map_id' := λ j, by simp [grothendieck.congr (G.map_id j)],
-  map_comp' := sorry, }
+-- @[simps]
+-- def pushforward_diagram_to_colimit : J ⥤ F.obj (colimit (G ⋙ grothendieck.forget F)) :=
+-- { obj := λ j, (F.map (colimit.ι (G ⋙ grothendieck.forget F) j)).obj (G.obj j).fiber,
+--   map := λ j j' f,
+--   begin
+--     have := (F.map (colimit.ι (G ⋙ grothendieck.forget F) j')).map (G.map f).fiber,
+--     refine _ ≫ this,
+--     have := eq_to_hom (functor.congr_obj (F.map_comp _ _) (G.obj j).fiber),
+--     refine _ ≫ this,
+--     have := congr_foo F (colimit.w (G ⋙ grothendieck.forget F) f).symm _,
+--     exact eq_to_hom this,
+--   end,
+--   map_id' := λ j, by simp [grothendieck.congr (G.map_id j)],
+--   map_comp' := sorry, }
 
-variables [∀ X : C, has_colimits (F.obj X)]
+-- variables [∀ X : C, has_colimits (F.obj X)]
 
-@[simps]
-def colimit : grothendieck F :=
-{ base := colimit (G ⋙ grothendieck.forget F),
-  fiber := colimit (pushforward_diagram_to_colimit G), }
+-- @[simps]
+-- def colimit : grothendieck F :=
+-- { base := colimit (G ⋙ grothendieck.forget F),
+--   fiber := colimit (pushforward_diagram_to_colimit G), }
 
-@[simps]
-def colimit_cocone : cocone G :=
-{ X := colimit G,
-  ι :=
-  { app := λ j,
-    { base := colimit.ι (G ⋙ grothendieck.forget F) j,
-      fiber := colimit.ι (pushforward_diagram_to_colimit G) j, },
-    naturality' := sorry, } }
+-- @[simps]
+-- def colimit_cocone : cocone G :=
+-- { X := colimit G,
+--   ι :=
+--   { app := λ j,
+--     { base := colimit.ι (G ⋙ grothendieck.forget F) j,
+--       fiber := colimit.ι (pushforward_diagram_to_colimit G) j, },
+--     naturality' := sorry, } }
 
-def colimit_cocone_is_colimit : is_colimit (colimit_cocone G) :=
-{ desc := λ s,
-  { base := colimit.desc (G ⋙ grothendieck.forget F) ((grothendieck.forget F).map_cocone s),
-    fiber := begin dsimp, end, },
-  fac' := begin sorry, end,
-  uniq' := sorry, }
+-- def colimit_cocone_is_colimit : is_colimit (colimit_cocone G) :=
+-- { desc := λ s,
+--   { base := colimit.desc (G ⋙ grothendieck.forget F) ((grothendieck.forget F).map_cocone s),
+--     fiber := begin dsimp, end, },
+--   fac' := begin sorry, end,
+--   uniq' := sorry, }
 
-end category_theory
+-- end category_theory

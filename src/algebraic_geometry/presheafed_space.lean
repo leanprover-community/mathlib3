@@ -69,7 +69,7 @@ structure hom (X Y : PresheafedSpace C) :=
   α = β :=
 begin
   cases α, cases β,
-  dsimp [presheaf.pushforward] at *,
+  dsimp [presheaf.pushforward_obj] at *,
   tidy, -- TODO including `injections` would make tidy work earlier.
 end
 .
@@ -89,7 +89,7 @@ def comp {X Y Z : PresheafedSpace C} (α : hom X Y) (β : hom Y Z) : hom X Z :=
 variables (C)
 
 section
-local attribute [simp] id comp presheaf.pushforward
+local attribute [simp] id comp
 
 /- The proofs below can be done by `tidy`, but it is too slow,
    and we don't have a tactic caching mechanism. -/
@@ -105,7 +105,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
     { dsimp, simp only [id_comp] },  -- See note [dsimp, simp].
     { ext U, op_induction, cases U,
       dsimp,
-      simp only [comp_id, id_comp, map_id, presheaf.pushforward, presheaf.pushforward.comp_inv_app],
+      simp only [comp_id, id_comp, map_id, presheaf.pushforward.comp_inv_app],
       dsimp,
       simp only [comp_id], },
   end,
@@ -115,7 +115,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
     { dsimp, simp only [comp_id] },
     { ext U, op_induction, cases U,
       dsimp,
-      simp only [comp_id, id_comp, map_id, presheaf.pushforward, presheaf.pushforward.comp_inv_app],
+      simp only [comp_id, id_comp, map_id, presheaf.pushforward.comp_inv_app],
       dsimp,
       simp only [comp_id], }
   end,
@@ -125,7 +125,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
      refl,
      { ext U, op_induction, cases U,
        dsimp,
-       simp only [assoc, map_id, comp_id, presheaf.pushforward, presheaf.pushforward.comp_inv_app],
+       simp only [assoc, map_id, comp_id, presheaf.pushforward.comp_inv_app],
        dsimp,
        simp only [comp_id, id_comp], }
   end }
@@ -154,12 +154,7 @@ by { op_induction U, cases U, simp only [id_c], dsimp, simp, }
 
 lemma congr_app {X Y : PresheafedSpace C} {α β : X ⟶ Y} (h : α = β) (U) :
   α.c.app U = β.c.app U ≫ X.presheaf.map (eq_to_hom (by subst h)) :=
-begin
-  subst h,
-  dsimp,
-  simp,
-  erw [category.comp_id],
-end
+by { subst h, dsimp, simp, }
 
 section
 variables (C)
@@ -268,7 +263,7 @@ namespace category_theory
 
 variables {D : Type u} [category.{v} D]
 
-local attribute [simp] presheaf.pushforward
+local attribute [simp] presheaf.pushforward_obj
 
 namespace functor
 

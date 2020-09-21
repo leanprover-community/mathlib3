@@ -67,7 +67,7 @@ obtaining a diagram in `(presheaf C X)ᵒᵖ`.
 @[simps]
 def pushforward_diagram_to_colimit (F : J ⥤ PresheafedSpace C) :
   J ⥤ (presheaf C (colimit (F ⋙ PresheafedSpace.forget C)))ᵒᵖ :=
-{ obj := λ j, op ((F.obj j).presheaf.pushforward (colimit.ι (F ⋙ PresheafedSpace.forget C) j)),
+{ obj := λ j, op ((colimit.ι (F ⋙ PresheafedSpace.forget C) j) _* (F.obj j).presheaf),
   map := λ j j' f,
   (pushforward_map (colimit.ι (F ⋙ PresheafedSpace.forget C) j') (F.map f).c ≫
     (pushforward.comp (F.obj j).presheaf ((F ⋙ PresheafedSpace.forget C).map f)
@@ -160,19 +160,13 @@ def colimit_cocone (F : J ⥤ PresheafedSpace C) : cocone F :=
         simp,
         -- erw [id_comp],
         congr,
-        dsimp [pushforward],
+        dsimp,
         erw [id_comp],
         rw quux,
         simp,
         refl,
          }
     end, }, }
-
-      -- have := limit.lift (pushforward_diagram_to_colimit F).left_op _,
-      -- have := pushforward_map _ this,
-      -- convert this,
-      -- -- I think we need to restrict to just open embeddings for this to work.
-      -- repeat { sorry },
 
 namespace colimit_cocone_is_colimit
 
@@ -200,13 +194,25 @@ begin
         have := s.w f.unop,
         have := (PresheafedSpace.congr_app this.symm U).symm,
         rw ←this, dsimp, simp,
-        congr' 1, sorry, },
+        congr' 1,
+        dsimp,
+        simp,
+        have w := functor.congr_obj (congr_arg opens.map (colimit.ι_desc ((PresheafedSpace.forget C).map_cocone s) (unop j))) (unop U),
+        simp only [opens.map_comp_obj_unop] at w,
+        replace w := congr_arg op w,
+        have w' := nat_trans.congr (F.map f.unop).c w,
+        rw w',
+        dsimp,
+        simp,
+        congr' 1,
+        erw id_comp,
+        simp,
+        refl, },
     end
 
 end colimit_cocone_is_colimit
 
 open colimit_cocone_is_colimit
-#check get_limit_cone
 
 def colimit_cocone_is_colimit (F : J ⥤ PresheafedSpace C) : is_colimit (colimit_cocone F) :=
 { desc := λ s,
@@ -217,10 +223,47 @@ def colimit_cocone_is_colimit (F : J ⥤ PresheafedSpace C) : is_colimit (colimi
       begin
         dsimp [desc_c_app],
         ext,
+        simp only [limit.lift_π, nat_trans.naturality, limit.lift_π_assoc, eq_to_hom_map, assoc,
+          pushforward_obj_map, nat_trans.naturality_assoc, op_map,
+          limit_obj_iso_limit_comp_evaluation_inv_π_app_assoc,
+          limit_obj_iso_limit_comp_evaluation_inv_π_app],
+        dsimp,
+        have w := functor.congr_hom (congr_arg opens.map (colimit.ι_desc ((PresheafedSpace.forget C).map_cocone s) (unop j))) (i.unop),
+        simp only [opens.map_comp_map] at w,
+        replace w := congr_arg has_hom.hom.op w,
+        rw w,
+        dsimp,
         simp,
-        sorry,
+        refl,
       end, }, },
-  fac' := begin sorry, end,
-  uniq' := sorry, }
+  -- fac' := begin sorry, end, -- works by tidy
+  uniq' := λ s m w,
+  begin
+    have t : m.base = colimit.desc (F ⋙ PresheafedSpace.forget C) ((PresheafedSpace.forget C).map_cocone s),
+    { ext,
+      dsimp,
+      simp only [colimit.ι_desc_apply, map_cocone_ι],
+      rw ← w j,
+      simp,
+      refl, },
+    fapply PresheafedSpace.ext, -- could `ext` please not reorder goals?
+    { exact t, },
+    { ext U j, dsimp [desc_c_app], simp,
+      rw PresheafedSpace.congr_app (w (unop j)).symm U,
+      simp,
+      dsimp,
+      simp,
+      have w := functor.congr_obj (congr_arg opens.map t) (unop U),
+      replace w := congr_arg op w,
+      have w' := nat_trans.congr (limit.π (pushforward_diagram_to_colimit F).left_op j) w,
+      rw w',
+      simp, }
+  end, }
+
+instance : has_colimits (PresheafedSpace C) :=
+{ has_colimits_of_shape := λ J 𝒥, by exactI
+  { has_colimit := λ F, has_colimit.mk
+    { cocone     := colimit_cocone F,
+      is_colimit := colimit_cocone_is_colimit F } } }
 
 end algebraic_geometry

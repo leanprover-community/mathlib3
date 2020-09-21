@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import category_theory.category.Cat
 import category_theory.elements
-import category_theory.limits.limits
 
 /-!
 # The Grothendieck construction

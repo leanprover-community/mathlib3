@@ -142,7 +142,6 @@ instance functor_category_has_limits [has_limits C] : has_limits (K ⥤ C) :=
 instance functor_category_has_colimits [has_colimits C] : has_colimits (K ⥤ C) :=
 { has_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
-@[simps]
 instance evaluation_preserves_limits_of_shape [has_limits_of_shape J C] (k : K) :
   preserves_limits_of_shape J ((evaluation K C).obj k) :=
 { preserves_limit :=

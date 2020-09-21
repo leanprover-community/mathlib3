@@ -815,10 +815,6 @@ def limit (F : J ⥤ C) [has_limit F] := (limit.cone F).X
 def limit.π (F : J ⥤ C) [has_limit F] (j : J) : limit F ⟶ F.obj j :=
 (limit.cone F).π.app j
 
-@[simp] lemma get_limit_cone_cone (F : J ⥤ C) [has_limit F] :
-  (get_limit_cone F).cone = limit.cone F :=
-rfl
-
 @[simp] lemma limit.cone_X {F : J ⥤ C} [has_limit F] :
   (limit.cone F).X = limit F := rfl
 
@@ -831,10 +827,6 @@ rfl
 /-- Evidence that the arbitrary choice of cone provied by `limit.cone F` is a limit cone. -/
 def limit.is_limit (F : J ⥤ C) [has_limit F] : is_limit (limit.cone F) :=
 (get_limit_cone F).is_limit
-
-@[simp] lemma get_limit_cone_is_limit (F : J ⥤ C) [has_limit F] :
-  (get_limit_cone F).is_limit = limit.is_limit F :=
-rfl
 
 /-- The morphism from the cone point of any other cone to the limit object. -/
 def limit.lift (F : J ⥤ C) [has_limit F] (c : cone F) : c.X ⟶ limit F :=
@@ -872,7 +864,8 @@ is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _
   (w : ∀ j, f ≫ limit.π F j = f' ≫ limit.π F j) : f = f' :=
 (limit.is_limit F).hom_ext w
 
-@[simp] lemma limit.lift_cone {F : J ⥤ C} [has_limit F] : limit.lift F (limit.cone F) = 𝟙 (limit F) :=
+@[simp] lemma limit.lift_cone {F : J ⥤ C} [has_limit F] :
+  limit.lift F (limit.cone F) = 𝟙 (limit F) :=
 by { ext, dsimp, simp, }
 
 /--
@@ -1259,6 +1252,10 @@ is_colimit.comp_cocone_point_unique_up_to_iso_inv _ _ _
 @[ext] lemma colimit.hom_ext {F : J ⥤ C} [has_colimit F] {X : C} {f f' : colimit F ⟶ X}
   (w : ∀ j, colimit.ι F j ≫ f = colimit.ι F j ≫ f') : f = f' :=
 (colimit.is_colimit F).hom_ext w
+
+@[simp] lemma colimit.desc_cocone {F : J ⥤ C} [has_colimit F] :
+  colimit.desc F (colimit.cocone F) = 𝟙 (colimit F) :=
+by { ext, dsimp, simp, }
 
 /--
 The isomorphism (in `Type`) between

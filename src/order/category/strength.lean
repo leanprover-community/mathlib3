@@ -136,7 +136,11 @@ instance has_strength.to_has_costrength [has_strength F] : has_costrength F :=
     begin
       intros,
 
-      simp only [comp_tensor_id, category.assoc, braiding_naturality_inv_assoc, ← functor.map_comp],
+      simp only [category.assoc, ← functor.map_comp, comp_tensor_id],
+
+      rw braiding_naturality_inv_assoc,
+
+      -- rw comp_tensor_id,
 
       -- rw [iso.eq_inv_comp],
       -- -- rw ← symmetric_category.braiding_inv,

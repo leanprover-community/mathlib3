@@ -252,6 +252,17 @@ abbreviation coimage_iso_image : coimages.coimage f ≅ images.image f :=
 is_image.iso_ext (coimages.coimage_strong_epi_mono_factorisation f).to_mono_is_image
   (images.image_strong_epi_mono_factorisation f).to_mono_is_image
 
+/-- There is a canonical isomorphism between the abelian image and the categorical image of a
+    morphism. -/
+abbreviation image_iso_image : images.image f ≅ image f :=
+is_image.iso_ext (images.image_strong_epi_mono_factorisation f).to_mono_is_image (image.is_image f)
+
+/-- There is a canonical isomorphism between the abelian coimage and the categorical image of a
+    morphism. -/
+abbreviation coimage_iso_image' : coimages.coimage f ≅ image f :=
+is_image.iso_ext (coimages.coimage_strong_epi_mono_factorisation f).to_mono_is_image
+  (image.is_image f)
+
 lemma full_image_factorisation : coimages.coimage.π f ≫ (coimage_iso_image f).hom ≫
   images.image.ι f = f :=
 by rw [limits.is_image.iso_ext_hom,

@@ -43,10 +43,10 @@ begin
       rw this,
       apply_instance },
     refine is_limit.of_ι _ _ _ _ _,
-    { refine λ W u hu, kernel.lift (cokernel.π f) u _,
+    { refine λ W u hu, kernel.lift (cokernel.π f) u _ ≫ (image_iso_image f).hom,
       rw [←kernel.lift_ι g u hu, category.assoc, h.2, has_zero_morphisms.comp_zero] },
-    { exact λ _ _ _, kernel.lift_ι _ _ _ },
-    { tidy } }
+    { tidy },
+    { intros, simp [w, ←cancel_mono (image.ι f)] } }
 end
 
 theorem exact_iff' {cg : kernel_fork g} (hg : is_limit cg)
@@ -68,10 +68,10 @@ def is_limit_image [h : exact f g] :
 begin
   rw exact_iff at h,
   refine is_limit.of_ι _ _ _ _ _,
-  { refine λ W u hu, kernel.lift (cokernel.π f) u _,
+  { refine λ W u hu, kernel.lift (cokernel.π f) u _ ≫ (image_iso_image f).hom,
     rw [←kernel.lift_ι g u hu, category.assoc, h.2, has_zero_morphisms.comp_zero] },
-  { exact λ _ _ _, kernel.lift_ι _ _ _ },
-  { tidy }
+  { tidy },
+  { intros, simp [w, ←cancel_mono (image.ι f)] }
 end
 
 

@@ -986,6 +986,19 @@ by haveI := classical.dec_eq α;
 calc (∏ x in s, f x) = ∏ x in insert a (erase s a), f x : by rw insert_erase ha
                  ... = 0 : by rw [prod_insert (not_mem_erase _ _), h, zero_mul]
 
+lemma prod_boole {s : finset α} {p : α → Prop} [decidable_pred p] :
+  ∏ i in s, ite (p i) (1 : β) (0 : β) = ite (∀ i ∈ s, p i) 1 0 :=
+begin
+  split_ifs,
+  { apply prod_eq_one,
+    intros i hi,
+    rw if_pos (h i hi) },
+  { push_neg at h,
+    rcases h with ⟨i, hi, hq⟩,
+    apply prod_eq_zero hi,
+    rw [if_neg hq] },
+end
+
 variables [nontrivial β] [no_zero_divisors β]
 
 lemma prod_eq_zero_iff : (∏ x in s, f x) = 0 ↔ (∃a∈s, f a = 0) :=

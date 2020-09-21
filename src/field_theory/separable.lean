@@ -503,10 +503,7 @@ begin
   { apply minimal_polynomial.dvd,
     rw [aeval_def,eval₂_map, ←is_scalar_tower.algebra_map_eq F K E],
     apply minimal_polynomial.aeval, },
-  cases key with q hq,
-  apply polynomial.separable.of_mul_left,
-  rw ←hq,
-  exact polynomial.separable.map hs,
+  exact hs.map.of_dvd key,
 end
 
 lemma is_separable_bottom (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]

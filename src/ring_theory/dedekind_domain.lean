@@ -209,7 +209,7 @@ begin
     ring,apply (fractional_ideal.le_one_iff_exists_coe_ideal.mp hMMinv_inclR),
     cases h_nonfrac with I hI,--could replace the above have and this cases by obtain?
   have h_Iincl : M ≤ I,
-    {suffices h_Iincl_f : (↑M: fractional_ideal f) ≤ (↑I: fractional_ideal f),-- what follows it the proof that h_Iincl_f → h_Iincl
+    {suffices h_Iincl_f : (↑M: fractional_ideal f) ≤ (↑I: fractional_ideal f),-- what follows is the proof that h_Iincl_f → h_Iincl
       intros x hx,
       let y := f.to_map x,
       have defy: f.to_map x =y,refl,
@@ -224,12 +224,24 @@ begin
       subst hax,exact ha,
       rw hI, exact hM_inclMinv,
     },
+  -- have h_Iincl_ss : ↑ M ⊆  I,apply submodule.span_le,
+  have one_fI : (1 : K) ∈ (↑I:fractional_ideal f),
+    {have ex_nzM : ∃ y ∈ M, y ≠ (0 : R),sorry,
+    rcases ex_nzM with ⟨ y , h_My , h_nzy ⟩,
+    have h_invyinvM : (1/f.to_map y: K) ∈ (1:fractional_ideal f)/(↑ M:fractional_ideal f),sorry,
+      -- rw hI,
 
-  have one_I : (1 : R)∈ I,sorry,
-  have h_Itop : I=⊤,apply and.elim_right hM I,
 
-
-  sorry,--this replaces a proof that M < I
+    sorry},
+  have one_I : (1 : R)∈ I,
+   {have u1_I : ∃ (u ∈ (I: ideal R)), (f.to_map u) = (1: K),
+    apply (fractional_ideal.mem_coe ).mp one_fI,
+    rcases u1_I with ⟨v,hv,hfv⟩,
+    have h_v1 : v=1,
+    suffices h_v1f : f.to_map v=f.to_map 1,apply fraction_map.injective f h_v1f,rw hfv,
+    apply (ring_hom.map_one f.to_ring_hom).symm,
+   }
+  have h_Itop : I=⊤,apply (ideal.eq_top_iff_one I).mpr,exact one_I,
   have h_okI : ↑I=(1 : fractional_ideal f),apply fractional_ideal.ext_iff.mp,
     intros x,split,
       {intro hx,

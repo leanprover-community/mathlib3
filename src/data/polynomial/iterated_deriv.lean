@@ -26,7 +26,7 @@ section semiring
 
 variables [semiring R] (f p q: polynomial R) (n k : ℕ)
 
-/--Defining the n-th derivative of polynomial f-/
+/-- `iterated_deriv f n` is the `n`-th formal derivative of the polynomial `f` -/
 def iterated_deriv : polynomial R := derivative ^[n] f
 
 @[simp] lemma iterated_deriv_zero_right : iterated_deriv f 0 = f := rfl

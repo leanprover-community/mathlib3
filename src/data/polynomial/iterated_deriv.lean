@@ -54,8 +54,51 @@ section comm_ring
 variable [comm_ring R]
 variables (f p q: polynomial R) (n k : ℕ)
 
+lemma iterated_deriv_coeff_as_prod_Ico :
+  ∀ m : ℕ, (iterated_deriv f k).coeff m = (∏ i in Ico m.succ (m + k.succ), i) * (f.coeff (m+k)) :=
+begin
+  induction k with k ih,
+  { simp only [add_zero, forall_const, one_mul, Ico.self_eq_empty, eq_self_iff_true,
+      iterated_deriv_zero_right, prod_empty] },
+  { intro m, rw [iterated_deriv_succ, coeff_derivative, ih (m+1), mul_assoc],
+    conv_lhs { congr, skip, rw mul_comm }, rw ←mul_assoc,
+    apply congr_arg2,
+    { have set_eq : (Ico m.succ (m + k.succ.succ)) = (Ico (m + 1).succ (m + 1 + k.succ)) ∪ {m+1},
+      { ext, split,
+        { intro h,
+          simp only [mem_union, Ico.mem, mem_singleton] at h ⊢,
+          rw succ_add m (succ k),
+          by_cases H : (a = m + 1),
+          { right, exact H },
+          { left, split,
+            { rw succ_le_iff, rw lt_iff_le_and_ne,
+              split,
+              { exact h.1 },
+              { symmetry, exact H }},
+            { exact h.2 }}},
+        { intro h,
+          simp only [mem_union, Ico.mem, mem_singleton] at h ⊢,
+          cases h,
+          { split,
+            { refine le_trans _ h.1,
+              apply succ_le_succ,
+              exact le_succ m },
+            { rw succ_add m (succ k) at h, exact h.2 }},
+          { rw h, split,
+            { refl },
+            {rw add_lt_add_iff_left, apply succ_lt_succ, exact succ_pos k }}}},
+      rw set_eq, rw prod_union,
+      apply congr_arg2,
+      { refl },
+      { simp only [prod_singleton], norm_cast },
+      { simp only [succ_pos', disjoint_singleton, and_true, lt_add_iff_pos_right, not_le, Ico.mem],
+        exact lt_add_one (m + 1),}
+    },
+    { apply congr_arg, exact succ_add m k, }
+  }
+end
 
-lemma iterated_deriv_coeff :
+lemma iterated_deriv_coeff_as_prod_range :
   ∀ m : ℕ, (iterated_deriv f k).coeff m = (∏ i in finset.range k, (m+k-i)) * (f.coeff (m+k)) :=
 begin
   induction k with k ih,
@@ -85,7 +128,7 @@ variables (f p q: polynomial R) (n k : ℕ)
 lemma zero_of_iterated_deriv_nat_degree_succ : (iterated_deriv f (f.nat_degree + 1)) = 0 :=
 begin
   ext,
-  rw iterated_deriv_coeff,
+  rw iterated_deriv_coeff_as_prod_range,
   simp only [cast_one, cast_add, coeff_zero],
   rw mul_eq_zero, right,
   apply polynomial.coeff_eq_zero_of_nat_degree_lt, linarith,

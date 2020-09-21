@@ -29,7 +29,7 @@ variables [semiring R] (f p q : polynomial R) (n k : ℕ)
 /-- `iterated_deriv f n` is the `n`-th formal derivative of the polynomial `f` -/
 def iterated_deriv : polynomial R := derivative ^[n] f
 
-@[simp] lemma iterated_deriv_zero : iterated_deriv f 0 = f := rfl
+@[simp] lemma iterated_deriv_zero_right : iterated_deriv f 0 = f := rfl
 
 lemma iterated_deriv_succ : iterated_deriv f (n + 1) = (iterated_deriv f n).derivative :=
 by rw [iterated_deriv, iterated_deriv, function.iterate_succ']
@@ -54,7 +54,7 @@ section comm_semiring
 variable [comm_semiring R]
 variables (f p q : polynomial R) (n k : ℕ)
 
-lemma iterated_deriv_coeff_as_prod_Ico :
+lemma coeff_iterated_deriv_as_prod_Ico :
   ∀ m : ℕ, (iterated_deriv f k).coeff m = (∏ i in Ico m.succ (m + k.succ), i) * (f.coeff (m+k)) :=
 begin
   induction k with k ih,
@@ -98,7 +98,7 @@ begin
   }
 end
 
-lemma iterated_deriv_coeff_as_prod_range :
+lemma coeff_iterated_deriv_as_prod_range :
   ∀ m : ℕ, (iterated_deriv f k).coeff m = f.coeff (m + k) * (∏ i in finset.range k, ↑(m + k - i)) :=
 begin
   induction k with k ih,
@@ -114,13 +114,18 @@ begin
     by { rw [prod_range_succ, nat.add_sub_assoc (le_succ k), nat.succ_sub le_rfl, nat.sub_self] }
 end
 
+end comm_semiring
+
+section integral_domain
+variable [integral_domain R]
+variables (f p q : polynomial R) (n k : ℕ)
 
 lemma zero_of_iterated_deriv_nat_degree_succ : (iterated_deriv f (f.nat_degree + 1)) = 0 :=
 begin
   ext,
-  rw iterated_deriv_coeff_as_prod_range,
+  rw coeff_iterated_deriv_as_prod_range,
   simp only [cast_one, cast_add, coeff_zero],
-  rw mul_eq_zero, right,
+  rw mul_eq_zero, left,
   apply polynomial.coeff_eq_zero_of_nat_degree_lt, linarith,
 end
 

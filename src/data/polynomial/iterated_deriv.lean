@@ -161,8 +161,7 @@ begin
       ring },
       { simp only [one_mul, cast_one, nat.sub_self, ring_hom.map_one,
           iterated_deriv_zero_right, choose_self],
-        ring,}
-    }
+        ring, } }
 end
 
 end integral_domain

@@ -420,6 +420,7 @@ def image_map.transport {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq 
 { map := image.lift F ≫ map ≫ hF'.lift (image.mono_factorisation g.hom),
   map_ι' := by simp [map_ι] }
 
+/-- `has_image_map sq` means that there is an `image_map` for the square `sq`. -/
 class has_image_map {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g) : Prop :=
 mk' :: (has_image_map : nonempty (image_map sq))
 
@@ -432,6 +433,7 @@ lemma has_image_map.transport {f g : arrow C} [has_image f.hom] [has_image g.hom
   (map : F.I ⟶ F'.I) (map_ι : map ≫ F'.m = F.m ≫ sq.right) : has_image_map sq :=
 has_image_map.mk $ image_map.transport sq F hF' map_ι
 
+/-- Obtain an `image_map` from a `has_image_map` instance. -/
 def has_image_map.image_map {f g : arrow C} [has_image f.hom] [has_image g.hom] (sq : f ⟶ g)
   [has_image_map sq] : image_map sq :=
 classical.choice $ @has_image_map.has_image_map _ _ _ _ _ _ sq _

@@ -188,8 +188,7 @@ begin
       congr' 1,
       rw ←opens.map_comp_obj,
       congr' 2,
-      simp,
-      refl, },
+      simp, },
       { intros j j' f, dsimp, simp,
         have := s.w f.unop,
         have := (PresheafedSpace.congr_app this.symm U).symm,
@@ -203,9 +202,6 @@ begin
         have w' := nat_trans.congr (F.map f.unop).c w,
         rw w',
         dsimp,
-        simp,
-        congr' 1,
-        erw id_comp,
         simp,
         refl, },
     end
@@ -234,7 +230,6 @@ def colimit_cocone_is_colimit (F : J ⥤ PresheafedSpace C) : is_colimit (colimi
         rw w,
         dsimp,
         simp,
-        refl,
       end, }, },
   -- fac' := begin sorry, end, -- works by tidy
   uniq' := λ s m w,
@@ -244,8 +239,7 @@ def colimit_cocone_is_colimit (F : J ⥤ PresheafedSpace C) : is_colimit (colimi
       dsimp,
       simp only [colimit.ι_desc_apply, map_cocone_ι],
       rw ← w j,
-      simp,
-      refl, },
+      simp, },
     fapply PresheafedSpace.ext, -- could `ext` please not reorder goals?
     { exact t, },
     { ext U j, dsimp [desc_c_app], simp,
@@ -265,5 +259,18 @@ instance : has_colimits (PresheafedSpace C) :=
   { has_colimit := λ F, has_colimit.mk
     { cocone     := colimit_cocone F,
       is_colimit := colimit_cocone_is_colimit F } } }
+
+instance forget_preserves_colimits : preserves_colimits (PresheafedSpace.forget C) :=
+{ preserves_colimits_of_shape := λ J 𝒥, by exactI
+  { preserves_colimit := λ F, preserves_colimit_of_preserves_colimit_cocone
+    (colimit_cocone_is_colimit F)
+    begin
+      apply is_colimit.of_iso_colimit (colimit.is_colimit _),
+      fapply cocones.ext,
+      refl,
+      intro j,
+      dsimp [colimit_cocone],
+      simp,
+    end } }
 
 end algebraic_geometry

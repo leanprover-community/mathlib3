@@ -160,6 +160,7 @@ section
 variables (C)
 
 /-- The forgetful functor from `PresheafedSpace` to `Top`. -/
+@[simps]
 def forget : PresheafedSpace C ⥤ Top :=
 { obj := λ X, (X : Top.{v}),
   map := λ X Y f, f.base }

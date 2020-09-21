@@ -38,6 +38,8 @@ variables {C}
 
 namespace PresheafedSpace
 
+attribute [protected] presheaf
+
 instance coe_carrier : has_coe (PresheafedSpace C) Top :=
 { coe := λ X, X.carrier }
 

@@ -1494,7 +1494,7 @@ end prod_map
 /-! ### Linear maps between normed spaces are smooth -/
 
 lemma continuous_linear_map.times_cont_mdiff (L : E →L[𝕜] F) :
-  times_cont_mdiff Isf(𝕜, E) Isf(𝕜, F) n L :=
+  times_cont_mdiff 𝓘(𝕜, E) 𝓘(𝕜, F) n L :=
 begin
   rw times_cont_mdiff_iff,
   refine ⟨L.cont, λ x y, _⟩,

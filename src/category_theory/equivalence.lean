@@ -54,8 +54,8 @@ preventing structure projections from unfolding. -/
 @[simp] lemma equivalence_mk'_counit_inv (functor inverse unit_iso counit_iso f) :
   (⟨functor, inverse, unit_iso, counit_iso, f⟩ : C ≌ D).counit_inv = counit_iso.inv := rfl
 
-@[simp] lemma functor_unit_comp (e : C ≌ D) (X : C) : e.functor.map (e.unit.app X) ≫
-  e.counit.app (e.functor.obj X) = 𝟙 (e.functor.obj X) :=
+@[simp] lemma functor_unit_comp (e : C ≌ D) (X : C) :
+  e.functor.map (e.unit.app X) ≫ e.counit.app (e.functor.obj X) = 𝟙 (e.functor.obj X) :=
 e.functor_unit_iso_comp X
 
 @[simp] lemma counit_inv_functor_comp (e : C ≌ D) (X : C) :

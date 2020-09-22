@@ -151,4 +151,64 @@ end injective
 end degree
 end semiring
 
+section integral_domain
+open_locale big_operators
+
+variable [integral_domain R]
+
+instance : integral_domain (polynomial R) :=
+{ zero          := 0,
+  add           := λ p q, p + q,
+  add_assoc     := add_assoc,
+  add_comm      := add_comm,
+  zero_add      := zero_add,
+  add_zero      := add_zero,
+
+  neg           := λ p, -p,
+  add_left_neg  := neg_add_self,
+
+  mul           := λ p q, p * q,
+  mul_assoc     := mul_assoc,
+  mul_comm      := mul_comm,
+  one           := 1,
+  one_mul       := one_mul,
+  mul_one       := mul_one,
+
+  left_distrib  := mul_add,
+  right_distrib := add_mul,
+
+  exists_pair_ne := ⟨0, 1, zero_ne_one⟩,
+  eq_zero_or_eq_zero_of_mul_eq_zero := λ p q, begin
+    contrapose, intros h r, rw not_or_distrib at h, rcases h with ⟨p_ne_0, q_ne_0⟩,
+    rw ext_iff at r, simp only [coeff_zero] at r,
+    suffices : (p * q).coeff (p.nat_degree + q.nat_degree) ≠ 0,
+    { exact this (r _) },
+    { intro rid,
+      replace rid : (p * q).leading_coeff = 0,
+      { unfold leading_coeff,
+        rwa nat_degree_mul',
+        apply mul_ne_zero; intro h; rw leading_coeff_eq_zero at h, exact p_ne_0 h, exact q_ne_0 h },
+      rw [leading_coeff_mul, mul_eq_zero] at rid,
+      cases rid; rw leading_coeff_eq_zero at rid,
+      { exact p_ne_0 rid },
+      { exact q_ne_0 rid } }
+  end }
+
+lemma nat_degree_prod {α : Type*} (s : finset α) (f : α -> polynomial R) (hf : ∀ i ∈ s, f i ≠ 0) :
+  (∏ i in s, f i).nat_degree = ∑ i in s, (f i).nat_degree :=
+begin
+  induction s using finset.induction_on with a s ha ih generalizing hf,
+  { simp only [sum_empty, nat_degree_one, prod_empty] },
+  { rw [sum_insert ha, prod_insert ha, nat_degree_mul', ih],
+    { intros i hi, refine hf i _, simp only [mem_insert], right, exact hi },
+    { apply mul_ne_zero,
+      { intro r, rw leading_coeff_eq_zero at r,
+        refine hf a _ r, simp only [mem_insert, true_or, eq_self_iff_true] },
+      { intro r, rw leading_coeff_eq_zero at r,
+        rw prod_eq_zero_iff at r, rcases r with ⟨a, h₁, h₂⟩,
+        refine hf a _ h₂,  rw mem_insert, right, exact h₁ } } }
+end
+
+end integral_domain
+
 end polynomial

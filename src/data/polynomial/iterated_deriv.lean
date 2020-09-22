@@ -86,16 +86,14 @@ begin
             { rw succ_add m (succ k) at h, exact h.2 }},
           { rw h, split,
             { refl },
-            {rw add_lt_add_iff_left, apply succ_lt_succ, exact succ_pos k }}}},
+            { rw add_lt_add_iff_left, apply succ_lt_succ, exact succ_pos k } } } },
       rw set_eq, rw prod_union,
       apply congr_arg2,
       { refl },
       { simp only [prod_singleton], norm_cast },
       { simp only [succ_pos', disjoint_singleton, and_true, lt_add_iff_pos_right, not_le, Ico.mem],
-        exact lt_add_one (m + 1),}
-    },
-    { apply congr_arg, exact succ_add m k, }
-  }
+        exact lt_add_one (m + 1) } },
+    { apply congr_arg, exact succ_add m k } }
 end
 
 lemma coeff_iterated_deriv_as_prod_range :

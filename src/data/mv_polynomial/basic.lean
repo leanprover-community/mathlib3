@@ -827,8 +827,6 @@ def aeval : mv_polynomial σ R →ₐ[R] A :=
 { commutes' := λ r, eval₂_C _ _ _
   .. eval₂_hom (algebra_map R A) f }
 
-#check @aeval
-
 theorem aeval_def (p : mv_polynomial σ R) : aeval f p = eval₂ (algebra_map R A) f p := rfl
 
 lemma aeval_eq_eval₂_hom (p : mv_polynomial σ R) :

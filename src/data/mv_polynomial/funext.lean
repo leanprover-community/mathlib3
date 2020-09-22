@@ -76,7 +76,7 @@ begin
   apply funext_fin,
   intro x,
   classical,
-  convert h (hf.extend x 0),
+  convert h (extend f x 0),
   simp only [eval, eval₂_hom_rename, hf.extend_comp],
 end
 

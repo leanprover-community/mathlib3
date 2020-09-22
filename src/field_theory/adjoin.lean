@@ -189,14 +189,14 @@ lemma sub_bot_of_adjoin_sub_bot (h : adjoin F S = ⊥) : S ⊆ (⊥ : subalgebra
 calc S ⊆ adjoin F S : subset_adjoin _ _
   ... = (⊥ : subalgebra F E) : congr_arg coe h
 
-lemma in_bot_of_adjoin_simple_sub_bot (h : F⟮α⟯ = ⊥) : α ∈ ((⊥ : subalgebra F E) : set E) :=
+lemma mem_bot_of_adjoin_simple_sub_bot (h : F⟮α⟯ = ⊥) : α ∈ ((⊥ : subalgebra F E) : set E) :=
 set.singleton_subset_iff.mp (sub_bot_of_adjoin_sub_bot h)
 
 lemma adjoin_eq_bot_iff : S ⊆ (⊥ : subalgebra F E) ↔ adjoin F S = ⊥ :=
 ⟨adjoin_eq_bot, sub_bot_of_adjoin_sub_bot⟩
 
 lemma adjoin_simple_eq_bot_iff : α ∈ (⊥ : subalgebra F E) ↔ F⟮α⟯ = ⊥ :=
-⟨adjoin_simple_eq_bot, in_bot_of_adjoin_simple_sub_bot⟩
+⟨adjoin_simple_eq_bot, mem_bot_of_adjoin_simple_sub_bot⟩
 
 section adjoin_dim
 open finite_dimensional vector_space
@@ -204,20 +204,20 @@ open finite_dimensional vector_space
 lemma sub_bot_of_adjoin_dim_eq_one (h : dim F (adjoin F S) = 1) : S ⊆ (⊥ : subalgebra F E) :=
 by rwa [adjoin_eq_bot_iff, ← subalgebra.dim_eq_one_iff]
 
-lemma in_bot_of_adjoin_simple_dim_eq_one (h : dim F F⟮α⟯ = 1) : α ∈ ((⊥ : subalgebra F E) : set E) :=
+lemma mem_bot_of_adjoin_simple_dim_eq_one (h : dim F F⟮α⟯ = 1) : α ∈ ((⊥ : subalgebra F E) : set E) :=
 set.singleton_subset_iff.mp (sub_bot_of_adjoin_dim_eq_one h)
 
 lemma adjoin_dim_eq_one_of_sub_bot (h : S ⊆ (⊥ : subalgebra F E)) : dim F (adjoin F S) = 1 :=
 by { rw adjoin_eq_bot h, exact subalgebra.dim_bot }
 
-lemma adjoin_simple_dim_eq_one_of_in_bot (h : α ∈ ((⊥ : subalgebra F E) : set E)) : dim F F⟮α⟯ = 1 :=
+lemma adjoin_simple_dim_eq_one_of_mem_bot (h : α ∈ ((⊥ : subalgebra F E) : set E)) : dim F F⟮α⟯ = 1 :=
 adjoin_dim_eq_one_of_sub_bot (set.singleton_subset_iff.mpr h)
 
 lemma adjoin_dim_eq_one_iff : dim F (adjoin F S) = 1 ↔ S ⊆ (⊥ : subalgebra F E) :=
 ⟨sub_bot_of_adjoin_dim_eq_one, adjoin_dim_eq_one_of_sub_bot⟩
 
 lemma adjoin_simple_dim_eq_one_iff : dim F F⟮α⟯ = 1 ↔ α ∈ (⊥ : subalgebra F E) :=
-⟨in_bot_of_adjoin_simple_dim_eq_one, adjoin_simple_dim_eq_one_of_in_bot⟩
+⟨mem_bot_of_adjoin_simple_dim_eq_one, adjoin_simple_dim_eq_one_of_mem_bot⟩
 
 lemma adjoin_findim_eq_one_iff : findim F (adjoin F S) = 1 ↔ S ⊆ (⊥ : subalgebra F E) :=
 by rw [← adjoin_dim_eq_one_iff, subalgebra.dim_eq_one_iff, subalgebra.findim_eq_one_iff]

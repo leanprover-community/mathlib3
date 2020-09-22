@@ -3915,7 +3915,7 @@ ball.imp_left (λ x, mem_of_mem_inter_right) h
 
 @[simp] lemma inter_reverse {xs ys : list α} :
   xs.inter ys.reverse = xs.inter ys :=
-by simp [list.inter]; congr
+by simp only [list.inter, mem_reverse]; congr
 
 end inter
 

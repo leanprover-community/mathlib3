@@ -28,6 +28,8 @@ We introduce the following typeclasses for measures:
 
 * `probability_measure μ`: `μ univ = 1`;
 * `finite_measure μ`: `μ univ < ⊤`;
+* `sigma_finite μ`: there exists a countable collection of measurable sets that cover `univ`
+  where `μ` is finite;
 * `locally_finite_measure μ` : `∀ x, ∃ s ∈ 𝓝 x, μ s < ⊤`;
 * `has_no_atoms μ` : `∀ x, μ {x} = 0`; possibly should be redefined as
   `∀ s, 0 < μ s → ∃ t ⊆ s, 0 < μ t ∧ μ t < μ s`.
@@ -1333,6 +1335,10 @@ class probability_measure (μ : measure α) : Prop := (measure_univ : μ univ = 
 /-- A measure `μ` is called finite if `μ univ < ⊤`. -/
 class finite_measure (μ : measure α) : Prop := (measure_univ_lt_top : μ univ < ⊤)
 
+instance restrict.finite_measure (μ : measure α) {s : set α} [hs : fact (μ s < ⊤)] :
+  finite_measure (μ.restrict s) :=
+⟨by simp [hs.elim]⟩
+
 /-- Measure `μ` *has no atoms* if the measure of each singleton is zero.
 
 NB: Wikipedia assumes that for any measurable set `s` with positive `μ`-measure,
@@ -1417,10 +1423,42 @@ lemma finite_at_filter_of_finite (μ : measure α) [finite_measure μ] (f : filt
 lemma measure.finite_at_bot (μ : measure α) : μ.finite_at_filter ⊥ :=
 ⟨∅, mem_bot_sets, by simp only [measure_empty, with_top.zero_lt_top]⟩
 
+/-- A measure `μ` is called σ-finite if there is a countable collection of sets
+  `{ A i | i ∈ ℕ }` such that `μ (A i) < ⊤` and `⋃ i, A i = s`. -/
+class sigma_finite (μ : measure α) : Prop :=
+(exists_finite_spanning_sets :
+  ∃ s : ℕ → set α,
+  (∀ i, is_measurable (s i)) ∧
+  (∀ i, μ (s i) < ⊤) ∧
+  (⋃ i, s i) = univ)
 
-instance restrict.finite_measure (μ : measure α) {s : set α} [hs : fact (μ s < ⊤)] :
-  finite_measure (μ.restrict s) :=
-⟨by simp [hs.elim]⟩
+def exists_finite_spanning_sets (μ : measure α) [sigma_finite μ] :
+  ∃ s : ℕ → set α,
+  (∀ i, is_measurable (s i)) ∧
+  (∀ i, μ (s i) < ⊤) ∧
+  (⋃ i, s i) = univ :=
+sigma_finite.exists_finite_spanning_sets
+
+/-- A noncomputable way to get a collection of sets that span `univ` and have finite measure using
+  `classical.some`. -/
+def spanning_sets (μ : measure α) [sigma_finite μ] (i : ℕ) : set α :=
+classical.some (exists_finite_spanning_sets μ) i
+
+lemma is_measurable_spanning_sets (μ : measure α) [sigma_finite μ] (i : ℕ) :
+  is_measurable (spanning_sets μ i) :=
+(classical.some_spec (exists_finite_spanning_sets μ)).1 i
+
+lemma measure_spanning_sets_lt_top (μ : measure α) [sigma_finite μ] (i : ℕ) :
+  μ (spanning_sets μ i) < ⊤ :=
+(classical.some_spec (exists_finite_spanning_sets μ)).2.1 i
+
+lemma Union_spanning_sets (μ : measure α) [sigma_finite μ] :
+  (⋃ i, spanning_sets μ i) = univ :=
+(classical.some_spec (exists_finite_spanning_sets μ)).2.2
+
+/-- Every finite measure is σ-finite. -/
+instance finite_measure.to_sigma_finite (μ : measure α) [finite_measure μ] : sigma_finite μ :=
+⟨⟨λ _, univ, λ _, is_measurable.univ, λ _, measure_lt_top μ _, Union_const _⟩⟩
 
 /-- A measure is called locally finite if it is finite in some neighborhood of each point. -/
 class locally_finite_measure [topological_space α] (μ : measure α) : Prop :=

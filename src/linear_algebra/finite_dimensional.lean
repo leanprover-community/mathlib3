@@ -776,7 +776,7 @@ section top
 
 @[simp]
 theorem findim_top : findim K (⊤ : submodule K V) = findim K V :=
-by {unfold findim, simp [dim_top]}
+by { unfold findim, simp [dim_top] }
 
 end top
 

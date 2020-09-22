@@ -27,13 +27,6 @@ open finsupp
 
 variables (σ R A : Type*) [comm_semiring R] [comm_semiring A]
 
-
-section constant_coeff
-open_locale classical
-variables {σ R}
-
-end constant_coeff
-
 open_locale big_operators
 
 lemma C_dvd_iff_dvd_coeff {σ : Type*} {R : Type*} [comm_ring R]
@@ -245,6 +238,7 @@ end
 section rename
 open function
 
+@[simp]
 lemma coeff_rename_map_domain (f : σ → τ) (hf : injective f) (φ : mv_polynomial σ R) (d : σ →₀ ℕ) :
   (rename f φ).coeff (d.map_domain f) = φ.coeff d :=
 begin
@@ -533,7 +527,8 @@ variables (A B R : Type*) [comm_semiring A] [comm_semiring B] [comm_ring R] [alg
 /-- `mv_polynomial.acounit R A` is the natural surjective algebra homomorphism
 `mv_polynomial A R →ₐ[R] A` obtained by `X a ↦ a`.
 
-See `mv_polynomial.counit` for the “absolute” variant with `R = ℤ`. -/
+See `mv_polynomial.counit` for the “absolute” variant with `R = ℤ`,
+and `mv_polynomial.counit_nat` for the “absolute” variant with `R = ℕ`. -/
 noncomputable def acounit : mv_polynomial B A →ₐ[A] B :=
 aeval id
 
@@ -543,14 +538,24 @@ lemma acounit_surjective : surjective (acounit A B) :=
 /-- `mv_polynomial.counit R` is the natural surjective ring homomorphism
 `mv_polynomial R ℤ →+* R` obtained by `X r ↦ r`.
 
-See `mv_polynomial.acounit` for a “relative” variant for algebras over a base ring. -/
+See `mv_polynomial.acounit` for a “relative” variant for algebras over a base ring,
+and `mv_polynomial.counit_nat` for the “absolute” variant with `R = ℕ`. -/
 noncomputable def counit : mv_polynomial R ℤ →+* R :=
 acounit ℤ R
 
 lemma counit_surjective : surjective (counit R) :=
 acounit_surjective ℤ R
 
--- TODO: we could have a similar counit for semirings over `ℕ`.
+/-- `mv_polynomial.counit_nat R` is the natural surjective ring homomorphism
+`mv_polynomial R ℕ →+* R` obtained by `X r ↦ r`.
+
+See `mv_polynomial.acounit` for a “relative” variant for algebras over a base ring
+and `mv_polynomial.counit` for the “absolute” variant with `R = ℤ`. -/
+noncomputable def counit_nat : mv_polynomial A ℕ →+* A :=
+acounit ℕ A
+
+lemma counit_nat_surjective : surjective (counit_nat A) :=
+acounit_surjective ℕ A
 
 end
 end mv_polynomial
@@ -597,6 +602,7 @@ begin
   simp only [dvd_mul_right, nat.cast_dvd_char_zero],
 end
 
+@[simp]
 lemma ideal.mem_bot {R : Type*} [comm_ring R] {x : R} : x ∈ (⊥ : ideal R) ↔ x = 0 :=
 submodule.mem_bot _
 

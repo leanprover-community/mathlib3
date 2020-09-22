@@ -20,10 +20,24 @@ variables (C)
 
 /-- A category has enough projective if for every object `X` there is a projective object `P` and
     an epimorphism `P ↠ X`. -/
-def enough_projectives : Prop :=
+@[class] def enough_projectives : Prop :=
 ∀ (X : C), ∃ (P : C) (f : P ⟶ X), projective P ∧ epi f
 
 end
+
+namespace projective
+
+lemma of_iso {P Q : C} (i : P ≅ Q) (hP : projective P) : projective Q :=
+begin
+  introsI E X f e e_epi,
+  rcases hP (i.hom ≫ f) e with ⟨f', hf'⟩,
+  exact ⟨i.inv ≫ f', by simp [hf']⟩
+end
+
+lemma iso_iff {P Q : C} (i : P ≅ Q) : projective P ↔ projective Q :=
+⟨of_iso i, of_iso i.symm⟩
+
+end projective
 
 
 

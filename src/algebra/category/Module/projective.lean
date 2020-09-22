@@ -5,7 +5,7 @@ Authors: Markus Himmel
 -/
 import category_theory.abelian.projective
 import algebra.category.Module.abelian
-import linear_algebra.basis
+import linear_algebra.finsupp_vector_space
 
 universes v u
 
@@ -25,21 +25,18 @@ begin
   exact ⟨hv.constr w, hv.ext (by simp [h])⟩
 end
 
-lemma Module_enough_projectives : enough_projectives (Module.{u} R) :=
+/-- The category of modules has enough projectives, since every module is a quotient of a free
+    module. -/
+instance Module_enough_projectives : enough_projectives (Module.{u} R) :=
 begin
   classical,
-  intro M,
-  refine ⟨Module.of R (M →₀ R), _⟩,
-  have hb : is_basis R (λ m : M, finsupp.single m (1 : R)),
-  { sorry, },
+  refine λ M, ⟨Module.of R (M →₀ R), _⟩,
+  have hb : is_basis R (λ m : M, finsupp.single m (1 : R)) := finsupp.is_basis_single_one,
   refine ⟨hb.constr id, ⟨_, _⟩⟩,
-  { apply projective_of_free,
+  { -- `exact projective_of_free hb` gives a type mismatch error. Why?
+    apply projective_of_free,
     exact hb },
-  apply epi_of_range_eq_top,
-  rw range_eq_top,
-  intro m,
-  use finsupp.single m (1 : R),
-  simp
+  exact epi_of_range_eq_top _ (range_eq_top.2 (λ m, ⟨finsupp.single m (1 : R), by simp⟩))
 end
 
 end Module

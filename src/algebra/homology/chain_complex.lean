@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import data.int.basic
 import category_theory.graded_object
 import category_theory.differential_object
+import data.nat.enat
 
 /-!
 # Chain complexes
@@ -118,3 +119,24 @@ example {C D : cochain_complex V} (f : C ⟶ D) : C.d 5 ≫ f.f 6 = f.f 5 ≫ D.
 -- and has coproducts then
 -- `chain_complex V` is monoidal too.
 -- If the complexes are bounded below we only need finite coproducts.
+
+namespace homological_complex
+variables {V} [has_zero_object V] {b : ℤ}
+
+local attribute [instance] has_zero_object.has_zero
+
+/-- Bounded below -/
+def bounded_below_by (C : homological_complex V b) (n : ℤ) : Prop := ∀ m < n, nonempty (C.X m ≅ 0)
+
+/-- Bounded above -/
+def bounded_above_by (C : homological_complex V b) (n : ℤ) : Prop := ∀ m > n, nonempty (C.X m ≅ 0)
+
+open_locale classical
+noncomputable theory
+
+/-- The length of a homological complex is the index of the highest-index nontrivial entry in the
+    upper half of the chain complex.  -/
+def length (C : homological_complex V b) : with_top ℕ :=
+if h : ∃ n : ℕ, bounded_above_by C n then nat.find h else ⊤
+
+end homological_complex

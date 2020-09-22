@@ -819,13 +819,15 @@ section aeval
 /-! ### The algebra of multivariate polynomials -/
 
 variables {A : Type v} {S : Type w} (f : σ → A)
-variables [comm_semiring R] [comm_semiring A] [algebra R A] [comm_semiring S]
+variables [comm_semiring A] [algebra R A] [comm_semiring S]
 
 /-- A map `σ → A` where `A` is an algebra over `R` generates an `R`-algebra homomorphism
 from multivariate polynomials over `σ` to `A`. -/
 def aeval : mv_polynomial σ R →ₐ[R] A :=
 { commutes' := λ r, eval₂_C _ _ _
   .. eval₂_hom (algebra_map R A) f }
+
+#check @aeval
 
 theorem aeval_def (p : mv_polynomial σ R) : aeval f p = eval₂ (algebra_map R A) f p := rfl
 

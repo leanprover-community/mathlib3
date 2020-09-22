@@ -358,7 +358,7 @@ variables {α β γ : Type*} {f : α → β} (hf : injective f)
 /-- `extend hf g e'` extends a function `g : α → γ`
 along an injective (`hf`) function `f : α → β`
 to a function `β → γ`, by using the values of of `g` on the range of `f`
-and the values of an auxilliary function `e' : β → γ` elsewhere. -/
+and the values of an auxiliary function `e' : β → γ` elsewhere. -/
 def extend (hf : injective f) (g : α → γ) (e' : β → γ) : β → γ :=
 λ b, if h : ∃ a, f a = b then g (classical.some h) else e' b
 

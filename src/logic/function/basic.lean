@@ -355,25 +355,25 @@ local attribute [instance, priority 10] classical.prop_decidable
 
 variables {α β γ : Type*} {f : α → β} (hf : injective f)
 
-/-- `extend hf g e'` extends a function `g : α → γ`
+/-- `extend f hf g e'` extends a function `g : α → γ`
 along an injective (`hf`) function `f : α → β`
 to a function `β → γ`, by using the values of of `g` on the range of `f`
 and the values of an auxiliary function `e' : β → γ` elsewhere. -/
 def extend (hf : injective f) (g : α → γ) (e' : β → γ) : β → γ :=
 λ b, if h : ∃ a, f a = b then g (classical.some h) else e' b
 
-lemma extend_def (hf : injective f) (g : α → γ) (e' : β → γ) (b : β) :
+lemma extend_def (f : α → β) (hf : injective f) (g : α → γ) (e' : β → γ) (b : β) :
   hf.extend g e' b = if h : ∃ a, f a = b then g (classical.some h) else e' b := rfl
 
-@[simp] lemma extend_apply (hf : injective f) (g : α → γ) (e' : β → γ) (a : α) :
-  hf.extend g e' (f a) = g a :=
+@[simp] lemma extend_apply (g : α → γ) (e' : β → γ) (a : α) :
+  hf.extend f g e' (f a) = g a :=
 begin
   simp only [extend_def, dif_pos, exists_apply_eq_apply],
   exact congr_arg g (hf $ classical.some_spec (exists_apply_eq_apply f a))
 end
 
-@[simp] lemma extend_comp (hf : injective f) (g : α → γ) (e' : β → γ) :
-  hf.extend g e' ∘ f = g :=
+@[simp] lemma extend_comp (g : α → γ) (e' : β → γ) :
+  hf.extend f g e' ∘ f = g :=
 funext $ λ a, hf.extend_apply g e' a
 
 end injective

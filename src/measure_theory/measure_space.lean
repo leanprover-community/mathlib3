@@ -28,8 +28,6 @@ We introduce the following typeclasses for measures:
 
 * `probability_measure μ`: `μ univ = 1`;
 * `finite_measure μ`: `μ univ < ⊤`;
-* `sigma_finite μ s`: set `s` is covered by a countable collection of measurable sets
-  where `μ` is finite;
 * `locally_finite_measure μ` : `∀ x, ∃ s ∈ 𝓝 x, μ s < ⊤`;
 * `has_no_atoms μ` : `∀ x, μ {x} = 0`; possibly should be redefined as
   `∀ s, 0 < μ s → ∃ t ⊆ s, 0 < μ t ∧ μ t < μ s`.
@@ -1382,40 +1380,6 @@ lemma finite_at_filter_of_finite (μ : measure α) [finite_measure μ] (f : filt
 lemma measure.finite_at_bot (μ : measure α) : μ.finite_at_filter ⊥ :=
 ⟨∅, mem_bot_sets, by simp only [measure_empty, with_top.zero_lt_top]⟩
 
-/-- A set `s` is called σ-finite w.r.t. measure `μ` if there is a countable collection of sets
-  `{ A i | i ∈ ℕ }` such that `μ (A i) < ⊤` and `⋃ i, A i = s`.
-  A measure `μ` is called σ-finite if `univ` is σ-finite w.r.t. `μ`.
-  Note that this class is not a Proposition.
-  -/
-class sigma_finite (μ : measure α) (s : set α) :=
-(spanning_sets : ℕ → set α)
-(monotone_spanning_sets : monotone spanning_sets)
-(is_measurable_spanning_sets : ∀ i, is_measurable (spanning_sets i))
-(measure_spanning_sets_lt_top : ∀ i, μ (spanning_sets i) < ⊤)
-(Union_spanning_sets : (⋃ i, spanning_sets i) = s)
-
-export sigma_finite (spanning_sets)
-
-lemma monotone_spanning_sets (μ : measure α) (s : set α) [sigma_finite μ s] :
-  monotone (spanning_sets μ s) :=
-sigma_finite.monotone_spanning_sets
-
-lemma is_measurable_spanning_sets (μ : measure α) (s : set α) [sigma_finite μ s] (i : ℕ) :
-  is_measurable (spanning_sets μ s i) :=
-sigma_finite.is_measurable_spanning_sets i
-
-lemma measure_spanning_sets_lt_top (μ : measure α) (s : set α) [sigma_finite μ s] (i : ℕ) :
-  μ (spanning_sets μ s i) < ⊤ :=
-sigma_finite.measure_spanning_sets_lt_top i
-
-lemma Union_spanning_sets (μ : measure α) (s : set α) [sigma_finite μ s] :
-  (⋃ i, spanning_sets μ s i) = s :=
-sigma_finite.Union_spanning_sets
-
-/-- Every set is σ-finite w.r.t. a finite measure -/
-def finite_measure.to_sigma_finite (μ : measure α) [finite_measure μ] (s : set α)
-  (hs : is_measurable s) : sigma_finite μ s :=
-⟨λ _, s, monotone_const, λ _, hs, λ _, measure_lt_top μ _, Union_const _⟩
 
 instance restrict.finite_measure (μ : measure α) {s : set α} [hs : fact (μ s < ⊤)] :
   finite_measure (μ.restrict s) :=

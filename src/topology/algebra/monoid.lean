@@ -68,6 +68,16 @@ lemma filter.tendsto.mul {f : β → α} {g : β → α} {x : filter β} {a b : 
 tendsto_mul.comp (hf.prod_mk_nhds hg)
 
 @[to_additive]
+lemma tendsto.mul_const_left (b : α) {c : α} {f : β → α} {l : filter β}
+  (h : tendsto (λ (k:β), f k) l (𝓝 c)) : tendsto (λ (k:β), b * f k) l (𝓝 (b * c)) :=
+(@tendsto_const_nhds _ _ _ b _).mul h
+
+@[to_additive]
+lemma tendsto.mul_const_right (b : α) {c : α} {f : β → α} {l : filter β}
+  (h : tendsto (λ (k:β), f k) l (𝓝 c)) : tendsto (λ (k:β), f k * b) l (𝓝 (c * b)) :=
+h.mul (@tendsto_const_nhds _ _ _ b _)
+
+@[to_additive]
 lemma continuous_at.mul [topological_space β] {f : β → α} {g : β → α} {x : β}
   (hf : continuous_at f x) (hg : continuous_at g x) :
   continuous_at (λx, f x * g x) x :=

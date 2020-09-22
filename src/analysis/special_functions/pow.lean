@@ -312,6 +312,12 @@ end
 lemma div_rpow (hx : 0 ≤ x) (hy : 0 ≤ y) (z : ℝ) : (x / y) ^ z = x^z / y^z :=
 by simp only [div_eq_mul_inv, mul_rpow hx (inv_nonneg.2 hy), inv_rpow hy]
 
+lemma log_rpow {x : ℝ} (hx : 0 < x) (y : ℝ) : log (x^y) = y * (log x) :=
+begin
+  apply exp_injective,
+  rw [exp_log (rpow_pos_of_pos hx y), ← exp_log hx, mul_comm, rpow_def_of_pos (exp_pos (log x)) y],
+end
+
 lemma rpow_lt_rpow (hx : 0 ≤ x) (hxy : x < y) (hz : 0 < z) : x^z < y^z :=
 begin
   rw le_iff_eq_or_lt at hx, cases hx,
@@ -730,6 +736,75 @@ lemma deriv_within_sqrt (hf : differentiable_within_at ℝ f s x) (hx : f x ≠ 
 (hf.has_deriv_at.sqrt hx).deriv
 
 end differentiability
+
+section limits
+open real filter
+
+/-- The function `x^y` tends to `+∞` at `+∞` for any real number `1 ≤ y` -/
+lemma tendsto_rpow_at_top {y:ℝ} (hy : 1 ≤ y) : tendsto (λ (x:ℝ), (x^y)) at_top at_top :=
+begin
+  rw tendsto_at_top_at_top,
+  intro b, use max b 1, intros x h,
+  have hx : 1 ≤ x := by linarith [le_max_right b 1],
+  rw ← rpow_one x at h,
+  linarith [le_max_left b 1, rpow_le_rpow_of_exponent_le hx hy],
+end
+
+/-- The function `x^(-y)` tends to `0` at `+∞` for any real number `1 ≤ y` -/
+lemma tendsto_rpow_of_neg_at_top_zero {y:ℝ} (hy : 1 ≤ y) : tendsto (λ (x:ℝ), x^(-y)) at_top (𝓝 0) :=
+begin
+  refine tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) _)
+    (tendsto.inv_tendsto_at_top (tendsto_rpow_at_top hy)),
+  intros x hx,
+  exact (rpow_neg (le_of_lt hx) y).symm,
+end
+
+/-- The function `(b * exp(x) + c) / (x^n)` tends to `+∞` at `+∞`, for any natural number `1 ≤ n`
+and any real numbers `b` and `c` such that `b` is positive -/
+lemma tendsto_mul_exp_plus_div_pow_at_top (b c : ℝ) (n : ℕ) (hb : 0 < b) (hn : 1 ≤ (n:ℝ)) :
+  tendsto (λ (x:ℝ), (b * (exp x) + c) / (x^n)) at_top at_top :=
+begin
+  refine tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) _)
+    (tendsto_at_top_add_tendsto_right (tendsto_at_top_mul_left hb (tendsto_exp_div_pow_at_top n))
+      ((tendsto_rpow_of_neg_at_top_zero hn).mul (@tendsto_const_nhds _ _ _ c _))),
+  intros x hx,
+  simp only [rpow_neg (le_of_lt hx) n, rpow_nat_cast],
+  ring,
+end
+
+/-- The function `((x^n) / b * exp(x) + c) ` tends to `0` at `+∞`, for any natural number `1 ≤ n`
+and any real numbers `b` and `c` such that `b` is positive -/
+lemma tendsto_div_pow_mul_exp_plus_at_top_nhds_0 (b c : ℝ) (n : ℕ) (hb : 0 < b) (hn : 1 ≤ (n:ℝ)) :
+  tendsto (λ (x:ℝ), x^n / (b * (exp x) + c)) at_top (𝓝 0) :=
+begin
+  convert tendsto.inv_tendsto_at_top (tendsto_mul_exp_plus_div_pow_at_top b c n hb hn),
+  ext x, simp only [pi.inv_apply],
+  exact inv_div.symm,
+end
+
+/-- The function `x ^ (a / (b * x + c))` tends to `1` at `+∞`, for any real numbers `a`, `b`, and `c`
+such that `b` is positive. -/
+lemma tendsto_rpow_of_div_mul_add (a b c : ℝ) (hb : 0 < b) : tendsto (λ (x:ℝ), x ^ (a / (b*x+c))) at_top (𝓝 1) :=
+begin
+  have h := (@tendsto_const_nhds _ _ _ a _).mul (tendsto_div_pow_mul_exp_plus_at_top_nhds_0 b c 1 hb (by norm_num)),
+  simp only [mul_zero, pow_one] at h,
+  refine tendsto.congr' _ ((tendsto_exp_at_nhds_0_nhds_1.comp h).comp (tendsto_log_at_top)),
+  apply eventually_eq_of_mem (Ioi_mem_at_top (0:ℝ)),
+  intros x hx,
+  simp only [set.mem_Ioi, function.comp_app] at *,
+  rw [exp_log hx, ← exp_log (rpow_pos_of_pos hx (a / (b * x + c))), log_rpow hx (a / (b * x + c))],
+  field_simp,
+end
+
+/-- Special case of `tendsto_rpow_of_div_mul_add` with `a = 1`, `b = 1`, and `c = 0` -/
+lemma tendsto_rpow_of_div : tendsto (λ (x:ℝ), x ^ ((1:ℝ) / x)) at_top (𝓝 1) :=
+by { convert tendsto_rpow_of_div_mul_add (1:ℝ) _ (0:ℝ) zero_lt_one, ring }
+
+/-- Special case of `tendsto_rpow_of_div_mul_add` with `a = -1`, `b = 1`, and `c = 0` -/
+lemma tendsto_rpow_of_neg_div : tendsto (λ (x:ℝ), x ^ (-(1:ℝ) / x)) at_top (𝓝 1) :=
+by { convert tendsto_rpow_of_div_mul_add (-(1:ℝ)) _ (0:ℝ) zero_lt_one, ring }
+
+end limits
 
 namespace nnreal
 

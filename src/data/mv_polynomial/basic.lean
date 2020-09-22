@@ -14,11 +14,11 @@ with variables from a general type `σ` (which could be infinite).
 
 ## Important definitions
 
-Let `R` be a commutative ring (or a semiring) and let `σ` be an arbitrary
-type. This file creates the type `mv_polynomial σ R`, which mathematicians
-might denote $R[X_i : i \in \sigma]$. It is the type of multivariate
+Let `α` be a commutative ring (or a semiring) and let `σ` be an arbitrary
+type. This file creates the type `mv_polynomial σ α`, which mathematicians
+might denote $R[X_i : i \in σ]$. It is the type of multivariate
 (a.k.a. multivariable) polynomials, with variables
-corresponding to the terms in `σ`, and coefficients in `R`.
+corresponding to the terms in `σ`, and coefficients in `α`.
 
 ### Notation
 
@@ -26,7 +26,7 @@ In the definitions below, we use the following notation:
 
 + `σ : Type*` (indexing the variables)
 
-+ `R : Type*` `[comm_semiring R]` (the coefficients)
++ `α : Type*` `[comm_semiring R]` (the coefficients)
 
 + `s : σ →₀ ℕ`, a function from `σ` to `ℕ` which is zero away from a finite set.
 This will give rise to a monomial in `mv_polynomial σ R` which mathematicians might call `X^s`
@@ -50,15 +50,15 @@ This will give rise to a monomial in `mv_polynomial σ R` which mathematicians m
 
 * `coeff s p` : the coefficient of `s` in `p`.
 
-* `eval₂ (f : R → S) (g : σ → S) p` : given a semiring homomorphism from `R` to another
-  semiring `S`, and a map `σ → S`, evaluates `p` at this valuation, returning a term of type `S`.
+* `eval₂ (f : α → β) (g : σ → β) p` : given a semiring homomorphism from `α` to another
+  semiring `β`, and a map `σ → β`, evaluates `p` at this valuation, returning a term of type `β`.
   Note that `eval₂` can be made using `eval` and `map` (see below), and it has been suggested
   that sticking to `eval` and `map` might make the code less brittle.
 
-* `eval (g : σ → R) p` : given a map `σ → R`, evaluates `p` at this valuation,
-  returning a term of type `R`
+* `eval (g : σ → α) p` : given a map `σ → α`, evaluates `p` at this valuation,
+  returning a term of type `α`
 
-* `map (f : R → S) p` : returns the multivariate polynomial obtained from `p` by the change of
+* `map (f : α → β) p` : returns the multivariate polynomial obtained from `p` by the change of
   coefficient semiring corresponding to `f`
 
 ## Implementation notes

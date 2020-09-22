@@ -20,9 +20,7 @@ Theorems about PID's are in the `principal_ideal_ring` namespace.
 - `is_principal_ideal_ring`: a predicate on commutative rings, saying that every
   ideal is principal.
 - `generator`: a generator of a principal ideal (or more generally submodule)
-- `to_unique_factorization_domain`: a noncomputable definition, putting a UFD structure on a PID.
-  Note that the definition of a UFD is currently not a predicate, as it contains data
-  of factorizations of non-zero elements.
+- `to_unique_factorization_monoid`: a PID is a unique factorization domain
 
 # Main results
 
@@ -169,7 +167,7 @@ noncomputable def factors (a : R) : multiset R :=
 if h : a = 0 then ∅ else classical.some (wf_dvd_monoid.exists_factors a h)
 
 lemma factors_spec (a : R) (h : a ≠ 0) :
-  (∀b∈factors a, irreducible b) ∧ associated a (factors a).prod :=
+  (∀b∈factors a, irreducible b) ∧ associated (factors a).prod a :=
 begin
   unfold factors, rw [dif_neg h],
   exact classical.some_spec (wf_dvd_monoid.exists_factors a h)
@@ -182,7 +180,7 @@ lemma mem_submonoid_of_factors_subset_of_units_subset (s : submonoid R)
   {a : R} (ha : a ≠ 0) (hfac : ∀ b ∈ factors a, b ∈ s) (hunit : ∀ c : units R, (c : R) ∈ s) :
   a ∈ s :=
 begin
-  rcases ((factors_spec a ha).2).symm with ⟨c, hc⟩,
+  rcases ((factors_spec a ha).2) with ⟨c, hc⟩,
   rw [← hc],
   exact submonoid.mul_mem _ (submonoid.multiset_prod_mem _ _ hfac) (hunit _),
 end
@@ -196,15 +194,11 @@ lemma ring_hom_mem_submonoid_of_factors_subset_of_units_subset {R S : Type*}
   f a ∈ s :=
 mem_submonoid_of_factors_subset_of_units_subset (s.comap f.to_monoid_hom) ha h hf
 
-/-- The unique factorization domain structure given by the principal ideal domain.
-
-This is not added as type class instance, since the `factors` might be computed in a different way.
-E.g. factors could return normalized values.
--/
-noncomputable def to_unique_factorization_domain : unique_factorization_domain R :=
-{ factors := factors,
-  factors_prod := assume a ha, associated.symm (factors_spec a ha).2,
-  prime_factors := assume a ha, by simpa [irreducible_iff_prime] using (factors_spec a ha).1 }
+/-- A principal ideal domain has unique factorization -/
+@[priority 100] -- see Note [lower instance priority]
+instance to_unique_factorization_monoid : unique_factorization_monoid R :=
+{ irreducible_iff_prime := λ _, principal_ideal_ring.irreducible_iff_prime
+  .. (is_noetherian_ring.wf_dvd_monoid : wf_dvd_monoid R) }
 
 end
 

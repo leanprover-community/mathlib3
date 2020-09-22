@@ -42,7 +42,7 @@ let A' (N k : ℕ) : set α :=
   f ⁻¹' (metric.ball (e k) (1 / (N+1 : ℝ)) \ metric.ball 0 (1 / (N+1 : ℝ))) in
 let A N := disjointed (A' N) in
 have is_measurable_A' : ∀ {N k}, is_measurable (A' N k) :=
-  λ N k, hf $ is_measurable.inter is_measurable_ball $ is_measurable.compl is_measurable_ball,
+  λ N k, hf $ is_measurable_ball.inter is_measurable_ball.compl,
 have is_measurable_A : ∀ {N k}, is_measurable (A N k) :=
   λ N, is_measurable.disjointed $ λ k, is_measurable_A',
 have A_subset_A' : ∀ {N k x}, x ∈ A N k → x ∈ A' N k := λ N k, inter_subset_left _ _,
@@ -236,17 +236,16 @@ classical.by_cases
   have F_eq_0 : F N x = 0 := if_neg h,
   by { simp only [F_eq_0, norm_zero], exact add_nonneg (norm_nonneg _) (norm_nonneg _) } )⟩⟩
 
-lemma simple_func_sequence_tendsto' {μ : measure α} {f : α → β} (hfm : measurable f)
-  (hfi : integrable f μ) :
+lemma simple_func_sequence_tendsto' {μ : measure α} {f : α → β} (hf : integrable f μ) :
     ∃ (F : ℕ → (α →ₛ β)), (∀n, integrable (F n) μ) ∧
    tendsto (λ n, ∫⁻ x,  nndist (F n x) (f x) ∂μ) at_top (𝓝 0) :=
-let ⟨F, hF⟩ := simple_func_sequence_tendsto hfm in
+let ⟨F, hF⟩ := simple_func_sequence_tendsto hf.measurable in
 let G : ℕ → α → ennreal := λn x, nndist (F n x) (f x) in
 let g : α → ennreal := λx, nnnorm (f x) + nnnorm (f x) + nnnorm (f x) in
-have hF_meas : ∀ n, measurable (G n) := λ n, measurable.comp measurable_coe $
-  (F n).measurable.nndist hfm,
-have hg_meas : measurable g := measurable.comp measurable_coe $ measurable.add
-  (measurable.add hfm.nnnorm hfm.nnnorm) hfm.nnnorm,
+have hF_meas : ∀ n, measurable (G n) := λ n, measurable_coe.comp $
+  (F n).measurable.nndist hf.measurable,
+have hg_meas : measurable g := measurable_coe.comp $
+  (hf.measurable.nnnorm.add hf.measurable.nnnorm).add hf.measurable.nnnorm,
 have h_bound : ∀ n, G n ≤ᵐ[μ] g := λ n, ae_of_all _ $ λ x, coe_le_coe.2 $
   calc
     nndist (F n x) (f x) ≤ nndist (F n x) 0 + nndist 0 (f x) : nndist_triangle _ _ _
@@ -257,9 +256,9 @@ have h_finite : ∫⁻ x, g x ∂μ < ⊤ :=
   calc
     ∫⁻ x, nnnorm (f x) + nnnorm (f x) + nnnorm (f x) ∂μ =
       ∫⁻ x, nnnorm (f x) ∂μ + ∫⁻ x, nnnorm (f x) ∂μ + ∫⁻ x, nnnorm (f x) ∂μ :
-    by { rw [lintegral_add, lintegral_nnnorm_add],
-      exacts [hfm, hfm, hfm.ennnorm.add hfm.ennnorm, hfm.ennnorm] }
-    ... < ⊤ : by { simp only [and_self, add_lt_top], exact hfi},
+    by { rw [lintegral_add, lintegral_nnnorm_add hf.measurable hf.measurable],
+      exacts [hf.measurable.ennnorm.add hf.measurable.ennnorm, hf.measurable.ennnorm] }
+    ... < ⊤ : by { simp only [and_self, add_lt_top], exact hf.has_finite_integral },
 have h_lim : ∀ᵐ x ∂μ, tendsto (λ n, G n x) at_top (𝓝 0) := ae_of_all _ $ λ x,
   begin
     apply (@tendsto_coe ℕ at_top (λ n, nndist (F n x) (f x)) 0).2,
@@ -268,14 +267,14 @@ have h_lim : ∀ᵐ x ∂μ, tendsto (λ n, G n x) at_top (𝓝 0) := ae_of_all 
   end,
 begin
   use F, split,
-  { assume n,
+  { assume n, use (F n).measurable,
     calc
       ∫⁻ a, nnnorm (F n a) ∂μ ≤ ∫⁻ a, nnnorm (f a) + nnnorm (f a) ∂μ :
         lintegral_mono
           (by { assume a, simp only [coe_add.symm, coe_le_coe], exact (hF a).2 n })
        ... = ∫⁻ a, nnnorm (f a) ∂μ + ∫⁻ a, nnnorm (f a) ∂μ :
-         lintegral_nnnorm_add hfm hfm
-       ... < ⊤ : by simp only [add_lt_top, and_self]; exact hfi },
+         lintegral_nnnorm_add hf.measurable hf.measurable
+       ... < ⊤ : by simp only [add_lt_top, and_self]; exact hf.has_finite_integral },
   convert tendsto_lintegral_of_dominated_convergence g hF_meas h_bound h_finite h_lim,
   simp only [lintegral_zero]
 end

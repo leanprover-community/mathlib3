@@ -9,6 +9,7 @@ import data.zmod.basic
 import linear_algebra.basis
 import ring_theory.integral_domain
 import field_theory.separable
+import field_theory.mv_polynomial
 
 /-!
 # Finite fields
@@ -324,8 +325,10 @@ end zmod
 
 namespace mv_polynomial
 
-lemma frobenius_zmod {p : ℕ} [fact p.prime] (φ : mv_polynomial σ (zmod p)) :
-  frobenius _ p φ = expand p φ :=
+variables {p : ℕ} [fact p.prime] {σ : Type*}
+
+lemma frobenius_zmod (f : mv_polynomial σ (zmod p)) :
+  frobenius _ p f = expand p f :=
 begin
   apply induction_on φ,
   { intro a, rw [expand_C, frobenius_def, ← C_pow, zmod.pow_card], },
@@ -334,8 +337,8 @@ begin
     intros _ _ hf, rw [hf, frobenius_def], },
 end
 
-lemma expand_zmod {p : ℕ} [fact p.prime] (φ : mv_polynomial σ (zmod p)) :
-  expand p φ = φ^p :=
+lemma expand_zmod (f : mv_polynomial σ (zmod p)) :
+  expand p f = f ^ p :=
 (mv_polynomial.frobenius_zmod _).symm
 
 end mv_polynomial

@@ -36,11 +36,9 @@ begin
       intros _ hy,
       rw set.mem_range at hy,
       rcases hy with ⟨z, rfl⟩,
-      exact hf2 z,
-    },
+      exact hf2 z, },
     intro x,
-    exact real.le_Sup S h (set.mem_range_self x),
-  },
+    exact real.le_Sup S h (set.mem_range_self x), },
   -- Show that `2 * (∥f x∥ * ∥g y∥) ≤ 2 * k`.
   have hk₂ : ∀ x, _,
   { intro x,
@@ -49,8 +47,7 @@ begin
     ... = ∥f (x + y) + f (x - y)∥ : by rw hf1
     ... ≤ ∥f (x + y)∥ + ∥f (x - y)∥ : norm_add_le _ _
     ... ≤ k + k : add_le_add (hk₁ _) (hk₁ _)
-    ... = 2 * k : (two_mul _).symm,
-  },
+    ... = 2 * k : (two_mul _).symm, },
 
   -- Suppose the conclusion does not hold.
   by_contra hneg,
@@ -63,7 +60,7 @@ begin
     { obtain ⟨x, hx⟩ := hf3,
       calc 0
           < ∥f x∥ : norm_pos_iff.mpr hx
-     ... ≤ k : hk₁ x },
+      ... ≤ k : hk₁ x },
     rw div_lt_iff,
     apply lt_mul_of_one_lt_right h₁ hneg,
     exact trans zero_lt_one hneg },

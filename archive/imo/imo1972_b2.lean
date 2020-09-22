@@ -85,7 +85,7 @@ end
 
 /-- IMO 1972 B2
 
-This is a more concicise and more compact version of the proof proposed by Ruben Van de Velde.
+This is a more concise version of the proof proposed by Ruben Van de Velde.
 -/
 example (f g : ℝ → ℝ)
   (hf1 : ∀ x, ∀ y, (f (x+y) + f(x-y)) = 2 * f(x) * g(y))

@@ -17,6 +17,8 @@ For example, `algebra.adjoin K {x}` might not include `x⁻¹`.
 ## Main results
 
 - `adjoin_adjoin_left`: adjoining S and then T is the same as adjoining S ∪ T.
+- `bot_eq_top_of_dim_adjoin_eq_one`: if `F⟮x⟯` has dimension `1` over `F` for every `x`
+  in `E` then `F = E`
 
 ## Notation
 
@@ -165,16 +167,12 @@ end adjoin_def
 section adjoin_subalgebra_lattice
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E] {α : E} {S : set E}
 
--- Put this somewhere else
-lemma bot_eq_range_algebra_map : ((⊥ : subalgebra F E) : set E) = set.range (algebra_map F E) :=
-by simp [set.ext_iff, algebra.mem_bot]
-
 lemma adjoin_eq_bot (h : S ⊆ (⊥ : subalgebra F E)) : adjoin F S = ⊥ :=
 begin
   rw eq_bot_iff,
   intros x,
   rw [subalgebra.mem_coe, subalgebra.mem_coe, algebra.mem_bot],
-  rw bot_eq_range_algebra_map at h,
+  rw algebra.coe_bot at h,
   apply adjoin_subset_subfield _ _ set.subset.rfl h,
 end
 

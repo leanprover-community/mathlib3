@@ -444,7 +444,7 @@ ring_equiv.of_bijective _ (zmod.cast_hom_bij _  _ hn)
 instance zmod.ring_equiv_subsingleton : subsingleton (zmod n ≃+* R) :=
 ⟨λ f g, by { rw ring_equiv.coe_ring_hom_inj, apply ring_hom.ext_zmod _ _ }⟩
 
-@[simp] lemma cast_card_eq_zero [fintype R] : (fintype.card R : R) = 0 :=
+lemma cast_card_eq_zero [fintype R] : (fintype.card R : R) = 0 :=
 begin
   have : fintype.card R •ℕ (1 : R) = 0 :=
     @pow_card_eq_one (multiplicative R) _ _ (multiplicative.of_add 1),

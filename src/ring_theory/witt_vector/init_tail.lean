@@ -77,8 +77,10 @@ mk p (λ k, if P k then x.coeff k else 0)
 section select
 variables (P : ℕ → Prop)
 
+/-- The underlying polynomial structure of `select`. -/
 def select_poly (k : ℕ) : mv_polynomial ℕ ℤ := if P k then X k else 0
 
+/-- `select_poly` is the underlying polynomial structure of `select`. -/
 def select_is_poly : is_poly p (λ R _Rcr x, by exactI select P x) (select_poly P) :=
 { coeff :=
   begin

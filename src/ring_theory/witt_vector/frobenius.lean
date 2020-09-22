@@ -329,6 +329,7 @@ def frobenius_fun_is_poly : is_poly p (λ R _Rcr, @frobenius_fun p R _ _Rcr) (fr
 
 variable {p}
 
+/-- The Frobenius ring endomorphism -/
 def frobenius : 𝕎 R →+* 𝕎 R :=
 { to_fun := frobenius_fun,
   map_zero' :=

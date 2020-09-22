@@ -301,6 +301,7 @@ def comp_right {g ψ f φ} (hg : is_poly₂ p g ψ) (hf : is_poly p f φ) :
   is_poly₂ p (λ R _Rcr x y, by exactI g x (f y)) _ :=
 hg.comp (id_is_poly p) hf
 
+/-- The diagonal `λ x, f x x` of a polynomial function `f` is polynomial. -/
 def diag {f φ} (hf : is_poly₂ p f φ) :
   is_poly p (λ R _Rcr x, by exactI f x x) (λ n, bind₁ (uncurry ![X, X]) (φ n)) :=
 { coeff :=

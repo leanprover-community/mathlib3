@@ -69,7 +69,7 @@ begin
     apply lt_mul_of_one_lt_right h₁ hneg,
     exact trans zero_lt_one hneg },
 
-  -- Demonstrate that `k ≤ k` using `hk₂`.
+  -- Demonstrate that `k ≤ k'` using `hk₂`.
   have H₂ : k ≤ k',
   { have h₁ : ∃ x : ℝ, x ∈ S,
     { use ∥f 0∥, exact set.mem_range_self 0, },

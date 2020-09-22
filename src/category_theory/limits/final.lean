@@ -64,13 +64,14 @@ def extend_cocone (c : cocone (F ⋙ G)) : cocone G :=
       sorry,
     end }}
 
-@[priority 100]
-instance comp_has_colimit [has_colimit G] :
-  has_colimit (F ⋙ G) :=
-has_colimit.mk
-{ cocone := (colimit.cocone G).whisker F,
+variables {G}
+
+@[simps]
+def colimit_cocone_comp (t : colimit_cocone G) :
+  colimit_cocone (F ⋙ G) :=
+{ cocone := t.cocone.whisker F,
   is_colimit :=
-  { desc := λ s, colimit.desc G (extend_cocone _ _ s),
+  { desc := λ s, t.is_colimit.desc (extend_cocone _ _ s),
     fac' := λ s j,
     begin
       dsimp, simp,
@@ -81,14 +82,31 @@ has_colimit.mk
       { intros j₁ j₂ k₁ k₂ f w h, rw ←w at h, rw ← s.w f, simpa using h, },
       { simp, },
     end,
-    uniq' := sorry, }, }
+    uniq' := sorry, }, }.
 
-instance colimit_pre_is_iso {E : Type u} [category.{v} E] (G : D ⥤ E) [has_colimit G] :
+lemma foo (t : colimit_cocone G) :
+  (colimit_cocone_comp F t).is_colimit.desc (t.cocone.whisker F) = 𝟙 t.cocone.X :=
+begin
+  apply t.is_colimit.hom_ext,
+  tidy,
+end
+
+@[priority 100]
+instance comp_has_colimit [has_colimit G] :
+  has_colimit (F ⋙ G) :=
+has_colimit.mk (colimit_cocone_comp F (get_colimit_cocone G))
+
+instance colimit_pre_is_iso [has_colimit G] :
   is_iso (colimit.pre G F) :=
-sorry
+begin
+  rw colimit.pre_eq (colimit_cocone_comp F (get_colimit_cocone G)) (get_colimit_cocone G),
+  rw foo,
+  dsimp,
+  apply_instance,
+end
 
 @[priority 10]
-instance has_colimit_of_comp {E : Type u} [category.{v} E] (G : D ⥤ E) [has_colimit (F ⋙ G)] :
+instance has_colimit_of_comp [has_colimit (F ⋙ G)] :
   has_colimit G :=
 has_colimit.mk
 { cocone :=
@@ -106,7 +124,7 @@ has_colimit.mk
       naturality' := sorry, } },
   is_colimit := sorry, }
 
-instance colimit_pre_is_iso' {E : Type u} [category.{v} E] (G : D ⥤ E) [has_colimit (F ⋙ G)] :
+instance colimit_pre_is_iso' [has_colimit (F ⋙ G)] :
   is_iso (colimit.pre G F) :=
 sorry
 

@@ -50,15 +50,15 @@ This will give rise to a monomial in `mv_polynomial σ R` which mathematicians m
 
 * `coeff s p` : the coefficient of `s` in `p`.
 
-* `eval₂ (f : R → β) (g : σ → β) p` : given a semiring homomorphism from `R` to another
-  semiring `β`, and a map `σ → β`, evaluates `p` at this valuation, returning a term of type `β`.
+* `eval₂ (f : R → S₁) (g : σ → S₁) p` : given a semiring homomorphism from `R` to another
+  semiring `S₁`, and a map `σ → S₁`, evaluates `p` at this valuation, returning a term of type `S₁`.
   Note that `eval₂` can be made using `eval` and `map` (see below), and it has been suggested
   that sticking to `eval` and `map` might make the code less brittle.
 
 * `eval (g : σ → R) p` : given a map `σ → R`, evaluates `p` at this valuation,
   returning a term of type `R`
 
-* `map (f : R → β) p` : returns the multivariate polynomial obtained from `p` by the change of
+* `map (f : R → S₁) p` : returns the multivariate polynomial obtained from `p` by the change of
   coefficient semiring corresponding to `f`
 
 ## Implementation notes
@@ -72,6 +72,8 @@ the polynomial being represented.
 ## Tags
 
 polynomial, multivariate polynomial, multivariable polynomial
+
+S₁ S₂ S₃
 -/
 
 noncomputable theory
@@ -82,7 +84,7 @@ open set function finsupp add_monoid_algebra
 open_locale big_operators
 
 universes u v w x
-variables {R : Type u} {β : Type v} {γ : Type w} {δ : Type x}
+variables {R : Type u} {S₁ : Type v} {S₂ : Type w} {S₃ : Type x}
 
 /-- Multivariate polynomial, where `σ` is the index set of the variables and
   `R` is the coefficient ring -/
@@ -242,8 +244,8 @@ finsupp.induction p (suffices P (monomial 0 0), by rwa monomial_zero at this,
                     (λ a b f ha hb hPf, h2 _ _ (h1 _ _) hPf)
 
 
-lemma hom_eq_hom [semiring γ]
-  (f g : mv_polynomial σ R →+* γ)
+lemma hom_eq_hom [semiring S₂]
+  (f g : mv_polynomial σ R →+* S₂)
   (hC : ∀a:R, f (C a) = g (C a)) (hX : ∀n:σ, f (X n) = g (X n)) (p : mv_polynomial σ R) :
   f p = g p :=
 mv_polynomial.induction_on p hC
@@ -356,8 +358,7 @@ begin
     { rw if_pos rfl, refl },
     { intros m' hm' H, apply if_neg, exact H },
     { intros hm, rw if_pos rfl, rw not_mem_support_iff at hm, simp [hm] } },
-  simp only [zero_mul, single_zero, zero_add],
-  exact sum_zero, -- TODO doesn't work if we put this inside the simp
+  simp only [zero_mul, single_zero, zero_add, sum_zero],
 end
 
 lemma coeff_mul (p q : mv_polynomial σ R) (n : σ →₀ ℕ) :
@@ -487,19 +488,19 @@ end as_sum
 
 
 section eval₂
-variables [comm_semiring β]
-variables (f : R →+* β) (g : σ → β)
+variables [comm_semiring S₁]
+variables (f : R →+* S₁) (g : σ → S₁)
 
 /-- Evaluate a polynomial `p` given a valuation `g` of all the variables
   and a ring hom `f` from the scalar ring to the target -/
-def eval₂ (p : mv_polynomial σ R) : β :=
+def eval₂ (p : mv_polynomial σ R) : S₁ :=
 p.sum (λs a, f a * s.prod (λn e, g n ^ e))
 
-lemma eval₂_eq (g : R →+* β) (x : σ → β) (f : mv_polynomial σ R) :
+lemma eval₂_eq (g : R →+* S₁) (x : σ → S₁) (f : mv_polynomial σ R) :
   f.eval₂ g x = ∑ d in f.support, g (f.coeff d) * ∏ i in d.support, x i ^ d i :=
 rfl
 
-lemma eval₂_eq' [fintype σ] (g : R →+* β) (x : σ → β) (f : mv_polynomial σ R) :
+lemma eval₂_eq' [fintype σ] (g : R →+* S₁) (x : σ → S₁) (f : mv_polynomial σ R) :
   f.eval₂ g x = ∑ d in f.support, g (f.coeff d) * ∏ i, x i ^ d i :=
 by { simp only [eval₂_eq, ← finsupp.prod_pow], refl }
 
@@ -560,22 +561,22 @@ instance eval₂.is_semiring_hom : is_semiring_hom (eval₂ f g) :=
   map_mul := λ p q, eval₂_mul _ _ }
 
 /-- `mv_polynomial.eval₂` as a `ring_hom`. -/
-def eval₂_hom (f : R →+* β) (g : σ → β) : mv_polynomial σ R →+* β := ring_hom.of (eval₂ f g)
+def eval₂_hom (f : R →+* S₁) (g : σ → S₁) : mv_polynomial σ R →+* S₁ := ring_hom.of (eval₂ f g)
 
-@[simp] lemma coe_eval₂_hom (f : R →+* β) (g : σ → β) : ⇑(eval₂_hom f g) = eval₂ f g := rfl
+@[simp] lemma coe_eval₂_hom (f : R →+* S₁) (g : σ → S₁) : ⇑(eval₂_hom f g) = eval₂ f g := rfl
 
-lemma eval₂_hom_congr  {f₁ f₂ : R →+* β} {g₁ g₂ : σ → β} {p₁ p₂ : mv_polynomial σ R} :
+lemma eval₂_hom_congr  {f₁ f₂ : R →+* S₁} {g₁ g₂ : σ → S₁} {p₁ p₂ : mv_polynomial σ R} :
   f₁ = f₂ → g₁ = g₂ → p₁ = p₂ →  eval₂_hom f₁ g₁ p₁ = eval₂_hom f₂ g₂ p₂ :=
 by rintros rfl rfl rfl; refl
 end
 
-@[simp] lemma eval₂_hom_C (f : R →+* β) (g : σ → β) (r : R) :
+@[simp] lemma eval₂_hom_C (f : R →+* S₁) (g : σ → S₁) (r : R) :
   eval₂_hom f g (C r) = f r := eval₂_C f g r
 
-@[simp] lemma eval₂_hom_X' (f : R →+* β) (g : σ → β) (i : σ) :
+@[simp] lemma eval₂_hom_X' (f : R →+* S₁) (g : σ → S₁) (i : σ) :
   eval₂_hom f g (X i) = g i := eval₂_X f g i
 
-@[simp] lemma comp_eval₂_hom [comm_semiring γ] (f : R →+* β) (g : σ → β) (φ : β →+* γ) :
+@[simp] lemma comp_eval₂_hom [comm_semiring S₂] (f : R →+* S₁) (g : σ → S₁) (φ : S₁ →+* S₂) :
   φ.comp (eval₂_hom f g) = (eval₂_hom (φ.comp f) (λ i, φ (g i))) :=
 begin
   apply mv_polynomial.ring_hom_ext,
@@ -583,20 +584,20 @@ begin
   { intro i, rw [ring_hom.comp_apply, eval₂_hom_X', eval₂_hom_X'] }
 end
 
-lemma map_eval₂_hom  [comm_semiring γ] (f : R →+* β) (g : σ → β) (φ : β →+* γ)
+lemma map_eval₂_hom  [comm_semiring S₂] (f : R →+* S₁) (g : σ → S₁) (φ : S₁ →+* S₂)
   (p : mv_polynomial σ R) :
   φ (eval₂_hom f g p) = (eval₂_hom (φ.comp f) (λ i, φ (g i)) p) :=
 by { rw ← comp_eval₂_hom, refl }
 
-lemma eval₂_hom_monomial (f : R →+* β) (g : σ → β) (d : σ →₀ ℕ) (r : R) :
+lemma eval₂_hom_monomial (f : R →+* S₁) (g : σ → S₁) (d : σ →₀ ℕ) (r : R) :
   eval₂_hom f g (monomial d r) = f r * d.prod (λ i k, g i ^ k) :=
 by simp only [monomial_eq, ring_hom.map_mul, eval₂_hom_C, finsupp.prod,
   ring_hom.map_prod, ring_hom.map_pow, eval₂_hom_X']
 
 section
 local attribute [instance, priority 10] is_semiring_hom.comp
-lemma eval₂_comp_left {γ} [comm_semiring γ]
-  (k : β →+* γ) (f : R →+* β) (g : σ → β)
+lemma eval₂_comp_left {S₂} [comm_semiring S₂]
+  (k : S₁ →+* S₂) (f : R →+* S₁) (g : σ → S₁)
   (p) : k (eval₂ f g p) = eval₂ (k.comp f) (k ∘ g) p :=
 by apply mv_polynomial.induction_on p; simp [
   eval₂_add, k.map_add,
@@ -607,7 +608,7 @@ end
 by apply mv_polynomial.induction_on p;
    simp [eval₂_add, eval₂_mul] {contextual := tt}
 
-lemma eval₂_congr (g₁ g₂ : σ → β)
+lemma eval₂_congr (g₁ g₂ : σ → S₁)
   (h : ∀ {i : σ} {c : σ →₀ ℕ}, i ∈ c.support → coeff c p ≠ 0 → g₁ i = g₂ i) :
   p.eval₂ f g₁ = p.eval₂ f g₂ :=
 begin
@@ -619,17 +620,17 @@ begin
   rwa finsupp.mem_support_iff at hc
 end
 
-@[simp] lemma eval₂_prod (s : finset γ) (p : γ → mv_polynomial σ R) :
+@[simp] lemma eval₂_prod (s : finset S₂) (p : S₂ → mv_polynomial σ R) :
   eval₂ f g (∏ x in s, p x) = ∏ x in s, eval₂ f g (p x) :=
 (s.prod_hom _).symm
 
-@[simp] lemma eval₂_sum (s : finset γ) (p : γ → mv_polynomial σ R) :
+@[simp] lemma eval₂_sum (s : finset S₂) (p : S₂ → mv_polynomial σ R) :
   eval₂ f g (∑ x in s, p x) = ∑ x in s, eval₂ f g (p x) :=
 (s.sum_hom _).symm
 
 attribute [to_additive] eval₂_prod
 
-lemma eval₂_assoc (q : γ → mv_polynomial σ R) (p : mv_polynomial γ R) :
+lemma eval₂_assoc (q : S₂ → mv_polynomial σ R) (p : mv_polynomial S₂ R) :
   eval₂ f (λ t, eval₂ f g (q t)) p = eval₂ f g (eval₂ C q p) :=
 begin
   show _ = eval₂_hom f g (eval₂ C q p),
@@ -684,11 +685,11 @@ end
 end eval
 
 section map
-variables [comm_semiring β]
-variables (f : R →+* β)
+variables [comm_semiring S₁]
+variables (f : R →+* S₁)
 
 /-- `map f p` maps a polynomial `p` across a ring hom `f` -/
-def map : mv_polynomial σ R →+* mv_polynomial σ β := eval₂_hom (C.comp f) X
+def map : mv_polynomial σ R →+* mv_polynomial σ S₁ := eval₂_hom (C.comp f) X
 
 @[simp] theorem map_monomial (s : σ →₀ ℕ) (a : R) : map f (monomial s a) = monomial s (f a) :=
 (eval₂_monomial _ _).trans monomial_eq.symm
@@ -699,8 +700,8 @@ def map : mv_polynomial σ R →+* mv_polynomial σ β := eval₂_hom (C.comp f)
 
 theorem map_id : ∀ (p : mv_polynomial σ R), map (ring_hom.id R) p = p := eval₂_eta
 
-theorem map_map [comm_semiring γ]
-  (g : β →+* γ)
+theorem map_map [comm_semiring S₂]
+  (g : S₁ →+* S₂)
   (p : mv_polynomial σ R) :
   map g (map f p) = map (g.comp f) p :=
 (eval₂_comp_left (map g) (C.comp f) X p).trans $
@@ -710,7 +711,7 @@ begin
   { ext1 n, simp only [map_X, comp_app], }
 end
 
-theorem eval₂_eq_eval_map (g : σ → β) (p : mv_polynomial σ R) :
+theorem eval₂_eq_eval_map (g : σ → S₁) (p : mv_polynomial σ R) :
   p.eval₂ f g = eval g (map f p) :=
 begin
   unfold map eval, simp only [coe_eval₂_hom],
@@ -722,8 +723,8 @@ begin
   { ext1 n, simp only [comp_app, eval₂_X], },
 end
 
-lemma eval₂_comp_right {γ} [comm_semiring γ]
-  (k : β →+* γ) (f : R →+* β) (g : σ → β)
+lemma eval₂_comp_right {S₂} [comm_semiring S₂]
+  (k : S₁ →+* S₂) (f : R →+* S₁) (g : σ → S₁)
   (p) : k (eval₂ f g p) = eval₂ k (k ∘ g) (map f p) :=
 begin
   apply mv_polynomial.induction_on p,
@@ -733,7 +734,7 @@ begin
     rw [eval₂_mul, k.map_mul, (map f).map_mul, eval₂_mul, map_X, hp, eval₂_X, eval₂_X] }
 end
 
-lemma map_eval₂ (f : R →+* β) (g : γ → mv_polynomial δ R) (p : mv_polynomial γ R) :
+lemma map_eval₂ (f : R →+* S₁) (g : S₂ → mv_polynomial S₃ R) (p : mv_polynomial S₂ R) :
   map f (eval₂ C g p) = eval₂ C (map f ∘ g) (map f p) :=
 begin
   apply mv_polynomial.induction_on p,
@@ -755,7 +756,7 @@ begin
 end
 
 lemma map_injective (hf : function.injective f) :
-  function.injective (map f : mv_polynomial σ R → mv_polynomial σ β) :=
+  function.injective (map f : mv_polynomial σ R → mv_polynomial σ S₁) :=
 begin
   intros p q h,
   simp only [ext_iff, coeff_map] at h ⊢,
@@ -763,26 +764,26 @@ begin
   exact hf (h m),
 end
 
-@[simp] lemma eval_map (f : R →+* β) (g : σ → β) (p : mv_polynomial σ R) :
+@[simp] lemma eval_map (f : R →+* S₁) (g : σ → S₁) (p : mv_polynomial σ R) :
   eval g (map f p) = eval₂ f g p :=
 by { apply mv_polynomial.induction_on p; { simp { contextual := tt } } }
 
-@[simp] lemma eval₂_map [comm_semiring γ] (f : R →+* β) (g : σ → γ) (φ : β →+* γ)
+@[simp] lemma eval₂_map [comm_semiring S₂] (f : R →+* S₁) (g : σ → S₂) (φ : S₁ →+* S₂)
   (p : mv_polynomial σ R) :
   eval₂ φ g (map f p) = eval₂ (φ.comp f) g p :=
 by { rw [← eval_map, ← eval_map, map_map], }
 
-@[simp] lemma eval₂_hom_map_hom [comm_semiring γ] (f : R →+* β) (g : σ → γ) (φ : β →+* γ)
+@[simp] lemma eval₂_hom_map_hom [comm_semiring S₂] (f : R →+* S₁) (g : σ → S₂) (φ : S₁ →+* S₂)
   (p : mv_polynomial σ R) :
   eval₂_hom φ g (map f p) = eval₂_hom (φ.comp f) g p :=
 eval₂_map f g φ p
 
-@[simp] lemma constant_coeff_map (f : R →+* β) (φ : mv_polynomial σ R) :
+@[simp] lemma constant_coeff_map (f : R →+* S₁) (φ : mv_polynomial σ R) :
   constant_coeff (mv_polynomial.map f φ) = f (constant_coeff φ) :=
 coeff_map f φ 0
 
-lemma constant_coeff_comp_map (f : R →+* β) :
-  (constant_coeff : mv_polynomial σ β →+* β).comp (mv_polynomial.map f) = f.comp (constant_coeff) :=
+lemma constant_coeff_comp_map (f : R →+* S₁) :
+  (constant_coeff : mv_polynomial σ S₁ →+* S₁).comp (mv_polynomial.map f) = f.comp (constant_coeff) :=
 by { ext, apply constant_coeff_map }
 
 lemma support_map_subset (p : mv_polynomial σ R) : (map f p).support ⊆ p.support :=
@@ -797,7 +798,7 @@ begin
   exact ring_hom.map_zero f
 end
 
-lemma support_map_of_injective (p : mv_polynomial σ R) {f : R →+* β} (hf : injective f) :
+lemma support_map_of_injective (p : mv_polynomial σ R) {f : R →+* S₁} (hf : injective f) :
   (map f p).support = p.support :=
 begin
   apply finset.subset.antisymm,
@@ -818,25 +819,25 @@ section aeval
 
 /-! ### The algebra of multivariate polynomials -/
 
-variables {A : Type v} {S : Type w} (f : σ → A)
-variables [comm_semiring A] [algebra R A] [comm_semiring S]
+variables (f : σ → S₁)
+variables [comm_semiring S₁] [algebra R S₁] [comm_semiring S₂]
 
-/-- A map `σ → A` where `A` is an algebra over `R` generates an `R`-algebra homomorphism
-from multivariate polynomials over `σ` to `A`. -/
-def aeval : mv_polynomial σ R →ₐ[R] A :=
+/-- A map `σ → S₁` where `S₁` is an algebra over `R` generates an `R`-algebra homomorphism
+from multivariate polynomials over `σ` to `S₁`. -/
+def aeval : mv_polynomial σ R →ₐ[R] S₁ :=
 { commutes' := λ r, eval₂_C _ _ _
-  .. eval₂_hom (algebra_map R A) f }
+  .. eval₂_hom (algebra_map R S₁) f }
 
-theorem aeval_def (p : mv_polynomial σ R) : aeval f p = eval₂ (algebra_map R A) f p := rfl
+theorem aeval_def (p : mv_polynomial σ R) : aeval f p = eval₂ (algebra_map R S₁) f p := rfl
 
 lemma aeval_eq_eval₂_hom (p : mv_polynomial σ R) :
-  aeval f p = eval₂_hom (algebra_map R A) f p := rfl
+  aeval f p = eval₂_hom (algebra_map R S₁) f p := rfl
 
 @[simp] lemma aeval_X (s : σ) : aeval f (X s : mv_polynomial _ R) = f s := eval₂_X _ _ _
 
-@[simp] lemma aeval_C (r : R) : aeval f (C r) = algebra_map R A r := eval₂_C _ _ _
+@[simp] lemma aeval_C (r : R) : aeval f (C r) = algebra_map R S₁ r := eval₂_C _ _ _
 
-theorem eval_unique (φ : mv_polynomial σ R →ₐ[R] A) :
+theorem eval_unique (φ : mv_polynomial σ R →ₐ[R] S₁) :
   φ = aeval (φ ∘ X) :=
 begin
   ext p,
@@ -849,7 +850,7 @@ begin
 end
 
 lemma comp_aeval {B : Type*} [comm_semiring B] [algebra R B]
-  (φ : A →ₐ[R] B) :
+  (φ : S₁ →ₐ[R] B) :
   φ.comp (aeval f) = (aeval (λ i, φ (f i))) :=
 begin
   apply mv_polynomial.alg_hom_ext,
@@ -858,12 +859,12 @@ begin
 end
 
 @[simp] lemma map_aeval {B : Type*} [comm_semiring B]
-  (g : σ → A) (φ : A →+* B) (p : mv_polynomial σ R) :
-  φ (aeval g p) = (eval₂_hom (φ.comp (algebra_map R A)) (λ i, φ (g i)) p) :=
+  (g : σ → S₁) (φ : S₁ →+* B) (p : mv_polynomial σ R) :
+  φ (aeval g p) = (eval₂_hom (φ.comp (algebra_map R S₁)) (λ i, φ (g i)) p) :=
 by { rw ← comp_eval₂_hom, refl }
 
 @[simp] lemma aeval_zero (p : mv_polynomial σ R) :
-  aeval (0 : σ → A) p = algebra_map _ _ (constant_coeff p) :=
+  aeval (0 : σ → S₁) p = algebra_map _ _ (constant_coeff p) :=
 begin
   apply mv_polynomial.induction_on p,
   { simp only [aeval_C, forall_const, if_true, constant_coeff_C, eq_self_iff_true] },
@@ -874,14 +875,14 @@ begin
 end
 
 @[simp] lemma aeval_zero' (p : mv_polynomial σ R) :
-  aeval (λ _, 0 : σ → A) p = algebra_map _ _ (constant_coeff p) :=
+  aeval (λ _, 0 : σ → S₁) p = algebra_map _ _ (constant_coeff p) :=
 aeval_zero p
 
-lemma aeval_monomial (g : σ → A) (d : σ →₀ ℕ) (r : R) :
+lemma aeval_monomial (g : σ → S₁) (d : σ →₀ ℕ) (r : R) :
   aeval g (monomial d r) = algebra_map _ _ r * d.prod (λ i k, g i ^ k) :=
 eval₂_hom_monomial _ _ _ _
 
-lemma eval₂_hom_eq_zero (f : R →+* S) (g : σ → S) (φ : mv_polynomial σ R)
+lemma eval₂_hom_eq_zero (f : R →+* S₂) (g : σ → S₂) (φ : mv_polynomial σ R)
   (h : ∀ d, φ.coeff d ≠ 0 → ∃ i ∈ d.support, g i = 0) :
   eval₂_hom f g φ = 0 :=
 begin
@@ -893,7 +894,7 @@ begin
   rwa [nat.pos_iff_ne_zero, ← finsupp.mem_support_iff]
 end
 
-lemma aeval_eq_zero [algebra R S] (f : σ → S) (φ : mv_polynomial σ R)
+lemma aeval_eq_zero [algebra R S₂] (f : σ → S₂) (φ : mv_polynomial σ R)
   (h : ∀ d, φ.coeff d ≠ 0 → ∃ i ∈ d.support, f i = 0) :
   aeval f φ = 0 :=
 eval₂_hom_eq_zero _ _ _ h

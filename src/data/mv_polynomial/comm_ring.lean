@@ -40,8 +40,8 @@ open_locale classical big_operators
 open set function finsupp add_monoid_algebra
 open_locale big_operators
 
-universes u v w x
-variables {R : Type u} {β : Type v} {γ : Type w} {δ : Type x}
+universes u v
+variables {R : Type u} {S : Type v}
 
 namespace mv_polynomial
 variables {σ : Type*} {a a' a₁ a₂ : R} {e : ℕ} {n m : σ} {s : σ →₀ ℕ}
@@ -107,20 +107,20 @@ end vars
 
 section eval₂
 
-variables [comm_ring β]
-variables (f : R →+* β) (g : σ → β)
+variables [comm_ring S]
+variables (f : R →+* S) (g : σ → S)
 
 @[simp] lemma eval₂_sub : (p - q).eval₂ f g = p.eval₂ f g - q.eval₂ f g := (eval₂_hom f g).map_sub _ _
 
 @[simp] lemma eval₂_neg : (-p).eval₂ f g = -(p.eval₂ f g) := (eval₂_hom f g).map_neg _
 
-lemma hom_C (f : mv_polynomial σ ℤ → β) [is_ring_hom f] (n : ℤ) : f (C n) = (n : β) :=
+lemma hom_C (f : mv_polynomial σ ℤ → S) [is_ring_hom f] (n : ℤ) : f (C n) = (n : S) :=
 ((ring_hom.of f).comp (ring_hom.of C)).eq_int_cast n
 
 /-- A ring homomorphism f : Z[X_1, X_2, ...] → R
 is determined by the evaluations f(X_1), f(X_2), ... -/
-@[simp] lemma eval₂_hom_X {R : Type u} (c : ℤ →+* β)
-  (f : mv_polynomial R ℤ →+* β) (x : mv_polynomial R ℤ) :
+@[simp] lemma eval₂_hom_X {R : Type u} (c : ℤ →+* S)
+  (f : mv_polynomial R ℤ →+* S) (x : mv_polynomial R ℤ) :
   eval₂ c (f ∘ X) x = f x :=
 mv_polynomial.induction_on x
 (λ n, by { rw [hom_C f, eval₂_C], exact (ring_hom.of c).eq_int_cast n })
@@ -129,9 +129,9 @@ mv_polynomial.induction_on x
 
 /-- Ring homomorphisms out of integer polynomials on a type `σ` are the same as
 functions out of the type `σ`, -/
-def hom_equiv : (mv_polynomial σ ℤ →+* β) ≃ (σ → β) :=
+def hom_equiv : (mv_polynomial σ ℤ →+* S) ≃ (σ → S) :=
 { to_fun := λ f, ⇑f ∘ X,
-  inv_fun := λ f, eval₂_hom (int.cast_ring_hom β) f,
+  inv_fun := λ f, eval₂_hom (int.cast_ring_hom S) f,
   left_inv := λ f, ring_hom.ext  $ eval₂_hom_X _ _,
   right_inv := λ f, funext $ λ x, by simp only [coe_eval₂_hom, function.comp_app, eval₂_X] }
 

@@ -60,8 +60,8 @@ open_locale classical big_operators
 open set function finsupp add_monoid_algebra
 open_locale big_operators
 
-universes u v w x
-variables {R : Type u} {β : Type v} {γ : Type w} {δ : Type x}
+universes u v w
+variables {R : Type u} {S : Type v}
 
 namespace mv_polynomial
 variables {σ : Type*} {a a' a₁ a₂ : R} {e : ℕ} {n m : σ} {s : σ →₀ ℕ}
@@ -189,7 +189,7 @@ begin
     { rw add_comm, apply le_degrees_add h.symm } }
 end
 
-lemma degrees_map [comm_semiring β] (p : mv_polynomial σ R) (f : R →+* β) :
+lemma degrees_map [comm_semiring S] (p : mv_polynomial σ R) (f : R →+* S) :
   (map f p).degrees ⊆ p.degrees :=
 begin
   dsimp only [degrees],
@@ -198,8 +198,8 @@ begin
   apply mv_polynomial.support_map_subset
 end
 
-lemma degrees_map_of_injective [comm_semiring β] (p : mv_polynomial σ R)
-  {f : R →+* β} (hf : injective f) : (map f p).degrees = p.degrees :=
+lemma degrees_map_of_injective [comm_semiring S] (p : mv_polynomial σ R)
+  {f : R →+* S} (hf : injective f) : (map f p).degrees = p.degrees :=
 by simp only [degrees, mv_polynomial.support_map_of_injective _ hf]
 
 end degrees
@@ -362,7 +362,7 @@ end sum
 
 section map
 
-variables [comm_semiring β] (f : R →+* β)
+variables [comm_semiring S] (f : R →+* S)
 variable (p)
 
 lemma vars_map : (map f p).vars ⊆ p.vars :=
@@ -527,10 +527,10 @@ section eval_vars
 
 /-! ### `vars` and `eval` -/
 
-variables {A : Type v} {S : Type w} (f : σ → A)
-variables [comm_semiring R] [comm_semiring A] [algebra R A] [comm_semiring S]
+variables {S₁ : Type v} {S₂ : Type w} (f : σ → S₁)
+variables [comm_semiring R] [comm_semiring S₁] [algebra R S₁] [comm_semiring S₂]
 
-lemma eval₂_hom_eq_constant_coeff_of_vars (f : R →+* S) {g : σ → S}
+lemma eval₂_hom_eq_constant_coeff_of_vars (f : R →+* S₂) {g : σ → S₂}
   {p : mv_polynomial σ R} (hp : ∀ i ∈ p.vars, g i = 0) :
   eval₂_hom f g p = f (constant_coeff p) :=
 begin
@@ -558,7 +558,7 @@ begin
     intro, contradiction }
 end
 
-lemma aeval_eq_constant_coeff_of_vars [algebra R S] {g : σ → S}
+lemma aeval_eq_constant_coeff_of_vars [algebra R S₂] {g : σ → S₂}
   {p : mv_polynomial σ R} (hp : ∀ i ∈ p.vars, g i = 0) :
   aeval g p = algebra_map _ _ (constant_coeff p) :=
 eval₂_hom_eq_constant_coeff_of_vars _ hp

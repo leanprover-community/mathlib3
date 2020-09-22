@@ -175,6 +175,8 @@ begin
   { rintros ⟨r, rfl⟩, apply conj_of_real }
 end
 
+/-- Conjugation as a ring equivalence. This is used to convert the inner product into a
+sesquilinear product. -/
 def conj_to_ring_equiv : K ≃+* Kᵒᵖ :=
 { to_fun := opposite.op ∘ conj,
   inv_fun := conj ∘ opposite.unop,
@@ -516,15 +518,6 @@ lemma is_cau_seq_abs {f : ℕ → K} (hf : is_cau_seq abs f) :
   is_cau_seq abs' (abs ∘ f) :=
 λ ε ε0, let ⟨i, hi⟩ := hf ε ε0 in
 ⟨i, λ j hj, lt_of_le_of_lt (abs_abs_sub_le_abs_sub _ _) (hi j hj)⟩
-
-section module
-
-/-- An `is_R_or_C` vector space is also a real vector space. -/
--- Note: Registering this as an instance (even very low priority) causes trouble.
-noncomputable def module.is_R_or_C_to_real (E : Type*) [add_comm_group E] [module K E] : module ℝ E :=
-semimodule.restrict_scalars' ℝ K E
-
-end module
 
 end is_R_or_C
 

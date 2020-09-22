@@ -12,7 +12,7 @@ import category_theory.limits.limits
 Given a functor `F : J ⥤ Π i, C i` into a category of indexed families,
 1. we can assemble a collection of cones over `F ⋙ pi.eval C i` into a cone over `F`
 2. if all those cones are limit cones, the assembled cone is a limit cone, and
-3. if we have chosen limits for each of `F ⋙ pi.eval C i`, we can produce a
+3. if we have limits for each of `F ⋙ pi.eval C i`, we can produce a
    `has_limit F` instance
 -/
 
@@ -105,10 +105,11 @@ variables [∀ i, has_limit (F ⋙ pi.eval C i)]
 
 /--
 If we have a functor `F : J ⥤ Π i, C i` into a category of indexed families,
-and we have chosen limits for each of the `F ⋙ pi.eval C i`,
-there is a canonical choice of chosen limit for `F`.
+and we have limits for each of the `F ⋙ pi.eval C i`,
+then `F` has a limit.
 -/
-def has_limit_of_has_limit_comp_eval : has_limit F :=
+lemma has_limit_of_has_limit_comp_eval : has_limit F :=
+has_limit.mk
 { cone := cone_of_cone_comp_eval (λ i, limit.cone _),
   is_limit := cone_of_cone_eval_is_limit (λ i, limit.is_limit _), }
 
@@ -123,7 +124,8 @@ If we have a functor `F : J ⥤ Π i, C i` into a category of indexed families,
 and colimits exist for each of the `F ⋙ pi.eval C i`,
 there is a colimit for `F`.
 -/
-def has_colimit_of_has_colimit_comp_eval : has_colimit F :=
+lemma has_colimit_of_has_colimit_comp_eval : has_colimit F :=
+has_colimit.mk
 { cocone := cocone_of_cocone_comp_eval (λ i, colimit.cocone _),
   is_colimit := cocone_of_cocone_eval_is_colimit (λ i, colimit.is_colimit _), }
 

@@ -60,5 +60,6 @@ welcomed.
 * Chris Hughes (@ChrisHughes24): group theory, ring theory, field theory
 * Yury G. Kudryashov (@urkud): analysis, topology
 * Robert Y. Lewis (@robertylewis): all
+* Heather Macbeth (@hrmacbeth): geometry, analysis
 * Patrick Massot (@patrickmassot): documentation, topology
 * Scott Morrison (@semorrison): category theory

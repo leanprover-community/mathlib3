@@ -26,8 +26,6 @@ import ring_theory.noetherian
 variables {α : Type*}
 local infix ` ~ᵤ ` : 50 := associated
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- Well-foundedness of the strict version of |, which is equivalent to the descending chain
 condition on divisibility and to the ascending chain condition on
 principal ideals in an integral domain.
@@ -37,13 +35,12 @@ class wf_dvd_monoid (α : Type*) [comm_monoid_with_zero α] : Prop :=
 
 export wf_dvd_monoid (well_founded_dvd_not_unit)
 
+@[priority 100]  -- see Note [lower instance priority]
 instance is_noetherian_ring.wf_dvd_monoid [integral_domain α] [is_noetherian_ring α] :
   wf_dvd_monoid α :=
 ⟨by { convert inv_image.wf (λ a, ideal.span ({a} : set α)) (well_founded_submodule_gt _ _),
       ext,
       exact ideal.span_singleton_lt_span_singleton.symm }⟩
-
-end prio
 
 instance polynomial.wf_dvd_monoid [integral_domain α] [wf_dvd_monoid α] : wf_dvd_monoid (polynomial α) :=
 { well_founded_dvd_not_unit := begin

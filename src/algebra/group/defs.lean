@@ -22,7 +22,6 @@ The file does not contain any lemmas except for
 For basic lemmas about these classes see `algebra.group.basic`.
 -/
 
-set_option default_priority 100
 set_option old_structure_cmd true
 
 universe u
@@ -333,17 +332,17 @@ by rwa [inv_inv] at this
 lemma mul_inv_cancel_right (a b : G) : a * b * b⁻¹ = a :=
 by rw [mul_assoc, mul_right_inv, mul_one]
 
-@[to_additive]
+@[priority 100, to_additive]    -- see Note [lower instance priority]
 instance group.to_left_cancel_semigroup : left_cancel_semigroup G :=
 { mul_left_cancel := λ a b c h, by rw [← inv_mul_cancel_left a b, h, inv_mul_cancel_left],
   ..‹group G› }
 
-@[to_additive]
+@[priority 100, to_additive]    -- see Note [lower instance priority]
 instance group.to_right_cancel_semigroup : right_cancel_semigroup G :=
 { mul_right_cancel := λ a b c h, by rw [← mul_inv_cancel_right a b, h, mul_inv_cancel_right],
   ..‹group G› }
 
-@[to_additive]
+@[priority 100, to_additive]    -- see Note [lower instance priority]
 instance group.to_cancel_monoid : cancel_monoid G :=
 { ..‹group G›, .. group.to_left_cancel_semigroup,
   ..group.to_right_cancel_semigroup }
@@ -358,6 +357,7 @@ variables {G : Type u} [add_group G]
 @[reducible] protected def algebra.sub (a b : G) : G :=
 a + -b
 
+@[priority 100]    -- see Note [lower instance priority]
 instance add_group_has_sub : has_sub G :=
 ⟨algebra.sub⟩
 
@@ -379,7 +379,7 @@ section comm_group
 
 variables {G : Type u} [comm_group G]
 
-@[to_additive]
+@[priority 100, to_additive]    -- see Note [lower instance priority]
 instance comm_group.to_cancel_comm_monoid : cancel_comm_monoid G :=
 { ..‹comm_group G›,
   ..group.to_left_cancel_semigroup,

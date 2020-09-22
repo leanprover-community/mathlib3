@@ -49,7 +49,7 @@ namespace submodule.is_principal
 
 variables [comm_ring R] [add_comm_group M] [module R M]
 
-/-- `generator I`, if `I` is a principal submodule, is the `x ∈ M` such that `span R {x} = I` -/
+/-- `generator I`, if `I` is a principal submodule, is an `x ∈ M` such that `span R {x} = I` -/
 noncomputable def generator (S : submodule R M) [S.is_principal] : M :=
 classical.some (principal S)
 
@@ -75,7 +75,10 @@ end submodule.is_principal
 namespace is_prime
 open submodule.is_principal ideal
 
--- TODO -- for a non-ID should prove that if p < q then q maximal; 0 isn't prime in a non-ID
+-- TODO -- for a non-ID one could perhaps prove that if p < q are prime then q maximal;
+-- 0 isn't prime in a non-ID PIR but the Krull dimension is still <= 1.
+-- The below result follows from this, but we could also use the below result to
+-- prove this (quotient out by p).
 lemma to_maximal_ideal [integral_domain R] [is_principal_ideal_ring R] {S : ideal R}
   [hpi : is_prime S] (hS : S ≠ ⊥) : is_maximal S :=
 is_maximal_iff.2 ⟨(ne_top_iff_one S).1 hpi.1, begin

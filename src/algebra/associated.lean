@@ -354,8 +354,8 @@ by { ext, rw associated_iff_eq }
 end unique_units
 
 /-- The quotient of a monoid by the `associated` relation. Two elements `x` and `y`
-  are associated iff there is a unit `u` such that `x * u = y`. `associates α`
-  forms a monoid. -/
+  are associated iff there is a unit `u` such that `x * u = y`. There is a natural
+  monoid structure on `associates α`. -/
 def associates (α : Type*) [monoid α] : Type* :=
 quotient (associated.setoid α)
 

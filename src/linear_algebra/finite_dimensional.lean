@@ -775,8 +775,8 @@ open vector_space finite_dimensional
 section top
 
 @[simp]
-theorem findim_top [finite_dimensional K V] : findim K (⊤ : submodule K V) = findim K V :=
-linear_equiv.findim_eq $ linear_equiv.of_top ⊤ rfl
+theorem findim_top : findim K (⊤ : submodule K V) = findim K V :=
+by {unfold findim, simp [dim_top]}
 
 end top
 
@@ -1068,6 +1068,10 @@ lemma subalgebra_top_dim_eq_submodule_top_dim :
   dim F (⊤ : subalgebra F E) = dim F (⊤ : submodule F E) :=
 by {rw ← algebra.coe_top, refl}
 
+lemma subalgebra_top_findim_eq_submodule_top_findim :
+  findim F (⊤ : subalgebra F E) = findim F (⊤ : submodule F E) :=
+by {rw ← algebra.coe_top, refl}
+
 lemma subalgebra.dim_top : dim F (⊤ : subalgebra F E) = dim F E :=
 by {rw subalgebra_top_dim_eq_submodule_top_dim, exact dim_top}
 
@@ -1118,9 +1122,15 @@ end
 @[simp]
 lemma subalgebra.bot_eq_top_of_dim_eq_one (h : dim F E = 1) : (⊥ : subalgebra F E) = ⊤ :=
 begin
-  rw ← dim_top at h,
-  rw ← subalgebra_top_dim_eq_submodule_top_dim at h,
+  rw [← dim_top, ← subalgebra_top_dim_eq_submodule_top_dim] at h,
   exact eq.symm (subalgebra.eq_bot_of_dim_one h),
+end
+
+@[simp]
+lemma subalgebra.bot_eq_top_of_findim_eq_one (h : findim F E = 1) : (⊥ : subalgebra F E) = ⊤ :=
+begin
+  rw [← findim_top, ← subalgebra_top_findim_eq_submodule_top_findim] at h,
+  exact eq.symm (subalgebra.eq_bot_of_findim_one h),
 end
 
 @[simp]

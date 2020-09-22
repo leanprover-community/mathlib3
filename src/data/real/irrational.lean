@@ -22,7 +22,7 @@ open rat real multiplicity
 /-- A real number is irrational if it is not equal to any rational number. -/
 def irrational (x : ℝ) := x ∉ set.range (coe : ℚ → ℝ)
 
-lemma irrational_iff_ne_rational (x : ℝ) : irrational x ↔ ∀ a b : ℤ, b > 0 → x - a / b ≠ 0 :=
+lemma irrational_iff_ne_rational (x : ℝ) : irrational x ↔ ∀ a b : ℤ, 0 < b → x - a / b ≠ 0 :=
 ⟨λ h a b _ r, begin
   rw sub_eq_zero_iff_eq at r,
   refine h _,

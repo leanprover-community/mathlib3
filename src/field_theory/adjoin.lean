@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning and Patrick Lutz
 -/
 
-import field_theory.subfield
+import deprecated.subfield
 import linear_algebra.finite_dimensional
 
 /-!

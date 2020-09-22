@@ -71,8 +71,16 @@ instance category_lax_monoidal_functor : category (lax_monoidal_functor C D) :=
   id := id,
   comp := λ F G H α β, vcomp α β, }
 
+@[simp] lemma comp_to_nat_trans' {F G H : lax_monoidal_functor C D} {α : F ⟶ G} {β : G ⟶ H} :
+  (α ≫ β).to_nat_trans =
+    @category_struct.comp (C ⥤ D) _ _ _ _ (α.to_nat_trans) (β.to_nat_trans) := rfl
+
 instance category_monoidal_functor : category (monoidal_functor C D) :=
 induced_category.category monoidal_functor.to_lax_monoidal_functor
+
+@[simp] lemma comp_to_nat_trans'' {F G H : monoidal_functor C D} {α : F ⟶ G} {β : G ⟶ H} :
+  (α ≫ β).to_nat_trans =
+    @category_struct.comp (C ⥤ D) _ _ _ _ (α.to_nat_trans) (β.to_nat_trans) := rfl
 
 variables {E : Type u₃} [category.{v₃} E] [monoidal_category.{v₃} E]
 
@@ -96,5 +104,44 @@ def hcomp {F G : lax_monoidal_functor C D} {H K : lax_monoidal_functor D E}
   ..(nat_trans.hcomp α.to_nat_trans β.to_nat_trans) }
 
 end monoidal_nat_trans
+
+namespace monoidal_nat_iso
+
+variables {F G : lax_monoidal_functor C D}
+
+instance is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso α :=
+{ inv :=
+  { app := λ X, inv (α.app X),
+    naturality' := λ X Y f,
+    begin
+      have h := congr_arg (λ f, inv (α.app X) ≫ (f ≫ inv (α.app Y))) (α.to_nat_trans.naturality f).symm,
+      simp only [is_iso.inv_hom_id_assoc, is_iso.hom_inv_id, assoc, comp_id, cancel_mono] at h,
+      exact h
+    end,
+    tensor' := λ X Y,
+    begin
+      dsimp,
+      rw [is_iso.comp_inv_eq, assoc, monoidal_nat_trans.tensor, ←inv_tensor,
+        is_iso.inv_hom_id_assoc],
+    end }, }
+
+/--
+Construct a monoidal natural isomorphism from object level isomorphisms,
+and the monoidal naturality in the forward direction.
+-/
+def of_components
+  (app : ∀ X : C, F.obj X ≅ G.obj X)
+  (naturality : ∀ {X Y : C} (f : X ⟶ Y), F.map f ≫ (app Y).hom = (app X).hom ≫ G.map f)
+  (unit : F.ε ≫ (app (𝟙_ C)).hom = G.ε)
+  (tensor : ∀ X Y, F.μ X Y ≫ (app (X ⊗ Y)).hom = ((app X).hom ⊗ (app Y).hom) ≫ G.μ X Y) :
+  F ≅ G :=
+as_iso { app := λ X, (app X).hom }
+
+@[simp] lemma of_components.hom_app (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (unit) (tensor) (X) :
+  (of_components app naturality unit tensor).hom.app X = (app X).hom := rfl
+@[simp] lemma of_components.inv_app (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (unit) (tensor) (X) :
+  (of_components app naturality unit tensor).inv.app X = (app X).inv := rfl
+
+end monoidal_nat_iso
 
 end category_theory

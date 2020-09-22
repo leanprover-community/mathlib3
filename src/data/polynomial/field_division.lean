@@ -227,7 +227,7 @@ lemma root_gcd_iff_root_left_right [comm_semiring k] {ϕ : R →+* k} {f g : pol
 
 lemma is_root_gcd_iff_is_root_left_right {f g : polynomial R} {α : R} :
   (euclidean_domain.gcd f g).is_root α ↔ f.is_root α ∧ g.is_root α :=
-root_gcd_iff_root_left_right (ring_hom.id R) f g α
+root_gcd_iff_root_left_right
 
 theorem is_coprime_map [field k] (f : R →+* k) :
   is_coprime (p.map f) (q.map f) ↔ is_coprime p q :=

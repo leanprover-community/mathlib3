@@ -71,7 +71,7 @@ semilattice_sup.sup_le a b c
   assume ⟨h₁, h₂⟩, sup_le h₁ h₂⟩
 
 @[simp] theorem sup_eq_left : a ⊔ b = a ↔ b ≤ a :=
-le_antisymm_iff.trans $ by simp [le_refl]
+⟨λ h, h ▸ le_sup_right, λ h, le_antisymm (sup_le (le_refl _) h) le_sup_left⟩
 
 theorem sup_of_le_left (h : b ≤ a) : a ⊔ b = a :=
 sup_eq_left.2 h
@@ -80,7 +80,7 @@ sup_eq_left.2 h
 eq_comm.trans sup_eq_left
 
 @[simp] theorem sup_eq_right : a ⊔ b = b ↔ a ≤ b :=
-le_antisymm_iff.trans $ by simp [le_refl]
+⟨λ h, h ▸ le_sup_left, λ h, le_antisymm (sup_le h (le_refl _)) le_sup_right⟩
 
 theorem sup_of_le_right (h : a ≤ b) : a ⊔ b = b :=
 sup_eq_right.2 h
@@ -98,7 +98,7 @@ theorem sup_le_sup_right (h₁ : a ≤ b) (c) : a ⊔ c ≤ b ⊔ c :=
 sup_le_sup h₁ (le_refl _)
 
 theorem le_of_sup_eq (h : a ⊔ b = b) : a ≤ b :=
-by { rw ← h, simp }
+h ▸ le_sup_left
 
 lemma sup_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : p b) : p (a ⊔ b) :=
 (is_total.total a b).elim (λ h : a ≤ b, by rwa sup_eq_right.2 h) (λ h, by rwa sup_eq_left.2 h)
@@ -122,12 +122,8 @@ instance sup_is_commutative : is_commutative α (⊔) := ⟨@sup_comm _ _⟩
 
 theorem sup_assoc : a ⊔ b ⊔ c = a ⊔ (b ⊔ c) :=
 le_antisymm
-  (sup_le
-    (sup_le le_sup_left (le_sup_right_of_le le_sup_left))
-    (le_sup_right_of_le le_sup_right))
-  (sup_le
-    (le_sup_left_of_le le_sup_left)
-    (sup_le (le_sup_left_of_le le_sup_right) le_sup_right))
+  (sup_le (sup_le_sup_left le_sup_left _) (le_sup_right_of_le le_sup_right))
+  (sup_le (le_sup_left_of_le le_sup_left) (sup_le_sup_right le_sup_right _))
 
 instance sup_is_associative : is_associative α (⊔) := ⟨@sup_assoc _ _⟩
 
@@ -200,7 +196,7 @@ le_trans inf_le_right h
   assume ⟨h₁, h₂⟩, le_inf h₁ h₂⟩
 
 @[simp] theorem inf_eq_left : a ⊓ b = a ↔ a ≤ b :=
-le_antisymm_iff.trans $ by simp [le_refl]
+⟨λ h, h ▸ inf_le_right, λ h, le_antisymm inf_le_left (le_inf (le_refl _) h)⟩
 
 theorem inf_of_le_left (h : a ≤ b) : a ⊓ b = a :=
 inf_eq_left.2 h
@@ -209,7 +205,7 @@ inf_eq_left.2 h
 eq_comm.trans inf_eq_left
 
 @[simp] theorem inf_eq_right : a ⊓ b = b ↔ b ≤ a :=
-le_antisymm_iff.trans $ by simp [le_refl]
+⟨λ h, h ▸ inf_le_left, λ h, le_antisymm inf_le_right (le_inf h (le_refl _))⟩
 
 theorem inf_of_le_right (h : b ≤ a) : a ⊓ b = b :=
 inf_eq_right.2 h
@@ -227,7 +223,7 @@ lemma inf_le_inf_left (a : α) {b c : α} (h : b ≤ c) : a ⊓ b ≤ a ⊓ c :=
 inf_le_inf (le_refl _) h
 
 theorem le_of_inf_eq (h : a ⊓ b = a) : a ≤ b :=
-by { rw ← h, simp }
+h ▸ inf_le_right
 
 lemma inf_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : p b) : p (a ⊓ b) :=
 (is_total.total a b).elim (λ h : a ≤ b, by rwa inf_eq_left.2 h) (λ h, by rwa inf_eq_right.2 h)
@@ -251,12 +247,8 @@ instance inf_is_commutative : is_commutative α (⊓) := ⟨@inf_comm _ _⟩
 
 theorem inf_assoc : a ⊓ b ⊓ c = a ⊓ (b ⊓ c) :=
 le_antisymm
-  (le_inf
-    (inf_le_left_of_le inf_le_left)
-    (le_inf (inf_le_left_of_le inf_le_right) inf_le_right))
-  (le_inf
-    (le_inf inf_le_left (inf_le_right_of_le inf_le_left))
-    (inf_le_right_of_le inf_le_right))
+  (le_inf (inf_le_left_of_le inf_le_left) (inf_le_inf_right _ inf_le_right))
+  (le_inf (inf_le_inf_left _ inf_le_left) (inf_le_right_of_le inf_le_right))
 
 instance inf_is_associative : is_associative α (⊓) := ⟨@inf_assoc _ _⟩
 

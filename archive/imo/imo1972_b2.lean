@@ -14,9 +14,9 @@ Problem: `f` and `g` are real-valued functions defined on the real line. For all
 `f(x + y) + f(x - y) = 2f(x)g(y)`. `f` is not identically zero and `|f(x)| ≤ 1` for all `x`.
 Prove that `|g(x)| ≤ 1` for all `x`.
 
-This proof consists in introducting the supremum of `f`, `k ≤ 1` as well as `k' = k / ∥g y∥`. We then
+This proof begins by introducing the supremum of `f`, `k ≤ 1` as well as `k' = k / ∥g y∥`. We then
 suppose that the conclusion does not hold (`hneg`) and show that `k ≤ k'` (by
-`2 * (∥f x∥ * ∥g y∥) ≤ 2 * k` obtained from the main hypothesis `hf1`) and  that `k' < k` (obtained
+`2 * (∥f x∥ * ∥g y∥) ≤ 2 * k` obtained from the main hypothesis `hf1`) and that `k' < k` (obtained
 from `hneg` directly), finally raising a contradiction with `k' < k'`.
 
 (Authored by Stanislas Polu inspired by Ruben Van de Velde).
@@ -30,7 +30,7 @@ example (f g : ℝ → ℝ)
 begin
   classical,
   set S := set.range (λ x, ∥f x∥),
-  -- Introduce `k` the supremum of `f`.
+  -- Introduce `k`, the supremum of `f`.
   let k : ℝ := Sup (S),
 
   -- Show that `∥f x∥ ≤ k`.

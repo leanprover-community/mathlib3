@@ -37,56 +37,54 @@ structure times_cont_mdiff_map :=
 /-- Bundled smooth maps. -/
 @[reducible] def smooth_map := times_cont_mdiff_map I I' M M' ⊤
 
-notation `C[` n `](` I `, ` M `; ` I' `, ` M' `)` := times_cont_mdiff_map I I' M M' n
-notation `C[` n `](` I `, ` M `; ` k `)` := times_cont_mdiff_map I (model_with_corners_self k k) M k n
-notation `C[` n `](` I `, ` M `)` := times_cont_mdiff_map I (model_with_corners_self ℝ ℝ) M ℝ n
+notation `C^` n `[` I `, ` M `; ` I' `, ` M' `]` := times_cont_mdiff_map I I' M M' n
+notation `C^` n `[` I `, ` M `; ` k `]` := times_cont_mdiff_map I (model_with_corners_self k k) M k n
 notation `C∞(` I `, ` M `; ` I' `, ` M' `)` := times_cont_mdiff_map I I' M M' ⊤
 notation `C∞(` I `, ` M `; ` k `)` := times_cont_mdiff_map I (model_with_corners_self k k) M k ⊤
-notation `C∞(` I `, ` M `)` := times_cont_mdiff_map I (model_with_corners_self ℝ ℝ) M ℝ ⊤
 
 namespace times_cont_mdiff_map
 
 variables {I} {I'} {M} {M'} {n}
 
-instance : has_coe_to_fun C[n](I, M; I', M') := ⟨_, times_cont_mdiff_map.to_fun⟩
-instance : has_coe C[n](I, M; I', M') C(M, M') :=
+instance : has_coe_to_fun C^n[I, M; I', M'] := ⟨_, times_cont_mdiff_map.to_fun⟩
+instance : has_coe C^n[I, M; I', M'] C(M, M') :=
 ⟨λ f, ⟨f.to_fun, f.times_cont_mdiff_to_fun.continuous⟩⟩
 
-variables {f g : C[n](I, M; I', M')}
+variables {f g : C^n[I, M; I', M']}
 
-protected lemma times_cont_mdiff (f : C[n](I, M; I', M')) :
+protected lemma times_cont_mdiff (f : C^n[I, M; I', M']) :
   times_cont_mdiff I I' n f := f.times_cont_mdiff_to_fun
 
 protected lemma smooth (f : C∞(I, M; I', M')) :
   smooth I I' f := f.times_cont_mdiff_to_fun
 
-lemma coe_inj ⦃f g : C[n](I, M; I', M')⦄ (h : (f : M → M') = g) : f = g :=
+lemma coe_inj ⦃f g : C^n[I, M; I', M']⦄ (h : (f : M → M') = g) : f = g :=
 by cases f; cases g; cases h; refl
 
 @[ext] theorem ext (h : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; congr'; exact funext h
 
 /-- The identity as a smooth map. -/
-def id : C[n](I, M; I, M) := ⟨id, times_cont_mdiff_id⟩
+def id : C^n[I, M; I, M] := ⟨id, times_cont_mdiff_id⟩
 
 /-- The composition of smooth maps, as a smooth map. -/
-def comp (f : C[n](I', M'; I'', M'')) (g : C[n](I, M; I', M')) : C[n](I, M; I'', M'') :=
+def comp (f : C^n[I', M'; I'', M'']) (g : C^n[I, M; I', M']) : C^n[I, M; I'', M''] :=
 { to_fun := λ a, f (g a),
   times_cont_mdiff_to_fun := f.times_cont_mdiff_to_fun.comp g.times_cont_mdiff_to_fun, }
 
-@[simp] lemma comp_apply (f : C[n](I', M'; I'', M'')) (g : C[n](I, M; I', M')) (x : M) :
+@[simp] lemma comp_apply (f : C^n[I', M'; I'', M'']) (g : C^n[I, M; I', M']) (x : M) :
   f.comp g x = f (g x) := rfl
 
-instance [inhabited M'] : inhabited C[n](I, M; I', M') :=
+instance [inhabited M'] : inhabited C^n[I, M; I', M'] :=
 ⟨⟨λ _, default _, times_cont_mdiff_const⟩⟩
 
 /-- Constant map as a smooth map -/
-def const (y : M') : C[n](I, M; I', M') := ⟨λ x, y, times_cont_mdiff_const⟩
+def const (y : M') : C^n[I, M; I', M'] := ⟨λ x, y, times_cont_mdiff_const⟩
 
 end times_cont_mdiff_map
 
 open_locale manifold
 
 instance continuous_linear_map.has_coe_to_times_cont_mdiff_map :
-  has_coe (E →L[𝕜] E') (C[n](Isf(𝕜, E), E; Isf(𝕜, E'), E')) :=
+  has_coe (E →L[𝕜] E') (C^n[𝓘(𝕜, E), E; 𝓘(𝕜, E'), E']) :=
 ⟨λ f, ⟨f.to_fun, f.times_cont_mdiff⟩⟩

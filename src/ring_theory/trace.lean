@@ -34,9 +34,9 @@ For now, the definitions assume `S` is commutative, so the choice doesn't matter
 
 universes u v w
 
-variables (R S T : Type*) [comm_ring R] [comm_ring S] [comm_ring T]
+variables {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
 variables [algebra R S] [algebra R T]
-variables (K L : Type*) [field K] [field L] [algebra K L]
+variables {K L : Type*} [field K] [field L] [algebra K L]
 variables {ι : Type w} [fintype ι] {b : ι → S} (hb : is_basis R b)
 
 open finite_dimensional
@@ -46,11 +46,140 @@ open matrix
 open_locale big_operators
 open_locale matrix
 
+section power_basis
+
+open algebra field polynomial
+
+lemma is_scalar_tower.is_algebraic [algebra S T] [is_scalar_tower R S T] {x : S}
+  (inj : function.injective (algebra_map S T)) (hx : is_algebraic R (algebra_map S T x)) :
+  is_algebraic R x :=
+let ⟨p, hp, hpx⟩ := hx in ⟨p, hp, inj
+  (by rwa [ring_hom.map_zero, aeval_def, hom_eval₂,
+           ← is_scalar_tower.algebra_map_eq])⟩
+
+lemma intermediate_field.is_algebraic (S : intermediate_field K L) {x : S}
+  (hx : is_algebraic K (x : L)) : is_algebraic K x :=
+is_scalar_tower.is_algebraic (algebra_map S L).injective hx
+
+lemma is_algebraic_algebra_map (x : K) : is_algebraic K (algebra_map K L x) :=
+⟨X - C x, X_sub_C_ne_zero _, by rw [alg_hom.map_sub, aeval_X, aeval_C, sub_self]⟩
+
+namespace field.adjoin_simple
+
+variables {x : L} (alg : is_algebraic K x)
+
+lemma gen_is_integral : is_integral K (field.adjoin_simple.gen K x) :=
+(is_algebraic_iff_is_integral _).mp (intermediate_field.is_algebraic _ alg)
+
+lemma exists_eq_aeval_gen (alg : is_algebraic K L) {y : L} (hy : y ∈ K⟮x⟯) :
+  ∃ f : polynomial K, y = aeval x f :=
+begin
+  refine field.adjoin_induction _ hy _ _ _ _ _ _,
+  { intros x hx,
+    rcases set.mem_insert_iff.mp hx with rfl | ⟨_, ⟨⟩⟩,
+    exact ⟨X, (aeval_X _).symm⟩ },
+  { intros x,
+    exact ⟨C x, (aeval_C _ _).symm⟩ },
+  { rintros x y ⟨fx, rfl⟩ ⟨fy, rfl⟩,
+    exact ⟨fx + fy, (ring_hom.map_add _ _ _).symm⟩ },
+  { rintros x ⟨fx, rfl⟩,
+    exact ⟨-fx, (ring_hom.map_neg _ _).symm⟩ },
+  { rintros x ⟨fx, x_eq⟩,
+    by_cases hx0 : x = 0,
+    { rw [hx0, inv_zero],
+      exact ⟨0, (ring_hom.map_zero _).symm⟩ },
+    have hx : is_integral K x := ((is_algebraic_iff_is_integral _).mp (alg x)),
+    rw inv_eq_of_root_of_coeff_zero_ne_zero
+      (minimal_polynomial.aeval hx) (minimal_polynomial.coeff_zero_ne_zero hx hx0),
+    use - (C ((minimal_polynomial hx).coeff 0)⁻¹) * (minimal_polynomial hx).div_X.comp fx,
+    rw aeval_def at x_eq,
+    rw [div_eq_inv_mul, alg_hom.map_mul, alg_hom.map_neg, aeval_C, neg_mul_eq_neg_mul,
+        ring_hom.map_inv, aeval_def, aeval_def, eval₂_comp, ← x_eq] },
+  { rintros x y ⟨fx, rfl⟩ ⟨fy, rfl⟩,
+    exact ⟨fx * fy, (ring_hom.map_mul _ _ _).symm⟩ },
+end
+
+/-- The `minimal_polynomial` of a simple algebraic extension is the minimal
+polynomial of a primitive element. -/
+noncomputable def minimal_polynomial : polynomial K :=
+minimal_polynomial (gen_is_integral alg)
+
+/-- The `simple_degree` of a simple algebraic extension `K⟮x⟯` is the degree of
+the minimal polynomial of the generator.
+
+Later, in `findim_eq_simple_degree`, we will prove this is the same as the
+degree of `K⟮x⟯` over `K` as vector spaces. -/
+noncomputable def simple_degree := (minimal_polynomial alg).nat_degree
+
+@[simp] lemma total_power_basis_eq (f : fin (simple_degree alg) →₀ K) :
+  finsupp.total _ _ _ (λ (i : fin (simple_degree alg)), gen K x ^ (i : ℕ)) f =
+    aeval (gen K x) (finsupp.emb_fin_nat f) :=
+by simp [aeval_def, eval₂_eq_sum, finsupp.total, linear_map.smul_right, algebra.smul_def]
+
+lemma linear_independent_power_basis :
+  linear_independent K (λ (i : fin (simple_degree alg)), gen K x ^ (i : ℕ)) :=
+begin
+  rw linear_independent_iff,
+  intros p hp,
+  rw total_power_basis_eq at hp,
+  rw ← finsupp.emb_fin_nat_eq_zero,
+  refine minimal_polynomial.eq_zero_of_degree_lt (gen_is_integral alg) _ hp,
+  rw degree_eq_nat_degree (minimal_polynomial.ne_zero _),
+  exact polynomial.degree_emb_fin_nat_lt _
+end
+
+lemma mem_span_power_basis (alg : is_algebraic K L) (y : K⟮x⟯) :
+  y ∈ submodule.span K (set.range (λ (i : fin (simple_degree (alg x))), gen K x ^ (i : ℕ))) :=
+begin
+  have mp_monic := minimal_polynomial.monic (gen_is_integral (alg x)),
+  have mp_ne_zero := minimal_polynomial.ne_zero (gen_is_integral (alg x)),
+
+  cases y with y hy,
+  obtain ⟨f, rfl⟩ := exists_eq_aeval_gen alg hy,
+  have : aeval x f = aeval ((algebra_map K⟮x⟯ L) (gen K x)) f := by rw algebra_map_gen,
+  simp_rw [this, aeval_def, is_scalar_tower.algebra_map_eq K K⟮x⟯ L, ← hom_eval₂],
+  erw subtype.eta,
+  rw [← eval₂_mod_by_monic_eq_self_of_root mp_monic (minimal_polynomial.aeval _),
+      eval₂_eq_sum, finsupp.sum],
+  refine submodule.sum_mem _ (λ i i_mem, _),
+  rw ← algebra.smul_def,
+  by_cases hi : i < simple_degree (alg x),
+  { exact submodule.smul_mem _ _ (submodule.subset_span ⟨⟨i, hi⟩, rfl⟩) },
+  convert submodule.zero_mem _,
+  convert zero_smul _ _,
+  refine coeff_eq_zero_of_degree_lt _,
+  calc (f %ₘ minimal_polynomial _).degree
+      < (minimal_polynomial _).degree : degree_mod_by_monic_lt _ mp_monic mp_ne_zero
+  ... ≤ (minimal_polynomial _).nat_degree : degree_le_nat_degree
+  ... ≤ i : with_bot.some_le_some.mpr (le_of_not_gt hi),
+end
+
+lemma power_basis (K) [field K] [algebra K L] (x : L) (alg : is_algebraic K L) :
+  is_basis K (λ (i : fin (simple_degree (alg x))), gen K x ^ (i : ℕ)) :=
+begin
+  refine ⟨linear_independent_power_basis (alg x), _⟩,
+  rw _root_.eq_top_iff,
+  intros y _,
+  exact mem_span_power_basis alg y
+end
+
+lemma findim_eq_simple_degree (alg : is_algebraic K L) :
+  findim K K⟮x⟯ = simple_degree (alg x) :=
+trans (findim_eq_card_basis (power_basis K x alg)) (fintype.card_fin _)
+
+end field.adjoin_simple
+
+end power_basis
+
 namespace algebra
+
+variables (R S)
 
 /-- The trace of an element `s` of an `R`-algebra is the trace of `(*) s`,
 as an `R`-linear map. -/
 noncomputable def trace : S →ₗ[R] R := (linear_map.trace R S).comp (lmul R S)
+
+variables {S}
 
 @[simp] lemma trace_apply (s : S) : trace R S s = linear_map.trace R S (lmul R S s) := rfl
 
@@ -66,10 +195,6 @@ theorem smul_id (r : R) : r • linear_map.id = lsmul R S r := rfl
 
 @[simp] lemma lmul_algebra_map (x : R) : lmul R S (algebra_map R S x) = lsmul R S x :=
 linear_map.ext (λ s, by simp [smul_def''])
-
-@[simp] lemma linear_equiv_matrix_id [decidable_eq ι] :
-  linear_equiv_matrix hb hb linear_map.id = 1 :=
-by convert (linear_equiv_matrix_comp hb hb hb id ((linear_equiv_matrix hb hb).inv_fun 1)).symm; simp
 
 @[simp] lemma linear_equiv_matrix_lmul [decidable_eq ι] (x : S) (i j) :
   linear_equiv_matrix hb hb (lmul R S x) i j = hb.repr (x * b j) i :=
@@ -92,8 +217,8 @@ omit hb
 lemma trace_algebra_map (x : K) : trace K L (algebra_map K L x) = findim K L • x :=
 begin
   by_cases H : ∃ s : finset L, is_basis K (λ x, x : (↑s : set L) → L),
-  { rw [trace_algebra_map_of_basis K L H.some_spec, findim_eq_card_basis H.some_spec] },
-  { simp [trace_eq_zero_of_not_exists_basis K L H, findim_eq_zero_of_not_exists_basis K L H] },
+  { rw [trace_algebra_map_of_basis K H.some_spec, findim_eq_card_basis H.some_spec] },
+  { simp [trace_eq_zero_of_not_exists_basis K H, findim_eq_zero_of_not_exists_basis H] },
 end
 
 lemma linear_equiv.map_sum {R : Type u} {M : Type v} {M₂ : Type w}
@@ -105,6 +230,8 @@ f.to_linear_map.map_sum
 
 section trace_form
 
+variables (S)
+
 /-- The `trace_form` maps `x y : S` to the trace of `x * y`.
 It is a symmetric bilinear form and is nondegenerate if the extension is separable. -/
 noncomputable def trace_form : bilin_form R S :=
@@ -113,6 +240,8 @@ noncomputable def trace_form : bilin_form R S :=
   bilin_smul_left := λ x y z, by rw [smul_mul_assoc, linear_map.map_smul, smul_eq_mul],
   bilin_add_right := λ x y z, by rw [mul_add, linear_map.map_add],
   bilin_smul_right := λ x y z, by rw [mul_smul_comm, linear_map.map_smul, smul_eq_mul], }
+
+variables {S}
 
 @[simp] lemma trace_form_apply (x y : S) : trace_form R S x y = trace R S (x * y) := rfl
 
@@ -128,29 +257,106 @@ open bilin_form
 lemma lmul_mul (x y : S) : lmul R S (x * y) = (lmul R S x).comp (lmul R S y) :=
 by { ext z, simp [mul_assoc] }
 
+lemma lmul_one : lmul R S 1 = linear_map.id :=
+by { ext z, rw [lmul_apply, one_mul, linear_map.id_apply] }
+
 lemma matrix.trace_apply (A : matrix ι ι S) : matrix.trace ι R S A = ∑ i, A i i := rfl
 
-open is_simple_extension
+end trace_form
 
-lemma linear_equiv_matrix_lmul [is_simple_extension K L] (alg : is_algebraic K L)
-  [decidable_eq ι] (x : L) (b : ι → L) (hb : is_basis K⟮x⟯ b) :
-  linear_equiv_matrix (power_basis (K⟮x⟯.is_algebraic_iff.mp _)) (lmul R S x) :=
+end algebra
+
+open field.adjoin_simple
+open algebra
+
+variables [decidable_eq ι] {c : ι → L} (hc : is_basis K c)
+
+lemma linear_equiv_matrix_lsmul (x : R) :
+  linear_equiv_matrix hb hb (lsmul R S x) = algebra_map _ _ x :=
+by { ext i j, simp [linear_equiv_matrix_apply, algebra_map_matrix_apply, eq_comm] }
+
+noncomputable def lmul_matrix : S →ₐ[R] matrix ι ι R :=
+{ to_fun := λ x, linear_equiv_matrix hb hb (lmul R S x),
+  map_zero' := by rw [linear_map.map_zero, linear_equiv.map_zero],
+  map_one' := by rw [lmul_one, linear_equiv_matrix_id],
+  map_add' := λ x y, by rw [linear_map.map_add, linear_equiv.map_add],
+  map_mul' := λ x y, by rw [lmul_mul, linear_equiv_matrix_comp hb hb, matrix.mul_eq_mul],
+  commutes' := λ r, by rw [lmul_algebra_map, linear_equiv_matrix_lsmul] }
+
+lemma lmul_matrix_apply (x : L) (i j) :
+  lmul_matrix hc x i j = linear_equiv_matrix hc hc (lmul K L x) i j := rfl
+
+section
+
+local attribute [irreducible] field.adjoin field.closure
+#check intermediate_field.field
+
+lemma lmul_matrix_apply_of_is_algebraic (alg : is_algebraic K L)
+  [decidable_eq ι] (x : L) (b : ι → L) (hb : is_basis K⟮x⟯ b) (ni nj ki kj) :
+  lmul_matrix ((power_basis K x alg).smul hb) x (ni, ki) (nj, kj) =
+    if kj = ki then lmul_matrix (power_basis K x alg) (gen K x) ni nj else 0 :=
+    /-
 begin
+  rw [lmul_matrix_apply, ← congr_arg (lmul K L) (algebra_map_gen K x), linear_equiv_matrix_lmul,
+      is_basis.smul_repr, linear_equiv_matrix_lmul, ← algebra.smul_def, linear_map.map_smul,
+      linear_map.map_smul, finsupp.smul_apply, finsupp.smul_apply, hb.repr_self_apply],
+  dsimp only,
+  split_ifs; simp only [mul_one, smul_eq_mul, linear_map.map_zero, finsupp.zero_apply, mul_zero]
+end
+-/ sorry
 
 end
 
-lemma trace_comp_of_basis [algebra S T] [is_scalar_tower R S T]
-{ι κ : Type*} [fintype ι] [fintype κ] [decidable_eq ι] [decidable_eq κ] {b : ι → S} {c : κ → T}
-(hb : is_basis R b) (hc : is_basis S c) (x : T) :
-trace R T x = trace R S (trace S T x) :=
+.
+
+lemma aeval_lmul_matrix (p : polynomial K) (x : L) :
+  polynomial.aeval (lmul_matrix hc x) p = lmul_matrix hc (polynomial.aeval x p) :=
+p.aeval_alg_hom_apply (lmul_matrix hc) x
+
+lemma lmul_injective : function.injective (lmul R S) :=
+λ x x' h, calc x = lmul R S x 1 : by rw [lmul_apply, mul_one]
+             ... = lmul R S x' 1 : by rw h
+             ... = x' : by rw [lmul_apply, mul_one]
+
+lemma linear_map.injective_iff {V V' : Type*} [add_comm_group V] [add_comm_monoid V']
+  [semimodule R V] [semimodule R V']
+  (f : V →ₗ[R] V') : function.injective f ↔ ∀ x, f x = 0 → x = 0 :=
+f.to_add_monoid_hom.injective_iff
+
+lemma lmul_matrix_injective : function.injective (lmul_matrix hc) :=
+λ x x' h, lmul_injective ((linear_equiv_matrix hc hc).injective h)
+
+attribute [irreducible] lmul_matrix power_basis
+
+lemma char_poly_eq_minimal_polynomial (alg : is_algebraic K L) (x : L) :
+  char_poly (linear_equiv_matrix (power_basis alg) (power_basis alg) (lmul K K⟮x⟯ (gen K x))) =
+    minimal_polynomial (gen_is_integral (alg x)) :=
 begin
-haveI hι : nonempty ι := _,
-haveI hκ : nonempty κ := _,
-haveI : nonempty (ι × κ) := prod.nonempty,
-rw [trace_apply R T, trace_eq_matrix_trace R (hb.smul hc)],
-have := trace_eq_neg_char_poly_coeff (linear_equiv_matrix (hb.smul hc) (hb.smul hc) (lmul R T x)),
-simp at this ⊢,
-refine trans this _,
+  apply minimal_polynomial.unique,
+  { apply char_poly_monic },
+  { have := power_basis alg,
+    -- have := lmul_matrix_injective (power_basis alg),
+    sorry,
+    /- apply (lmul_matrix (power_basis alg)).injective_iff.mp this,
+    rw [← aeval_lmul_matrix, aeval_self_char_poly] -/ },
+  { intros q q_monic root_q,
+    rw [char_poly_degree_eq_dim, fintype.card_fin, simple_degree],
+    erw ← polynomial.degree_eq_nat_degree (minimal_polynomial.ne_zero (gen_is_integral (alg x))),
+    exact minimal_polynomial.degree_le_of_ne_zero _ q_monic.ne_zero root_q },
+end
+
+lemma trace_comp_of_basis [algebra S T] [is_scalar_tower R S T]
+  {ι κ : Type*} [fintype ι] [fintype κ] [decidable_eq ι] [decidable_eq κ] {b : ι → S} {c : κ → T}
+  (hb : is_basis R b) (hc : is_basis S c) (x : T) :
+  algebra.trace R T x = trace R S (trace S T x) :=
+begin
+  haveI hι : nonempty ι := _,
+  haveI hκ : nonempty κ := _,
+  haveI : nonempty (ι × κ) := prod.nonempty,
+  rw [trace_apply R T, trace_eq_matrix_trace R (hb.smul hc)],
+  have := trace_eq_neg_char_poly_coeff (linear_equiv_matrix (hb.smul hc) (hb.smul hc) (lmul R T x)),
+  simp at this ⊢,
+  refine trans this _,
 end
 
 lemma repr_primitive_element_pow_of_lt'

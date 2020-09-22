@@ -177,8 +177,8 @@ variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
 
 /-- If A/S/R is a tower of algebras then the `res`triction of a S-subalgebra of A is an R-subalgebra of A. -/
 def res (U : subalgebra S A) : subalgebra R A :=
-{ carrier := U,
-  algebra_map_mem' := λ x, by { rw algebra_map_apply R S A, exact U.algebra_map_mem _ } }
+{ algebra_map_mem' := λ x, by { rw algebra_map_apply R S A, exact U.algebra_map_mem _ },
+  .. U }
 
 @[simp] lemma res_top : res R (⊤ : subalgebra S A) = ⊤ :=
 algebra.eq_top_iff.2 $ λ _, show _ ∈ (⊤ : subalgebra S A), from algebra.mem_top
@@ -211,7 +211,7 @@ show z ∈ subsemiring.closure (set.range (algebra_map (to_alg_hom R S A).range 
   z ∈ subsemiring.closure (set.range (algebra_map S A) ∪ t : set A),
 from suffices set.range (algebra_map (to_alg_hom R S A).range A) = set.range (algebra_map S A),
   by rw this,
-by { ext z, exact ⟨λ ⟨⟨x, y, h1⟩, h2⟩, ⟨y, h2 ▸ h1⟩, λ ⟨y, hy⟩, ⟨⟨z, y, hy⟩, rfl⟩⟩ }
+by { ext z, exact ⟨λ ⟨⟨x, y, _, h1⟩, h2⟩, ⟨y, h2 ▸ h1⟩, λ ⟨y, hy⟩, ⟨⟨z, y, set.mem_univ _, hy⟩, rfl⟩⟩ }
 
 end is_scalar_tower
 

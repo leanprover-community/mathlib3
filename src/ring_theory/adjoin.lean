@@ -96,18 +96,20 @@ le_antisymm
 theorem adjoin_eq_range :
   adjoin R s = (mv_polynomial.aeval (coe : s → A)).range :=
 le_antisymm
-  (adjoin_le $ λ x hx, ⟨mv_polynomial.X ⟨x, hx⟩, mv_polynomial.eval₂_X _ _ _⟩)
-  (λ x ⟨p, hp⟩, hp ▸ mv_polynomial.induction_on p
-    (λ r, by rw [mv_polynomial.aeval_def, mv_polynomial.eval₂_C]; exact (adjoin R s).2 r)
+  (adjoin_le $ λ x hx, ⟨mv_polynomial.X ⟨x, hx⟩, set.mem_univ _, mv_polynomial.eval₂_X _ _ _⟩)
+  (λ x ⟨p, _, (hp : mv_polynomial.aeval coe p = x)⟩, hp ▸ mv_polynomial.induction_on p
+    (λ r, by { rw [mv_polynomial.aeval_def, mv_polynomial.eval₂_C],
+               exact (adjoin R s).algebra_map_mem r })
     (λ p q hp hq, by rw alg_hom.map_add; exact is_add_submonoid.add_mem hp hq)
     (λ p ⟨n, hn⟩ hp, by rw [alg_hom.map_mul, mv_polynomial.aeval_def _ (mv_polynomial.X _),
       mv_polynomial.eval₂_X]; exact is_submonoid.mul_mem hp (subset_adjoin hn)))
 
 theorem adjoin_singleton_eq_range (x : A) : adjoin R {x} = (polynomial.aeval x).range :=
 le_antisymm
-  (adjoin_le $ set.singleton_subset_iff.2 ⟨polynomial.X, polynomial.eval₂_X _ _⟩)
-  (λ y ⟨p, hp⟩, hp ▸ polynomial.induction_on p
-    (λ r, by rw [polynomial.aeval_def, polynomial.eval₂_C]; exact (adjoin R _).2 r)
+  (adjoin_le $ set.singleton_subset_iff.2 ⟨polynomial.X, set.mem_univ _, polynomial.eval₂_X _ _⟩)
+  (λ y ⟨p, _, (hp : polynomial.aeval x p = y)⟩, hp ▸ polynomial.induction_on p
+    (λ r, by { rw [polynomial.aeval_def, polynomial.eval₂_C],
+               exact (adjoin R _).algebra_map_mem r })
     (λ p q hp hq, by rw alg_hom.map_add; exact is_add_submonoid.add_mem hp hq)
     (λ n r ih, by { rw [pow_succ', ← mul_assoc, alg_hom.map_mul,
       polynomial.aeval_def _ polynomial.X, polynomial.eval₂_X],
@@ -128,7 +130,7 @@ variables [algebra R A] {s t : set A}
 variables {R s t}
 open ring
 
-theorem adjoin_int (s : set R) : adjoin ℤ s = subalgebra_of_subring (closure s) :=
+theorem adjoin_int (s : set R) : adjoin ℤ s = subalgebra_of_is_subring (closure s) :=
 le_antisymm (adjoin_le subset_closure) (closure_subset subset_adjoin)
 
 theorem mem_adjoin_iff {s : set A} {x : A} :
@@ -241,7 +243,7 @@ convert alg_hom.is_noetherian_ring_range _; apply_instance
 
 theorem is_noetherian_ring_closure (s : set R) (hs : s.finite) :
   is_noetherian_ring (ring.closure s) :=
-show is_noetherian_ring (subalgebra_of_subring (ring.closure s)), from
+show is_noetherian_ring (subalgebra_of_is_subring (ring.closure s)), from
 algebra.adjoin_int s ▸ is_noetherian_ring_of_fg (subalgebra.fg_def.2 ⟨s, hs, rfl⟩)
 
 namespace algebra

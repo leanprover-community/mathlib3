@@ -42,7 +42,7 @@ have hia : i a ≠ 0, from mt ((is_add_group_hom.injective_iff i).1
 or.inr $ λ g hg ⟨p, hp⟩, absurd hg.1 (not_not.2 (is_unit_iff_degree_eq_zero.2 $
   by have := congr_arg degree hp;
     simp [degree_C hia, @eq_comm (with_bot ℕ) 0,
-      nat.with_bot.add_eq_zero_iff] at this; clear _fun_match; tautology))
+      nat.with_bot.add_eq_zero_iff] at this; clear _fun_match; tauto))
 
 lemma splits_of_degree_eq_one {f : polynomial α} (hf : degree f = 1) : splits i f :=
 or.inr $ λ g hg ⟨p, hp⟩,
@@ -328,11 +328,11 @@ alg_equiv.symm $ alg_equiv.of_bijective
   (alg_hom.cod_restrict
     (adjoin_root.alg_hom _ x $ minimal_polynomial.aeval hx) _
     (λ p, adjoin_root.induction_on _ p $ λ p,
-      (algebra.adjoin_singleton_eq_range F x).symm ▸ ⟨p, rfl⟩))
+      (algebra.adjoin_singleton_eq_range F x).symm ▸ (polynomial.aeval _).mem_range.mpr ⟨p, rfl⟩))
   ⟨(alg_hom.injective_cod_restrict _ _ _).2 $ (alg_hom.injective_iff _).2 $ λ p,
     adjoin_root.induction_on _ p $ λ p hp, ideal.quotient.eq_zero_iff_mem.2 $
     ideal.mem_span_singleton.2 $ minimal_polynomial.dvd hx hp,
-  λ y, let ⟨p, hp⟩ := (subalgebra.ext_iff.1 (algebra.adjoin_singleton_eq_range F x) y).1 y.2 in
+  λ y, let ⟨p, _, hp⟩ := (subalgebra.ext_iff.1 (algebra.adjoin_singleton_eq_range F x) y).1 y.2 in
   ⟨adjoin_root.mk _ p, subtype.eq hp⟩⟩
 
 open finset

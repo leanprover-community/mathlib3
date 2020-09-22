@@ -159,7 +159,8 @@ into the presheaf of all functions.
 def subtype : subpresheaf_to_Types P ⟶ presheaf_to_Types X T :=
 { app := λ U f, f.1 }
 
-open Top.sheaf_condition
+open Top.presheaf
+open Top.presheaf.sheaf_condition_equalizer_products
 
 /--
 The natural transformation
@@ -285,8 +286,8 @@ begin
       -- the fact that the underlying presheaf is a presheaf of functions satisfying the predicate.
       let s' := (cones.postcompose (diagram_subtype P.to_prelocal_predicate U)).obj s,
       have fac_i := ((to_Types X T U).fac s' walking_parallel_pair.zero) =≫ pi.π _ i,
-      simp only [sheaf_condition.res, limit.lift_π, cones.postcompose_obj_π,
-        sheaf_condition.fork_π_app_walking_parallel_pair_zero, fan.mk_π_app,
+      simp only [sheaf_condition_equalizer_products.res, limit.lift_π, cones.postcompose_obj_π,
+        sheaf_condition_equalizer_products.fork_π_app_walking_parallel_pair_zero, fan.mk_π_app,
         nat_trans.comp_app, category.assoc] at fac_i,
       have fac_i_f := congr_fun fac_i f,
       simp only [diagram_subtype, discrete.nat_trans_app, types_comp_apply,
@@ -406,7 +407,7 @@ The sheaf of continuous functions on `X` with values in a space `T`.
 def sheaf_to_Top (T : Top.{v}) : sheaf (Type v) X :=
 { presheaf := presheaf_to_Top X T,
   sheaf_condition :=
-    sheaf_condition_equiv_of_iso (subpresheaf_continuous_prelocal_iso_presheaf_to_Top T)
+    presheaf.sheaf_condition_equiv_of_iso (subpresheaf_continuous_prelocal_iso_presheaf_to_Top T)
       (subpresheaf_to_Types.sheaf_condition (continuous_local X T)), }
 
 end Top

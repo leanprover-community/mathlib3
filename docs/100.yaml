@@ -293,7 +293,7 @@
   title  : Divisibility by 3 Rule
   author : Scott Morrison
   decls  :
-    - three_dvd_iff
+    - nat.three_dvd_iff
 86:
   title  : Lebesgue Measure and Integration
   decl   : measure_theory.lintegral

@@ -832,7 +832,7 @@ begin
   exact hf hx
 end
 
-lemma C_dvd_iff_map_hom_eq_zero [comm_semiring β]
+lemma C_dvd_iff_map_hom_eq_zero
   (q : α →+* β) (r : α) (hr : ∀ r' : α, q r' = 0 ↔ r ∣ r')
   (φ : mv_polynomial σ α) :
   C r ∣ φ ↔ map q φ = 0 :=

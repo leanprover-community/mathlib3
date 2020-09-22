@@ -24,7 +24,7 @@ variable {R : Type u}
 
 section semiring
 
-variables [semiring R] (f p q : polynomial R) (n k : ℕ)
+variables [semiring R] (r : R) (f p q : polynomial R) (n k : ℕ)
 
 /-- `iterated_deriv f n` is the `n`-th formal derivative of the polynomial `f` -/
 def iterated_deriv : polynomial R := derivative ^[n] f
@@ -48,7 +48,69 @@ begin
   { simp only [iterated_deriv_succ, ih, derivative_add] }
 end
 
+@[simp] lemma iterated_deriv_smul : iterated_deriv (r • p) n = r • iterated_deriv p n :=
+begin
+  induction n with n ih,
+  { simp only [iterated_deriv_zero_right] },
+  { simp only [iterated_deriv_succ, ih, derivative_smul] }
+end
+
+@[simp] lemma iterated_deriv_X_zero : iterated_deriv (X : polynomial R) 0 = X :=
+  by simp only [iterated_deriv_zero_right]
+
+@[simp] lemma iterated_deriv_X_one : iterated_deriv (X : polynomial R) 1 = 1 :=
+  by simp only [iterated_deriv, derivative_X, function.iterate_one]
+
+@[simp] lemma iterated_deriv_X : 1 < n → iterated_deriv (X : polynomial R) n = 0 := λ h,
+begin
+  induction n with n ih,
+  { exfalso, exact not_lt_zero 1 h},
+  { simp only [iterated_deriv_succ],
+    by_cases H : n = 1,
+    { rw H, simp only [iterated_deriv_X_one, derivative_one] },
+    { replace h : 1 < n := array.push_back_idx h (ne.symm H),
+      rw ih h, simp only [derivative_zero] } }
+end
+
+
+@[simp] lemma iterated_deriv_C_zero : iterated_deriv (C r) 0 = C r :=
+  by simp only [iterated_deriv_zero_right]
+
+@[simp] lemma iterated_deriv_C :0 < n → iterated_deriv (C r) n = 0 := λ h,
+begin
+  induction n with n ih,
+  { exfalso, exact nat.lt_asymm h h },
+  { by_cases H : n = 0,
+    { rw [iterated_deriv_succ, H], simp only [iterated_deriv_C_zero, derivative_C]},
+    { replace h : 0 < n := nat.pos_of_ne_zero H,
+      rw [iterated_deriv_succ, ih h], simp only [derivative_zero] } }
+end
+
+@[simp] lemma iterated_deriv_one_zero : iterated_deriv (1 : polynomial R) 0 = 1 :=
+  by simp only [iterated_deriv_zero_right]
+
+@[simp] lemma iterated_deriv_one : 0 < n → iterated_deriv (1 : polynomial R) n = 0 := λ h,
+begin
+  have eq1 : (1 : polynomial R) = C 1 := by simp only [ring_hom.map_one],
+  rw eq1, exact iterated_deriv_C _ _ h,
+end
 end semiring
+
+section ring
+variables [ring R] (p q : polynomial R) (n : ℕ)
+@[simp] lemma iterated_deriv_sub : iterated_deriv (p - q) n = iterated_deriv p n - iterated_deriv q n :=
+begin
+  induction n with n ih,
+  { simp only [iterated_deriv_zero_right] },
+  { simp only [iterated_deriv_succ], rw ih, simp only [derivative_sub] }
+end
+@[simp] lemma iterated_deriv_neg : iterated_deriv (- p) n = - iterated_deriv p n :=
+begin
+  have eq1 : -p = 0 - p := by simp only [zero_sub],
+  rw [eq1, iterated_deriv_sub], simp only [zero_sub, iterated_deriv_zero_left]
+end
+
+end ring
 
 section comm_semiring
 variable [comm_semiring R]

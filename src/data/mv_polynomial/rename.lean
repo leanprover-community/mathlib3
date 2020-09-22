@@ -20,14 +20,14 @@ which modifies the set of variables.
 
 As in other polynomial files we typically use the notation:
 
-+ `σ : Type*` (indexing the variables)
++ `σ τ α : Type*` (indexing the variables)
 
-+ `α : Type*` `[comm_semiring α]` (the coefficients)
++ `R S : Type*` `[comm_semiring R]` `[comm_semiring S]` (the coefficients)
 
 + `s : σ →₀ ℕ`, a function from `σ` to `ℕ` which is zero away from a finite set.
 This will give rise to a monomial in `mv_polynomial σ R` which mathematicians might call `X^s`
 
-+ `a : α`
++ `r : R` elements of the coefficient ring
 
 + `i : σ`, with corresponding monomial `X i`, often denoted `X_i` by mathematicians
 
@@ -42,35 +42,33 @@ open_locale classical big_operators
 open set function finsupp add_monoid_algebra
 open_locale big_operators
 
-universes u v w x
-variables {R : Type u} {S : Type*} {β : Type v} {γ : Type w} {δ : Type x}
+variables {σ τ α R S : Type*} [comm_semiring R] [comm_semiring S]
 
 namespace mv_polynomial
-variables {σ τ : Type*} {a a' a₁ a₂ : R} {e : ℕ} {n m : σ} {s : σ →₀ ℕ}
+
+-- variables {a : R} {e : ℕ} {n m : σ} {s : σ →₀ ℕ}
 
 
 section rename
-variables {R} [comm_semiring R]
 
 /-- Rename all the variables in a multivariable polynomial. -/
-def rename (f : β → γ) : mv_polynomial β R →ₐ[R] mv_polynomial γ R :=
+def rename (f : σ → τ) : mv_polynomial σ R →ₐ[R] mv_polynomial τ R :=
 aeval (X ∘ f)
 
-@[simp] lemma rename_C (f : β → γ) (a : R) : rename f (C a) = C a :=
+@[simp] lemma rename_C (f : σ → τ) (r : R) : rename f (C r) = C r :=
 eval₂_C _ _ _
 
-@[simp] lemma rename_X (f : β → γ) (b : β) : rename f (X b : mv_polynomial β R) = X (f b) :=
+@[simp] lemma rename_X (f : σ → τ) (i : σ) : rename f (X i : mv_polynomial σ R) = X (f i) :=
 eval₂_X _ _ _
 
-lemma map_rename [comm_semiring S] (f : R →+* S)
-  (g : γ → δ) (p : mv_polynomial γ R) :
+lemma map_rename (f : R →+* S) (g : σ → τ) (p : mv_polynomial σ R) :
   map f (rename g p) = rename g (map f p) :=
 mv_polynomial.induction_on p
-  (λ a, by simp)
-  (λ p q hp hq, by simp [hp, hq])
-  (λ p n hp, by simp [hp])
+  (λ a, by simp only [map_C, rename_C])
+  (λ p q hp hq, by simp only [hp, hq, alg_hom.map_add, ring_hom.map_add])
+  (λ p n hp, by simp only [hp, rename_X, map_X, ring_hom.map_mul, alg_hom.map_mul])
 
-@[simp] lemma rename_rename (f : β → γ) (g : γ → δ) (p : mv_polynomial β R) :
+@[simp] lemma rename_rename (f : σ → τ) (g : τ → α) (p : mv_polynomial σ R) :
   rename g (rename f p) = rename (g ∘ f) p :=
 show rename g (eval₂ C (X ∘ f) p) = _,
 begin
@@ -80,11 +78,11 @@ begin
   ext1, simp only [comp_app, ring_hom.coe_comp, eval₂_hom_C],
 end
 
-@[simp] lemma rename_id (p : mv_polynomial β R) : rename id p = p :=
+@[simp] lemma rename_id (p : mv_polynomial σ R) : rename id p = p :=
 eval₂_eta p
 
-lemma rename_monomial (f : β → γ) (p : β →₀ ℕ) (a : R) :
-  rename f (monomial p a) = monomial (p.map_domain f) a :=
+lemma rename_monomial (f : σ → τ) (d : σ →₀ ℕ) (r : R) :
+  rename f (monomial d r) = monomial (d.map_domain f) r :=
 begin
   rw [rename, aeval_monomial, monomial_eq, finsupp.prod_map_domain_index],
   { refl },
@@ -92,7 +90,7 @@ begin
   { exact assume n i₁ i₂, pow_add _ _ _ }
 end
 
-lemma rename_eq (f : β → γ) (p : mv_polynomial β R) :
+lemma rename_eq (f : σ → τ) (p : mv_polynomial σ R) :
   rename f p = finsupp.map_domain (finsupp.map_domain f) p :=
 begin
   simp only [rename, aeval_def, eval₂, finsupp.map_domain, ring_hom.coe_of],
@@ -105,16 +103,16 @@ begin
   exact assume a b c, pow_add _ _ _
 end
 
-lemma rename_injective (f : β → γ) (hf : function.injective f) :
-  function.injective (rename f : mv_polynomial β R → mv_polynomial γ R) :=
-have (rename f : mv_polynomial β R → mv_polynomial γ R) =
+lemma rename_injective (f : σ → τ) (hf : function.injective f) :
+  function.injective (rename f : mv_polynomial σ R → mv_polynomial τ R) :=
+have (rename f : mv_polynomial σ R → mv_polynomial τ R) =
   finsupp.map_domain (finsupp.map_domain f) := funext (rename_eq f),
 begin
   rw this,
   exact finsupp.map_domain_injective (finsupp.map_domain_injective hf)
 end
 
-lemma total_degree_rename_le (f : β → γ) (p : mv_polynomial β R) :
+lemma total_degree_rename_le (f : σ → τ) (p : mv_polynomial σ R) :
   (rename f p).total_degree ≤ p.total_degree :=
 finset.sup_le $ assume b,
   begin
@@ -130,8 +128,7 @@ finset.sup_le $ assume b,
   end
 
 section
-variables [comm_semiring S] (f : R →+* S)
-variables (k : γ → δ) (g : δ → S) (p : mv_polynomial γ R)
+variables (f : R →+* S) (k : σ → τ) (g : τ → S) (p : mv_polynomial σ R)
 
 lemma eval₂_rename : (rename k p).eval₂ f g = p.eval₂ f (g ∘ k) :=
 by apply mv_polynomial.induction_on p; { intros, simp [*] }
@@ -139,27 +136,27 @@ by apply mv_polynomial.induction_on p; { intros, simp [*] }
 lemma eval₂_hom_rename : eval₂_hom f g (rename k p) = eval₂_hom f (g ∘ k) p :=
 eval₂_rename _ _ _ _
 
-lemma rename_eval₂ (g : δ → mv_polynomial γ R) :
+lemma rename_eval₂ (g : τ → mv_polynomial σ R) :
   rename k (p.eval₂ C (g ∘ k)) = (rename k p).eval₂ C (rename k ∘ g) :=
 by apply mv_polynomial.induction_on p; { intros, simp [*] }
 
-lemma rename_prodmk_eval₂ (d : δ) (g : γ → mv_polynomial γ R) :
-  rename (prod.mk d) (p.eval₂ C g) = p.eval₂ C (λ x, rename (prod.mk d) (g x)) :=
+lemma rename_prodmk_eval₂ (j : τ) (g : σ → mv_polynomial σ R) :
+  rename (prod.mk j) (p.eval₂ C g) = p.eval₂ C (λ x, rename (prod.mk j) (g x)) :=
 by apply mv_polynomial.induction_on p; { intros, simp [*] }
 
-lemma eval₂_rename_prodmk (g : δ × γ → S) (d : δ) :
-  (rename (prod.mk d) p).eval₂ f g = eval₂ f (λ i, g (d, i)) p :=
+lemma eval₂_rename_prodmk (g : σ × τ → S) (i : σ) (p : mv_polynomial τ R) :
+  (rename (prod.mk i) p).eval₂ f g = eval₂ f (λ j, g (i, j)) p :=
 by apply mv_polynomial.induction_on p; { intros, simp [*] }
 
-lemma eval_rename_prodmk (g : δ × γ → R) (d : δ) :
-  eval g (rename (prod.mk d) p) = eval (λ i, g (d, i)) p :=
+lemma eval_rename_prodmk (g : σ × τ → R) (i : σ) (p : mv_polynomial τ R) :
+  eval g (rename (prod.mk i) p) = eval (λ j, g (i, j)) p :=
 eval₂_rename_prodmk (ring_hom.id _) _ _ _
 
 end
 
 /-- Every polynomial is a polynomial in finitely many variables. -/
-theorem exists_finset_rename (p : mv_polynomial γ R) :
-  ∃ (s : finset γ) (q : mv_polynomial {x // x ∈ s} R), p = rename coe q :=
+theorem exists_finset_rename (p : mv_polynomial σ R) :
+  ∃ (s : finset σ) (q : mv_polynomial {x // x ∈ s} R), p = rename coe q :=
 begin
   apply induction_on p,
   { intro r, exact ⟨∅, C r, by rw rename_C⟩ },
@@ -176,8 +173,8 @@ begin
 end
 
 /-- Every polynomial is a polynomial in finitely many variables. -/
-theorem exists_fin_rename (p : mv_polynomial γ R) :
-  ∃ (n : ℕ) (f : fin n → γ) (hf : injective f) (q : mv_polynomial (fin n) R), p = rename f q :=
+theorem exists_fin_rename (p : mv_polynomial σ R) :
+  ∃ (n : ℕ) (f : fin n → σ) (hf : injective f) (q : mv_polynomial (fin n) R), p = rename f q :=
 begin
   obtain ⟨s, q, rfl⟩ := exists_finset_rename p,
   obtain ⟨n, ⟨e⟩⟩ := fintype.exists_equiv_fin {x // x ∈ s},
@@ -188,16 +185,14 @@ end
 
 end rename
 
-lemma eval₂_cast_comp {β : Type u} {γ : Type v} (f : γ → β)
-  {R : Type w} [comm_ring R] (c : ℤ →+* R) (g : β → R) (x : mv_polynomial γ ℤ) :
-  eval₂ c (g ∘ f) x = eval₂ c g (rename f x) :=
-mv_polynomial.induction_on x
+lemma eval₂_cast_comp (f : σ → τ) (c : ℤ →+* R) (g : τ → R) (p : mv_polynomial σ ℤ) :
+  eval₂ c (g ∘ f) p = eval₂ c g (rename f p) :=
+mv_polynomial.induction_on p
 (λ n, by simp only [eval₂_C, rename_C])
 (λ p q hp hq, by simp only [hp, hq, rename, eval₂_add, alg_hom.map_add])
 (λ p n hp, by simp only [hp, rename, aeval_def, eval₂_X, eval₂_mul])
 
 section coeff
-variables [comm_semiring R]
 
 @[simp]
 lemma coeff_rename_map_domain (f : σ → τ) (hf : injective f) (φ : mv_polynomial σ R) (d : σ →₀ ℕ) :

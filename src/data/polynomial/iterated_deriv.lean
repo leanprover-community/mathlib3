@@ -100,18 +100,16 @@ end semiring
 section ring
 variables [ring R] (p q : polynomial R) (n : ℕ)
 
-@[simp] lemma iterated_deriv_sub : iterated_deriv (p - q) n = iterated_deriv p n - iterated_deriv q n :=
+@[simp] lemma iterated_deriv_neg : iterated_deriv (-p) n = - iterated_deriv p n :=
 begin
   induction n with n ih,
   { simp only [iterated_deriv_zero_right] },
-  { simp only [iterated_deriv_succ], rw ih, simp only [derivative_sub] }
+  { simp only [iterated_deriv_succ, ih, derivative_neg] }
 end
 
-@[simp] lemma iterated_deriv_neg : iterated_deriv (-p) n = - iterated_deriv p n :=
-begin
-  have eq1 : -p = 0 - p := by simp only [zero_sub],
-  rw [eq1, iterated_deriv_sub], simp only [zero_sub, iterated_deriv_zero_left]
-end
+@[simp] lemma iterated_deriv_sub : iterated_deriv (p - q) n = iterated_deriv p n - iterated_deriv q n :=
+by rw [sub_eq_add_neg, iterated_deriv_add, iterated_deriv_neg, ←sub_eq_add_neg]
+
 
 end ring
 

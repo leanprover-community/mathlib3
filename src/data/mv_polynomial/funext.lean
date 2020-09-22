@@ -76,8 +76,8 @@ begin
   apply funext_fin,
   intro x,
   classical,
-  convert h (extend f x 0),
-  simp only [eval, eval₂_hom_rename, extend_comp],
+  convert h (function.extend f x 0),
+  simp only [eval, eval₂_hom_rename, function.extend_comp hf]
 end
 
 lemma funext_iff {σ : Type*} {p q : mv_polynomial σ R} :

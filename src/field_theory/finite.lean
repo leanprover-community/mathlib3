@@ -297,6 +297,10 @@ namespace zmod
 @[simp] lemma pow_card {p : ℕ} [fact p.prime] (x : zmod p) : x ^ p = x :=
 by { have h := finite_field.pow_card x, rwa zmod.card p at h }
 
+@[simp] lemma frobenius_zmod (p : ℕ) [hp : fact p.prime] :
+  frobenius (zmod p) p = ring_hom.id _ :=
+by { ext a, rw [frobenius_def, zmod.pow_card, ring_hom.id_apply] }
+
 @[simp] lemma card_units (p : ℕ) [fact p.prime] : fintype.card (units (zmod p)) = p - 1 :=
 by rw [card_units, card]
 
@@ -317,3 +321,21 @@ lemma expand_card {p : ℕ} [fact p.prime] (f : polynomial (zmod p)) :
 by { have h := finite_field.expand_card f, rwa zmod.card p at h }
 
 end zmod
+
+namespace mv_polynomial
+
+lemma frobenius_zmod {p : ℕ} [fact p.prime] (φ : mv_polynomial σ (zmod p)) :
+  frobenius _ p φ = expand p φ :=
+begin
+  apply induction_on φ,
+  { intro a, rw [expand_C, frobenius_def, ← C_pow, zmod.pow_card], },
+  { simp only [alg_hom.map_add, ring_hom.map_add], intros _ _ hf hg, rw [hf, hg] },
+  { simp only [expand_X, ring_hom.map_mul, alg_hom.map_mul],
+    intros _ _ hf, rw [hf, frobenius_def], },
+end
+
+lemma expand_zmod {p : ℕ} [fact p.prime] (φ : mv_polynomial σ (zmod p)) :
+  expand p φ = φ^p :=
+(mv_polynomial.frobenius_zmod _).symm
+
+end mv_polynomial

@@ -528,7 +528,7 @@ section eval_vars
 /-! ### `vars` and `eval` -/
 
 variables {S₁ : Type v} {S₂ : Type w} (f : σ → S₁)
-variables [comm_semiring R] [comm_semiring S₁] [algebra R S₁] [comm_semiring S₂]
+variables [comm_semiring S₁] [algebra R S₁] [comm_semiring S₂]
 
 lemma eval₂_hom_eq_constant_coeff_of_vars (f : R →+* S₂) {g : σ → S₂}
   {p : mv_polynomial σ R} (hp : ∀ i ∈ p.vars, g i = 0) :

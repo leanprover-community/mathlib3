@@ -44,7 +44,7 @@ begin
     intro x,
     exact real.le_Sup S h (set.mem_range_self x), },
   -- Show that `2 * (∥f x∥ * ∥g y∥) ≤ 2 * k`.
-  have hk₂ : ∀ x, _,
+  have hk₂ : ∀ x, 2 * (∥f x∥ * ∥g y∥) ≤ 2 * k,
   { intro x,
     calc 2 * (∥f x∥ * ∥g y∥)
         = ∥2 * f x * g y∥ : by simp [real.norm_eq_abs, abs_mul, mul_assoc]

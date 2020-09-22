@@ -1823,9 +1823,8 @@ continuous is then derived from the fact that it is equal to a homeomorphism, an
 differentiability is in turn derived from its continuity using `has_deriv_at.of_local_left_inverse`.
 -/
 
-/-- The function `tan`, restricted to the open interval (-π/2, π/2), is a homeomorphism. The
-inverse function of that homeomrphism is definitionally equal to `arctan` via `homeomorph.change_inv`.
--/
+/-- The function `tan`, restricted to the open interval (-π/2, π/2), is a homeomorphism. The inverse
+  function of that homeomorphism is definitionally equal to `arctan` via `homeomorph.change_inv`. -/
 def tan_homeomorph : (Ioo (-(π/2)) (π/2)) ≃ₜ ℝ :=
 (homeomorph_of_strict_mono_continuous_Ioo tan (by linarith [pi_div_two_pos])
   (λ x y, tan_lt_tan_of_lt_of_lt_pi_div_two) continuous_on_tan_Ioo tendsto_tan_pi_div_two

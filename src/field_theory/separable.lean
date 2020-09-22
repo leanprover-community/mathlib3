@@ -492,32 +492,25 @@ the minimal polynomial of every `x : K` is separable. -/
 @[class] def is_separable (F K : Sort*) [field F] [field K] [algebra F K] : Prop :=
 ∀ x : K, ∃ H : is_integral F x, (minimal_polynomial H).separable
 
-lemma is_separable_top (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]
-  [algebra K E] [is_scalar_tower F K E] (h : is_separable F E) : is_separable K E :=
+section is_separable_tower
+variables (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E] [algebra K E]
+  [is_scalar_tower F K E]
+
+lemma is_separable_tower_top_of_is_separable_tower (h : is_separable F E) : is_separable K E :=
 λ x, Exists.cases_on (h x) (λ hx hs, ⟨is_integral_of_is_scalar_tower x hx,
 hs.map.of_dvd (minimal_polynomial.dvd_map_of_is_scalar_tower K hx)⟩)
 
-lemma is_separable_bottom (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]
-  [algebra K E] [is_scalar_tower F K E] (h : is_separable F E) : is_separable F K :=
+lemma is_separable_tower_bot_of_is_separable_tower (h : is_separable F E) : is_separable F K :=
 begin
   intro x,
-  have main : ∀ p : polynomial F, algebra_map K E (aeval x p) = aeval (algebra_map K E x) p :=
-    λ p, is_scalar_tower.algebra_map_aeval F K E x p,
-  have swap : ∀ p : polynomial F, aeval (algebra_map K E x) p = 0 → aeval x p = 0,
-  { intros p hp,
-    rw [←main p,←(algebra_map K E).map_zero] at hp,
-    exact ring_hom.injective (algebra_map K E) hp, },
-  cases h (algebra_map K E x) with hx hs,
-  have hx' : is_integral F x,
-  { cases hx with p hp,
-    use p,
-    exact ⟨hp.1,swap p hp.2⟩, },
+  obtain ⟨hx, hs⟩ := h (algebra_map K E x),
+  have hx' : is_integral F x := is_integral_tower_bot_of_is_integral_field hx,
+  obtain ⟨q, hq⟩ := minimal_polynomial.dvd hx'
+    (is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero_field (minimal_polynomial.aeval hx)),
   use hx',
-  have key : (minimal_polynomial hx') ∣ (minimal_polynomial hx),
-  { apply minimal_polynomial.dvd,
-    exact swap (minimal_polynomial hx) (minimal_polynomial.aeval hx), },
-  cases key with q hq,
   apply polynomial.separable.of_mul_left,
-  rw ←hq,
+  rw ← hq,
   exact hs,
 end
+
+end is_separable_tower

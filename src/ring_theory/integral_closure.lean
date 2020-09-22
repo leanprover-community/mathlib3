@@ -360,6 +360,11 @@ begin
   exact H hp',
 end
 
+lemma is_integral_tower_bot_of_is_integral_field {R A B : Type*} [comm_ring R] [field A]
+  [comm_ring B] [nontrivial B] [algebra R A] [algebra A B] [algebra R B] [is_scalar_tower R A B]
+  {x : A} (h : is_integral R (algebra_map A B x)) : is_integral R x :=
+is_integral_tower_bot_of_is_integral (algebra_map A B).injective h
+
 /-- If `R → A → B` is an algebra tower,
 then if the entire tower is an integral extension so is `A → B` -/
 lemma is_integral_tower_top_of_is_integral {x : B} (h : is_integral R x) : is_integral A x :=

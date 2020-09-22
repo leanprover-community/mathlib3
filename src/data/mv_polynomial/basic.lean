@@ -26,7 +26,7 @@ In the definitions below, we use the following notation:
 
 + `σ : Type*` (indexing the variables)
 
-+ `α : Type*` `[comm_semiring R]` (the coefficients)
++ `α : Type*` `[comm_semiring α]` (the coefficients)
 
 + `s : σ →₀ ℕ`, a function from `σ` to `ℕ` which is zero away from a finite set.
 This will give rise to a monomial in `mv_polynomial σ R` which mathematicians might call `X^s`

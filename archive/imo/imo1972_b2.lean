@@ -10,6 +10,10 @@ import analysis.normed_space.basic
 
 /-- IMO 1972 B2
 
+Problem: `f` and `g` are real-valued functions defined on the real line. For all `x` and `y`,
+`f(x + y) + f(x - y) = 2f(x)g(y)`. `f` is not identically zero and `|f(x)| ≤ 1` for all `x`.
+Prove that `|g(x)| ≤ 1` for all `x`.
+
 This proof consists in introducting the supremum of `f`, `k ≤ 1` as well as `k' = k / ∥g y∥`. We then
 suppose that the conclusion does not hold (`hneg`) and show that `k ≤ k'` (by
 `2 * (∥f x∥ * ∥g y∥) ≤ 2 * k` obtained from the main hypothesis `hf1`) and  that `k' < k` (obtained
@@ -87,6 +91,10 @@ end
 
 
 /-- IMO 1972 B2
+
+Problem: `f` and `g` are real-valued functions defined on the real line. For all `x` and `y`,
+`f(x + y) + f(x - y) = 2f(x)g(y)`. `f` is not identically zero and `|f(x)| ≤ 1` for all `x`.
+Prove that `|g(x)| ≤ 1` for all `x`.
 
 This is a more concise version of the proof proposed by Ruben Van de Velde.
 -/

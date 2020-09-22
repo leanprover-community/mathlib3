@@ -56,12 +56,12 @@ begin
 end
 
 @[simp] lemma iterated_deriv_X_zero : iterated_deriv (X : polynomial R) 0 = X :=
-  by simp only [iterated_deriv_zero_right]
+by simp only [iterated_deriv_zero_right]
 
 @[simp] lemma iterated_deriv_X_one : iterated_deriv (X : polynomial R) 1 = 1 :=
-  by simp only [iterated_deriv, derivative_X, function.iterate_one]
+by simp only [iterated_deriv, derivative_X, function.iterate_one]
 
-@[simp] lemma iterated_deriv_X : 1 < n → iterated_deriv (X : polynomial R) n = 0 := λ h,
+@[simp] lemma iterated_deriv_X (h : 1 < n) : iterated_deriv (X : polynomial R) n = 0 :=
 begin
   induction n with n ih,
   { exfalso, exact not_lt_zero 1 h},
@@ -76,7 +76,7 @@ end
 @[simp] lemma iterated_deriv_C_zero : iterated_deriv (C r) 0 = C r :=
   by simp only [iterated_deriv_zero_right]
 
-@[simp] lemma iterated_deriv_C :0 < n → iterated_deriv (C r) n = 0 := λ h,
+@[simp] lemma iterated_deriv_C (h : 0 < n) : iterated_deriv (C r) n = 0 :=
 begin
   induction n with n ih,
   { exfalso, exact nat.lt_asymm h h },
@@ -87,24 +87,27 @@ begin
 end
 
 @[simp] lemma iterated_deriv_one_zero : iterated_deriv (1 : polynomial R) 0 = 1 :=
-  by simp only [iterated_deriv_zero_right]
+by simp only [iterated_deriv_zero_right]
 
 @[simp] lemma iterated_deriv_one : 0 < n → iterated_deriv (1 : polynomial R) n = 0 := λ h,
 begin
   have eq1 : (1 : polynomial R) = C 1 := by simp only [ring_hom.map_one],
   rw eq1, exact iterated_deriv_C _ _ h,
 end
+
 end semiring
 
 section ring
 variables [ring R] (p q : polynomial R) (n : ℕ)
+
 @[simp] lemma iterated_deriv_sub : iterated_deriv (p - q) n = iterated_deriv p n - iterated_deriv q n :=
 begin
   induction n with n ih,
   { simp only [iterated_deriv_zero_right] },
   { simp only [iterated_deriv_succ], rw ih, simp only [derivative_sub] }
 end
-@[simp] lemma iterated_deriv_neg : iterated_deriv (- p) n = - iterated_deriv p n :=
+
+@[simp] lemma iterated_deriv_neg : iterated_deriv (-p) n = - iterated_deriv p n :=
 begin
   have eq1 : -p = 0 - p := by simp only [zero_sub],
   rw [eq1, iterated_deriv_sub], simp only [zero_sub, iterated_deriv_zero_left]
@@ -180,7 +183,6 @@ begin
   rw [coeff_iterated_deriv_as_prod_range, coeff_zero, coeff_eq_zero_of_nat_degree_lt, zero_mul],
   linarith
 end
-
 
 lemma iterated_deriv_mul :
   iterated_deriv (p * q) n =

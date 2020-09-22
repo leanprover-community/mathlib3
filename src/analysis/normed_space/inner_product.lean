@@ -809,7 +809,6 @@ lemma abs_real_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul
   {x : β} {r : ℝ} (hx : x ≠ 0) (hr : r ≠ 0) : absR ⟪x, r • x⟫_ℝ / (∥x∥ * ∥r • x∥) = 1 :=
 begin
   simp [real_inner_smul_self_right, norm_smul, _root_.abs_mul, norm_eq_abs],
-  rw [@abs_norm_eq_norm ℝ β _ _ _ x],
   conv_lhs { congr, rw [←mul_assoc, mul_comm] },
   apply div_self,
   intro h,
@@ -891,7 +890,7 @@ begin
   { intro h,
     rcases h with ⟨hx, ⟨r, ⟨hr, hy⟩⟩⟩,
     rw hy,
-    rw [_root_.abs_div, _root_.abs_mul, @abs_norm_eq_norm ℝ β _, @abs_norm_eq_norm ℝ β _],
+    rw [_root_.abs_div, _root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm],
     exact abs_real_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul hx hr }
 end
 

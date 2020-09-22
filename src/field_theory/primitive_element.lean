@@ -219,7 +219,7 @@ begin
     { rw ← findim_mul_findim F F⟮α⟯ E,
       nlinarith [show 0 < findim F⟮α⟯ E, from findim_pos, show 0 < findim F F⟮α⟯, from findim_pos], },
     have Fα_inf : infinite F⟮α⟯ := infinite.of_injective _ (algebra_map F F⟮α⟯).injective,
-    have Fα_sep : is_separable F⟮α⟯ E := is_separable_top F F⟮α⟯ E F_sep,
+    have Fα_sep : is_separable F⟮α⟯ E := is_separable_tower_top_of_is_separable_tower F F⟮α⟯ E F_sep,
     obtain ⟨β, hβ⟩ := ih _ Fα_dim_lt_F_dim Fα_sep Fα_findim Fα_inf rfl,
     obtain ⟨γ, hγ⟩ := primitive_element_two_inf α β F_sep F_inf,
     simp only [←adjoin_simple_adjoin_simple, subalgebra.ext_iff, algebra.mem_top, iff_true, *] at *,
@@ -245,10 +245,11 @@ end primitive_element_same_universe
 theorem primitive_element (F_sep : is_separable F E)  (F_findim : finite_dimensional F E) :
   ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
-  have F'_sep : is_separable F⟮(0 : E)⟯ E := is_separable_top F F⟮(0 : E)⟯ E F_sep,
-  have F'_findim : finite_dimensional F⟮(0 : E)⟯ E := finite_dimensional.right F F⟮(0 : E)⟯ E,
-  obtain ⟨α, hα⟩ := primitive_element_aux F⟮(0 : E)⟯ E F'_sep F'_findim,
-  have : (F⟮(0 : E)⟯⟮α⟯ : set E) = F⟮α⟯,
+  let F' := F⟮(0 : E)⟯,
+  have F'_sep : is_separable F' E := is_separable_tower_top_of_is_separable_tower F F' E F_sep,
+  have F'_findim : finite_dimensional F⟮(0 : E)⟯ E := finite_dimensional.right F F' E,
+  obtain ⟨α, hα⟩ := primitive_element_aux F' E F'_sep F'_findim,
+  have : (F'⟮α⟯ : set E) = F⟮α⟯,
   { rw [adjoin_simple_comm, adjoin_zero, adjoin_eq_range_algebra_map_adjoin],
     simp [set.ext_iff, algebra.mem_bot], },
   exact ⟨α, by simp [subalgebra.ext_iff, set.ext_iff, algebra.mem_top, *] at *⟩,

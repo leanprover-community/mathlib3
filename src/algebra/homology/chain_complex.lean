@@ -125,6 +125,11 @@ variables {V} [has_zero_object V] {b : ℤ}
 
 local attribute [instance] has_zero_object.has_zero
 
+/-- Construct a chain complex without the scary signature. -/
+def chain_complex.mk (X : Π i : ℤ, V) (d : Π i, X i ⟶ X (i - 1)) (hd : ∀ i, d i ≫ d (i - 1) = 0) :
+  chain_complex V :=
+{ X := X, d := d, d_squared' := funext hd }
+
 /-- Bounded below -/
 def bounded_below_by (C : homological_complex V b) (n : ℤ) : Prop := ∀ m < n, nonempty (C.X m ≅ 0)
 

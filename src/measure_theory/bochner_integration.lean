@@ -1304,6 +1304,17 @@ lemma norm_integral_le_of_norm_le_const [finite_measure μ] {f : α → E} {C : 
 calc ∥∫ x, f x ∂μ∥ ≤ ∫ x, C ∂μ : norm_integral_le_of_norm_le measurable_const (integrable_const C) h
                ... = C * (μ univ).to_real : by rw [integral_const, smul_eq_mul, mul_comm]
 
+lemma tendsto_integral_approx_on_univ {f : α → E} (hfm : measurable f) (hfi : integrable f μ) :
+  tendsto (λ n, (simple_func.approx_on f hfm univ 0 trivial n).integral μ) at_top (𝓝 $ ∫ x, f x ∂μ) :=
+begin
+  have : tendsto (λ n, ∫ x, simple_func.approx_on f hfm univ 0 trivial n x ∂μ)
+    at_top (𝓝 $ ∫ x, f x ∂μ) :=
+    tendsto_integral_of_l1 _ hfm hfi (eventually_of_forall $ λ i, simple_func.measurable _)
+      (eventually_of_forall $ simple_func.integrable_approx_on_univ hfm hfi)
+      (simple_func.tendsto_approx_on_univ_l1_edist hfm hfi),
+  simpa only [simple_func.integral_eq_integral, simple_func.integrable_approx_on_univ hfm hfi]
+end
+
 variable {ν : measure α}
 
 lemma integral_add_measure {f : α → E} (hμ : integrable f μ) (hν : integrable f ν) :
@@ -1311,26 +1322,9 @@ lemma integral_add_measure {f : α → E} (hμ : integrable f μ) (hν : integra
 begin
   by_cases hfm : measurable f; [skip, by simp only [integral_non_measurable hfm, zero_add]],
   have hfi := hμ.add_measure hν,
-  rcases simple_func_sequence_tendsto' hfm hfi with ⟨F, hFi, hFt⟩,
-  have hFiμ : ∀ i, integrable (F i) μ := λ i, (hFi i).left_of_add_measure,
-  have hFiν : ∀ i, integrable (F i) ν := λ i, (hFi i).right_of_add_measure,
-  simp only [← edist_nndist] at hFt,
-  have hμν : tendsto (λ i, ∫ x, F i x ∂(μ + ν)) at_top (𝓝 ∫ x, f x ∂(μ + ν)) :=
-    tendsto_integral_of_l1 _ hfm hfi (eventually_of_forall $ λ i, (F i).measurable)
-      (eventually_of_forall hFi) hFt,
-  have hμ : tendsto (λ i, ∫ x, F i x ∂μ) at_top (𝓝 ∫ x, f x ∂μ),
-  { refine tendsto_integral_of_l1 _ hfm hμ (eventually_of_forall $ λ i, (F i).measurable)
-      (eventually_of_forall hFiμ) _,
-    refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hFt (λ _, zero_le _) _,
-    exact λ i, lintegral_mono' (measure.le_add_right $ le_refl μ) (le_refl _) },
-  have hν : tendsto (λ i, ∫ x, F i x ∂ν) at_top (𝓝 ∫ x, f x ∂ν),
-  { refine tendsto_integral_of_l1 _ hfm hν (eventually_of_forall $ λ i, (F i).measurable)
-      (eventually_of_forall hFiν) _,
-    refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hFt (λ _, zero_le _) _,
-    exact λ i, lintegral_mono' (measure.le_add_left $ le_refl ν) (le_refl _) },
-  apply tendsto_nhds_unique hμν,
-  simpa only [← simple_func.integral_eq_integral, *, simple_func.integral_add_measure]
-    using hμ.add hν
+  refine tendsto_nhds_unique (tendsto_integral_approx_on_univ hfm hfi) _,
+  simpa only [simple_func.integral_add_measure _ (simple_func.integrable_approx_on_univ hfm hfi _)]
+    using (tendsto_integral_approx_on_univ hfm hμ).add (tendsto_integral_approx_on_univ hfm hν)
 end
 
 @[simp] lemma integral_zero_measure (f : α → E) : ∫ x, f x ∂0 = 0 :=
@@ -1363,21 +1357,10 @@ begin
     convert h.smul_measure (ennreal.inv_lt_top.2 h0),
     rw [smul_smul, ennreal.inv_mul_cancel (ne_of_gt h0) (ne_of_lt hc), one_smul] },
   -- Main case: `0 < c < ⊤`, `f` is measurable and integrable
-  rcases simple_func_sequence_tendsto' hfm hfi with ⟨F, hFi, hFt⟩,
-  have hFi' := λ n, (hFi n).smul_measure hc,
-  simp only [← edist_nndist] at hFt,
-  have hμ : tendsto (λ i, ∫ x, F i x ∂μ) at_top (𝓝 ∫ x, f x ∂μ) :=
-    tendsto_integral_of_l1 _ hfm hfi (eventually_of_forall $ λ i, (F i).measurable)
-      (eventually_of_forall hFi) hFt,
-  refine tendsto_nhds_unique _ (tendsto_const_nhds.smul hμ),
-  replace hFt := ennreal.tendsto.mul (tendsto_const_nhds : tendsto (λ _, c) _ _)
-    (or.inr ennreal.zero_ne_top) hFt (or.inr $ ne_of_lt hc),
-  simp only [mul_zero, ← lintegral_smul_measure] at hFt,
-  convert tendsto_integral_of_l1 _ hfm (hfi.smul_measure hc)
-    (eventually_of_forall $ λ i, (F i).measurable) (eventually_of_forall hFi') hFt,
-  ext1 n,
-  simp only [← (F n).integral_eq_integral, hFi, hFi', simple_func.integral,
-    measure.smul_apply, finset.smul_sum, smul_smul, ennreal.to_real_mul_to_real]
+  refine tendsto_nhds_unique _ (tendsto_const_nhds.smul (tendsto_integral_approx_on_univ hfm hfi)),
+  convert tendsto_integral_approx_on_univ hfm (hfi.smul_measure hc),
+  simp only [simple_func.integral, measure.smul_apply, finset.smul_sum, smul_smul,
+    ennreal.to_real_mul_to_real]
 end
 
 lemma integral_map_measure {β} [measurable_space β] {φ : α → β} (hφ : measurable φ)
@@ -1387,25 +1370,14 @@ begin
   by_cases hfi : integrable f (measure.map φ μ), swap,
   { rw [integral_non_integrable hfi, integral_non_integrable],
     rwa [← integrable_map_measure hφ hfm] },
-  rcases simple_func_sequence_tendsto' hfm hfi with ⟨F, hFi, hFt⟩,
-  simp only [← edist_nndist] at hFt,
-  have hF : tendsto (λ i, ∫ x, F i x ∂(measure.map φ μ)) at_top (𝓝 ∫ x, f x ∂(measure.map φ μ)) :=
-    tendsto_integral_of_l1 _ hfm hfi (eventually_of_forall $ λ i, (F i).measurable)
-      (eventually_of_forall hFi) hFt,
-  refine tendsto_nhds_unique hF _, clear hF,
-  simp only [lintegral_map ((F _).measurable.edist hfm) hφ] at hFt,
-  have hFi' := hFi,
-  simp only [integrable_map_measure, hφ, hfm, (F _).measurable] at hfi hFi',
-  refine (tendsto_integral_of_l1 _ (hfm.comp hφ) hfi
-    (eventually_of_forall $ λ i, (F i).measurable.comp hφ)
-    (eventually_of_forall $ hFi') hFt).congr (λ n, _),
-  rw [← simple_func.integral_eq_integral _ (hFi n), ← simple_func.coe_comp _ hφ,
-    ← simple_func.integral_eq_integral ((F n).comp φ hφ) (hFi' n)],
-  simp only [simple_func.integral, measure.map_apply, *, simple_func.is_measurable_preimage],
-  refine finset.sum_subset ((F n).range_comp_subset_range _) (λ y _ hy, _),
-  rw [simple_func.mem_range, ← set.preimage_singleton_eq_empty] at hy,
-  rw [hy],
-  simp
+  refine tendsto_nhds_unique (tendsto_integral_approx_on_univ hfm hfi) _,
+  convert tendsto_integral_approx_on_univ (hfm.comp hφ) ((integrable_map_measure hφ hfm).1 hfi),
+  ext1 i,
+  simp only [simple_func.approx_on_comp, simple_func.integral, measure.map_apply, hφ,
+    simple_func.is_measurable_preimage, ← preimage_comp, simple_func.coe_comp],
+  refine (finset.sum_subset (simple_func.range_comp_subset_range _ _) (λ y _ hy, _)).symm,
+  rw [simple_func.mem_range, ← set.preimage_singleton_eq_empty, simple_func.coe_comp] at hy,
+  simp [hy]
 end
 
 lemma integral_dirac (f : α → E) (a : α) (hfm : measurable f) :

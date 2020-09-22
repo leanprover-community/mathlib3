@@ -124,6 +124,11 @@ begin
   exacts [h₀, subtype.mem _]
 end
 
+@[simp] lemma approx_on_comp {γ : Type*} [measurable_space γ] {f : β → α} (hf : measurable f)
+  {g : γ → β} (hg : measurable g) {s : set α} {y₀ : α} (h₀ : y₀ ∈ s) [separable_space s] (n : ℕ) :
+  approx_on (f ∘ g) (hf.comp hg) s y₀ h₀ n = (approx_on f hf s y₀ h₀ n).comp g hg :=
+rfl
+
 lemma tendsto_approx_on {f : β → α} (hf : measurable f) {s : set α} {y₀ : α} (h₀ : y₀ ∈ s)
   [separable_space s] {x : β} (hx : f x ∈ closure s) :
   tendsto (λ n, approx_on f hf s y₀ h₀ n x) at_top (𝓝 $ f x) :=
@@ -153,7 +158,7 @@ calc edist y₀ (approx_on f hf s y₀ h₀ n x) ≤
 ... ≤ edist y₀ (f x) + edist y₀ (f x) : add_le_add_left (edist_approx_on_le hf h₀ x n) _
 
 -- Actually, we can avoid `second_countable_topology E` if needed
-lemma tendsto_approx_on_l1 [measurable_space E] [normed_group E] [opens_measurable_space E]
+lemma tendsto_approx_on_l1_edist [measurable_space E] [normed_group E] [opens_measurable_space E]
   [second_countable_topology E] {f : β → E} (hf : measurable f) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s)
   {μ : measure β} (hμ : ∀ᵐ x ∂μ, f x ∈ closure s) (hi : integrable (λ x, f x - y₀) μ) :
   tendsto (λ n, ∫⁻ x, edist (approx_on f hf s y₀ h₀ n x) (f x) ∂μ) at_top (𝓝 0) :=
@@ -186,6 +191,26 @@ begin
     add_lt_top.2 ⟨hi, hi⟩
 end
 
+lemma tendsto_approx_on_univ_l1_edist [measurable_space E] [normed_group E]
+  [opens_measurable_space E] [second_countable_topology E]
+  {f : β → E} (hf : measurable f) {μ : measure β} (hi : integrable f μ) :
+  tendsto (λ n, ∫⁻ x, edist (approx_on f hf univ 0 trivial n x) (f x) ∂μ) at_top (𝓝 0) :=
+tendsto_approx_on_l1_edist hf trivial (by simp) (by simpa)
+
+lemma integrable_approx_on_univ [measurable_space E] [normed_group E] [borel_space E] [second_countable_topology E]
+  {f : β → E} (hf : measurable f)
+  {μ : measure β} (hi : integrable f μ) (n : ℕ) :
+  integrable (approx_on f hf univ 0 trivial n) μ :=
+integrable_approx_on hf _ (by simpa) (by simp) n
+
+lemma tendsto_approx_on_univ_l1 [measurable_space E] [normed_group E] [borel_space E]
+  [second_countable_topology E] {f : β → E} (hf : measurable f)
+  {μ : measure β} (hi : integrable f μ) :
+  tendsto (λ n, l1.of_fun (approx_on f hf univ 0 trivial n)
+    (approx_on f hf univ 0 trivial n).measurable (integrable_approx_on_univ hf hi n)) at_top
+    (𝓝 $ l1.of_fun f hf hi) :=
+tendsto_iff_edist_tendsto_0.2 $ tendsto_approx_on_univ_l1_edist hf hi
+
 end simple_func
 
 open simple_func
@@ -201,7 +226,7 @@ lemma simple_func_sequence_tendsto' [borel_space E] {μ : measure α} {f : α �
   (hfm : measurable f) (hfi : integrable f μ) :
     ∃ (F : ℕ → (α →ₛ E)), (∀n, integrable (F n) μ) ∧
    tendsto (λ n, ∫⁻ x,  nndist (F n x) (f x) ∂μ) at_top (𝓝 0) :=
-⟨approx_on f hfm univ 0 trivial, integrable_approx_on _ _ (by simpa) (integrable_zero _ _ _),
-  by { simp only [← edist_nndist], exact tendsto_approx_on_l1 _ _ (by simp) (by simpa) }⟩
+⟨approx_on f hfm univ 0 trivial, integrable_approx_on_univ _ hfi,
+  by { simp only [← edist_nndist], exact tendsto_approx_on_univ_l1_edist _ hfi }⟩
 
 end measure_theory

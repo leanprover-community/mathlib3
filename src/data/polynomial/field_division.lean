@@ -221,7 +221,7 @@ lemma root_right_of_root_gcd [comm_semiring k] {ϕ : R →+* k} {f g : polynomia
 by { cases euclidean_domain.gcd_dvd_right f g with p hp,
      rw [hp, polynomial.eval₂_mul, hα, zero_mul] }
 
-lemma root_gcd_iff_root_left_right [comm_semiring k] (ϕ : R →+* k) (f g : polynomial R) (α : k) :
+lemma root_gcd_iff_root_left_right [comm_semiring k] {ϕ : R →+* k} {f g : polynomial R} {α : k} :
   (euclidean_domain.gcd f g).eval₂ ϕ α = 0 ↔ (f.eval₂ ϕ α = 0) ∧ (g.eval₂ ϕ α = 0) :=
 ⟨λ h, ⟨root_left_of_root_gcd h, root_right_of_root_gcd h⟩, λ h, eval₂_gcd_eq_zero h.1 h.2⟩
 

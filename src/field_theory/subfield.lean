@@ -61,7 +61,6 @@ subfield, subfields
 open_locale big_operators
 universes u v w
 
-open group
 variables {K : Type u} {L : Type v} {M : Type w} [field K] [field L] [field M]
 
 set_option old_structure_cmd true

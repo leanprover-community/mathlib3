@@ -22,6 +22,20 @@ open rat real multiplicity
 /-- A real number is irrational if it is not equal to any rational number. -/
 def irrational (x : ℝ) := x ∉ set.range (coe : ℚ → ℝ)
 
+lemma irrational_iff_ne_rational (x : ℝ) : irrational x ↔ ∀ a b : ℤ, b > 0 → x - a / b ≠ 0 :=
+⟨λ h a b _ r, begin
+  rw sub_eq_zero_iff_eq at r,
+  refine h _,
+  rw set.mem_range, use a / b, tidy
+end,
+
+λ h r, begin
+  rw set.mem_range at r, rcases r with ⟨r, eq₁⟩,
+  refine (h r.1 r.2 (by {norm_num, exact r.pos})) _,
+  rw sub_eq_zero, tidy
+end⟩
+
+
 /-!
 ### Irrationality of roots of integer and rational numbers
 -/
@@ -89,7 +103,7 @@ theorem irrational_sqrt_rat_iff (q : ℚ) : irrational (sqrt q) ↔
 if H1 : rat.sqrt q * rat.sqrt q = q
 then iff_of_false (not_not_intro ⟨rat.sqrt q,
   by rw [← H1, cast_mul, sqrt_mul_self (cast_nonneg.2 $ rat.sqrt_nonneg q),
-         sqrt_eq, abs_of_nonneg (rat.sqrt_nonneg q)]⟩) (λ h, h.1 H1)
+          sqrt_eq, abs_of_nonneg (rat.sqrt_nonneg q)]⟩) (λ h, h.1 H1)
 else if H2 : 0 ≤ q
 then iff_of_true (λ ⟨r, hr⟩, H1 $ (exists_mul_self _).1 ⟨r,
   by rwa [eq_comm, sqrt_eq_iff_mul_self_eq (cast_nonneg.2 H2), ← cast_mul, cast_inj] at hr;

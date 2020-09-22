@@ -5,8 +5,8 @@ Authors: Scott Morrison
 -/
 import algebraic_geometry.presheafed_space
 import topology.category.Top.limits
+import topology.sheaves.limits
 import category_theory.limits.concrete_category
-import category_theory.limits.functor_category
 
 /-!
 # `PresheafedSpace C` has colimits.
@@ -45,13 +45,10 @@ open category_theory.limits
 open category_theory.functor
 
 variables {J : Type v} [small_category J]
-variables {C : Type u} [category.{v} C] [has_limits C]
+variables {C : Type u} [category.{v} C]
 
 
 namespace algebraic_geometry
-
--- TODO move
-instance (X : Top) : has_limits (presheaf C X) := by { dsimp [presheaf], apply_instance, }
 
 namespace PresheafedSpace
 
@@ -129,6 +126,8 @@ def pushforward_diagram_to_colimit (F : J ⥤ PresheafedSpace C) :
     swap 2,
     { simp, refl, },
   end, }
+
+variables [has_limits C]
 
 /--
 Auxilliary definition for `PresheafedSpace.has_colimits`.

@@ -66,17 +66,6 @@ begin
   erw ℱ.map_id,
 end
 
-@[simp]
-lemma pushforward_eq_comp {X Y : Top.{v}} (f g h : X ⟶ Y) (e₁ : f = g) (e₂ : g = h) (ℱ : X.presheaf C) (U) :
-  (pushforward_eq e₁ ℱ).hom.app (op U) ≫ (pushforward_eq e₂ ℱ).hom.app (op U) =
-    (pushforward_eq (e₁.trans e₂) ℱ).hom.app (op U) :=
-begin
-  dsimp [pushforward_eq],
-  erw ←ℱ.map_comp,
-  congr,
-  simp,
-end
-
 lemma pushforward_eq_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h₁ h₂ : f = g) (ℱ : X.presheaf C) :
   ℱ.pushforward_eq h₁ = ℱ.pushforward_eq h₂ :=
 rfl
@@ -110,6 +99,9 @@ by { dsimp [comp], tidy, }
 
 end pushforward
 
+/--
+A morphism of presheaves gives rise to a morphisms of the pushforwards of those presheaves.
+-/
 @[simps]
 def pushforward_map {X Y : Top.{v}} (f : X ⟶ Y) {ℱ 𝒢 : X.presheaf C} (α : ℱ ⟶ 𝒢) : f _* ℱ ⟶ f _* 𝒢 :=
 { app := λ U, α.app _,

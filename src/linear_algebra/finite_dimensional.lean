@@ -1066,14 +1066,14 @@ subalgebra.dim_eq_one_of_eq_bot rfl
 
 lemma subalgebra_top_dim_eq_submodule_top_dim :
   dim F (⊤ : subalgebra F E) = dim F (⊤ : submodule F E) :=
-by {rw ← algebra.coe_top, refl}
+by { rw ← algebra.coe_top, refl }
 
 lemma subalgebra_top_findim_eq_submodule_top_findim :
   findim F (⊤ : subalgebra F E) = findim F (⊤ : submodule F E) :=
-by {rw ← algebra.coe_top, refl}
+by { rw ← algebra.coe_top, refl }
 
 lemma subalgebra.dim_top : dim F (⊤ : subalgebra F E) = dim F E :=
-by {rw subalgebra_top_dim_eq_submodule_top_dim, exact dim_top}
+by { rw subalgebra_top_dim_eq_submodule_top_dim, exact dim_top }
 
 lemma subalgebra.finite_dimensional_bot : finite_dimensional F (⊥ : subalgebra F E) :=
 finite_dimensional_of_dim_eq_one subalgebra.dim_bot
@@ -1089,7 +1089,7 @@ begin
 end
 
 lemma subalgebra.findim_eq_one_of_eq_bot {S : subalgebra F E} (h : S = ⊥) : findim F S = 1 :=
-by {rw h, exact subalgebra.findim_bot}
+by { rw h, exact subalgebra.findim_bot }
 
 lemma subalgebra.eq_bot_of_findim_one {S : subalgebra F E} (h : findim F S = 1) : S = ⊥ :=
 begin

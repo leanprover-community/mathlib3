@@ -208,10 +208,7 @@ lemma in_bot_of_adjoin_simple_dim_eq_one (h : dim F F⟮α⟯ = 1) : α ∈ ((�
 set.singleton_subset_iff.mp (sub_bot_of_adjoin_dim_eq_one h)
 
 lemma adjoin_dim_eq_one_of_sub_bot (h : S ⊆ (⊥ : subalgebra F E)) : dim F (adjoin F S) = 1 :=
-begin
-  rw adjoin_eq_bot h,
-  exact subalgebra.dim_bot,
-end
+by { rw adjoin_eq_bot h, exact subalgebra.dim_bot }
 
 lemma adjoin_simple_dim_eq_one_of_in_bot (h : α ∈ ((⊥ : subalgebra F E) : set E)) : dim F F⟮α⟯ = 1 :=
 adjoin_dim_eq_one_of_sub_bot (set.singleton_subset_iff.mpr h)
@@ -233,7 +230,7 @@ by simp [subalgebra.ext_iff, algebra.mem_top, ← adjoin_simple_dim_eq_one_iff, 
 
 lemma bot_eq_top_of_findim_adjoin_eq_one (h : ∀ x : E, findim F F⟮x⟯ = 1) :
   (⊥ : subalgebra F E) = ⊤ :=
-by simp [subalgebra.ext_iff, algebra.mem_top, ←adjoin_simple_findim_eq_one_iff, h]
+by simp [subalgebra.ext_iff, algebra.mem_top, ← adjoin_simple_findim_eq_one_iff, h]
 
 lemma bot_eq_top_of_findim_adjoin_le_one [finite_dimensional F E]
   (h : ∀ x : E, findim F F⟮x⟯ ≤ 1) : (⊥ : subalgebra F E) = ⊤ :=

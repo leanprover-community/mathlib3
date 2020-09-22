@@ -205,10 +205,7 @@ lemma algebra_map_of_subring_apply {R : Type*} [comm_ring R] (S : subring R) (x 
 /-- Algebra over a set that is closed under the ring operations. -/
 instance of_is_subring {R A : Type*} [comm_ring R] [ring A] [algebra R A]
   (S : set R) [is_subring S] : algebra S A :=
-{ smul := λ s x, (s : R) • x,
-  commutes' := λ r x, algebra.commutes r x,
-  smul_def' := λ r x, algebra.smul_def r x,
-  .. (algebra_map R A).comp (⟨coe, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩ : S →+* R) }
+algebra.of_subring S.to_subring
 
 lemma is_subring_coe_algebra_map_hom {R : Type*} [comm_ring R] (S : set R) [is_subring S] :
   (algebra_map S R : S →+* R) = is_subring.subtype S := rfl
@@ -1205,16 +1202,7 @@ def subalgebra_of_subring (S : subring R) : subalgebra ℤ R :=
 
 /-- A subset closed under the ring operations is a `ℤ`-subalgebra. -/
 def subalgebra_of_is_subring (S : set R) [is_subring S] : subalgebra ℤ R :=
-{ carrier := S,
-  one_mem' := is_submonoid.one_mem,
-  mul_mem' := λ _ _, is_submonoid.mul_mem,
-  zero_mem' := is_add_submonoid.zero_mem,
-  add_mem' := λ _ _, is_add_submonoid.add_mem,
-  algebra_map_mem' := λ i, int.induction_on i (show (0 : R) ∈ S, from is_add_submonoid.zero_mem)
-    (λ i ih, show (i + 1 : R) ∈ S, from is_add_submonoid.add_mem ih is_submonoid.one_mem)
-    (λ i ih, show ((-i - 1 : ℤ) : R) ∈ S, by { rw [int.cast_sub, int.cast_one],
-      exact is_add_subgroup.sub_mem S _ _ ih is_submonoid.one_mem }) }
-
+subalgebra_of_subring S.to_subring
 
 section
 variables {S : Type*} [ring S]

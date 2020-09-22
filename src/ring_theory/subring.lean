@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors : Ashvni Narayanan
 -/
 
+import deprecated.subring
 import group_theory.subgroup
 import ring_theory.subsemiring
 
@@ -63,7 +64,6 @@ subring, subrings
 open_locale big_operators
 universes u v w
 
-open group
 variables {R : Type u} {S : Type v} {T : Type w} [ring R] [ring S] [ring T]
 
 set_option old_structure_cmd true
@@ -124,6 +124,15 @@ submonoid.ext' hm.symm
 add_subgroup.ext' ha.symm
 
 end subring
+
+/-- Construct a `subring` from a set satisfying `is_subring`. -/
+def set.to_subring (S : set R) [is_subring S] : subring R :=
+{ carrier := S,
+  one_mem' := is_submonoid.one_mem,
+  mul_mem' := λ a b, is_submonoid.mul_mem,
+  zero_mem' := is_add_submonoid.zero_mem,
+  add_mem' := λ a b, is_add_submonoid.add_mem,
+  neg_mem' := λ a, is_add_subgroup.neg_mem }
 
 protected lemma subring.exists {s : subring R} {p : s → Prop} :
   (∃ x : s, p x) ↔ ∃ x ∈ s, p ⟨x, ‹x ∈ s›⟩ :=

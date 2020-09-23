@@ -80,7 +80,7 @@ lemma polynomial.linear_of_splits_single_root {β : F} {h : polynomial F}
 begin
   apply polynomial.map_injective _ ϕ.injective,
   rw [polynomial.eq_prod_roots_of_splits h_splits, h_roots],
-  simp
+  simp,
 end
 
 lemma polynomial.linear_of_splits_separable_root {β : F} {h : polynomial F} (h_ne_zero : h ≠ 0)

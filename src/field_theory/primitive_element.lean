@@ -48,8 +48,7 @@ begin
 end
 
 /-- Primitive element theorem for finite dimensional extension of a finite field. -/
-theorem primitive_element_of_fintype_bot [fintype F] [finite_dimensional F E] :
-  ∃ α : E, F⟮α⟯ = ⊤ :=
+theorem primitive_element_of_fintype_bot [fintype F] [finite_dimensional F E] : ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
   haveI : fintype E := fintype_of_fintype F E,
   exact primitive_element_of_fintype_top F,
@@ -192,8 +191,7 @@ end
 end primitive_element_same_universe
 
 /-- Complete primitive element theorem. -/
-theorem primitive_element [finite_dimensional F E] (F_sep : is_separable F E) :
-  ∃ α : E, F⟮α⟯ = ⊤ :=
+theorem primitive_element [finite_dimensional F E] (F_sep : is_separable F E) : ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
   let F' := F⟮(0 : E)⟯,
   have F'_sep : is_separable F' E := is_separable_tower_top_of_is_separable_tower F F' E F_sep,

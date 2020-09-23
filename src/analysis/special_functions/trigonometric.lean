@@ -1847,7 +1847,7 @@ end
 lemma differentiable_at_arctan (x:ℝ) : differentiable_at ℝ arctan x :=
 (has_deriv_at_arctan x).differentiable_at
 
-@[simp] lemma deriv_arctan (x:ℝ) : deriv arctan x = 1 / (1 + x^2) :=
+lemma deriv_arctan (x:ℝ) : deriv arctan x = 1 / (1 + x^2) :=
 (has_deriv_at_arctan x).deriv
 
 end real

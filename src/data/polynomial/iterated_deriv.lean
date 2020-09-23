@@ -6,7 +6,8 @@ Authors: Jujian Zhang
 
 import data.polynomial.derivative
 import logic.function.iterate
-import tactic.ring tactic.linarith
+import tactic.ring
+import tactic.linarith
 
 /-!
 # Theory of iterated derivative
@@ -123,40 +124,20 @@ begin
   induction k with k ih,
   { simp only [add_zero, forall_const, one_mul, Ico.self_eq_empty, eq_self_iff_true,
       iterated_deriv_zero_right, prod_empty] },
-  { intro m, rw [iterated_deriv_succ, coeff_derivative, ih (m+1), mul_assoc],
-    conv_lhs { congr, skip, rw mul_comm }, rw ←mul_assoc,
+  { intro m, rw [iterated_deriv_succ, coeff_derivative, ih (m+1), mul_right_comm],
     apply congr_arg2,
     { have set_eq : (Ico m.succ (m + k.succ.succ)) = (Ico (m + 1).succ (m + 1 + k.succ)) ∪ {m+1},
-      { ext, split,
-        { intro h,
-          simp only [mem_union, Ico.mem, mem_singleton] at h ⊢,
-          rw succ_add m (succ k),
-          by_cases H : (a = m + 1),
-          { right, exact H },
-          { left, split,
-            { rw succ_le_iff, rw lt_iff_le_and_ne,
-              split,
-              { exact h.1 },
-              { symmetry, exact H }},
-            { exact h.2 }}},
-        { intro h,
-          simp only [mem_union, Ico.mem, mem_singleton] at h ⊢,
-          cases h,
-          { split,
-            { refine le_trans _ h.1,
-              apply succ_le_succ,
-              exact le_succ m },
-            { rw succ_add m (succ k) at h, exact h.2 }},
-          { rw h, split,
-            { refl },
-            { rw add_lt_add_iff_left, apply succ_lt_succ, exact succ_pos k } } } },
-      rw set_eq, rw prod_union,
+      { rw [union_comm, ←insert_eq, Ico.insert_succ_bot, add_succ, add_succ, add_succ _ k,
+            ←succ_eq_add_one, succ_add],
+        rw succ_eq_add_one,
+        linarith },
+      rw [set_eq, prod_union],
       apply congr_arg2,
       { refl },
       { simp only [prod_singleton], norm_cast },
       { simp only [succ_pos', disjoint_singleton, and_true, lt_add_iff_pos_right, not_le, Ico.mem],
         exact lt_add_one (m + 1) } },
-    { apply congr_arg, exact succ_add m k } }
+    { exact congr_arg _ (succ_add m k) } },
 end
 
 lemma coeff_iterated_deriv_as_prod_range :

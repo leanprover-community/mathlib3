@@ -1178,9 +1178,6 @@ apply_nolint multiplicity.finite doc_blame
 -- ring_theory/ring_invo.lean
 apply_nolint ring_invo.id doc_blame
 
--- ring_theory/unique_factorization_domain.lean
-apply_nolint unique_irreducible_factorization has_inhabited_instance
-
 -- set_theory/cofinality.lean
 apply_nolint strict_order.cof doc_blame
 

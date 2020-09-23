@@ -238,7 +238,7 @@ theorem primitive_element (F_sep : is_separable F E)  (F_findim : finite_dimensi
 begin
   let F' := F⟮(0 : E)⟯,
   have F'_sep : is_separable F' E := is_separable_tower_top_of_is_separable_tower F F' E F_sep,
-  have F'_findim : finite_dimensional F⟮(0 : E)⟯ E := finite_dimensional.right F F' E,
+  have F'_findim : finite_dimensional F' E := finite_dimensional.right F F' E,
   obtain ⟨α, hα⟩ := primitive_element_aux F' E F'_sep F'_findim,
   have : (F'⟮α⟯ : set E) = F⟮α⟯,
   { rw [adjoin_simple_comm, adjoin_zero, adjoin_eq_range_algebra_map_adjoin],

@@ -276,11 +276,3 @@ end
 
 instance rat.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℚ →+* R) :=
 ⟨ring_hom.ext_rat⟩
-
-lemma rat.forall {p : ℚ → Prop} : (∀ r, p r) ↔ ∀ a b : ℤ, 0 < b → p (a / b : ℚ) :=
-⟨λ _ _ _ _, by tidy, λ h r, begin
-  specialize h r.1 r.2 (by { norm_cast, exact r.pos }),
-  suffices :  (↑(r.num) / ↑↑(r.denom)) = r,
-  { rwa this at h },
-  { tidy }
-end⟩

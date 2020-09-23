@@ -1,5 +1,10 @@
-import topology.sheaves.sheaf
-import category_theory.limits.preserves.basic
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
+import category_theory.limits.limits
+import order.complete_lattice
 
 /-!
 # The category of "pairwise intersections".
@@ -9,7 +14,7 @@ with objects `single i` and `pair i j`, for `i j : ι`,
 whose only non-identity morphisms are
 `left : pair i j ⟶ single i` and `right : pair i j ⟶ single j`.
 
-We use this later in describing the sheaf condition.
+We use this later in describing (one formulation of) the sheaf condition.
 
 Given any function `U : ι → α`, where `α` is some complete lattice (e.g. `(opens X)ᵒᵖ`),
 we produce a functor `pairwise ι ⥤ α` in the obvious way,
@@ -20,9 +25,6 @@ noncomputable theory
 
 universes v u
 
-open topological_space
-open Top
-open opposite
 open category_theory
 open category_theory.limits
 

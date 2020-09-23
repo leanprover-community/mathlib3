@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import topology.sheaves.presheaf
-import category_theory.full_subcategory
 import category_theory.limits.cofinal
 import topology.sheaves.sheaf_condition.pairwise_intersections
 
@@ -51,8 +50,14 @@ namespace opens_le_cover
 
 variables {U}
 
+/--
+An arbitrarily chosen index such that `V ≤ U i`.
+-/
 def index (V : opens_le_cover U) : ι := V.property.some
 
+/--
+The morphism from `V` to `U i` for some `i`.
+-/
 def hom_to_index (V : opens_le_cover U) : V.val ⟶ U (index V) :=
 hom_of_le (V.property.some_spec)
 
@@ -63,7 +68,7 @@ end opens_le_cover
 
 (In fact this is a colimit cocone.)
 -/
-def opens_le_cover_cone : cocone (full_subcategory_inclusion _ : opens_le_cover U ⥤ opens X) :=
+def opens_le_cover_cocone : cocone (full_subcategory_inclusion _ : opens_le_cover U ⥤ opens X) :=
 { X := supr U,
   ι := { app := λ V : opens_le_cover U, V.hom_to_index ≫ opens.le_supr U _, } }
 
@@ -71,9 +76,18 @@ end sheaf_condition
 
 open sheaf_condition
 
+/--
+An equivalent formulation of the sheaf condition
+(which we prove equivalent to the usual one below as
+`sheaf_condition_equiv_sheaf_condition_opens_le_cover`).
+
+A presheaf is a sheaf if `F` sends the cone `(opens_le_cover_cocone U).op` to a limit cone.
+(Recall `opens_le_cover_cocone U`, has cone point `supr U`,
+mapping down to any `V` which is contained in some `U i`.)
+-/
 @[derive subsingleton]
 def sheaf_condition_opens_le_cover : Type (max u (v+1)) :=
-Π ⦃ι : Type v⦄ (U : ι → opens X), is_limit (F.map_cone (opens_le_cover_cone U).op)
+Π ⦃ι : Type v⦄ (U : ι → opens X), is_limit (F.map_cone (opens_le_cover_cocone U).op)
 
 -- It seems that proving this is equivalent to the usual sheaf condition should use cofinality.
 

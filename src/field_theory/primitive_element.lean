@@ -44,7 +44,7 @@ begin
     exact F⟮α.val⟯.zero_mem },
   { obtain ⟨n, hn⟩ := set.mem_range.mp (hα (units.mk0 x hx)),
     rw (show x = α^n, by { norm_cast, rw [hn, units.coe_mk0] }),
-    exact @is_subfield.pow_mem E _ α.val n F⟮α.val⟯ _ (field.mem_adjoin_simple_self F α.val) },
+    exact @is_subfield.pow_mem E _ α.val n F⟮α.val⟯ _ (mem_adjoin_simple_self F α.val) },
 end
 
 /-- Primitive element theorem for finite dimensional extension of a finite field. -/
@@ -90,16 +90,16 @@ begin
   let f := minimal_polynomial hα,
   let g := minimal_polynomial hβ,
   let ιFE := algebra_map F E,
-  let ιEE' := algebra_map E (polynomial.splitting_field (g.map ιFE)),
+  let ιEE' := algebra_map E (splitting_field (g.map ιFE)),
   let ιFE' := ιEE'.comp ιFE,
   obtain ⟨c, hc⟩ := primitive_element_two_inf_exists_c ιFE' (ιEE' α) (ιEE' β) f g,
   let γ := α + c • β,
   use γ,
-  apply (field.adjoin_subset_iff F {α, β}).mp,
+  apply (adjoin_subset_iff F {α, β}).mp,
   suffices β_in_Fγ : β ∈ F⟮γ⟯,
   { have α_in_Fγ : α ∈ F⟮γ⟯,
     { rw ← add_sub_cancel α (c • β),
-      exact F⟮γ⟯.sub_mem (field.mem_adjoin_simple_self F γ) (F⟮γ⟯.smul_mem β_in_Fγ c) },
+      exact F⟮γ⟯.sub_mem (mem_adjoin_simple_self F γ) (F⟮γ⟯.smul_mem β_in_Fγ c) },
     exact λ x hx, by cases hx; cases hx; cases hx; assumption },
   let p := euclidean_domain.gcd ((f.map (algebra_map F F⟮γ⟯)).comp
     (C (adjoin_simple.gen F γ) - (C ↑c * X))) (g.map (algebra_map F F⟮γ⟯)),

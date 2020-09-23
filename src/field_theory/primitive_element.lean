@@ -132,7 +132,7 @@ begin
     { rw [eval_map, ←aeval_def, minimal_polynomial.aeval] } },
   have h_splits : splits ιEE' h := splits_of_splits_gcd_right
     ιEE' (map_ne_zero g_ne_zero) (splitting_field.splits _),
-  apply eq_X_sub_C_of_separable_of_root_eq ιEE' h_ne_zero h_sep h_root h_splits,
+  apply eq_X_sub_C_of_separable_of_root_eq h_ne_zero h_sep h_root h_splits,
   intros x hx,
   rw mem_roots_map h_ne_zero at hx,
   specialize hc ((ιEE' γ) - (ιFE' c) * x) (begin

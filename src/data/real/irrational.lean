@@ -23,15 +23,10 @@ open rat real multiplicity
 def irrational (x : ℝ) := x ∉ set.range (coe : ℚ → ℝ)
 
 lemma irrational_iff_ne_rational (x : ℝ) : irrational x ↔ ∀ a b : ℤ, 0 < b → x ≠ a / b :=
-⟨λ h a b _ r, begin
-  refine h _,
-  rw set.mem_range, use a / b, tidy
-end,
-
-λ h r, begin
-  rw set.mem_range at r, rcases r with ⟨r, eq₁⟩,
-  refine (h r.1 r.2 (by {norm_num, exact r.pos})) _, tidy
-end⟩
+begin
+  simp only [irrational, «forall», cast_mk, not_exists, set.mem_range, cast_coe_int,
+    ne.def, cast_div], tidy
+end
 
 
 /-!

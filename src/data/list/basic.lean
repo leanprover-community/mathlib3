@@ -5,7 +5,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 -/
 import algebra.order_functions
 import control.monad.basic
-import data.nat.basic
+import data.nat.choose.basic
 import order.rel_classes
 
 /-!
@@ -1972,7 +1972,7 @@ theorem prod_erase [decidable_eq α] [comm_monoid α] {a} :
     { simp only [list.erase, if_neg (mt eq.symm ne), prod_cons, prod_erase h, mul_left_comm a b] }
   end
 
-lemma dvd_prod [comm_semiring α] {a} {l : list α} (ha : a ∈ l) : a ∣ l.prod :=
+lemma dvd_prod [comm_monoid α] {a} {l : list α} (ha : a ∈ l) : a ∣ l.prod :=
 let ⟨s, t, h⟩ := mem_split ha in
 by rw [h, prod_append, prod_cons, mul_left_comm]; exact dvd_mul_right _ _
 

@@ -121,6 +121,36 @@ lt_iff_lt_of_le_iff_le (le_div_iff hc)
 lemma div_lt_iff' (hc : 0 < c) : b / c < a ↔ b < c * a :=
 by rw [mul_comm, div_lt_iff hc]
 
+lemma inv_mul_le_iff (h : 0 < b) : b⁻¹ * a ≤ c ↔ a ≤ b * c :=
+begin
+  rw [inv_eq_one_div, mul_comm, ← div_eq_mul_one_div],
+  exact div_le_iff' h,
+end
+
+lemma inv_mul_le_iff' (h : 0 < b) : b⁻¹ * a ≤ c ↔ a ≤ c * b :=
+by rw [inv_mul_le_iff h, mul_comm]
+
+lemma mul_inv_le_iff (h : 0 < b) : a * b⁻¹ ≤ c ↔ a ≤ b * c :=
+by rw [mul_comm, inv_mul_le_iff h]
+
+lemma mul_inv_le_iff' (h : 0 < b) : a * b⁻¹ ≤ c ↔ a ≤ c * b :=
+by rw [mul_comm, inv_mul_le_iff' h]
+
+lemma inv_mul_lt_iff (h : 0 < b) : b⁻¹ * a < c ↔ a < b * c :=
+begin
+  rw [inv_eq_one_div, mul_comm, ← div_eq_mul_one_div],
+  exact div_lt_iff' h,
+end
+
+lemma inv_mul_lt_iff' (h : 0 < b) : b⁻¹ * a < c ↔ a < c * b :=
+by rw [inv_mul_lt_iff h, mul_comm]
+
+lemma mul_inv_lt_iff (h : 0 < b) : a * b⁻¹ < c ↔ a < b * c :=
+by rw [mul_comm, inv_mul_lt_iff h]
+
+lemma mul_inv_lt_iff' (h : 0 < b) : a * b⁻¹ < c ↔ a < c * b :=
+by rw [mul_comm, inv_mul_lt_iff' h]
+
 lemma div_le_iff_of_neg (hc : c < 0) : b / c ≤ a ↔ a * c ≤ b :=
 ⟨λ h, div_mul_cancel b (ne_of_lt hc) ▸ mul_le_mul_of_nonpos_right h hc.le,
   λ h, calc

@@ -32,7 +32,7 @@ variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E]
 /-! ### Primitive element theorem for finite fields -/
 
 /-- Primitive element theorem assuming E is finite. -/
-lemma primitive_element_fin_aux [fintype E] : ∃ α : E, F⟮α⟯ = ⊤ :=
+lemma primitive_element_of_fintype_top [fintype E] : ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
   obtain ⟨α, hα⟩ := is_cyclic.exists_generator (units E),
   use α,
@@ -47,21 +47,22 @@ begin
 end
 
 /-- Primitive element theorem for finite dimensional extension of a finite field. -/
-theorem primitive_element_fin [fintype F] [hfd : finite_dimensional F E] :
+theorem primitive_element_of_fintype_bot [fintype F] [finite_dimensional F E] :
   ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
   haveI : fintype E := fintype_of_fintype F E,
-  exact primitive_element_fin_aux F,
+  exact primitive_element_of_fintype_top F,
 end
 
 end primitive_element_finite
 
 section primitive_element_inf_lemmas
+open polynomial
 variables {F : Type*} [field F] {E : Type*} [field E] (ϕ : F →+* E)
 
 /-! ### Primitive element theorem for infinite fields -/
 
-lemma primitive_element_two_inf_exists_c (α β : E) (f g : polynomial F) [F_inf : infinite F] :
+lemma primitive_element_two_inf_exists_c (α β : E) (f g : polynomial F) [infinite F] :
   ∃ c : F, ∀ (α' ∈ (f.map ϕ).roots) (β' ∈ (g.map ϕ).roots), -(α' - α)/(β' - β) ≠ ϕ c :=
 begin
   let sf := (f.map ϕ).roots,
@@ -75,18 +76,18 @@ begin
 end
 
 lemma polynomial.linear_of_splits_single_root {β : F} {h : polynomial F}
-  (h_splits : polynomial.splits ϕ h) (h_roots : (h.map ϕ).roots = {ϕ β}) :
-  h = (polynomial.C (polynomial.leading_coeff h)) * (polynomial.X - polynomial.C β) :=
+  (h_splits : splits ϕ h) (h_roots : (h.map ϕ).roots = {ϕ β}) :
+  h = (C (leading_coeff h)) * (X - C β) :=
 begin
   apply polynomial.map_injective _ ϕ.injective,
-  rw [polynomial.eq_prod_roots_of_splits h_splits, h_roots],
+  rw [eq_prod_roots_of_splits h_splits, h_roots],
   simp,
 end
 
 lemma polynomial.linear_of_splits_separable_root {β : F} {h : polynomial F} (h_ne_zero : h ≠ 0)
-  (h_sep : h.separable) (h_root : h.eval β = 0) (h_splits : polynomial.splits ϕ h)
+  (h_sep : h.separable) (h_root : h.eval β = 0) (h_splits : splits ϕ h)
   (h_roots : ∀ x ∈ (h.map ϕ).roots, x = ϕ β) :
-  h = (polynomial.C (polynomial.leading_coeff h)) * (polynomial.X - polynomial.C β) :=
+  h = (C (leading_coeff h)) * (X - C β) :=
 begin
   apply polynomial.linear_of_splits_single_root ϕ h_splits,
   apply finset.mk.inj,
@@ -94,16 +95,17 @@ begin
     rw finset.eq_singleton_iff_unique_mem,
     split,
     { apply finset.mem_mk.mpr,
-      rw polynomial.mem_roots (show h.map ϕ ≠ 0, by exact polynomial.map_ne_zero h_ne_zero),
-      rw [polynomial.is_root.def,←polynomial.eval₂_eq_eval_map,polynomial.eval₂_hom,h_root],
+      rw mem_roots (show h.map ϕ ≠ 0, by exact map_ne_zero h_ne_zero),
+      rw [is_root.def,←eval₂_eq_eval_map,eval₂_hom,h_root],
       exact ring_hom.map_zero ϕ },
     { exact h_roots } },
-  { exact polynomial.nodup_roots (polynomial.separable.map h_sep) },
+  { exact nodup_roots (separable.map h_sep) },
 end
 
 end primitive_element_inf_lemmas
 
 section primitive_element_theorem
+open polynomial
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 
 -- This is the heart of the proof of the primitive element theorem. It shows that if `F` is
@@ -122,32 +124,32 @@ begin
   let ιFE' := ιEE'.comp(ιFE),
   obtain ⟨c, hc⟩ := primitive_element_two_inf_exists_c ιFE' (ιEE' α) (ιEE' β) f g,
   let γ := α+(ιFE c)*β,
-  let f' := (f.map ιFE).comp(polynomial.C γ-(polynomial.C (ιFE c))*(polynomial.X)),
+  let f' := (f.map ιFE).comp(C γ-(C (ιFE c))*(X)),
   let h := euclidean_domain.gcd f' g',
-  have h_sep : h.separable := polynomial.separable_gcd_right f' (polynomial.separable.map hg),
-  have g'_ne_zero : g' ≠ 0 := polynomial.map_monic_ne_zero (minimal_polynomial.monic hβ),
+  have h_sep : h.separable := separable_gcd_right f' (separable.map hg),
+  have g'_ne_zero : g' ≠ 0 := map_monic_ne_zero (minimal_polynomial.monic hβ),
   have h_ne_zero : h ≠ 0 := by simp [euclidean_domain.gcd_eq_zero_iff, g'_ne_zero],
   have h_root : h.eval β = 0,
-  { apply polynomial.eval_gcd_eq_zero,
-    { rw [polynomial.eval_comp,polynomial.eval_sub,polynomial.eval_mul,polynomial.eval_C,
-          polynomial.eval_C,polynomial.eval_X,add_sub_cancel,
-          polynomial.eval_map,←polynomial.aeval_def, minimal_polynomial.aeval] },
-    { rw [polynomial.eval_map,←polynomial.aeval_def, minimal_polynomial.aeval] } },
-  have h_splits : polynomial.splits (algebra_map E E') h := polynomial.splits_of_splits_gcd_right
-    (algebra_map E E') g'_ne_zero (polynomial.splitting_field.splits g'),
+  { apply eval_gcd_eq_zero,
+    { rw [eval_comp,eval_sub,eval_mul,eval_C,
+          eval_C,eval_X,add_sub_cancel,
+          eval_map,←aeval_def, minimal_polynomial.aeval] },
+    { rw [eval_map,←aeval_def, minimal_polynomial.aeval] } },
+  have h_splits : splits (algebra_map E E') h := splits_of_splits_gcd_right
+    (algebra_map E E') g'_ne_zero (splitting_field.splits g'),
   have h_roots : ∀ x ∈ (h.map ιEE').roots, x = algebra_map E E' β,
   { intros x hx,
-    rw polynomial.mem_roots_map h_ne_zero at hx,
+    rw mem_roots_map h_ne_zero at hx,
     specialize hc ((ιEE' γ) - (ιFE' c) * x) (begin
-      rw [polynomial.mem_roots_map (minimal_polynomial.ne_zero hα),←polynomial.eval₂_map],
-      have f_root : f'.eval₂ (algebra_map E E') x = 0 := polynomial.root_left_of_root_gcd hx,
-      rw [polynomial.eval₂_comp,polynomial.eval₂_sub,polynomial.eval₂_mul,polynomial.eval₂_C,
-          polynomial.eval₂_C,polynomial.eval₂_X] at f_root,
+      rw [mem_roots_map (minimal_polynomial.ne_zero hα),←eval₂_map],
+      have f_root : f'.eval₂ (algebra_map E E') x = 0 := root_left_of_root_gcd hx,
+      rw [eval₂_comp,eval₂_sub,eval₂_mul,eval₂_C,
+          eval₂_C,eval₂_X] at f_root,
       exact f_root,
     end),
     specialize hc x (begin
-      rw [polynomial.mem_roots_map (minimal_polynomial.ne_zero hβ),←polynomial.eval₂_map],
-      exact polynomial.root_right_of_root_gcd hx,
+      rw [mem_roots_map (minimal_polynomial.ne_zero hβ),←eval₂_map],
+      exact root_right_of_root_gcd hx,
     end),
     by_contradiction a,
     apply hc,
@@ -157,23 +159,22 @@ begin
     ring, },
   have composition : (algebra_map F⟮γ⟯ E).comp(algebra_map F F⟮γ⟯) = algebra_map F E := by ext; refl,
   have fswap : f' = ((f.map(algebra_map F F⟮γ⟯)).comp
-    (polynomial.C (field.adjoin_simple.gen F γ)-(polynomial.C ↑c)*(polynomial.X))).map _,
-  { rw [polynomial.map_comp,polynomial.map_map,composition,polynomial.map_sub,polynomial.map_mul,
-        polynomial.map_C,polynomial.map_C,polynomial.map_X],
+    (C (field.adjoin_simple.gen F γ)-(C ↑c)*(X))).map _,
+  { rw [map_comp,map_map,composition,map_sub,map_mul,
+        map_C,map_C,map_X],
     refl },
   have gswap : g' = (g.map(algebra_map F F⟮γ⟯)).map(algebra_map F⟮γ⟯ E) :=
-    by rw [polynomial.map_map,composition],
+    by rw [map_map,composition],
   let p := euclidean_domain.gcd (_ : polynomial F⟮γ⟯) (_ : polynomial F⟮γ⟯),
   have hswap : h = p.map(algebra_map F⟮γ⟯ E),
   { dsimp only [h,p],
     rw [fswap, gswap],
-    convert polynomial.gcd_map (algebra_map F⟮γ⟯ E) },
+    convert gcd_map (algebra_map F⟮γ⟯ E) },
   rw polynomial.linear_of_splits_separable_root ιEE' h_ne_zero h_sep h_root h_splits h_roots at hswap,
-  have leading_coeff_ne_zero : h.leading_coeff ≠ 0 :=
-    mt polynomial.leading_coeff_eq_zero.mp h_ne_zero,
+  have leading_coeff_ne_zero : h.leading_coeff ≠ 0 := mt leading_coeff_eq_zero.mp h_ne_zero,
   have finale : β = algebra_map F⟮γ⟯ E (-p.coeff 0 / p.coeff 1),
-  { rw [ring_hom.map_div, ring_hom.map_neg, ←polynomial.coeff_map, ←polynomial.coeff_map, ←hswap],
-    simp [mul_sub, polynomial.coeff_C, mul_comm _ β,  mul_div_cancel _ leading_coeff_ne_zero] },
+  { rw [ring_hom.map_div, ring_hom.map_neg, ←coeff_map, ←coeff_map, ←hswap],
+    simp [mul_sub, coeff_C, mul_comm _ β,  mul_div_cancel _ leading_coeff_ne_zero] },
   have β_in_Fγ : β ∈ F⟮γ⟯,
   { rw finale,
     exact subtype.mem (-p.coeff 0 / p.coeff 1) },
@@ -194,15 +195,14 @@ universe u
 
 /-- Primitive element theorem for infinite fields. -/
 theorem primitive_element_inf {F E : Type u} [field F] [field E] [algebra F E]
-  (F_sep : is_separable F E) (F_findim: finite_dimensional F E) (F_inf : infinite F)
-  (n : ℕ) (hn : findim F E = n) :
-  ∃ α : E, F⟮α⟯ = ⊤ :=
+  [finite_dimensional F E] (F_sep : is_separable F E) (F_inf : infinite F)
+  (n : ℕ) (hn : findim F E = n) : ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
   tactic.unfreeze_local_instances,
   revert F,
   apply nat.strong_induction_on n,
   clear n,
-  rintros n ih F hF hFE F_sep F_findim F_inf rfl,
+  rintros n ih F hF hFE F_findim F_sep F_inf rfl,
   by_cases key : ∃ α : E, findim F F⟮α⟯ > 1,
   { cases key with α hα,
     haveI Fα_findim : finite_dimensional F⟮α⟯ E := finite_dimensional.right F F⟮α⟯ E,
@@ -211,7 +211,7 @@ begin
       nlinarith [show 0 < findim F⟮α⟯ E, from findim_pos, show 0 < findim F F⟮α⟯, from findim_pos], },
     have Fα_inf : infinite F⟮α⟯ := infinite.of_injective _ (algebra_map F F⟮α⟯).injective,
     have Fα_sep : is_separable F⟮α⟯ E := is_separable_tower_top_of_is_separable_tower F F⟮α⟯ E F_sep,
-    obtain ⟨β, hβ⟩ := ih _ Fα_dim_lt_F_dim Fα_sep Fα_findim Fα_inf rfl,
+    obtain ⟨β, hβ⟩ := ih _ Fα_dim_lt_F_dim Fα_sep Fα_inf rfl,
     obtain ⟨γ, hγ⟩ := primitive_element_two_inf α β F_sep F_inf,
     simp only [←adjoin_simple_adjoin_simple, subalgebra.ext_iff, algebra.mem_top, iff_true, *] at *,
     exact ⟨γ, λ x, hγ algebra.mem_top⟩, },
@@ -222,12 +222,11 @@ end
 
 /-- Primitive element theorem in same universe. -/
 theorem primitive_element_aux (F E : Type u) [field F] [field E] [algebra F E]
-  (F_sep : is_separable F E)  (F_findim : finite_dimensional F E) :
-  ∃ α : E, F⟮α⟯ = ⊤ :=
+  [finite_dimensional F E] (F_sep : is_separable F E) : ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
   by_cases F_finite : nonempty (fintype F),
-  { exact nonempty.elim F_finite (λ h : fintype F, @primitive_element_fin F _ E _ _ h F_findim), },
-  { exact primitive_element_inf F_sep F_findim (not_nonempty_fintype.mp F_finite) (findim F E) rfl, },
+  { exact nonempty.elim F_finite (λ h : fintype F, @primitive_element_of_fintype_bot F _ E _ _ h _), },
+  { exact primitive_element_inf F_sep (not_nonempty_fintype.mp F_finite) (findim F E) rfl, },
 end
 
 end primitive_element_same_universe
@@ -238,8 +237,8 @@ theorem primitive_element (F_sep : is_separable F E)  (F_findim : finite_dimensi
 begin
   let F' := F⟮(0 : E)⟯,
   have F'_sep : is_separable F' E := is_separable_tower_top_of_is_separable_tower F F' E F_sep,
-  have F'_findim : finite_dimensional F' E := finite_dimensional.right F F' E,
-  obtain ⟨α, hα⟩ := primitive_element_aux F' E F'_sep F'_findim,
+  haveI : finite_dimensional F' E := finite_dimensional.right F F' E,
+  obtain ⟨α, hα⟩ := primitive_element_aux F' E F'_sep,
   have : (F'⟮α⟯ : set E) = F⟮α⟯,
   { rw [adjoin_simple_comm, adjoin_zero, adjoin_eq_range_algebra_map_adjoin],
     simp [set.ext_iff, algebra.mem_bot], },

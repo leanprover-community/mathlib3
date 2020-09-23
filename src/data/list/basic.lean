@@ -2996,6 +2996,22 @@ lemma tails_append : ∀ (s t : list α), tails (s ++ t) = s.tails.map (λ l, l 
 | [] (a::t) := by simp
 | (a::s) t := by simp [tails_append s t]
 
+lemma reverse_map_reverse_tails_reverse :
+  ∀ (l : list α), reverse (map reverse $ tails $ reverse l) = l.inits
+| [] := by simp
+| (a :: l) := by simp [← reverse_map_reverse_tails_reverse l, map_eq_map_iff]
+
+lemma reverse_map_reverse_inits_reverse :
+  ∀ (l : list α), reverse (map reverse $ inits $ reverse l) = l.tails
+| [] := by simp
+| (a :: l) := by simp [← reverse_map_reverse_inits_reverse l, append_left_inj]
+
+lemma inits_reverse (l : list α) : inits (reverse l) = map reverse (reverse l.tails) :=
+by { rw ← reverse_map_reverse_inits_reverse l, simp [reverse_involutive.comp_self], }
+
+lemma tails_reverse (l : list α) : tails (reverse l) = map reverse (reverse l.inits) :=
+by { rw ← reverse_map_reverse_tails_reverse l, simp [reverse_involutive.comp_self], }
+
 instance decidable_infix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <:+: l₂)
 | []      l₂ := is_true ⟨[], l₂, rfl⟩
 | (a::l₁) [] := is_false $ λ⟨s, t, te⟩, absurd te $ append_ne_nil_of_ne_nil_left _ _ $

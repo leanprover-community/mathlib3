@@ -23,11 +23,8 @@ open rat real multiplicity
 def irrational (x : ℝ) := x ∉ set.range (coe : ℚ → ℝ)
 
 lemma irrational_iff_ne_rational (x : ℝ) : irrational x ↔ ∀ a b : ℤ, x ≠ a / b :=
-begin
-  simp only [irrational, «forall», cast_mk, not_exists, set.mem_range, cast_coe_int,
-    ne.def, cast_div],
-  tauto,
-end
+by simp only [irrational, rat.forall, cast_mk, not_exists, set.mem_range, cast_coe_int, cast_div,
+  eq_comm]
 
 /-!
 ### Irrationality of roots of integer and rational numbers

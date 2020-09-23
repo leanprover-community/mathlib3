@@ -596,6 +596,21 @@ L.integral_comp_comm φ.integrable
 
 end continuous_linear_map
 
+variables [measurable_space E] [borel_space E] [second_countable_topology E] [complete_space E]
+  [measurable_space F] [borel_space F] [second_countable_topology F] [complete_space F]
+
+lemma fst_integral {f : α → E × F} (hf : integrable f μ) :
+  (∫ x, f x ∂μ).1 = ∫ x, (f x).1 ∂μ :=
+((continuous_linear_map.fst ℝ E F).integral_comp_comm hf).symm
+
+lemma snd_integral {f : α → E × F} (hf : integrable f μ) :
+  (∫ x, f x ∂μ).2 = ∫ x, (f x).2 ∂μ :=
+((continuous_linear_map.snd ℝ E F).integral_comp_comm hf).symm
+
+lemma integral_pair {f : α → E} {g : α → F} (hf : integrable f μ) (hg : integrable g μ) :
+  ∫ x, (f x, g x) ∂μ = (∫ x, f x ∂μ, ∫ x, g x ∂μ) :=
+have _ := hf.prod_mk hg, prod.ext (fst_integral this) (snd_integral this)
+
 end
 
 /-

@@ -667,7 +667,6 @@ begin
 end
 
 lemma «forall» {p : ℚ → Prop} : (∀ r, p r) ↔ ∀ a b : ℤ, p (a / b : ℚ) :=
-⟨λ h _ _, h _, λ h q, (show (q.num / q.denom : ℚ) = q, by simp [rat.div_num_denom]) ▸ (h q.1 q.2)⟩
-
+⟨λ h _ _, h _, λ h q, (show q = q.num / q.denom, from by simp [rat.div_num_denom]).symm ▸ (h q.1 q.2)⟩
 
 end rat

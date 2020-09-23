@@ -1638,6 +1638,10 @@ theorem card_image_of_injective [decidable_eq β] {f : α → β} (s : finset α
   (H : function.injective f) : card (image f s) = card s :=
 card_image_of_inj_on $ λ x _ y _ h, H h
 
+lemma preimage_card_ne_zero_iff_mem_image {s : finset α} {t : finset β} (f : α → β) [decidable_eq β]
+  (hf : ∀ a ∈ s, f a ∈ t) (y : β) : (s.filter (λ x, f x = y)).card ≠ 0 ↔ y ∈ s.image f :=
+by { rw [←zero_lt_iff_ne_zero, card_pos, ←mem_image_iff_preimage_nonempty f s y] }
+
 @[simp] lemma card_map {α β} (f : α ↪ β) {s : finset α} : (s.map f).card = s.card :=
 multiset.card_map _ _
 
@@ -1692,7 +1696,8 @@ begin
 end
 
 /--
-The pigeonhole principle for finitely many pigeons in finitely many holes.
+If there are more pigeons than pigeonholes, then there are two pigeons
+in the same pigeonhole.
 -/
 lemma pigeonhole {s : finset α} {t : finset β} (hc : t.card < s.card)
   (f : α → β) (hf : ∀ a ∈ s, f a ∈ t) :

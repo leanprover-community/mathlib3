@@ -439,14 +439,12 @@ finset.card_le_card_of_inj_on f (λ _ _, finset.mem_univ _) (λ _ _ _ _ h, hf h)
 
 /--
 The pigeonhole principle for finitely many pigeons and pigeonholes.
+This is the `fintype` version of `finset.pigeonhole`.
 -/
 lemma fintype.pigeonhole [fintype α] [fintype β] (f : α → β) (h : fintype.card β < fintype.card α) :
   ∃ x y, x ≠ y ∧ f x = f y :=
-begin
-  classical, by_contra hf, push_neg at hf,
-  refine nat.lt_le_antisymm h (fintype.card_le_of_injective f _),
-  intros x y, contrapose, apply hf,
-end
+by { obtain ⟨x, _, y, _, h⟩ := @finset.pigeonhole α β univ univ h f (by simp),
+     exact ⟨x, y, h⟩ }
 
 lemma fintype.card_eq_one_iff [fintype α] : fintype.card α = 1 ↔ (∃ x : α, ∀ y, y = x) :=
 by rw [← fintype.card_unit, fintype.card_eq]; exact
@@ -1073,7 +1071,10 @@ have H : fintype α := fintype.of_injective f hf,
 infinite.not_fintype H
 
 /--
-The pigeonhole principle for infinitely many pigeons in finitely many pigeonholes.
+If there are infinitely many pigeons in finitely many pigeonholes,
+then there are at least two pigeons in the same pigeonhole.
+
+See also: `fintype.pigeonhole`, `fintype.strong_infinite_pigeonhole`
 -/
 lemma fintype.infinite_pigeonhole [infinite α] [fintype β] (f : α → β) :
   ∃ x y : α, x ≠ y ∧ f x = f y :=
@@ -1084,7 +1085,10 @@ begin
 end
 
 /--
-The strong pigeonhole principle for infinitely many pigeons in finitely many pigeonholes.
+If there are infinitely many pigeons in finitely many pigeonholes,
+then there is a pigeonhole with infinitely many pigeons.
+
+See also: `fintype.infinite_pigeonhole`
 -/
 lemma fintype.strong_infinite_pigeonhole [infinite α] [fintype β] (f : α → β) :
   ∃ y : β, infinite (f ⁻¹' {y}) :=

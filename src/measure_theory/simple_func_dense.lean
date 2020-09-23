@@ -157,34 +157,37 @@ calc edist y₀ (approx_on f hf s y₀ h₀ n x) ≤
   edist y₀ (f x) + edist (approx_on f hf s y₀ h₀ n x) (f x) : edist_triangle_right _ _ _
 ... ≤ edist y₀ (f x) + edist y₀ (f x) : add_le_add_left (edist_approx_on_le hf h₀ x n) _
 
--- Actually, we can avoid `second_countable_topology E` if needed
 lemma tendsto_approx_on_l1_edist [measurable_space E] [normed_group E] [opens_measurable_space E]
-  [second_countable_topology E] {f : β → E} (hf : measurable f) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s)
-  {μ : measure β} (hμ : ∀ᵐ x ∂μ, f x ∈ closure s) (hi : integrable (λ x, f x - y₀) μ) :
+ {f : β → E} (hf : measurable f) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s]
+  {μ : measure β} (hμ : ∀ᵐ x ∂μ, f x ∈ closure s) (hi : has_finite_integral (λ x, f x - y₀) μ) :
   tendsto (λ n, ∫⁻ x, edist (approx_on f hf s y₀ h₀ n x) (f x) ∂μ) at_top (𝓝 0) :=
 begin
-  simp only [integrable, ← nndist_eq_nnnorm, ← edist_nndist, ← edist_comm y₀] at hi,
-  convert tendsto_lintegral_of_dominated_convergence _
-    (λ n, (approx_on f hf s y₀ h₀ n).measurable.edist hf)
-    (λ n, eventually_of_forall $ λ x, edist_approx_on_le hf h₀ x n) hi
-    (hμ.mono $ λ x hx, _),
+  simp only [has_finite_integral, ← nndist_eq_nnnorm, ← edist_nndist, ← edist_comm y₀] at hi,
+  have : ∀ n, measurable (λ x, edist (approx_on f hf s y₀ h₀ n x) (f x)) :=
+    λ n, (approx_on f hf s y₀ h₀ n).measurable_bind (λ y x, edist y (f x))
+      (λ y, measurable_edist_right.comp hf),
+  convert tendsto_lintegral_of_dominated_convergence _ this
+    (λ n, eventually_of_forall $ λ x, edist_approx_on_le hf h₀ x n) hi (hμ.mono $ λ x hx, _),
   show tendsto (λ n, edist _ (f x)) at_top (𝓝 $ edist (f x) (f x)),
     from (tendsto_approx_on hf h₀ hx).edist tendsto_const_nhds,
   simp
 end
 
 lemma integrable_approx_on [measurable_space E] [normed_group E] [borel_space E]
-  {f : β → E} (hf : measurable f) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s]
-  {μ : measure β} (hi : integrable (λ x, f x - y₀) μ) (hi₀ : integrable (λ x, y₀) μ) (n : ℕ) :
-  integrable (approx_on f hf s y₀ h₀ n) μ :=
+  {f : β → E} {μ : measure β} (hf : integrable f μ) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s)
+  [separable_space s] (hi₀ : integrable (λ x, y₀) μ) (n : ℕ) :
+  integrable (approx_on f hf.1 s y₀ h₀ n) μ :=
 begin
-  suffices : integrable (λ x, approx_on f hf s y₀ h₀ n x - y₀) μ,
-  { simpa using this.add (approx_on f hf s y₀ h₀ n - const _ y₀).measurable measurable_const hi₀ },
-  simp only [integrable, ← nndist_eq_nnnorm, ← edist_nndist, edist_comm _ y₀] at hi ⊢,
-  have : measurable (λ x, edist y₀ (f x)) :=
-    (continuous_const.edist continuous_id).measurable.comp hf,
-  calc ∫⁻ x, edist y₀ (approx_on f hf s y₀ h₀ n x) ∂μ ≤ ∫⁻ x, edist y₀ (f x) + edist y₀ (f x) ∂μ :
-    measure_theory.lintegral_mono (λ x, edist_approx_on_y0_le hf h₀ x n)
+  refine ⟨(approx_on f hf.1 s y₀ h₀ n).measurable, _⟩,
+  suffices : integrable (λ x, approx_on f hf.1 s y₀ h₀ n x - y₀) μ,
+  { convert this.add' hi₀, ext1 x, simp },
+  refine ⟨(approx_on f hf.1 s y₀ h₀ n - const β y₀).measurable, _⟩,
+  have hi := hf.sub' hi₀,
+  simp only [has_finite_integral, ← nndist_eq_nnnorm, ← edist_nndist, edist_comm _ y₀,
+    pi.sub_apply] at hi ⊢,
+  have : measurable (λ x, edist y₀ (f x)) := measurable_edist_right.comp hf.1,
+  calc ∫⁻ x, edist y₀ (approx_on f hf.1 s y₀ h₀ n x) ∂μ ≤ ∫⁻ x, edist y₀ (f x) + edist y₀ (f x) ∂μ :
+    measure_theory.lintegral_mono (λ x, edist_approx_on_y0_le hf.1 h₀ x n)
   ... = ∫⁻ x, edist y₀ (f x) ∂μ + ∫⁻ x, edist y₀ (f x) ∂μ :
     measure_theory.lintegral_add this this
   ... < ⊤ :
@@ -193,40 +196,21 @@ end
 
 lemma tendsto_approx_on_univ_l1_edist [measurable_space E] [normed_group E]
   [opens_measurable_space E] [second_countable_topology E]
-  {f : β → E} (hf : measurable f) {μ : measure β} (hi : integrable f μ) :
-  tendsto (λ n, ∫⁻ x, edist (approx_on f hf univ 0 trivial n x) (f x) ∂μ) at_top (𝓝 0) :=
-tendsto_approx_on_l1_edist hf trivial (by simp) (by simpa)
+  {f : β → E} {μ : measure β} (hf : integrable f μ) :
+  tendsto (λ n, ∫⁻ x, edist (approx_on f hf.1 univ 0 trivial n x) (f x) ∂μ) at_top (𝓝 0) :=
+tendsto_approx_on_l1_edist hf.1 trivial (by simp) (by simpa using hf.2)
 
-lemma integrable_approx_on_univ [measurable_space E] [normed_group E] [borel_space E] [second_countable_topology E]
-  {f : β → E} (hf : measurable f)
-  {μ : measure β} (hi : integrable f μ) (n : ℕ) :
-  integrable (approx_on f hf univ 0 trivial n) μ :=
-integrable_approx_on hf _ (by simpa) (by simp) n
+lemma integrable_approx_on_univ [measurable_space E] [normed_group E] [borel_space E]
+  [second_countable_topology E] {f : β → E} {μ : measure β} (hf : integrable f μ) (n : ℕ) :
+  integrable (approx_on f hf.1 univ 0 trivial n) μ :=
+integrable_approx_on hf _ (integrable_zero _ _ _) n
 
 lemma tendsto_approx_on_univ_l1 [measurable_space E] [normed_group E] [borel_space E]
-  [second_countable_topology E] {f : β → E} (hf : measurable f)
-  {μ : measure β} (hi : integrable f μ) :
-  tendsto (λ n, l1.of_fun (approx_on f hf univ 0 trivial n)
-    (approx_on f hf univ 0 trivial n).measurable (integrable_approx_on_univ hf hi n)) at_top
-    (𝓝 $ l1.of_fun f hf hi) :=
-tendsto_iff_edist_tendsto_0.2 $ tendsto_approx_on_univ_l1_edist hf hi
+  [second_countable_topology E] {f : β → E} {μ : measure β} (hf : integrable f μ) :
+  tendsto (λ n, l1.of_fun (approx_on f hf.1 univ 0 trivial n) (integrable_approx_on_univ hf n))
+    at_top (𝓝 $ l1.of_fun f hf) :=
+tendsto_iff_edist_tendsto_0.2 $ tendsto_approx_on_univ_l1_edist hf
 
 end simple_func
-
-open simple_func
-
-variables [measurable_space α] [emetric_space β] [measurable_space β] [opens_measurable_space β]
-  [normed_group E] [measurable_space E] [second_countable_topology E]
-
-lemma simple_func_sequence_tendsto [opens_measurable_space E] {f : α → E} (hf : measurable f) :
-  ∃ (F : ℕ → (α →ₛ E)), ∀ x : α, tendsto (λ n, F n x) at_top (𝓝 (f x)) :=
-⟨approx_on f hf univ 0 trivial, λ x, tendsto_approx_on hf _ (by simp)⟩
-
-lemma simple_func_sequence_tendsto' [borel_space E] {μ : measure α} {f : α → E}
-  (hfm : measurable f) (hfi : integrable f μ) :
-    ∃ (F : ℕ → (α →ₛ E)), (∀n, integrable (F n) μ) ∧
-   tendsto (λ n, ∫⁻ x,  nndist (F n x) (f x) ∂μ) at_top (𝓝 0) :=
-⟨approx_on f hfm univ 0 trivial, integrable_approx_on_univ _ hfi,
-  by { simp only [← edist_nndist], exact tendsto_approx_on_univ_l1_edist _ hfi }⟩
 
 end measure_theory

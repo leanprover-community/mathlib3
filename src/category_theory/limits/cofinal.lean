@@ -46,7 +46,7 @@ variables {C : Type v} [small_category C]
 variables {D : Type v} [small_category D]
 
 /--
-A functor `F : C ⥤ D` is cofinal if for every `d : D`, the comma category of morphisms `F.obj c ⟶ d`
+A functor `F : C ⥤ D` is cofinal if for every `d : D`, the comma category of morphisms `d ⟶ F.obj c`
 is connected.
 
 See https://stacks.math.columbia.edu/tag/04E6

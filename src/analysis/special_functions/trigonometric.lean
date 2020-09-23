@@ -1835,7 +1835,7 @@ lemma tan_homeomorph_inv_fun_eq_arctan : coe ∘ tan_homeomorph.inv_fun = arctan
 lemma continuous_arctan : continuous arctan :=
 continuous_subtype_coe.comp tan_homeomorph.continuous_inv_fun
 
-lemma has_deriv_at_arctan (x:ℝ) : has_deriv_at arctan (1 / (1 + x^2)) x :=
+lemma has_deriv_at_arctan (x : ℝ) : has_deriv_at arctan (1 / (1 + x^2)) x :=
 begin
   have h1 : 0 < 1 + x^2 := by nlinarith,
   have h2 : cos (arctan x) ≠ 0 := by { rw cos_arctan, exact ne_of_gt (one_div_pos.mpr (sqrt_pos.mpr h1)) },
@@ -1844,7 +1844,7 @@ begin
       (one_div_ne_zero (pow_ne_zero 2 h2)) (by {apply eventually_of_forall, exact tan_arctan} ),
 end
 
-lemma differentiable_at_arctan (x:ℝ) : differentiable_at ℝ arctan x :=
+lemma differentiable_at_arctan (x : ℝ) : differentiable_at ℝ arctan x :=
 (has_deriv_at_arctan x).differentiable_at
 
 @[simp] lemma deriv_arctan : deriv arctan = (λ x, 1 / (1 + x^2)) :=

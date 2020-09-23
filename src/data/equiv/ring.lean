@@ -199,6 +199,25 @@ equiv.symm_apply_apply (e.to_equiv)
 lemma to_ring_hom_trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') :
   (e₁.trans e₂).to_ring_hom = e₂.to_ring_hom.comp e₁.to_ring_hom := rfl
 
+/--
+Construct an equivalence of rings from homomorphisms in both directions, which are inverses.
+-/
+def of_hom_inv (hom : R →+* S) (inv : S →+* R)
+  (hom_inv_id : inv.comp hom = ring_hom.id R) (inv_hom_id : hom.comp inv = ring_hom.id S) :
+  R ≃+* S :=
+{ inv_fun := inv,
+  left_inv := λ x, ring_hom.congr_fun hom_inv_id x,
+  right_inv := λ x, ring_hom.congr_fun inv_hom_id x,
+  ..hom }
+
+@[simp]
+lemma of_hom_inv_apply (hom : R →+* S) (inv : S →+* R) (hom_inv_id inv_hom_id) (r : R) :
+  (of_hom_inv hom inv hom_inv_id inv_hom_id) r = hom r := rfl
+
+@[simp]
+lemma of_hom_inv_symm_apply (hom : R →+* S) (inv : S →+* R) (hom_inv_id inv_hom_id) (s : S) :
+  (of_hom_inv hom inv hom_inv_id inv_hom_id).symm s = inv s := rfl
+
 end semiring_hom
 
 end ring_equiv
@@ -287,7 +306,7 @@ namespace equiv
 variables (K : Type*) [division_ring K]
 
 def units_equiv_ne_zero : units K ≃ {a : K | a ≠ 0} :=
-⟨λ a, ⟨a.1, a.coe_ne_zero⟩, λ a, units.mk0 _ a.2, λ ⟨_, _, _, _⟩, units.ext rfl, λ ⟨_, _⟩, rfl⟩
+⟨λ a, ⟨a.1, a.ne_zero⟩, λ a, units.mk0 _ a.2, λ ⟨_, _, _, _⟩, units.ext rfl, λ ⟨_, _⟩, rfl⟩
 
 variable {K}
 

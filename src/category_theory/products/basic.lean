@@ -14,6 +14,8 @@ variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D
 
 /--
 `prod C D` gives the cartesian product of two categories.
+
+See https://stacks.math.columbia.edu/tag/001K.
 -/
 instance prod : category.{max v₁ v₂} (C × D) :=
 { hom     := λ X Y, ((X.1) ⟶ (Y.1)) × ((X.2) ⟶ (Y.2)),
@@ -46,9 +48,6 @@ end
 namespace prod
 
 /-- `sectl C Z` is the functor `C ⥤ C × D` given by `X ↦ (X, Z)`. -/
--- Here and below we specify explicitly the projections to generate `@[simp]` lemmas for,
--- as the default behaviour of `@[simps]` will generate projections all the way down to components
--- of pairs.
 @[simps] def sectl
   (C : Type u₁) [category.{v₁} C] {D : Type u₂} [category.{v₂} D] (Z : D) : C ⥤ C × D :=
 { obj := λ X, (X, Z),
@@ -72,14 +71,23 @@ variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D
 { obj := λ X, X.2,
   map := λ X Y f, f.2 }
 
+/-- The functor swapping the factors of a cartesian product of categories, `C × D ⥤ D × C`. -/
 @[simps] def swap : C × D ⥤ D × C :=
 { obj := λ X, (X.2, X.1),
   map := λ _ _ f, (f.2, f.1) }
 
+/--
+Swapping the factors of a cartesion product of categories twice is naturally isomorphic
+to the identity functor.
+-/
 @[simps] def symmetry : swap C D ⋙ swap D C ≅ 𝟭 (C × D) :=
 { hom := { app := λ X, 𝟙 X },
   inv := { app := λ X, 𝟙 X } }
 
+/--
+The equivalence, given by swapping factors, between `C × D` and `D × C`.
+-/
+@[simps {rhs_md:=semireducible}]
 def braiding : C × D ≌ D × C :=
 equivalence.mk (swap C D) (swap D C)
   (nat_iso.of_components (λ X, eq_to_iso (by simp)) (by tidy))

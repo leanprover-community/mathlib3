@@ -31,7 +31,7 @@ uniform_space.of_core {
   refl       := le_infi $ assume ε, le_infi $
     by simp [set.subset_def, id_rel, dist_self, (>)] {contextual := tt},
   comp       := le_infi $ assume ε, le_infi $ assume h, lift'_le
-    (mem_infi_sets (ε / 2) $ mem_infi_sets (div_pos_of_pos_of_pos h two_pos) (subset.refl _)) $
+    (mem_infi_sets (ε / 2) $ mem_infi_sets (div_pos h two_pos) (subset.refl _)) $
     have ∀ (a b c : α), dist a c < ε / 2 → dist c b < ε / 2 → dist a b < ε,
       from assume a b c hac hcb,
       calc dist a b ≤ dist a c + dist c b : dist_triangle _ _ _
@@ -46,9 +46,6 @@ uniform_space.of_core {
 class has_dist (α : Type*) := (dist : α → α → ℝ)
 
 export has_dist (dist)
-
-section prio
-set_option default_priority 100 -- see Note [default priority]
 
 -- the uniform structure and the emetric space structure are embedded in the metric space structure
 -- to avoid instance diamond issues. See Note [forgetful inheritance].
@@ -70,7 +67,6 @@ class metric_space (α : Type u) extends has_dist α : Type u :=
 (edist_dist : ∀ x y : α, edist x y = ennreal.of_real (dist x y) . control_laws_tac)
 (to_uniform_space : uniform_space α := uniform_space_of_dist dist dist_self dist_comm dist_triangle)
 (uniformity_dist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
-end prio
 
 variables [metric_space α]
 
@@ -177,7 +173,6 @@ by simpa only [not_le] using not_congr dist_le_zero
 @[simp] theorem abs_dist {a b : α} : abs (dist a b) = dist a b :=
 abs_of_nonneg dist_nonneg
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem eq_of_forall_dist_le {x y : α} (h : ∀ ε > 0, dist x y ≤ ε) : x = y :=
 eq_of_dist_eq_zero (eq_of_le_of_forall_le_of_dense dist_nonneg h)
 
@@ -326,7 +321,6 @@ lt_of_le_of_lt (dist_triangle z x y) (add_lt_add_of_lt_of_le zx h)
 theorem ball_half_subset (y) (h : y ∈ ball x (ε / 2)) : ball y (ε / 2) ⊆ ball x ε :=
 ball_subset $ by rw sub_self_div_two; exact le_of_lt h
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem exists_ball_subset_ball (h : y ∈ ball x ε) : ∃ ε' > 0, ball y ε' ⊆ ball x ε :=
 ⟨_, sub_pos.2 h, ball_subset $ by rw sub_sub_self⟩
 
@@ -408,7 +402,6 @@ theorem uniformity_basis_dist_le :
   (𝓤 α).has_basis (λ ε : ℝ, 0 < ε) (λ ε, {p:α×α | dist p.1 p.2 ≤ ε}) :=
 metric.mk_uniformity_basis_le (λ _, id) (λ ε ε₀, ⟨ε, ε₀, le_refl ε⟩)
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem mem_uniformity_dist {s : set (α×α)} :
   s ∈ 𝓤 α ↔ (∃ε>0, ∀{a b:α}, dist a b < ε → (a, b) ∈ s) :=
 uniformity_basis_dist.mem_uniformity_iff
@@ -418,13 +411,11 @@ theorem dist_mem_uniformity {ε:ℝ} (ε0 : 0 < ε) :
   {p:α×α | dist p.1 p.2 < ε} ∈ 𝓤 α :=
 mem_uniformity_dist.2 ⟨ε, ε0, λ a b, id⟩
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem uniform_continuous_iff [metric_space β] {f : α → β} :
   uniform_continuous f ↔ ∀ ε > 0, ∃ δ > 0,
     ∀{a b:α}, dist a b < δ → dist (f a) (f b) < ε :=
 uniformity_basis_dist.uniform_continuous_iff uniformity_basis_dist
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma uniform_continuous_on_iff [metric_space β] {f : α → β} {s : set α} :
   uniform_continuous_on f s ↔ ∀ ε > 0, ∃ δ > 0, ∀ x y ∈ s, dist x y < δ → dist (f x) (f y) < ε :=
 begin
@@ -434,7 +425,6 @@ begin
   finish,
 end
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem uniform_embedding_iff [metric_space β] {f : α → β} :
   uniform_embedding f ↔ function.injective f ∧ uniform_continuous f ∧
     ∀ δ > 0, ∃ ε > 0, ∀ {a b : α}, dist (f a) (f b) < ε → dist a b < δ :=
@@ -447,7 +437,6 @@ uniform_embedding_def'.trans $ and_congr iff.rfl $ and_congr iff.rfl
 
 /-- A map between metric spaces is a uniform embedding if and only if the distance between `f x`
 and `f y` is controlled in terms of the distance between `x` and `y` and conversely. -/
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem uniform_embedding_iff' [metric_space β] {f : α → β} :
   uniform_embedding f ↔
   (∀ ε > 0, ∃ δ > 0, ∀ {a b : α}, dist a b < δ → dist (f a) (f b) < ε) ∧
@@ -468,7 +457,6 @@ begin
     simpa using this }
 end
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem totally_bounded_iff {s : set α} :
   totally_bounded s ↔ ∀ ε > 0, ∃t : set α, finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
 ⟨λ H ε ε0, H _ (dist_mem_uniformity ε0),
@@ -478,7 +466,6 @@ theorem totally_bounded_iff {s : set α} :
 
 /-- A metric space space is totally bounded if one can reconstruct up to any ε>0 any element of the
 space from finitely many data. -/
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma totally_bounded_of_finite_discretization {s : set α}
   (H : ∀ε > (0 : ℝ), ∃ (β : Type u) [fintype β] (F : s → β),
     ∀x y, F x = F y → dist (x:α) y < ε) :
@@ -499,7 +486,6 @@ begin
   exact ⟨_, ⟨F ⟨x, xs⟩, rfl⟩, hF _ _ this.symm⟩
 end
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem finite_approx_of_totally_bounded {s : set α} (hs : totally_bounded s) :
   ∀ ε > 0, ∃ t ⊆ s, finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
 begin
@@ -509,7 +495,6 @@ begin
 end
 
 /-- Expressing locally uniform convergence on a set using `dist`. -/
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma tendsto_locally_uniformly_on_iff {ι : Type*} [topological_space β]
   {F : ι → β → α} {f : β → α} {p : filter ι} {s : set β} :
   tendsto_locally_uniformly_on F f p s ↔
@@ -522,7 +507,6 @@ begin
 end
 
 /-- Expressing uniform convergence on a set using `dist`. -/
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma tendsto_uniformly_on_iff {ι : Type*}
   {F : ι → β → α} {f : β → α} {p : filter ι} {s : set β} :
   tendsto_uniformly_on F f p s ↔ ∀ ε > 0, ∀ᶠ n in p, ∀ x ∈ s, dist (f x) (F n x) < ε :=
@@ -533,7 +517,6 @@ begin
 end
 
 /-- Expressing locally uniform convergence using `dist`. -/
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma tendsto_locally_uniformly_iff {ι : Type*} [topological_space β]
   {F : ι → β → α} {f : β → α} {p : filter ι} :
   tendsto_locally_uniformly F f p ↔
@@ -542,13 +525,11 @@ by simp only [← tendsto_locally_uniformly_on_univ, tendsto_locally_uniformly_o
   nhds_within_univ, mem_univ, forall_const, exists_prop]
 
 /-- Expressing uniform convergence using `dist`. -/
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma tendsto_uniformly_iff {ι : Type*}
   {F : ι → β → α} {f : β → α} {p : filter ι} :
   tendsto_uniformly F f p ↔ ∀ ε > 0, ∀ᶠ n in p, ∀ x, dist (f x) (F n x) < ε :=
 by { rw [← tendsto_uniformly_on_univ, tendsto_uniformly_on_iff], simp }
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 protected lemma cauchy_iff {f : filter α} :
   cauchy f ↔ ne_bot f ∧ ∀ ε > 0, ∃ t ∈ f, ∀ x y ∈ t, dist x y < ε :=
 uniformity_basis_dist.cauchy_iff
@@ -556,7 +537,6 @@ uniformity_basis_dist.cauchy_iff
 theorem nhds_basis_ball : (𝓝 x).has_basis (λ ε:ℝ, 0 < ε) (ball x) :=
 nhds_basis_uniformity uniformity_basis_dist
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem mem_nhds_iff : s ∈ 𝓝 x ↔ ∃ε>0, ball x ε ⊆ s :=
 nhds_basis_ball.mem_iff
 
@@ -571,7 +551,6 @@ theorem nhds_basis_ball_inv_nat_pos :
   (𝓝 x).has_basis (λ n, 0<n) (λ n:ℕ, ball x (1 / ↑n)) :=
 nhds_basis_uniformity uniformity_basis_dist_inv_nat_pos
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem is_open_iff : is_open s ↔ ∀x∈s, ∃ε>0, ball x ε ⊆ s :=
 by simp only [is_open_iff_mem_nhds, mem_nhds_iff]
 
@@ -588,83 +567,69 @@ theorem nhds_within_basis_ball {s : set α} :
   (𝓝[s] x).has_basis (λ ε:ℝ, 0 < ε) (λ ε, ball x ε ∩ s) :=
 nhds_within_has_basis nhds_basis_ball s
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem mem_nhds_within_iff {t : set α} : s ∈ 𝓝[t] x ↔ ∃ε>0, ball x ε ∩ t ⊆ s :=
 nhds_within_basis_ball.mem_iff
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem tendsto_nhds_within_nhds_within [metric_space β] {t : set β} {f : α → β} {a b} :
   tendsto f (𝓝[s] a) (𝓝[t] b) ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → dist x a < δ → f x ∈ t ∧ dist (f x) b < ε :=
 (nhds_within_basis_ball.tendsto_iff nhds_within_basis_ball).trans $
   by simp only [inter_comm, mem_inter_iff, and_imp, mem_ball]
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem tendsto_nhds_within_nhds [metric_space β] {f : α → β} {a b} :
   tendsto f (𝓝[s] a) (𝓝 b) ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → dist x a < δ → dist (f x) b < ε :=
 by { rw [← nhds_within_univ b, tendsto_nhds_within_nhds_within],
   simp only [mem_univ, true_and] }
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem tendsto_nhds_nhds [metric_space β] {f : α → β} {a b} :
   tendsto f (𝓝 a) (𝓝 b) ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, dist x a < δ → dist (f x) b < ε :=
 nhds_basis_ball.tendsto_iff nhds_basis_ball
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem continuous_at_iff [metric_space β] {f : α → β} {a : α} :
   continuous_at f a ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, dist x a < δ → dist (f x) (f a) < ε :=
 by rw [continuous_at, tendsto_nhds_nhds]
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem continuous_within_at_iff [metric_space β] {f : α → β} {a : α} {s : set α} :
   continuous_within_at f s a ↔
   ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → dist x a < δ → dist (f x) (f a) < ε :=
 by rw [continuous_within_at, tendsto_nhds_within_nhds]
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem continuous_on_iff [metric_space β] {f : α → β} {s : set α} :
   continuous_on f s ↔
   ∀ (b ∈ s) (ε > 0), ∃ δ > 0, ∀a ∈ s, dist a b < δ → dist (f a) (f b) < ε :=
 by simp [continuous_on, continuous_within_at_iff]
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem continuous_iff [metric_space β] {f : α → β} :
   continuous f ↔
   ∀b (ε > 0), ∃ δ > 0, ∀a, dist a b < δ → dist (f a) (f b) < ε :=
 continuous_iff_continuous_at.trans $ forall_congr $ λ b, tendsto_nhds_nhds
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem tendsto_nhds {f : filter β} {u : β → α} {a : α} :
   tendsto u f (𝓝 a) ↔ ∀ ε > 0, ∀ᶠ x in f, dist (u x) a < ε :=
 nhds_basis_ball.tendsto_right_iff
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem continuous_at_iff' [topological_space β] {f : β → α} {b : β} :
   continuous_at f b ↔
   ∀ ε > 0, ∀ᶠ x in 𝓝 b, dist (f x) (f b) < ε :=
 by rw [continuous_at, tendsto_nhds]
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem continuous_within_at_iff' [topological_space β] {f : β → α} {b : β} {s : set β} :
   continuous_within_at f s b ↔
   ∀ ε > 0, ∀ᶠ x in 𝓝[s] b, dist (f x) (f b) < ε :=
 by rw [continuous_within_at, tendsto_nhds]
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem continuous_on_iff' [topological_space β] {f : β → α} {s : set β} :
   continuous_on f s ↔
   ∀ (b ∈ s) (ε > 0), ∀ᶠ x in 𝓝[s] b, dist (f x) (f b) < ε  :=
 by simp [continuous_on, continuous_within_at_iff']
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem continuous_iff' [topological_space β] {f : β → α} :
   continuous f ↔ ∀a (ε > 0), ∀ᶠ x in 𝓝 a, dist (f x) (f a) < ε :=
 continuous_iff_continuous_at.trans $ forall_congr $ λ b, tendsto_nhds
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem tendsto_at_top [nonempty β] [semilattice_sup β] {u : β → α} {a : α} :
   tendsto u at_top (𝓝 a) ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) a < ε :=
 (at_top_basis.tendsto_iff nhds_basis_ball).trans $
@@ -699,7 +664,6 @@ protected lemma metric.uniformity_basis_edist :
     rwa [edist_dist, ennreal.of_real_lt_of_real_iff ε0'] }
 end⟩
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem metric.uniformity_edist : 𝓤 α = (⨅ ε>0, 𝓟 {p:α×α | edist p.1 p.2 < ε}) :=
 metric.uniformity_basis_edist.eq_binfi
 
@@ -897,7 +861,6 @@ theorem metric.cauchy_seq_iff {u : β → α} :
 uniformity_basis_dist.cauchy_seq_iff
 
 /-- A variation around the metric characterization of Cauchy sequences -/
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem metric.cauchy_seq_iff' {u : β → α} :
   cauchy_seq u ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) (u N) < ε :=
 uniformity_basis_dist.cauchy_seq_iff'
@@ -915,7 +878,6 @@ metric.cauchy_seq_iff.2 $ λ ε ε0,
                     ... < ε : (hN _ (le_refl N))
 
 /-- A Cauchy sequence on the natural numbers is bounded. -/
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem cauchy_seq_bdd {u : ℕ → α} (hu : cauchy_seq u) :
   ∃ R > 0, ∀ m n, dist (u m) (u n) < R :=
 begin
@@ -1136,13 +1098,11 @@ theorem ball_subset_interior_closed_ball : ball x ε ⊆ interior (closed_ball x
 interior_maximal ball_subset_closed_ball is_open_ball
 
 /-- ε-characterization of the closure in metric spaces-/
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem mem_closure_iff {α : Type u} [metric_space α] {s : set α} {a : α} :
   a ∈ closure s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
 (mem_closure_iff_nhds_basis nhds_basis_ball).trans $
   by simp only [mem_ball, dist_comm]
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma mem_closure_range_iff {α : Type u} [metric_space α] {e : β → α} {a : α} :
   a ∈ closure (range e) ↔ ∀ε>0, ∃ k : β, dist a (e k) < ε :=
 by simp only [mem_closure_iff, exists_range_iff]
@@ -1152,7 +1112,6 @@ lemma mem_closure_range_iff_nat {α : Type u} [metric_space α] {e : β → α} 
 (mem_closure_iff_nhds_basis nhds_basis_ball_inv_nat_succ).trans $
   by simp only [mem_ball, dist_comm, exists_range_iff, forall_const]
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem mem_of_closed' {α : Type u} [metric_space α] {s : set α} (hs : is_closed s)
   {a : α} : a ∈ s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
 by simpa only [hs.closure_eq] using @mem_closure_iff _ _ s a
@@ -1387,9 +1346,8 @@ end
 
 /-- A metric space space is second countable if one can reconstruct up to any `ε>0` any element of
 the space from countably many data. -/
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma second_countable_of_countable_discretization {α : Type u} [metric_space α]
-  (H : ∀ε > (0 : ℝ), ∃ (β : Type u) [encodable β] (F : α → β), ∀x y, F x = F y → dist x y ≤ ε) :
+  (H : ∀ε > (0 : ℝ), ∃ (β : Type*) [encodable β] (F : α → β), ∀x y, F x = F y → dist x y ≤ ε) :
   second_countable_topology α :=
 begin
   cases (univ : set α).eq_empty_or_nonempty with hs hs,
@@ -1409,7 +1367,6 @@ end
 end second_countable
 end metric
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma lebesgue_number_lemma_of_metric
   {s : set α} {ι} {c : ι → set α} (hs : is_compact s)
   (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i) :
@@ -1419,7 +1376,6 @@ let ⟨n, en, hn⟩ := lebesgue_number_lemma hs hc₁ hc₂,
 ⟨δ, δ0, assume x hx, let ⟨i, hi⟩ := hn x hx in
  ⟨i, assume y hy, hi (hδ (mem_ball'.mp hy))⟩⟩
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma lebesgue_number_lemma_of_metric_sUnion
   {s : set α} {c : set (set α)} (hs : is_compact s)
   (hc₁ : ∀ t ∈ c, is_open t) (hc₂ : s ⊆ ⋃₀ c) :

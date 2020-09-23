@@ -8,7 +8,6 @@ import data.nat.basic
 
 namespace test.library_search
 
-
 /- Turn off trace messages so they don't pollute the test build: -/
 set_option trace.silence_library_search true
 /- For debugging purposes, we can display the list of lemmas: -/

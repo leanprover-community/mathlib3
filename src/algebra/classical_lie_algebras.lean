@@ -43,10 +43,10 @@ which approach should be preferred so the choice should be assumed to be somewha
 For the algebras of type `B` and `D`, there are two natural definitions. For example since the
 the `2l × 2l` matrix:
 $$
-  J = \left[\begin{align}{cc}
-              0_l & 1_l\\
+  J = \left[\begin{array}{cc}
+              0_l & 1_l\\\\
               1_l & 0_l
-            \end{align}\right]
+            \end{array}\right]
 $$
 defines a symmetric bilinear form equivalent to that defined by the identity matrix `I`, we can
 define the algebras of type `D` to be the Lie subalgebra of skew-adjoint matrices either for `J` or
@@ -65,18 +65,16 @@ universes u₁ u₂
 namespace lie_algebra
 open_locale matrix
 
-variables (n p q l : Type u₁) (R : Type u₂)
+variables (n p q l : Type*) (R : Type u₂)
 variables [fintype n] [fintype l] [fintype p] [fintype q]
 variables [decidable_eq n] [decidable_eq p] [decidable_eq q] [decidable_eq l]
 variables [comm_ring R]
 
-local attribute [instance] matrix.lie_ring
-local attribute [instance] matrix.lie_algebra
-
 @[simp] lemma matrix_trace_commutator_zero (X Y : matrix n n R) : matrix.trace n R R ⁅X, Y⁆ = 0 :=
 begin
-  change matrix.trace n R R (X ⬝ Y - Y ⬝ X) = 0,
-  simp only [matrix.trace_mul_comm, linear_map.map_sub, sub_self],
+  -- TODO: if we use matrix.mul here, we get a timeout
+  change matrix.trace n R R (X * Y - Y * X) = 0,
+  erw [linear_map.map_sub, matrix.trace_mul_comm, sub_self]
 end
 
 namespace special_linear
@@ -221,7 +219,8 @@ by erw [lie_algebra.equiv.trans_apply, lie_algebra.equiv.of_eq_apply,
 /-- A matrix defining a canonical even-rank symmetric bilinear form.
 
 It looks like this as a `2l x 2l` matrix of `l x l` blocks:
-   [ 0 1 ]
+
+   [ 0 1 ]  
    [ 1 0 ]
 -/
 def JD : matrix (l ⊕ l) (l ⊕ l) R := matrix.from_blocks 0 1 1 0
@@ -234,7 +233,8 @@ def type_D := skew_adjoint_matrices_lie_subalgebra (JD l R)
 diagonal matrix.
 
 It looks like this as a `2l x 2l` matrix of `l x l` blocks:
-   [ 1 -1 ]
+
+   [ 1 -1 ]  
    [ 1  1 ]
 -/
 def PD : matrix (l ⊕ l) (l ⊕ l) R := matrix.from_blocks 1 (-1) 1 1
@@ -287,15 +287,18 @@ end
 /-- A matrix defining a canonical odd-rank symmetric bilinear form.
 
 It looks like this as a `(2l+1) x (2l+1)` matrix of blocks:
-   [ 2 0 0 ]
-   [ 0 0 1 ]
+
+   [ 2 0 0 ]  
+   [ 0 0 1 ]  
    [ 0 1 0 ]
+
 where sizes of the blocks are:
-   [`1 x 1` `1 x l` `1 x l`]
-   [`l x 1` `l x l` `l x l`]
+
+   [`1 x 1` `1 x l` `1 x l`]  
+   [`l x 1` `l x l` `l x l`]  
    [`l x 1` `l x l` `l x l`]
 -/
-def JB := matrix.from_blocks ((2 : R) • 1 : matrix punit punit R) 0 0 (JD l R)
+def JB := matrix.from_blocks ((2 : R) • 1 : matrix unit unit R) 0 0 (JD l R)
 
 /-- The classical Lie algebra of type B as a Lie subalgebra of matrices associated to the matrix
 `JB`. -/
@@ -305,15 +308,18 @@ def type_B := skew_adjoint_matrices_lie_subalgebra (JB l R)
 almost-split-signature diagonal matrix.
 
 It looks like this as a `(2l+1) x (2l+1)` matrix of blocks:
-   [ 1 0  0 ]
-   [ 0 1 -1 ]
+
+   [ 1 0  0 ]  
+   [ 0 1 -1 ]  
    [ 0 1  1 ]
+
 where sizes of the blocks are:
-   [`1 x 1` `1 x l` `1 x l`]
-   [`l x 1` `l x l` `l x l`]
+
+   [`1 x 1` `1 x l` `1 x l`]  
+   [`l x 1` `l x l` `l x l`]  
    [`l x 1` `l x l` `l x l`]
 -/
-def PB := matrix.from_blocks (1 : matrix punit punit R) 0 0 (PD l R)
+def PB := matrix.from_blocks (1 : matrix unit unit R) 0 0 (PD l R)
 
 lemma PB_inv [invertible (2 : R)] : (PB l R) * (matrix.from_blocks 1 0 0 (PD l R)⁻¹) = 1 :=
 begin
@@ -333,8 +339,8 @@ by simp [PB, JB, JD_transform, matrix.from_blocks_transpose, matrix.from_blocks_
          matrix.from_blocks_smul]
 
 lemma indefinite_diagonal_assoc :
-  indefinite_diagonal ((punit : Type u₁) ⊕ l) l R =
-  matrix.reindex_lie_equiv (equiv.sum_assoc punit l l).symm
+  indefinite_diagonal (unit ⊕ l) l R =
+  matrix.reindex_lie_equiv (equiv.sum_assoc unit l l).symm
     (matrix.from_blocks 1 0 0 (indefinite_diagonal l l R)) :=
 begin
   ext i j,
@@ -345,12 +351,12 @@ end
 
 /-- An equivalence between two possible definitions of the classical Lie algebra of type B. -/
 noncomputable def type_B_equiv_so' [invertible (2 : R)] :
-  type_B l R ≃ₗ⁅R⁆ so' ((punit : Type u₁) ⊕ l) l R :=
+  type_B l R ≃ₗ⁅R⁆ so' (unit ⊕ l) l R :=
 begin
   apply (skew_adjoint_matrices_lie_subalgebra_equiv (JB l R) (PB l R) (is_unit_PB l R)).trans,
   symmetry,
   apply (skew_adjoint_matrices_lie_subalgebra_equiv_transpose
-    (indefinite_diagonal ((punit : Type u₁) ⊕ l) l R)
+    (indefinite_diagonal (unit ⊕ l) l R)
     (matrix.reindex_alg_equiv (equiv.sum_assoc punit l l)) (matrix.reindex_transpose _ _)).trans,
   apply lie_algebra.equiv.of_eq,
   ext A,

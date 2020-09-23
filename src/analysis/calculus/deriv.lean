@@ -365,6 +365,10 @@ lemma deriv_within_inter (ht : t ∈ 𝓝 x) (hs : unique_diff_within_at 𝕜 s 
   deriv_within f (s ∩ t) x = deriv_within f s x :=
 by { unfold deriv_within, rw fderiv_within_inter ht hs }
 
+lemma deriv_within_of_open (hs : is_open s) (hx : x ∈ s) :
+  deriv_within f s x = deriv f x :=
+by { unfold deriv_within, rw fderiv_within_of_open hs hx, refl }
+
 section congr
 /-! ### Congruence properties of derivatives -/
 
@@ -1630,7 +1634,7 @@ begin
   rcases lt_trichotomy m 0 with hm|hm|hm,
   { have := (has_strict_deriv_at_inv _).scomp _ (this (-m) (neg_pos.2 hm));
       [skip, exact fpow_ne_zero_of_ne_zero hx _],
-    simp only [(∘), fpow_neg, one_div_eq_inv, inv_inv', smul_eq_mul] at this,
+    simp only [(∘), fpow_neg, one_div, inv_inv', smul_eq_mul] at this,
     convert this using 1,
     rw [pow_two, mul_inv', inv_inv', int.cast_neg, ← neg_mul_eq_neg_mul, neg_mul_neg,
       ← fpow_add hx, mul_assoc, ← fpow_add hx], congr, abel },

@@ -101,6 +101,10 @@ lemma lift_mk {φ : G →* H} (HN : ∀x∈N, φ x = 1) (g : G) :
 lemma lift_mk' {φ : G →* H} (HN : ∀x∈N, φ x = 1) (g : G) :
   lift N φ HN (mk g : Q) = φ g := rfl
 
+@[simp, to_additive quotient_add_group.lift_quot_mk]
+lemma lift_quot_mk {φ : G →* H} (HN : ∀x∈N, φ x = 1) (g : G) :
+  lift N φ HN (quot.mk _ g : Q) = φ g := rfl
+
 /-- A group homomorphism `f : G →* H` induces a map `G/N →* H/M` if `N ⊆ f⁻¹(M)`. -/
 @[to_additive quotient_add_group.map "An `add_group` homomorphism `f : G →+ H` induces a map
 `G/N →+ H/M` if `N ⊆ f⁻¹(M)`."]

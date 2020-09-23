@@ -6,6 +6,7 @@ Author: Alexander Bentkamp.
 
 import field_theory.algebraic_closure
 import linear_algebra.finsupp
+import linear_algebra.matrix
 
 /-!
 # Eigenvectors and eigenvalues
@@ -82,26 +83,81 @@ calc
   ... = (b • (f - b⁻¹ • am a)).ker : by rw linear_map.ker_smul _ b hb
   ... = (b • f - am a).ker : by rw [smul_sub, smul_inv_smul' hb]
 
-lemma eigenspace_eval₂_polynomial_degree_1 [field K] [vector_space K V]
+lemma eigenspace_aeval_polynomial_degree_1 [field K] [vector_space K V]
   (f : End K V) (q : polynomial K) (hq : degree q = 1) :
-  eigenspace f (- q.coeff 0 / q.leading_coeff) = (eval₂ am f q).ker :=
+  eigenspace f (- q.coeff 0 / q.leading_coeff) = (aeval f q).ker :=
 calc
   eigenspace f (- q.coeff 0 / q.leading_coeff) = (q.leading_coeff • f - am (- q.coeff 0)).ker
     : by { rw eigenspace_div, intro h, rw leading_coeff_eq_zero_iff_deg_eq_bot.1 h at hq, cases hq }
-  ... = (eval₂ am f (C q.leading_coeff * X + C (q.coeff 0))).ker
-    : by { rw C_mul', simpa [algebra_map, algebra.to_ring_hom] }
-  ... = (eval₂ am f q).ker
+  ... = (aeval f (C q.leading_coeff * X + C (q.coeff 0))).ker
+    : by { rw [C_mul', aeval_def], simpa [algebra_map, algebra.to_ring_hom], }
+  ... = (aeval f q).ker
      : by { congr, apply (eq_X_add_C_of_degree_eq_one hq).symm }
 
-lemma ker_eval₂_ring_hom'_unit_polynomial [field K] [vector_space K V]
+lemma ker_aeval_ring_hom'_unit_polynomial [field K] [vector_space K V]
   (f : End K V) (c : units (polynomial K)) :
-  ((eval₂_ring_hom' am algebra.commutes f) ↑c).ker = ⊥ :=
+  (aeval f (c : polynomial K)).ker = ⊥ :=
 begin
   rw polynomial.eq_C_of_degree_eq_zero (degree_coe_units c),
-  simp only [eval₂_ring_hom', ring_hom.of, ring_hom.coe_mk, eval₂_C],
+  simp only [aeval_def, eval₂_C],
   apply ker_algebra_map_End,
   apply coeff_coe_units_zero_ne_zero c
 end
+
+theorem aeval_apply_of_has_eigenvector [field K] [vector_space K V] {f : End K V}
+  {p : polynomial K} {μ : K} {x : V} (h : f.has_eigenvector μ x) :
+  aeval f p x = (p.eval μ) • x :=
+begin
+  apply p.induction_on,
+  { intro a, simp [module.algebra_map_End_apply] },
+  { intros p q hp hq, simp [hp, hq, add_smul] },
+  { intros n a hna,
+    rw [mul_comm, pow_succ, mul_assoc, alg_hom.map_mul, linear_map.mul_app, mul_comm, hna],
+    simp [algebra_map_End_apply, mem_eigenspace_iff.1 h.2, smul_smul, mul_comm] }
+end
+
+section minimal_polynomial
+
+variables [field K] [vector_space K V] [finite_dimensional K V] (f : End K V)
+
+protected theorem is_integral : is_integral K f :=
+is_integral_of_noetherian (by apply_instance) f
+
+variables {f} {μ : K}
+
+theorem is_root_of_has_eigenvalue (h : f.has_eigenvalue μ) :
+  (minimal_polynomial f.is_integral).is_root μ :=
+begin
+  rcases (submodule.ne_bot_iff _).1 h with ⟨w, ⟨H, ne0⟩⟩,
+  refine or.resolve_right (smul_eq_zero.1 _) ne0,
+  simp [← aeval_apply_of_has_eigenvector ⟨ne0, H⟩, minimal_polynomial.aeval f.is_integral],
+end
+
+theorem has_eigenvalue_of_is_root (h : (minimal_polynomial f.is_integral).is_root μ) :
+  f.has_eigenvalue μ :=
+begin
+  cases dvd_iff_is_root.2 h with p hp,
+  rw [has_eigenvalue, eigenspace],
+  intro con,
+  cases (linear_map.is_unit_iff _).2 con with u hu,
+  have p_ne_0 : p ≠ 0,
+  { intro con,
+    apply minimal_polynomial.ne_zero f.is_integral,
+    rw [hp, con, mul_zero] },
+  have h_deg := minimal_polynomial.degree_le_of_ne_zero f.is_integral p_ne_0 _,
+  { rw [hp, degree_mul, degree_X_sub_C, polynomial.degree_eq_nat_degree p_ne_0] at h_deg,
+    norm_cast at h_deg,
+    linarith, },
+  { have h_aeval := minimal_polynomial.aeval f.is_integral,
+    revert h_aeval,
+    simp [hp, ← hu] },
+end
+
+theorem has_eigenvalue_iff_is_root :
+  f.has_eigenvalue μ ↔ (minimal_polynomial f.is_integral).is_root μ :=
+⟨is_root_of_has_eigenvalue, has_eigenvalue_of_is_root⟩
+
+end minimal_polynomial
 
 /-- Every linear operator on a vector space over an algebraically closed field has
     an eigenvalue. (Axler's Theorem 2.1.) -/
@@ -118,35 +174,34 @@ begin
   have h_lin_dep : ¬ linear_independent K (λ n : ℕ, (f ^ n) v),
   { apply not_linear_independent_of_infinite, },
   -- Therefore, there must be a nonzero polynomial `p` such that `p(f) v = 0`.
-  obtain ⟨p, h_eval_p, h_p_ne_0⟩ : ∃ p, eval₂ am f p v = 0 ∧ p ≠ 0,
-  { simp only [not_imp.symm],
-    exact not_forall.1 (λ h, h_lin_dep ((linear_independent_powers_iff_eval₂ f v).2 h)) },
-  -- Then `p(f)` is not invertible.
-  have h_eval_p_not_unit : eval₂_ring_hom' am _ f p ∉ is_unit.submonoid (End K V),
+  obtain ⟨p, ⟨h_mon, h_eval_p⟩⟩ := f.is_integral,
+  have h_eval_p_not_unit : aeval f p ∉ is_unit.submonoid (End K V),
   { rw [is_unit.mem_submonoid_iff, linear_map.is_unit_iff, linear_map.ker_eq_bot'],
     intro h,
-    exact hv (h v h_eval_p) },
+    apply hv (h v _),
+    rw [h_eval_p, linear_map.zero_apply] },
   -- Hence, there must be a factor `q` of `p` such that `q(f)` is not invertible.
-  obtain ⟨q, hq_factor, hq_nonunit⟩ : ∃ q, q ∈ factors p ∧ ¬ is_unit (eval₂ am f q),
+  obtain ⟨q, hq_factor, hq_nonunit⟩ : ∃ q, q ∈ factors p ∧ ¬ is_unit (aeval f q),
   { simp only [←not_imp, (is_unit.mem_submonoid_iff _).symm],
-    apply not_forall.1 (λ h, h_eval_p_not_unit (ring_hom_mem_submonoid_of_factors_subset_of_units_subset
+    apply not_forall.1 (λ h, h_eval_p_not_unit
+      (ring_hom_mem_submonoid_of_factors_subset_of_units_subset
       (eval₂_ring_hom' am algebra.commutes f)
-      (is_unit.submonoid (End K V)) p h_p_ne_0 h _)),
+      (is_unit.submonoid (End K V)) p h_mon.ne_zero h _)),
     simp only [is_unit.mem_submonoid_iff, linear_map.is_unit_iff],
-    apply ker_eval₂_ring_hom'_unit_polynomial },
+    apply ker_aeval_ring_hom'_unit_polynomial },
   -- Since the field is algebraically closed, `q` has degree 1.
   have h_deg_q : q.degree = 1 := is_alg_closed.degree_eq_one_of_irreducible _
-    (ne_zero_of_mem_factors h_p_ne_0 hq_factor)
-    ((factors_spec p h_p_ne_0).1 q hq_factor),
+    (ne_zero_of_mem_factors h_mon.ne_zero hq_factor)
+    ((factors_spec p h_mon.ne_zero).1 q hq_factor),
   -- Then the kernel of `q(f)` is an eigenspace.
-  have h_eigenspace: eigenspace f (-q.coeff 0 / q.leading_coeff) = (eval₂ am f q).ker,
-    from eigenspace_eval₂_polynomial_degree_1 f q h_deg_q,
+  have h_eigenspace: eigenspace f (-q.coeff 0 / q.leading_coeff) = (aeval f q).ker,
+    from eigenspace_aeval_polynomial_degree_1 f q h_deg_q,
   -- Since `q(f)` is not invertible, the kernel is not `⊥`, and thus there exists an eigenvalue.
   show ∃ (c : K), f.has_eigenvalue c,
   { use -q.coeff 0 / q.leading_coeff,
     rw [has_eigenvalue, h_eigenspace],
     intro h_eval_ker,
-    exact hq_nonunit ((linear_map.is_unit_iff (eval₂ am f q)).2 h_eval_ker) }
+    exact hq_nonunit ((linear_map.is_unit_iff (aeval f q)).2 h_eval_ker) }
 end
 
 /-- Eigenvectors corresponding to distinct eigenvalues of a linear operator are linearly

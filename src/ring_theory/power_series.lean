@@ -318,7 +318,7 @@ lemma coeff_X_pow (m : σ →₀ ℕ) (s : σ) (n : ℕ) :
 by rw [X_pow_eq s n, coeff_monomial]
 
 @[simp] lemma coeff_mul_C (n : σ →₀ ℕ) (φ : mv_power_series σ α) (a : α) :
-  coeff α n (φ * (C σ α a)) = (coeff α n φ) * a :=
+  coeff α n (φ * C σ α a) = coeff α n φ * a :=
 begin
   rw [coeff_mul n φ], rw [finset.sum_eq_single (n,(0 : σ →₀ ℕ))],
   { rw [coeff_C, if_pos rfl] },
@@ -330,6 +330,23 @@ begin
   { intro h, exfalso, apply h,
     rw finsupp.mem_antidiagonal_support,
     apply add_zero }
+end
+
+@[simp] lemma coeff_C_mul (n : σ →₀ ℕ) (φ : mv_power_series σ α) (a : α) :
+  coeff α n (C σ α a * φ) = a * coeff α n φ :=
+begin
+  rw [coeff_mul n _ φ, finset.sum_eq_single ((0 : σ →₀ ℕ), _)],
+  { rw [coeff_C, if_pos rfl] },
+  { rintro ⟨i,j⟩ hij hne,
+    rw finsupp.mem_antidiagonal_support at hij,
+    by_cases hi : i = 0,
+    { subst hi, simp at *, contradiction },
+    { rw [coeff_C, if_neg hi, zero_mul] } },
+  { intro h,
+    exfalso,
+    apply h,
+    rw finsupp.mem_antidiagonal_support,
+    apply zero_add }
 end
 
 lemma coeff_zero_mul_X (φ : mv_power_series σ α) (s : σ) :
@@ -381,6 +398,11 @@ instance : semimodule α (mv_power_series σ α) :=
   smul_zero := λ a, mul_zero _,
   add_smul := λ a b φ, by simp only [ring_hom.map_add, add_mul],
   zero_smul := λ φ, by simp only [zero_mul, ring_hom.map_zero] }
+
+@[simp]
+lemma coeff_smul (f : mv_power_series σ α) (n) (a : α) :
+  coeff _ n (a • f) = a * coeff _ n f :=
+coeff_C_mul _ _ _
 
 lemma X_inj [nontrivial α] {s t : σ} : (X s : mv_power_series σ α) = X t ↔ s = t :=
 ⟨begin
@@ -914,8 +936,16 @@ begin
 end
 
 @[simp] lemma coeff_mul_C (n : ℕ) (φ : power_series α) (a : α) :
-  coeff α n (φ * (C α a)) = (coeff α n φ) * a :=
+  coeff α n (φ * C α a) = coeff α n φ * a :=
 mv_power_series.coeff_mul_C _ φ a
+
+@[simp] lemma coeff_C_mul (n : ℕ) (φ : power_series α) (a : α) :
+  coeff α n (C α a * φ) = a * coeff α n φ :=
+mv_power_series.coeff_C_mul _ φ a
+
+@[simp] lemma coeff_smul (n : ℕ) (φ : power_series α) (a : α) :
+  coeff α n (a • φ) = a * coeff α n φ :=
+coeff_C_mul _ _ _
 
 @[simp] lemma coeff_succ_mul_X (n : ℕ) (φ : power_series α) :
   coeff α (n+1) (φ * X) = coeff α n φ :=

@@ -47,6 +47,11 @@ end has_hom
 
 variables [category.{v₁} C]
 
+/--
+The opposite category.
+
+See https://stacks.math.columbia.edu/tag/001M.
+-/
 instance category.opposite : category.{v₁} Cᵒᵖ :=
 { comp := λ _ _ _ f g, (g.unop ≫ f.unop).op,
   id   := λ X, (𝟙 (unop X)).op }
@@ -297,5 +302,15 @@ rfl
 @[simp]
 lemma op_equiv_symm_apply (A B : Cᵒᵖ) (f : B.unop ⟶ A.unop) : (op_equiv _ _).symm f = f.op :=
 rfl
+
+universes v
+variables {α : Type v} [preorder α]
+
+/-- Construct a morphism in the opposite of a preorder category from an inequality. -/
+def op_hom_of_le {U V : αᵒᵖ} (h : unop V ≤ unop U) : U ⟶ V :=
+has_hom.hom.op (hom_of_le h)
+
+lemma le_of_op_hom {U V : αᵒᵖ} (h : U ⟶ V) : unop V ≤ unop U :=
+le_of_hom (h.unop)
 
 end category_theory

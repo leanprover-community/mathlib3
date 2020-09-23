@@ -588,7 +588,7 @@ begin
   simp only [comap_infi, (ker_comp _ _).symm, proj_diagonal, ker_smul'],
   have : univ ⊆ {i : m | w i = 0} ∪ {i : m | w i = 0}ᶜ, { rw set.union_compl_self },
   exact (supr_range_std_basis_eq_infi_ker_proj K (λi:m, K)
-    (disjoint_compl {i | w i = 0}) this (finite.of_fintype _)).symm
+    (disjoint_compl_right {i | w i = 0}) this (finite.of_fintype _)).symm
 end
 
 lemma range_diagonal [decidable_eq m] (w : m → K) :
@@ -604,7 +604,7 @@ lemma rank_diagonal [decidable_eq m] [decidable_eq K] (w : m → K) :
   rank (diagonal w).to_lin = fintype.card { i // w i ≠ 0 } :=
 begin
   have hu : univ ⊆ {i : m | w i = 0}ᶜ ∪ {i : m | w i = 0}, { rw set.compl_union_self },
-  have hd : disjoint {i : m | w i ≠ 0} {i : m | w i = 0} := (disjoint_compl {i | w i = 0}).symm,
+  have hd : disjoint {i : m | w i ≠ 0} {i : m | w i = 0} := (disjoint_compl_right {i | w i = 0}).symm,
   have h₁ := supr_range_std_basis_eq_infi_ker_proj K (λi:m, K) hd hu (finite.of_fintype _),
   have h₂ := @infi_ker_proj_equiv K _ _ (λi:m, K) _ _ _ _ (by simp; apply_instance) hd hu,
   rw [rank, range_diagonal, h₁, ←@dim_fun' K],
@@ -787,6 +787,37 @@ if H : ∃ s : finset M, is_basis R (λ x, x : (↑s : set M) → M) then let �
 by { simp_rw [trace_eq_matrix_trace R hb, matrix.linear_equiv_matrix_mul], apply matrix.trace_mul_comm }
 else by rw [trace, dif_neg H, linear_map.zero_apply, linear_map.zero_apply]
 
+section finite_dimensional
+
+variables {K : Type*} [field K]
+variables {V : Type*} [add_comm_group V] [vector_space K V] [finite_dimensional K V]
+variables {W : Type*} [add_comm_group W] [vector_space K W] [finite_dimensional K W]
+
+instance : finite_dimensional K (V →ₗ[K] W) :=
+begin
+  classical,
+  cases finite_dimensional.exists_is_basis_finset K V with bV hbV,
+  cases finite_dimensional.exists_is_basis_finset K W with bW hbW,
+  apply linear_equiv.finite_dimensional (linear_equiv_matrix hbV hbW).symm,
+end
+
+/--
+The dimension of the space of linear transformations is the product of the dimensions of the
+domain and codomain.
+-/
+@[simp] lemma findim_linear_map :
+  finite_dimensional.findim K (V →ₗ[K] W) =
+  (finite_dimensional.findim K V) * (finite_dimensional.findim K W) :=
+begin
+  classical,
+  cases finite_dimensional.exists_is_basis_finset K V with bV hbV,
+  cases finite_dimensional.exists_is_basis_finset K W with bW hbW,
+  rw [linear_equiv.findim_eq (linear_equiv_matrix hbV hbW), matrix.findim_matrix,
+    finite_dimensional.findim_eq_card_basis hbV, finite_dimensional.findim_eq_card_basis hbW,
+    mul_comm],
+end
+
+end finite_dimensional
 end linear_map
 
 /-- The natural equivalence between linear endomorphisms of finite free modules and square matrices

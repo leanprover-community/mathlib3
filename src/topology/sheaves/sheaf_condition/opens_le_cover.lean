@@ -4,12 +4,21 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import topology.sheaves.presheaf
-import category_theory.limits.limits
 import category_theory.full_subcategory
+import category_theory.limits.cofinal
 import topology.sheaves.sheaf_condition.pairwise_intersections
 
 /-!
-Another version of the sheaf condition, from Lurie SAG.
+# Another version of the sheaf condition.
+
+Given a family of open sets `U : ι → opens X` we can form the subcategory
+`{ V : opens X // ∃ i, V ≤ U i }`, which has `supr U` as a cocone.
+
+The sheaf condition on a presheaf `F` is equivalent to
+`F` sending the opposite of this cocone to a limit cone in `C`, for every `U`.
+
+## References
+* This is the definition Lurie uses in "Spectral Algebraic Geometry".
 -/
 
 universes v u
@@ -34,8 +43,9 @@ namespace sheaf_condition
 /--
 The category of open sets contained in some element of the cover.
 -/
-@[derive category]
 def opens_le_cover : Type v := { V : opens X // ∃ i, V ≤ U i }
+
+instance : category (opens_le_cover U) := category_theory.full_subcategory _
 
 namespace opens_le_cover
 
@@ -55,7 +65,7 @@ end opens_le_cover
 -/
 def opens_le_cover_cone : cocone (full_subcategory_inclusion _ : opens_le_cover U ⥤ opens X) :=
 { X := supr U,
-  ι := { app := λ V, V.hom_to_index ≫ opens.le_supr U i, } }
+  ι := { app := λ V : opens_le_cover U, V.hom_to_index ≫ opens.le_supr U _, } }
 
 end sheaf_condition
 
@@ -69,20 +79,29 @@ def sheaf_condition_opens_le_cover : Type (max u (v+1)) :=
 
 namespace sheaf_condition
 
-def pairwise_to_opens_le_cover_obj : pairwise U → opens_le_cover U
-| single i := ⟨U i, ⟨i, le_refl _⟩⟩
-| pair i j := ⟨U i ⊓ U j, ⟨i, inf_le_left _ _⟩⟩
+open category_theory.pairwise
+
+def pairwise_to_opens_le_cover_obj : pairwise ι → opens_le_cover U
+| (single i) := ⟨U i, ⟨i, le_refl _⟩⟩
+| (pair i j) := ⟨U i ⊓ U j, ⟨i, inf_le_left⟩⟩
+
+open category_theory.pairwise.hom
 
 def pairwise_to_opens_le_cover_map :
-  Π {V W : pairwise U}, (V ⟶ W) → (pairwise_to_opens_le_cover_obj V ⟶ pairwise_to_opens_le_cover_obj W)
+  Π {V W : pairwise ι}, (V ⟶ W) → (pairwise_to_opens_le_cover_obj U V ⟶ pairwise_to_opens_le_cover_obj U W)
 | _ _ (id_single i) := 𝟙 _
 | _ _ (id_pair i j) := 𝟙 _
+| _ _ (left i j) := sorry
+| _ _ (right i j) := sorry
 
-def pairwise_to_opens_le_cover : pairwise U ⥤ opens_le_cover U :=
-{ obj := pairwise_to_opens_le_cover_obj,
-  hom := λ V W i, pairwise_to_opens_le_cover_map i, }
+def pairwise_to_opens_le_cover : pairwise ι ⥤ opens_le_cover U :=
+{ obj := pairwise_to_opens_le_cover_obj U,
+  map := λ V W i, pairwise_to_opens_le_cover_map U i, }
 
-instance : cofinal (pairwise_to_opens_le_cover U) := sorry
+instance : cofinal (pairwise_to_opens_le_cover U) :=
+λ V,
+{ is_nonempty := ⟨{ right := single (V.index), hom := V.hom_to_index }⟩,
+  iso_constant := sorry, }
 
 end sheaf_condition
 

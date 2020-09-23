@@ -8,7 +8,6 @@ import algebra.module.pi
 import algebra.module.prod
 import algebra.module.submodule
 import algebra.group.prod
-import ring_theory.subring
 import data.finsupp.basic
 import algebra.pointwise
 
@@ -128,6 +127,27 @@ ext $ assume b, rfl
   p.subtype.comp (cod_restrict p f h) = f :=
 ext $ assume b, rfl
 
+/-- Restrict domain and codomain of an endomorphism. -/
+def restrict (f : M →ₗ[R] M) {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) : p →ₗ[R] p :=
+{ to_fun := λ x, ⟨f x, hf x.1 x.2⟩,
+  map_add' := begin intros, apply set_coe.ext, simp end,
+  map_smul' := begin intros, apply set_coe.ext, simp end }
+
+lemma restrict_apply
+  {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) (x : p) :
+  f.restrict hf x = ⟨f x, hf x.1 x.2⟩ := rfl
+
+lemma subtype_comp_restrict {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) :
+  p.subtype.comp (f.restrict hf) = f.dom_restrict p := rfl
+
+lemma restrict_eq_cod_restrict_dom_restrict
+  {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) :
+  f.restrict hf = (f.dom_restrict p).cod_restrict p (λ x, hf x.1 x.2) := rfl
+
+lemma restrict_eq_dom_restrict_cod_restrict
+  {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x, f x ∈ p) :
+  f.restrict (λ x _, hf x) = (f.cod_restrict p hf).dom_restrict p := rfl
+
 /-- If a function `g` is a left and right inverse of a linear map `f`, then `g` is linear itself. -/
 def inverse (g : M₂ → M) (h₁ : left_inverse g f) (h₂ : right_inverse g f) : M₂ →ₗ[R] M :=
 by dsimp [left_inverse, function.right_inverse] at h₁ h₂; exact
@@ -156,6 +176,12 @@ instance linear_map_apply_is_add_monoid_hom (a : M) :
   is_add_monoid_hom (λ f : M →ₗ[R] M₂, f a) :=
 { map_add := λ f g, linear_map.add_apply f g a,
   map_zero := rfl }
+
+lemma add_comp (g : M₂ →ₗ[R] M₃) (h : M₂ →ₗ[R] M₃) :
+  (h + g).comp f = h.comp f + g.comp f := rfl
+
+lemma comp_add (g : M →ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) :
+  h.comp (f + g) = h.comp f + h.comp g := by { ext, simp }
 
 lemma sum_apply (t : finset ι) (f : ι → M →ₗ[R] M₂) (b : M) :
   (∑ d in t, f d) b = ∑ d in t, f d b :=
@@ -304,6 +330,8 @@ instance : has_neg (M →ₗ[R] M₂) :=
 
 @[simp] lemma neg_apply (x : M) : (- f) x = - f x := rfl
 
+@[simp] lemma comp_neg (g : M₂ →ₗ[R] M₃) : g.comp (- f) = - g.comp f := by { ext, simp }
+
 /-- The type of linear maps is an additive group. -/
 instance : add_comm_group (M →ₗ[R] M₂) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
@@ -314,6 +342,12 @@ instance linear_map_apply_is_add_group_hom (a : M) :
 { map_add := λ f g, linear_map.add_apply f g a }
 
 @[simp] lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl
+
+lemma sub_comp (g : M₂ →ₗ[R] M₃) (h : M₂ →ₗ[R] M₃) :
+  (g - h).comp f = g.comp f - h.comp f := rfl
+
+lemma comp_sub (g : M →ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) :
+  h.comp (g - f) = h.comp g - h.comp f := by { ext, simp }
 
 end add_comm_group
 
@@ -343,6 +377,12 @@ rfl
 
 theorem comp_smul (g : M₂ →ₗ[R] M₃) (a : R) : g.comp (a • f) = a • (g.comp f) :=
 ext $ assume b, by rw [comp_apply, smul_apply, g.map_smul]; refl
+
+/-- Applying a linear map at `v : M`, seen as a linear map from `M →ₗ[R] M₂` to `M₂`. -/
+def applyₗ (v : M) : (M →ₗ[R] M₂) →ₗ[R] M₂ :=
+{ to_fun := λ f, f v,
+  map_add' := λ f g, f.add_apply g v,
+  map_smul' := λ x f, f.smul_apply x v }
 
 end comm_semiring
 
@@ -434,6 +474,12 @@ instance inhabited' : inhabited (submodule R M) := ⟨⊥⟩
 section
 variables (R)
 @[simp] lemma mem_bot : x ∈ (⊥ : submodule R M) ↔ x = 0 := mem_singleton_iff
+end
+
+lemma nonzero_mem_of_bot_lt {I : submodule R M} (bot_lt : ⊥ < I) : ∃ a : I, a ≠ 0 :=
+begin
+  have h := (submodule.lt_iff_le_and_exists.1 bot_lt).2,
+  tidy,
 end
 
 instance : order_bot (submodule R M) :=
@@ -530,6 +576,9 @@ lemma bot_ne_top [nontrivial M] : (⊥ : submodule R M) ≠ ⊤ :=
   (↑⨅ i, p i : set M) = ⋂ i, ↑(p i) :=
 by rw [infi, Inf_coe]; ext a; simp; exact
 ⟨λ h i, h _ i rfl, λ h i x e, e ▸ h _⟩
+
+@[simp] lemma mem_Inf {S : set (submodule R M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p :=
+set.mem_bInter_iff
 
 @[simp] theorem mem_infi {ι} (p : ι → submodule R M) :
   x ∈ (⨅ i, p i) ↔ ∀ i, x ∈ p i :=
@@ -775,6 +824,14 @@ end
 
 lemma mem_span_singleton_self (x : M) : x ∈ span R ({x} : set M) := subset_span rfl
 
+lemma nontrivial_span_singleton {x : M} (h : x ≠ 0) : nontrivial (submodule.span R ({x} : set M)) :=
+⟨begin
+    use [0, x, submodule.mem_span_singleton_self x],
+    intros H,
+    rw [eq_comm, submodule.mk_eq_zero] at H,
+    exact h H
+end⟩
+
 lemma mem_span_singleton {y : M} : x ∈ span R ({y} : set M) ↔ ∃ a:R, a • y = x :=
 ⟨λ h, begin
   apply span_induction h,
@@ -835,6 +892,13 @@ lemma linear_eq_on (s : set M) {f g : M →ₗ[R] M₂} (H : ∀x∈s, f x = g x
   f x = g x :=
 by apply span_induction h H; simp {contextual := tt}
 
+lemma linear_map.ext_on {v : ι → M} {f g : M →ₗ[R] M₂} (hv : span R (range v) = ⊤)
+  (h : ∀i, f (v i) = g (v i)) : f = g :=
+begin
+  apply linear_map.ext (λ x, linear_eq_on (range v) _ (eq_top_iff'.1 hv _)),
+  exact (λ y hy, exists.elim (set.mem_range.1 hy) (λ i hi, by rw ←hi; exact h i))
+end
+
 lemma supr_eq_span {ι : Sort w} (p : ι → submodule R M) :
   (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=
 le_antisymm
@@ -844,6 +908,27 @@ le_antisymm
 lemma span_singleton_le_iff_mem (m : M) (p : submodule R M) :
   span R {m} ≤ p ↔ m ∈ p :=
 by rw [span_le, singleton_subset_iff, mem_coe]
+
+lemma lt_add_iff_not_mem {I : submodule R M} {a : M} : I < I + span R {a} ↔ a ∉ I :=
+begin
+  split,
+  { intro h,
+    by_contra akey,
+    have h1 : I + span R {a} ≤ I,
+    { simp only [add_eq_sup, sup_le_iff],
+      split,
+      { exact le_refl I, },
+      { exact (span_singleton_le_iff_mem a I).mpr akey, } },
+    have h2 := gt_of_ge_of_gt h1 h,
+    exact lt_irrefl I h2, },
+  { intro h,
+    apply lt_iff_le_and_exists.mpr, split,
+    simp only [add_eq_sup, le_sup_left],
+    use a,
+    split, swap, { assumption, },
+    { have : span R {a} ≤ I + span R{a} := le_sup_right,
+      exact this (mem_span_singleton_self a), } },
+end
 
 lemma mem_supr {ι : Sort w} (p : ι → submodule R M) {m : M} :
   (m ∈ ⨆ i, p i) ↔ (∀ N, (∀ i, p i ≤ N) → m ∈ N) :=
@@ -964,6 +1049,9 @@ instance : semimodule R (quotient p) :=
 semimodule.of_core $ by refine {smul := (•), ..};
   repeat {rintro ⟨⟩ <|> intro}; simp [smul_add, add_smul, smul_smul,
     -mk_add, (mk_add p).symm, -mk_smul, (mk_smul p).symm]
+
+lemma mk_surjective : function.surjective (@mk _ _ _ _ _ p) :=
+by { rintros ⟨x⟩, exact ⟨x, rfl⟩ }
 
 lemma nontrivial_of_lt_top (h : p < ⊤) : nontrivial (p.quotient) :=
 begin
@@ -1546,7 +1634,7 @@ variables [ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃
 variables [module R M] [module R M₂] [module R M₃]
 
 lemma range_mkq_comp (f : M →ₗ[R] M₂) : f.range.mkq.comp f = 0 :=
-linear_map.ext $ λ x, by { simp, use x }
+linear_map.ext $ λ x, by simp
 
 lemma ker_le_range_iff {f : M →ₗ[R] M₂} {g : M₂ →ₗ[R] M₃} :
   g.ker ≤ f.range ↔ f.range.mkq.comp g.ker.subtype = 0 :=
@@ -1708,6 +1796,9 @@ rfl
 @[simp] theorem map_add (a b : M) : e (a + b) = e a + e b := e.map_add' a b
 @[simp] theorem map_zero : e 0 = 0 := e.to_linear_map.map_zero
 @[simp] theorem map_smul (c : R) (x : M) : e (c • x) = c • e x := e.map_smul' c x
+
+@[simp] lemma map_sum {s : finset ι} (u : ι → M) : e (∑ i in s, u i) = ∑ i in s, e (u i) :=
+e.to_linear_map.map_sum
 
 @[simp] theorem map_eq_zero_iff {x : M} : e x = 0 ↔ x = 0 :=
 e.to_add_equiv.map_eq_zero_iff
@@ -2406,8 +2497,8 @@ lemma disjoint_std_basis_std_basis (I J : set ι) (h : disjoint I J) :
   disjoint (⨆i∈I, range (std_basis R φ i)) (⨆i∈J, range (std_basis R φ i)) :=
 begin
   refine disjoint.mono
-    (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ set.disjoint_compl I)
-    (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ set.disjoint_compl J) _,
+    (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ set.disjoint_compl_right I)
+    (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ set.disjoint_compl_right J) _,
   simp only [disjoint, submodule.le_def', mem_infi, mem_inf, mem_ker, mem_bot, proj_apply,
     funext_iff],
   rintros b ⟨hI, hJ⟩ i,

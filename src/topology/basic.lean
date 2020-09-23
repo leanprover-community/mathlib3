@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro, Jeremy Avigad
 -/
 import order.filter.ultrafilter
 import order.filter.partial
-import order.filter.bases
 
 /-!
 # Basic theory of topological spaces.
@@ -578,7 +577,7 @@ assume a s hs, mem_pure_sets.2 $ mem_of_nhds hs
 
 lemma tendsto_pure_nhds {α : Type*} [topological_space β] (f : α → β) (a : α) :
   tendsto f (pure a) (𝓝 (f a)) :=
-(tendsto_pure_pure f a).mono_right (pure_le_nhds _) 
+(tendsto_pure_pure f a).mono_right (pure_le_nhds _)
 
 lemma order_top.tendsto_at_top_nhds {α : Type*} [order_top α] [topological_space β] (f : α → β) :
   tendsto f at_top (𝓝 $ f ⊤) :=

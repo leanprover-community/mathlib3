@@ -245,9 +245,8 @@ begin
   dsimp at h₁ h₂ ⊢,
   calc (n:ennreal) = ↑(((n:nnreal) / ε) * ε) :
     begin
-      simp [nnreal.div_def],
-      rw [mul_assoc, ← coe_mul, nnreal.inv_mul_cancel, coe_one, ← coe_nat, mul_one],
-      exact zero_lt_iff_ne_zero.1 hε
+      norm_cast,
+      simp [nnreal.div_def, mul_assoc, nnreal.inv_mul_cancel (ne_of_gt hε)]
     end
     ... < (↑m * ε : nnreal) : coe_lt_coe.2 $ mul_lt_mul hm (le_refl _) hε (nat.cast_nonneg _)
     ... ≤ a₁ * a₂ : by rw [coe_mul]; exact canonically_ordered_semiring.mul_le_mul
@@ -529,8 +528,7 @@ protected lemma tsum_eq_supr_nat {f : ℕ → ennreal} :
 ennreal.tsum_eq_supr_sum' _ finset.exists_nat_subset_range
 
 protected lemma le_tsum (a : α) : f a ≤ (∑'a, f a) :=
-calc f a = ∑ x in {a}, f x : finset.sum_singleton.symm
-     ... ≤ ∑' x, f x       : ennreal.sum_le_tsum {a}
+le_tsum' ennreal.summable a
 
 protected lemma tsum_eq_top_of_eq_top : (∃ a, f a = ∞) → (∑' a, f a) = ∞
 | ⟨a, ha⟩ := top_unique $ ha ▸ ennreal.le_tsum a
@@ -575,6 +573,14 @@ begin
   { exact assume s t hst, finset.sum_le_sum_of_subset (finset.range_subset.2 hst) }
 end
 
+lemma to_nnreal_apply_of_tsum_ne_top {α : Type*} {f : α → ennreal} (hf : (∑' i, f i) ≠ ∞) (x : α) :
+  (((ennreal.to_nnreal ∘ f) x : nnreal) : ennreal) = f x :=
+coe_to_nnreal $ ennreal.ne_top_of_tsum_ne_top hf _
+
+lemma summable_to_nnreal_of_tsum_ne_top {α : Type*} {f : α → ennreal} (hf : (∑' i, f i) ≠ ∞) :
+  summable (ennreal.to_nnreal ∘ f) :=
+by simpa only [←tsum_coe_ne_top_iff_summable, to_nnreal_apply_of_tsum_ne_top hf] using hf
+
 end tsum
 
 end ennreal
@@ -606,7 +612,36 @@ lemma tsum_comp_le_tsum_of_inj {β : Type*} {f : α → nnreal} (hf : summable f
   {i : β → α} (hi : function.injective i) : tsum (f ∘ i) ≤ tsum f :=
 tsum_le_tsum_of_inj i hi (λ c hc, zero_le _) (λ b, le_refl _) (summable_comp_injective hf hi) hf
 
+open finset
+
+/-- If `f : ℕ → ℝ≥0` and `∑' f` exists, then `∑' k, f (k + i)` tends to zero. -/
+lemma tendsto_sum_nat_add (f : ℕ → nnreal) (hf : summable f) :
+  tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
+begin
+  have h₀ : (λ i, (∑' i, f i) - ∑ j in range i, f j) = λ i, ∑' (k : ℕ), f (k + i),
+  { ext1 i,
+    rw [sub_eq_iff_eq_add, sum_add_tsum_nat_add i hf, add_comm],
+    exact sum_le_tsum _ (λ _ _, zero_le _) hf },
+  have h₁ : tendsto (λ i : ℕ, ∑' i, f i) at_top (𝓝 (∑' i, f i)) := tendsto_const_nhds,
+  simpa only [h₀, sub_self] using tendsto.sub h₁ hf.has_sum.tendsto_sum_nat
+end
+
 end nnreal
+
+namespace ennreal
+
+lemma tendsto_sum_nat_add (f : ℕ → ennreal) (hf : (∑' i, f i) ≠ ∞) :
+  tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
+begin
+  have : ∀ i, (∑' k, (((ennreal.to_nnreal ∘ f) (k + i) : nnreal) : ennreal)) =
+    (∑' k, (ennreal.to_nnreal ∘ f) (k + i) : nnreal) :=
+    λ i, (ennreal.coe_tsum (nnreal.summable_nat_add _ (summable_to_nnreal_of_tsum_ne_top hf) _)).symm,
+  simp only [λ x, (to_nnreal_apply_of_tsum_ne_top hf x).symm, ←ennreal.coe_zero,
+    this, ennreal.tendsto_coe] { single_pass := tt },
+  exact nnreal.tendsto_sum_nat_add _ (summable_to_nnreal_of_tsum_ne_top hf)
+end
+
+end ennreal
 
 lemma tsum_comp_le_tsum_of_inj {β : Type*} {f : α → ℝ} (hf : summable f) (hn : ∀ a, 0 ≤ f a)
   {i : β → α} (hi : function.injective i) : tsum (f ∘ i) ≤ tsum f :=

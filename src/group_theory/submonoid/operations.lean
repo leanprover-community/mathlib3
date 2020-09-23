@@ -145,6 +145,10 @@ lemma mem_map {f : M →* N} {S : submonoid M} {y : N} :
 mem_image_iff_bex
 
 @[to_additive]
+lemma mem_map_of_mem {f : M →* N} {S : submonoid M} (x : S) : f x ∈ S.map f :=
+mem_image_of_mem f x.2
+
+@[to_additive]
 lemma map_map (g : N →* P) (f : M →* N) : (S.map f).map g = S.map (g.comp f) :=
 ext' $ image_image _ _ _
 

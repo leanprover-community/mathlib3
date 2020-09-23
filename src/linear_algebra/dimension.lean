@@ -128,6 +128,18 @@ theorem {m} is_basis.mk_eq_dim' {v : ι → V} (h : is_basis K v) :
   cardinal.lift.{w (max v m)} (cardinal.mk ι) = cardinal.lift.{v (max w m)} (dim K V) :=
 by simpa using h.mk_eq_dim
 
+theorem is_basis.mk_eq_dim'' {b : set V} (hb : is_basis K (λ x : b, (x : V))) :
+  cardinal.mk b = dim K V :=
+(dim K V).lift_id ▸ hb.mk_eq_dim ▸ (cardinal.mk b).lift_id.symm
+
+theorem dim_le {n : ℕ}
+  (H : ∀ s : finset V, linear_independent K (λ i : (↑s : set V), (i : V)) → s.card ≤ n) :
+  dim K V ≤ n :=
+let ⟨b, hb⟩ := exists_is_basis K V in
+hb.mk_eq_dim'' ▸ cardinal.card_le_of (λ s, @finset.card_map _ _ ⟨_, subtype.val_injective⟩ s ▸ H _
+(by { refine hb.1.mono (λ y h, _),
+  rw [finset.mem_coe, finset.mem_map] at h, rcases h with ⟨x, hx, rfl⟩, exact x.2 } ))
+
 variables [add_comm_group V'] [vector_space K V']
 
 /-- Two linearly equivalent vector spaces have the same dimension. -/
@@ -268,6 +280,20 @@ by { rw [dim_eq_of_injective f h], exact dim_submodule_le _ }
 lemma dim_le_of_submodule (s t : submodule K V) (h : s ≤ t) : dim K s ≤ dim K t :=
 dim_le_of_injective (of_le h) $ assume ⟨x, hx⟩ ⟨y, hy⟩ eq,
   subtype.eq $ show x = y, from subtype.ext_iff_val.1 eq
+
+lemma linear_independent_le_dim
+  {v : ι → V} (hv : linear_independent K v) :
+  cardinal.lift.{w v} (cardinal.mk ι) ≤ cardinal.lift.{v w} (dim K V) :=
+calc
+  cardinal.lift.{w v} (cardinal.mk ι) = cardinal.lift.{v w} (cardinal.mk (set.range v)) :
+     (cardinal.mk_range_eq_of_injective (linear_independent.injective hv)).symm
+  ... = cardinal.lift.{v w} (dim K (submodule.span K (set.range v))) : by rw (dim_span hv).symm
+  ... ≤ cardinal.lift.{v w} (dim K V) : cardinal.lift_le.2 (dim_submodule_le (submodule.span K _))
+
+theorem {u₁} linear_independent_le_dim' {v : ι → V} (hs : linear_independent K v) :
+  ((cardinal.mk ι).lift : cardinal.{(max w v u₁)}) ≤
+    ((vector_space.dim K V).lift : cardinal.{(max v w u₁)}) :=
+cardinal.mk_range_eq_lift hs.injective ▸ dim_span hs ▸ cardinal.lift_le.2 (dim_submodule_le _)
 
 section
 variables [add_comm_group V₂] [vector_space K V₂]

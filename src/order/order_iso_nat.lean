@@ -22,7 +22,7 @@ end
 
 def nat_gt [is_strict_order α r] (f : ℕ → α) (H : ∀ n:ℕ, r (f (n+1)) (f n)) :
   ((>) : ℕ → ℕ → Prop) ↪r r :=
-by haveI := is_strict_order.swap r; exact rsymm (nat_lt f H)
+by haveI := is_strict_order.swap r; exact rel_embedding.swap (nat_lt f H)
 
 theorem well_founded_iff_no_descending_seq [is_strict_order α r] :
   well_founded r ↔ ¬ nonempty (((>) : ℕ → ℕ → Prop) ↪r r) :=

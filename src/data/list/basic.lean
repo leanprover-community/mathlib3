@@ -5,8 +5,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 -/
 import algebra.order_functions
 import control.monad.basic
-import deprecated.group
-import data.nat.basic
+import data.nat.choose.basic
 import order.rel_classes
 
 /-!
@@ -1881,10 +1880,10 @@ theorem prod_hom_rel {α β γ : Type*} [monoid β] [monoid γ] (l : list α) {r
 list.rec_on l h₁ (λ a l hl, by simp only [map_cons, prod_cons, h₂ hl])
 
 @[to_additive]
-theorem prod_hom [monoid β] (l : list α) (f : α → β) [is_monoid_hom f] :
+theorem prod_hom [monoid β] (l : list α) (f : α →* β) :
   (l.map f).prod = f l.prod :=
-by { simp only [prod, foldl_map, (is_monoid_hom.map_one f).symm],
-  exact l.foldl_hom _ _ _ 1 (is_monoid_hom.map_mul f) }
+by { simp only [prod, foldl_map, f.map_one.symm],
+  exact l.foldl_hom _ _ _ 1 f.map_mul }
 
 -- `to_additive` chokes on the next few lemmas, so we do them by hand below
 @[simp]
@@ -1973,7 +1972,7 @@ theorem prod_erase [decidable_eq α] [comm_monoid α] {a} :
     { simp only [list.erase, if_neg (mt eq.symm ne), prod_cons, prod_erase h, mul_left_comm a b] }
   end
 
-lemma dvd_prod [comm_semiring α] {a} {l : list α} (ha : a ∈ l) : a ∣ l.prod :=
+lemma dvd_prod [comm_monoid α] {a} {l : list α} (ha : a ∈ l) : a ∣ l.prod :=
 let ⟨s, t, h⟩ := mem_split ha in
 by rw [h, prod_append, prod_cons, mul_left_comm]; exact dvd_mul_right _ _
 

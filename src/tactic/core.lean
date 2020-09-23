@@ -9,6 +9,7 @@ import control.basic
 import meta.expr
 import meta.rb_map
 import data.bool
+import tactic.binder_matching
 import tactic.lean_core_docs
 import tactic.interactive_expr
 import system.io
@@ -193,16 +194,84 @@ meta def add_local_consts_as_local_hyps (vars : list expr) : tactic (list (expr 
    reported by the system is often mostly the reverse of the order in which they are dependent. -/
 add_local_consts_as_local_hyps_aux [] vars.reverse.erase_dup
 
-/-- `mk_local_pisn e n` instantiates the first `n` variables of a pi expression `e`,
-and returns the new local constants along with the instantiated expression. Fails if `e` does
-not begin with at least `n` pi binders. -/
-meta def mk_local_pisn : expr → nat → tactic (list expr × expr)
-| (expr.pi n bi d b) (c + 1) := do
-  p ← mk_local' n bi d,
-  (ps, r) ← mk_local_pisn (b.instantiate_var p) c,
-  return ((p :: ps), r)
-| e 0 := return ([], e)
-| _ _ := failed
+private meta def get_expl_pi_arity_aux : expr → tactic nat
+| (expr.pi n bi d b) :=
+  do m     ← mk_fresh_name,
+     let l := expr.local_const m n bi d,
+     new_b ← whnf (expr.instantiate_var b l),
+     r     ← get_expl_pi_arity_aux new_b,
+     if bi = binder_info.default then
+       return (r + 1)
+     else
+       return r
+| e := return 0
+
+/-- Compute the arity of explicit arguments of `type`. -/
+meta def get_expl_pi_arity (type : expr) : tactic nat :=
+whnf type >>= get_expl_pi_arity_aux
+
+/-- Compute the arity of explicit arguments of `fn`'s type. -/
+meta def get_expl_arity (fn : expr) : tactic nat :=
+infer_type fn >>= get_expl_pi_arity
+
+/--
+Auxiliary function for `get_app_fn_args_whnf`.
+-/
+private meta def get_app_fn_args_whnf_aux (md : transparency)
+  (unfold_ginductive : bool) : list expr → expr → tactic (expr × list expr) :=
+λ args e, do
+  (expr.app t u) ← whnf e md unfold_ginductive | pure (e, args),
+  get_app_fn_args_whnf_aux (u :: args) t
+
+/--
+For `e = f x₁ ... xₙ`, `get_app_fn_args_whnf e` returns `(f, [x₁, ..., xₙ])`. `e`
+is normalised as necessary; for example:
+
+```
+get_app_fn_args_whnf `(let f := g x in f y) = (`(g), [`(x), `(y)])
+```
+-/
+meta def get_app_fn_args_whnf (e : expr) (md := semireducible)
+  (unfold_ginductive := tt) : tactic (expr × list expr) :=
+get_app_fn_args_whnf_aux md unfold_ginductive [] e
+
+/--
+`get_app_fn_whnf e md unfold_ginductive` is like `expr.get_app_fn e` but `e` is
+normalised as necessary (with transparency `md`). `unfold_ginductive` controls
+whether constructors of generalised inductive types are unfolded.
+-/
+meta def get_app_fn_whnf : expr → opt_param _ semireducible → opt_param _ tt → tactic expr
+| e md unfold_ginductive := do
+  (expr.app f _) ← whnf e md unfold_ginductive | pure e,
+  get_app_fn_whnf f md
+
+/-- `pis loc_consts f` is used to create a pi expression whose body is `f`.
+`loc_consts` should be a list of local constants. The function will abstract these local
+constants from `f` and bind them with pi binders.
+
+For example, if `a, b` are local constants with types `Ta, Tb`,
+``pis [a, b] `(f a b)`` will return the expression
+`Π (a : Ta) (b : Tb), f a b`. -/
+meta def pis : list expr → expr → tactic expr
+| (e@(expr.local_const uniq pp info _) :: es) f := do
+  t ← infer_type e,
+  f' ← pis es f,
+  pure $ expr.pi pp info t (expr.abstract_local f' uniq)
+| _ f := pure f
+
+/-- `lambdas loc_consts f` is used to create a lambda expression whose body is `f`.
+`loc_consts` should be a list of local constants. The function will abstract these local
+constants from `f` and bind them with lambda binders.
+
+For example, if `a, b` are local constants with types `Ta, Tb`,
+``lambdas [a, b] `(f a b)`` will return the expression
+`λ (a : Ta) (b : Tb), f a b`. -/
+meta def lambdas : list expr → expr → tactic expr
+| (e@(expr.local_const uniq pp info _) :: es) f := do
+  t ← infer_type e,
+  f' ← lambdas es f,
+  pure $ expr.lam pp info t (expr.abstract_local f' uniq)
+| _ f := pure f
 
 -- TODO: move to `declaration` namespace in `meta/expr.lean`
 /-- `mk_theorem n ls t e` creates a theorem declaration with name `n`, universe parameters named
@@ -253,7 +322,7 @@ Covers all declarations from the current file. -/
 meta def local_decls : tactic (name_map declaration) :=
 do e ← tactic.get_env,
    let xs := e.fold native.mk_rb_map
-     (λ d s, if environment.in_current_file' e d.to_name
+     (λ d s, if environment.in_current_file e d.to_name
              then s.insert d.to_name d else s),
    pure xs
 
@@ -279,7 +348,7 @@ do root ← unsafe_run_io $ io.env.get_cwd,
    let xs := e.fold native.mk_rb_map
      (λ d s,
        let source := e.decl_olean d.to_name in
-       if source ∈ fs ∧ (source = none → e.in_current_file' d.to_name)
+       if source ∈ fs ∧ (source = none → e.in_current_file d.to_name)
        then s.insert d.to_name d else s),
    pure xs
 
@@ -327,34 +396,6 @@ The type of this local constant is a constant with name `n`, so it is very unlik
 a meaningful expression. -/
 meta def mk_local (n : name) : expr :=
 expr.local_const n n binder_info.default (expr.const n [])
-
-/-- `pis loc_consts f` is used to create a pi expression whose body is `f`.
-`loc_consts` should be a list of local constants. The function will abstract these local
-constants from `f` and bind them with pi binders.
-
-For example, if `a, b` are local constants with types `Ta, Tb`,
-``pis [a, b] `(f a b)`` will return the expression
-`Π (a : Ta) (b : Tb), f a b`. -/
-meta def pis : list expr → expr → tactic expr
-| (e@(expr.local_const uniq pp info _) :: es) f := do
-  t ← infer_type e,
-  f' ← pis es f,
-  pure $ expr.pi pp info t (expr.abstract_local f' uniq)
-| _ f := pure f
-
-/-- `lambdas loc_consts f` is used to create a lambda expression whose body is `f`.
-`loc_consts` should be a list of local constants. The function will abstract these local
-constants from `f` and bind them with lambda binders.
-
-For example, if `a, b` are local constants with types `Ta, Tb`,
-``lambdas [a, b] `(f a b)`` will return the expression
-`λ (a : Ta) (b : Tb), f a b`. -/
-meta def lambdas : list expr → expr → tactic expr
-| (e@(expr.local_const uniq pp info _) :: es) f := do
-  t ← infer_type e,
-  f' ← lambdas es f,
-  pure $ expr.lam pp info t (expr.abstract_local f' uniq)
-| _ f := pure f
 
 /-- `mk_psigma [x,y,z]`, with `[x,y,z]` list of local constants of types `x : tx`,
 `y : ty x` and `z : tz x y`, creates an expression of sigma type:
@@ -649,54 +690,6 @@ protected meta def of_int (c : instance_cache) : ℤ → tactic (instance_cache 
 
 end instance_cache
 
-private meta def get_expl_pi_arity_aux : expr → tactic nat
-| (expr.pi n bi d b) :=
-  do m     ← mk_fresh_name,
-     let l := expr.local_const m n bi d,
-     new_b ← whnf (expr.instantiate_var b l),
-     r     ← get_expl_pi_arity_aux new_b,
-     if bi = binder_info.default then
-       return (r + 1)
-     else
-       return r
-| e := return 0
-
-/-- Compute the arity of explicit arguments of the given (Pi-)type. -/
-meta def get_expl_pi_arity (type : expr) : tactic nat :=
-whnf type >>= get_expl_pi_arity_aux
-
-/-- Compute the arity of explicit arguments of the given function. -/
-meta def get_expl_arity (fn : expr) : tactic nat :=
-infer_type fn >>= get_expl_pi_arity
-
-/-- Auxilliary defintion for `get_pi_binders`. -/
-meta def get_pi_binders_aux : list binder → expr → tactic (list binder × expr)
-| es (expr.pi n bi d b) :=
-  do m ← mk_fresh_name,
-     let l := expr.local_const m n bi d,
-     let new_b := expr.instantiate_var b l,
-     get_pi_binders_aux (⟨n, bi, d⟩::es) new_b
-| es e                  := return (es, e)
-
-/-- Get the binders and target of a pi-type. Instantiates bound variables by
-local constants. Cf. `pi_binders` in `meta.expr` (which produces open terms).
-See also `mk_local_pis` in `init.core.tactic` which does almost the same. -/
-meta def get_pi_binders : expr → tactic (list binder × expr) | e :=
-do (es, e) ← get_pi_binders_aux [] e, return (es.reverse, e)
-
-/-- Auxilliary definition for `get_pi_binders_dep`. -/
-meta def get_pi_binders_dep_aux : ℕ → expr → tactic (list (ℕ × binder) × expr)
-| n (expr.pi nm bi d b) :=
- do l ← mk_local' nm bi d,
-    (ls, r) ← get_pi_binders_dep_aux (n+1) (expr.instantiate_var b l),
-    return (if b.has_var then ls else (n, ⟨nm, bi, d⟩)::ls, r)
-| n e                  := return ([], e)
-
-/-- A variant of `get_pi_binders` that only returns the binders that do not occur in later
-arguments or in the target. Also returns the argument position of each returned binder. -/
-meta def get_pi_binders_dep : expr → tactic (list (ℕ × binder) × expr) :=
-get_pi_binders_dep_aux 0
-
 /-- A variation on `assert` where a (possibly incomplete)
 proof of the assertion is provided as a parameter.
 
@@ -748,7 +741,7 @@ do env ← get_env,
 private meta def expanded_field_list' : name → tactic (dlist $ name × name) | struct_n :=
 do (so,fs) ← subobject_names struct_n,
    ts ← so.mmap (λ n, do
-     (_, e) ← mk_const (n.update_prefix struct_n) >>= infer_type >>= mk_local_pis,
+     (_, e) ← mk_const (n.update_prefix struct_n) >>= infer_type >>= open_pis,
      expanded_field_list' $ e.get_app_fn.const_name),
    return $ dlist.join ts ++ dlist.of_list (fs.map $ prod.mk struct_n)
 open functor function
@@ -1179,14 +1172,6 @@ meta def dependent_pose_core (l : list (expr × expr)) : tactic unit := do
   exact ((new_goal.mk_app lc).instantiate_locals lm),
   return ()
 
-/-- Like `mk_local_pis` but translating into weak head normal form before checking if it is a `Π`.
--/
-meta def mk_local_pis_whnf (e : expr) (md := semireducible) : tactic (list expr × expr) := do
-  expr.pi n bi d b ← whnf e md | return ([], e),
-  p ← mk_local' n bi d,
-  (ps, r) ← mk_local_pis (expr.instantiate_var b p),
-  return ((p :: ps), r)
-
 /--
 Instantiates metavariables that appear in the current goal.
 -/
@@ -1198,15 +1183,6 @@ Instantiates metavariables in all goals.
 -/
 meta def instantiate_mvars_in_goals : tactic unit :=
 all_goals' $ instantiate_mvars_in_target
-
-/-- Similar to `mk_local_pis` but make meta variables instead of
-local constants. -/
-meta def mk_meta_pis : expr → tactic (list expr × expr)
-| (expr.pi n bi d b) := do
-  p ← mk_meta_var d,
-  (ps, r) ← mk_meta_pis (expr.instantiate_var b p),
-  return ((p :: ps), r)
-| e := return ([], e)
 
 /-- Protect the declaration `n` -/
 meta def mk_protected (n : name) : tactic unit :=
@@ -1394,7 +1370,7 @@ do let cl := t.get_app_fn.const_name,
    env ← get_env,
    let fs := env.constructors_of cl,
    fs.mmap $ λ f,
-     do { (vs,_) ← mk_const f >>= infer_type >>= mk_local_pis,
+     do { (vs,_) ← mk_const f >>= infer_type >>= open_pis,
           let vs := vs.filter (λ v, v.is_default_local),
           vs ← vs.mmap (λ v,
             do v' ← get_unused_name v.local_pp_name,
@@ -1510,7 +1486,7 @@ meta def foo : expr → tactic unit := -- don't forget to erase `:=`!!
          | _ := fail "expecting one type"
          end,
      e ← whnf t,
-     (v :: _,_) ← mk_local_pis e | fail "expecting a Pi-type",
+     (v :: _,_) ← open_pis e | fail "expecting a Pi-type",
      t' ← infer_type v,
      fs ← mk_patterns t',
      t ← pp t,
@@ -1558,7 +1534,7 @@ sum.inr : ℕ → ℤ ⊕ ℕ
   descr := "Show the list of constructors of the expected type.",
   action := λ es,
   do t ← target >>= whnf,
-     (_,t) ← mk_local_pis t,
+     (_,t) ← open_pis t,
      let cl := t.get_app_fn.const_name,
      let args := t.get_app_args,
      env ← get_env,

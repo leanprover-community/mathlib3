@@ -126,6 +126,9 @@ lemma Inter_subset_Inter2 {s : ι → set α} {t : ι' → set α} (h : ∀ j, �
   (⋂ i, s i) ⊆ (⋂ j, t j) :=
 set.subset_Inter $ λ j, let ⟨i, hi⟩ := h j in Inter_subset_of_subset i hi
 
+lemma Inter_set_of (P : ι → α → Prop) : (⋂ i, {x : α | P i x }) = {x : α | ∀ i, P i x} :=
+by { ext, simp }
+
 theorem Union_const [nonempty ι] (s : set β) : (⋃ i:ι, s) = s :=
 ext $ by simp
 
@@ -1047,7 +1050,9 @@ ht.sup_right hu
 theorem disjoint_diff {a b : set α} : disjoint a (b \ a) :=
 disjoint_iff.2 (inter_diff_self _ _)
 
-theorem disjoint_compl (s : set α) : disjoint s sᶜ := assume a ⟨h₁, h₂⟩, h₂ h₁
+theorem disjoint_compl_left (s : set α) : disjoint sᶜ s := assume a ⟨h₁, h₂⟩, h₁ h₂
+
+theorem disjoint_compl_right (s : set α) : disjoint s sᶜ := assume a ⟨h₁, h₂⟩, h₂ h₁
 
 theorem disjoint_singleton_left {a : α} {s : set α} : disjoint {a} s ↔ a ∉ s :=
 by simp [set.disjoint_iff, subset_def]; exact iff.rfl

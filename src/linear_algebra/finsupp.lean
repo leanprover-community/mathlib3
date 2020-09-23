@@ -70,8 +70,8 @@ lemma disjoint_lsingle_lsingle (s t : set α) (hs : disjoint s t) :
   disjoint (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range) (⨆a∈t, (lsingle a).range) :=
 begin
   refine disjoint.mono
-    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl s)
-    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl t)
+    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl_right s)
+    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl_right t)
     (le_trans (le_infi $ assume i, _) infi_ker_lapply_le_bot),
   classical,
   by_cases his : i ∈ s,
@@ -296,6 +296,11 @@ variables {α M v}
 theorem total_apply (l : α →₀ R) :
   finsupp.total α M R v l = l.sum (λ i a, a • v i) := rfl
 
+theorem total_apply_of_mem_supported {l : α →₀ R} {s : finset α}
+  (hs : l ∈ supported R R (↑s : set α)) :
+  finsupp.total α M R v l = s.sum (λ i, l i • v i) :=
+finset.sum_subset hs $ λ x _ hxg, show l x • v x = 0, by rw [not_mem_support_iff.1 hxg, zero_smul]
+
 @[simp] theorem total_single (c : R) (a : α) :
   finsupp.total α M R v (single a c) = c • (v a) :=
 by simp [total_apply, sum_single_index]
@@ -394,6 +399,18 @@ lemma total_comap_domain
  finsupp.total α M R v (finsupp.comap_domain f l hf) =
    (l.support.preimage f hf).sum (λ i, (l (f i)) • (v i)) :=
 by rw finsupp.total_apply; refl
+
+lemma total_on_finset
+  {s : finset α} {f : α → R} (g : α → M) (hf : ∀ a, f a ≠ 0 → a ∈ s):
+  finsupp.total α M R g (finsupp.on_finset s f hf) =
+    finset.sum s (λ (x : α), f x • g x) :=
+begin
+  simp only [finsupp.total_apply, finsupp.sum, finsupp.on_finset_apply, finsupp.support_on_finset],
+  rw finset.sum_filter_of_ne,
+  intros x hx h,
+  contrapose! h,
+  simp [h],
+end
 
 end total
 

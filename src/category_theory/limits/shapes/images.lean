@@ -317,6 +317,11 @@ image.lift
   m := image.ι g,
   e := f ≫ factor_thru_image g }
 
+@[simp, reassoc]
+lemma image.factor_thru_image_pre_comp [has_image g] [has_image (f ≫ g)] :
+  factor_thru_image (f ≫ g) ≫ image.pre_comp f g = f ≫ factor_thru_image g :=
+by simp [image.pre_comp]
+
 /--
 The two step comparison map
   `image (f ≫ (g ≫ h)) ⟶ image (g ≫ h) ⟶ image h`
@@ -332,6 +337,21 @@ begin
   apply (cancel_mono (image.ι h)).1,
   simp [image.pre_comp, image.eq_to_hom],
 end
+
+variables [has_equalizers C]
+
+/--
+`image.pre_comp f g` is an isomorphism when `f` is an isomorphism
+(we need `C` to have equalizers to prove this).
+-/
+instance image.is_iso_precomp_iso (f : X ≅ Y) [has_image g] [has_image (f.hom ≫ g)] :
+  is_iso (image.pre_comp f.hom g) :=
+{ inv := image.lift
+  { I := image (f.hom ≫ g),
+    m := image.ι (f.hom ≫ g),
+    e := f.inv ≫ factor_thru_image (f.hom ≫ g) },
+  hom_inv_id' := by { ext, simp [image.pre_comp], },
+  inv_hom_id' := by { ext, simp [image.pre_comp], }, }
 
 -- Note that in general we don't have the other comparison map you might expect
 -- `image f ⟶ image (f ≫ g)`.
@@ -540,5 +560,27 @@ instance has_image_maps_of_has_strong_epi_images [has_strong_epi_images C] :
         is_image.lift_fac upper.to_mono_is_image lower.to_mono_factorisation, image.fac] } }
 
 end has_strong_epi_images
+
+variables [has_strong_epi_mono_factorisations.{v} C]
+variables {X Y : C} {f : X ⟶ Y}
+
+/--
+If `C` has strong epi mono factorisations, then the image is unique up to isomorphism, in that if
+`f` factors as a strong epi followed by a mono, this factorisation is essentially the image
+factorisation.
+-/
+def image.iso_strong_epi_mono {I' : C} (e : X ⟶ I') (m : I' ⟶ Y) (comm : e ≫ m = f) [strong_epi e] [mono m] :
+  I' ≅ image f :=
+is_image.iso_ext {strong_epi_mono_factorisation . I := I', m := m, e := e}.to_mono_is_image (image.is_image f)
+
+@[simp]
+lemma image.iso_strong_epi_mono_hom_comp_ι {I' : C} (e : X ⟶ I') (m : I' ⟶ Y) (comm : e ≫ m = f) [strong_epi e] [mono m] :
+  (image.iso_strong_epi_mono e m comm).hom ≫ image.ι f = m :=
+is_image.lift_fac _ _
+
+@[simp]
+lemma image.iso_strong_epi_mono_inv_comp_mono {I' : C} (e : X ⟶ I') (m : I' ⟶ Y) (comm : e ≫ m = f) [strong_epi e] [mono m] :
+  (image.iso_strong_epi_mono e m comm).inv ≫ m = image.ι f :=
+image.lift_fac _
 
 end category_theory.limits

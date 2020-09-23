@@ -264,7 +264,7 @@ begin
   rcases v.1 c.b_mem_bottom with ⟨_, ⟨i, rfl⟩, hi⟩,
   have h2i : i ∈ bcubes cs c := ⟨hi.1.symm, v.2.1 i hi.1.symm ⟨tail c.b, hi.2, λ j, c.b_mem_side j.succ⟩⟩,
   let j : fin (n+1) := ⟨2, h.2.2.2.2⟩,
-  have hj : 0 ≠ j := by { intro h', have := congr_arg fin.val h', contradiction },
+  have hj : 0 ≠ j := by { simp only [fin.ext_iff, ne.def], contradiction },
   let p : fin (n+1) → ℝ := λ j', if j' = j then c.b j + (cs i).w else c.b j',
   have hp : p ∈ c.bottom,
   { split, { simp only [bottom, p, if_neg hj] },

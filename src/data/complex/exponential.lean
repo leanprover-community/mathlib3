@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir
 -/
 import algebra.geom_sum
-import data.nat.choose
+import data.nat.choose.sum
 import data.complex.basic
 /-!
 # Exponential, trigonometric and hyperbolic trigonometric functions

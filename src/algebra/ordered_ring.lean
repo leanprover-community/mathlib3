@@ -5,7 +5,6 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 import algebra.ordered_group
 
-set_option default_priority 100 -- see Note [default priority]
 set_option old_structure_cmd true
 
 universe u
@@ -332,6 +331,7 @@ lt_of_not_ge (λ ha, absurd h (mul_nonpos_of_nonneg_of_nonpos ha hb).not_lt)
 lemma neg_of_mul_pos_right (h : 0 < a * b) (ha : a ≤ 0) : b < 0 :=
 lt_of_not_ge (λ hb, absurd h (mul_nonpos_of_nonpos_of_nonneg ha hb).not_lt)
 
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_semiring.to_nontrivial {α : Type*} [linear_ordered_semiring α] :
   nontrivial α :=
 { exists_pair_ne := ⟨0, 1, ne_of_lt zero_lt_one⟩ }
@@ -339,6 +339,7 @@ instance linear_ordered_semiring.to_nontrivial {α : Type*} [linear_ordered_semi
 /- TODO This theorem ought to be written in the context of `nontrivial` linearly ordered (additive)
 commutative monoids rather than linearly ordered rings; however, the former concept does not
 currently exist in mathlib. -/
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_semiring α] :
   no_top_order α :=
 ⟨assume a, ⟨a + 1, lt_add_of_pos_right _ zero_lt_one⟩⟩
@@ -461,6 +462,7 @@ begin
   apply lt_of_sub_pos this
 end
 
+@[priority 100] -- see Note [lower instance priority]
 instance ordered_ring.to_ordered_semiring : ordered_semiring α :=
 { mul_zero                   := mul_zero,
   zero_mul                   := zero_mul,
@@ -513,6 +515,7 @@ multiplication with a positive number and addition are monotone. -/
 section linear_ordered_ring
 variables [linear_ordered_ring α] {a b c : α}
 
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_ring.to_linear_ordered_semiring : linear_ordered_semiring α :=
 { mul_zero                   := mul_zero,
   zero_mul                   := zero_mul,
@@ -609,6 +612,7 @@ end
 /- TODO This theorem ought to be written in the context of `nontrivial` linearly ordered (additive)
 commutative groups rather than linearly ordered rings; however, the former concept does not
 currently exist in mathlib. -/
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_ring.to_no_bot_order : no_bot_order α :=
 ⟨assume a, ⟨a - 1, sub_lt_iff_lt_add.mpr $ lt_add_of_pos_right _ zero_lt_one⟩⟩
 
@@ -674,6 +678,7 @@ such that multiplication with a positive number and addition are monotone. -/
 @[protect_proj]
 class linear_ordered_comm_ring (α : Type u) extends linear_ordered_ring α, comm_monoid α
 
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_comm_ring.to_integral_domain [s: linear_ordered_comm_ring α] : integral_domain α :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := @linear_ordered_ring.eq_zero_or_eq_zero_of_mul_eq_zero α _,
   ..s }
@@ -684,6 +689,7 @@ addition are monotone. -/
 @[protect_proj] class decidable_linear_ordered_comm_ring (α : Type u) extends linear_ordered_comm_ring α,
     decidable_linear_ordered_add_comm_group α
 
+@[priority 100] -- see Note [lower instance priority]
 instance decidable_linear_ordered_comm_ring.to_decidable_linear_ordered_semiring [d : decidable_linear_ordered_comm_ring α] :
    decidable_linear_ordered_semiring α :=
 let s : linear_ordered_semiring α := @linear_ordered_ring.to_linear_ordered_semiring α _ in
@@ -814,6 +820,7 @@ namespace nonneg_ring
 open nonneg_add_comm_group
 variable [nonneg_ring α]
 
+@[priority 100] -- see Note [lower instance priority]
 instance to_ordered_ring : ordered_ring α :=
 { mul_pos := λ a b, by simp [pos_def.symm]; exact mul_pos,
   ..‹nonneg_ring α›, ..(infer_instance : ordered_add_comm_group α) }
@@ -900,6 +907,7 @@ variables [canonically_ordered_comm_semiring α] {a b : α}
 
 open canonically_ordered_add_monoid (le_iff_exists_add)
 
+@[priority 100] -- see Note [lower instance priority]
 instance canonically_ordered_comm_semiring.to_no_zero_divisors :
   no_zero_divisors α :=
 ⟨canonically_ordered_comm_semiring.eq_zero_or_eq_zero_of_mul_eq_zero⟩
@@ -911,6 +919,12 @@ begin
   suffices : a * c ≤ a * c + (a * d + b * c + b * d), by simpa [mul_add, add_mul, _root_.add_assoc],
   exact (le_iff_exists_add _ _).2 ⟨_, rfl⟩
 end
+
+lemma mul_le_mul_left' {b c : α} (h : b ≤ c) (a : α) : a * b ≤ a * c :=
+mul_le_mul (le_refl a) h
+
+lemma mul_le_mul_right' {b c : α} (h : b ≤ c) (a : α) : b * a ≤ c * a :=
+mul_le_mul h (le_refl a)
 
 /-- A version of `zero_lt_one : 0 < 1` for a `canonically_ordered_comm_semiring`. -/
 lemma zero_lt_one : (0:α) < 1 := (zero_le 1).lt_of_ne zero_ne_one

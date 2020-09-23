@@ -1378,7 +1378,6 @@ meta def eval : expr → ring_exp_m (ex sum)
   psqs_pf ← psqs.proof_term,
   (do has_pow_pf ← match hp_instance with
   | `(monoid.has_pow) := lift $ mk_eq_refl e
-  | `(nat.has_pow) := lift $ mk_app ``nat.pow_eq_pow [ps, qs] >>= mk_eq_symm
   | _ := lift $ fail "has_pow instance must be nat.has_pow or monoid.has_pow"
   end,
   pf ← lift $ mk_eq_trans has_pow_pf psqs_pf,

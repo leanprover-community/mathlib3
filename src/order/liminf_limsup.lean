@@ -267,8 +267,7 @@ lemma limsup_congr {α : Type*} [conditionally_complete_lattice β] {f : filter 
   (h : ∀ᶠ a in f, u a = v a) : limsup f u = limsup f v :=
 begin
   rw limsup_eq,
-  congr,
-  ext b,
+  congr' with b,
   exact eventually_congr (h.mono $ λ x hx, by simp [hx])
 end
 
@@ -331,6 +330,9 @@ lemma limsup_eq_infi_supr_of_nat {u : ℕ → α} : limsup at_top u = ⨅n:ℕ, 
 (at_top_basis.map u).Limsup_eq_infi_Sup.trans $
   by simp only [Sup_image, infi_const]; refl
 
+lemma limsup_eq_infi_supr_of_nat' {u : ℕ → α} : limsup at_top u = ⨅n:ℕ, ⨆i, u (i + n) :=
+by simp only [limsup_eq_infi_supr_of_nat, supr_ge_eq_supr_nat_add]
+
 theorem Liminf_eq_supr_Inf {f : filter α} : f.Liminf = ⨆ s ∈ f, Inf s :=
 @Limsup_eq_infi_Sup (order_dual α) _ _
 
@@ -341,6 +343,9 @@ theorem liminf_eq_supr_infi {f : filter β} {u : β → α} : f.liminf u = ⨆ s
 
 lemma liminf_eq_supr_infi_of_nat {u : ℕ → α} : liminf at_top u = ⨆n:ℕ, ⨅i≥n, u i :=
 @limsup_eq_infi_supr_of_nat (order_dual α) _ u
+
+lemma liminf_eq_supr_infi_of_nat' {u : ℕ → α} : liminf at_top u = ⨆n:ℕ, ⨅i, u (i + n) :=
+@limsup_eq_infi_supr_of_nat' (order_dual α) _ _
 
 end complete_lattice
 

@@ -176,6 +176,13 @@ lemma le_iff_le (H : strict_mono f) {a b} :
   f a ≤ f b ↔ a ≤ b :=
 ⟨λ h, le_of_not_gt $ λ h', not_le_of_lt (H h') h,
  λ h, (lt_or_eq_of_le h).elim (λ h', le_of_lt (H h')) (λ h', h' ▸ le_refl _)⟩
+
+lemma top_preimage_top (H : strict_mono f) {a} (h_top : ∀ p, p ≤ f a) (x : α) : x ≤ a :=
+H.le_iff_le.mp (h_top (f x))
+
+lemma bot_preimage_bot (H : strict_mono f) {a} (h_bot : ∀ p, f a ≤ p) (x : α) : a ≤ x :=
+H.le_iff_le.mp (h_bot (f x))
+
 end
 
 protected lemma nat {β} [preorder β] {f : ℕ → β} (h : ∀n, f n < f (n+1)) : strict_mono f :=
@@ -334,6 +341,8 @@ instance subtype.decidable_linear_order {α} [decidable_linear_order α] (p : α
   decidable_linear_order (subtype p) :=
 decidable_linear_order.lift subtype.val subtype.val_injective
 
+lemma strict_mono_coe [preorder α] (t : set α) : strict_mono (coe : (subtype t) → α) := λ x y, id
+
 instance prod.has_le (α : Type u) (β : Type v) [has_le α] [has_le β] : has_le (α × β) :=
 ⟨λp q, p.1 ≤ q.1 ∧ p.2 ≤ q.2⟩
 
@@ -431,3 +440,14 @@ variables {s : β → β → Prop} {t : γ → γ → Prop}
 as an instance to avoid a loop. -/
 noncomputable def classical.DLO (α) [LO : linear_order α] : decidable_linear_order α :=
 { decidable_le := classical.dec_rel _, ..LO }
+
+/-- Type synonym to create an instance of `linear_order` from a
+`partial_order` and `[is_total α (≤)]` -/
+def as_linear_order (α : Type u) := α
+
+instance {α} [inhabited α] : inhabited (as_linear_order α) :=
+⟨ (default α : α) ⟩
+
+instance as_linear_order.linear_order {α} [partial_order α] [is_total α (≤)] : linear_order (as_linear_order α) :=
+{ le_total := @total_of α (≤) _,
+  .. (_ : partial_order α) }

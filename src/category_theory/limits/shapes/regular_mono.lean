@@ -24,6 +24,8 @@ construction
 
 -/
 
+noncomputable theory
+
 namespace category_theory
 open category_theory.limits
 
@@ -344,11 +346,11 @@ def normal_of_is_pushout_snd_of_normal {P Q R S : C} {f : P ⟶ Q} {g : P ⟶ R}
 normal_epi h :=
 { W := gn.W,
   g := gn.g ≫ f,
-  w := by rw [category.assoc, comm, reassoc_of gn.w, has_zero_morphisms.zero_comp],
+  w := by rw [category.assoc, comm, reassoc_of gn.w, zero_comp],
   is_colimit :=
   begin
     letI hn := regular_of_is_pushout_snd_of_regular comm t,
-    have q := (has_zero_morphisms.zero_comp gn.W f).symm,
+    have q := (@zero_comp _ _ _ gn.W _ _ f).symm,
     convert hn.is_colimit,
     dunfold cokernel_cofork.of_π cofork.of_π,
     congr, exact q, exact q, exact q, apply proof_irrel_heq,

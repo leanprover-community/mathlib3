@@ -512,8 +512,7 @@ begin
   dsimp,
   rw [comp_id, H.map_comp, is_equivalence.fun_inv_map H, assoc, nat_iso.cancel_nat_iso_hom_left,
       assoc, is_equivalence.inv_fun_id_inv_comp],
-  apply comp_id,
-  -- annoyingly `dsimp, simp` leaves it as `c.π.app j ≫ 𝟙 _ = c.π.app j` instead of closing...
+  dsimp, simp,
 end
 
 /-- `map_cone` is the right inverse to `map_cone_inv`. -/
@@ -543,6 +542,22 @@ variables {F : J ⥤ C}
   ι :=
   { app := λ j, (c.π.app (unop j)).op,
     naturality' := λ j j' f, has_hom.hom.unop_inj (by tidy) } }
+
+/-- Change a `cocone F.op` into a `cone F`. -/
+@[simps] def cocone.unop (c : cocone F.op) : cone F :=
+{ X := unop c.X,
+  π :=
+  { app := λ j, (c.ι.app (op j)).unop,
+    naturality' := λ j j' f, has_hom.hom.op_inj
+    begin dsimp, simp only [comp_id], exact (c.w f.op).symm, end } }
+
+/-- Change a `cone F.op` into a `cocone F`. -/
+@[simps] def cone.unop (c : cone F.op) : cocone F :=
+{ X := unop c.X,
+  ι :=
+  { app := λ j, (c.π.app (op j)).unop,
+    naturality' := λ j j' f, has_hom.hom.op_inj
+    begin dsimp, simp only [id_comp], exact (c.w f.op), end } }
 
 end
 

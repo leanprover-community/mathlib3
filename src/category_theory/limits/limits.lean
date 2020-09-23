@@ -1561,4 +1561,35 @@ by { constructor, intro F, apply has_colimit_of_equivalence_comp e, apply_instan
 
 end colimit
 
+section opposite
+
+/--
+If `t : cone F` is a limit cone, then `t.op : cocone F.op` is a colimit cocone.
+-/
+def is_limit.op {t : cone F} (P : is_limit t) : is_colimit t.op :=
+{ desc := λ s, (P.lift s.unop).op,
+  fac' := λ s j, congr_arg has_hom.hom.op (P.fac s.unop (unop j)),
+  uniq' := λ s m w,
+  begin
+    rw ← P.uniq s.unop m.unop,
+    { refl, },
+    { dsimp, intro j, rw ← w, refl, }
+  end }
+
+
+/--
+If `t : cocone F` is a colimit cocone, then `t.op : cone F.op` is a limit cone.
+-/
+def is_colimit.op {t : cocone F} (P : is_colimit t) : is_limit t.op :=
+{ lift := λ s, (P.desc s.unop).op,
+  fac' := λ s j, congr_arg has_hom.hom.op (P.fac s.unop (unop j)),
+  uniq' := λ s m w,
+  begin
+    rw ← P.uniq s.unop m.unop,
+    { refl, },
+    { dsimp, intro j, rw ← w, refl, }
+  end }
+
+end opposite
+
 end category_theory.limits

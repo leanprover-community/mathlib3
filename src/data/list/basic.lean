@@ -552,8 +552,11 @@ by rw [concat_eq_append, reverse_append, reverse_singleton, singleton_append]
 @[simp] theorem reverse_reverse (l : list α) : reverse (reverse l) = l :=
 by induction l; [refl, simp only [*, reverse_cons, reverse_append]]; refl
 
+theorem reverse_involutive : involutive (@reverse α) :=
+λ l, reverse_reverse l
+
 theorem reverse_injective : injective (@reverse α) :=
-left_inverse.injective reverse_reverse
+reverse_involutive.injective
 
 @[simp] theorem reverse_inj {l₁ l₂ : list α} : reverse l₁ = reverse l₂ ↔ l₁ = l₂ :=
 reverse_injective.eq_iff

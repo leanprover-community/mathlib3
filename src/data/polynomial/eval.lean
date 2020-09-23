@@ -179,6 +179,10 @@ ring_hom.of (eval₂ f x)
 
 lemma eval₂_pow (n : ℕ) : (p ^ n).eval₂ f x = p.eval₂ f x ^ n := (eval₂_ring_hom _ _).map_pow _ _
 
+lemma eval₂_eq_sum_range :
+  p.eval₂ f x = ∑ i in finset.range (p.nat_degree + 1), f (p.coeff i) * x^i :=
+trans (congr_arg _ p.as_sum) (trans (eval₂_finset_sum f _ _ x) (congr_arg _ (by simp)))
+
 end eval₂
 
 section eval

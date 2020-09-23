@@ -1,234 +1,334 @@
-/-
-Copyright (c) 2020 Scott Morrison. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
--/
-import topology.sheaves.presheaf
-import category_theory.limits.shapes.products
-import category_theory.limits.shapes.equalizers
+import topology.sheaves.sheaf
+import category_theory.limits.preserves.basic
+import category_theory.category.pairwise
 
-universes v u
+/-!
+# Equivalent formulations of the sheaf condition
+
+We give an equivalent formulation of the sheaf condition.
+
+Given any indexed type `ι`, we define `overlap ι`,
+a category with objects corresponding to
+* individual open sets, `single i`, and
+* intersections of pairs of open sets, `pair i j`,
+with morphisms from `pair i j` to both `single i` and `single j`.
+
+Any open cover `U : ι → opens X` provides a functor `diagram U : overlap ι ⥤ (opens X)ᵒᵖ`.
+
+There is a canonical cone over this functor, `cone U`, whose cone point is `supr U`,
+and in fact this is a limit cone.
+
+A presheaf `F : presheaf C X` is a sheaf precisely if it preserves this limit.
+We express this in two equivalent ways, as
+* `is_limit (F.map_cone (cone U))`, or
+* `preserves_limit (diagram U) F`
+-/
 
 noncomputable theory
 
+universes v u
+
+open topological_space
+open Top
 open category_theory
 open category_theory.limits
-open topological_space
-open opposite
-open topological_space.opens
 
-namespace Top
+namespace Top.presheaf
 
-variables {C : Type u} [category.{v} C] [has_products C]
-variables {X : Top.{v}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
+variables {X : Top.{v}}
 
-namespace sheaf_condition
-
-/-- The product of the sections of a presheaf over a family of open sets. -/
-def pi_opens : C := ∏ (λ i : ι, F.obj (op (U i)))
-/--
-The product of the sections of a presheaf over the pairwise intersections of
-a family of open sets.
--/
-def pi_inters : C := ∏ (λ p : ι × ι, F.obj (op (U p.1 ⊓ U p.2)))
+variables {C : Type u} [category.{v} C]
 
 /--
-The morphism `Π F.obj (U i) ⟶ Π F.obj (U i) ⊓ (U j)` whose components
-are given by the restriction maps from `U i` to `U i ⊓ U j`.
+An alternative formulation of the sheaf condition
+(which we prove equivalent to the usual one below as
+`sheaf_condition_equiv_sheaf_condition_pairwise_intersections`).
+
+A presheaf is a sheaf if `F` sends the cone `pairwise.cone U` to a limit cone.
+(Recall `pairwise.cone U`, has cone point `supr U`, mapping down to the `U i` and the `U i ⊓ U j`.)
 -/
-def left_res : pi_opens F U ⟶ pi_inters F U :=
-pi.lift (λ p : ι × ι, pi.π _ p.1 ≫ F.map (inf_le_left (U p.1) (U p.2)).op)
+@[derive subsingleton, nolint has_inhabited_instance]
+def sheaf_condition_pairwise_intersections (F : presheaf C X) : Type (max u (v+1)) :=
+Π ⦃ι : Type v⦄ (U : ι → opens X), is_limit (F.map_cone (pairwise.cone U))
 
 /--
-The morphism `Π F.obj (U i) ⟶ Π F.obj (U i) ⊓ (U j)` whose components
-are given by the restriction maps from `U j` to `U i ⊓ U j`.
--/
-def right_res : pi_opens F U ⟶ pi_inters F U :=
-pi.lift (λ p : ι × ι, pi.π _ p.2 ≫ F.map (inf_le_right (U p.1) (U p.2)).op)
+An alternative formulation of the sheaf condition
+(which we prove equivalent to the usual one below as
+`sheaf_condition_equiv_sheaf_condition_preserves_limit_pairwise_intersections`).
 
-/--
-The morphism `F.obj U ⟶ Π F.obj (U i)` whose components
-are given by the restriction maps from `U j` to `U i ⊓ U j`.
+A presheaf is a sheaf if `F` preserves the limit of `pairwise.diagram U`.
+(Recall `pairwise.diagram U` is the diagram consisting of the pairwise intersections
+`U i ⊓ U j` mapping into the open sets `U i`. This diagram has limit `supr U`.)
 -/
-def res : F.obj (op (supr U)) ⟶ pi_opens F U :=
-pi.lift (λ i : ι, F.map (topological_space.opens.le_supr U i).op)
+@[derive subsingleton, nolint has_inhabited_instance]
+def sheaf_condition_preserves_limit_pairwise_intersections
+  (F : presheaf C X) : Type (max u (v+1)) :=
+Π ⦃ι : Type v⦄ (U : ι → opens X), preserves_limit (pairwise.diagram U) F
 
-lemma w : res F U ≫ left_res F U = res F U ≫ right_res F U :=
-begin
-  dsimp [res, left_res, right_res],
-  ext,
-  simp only [limit.lift_π, limit.lift_π_assoc, fan.mk_π_app, category.assoc],
-  rw [←F.map_comp],
-  rw [←F.map_comp],
-  congr,
+/-!
+The remainder of this file shows that these conditions are equivalent
+to the usual sheaf condition.
+-/
+
+variables [has_products C]
+
+namespace sheaf_condition_pairwise_intersections
+
+open category_theory.pairwise category_theory.pairwise.hom
+open sheaf_condition_equalizer_products
+
+/-- Implementation of `sheaf_condition_pairwise_intersections.cone_equiv`. -/
+@[simps]
+def cone_equiv_functor_obj (F : presheaf C X)
+  ⦃ι : Type v⦄ (U : ι → opens ↥X) (c : limits.cone (diagram U ⋙ F)) :
+  limits.cone (sheaf_condition_equalizer_products.diagram F U) :=
+{ X := c.X,
+  π :=
+  { app := λ Z,
+      walking_parallel_pair.cases_on Z
+        (pi.lift (λ (i : ι), c.π.app (single i)))
+        (pi.lift (λ (b : ι × ι), c.π.app (pair b.1 b.2))),
+    naturality' := λ Y Z f,
+    begin
+      cases Y; cases Z; cases f,
+      { ext i, dsimp,
+        simp only [limit.lift_π, category.id_comp, fan.mk_π_app, category_theory.functor.map_id, category.assoc],
+        dsimp,
+        simp only [limit.lift_π, category.id_comp, fan.mk_π_app], },
+      { ext ⟨i, j⟩, dsimp [sheaf_condition_equalizer_products.left_res],
+        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app, category.assoc],
+        have h := c.π.naturality (hom.left i j),
+        dsimp at h,
+        simpa using h, },
+      { ext ⟨i, j⟩, dsimp [sheaf_condition_equalizer_products.right_res],
+        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app, category.assoc],
+        have h := c.π.naturality (hom.right i j),
+        dsimp at h,
+        simpa using h,  },
+      { ext i, dsimp,
+        simp only [limit.lift_π, category.id_comp, fan.mk_π_app, category_theory.functor.map_id, category.assoc],
+        dsimp,
+        simp only [limit.lift_π, category.id_comp, fan.mk_π_app], },
+    end, }, }
+
+section
+local attribute [tidy] tactic.case_bash
+
+/-- Implementation of `sheaf_condition_pairwise_intersections.cone_equiv`. -/
+@[simps]
+def cone_equiv_functor (F : presheaf C X)
+  ⦃ι : Type v⦄ (U : ι → opens ↥X) :
+  limits.cone (diagram U ⋙ F) ⥤ limits.cone (sheaf_condition_equalizer_products.diagram F U) :=
+{ obj := λ c, cone_equiv_functor_obj F U c,
+  map := λ c c' f,
+  { hom := f.hom, }, }.
+
 end
 
-/--
-The equalizer diagram for the sheaf condition.
--/
-@[reducible]
-def diagram : walking_parallel_pair.{v} ⥤ C :=
-parallel_pair (left_res F U) (right_res F U)
+/-- Implementation of `sheaf_condition_pairwise_intersections.cone_equiv`. -/
+@[simps]
+def cone_equiv_inverse_obj (F : presheaf C X)
+  ⦃ι : Type v⦄ (U : ι → opens ↥X)
+  (c : limits.cone (sheaf_condition_equalizer_products.diagram F U)) : limits.cone (diagram U ⋙ F) :=
+{ X := c.X,
+  π :=
+  { app :=
+    begin
+      rintro (⟨i⟩|⟨i,j⟩),
+      { exact c.π.app (walking_parallel_pair.zero) ≫ pi.π _ i, },
+      { exact c.π.app (walking_parallel_pair.one) ≫ pi.π _ (i, j), }
+    end,
+    naturality' :=
+    begin
+      rintro (⟨i⟩|⟨⟩) (⟨⟩|⟨j,j⟩) ⟨⟩,
+      { dsimp, erw [F.map_id], simp, },
+      { dsimp, simp only [category.id_comp, category.assoc],
+        have h := c.π.naturality (walking_parallel_pair_hom.left),
+        dsimp [sheaf_condition_equalizer_products.left_res] at h,
+        simp only [category.id_comp] at h,
+        have h' := h =≫ pi.π _ (i, j),
+        rw h',
+        simp,
+        refl, },
+      { dsimp, simp only [category.id_comp, category.assoc],
+        have h := c.π.naturality (walking_parallel_pair_hom.right),
+        dsimp [sheaf_condition_equalizer_products.right_res] at h,
+        simp only [category.id_comp] at h,
+        have h' := h =≫ pi.π _ (j, i),
+        rw h',
+        simp,
+        refl, },
+      { dsimp, erw [F.map_id], simp, },
+    end, }, }
 
-/--
-The restriction map `F.obj U ⟶ Π F.obj (U i)` gives a cone over the equalizer diagram
-for the sheaf condition. The sheaf condition asserts this cone is a limit cone.
--/
-def fork : fork.{v} (left_res F U) (right_res F U) := fork.of_ι _ (w F U)
+/-- Implementation of `sheaf_condition_pairwise_intersections.cone_equiv`. -/
+@[simps]
+def cone_equiv_inverse (F : presheaf C X)
+  ⦃ι : Type v⦄ (U : ι → opens ↥X) :
+  limits.cone (sheaf_condition_equalizer_products.diagram F U) ⥤ limits.cone (diagram U ⋙ F) :=
+{ obj := λ c, cone_equiv_inverse_obj F U c,
+  map := λ c c' f,
+  { hom := f.hom,
+    w' :=
+    begin
+      rintro (⟨i⟩|⟨i,j⟩),
+      { dsimp,
+        rw [←(f.w walking_parallel_pair.zero), category.assoc], },
+      { dsimp,
+        rw [←(f.w walking_parallel_pair.one), category.assoc], },
+    end }, }.
 
-@[simp]
-lemma fork_X : (fork F U).X = F.obj (op (supr U)) := rfl
+section
+local attribute [tidy] tactic.case_bash
 
-@[simp]
-lemma fork_ι : (fork F U).ι = res F U := rfl
-@[simp]
-lemma fork_π_app_walking_parallel_pair_zero :
-  (fork F U).π.app walking_parallel_pair.zero = res F U := rfl
-@[simp]
-lemma fork_π_app_walking_parallel_pair_one :
-  (fork F U).π.app walking_parallel_pair.one = res F U ≫ left_res F U := rfl
+/-- Implementation of `sheaf_condition_pairwise_intersections.cone_equiv`. -/
+@[simps]
+def cone_equiv_unit_iso_app (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → opens ↥X)
+  (c : cone (diagram U ⋙ F)) :
+  (𝟭 (cone (diagram U ⋙ F))).obj c ≅
+    (cone_equiv_functor F U ⋙ cone_equiv_inverse F U).obj c :=
+{ hom := { hom := 𝟙 _ }, inv := { hom := 𝟙 _ }}
 
-variables {F} {G : presheaf C X}
-
-/-- Isomorphic presheaves have isomorphic `pi_opens` for any cover `U`. -/
-@[simp]
-def pi_opens.iso_of_iso (α : F ≅ G) : pi_opens F U ≅ pi_opens G U :=
-pi.map_iso (λ X, α.app _)
-
-/-- Isomorphic presheaves have isomorphic `pi_inters` for any cover `U`. -/
-@[simp]
-def pi_inters.iso_of_iso (α : F ≅ G) : pi_inters F U ≅ pi_inters G U :=
-pi.map_iso (λ X, α.app _)
-
-/-- Isomorphic presheaves have isomorphic sheaf condition diagrams. -/
-def diagram.iso_of_iso (α : F ≅ G) : diagram F U ≅ diagram G U :=
-nat_iso.of_components
-  begin rintro ⟨⟩, exact pi_opens.iso_of_iso U α, exact pi_inters.iso_of_iso U α end
-  begin
-    rintro ⟨⟩ ⟨⟩ ⟨⟩,
-    { simp, },
-    { ext, simp [left_res], },
-    { ext, simp [right_res], },
-    { simp, },
-  end.
-
-/--
-If `F G : presheaf C X` are isomorphic presheaves,
-then the `fork F U`, the canonical cone of the sheaf condition diagram for `F`,
-is isomorphic to `fork F G` postcomposed with the corresponding isomorphic between
-sheaf condition diagrams.
--/
-def fork.iso_of_iso (α : F ≅ G) :
-  fork F U ≅ (cones.postcompose (diagram.iso_of_iso U α).inv).obj (fork G U) :=
-begin
-  fapply fork.ext,
-  { apply α.app, },
-  { ext,
-    dunfold fork.ι, -- Ugh, `simp` can't unfold abbreviations.
-    simp [res, diagram.iso_of_iso], }
 end
 
-section open_embedding
+/-- Implementation of `sheaf_condition_pairwise_intersections.cone_equiv`. -/
+@[simps {rhs_md := semireducible}]
+def cone_equiv_unit_iso (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → opens X) :
+  𝟭 (limits.cone (diagram U ⋙ F)) ≅
+    cone_equiv_functor F U ⋙ cone_equiv_inverse F U :=
+nat_iso.of_components (cone_equiv_unit_iso_app F U) (by tidy)
 
-variables {V : Top.{v}} {j : V ⟶ X} (oe : open_embedding j)
-variables (𝒰 : ι → opens V)
-
-/--
-Push forward a cover along an open embedding.
--/
-@[simp]
-def cover.of_open_embedding : ι → opens X := (λ i, oe.is_open_map.functor.obj (𝒰 i))
-
-/--
-The isomorphism between `pi_opens` corresponding to an open embedding.
--/
-@[simp]
-def pi_opens.iso_of_open_embedding :
-  pi_opens (oe.is_open_map.functor.op ⋙ F) 𝒰 ≅ pi_opens F (cover.of_open_embedding oe 𝒰) :=
-pi.map_iso (λ X, F.map_iso (iso.refl _))
-
-/--
-The isomorphism between `pi_inters` corresponding to an open embedding.
--/
-@[simp]
-def pi_inters.iso_of_open_embedding :
-  pi_inters (oe.is_open_map.functor.op ⋙ F) 𝒰 ≅ pi_inters F (cover.of_open_embedding oe 𝒰) :=
-pi.map_iso (λ X, F.map_iso
-  begin
-    dsimp [is_open_map.functor],
-    exact iso.op
-    { hom := hom_of_le (by
-      { simp only [oe.to_embedding.inj, set.image_inter],
-        apply le_refl _, }),
-      inv := hom_of_le (by
-      { simp only [oe.to_embedding.inj, set.image_inter],
-        apply le_refl _, }), },
-  end)
-
-/-- The isomorphism of sheaf condition diagrams corresponding to an open embedding. -/
-def diagram.iso_of_open_embedding :
-  diagram (oe.is_open_map.functor.op ⋙ F) 𝒰 ≅ diagram F (cover.of_open_embedding oe 𝒰) :=
-nat_iso.of_components
-  begin
-    rintro ⟨⟩,
-    exact pi_opens.iso_of_open_embedding oe 𝒰,
-    exact pi_inters.iso_of_open_embedding oe 𝒰
-  end
-  begin
-    rintro ⟨⟩ ⟨⟩ ⟨⟩,
-    { simp, },
-    { ext,
-      dsimp [left_res, is_open_map.functor],
-      simp only [limit.lift_π, cones.postcompose_obj_π, iso.op_hom, discrete.nat_iso_hom_app,
-        functor.map_iso_refl, functor.map_iso_hom, limit.map_π_assoc, limit.lift_map, fan.mk_π_app,
-        nat_trans.comp_app, category.assoc],
-      dsimp,
-      rw [category.id_comp, ←F.map_comp],
-      refl, },
-    { ext,
-      dsimp [right_res, is_open_map.functor],
-      simp only [limit.lift_π, cones.postcompose_obj_π, iso.op_hom, discrete.nat_iso_hom_app,
-        functor.map_iso_refl, functor.map_iso_hom, limit.map_π_assoc, limit.lift_map, fan.mk_π_app,
-        nat_trans.comp_app, category.assoc],
-      dsimp,
-      rw [category.id_comp, ←F.map_comp],
-      refl, },
-    { simp, },
-  end.
+/-- Implementation of `sheaf_condition_pairwise_intersections.cone_equiv`. -/
+@[simps {rhs_md := semireducible}]
+def cone_equiv_counit_iso (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → opens X) :
+  cone_equiv_inverse F U ⋙ cone_equiv_functor F U ≅
+    𝟭 (limits.cone (sheaf_condition_equalizer_products.diagram F U)) :=
+nat_iso.of_components (λ c,
+{ hom :=
+  { hom := 𝟙 _,
+    w' :=
+    begin
+      rintro ⟨_|_⟩,
+      { ext, dsimp, simp, },
+      { ext ⟨i,j⟩, dsimp, simp, },
+    end },
+  inv :=
+  { hom := 𝟙 _,
+    w' :=
+    begin
+      rintro ⟨_|_⟩,
+      { ext, dsimp, simp, },
+      { ext ⟨i,j⟩, dsimp, simp, },
+    end, }}) (by tidy)
 
 /--
-If `F : presheaf C X` is a presheaf, and `oe : U ⟶ X` is an open embedding,
-then the sheaf condition fork for a cover `𝒰` in `U` for the composition of `oe` and `F` is
-isomorphic to sheaf condition fork for `oe '' 𝒰`, precomposed with the isomorphism
-of indexing diagrams `diagram.iso_of_open_embedding`.
-
-We use this to show that the restriction of sheaf along an open embedding is still a sheaf.
+Cones over `diagram U ⋙ F` are the same as a cones over the usual sheaf condition equalizer diagram.
 -/
-def fork.iso_of_open_embedding :
-  fork (oe.is_open_map.functor.op ⋙ F) 𝒰 ≅
-    (cones.postcompose (diagram.iso_of_open_embedding oe 𝒰).inv).obj
-      (fork F (cover.of_open_embedding oe 𝒰)) :=
-begin
-  fapply fork.ext,
-  { dsimp [is_open_map.functor],
-    exact
-    F.map_iso (iso.op
-    { hom := hom_of_le (by simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset, set.image_Union]),
-      inv := hom_of_le (by simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset, set.image_Union]), }), },
-  { ext,
-    dunfold fork.ι, -- Ugh, it is unpleasant that we need this.
-    simp only [res, diagram.iso_of_open_embedding, discrete.nat_iso_inv_app, functor.map_iso_inv,
-      limit.lift_π, cones.postcompose_obj_π, functor.comp_map,
-      fork_π_app_walking_parallel_pair_zero, pi_opens.iso_of_open_embedding,
-      nat_iso.of_components.inv_app, functor.map_iso_refl, functor.op_map, limit.lift_map,
-      fan.mk_π_app, nat_trans.comp_app, has_hom.hom.unop_op, category.assoc],
-    dsimp,
-    rw [category.comp_id, ←F.map_comp],
-    refl, },
-end
+@[simps]
+def cone_equiv (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → opens X) :
+  limits.cone (diagram U ⋙ F) ≌ limits.cone (sheaf_condition_equalizer_products.diagram F U) :=
+{ functor := cone_equiv_functor F U,
+  inverse := cone_equiv_inverse F U,
+  unit_iso := cone_equiv_unit_iso F U,
+  counit_iso := cone_equiv_counit_iso F U, }
 
-end open_embedding
+local attribute [reducible]
+  sheaf_condition_equalizer_products.res
+  sheaf_condition_equalizer_products.left_res
 
-end sheaf_condition
+/--
+If `sheaf_condition_equalizer_products.fork` is an equalizer,
+then `F.map_cone (cone U)` is a limit cone.
+-/
+def is_limit_map_cone_of_is_limit_sheaf_condition_fork
+  (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → opens X)
+  (P : is_limit (sheaf_condition_equalizer_products.fork F U)) :
+  is_limit (F.map_cone (cone U)) :=
+is_limit.of_iso_limit ((is_limit.of_cone_equiv (cone_equiv F U).symm).symm P)
+{ hom :=
+  { hom := 𝟙 _,
+    w' :=
+    begin
+      rintro ⟨⟩,
+      { dsimp, simp, refl, },
+      { dsimp,
+        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app, category.assoc],
+        rw ←F.map_comp,
+        refl, }
+    end },
+  inv :=
+  { hom := 𝟙 _,
+    w' :=
+    begin
+      rintro ⟨⟩,
+      { dsimp, simp, refl, },
+      { dsimp,
+        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app, category.assoc],
+        rw ←F.map_comp,
+        refl, }
+    end }, }
 
-end Top
+/--
+If `F.map_cone (cone U)` is a limit cone,
+then `sheaf_condition_equalizer_products.fork` is an equalizer.
+-/
+def is_limit_sheaf_condition_fork_of_is_limit_map_cone
+  (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → opens X)
+  (Q : is_limit (F.map_cone (cone U))) :
+  is_limit (sheaf_condition_equalizer_products.fork F U) :=
+is_limit.of_iso_limit ((is_limit.of_cone_equiv (cone_equiv F U)).symm Q)
+{ hom :=
+  { hom := 𝟙 _,
+    w' :=
+    begin
+      rintro ⟨⟩,
+      { dsimp, simp, refl, },
+      { dsimp, ext ⟨i, j⟩,
+        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app, category.assoc],
+        rw ←F.map_comp,
+        refl, }
+    end },
+  inv :=
+  { hom := 𝟙 _,
+    w' :=
+    begin
+      rintro ⟨⟩,
+      { dsimp, simp, refl, },
+      { dsimp, ext ⟨i, j⟩,
+        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app, category.assoc],
+        rw ←F.map_comp,
+        refl, }
+    end }, }
+
+
+end sheaf_condition_pairwise_intersections
+
+open sheaf_condition_pairwise_intersections
+
+/--
+The sheaf condition in terms of an equalizer diagram is equivalent
+to the reformulation in terms of a limit diagram over `U i` and `U i ⊓ U j`.
+-/
+def sheaf_condition_equiv_sheaf_condition_pairwise_intersections (F : presheaf C X) :
+  F.sheaf_condition ≃ F.sheaf_condition_pairwise_intersections :=
+equiv.Pi_congr_right (λ i, equiv.Pi_congr_right (λ U,
+  equiv_of_subsingleton_of_subsingleton
+    (is_limit_map_cone_of_is_limit_sheaf_condition_fork F U)
+    (is_limit_sheaf_condition_fork_of_is_limit_map_cone F U)))
+
+/--
+The sheaf condition in terms of an equalizer diagram is equivalent
+to the reformulation in terms of the presheaf preserving the limit of the diagram
+consisting of the `U i` and `U i ⊓ U j`.
+-/
+def sheaf_condition_equiv_sheaf_condition_preserves_limit_pairwise_intersections
+(F : presheaf C X) :
+  F.sheaf_condition ≃ F.sheaf_condition_preserves_limit_pairwise_intersections :=
+equiv.trans
+  (sheaf_condition_equiv_sheaf_condition_pairwise_intersections F)
+  (equiv.Pi_congr_right (λ i, equiv.Pi_congr_right (λ U,
+     equiv_of_subsingleton_of_subsingleton
+       (λ P, preserves_limit_of_preserves_limit_cone (pairwise.cone_is_limit U) P)
+       (by { introI, exact preserves_limit.preserves (pairwise.cone_is_limit U) }))))
+
+end Top.presheaf

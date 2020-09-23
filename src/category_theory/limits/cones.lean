@@ -84,7 +84,7 @@ structure cone (F : J ⥤ C) :=
 (X : C)
 (π : (const J).obj X ⟶ F)
 
-@[simp] lemma cone.w {F : J ⥤ C} (c : cone F) {j j' : J} (f : j ⟶ j') :
+@[simp, reassoc] lemma cone.w {F : J ⥤ C} (c : cone F) {j j' : J} (f : j ⟶ j') :
   c.π.app j ≫ F.map f = c.π.app j' :=
 by { rw ← (c.π.naturality f), apply id_comp }
 
@@ -99,7 +99,7 @@ structure cocone (F : J ⥤ C) :=
 (X : C)
 (ι : F ⟶ (const J).obj X)
 
-@[simp] lemma cocone.w {F : J ⥤ C} (c : cocone F) {j j' : J} (f : j ⟶ j') :
+@[simp, reassoc] lemma cocone.w {F : J ⥤ C} (c : cocone F) {j j' : J} (f : j ⟶ j') :
   F.map f ≫ c.ι.app j' = c.ι.app j :=
 by { rw (c.ι.naturality f), apply comp_id }
 

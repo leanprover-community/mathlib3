@@ -227,6 +227,12 @@ lemma to_fun_eq_coe (f : α →+* β) : f.to_fun = f := rfl
 
 variables (f : α →+* β) {x y : α} {rα rβ}
 
+theorem congr_fun {f g : α →+* β} (h : f = g) (x : α) : f x = g x :=
+congr_arg (λ h : α →+* β, h x) h
+
+theorem congr_arg (f : α →+* β) {x y : α} (h : x = y) : f x = f y :=
+congr_arg (λ x : α, f x) h
+
 theorem coe_inj ⦃f g : α →+* β⦄ (h : (f : α → β) = g) : f = g :=
 by cases f; cases g; cases h; refl
 
@@ -237,10 +243,10 @@ theorem ext_iff {f g : α →+* β} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
 theorem coe_add_monoid_hom_injective : function.injective (coe : (α →+* β) → (α →+ β)) :=
-λ f g h, coe_inj $ show ((f : α →+ β) : α → β) = (g : α →+ β), from congr_arg coe_fn h
+λ f g h, ext (λ x, add_monoid_hom.congr_fun h x)
 
 theorem coe_monoid_hom_injective : function.injective (coe : (α →+* β) → (α →* β)) :=
-λ f g h, coe_inj $ show ((f : α →* β) : α → β) = (g : α →* β), from congr_arg coe_fn h
+λ f g h, ext (λ x, monoid_hom.congr_fun h x)
 
 /-- Ring homomorphisms map zero to zero. -/
 @[simp] lemma map_zero (f : α →+* β) : f 0 = 0 := f.map_zero'
@@ -769,11 +775,14 @@ noncomputable def inverse : R → R :=
 λ x, if h : is_unit x then (((classical.some h)⁻¹ : units R) : R) else 0
 
 /-- By definition, if `x` is invertible then `inverse x = x⁻¹`. -/
-lemma inverse_unit (a : units R) : inverse (a : R) = (a⁻¹ : units R) :=
+@[simp] lemma inverse_unit (a : units R) : inverse (a : R) = (a⁻¹ : units R) :=
 begin
   simp [is_unit_unit, inverse],
   exact units.inv_unique (classical.some_spec (is_unit_unit a)),
 end
+
+/-- By definition, if `x` is not invertible then `inverse x = 0`. -/
+@[simp] lemma inverse_non_unit (x : R) (h : ¬(is_unit x)) : inverse x = 0 := dif_neg h
 
 end ring
 

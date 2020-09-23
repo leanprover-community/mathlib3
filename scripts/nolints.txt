@@ -89,14 +89,6 @@ apply_nolint category_theory.limits.cone.extensions doc_blame
 apply_nolint category_theory.limits.cone_morphism has_inhabited_instance
 apply_nolint category_theory.limits.cones.functoriality doc_blame
 
--- category_theory/limits/functor_category.lean
-apply_nolint category_theory.limits.evaluate_functor_category_colimit_cocone doc_blame
-apply_nolint category_theory.limits.evaluate_functor_category_limit_cone doc_blame
-apply_nolint category_theory.limits.functor_category_colimit_cocone doc_blame
-apply_nolint category_theory.limits.functor_category_is_colimit_cocone doc_blame
-apply_nolint category_theory.limits.functor_category_is_limit_cone doc_blame
-apply_nolint category_theory.limits.functor_category_limit_cone doc_blame
-
 -- category_theory/limits/over.lean
 apply_nolint category_theory.functor.to_cocone doc_blame
 apply_nolint category_theory.functor.to_cone doc_blame
@@ -134,12 +126,6 @@ apply_nolint category_theory.lax_monoidal_functor has_inhabited_instance
 apply_nolint category_theory.monoidal_functor has_inhabited_instance
 apply_nolint category_theory.monoidal_functor.ε_iso doc_blame
 apply_nolint category_theory.monoidal_functor.μ_iso doc_blame
-
--- category_theory/natural_isomorphism.lean
-apply_nolint category_theory.nat_iso.hcomp doc_blame
-apply_nolint category_theory.nat_iso.is_iso_app_of_is_iso doc_blame
-apply_nolint category_theory.nat_iso.is_iso_of_is_iso_app doc_blame
-apply_nolint category_theory.nat_iso.of_components doc_blame
 
 -- category_theory/opposites.lean
 apply_nolint category_theory.functor.left_op doc_blame
@@ -635,9 +621,6 @@ apply_nolint multiset.pi.empty unused_arguments
 -- data/nat/prime.lean
 apply_nolint nat.min_fac_aux doc_blame
 
--- data/nat/sqrt.lean
-apply_nolint nat.sqrt_aux doc_blame
-
 -- data/num/basic.lean
 apply_nolint cast_num doc_blame
 apply_nolint cast_pos_num doc_blame unused_arguments
@@ -956,6 +939,9 @@ apply_nolint gaussian_int doc_blame
 apply_nolint gaussian_int.div doc_blame
 apply_nolint gaussian_int.mod doc_blame
 
+-- deprecated/subfield.lean
+apply_nolint is_subfield doc_blame
+
 -- deprecated/subgroup.lean
 apply_nolint add_group.closure doc_blame
 apply_nolint add_group.in_closure doc_blame
@@ -984,9 +970,6 @@ apply_nolint mv_polynomial.evalₗ doc_blame unused_arguments
 apply_nolint mv_polynomial.indicator doc_blame
 apply_nolint mv_polynomial.restrict_degree doc_blame
 apply_nolint mv_polynomial.restrict_total_degree doc_blame
-
--- field_theory/subfield.lean
-apply_nolint is_subfield doc_blame
 
 -- group_theory/abelianization.lean
 apply_nolint abelianization.lift doc_blame
@@ -1194,13 +1177,6 @@ apply_nolint multiplicity.finite doc_blame
 
 -- ring_theory/ring_invo.lean
 apply_nolint ring_invo.id doc_blame
-
--- ring_theory/unique_factorization_domain.lean
-apply_nolint associates.factor_set.prod doc_blame
-apply_nolint associates.factors doc_blame
-apply_nolint associates.factors' doc_blame
-apply_nolint unique_factorization_domain.of_unique_irreducible_factorization doc_blame
-apply_nolint unique_irreducible_factorization doc_blame has_inhabited_instance
 
 -- set_theory/cofinality.lean
 apply_nolint strict_order.cof doc_blame
@@ -1731,15 +1707,12 @@ apply_nolint tactic.derive_field_subtype doc_blame
 -- tactic/tauto.lean
 apply_nolint tactic.add_edge doc_blame
 apply_nolint tactic.add_refl doc_blame
-apply_nolint tactic.add_symm_proof doc_blame
 apply_nolint tactic.assumption_symm doc_blame
 apply_nolint tactic.assumption_with doc_blame
 apply_nolint tactic.contradiction_symm doc_blame
 apply_nolint tactic.contradiction_with doc_blame
 apply_nolint tactic.find_eq_type doc_blame
 apply_nolint tactic.modify_ref doc_blame
-apply_nolint tactic.root doc_blame
-apply_nolint tactic.symm_eq doc_blame
 apply_nolint tactic.tauto_state doc_blame
 apply_nolint tactic.tautology doc_blame
 

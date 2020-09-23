@@ -126,7 +126,7 @@ begin
     exact is_submonoid.pow_mem (algebra.subset_adjoin (set.mem_singleton _)) },
   intros r hr, change r ∈ algebra.adjoin R ({x} : set A) at hr,
   rw algebra.adjoin_singleton_eq_range at hr,
-  rcases hr with ⟨p, rfl⟩,
+  rcases (aeval x).mem_range.mp hr with ⟨p, rfl⟩,
   rw ← mod_by_monic_add_div p hfm,
   rw [alg_hom.map_add, alg_hom.map_mul, hfx, zero_mul, add_zero],
   have : degree (p %ₘ f) ≤ degree f := degree_mod_by_monic_le p hfm,
@@ -246,12 +246,11 @@ variables (R A)
 
 /-- The integral closure of R in an R-algebra A. -/
 def integral_closure : subalgebra R A :=
-{ carrier :=
-  { carrier := { r | is_integral R r },
-    zero_mem' := is_integral_zero,
-    one_mem' := is_integral_one,
-    add_mem' := λ _ _, is_integral_add,
-    mul_mem' := λ _ _, is_integral_mul },
+{ carrier := { r | is_integral R r },
+  zero_mem' := is_integral_zero,
+  one_mem' := is_integral_one,
+  add_mem' := λ _ _, is_integral_add,
+  mul_mem' := λ _ _, is_integral_mul,
   algebra_map_mem' := λ x, is_integral_algebra_map }
 
 theorem mem_integral_closure_iff_mem_fg {r : A} :
@@ -369,6 +368,57 @@ begin
   rw [aeval_def, is_scalar_tower.algebra_map_eq R A B, ← eval₂_map] at hp',
   rw [aeval_def],
   exact hp',
+end
+
+lemma is_integral_quotient_of_is_integral {I : ideal A} (hRS : ∀ (x : A), is_integral R x) :
+  ∀ (x : I.quotient), is_integral (I.comap (algebra_map R A)).quotient x :=
+begin
+  rintros ⟨x⟩,
+  obtain ⟨p, ⟨p_monic, hpx⟩⟩ := hRS x,
+  refine ⟨p.map (ideal.quotient.mk _), ⟨monic_map _ p_monic, _⟩⟩,
+  simpa only [aeval_def, hom_eval₂, eval₂_map] using congr_arg (ideal.quotient.mk I) hpx
+end
+
+/-- If the integral extension `R → S` is injective, and `S` is a field, then `R` is also a field -/
+lemma is_field_of_is_integral_of_is_field {R S : Type*} [integral_domain R] [integral_domain S]
+  [algebra R S] (H : ∀ x : S, is_integral R x) (hRS : function.injective (algebra_map R S))
+  (hS : is_field S) : is_field R :=
+begin
+  refine ⟨⟨0, 1, zero_ne_one⟩, mul_comm, λ a ha, _⟩,
+  -- Let `a_inv` be the inverse of `algebra_map R S a`,
+  -- then we need to show that `a_inv` is of the form `algebra_map R S b`.
+  obtain ⟨a_inv, ha_inv⟩ := hS.mul_inv_cancel (λ h, ha (hRS (trans h (ring_hom.map_zero _).symm))),
+
+  -- Let `p : polynomial R` be monic with root `a_inv`,
+  -- and `q` be `p` with coefficients reversed (so `q(a) = q'(a) * a + 1`).
+  -- We claim that `q(a) = 0`, so `-q'(a)` is the inverse of `a`.
+  obtain ⟨p, p_monic, hp⟩ := H a_inv,
+  use -∑ (i : ℕ) in finset.range p.nat_degree, (p.coeff i) * a ^ (p.nat_degree - i - 1),
+
+  -- `q(a) = 0`, because multiplying everything with `a_inv^n` gives `p(a_inv) = 0`.
+  -- TODO: this could be a lemma for `polynomial.reverse`.
+  have hq : ∑ (i : ℕ) in finset.range (p.nat_degree + 1), (p.coeff i) * a ^ (p.nat_degree - i) = 0,
+  { apply (algebra_map R S).injective_iff.mp hRS,
+    have a_inv_ne_zero : a_inv ≠ 0 := right_ne_zero_of_mul (mt ha_inv.symm.trans one_ne_zero),
+    refine (mul_eq_zero.mp _).resolve_right (pow_ne_zero p.nat_degree a_inv_ne_zero),
+    rw [aeval_def, eval₂_eq_sum_range] at hp,
+    rw [ring_hom.map_sum, finset.sum_mul],
+    refine (finset.sum_congr rfl (λ i hi, _)).trans hp,
+    rw [ring_hom.map_mul, mul_assoc],
+    congr,
+    have : a_inv ^ p.nat_degree = a_inv ^ (p.nat_degree - i) * a_inv ^ i,
+    { rw [← pow_add a_inv, nat.sub_add_cancel (nat.le_of_lt_succ (finset.mem_range.mp hi))] },
+    rw [ring_hom.map_pow, this, ← mul_assoc, ← mul_pow, ha_inv, one_pow, one_mul] },
+
+  -- Since `q(a) = 0` and `q(a) = q'(a) * a + 1`, we have `a * -q'(a) = 1`.
+  -- TODO: we could use a lemma for `polynomial.div_X` here.
+  rw [finset.sum_range_succ, p_monic.coeff_nat_degree, one_mul, nat.sub_self, pow_zero,
+      add_eq_zero_iff_eq_neg, eq_comm] at hq,
+  rw [mul_comm, ← neg_mul_eq_neg_mul, finset.sum_mul],
+  convert hq using 2,
+  refine finset.sum_congr rfl (λ i hi, _),
+  have : 1 ≤ p.nat_degree - i := nat.le_sub_left_of_add_le (finset.mem_range.mp hi),
+  rw [mul_assoc, ← pow_succ', nat.sub_add_cancel this]
 end
 
 end algebra

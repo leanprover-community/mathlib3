@@ -968,12 +968,10 @@ variables (F) [has_limit F] (E : K ⥤ J) [has_limit (E ⋙ F)]
 The canonical morphism from the limit of `F` to the limit of `E ⋙ F`.
 -/
 def limit.pre : limit F ⟶ limit (E ⋙ F) :=
-limit.lift (E ⋙ F)
-  { X := limit F,
-    π := { app := λ k, limit.π F (E.obj k) } }
+limit.lift (E ⋙ F) ((limit.cone F).whisker E)
 
 @[simp] lemma limit.pre_π (k : K) : limit.pre F E ≫ limit.π (E ⋙ F) k = limit.π F (E.obj k) :=
-by erw is_limit.fac
+by { erw is_limit.fac, refl }
 
 @[simp] lemma limit.lift_pre (c : cone F) :
   limit.lift F c ≫ limit.pre F E = limit.lift (E ⋙ F) (c.whisker E) :=
@@ -1245,6 +1243,23 @@ is_colimit.comp_cocone_point_unique_up_to_iso_hom _ _ _
   colimit.ι F j ≫ (is_colimit.cocone_point_unique_up_to_iso hc (colimit.is_colimit _)).inv = c.ι.app j :=
 is_colimit.comp_cocone_point_unique_up_to_iso_inv _ _ _
 
+/--
+Given any other colimit cocone for `F`, the chosen `colimit F` is isomorphic to the cocone point.
+-/
+def colimit.iso_colimit_cocone {F : J ⥤ C} [has_colimit F] (t : colimit_cocone F) :
+  colimit F ≅ t.cocone.X :=
+is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit F) t.is_colimit
+
+@[simp, reassoc] lemma colimit.iso_colimit_cocone_ι_hom
+  {F : J ⥤ C} [has_colimit F] (t : colimit_cocone F) (j : J) :
+  colimit.ι F j ≫ (colimit.iso_colimit_cocone t).hom = t.cocone.ι.app j :=
+by { dsimp [colimit.iso_colimit_cocone, is_colimit.cocone_point_unique_up_to_iso], tidy, }
+
+@[simp, reassoc] lemma colimit.iso_colimit_cocone_ι_inv
+  {F : J ⥤ C} [has_colimit F] (t : colimit_cocone F) (j : J) :
+  t.cocone.ι.app j ≫ (colimit.iso_colimit_cocone t).inv = colimit.ι F j :=
+by { dsimp [colimit.iso_colimit_cocone, is_colimit.cocone_point_unique_up_to_iso], tidy, }
+
 @[ext] lemma colimit.hom_ext {F : J ⥤ C} [has_colimit F] {X : C} {f f' : colimit F ⟶ X}
   (w : ∀ j, colimit.ι F j ≫ f = colimit.ι F j ≫ f') : f = f' :=
 (colimit.is_colimit F).hom_ext w
@@ -1356,12 +1371,10 @@ variables (F) [has_colimit F] (E : K ⥤ J) [has_colimit (E ⋙ F)]
 The canonical morphism from the colimit of `E ⋙ F` to the colimit of `F`.
 -/
 def colimit.pre : colimit (E ⋙ F) ⟶ colimit F :=
-colimit.desc (E ⋙ F)
-  { X := colimit F,
-    ι := { app := λ k, colimit.ι F (E.obj k) } }
+colimit.desc (E ⋙ F) ((colimit.cocone F).whisker E)
 
 @[simp, reassoc] lemma colimit.ι_pre (k : K) : colimit.ι (E ⋙ F) k ≫ colimit.pre F E = colimit.ι F (E.obj k) :=
-by erw is_colimit.fac
+by { erw is_colimit.fac, refl, }
 
 @[simp] lemma colimit.pre_desc (c : cocone F) :
   colimit.pre F E ≫ colimit.desc F c = colimit.desc (E ⋙ F) (c.whisker E) :=
@@ -1377,6 +1390,18 @@ begin
   letI : has_colimit ((D ⋙ E) ⋙ F) := show has_colimit (D ⋙ E ⋙ F), by apply_instance,
   exact (colimit.ι_pre F (D ⋙ E) j).symm
 end
+
+variables {E F}
+
+/---
+If we have particular colimit cocones available for `E ⋙ F` and for `F`,
+we obtain a formula for `colimit.pre F E`.
+-/
+lemma colimit.pre_eq (s : colimit_cocone (E ⋙ F)) (t : colimit_cocone F) :
+  colimit.pre F E =
+    (colimit.iso_colimit_cocone s).hom ≫ s.is_colimit.desc ((t.cocone).whisker E) ≫
+      (colimit.iso_colimit_cocone t).inv :=
+by tidy
 
 end pre
 

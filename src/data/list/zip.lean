@@ -138,4 +138,18 @@ by rw [← zip_unzip.{u u} (revzip l).reverse, unzip_eq_map]; simp; simp [revzip
 theorem revzip_swap (l : list α) : (revzip l).map prod.swap = revzip l.reverse :=
 by simp [revzip]
 
+lemma zip_inits_tails (l : list α) : ∀ i ∈ zip l.inits l.tails, (prod.fst i) ++ (prod.snd i) = l :=
+λ i hi, begin
+  induction l generalizing i,
+  {
+    rw ← @prod.mk.eta _ _ i at hi,
+    replace hi := mem_zip hi,
+    simp * at *
+  },
+  simp [zip_map_left, -prod.exists] at hi,
+  obtain (rfl | ⟨i', h, rfl⟩) := hi,
+  simp,
+  simp [l_ih i' h],
+end
+
 end list

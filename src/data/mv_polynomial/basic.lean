@@ -125,7 +125,7 @@ variables (R σ)
 theorem algebra_map_eq : algebra_map R (mv_polynomial σ R) = C := rfl
 variables {R σ}
 
-/-- `X n` is the degree `1` monomial `1*n` -/
+/-- `X n` is the degree `1` monomial `X_n` -/
 def X (n : σ) : mv_polynomial σ R := monomial (single n 1) 1
 
 @[simp] lemma C_0 : C 0 = (0 : mv_polynomial σ R) := by simp [C, monomial]; refl

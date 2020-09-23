@@ -105,13 +105,12 @@ begin
   let p := euclidean_domain.gcd ((f.map (algebra_map F F⟮γ⟯)).comp
     (C (adjoin_simple.gen F γ) - (C ↑c * X))) (g.map (algebra_map F F⟮γ⟯)),
   let h := euclidean_domain.gcd ((f.map ιFE).comp (C γ - (C (ιFE c) * X))) (g.map ιFE),
-  have g_ne_zero := minimal_polynomial.ne_zero hβ,
-  have h_ne_zero : h ≠ 0 := by simp [euclidean_domain.gcd_eq_zero_iff, map_eq_zero, g_ne_zero],
-  have h_leading_coeff_ne_zero : h.leading_coeff ≠ 0 := mt leading_coeff_eq_zero.mp h_ne_zero,
+  have h_ne_zero : h ≠ 0 :=  mt euclidean_domain.gcd_eq_zero_iff.mp
+    (not_and.mpr (λ _, map_ne_zero (minimal_polynomial.ne_zero hβ))),
   suffices p_linear : p.map (algebra_map F⟮γ⟯ E) = (C h.leading_coeff) * (X - C β),
   { have finale : β = algebra_map F⟮γ⟯ E (-p.coeff 0 / p.coeff 1),
     { rw [ring_hom.map_div, ring_hom.map_neg, ←coeff_map, ←coeff_map, p_linear],
-      simp [mul_sub, coeff_C, mul_comm _ β, mul_div_cancel β h_leading_coeff_ne_zero] },
+      simp [mul_sub, coeff_C, mul_div_cancel_left β (mt leading_coeff_eq_zero.mp h_ne_zero)] },
     rw finale,
     exact subtype.mem (-p.coeff 0 / p.coeff 1) },
   have s1 : p.map (algebra_map F⟮γ⟯ E) = euclidean_domain.gcd (_ : polynomial E) (_ : polynomial E),
@@ -129,7 +128,7 @@ begin
           ←algebra.smul_def, add_sub_cancel, minimal_polynomial.aeval] },
     { rw [eval_map, ←aeval_def, minimal_polynomial.aeval] } },
   have h_splits : splits ιEE' h := splits_of_splits_gcd_right
-    ιEE' (map_ne_zero g_ne_zero) (splitting_field.splits _),
+    ιEE' (map_ne_zero (minimal_polynomial.ne_zero hβ)) (splitting_field.splits _),
   apply eq_X_sub_C_of_separable_of_root_eq h_ne_zero h_sep h_root h_splits,
   intros x hx,
   rw mem_roots_map h_ne_zero at hx,

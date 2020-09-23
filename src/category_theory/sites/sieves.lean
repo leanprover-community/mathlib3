@@ -30,12 +30,12 @@ namespace category_theory
 
 /--
 For an object `X` of a category `C`, a `sieve X` is a set of morphisms to `X` which is closed under
-left-composition. In practice it seems easier to work with this if left-composition is stated by
-quantifying over objects `Y` and arrows `Y ⟶ X` rather than quantifying over `over X`.
+left-composition.
 -/
 structure sieve {C : Type u} [category.{v} C] (X : C) :=
 (arrows : Π {Y : C}, set (Y ⟶ X))
-(subs : ∀ {Y Z : C} {f : Y ⟶ X} (g : Z ⟶ Y), arrows f → arrows (g ≫ f))
+(downward_closed : ∀ {Y Z : C} {f} (hf : arrows f) (g : Z ⟶ Y), arrows (g ≫ f))
+attribute [simp, priority 100] sieve.downward_closed
 
 namespace sieve
 
@@ -43,25 +43,19 @@ variables {C : Type u} [category.{v} C]
 
 variables {X Y Z : C} {S R : sieve X}
 
-@[simp, priority 100]
-lemma downward_closed (S : sieve X) {f : Y ⟶ X} (Hf : S.arrows f) (g : Z ⟶ Y) :
-  S.arrows (g ≫ f) :=
-S.subs g Hf
+/-- A sieve gives a subset of the over category of `X`. -/
+def get_arrow_set (S : sieve X) : set (over X) := λ f, S.arrows f.hom
 
 lemma arrows_ext : Π {R S : sieve X}, R.arrows = S.arrows → R = S
 | ⟨Ra, _⟩ ⟨Sa, _⟩ rfl := rfl
 
-@[ext] lemma ext {R S : sieve X}
+protected lemma ext {R S : sieve X}
   (h : ∀ ⦃Y⦄ (f : Y ⟶ X), R.arrows f ↔ S.arrows f) :
   R = S :=
-begin
-  apply arrows_ext,
-  ext Y f,
-  apply h,
-end
+arrows_ext $ funext $ λ x, funext $ λ f, propext $ h f
 
-lemma ext_iff {R S : sieve X} :
-  R = S ↔ (∀ {Y} (f : Y ⟶ X), R.arrows f ↔ S.arrows f) :=
+protected lemma ext_iff {R S : sieve X} :
+  R = S ↔ (∀ ⦃Y⦄ (f : Y ⟶ X), R.arrows f ↔ S.arrows f) :=
 ⟨λ h Y f, h ▸ iff.rfl, sieve.ext⟩
 
 open lattice
@@ -69,22 +63,22 @@ open lattice
 /-- The supremum of a collection of sieves: just the union of them all. -/
 protected def Sup (𝒮 : set (sieve X)) : (sieve X) :=
 { arrows := λ Y, {f | ∃ S ∈ 𝒮, sieve.arrows S f},
-  subs := λ Y Z f g, by { rintro ⟨S, hS, hf⟩, exact ⟨S, hS, S.downward_closed hf _⟩ } }
+  downward_closed := λ Y Z f, by { rintro ⟨S, hS, hf⟩ g, exact ⟨S, hS, S.downward_closed hf _⟩ } }
 
 /-- The infimum of a collection of sieves: the intersection of them all. -/
 protected def Inf (𝒮 : set (sieve X)) : (sieve X) :=
 { arrows := λ Y, {f | ∀ S ∈ 𝒮, sieve.arrows S f},
-  subs := λ Y Z f g hf S H, S.downward_closed (hf S H) g }
+  downward_closed := λ Y Z f hf g S H, S.downward_closed (hf S H) g }
 
 /-- The union of two sieves is a sieve. -/
 protected def union (S R : sieve X) : sieve X :=
 { arrows := λ Y f, S.arrows f ∨ R.arrows f,
-  subs := by { rintros Y Z f g (h | h); simp [h] } }
+  downward_closed := by { rintros Y Z f (h | h) g; simp [h] } }
 
 /-- The intersection of two sieves is a sieve. -/
 protected def inter (S R : sieve X) : sieve X :=
 { arrows := λ Y f, S.arrows f ∧ R.arrows f,
-  subs := by { rintros Y Z f g ⟨h₁, h₂⟩; simp [h₁, h₂] } }
+  downward_closed := by { rintros Y Z f ⟨h₁, h₂⟩ g, simp [h₁, h₂] } }
 
 /--
 Sieves on an object `X` form a complete lattice.
@@ -96,8 +90,8 @@ instance : complete_lattice (sieve X) :=
   le_refl      := λ S f q, id,
   le_trans     := λ S₁ S₂ S₃ S₁₂ S₂₃ Y f h, S₂₃ _ _ (S₁₂ _ _ h),
   le_antisymm  := λ S R p q, sieve.ext (λ Y f, ⟨p _ _, q _ _⟩),
-  top          := { arrows := λ _, set.univ, subs := λ Y Z f g h, ⟨⟩ },
-  bot          := { arrows := λ _, ∅, subs := λ _ _ _ _, false.elim },
+  top          := { arrows := λ _, set.univ, downward_closed := λ Y Z f g h, ⟨⟩ },
+  bot          := { arrows := λ _, ∅, downward_closed := λ _ _ _ p _, false.elim p },
   sup          := sieve.union,
   inf          := sieve.inter,
   Sup          := sieve.Sup,
@@ -142,63 +136,63 @@ iff.rfl
 lemma mem_top (f : Y ⟶ X) : (⊤ : sieve X).arrows f := trivial
 
 /-- Take the downward-closure of a set of morphisms to `X`. -/
-inductive generate_sets (𝒢 : Π {Y : C}, set (Y ⟶ X)) : Π (Y : C), set (Y ⟶ X)
-| basic : Π {Y : C} {f : Y ⟶ X}, 𝒢 f → generate_sets _ f
-| subs  : Π {Y Z} {f : Y ⟶ X} (g : Z ⟶ Y), generate_sets _ f → generate_sets _ (g ≫ f)
+inductive generate_sets (𝒢 : set (over X)) : Π (Y : C), set (Y ⟶ X)
+| basic : Π {Y : C} {f : Y ⟶ X}, over.mk f ∈ 𝒢 → generate_sets _ f
+| close : Π {Y Z} {f : Y ⟶ X} (g : Z ⟶ Y), generate_sets _ f → generate_sets _ (g ≫ f)
 
 /-- Generate the smallest sieve containing the given set of arrows. -/
-def generate (𝒢 : Π {Y : C}, set (Y ⟶ X)) : sieve X :=
-{ arrows := generate_sets _ 𝒢,
-  subs   := λ _ _ _, generate_sets.subs }
+def generate (𝒢 : set (over X)) : sieve X :=
+{ arrows := generate_sets 𝒢,
+  downward_closed   := λ _ _ _ h _, generate_sets.close _ h }
 
 open order lattice
 
-lemma sets_iff_generate {𝒢 : set (over X)} : generate 𝒢 ≤ S ↔ 𝒢 ⊆ S.arrows :=
-iff.intro
-  (λ H g hg,
-    begin
-      have : over.mk g.hom = g,
-        cases g, dsimp [over.mk],
-        congr' 1, apply subsingleton.elim,
-      rw ← this at *,
-      exact H _ g.hom (generate_sets.basic hg),
-    end )
-  (λ ss Y f hf,
-    begin
-      induction hf,
-      case basic : f hf { exact ss hf },
-      case subs : Y Z f g hf₁ hf₂ { exact downward_closed S hf₂ _  }
-    end)
+lemma sets_iff_generate (S : set (over X)) (S' : sieve X) :
+  generate S ≤ S' ↔ S ≤ S'.get_arrow_set :=
+⟨λ H g hg,
+  begin
+    have : over.mk g.hom = g,
+      cases g, dsimp [over.mk],
+      congr' 1, apply subsingleton.elim,
+    rw ← this at *,
+    exact H _ _ (generate_sets.basic hg),
+  end,
+λ ss Y f hf,
+begin
+  induction hf,
+  case basic : X g hg { exact ss hg },
+  case close : Y Z f g hf₁ hf₂ { exact S'.downward_closed hf₂ _ },
+end⟩
 
-/-- Show that there is a galois insertion (generate, .arrows). -/
-def gi_generate :
-  @galois_insertion (set (over X)) (sieve X) (by apply_instance) _ generate sieve.arrows :=
-  { gc        := λ _ _, sets_iff_generate,
-    choice    := λ 𝒢 _, generate 𝒢,
-    choice_eq := λ _ _, rfl,
-    le_l_u    := λ _ _ _, generate_sets.basic }
+/-- Show that there is a galois insertion (generate, get_arrow_set). -/
+def gi_generate : galois_insertion (generate : set (over X) → sieve X) get_arrow_set :=
+{ gc := sets_iff_generate,
+  choice := λ 𝒢 _, generate 𝒢,
+  choice_eq := λ _ _, rfl,
+  le_l_u := λ S Y f hf, generate_sets.basic hf }
 
 /-- Given a morphism `h : Y ⟶ X`, send a sieve S on X to a sieve on Y
     as the inverse image of S with `_ ≫ h`.
     That is, `sieve.pullback S h := (≫ h) '⁻¹ S`. -/
 def pullback (S : sieve X) (h : Y ⟶ X) : sieve Y :=
-{ arrows := {sl | over.mk (sl.hom ≫ h) ∈ S.arrows },
-  subs := λ f hf Z g k, by { dsimp at k, simp [k] } }
+{ arrows := λ Y sl, S.arrows (sl ≫ h),
+  downward_closed := λ Z W f g h, by simp [g] }
 
 @[simp] lemma mem_pullback (h : Y ⟶ X) {f : Z ⟶ Y} :
-  over.mk f ∈ (pullback S h).arrows ↔ over.mk (f ≫ h) ∈ S.arrows := iff.rfl
+  (pullback S h).arrows f ↔ S.arrows (f ≫ h) := iff.rfl
 
 /--
 Push a sieve `R` on `Y` forward along an arrow `f : Y ⟶ X`: `gf : Z ⟶ X`
 is in the sieve if `gf` factors through some `g : Z ⟶ Y` which is in `R`.
 -/
 def comp (R : sieve Y) (f : Y ⟶ X) : sieve X :=
-{ arrows := λ gf, ∃ (g : gf.left ⟶ Y), over.mk g ∈ R.arrows ∧ g ≫ f = gf.hom,
-  subs :=
-  begin
-    rintros Z₁ Z₂ g h ⟨j, k, z⟩,
-    exact ⟨h ≫ j, by simp [k], by simp [z]⟩,
-  end }
+{ arrows := λ Z gf, ∃ g, g ≫ f = gf ∧ R.arrows g,
+  downward_closed := λ Z₁ Z₂ g ⟨j, k, z⟩ h, ⟨h ≫ j, by simp [k], by simp [z]⟩ }
+
+@[simp]
+lemma mem_comp_of_comp {R : sieve Y} {Z : C} {g : Z ⟶ Y} (hg : R.arrows g) (f : Y ⟶ X) :
+  (R.comp f).arrows (g ≫ f) :=
+⟨g, rfl, hg⟩
 
 /-- Pullback is monotonic -/
 lemma pullback_le_map {S R : sieve X} (Hss : S ≤ R) (f : Y ⟶ X) : pullback S f ≤ pullback R f :=
@@ -215,26 +209,20 @@ by simp [sieve.ext_iff]
 
 lemma le_pullback_comp {R : sieve Y} {f : Y ⟶ X} :
   R ≤ pullback (comp R f) f :=
-begin rintros Z g b, refine ⟨_, _, rfl⟩, simpa end
+λ Z g h, ⟨g, rfl, h⟩
 
 /-- If the identity arrow is in a sieve, the sieve is maximal. -/
-lemma id_mem_iff_eq_top : over.mk (𝟙 X) ∈ S.arrows ↔ S = ⊤ :=
-⟨λ h, top_unique
-begin
-  rintros Y f ⟨⟩,
-  suffices : over.mk (f ≫ (𝟙 _)) ∈ S.arrows,
-    simpa using this,
-  apply downward_closed _ h,
-end,
-λ h, h.symm ▸ trivial ⟩
+lemma id_mem_iff_eq_top : S.arrows (𝟙 X) ↔ S = ⊤ :=
+⟨λ h, top_unique $ λ Y f _, by simpa using downward_closed _ h f,
+ λ h, h.symm ▸ trivial⟩
 
-lemma pullback_eq_top_iff_mem (f : Y ⟶ X) : over.mk f ∈ S.arrows ↔ S.pullback f = ⊤ :=
+lemma pullback_eq_top_iff_mem (f : Y ⟶ X) : S.arrows f ↔ S.pullback f = ⊤ :=
 by rw [← id_mem_iff_eq_top, mem_pullback, category.id_comp]
 
 /-- A sieve induces a presheaf. -/
 @[simps]
 def functor (S : sieve X) : Cᵒᵖ ⥤ Type v :=
-{ obj := λ Y, {g : Y.unop ⟶ X // over.mk g ∈ S.arrows},
+{ obj := λ Y, {g : Y.unop ⟶ X // S.arrows g},
   map := λ Y Z f g, ⟨f.unop ≫ g.1, downward_closed _ g.2 _⟩ }
 
 /--
@@ -252,16 +240,11 @@ def functor_inclusion (S : sieve X) : S.functor ⟶ yoneda.obj X :=
 
 lemma le_functor_comm {S T : sieve X} (h : S ≤ T) :
   le_functor h ≫ functor_inclusion _ = functor_inclusion _ :=
-by { ext c t, refl }
+rfl
 
 /-- The presheaf induced by a sieve is a subobject of the yoneda embedding. -/
 instance functor_inclusion_is_mono : mono (functor_inclusion S) :=
-⟨λ Z f g h, begin
-  ext Y y,
-  have : (f ≫ functor_inclusion S).app Y y = (g ≫ functor_inclusion S).app Y y,
-    rw h,
-  exact this
-end⟩
+⟨λ Z f g h, by { ext Y y, apply congr_fun (nat_trans.congr_app h Y) y }⟩
 
 end sieve
 end category_theory

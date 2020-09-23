@@ -22,8 +22,6 @@ In this file we prove the primitive element theorem.
 noncomputable theory
 open_locale classical
 
-/- Proof of the primitive element theorem. -/
-
 open finite_dimensional
 
 namespace field

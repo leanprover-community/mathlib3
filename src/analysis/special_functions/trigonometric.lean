@@ -1851,3 +1851,43 @@ lemma differentiable_at_arctan (x:ℝ) : differentiable_at ℝ arctan x :=
 (has_deriv_at_arctan x).deriv
 
 end real
+
+section
+/-! Register lemmas for the derivatives of the composition of `real.arctan` with a differentiable
+function, for standalone use and use with `simp`. -/
+
+variables {f : ℝ → ℝ} {f' x : ℝ} {s : set ℝ}
+
+lemma has_deriv_at.arctan (hf : has_deriv_at f f' x) :
+  has_deriv_at (λ x, real.arctan (f x)) ((1 / (1 + (f x)^2)) * f') x :=
+(real.has_deriv_at_arctan (f x)).comp x hf
+
+lemma has_deriv_within_at.arctan (hf : has_deriv_within_at f f' s x) :
+  has_deriv_within_at (λ x, real.arctan (f x)) ((1 / (1 + (f x)^2)) * f') s x :=
+(real.has_deriv_at_arctan (f x)).comp_has_deriv_within_at x hf
+
+lemma differentiable_within_at.arctan (hf : differentiable_within_at ℝ f s x) :
+  differentiable_within_at ℝ (λ x, real.arctan (f x)) s x :=
+hf.has_deriv_within_at.arctan.differentiable_within_at
+
+@[simp] lemma differentiable_at.arctan (hc : differentiable_at ℝ f x) :
+  differentiable_at ℝ (λ x, real.arctan (f x)) x :=
+hc.has_deriv_at.arctan.differentiable_at
+
+lemma differentiable_on.arctan (hc : differentiable_on ℝ f s) :
+  differentiable_on ℝ (λ x, real.arctan (f x)) s :=
+λ x h, (hc x h).arctan
+
+@[simp] lemma differentiable.arctan (hc : differentiable ℝ f) :
+  differentiable ℝ (λ x, real.arctan (f x)) :=
+λ x, (hc x).arctan
+
+lemma deriv_within_arctan (hf : differentiable_within_at ℝ f s x) (hxs : unique_diff_within_at ℝ s x) :
+  deriv_within (λ x, real.arctan (f x)) s x = (1 / (1 + (f x)^2)) * (deriv_within f s x) :=
+hf.has_deriv_within_at.arctan.deriv_within hxs
+
+@[simp] lemma deriv_arctan (hc : differentiable_at ℝ f x) :
+  deriv (λ x, real.arctan (f x)) x = (1 / (1 + (f x)^2)) * (deriv f x) :=
+hc.has_deriv_at.arctan.deriv
+
+end

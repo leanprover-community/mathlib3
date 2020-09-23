@@ -79,9 +79,8 @@ lemma polynomial.linear_of_splits_single_root {β : F} {h : polynomial F}
   h = (polynomial.C (polynomial.leading_coeff h)) * (polynomial.X - polynomial.C β) :=
 begin
   apply polynomial.map_injective _ ϕ.injective,
-  rw [polynomial.eq_prod_roots_of_splits h_splits,h_roots,multiset.map_singleton,
-      multiset.singleton_eq_singleton,multiset.prod_singleton,polynomial.map_mul,
-      polynomial.map_sub,polynomial.map_X,polynomial.map_C,polynomial.map_C],
+  rw [polynomial.eq_prod_roots_of_splits h_splits, h_roots],
+  simp
 end
 
 lemma polynomial.linear_of_splits_separable_root {β : F} {h : polynomial F} (h_ne_zero : h ≠ 0)

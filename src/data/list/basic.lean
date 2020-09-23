@@ -2975,6 +2975,24 @@ instance decidable_suffix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidab
   | s, t, ⟨b::l, he⟩ := list.no_confusion he (λab lt, or.inr ⟨l, lt⟩)
   end⟩
 
+lemma inits_cons (a : α) (l : list α) : inits (a :: l) = [] :: l.inits.map (λ t, a :: t) :=
+by simp
+
+lemma tails_cons (a : α) (l : list α) : tails (a :: l) = (a :: l) :: l.tails :=
+by simp
+
+@[simp]
+lemma inits_append : ∀ (s t : list α), inits (s ++ t) = s.inits ++ t.inits.tail.map (λ l, s ++ l)
+| [] [] := by simp
+| [] (a::t) := by simp
+| (a::s) t := by simp [inits_append s t]
+
+@[simp]
+lemma tails_append : ∀ (s t : list α), tails (s ++ t) = s.tails.map (λ l, l ++ t) ++ t.tails.tail
+| [] [] := by simp
+| [] (a::t) := by simp
+| (a::s) t := by simp [tails_append s t]
+
 instance decidable_infix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <:+: l₂)
 | []      l₂ := is_true ⟨[], l₂, rfl⟩
 | (a::l₁) [] := is_false $ λ⟨s, t, te⟩, absurd te $ append_ne_nil_of_ne_nil_left _ _ $

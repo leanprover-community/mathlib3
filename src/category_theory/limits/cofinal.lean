@@ -12,7 +12,7 @@ import category_theory.is_connected
 # Cofinal functors
 
 A functor `F : C ⥤ D` is cofinal if for every `d : D`,
-the comma category of morphisms `F.obj c ⟶ d` is connected.
+the comma category of morphisms `d ⟶ F.obj c` is connected.
 
 We prove that when `F : C ⥤ D` is cofinal,
 a functor `G : D ⥤ E` has a colimit if and only if `F ⋙ D` does

@@ -386,8 +386,8 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E]
 {H : Type*} [topological_space H] {I : model_with_corners ℝ E H}
 {N : Type*} [topological_space N] [charted_space H N] [smooth_manifold_with_corners I N]
 
-instance reals_lie_group : lie_add_group (model_with_corners_self ℝ ℝ) ℝ := by apply_instance
+instance reals_lie_group : lie_add_group 𝓘(ℝ) ℝ := by apply_instance
 
-instance smooth_real_maps_ring : ring C∞(I, N) := by apply_instance
+instance smooth_real_maps_ring : ring C^∞⟮I, N; ℝ⟯ := by apply_instance
 
-instance smooth_real_maps_algebra : algebra ℝ C∞(I, N) := by apply_instance
+instance smooth_real_maps_algebra : algebra ℝ C^∞⟮I, N; ℝ⟯ := by apply_instance

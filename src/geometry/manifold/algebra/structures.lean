@@ -63,7 +63,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {H : Type*} [topological_space H]
 {E : Type*} [normed_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
 
-lemma smooth_smul : smooth (Isf(𝕜).prod Isf(𝕜, V)) Isf(𝕜, V) (λp : 𝕜 × V, p.1 • p.2) :=
+lemma smooth_smul : smooth (𝓘(𝕜).prod 𝓘(𝕜, V)) 𝓘(𝕜, V) (λp : 𝕜 × V, p.1 • p.2) :=
   begin
     rw smooth_iff,
     refine ⟨continuous_smul, λ x y, _⟩,
@@ -74,6 +74,6 @@ lemma smooth_smul : smooth (Isf(𝕜).prod Isf(𝕜, V)) Isf(𝕜, V) (λp : �
 
 lemma smooth.smul {N : Type*} [topological_space N] [charted_space H N]
   [smooth_manifold_with_corners I N] {f : N → 𝕜} {g : N → V}
-  (hf : smooth I Isf(𝕜) f) (hg : smooth I Isf(𝕜, V) g) :
-  smooth I Isf(𝕜, V) (λ p, f p • g p) :=
+  (hf : smooth I 𝓘(𝕜) f) (hg : smooth I 𝓘(𝕜, V) g) :
+  smooth I 𝓘(𝕜, V) (λ p, f p • g p) :=
 smooth_smul.comp (hf.prod_mk hg)

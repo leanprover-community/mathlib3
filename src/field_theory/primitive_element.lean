@@ -36,14 +36,14 @@ lemma primitive_element_fin_aux [fintype E] : ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
   obtain ⟨α, hα⟩ := is_cyclic.exists_generator (units E),
   use α,
-  ext,
-  rw iff_true_right algebra.mem_top,
+  apply eq_top_iff.mpr,
+  rintros x -,
   by_cases hx : x = 0,
   { rw hx,
-    exact F⟮α.val⟯.zero_mem, },
+    exact F⟮α.val⟯.zero_mem },
   { obtain ⟨n, hn⟩ := set.mem_range.mp (hα (units.mk0 x hx)),
-    rw (show x = α^n, by { norm_cast, simp * }),
-    exact @is_subfield.pow_mem E _ α.val n F⟮α.val⟯ _ (field.mem_adjoin_simple_self F α.val), },
+    rw (show x = α^n, by { norm_cast, rw [hn, units.coe_mk0] }),
+    exact @is_subfield.pow_mem E _ α.val n F⟮α.val⟯ _ (field.mem_adjoin_simple_self F α.val) },
 end
 
 /-- Primitive element theorem for finite dimensional extension of a finite field. -/

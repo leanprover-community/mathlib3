@@ -30,6 +30,7 @@ universes v u
 
 open topological_space
 open Top
+open opposite
 open category_theory
 open category_theory.limits
 
@@ -44,12 +45,12 @@ An alternative formulation of the sheaf condition
 (which we prove equivalent to the usual one below as
 `sheaf_condition_equiv_sheaf_condition_pairwise_intersections`).
 
-A presheaf is a sheaf if `F` sends the cone `pairwise.cone U` to a limit cone.
-(Recall `pairwise.cone U`, has cone point `supr U`, mapping down to the `U i` and the `U i ⊓ U j`.)
+A presheaf is a sheaf if `F` sends the cone `(pairwise.cocone U).op` to a limit cone.
+(Recall `pairwise.cocone U`, has cone point `supr U`, mapping down to the `U i` and the `U i ⊓ U j`.)
 -/
 @[derive subsingleton, nolint has_inhabited_instance]
 def sheaf_condition_pairwise_intersections (F : presheaf C X) : Type (max u (v+1)) :=
-Π ⦃ι : Type v⦄ (U : ι → opens X), is_limit (F.map_cone (pairwise.cone U))
+Π ⦃ι : Type v⦄ (U : ι → opens X), is_limit (F.map_cone (pairwise.cocone U).op)
 
 /--
 An alternative formulation of the sheaf condition
@@ -63,7 +64,7 @@ A presheaf is a sheaf if `F` preserves the limit of `pairwise.diagram U`.
 @[derive subsingleton, nolint has_inhabited_instance]
 def sheaf_condition_preserves_limit_pairwise_intersections
   (F : presheaf C X) : Type (max u (v+1)) :=
-Π ⦃ι : Type v⦄ (U : ι → opens X), preserves_limit (pairwise.diagram U) F
+Π ⦃ι : Type v⦄ (U : ι → opens X), preserves_limit (pairwise.diagram U).op F
 
 /-!
 The remainder of this file shows that these conditions are equivalent
@@ -80,14 +81,14 @@ open sheaf_condition_equalizer_products
 /-- Implementation of `sheaf_condition_pairwise_intersections.cone_equiv`. -/
 @[simps]
 def cone_equiv_functor_obj (F : presheaf C X)
-  ⦃ι : Type v⦄ (U : ι → opens ↥X) (c : limits.cone (diagram U ⋙ F)) :
+  ⦃ι : Type v⦄ (U : ι → opens ↥X) (c : limits.cone ((diagram U).op ⋙ F)) :
   limits.cone (sheaf_condition_equalizer_products.diagram F U) :=
 { X := c.X,
   π :=
   { app := λ Z,
       walking_parallel_pair.cases_on Z
-        (pi.lift (λ (i : ι), c.π.app (single i)))
-        (pi.lift (λ (b : ι × ι), c.π.app (pair b.1 b.2))),
+        (pi.lift (λ (i : ι), c.π.app (op (single i))))
+        (pi.lift (λ (b : ι × ι), c.π.app (op (pair b.1 b.2)))),
     naturality' := λ Y Z f,
     begin
       cases Y; cases Z; cases f,
@@ -97,12 +98,12 @@ def cone_equiv_functor_obj (F : presheaf C X)
         simp only [limit.lift_π, category.id_comp, fan.mk_π_app], },
       { ext ⟨i, j⟩, dsimp [sheaf_condition_equalizer_products.left_res],
         simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app, category.assoc],
-        have h := c.π.naturality (hom.left i j),
+        have h := c.π.naturality (has_hom.hom.op (hom.left i j)),
         dsimp at h,
         simpa using h, },
       { ext ⟨i, j⟩, dsimp [sheaf_condition_equalizer_products.right_res],
         simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app, category.assoc],
-        have h := c.π.naturality (hom.right i j),
+        have h := c.π.naturality (has_hom.hom.op (hom.right i j)),
         dsimp at h,
         simpa using h,  },
       { ext i, dsimp,

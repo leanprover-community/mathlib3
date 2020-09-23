@@ -81,9 +81,13 @@ namespace sheaf_condition
 
 open category_theory.pairwise
 
+@[simp]
 def pairwise_to_opens_le_cover_obj : pairwise ι → opens_le_cover U
 | (single i) := ⟨U i, ⟨i, le_refl _⟩⟩
 | (pair i j) := ⟨U i ⊓ U j, ⟨i, inf_le_left⟩⟩
+
+-- @[simp] lemma pairwise_to_opens_le_cover_obj_single (i) :
+--   pairwise_to_opens_le_cover_obj U (single i) = op ⟨U i, ⟨i, le_refl _⟩⟩ := rfl
 
 open category_theory.pairwise.hom
 
@@ -91,26 +95,30 @@ def pairwise_to_opens_le_cover_map :
   Π {V W : pairwise ι}, (V ⟶ W) → (pairwise_to_opens_le_cover_obj U V ⟶ pairwise_to_opens_le_cover_obj U W)
 | _ _ (id_single i) := 𝟙 _
 | _ _ (id_pair i j) := 𝟙 _
-| _ _ (left i j) := sorry
-| _ _ (right i j) := sorry
+| _ _ (left i j) := begin apply has_hom.hom.op, exact (hom_of_le inf_le_left), end
+| _ _ (right i j) := begin apply has_hom.hom.op, exact (hom_of_le inf_le_right), end
 
-def pairwise_to_opens_le_cover : pairwise ι ⥤ opens_le_cover U :=
-{ obj := pairwise_to_opens_le_cover_obj U,
+@[simps]
+def pairwise_to_opens_le_cover : (pairwise ι)ᵒᵖ ⥤ (opens_le_cover U)ᵒᵖ :=
+{ obj := λ V, pairwise_to_opens_le_cover_obj U (unop V),
   map := λ V W i, pairwise_to_opens_le_cover_map U i, }
 
 instance (V : opens_le_cover U) :
-  nonempty (comma (functor.from_punit V) (pairwise_to_opens_le_cover U)) :=
-⟨{ right := single (V.index), hom := V.hom_to_index }⟩
+  nonempty (comma (functor.from_punit V) (pairwise_to_opens_le_cover U).left_op) :=
+⟨{ right := op (single (V.index)), hom := V.hom_to_index }⟩
 
-instance : cofinal (pairwise_to_opens_le_cover U) :=
-λ V, is_connected_of_single_zigzag (λ A B, ⟨
+instance : cofinal (pairwise_to_opens_le_cover U).left_op :=
+λ V, is_connected_of_zigzag (λ A B,
   begin
     rcases A with ⟨⟨⟩, ⟨i⟩|⟨i,j⟩, a⟩;
     rcases B with ⟨⟨⟩, ⟨i'⟩|⟨i',j'⟩, b⟩;
     dsimp at *,
+    { refine ⟨[{ right := pair i i', hom := hom_of_le (le_inf (le_of_hom a) (le_of_hom b)), }, _], _, _⟩,
+      swap 3, refl,
+      constructor, right, fsplit, exact { right := begin dsimp, exact left i i', end }, },
     sorry, sorry, sorry,
   end
-  ⟩)
+  )
 
 end sheaf_condition
 

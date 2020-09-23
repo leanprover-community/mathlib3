@@ -241,6 +241,16 @@ begin
   { exact (k a).1 }
 end
 
+lemma is_connected_of_single_zigzag [nonempty J]
+  (h : ∀ (j₁ j₂ : J), nonempty Σ j, (j ⟶ j₁) × (j ⟶ j₂)) : is_connected J :=
+is_connected_of_zigzag (λ j₁ j₂,
+begin
+  obtain ⟨j, f₁, f₂⟩ := h j₁ j₂,
+  refine ⟨[j, j₂], _, _⟩,
+  { exact list.chain.cons (or.inr ⟨f₁⟩) (list.chain.cons (or.inl ⟨f₂⟩) list.chain.nil) },
+  { refl, },
+end)
+
 /-- If `discrete α` is connected, then `α` is (type-)equivalent to `punit`. -/
 def discrete_is_connected_equiv_punit {α : Type*} [is_connected (discrete α)] : α ≃ punit :=
 discrete.equiv_of_equivalence

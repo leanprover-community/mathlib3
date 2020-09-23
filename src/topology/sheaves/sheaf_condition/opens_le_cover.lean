@@ -98,10 +98,19 @@ def pairwise_to_opens_le_cover : pairwise ι ⥤ opens_le_cover U :=
 { obj := pairwise_to_opens_le_cover_obj U,
   map := λ V W i, pairwise_to_opens_le_cover_map U i, }
 
+instance (V : opens_le_cover U) :
+  nonempty (comma (functor.from_punit V) (pairwise_to_opens_le_cover U)) :=
+⟨{ right := single (V.index), hom := V.hom_to_index }⟩
+
 instance : cofinal (pairwise_to_opens_le_cover U) :=
-λ V,
-{ is_nonempty := ⟨{ right := single (V.index), hom := V.hom_to_index }⟩,
-  iso_constant := sorry, }
+λ V, is_connected_of_single_zigzag (λ A B, ⟨
+  begin
+    rcases A with ⟨⟨⟩, ⟨i⟩|⟨i,j⟩, a⟩;
+    rcases B with ⟨⟨⟩, ⟨i'⟩|⟨i',j'⟩, b⟩;
+    dsimp at *,
+    sorry, sorry, sorry,
+  end
+  ⟩)
 
 end sheaf_condition
 

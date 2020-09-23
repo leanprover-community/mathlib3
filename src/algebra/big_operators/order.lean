@@ -354,8 +354,16 @@ namespace fintype
 open finset
 
 /--
-The strong pigeonhole principle for finitely many pigeons and pigeonholes.
 This is the `fintype` version of `finset.strong_pigeonhole`.
+There is a pigeonhole with at least as many pigeons as
+the ceiling of the average number of pigeons across all pigeonholes.
+("The maximum is at least the mean" specialized to integers.)
+
+More formally, given a function between finite sets `s` and `t` and
+setting `n` so that `n + 1` is at most the ceiling of `s.card / t.card`,
+then there is an element of `t` whose preimage contains more
+than `n` elements.  (We formulate the constraint on `n` as
+`t.card * n < s.card`, which incorporates that `s` and `t` must be nonempty.)
 
 See also: `fintype.pigeonhole`, `fintype.strong_infinite_pigeonhole`
 -/

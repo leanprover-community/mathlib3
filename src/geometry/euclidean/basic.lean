@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Myers.
 -/
 import analysis.normed_space.inner_product
+import algebra.quadratic_discriminant
 import analysis.normed_space.add_torsor
 import data.matrix.notation
 import linear_algebra.affine_space.combination
@@ -414,16 +415,16 @@ applies to `c₂`.  Then the vector between `c₁` and `c₂` is orthogonal
 to that between `p₁` and `p₂`.  (In two dimensions, this says that the
 diagonals of a kite are orthogonal.) -/
 lemma inner_vsub_vsub_of_dist_eq_of_dist_eq {c₁ c₂ p₁ p₂ : P} (hc₁ : dist p₁ c₁ = dist p₂ c₁)
-  (hc₂ : dist p₁ c₂ = dist p₂ c₂) : inner (c₂ -ᵥ c₁) (p₂ -ᵥ p₁) = 0 :=
+  (hc₂ : dist p₁ c₂ = dist p₂ c₂) : ⟪c₂ -ᵥ c₁, p₂ -ᵥ p₁⟫ = 0 :=
 begin
-  have h : inner ((c₂ -ᵥ c₁) + (c₂ -ᵥ c₁)) (p₂ -ᵥ p₁) = 0,
+  have h : ⟪(c₂ -ᵥ c₁) + (c₂ -ᵥ c₁), p₂ -ᵥ p₁⟫ = 0,
   { conv_lhs { congr, congr, rw ←vsub_sub_vsub_cancel_right c₂ c₁ p₁,
                skip, rw ←vsub_sub_vsub_cancel_right c₂ c₁ p₂ },
     rw [←add_sub_comm, inner_sub_left],
     conv_lhs { congr, rw ←vsub_sub_vsub_cancel_right p₂ p₁ c₂,
                skip, rw ←vsub_sub_vsub_cancel_right p₂ p₁ c₁ },
     rw [dist_comm p₁, dist_comm p₂, dist_eq_norm_vsub V _ p₁,
-        dist_eq_norm_vsub V _ p₂, ←inner_add_sub_eq_zero_iff] at hc₁ hc₂,
+        dist_eq_norm_vsub V _ p₂, ←real_inner_add_sub_eq_zero_iff] at hc₁ hc₂,
     simp_rw [←neg_vsub_eq_vsub_rev c₁, ←neg_vsub_eq_vsub_rev c₂, sub_neg_eq_add,
              neg_add_eq_sub, hc₁, hc₂, sub_zero] },
   simpa [inner_add_left, ←mul_two, (by norm_num : (2 : ℝ) ≠ 0)] using h
@@ -434,23 +435,23 @@ multiple of a fixed vector added to a point) and another point,
 expressed as a quadratic. -/
 lemma dist_smul_vadd_square (r : ℝ) (v : V) (p₁ p₂ : P) :
   dist (r • v +ᵥ p₁) p₂ * dist (r • v +ᵥ p₁) p₂ =
-    inner v v * r * r + 2 * inner v (p₁ -ᵥ p₂) * r + inner (p₁ -ᵥ p₂) (p₁ -ᵥ p₂) :=
+    ⟪v, v⟫ * r * r + 2 * ⟪v, p₁ -ᵥ p₂⟫ * r + ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫ :=
 begin
-  rw [dist_eq_norm_vsub V _ p₂, ←inner_self_eq_norm_square, vadd_vsub_assoc, inner_add_add_self,
-      inner_smul_left, inner_smul_left, inner_smul_right],
+  rw [dist_eq_norm_vsub V _ p₂, ←real_inner_self_eq_norm_square, vadd_vsub_assoc, real_inner_add_add_self,
+      real_inner_smul_left, real_inner_smul_left, real_inner_smul_right],
   ring
 end
 
 /-- The condition for two points on a line to be equidistant from
 another point. -/
 lemma dist_smul_vadd_eq_dist {v : V} (p₁ p₂ : P) (hv : v ≠ 0) (r : ℝ) :
-  dist (r • v +ᵥ p₁) p₂ = dist p₁ p₂ ↔ (r = 0 ∨ r = -2 * inner v (p₁ -ᵥ p₂) / inner v v) :=
+  dist (r • v +ᵥ p₁) p₂ = dist p₁ p₂ ↔ (r = 0 ∨ r = -2 * ⟪v, p₁ -ᵥ p₂⟫ / ⟪v, v⟫) :=
 begin
   conv_lhs { rw [←mul_self_inj_of_nonneg dist_nonneg dist_nonneg, dist_smul_vadd_square,
                  ←sub_eq_zero_iff_eq, add_sub_assoc, dist_eq_norm_vsub V p₁ p₂,
-                 ←inner_self_eq_norm_square, sub_self] },
-  have hvi : inner v v ≠ 0, by simpa using hv,
-  have hd : discrim (inner v v) (2 * inner v (p₁ -ᵥ p₂)) 0 =
+                 ←real_inner_self_eq_norm_square, sub_self] },
+  have hvi : ⟪v, v⟫ ≠ 0, by simpa using hv,
+  have hd : discrim ⟪v, v⟫ (2 * ⟪v, p₁ -ᵥ p₂⟫) 0 =
     (2 * inner v (p₁ -ᵥ p₂)) * (2 * inner v (p₁ -ᵥ p₂)),
   { rw discrim, ring },
   rw [quadratic_eq_zero_iff hvi hd, add_left_neg, zero_div, neg_mul_eq_neg_mul,
@@ -471,7 +472,7 @@ lemma eq_of_dist_eq_of_dist_eq_of_mem_of_findim_eq_two {s : affine_subspace ℝ 
   (hpc₁ : dist p c₁ = r₁) (hp₁c₂ : dist p₁ c₂ = r₂) (hp₂c₂ : dist p₂ c₂ = r₂)
   (hpc₂ : dist p c₂ = r₂) : p = p₁ ∨ p = p₂ :=
 begin
-  have ho : inner (c₂ -ᵥ c₁) (p₂ -ᵥ p₁) = 0 :=
+  have ho : ⟪c₂ -ᵥ c₁, p₂ -ᵥ p₁⟫ = 0 :=
     inner_vsub_vsub_of_dist_eq_of_dist_eq (by cc) (by cc),
   let b : fin 2 → V := ![c₂ -ᵥ c₁, p₂ -ᵥ p₁],
   have hb : linear_independent ℝ b,
@@ -481,7 +482,7 @@ begin
     { intros i j hij,
       fin_cases i; fin_cases j; try { exact false.elim (hij rfl) },
       { exact ho },
-      { rw inner_comm, exact ho } } },
+      { rw real_inner_comm, exact ho } } },
   have hbs : submodule.span ℝ (set.range b) = s.direction,
   { refine eq_of_le_of_findim_eq _ _,
     { rw [submodule.span_le, set.range_subset_iff],
@@ -503,7 +504,7 @@ begin
     rcases hv' with ⟨t₂, rfl⟩,
     exact ⟨t₁, t₂, hv⟩ },
   rcases hv (p -ᵥ p₁) (vsub_mem_direction hps hp₁s) with ⟨t₁, t₂, hpt⟩,
-  have hop : inner (c₂ -ᵥ c₁) (p -ᵥ p₁) = 0 :=
+  have hop : ⟪c₂ -ᵥ c₁, p -ᵥ p₁⟫ = 0 :=
     inner_vsub_vsub_of_dist_eq_of_dist_eq (by cc) (by cc),
   simp only [hpt, inner_add_right, inner_smul_right, ho, mul_zero, add_zero, mul_eq_zero,
              inner_self_eq_zero, vsub_eq_zero_iff_eq, hc.symm, or_false] at hop,

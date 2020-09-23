@@ -28,7 +28,6 @@ begin
     ne.def, cast_div], tauto,
 end
 
-
 /-!
 ### Irrationality of roots of integer and rational numbers
 -/

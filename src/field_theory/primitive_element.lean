@@ -169,10 +169,8 @@ begin
     rw [fswap, gswap],
     convert polynomial.gcd_map (algebra_map F⟮γ⟯ E) },
   rw polynomial.linear_of_splits_separable_root ιEE' h_ne_zero h_sep h_root h_splits h_roots at hswap,
-  have leading_coeff_ne_zero : h.leading_coeff ≠ 0,
-  { intro eq_zero,
-    rw [polynomial.leading_coeff_eq_zero,euclidean_domain.gcd_eq_zero_iff] at eq_zero,
-    apply polynomial.map_monic_ne_zero (minimal_polynomial.monic hβ) eq_zero.2, },
+  have leading_coeff_ne_zero : h.leading_coeff ≠ 0 :=
+    mt polynomial.leading_coeff_eq_zero.mp h_ne_zero,
   have finale : β = algebra_map F⟮γ⟯ E (-p.coeff 0 / p.coeff 1),
   { rw [ring_hom.map_div,ring_hom.map_neg,←polynomial.coeff_map,←polynomial.coeff_map,←hswap,
         polynomial.coeff_C_mul,polynomial.coeff_C_mul,polynomial.coeff_sub,polynomial.coeff_sub,

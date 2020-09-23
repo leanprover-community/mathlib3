@@ -96,7 +96,7 @@ theorem irrational_sqrt_rat_iff (q : ℚ) : irrational (sqrt q) ↔
 if H1 : rat.sqrt q * rat.sqrt q = q
 then iff_of_false (not_not_intro ⟨rat.sqrt q,
   by rw [← H1, cast_mul, sqrt_mul_self (cast_nonneg.2 $ rat.sqrt_nonneg q),
-          sqrt_eq, abs_of_nonneg (rat.sqrt_nonneg q)]⟩) (λ h, h.1 H1)
+         sqrt_eq, abs_of_nonneg (rat.sqrt_nonneg q)]⟩) (λ h, h.1 H1)
 else if H2 : 0 ≤ q
 then iff_of_true (λ ⟨r, hr⟩, H1 $ (exists_mul_self _).1 ⟨r,
   by rwa [eq_comm, sqrt_eq_iff_mul_self_eq (cast_nonneg.2 H2), ← cast_mul, cast_inj] at hr;

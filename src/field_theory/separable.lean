@@ -470,6 +470,23 @@ lemma nodup_roots {p : polynomial F} (hsep : separable p) :
   p.roots.nodup :=
 multiset.nodup_iff_count_le_one.mpr (count_roots_le_one hsep)
 
+lemma eq_X_sub_C_of_separable_of_root_eq {x : F} {h : polynomial F} (h_ne_zero : h ≠ 0)
+  (h_sep : h.separable) (h_root : h.eval x = 0) (h_splits : splits i h)
+  (h_roots : ∀ y ∈ (h.map i).roots, y = i x) : h = (C (leading_coeff h)) * (X - C x) :=
+begin
+  apply polynomial.eq_X_sub_C_of_splits_of_single_root i h_splits,
+  apply finset.mk.inj,
+  { change _ = {i x},
+    rw finset.eq_singleton_iff_unique_mem,
+    split,
+    { apply finset.mem_mk.mpr,
+      rw mem_roots (show h.map i ≠ 0, by exact map_ne_zero h_ne_zero),
+      rw [is_root.def,←eval₂_eq_eval_map,eval₂_hom,h_root],
+      exact ring_hom.map_zero i },
+    { exact h_roots } },
+  { exact nodup_roots (separable.map h_sep) },
+end
+
 end splits
 
 end field

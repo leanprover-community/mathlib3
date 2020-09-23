@@ -226,6 +226,14 @@ begin
       map_bind_roots_eq]
 end
 
+lemma eq_X_sub_C_of_splits_of_single_root {x : α} {h : polynomial α} (h_splits : splits i h)
+  (h_roots : (h.map i).roots = {i x}) : h = (C (leading_coeff h)) * (X - C x) :=
+begin
+  apply polynomial.map_injective _ i.injective,
+  rw [eq_prod_roots_of_splits h_splits, h_roots],
+  simp,
+end
+
 lemma nat_degree_multiset_prod {R : Type*} [integral_domain R] {s : multiset (polynomial R)}
   (h : ∀ p ∈ s, p ≠ (0 : polynomial R)) :
   nat_degree s.prod = (s.map nat_degree).sum :=

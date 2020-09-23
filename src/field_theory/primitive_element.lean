@@ -14,7 +14,8 @@ In this file we prove the primitive element theorem.
 
 ## Main results
 
-- `primitive_element`: a finite separable extension has a primitive element.
+- `primitive_element`: a finite separable extension has a primitive element:
+  there is an `α ∈ E` such that `F⟮α⟯ = (⊤ : subalgebra F E)`".
 
 -/
 

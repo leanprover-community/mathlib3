@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad, Yury Kudryashov, Patrick Massot
 -/
 import order.filter.bases
+import data.finset.preimage
 
 /-!
 # `at_top` and `at_bot` filters on preorded sets, monoids and groups.

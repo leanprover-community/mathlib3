@@ -304,11 +304,15 @@ calc r = 1 * r       : by rw one_mul
    ... = 0 * r       : by rw char_p.cast_eq_zero
    ... = 0           : by rw zero_mul
 
-lemma false_of_nonzero_of_char_one [semiring R] [nontrivial R] [char_p R 1] : false :=
-zero_ne_one $ show (0:R) = 1, from subsingleton.elim 0 1
+lemma false_of_nontrivial_of_char_one [semiring R] [nontrivial R] [char_p R 1] : false :=
+false_of_nontrivial_of_subsingleton R
 
 lemma ring_char_ne_one [semiring R] [nontrivial R] : ring_char R ≠ 1 :=
 by { intros h, apply @zero_ne_one R, symmetry, rw [←nat.cast_one, ring_char.spec, h], }
+
+lemma nontrivial_of_char_ne_one {v : ℕ} (hv : v ≠ 1) {R : Type*} [semiring R] [hr : char_p R v] :
+  nontrivial R :=
+⟨⟨(1 : ℕ), 0, λ h, hv $ by rwa [char_p.cast_eq_zero_iff _ v, nat.dvd_one] at h; assumption ⟩⟩
 
 end char_one
 

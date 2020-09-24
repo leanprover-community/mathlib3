@@ -376,6 +376,9 @@ theorem one_eq_mk_one [monoid α] : (1 : associates α) = associates.mk 1 := rfl
 
 instance [monoid α] : has_bot (associates α) := ⟨1⟩
 
+lemma exists_rep [monoid α] (a : associates α) : ∃ a0 : α, associates.mk a0 = a :=
+quot.exists_rep a
+
 section comm_monoid
 variable [comm_monoid α]
 
@@ -502,6 +505,9 @@ have (0 : α) ~ᵤ 1, from quotient.exact h,
 have (0 : α) = 1, from ((associated_zero_iff_eq_zero 1).1 this.symm).symm,
 zero_ne_one this⟩⟩
 
+lemma exists_non_zero_rep {a : associates α} : a ≠ 0 → ∃ a0 : α, a0 ≠ 0 ∧ associates.mk a0 = a :=
+quotient.induction_on a (λ b nz, ⟨b, mt (congr_arg quotient.mk) nz, rfl⟩)
+
 theorem dvd_of_mk_le_mk {a b : α} : associates.mk a ≤ associates.mk b → a ∣ b
 | ⟨c', hc'⟩ := (quotient.induction_on c' $ assume c hc,
     let ⟨d, hd⟩ := (quotient.exact hc).symm in
@@ -625,11 +631,6 @@ instance : no_zero_divisors (associates α) :=
     have a * b = 0, from (associated_zero_iff_eq_zero _).1 (quotient.exact h),
     have a = 0 ∨ b = 0, from mul_eq_zero.1 this,
     this.imp (assume h, h.symm ▸ rfl) (assume h, h.symm ▸ rfl))⟩
-
-theorem prod_eq_zero_iff [nontrivial α] {s : multiset (associates α)} :
-  s.prod = 0 ↔ (0 : associates α) ∈ s :=
-multiset.induction_on s (by simp) $
-  assume a s, by simp [mul_eq_zero, @eq_comm _ 0 a] {contextual := tt}
 
 theorem irreducible_iff_prime_iff :
   (∀ a : α, irreducible a ↔ prime a) ↔ (∀ a : (associates α), irreducible a ↔ prime a) :=

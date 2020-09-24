@@ -42,11 +42,11 @@ class rack (α : Type*) :=
 /--
 The rack operation.  Has notation `◃`.
 -/
-abbreviation rack.op {R : Type*} [rack R] (x : R) : R ≃ R := rack.op' x
+abbreviation rack.op {R : Type*} [rack R] (x y : R) : R := rack.op' x y
 /--
 The inverse of the rack operation. Has notation `◃⁻¹`.
 -/
-abbreviation rack.inv_op {R : Type*} [rack R] (x : R) : R ≃ R := (rack.op' x).symm
+abbreviation rack.inv_op {R : Type*} [rack R] (x y : R) : R := (rack.op' x).symm y
 
 local infixr ` ◃ ` : 65 := rack.op
 local infixr ` ◃⁻¹ ` : 65 := rack.inv_op
@@ -54,9 +54,9 @@ local infixr ` ◃⁻¹ ` : 65 := rack.inv_op
 namespace rack
 variables {R : Type*} [rack R]
 
-@[simp] lemma normalize_op (x y : R) : rack.op' x y = x ◃ y := rfl
-@[simp] lemma normalize_inv_op (x y : R) : (rack.op' x).symm y = x ◃⁻¹ y := rfl
-@[simp] lemma normalize_inv_op' (x y : R) : (rack.op' x)⁻¹ y = x ◃⁻¹ y := rfl
+@[simp] lemma normalize_op (x y : R) : op' x y = x ◃ y := rfl
+@[simp] lemma normalize_inv_op (x y : R) : (op' x).symm y = x ◃⁻¹ y := rfl
+@[simp] lemma normalize_inv_op' (x y : R) : (op' x)⁻¹ y = x ◃⁻¹ y := rfl
 
 @[simp] lemma left_inv (x y : R) : x ◃⁻¹ x ◃ y = y := (op' x).symm_apply_eq.mpr rfl
 @[simp] lemma right_inv (x y : R) : x ◃ x ◃⁻¹ y = y := (op' x).eq_symm_apply.mp rfl
@@ -65,16 +65,30 @@ lemma self_distrib {x y z : R} : x ◃ y ◃ z = (x ◃ y) ◃ (x ◃ z) :=
 rack.self_distrib'
 
 lemma left_cancel (x : R) {y y' : R} : x ◃ y = x ◃ y' ↔ y = y' :=
-by { split, apply (rack.op' x).injective, rintro rfl, refl }
+by { split, apply (op' x).injective, rintro rfl, refl }
 
 lemma left_cancel_inv (x : R) {y y' : R} : x ◃⁻¹ y = x ◃⁻¹ y' ↔ y = y' :=
-by { split, apply (rack.op' x).symm.injective, rintro rfl, refl }
-
+by { split, apply (op' x).symm.injective, rintro rfl, refl }
 
 lemma self_distrib_inv {x y z : R} : x ◃⁻¹ y ◃⁻¹ z = (x ◃⁻¹ y) ◃⁻¹ (x ◃⁻¹ z) :=
 begin
   rw [←left_cancel (x ◃⁻¹ y), right_inv, ←left_cancel x, right_inv, self_distrib],
   repeat {rw right_inv },
+end
+
+/--
+The *adjoint action* of a rack on itself is `op'`, and the adjoint
+action of `x ◃ y` is the conjugate of the action of `y` by the action
+of `x`.
+
+This is another way to understand the self-distributivity axiom.
+-/
+lemma ad_conj {R : Type*} [rack R] (x y : R) :
+  op' (x ◃ y) = op' x * op' y * (op' x)⁻¹ :=
+begin
+  apply @mul_right_cancel _ _ _ (op' x), ext z,
+  simp only [inv_mul_cancel_right],
+  apply self_distrib.symm,
 end
 
 /--
@@ -84,7 +98,7 @@ The opposite rack, swapping the roles of `◃` and `◃⁻¹`.
 def opp (R : Type*) := R
 
 instance opp.rack : rack (opp R) :=
-{ op' := λ (x : R), (rack.op' x).symm,
+{ op' := λ (x : R), (op' x).symm,
   self_distrib' := λ (x y z : R), self_distrib_inv }
 
 
@@ -128,7 +142,7 @@ def self_apply (R : Type*) [rack R] : R ≃ R :=
 /--
 An involutory rack is one for which `rack.op R x` is an involution for every x.
 -/
-def is_involutory (R : Type*) [rack R] : Prop := ∀ x : R, function.involutive (rack.op' x)
+def is_involutory (R : Type*) [rack R] : Prop := ∀ x : R, function.involutive (op' x)
 
 lemma involutory_op_inv_eq_op {R : Type*} [rack R] (h : is_involutory R) (x y : R) :
   x ◃⁻¹ y = x ◃ y :=
@@ -195,7 +209,7 @@ end rack_hom
 A quandle is a rack such that each automorphism fixes its corresponding element.
 -/
 class quandle (α : Type*) extends rack α :=
-(fix' : ∀ {x : α}, rack.op' x x = x)
+(fix' : ∀ {x : α}, op' x x = x)
 
 namespace quandle
 open rack
@@ -296,16 +310,6 @@ end quandle
 
 namespace rack
 
-/--
-The action of `x ◃ y` on a rack is the conjugate of the action of `y` by the action of `x`.
--/
-lemma conj_in_conj {R : Type*} [rack R] (x y : R) :
-  op' (x ◃ y) = op' x * op' y * (op' x)⁻¹ :=
-begin
-  apply @mul_right_cancel _ _ _ (op' x), ext z,
-  simp only [quandle.conj_op_eq_conj, normalize_op, equiv.perm.mul_apply, inv_mul_cancel_right],
-  apply self_distrib.symm,
-end
 
 /--
 This is the natural rack homomorphism to the conjugation quandle of the group `R ≃ R`
@@ -313,7 +317,7 @@ that acts on the rack.
 -/
 def to_action (R : Type*) [rack R] : rack_hom R (quandle.conj (R ≃ R)) :=
 { to_fun := op',
-  map_op' := conj_in_conj }
+  map_op' := ad_conj }
 
 
 /-!

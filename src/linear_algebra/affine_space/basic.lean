@@ -111,6 +111,10 @@ def vector_span (s : set P) : submodule k V := submodule.span k (vsub_set s)
 lemma vector_span_def (s : set P) : vector_span k s = submodule.span k (vsub_set s) :=
 rfl
 
+/-- `vector_span` is monotone. -/
+lemma vector_span_mono {s₁ s₂ : set P} (h : s₁ ⊆ s₂) : vector_span k s₁ ≤ vector_span k s₂ :=
+submodule.span_mono (vsub_set_mono h)
+
 variables (P)
 
 /-- The `vector_span` of the empty set is `⊥`. -/
@@ -396,6 +400,12 @@ begin
     exact vsub_mem_direction hp hq2 }
 end
 
+/-- Two affine subspaces with nonempty intersection are equal if and
+only if their directions are equal. -/
+lemma eq_iff_direction_eq_of_mem {s₁ s₂ : affine_subspace k P} {p : P} (h₁ : p ∈ s₁)
+  (h₂ : p ∈ s₂) : s₁ = s₂ ↔ s₁.direction = s₂.direction :=
+⟨λ h, h ▸ rfl, λ h, ext_of_direction_eq h ⟨p, h₁, h₂⟩⟩
+
 /-- Construct an affine subspace from a point and a direction. -/
 def mk' (p : P) (direction : submodule k V) : affine_subspace k P :=
 { carrier := {q | ∃ v ∈ direction, q = v +ᵥ p},
@@ -455,7 +465,7 @@ begin
   rw hp,
   have hp1s1 : p1 ∈ (s1 : set P) := set.mem_of_mem_of_subset hp1 h,
   refine vadd_mem_of_mem_direction _ hp1s1,
-  have hs : vector_span k s ≤ s1.direction := submodule.span_mono (vsub_set_mono h),
+  have hs : vector_span k s ≤ s1.direction := vector_span_mono k h,
   rw submodule.le_def at hs,
   rw ←submodule.mem_coe,
   exact set.mem_of_mem_of_subset hv hs
@@ -497,7 +507,7 @@ begin
     rw [hp1, hp3, vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, submodule.mem_coe],
     exact (vector_span k s).sub_mem ((vector_span k s).add_mem hv1
       (vsub_mem_vector_span k hp2 hp4)) hv2 },
-  { exact submodule.span_mono (vsub_set_mono (subset_span_points k s)) }
+  { exact vector_span_mono k (subset_span_points k s) }
 end
 
 /-- A point in a set is in its affine span. -/
@@ -576,6 +586,13 @@ equal to the second subspace and there is a point only in the
 second. -/
 lemma lt_iff_le_and_exists (s1 s2 : affine_subspace k P) : s1 < s2 ↔ s1 ≤ s2 ∧ ∃ p ∈ s2, p ∉ s1 :=
 by rw [lt_iff_le_not_le, not_le_iff_exists]
+
+/-- If an affine subspace is nonempty and contained in another with
+the same direction, they are equal. -/
+lemma eq_of_direction_eq_of_nonempty_of_le {s₁ s₂ : affine_subspace k P}
+  (hd : s₁.direction = s₂.direction) (hn : (s₁ : set P).nonempty) (hle : s₁ ≤ s₂) :
+  s₁ = s₂ :=
+let ⟨p, hp⟩ := hn in ext_of_direction_eq hd ⟨p, hp, hle hp⟩
 
 variables (k V)
 
@@ -731,7 +748,7 @@ applies to their directions. -/
 lemma direction_le {s1 s2 : affine_subspace k P} (h : s1 ≤ s2) : s1.direction ≤ s2.direction :=
 begin
   repeat { rw [direction_eq_vector_span, vector_span_def] },
-  exact submodule.span_mono (vsub_set_mono h)
+  exact vector_span_mono k h
 end
 
 /-- If one nonempty affine subspace is less than another, the same

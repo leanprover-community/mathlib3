@@ -63,7 +63,7 @@ General algebra:
   Divisibility in integral domains:
     irreducible elements: 'irreducible'
     coprime elements: 'is_coprime'
-    unique factorisation domain: 'unique_factorization_domain'
+    unique factorisation domain: 'unique_factorization_monoid'
     greatest common divisor: 'gcd_monoid.gcd'
     least common multiple: 'gcd_monoid.lcm'
     principal ideal domain: 'submodule.is_principal'

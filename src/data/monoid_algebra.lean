@@ -90,7 +90,7 @@ calc (f * g) x = (∑ a₁ in f.support, ∑ a₂ in g.support, F (a₁, a₂)) 
 ... = ∑ p in (f.support.product g.support).filter (λ p : G × G, p.1 * p.2 = x), f p.1 * g p.2 :
   (finset.sum_filter _ _).symm
 ... = ∑ p in s.filter (λ p : G × G, p.1 ∈ f.support ∧ p.2 ∈ g.support), f p.1 * g p.2 :
-  sum_congr (by { ext, simp [hs, and_comm] }) (λ _ _, rfl)
+  sum_congr (by { ext, simp only [mem_filter, mem_product, hs, and_comm] }) (λ _ _, rfl)
 ... = ∑ p in s, f p.1 * g p.2 : sum_subset (filter_subset _) $ λ p hps hp,
   begin
     simp only [mem_filter, mem_support_iff, not_and, not_not] at hp ⊢,
@@ -337,6 +337,7 @@ by conv_lhs { rw lift_unique' F, simp [lift_apply] }
 
 /-- A `k`-algebra homomorphism from `monoid_algebra k G` is uniquely defined by its
 values on the functions `single a 1`. -/
+-- @[ext] -- FIXME I would really like to make this an `ext` lemma, but it seems to cause `ext` to loop.
 lemma alg_hom_ext ⦃φ₁ φ₂ : monoid_algebra k G →ₐ[k] R⦄
   (h : ∀ x, φ₁ (single x 1) = φ₂ (single x 1)) : φ₁ = φ₂ :=
 (lift k G R).symm.injective $ monoid_hom.ext h
@@ -667,6 +668,16 @@ def lift [comm_semiring k] [add_monoid G] {R : Type u₃} [semiring R] [algebra 
 
 -- It is hard to state the equivalent of `distrib_mul_action G (monoid_algebra k G)`
 -- because we've never discussed actions of additive groups.
+
+lemma alg_hom_ext {R : Type u₃} [comm_semiring k] [add_monoid G]
+  [semiring R] [algebra k R] ⦃φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] R⦄
+  (h : ∀ x, φ₁ (finsupp.single x 1) = φ₂ (finsupp.single x 1)) : φ₁ = φ₂ :=
+lift.symm.injective $ by {ext, apply h}
+
+lemma alg_hom_ext_iff {R : Type u₃} [comm_semiring k] [add_monoid G]
+  [semiring R] [algebra k R] ⦃φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] R⦄ :
+  (∀ x, φ₁ (finsupp.single x 1) = φ₂ (finsupp.single x 1)) ↔ φ₁ = φ₂ :=
+⟨λ h, alg_hom_ext h, by rintro rfl _; refl⟩
 
 universe ui
 variable {ι : Type ui}

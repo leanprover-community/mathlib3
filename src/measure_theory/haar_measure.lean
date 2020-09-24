@@ -465,7 +465,7 @@ lemma haar_outer_measure_exists_compact {K₀ : positive_compacts G} {U : opens 
 outer_measure.of_content_exists_compact echaar_sup_le hU hε
 
 lemma haar_outer_measure_caratheodory {K₀ : positive_compacts G} (A : set G) :
-  (haar_outer_measure K₀).caratheodory.is_measurable A ↔ ∀ (U : opens G),
+  (haar_outer_measure K₀).caratheodory.is_measurable' A ↔ ∀ (U : opens G),
   haar_outer_measure K₀ (U ∩ A) + haar_outer_measure K₀ (U \ A) ≤ haar_outer_measure K₀ U :=
 outer_measure.of_content_caratheodory echaar_sup_le A
 

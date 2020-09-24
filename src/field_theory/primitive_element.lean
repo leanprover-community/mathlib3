@@ -14,9 +14,8 @@ In this file we prove the primitive element theorem.
 
 ## Main results
 
-- `primitive_element`: a finite separable extension has a primitive element:
-  there is an `α ∈ E` such that `F⟮α⟯ = (⊤ : subalgebra F E)`".
-
+- `exists_adjoin_simple_eq_top`: a finite separable extension has a primitive element, i.e.
+  there is an `α ∈ E` such that `F⟮α⟯ = (⊤ : subalgebra F E)`.
 -/
 
 noncomputable theory
@@ -65,6 +64,7 @@ variables {E' : Type*} [field E'] (ϕ : F →+* E')
 
 /-! ### Primitive element theorem for infinite fields -/
 
+/-- Auxiliary lemma used in proving the primitive element theorem. -/
 lemma primitive_element_two_inf_exists_c [infinite F] (α β : E') (f g : polynomial F) :
   ∃ c : F, ∀ (α' ∈ (f.map ϕ).roots) (β' ∈ (g.map ϕ).roots), -(α' - α)/(β' - β) ≠ ϕ c :=
 begin
@@ -147,7 +147,7 @@ end
 section primitive_element_same_universe
 universe u
 
-/-- Primitive element theorem for infinite fields. -/
+/-- Primitive element theorem for infinite fields in the same universe. -/
 theorem primitive_element_inf {F E : Type u} [field F] [field E] [algebra F E]
   [finite_dimensional F E] (F_sep : is_separable F E) (F_inf : infinite F)
   (n : ℕ) (hn : findim F E = n) : ∃ α : E, F⟮α⟯ = ⊤ :=
@@ -174,7 +174,7 @@ begin
     exact ⟨0, by rw adjoin_zero⟩, },
 end
 
-/-- Primitive element theorem in same universe. -/
+/-- Primitive element theorem for fields in the same universe. -/
 theorem primitive_element_aux (F E : Type u) [field F] [field E] [algebra F E]
   [finite_dimensional F E] (F_sep : is_separable F E) : ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
@@ -187,7 +187,8 @@ end primitive_element_same_universe
 
 /-- Primitive element theorem: a finite separable field extension `E` of `F` has a
   primitive element, i.e. there is an `α ∈ E` such that `F⟮α⟯ = (⊤ : subalgebra F E)`.-/
-theorem primitive_element [finite_dimensional F E] (F_sep : is_separable F E) : ∃ α : E, F⟮α⟯ = ⊤ :=
+theorem exists_adjoin_simple_eq_top [finite_dimensional F E] (F_sep : is_separable F E) :
+  ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
   let F' := F⟮(0 : E)⟯,
   have F'_sep : is_separable F' E := is_separable_tower_top_of_is_separable_tower F F' E F_sep,

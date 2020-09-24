@@ -698,4 +698,12 @@ def get_rest [decidable_eq α] : list α → list α → option (list α)
 | []     _       := none
 | (x::l) (y::l₁) := if x = y then get_rest l l₁ else none
 
+/--
+`list.slice n m xs` removes a slice of length `m` at index `n` in list `xs`.
+-/
+def slice {α} : ℕ → ℕ → list α → list α
+| 0 n xs := xs.drop n
+| (succ n) m [] := []
+| (succ n) m (x :: xs) := x :: slice n m xs
+
 end list

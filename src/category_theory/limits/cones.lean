@@ -616,9 +616,11 @@ variables {D : Type u'} [category.{v} D]
 section
 variables (G : C ⥤ D)
 
+/-- The opposite cocone of the image of a cone is the image of the opposite cocone. -/
 def map_cone_op (t : cone F) : (G.map_cone t).op ≅ (G.op.map_cocone t.op) :=
 cocones.ext (iso.refl _) (by tidy)
 
+/-- The opposite cone of the image of a cocone is the image of the opposite cone. -/
 def map_cocone_op {t : cocone F} : (G.map_cocone t).op ≅ (G.op.map_cone t.op) :=
 cones.ext (iso.refl _) (by tidy)
 

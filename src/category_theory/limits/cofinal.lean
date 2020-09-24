@@ -108,23 +108,32 @@ variables {F G}
 Given a cocone over `F ⋙ G`, we can construct a `cocone G` with the same cocone point.
 -/
 @[simps]
-def extend_cocone (c : cocone (F ⋙ G)) : cocone G :=
-{ X := c.X,
-  ι :=
-  { app := λ X, G.map (hom_to_lift F X) ≫ c.ι.app (lift F X),
-    naturality' := λ X Y f,
-    begin
-      dsimp, simp,
-      -- This would be true if we'd chosen `lift F X` to be `lift F Y`
-      -- and `hom_to_lift F X` to be `f ≫ hom_to_lift F Y`.
-      apply induction F (λ Z k, G.map f ≫ G.map (hom_to_lift F Y) ≫ c.ι.app (lift F Y) = G.map k ≫ c.ι.app Z),
-      { intros Z₁ Z₂ k₁ k₂ g a z,
-       rw [←a, functor.map_comp, category.assoc, ←functor.comp_map, c.w, z], },
-      { intros Z₁ Z₂ k₁ k₂ g a z,
-       rw [←a, functor.map_comp, category.assoc, ←functor.comp_map, c.w] at z,
-       rw z, },
-      { rw [←functor.map_comp_assoc], },
-    end }}
+def extend_cocone : cocone (F ⋙ G) ⥤ cocone G :=
+{ obj := λ c,
+  { X := c.X,
+    ι :=
+    { app := λ X, G.map (hom_to_lift F X) ≫ c.ι.app (lift F X),
+      naturality' := λ X Y f,
+      begin
+        dsimp, simp,
+        -- This would be true if we'd chosen `lift F X` to be `lift F Y`
+        -- and `hom_to_lift F X` to be `f ≫ hom_to_lift F Y`.
+        apply induction F (λ Z k, G.map f ≫ G.map (hom_to_lift F Y) ≫ c.ι.app (lift F Y) = G.map k ≫ c.ι.app Z),
+        { intros Z₁ Z₂ k₁ k₂ g a z,
+        rw [←a, functor.map_comp, category.assoc, ←functor.comp_map, c.w, z], },
+        { intros Z₁ Z₂ k₁ k₂ g a z,
+        rw [←a, functor.map_comp, category.assoc, ←functor.comp_map, c.w] at z,
+        rw z, },
+        { rw [←functor.map_comp_assoc], },
+      end } },
+  map := λ X Y f,
+  { hom := f.hom, } }
+
+def cocones_equiv : cocone (F ⋙ G) ≌ cocone G :=
+{ functor := extend_cocone,
+  inverse := cocones.whiskering F,
+  unit_iso := begin end,
+  counit_iso := sorry, }
 
 variables (F)
 
@@ -144,7 +153,7 @@ end
 /-- Given a colimit cocone over `G` we can construct a colimit cocone over `F ⋙ G`. -/
 @[simps]
 def whisker_is_colimit {t : cocone G} (P : is_colimit t) : is_colimit (t.whisker F) :=
-{ desc := λ s, P.desc (extend_cocone s),
+{ desc := λ s, P.desc (extend_cocone.obj s),
   uniq' := λ s m w,
   begin
     apply P.hom_ext,
@@ -190,7 +199,7 @@ def colimit_iso [has_colimit G] : colimit (F ⋙ G) ≅ colimit G := as_iso (col
 
 /-- Given a colimit cocone over `F ⋙ G` we can construct a colimit cocone over `G`. -/
 @[simps]
-def extend_is_colimit {t : cocone (F ⋙ G)} (P : is_colimit t) : is_colimit (extend_cocone t) :=
+def extend_is_colimit {t : cocone (F ⋙ G)} (P : is_colimit t) : is_colimit (extend_cocone.obj t) :=
 { desc := λ s, P.desc (s.whisker F),
   uniq' := λ s m w,
   begin
@@ -203,7 +212,7 @@ def extend_is_colimit {t : cocone (F ⋙ G)} (P : is_colimit t) : is_colimit (ex
 @[simps]
 def colimit_cocone_of_comp (t : colimit_cocone (F ⋙ G)) :
   colimit_cocone G :=
-{ cocone := extend_cocone t.cocone,
+{ cocone := extend_cocone.obj t.cocone,
   is_colimit := extend_is_colimit F t.is_colimit, }
 
 /--

@@ -24,7 +24,7 @@ immediately from the two instances of the class.
 /--
 This typeclass captures properties shared by ℝ and ℂ, with an API that closely matches that of ℂ.
 -/
-class is_R_or_C (K : Type*) [nondiscrete_normed_field K] [normed_algebra ℝ K] :=
+class is_R_or_C (K : Type*) extends nondiscrete_normed_field K, normed_algebra ℝ K :=
 (re : K →+ ℝ)
 (im : K →+ ℝ)
 (conj : K →+* K)
@@ -48,9 +48,9 @@ class is_R_or_C (K : Type*) [nondiscrete_normed_field K] [normed_algebra ℝ K] 
 
 namespace is_R_or_C
 
-variables {K : Type*} [nondiscrete_normed_field K] [normed_algebra ℝ K] [is_R_or_C K]
-local notation `𝓚` := @is_R_or_C.of_real K _ _ _
-local postfix `†`:100 := @is_R_or_C.conj K _ _ _
+variables {K : Type*} [is_R_or_C K]
+local notation `𝓚` := @is_R_or_C.of_real K _
+local postfix `†`:100 := @is_R_or_C.conj K _
 
 lemma of_real_alg : ∀ x : ℝ, 𝓚 x = x • (1 : K) :=
 λ x, by rw [←mul_one (𝓚 x), smul_coe_mul_ax]
@@ -101,7 +101,7 @@ by simp only [bit1, add_right_eq_self, add_monoid_hom.map_add, bit0_im, one_im]
 by rw [←of_real_zero]; exact of_real_inj
 
 @[simp] lemma of_real_add ⦃r s : ℝ⦄ : 𝓚 (r + s) = 𝓚 r + 𝓚 s :=
-by apply (@is_R_or_C.ext_iff K _ _ _ (𝓚 (r + s)) (𝓚 r + 𝓚 s)).mpr; simp
+by apply (@is_R_or_C.ext_iff K _ (𝓚 (r + s)) (𝓚 r + 𝓚 s)).mpr; simp
 
 @[simp] lemma of_real_bit0 (r : ℝ) : 𝓚 (bit0 r : ℝ) = bit0 (𝓚 r) :=
 ext_iff.2 $ by simp [bit0]
@@ -157,7 +157,7 @@ lemma conj_bijective : @function.bijective K K is_R_or_C.conj := conj_involutive
 lemma conj_inj (z w : K) : conj z = conj w ↔ z = w := conj_bijective.1.eq_iff
 
 @[simp] lemma conj_eq_zero {z : K} : conj z = 0 ↔ z = 0 :=
-by simpa using @conj_inj K _ _ _ z 0
+by simpa using @conj_inj K _ z 0
 
 lemma eq_conj_iff_real {z : K} : conj z = z ↔ ∃ r : ℝ, z = (𝓚 r) :=
 begin
@@ -281,7 +281,7 @@ lemma div_im (z w : K) : im (z / w) = im z * re w / norm_sq w - re z * im w / no
 by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm]
 
 @[simp] lemma of_real_div (r s : ℝ) : 𝓚 (r / s : ℝ) = 𝓚 r / 𝓚 s :=
-(@is_R_or_C.of_real_hom K _ _ _).map_div r s
+(@is_R_or_C.of_real_hom K _).map_div r s
 
 lemma div_re_of_real {z : K} {r : ℝ} : re (z / (𝓚 r)) = re z / r :=
 begin
@@ -293,7 +293,7 @@ begin
 end
 
 @[simp] lemma of_real_fpow (r : ℝ) (n : ℤ) : 𝓚 (r ^ n) = (𝓚 r) ^ n :=
-(@is_R_or_C.of_real_hom K _ _ _).map_fpow r n
+(@is_R_or_C.of_real_hom K _).map_fpow r n
 
 lemma I_mul_I_of_nonzero : (I : K) ≠ 0 → (I : K) * I = -1 :=
 by { have := I_mul_I_ax, tauto }
@@ -349,7 +349,7 @@ by rw [← of_real_int_cast, of_real_re]
 by rw [← of_real_int_cast, of_real_im]
 
 @[simp] theorem of_real_rat_cast (n : ℚ) : 𝓚 (n : ℝ) = n :=
-(@is_R_or_C.of_real_hom K _ _ _).map_rat_cast n
+(@is_R_or_C.of_real_hom K _).map_rat_cast n
 
 @[simp] lemma rat_cast_re (q : ℚ) : re (q : K) = q :=
 by rw [← of_real_rat_cast, of_real_re]
@@ -378,7 +378,7 @@ by rw [add_conj]; simp; rw [mul_div_cancel_left (𝓚 (re z)) two_ne_zero]
 @[pp_nodot] noncomputable def abs (z : K) : ℝ := (norm_sq z).sqrt
 
 local notation `abs'` := _root_.abs
-local notation `absK` := @abs K _ _ _
+local notation `absK` := @abs K _
 
 @[simp] lemma abs_of_real (r : ℝ) : absK (𝓚 r) = abs' r :=
 by simp [abs, norm_sq, norm_sq_of_real, real.sqrt_mul_self_eq_abs]
@@ -586,21 +586,21 @@ namespace is_R_or_C
 
 section cleanup_lemmas
 
-local notation `reR` := @is_R_or_C.re ℝ _ _ _
-local notation `imR` := @is_R_or_C.im ℝ _ _ _
-local notation `conjR` := @is_R_or_C.conj ℝ _ _ _
-local notation `IR` := @is_R_or_C.I ℝ _ _ _
-local notation `of_realR` := @is_R_or_C.of_real ℝ _ _ _
-local notation `absR` := @is_R_or_C.abs ℝ _ _ _
-local notation `norm_sqR` := @is_R_or_C.norm_sq ℝ _ _ _
+local notation `reR` := @is_R_or_C.re ℝ _
+local notation `imR` := @is_R_or_C.im ℝ _
+local notation `conjR` := @is_R_or_C.conj ℝ _
+local notation `IR` := @is_R_or_C.I ℝ _
+local notation `of_realR` := @is_R_or_C.of_real ℝ _
+local notation `absR` := @is_R_or_C.abs ℝ _
+local notation `norm_sqR` := @is_R_or_C.norm_sq ℝ _
 
-local notation `reC` := @is_R_or_C.re ℂ _ _ _
-local notation `imC` := @is_R_or_C.im ℂ _ _ _
-local notation `conjC` := @is_R_or_C.conj ℂ _ _ _
-local notation `IC` := @is_R_or_C.I ℂ _ _ _
-local notation `of_realC` := @is_R_or_C.of_real ℂ _ _ _
-local notation `absC` := @is_R_or_C.abs ℂ _ _ _
-local notation `norm_sqC` := @is_R_or_C.norm_sq ℂ _ _ _
+local notation `reC` := @is_R_or_C.re ℂ _
+local notation `imC` := @is_R_or_C.im ℂ _
+local notation `conjC` := @is_R_or_C.conj ℂ _
+local notation `IC` := @is_R_or_C.I ℂ _
+local notation `of_realC` := @is_R_or_C.of_real ℂ _
+local notation `absC` := @is_R_or_C.abs ℂ _
+local notation `norm_sqC` := @is_R_or_C.norm_sq ℂ _
 
 @[simp] lemma re_to_real {x : ℝ} : reR x = x := rfl
 @[simp] lemma im_to_real {x : ℝ} : imR x = 0 := rfl

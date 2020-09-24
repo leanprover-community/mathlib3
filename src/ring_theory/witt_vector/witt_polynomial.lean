@@ -292,12 +292,3 @@ begin
     rw finset.mem_range at h,
     simp only [alg_hom.map_mul, alg_hom.map_pow, alg_hom_C, H i h] },
 end
-
-/--
-The Witt polynomials induce an algebra equivalence from `mv_polynomial ℕ R` to itself,
-under the assumption that `p` is invertible in `R`.
--/
-noncomputable def witt.alg_equiv [invertible (p : R)] : mv_polynomial ℕ R ≃ₐ[R] mv_polynomial ℕ R :=
-equiv_of_family (W_ R) (X_in_terms_of_W p R)
-(bind₁_X_in_terms_of_W_witt_polynomial p R)
-(bind₁_witt_polynomial_X_in_terms_of_W p R)

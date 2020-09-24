@@ -72,48 +72,6 @@ end mv_polynomial
 namespace mv_polynomial
 variables {σ : Type*} {τ : Type*} {υ : Type*} {R : Type*} [comm_semiring R]
 
-
-
-lemma equiv_of_family_aux (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (h : ∀ i, bind₁ g (f i) = X i) (φ : mv_polynomial σ R) :
-  (bind₁ g) (bind₁ f φ) = φ :=
-begin
-  rw ← alg_hom.comp_apply,
-  suffices : (bind₁ g).comp (bind₁ f) = alg_hom.id _ _,
-  { rw [this, alg_hom.id_apply], },
-  refine mv_polynomial.alg_hom_ext _ (alg_hom.id _ _) _,
-  intro i,
-  rw [alg_hom.comp_apply, alg_hom.id_apply, bind₁_X_right, h],
-end
-
-/-- I think this has been PR'd to mathlib already. If not, fix this docstring. -/
-noncomputable def equiv_of_family (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (hfg : ∀ i, bind₁ g (f i) = X i) (hgf : ∀ i, bind₁ f (g i) = X i) :
-  mv_polynomial σ R ≃ₐ[R] mv_polynomial τ R :=
-{ to_fun    := bind₁ f,
-  inv_fun   := bind₁ g,
-  left_inv  := equiv_of_family_aux f g hfg,
-  right_inv := equiv_of_family_aux g f hgf,
-  .. bind₁ f}
-
-@[simp] lemma equiv_of_family_coe (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (hfg : ∀ i, bind₁ g (f i) = X i) (hgf : ∀ i, bind₁ f (g i) = X i) :
-  (equiv_of_family f g hfg hgf : mv_polynomial σ R →ₐ[R] mv_polynomial τ R) = bind₁ f := rfl
-
-@[simp] lemma equiv_of_family_symm_coe (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (hfg : ∀ i, bind₁ g (f i) = X i) (hgf : ∀ i, bind₁ f (g i) = X i) :
-  ((equiv_of_family f g hfg hgf).symm : mv_polynomial τ R →ₐ[R] mv_polynomial σ R) = bind₁ g := rfl
-
-@[simp] lemma equiv_of_family_apply (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (hfg : ∀ i, bind₁ g (f i) = X i) (hgf : ∀ i, bind₁ f (g i) = X i)
-  (φ : mv_polynomial σ R) :
-  equiv_of_family f g hfg hgf φ = bind₁ f φ := rfl
-
-@[simp] lemma equiv_of_family_symm_apply (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (hfg : ∀ i, bind₁ g (f i) = X i) (hgf : ∀ i, bind₁ f (g i) = X i)
-  (φ : mv_polynomial τ R) :
-  (equiv_of_family f g hfg hgf).symm φ = bind₁ g φ := rfl
-
 section monadic_stuff
 
 open_locale classical
@@ -316,12 +274,6 @@ begin
   { intros p q hp hq, simp only [hp, hq, ring_hom.map_add, alg_hom.map_add] },
   { intros p n hp, simp only [hp, rename_X, constant_coeff_X, ring_hom.map_mul, alg_hom.map_mul] }
 end
-
--- @[simp] lemma constant_coeff_comp_rename {τ : Type*} (f : σ → τ) :
---   (constant_coeff : mv_polynomial τ R →+* R).comp
---   (rename f) =
---   constant_coeff :=
--- by { ext, apply constant_coeff_rename }
 
 end move_this
 

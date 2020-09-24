@@ -343,20 +343,32 @@ end p_prime
 
 variables (p) (R)
 
-/-- From the equivalence `witt.alg_equiv`, induce a bijection between `𝕎 R` and `ℕ → R`,
+/-- The bijection between `𝕎 R` and `ℕ → R`,
 under the assumption that `p` is invertible in `R`. -/
 noncomputable def ghost_map_fun.equiv_of_invertible [invertible (p : R)] :
   𝕎 R ≃ (ℕ → R) :=
-mv_polynomial.comap_equiv (witt.alg_equiv p R)
+{ to_fun := ghost_map_fun,
+  inv_fun := λ x, mk p $ λ n, aeval x (X_in_terms_of_W p R n),
+  left_inv :=
+  begin
+    intro x,
+    ext n,
+    have := bind₁_witt_polynomial_X_in_terms_of_W p R n,
+    apply_fun (aeval x.coeff) at this,
+    simpa only [aeval_bind₁, aeval_X, ghost_map_fun, ghost_component_fun, aeval_witt_polynomial]
+  end,
+  right_inv :=
+  begin
+    intro x,
+    ext n,
+    have := bind₁_X_in_terms_of_W_witt_polynomial p R n,
+    apply_fun (aeval x) at this,
+    simpa only [aeval_bind₁, aeval_X, ghost_map_fun, ghost_component_fun, aeval_witt_polynomial]
+  end }
 
 lemma ghost_map_fun_eq [invertible (p : R)] :
   (ghost_map_fun : 𝕎 R → ℕ → R) = ghost_map_fun.equiv_of_invertible p R :=
-begin
-  ext w n,
-  rw [ghost_map_fun_apply, ghost_component_fun_apply'],
-  dsimp [ghost_map_fun.equiv_of_invertible, witt.alg_equiv],
-  rw bind₁_X_right, refl
-end
+rfl
 
 lemma ghost_map_fun.bijective_of_invertible [invertible (p : R)] :
   function.bijective (ghost_map_fun : 𝕎 R → ℕ → R) :=

@@ -95,6 +95,16 @@ namespace is_limit
 instance subsingleton {t : cone F} : subsingleton (is_limit t) :=
 ⟨by intros P Q; cases P; cases Q; congr; ext; solve_by_elim⟩
 
+/-- Given a natural transformation `α : F ⟶ G`, we give a morphism from the cone point
+of any cone over `F` to the cone point of a limit cone over `G`. -/
+def is_limit.map {F G : J ⥤ C} (s : cone F) {t : cone G} (P : is_limit t)
+  (α : F ⟶ G) : s.X ⟶ t.X :=
+P.lift ((cones.postcompose α).obj s)
+
+@[simp, reassoc] lemma is_limit_map_π {F G : J ⥤ C} (c : cone F) {d : cone G} (hd : is_limit d)
+  (α : F ⟶ G) (j : J) : is_limit.map c hd α ≫ d.π.app j = c.π.app j ≫ α.app j :=
+by apply is_limit.fac
+
 /- Repackaging the definition in terms of cone morphisms. -/
 
 /-- The universal morphism from any other cone to a limit cone. -/
@@ -245,13 +255,11 @@ def cone_points_iso_of_nat_iso {F G : J ⥤ C} {s : cone F} {t : cone G}
   hom_inv_id' := P.hom_ext (by tidy),
   inv_hom_id' := Q.hom_ext (by tidy), }
 
-@[simp]
 lemma cone_points_iso_of_nat_iso_hom_comp {F G : J ⥤ C} {s : cone F} {t : cone G}
   (P : is_limit s) (Q : is_limit t) (w : F ≅ G) (j : J) :
   (cone_points_iso_of_nat_iso P Q w).hom ≫ t.π.app j = s.π.app j ≫ w.hom.app j :=
 by simp
 
-@[simp]
 lemma cone_points_iso_of_nat_iso_inv_comp {F G : J ⥤ C} {s : cone F} {t : cone G}
   (P : is_limit s) (Q : is_limit t) (w : F ≅ G) (j : J) :
   (cone_points_iso_of_nat_iso P Q w).inv ≫ s.π.app j = t.π.app j ≫ w.inv.app j :=
@@ -1083,15 +1091,6 @@ end
 
 section lim_functor
 
-/-- Given a natural transformation `α : F ⟶ G`, we give a morphism from the cone point
-of any cone over `F` to the cone point of a limit cone over `G`. -/
-def is_limit.map {F G : J ⥤ C} (s : cone F) {t : cone G} (P : is_limit t)
-  (α : F ⟶ G) : s.X ⟶ t.X :=
-P.lift ((cones.postcompose α).obj s)
-
-@[simp, reassoc] lemma is_limit_map_π {F G : J ⥤ C} (c : cone F) {d : cone G} (hd : is_limit d)
-  (α : F ⟶ G) (j : J) : is_limit.map c hd α ≫ d.π.app j = c.π.app j ≫ α.app j :=
-by apply is_limit.fac
 
 /--
 Functoriality of limits.

@@ -50,6 +50,7 @@ variables {R : Type*} [rack R]
 
 @[simp] lemma normalize_op (x y : R) : rack.op' x y = x ◃ y := rfl
 @[simp] lemma normalize_inv_op (x y : R) : (rack.op' x).symm y = x ◃⁻¹ y := rfl
+@[simp] lemma normalize_inv_op' (x y : R) : (rack.op' x)⁻¹ y = x ◃⁻¹ y := rfl
 
 @[simp] lemma left_inv (x y : R) : x ◃⁻¹ x ◃ y = y :=
 (op' x).symm_apply_eq.mpr rfl
@@ -273,6 +274,19 @@ end quandle
 
 namespace rack
 
+/--
+This is the natural rack homomorphism to the conjugation quandle of the group `R ≃ R`
+that acts on the rack.
+-/
+def to_action (R : Type*) [rack R] : rack_hom R (quandle.conj (R ≃ R)) :=
+{ to_fun := rack.op',
+  map_op' := λ x y, begin
+    apply @mul_right_cancel _ _ _ (op' x), ext z,
+    simp only [quandle.conj_op_eq_conj, normalize_op, equiv.perm.mul_apply, inv_mul_cancel_right],
+    apply self_distrib.symm,
+  end }
+
+
 /-!
 ## Universal enveloping group of a rack
 
@@ -444,9 +458,17 @@ begin
   rw hm, simp [x_ih],
 end
 
-/-
-TODO: the group action of `envel_gp R` on `R`, and it respects the operation of `R`.
-Hence, `R` is an enriched/augmented rack over `envel_gp R`.
+/--
+The induced group homomorphism from the enveloping group into bijections of the rack,
+using `rack.to_action`. Satisfies the property `envel_action_prop`.
+
+This gives the rack `R` the structure of an augmented rack over `envel_gp R`.
 -/
+def envel_action {R : Type*} [rack R] : envel_gp R →* (R ≃ R) :=
+to_envel_gp.map (to_action R)
+
+@[simp]
+lemma envel_action_prop {R : Type*} [rack R] (x y : R) :
+  envel_action (to_envel_gp R x) y = x ◃ y := rfl
 
 end rack

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhangir Azerbayev, Adam Topaz.
 -/
 
+import algebra.ring_quot
 import .tensor_algebra
 import group_theory.perm.sign
 
@@ -59,62 +60,16 @@ An inductively defined relation on `tensor_algebra R M` used to define the exter
 -/
 inductive rel : tensor_algebra R M → tensor_algebra R M → Prop
 | of (m : M) : rel ((ι R M m) * (ι R M m)) 0
-| add_compat_left {a b c} : rel a b → rel (a + c) (b + c)
-| add_compat_right {a b c} : rel a b → rel (c + a) (c + b)
-| mul_compat_left {a b c} : rel a b → rel (a * c) (b * c)
-| mul_compat_right {a b c} : rel a b → rel (c * a) (c * b)
 
 end exterior_algebra
 
 /--
 The exterior algebra of an `R`-semimodule `M`.
 -/
-def exterior_algebra := quot (exterior_algebra.rel R M)
+@[derive [inhabited, semiring, algebra R]]
+def exterior_algebra := ring_quot (exterior_algebra.rel R M)
 
 namespace exterior_algebra
-
-
-instance : semiring (exterior_algebra R M) :=
-{ add := quot.map₂ (+) (λ _ _ _, rel.add_compat_right) (λ _ _ _, rel.add_compat_left),
-  add_assoc := by {rintros ⟨⟩ ⟨⟩ ⟨⟩, change quot.mk _ _ = _, rw add_assoc, refl},
-  zero := quot.mk _ 0,
-  zero_add := by {rintros ⟨⟩, change quot.mk _ _ = _, rw zero_add },
-  add_zero := by {rintros ⟨⟩, change quot.mk _ _ = _, rw add_zero },
-  add_comm := by {rintros ⟨⟩ ⟨⟩, change quot.mk _ _ = _, rw add_comm, refl },
-  mul := quot.map₂ (*) (λ _ _ _, rel.mul_compat_right) (λ _ _ _, rel.mul_compat_left),
-  mul_assoc := by {rintros ⟨⟩ ⟨⟩ ⟨⟩, change quot.mk _ _ = _, rw mul_assoc, refl },
-  one := quot.mk _ 1,
-  one_mul := by {rintros ⟨⟩, change quot.mk _ _ = _, rw one_mul },
-  mul_one := by {rintros ⟨⟩, change quot.mk _ _ = _, rw mul_one },
-  zero_mul := by {rintros ⟨⟩, change quot.mk _ _ = _, rw zero_mul },
-  mul_zero := by {rintros ⟨⟩, change quot.mk _ _ = _, rw mul_zero },
-  left_distrib := by {rintros ⟨⟩ ⟨⟩ ⟨⟩, change quot.mk _ _ = _, rw left_distrib, refl },
-  right_distrib := by {rintros ⟨⟩ ⟨⟩ ⟨⟩, change quot.mk _ _ = _, rw right_distrib, refl } }
-
-instance : inhabited (exterior_algebra R M) := ⟨0⟩
-
-instance : has_scalar R (exterior_algebra R M) :=
-{ smul := λ r m, quot.lift_on m (λ x, quot.mk _ $ r • x) $
-  λ a b h, by {simp_rw algebra.smul_def, exact quot.sound (rel.mul_compat_right h)} }
-
-instance : algebra R (exterior_algebra R M) :=
-{ to_fun := λ r, (quot.mk _ $ algebra_map _ _ r),
-  map_one' := rfl,
-  map_mul' := λ _ _, by {rw ring_hom.map_mul, refl },
-  map_zero' := rfl,
-  map_add' := λ _ _, by {rw ring_hom.map_add, refl },
-  commutes' := begin
-    rintros r ⟨⟩,
-    change quot.mk _ _ = _,
-    rw algebra.commutes r x,
-    refl,
-  end,
-  smul_def' := begin
-    rintros r ⟨⟩,
-    change quot.mk _ _ = _,
-    rw algebra.smul_def,
-    refl,
-  end }
 
 instance : ring (exterior_algebra S N) := algebra.ring_of_comm_ring_algebra S
 
@@ -122,7 +77,7 @@ instance : ring (exterior_algebra S N) := algebra.ring_of_comm_ring_algebra S
 The canonical quotient map `tensor_algebra R M → exterior_algebra R M`.
 -/
 protected def quot : tensor_algebra R M →ₐ[R] exterior_algebra R M :=
-  by refine_struct { to_fun := λ m, quot.mk _ m }; tauto
+  ring_quot.mk_alg_hom R _
 
 /--
 The canonical linear map `M →ₗ[R] exterior_algebra R M`.
@@ -137,47 +92,23 @@ from `exterior_algebra R M` to `A`.
 -/
 def lift {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = 0) :
   exterior_algebra R M →ₐ[R] A :=
-{ to_fun := λ a, quot.lift_on a (tensor_algebra.lift R M f) $ λ x y h,
-  begin
+ring_quot.lift_alg_hom R (tensor_algebra.lift R M f)
+  (λ x y h, by {
     induction h,
-    { simp only [alg_hom.map_mul,tensor_algebra.lift_ι_apply,cond,alg_hom.map_zero] },
-    repeat { simp only [alg_hom.map_add, h_ih] },
-    repeat { simp only [alg_hom.map_mul, h_ih] },
-  end,
-  map_one' := begin
-    change tensor_algebra.lift _ _ _ _ = _,
-    rw alg_hom.map_one,
-  end,
-  map_mul' := begin
-    rintros ⟨⟩ ⟨⟩,
-    change tensor_algebra.lift _ _ _ _ = _,
-    rw alg_hom.map_mul,
-  end,
-  map_zero' := begin
-    change tensor_algebra.lift _ _ _ _ = _,
-    rw alg_hom.map_zero,
-  end,
-  map_add' := begin
-    rintros ⟨⟩ ⟨⟩,
-    change tensor_algebra.lift _ _ _ _ = _,
-    rw alg_hom.map_add,
-  end,
-  commutes' := begin
-    rintros x,
-    change tensor_algebra.lift _ _ _ _ = _,
-    rw alg_hom.commutes,
-  end, }
-
-variables {R M}
+    rw [alg_hom.map_zero, alg_hom.map_mul, tensor_algebra.lift_ι_apply, cond],
+  })
 
 @[simp]
 theorem ι_comp_lift {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)
   (cond : ∀ m, f m * f m = 0) : (lift R M f cond).to_linear_map.comp (ι R M) = f :=
 begin
-  ext,
-  change tensor_algebra.lift _ _ _ _ = _,
-  rw tensor_algebra.lift_ι_apply,
+  ext, simp [lift, ι, exterior_algebra.quot],
 end
+
+@[simp]
+theorem lift_ι_apply {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)
+(cond : ∀ m, f m * f m = 0) (x) :
+  lift R M f cond (ι R M x) = f x := by { dsimp [lift, ι, exterior_algebra.quot], simp only [tensor_algebra.lift_ι_apply], }
 
 @[simp]
 theorem lift_unique {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)
@@ -186,15 +117,20 @@ theorem lift_unique {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)
 begin
   refine ⟨λ hyp, _, λ hyp, by rw [hyp, ι_comp_lift]⟩,
   ext,
-  rcases x,
-  change (g.comp (exterior_algebra.quot _ _)) _ = tensor_algebra.lift _ _ _ _,
-  suffices : g.comp (exterior_algebra.quot R M) = tensor_algebra.lift R M f, by rw this,
-  apply tensor_algebra.hom_ext,
-  finish,
+  -- TODO: why can't I combine these into `simp [lift, ← hyp]`?
+  simp [lift], rw ← hyp, simp,
+  refl,
 end
 
+variables {R M}
+
 @[simp]
-theorem ι_square_zero (m : M) : (ι R M m) * (ι R M m) = 0 := by apply quot.sound (rel.of _)
+theorem ι_square_zero (m : M) : (ι R M m) * (ι R M m) = 0 :=
+begin
+  dsimp [ι],
+  rw [←alg_hom.map_mul, ←alg_hom.map_zero (exterior_algebra.quot R M)],
+  exact ring_quot.mk_alg_hom_rel R (rel.of m),
+end
 
 @[simp]
 theorem comp_ι_square_zero {A: Type*} [semiring A] [algebra R A] (g : exterior_algebra R M →ₐ[R] A)
@@ -254,6 +190,7 @@ wedge R M ν = ι R M (ν 0) * wedge R M (λ i : fin q, ν i.succ) :=
 begin
   change exterior_algebra.quot R M _ = _,
   rw tensor_algebra.mk_split,
+  simp only [exterior_algebra.quot, alg_hom.map_mul],
   refl,
 end
 

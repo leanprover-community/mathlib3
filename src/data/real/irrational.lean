@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Yury K
 -/
 import data.real.basic
 import data.rat.sqrt
-import algebra.gcd_domain
+import algebra.gcd_monoid
 import ring_theory.multiplicity
 /-!
 # Irrational real numbers
@@ -21,6 +21,10 @@ open rat real multiplicity
 
 /-- A real number is irrational if it is not equal to any rational number. -/
 def irrational (x : ℝ) := x ∉ set.range (coe : ℚ → ℝ)
+
+lemma irrational_iff_ne_rational (x : ℝ) : irrational x ↔ ∀ a b : ℤ, x ≠ a / b :=
+by simp only [irrational, rat.forall, cast_mk, not_exists, set.mem_range, cast_coe_int, cast_div,
+  eq_comm]
 
 /-!
 ### Irrationality of roots of integer and rational numbers

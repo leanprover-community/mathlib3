@@ -55,6 +55,12 @@ coe_fn_injective (funext H)
 @[ext] lemma perm.ext {σ τ : equiv.perm α} (H : ∀ x, σ x = τ x) : σ = τ :=
 equiv.ext H
 
+lemma ext_iff {f g : equiv α β} : f = g ↔ ∀ x, f x = g x :=
+⟨λ h x, h ▸ rfl, ext⟩
+
+lemma perm.ext_iff {σ τ : equiv.perm α} : σ = τ ↔ ∀ x, σ x = τ x :=
+ext_iff
+
 /-- Any type is equivalent to itself. -/
 @[refl] protected def refl (α : Sort*) : α ≃ α := ⟨id, id, λ x, rfl, λ x, rfl⟩
 
@@ -67,10 +73,10 @@ equiv.ext H
   e₂.left_inv.comp e₁.left_inv, e₂.right_inv.comp e₁.right_inv⟩
 
 @[simp]
-lemma to_fun_as_coe (e : α ≃ β) (a : α) : e.to_fun a = e a := rfl
+lemma to_fun_as_coe (e : α ≃ β) : e.to_fun = e := rfl
 
 @[simp]
-lemma inv_fun_as_coe (e : α ≃ β) (b : β) : e.inv_fun b = e.symm b := rfl
+lemma inv_fun_as_coe (e : α ≃ β) : e.inv_fun = e.symm := rfl
 
 protected theorem injective (e : α ≃ β) : injective e :=
 e.left_inv.injective
@@ -1265,7 +1271,6 @@ def subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid 
 
 section swap
 variable [decidable_eq α]
-open decidable
 
 /-- A helper function for `equiv.swap`. -/
 def swap_core (a b r : α) : α :=

@@ -4,13 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import category_theory.limits.limits
-import category_theory.limits.preserves
+import category_theory.limits.preserves.basic
 import category_theory.limits.shapes.binary_products
 
 /-!
 Show that a functor `F : C ⥤ D` preserves binary products if and only if
 `⟨Fπ₁, Fπ₂⟩ : F (A ⨯ B) ⟶ F A ⨯ F B` (that is, `prod_comparison`) is an isomorphism for all `A, B`.
 -/
+
+noncomputable theory
 
 open category_theory
 

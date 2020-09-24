@@ -39,16 +39,20 @@ rfl
 @[simp] lemma eq_to_iso.inv {X Y : C} (p : X = Y) : (eq_to_iso p).inv = eq_to_hom p.symm :=
 rfl
 
-@[simp] lemma eq_to_iso_refl (X : C) (p : X = X) : eq_to_iso p = iso.refl X := rfl
+@[simp] lemma eq_to_iso_refl {X : C} (p : X = X) : eq_to_iso p = iso.refl X := rfl
 @[simp] lemma eq_to_iso_trans {X Y Z : C} (p : X = Y) (q : Y = Z) :
   eq_to_iso p ≪≫ eq_to_iso q = eq_to_iso (p.trans q) :=
 by ext; simp
 
-@[simp] lemma eq_to_hom_op (X Y : C) (h : X = Y) : (eq_to_hom h).op = eq_to_hom (congr_arg op h.symm) :=
+@[simp] lemma eq_to_hom_op {X Y : C} (h : X = Y) : (eq_to_hom h).op = eq_to_hom (congr_arg op h.symm) :=
 begin
   cases h,
   refl
 end
+
+instance {X Y : C} (h : X = Y) : is_iso (eq_to_hom h) := { .. eq_to_iso h }
+
+@[simp] lemma inv_eq_to_hom {X Y : C} (h : X = Y) : inv (eq_to_hom h) = eq_to_hom h.symm := rfl
 
 variables {D : Type u'} [category.{v'} D]
 

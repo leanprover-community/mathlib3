@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.fintype.basic
-import algebra.big_operators.basic
 
 /-!
 # Finite sets
@@ -14,7 +13,6 @@ basic facts about finite sets.
 -/
 
 open set function
-open_locale big_operators
 
 universes u v w x
 variables {α : Type u} {β : Type v} {ι : Sort w} {γ : Type x}
@@ -63,6 +61,11 @@ theorem finite_mem_finset (s : finset α) : finite {a | a ∈ s} :=
 
 theorem finite.of_fintype [fintype α] (s : set α) : finite s :=
 by classical; exact ⟨set_fintype s⟩
+
+theorem exists_finite_iff_finset {p : set α → Prop} :
+  (∃ s, finite s ∧ p s) ↔ ∃ s : finset α, p ↑s :=
+⟨λ ⟨s, hs, hps⟩, ⟨hs.to_finset, hs.coe_to_finset.symm ▸ hps⟩,
+  λ ⟨s, hs⟩, ⟨↑s, finite_mem_finset s, hs⟩⟩
 
 /-- Membership of a subset of a finite type is decidable.
 
@@ -557,59 +560,6 @@ end
 end set
 
 namespace finset
-
-section preimage
-
-/-- Preimage of `s : finset β` under a map `f` injective of `f ⁻¹' s` as a `finset`.  -/
-noncomputable def preimage {f : α → β} (s : finset β)
-  (hf : set.inj_on f (f ⁻¹' ↑s)) : finset α :=
-(s.finite_to_set.preimage hf).to_finset
-
-@[simp] lemma mem_preimage {f : α → β} {s : finset β} {hf : set.inj_on f (f ⁻¹' ↑s)} {x : α} :
-  x ∈ preimage s hf ↔ f x ∈ s :=
-set.finite.mem_to_finset
-
-@[simp, norm_cast] lemma coe_preimage {f : α → β} (s : finset β)
-  (hf : set.inj_on f (f ⁻¹' ↑s)) : (↑(preimage s hf) : set α) = f ⁻¹' ↑s :=
-set.finite.coe_to_finset _
-
-lemma image_subset_iff_subset_preimage [decidable_eq β] {f : α → β} {s : finset α} {t : finset β}
-  (hf : set.inj_on f (f ⁻¹' ↑t)) :
-  s.image f ⊆ t ↔ s ⊆ t.preimage hf :=
-image_subset_iff.trans $ by simp only [subset_iff, mem_preimage]
-
-lemma map_subset_iff_subset_preimage {f : α ↪ β} {s : finset α} {t : finset β} :
-  s.map f ⊆ t ↔ s ⊆ t.preimage (f.injective.inj_on _) :=
-by classical; rw [map_eq_image, image_subset_iff_subset_preimage]
-
-lemma image_preimage [decidable_eq β] (f : α → β) (s : finset β) [Π x, decidable (x ∈ set.range f)]
-  (hf : set.inj_on f (f ⁻¹' ↑s)) :
-  image f (preimage s hf) = s.filter (λ x, x ∈ set.range f) :=
-finset.coe_inj.1 $ by simp only [coe_image, coe_preimage, coe_filter,
-  set.image_preimage_eq_inter_range, set.sep_mem_eq]
-
-lemma image_preimage_of_bij [decidable_eq β] (f : α → β) (s : finset β)
-  (hf : set.bij_on f (f ⁻¹' ↑s) ↑s) :
-  image f (preimage s hf.inj_on) = s :=
-finset.coe_inj.1 $ by simpa using hf.image_eq
-
-end preimage
-
-@[to_additive]
-lemma prod_preimage [comm_monoid β] (f : α → γ) (s : finset γ)
-  (hf : set.inj_on f (f ⁻¹' ↑s)) (g : γ → β) (hg : ∀ x ∈ s, x ∉ set.range f → g x = 1) :
-  ∏ x in s.preimage hf, g (f x) = ∏ x in s, g x :=
-by classical;
-calc ∏ x in preimage s hf, g (f x) = ∏ x in image f (preimage s hf), g x :
-  eq.symm $ prod_image $ by simpa only [mem_preimage, inj_on] using hf
-  ... = ∏ x in s.filter (λ x, x ∈ set.range f), g x : by rw [image_preimage]
-  ... = ∏ x in s, g x : prod_filter_of_ne $ λ x hxs hxg, not.imp_symm (hg x hxs) hxg
-
-@[to_additive]
-lemma prod_preimage_of_bij [comm_monoid β] (f : α → γ) (s : finset γ)
-  (hf : set.bij_on f (f ⁻¹' ↑s) ↑s) (g : γ → β) :
-  ∏ x in s.preimage hf.inj_on, g (f x) = ∏ x in s, g x :=
-prod_preimage _ _ hf.inj_on g $ λ x hxs hxf, (hxf $ hf.subset_range hxs).elim
 
 /-- A finset is bounded above. -/
 protected lemma bdd_above [semilattice_sup α] [nonempty α] (s : finset α) :

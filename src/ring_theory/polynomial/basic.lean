@@ -8,9 +8,10 @@ Ring-theoretic supplement of data.polynomial.
 Main result: Hilbert basis theorem, that if a ring is noetherian then so is its polynomial ring.
 -/
 import algebra.char_p
-import data.mv_polynomial
-import data.polynomial.ring_division
-import ring_theory.noetherian
+import data.mv_polynomial.comm_ring
+import data.mv_polynomial.equiv
+import data.polynomial.field_division
+import ring_theory.principal_ideal_domain
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
@@ -99,7 +100,7 @@ def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set
 @[simp] theorem coeff_restriction' {p : polynomial R} {n : ℕ} : (coeff (restriction p) n).1 = coeff p n := rfl
 
 @[simp] theorem map_restriction (p : polynomial R) : p.restriction.map (algebra_map _ _) = p :=
-ext $ λ n, by rw [coeff_map, algebra.subring_algebra_map_apply, coeff_restriction]
+ext $ λ n, by rw [coeff_map, algebra.is_subring_algebra_map_apply, coeff_restriction]
 
 @[simp] theorem degree_restriction {p : polynomial R} : (restriction p).degree = p.degree := rfl
 
@@ -173,10 +174,92 @@ def of_subring (p : polynomial T) : polynomial R :=
 
 end polynomial
 
-variables {R : Type u} {σ : Type v} [comm_ring R]
+variables {R : Type u} {σ : Type v} {M : Type w} [comm_ring R] [add_comm_group M] [module R M]
 
 namespace ideal
 open polynomial
+
+/-- The push-forward of an ideal `I` of `R` to `polynomial R` via inclusion
+ is exactly the set of polynomials whose coefficients are in `I` -/
+theorem mem_map_C_iff {I : ideal R} {f : polynomial R} :
+  f ∈ (ideal.map C I : ideal (polynomial R)) ↔ ∀ n : ℕ, f.coeff n ∈ I :=
+begin
+  split,
+  { intros hf,
+    apply submodule.span_induction hf,
+    { intros f hf n,
+      cases (set.mem_image _ _ _).mp hf with x hx,
+      rw [← hx.right, coeff_C],
+      by_cases (n = 0),
+      { simpa [h] using hx.left },
+      { simp [h] } },
+    { simp },
+    { exact λ f g hf hg n, by simp [I.add_mem (hf n) (hg n)] },
+    { refine λ f g hg n, _,
+      rw [smul_eq_mul, coeff_mul],
+      exact I.sum_mem (λ c hc, I.smul_mem (f.coeff c.fst) (hg c.snd)) } },
+  { intros hf,
+    rw ← sum_monomial_eq f,
+    refine (map C I : ideal (polynomial R)).sum_mem (λ n hn, _),
+    simp [single_eq_C_mul_X],
+    rw mul_comm,
+    exact (map C I : ideal (polynomial R)).smul_mem _ (mem_map_of_mem (hf n)) }
+end
+
+lemma quotient_map_C_eq_zero {I : ideal R} :
+  ∀ a ∈ I, ((quotient.mk (map C I : ideal (polynomial R))).comp C) a = 0 :=
+begin
+  intros a ha,
+  rw [ring_hom.comp_apply, quotient.eq_zero_iff_mem],
+  exact mem_map_of_mem ha,
+end
+
+lemma eval₂_C_mk_eq_zero {I : ideal R} :
+  ∀ f ∈ (map C I : ideal (polynomial R)), eval₂_ring_hom (C.comp (quotient.mk I)) X f = 0 :=
+begin
+  intros a ha,
+  rw ← sum_monomial_eq a,
+  dsimp,
+  rw eval₂_sum (C.comp (quotient.mk I)) a monomial X,
+  refine finset.sum_eq_zero (λ n hn, _),
+  dsimp,
+  rw eval₂_monomial (C.comp (quotient.mk I)) X,
+  refine mul_eq_zero_of_left (polynomial.ext (λ m, _)) (X ^ n),
+  erw coeff_C,
+  by_cases h : m = 0,
+  { simpa [h] using quotient.eq_zero_iff_mem.2 ((mem_map_C_iff.1 ha) n) },
+  { simp [h] }
+end
+
+/-- If `I` is an ideal of `R`, then the ring polynomials over the quotient ring `I.quotient` is
+isomorphic to the quotient of `polynomial R` by the ideal `map C I`,
+where `map C I` contains exactly the polynomials whose coefficients all lie in `I` -/
+def polynomial_quotient_equiv_quotient_polynomial {I : ideal R} :
+  polynomial (I.quotient) ≃+* (map C I : ideal (polynomial R)).quotient :=
+{ to_fun := eval₂_ring_hom
+    (quotient.lift I ((quotient.mk (map C I : ideal (polynomial R))).comp C) quotient_map_C_eq_zero)
+    ((quotient.mk (map C I : ideal (polynomial R)) X)),
+  inv_fun := quotient.lift (map C I : ideal (polynomial R))
+    (eval₂_ring_hom (C.comp (quotient.mk I)) X) eval₂_C_mk_eq_zero,
+  map_mul' := λ f g, by simp,
+  map_add' := λ f g, by simp,
+  left_inv := begin
+    intro f,
+    apply polynomial.induction_on' f,
+    { simp_intros p q hp hq,
+      rw [hp, hq] },
+    { rintros n ⟨x⟩,
+      simp [monomial_eq_smul_X, C_mul'] }
+  end,
+  right_inv := begin
+    rintro ⟨f⟩,
+    apply polynomial.induction_on' f,
+    { simp_intros p q hp hq,
+      rw [hp, hq] },
+    { intros n a,
+      simp [monomial_eq_smul_X, ← C_mul' a (X ^ n)] },
+  end,
+}
 
 /-- Transport an ideal of `R[X]` to an `R`-submodule of `R[X]`. -/
 def of_polynomial (I : ideal (polynomial R)) : submodule R (polynomial R) :=
@@ -331,7 +414,7 @@ namespace polynomial
 
 theorem exists_irreducible_of_degree_pos {R : Type u} [integral_domain R] [is_noetherian_ring R]
   {f : polynomial R} (hf : 0 < f.degree) : ∃ g, irreducible g ∧ g ∣ f :=
-is_noetherian_ring.exists_irreducible_factor
+wf_dvd_monoid.exists_irreducible_factor
   (λ huf, ne_of_gt hf $ degree_eq_zero_of_is_unit huf)
   (λ hf0, not_lt_of_lt hf $ hf0.symm ▸ (@degree_zero R _).symm ▸ with_bot.bot_lt_coe _)
 
@@ -342,6 +425,16 @@ exists_irreducible_of_degree_pos $ by { contrapose! hf, exact nat_degree_le_of_d
 theorem exists_irreducible_of_nat_degree_ne_zero {R : Type u} [integral_domain R] [is_noetherian_ring R]
   {f : polynomial R} (hf : f.nat_degree ≠ 0) : ∃ g, irreducible g ∧ g ∣ f :=
 exists_irreducible_of_nat_degree_pos $ nat.pos_of_ne_zero hf
+
+lemma linear_independent_powers_iff_eval₂
+  (f : M →ₗ[R] M) (v : M) :
+  linear_independent R (λ n : ℕ, (f ^ n) v)
+    ↔ ∀ (p : polynomial R), polynomial.aeval f p v = 0 → p = 0 :=
+begin
+  rw linear_independent_iff,
+  simp only [finsupp.total_apply, aeval_endomorphism],
+  refl
+end
 
 end polynomial
 

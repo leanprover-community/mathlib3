@@ -17,6 +17,27 @@ This generalises the integer power function on a division ring.
 | 0     h := absurd rfl h
 | (k+1) h := zero_mul _
 
+@[simp] lemma zero_pow_eq_zero {M : Type*} [monoid_with_zero M] [nontrivial M] {n : ℕ} :
+  (0 : M) ^ n = 0 ↔ 0 < n :=
+begin
+  split; intro h,
+  { rw [nat.pos_iff_ne_zero], rintro rfl, simpa using h },
+  { exact zero_pow' n h.ne.symm }
+end
+
+theorem pow_eq_zero' {M : Type*} [monoid_with_zero M] [no_zero_divisors M]
+  {a : M} {n : ℕ} (H : a ^ n = 0) : a = 0 :=
+begin
+  induction n with n ih,
+  { rw pow_zero at H,
+    rw [← mul_one a, H, mul_zero] },
+  exact or.cases_on (mul_eq_zero.1 H) id ih
+end
+
+@[field_simps] theorem pow_ne_zero' {M : Type*} [monoid_with_zero M] [no_zero_divisors M]
+  {a : M} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
+mt pow_eq_zero' h
+
 section group_with_zero
 variables {G₀ : Type*} [group_with_zero G₀]
 
@@ -25,17 +46,6 @@ section nat_pow
 @[simp, field_simps] theorem inv_pow' (a : G₀) (n : ℕ) : (a⁻¹) ^ n = (a ^ n)⁻¹ :=
 by induction n with n ih; [exact inv_one.symm,
   rw [pow_succ', pow_succ, ih, mul_inv_rev']]
-
-theorem pow_eq_zero' {g : G₀} {n : ℕ} (H : g ^ n = 0) : g = 0 :=
-begin
-  induction n with n ih,
-  { rw pow_zero at H,
-    rw [← mul_one g, H, mul_zero] },
-  exact or.cases_on (mul_eq_zero.1 H) id ih
-end
-
-@[field_simps] theorem pow_ne_zero' {g : G₀} (n : ℕ) (h : g ≠ 0) : g ^ n ≠ 0 :=
-mt pow_eq_zero' h
 
 theorem pow_sub' (a : G₀) {m n : ℕ} (ha : a ≠ 0) (h : n ≤ m) : a ^ (m - n) = a ^ m * (a ^ n)⁻¹ :=
 have h1 : m - n + n = m, from nat.sub_add_cancel h,

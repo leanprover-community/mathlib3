@@ -127,6 +127,19 @@ def nat_trans : fst L R ⋙ L ⟶ snd L R ⋙ R :=
 section
 variables {L₁ L₂ L₃ : A ⥤ T} {R₁ R₂ R₃ : B ⥤ T}
 
+/--
+Construct an isomorphism in the comma category given isomorphisms of the objects whose forward
+directions give a commutative square.
+-/
+@[simps]
+def iso_mk {X Y : comma L₁ R₁} (l : X.left ≅ Y.left) (r : X.right ≅ Y.right)
+  (h : L₁.map l.hom ≫ Y.hom = X.hom ≫ R₁.map r.hom) : X ≅ Y :=
+{ hom := { left := l.hom, right := r.hom },
+  inv :=
+  { left := l.inv,
+    right := r.inv,
+    w' := by { erw [L₁.map_inv l.hom, iso.inv_comp_eq, reassoc_of h, ← R₁.map_comp], simp } } }
+
 /-- A natural transformation `L₁ ⟶ L₂` induces a functor `comma L₂ R ⥤ comma L₁ R`. -/
 @[simps]
 def map_left (l : L₁ ⟶ L₂) : comma L₂ R ⥤ comma L₁ R :=

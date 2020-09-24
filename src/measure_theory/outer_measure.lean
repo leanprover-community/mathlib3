@@ -97,6 +97,15 @@ lemma le_inter_add_diff {m : outer_measure α} {t : set α} (s : set α) :
   m t ≤ m (t ∩ s) + m (t \ s) :=
 by { convert m.union _ _, rw inter_union_diff t s }
 
+lemma diff_null (m : outer_measure α) (s : set α) {t : set α} (ht : m t = 0) :
+  m (s \ t) = m s :=
+begin
+  refine le_antisymm (m.mono $ diff_subset _ _) _,
+  calc m s ≤ m (s ∩ t) + m (s \ t) : le_inter_add_diff _
+       ... ≤ m t + m (s \ t)       : add_le_add_right (m.mono $ inter_subset_right _ _) _
+       ... = m (s \ t)             : by rw [ht, zero_add]
+end
+
 lemma union_null (m : outer_measure α) {s₁ s₂ : set α}
   (h₁ : m s₁ = 0) (h₂ : m s₂ = 0) : m (s₁ ∪ s₂) = 0 :=
 by simpa [h₁, h₂] using m.union s₁ s₂
@@ -441,15 +450,15 @@ protected def caratheodory : measurable_space α :=
 caratheodory_dynkin.to_measurable_space $ assume s₁ s₂, is_caratheodory_inter
 
 lemma is_caratheodory_iff {s : set α} :
-  caratheodory.is_measurable s ↔ ∀t, m t = m (t ∩ s) + m (t \ s) :=
+  caratheodory.is_measurable' s ↔ ∀t, m t = m (t ∩ s) + m (t \ s) :=
 iff.rfl
 
 lemma is_caratheodory_iff_le {s : set α} :
-  caratheodory.is_measurable s ↔ ∀t, m (t ∩ s) + m (t \ s) ≤ m t :=
+  caratheodory.is_measurable' s ↔ ∀t, m (t ∩ s) + m (t \ s) ≤ m t :=
 is_caratheodory_iff_le'
 
 protected lemma Union_eq_of_caratheodory {s : ℕ → set α}
-  (h : ∀i, caratheodory.is_measurable (s i)) (hd : pairwise (disjoint on s)) :
+  (h : ∀i, caratheodory.is_measurable' (s i)) (hd : pairwise (disjoint on s)) :
   m (⋃i, s i) = ∑'i, m (s i) :=
 f_Union h hd
 
@@ -459,7 +468,7 @@ variables {α : Type*}
 
 lemma of_function_caratheodory {m : set α → ennreal} {s : set α}
   {h₀ : m ∅ = 0} (hs : ∀t, m (t ∩ s) + m (t \ s) ≤ m t) :
-  (outer_measure.of_function m h₀).caratheodory.is_measurable s :=
+  (outer_measure.of_function m h₀).caratheodory.is_measurable' s :=
 begin
   apply (is_caratheodory_iff_le _).mpr,
   refine λ t, le_infi (λ f, le_infi $ λ hf, _),
@@ -585,7 +594,7 @@ lemma extend_Union_nat
   {f : ℕ → set α} (hm : ∀i, P (f i))
   (mU : m (⋃i, f i) (PU hm) = (∑'i, m (f i) (hm i))) :
   extend m (⋃i, f i) = (∑'i, extend m (f i)) :=
-(extend_eq _ _).trans $ mU.trans $ by { congr, ext i, rw extend_eq }
+(extend_eq _ _).trans $ mU.trans $ by { congr' with i, rw extend_eq }
 
 section subadditive
 include PU msU
@@ -660,6 +669,17 @@ begin
     refine infi_le_of_le _ (infi_le_of_le h2f $ infi_le _ hf) }
 end
 
+lemma induced_outer_measure_preimage (f : α ≃ α) (Pm : ∀ (s : set α), P (f ⁻¹' s) ↔ P s)
+  (mm : ∀ (s : set α) (hs : P s), m (f ⁻¹' s) ((Pm _).mpr hs) = m s hs)
+  {A : set α} : induced_outer_measure m P0 m0 (f ⁻¹' A) = induced_outer_measure m P0 m0 A :=
+begin
+  simp only [induced_outer_measure_eq_infi _ msU m_mono], symmetry,
+  refine infi_congr (preimage f) f.injective.preimage_surjective _, intro s,
+  refine infi_congr_Prop (Pm s) _, intro hs,
+  refine infi_congr_Prop f.surjective.preimage_subset_preimage_iff _,
+  intro h2s, exact mm s hs
+end
+
 lemma induced_outer_measure_exists_set {s : set α}
   (hs : induced_outer_measure m P0 m0 s < ⊤) {ε : nnreal} (hε : 0 < ε) :
   ∃ (t : set α) (ht : P t), s ⊆ t ∧
@@ -678,7 +698,7 @@ end
   of `s`.
 -/
 lemma induced_outer_measure_caratheodory (s : set α) :
-  (induced_outer_measure m P0 m0).caratheodory.is_measurable s ↔ ∀ (t : set α), P t →
+  (induced_outer_measure m P0 m0).caratheodory.is_measurable' s ↔ ∀ (t : set α), P t →
   induced_outer_measure m P0 m0 (t ∩ s) + induced_outer_measure m P0 m0 (t \ s) ≤
     induced_outer_measure m P0 m0 t :=
 begin
@@ -744,40 +764,25 @@ def trim : outer_measure α :=
 induced_outer_measure (λ s _, m s) is_measurable.empty m.empty
 
 theorem le_trim : m ≤ m.trim :=
-λ s, le_infi $ λ f, le_infi $ λ hs,
-le_trans (m.mono hs) $ le_trans (m.Union_nat f) $
-ennreal.tsum_le_tsum $ λ i, le_infi $ λ hf, le_refl _
+le_of_function.mpr $ λ s, le_infi $ λ _, le_refl _
 
 theorem trim_eq {s : set α} (hs : is_measurable s) : m.trim s = m s :=
-le_antisymm (le_trans (of_function_le _) (infi_le _ hs)) (le_trim _ _)
+induced_outer_measure_eq' is_measurable.Union (λ f hf, m.Union_nat f) (λ _ _ _ _ h, m.mono h) hs
 
 theorem trim_congr {m₁ m₂ : outer_measure α}
   (H : ∀ {s : set α}, is_measurable s → m₁ s = m₂ s) :
   m₁.trim = m₂.trim :=
-by unfold trim; congr; funext s hs; exact H hs
+by { unfold trim, congr, funext s hs, exact H hs }
 
 theorem trim_le_trim {m₁ m₂ : outer_measure α} (H : m₁ ≤ m₂) : m₁.trim ≤ m₂.trim :=
-λ s, infi_le_infi $ λ f, infi_le_infi $ λ hs,
-ennreal.tsum_le_tsum $ λ b, infi_le_infi $ λ hf, H _
+λ s, binfi_le_binfi $ λ f hs, ennreal.tsum_le_tsum $ λ b, infi_le_infi $ λ hf, H _
 
-theorem le_trim_iff {m₁ m₂ : outer_measure α} : m₁ ≤ m₂.trim ↔
-  ∀ s, is_measurable s → m₁ s ≤ m₂ s :=
+theorem le_trim_iff {m₁ m₂ : outer_measure α} : m₁ ≤ m₂.trim ↔ ∀ s, is_measurable s → m₁ s ≤ m₂ s :=
 le_of_function.trans $ forall_congr $ λ s, le_infi_iff
 
 theorem trim_eq_infi (s : set α) : m.trim s = ⨅ t (st : s ⊆ t) (ht : is_measurable t), m t :=
-begin
-  refine le_antisymm
-    (le_infi $ λ t, le_infi $ λ st, le_infi $ λ ht, _)
-    (le_infi $ λ f, le_infi $ λ hf, _),
-  { rw ← trim_eq m ht, exact (trim m).mono st },
-  { by_cases h : ∀i, is_measurable (f i),
-    { refine infi_le_of_le _ (infi_le_of_le hf $
-        infi_le_of_le (is_measurable.Union h) _),
-      rw congr_arg tsum _, {exact m.Union_nat _},
-      funext i, exact extend_eq _ (h i) },
-    { cases not_forall.1 h with i hi,
-      exact le_trans (le_infi $ λ h, hi.elim h) (ennreal.le_tsum i) } }
-end
+by { simp only [infi_comm] {single_pass := tt}, exact induced_outer_measure_eq_infi
+    is_measurable.Union (λ f _, m.Union_nat f) (λ _ _ _ _ h, m.mono h) s }
 
 theorem trim_eq_infi' (s : set α) : m.trim s = ⨅ t : {t // s ⊆ t ∧ is_measurable t}, m t :=
 by simp [infi_subtype, infi_and, trim_eq_infi]
@@ -792,8 +797,8 @@ ext $ λ s, le_antisymm
   (zero_le _)
 
 theorem trim_add (m₁ m₂ : outer_measure α) : (m₁ + m₂).trim = m₁.trim + m₂.trim :=
-ext $ λ s, begin
-  simp only [trim_eq_infi', add_apply],
+begin
+  ext1 s, simp only [trim_eq_infi', add_apply],
   rw ennreal.infi_add_infi,
   rintro ⟨t₁, st₁, ht₁⟩ ⟨t₂, st₂, ht₂⟩,
   exact ⟨⟨_, subset_inter_iff.2 ⟨st₁, st₂⟩, ht₁.inter ht₂⟩,

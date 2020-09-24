@@ -183,7 +183,7 @@ meta def lint (slow : bool := tt) (verbose : lint_verbosity := lint_verbosity.me
   (extra : list name := []) (use_only : bool := ff) : tactic (name_set × format) := do
   checks ← get_checks slow extra use_only,
   e ← get_env,
-  let l := e.filter (λ d, e.in_current_file' d.to_name),
+  let l := e.filter (λ d, e.in_current_file d.to_name),
   lint_aux l none "in the current file" slow verbose checks
 
 /-- Returns the declarations considered by the mathlib linter. -/

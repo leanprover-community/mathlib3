@@ -1395,16 +1395,6 @@ theorem map_filter_eq_foldr (f : α → β) (p : α → Prop) [decidable_pred p]
   map f (filter p as) = foldr (λ a bs, if p a then f a :: bs else bs) [] as :=
 by { induction as, { refl }, { simp! [*, apply_ite (map f)] } }
 
-lemma filter_eq {α} (p q : α → Prop) [decidable_pred p] [decidable_pred q] (l : list α)
-  (h : ∀ x ∈ l, p x ↔ q x) :
-  filter p l = filter q l :=
-begin
-  induction l; simp only [filter],
-  have : (∀ (x : α), x ∈ l_tl → (p x ↔ q x)),
-  { introv h', apply h _ (or.inr h') },
-  congr' 1; simp only [l_ih this, and_self, h, mem_cons_iff, true_or, eq_self_iff_true],
-end
-
 /-! ### map₂ -/
 
 theorem nil_map₂ (f : α → β → γ) (l : list β) : map₂ f [] l = [] :=

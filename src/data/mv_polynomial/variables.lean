@@ -36,7 +36,7 @@ monomial of $P$.
 
 ## Notation
 
-As in other polynomial files we typically use the notation:
+As in other polynomial files, we typically use the notation:
 
 + `σ : Type*` (indexing the variables)
 

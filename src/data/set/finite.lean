@@ -221,6 +221,9 @@ by rw ← inter_eq_self_of_subset_right h; apply_instance
 theorem finite.subset {s : set α} : finite s → ∀ {t : set α}, t ⊆ s → finite t
 | ⟨hs⟩ t h := ⟨@set.fintype_subset _ _ _ hs (classical.dec_pred t) h⟩
 
+theorem infinite_mono {s t : set α} (h : s ⊆ t) : infinite s → infinite t :=
+mt (λ ht, ht.subset h)
+
 instance fintype_image [decidable_eq β] (s : set α) (f : α → β) [fintype s] : fintype (f '' s) :=
 fintype.of_finset (s.to_finset.image f) $ by simp
 

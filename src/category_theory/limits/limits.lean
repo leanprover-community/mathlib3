@@ -97,13 +97,13 @@ instance subsingleton {t : cone F} : subsingleton (is_limit t) :=
 
 /-- Given a natural transformation `α : F ⟶ G`, we give a morphism from the cone point
 of any cone over `F` to the cone point of a limit cone over `G`. -/
-def is_limit.map {F G : J ⥤ C} (s : cone F) {t : cone G} (P : is_limit t)
+def map {F G : J ⥤ C} (s : cone F) {t : cone G} (P : is_limit t)
   (α : F ⟶ G) : s.X ⟶ t.X :=
 P.lift ((cones.postcompose α).obj s)
 
-@[simp, reassoc] lemma is_limit_map_π {F G : J ⥤ C} (c : cone F) {d : cone G} (hd : is_limit d)
-  (α : F ⟶ G) (j : J) : is_limit.map c hd α ≫ d.π.app j = c.π.app j ≫ α.app j :=
-by apply is_limit.fac
+@[simp, reassoc] lemma map_π {F G : J ⥤ C} (c : cone F) {d : cone G} (hd : is_limit d)
+  (α : F ⟶ G) (j : J) : map c hd α ≫ d.π.app j = c.π.app j ≫ α.app j :=
+by apply fac
 
 /- Repackaging the definition in terms of cone morphisms. -/
 

@@ -69,7 +69,7 @@ lemma gpow_add_one (a : G) : ∀ n : ℤ, a ^ (n + 1) = a ^ n * a
 | (of_nat n) := by simp [← int.coe_nat_succ, pow_succ']
 | -[1+0]     := by simp [int.neg_succ_of_nat_eq]
 | -[1+(n+1)] := by rw [int.neg_succ_of_nat_eq, gpow_neg, neg_add, neg_add_cancel_right, gpow_neg,
-  ← int.coe_nat_succ, gpow_coe_nat, gpow_coe_nat, _root_.pow_succ _ (n + 1), mul_inv_rev,
+  ← int.coe_nat_succ, gpow_coe_nat, gpow_coe_nat, pow_succ _ (n + 1), mul_inv_rev,
   inv_mul_cancel_right]
 
 theorem add_one_gsmul : ∀ (a : A) (i : ℤ), (i + 1) •ℤ a = i •ℤ a + a :=

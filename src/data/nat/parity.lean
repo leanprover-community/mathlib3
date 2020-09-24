@@ -97,7 +97,7 @@ by rw [even, dvd_iff_mod_eq_zero, nat.div_mod_eq_mod_mul_div, mul_comm]
 theorem neg_one_pow_eq_one_iff_even {α : Type*} [ring α] {n : ℕ} (h1 : (-1 : α) ≠ 1):
   (-1 : α) ^ n = 1 ↔ even n :=
 ⟨λ h, n.mod_two_eq_zero_or_one.elim (dvd_iff_mod_eq_zero _ _).2
-  (λ hn, by rw [neg_one_pow_eq_pow_mod_two, hn, _root_.pow_one] at h; exact (h1 h).elim),
+  (λ hn, by rw [neg_one_pow_eq_pow_mod_two, hn, pow_one] at h; exact (h1 h).elim),
   λ ⟨m, hm⟩, by rw [neg_one_pow_eq_pow_mod_two, hm]; simp⟩
 
 -- Here are examples of how `parity_simps` can be used with `nat`.

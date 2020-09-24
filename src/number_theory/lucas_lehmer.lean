@@ -299,7 +299,7 @@ begin
     ... = (ω^(2^i) + ωb^(2^i))^2 - 2 : by rw ih
     ... = (ω^(2^i))^2 + (ωb^(2^i))^2 + 2*(ωb^(2^i)*ω^(2^i)) - 2 : by ring
     ... = (ω^(2^i))^2 + (ωb^(2^i))^2 :
-            by rw [←mul_pow ωb ω, ωb_mul_ω, _root_.one_pow, mul_one, add_sub_cancel]
+            by rw [←mul_pow ωb ω, ωb_mul_ω, one_pow, mul_one, add_sub_cancel]
     ... = ω^(2^(i+1)) + ωb^(2^(i+1)) : by rw [←pow_mul, ←pow_mul, nat.pow_succ] }
 end
 
@@ -345,7 +345,7 @@ begin
   replace h := congr_arg (λ x, ω^2^p' * x) h,
   dsimp at h,
   have t : 2^p' + 2^p' = 2^(p'+1) := by ring_exp,
-  rw [mul_add, ←pow_add ω, t, ←mul_pow ω ωb (2^p'), ω_mul_ωb, _root_.one_pow] at h,
+  rw [mul_add, ←pow_add ω, t, ←mul_pow ω ωb (2^p'), ω_mul_ωb, one_pow] at h,
   rw [mul_comm, coe_mul] at h,
   rw [mul_comm _ (k : X (q (p'+2)))] at h,
   replace h := eq_sub_of_add_eq h,
@@ -444,7 +444,7 @@ lemma s_mod_succ {p a i b c}
   (h2 : s_mod p i = b)
   (h3 : (b * b - 2) % a = c) :
   s_mod p (i+1) = c :=
-by { dsimp [s_mod, mersenne], rw [h1, h2, _root_.pow_two, h3] }
+by { dsimp [s_mod, mersenne], rw [h1, h2, pow_two, h3] }
 
 /--
 Given a goal of the form `lucas_lehmer_test p`,

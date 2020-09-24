@@ -480,7 +480,7 @@ begin
   lift x.valuation to ℕ using x.valuation_nonneg with k hk,
   simp only [int.coe_nat_le, fpow_neg, fpow_coe_nat],
   have aux : ∀ n : ℕ, 0 < (p ^ n : ℝ),
-  { apply _root_.pow_pos, exact_mod_cast nat.prime.pos ‹_› },
+  { apply pow_pos, exact_mod_cast nat.prime.pos ‹_› },
   rw [inv_le_inv (aux _) (aux _)],
   have : p ^ n ≤ p ^ k ↔ n ≤ k := (pow_right_strict_mono (nat.prime.two_le ‹_›)).le_iff_le,
   rw [← this],
@@ -501,7 +501,7 @@ begin
     simp only [int.nat_abs_of_nat, is_unit_unit, is_unit.dvd_mul_left, int.coe_nat_le],
     intro H,
     obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le H,
-    simp only [_root_.pow_add, dvd_mul_right], }
+    simp only [pow_add, dvd_mul_right], }
 end
 
 lemma norm_le_pow_iff_mem_span_pow (x : ℤ_[p]) (n : ℕ) :
@@ -533,7 +533,7 @@ by rw [norm_le_pow_iff_norm_lt_pow_add_one, sub_add_cancel]
 lemma norm_lt_one_iff_dvd (x : ℤ_[p]) : ∥x∥ < 1 ↔ ↑p ∣ x :=
 begin
   have := norm_le_pow_iff_mem_span_pow x 1,
-  rw [ideal.mem_span_singleton, _root_.pow_one] at this,
+  rw [ideal.mem_span_singleton, pow_one] at this,
   rw [← this, norm_le_pow_iff_norm_lt_pow_add_one],
   simp only [fpow_zero, int.coe_nat_zero, int.coe_nat_succ, add_left_neg, zero_add],
 end

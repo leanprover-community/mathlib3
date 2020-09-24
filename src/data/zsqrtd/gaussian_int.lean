@@ -222,7 +222,7 @@ hp.eq_two_or_odd.elim
       have hpk : p ∣ k ^ 2 + 1,
         by rw [← char_p.cast_eq_zero_iff (zmod p) p]; simp *,
       have hkmul : (k ^ 2 + 1 : ℤ[i]) = ⟨k, 1⟩ * ⟨k, -1⟩ :=
-        by simp [_root_.pow_two, zsqrtd.ext],
+        by simp [pow_two, zsqrtd.ext],
       have hpne1 : p ≠ 1, from (ne_of_lt (hp.one_lt)).symm,
       have hkltp : 1 + k * k < p * p,
         from calc 1 + k * k ≤ k + k * k :
@@ -262,7 +262,7 @@ have hab : ∃ a b, (p : ℤ[i]) = a * b ∧ ¬ is_unit a ∧ ¬ is_unit b,
 let ⟨a, b, hpab, hau, hbu⟩ := hab in
 have hnap : (norm a).nat_abs = p, from ((hp.mul_eq_prime_pow_two_iff
     (mt norm_eq_one_iff.1 hau) (mt norm_eq_one_iff.1 hbu)).1 $
-  by rw [← int.coe_nat_inj', int.coe_nat_pow, _root_.pow_two,
+  by rw [← int.coe_nat_inj', int.coe_nat_pow, pow_two,
     ← @norm_nat_cast (-1), hpab];
     simp).1,
 ⟨a.re.nat_abs, a.im.nat_abs, by simpa [nat_abs_norm_eq, pow_two] using hnap⟩

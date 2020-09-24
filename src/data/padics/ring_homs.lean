@@ -160,7 +160,7 @@ lemma zmod_congr_of_sub_mem_max_ideal (x : ℤ_[p]) (m n : ℕ)
 begin
   rw maximal_ideal_eq_span_p at hm hn,
   have := zmod_congr_of_sub_mem_span_aux 1 x m n,
-  simp only [_root_.pow_one] at this,
+  simp only [pow_one] at this,
   specialize this hm hn,
   apply_fun zmod.cast_hom (show p ∣ p ^ 1, by rw pow_one) (zmod p) at this,
   simpa only [ring_hom.map_int_cast],
@@ -376,7 +376,7 @@ begin
           rw [is_unit_iff, norm_eq_pow_val hc', hc0, neg_zero, fpow_zero], },
         rw discrete_valuation_ring.unit_mul_pow_congr_unit _ _ _ _ _ hc,
         exact irreducible_p },
-      { rw [_root_.zero_pow (nat.pos_of_ne_zero hc0)],
+      { rw [zero_pow (nat.pos_of_ne_zero hc0)],
         simp only [sub_zero, zmod.cast_zero, mul_zero],
         rw unit_coeff_spec hc',
         apply dvd_mul_of_dvd_right,

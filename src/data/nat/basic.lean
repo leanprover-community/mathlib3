@@ -1043,15 +1043,18 @@ end
 
 /-! ### `pow` -/
 
-@[protected] lemma pow_succ (x n : ℕ) : x^(n+1) = x^n * x :=
+-- TODO: For each protected lemma, replace its uses and then remove it!
+
+/-- TODO: Replace all uses with `pow_succ'`. -/
+protected lemma pow_succ (x n : ℕ) : x^(n+1) = x^n * x :=
 mul_comm _ _
 
-@[simp, protected] lemma pow_zero (b : ℕ) : b ^ 0 = 1 := rfl
+@[simp] protected lemma pow_zero (b : ℕ) : b ^ 0 = 1 := rfl
 
 -- TODO: this is redundant with pow_one in algebra.group_power
-@[simp, nolint simp_nf] theorem pow_one (b : ℕ) : b ^ 1 = b := mul_one _
+@[simp, nolint simp_nf] protected theorem pow_one (b : ℕ) : b ^ 1 = b := mul_one _
 
-theorem pow_le_pow_of_le_left {x y : ℕ} (H : x ≤ y) : ∀ i : ℕ, x^i ≤ y^i
+@[protected] theorem pow_le_pow_of_le_left {x y : ℕ} (H : x ≤ y) : ∀ i : ℕ, x^i ≤ y^i
 | 0 := le_refl _
 | (succ i) := nat.mul_le_mul H (pow_le_pow_of_le_left i)
 
@@ -1062,10 +1065,12 @@ theorem pow_le_pow_of_le_right {x : ℕ} (H : x > 0) {i : ℕ} : ∀ {j}, i ≤ 
     nat.mul_le_mul (pow_le_pow_of_le_right $ le_of_lt_succ hl) H)
   (λe, by rw e; refl)
 
+-- TODO: remove in favor of pow_pos
+-- (not `protected` because the _root_ lemma has a different name)
 theorem pos_pow_of_pos {b : ℕ} (n : ℕ) (h : 0 < b) : 0 < b^n :=
-pow_le_pow_of_le_right h (zero_le _)
+pow_pos h n
 
-theorem zero_pow {n : ℕ} (h : 0 < n) : 0^n = 0 :=
+protected theorem zero_pow {n : ℕ} (h : 0 < n) : 0^n = 0 :=
 by rw [← succ_pred_eq_of_pos h, _root_.pow_succ, nat.zero_mul]
 
 theorem pow_lt_pow_of_lt_left {x y : ℕ} (H : x < y) {i} (h : 0 < i) : x^i < y^i :=
@@ -1085,31 +1090,33 @@ begin
 end
 
 -- TODO: this is redundant with one_pow in algebra.group_power
-@[simp, nolint simp_nf] lemma one_pow : ∀ n : ℕ, 1 ^ n = 1
+@[simp, nolint simp_nf] protected lemma one_pow : ∀ n : ℕ, 1 ^ n = 1
 | 0 := rfl
 | (k+1) := show 1 * 1^k = 1, by rw [one_mul, one_pow]
 
-theorem pow_add (a m n : ℕ) : a^(m + n) = a^m * a^n :=
+protected theorem pow_add (a m n : ℕ) : a^(m + n) = a^m * a^n :=
 _root_.pow_add a m n
 
-theorem pow_two (a : ℕ) : a ^ 2 = a * a := _root_.pow_two a
+protected theorem pow_two (a : ℕ) : a ^ 2 = a * a := _root_.pow_two a
 
 protected theorem pow_two_sub_pow_two (a b : ℕ) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
 by { simp only [pow_two], exact nat.mul_self_sub_mul_self_eq a b }
 
-theorem mul_pow (a b n : ℕ) : (a * b) ^ n = a ^ n * b ^ n :=
+protected theorem mul_pow (a b n : ℕ) : (a * b) ^ n = a ^ n * b ^ n :=
 by induction n; simp [*, nat.pow_succ, mul_comm, mul_assoc, mul_left_comm]
 
 protected theorem pow_mul (a b n : ℕ) : n ^ (a * b) = (n ^ a) ^ b :=
 by induction b; simp [*, nat.succ_eq_add_one, nat.pow_add, mul_add, mul_comm]
 
-theorem pow_pos {p : ℕ} (hp : 0 < p) : ∀ n : ℕ, 0 < p ^ n
+protected theorem pow_pos {p : ℕ} (hp : 0 < p) : ∀ n : ℕ, 0 < p ^ n
 | 0 := by simp
 | (k+1) := mul_pos hp (pow_pos _)
 
+-- TODO: Remove in favor of pow_mul_pow_sub
 lemma pow_eq_mul_pow_sub (p : ℕ) {m n : ℕ} (h : m ≤ n) : p ^ m * p ^ (n - m)  = p ^ n :=
 by rw [←nat.pow_add, nat.add_sub_cancel' h]
 
+-- TODO: Generalize?
 lemma pow_lt_pow_succ {p : ℕ} (h : 1 < p) (n : ℕ) : p^n < p^(n+1) :=
 suffices 1*p^n < p*p^n, by simpa,
 nat.mul_lt_mul_of_pos_right h (nat.pow_pos (lt_of_succ_lt h) n)
@@ -1124,13 +1131,13 @@ lemma lt_two_pow (n : ℕ) : n < 2^n :=
 lt_pow_self dec_trivial n
 
 lemma one_le_pow (n m : ℕ) (h : 0 < m) : 1 ≤ m^n :=
-one_pow n ▸ pow_le_pow_of_le_left h n
+by { rw ←one_pow n, exact pow_le_pow_of_le_left h n }
 lemma one_le_pow' (n m : ℕ) : 1 ≤ (m+1)^n := one_le_pow n (m+1) (succ_pos m)
 
 lemma one_le_two_pow (n : ℕ) : 1 ≤ 2^n := one_le_pow n 2 dec_trivial
 
 lemma one_lt_pow (n m : ℕ) (h₀ : 0 < n) (h₁ : 1 < m) : 1 < m^n :=
-one_pow n ▸ pow_lt_pow_of_lt_left h₁ h₀
+by { rw ←one_pow n, exact pow_lt_pow_of_lt_left h₁ h₀ }
 lemma one_lt_pow' (n m : ℕ) : 1 < (m+2)^(n+1) :=
 one_lt_pow (n+1) (m+2) (succ_pos n) (nat.lt_of_sub_eq_succ rfl)
 
@@ -1195,10 +1202,10 @@ begin
     rw [eq.symm (mod_eq_sub_mod p_b_ge)] }
 end
 
-theorem pow_dvd_pow (a : ℕ) {m n : ℕ} (h : m ≤ n) : a^m ∣ a^n :=
+protected theorem pow_dvd_pow (a : ℕ) {m n : ℕ} (h : m ≤ n) : a^m ∣ a^n :=
 by rw [← nat.add_sub_cancel' h, pow_add]; apply dvd_mul_right
 
-theorem pow_dvd_pow_of_dvd {a b : ℕ} (h : a ∣ b) : ∀ n:ℕ, a^n ∣ b^n
+protected theorem pow_dvd_pow_of_dvd {a b : ℕ} (h : a ∣ b) : ∀ n:ℕ, a^n ∣ b^n
 | 0     := dvd_refl _
 | (n+1) := mul_dvd_mul h (pow_dvd_pow_of_dvd n)
 

@@ -1304,7 +1304,7 @@ by induction n with n IH; [simp only [nat.cast_zero, nat.mul_zero, mul_zero],
   rw [nat.mul_succ, nat.cast_add, IH, nat.cast_succ, mul_add_one]]
 
 @[simp] theorem nat_cast_power {m n : ℕ} : ((pow m n : ℕ) : ordinal) = m ^ n :=
-by induction n with n IH; [simp only [nat.pow_zero, nat.cast_zero, power_zero, nat.cast_one],
+by induction n with n IH; [simp only [pow_zero, nat.cast_zero, power_zero, nat.cast_one],
   rw [nat.pow_succ, nat_cast_mul, IH, nat.cast_succ, ← succ_eq_add_one, power_succ]]
 
 @[simp] theorem nat_cast_le {m n : ℕ} : (m : ordinal) ≤ n ↔ m ≤ n :=

@@ -110,7 +110,7 @@ calc ∑ i in finset.Ico 1 b, n / p ^ i
     = ∑ i in finset.Ico 1 b, (k + (n - k)) / p ^ i :
     by simp only [nat.add_sub_cancel' hkn]
 ... = ∑ i in finset.Ico 1 b, (k / p ^ i + (n - k) / p ^ i +
-      if p ^ i ≤ k % p ^ i + (n - k) % p ^ i then 1 else 0) : by simp only [nat.add_div (nat.pow_pos hp.pos _)]
+      if p ^ i ≤ k % p ^ i + (n - k) % p ^ i then 1 else 0) : by simp only [nat.add_div (pow_pos hp.pos _)]
 ... = _ : begin simp only [sum_add_distrib], simp [sum_boole], end -- we have to use `sum_add_distrib` before `add_ite` fires.
 
 /-- The multiplity of `p` in `choose n k` is the number of carries when `k` and `n - k`
@@ -165,7 +165,7 @@ le_antisymm
   (have hdisj : disjoint
       ((Ico 1 (p ^ n)).filter (λ i, p ^ i ≤ k % p ^ i + (p ^ n - k) % p ^ i))
       ((Ico 1 (p ^ n)).filter (λ i, p ^ i ∣ k)),
-    by simp [disjoint_right, *, dvd_iff_mod_eq_zero, nat.mod_lt _ (nat.pow_pos hp.pos _)]
+    by simp [disjoint_right, *, dvd_iff_mod_eq_zero, nat.mod_lt _ (pow_pos hp.pos _)]
         {contextual := tt},
   have filter_subset_Ico : filter (λ i, p ^ i ≤ k % p ^ i +
       (p ^ n - k) % p ^ i ∨ p ^ i ∣ k) (Ico 1 (p ^ n)) ⊆ Ico 1 n.succ,

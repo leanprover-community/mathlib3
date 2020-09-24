@@ -59,7 +59,7 @@ have hk0 : 0 ≤ k, from nonneg_of_mul_nonneg_left
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _))
           (le_refl _)
       ... < (p / 2) ^ 2 + (p / 2)^ 2 + (p % 2)^2 + ((2 * (p / 2)^2 + (4 * (p / 2) * (p % 2)))) :
-        by rw [hp1, nat.one_pow, mul_one];
+        by rw [hp1, one_pow, mul_one];
           exact (lt_add_iff_pos_right _).2
             (add_pos_of_nonneg_of_pos (nat.zero_le _) (mul_pos dec_trivial
               (nat.div_pos hp.two_le dec_trivial)))
@@ -156,7 +156,7 @@ m.mod_two_eq_zero_or_one.elim
           by { rw [← int.coe_nat_eq_zero, ← hnat_abs], rwa [hn0, mul_zero] at hn },
         have habcd0 : (m : ℤ) ∣ a ∧ (m : ℤ) ∣ b ∧ (m : ℤ) ∣ c ∧ (m : ℤ) ∣ d,
           by simpa [@add_eq_zero_iff_eq_zero_of_nonneg ℤ _ _ _ (pow_two_nonneg _) (pow_two_nonneg _),
-            nat.pow_two, w, x, y, z, (char_p.int_cast_eq_zero_iff _ m _), and.assoc] using hwxyz0,
+            pow_two, w, x, y, z, (char_p.int_cast_eq_zero_iff _ m _), and.assoc] using hwxyz0,
         let ⟨ma, hma⟩ := habcd0.1,     ⟨mb, hmb⟩ := habcd0.2.1,
             ⟨mc, hmc⟩ := habcd0.2.2.1, ⟨md, hmd⟩ := habcd0.2.2.2 in
         have hmdvdp : m ∣ p,

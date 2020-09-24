@@ -1151,7 +1151,7 @@ have ∀ a b : num, (a * b).nat_size ≤ a.nat_size + b.nat_size,
 begin
   intros,
   simp [nat_size_to_nat],
-  rw [nat.size_le, nat.pow_add],
+  rw [nat.size_le, pow_add],
   exact mul_lt_mul'' (nat.lt_size_self _)
     (nat.lt_size_self _) (nat.zero_le _) (nat.zero_le _)
 end,

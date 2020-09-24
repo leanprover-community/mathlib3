@@ -504,7 +504,7 @@ begin
   refine nat.modeq.modeq_mul _ (by refl),
   symmetry,
   rw [nat.modeq.modeq_iff_dvd, int.coe_nat_sub],
-  exact nat.pow_pos dec_trivial _
+  exact pow_pos (show 0 < 2, from dec_trivial) _
 end
 
 -- It's hard to know what the limiting factor for large Mersenne primes would be.

@@ -635,7 +635,7 @@ k = 0 ∧ m = 1 ∨ 0 < k ∧
     (λk0, by rw k0; exact or.inl ⟨rfl, rfl⟩)
     (λkpos, or.inr ⟨kpos, _⟩);
   refine (nat.eq_zero_or_pos n).elim
-    (λn0, by rw [n0, nat.zero_pow kpos]; exact or.inl ⟨rfl, rfl⟩)
+    (λn0, by rw [n0, zero_pow kpos]; exact or.inl ⟨rfl, rfl⟩)
     (λnpos, or.inr ⟨npos, _⟩); exact
   let w := _root_.max n k in
   have nw : n ≤ w, from le_max_left _ _,
@@ -671,7 +671,7 @@ k = 0 ∧ m = 1 ∨ 0 < k ∧
   ⟨w, a, t, z, a1, tm, ta, mt, nw, kw, zp⟩,
 λo, match o with
 | or.inl ⟨k0, m1⟩ := by rw [k0, m1]; refl
-| or.inr ⟨kpos, or.inl ⟨n0, m0⟩⟩ := by rw [n0, m0, nat.zero_pow kpos]
+| or.inr ⟨kpos, or.inl ⟨n0, m0⟩⟩ := by rw [n0, m0, zero_pow kpos]
 | or.inr ⟨kpos, or.inr ⟨npos, w, a, t, z,
    (a1 : 1 < a),
    (tm : xn a1 k ≡ yn a1 k * (a - n) + m [MOD t]),

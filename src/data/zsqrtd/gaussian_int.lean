@@ -265,7 +265,7 @@ have hnap : (norm a).nat_abs = p, from ((hp.mul_eq_prime_pow_two_iff
   by rw [← int.coe_nat_inj', int.coe_nat_pow, _root_.pow_two,
     ← @norm_nat_cast (-1), hpab];
     simp).1,
-⟨a.re.nat_abs, a.im.nat_abs, by simpa [nat_abs_norm_eq, nat.pow_two] using hnap⟩
+⟨a.re.nat_abs, a.im.nat_abs, by simpa [nat_abs_norm_eq, pow_two] using hnap⟩
 
 lemma prime_of_nat_prime_of_mod_four_eq_three (p : ℕ) [hp : fact p.prime] (hp3 : p % 4 = 3) :
   prime (p : ℤ[i]) :=

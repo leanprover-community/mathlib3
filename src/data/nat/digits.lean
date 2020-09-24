@@ -390,7 +390,7 @@ lemma pow_length_le_mul_of_digits {b : ℕ} {l : list ℕ} (hl : l ≠ []) (hl2 
 begin
   rw [←list.init_append_last hl],
   simp only [list.length_append, list.length, zero_add, list.length_init, of_digits_append,
-    list.length_init, of_digits_singleton, add_comm (l.length - 1), nat.pow_add, nat.pow_one],
+    list.length_init, of_digits_singleton, add_comm (l.length - 1), pow_add, pow_one],
   apply nat.mul_le_mul_left,
   refine le_trans _ (nat.le_add_left _ _),
   have : 0 < l.last hl, { rwa [nat.pos_iff_ne_zero] },

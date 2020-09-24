@@ -168,7 +168,7 @@ by rw [← Ico_diff_left, lebesgue_outer.diff_null _ (lebesgue_outer_singleton _
 by rw [← Icc_diff_left, lebesgue_outer.diff_null _ (lebesgue_outer_singleton _), lebesgue_outer_Icc]
 
 lemma is_lebesgue_measurable_Iio {c : ℝ} :
-  lebesgue_outer.caratheodory.is_measurable (Iio c) :=
+  lebesgue_outer.caratheodory.is_measurable' (Iio c) :=
 outer_measure.of_function_caratheodory $ λ t,
 le_infi $ λ a, le_infi $ λ b, le_infi $ λ h, begin
   refine le_trans (add_le_add

@@ -136,7 +136,6 @@ def hom_is_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) (f : s ⟶ t) : 
   inv_hom_id' := Q.uniq_cone_morphism, }
 
 /-- Limits of `F` are unique up to isomorphism. -/
--- We may later want to prove the coherence of these isomorphisms.
 def cone_point_unique_up_to_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) : s.X ≅ t.X :=
 (cones.forget F).map_iso (unique_up_to_iso P Q)
 
@@ -148,11 +147,28 @@ def cone_point_unique_up_to_iso {s t : cone F} (P : is_limit s) (Q : is_limit t)
   (Q : is_limit t) (j : J) : (cone_point_unique_up_to_iso P Q).inv ≫ s.π.app j = t.π.app j :=
 (unique_up_to_iso P Q).inv.w _
 
+@[simp] lemma lift_comp_cone_point_unique_up_to_iso_hom {r s t : cone F}
+  (P : is_limit s) (Q : is_limit t) :
+  P.lift r ≫ (cone_point_unique_up_to_iso P Q).hom = Q.lift r :=
+is_limit.uniq Q _ _ (by simp)
+
+@[simp] lemma lift_comp_cone_point_unique_up_to_iso_inv {r s t : cone F}
+  (P : is_limit s) (Q : is_limit t) :
+  Q.lift r ≫ (cone_point_unique_up_to_iso P Q).inv = P.lift r :=
+is_limit.uniq P _ _ (by simp)
+
 /-- Transport evidence that a cone is a limit cone across an isomorphism of cones. -/
 def of_iso_limit {r t : cone F} (P : is_limit r) (i : r ≅ t) : is_limit t :=
 is_limit.mk_cone_morphism
   (λ s, P.lift_cone_morphism s ≫ i.hom)
   (λ s m, by rw ←i.comp_inv_eq; apply P.uniq_cone_morphism)
+
+/-- Isomorphism of cones preserves whether or not they are limiting cones. -/
+def equiv_iso_limit {r t : cone F} (i : r ≅ t) : is_limit r ≃ is_limit t :=
+{ to_fun := λ h, h.of_iso_limit i,
+  inv_fun := λ h, h.of_iso_limit i.symm,
+  left_inv := by tidy,
+  right_inv := by tidy }
 
 /--
 If the canonical morphism from a cone point to a limiting cone point is an iso, then the
@@ -224,10 +240,28 @@ are themselves isomorphic.
 @[simps]
 def cone_points_iso_of_nat_iso {F G : J ⥤ C} {s : cone F} {t : cone G}
   (P : is_limit s) (Q : is_limit t) (w : F ≅ G) : s.X ≅ t.X :=
-{ hom := Q.lift ((limits.cones.postcompose w.hom).obj s),
-  inv := P.lift ((limits.cones.postcompose w.inv).obj t),
-  hom_inv_id' := by { apply hom_ext P, tidy, },
-  inv_hom_id' := by { apply hom_ext Q, tidy, }, }
+{ hom := Q.lift ((cones.postcompose w.hom).obj s),
+  inv := P.lift ((cones.postcompose w.inv).obj t),
+  hom_inv_id' := P.hom_ext (by tidy),
+  inv_hom_id' := Q.hom_ext (by tidy), }
+
+@[simp]
+lemma cone_points_iso_of_nat_iso_hom_comp {F G : J ⥤ C} {s : cone F} {t : cone G}
+  (P : is_limit s) (Q : is_limit t) (w : F ≅ G) (j : J) :
+  (cone_points_iso_of_nat_iso P Q w).hom ≫ t.π.app j = s.π.app j ≫ w.hom.app j :=
+by simp
+
+@[simp]
+lemma cone_points_iso_of_nat_iso_inv_comp {F G : J ⥤ C} {s : cone F} {t : cone G}
+  (P : is_limit s) (Q : is_limit t) (w : F ≅ G) (j : J) :
+  (cone_points_iso_of_nat_iso P Q w).inv ≫ s.π.app j = t.π.app j ≫ w.inv.app j :=
+by simp
+
+@[simp]
+lemma lift_comp_cone_points_iso_of_nat_iso_hom {F G : J ⥤ C} {r s : cone F} {t : cone G}
+  (P : is_limit s) (Q : is_limit t) (w : F ≅ G) :
+  P.lift r ≫ (cone_points_iso_of_nat_iso P Q w).hom = Q.lift ((cones.postcompose w.hom).obj _) :=
+Q.hom_ext (by simp)
 
 section equivalence
 open category_theory.equivalence
@@ -841,7 +875,7 @@ is_limit.fac _ c j
 
 /-- The cone morphism from any cone to the arbitrary choice of limit cone. -/
 def limit.cone_morphism {F : J ⥤ C} [has_limit F] (c : cone F) :
-  c ⟶ (limit.cone F) :=
+  c ⟶ limit.cone F :=
 (limit.is_limit F).lift_cone_morphism c
 
 @[simp] lemma limit.cone_morphism_hom {F : J ⥤ C} [has_limit F] (c : cone F) :
@@ -929,7 +963,13 @@ is_limit.cone_points_iso_of_nat_iso (limit.is_limit F) (limit.is_limit G) w
 lemma has_limit.iso_of_nat_iso_hom_π {F G : J ⥤ C} [has_limit F] [has_limit G]
   (w : F ≅ G) (j : J) :
   (has_limit.iso_of_nat_iso w).hom ≫ limit.π G j = limit.π F j ≫ w.hom.app j :=
-by simp [has_limit.iso_of_nat_iso, is_limit.cone_points_iso_of_nat_iso_hom]
+is_limit.cone_points_iso_of_nat_iso_hom_comp _ _ _ _
+
+@[simp, reassoc]
+lemma has_limit.lift_iso_of_nat_iso_hom {F G : J ⥤ C} [has_limit F] [has_limit G] (t : cone F)
+  (w : F ≅ G) :
+  limit.lift _ t ≫ (has_limit.iso_of_nat_iso w).hom = limit.lift G ((cones.postcompose w.hom).obj _) :=
+is_limit.lift_comp_cone_points_iso_of_nat_iso_hom _ _ _
 
 /--
 The limits of `F : J ⥤ C` and `G : K ⥤ C` are isomorphic,

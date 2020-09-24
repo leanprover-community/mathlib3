@@ -269,7 +269,7 @@ lemma biproduct.map_eq_map' [fintype J] {f g : J → C} [has_finite_biproducts C
   (p : Π b, f b ⟶ g b) : biproduct.map p = biproduct.map' p :=
 begin
   ext j j',
-  simp only [discrete.nat_trans_app, limits.ι_is_colimit_map, limits.is_limit_map_π, category.assoc,
+  simp only [discrete.nat_trans_app, limits.ι_is_colimit_map, limits.is_limit.map_π, category.assoc,
     ←bicone.to_cone_π_app, ←biproduct.bicone_π, ←bicone.to_cocone_ι_app, ←biproduct.bicone_ι],
   simp only [biproduct.bicone_ι, biproduct.bicone_π, bicone.to_cocone_ι_app, bicone.to_cone_π_app],
   rw [biproduct.ι_π_assoc, biproduct.ι_π],

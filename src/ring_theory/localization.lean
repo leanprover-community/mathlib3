@@ -1316,7 +1316,7 @@ end
 
 section num_denom
 
-variables [unique_factorization_domain A] (φ : fraction_map A K)
+variables [unique_factorization_monoid A] (φ : fraction_map A K)
 
 lemma exists_reduced_fraction (x : φ.codomain) :
   ∃ (a : A) (b : non_zero_divisors A),
@@ -1324,7 +1324,7 @@ lemma exists_reduced_fraction (x : φ.codomain) :
 begin
   obtain ⟨⟨b, b_nonzero⟩, a, hab⟩ := φ.exists_integer_multiple x,
   obtain ⟨a', b', c', no_factor, rfl, rfl⟩ :=
-    unique_factorization_domain.exists_reduced_factors' a b
+    unique_factorization_monoid.exists_reduced_factors' a b
       (mem_non_zero_divisors_iff_ne_zero.mp b_nonzero),
   obtain ⟨c'_nonzero, b'_nonzero⟩ := mul_mem_non_zero_divisors.mp b_nonzero,
   refine ⟨a', ⟨b', b'_nonzero⟩, @no_factor, _⟩,

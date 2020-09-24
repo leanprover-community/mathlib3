@@ -22,7 +22,7 @@ There are also lemmas about the multiplicity of primes in factorials and in bino
 -/
 
 open finset nat multiplicity
-open_locale big_operators
+open_locale big_operators nat
 
 namespace nat
 
@@ -80,10 +80,10 @@ lemma multiplicity_pow_self {p n : ℕ} (hp : p.prime) : multiplicity p (p ^ n) 
 by induction n; simp [hp.multiplicity_one, nat.pow_succ, hp.multiplicity_mul, *,
   hp.multiplicity_self, succ_eq_add_one]
 
-/-- The multiplicity of a prime in `fact n` is the sum of the quotients `n / p ^ i`.
+/-- The multiplicity of a prime in `factorial n` is the sum of the quotients `n / p ^ i`.
   This sum is expressed over the set `Ico 1 b` where `b` is any bound at least `n` -/
 lemma multiplicity_fact {p : ℕ} (hp : p.prime) :
-  ∀ {n b : ℕ}, n ≤ b → multiplicity p n.fact = (∑ i in Ico 1 b, n / p ^ i : ℕ)
+  ∀ {n b : ℕ}, n ≤ b → multiplicity p n.! = (∑ i in Ico 1 b, n / p ^ i : ℕ)
 | 0     b hb := by simp [Ico, hp.multiplicity_one]
 | (n+1) b hb :=
   calc multiplicity p (n+1).fact = multiplicity p n.fact + multiplicity p (n+1) :

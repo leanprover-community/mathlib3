@@ -11,7 +11,7 @@ import topology.instances.ennreal
 import tactic.ring_exp
 
 noncomputable theory
-open_locale classical topological_space
+open_locale classical topological_space nat
 
 open classical function filter finset metric
 
@@ -654,31 +654,21 @@ end ennreal
 ### Factorial
 -/
 
--- MOVE
-lemma self_le_factorial : ∀ n : ℕ, n ≤ n.fact
-| 0 := zero_le_one
-| (k+1) := le_mul_of_one_le_right k.zero_lt_succ.le (nat.one_le_of_lt $ nat.fact_pos _)
+lemma factorial_tendsto_at_top : tendsto nat.factorial at_top at_top :=
+tendsto_at_top_at_top_of_monotone nat.monotone_factorial (λ n, ⟨n, n.self_le_factorial⟩)
 
--- Move if possible
-lemma factorial_eq_prod : ∀ n : ℕ, n.fact = ∏ k in range n, (k+1)
-| 0 := rfl
-| (n+1) := by simp [finset.range_succ, factorial_eq_prod n]
-
-lemma factorial_tendsto_at_top : tendsto nat.fact at_top at_top :=
-tendsto_at_top_at_top_of_monotone nat.monotone_fact (λ n, ⟨n, self_le_factorial n⟩)
-
-lemma tendsto_factorial_div_pow_self_at_top : tendsto (λ n, n.fact / n^n : ℕ → ℝ) at_top (𝓝 0) :=
+lemma tendsto_factorial_div_pow_self_at_top : tendsto (λ n, n.! / n^n : ℕ → ℝ) at_top (𝓝 0) :=
 tendsto_of_tendsto_of_tendsto_of_le_of_le'
   tendsto_const_nhds
   (tendsto_const_div_at_top_nhds_0_nat 1)
-  (eventually_of_forall $ λ n, div_nonneg (by exact_mod_cast n.fact_pos.le)
+  (eventually_of_forall $ λ n, div_nonneg (by exact_mod_cast n.factorial_pos.le)
     (pow_nonneg (by exact_mod_cast n.zero_le) _))
   begin
     rw eventually_iff_exists_mem,
     use [set.Ioi 0, Ioi_mem_at_top 0],
     rintros n (hn : 0 < n),
     rcases nat.exists_eq_succ_of_ne_zero hn.ne.symm with ⟨k, rfl⟩,
-    rw [factorial_eq_prod, pow_eq_prod_const, div_eq_mul_inv, ← inv_eq_one_div, prod_nat_cast,
+    rw [← prod_range_add_one_eq_factorial, pow_eq_prod_const, div_eq_mul_inv, ← inv_eq_one_div, prod_nat_cast,
         nat.cast_succ, ← prod_inv_distrib', ← prod_mul_distrib, finset.prod_range_succ'],
     simp only [prod_range_succ', one_mul, nat.cast_add, zero_add, nat.cast_one],
     refine mul_le_of_le_one_left (inv_nonneg.mpr $ by exact_mod_cast hn.le) (prod_le_one _ _);

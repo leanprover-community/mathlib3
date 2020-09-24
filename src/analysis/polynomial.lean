@@ -19,7 +19,7 @@ begin
 
     suffices : set.infinite (Icc a b),
     { exact this absurd3 },
-    { rw ←infinite_coe_iff, refine infinite_Icc _, linarith }
+    { rw ←infinite_coe_iff, exact infinite_Icc h }
 end
 
 end real

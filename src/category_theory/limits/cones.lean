@@ -605,3 +605,23 @@ by { dsimp [cone_left_op_of_cocone], simp }
 end
 
 end category_theory.limits
+
+namespace category_theory.functor
+
+open category_theory.limits
+
+variables {F : J ⥤ C}
+variables {D : Type u'} [category.{v} D]
+
+section
+variables (G : C ⥤ D)
+
+def map_cone_op (t : cone F) : (G.map_cone t).op ≅ (G.op.map_cocone t.op) :=
+cocones.ext (iso.refl _) (by tidy)
+
+def map_cocone_op {t : cocone F} : (G.map_cocone t).op ≅ (G.op.map_cone t.op) :=
+cones.ext (iso.refl _) (by tidy)
+
+end
+
+end category_theory.functor

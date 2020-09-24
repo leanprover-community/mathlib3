@@ -1576,7 +1576,6 @@ def is_limit.op {t : cone F} (P : is_limit t) : is_colimit t.op :=
     { dsimp, intro j, rw ← w, refl, }
   end }
 
-
 /--
 If `t : cocone F` is a colimit cocone, then `t.op : cone F.op` is a limit cone.
 -/
@@ -1586,6 +1585,31 @@ def is_colimit.op {t : cocone F} (P : is_colimit t) : is_limit t.op :=
   uniq' := λ s m w,
   begin
     rw ← P.uniq s.unop m.unop,
+    { refl, },
+    { dsimp, intro j, rw ← w, refl, }
+  end }
+/--
+If `t : cone F.op` is a limit cone, then `t.unop : cocone F` is a colimit cocone.
+-/
+def is_limit.unop {t : cone F.op} (P : is_limit t) : is_colimit t.unop :=
+{ desc := λ s, (P.lift s.op).unop,
+  fac' := λ s j, congr_arg has_hom.hom.unop (P.fac s.op (op j)),
+  uniq' := λ s m w,
+  begin
+    rw ← P.uniq s.op m.op,
+    { refl, },
+    { dsimp, intro j, rw ← w, refl, }
+  end }
+
+/--
+If `t : cocone F.op` is a colimit cocone, then `t.unop : cone F.` is a limit cone.
+-/
+def is_colimit.unop {t : cocone F.op} (P : is_colimit t) : is_limit t.unop :=
+{ lift := λ s, (P.desc s.op).unop,
+  fac' := λ s j, congr_arg has_hom.hom.unop (P.fac s.op (op j)),
+  uniq' := λ s m w,
+  begin
+    rw ← P.uniq s.op m.op,
     { refl, },
     { dsimp, intro j, rw ← w, refl, }
   end }

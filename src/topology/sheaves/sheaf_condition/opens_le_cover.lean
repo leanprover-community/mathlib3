@@ -167,7 +167,7 @@ def sheaf_condition_opens_le_cover_equiv_sheaf_condition_pairwise_intersections 
   F.sheaf_condition_opens_le_cover ≃ F.sheaf_condition_pairwise_intersections :=
 equiv.Pi_congr_right (λ i, equiv.Pi_congr_right (λ U,
   equiv_of_subsingleton_of_subsingleton
-    (λ P, begin sorry, end)
+    (λ P, begin change is_limit (functor.map_cocone F.op (opens_le_cover_cocone U)).op at P, end)
     begin sorry, end))
 
 /--

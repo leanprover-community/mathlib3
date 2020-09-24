@@ -81,7 +81,7 @@ begin
   simp [lie_ring.of_associative_ring_bracket],
 end
 
-@[simp] lemma ι_comp_lift' (x : L) : lift R L A f (ι R L x) = f x :=
+@[simp] lemma lift_ι_apply (x : L) : lift R L A f (ι R L x) = f x :=
 begin
   have : ι R L x = ring_quot.mk_alg_hom R (rel R L) (tι x), { refl, },
   simp [this, lift],

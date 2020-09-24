@@ -1371,11 +1371,9 @@ by { ext, rw [mem_filter, mem_image],
      simp only [and_imp, exists_prop, and_iff_right_iff_imp, exists_imp_distrib],
      rintros x xel rfl, exact h _ xel }
 
-lemma mem_image_iff_preimage_nonempty (f : α → β) (s : finset α) (y : β) :
-  y ∈ s.image f ↔ (s.filter (λ x, f x = y)).nonempty :=
-by { rw mem_image, split,
-     { rintros ⟨x, xel, rfl⟩, use x, rw mem_filter, exact ⟨xel, rfl⟩, },
-     { rintros ⟨x, xel⟩, use x, rwa mem_filter at xel } }
+lemma preimage_nonempty_iff_mem_image (f : α → β) (s : finset α) (y : β) :
+  (s.filter (λ x, f x = y)).nonempty ↔ y ∈ s.image f :=
+by simp [finset.nonempty]
 
 @[simp, norm_cast] lemma coe_image {f : α → β} : ↑(s.image f) = f '' ↑s :=
 set.ext $ λ _, mem_image.trans set.mem_image_iff_bex.symm
@@ -1641,9 +1639,9 @@ theorem card_image_of_injective [decidable_eq β] {f : α → β} (s : finset α
   (H : function.injective f) : card (image f s) = card s :=
 card_image_of_inj_on $ λ x _ y _ h, H h
 
-lemma preimage_card_ne_zero_iff_mem_image {s : finset α} {t : finset β} (f : α → β) [decidable_eq β]
-  (hf : ∀ a ∈ s, f a ∈ t) (y : β) : (s.filter (λ x, f x = y)).card ≠ 0 ↔ y ∈ s.image f :=
-by { rw [←zero_lt_iff_ne_zero, card_pos, ←mem_image_iff_preimage_nonempty f s y] }
+lemma preimage_card_ne_zero_iff_mem_image (s : finset α) (f : α → β) [decidable_eq β] (y : β) :
+  (s.filter (λ x, f x = y)).card ≠ 0 ↔ y ∈ s.image f :=
+by { rw [←zero_lt_iff_ne_zero, card_pos, preimage_nonempty_iff_mem_image] }
 
 @[simp] lemma card_map {α β} (f : α ↪ β) {s : finset α} : (s.map f).card = s.card :=
 multiset.card_map _ _

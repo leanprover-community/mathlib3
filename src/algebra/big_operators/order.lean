@@ -336,7 +336,7 @@ begin
   have h' := lt_of_le_of_lt h hn,
   exact nat.lt_asymm h' h',
 
-  have key := λ (y : β) (yel : y ∈ t), (preimage_card_ne_zero_iff_mem_image f hf y).mp,
+  have key := λ (y : β) (yel : y ∈ t), (preimage_card_ne_zero_iff_mem_image s f y).mp,
 
   calc s.card = ∑ y in s.image f, (s.filter (λ x, f x = y)).card :
     by apply card_eq_sum_card_image

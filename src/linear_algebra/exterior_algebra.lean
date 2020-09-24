@@ -265,12 +265,12 @@ begin
 end
 
 
-lemma wedge_self_adj (ν : fin q → M) (i j : fin q) (hij : i.val + 1 = j.val) (hv : ν i = ν j) :
+lemma wedge_self_adj (ν : fin q → M) (i j : fin q) (hij : ↑i + 1 = ↑j) (hv : ν i = ν j) :
 wedge R M ν = 0 :=
 begin
   induction q with q hq,
   --Base case (there is nothing to show)
-  cases i, exfalso, exact nat.not_lt_zero i_val i_is_lt,
+  exfalso, exact nat.not_lt_zero ↑i i.property,
   --Inductive step
   rw wedge_split,
   cases classical.em (i = 0) with hem hem,
@@ -283,8 +283,8 @@ begin
   begin
     intro cj, rw cj at hij, simp at hij, assumption,
   end,
-  have hij1 : (i.pred hem).val.succ = (j.pred hj).val :=
-    by rw [←fin.succ_val, fin.succ_pred, fin.pred_val, ←hij, nat.pred_succ],
+  have hij1 : ↑(i.pred hem) + 1 = ↑(j.pred hj) :=
+    by rw [←fin.coe_succ, fin.succ_pred, fin.coe_pred, ←hij, nat.add_sub_cancel],
   have hv1 : (ν ∘ fin.succ) (i.pred hem) = (ν ∘ fin.succ) (j.pred hj) := by simp [hv],
   rw hq (ν ∘ fin.succ) (i.pred hem) (j.pred hj) hij1 hv1,
   rw mul_zero,

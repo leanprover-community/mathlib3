@@ -166,7 +166,7 @@ def mk : multilinear_map R (λ i : fin q, M) (tensor_algebra R M) :=
     induction q with q hq,
 
     --Base case
-    cases i, exfalso, exact nat.not_lt_zero i_val i_is_lt,
+    exfalso, exact nat.not_lt_zero ↑i i.is_lt,
     --Inductive step
     rw [mk_split_aux, mk_split_aux, mk_split_aux],
     cases classical.em (i = 0),
@@ -217,7 +217,7 @@ def mk : multilinear_map R (λ i : fin q, M) (tensor_algebra R M) :=
     intros ν i r x,
     induction q with q hq,
     --Base case
-    cases i, exfalso, exact nat.not_lt_zero i_val i_is_lt,
+    exfalso, exact nat.not_lt_zero ↑i i.is_lt,
     --Inductive step
     rw [mk_split_aux, mk_split_aux],
     cases classical.em (i = 0),

@@ -15,7 +15,6 @@ import data.set.intervals.surj_on
 import topology.algebra.group
 import topology.extend_from_subset
 import order.filter.interval
-import tactic.linarith
 
 /-!
 # Theory of topology on ordered spaces
@@ -1437,6 +1436,46 @@ begin
 end
 
 end linear_ordered_field
+
+section discrete_linear_ordered_field
+variables [discrete_linear_ordered_field α] [topological_space α] [order_topology α]
+
+/-- The function `x ↦ x⁻¹` tends to `+∞` on the right of `0`. -/
+lemma tendsto_inv_zero_at_top : tendsto (λx:α, x⁻¹) (𝓝[set.Ioi (0:α)] 0) at_top :=
+begin
+  apply (tendsto_at_top _ _).2 (λb, _),
+  refine mem_nhds_within_Ioi_iff_exists_Ioo_subset.2 ⟨(max b 1)⁻¹, by simp [zero_lt_one], λx hx, _⟩,
+  calc b ≤ max b 1 : le_max_left _ _
+  ... ≤ x⁻¹ : begin
+    apply (le_inv _ hx.1).2 (le_of_lt hx.2),
+    exact lt_of_lt_of_le zero_lt_one (le_max_right _ _)
+  end
+end
+
+/-- The function `r ↦ r⁻¹` tends to `0` on the right as `r → +∞`. -/
+lemma tendsto_inv_at_top_zero' : tendsto (λr:α, r⁻¹) at_top (𝓝[set.Ioi (0:α)] 0) :=
+begin
+  assume s hs,
+  rw mem_nhds_within_Ioi_iff_exists_Ioc_subset at hs,
+  rcases hs with ⟨C, C0, hC⟩,
+  change 0 < C at C0,
+  refine filter.mem_map.2 (mem_sets_of_superset (mem_at_top C⁻¹) (λ x hx, hC _)),
+  have : 0 < x, from lt_of_lt_of_le (inv_pos.2 C0) hx,
+  exact ⟨inv_pos.2 this, (inv_le C0 this).1 hx⟩
+end
+
+lemma tendsto_inv_at_top_zero : tendsto (λr:α, r⁻¹) at_top (𝓝 0) :=
+tendsto_inv_at_top_zero'.mono_right inf_le_left
+
+variables {l : filter β} {f : β → α}
+
+lemma tendsto.inv_tendsto_at_top (h : tendsto f l at_top) : tendsto (f⁻¹) l (𝓝 0) :=
+tendsto_inv_at_top_zero.comp h
+
+lemma tendsto.inv_tendsto_zero (h : tendsto f l (𝓝[set.Ioi 0] 0)) : tendsto (f⁻¹) l at_top :=
+tendsto_inv_zero_at_top.comp h
+
+end discrete_linear_ordered_field
 
 lemma preimage_neg [add_group α] : preimage (has_neg.neg : α → α) = image (has_neg.neg : α → α) :=
 (image_eq_preimage_of_inverse neg_neg neg_neg).symm

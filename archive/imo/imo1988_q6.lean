@@ -5,7 +5,8 @@ Authors: Johan Commelin
 -/
 
 import data.rat.basic
-import tactic
+import tactic.linarith
+import tactic.omega
 
 /-!
 # IMO1988 Q6 and constant descent Vieta jumping

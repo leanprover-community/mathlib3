@@ -83,7 +83,7 @@ protected def quot : tensor_algebra R M →ₐ[R] exterior_algebra R M :=
 The canonical linear map `M →ₗ[R] exterior_algebra R M`.
 -/
 def ι : M →ₗ[R] exterior_algebra R M :=
-  (exterior_algebra.quot R M).to_linear_map.comp (tensor_algebra.ι R M)
+  (ring_quot.mk_alg_hom R _).to_linear_map.comp (tensor_algebra.ι R M)
 
 /--
 Given a linear map `f : M →ₗ[R] A` into an `R`-algebra `A`, which satisfies the condition:
@@ -102,13 +102,13 @@ ring_quot.lift_alg_hom R (tensor_algebra.lift R M f)
 theorem ι_comp_lift {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)
   (cond : ∀ m, f m * f m = 0) : (lift R M f cond).to_linear_map.comp (ι R M) = f :=
 begin
-  ext, simp [lift, ι, exterior_algebra.quot],
+  ext, simp [lift, ι],
 end
 
 @[simp]
 theorem lift_ι_apply {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)
 (cond : ∀ m, f m * f m = 0) (x) :
-  lift R M f cond (ι R M x) = f x := by { dsimp [lift, ι, exterior_algebra.quot], simp only [tensor_algebra.lift_ι_apply], }
+  lift R M f cond (ι R M x) = f x := by { dsimp [lift, ι], simp only [tensor_algebra.lift_ι_apply], }
 
 @[simp]
 theorem lift_unique {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)
@@ -128,7 +128,7 @@ variables {R M}
 theorem ι_square_zero (m : M) : (ι R M m) * (ι R M m) = 0 :=
 begin
   dsimp [ι],
-  rw [←alg_hom.map_mul, ←alg_hom.map_zero (exterior_algebra.quot R M)],
+  rw [←alg_hom.map_mul, ←alg_hom.map_zero _],
   exact ring_quot.mk_alg_hom_rel R (rel.of m),
 end
 
@@ -141,6 +141,7 @@ by rw [←alg_hom.map_mul, ι_square_zero, alg_hom.map_zero]
 theorem lift_comp_ι {A : Type*} [semiring A] [algebra R A] (g : exterior_algebra R M →ₐ[R] A) :
   lift R M (g.to_linear_map.comp (ι R M)) (comp_ι_square_zero _) = g :=
   by {symmetry, rw ←lift_unique}
+
 
 theorem hom_ext {A : Type*} [semiring A] [algebra R A] {f g : exterior_algebra R M →ₐ[R] A} :
   f.to_linear_map.comp (ι R M) = g.to_linear_map.comp (ι R M) → f = g :=

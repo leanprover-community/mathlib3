@@ -553,9 +553,6 @@ apply_nolint list.kextract doc_blame
 apply_nolint list.kreplace doc_blame
 apply_nolint list.nodupkeys doc_blame
 
--- data/list/tfae.lean
-apply_nolint list.tfae doc_blame
-
 -- data/matrix/basic.lean
 apply_nolint matrix doc_blame
 apply_nolint matrix.col doc_blame

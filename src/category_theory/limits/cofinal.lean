@@ -155,10 +155,17 @@ def cocones_equiv : cocone (F ⋙ G) ≌ cocone G :=
   unit_iso := nat_iso.of_components (λ c, cocones.ext (iso.refl _) (by tidy)) (by tidy),
   counit_iso := nat_iso.of_components (λ c, cocones.ext (iso.refl _) (by tidy)) (by tidy), }.
 
-@[simp]
+/--
+When `F` is cofinal, and `t : cocone G`,
+`t.whisker F` is a colimit coconne exactly when `t` is.
+-/
 def is_colimit_whisker_equiv (t : cocone G) : is_colimit (t.whisker F) ≃ is_colimit t :=
 is_colimit.of_cocone_equiv (cocones_equiv F).symm
 
+/--
+When `F` is cofinal, and `t : cocone (F ⋙ G)`,
+`extend_cocone.obj t` is a colimit coconne exactly when `t` is.
+-/
 def is_colimit_extend_cocone_equiv (t : cocone (F ⋙ G)) :
   is_colimit (extend_cocone.obj t) ≃ is_colimit t :=
 is_colimit.of_cocone_equiv (cocones_equiv F)

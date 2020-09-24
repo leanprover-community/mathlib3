@@ -27,12 +27,12 @@ end
 
 /-- The category of modules has enough projectives, since every module is a quotient of a free
     module. -/
-instance Module_enough_projectives : enough_projectives (Module.{u} R) :=
+noncomputable instance Module_enough_projectives : enough_projectives (Module.{u} R) :=
 begin
   classical,
-  refine λ M, ⟨Module.of R (M →₀ R), _⟩,
+  intro M,
   have hb : is_basis R (λ m : M, finsupp.single m (1 : R)) := finsupp.is_basis_single_one,
-  refine ⟨hb.constr id, ⟨_, _⟩⟩,
+  refine ⟨Module.of R (M →₀ R), _, hb.constr id, _⟩,
   { -- `exact projective_of_free hb` gives a type mismatch error. Why?
     apply projective_of_free,
     exact hb },

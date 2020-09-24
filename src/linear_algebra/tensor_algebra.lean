@@ -96,7 +96,7 @@ theorem lift_ι_apply {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)
 
 @[simp]
 theorem ι_comp_lift' {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A) (m : M) :
-  (lift R M f) (ι R M m) = f m := rfl
+  (lift R M f) (ι R M m) = f m := by simp
 
 @[simp]
 theorem lift_unique {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)

@@ -144,26 +144,36 @@ def lift {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A) (cond : ∀ 
     repeat { simp only [alg_hom.map_add, h_ih] },
     repeat { simp only [alg_hom.map_mul, h_ih] },
   end,
-  map_one' := by {change algebra_map _ _ _ = _, simp},
+  map_one' := begin
+    change tensor_algebra.lift _ _ _ _ = _,
+    rw alg_hom.map_one,
+  end,
   map_mul' := begin
     rintros ⟨⟩ ⟨⟩,
     change tensor_algebra.lift _ _ _ _ = _,
     rw alg_hom.map_mul,
   end,
-  map_zero' := by {change algebra_map _ _ _ = _, simp},
+  map_zero' := begin
+    change tensor_algebra.lift _ _ _ _ = _,
+    rw alg_hom.map_zero,
+  end,
   map_add' := begin
     rintros ⟨⟩ ⟨⟩,
     change tensor_algebra.lift _ _ _ _ = _,
     rw alg_hom.map_add,
   end,
-  commutes' := by tauto }
+  commutes' := begin
+    rintros x,
+    change tensor_algebra.lift _ _ _ _ = _,
+    rw alg_hom.commutes,
+  end, }
 
 variables {R M}
 
 @[simp]
 theorem ι_comp_lift {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)
   (cond : ∀ m, f m * f m = 0) : (lift R M f cond).to_linear_map.comp (ι R M) = f :=
-  by {ext, refl}
+  by {ext, sorry }
 
 @[simp]
 theorem lift_unique {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)

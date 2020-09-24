@@ -775,11 +775,14 @@ noncomputable def inverse : R → R :=
 λ x, if h : is_unit x then (((classical.some h)⁻¹ : units R) : R) else 0
 
 /-- By definition, if `x` is invertible then `inverse x = x⁻¹`. -/
-lemma inverse_unit (a : units R) : inverse (a : R) = (a⁻¹ : units R) :=
+@[simp] lemma inverse_unit (a : units R) : inverse (a : R) = (a⁻¹ : units R) :=
 begin
   simp [is_unit_unit, inverse],
   exact units.inv_unique (classical.some_spec (is_unit_unit a)),
 end
+
+/-- By definition, if `x` is not invertible then `inverse x = 0`. -/
+@[simp] lemma inverse_non_unit (x : R) (h : ¬(is_unit x)) : inverse x = 0 := dif_neg h
 
 end ring
 

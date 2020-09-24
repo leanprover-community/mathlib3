@@ -91,12 +91,12 @@ lemma borel_eq_generate_Iio (α)
 begin
   refine le_antisymm _ (generate_from_le _),
   { rw borel_eq_generate_from_of_subbasis (@order_topology.topology_eq_generate_intervals α _ _ _),
-    have H : ∀ a:α, is_measurable (measurable_space.generate_from (range Iio)) (Iio a) :=
-      λ a, generate_measurable.basic _ ⟨_, rfl⟩,
+    letI : measurable_space α := measurable_space.generate_from (range Iio),
+    have H : ∀ a:α, is_measurable (Iio a) := λ a, generate_measurable.basic _ ⟨_, rfl⟩,
     refine generate_from_le _, rintro _ ⟨a, rfl | rfl⟩; [skip, apply H],
     by_cases h : ∃ a', ∀ b, a < b ↔ a' ≤ b,
     { rcases h with ⟨a', ha'⟩,
-      rw (_ : Ioi a = (Iio a')ᶜ), {exact (H _).compl _},
+      rw (_ : Ioi a = (Iio a')ᶜ), { exact (H _).compl },
       simp [set.ext_iff, ha'] },
     { rcases is_open_Union_countable
         (λ a' : {a' : α // a < a'}, {b | a'.1 < b})
@@ -112,7 +112,7 @@ begin
           lt_of_lt_of_le ax⟩⟩ },
       rw this, resetI,
       apply is_measurable.Union,
-      exact λ _, (H _).compl _ } },
+      exact λ _, (H _).compl } },
   { rw forall_range_iff,
     intro a,
     exact generate_measurable.basic _ is_open_Iio }
@@ -564,8 +564,8 @@ lemma measure_ext_Ioo_rat {μ ν : measure ℝ} [locally_finite_measure μ]
 begin
   refine measure.ext_of_generate_from_of_cover_subset borel_eq_generate_from_Ioo_rat _
     (subset.refl _) _ _ _ _,
-  { simp only [mem_Union, mem_singleton_iff],
-    rintros _ ⟨a₁, b₁, h₁, rfl⟩ _ ⟨a₂, b₂, h₂, rfl⟩ ne,
+  { simp only [is_pi_system, mem_Union, mem_singleton_iff],
+    rintros _ _ ⟨a₁, b₁, h₁, rfl⟩ ⟨a₂, b₂, h₂, rfl⟩ ne,
     simp only [Ioo_inter_Ioo, sup_eq_max, inf_eq_min, ← rat.cast_max, ← rat.cast_min, nonempty_Ioo] at ne ⊢,
     refine ⟨_, _, _, rfl⟩,
     assumption_mod_cast },
@@ -591,8 +591,8 @@ begin
     simp only [mem_Union], rintro ⟨a, b, h, H⟩,
     rw [mem_singleton_iff.1 H],
     rw (set.ext (λ x, _) : Ioo (a:ℝ) b = (⋃c>a, (Iio c)ᶜ) ∩ Iio b),
-    { have hg : ∀q:ℚ, g.is_measurable (Iio q) :=
-        λ q, generate_measurable.basic _ (by simp; exact ⟨_, rfl⟩),
+    { have hg : ∀ q : ℚ, g.is_measurable' (Iio q) :=
+        λ q, generate_measurable.basic (Iio q) (by { simp, exact ⟨_, rfl⟩ }),
       refine @is_measurable.inter _ g _ _ _ (hg _),
       refine @is_measurable.bUnion _ _ g _ _ (countable_encodable _) (λ c h, _),
       exact @is_measurable.compl _ _ g (hg _) },
@@ -602,8 +602,7 @@ begin
         let ⟨c, ac, cx⟩ := exists_rat_btwn h in
         ⟨c, rat.cast_lt.1 ac, le_of_lt cx⟩,
        λ ⟨c, ac, cx⟩, lt_of_lt_of_le (rat.cast_lt.2 ac) cx⟩ } },
-  { simp, rintro r rfl,
-    exact is_open_Iio.is_measurable }
+  { simp, rintro r rfl, exact is_open_Iio.is_measurable }
 end
 
 end real
@@ -695,15 +694,9 @@ begin
       measurable_const }
 end
 
-lemma measurable.ennreal_add {α : Type*} [measurable_space α] {f g : α → ennreal} :
-  measurable f → measurable g → measurable (λa, f a + g a) :=
-begin
-  refine ennreal.measurable_of_measurable_nnreal_nnreal (+) _ _ _,
-  { simp only [ennreal.coe_add.symm],
-    exact ennreal.measurable_coe.comp measurable_add },
-  { simp [measurable_const] },
-  { simp [measurable_const] }
-end
+lemma measurable.ennreal_add {α : Type*} [measurable_space α] {f g : α → ennreal}
+  (hf : measurable f) (hg : measurable g) : measurable (λa, f a + g a) :=
+hf.add hg
 
 lemma measurable.ennreal_sub {α : Type*} [measurable_space α] {f g : α → ennreal} :
   measurable f → measurable g → measurable (λa, f a - g a) :=
@@ -741,7 +734,7 @@ namespace continuous_linear_map
 
 variables [measurable_space α]
 variables {𝕜 : Type*} [normed_field 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E] [borel_space E]
+variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E] [opens_measurable_space E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F] [measurable_space F] [borel_space F]
 
 protected lemma measurable (L : E →L[𝕜] F) : measurable L :=

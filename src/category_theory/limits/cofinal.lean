@@ -61,8 +61,7 @@ instance (F : C ⥤ D) [ℱ : cofinal F] (d : D) : is_connected (comma (functor.
 
 namespace cofinal
 
-variables (F : C ⥤ D) [ℱ : cofinal F]
-include ℱ
+variables (F : C ⥤ D) [cofinal F]
 
 instance (d : D) : nonempty (comma (functor.from_punit d) F) := (‹cofinal F› d).is_nonempty
 
@@ -91,11 +90,12 @@ it suffices to perform that construction for some other pair of choices
 and to show that how to transport such a construction
 *both* directions along a morphism between such choices.
 -/
-def induction {d : D} (Z : Π (X : C) (k : d ⟶ F.obj X), Sort*)
+lemma induction {d : D} (Z : Π (X : C) (k : d ⟶ F.obj X), Prop)
   (h₁ : Π X₁ X₂ (k₁ : d ⟶ F.obj X₁) (k₂ : d ⟶ F.obj X₂) (f : X₁ ⟶ X₂), (k₁ ≫ F.map f = k₂) → Z X₁ k₁ → Z X₂ k₂)
   (h₂ : Π X₁ X₂ (k₁ : d ⟶ F.obj X₁) (k₂ : d ⟶ F.obj X₂) (f : X₁ ⟶ X₂), (k₁ ≫ F.map f = k₂) → Z X₂ k₂ → Z X₁ k₁)
   {X₀ : C} {k₀ : d ⟶ F.obj X₀} (z : Z X₀ k₀) : Z (lift F d) (hom_to_lift F d) :=
 begin
+  apply nonempty.some,
   apply @is_preconnected_induction _ _ _
     (λ (Y : comma (functor.from_punit d) F), Z Y.right Y.hom) _ _ { right := X₀, hom := k₀, } z,
   { intros, fapply h₁ _ _ _ _ f.right _ a, convert f.w.symm, dsimp, simp, },
@@ -201,7 +201,8 @@ def colimit_cocone_of_comp (t : colimit_cocone (F ⋙ G)) :
 /--
 When `F` is cofinal, and `F ⋙ G` has a colimit, then `G` has a colimit also.
 
-We can't make this an instance.
+We can't make this an instance, because `F` is not determined by the goal.
+(Even if this weren't a problem, it would cause a loop with `comp_has_colimit`.)
 -/
 lemma has_colimit_of_comp [has_colimit (F ⋙ G)] :
   has_colimit G :=

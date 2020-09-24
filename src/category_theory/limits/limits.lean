@@ -559,6 +559,20 @@ def of_cocone_equiv {D : Type u'} [category.{v} D] {G : K ⥤ D}
   left_inv := by tidy,
   right_inv := by tidy, }
 
+@[simp] lemma of_cocone_equiv_apply_desc {D : Type u'} [category.{v} D] {G : K ⥤ D}
+  (h : cocone G ≌ cocone F) {c : cocone G} (P : is_colimit (h.functor.obj c)) (s) :
+  (of_cocone_equiv h P).desc s =
+    (h.unit.app c).hom ≫
+    (h.inverse.map {hom := P.desc (h.functor.obj s), w' := (by tidy)}).hom ≫
+    (h.unit_inv.app s).hom :=
+rfl
+
+@[simp] lemma of_cocone_equiv_symm_apply_desc {D : Type u'} [category.{v} D] {G : K ⥤ D}
+  (h : cocone G ≌ cocone F) {c : cocone G} (P : is_colimit c) (s) :
+  ((of_cocone_equiv h).symm P).desc s =
+    (h.functor.map {hom := P.desc (h.inverse.obj s), w' := (by tidy)}).hom ≫ (h.counit.app s).hom :=
+rfl
+
 /--
 A cocone precomposed with a natural isomorphism is a colimit cocone
 if and only if the original cocone is.

@@ -129,14 +129,6 @@ def extend_cocone : cocone (F ⋙ G) ⥤ cocone G :=
   map := λ X Y f,
   { hom := f.hom, } }
 
-def cocones_equiv : cocone (F ⋙ G) ≌ cocone G :=
-{ functor := extend_cocone,
-  inverse := cocones.whiskering F,
-  unit_iso := begin end,
-  counit_iso := sorry, }
-
-variables (F)
-
 @[simp]
 lemma colimit_cocone_comp_aux (s : cocone (F ⋙ G)) (j : C) :
   G.map (hom_to_lift F (F.obj j)) ≫ s.ι.app (lift F (F.obj j)) =
@@ -150,33 +142,43 @@ begin
   { exact s.w (𝟙 _), },
 end
 
-/-- Given a colimit cocone over `G` we can construct a colimit cocone over `F ⋙ G`. -/
+variables (F)
+
+/--
+If `F` is cofinal,
+the category of cocones on `F ⋙ G` is equivalent to the category of cocones on `G`.
+-/
 @[simps]
-def whisker_is_colimit {t : cocone G} (P : is_colimit t) : is_colimit (t.whisker F) :=
-{ desc := λ s, P.desc (extend_cocone.obj s),
-  uniq' := λ s m w,
-  begin
-    apply P.hom_ext,
-    intro d,
-    simp [(w _).symm],
-  end, }
+def cocones_equiv : cocone (F ⋙ G) ≌ cocone G :=
+{ functor := extend_cocone,
+  inverse := cocones.whiskering F,
+  unit_iso := nat_iso.of_components (λ c, cocones.ext (iso.refl _) (by tidy)) (by tidy),
+  counit_iso := nat_iso.of_components (λ c, cocones.ext (iso.refl _) (by tidy)) (by tidy), }.
+
+@[simp]
+def is_colimit_whisker_equiv (t : cocone G) : is_colimit (t.whisker F) ≃ is_colimit t :=
+is_colimit.of_cocone_equiv (cocones_equiv F).symm
+
+def is_colimit_extend_cocone_equiv (t : cocone (F ⋙ G)) :
+  is_colimit (extend_cocone.obj t) ≃ is_colimit t :=
+is_colimit.of_cocone_equiv (cocones_equiv F)
 
 /-- Given a colimit cocone over `G` we can construct a colimit cocone over `F ⋙ G`. -/
 @[simps]
 def colimit_cocone_comp (t : colimit_cocone G) :
   colimit_cocone (F ⋙ G) :=
-{ cocone := t.cocone.whisker F,
-  is_colimit := whisker_is_colimit F (t.is_colimit), }.
+{ cocone := _,
+  is_colimit := (is_colimit_whisker_equiv F _).symm (t.is_colimit) }
 
 @[priority 100]
 instance comp_has_colimit [has_colimit G] :
   has_colimit (F ⋙ G) :=
 has_colimit.mk (colimit_cocone_comp F (get_colimit_cocone G))
 
-lemma colimit_pre_is_iso_aux (t : colimit_cocone G) :
-  (colimit_cocone_comp F t).is_colimit.desc (t.cocone.whisker F) = 𝟙 t.cocone.X :=
+lemma colimit_pre_is_iso_aux {t : cocone G} (P : is_colimit t) :
+  ((is_colimit_whisker_equiv F _).symm P).desc (t.whisker F) = 𝟙 t.X :=
 begin
-  apply t.is_colimit.hom_ext,
+  apply P.hom_ext,
   tidy,
 end
 
@@ -184,7 +186,7 @@ instance colimit_pre_is_iso [has_colimit G] :
   is_iso (colimit.pre G F) :=
 begin
   rw colimit.pre_eq (colimit_cocone_comp F (get_colimit_cocone G)) (get_colimit_cocone G),
-  rw colimit_pre_is_iso_aux,
+  erw colimit_pre_is_iso_aux,
   dsimp,
   apply_instance,
 end
@@ -199,21 +201,10 @@ def colimit_iso [has_colimit G] : colimit (F ⋙ G) ≅ colimit G := as_iso (col
 
 /-- Given a colimit cocone over `F ⋙ G` we can construct a colimit cocone over `G`. -/
 @[simps]
-def extend_is_colimit {t : cocone (F ⋙ G)} (P : is_colimit t) : is_colimit (extend_cocone.obj t) :=
-{ desc := λ s, P.desc (s.whisker F),
-  uniq' := λ s m w,
-  begin
-    apply P.hom_ext,
-    intro X,
-    simp [(w _).symm],
-  end, }
-
-/-- Given a colimit cocone over `F ⋙ G` we can construct a colimit cocone over `G`. -/
-@[simps]
 def colimit_cocone_of_comp (t : colimit_cocone (F ⋙ G)) :
   colimit_cocone G :=
 { cocone := extend_cocone.obj t.cocone,
-  is_colimit := extend_is_colimit F t.is_colimit, }
+  is_colimit := (is_colimit_extend_cocone_equiv F _).symm (t.is_colimit), }
 
 /--
 When `F` is cofinal, and `F ⋙ G` has a colimit, then `G` has a colimit also.

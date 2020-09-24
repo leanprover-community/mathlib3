@@ -8,6 +8,10 @@ section real
 
 variables {a b : ℝ}
 
+/--
+This function is an injection from natrual number to open interval
+-/
+
 noncomputable def nat_to_Ioo {a b : ℝ} (h : a < b) : ℕ → Ioo a b := λ n,
 ⟨(b-a) / (n+2) + a,
 ⟨begin

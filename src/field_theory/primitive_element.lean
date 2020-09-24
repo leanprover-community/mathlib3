@@ -185,8 +185,8 @@ end
 
 end primitive_element_same_universe
 
-/-- Primitive element theorem: a finite separable filed extension has a primitive element, i.e.
-  there is an `α ∈ E` such that `F⟮α⟯ = (⊤ : subalgebra F E)`.-/
+/-- Primitive element theorem: a finite separable field extension `E` of `F` has a
+  primitive element, i.e. there is an `α ∈ E` such that `F⟮α⟯ = (⊤ : subalgebra F E)`.-/
 theorem primitive_element [finite_dimensional F E] (F_sep : is_separable F E) : ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
   let F' := F⟮(0 : E)⟯,

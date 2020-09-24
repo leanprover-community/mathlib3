@@ -131,18 +131,18 @@ Variation on `set.insert` to enable good notation for adjoining elements to fiel
 Used to preferentially use `singleton` rather than `insert` when adjoining one element.
 -/
 --this definition of notation is courtesy of Kyle Miller on zulip
-class fancy_insert {α : Type*} (s : set α) :=
+class insert {α : Type*} (s : set α) :=
 (insert : α → set α)
 
 @[priority 1000]
-instance fancy_insert_empty {α : Type*} : fancy_insert (∅ : set α) :=
+instance insert_empty {α : Type*} : insert (∅ : set α) :=
 { insert := λ x, @singleton _ _ set.has_singleton x }
 
 @[priority 900]
-instance fancy_insert_nonempty {α : Type*} (s : set α) : fancy_insert s :=
+instance insert_nonempty {α : Type*} (s : set α) : insert s :=
 { insert := λ x, set.insert x s }
 
-notation K`⟮`:std.prec.max_plus l:(foldr `, ` (h t, fancy_insert.insert t h) ∅) `⟯` := adjoin K l
+notation K`⟮`:std.prec.max_plus l:(foldr `, ` (h t, insert.insert t h) ∅) `⟯` := adjoin K l
 
 section adjoin_simple
 variables (α : E)

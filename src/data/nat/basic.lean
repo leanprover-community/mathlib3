@@ -1045,10 +1045,6 @@ end
 
 -- TODO: For each protected lemma, replace its uses and then remove it!
 
-/-- TODO: Replace all uses with `pow_succ'`. -/
-protected lemma pow_succ (x n : ℕ) : x^(n+1) = x^n * x :=
-mul_comm _ _
-
 -- This is redundant with `canonically_ordered_semiring.pow_le_pow_of_le_left`,
 -- but `canonically_ordered_semiring` is not such an obvious abstraction, and also quite long.
 -- So, we leave a version in the `nat` namespace as well.
@@ -1059,14 +1055,14 @@ canonically_ordered_semiring.pow_le_pow_of_le_left H
 theorem pow_le_pow_of_le_right {x : ℕ} (H : x > 0) {i : ℕ} : ∀ {j}, i ≤ j → x^i ≤ x^j
 | 0        h := by rw eq_zero_of_le_zero h; apply le_refl
 | (succ j) h := (lt_or_eq_of_le h).elim
-  (λhl, by rw [nat.pow_succ, ← nat.mul_one (x^i)]; exact
+  (λhl, by rw [pow_succ', ← nat.mul_one (x^i)]; exact
     nat.mul_le_mul (pow_le_pow_of_le_right $ le_of_lt_succ hl) H)
   (λe, by rw e; refl)
 
 theorem pow_lt_pow_of_lt_left {x y : ℕ} (H : x < y) {i} (h : 0 < i) : x^i < y^i :=
 begin
   cases i with i, { exact absurd h (not_lt_zero _) },
-  rw [nat.pow_succ, nat.pow_succ],
+  rw [pow_succ', pow_succ'],
   exact nat.mul_lt_mul' (nat.pow_le_pow_of_le_left (le_of_lt H) _) H
     (pow_pos (lt_of_le_of_lt (zero_le _) H) _)
 end
@@ -1075,7 +1071,7 @@ theorem pow_lt_pow_of_lt_right {x : ℕ} (H : x > 1) {i j : ℕ} (h : i < j) : x
 begin
   have xpos := lt_of_succ_lt H,
   refine lt_of_lt_of_le _ (pow_le_pow_of_le_right xpos h),
-  rw [← nat.mul_one (x^i), nat.pow_succ],
+  rw [← nat.mul_one (x^i), pow_succ'],
   exact nat.mul_lt_mul_of_pos_left H (pow_pos xpos _)
 end
 
@@ -1143,7 +1139,7 @@ begin
   -- base case: p < b^succ w
   { have h₂ : p / b < b^w,
     { rw [div_lt_iff_lt_mul p _ b_pos],
-      simpa [nat.pow_succ] using h₁ },
+      simpa [pow_succ'] using h₁ },
     rw [mod_eq_of_lt h₁, mod_eq_of_lt h₂],
     simp [mod_add_div, nat.add_comm] },
   -- step: p ≥ b^succ w
@@ -1154,8 +1150,8 @@ begin
     -- Apply induction
     rw [mod_eq_sub_mod h₁, IH _ h₂],
     -- Normalize goal and h1
-    simp only [_root_.pow_succ],
-    simp only [ge, _root_.pow_succ] at h₁,
+    simp only [pow_succ],
+    simp only [ge, pow_succ] at h₁,
     -- Pull subtraction outside mod and div
     rw [sub_mul_mod _ _ _ h₁, sub_mul_div _ _ _ h₁],
     -- Cancel subtraction inside mod b^w

@@ -316,7 +316,7 @@ begin
       apply nat.mul_le_mul_left,
       apply le_pred_of_lt,
       apply zmod.val_lt },
-    { rw [nat.mul_sub_left_distrib, mul_one, ← nat.pow_succ],
+    { rw [nat.mul_sub_left_distrib, mul_one, ← pow_succ'],
       apply nat.add_sub_cancel' (le_of_lt hp) } }
 end
 

@@ -227,7 +227,7 @@ hp.eq_two_or_odd.elim
       have hkltp : 1 + k * k < p * p,
         from calc 1 + k * k ≤ k + k * k :
           add_le_add_right (nat.pos_of_ne_zero
-            (λ hk0, by clear_aux_decl; simp [*, nat.pow_succ] at *)) _
+            (λ hk0, by clear_aux_decl; simp [*, pow_succ'] at *)) _
         ... = k * (k + 1) : by simp [add_comm, mul_add]
         ... < p * p : mul_lt_mul k_lt_p k_lt_p (nat.succ_pos _) (nat.zero_le _),
       have hpk₁ : ¬ (p : ℤ[i]) ∣ ⟨k, -1⟩ :=

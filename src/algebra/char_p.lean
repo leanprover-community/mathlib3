@@ -98,7 +98,7 @@ theorem add_pow_char_pow_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prim
   (x + y) ^ (p ^ n) = x ^ (p ^ n) + y ^ (p ^ n) :=
 begin
   induction n, { simp, },
-  rw [nat.pow_succ, pow_mul, pow_mul, pow_mul, n_ih],
+  rw [pow_succ', pow_mul, pow_mul, pow_mul, n_ih],
   apply add_pow_char_of_commute, apply commute.pow_pow h,
 end
 
@@ -115,7 +115,7 @@ theorem sub_pow_char_pow_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prim
   (x - y) ^ (p ^ n) = x ^ (p ^ n) - y ^ (p ^ n) :=
 begin
   induction n, { simp, },
-  rw [nat.pow_succ, pow_mul, pow_mul, pow_mul, n_ih],
+  rw [pow_succ', pow_mul, pow_mul, pow_mul, n_ih],
   apply sub_pow_char_of_commute, apply commute.pow_pow h,
 end
 
@@ -174,7 +174,7 @@ theorem frobenius_def : frobenius R p x = x ^ p := rfl
 theorem iterate_frobenius (n : ℕ) : (frobenius R p)^[n] x = x ^ p ^ n :=
 begin
   induction n, {simp},
-  rw [function.iterate_succ', nat.pow_succ, pow_mul, function.comp_apply, frobenius_def, n_ih]
+  rw [function.iterate_succ', pow_succ', pow_mul, function.comp_apply, frobenius_def, n_ih]
 end
 
 theorem frobenius_mul : frobenius R p (x * y) = frobenius R p x * frobenius R p y :=

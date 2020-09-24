@@ -602,7 +602,7 @@ begin
     inv_one, zero_add, pow_zero, range_one, zero_le_one],
   have : harmonic_series (2^n) + 1 / 2 ≤ harmonic_series (2^(n+1)),
   { have := half_le_harmonic_double_sub_harmonic (2^n) (by {apply pow_pos, linarith}),
-    rw [nat.mul_comm, ← nat.pow_succ] at this,
+    rw [nat.mul_comm, ← pow_succ'] at this,
     linarith },
   apply le_trans _ this,
   rw (show (n.succ / 2 : ℝ) = (n/2 : ℝ) + (1/2), by field_simp),

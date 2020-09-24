@@ -218,7 +218,7 @@ theorem frobenius_pow {p : ℕ} [fact p.prime] [char_p K p] {n : ℕ} (hcard : q
 begin
   ext, conv_rhs { rw [ring_hom.one_def, ring_hom.id_apply, ← pow_card x, hcard], }, clear hcard,
   induction n, {simp},
-  rw [pow_succ, nat.pow_succ, pow_mul, ring_hom.mul_def, ring_hom.comp_apply, frobenius_def, n_ih]
+  rw [pow_succ, pow_succ', pow_mul, ring_hom.mul_def, ring_hom.comp_apply, frobenius_def, n_ih]
 end
 
 open polynomial

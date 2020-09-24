@@ -146,7 +146,7 @@ lemma of_digits_append {b : ℕ} {l1 l2 : list ℕ} :
 begin
   induction l1 with hd tl IH,
   { simp [of_digits] },
-  { rw [of_digits, list.cons_append, of_digits, IH, list.length_cons, nat.pow_succ],
+  { rw [of_digits, list.cons_append, of_digits, IH, list.length_cons, pow_succ'],
     ring }
 end
 
@@ -323,7 +323,7 @@ lemma of_digits_lt_base_pow_length' {b : ℕ} {l : list ℕ} (hl : ∀ x ∈ l, 
 begin
   induction l with hd tl IH,
   { simp [of_digits], },
-  { rw [of_digits, list.length_cons, nat.pow_succ, mul_comm],
+  { rw [of_digits, list.length_cons, pow_succ],
     have : (of_digits (b + 2) tl + 1) * (b+2) ≤ (b + 2) ^ tl.length * (b+2) :=
       mul_le_mul (IH (λ x hx, hl _ (list.mem_cons_of_mem _ hx)))
                  (by refl) dec_trivial (nat.zero_le _),

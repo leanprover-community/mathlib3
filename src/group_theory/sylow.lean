@@ -205,7 +205,7 @@ have hcard : card (quotient H) = s * p :=
   (nat.mul_left_inj (show card H > 0, from fintype.card_pos_iff.2
       ⟨⟨1, H.one_mem⟩⟩)).1
     (by rwa [← card_eq_card_quotient_mul_card_subgroup, hH2, hs,
-      nat.pow_succ, mul_assoc, mul_comm p]),
+      pow_succ', mul_assoc, mul_comm p]),
 have hm : s * p % p =
   card (quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) % p :=
   card_congr (fixed_points_mul_left_cosets_equiv_quotient H) ▸ hcard ▸
@@ -231,7 +231,7 @@ begin
   { convert this },
   rw [set.card_image_of_injective
        (subgroup.comap (quotient_group.mk' _) (gpowers x) : set (H.normalizer)) subtype.val_injective,
-      nat.pow_succ, ← hH2, fintype.card_congr hequiv, ← hx, order_eq_card_gpowers,
+      pow_succ', ← hH2, fintype.card_congr hequiv, ← hx, order_eq_card_gpowers,
       ← fintype.card_prod],
   exact @fintype.card_congr _ _ (id _) (id _) (preimage_mk_equiv_subgroup_times_set _ _)
 end

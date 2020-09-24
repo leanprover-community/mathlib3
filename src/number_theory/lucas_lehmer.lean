@@ -300,7 +300,7 @@ begin
     ... = (ω^(2^i))^2 + (ωb^(2^i))^2 + 2*(ωb^(2^i)*ω^(2^i)) - 2 : by ring
     ... = (ω^(2^i))^2 + (ωb^(2^i))^2 :
             by rw [←mul_pow ωb ω, ωb_mul_ω, one_pow, mul_one, add_sub_cancel]
-    ... = ω^(2^(i+1)) + ωb^(2^(i+1)) : by rw [←pow_mul, ←pow_mul, nat.pow_succ] }
+    ... = ω^(2^(i+1)) + ωb^(2^(i+1)) : by rw [←pow_mul, ←pow_mul, pow_succ'] }
 end
 
 
@@ -326,7 +326,7 @@ lemma two_lt_q (p' : ℕ) : 2 < q (p'+2) := begin
       ...  = 2        : nat.pred_inj (nat.one_le_two_pow _) dec_trivial h'), },
   { -- If q = 2, we get a contradiction from 2 ∣ 2^p - 1
     dsimp [q] at h, injection h with h', clear h,
-    rw [mersenne, pnat.one_coe, nat.min_fac_eq_two_iff, nat.pow_succ, nat.mul_comm] at h',
+    rw [mersenne, pnat.one_coe, nat.min_fac_eq_two_iff, pow_succ] at h',
     exact nat.two_not_dvd_two_mul_sub_one (nat.one_le_two_pow _) h', }
 end
 
@@ -370,7 +370,7 @@ end
 theorem ω_pow_eq_one (p' : ℕ) (h : lucas_lehmer_residue (p'+2) = 0) :
   (ω : X (q (p'+2)))^(2^(p'+2)) = 1 :=
 calc (ω : X (q (p'+2)))^2^(p'+2)
-        = (ω^(2^(p'+1)))^2 : by rw [←pow_mul, ←nat.pow_succ]
+        = (ω^(2^(p'+1)))^2 : by rw [←pow_mul, ←pow_succ']
     ... = (-1)^2           : by rw ω_pow_eq_neg_one p' h
     ... = 1                : by simp
 

@@ -128,7 +128,7 @@ polynomial.induction_on f
 
 theorem expand_pow (f : polynomial R) : expand R (p ^ q) f = (expand R p ^[q] f) :=
 nat.rec_on q (by rw [pow_zero, expand_one, function.iterate_zero, id]) $ λ n ih,
-by rw [function.iterate_succ_apply', nat.pow_succ, mul_comm, expand_mul, ih]
+by rw [function.iterate_succ_apply', pow_succ, expand_mul, ih]
 
 theorem derivative_expand (f : polynomial R) :
   (expand R p f).derivative = expand R p f.derivative * (p * X ^ (p - 1)) :=
@@ -321,7 +321,7 @@ theorem map_expand_pow_char (f : polynomial F) (n : ℕ) :
 begin
   induction n, {simp [ring_hom.one_def]},
   symmetry,
-  rw [nat.pow_succ, pow_mul, ← n_ih, ← expand_char, pow_succ, ring_hom.mul_def, ← map_map, mul_comm,
+  rw [pow_succ', pow_mul, ← n_ih, ← expand_char, pow_succ, ring_hom.mul_def, ← map_map, mul_comm,
       expand_mul, ← map_expand (nat.prime.pos hp)],
 end
 
@@ -367,7 +367,7 @@ begin
     have hg4 : g ≠ 0,
     { rintro rfl, exact hg2 nat_degree_zero },
     rcases ih _ hg3 hg hg4 rfl with ⟨n, g, hg5, rfl⟩, refine ⟨n+1, g, hg5, _⟩,
-    rw [← hgf, expand_expand, nat.pow_succ, mul_comm] }
+    rw [← hgf, expand_expand, pow_succ] }
 end
 
 theorem is_unit_or_eq_zero_of_separable_expand {f : polynomial F} (n : ℕ)

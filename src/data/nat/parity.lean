@@ -89,7 +89,7 @@ end
 /-- If `m` and `n` are natural numbers, then the natural number `m^n` is even 
 if and only if `m` is even and `n` is positive. -/
 @[parity_simps] theorem even_pow {m n : nat} : even (m^n) ↔ even m ∧ n ≠ 0 :=
-by { induction n with n ih; simp [*, nat.pow_succ, even_mul], tauto }
+by { induction n with n ih; simp [*, pow_succ', even_mul], tauto }
 
 lemma even_div {a b : ℕ} : even (a / b) ↔ a % (2 * b) / b = 0 :=
 by rw [even, dvd_iff_mod_eq_zero, nat.div_mod_eq_mod_mul_div, mul_comm]

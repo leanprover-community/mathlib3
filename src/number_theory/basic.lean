@@ -17,7 +17,7 @@ lemma dvd_sub_pow_of_dvd_sub {R : Type*} [comm_ring R] {p : ℕ}
 begin
   induction k with k ih,
   { rwa [pow_one, pow_zero, pow_one, pow_one] },
-  rw [nat.pow_succ, pow_mul, pow_mul, ← geom_sum₂_mul, pow_succ],
+  rw [pow_succ' p k, pow_mul, pow_mul, ← geom_sum₂_mul, pow_succ],
   refine mul_dvd_mul _ ih,
   let I : ideal R := span {p},
   let f : R →+* ideal.quotient I := mk I,

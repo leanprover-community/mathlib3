@@ -185,7 +185,7 @@ calc ∥F.eval z'∥
   (div_le_div_right deriv_sq_norm_pos).2 (pow_le_pow_of_le_left (norm_nonneg _) hz.2 _)
 ... = (∥F.derivative.eval a∥^2)^2 * (T^(2^n))^2 / ∥F.derivative.eval a∥^2 : by simp only [mul_pow]
 ... = ∥F.derivative.eval a∥^2 * (T^(2^n))^2 : div_sq_cancel deriv_sq_norm_ne_zero _
-... = ∥F.derivative.eval a∥^2 * T^(2^(n + 1)) : by rw [←pow_mul, nat.pow_succ]
+... = ∥F.derivative.eval a∥^2 * T^(2^(n + 1)) : by rw [←pow_mul, pow_succ' 2]
 
 set_option eqn_compiler.zeta true
 

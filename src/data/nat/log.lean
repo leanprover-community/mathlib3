@@ -33,7 +33,7 @@ begin
   { have h'' : 0 < b := lt_of_le_of_lt (zero_le _) hb,
     cases h with h₀ h₁,
     rw [← nat.sub_le_right_iff_le_add,← ih (y / b),
-          le_div_iff_mul_le _ _ h'',← nat.pow_succ],
+          le_div_iff_mul_le _ _ h'',← pow_succ'],
     { cases x; simp [h₀,hy] },
     { apply div_lt_self; assumption },
     { rwa [le_div_iff_mul_le _ _ h'',one_mul], } },

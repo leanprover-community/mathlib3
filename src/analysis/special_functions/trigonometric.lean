@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
+Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
 import analysis.special_functions.exp_log
 
@@ -29,6 +29,7 @@ log, sin, cos, tan, arcsin, arccos, arctan, angle, argument
 
 noncomputable theory
 open_locale classical
+open set
 
 namespace complex
 
@@ -497,7 +498,7 @@ end
 
 namespace real
 
-lemma exists_cos_eq_zero : 0 ∈ cos '' set.Icc (1:ℝ) 2 :=
+lemma exists_cos_eq_zero : 0 ∈ cos '' Icc (1:ℝ) 2 :=
 intermediate_value_Icc' (by norm_num) continuous_cos.continuous_on
   ⟨le_of_lt cos_two_neg, le_of_lt cos_one_pos⟩
 
@@ -775,16 +776,16 @@ begin
   linarith
 end
 
-lemma exists_sin_eq : set.Icc (-1:ℝ) 1 ⊆  sin '' set.Icc (-(π / 2)) (π / 2) :=
+lemma exists_sin_eq : Icc (-1:ℝ) 1 ⊆  sin '' Icc (-(π / 2)) (π / 2) :=
 by convert intermediate_value_Icc
   (le_trans (neg_nonpos.2 (le_of_lt pi_div_two_pos)) (le_of_lt pi_div_two_pos))
   continuous_sin.continuous_on; simp only [sin_neg, sin_pi_div_two]
 
-lemma exists_cos_eq : (set.Icc (-1) 1 : set ℝ) ⊆ cos '' set.Icc 0 π :=
+lemma exists_cos_eq : (Icc (-1) 1 : set ℝ) ⊆ cos '' Icc 0 π :=
 by convert intermediate_value_Icc' real.pi_pos.le real.continuous_cos.continuous_on;
   simp only [real.cos_pi, real.cos_zero]
 
-lemma range_cos : set.range cos = (set.Icc (-1) 1 : set ℝ) :=
+lemma range_cos : range cos = (Icc (-1) 1 : set ℝ) :=
 begin
   ext,
   split,
@@ -794,7 +795,7 @@ begin
     exact ⟨y, hy⟩ }
 end
 
-lemma range_sin : set.range sin = (set.Icc (-1) 1 : set ℝ) :=
+lemma range_sin : range sin = (Icc (-1) 1 : set ℝ) :=
 begin
   ext,
   split,
@@ -1289,6 +1290,9 @@ lt_of_le_of_ne (neg_pi_div_two_le_arcsin _)
     by rw [← sin_arcsin (le_of_lt (neg_one_lt_div_sqrt_one_add _))
         (le_of_lt (div_sqrt_one_add_lt_one _)), ← arctan, ← h, sin_neg, sin_pi_div_two])
 
+lemma arctan_mem_Ioo (x : ℝ) : arctan x ∈ Ioo (-(π / 2)) (π / 2) :=
+⟨neg_pi_div_two_lt_arctan x, arctan_lt_pi_div_two x⟩
+
 lemma tan_surjective : function.surjective tan :=
 function.right_inverse.surjective tan_arctan
 
@@ -1711,7 +1715,6 @@ end complex
 
 
 namespace real
-
 open_locale real
 
 theorem cos_eq_zero_iff {θ : ℝ} : cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * π / 2 :=
@@ -1723,7 +1726,6 @@ end
 
 theorem cos_ne_zero_iff {θ : ℝ} : cos θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ (2 * k + 1) * π / 2 :=
 by rw [← not_exists, not_iff_not, cos_eq_zero_iff]
-
 
 lemma has_deriv_at_tan {x : ℝ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) :
   has_deriv_at tan (1 / (cos x)^2) x :=
@@ -1748,15 +1750,144 @@ by simp only [tan_eq_sin_div_cos]; exact
 lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
 by { rw continuous_on_iff_continuous_restrict, convert continuous_tan }
 
-lemma has_deriv_at_tan_of_mem_Ioo {x : ℝ} (h : x ∈ set.Ioo (-(π/2):ℝ) (π/2)) :
+lemma has_deriv_at_tan_of_mem_Ioo {x : ℝ} (h : x ∈ Ioo (-(π/2):ℝ) (π/2)) :
   has_deriv_at tan (1 / (cos x)^2) x :=
 has_deriv_at_tan (cos_ne_zero_iff.mp (ne_of_gt (cos_pos_of_mem_Ioo h.1 h.2)))
 
-lemma differentiable_at_tan_of_mem_Ioo {x : ℝ} (h : x ∈ set.Ioo (-(π/2):ℝ) (π/2)) :
+lemma differentiable_at_tan_of_mem_Ioo {x : ℝ} (h : x ∈ Ioo (-(π/2):ℝ) (π/2)) :
   differentiable_at ℝ tan x :=
 (has_deriv_at_tan_of_mem_Ioo h).differentiable_at
 
-lemma deriv_tan_of_mem_Ioo {x : ℝ} (h : x ∈ set.Ioo (-(π/2):ℝ) (π/2)) : deriv tan x = 1 / (cos x)^2 :=
+lemma deriv_tan_of_mem_Ioo {x : ℝ} (h : x ∈ Ioo (-(π/2):ℝ) (π/2)) : deriv tan x = 1 / (cos x)^2 :=
 (has_deriv_at_tan_of_mem_Ioo h).deriv
 
+lemma continuous_on_tan_Ioo : continuous_on tan (Ioo (-(π/2)) (π/2)) :=
+begin
+  refine continuous_on_tan.mono _,
+  intros x hx,
+  simp only [mem_set_of_eq],
+  exact ne_of_gt (cos_pos_of_mem_Ioo hx.1 hx.2),
+end
+
+open filter
+open_locale topological_space
+
+lemma tendsto_sin_pi_div_two : tendsto sin (𝓝[Iio (π/2)] (π/2)) (𝓝 1) :=
+by { convert continuous_sin.continuous_within_at, simp }
+
+lemma tendsto_cos_pi_div_two : tendsto cos (𝓝[Iio (π/2)] (π/2)) (𝓝[Ioi 0] 0) :=
+begin
+  apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
+  { convert continuous_cos.continuous_within_at, simp },
+  { filter_upwards [Ioo_mem_nhds_within_Iio (right_mem_Ioc.mpr (norm_num.lt_neg_pos
+      _ _ pi_div_two_pos pi_div_two_pos))] λ x hx, cos_pos_of_mem_Ioo hx.1 hx.2 },
+end
+
+lemma tendsto_tan_pi_div_two : tendsto tan (𝓝[Iio (π/2)] (π/2)) at_top :=
+begin
+  convert tendsto_mul_at_top (by norm_num) (tendsto.inv_tendsto_zero tendsto_cos_pi_div_two)
+            tendsto_sin_pi_div_two,
+  ext x,
+  rw tan_eq_sin_div_cos x,
+  ring,
+end
+
+lemma tendsto_sin_neg_pi_div_two : tendsto sin (𝓝[Ioi (-(π/2))] (-(π/2))) (𝓝 (-1)) :=
+by { convert continuous_sin.continuous_within_at, simp }
+
+lemma tendsto_cos_neg_pi_div_two : tendsto cos (𝓝[Ioi (-(π/2))] (-(π/2))) (𝓝[Ioi 0] 0) :=
+begin
+  apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
+  { convert continuous_cos.continuous_within_at, simp },
+  { filter_upwards [Ioo_mem_nhds_within_Ioi (set.left_mem_Ico.mpr (norm_num.lt_neg_pos
+      _ _ pi_div_two_pos pi_div_two_pos))] λ x hx, cos_pos_of_mem_Ioo hx.1 hx.2 },
+end
+
+lemma tendsto_tan_neg_pi_div_two : tendsto tan (𝓝[Ioi (-(π/2))] (-(π/2))) at_bot :=
+begin
+  convert tendsto_mul_at_bot (by norm_num) (tendsto.inv_tendsto_zero tendsto_cos_neg_pi_div_two)
+            tendsto_sin_neg_pi_div_two,
+  ext x,
+  rw tan_eq_sin_div_cos x,
+  ring,
+end
+
+/-!
+### Continuity and differentiability of arctan
+
+The continuity of `arctan` is difficult to prove due to `arctan` being (indirectly) defined naively
+via `classical.some`. The proof therefore uses the general theorem that monotone functions are
+homeomorphisms: `homeomorph_of_strict_mono_continuous_Ioo`. We first prove that `tan` (restricted)
+is a homeomorphism whose inverse is definitionally equal to `arctan`. The fact that `arctan` is
+continuous is then derived from the fact that it is equal to a homeomorphism, and its
+differentiability is in turn derived from its continuity using `has_deriv_at.of_local_left_inverse`.
+-/
+
+/-- The function `tan`, restricted to the open interval (-π/2, π/2), is a homeomorphism. The inverse
+  function of that homeomorphism is definitionally equal to `arctan` via `homeomorph.change_inv`. -/
+def tan_homeomorph : (Ioo (-(π/2)) (π/2)) ≃ₜ ℝ :=
+(homeomorph_of_strict_mono_continuous_Ioo tan (by linarith [pi_div_two_pos])
+  (λ x y, tan_lt_tan_of_lt_of_lt_pi_div_two) continuous_on_tan_Ioo tendsto_tan_pi_div_two
+    tendsto_tan_neg_pi_div_two).change_inv (λ x, ⟨arctan x, arctan_mem_Ioo x⟩) tan_arctan
+
+lemma tan_homeomorph_inv_fun_eq_arctan : coe ∘ tan_homeomorph.inv_fun = arctan := rfl
+
+lemma continuous_arctan : continuous arctan :=
+continuous_subtype_coe.comp tan_homeomorph.continuous_inv_fun
+
+lemma has_deriv_at_arctan (x : ℝ) : has_deriv_at arctan (1 / (1 + x^2)) x :=
+begin
+  have h1 : 0 < 1 + x^2 := by nlinarith,
+  have h2 : cos (arctan x) ≠ 0 := by { rw cos_arctan, exact ne_of_gt (one_div_pos.mpr (sqrt_pos.mpr h1)) },
+  simpa [(cos_arctan x), sqr_sqrt (le_of_lt h1)] using has_deriv_at.of_local_left_inverse
+    continuous_arctan.continuous_at (has_deriv_at_tan (cos_ne_zero_iff.mp h2))
+      (one_div_ne_zero (pow_ne_zero 2 h2)) (by {apply eventually_of_forall, exact tan_arctan} ),
+end
+
+lemma differentiable_at_arctan (x : ℝ) : differentiable_at ℝ arctan x :=
+(has_deriv_at_arctan x).differentiable_at
+
+@[simp] lemma deriv_arctan : deriv arctan = (λ x, 1 / (1 + x^2)) :=
+funext $ λ x, (has_deriv_at_arctan x).deriv
+
 end real
+
+section
+/-! Register lemmas for the derivatives of the composition of `real.arctan` with a differentiable
+function, for standalone use and use with `simp`. -/
+
+variables {f : ℝ → ℝ} {f' x : ℝ} {s : set ℝ}
+
+lemma has_deriv_at.arctan (hf : has_deriv_at f f' x) :
+  has_deriv_at (λ x, real.arctan (f x)) ((1 / (1 + (f x)^2)) * f') x :=
+(real.has_deriv_at_arctan (f x)).comp x hf
+
+lemma has_deriv_within_at.arctan (hf : has_deriv_within_at f f' s x) :
+  has_deriv_within_at (λ x, real.arctan (f x)) ((1 / (1 + (f x)^2)) * f') s x :=
+(real.has_deriv_at_arctan (f x)).comp_has_deriv_within_at x hf
+
+lemma differentiable_within_at.arctan (hf : differentiable_within_at ℝ f s x) :
+  differentiable_within_at ℝ (λ x, real.arctan (f x)) s x :=
+hf.has_deriv_within_at.arctan.differentiable_within_at
+
+@[simp] lemma differentiable_at.arctan (hc : differentiable_at ℝ f x) :
+  differentiable_at ℝ (λ x, real.arctan (f x)) x :=
+hc.has_deriv_at.arctan.differentiable_at
+
+lemma differentiable_on.arctan (hc : differentiable_on ℝ f s) :
+  differentiable_on ℝ (λ x, real.arctan (f x)) s :=
+λ x h, (hc x h).arctan
+
+@[simp] lemma differentiable.arctan (hc : differentiable ℝ f) :
+  differentiable ℝ (λ x, real.arctan (f x)) :=
+λ x, (hc x).arctan
+
+lemma deriv_within_arctan (hf : differentiable_within_at ℝ f s x) (hxs : unique_diff_within_at ℝ s x) :
+  deriv_within (λ x, real.arctan (f x)) s x = (1 / (1 + (f x)^2)) * (deriv_within f s x) :=
+hf.has_deriv_within_at.arctan.deriv_within hxs
+
+@[simp] lemma deriv_arctan (hc : differentiable_at ℝ f x) :
+  deriv (λ x, real.arctan (f x)) x = (1 / (1 + (f x)^2)) * (deriv f x) :=
+hc.has_deriv_at.arctan.deriv
+
+end

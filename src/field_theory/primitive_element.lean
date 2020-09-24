@@ -93,18 +93,19 @@ begin
   let ιEE' := algebra_map E (splitting_field (g.map ιFE)),
   obtain ⟨c, hc⟩ := primitive_element_two_inf_exists_c (ιEE'.comp ιFE) (ιEE' α) (ιEE' β) f g,
   let γ := α + c • β,
-  use γ,
-  apply (adjoin_subset_iff F {α, β}).mp,
   suffices β_in_Fγ : β ∈ F⟮γ⟯,
-  { have α_in_Fγ : α ∈ F⟮γ⟯,
+  { use γ,
+    apply (adjoin_subset_iff F {α, β}).mp,
+    have α_in_Fγ : α ∈ F⟮γ⟯,
     { rw ← add_sub_cancel α (c • β),
       exact F⟮γ⟯.sub_mem (mem_adjoin_simple_self F γ) (F⟮γ⟯.smul_mem β_in_Fγ c) },
     exact λ x hx, by cases hx; cases hx; cases hx; assumption },
   let p := euclidean_domain.gcd ((f.map (algebra_map F F⟮γ⟯)).comp
     (C (adjoin_simple.gen F γ) - (C ↑c * X))) (g.map (algebra_map F F⟮γ⟯)),
   let h := euclidean_domain.gcd ((f.map ιFE).comp (C γ - (C (ιFE c) * X))) (g.map ιFE),
+  have map_g_ne_zero : g.map ιFE ≠ 0 := map_ne_zero (minimal_polynomial.ne_zero hβ),
   have h_ne_zero : h ≠ 0 :=  mt euclidean_domain.gcd_eq_zero_iff.mp
-    (not_and.mpr (λ _, map_ne_zero (minimal_polynomial.ne_zero hβ))),
+    (not_and.mpr (λ _, map_g_ne_zero)),
   suffices p_linear : p.map (algebra_map F⟮γ⟯ E) = (C h.leading_coeff) * (X - C β),
   { have finale : β = algebra_map F⟮γ⟯ E (-p.coeff 0 / p.coeff 1),
     { rw [ring_hom.map_div, ring_hom.map_neg, ←coeff_map, ←coeff_map, p_linear],
@@ -117,14 +118,14 @@ begin
     { rw [eval_comp, eval_sub, eval_mul, eval_C, eval_C, eval_X, eval_map, ←aeval_def,
           ←algebra.smul_def, add_sub_cancel, minimal_polynomial.aeval] },
     { rw [eval_map, ←aeval_def, minimal_polynomial.aeval] } },
-  have h_splits : splits ιEE' h := splits_of_splits_gcd_right
-    ιEE' (map_ne_zero (minimal_polynomial.ne_zero hβ)) (splitting_field.splits _),
+  have h_splits : splits ιEE' h := splits_of_splits_gcd_right ιEE' map_g_ne_zero
+    (splitting_field.splits _),
   have h_roots : ∀ x ∈ (h.map ιEE').roots, x = ιEE' β,
   { intros x hx,
     rw mem_roots_map h_ne_zero at hx,
     specialize hc ((ιEE' γ) - (ιEE' (ιFE c)) * x) (begin
       have f_root := root_left_of_root_gcd hx,
-      rw [eval₂_comp, eval₂_sub, eval₂_mul,eval₂_C, eval₂_C,eval₂_X, eval₂_map] at f_root,
+      rw [eval₂_comp, eval₂_sub, eval₂_mul,eval₂_C, eval₂_C, eval₂_X, eval₂_map] at f_root,
       exact (mem_roots_map (minimal_polynomial.ne_zero hα)).mpr f_root,
     end),
     specialize hc x (begin
@@ -140,8 +141,7 @@ begin
   transitivity euclidean_domain.gcd (_ : polynomial E) (_ : polynomial E),
   { dsimp only [p],
     convert (gcd_map (algebra_map F⟮γ⟯ E)).symm },
-  { simp [map_comp, map_map, ←is_scalar_tower.algebra_map_eq, h],
-    refl },
+  { simpa [map_comp, map_map, ←is_scalar_tower.algebra_map_eq, h] },
 end
 
 section primitive_element_same_universe
@@ -185,7 +185,8 @@ end
 
 end primitive_element_same_universe
 
-/-- Complete primitive element theorem. -/
+/-- Primitive element theorem: a finite separable filed extension has a primitive element, i.e.
+  there is an `α ∈ E` such that `F⟮α⟯ = (⊤ : subalgebra F E)`.-/
 theorem primitive_element [finite_dimensional F E] (F_sep : is_separable F E) : ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
   let F' := F⟮(0 : E)⟯,

@@ -143,9 +143,10 @@ lemma nth_zip_with {α β γ} (f : α → β → γ) (l₁ : list α) (l₂ : li
 begin
   induction l₁ generalizing l₂ i,
   { simp [zip_with, (<*>)] },
-  { cases l₂; simp [zip_with, (<*>), (<$>), *, nth],
+  { cases l₂; simp only [zip_with, has_seq.seq, functor.map, nth, option.map_none'],
     { cases ((l₁_hd :: l₁_tl).nth i); refl },
-    { cases i; simp *, refl } },
+    { cases i; simp only [option.map_some', nth, option.some_bind', *],
+      refl } },
 end
 
 lemma nth_zip_with_eq_some {α β γ} (f : α → β → γ) (l₁ : list α) (l₂ : list β) (z : γ) (i : ℕ) :
@@ -153,8 +154,8 @@ lemma nth_zip_with_eq_some {α β γ} (f : α → β → γ) (l₁ : list α) (l
 begin
   induction l₁ generalizing l₂ i,
   { simp [zip_with] },
-  { cases l₂; simp [zip_with, (<*>), (<$>), *, nth],
-    cases i; simp * },
+  { cases l₂; simp only [zip_with, nth, exists_false, and_false, false_and],
+    cases i; simp *, },
 end
 
 lemma nth_zip_eq_some (l₁ : list α) (l₂ : list β) (z : α × β) (i : ℕ) :

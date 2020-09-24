@@ -42,6 +42,9 @@ coeff (r • p) n = r * coeff p n := finsupp.smul_apply
 lemma mem_support_iff_coeff_ne_zero : n ∈ p.support ↔ p.coeff n ≠ 0 :=
 by { rw mem_support_to_fun, refl }
 
+lemma not_mem_support_iff_coeff_zero : n ∉ p.support ↔ p.coeff n = 0 :=
+by { rw [mem_support_to_fun, not_not], refl, }
+
 variable (R)
 /-- The nth coefficient, as a linear map. -/
 def lcoeff (n : ℕ) : polynomial R →ₗ[R] R :=

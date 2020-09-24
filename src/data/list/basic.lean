@@ -1495,7 +1495,7 @@ by { simp at hi, rw nth_le_take L _ hi.1 }
 | 0     := rfl
 | (n+1) := rfl
 
-lemma mem_drop_of_mem {α} {n : ℕ} {l : list α} {x : α}
+lemma mem_of_mem_drop {α} {n : ℕ} {l : list α} {x : α}
   (h : x ∈ l.drop n) :
   x ∈ l :=
 begin
@@ -1503,7 +1503,7 @@ begin
   case list.nil : n h
   { simpa using h },
   case list.cons : l_hd l_tl l_ih n h
-  { cases n; simp at h ⊢,
+  { cases n; simp only [mem_cons_iff, drop] at h ⊢,
     { exact h },
     right, apply l_ih h },
 end
@@ -2044,7 +2044,7 @@ theorem prod_erase [decidable_eq α] [comm_monoid α] {a} :
     { simp only [list.erase, if_neg (mt eq.symm ne), prod_cons, prod_erase h, mul_left_comm a b] }
   end
 
-lemma dvd_prod [comm_semiring α] {a} {l : list α} (ha : a ∈ l) : a ∣ l.prod :=
+lemma dvd_prod [comm_monoid α] {a} {l : list α} (ha : a ∈ l) : a ∣ l.prod :=
 let ⟨s, t, h⟩ := mem_split ha in
 by rw [h, prod_append, prod_cons, mul_left_comm]; exact dvd_mul_right _ _
 
@@ -3810,6 +3810,22 @@ theorem disjoint_of_disjoint_append_right_right {l₁ l₂ l : list α} (d : dis
   disjoint l l₂ :=
 (disjoint_append_right.1 d).2
 
+theorem disjoint_take_drop {l : list α} {m n : ℕ} (hl : l.nodup) (h : m ≤ n) :
+  disjoint (l.take m) (l.drop n) :=
+begin
+  induction l generalizing m n,
+  case list.nil : m n
+  { simp },
+  case list.cons : x xs xs_ih m n
+  { cases m; cases n; simp only [disjoint_cons_left, mem_cons_iff, disjoint_cons_right, drop,
+                                 true_or, eq_self_iff_true, not_true, false_and,
+                                 disjoint_nil_left, take],
+    { cases h },
+    cases hl with _ _ h₀ h₁, split,
+    { intro h, exact h₀ _ (mem_of_mem_drop h) rfl, },
+    solve_by_elim [le_of_succ_le_succ] { max_depth := 4 } },
+end
+
 end disjoint
 
 /-! ### union -/
@@ -3907,9 +3923,9 @@ theorem forall_mem_inter_of_forall_right {p : α → Prop} (l₁ : list α) {l�
   ∀ x, x ∈ l₁ ∩ l₂ → p x :=
 ball.imp_left (λ x, mem_of_mem_inter_right) h
 
-lemma inter_reverse {xs ys : list α} :
+@[simp] lemma inter_reverse {xs ys : list α} :
   xs.inter ys.reverse = xs.inter ys :=
-by simp [list.inter]; congr
+by simp only [list.inter, mem_reverse]; congr
 
 end inter
 
@@ -3974,14 +3990,13 @@ begin
     tauto! },
 end
 
-/--
-`list.slice n m xs` removes a slice of length `m` at index `n` in list `xs`.
--/
-@[simp]
-def slice {α} : ℕ → ℕ → list α → list α
-| 0 n xs := xs.drop n
-| (succ n) m [] := []
-| (succ n) m (x :: xs) := x :: slice n m xs
+lemma slice_eq {α} (xs : list α) (n m : ℕ) :
+  slice n m xs = xs.take n ++ xs.drop (n+m) :=
+begin
+  induction n generalizing xs,
+  { simp [slice] },
+  { cases xs; simp [slice, *, nat.succ_add], }
+end
 
 lemma sizeof_slice_lt {α} [has_sizeof α] (i j : ℕ) (hj : 0 < j) (xs : list α) (hi : i < xs.length) :
   sizeof (list.slice i j xs) < sizeof xs :=
@@ -3990,13 +4005,18 @@ begin
   case list.nil : i j h
   { cases hi },
   case list.cons : x xs xs_ih i j h
-  { cases i; simp [list.slice],
-    { cases j, cases h, simp,
-      unfold_wf,
+  { cases i; simp only [-slice_eq, list.slice],
+    { cases j, cases h,
+      dsimp only [drop], unfold_wf,
       apply @lt_of_le_of_lt _ _ _ xs.sizeof,
-      { clear_except, induction xs generalizing j; unfold_wf, refl,
-        cases j; unfold_wf, refl,
-        transitivity, apply xs_ih, simp, },
+      { clear_except,
+        induction xs generalizing j; unfold_wf,
+        case list.nil : j
+        { refl },
+        case list.cons : xs_hd xs_tl xs_ih j
+        { cases j; unfold_wf, refl,
+          transitivity, apply xs_ih,
+          simp }, },
       unfold_wf, apply zero_lt_one_add, },
     { unfold_wf, apply xs_ih _ _ h,
       apply lt_of_succ_lt_succ hi, } },

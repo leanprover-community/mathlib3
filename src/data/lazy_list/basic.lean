@@ -173,6 +173,13 @@ protected def mem {α} (x : α) : lazy_list α → Prop
 instance {α} : has_mem α (lazy_list α) :=
 ⟨ lazy_list.mem ⟩
 
+instance mem.decidable {α} [decidable_eq α] (x : α) : Π xs : lazy_list α, decidable (x ∈ xs)
+| lazy_list.nil := decidable.false
+| (lazy_list.cons y ys) :=
+  if h : x = y
+    then decidable.is_true (or.inl h)
+    else decidable_of_decidable_of_iff (mem.decidable (ys ())) (by simp [*, (∈), lazy_list.mem])
+
 @[simp]
 lemma mem_nil {α} (x : α) : x ∈ @lazy_list.nil α ↔ false := iff.rfl
 
@@ -190,7 +197,7 @@ by simp only [has_mem.mem, lazy_list.mem, or_imp_distrib, forall_and_distrib, fo
   but is defined only when all members of `l` satisfy `p`, using the proof
   to apply `f`. -/
 @[simp] def pmap {α β} {p : α → Prop} (f : Π a, p a → β) : Π l : lazy_list α, (∀ a ∈ l, p a) → lazy_list β
-| lazy_list.nil     H := lazy_list.nil
+| lazy_list.nil         H := lazy_list.nil
 | (lazy_list.cons x xs) H := lazy_list.cons (f x (forall_mem_cons.1 H).1) (pmap (xs ()) (forall_mem_cons.1 H).2)
 
 /-- "Attach" the proof that the elements of `l` are in `l` to produce a new `lazy_list`

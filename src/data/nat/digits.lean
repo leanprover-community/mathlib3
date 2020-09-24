@@ -17,6 +17,8 @@ We also prove some divisibility tests based on digits, in particular completing
 Theorem #85 from https://www.cs.ru.nl/~freek/100/.
 -/
 
+namespace nat
+
 /-- (Impl.) An auxiliary definition for `digits`, to help get the desired definitional unfolding. -/
 def digits_aux_0 : ℕ → list ℕ
 | 0 := []
@@ -541,3 +543,5 @@ begin
   rw of_digits_neg_one at t,
   exact t,
 end
+
+end nat

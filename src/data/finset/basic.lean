@@ -932,10 +932,13 @@ by ext; simp
 @[simp] theorem filter_false {h} (s : finset α) : @filter α (λa, false) h s = ∅ :=
 ext $ assume a, by simp only [mem_filter, and_false]; refl
 
-/-- If all elements of a `finset` satisfy the predicate `p`, `s.filter
-p` is `s`. -/
+/-- If all elements of a `finset` satisfy the predicate `p`, `s.filter p` is `s`. -/
 @[simp] lemma filter_true_of_mem {s : finset α} (h : ∀ x ∈ s, p x) : s.filter p = s :=
 ext $ λ x, ⟨λ h, (mem_filter.1 h).1, λ hx, mem_filter.2 ⟨hx, h x hx⟩⟩
+
+/-- If all elements of a `finset` fail to satisfy the predicate `p`, `s.filter p` is `∅`. -/
+lemma filter_false_of_mem {s : finset α} (h : ∀ x ∈ s, ¬ p x) : s.filter p = ∅ :=
+eq_empty_of_forall_not_mem (by simpa)
 
 lemma filter_congr {s : finset α} (H : ∀ x ∈ s, p x ↔ q x) : filter p s = filter q s :=
 eq_of_veq $ filter_congr H

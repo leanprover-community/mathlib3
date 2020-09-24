@@ -562,7 +562,7 @@ begin
   unfold_wf,
   induction xs with x xs,
   { simp [list.erase_dupkeys] },
-  { simp [list.erase_dupkeys_cons, list.sizeof],
+  { simp only [erase_dupkeys_cons, list.sizeof, kinsert_def, add_le_add_iff_left, sigma.eta],
     transitivity, apply sizeof_kerase,
     assumption }
 end

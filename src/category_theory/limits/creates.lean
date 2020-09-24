@@ -122,6 +122,10 @@ lemma has_limit_of_created (K : J ⥤ C) (F : C ⥤ D)
   [has_limit (K ⋙ F)] [creates_limit K F] : has_limit K :=
 has_limit.mk { cone := lift_limit (limit.is_limit (K ⋙ F)),
   is_limit := lifted_limit_is_limit _ }
+  
+/-- If `F` creates limits, and `D` has all limits, then `C` has all limits. -/
+def has_limits_of_has_limits_creates_limits (F : C ⥤ D) [has_limits D] [creates_limits F] :
+  has_limits C := ⟨λ J I, by letI := I; exact ⟨λ G, has_limit_of_created G F⟩⟩
 
 /- Interface to the `creates_colimit` class. -/
 
@@ -147,6 +151,10 @@ lemma has_colimit_of_created (K : J ⥤ C) (F : C ⥤ D)
   [has_colimit (K ⋙ F)] [creates_colimit K F] : has_colimit K :=
 has_colimit.mk { cocone := lift_colimit (colimit.is_colimit (K ⋙ F)),
   is_colimit := lifted_colimit_is_colimit _ }
+
+/-- If `F` creates colimits, and `D` has all colimits, then `C` has all colimits. -/
+def has_colimits_of_has_colimits_creates_colimits (F : C ⥤ D) [has_colimits D] [creates_colimits F] :
+  has_colimits C := ⟨λ J I, by letI := I; exact ⟨λ G, has_colimit_of_created G F⟩⟩
 
 /--
 A helper to show a functor creates limits. In particular, if we can show

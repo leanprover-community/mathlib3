@@ -39,8 +39,14 @@ class rack (α : Type*) :=
 (op' : α → (α ≃ α))
 (self_distrib' : ∀ {x y z : α}, op' x (op' y z) = op' (op' x y) (op' x z))
 
-abbreviation rack.op {R : Type*} [rack R] (x y : R) : R := rack.op' x y
-abbreviation rack.inv_op {R : Type*} [rack R] (x y : R) : R := (rack.op' x).symm y
+/--
+The rack operation.  Has notation `◃`.
+-/
+abbreviation rack.op {R : Type*} [rack R] (x : R) : R ≃ R := rack.op' x
+/--
+The inverse of the rack operation. Has notation `◃⁻¹`.
+-/
+abbreviation rack.inv_op {R : Type*} [rack R] (x : R) : R ≃ R := (rack.op' x).symm
 
 local infixr ` ◃ ` : 65 := rack.op
 local infixr ` ◃⁻¹ ` : 65 := rack.inv_op
@@ -52,10 +58,8 @@ variables {R : Type*} [rack R]
 @[simp] lemma normalize_inv_op (x y : R) : (rack.op' x).symm y = x ◃⁻¹ y := rfl
 @[simp] lemma normalize_inv_op' (x y : R) : (rack.op' x)⁻¹ y = x ◃⁻¹ y := rfl
 
-@[simp] lemma left_inv (x y : R) : x ◃⁻¹ x ◃ y = y :=
-(op' x).symm_apply_eq.mpr rfl
-@[simp] lemma right_inv (x y : R) : x ◃ x ◃⁻¹ y = y :=
-(op' x).eq_symm_apply.mp rfl
+@[simp] lemma left_inv (x y : R) : x ◃⁻¹ x ◃ y = y := (op' x).symm_apply_eq.mpr rfl
+@[simp] lemma right_inv (x y : R) : x ◃ x ◃⁻¹ y = y := (op' x).eq_symm_apply.mp rfl
 
 lemma self_distrib {x y z : R} : x ◃ y ◃ z = (x ◃ y) ◃ (x ◃ z) :=
 rack.self_distrib'
@@ -76,7 +80,8 @@ end
 /--
 The opposite rack, swapping the roles of `◃` and `◃⁻¹`.
 -/
-def opp (R : Type*) [rack R] := R
+@[nolint has_inhabited_instance]
+def opp (R : Type*) := R
 
 instance opp.rack : rack (opp R) :=
 { op' := λ (x : R), (rack.op' x).symm,
@@ -144,6 +149,9 @@ by { rw self_distrib, rw left_cancel }
 
 end rack
 
+/--
+The type of homomorphisms between racks and quandles.
+-/
 @[ext]
 structure rack_hom (R₁ : Type*) (R₂ : Type*) [rack R₁] [rack R₂] :=
 (to_fun : R₁ → R₂)
@@ -161,12 +169,17 @@ lemma map_op {R₁ : Type*} {R₂ : Type*} [rack R₁] [rack R₂] (f : rack_hom
   (x y : R₁) : f (x ◃ y) = f x ◃ f y :=
 rack_hom.map_op' f
 
+/-- The identity homomorphism -/
 def id (R : Type*) [rack R] : rack_hom R R :=
 { to_fun := id,
   map_op' := by simp }
 
+instance rack_hom.inhabited (R : Type*) [rack R] : inhabited (rack_hom R R) :=
+⟨id R⟩
+
 variables {R₁ : Type*} {R₂ : Type*} {R₃ : Type*} [rack R₁] [rack R₂] [rack R₃]
 
+/-- The composition of rack/quandle homomorphisms -/
 def comp (g : rack_hom R₂ R₃) (f : rack_hom R₁ R₂) : rack_hom R₁ R₃ :=
 { to_fun := g.to_fun ∘ f.to_fun,
   map_op' := by simp }
@@ -201,8 +214,12 @@ instance opp.quandle : quandle (opp Q) :=
 /--
 The conjugation quandle of a group.
 -/
-def conj (G : Type*) [group G] := G
+@[nolint has_inhabited_instance]
+def conj (G : Type*) := G
 
+/--
+Inner automorphisms of a group.
+-/
 def group.inner {G : Type*} [group G] (c : G) : G ≃ G :=
 { to_fun := λ x, c * x * c⁻¹,
   inv_fun := λ x, c⁻¹ * x * c,
@@ -240,12 +257,17 @@ The dihedral quandle. This is the conjugation quandle of the dihedral group rest
 
 Used for Fox n-colorings of knots.
 -/
+@[nolint has_inhabited_instance]
 def dihedral (n : ℕ) := zmod n
 
+/--
+The operation for the dihedral quandle.  It does not need to be an equivalence
+because it is an involution (`dihedral_op.inv`).
+-/
 def dihedral_op (n : ℕ) (a : zmod n) : zmod n → zmod n :=
 λ b, 2 * a - b
 
-def dihedral_op.inv (n : ℕ) (a : zmod n) : function.involutive (dihedral_op n a) :=
+lemma dihedral_op.inv (n : ℕ) (a : zmod n) : function.involutive (dihedral_op n a) :=
 by { intro b, dsimp [dihedral_op], ring }
 
 instance (n : ℕ) : quandle (dihedral n) :=
@@ -275,16 +297,23 @@ end quandle
 namespace rack
 
 /--
+The action of `x ◃ y` on a rack is the conjugate of the action of `y` by the action of `x`.
+-/
+lemma conj_in_conj {R : Type*} [rack R] (x y : R) :
+  op' (x ◃ y) = op' x * op' y * (op' x)⁻¹ :=
+begin
+  apply @mul_right_cancel _ _ _ (op' x), ext z,
+  simp only [quandle.conj_op_eq_conj, normalize_op, equiv.perm.mul_apply, inv_mul_cancel_right],
+  apply self_distrib.symm,
+end
+
+/--
 This is the natural rack homomorphism to the conjugation quandle of the group `R ≃ R`
 that acts on the rack.
 -/
 def to_action (R : Type*) [rack R] : rack_hom R (quandle.conj (R ≃ R)) :=
-{ to_fun := rack.op',
-  map_op' := λ x y, begin
-    apply @mul_right_cancel _ _ _ (op' x), ext z,
-    simp only [quandle.conj_op_eq_conj, normalize_op, equiv.perm.mul_apply, inv_mul_cancel_right],
-    apply self_distrib.symm,
-  end }
+{ to_fun := op',
+  map_op' := conj_in_conj }
 
 
 /-!
@@ -293,14 +322,23 @@ def to_action (R : Type*) [rack R] : rack_hom R (quandle.conj (R ≃ R)) :=
 Joyce, for quandles, called this AdConj.
 -/
 
+/--
+Free generators of the enveloping group.
+-/
 inductive pre_envel_gp (R : Type u) : Type u
 | unit : pre_envel_gp
 | incl (x : R) : pre_envel_gp
 | mul (a b : pre_envel_gp) : pre_envel_gp
 | inv (a : pre_envel_gp) : pre_envel_gp
 
+instance pre_envel_gp.inhabited (R : Type u) : inhabited (pre_envel_gp R) :=
+⟨pre_envel_gp.unit⟩
+
 open pre_envel_gp
 
+/--
+Relations for the enveloping group.
+-/
 inductive pre_envel_gp_rel' (R : Type u) [rack R] : pre_envel_gp R → pre_envel_gp R → Type u
 | refl {a : pre_envel_gp R} : pre_envel_gp_rel' a a
 | symm {a b : pre_envel_gp R} (hab : pre_envel_gp_rel' a b) : pre_envel_gp_rel' b a
@@ -313,6 +351,9 @@ inductive pre_envel_gp_rel' (R : Type u) [rack R] : pre_envel_gp R → pre_envel
 | mul_left_inv (a : pre_envel_gp R) : pre_envel_gp_rel' (mul (inv a) a) unit
 | op_incl (x y : R) : pre_envel_gp_rel' (mul (mul (incl x) (incl y)) (inv (incl x))) (incl (x ◃ y))
 
+instance pre_envel_gp_rel'.inhabited (R : Type u) [rack R] : inhabited (pre_envel_gp_rel' R unit unit) :=
+⟨pre_envel_gp_rel'.refl⟩
+
 /--
 The above relation as a `Prop`.
 -/
@@ -322,7 +363,7 @@ inductive pre_envel_gp_rel (R : Type u) [rack R] : pre_envel_gp R → pre_envel_
 /--
 A quick way to convert a `pre_envel_gp_rel'` to a `pre_envel_gp_rel`.
 -/
-def pre_envel_gp_rel'.rel {R : Type u} [rack R] {a b : pre_envel_gp R} : pre_envel_gp_rel' R a b → pre_envel_gp_rel R a b :=
+lemma pre_envel_gp_rel'.rel {R : Type u} [rack R] {a b : pre_envel_gp R} : pre_envel_gp_rel' R a b → pre_envel_gp_rel R a b :=
 pre_envel_gp_rel.rel
 
 @[refl]
@@ -380,6 +421,8 @@ instance (R : Type*) [rack R] : group (envel_gp R) :=
     apply quotient.sound, exact (pre_envel_gp_rel'.mul_left_inv a).rel,
   end }
 
+instance envel_gp.inhabited (R : Type*) [rack R] : inhabited (envel_gp R) := ⟨1⟩
+
 /--
 The canonical homomorphism from a rack to its enveloping group.
 Satisfies universal properties defined by `to_envel_gp.map` and `to_envel_gp.univ`.
@@ -391,7 +434,12 @@ def to_envel_gp (R : Type*) [rack R] : rack_hom R (quandle.conj (envel_gp R)) :=
     apply quotient.sound, exact (pre_envel_gp_rel'.op_incl x y).symm.rel,
   end }
 
-def to_envel_gp.map_aux {R : Type*} [rack R] {G : Type*} [group G] (f : rack_hom R (quandle.conj G)) : pre_envel_gp R → G
+/--
+The preliminary definition of the induced map from the enveloping group.
+See `to_envel_gp.map`.
+-/
+def to_envel_gp.map_aux {R : Type*} [rack R] {G : Type*} [group G]
+  (f : rack_hom R (quandle.conj G)) : pre_envel_gp R → G
 | unit := 1
 | (incl x) := f x
 | (mul a b) := to_envel_gp.map_aux a * to_envel_gp.map_aux b

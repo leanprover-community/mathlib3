@@ -205,7 +205,7 @@ The ring isomorphism between multivariable polynomials in `option S₁` and
 polynomials with coefficients in `mv_polynomial S₁ R`.
 -/
 def option_equiv_left : mv_polynomial (option S₁) R ≃+* polynomial (mv_polynomial S₁ R) :=
-(ring_equiv_of_equiv R $ (equiv.option_equiv_sum_punit S₁).trans (equiv.sum_comm _ _)).trans $
+(ring_equiv_of_equiv R $ (equiv.option_equiv_sum_punit.{0} S₁).trans (equiv.sum_comm _ _)).trans $
 (sum_ring_equiv R _ _).trans $
 punit_ring_equiv _
 
@@ -240,9 +240,7 @@ begin
     dsimp [ring_equiv.coe_ring_hom, fin_succ_equiv, option_equiv_left, sum_ring_equiv, _root_.fin_succ_equiv],
     by_cases hi : i = 0,
     { simp only [hi, fin.cases_zero, sum.swap, rename_X, equiv.option_equiv_sum_punit_none,
-        equiv.sum_comm_apply, comp_app, sum_to_iter_Xl, eval₂_X],
-
-       },
+        equiv.sum_comm_apply, comp_app, sum_to_iter_Xl, eval₂_X] },
     { rw [← fin.succ_pred i hi],
       simp only [rename_X, equiv.sum_comm_apply, comp_app, eval₂_X,
         equiv.option_equiv_sum_punit_some, sum.swap, fin.cases_succ, sum_to_iter_Xr, eval₂_C] } }

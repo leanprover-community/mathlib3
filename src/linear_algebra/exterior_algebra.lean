@@ -140,7 +140,7 @@ def lift {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A) (cond : ∀ 
 { to_fun := λ a, quot.lift_on a (tensor_algebra.lift R M f) $ λ x y h,
   begin
     induction h,
-    { simp only [alg_hom.map_mul,tensor_algebra.ι_comp_lift',cond,alg_hom.map_zero] },
+    { simp only [alg_hom.map_mul,tensor_algebra.lift_ι_apply,cond,alg_hom.map_zero] },
     repeat { simp only [alg_hom.map_add, h_ih] },
     repeat { simp only [alg_hom.map_mul, h_ih] },
   end,
@@ -173,7 +173,11 @@ variables {R M}
 @[simp]
 theorem ι_comp_lift {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)
   (cond : ∀ m, f m * f m = 0) : (lift R M f cond).to_linear_map.comp (ι R M) = f :=
-  by {ext, sorry }
+begin
+  ext,
+  change tensor_algebra.lift _ _ _ _ = _,
+  rw tensor_algebra.lift_ι_apply,
+end
 
 @[simp]
 theorem lift_unique {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)

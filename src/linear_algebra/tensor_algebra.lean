@@ -95,10 +95,6 @@ theorem lift_ι_apply {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)
   lift R M f (ι R M x) = f x := by { dsimp [lift, ι], refl, }
 
 @[simp]
-theorem ι_comp_lift' {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A) (m : M) :
-  (lift R M f) (ι R M m) = f m := by simp
-
-@[simp]
 theorem lift_unique {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)
   (g : tensor_algebra R M →ₐ[R] A) : g.to_linear_map.comp (ι R M) = f ↔ g = lift R M f :=
 begin

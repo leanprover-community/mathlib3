@@ -90,14 +90,16 @@ end
 lemma ι_comp_lift : (lift R L A f) ∘ (ι R L) = f :=
 by { ext, simp, }
 
-lemma lift_unique (g : universal_enveloping_algebra R L →ₐ[R] A) (h : g ∘ (ι R L) = f) :
-  g = lift R L A f :=
+lemma lift_unique (g : universal_enveloping_algebra R L →ₐ[R] A) :
+  g ∘ (ι R L) = f ↔ g = lift R L A f :=
 begin
-  apply ring_quot.lift_alg_hom_unique,
-  rw ← tensor_algebra.lift_unique,
-  ext x,
-  change _ = f x, rw ← congr h rfl,
-  refl,
+  split; intros h,
+  { apply ring_quot.lift_alg_hom_unique,
+    rw ← tensor_algebra.lift_unique,
+    ext x,
+    change _ = f x, rw ← congr h rfl,
+    refl, },
+  { subst h, apply ι_comp_lift, },
 end
 
 @[ext] lemma hom_ext {g₁ g₂ : universal_enveloping_algebra R L →ₐ[R] A}
@@ -106,8 +108,8 @@ begin
   let f₁ := (lie_algebra.of_associative_algebra_hom g₁).comp (ι R L),
   let f₂ := (lie_algebra.of_associative_algebra_hom g₂).comp (ι R L),
   have h' : f₁ = f₂, { ext, change (g₁ ∘ (ι R L)) x = (g₂ ∘ (ι R L)) x, rw h, },
-  have h₁ : g₁ = lift R L A f₁, { apply lift_unique, refl, },
-  have h₂ : g₂ = lift R L A f₂, { apply lift_unique, refl, },
+  have h₁ : g₁ = lift R L A f₁, { rw ← lift_unique, refl, },
+  have h₂ : g₂ = lift R L A f₂, { rw ← lift_unique, refl, },
   rw [h₁, h₂, h'],
 end
 

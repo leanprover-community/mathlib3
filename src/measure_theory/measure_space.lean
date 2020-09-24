@@ -1432,7 +1432,7 @@ class sigma_finite (μ : measure α) : Prop :=
   (∀ i, μ (s i) < ⊤) ∧
   (⋃ i, s i) = univ)
 
-def exists_finite_spanning_sets (μ : measure α) [sigma_finite μ] :
+lemma exists_finite_spanning_sets (μ : measure α) [sigma_finite μ] :
   ∃ s : ℕ → set α,
   (∀ i, is_measurable (s i)) ∧
   (∀ i, μ (s i) < ⊤) ∧
@@ -1457,6 +1457,7 @@ lemma Union_spanning_sets (μ : measure α) [sigma_finite μ] :
 (classical.some_spec (exists_finite_spanning_sets μ)).2.2
 
 /-- Every finite measure is σ-finite. -/
+@[priority 100]
 instance finite_measure.to_sigma_finite (μ : measure α) [finite_measure μ] : sigma_finite μ :=
 ⟨⟨λ _, univ, λ _, is_measurable.univ, λ _, measure_lt_top μ _, Union_const _⟩⟩
 

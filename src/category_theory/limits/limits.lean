@@ -102,8 +102,8 @@ def map {F G : J ⥤ C} (s : cone F) {t : cone G} (P : is_limit t)
 P.lift ((cones.postcompose α).obj s)
 
 @[simp, reassoc] lemma map_π {F G : J ⥤ C} (c : cone F) {d : cone G} (hd : is_limit d)
-  (α : F ⟶ G) (j : J) : map c hd α ≫ d.π.app j = c.π.app j ≫ α.app j :=
-by apply fac
+  (α : F ⟶ G) (j : J) : hd.map c α ≫ d.π.app j = c.π.app j ≫ α.app j :=
+fac _ _ _
 
 /- Repackaging the definition in terms of cone morphisms. -/
 
@@ -250,8 +250,8 @@ are themselves isomorphic.
 @[simps]
 def cone_points_iso_of_nat_iso {F G : J ⥤ C} {s : cone F} {t : cone G}
   (P : is_limit s) (Q : is_limit t) (w : F ≅ G) : s.X ≅ t.X :=
-{ hom := Q.lift ((cones.postcompose w.hom).obj s),
-  inv := P.lift ((cones.postcompose w.inv).obj t),
+{ hom := Q.map s w.hom,
+  inv := P.map t w.inv,
   hom_inv_id' := P.hom_ext (by tidy),
   inv_hom_id' := Q.hom_ext (by tidy), }
 
@@ -268,7 +268,7 @@ by simp
 @[simp]
 lemma lift_comp_cone_points_iso_of_nat_iso_hom {F G : J ⥤ C} {r s : cone F} {t : cone G}
   (P : is_limit s) (Q : is_limit t) (w : F ≅ G) :
-  P.lift r ≫ (cone_points_iso_of_nat_iso P Q w).hom = Q.lift ((cones.postcompose w.hom).obj _) :=
+  P.lift r ≫ (cone_points_iso_of_nat_iso P Q w).hom = Q.map r w.hom :=
 Q.hom_ext (by simp)
 
 section equivalence
@@ -360,25 +360,21 @@ If `F` and `G` are naturally isomorphic, then `F.map_cone c` being a limit impli
 -/
 def map_cone_equiv {D : Type u'} [category.{v} D] {K : J ⥤ C} {F G : C ⥤ D} (h : F ≅ G) {c : cone K}
   (t : is_limit (F.map_cone c)) : is_limit (G.map_cone c) :=
-{ lift := λ s, t.lift ((cones.postcompose (iso_whisker_left K h).inv).obj s) ≫ h.hom.app c.X,
+{ lift := λ s, t.map s (iso_whisker_left K h).inv ≫ h.hom.app c.X,
   fac' := λ s j,
   begin
-    slice_lhs 2 3 {erw ← h.hom.naturality (c.π.app j)},
-    slice_lhs 1 2 {erw t.fac ((cones.postcompose (iso_whisker_left K h).inv).obj s) j},
+    erw [assoc, ← h.hom.naturality (c.π.app j), t.map_π_assoc s (iso_whisker_left K h).inv j],
     dsimp,
-    slice_lhs 2 3 {rw iso.inv_hom_id_app},
-    rw category.comp_id,
+    simp,
   end,
   uniq' := λ s m J,
   begin
     rw ← cancel_mono (h.inv.app c.X),
     apply t.hom_ext,
     intro j,
-    dsimp,
-    slice_lhs 2 3 {erw ← h.inv.naturality (c.π.app j)},
-    slice_lhs 1 2 {erw J j},
-    conv_rhs {congr, rw [category.assoc, iso.hom_inv_id_app, comp_id]},
-    apply (t.fac ((cones.postcompose (iso_whisker_left K h).inv).obj s) j).symm
+    rw [assoc, assoc, assoc, h.hom_inv_id_app_assoc],
+    erw [← h.inv.naturality (c.π.app j), reassoc_of (J j)],
+    apply (t.map_π s (iso_whisker_left K h).inv j).symm,
   end }
 
 /--
@@ -881,6 +877,20 @@ def limit.lift (F : J ⥤ C) [has_limit F] (c : cone F) : c.X ⟶ limit F :=
   limit.lift F c ≫ limit.π F j = c.π.app j :=
 is_limit.fac _ c j
 
+/--
+Functoriality of limits.
+
+Usually this morphism should be accessed through `lim.map`,
+but may be needed separately when you have specified limits for the source and target functors,
+but not necessarily for all functors of shape `J`.
+-/
+def lim_map {F G : J ⥤ C} [has_limit F] [has_limit G] (α : F ⟶ G) : limit F ⟶ limit G :=
+is_limit.map _ (limit.is_limit G) α
+
+@[simp, reassoc] lemma lim_map_π {F G : J ⥤ C} [has_limit F] [has_limit G] (α : F ⟶ G) (j : J) :
+  lim_map α ≫ limit.π G j = limit.π F j ≫ α.app j :=
+limit.lift_π _ j
+
 /-- The cone morphism from any cone to the arbitrary choice of limit cone. -/
 def limit.cone_morphism {F : J ⥤ C} [has_limit F] (c : cone F) :
   c ⟶ limit.cone F :=
@@ -1091,20 +1101,6 @@ end
 
 section lim_functor
 
-
-/--
-Functoriality of limits.
-
-Usually this morphism should be accessed through `lim.map`,
-but may be needed separately when you have specified limits for the source and target functors,
-but not necessarily for all functors of shape `J`.
--/
-def lim_map {F G : J ⥤ C} [has_limit F] [has_limit G] (α : F ⟶ G) : limit F ⟶ limit G :=
-is_limit.map _ (limit.is_limit G) α
-
-@[simp, reassoc] lemma lim_map_π {F G : J ⥤ C} [has_limit F] [has_limit G] (α : F ⟶ G) (j : J) :
-  lim_map α ≫ limit.π G j = limit.π F j ≫ α.app j :=
-by apply is_limit.fac
 
 variables [has_limits_of_shape J C]
 

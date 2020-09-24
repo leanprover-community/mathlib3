@@ -300,11 +300,13 @@ begin
   { rw [pow_succ, ←mul_assoc, mul_sub_algebra_map_commutes,
       mul_assoc, ih, ←mul_assoc], }
 end
+end ring
 
+section ring
 /-!
 An algebra over a commutative ring is a ring.
 -/
-def ring_of_comm_ring_algebra (R) [semiring A] [algebra R A] : ring A :=
+def ring_of_comm_ring_algebra (R) [comm_ring R] [semiring A] [algebra R A] : ring A :=
 { neg := λ a, (-1 : R) • a,
   add_left_neg := begin
     intros a,

@@ -596,7 +596,7 @@ L.integral_comp_comm φ.integrable
 
 end continuous_linear_map
 
-variables [measurable_space E] [borel_space E] [second_countable_topology E] [complete_space E]
+variables [borel_space E] [second_countable_topology E] [complete_space E]
   [measurable_space F] [borel_space F] [second_countable_topology F] [complete_space F]
 
 lemma fst_integral {f : α → E × F} (hf : integrable f μ) :

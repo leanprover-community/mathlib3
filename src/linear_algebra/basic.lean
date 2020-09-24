@@ -388,9 +388,13 @@ end comm_semiring
 
 section ring
 
-instance endomorphism_ring [ring R] [add_comm_group M] [semimodule R M] : ring (M →ₗ[R] M) :=
+variables [ring R] [add_comm_group M] [semimodule R M]
+
+instance endomorphism_ring : ring (M →ₗ[R] M) :=
 by refine {mul := (*), one := 1, ..linear_map.add_comm_group, ..};
   { intros, apply linear_map.ext, simp {proj := ff} }
+
+@[simp] lemma mul_apply (f g : M →ₗ[R] M) (x : M) : (f * g) x = f (g x) := rfl
 
 end ring
 

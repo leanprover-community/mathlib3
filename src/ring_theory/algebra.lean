@@ -431,6 +431,12 @@ lemma map_sum {ι : Type*} (f : ι → A) (s : finset ι) :
 @[simp] lemma map_nat_cast (n : ℕ) : φ n = n :=
 φ.to_ring_hom.map_nat_cast n
 
+@[simp] lemma map_bit0 (x) : φ (bit0 x) = bit0 (φ x) :=
+φ.to_ring_hom.map_bit0 x
+
+@[simp] lemma map_bit1 (x) : φ (bit1 x) = bit1 (φ x) :=
+φ.to_ring_hom.map_bit1 x
+
 section
 
 variables (R A)

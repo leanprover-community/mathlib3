@@ -1043,8 +1043,6 @@ end
 
 /-! ### `pow` -/
 
--- TODO: For each protected lemma, replace its uses and then remove it!
-
 -- This is redundant with `canonically_ordered_semiring.pow_le_pow_of_le_left`,
 -- but `canonically_ordered_semiring` is not such an obvious abstraction, and also quite long.
 -- So, we leave a version in the `nat` namespace as well.

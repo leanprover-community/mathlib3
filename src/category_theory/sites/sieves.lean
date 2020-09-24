@@ -44,11 +44,12 @@ variables {C : Type u} [category.{v} C]
 variables {X Y Z : C} {S R : sieve X}
 
 /-- A sieve gives a subset of the over category of `X`. -/
-def get_arrow_set (S : sieve X) : set (over X) := λ f, S.arrows f.hom
+def set_over (S : sieve X) : set (over X) := λ f, S.arrows f.hom
 
 lemma arrows_ext : Π {R S : sieve X}, R.arrows = S.arrows → R = S
 | ⟨Ra, _⟩ ⟨Sa, _⟩ rfl := rfl
 
+@[ext]
 protected lemma ext {R S : sieve X}
   (h : ∀ ⦃Y⦄ (f : Y ⟶ X), R.arrows f ↔ S.arrows f) :
   R = S :=
@@ -60,7 +61,7 @@ protected lemma ext_iff {R S : sieve X} :
 
 open lattice
 
-/-- The supremum of a collection of sieves: just the union of them all. -/
+/-- The supremum of a collection of sieves: the union of them all. -/
 protected def Sup (𝒮 : set (sieve X)) : (sieve X) :=
 { arrows := λ Y, {f | ∃ S ∈ 𝒮, sieve.arrows S f},
   downward_closed := λ Y Z f, by { rintro ⟨S, hS, hf⟩ g, exact ⟨S, hS, S.downward_closed hf _⟩ } }
@@ -148,7 +149,7 @@ def generate (𝒢 : set (over X)) : sieve X :=
 open order lattice
 
 lemma sets_iff_generate (S : set (over X)) (S' : sieve X) :
-  generate S ≤ S' ↔ S ≤ S'.get_arrow_set :=
+  generate S ≤ S' ↔ S ≤ S'.set_over :=
 ⟨λ H g hg,
   begin
     have : over.mk g.hom = g,
@@ -164,8 +165,8 @@ begin
   case close : Y Z f g hf₁ hf₂ { exact S'.downward_closed hf₂ _ },
 end⟩
 
-/-- Show that there is a galois insertion (generate, get_arrow_set). -/
-def gi_generate : galois_insertion (generate : set (over X) → sieve X) get_arrow_set :=
+/-- Show that there is a galois insertion (generate, set_over). -/
+def gi_generate : galois_insertion (generate : set (over X) → sieve X) set_over :=
 { gc := sets_iff_generate,
   choice := λ 𝒢 _, generate 𝒢,
   choice_eq := λ _ _, rfl,
@@ -195,7 +196,7 @@ lemma mem_comp_of_comp {R : sieve Y} {Z : C} {g : Z ⟶ Y} (hg : R.arrows g) (f 
 ⟨g, rfl, hg⟩
 
 /-- Pullback is monotonic -/
-lemma pullback_le_map {S R : sieve X} (Hss : S ≤ R) (f : Y ⟶ X) : pullback S f ≤ pullback R f :=
+lemma pullback_mono {S R : sieve X} (Hss : S ≤ R) (f : Y ⟶ X) : pullback S f ≤ pullback R f :=
 λ Z H, Hss _ _
 
 lemma pullback_top {f : Y ⟶ X} : pullback ⊤ f = ⊤ :=
@@ -230,7 +231,7 @@ If a sieve S is contained in a sieve T, then we have a morphism of presheaves on
 presheaves.
 -/
 @[simps]
-def le_functor {S T : sieve X} (h : S ≤ T) : S.functor ⟶ T.functor :=
+def nat_trans_of_le {S T : sieve X} (h : S ≤ T) : S.functor ⟶ T.functor :=
 { app := λ Y f, ⟨f.1, h _ _ f.2⟩ }.
 
 /-- The natural inclusion from the functor induced by a sieve to the yoneda embedding. -/
@@ -238,8 +239,8 @@ def le_functor {S T : sieve X} (h : S ≤ T) : S.functor ⟶ T.functor :=
 def functor_inclusion (S : sieve X) : S.functor ⟶ yoneda.obj X :=
 { app := λ Y f, f.1 }.
 
-lemma le_functor_comm {S T : sieve X} (h : S ≤ T) :
-  le_functor h ≫ functor_inclusion _ = functor_inclusion _ :=
+lemma nat_trans_of_le_comm {S T : sieve X} (h : S ≤ T) :
+  nat_trans_of_le h ≫ functor_inclusion _ = functor_inclusion _ :=
 rfl
 
 /-- The presheaf induced by a sieve is a subobject of the yoneda embedding. -/

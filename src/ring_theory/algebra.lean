@@ -285,6 +285,24 @@ instance linear_map.semimodule' (R : Type u) [comm_semiring R]
 
 end semiring
 
+section ring
+variables [comm_ring R] [comm_ring S] [ring A] [algebra R A]
+
+lemma mul_sub_algebra_map_commutes (x : A) (r : R) :
+  x * (x - algebra_map R A r) = (x - algebra_map R A r) * x :=
+by rw [mul_sub, ←commutes, sub_mul]
+
+lemma mul_sub_algebra_map_pow_commutes (x : A) (r : R) (n : ℕ) :
+  x * (x - algebra_map R A r) ^ n = (x - algebra_map R A r) ^ n * x :=
+begin
+  induction n with n ih,
+  { simp },
+  { rw [pow_succ, ←mul_assoc, mul_sub_algebra_map_commutes,
+      mul_assoc, ih, ←mul_assoc], }
+end
+
+end ring
+
 end algebra
 
 namespace module

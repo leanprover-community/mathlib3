@@ -118,6 +118,40 @@ end facts
 namespace nat
 variables {m n k : ℕ}
 
+/-!
+### Recursion and `set.range`
+-/
+
+section set
+
+open set
+
+theorem zero_union_range_succ : {0} ∪ range succ = univ :=
+by { ext n, cases n; simp }
+
+variables {α : Type*}
+
+theorem range_of_succ (f : ℕ → α) : {f 0} ∪ range (f ∘ succ) = range f :=
+by rw [← image_singleton, range_comp, ← image_union, zero_union_range_succ, image_univ]
+
+theorem range_rec {α : Type*} (x : α) (f : ℕ → α → α) :
+  (set.range (λ n, nat.rec x f n) : set α) =
+    {x} ∪ set.range (λ n, nat.rec (f 0 x) (f ∘ succ) n) :=
+begin
+  convert (range_of_succ _).symm,
+  ext n,
+  induction n with n ihn,
+  { refl },
+  { dsimp at ihn ⊢,
+    rw ihn }
+end
+
+theorem range_cases_on {α : Type*} (x : α) (f : ℕ → α) :
+  (set.range (λ n, nat.cases_on n x f) : set α) = {x} ∪ set.range f :=
+(range_of_succ _).symm
+
+end set
+
 /-! ### The units of the natural numbers as a `monoid` and `add_monoid` -/
 
 theorem units_eq_one (u : units ℕ) : u = 1 :=

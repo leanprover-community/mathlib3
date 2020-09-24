@@ -51,6 +51,17 @@ rfl
 @[continuity]
 protected lemma continuous (h : α ≃ₜ β) : continuous h := h.continuous_to_fun
 
+/-- Change the homeomorphism `f` to make the inverse function definitionally equal to `g`. -/
+def change_inv (f : α ≃ₜ β) (g : β → α) (hg : function.right_inverse g f) : α ≃ₜ β :=
+have g = f.symm, from funext (λ x, calc g x = f.symm (f (g x)) : (f.left_inv (g x)).symm
+                                        ... = f.symm x : by rw hg x),
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := by convert f.left_inv,
+  right_inv := by convert f.right_inv,
+  continuous_to_fun := f.continuous,
+  continuous_inv_fun := by convert f.symm.continuous }
+
 lemma symm_comp_self (h : α ≃ₜ β) : ⇑h.symm ∘ ⇑h = id :=
 funext $ assume a, h.to_equiv.left_inv a
 

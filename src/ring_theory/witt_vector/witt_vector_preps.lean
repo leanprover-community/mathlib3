@@ -512,10 +512,6 @@ acounit_surjective ℕ A
 end
 end mv_polynomial
 
-lemma congr₂ {α β γ : Type*} (f : α → β → γ) (a₁ a₂ : α) (b₁ b₂ : β) :
-  a₁ = a₂ → b₁ = b₂ → f a₁ b₁ = f a₂ b₂ :=
-by rintro rfl rfl; refl
-
 lemma nontrivial_of_char_ne_one {v : ℕ} (hv : v ≠ 1) {R : Type*} [semiring R] [hr : char_p R v] :
   nontrivial R :=
 ⟨⟨(1 : ℕ), 0, λ h, hv $ by rwa [char_p.cast_eq_zero_iff _ v, nat.dvd_one] at h; assumption ⟩⟩

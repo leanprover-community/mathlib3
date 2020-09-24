@@ -63,12 +63,9 @@ begin
   apply is_poly₂.ext
     (verschiebung_is_poly.comp₂ ((mul_is_poly₂ p).comp_right (frobenius_is_poly p)))
     ((mul_is_poly₂ p).comp_left verschiebung_is_poly),
-  rintro S _Scr x y ⟨⟩;
+  rintro S _Scr x y ⟨⟩; resetI;
   simp [ghost_component_zero_verschiebung, zero_mul, ring_hom.map_mul,
-    ghost_component_verschiebung, ghost_component_frobenius, nat.succ_eq_add_one],
-  try { rw mul_assoc },
-  -- aahrg
-  sorry
+    ghost_component_verschiebung, ghost_component_frobenius, nat.succ_eq_add_one, mul_assoc],
 end
 
 end witt_vector

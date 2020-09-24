@@ -137,11 +137,9 @@ def verschiebung : 𝕎 R →+ 𝕎 R :=
     apply is_poly₂.ext
       ((verschiebung_fun_is_poly p).comp₂ (add_is_poly₂ p))
       ((add_is_poly₂ p).comp (verschiebung_fun_is_poly p) (verschiebung_fun_is_poly p)),
-    rintro S _Scr x y ⟨⟩;
+    rintro S _Scr x y ⟨⟩; resetI;
     simp only [ring_hom.map_add, ghost_component_verschiebung_fun,
       ghost_component_zero_verschiebung_fun, mul_add, add_zero],
-    symmetry,
-    convert add_zero _; sorry
   end }
 
 omit hp

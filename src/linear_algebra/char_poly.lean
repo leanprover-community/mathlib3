@@ -48,7 +48,7 @@ matrix.scalar n (X : polynomial R) - (C : R →+* polynomial R).map_matrix M
 by simp only [char_matrix, sub_left_inj, pi.sub_apply, scalar_apply_eq,
   ring_hom.map_matrix_apply, map_apply]
 
-@[simp] lemma char_matrix_apply_ne (M : matrix n n R) (i j : n) (h : i ≠ j) :
+@[simp] lemma char_matrix_apply_ne (M : matrix n n R) {i j : n} (h : i ≠ j) :
   char_matrix M i j = - C (M i j) :=
 by simp only [char_matrix, pi.sub_apply, scalar_apply_ne _ _ _ h, zero_sub,
   ring_hom.map_matrix_apply, map_apply]
@@ -62,7 +62,7 @@ begin
   { subst h, rw [char_matrix_apply_eq, coeff_sub],
     simp only [coeff_X, coeff_C],
     split_ifs; simp, },
-  { rw [char_matrix_apply_ne _ _ _ h, coeff_X, coeff_neg, coeff_C, coeff_C],
+  { rw [char_matrix_apply_ne _ h, coeff_X, coeff_neg, coeff_C, coeff_C],
     split_ifs; simp [h], }
 end
 

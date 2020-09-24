@@ -984,6 +984,16 @@ theorem nth_eq_some {l : list α} {n a} : nth l n = some a ↔ ∃ h, nth_le l n
     injection e with e; apply nth_le_mem⟩,
 λ ⟨h, e⟩, e ▸ nth_le_nth _⟩
 
+@[simp]
+theorem nth_eq_none_iff : ∀ {l : list α} {n}, nth l n = none ↔ length l ≤ n :=
+begin
+  intros, split,
+  { intro h, by_contradiction h',
+    have h₂ : ∃ h, l.nth_le n h = l.nth_le n (lt_of_not_ge h') := ⟨lt_of_not_ge h', rfl⟩,
+    rw [← nth_eq_some, h] at h₂, cases h₂ },
+  { solve_by_elim [nth_len_le] },
+end
+
 theorem nth_of_mem {a} {l : list α} (h : a ∈ l) : ∃ n, nth l n = some a :=
 let ⟨n, h, e⟩ := nth_le_of_mem h in ⟨n, by rw [nth_le_nth, e]⟩
 
@@ -999,6 +1009,29 @@ theorem mem_iff_nth_le {a} {l : list α} : a ∈ l ↔ ∃ n h, nth_le l n h = a
 
 theorem mem_iff_nth {a} {l : list α} : a ∈ l ↔ ∃ n, nth l n = some a :=
 mem_iff_nth_le.trans $ exists_congr $ λ n, nth_eq_some.symm
+
+lemma nth_injective {α : Type u} {xs : list α} {i j : ℕ}
+  (h₀ : i < xs.length)
+  (h₁ : nodup xs)
+  (h₂ : xs.nth i = xs.nth j) : i = j :=
+begin
+  induction xs with x xs generalizing i j,
+  { cases h₀ },
+  { cases i; cases j,
+    case nat.zero nat.zero
+    { refl },
+    case nat.succ nat.succ
+    { congr, cases h₁,
+      apply xs_ih;
+      solve_by_elim [lt_of_succ_lt_succ] },
+    iterate 2
+    { dsimp at h₂,
+      cases h₁ with _ _ h h',
+      cases h x _ rfl,
+      rw mem_iff_nth,
+      exact ⟨_, h₂.symm⟩ <|>
+        exact ⟨_, h₂⟩ } },
+end
 
 @[simp] theorem nth_map (f : α → β) : ∀ l n, nth (map f l) n = (nth l n).map f
 | []       n     := rfl
@@ -1452,6 +1485,19 @@ by { simp at hi, rw nth_le_take L _ hi.1 }
 | 0     := rfl
 | (n+1) := rfl
 
+lemma mem_of_mem_drop {α} {n : ℕ} {l : list α} {x : α}
+  (h : x ∈ l.drop n) :
+  x ∈ l :=
+begin
+  induction l generalizing n,
+  case list.nil : n h
+  { simpa using h },
+  case list.cons : l_hd l_tl l_ih n h
+  { cases n; simp only [mem_cons_iff, drop] at h ⊢,
+    { exact h },
+    right, apply l_ih h },
+end
+
 @[simp] theorem drop_one : ∀ l : list α, drop 1 l = tail l
 | []       := rfl
 | (a :: l) := rfl
@@ -1556,6 +1602,22 @@ by rw [modify_nth_eq_take_drop, drop_eq_nth_le_cons h]; refl
 theorem update_nth_eq_take_cons_drop (a : α) {n l} (h : n < length l) :
   update_nth l n a = take n l ++ a :: drop (n+1) l :=
 by rw [update_nth_eq_modify_nth, modify_nth_eq_take_cons_drop _ h]
+
+lemma reverse_take {α} {xs : list α} (n : ℕ)
+  (h : n ≤ xs.length) :
+  xs.reverse.take n = (xs.drop (xs.length - n)).reverse :=
+begin
+  induction xs generalizing n; simp only [reverse_cons, drop, reverse_nil, nat.zero_sub, length, take_nil],
+  cases decidable.lt_or_eq_of_le h with h' h',
+  { replace h' := le_of_succ_le_succ h',
+    rwa [take_append_of_le_length, xs_ih _ h'],
+    rw [show xs_tl.length + 1 - n = succ (xs_tl.length - n), from _, drop],
+    { rwa [succ_eq_add_one, nat.sub_add_comm] },
+    { rwa length_reverse } },
+  { subst h', rw [length, nat.sub_self, drop],
+    rw [show xs_tl.length + 1 = (xs_tl.reverse ++ [xs_hd]).length, from _, take_length, reverse_cons],
+    rw [length_append, length_reverse], refl }
+end
 
 @[simp] lemma update_nth_eq_nil (l : list α) (n : ℕ) (a : α) : l.update_nth n a = [] ↔ l = [] :=
 by cases l; cases n; simp only [update_nth]
@@ -3738,6 +3800,22 @@ theorem disjoint_of_disjoint_append_right_right {l₁ l₂ l : list α} (d : dis
   disjoint l l₂ :=
 (disjoint_append_right.1 d).2
 
+theorem disjoint_take_drop {l : list α} {m n : ℕ} (hl : l.nodup) (h : m ≤ n) :
+  disjoint (l.take m) (l.drop n) :=
+begin
+  induction l generalizing m n,
+  case list.nil : m n
+  { simp },
+  case list.cons : x xs xs_ih m n
+  { cases m; cases n; simp only [disjoint_cons_left, mem_cons_iff, disjoint_cons_right, drop,
+                                 true_or, eq_self_iff_true, not_true, false_and,
+                                 disjoint_nil_left, take],
+    { cases h },
+    cases hl with _ _ h₀ h₁, split,
+    { intro h, exact h₀ _ (mem_of_mem_drop h) rfl, },
+    solve_by_elim [le_of_succ_le_succ] { max_depth := 4 } },
+end
+
 end disjoint
 
 /-! ### union -/
@@ -3835,6 +3913,10 @@ theorem forall_mem_inter_of_forall_right {p : α → Prop} (l₁ : list α) {l�
   ∀ x, x ∈ l₁ ∩ l₂ → p x :=
 ball.imp_left (λ x, mem_of_mem_inter_right) h
 
+@[simp] lemma inter_reverse {xs ys : list α} :
+  xs.inter ys.reverse = xs.inter ys :=
+by simp only [list.inter, mem_reverse]; congr
+
 end inter
 
 section choose
@@ -3884,5 +3966,50 @@ theorem sum_map_mul_right {α : Type*} [semiring α] {β : Type*} (L : list β)
   (f : β → α) (r : α) :
   (L.map (λ b, f b * r)).sum = (L.map f).sum * r :=
 sum_map_hom L f $ add_monoid_hom.mul_right r
+
+universes u v
+
+@[simp]
+theorem mem_map_swap {α : Type u} {β : Type v} (x : α) (y : β) (xs : list (α × β)) :
+  (y, x) ∈ map prod.swap xs ↔ (x, y) ∈ xs :=
+begin
+  induction xs with x xs,
+  { simp only [not_mem_nil, map_nil] },
+  { cases x with a b,
+    simp only [mem_cons_iff, prod.mk.inj_iff, map, prod.swap_prod_mk, prod.exists, xs_ih],
+    tauto! },
+end
+
+lemma slice_eq {α} (xs : list α) (n m : ℕ) :
+  slice n m xs = xs.take n ++ xs.drop (n+m) :=
+begin
+  induction n generalizing xs,
+  { simp [slice] },
+  { cases xs; simp [slice, *, nat.succ_add], }
+end
+
+lemma sizeof_slice_lt {α} [has_sizeof α] (i j : ℕ) (hj : 0 < j) (xs : list α) (hi : i < xs.length) :
+  sizeof (list.slice i j xs) < sizeof xs :=
+begin
+  induction xs generalizing i j,
+  case list.nil : i j h
+  { cases hi },
+  case list.cons : x xs xs_ih i j h
+  { cases i; simp only [-slice_eq, list.slice],
+    { cases j, cases h,
+      dsimp only [drop], unfold_wf,
+      apply @lt_of_le_of_lt _ _ _ xs.sizeof,
+      { clear_except,
+        induction xs generalizing j; unfold_wf,
+        case list.nil : j
+        { refl },
+        case list.cons : xs_hd xs_tl xs_ih j
+        { cases j; unfold_wf, refl,
+          transitivity, apply xs_ih,
+          simp }, },
+      unfold_wf, apply zero_lt_one_add, },
+    { unfold_wf, apply xs_ih _ _ h,
+      apply lt_of_succ_lt_succ hi, } },
+end
 
 end list

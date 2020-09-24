@@ -553,9 +553,6 @@ apply_nolint list.kextract doc_blame
 apply_nolint list.kreplace doc_blame
 apply_nolint list.nodupkeys doc_blame
 
--- data/list/tfae.lean
-apply_nolint list.tfae doc_blame
-
 -- data/matrix/basic.lean
 apply_nolint matrix doc_blame
 apply_nolint matrix.col doc_blame
@@ -1178,13 +1175,6 @@ apply_nolint multiplicity.finite doc_blame
 -- ring_theory/ring_invo.lean
 apply_nolint ring_invo.id doc_blame
 
--- ring_theory/unique_factorization_domain.lean
-apply_nolint associates.factor_set.prod doc_blame
-apply_nolint associates.factors doc_blame
-apply_nolint associates.factors' doc_blame
-apply_nolint unique_factorization_domain.of_unique_irreducible_factorization doc_blame
-apply_nolint unique_irreducible_factorization doc_blame has_inhabited_instance
-
 -- set_theory/cofinality.lean
 apply_nolint strict_order.cof doc_blame
 
@@ -1714,15 +1704,12 @@ apply_nolint tactic.derive_field_subtype doc_blame
 -- tactic/tauto.lean
 apply_nolint tactic.add_edge doc_blame
 apply_nolint tactic.add_refl doc_blame
-apply_nolint tactic.add_symm_proof doc_blame
 apply_nolint tactic.assumption_symm doc_blame
 apply_nolint tactic.assumption_with doc_blame
 apply_nolint tactic.contradiction_symm doc_blame
 apply_nolint tactic.contradiction_with doc_blame
 apply_nolint tactic.find_eq_type doc_blame
 apply_nolint tactic.modify_ref doc_blame
-apply_nolint tactic.root doc_blame
-apply_nolint tactic.symm_eq doc_blame
 apply_nolint tactic.tauto_state doc_blame
 apply_nolint tactic.tautology doc_blame
 

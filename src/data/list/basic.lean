@@ -555,7 +555,7 @@ by induction l; [refl, simp only [*, reverse_cons, reverse_append]]; refl
 @[simp] theorem reverse_involutive : involutive (@reverse α) :=
 λ l, reverse_reverse l
 
-@[simp] theorem reverse_injective : injective (@reverse α) :=
+theorem reverse_injective : injective (@reverse α) :=
 reverse_involutive.injective
 
 @[simp] theorem reverse_inj {l₁ l₂ : list α} : reverse l₁ = reverse l₂ ↔ l₁ = l₂ :=

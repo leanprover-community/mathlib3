@@ -463,10 +463,8 @@ begin
     using congr_arg (λ p : polynomial R, aeval f p v) hpq'
 end
 
-lemma sup_ker_aeval_le_ker_aeval_mul
-  {f : M →ₗ[R] M} {p q : polynomial R} :
-  (aeval f p).ker ⊔ (aeval f q).ker ≤
-    (aeval f (p * q)).ker :=
+lemma sup_ker_aeval_le_ker_aeval_mul {f : M →ₗ[R] M} {p q : polynomial R} :
+  (aeval f p).ker ⊔ (aeval f q).ker ≤ (aeval f (p * q)).ker :=
 begin
   intros v hv,
   rcases submodule.mem_sup.1 hv with ⟨x, hx, y, hy, hxy⟩,
@@ -479,19 +477,22 @@ end
 
 lemma sup_ker_aeval_eq_ker_aeval_mul_of_coprime
   (f : M →ₗ[R] M) {p q : polynomial R} (hpq : is_coprime p q) :
-  (aeval f p).ker ⊔ (aeval f q).ker =
-    (aeval f (p * q)).ker :=
+  (aeval f p).ker ⊔ (aeval f q).ker = (aeval f (p * q)).ker :=
 begin
   apply le_antisymm sup_ker_aeval_le_ker_aeval_mul,
   intros v hv,
   rw submodule.mem_sup,
   rcases hpq with ⟨p', q', hpq'⟩,
-  have h_eval₂_qpp' : aeval f (q * (p * p')) v = 0,
-  { rw [mul_comm, mul_assoc, mul_comm, mul_assoc, aeval_mul,
-      mul_comm, linear_map.mul_apply, linear_map.mem_ker.1 hv, linear_map.map_zero] },
-  have h_eval₂_pqq' : aeval f (p * (q * q')) v = 0,
-  { rw [←mul_assoc, mul_comm, aeval_mul,
-      linear_map.mul_apply, linear_map.mem_ker.1 hv, linear_map.map_zero] },
+  have h_eval₂_qpp' := calc
+    aeval f (q * (p * p')) v = aeval f (p' * (p * q)) v :
+      by rw [mul_comm, mul_assoc, mul_comm, mul_assoc, mul_comm q p]
+    ... = 0 :
+      by rw [aeval_mul, linear_map.mul_apply, linear_map.mem_ker.1 hv, linear_map.map_zero],
+  have h_eval₂_pqq' := calc
+    aeval f (p * (q * q')) v = aeval f (q' * (p * q)) v :
+      by rw [←mul_assoc, mul_comm]
+    ... = 0 :
+      by rw [aeval_mul, linear_map.mul_apply, linear_map.mem_ker.1 hv, linear_map.map_zero],
   rw aeval_mul at h_eval₂_qpp' h_eval₂_pqq',
   refine ⟨aeval f (q * q') v, linear_map.mem_ker.1 h_eval₂_pqq',
           aeval f (p * p') v, linear_map.mem_ker.1 h_eval₂_qpp', _⟩,

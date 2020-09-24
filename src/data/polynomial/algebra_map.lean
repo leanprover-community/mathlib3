@@ -112,7 +112,7 @@ variables {R A}
 theorem aeval_def (p : polynomial R) : aeval x p = eval₂ (algebra_map R A) x p := rfl
 
 @[simp] lemma aeval_zero : aeval x (0 : polynomial R) = 0 :=
-eval₂_zero _ _
+alg_hom.map_zero (aeval x)
 
 @[simp] lemma aeval_X : aeval x (X : polynomial R) = x := eval₂_X _ x
 
@@ -125,22 +125,22 @@ eval₂_monomial _ _
 eval₂_X_pow _ _
 
 @[simp] lemma aeval_add : aeval x (p + q) = aeval x p + aeval x q :=
-eval₂_add _ _
+alg_hom.map_add _ _ _
 
 @[simp] lemma aeval_one : aeval x (1 : polynomial R) = 1 :=
-eval₂_one _ _
+alg_hom.map_one _
 
 @[simp] lemma aeval_bit0 : aeval x (bit0 p) = bit0 (aeval x p) :=
-eval₂_bit0 _ _
+alg_hom.map_bit0 _ _
 
 @[simp] lemma aeval_bit1 : aeval x (bit1 p) = bit1 (aeval x p) :=
-eval₂_bit1 _ _
+alg_hom.map_bit1 _ _
 
 @[simp] lemma aeval_nat_cast (n : ℕ) : aeval x (n : polynomial R) = n :=
-eval₂_nat_cast _ _ _
+alg_hom.map_nat_cast _ _
 
 lemma aeval_mul : aeval x (p * q) = aeval x p * aeval x q :=
-eval₂_mul_noncomm (algebra_map _ _) _ algebra.commutes
+alg_hom.map_mul _ _ _
 
 theorem eval_unique (φ : polynomial R →ₐ[R] A) (p) :
   φ p = eval₂ (algebra_map R A) (φ X) p :=

@@ -23,7 +23,7 @@ about: abelian categories. Consequently, many interesting results about exact se
 * Suppose that cokernels exist and that `f` and `g` are exact. If `s` is any kernel fork over `g`
   and `t` is any cokernel cofork over `f`, then `fork.ι s ≫ cofork.π t = 0`.
 * Precomposing the first morphism with an epimorphism retains exactness. Postcomposing the second
-  morphism with an epimorphism retains exactness.
+  morphism with a monomorphism retains exactness.
 * If `f` and `g` are exact and `i` is an isomorphism, then `f ≫ i.hom` and `i.inv ≫ g` are also
   exact.
 

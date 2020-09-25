@@ -741,6 +741,7 @@ by rw [exp_add, exp_mul_I]
 lemma exp_eq_exp_re_mul_sin_add_cos : exp x = exp x.re * (cos x.im + sin x.im * I) :=
 by rw [← exp_add_mul_I, re_add_im]
 
+/-- De Moivre's formula -/
 theorem cos_add_sin_mul_I_pow (n : ℕ) (z : ℂ) : (cos z + sin z * I) ^ n = cos (↑n * z) + sin (↑n * z) * I :=
 begin
   rw [← exp_mul_I, ← exp_mul_I],

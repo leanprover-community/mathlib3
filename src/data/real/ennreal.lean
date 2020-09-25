@@ -829,10 +829,18 @@ by simpa only [inv_inv] using @inv_le_inv a⁻¹ b
 @[simp] lemma inv_lt_one : a⁻¹ < 1 ↔ 1 < a :=
 inv_lt_iff_inv_lt.trans $ by rw [inv_one]
 
-lemma top_div : ∞ / a = if a = ∞ then 0 else ∞ :=
-by by_cases a = ∞; simp [div_def, top_mul, *]
-
 @[simp] lemma div_top : a / ∞ = 0 := by simp only [div_def, inv_top, mul_zero]
+
+@[simp] lemma top_div_coe : ∞ / p = ∞ := by simp [div_def, top_mul]
+
+lemma top_div_of_ne_top (h : a ≠ ⊤) : ∞ / a = ∞ :=
+by { lift a to nnreal using h, exact top_div_coe }
+
+lemma top_div_of_lt_top (h : a < ⊤) : ∞ / a = ∞ :=
+top_div_of_ne_top h.ne
+
+lemma top_div : ∞ / a = if a = ∞ then 0 else ∞ :=
+by by_cases a = ∞; simp [top_div_of_ne_top, *]
 
 @[simp] lemma zero_div : 0 / a = 0 := zero_mul a⁻¹
 

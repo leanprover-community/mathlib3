@@ -364,33 +364,31 @@ begin
 end
 end
 
-/-- the factorisation of any morphism in AddCommGroup through a mono. -/
+/-- the factorisation of any morphism in Type through a mono. -/
 def mono_factorisation : mono_factorisation f :=
 { I := image f,
   m := image.ι f,
   e := set.range_factorization f }
 
-noncomputable instance : has_image f :=
-{ F := mono_factorisation f,
-  is_image :=
-  { lift := image.lift,
-    lift_fac' := image.lift_fac } }
+/-- the facorisation through a mono has the universal property of the image. -/
+noncomputable def is_image : is_image (mono_factorisation f) :=
+{ lift := image.lift,
+  lift_fac' := image.lift_fac }
 
-noncomputable instance : has_images (Type u) :=
-{ has_image := infer_instance }
+instance : has_image f :=
+has_image.mk ⟨_, is_image f⟩
 
-noncomputable instance : has_image_maps (Type u) :=
-{ has_image_map := λ f g st,
-  { map := λ x, ⟨st.right x.1, ⟨st.left (classical.some x.2),
+instance : has_images (Type u) :=
+{ has_image := by apply_instance }
+
+instance : has_image_maps (Type u) :=
+{ has_image_map := λ f g st, has_image_map.transport st (mono_factorisation f.hom) (is_image g.hom)
+    (λ x, ⟨st.right x.1, ⟨st.left (classical.some x.2),
       begin
         have p := st.w,
         replace p := congr_fun p (classical.some x.2),
         simp only [functor.id_map, types_comp_apply, subtype.val_eq_coe] at p,
         erw [p, classical.some_spec x.2],
-      end⟩⟩ } }
-
-@[simp] lemma image_map {f g : arrow (Type u)} (st : f ⟶ g) (x : image f.hom) :
-  (image.map st x).val = st.right x.1 :=
-rfl
+      end⟩⟩) rfl }
 
 end category_theory.limits.types

@@ -123,6 +123,19 @@ lemma has_limit_of_created (K : J ⥤ C) (F : C ⥤ D)
 has_limit.mk { cone := lift_limit (limit.is_limit (K ⋙ F)),
   is_limit := lifted_limit_is_limit _ }
 
+/--
+If `F` creates limits of shape `J`, and `D` has limits of shape `J`, then
+`C` has limits of shape `J`.
+-/
+lemma has_limits_of_shape_of_has_limits_of_shape_creates_limits_of_shape (F : C ⥤ D)
+  [has_limits_of_shape J D] [creates_limits_of_shape J F] : has_limits_of_shape J C :=
+⟨λ G, has_limit_of_created G F⟩
+
+/-- If `F` creates limits, and `D` has all limits, then `C` has all limits. -/
+lemma has_limits_of_has_limits_creates_limits (F : C ⥤ D) [has_limits D] [creates_limits F] :
+  has_limits C :=
+⟨λ J I, by exactI has_limits_of_shape_of_has_limits_of_shape_creates_limits_of_shape F⟩
+
 /- Interface to the `creates_colimit` class. -/
 
 /-- `lift_colimit t` is the cocone for `K` given by lifting the colimit `t` for `K ⋙ F`. -/
@@ -147,6 +160,19 @@ lemma has_colimit_of_created (K : J ⥤ C) (F : C ⥤ D)
   [has_colimit (K ⋙ F)] [creates_colimit K F] : has_colimit K :=
 has_colimit.mk { cocone := lift_colimit (colimit.is_colimit (K ⋙ F)),
   is_colimit := lifted_colimit_is_colimit _ }
+
+/--
+If `F` creates colimits of shape `J`, and `D` has colimits of shape `J`, then
+`C` has colimits of shape `J`.
+-/
+lemma has_colimits_of_shape_of_has_colimits_of_shape_creates_colimits_of_shape (F : C ⥤ D)
+  [has_colimits_of_shape J D] [creates_colimits_of_shape J F] : has_colimits_of_shape J C :=
+⟨λ G, has_colimit_of_created G F⟩
+
+/-- If `F` creates colimits, and `D` has all colimits, then `C` has all colimits. -/
+lemma has_colimits_of_has_colimits_creates_colimits (F : C ⥤ D) [has_colimits D]
+  [creates_colimits F] : has_colimits C :=
+⟨λ J I, by exactI has_colimits_of_shape_of_has_colimits_of_shape_creates_colimits_of_shape F⟩
 
 /--
 A helper to show a functor creates limits. In particular, if we can show

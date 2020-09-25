@@ -71,7 +71,7 @@ class non_preadditive_abelian :=
 (normal_mono : Π {X Y : C} (f : X ⟶ Y) [mono f], normal_mono f)
 (normal_epi : Π {X Y : C} (f : X ⟶ Y) [epi f], normal_epi f)
 
-set_option default_priority 10
+set_option default_priority 100
 
 attribute [instance] non_preadditive_abelian.has_zero_object
 attribute [instance] non_preadditive_abelian.has_zero_morphisms

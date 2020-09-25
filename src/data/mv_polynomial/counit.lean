@@ -68,8 +68,8 @@ acounit ℕ A
 lemma counit_surjective : surjective (counit R) := acounit_surjective ℤ R
 lemma counit_nat_surjective : surjective (counit_nat A) := acounit_surjective ℕ A
 
-@[simp] lemma counit_C (n : ℤ) : counit R (C n) = n := acounit_C _ _
-@[simp] lemma counit_nat_C (n : ℕ) : counit_nat A (C n) = n := acounit_C _ _
+lemma counit_C (n : ℤ) : counit R (C n) = n := acounit_C _ _
+lemma counit_nat_C (n : ℕ) : counit_nat A (C n) = n := acounit_C _ _
 
 variables {R A}
 

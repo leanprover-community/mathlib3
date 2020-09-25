@@ -6,6 +6,8 @@ Authors: Nicolò Cavalleri
 
 import geometry.manifold.times_cont_mdiff
 
+variables {α : Type*} [add_comm_group α]
+
 /-!
 # Smooth monoid
 A smooth monoid is a monoid that is also a smooth manifold, in which the group operations of

@@ -114,6 +114,7 @@ noncomputable theory
 universes u v w u' v' w'
 
 open set
+open_locale manifold
 
 localized "notation `∞` := (⊤ : with_top ℕ)" in manifold
 
@@ -492,7 +493,7 @@ end times_cont_diff_groupoid
 
 end model_with_corners
 
-section smooth_manifold_with_cornersl
+section smooth_manifold_with_corners
 
 /-! ### Smooth manifolds with corners -/
 
@@ -506,6 +507,21 @@ class smooth_manifold_with_corners {𝕜 : Type*} [nondiscrete_normed_field 𝕜
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   (M : Type*) [topological_space M] [charted_space H M] extends
   has_groupoid M (times_cont_diff_groupoid ∞ I) : Prop
+
+lemma smooth_manifold_with_corners_of_times_cont_diff_on
+  {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
+  (M : Type*) [topological_space M] [charted_space H M]
+  (h : ∀ (e e' : local_homeomorph M H), e ∈ atlas H M → e' ∈ atlas H M →
+    times_cont_diff_on 𝕜 ⊤ (I ∘ (e.symm ≫ₕ e') ∘ I.symm)
+      (I.symm ⁻¹' (e.symm ≫ₕ e').source ∩ range I)) :
+  smooth_manifold_with_corners I M :=
+{ compatible :=
+  begin
+    haveI : has_groupoid M (times_cont_diff_groupoid ∞ I) := has_groupoid_of_pregroupoid _ h,
+    apply structure_groupoid.compatible,
+  end }
 
 /-- For any model with corners, the model space is a smooth manifold -/
 instance model_space_smooth {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
@@ -564,7 +580,7 @@ instance prod {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 end smooth_manifold_with_corners
 
-end smooth_manifold_with_cornersl
+end smooth_manifold_with_corners
 
 section extended_charts
 open_locale topological_space

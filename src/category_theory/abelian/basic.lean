@@ -135,7 +135,7 @@ section strong
 local attribute [instance] abelian.normal_epi
 
 /-- In an abelian category, every epimorphism is strong. -/
-def strong_epi_of_epi {P Q : C} (f : P ⟶ Q) [epi f] : strong_epi f := by apply_instance
+lemma strong_epi_of_epi {P Q : C} (f : P ⟶ Q) [epi f] : strong_epi f := by apply_instance
 
 end strong
 
@@ -176,6 +176,14 @@ kernel.lift_ι _ _ _
 /-- The map `p : P ⟶ image f` is an epimorphism -/
 instance : epi (images.factor_thru_image f) :=
 show epi (non_preadditive_abelian.factor_thru_image f), by apply_instance
+
+section
+variables {f}
+
+lemma image_ι_comp_eq_zero {R : C} {g : Q ⟶ R} (h : f ≫ g = 0) : images.image.ι f ≫ g = 0 :=
+zero_of_epi_comp (images.factor_thru_image f) $ by simp [h]
+
+end
 
 instance mono_factor_thru_image [mono f] : mono (images.factor_thru_image f) :=
 mono_of_mono_fac $ image.fac f
@@ -236,7 +244,7 @@ section has_strong_epi_mono_factorisations
 
 /-- An abelian category has strong epi-mono factorisations. -/
 @[priority 100] instance : has_strong_epi_mono_factorisations C :=
-⟨λ X Y f, images.image_strong_epi_mono_factorisation f⟩
+has_strong_epi_mono_factorisations.mk $ λ X Y f, images.image_strong_epi_mono_factorisation f
 
 /- In particular, this means that it has well-behaved images. -/
 example : has_images C := by apply_instance
@@ -247,14 +255,21 @@ end has_strong_epi_mono_factorisations
 section images
 variables {X Y : C} (f : X ⟶ Y)
 
-lemma image_eq_image : limits.image f = images.image f := rfl
-lemma image_ι_eq_image_ι : limits.image.ι f = images.image.ι f := rfl
-lemma kernel_cokernel_eq_image_ι : kernel.ι (cokernel.π f) = images.image.ι f := rfl
-
 /-- There is a canonical isomorphism between the coimage and the image of a morphism. -/
 abbreviation coimage_iso_image : coimages.coimage f ≅ images.image f :=
 is_image.iso_ext (coimages.coimage_strong_epi_mono_factorisation f).to_mono_is_image
   (images.image_strong_epi_mono_factorisation f).to_mono_is_image
+
+/-- There is a canonical isomorphism between the abelian image and the categorical image of a
+    morphism. -/
+abbreviation image_iso_image : images.image f ≅ image f :=
+is_image.iso_ext (images.image_strong_epi_mono_factorisation f).to_mono_is_image (image.is_image f)
+
+/-- There is a canonical isomorphism between the abelian coimage and the categorical image of a
+    morphism. -/
+abbreviation coimage_iso_image' : coimages.coimage f ≅ image f :=
+is_image.iso_ext (coimages.coimage_strong_epi_mono_factorisation f).to_mono_is_image
+  (image.is_image f)
 
 lemma full_image_factorisation : coimages.coimage.π f ≫ (coimage_iso_image f).hom ≫
   images.image.ι f = f :=

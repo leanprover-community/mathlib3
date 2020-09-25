@@ -198,11 +198,8 @@ theorem ι_square_zero (m : M) : (ι R M m) * (ι R M m) = 0 := by apply quot.so
 
 @[simp]
 theorem comp_ι_square_zero {A: Type*} [semiring A] [algebra R A] (g : exterior_algebra R M →ₐ[R] A)
-  (m : M) : (g.to_linear_map.comp (ι R M)) m * (g.to_linear_map.comp (ι R M)) m = 0 :=
-begin
-  change g _ * g _ = 0,
-  rw [←alg_hom.map_mul, ι_square_zero, alg_hom.map_zero],
-end
+  (m : M) : g (ι R M m) * g (ι R M m) = 0 :=
+by rw [←alg_hom.map_mul, ι_square_zero, alg_hom.map_zero]
 
 @[simp]
 theorem lift_comp_ι {A : Type*} [semiring A] [algebra R A] (g : exterior_algebra R M →ₐ[R] A) :

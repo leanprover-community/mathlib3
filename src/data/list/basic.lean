@@ -3058,21 +3058,28 @@ lemma tails_append : ∀ (s t : list α), tails (s ++ t) = s.tails.map (λ l, l 
 | [] (a::t) := by simp
 | (a::s) t := by simp [tails_append s t]
 
-lemma reverse_map_reverse_tails_reverse :
-  ∀ (l : list α), reverse (map reverse $ tails $ reverse l) = l.inits
+-- the lemma names `inits_eq_tails` and `tails_eq_inits` are like `sublists_eq_sublists'`
+lemma inits_eq_tails :
+  ∀ (l : list α), l.inits = (reverse $ map reverse $ tails $ reverse l)
 | [] := by simp
-| (a :: l) := by simp [← reverse_map_reverse_tails_reverse l, map_eq_map_iff]
+| (a :: l) := by simp [inits_eq_tails l, map_eq_map_iff]
 
-lemma reverse_map_reverse_inits_reverse :
-  ∀ (l : list α), reverse (map reverse $ inits $ reverse l) = l.tails
+lemma tails_eq_inits :
+  ∀ (l : list α), l.tails = (reverse $ map reverse $ inits $ reverse l)
 | [] := by simp
-| (a :: l) := by simp [← reverse_map_reverse_inits_reverse l, append_left_inj]
+| (a :: l) := by simp [tails_eq_inits l, append_left_inj]
 
-lemma inits_reverse (l : list α) : inits (reverse l) = map reverse (reverse l.tails) :=
-by { rw ← reverse_map_reverse_inits_reverse l, simp [reverse_involutive.comp_self], }
+lemma inits_reverse (l : list α) : inits (reverse l) = reverse (map reverse l.tails) :=
+by { rw tails_eq_inits l, simp [reverse_involutive.comp_self], }
 
-lemma tails_reverse (l : list α) : tails (reverse l) = map reverse (reverse l.inits) :=
-by { rw ← reverse_map_reverse_tails_reverse l, simp [reverse_involutive.comp_self], }
+lemma tails_reverse (l : list α) : tails (reverse l) = reverse (map reverse l.inits) :=
+by { rw inits_eq_tails l, simp [reverse_involutive.comp_self], }
+
+lemma map_reverse_inits (l : list α) : map reverse l.inits = (reverse $ tails $ reverse l) :=
+by { rw inits_eq_tails l, simp [reverse_involutive.comp_self], }
+
+lemma map_reverse_tails (l : list α) : map reverse l.tails = (reverse $ inits $ reverse l) :=
+by { rw tails_eq_inits l, simp [reverse_involutive.comp_self], }
 
 instance decidable_infix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <:+: l₂)
 | []      l₂ := is_true ⟨[], l₂, rfl⟩

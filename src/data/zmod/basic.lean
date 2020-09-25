@@ -364,7 +364,7 @@ cast_int_cast (dvd_refl _) k
 
 variables (R)
 
-lemma cast_hom_injective : function.injective (zmod.cast_hom (show n ∣ n, by refl) R) :=
+lemma cast_hom_injective : function.injective (zmod.cast_hom (dvd_refl n) R) :=
 begin
   rw ring_hom.injective_iff,
   intro x,
@@ -374,7 +374,7 @@ begin
 end
 
 lemma cast_hom_bijective [fintype R] (h : fintype.card R = n) :
-  function.bijective (zmod.cast_hom (show n ∣ n, by refl) R) :=
+  function.bijective (zmod.cast_hom (dvd_refl n) R) :=
 begin
   haveI : fact (0 < n) :=
   begin

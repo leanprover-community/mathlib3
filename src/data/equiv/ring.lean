@@ -180,7 +180,7 @@ instance has_coe_to_ring_hom : has_coe (R ≃+* S) (R →+* S) := ⟨ring_equiv.
 @[norm_cast] lemma coe_ring_hom (f : R ≃+* S) (a : R) :
   (f : R →+* S) a = f a := rfl
 
-lemma coe_ring_hom_inj {R S : Type*} [semiring R] [semiring S] (f g : R ≃+* S) :
+lemma coe_ring_hom_inj_iff {R S : Type*} [semiring R] [semiring S] (f g : R ≃+* S) :
   f = g ↔ (f : R →+* S) = g :=
 ⟨congr_arg _, λ h, ext $ ring_hom.ext_iff.mp h⟩
 

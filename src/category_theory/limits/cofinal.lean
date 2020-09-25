@@ -172,10 +172,10 @@ def cocones_equiv : cocone (F ⋙ G) ≌ cocone G :=
 
 def cones_equiv (H : Dᵒᵖ ⥤ E) : cone (F.op ⋙ H) ≌ cone H :=
 begin
-  have := cocones_equiv F (unop_unop ⋙ H.op),
-  have := ((cocone_equivalence_op_cone_op _).symm.trans
+  have e := (((cocone_equivalence_op_cone_op _).symm.trans
     (cocones_equiv F (unop_unop ⋙ H.op))).trans
-    (cocone_equivalence_op_cone_op _),
+    (cocone_equivalence_op_cone_op _)).unop,
+
 end
 
 variables {G}

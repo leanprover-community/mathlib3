@@ -382,6 +382,20 @@ instance image.is_iso_precomp_iso (f : X ≅ Y) [has_image g] [has_image (f.hom 
 -- Note that in general we don't have the other comparison map you might expect
 -- `image f ⟶ image (f ≫ g)`.
 
+/-- Postcomposing by an isomorphism induces an isomorphism on the image. -/
+def image.post_comp_is_iso [is_iso g] [has_image f] [has_image (f ≫ g)] :
+  image f ≅ image (f ≫ g) :=
+{ hom := image.lift
+  { I := _,
+    m := image.ι (f ≫ g) ≫ inv g,
+    m_mono := mono_comp _ _,
+    e := factor_thru_image (f ≫ g) },
+  inv := image.lift
+  { I := _,
+    m := image.ι f ≫ g,
+    m_mono := mono_comp _ _,
+    e := factor_thru_image f } }
+
 end
 
 end category_theory.limits

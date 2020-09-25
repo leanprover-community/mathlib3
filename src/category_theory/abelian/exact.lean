@@ -26,7 +26,7 @@ open category_theory.preadditive
 variables {C : Type u} [category.{v} C] [abelian C]
 
 namespace category_theory.abelian
-variables {X Y Z: C} (f : X ⟶ Y) (g : Y ⟶ Z)
+variables {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
 
 local attribute [instance] has_equalizers_of_has_kernels
 

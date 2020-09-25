@@ -442,6 +442,24 @@ lemma exists_coeff_ne_zero {p : mv_polynomial σ R} (h : p ≠ 0) :
   ∃ d, coeff d p ≠ 0 :=
 ne_zero_iff.mp h
 
+lemma C_dvd_iff_dvd_coeff (r : R) (φ : mv_polynomial σ R) :
+  C r ∣ φ ↔ ∀ i, r ∣ φ.coeff i :=
+begin
+  split,
+  { rintros ⟨φ, rfl⟩ c, rw coeff_C_mul, apply dvd_mul_right },
+  { intro h,
+    choose c hc using h,
+    classical,
+    let c' : (σ →₀ ℕ) → R := λ i, if i ∈ φ.support then c i else 0,
+    let ψ : mv_polynomial σ R := ∑ i in φ.support, monomial i (c' i),
+    use ψ,
+    apply mv_polynomial.ext, intro i,
+    simp only [coeff_C_mul, coeff_sum, coeff_monomial, finset.sum_ite_eq', c'],
+    split_ifs with hi hi,
+    { rw hc },
+    { rw finsupp.not_mem_support_iff at hi, rwa mul_zero } },
+end
+
 end coeff
 
 section constant_coeff
@@ -810,6 +828,15 @@ begin
   change (map f p).coeff x = 0 at hx,
   rw [coeff_map, ← f.map_zero] at hx,
   exact hf hx
+end
+
+lemma C_dvd_iff_map_hom_eq_zero
+  (q : R →+* S₁) (r : R) (hr : ∀ r' : R, q r' = 0 ↔ r ∣ r')
+  (φ : mv_polynomial σ R) :
+  C r ∣ φ ↔ map q φ = 0 :=
+begin
+  rw [C_dvd_iff_dvd_coeff, mv_polynomial.ext_iff],
+  simp only [coeff_map, ring_hom.coe_of, coeff_zero, hr],
 end
 
 end map

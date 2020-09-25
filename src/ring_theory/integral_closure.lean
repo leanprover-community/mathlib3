@@ -53,7 +53,8 @@ def is_integral (x : A) : Prop :=
 variable (A)
 
 /-- An algebra is integral if every element of the extension is integral over the base ring -/
-def algebra.is_integral : Prop := ring_hom.is_integral (algebra_map R A)
+def algebra.is_integral : Prop :=
+(algebra_map R A).is_integral
 
 variables {R A}
 

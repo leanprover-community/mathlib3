@@ -40,27 +40,30 @@ The Bochner integral is defined following these steps:
 1. Basic properties of the Bochner integral on functions of type `α → E`, where `α` is a measure
    space and `E` is a real normed space.
 
-  * `integral_zero`                  : `∫ 0 = 0`
-  * `integral_add`                   : `∫ f + g = ∫ f + ∫ g`
-  * `integral_neg`                   : `∫ -f = - ∫ f`
-  * `integral_sub`                   : `∫ f - g = ∫ f - ∫ g`
-  * `integral_smul`                  : `∫ r • f = r • ∫ f`
-  * `integral_congr_ae`              : `∀ᵐ a, f a = g a → ∫ f = ∫ g`
-  * `norm_integral_le_integral_norm` : `∥∫ f∥ ≤ ∫ ∥f∥`
+  * `integral_zero`                  : `∫ 0 ∂μ = 0`
+  * `integral_add`                   : `∫ x, f x + g x ∂μ = ∫ x, f ∂μ + ∫ x, g x ∂μ`
+  * `integral_neg`                   : `∫ x, - f x ∂μ = - ∫ x, f x ∂μ`
+  * `integral_sub`                   : `∫ x, f x - g x ∂μ = ∫ x, f x ∂μ - ∫ x, g x ∂μ`
+  * `integral_smul`                  : `∫ x, r • f x ∂μ = r • ∫ x, f x ∂μ`
+  * `integral_congr_ae`              : `f =ᵐ[μ] g → ∫ x, f x ∂μ = ∫ x, g x ∂μ`
+  * `norm_integral_le_integral_norm` : `∥∫ x, f x ∂μ∥ ≤ ∫ x, ∥f x∥ ∂μ`
 
 2. Basic properties of the Bochner integral on functions of type `α → ℝ`, where `α` is a measure
   space.
 
-  * `integral_nonneg_of_ae`         : `∀ᵐ a, 0 ≤ f a → 0 ≤ ∫ f`
-  * `integral_nonpos_of_nonpos_ae`  : `∀ᵐ a, f a ≤ 0 → ∫ f ≤ 0`
-  * `integral_le_integral_of_le_ae` : `∀ᵐ a, f a ≤ g a → ∫ f ≤ ∫ g`
+  * `integral_nonneg_of_ae` : `0 ≤ᵐ[μ] f → 0 ≤ ∫ x, f x ∂μ`
+  * `integral_nonpos_of_ae` : `f ≤ᵐ[μ] 0 → ∫ x, f x ∂μ ≤ 0`
+  * `integral_mono_ae`      : `f ≤ᵐ[μ] g → ∫ x, f x ∂μ ≤ ∫ x, g x ∂μ`
+  * `integral_nonneg`       : `0 ≤ f → 0 ≤ ∫ x, f x ∂μ`
+  * `integral_nonpos`       : `f ≤ 0 → ∫ x, f x ∂μ ≤ 0`
+  * `integral_mono`         : `f ≤ᵐ[μ] g → ∫ x, f x ∂μ ≤ ∫ x, g x ∂μ`
 
 3. Propositions connecting the Bochner integral with the integral on `ennreal`-valued functions,
    which is called `lintegral` and has the notation `∫⁻`.
 
-  * `integral_eq_lintegral_max_sub_lintegral_min` : `∫ f = ∫⁻ f⁺ - ∫⁻ f⁻`, where `f⁺` is the positive
-  part of `f` and `f⁻` is the negative part of `f`.
-  * `integral_eq_lintegral_of_nonneg_ae`          : `∀ᵐ a, 0 ≤ f a → ∫ f = ∫⁻ f`
+  * `integral_eq_lintegral_max_sub_lintegral_min` : `∫ x, f x ∂μ = ∫⁻ x, f⁺ x ∂μ - ∫⁻ x, f⁻ x ∂μ`,
+    where `f⁺` is the positive part of `f` and `f⁻` is the negative part of `f`.
+  * `integral_eq_lintegral_of_nonneg_ae`          : `0 ≤ᵐ[μ] f → ∫ x, f x ∂μ = ∫⁻ x, f x ∂μ`
 
 4. `tendsto_integral_of_dominated_convergence` : the Lebesgue dominated convergence theorem
 
@@ -1182,12 +1185,18 @@ begin
   { rw integral_non_measurable hfm }
 end
 
-lemma integral_nonpos_of_nonpos_ae {f : α → ℝ} (hf : f ≤ᵐ[μ] 0) : ∫ a, f a ∂μ ≤ 0 :=
+lemma integral_nonneg {f : α → ℝ} (hf : 0 ≤ f) : 0 ≤ ∫ a, f a ∂μ :=
+integral_nonneg_of_ae $ eventually_of_forall hf
+
+lemma integral_nonpos_of_ae {f : α → ℝ} (hf : f ≤ᵐ[μ] 0) : ∫ a, f a ∂μ ≤ 0 :=
 begin
   have hf : 0 ≤ᵐ[μ] (-f) := hf.mono (assume a h, by rwa [pi.neg_apply, pi.zero_apply, neg_nonneg]),
   have : 0 ≤ ∫ a, -f a ∂μ := integral_nonneg_of_ae hf,
   rwa [integral_neg, neg_nonneg] at this,
 end
+
+lemma integral_nonpos {f : α → ℝ} (hf : f ≤ 0) : ∫ a, f a ∂μ ≤ 0 :=
+integral_nonpos_of_ae $ eventually_of_forall hf
 
 section normed_group
 variables {H : Type*} [normed_group H] [second_countable_topology H] [measurable_space H]
@@ -1210,16 +1219,19 @@ end
 
 end normed_group
 
-lemma integral_mono {f g : α → ℝ} (hf : integrable f μ) (hg : integrable g μ) (h : f ≤ᵐ[μ] g) :
+lemma integral_mono_ae {f g : α → ℝ} (hf : integrable f μ) (hg : integrable g μ) (h : f ≤ᵐ[μ] g) :
   ∫ a, f a ∂μ ≤ ∫ a, g a ∂μ :=
-le_of_sub_nonneg $ integral_sub hg hf ▸
-  integral_nonneg_of_ae $ h.mono (λ a, sub_nonneg_of_le)
+le_of_sub_nonneg $ integral_sub hg hf ▸ integral_nonneg_of_ae $ h.mono (λ a, sub_nonneg_of_le)
+
+lemma integral_mono {f g : α → ℝ} (hf : integrable f μ) (hg : integrable g μ) (h : f ≤ g) :
+  ∫ a, f a ∂μ ≤ ∫ a, g a ∂μ :=
+integral_mono_ae hf hg $ eventually_of_forall h
 
 lemma integral_mono_of_nonneg {f g : α → ℝ} (hf : 0 ≤ᵐ[μ] f) (hgi : integrable g μ)
   (h : f ≤ᵐ[μ] g) : ∫ a, f a ∂μ ≤ ∫ a, g a ∂μ :=
 begin
   by_cases hfm : measurable f,
-  { refine integral_mono ⟨hfm, _⟩ hgi h,
+  { refine integral_mono_ae ⟨hfm, _⟩ hgi h,
     refine (hgi.has_finite_integral.mono $ h.mp $ hf.mono $ λ x hf hfg, _),
     simpa [real.norm_eq_abs, abs_of_nonneg hf, abs_of_nonneg (le_trans hf hfg)] },
   { rw [integral_non_measurable hfm],

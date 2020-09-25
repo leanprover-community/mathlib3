@@ -512,14 +512,6 @@ else pure tree.nil
 /-- `rec_shrink x f_rec` takes the recursive call `f_rec` introduced
 by `well_founded.fix` and turns it into a shrinking function whose
 result is adequate to use in a recursive call. -/
-def rec_shrink' {α β : Type*} [has_sizeof α] [has_sizeof β] (t : β)
-  (sh : Π x : α, sizeof x < sizeof t → lazy_list { y : α // sizeof_lt y x }) :
-  shrink_fn { t' : α // sizeof t' < sizeof t }
-| ⟨t',ht'⟩ := (λ t'' : { y : α // sizeof_lt y t' }, ⟨⟨t''.val, lt_trans t''.property ht'⟩, t''.property⟩ ) <$> sh t' ht'
-
-/-- `rec_shrink x f_rec` takes the recursive call `f_rec` introduced
-by `well_founded.fix` and turns it into a shrinking function whose
-result is adequate to use in a recursive call. -/
 def rec_shrink {α : Type*} [has_sizeof α] (t : α)
   (sh : Π x : α, sizeof_lt x t → lazy_list { y : α // sizeof_lt y x }) :
   shrink_fn { t' : α // sizeof_lt t' t }
@@ -668,7 +660,7 @@ instance ge.sampleable {x : α}  [sampleable α] [decidable_linear_ordered_add_c
   shrink := λ _, lazy_list.nil }
 
 
-/-! 
+/-!
 ### Subtypes of `ℤ`
 
 Specializations of `le.sampleable` and `ge.sampleable` for `ℤ` to help instance search.
@@ -720,9 +712,7 @@ match t with
   repr_inst ← mk_app ``has_repr [t] >>= mk_instance,
   pure (repr_inst, e)
 | _ := do
-  trace e,
   samp_inst ← to_expr ``(sampleable_ext %%e) >>= mk_instance,
-  trace samp_inst,
   repr_inst ← mk_mapp ``sampleable_ext.p_repr [e, samp_inst],
   gen ← mk_mapp ``sampleable_ext.sample [none, samp_inst],
   pure (repr_inst, gen)

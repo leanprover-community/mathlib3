@@ -7,7 +7,6 @@ import algebra.associated
 import data.int.gcd
 import algebra.big_operators.basic
 import data.nat.enat
-import tactic
 
 variables {α : Type*}
 

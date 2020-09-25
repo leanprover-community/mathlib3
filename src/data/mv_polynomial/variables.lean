@@ -627,21 +627,17 @@ begin
     intros d hd,
     calc (C (coeff d φ) * ∏ (i : σ) in d.support, f i ^ d i).vars
         ≤ (C (coeff d φ)).vars ∪ (∏ (i : σ) in d.support, f i ^ d i).vars : vars_mul _ _
-    ... ≤ (∏ (i : σ) in d.support, f i ^ d i).vars : by { simp only [finset.empty_union, vars_C, finset.le_iff_subset, finset.subset.refl], }
+    ... ≤ (∏ (i : σ) in d.support, f i ^ d i).vars :
+      by simp only [finset.empty_union, vars_C, finset.le_iff_subset, finset.subset.refl]
     ... ≤ d.support.bind (λ (i : σ), (f i ^ d i).vars) : vars_prod _
     ... ≤ d.support.bind (λ (i : σ), (f i).vars) : _,
     apply finset.bind_mono,
     intros i hi,
     apply vars_pow, },
   { intro j,
-    rw [finset.mem_bind],
-    rintro ⟨d, hd, hj⟩,
-    rw [finset.mem_bind] at hj,
-    rcases hj with ⟨i, hi, hj⟩,
-    rw [finset.mem_bind],
-    refine ⟨i, _, hj⟩,
-    rw [mem_vars],
-    exact ⟨d, hd, hi⟩, }
+    simp_rw finset.mem_bind,
+    rintro ⟨d, hd, ⟨i, hi, hj⟩⟩,
+    exact ⟨i, (mem_vars _).mpr ⟨d, hd, hi⟩, hj⟩ }
 end
 
 lemma vars_rename (f : σ → τ) (φ : mv_polynomial σ R) :

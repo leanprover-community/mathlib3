@@ -261,7 +261,7 @@ Analysis:
     Lebesgue measure: 'measure_theory.real.measure_space'
     Giry monad: 'measure_theory.measure.measurable_space'
     integral of positive measurable functions: 'measure_theory.lintegral'
-    monotone convergence theorem (for nonnegative functions): 'measure_theory.lintegral_infi_ae'
+    monotone convergence theorem: 'measure_theory.lintegral_infi_ae'
     Fatou's lemma: 'measure_theory.lintegral_liminf_le'
     vector-valued integrable functions (Bochner integral): 'measure_theory.integrable'
     $L^1$ space: 'measure_theory.l1'

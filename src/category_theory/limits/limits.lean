@@ -541,7 +541,6 @@ def hom_is_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) (f : s ⟶
   inv_hom_id' := Q.uniq_cocone_morphism, }
 
 /-- Colimits of `F` are unique up to isomorphism. -/
--- We may later want to prove the coherence of these isomorphisms.
 def cocone_point_unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) : s.X ≅ t.X :=
 (cocones.forget F).map_iso (unique_up_to_iso P Q)
 

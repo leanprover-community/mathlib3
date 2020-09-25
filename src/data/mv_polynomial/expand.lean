@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin
+Authors: Johan Commelin, Robert Y. Lewis
 -/
 import data.mv_polynomial.monad
 
@@ -33,11 +33,11 @@ noncomputable def expand (p : ℕ) : mv_polynomial σ R →ₐ[R] mv_polynomial 
 @[simp] lemma expand_C (p : ℕ) (r : R) : expand p (C r : mv_polynomial σ R) = C r :=
 eval₂_hom_C _ _ _
 
-@[simp] lemma expand_X (p : ℕ) (i : σ) : expand p (X i : mv_polynomial σ R) = (X i) ^ p :=
+@[simp] lemma expand_X (p : ℕ) (i : σ) : expand p (X i : mv_polynomial σ R) = X i ^ p :=
 eval₂_hom_X' _ _ _
 
 @[simp] lemma expand_monomial (p : ℕ) (d : σ →₀ ℕ) (r : R) :
-  expand p (monomial d r) = C r * ∏ i in d.support, ((X i) ^ p) ^ (d i) :=
+  expand p (monomial d r) = C r * ∏ i in d.support, (X i ^ p) ^ d i :=
 bind₁_monomial _ _ _
 
 lemma expand_one_apply (f : mv_polynomial σ R) : expand 1 f = f :=
@@ -66,7 +66,8 @@ lemma rename_expand (f : σ → τ) (p : ℕ) (φ : mv_polynomial σ R) :
 by simp [expand, bind₁_rename, rename_bind₁]
 
 @[simp] lemma rename_comp_expand (f : σ → τ) (p : ℕ) :
-  (rename f).comp (expand p) = (expand p).comp (rename f : mv_polynomial σ R →ₐ[R] mv_polynomial τ R) :=
+  (rename f).comp (expand p) =
+    (expand p).comp (rename f : mv_polynomial σ R →ₐ[R] mv_polynomial τ R) :=
 by { ext1 φ, simp only [rename_expand, alg_hom.comp_apply] }
 
 end mv_polynomial

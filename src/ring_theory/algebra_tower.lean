@@ -190,7 +190,7 @@ variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
 /-- If A/S/R is a tower of algebras then the `res`triction of a S-subalgebra of A is an R-subalgebra of A. -/
 def res (U : subalgebra S A) : subalgebra R A :=
 { algebra_map_mem' := λ x, by { rw algebra_map_apply R S A, exact U.algebra_map_mem _ },
-  .. U}
+  .. U }
 
 @[simp] lemma res_top : res R (⊤ : subalgebra S A) = ⊤ :=
 algebra.eq_top_iff.2 $ λ _, show _ ∈ (⊤ : subalgebra S A), from algebra.mem_top

@@ -136,6 +136,9 @@ by apply mv_polynomial.induction_on p; { intros, simp [*] }
 lemma eval₂_hom_rename : eval₂_hom f g (rename k p) = eval₂_hom f (g ∘ k) p :=
 eval₂_rename _ _ _ _
 
+lemma aeval_rename [algebra R S] : aeval g (rename k p) = aeval (g ∘ k) p :=
+eval₂_hom_rename _ _ _ _
+
 lemma rename_eval₂ (g : τ → mv_polynomial σ R) :
   rename k (p.eval₂ C (g ∘ k)) = (rename k p).eval₂ C (rename k ∘ g) :=
 by apply mv_polynomial.induction_on p; { intros, simp [*] }

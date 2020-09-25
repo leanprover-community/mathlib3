@@ -116,11 +116,11 @@ begin
 end
 
 @[simp] lemma witt_polynomial_zero : witt_polynomial p R 0 = X 0 :=
-by simp only [witt_polynomial, X, sum_singleton, range_one, nat.pow_zero, pow_zero]
+by simp only [witt_polynomial, X, sum_singleton, range_one, pow_zero]
 
 @[simp] lemma witt_polynomial_one : witt_polynomial p R 1 = C ↑p * X 1 + (X 0) ^ p :=
 by simp only [witt_polynomial_eq_sum_C_mul_X_pow, sum_range_succ, range_one,
-    sum_singleton, one_mul, pow_one, nat.pow_zero, C_1, pow_zero, nat.pow_one]
+    sum_singleton, one_mul, pow_one, C_1, pow_zero]
 
 lemma aeval_witt_polynomial {A : Type*} [comm_ring A] [algebra R A] (f : ℕ → A) (n : ℕ) :
   aeval f (W_ R n) = ∑ i in range (n+1), p^i * (f i) ^ (p ^ (n-i)) :=
@@ -155,7 +155,7 @@ begin
   { intro i,
     rw vars_monomial_single,
     { rw ← nat.pos_iff_ne_zero,
-      apply nat.pow_pos hp.pos },
+      apply pow_pos hp.pos },
     { rw [← nat.cast_pow, nat.cast_ne_zero],
       apply ne_of_gt,
       apply pow_pos hp.pos i } },
@@ -212,7 +212,7 @@ begin
     rw mem_range at H,
     simp only [ring_hom.map_mul, ring_hom.map_pow, constant_coeff_C, IH m H],
     rw [zero_pow, mul_zero],
-    apply nat.pow_pos hp.pos, }
+    apply pow_pos hp.pos, }
 end
 
 @[simp] lemma X_in_terms_of_W_zero [invertible (p : R)] :
@@ -270,7 +270,7 @@ by rw [X_in_terms_of_W_eq, mul_assoc, ← C_mul, ← mul_pow, inv_of_mul_self, o
 begin
   rw [witt_polynomial_eq_sum_C_mul_X_pow, alg_hom.map_sum],
   simp only [alg_hom.map_pow, C_pow, alg_hom.map_mul, alg_hom_C],
-  rw [sum_range_succ, nat.sub_self, nat.pow_zero, pow_one, bind₁_X_right,
+  rw [sum_range_succ, nat.sub_self, pow_zero, pow_one, bind₁_X_right,
       mul_comm, ← C_pow, X_in_terms_of_W_aux],
   simp only [C_pow, bind₁_X_right, sub_add_cancel],
 end
@@ -283,7 +283,7 @@ begin
   rw [X_in_terms_of_W_eq, alg_hom.map_mul, alg_hom.map_sub, bind₁_X_right, alg_hom_C, alg_hom.map_sum],
   have : W_ R n - ∑ i in range n, C (p ^ i : R) * (X i) ^ p ^ (n - i) = C (p ^ n : R) * X n,
   by simp only [witt_polynomial_eq_sum_C_mul_X_pow, nat.sub_self, sum_range_succ,
-    pow_one, add_sub_cancel, nat.pow_zero],
+    pow_one, add_sub_cancel, pow_zero],
   rw [sum_congr rfl, this],
   { -- this is really slow for some reason
     rw [mul_right_comm, ← C_mul, ← mul_pow, mul_inv_of_self, one_pow, C_1, one_mul] },

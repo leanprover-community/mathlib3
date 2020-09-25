@@ -273,7 +273,6 @@ protected definition unop (α : F.op ≅ G.op) : G ≅ F :=
 
 end nat_iso
 
-
 /-- The equivalence between arrows of the form `A ⟶ B` and `B.unop ⟶ A.unop`. Useful for building
 adjunctions.
 Note that this (definitionally) gives variants

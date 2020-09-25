@@ -559,6 +559,7 @@ variables {F : J ⥤ C}
     naturality' := λ j j' f, has_hom.hom.op_inj
     begin dsimp, simp only [id_comp], exact (c.w f.op), end } }
 
+variables (F)
 
 /--
 The category of cocones on `F`

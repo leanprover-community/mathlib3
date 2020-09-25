@@ -163,6 +163,14 @@ begin
   rw fact at *, linarith,
 end
 
+lemma char_p.char_field_eq_char_field {K L : Type*} [field K] [field L] (f : K →+* L) (p : ℕ) :
+  char_p K p ↔ char_p L p :=
+begin
+  split;
+  { introI _c, constructor, intro n,
+    rw [← @char_p.cast_eq_zero_iff _ _ p _c n, ← f.injective.eq_iff, f.map_nat_cast, f.map_zero] }
+end
+
 section frobenius
 
 variables (R : Type u) [comm_ring R] {S : Type v} [comm_ring S] (f : R →* S) (g : R →+* S)

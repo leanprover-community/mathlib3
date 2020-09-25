@@ -9,6 +9,7 @@ from Cauchy sequences.
 import order.conditionally_complete_lattice
 import data.real.cau_seq_completion
 import algebra.archimedean
+import data.fintype.basic
 
 def real := @cau_seq.completion.Cauchy ℚ _ _ _ abs _
 notation `ℝ` := real

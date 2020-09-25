@@ -142,13 +142,28 @@ by simp [C, monomial, single_mul_single]
 @[simp] lemma C_pow (a : R) (n : ℕ) : (C (a^n) : mv_polynomial σ R) = (C a)^n :=
 by induction n; simp [pow_succ, *]
 
-lemma C_injective (σ : Type*) (R : Type*) [comm_ring R] :
+lemma C_injective (σ : Type*) (R : Type*) [comm_semiring R] :
   function.injective (C : R → mv_polynomial σ R) :=
 finsupp.single_injective _
 
-@[simp] lemma C_inj {σ : Type*} (R : Type*) [comm_ring R] (r s : R) :
+@[simp] lemma C_inj {σ : Type*} (R : Type*) [comm_semiring R] (r s : R) :
   (C r : mv_polynomial σ R) = C s ↔ r = s :=
 (C_injective σ R).eq_iff
+
+instance infinite_of_infinite (σ : Type*) (R : Type*) [comm_semiring R] [infinite R] :
+  infinite (mv_polynomial σ R) :=
+infinite.of_injective C (C_injective _ _)
+
+instance infinite_of_nonempty (σ : Type*) (R : Type*) [nonempty σ] [comm_semiring R] [nontrivial R] :
+  infinite (mv_polynomial σ R) :=
+infinite.of_injective (λ i : ℕ, monomial (single (classical.arbitrary σ) i) 1)
+begin
+  intros m n h,
+  have := (single_eq_single_iff _ _ _ _).mp h,
+  simp only [and_true, eq_self_iff_true, or_false, one_ne_zero, and_self,
+             single_eq_single_iff, eq_self_iff_true, true_and] at this,
+  rcases this with (rfl|⟨rfl, rfl⟩); refl
+end
 
 lemma C_eq_coe_nat (n : ℕ) : (C ↑n : mv_polynomial σ R) = n :=
 by induction n; simp [nat.succ_eq_add_one, *]

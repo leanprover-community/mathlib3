@@ -157,15 +157,15 @@ def cone_point_unique_up_to_iso {s t : cone F} (P : is_limit s) (Q : is_limit t)
   (Q : is_limit t) (j : J) : (cone_point_unique_up_to_iso P Q).inv ≫ s.π.app j = t.π.app j :=
 (unique_up_to_iso P Q).inv.w _
 
-@[simp] lemma lift_comp_cone_point_unique_up_to_iso_hom {r s t : cone F}
+@[simp, reassoc] lemma lift_comp_cone_point_unique_up_to_iso_hom {r s t : cone F}
   (P : is_limit s) (Q : is_limit t) :
   P.lift r ≫ (cone_point_unique_up_to_iso P Q).hom = Q.lift r :=
-is_limit.uniq Q _ _ (by simp)
+Q.uniq _ _ (by simp)
 
-@[simp] lemma lift_comp_cone_point_unique_up_to_iso_inv {r s t : cone F}
+@[simp, reassoc] lemma lift_comp_cone_point_unique_up_to_iso_inv {r s t : cone F}
   (P : is_limit s) (Q : is_limit t) :
   Q.lift r ≫ (cone_point_unique_up_to_iso P Q).inv = P.lift r :=
-is_limit.uniq P _ _ (by simp)
+P.uniq _ _ (by simp)
 
 /-- Transport evidence that a cone is a limit cone across an isomorphism of cones. -/
 def of_iso_limit {r t : cone F} (P : is_limit r) (i : r ≅ t) : is_limit t :=
@@ -489,6 +489,17 @@ namespace is_colimit
 instance subsingleton {t : cocone F} : subsingleton (is_colimit t) :=
 ⟨by intros P Q; cases P; cases Q; congr; ext; solve_by_elim⟩
 
+/-- Given a natural transformation `α : F ⟶ G`, we give a morphism from the cocone point
+of a colimit cocone over `F` to the cocone point of any cocone over `G`. -/
+def map {F G : J ⥤ C} {s : cocone F} (P : is_colimit s) (t : cocone G)
+  (α : F ⟶ G) : s.X ⟶ t.X :=
+P.desc ((cocones.precompose α).obj t)
+
+@[simp, reassoc]
+lemma ι_map {F G : J ⥤ C} {c : cocone F} (hc : is_colimit c) (d : cocone G) (α : F ⟶ G)
+  (j : J) : c.ι.app j ≫ is_colimit.map hc d α = α.app j ≫ d.ι.app j :=
+fac _ _ _
+
 /- Repackaging the definition in terms of cocone morphisms. -/
 
 /-- The universal morphism from a colimit cocone to any other cocone. -/
@@ -542,11 +553,26 @@ def cocone_point_unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_co
   (Q : is_colimit t) (j : J) : t.ι.app j ≫ (cocone_point_unique_up_to_iso P Q).inv = s.ι.app j :=
 (unique_up_to_iso P Q).inv.w _
 
+@[simp, reassoc] lemma cocone_point_unique_up_to_iso_hom_desc {r s t : cocone F} (P : is_colimit s)
+  (Q : is_colimit t) : (cocone_point_unique_up_to_iso P Q).hom ≫ Q.desc r = P.desc r :=
+P.uniq _ _ (by simp)
+
+@[simp, reassoc] lemma cocone_point_unique_up_to_iso_inv_desc {r s t : cocone F} (P : is_colimit s)
+  (Q : is_colimit t) : (cocone_point_unique_up_to_iso P Q).inv ≫ P.desc r = Q.desc r :=
+Q.uniq _ _ (by simp)
+
 /-- Transport evidence that a cocone is a colimit cocone across an isomorphism of cocones. -/
 def of_iso_colimit {r t : cocone F} (P : is_colimit r) (i : r ≅ t) : is_colimit t :=
 is_colimit.mk_cocone_morphism
   (λ s, i.inv ≫ P.desc_cocone_morphism s)
   (λ s m, by rw i.eq_inv_comp; apply P.uniq_cocone_morphism)
+
+/-- Isomorphism of cocones preserves whether or not they are colimiting cocones. -/
+def equiv_iso_limit {r t : cocone F} (i : r ≅ t) : is_colimit r ≃ is_colimit t :=
+{ to_fun := λ h, h.of_iso_colimit i,
+  inv_fun := λ h, h.of_iso_colimit i.symm,
+  left_inv := by tidy,
+  right_inv := by tidy }
 
 /--
 If the canonical morphism to a cocone point from a colimiting cocone point is an iso, then the
@@ -619,10 +645,25 @@ are themselves isomorphic.
 @[simps]
 def cocone_points_iso_of_nat_iso {F G : J ⥤ C} {s : cocone F} {t : cocone G}
   (P : is_colimit s) (Q : is_colimit t) (w : F ≅ G) : s.X ≅ t.X :=
-{ hom := P.desc ((limits.cocones.precompose w.hom).obj t),
-  inv := Q.desc ((limits.cocones.precompose w.inv).obj s),
-  hom_inv_id' := by { apply hom_ext P, tidy, },
-  inv_hom_id' := by { apply hom_ext Q, tidy, }, }
+{ hom := P.map t w.hom,
+  inv := Q.map s w.inv,
+  hom_inv_id' := P.hom_ext (by tidy),
+  inv_hom_id' := Q.hom_ext (by tidy) }
+
+lemma comp_cocone_points_iso_of_nat_iso_hom {F G : J ⥤ C} {s : cocone F} {t : cocone G}
+  (P : is_colimit s) (Q : is_colimit t) (w : F ≅ G) (j : J) :
+  s.ι.app j ≫ (cocone_points_iso_of_nat_iso P Q w).hom = w.hom.app j ≫ t.ι.app j :=
+by simp
+
+lemma comp_cocone_points_iso_of_nat_iso_inv {F G : J ⥤ C} {s : cocone F} {t : cocone G}
+  (P : is_colimit s) (Q : is_colimit t) (w : F ≅ G) (j : J) :
+  t.ι.app j ≫ (cocone_points_iso_of_nat_iso P Q w).inv = w.inv.app j ≫ s.ι.app j :=
+by simp
+
+lemma cocone_points_iso_of_nat_iso_hom_desc {F G : J ⥤ C} {s : cocone F} {r t : cocone G}
+  (P : is_colimit s) (Q : is_colimit t) (w : F ≅ G) :
+  (cocone_points_iso_of_nat_iso P Q w).hom ≫ Q.desc r = P.map _ w.hom :=
+P.hom_ext (by simp)
 
 section equivalence
 open category_theory.equivalence
@@ -985,7 +1026,7 @@ is_limit.cone_points_iso_of_nat_iso_hom_comp _ _ _ _
 @[simp, reassoc]
 lemma has_limit.lift_iso_of_nat_iso_hom {F G : J ⥤ C} [has_limit F] [has_limit G] (t : cone F)
   (w : F ≅ G) :
-  limit.lift _ t ≫ (has_limit.iso_of_nat_iso w).hom = limit.lift G ((cones.postcompose w.hom).obj _) :=
+  limit.lift F t ≫ (has_limit.iso_of_nat_iso w).hom = limit.lift G ((cones.postcompose w.hom).obj _) :=
 is_limit.lift_comp_cone_points_iso_of_nat_iso_hom _ _ _
 
 /--
@@ -1258,6 +1299,21 @@ We thus use `reassoc` to define additional `@[simp]` lemmas, with an arbitrary e
   colimit.ι F j ≫ colimit.desc F c = c.ι.app j :=
 is_colimit.fac _ c j
 
+/--
+Functoriality of colimits.
+
+Usually this morphism should be accessed through `colim.map`,
+but may be needed separately when you have specified colimits for the source and target functors,
+but not necessarily for all functors of shape `J`.
+-/
+def colim_map {F G : J ⥤ C} [has_colimit F] [has_colimit G] (α : F ⟶ G) : colimit F ⟶ colimit G :=
+is_colimit.map (colimit.is_colimit F) _ α
+
+@[simp, reassoc]
+lemma ι_colim_map {F G : J ⥤ C} [has_colimit F] [has_colimit G] (α : F ⟶ G) (j : J) :
+  colimit.ι F j ≫ colim_map α = α.app j ≫ colimit.ι G j :=
+colimit.ι_desc _ j
+
 /-- The cocone morphism from the arbitrary choice of colimit cocone to any cocone. -/
 def colimit.cocone_morphism {F : J ⥤ C} [has_colimit F] (c : cocone F) :
   (colimit.cocone F) ⟶ c :=
@@ -1351,7 +1407,13 @@ is_colimit.cocone_points_iso_of_nat_iso (colimit.is_colimit F) (colimit.is_colim
 lemma has_colimit.iso_of_nat_iso_ι_hom {F G : J ⥤ C} [has_colimit F] [has_colimit G]
   (w : F ≅ G) (j : J) :
   colimit.ι F j ≫ (has_colimit.iso_of_nat_iso w).hom = w.hom.app j ≫ colimit.ι G j :=
-by simp [has_colimit.iso_of_nat_iso, is_colimit.cocone_points_iso_of_nat_iso_inv]
+is_colimit.comp_cocone_points_iso_of_nat_iso_hom _ _ _ _
+
+@[simp, reassoc]
+lemma has_colimit.iso_of_nat_iso_hom_desc {F G : J ⥤ C} [has_colimit F] [has_colimit G] (t : cocone G)
+  (w : F ≅ G) :
+  (has_colimit.iso_of_nat_iso w).hom ≫ colimit.desc G t = colimit.desc F ((cocones.precompose w.hom).obj _) :=
+is_colimit.cocone_points_iso_of_nat_iso_hom_desc _ _ _
 
 /--
 The colimits of `F : J ⥤ C` and `G : K ⥤ C` are isomorphic,
@@ -1475,31 +1537,6 @@ end
 
 section colim_functor
 
-/-- Given a natural transformation `α : F ⟶ G`, we give a morphism from the cocone point
-of a colimit cocone over `F` to the cocone point of any cocone over `G`. -/
-def is_colimit.map {F G : J ⥤ C} {s : cocone F} (P : is_colimit s) (t : cocone G)
-  (α : F ⟶ G) : s.X ⟶ t.X :=
-P.desc ((cocones.precompose α).obj t)
-
-@[simp, reassoc]
-lemma ι_is_colimit_map {F G : J ⥤ C} {c : cocone F} (hc : is_colimit c) (d : cocone G) (α : F ⟶ G)
-  (j : J) : c.ι.app j ≫ is_colimit.map hc d α = α.app j ≫ d.ι.app j :=
-by apply is_colimit.fac
-
-/--
-Functoriality of colimits.
-
-Usually this morphism should be accessed through `colim.map`,
-but may be needed separately when you have specified colimits for the source and target functors,
-but not necessarily for all functors of shape `J`.
--/
-def colim_map {F G : J ⥤ C} [has_colimit F] [has_colimit G] (α : F ⟶ G) : colimit F ⟶ colimit G :=
-is_colimit.map (colimit.is_colimit F) _ α
-
-@[simp, reassoc]
-lemma ι_colim_map {F G : J ⥤ C} [has_colimit F] [has_colimit G] (α : F ⟶ G) (j : J) :
-  colimit.ι F j ≫ colim_map α = α.app j ≫ colimit.ι G j :=
-by apply is_colimit.fac
 
 variables [has_colimits_of_shape J C]
 

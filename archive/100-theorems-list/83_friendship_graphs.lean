@@ -7,7 +7,7 @@ import combinatorics.adj_matrix
 import linear_algebra.char_poly.coeff
 import data.int.modeq
 import data.zmod.basic
-import tactic
+import tactic.interval_cases
 
 /-!
 # The Friendship Theorem

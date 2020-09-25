@@ -559,6 +559,43 @@ variables {F : J ⥤ C}
     naturality' := λ j j' f, has_hom.hom.op_inj
     begin dsimp, simp only [id_comp], exact (c.w f.op), end } }
 
+
+/--
+The category of cocones on `F`
+is equivalent to the opposite category of
+the category of cones on the opposite of `F`.
+-/
+@[simps]
+def cocone_equivalence_op_cone_op : cocone F ≌ (cone F.op)ᵒᵖ :=
+{ functor :=
+  { obj := λ c, op (cocone.op c),
+    map := λ X Y f, has_hom.hom.op
+    { hom := f.hom.op,
+      w' := λ j, by { apply has_hom.hom.unop_inj, dsimp, simp, }, } },
+  inverse :=
+  { obj := λ c, cone.unop (unop c),
+    map := λ X Y f,
+    { hom := f.unop.hom.unop,
+      w' := λ j, by { apply has_hom.hom.op_inj, dsimp, simp, }, } },
+  unit_iso := nat_iso.of_components (λ c, cocones.ext (iso.refl _) (by tidy)) (by tidy),
+  counit_iso := nat_iso.of_components (λ c,
+    by { op_induction c, dsimp, apply iso.op, exact cones.ext (iso.refl _) (by tidy), })
+    begin
+      intros,
+      have hX : X = op (unop X) := rfl,
+      revert hX,
+      generalize : unop X = X',
+      rintro rfl,
+      have hY : Y = op (unop Y) := rfl,
+      revert hY,
+      generalize : unop Y = Y',
+      rintro rfl,
+      apply has_hom.hom.unop_inj,
+      apply cone_morphism.ext,
+      dsimp, simp,
+    end,
+  functor_unit_iso_comp' := λ c, begin apply has_hom.hom.unop_inj, ext, dsimp, simp, end }
+
 end
 
 section

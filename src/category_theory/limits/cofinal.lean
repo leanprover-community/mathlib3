@@ -3,10 +3,11 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.limits
 import category_theory.punit
 import category_theory.comma
 import category_theory.is_connected
+import category_theory.limits.yoneda
+import category_theory.limits.types
 
 /-!
 # Cofinal functors
@@ -14,17 +15,20 @@ import category_theory.is_connected
 A functor `F : C ⥤ D` is cofinal if for every `d : D`,
 the comma category of morphisms `d ⟶ F.obj c` is connected.
 
-We prove that when `F : C ⥤ D` is cofinal,
+We prove the following three statements are equivalent:
+1. `F : C ⥤ D` is cofinal.
+2. A functor `G : D ⥤ E` has a colimit if and only if `F ⋙ G` does,
+   and these colimits are isomorphic via `colimit.pre G F`.
+3. `colimit (F ⋙ coyoneda.obj (op d)) ≅ punit`
+
+Starting at 1. we show (in `cocones_equiv`) that
 the categories of cocones over `G : D ⥤ E` and over `F ⋙ G` are equivalent.
 (In fact, via an equivalence which does not change the cocone point.)
+This readily implies 2, as `comp_has_colimit`, `has_colimit_of_comp`, and `colimit_iso`.
 
-As a consequence, the functor `G : D ⥤ E` has a colimit if and only if `F ⋙ F` does
-(and in either case, the colimits are isomorphic).
+From 2. we can specialize to `G = coyoneda.obj (op d)` to obtain 3., as `colimit_comp_coyoneda_iso`.
 
-There is a converse which we don't prove here.
-I think the correct statement is that if `colimit.pre G F : colimit (F ⋙ G) ⟶ colimit G`
-is an isomorphism for all functors `G : D ⥤ Type v`, then `F` is cofinal.
-(Unfortunately I don't know a reference that gives the proof.)
+From 3., we prove 1. directly in `cofinal_of_colimit_comp_coyoneda_iso_punit`.
 
 ## Naming
 There is some discrepancy in the literature about naming; some say 'final' instead of 'cofinal'.
@@ -46,6 +50,8 @@ noncomputable theory
 universes v u
 
 namespace category_theory
+
+open opposite
 open category_theory.limits
 
 variables {C : Type v} [small_category C]
@@ -151,7 +157,7 @@ begin
   { exact s.w (𝟙 _), },
 end
 
-variables (F)
+variables (F G)
 
 /--
 If `F` is cofinal,
@@ -164,12 +170,19 @@ def cocones_equiv : cocone (F ⋙ G) ≌ cocone G :=
   unit_iso := nat_iso.of_components (λ c, cocones.ext (iso.refl _) (by tidy)) (by tidy),
   counit_iso := nat_iso.of_components (λ c, cocones.ext (iso.refl _) (by tidy)) (by tidy), }.
 
+def cones_equiv (H : Dᵒᵖ ⥤ E) : cone (F.op ⋙ H) ≌ cone H :=
+begin
+  have := cocones_equiv F (unop_unop ⋙ H.op),
+end
+
+variables {G}
+
 /--
 When `F` is cofinal, and `t : cocone G`,
 `t.whisker F` is a colimit coconne exactly when `t` is.
 -/
 def is_colimit_whisker_equiv (t : cocone G) : is_colimit (t.whisker F) ≃ is_colimit t :=
-is_colimit.of_cocone_equiv (cocones_equiv F).symm
+is_colimit.of_cocone_equiv (cocones_equiv F G).symm
 
 /--
 When `F` is cofinal, and `t : cocone (F ⋙ G)`,
@@ -177,7 +190,7 @@ When `F` is cofinal, and `t : cocone (F ⋙ G)`,
 -/
 def is_colimit_extend_cocone_equiv (t : cocone (F ⋙ G)) :
   is_colimit (extend_cocone.obj t) ≃ is_colimit t :=
-is_colimit.of_cocone_equiv (cocones_equiv F)
+is_colimit.of_cocone_equiv (cocones_equiv F G)
 
 /-- Given a colimit cocone over `G` we can construct a colimit cocone over `F ⋙ G`. -/
 @[simps]
@@ -208,6 +221,9 @@ begin
   apply_instance,
 end
 
+section
+variables (G)
+
 /--
 When `F` is cofinal, and `G` has a colimit, then `F ⋙ G` has a colimit also and
 `colimit (F ⋙ G) ≅ colimit G`
@@ -215,6 +231,18 @@ When `F` is cofinal, and `G` has a colimit, then `F ⋙ G` has a colimit also an
 https://stacks.math.columbia.edu/tag/04E7
 -/
 def colimit_iso [has_colimit G] : colimit (F ⋙ G) ≅ colimit G := as_iso (colimit.pre G F)
+
+end
+
+/--
+If the universal morphism `colimit (F ⋙ coyoneda.obj (op d)) ⟶ colimit (coyoneda.obj (op d))`
+is an isomorphism (as it always is when `F` is cofinal),
+then `colimit (F ⋙ coyoneda.obj (op d)) ≅ punit`
+(simply because `colimit (coyoneda.obj (op d)) ≅ punit`).
+-/
+def colimit_comp_coyoneda_iso (d : D) [is_iso (colimit.pre (coyoneda.obj (op d)) F)] :
+  colimit (F ⋙ coyoneda.obj (op d)) ≅ punit :=
+as_iso (colimit.pre (coyoneda.obj (op d)) F) ≪≫ coyoneda.colimit_coyoneda_iso (op d)
 
 /-- Given a colimit cocone over `F ⋙ G` we can construct a colimit cocone over `G`. -/
 @[simps]
@@ -244,6 +272,52 @@ https://stacks.math.columbia.edu/tag/04E7
 -/
 def colimit_iso' [has_colimit (F ⋙ G)] : colimit (F ⋙ G) ≅ colimit G := as_iso (colimit.pre G F)
 
+end
+
+lemma zigzag_of_eqv_gen_quot_rel {d : D} {f₁ f₂ : Σ X, d ⟶ F.obj X}
+  (t : eqv_gen (types.quot.rel (F ⋙ coyoneda.obj (op d))) f₁ f₂) :
+  zigzag
+    ({left := punit.star, right := f₁.1, hom := f₁.2} : comma (functor.from_punit d) F)
+    {left := punit.star, right := f₂.1, hom := f₂.2} :=
+begin
+  induction t,
+  case eqv_gen.rel : x y r
+  { obtain ⟨f, w⟩ := r,
+    fconstructor,
+    swap 2, fconstructor,
+    left, fsplit,
+    exact { right := f, } },
+  case eqv_gen.refl
+  { fconstructor, },
+  case eqv_gen.symm : x y h ih
+  { apply zigzag_symmetric,
+    exact ih, },
+  case eqv_gen.trans : x y z h₁ h₂ ih₁ ih₂
+  { apply relation.refl_trans_gen.trans,
+    exact ih₁, exact ih₂, }
+end
+
+/--
+If `colimit (F ⋙ coyoneda.obj (op d)) ≅ punit` for all `d : D`, then `F` is cofinal.
+-/
+def cofinal_of_colimit_comp_coyoneda_iso_punit
+  (I : Π d, colimit (F ⋙ coyoneda.obj (op d)) ≅ punit) : cofinal F :=
+λ d,
+begin
+  haveI : nonempty (comma (functor.from_punit d) F) := by
+  { have := (I d).inv punit.star,
+    obtain ⟨j, y, rfl⟩ := limits.types.jointly_surjective' this,
+    exact ⟨{right := j, hom := y}⟩, },
+  apply zigzag_is_connected,
+  rintros ⟨⟨⟩,X₁,f₁⟩ ⟨⟨⟩,X₂,f₂⟩,
+  dsimp at *,
+  let y₁ := colimit.ι (F ⋙ coyoneda.obj (op d)) X₁ f₁,
+  let y₂ := colimit.ι (F ⋙ coyoneda.obj (op d)) X₂ f₂,
+  have e : y₁ = y₂,
+  { apply (I d).to_equiv.injective, ext, },
+  have t := types.colimit_eq e,
+  clear e y₁ y₂,
+  exact zigzag_of_eqv_gen_quot_rel F t,
 end
 
 end cofinal

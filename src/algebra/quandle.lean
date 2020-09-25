@@ -6,6 +6,7 @@ Authors: Kyle Miller
 import algebra
 import data.zmod.basic
 import data.equiv.mul_add
+import tactic.group
 
 /-!
 # Racks and Quandles
@@ -278,15 +279,12 @@ the corresponding inner automorphism.
 @[nolint has_inhabited_instance]
 def conj (G : Type*) := G
 
-@[simp] lemma conj_conj_inv {G : Type*} [group G] (g h : G) : g * (g⁻¹ * h * g) * g⁻¹ = h :=
-mul_inv_eq_of_eq_mul (mul_eq_of_eq_inv_mul (mul_assoc _ _ _))
-
-@[simp] lemma conj_inv_conj {G : Type*} [group G] (g h : G) : g⁻¹ * (g * h * g⁻¹) * g = h :=
-mul_eq_of_eq_mul_inv (inv_mul_eq_of_eq_mul (mul_assoc _ _ _))
-
 instance conj.quandle (G : Type*) [group G] : quandle (conj G) :=
 { op' := (λ x, (@mul_aut.conj G _ x).to_equiv),
-  self_distrib' := λ x y z, by simp,
+  self_distrib' := λ x y z, begin
+    dsimp only [mul_equiv.to_equiv_apply, mul_aut.conj_apply, conj],
+    group,
+  end,
   fix' := λ x, by simp }
 
 @[simp]

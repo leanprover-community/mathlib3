@@ -118,6 +118,40 @@ end facts
 namespace nat
 variables {m n k : ℕ}
 
+/-!
+### Recursion and `set.range`
+-/
+
+section set
+
+open set
+
+theorem zero_union_range_succ : {0} ∪ range succ = univ :=
+by { ext n, cases n; simp }
+
+variables {α : Type*}
+
+theorem range_of_succ (f : ℕ → α) : {f 0} ∪ range (f ∘ succ) = range f :=
+by rw [← image_singleton, range_comp, ← image_union, zero_union_range_succ, image_univ]
+
+theorem range_rec {α : Type*} (x : α) (f : ℕ → α → α) :
+  (set.range (λ n, nat.rec x f n) : set α) =
+    {x} ∪ set.range (λ n, nat.rec (f 0 x) (f ∘ succ) n) :=
+begin
+  convert (range_of_succ _).symm,
+  ext n,
+  induction n with n ihn,
+  { refl },
+  { dsimp at ihn ⊢,
+    rw ihn }
+end
+
+theorem range_cases_on {α : Type*} (x : α) (f : ℕ → α) :
+  (set.range (λ n, nat.cases_on n x f) : set α) = {x} ∪ set.range f :=
+(range_of_succ _).symm
+
+end set
+
 /-! ### The units of the natural numbers as a `monoid` and `add_monoid` -/
 
 theorem units_eq_one (u : units ℕ) : u = 1 :=
@@ -1009,76 +1043,40 @@ end
 
 /-! ### `pow` -/
 
-@[protected] lemma pow_succ (x n : ℕ) : x^(n+1) = x^n * x :=
-mul_comm _ _
-
-@[simp, protected] lemma pow_zero (b : ℕ) : b ^ 0 = 1 := rfl
-
--- TODO: this is redundant with pow_one in algebra.group_power
-@[simp, nolint simp_nf] theorem pow_one (b : ℕ) : b ^ 1 = b := mul_one _
-
-theorem pow_le_pow_of_le_left {x y : ℕ} (H : x ≤ y) : ∀ i : ℕ, x^i ≤ y^i
-| 0 := le_refl _
-| (succ i) := nat.mul_le_mul H (pow_le_pow_of_le_left i)
+-- This is redundant with `canonically_ordered_semiring.pow_le_pow_of_le_left`,
+-- but `canonically_ordered_semiring` is not such an obvious abstraction, and also quite long.
+-- So, we leave a version in the `nat` namespace as well.
+-- (The global `pow_le_pow_of_le_left` needs an extra hypothesis `0 ≤ x`.)
+protected theorem pow_le_pow_of_le_left {x y : ℕ} (H : x ≤ y) : ∀ i : ℕ, x^i ≤ y^i :=
+canonically_ordered_semiring.pow_le_pow_of_le_left H
 
 theorem pow_le_pow_of_le_right {x : ℕ} (H : x > 0) {i : ℕ} : ∀ {j}, i ≤ j → x^i ≤ x^j
 | 0        h := by rw eq_zero_of_le_zero h; apply le_refl
 | (succ j) h := (lt_or_eq_of_le h).elim
-  (λhl, by rw [nat.pow_succ, ← nat.mul_one (x^i)]; exact
+  (λhl, by rw [pow_succ', ← nat.mul_one (x^i)]; exact
     nat.mul_le_mul (pow_le_pow_of_le_right $ le_of_lt_succ hl) H)
   (λe, by rw e; refl)
-
-theorem pos_pow_of_pos {b : ℕ} (n : ℕ) (h : 0 < b) : 0 < b^n :=
-pow_le_pow_of_le_right h (zero_le _)
-
-theorem zero_pow {n : ℕ} (h : 0 < n) : 0^n = 0 :=
-by rw [← succ_pred_eq_of_pos h, _root_.pow_succ, nat.zero_mul]
 
 theorem pow_lt_pow_of_lt_left {x y : ℕ} (H : x < y) {i} (h : 0 < i) : x^i < y^i :=
 begin
   cases i with i, { exact absurd h (not_lt_zero _) },
-  rw [nat.pow_succ, nat.pow_succ],
-  exact nat.mul_lt_mul' (pow_le_pow_of_le_left (le_of_lt H) _) H
-    (pos_pow_of_pos _ $ lt_of_le_of_lt (zero_le _) H)
+  rw [pow_succ', pow_succ'],
+  exact nat.mul_lt_mul' (nat.pow_le_pow_of_le_left (le_of_lt H) _) H
+    (pow_pos (lt_of_le_of_lt (zero_le _) H) _)
 end
 
 theorem pow_lt_pow_of_lt_right {x : ℕ} (H : x > 1) {i j : ℕ} (h : i < j) : x^i < x^j :=
 begin
   have xpos := lt_of_succ_lt H,
   refine lt_of_lt_of_le _ (pow_le_pow_of_le_right xpos h),
-  rw [← nat.mul_one (x^i), nat.pow_succ],
-  exact nat.mul_lt_mul_of_pos_left H (pos_pow_of_pos _ xpos)
+  rw [← nat.mul_one (x^i), pow_succ'],
+  exact nat.mul_lt_mul_of_pos_left H (pow_pos xpos _)
 end
 
--- TODO: this is redundant with one_pow in algebra.group_power
-@[simp, nolint simp_nf] lemma one_pow : ∀ n : ℕ, 1 ^ n = 1
-| 0 := rfl
-| (k+1) := show 1 * 1^k = 1, by rw [one_mul, one_pow]
-
-theorem pow_add (a m n : ℕ) : a^(m + n) = a^m * a^n :=
-_root_.pow_add a m n
-
-theorem pow_two (a : ℕ) : a ^ 2 = a * a := _root_.pow_two a
-
-protected theorem pow_two_sub_pow_two (a b : ℕ) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
-by { simp only [pow_two], exact nat.mul_self_sub_mul_self_eq a b }
-
-theorem mul_pow (a b n : ℕ) : (a * b) ^ n = a ^ n * b ^ n :=
-by induction n; simp [*, nat.pow_succ, mul_comm, mul_assoc, mul_left_comm]
-
-protected theorem pow_mul (a b n : ℕ) : n ^ (a * b) = (n ^ a) ^ b :=
-by induction b; simp [*, nat.succ_eq_add_one, nat.pow_add, mul_add, mul_comm]
-
-theorem pow_pos {p : ℕ} (hp : 0 < p) : ∀ n : ℕ, 0 < p ^ n
-| 0 := by simp
-| (k+1) := mul_pos hp (pow_pos _)
-
-lemma pow_eq_mul_pow_sub (p : ℕ) {m n : ℕ} (h : m ≤ n) : p ^ m * p ^ (n - m)  = p ^ n :=
-by rw [←nat.pow_add, nat.add_sub_cancel' h]
-
+-- TODO: Generalize?
 lemma pow_lt_pow_succ {p : ℕ} (h : 1 < p) (n : ℕ) : p^n < p^(n+1) :=
 suffices 1*p^n < p*p^n, by simpa,
-nat.mul_lt_mul_of_pos_right h (nat.pow_pos (lt_of_succ_lt h) n)
+nat.mul_lt_mul_of_pos_right h (pow_pos (lt_of_succ_lt h) n)
 
 lemma lt_pow_self {p : ℕ} (h : 1 < p) : ∀ n : ℕ, n < p ^ n
 | 0 := by simp [zero_lt_one]
@@ -1090,13 +1088,13 @@ lemma lt_two_pow (n : ℕ) : n < 2^n :=
 lt_pow_self dec_trivial n
 
 lemma one_le_pow (n m : ℕ) (h : 0 < m) : 1 ≤ m^n :=
-one_pow n ▸ pow_le_pow_of_le_left h n
+by { rw ←one_pow n, exact nat.pow_le_pow_of_le_left h n }
 lemma one_le_pow' (n m : ℕ) : 1 ≤ (m+1)^n := one_le_pow n (m+1) (succ_pos m)
 
 lemma one_le_two_pow (n : ℕ) : 1 ≤ 2^n := one_le_pow n 2 dec_trivial
 
 lemma one_lt_pow (n m : ℕ) (h₀ : 0 < n) (h₁ : 1 < m) : 1 < m^n :=
-one_pow n ▸ pow_lt_pow_of_lt_left h₁ h₀
+by { rw ←one_pow n, exact pow_lt_pow_of_lt_left h₁ h₀ }
 lemma one_lt_pow' (n m : ℕ) : 1 < (m+2)^(n+1) :=
 one_lt_pow (n+1) (m+2) (succ_pos n) (nat.lt_of_sub_eq_succ rfl)
 
@@ -1139,19 +1137,19 @@ begin
   -- base case: p < b^succ w
   { have h₂ : p / b < b^w,
     { rw [div_lt_iff_lt_mul p _ b_pos],
-      simpa [nat.pow_succ] using h₁ },
+      simpa [pow_succ'] using h₁ },
     rw [mod_eq_of_lt h₁, mod_eq_of_lt h₂],
     simp [mod_add_div, nat.add_comm] },
   -- step: p ≥ b^succ w
   { -- Generate condition for induction hypothesis
     have h₂ : p - b^succ w < p,
-    { apply sub_lt_of_pos_le _ _ (pos_pow_of_pos _ b_pos) h₁ },
+    { apply sub_lt_of_pos_le _ _ (pow_pos b_pos _) h₁ },
 
     -- Apply induction
     rw [mod_eq_sub_mod h₁, IH _ h₂],
     -- Normalize goal and h1
-    simp only [_root_.pow_succ],
-    simp only [ge, _root_.pow_succ] at h₁,
+    simp only [pow_succ],
+    simp only [ge, pow_succ] at h₁,
     -- Pull subtraction outside mod and div
     rw [sub_mul_mod _ _ _ h₁, sub_mul_div _ _ _ h₁],
     -- Cancel subtraction inside mod b^w
@@ -1160,13 +1158,6 @@ begin
       exact h₁ },
     rw [eq.symm (mod_eq_sub_mod p_b_ge)] }
 end
-
-theorem pow_dvd_pow (a : ℕ) {m n : ℕ} (h : m ≤ n) : a^m ∣ a^n :=
-by rw [← nat.add_sub_cancel' h, pow_add]; apply dvd_mul_right
-
-theorem pow_dvd_pow_of_dvd {a b : ℕ} (h : a ∣ b) : ∀ n:ℕ, a^n ∣ b^n
-| 0     := dvd_refl _
-| (n+1) := mul_dvd_mul h (pow_dvd_pow_of_dvd n)
 
 lemma pow_dvd_pow_iff_pow_le_pow {k l : ℕ} : Π {x : ℕ} (w : 0 < x), x^k ∣ x^l ↔ x^k ≤ x^l
 | (x+1) w :=
@@ -1177,7 +1168,7 @@ begin
     { simp only [one_pow], },
     { have le := (pow_le_iff_le_right (le_add_left _ _)).mp a,
       use (x+2)^(l-k),
-      rw [←nat.pow_add, add_comm k, nat.sub_add_cancel le], } }
+      rw [←pow_add, add_comm k, nat.sub_add_cancel le], } }
 end
 
 /-- If `1 < x`, then `x^k` divides `x^l` if and only if `k` is at most `l`. -/
@@ -1203,7 +1194,7 @@ have p ^ m ∣ p ^ n, from pow_dvd_pow _ hmn,
 dvd_trans this hdiv
 
 lemma dvd_of_pow_dvd {p k m : ℕ} (hk : 1 ≤ k) (hpk : p^k ∣ m) : p ∣ m :=
-by rw ←nat.pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
+by rw ←pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
 
 /-! ### `find` -/
 section find
@@ -1383,7 +1374,7 @@ lemma shiftl_eq_mul_pow (m) : ∀ n, shiftl m n = m * 2 ^ n
   by rw [bit0_val, shiftl_eq_mul_pow, mul_left_comm]
 
 lemma shiftl'_tt_eq_mul_pow (m) : ∀ n, shiftl' tt m n + 1 = (m + 1) * 2 ^ n
-| 0     := by simp [shiftl, shiftl', nat.pow_zero, nat.one_mul]
+| 0     := by simp [shiftl, shiftl', pow_zero, nat.one_mul]
 | (k+1) :=
 begin
   change bit1 (shiftl' tt m k) + 1 = (m + 1) * (2 * 2 ^ k),

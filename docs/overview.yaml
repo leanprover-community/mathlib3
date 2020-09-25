@@ -267,7 +267,7 @@ Analysis:
     $L^1$ space: 'measure_theory.l1'
     Bochner integral: 'measure_theory.integral'
     dominated convergence theorem: 'measure_theory.tendsto_integral_of_dominated_convergence'
-    fundamental theorem of calculus, part 1: 'measure_theory.filter.tendsto.integral_sub_linear_is_o_ae'
+    fundamental theorem of calculus, part 1: 'interval_integral.integral_has_fderiv_at_of_tendsto_ae'
 
 Geometry:
   Differentiable manifolds:

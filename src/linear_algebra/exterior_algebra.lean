@@ -160,16 +160,16 @@ by rw [linear_map.map_add, left_distrib]
 
 @[simp]
 lemma ι_add_swap (x y : M) : ι R M x * ι R M y + ι R M y * ι R M x = 0 :=
-calc ι R M x * ι R M y + ι R M y * ι R M x
-  = ι R M x * ι R M y + ι R M y * ι R M y + ι R M y * ι R M x :
+let ι := ι R M in calc ι x * ι y + ι y * ι x
+  = ι x * ι y + ι y * ι y + ι y * ι x :
     by rw [ι_square_zero, add_zero]
-  ...= ι R M x * ι R M y + ι R M y * ι R M y + ι R M y * ι R M x + ι R M x * ι R M x :
+  ...= ι x * ι y + ι y * ι y + ι y * ι x + ι x * ι x :
     by rw [ι_square_zero x, add_zero]
-  ...= ι R M (x + y) * ι R M y + ι R M y * ι R M x + ι R M x * ι R M x :
+  ...= ι (x + y) * ι y + ι y * ι x + ι x * ι x :
     by rw ι_add_mul
-  ...= ι R M (x + y) * ι R M y + ι R M (x + y) * ι R M x :
+  ...= ι (x + y) * ι y + ι (x + y) * ι x :
     by rw [ι_add_mul x y x, ι_square_zero, zero_add, add_zero]
-  ...= ι R M (x + y) * ι R M (x + y) :
+  ...= ι (x + y) * ι (x + y) :
     by rw [ι_mul_add (x + y) x y, add_comm]
   ...= 0 :
     by rw ι_square_zero

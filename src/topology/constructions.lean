@@ -601,7 +601,7 @@ lemma nhds_pi [t : ∀i, topological_space (π i)] {a : Πi, π i} :
 calc 𝓝 a = (⨅i, @nhds _ (@topological_space.induced _ _ (λx:Πi, π i, x i) (t i)) a) : nhds_infi
   ... = (⨅i, comap (λx, x i) (𝓝 (a i))) : by simp [nhds_induced]
 
-lemma tendsto_pi [t : ∀i, topological_space (π i)] {f : ι → Πi, π i} {g : Πi, π i} {u : filter ι} :
+lemma tendsto_pi [t : ∀i, topological_space (π i)] {f : α → Πi, π i} {g : Πi, π i} {u : filter α} :
   tendsto f u (𝓝 g) ↔ ∀ x, tendsto (λ i, f i x) u (𝓝 (g x)) :=
 by simp [nhds_pi, filter.tendsto_comap_iff]
 

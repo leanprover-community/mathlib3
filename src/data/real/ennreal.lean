@@ -833,10 +833,10 @@ inv_lt_iff_inv_lt.trans $ by rw [inv_one]
 
 @[simp] lemma top_div_coe : ∞ / p = ∞ := by simp [div_def, top_mul]
 
-lemma top_div_of_ne_top (h : b ≠ ⊤) : ∞ / b = ∞ :=
-by { lift b to nnreal using h, exact top_div_coe }
+lemma top_div_of_ne_top (h : a ≠ ⊤) : ∞ / a = ∞ :=
+by { lift a to nnreal using h, exact top_div_coe }
 
-lemma top_div_of_lt_top (h : b < ⊤) : ∞ / b = ∞ :=
+lemma top_div_of_lt_top (h : a < ⊤) : ∞ / a = ∞ :=
 top_div_of_ne_top h.ne
 
 lemma top_div : ∞ / a = if a = ∞ then 0 else ∞ :=

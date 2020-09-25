@@ -1595,14 +1595,14 @@ def is_colimit.unop {t : cocone F.op} (P : is_colimit t) : is_limit t.unop :=
 -/
 def is_limit_equiv_is_colimit_op {t : cone F} : is_limit t ≃ is_colimit t.op :=
 equiv_of_subsingleton_of_subsingleton
-  is_limit.op is_colimit.unop
+  is_limit.op (λ P, P.unop.of_iso_limit (cones.ext (iso.refl _) (by tidy)))
 
 /--
 `t : cocone F` is a colimit cocone if and only is `t.op : cone F.op` is a limit cone.
 -/
 def is_colimit_equiv_is_limit_op {t : cocone F} : is_colimit t ≃ is_limit t.op :=
 equiv_of_subsingleton_of_subsingleton
-  is_colimit.op is_limit.unop
+  is_colimit.op (λ P, P.unop.of_iso_colimit (cocones.ext (iso.refl _) (by tidy)))
 
 end opposite
 

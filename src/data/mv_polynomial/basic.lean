@@ -442,7 +442,7 @@ lemma exists_coeff_ne_zero {p : mv_polynomial σ R} (h : p ≠ 0) :
   ∃ d, coeff d p ≠ 0 :=
 ne_zero_iff.mp h
 
-lemma C_dvd_iff_dvd_coeff (r : α) (φ : mv_polynomial σ α) :
+lemma C_dvd_iff_dvd_coeff (r : R) (φ : mv_polynomial σ R) :
   C r ∣ φ ↔ ∀ i, r ∣ φ.coeff i :=
 begin
   split,
@@ -450,8 +450,8 @@ begin
   { intro h,
     choose c hc using h,
     classical,
-    let c' : (σ →₀ ℕ) → α := λ i, if i ∈ φ.support then c i else 0,
-    let ψ : mv_polynomial σ α := ∑ i in φ.support, monomial i (c' i),
+    let c' : (σ →₀ ℕ) → R := λ i, if i ∈ φ.support then c i else 0,
+    let ψ : mv_polynomial σ R := ∑ i in φ.support, monomial i (c' i),
     use ψ,
     apply mv_polynomial.ext, intro i,
     simp only [coeff_C_mul, coeff_sum, coeff_monomial, finset.sum_ite_eq', c'],
@@ -831,8 +831,8 @@ begin
 end
 
 lemma C_dvd_iff_map_hom_eq_zero
-  (q : α →+* β) (r : α) (hr : ∀ r' : α, q r' = 0 ↔ r ∣ r')
-  (φ : mv_polynomial σ α) :
+  (q : R →+* S₁) (r : R) (hr : ∀ r' : R, q r' = 0 ↔ r ∣ r')
+  (φ : mv_polynomial σ R) :
   C r ∣ φ ↔ map q φ = 0 :=
 begin
   rw [C_dvd_iff_dvd_coeff, mv_polynomial.ext_iff],

@@ -15,8 +15,8 @@ This definition is equivalent to the homology at `B` vanishing (at least for pre
 categories). At this level of generality, this is not necessarily equivalent to other reasonable
 definitions of exactness, for example that the inclusion map `image.ι f` is a kernel of `g` or that
 the map `image f ⟶ kernel g` is an isomorphism. By adding more assumptions on our category, we get
-these equivalences and more. Currently, there is one set of assumptions mathlib knows about: abelian
-categories. Consequently, many interesting results about exact sequences are found in
+these equivalences and more. Currently, there is one particular set of assumptions mathlib knows
+about: abelian categories. Consequently, many interesting results about exact sequences are found in
 `category_theory/abelian/exact.lean`.
 
 # Main results

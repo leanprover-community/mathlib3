@@ -27,7 +27,7 @@ prime, irreducible, natural numbers,
 theorem nat.prime_iff {p : ℕ} : p.prime ↔ prime p :=
 begin
   split; intro h,
-  { refine ⟨h.ne_zero, ⟨_,λ a b, _⟩⟩,
+  { refine ⟨h.ne_zero, ⟨_, λ a b, _⟩⟩,
     { rw nat.is_unit_iff, apply h.ne_one },
     { apply h.dvd_mul.1 } },
   { refine ⟨_, λ m hm, _⟩,

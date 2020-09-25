@@ -56,7 +56,7 @@ begin
   apply factors_unique (irreducible_of_factor) _,
   { rw [multiset.coe_prod, nat.prod_factors (nat.succ_pos _)],
     apply factors_prod (nat.succ_ne_zero _) },
-  {apply_instance},
+  { apply_instance },
   { intros x hx,
     rw [nat.irreducible_iff_prime, ← nat.prime_iff],
     apply nat.mem_factors hx, }

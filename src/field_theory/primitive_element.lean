@@ -27,7 +27,6 @@ open polynomial
 namespace field
 
 section primitive_element_finite
-
 variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
 
 /-! ### Primitive element theorem for finite fields -/

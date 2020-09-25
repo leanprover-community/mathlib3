@@ -175,31 +175,14 @@ def gi_generate : galois_insertion (generate : set (over X) → sieve X) set_ove
 /-- Given a morphism `h : Y ⟶ X`, send a sieve S on X to a sieve on Y
     as the inverse image of S with `_ ≫ h`.
     That is, `sieve.pullback S h := (≫ h) '⁻¹ S`. -/
-def pullback (S : sieve X) (h : Y ⟶ X) : sieve Y :=
+def pullback (h : Y ⟶ X) (S : sieve X) : sieve Y :=
 { arrows := λ Y sl, S.arrows (sl ≫ h),
   downward_closed := λ Z W f g h, by simp [g] }
 
 @[simp] lemma mem_pullback (h : Y ⟶ X) {f : Z ⟶ Y} :
-  (pullback S h).arrows f ↔ S.arrows (f ≫ h) := iff.rfl
+  (S.pullback h).arrows f ↔ S.arrows (f ≫ h) := iff.rfl
 
-/--
-Push a sieve `R` on `Y` forward along an arrow `f : Y ⟶ X`: `gf : Z ⟶ X`
-is in the sieve if `gf` factors through some `g : Z ⟶ Y` which is in `R`.
--/
-def comp (R : sieve Y) (f : Y ⟶ X) : sieve X :=
-{ arrows := λ Z gf, ∃ g, g ≫ f = gf ∧ R.arrows g,
-  downward_closed := λ Z₁ Z₂ g ⟨j, k, z⟩ h, ⟨h ≫ j, by simp [k], by simp [z]⟩ }
-
-@[simp]
-lemma mem_comp_of_comp {R : sieve Y} {Z : C} {g : Z ⟶ Y} (hg : R.arrows g) (f : Y ⟶ X) :
-  (R.comp f).arrows (g ≫ f) :=
-⟨g, rfl, hg⟩
-
-/-- Pullback is monotonic -/
-lemma pullback_mono {S R : sieve X} (Hss : S ≤ R) (f : Y ⟶ X) : pullback S f ≤ pullback R f :=
-λ Z H, Hss _ _
-
-lemma pullback_top {f : Y ⟶ X} : pullback ⊤ f = ⊤ :=
+lemma pullback_top {f : Y ⟶ X} : (⊤ : sieve X).pullback f = ⊤ :=
 top_unique (λ _ g, id)
 
 lemma pullback_comp {f : Y ⟶ X} {g : Z ⟶ Y} (S : sieve X) : S.pullback (g ≫ f) = (S.pullback f).pullback g :=
@@ -208,10 +191,6 @@ by simp [sieve.ext_iff]
 lemma pullback_inter {f : Y ⟶ X} (S R : sieve X) : (S ⊓ R).pullback f = S.pullback f ⊓ R.pullback f :=
 by simp [sieve.ext_iff]
 
-lemma le_pullback_comp {R : sieve Y} {f : Y ⟶ X} :
-  R ≤ pullback (comp R f) f :=
-λ Z g h, ⟨g, rfl, h⟩
-
 /-- If the identity arrow is in a sieve, the sieve is maximal. -/
 lemma id_mem_iff_eq_top : S.arrows (𝟙 X) ↔ S = ⊤ :=
 ⟨λ h, top_unique $ λ Y f _, by simpa using downward_closed _ h f,
@@ -219,6 +198,61 @@ lemma id_mem_iff_eq_top : S.arrows (𝟙 X) ↔ S = ⊤ :=
 
 lemma pullback_eq_top_iff_mem (f : Y ⟶ X) : S.arrows f ↔ S.pullback f = ⊤ :=
 by rw [← id_mem_iff_eq_top, mem_pullback, category.id_comp]
+
+/--
+Push a sieve `R` on `Y` forward along an arrow `f : Y ⟶ X`: `gf : Z ⟶ X`
+is in the sieve if `gf` factors through some `g : Z ⟶ Y` which is in `R`.
+-/
+def pushforward (f : Y ⟶ X) (R : sieve Y) : sieve X :=
+{ arrows := λ Z gf, ∃ g, g ≫ f = gf ∧ R.arrows g,
+  downward_closed := λ Z₁ Z₂ g ⟨j, k, z⟩ h, ⟨h ≫ j, by simp [k], by simp [z]⟩ }
+
+@[simp]
+lemma mem_pushforward_of_comp {R : sieve Y} {Z : C} {g : Z ⟶ Y} (hg : R.arrows g) (f : Y ⟶ X) :
+  (R.pushforward f).arrows (g ≫ f) :=
+⟨g, rfl, hg⟩
+
+lemma pushforward_comp {f : Y ⟶ X} {g : Z ⟶ Y} (R : sieve Z) :
+  R.pushforward (g ≫ f) = (R.pushforward g).pushforward f :=
+sieve.ext (λ W h, ⟨λ ⟨f₁, hq, hf₁⟩, ⟨f₁ ≫ g, by simpa, f₁, rfl, hf₁⟩,
+                   λ ⟨y, hy, z, hR, hz⟩, ⟨z, by rwa reassoc_of hR, hz⟩⟩)
+
+lemma galois_connection (f : Y ⟶ X) : galois_connection (sieve.pushforward f) (sieve.pullback f) :=
+λ S R, ⟨λ hR Z g hg, hR _ _ ⟨g, rfl, hg⟩, λ hS Z g ⟨h, hg, hh⟩, hg ▸ hS Z h hh⟩
+
+lemma pullback_monotone (f : Y ⟶ X) : monotone (sieve.pullback f) :=
+(galois_connection f).monotone_u
+
+lemma pushforward_monotone (f : Y ⟶ X) : monotone (sieve.pushforward f) :=
+(galois_connection f).monotone_l
+
+lemma le_pushforward_pullback (f : Y ⟶ X) (R : sieve Y) :
+  R ≤ (R.pushforward f).pullback f :=
+(galois_connection f).le_u_l _
+
+lemma pullback_pushforward_le (f : Y ⟶ X) (R : sieve X) :
+  (R.pullback f).pushforward f ≤ R :=
+(galois_connection f).l_u_le _
+
+lemma pushforward_union {f : Y ⟶ X} (S R : sieve Y) : (S ⊔ R).pushforward f = S.pushforward f ⊔ R.pushforward f :=
+(galois_connection f).l_sup
+
+def galois_coinsertion_of_mono (f : Y ⟶ X) [mono f] :
+  galois_coinsertion (sieve.pushforward f) (sieve.pullback f) :=
+begin
+  apply (galois_connection f).to_galois_coinsertion,
+  rintros S Z g ⟨g₁, hf, hg₁⟩,
+  rw cancel_mono f at hf,
+  rwa ← hf,
+end
+
+def galois_insertion_of_split_epi (f : Y ⟶ X) [split_epi f] :
+  galois_insertion (sieve.pushforward f) (sieve.pullback f) :=
+begin
+  apply (galois_connection f).to_galois_insertion,
+  intros S Z g hg,
+  refine ⟨g ≫ section_ f, by simpa⟩,
+end
 
 /-- A sieve induces a presheaf. -/
 @[simps]

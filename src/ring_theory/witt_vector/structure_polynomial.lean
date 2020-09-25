@@ -5,8 +5,9 @@ Authors: Johan Commelin, Robert Y. Lewis
 -/
 
 import ring_theory.witt_vector.witt_polynomial
+import number_theory.basic
 import field_theory.mv_polynomial
-import field_theory.finite
+import field_theory.finite.polynomial
 import data.matrix.notation
 
 /-!
@@ -259,7 +260,7 @@ begin
   simp only [← sub_eq_zero, ← ring_hom.map_sub, ← C_dvd_iff_zmod, C_eq_coe_nat, ← mul_sub,
     ← int.nat_cast_eq_coe_nat, ← nat.cast_pow],
   rw show p ^ (n + 1) = p ^ k * p ^ (n - k + 1),
-  { rw ← nat.pow_add, congr' 1, omega },
+  { rw ← pow_add, congr' 1, omega },
   rw [nat.cast_mul, nat.cast_pow, nat.cast_pow],
   apply mul_dvd_mul_left,
   rw show p ^ (n + 1 - k) = p * p ^ (n - k),

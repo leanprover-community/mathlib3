@@ -1439,22 +1439,47 @@ lemma exists_finite_spanning_sets (μ : measure α) [sigma_finite μ] :
   (⋃ i, s i) = univ :=
 sigma_finite.exists_finite_spanning_sets
 
-/-- A noncomputable way to get a collection of sets that span `univ` and have finite measure using
-  `classical.some`. -/
+/-- A noncomputable way to get a monotone collection of sets that span `univ` and have finite
+  measure using `classical.some`. This definition satisfies monotonicity in addition to all other
+  properties in `sigma_finite`. -/
 def spanning_sets (μ : measure α) [sigma_finite μ] (i : ℕ) : set α :=
-classical.some (exists_finite_spanning_sets μ) i
+accumulate (classical.some (exists_finite_spanning_sets μ)) i
+
+lemma monotone_spanning_sets (μ : measure α) [sigma_finite μ] :
+  monotone (spanning_sets μ) :=
+monotone_accumulate
 
 lemma is_measurable_spanning_sets (μ : measure α) [sigma_finite μ] (i : ℕ) :
   is_measurable (spanning_sets μ i) :=
-(classical.some_spec (exists_finite_spanning_sets μ)).1 i
+is_measurable.Union $ λ j, is_measurable.Union_Prop $
+  λ hij, (classical.some_spec (exists_finite_spanning_sets μ)).1 j
 
 lemma measure_spanning_sets_lt_top (μ : measure α) [sigma_finite μ] (i : ℕ) :
   μ (spanning_sets μ i) < ⊤ :=
-(classical.some_spec (exists_finite_spanning_sets μ)).2.1 i
+begin
+  rw [spanning_sets, accumulate_nat],
+  apply (measure_bUnion_le _ _).trans_lt,
+  refine (finset.tsum_subtype _ (λ i, μ _)).le.trans_lt _,
+  rw ennreal.sum_lt_top_iff,
+  exact λ j _, (classical.some_spec (exists_finite_spanning_sets μ)).2.1 j,
+  exact (finset.range (i+1)).countable_to_set
+end
 
 lemma Union_spanning_sets (μ : measure α) [sigma_finite μ] :
-  (⋃ i, spanning_sets μ i) = univ :=
-(classical.some_spec (exists_finite_spanning_sets μ)).2.2
+  (⋃ i : ℕ, spanning_sets μ i) = univ :=
+by simp_rw [spanning_sets, Union_accumulate,
+  (classical.some_spec (exists_finite_spanning_sets μ)).2.2]
+
+namespace measure
+lemma supr_restrict_spanning_sets {μ : measure α} [sigma_finite μ] {s : set α}
+  (hs : is_measurable s) :
+  (⨆ i, μ.restrict (spanning_sets μ i) s) = μ s :=
+begin
+  convert (restrict_Union_apply_eq_supr (is_measurable_spanning_sets μ) _ hs).symm,
+  { simp [Union_spanning_sets] },
+  { exact directed_of_sup (monotone_spanning_sets μ) }
+end
+end measure
 
 /-- Every finite measure is σ-finite. -/
 @[priority 100]

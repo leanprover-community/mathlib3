@@ -39,6 +39,11 @@ noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
 @[simp] theorem finite.mem_to_finset {s : set α} {h : finite s} {a : α} : a ∈ h.to_finset ↔ a ∈ s :=
 @mem_to_finset _ _ h.fintype _
 
+@[simp] theorem finite.to_finset.nonempty {s : set α} (h : finite s) :
+  h.to_finset.nonempty ↔ s.nonempty :=
+show (∃ x, x ∈ h.to_finset) ↔ (∃ x, x ∈ s),
+from exists_congr (λ _, finite.mem_to_finset)
+
 @[simp] lemma finite.coe_to_finset {α} {s : set α} (h : finite s) : ↑h.to_finset = s :=
 @set.coe_to_finset _ s h.fintype
 

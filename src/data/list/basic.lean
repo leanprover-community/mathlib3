@@ -42,7 +42,7 @@ theorem tail_eq_of_cons_eq {h₁ h₂ : α} {t₁ t₂ : list α} :
       (h₁::t₁) = (h₂::t₂) → t₁ = t₂ :=
 assume Peq, list.no_confusion Peq (assume Pheq Pteq, Pteq)
 
-theorem cons_injective {a : α} : injective (cons a) :=
+@[simp] theorem cons_injective {a : α} : injective (cons a) :=
 assume l₁ l₂, assume Pe, tail_eq_of_cons_eq Pe
 
 theorem cons_inj (a : α) {l l' : list α} : a::l = a::l' ↔ l = l' :=
@@ -204,7 +204,7 @@ lemma exists_of_length_succ {n} :
 | [] H := absurd H.symm $ succ_ne_zero n
 | (h :: t) H := ⟨h, t, rfl⟩
 
-lemma length_injective_iff : injective (list.length : list α → ℕ) ↔ subsingleton α :=
+@[simp] lemma length_injective_iff : injective (list.length : list α → ℕ) ↔ subsingleton α :=
 begin
   split,
   { intro h, refine ⟨λ x y, _⟩, suffices : [x] = [y], { simpa using this }, apply h, refl },
@@ -213,7 +213,7 @@ begin
     congr, exactI subsingleton.elim _ _, apply l1_ih, simpa using hl }
 end
 
-lemma length_injective [subsingleton α] : injective (length : list α → ℕ) :=
+@[simp] lemma length_injective [subsingleton α] : injective (length : list α → ℕ) :=
 length_injective_iff.mpr $ by apply_instance
 
 /-! ### set-theoretic notation of lists -/
@@ -555,7 +555,7 @@ by induction l; [refl, simp only [*, reverse_cons, reverse_append]]; refl
 @[simp] theorem reverse_involutive : involutive (@reverse α) :=
 λ l, reverse_reverse l
 
-theorem reverse_injective : injective (@reverse α) :=
+@[simp] theorem reverse_injective : injective (@reverse α) :=
 reverse_involutive.injective
 
 @[simp] theorem reverse_inj {l₁ l₂ : list α} : reverse l₁ = reverse l₂ ↔ l₁ = l₂ :=
@@ -3121,7 +3121,7 @@ end
 @[simp] theorem length_sublists' : ∀ l : list α, length (sublists' l) = 2 ^ length l
 | []     := rfl
 | (a::l) := by simp only [sublists'_cons, length_append, length_sublists' l, length_map,
-    length, nat.pow_succ, mul_succ, mul_zero, zero_add]
+    length, pow_succ', mul_succ, mul_zero, zero_add]
 
 @[simp] theorem sublists_nil : sublists (@nil α) = [[]] := rfl
 

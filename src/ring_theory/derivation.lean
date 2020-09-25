@@ -6,7 +6,6 @@ Author: Nicolò Cavalleri.
 
 import algebra.lie_algebra
 import ring_theory.algebra_tower
-import tactic
 
 /-!
 # Derivations

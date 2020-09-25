@@ -22,15 +22,11 @@ variables [densely_ordered α]
 
 lemma Ioo.infinite {a b : α} (h : a < b) : infinite (Ioo a b) :=
 begin
-  obtain ⟨c, hc₁, hc₂⟩ : ∃ c : α, a < c ∧ c < b := dense h,
   rintro (f : finite (Ioo a b)),
-  letI := f.fintype,
-  have : well_founded (@has_lt.lt (Ioo a b) _) :=
-    fintype.well_founded_of_trans_of_irrefl _,
-  obtain ⟨m, -, hm⟩ : ∃ (m : Ioo a b) _,
-    ∀ d ∈ univ, ¬ d < m := this.has_min univ ⟨⟨c, hc₁, hc₂⟩, trivial⟩,
-  obtain ⟨z, hz₁, hz₂⟩ : ∃ (z : α), a < z ∧ z < m := dense m.2.1,
-  refine hm ⟨z, hz₁, lt_trans hz₂ m.2.2⟩ trivial hz₂
+  obtain ⟨m, hm₁, hm₂⟩ : ∃ m ∈ Ioo a b, ∀ x ∈ Ioo a b, ¬x < m,
+  { simpa [h] using finset.exists_minimal f.to_finset },
+  obtain ⟨z, hz₁, hz₂⟩ : ∃ z, a < z ∧ z < m := dense hm₁.1,
+  exact hm₂ z ⟨hz₁, lt_trans hz₂ hm₁.2⟩ hz₂,
 end
 
 lemma Ico.infinite {a b : α} (h : a < b) : infinite (Ico a b) :=
@@ -50,15 +46,11 @@ variables [no_bot_order α]
 
 lemma Iio.infinite {b : α} : infinite (Iio b) :=
 begin
-  obtain ⟨c, hc⟩ : ∃ c : α, c < b := no_bot _,
   rintro (f : finite (Iio b)),
-  letI := f.fintype,
-  have : well_founded (@has_lt.lt (Iio b) _) :=
-    fintype.well_founded_of_trans_of_irrefl _,
-  obtain ⟨m, -, hm⟩ : ∃ (m : Iio b) _,
-    ∀ d ∈ univ, ¬ d < m := this.has_min univ ⟨⟨c, hc⟩, trivial⟩,
-  obtain ⟨z, hz⟩ : ∃ (z : α), z < m := no_bot _,
-  refine hm ⟨z, lt_trans hz m.2⟩ trivial hz
+  obtain ⟨m, hm₁, hm₂⟩ : ∃ m < b, ∀ x < b, ¬x < m,
+  { simpa using finset.exists_minimal f.to_finset },
+  obtain ⟨z, hz⟩ : ∃ z, z < m := no_bot _,
+  exact hm₂ z (lt_trans hz hm₁) hz
 end
 
 lemma Iic.infinite {b : α} : infinite (Iic b) :=

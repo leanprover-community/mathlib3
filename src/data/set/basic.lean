@@ -186,7 +186,11 @@ instance decidable_set_of (p : α → Prop) [H : decidable_pred p] : decidable_p
 @[simp] theorem set_of_subset_set_of {p q : α → Prop} :
   {a | p a} ⊆ {a | q a} ↔ (∀a, p a → q a) := iff.rfl
 
-@[simp] lemma sep_set_of {α} {p q : α → Prop} : {a ∈ {a | p a } | q a} = {a | p a ∧ q a} := rfl
+@[simp] lemma sep_set_of {p q : α → Prop} : {a ∈ {a | p a } | q a} = {a | p a ∧ q a} := rfl
+
+lemma set_of_and {p q : α → Prop} : {a | p a ∧ q a} = {a | p a} ∩ {a | q a} := rfl
+
+lemma set_of_or {p q : α → Prop} : {a | p a ∨ q a} = {a | p a} ∪ {a | q a} := rfl
 
 /-! ### Lemmas about subsets -/
 
@@ -855,6 +859,9 @@ h.left
 theorem not_mem_of_mem_diff {s t : set α} {x : α} (h : x ∈ s \ t) : x ∉ t :=
 h.right
 
+theorem diff_eq_compl_inter {s t : set α} : s \ t = tᶜ ∩ s :=
+by rw [diff_eq, inter_comm]
+
 theorem nonempty_diff {s t : set α} : (s \ t).nonempty ↔ ¬ (s ⊆ t) :=
 ⟨λ ⟨x, xs, xt⟩, not_subset.2 ⟨x, xs, xt⟩,
   λ h, let ⟨x, xs, xt⟩ := not_subset.1 h in ⟨x, xs, xt⟩⟩
@@ -994,6 +1001,12 @@ by rw [union_comm, union_diff_self, union_comm]
 
 theorem diff_inter_self {a b : set α} : (b \ a) ∩ a = ∅ :=
 by { ext, by simp [iff_def] {contextual:=tt} }
+
+theorem diff_inter_self_eq_diff {s t : set α} : s \ (t ∩ s) = s \ t :=
+by { ext, simp [iff_def] {contextual := tt} }
+
+theorem diff_self_inter {s t : set α} : s \ (s ∩ t) = s \ t :=
+by rw [inter_comm, diff_inter_self_eq_diff]
 
 theorem diff_eq_self {s t : set α} : s \ t = s ↔ t ∩ s ⊆ ∅ :=
 by finish [ext_iff, iff_def, subset_def]

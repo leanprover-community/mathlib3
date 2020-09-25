@@ -16,7 +16,7 @@ This file defines the `comap` function on `mv_polynomial`.
 
 ## Notation
 
-As in other polynomial files we typically use the notation:
+As in other polynomial files, we typically use the notation:
 
 + `σ : Type*` (indexing the variables)
 

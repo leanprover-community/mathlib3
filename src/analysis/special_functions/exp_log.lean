@@ -422,7 +422,7 @@ lemma tendsto_exp_neg_at_top_nhds_0 : tendsto (λx, exp (-x)) at_top (𝓝 0) :=
 (tendsto_inv_at_top_zero.comp (tendsto_exp_at_top)).congr (λx, (exp_neg x).symm)
 
 /-- The real exponential function tends to `1`at `0` -/
-lemma tendsto_exp_at_nhds_0_nhds_1 : tendsto exp (𝓝 0) (𝓝 1) :=
+lemma tendsto_exp_nhds_0_nhds_1 : tendsto exp (𝓝 0) (𝓝 1) :=
 by { convert continuous.tendsto continuous_exp 0, simp }
 
 /-- The function `exp(x)/x^n` tends to +infinity at +infinity, for any natural number `n` -/

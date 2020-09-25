@@ -788,7 +788,7 @@ lemma tendsto_rpow_of_div_mul_add (a b c : ℝ) (hb : 0 < b) : tendsto (λ (x:�
 begin
   have h := (@tendsto_const_nhds _ _ _ a _).mul (tendsto_div_pow_mul_exp_plus_at_top_nhds_0 b c 1 hb (by norm_num)),
   simp only [mul_zero, pow_one] at h,
-  refine tendsto.congr' _ ((tendsto_exp_at_nhds_0_nhds_1.comp h).comp (tendsto_log_at_top)),
+  refine tendsto.congr' _ ((tendsto_exp_nhds_0_nhds_1.comp h).comp (tendsto_log_at_top)),
   apply eventually_eq_of_mem (Ioi_mem_at_top (0:ℝ)),
   intros x hx,
   simp only [set.mem_Ioi, function.comp_app] at *,

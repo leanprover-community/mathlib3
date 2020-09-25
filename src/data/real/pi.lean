@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Floris van Doorn
+Authors: Floris van Doorn, Benjamin Davidson
 -/
 import analysis.special_functions.pow
 
@@ -149,6 +149,7 @@ open_locale classical big_operators topological_space
 local notation `|`x`|` := abs x
 local notation `π` := real.pi
 
+-- The following theorem will be removed:
 theorem mvt (f f':ℝ→ℝ) {a b c:ℝ} (h : a ≤ b) (hderiv : ∀ (x ∈ set.Icc a b), has_deriv_at f (f' x) x)
   (hbound : ∀ (x ∈ set.Icc a b), |f' x| ≤ c) : |f b - f a| ≤ c * (b - a) :=
 begin
@@ -230,7 +231,7 @@ begin
         have hincr := pow_le_pow_of_le_left hy_left hy_right (2*k),
         rw ← abs_of_nonneg hy_left at hincr hy_right,
         rw ← abs_of_nonneg h2 at h1 hy_right,
-        linarith [f'_bound y (set.mem_Icc.mpr (abs_le.mp (le_trans hy_right h1)))] }, -- CAN GOLF
+        linarith [f'_bound y (set.mem_Icc.mpr (abs_le.mp (le_trans hy_right h1)))] },
       have mvt1 := mvt (f k) f' h1 f_deriv1 hbound1,
       ring at mvt1,
       have mvt2 := mvt (f k) f' h2 f_deriv2 hbound2,
@@ -253,7 +254,7 @@ begin
     simp [f, arctan_one, neg_sub, g, b] },
   rw [tendsto_iff_norm_tendsto_zero, ← tendsto_zero_iff_norm_tendsto_zero],
   refine squeeze_zero_norm H _,
-  convert (tendsto.add_const_left (1:ℝ) (((tendsto_rpow_of_div_mul_add (-1) 2 1 (by norm_num)).neg).add
+  convert (tendsto.const_add (1:ℝ) (((tendsto_rpow_of_div_mul_add (-1) 2 1 (by norm_num)).neg).add
     tendsto_inv_at_top_zero)).comp tendsto_coe_nat_real_at_top_at_top,
   { ext k, simp only [w, one_div, nnreal.coe_nat_cast, nnreal.coe_rpow], ring },
   { simp },

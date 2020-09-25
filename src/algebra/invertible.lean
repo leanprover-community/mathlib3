@@ -134,7 +134,7 @@ lemma inv_of_mul [monoid α] (a b : α) [invertible a] [invertible b] [invertibl
   ⅟(a * b) = ⅟b * ⅟a :=
 inv_of_eq_right_inv (by simp [←mul_assoc])
 
-lemma inv_of_commute {M : Type*} [has_one M] [has_mul M] (m : M) [invertible m] :
+lemma commute_inv_of {M : Type*} [has_one M] [has_mul M] (m : M) [invertible m] :
   commute m (⅟m) :=
 calc m * ⅟m = 1       : mul_inv_of_self m
         ... = ⅟ m * m : (inv_of_mul_self m).symm
@@ -142,8 +142,8 @@ calc m * ⅟m = 1       : mul_inv_of_self m
 instance invertible_pow {M : Type*} [monoid M] (m : M) [invertible m] (n : ℕ) :
   invertible (m ^ n) :=
 { inv_of := ⅟ m ^ n,
-  inv_of_mul_self := by rw [← (inv_of_commute m).symm.mul_pow, inv_of_mul_self, one_pow],
-  mul_inv_of_self := by rw [← (inv_of_commute m).mul_pow, mul_inv_of_self, one_pow] }
+  inv_of_mul_self := by rw [← (commute_inv_of m).symm.mul_pow, inv_of_mul_self, one_pow],
+  mul_inv_of_self := by rw [← (commute_inv_of m).mul_pow, mul_inv_of_self, one_pow] }
 
 section group_with_zero
 

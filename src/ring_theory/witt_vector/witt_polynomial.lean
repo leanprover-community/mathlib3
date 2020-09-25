@@ -31,7 +31,7 @@ Fix a base value `p : ℕ`.
 The `p`-adic Witt polynomials are an infinite family of polynomials
 indexed by a natural number `n`, taking values in an arbitrary ring `R`.
 The variables of these polynomials are represented by natural numbers.
-The `n`th Witt polynomial has at most `n+1` variables `X₀, ..., Xₙ`,
+The variable set of the `n`th Witt polynomial contains at most `n+1` elements `{0, ..., n}`,
 with exactly these variables when `R` has characteristic `0`.
 
 These polynomials are used to define the addition and multiplication operators
@@ -134,8 +134,8 @@ by expanding the `n`th witt polynomial by `p`.
   W_ (zmod (p ^ (n + 1))) (n + 1) = expand p (W_ (zmod (p^(n + 1))) n) :=
 begin
   simp only [witt_polynomial_eq_sum_C_mul_X_pow],
-  rw [sum_range_succ, ← nat.cast_pow, char_p.cast_eq_zero (zmod (p^(n+1))) (p^(n+1)), C_0, zero_mul, zero_add],
-  rw [alg_hom.map_sum, sum_congr rfl],
+  rw [sum_range_succ, ← nat.cast_pow, char_p.cast_eq_zero (zmod (p^(n+1))) (p^(n+1)), C_0, zero_mul, zero_add,
+      alg_hom.map_sum, sum_congr rfl],
   intros k hk,
   rw [alg_hom.map_mul, alg_hom.map_pow, expand_X, alg_hom_C, ← pow_mul, ← pow_succ],
   congr,
@@ -197,7 +197,7 @@ noncomputable def X_in_terms_of_W [invertible (p : R)] :
 
 lemma X_in_terms_of_W_eq [invertible (p : R)] {n : ℕ} :
   X_in_terms_of_W p R n =
-  (X n - (∑ i in range n, C (p^i : R) * X_in_terms_of_W p R i ^ p ^ (n - i))) * C (⅟p ^ n : R) :=
+    (X n - (∑ i in range n, C (p^i : R) * X_in_terms_of_W p R i ^ p ^ (n - i))) * C (⅟p ^ n : R) :=
 by { rw [X_in_terms_of_W, ← fin.sum_univ_eq_sum_range], refl }
 
 @[simp] lemma constant_coeff_X_in_terms_of_W [hp : fact p.prime] [invertible (p : R)] (n : ℕ) :

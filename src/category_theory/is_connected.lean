@@ -163,7 +163,7 @@ given a type family `Z : J → Sort*` and
 a rule for transporting in *both* directions along a morphism in `J`,
 we can transport an `x : Z j₀` to a point in `Z j` for any `j`.
 -/
-def is_preconnected_induction [is_preconnected J] (Z : J → Sort*)
+lemma is_preconnected_induction [is_preconnected J] (Z : J → Sort*)
   (h₁ : Π {j₁ j₂ : J} (f : j₁ ⟶ j₂), Z j₁ → Z j₂)
   (h₂ : Π {j₁ j₂ : J} (f : j₁ ⟶ j₂), Z j₂ → Z j₁)
   {j₀ : J} (x : Z j₀) (j : J) : nonempty (Z j) :=

@@ -11,22 +11,21 @@ import algebra.homology.image_to_kernel_map
 In a category with zero morphisms, images, and equalizers we say that `f : A ⟶ B` and `g : B ⟶ C`
 are exact if `f ≫ g = 0` and the natural map `image f ⟶ kernel g` is an epimorphism.
 
-This is a relatively weak notion of exactness, and reasoning about exactness in this very general
-setting is not very useful, for example because without further assumptions several "reasonable"
-definitions of exactness are not equivalent. There are several nicer settings in which exact
-sequences can be studied. At the moment, mathlib only knows one: abelian categories. Consequently,
-many interesting results about exact sequences are found in `category_theory/abelian/exact.lean`.
-
-TODO: Consolidate these two docstrings
-
-(We say epimorphism rather than isomorphism because, at least for preadditive categories,
-this is exactly equivalent to the homology at `i` vanishing.
-In an abelian category, this is the same as asking for it to be an isomorphism,
-because the inclusion map is always a monomorphism.)
+This definition is equivalent to the homology at `B` vanishing (at least for preadditive
+categories). At this level of generality, this is not necessarily equivalent to other reasonable
+definitions of exactness, for example that the inclusion map `image.ι f` is a kernel of `g` or that
+the map `image f ⟶ kernel g` is an isomorphism. By adding more assumptions on our category, we get
+these equivalences and more. Currently, there is one set of assumptions mathlib knows about: abelian
+categories. Consequently, many interesting results about exact sequences are found in
+`category_theory/abelian/exact.lean`.
 
 # Main results
 * Suppose that cokernels exist and that `f` and `g` are exact. If `s` is any kernel fork over `g`
   and `t` is any cokernel cofork over `f`, then `fork.ι s ≫ cofork.π t = 0`.
+* Precomposing the first morphism with an epimorphism retains exactness. Postcomposing the second
+  morphism with an epimorphism retains exactness.
+* If `f` and `g` are exact and `i` is an isomorphism, then `f ≫ i.hom` and `i.inv ≫ g` are also
+  exact.
 
 # Future work
 * Short exact sequences, split exact sequences, the splitting lemma (maybe only for abelian

@@ -10,8 +10,16 @@ import tactic.tfae
 /-!
 # Exact sequences in abelian categories
 
-We prove that in an abelian category, `(f, g)` is exact if and only if `f ≫ g = 0` and
-`kernel.ι g ≫ cokernel.π f = 0`.
+In an abelian category, we get several interesting results related to exactness which are not
+true in more general settings.
+
+## Main results
+* `(f, g)` is exact if and only if `f ≫ g = 0` and `kernel.ι g ≫ cokernel.π f = 0`. This
+  characterisation tends to be less cumbersome to work with than the original definition involving
+  the comparison map `image f ⟶ kernel g`.
+* If `(f, g)` is exact, then `image.ι f` has the universal property of the kernel of `g`.
+* `f` is a monomorphism iff `kernel.ι f = 0` iff `exact 0 f`, and `f` is an epimorphism iff
+  `cokernel.π = 0` iff `exact f 0`.
 
 -/
 

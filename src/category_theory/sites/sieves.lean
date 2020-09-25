@@ -240,6 +240,7 @@ lemma pushforward_union {f : Y ⟶ X} (S R : sieve Y) :
   (S ⊔ R).pushforward f = S.pushforward f ⊔ R.pushforward f :=
 (galois_connection f).l_sup
 
+/-- If `f` is a monomorphism, the pushforward-pullback adjunction on sieves is coreflective. -/
 def galois_coinsertion_of_mono (f : Y ⟶ X) [mono f] :
   galois_coinsertion (sieve.pushforward f) (sieve.pullback f) :=
 begin
@@ -249,6 +250,7 @@ begin
   rwa ← hf,
 end
 
+/-- If `f` is a split epi, the pushforward-pullback adjunction on sieves is reflective. -/
 def galois_insertion_of_split_epi (f : Y ⟶ X) [split_epi f] :
   galois_insertion (sieve.pushforward f) (sieve.pullback f) :=
 begin

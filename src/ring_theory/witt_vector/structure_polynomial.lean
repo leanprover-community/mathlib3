@@ -358,7 +358,7 @@ begin
   rw witt_structure_rat,
   simp only [bind₁, map_aeval, X_in_terms_of_W_zero, aeval_X, constant_coeff_witt_polynomial,
     constant_coeff_rename, constant_coeff_comp_algebra_map],
-  exact @aeval_zero' _ _ ℚ _ _ (algebra.id _) Φ,
+  exact @aeval_zero' _ _ _ _ _ (algebra.id _) Φ
 end
 
 lemma constant_coeff_witt_structure_rat (Φ : mv_polynomial idx ℚ) (h : constant_coeff Φ = 0) (n : ℕ) :
@@ -367,11 +367,11 @@ begin
   rw witt_structure_rat,
   -- we need `eval₂_hom_zero` but it doesn't exist
   have : (eval₂_hom (ring_hom.id ℚ) (λ (_x : idx), 0)) Φ = constant_coeff Φ :=
-    @aeval_zero' _ _ ℚ _ _ (algebra.id _) Φ,
+    @aeval_zero' _ _ _ _ _ (algebra.id _) Φ,
   simp only [this, h, bind₁, map_aeval, constant_coeff_witt_polynomial, constant_coeff_rename,
     constant_coeff_comp_algebra_map],
   conv_rhs { rw ← constant_coeff_X_in_terms_of_W p ℚ n },
-  exact @aeval_zero' _ _ ℚ _ _ (algebra.id _) _,
+  exact @aeval_zero' _ _ _ _ _ (algebra.id _) _
 end
 
 @[simp]
@@ -461,7 +461,7 @@ begin
     simp only [one_pow, one_mul, X_in_terms_of_W_zero, sub_self, bind₁_X_right] },
   { intros i hin hi0,
     rw [finset.mem_range] at hin,
-    rw [IH _ hin (nat.pos_of_ne_zero hi0), zero_pow (nat.pow_pos hp.pos _), mul_zero], },
+    rw [IH _ hin (nat.pos_of_ne_zero hi0), zero_pow (pow_pos hp.pos _), mul_zero], },
   { rw finset.mem_range, intro, contradiction }
 end
 
@@ -528,7 +528,6 @@ end
 
 end witt_structure_simplifications
 
-
 section witt_vars
 variable (R)
 
@@ -540,12 +539,12 @@ begin
   rw witt_structure_rat,
   intros x hx,
   simp only [finset.mem_product, true_and, finset.mem_univ, finset.mem_range],
-  replace hx := bind₁_vars _ _ hx,
+  replace hx := vars_bind₁ _ _ hx,
   simp only [exists_prop, finset.mem_bind, finset.mem_range] at hx,
   rcases hx with ⟨k, hk, hx⟩,
   replace hk := X_in_terms_of_W_vars_subset p _ hk,
   rw finset.mem_range at hk,
-  replace hx := bind₁_vars _ _ hx,
+  replace hx := vars_bind₁ _ _ hx,
   simp only [exists_prop, finset.mem_bind, finset.mem_range] at hx,
   rcases hx with ⟨i, -, hx⟩,
   replace hx := vars_rename _ _ hx,

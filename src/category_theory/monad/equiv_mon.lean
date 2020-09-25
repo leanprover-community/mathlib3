@@ -110,8 +110,8 @@ def unit_iso_inv : Monad_to_Mon C ⋙ Mon_to_Monad C ⟶ 𝟭 _ :=
 /-- Isomorphism of functors used in `Monad_Mon_equiv` -/
 @[simps]
 def unit_iso : 𝟭 _ ≅ Monad_to_Mon C ⋙ Mon_to_Monad C :=
-{ hom := to_of_mon_end_iso_hom,
-  inv := to_of_mon_end_iso_inv }
+{ hom := unit_iso_hom,
+  inv := unit_iso_inv }
 
 end Monad_Mon_equiv
 
@@ -122,8 +122,8 @@ open Monad_Mon_equiv
 def Monad_Mon_equiv : (Monad C) ≌ (Mon_ (C ⥤ C)) :=
 { functor := Monad_to_Mon _,
   inverse := Mon_to_Monad _,
-  unit_iso := to_of_mon_end_iso,
-  counit_iso := of_to_mon_end_iso }
+  unit_iso := unit_iso,
+  counit_iso := counit_iso }
 
 -- Sanity check
 example (A : Monad C) {X : C} : ((Monad_Mon_equiv C).unit_iso.app A).hom.app X = 𝟙 _ := rfl

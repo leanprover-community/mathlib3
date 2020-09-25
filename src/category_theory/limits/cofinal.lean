@@ -15,10 +15,16 @@ A functor `F : C ⥤ D` is cofinal if for every `d : D`,
 the comma category of morphisms `d ⟶ F.obj c` is connected.
 
 We prove that when `F : C ⥤ D` is cofinal,
-a functor `G : D ⥤ E` has a colimit if and only if `F ⋙ D` does
+the categories of cocones over `G : D ⥤ E` and over `F ⋙ G` are equivalent.
+(In fact, via an equivalence which does not change the cocone point.)
+
+As a consequence, the functor `G : D ⥤ E` has a colimit if and only if `F ⋙ F` does
 (and in either case, the colimits are isomorphic).
 
 There is a converse which we don't prove here.
+I think the correct statement is that if `colimit.pre G F : colimit (F ⋙ G) ⟶ colimit G`
+is an isomorphism for all functors `G : D ⥤ Type v`, then `F` is cofinal.
+(Unfortunately I don't know a reference that gives the proof.)
 
 ## Naming
 There is some discrepancy in the literature about naming; some say 'final' instead of 'cofinal'.
@@ -91,8 +97,10 @@ and to show that how to transport such a construction
 *both* directions along a morphism between such choices.
 -/
 lemma induction {d : D} (Z : Π (X : C) (k : d ⟶ F.obj X), Prop)
-  (h₁ : Π X₁ X₂ (k₁ : d ⟶ F.obj X₁) (k₂ : d ⟶ F.obj X₂) (f : X₁ ⟶ X₂), (k₁ ≫ F.map f = k₂) → Z X₁ k₁ → Z X₂ k₂)
-  (h₂ : Π X₁ X₂ (k₁ : d ⟶ F.obj X₁) (k₂ : d ⟶ F.obj X₂) (f : X₁ ⟶ X₂), (k₁ ≫ F.map f = k₂) → Z X₂ k₂ → Z X₁ k₁)
+  (h₁ : Π X₁ X₂ (k₁ : d ⟶ F.obj X₁) (k₂ : d ⟶ F.obj X₂) (f : X₁ ⟶ X₂),
+    (k₁ ≫ F.map f = k₂) → Z X₁ k₁ → Z X₂ k₂)
+  (h₂ : Π X₁ X₂ (k₁ : d ⟶ F.obj X₁) (k₂ : d ⟶ F.obj X₂) (f : X₁ ⟶ X₂),
+    (k₁ ≫ F.map f = k₂) → Z X₂ k₂ → Z X₁ k₁)
   {X₀ : C} {k₀ : d ⟶ F.obj X₀} (z : Z X₀ k₀) : Z (lift F d) (hom_to_lift F d) :=
 begin
   apply nonempty.some,
@@ -108,25 +116,27 @@ variables {F G}
 Given a cocone over `F ⋙ G`, we can construct a `cocone G` with the same cocone point.
 -/
 @[simps]
-def extend_cocone (c : cocone (F ⋙ G)) : cocone G :=
-{ X := c.X,
-  ι :=
-  { app := λ X, G.map (hom_to_lift F X) ≫ c.ι.app (lift F X),
-    naturality' := λ X Y f,
-    begin
-      dsimp, simp,
-      -- This would be true if we'd chosen `lift F X` to be `lift F Y`
-      -- and `hom_to_lift F X` to be `f ≫ hom_to_lift F Y`.
-      apply induction F (λ Z k, G.map f ≫ G.map (hom_to_lift F Y) ≫ c.ι.app (lift F Y) = G.map k ≫ c.ι.app Z),
-      { intros Z₁ Z₂ k₁ k₂ g a z,
-       rw [←a, functor.map_comp, category.assoc, ←functor.comp_map, c.w, z], },
-      { intros Z₁ Z₂ k₁ k₂ g a z,
-       rw [←a, functor.map_comp, category.assoc, ←functor.comp_map, c.w] at z,
-       rw z, },
-      { rw [←functor.map_comp_assoc], },
-    end }}
-
-variables (F)
+def extend_cocone : cocone (F ⋙ G) ⥤ cocone G :=
+{ obj := λ c,
+  { X := c.X,
+    ι :=
+    { app := λ X, G.map (hom_to_lift F X) ≫ c.ι.app (lift F X),
+      naturality' := λ X Y f,
+      begin
+        dsimp, simp,
+        -- This would be true if we'd chosen `lift F X` to be `lift F Y`
+        -- and `hom_to_lift F X` to be `f ≫ hom_to_lift F Y`.
+        apply induction F
+          (λ Z k, G.map f ≫ G.map (hom_to_lift F Y) ≫ c.ι.app (lift F Y) = G.map k ≫ c.ι.app Z),
+        { intros Z₁ Z₂ k₁ k₂ g a z,
+        rw [←a, functor.map_comp, category.assoc, ←functor.comp_map, c.w, z], },
+        { intros Z₁ Z₂ k₁ k₂ g a z,
+        rw [←a, functor.map_comp, category.assoc, ←functor.comp_map, c.w] at z,
+        rw z, },
+        { rw [←functor.map_comp_assoc], },
+      end } },
+  map := λ X Y f,
+  { hom := f.hom, } }
 
 @[simp]
 lemma colimit_cocone_comp_aux (s : cocone (F ⋙ G)) (j : C) :
@@ -141,29 +151,51 @@ begin
   { exact s.w (𝟙 _), },
 end
 
+variables (F)
+
+/--
+If `F` is cofinal,
+the category of cocones on `F ⋙ G` is equivalent to the category of cocones on `G`.
+-/
+@[simps]
+def cocones_equiv : cocone (F ⋙ G) ≌ cocone G :=
+{ functor := extend_cocone,
+  inverse := cocones.whiskering F,
+  unit_iso := nat_iso.of_components (λ c, cocones.ext (iso.refl _) (by tidy)) (by tidy),
+  counit_iso := nat_iso.of_components (λ c, cocones.ext (iso.refl _) (by tidy)) (by tidy), }.
+
+/--
+When `F` is cofinal, and `t : cocone G`,
+`t.whisker F` is a colimit coconne exactly when `t` is.
+-/
+def is_colimit_whisker_equiv (t : cocone G) : is_colimit (t.whisker F) ≃ is_colimit t :=
+is_colimit.of_cocone_equiv (cocones_equiv F).symm
+
+/--
+When `F` is cofinal, and `t : cocone (F ⋙ G)`,
+`extend_cocone.obj t` is a colimit coconne exactly when `t` is.
+-/
+def is_colimit_extend_cocone_equiv (t : cocone (F ⋙ G)) :
+  is_colimit (extend_cocone.obj t) ≃ is_colimit t :=
+is_colimit.of_cocone_equiv (cocones_equiv F)
+
 /-- Given a colimit cocone over `G` we can construct a colimit cocone over `F ⋙ G`. -/
 @[simps]
 def colimit_cocone_comp (t : colimit_cocone G) :
   colimit_cocone (F ⋙ G) :=
-{ cocone := t.cocone.whisker F,
-  is_colimit :=
-  { desc := λ s, t.is_colimit.desc (extend_cocone s),
-    uniq' := λ s m w,
-    begin
-      apply t.is_colimit.hom_ext,
-      intro d,
-      simp [(w _).symm],
-    end, }, }.
+{ cocone := _,
+  is_colimit := (is_colimit_whisker_equiv F _).symm (t.is_colimit) }
 
 @[priority 100]
 instance comp_has_colimit [has_colimit G] :
   has_colimit (F ⋙ G) :=
 has_colimit.mk (colimit_cocone_comp F (get_colimit_cocone G))
 
-lemma colimit_pre_is_iso_aux (t : colimit_cocone G) :
-  (colimit_cocone_comp F t).is_colimit.desc (t.cocone.whisker F) = 𝟙 t.cocone.X :=
+lemma colimit_pre_is_iso_aux {t : cocone G} (P : is_colimit t) :
+  ((is_colimit_whisker_equiv F _).symm P).desc (t.whisker F) = 𝟙 t.X :=
 begin
-  apply t.is_colimit.hom_ext,
+  dsimp [is_colimit_whisker_equiv],
+  apply P.hom_ext,
   tidy,
 end
 
@@ -171,7 +203,7 @@ instance colimit_pre_is_iso [has_colimit G] :
   is_iso (colimit.pre G F) :=
 begin
   rw colimit.pre_eq (colimit_cocone_comp F (get_colimit_cocone G)) (get_colimit_cocone G),
-  rw colimit_pre_is_iso_aux,
+  erw colimit_pre_is_iso_aux,
   dsimp,
   apply_instance,
 end
@@ -188,15 +220,8 @@ def colimit_iso [has_colimit G] : colimit (F ⋙ G) ≅ colimit G := as_iso (col
 @[simps]
 def colimit_cocone_of_comp (t : colimit_cocone (F ⋙ G)) :
   colimit_cocone G :=
-{ cocone := extend_cocone t.cocone,
-  is_colimit :=
-  { desc := λ s, t.is_colimit.desc (s.whisker F),
-    uniq' := λ s m w,
-    begin
-      apply t.is_colimit.hom_ext,
-      intro X,
-      simp [(w _).symm],
-    end, }, }
+{ cocone := extend_cocone.obj t.cocone,
+  is_colimit := (is_colimit_extend_cocone_equiv F _).symm (t.is_colimit), }
 
 /--
 When `F` is cofinal, and `F ⋙ G` has a colimit, then `G` has a colimit also.

@@ -559,6 +559,20 @@ def of_cocone_equiv {D : Type u'} [category.{v} D] {G : K ⥤ D}
   left_inv := by tidy,
   right_inv := by tidy, }
 
+@[simp] lemma of_cocone_equiv_apply_desc {D : Type u'} [category.{v} D] {G : K ⥤ D}
+  (h : cocone G ≌ cocone F) {c : cocone G} (P : is_colimit (h.functor.obj c)) (s) :
+  (of_cocone_equiv h P).desc s =
+    (h.unit.app c).hom ≫
+    (h.inverse.map {hom := P.desc (h.functor.obj s), w' := (by tidy)}).hom ≫
+    (h.unit_inv.app s).hom :=
+rfl
+
+@[simp] lemma of_cocone_equiv_symm_apply_desc {D : Type u'} [category.{v} D] {G : K ⥤ D}
+  (h : cocone G ≌ cocone F) {c : cocone G} (P : is_colimit c) (s) :
+  ((of_cocone_equiv h).symm P).desc s =
+    (h.functor.map {hom := P.desc (h.inverse.obj s), w' := (by tidy)}).hom ≫ (h.counit.app s).hom :=
+rfl
+
 /--
 A cocone precomposed with a natural isomorphism is a colimit cocone
 if and only if the original cocone is.
@@ -1560,5 +1574,60 @@ lemma has_colimits_of_shape_of_equivalence {J' : Type v} [small_category J']
 by { constructor, intro F, apply has_colimit_of_equivalence_comp e, apply_instance }
 
 end colimit
+
+section opposite
+
+/--
+If `t : cone F` is a limit cone, then `t.op : cocone F.op` is a colimit cocone.
+-/
+def is_limit.op {t : cone F} (P : is_limit t) : is_colimit t.op :=
+{ desc := λ s, (P.lift s.unop).op,
+  fac' := λ s j, congr_arg has_hom.hom.op (P.fac s.unop (unop j)),
+  uniq' := λ s m w,
+  begin
+    rw ← P.uniq s.unop m.unop,
+    { refl, },
+    { dsimp, intro j, rw ← w, refl, }
+  end }
+
+/--
+If `t : cocone F` is a colimit cocone, then `t.op : cone F.op` is a limit cone.
+-/
+def is_colimit.op {t : cocone F} (P : is_colimit t) : is_limit t.op :=
+{ lift := λ s, (P.desc s.unop).op,
+  fac' := λ s j, congr_arg has_hom.hom.op (P.fac s.unop (unop j)),
+  uniq' := λ s m w,
+  begin
+    rw ← P.uniq s.unop m.unop,
+    { refl, },
+    { dsimp, intro j, rw ← w, refl, }
+  end }
+/--
+If `t : cone F.op` is a limit cone, then `t.unop : cocone F` is a colimit cocone.
+-/
+def is_limit.unop {t : cone F.op} (P : is_limit t) : is_colimit t.unop :=
+{ desc := λ s, (P.lift s.op).unop,
+  fac' := λ s j, congr_arg has_hom.hom.unop (P.fac s.op (op j)),
+  uniq' := λ s m w,
+  begin
+    rw ← P.uniq s.op m.op,
+    { refl, },
+    { dsimp, intro j, rw ← w, refl, }
+  end }
+
+/--
+If `t : cocone F.op` is a colimit cocone, then `t.unop : cone F.` is a limit cone.
+-/
+def is_colimit.unop {t : cocone F.op} (P : is_colimit t) : is_limit t.unop :=
+{ lift := λ s, (P.desc s.op).unop,
+  fac' := λ s j, congr_arg has_hom.hom.unop (P.fac s.op (op j)),
+  uniq' := λ s m w,
+  begin
+    rw ← P.uniq s.op m.op,
+    { refl, },
+    { dsimp, intro j, rw ← w, refl, }
+  end }
+
+end opposite
 
 end category_theory.limits

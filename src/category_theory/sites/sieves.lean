@@ -185,10 +185,12 @@ def pullback (h : Y ⟶ X) (S : sieve X) : sieve Y :=
 lemma pullback_top {f : Y ⟶ X} : (⊤ : sieve X).pullback f = ⊤ :=
 top_unique (λ _ g, id)
 
-lemma pullback_comp {f : Y ⟶ X} {g : Z ⟶ Y} (S : sieve X) : S.pullback (g ≫ f) = (S.pullback f).pullback g :=
+lemma pullback_comp {f : Y ⟶ X} {g : Z ⟶ Y} (S : sieve X) :
+  S.pullback (g ≫ f) = (S.pullback f).pullback g :=
 by simp [sieve.ext_iff]
 
-lemma pullback_inter {f : Y ⟶ X} (S R : sieve X) : (S ⊓ R).pullback f = S.pullback f ⊓ R.pullback f :=
+lemma pullback_inter {f : Y ⟶ X} (S R : sieve X) :
+ (S ⊓ R).pullback f = S.pullback f ⊓ R.pullback f :=
 by simp [sieve.ext_iff]
 
 /-- If the identity arrow is in a sieve, the sieve is maximal. -/
@@ -234,7 +236,8 @@ lemma pullback_pushforward_le (f : Y ⟶ X) (R : sieve X) :
   (R.pullback f).pushforward f ≤ R :=
 (galois_connection f).l_u_le _
 
-lemma pushforward_union {f : Y ⟶ X} (S R : sieve Y) : (S ⊔ R).pushforward f = S.pushforward f ⊔ R.pushforward f :=
+lemma pushforward_union {f : Y ⟶ X} (S R : sieve Y) :
+  (S ⊔ R).pushforward f = S.pushforward f ⊔ R.pushforward f :=
 (galois_connection f).l_sup
 
 def galois_coinsertion_of_mono (f : Y ⟶ X) [mono f] :

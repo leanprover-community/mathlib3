@@ -187,6 +187,7 @@ Options:
   * `set_option trace.slim_check.shrink.steps true`: trace the shrinking of counter-example
   * `set_option trace.slim_check.shrink.candidates true`: print the lists of candidates considered when shrinking each variable
   * `set_option trace.slim_check.instance true`: print the instances of `testable` being used to test the proposition
+  * `set_option trace.slim_check.success true`: print the tested samples that satisfy a property
 -/
 meta def slim_check (cfg : slim_check_cfg := {}) : tactic unit := do
 { tgt ← retrieve $ tactic.revert_all >> target,

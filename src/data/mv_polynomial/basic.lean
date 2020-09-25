@@ -442,7 +442,7 @@ lemma exists_coeff_ne_zero {p : mv_polynomial σ α} (h : p ≠ 0) :
 ne_zero_iff.mp h
 
 lemma C_dvd_iff_dvd_coeff (r : α) (φ : mv_polynomial σ α) :
-  C r ∣ φ ↔ ∀ i, r ∣ (φ.coeff i) :=
+  C r ∣ φ ↔ ∀ i, r ∣ φ.coeff i :=
 begin
   split,
   { rintros ⟨φ, rfl⟩ c, rw coeff_C_mul, apply dvd_mul_right },
@@ -453,13 +453,10 @@ begin
     let ψ : mv_polynomial σ α := ∑ i in φ.support, monomial i (c' i),
     use ψ,
     apply mv_polynomial.ext, intro i,
-    simp only [coeff_C_mul, coeff_sum, coeff_monomial],
-    rw [finset.sum_eq_single i, if_pos rfl],
-    { dsimp [c'], split_ifs with hi hi,
-      { rw hc },
-      { rw finsupp.not_mem_support_iff at hi, rwa [mul_zero] } },
-    { intros j hj hji, convert if_neg hji },
-    { intro hi, rw [if_pos rfl], exact if_neg hi } }
+    simp only [coeff_C_mul, coeff_sum, coeff_monomial, finset.sum_ite_eq', c'],
+    split_ifs with hi hi,
+    { rw hc },
+    { rw finsupp.not_mem_support_iff at hi, rwa mul_zero } },
 end
 
 end coeff

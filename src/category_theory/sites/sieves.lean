@@ -144,7 +144,7 @@ inductive generate_sets (𝒢 : set (over X)) : Π (Y : C), set (Y ⟶ X)
 /-- Generate the smallest sieve containing the given set of arrows. -/
 def generate (𝒢 : set (over X)) : sieve X :=
 { arrows := generate_sets 𝒢,
-  downward_closed   := λ _ _ _ h _, generate_sets.close _ h }
+  downward_closed := λ _ _ _ h _, generate_sets.close _ h }
 
 open order lattice
 

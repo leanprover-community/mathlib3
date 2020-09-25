@@ -447,7 +447,7 @@ finset.card_le_card_of_inj_on f (λ _ _, finset.mem_univ _) (λ _ _ _ _ h, hf h)
 The pigeonhole principle for finitely many pigeons and pigeonholes.
 This is the `fintype` version of `finset.pigeonhole`.
 -/
-lemma fintype.pigeonhole [fintype α] [fintype β] (f : α → β) (h : fintype.card β < fintype.card α) :
+lemma pigeonhole [fintype α] [fintype β] (f : α → β) (h : fintype.card β < fintype.card α) :
   ∃ x y, x ≠ y ∧ f x = f y :=
 by { obtain ⟨x, _, y, _, h⟩ := @finset.pigeonhole α β univ univ h f (by simp),
      exact ⟨x, y, h⟩ }

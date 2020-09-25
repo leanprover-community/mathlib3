@@ -91,12 +91,12 @@ lemma borel_eq_generate_Iio (α)
 begin
   refine le_antisymm _ (generate_from_le _),
   { rw borel_eq_generate_from_of_subbasis (@order_topology.topology_eq_generate_intervals α _ _ _),
-    have H : ∀ a:α, is_measurable (measurable_space.generate_from (range Iio)) (Iio a) :=
-      λ a, generate_measurable.basic _ ⟨_, rfl⟩,
+    letI : measurable_space α := measurable_space.generate_from (range Iio),
+    have H : ∀ a:α, is_measurable (Iio a) := λ a, generate_measurable.basic _ ⟨_, rfl⟩,
     refine generate_from_le _, rintro _ ⟨a, rfl | rfl⟩; [skip, apply H],
     by_cases h : ∃ a', ∀ b, a < b ↔ a' ≤ b,
     { rcases h with ⟨a', ha'⟩,
-      rw (_ : Ioi a = (Iio a')ᶜ), {exact (H _).compl _},
+      rw (_ : Ioi a = (Iio a')ᶜ), { exact (H _).compl },
       simp [set.ext_iff, ha'] },
     { rcases is_open_Union_countable
         (λ a' : {a' : α // a < a'}, {b | a'.1 < b})
@@ -112,7 +112,7 @@ begin
           lt_of_lt_of_le ax⟩⟩ },
       rw this, resetI,
       apply is_measurable.Union,
-      exact λ _, (H _).compl _ } },
+      exact λ _, (H _).compl } },
   { rw forall_range_iff,
     intro a,
     exact generate_measurable.basic _ is_open_Iio }
@@ -298,9 +298,10 @@ lemma measurable.smul [semiring α] [second_countable_topology α]
   measurable (λ c, f c • g c) :=
 continuous_smul.measurable2 hf hg
 
-lemma measurable.const_smul {α : Type*} [topological_space α] [semiring α]
-  [add_comm_monoid γ] [semimodule α γ] [topological_semimodule α γ]
-  {f : δ → γ} (hf : measurable f) (c : α) :
+lemma measurable.const_smul {R M : Type*} [topological_space R] [semiring R]
+  [add_comm_monoid M] [semimodule R M] [topological_space M] [topological_semimodule R M]
+  [measurable_space M] [borel_space M]
+  {f : δ → M} (hf : measurable f) (c : R) :
   measurable (λ x, c • f x) :=
 (continuous_const.smul continuous_id).measurable.comp hf
 
@@ -312,6 +313,18 @@ lemma measurable_const_smul_iff {α : Type*} [topological_space α]
 ⟨λ h, by simpa only [smul_smul, inv_mul_cancel hc, one_smul] using h.const_smul c⁻¹,
   λ h, h.const_smul c⟩
 
+lemma measurable.const_mul {R : Type*} [topological_space R] [measurable_space R]
+  [borel_space R] [semiring R] [topological_semiring R]
+  {f : δ → R} (hf : measurable f) (c : R) :
+  measurable (λ x, c * f x) :=
+hf.const_smul c
+
+lemma measurable.mul_const {R : Type*} [topological_space R] [measurable_space R]
+  [borel_space R] [semiring R] [topological_semiring R]
+  {f : δ → R} (hf : measurable f) (c : R) :
+  measurable (λ x, f x * c) :=
+(continuous_id.mul continuous_const).measurable.comp hf
+
 lemma is_measurable_le' [partial_order α] [order_closed_topology α] [second_countable_topology α] :
   is_measurable {p : α × α | p.1 ≤ p.2} :=
 order_closed_topology.is_closed_le'.is_measurable
@@ -320,6 +333,15 @@ lemma is_measurable_le [partial_order α] [order_closed_topology α] [second_cou
   {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   is_measurable {a | f a ≤ g a} :=
 hf.prod_mk hg is_measurable_le'
+
+lemma is_measurable_lt' [linear_order α] [order_closed_topology α] [second_countable_topology α] :
+  is_measurable {p : α × α | p.1 < p.2} :=
+(is_open_lt continuous_fst continuous_snd).is_measurable
+
+lemma is_measurable_lt [linear_order α] [order_closed_topology α] [second_countable_topology α]
+  {f g : δ → α} (hf : measurable f) (hg : measurable g) :
+  is_measurable {a | f a < g a} :=
+hf.prod_mk hg is_measurable_lt'
 
 lemma measurable.max [decidable_linear_order α] [order_closed_topology α] [second_countable_topology α]
   {f g : δ → α} (hf : measurable f) (hg : measurable g) :
@@ -497,17 +519,6 @@ instance nnreal.borel_space : borel_space nnreal := ⟨rfl⟩
 instance ennreal.measurable_space : measurable_space ennreal := borel ennreal
 instance ennreal.borel_space : borel_space ennreal := ⟨rfl⟩
 
-section real_mul
-variables [measurable_space α]
-
-lemma measurable.const_mul {f : α → ℝ} (h : measurable f) (c : ℝ) : measurable (λ x, c*f x) :=
-(measurable.const_smul h c : _)
-
-lemma measurable.mul_const {f : α → ℝ} (h : measurable f) (c : ℝ) : measurable (λ x, f x*c) :=
-by simp only [h.const_mul c, mul_comm]
-
-end real_mul
-
 section metric_space
 
 variables [metric_space α] [measurable_space α] [opens_measurable_space α] {x : α} {ε : ℝ}
@@ -542,6 +553,12 @@ variables [emetric_space α] [measurable_space α] [opens_measurable_space α] {
 lemma is_measurable_eball : is_measurable (emetric.ball x ε) :=
 emetric.is_open_ball.is_measurable
 
+lemma measurable_edist_right : measurable (edist x) :=
+(continuous_const.edist continuous_id).measurable
+
+lemma measurable_edist_left : measurable (λ y, edist y x) :=
+(continuous_id.edist continuous_const).measurable
+
 lemma measurable_edist [second_countable_topology α] :
   measurable (λp:α×α, edist p.1 p.2) :=
 continuous_edist.measurable
@@ -564,8 +581,8 @@ lemma measure_ext_Ioo_rat {μ ν : measure ℝ} [locally_finite_measure μ]
 begin
   refine measure.ext_of_generate_from_of_cover_subset borel_eq_generate_from_Ioo_rat _
     (subset.refl _) _ _ _ _,
-  { simp only [mem_Union, mem_singleton_iff],
-    rintros _ ⟨a₁, b₁, h₁, rfl⟩ _ ⟨a₂, b₂, h₂, rfl⟩ ne,
+  { simp only [is_pi_system, mem_Union, mem_singleton_iff],
+    rintros _ _ ⟨a₁, b₁, h₁, rfl⟩ ⟨a₂, b₂, h₂, rfl⟩ ne,
     simp only [Ioo_inter_Ioo, sup_eq_max, inf_eq_min, ← rat.cast_max, ← rat.cast_min, nonempty_Ioo] at ne ⊢,
     refine ⟨_, _, _, rfl⟩,
     assumption_mod_cast },
@@ -591,8 +608,8 @@ begin
     simp only [mem_Union], rintro ⟨a, b, h, H⟩,
     rw [mem_singleton_iff.1 H],
     rw (set.ext (λ x, _) : Ioo (a:ℝ) b = (⋃c>a, (Iio c)ᶜ) ∩ Iio b),
-    { have hg : ∀q:ℚ, g.is_measurable (Iio q) :=
-        λ q, generate_measurable.basic _ (by simp; exact ⟨_, rfl⟩),
+    { have hg : ∀ q : ℚ, g.is_measurable' (Iio q) :=
+        λ q, generate_measurable.basic (Iio q) (by { simp, exact ⟨_, rfl⟩ }),
       refine @is_measurable.inter _ g _ _ _ (hg _),
       refine @is_measurable.bUnion _ _ g _ _ (countable_encodable _) (λ c h, _),
       exact @is_measurable.compl _ _ g (hg _) },
@@ -602,8 +619,7 @@ begin
         let ⟨c, ac, cx⟩ := exists_rat_btwn h in
         ⟨c, rat.cast_lt.1 ac, le_of_lt cx⟩,
        λ ⟨c, ac, cx⟩, lt_of_lt_of_le (rat.cast_lt.2 ac) cx⟩ } },
-  { simp, rintro r rfl,
-    exact is_open_Iio.is_measurable }
+  { simp, rintro r rfl, exact is_open_Iio.is_measurable }
 end
 
 end real
@@ -695,15 +711,9 @@ begin
       measurable_const }
 end
 
-lemma measurable.ennreal_add {α : Type*} [measurable_space α] {f g : α → ennreal} :
-  measurable f → measurable g → measurable (λa, f a + g a) :=
-begin
-  refine ennreal.measurable_of_measurable_nnreal_nnreal (+) _ _ _,
-  { simp only [ennreal.coe_add.symm],
-    exact ennreal.measurable_coe.comp measurable_add },
-  { simp [measurable_const] },
-  { simp [measurable_const] }
-end
+lemma measurable.ennreal_add {α : Type*} [measurable_space α] {f g : α → ennreal}
+  (hf : measurable f) (hg : measurable g) : measurable (λa, f a + g a) :=
+hf.add hg
 
 lemma measurable.ennreal_sub {α : Type*} [measurable_space α] {f g : α → ennreal} :
   measurable f → measurable g → measurable (λa, f a - g a) :=

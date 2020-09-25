@@ -1,26 +1,30 @@
+/-
+Copyright (c) 2020 Aaron Anderson. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Aaron Anderson
+-/
+
 import data.nat.prime
 import ring_theory.unique_factorization_domain
 
-theorem nat.prime_iff {p : ℕ} : p.prime ↔ prime p :=
-begin
-  split; intro h,
-  { refine ⟨h.ne_zero, ⟨_,λ a b, _⟩⟩,
-    { rw nat.is_unit_iff, apply h.ne_one },
-    { apply h.dvd_mul.1 } },
-  { refine ⟨_, λ m hm, _⟩,
-    { cases p, { exfalso, apply h.ne_zero rfl },
-      cases p, { exfalso, apply h.ne_one rfl },
-      omega, },
-    { cases hm with n hn,
-      cases h.2.2 m n (hn ▸ dvd_refl _) with hpm hpn,
-      { right, apply nat.dvd_antisymm (dvd.intro _ hn.symm) hpm },
-      { left,
-        cases n, { exfalso, rw [hn, mul_zero] at h, apply h.ne_zero rfl },
-        apply nat.eq_of_mul_eq_mul_right (nat.succ_pos _),
-        rw [← hn, one_mul],
-        apply nat.dvd_antisymm hpn (dvd.intro m _),
-        rw [mul_comm, hn], }, } }
-end
+/-#
+
+# Unique factorization in `ℕ`
+
+This file defines the `unique_factorization_monoid` structure on the natural numbers.
+
+## Main results
+
+ * `nat.irreducible_iff_prime`: a non-unit natural number is only divisible by `1` iff it is prime
+ * `nat.unique_factorization_monoid`: the natural numbers have unique factorization into irreducibles
+ * `nat.factors_eq`: the multiset of elements of `nat.factors` is equal to the factors
+   given by the `unique_factorization_monoid` instance
+
+## Tags
+
+prime factorization, prime factors, unique factorization, unique factors
+-/
+
 
 theorem nat.irreducible_iff_prime {p : ℕ} : irreducible p ↔ prime p :=
 begin

@@ -124,6 +124,27 @@ theorem not_prime_mul {a b : ℕ} (a1 : 1 < a) (b1 : 1 < b) : ¬ prime (a * b) :
 λ h, ne_of_lt (nat.mul_lt_mul_of_pos_left b1 (lt_of_succ_lt a1)) $
 by simpa using (dvd_prime_two_le h a1).1 (dvd_mul_right _ _)
 
+theorem nat.prime_iff {p : ℕ} : p.prime ↔ prime p :=
+begin
+  split; intro h,
+  { refine ⟨h.ne_zero, ⟨_,λ a b, _⟩⟩,
+    { rw nat.is_unit_iff, apply h.ne_one },
+    { apply h.dvd_mul.1 } },
+  { refine ⟨_, λ m hm, _⟩,
+    { cases p, { exfalso, apply h.ne_zero rfl },
+      cases p, { exfalso, apply h.ne_one rfl },
+      omega, },
+    { cases hm with n hn,
+      cases h.2.2 m n (hn ▸ dvd_refl _) with hpm hpn,
+      { right, apply nat.dvd_antisymm (dvd.intro _ hn.symm) hpm },
+      { left,
+        cases n, { exfalso, rw [hn, mul_zero] at h, apply h.ne_zero rfl },
+        apply nat.eq_of_mul_eq_mul_right (nat.succ_pos _),
+        rw [← hn, one_mul],
+        apply nat.dvd_antisymm hpn (dvd.intro m _),
+        rw [mul_comm, hn], }, } }
+end
+
 section min_fac
   private lemma min_fac_lemma (n k : ℕ) (h : ¬ n < k * k) :
     sqrt n - k < sqrt n + 2 - k :=

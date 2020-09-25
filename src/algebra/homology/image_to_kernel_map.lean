@@ -54,6 +54,15 @@ lemma image_to_kernel_map_zero_right {w} :
   image_to_kernel_map f (0 : B ⟶ C) w = image.ι f ≫ inv (kernel.ι (0 : B ⟶ C)) :=
 by { ext, simp }
 
+lemma image_to_kernel_map_comp_right {D : V} (h : C ⟶ D) (w : f ≫ g = 0) :
+  image_to_kernel_map f (g ≫ h) (by simp [reassoc_of w]) =
+    image_to_kernel_map f g w ≫ kernel.lift (g ≫ h) (kernel.ι g) (by simp) :=
+by { ext, simp }
+
+lemma image_to_kernel_map_comp_left {Z : V} (h : Z ⟶ A) (w : f ≫ g = 0) :
+  image_to_kernel_map (h ≫ f) g (by simp [w]) = image.pre_comp h f ≫ image_to_kernel_map f g w :=
+by { ext, simp }
+
 @[simp]
 lemma image_to_kernel_map_comp_iso {D : V} (h : C ⟶ D) [is_iso h] (w) :
   image_to_kernel_map f (g ≫ h) w =

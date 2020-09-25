@@ -60,19 +60,11 @@ variables {A B C D : V} {f : A ⟶ B} {g : B ⟶ C} {h : C ⟶ D}
 lemma exact_epi_comp [exact g h] [epi f] : exact (f ≫ g) h :=
 begin
   refine ⟨by simp, _⟩,
-  let mf : mono_factorisation (f ≫ g) :=
-  { I := _,
-    m := image.ι g,
-    m_mono := by apply_instance,
-    e := f ≫ factor_thru_image g,
-    fac' := by simp },
-  have : image_to_kernel_map (f ≫ g) h (by simp) = image.lift mf ≫ image_to_kernel_map g h exact.w,
-  { ext, simp },
-  rw this,
-  suffices : epi (image.lift mf),
+  rw image_to_kernel_map_comp_left,
+  suffices : epi (image.pre_comp f g),
   { exactI epi_comp _ _ },
-  haveI : epi (f ≫ factor_thru_image g) := epi_comp _ _,
-  apply epi_of_epi_fac (image.fac_lift mf)
+  apply epi_of_epi_fac (limits.image.factor_thru_image_pre_comp _ _),
+  exact epi_comp _ _
 end
 
 lemma exact_comp_mono [exact f g] [mono h] : exact f (g ≫ h) :=
@@ -80,10 +72,7 @@ begin
   refine ⟨by simp, _⟩,
   letI : is_iso (kernel.lift (g ≫ h) (kernel.ι g) (by simp)) :=
   { inv := kernel.lift g (kernel.ι (g ≫ h)) (by simp [←cancel_mono h]) },
-  have : image_to_kernel_map f (g ≫ h) (by simp) = image_to_kernel_map f g exact.w ≫
-    kernel.lift (g ≫ h) (kernel.ι g) (by simp),
-  { ext, simp },
-  rw this,
+  rw image_to_kernel_map_comp_right f g h exact.w,
   exact epi_comp _ _
 end
 
@@ -95,20 +84,6 @@ begin
     hom_inv_id' := by simp [←cancel_mono (image.ι (kernel.ι f))] },
   apply_instance
 end
-
-lemma exact.w_assoc {A B C D : V} {f : A ⟶ B} {g : B ⟶ C} [exact f g] {h : C ⟶ D} :
-  f ≫ g ≫ h = 0 :=
-by rw [←category.assoc, @exact.w _ _ _ _ _ _ _ _ f g, zero_comp]
-
-instance exact_comp_iso {A B C C' : V} (f : A ⟶ B) (g : B ⟶ C) (h : C ≅ C') [exact f g] :
-  exact f (g ≫ h.hom) :=
-{ w := exact.w_assoc,
-  epi := by { simp only [image_to_kernel_map_comp_iso], apply epi_comp, } }
-
-instance exact_iso_comp {A A' B C : V} (h : A' ≅ A) (f : A ⟶ B) (g : B ⟶ C) [exact f g] :
-  exact (h.hom ≫ f) g :=
-{ w := by rw [category.assoc, @exact.w _ _ _ _ _ _ _ _ f g, comp_zero],
-  epi := by { simp only [image_to_kernel_map_iso_comp], apply epi_comp, } }
 
 section
 variables (A)
@@ -144,7 +119,6 @@ by rw [←kernel.lift_ι _ _ hι, ←cokernel.π_desc _ _ hπ, category.assoc, k
 comp_eq_zero_of_exact f g (kernel_fork.condition s) (cokernel_cofork.condition t)
 
 end has_cokernels
-end
 
 section
 local attribute [instance] has_zero_object.has_zero

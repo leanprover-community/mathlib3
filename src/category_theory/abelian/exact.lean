@@ -81,8 +81,6 @@ is_kernel.iso_kernel _ _ (is_limit_image f g) (image_iso_image f).symm $ is_imag
 lemma exact_cokernel : exact f (cokernel.π f) :=
 by { rw exact_iff, tidy }
 
-set_option pp.implicit true
-
 lemma mono_of_exact_zero_left [exact (0 : Z ⟶ X) f] : mono f :=
 mono_of_kernel_ι_eq_zero f (kernel_ι_eq_zero_of_exact_zero_left Z)
 

@@ -24,12 +24,13 @@ One example of a quandle is the action of a Lie algebra on itself,
 defined by `op x y = Ad (exp x) y`.
 
 Quandles and racks were independently developed by multiple
-mathematicians.  David Joyce introduced quandles in his thesis to
-define an algebraic invariant of knot and link complements that is
-analogous to the fundamental group of the exterior, and he showed that
-the quandle associated to an oriented knot is invariant up to
-orientation-reversed mirror image.  Racks were used by Fenn and Rourke
-for framed codimension-2 knots and links.
+mathematicians.  David Joyce introduced quandles in his thesis
+[Joyce1982] to define an algebraic invariant of knot and link
+complements that is analogous to the fundamental group of the
+exterior, and he showed that the quandle associated to an oriented
+knot is invariant up to orientation-reversed mirror image.  Racks were
+used by Fenn and Rourke for framed codimension-2 knots and
+links.[FennRourke1992]
 
 The name "rack" came from wordplay by Conway and Wraith for the "wrack
 and ruin" of forgetting everything but the conjugation operation for a

@@ -1125,7 +1125,7 @@ end set
 namespace set
 variables (t : α → set β)
 
-lemma subset_diff : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u :=
+lemma subset_diff {s t u : set α} : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u :=
 ⟨λ h, ⟨λ x hxs, (h hxs).1, λ x ⟨hxs, hxu⟩, (h hxs).2 hxu⟩,
 λ ⟨h1, h2⟩ x hxs, ⟨h1 hxs, λ hxu, h2 ⟨hxs, hxu⟩⟩⟩
 

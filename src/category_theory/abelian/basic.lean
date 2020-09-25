@@ -157,10 +157,6 @@ variables {P Q : C} (f : P ⟶ Q)
 
 section
 
-def a : has_zero_morphisms C := by apply_instance
-
-#print a
-
 lemma mono_of_zero_kernel (R : C)
   (l : is_limit (kernel_fork.of_ι (0 : R ⟶ P) (show 0 ≫ f = 0, by simp))) : mono f :=
 non_preadditive_abelian.mono_of_zero_kernel _ _ l

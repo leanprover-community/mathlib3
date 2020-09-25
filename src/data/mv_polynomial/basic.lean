@@ -160,9 +160,8 @@ infinite.of_injective (λ i : ℕ, monomial (single (classical.arbitrary σ) i) 
 begin
   intros m n h,
   have := (single_eq_single_iff _ _ _ _).mp h,
-  simp only [and_true, eq_self_iff_true, or_false, one_ne_zero, and_self] at this,
-  replace := (single_eq_single_iff _ _ _ _).mp this,
-  simp only [eq_self_iff_true, true_and] at this,
+  simp only [and_true, eq_self_iff_true, or_false, one_ne_zero, and_self,
+             single_eq_single_iff, eq_self_iff_true, true_and] at this,
   rcases this with (rfl|⟨rfl, rfl⟩); refl
 end
 

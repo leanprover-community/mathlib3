@@ -50,31 +50,3 @@ end
 
 protected lemma monoid_hom.map_is_conj (f : α →* β) {a b : α} : is_conj a b → is_conj (f a) (f b)
 | ⟨c, hc⟩ := ⟨f c, by rw [← f.map_mul, ← f.map_inv, ← f.map_mul, hc]⟩
-
-namespace group
-
-/--
-Inner automorphisms of a group.
--/
-def inner_aut (c : α) : α →* α :=
-{ to_fun := λ x, c * x * c⁻¹,
-  map_one' := by simp,
-  map_mul' := by simp }
-
-lemma inner_aut_left_inv (c : α) : function.left_inverse (inner_aut c⁻¹) (inner_aut c) :=
-by { intro x, dsimp [inner_aut], rw inv_inv,
-     apply mul_eq_of_eq_mul_inv, apply inv_mul_eq_of_eq_mul, apply mul_assoc, }
-
-lemma inner_aut_right_inv (c : α) : function.right_inverse (inner_aut c⁻¹) (inner_aut c) :=
-by { convert inner_aut_left_inv c⁻¹, rw inv_inv }
-
-/--
-The inner automorphism `inner_aut` as an equivalence.
--/
-def inner_aut_equiv (c : α) : α ≃ α :=
-{ to_fun := inner_aut c,
-  inv_fun := inner_aut c⁻¹,
-  left_inv := inner_aut_left_inv c,
-  right_inv := inner_aut_right_inv c }
-
-end group

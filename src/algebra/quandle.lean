@@ -5,6 +5,7 @@ Authors: Kyle Miller
 -/
 import algebra
 import data.zmod.basic
+import data.equiv.mul_add
 
 /-!
 # Racks and Quandles
@@ -58,7 +59,7 @@ group.
 * If G is a group, H a subgroup, and z in H, then there is a quandle `(G/H;z)` defined by
   `yH ◃ Hx = yzy⁻¹xH`.  Every homogeneous quandle (i.e., a quandle Q whose automorphism group acts
   transitively on Q as a set) is isomorphic to such a quandle.
-  There is a generalization to this arbitrary quandles in Joyce's paper (Theorem 7.2).
+  There is a generalization to this arbitrary quandles in [Joyce's paper (Theorem 7.2)][Joyce1982].
 
 ## Tags
 
@@ -276,10 +277,16 @@ the corresponding inner automorphism.
 @[nolint has_inhabited_instance]
 def conj (G : Type*) := G
 
+@[simp] lemma conj_conj_inv {G : Type*} [group G] (g h : G) : g * (g⁻¹ * h * g) * g⁻¹ = h :=
+mul_inv_eq_of_eq_mul (mul_eq_of_eq_inv_mul (mul_assoc _ _ _))
+
+@[simp] lemma conj_inv_conj {G : Type*} [group G] (g h : G) : g⁻¹ * (g * h * g⁻¹) * g = h :=
+mul_eq_of_eq_mul_inv (inv_mul_eq_of_eq_mul (mul_assoc _ _ _))
+
 instance conj.quandle (G : Type*) [group G] : quandle (conj G) :=
-{ op' := @group.inner_aut_equiv G _,
-  self_distrib' := λ x y z, by simp [group.inner_aut_equiv, group.inner_aut],
-  fix' := λ x, by simp [group.inner_aut_equiv, group.inner_aut] }
+{ op' := (λ x, (@mul_aut.conj G _ x).to_equiv),
+  self_distrib' := λ x y z, by simp,
+  fix' := λ x, by simp }
 
 @[simp]
 lemma conj_op_eq_conj {G : Type*} [group G] (x y : conj G) :

@@ -15,10 +15,16 @@ A functor `F : C ⥤ D` is cofinal if for every `d : D`,
 the comma category of morphisms `d ⟶ F.obj c` is connected.
 
 We prove that when `F : C ⥤ D` is cofinal,
-a functor `G : D ⥤ E` has a colimit if and only if `F ⋙ D` does
+the categories of cocones over `G : D ⥤ E` and over `F ⋙ G` are equivalent.
+(In fact, via an equivalence which does not change the cocone point.)
+
+As a consequence, the functor `G : D ⥤ E` has a colimit if and only if `F ⋙ F` does
 (and in either case, the colimits are isomorphic).
 
 There is a converse which we don't prove here.
+I think the correct statement is that if `colimit.pre G F : colimit (F ⋙ G) ⟶ colimit G`
+is an isomorphism for all functors `G : D ⥤ Type v`, then `F` is cofinal.
+(Unfortunately I don't know a reference that gives the proof.)
 
 ## Naming
 There is some discrepancy in the literature about naming; some say 'final' instead of 'cofinal'.
@@ -91,8 +97,10 @@ and to show that how to transport such a construction
 *both* directions along a morphism between such choices.
 -/
 lemma induction {d : D} (Z : Π (X : C) (k : d ⟶ F.obj X), Prop)
-  (h₁ : Π X₁ X₂ (k₁ : d ⟶ F.obj X₁) (k₂ : d ⟶ F.obj X₂) (f : X₁ ⟶ X₂), (k₁ ≫ F.map f = k₂) → Z X₁ k₁ → Z X₂ k₂)
-  (h₂ : Π X₁ X₂ (k₁ : d ⟶ F.obj X₁) (k₂ : d ⟶ F.obj X₂) (f : X₁ ⟶ X₂), (k₁ ≫ F.map f = k₂) → Z X₂ k₂ → Z X₁ k₁)
+  (h₁ : Π X₁ X₂ (k₁ : d ⟶ F.obj X₁) (k₂ : d ⟶ F.obj X₂) (f : X₁ ⟶ X₂),
+    (k₁ ≫ F.map f = k₂) → Z X₁ k₁ → Z X₂ k₂)
+  (h₂ : Π X₁ X₂ (k₁ : d ⟶ F.obj X₁) (k₂ : d ⟶ F.obj X₂) (f : X₁ ⟶ X₂),
+    (k₁ ≫ F.map f = k₂) → Z X₂ k₂ → Z X₁ k₁)
   {X₀ : C} {k₀ : d ⟶ F.obj X₀} (z : Z X₀ k₀) : Z (lift F d) (hom_to_lift F d) :=
 begin
   apply nonempty.some,
@@ -118,7 +126,8 @@ def extend_cocone : cocone (F ⋙ G) ⥤ cocone G :=
         dsimp, simp,
         -- This would be true if we'd chosen `lift F X` to be `lift F Y`
         -- and `hom_to_lift F X` to be `f ≫ hom_to_lift F Y`.
-        apply induction F (λ Z k, G.map f ≫ G.map (hom_to_lift F Y) ≫ c.ι.app (lift F Y) = G.map k ≫ c.ι.app Z),
+        apply induction F
+          (λ Z k, G.map f ≫ G.map (hom_to_lift F Y) ≫ c.ι.app (lift F Y) = G.map k ≫ c.ι.app Z),
         { intros Z₁ Z₂ k₁ k₂ g a z,
         rw [←a, functor.map_comp, category.assoc, ←functor.comp_map, c.w, z], },
         { intros Z₁ Z₂ k₁ k₂ g a z,
@@ -185,6 +194,7 @@ has_colimit.mk (colimit_cocone_comp F (get_colimit_cocone G))
 lemma colimit_pre_is_iso_aux {t : cocone G} (P : is_colimit t) :
   ((is_colimit_whisker_equiv F _).symm P).desc (t.whisker F) = 𝟙 t.X :=
 begin
+  dsimp [is_colimit_whisker_equiv],
   apply P.hom_ext,
   tidy,
 end

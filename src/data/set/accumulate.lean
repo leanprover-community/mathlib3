@@ -14,7 +14,7 @@ variables {α β γ : Type*} {s : α → set β} {t : α → set γ}
 
 namespace set
 
-/- `accumulate s` is the union of `s y` for `y ≤ x`. -/
+/-- `accumulate s` is the union of `s y` for `y ≤ x`. -/
 def accumulate [has_le α] (s : α → set β) (x : α) : set β := ⋃ y ≤ x, s y
 
 variable {s}

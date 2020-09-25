@@ -144,4 +144,37 @@ noncomputable theory
 def length (C : homological_complex V b) : with_top ℕ :=
 if h : ∃ n : ℕ, bounded_above_by C n then nat.find h else ⊤
 
+@[simps]
+def single (n : ℤ) (M : V) : chain_complex V :=
+{ X := λ i, if i = n then M else 0,
+  d := λ i, 0,
+  d_squared' := funext $ λ i, by simp }
+
+def single_at_n (n : ℤ) (M : V) : (single n M).X n ≅ M :=
+eq_to_iso $ by simp
+
+def single_not_at_n (n : ℤ) (M : V) (i : ℤ) (h : i ≠ n) : (single n M).X i ≅ 0 :=
+eq_to_iso $ by simp [h]
+
+@[simp]
+def graded.glue (n : ℤ) (L R : graded_object ℤ V) : graded_object ℤ V :=
+λ i, if i ≥ n then L i else R i
+
+def graded.glue_iso_left (n : ℤ) (L R : graded_object ℤ V) (i : ℤ) (h : n ≤ i) :
+  graded.glue n L R i ≅ L i :=
+eq_to_iso $ by simp [h]
+
+def graded.glue_iso_right (n : ℤ) (L R : graded_object ℤ V) (i : ℤ) (h : i < n) :
+  graded.glue n L R i ≅ R i :=
+eq_to_iso $ by simp [not_le.2 h]
+
+def glue (n : ℤ) (L R : chain_complex V) (d : L.X n ⟶ R.X (n - 1)) : chain_complex V :=
+{ X := graded.glue n L.X R.X,
+  d := λ i,
+    if h : i = n then (graded.glue_iso_left n L.X R.X i (by rw h)).hom ≫ eq_to_hom (by rw h) ≫
+      d ≫ eq_to_hom (by rw h) ≫
+      (graded.glue_iso_right n L.X R.X (i - 1) (by { rw [h], exact sub_one_lt _ })).inv else _,
+  d_squared' := _,
+}
+
 end homological_complex

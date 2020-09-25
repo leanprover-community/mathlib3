@@ -62,23 +62,24 @@ lcm_dvd_iff.1 (dvd_refl _) _ hb
 begin
   by_cases h : b ∈ s,
   { rw [insert_eq_of_mem h,
-    (lcm_eq_right_iff (f b) (s.lcm f) (multiset.normalize_lcm (s.1.map f))).2 (dvd_lcm h)] },
+        (lcm_eq_right_iff (f b) (s.lcm f) (multiset.normalize_lcm (s.1.map f))).2 (dvd_lcm h)] },
   apply fold_insert h,
 end
 
 @[simp] lemma lcm_singleton {b : β} : ({b} : finset β).lcm f = normalize (f b) :=
-lcm_singleton
+multiset.lcm_singleton
 
 @[simp] lemma normalize_lcm : normalize (s.lcm f) = s.lcm f := by simp [lcm_def]
 
 lemma lcm_union [decidable_eq β] : (s₁ ∪ s₂).lcm f = gcd_monoid.lcm (s₁.lcm f) (s₂.lcm f) :=
 finset.induction_on s₁ (by rw [empty_union, lcm_empty, lcm_one_left, normalize_lcm]) $ λ a s has ih,
-by rw [insert_union, lcm_insert, lcm_insert, ih, lcm_assoc]
+  by rw [insert_union, lcm_insert, lcm_insert, ih, lcm_assoc]
 
-theorem lcm_congr {f g : β → α} (hs : s₁ = s₂) (hfg : ∀a∈s₂, f a = g a) : s₁.lcm f = s₂.lcm g :=
-by subst hs; exact finset.fold_congr hfg
+theorem lcm_congr {f g : β → α} (hs : s₁ = s₂) (hfg : ∀a ∈ s₂, f a = g a) :
+  s₁.lcm f = s₂.lcm g :=
+by { subst hs, exact finset.fold_congr hfg }
 
-lemma lcm_mono_fun {g : β → α} (h : ∀b∈s, f b ∣ g b) : s.lcm f ∣ s.lcm g :=
+lemma lcm_mono_fun {g : β → α} (h : ∀ b ∈ s, f b ∣ g b) : s.lcm f ∣ s.lcm g :=
 lcm_dvd (λ b hb, dvd_trans (h b hb) (dvd_lcm hb))
 
 lemma lcm_mono (h : s₁ ⊆ s₂) : s₁.lcm f ∣ s₂.lcm f :=
@@ -122,18 +123,19 @@ begin
 end
 
 @[simp] lemma gcd_singleton {b : β} : ({b} : finset β).gcd f = normalize (f b) :=
-gcd_singleton
+multiset.gcd_singleton
 
 @[simp] lemma normalize_gcd : normalize (s.gcd f) = s.gcd f := by simp [gcd_def]
 
 lemma gcd_union [decidable_eq β] : (s₁ ∪ s₂).gcd f = gcd_monoid.gcd (s₁.gcd f) (s₂.gcd f) :=
 finset.induction_on s₁ (by rw [empty_union, gcd_empty, gcd_zero_left, normalize_gcd]) $ λ a s has ih,
-by rw [insert_union, gcd_insert, gcd_insert, ih, gcd_assoc]
+  by rw [insert_union, gcd_insert, gcd_insert, ih, gcd_assoc]
 
-theorem gcd_congr {f g : β → α} (hs : s₁ = s₂) (hfg : ∀a∈s₂, f a = g a) : s₁.gcd f = s₂.gcd g :=
-by subst hs; exact finset.fold_congr hfg
+theorem gcd_congr {f g : β → α} (hs : s₁ = s₂) (hfg : ∀a ∈ s₂, f a = g a) :
+  s₁.gcd f = s₂.gcd g :=
+by { subst hs, exact finset.fold_congr hfg }
 
-lemma gcd_mono_fun {g : β → α} (h : ∀b∈s, f b ∣ g b) : s.gcd f ∣ s.gcd g :=
+lemma gcd_mono_fun {g : β → α} (h : ∀ b ∈ s, f b ∣ g b) : s.gcd f ∣ s.gcd g :=
 dvd_gcd (λ b hb, dvd_trans (gcd_dvd hb) (h b hb))
 
 lemma gcd_mono (h : s₁ ⊆ s₂) : s₂.gcd f ∣ s₁.gcd f :=

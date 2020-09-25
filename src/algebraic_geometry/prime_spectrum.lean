@@ -389,11 +389,9 @@ end
 section basic_open
 
 /-- `basic_open r` is the open subset containing all prime ideals not containing `r`. -/
-def basic_open (r : R) : set (prime_spectrum R) :=
-{ x | r ∉ x.as_ideal }
-
-lemma basic_open_open {r : R} : is_open (basic_open r) :=
-⟨{r}, set.ext $ λ x, set.singleton_subset_iff.trans $ not_not.symm⟩
+def basic_open (r : R) : topological_space.opens (prime_spectrum R) :=
+{ val := { x | r ∉ x.as_ideal },
+  property := ⟨{r}, set.ext $ λ x, set.singleton_subset_iff.trans $ not_not.symm⟩ }
 
 end basic_open
 

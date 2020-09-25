@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import algebraic_geometry.presheafed_space
 import topology.sheaves.sheaf
-import category_theory.full_subcategory
 
 /-!
 # Sheafed spaces
@@ -34,7 +33,7 @@ namespace algebraic_geometry
 
 /-- A `SheafedSpace C` is a topological space equipped with a sheaf of `C`s. -/
 structure SheafedSpace extends PresheafedSpace C :=
-(sheaf_condition : sheaf_condition presheaf)
+(sheaf_condition : presheaf.sheaf_condition)
 
 variables {C}
 
@@ -54,10 +53,12 @@ rfl
 instance (X : SheafedSpace.{v} C) : topological_space X := X.carrier.str
 
 /-- The trivial `punit` valued sheaf on any topological space. -/
+noncomputable
 def punit (X : Top) : SheafedSpace (discrete punit) :=
-{ sheaf_condition := sheaf_condition_punit _,
+{ sheaf_condition := presheaf.sheaf_condition_punit _,
   ..@PresheafedSpace.const (discrete punit) _ X punit.star }
 
+noncomputable
 instance : inhabited (SheafedSpace (discrete _root_.punit)) := ⟨punit (Top.of pempty)⟩
 
 instance : category (SheafedSpace C) :=
@@ -91,6 +92,8 @@ by { op_induction U, cases U, simp only [id_c], dsimp, simp, }
   (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.base)).obj (unop U))) ≫
     (Top.presheaf.pushforward.comp _ _ _).inv.app U := rfl
 
+variables (C)
+
 /-- The forgetful functor from `SheafedSpace` to `Top`. -/
 def forget : SheafedSpace C ⥤ Top :=
 { obj := λ X, (X : Top.{v}),
@@ -98,15 +101,36 @@ def forget : SheafedSpace C ⥤ Top :=
 
 end
 
+open Top.presheaf
+
 /--
 The restriction of a sheafed space along an open embedding into the space.
 -/
+noncomputable
 def restrict {U : Top} (X : SheafedSpace C)
   (f : U ⟶ (X : Top.{v})) (h : open_embedding f) : SheafedSpace C :=
 { sheaf_condition := λ ι 𝒰, is_limit.of_iso_limit
     ((is_limit.postcompose_inv_equiv _ _).inv_fun (X.sheaf_condition _))
-    (sheaf_condition.fork.iso_of_open_embedding h 𝒰).symm,
+    (sheaf_condition_equalizer_products.fork.iso_of_open_embedding h 𝒰).symm,
   ..X.to_PresheafedSpace.restrict f h }
+
+/--
+The global sections, notated Gamma.
+-/
+def Γ : (SheafedSpace C)ᵒᵖ ⥤ C :=
+forget_to_PresheafedSpace.op ⋙ PresheafedSpace.Γ
+
+lemma Γ_def : (Γ : _ ⥤ C) = forget_to_PresheafedSpace.op ⋙ PresheafedSpace.Γ := rfl
+
+@[simp] lemma Γ_obj (X : (SheafedSpace C)ᵒᵖ) : Γ.obj X = (unop X).presheaf.obj (op ⊤) := rfl
+
+lemma Γ_obj_op (X : SheafedSpace C) : Γ.obj (op X) = X.presheaf.obj (op ⊤) := rfl
+
+@[simp] lemma Γ_map {X Y : (SheafedSpace C)ᵒᵖ} (f : X ⟶ Y) :
+  Γ.map f = f.unop.c.app (op ⊤) ≫ (unop Y).presheaf.map (opens.le_map_top _ _).op := rfl
+
+lemma Γ_map_op {X Y : SheafedSpace C} (f : X ⟶ Y) :
+  Γ.map f.op = f.c.app (op ⊤) ≫ X.presheaf.map (opens.le_map_top _ _).op := rfl
 
 end SheafedSpace
 

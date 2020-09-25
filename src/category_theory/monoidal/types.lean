@@ -3,9 +3,13 @@ Copyright (c) 2018 Michael Jendrusch. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Jendrusch, Scott Morrison
 -/
-import category_theory.monoidal.of_has_finite_products
+import category_theory.monoidal.of_chosen_finite_products
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.types
+
+/-!
+# The category of types is a symmetric monoidal category
+-/
 
 open category_theory
 open category_theory.limits
@@ -15,11 +19,11 @@ universes u
 
 namespace category_theory.monoidal
 
-local attribute [instance] types.types_has_terminal types.types_has_binary_products
-local attribute [instance] monoidal_of_has_finite_products symmetric_of_has_finite_products
+instance types_monoidal : monoidal_category.{u} (Type u) :=
+monoidal_of_chosen_finite_products (types.terminal_limit_cone) (types.binary_product_limit_cone)
 
-instance types_monoidal : monoidal_category.{u} (Type u) := by apply_instance
-instance types_symmetric : symmetric_category.{u} (Type u) := by apply_instance
+instance types_symmetric : symmetric_category.{u} (Type u) :=
+symmetric_of_chosen_finite_products (types.terminal_limit_cone) (types.binary_product_limit_cone)
 
 @[simp] lemma tensor_apply {W X Y Z : Type u} (f : W ⟶ X) (g : Y ⟶ Z) (p : W ⊗ Y) :
   (f ⊗ g) p = (f p.1, g p.2) := rfl
@@ -38,5 +42,10 @@ instance types_symmetric : symmetric_category.{u} (Type u) := by apply_instance
   ((α_ X Y Z).hom : (X ⊗ Y) ⊗ Z → X ⊗ (Y ⊗ Z)) ((x, y), z) = (x, (y, z)) := rfl
 @[simp] lemma associator_inv_apply {X Y Z : Type u} {x : X} {y : Y} {z : Z} :
   ((α_ X Y Z).inv : X ⊗ (Y ⊗ Z) → (X ⊗ Y) ⊗ Z) (x, (y, z)) = ((x, y), z) := rfl
+
+@[simp] lemma braiding_hom_apply {X Y : Type u} {x : X} {y : Y} :
+  ((β_ X Y).hom : X ⊗ Y → Y ⊗ X) (x, y) = (y, x) := rfl
+@[simp] lemma braiding_inv_apply {X Y : Type u} {x : X} {y : Y} :
+  ((β_ X Y).inv : Y ⊗ X → X ⊗ Y) (y, x) = (x, y) := rfl
 
 end category_theory.monoidal

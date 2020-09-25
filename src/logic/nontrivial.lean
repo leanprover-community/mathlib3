@@ -43,13 +43,9 @@ end
 lemma nontrivial_of_ne (x y : α) (h : x ≠ y) : nontrivial α :=
 ⟨⟨x, y, h⟩⟩
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
-
+@[priority 100] -- see Note [lower instance priority]
 instance nontrivial.to_nonempty [nontrivial α] : nonempty α :=
 let ⟨x, _⟩ := exists_pair_ne α in ⟨x⟩
-
-end prio
 
 /-- An inhabited type is either nontrivial, or has a unique element. -/
 noncomputable def nontrivial_psum_unique (α : Type*) [inhabited α] :
@@ -72,6 +68,9 @@ by { rw [nontrivial_iff, subsingleton_iff], push_neg, refl }
 /-- A type is either a subsingleton or nontrivial. -/
 lemma subsingleton_or_nontrivial (α : Type*) :  subsingleton α ∨ nontrivial α :=
 by { rw [← not_nontrivial_iff_subsingleton, or_comm], exact classical.em _ }
+
+lemma false_of_nontrivial_of_subsingleton (α : Type*) [nontrivial α] [subsingleton α] : false :=
+let ⟨x, y, h⟩ := exists_pair_ne α in h $ subsingleton.elim x y
 
 instance nontrivial_prod_left [nontrivial α] [nonempty β] : nontrivial (α × β) :=
 begin

@@ -98,7 +98,7 @@ theorem add_pow_char_pow_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prim
   (x + y) ^ (p ^ n) = x ^ (p ^ n) + y ^ (p ^ n) :=
 begin
   induction n, { simp, },
-  rw [nat.pow_succ, pow_mul, pow_mul, pow_mul, n_ih],
+  rw [pow_succ', pow_mul, pow_mul, pow_mul, n_ih],
   apply add_pow_char_of_commute, apply commute.pow_pow h,
 end
 
@@ -115,7 +115,7 @@ theorem sub_pow_char_pow_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prim
   (x - y) ^ (p ^ n) = x ^ (p ^ n) - y ^ (p ^ n) :=
 begin
   induction n, { simp, },
-  rw [nat.pow_succ, pow_mul, pow_mul, pow_mul, n_ih],
+  rw [pow_succ', pow_mul, pow_mul, pow_mul, n_ih],
   apply sub_pow_char_of_commute, apply commute.pow_pow h,
 end
 
@@ -174,7 +174,7 @@ theorem frobenius_def : frobenius R p x = x ^ p := rfl
 theorem iterate_frobenius (n : ℕ) : (frobenius R p)^[n] x = x ^ p ^ n :=
 begin
   induction n, {simp},
-  rw [function.iterate_succ', nat.pow_succ, pow_mul, function.comp_apply, frobenius_def, n_ih]
+  rw [function.iterate_succ', pow_succ', pow_mul, function.comp_apply, frobenius_def, n_ih]
 end
 
 theorem frobenius_mul : frobenius R p (x * y) = frobenius R p x * frobenius R p y :=
@@ -293,9 +293,7 @@ section char_one
 
 variables {R : Type*}
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
-
+@[priority 100]  -- see Note [lower instance priority]
 instance [semiring R] [char_p R 1] : subsingleton R :=
 subsingleton.intro $
 suffices ∀ (r : R), r = 0,
@@ -306,13 +304,15 @@ calc r = 1 * r       : by rw one_mul
    ... = 0 * r       : by rw char_p.cast_eq_zero
    ... = 0           : by rw zero_mul
 
-end prio
-
-lemma false_of_nonzero_of_char_one [semiring R] [nontrivial R] [char_p R 1] : false :=
-zero_ne_one $ show (0:R) = 1, from subsingleton.elim 0 1
+lemma false_of_nontrivial_of_char_one [semiring R] [nontrivial R] [char_p R 1] : false :=
+false_of_nontrivial_of_subsingleton R
 
 lemma ring_char_ne_one [semiring R] [nontrivial R] : ring_char R ≠ 1 :=
 by { intros h, apply @zero_ne_one R, symmetry, rw [←nat.cast_one, ring_char.spec, h], }
+
+lemma nontrivial_of_char_ne_one {v : ℕ} (hv : v ≠ 1) {R : Type*} [semiring R] [hr : char_p R v] :
+  nontrivial R :=
+⟨⟨(1 : ℕ), 0, λ h, hv $ by rwa [char_p.cast_eq_zero_iff _ v, nat.dvd_one] at h; assumption ⟩⟩
 
 end char_one
 

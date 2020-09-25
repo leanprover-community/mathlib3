@@ -57,10 +57,6 @@ class has_inner (α : Type*) := (inner : α → α → ℝ)
 
 export has_inner (inner)
 
-section prio
-
-set_option default_priority 100 -- see Note [default priority]
-
 -- the norm is embedded in the inner product space structure
 -- to avoid definitional equality issues. See Note [forgetful inheritance].
 
@@ -78,7 +74,6 @@ class inner_product_space (α : Type*) extends normed_group α, normed_space ℝ
 (comm      : ∀ x y, inner x y = inner y x)
 (add_left  : ∀ x y z, inner (x + y) z = inner x z + inner y z)
 (smul_left : ∀ x y r, inner (r • x) y = r * inner x y)
-end prio
 
 /-!
 ### Constructing a normed space structure from a scalar product
@@ -351,6 +346,24 @@ begin
   linarith
 end
 
+/-- A family of vectors is linearly independent if they are nonzero
+and orthogonal. -/
+lemma linear_independent_of_ne_zero_of_inner_eq_zero {ι : Type*} {v : ι → α}
+  (hz : ∀ i, v i ≠ 0) (ho : ∀ i j, i ≠ j → inner (v i) (v j) = 0) : linear_independent ℝ v :=
+begin
+  rw linear_independent_iff',
+  intros s g hg i hi,
+  have h' : g i * inner (v i) (v i) = inner (∑ j in s, g j • v j) (v i),
+  { rw sum_inner,
+    symmetry,
+    convert finset.sum_eq_single i _ _,
+    { rw inner_smul_left },
+    { intros j hj hji,
+      rw [inner_smul_left, ho j i hji, mul_zero] },
+    { exact λ h, false.elim (h hi) } },
+  simpa [hg, hz] using h'
+end
+
 end basic_properties
 
 section norm
@@ -441,6 +454,15 @@ form. -/
 lemma norm_sub_square_eq_norm_square_add_norm_square {x y : α} (h : inner x y = 0) :
   ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
 (norm_sub_square_eq_norm_square_add_norm_square_iff_inner_eq_zero x y).2 h
+
+/-- The sum and difference of two vectors are orthogonal if and only
+if they have the same norm. -/
+lemma inner_add_sub_eq_zero_iff (x y : α) : inner (x + y) (x - y) = 0 ↔ ∥x∥ = ∥y∥ :=
+begin
+  conv_rhs { rw ←mul_self_inj_of_nonneg (norm_nonneg _) (norm_nonneg _) },
+  simp [←inner_self_eq_norm_square, inner_add_left, inner_sub_right, inner_comm y x,
+        sub_eq_zero, add_comm (inner x y)]
+end
 
 /-- The inner product of two vectors, divided by the product of their
 norms, has absolute value at most 1. -/
@@ -1085,6 +1107,12 @@ lemma submodule.orthogonal_gc :
 
 variables {α}
 
+/-- `submodule.orthogonal` reverses the `≤` ordering of two
+subspaces. -/
+lemma submodule.orthogonal_le {K₁ K₂ : submodule ℝ α} (h : K₁ ≤ K₂) :
+  K₂.orthogonal ≤ K₁.orthogonal :=
+(submodule.orthogonal_gc α).monotone_l h
+
 /-- `K` is contained in `K.orthogonal.orthogonal`. -/
 lemma submodule.le_orthogonal_orthogonal (K : submodule ℝ α) : K ≤ K.orthogonal.orthogonal :=
 (submodule.orthogonal_gc α).le_u_l _
@@ -1107,21 +1135,28 @@ lemma submodule.Inf_orthogonal (s : set $ submodule ℝ α) :
   (⨅ K ∈ s, submodule.orthogonal K) = (Sup s).orthogonal :=
 (submodule.orthogonal_gc α).l_Sup.symm
 
+/-- If `K₁` is complete and contained in `K₂`, `K₁` and `K₁.orthogonal ⊓ K₂` span `K₂`. -/
+lemma submodule.sup_orthogonal_inf_of_is_complete {K₁ K₂ : submodule ℝ α} (h : K₁ ≤ K₂)
+  (hc : is_complete (K₁ : set α)) : K₁ ⊔ (K₁.orthogonal ⊓ K₂) = K₂ :=
+begin
+  ext x,
+  rw submodule.mem_sup,
+  rcases exists_norm_eq_infi_of_complete_subspace K₁ hc x with ⟨v, hv, hvm⟩,
+  rw norm_eq_infi_iff_inner_eq_zero K₁ hv at hvm,
+  split,
+  { rintro ⟨y, hy, z, hz, rfl⟩,
+    exact K₂.add_mem (h hy) hz.2 },
+  { exact λ hx, ⟨v, hv, x - v, ⟨(K₁.mem_orthogonal' _).2 hvm, K₂.sub_mem hx (h hv)⟩,
+                 add_sub_cancel'_right _ _⟩ }
+end
+
 /-- If `K` is complete, `K` and `K.orthogonal` span the whole
 space. -/
 lemma submodule.sup_orthogonal_of_is_complete {K : submodule ℝ α} (h : is_complete (K : set α)) :
   K ⊔ K.orthogonal = ⊤ :=
 begin
-  rw submodule.eq_top_iff',
-  intro x,
-  rw submodule.mem_sup,
-  rcases exists_norm_eq_infi_of_complete_subspace K h x with ⟨v, hv, hvm⟩,
-  rw norm_eq_infi_iff_inner_eq_zero K hv at hvm,
-  use [v, hv, x - v],
-  split,
-  { rw submodule.mem_orthogonal',
-    exact hvm },
-  { exact add_sub_cancel'_right _ _ }
+  convert submodule.sup_orthogonal_inf_of_is_complete (le_top : K ≤ ⊤) h,
+  simp
 end
 
 /-- If `K` is complete, `K` and `K.orthogonal` are complements of each
@@ -1129,5 +1164,23 @@ other. -/
 lemma submodule.is_compl_orthogonal_of_is_complete {K : submodule ℝ α}
     (h : is_complete (K : set α)) : is_compl K K.orthogonal :=
 ⟨K.orthogonal_disjoint, le_of_eq (submodule.sup_orthogonal_of_is_complete h).symm⟩
+
+open finite_dimensional
+
+/-- Given a finite-dimensional subspace `K₂`, and a subspace `K₁`
+containined in it, the dimensions of `K₁` and the intersection of its
+orthogonal subspace with `K₂` add to that of `K₂`. -/
+lemma submodule.findim_add_inf_findim_orthogonal {K₁ K₂ : submodule ℝ α}
+  [finite_dimensional ℝ K₂] (h : K₁ ≤ K₂) :
+  findim ℝ K₁ + findim ℝ (K₁.orthogonal ⊓ K₂ : submodule ℝ α) = findim ℝ K₂ :=
+begin
+  haveI := submodule.finite_dimensional_of_le h,
+  have hd := submodule.dim_sup_add_dim_inf_eq K₁ (K₁.orthogonal ⊓ K₂),
+  rw [←inf_assoc, (submodule.orthogonal_disjoint K₁).eq_bot, bot_inf_eq, findim_bot,
+      submodule.sup_orthogonal_inf_of_is_complete h
+        (submodule.complete_of_finite_dimensional _)] at hd,
+  rw add_zero at hd,
+  exact hd.symm
+end
 
 end orthogonal

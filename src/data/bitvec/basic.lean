@@ -3,7 +3,7 @@ Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author(s): Simon Hudon
 -/
-import data.bitvec
+import data.bitvec.core
 import data.fin
 import tactic.norm_num
 import tactic.monotonicity
@@ -22,7 +22,7 @@ by rw [of_fin,to_nat_of_nat,nat.mod_eq_of_lt]; apply i.is_lt
 
 /-- convert `bitvec` to `fin` -/
 def to_fin {n : ℕ} (i : bitvec n) : fin $ 2^n :=
-@fin.of_nat' _ (nat.pow_pos (by norm_num) _) i.to_nat
+@fin.of_nat' _ (pow_pos (by norm_num) _) i.to_nat
 
 lemma add_lsb_eq_twice_add_one {x b} :
   add_lsb x b = 2 * x + cond b 1 0 :=
@@ -42,7 +42,7 @@ begin
   generalize_hyp : xs.reverse = ys at ⊢ h, clear xs,
   induction ys generalizing n,
   { simp [← h] },
-  { simp only [←h, nat.pow_add, flip, list.length, list.foldr, nat.pow_one],
+  { simp only [←h, pow_add, flip, list.length, list.foldr, pow_one],
     rw [add_lsb_eq_twice_add_one],
     transitivity 2 * list.foldr (λ (x : bool) (y : ℕ), add_lsb y x) 0 ys_tl + 2 * 1,
     { ac_mono, rw two_mul, mono, cases ys_hd; simp },

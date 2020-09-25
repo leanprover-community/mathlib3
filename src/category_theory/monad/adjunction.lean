@@ -55,8 +55,6 @@ def comparison_forget [is_right_adjoint R] : comparison R ⋙ forget ((left_adjo
 
 end monad
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A functor is *reflective*, or *a reflective inclusion*, if it is fully faithful and right adjoint. -/
 class reflective (R : D ⥤ C) extends is_right_adjoint R, full R, faithful R.
 
@@ -64,7 +62,6 @@ class reflective (R : D ⥤ C) extends is_right_adjoint R, full R, faithful R.
 category of Eilenberg-Moore algebras for the adjunction is an equivalence. -/
 class monadic_right_adjoint (R : D ⥤ C) extends is_right_adjoint R :=
 (eqv : is_equivalence (monad.comparison R))
-end prio
 
 instance μ_iso_of_reflective [reflective R] : is_iso (μ_ ((left_adjoint R) ⋙ R)) :=
 by { dsimp [adjunction.monad], apply_instance }

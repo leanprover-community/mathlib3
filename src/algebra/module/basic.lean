@@ -119,6 +119,8 @@ def semimodule.add_comm_monoid_to_add_comm_group [ring R] [add_comm_monoid M] [s
     rw [← add_smul, add_left_neg, zero_smul], },
   ..(infer_instance : add_comm_monoid M), }
 
+variables {R}
+
 section add_comm_group
 
 variables (R M) [semiring R] [add_comm_group M]

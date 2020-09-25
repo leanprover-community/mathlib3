@@ -9,7 +9,18 @@ import algebra.gcd_monoid
 /-!
 # GCD and LCM operations on multisets
 
-TODO: Replace all of this with a tactic and `data.multiset.lattice`
+## Main definitions
+
+- `multiset.gcd` - the greatest common denominator of a `multiset` of elements of a `gcd_monoid`
+- `multiset.lcm` - the least common multiple of a `multiset` of elements of a `gcd_monoid`
+
+## Implementation notes
+
+TODO: simplify with a tactic and `data.multiset.lattice`
+
+## Tags
+
+multiset, gcd
 -/
 
 namespace multiset

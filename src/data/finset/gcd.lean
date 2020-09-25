@@ -9,7 +9,21 @@ import data.multiset.gcd
 /-!
 # GCD and LCM operations on finsets
 
+## Main definitions
+
+- `finset.gcd` - the greatest common denominator of a `finset` of elements of a `gcd_monoid`
+- `finset.lcm` - the least common multiple of a `finset` of elements of a `gcd_monoid`
+
+## Implementation notes
+
+Many of the proofs use the lemmas `gcd.def` and `lcm.def`, which relate `finset.gcd`
+and `finset.lcm` to `multiset.gcd` and `multiset.lcm`.
+
 TODO: simplify with a tactic and `data.finset.lattice`
+
+## Tags
+
+finset, gcd
 -/
 
 variables {α β γ : Type*} [comm_cancel_monoid_with_zero α] [nontrivial α] [gcd_monoid α]

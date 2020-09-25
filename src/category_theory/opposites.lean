@@ -273,6 +273,44 @@ protected definition unop (α : F.op ≅ G.op) : G ≅ F :=
 
 end nat_iso
 
+namespace equivalence
+
+variables {D : Type u₂} [category.{v₂} D]
+
+/--
+An equivalence between categories gives an equivalence between the opposite categories.
+-/
+@[simps]
+def op (e : C ≌ D) : Cᵒᵖ ≌ Dᵒᵖ :=
+{ functor := e.functor.op,
+  inverse := e.inverse.op,
+  unit_iso := (nat_iso.op e.unit_iso).symm,
+  counit_iso := (nat_iso.op e.counit_iso).symm,
+  functor_unit_iso_comp' := λ X, by { apply has_hom.hom.unop_inj, dsimp, simp, }, }
+
+/--
+An equivalence between opposite categories gives an equivalence between the original categories.
+-/
+@[simps]
+def unop (e : Cᵒᵖ ≌ Dᵒᵖ) : C ≌ D :=
+{ functor := e.functor.unop,
+  inverse := e.inverse.unop,
+  unit_iso := nat_iso.of_components (λ X,
+  { hom := (e.unit_iso.app (opposite.op X)).inv.unop,
+    inv := (e.unit_iso.app (opposite.op X)).hom.unop,
+    hom_inv_id' := by { apply has_hom.hom.op_inj, dsimp, simp, dsimp, refl, },
+    inv_hom_id' := by { apply has_hom.hom.op_inj, dsimp, simp, dsimp, refl, }, })
+  (by { intros, apply has_hom.hom.op_inj, dsimp, simp, dsimp, simp, }),
+  counit_iso := nat_iso.of_components (λ X,
+  { hom := (e.counit_iso.app (opposite.op X)).inv.unop,
+    inv := (e.counit_iso.app (opposite.op X)).hom.unop,
+    hom_inv_id' := by { apply has_hom.hom.op_inj, dsimp, simp, dsimp, refl, },
+    inv_hom_id' := by { apply has_hom.hom.op_inj, dsimp, simp, dsimp, refl, }, })
+  (by { intros, apply has_hom.hom.op_inj, dsimp, simp, }),
+  functor_unit_iso_comp' := λ X, by { apply has_hom.hom.op_inj, dsimp, simp, }, }
+
+end equivalence
+
 /-- The equivalence between arrows of the form `A ⟶ B` and `B.unop ⟶ A.unop`. Useful for building
 adjunctions.
 Note that this (definitionally) gives variants

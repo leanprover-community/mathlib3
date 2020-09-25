@@ -1102,4 +1102,4 @@ import topology.uniform_space.separation
 import topology.uniform_space.uniform_convergence
 import topology.uniform_space.uniform_embedding
 
-#lint_all only simp_nf
+#lint_all only has_coe_to_fun incorrect_type_class_argument impossible_instance dup_namespace fails_quickly ge_or_gt simp_comm has_coe_variable decidable_classical simp_var_head def_lemma simp_nf instance_priority inhabited_nonempty dangerous_instance

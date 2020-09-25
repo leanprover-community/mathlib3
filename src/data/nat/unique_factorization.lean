@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 
-import data.nat.prime
+import data.nat.associated
 import ring_theory.unique_factorization_domain
 
 /-#
@@ -24,21 +24,6 @@ This file defines the `unique_factorization_monoid` structure on the natural num
 
 prime factorization, prime factors, unique factorization, unique factors
 -/
-
-
-theorem nat.irreducible_iff_prime {p : ℕ} : irreducible p ↔ prime p :=
-begin
-  refine ⟨λ h, _, irreducible_of_prime⟩,
-  rw ← nat.prime_iff,
-  refine ⟨_, λ m hm, _⟩,
-  { cases p, { exfalso, apply h.ne_zero rfl },
-    cases p, { exfalso, apply h.1 is_unit_one, },
-    omega },
-  { cases hm with n hn,
-    cases h.2 m n hn with um un,
-    { left, rw nat.is_unit_iff.1 um, },
-    { right, rw [hn, nat.is_unit_iff.1 un, mul_one], } }
-end
 
 namespace nat
 

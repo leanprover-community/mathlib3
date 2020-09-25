@@ -329,17 +329,21 @@ calc ((roots ((X : polynomial R) ^ n - C a)).card : with_bot ℕ)
       ≤ degree ((X : polynomial R) ^ n - C a) : card_roots (X_pow_sub_C_ne_zero hn a)
   ... = n : degree_X_pow_sub_C hn a
 
+section nth_roots
 
 /-- `nth_roots n a` noncomputably returns the solutions to `x ^ n = a`-/
-def nth_roots {R : Type*} [integral_domain R] (n : ℕ) (a : R) : multiset R :=
+def nth_roots (n : ℕ) (a : R) : multiset R :=
 roots ((X : polynomial R) ^ n - C a)
 
-@[simp] lemma mem_nth_roots {R : Type*} [integral_domain R] {n : ℕ} (hn : 0 < n) {a x : R} :
+@[simp] lemma mem_nth_roots {n : ℕ} (hn : 0 < n) {a x : R} :
   x ∈ nth_roots n a ↔ x ^ n = a :=
 by rw [nth_roots, mem_roots (X_pow_sub_C_ne_zero hn a),
   is_root.def, eval_sub, eval_C, eval_pow, eval_X, sub_eq_zero_iff_eq]
 
-lemma card_nth_roots {R : Type*} [integral_domain R] (n : ℕ) (a : R) :
+@[simp] lemma nth_roots_zero (r : R) : nth_roots 0 r = 0 :=
+by simp only [empty_eq_zero, pow_zero, nth_roots, ← C_1, ← C_sub, roots_C]
+
+lemma card_nth_roots (n : ℕ) (a : R) :
   (nth_roots n a).card ≤ n :=
 if hn : n = 0
 then if h : (X : polynomial R) ^ n - C a = 0
@@ -349,6 +353,23 @@ then if h : (X : polynomial R) ^ n - C a = 0
       exact degree_C_le))
 else by rw [← with_bot.coe_le_coe, ← degree_X_pow_sub_C (nat.pos_of_ne_zero hn) a];
   exact card_roots (X_pow_sub_C_ne_zero (nat.pos_of_ne_zero hn) a)
+
+/-- `roots_of_unity n R` is the multiset of elements `r : R` that satisfy `r ^ n = 1` -/
+def roots_of_unity (n : ℕ) (R : Type*) [integral_domain R] : multiset R :=
+nth_roots n (1 : R)
+
+@[simp] lemma mem_roots_of_unity {n : ℕ} (hn : 0 < n) (x : R) :
+  x ∈ roots_of_unity n R ↔ x ^ n = 1 :=
+mem_nth_roots hn
+
+@[simp] lemma roots_of_unity_zero : roots_of_unity 0 R = 0 :=
+nth_roots_zero _
+
+lemma card_roots_of_unity (n : ℕ) :
+  (roots_of_unity n R).card ≤ n :=
+card_nth_roots n _
+
+end nth_roots
 
 lemma coeff_comp_degree_mul_degree (hqd0 : nat_degree q ≠ 0) :
   coeff (p.comp q) (nat_degree p * nat_degree q) =

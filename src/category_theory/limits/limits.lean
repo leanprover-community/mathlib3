@@ -874,6 +874,23 @@ is_limit.cone_point_unique_up_to_iso_hom_comp _ _ _
   (is_limit.cone_point_unique_up_to_iso (limit.is_limit _) hc).inv ≫ limit.π F j = c.π.app j :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _
 
+/--
+Given any other limit cone for `F`, the chosen `limit F` is isomorphic to the cone point.
+-/
+def limit.iso_limit_cone {F : J ⥤ C} [has_limit F] (t : limit_cone F) :
+  limit F ≅ t.cone.X :=
+is_limit.cone_point_unique_up_to_iso (limit.is_limit F) t.is_limit
+
+@[simp, reassoc] lemma limit.iso_limit_cone_hom_π
+  {F : J ⥤ C} [has_limit F] (t : limit_cone F) (j : J) :
+  (limit.iso_limit_cone t).hom ≫ t.cone.π.app j = limit.π F j :=
+by { dsimp [limit.iso_limit_cone, is_limit.cone_point_unique_up_to_iso], tidy, }
+
+@[simp, reassoc] lemma limit.iso_limit_cone_inv_π
+  {F : J ⥤ C} [has_limit F] (t : limit_cone F) (j : J) :
+  (limit.iso_limit_cone t).inv ≫ limit.π F j = t.cone.π.app j :=
+by { dsimp [limit.iso_limit_cone, is_limit.cone_point_unique_up_to_iso], tidy, }
+
 @[ext] lemma limit.hom_ext {F : J ⥤ C} [has_limit F] {X : C} {f f' : X ⟶ limit F}
   (w : ∀ j, f ≫ limit.π F j = f' ≫ limit.π F j) : f = f' :=
 (limit.is_limit F).hom_ext w
@@ -996,6 +1013,18 @@ variables (D : L ⥤ K) [has_limit (D ⋙ E ⋙ F)]
 
 @[simp] lemma limit.pre_pre : limit.pre F E ≫ limit.pre (E ⋙ F) D = limit.pre F (D ⋙ E) :=
 by ext j; erw [assoc, limit.pre_π, limit.pre_π, limit.pre_π]; refl
+
+variables {E F}
+
+/---
+If we have particular limit cones available for `E ⋙ F` and for `F`,
+we obtain a formula for `limit.pre F E`.
+-/
+lemma limit.pre_eq (s : limit_cone (E ⋙ F)) (t : limit_cone F) :
+  limit.pre F E =
+    (limit.iso_limit_cone t).hom ≫ s.is_limit.lift ((t.cone).whisker E) ≫
+      (limit.iso_limit_cone s).inv :=
+by tidy
 
 end pre
 

@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Topology on lists and vectors.
 -/
-import topology.constructions
+import topology.constructions topology.algebra.group
 
 open topological_space set filter
 open_locale topological_space filter
@@ -55,17 +55,18 @@ lemma nhds_cons [topological_space α] (a : α) (l : list α) :
   𝓝 (a :: l) = list.cons <$> 𝓝 a <*> 𝓝 l  :=
 by rw [nhds_list, list.traverse_cons _, ← nhds_list]; apply_instance
 
-namespace list
 variables [topological_space α] [topological_space β]
 
-lemma tendsto_cons' {a : α} {l : list α} :
+lemma list.tendsto_cons {a : α} {l : list α} :
   tendsto (λp:α×list α, list.cons p.1 p.2) (𝓝 a ×ᶠ 𝓝 l) (𝓝 (a :: l)) :=
 by rw [nhds_cons, tendsto, map_prod]; exact le_refl _
 
-lemma tendsto_cons {α : Type*} {f : α → β} {g : α → list β}
+lemma filter.tendsto.cons {α : Type*} {f : α → β} {g : α → list β}
   {a : _root_.filter α} {b : β} {l : list β} (hf : tendsto f a (𝓝 b)) (hg : tendsto g a (𝓝 l)) :
   tendsto (λa, list.cons (f a) (g a)) a (𝓝 (b :: l)) :=
-tendsto_cons'.comp (tendsto.prod_mk hf hg)
+list.tendsto_cons.comp (tendsto.prod_mk hf hg)
+
+namespace list
 
 lemma tendsto_cons_iff {β : Type*} {f : list α → β} {b : _root_.filter β} {a : α} {l : list α} :
   tendsto f (𝓝 (a :: l)) b ↔ tendsto (λp:α×list α, f (p.1 :: p.2)) (𝓝 a ×ᶠ 𝓝 l) b :=
@@ -76,6 +77,10 @@ begin
   simp [-filter.seq_eq_filter_seq, -filter.map_def, (∘)] with functor_norm,
 end,
 by rw [this, filter.tendsto_map'_iff]
+
+lemma continuous_cons {α} [topological_space α] :
+  continuous (λ x : α × list α, (x.1 :: x.2 : list α)) :=
+continuous_iff_continuous_at.mpr $ λ ⟨x, y⟩, continuous_at_fst.cons continuous_at_snd
 
 lemma tendsto_nhds {β : Type*} {f : list α → β} {r : list α → _root_.filter β}
   (h_nil : tendsto f (pure []) (r []))
@@ -98,7 +103,7 @@ end
 
 lemma tendsto_insert_nth' {a : α} : ∀{n : ℕ} {l : list α},
   tendsto (λp:α×list α, insert_nth n p.1 p.2) (𝓝 a ×ᶠ 𝓝 l) (𝓝 (insert_nth n a l))
-| 0     l  := tendsto_cons'
+| 0     l  := tendsto_cons
 | (n+1) [] :=
   suffices tendsto (λa, []) (𝓝 a) (𝓝 ([] : list α)),
     by simpa [nhds_nil, tendsto, map_prod, (∘), insert_nth],
@@ -113,9 +118,8 @@ lemma tendsto_insert_nth' {a : α} : ∀{n : ℕ} {l : list α},
   end,
   begin
     rw [this, tendsto_map'_iff],
-    exact tendsto_cons
-      (tendsto_fst.comp tendsto_snd)
-      ((@tendsto_insert_nth' n l).comp (tendsto.prod_mk tendsto_fst (tendsto_snd.comp tendsto_snd)))
+    exact (tendsto_fst.comp tendsto_snd).cons
+      ((@tendsto_insert_nth' n l).comp $ tendsto_fst.prod_mk $ tendsto_snd.comp tendsto_snd)
   end
 
 lemma tendsto_insert_nth {β : Type*} {n : ℕ} {a : α} {l : list α} {f : β → α} {g : β → list α}
@@ -135,11 +139,27 @@ lemma tendsto_remove_nth : ∀{n : ℕ} {l : list α},
   begin
     rw [tendsto_cons_iff],
     dsimp [remove_nth],
-    exact tendsto_cons tendsto_fst ((@tendsto_remove_nth n l).comp tendsto_snd)
+    exact tendsto_fst.cons ((@tendsto_remove_nth n l).comp tendsto_snd)
   end
 
 lemma continuous_remove_nth {n : ℕ} : continuous (λl : list α, remove_nth l n) :=
 continuous_iff_continuous_at.mpr $ assume a, tendsto_remove_nth
+
+@[to_additive]
+lemma tendsto_prod {α} [topological_space α] [monoid α] [has_continuous_mul α] {l : list α} :
+  tendsto list.prod (𝓝 l) (𝓝 l.prod) :=
+begin
+  induction l with x l ih, { simp [nhds_nil, mem_of_nhds, tendsto_pure_left] {contextual := tt} },
+  simp_rw [tendsto_cons_iff, prod_cons],
+  have := continuous_iff_continuous_at.mp continuous_mul (x, l.prod),
+  rw [continuous_at, nhds_prod_eq] at this,
+  exact this.comp (tendsto_id.prod_map ih)
+end
+
+@[to_additive]
+lemma continuous_prod {α} [topological_space α] [monoid α] [has_continuous_mul α] :
+  continuous (prod : list α → α) :=
+continuous_iff_continuous_at.mpr $ λ l, tendsto_prod
 
 end list
 
@@ -152,7 +172,7 @@ by unfold vector; apply_instance
 lemma tendsto_cons [topological_space α] {n : ℕ} {a : α} {l : vector α n}:
   tendsto (λp:α×vector α n, vector.cons p.1 p.2) (𝓝 a ×ᶠ 𝓝 l) (𝓝 (a :: l)) :=
 by { simp [tendsto_subtype_rng, ←subtype.val_eq_coe, cons_val],
-  exact tendsto_cons tendsto_fst (tendsto.comp continuous_at_subtype_coe tendsto_snd) }
+  exact tendsto_fst.cons (tendsto.comp continuous_at_subtype_coe tendsto_snd) }
 
 lemma tendsto_insert_nth
   [topological_space α] {n : ℕ} {i : fin (n+1)} {a:α} :

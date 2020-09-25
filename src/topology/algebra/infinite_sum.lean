@@ -436,6 +436,22 @@ end encodable
 
 end tsum
 
+section pi
+variables {ι : Type*} {π : α → Type*} [∀ x, add_comm_monoid (π x)] [∀ x, topological_space (π x)]
+
+lemma pi.has_sum {f : ι → ∀ x, π x} {g : ∀ x, π x} :
+  has_sum f g ↔ ∀ x, has_sum (λ i, f i x) (g x) :=
+by simp [has_sum, tendsto_pi]
+
+lemma pi.summable {f : ι → ∀ x, π x} : summable f ↔ ∀ x, summable (λ i, f i x) :=
+by simp [summable, pi.has_sum, classical.skolem]
+
+lemma tsum_apply [∀ x, t2_space (π x)] {f : ι → ∀ x, π x}{x : α} (hf : summable f) :
+  (∑' i, f i) x = ∑' i, f i x :=
+(pi.has_sum.mp hf.has_sum x).tsum_eq.symm
+
+end pi
+
 section topological_group
 variables [add_comm_group α] [topological_space α] [topological_add_group α]
 variables {f g : β → α} {a a₁ a₂ : α}

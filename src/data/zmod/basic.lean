@@ -807,7 +807,7 @@ instance subsingleton_ring_hom [semiring R] : subsingleton ((zmod n) →+* R) :=
 ⟨ring_hom.ext_zmod⟩
 
 instance subsingleton_ring_equiv [semiring R] : subsingleton (zmod n ≃+* R) :=
-⟨λ f g, by { rw ring_equiv.coe_ring_hom_inj, apply ring_hom.ext_zmod _ _ }⟩
+⟨λ f g, by { rw ring_equiv.coe_ring_hom_inj_iff, apply ring_hom.ext_zmod _ _ }⟩
 
 lemma ring_hom_surjective [ring R] (f : R →+* (zmod n)) :
   function.surjective f :=

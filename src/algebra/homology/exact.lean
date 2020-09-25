@@ -57,12 +57,20 @@ attribute [simp, reassoc] exact.w
 section
 variables {A B C D : V} {f : A ⟶ B} {g : B ⟶ C} {h : C ⟶ D}
 
-lemma exact_hom_inv [exact f g] (i : B ≅ D) : exact (f ≫ i.hom) (i.inv ≫ g) :=
+lemma exact_comp_hom_inv_comp [exact f g] (i : B ≅ D) : exact (f ≫ i.hom) (i.inv ≫ g) :=
 begin
   refine ⟨by simp, _⟩,
-  let i₀ := kernel_is_iso_comp i.inv g,
-  exact image.pre_comp,
-  --let i₁ := image.pre_comp,
+  rw image_to_kernel_map_comp_hom_inv_comp,
+  haveI : epi (image_to_kernel_map f g exact.w ≫ (kernel_is_iso_comp i.inv g).inv) := epi_comp _ _,
+  exact epi_comp _ _
+end
+
+lemma exact_comp_hom_inv_comp_iff (i : B ≅ D) : exact (f ≫ i.hom) (i.inv ≫ g) ↔ exact f g :=
+begin
+  refine ⟨_, by { introI, exact exact_comp_hom_inv_comp i }⟩,
+  introI,
+  have : exact ((f ≫ i.hom) ≫ i.inv) (i.hom ≫ i.inv ≫ g) := exact_comp_hom_inv_comp i.symm,
+  simpa using this
 end
 
 lemma exact_epi_comp [exact g h] [epi f] : exact (f ≫ g) h :=

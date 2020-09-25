@@ -77,6 +77,13 @@ lemma image_to_kernel_map_iso_comp {Z : V} (h : Z ⟶ A) [is_iso h] (w) :
     image_to_kernel_map f g ((cancel_epi h).mp (by simpa using w : h ≫ f ≫ g = h ≫ 0)) :=
 by { ext, simp, }
 
+@[simp]
+lemma image_to_kernel_map_comp_hom_inv_comp {Z : V} {i : B ≅ Z} (w) :
+  image_to_kernel_map (f ≫ i.hom) (i.inv ≫ g) w =
+  (image.post_comp_is_iso f i.hom).inv ≫ image_to_kernel_map f g (by simpa using w) ≫
+    (kernel_is_iso_comp i.inv g).inv :=
+by { ext, simp }
+
 local attribute [instance] has_zero_object.has_zero
 
 /--

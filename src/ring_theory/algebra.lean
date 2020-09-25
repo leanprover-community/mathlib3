@@ -291,7 +291,7 @@ variables [comm_ring R]
 variables (R)
 
 /-- A `semiring` that is an `algebra` over a commutative ring carries a natural `ring` structure. -/
-def algebra.semiring_to_ring [semiring A] [algebra R A] : ring A := {
+def semiring_to_ring [semiring A] [algebra R A] : ring A := {
   ..semimodule.add_comm_monoid_to_add_comm_group R,
   ..(infer_instance : semiring A) }
 

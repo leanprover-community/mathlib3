@@ -53,6 +53,10 @@ lemma measurable_of_measurable_coe (f : β → measure α)
 measurable.of_le_map $ supr_le $ assume s, supr_le $ assume hs, measurable_space.comap_le_iff_le_map.2 $
   by rw [measurable_space.map_comp]; exact h s hs
 
+lemma measurable_measure {μ : α → measure β} :
+  measurable μ ↔ ∀(s : set β) (hs : is_measurable s), measurable (λb, μ b s) :=
+⟨λ hμ s hs, (measurable_coe hs).comp hμ, measurable_of_measurable_coe μ⟩
+
 lemma measurable_map (f : α → β) (hf : measurable f) :
   measurable (λμ : measure α, map f μ) :=
 measurable_of_measurable_coe _ $ assume s hs,

@@ -171,10 +171,9 @@ lemma zip_inits_tails {l : list α} {init tail : list α} :
   (init, tail) ∈ zip l.inits l.tails ↔ init ++ tail = l :=
 begin
   induction l generalizing init tail;
-  simp_rw [tails, inits, zip_cons_cons],
+    simp_rw [tails, inits, zip_cons_cons],
   { simp },
-  { split;
-    rw [mem_cons_iff, zip_map_left, mem_map, prod.exists],
+  { split; rw [mem_cons_iff, zip_map_left, mem_map, prod.exists],
     { rintros (⟨rfl, rfl⟩ | ⟨_, _, h, rfl, rfl⟩),
       { simp },
       { simp [l_ih.mp h], }, },

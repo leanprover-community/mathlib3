@@ -375,9 +375,9 @@ end emetric --namespace
 
 
 /-! Now, we turn to the same notions in metric spaces. To avoid the difficulties related to
-`Inf` and `Sup` on `ℝ` (which is only conditionnally complete), we use the notions in `ennreal`
+`Inf` and `Sup` on `ℝ` (which is only conditionally complete), we use the notions in `ennreal`
 formulated in terms of the edistance, and coerce them to `ℝ`.
-Then their properties follow readily from the corresponding properties in ennreal,
+Then their properties follow readily from the corresponding properties in `ennreal`,
 modulo some tedious rewriting of inequalities from one to the other -/
 
 namespace metric
@@ -497,8 +497,6 @@ by simp [inf_dist, inf_edist_image hΦ]
 /-- The minimal distance of a point to a set as a `nnreal` -/
 def inf_nndist (x : α) (s : set α) : ℝ≥0 := ennreal.to_nnreal (inf_edist x s)
 @[simp] lemma coe_inf_nndist : (inf_nndist x s : ℝ) = inf_dist x s := rfl
-
--- @[simp] lemma inf_nndist_eq_zero : (inf_nndist x s : ℝ) = inf_dist x s := rfl
 
 /-- The minimal distance to a set (as `nnreal`) is Lipschitz in point with constant 1 -/
 lemma lipschitz_inf_nndist_pt (s : set α) : lipschitz_with 1 (λx, inf_nndist x s) :=

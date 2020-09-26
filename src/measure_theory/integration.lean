@@ -153,11 +153,15 @@ coe_injective $ by simp
 @[simp] lemma piecewise_empty (f g : α →ₛ β) : piecewise ∅ is_measurable.empty f g = g :=
 coe_injective $ by simp
 
+lemma measurable_bind [measurable_space γ] (f : α →ₛ β) (g : β → α → γ)
+  (hg : ∀ b, measurable (g b)) : measurable (λ a, g (f a) a) :=
+λ s hs, f.is_measurable_cut (λ a b, g b a ∈ s) $ λ b, hg b hs
+
 /-- If `f : α →ₛ β` is a simple function and `g : β → α →ₛ γ` is a family of simple functions,
 then `f.bind g` binds the first argument of `g` to `f`. In other words, `f.bind g a = g (f a) a`. -/
 def bind (f : α →ₛ β) (g : β → α →ₛ γ) : α →ₛ γ :=
 ⟨λa, g (f a) a,
- λ c, is_measurable_cut (λa b, g b a ∈ ({c} : set γ)) f (λ b, (g b).is_measurable_fiber c),
+ λ c, f.is_measurable_cut (λ a b, g b a = c) $ λ b, (g b).is_measurable_preimage {c},
  (f.finite_range.bUnion (λ b _, (g b).finite_range)).subset $
  by rintro _ ⟨a, rfl⟩; simp; exact ⟨a, a, rfl⟩⟩
 

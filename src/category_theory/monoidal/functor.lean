@@ -86,6 +86,18 @@ end
 
 open monoidal_category
 
+namespace lax_monoidal_functor
+
+variables (C : Type u₁) [category.{v₁} C] [monoidal_category.{v₁} C]
+
+/-- The identity lax monoidal functor. -/
+@[simps] def id : lax_monoidal_functor.{v₁ v₁} C C :=
+{ ε := 𝟙 _,
+  μ := λ X Y, 𝟙 _,
+  .. 𝟭 C }
+
+end lax_monoidal_functor
+
 namespace monoidal_functor
 
 section

@@ -233,9 +233,14 @@ by { rw [insert_neg, singleton_eq], rwa [singleton_eq, mem_singleton] }
 
 theorem forall_mem_nil (p : α → Prop) : ∀ x ∈ @nil α, p x.
 
-@[simp] theorem forall_mem_cons' {p : α → Prop} {a : α} {l : list α} :
-  (∀ (x : α), x = a ∨ x ∈ l → p x) ↔ p a ∧ ∀ x ∈ l, p x :=
+-- this lemma is needed to simplify the output of list.mem_cons_iff
+@[simp] theorem forall_eq_or_imp {p : α → Prop} {q : α → Prop} {a : α} :
+  (∀ (x : α), x = a ∨ q x → p x) ↔ p a ∧ ∀ (x : α), q x → p x :=
 by simp only [or_imp_distrib, forall_and_distrib, forall_eq]
+
+theorem forall_mem_cons' {p : α → Prop} {a : α} {l : list α} :
+  (∀ (x : α), x = a ∨ x ∈ l → p x) ↔ p a ∧ ∀ x ∈ l, p x :=
+@forall_eq_or_imp α p (∈ l) a
 
 theorem forall_mem_cons : ∀ {p : α → Prop} {a : α} {l : list α},
   (∀ x ∈ a :: l, p x) ↔ p a ∧ ∀ x ∈ l, p x :=

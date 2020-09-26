@@ -36,6 +36,8 @@ section inf_edist
 open_locale ennreal
 variables {α : Type u} {β : Type v} [emetric_space α] [emetric_space β] {x y : α} {s t : set α} {Φ : α → β}
 
+/-! ### Distance of a point to a set as a function into `ennreal`. -/
+
 /-- The minimal edistance of a point to a set -/
 def inf_edist (x : α) (s : set α) : ennreal := Inf ((edist x) '' s)
 
@@ -141,6 +143,8 @@ begin
 end
 
 end inf_edist --section
+
+/-! ### The Hausdorff distance as a function into `ennreal`. -/
 
 /-- The Hausdorff edistance between two sets is the smallest `r` such that each set
 is contained in the `r`-neighborhood of the other one -/
@@ -378,12 +382,14 @@ end emetric --namespace
 `Inf` and `Sup` on `ℝ` (which is only conditionally complete), we use the notions in `ennreal`
 formulated in terms of the edistance, and coerce them to `ℝ`.
 Then their properties follow readily from the corresponding properties in `ennreal`,
-modulo some tedious rewriting of inequalities from one to the other -/
+modulo some tedious rewriting of inequalities from one to the other. -/
 
 namespace metric
 section
 variables {α : Type u} {β : Type v} [metric_space α] [metric_space β] {s t u : set α} {x y : α} {Φ : α → β}
 open emetric
+
+/-! ### Distance of a point to a set as a function into `ℝ`. -/
 
 /-- The minimal distance of a point to a set -/
 def inf_dist (x : α) (s : set α) : ℝ := ennreal.to_real (inf_edist x s)
@@ -492,7 +498,7 @@ lemma inf_dist_image (hΦ : isometry Φ) :
   inf_dist (Φ x) (Φ '' t) = inf_dist x t :=
 by simp [inf_dist, inf_edist_image hΦ]
 
-/-! `inf_dist` as a function into `ℝ≥0`. -/
+/-! ### Distance of a point to a set as a function into `ℝ≥0`. -/
 
 /-- The minimal distance of a point to a set as a `nnreal` -/
 def inf_nndist (x : α) (s : set α) : ℝ≥0 := ennreal.to_nnreal (inf_edist x s)
@@ -510,6 +516,8 @@ lemma uniform_continuous_inf_nndist_pt (s : set α) :
 /-- The minimal distance to a set (as `nnreal`) is continuous in point -/
 lemma continuous_inf_nndist_pt (s : set α) : continuous (λx, inf_nndist x s) :=
 (uniform_continuous_inf_nndist_pt s).continuous
+
+/-! ### The Hausdorff distance as a function into `ℝ`. -/
 
 /-- The Hausdorff distance between two sets is the smallest nonnegative `r` such that each set is
 included in the `r`-neighborhood of the other. If there is no such `r`, it is defined to

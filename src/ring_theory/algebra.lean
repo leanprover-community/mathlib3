@@ -1114,6 +1114,9 @@ subsemiring.subset_closure $ or.inr trivial
 @[simp] theorem coe_top : ((⊤ : subalgebra R A) : submodule R A) = ⊤ :=
 submodule.ext $ λ x, iff_of_true mem_top trivial
 
+@[simp] theorem coe_bot : ((⊥ : subalgebra R A) : set A) = set.range (algebra_map R A) :=
+by simp [set.ext_iff, algebra.mem_bot]
+
 theorem eq_top_iff {S : subalgebra R A} :
   S = ⊤ ↔ ∀ x : A, x ∈ S :=
 ⟨λ h x, by rw h; exact mem_top, λ h, by ext x; exact ⟨λ _, mem_top, λ _, h x⟩⟩

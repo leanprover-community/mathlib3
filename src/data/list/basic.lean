@@ -233,10 +233,6 @@ by { rw [insert_neg, singleton_eq], rwa [singleton_eq, mem_singleton] }
 
 theorem forall_mem_nil (p : α → Prop) : ∀ x ∈ @nil α, p x.
 
-theorem forall_mem_cons' {p : α → Prop} {a : α} {l : list α} :
-  (∀ (x : α), x = a ∨ x ∈ l → p x) ↔ p a ∧ ∀ x ∈ l, p x :=
-@forall_eq_or_imp α p (∈ l) a
-
 theorem forall_mem_cons : ∀ {p : α → Prop} {a : α} {l : list α},
   (∀ x ∈ a :: l, p x) ↔ p a ∧ ∀ x ∈ l, p x :=
 ball_cons

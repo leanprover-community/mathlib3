@@ -76,11 +76,10 @@ instance topological_semiring.to_semimodule {R : Type*} [topological_space R]
 /-- A topological module, over a ring which is also a topological space, is a module in which
 scalar multiplication is continuous. In applications, `R` will be a topological ring and `M` a
 topological additive group, but this is not needed for the definition -/
-class topological_module (R : Type u) (M : Type v)
+abbreviation topological_module (R : Type u) (M : Type v)
   [ring R] [topological_space R]
-  [topological_space M] [add_comm_group M]
-  [module R M]
-  extends topological_semimodule R M : Prop
+  [topological_space M] [add_comm_group M] [module R M] :=
+topological_semimodule R M
 
 /-- A topological vector space is a topological module over a field. -/
 abbreviation topological_vector_space (R : Type u) (M : Type v)

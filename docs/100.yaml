@@ -271,8 +271,8 @@
     - nat.factors_unique
     - int.euclidean_domain
     - euclidean_domain.to_principal_ideal_domain
-    - unique_factorization_domain
-    - unique_factorization_domain.unique
+    - unique_factorization_monoid
+    - unique_factorization_monoid.factors_unique
   author : mathlib (Chris Hughes)
   note   : "it also has a generalized version, by showing that every Euclidean domain is a unique factorization domain, and showing that the integers form a Euclidean domain."
 81:
@@ -293,7 +293,7 @@
   title  : Divisibility by 3 Rule
   author : Scott Morrison
   decls  :
-    - three_dvd_iff
+    - nat.three_dvd_iff
 86:
   title  : Lebesgue Measure and Integration
   decl   : measure_theory.lintegral

@@ -135,7 +135,7 @@ theorem range_of_succ (f : ℕ → α) : {f 0} ∪ range (f ∘ succ) = range f 
 by rw [← image_singleton, range_comp, ← image_union, zero_union_range_succ, image_univ]
 
 theorem range_rec {α : Type*} (x : α) (f : ℕ → α → α) :
-  set.range (show ℕ → α, from λ n, nat.rec x f n) =
+  (set.range (λ n, nat.rec x f n) : set α) =
     {x} ∪ set.range (λ n, nat.rec (f 0 x) (f ∘ succ) n) :=
 begin
   convert (range_of_succ _).symm,
@@ -147,7 +147,7 @@ begin
 end
 
 theorem range_cases_on {α : Type*} (x : α) (f : ℕ → α) :
-  set.range (show ℕ → α, from λ n, nat.cases_on n x f) = {x} ∪ set.range f :=
+  (set.range (λ n, nat.cases_on n x f) : set α) = {x} ∪ set.range f :=
 (range_of_succ _).symm
 
 end set

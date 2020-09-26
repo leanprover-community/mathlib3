@@ -260,7 +260,7 @@ by { rw [roots, dif_neg hp], exact (classical.some_spec (exists_multiset_roots h
 @[simp] lemma mem_roots (hp : p ≠ 0) : a ∈ p.roots ↔ is_root p a :=
 by rw [← count_pos, count_roots hp, root_multiplicity_pos hp]
 
-lemma polynomial_zero_of_zero_on_infinite_set {s : set R} (h : s.infinite) (p_zero: ∀ x ∈ s, p.eval x = 0) : p = 0 :=
+lemma zero_of_zero_on_infinite_set {s : set R} (h : s.infinite) (p_zero: ∀ x ∈ s, p.eval x = 0) : p = 0 :=
 begin
   by_contra absurd,
   refine h _,

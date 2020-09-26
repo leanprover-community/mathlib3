@@ -61,7 +61,7 @@ group.
 * If X is a symmetric space, then each point has a corresponding involution that acts on X, forming a quandle.
 * Alexander quandle with `a ◃ b = t * b + (1 - t) * b`, with `a` and `b` elements of a module over Z[t,t⁻¹].
 * If G is a group, H a subgroup, and z in H, then there is a quandle `(G/H;z)` defined by
-  `yH ◃ Hx = yzy⁻¹xH`.  Every homogeneous quandle (i.e., a quandle Q whose automorphism group acts
+  `yH ◃ xH = yzy⁻¹xH`.  Every homogeneous quandle (i.e., a quandle Q whose automorphism group acts
   transitively on Q as a set) is isomorphic to such a quandle.
   There is a generalization to this arbitrary quandles in [Joyce's paper (Theorem 7.2)][Joyce1982].
 
@@ -396,7 +396,10 @@ instance pre_envel_group.inhabited (R : Type u) : inhabited (pre_envel_group R) 
 open pre_envel_group
 
 /--
-Relations for the enveloping group.
+Relations for the enveloping group. This is a type-valued relation because
+`to_envel_group.map_aux.well_def` inducts on it to show `to_envel_group.map`
+is well-defined.  The relation `pre_envel_group_rel` is the Prop-valued version,
+which is used to define `envel_group` itself.
 -/
 inductive pre_envel_group_rel' (R : Type u) [rack R] : pre_envel_group R → pre_envel_group R → Type u
 | refl {a : pre_envel_group R} : pre_envel_group_rel' a a

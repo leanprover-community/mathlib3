@@ -129,32 +129,42 @@ instance : cofinal (pairwise_to_opens_le_cover U) :=
     rcases A with ⟨⟨⟩, ⟨i⟩|⟨i,j⟩, a⟩;
     rcases B with ⟨⟨⟩, ⟨i'⟩|⟨i',j'⟩, b⟩;
     dsimp at *,
-    { refine ⟨[{ right := pair i i', hom := hom_of_le (le_inf (le_of_hom a) (le_of_hom b)), }, _], _, _⟩,
-      swap 3, { refl, },
-      constructor,
-      { right, fsplit,
-        exact { right := left i i', }, },
-      { constructor,
-        { left, fsplit,
-          exact { right := right i i', }, },
-        constructor, }
-      },
     { refine ⟨[
-      { right := pair i' i, hom := hom_of_le sorry, },
-      { right := single i', hom := hom_of_le sorry, }, _], _, _⟩,
-      swap 3, { refl, },
-      constructor,
-      { right, fsplit,
-        exact { right := right i' i, }, },
-      { constructor,
-        { left, fsplit,
-          exact { right := left i' i, }, },
-        { constructor,
-          { right, fsplit,
-            exact { right := left i' j', }, },
-          { constructor, } } }
-      },
-    sorry, sorry,
+      { left := punit.star, right := pair i i',
+        hom := hom_of_le (le_inf (le_of_hom a) (le_of_hom b)), }, _], _, rfl⟩,
+      exact
+        list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i i', }⟩)
+          (list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := right i i', }⟩) list.chain.nil) },
+    { refine ⟨[
+      { left := punit.star, right := pair i' i,
+        hom := hom_of_le (le_inf ((le_of_hom b).trans inf_le_left) (le_of_hom a)), },
+      { left := punit.star, right := single i',
+        hom := hom_of_le ((le_of_hom b).trans inf_le_left), }, _], _, rfl⟩,
+      exact
+        list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := right i' i, }⟩)
+          (list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := left i' i, }⟩)
+            (list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i' j', }⟩) list.chain.nil)) },
+    { refine ⟨[
+      { left := punit.star, right := single i,
+        hom := hom_of_le ((le_of_hom a).trans inf_le_left), },
+      { left := punit.star, right := pair i i', hom :=
+        hom_of_le (le_inf ((le_of_hom a).trans inf_le_left) (le_of_hom b)), }, _], _, rfl⟩,
+      exact
+        list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := left i j, }⟩)
+          (list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i i', }⟩)
+            (list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := right i i', }⟩) list.chain.nil)) },
+    { refine ⟨[
+      { left := punit.star, right := single i,
+        hom := hom_of_le ((le_of_hom a).trans inf_le_left), },
+      { left := punit.star, right := pair i i',
+        hom := hom_of_le (le_inf ((le_of_hom a).trans inf_le_left) ((le_of_hom b).trans inf_le_left)), },
+      { left := punit.star, right := single i',
+        hom := hom_of_le ((le_of_hom b).trans inf_le_left), }, _], _, rfl⟩,
+      exact
+        list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := left i j, }⟩)
+          (list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i i', }⟩)
+            (list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := right i i', }⟩)
+              (list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i' j', }⟩) list.chain.nil))), },
   end)
 
 end sheaf_condition
@@ -167,7 +177,7 @@ def sheaf_condition_opens_le_cover_equiv_sheaf_condition_pairwise_intersections 
   F.sheaf_condition_opens_le_cover ≃ F.sheaf_condition_pairwise_intersections :=
 equiv.Pi_congr_right (λ i, equiv.Pi_congr_right (λ U,
   equiv_of_subsingleton_of_subsingleton
-    (λ P, begin change is_limit (functor.map_cocone F.op (opens_le_cover_cocone U)).op at P, end)
+    (λ P, begin  end)
     begin sorry, end))
 
 /--

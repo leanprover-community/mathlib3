@@ -480,8 +480,7 @@ let f : (F ⋙ e.functor) ⋙ e.inverse ≅ F :=
     dsimp,
     simp only [equivalence.functor_unit, iso.inv_hom_id_app, map_comp, equivalence.fun_inv_map,
       assoc, id_comp, iso.inv_hom_id_app_assoc],
-    dsimp,
-    simp,
+    dsimp, simp, -- See note [dsimp, simp].
   end) (by tidy), }
 
 /--

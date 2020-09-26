@@ -88,6 +88,7 @@ omit hp
 /--
 `witt_vector.verschiebung` has polynomial structure given by `witt_vector.verschiebung_poly`.
 -/
+@[is_poly]
 def verschiebung_fun_is_poly : is_poly p (λ R _Rcr, @verschiebung_fun p R _Rcr) verschiebung_poly :=
 { coeff :=
   begin
@@ -100,6 +101,8 @@ def verschiebung_fun_is_poly : is_poly p (λ R _Rcr, @verschiebung_fun p R _Rcr)
 
 variable {p}
 include hp
+
+-- set_option trace.class_instances true
 
 /--
 `verschiebung x` shifts the coefficients of `x` up by one, by inserting 0 as the 0th coefficient.
@@ -114,16 +117,14 @@ def verschiebung : 𝕎 R →+ 𝕎 R :=
   by ext ⟨⟩; rw [verschiebung_fun_coeff]; simp only [if_true, eq_self_iff_true, zero_coeff, if_t_t],
   map_add' :=
   begin
-    apply is_poly₂.ext'
-      ((verschiebung_fun_is_poly p).comp₂ (add_is_poly₂ p))
-      ((add_is_poly₂ p).comp (verschiebung_fun_is_poly p) (verschiebung_fun_is_poly p)),
+    polify _ _,
     rintro ⟨⟩; witt_simp
   end }
 
 omit hp
 
 /-- `witt_vector.verschiebung` is a polynomial function. -/
-def verschiebung_is_poly : is_poly p (λ R _Rcr, @verschiebung p R hp _Rcr) verschiebung_poly :=
+@[is_poly] def verschiebung_is_poly : is_poly p (λ R _Rcr, @verschiebung p R hp _Rcr) verschiebung_poly :=
 ⟨(verschiebung_fun_is_poly p).coeff⟩
 
 include hp

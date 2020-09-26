@@ -324,7 +324,7 @@ variables (p)
 /-- `frobenius_fun` is tautologically a polynomial function.
 
 See also `frobenius_is_poly`. -/
-def frobenius_fun_is_poly : is_poly p (λ R _Rcr, @frobenius_fun p R _ _Rcr) (frobenius_poly p) :=
+@[is_poly] def frobenius_fun_is_poly : is_poly p (λ R _Rcr, @frobenius_fun p R _ _Rcr) (frobenius_poly p) :=
 ⟨by { introsI, funext n, apply coeff_frobenius_fun }⟩
 
 variable {p}
@@ -335,31 +335,19 @@ def frobenius : 𝕎 R →+* 𝕎 R :=
   map_zero' :=
   begin
     refine is_poly.ext'
-      ((frobenius_fun_is_poly p).comp (zero_is_poly p))
-      ((zero_is_poly p).comp (frobenius_fun_is_poly p)) _ _ 0,
+      ((frobenius_fun_is_poly p).comp (zero_is_poly))
+      ((zero_is_poly).comp (frobenius_fun_is_poly p)) _ _ 0,
     witt_simp,
   end,
   map_one' :=
   begin
     refine is_poly.ext'
-      ((frobenius_fun_is_poly p).comp (one_is_poly p))
-      ((one_is_poly p).comp (frobenius_fun_is_poly p)) _ _ 0,
+      ((frobenius_fun_is_poly p).comp (one_is_poly))
+      ((one_is_poly).comp (frobenius_fun_is_poly p)) _ _ 0,
     witt_simp
   end,
-  map_add' :=
-  begin
-    apply is_poly₂.ext'
-      ((frobenius_fun_is_poly p).comp₂ (add_is_poly₂ p))
-      ((add_is_poly₂ p).comp (frobenius_fun_is_poly p) (frobenius_fun_is_poly p)),
-    witt_simp
-  end,
-  map_mul' :=
-  begin
-    apply is_poly₂.ext'
-      ((frobenius_fun_is_poly p).comp₂ (mul_is_poly₂ p))
-      ((mul_is_poly₂ p).comp (frobenius_fun_is_poly p) (frobenius_fun_is_poly p)),
-    witt_simp
-  end }
+  map_add' := by polify _ _; witt_simp,
+  map_mul' := by polify _ _; witt_simp }
 
 lemma coeff_frobenius (x : 𝕎 R) (n : ℕ) :
   coeff (frobenius x) n = mv_polynomial.aeval x.coeff (frobenius_poly p n) :=
@@ -370,6 +358,7 @@ variables (p)
 /-- `frobenius_fun` is tautologically a polynomial function.
 
 TODO: Once `frobenius_fun` is bundled as a ring hom, upgrade this to use the bundled version. -/
+@[is_poly]
 def frobenius_is_poly : is_poly p (λ R _Rcr, @frobenius p R _ _Rcr) (frobenius_poly p) :=
 ⟨by { introsI, funext n, apply coeff_frobenius_fun }⟩
 

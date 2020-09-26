@@ -81,7 +81,7 @@ variables (P : ℕ → Prop)
 def select_poly (k : ℕ) : mv_polynomial ℕ ℤ := if P k then X k else 0
 
 /-- `select_poly` is the underlying polynomial structure of `select`. -/
-def select_is_poly : is_poly p (λ R _Rcr x, by exactI select P x) (select_poly P) :=
+@[is_poly] def select_is_poly : is_poly p (λ R _Rcr x, by exactI select P x) (select_poly P) :=
 { coeff :=
   begin
     rintro R _Rcr x,
@@ -97,7 +97,7 @@ include hp
 lemma add_select_select_not :
   ∀ (x : 𝕎 R), select P x + select (λ i, ¬ P i) x = x :=
 begin
-  apply is_poly.ext' ((add_is_poly₂ p).comp (select_is_poly _) (select_is_poly _)).diag (id_is_poly p),
+  polify _,
   intro n,
   suffices : (bind₁ (select_poly P)) (witt_polynomial p ℤ n) + (bind₁ (select_poly (λ i, ¬P i))) (witt_polynomial p ℤ n) = witt_polynomial p ℤ n,
   { witt_simp; assumption },

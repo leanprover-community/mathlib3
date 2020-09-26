@@ -35,8 +35,7 @@ include hp
 /-- The composition of Frobenius and Verschiebung is multiplication by `p`. -/
 lemma frobenius_verschiebung (x : 𝕎 R) :
   frobenius (verschiebung x) = x * p :=
-is_poly.ext' ((frobenius_is_poly p).comp verschiebung_is_poly) (mul_n_is_poly p p)
-  (by witt_simp) _ _
+by polify x; witt_simp
 
 lemma verschiebung_zmod (x : 𝕎 (zmod p)) :
   verschiebung x = x * p :=
@@ -56,9 +55,7 @@ end
 lemma verschiebung_mul_frobenius (x y : 𝕎 R) :
   verschiebung (x * frobenius y) = verschiebung x * y :=
 begin
-  apply is_poly₂.ext'
-    (verschiebung_is_poly.comp₂ ((mul_is_poly₂ p).comp_right (frobenius_is_poly p)))
-    ((mul_is_poly₂ p).comp_left verschiebung_is_poly),
+  polify x y,
   rintro ⟨⟩; witt_simp [mul_assoc]
 end
 

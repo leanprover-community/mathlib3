@@ -63,6 +63,7 @@ end
 variables (p)
 
 /-- Multiplication by `n` is a polynomial function. -/
+@[is_poly]
 def mul_n_is_poly (n : ℕ) : is_poly p (λ R _Rcr x, by exactI x * n) (witt_mul_n p n) :=
 ⟨λ R _Rcr x, by { funext k, exactI mul_n_coeff n x k }⟩
 

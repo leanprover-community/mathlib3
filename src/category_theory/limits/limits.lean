@@ -173,12 +173,21 @@ is_limit.mk_cone_morphism
   (λ s, P.lift_cone_morphism s ≫ i.hom)
   (λ s m, by rw ←i.comp_inv_eq; apply P.uniq_cone_morphism)
 
+@[simp] lemma of_iso_limit_lift {r t : cone F} (P : is_limit r) (i : r ≅ t) (s) :
+  (P.of_iso_limit i).lift s = P.lift s ≫ i.hom.hom :=
+rfl
+
 /-- Isomorphism of cones preserves whether or not they are limiting cones. -/
 def equiv_iso_limit {r t : cone F} (i : r ≅ t) : is_limit r ≃ is_limit t :=
 { to_fun := λ h, h.of_iso_limit i,
   inv_fun := λ h, h.of_iso_limit i.symm,
   left_inv := by tidy,
   right_inv := by tidy }
+
+@[simp] lemma equiv_iso_limit_apply {r t : cone F} (i : r ≅ t) (P : is_limit r) :
+  equiv_iso_limit i P = P.of_iso_limit i := rfl
+@[simp] lemma equiv_iso_limit_symm_apply {r t : cone F} (i : r ≅ t) (P : is_limit t) :
+  (equiv_iso_limit i).symm P = P.of_iso_limit i.symm := rfl
 
 /--
 If the canonical morphism from a cone point to a limiting cone point is an iso, then the
@@ -566,12 +575,21 @@ is_colimit.mk_cocone_morphism
   (λ s, i.inv ≫ P.desc_cocone_morphism s)
   (λ s m, by rw i.eq_inv_comp; apply P.uniq_cocone_morphism)
 
+@[simp] lemma of_iso_colimit_desc {r t : cocone F} (P : is_colimit r) (i : r ≅ t) (s) :
+  (P.of_iso_colimit i).desc s = i.inv.hom ≫ P.desc s :=
+rfl
+
 /-- Isomorphism of cocones preserves whether or not they are colimiting cocones. -/
-def equiv_iso_limit {r t : cocone F} (i : r ≅ t) : is_colimit r ≃ is_colimit t :=
+def equiv_iso_colimit {r t : cocone F} (i : r ≅ t) : is_colimit r ≃ is_colimit t :=
 { to_fun := λ h, h.of_iso_colimit i,
   inv_fun := λ h, h.of_iso_colimit i.symm,
   left_inv := by tidy,
   right_inv := by tidy }
+
+@[simp] lemma equiv_iso_colimit_apply {r t : cocone F} (i : r ≅ t) (P : is_colimit r) :
+  equiv_iso_colimit i P = P.of_iso_colimit i := rfl
+@[simp] lemma equiv_iso_colimit_symm_apply {r t : cocone F} (i : r ≅ t) (P : is_colimit t) :
+  (equiv_iso_colimit i).symm P = P.of_iso_colimit i.symm := rfl
 
 /--
 If the canonical morphism to a cocone point from a colimiting cocone point is an iso, then the

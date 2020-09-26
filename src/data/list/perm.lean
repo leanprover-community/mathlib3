@@ -13,7 +13,7 @@ import data.nat.fact
 # List permutations
 -/
 
-open_locale nat
+open_locale factorial
 
 namespace list
 universe variables uu vv
@@ -1084,11 +1084,11 @@ theorem perm_of_mem_permutations {l₁ l₂ : list α}
   (λ m, append_nil l₂ ▸ perm_of_mem_permutations_aux m)
 
 theorem length_permutations_aux : ∀ ts is : list α,
-  length (permutations_aux ts is) + is.length.! = (length ts + length is).! :=
+  length (permutations_aux ts is) + is.length! = (length ts + length is)! :=
 begin
   refine permutations_aux.rec (by simp) _,
   intros t ts is IH1 IH2,
-  have IH2 : length (permutations_aux is nil) + 1 = is.length.!,
+  have IH2 : length (permutations_aux is nil) + 1 = is.length!,
   { simpa using IH2 },
   simp [-add_comm, nat.factorial, nat.add_succ, mul_comm] at IH1,
   rw [permutations_aux_cons,
@@ -1099,7 +1099,7 @@ begin
       add_comm (_*_), add_assoc, nat.mul_succ, mul_comm]
 end
 
-theorem length_permutations (l : list α) : length (permutations l) = (length l).! :=
+theorem length_permutations (l : list α) : length (permutations l) = (length l)! :=
 length_permutations_aux l []
 
 theorem mem_permutations_of_perm_lemma {is l : list α}

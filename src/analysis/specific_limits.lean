@@ -14,7 +14,7 @@ import tactic.ring_exp
 -/
 
 noncomputable theory
-open_locale classical topological_space nat
+open_locale classical topological_space factorial
 
 open classical function filter finset metric
 
@@ -561,7 +561,7 @@ end ennreal
 lemma factorial_tendsto_at_top : tendsto nat.factorial at_top at_top :=
 tendsto_at_top_at_top_of_monotone nat.monotone_factorial (λ n, ⟨n, n.self_le_factorial⟩)
 
-lemma tendsto_factorial_div_pow_self_at_top : tendsto (λ n, n.! / n^n : ℕ → ℝ) at_top (𝓝 0) :=
+lemma tendsto_factorial_div_pow_self_at_top : tendsto (λ n, n! / n^n : ℕ → ℝ) at_top (𝓝 0) :=
 tendsto_of_tendsto_of_tendsto_of_le_of_le'
   tendsto_const_nhds
   (tendsto_const_div_at_top_nhds_0_nat 1)

@@ -76,7 +76,6 @@ noncomputable def P : ℕ → V :=
 
 noncomputable def d : Π n, P M (n + 1) ⟶ P M n :=
 begin
-  exact λ n, (ch M (n + 1)).hom,
   intro n,
   let := (ch M (n + 1)).hom,
   convert this,
@@ -86,9 +85,9 @@ end
 end enough_projectives
 
 -- PROJECT
-theorem nonempty_projective_resolution [enough_projectives V] (M : V) :
+/-theorem nonempty_projective_resolution [enough_projectives V] (M : V) :
   nonempty (projective_resolution M) :=
-sorry
+sorry-/
 
 open_locale classical
 noncomputable theory
@@ -96,10 +95,10 @@ noncomputable theory
 def projective_dimension (M : V) : with_top ℕ :=
 if h : ∃ (n : ℕ) (E : projective_resolution M), length E.C = n then nat.find h else ⊤
 
-lemma projective_dimension_eq_zero_iff_projective (M : V) :
+/-lemma projective_dimension_eq_zero_iff_projective (M : V) :
   projective_dimension M = 0 ↔ projective M :=
 begin
   sorry,
-end
+end-/
 
 end algebra.homology

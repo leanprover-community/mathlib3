@@ -7,6 +7,7 @@ import data.int.basic
 import category_theory.graded_object
 import category_theory.differential_object
 import data.nat.enat
+import tactic.omega
 
 /-!
 # Chain complexes
@@ -66,7 +67,7 @@ namespace homological_complex
 variables {V}
 variables {β : Type} [add_comm_group β] {b : β}
 
-@[simp]
+@[simp, reassoc]
 lemma d_squared (C : homological_complex V b) (i : β) :
   C.d i ≫ C.d (i+b) = 0 :=
 congr_fun (C.d_squared) i
@@ -168,13 +169,70 @@ def graded.glue_iso_right (n : ℤ) (L R : graded_object ℤ V) (i : ℤ) (h : i
   graded.glue n L R i ≅ R i :=
 eq_to_iso $ by simp [not_le.2 h]
 
-def glue (n : ℤ) (L R : chain_complex V) (d : L.X n ⟶ R.X (n - 1)) : chain_complex V :=
-{ X := graded.glue n L.X R.X,
+def glue (n : ℤ) (L R : chain_complex V) (d : L.X (n - 1) ⟶ R.X (n - 1 - 1)) (hd : L.d n ≫ d = 0)
+  (hd' : d ≫ R.d (n - 1 - 1) = 0) : chain_complex V :=
+{ X := graded.glue (n - 1) L.X R.X,
   d := λ i,
-    if h : i = n then (graded.glue_iso_left n L.X R.X i (by rw h)).hom ≫ eq_to_hom (by rw h) ≫
-      d ≫ eq_to_hom (by rw h) ≫
-      (graded.glue_iso_right n L.X R.X (i - 1) (by { rw [h], exact sub_one_lt _ })).inv else _,
-  d_squared' := _,
+    if h : i = n - 1 then
+
+      (graded.glue_iso_left (n - 1) L.X R.X i (by rw h)).hom ≫ -- glue i ⟶ L i
+        eq_to_hom (by rw h) ≫ -- L i ⟶ L n
+        d ≫ -- L n ⟶ R (n - 1)
+        (eq_to_hom (by {rw h }) : R.X (n - 1 - 1) ⟶ R.X (i - 1)) ≫ -- R (n - 1) ⟶ R (i - 1)
+        (graded.glue_iso_right (n - 1) L.X R.X (i - 1) (by { rw [h], exact sub_one_lt _ })).inv
+        -- R (i - 1) ⟶ glue (i - 1)
+
+      else if h' : i < n - 1 then
+
+        (graded.glue_iso_right (n - 1) L.X R.X i h').hom ≫
+          R.d i ≫
+          (graded.glue_iso_right (n - 1) L.X R.X (i - 1) (lt_trans (sub_one_lt _) h')).inv
+
+      else
+        (graded.glue_iso_left (n - 1) L.X R.X i (not_lt.1 h')).hom ≫
+          L.d i ≫ (graded.glue_iso_left (n - 1) L.X R.X (i - 1) (by { omega })).inv,
+  d_squared' :=
+  begin
+    ext i,
+    by_cases h : i = n - 1,
+    { dsimp,
+      rw dif_pos h,
+      have hh : ¬(i + (-1) = n - 1),
+      { omega },
+      rw dif_neg hh,
+      have hhh : i + (-1) < n - 1,
+      { omega },
+      rw [dif_pos hhh],
+      dsimp only [sub_eq_add_neg] at *,
+      simp only [iso.inv_hom_id_assoc, category.assoc],
+      subst h,
+      simp [reassoc_of hd'] },
+    dsimp,
+    rw dif_neg h,
+    by_cases h : i = n,
+    { have hh : i + (-1) = n - 1, { omega },
+      rw dif_pos hh,
+      have : ¬(i < n - 1), { omega },
+      rw dif_neg this,
+      dsimp only [sub_eq_add_neg] at *,
+      subst h_1,
+      simp [reassoc_of hd] },
+    have hh : ¬(i + (-1) = n - 1), { omega },
+    rw dif_neg hh,
+    by_cases h : i < n - 1,
+    { rw dif_pos h,
+      have : i + (-1) < n - 1,
+      { omega },
+      rw dif_pos this,
+      dsimp only [sub_eq_add_neg] at *,
+      simp },
+    rw dif_neg h,
+    have : ¬(i + (-1) < n - 1),
+    { omega },
+    rw dif_neg this,
+    dsimp only [sub_eq_add_neg] at *,
+    simp
+  end,
 }
 
 end homological_complex

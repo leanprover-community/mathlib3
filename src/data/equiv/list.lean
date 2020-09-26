@@ -7,7 +7,6 @@ Additional equiv and encodable instances for lists, finsets, and fintypes.
 -/
 import data.equiv.denumerable
 import data.finset.sort
-import data.fintype.vector
 
 open nat list
 

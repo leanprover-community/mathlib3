@@ -196,7 +196,7 @@ let single_process := λ hyps : list expr, do
    | none := try_linarith_on_lists cfg (rb_map.values hyp_set)
    end in
 let preprocessors := cfg.preprocessors.get_or_else default_preprocessors,
-    preprocessors := if cfg.split_ne then list.cons linarith.remove_ne preprocessors else preprocessors in
+    preprocessors := if cfg.split_ne then linarith.remove_ne::preprocessors else preprocessors in
 do hyps ← preprocess preprocessors hyps,
 hyps.mmap' $ λ hs, do set_goals [hs.1], single_process hs.2 >>= exact
 

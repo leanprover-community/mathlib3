@@ -7,6 +7,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 import data.polynomial.basic
 import data.polynomial.div
 import data.polynomial.algebra_map
+import data.set.finite
 
 /-!
 # Theory of univariate polynomials
@@ -258,6 +259,15 @@ by { rw [roots, dif_neg hp], exact (classical.some_spec (exists_multiset_roots h
 
 @[simp] lemma mem_roots (hp : p ≠ 0) : a ∈ p.roots ↔ is_root p a :=
 by rw [← count_pos, count_roots hp, root_multiplicity_pos hp]
+
+lemma polynomial_zero_of_zero_on_infinite_set {s : set R} (h : s.infinite) (p_zero: ∀ x ∈ s, p.eval x = 0) : p = 0 :=
+begin
+  by_contra absurd,
+  refine h _,
+  refine @set.finite.subset _ (↑(roots p).to_finset) (multiset.to_finset (roots p)).finite_to_set _ _,
+  { intros x h, simp only [multiset.mem_to_finset, finset.mem_coe],
+    rw [mem_roots absurd, is_root, p_zero _ h] }
+end
 
 lemma roots_mul {p q : polynomial R} (hpq : p * q ≠ 0) : (p * q).roots = p.roots + q.roots :=
 multiset.ext.mpr $ λ r,

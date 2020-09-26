@@ -7,7 +7,6 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 import data.nat.sqrt
 import data.nat.gcd
 import algebra.group_power
-import algebra.associated
 import tactic.wlog
 
 /-!
@@ -524,11 +523,11 @@ lemma perm_of_prod_eq_prod : ∀ {l₁ l₂ : list ℕ}, prod l₁ = prod l₂ �
   absurd ha (prime.not_dvd_one (h₂ a (mem_cons_self _ _)))
 | (a :: l₁) (b :: l₂) h hl₁ hl₂ :=
   have hl₁' : ∀ p ∈ l₁, prime p := λ p hp, hl₁ p (mem_cons_of_mem _ hp),
-  have hl₂' : ∀ p ∈ (b :: l₂ : list ℕ).erase a, prime p := λ p hp, hl₂ p (mem_of_mem_erase hp),
-  have ha : a ∈ (b :: l₂ : list ℕ) := mem_list_primes_of_dvd_prod (hl₁ a (mem_cons_self _ _)) hl₂
+  have hl₂' : ∀ p ∈ (b :: l₂).erase a, prime p := λ p hp, hl₂ p (mem_of_mem_erase hp),
+  have ha : a ∈ (b :: l₂) := mem_list_primes_of_dvd_prod (hl₁ a (mem_cons_self _ _)) hl₂
     (h ▸ by rw prod_cons; exact dvd_mul_right _ _),
-  have hb : b :: l₂ ~ a :: (b :: l₂ : list ℕ).erase a := perm_cons_erase ha,
-  have hl : prod l₁ = prod ((b :: l₂ : list ℕ).erase a) :=
+  have hb : b :: l₂ ~ a :: (b :: l₂).erase a := perm_cons_erase ha,
+  have hl : prod l₁ = prod ((b :: l₂).erase a) :=
   (nat.mul_right_inj (prime.pos (hl₁ a (mem_cons_self _ _)))).1 $
     by rwa [← prod_cons, ← prod_cons, ← hb.prod_eq],
   perm.trans ((perm_of_prod_eq_prod hl hl₁' hl₂').cons _) hb.symm
@@ -577,38 +576,3 @@ end primes
 instance monoid.prime_pow {α : Type*} [monoid α] : has_pow α primes := ⟨λ x p, x^p.val⟩
 
 end nat
-
-theorem nat.prime_iff {p : ℕ} : p.prime ↔ prime p :=
-begin
-  split; intro h,
-  { refine ⟨h.ne_zero, ⟨_, λ a b, _⟩⟩,
-    { rw nat.is_unit_iff, apply h.ne_one },
-    { apply h.dvd_mul.1 } },
-  { refine ⟨_, λ m hm, _⟩,
-    { cases p, { exfalso, apply h.ne_zero rfl },
-      cases p, { exfalso, apply h.ne_one rfl },
-      apply nat.succ_le_succ (nat.succ_le_succ (nat.zero_le _)), },
-    { cases hm with n hn,
-      cases h.2.2 m n (hn ▸ dvd_refl _) with hpm hpn,
-      { right, apply nat.dvd_antisymm (dvd.intro _ hn.symm) hpm },
-      { left,
-        cases n, { exfalso, rw [hn, mul_zero] at h, apply h.ne_zero rfl },
-        apply nat.eq_of_mul_eq_mul_right (nat.succ_pos _),
-        rw [← hn, one_mul],
-        apply nat.dvd_antisymm hpn (dvd.intro m _),
-        rw [mul_comm, hn], }, } }
-end
-
-theorem nat.irreducible_iff_prime {p : ℕ} : irreducible p ↔ prime p :=
-begin
-  refine ⟨λ h, _, irreducible_of_prime⟩,
-  rw ← nat.prime_iff,
-  refine ⟨_, λ m hm, _⟩,
-  { cases p, { exfalso, apply h.ne_zero rfl },
-    cases p, { exfalso, apply h.1 is_unit_one, },
-    apply nat.succ_le_succ (nat.succ_le_succ (nat.zero_le _)), },
-  { cases hm with n hn,
-    cases h.2 m n hn with um un,
-    { left, rw nat.is_unit_iff.1 um, },
-    { right, rw [hn, nat.is_unit_iff.1 un, mul_one], } }
-end

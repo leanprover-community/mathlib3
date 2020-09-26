@@ -246,7 +246,6 @@ local infixr ` →◃ `:25 := shelf_hom
 
 namespace shelf_hom
 variables {S₁ : Type*} {S₂ : Type*} {S₃ : Type*} [shelf S₁] [shelf S₂] [shelf S₃]
-attribute [simp] map_act'
 
 instance : has_coe_to_fun (S₁ →◃ S₂) :=
 ⟨_, shelf_hom.to_fun⟩

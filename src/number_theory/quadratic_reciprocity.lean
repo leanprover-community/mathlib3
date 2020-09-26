@@ -60,10 +60,10 @@ lemma euler_criterion {a : zmod p} (ha : a ≠ 0) :
   (∃ y : zmod p, y ^ 2 = a) ↔ a ^ (p / 2) = 1 :=
 begin
   apply (iff_congr _ (by simp [units.ext_iff])).mp (euler_criterion_units p (units.mk0 a ha)),
-  simp only [units.ext_iff, _root_.pow_two, units.coe_mk0, units.coe_mul],
+  simp only [units.ext_iff, pow_two, units.coe_mk0, units.coe_mul],
   split, { rintro ⟨y, hy⟩, exact ⟨y, hy⟩ },
   { rintro ⟨y, rfl⟩,
-    have hy : y ≠ 0, { rintro rfl, simpa [_root_.zero_pow] using ha, },
+    have hy : y ≠ 0, { rintro rfl, simpa [zero_pow] using ha, },
     refine ⟨units.mk0 y hy, _⟩, simp, }
 end
 
@@ -76,11 +76,11 @@ begin
   have neg_one_ne_zero : (-1 : zmod p) ≠ 0, from mt neg_eq_zero.1 one_ne_zero,
   rw [euler_criterion p neg_one_ne_zero, neg_one_pow_eq_pow_mod_two],
   cases mod_two_eq_zero_or_one (p / 2) with p_half_even p_half_odd,
-  { rw [p_half_even, _root_.pow_zero, eq_self_iff_true, true_iff],
+  { rw [p_half_even, pow_zero, eq_self_iff_true, true_iff],
     contrapose! p_half_even with hp,
     rw [← nat.mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hp],
     exact dec_trivial },
-  { rw [p_half_odd, _root_.pow_one,
+  { rw [p_half_odd, pow_one,
         iff_false_intro (ne_neg_self p one_ne_zero).symm, false_iff, not_not],
     rw [← nat.mod_mul_right_div_self, show 2 * 2 = 4, from rfl] at p_half_odd,
     rw [_root_.fact, ← nat.mod_mul_left_mod _ 2, show 2 * 2 = 4, from rfl] at hp_odd,
@@ -94,7 +94,7 @@ lemma pow_div_two_eq_neg_one_or_one {a : zmod p} (ha : a ≠ 0) :
 begin
   cases nat.prime.eq_two_or_odd ‹p.prime› with hp2 hp_odd,
   { substI p, revert a ha, exact dec_trivial },
-  rw [← mul_self_eq_one_iff, ← _root_.pow_add, ← two_mul, two_mul_odd_div_two hp_odd],
+  rw [← mul_self_eq_one_iff, ← pow_add, ← two_mul, two_mul_odd_div_two hp_odd],
   exact pow_card_sub_one_eq_one ha
 end
 
@@ -366,7 +366,7 @@ lemma legendre_sym_eq_pow (a p : ℕ) [hp : fact p.prime] :
 begin
   rw legendre_sym,
   by_cases ha : (a : zmod p) = 0,
-  { simp only [if_pos, ha, _root_.zero_pow (nat.div_pos (hp.two_le) (succ_pos 1)), int.cast_zero] },
+  { simp only [if_pos, ha, zero_pow (nat.div_pos (hp.two_le) (succ_pos 1)), int.cast_zero] },
   cases hp.eq_two_or_odd with hp2 hp_odd,
   { substI p,
     generalize : (a : (zmod 2)) = b, revert b, dec_trivial, },
@@ -426,7 +426,7 @@ theorem quadratic_reciprocity [hp1 : fact (p % 2 = 1)] [hq1 : fact (q % 2 = 1)] 
 have hpq0 : (p : zmod q) ≠ 0, from prime_ne_zero q p hpq.symm,
 have hqp0 : (q : zmod p) ≠ 0, from prime_ne_zero p q hpq,
 by rw [eisenstein_lemma q hp1 hpq0, eisenstein_lemma p hq1 hqp0,
-  ← _root_.pow_add, sum_mul_div_add_sum_mul_div_eq_mul q p hpq0, mul_comm]
+  ← pow_add, sum_mul_div_add_sum_mul_div_eq_mul q p hpq0, mul_comm]
 
 -- move this
 instance fact_prime_two : fact (nat.prime 2) := nat.prime_two

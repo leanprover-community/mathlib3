@@ -172,7 +172,7 @@ instance : inhabited (finset α) := ⟨∅⟩
 
 @[simp] theorem not_mem_empty (a : α) : a ∉ (∅ : finset α) := id
 
-@[simp] theorem ne_empty_of_mem {a : α} {s : finset α} (h : a ∈ s) : s ≠ ∅ :=
+theorem ne_empty_of_mem {a : α} {s : finset α} (h : a ∈ s) : s ≠ ∅ :=
 λ e, not_mem_empty a $ e ▸ h
 
 theorem nonempty.ne_empty {s : finset α} (h : s.nonempty) : s ≠ ∅ :=

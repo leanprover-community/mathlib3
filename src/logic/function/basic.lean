@@ -26,6 +26,8 @@ variables {α β γ : Sort*} {f : α → β}
 lemma comp_apply {α : Sort u} {β : Sort v} {φ : Sort w} (f : β → φ) (g : α → β) (a : α) :
   (f ∘ g) a = f (g a) := rfl
 
+lemma const_def {y : β} : (λ x : α, y) = const α y := rfl
+
 @[simp] lemma const_apply {y : β} {x : α} : const α y x = y := rfl
 
 @[simp] lemma const_comp {f : α → β} {c : γ} : const β c ∘ f = const α c := rfl

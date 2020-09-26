@@ -154,6 +154,9 @@ def single (n : ℤ) (M : V) : chain_complex V :=
 def single_at_n (n : ℤ) (M : V) : (single n M).X n ≅ M :=
 eq_to_iso $ by simp
 
+def single_at_eq_n (n : ℤ) (M : V) (i : ℤ) (hi : i = n) : (single n M).X i ≅ M :=
+iso.trans (eq_to_iso (by rw hi)) $ single_at_n n M
+
 def single_not_at_n (n : ℤ) (M : V) (i : ℤ) (h : i ≠ n) : (single n M).X i ≅ 0 :=
 eq_to_iso $ by simp [h]
 

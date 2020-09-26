@@ -19,7 +19,7 @@ local attribute [instance] has_zero_object.has_zero
 
 /-- Todo: This is the case iff exact
     Todo: Move -/
-def exact_at (C : homological_complex V b) (i : ℤ) := nonempty (homology_group i C ≅ 0)
+def exact_at (C : homological_complex V b) (i : ℤ) := exact (C.d i) (C.d (i + b))
 
 structure resolution (M : V) :=
 (C : chain_complex V)
@@ -94,6 +94,24 @@ noncomputable theory
 
 def projective_dimension (M : V) : with_top ℕ :=
 if h : ∃ (n : ℕ) (E : projective_resolution M), length E.C = n then nat.find h else ⊤
+
+section projective
+variables (M : V) (h : projective M)
+
+def cplx : chain_complex V :=
+@homological_complex.glue _ _ _ _ 1
+  (homological_complex.single 0 M)
+  (homological_complex.single (-1) M)
+  ((single_at_eq_n 0 M _ (by omega)).hom ≫ (single_at_eq_n (-1) M _ (by omega)).inv)
+  (by simp) (by simp)
+
+/-lemma cplx_exact (i) : exact_at (cplx M) i :=
+begin
+  unfold exact_at,
+
+end-/
+
+end projective
 
 /-lemma projective_dimension_eq_zero_iff_projective (M : V) :
   projective_dimension M = 0 ↔ projective M :=

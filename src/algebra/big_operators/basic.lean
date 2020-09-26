@@ -257,7 +257,7 @@ calc (∏ x in s.sigma t, f x) =
        ∏ x in s.bind (λa, (t a).map (function.embedding.sigma_mk a)), f x : by rw sigma_eq_bind
   ... = ∏ a in s, ∏ x in (t a).map (function.embedding.sigma_mk a), f x :
     prod_bind $ assume a₁ ha a₂ ha₂ h x hx,
-    by { simp only [inf_eq_inter, mem_inter, mem_map, function.embedding.coe_sigma_mk] at hx,
+    by { simp only [inf_eq_inter, mem_inter, mem_map, function.embedding.sigma_mk_to_fun] at hx,
       rcases hx with ⟨⟨y, hy, rfl⟩, ⟨z, hz, hz'⟩⟩, cc }
   ... = ∏ a in s, ∏ s in t a, f ⟨a, s⟩ :
     prod_congr rfl $ λ _ _, prod_map _ _ _
@@ -677,12 +677,7 @@ by rw [prod_insert has, card_insert_of_not_mem has, pow_succ, ih])
 lemma prod_pow (s : finset α) (n : ℕ) (f : α → β) :
   (∏ x in s, f x ^ n) = (∏ x in s, f x) ^ n :=
 by haveI := classical.dec_eq α; exact
-finset.induction_on s (by simp) (by simp [_root_.mul_pow] {contextual := tt})
-
-lemma prod_nat_pow (s : finset α) (n : ℕ) (f : α → ℕ) :
-  (∏ x in s, f x ^ n) = (∏ x in s, f x) ^ n :=
-by haveI := classical.dec_eq α; exact
-finset.induction_on s (by simp) (by simp [nat.mul_pow] {contextual := tt})
+finset.induction_on s (by simp) (by simp [mul_pow] {contextual := tt})
 
 -- `to_additive` fails on this lemma, so we prove it manually below
 lemma prod_flip {n : ℕ} (f : ℕ → β) :

@@ -773,7 +773,7 @@ lemma prod_smul {α : Type*} [comm_monoid α] (m : multiset α) :
   ∀n, (n •ℕ m).prod = m.prod ^ n
 | 0       := rfl
 | (n + 1) :=
-  by rw [add_nsmul, one_nsmul, _root_.pow_add, _root_.pow_one, prod_add, prod_smul n]
+  by rw [add_nsmul, one_nsmul, pow_add, pow_one, prod_add, prod_smul n]
 
 @[simp] theorem prod_repeat [comm_monoid α] (a : α) (n : ℕ) : prod (multiset.repeat a n) = a ^ n :=
 by simp [repeat, list.prod_repeat]
@@ -838,6 +838,12 @@ quotient.induction_on s $ λ l,
 
 lemma dvd_prod [comm_monoid α] {a : α} {s : multiset α} : a ∈ s → a ∣ s.prod :=
 quotient.induction_on s (λ l a h, by simpa using list.dvd_prod h) a
+
+theorem prod_eq_zero_iff [comm_cancel_monoid_with_zero α] [nontrivial α]
+  {s : multiset α} :
+  s.prod = 0 ↔ (0 : α) ∈ s :=
+multiset.induction_on s (by simp) $
+  assume a s, by simp [mul_eq_zero, @eq_comm _ 0 a] {contextual := tt}
 
 lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_add_comm_monoid β]
   (f : α → β) (h_zero : f 0 = 0) (h_add : ∀x y, f (x + y) ≤ f x + f y) (s : multiset α) :

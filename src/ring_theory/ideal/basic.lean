@@ -430,6 +430,9 @@ theorem mem_Inf {s : set (ideal R)} {x : R} :
 @[simp] lemma mem_infi {ι : Type*} {I : ι → ideal R} {x : R} : x ∈ infi I ↔ ∀ i, x ∈ I i :=
 submodule.mem_infi _
 
+@[simp] lemma mem_bot {x : R} : x ∈ (⊥ : ideal R) ↔ x = 0 :=
+submodule.mem_bot _
+
 end lattice
 
 /-- All ideals in a field are trivial. -/

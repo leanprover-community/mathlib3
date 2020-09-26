@@ -580,15 +580,6 @@ by apply is_ring_hom.of_semiring
 
 instance eval.is_ring_hom {x : R} : is_ring_hom (eval x) := eval₂.is_ring_hom _
 
-lemma eval₂_endomorphism_algebra_map {M : Type w}
-  [add_comm_group M] [module R M]
-  (f : M →ₗ[R] M) (v : M) (p : polynomial R) :
-  p.eval₂ (algebra_map R (M →ₗ[R] M)) f v = p.sum (λ n b, b • (f ^ n) v) :=
-begin
-  dunfold polynomial.eval₂ finsupp.sum,
-  exact (finset.sum_hom p.support (λ h : M →ₗ[R] M, h v)).symm
-end
-
 end comm_ring
 
 end polynomial

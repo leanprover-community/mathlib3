@@ -151,6 +151,10 @@ protected def homeomorph.smul_of_ne_zero (ha : a ≠ 0) : M ≃ₜ M :=
 lemma is_open_map_smul_of_ne_zero (ha : a ≠ 0) : is_open_map (λ (x : M), a • x) :=
 (homeomorph.smul_of_ne_zero ha).is_open_map
 
+/-- `smul` is a closed map in the second argument.
+
+The lemma that `smul` is a closed map in the first argument (in a special case) is
+`is_closed_map_smul_left` in `analysis.normed_space.finite_dimension`. -/
 lemma is_closed_map_smul_of_ne_zero (ha : a ≠ 0) : is_closed_map (λ (x : M), a • x) :=
 (homeomorph.smul_of_ne_zero ha).is_closed_map
 

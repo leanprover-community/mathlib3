@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import measure_theory.measure_space
-import analysis.normed_space.hahn_banach
+import analysis.normed_space.finite_dimension
 /-!
 # Borel (measurable) space
 
@@ -197,6 +197,9 @@ begin
   by_cases h2 : s = univ, { simp [h2] },
   exact hf s hs h1 h2
 end
+
+lemma is_pi_system_is_open : is_pi_system (is_open : set α → Prop) :=
+λ s t hs ht hst, is_open_inter hs ht
 
 instance nhds_is_measurably_generated (a : α) : (𝓝 a).is_measurably_generated :=
 begin
@@ -921,15 +924,17 @@ variables [second_countable_topology E] [normed_space ℝ E] [borel_space E]
 
 /-- Currently we only prove this lemma with `ℝ` as the base field, and use Hahn-Banach in the proof.
  In the future we might be able to generalize the statement and give a more elementary proof. -/
-lemma measurable_smul_const {f : α → ℝ} {c : E} (hc : c ≠ 0) :
+lemma measurable_smul_const {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {E : Type*} [normed_group E]
+  [normed_space 𝕜 E] [complete_space 𝕜] [measurable_space 𝕜] [borel_space 𝕜] [second_countable_topology 𝕜] [measurable_space E] [borel_space E] [second_countable_topology E]
+  {f : α → 𝕜} {c : E} (hc : c ≠ 0) :
   measurable (λ x, f x • c) ↔ measurable f :=
 begin
   refine ⟨λ hf, _, λ hf, hf.smul measurable_const⟩,
-  obtain ⟨g : E →L[ℝ] ℝ, h1g, h2g⟩ := exists_dual_vector c hc; [skip, apply_instance, apply_instance],
-  have := (g.measurable.comp hf).mul measurable_const, swap, exact ∥c∥⁻¹,
-  convert this, ext x,
-  have : ∥c∥ ≠ 0 := mt norm_eq_zero.mp hc,
-  simp [h2g, mul_inv_cancel_right' this, norm'],
+  apply measurable_of_is_closed, intros s hs,
+  have : is_closed ((λ x, x • c) '' s) := is_closed_map_smul_left 𝕜 c s hs,
+  convert hf this.is_measurable, rw [@preimage_comp _ _ _ f (• c), preimage_image_eq],
+  show function.injective (λ x : 𝕜, x • c),
+  exact ker_eq_bot.mp (ker_to_span_singleton 𝕜 E hc)
 end
 end normed_space
 

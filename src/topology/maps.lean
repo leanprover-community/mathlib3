@@ -271,6 +271,14 @@ assume s hs,
 have f' ⁻¹' s = f '' s, by ext x; simp [mem_image_iff_of_inverse r_inv l_inv],
 this ▸ continuous_iff_is_closed.mp h s hs
 
+lemma of_nonempty {f : α → β} (h : ∀ s, is_closed s → s.nonempty → is_closed (f '' s)) :
+  is_closed_map f :=
+begin
+  intros s hs, cases eq_empty_or_nonempty s with h2s h2s,
+  { simp_rw [h2s, image_empty, is_closed_empty] },
+  { exact h s hs h2s }
+end
+
 end is_closed_map
 
 section open_embedding

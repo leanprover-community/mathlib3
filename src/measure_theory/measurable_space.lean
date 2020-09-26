@@ -1127,7 +1127,7 @@ lemma induction_on_inter {C : set α → Prop} {s : set (set α)} [m : measurabl
   (h_empty : C ∅) (h_basic : ∀t∈s, C t) (h_compl : ∀t, is_measurable t → C t → C tᶜ)
   (h_union : ∀f:ℕ → set α, pairwise (disjoint on f) →
     (∀i, is_measurable (f i)) → (∀i, C (f i)) → C (⋃i, f i)) :
-  ∀{t}, is_measurable t → C t :=
+  ∀ ⦃t⦄, is_measurable t → C t :=
 have eq : is_measurable = dynkin_system.generate_has s,
   by { rw [h_eq, dynkin_system.generate_from_eq h_inter], refl },
 assume t ht,

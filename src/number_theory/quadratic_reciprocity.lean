@@ -28,7 +28,7 @@ The proof of quadratic reciprocity implemented uses Gauss' lemma and Eisenstein'
 -/
 
 open function finset nat finite_field zmod
-open_locale big_operators nat
+open_locale big_operators factorial
 
 namespace zmod
 
@@ -99,10 +99,10 @@ begin
 end
 
 /-- Wilson's Lemma: the product of `1`, ..., `p-1` is `-1` modulo `p`. -/
-@[simp] lemma wilsons_lemma : ((p - 1).! : zmod p) = -1 :=
+@[simp] lemma wilsons_lemma : ((p - 1)! : zmod p) = -1 :=
 begin
   refine
-  calc ((p - 1).! : zmod p) = (∏ x in Ico 1 (succ (p - 1)), x) :
+  calc ((p - 1)! : zmod p) = (∏ x in Ico 1 (succ (p - 1)), x) :
     by rw [← finset.prod_Ico_id_eq_factorial, prod_nat_cast]
                                ... = (∏ x : units (zmod p), x) : _
                                ... = -1 :
@@ -176,10 +176,10 @@ end
 
 private lemma gauss_lemma_aux₁ (p : ℕ) [hp : fact p.prime] [hp2 : fact (p % 2 = 1)]
   {a : ℕ} (hap : (a : zmod p) ≠ 0) :
-  (a^(p / 2) * (p / 2).! : zmod p) =
+  (a^(p / 2) * (p / 2)! : zmod p) =
   (-1)^((Ico 1 (p / 2).succ).filter
-    (λ x : ℕ, ¬(a * x : zmod p).val ≤ p / 2)).card * (p / 2).! :=
-calc (a ^ (p / 2) * (p / 2).! : zmod p) =
+    (λ x : ℕ, ¬(a * x : zmod p).val ≤ p / 2)).card * (p / 2)! :=
+calc (a ^ (p / 2) * (p / 2)! : zmod p) =
     (∏ x in Ico 1 (p / 2).succ, a * x) :
   by rw [prod_mul_distrib, ← prod_nat_cast, ← prod_nat_cast, prod_Ico_id_eq_factorial,
       prod_const, Ico.card, succ_sub_one]; simp
@@ -205,7 +205,7 @@ calc (a ^ (p / 2) * (p / 2).! : zmod p) =
       (by intros; split_ifs at *; simp * at *),
   by rw [prod_mul_distrib, this]; simp
 ... = (-1)^((Ico 1 (p / 2).succ).filter
-      (λ x : ℕ, ¬(a * x : zmod p).val ≤ p / 2)).card * (p / 2).! :
+      (λ x : ℕ, ¬(a * x : zmod p).val ≤ p / 2)).card * (p / 2)! :
   by rw [← prod_nat_cast, finset.prod_eq_multiset_prod,
       Ico_map_val_min_abs_nat_abs_eq_Ico_map_id p a hap,
       ← finset.prod_eq_multiset_prod, prod_Ico_id_eq_factorial]
@@ -215,7 +215,7 @@ private lemma gauss_lemma_aux₂ (p : ℕ) [hp : fact p.prime] [hp2 : fact (p % 
   (a^(p / 2) : zmod p) = (-1)^((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card :=
 (mul_left_inj'
-    (show ((p / 2).! : zmod p) ≠ 0,
+    (show ((p / 2)! : zmod p) ≠ 0,
       by rw [ne.def, char_p.cast_eq_zero_iff (zmod p) p, hp.dvd_factorial, not_le];
           exact nat.div_lt_self hp.pos dec_trivial)).1 $
   by simpa using gauss_lemma_aux₁ p hap

@@ -286,13 +286,22 @@ instance linear_map.semimodule' (R : Type u) [comm_semiring R]
 end semiring
 
 section ring
-variables [comm_ring R] [comm_ring S] [ring A] [algebra R A]
+variables [comm_ring R]
 
-lemma mul_sub_algebra_map_commutes (x : A) (r : R) :
+variables (R)
+
+/-- A `semiring` that is an `algebra` over a commutative ring carries a natural `ring` structure. -/
+def semiring_to_ring [semiring A] [algebra R A] : ring A := {
+  ..semimodule.add_comm_monoid_to_add_comm_group R,
+  ..(infer_instance : semiring A) }
+
+variables {R}
+
+lemma mul_sub_algebra_map_commutes [ring A] [algebra R A] (x : A) (r : R) :
   x * (x - algebra_map R A r) = (x - algebra_map R A r) * x :=
 by rw [mul_sub, ←commutes, sub_mul]
 
-lemma mul_sub_algebra_map_pow_commutes (x : A) (r : R) (n : ℕ) :
+lemma mul_sub_algebra_map_pow_commutes [ring A] [algebra R A] (x : A) (r : R) (n : ℕ) :
   x * (x - algebra_map R A r) ^ n = (x - algebra_map R A r) ^ n * x :=
 begin
   induction n with n ih,

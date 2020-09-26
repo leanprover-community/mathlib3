@@ -1475,12 +1475,6 @@ by simp_rw [spanning_sets, Union_accumulate,
 
 namespace measure
 
-lemma supr_measure_spanning_sets {μ : measure α} [sigma_finite μ] :
-  (⨆ i, μ (spanning_sets μ i)) = μ univ :=
-begin
-  sorry
-end
-
 lemma supr_restrict_spanning_sets {μ : measure α} [sigma_finite μ] {s : set α}
   (hs : is_measurable s) :
   (⨆ i, μ.restrict (spanning_sets μ i) s) = μ s :=

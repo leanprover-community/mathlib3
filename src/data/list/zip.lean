@@ -167,7 +167,7 @@ begin
   { rintro ⟨h₀, h₁⟩, exact ⟨_,_,h₀,h₁,rfl⟩ }
 end
 
-lemma zip_inits_tails {l : list α} {init tail : list α} :
+lemma mem_zip_inits_tails {l : list α} {init tail : list α} :
   (init, tail) ∈ zip l.inits l.tails ↔ init ++ tail = l :=
 begin
   induction l generalizing init tail;

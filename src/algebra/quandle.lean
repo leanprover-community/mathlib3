@@ -43,7 +43,7 @@ group.
 * `rack` is a shelf whose action for each element is invertible
 * `quandle` is a rack whose action for an element fixes that element
 * `quandle.conj` defines a quandle of a group acting on itself by conjugation.
-* `rack_hom` is homomorphisms of racks and quandles.
+* `shelf_hom` is homomorphisms of shelves, racks, and quandles.
 * `rack.envel_group` gives the universal group the rack maps to as a conjugation quandle.
 * `rack.opp` gives the rack with the action replaced by its inverse.
 
@@ -53,6 +53,7 @@ group.
 ## Notation
 * `x ◃ y` is local notation for `shelf.act x y`
 * `x ◃⁻¹ y` is local notation for `rack.inv_act x y`
+* `S →◃ S'` is local notation for `shelf_hom S S'`
 
 ## Todo
 
@@ -262,7 +263,7 @@ def id (S : Type*) [shelf S] : S →◃ S :=
 instance inhabited (S : Type*) [shelf S] : inhabited (S →◃ S) :=
 ⟨id S⟩
 
-/-- The composition of rack/quandle homomorphisms -/
+/-- The composition of shelf homomorphisms -/
 def comp (g : S₂ →◃ S₃) (f : S₁ →◃ S₂) : S₁ →◃ S₃ :=
 { to_fun := g.to_fun ∘ f.to_fun,
   map_act' := by simp }
@@ -272,7 +273,6 @@ lemma comp_apply (g : S₂ →◃ S₃) (f : S₁ →◃ S₂) (x : S₁) :
   (g.comp f) x = g (f x) := rfl
 
 end shelf_hom
-
 
 /--
 A quandle is a rack such that each automorphism fixes its corresponding element.
@@ -362,7 +362,6 @@ instance (n : ℕ) : quandle (dihedral n) :=
     dsimp [function.involutive.to_equiv, dihedral_act], ring,
   end }
 
-
 end quandle
 
 namespace rack
@@ -374,7 +373,6 @@ that acts on the rack.
 def to_conj (R : Type*) [rack R] : R →◃ quandle.conj (R ≃ R) :=
 { to_fun := act,
   map_act' := ad_conj }
-
 
 section envel_group
 

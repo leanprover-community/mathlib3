@@ -919,13 +919,12 @@ L.measurable.comp φ_meas
 end continuous_linear_map
 
 section normed_space
-variables {E : Type*} [measurable_space E] [normed_group E]
-variables [second_countable_topology E] [normed_space ℝ E] [borel_space E]
+variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜] [measurable_space 𝕜]
+variables [borel_space 𝕜] [second_countable_topology 𝕜]
+variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E] [borel_space E]
+variables [second_countable_topology E]
 
-/-- Currently we only prove this lemma with `ℝ` as the base field, and use Hahn-Banach in the proof.
- In the future we might be able to generalize the statement and give a more elementary proof. -/
-lemma measurable_smul_const {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {E : Type*} [normed_group E]
-  [normed_space 𝕜 E] [complete_space 𝕜] [measurable_space 𝕜] [borel_space 𝕜] [second_countable_topology 𝕜] [measurable_space E] [borel_space E] [second_countable_topology E]
+lemma measurable_smul_const
   {f : α → 𝕜} {c : E} (hc : c ≠ 0) :
   measurable (λ x, f x • c) ↔ measurable f :=
 begin
@@ -936,6 +935,7 @@ begin
   show function.injective (λ x : 𝕜, x • c),
   exact ker_eq_bot.mp (ker_to_span_singleton 𝕜 E hc)
 end
+
 end normed_space
 
 namespace measure_theory

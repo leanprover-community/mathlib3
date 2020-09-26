@@ -32,7 +32,7 @@ import analysis.normed_space.finite_dimension
 
 noncomputable theory
 
-open classical set
+open classical set function
 open_locale classical big_operators topological_space
 
 universes u v w x y
@@ -84,7 +84,8 @@ le_antisymm
 
 section order_topology
 
-variables (α) [topological_space α] [second_countable_topology α] [linear_order α] [order_topology α]
+variable (α)
+variables [topological_space α] [second_countable_topology α] [linear_order α] [order_topology α]
 
 lemma borel_eq_generate_Iio : borel α = generate_from (range Iio) :=
 begin
@@ -469,6 +470,15 @@ lemma measurable.sub [add_group α] [topological_add_group α] [second_countable
   measurable (λ x, f x - g x) :=
 hf.add hg.neg
 
+lemma measurable_comp_iff_of_closed_embedding {f : δ → β} (g : β → γ) (hg : closed_embedding g) :
+  measurable (g ∘ f) ↔ measurable f :=
+begin
+  refine ⟨λ hf, _, λ hf, hg.continuous.measurable.comp hf⟩,
+  apply measurable_of_is_closed, intros s hs,
+  convert hf (hg.is_closed_map s hs).is_measurable,
+  rw [@preimage_comp _ _ _ f g, preimage_image_eq _ hg.to_embedding.inj]
+end
+
 section linear_order
 
 variables [linear_order α] [order_topology α] [second_countable_topology α]
@@ -708,7 +718,8 @@ begin
     (subset.refl _) _ _ _ _,
   { simp only [is_pi_system, mem_Union, mem_singleton_iff],
     rintros _ _ ⟨a₁, b₁, h₁, rfl⟩ ⟨a₂, b₂, h₂, rfl⟩ ne,
-    simp only [Ioo_inter_Ioo, sup_eq_max, inf_eq_min, ← rat.cast_max, ← rat.cast_min, nonempty_Ioo] at ne ⊢,
+    simp only [Ioo_inter_Ioo, sup_eq_max, inf_eq_min, ← rat.cast_max, ← rat.cast_min,
+      nonempty_Ioo] at ne ⊢,
     refine ⟨_, _, _, rfl⟩,
     assumption_mod_cast },
   { exact countable_Union (λ a, (countable_encodable _).bUnion $ λ _ _, countable_singleton _) },
@@ -906,7 +917,8 @@ end normed_group
 namespace continuous_linear_map
 
 variables {𝕜 : Type*} [normed_field 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E] [opens_measurable_space E]
+variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E]
+variables [opens_measurable_space E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F] [measurable_space F] [borel_space F]
 
 protected lemma measurable (L : E →L[𝕜] F) : measurable L :=
@@ -924,17 +936,9 @@ variables [borel_space 𝕜] [second_countable_topology 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E] [borel_space E]
 variables [second_countable_topology E]
 
-lemma measurable_smul_const
-  {f : α → 𝕜} {c : E} (hc : c ≠ 0) :
+lemma measurable_smul_const {f : α → 𝕜} {c : E} (hc : c ≠ 0) :
   measurable (λ x, f x • c) ↔ measurable f :=
-begin
-  refine ⟨λ hf, _, λ hf, hf.smul measurable_const⟩,
-  apply measurable_of_is_closed, intros s hs,
-  have : is_closed ((λ x, x • c) '' s) := is_closed_map_smul_left 𝕜 c s hs,
-  convert hf this.is_measurable, rw [@preimage_comp _ _ _ f (• c), preimage_image_eq],
-  show function.injective (λ x : 𝕜, x • c),
-  exact ker_eq_bot.mp (ker_to_span_singleton 𝕜 E hc)
-end
+measurable_comp_iff_of_closed_embedding (λ y : 𝕜, y • c) (closed_embedding_smul_left hc)
 
 end normed_space
 

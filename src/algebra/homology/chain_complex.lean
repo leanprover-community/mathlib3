@@ -169,7 +169,8 @@ def graded.glue_iso_right (n : ℤ) (L R : graded_object ℤ V) (i : ℤ) (h : i
   graded.glue n L R i ≅ R i :=
 eq_to_iso $ by simp [not_le.2 h]
 
-def glue (n : ℤ) (L R : chain_complex V) (d : L.X (n - 1) ⟶ R.X (n - 1 - 1)) (hd : L.d n ≫ d = 0)
+@[simps]
+def glue {n : ℤ} {L R : chain_complex V} {d : L.X (n - 1) ⟶ R.X (n - 1 - 1)} (hd : L.d n ≫ d = 0)
   (hd' : d ≫ R.d (n - 1 - 1) = 0) : chain_complex V :=
 { X := graded.glue (n - 1) L.X R.X,
   d := λ i,
@@ -232,7 +233,44 @@ def glue (n : ℤ) (L R : chain_complex V) (d : L.X (n - 1) ⟶ R.X (n - 1 - 1))
     rw dif_neg this,
     dsimp only [sub_eq_add_neg] at *,
     simp
-  end,
-}
+  end }
+
+def glue_iso_left {n : ℤ} {L R : chain_complex V} {d : L.X (n - 1) ⟶ R.X (n - 1 - 1)}
+  (hd : L.d n ≫ d = 0) (hd' : d ≫ R.d (n - 1 - 1) = 0) (i : ℤ) (hi : n - 1 ≤ i) :
+  (glue hd hd').X i ≅ L.X i :=
+graded.glue_iso_left (n - 1) L.X R.X i hi
+
+def glue_iso_right {n : ℤ} {L R : chain_complex V} {d : L.X (n - 1) ⟶ R.X (n - 1 - 1)}
+  (hd : L.d n ≫ d = 0) (hd' : d ≫ R.d (n - 1 - 1) = 0) (i : ℤ) (hi : i < n - 1) :
+  (glue hd hd').X i ≅ R.X i :=
+graded.glue_iso_right (n - 1) L.X R.X i hi
+
+variables {n : ℤ} {L R : chain_complex V} {d : L.X (n - 1) ⟶ R.X (n - 1 - 1)} (hd : L.d n ≫ d = 0)
+  (hd' : d ≫ R.d (n - 1 - 1) = 0)
+
+lemma glue_d_n_sub_one :
+  (glue hd hd').d (n - 1) = (glue_iso_left hd hd' (n - 1) (le_refl _)).hom ≫
+    d ≫ (glue_iso_right hd hd' (n - 1 - 1) (sub_one_lt _)).inv :=
+begin
+  rw [glue_d, dif_pos (eq.refl (n - 1))],
+  simp only [category.id_comp, eq_to_hom_refl],
+  refl
+end
+
+lemma glue_d_lt_n_sub_one {i : ℤ} (hi : i < n - 1) :
+  (glue hd hd').d i = (glue_iso_right hd hd' i hi).hom ≫ R.d i ≫
+    (glue_iso_right hd hd' (i - 1) (lt_trans (sub_one_lt _) hi)).inv :=
+begin
+  rw [glue_d, dif_neg (show ¬i = n - 1, by omega), dif_pos hi],
+  refl
+end
+
+lemma glue_d_n_sub_one_lt {i : ℤ} (hi : n - 1 < i) :
+  (glue hd hd').d i = (glue_iso_left hd hd' i (le_of_lt hi)).hom ≫ L.d i ≫
+    (glue_iso_left hd hd' (i - 1) (by omega)).inv :=
+begin
+  rw [glue_d, dif_neg (show ¬i = n - 1, by omega), dif_neg (show ¬i < n - 1, by omega)],
+  refl
+end
 
 end homological_complex

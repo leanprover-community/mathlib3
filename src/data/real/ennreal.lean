@@ -363,7 +363,7 @@ instance : char_zero ennreal := ⟨coe_nat_mono.injective⟩
 
 protected lemma exists_nat_gt {r : ennreal} (h : r ≠ ⊤) : ∃n:ℕ, r < n :=
 begin
-  rcases lt_iff_exists_coe.1 (lt_top_iff_ne_top.2 h) with ⟨r, rfl, hb⟩,
+  lift r to nnreal using h,
   rcases exists_nat_gt r with ⟨n, hn⟩,
   exact ⟨n, coe_lt_coe_nat.2 hn⟩,
 end

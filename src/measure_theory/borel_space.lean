@@ -32,7 +32,7 @@ import analysis.normed_space.finite_dimension
 
 noncomputable theory
 
-open classical set function
+open classical set
 open_locale classical big_operators topological_space
 
 universes u v w x y

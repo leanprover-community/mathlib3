@@ -32,7 +32,7 @@ variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
 /-! ### Primitive element theorem for finite fields -/
 
 /-- Primitive element theorem assuming E is finite. -/
-lemma primitive_element_of_fintype_top [fintype E] : ∃ α : E, F⟮α⟯ = ⊤ :=
+lemma exists_primitive_element_of_fintype_top [fintype E] : ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
   obtain ⟨α, hα⟩ := is_cyclic.exists_generator (units E),
   use α,
@@ -47,10 +47,11 @@ begin
 end
 
 /-- Primitive element theorem for finite dimensional extension of a finite field. -/
-theorem primitive_element_of_fintype_bot [fintype F] [finite_dimensional F E] : ∃ α : E, F⟮α⟯ = ⊤ :=
+theorem exists_primitive_element_of_fintype_bot [fintype F] [finite_dimensional F E] :
+  ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
   haveI : fintype E := fintype_of_fintype F E,
-  exact primitive_element_of_fintype_top F E,
+  exact exists_primitive_element_of_fintype_top F E,
 end
 
 end primitive_element_finite
@@ -61,7 +62,7 @@ section primitive_element_inf
 
 variables {F : Type*} [field F] [infinite F] {E : Type*} [field E] (ϕ : F →+* E) (α β : E)
 
-lemma primitive_element_two_inf_exists_c (f g : polynomial F) :
+lemma primitive_element_inf_aux_exists_c (f g : polynomial F) :
   ∃ c : F, ∀ (α' ∈ (f.map ϕ).roots) (β' ∈ (g.map ϕ).roots), -(α' - α)/(β' - β) ≠ ϕ c :=
 begin
   let sf := (f.map ϕ).roots,
@@ -87,7 +88,7 @@ begin
   let g := minimal_polynomial hβ,
   let ιFE := algebra_map F E,
   let ιEE' := algebra_map E (splitting_field (g.map ιFE)),
-  obtain ⟨c, hc⟩ := primitive_element_two_inf_exists_c (ιEE'.comp ιFE) (ιEE' α) (ιEE' β) f g,
+  obtain ⟨c, hc⟩ := primitive_element_inf_aux_exists_c (ιEE'.comp ιFE) (ιEE' α) (ιEE' β) f g,
   let γ := α + c • β,
   suffices β_in_Fγ : β ∈ F⟮γ⟯,
   { use γ,
@@ -164,7 +165,7 @@ begin
     { rw ← findim_mul_findim F F⟮α⟯ E,
       nlinarith [show 0 < findim F⟮α⟯ E, from findim_pos, show 0 < findim F F⟮α⟯, from findim_pos] },
     have Fα_inf : infinite F⟮α⟯ := infinite.of_injective _ (algebra_map F F⟮α⟯).injective,
-    have Fα_sep : is_separable F⟮α⟯ E := is_separable_tower_top_of_is_separable_tower F F⟮α⟯ E F_sep,
+    have Fα_sep : is_separable F⟮α⟯ E := is_separable_tower_top_of_is_separable F⟮α⟯ F_sep,
     obtain ⟨β, hβ⟩ := ih _ Fα_dim_lt_F_dim Fα_sep Fα_inf rfl,
     obtain ⟨γ, hγ⟩ := primitive_element_inf_aux α β F_sep,
     simp only [←adjoin_simple_adjoin_simple, subalgebra.ext_iff, algebra.mem_top, iff_true, *] at *,
@@ -178,7 +179,8 @@ end
 theorem exists_primitive_element_aux (F_sep : is_separable F E) : ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
   by_cases F_finite : nonempty (fintype F),
-  { exact nonempty.elim F_finite (λ h, by haveI := h; exact primitive_element_of_fintype_bot F E) },
+  { exact nonempty.elim F_finite
+    (λ h, by haveI := h; exact exists_primitive_element_of_fintype_bot F E) },
   { exact exists_primitive_element_inf F_sep (not_nonempty_fintype.mp F_finite) (findim F E) rfl },
 end
 
@@ -192,7 +194,7 @@ theorem exists_primitive_element [finite_dimensional F E] (F_sep : is_separable 
   ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
   let F' := F⟮(0 : E)⟯,
-  have F'_sep : is_separable F' E := is_separable_tower_top_of_is_separable_tower F F' E F_sep,
+  have F'_sep : is_separable F' E := is_separable_tower_top_of_is_separable F' F_sep,
   haveI : finite_dimensional F' E := finite_dimensional.right F F' E,
   obtain ⟨α, hα⟩ := exists_primitive_element_aux F'_sep,
   have : (F'⟮α⟯ : set E) = F⟮α⟯,

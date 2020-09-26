@@ -510,14 +510,14 @@ the minimal polynomial of every `x : K` is separable. -/
 ∀ x : K, ∃ H : is_integral F x, (minimal_polynomial H).separable
 
 section is_separable_tower
-variables (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E] [algebra K E]
-  [is_scalar_tower F K E]
+variables {F E : Type*} (K : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]
+  [algebra K E] [is_scalar_tower F K E]
 
-lemma is_separable_tower_top_of_is_separable_tower (h : is_separable F E) : is_separable K E :=
+lemma is_separable_tower_top_of_is_separable (h : is_separable F E) : is_separable K E :=
 λ x, Exists.cases_on (h x) (λ hx hs, ⟨is_integral_of_is_scalar_tower x hx,
 hs.map.of_dvd (minimal_polynomial.dvd_map_of_is_scalar_tower K hx)⟩)
 
-lemma is_separable_tower_bot_of_is_separable_tower (h : is_separable F E) : is_separable F K :=
+lemma is_separable_tower_bot_of_is_separable (h : is_separable F E) : is_separable F K :=
 begin
   intro x,
   obtain ⟨hx, hs⟩ := h (algebra_map K E x),

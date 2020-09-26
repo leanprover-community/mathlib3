@@ -75,8 +75,7 @@ universes u v
 
 /--
 A *shelf* is a structure with a self-distributive binary operation.
-The binary operation is thought of as being a left action of the type
-on itself.
+The binary operation is regarded as a left action of the type on itself.
 -/
 class shelf (α : Type u) :=
 (act : α → α → α)
@@ -87,8 +86,8 @@ A *rack* is an automorphic set (a set with an action on itself by
 bijections) that is self-distributive.  It is a shelf such that each
 element's action is invertible.
 
-The local notation `x ◃ y` and `x ◃⁻¹ y` denote the action and the
-inverse action, respectively, and it is right associative.
+The local notations `x ◃ y` and `x ◃⁻¹ y` denote the action and the
+inverse action, respectively, and they are right associative.
 -/
 class rack (α : Type u) extends shelf α :=
 (inv_act : α → α → α)
@@ -513,13 +512,13 @@ lemma well_def {R : Type*} [rack R] {G : Type*} [group G] (f : R →◃ quandle.
 | a b refl := rfl
 | a b (symm h) := (well_def h).symm
 | a b (trans hac hcb) := eq.trans (well_def hac) (well_def hcb)
-| _ _ (congr_mul ha hb) := by { dsimp [to_envel_group.map_aux], rw well_def ha, rw well_def hb, }
-| _ _ (congr_inv ha) := by { dsimp [to_envel_group.map_aux], rw well_def ha }
+| _ _ (congr_mul ha hb) := by { simp [to_envel_group.map_aux, well_def ha, well_def hb] }
+| _ _ (congr_inv ha) := by { simp [to_envel_group.map_aux, well_def ha] }
 | _ _ (assoc a b c) := by { apply mul_assoc }
-| _ _ (one_mul a) := by { dsimp [to_envel_group.map_aux], simp, }
-| _ _ (mul_one a) := by { dsimp [to_envel_group.map_aux], simp, }
-| _ _ (mul_left_inv a) := by { dsimp [to_envel_group.map_aux], simp, }
-| _ _ (act_incl x y) := by { dsimp [to_envel_group.map_aux], simp, }
+| _ _ (one_mul a) := by { simp [to_envel_group.map_aux] }
+| _ _ (mul_one a) := by { simp [to_envel_group.map_aux] }
+| _ _ (mul_left_inv a) := by { simp [to_envel_group.map_aux] }
+| _ _ (act_incl x y) := by { simp [to_envel_group.map_aux] }
 
 end to_envel_group.map_aux
 

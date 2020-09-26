@@ -157,11 +157,12 @@ begin
   { exact s.w (𝟙 _), },
 end
 
-variables (F G)
+variables (F G) (H : Dᵒᵖ ⥤ E)
 
 /--
 If `F` is cofinal,
-the category of cocones on `F ⋙ G` is equivalent to the category of cocones on `G`.
+the category of cocones on `F ⋙ G` is equivalent to the category of cocones on `G`,
+for any `G : D ⥤ E`.
 -/
 @[simps]
 def cocones_equiv : cocone (F ⋙ G) ≌ cocone G :=
@@ -170,22 +171,36 @@ def cocones_equiv : cocone (F ⋙ G) ≌ cocone G :=
   unit_iso := nat_iso.of_components (λ c, cocones.ext (iso.refl _) (by tidy)) (by tidy),
   counit_iso := nat_iso.of_components (λ c, cocones.ext (iso.refl _) (by tidy)) (by tidy), }.
 
-def cones_equiv (H : Dᵒᵖ ⥤ E) : cone (F.op ⋙ H) ≌ cone H :=
-begin
-  have e := (((cocone_equivalence_op_cone_op _).symm.trans
-    (cocones_equiv F (unop_unop ⋙ H.op))).trans
-    (cocone_equivalence_op_cone_op _)).unop,
+/--
+If `F` is cofinal,
+the category of cones on `F.op ⋙ H` is equivalent to the category of cones on `G`,
+for any `H : Dᵒᵖ ⥤ E`.
+-/
+-- This proof is purely formal in terms of `cocones_equiv`, and moving a lot of opposites around!
+def cones_equiv : cone (F.op ⋙ H) ≌ cone H :=
+(((cones.functoriality_equivalence _ (op_op_equivalence E)).symm.trans
+  ((((cocone_equivalence_op_cone_op _).symm.trans
+    (cocones_equiv F (unop_unop _ ⋙ H.op))).trans
+    (cocone_equivalence_op_cone_op _)).unop)).trans
+  (cones.functoriality_equivalence _ (op_op_equivalence E))).trans
+  (cones.postcompose_equivalence (nat_iso.of_components (λ X, iso.refl _) (by tidy) :
+    H ≅ (unop_unop D ⋙ H.op).op ⋙ (op_op_equivalence E).functor)).symm
 
-end
-
-variables {G}
+variables {G H}
 
 /--
-When `F` is cofinal, and `t : cocone G`,
-`t.whisker F` is a colimit coconne exactly when `t` is.
+When `F : C ⥤ D` is cofinal, and `t : cocone G` for some `G : D ⥤ E`,
+`t.whisker F` is a colimit cocone exactly when `t` is.
 -/
 def is_colimit_whisker_equiv (t : cocone G) : is_colimit (t.whisker F) ≃ is_colimit t :=
 is_colimit.of_cocone_equiv (cocones_equiv F G).symm
+
+/--
+When `F : C ⥤ D` is cofinal, and `t : cone H` for some `H : Dᵒᵖ⥤ E`,
+`t.whisker F` is a limit cone exactly when `t` is.
+-/
+def is_limit_whisker_equiv (t : cone G) : is_limit (t.whisker F) ≃ is_limit t :=
+is_limit.of_cone_equiv (cones_equiv F H).symm
 
 /--
 When `F` is cofinal, and `t : cocone (F ⋙ G)`,
@@ -237,16 +252,6 @@ def colimit_iso [has_colimit G] : colimit (F ⋙ G) ≅ colimit G := as_iso (col
 
 end
 
-/--
-If the universal morphism `colimit (F ⋙ coyoneda.obj (op d)) ⟶ colimit (coyoneda.obj (op d))`
-is an isomorphism (as it always is when `F` is cofinal),
-then `colimit (F ⋙ coyoneda.obj (op d)) ≅ punit`
-(simply because `colimit (coyoneda.obj (op d)) ≅ punit`).
--/
-def colimit_comp_coyoneda_iso (d : D) [is_iso (colimit.pre (coyoneda.obj (op d)) F)] :
-  colimit (F ⋙ coyoneda.obj (op d)) ≅ punit :=
-as_iso (colimit.pre (coyoneda.obj (op d)) F) ≪≫ coyoneda.colimit_coyoneda_iso (op d)
-
 /-- Given a colimit cocone over `F ⋙ G` we can construct a colimit cocone over `G`. -/
 @[simps]
 def colimit_cocone_of_comp (t : colimit_cocone (F ⋙ G)) :
@@ -276,6 +281,16 @@ https://stacks.math.columbia.edu/tag/04E7
 def colimit_iso' [has_colimit (F ⋙ G)] : colimit (F ⋙ G) ≅ colimit G := as_iso (colimit.pre G F)
 
 end
+
+/--
+If the universal morphism `colimit (F ⋙ coyoneda.obj (op d)) ⟶ colimit (coyoneda.obj (op d))`
+is an isomorphism (as it always is when `F` is cofinal),
+then `colimit (F ⋙ coyoneda.obj (op d)) ≅ punit`
+(simply because `colimit (coyoneda.obj (op d)) ≅ punit`).
+-/
+def colimit_comp_coyoneda_iso (d : D) [is_iso (colimit.pre (coyoneda.obj (op d)) F)] :
+  colimit (F ⋙ coyoneda.obj (op d)) ≅ punit :=
+as_iso (colimit.pre (coyoneda.obj (op d)) F) ≪≫ coyoneda.colimit_coyoneda_iso (op d)
 
 lemma zigzag_of_eqv_gen_quot_rel {d : D} {f₁ f₂ : Σ X, d ⟶ F.obj X}
   (t : eqv_gen (types.quot.rel (F ⋙ coyoneda.obj (op d))) f₁ f₂) :

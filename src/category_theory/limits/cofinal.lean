@@ -17,18 +17,23 @@ the comma category of morphisms `d ⟶ F.obj c` is connected.
 
 We prove the following three statements are equivalent:
 1. `F : C ⥤ D` is cofinal.
-2. A functor `G : D ⥤ E` has a colimit if and only if `F ⋙ G` does,
+2. Every functor `G : D ⥤ E` has a colimit if and only if `F ⋙ G` does,
    and these colimits are isomorphic via `colimit.pre G F`.
-3. `colimit (F ⋙ coyoneda.obj (op d)) ≅ punit`
+3. `colimit (F ⋙ coyoneda.obj (op d)) ≅ punit`.
 
 Starting at 1. we show (in `cocones_equiv`) that
 the categories of cocones over `G : D ⥤ E` and over `F ⋙ G` are equivalent.
 (In fact, via an equivalence which does not change the cocone point.)
-This readily implies 2, as `comp_has_colimit`, `has_colimit_of_comp`, and `colimit_iso`.
+This readily implies 2., as `comp_has_colimit`, `has_colimit_of_comp`, and `colimit_iso`.
 
 From 2. we can specialize to `G = coyoneda.obj (op d)` to obtain 3., as `colimit_comp_coyoneda_iso`.
 
 From 3., we prove 1. directly in `cofinal_of_colimit_comp_coyoneda_iso_punit`.
+
+We also show these conditions imply:
+4. Every functor `H : Dᵒᵖ ⥤ E` has a limit if and only if `F.op ⋙ H` does,
+   and these limits are isomorphic via `limit.pre H F.op`.
+
 
 ## Naming
 There is some discrepancy in the literature about naming; some say 'final' instead of 'cofinal'.
@@ -157,7 +162,37 @@ begin
   { exact s.w (𝟙 _), },
 end
 
-variables (F G) (H : Dᵒᵖ ⥤ E)
+variables {H : Dᵒᵖ ⥤ E}
+
+@[simps]
+def extend_cone_cone_to_cocone (c : cone (F.op ⋙ H)) : cocone (F ⋙ H.right_op) :=
+{ X := op c.X,
+  ι :=
+  { app := λ j, (c.π.app (op j)).op,
+    naturality' := λ j j' f, begin apply has_hom.hom.unop_inj, dsimp, simp only [category.id_comp], exact c.w f.op, end }}
+
+@[simps]
+def extend_cone_cocone_to_cone (c : cocone H.right_op) : cone H :=
+{ X := unop c.X,
+  π :=
+  { app := λ j, (c.ι.app (unop j)).unop,
+    naturality' := λ j j' f, begin apply has_hom.hom.op_inj, dsimp, simp only [category.comp_id], exact (c.w f.unop).symm, end }}
+
+@[simps]
+def extend_cone : cone (F.op ⋙ H) ⥤ cone H :=
+{ obj := λ c, extend_cone_cocone_to_cone (extend_cocone.obj (extend_cone_cone_to_cocone c)),
+  map := λ X Y f, { hom := f.hom, } }
+
+@[simp]
+lemma limit_cone_comp_aux (s : cone (F.op ⋙ H)) (j : Cᵒᵖ) :
+  s.π.app (op (lift F (F.obj (unop j)))) ≫ H.map (hom_to_lift F (F.obj (unop j))).op =
+    s.π.app j :=
+begin
+  apply has_hom.hom.op_inj,
+  exact colimit_cocone_comp_aux (extend_cone_cone_to_cocone s) (unop j)
+end
+
+variables (F G H)
 
 /--
 If `F` is cofinal,
@@ -173,18 +208,25 @@ def cocones_equiv : cocone (F ⋙ G) ≌ cocone G :=
 
 /--
 If `F` is cofinal,
-the category of cones on `F.op ⋙ H` is equivalent to the category of cones on `G`,
+the category of cones on `F.op ⋙ H` is equivalent to the category of cones on `H`,
 for any `H : Dᵒᵖ ⥤ E`.
 -/
--- This proof is purely formal in terms of `cocones_equiv`, and moving a lot of opposites around!
+@[simps]
 def cones_equiv : cone (F.op ⋙ H) ≌ cone H :=
-(((cones.functoriality_equivalence _ (op_op_equivalence E)).symm.trans
-  ((((cocone_equivalence_op_cone_op _).symm.trans
-    (cocones_equiv F (unop_unop _ ⋙ H.op))).trans
-    (cocone_equivalence_op_cone_op _)).unop)).trans
-  (cones.functoriality_equivalence _ (op_op_equivalence E))).trans
-  (cones.postcompose_equivalence (nat_iso.of_components (λ X, iso.refl _) (by tidy) :
-    H ≅ (unop_unop D ⋙ H.op).op ⋙ (op_op_equivalence E).functor)).symm
+{ functor := extend_cone,
+  inverse := cones.whiskering F.op,
+  unit_iso := nat_iso.of_components (λ c, cones.ext (iso.refl _) (by tidy)) (by tidy),
+  counit_iso := nat_iso.of_components (λ c, cones.ext (iso.refl _) (by tidy)) (by tidy), }.
+-- We could have done this purely formally in terms of `cocones_equiv`,
+-- without having defined `extend_cone` at all,
+-- but it comes at the cost of moving a *lot* of opposites around:
+-- (((cones.functoriality_equivalence _ (op_op_equivalence E)).symm.trans
+--   ((((cocone_equivalence_op_cone_op _).symm.trans
+--     (cocones_equiv F (unop_unop _ ⋙ H.op))).trans
+--     (cocone_equivalence_op_cone_op _)).unop)).trans
+--   (cones.functoriality_equivalence _ (op_op_equivalence E))).trans
+--   (cones.postcompose_equivalence (nat_iso.of_components (λ X, iso.refl _) (by tidy) :
+--     H ≅ (unop_unop D ⋙ H.op).op ⋙ (op_op_equivalence E).functor)).symm
 
 variables {G H}
 
@@ -196,10 +238,10 @@ def is_colimit_whisker_equiv (t : cocone G) : is_colimit (t.whisker F) ≃ is_co
 is_colimit.of_cocone_equiv (cocones_equiv F G).symm
 
 /--
-When `F : C ⥤ D` is cofinal, and `t : cone H` for some `H : Dᵒᵖ⥤ E`,
-`t.whisker F` is a limit cone exactly when `t` is.
+When `F : C ⥤ D` is cofinal, and `t : cone H` for some `H : Dᵒᵖ ⥤ E`,
+`t.whisker F.op` is a limit cone exactly when `t` is.
 -/
-def is_limit_whisker_equiv (t : cone G) : is_limit (t.whisker F) ≃ is_limit t :=
+def is_limit_whisker_equiv (t : cone H) : is_limit (t.whisker F.op) ≃ is_limit t :=
 is_limit.of_cone_equiv (cones_equiv F H).symm
 
 /--
@@ -210,24 +252,45 @@ def is_colimit_extend_cocone_equiv (t : cocone (F ⋙ G)) :
   is_colimit (extend_cocone.obj t) ≃ is_colimit t :=
 is_colimit.of_cocone_equiv (cocones_equiv F G)
 
-/-- Given a colimit cocone over `G` we can construct a colimit cocone over `F ⋙ G`. -/
+/--
+When `F` is cofinal, and `t : cone (F.op ⋙ H)`,
+`extend_cone.obj t` is a limit conne exactly when `t` is.
+-/
+def is_limit_extend_cone_equiv (t : cone (F.op ⋙ H)) :
+  is_limit (extend_cone.obj t) ≃ is_limit t :=
+is_limit.of_cone_equiv (cones_equiv F H)
+
+/-- Given a colimit cocone over `G : D ⥤ E` we can construct a colimit cocone over `F ⋙ G`. -/
 @[simps]
 def colimit_cocone_comp (t : colimit_cocone G) :
   colimit_cocone (F ⋙ G) :=
 { cocone := _,
   is_colimit := (is_colimit_whisker_equiv F _).symm (t.is_colimit) }
 
+/-- Given a limit cone over `H : Dᵒᵖ ⥤ E` we can construct a limit cone over `F.op ⋙ H`. -/
+@[simps]
+def limit_cone_comp (t : limit_cone H) :
+  limit_cone (F.op ⋙ H) :=
+{ cone := _,
+  is_limit := (is_limit_whisker_equiv F _).symm (t.is_limit) }
+
 @[priority 100]
 instance comp_has_colimit [has_colimit G] :
   has_colimit (F ⋙ G) :=
 has_colimit.mk (colimit_cocone_comp F (get_colimit_cocone G))
+
+@[priority 100]
+instance comp_has_limit [has_limit H] :
+  has_limit (F.op ⋙ H) :=
+has_limit.mk (limit_cone_comp F (get_limit_cone H))
 
 lemma colimit_pre_is_iso_aux {t : cocone G} (P : is_colimit t) :
   ((is_colimit_whisker_equiv F _).symm P).desc (t.whisker F) = 𝟙 t.X :=
 begin
   dsimp [is_colimit_whisker_equiv],
   apply P.hom_ext,
-  tidy,
+  intro j,
+  dsimp, simp,
 end
 
 instance colimit_pre_is_iso [has_colimit G] :
@@ -239,16 +302,43 @@ begin
   apply_instance,
 end
 
+lemma limit_pre_is_iso_aux {t : cone H} (P : is_limit t) :
+  ((is_limit_whisker_equiv F _).symm P).lift (t.whisker F.op) = 𝟙 t.X :=
+begin
+  dsimp [is_limit_whisker_equiv],
+  apply P.hom_ext,
+  intro j,
+  simp, refl,
+end
+
+instance limit_pre_is_iso [has_limit H] :
+  is_iso (limit.pre H F.op) :=
+begin
+  rw limit.pre_eq (limit_cone_comp F (get_limit_cone H)) (get_limit_cone H),
+  erw limit_pre_is_iso_aux,
+  dsimp,
+  apply_instance,
+end
+
 section
-variables (G)
+variables (G H)
 
 /--
-When `F` is cofinal, and `G` has a colimit, then `F ⋙ G` has a colimit also and
+When `F : C ⥤ D` is cofinal, and `G : D ⥤ E` has a colimit, then `F ⋙ G` has a colimit also and
 `colimit (F ⋙ G) ≅ colimit G`
 
 https://stacks.math.columbia.edu/tag/04E7
 -/
 def colimit_iso [has_colimit G] : colimit (F ⋙ G) ≅ colimit G := as_iso (colimit.pre G F)
+
+/--
+When `F : C ⥤ D` is cofinal, and `H : Dᵒᵖ ⥤ E` has a limit, then `F.op ⋙ H` has a limit also and
+`limit (F.op ⋙ H) ≅ limit H`
+
+https://stacks.math.columbia.edu/tag/04E7
+-/
+def limit_iso [has_limit H] : limit (F.op ⋙ H) ≅ limit H := (as_iso (limit.pre H F.op)).symm
+
 
 end
 
@@ -258,6 +348,13 @@ def colimit_cocone_of_comp (t : colimit_cocone (F ⋙ G)) :
   colimit_cocone G :=
 { cocone := extend_cocone.obj t.cocone,
   is_colimit := (is_colimit_extend_cocone_equiv F _).symm (t.is_colimit), }
+
+/-- Given a limit cone over `F.op ⋙ H` we can construct a limit cone over `H`. -/
+@[simps]
+def limit_cone_of_comp (t : limit_cone (F.op ⋙ H)) :
+  limit_cone H :=
+{ cone := extend_cone.obj t.cone,
+  is_limit := (is_limit_extend_cone_equiv F _).symm (t.is_limit), }
 
 /--
 When `F` is cofinal, and `F ⋙ G` has a colimit, then `G` has a colimit also.
@@ -269,8 +366,18 @@ lemma has_colimit_of_comp [has_colimit (F ⋙ G)] :
   has_colimit G :=
 has_colimit.mk (colimit_cocone_of_comp F (get_colimit_cocone (F ⋙ G)))
 
+/--
+When `F` is cofinal, and `F.op ⋙ H` has a limit, then `H` has a limit also.
+
+We can't make this an instance, because `F` is not determined by the goal.
+(Even if this weren't a problem, it would cause a loop with `comp_has_limit`.)
+-/
+lemma has_limit_of_comp [has_limit (F.op ⋙ H)] :
+  has_limit H :=
+has_limit.mk (limit_cone_of_comp F (get_limit_cone (F.op ⋙ H)))
+
 section
-local attribute [instance] has_colimit_of_comp
+local attribute [instance] has_colimit_of_comp has_limit_of_comp
 
 /--
 When `F` is cofinal, and `F ⋙ G` has a colimit, then `G` has a colimit also and
@@ -279,6 +386,15 @@ When `F` is cofinal, and `F ⋙ G` has a colimit, then `G` has a colimit also an
 https://stacks.math.columbia.edu/tag/04E7
 -/
 def colimit_iso' [has_colimit (F ⋙ G)] : colimit (F ⋙ G) ≅ colimit G := as_iso (colimit.pre G F)
+
+/--
+When `F` is cofinal, and `F.op ⋙ H` has a limit, then `H` has a limit also and
+`limit (F.op ⋙ H) ≅ limit H`
+
+https://stacks.math.columbia.edu/tag/04E7
+-/
+def limit_iso' [has_limit (F.op ⋙ H)] : limit (F.op ⋙ H) ≅ limit H :=
+(as_iso (limit.pre H F.op)).symm
 
 end
 

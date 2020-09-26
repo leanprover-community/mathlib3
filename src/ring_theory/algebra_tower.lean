@@ -124,11 +124,19 @@ by { letI := (f : A →+* B).to_algebra, exact of_algebra_map_eq (λ x, (f.commu
 end semiring
 
 section comm_semiring
-variables [comm_semiring R] [comm_semiring A] [algebra R A]
-variables [comm_semiring B] [algebra A B] [algebra R B] [is_scalar_tower R A B]
+variables [comm_semiring R] [comm_semiring A] [semiring B] [algebra R A] [algebra A B]
 
 instance subalgebra (S : subalgebra R A) : is_scalar_tower R S A :=
 of_algebra_map_eq $ λ x, rfl
+
+instance subalgebra' (A₀ : subalgebra R A) : is_scalar_tower A₀ A B :=
+is_scalar_tower.subsemiring _
+
+variables [algebra R B] [is_scalar_tower R A B]
+
+instance subalgebra'' (A₀ : subalgebra R A) : is_scalar_tower R A₀ B :=
+@is_scalar_tower.of_algebra_map_eq R A₀ B _ _ _ _ _ _ $ λ _,
+(is_scalar_tower.algebra_map_apply R A B _ : _)
 
 instance polynomial : is_scalar_tower R A (polynomial B) :=
 of_algebra_map_eq $ λ x, congr_arg polynomial.C $ algebra_map_apply R A B x
@@ -226,6 +234,17 @@ from suffices set.range (algebra_map (to_alg_hom R S A).range A) = set.range (al
 by { ext z, exact ⟨λ ⟨⟨x, y, _, h1⟩, h2⟩, ⟨y, h2 ▸ h1⟩, λ ⟨y, hy⟩, ⟨⟨z, y, set.mem_univ _, hy⟩, rfl⟩⟩ }
 
 end is_scalar_tower
+
+section
+open_locale classical
+lemma algebra.fg_trans' {R S A : Type*} [comm_ring R] [comm_ring S] [comm_ring A]
+  [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
+  (hRS : (⊤ : subalgebra R S).fg) (hSA : (⊤ : subalgebra S A).fg) :
+  (⊤ : subalgebra R A).fg :=
+let ⟨s, hs⟩ := hRS, ⟨t, ht⟩ := hSA in ⟨s.image (algebra_map S A) ∪ t,
+by rw [finset.coe_union, finset.coe_image, algebra.adjoin_union, algebra.adjoin_algebra_map, hs,
+    algebra.map_top, is_scalar_tower.range_under_adjoin, ht, subalgebra.res_top]⟩
+end
 
 namespace submodule
 
@@ -360,3 +379,62 @@ theorem is_basis.smul_repr_mk
 by simp [is_basis.smul_repr]
 
 end ring
+
+section artin_tate
+
+variables (C : Type*)
+variables [comm_ring A] [comm_ring B] [comm_ring C]
+variables [algebra A B] [algebra B C] [algebra A C] [is_scalar_tower A B C]
+
+open finset submodule
+open_locale classical
+
+lemma exists_subalgebra_of_fg (hAC : (⊤ : subalgebra A C).fg) (hBC : (⊤ : submodule B C).fg) :
+  ∃ B₀ : subalgebra A B, B₀.fg ∧ (⊤ : submodule B₀ C).fg :=
+begin
+  cases hAC with x hx,
+  cases hBC with y hy, have := hy,
+  simp_rw [eq_top_iff', mem_span_finset] at this, choose f hf,
+  let s : finset B := (finset.product (x ∪ (y * y)) y).image (function.uncurry f),
+  have hsx : ∀ (xi ∈ x) (yj ∈ y), f xi yj ∈ s := λ xi hxi yj hyj,
+    show function.uncurry f (xi, yj) ∈ s,
+    from mem_image_of_mem _ $ mem_product.2 ⟨mem_union_left _ hxi, hyj⟩,
+  have hsy : ∀ (yi yj yk ∈ y), f (yi * yj) yk ∈ s := λ yi yj yk hyi hyj hyk,
+    show function.uncurry f (yi * yj, yk) ∈ s,
+    from mem_image_of_mem _ $ mem_product.2 ⟨mem_union_right _ $ finset.mul_mem_mul hyi hyj, hyk⟩,
+  have hxy : ∀ xi ∈ x, xi ∈ span (algebra.adjoin A (↑s : set B)) (↑(insert 1 y : finset C) : set C) :=
+    λ xi hxi, hf xi ▸ sum_mem _ (λ yj hyj, smul_mem
+      (span (algebra.adjoin A (↑s : set B)) (↑(insert 1 y : finset C) : set C))
+      ⟨f xi yj, algebra.subset_adjoin $ hsx xi hxi yj hyj⟩
+      (subset_span $ mem_insert_of_mem hyj)),
+  have hyy : span (algebra.adjoin A (↑s : set B)) (↑(insert 1 y : finset C) : set C) *
+      span (algebra.adjoin A (↑s : set B)) (↑(insert 1 y : finset C) : set C) ≤
+    span (algebra.adjoin A (↑s : set B)) (↑(insert 1 y : finset C) : set C),
+  { rw [span_mul_span, span_le, coe_insert], rintros _ ⟨yi, yj, rfl | hyi, rfl | hyj, rfl⟩,
+    { rw mul_one, exact subset_span (set.mem_insert _ _) },
+    { rw one_mul, exact subset_span (set.mem_insert_of_mem _ hyj) },
+    { rw mul_one, exact subset_span (set.mem_insert_of_mem _ hyi) },
+    { rw ← hf (yi * yj), exact (submodule.mem_coe _).2 (sum_mem _ $ λ yk hyk, smul_mem
+        (span (algebra.adjoin A (↑s : set B)) (insert 1 ↑y : set C))
+        ⟨f (yi * yj) yk, algebra.subset_adjoin $ hsy yi yj yk hyi hyj hyk⟩
+        (subset_span $ set.mem_insert_of_mem _ hyk : yk ∈ _)) } },
+  refine ⟨algebra.adjoin A (↑s : set B), subalgebra.fg_adjoin_finset _, insert 1 y, _⟩,
+  refine restrict_scalars'_injective _ _ (_ : restrict_scalars' A _ = _),
+  rw [restrict_scalars'_top, eq_top_iff, ← algebra.coe_top, ← hx, algebra.adjoin_eq_span, span_le],
+  refine λ r hr, monoid.in_closure.rec_on hr hxy (subset_span $ mem_insert_self _ _)
+      (λ p q _ _ hp hq, hyy $ submodule.mul_mem_mul hp hq)
+end
+
+/- Artin--Tate lemma. Atiyah--Macdonald Proposition 7.8; Stacks 00IS; Altman--Kleiman 16.17. -/
+theorem fg_of_fg_of_fg [is_noetherian_ring A]
+  (hAC : (⊤ : subalgebra A C).fg) (hBC : (⊤ : submodule B C).fg)
+  (hBCi : function.injective (algebra_map B C)) :
+  (⊤ : subalgebra A B).fg :=
+let ⟨B₀, hAB₀, hB₀C⟩ := exists_subalgebra_of_fg A B C hAC hBC in
+algebra.fg_trans' (B₀.fg_top.2 hAB₀) $ subalgebra.fg_of_submodule_fg $
+have is_noetherian_ring B₀, from is_noetherian_ring_of_fg hAB₀,
+have is_noetherian B₀ C, by exactI is_noetherian_of_fg_of_noetherian' hB₀C,
+by exactI fg_of_injective (is_scalar_tower.to_alg_hom B₀ B C).to_linear_map
+  (linear_map.ker_eq_bot.2 hBCi)
+
+end artin_tate

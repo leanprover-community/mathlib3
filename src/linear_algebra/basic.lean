@@ -723,6 +723,11 @@ le_antisymm (span_le.2 h₁) h₂
 @[simp] lemma span_eq : span R (p : set M) = p :=
 span_eq_of_le _ (subset.refl _) subset_span
 
+lemma map_span (f : M →ₗ[R] M₂) (s : set M) :
+  (span R s).map f = span R (f '' s) :=
+eq.symm $ span_eq_of_le _ (set.image_subset f subset_span) $
+map_le_iff_le_comap.2 $ span_le.2 $ λ x hx, subset_span ⟨x, hx, rfl⟩
+
 /-- An induction principle for span membership. If `p` holds for 0 and all elements of `s`, and is
 preserved under addition and scalar multiplication, then `p` holds for all elements of the span of
 `s`. -/

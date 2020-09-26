@@ -905,6 +905,8 @@ theorem monotone_prod [preorder α] {f : α → set β} {g : α → set γ}
   (hf : monotone f) (hg : monotone g) : monotone (λx, (f x).prod (g x)) :=
 assume a b h, prod_mono (hf h) (hg h)
 
+alias monotone_prod ← monotone.set_prod
+
 lemma Union_prod_of_monotone [semilattice_sup α] {s : α → set β} {t : α → set γ}
   (hs : monotone s) (ht : monotone t) : (⋃ x, (s x).prod (t x)) = (⋃ x, (s x)).prod (⋃ x, (t x)) :=
 begin

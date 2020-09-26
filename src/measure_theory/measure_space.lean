@@ -225,6 +225,14 @@ begin
   exact measure_bUnion_le s.countable_to_set f
 end
 
+lemma measure_bUnion_lt_top {s : set β} {f : β → set α} (hs : finite s)
+  (hfin : ∀ i ∈ s, μ (f i) < ⊤) : μ (⋃ i ∈ s, f i) < ⊤ :=
+begin
+  convert (measure_bUnion_finset_le hs.to_finset f).trans_lt _,
+  { ext, rw [finite.mem_to_finset] },
+  apply ennreal.sum_lt_top, simpa only [finite.mem_to_finset]
+end
+
 lemma measure_Union_null {β} [encodable β] {s : β → set α} :
   (∀ i, μ (s i) = 0) → μ (⋃i, s i) = 0 :=
 μ.to_outer_measure.Union_null
@@ -1444,7 +1452,7 @@ sigma_finite.exists_finite_spanning_sets
   measure using `classical.some`. This definition satisfies monotonicity in addition to all other
   properties in `sigma_finite`. -/
 def spanning_sets (μ : measure α) [sigma_finite μ] (i : ℕ) : set α :=
-accumulate (classical.some (exists_finite_spanning_sets μ)) i
+accumulate (classical.some $ exists_finite_spanning_sets μ) i
 
 lemma monotone_spanning_sets (μ : measure α) [sigma_finite μ] :
   monotone (spanning_sets μ) :=
@@ -1453,25 +1461,26 @@ monotone_accumulate
 lemma is_measurable_spanning_sets (μ : measure α) [sigma_finite μ] (i : ℕ) :
   is_measurable (spanning_sets μ i) :=
 is_measurable.Union $ λ j, is_measurable.Union_Prop $
-  λ hij, (classical.some_spec (exists_finite_spanning_sets μ)).1 j
+  λ hij, (classical.some_spec $ exists_finite_spanning_sets μ).1 j
 
 lemma measure_spanning_sets_lt_top (μ : measure α) [sigma_finite μ] (i : ℕ) :
   μ (spanning_sets μ i) < ⊤ :=
-begin
-  rw [spanning_sets, accumulate_nat],
-  apply (measure_bUnion_le _ _).trans_lt,
-  refine (finset.tsum_subtype _ (λ i, μ _)).le.trans_lt _,
-  rw ennreal.sum_lt_top_iff,
-  exact λ j _, (classical.some_spec (exists_finite_spanning_sets μ)).2.1 j,
-  exact (finset.range (i+1)).countable_to_set
-end
+measure_bUnion_lt_top (finite_le_nat i) $
+  λ j _, (classical.some_spec $ exists_finite_spanning_sets μ).2.1 j
 
 lemma Union_spanning_sets (μ : measure α) [sigma_finite μ] :
   (⋃ i : ℕ, spanning_sets μ i) = univ :=
 by simp_rw [spanning_sets, Union_accumulate,
-  (classical.some_spec (exists_finite_spanning_sets μ)).2.2]
+  (classical.some_spec $ exists_finite_spanning_sets μ).2.2]
 
 namespace measure
+
+lemma supr_measure_spanning_sets {μ : measure α} [sigma_finite μ] :
+  (⨆ i, μ (spanning_sets μ i)) = μ univ :=
+begin
+  sorry
+end
+
 lemma supr_restrict_spanning_sets {μ : measure α} [sigma_finite μ] {s : set α}
   (hs : is_measurable s) :
   (⨆ i, μ.restrict (spanning_sets μ i) s) = μ s :=
@@ -1481,11 +1490,20 @@ begin
   { exact directed_of_sup (monotone_spanning_sets μ) }
 end
 end measure
+open measure
 
 /-- Every finite measure is σ-finite. -/
 @[priority 100]
 instance finite_measure.to_sigma_finite (μ : measure α) [finite_measure μ] : sigma_finite μ :=
 ⟨⟨λ _, univ, λ _, is_measurable.univ, λ _, measure_lt_top μ _, Union_const _⟩⟩
+
+instance restrict.sigma_finite (μ : measure α) [sigma_finite μ] (s : set α) :
+  sigma_finite (μ.restrict s) :=
+begin
+  refine ⟨⟨spanning_sets μ, is_measurable_spanning_sets μ, λ i, _, Union_spanning_sets μ⟩⟩,
+  rw [restrict_apply (is_measurable_spanning_sets μ i)],
+  exact (measure_mono $ inter_subset_left _ _).trans_lt (measure_spanning_sets_lt_top μ i)
+end
 
 /-- A measure is called locally finite if it is finite in some neighborhood of each point. -/
 class locally_finite_measure [topological_space α] (μ : measure α) : Prop :=

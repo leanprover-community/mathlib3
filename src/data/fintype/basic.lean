@@ -9,7 +9,6 @@ import tactic.wlog
 import data.finset.powerset
 import data.finset.lattice
 import data.finset.pi
-import data.array.lemmas
 
 universes u v
 
@@ -696,16 +695,6 @@ instance pi.fintype {α : Type*} {β : α → Type*}
   [decidable_eq α] [fintype α] [∀a, fintype (β a)] :
   fintype.pi_finset (λ a : α, (finset.univ : finset (β a))) = (finset.univ : finset (Π a, β a)) :=
 rfl
-
-instance d_array.fintype {n : ℕ} {α : fin n → Type*}
-  [∀n, fintype (α n)] : fintype (d_array n α) :=
-fintype.of_equiv _ (equiv.d_array_equiv_fin _).symm
-
-instance array.fintype {n : ℕ} {α : Type*} [fintype α] : fintype (array n α) :=
-d_array.fintype
-
-instance vector.fintype {α : Type*} [fintype α] {n : ℕ} : fintype (vector α n) :=
-fintype.of_equiv _ (equiv.vector_equiv_fin _ _).symm
 
 instance quotient.fintype [fintype α] (s : setoid α)
   [decidable_rel ((≈) : α → α → Prop)] : fintype (quotient s) :=

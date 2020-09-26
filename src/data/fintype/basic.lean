@@ -408,6 +408,10 @@ instance {α : Type*} (β : α → Type*)
 instance (α β : Type*) [fintype α] [fintype β] : fintype (α × β) :=
 ⟨univ.product univ, λ ⟨a, b⟩, by simp⟩
 
+@[simp] lemma finset.univ_product_univ {α β : Type*} [fintype α] [fintype β] :
+  (univ : finset α).product (univ : finset β) = univ :=
+rfl
+
 @[simp] theorem fintype.card_prod (α β : Type*) [fintype α] [fintype β] :
   fintype.card (α × β) = fintype.card α * fintype.card β :=
 card_product _ _

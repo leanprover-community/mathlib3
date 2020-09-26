@@ -720,7 +720,7 @@ namespace real
 
 lemma norm_eq_abs (r : ℝ) : ∥r∥ = abs r := rfl
 
-lemma norm_of_nonneg {x : ℝ} (hx : 0 ≤ x) : ∥ x ∥ = x :=
+lemma norm_of_nonneg {x : ℝ} (hx : 0 ≤ x) : ∥x∥ = x :=
 abs_of_nonneg hx
 
 @[simp] lemma norm_coe_nat (n : ℕ) : ∥(n : ℝ)∥ = n := abs_of_nonneg n.cast_nonneg

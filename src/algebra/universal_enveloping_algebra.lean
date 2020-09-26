@@ -11,16 +11,22 @@ import linear_algebra.tensor_algebra
 # Universal enveloping algebra
 
 Given a commutative ring `R` and a Lie algebra `L` over `R`, we construct the universal
-enveloping algebra of `L`, together its universal property.
+enveloping algebra of `L`, together with its universal property.
 
 ## Main definitions
 
-  * `universal_enveloping_algebra`
-  * `universal_enveloping_algebra.algebra`
-  * `universal_enveloping_algebra.lift`
-  * `universal_enveloping_algebra.ι_comp_lift`
-  * `universal_enveloping_algebra.lift_unique`
-  * `universal_enveloping_algebra.hom_ext`
+  * `universal_enveloping_algebra`: the universal enveloping algebra, endowed with an
+    `R`-algebra structure.
+  * `universal_enveloping_algebra.ι`: the Lie algebra morphism from `L` to its universal
+    enveloping algebra.
+  * `universal_enveloping_algebra.lift`: given an associative algebra `A`, together with a Lie
+    algebra morphism `f : L →ₗ⁅R⁆ A`, `lift R L f : universal_enveloping_algebra R L →ₐ[R] A` is the
+    unique morphism of algebras through which `f` factors.
+  * `universal_enveloping_algebra.ι_comp_lift`: states that the lift of a morphism is indeed part
+    of a factorisation.
+  * `universal_enveloping_algebra.lift_unique`: states that lifts of morphisms are indeed unique.
+  * `universal_enveloping_algebra.hom_ext`: a restatement of `lift_unique` as an extensionality
+    lemma.
 
 ## Tags
 
@@ -68,7 +74,7 @@ def ι : L →ₗ⁅R⁆ universal_enveloping_algebra R L :=
     exact ring_quot.mk_alg_hom_rel _ (rel.lie_compat x y), },
   ..(mk_alg_hom R L).to_linear_map.comp ιₜ }
 
-variables (A : Type u₃) [ring A] [algebra R A] (f : L →ₗ⁅R⁆ A)
+variables {A : Type u₃} [ring A] [algebra R A] (f : L →ₗ⁅R⁆ A)
 
 /-- The universal property of the universal enveloping algebra: Lie algebra morphisms into
 associative algebras lift to associative algebra morphisms from the universal enveloping algebra. -/
@@ -79,17 +85,17 @@ begin
   simp [lie_ring.of_associative_ring_bracket],
 end
 
-@[simp] lemma lift_ι_apply (x : L) : lift R L A f (ι R L x) = f x :=
+@[simp] lemma lift_ι_apply (x : L) : lift R L f (ι R L x) = f x :=
 begin
   have : ι R L x = ring_quot.mk_alg_hom R (rel R L) (ιₜ x), by refl,
   simp [this, lift],
 end
 
-lemma ι_comp_lift : (lift R L A f) ∘ (ι R L) = f :=
+lemma ι_comp_lift : (lift R L f) ∘ (ι R L) = f :=
 by { ext, simp, }
 
 lemma lift_unique (g : universal_enveloping_algebra R L →ₐ[R] A) :
-  g ∘ (ι R L) = f ↔ g = lift R L A f :=
+  g ∘ (ι R L) = f ↔ g = lift R L f :=
 begin
   split; intros h,
   { apply ring_quot.lift_alg_hom_unique,
@@ -106,8 +112,8 @@ begin
   let f₁ := (lie_algebra.of_associative_algebra_hom g₁).comp (ι R L),
   let f₂ := (lie_algebra.of_associative_algebra_hom g₂).comp (ι R L),
   have h' : f₁ = f₂, { ext, change (g₁ ∘ (ι R L)) x = (g₂ ∘ (ι R L)) x, rw h, },
-  have h₁ : g₁ = lift R L A f₁, { rw ← lift_unique, refl, },
-  have h₂ : g₂ = lift R L A f₂, { rw ← lift_unique, refl, },
+  have h₁ : g₁ = lift R L f₁, { rw ← lift_unique, refl, },
+  have h₂ : g₂ = lift R L f₂, { rw ← lift_unique, refl, },
   rw [h₁, h₂, h'],
 end
 

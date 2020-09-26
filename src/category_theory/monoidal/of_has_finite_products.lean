@@ -19,13 +19,18 @@ and sometimes we want to think of a different monoidal structure entirely,
 we don't set up either construct as an instance.
 
 ## Implementation
-For the sake of nicer definitional properties,
-we rely on `has_terminal` and `has_binary_products` instead of `has_finite_products`,
-so that if a particular category provides customised instances of these
-we pick those up instead.
+We had previously chosen to rely on `has_terminal` and `has_binary_products` instead of
+`has_finite_products`, because we were later relying on the definitional form of the tensor product.
+Now that `has_limit` has been refactored to be a `Prop`,
+this issue is irrelevant and we could simplify the construction here.
+
+See `category_theory.monoidal.of_chosen_finite_products` for a variant of this construction
+which allows specifying a particular choice of terminal object and binary products.
 -/
 
 universes v u
+
+noncomputable theory
 
 namespace category_theory
 

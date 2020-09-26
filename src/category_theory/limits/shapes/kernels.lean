@@ -8,8 +8,8 @@ import category_theory.limits.shapes.zero
 /-!
 # Kernels and cokernels
 
-In a category with zero morphisms, the kernel of a morphism `f : X ⟶ Y` is the equalizer of `f`
-and `0 : X ⟶ Y`. (Similarly the cokernel is the coequalizer.)
+In a category with zero morphisms, the kernel of a morphism `f : X ⟶ Y` is
+the equalizer of `f` and `0 : X ⟶ Y`. (Similarly the cokernel is the coequalizer.)
 
 The basic definitions are
 * `kernel : (X ⟶ Y) → C`
@@ -44,6 +44,8 @@ general limits can be used.
 * [F. Borceux, *Handbook of Categorical Algebra 2*][borceux-vol2]
 -/
 
+noncomputable theory
+
 universes v u u'
 
 open category_theory
@@ -55,9 +57,9 @@ variables {C : Type u} [category.{v} C]
 variables [has_zero_morphisms C]
 
 /-- A morphism `f` has a kernel if the functor `parallel_pair f 0` has a limit. -/
-abbreviation has_kernel {X Y : C} (f : X ⟶ Y) : Type (max u v) := has_limit (parallel_pair f 0)
+abbreviation has_kernel {X Y : C} (f : X ⟶ Y) : Prop := has_limit (parallel_pair f 0)
 /-- A morphism `f` has a cokernel if the functor `parallel_pair f 0` has a colimit. -/
-abbreviation has_cokernel {X Y : C} (f : X ⟶ Y) : Type (max u v) := has_colimit (parallel_pair f 0)
+abbreviation has_cokernel {X Y : C} (f : X ⟶ Y) : Prop := has_colimit (parallel_pair f 0)
 
 variables {X Y : C} (f : X ⟶ Y)
 
@@ -143,6 +145,8 @@ abbreviation kernel : C := equalizer f 0
 /-- The map from `kernel f` into the source of `f`. -/
 abbreviation kernel.ι : kernel f ⟶ X := equalizer.ι f 0
 
+@[simp] lemma equalizer_as_kernel : equalizer.ι f 0 = kernel.ι f := rfl
+
 @[simp, reassoc] lemma kernel.condition : kernel.ι f ≫ f = 0 :=
 kernel_fork.condition _
 
@@ -173,21 +177,20 @@ def kernel.lift' {W : C} (k : W ⟶ X) (h : k ≫ f = 0) : {l : W ⟶ kernel f /
 ⟨kernel.lift f k h, kernel.lift_ι _ _ _⟩
 
 /-- Every kernel of the zero morphism is an isomorphism -/
-instance kernel.ι_zero_is_iso [has_kernel (0 : X ⟶ Y)] :
-  is_iso (kernel.ι (0 : X ⟶ Y)) :=
+instance kernel.ι_zero_is_iso : is_iso (kernel.ι (0 : X ⟶ Y)) :=
 equalizer.ι_of_self _
 
 lemma eq_zero_of_epi_kernel [epi (kernel.ι f)] : f = 0 :=
 (cancel_epi (kernel.ι f)).1 (by simp)
 
 /-- The kernel of a zero morphism is isomorphic to the source. -/
-def kernel_zero_iso_source [has_kernel (0 : X ⟶ Y)] : kernel (0 : X ⟶ Y) ≅ X :=
+def kernel_zero_iso_source : kernel (0 : X ⟶ Y) ≅ X :=
 equalizer.iso_source_of_self 0
 
-@[simp] lemma kernel_zero_iso_source_hom [has_kernel (0 : X ⟶ Y)] :
+@[simp] lemma kernel_zero_iso_source_hom :
   kernel_zero_iso_source.hom = kernel.ι (0 : X ⟶ Y) := rfl
 
-@[simp] lemma kernel_zero_iso_source_inv [has_kernel (0 : X ⟶ Y)] :
+@[simp] lemma kernel_zero_iso_source_inv :
   kernel_zero_iso_source.inv = kernel.lift (0 : X ⟶ Y) (𝟙 X) (by simp) := rfl
 
 /-- If two morphisms are known to be equal, then their kernels are isomorphic. -/
@@ -216,42 +219,44 @@ lemma kernel_not_iso_of_nonzero (w : f ≠ 0) : (is_iso (kernel.ι f)) → false
 /--
 When `g` is an isomorphism, the kernel of `f ≫ g` is isomorphic to the kernel of `f`.
 -/
-@[simps]
 def kernel_comp_is_iso {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   [has_kernel (f ≫ g)] [has_kernel f] [is_iso g] :
   kernel (f ≫ g) ≅ kernel f :=
 { hom := kernel.lift _ (kernel.ι _) (by { rw [←cancel_mono g], simp, }),
   inv := kernel.lift _ (kernel.ι _) (by simp), }
 
+@[simp]
 lemma kernel_comp_is_iso_hom_comp_kernel_ι {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   [has_kernel (f ≫ g)] [has_kernel f] [is_iso g] :
   (kernel_comp_is_iso f g).hom ≫ kernel.ι f = kernel.ι (f ≫ g) :=
-by simp
+by simp [kernel_comp_is_iso]
 
+@[simp]
 lemma kernel_comp_is_iso_inv_comp_kernel_ι {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   [has_kernel (f ≫ g)] [has_kernel f] [is_iso g] :
   (kernel_comp_is_iso f g).inv ≫ kernel.ι (f ≫ g) = kernel.ι f :=
-by simp
+by simp [kernel_comp_is_iso]
 
 /--
 When `f` is an isomorphism, the kernel of `f ≫ g` is isomorphic to the kernel of `g`.
 -/
-@[simps]
 def kernel_is_iso_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   [has_kernel (f ≫ g)] [is_iso f] [has_kernel g] :
   kernel (f ≫ g) ≅ kernel g :=
 { hom := kernel.lift _ (kernel.ι _ ≫ f) (by simp),
   inv := kernel.lift _ (kernel.ι _ ≫ inv f) (by simp), }
 
+@[simp]
 lemma kernel_is_iso_comp_hom_comp_kernel_ι {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   [has_kernel (f ≫ g)] [is_iso f] [has_kernel g] :
   (kernel_is_iso_comp f g).hom ≫ kernel.ι g = kernel.ι (f ≫ g) ≫ f :=
-by simp
+by simp [kernel_is_iso_comp]
 
+@[simp]
 lemma kernel_is_iso_comp_inv_comp_kernel_ι {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   [has_kernel (f ≫ g)] [is_iso f] [has_kernel g] :
   (kernel_is_iso_comp f g).inv ≫ kernel.ι (f ≫ g) = kernel.ι g ≫ (inv f) :=
-by simp
+by simp [kernel_is_iso_comp]
 
 end
 
@@ -268,7 +273,7 @@ def kernel.zero_cone : cone (parallel_pair f 0) :=
 /-- The map from the zero object is a kernel of a monomorphism -/
 def kernel.is_limit_cone_zero_cone [mono f] : is_limit (kernel.zero_cone f) :=
 fork.is_limit.mk _ (λ s, 0)
-  (λ s, by { erw has_zero_morphisms.zero_comp,
+  (λ s, by { erw zero_comp,
     convert (zero_of_comp_mono f _).symm,
     exact kernel_fork.condition _ })
   (λ _ _ _, zero_of_to_zero _)
@@ -322,7 +327,7 @@ section
 variables (X Y)
 
 /-- The kernel morphism of a zero morphism is an isomorphism -/
-def kernel.ι_of_zero [has_kernel (0 : X ⟶ Y)] : is_iso (kernel.ι (0 : X ⟶ Y)) :=
+def kernel.ι_of_zero : is_iso (kernel.ι (0 : X ⟶ Y)) :=
 equalizer.ι_of_self _
 
 end
@@ -335,14 +340,14 @@ abbreviation cokernel_cofork := cofork f 0
 variables {f}
 
 @[simp, reassoc] lemma cokernel_cofork.condition (s : cokernel_cofork f) : f ≫ cofork.π s = 0 :=
-by rw [cofork.condition, has_zero_morphisms.zero_comp]
+by rw [cofork.condition, zero_comp]
 
 @[simp] lemma cokernel_cofork.app_zero (s : cokernel_cofork f) : s.ι.app zero = 0 :=
 by rw [←cofork.left_app_one, cokernel_cofork.condition]
 
 /-- A morphism `π` satisfying `f ≫ π = 0` determines a cokernel cofork on `f`. -/
 abbreviation cokernel_cofork.of_π {Z : C} (π : Y ⟶ Z) (w : f ≫ π = 0) : cokernel_cofork f :=
-cofork.of_π π $ by rw [w, has_zero_morphisms.zero_comp]
+cofork.of_π π $ by rw [w, zero_comp]
 
 @[simp] lemma cokernel_cofork.π_of_π {X Y P : C} (f : X ⟶ Y) (π : Y ⟶ P) (w : f ≫ π = 0) :
   cofork.π (cokernel_cofork.of_π π w) = π := rfl
@@ -396,6 +401,8 @@ abbreviation cokernel : C := coequalizer f 0
 /-- The map from the target of `f` to `cokernel f`. -/
 abbreviation cokernel.π : Y ⟶ cokernel f := coequalizer.π f 0
 
+@[simp] lemma coequalizer_as_cokernel : coequalizer.π f 0 = cokernel.π f := rfl
+
 @[simp, reassoc] lemma cokernel.condition : f ≫ cokernel.π f = 0 :=
 cokernel_cofork.condition _
 
@@ -428,7 +435,7 @@ def cokernel.desc' {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) :
 ⟨cokernel.desc f k h, cokernel.π_desc _ _ _⟩
 
 /-- The cokernel of the zero morphism is an isomorphism -/
-instance cokernel.π_zero_is_iso [has_colimit (parallel_pair (0 : X ⟶ Y) 0)] :
+instance cokernel.π_zero_is_iso :
   is_iso (cokernel.π (0 : X ⟶ Y)) :=
 coequalizer.π_of_self _
 
@@ -436,13 +443,13 @@ lemma eq_zero_of_mono_cokernel [mono (cokernel.π f)] : f = 0 :=
 (cancel_mono (cokernel.π f)).1 (by simp)
 
 /-- The cokernel of a zero morphism is isomorphic to the target. -/
-def cokernel_zero_iso_target [has_cokernel (0 : X ⟶ Y)] : cokernel (0 : X ⟶ Y) ≅ Y :=
+def cokernel_zero_iso_target : cokernel (0 : X ⟶ Y) ≅ Y :=
 coequalizer.iso_target_of_self 0
 
-@[simp] lemma cokernel_zero_iso_target_hom [has_cokernel (0 : X ⟶ Y)] :
+@[simp] lemma cokernel_zero_iso_target_hom :
   cokernel_zero_iso_target.hom = cokernel.desc (0 : X ⟶ Y) (𝟙 Y) (by simp) := rfl
 
-@[simp] lemma cokernel_zero_iso_target_inv [has_cokernel (0 : X ⟶ Y)] :
+@[simp] lemma cokernel_zero_iso_target_inv :
   cokernel_zero_iso_target.inv = cokernel.π (0 : X ⟶ Y) := rfl
 
 /-- If two morphisms are known to be equal, then their cokernels are isomorphic. -/
@@ -471,43 +478,44 @@ lemma cokernel_not_iso_of_nonzero (w : f ≠ 0) : (is_iso (cokernel.π f)) → f
 /--
 When `g` is an isomorphism, the cokernel of `f ≫ g` is isomorphic to the cokernel of `f`.
 -/
-@[simps]
 def cokernel_comp_is_iso {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   [has_cokernel (f ≫ g)] [has_cokernel f] [is_iso g] :
   cokernel (f ≫ g) ≅ cokernel f :=
 { hom := cokernel.desc _ (inv g ≫ cokernel.π f) (by simp),
   inv := cokernel.desc _ (g ≫ cokernel.π (f ≫ g)) (by rw [←category.assoc, cokernel.condition]), }
 
+@[simp]
 lemma cokernel_π_comp_cokernel_comp_is_iso_hom {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   [has_cokernel (f ≫ g)] [has_cokernel f] [is_iso g] :
   cokernel.π (f ≫ g) ≫ (cokernel_comp_is_iso f g).hom = inv g ≫ cokernel.π f :=
-by simp
+by simp [cokernel_comp_is_iso]
 
+@[simp]
 lemma cokernel_π_comp_cokernel_comp_is_iso_inv {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   [has_cokernel (f ≫ g)] [has_cokernel f] [is_iso g] :
   cokernel.π f ≫ (cokernel_comp_is_iso f g).inv = g ≫ cokernel.π (f ≫ g) :=
-by simp
+by simp [cokernel_comp_is_iso]
 
 /--
 When `f` is an isomorphism, the cokernel of `f ≫ g` is isomorphic to the cokernel of `g`.
 -/
-@[simps]
 def cokernel_is_iso_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   [has_cokernel (f ≫ g)] [is_iso f] [has_cokernel g] :
   cokernel (f ≫ g) ≅ cokernel g :=
 { hom := cokernel.desc _ (cokernel.π g) (by simp),
   inv := cokernel.desc _ (cokernel.π (f ≫ g)) (by { rw [←cancel_epi f, ←category.assoc], simp, }), }
 
-
+@[simp]
 lemma cokernel_π_comp_cokernel_is_iso_comp_hom {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   [has_cokernel (f ≫ g)] [is_iso f] [has_cokernel g] :
   cokernel.π (f ≫ g) ≫ (cokernel_is_iso_comp f g).hom = cokernel.π g :=
-by simp
+by simp [cokernel_is_iso_comp]
 
+@[simp]
 lemma cokernel_π_comp_cokernel_is_iso_comp_inv {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   [has_cokernel (f ≫ g)] [is_iso f] [has_cokernel g] :
   cokernel.π g ≫ (cokernel_is_iso_comp f g).inv = cokernel.π (f ≫ g) :=
-by simp
+by simp [cokernel_is_iso_comp]
 
 end
 
@@ -524,7 +532,7 @@ def cokernel.zero_cocone : cocone (parallel_pair f 0) :=
 /-- The morphism to the zero object is a cokernel of an epimorphism -/
 def cokernel.is_colimit_cocone_zero_cocone [epi f] : is_colimit (cokernel.zero_cocone f) :=
 cofork.is_colimit.mk _ (λ s, 0)
-  (λ s, by { erw has_zero_morphisms.zero_comp,
+  (λ s, by { erw zero_comp,
     convert (zero_of_epi_comp f _).symm,
     exact cokernel_cofork.condition _ })
   (λ _ _ _, zero_of_from_zero _)
@@ -571,7 +579,7 @@ section
 variables (X Y)
 
 /-- The cokernel of a zero morphism is an isomorphism -/
-def cokernel.π_of_zero [has_cokernel (0 : X ⟶ Y)] :
+def cokernel.π_of_zero :
   is_iso (cokernel.π (0 : X ⟶ Y)) :=
 coequalizer.π_of_self _
 
@@ -637,22 +645,22 @@ variables (C : Type u) [category.{v} C]
 
 variables [has_zero_morphisms C]
 
-/-- `has_kernels` represents a choice of kernel for every morphism -/
-class has_kernels :=
+/-- `has_kernels` represents the existence of kernels for every morphism. -/
+class has_kernels : Prop :=
 (has_limit : Π {X Y : C} (f : X ⟶ Y), has_kernel f)
 
-/-- `has_cokernels` represents a choice of cokernel for every morphism -/
-class has_cokernels :=
+/-- `has_cokernels` represents the existence of cokernels for every morphism. -/
+class has_cokernels : Prop :=
 (has_colimit : Π {X Y : C} (f : X ⟶ Y), has_cokernel f)
 
 attribute [instance, priority 100] has_kernels.has_limit has_cokernels.has_colimit
 
 @[priority 100]
 instance has_kernels_of_has_equalizers [has_equalizers C] : has_kernels C :=
-{ has_limit := infer_instance }
+{ has_limit := by apply_instance }
 
 @[priority 100]
 instance has_cokernels_of_has_coequalizers [has_coequalizers C] : has_cokernels C :=
-{ has_colimit := infer_instance }
+{ has_colimit := by apply_instance }
 
 end category_theory.limits

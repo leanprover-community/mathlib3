@@ -5,7 +5,7 @@ Authors: Adam Topaz
 -/
 import category_theory.monad.bundled
 import category_theory.monoidal.End
-import category_theory.monoidal.internal
+import category_theory.monoidal.Mon_
 import category_theory.category.Cat
 
 /-!

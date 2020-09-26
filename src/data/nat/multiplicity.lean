@@ -3,10 +3,11 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.nat.choose
+import data.nat.choose.dvd
 import ring_theory.multiplicity
 import data.nat.modeq
 import algebra.gcd_monoid
+import data.finset.intervals
 
 /-!
 
@@ -37,22 +38,22 @@ calc multiplicity m n = ↑(Ico 1 $ ((multiplicity m n).get (finite_nat_iff.2 �
   finset.ext $ λ i,
   have hmn : ¬ m ^ n ∣ n,
     from if hm0 : m = 0
-    then λ _, by cases n; simp [*, lt_irrefl, nat.pow_succ] at *
+    then λ _, by cases n; simp [*, lt_irrefl, pow_succ'] at *
     else mt (le_of_dvd hn0) (not_le_of_gt $ lt_pow_self
       (lt_of_le_of_ne (nat.pos_of_ne_zero hm0) hm1.symm) _),
   ⟨λ hi, begin
       simp only [Ico.mem, mem_filter, lt_succ_iff] at *,
       exact ⟨⟨hi.1, lt_of_le_of_lt hi.2 $
-        lt_of_lt_of_le (by rw [← enat.coe_lt_coe, enat.coe_get, multiplicity_lt_iff_neg_dvd,
-            nat.pow_eq_pow]; exact hmn)
+        lt_of_lt_of_le (by rw [← enat.coe_lt_coe, enat.coe_get,
+            multiplicity_lt_iff_neg_dvd]; exact hmn)
           hb⟩,
-        by rw [← nat.pow_eq_pow, pow_dvd_iff_le_multiplicity];
+        by rw [pow_dvd_iff_le_multiplicity];
           rw [← @enat.coe_le_coe i, enat.coe_get] at hi; exact hi.2⟩
     end,
   begin
     simp only [Ico.mem, mem_filter, lt_succ_iff, and_imp, true_and] { contextual := tt },
     assume h1i hib hmin,
-    rwa [← enat.coe_le_coe, enat.coe_get, ← pow_dvd_iff_le_multiplicity, nat.pow_eq_pow]
+    rwa [← enat.coe_le_coe, enat.coe_get, ← pow_dvd_iff_le_multiplicity]
   end⟩
 
 namespace prime
@@ -68,7 +69,7 @@ by rw [← int.coe_nat_multiplicity, ← int.coe_nat_multiplicity,
 
 lemma multiplicity_pow {p m n : ℕ} (hp : p.prime) :
   multiplicity p (m ^ n) = n •ℕ (multiplicity p m) :=
-by induction n; simp [nat.pow_succ, hp.multiplicity_mul, *, hp.multiplicity_one, succ_nsmul,
+by induction n; simp [pow_succ', hp.multiplicity_mul, *, hp.multiplicity_one, succ_nsmul,
   add_comm]
 
 lemma multiplicity_self {p : ℕ} (hp : p.prime) : multiplicity p p = 1 :=
@@ -77,7 +78,7 @@ have h₂ : (p : ℤ) ≠ 0, from int.coe_nat_ne_zero.2 hp.ne_zero,
 by rw [← int.coe_nat_multiplicity, multiplicity_self h₁ h₂]
 
 lemma multiplicity_pow_self {p n : ℕ} (hp : p.prime) : multiplicity p (p ^ n) = n :=
-by induction n; simp [hp.multiplicity_one, nat.pow_succ, hp.multiplicity_mul, *,
+by induction n; simp [hp.multiplicity_one, pow_succ', hp.multiplicity_mul, *,
   hp.multiplicity_self, succ_eq_add_one]
 
 /-- The multiplicity of a prime in `factorial n` is the sum of the quotients `n / p ^ i`.
@@ -99,8 +100,8 @@ lemma multiplicity_factorial {p : ℕ} (hp : p.prime) :
 /-- A prime power divides `fact n` iff it is at most the sum of the quotients `n / p ^ i`.
   This sum is expressed over the set `Ico 1 b` where `b` is any bound at least `n` -/
 lemma pow_dvd_fact_iff {p : ℕ} {n r b : ℕ} (hp : p.prime) (hbn : n ≤ b) :
-   p ^ r ∣ n.! ↔ r ≤ ∑ i in Ico 1 b, n / p ^ i :=
-by rw [← enat.coe_le_coe, ← hp.multiplicity_factorial hbn, ← pow_dvd_iff_le_multiplicity, nat.pow_eq_pow]
+   p ^ r ∣ fact n ↔ r ≤ ∑ i in Ico 1 b, n / p ^ i :=
+by rw [← enat.coe_le_coe, ← hp.multiplicity_fact hbn, ← pow_dvd_iff_le_multiplicity]
 
 lemma multiplicity_choose_aux {p n b k : ℕ} (hp : p.prime) (hkn : k ≤ n) :
   ∑ i in finset.Ico 1 b, n / p ^ i =
@@ -110,7 +111,7 @@ calc ∑ i in finset.Ico 1 b, n / p ^ i
     = ∑ i in finset.Ico 1 b, (k + (n - k)) / p ^ i :
     by simp only [nat.add_sub_cancel' hkn]
 ... = ∑ i in finset.Ico 1 b, (k / p ^ i + (n - k) / p ^ i +
-      if p ^ i ≤ k % p ^ i + (n - k) % p ^ i then 1 else 0) : by simp only [nat.add_div (nat.pow_pos hp.pos _)]
+      if p ^ i ≤ k % p ^ i + (n - k) % p ^ i then 1 else 0) : by simp only [nat.add_div (pow_pos hp.pos _)]
 ... = _ : begin simp only [sum_add_distrib], simp [sum_boole], end -- we have to use `sum_add_distrib` before `add_ite` fires.
 
 /-- The multiplity of `p` in `choose n k` is the number of carries when `k` and `n - k`
@@ -166,7 +167,7 @@ le_antisymm
   (have hdisj : disjoint
       ((Ico 1 (p ^ n)).filter (λ i, p ^ i ≤ k % p ^ i + (p ^ n - k) % p ^ i))
       ((Ico 1 (p ^ n)).filter (λ i, p ^ i ∣ k)),
-    by simp [disjoint_right, *, dvd_iff_mod_eq_zero, nat.mod_lt _ (nat.pow_pos hp.pos _)]
+    by simp [disjoint_right, *, dvd_iff_mod_eq_zero, nat.mod_lt _ (pow_pos hp.pos _)]
         {contextual := tt},
   have filter_subset_Ico : filter (λ i, p ^ i ≤ k % p ^ i +
       (p ^ n - k) % p ^ i ∨ p ^ i ∣ k) (Ico 1 (p ^ n)) ⊆ Ico 1 n.succ,

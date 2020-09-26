@@ -416,6 +416,18 @@ lemma one_pos : (0 : fin (n + 2)) < 1 := succ_pos 0
 
 lemma zero_ne_one : (0 : fin (n + 2)) ≠ 1 := ne_of_lt one_pos
 
+@[simp] lemma zero_eq_one_iff : (0 : fin (n + 1)) = 1 ↔ n = 0 :=
+begin
+  split,
+  { cases n; intro h,
+    { refl },
+    { have := zero_ne_one, contradiction } },
+  { rintro rfl, refl }
+end
+
+@[simp] lemma one_eq_zero_iff : (1 : fin (n + 1)) = 0 ↔ n = 0 :=
+by rw [eq_comm, zero_eq_one_iff]
+
 lemma cast_succ_fin_succ (n : ℕ) (j : fin n) :
   cast_succ (fin.succ j) = fin.succ (cast_succ j) :=
 by { simp [fin.ext_iff], }
@@ -488,6 +500,36 @@ lemma succ_above_lt_gt (p : fin (n + 1)) (i : fin n) : i.cast_succ < p ∨ p < i
 or.cases_on (succ_above_lt_ge p i)
   (λ h, or.inl h) (λ h, or.inr (lt_of_le_of_lt h (cast_succ_lt_succ i)))
 
+/-- Embedding `i : fin n` into `fin (n + 1)` using a pivot `p` that is greater
+results in a value that is less than `p`. -/
+@[simp] lemma succ_above_lt_iff (p : fin (n + 1)) (i : fin n) : p.succ_above i < p ↔ i.cast_succ < p :=
+begin
+  refine iff.intro _ _,
+  { intro h,
+    cases succ_above_lt_ge p i with H H,
+    { exact H },
+    { rw succ_above_above _ _ H at h,
+      exact lt_trans (cast_succ_lt_succ i) h } },
+  { intro h,
+    rw succ_above_below _ _ h,
+    exact h }
+end
+
+/-- Embedding `i : fin n` into `fin (n + 1)` using a pivot `p` that is lesser
+results in a value that is greater than `p`. -/
+lemma lt_succ_above_iff (p : fin (n + 1)) (i : fin n) : p < p.succ_above i ↔ p ≤ i.cast_succ :=
+begin
+  refine iff.intro _ _,
+  { intro h,
+    cases succ_above_lt_ge p i with H H,
+    { rw succ_above_below _ _ H at h,
+      exact le_of_lt h },
+    { exact H } },
+  { intro h,
+    rw succ_above_above _ _ h,
+    exact lt_of_le_of_lt h (cast_succ_lt_succ i) },
+end
+
 /-- Embedding `i : fin n` into `fin (n + 1)` with a hole around `p : fin (n + 1)`
 never results in `p` itself -/
 theorem succ_above_ne (p : fin (n + 1)) (i : fin n) : p.succ_above i ≠ p :=
@@ -553,7 +595,7 @@ begin
   { simp [succ_above_below _ _ H, H] },
   { cases succ_above_lt_gt p i with h h,
     { exact absurd h H },
-    { simp [succ_above_above _ _ (le_of_not_lt H), pred_succ, dif_neg (asymm h)] } }
+    { simp [succ_above_above _ _ (le_of_not_lt H), dif_neg H] } }
 end
 
 /-- `succ_above` is injective at the pivot -/

@@ -53,8 +53,9 @@ open polynomial
 lemma card_image_polynomial_eval [decidable_eq R] [fintype R] {p : polynomial R} (hp : 0 < p.degree) :
   fintype.card R ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
 finset.card_le_mul_card_image _ _
-  (λ a _, calc _ = (p - C a).roots.card : congr_arg card
-    (by simp [finset.ext_iff, mem_roots_sub_C hp, -sub_eq_add_neg])
+  (λ a _, calc _ = (p - C a).roots.to_finset.card : congr_arg card
+    (by simp [finset.ext_iff, mem_roots_sub_C hp])
+    ... ≤ (p - C a).roots.card : multiset.to_finset_card_le _
     ... ≤ _ : card_roots_sub_C' hp)
 
 /-- If `f` and `g` are quadratic polynomials, then the `f.eval a + g.eval b = 0` has a solution. -/
@@ -135,7 +136,7 @@ begin
   refine ⟨⟨n, _⟩, hp, h⟩,
   apply or.resolve_left (nat.eq_zero_or_pos n),
   rintro rfl,
-  rw nat.pow_zero at h,
+  rw pow_zero at h,
   have : (0 : K) = 1, { apply fintype.card_le_one_iff.mp (le_of_eq h) },
   exact absurd this zero_ne_one,
 end
@@ -148,8 +149,8 @@ begin
   rcases char_p.exists K with ⟨p, _char_p⟩, resetI,
   rcases card K p with ⟨n, hp, hn⟩,
   simp only [char_p.cast_eq_zero_iff K p, hn],
-  conv { congr, rw [← nat.pow_one p] },
-  exact nat.pow_dvd_pow _ n.2,
+  conv { congr, rw [← pow_one p] },
+  exact pow_dvd_pow _ n.2,
 end
 
 lemma forall_pow_eq_one_iff (i : ℕ) :
@@ -217,7 +218,7 @@ theorem frobenius_pow {p : ℕ} [fact p.prime] [char_p K p] {n : ℕ} (hcard : q
 begin
   ext, conv_rhs { rw [ring_hom.one_def, ring_hom.id_apply, ← pow_card x, hcard], }, clear hcard,
   induction n, {simp},
-  rw [pow_succ, nat.pow_succ, pow_mul, ring_hom.mul_def, ring_hom.comp_apply, frobenius_def, n_ih]
+  rw [pow_succ, pow_succ', pow_mul, ring_hom.mul_def, ring_hom.comp_apply, frobenius_def, n_ih]
 end
 
 open polynomial

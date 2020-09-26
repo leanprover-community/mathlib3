@@ -153,11 +153,15 @@ coe_injective $ by simp
 @[simp] lemma piecewise_empty (f g : α →ₛ β) : piecewise ∅ is_measurable.empty f g = g :=
 coe_injective $ by simp
 
+lemma measurable_bind [measurable_space γ] (f : α →ₛ β) (g : β → α → γ)
+  (hg : ∀ b, measurable (g b)) : measurable (λ a, g (f a) a) :=
+λ s hs, f.is_measurable_cut (λ a b, g b a ∈ s) $ λ b, hg b hs
+
 /-- If `f : α →ₛ β` is a simple function and `g : β → α →ₛ γ` is a family of simple functions,
 then `f.bind g` binds the first argument of `g` to `f`. In other words, `f.bind g a = g (f a) a`. -/
 def bind (f : α →ₛ β) (g : β → α →ₛ γ) : α →ₛ γ :=
 ⟨λa, g (f a) a,
- λ c, is_measurable_cut (λa b, g b a ∈ ({c} : set γ)) f (λ b, (g b).is_measurable_fiber c),
+ λ c, f.is_measurable_cut (λ a b, g b a = c) $ λ b, (g b).is_measurable_preimage {c},
  (f.finite_range.bUnion (λ b _, (g b).finite_range)).subset $
  by rintro _ ⟨a, rfl⟩; simp; exact ⟨a, a, rfl⟩⟩
 
@@ -847,6 +851,9 @@ lintegral_mono
 @[simp] lemma lintegral_const (c : ennreal) : ∫⁻ a, c ∂μ = c * μ univ :=
 by rw [← simple_func.const_lintegral, ← simple_func.lintegral_eq_lintegral, simple_func.coe_const]
 
+lemma set_lintegral_one (s) : ∫⁻ a in s, 1 ∂μ = μ s :=
+by rw [lintegral_const, one_mul, measure.restrict_apply_univ]
+
 /-- `∫⁻ a in s, f a ∂μ` is defined as the supremum of integrals of simple functions
 `φ : α →ₛ ennreal` such that `φ ≤ f`. This lemma says that it suffices to take
 functions `φ : α →ₛ ℝ≥0`. -/
@@ -941,7 +948,7 @@ begin
     ... ≤ ∑ r in (rs.map c).range, (⨆n, r * μ ((rs.map c) ⁻¹' {r} ∩ {a | r ≤ f n a})) :
       le_of_eq (finset.sum_congr rfl $ assume x hx,
         begin
-          rw [measure_Union_eq_supr_nat _ (mono x), ennreal.mul_supr],
+          rw [measure_Union_eq_supr _ (directed_of_sup $ mono x), ennreal.mul_supr],
           { assume i,
             refine ((rs.map c).is_measurable_preimage _).inter _,
             exact hf i is_measurable_Ici }
@@ -1116,6 +1123,10 @@ le_antisymm (lintegral_mono_ae $ h.le) (lintegral_mono_ae $ h.symm.le)
 lemma lintegral_congr {f g : α → ennreal} (h : ∀ a, f a = g a) :
   (∫⁻ a, f a ∂μ) = (∫⁻ a, g a ∂μ) :=
 by simp only [h]
+
+lemma set_lintegral_congr {f : α → ennreal} {s t : set α} (h : s =ᵐ[μ] t) :
+  ∫⁻ x in s, f x ∂μ = ∫⁻ x in t, f x ∂μ :=
+by rw [restrict_congr_set h]
 
 -- TODO: Need a better way of rewriting inside of a integral
 lemma lintegral_rw₁ {f f' : α → β} (h : f =ᵐ[μ] f') (g : β → ennreal) :
@@ -1346,12 +1357,9 @@ theorem lintegral_supr_directed [encodable β] {f : β → α → ennreal}
   (hf : ∀b, measurable (f b)) (h_directed : directed (≤) f) :
   ∫⁻ a, ⨆b, f b a ∂μ = ⨆b, ∫⁻ a, f b a ∂μ :=
 begin
-  by_cases hβ : ¬ nonempty β,
-  { have : ∀f : β → ennreal, (⨆(b : β), f b) = 0 :=
-      assume f, supr_eq_bot.2 (assume b, (hβ ⟨b⟩).elim),
-    simp [this] },
-  cases of_not_not hβ with b,
-  haveI iβ : inhabited β := ⟨b⟩, clear hβ b,
+  by_cases hβ : nonempty β, swap,
+  { simp [supr_of_empty hβ] },
+  resetI, inhabit β,
   have : ∀a, (⨆ b, f b a) = (⨆ n, f (h_directed.sequence f n) a),
   { assume a,
     refine le_antisymm (supr_le $ assume b, _) (supr_le $ assume n, le_supr (λn, f n a) _),
@@ -1409,6 +1417,11 @@ begin
     { assume a, exact congr_fun (simple_func.eapprox_comp hf hg) a },
     { assume s hs, exact map_apply hg hs } },
 end
+
+lemma set_lintegral_map [measurable_space β] {f : β → ennreal} {g : α → β}
+  {s : set β} (hs : is_measurable s) (hf : measurable f) (hg : measurable g) :
+  ∫⁻ y in s, f y ∂(map g μ) = ∫⁻ x in g ⁻¹' s, f (g x) ∂μ :=
+by rw [restrict_map hg hs, lintegral_map hf hg]
 
 lemma lintegral_dirac (a : α) {f : α → ennreal} (hf : measurable f) :
   ∫⁻ a, f a ∂(dirac a) = f a :=

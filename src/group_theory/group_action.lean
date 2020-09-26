@@ -16,13 +16,10 @@ class has_scalar (α : Type u) (γ : Type v) := (smul : α → γ → γ)
 
 infixr ` • `:73 := has_scalar.smul
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- Typeclass for multiplicative actions by monoids. This generalizes group actions. -/
 @[protect_proj] class mul_action (α : Type u) (β : Type v) [monoid α] extends has_scalar α β :=
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
-end prio
 
 section
 variables [monoid α] [mul_action α β]
@@ -196,6 +193,17 @@ def stabilizer.submonoid (b : β) : submonoid α :=
   mul_mem' := λ a a' (ha : a • b = b) (hb : a' • b = b),
     by rw [mem_stabilizer_iff, ←smul_smul, hb, ha] }
 
+variables (α β)
+
+/-- Embedding induced by action. -/
+def to_fun : β ↪ (α → β) :=
+⟨λ y x, x • y, λ y₁ y₂ H, one_smul α y₁ ▸ one_smul α y₂ ▸ by convert congr_fun H 1⟩
+
+variables {α β}
+
+@[simp] lemma to_fun_apply (x : α) (y : β) : mul_action.to_fun α β y x = x • y :=
+rfl
+
 end mul_action
 
 namespace mul_action
@@ -347,13 +355,10 @@ end
 
 end mul_action
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- Typeclass for multiplicative actions on additive structures. This generalizes group modules. -/
 class distrib_mul_action (α : Type u) (β : Type v) [monoid α] [add_monoid β] extends mul_action α β :=
 (smul_add : ∀(r : α) (x y : β), r • (x + y) = r • x + r • y)
 (smul_zero : ∀(r : α), r • (0 : β) = 0)
-end prio
 
 section
 variables [monoid α] [add_monoid β] [distrib_mul_action α β]

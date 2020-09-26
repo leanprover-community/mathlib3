@@ -2,7 +2,8 @@
 Copyright (c) 2020 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
-import logic.basic data.fintype.basic
+import logic.basic
+import data.fintype.basic
 
 /-!
 # Derive handler for `fintype` instances

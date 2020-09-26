@@ -529,6 +529,8 @@ variables {R}
   pairwise R (a::l) ↔ (∀ a' ∈ l, R a a') ∧ pairwise R l :=
 ⟨λ p, by cases p with a l n p; exact ⟨n, p⟩, λ ⟨n, p⟩, p.cons n⟩
 
+attribute [simp] pairwise.nil
+
 instance decidable_pairwise [decidable_rel R] (l : list α) : decidable (pairwise R l) :=
 by induction l with hd tl ih; [exact is_true pairwise.nil,
   exactI decidable_of_iff' _ pairwise_cons]
@@ -697,5 +699,13 @@ def get_rest [decidable_eq α] : list α → list α → option (list α)
 | l      []      := some l
 | []     _       := none
 | (x::l) (y::l₁) := if x = y then get_rest l l₁ else none
+
+/--
+`list.slice n m xs` removes a slice of length `m` at index `n` in list `xs`.
+-/
+def slice {α} : ℕ → ℕ → list α → list α
+| 0 n xs := xs.drop n
+| (succ n) m [] := []
+| (succ n) m (x :: xs) := x :: slice n m xs
 
 end list

@@ -398,7 +398,7 @@ open pre_envel_group
 /--
 Relations for the enveloping group. This is a type-valued relation because
 `to_envel_group.map_aux.well_def` inducts on it to show `to_envel_group.map`
-is well-defined.  The relation `pre_envel_group_rel` is the Prop-valued version,
+is well-defined.  The relation `pre_envel_group_rel` is the `Prop`-valued version,
 which is used to define `envel_group` itself.
 -/
 inductive pre_envel_group_rel' (R : Type u) [rack R] : pre_envel_group R → pre_envel_group R → Type u
@@ -423,7 +423,7 @@ instance pre_envel_group_rel'.inhabited (R : Type u) [rack R] :
 ⟨pre_envel_group_rel'.refl⟩
 
 /--
-The above relation as a `Prop`.
+The `pre_envel_group_rel` relation as a `Prop`.  Used as the relation for `pre_envel_group.setoid`.
 -/
 inductive pre_envel_group_rel (R : Type u) [rack R] : pre_envel_group R → pre_envel_group R → Prop
 | rel {a b : pre_envel_group R} (r : pre_envel_group_rel' R a b) : pre_envel_group_rel a b

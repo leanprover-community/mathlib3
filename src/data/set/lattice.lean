@@ -899,6 +899,23 @@ by simp
 
 end preimage
 
+section prod
+
+theorem monotone_prod [preorder α] {f : α → set β} {g : α → set γ}
+  (hf : monotone f) (hg : monotone g) : monotone (λx, (f x).prod (g x)) :=
+assume a b h, prod_mono (hf h) (hg h)
+
+alias monotone_prod ← monotone.set_prod
+
+lemma Union_prod_of_monotone [semilattice_sup α] {s : α → set β} {t : α → set γ}
+  (hs : monotone s) (ht : monotone t) : (⋃ x, (s x).prod (t x)) = (⋃ x, (s x)).prod (⋃ x, (t x)) :=
+begin
+  ext ⟨z, w⟩, simp only [mem_prod, mem_Union, exists_imp_distrib, and_imp, iff_def], split,
+  { intros x hz hw, exact ⟨⟨x, hz⟩, ⟨x, hw⟩⟩ },
+  { intros x hz x' hw, exact ⟨x ⊔ x', hs le_sup_left hz, ht le_sup_right hw⟩ }
+end
+
+end prod
 
 section seq
 
@@ -955,11 +972,10 @@ lemma prod_image_seq_comm (s : set α) (t : set β) :
   (prod.mk '' s).seq t = seq ((λb a, (a, b)) '' t) s :=
 by rw [← prod_eq_seq, ← image_swap_prod, prod_eq_seq, image_seq, ← image_comp, prod.swap]
 
-end seq
+lemma image2_eq_seq (f : α → β → γ) (s : set α) (t : set β) : image2 f s t = seq (f '' s) t :=
+by { ext, simp }
 
-theorem monotone_prod [preorder α] {f : α → set β} {g : α → set γ}
-  (hf : monotone f) (hg : monotone g) : monotone (λx, (f x).prod (g x)) :=
-assume a b h, prod_mono (hf h) (hg h)
+end seq
 
 instance : monad set :=
 { pure       := λ(α : Type u) a, {a},

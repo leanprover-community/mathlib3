@@ -358,17 +358,17 @@ There is a pigeonhole with at least as many pigeons as
 the ceiling of the average number of pigeons across all pigeonholes.
 ("The maximum is at least the mean" specialized to integers.)
 
-More formally, given a function between finite sets `s` and `t` and
-setting `n` so that `n + 1` is at most the ceiling of `s.card /
-t.card`, then there is an element of `t` whose preimage contains more
+More formally, given a function between finite types `α` and `β` and
+setting `n` so that `n + 1` is at most the ceiling of `card α / card β`,
+then there is an element of `β` whose preimage contains more
 than `n` elements.  (We formulate the constraint on `n` as
-`t.card * n < s.card`.  Since we have a function `f` from `s` to `t`,
-this implies `t.card ≠ 0`, so `s.card / t.card` is defined.)
+`card β * n < card α`.  Since we have a function `f` from `α` to `β`,
+this implies `card β ≠ 0`, so `card α / card β` is defined.)
 
 See also: `fintype.pigeonhole`, `fintype.strong_infinite_pigeonhole`
 -/
 lemma strong_pigeonhole [fintype α] [fintype β] [decidable_eq β] (f : α → β)
-  (n : ℕ) (hn : fintype.card β * n < fintype.card α) :
+  (n : ℕ) (hn : card β * n < card α) :
   ∃ y : β, n < (univ.filter (λ x, f x = y)).card :=
 begin
   obtain ⟨y, _, h⟩ := @strong_pigeonhole _ _ univ univ _ f (by simp) n hn,

@@ -186,12 +186,6 @@ instance of_subsemiring (S : subsemiring R) : algebra S A :=
   smul_def' := λ r x, algebra.smul_def r x,
   .. (algebra_map R A).comp (subsemiring.subtype S) }
 
-/-- A semiring that is an algebra over a commutative ring carries a natural ring structure. -/
-def as_ring (R A : Type*) [comm_ring R] [semiring A] [algebra R A] : ring A :=
-{ neg          := λ a, (-1 : R) • a,
-  add_left_neg := λ a, by { nth_rewrite 1 ← one_smul _ a, rw [← add_smul, add_left_neg, zero_smul], },
-  ..(infer_instance : semiring A), }
-
 /-- Algebra over a subring. -/
 instance of_subring {R A : Type*} [comm_ring R] [ring A] [algebra R A]
   (S : subring R) : algebra S A :=

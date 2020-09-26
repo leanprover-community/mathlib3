@@ -58,8 +58,7 @@ def universal_enveloping_algebra := ring_quot (universal_enveloping_algebra.rel 
 
 namespace universal_enveloping_algebra
 
-instance : ring (universal_enveloping_algebra R L) :=
-  algebra.as_ring R (universal_enveloping_algebra R L)
+instance : ring (universal_enveloping_algebra R L) := algebra.semiring_to_ring R
 
 /-- The quotient map from the tensor algebra to the universal enveloping algebra as a morphism of
 associative algebras. -/
@@ -111,7 +110,7 @@ end
 begin
   let f₁ := (lie_algebra.of_associative_algebra_hom g₁).comp (ι R L),
   let f₂ := (lie_algebra.of_associative_algebra_hom g₂).comp (ι R L),
-  have h' : f₁ = f₂, { ext, change (g₁ ∘ (ι R L)) x = (g₂ ∘ (ι R L)) x, rw h, },
+  have h' : f₁ = f₂, { ext, exact congr h rfl, },
   have h₁ : g₁ = lift R L f₁, { rw ← lift_unique, refl, },
   have h₂ : g₂ = lift R L f₂, { rw ← lift_unique, refl, },
   rw [h₁, h₂, h'],

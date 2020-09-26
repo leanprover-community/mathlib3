@@ -515,7 +515,7 @@ variables {F E : Type*} (K : Type*) [field F] [field K] [field E] [algebra F K] 
 
 lemma is_separable_tower_top_of_is_separable (h : is_separable F E) : is_separable K E :=
 λ x, Exists.cases_on (h x) (λ hx hs, ⟨is_integral_of_is_scalar_tower x hx,
-hs.map.of_dvd (minimal_polynomial.dvd_map_of_is_scalar_tower K hx)⟩)
+  hs.map.of_dvd (minimal_polynomial.dvd_map_of_is_scalar_tower K hx)⟩)
 
 lemma is_separable_tower_bot_of_is_separable (h : is_separable F E) : is_separable F K :=
 begin

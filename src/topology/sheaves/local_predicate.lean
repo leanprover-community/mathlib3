@@ -44,6 +44,7 @@ open topological_space
 open opposite
 open category_theory
 open category_theory.limits
+open category_theory.limits.types
 
 namespace Top
 
@@ -211,9 +212,9 @@ begin
       walking_parallel_pair.zero =≫
     pi.π (λ i, (X.presheaf_to_Types T).obj (op (U i))) i) f,
   { dsimp [res, presheaf_to_Types, subpresheaf_to_Types],
-    simp only [types.pi_lift_π_apply, fan.mk_π_app, subtype.coe_mk, types.lift_π_apply], },
+    simp only [pi_lift_π_apply, fan.mk_π_app, subtype.coe_mk, limit.lift_π_apply], },
   { dsimp,
-    simp only [types.pi_map_π_apply, subtype.val_eq_coe], },
+    simp only [pi_map_π_apply, subtype.val_eq_coe], },
 end
 
 -- auxilliary lemma for `sheaf_condition` below
@@ -243,14 +244,14 @@ begin
     simp only [category.assoc, limit.map_π],
     ext f' ⟨x, mem⟩,
     dsimp [res, subpresheaf_to_Types, presheaf_to_Types],
-    simp only [discrete.nat_trans_app, types.map_π_apply, fan.mk_π_app, types.lift_π_apply], },
+    simp only [discrete.nat_trans_app, limit.map_π_apply, fan.mk_π_app, limit.lift_π_apply], },
   { apply limit.hom_ext,
     intro i,
     simp only [category.assoc, limit.map_π],
     ext f' ⟨x, mem⟩,
     dsimp [res, left_res, subpresheaf_to_Types, presheaf_to_Types],
-    simp only [discrete.nat_trans_app, types.map_π_apply, types.pi_lift_π_apply, types_comp_apply,
-      fan.mk_π_app, subtype.coe_mk, types.lift_π_apply], },
+    simp only [discrete.nat_trans_app, limit.map_π_apply, pi_lift_π_apply, types_comp_apply,
+      fan.mk_π_app, subtype.coe_mk, limit.lift_π_apply], },
 end
 
 /--
@@ -372,18 +373,18 @@ begin
   { choose W s hW e using Q,
     exact e.1.trans e.2.symm, },
   -- Then use induction to pick particular representatives of `tU tV : stalk x`
-  obtain ⟨U, ⟨fU, hU⟩, rfl⟩ := types.jointly_surjective' tU,
-  obtain ⟨V, ⟨fV, hV⟩, rfl⟩ := types.jointly_surjective' tV,
+  obtain ⟨U, ⟨fU, hU⟩, rfl⟩ := jointly_surjective' tU,
+  obtain ⟨V, ⟨fV, hV⟩, rfl⟩ := jointly_surjective' tV,
   { -- Decompose everything into its constituent parts:
     dsimp,
-    simp only [stalk_to_fiber, types.ι_desc_apply] at h,
+    simp only [stalk_to_fiber, colimit.ι_desc_apply] at h,
     specialize w (unop U) (unop V) fU hU fV hV h,
     rcases w with ⟨W, iU, iV, w⟩,
     -- and put it back together again in the correct order.
     refine ⟨(op W), (λ w, fU (iU w : (unop U).1)), P.res _ _ hU, _⟩,
     rcases W with ⟨W, m⟩,
-    exact ⟨types.colimit_sound iU.op (subtype.eq rfl),
-           types.colimit_sound iV.op (subtype.eq (funext w).symm)⟩, },
+    exact ⟨colimit_sound iU.op (subtype.eq rfl),
+           colimit_sound iV.op (subtype.eq (funext w).symm)⟩, },
 end
 
 /--

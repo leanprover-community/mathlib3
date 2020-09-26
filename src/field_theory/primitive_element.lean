@@ -14,8 +14,8 @@ In this file we prove the primitive element theorem.
 
 ## Main results
 
-- `exists_adjoin_simple_eq_top`: a finite separable extension has a primitive element, i.e.
-  there is an `α ∈ E` such that `F⟮α⟯ = (⊤ : subalgebra F E)`.
+- `exists_primitive_element`: a finite separable extension `E / F` has a primitive element, i.e.
+  there is an `α : E` such that `F⟮α⟯ = (⊤ : subalgebra F E)`.
 -/
 
 noncomputable theory

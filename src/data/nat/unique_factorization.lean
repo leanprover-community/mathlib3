@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 
-import data.nat.associated
+import data.nat.prime
 import ring_theory.unique_factorization_domain
 
 /-#

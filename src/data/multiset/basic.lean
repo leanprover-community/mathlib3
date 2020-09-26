@@ -1658,8 +1658,17 @@ iff_not_comm.1 $ count_pos.symm.trans pos_iff_ne_zero
 theorem count_ne_zero {a : α} {s : multiset α} : count a s ≠ 0 ↔ a ∈ s :=
 by simp [ne.def, count_eq_zero]
 
-@[simp] theorem count_repeat (a : α) (n : ℕ) : count a (repeat a n) = n :=
+@[simp] theorem count_repeat_self (a : α) (n : ℕ) : count a (repeat a n) = n :=
 by simp [repeat]
+
+theorem count_repeat (a b : α) (n : ℕ)  :
+  count a (repeat b n) = if (a = b) then n else 0 :=
+begin
+  split_ifs with h₁,
+    rw [h₁, count_repeat_self],
+  rw [count_eq_zero],
+  apply mt eq_of_mem_repeat h₁,
+end
 
 @[simp] theorem count_erase_self (a : α) (s : multiset α) : count a (erase s a) = pred (count a s) :=
 begin

@@ -1,12 +1,13 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
+Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker, Johan Commelin
 -/
 
 import data.polynomial.basic
 import data.polynomial.div
 import data.polynomial.algebra_map
+import data.set.finite
 
 /-!
 # Theory of univariate polynomials
@@ -258,6 +259,24 @@ by { rw [roots, dif_neg hp], exact (classical.some_spec (exists_multiset_roots h
 
 @[simp] lemma mem_roots (hp : p ≠ 0) : a ∈ p.roots ↔ is_root p a :=
 by rw [← count_pos, count_roots hp, root_multiplicity_pos hp]
+
+lemma eq_zero_of_infinite_is_root
+  (p : polynomial R) (h : set.infinite {x | is_root p x}) : p = 0 :=
+begin
+  by_contradiction hp,
+  apply h,
+  convert p.roots.to_finset.finite_to_set using 1,
+  ext1 r,
+  simp only [mem_roots hp, multiset.mem_to_finset, set.mem_set_of_eq, finset.mem_coe]
+end
+
+lemma eq_of_infinite_eval_eq {R : Type*} [integral_domain R]
+  (p q : polynomial R) (h : set.infinite {x | eval x p = eval x q}) : p = q :=
+begin
+  rw [← sub_eq_zero],
+  apply eq_zero_of_infinite_is_root,
+  simpa only [is_root, eval_sub, sub_eq_zero]
+end
 
 lemma roots_mul {p q : polynomial R} (hpq : p * q ≠ 0) : (p * q).roots = p.roots + q.roots :=
 multiset.ext.mpr $ λ r,

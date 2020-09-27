@@ -108,17 +108,18 @@ end
 -- Can we generate these like with `@[reassoc]`?
 -- PROJECT: prove these for any concrete category where the forgetful functor preserves limits?
 
-@[simp] lemma limit_w_apply {F : J ⥤ Type u} {j j' : J} {x : limit F} (f : j ⟶ j') :
+@[simp]
+lemma limit.w_apply {F : J ⥤ Type u} {j j' : J} {x : limit F} (f : j ⟶ j') :
   F.map f (limit.π F j x) = limit.π F j' x :=
 congr_fun (limit.w F f) x
 
 @[simp]
-lemma lift_π_apply (F : J ⥤ Type u) (s : cone F) (j : J) (x : s.X) :
+lemma limit.lift_π_apply (F : J ⥤ Type u) (s : cone F) (j : J) (x : s.X) :
   limit.π F j (limit.lift F s x) = s.π.app j x :=
 congr_fun (limit.lift_π s j) x
 
 @[simp]
-lemma map_π_apply {F G : J ⥤ Type u} (α : F ⟶ G) (j : J) (x) :
+lemma limit.map_π_apply {F G : J ⥤ Type u} (α : F ⟶ G) (j : J) (x) :
   limit.π G j (lim.map α x) = α.app j (limit.π F j x) :=
 congr_fun (limit.map_π α j) x
 
@@ -171,17 +172,18 @@ lemma colimit_equiv_quot_symm_apply (F : J ⥤ Type u) (j : J) (x : F.obj j) :
   (colimit_equiv_quot F).symm (quot.mk _ ⟨j, x⟩) = colimit.ι F j x :=
 rfl
 
-@[simp] lemma colimit_w_apply {F : J ⥤ Type u} {j j' : J} {x : F.obj j} (f : j ⟶ j') :
+@[simp]
+lemma colimit.w_apply {F : J ⥤ Type u} {j j' : J} {x : F.obj j} (f : j ⟶ j') :
   colimit.ι F j' (F.map f x) = colimit.ι F j x :=
 congr_fun (colimit.w F f) x
 
 @[simp]
-lemma ι_desc_apply (F : J ⥤ Type u) (s : cocone F) (j : J) (x : F.obj j) :
+lemma colimit.ι_desc_apply (F : J ⥤ Type u) (s : cocone F) (j : J) (x : F.obj j) :
   colimit.desc F s (colimit.ι F j x) = s.ι.app j x :=
 congr_fun (colimit.ι_desc s j) x
 
 @[simp]
-lemma ι_map_apply {F G : J ⥤ Type u} (α : F ⟶ G) (j : J) (x) :
+lemma colimit.ι_map_apply {F G : J ⥤ Type u} (α : F ⟶ G) (j : J) (x) :
   colim.map α (colimit.ι F j x) = colimit.ι G j (α.app j x) :=
 congr_fun (colimit.ι_map α j) x
 

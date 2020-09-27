@@ -411,6 +411,10 @@ instance {α : Type*} (β : α → Type*)
 instance (α β : Type*) [fintype α] [fintype β] : fintype (α × β) :=
 ⟨univ.product univ, λ ⟨a, b⟩, by simp⟩
 
+@[simp] lemma finset.univ_product_univ {α β : Type*} [fintype α] [fintype β] :
+  (univ : finset α).product (univ : finset β) = univ :=
+rfl
+
 @[simp] theorem fintype.card_prod (α β : Type*) [fintype α] [fintype β] :
   fintype.card (α × β) = fintype.card α * fintype.card β :=
 card_product _ _
@@ -1057,6 +1061,19 @@ class infinite (α : Type*) : Prop :=
 
 @[simp] lemma not_nonempty_fintype {α : Type*} : ¬nonempty (fintype α) ↔ infinite α :=
 ⟨λf, ⟨λ x, f ⟨x⟩⟩, λ⟨f⟩ ⟨x⟩, f x⟩
+
+lemma finset.exists_minimal {α : Type*} [preorder α] (s : finset α) (h : s.nonempty) :
+  ∃ m ∈ s, ∀ x ∈ s, ¬ (x < m) :=
+begin
+  obtain ⟨c, hcs : c ∈ s⟩ := h,
+  have : well_founded (@has_lt.lt {x // x ∈ s} _) := fintype.well_founded_of_trans_of_irrefl _,
+  obtain ⟨⟨m, hms : m ∈ s⟩, -, H⟩ := this.has_min set.univ ⟨⟨c, hcs⟩, trivial⟩,
+  exact ⟨m, hms, λ x hx hxm, H ⟨x, hx⟩ trivial hxm⟩,
+end
+
+lemma finset.exists_maximal {α : Type*} [preorder α] (s : finset α) (h : s.nonempty) :
+  ∃ m ∈ s, ∀ x ∈ s, ¬ (m < x) :=
+@finset.exists_minimal (order_dual α) _ s h
 
 namespace infinite
 

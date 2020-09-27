@@ -35,7 +35,7 @@ modulo the additional relations making the inclusion of `M` into an `R`-linear m
 -/
 
 variables (R : Type*) [comm_semiring R]
-variables (M : Type*) [add_comm_group M] [semimodule R M]
+variables (M : Type*) [add_comm_monoid M] [semimodule R M]
 
 namespace tensor_algebra
 

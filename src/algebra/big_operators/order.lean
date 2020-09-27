@@ -5,7 +5,6 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.big_operators.basic
-import data.fintype.basic
 
 /-!
 # Results about big operators with values in an ordered algebraic structure.

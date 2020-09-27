@@ -6,6 +6,7 @@ Author: Johannes Hölzl, Patrick Massot, Casper Putz
 import linear_algebra.finite_dimensional
 import linear_algebra.nonsingular_inverse
 import linear_algebra.multilinear
+import linear_algebra.dual
 
 /-!
 # Linear maps and matrices
@@ -465,6 +466,25 @@ end
 
 end det
 
+section transpose
+
+variables {K V₁ V₂ ι₁ ι₂ : Type*} [field K]
+          [add_comm_group V₁] [vector_space K V₁]
+          [add_comm_group V₂] [vector_space K V₂]
+          [fintype ι₁] [fintype ι₂] [decidable_eq ι₁] [decidable_eq ι₂]
+          {B₁ : ι₁ → V₁} (h₁ : is_basis K B₁)
+          {B₂ : ι₂ → V₂} (h₂ : is_basis K B₂)
+
+lemma matrix_transpose (u : V₁ →ₗ[K] V₂) :
+  linear_equiv_matrix h₂.dual_basis_is_basis h₁.dual_basis_is_basis (module.dual.transpose u) =
+  (linear_equiv_matrix h₁ h₂ u)ᵀ :=
+begin
+  ext i j,
+  simp only [linear_equiv_matrix_apply, module.dual.transpose_apply, h₁.dual_basis_equiv_fun,
+             h₂.dual_basis_apply, matrix.transpose_apply, linear_map.comp_apply]
+end
+
+end transpose
 namespace matrix
 
 section trace

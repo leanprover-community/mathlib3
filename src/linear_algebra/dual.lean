@@ -54,6 +54,28 @@ begin
   rw [linear_map.flip_apply, linear_map.id_apply]
 end
 
+variables {R M} {M' : Type*} [add_comm_group M'] [module R M']
+
+def transpose : (M →ₗ[R] M') →ₗ[R] (dual R M' →ₗ[R] dual R M) :=
+{ to_fun := λ u, linear_map.lcomp R R u,
+  map_add' := begin
+    intros u v,
+    ext x,
+    simp only [linear_map.lcomp_apply, linear_map.add_apply, linear_map.map_add],
+  end,
+  map_smul' := begin
+    intros c u,
+    ext x,
+    simp only [linear_map.lcomp_apply, linear_map.smul_apply, map_smul_eq_smul_map],
+  end }
+
+lemma transpose_apply (u : M →ₗ[R] M') (l : dual R M') : transpose u l = l.comp u := rfl
+
+variables {M'' : Type*} [add_comm_group M''] [module R M'']
+
+lemma transpose_comp (u : M' →ₗ[R] M'') (v : M →ₗ[R] M') :
+  transpose (u.comp v) = (transpose v).comp (transpose u) := rfl
+
 end dual
 end module
 
@@ -110,6 +132,9 @@ begin
       { rw [coord_fun_eq_repr, repr_eq_single, finsupp.single_apply], symmetry, convert if_neg hx } } }
 end
 
+lemma to_dual_eq_equiv_fun [fintype ι] (v : V) (i : ι) : (h.to_dual v) (B i) = h.equiv_fun v i :=
+by rw [h.equiv_fun_apply, to_dual_eq_repr]
+
 lemma to_dual_inj (v : V) (a : h.to_dual v = 0) : v = 0 :=
 begin
   rw [← mem_bot K, ← h.repr_ker, mem_ker],
@@ -155,6 +180,13 @@ linear_equiv.of_bijective h.to_dual h.to_dual_ker h.to_dual_range
 
 theorem dual_basis_is_basis [fintype ι] : is_basis K h.dual_basis :=
 h.to_dual_equiv.is_basis h
+
+lemma dual_basis_equiv_fun [fintype ι] (l : dual K V) (i : ι) :
+  h.dual_basis_is_basis.equiv_fun l i = l (B i) :=
+sorry
+
+lemma dual_basis_apply [fintype ι] (i : ι) (v: V) : h.dual_basis i v = h.equiv_fun v i :=
+sorry
 
 @[simp] lemma to_dual_to_dual [fintype ι] :
   (h.dual_basis_is_basis.to_dual).comp h.to_dual = eval K V :=

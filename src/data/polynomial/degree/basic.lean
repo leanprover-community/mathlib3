@@ -202,6 +202,16 @@ begin
     finset.sum_mul_boole, finset_sum_coeff, ite_le_nat_degree_coeff],
 end
 
+lemma as_sum'(p : polynomial R) :
+  p = ∑ i in p.support, C (p.coeff i) * X^i :=
+begin
+  ext n,
+  simp only [finset_sum_coeff, coeff_C_mul, coeff_X_pow, finset.sum_mul_boole],
+  split_ifs,
+  { refl },
+  { contrapose h, rw not_not, exact mem_support_iff_coeff_ne_zero.mpr h }
+end
+
 /--
 We can reexpress a sum over `p.support` as a sum over `range n`,
 for any `n` satisfying `p.nat_degree < n`.

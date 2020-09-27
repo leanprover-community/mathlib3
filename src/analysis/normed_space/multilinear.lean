@@ -557,7 +557,10 @@ begin
   exact mul_nonneg (norm_nonneg _) (pow_nonneg (norm_nonneg _) _)
 end
 
-variables (𝕜 ι)
+variables (𝕜 ι) (A : Type*) [comm_ring A] [normed_ring A] [hA : normed_algebra 𝕜 A]
+
+protected def mk_pi_algebra : continuous_multilinear_map 𝕜 (λ i : ι, A) A :=
+(@multilinear_map.mk_pi_algebra 𝕜 ι _ _ A _ (hA.to_algebra) _).mk_continuous _
 
 /-- The canonical continuous multilinear map on `𝕜^ι`, associating to `m` the product of all the
 `m i` (multiplied by a fixed reference element `z` in the target module) -/
@@ -571,14 +574,9 @@ variables {𝕜 ι}
 @[simp] lemma mk_pi_field_apply (z : E₂) (m : ι → 𝕜) :
   (continuous_multilinear_map.mk_pi_field 𝕜 ι z : (ι → 𝕜) → E₂) m = (∏ i, m i) • z := rfl
 
-lemma mk_pi_ring_apply_one_eq_self (f : continuous_multilinear_map 𝕜 (λ(i : ι), 𝕜) E₂) :
+lemma mk_pi_fiel_apply_one_eq_self (f : continuous_multilinear_map 𝕜 (λ(i : ι), 𝕜) E₂) :
   continuous_multilinear_map.mk_pi_field 𝕜 ι (f (λi, 1)) = f :=
-begin
-  ext m,
-  have : m = (λi, m i • 1), by { ext j, simp },
-  conv_rhs { rw [this, f.map_smul_univ] },
-  refl
-end
+f.to_multilinear_map.mk_pi_ring_apply_one_eq_self
 
 variables (𝕜 ι E₂)
 

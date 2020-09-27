@@ -128,6 +128,14 @@ is_measurable_cut (λ _ b, b ∈ s) f (λ b, is_measurable.const (b ∈ s))
 protected theorem measurable [measurable_space β] (f : α →ₛ β) : measurable f :=
 λ s _, is_measurable_preimage f s
 
+protected lemma sum_measure_preimage_singleton (f : α →ₛ β) {μ : measure α} (s : finset β) :
+  ∑ y in s, μ (f ⁻¹' {y}) = μ (f ⁻¹' ↑s) :=
+sum_measure_preimage_singleton _ (λ _ _, f.is_measurable_fiber _)
+
+lemma sum_range_measure_preimage_singleton (f : α →ₛ β) (μ : measure α) :
+  ∑ y in f.range, μ (f ⁻¹' {y}) = μ univ :=
+by rw [f.sum_measure_preimage_singleton, coe_range, preimage_range]
+
 /-- If-then-else as a `simple_func`. -/
 def piecewise (s : set α) (hs : is_measurable s) (f g : α →ₛ β) : α →ₛ β :=
 ⟨s.piecewise f g,
@@ -536,8 +544,7 @@ begin
   simp only [lintegral, range_map],
   refine finset.sum_image' _ (assume b hb, _),
   rcases mem_range.1 hb with ⟨a, rfl⟩,
-  rw [map_preimage_singleton, ← sum_measure_preimage_singleton _
-    (λ _ _, f.is_measurable_preimage _), finset.mul_sum],
+  rw [map_preimage_singleton, ← f.sum_measure_preimage_singleton, finset.mul_sum],
   refine finset.sum_congr _ _,
   { congr },
   { assume x, simp only [finset.mem_filter], rintro ⟨_, h⟩, rw h },

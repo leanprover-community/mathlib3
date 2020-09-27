@@ -638,7 +638,7 @@ nnreal.continuous_coe.measurable.comp hf
 
 lemma measurable.ennreal_coe [measurable_space α] {f : α → nnreal} (hf : measurable f) :
   measurable (λ x, (f x : ennreal)) :=
-(ennreal.continuous_coe.2 continuous_id).measurable.comp hf
+ennreal.continuous_coe.measurable.comp hf
 
 lemma measurable.ennreal_of_real [measurable_space α] {f : α → ℝ} (hf : measurable f) :
   measurable (λ x, ennreal.of_real (f x)) :=

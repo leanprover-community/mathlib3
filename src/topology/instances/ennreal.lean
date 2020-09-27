@@ -81,8 +81,11 @@ this ▸ mem_nhds_sets is_open_ne_top coe_ne_top
   tendsto (λa, (m a : ennreal)) f (𝓝 ↑a) ↔ tendsto m f (𝓝 a) :=
 embedding_coe.tendsto_nhds_iff.symm
 
-lemma continuous_coe {α} [topological_space α] {f : α → nnreal} :
-continuous (λa, (f a : ennreal)) ↔ continuous f :=
+lemma continuous_coe : continuous (coe : nnreal → ennreal) :=
+embedding_coe.continuous
+
+lemma continuous_coe_iff  {α} [topological_space α] {f : α → nnreal} :
+  continuous (λa, (f a : ennreal)) ↔ continuous f :=
 embedding_coe.continuous_iff.symm
 
 lemma nhds_coe {r : nnreal} : 𝓝 (r : ennreal) = (𝓝 r).map coe :=
@@ -97,7 +100,7 @@ begin
 end
 
 lemma continuous_of_real : continuous ennreal.of_real :=
-(continuous_coe.2 continuous_id).comp nnreal.continuous_of_real
+(continuous_coe_iff.2 continuous_id).comp nnreal.continuous_of_real
 
 lemma tendsto_of_real {f : filter α} {m : α → ℝ} {a : ℝ} (h : tendsto m f (𝓝 a)) :
   tendsto (λa, ennreal.of_real (m a)) f (𝓝 (ennreal.of_real a)) :=
@@ -147,7 +150,7 @@ def ne_top_homeomorph_nnreal : {a | a ≠ ∞} ≃ₜ nnreal :=
   left_inv := λ ⟨x, hx⟩, subtype.eq $ coe_to_nnreal hx,
   right_inv := λ x, to_nnreal_coe,
   continuous_to_fun := continuous_on_iff_continuous_restrict.1 continuous_on_to_nnreal,
-  continuous_inv_fun := continuous_subtype_mk _ (continuous_coe.2 continuous_id) }
+  continuous_inv_fun := continuous_subtype_mk _ continuous_coe }
 
 /-- The set of finite `ennreal` numbers is homeomorphic to `nnreal`. -/
 def lt_top_homeomorph_nnreal : {a | a < ∞} ≃ₜ nnreal :=

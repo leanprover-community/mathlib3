@@ -1339,7 +1339,7 @@ end
 /-- The derivative of the zero section of the tangent bundle maps `⟨x, v⟩` to `⟨⟨x, 0⟩, ⟨v, 0⟩⟩`.
 
 Note that this statement relies on the choice of the coordinate system we use on the tangent bundle.
-However, there is canonical one at a point of the zero section (since there is a canonical
+However, there is a canonical one at a point of the zero section (since there is a canonical
 horizontal space there, the tangent space to the zero section, in addition to the canonical vertical
 space which is the kernel of the derivative of the projection), and this is the one that comes
 from our definitions, so this statement is not as crazy as it may seem. In general, avoid using it

@@ -32,8 +32,8 @@ fiber bundle and projection.
 
 Let `Z : topological_fiber_bundle_core ι B F`. Then we define
 
-* `Z.total_space` : the total space of `Z`, defined as a `Type` as `Σ (b: B), F`, but with a twisted
-  topology coming from the fiber bundle structure
+* `Z.total_space` : the total space of `Z`, defined as a `Type` as `Σ (b : B), F`, but with a
+  twisted topology coming from the fiber bundle structure
 * `Z.proj`        : projection from `Z.total_space` to `B`. It is continuous.
 * `Z.fiber x`     : the fiber above `x`, homeomorphic to `F` (and defeq to `F` as a type).
 * `Z.local_triv i`: for `i : ι`, a local homeomorphism from `Z.total_space` to `B × F`, that

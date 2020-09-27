@@ -20,11 +20,21 @@ following locations:
 * `data.fintype.basic` has `fintype.infinite_pigeonhole`
 * `data.fintype.basic` has `fintype.strong_infinite_pigeonhole`
 
-This module gives access to these pigeonhole principles along with two
-additional ones:
+This module gives access to these pigeonhole principles along with a few more:
 
-* `finset.strong_pigeonhole`
-* `fintype.strong_pigeonhole`
+* `finset.exists_lt_sum_fiberwise_of_nsmul_lt_sum`,
+  `fintype.exists_lt_sum_fiberwise_of_nsmul_lt_sum`: the pigeonhole principle for finitely many
+  pigeons with weights in a `decidable_linear_ordered_cancel_add_comm_monoid`, strict inequality
+  version.
+
+* `finset.exists_le_sum_fiberwise_of_nsmul_le_sum`,
+  `fintype.exists_le_sum_fiberwise_of_nsmul_le_sum`: the pigeonhole principle for finitely many
+  pigeons with weights in a `decidable_linear_ordered_cancel_add_comm_monoid`, non-strict inequality
+  version.
+
+* `finset.strong_pigeonhole`, `fintype.strong_pigeonhole`: the pigeonhole principle for finitely
+  many pigeons of the same weight; there exists a pigeonhole which contains at least the average
+  value of pigeons per pigeonhole.
 
 Dijkstra observed in EWD980 that the classic pigeonhole principle
 generalizes to the statement that in a finite list of numbers, the
@@ -32,19 +42,53 @@ maximum value is at least the average value.  These strong pigeonhole
 principles state that there is a pigeonhole containing at least as
 many pigeons as the average number of pigeons in each pigeonhole.
 
-See also: `ordinal.infinite_pigeonhole`
+See also:
+
+* `ordinal.infinite_pigeonhole`: pigeonhole principle for cardinals, formulated using cofinality;
+
+* `measure_theory.exists_nonempty_inter_of_measure_univ_lt_tsum_measure`,
+  `measure_theory.exists_nonempty_inter_of_measure_univ_lt_sum_measure`: pigeonhole principle in a
+  measure space.
 
 ## Tags
 
 pigeonhole principle
 -/
 
-universes u v
-variables {α : Type u} {β : Type v}
+universes u v w
+variables {α : Type u} {β : Type v} {M : Type w} [decidable_linear_ordered_cancel_add_comm_monoid M]
 
 open_locale big_operators
 
 namespace finset
+
+/--
+The pigeonhole principle for finitely many pigeons of different weights, strict inequality version:
+there is a pigeonhole with the total weight of pigeons in it greater than `b` provided that
+the total number of pigeonholes times `b` is less than the total weight of all pigeons.
+
+See also: `finset.exists_le_sum_fiberwise_of_nsmul_le_sum`, `finset.strong_pigeonhole`,
+`finset.pigeonhole`
+-/
+lemma exists_lt_sum_fiberwise_of_nsmul_lt_sum {s : finset α} {t : finset β} [decidable_eq β]
+  {f : α → β} (hf : ∀ a ∈ s, f a ∈ t) {w : α → M} {b : M} (hb : t.card •ℕ b < ∑ x in s, w x) :
+  ∃ y ∈ t, b < ∑ x in s.filter (λ x, f x = y), w x :=
+exists_lt_of_sum_lt $ by simpa only [sum_fiberwise_of_maps_to hf, sum_const]
+
+/--
+The pigeonhole principle for finitely many pigeons of different weights, non-strict inequality
+version: there is a pigeonhole with the total weight of pigeons in it greater than or equal to `b`
+provided that the total number of pigeonholes times `b` is less than or equal to the total weight of
+all pigeons.
+
+See also: `finset.exists_sum_fiberwise_le_of_sum_le`, `finset.strong_pigeonhole`,
+`finset.pigeonhole`
+-/
+lemma exists_le_sum_fiberwise_of_nsmul_le_sum {s : finset α} {t : finset β} [decidable_eq β]
+  {f : α → β} (hf : ∀ a ∈ s, f a ∈ t) (ht : t.nonempty)
+  {w : α → M} {b : M} (hb : t.card •ℕ b ≤ ∑ x in s, w x) :
+  ∃ y ∈ t, b ≤ ∑ x in s.filter (λ x, f x = y), w x :=
+exists_le_of_sum_le ht $ by simpa only [sum_fiberwise_of_maps_to hf, sum_const]
 
 /--
 The strong pigeonhole principle for finitely many pigeons and
@@ -66,25 +110,44 @@ lemma strong_pigeonhole {s : finset α} {t : finset β} [decidable_eq β]
   {n : ℕ} (hn : t.card * n < s.card) :
   ∃ y ∈ t, n < (s.filter (λ x, f x = y)).card :=
 begin
-  classical, by_contra hz, push_neg at hz,
-  suffices h : s.card ≤ t.card * n,
-  { have h' := lt_of_le_of_lt h hn,
-    exact nat.lt_asymm h' h' },
-  have key := λ (y : β) (yel : y ∈ t), (preimage_card_ne_zero_iff_mem_image s f y).mp,
-  calc s.card = ∑ y in s.image f, (s.filter (λ x, f x = y)).card :
-    by apply card_eq_sum_card_image
-          ... = ∑ y in t, (s.filter (λ x, f x = y)).card :
-    by { rw ←sum_filter_of_ne key, congr, convert (filter_mem_image_eq_image f s t hf).symm }
-          ... ≤ ∑ y in t, n :
-    by { convert sum_le_sum hz, simp, }
-          ... = t.card * n :
-    by { simp only [nat.cast_id, nsmul_eq_mul, sum_const] },
+  simp only [card_eq_sum_ones],
+  apply exists_lt_sum_fiberwise_of_nsmul_lt_sum hf,
+  simpa
 end
 
 end finset
 
 namespace fintype
 open finset
+
+variables [fintype α] [fintype β] [decidable_eq β] {w : α → M} {b : M}
+
+/--
+The pigeonhole principle for finitely many pigeons of different weights, strict inequality version:
+there is a pigeonhole with the total weight of pigeons in it greater than `b` provided that
+the total number of pigeonholes times `b` is less than the total weight of all pigeons.
+
+See also: `fintype.exists_le_sum_fiberwise_of_nsmul_le_sum`, `fintype.strong_pigeonhole`,
+`fintype.pigeonhole`
+-/
+lemma exists_lt_sum_fiberwise_of_nsmul_lt_sum (f : α → β) (hb : (fintype.card β) •ℕ b < ∑ x, w x) :
+  ∃ y, b < ∑ x in univ.filter (λ x, f x = y), w x :=
+let ⟨y, _, hy⟩ := exists_lt_sum_fiberwise_of_nsmul_lt_sum (λ _ _, mem_univ _) hb in ⟨y, hy⟩
+
+/--
+The pigeonhole principle for finitely many pigeons of different weights, non-strict inequality
+version: there is a pigeonhole with the total weight of pigeons in it greater than or equal to `b`
+provided that the total number of pigeonholes times `b` is less than or equal to the total weight of
+all pigeons.
+
+See also: `finset.exists_sum_fiberwise_le_of_sum_le`, `finset.strong_pigeonhole`,
+`finset.pigeonhole`
+-/
+lemma exists_le_sum_fiberwise_of_nsmul_le_sum [nonempty β] (f : α → β)
+  (hb : (fintype.card β) •ℕ b ≤ ∑ x, w x) :
+  ∃ y, b ≤ ∑ x in univ.filter (λ x, f x = y), w x :=
+let ⟨y, _, hy⟩ := exists_le_sum_fiberwise_of_nsmul_le_sum (λ _ _, mem_univ _) univ_nonempty hb
+in ⟨y, hy⟩
 
 /--
 This is the `fintype` version of `finset.strong_pigeonhole`.
@@ -104,9 +167,6 @@ See also: `fintype.pigeonhole`, `fintype.strong_infinite_pigeonhole`
 lemma strong_pigeonhole [fintype α] [fintype β] [decidable_eq β] (f : α → β)
   (n : ℕ) (hn : card β * n < card α) :
   ∃ y : β, n < (univ.filter (λ x, f x = y)).card :=
-begin
-  obtain ⟨y, _, h⟩ := @strong_pigeonhole _ _ univ univ _ f (by simp) n hn,
-  exact ⟨y, h⟩,
-end
+let ⟨y, _, h⟩ := strong_pigeonhole (λ _ _, mem_univ _) hn in ⟨y, h⟩
 
 end fintype

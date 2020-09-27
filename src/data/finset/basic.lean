@@ -1705,7 +1705,7 @@ lemma pigeonhole {s : finset α} {t : finset β} (hc : t.card < s.card)
   ∃ (x ∈ s) (y ∈ s), x ≠ y ∧ f x = f y :=
 begin
   classical, by_contra hz, push_neg at hz,
-  refine nat.lt_le_antisymm hc (card_le_card_of_inj_on f hf _),
+  refine hc.not_le (card_le_card_of_inj_on f hf _),
   intros x hx y hy, contrapose, exact hz x hx y hy,
 end
 
@@ -1876,17 +1876,22 @@ ext $ λ x, by simp only [mem_bind, mem_image, mem_singleton, eq_comm]
   s.bind (singleton : α → finset α) = s :=
 by { rw bind_singleton, exact image_id }
 
-lemma image_bind_filter_eq [decidable_eq α] (s : finset β) (g : β → α) :
-  (s.image g).bind (λa, s.filter $ (λc, g c = a)) = s :=
+lemma bind_filter_eq_of_maps_to [decidable_eq α] {s : finset α} {t : finset β} {f : α → β}
+  (h : ∀ x ∈ s, f x ∈ t) :
+  t.bind (λa, s.filter $ (λc, f c = a)) = s :=
 begin
   ext b,
-  suffices : (∃ a, a ∈ s ∧ b ∈ s ∧ g b = g a) ↔ b ∈ s, by simpa,
-  exact ⟨λ ⟨a, ha, hb, hab⟩, hb, λ hb, ⟨b, hb, hb, rfl⟩⟩
+  suffices : (∃ a ∈ t, b ∈ s ∧ f b = a) ↔ b ∈ s, by simpa,
+  exact ⟨λ ⟨a, ha, hb, hab⟩, hb, λ hb, ⟨f b, h b hb, hb, rfl⟩⟩
 end
+
+lemma image_bind_filter_eq [decidable_eq α] (s : finset β) (g : β → α) :
+  (s.image g).bind (λa, s.filter $ (λc, g c = a)) = s :=
+bind_filter_eq_of_maps_to (λ x, mem_image_of_mem g)
 
 end bind
 
-/-! ### prod-/
+/-! ### prod -/
 section prod
 variables {s : finset α} {t : finset β}
 

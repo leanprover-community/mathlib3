@@ -49,13 +49,17 @@ begin
   by simpa only [sum_insert ha]
 end
 
+theorem card_le_mul_card_image_of_maps_to [decidable_eq γ] {f : α → γ} {s : finset α} {t : finset γ}
+  (Hf : ∀ a ∈ s, f a ∈ t) (n : ℕ) (hn : ∀ a ∈ t, (s.filter (λ x, f x = a)).card ≤ n) :
+  s.card ≤ n * t.card :=
+calc s.card = (∑ a in t, (s.filter (λ x, f x = a)).card) : card_eq_sum_card_fiberwise Hf
+        ... ≤ (∑ _ in t, n)                              : sum_le_sum hn
+        ... = _                                          : by simp [mul_comm]
+
 theorem card_le_mul_card_image [decidable_eq γ] {f : α → γ} (s : finset α)
   (n : ℕ) (hn : ∀ a ∈ s.image f, (s.filter (λ x, f x = a)).card ≤ n) :
   s.card ≤ n * (s.image f).card :=
-calc s.card = (∑ a in s.image f, (s.filter (λ x, f x = a)).card) :
-  card_eq_sum_card_image _ _
-... ≤ (∑ _ in s.image f, n) : sum_le_sum hn
-... = _ : by simp [mul_comm]
+card_le_mul_card_image_of_maps_to (λ x, mem_image_of_mem _) n hn
 
 lemma sum_nonneg (h : ∀x∈s, 0 ≤ f x) : 0 ≤ (∑ x in s, f x) :=
 le_trans (by rw [sum_const_zero]) (sum_le_sum h)
@@ -169,10 +173,16 @@ section decidable_linear_ordered_cancel_comm_monoid
 
 variables [decidable_linear_ordered_cancel_add_comm_monoid β]
 
+theorem exists_lt_of_sum_lt (Hlt : (∑ x in s, f x) < ∑ x in s, g x) :
+  ∃ i ∈ s, f i < g i :=
+begin
+  contrapose! Hlt with Hle,
+  exact sum_le_sum Hle
+end
+
 theorem exists_le_of_sum_le (hs : s.nonempty) (Hle : (∑ x in s, f x) ≤ ∑ x in s, g x) :
   ∃ i ∈ s, f i ≤ g i :=
 begin
-  classical,
   contrapose! Hle with Hlt,
   rcases hs with ⟨i, hi⟩,
   exact sum_lt_sum (λ i hi, le_of_lt (Hlt i hi)) ⟨i, hi, Hlt i hi⟩
@@ -185,7 +195,7 @@ begin
   contrapose! h₁,
   obtain ⟨x, m, x_nz⟩ : ∃ x ∈ s, f x ≠ 0 := h₂,
   apply ne_of_lt,
-  calc ∑ e in s, f e < ∑ e in s, 0 : by { apply sum_lt_sum h₁ ⟨x, m, lt_of_le_of_ne (h₁ x m) x_nz⟩ }
+  calc ∑ e in s, f e < ∑ e in s, 0 : sum_lt_sum h₁ ⟨x, m, lt_of_le_of_ne (h₁ x m) x_nz⟩
                  ... = 0           : by rw [finset.sum_const, nsmul_zero],
 end
 

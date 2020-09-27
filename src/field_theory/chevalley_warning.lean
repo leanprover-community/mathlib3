@@ -5,7 +5,7 @@ Authors: Johan Commelin
 -/
 
 import data.mv_polynomial
-import field_theory.finite
+import field_theory.finite.basic
 
 /-!
 # The Chevalley–Warning theorem

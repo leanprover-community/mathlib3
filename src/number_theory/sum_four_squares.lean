@@ -13,7 +13,7 @@ a proof that every natural number is the sum of four square numbers.
 The proof used is close to Lagrange's original proof.
 -/
 import data.zmod.basic
-import field_theory.finite
+import field_theory.finite.basic
 import data.int.parity
 import data.fintype.card
 

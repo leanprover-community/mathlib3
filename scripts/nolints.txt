@@ -1815,7 +1815,6 @@ apply_nolint topological_space.opens.is_basis doc_blame
 
 -- topology/sheaves/presheaf.lean
 apply_nolint Top.presheaf doc_blame has_inhabited_instance
-apply_nolint Top.presheaf.pushforward doc_blame
 apply_nolint Top.presheaf.pushforward.comp doc_blame
 apply_nolint Top.presheaf.pushforward.id doc_blame
 apply_nolint Top.presheaf.pushforward_eq doc_blame

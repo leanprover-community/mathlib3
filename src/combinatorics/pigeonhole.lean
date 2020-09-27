@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2020 Kyle Miller. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kyle Miller, Yury Kudryashov
+-/
 import data.fintype.basic
 import algebra.big_operators.order
 
@@ -164,8 +169,7 @@ this implies `card β ≠ 0`, so `card α / card β` is defined.)
 
 See also: `fintype.pigeonhole`, `fintype.strong_infinite_pigeonhole`
 -/
-lemma strong_pigeonhole [fintype α] [fintype β] [decidable_eq β] (f : α → β)
-  (n : ℕ) (hn : card β * n < card α) :
+lemma strong_pigeonhole (f : α → β) (n : ℕ) (hn : card β * n < card α) :
   ∃ y : β, n < (univ.filter (λ x, f x = y)).card :=
 let ⟨y, _, h⟩ := strong_pigeonhole (λ _ _, mem_univ _) hn in ⟨y, h⟩
 

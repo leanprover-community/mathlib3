@@ -50,9 +50,14 @@ group.
 * `rack.envel_group` is universal (`to_envel_group.univ` and `to_envel_group.univ_uniq`)
 
 ## Notation
-* `x ◃ y` is local notation for `shelf.act x y`
-* `x ◃⁻¹ y` is local notation for `rack.inv_act x y`
-* `S →◃ S'` is local notation for `shelf_hom S S'`
+
+The following notation is localized in `quandles`:
+
+* `x ◃ y` is `shelf.act x y`
+* `x ◃⁻¹ y` is `rack.inv_act x y`
+* `S →◃ S'` is `shelf_hom S S'`
+
+Use `open_locale quandles` to use these.
 
 ## Todo
 
@@ -81,11 +86,20 @@ class shelf (α : Type u) :=
 (self_distrib : ∀ {x y z : α}, act x (act y z) = act (act x y) (act x z))
 
 /--
+The type of homomorphisms between shelves.
+This is also the notion of rack and quandle homomorphisms.
+-/
+@[ext]
+structure shelf_hom (S₁ : Type*) (S₂ : Type*) [shelf S₁] [shelf S₂] :=
+(to_fun : S₁ → S₂)
+(map_act' : ∀ {x y : S₁}, to_fun (shelf.act x y) = shelf.act (to_fun x) (to_fun y))
+
+/--
 A *rack* is an automorphic set (a set with an action on itself by
 bijections) that is self-distributive.  It is a shelf such that each
 element's action is invertible.
 
-The local notations `x ◃ y` and `x ◃⁻¹ y` denote the action and the
+The notations `x ◃ y` and `x ◃⁻¹ y` denote the action and the
 inverse action, respectively, and they are right associative.
 -/
 class rack (α : Type u) extends shelf α :=
@@ -93,8 +107,11 @@ class rack (α : Type u) extends shelf α :=
 (left_inv : ∀ x, function.left_inverse (inv_act x) (act x))
 (right_inv : ∀ x, function.right_inverse (inv_act x) (act x))
 
-local infixr ` ◃ ` : 65 := shelf.act
-local infixr ` ◃⁻¹ ` : 65 := rack.inv_act
+localized "infixr ` ◃ `:65 := shelf.act" in quandles
+localized "infixr ` ◃⁻¹ `:65 := rack.inv_act" in quandles
+localized "infixr ` →◃ `:25 := shelf_hom" in quandles
+
+open_locale quandles
 
 namespace rack
 variables {R : Type*} [rack R]
@@ -231,17 +248,6 @@ lemma assoc_iff_id {R : Type*} [rack R] {x y z : R} :
 by { rw self_distrib, rw left_cancel }
 
 end rack
-
-/--
-The type of homomorphisms between shelves.
-This is also the notion of rack and quandle homomorphisms.
--/
-@[ext]
-structure shelf_hom (S₁ : Type*) (S₂ : Type*) [shelf S₁] [shelf S₂] :=
-(to_fun : S₁ → S₂)
-(map_act' : ∀ {x y : S₁}, to_fun (x ◃ y) = to_fun x ◃ to_fun y)
-
-local infixr ` →◃ `:25 := shelf_hom
 
 namespace shelf_hom
 variables {S₁ : Type*} {S₂ : Type*} {S₃ : Type*} [shelf S₁] [shelf S₂] [shelf S₃]

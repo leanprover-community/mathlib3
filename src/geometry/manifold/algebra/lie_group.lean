@@ -178,7 +178,7 @@ set_option old_structure_cmd true
 /-- Sometimes one might want to define a Lie additive group `G` without having proved previously
 that `G` is a topological additive group. In such case it is possible to use `lie_add_group_core`
 that does not require such instance, and then get a Lie group by invoking `to_lie_add_group`. -/
-@[ancestor smooth_manifold_with_corner, nolint]
+@[ancestor smooth_manifold_with_corner]
 structure lie_add_group_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E]
   [normed_space 𝕜 E] (I : model_with_corners 𝕜 E E)
@@ -190,7 +190,7 @@ structure lie_add_group_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 /-- Sometimes one might want to define a Lie group `G` without having proved previously that `G` is
 a topological group. In such case it is possible to use `lie_group_core` that does not require such
 instance, and then get a Lie group by invoking `to_lie_group` defined below. -/
-@[ancestor smooth_manifold_with_corner, to_additive, nolint]
+@[ancestor smooth_manifold_with_corner, to_additive]
 structure lie_group_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E]
   [normed_space 𝕜 E] (I : model_with_corners 𝕜 E E)
@@ -198,6 +198,10 @@ structure lie_group_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   [charted_space E G] extends smooth_manifold_with_corners I G : Prop :=
 (smooth_mul : smooth (I.prod I) I (λ p : G×G, p.1 * p.2))
 (smooth_inv : smooth I I (λ a:G, a⁻¹))
+
+-- The linter does not recognize that the followings are structure projections, disable it
+attribute [nolint def_lemma doc_blame] lie_add_group_core.to_smooth_manifold_with_corners
+  lie_group_core.to_smooth_manifold_with_corners
 
 end
 

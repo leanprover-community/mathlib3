@@ -15,7 +15,7 @@ multiplication and inversion are smooth maps. Smoothness of the group multiplica
 multiplication is a smooth mapping of the product manifold `G` × `G` into `G`.
 
 In this file we define the basic structures to talk about smooth monoids: `has_smooth_mul` and its
-additive counterpart `has_smooth_add`. These structures are enogh general to also talk about smooth
+additive counterpart `has_smooth_add`. These structures are general enough to also talk about smooth
 semigroups.
 -/
 
@@ -145,6 +145,7 @@ section has_smooth_mul_core
 that `G` is a topological additive monoid. In such case it is possible to use `has_smooth_add_core`
 that does not require such instance, and then get a smooth additive monoid by invoking
 `to_has_smooth_add`. -/
+@[ancestor smooth_manifold_with_corners]
 structure has_smooth_add_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
@@ -155,7 +156,7 @@ structure has_smooth_add_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 /-- Sometimes one might want to define a smooth monoid `G` without having proved previously that `G`
 is a topological monoid. In such case it is possible to use `has_smooth_mul_core` that does not
 require such instance, and then get a smooth monoid by invoking `to_has_smooth_mul`. -/
-@[to_additive]
+@[ancestor smooth_manifold_with_corners, to_additive]
 structure has_smooth_mul_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)

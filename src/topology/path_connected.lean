@@ -294,6 +294,7 @@ path on `[0, 1/2]` and the second one on `[1/2, 1]`. -/
   begin
     apply (continuous_if _ _ _).comp continuous_subtype_coe,
     { norm_num },
+    -- TODO: the following are provable by `continuity` but it is too slow
     { exact ((path.continuous γ).comp continuous_proj_I).comp (continuous_const.mul continuous_id')},
     { exact ((path.continuous γ').comp continuous_proj_I).comp
       ((continuous_const.mul continuous_id').sub continuous_const)}

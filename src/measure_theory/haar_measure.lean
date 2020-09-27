@@ -204,7 +204,7 @@ begin
   { simp only [mem_set_of_eq], refine subset.trans (image_subset _ h1s) _,
     rintro _ ⟨g₁, ⟨_, ⟨g₂, rfl⟩, ⟨_, ⟨hg₂, rfl⟩, hg₁⟩⟩, rfl⟩,
     simp only [mem_preimage] at hg₁, simp only [exists_prop, mem_Union, finset.mem_map,
-      equiv.coe_mul_right, exists_exists_and_eq_and, mem_preimage, equiv.to_embedding_coe_fn],
+      equiv.coe_mul_right, exists_exists_and_eq_and, mem_preimage, equiv.to_embedding_to_fun],
     refine ⟨_, hg₂, _⟩, simp only [mul_assoc, hg₁, inv_mul_cancel_left] }
 end
 

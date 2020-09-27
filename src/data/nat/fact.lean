@@ -47,7 +47,7 @@ le_of_dvd (fact_pos _) (fact_dvd_fact h)
 lemma fact_mul_pow_le_fact : ∀ {m n : ℕ}, m.fact * m.succ ^ n ≤ (m + n).fact
 | m 0     := by simp
 | m (n+1) :=
-by  rw [← add_assoc, nat.fact_succ, mul_comm (nat.succ _), nat.pow_succ, ← mul_assoc];
+by  rw [← add_assoc, nat.fact_succ, mul_comm (nat.succ _), pow_succ', ← mul_assoc];
   exact mul_le_mul fact_mul_pow_le_fact
     (nat.succ_le_succ (nat.le_add_right _ _)) (nat.zero_le _) (nat.zero_le _)
 

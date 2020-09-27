@@ -458,15 +458,17 @@ variables (α β μ)
 by simp [integrable, measurable_const]
 variables {α β μ}
 
+lemma integrable.add' [opens_measurable_space β] {f g : α → β} (hf : integrable f μ)
+  (hg : integrable g μ) :
+  has_finite_integral (f + g) μ :=
+calc ∫⁻ a, nnnorm (f a + g a) ∂μ ≤ ∫⁻ a, nnnorm (f a) + nnnorm (g a) ∂μ :
+  lintegral_mono (λ a, by exact_mod_cast nnnorm_add_le _ _)
+... = _ : lintegral_nnnorm_add hf.measurable hg.measurable
+... < ⊤ : add_lt_top.2 ⟨hf.has_finite_integral, hg.has_finite_integral⟩
+
 lemma integrable.add [borel_space β] [second_countable_topology β]
   {f g : α → β} (hf : integrable f μ) (hg : integrable g μ) : integrable (f + g) μ :=
-⟨hf.measurable.add hg.measurable, calc
-  ∫⁻ a, nnnorm (f a + g a) ∂μ ≤ ∫⁻ a, nnnorm (f a) + nnnorm (g a) ∂μ :
-    lintegral_mono
-      (assume a, by { simp only [← coe_add, coe_le_coe], exact nnnorm_add_le _ _ })
-  ... = _ :
-    lintegral_nnnorm_add hf.measurable hg.measurable
-  ... < ⊤ : add_lt_top.2 ⟨hf.has_finite_integral, hg.has_finite_integral⟩⟩
+⟨hf.measurable.add hg.measurable, hf.add' hg⟩
 
 lemma integrable_finset_sum {ι} [borel_space β] [second_countable_topology β] (s : finset ι)
   {f : ι → α → β} (hf : ∀ i, integrable (f i) μ) : integrable (λ a, ∑ i in s, f i a) μ :=
@@ -483,15 +485,17 @@ lemma integrable.neg [borel_space β] {f : α → β} (hf : integrable f μ) : i
 @[simp] lemma integrable_neg_iff [borel_space β] {f : α → β} : integrable (-f) μ ↔ integrable f μ :=
 ⟨λ h, neg_neg f ▸ h.neg, integrable.neg⟩
 
+lemma integrable.sub' [opens_measurable_space β] {f g : α → β}
+  (hf : integrable f μ) (hg : integrable g μ) : has_finite_integral (f - g) μ :=
+calc ∫⁻ a, nnnorm (f a - g a) ∂μ ≤ ∫⁻ a, nnnorm (f a) + nnnorm (-g a) ∂μ :
+  lintegral_mono (assume a, by exact_mod_cast nnnorm_add_le _ _ )
+... = _ :
+  by { simp only [nnnorm_neg], exact lintegral_nnnorm_add hf.measurable hg.measurable }
+... < ⊤ : add_lt_top.2 ⟨hf.has_finite_integral, hg.has_finite_integral⟩
+
 lemma integrable.sub [borel_space β] [second_countable_topology β] {f g : α → β}
   (hf : integrable f μ) (hg : integrable g μ) : integrable (f - g) μ :=
-⟨hf.measurable.sub hg.measurable,
-calc
-  ∫⁻ a, nnnorm (f a - g a) ∂μ ≤ ∫⁻ a, nnnorm (f a) + nnnorm (-g a) ∂μ :
-    lintegral_mono (assume a, by exact_mod_cast nnnorm_add_le _ _ )
-  ... = _ :
-    by { simp only [nnnorm_neg], exact lintegral_nnnorm_add hf.measurable hg.measurable }
-  ... < ⊤ : add_lt_top.2 ⟨hf.has_finite_integral, hg.has_finite_integral⟩⟩
+hf.add hg.neg
 
 lemma integrable.norm [opens_measurable_space β] {f : α → β} (hf : integrable f μ) :
   integrable (λa, ∥f a∥) μ :=
@@ -501,8 +505,16 @@ lemma integrable_norm_iff [opens_measurable_space β] {f : α → β} (hf : meas
   integrable (λa, ∥f a∥) μ ↔ integrable f μ :=
 by simp_rw [integrable, and_iff_right hf, and_iff_right hf.norm, has_finite_integral_norm_iff]
 
+lemma integrable.prod_mk [opens_measurable_space β] [opens_measurable_space γ] {f : α → β}
+  {g : α → γ} (hf : integrable f μ) (hg : integrable g μ) :
+  integrable (λ x, (f x, g x)) μ :=
+⟨hf.measurable.prod_mk hg.measurable,
+  (hf.norm.add' hg.norm).mono $ eventually_of_forall $ λ x,
+  calc max ∥f x∥ ∥g x∥ ≤ ∥f x∥ + ∥g x∥   : max_le_add_of_nonneg (norm_nonneg _) (norm_nonneg _)
+                 ... ≤ ∥(∥f x∥ + ∥g x∥)∥ : le_abs_self _⟩
+
 section pos_part
-/-! Lemmas used for defining the positive part of a `L¹` function -/
+/-! ### Lemmas used for defining the positive part of a `L¹` function -/
 
 lemma integrable.max_zero {f : α → ℝ} (hf : integrable f μ) : integrable (λa, max (f a) 0) μ :=
 ⟨hf.measurable.max measurable_const, hf.has_finite_integral.max_zero⟩

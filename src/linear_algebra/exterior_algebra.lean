@@ -116,7 +116,7 @@ instance : algebra R (exterior_algebra R M) :=
     refl,
   end }
 
-instance : ring (exterior_algebra S N) := algebra.ring_of_comm_ring_algebra S
+instance : ring (exterior_algebra S N) := algebra.semiring_to_ring S
 
 /--
 The canonical quotient map `tensor_algebra R M → exterior_algebra R M`.

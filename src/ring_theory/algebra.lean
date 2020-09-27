@@ -3,6 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
+import tactic.nth_rewrite
 import data.matrix.basic
 import linear_algebra.tensor_product
 import ring_theory.subring
@@ -286,13 +287,22 @@ instance linear_map.semimodule' (R : Type u) [comm_semiring R]
 end semiring
 
 section ring
-variables [comm_ring R] [comm_ring S] [ring A] [algebra R A]
+variables [comm_ring R]
 
-lemma mul_sub_algebra_map_commutes (x : A) (r : R) :
+variables (R)
+
+/-- A `semiring` that is an `algebra` over a commutative ring carries a natural `ring` structure. -/
+def semiring_to_ring [semiring A] [algebra R A] : ring A := {
+  ..semimodule.add_comm_monoid_to_add_comm_group R,
+  ..(infer_instance : semiring A) }
+
+variables {R}
+
+lemma mul_sub_algebra_map_commutes [ring A] [algebra R A] (x : A) (r : R) :
   x * (x - algebra_map R A r) = (x - algebra_map R A r) * x :=
 by rw [mul_sub, ←commutes, sub_mul]
 
-lemma mul_sub_algebra_map_pow_commutes (x : A) (r : R) (n : ℕ) :
+lemma mul_sub_algebra_map_pow_commutes [ring A] [algebra R A] (x : A) (r : R) (n : ℕ) :
   x * (x - algebra_map R A r) ^ n = (x - algebra_map R A r) ^ n * x :=
 begin
   induction n with n ih,
@@ -300,21 +310,7 @@ begin
   { rw [pow_succ, ←mul_assoc, mul_sub_algebra_map_commutes,
       mul_assoc, ih, ←mul_assoc], }
 end
-end ring
 
-section ring
-/-!
-An algebra over a commutative ring is a ring.
--/
-def ring_of_comm_ring_algebra (R) [comm_ring R] [semiring A] [algebra R A] : ring A :=
-{ neg := λ a, (-1 : R) • a,
-  add_left_neg := begin
-    intros a,
-    have : ((-1 : R) + 1) • a = (-1 : R) • a + a, by simp only [add_smul, one_smul],
-    rw ←this,
-    simp,
-  end,
-  ..show semiring A, by apply_instance }
 end ring
 
 end algebra
@@ -444,6 +440,12 @@ lemma map_sum {ι : Type*} (f : ι → A) (s : finset ι) :
 
 @[simp] lemma map_nat_cast (n : ℕ) : φ n = n :=
 φ.to_ring_hom.map_nat_cast n
+
+@[simp] lemma map_bit0 (x) : φ (bit0 x) = bit0 (φ x) :=
+φ.to_ring_hom.map_bit0 x
+
+@[simp] lemma map_bit1 (x) : φ (bit1 x) = bit1 (φ x) :=
+φ.to_ring_hom.map_bit1 x
 
 section
 
@@ -1111,6 +1113,9 @@ subsemiring.subset_closure $ or.inr trivial
 
 @[simp] theorem coe_top : ((⊤ : subalgebra R A) : submodule R A) = ⊤ :=
 submodule.ext $ λ x, iff_of_true mem_top trivial
+
+@[simp] theorem coe_bot : ((⊥ : subalgebra R A) : set A) = set.range (algebra_map R A) :=
+by simp [set.ext_iff, algebra.mem_bot]
 
 theorem eq_top_iff {S : subalgebra R A} :
   S = ⊤ ↔ ∀ x : A, x ∈ S :=

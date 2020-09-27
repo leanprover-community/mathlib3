@@ -165,7 +165,7 @@ Ring Theory:
     relationship between the coefficients and the roots of a split polynomial:
     Newton's identities:
     polynomial derivative: 'polynomial.derivative'
-    decomposition into sums of homogeneous polynomials:
+    decomposition into sums of homogeneous polynomials: 'mv_polynomial.sum_homogeneous_component'
     symmetric polynomials:
   Field Theory:
     fields: 'field'

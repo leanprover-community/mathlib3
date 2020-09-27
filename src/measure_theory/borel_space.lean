@@ -414,6 +414,7 @@ lemma measurable.mul [has_mul α] [has_continuous_mul α] [second_countable_topo
   {f : δ → α} {g : δ → α} : measurable f → measurable g → measurable (λa, f a * g a) :=
 continuous_mul.measurable2
 
+/-- A variant of `measurable.mul` that uses `*` on functions -/
 @[to_additive]
 lemma measurable.mul' [has_mul α] [has_continuous_mul α] [second_countable_topology α]
   {f : δ → α} {g : δ → α} : measurable f → measurable g → measurable (f * g) :=
@@ -511,20 +512,6 @@ begin
   assumption
 end
 
-lemma measurable_of_is_measurable_lt {f : δ → α} (hf : ∀ y, is_measurable {x | f x < y}) :
-  measurable f :=
-begin
-  rw [‹borel_space α›.measurable_eq, borel_eq_generate_Iio],
-  apply measurable_generate_from, rintro _ ⟨y, rfl⟩, exact hf y
-end
-
-lemma measurable_of_is_measurable_le {f : δ → α} (hf : ∀ y, is_measurable {x | f x ≤ y}) :
-  measurable f :=
-begin
-  rw [‹borel_space α›.measurable_eq, borel_eq_generate_Ioi],
-  apply measurable_generate_from, rintro _ ⟨y, rfl⟩, convert (hf y).compl, simp [compl_set_of, Ioi]
-end
-
 lemma measurable.is_lub {ι} [encodable ι] {f : ι → δ → α} {g : δ → α} (hf : ∀ i, measurable (f i))
   (hg : ∀ b, is_lub {a | ∃ i, f i b = a} (g b)) :
   measurable g :=
@@ -599,11 +586,9 @@ lemma measurable_cSup {ι} {f : ι → δ → α} {s : set ι} (hs : s.countable
 begin
   cases eq_empty_or_nonempty s with h2s h2s,
   { simp [h2s, measurable_const] },
-  { apply measurable_of_is_measurable_le, intro y,
-    have : is_measurable {x : δ | ∀ (i : ι), i ∈ s → f i x ≤ y},
-    { simp_rw set_of_forall,
-      exact is_measurable.bInter hs (λ i hi, is_measurable_le (hf i) measurable_const) },
-    convert this, ext x, simp_rw [cSup_le_iff (bdd x) (h2s.image _), ball_image_iff] }
+  { apply measurable_of_Iic, intro y,
+    simp_rw [preimage, mem_Iic, cSup_le_iff (bdd _) (h2s.image _), ball_image_iff, set_of_forall],
+    exact is_measurable.bInter hs (λ i hi, is_measurable_le (hf i) measurable_const) }
 end
 
 end conditionally_complete_linear_order

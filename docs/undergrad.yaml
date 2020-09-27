@@ -34,7 +34,7 @@ Linear algebra:
     isomorphism with bidual: 'vector_space.eval_equiv'
   Multilinearity:
     multilinear map: 'multilinear_map'
-    determinant of vectors: ''
+    determinant of vectors: 'is_basis.det'
     determinant of endomorphisms: ''
     special linear group: ''
     orientation of a $\R$-valued vector space: ''

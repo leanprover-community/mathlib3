@@ -32,6 +32,10 @@ In this file we prove four theorems:
   function sending `μ`-a.e. points to `s`, then the value of `g` at the expected value of `f` is
   less than or equal to the expected value of `g ∘ f` provided that both `f` and `g ∘ f` are
   integrable. See also `convex.map_sum_le` for a finite sum version of this lemma.
+
+## Tags
+
+convex, integral, center mass, Jensen's inequality
 -/
 
 open measure_theory set filter

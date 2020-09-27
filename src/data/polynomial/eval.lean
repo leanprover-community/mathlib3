@@ -222,6 +222,14 @@ lemma eval_sum (p : polynomial R) (f : ℕ → R → polynomial R) (x : R) :
   (p.sum f).eval x = p.sum (λ n a, (f n a).eval x) :=
 eval₂_sum _ _ _ _
 
+lemma eval_finset_sum (s : finset ι) (g : ι → polynomial R) (x : R) :
+  (∑ i in s, g i).eval x = ∑ i in s, (g i).eval x :=
+begin
+  classical,
+  induction s using finset.induction with p hp s hs, simp,
+  rw [sum_insert, eval_add, hs, sum_insert]; assumption,
+end
+
 
 
 /-- `is_root p x` implies `x` is a root of `p`. The evaluation of `p` at `x` is zero -/

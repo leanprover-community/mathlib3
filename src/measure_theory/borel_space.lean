@@ -82,7 +82,7 @@ le_antisymm
   (generate_from_le $ assume u hu, generate_measurable.basic _ $
     show t.is_open u, by rw [hs]; exact generate_open.basic _ hu)
 
-lemma is_pi_system_is_open : is_pi_system (is_open : set α → Prop) :=
+lemma is_pi_system_is_open [topological_space α] : is_pi_system (is_open : set α → Prop) :=
 λ s t hs ht hst, is_open_inter hs ht
 
 section order_topology

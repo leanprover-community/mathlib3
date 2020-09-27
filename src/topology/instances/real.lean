@@ -314,3 +314,78 @@ eq_Icc_of_connected_compact ⟨(nonempty_Icc.2 hab).image f, is_preconnected_Icc
   (compact_Icc.image_of_continuous_on h)
 
 end
+
+section subgroups
+
+-- Rename and move
+lemma aux {a : ℝ} (h : 0 < a) (b : ℝ) : 0 ≤ b - floor(b/a) * a :=
+sorry
+
+-- Rename and move
+lemma aux₂ {a : ℝ} (h : 0 < a) (b : ℝ) : b - floor(b/a) * a < a :=
+sorry
+
+-- Rename and find more general statement?
+lemma mul_mem {G : add_subgroup ℝ} (k : ℤ) {g : ℝ} (h : g ∈ G) : (k : ℝ) * g ∈ G :=
+sorry
+
+-- Move
+lemma real.mem_closure_iff {s : set ℝ} {x : ℝ} : x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, abs (y - x) < ε :=
+by simp [mem_closure_iff_nhds_basis nhds_basis_ball, real.dist_eq]
+
+lemma real.subgroup_classification (G : add_subgroup ℝ) :
+  closure (G : set ℝ) = univ ∨ ∃ a : ℝ, (G : set ℝ)  = range (λ k : ℤ, k*a) :=
+begin
+  by_cases H : ∀ x : ℝ, x ∈ G → x = 0,
+  { right,
+    use 0,
+    ext x,
+    suffices : x ∈ G ↔ x = 0, by simpa,
+    exact ⟨H x, by { rintros rfl, exact G.zero_mem }⟩ },
+  { let G_pos := {x : ℝ | x ∈ G ∧ 0 < x},
+    by_cases H' : ∃ a ∈ G_pos, ∀ b ∈ G_pos, a ≤ b,
+    { right,
+      rcases H' with ⟨a, ⟨a_in, a_pos⟩, a_min⟩,
+      use a,
+      ext g,
+      split,
+      { intro g_in,
+        use floor (g/a),
+        dsimp only,
+        have nonneg : 0 ≤ g - floor (g/a) * a := aux a_pos _,
+        have : (floor (g/a) : ℝ) * a ∈ G := mul_mem _ a_in,
+        have lt : g - floor (g/a) * a  < a := aux₂ a_pos _,
+        cases eq_or_lt_of_le nonneg,
+        { conv_rhs { rw eq_of_sub_eq_zero h.symm } },
+        { exfalso,
+          have key : g - ⌊g / a⌋ * a ∈ G_pos := ⟨G.sub_mem g_in (mul_mem _ a_in), h⟩,
+          linarith [a_min _ key] } },
+      { rintros ⟨k, rfl⟩,
+        exact mul_mem _ a_in } },
+    { left,
+      push_neg at H',
+      rw eq_univ_iff_forall,
+      intros x,
+      suffices : ∀ ε > (0 : ℝ), ∃ g ∈ G, abs (x - g) < ε,
+      { rwa real.mem_closure_iff,
+        simpa [abs_sub] },
+      intros ε ε_pos,
+      obtain ⟨g₁, g₁_in, g₁_pos⟩ : ∃ g₁ : ℝ, g₁ ∈ G_pos,
+      { push_neg at H,
+        rcases H with ⟨y, y_in, hy⟩,
+        cases lt_or_gt_of_ne hy with Hy Hy,
+        { exact ⟨-y, G.neg_mem y_in, neg_pos.mpr Hy⟩ },
+        { exact ⟨y, y_in, Hy⟩ } },
+      obtain ⟨g₂, g₂_in, g₂_pos, g₂_lt⟩ : ∃ g₂ : ℝ, g₂ ∈ G ∧ 0 < g₂ ∧ g₂ < ε,
+      { refine ⟨floor (ε/2/g₁) * g₁, _, _, _⟩,
+        exact mul_mem _ g₁_in,
+        sorry,
+        sorry },
+      use floor (x/g₂) * g₂,
+      split,
+      { exact mul_mem _ g₂_in },
+      { rw abs_of_nonneg (aux g₂_pos x),
+        linarith [aux₂ g₂_pos x] } } }
+end
+
+end subgroups

@@ -466,7 +466,10 @@ section
 variables (R ι) (A : Type*) [comm_semiring A] [algebra R A] [fintype ι]
 
 /-- Given an `R`-algebra `A`, `mk_pi_algebra` is the multilinear map on `A^ι` associating
-to `m` the product of all the `m i`. -/
+to `m` the product of all the `m i`.
+
+TODO: This version assumes that `A` is commutative. In the most interesting case `ι = fin n`,
+it is possible to drop this assumption. -/
 protected def mk_pi_algebra : multilinear_map R (λ i : ι, A) A :=
 { to_fun := λ m, ∏ i, m i,
   map_add' := λ m i x y, by simp [finset.prod_update_of_mem, add_mul],

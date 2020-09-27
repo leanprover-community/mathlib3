@@ -1073,7 +1073,7 @@ begin
     exact A },
   /- Now, we use `composition.sigma_equiv_sigma_pi n` to change
   variables in the second sum, and check that we get exactly the same sums. -/
-  rw ← finset.sum_equiv (sigma_equiv_sigma_pi n),
+  rw ← (sigma_equiv_sigma_pi n).sum_comp,
   /- To check that we have the same terms, we should check that we apply the same component of
   `r`, and the same component of `q`, and the same component of `p`, to the same coordinate of
   `v`. This is true by definition, but at each step one needs to convince Lean that the types

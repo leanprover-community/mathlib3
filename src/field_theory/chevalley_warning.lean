@@ -66,7 +66,7 @@ begin
   intros x₀,
   let e : K ≃ {x // x ∘ coe = x₀} := (equiv.subtype_equiv_codomain _).symm,
   calc (∑ x : {x : σ → K // x ∘ coe = x₀}, ∏ j, (x : σ → K) j ^ d j)
-        = ∑ a : K, ∏ j : σ, (e a : σ → K) j ^ d j : (finset.sum_equiv e _).symm
+        = ∑ a : K, ∏ j : σ, (e a : σ → K) j ^ d j : (e.sum_comp _).symm
     ... = ∑ a : K, (∏ j, x₀ j ^ d j) * a ^ d i    : fintype.sum_congr _ _ _
     ... = (∏ j, x₀ j ^ d j) * ∑ a : K, a ^ d i    : by rw mul_sum
     ... = 0                                       : by rw [sum_pow_lt_card_sub_one _ hi, mul_zero],

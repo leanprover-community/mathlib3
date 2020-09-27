@@ -270,7 +270,7 @@ begin
   refl
 end
 
-lemma fintype.prod_dite [fintype α] [decidable_eq α] {p : α → Prop} [decidable_pred p]
+lemma fintype.prod_dite [fintype α] {p : α → Prop} [decidable_pred p]
   [comm_monoid β] (f : Π (a : α) (ha : p a), β) (g : Π (a : α) (ha : ¬p a), β) :
   (∏ a, dite (p a) (f a) (g a)) = (∏ a : {a // p a}, f a a.2) * (∏ a : {a // ¬p a}, g a a.2) :=
 begin

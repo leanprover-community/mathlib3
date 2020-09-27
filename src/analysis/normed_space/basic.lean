@@ -328,6 +328,9 @@ instance prod.normed_group : normed_group (α × β) :=
 
 lemma prod.norm_def (x : α × β) : ∥x∥ = (max ∥x.1∥ ∥x.2∥) := rfl
 
+lemma prod.nnnorm_def (x : α × β) : nnnorm x = max (nnnorm x.1) (nnnorm x.2) :=
+by { have := x.norm_def, simp only [← coe_nnnorm] at this, exact_mod_cast this }
+
 lemma norm_fst_le (x : α × β) : ∥x.1∥ ≤ ∥x∥ :=
 le_max_left _ _
 

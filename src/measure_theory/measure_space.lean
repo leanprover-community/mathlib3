@@ -1371,6 +1371,9 @@ instance probability_measure.to_finite_measure (μ : measure α) [probability_me
   finite_measure μ :=
 ⟨by simp only [measure_univ, ennreal.one_lt_top]⟩
 
+lemma probability_measure.ne_zero (μ : measure α) [probability_measure μ] : μ ≠ 0 :=
+mt measure.measure_univ_eq_zero.2 $ by simp [measure_univ]
+
 section no_atoms
 
 variables [has_no_atoms μ]

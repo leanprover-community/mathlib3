@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2020 Kyle Miller. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kyle Miller, Yury G. Kudryashov
+-/
 import data.fintype.basic
 import algebra.big_operators.order
 
@@ -42,7 +47,7 @@ maximum value is at least the average value.  These strong pigeonhole
 principles state that there is a pigeonhole containing at least as
 many pigeons as the average number of pigeons in each pigeonhole.
 
-See also:
+## See also
 
 * `ordinal.infinite_pigeonhole`: pigeonhole principle for cardinals, formulated using cofinality;
 
@@ -120,7 +125,7 @@ end finset
 namespace fintype
 open finset
 
-variables [fintype α] [fintype β] [decidable_eq β] {w : α → M} {b : M}
+variables [fintype α] [fintype β] [decidable_eq β]
 
 /--
 The pigeonhole principle for finitely many pigeons of different weights, strict inequality version:
@@ -130,7 +135,8 @@ the total number of pigeonholes times `b` is less than the total weight of all p
 See also: `fintype.exists_le_sum_fiberwise_of_nsmul_le_sum`, `fintype.strong_pigeonhole`,
 `fintype.pigeonhole`
 -/
-lemma exists_lt_sum_fiberwise_of_nsmul_lt_sum (f : α → β) (hb : (fintype.card β) •ℕ b < ∑ x, w x) :
+lemma exists_lt_sum_fiberwise_of_nsmul_lt_sum (f : α → β)
+  {w : α → M} {b : M} (hb : card β •ℕ b < ∑ x, w x) :
   ∃ y, b < ∑ x in univ.filter (λ x, f x = y), w x :=
 let ⟨y, _, hy⟩ := exists_lt_sum_fiberwise_of_nsmul_lt_sum (λ _ _, mem_univ _) hb in ⟨y, hy⟩
 
@@ -144,13 +150,13 @@ See also: `finset.exists_sum_fiberwise_le_of_sum_le`, `finset.strong_pigeonhole`
 `finset.pigeonhole`
 -/
 lemma exists_le_sum_fiberwise_of_nsmul_le_sum [nonempty β] (f : α → β)
-  (hb : (fintype.card β) •ℕ b ≤ ∑ x, w x) :
+  {w : α → M} {b : M} (hb : card β •ℕ b ≤ ∑ x, w x) :
   ∃ y, b ≤ ∑ x in univ.filter (λ x, f x = y), w x :=
 let ⟨y, _, hy⟩ := exists_le_sum_fiberwise_of_nsmul_le_sum (λ _ _, mem_univ _) univ_nonempty hb
 in ⟨y, hy⟩
 
 /--
-This is the `fintype` version of `finset.strong_pigeonhole`.
+The strong pigeonhole principle for finitely many pigeons and pigeonholes.
 There is a pigeonhole with at least as many pigeons as
 the ceiling of the average number of pigeons across all pigeonholes.
 ("The maximum is at least the mean" specialized to integers.)
@@ -162,10 +168,9 @@ than `n` elements.  (We formulate the constraint on `n` as
 `card β * n < card α`.  Since we have a function `f` from `α` to `β`,
 this implies `card β ≠ 0`, so `card α / card β` is defined.)
 
-See also: `fintype.pigeonhole`, `fintype.strong_infinite_pigeonhole`
+See also: `finset.strong_pigeonhole`, `fintype.pigeonhole`, `fintype.strong_infinite_pigeonhole`
 -/
-lemma strong_pigeonhole [fintype α] [fintype β] [decidable_eq β] (f : α → β)
-  (n : ℕ) (hn : card β * n < card α) :
+lemma strong_pigeonhole (f : α → β) {n : ℕ} (hn : card β * n < card α) :
   ∃ y : β, n < (univ.filter (λ x, f x = y)).card :=
 let ⟨y, _, h⟩ := strong_pigeonhole (λ _ _, mem_univ _) hn in ⟨y, h⟩
 

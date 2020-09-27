@@ -453,8 +453,7 @@ This is the `fintype` version of `finset.pigeonhole`.
 -/
 lemma pigeonhole (f : α → β) (h : fintype.card β < fintype.card α) :
   ∃ x y, x ≠ y ∧ f x = f y :=
-by { obtain ⟨x, _, y, _, h⟩ := @finset.pigeonhole α β univ univ h f (by simp),
-     exact ⟨x, y, h⟩ }
+let ⟨x, _, y, _, h⟩ := @finset.pigeonhole α β univ univ h f (by simp) in ⟨x, y, h⟩
 
 lemma card_eq_one_iff : card α = 1 ↔ (∃ x : α, ∀ y, y = x) :=
 by rw [← card_unit, card_eq]; exact
@@ -1128,8 +1127,10 @@ have H : fintype α := fintype.of_injective f hf,
 infinite.not_fintype H
 
 /--
-If there are infinitely many pigeons in finitely many pigeonholes,
-then there are at least two pigeons in the same pigeonhole.
+The pigeonhole principle for infinitely many pigeons in finitely many
+pigeonholes.  If there are infinitely many pigeons in finitely many
+pigeonholes, then there are at least two pigeons in the same
+pigeonhole.
 
 See also: `fintype.pigeonhole`, `fintype.strong_infinite_pigeonhole`
 -/
@@ -1142,8 +1143,10 @@ begin
 end
 
 /--
-If there are infinitely many pigeons in finitely many pigeonholes,
-then there is a pigeonhole with infinitely many pigeons.
+The strong pigeonhole principle for infinitely many pigeons in
+finitely many pigeonholes.  If there are infinitely many pigeons in
+finitely many pigeonholes, then there is a pigeonhole with infinitely
+many pigeons.
 
 See also: `fintype.infinite_pigeonhole`
 -/

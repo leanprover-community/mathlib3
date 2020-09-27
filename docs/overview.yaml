@@ -274,14 +274,7 @@ Analysis:
     fundamental theorem of calculus, part 1: 'interval_integral.integral_has_fderiv_at_of_tendsto_ae'
 
 Geometry:
-  Differentiable manifolds:
-    smooth manifold (with boundary and corners): 'smooth_manifold_with_corners'
-    smooth map between manifolds: 'mdifferentiable_at'
-    tangent bundle: 'tangent_bundle'
-    tangent map: 'tangent_map'
-    Lie group: 'lie_group'
-
-  Affine and Euclidian geometry:
+  Affine and Euclidean geometry:
     affine spaces: 'add_torsor'
     affine functions: 'affine_map'
     affine subspaces: 'affine_subspace'
@@ -289,6 +282,13 @@ Geometry:
     affine spans: 'span_points'
     Euclidean affine space: 'normed_add_torsor'
     angles of vectors: ' inner_product_geometry.angle'
+
+  Differentiable manifolds:
+    smooth manifold (with boundary and corners): 'smooth_manifold_with_corners'
+    smooth map between manifolds: 'mdifferentiable_at'
+    tangent bundle: 'tangent_bundle'
+    tangent map: 'tangent_map'
+    Lie group: 'lie_group'
 
   Algebraic geometry:
     prime spectrum: 'prime_spectrum'

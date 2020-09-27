@@ -76,7 +76,7 @@ begin
   { default := ⟨i, rfl⟩, uniq := λ ⟨j, h⟩, subtype.val_injective h },
   calc (∏ j : σ, (e a : σ → K) j ^ d j)
         = (e a : σ → K) i ^ d i * (∏ (j : {j // j ≠ i}), (e a : σ → K) j ^ d j) :
-        by { rw [← finset.prod_equiv e', fintype.prod_sum_type, univ_unique, prod_singleton], refl }
+        by { rw [← e'.prod_comp, fintype.prod_sum_type, univ_unique, prod_singleton], refl }
     ... = a ^ d i * (∏ (j : {j // j ≠ i}), (e a : σ → K) j ^ d j) : by rw equiv.subtype_equiv_codomain_symm_apply_eq
     ... = a ^ d i * (∏ j, x₀ j ^ d j) : congr_arg _ (fintype.prod_congr _ _ _) -- see below
     ... = (∏ j, x₀ j ^ d j) * a ^ d i : mul_comm _ _,

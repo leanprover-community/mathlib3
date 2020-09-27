@@ -546,7 +546,7 @@ lemma norm_comp_l1_le (φ : α →₁[μ] E) (L : E →L[ℝ] F) : ∥L.comp_l1 
 begin
   erw l1.norm_of_fun_eq_integral_norm,
   calc
-  ∫ a, ∥L (φ a)∥ ∂μ ≤ ∫ a, ∥L∥ *∥φ a∥ ∂μ : integral_mono (L.integrable_comp_l1 φ).norm
+  ∫ a, ∥L (φ a)∥ ∂μ ≤ ∫ a, ∥L∥ *∥φ a∥ ∂μ : integral_mono_ae (L.integrable_comp_l1 φ).norm
                                 (φ.integrable_norm.const_mul $ ∥L∥) (L.norm_comp_l1_apply_le φ)
   ... = ∥L∥ * ∥φ∥ : by rw [integral_mul_left, φ.norm_eq_integral_norm]
 end

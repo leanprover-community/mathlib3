@@ -464,9 +464,8 @@ apply_nolint fin2.elim0 doc_blame
 
 -- data/fintype/basic.lean
 apply_nolint finset.insert_none doc_blame
-apply_nolint fintype.bij_inv unused_arguments
 apply_nolint fintype.choose doc_blame
-apply_nolint fintype.choose_x doc_blame unused_arguments
+apply_nolint fintype.choose_x doc_blame
 apply_nolint fintype.fintype_prod_left doc_blame
 apply_nolint fintype.fintype_prod_right doc_blame
 apply_nolint fintype.of_injective doc_blame

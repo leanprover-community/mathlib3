@@ -73,7 +73,7 @@ private lemma sqrt_aux_is_sqrt_lemma (m r n : ℕ)
   is_sqrt n (sqrt_aux (2^m * 2^m) ((2*r)*2^m) (n - r*r)) :=
 begin
   have b0 :=
-    have b0:_, from ne_of_gt (@pos_pow_of_pos 2 m dec_trivial),
+    have b0:_, from ne_of_gt (pow_pos (show 0 < 2, from dec_trivial) m),
     nat.mul_ne_zero b0 b0,
   have lb : n - r * r < 2 * r * 2^m + 2^m * 2^m ↔
             n < (r+2^m)*(r+2^m), {
@@ -103,15 +103,15 @@ private lemma sqrt_aux_is_sqrt (n) : ∀ m r,
 | (m+1) r h₁ h₂ := begin
     apply sqrt_aux_is_sqrt_lemma
       (m+1) r n h₁ (2^m * 2^m)
-      (by simp [shiftr, nat.pow_succ, div2_val, mul_comm, mul_left_comm];
+      (by simp [shiftr, pow_succ, div2_val, mul_comm, mul_left_comm];
           repeat {rw @nat.mul_div_cancel_left _ 2 dec_trivial});
       intros,
     { have := sqrt_aux_is_sqrt m r h₁ a,
-      simpa [nat.pow_succ, mul_comm, mul_assoc] },
-    { rw [nat.pow_succ, mul_two, ← add_assoc] at h₂,
+      simpa [pow_succ, mul_comm, mul_assoc] },
+    { rw [pow_succ', mul_two, ← add_assoc] at h₂,
       have := sqrt_aux_is_sqrt m (r + 2^(m+1)) a h₂,
       rwa show (r + 2^(m + 1)) * 2^(m+1) = 2 * (r + 2^(m + 1)) * 2^m,
-          by simp [nat.pow_succ, mul_comm, mul_left_comm] }
+          by simp [pow_succ, mul_comm, mul_left_comm] }
   end
 
 private lemma sqrt_is_sqrt (n : ℕ) : is_sqrt n (sqrt n) :=

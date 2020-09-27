@@ -264,7 +264,7 @@ def conj [group G] : G →* mul_aut G :=
 
 @[simp] lemma conj_apply [group G] (g h : G) : conj g h = g * h * g⁻¹ := rfl
 @[simp] lemma conj_symm_apply [group G] (g h : G) : (conj g).symm h = g⁻¹ * h * g := rfl
-@[simp] lemma conj_inv_apply {G : Type*} [group G] (g h : G) : (mul_aut.conj g)⁻¹ h = g⁻¹ * h * g := rfl
+@[simp] lemma conj_inv_apply {G : Type*} [group G] (g h : G) : (conj g)⁻¹ h = g⁻¹ * h * g := rfl
 
 end mul_aut
 

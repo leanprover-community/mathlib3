@@ -677,12 +677,7 @@ by rw [prod_insert has, card_insert_of_not_mem has, pow_succ, ih])
 lemma prod_pow (s : finset α) (n : ℕ) (f : α → β) :
   (∏ x in s, f x ^ n) = (∏ x in s, f x) ^ n :=
 by haveI := classical.dec_eq α; exact
-finset.induction_on s (by simp) (by simp [_root_.mul_pow] {contextual := tt})
-
-lemma prod_nat_pow (s : finset α) (n : ℕ) (f : α → ℕ) :
-  (∏ x in s, f x ^ n) = (∏ x in s, f x) ^ n :=
-by haveI := classical.dec_eq α; exact
-finset.induction_on s (by simp) (by simp [nat.mul_pow] {contextual := tt})
+finset.induction_on s (by simp) (by simp [mul_pow] {contextual := tt})
 
 -- `to_additive` fails on this lemma, so we prove it manually below
 lemma prod_flip {n : ℕ} (f : ℕ → β) :

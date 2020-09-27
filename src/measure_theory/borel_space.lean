@@ -82,6 +82,9 @@ le_antisymm
   (generate_from_le $ assume u hu, generate_measurable.basic _ $
     show t.is_open u, by rw [hs]; exact generate_open.basic _ hu)
 
+lemma is_pi_system_is_open : is_pi_system (is_open : set α → Prop) :=
+λ s t hs ht hst, is_open_inter hs ht
+
 section order_topology
 
 variable (α)
@@ -198,9 +201,6 @@ begin
   by_cases h2 : s = univ, { simp [h2] },
   exact hf s hs h1 h2
 end
-
-lemma is_pi_system_is_open : is_pi_system (is_open : set α → Prop) :=
-λ s t hs ht hst, is_open_inter hs ht
 
 instance nhds_is_measurably_generated (a : α) : (𝓝 a).is_measurably_generated :=
 begin
@@ -932,9 +932,8 @@ end continuous_linear_map
 
 section normed_space
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜] [measurable_space 𝕜]
-variables [borel_space 𝕜] [second_countable_topology 𝕜]
+variables [borel_space 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E] [borel_space E]
-variables [second_countable_topology E]
 
 lemma measurable_smul_const {f : α → 𝕜} {c : E} (hc : c ≠ 0) :
   measurable (λ x, f x • c) ↔ measurable f :=

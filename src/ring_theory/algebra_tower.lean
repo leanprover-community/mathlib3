@@ -425,7 +425,11 @@ begin
       (λ p q _ _ hp hq, hyy $ submodule.mul_mem_mul hp hq)
 end
 
-/- Artin--Tate lemma. Atiyah--Macdonald Proposition 7.8; Stacks 00IS; Altman--Kleiman 16.17. -/
+/-- Artin--Tate lemma: if A ⊆ B ⊆ C is a chain of subrings of commutative rings, and
+A is noetherian, and C is algebra-finite over A, and C is module-finite over B,
+then B is algebra-finite over A.
+
+References: Atiyah--Macdonald Proposition 7.8; Stacks 00IS; Altman--Kleiman 16.17. -/
 theorem fg_of_fg_of_fg [is_noetherian_ring A]
   (hAC : (⊤ : subalgebra A C).fg) (hBC : (⊤ : submodule B C).fg)
   (hBCi : function.injective (algebra_map B C)) :

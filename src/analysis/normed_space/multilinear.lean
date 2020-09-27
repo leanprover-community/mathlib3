@@ -557,7 +557,7 @@ begin
   exact mul_nonneg (norm_nonneg _) (pow_nonneg (norm_nonneg _) _)
 end
 
-variables (𝕜 ι) (A : Type*) [normed_comm_ring A] [normed_algebra 𝕜 A]
+variables (𝕜 ι) (A : Type*) [normed_comm_ring A] [norm_one_class A] [normed_algebra 𝕜 A]
 
 /-- The continuous multilinear map on `A^ι`, where `A` is a normed commutative algebra
 over `𝕜`, associating to `m` the product of all the `m i`.
@@ -566,7 +566,7 @@ TODO: In the most interesting case `ι = fin n` we can drop the commutativity as
 by using `list.prod` instead of `finset.prod`. -/
 protected def mk_pi_algebra : continuous_multilinear_map 𝕜 (λ i : ι, A) A :=
 @multilinear_map.mk_continuous 𝕜 ι (λ i : ι, A) A _ _ _ _ _ _ _
-  (multilinear_map.mk_pi_algebra 𝕜 ι A) 1 $ λ m, by simp [norm_prod]
+  (multilinear_map.mk_pi_algebra 𝕜 ι A) 1 $ λ m, by simp [finset.norm_prod_le]
 
 /-- The canonical continuous multilinear map on `𝕜^ι`, associating to `m` the product of all the
 `m i` (multiplied by a fixed reference element `z` in the target module) -/

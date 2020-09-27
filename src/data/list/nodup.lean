@@ -6,6 +6,12 @@ Authors: Mario Carneiro, Kenny Lau
 import data.list.pairwise
 import data.list.forall2
 
+/-!
+# Lists with no duplicates
+
+`list.nodup` is defined in `data/list/defs`. In this file we prove various properties of this predicate.
+-/
+
 universes u v
 
 open nat function
@@ -13,8 +19,6 @@ open nat function
 variables {α : Type u} {β : Type v}
 
 namespace list
-
-/- no duplicates predicate -/
 
 @[simp] theorem forall_mem_ne {a : α} {l : list α} : (∀ (a' : α), a' ∈ l → ¬a = a') ↔ a ∉ l :=
 ⟨λ h m, h _ m rfl, λ h a' m e, h (e.symm ▸ m)⟩
@@ -256,6 +260,19 @@ lemma nodup_update_nth : ∀ {l : list α} {n : ℕ} {a : α} (hl : l.nodup) (ha
       (nodup_cons.1 hl).1
       (λ hba, ha (hba ▸ mem_cons_self _ _)),
     nodup_update_nth (nodup_cons.1 hl).2 (mt (mem_cons_of_mem _) ha)⟩
+
+lemma nodup.map_update [decidable_eq α] {l : list α} (hl : l.nodup) (f : α → β) (x : α) (y : β) :
+  l.map (function.update f x y) =
+    if x ∈ l then (l.map f).update_nth (l.index_of x) y else l.map f :=
+begin
+  induction l with hd tl ihl, { simp },
+  rw [nodup_cons] at hl,
+  simp only [mem_cons_iff, map, ihl hl.2],
+  by_cases H : hd = x,
+  { subst hd,
+    simp [update_nth, hl.1] },
+  { simp [ne.symm H, H, update_nth, ← apply_ite (cons (f hd))] }
+end
 
 end list
 

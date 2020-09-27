@@ -15,7 +15,7 @@ multiplication and inversion are smooth maps. Smoothness of the group multiplica
 multiplication is a smooth mapping of the product manifold `G` × `G` into `G`.
 
 In this file we define the basic structures to talk about smooth monoids: `has_smooth_mul` and its
-additive counterpart `has_smooth_add`. These structures are enogh general to also talk about smooth
+additive counterpart `has_smooth_add`. These structures are general enough to also talk about smooth
 semigroups.
 -/
 

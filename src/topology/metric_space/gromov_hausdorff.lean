@@ -923,7 +923,7 @@ def aux_gluing (n : ℕ) : aux_gluing_struct (X n) := nat.rec_on n
 /-- The Gromov-Hausdorff space is complete. -/
 instance : complete_space (GH_space) :=
 begin
-  have : ∀ (n : ℕ), 0 < ((1:ℝ) / 2) ^ n, by { apply _root_.pow_pos, norm_num },
+  have : ∀ (n : ℕ), 0 < ((1:ℝ) / 2) ^ n, by { apply pow_pos, norm_num },
   -- start from a sequence of nonempty compact metric spaces within distance `1/2^n` of each other
   refine metric.complete_of_convergent_controlled_sequences (λn, (1/2)^n) this (λu hu, _),
   -- `X n` is a representative of `u n`

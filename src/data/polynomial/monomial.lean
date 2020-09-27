@@ -71,4 +71,12 @@ lemma single_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
 lemma C_inj : C a = C b ↔ a = b :=
 ⟨λ h, coeff_C_zero.symm.trans (h.symm ▸ coeff_C_zero), congr_arg C⟩
 
+instance [nontrivial R] : infinite (polynomial R) :=
+infinite.of_injective (λ i, monomial i 1)
+begin
+  intros m n h,
+  have := (single_eq_single_iff _ _ _ _).mp h,
+  simpa only [and_true, eq_self_iff_true, or_false, one_ne_zero, and_self],
+end
+
 end polynomial

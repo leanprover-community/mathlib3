@@ -146,7 +146,7 @@ begin
     exact is_submonoid.pow_mem (algebra.subset_adjoin (set.mem_singleton _)) },
   intros r hr, change r ∈ algebra.adjoin R ({x} : set A) at hr,
   rw algebra.adjoin_singleton_eq_range at hr,
-  rcases hr with ⟨p, rfl⟩,
+  rcases (aeval x).mem_range.mp hr with ⟨p, rfl⟩,
   rw ← mod_by_monic_add_div p hfm,
   rw ← aeval_def at hfx,
   rw [alg_hom.map_add, alg_hom.map_mul, hfx, zero_mul, add_zero],
@@ -267,12 +267,11 @@ variables (R A)
 
 /-- The integral closure of R in an R-algebra A. -/
 def integral_closure : subalgebra R A :=
-{ carrier :=
-  { carrier := { r | is_integral R r },
-    zero_mem' := is_integral_zero,
-    one_mem' := is_integral_one,
-    add_mem' := λ _ _, is_integral_add,
-    mul_mem' := λ _ _, is_integral_mul },
+{ carrier := { r | is_integral R r },
+  zero_mem' := is_integral_zero,
+  one_mem' := is_integral_one,
+  add_mem' := λ _ _, is_integral_add,
+  mul_mem' := λ _ _, is_integral_mul,
   algebra_map_mem' := λ x, is_integral_algebra_map }
 
 theorem mem_integral_closure_iff_mem_fg {r : A} :
@@ -378,6 +377,11 @@ begin
   rw [eval₂_eq_eval_map],
   exact H hp',
 end
+
+lemma is_integral_tower_bot_of_is_integral_field {R A B : Type*} [comm_ring R] [field A]
+  [comm_ring B] [nontrivial B] [algebra R A] [algebra A B] [algebra R B] [is_scalar_tower R A B]
+  {x : A} (h : is_integral R (algebra_map A B x)) : is_integral R x :=
+is_integral_tower_bot_of_is_integral (algebra_map A B).injective h
 
 /-- If `R → A → B` is an algebra tower,
 then if the entire tower is an integral extension so is `A → B` -/

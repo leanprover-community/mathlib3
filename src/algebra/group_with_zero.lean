@@ -958,7 +958,8 @@ begin
   rw [← f.map_mul, inv_mul_cancel h, f.map_one]
 end
 
-lemma map_div : f (a / b) = f a / f b := (f.map_mul _ _).trans $ congr_arg _ $ f.map_inv' h0 b
+lemma map_div : f (a / b) = f a / f b :=
+(f.map_mul _ _).trans $ _root_.congr_arg _ $ f.map_inv' h0 b
 
 omit h0
 

@@ -290,6 +290,13 @@ instance bounded_distrib_lattice_Prop : bounded_distrib_lattice Prop :=
   bot          := false,
   bot_le       := @false.elim }
 
+instance Prop.linear_order : linear_order Prop :=
+{ le_total := by intros p q; change (p → q) ∨ (q → p); tauto!,
+  .. (_ : partial_order Prop) }
+
+@[simp]
+lemma le_iff_imp {p q : Prop} : p ≤ q ↔ (p → q) := iff.rfl
+
 section logic
 variable [preorder α]
 
@@ -338,33 +345,41 @@ instance pi.has_top {ι : Type*} {α : ι → Type*} [Π i, has_top (α i)] : ha
   (⊤ : Π i, α i) i = ⊤ :=
 rfl
 
+@[simps]
 instance pi.semilattice_sup {ι : Type*} {α : ι → Type*} [Π i, semilattice_sup (α i)] :
   semilattice_sup (Π i, α i) :=
 by refine_struct { sup := (⊔), .. pi.partial_order }; tactic.pi_instance_derive_field
 
+@[simps]
 instance pi.semilattice_inf {ι : Type*} {α : ι → Type*} [Π i, semilattice_inf (α i)] :
   semilattice_inf (Π i, α i) :=
 by refine_struct { inf := (⊓), .. pi.partial_order }; tactic.pi_instance_derive_field
 
+@[simps]
 instance pi.semilattice_inf_bot {ι : Type*} {α : ι → Type*} [Π i, semilattice_inf_bot (α i)] :
   semilattice_inf_bot (Π i, α i) :=
 by refine_struct { inf := (⊓), bot := ⊥, .. pi.partial_order }; tactic.pi_instance_derive_field
 
+@[simps]
 instance pi.semilattice_inf_top {ι : Type*} {α : ι → Type*} [Π i, semilattice_inf_top (α i)] :
   semilattice_inf_top (Π i, α i) :=
 by refine_struct { inf := (⊓), top := ⊤, .. pi.partial_order }; tactic.pi_instance_derive_field
 
+@[simps]
 instance pi.semilattice_sup_bot {ι : Type*} {α : ι → Type*} [Π i, semilattice_sup_bot (α i)] :
   semilattice_sup_bot (Π i, α i) :=
 by refine_struct { sup := (⊔), bot := ⊥, .. pi.partial_order }; tactic.pi_instance_derive_field
 
+@[simps]
 instance pi.semilattice_sup_top {ι : Type*} {α : ι → Type*} [Π i, semilattice_sup_top (α i)] :
   semilattice_sup_top (Π i, α i) :=
 by refine_struct { sup := (⊔), top := ⊤, .. pi.partial_order }; tactic.pi_instance_derive_field
 
+@[simps]
 instance pi.lattice {ι : Type*} {α : ι → Type*} [Π i, lattice (α i)] : lattice (Π i, α i) :=
 { .. pi.semilattice_sup, .. pi.semilattice_inf }
 
+@[simps]
 instance pi.bounded_lattice {ι : Type*} {α : ι → Type*} [Π i, bounded_lattice (α i)] :
   bounded_lattice (Π i, α i) :=
 { .. pi.semilattice_sup_top, .. pi.semilattice_inf_bot }
@@ -388,6 +403,12 @@ instance : inhabited (with_bot α) := ⟨⊥⟩
 
 lemma none_eq_bot : (none : with_bot α) = (⊥ : with_bot α) := rfl
 lemma some_eq_coe (a : α) : (some a : with_bot α) = (↑a : with_bot α) := rfl
+
+/-- Recursor for `with_bot` using the preferred forms `⊥` and `↑a`. -/
+@[elab_as_eliminator]
+def rec_bot_coe {C : with_bot α → Sort*} (h₁ : C ⊥) (h₂ : Π (a : α), C a) :
+  Π (n : with_bot α), C n :=
+option.rec h₁ h₂
 
 @[norm_cast]
 theorem coe_eq_coe {a b : α} : (a : with_bot α) = b ↔ a = b :=
@@ -576,6 +597,12 @@ instance : inhabited (with_top α) := ⟨⊤⟩
 lemma none_eq_top : (none : with_top α) = (⊤ : with_top α) := rfl
 lemma some_eq_coe (a : α) : (some a : with_top α) = (↑a : with_top α) := rfl
 
+/-- Recursor for `with_top` using the preferred forms `⊤` and `↑a`. -/
+@[elab_as_eliminator]
+def rec_top_coe {C : with_top α → Sort*} (h₁ : C ⊤) (h₂ : Π (a : α), C a) :
+  Π (n : with_top α), C n :=
+option.rec h₁ h₂
+
 @[norm_cast]
 theorem coe_eq_coe {a b : α} : (a : with_top α) = b ↔ a = b :=
 by rw [← option.some.inj_eq a b]; refl
@@ -599,11 +626,11 @@ by simp [(<)]
   @has_le.le (with_top α) _ (some a) (some b) ↔ a ≤ b :=
 by simp [(≤)]
 
-@[simp] theorem none_le [has_le α] {a : with_top α} :
+@[simp] theorem le_none [has_le α] {a : with_top α} :
   @has_le.le (with_top α) _ a none :=
 by simp [(≤)]
 
-@[simp] theorem none_lt_some [has_lt α] {a : α} :
+@[simp] theorem some_lt_none [has_lt α] {a : α} :
   @has_lt.lt (with_top α) _ (some a) none :=
 by simp [(<)]; existsi a; refl
 
@@ -658,8 +685,7 @@ theorem lt_iff_exists_coe [partial_order α] : ∀(a b : with_top α), a < b ↔
 @[norm_cast]
 lemma coe_lt_coe [partial_order α] {a b : α} : (a : with_top α) < b ↔ a < b := some_lt_some
 
-lemma coe_lt_top [partial_order α] (a : α) : (a : with_top α) < ⊤ :=
-lt_of_le_of_ne le_top (λ h, option.no_confusion h)
+lemma coe_lt_top [partial_order α] (a : α) : (a : with_top α) < ⊤ := some_lt_none
 
 lemma not_top_le_coe [partial_order α] (a : α) : ¬ (⊤:with_top α) ≤ ↑a :=
 assume h, (lt_irrefl ⊤ (lt_of_le_of_lt h (coe_lt_top a))).elim

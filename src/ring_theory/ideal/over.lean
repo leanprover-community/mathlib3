@@ -100,7 +100,7 @@ lemma comap_ne_bot_of_root_mem {r : S} (r_ne_zero : r ≠ 0) (hr : r ∈ I)
   {p : polynomial R} (p_ne_zero : p ≠ 0) (hp : p.eval₂ f r = 0) :
   I.comap f ≠ ⊥ :=
 λ h, let ⟨i, hi, mem⟩ := exists_coeff_ne_zero_mem_comap_of_root_mem r_ne_zero hr p_ne_zero hp in
-absurd ((mem_bot _).mp (eq_bot_iff.mp h mem)) hi
+absurd (mem_bot.mp (eq_bot_iff.mp h mem)) hi
 
 lemma comap_lt_comap_of_root_mem_sdiff [I.is_prime] (hIJ : I ≤ J)
   {r : S} (hr : r ∈ (J : set S) \ I)

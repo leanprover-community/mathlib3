@@ -124,6 +124,14 @@ instance : category (grothendieck F) :=
       refl, },
   end, }
 
+@[simp] lemma id_fiber' (X : grothendieck F) :
+  hom.fiber (𝟙 X) = eq_to_hom (by erw [category_theory.functor.map_id, functor.id_obj X.fiber]) :=
+id_fiber X
+
+lemma congr {X Y : grothendieck F} {f g : X ⟶ Y} (h : f = g) :
+  f.fiber = eq_to_hom (by subst h) ≫ g.fiber :=
+by { subst h, dsimp, simp, }
+
 section
 variables (F)
 
@@ -155,7 +163,6 @@ def grothendieck_Type_to_Cat : grothendieck (G ⋙ Type_to_Cat) ≌ G.elements :
   counit_iso := nat_iso.of_components (λ X, by { cases X, exact iso.refl _, })
     (by { rintro ⟨⟩ ⟨⟩ ⟨f, e⟩, dsimp at *, subst e, simp }),
   functor_unit_iso_comp' := by { rintro ⟨⟩, dsimp, simp, refl, } }
-
 
 end grothendieck
 

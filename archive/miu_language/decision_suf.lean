@@ -56,7 +56,7 @@ private lemma der_cons_repeat (n : ℕ) : derivable (M::(repeat I (2^n))) :=
 begin
   induction n with k hk,
   { constructor, }, -- base case
-  { rw [succ_eq_add_one, nat.pow_add, nat.pow_one 2, mul_two,repeat_add], -- inductive step
+  { rw [succ_eq_add_one, pow_add, pow_one 2, mul_two,repeat_add], -- inductive step
     exact derivable.r2 hk, },
 end
 
@@ -157,10 +157,10 @@ begin
     { use g, exact ⟨hp,hgmod⟩ },
     use (g+2),
     { split,
-      { rw [mul_succ, ←add_assoc,nat.pow_add],
+      { rw [mul_succ, ←add_assoc, pow_add],
         change 2^2 with (1+3), rw [mul_add (2^g) 1 3, mul_one],
         linarith [hkg, one_le_two_pow g], },
-      { rw [nat.pow_add,←mul_one c],
+      { rw [pow_add,←mul_one c],
         exact modeq.modeq_mul hgmod rfl, }, }, },
 end
 

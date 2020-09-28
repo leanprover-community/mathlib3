@@ -137,6 +137,25 @@ theorem aeval_apply (x : B) (p : polynomial R) : polynomial.aeval x p =
   polynomial.aeval x (polynomial.map (algebra_map R A) p) :=
 by rw [polynomial.aeval_def, polynomial.aeval_def, polynomial.eval₂_map, algebra_map_eq R A B]
 
+lemma algebra_map_aeval (x : A) (p : polynomial R) :
+  algebra_map A B (polynomial.aeval x p) = polynomial.aeval (algebra_map A B x) p :=
+by rw [polynomial.aeval_def, polynomial.aeval_def, polynomial.hom_eval₂,
+  ←is_scalar_tower.algebra_map_eq]
+
+lemma aeval_eq_zero_of_aeval_algebra_map_eq_zero {x : A} {p : polynomial R}
+  (h : function.injective (algebra_map A B)) (hp : polynomial.aeval (algebra_map A B x) p = 0) :
+  polynomial.aeval x p = 0 :=
+begin
+  rw [← algebra_map_aeval, ← (algebra_map A B).map_zero] at hp,
+  exact h hp,
+end
+
+lemma aeval_eq_zero_of_aeval_algebra_map_eq_zero_field {R A B : Type*} [comm_semiring R] [field A]
+  [comm_semiring B] [nontrivial B] [algebra R A] [algebra R B] [algebra A B] [is_scalar_tower R A B]
+  {x : A} {p : polynomial R} (h : polynomial.aeval (algebra_map A B x) p = 0) :
+  polynomial.aeval x p = 0 :=
+aeval_eq_zero_of_aeval_algebra_map_eq_zero R A B (algebra_map A B).injective h
+
 instance linear_map (R : Type u) (A : Type v) (V : Type w)
   [comm_semiring R] [comm_semiring A] [add_comm_monoid V]
   [semimodule R V] [algebra R A] : is_scalar_tower R A (V →ₗ[R] A) :=
@@ -190,7 +209,7 @@ variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
 /-- If A/S/R is a tower of algebras then the `res`triction of a S-subalgebra of A is an R-subalgebra of A. -/
 def res (U : subalgebra S A) : subalgebra R A :=
 { algebra_map_mem' := λ x, by { rw algebra_map_apply R S A, exact U.algebra_map_mem _ },
-  .. U}
+  .. U }
 
 @[simp] lemma res_top : res R (⊤ : subalgebra S A) = ⊤ :=
 algebra.eq_top_iff.2 $ λ _, show _ ∈ (⊤ : subalgebra S A), from algebra.mem_top

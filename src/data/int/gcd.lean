@@ -122,7 +122,7 @@ lemma prime.dvd_nat_abs_of_coe_dvd_pow_two {p : ℕ} (hp : p.prime) (k : ℤ) (h
   p ∣ k.nat_abs :=
 begin
   apply @nat.prime.dvd_of_dvd_pow _ _ 2 hp,
-  rwa [nat.pow_two, ← nat_abs_mul, ← coe_nat_dvd_left, ← pow_two]
+  rwa [pow_two, ← nat_abs_mul, ← coe_nat_dvd_left, ← pow_two]
 end
 
 end int

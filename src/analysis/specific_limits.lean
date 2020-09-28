@@ -2,13 +2,16 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
-
-A collection of specific limit computations.
 -/
 import analysis.normed_space.basic
 import algebra.geom_sum
+import order.filter.archimedean
 import topology.instances.ennreal
 import tactic.ring_exp
+
+/-!
+# A collection of specific limit computations
+-/
 
 noncomputable theory
 open_locale classical topological_space
@@ -32,7 +35,7 @@ lemma summable_of_absolute_convergence_real {f : ℕ → ℝ} :
   end
 
 lemma tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ)⁻¹) at_top (𝓝 0) :=
-tendsto_inv_at_top_zero.comp (tendsto_coe_nat_real_at_top_iff.2 tendsto_id)
+tendsto_inv_at_top_zero.comp tendsto_coe_nat_at_top_at_top
 
 lemma tendsto_const_div_at_top_nhds_0_nat (C : ℝ) : tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
 by simpa only [mul_zero] using tendsto_const_nhds.mul tendsto_inverse_at_top_nhds_0_nat
@@ -599,10 +602,10 @@ begin
   induction n with n hn,
   unfold harmonic_series,
   simp only [one_div, nat.cast_zero, zero_div, nat.cast_succ, sum_singleton,
-    inv_one, zero_add, nat.pow_zero, range_one, zero_le_one],
+    inv_one, zero_add, pow_zero, range_one, zero_le_one],
   have : harmonic_series (2^n) + 1 / 2 ≤ harmonic_series (2^(n+1)),
-  { have := half_le_harmonic_double_sub_harmonic (2^n) (by {apply nat.pow_pos, linarith}),
-    rw [nat.mul_comm, ← nat.pow_succ] at this,
+  { have := half_le_harmonic_double_sub_harmonic (2^n) (by {apply pow_pos, linarith}),
+    rw [nat.mul_comm, ← pow_succ'] at this,
     linarith },
   apply le_trans _ this,
   rw (show (n.succ / 2 : ℝ) = (n/2 : ℝ) + (1/2), by field_simp),
@@ -617,5 +620,5 @@ begin
   apply tendsto_at_top_mono self_div_two_le_harmonic_two_pow,
   apply tendsto_at_top_div,
   norm_num,
-  exact tendsto_coe_nat_real_at_top_at_top
+  exact tendsto_coe_nat_at_top_at_top
 end

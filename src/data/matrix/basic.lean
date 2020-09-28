@@ -945,6 +945,96 @@ by { ext i j, rcases i; rcases j; simp [one_apply] }
 
 end block_matrices
 
+section block_diagonal
+
+variables (M N : o → matrix m n α) [decidable_eq o]
+
+section has_zero
+
+variables [has_zero α]
+
+/-- `matrix.block_diagonal M` turns `M : o → matrix m n α'` into a
+`m × o`-by`n × o` block matrix which has the entries of `M` along the diagonal
+and zero elsewhere. -/
+def block_diagonal : matrix (m × o) (n × o) α
+| ⟨i, k⟩ ⟨j, k'⟩ := if k = k' then M k i j else 0
+
+lemma block_diagonal_apply (ik jk) :
+  block_diagonal M ik jk = if ik.2 = jk.2 then M ik.2 ik.1 jk.1 else 0 :=
+by { cases ik, cases jk, refl }
+
+@[simp]
+lemma block_diagonal_apply_eq (i j k) :
+  block_diagonal M (i, k) (j, k) = M k i j :=
+if_pos rfl
+
+lemma block_diagonal_apply_ne (i j) {k k'} (h : k ≠ k') :
+  block_diagonal M (i, k) (j, k') = 0 :=
+if_neg h
+
+@[simp] lemma block_diagonal_transpose :
+  (block_diagonal M)ᵀ = (block_diagonal (λ k, (M k)ᵀ)) :=
+begin
+  ext,
+  simp only [transpose_apply, block_diagonal_apply, eq_comm],
+  split_ifs with h,
+  { rw h },
+  { refl }
+end
+
+@[simp] lemma block_diagonal_zero :
+  block_diagonal (0 : o → matrix m n α) = 0 :=
+by { ext, simp [block_diagonal_apply] }
+
+@[simp] lemma block_diagonal_diagonal [decidable_eq m] (d : o → m → α) :
+  (block_diagonal (λ k, diagonal (d k))) = diagonal (λ ik, d ik.2 ik.1) :=
+begin
+  ext ⟨i, k⟩ ⟨j, k'⟩,
+  simp only [block_diagonal_apply, diagonal],
+  split_ifs; finish
+end
+
+@[simp] lemma block_diagonal_one [decidable_eq m] [has_one α] :
+  (block_diagonal (1 : o → matrix m m α)) = 1 :=
+show (block_diagonal (λ (_ : o), diagonal (λ (_ : m), (1 : α)))) = diagonal (λ _, 1),
+by rw [block_diagonal_diagonal]
+
+end has_zero
+
+@[simp] lemma block_diagonal_add [add_monoid α] :
+  block_diagonal (M + N) = block_diagonal M + block_diagonal N :=
+begin
+  ext,
+  simp only [block_diagonal_apply, add_apply],
+  split_ifs; simp
+end
+
+@[simp] lemma block_diagonal_neg [add_group α] :
+  block_diagonal (-M) = - block_diagonal M :=
+begin
+  ext,
+  simp only [block_diagonal_apply, neg_apply],
+  split_ifs; simp
+end
+
+@[simp] lemma block_diagonal_sub [add_group α] :
+  block_diagonal (M - N) = block_diagonal M - block_diagonal N :=
+by simp [sub_eq_add_neg]
+
+@[simp] lemma block_diagonal_mul {p : Type*} [fintype p] [semiring α]
+  (N : o → matrix n p α) : block_diagonal (λ k, M k ⬝ N k) = block_diagonal M ⬝ block_diagonal N :=
+begin
+  ext ⟨i, k⟩ ⟨j, k'⟩,
+  simp only [block_diagonal_apply, mul_apply, ← finset.univ_product_univ, finset.sum_product],
+  split_ifs with h; simp [h]
+end
+
+@[simp] lemma block_diagonal_smul {R : Type*} [semiring R] [add_comm_monoid α] [semimodule R α]
+  (x : R) : block_diagonal (x • M) = x • block_diagonal M :=
+by { ext, simp only [block_diagonal_apply, pi.smul_apply, smul_apply], split_ifs; simp }
+
+end block_diagonal
+
 end matrix
 
 namespace ring_hom

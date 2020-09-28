@@ -1675,17 +1675,3 @@ begin
       by { contrapose! h, have : (e j : α) ∈ s := (e j).2, rwa ← h at this },
     simp [h, this] }
 end
-
-namespace equiv
-
-section extend
-
-variables {α' β' γ' : Type*}
-
-lemma mk_eq_of_preserves_fst {f : α' × β' → α' × γ'} (hf : ∀ x, (f x).fst = x.fst)
-  (a : α') (b : β') : (a, (f (a, b)).snd) = f (a, b) :=
-by rw [← @prod.mk.eta _ _ (f (a, b)), hf (a, b)]
-
-end extend
-
-end equiv

@@ -607,7 +607,7 @@ variables {F : J ⥤ Cᵒᵖ}
 -- as we can write a simpler `rfl` lemma for the components of the natural transformation by hand.
 @[simps X] def cone_of_cocone_left_op (c : cocone F.left_op) : cone F :=
 { X := op c.X,
-  π := nat_trans.right_op (c.ι ≫ (const.op_obj_unop (op c.X)).hom) }
+  π := nat_trans.remove_left_op (c.ι ≫ (const.op_obj_unop (op c.X)).hom) }
 
 @[simp] lemma cone_of_cocone_left_op_π_app (c : cocone F.left_op) (j) :
   (cone_of_cocone_left_op c).π.app j = (c.ι.app (op j)).op :=
@@ -625,7 +625,7 @@ by { dsimp [cocone_left_op_of_cone], simp }
 /-- Change a cone on `F.left_op : Jᵒᵖ ⥤ C` to a cocone on `F : J ⥤ Cᵒᵖ`. -/
 @[simps X] def cocone_of_cone_left_op (c : cone F.left_op) : cocone F :=
 { X := op c.X,
-  ι := nat_trans.right_op ((const.op_obj_unop (op c.X)).hom ≫ c.π) }
+  ι := nat_trans.remove_left_op ((const.op_obj_unop (op c.X)).hom ≫ c.π) }
 
 @[simp] lemma cocone_of_cone_left_op_ι_app (c : cone F.left_op) (j) :
   (cocone_of_cone_left_op c).ι.app j = (c.π.app (op j)).op :=

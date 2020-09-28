@@ -108,6 +108,62 @@ mul_le_mul h2 h2 h1 $ h1.trans h2
 lemma mul_self_lt_mul_self (h1 : 0 ≤ a) (h2 : a < b) : a * a < b * b :=
 mul_lt_mul' h2.le h2 h1 $ h1.trans_lt h2
 
+lemma mul_lt_mul'' (h1 : a < c) (h2 : b < d) (h3 : 0 ≤ a) (h4 : 0 ≤ b) : a * b < c * d :=
+(lt_or_eq_of_le h4).elim
+  (λ b0, mul_lt_mul h1 h2.le b0 $ h3.trans h1.le)
+  (λ b0, by rw [← b0, mul_zero]; exact
+    mul_pos (h3.trans_lt h1) (h4.trans_lt h2))
+
+lemma le_mul_of_one_le_right (hb : 0 ≤ b) (h : 1 ≤ a) : b ≤ b * a :=
+suffices b * 1 ≤ b * a, by rwa mul_one at this,
+mul_le_mul_of_nonneg_left h hb
+
+lemma le_mul_of_one_le_left (hb : 0 ≤ b) (h : 1 ≤ a) : b ≤ a * b :=
+suffices 1 * b ≤ a * b, by rwa one_mul at this,
+mul_le_mul_of_nonneg_right h hb
+
+lemma bit1_pos (h : 0 ≤ a) : 0 < bit1 a :=
+lt_add_of_le_of_pos (add_nonneg h h) zero_lt_one
+
+lemma bit1_pos' (h : 0 < a) : 0 < bit1 a :=
+bit1_pos h.le
+
+lemma lt_add_one (a : α) : a < a + 1 :=
+lt_add_of_le_of_pos le_rfl zero_lt_one
+
+lemma lt_one_add (a : α) : a < 1 + a :=
+by { rw [add_comm], apply lt_add_one }
+
+lemma one_lt_mul (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
+(one_mul (1 : α)) ▸ mul_lt_mul' ha hb zero_le_one (zero_lt_one.trans_le ha)
+
+lemma mul_le_one (ha : a ≤ 1) (hb' : 0 ≤ b) (hb : b ≤ 1) : a * b ≤ 1 :=
+begin rw ← one_mul (1 : α), apply mul_le_mul; {assumption <|> apply zero_le_one} end
+
+lemma one_lt_mul_of_le_of_lt (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
+calc 1 = 1 * 1 : by rw one_mul
+... < a * b : mul_lt_mul' ha hb zero_le_one (zero_lt_one.trans_le ha)
+
+lemma one_lt_mul_of_lt_of_le (ha : 1 < a) (hb : 1 ≤ b) : 1 < a * b :=
+calc 1 = 1 * 1 : by rw one_mul
+... < a * b : mul_lt_mul ha hb zero_lt_one $ zero_le_one.trans ha.le
+
+lemma mul_le_of_le_one_right (ha : 0 ≤ a) (hb1 : b ≤ 1) : a * b ≤ a :=
+calc a * b ≤ a * 1 : mul_le_mul_of_nonneg_left hb1 ha
+... = a : mul_one a
+
+lemma mul_le_of_le_one_left (hb : 0 ≤ b) (ha1 : a ≤ 1) : a * b ≤ b :=
+calc a * b ≤ 1 * b : mul_le_mul ha1 le_rfl hb zero_le_one
+... = b : one_mul b
+
+lemma mul_lt_one_of_nonneg_of_lt_one_left (ha0 : 0 ≤ a) (ha : a < 1) (hb : b ≤ 1) : a * b < 1 :=
+calc a * b ≤ a : mul_le_of_le_one_right ha0 hb
+... < 1 : ha
+
+lemma mul_lt_one_of_nonneg_of_lt_one_right (ha : a ≤ 1) (hb0 : 0 ≤ b) (hb : b < 1) : a * b < 1 :=
+calc a * b ≤ b : mul_le_of_le_one_left hb0 ha
+... < 1 : hb
+
 end ordered_semiring
 
 /-- A `linear_ordered_semiring α` is a semiring `α` with a linear order
@@ -222,12 +278,6 @@ by rw [bit0, ← two_mul, zero_le_mul_left zero_lt_two]
 @[simp] lemma zero_lt_bit0 : (0 : α) < bit0 a ↔ 0 < a :=
 by rw [bit0, ← two_mul, zero_lt_mul_left zero_lt_two]
 
-lemma mul_lt_mul'' (h1 : a < c) (h2 : b < d) (h3 : 0 ≤ a) (h4 : 0 ≤ b) : a * b < c * d :=
-(lt_or_eq_of_le h4).elim
-  (λ b0, mul_lt_mul h1 h2.le b0 $ h3.trans h1.le)
-  (λ b0, by rw [← b0, mul_zero]; exact
-    mul_pos (h3.trans_lt h1) (h4.trans_lt h2))
-
 lemma le_mul_iff_one_le_left (hb : 0 < b) : b ≤ a * b ↔ 1 ≤ a :=
 suffices 1 * b ≤ a * b ↔ 1 ≤ a, by rwa one_mul at this,
 mul_le_mul_right hb
@@ -247,58 +297,8 @@ mul_lt_mul_left hb
 lemma lt_mul_of_one_lt_right (hb : 0 < b) : 1 < a → b < b * a :=
 (lt_mul_iff_one_lt_right hb).2
 
-lemma le_mul_of_one_le_right (hb : 0 ≤ b) (h : 1 ≤ a) : b ≤ b * a :=
-suffices b * 1 ≤ b * a, by rwa mul_one at this,
-mul_le_mul_of_nonneg_left h hb
-
-lemma le_mul_of_one_le_left (hb : 0 ≤ b) (h : 1 ≤ a) : b ≤ a * b :=
-suffices 1 * b ≤ a * b, by rwa one_mul at this,
-mul_le_mul_of_nonneg_right h hb
-
 theorem mul_nonneg_iff_right_nonneg_of_pos (h : 0 < a) : 0 ≤ b * a ↔ 0 ≤ b :=
 ⟨assume : 0 ≤ b * a, nonneg_of_mul_nonneg_right this h, assume : 0 ≤ b, mul_nonneg this h.le⟩
-
-lemma bit1_pos (h : 0 ≤ a) : 0 < bit1 a :=
-lt_add_of_le_of_pos (add_nonneg h h) zero_lt_one
-
-lemma bit1_pos' (h : 0 < a) : 0 < bit1 a :=
-bit1_pos h.le
-
-lemma lt_add_one (a : α) : a < a + 1 :=
-lt_add_of_le_of_pos le_rfl zero_lt_one
-
-lemma lt_one_add (a : α) : a < 1 + a :=
-by { rw [add_comm], apply lt_add_one }
-
-lemma one_lt_mul (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
-(one_mul (1 : α)) ▸ mul_lt_mul' ha hb zero_le_one (zero_lt_one.trans_le ha)
-
-lemma mul_le_one (ha : a ≤ 1) (hb' : 0 ≤ b) (hb : b ≤ 1) : a * b ≤ 1 :=
-begin rw ← one_mul (1 : α), apply mul_le_mul; {assumption <|> apply zero_le_one} end
-
-lemma one_lt_mul_of_le_of_lt (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
-calc 1 = 1 * 1 : by rw one_mul
-... < a * b : mul_lt_mul' ha hb zero_le_one (zero_lt_one.trans_le ha)
-
-lemma one_lt_mul_of_lt_of_le (ha : 1 < a) (hb : 1 ≤ b) : 1 < a * b :=
-calc 1 = 1 * 1 : by rw one_mul
-... < a * b : mul_lt_mul ha hb zero_lt_one $ zero_le_one.trans ha.le
-
-lemma mul_le_of_le_one_right (ha : 0 ≤ a) (hb1 : b ≤ 1) : a * b ≤ a :=
-calc a * b ≤ a * 1 : mul_le_mul_of_nonneg_left hb1 ha
-... = a : mul_one a
-
-lemma mul_le_of_le_one_left (hb : 0 ≤ b) (ha1 : a ≤ 1) : a * b ≤ b :=
-calc a * b ≤ 1 * b : mul_le_mul ha1 le_rfl hb zero_le_one
-... = b : one_mul b
-
-lemma mul_lt_one_of_nonneg_of_lt_one_left (ha0 : 0 ≤ a) (ha : a < 1) (hb : b ≤ 1) : a * b < 1 :=
-calc a * b ≤ a : mul_le_of_le_one_right ha0 hb
-... < 1 : ha
-
-lemma mul_lt_one_of_nonneg_of_lt_one_right (ha : a ≤ 1) (hb0 : 0 ≤ b) (hb : b < 1) : a * b < 1 :=
-calc a * b ≤ b : mul_le_of_le_one_left hb0 ha
-... < 1 : hb
 
 lemma mul_le_iff_le_one_left (hb : 0 < b) : a * b ≤ b ↔ a ≤ 1 :=
 ⟨ λ h, le_of_not_lt (mt (lt_mul_iff_one_lt_left hb).2 h.not_lt),

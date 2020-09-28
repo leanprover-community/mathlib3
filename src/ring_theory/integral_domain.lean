@@ -35,8 +35,12 @@ variables {R : Type*} {G : Type*} [integral_domain R] [group G] [fintype G]
 lemma card_nth_roots_subgroup_units (f : G →* R) (hf : injective f) {n : ℕ} (hn : 0 < n) (g₀ : G) :
   ({g ∈ univ | g ^ n = g₀} : finset G).card ≤ (nth_roots n (f g₀)).card :=
 begin
+  haveI : decidable_eq R := classical.dec_eq _,
+  refine le_trans _ (nth_roots n (f g₀)).to_finset_card_le,
   apply card_le_card_of_inj_on f,
-  { intros g hg, rw [sep_def, mem_filter] at hg, rw [mem_nth_roots hn, ← f.map_pow, hg.2] },
+  { intros g hg,
+    rw [sep_def, mem_filter] at hg,
+    rw [multiset.mem_to_finset, mem_nth_roots hn, ← f.map_pow, hg.2] },
   { intros, apply hf, assumption }
 end
 
@@ -108,7 +112,7 @@ begin
     cases hx ⟨f.to_hom_units g, g, rfl⟩ with n hn,
     rwa [subtype.ext_iff, units.ext_iff, subtype.coe_mk, monoid_hom.coe_to_hom_units,
       is_submonoid.coe_pow, units.coe_pow, is_submonoid.coe_one, units.coe_one,
-      _root_.one_pow, eq_comm] at hn, },
+      one_pow, eq_comm] at hn, },
   replace hx1 : (x : R) - 1 ≠ 0,
     from λ h, hx1 (subtype.eq (units.ext (sub_eq_zero.1 h))),
   let c := (univ.filter (λ g, f.to_hom_units g = 1)).card,

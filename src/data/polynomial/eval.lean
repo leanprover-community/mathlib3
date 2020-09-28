@@ -179,6 +179,10 @@ ring_hom.of (eval₂ f x)
 
 lemma eval₂_pow (n : ℕ) : (p ^ n).eval₂ f x = p.eval₂ f x ^ n := (eval₂_ring_hom _ _).map_pow _ _
 
+lemma eval₂_eq_sum_range :
+  p.eval₂ f x = ∑ i in finset.range (p.nat_degree + 1), f (p.coeff i) * x^i :=
+trans (congr_arg _ p.as_sum) (trans (eval₂_finset_sum f _ _ x) (congr_arg _ (by simp)))
+
 end eval₂
 
 section eval
@@ -575,15 +579,6 @@ instance eval₂.is_ring_hom {S} [comm_ring S]
 by apply is_ring_hom.of_semiring
 
 instance eval.is_ring_hom {x : R} : is_ring_hom (eval x) := eval₂.is_ring_hom _
-
-lemma eval₂_endomorphism_algebra_map {M : Type w}
-  [add_comm_group M] [module R M]
-  (f : M →ₗ[R] M) (v : M) (p : polynomial R) :
-  p.eval₂ (algebra_map R (M →ₗ[R] M)) f v = p.sum (λ n b, b • (f ^ n) v) :=
-begin
-  dunfold polynomial.eval₂ finsupp.sum,
-  exact (finset.sum_hom p.support (λ h : M →ₗ[R] M, h v)).symm
-end
 
 end comm_ring
 

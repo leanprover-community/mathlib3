@@ -51,8 +51,6 @@ set_option old_structure_cmd true
 
 
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- Normalization monoid: multiplying with `norm_unit` gives a normal form for associated elements. -/
 @[protect_proj] class normalization_monoid (α : Type*) [nontrivial α]
   [comm_cancel_monoid_with_zero α] :=
@@ -60,7 +58,6 @@ set_option default_priority 100 -- see Note [default priority]
 (norm_unit_zero      : norm_unit 0 = 1)
 (norm_unit_mul       : ∀{a b}, a ≠ 0 → b ≠ 0 → norm_unit (a * b) = norm_unit a * norm_unit b)
 (norm_unit_coe_units : ∀(u : units α), norm_unit u = u⁻¹)
-end prio
 
 export normalization_monoid (norm_unit norm_unit_zero norm_unit_mul norm_unit_coe_units)
 
@@ -81,13 +78,16 @@ def normalize : α →* α :=
   classical.by_cases (λ hy : y = 0, by rw [hy, mul_zero, zero_mul, mul_zero]) $ λ hy,
   by simp only [norm_unit_mul hx hy, units.coe_mul]; simp only [mul_assoc, mul_left_comm y], }
 
-@[simp] lemma normalize_apply {x : α} : normalize x = x * norm_unit x := rfl
-
 theorem associated_normalize {x : α} : associated x (normalize x) :=
 ⟨_, rfl⟩
 
 theorem normalize_associated {x : α} : associated (normalize x) x :=
 associated_normalize.symm
+
+lemma associates.mk_normalize {x : α} : associates.mk (normalize x) = associates.mk x :=
+associates.mk_eq_mk_iff_associated.2 normalize_associated
+
+@[simp] lemma normalize_apply {x : α} : normalize x = x * norm_unit x := rfl
 
 @[simp] lemma normalize_zero : normalize (0 : α) = 0 := by simp
 
@@ -171,8 +171,6 @@ quotient.induction_on a normalize_idem
 
 end associates
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- GCD monoid: a `comm_cancel_monoid_with_zero` with normalization and `gcd`
 (greatest common divisor) and `lcm` (least common multiple) operations. In this setting `gcd` and
 `lcm` form a bounded lattice on the associated elements where `gcd` is the infimum, `lcm` is the
@@ -190,7 +188,6 @@ corresponding `lcm` facts from `gcd`.
 (gcd_mul_lcm    : ∀a b, gcd a b * lcm a b = normalize (a * b))
 (lcm_zero_left  : ∀a, lcm 0 a = 0)
 (lcm_zero_right : ∀a, lcm a 0 = 0)
-end prio
 
 export gcd_monoid (gcd lcm gcd_dvd_left gcd_dvd_right dvd_gcd  lcm_zero_left lcm_zero_right)
 
@@ -292,6 +289,16 @@ gcd_dvd_gcd (dvd_refl _) (dvd_mul_left _ _)
 
 theorem gcd_dvd_gcd_mul_right_right (m n k : α) : gcd m n ∣ gcd m (n * k) :=
 gcd_dvd_gcd (dvd_refl _) (dvd_mul_right _ _)
+
+theorem gcd_eq_of_associated_left {m n : α} (h : associated m n) (k : α) : gcd m k = gcd n k :=
+dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _)
+  (gcd_dvd_gcd (dvd_of_associated h) (dvd_refl _))
+  (gcd_dvd_gcd (dvd_of_associated h.symm) (dvd_refl _))
+
+theorem gcd_eq_of_associated_right {m n : α} (h : associated m n) (k : α) : gcd k m = gcd k n :=
+dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _)
+  (gcd_dvd_gcd (dvd_refl _) (dvd_of_associated h))
+  (gcd_dvd_gcd (dvd_refl _) (dvd_of_associated h.symm))
 
 end gcd
 
@@ -412,6 +419,16 @@ lcm_dvd_lcm (dvd_refl _) (dvd_mul_left _ _)
 
 theorem lcm_dvd_lcm_mul_right_right (m n k : α) : lcm m n ∣ lcm m (n * k) :=
 lcm_dvd_lcm (dvd_refl _) (dvd_mul_right _ _)
+
+theorem lcm_eq_of_associated_left {m n : α} (h : associated m n) (k : α) : lcm m k = lcm n k :=
+dvd_antisymm_of_normalize_eq (normalize_lcm _ _) (normalize_lcm _ _)
+  (lcm_dvd_lcm (dvd_of_associated h) (dvd_refl _))
+  (lcm_dvd_lcm (dvd_of_associated h.symm) (dvd_refl _))
+
+theorem lcm_eq_of_associated_right {m n : α} (h : associated m n) (k : α) : lcm k m = lcm k n :=
+dvd_antisymm_of_normalize_eq (normalize_lcm _ _) (normalize_lcm _ _)
+  (lcm_dvd_lcm (dvd_refl _) (dvd_of_associated h))
+  (lcm_dvd_lcm (dvd_refl _) (dvd_of_associated h.symm))
 
 end lcm
 
@@ -724,14 +741,12 @@ lemma units_eq_one (u : units α) : u = 1 := subsingleton.elim u 1
 
 variable [nontrivial α]
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
+@[priority 100] -- see Note [lower instance priority]
 instance normalization_monoid_of_unique_units : normalization_monoid α :=
 { norm_unit := λ x, 1,
   norm_unit_zero := rfl,
   norm_unit_mul := λ x y hx hy, (mul_one 1).symm,
   norm_unit_coe_units := λ u, subsingleton.elim _ _ }
-end prio
 
 @[simp] lemma norm_unit_eq_one (x : α) : norm_unit x = 1 := rfl
 

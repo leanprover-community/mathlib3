@@ -16,7 +16,7 @@ variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 noncomputable theory
 open filter metric
-open_locale topological_space big_operators
+open_locale topological_space big_operators nnreal
 localized "notation f `→_{`:50 a `}`:0 b := filter.tendsto f (_root_.nhds a) (_root_.nhds b)" in filter
 
 /-- Auxiliary class, endowing a type `α` with a function `norm : α → ℝ`. This class is designed to
@@ -27,13 +27,10 @@ export has_norm (norm)
 
 notation `∥`:1024 e:1 `∥`:1 := norm e
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A normed group is an additive group endowed with a norm for which `dist x y = ∥x - y∥` defines
 a metric space structure. -/
 class normed_group (α : Type*) extends has_norm α, add_comm_group α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
-end prio
 
 /-- Construct a normed group from a translation invariant distance -/
 def normed_group.of_add_dist [has_norm α] [add_comm_group α] [metric_space α]
@@ -178,6 +175,16 @@ le_trans (le_abs_self _) (abs_norm_sub_norm_le g h)
 lemma dist_norm_norm_le (g h : α) : dist ∥g∥ ∥h∥ ≤ ∥g - h∥ :=
 abs_norm_sub_norm_le g h
 
+lemma eq_of_norm_sub_eq_zero {u v : α} (h : ∥u - v∥ = 0) : u = v :=
+begin
+  apply eq_of_dist_eq_zero,
+  rwa dist_eq_norm
+end
+
+lemma norm_le_insert (u v : α) : ∥v∥ ≤ ∥u∥ + ∥u - v∥ :=
+calc ∥v∥ = ∥u - (u - v)∥ : by abel
+... ≤ ∥u∥ + ∥u - v∥ : norm_sub_le u _
+
 lemma ball_0_eq (ε : ℝ) : ball (0:α) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
 
@@ -199,12 +206,24 @@ theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
   tendsto f l (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in l, ∥ f x ∥ < ε :=
 metric.tendsto_nhds.trans $ by simp only [dist_zero_right]
 
+lemma normed_group.tendsto_nhds_nhds {f : α → β} {x : α} {y : β} :
+  tendsto f (𝓝 x) (𝓝 y) ↔ ∀ ε > 0, ∃ δ > 0, ∀ x', ∥x' - x∥ < δ → ∥f x' - y∥ < ε :=
+by simp_rw [metric.tendsto_nhds_nhds, dist_eq_norm]
+
 /-- A homomorphism `f` of normed groups is Lipschitz, if there exists a constant `C` such that for
 all `x`, one has `∥f x∥ ≤ C * ∥x∥`.
 The analogous condition for a linear map of normed spaces is in `normed_space.operator_norm`. -/
 lemma add_monoid_hom.lipschitz_of_bound (f :α →+ β) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   lipschitz_with (nnreal.of_real C) f :=
 lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
+
+lemma lipschitz_on_with_iff_norm_sub_le {f : α → β} {C : ℝ≥0} {s : set α} :
+  lipschitz_on_with C f s ↔  ∀ (x ∈ s) (y ∈ s),  ∥f x - f y∥ ≤ C * ∥x - y∥ :=
+by simp only [lipschitz_on_with_iff_dist_le_mul, dist_eq_norm]
+
+lemma lipschitz_on_with.norm_sub_le {f : α → β} {C : ℝ≥0} {s : set α} (h : lipschitz_on_with C f s)
+  {x y : α} (x_in : x ∈ s) (y_in : y ∈ s) : ∥f x - f y∥ ≤ C * ∥x - y∥ :=
+lipschitz_on_with_iff_norm_sub_le.mp h x x_in y y_in
 
 /-- A homomorphism `f` of normed groups is continuous, if there exists a constant `C` such that for
 all `x`, one has `∥f x∥ ≤ C * ∥x∥`.
@@ -216,7 +235,7 @@ lemma add_monoid_hom.continuous_of_bound (f :α →+ β) (C : ℝ) (h : ∀x, �
 section nnnorm
 
 /-- Version of the norm taking values in nonnegative reals. -/
-def nnnorm (a : α) : nnreal := ⟨norm a, norm_nonneg a⟩
+def nnnorm (a : α) : ℝ≥0 := ⟨norm a, norm_nonneg a⟩
 
 @[simp] lemma coe_nnnorm (a : α) : (nnnorm a : ℝ) = norm a := rfl
 
@@ -309,6 +328,9 @@ instance prod.normed_group : normed_group (α × β) :=
 
 lemma prod.norm_def (x : α × β) : ∥x∥ = (max ∥x.1∥ ∥x.2∥) := rfl
 
+lemma prod.nnnorm_def (x : α × β) : nnnorm x = max (nnnorm x.1) (nnnorm x.2) :=
+by { have := x.norm_def, simp only [← coe_nnnorm] at this, exact_mod_cast this }
+
 lemma norm_fst_le (x : α × β) : ∥x.1∥ ≤ ∥x∥ :=
 le_max_left _ _
 
@@ -324,7 +346,7 @@ instance pi.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (�
   normed_group (Πi, π i) :=
 { norm := λf, ((finset.sup finset.univ (λ b, nnnorm (f b)) : nnreal) : ℝ),
   dist_eq := assume x y,
-    congr_arg (coe : nnreal → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ assume a,
+    congr_arg (coe : ℝ≥0 → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ assume a,
     show nndist (x a) (y a) = nnnorm (x a - y a), from nndist_eq_nnnorm _ _ }
 
 /-- The norm of an element in a product space is `≤ r` if and only if the norm of each
@@ -425,13 +447,10 @@ end normed_group
 
 section normed_ring
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A normed ring is a ring endowed with a norm which satisfies the inequality `∥x y∥ ≤ ∥x∥ ∥y∥`. -/
 class normed_ring (α : Type*) extends has_norm α, ring α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul : ∀ a b, norm (a * b) ≤ norm a * norm b)
-end prio
 
 @[priority 100] -- see Note [lower instance priority]
 instance normed_ring.to_normed_group [β : normed_ring α] : normed_group α := { ..β }
@@ -520,8 +539,6 @@ instance normed_top_ring [normed_ring α] : topological_ring α :=
     have ∀ e : α, -e - -x = -(e - x), by intro; simp,
     by simp only [this, norm_neg]; apply lim_norm ⟩
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A normed field is a field with a norm satisfying ∥x y∥ = ∥x∥ ∥y∥. -/
 class normed_field (α : Type*) extends has_norm α, field α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
@@ -532,7 +549,6 @@ class normed_field (α : Type*) extends has_norm α, field α, metric_space α :
 by the powers of any element, and thus to relate algebra and topology. -/
 class nondiscrete_normed_field (α : Type*) extends normed_field α :=
 (non_trivial : ∃x:α, 1<∥x∥)
-end prio
 
 @[priority 100] -- see Note [lower instance priority]
 instance normed_field.to_normed_ring [i : normed_field α] : normed_ring α :=
@@ -707,6 +723,9 @@ namespace real
 
 lemma norm_eq_abs (r : ℝ) : ∥r∥ = abs r := rfl
 
+lemma norm_of_nonneg {x : ℝ} (hx : 0 ≤ x) : ∥x∥ = x :=
+abs_of_nonneg hx
+
 @[simp] lemma norm_coe_nat (n : ℕ) : ∥(n : ℝ)∥ = n := abs_of_nonneg n.cast_nonneg
 
 @[simp] lemma nnnorm_coe_nat (n : ℕ) : nnnorm (n : ℝ) = n := nnreal.eq $ by simp
@@ -715,10 +734,24 @@ lemma norm_eq_abs (r : ℝ) : ∥r∥ = abs r := rfl
 
 @[simp] lemma nnnorm_two : nnnorm (2:ℝ) = 2 := nnreal.eq $ by simp
 
+open_locale nnreal
+
+@[simp] lemma nnreal.norm_eq (x : ℝ≥0) : ∥(x : ℝ)∥ = x :=
+by rw [real.norm_eq_abs, x.abs_eq]
+
+lemma nnnorm_coe_eq_self {x : ℝ≥0} : nnnorm (x : ℝ) = x :=
+by { ext, exact norm_of_nonneg (zero_le x) }
+
+lemma nnnorm_of_nonneg {x : ℝ} (hx : 0 ≤ x) : nnnorm x = ⟨x, hx⟩ :=
+@nnnorm_coe_eq_self ⟨x, hx⟩
+
+lemma ennnorm_eq_of_real {x : ℝ} (hx : 0 ≤ x) : (nnnorm x : ennreal) = ennreal.of_real x :=
+by { rw [← of_real_norm_eq_coe_nnnorm, norm_of_nonneg hx] }
+
 end real
 
 @[simp] lemma norm_norm [normed_group α] (x : α) : ∥∥x∥∥ = ∥x∥ :=
-by rw [real.norm_eq_abs, abs_of_nonneg (norm_nonneg _)]
+by rw [real.norm_of_nonneg (norm_nonneg _)]
 
 @[simp] lemma nnnorm_norm [normed_group α] (a : α) : nnnorm ∥a∥ = nnnorm a :=
 by simp only [nnnorm, norm_norm]
@@ -746,7 +779,8 @@ by rw [← rat.norm_cast_real, ← int.norm_cast_real]; congr' 1; norm_cast
 section normed_space
 
 section prio
-set_option default_priority 920 -- see Note [default priority]. Here, we set a rather high priority,
+set_option extends_priority 920
+-- Here, we set a rather high priority for the instance `[normed_space α β] : semimodule α β`
 -- to take precedence over `semiring.to_semimodule` as this leads to instance paths with better
 -- unification properties.
 -- see Note[vector space definition] for why we extend `semimodule`.
@@ -786,6 +820,9 @@ nnreal.eq $ norm_smul s x
 lemma nndist_smul [normed_space α β] (s : α) (x y : β) :
   nndist (s • x) (s • y) = nnnorm s * nndist x y :=
 nnreal.eq $ dist_smul s x y
+
+lemma norm_smul_of_nonneg [normed_space ℝ β] {t : ℝ} (ht : 0 ≤ t) (x : β) : ∥t • x∥ = t * ∥x∥ :=
+by rw [norm_smul, real.norm_eq_abs, abs_of_nonneg ht]
 
 variables {E : Type*} {F : Type*}
 [normed_group E] [normed_space α E] [normed_group F] [normed_space α F]
@@ -935,14 +972,11 @@ end normed_space
 
 section normed_algebra
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A normed algebra `𝕜'` over `𝕜` is an algebra endowed with a norm for which the embedding of
 `𝕜` in `𝕜'` is an isometry. -/
 class normed_algebra (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
   extends algebra 𝕜 𝕜' :=
 (norm_algebra_map_eq : ∀x:𝕜, ∥algebra_map 𝕜 𝕜' x∥ = ∥x∥)
-end prio
 
 @[simp] lemma norm_algebra_map_eq {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
   [h : normed_algebra 𝕜 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥ = ∥x∥ :=

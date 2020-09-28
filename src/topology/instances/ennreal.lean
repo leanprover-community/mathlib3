@@ -81,8 +81,11 @@ this ▸ mem_nhds_sets is_open_ne_top coe_ne_top
   tendsto (λa, (m a : ennreal)) f (𝓝 ↑a) ↔ tendsto m f (𝓝 a) :=
 embedding_coe.tendsto_nhds_iff.symm
 
-lemma continuous_coe {α} [topological_space α] {f : α → nnreal} :
-continuous (λa, (f a : ennreal)) ↔ continuous f :=
+lemma continuous_coe : continuous (coe : nnreal → ennreal) :=
+embedding_coe.continuous
+
+lemma continuous_coe_iff  {α} [topological_space α] {f : α → nnreal} :
+  continuous (λa, (f a : ennreal)) ↔ continuous f :=
 embedding_coe.continuous_iff.symm
 
 lemma nhds_coe {r : nnreal} : 𝓝 (r : ennreal) = (𝓝 r).map coe :=
@@ -97,7 +100,7 @@ begin
 end
 
 lemma continuous_of_real : continuous ennreal.of_real :=
-(continuous_coe.2 continuous_id).comp nnreal.continuous_of_real
+(continuous_coe_iff.2 continuous_id).comp nnreal.continuous_of_real
 
 lemma tendsto_of_real {f : filter α} {m : α → ℝ} {a : ℝ} (h : tendsto m f (𝓝 a)) :
   tendsto (λa, ennreal.of_real (m a)) f (𝓝 (ennreal.of_real a)) :=
@@ -147,7 +150,7 @@ def ne_top_homeomorph_nnreal : {a | a ≠ ∞} ≃ₜ nnreal :=
   left_inv := λ ⟨x, hx⟩, subtype.eq $ coe_to_nnreal hx,
   right_inv := λ x, to_nnreal_coe,
   continuous_to_fun := continuous_on_iff_continuous_restrict.1 continuous_on_to_nnreal,
-  continuous_inv_fun := continuous_subtype_mk _ (continuous_coe.2 continuous_id) }
+  continuous_inv_fun := continuous_subtype_mk _ continuous_coe }
 
 /-- The set of finite `ennreal` numbers is homeomorphic to `nnreal`. -/
 def lt_top_homeomorph_nnreal : {a | a < ∞} ≃ₜ nnreal :=
@@ -528,8 +531,7 @@ protected lemma tsum_eq_supr_nat {f : ℕ → ennreal} :
 ennreal.tsum_eq_supr_sum' _ finset.exists_nat_subset_range
 
 protected lemma le_tsum (a : α) : f a ≤ (∑'a, f a) :=
-calc f a = ∑ x in {a}, f x : finset.sum_singleton.symm
-     ... ≤ ∑' x, f x       : ennreal.sum_le_tsum {a}
+le_tsum' ennreal.summable a
 
 protected lemma tsum_eq_top_of_eq_top : (∃ a, f a = ∞) → (∑' a, f a) = ∞
 | ⟨a, ha⟩ := top_unique $ ha ▸ ennreal.le_tsum a
@@ -574,6 +576,18 @@ begin
   { exact assume s t hst, finset.sum_le_sum_of_subset (finset.range_subset.2 hst) }
 end
 
+lemma to_nnreal_apply_of_tsum_ne_top {α : Type*} {f : α → ennreal} (hf : (∑' i, f i) ≠ ∞) (x : α) :
+  (((ennreal.to_nnreal ∘ f) x : nnreal) : ennreal) = f x :=
+coe_to_nnreal $ ennreal.ne_top_of_tsum_ne_top hf _
+
+lemma summable_to_nnreal_of_tsum_ne_top {α : Type*} {f : α → ennreal} (hf : (∑' i, f i) ≠ ∞) :
+  summable (ennreal.to_nnreal ∘ f) :=
+by simpa only [←tsum_coe_ne_top_iff_summable, to_nnreal_apply_of_tsum_ne_top hf] using hf
+
+protected lemma tsum_apply {ι α : Type*} {f : ι → α → ennreal} {x : α} :
+  (∑' i, f i) x = ∑' i, f i x :=
+tsum_apply $ pi.summable.mpr $ λ _, ennreal.summable
+
 end tsum
 
 end ennreal
@@ -605,7 +619,36 @@ lemma tsum_comp_le_tsum_of_inj {β : Type*} {f : α → nnreal} (hf : summable f
   {i : β → α} (hi : function.injective i) : tsum (f ∘ i) ≤ tsum f :=
 tsum_le_tsum_of_inj i hi (λ c hc, zero_le _) (λ b, le_refl _) (summable_comp_injective hf hi) hf
 
+open finset
+
+/-- If `f : ℕ → ℝ≥0` and `∑' f` exists, then `∑' k, f (k + i)` tends to zero. -/
+lemma tendsto_sum_nat_add (f : ℕ → nnreal) (hf : summable f) :
+  tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
+begin
+  have h₀ : (λ i, (∑' i, f i) - ∑ j in range i, f j) = λ i, ∑' (k : ℕ), f (k + i),
+  { ext1 i,
+    rw [sub_eq_iff_eq_add, sum_add_tsum_nat_add i hf, add_comm],
+    exact sum_le_tsum _ (λ _ _, zero_le _) hf },
+  have h₁ : tendsto (λ i : ℕ, ∑' i, f i) at_top (𝓝 (∑' i, f i)) := tendsto_const_nhds,
+  simpa only [h₀, sub_self] using tendsto.sub h₁ hf.has_sum.tendsto_sum_nat
+end
+
 end nnreal
+
+namespace ennreal
+
+lemma tendsto_sum_nat_add (f : ℕ → ennreal) (hf : (∑' i, f i) ≠ ∞) :
+  tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
+begin
+  have : ∀ i, (∑' k, (((ennreal.to_nnreal ∘ f) (k + i) : nnreal) : ennreal)) =
+    (∑' k, (ennreal.to_nnreal ∘ f) (k + i) : nnreal) :=
+    λ i, (ennreal.coe_tsum (nnreal.summable_nat_add _ (summable_to_nnreal_of_tsum_ne_top hf) _)).symm,
+  simp only [λ x, (to_nnreal_apply_of_tsum_ne_top hf x).symm, ←ennreal.coe_zero,
+    this, ennreal.tendsto_coe] { single_pass := tt },
+  exact nnreal.tendsto_sum_nat_add _ (summable_to_nnreal_of_tsum_ne_top hf)
+end
+
+end ennreal
 
 lemma tsum_comp_le_tsum_of_inj {β : Type*} {f : α → ℝ} (hf : summable f) (hn : ∀ a, 0 ≤ f a)
   {i : β → α} (hi : function.injective i) : tsum (f ∘ i) ≤ tsum f :=

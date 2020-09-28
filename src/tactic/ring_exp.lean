@@ -822,7 +822,7 @@ lemma mul_pf_prod_c {pps p ps qs pqs : α} :
 lemma mul_pp_pf_overlap {pps p_b ps qqs qs psqs : α} {p_e q_e : ℕ} :
   pps = p_b ^ p_e * ps → qqs = p_b ^ q_e * qs →
   p_b ^ (p_e + q_e) * (ps * qs) = psqs → pps * qqs = psqs
-:= λ ps_pf qs_pf psqs_pf, by simp [symm psqs_pf, _root_.pow_add, ps_pf, qs_pf]; ac_refl
+:= λ ps_pf qs_pf psqs_pf, by simp [symm psqs_pf, pow_add, ps_pf, qs_pf]; ac_refl
 
 lemma mul_pp_pf_prod_lt {pps p ps qqs pqs : α} :
   pps = p * ps → ps * qqs = pqs → pps * qqs = p * pqs := by cc
@@ -994,7 +994,7 @@ meta def pow_e : ex exp → ex prod → ring_exp_m (ex exp)
   pure $ ppsqs.set_info ppsqs_o pf
 
 lemma pow_pp_pf_one {ps : α} {qs : ℕ} : ps = 1 → ps ^ qs = 1 :=
-λ ps_pf, by rw [ps_pf, _root_.one_pow]
+λ ps_pf, by rw [ps_pf, one_pow]
 
 lemma pow_pf_c_c {ps ps' pq : α} {qs qs' : ℕ} :
   ps = ps' → qs = qs' → ps' ^ qs' = pq → ps ^ qs = pq := by cc
@@ -1378,7 +1378,6 @@ meta def eval : expr → ring_exp_m (ex sum)
   psqs_pf ← psqs.proof_term,
   (do has_pow_pf ← match hp_instance with
   | `(monoid.has_pow) := lift $ mk_eq_refl e
-  | `(nat.has_pow) := lift $ mk_app ``nat.pow_eq_pow [ps, qs] >>= mk_eq_symm
   | _ := lift $ fail "has_pow instance must be nat.has_pow or monoid.has_pow"
   end,
   pf ← lift $ mk_eq_trans has_pow_pf psqs_pf,

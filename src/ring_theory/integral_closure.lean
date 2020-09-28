@@ -17,6 +17,8 @@ form a sub-R-algebra of A.
 
 Let `R` be a `comm_ring` and let `A` be an R-algebra.
 
+* `ring_hom.is_integral_elem (f : R →+* A) (x : A)` : `x` is integral with respect to the map `f`,
+
 * `is_integral (x : A)`  : `x` is integral over `R`, i.e., is a root of a monic polynomial with
                            coefficients in `R`.
 * `integral_closure R A` : the integral closure of `R` in `A`, regarded as a sub-`R`-algebra of `A`.
@@ -27,20 +29,38 @@ open_locale big_operators
 open polynomial submodule
 
 section ring
-variables (R : Type*) {A : Type*}
+variables {R A : Type*}
 variables [comm_ring R] [ring A]
-variables [algebra R A]
+
+/-- An element `x` of `A` is said to be integral over `R` with respect to `f`
+if it is a root of a monic polynomial `p : polynomial R` evaluated under `f` -/
+def ring_hom.is_integral_elem (f : R →+* A) (x : A) :=
+∃ p : polynomial R, monic p ∧ eval₂ f x p = 0
+
+/-- A ring homomorphism `f : R →+* A` is said to be integral
+if every element `A` is integral with respect to the map `f` -/
+def ring_hom.is_integral (f : R →+* A) :=
+∀ x : A, f.is_integral_elem x
+
+variables [algebra R A] (R)
 
 /-- An element `x` of an algebra `A` over a commutative ring `R` is said to be *integral*,
-if it is a root of some monic polynomial `p : polynomial R`. -/
+if it is a root of some monic polynomial `p : polynomial R`.
+Equivalently, the element is integral over `R` with respect to the induced `algebra_map` -/
 def is_integral (x : A) : Prop :=
-∃ p : polynomial R, monic p ∧ aeval x p = 0
+(algebra_map R A).is_integral_elem x
 
-variable {R}
+variable (A)
+
+/-- An algebra is integral if every element of the extension is integral over the base ring -/
+def algebra.is_integral : Prop :=
+(algebra_map R A).is_integral
+
+variables {R A}
 
 theorem is_integral_algebra_map {x : R} : is_integral R (algebra_map R A x) :=
 ⟨X - C x, monic_X_sub_C _,
-by rw [alg_hom.map_sub, aeval_def, aeval_def, eval₂_X, eval₂_C, sub_self]⟩
+by simp⟩
 
 theorem is_integral_of_noetherian (H : is_noetherian R A) (x : A) :
   is_integral R x :=
@@ -93,12 +113,12 @@ variables [comm_ring R] [comm_ring A] [comm_ring B]
 variables [algebra R A] [algebra R B]
 
 theorem is_integral_alg_hom (f : A →ₐ[R] B) {x : A} (hx : is_integral R x) : is_integral R (f x) :=
-let ⟨p, hp, hpx⟩ := hx in ⟨p, hp, by rw [aeval_alg_hom_apply, hpx, f.map_zero]⟩
+let ⟨p, hp, hpx⟩ := hx in ⟨p, hp, by rw [← aeval_def, aeval_alg_hom_apply, aeval_def, hpx, f.map_zero]⟩
 
 theorem is_integral_of_is_scalar_tower [algebra A B] [is_scalar_tower R A B]
   (x : B) (hx : is_integral R x) : is_integral A x :=
 let ⟨p, hp, hpx⟩ := hx in
-⟨p.map $ algebra_map R A, monic_map _ hp, by rw [← is_scalar_tower.aeval_apply, hpx]⟩
+⟨p.map $ algebra_map R A, monic_map _ hp, by rw [← aeval_def, ← is_scalar_tower.aeval_apply, aeval_def, hpx]⟩
 
 theorem is_integral_of_subring {x : A} (T : set R) [is_subring T]
   (hx : is_integral T x) : is_integral R x :=
@@ -110,7 +130,7 @@ begin
   split; intro hr,
   { rcases hr with ⟨p, hmp, hpr⟩,
     refine ⟨_, set.finite_mem_finset _, p.restriction, subtype.eq hmp, _⟩,
-    erw [is_scalar_tower.aeval_apply _ R, map_restriction, hpr] },
+    erw [← aeval_def, is_scalar_tower.aeval_apply _ R, map_restriction, aeval_def, hpr] },
   rcases hr with ⟨s, hs, hsr⟩,
   exact is_integral_of_subring _ hsr
 end
@@ -126,8 +146,9 @@ begin
     exact is_submonoid.pow_mem (algebra.subset_adjoin (set.mem_singleton _)) },
   intros r hr, change r ∈ algebra.adjoin R ({x} : set A) at hr,
   rw algebra.adjoin_singleton_eq_range at hr,
-  rcases hr with ⟨p, rfl⟩,
+  rcases (aeval x).mem_range.mp hr with ⟨p, rfl⟩,
   rw ← mod_by_monic_add_div p hfm,
+  rw ← aeval_def at hfx,
   rw [alg_hom.map_add, alg_hom.map_mul, hfx, zero_mul, add_zero],
   have : degree (p %ₘ f) ≤ degree f := degree_mod_by_monic_le p hfm,
   generalize_hyp : p %ₘ f = q at this ⊢,
@@ -246,12 +267,11 @@ variables (R A)
 
 /-- The integral closure of R in an R-algebra A. -/
 def integral_closure : subalgebra R A :=
-{ carrier :=
-  { carrier := { r | is_integral R r },
-    zero_mem' := is_integral_zero,
-    one_mem' := is_integral_one,
-    add_mem' := λ _ _, is_integral_add,
-    mul_mem' := λ _ _, is_integral_mul },
+{ carrier := { r | is_integral R r },
+  zero_mem' := is_integral_zero,
+  one_mem' := is_integral_one,
+  add_mem' := λ _ _, is_integral_add,
+  mul_mem' := λ _ _, is_integral_mul,
   algebra_map_mem' := λ x, is_integral_algebra_map }
 
 theorem mem_integral_closure_iff_mem_fg {r : A} :
@@ -261,9 +281,23 @@ theorem mem_integral_closure_iff_mem_fg {r : A} :
 
 variables {R} {A}
 
+/-- Mapping an integral closure along an `alg_equiv` gives the integral closure. -/
+lemma integral_closure_map_alg_equiv (f : A ≃ₐ[R] B) :
+  (integral_closure R A).map (f : A →ₐ[R] B) = integral_closure R B :=
+begin
+  ext y,
+  rw subalgebra.mem_map,
+  split,
+  { rintros ⟨x, hx, rfl⟩,
+    exact is_integral_alg_hom f hx },
+  { intro hy,
+    use [f.symm y, is_integral_alg_hom (f.symm : B →ₐ[R] A) hy],
+    simp }
+end
+
 lemma integral_closure.is_integral (x : integral_closure R A) : is_integral R x :=
 let ⟨p, hpm, hpx⟩ := x.2 in ⟨p, hpm, subtype.eq $
-by rwa [subtype.val_eq_coe, ← subalgebra.val_apply, aeval_alg_hom_apply] at hpx⟩
+by rwa [← aeval_def, subtype.val_eq_coe, ← subalgebra.val_apply, aeval_alg_hom_apply] at hpx⟩
 
 theorem is_integral_of_is_integral_mul_unit {x y : A} {r : R} (hr : algebra_map R A r * y = 1)
   (hx : is_integral R (x * y)) : is_integral R x :=
@@ -308,7 +342,7 @@ variables [algebra R A] [is_scalar_tower R A B]
 
 /-- If A is an R-algebra all of whose elements are integral over R,
 and x is an element of an A-algebra that is integral over A, then x is integral over R.-/
-lemma is_integral_trans (A_int : ∀ x : A, is_integral R x) (x : B) (hx : is_integral A x) :
+lemma is_integral_trans (A_int : is_integral R A) (x : B) (hx : is_integral A x) :
   is_integral R x :=
 begin
   rcases hx with ⟨p, pmonic, hp⟩,
@@ -325,12 +359,10 @@ end
 /-- If A is an R-algebra all of whose elements are integral over R,
 and B is an A-algebra all of whose elements are integral over A,
 then all elements of B are integral over R.-/
-lemma algebra.is_integral_trans (A_int : ∀ x : A, is_integral R x)(B_int : ∀ x:B, is_integral A x) :
-  ∀ x:B, is_integral R x :=
-λ x, is_integral_trans A_int x (B_int x)
+lemma algebra.is_integral_trans (hA : is_integral R A) (hB : is_integral A B) : is_integral R B :=
+λ x, is_integral_trans hA x (hB x)
 
-lemma is_integral_of_surjective (h : function.surjective (algebra_map R A)) :
-  ∀ x : A, is_integral R x :=
+lemma is_integral_of_surjective (h : function.surjective (algebra_map R A)) : is_integral R A :=
 λ x, (h x).rec_on (λ y hy, (hy ▸ is_integral_algebra_map : is_integral R x))
 
 /-- If `R → A → B` is an algebra tower with `A → B` injective,
@@ -340,11 +372,16 @@ lemma is_integral_tower_bot_of_is_integral (H : function.injective (algebra_map 
 begin
   rcases h with ⟨p, ⟨hp, hp'⟩⟩,
   refine ⟨p, ⟨hp, _⟩⟩,
-  rw [aeval_def, is_scalar_tower.algebra_map_eq R A B, ← eval₂_map,
+  rw [is_scalar_tower.algebra_map_eq R A B, ← eval₂_map,
       eval₂_hom, ← ring_hom.map_zero (algebra_map A B)] at hp',
-  rw [aeval_def, eval₂_eq_eval_map],
+  rw [eval₂_eq_eval_map],
   exact H hp',
 end
+
+lemma is_integral_tower_bot_of_is_integral_field {R A B : Type*} [comm_ring R] [field A]
+  [comm_ring B] [nontrivial B] [algebra R A] [algebra A B] [algebra R B] [is_scalar_tower R A B]
+  {x : A} (h : is_integral R (algebra_map A B x)) : is_integral R x :=
+is_integral_tower_bot_of_is_integral (algebra_map A B).injective h
 
 /-- If `R → A → B` is an algebra tower,
 then if the entire tower is an integral extension so is `A → B` -/
@@ -352,9 +389,59 @@ lemma is_integral_tower_top_of_is_integral {x : B} (h : is_integral R x) : is_in
 begin
   rcases h with ⟨p, ⟨hp, hp'⟩⟩,
   refine ⟨p.map (algebra_map R A), ⟨monic_map (algebra_map R A) hp, _⟩⟩,
-  rw [aeval_def, is_scalar_tower.algebra_map_eq R A B, ← eval₂_map] at hp',
-  rw [aeval_def],
+  rw [is_scalar_tower.algebra_map_eq R A B, ← eval₂_map] at hp',
   exact hp',
+end
+
+lemma is_integral_quotient_of_is_integral {I : ideal A} (hRA : is_integral R A) :
+  is_integral (I.comap (algebra_map R A)).quotient I.quotient :=
+begin
+  rintros ⟨x⟩,
+  obtain ⟨p, ⟨p_monic, hpx⟩⟩ := hRA x,
+  refine ⟨p.map (ideal.quotient.mk _), ⟨monic_map _ p_monic, _⟩⟩,
+  simpa only [aeval_def, hom_eval₂, eval₂_map] using congr_arg (ideal.quotient.mk I) hpx
+end
+
+/-- If the integral extension `R → S` is injective, and `S` is a field, then `R` is also a field -/
+lemma is_field_of_is_integral_of_is_field {R S : Type*} [integral_domain R] [integral_domain S]
+  [algebra R S] (H : is_integral R S) (hRS : function.injective (algebra_map R S))
+  (hS : is_field S) : is_field R :=
+begin
+  refine ⟨⟨0, 1, zero_ne_one⟩, mul_comm, λ a ha, _⟩,
+  -- Let `a_inv` be the inverse of `algebra_map R S a`,
+  -- then we need to show that `a_inv` is of the form `algebra_map R S b`.
+  obtain ⟨a_inv, ha_inv⟩ := hS.mul_inv_cancel (λ h, ha (hRS (trans h (ring_hom.map_zero _).symm))),
+
+  -- Let `p : polynomial R` be monic with root `a_inv`,
+  -- and `q` be `p` with coefficients reversed (so `q(a) = q'(a) * a + 1`).
+  -- We claim that `q(a) = 0`, so `-q'(a)` is the inverse of `a`.
+  obtain ⟨p, p_monic, hp⟩ := H a_inv,
+  use -∑ (i : ℕ) in finset.range p.nat_degree, (p.coeff i) * a ^ (p.nat_degree - i - 1),
+
+  -- `q(a) = 0`, because multiplying everything with `a_inv^n` gives `p(a_inv) = 0`.
+  -- TODO: this could be a lemma for `polynomial.reverse`.
+  have hq : ∑ (i : ℕ) in finset.range (p.nat_degree + 1), (p.coeff i) * a ^ (p.nat_degree - i) = 0,
+  { apply (algebra_map R S).injective_iff.mp hRS,
+    have a_inv_ne_zero : a_inv ≠ 0 := right_ne_zero_of_mul (mt ha_inv.symm.trans one_ne_zero),
+    refine (mul_eq_zero.mp _).resolve_right (pow_ne_zero p.nat_degree a_inv_ne_zero),
+    rw [eval₂_eq_sum_range] at hp,
+    rw [ring_hom.map_sum, finset.sum_mul],
+    refine (finset.sum_congr rfl (λ i hi, _)).trans hp,
+    rw [ring_hom.map_mul, mul_assoc],
+    congr,
+    have : a_inv ^ p.nat_degree = a_inv ^ (p.nat_degree - i) * a_inv ^ i,
+    { rw [← pow_add a_inv, nat.sub_add_cancel (nat.le_of_lt_succ (finset.mem_range.mp hi))] },
+    rw [ring_hom.map_pow, this, ← mul_assoc, ← mul_pow, ha_inv, one_pow, one_mul] },
+
+  -- Since `q(a) = 0` and `q(a) = q'(a) * a + 1`, we have `a * -q'(a) = 1`.
+  -- TODO: we could use a lemma for `polynomial.div_X` here.
+  rw [finset.sum_range_succ, p_monic.coeff_nat_degree, one_mul, nat.sub_self, pow_zero,
+      add_eq_zero_iff_eq_neg, eq_comm] at hq,
+  rw [mul_comm, ← neg_mul_eq_neg_mul, finset.sum_mul],
+  convert hq using 2,
+  refine finset.sum_congr rfl (λ i hi, _),
+  have : 1 ≤ p.nat_degree - i := nat.le_sub_left_of_add_le (finset.mem_range.mp hi),
+  rw [mul_assoc, ← pow_succ', nat.sub_add_cancel this]
 end
 
 end algebra

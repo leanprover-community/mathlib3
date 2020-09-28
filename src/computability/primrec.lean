@@ -103,19 +103,16 @@ theorem mul : primrec (unpaired (*)) :=
 
 theorem pow : primrec (unpaired (^)) :=
 (prec (const 1) (mul.comp (pair (right.comp right) left))).of_eq $
-λ p, by simp; induction p.unpair.2; simp [*, nat.pow_succ]
+λ p, by simp; induction p.unpair.2; simp [*, pow_succ']
 
 end primrec
 
 end nat
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A `primcodable` type is an `encodable` type for which
   the encode/decode functions are primitive recursive. -/
 class primcodable (α : Type*) extends encodable α :=
 (prim [] : nat.primrec (λ n, encodable.encode (decode n)))
-end prio
 
 namespace primcodable
 open nat.primrec

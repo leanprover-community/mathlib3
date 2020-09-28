@@ -82,6 +82,10 @@ lemma mem_nhds_within_iff_exists_mem_nhds_inter {t : set α} {a : α} {s : set �
   t ∈ 𝓝[s] a ↔ ∃ u ∈ 𝓝 a, u ∩ s ⊆ t :=
 (nhds_within_has_basis (𝓝 a).basis_sets s).mem_iff
 
+lemma diff_mem_nhds_within_compl {X : Type*} [topological_space X] {x : X} {s : set X}
+  (hs : s ∈ 𝓝 x) (t : set X) : s \ t ∈ 𝓝[tᶜ] x :=
+diff_mem_inf_principal_compl hs t
+
 lemma nhds_of_nhds_within_of_nhds
   {s t : set α} {a : α} (h1 : s ∈ 𝓝 a) (h2 : t ∈ 𝓝[s] a) : (t ∈ 𝓝 a) :=
 begin

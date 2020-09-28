@@ -52,7 +52,7 @@ Linear algebra:
     row-reduced matrices: ''
   Endomorphism polynomials:
     annihilating polynomials: ''
-    minimal polynomial: ''
+    minimal polynomial: 'minimal_polynomial'
     characteristic polynomial: 'char_poly'
     Cayley-Hamilton theorem: 'aeval_self_char_poly'
   Structure theory of endomorphisms:

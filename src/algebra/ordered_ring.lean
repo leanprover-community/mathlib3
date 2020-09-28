@@ -40,7 +40,7 @@ calc (2:α) = 1+1 : one_add_one_eq_two
 
 lemma one_le_two : 1 ≤ (2:α) := one_lt_two.le
 
-lemma four_pos : 0 < (4:α) := add_pos zero_lt_two zero_lt_two
+lemma zero_lt_four : 0 < (4:α) := add_pos zero_lt_two zero_lt_two
 
 lemma mul_lt_mul_of_pos_left (h₁ : a < b) (h₂ : 0 < c) : c * a < c * b :=
 ordered_semiring.mul_lt_mul_of_pos_left a b c h₁ h₂

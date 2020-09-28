@@ -101,7 +101,7 @@ theorem to_lin_of_equiv {p q : Type*} [fintype p] [fintype q] (e₁ : m ≃ p) (
 linear_map.ext $ λ v, funext $ λ i,
 calc  ∑ j : n, f (e₁ i) (e₂ j) * v j
     = ∑ j : n, f (e₁ i) (e₂ j) * v (e₂.symm (e₂ j)) : by simp_rw e₂.symm_apply_apply
-... = ∑ k : q, f (e₁ i) k * v (e₂.symm k) : finset.sum_equiv e₂ (λ k, f (e₁ i) k * v (e₂.symm k))
+... = ∑ k : q, f (e₁ i) k * v (e₂.symm k) : e₂.sum_comp (λ k, f (e₁ i) k * v (e₂.symm k))
 
 lemma to_lin_add (M N : matrix m n R) : (M + N).to_lin = M.to_lin + N.to_lin :=
 matrix.eval.map_add M N
@@ -266,9 +266,9 @@ begin
   refine function.left_inverse.injective linear_equiv.symm_symm _; ext x;
   simp_rw [linear_equiv.symm_trans_apply, is_basis.equiv_fun_symm_apply, fun_congr_left_symm,
     fun_congr_left_apply, fun_left_apply],
-  convert (finset.sum_equiv (equiv.of_injective _ hv₁.injective) _).symm,
+  convert ((equiv.of_injective _ hv₁.injective).sum_comp _).symm,
   simp_rw [equiv.symm_apply_apply, equiv.of_injective_apply, subtype.coe_mk],
-  convert (finset.sum_equiv (equiv.of_injective _ hv₂.injective) _).symm,
+  convert ((equiv.of_injective _ hv₂.injective).sum_comp _).symm,
   simp_rw [equiv.symm_apply_apply, equiv.of_injective_apply, subtype.coe_mk]
 end
 
@@ -752,7 +752,7 @@ linear_map.ext $ λ f, if H : 0 = 1 then eq_of_zero_eq_one H _ _ else
 begin
   haveI : nontrivial R := ⟨⟨0, 1, H⟩⟩,
   change ∑ i : set.range b, _ = ∑ i : ι, _, simp_rw [matrix.diag_apply], symmetry,
-  convert finset.sum_equiv (equiv.of_injective _ hb.injective) _, ext i,
+  convert (equiv.of_injective _ hb.injective).sum_comp _, ext i,
   exact (linear_equiv_matrix_range hb hb f i i).symm
 end
 

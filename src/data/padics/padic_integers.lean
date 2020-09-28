@@ -250,7 +250,7 @@ variables {p : ℕ} [fact p.prime]
 lemma norm_le_one : ∀ z : ℤ_[p], ∥z∥ ≤ 1
 | ⟨_, h⟩ := h
 
-@[simp] lemma norm_one : ∥(1 : ℤ_[p])∥ = 1 := normed_field.norm_one
+@[simp] lemma norm_one : ∥(1 : ℤ_[p])∥ = 1 := norm_one
 
 @[simp] lemma norm_mul (z1 z2 : ℤ_[p]) : ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ :=
 by simp [norm_def]

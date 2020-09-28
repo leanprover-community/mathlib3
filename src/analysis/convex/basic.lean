@@ -599,32 +599,35 @@ begin
   convert this; symmetry; simp only [div_eq_iff (ne_of_gt B), y]; ring
 end
 
-lemma convex_on.slope_mono_adjacent {s : set ℝ} {f : ℝ → ℝ}
-  {x y z: ℝ} (hx: x ∈ s) (hz: z ∈ s) (hxy: x < y) (hyz: y < z) (hf: convex_on s f) :
-    (f y - f x) / (y - x) ≤ (f z - f y) / (z - y) :=
+lemma convex_on.slope_mono_adjacent {s : set ℝ} {f : ℝ → ℝ} {x y z: ℝ} (hx: x ∈ s) (hz: z ∈ s)
+  (hxy: x < y) (hyz: y < z) (hf: convex_on s f) : (f y - f x) / (y - x) ≤ (f z - f y) / (z - y) :=
 begin
   have h₁: 0 < y - x := by linarith,
   have h₂: 0 < z - y := by linarith,
   have h₃: 0 < z - x := by linarith,
 
   suffices: f y / (y - x) + f y / (z - y) ≤ f x / (y - x) + f z / (z - y),
-    begin ring at this ⊢, linarith end,
+    by { ring at this ⊢, linarith },
 
   set a := (z - y) / (z - x),
   set b := (y - x) / (z - x),
 
-  have h₄: a + b = 1 :=
-    begin field_simp, rw div_eq_iff; [ring, linarith] end,
-  have h₅: a • x + b • z = y :=
-    begin field_simp, rw div_eq_iff; [ring, linarith] end,
+  have heqz: a • x + b • z = y, by { field_simp, rw div_eq_iff; [ring, linarith], },
 
-  have key :=
-    hf.2 hx hz (show 0 ≤ a, by apply div_nonneg; linarith) (show 0 ≤ b, by apply div_nonneg; linarith) h₄,
-  rw h₅ at key,
+  have key, from
+    hf.2
+      hx
+      hz
+      (show 0 ≤ a, by apply div_nonneg; linarith)
+      (show 0 ≤ b, by apply div_nonneg; linarith)
+      (show a + b = 1, by { field_simp, rw div_eq_iff; [ring, linarith], }),
+  rw heqz at key,
   replace key := mul_le_mul_of_nonneg_left key (le_of_lt h₃),
 
   field_simp [ne_of_gt h₁, ne_of_gt h₂, ne_of_gt h₃, mul_comm (z - x) _] at key ⊢,
-  rw div_le_div_right; nlinarith,
+  rw div_le_div_right,
+    { linarith, },
+    { nlinarith, },
 end
 
 /-- For a function `f` defined on a convex subset `D` of `ℝ`, if for any three points `x<y<z`

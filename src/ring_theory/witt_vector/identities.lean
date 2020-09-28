@@ -61,7 +61,7 @@ lemma verschiebung_mul_frobenius (x y : 𝕎 R) :
   verschiebung (x * frobenius y) = verschiebung x * y :=
 begin
   polify x y,
-  rintro S _Scr x y ⟨⟩; resetI;
+  rintro ⟨⟩;
   simp [ghost_component_zero_verschiebung, zero_mul, ring_hom.map_mul,
     ghost_component_verschiebung, ghost_component_frobenius, nat.succ_eq_add_one, mul_assoc],
 end

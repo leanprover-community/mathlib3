@@ -135,7 +135,7 @@ def verschiebung : 𝕎 R →+ 𝕎 R :=
   map_add' :=
   begin
     polify _ _,
-    rintro S _Scr x y ⟨⟩; resetI;
+    rintro ⟨⟩;
     simp only [ring_hom.map_add, ghost_component_verschiebung_fun,
       ghost_component_zero_verschiebung_fun, mul_add, add_zero],
   end }

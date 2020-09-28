@@ -129,15 +129,21 @@ All it does is apply the appropriate extensionalify lemma and try to infer the r
 This is subtle and Lean's elaborator doesn't like it because of the HO unification involved,
 so it is easier (and prettier) to put it in a tactic script.
 -/
-meta def polify (ids : parse ident_*) : tactic unit :=
-do ids ← ids.mmap $ λ n, get_local n <|> tactic.intro n,
+meta def polify (ids' : parse ident_*) : tactic unit :=
+do ids ← ids'.mmap $ λ n, get_local n <|> tactic.intro n,
+   `(@eq (witt_vector _ %%R) _ _) ← target,
    match ids with
    | [x] := refine ```(is_poly.ext' _ _ _ _ %%x)
    | [x, y] := refine ```(is_poly₂.ext' _ _ _ _ %%x %%y)
    | _ := fail "polify takes one or two arguments"
    end,
-  --  rotate 2,
+   nm ← match R with
+   | expr.local_const _ nm _ _ := return nm
+   | _ := get_unused_name `R
+   end,
    iterate_exactly 2 apply_instance,
+   unfreezingI (tactic.clear' tt [R]),
+   introsI $ [nm, nm<.>"_inst"] ++ ids',
    skip
 
 

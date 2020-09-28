@@ -355,7 +355,7 @@ def frobenius : 𝕎 R →+* 𝕎 R :=
   map_add' :=
   begin
     polify _ _,
-    introsI, simp only [ghost_component_frobenius_fun, ring_hom.map_add],
+    simp only [ghost_component_frobenius_fun, ring_hom.map_add, forall_const, eq_self_iff_true],
   end,
   map_mul' :=
   begin

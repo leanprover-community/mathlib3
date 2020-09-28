@@ -102,8 +102,7 @@ lemma add_select_select_not :
   ∀ (x : 𝕎 R), select P x + select (λ i, ¬ P i) x = x :=
 begin
   polify _,
-  clear x,
-  introsI,
+  intro n,
   simp only [ring_hom.map_add],
   have : (bind₁ (select_poly P)) (witt_polynomial p ℤ n) + (bind₁ (select_poly (λ i, ¬P i))) (witt_polynomial p ℤ n) = witt_polynomial p ℤ n,
   { simp only [witt_polynomial_eq_sum_C_mul_X_pow, select_poly, alg_hom.map_sum, alg_hom.map_pow,

@@ -483,7 +483,7 @@ variables {K V₁ V₂ ι₁ ι₂ : Type*} [field K]
           {B₁ : ι₁ → V₁} (h₁ : is_basis K B₁)
           {B₂ : ι₂ → V₂} (h₂ : is_basis K B₂)
 
-lemma matrix_transpose (u : V₁ →ₗ[K] V₂) :
+@[simp] lemma linear_equiv_matrix_transpose (u : V₁ →ₗ[K] V₂) :
   linear_equiv_matrix h₂.dual_basis_is_basis h₁.dual_basis_is_basis (module.dual.transpose u) =
   (linear_equiv_matrix h₁ h₂ u)ᵀ :=
 begin

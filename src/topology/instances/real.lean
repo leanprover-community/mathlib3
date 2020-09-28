@@ -372,8 +372,8 @@ begin
     apply H' a,
     exact ⟨H, ha.1⟩ },
   obtain ⟨g₂, g₂_in, g₂_pos, g₂_lt⟩ : ∃ g₂ : ℝ, g₂ ∈ G ∧ 0 < g₂ ∧ g₂ < ε,
-  { obtain ⟨b, hb, hb', hb''⟩ := ha.exists_between_self_add' a_notin ε_pos,
-    obtain ⟨c, hc, hc', hc''⟩ := ha.exists_between_self_add' a_notin (by linarith : 0 < b - a),
+  { obtain ⟨b, hb, hb', hb''⟩ := ha.exists_between_self_add' ε_pos a_notin,
+    obtain ⟨c, hc, hc', hc''⟩ := ha.exists_between_self_add' (by linarith : 0 < b - a) a_notin,
     refine ⟨b - c, add_subgroup.sub_mem G hb.1 hc.1, _, _⟩ ;
     linarith },
   use floor (x/g₂) * g₂,

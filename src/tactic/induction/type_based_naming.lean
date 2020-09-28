@@ -6,7 +6,7 @@ Author: Jannis Limperg
 
 universes u
 
-meta class variable_names (α : Type u) : Type (u + 1) :=
+meta class variable_names (α : Sort u) : Type :=
 (names : name × list name)
 
 meta instance : variable_names nat :=

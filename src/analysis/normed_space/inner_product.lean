@@ -36,9 +36,9 @@ We define both the real and complex cases at the same time using the `is_R_or_C`
 
 ## Notation
 
-We locally denote the inner product by `⟪·, ·⟫`. We also provide two notation namespaces:
-`real_inner_product_space` and `complex_inner_product_space`, which introduce the notation
-`⟪·, ·⟫` for the real and the complex inner product respectively.
+We globally denote the real and complex inner products by `⟪·, ·⟫_ℝ` and `⟪·, ·⟫_ℂ` respectively.
+We also provide two notation namespaces: `real_inner_product_space`, `complex_inner_product_space`,
+which respectively introduce the plain notation `⟪·, ·⟫` for the the real and complex inner product.
 
 ## Implementation notes
 
@@ -73,6 +73,16 @@ local notation `𝓚` := @is_R_or_C.of_real 𝕜 _
 class has_inner (𝕜 E : Type*) := (inner : E → E → 𝕜)
 
 export has_inner (inner)
+
+notation `⟪`x`, `y`⟫_ℝ` := @inner ℝ _ _ x y
+notation `⟪`x`, `y`⟫_ℂ` := @inner ℂ _ _ x y
+
+section notations
+
+localized "notation `⟪`x`, `y`⟫` := @inner ℝ _ _ x y" in real_inner_product_space
+localized "notation `⟪`x`, `y`⟫` := @inner ℂ _ _ x y" in complex_inner_product_space
+
+end notations
 
 /--
 An inner product space is a vector space with an additional operation called inner product.
@@ -1548,6 +1558,3 @@ begin
   exact hd.symm
 end
 end orthogonal
-
-localized "notation `⟪`x`, `y`⟫` := @inner ℝ _ _ x y" in real_inner_product_space
-localized "notation `⟪`x`, `y`⟫` := @inner ℂ _ _ x y" in complex_inner_product_space

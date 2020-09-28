@@ -65,7 +65,7 @@ lemma adjoin_eq_range_algebra_map_adjoin :
   (adjoin F S : set E) = set.range (algebra_map (adjoin F S) E) := (subtype.range_coe).symm
 
 lemma adjoin.algebra_map_mem (x : F) : algebra_map F E x ∈ adjoin F S :=
-field.mem_closure (or.inl (set.mem_range_self x))
+subfield.mem_closure (or.inl (set.mem_range_self x))
 
 lemma subset_adjoin_of_subset_left {F : set E} {HF : is_subfield F} {T : set E} (HT : T ⊆ F) :
   T ⊆ adjoin F S :=
@@ -83,19 +83,19 @@ instance adjoin.field_coe : has_coe_t F (adjoin F S) :=
 {coe := λ x, ⟨algebra_map F E x, adjoin.algebra_map_mem F S x⟩}
 
 lemma subset_adjoin : S ⊆ adjoin F S :=
-λ x hx, field.mem_closure (or.inr hx)
+λ x hx, subfield.mem_closure (or.inr hx)
 
 instance adjoin.set_coe : has_coe_t S (adjoin F S) :=
 {coe := λ x, ⟨x,subset_adjoin F S (subtype.mem x)⟩}
 
 lemma adjoin.mono (T : set E) (h : S ⊆ T) : (adjoin F S : set E) ⊆ adjoin F T :=
-field.closure_mono (set.union_subset (set.subset_union_left _ _)
+subfield.closure_mono (set.union_subset (set.subset_union_left _ _)
   (set.subset_union_of_subset_right h _))
 
-instance adjoin.is_subfield : is_subfield (adjoin F S : set E) := field.closure.is_subfield
+-- instance adjoin.is_subfield : is_subfield (adjoin F S : set E) := field.closure.is_subfield
 
 --Lean has trouble figuring this out on its own
-instance adjoin.is_field : field (adjoin F S) := @is_subfield.field E _ ((adjoin F S) : set E) _
+-- instance adjoin.is_field : field (adjoin F S) := by library_search--@is_subfield.field E _ ((adjoin F S) : set E) _
 
 lemma adjoin_contains_field_as_subfield (F : set E) {HF : is_subfield F} : F ⊆ adjoin F S :=
 λ x hx, adjoin.algebra_map_mem F S ⟨x, hx⟩

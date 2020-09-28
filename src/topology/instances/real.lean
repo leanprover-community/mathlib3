@@ -327,27 +327,6 @@ begin
   exact (gsmul_eq_mul g k).symm,
 end
 
-lemma inf_property' {α : Type*} [ordered_add_comm_group α] {s : set α} {a ε : α}
-  (h₁ : is_glb s a) (h₂ : a ∉ s) (h₃ : 0 < ε) : ∃ b, b ∈ s ∧ a < b ∧ ¬ a + ε ≤ b :=
-begin
-  have h' : a + ε ∉ lower_bounds s,
-  { set A := a + ε,
-    have : a < A := by { simp [A, h₃] },
-    intros hA,
-    exact lt_irrefl a (lt_of_lt_of_le this (h₁.2 hA)) },
-  simp [lower_bounds] at h',
-  obtain ⟨b, hb, hb'⟩ := h',
-  refine ⟨b, hb, _, hb'⟩,
-  have h₅ : a ≠ b,
-  { intros contra,
-    apply h₂,
-    rwa ← contra at hb },
-  exact lt_of_le_of_ne (h₁.1 hb) h₅,
-end
-
-lemma inf_property {α : Type*} [decidable_linear_ordered_add_comm_group α] {s : set α} {a ε : α}
-  (h₁ : is_glb s a) (h₂ : a ∉ s) (h₃ : 0 < ε) : ∃ b, b ∈ s ∧ a < b ∧ b < a + ε :=
-by simpa using inf_property' h₁ h₂ h₃
 
 /-- Given a subgroup `G ⊆ ℝ`, if `a` is the minimum of `G ∩ ℝ_{>0}` then `G = aℤ`. -/
 lemma real.subgroup_eq_of_min {G : add_subgroup ℝ} {a : ℝ}
@@ -393,8 +372,8 @@ begin
     apply H' a,
     exact ⟨H, ha.1⟩ },
   obtain ⟨g₂, g₂_in, g₂_pos, g₂_lt⟩ : ∃ g₂ : ℝ, g₂ ∈ G ∧ 0 < g₂ ∧ g₂ < ε,
-  { obtain ⟨b, hb, hb', hb''⟩ := inf_property ha a_notin ε_pos,
-    obtain ⟨c, hc, hc', hc''⟩ := inf_property ha a_notin (by linarith : 0 < b - a),
+  { obtain ⟨b, hb, hb', hb''⟩ := ha.exists_between_self_add' a_notin ε_pos,
+    obtain ⟨c, hc, hc', hc''⟩ := ha.exists_between_self_add' a_notin (by linarith : 0 < b - a),
     refine ⟨b - c, add_subgroup.sub_mem G hb.1 hc.1, _, _⟩ ;
     linarith },
   use floor (x/g₂) * g₂,
@@ -404,7 +383,8 @@ begin
     linarith [sub_floor_div_mul_lt x g₂_pos] }
 end
 
-
+/-- Subgroups of `ℝ` are either dense or cyclic. See `real.subgroup_dense_of_no_min` and
+`real.subgroup_eq_of_min` for more precise statements. -/
 lemma real.subgroup_dense_or_cyclic (G : add_subgroup ℝ) :
   closure (G : set ℝ) = univ ∨ ∃ a, (G : set ℝ)  = range (λ k : ℤ, k*a) :=
 begin
@@ -424,4 +404,5 @@ begin
       rcases H with ⟨g₀, g₀_in, g₀_ne⟩,
       exact real.subgroup_dense_of_no_min g₀_in g₀_ne H' } }
 end
+
 end subgroups

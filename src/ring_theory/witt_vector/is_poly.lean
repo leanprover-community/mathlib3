@@ -73,12 +73,39 @@ do tactic.try tactic.intro1,
      [`ghost_simps] (loc.ns [none])
 -- `[try {intro}, simp only [← rename_bind₁, ← bind₁_bind₁] with ghost_simps]
 
+meta def pexpr_ : lean.parser (unit ⊕ pexpr) :=
+tk "_" >> return (sum.inl ()) <|> sum.inr <$> parser.pexpr
 
+/--
+`polify` is a tactic for proving identities between polynomial functions.
+Typically, when faced with a goal like
+```lean
+∀ (x y : 𝕎 R), verschiebung (x * frobenius y) = verschiebung x * y
+```
+you can
+1. call `polify`
+2. do a small amount of manual work -- maybe nothing, maybe `rintro`, etc
+3. call `witt_simp`
+
+and this will close the goal.
+
+`polify` cannot detect whether you are dealing with unary or binary polynomial functions.
+You must give it arguments to determine this.
+If you are proving a universally quantified goal like the above,
+call `polify _ _`.
+If the variables are introduced already, call `polify x y`.
+In the unary case, use `polify _` or `polify x`.
+
+`polify` is a light wrapper around type class inference.
+All it does is apply the appropriate extensionalify lemma and try to infer the resulting goals.
+This is subtle and Lean's elaborator doesn't like it because of the HO unification involved,
+so it is easier (and prettier) to put it in a tactic script.
+-/
 meta def polify (ids : parse ident_*) : tactic unit :=
 do ids ← ids.mmap $ λ n, get_local n <|> tactic.intro n,
    match ids with
-   | [`(%%x)] := refine ```(is_poly.ext' _ _ _ _ %%x)
-   | [`(%%x), `(%%y)] := refine ```(is_poly₂.ext' _ _ _ _ %%x %%y)
+   | [x] := refine ```(is_poly.ext' _ _ _ _ %%x)
+   | [x, y] := refine ```(is_poly₂.ext' _ _ _ _ %%x %%y)
    | _ := fail "polify takes one or two arguments"
    end,
    rotate 2,
@@ -235,6 +262,12 @@ def is_poly₂.diag {f φ} (hf : is_poly₂ p f φ) :
 namespace tactic
 open tactic
 
+/--
+If `n` is the name of a lemma with opened type `∀ vars, tp`,
+where `tp` is an application of `is_poly`,
+`mk_poly_comp_lemmas n vars tp` adds composition instances to the environment
+`n.comp_i` and `n.comp₂_i`.
+-/
 meta def mk_poly_comp_lemmas (n : name) (vars : list expr) (tp : expr) : tactic unit :=
 do c ← mk_const n,
    `(is_poly %%p _ _) ← return tp,
@@ -254,6 +287,12 @@ do c ← mk_const n,
    add_decl $ mk_definition nm tgt_tp.collect_univ_params tgt_tp tgt_bod,
    set_attribute `instance nm
 
+/--
+If `n` is the name of a lemma with opened type `∀ vars, tp`,
+where `tp` is an application of `is_poly₂`,
+`mk_poly₂_comp_lemmas n vars tp` adds composition instances to the environment
+`n.comp₂_i` and `n.comp_diag`.
+-/
 meta def mk_poly₂_comp_lemmas (n : name) (vars : list expr) (tp : expr) : tactic unit :=
 do c ← mk_const n,
    `(is_poly₂ %%p _ _) ← return tp,
@@ -273,6 +312,9 @@ do c ← mk_const n,
    add_decl $ mk_definition nm tgt_tp.collect_univ_params tgt_tp tgt_bod,
    set_attribute `instance nm
 
+/--
+The `after_set` function for `@[is_poly]`. Calls `mk_poly(₂)_comp_lemmas`.
+-/
 meta def mk_comp_lemmas (n : name) : tactic unit :=
 do d ← get_decl n,
    (vars, tp) ← open_pis d.type,
@@ -282,9 +324,32 @@ do d ← get_decl n,
      mk_poly₂_comp_lemmas n vars tp
    else fail "@[is_poly] should only be applied to terms of type `is_poly _ _` or `is_poly₂ _ _`"
 
+/--
+`@[is_poly]` is applied to lemmas of the form `is_poly f φ` or `is_poly₂ f φ`.
+These lemmas should *not* be tagged as instances, and only atomic `is_poly` defs should be tagged:
+composition lemmas should not. Roughly speaking, lemmas that take `is_poly` proofs as arguments
+should not be tagged.
+
+Type class inference struggles with function composition, and the higher order unification problems
+involved in inferring `is_poly` proofs are complex. The standard style writing these proofs by hand
+doesn't work very well. Instead, we construct the type class hierarchy "under the hood", with
+limited forms of composition.
+
+Applying `@[is_poly]` to a lemma creates a number of instances. Roughly, if the tagged lemma is a
+proof of `is_poly f φ`, the instances added have the form
+```lean
+∀ g ψ, [is_poly g ψ] → is_poly (f ∘ g) _
+```
+Since `f` is fixed in this instance, it restricts the HO unification needed when the instance is
+applied. Composition lemmas relating `is_poly` with `is_poly₂` are also added.
+`id_is_poly` is an atomic instance.
+
+The user-written lemmas are not instances. Users should be able to assemble `is_poly` proofs by hand
+"as normal" if the tactic fails.
+-/
 @[user_attribute] meta def is_poly_attr : user_attribute :=
 { name := `is_poly,
-  descr := "",
+  descr := "Lemmas with this attribute describe the polynomial structure of functions",
   after_set := some $ λ n _ _, mk_comp_lemmas n }
 
 end tactic

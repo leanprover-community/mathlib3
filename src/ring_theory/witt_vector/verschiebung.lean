@@ -102,8 +102,6 @@ def verschiebung_fun_is_poly : is_poly p (λ R _Rcr, @verschiebung_fun p R _Rcr)
 variable {p}
 include hp
 
--- set_option trace.class_instances true
-
 /--
 `verschiebung x` shifts the coefficients of `x` up by one, by inserting 0 as the 0th coefficient.
 `x.coeff i` then becomes `(verchiebung x).coeff (i + 1)`.

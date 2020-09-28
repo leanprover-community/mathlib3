@@ -31,23 +31,20 @@ section adjoin_def
 variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (S : set E)
 
 /-- `adjoin F S` extends a field `F` by adjoining a set `S ⊆ E`. -/
-def adjoin : intermediate_field F E :=
-{ algebra_map_mem' := λ x, subfield.subset_closure
-  (set.subset_union_left  _ _ (set.mem_range_self x)),
-  .. subfield.closure (set.range (algebra_map F E) ∪ S), }
+lemma adjoin_le {T : intermediate_field F E} : adjoin F S ≤ T ↔ S ≤ T :=
+⟨λ H, le_trans (le_trans (set.subset_union_right _ _) subfield.subset_closure) H,
+λ H, (@subfield.closure_le E _ (set.range (algebra_map F E) ∪ S) T.to_subfield).mpr
+(set.union_subset (intermediate_field.set_range_subset T) H)⟩
 
 end adjoin_def
 
 section lattice
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 
-protected lemma gc : galois_connection (adjoin F : set E → intermediate_field F E) coe :=
-λ S T, ⟨λ H, le_trans (le_trans (set.subset_union_right _ _) subfield.subset_closure) H,
-λ H, (@subfield.closure_le E _ (set.range (algebra_map F E) ∪ S) T.to_subfield).mpr
-(set.union_subset (intermediate_field.set_range_subset T) H)⟩
+lemma gc : galois_connection (adjoin F : set E → intermediate_field F E) coe := adjoin_le F
 
 /-- Galois insertion between `adjoin` and `coe`. -/
-protected def gi : galois_insertion (adjoin F : set E → intermediate_field F E) coe :=
+def gi : galois_insertion (adjoin F : set E → intermediate_field F E) coe :=
 { choice := λ S _, adjoin F S,
   gc := intermediate_field.gc,
   le_l_u := λ S, (intermediate_field.gc (S : set E) (adjoin F S)).1 $ le_refl _,

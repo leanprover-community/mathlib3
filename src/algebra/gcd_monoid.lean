@@ -290,6 +290,16 @@ gcd_dvd_gcd (dvd_refl _) (dvd_mul_left _ _)
 theorem gcd_dvd_gcd_mul_right_right (m n k : α) : gcd m n ∣ gcd m (n * k) :=
 gcd_dvd_gcd (dvd_refl _) (dvd_mul_right _ _)
 
+theorem gcd_eq_of_associated_left {m n : α} (h : associated m n) (k : α) : gcd m k = gcd n k :=
+dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _)
+  (gcd_dvd_gcd (dvd_of_associated h) (dvd_refl _))
+  (gcd_dvd_gcd (dvd_of_associated h.symm) (dvd_refl _))
+
+theorem gcd_eq_of_associated_right {m n : α} (h : associated m n) (k : α) : gcd k m = gcd k n :=
+dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _)
+  (gcd_dvd_gcd (dvd_refl _) (dvd_of_associated h))
+  (gcd_dvd_gcd (dvd_refl _) (dvd_of_associated h.symm))
+
 end gcd
 
 section lcm
@@ -409,6 +419,16 @@ lcm_dvd_lcm (dvd_refl _) (dvd_mul_left _ _)
 
 theorem lcm_dvd_lcm_mul_right_right (m n k : α) : lcm m n ∣ lcm m (n * k) :=
 lcm_dvd_lcm (dvd_refl _) (dvd_mul_right _ _)
+
+theorem lcm_eq_of_associated_left {m n : α} (h : associated m n) (k : α) : lcm m k = lcm n k :=
+dvd_antisymm_of_normalize_eq (normalize_lcm _ _) (normalize_lcm _ _)
+  (lcm_dvd_lcm (dvd_of_associated h) (dvd_refl _))
+  (lcm_dvd_lcm (dvd_of_associated h.symm) (dvd_refl _))
+
+theorem lcm_eq_of_associated_right {m n : α} (h : associated m n) (k : α) : lcm k m = lcm k n :=
+dvd_antisymm_of_normalize_eq (normalize_lcm _ _) (normalize_lcm _ _)
+  (lcm_dvd_lcm (dvd_refl _) (dvd_of_associated h))
+  (lcm_dvd_lcm (dvd_refl _) (dvd_of_associated h.symm))
 
 end lcm
 

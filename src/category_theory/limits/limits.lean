@@ -186,7 +186,10 @@ def equiv_iso_limit {r t : cone F} (i : r ≅ t) : is_limit r ≃ is_limit t :=
 
 @[simp] lemma equiv_iso_limit_apply {r t : cone F} (i : r ≅ t) (P : is_limit r) :
   equiv_iso_limit i P = P.of_iso_limit i := rfl
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/master
 @[simp] lemma equiv_iso_limit_symm_apply {r t : cone F} (i : r ≅ t) (P : is_limit t) :
   (equiv_iso_limit i).symm P = P.of_iso_limit i.symm := rfl
 
@@ -279,16 +282,19 @@ def cone_points_iso_of_nat_iso {F G : J ⥤ C} {s : cone F} {t : cone G}
   hom_inv_id' := P.hom_ext (by tidy),
   inv_hom_id' := Q.hom_ext (by tidy), }
 
+@[reassoc]
 lemma cone_points_iso_of_nat_iso_hom_comp {F G : J ⥤ C} {s : cone F} {t : cone G}
   (P : is_limit s) (Q : is_limit t) (w : F ≅ G) (j : J) :
   (cone_points_iso_of_nat_iso P Q w).hom ≫ t.π.app j = s.π.app j ≫ w.hom.app j :=
 by simp
 
+@[reassoc]
 lemma cone_points_iso_of_nat_iso_inv_comp {F G : J ⥤ C} {s : cone F} {t : cone G}
   (P : is_limit s) (Q : is_limit t) (w : F ≅ G) (j : J) :
   (cone_points_iso_of_nat_iso P Q w).inv ≫ s.π.app j = t.π.app j ≫ w.inv.app j :=
 by simp
 
+@[reassoc]
 lemma lift_comp_cone_points_iso_of_nat_iso_hom {F G : J ⥤ C} {r s : cone F} {t : cone G}
   (P : is_limit s) (Q : is_limit t) (w : F ≅ G) :
   P.lift r ≫ (cone_points_iso_of_nat_iso P Q w).hom = Q.map r w.hom :=
@@ -603,7 +609,10 @@ def equiv_iso_colimit {r t : cocone F} (i : r ≅ t) : is_colimit r ≃ is_colim
 
 @[simp] lemma equiv_iso_colimit_apply {r t : cocone F} (i : r ≅ t) (P : is_colimit r) :
   equiv_iso_colimit i P = P.of_iso_colimit i := rfl
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/master
 @[simp] lemma equiv_iso_colimit_symm_apply {r t : cocone F} (i : r ≅ t) (P : is_colimit t) :
   (equiv_iso_colimit i).symm P = P.of_iso_colimit i.symm := rfl
 
@@ -697,16 +706,19 @@ def cocone_points_iso_of_nat_iso {F G : J ⥤ C} {s : cocone F} {t : cocone G}
   hom_inv_id' := P.hom_ext (by tidy),
   inv_hom_id' := Q.hom_ext (by tidy) }
 
+@[reassoc]
 lemma comp_cocone_points_iso_of_nat_iso_hom {F G : J ⥤ C} {s : cocone F} {t : cocone G}
   (P : is_colimit s) (Q : is_colimit t) (w : F ≅ G) (j : J) :
   s.ι.app j ≫ (cocone_points_iso_of_nat_iso P Q w).hom = w.hom.app j ≫ t.ι.app j :=
 by simp
 
+@[reassoc]
 lemma comp_cocone_points_iso_of_nat_iso_inv {F G : J ⥤ C} {s : cocone F} {t : cocone G}
   (P : is_colimit s) (Q : is_colimit t) (w : F ≅ G) (j : J) :
   t.ι.app j ≫ (cocone_points_iso_of_nat_iso P Q w).inv = w.inv.app j ≫ s.ι.app j :=
 by simp
 
+@[reassoc]
 lemma cocone_points_iso_of_nat_iso_hom_desc {F G : J ⥤ C} {s : cocone F} {r t : cocone G}
   (P : is_colimit s) (Q : is_colimit t) (w : F ≅ G) :
   (cocone_points_iso_of_nat_iso P Q w).hom ≫ Q.desc r = P.map _ w.hom :=

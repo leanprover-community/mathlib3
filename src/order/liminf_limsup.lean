@@ -37,7 +37,7 @@ In complete lattices, however, it coincides with the `Inf Sup` definition.
 open filter set
 open_locale filter
 
-variables {α : Type*} {β : Type*}
+variables {α β ι : Type*}
 namespace filter
 
 section relation
@@ -317,8 +317,15 @@ le_antisymm
   (le_Inf $ assume a ha, let ⟨i, hi, ha⟩ := h.eventually_iff.1 ha in
     infi_le_of_le _ $ infi_le_of_le hi $ Sup_le ha)
 
+theorem has_basis.Liminf_eq_supr_Inf {p : ι → Prop} {s : ι → set α} {f : filter α}
+  (h : f.has_basis p s) : f.Liminf = ⨆ i (hi : p i), Inf (s i) :=
+@has_basis.Limsup_eq_infi_Sup (order_dual α) _ _ _ _ _ h
+
 theorem Limsup_eq_infi_Sup {f : filter α} : f.Limsup = ⨅ s ∈ f, Sup s :=
 f.basis_sets.Limsup_eq_infi_Sup
+
+theorem Liminf_eq_supr_Inf {f : filter α} : f.Liminf = ⨆ s ∈ f, Inf s :=
+@Limsup_eq_infi_Sup (order_dual α) _ _
 
 /-- In a complete lattice, the limsup of a function is the infimum over sets `s` in the filter
 of the supremum of the function over `s` -/
@@ -326,26 +333,31 @@ theorem limsup_eq_infi_supr {f : filter β} {u : β → α} : f.limsup u = ⨅ s
 (f.basis_sets.map u).Limsup_eq_infi_Sup.trans $
   by simp only [Sup_image, id]
 
-lemma limsup_eq_infi_supr_of_nat {u : ℕ → α} : limsup at_top u = ⨅n:ℕ, ⨆i≥n, u i :=
+lemma limsup_eq_infi_supr_of_nat {u : ℕ → α} : limsup at_top u = ⨅ n : ℕ, ⨆ i ≥ n, u i :=
 (at_top_basis.map u).Limsup_eq_infi_Sup.trans $
   by simp only [Sup_image, infi_const]; refl
 
-lemma limsup_eq_infi_supr_of_nat' {u : ℕ → α} : limsup at_top u = ⨅n:ℕ, ⨆i, u (i + n) :=
+lemma limsup_eq_infi_supr_of_nat' {u : ℕ → α} : limsup at_top u = ⨅ n : ℕ, ⨆ i : ℕ, u (i + n) :=
 by simp only [limsup_eq_infi_supr_of_nat, supr_ge_eq_supr_nat_add]
 
-theorem Liminf_eq_supr_Inf {f : filter α} : f.Liminf = ⨆ s ∈ f, Inf s :=
-@Limsup_eq_infi_Sup (order_dual α) _ _
+theorem has_basis.limsup_eq_infi_supr {p : ι → Prop} {s : ι → set β} {f : filter β} {u : β → α}
+  (h : f.has_basis p s) : f.limsup u = ⨅ i (hi : p i), ⨆ a ∈ s i, u a :=
+(h.map u).Limsup_eq_infi_Sup.trans $ by simp only [Sup_image, id]
 
 /-- In a complete lattice, the liminf of a function is the infimum over sets `s` in the filter
 of the supremum of the function over `s` -/
 theorem liminf_eq_supr_infi {f : filter β} {u : β → α} : f.liminf u = ⨆ s ∈ f, ⨅ a ∈ s, u a :=
 @limsup_eq_infi_supr (order_dual α) β _ _ _
 
-lemma liminf_eq_supr_infi_of_nat {u : ℕ → α} : liminf at_top u = ⨆n:ℕ, ⨅i≥n, u i :=
+lemma liminf_eq_supr_infi_of_nat {u : ℕ → α} : liminf at_top u = ⨆ n : ℕ, ⨅ i ≥ n, u i :=
 @limsup_eq_infi_supr_of_nat (order_dual α) _ u
 
-lemma liminf_eq_supr_infi_of_nat' {u : ℕ → α} : liminf at_top u = ⨆n:ℕ, ⨅i, u (i + n) :=
+lemma liminf_eq_supr_infi_of_nat' {u : ℕ → α} : liminf at_top u = ⨆ n : ℕ, ⨅ i : ℕ, u (i + n) :=
 @limsup_eq_infi_supr_of_nat' (order_dual α) _ _
+
+theorem has_basis.liminf_eq_supr_infi {p : ι → Prop} {s : ι → set β} {f : filter β} {u : β → α}
+  (h : f.has_basis p s) : f.liminf u = ⨆ i (hi : p i), ⨅ a ∈ s i, u a :=
+@has_basis.limsup_eq_infi_supr (order_dual α) _ _ _ _ _ _ _ h
 
 end complete_lattice
 

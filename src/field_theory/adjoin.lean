@@ -66,9 +66,6 @@ variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (S : set E)
 lemma adjoin_eq_range_algebra_map_adjoin :
   (adjoin F S : set E) = set.range (algebra_map (adjoin F S) E) := (subtype.range_coe).symm
 
-lemma adjoin.algebra_map_mem (x : F) : algebra_map F E x ∈ adjoin F S :=
-subfield.subset_closure (or.inl (set.mem_range_self x))
-
 lemma subset_adjoin_of_subset_left {F : set E} {HF : is_subfield F} {T : set E} (HT : T ⊆ F) :
   T ⊆ adjoin F S :=
 λ x hx, adjoin.algebra_map_mem F S ⟨x, HT hx⟩

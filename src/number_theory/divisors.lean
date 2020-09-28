@@ -13,22 +13,24 @@ This file defines sets of divisors of a natural number. This is particularly use
 for defining Dirichlet convolution.
 
 ## Main Definitions
-Let `n : ℕ`.
+Let `n : ℕ`. All of the following definitions are in the `nat` namespace:
  * `divisors n` is the `finset` of natural numbers that divide `n`.
  * `proper_divisors n` is the `finset` of natural numbers that divide `n`, other than `n`.
  * `divisors_antidiagonal n` is the `finset` of pairs `(x,y)` such that `x * y = n`.
+ * `perfect n` is true when the sum of `proper_divisors n` is `n`.
 
 ## Implementation details
  * All of `divisors 0`, `proper_divisors 0`, and `divisors_antidiagonal 0` are defined to be `∅`.
 
 ## Tags
-divisors
+divisors, perfect numbers
 
 -/
 
 open_locale classical
 open_locale big_operators
 
+namespace nat
 variable (n : ℕ)
 
 /-- `divisors n` is the `finset` of divisors of `n`. As a special case, `divisors 0 = ∅`. -/
@@ -112,12 +114,6 @@ end
 
 variable (n)
 
-def sum_divisors : ℕ :=
-∑ i in divisors n, i
-
-def sum_proper_divisors : ℕ :=
-∑ i in proper_divisors n, i
-
 @[simp]
 lemma divisors_zero : divisors 0 = ∅ := by { ext, simp }
 
@@ -166,10 +162,8 @@ begin
 end
 
 lemma sum_divisors_eq_sum_proper_divisors_add_self :
-sum_divisors n = sum_proper_divisors n + n :=
+∑ i in divisors n, i = ∑ i in proper_divisors n, i + n :=
 begin
-  rw sum_divisors,
-  rw sum_proper_divisors,
   by_cases n = 0,
   { rw h,
     have h1 : proper_divisors 0 = ∅, ext, rw proper_divisors, simp,
@@ -178,3 +172,17 @@ begin
     rw finset.sum_insert, rw add_comm,
     apply not_proper_self, omega, }
 end
+
+/-- `n : ℕ` is perfect if and only the sum of the proper divisors of `n` is `n`. -/
+def perfect (n : ℕ) : Prop := ∑ i in proper_divisors n, i = n
+
+theorem perfect_iff_sum_divisors_eq_two_mul {n : ℕ} :
+  perfect n ↔ ∑ i in divisors n, i = 2 * n :=
+begin
+  rw [perfect, sum_divisors_eq_sum_proper_divisors_add_self, two_mul],
+  split; intro h,
+  { rw h },
+  { apply add_right_cancel h }
+end
+
+end nat

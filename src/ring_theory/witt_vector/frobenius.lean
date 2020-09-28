@@ -95,7 +95,7 @@ lemma frobenius_poly_aux_eq (n : ℕ) :
     (frobenius_poly_aux p i) ^ (j + 1) *
     C ↑((p ^ (n - i)).choose (j + 1) / (p ^ (n - i - v p ⟨j + 1, nat.succ_pos j⟩)) *
       ↑p ^ (j - v p ⟨j + 1, nat.succ_pos j⟩) : ℕ) :=
-by { rw [frobenius_poly_aux, ← fin.sum_univ_eq_sum_range], refl }
+by { rw [frobenius_poly_aux, ← fin.sum_univ_eq_sum_range] }
 
 /-- The polynomials that give the coefficients of `frobenius x`,
 in terms of the coefficients of `x`. -/
@@ -169,11 +169,11 @@ begin
   { convert this,
   simp only [alg_hom.map_mul, alg_hom.map_sub, alg_hom.map_pow, alg_hom.map_sum,
     bind₁_C_right, bind₁_X_right, function.comp_app, witt_polynomial_eq_sum_C_mul_X_pow],
-  rw [sum_range_succ, sum_range_succ, nat.sub_self, nat.pow_zero,
+  rw [sum_range_succ, sum_range_succ, nat.sub_self, pow_zero,
       mul_comm _ (C (⅟ ↑p ^ n)), mul_sub, mul_add, ← mul_assoc, ← C_mul, mul_add, ← mul_assoc, ← C_mul,
       pow_add, ← mul_assoc, pow_one, pow_one,
       ← mul_pow, inv_of_mul_self, one_pow, one_mul, C_1, one_mul,
-      add_comm n, nat.add_sub_cancel, nat.pow_one, add_comm _ n,
+      add_comm n, nat.add_sub_cancel, pow_one, add_comm _ n,
       add_left_comm, ← add_sub, ← add_sub, ← mul_sub, ← sum_sub_distrib], },
 
   -- now that we have managed to isolate `X n ^ p`, we gladly cancel it
@@ -251,7 +251,7 @@ begin
     rw [nat.sub_zero, pow_zero, nat.choose_zero_right, nat.cast_one, one_mul, mul_one,
         sub_add_eq_sub_sub_swap],
     rw show (X i ^ p ^ (n + 1 - i) - (X i ^ p) ^ p ^ (n - i) : mv_polynomial ℕ ℚ) = 0,
-    { rw [← pow_mul, mul_comm, nat.sub_add_comm, nat.pow_succ, sub_self],
+    { rw [← pow_mul, mul_comm, nat.sub_add_comm, pow_succ', sub_self],
       exact le_of_lt hi },
     rw [zero_sub, mul_neg_eq_neg_mul_symm, neg_inj, mul_sum, ring_hom.map_sum, mul_sum],
     exact this },

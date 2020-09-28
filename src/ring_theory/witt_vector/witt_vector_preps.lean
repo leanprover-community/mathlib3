@@ -31,14 +31,6 @@ variables (σ R A : Type*) [comm_semiring R] [comm_semiring A]
 
 open_locale big_operators
 
-
--- Johan: why the hack does ring_hom.ker not exist!!!
--- Rob: it does now, why do you ask here?
-
-lemma C_dvd_iff_zmod {σ : Type*} (n : ℕ) (φ : mv_polynomial σ ℤ) :
-  C (n:ℤ) ∣ φ ↔ map (int.cast_ring_hom (zmod n)) φ = 0 :=
-C_dvd_iff_map_hom_eq_zero _ _ (char_p.int_cast_eq_zero_iff (zmod n) n) _
-
 end mv_polynomial
 
 namespace mv_polynomial
@@ -98,24 +90,6 @@ section move_this
 
 -- move this
 variables (σ) (R)
-@[simp] lemma constant_coeff_comp_C :
-  constant_coeff.comp (C : R →+* mv_polynomial σ R) = ring_hom.id R :=
-by { ext, apply constant_coeff_C }
-
-@[simp] lemma constant_coeff_comp_algebra_map :
-  constant_coeff.comp (algebra_map R (mv_polynomial σ R)) = ring_hom.id R :=
-constant_coeff_comp_C _ _
-
-variable {σ}
-
-@[simp] lemma constant_coeff_rename {τ : Type*} (f : σ → τ) (φ : mv_polynomial σ R) :
-  constant_coeff (rename f φ) = constant_coeff φ :=
-begin
-  apply φ.induction_on,
-  { intro a, simp only [constant_coeff_C, rename_C]},
-  { intros p q hp hq, simp only [hp, hq, ring_hom.map_add, alg_hom.map_add] },
-  { intros p n hp, simp only [hp, rename_X, constant_coeff_X, ring_hom.map_mul, alg_hom.map_mul] }
-end
 
 end move_this
 
@@ -262,23 +236,6 @@ section zmod
 open mv_polynomial
 variables {p : ℕ} {σ : Type*}
 
-@[simp] lemma frobenius_zmod (p : ℕ) [hp : fact p.prime] (a : zmod p) :
-  frobenius _ p a = a :=
-by rw [frobenius_def, zmod.pow_card]
-
-lemma mv_polynomial.frobenius_zmod [fact p.prime] (φ : mv_polynomial σ (zmod p)) :
-  frobenius _ p φ = expand p φ :=
-begin
-  apply induction_on φ,
-  { intro a, rw [expand_C, frobenius_def, ← C_pow, zmod.pow_card], },
-  { simp only [alg_hom.map_add, ring_hom.map_add], intros _ _ hf hg, rw [hf, hg] },
-  { simp only [expand_X, ring_hom.map_mul, alg_hom.map_mul],
-    intros _ _ hf, rw [hf, frobenius_def], },
-end
-
-lemma mv_polynomial.expand_zmod [fact p.prime] (φ : mv_polynomial σ (zmod p)) :
-  expand p φ = φ^p :=
-(mv_polynomial.frobenius_zmod _).symm
 
 end zmod
 -- ### end FOR_MATHLIB

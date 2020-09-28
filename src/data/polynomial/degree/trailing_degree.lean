@@ -1,5 +1,22 @@
+/-
+Copyright (c) 2020 Damiano Testa. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Damiano Testa
+-/
 import tactic
 import data.polynomial.degree.basic
+
+/-!
+# Theory of univariate polynomials
+
+The definitions include
+`trailing_degree`, `nat_trailing_degree`, `trailing_coeff`
+
+Converts most results about `degree`, `nat_degree` and `leading_coeff` to results about the bottom end of a polynomial
+-/
+
+
+
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
@@ -134,9 +151,7 @@ by rw [← C_1]; exact le_trailing_degree_C
 @[simp] lemma nat_trailing_degree_C (a : R) : nat_trailing_degree (C a) = 0 :=
 begin
   by_cases ha : a = 0,
-  { have : C a = 0, { rw [ha, C_0] },
-    rw [nat_trailing_degree, trailing_degree_eq_top.2 this],
-    refl },
+  { rw [ha, C_0, nat_trailing_degree_zero], },
   { rw [nat_trailing_degree, trailing_degree_C ha], refl }
 end
 
@@ -166,10 +181,7 @@ end
 @[simp] lemma coeff_nat_trailing_degree_pred_eq_zero {p : polynomial R} {hp : (0 : with_top ℕ) < nat_trailing_degree p} : p.coeff (p.nat_trailing_degree - 1) = 0 :=
 begin
   apply coeff_eq_zero_of_lt_nat_trailing_degree,
-  have inint : (p.nat_trailing_degree - 1 : int) < p.nat_trailing_degree,
-    exact int.pred_self_lt p.nat_trailing_degree,
-  norm_cast at *,
-  exact inint,
+  apply nat.sub_lt ((with_top.zero_lt_coe (nat_trailing_degree p)).mp hp) nat.one_pos,
 end
 
 theorem le_trailing_degree_C_mul_X_pow (r : R) (n : ℕ) : (n : with_top ℕ) ≤ trailing_degree (C r * X^n) :=
@@ -186,28 +198,42 @@ by simpa only [C_1, one_mul] using le_trailing_degree_C_mul_X_pow (1:R) n
 theorem le_trailing_degree_X : (1 : with_top ℕ) ≤ trailing_degree (X : polynomial R) :=
 by simpa only [C_1, one_mul, pow_one] using le_trailing_degree_C_mul_X_pow (1:R) 1
 
+lemma support_X (H : (1:R) ≠ 0) : (X : polynomial R).support = singleton 1 :=
+begin
+  unfold X,
+  unfold monomial,
+  unfold single,
+  simp only [if_false, one_ne_zero],
+  split_ifs,
+    { exfalso,
+      solve_by_elim, },
+    {refl, },
+end
+
+lemma support_X_empty (H : (1:R)=0) : (X : polynomial R).support = ∅ :=
+begin
+  unfold X,
+  unfold monomial,
+  unfold single,
+  simp only [if_false, one_ne_zero],
+  split_ifs,
+  refl,
+end
+
 lemma nat_trailing_degree_X_le : (X : polynomial R).nat_trailing_degree ≤ 1 :=
 begin
   by_cases h : X = 0,
     { rw [h, nat_trailing_degree_zero],
       exact zero_le 1, },
-    { apply le_of_eq,
-      rw [← trailing_degree_eq_iff_nat_trailing_degree_eq h, ← one_mul X, ← C_1, ← pow_one X],
-      have ne0p : (1 : polynomial R) ≠ 0,
-        { intro,
-          apply h,
-          rw [← one_mul X, a, zero_mul], },
-      have ne0R : (1 : R) ≠ 0,
-        { refine (push_neg.not_eq 1 0).mp _,
-          intro,
-          apply ne0p,
-          rw [← C_1 , ← C_0, C_inj],
-          assumption, },
-      exact trailing_degree_monomial (1:ℕ) ne0R, },
+    { unfold nat_trailing_degree,
+      unfold trailing_degree,
+      rw [support_X, inf_singleton, option.get_or_else_some],
+      intro,
+      rw [← C_inj] at a,
+      apply h,
+      rw [← mul_one X, ← C_1, a, C_0, mul_zero], },
 end
 end semiring
-
-
 
 
 section nonzero_semiring

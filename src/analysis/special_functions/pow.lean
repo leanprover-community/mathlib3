@@ -7,10 +7,15 @@ import analysis.special_functions.trigonometric
 import analysis.calculus.extend_deriv
 
 /-!
-# Power function on `ℂ`, `ℝ` and `ℝ⁺`
+# Power function on `ℂ`, `ℝ`, `ℝ≥0`, and `ennreal`
 
-We construct the power functions `x ^ y` where `x` and `y` are complex numbers, or `x` and `y` are
-real numbers, or `x` is a nonnegative real and `y` is real, and prove their basic properties.
+We construct the power functions `x ^ y` where
+* `x` and `y` are complex numbers,
+* or `x` and `y` are real numbers,
+* or `x` is a nonnegative real number and `y` is a real number;
+* or `x` is a number from `[0, +∞]` (a.k.a. `ennreal`) and `y` is a real number.
+
+We also prove basic properties of these functions.
 -/
 
 noncomputable theory
@@ -880,7 +885,22 @@ open filter
 lemma filter.tendsto.nnrpow {α : Type*} {f : filter α} {u : α → ℝ≥0} {v : α → ℝ} {x : ℝ≥0} {y : ℝ}
   (hx : tendsto u f (𝓝 x)) (hy : tendsto v f (𝓝 y)) (h : x ≠ 0 ∨ 0 < y) :
   tendsto (λ a, (u a) ^ (v a)) f (𝓝 (x ^ y)) :=
-tendsto.comp (nnreal.continuous_at_rpow h) (tendsto.prod_mk_nhds hx hy)
+tendsto.comp (nnreal.continuous_at_rpow h) (hx.prod_mk_nhds hy)
+
+namespace nnreal
+
+lemma continuous_at_rpow_const {x : ℝ≥0} {y : ℝ} (h : x ≠ 0 ∨ 0 ≤ y) :
+  continuous_at (λ z, z^y) x :=
+h.elim (λ h, tendsto_id.nnrpow tendsto_const_nhds (or.inl h)) $
+  λ h, h.eq_or_lt.elim
+    (λ h, h ▸ by simp only [rpow_zero, continuous_at_const])
+    (λ h, tendsto_id.nnrpow tendsto_const_nhds (or.inr h))
+
+lemma continuous_rpow_const {y : ℝ} (h : 0 ≤ y) :
+  continuous (λ x : ℝ≥0, x^y) :=
+continuous_iff_continuous_at.2 $ λ x, continuous_at_rpow_const (or.inr h)
+
+end nnreal
 
 namespace ennreal
 

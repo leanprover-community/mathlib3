@@ -220,6 +220,14 @@ by { rw [ennreal.lt_top_iff_ne_top] at h ⊢, exact ne_top_of_mul_ne_top_left h 
 lemma lt_top_of_mul_lt_top_right (h : a * b < ⊤) (ha : a ≠ 0) : b < ⊤ :=
 lt_top_of_mul_lt_top_left (by rwa [mul_comm]) ha
 
+lemma mul_lt_top_iff {a b : ennreal} : a * b < ⊤ ↔ (a < ⊤ ∧ b < ⊤) ∨ a = 0 ∨ b = 0 :=
+begin
+  split,
+  { intro h, rw [← or_assoc, or_iff_not_imp_right, or_iff_not_imp_right], intros hb ha,
+    exact ⟨lt_top_of_mul_lt_top_left h hb, lt_top_of_mul_lt_top_right h ha⟩ },
+  { rintro (⟨ha, hb⟩|rfl|rfl); [exact mul_lt_top ha hb, simp, simp] }
+end
+
 @[simp] lemma mul_pos : 0 < a * b ↔ 0 < a ∧ 0 < b :=
 by simp only [zero_lt_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
 
@@ -363,7 +371,7 @@ instance : char_zero ennreal := ⟨coe_nat_mono.injective⟩
 
 protected lemma exists_nat_gt {r : ennreal} (h : r ≠ ⊤) : ∃n:ℕ, r < n :=
 begin
-  rcases lt_iff_exists_coe.1 (lt_top_iff_ne_top.2 h) with ⟨r, rfl, hb⟩,
+  lift r to nnreal using h,
   rcases exists_nat_gt r with ⟨n, hn⟩,
   exact ⟨n, coe_lt_coe_nat.2 hn⟩,
 end
@@ -1056,6 +1064,10 @@ lemma to_real_pos_iff : 0 < a.to_real ↔ (0 < a ∧ a ≠ ∞):=
 
 lemma of_real_le_of_real {p q : ℝ} (h : p ≤ q) : ennreal.of_real p ≤ ennreal.of_real q :=
 by simp [ennreal.of_real, nnreal.of_real_le_of_real h]
+
+lemma of_real_le_of_le_to_real {a : ℝ} {b : ennreal} (h : a ≤ ennreal.to_real b) :
+  ennreal.of_real a ≤ b :=
+(of_real_le_of_real h).trans of_real_to_real_le
 
 @[simp] lemma of_real_le_of_real_iff {p q : ℝ} (h : 0 ≤ q) :
   ennreal.of_real p ≤ ennreal.of_real q ↔ p ≤ q :=

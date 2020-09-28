@@ -177,8 +177,7 @@ def kernel.lift' {W : C} (k : W ⟶ X) (h : k ≫ f = 0) : {l : W ⟶ kernel f /
 ⟨kernel.lift f k h, kernel.lift_ι _ _ _⟩
 
 /-- Every kernel of the zero morphism is an isomorphism -/
-instance kernel.ι_zero_is_iso :
-  is_iso (kernel.ι (0 : X ⟶ Y)) :=
+instance kernel.ι_zero_is_iso : is_iso (kernel.ι (0 : X ⟶ Y)) :=
 equalizer.ι_of_self _
 
 lemma eq_zero_of_epi_kernel [epi (kernel.ι f)] : f = 0 :=

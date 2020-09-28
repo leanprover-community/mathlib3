@@ -5,7 +5,7 @@ Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo, Yury Kudryashov
 -/
 import topology.algebra.ring
 import topology.uniform_space.uniform_embedding
-import ring_theory.algebra
+import algebra.algebra.basic
 import linear_algebra.projection
 
 /-!

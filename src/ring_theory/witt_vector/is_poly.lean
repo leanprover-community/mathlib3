@@ -282,7 +282,7 @@ See also `witt_vector.is_poly` for the unary variant.
 variable {p}
 
 /-- The composition of polynomial functions is polynomial. -/
-def is_poly₂.comp {h f g} (hh : is_poly₂ p h) (hf : is_poly p f) (hg : is_poly p g) :
+lemma is_poly₂.comp {h f g} (hh : is_poly₂ p h) (hf : is_poly p f) (hg : is_poly p g) :
   is_poly₂ p (λ R _Rcr x y, by exactI h (f x) (g y)) :=
 begin
   unfreezingI
@@ -520,13 +520,13 @@ variables {p}
 
 /-- The composition of a binary polynomial function
  with a unary polynomial function in the first argument is polynomial. -/
-def comp_left {g f} (hg : is_poly₂ p g) (hf : is_poly p f) :
+lemma comp_left {g f} (hg : is_poly₂ p g) (hf : is_poly p f) :
   is_poly₂ p (λ R _Rcr x y, by exactI g (f x) y) :=
 hg.comp hf (witt_vector.id_is_poly _)
 
 /-- The composition of a binary polynomial function
  with a unary polynomial function in the second argument is polynomial. -/
-def comp_right {g f} (hg : is_poly₂ p g) (hf : is_poly p f) :
+lemma comp_right {g f} (hg : is_poly₂ p g) (hf : is_poly p f) :
   is_poly₂ p (λ R _Rcr x y, by exactI g x (f y)) :=
 hg.comp (witt_vector.id_is_poly p) hf
 

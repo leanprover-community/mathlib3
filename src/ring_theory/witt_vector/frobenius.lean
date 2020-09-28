@@ -338,28 +338,28 @@ def frobenius : 𝕎 R →+* 𝕎 R :=
 { to_fun := frobenius_fun,
   map_zero' :=
   begin
-    refine is_poly.ext'
+    refine is_poly.ext
       ((frobenius_fun_is_poly p).comp (witt_vector.zero_is_poly))
       ((witt_vector.zero_is_poly).comp (frobenius_fun_is_poly p)) _ _ 0,
     introsI,
-    simp only [ghost_component_frobenius_fun, ring_hom.map_zero],
+    simp only [ghost_component_frobenius_fun, ring_hom.map_zero]
   end,
   map_one' :=
   begin
-    refine is_poly.ext'
+    refine is_poly.ext
       ((frobenius_fun_is_poly p).comp (witt_vector.one_is_poly))
       ((witt_vector.one_is_poly).comp (frobenius_fun_is_poly p)) _ _ 0,
     introsI,
-    simp only [ghost_component_frobenius_fun, ring_hom.map_one],
+    simp only [ghost_component_frobenius_fun, ring_hom.map_one]
   end,
   map_add' :=
   begin
-    polify _ _,
+    ghost_calc _ _,
     simp only [ghost_component_frobenius_fun, ring_hom.map_add, forall_const, eq_self_iff_true],
   end,
   map_mul' :=
   begin
-    polify _ _,
+    ghost_calc _ _,
     introsI, simp only [ghost_component_frobenius_fun, ring_hom.map_mul]
   end }
 

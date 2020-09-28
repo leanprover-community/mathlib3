@@ -134,7 +134,7 @@ def verschiebung : 𝕎 R →+ 𝕎 R :=
   by ext ⟨⟩; rw [verschiebung_fun_coeff]; simp only [if_true, eq_self_iff_true, zero_coeff, if_t_t],
   map_add' :=
   begin
-    polify _ _,
+    ghost_calc _ _,
     rintro ⟨⟩;
     simp only [ring_hom.map_add, ghost_component_verschiebung_fun,
       ghost_component_zero_verschiebung_fun, mul_add, add_zero],

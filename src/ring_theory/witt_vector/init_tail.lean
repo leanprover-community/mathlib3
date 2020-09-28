@@ -101,7 +101,7 @@ include hp
 lemma add_select_select_not :
   ∀ (x : 𝕎 R), select P x + select (λ i, ¬ P i) x = x :=
 begin
-  polify _,
+  ghost_calc _,
   intro n,
   simp only [ring_hom.map_add],
   have : (bind₁ (select_poly P)) (witt_polynomial p ℤ n) + (bind₁ (select_poly (λ i, ¬P i))) (witt_polynomial p ℤ n) = witt_polynomial p ℤ n,

@@ -13,7 +13,7 @@ such that the `n`th coefficient of `f x` is equal to `φ n` evaluated on the coe
 Many operations on Witt vectors satisfy this predicate (or an analogue for higher arity functions).
 We say that such a function `f` is a *polynomial function*.
 
-The power of satisfying this predicate comes from `is_poly.ext'`.
+The power of satisfying this predicate comes from `is_poly.ext`.
 It shows that if `φ` and `ψ` witness that `f` and `g` are polynomial functions,
 then `f = g` not merely when `φ = ψ`, but in fact it suffices to prove
 ```
@@ -34,7 +34,7 @@ and `witt_vector.verschiebung` is equal to multiplication by `p`.
 * `witt_vector.is_poly`, `witt_vector.is_poly₂`:
   two predicates that assert that a unary/binary function on Witt vectors
   is polynomial in the coefficients of the input values.
-* `witt_vector.is_poly.ext'`, `witt_vector.is_poly₂.ext'`:
+* `witt_vector.is_poly.ext`, `witt_vector.is_poly₂.ext`:
   two polynomial functions are equal if their families of polynomials are equal
   after evaluating the Witt polynmials on them.
 * `witt_vector.is_poly.comp` (+ many variants) show that unary/binary compositions
@@ -55,7 +55,7 @@ Nullary functions (a.k.a. constants) are treated as constant functions and fall 
 ## Tactics
 
 There are important metaprograms defined in this file:
-the tactics `witt_simp` and `polify` and the attributes `@[is_poly]` and `@[ghost_simps]`.
+the tactics `witt_simp` and `ghost_calc` and the attributes `@[is_poly]` and `@[ghost_simps]`.
 These are used in combination to discharge proofs of identities between polynomial functions.
 
 Any atomic proof of `is_poly` or `is_poly₂` (i.e. not taking additional `is_poly` arguments)
@@ -72,7 +72,7 @@ lemma bind₁_frobenius_poly_witt_polynomial (n : ℕ) :
 Proofs of identities between polynomial functions will often follow the pattern
 ```lean
 begin
-  polify _,
+  ghost_calc _,
   <minor preprocessing>,
   witt_simp
 end
@@ -105,37 +105,37 @@ meta def pexpr_ : lean.parser (unit ⊕ pexpr) :=
 tk "_" >> return (sum.inl ()) <|> sum.inr <$> parser.pexpr
 
 /--
-`polify` is a tactic for proving identities between polynomial functions.
+`ghost_calc` is a tactic for proving identities between polynomial functions.
 Typically, when faced with a goal like
 ```lean
 ∀ (x y : 𝕎 R), verschiebung (x * frobenius y) = verschiebung x * y
 ```
 you can
-1. call `polify`
+1. call `ghost_calc`
 2. do a small amount of manual work -- maybe nothing, maybe `rintro`, etc
 3. call `witt_simp`
 
 and this will close the goal.
 
-`polify` cannot detect whether you are dealing with unary or binary polynomial functions.
+`ghost_calc` cannot detect whether you are dealing with unary or binary polynomial functions.
 You must give it arguments to determine this.
 If you are proving a universally quantified goal like the above,
-call `polify _ _`.
-If the variables are introduced already, call `polify x y`.
-In the unary case, use `polify _` or `polify x`.
+call `ghost_calc _ _`.
+If the variables are introduced already, call `ghost_calc x y`.
+In the unary case, use `ghost_calc _` or `ghost_calc x`.
 
-`polify` is a light wrapper around type class inference.
+`ghost_calc` is a light wrapper around type class inference.
 All it does is apply the appropriate extensionalify lemma and try to infer the resulting goals.
 This is subtle and Lean's elaborator doesn't like it because of the HO unification involved,
 so it is easier (and prettier) to put it in a tactic script.
 -/
-meta def polify (ids' : parse ident_*) : tactic unit :=
+meta def ghost_calc (ids' : parse ident_*) : tactic unit :=
 do ids ← ids'.mmap $ λ n, get_local n <|> tactic.intro n,
    `(@eq (witt_vector _ %%R) _ _) ← target,
    match ids with
-   | [x] := refine ```(is_poly.ext' _ _ _ _ %%x)
-   | [x, y] := refine ```(is_poly₂.ext' _ _ _ _ %%x %%y)
-   | _ := fail "polify takes one or two arguments"
+   | [x] := refine ```(is_poly.ext _ _ _ _ %%x)
+   | [x, y] := refine ```(is_poly₂.ext _ _ _ _ %%x %%y)
+   | _ := fail "ghost_calc takes one or two arguments"
    end,
    nm ← match R with
    | expr.local_const _ nm _ _ := return nm
@@ -228,7 +228,7 @@ instance : inhabited (is_poly p (λ _ _, id)) :=
 
 variables {p}
 include hp
-lemma ext' {f g} (hf : is_poly p f) (hg : is_poly p g)
+lemma ext {f g} (hf : is_poly p f) (hg : is_poly p g)
   (h : ∀ (R : Type u) [_Rcr : comm_ring R] (x : 𝕎 R) (n : ℕ),
     by exactI ghost_component n (f x) = ghost_component n (g x)) :
   ∀ (R : Type u) [_Rcr : comm_ring R] (x : 𝕎 R), by exactI f x = g x :=
@@ -611,7 +611,7 @@ hg.comp (witt_vector.id_is_poly p) hf
 
 include hp
 
-lemma ext' {f g} (hf : is_poly₂ p f) (hg : is_poly₂ p g)
+lemma ext {f g} (hf : is_poly₂ p f) (hg : is_poly₂ p g)
   (h : ∀ (R : Type u) [_Rcr : comm_ring R] (x y : 𝕎 R) (n : ℕ),
     by exactI ghost_component n (f x y) = ghost_component n (g x y)) :
   ∀ (R) [_Rcr : comm_ring R] (x y : 𝕎 R), by exactI f x y = g x y :=

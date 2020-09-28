@@ -36,7 +36,7 @@ include hp
 lemma frobenius_verschiebung (x : 𝕎 R) :
   frobenius (verschiebung x) = x * p :=
 begin
-  polify x,
+  ghost_calc x,
   introsI,
   simp only [ghost_component_verschiebung, ghost_component_frobenius,
     ring_hom.map_mul, ring_hom.map_nat_cast, mul_comm],
@@ -60,7 +60,7 @@ end
 lemma verschiebung_mul_frobenius (x y : 𝕎 R) :
   verschiebung (x * frobenius y) = verschiebung x * y :=
 begin
-  polify x y,
+  ghost_calc x y,
   rintro ⟨⟩;
   simp [ghost_component_zero_verschiebung, zero_mul, ring_hom.map_mul,
     ghost_component_verschiebung, ghost_component_frobenius, nat.succ_eq_add_one, mul_assoc],

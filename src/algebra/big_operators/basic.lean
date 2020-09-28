@@ -1015,15 +1015,10 @@ end finset
 namespace list
 
 @[to_additive] lemma prod_to_finset {M : Type*} [decidable_eq α] [comm_monoid M]
-  (f : α → M) {l : list α} (hl : l.nodup) : l.to_finset.prod f = (l.map f).prod :=
-begin
-  revert hl,
-  apply l.rec_on,
-  { simp },
-  intros a l ih hl,
-  obtain ⟨not_mem, hl⟩ := list.nodup_cons.mp hl,
-  simp [finset.prod_insert (mt list.mem_to_finset.mp not_mem), ih hl]
-end
+  (f : α → M) : ∀ {l : list α} (hl : l.nodup), l.to_finset.prod f = (l.map f).prod
+| [] _ := by simp
+| (a :: l) hl := let ⟨not_mem, hl⟩ := list.nodup_cons.mp hl in
+  by simp [finset.prod_insert (mt list.mem_to_finset.mp not_mem), prod_to_finset hl]
 
 end list
 

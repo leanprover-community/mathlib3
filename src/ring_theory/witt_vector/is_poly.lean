@@ -97,9 +97,6 @@ do tactic.try tactic.intro1,
      (lems ++ [simp_arg_type.symm_expr ``(sub_eq_add_neg)])
      [`ghost_simps] (loc.ns [none])
 
-meta def pexpr_ : lean.parser (unit ⊕ pexpr) :=
-tk "_" >> return (sum.inl ()) <|> sum.inr <$> parser.pexpr
-
 /--
 `ghost_calc` is a tactic for proving identities between polynomial functions.
 Typically, when faced with a goal like
@@ -230,8 +227,8 @@ lemma ext {f g} (hf : is_poly p f) (hg : is_poly p g)
   ∀ (R : Type u) [_Rcr : comm_ring R] (x : 𝕎 R), by exactI f x = g x :=
 begin
   unfreezingI
-  {obtain ⟨φ, hf⟩ := hf,
-  obtain ⟨ψ, hg⟩ := hg},
+  { obtain ⟨φ, hf⟩ := hf,
+    obtain ⟨ψ, hg⟩ := hg },
   intros,
   ext n,
   rw [hf, hg, poly_eq_of_witt_polynomial_bind_eq p φ ψ],
@@ -257,16 +254,12 @@ end
 omit hp
 
 /-- The composition of polynomial functions is polynomial. -/
--- def comp {g ψ f φ} (hg : is_poly p g ψ) (hf : is_poly p f φ) :
---   is_poly p (λ R _Rcr, @g R _Rcr ∘ @f R _Rcr) (λ n, bind₁ φ (ψ n)) :=
--- ⟨by { intros, simp only [aeval_bind₁, function.comp, hg.coeff, hf.coeff] }⟩
-
 lemma comp {g f} (hg : is_poly p g) (hf : is_poly p f) :
   is_poly p (λ R _Rcr, @g R _Rcr ∘ @f R _Rcr) :=
 begin
   unfreezingI
-  {obtain ⟨φ, hf⟩ := hf,
-  obtain ⟨ψ, hg⟩ := hg},
+  { obtain ⟨φ, hf⟩ := hf,
+    obtain ⟨ψ, hg⟩ := hg },
   use (λ n, bind₁ φ (ψ n)),
   intros,
   simp only [aeval_bind₁, function.comp, hg, hf]
@@ -293,9 +286,9 @@ def is_poly₂.comp {h f g} (hh : is_poly₂ p h) (hf : is_poly p f) (hg : is_po
   is_poly₂ p (λ R _Rcr x y, by exactI h (f x) (g y)) :=
 begin
   unfreezingI
-  {obtain ⟨φ, hf⟩ := hf,
-  obtain ⟨ψ, hg⟩ := hg,
-  obtain ⟨χ, hh⟩ := hh},
+  { obtain ⟨φ, hf⟩ := hf,
+    obtain ⟨ψ, hg⟩ := hg,
+    obtain ⟨χ, hh⟩ := hh },
   refine ⟨(λ n, bind₁ (uncurry $
           ![λ k, rename (prod.mk (0 : fin 2)) (φ k),
             λ k, rename (prod.mk (1 : fin 2)) (ψ k)]) (χ n)), _⟩,
@@ -314,37 +307,12 @@ lemma is_poly.comp₂ {g f} (hg : is_poly p g) (hf : is_poly₂ p f) :
   is_poly₂ p (λ R _Rcr x y, by exactI g (f x y)) :=
 begin
   unfreezingI
-  {obtain ⟨φ, hf⟩ := hf,
-  obtain ⟨ψ, hg⟩ := hg},
+  { obtain ⟨φ, hf⟩ := hf,
+    obtain ⟨ψ, hg⟩ := hg },
   use (λ n, bind₁ φ (ψ n)),
   intros,
   simp only [peval, aeval_bind₁, function.comp, hg, hf]
 end
-
--- /-- The composition of a polynomial function with a binary polynomial function is polynomial. -/
--- def is_poly.comp₂ {g ψ f φ} (hg : is_poly p g ψ) (hf : is_poly₂ p f φ) :
---   is_poly₂ p (λ R _Rcr x y, by exactI g (f x y)) (λ n, bind₁ φ (ψ n)) :=
--- ⟨by { intros, simp only [peval, aeval_bind₁, function.comp, hg.coeff, hf.coeff] }⟩
-
--- /-- The composition of a binary polynomial function
--- with two unary polynomial functions is polynomial. -/
--- def is_poly₂.comp {h χ f φ g ψ} (hh : is_poly₂ p h χ) (hf : is_poly p f φ) (hg : is_poly p g ψ) :
---   is_poly₂ p (λ R _Rcr x y, by exactI h (f x) (g y))
---     (λ n, bind₁ (uncurry $
---             ![λ k, rename (prod.mk (0 : fin 2)) (φ k),
---               λ k, rename (prod.mk (1 : fin 2)) (ψ k)]) (χ n)) :=
--- { coeff :=
---   begin
---     intros,
---     funext n,
---     simp only [peval, aeval_bind₁, function.comp, hh.coeff, hf.coeff, hg.coeff, uncurry],
---     apply eval₂_hom_congr rfl _ rfl,
---     ext ⟨i, n⟩,
---     fin_cases i;
---     simp only [aeval_eq_eval₂_hom, eval₂_hom_rename, function.comp, matrix.cons_val_zero,
---       matrix.head_cons, matrix.cons_val_one],
---   end }
-
 
 /-- The diagonal `λ x, f x x` of a polynomial function `f` is polynomial. -/
 lemma is_poly₂.diag {f} (hf : is_poly₂ p f) :
@@ -511,23 +479,9 @@ begin
   { simp only [one_poly, nat.succ_pos', one_coeff_pos, if_neg n.succ_ne_zero, alg_hom.map_zero] }
 end⟩
 
--- instance one_is_poly_i : is_poly p (λ _ _ _, by exactI 1) :=
--- one_is_poly
-
 end zero_one
 
 omit hp
-
--- /--
--- A binary function `f : Π R, 𝕎 R → 𝕎 R → 𝕎 R` on Witt vectors
--- is said to be *polynomial* if there is a family of polynomials `φₙ` over `ℤ` such that the `n`th
--- coefficient of `f x y` is given by evaluating `φₙ` at the coefficients of `x` and `y`.
-
--- See also `witt_vector.is_poly` for the unary variant.
--- -/
--- def is_poly₂ (f : Π ⦃R⦄ [comm_ring R], witt_vector p R → 𝕎 R → 𝕎 R) : Prop :=
--- ∃ φ : ℕ → mv_polynomial (fin 2 × ℕ) ℤ, ∀ ⦃R⦄ [comm_ring R] (x y : 𝕎 R),
---   by exactI (f x y).coeff = λ n, peval (φ n) ![x.coeff, y.coeff]
 
 /-- Addition of Witt vectors is a polynomial function. -/
 @[is_poly] lemma add_is_poly₂ [fact p.prime] : is_poly₂ p (λ _ _, by exactI (+)) :=
@@ -540,35 +494,6 @@ omit hp
 
 
 include hp
-
--- lemma ext {f g} (hf : is_poly p f) (hg : is_poly p g)
---   (h : ∀ (R : Type u) [_Rcr : comm_ring R] (x : 𝕎 R) (n : ℕ),
---     by exactI ghost_component n (f x) = ghost_component n (g x)) :
---   ∀ (R : Type u) [_Rcr : comm_ring R] (x : 𝕎 R), by exactI f x = g x :=
--- begin
---   obtain ⟨φ, hf⟩ := hf,
---   obtain ⟨ψ, hg⟩ := hg,
---   intros,
---   ext n,
---   rw [hf, hg, poly_eq_of_witt_polynomial_bind_eq p φ ψ],
---   intro k,
---   apply mv_polynomial.funext,
---   intro x,
---   simp only [hom_bind₁],
---   specialize h (ulift ℤ) (mk p $ λ i, ⟨x i⟩) k,
---   simp only [ghost_component_apply, aeval_eq_eval₂_hom] at h,
---   apply (ulift.ring_equiv.{0 u}).symm.injective,
---   simp only [map_eval₂_hom],
---   convert h,
---   all_goals {
---     funext i,
---     rw [← ring_equiv.coe_ring_hom],
---     simp only [hf, hg, mv_polynomial.eval, map_eval₂_hom],
---     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
---     ext1,
---     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
---     simp only [coeff_mk], refl }
--- end
 
 -- unfortunately this is not universe polymorphic, merely because `f` isn't
 lemma is_poly.map {f} (hf : is_poly p f) (g : R →+* S) (x : 𝕎 R) :
@@ -613,8 +538,8 @@ lemma ext {f g} (hf : is_poly₂ p f) (hg : is_poly₂ p g)
   ∀ (R) [_Rcr : comm_ring R] (x y : 𝕎 R), by exactI f x y = g x y :=
 begin
   unfreezingI
-  {obtain ⟨φ, hf⟩ := hf,
-  obtain ⟨ψ, hg⟩ := hg},
+  { obtain ⟨φ, hf⟩ := hf,
+    obtain ⟨ψ, hg⟩ := hg },
   intros,
   ext n,
   rw [hf, hg, poly_eq_of_witt_polynomial_bind_eq' p φ ψ],

@@ -6,7 +6,7 @@ Authors: Johan Commelin, Robert Y. Lewis
 
 import ring_theory.witt_vector.witt_vector_preps
 import ring_theory.witt_vector.structure_polynomial
-import data.mv_polynomial.comap
+import data.mv_polynomial.counit
 
 /-!
 # Witt vectors

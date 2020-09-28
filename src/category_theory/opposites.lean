@@ -189,7 +189,13 @@ local attribute [semireducible] has_hom.opposite
 
 @[simp] lemma op_id (F : C ⥤ D) : nat_trans.op (𝟙 F) = 𝟙 (F.op) := rfl
 
-@[simps] protected definition unop (α : F.op ⟶ G.op) : G ⟶ F :=
+@[simps] protected definition unop {F G : Cᵒᵖ ⥤ Dᵒᵖ} (α : F ⟶ G) : G.unop ⟶ F.unop :=
+{ app         := λ X, (α.app (op X)).unop,
+  naturality' := begin tidy, erw α.naturality, refl, end }
+
+@[simp] lemma unop_id (F : Cᵒᵖ ⥤ Dᵒᵖ) : nat_trans.unop (𝟙 F) = 𝟙 (F.unop) := rfl
+
+@[simps] protected definition remove_op (α : F.op ⟶ G.op) : G ⟶ F :=
 { app         := λ X, (α.app (op X)).unop,
   naturality' :=
   begin
@@ -200,7 +206,7 @@ local attribute [semireducible] has_hom.opposite
     refl,
   end }
 
-@[simp] lemma unop_id (F : C ⥤ D) : nat_trans.unop (𝟙 F.op) = 𝟙 F := rfl
+@[simp] lemma remove_op_id (F : C ⥤ D) : nat_trans.remove_op (𝟙 F.op) = 𝟙 F := rfl
 
 end
 
@@ -267,14 +273,28 @@ protected definition op (α : F ≅ G) : G.op ≅ F.op :=
 
 /-- The natural isomorphism between functors `G ≅ F` induced by a natural isomorphism
 between the opposite functors `F.op ≅ G.op`. -/
-protected definition unop (α : F.op ≅ G.op) : G ≅ F :=
+protected definition remove_op (α : F.op ≅ G.op) : G ≅ F :=
+{ hom := nat_trans.remove_op α.hom,
+  inv := nat_trans.remove_op α.inv,
+  hom_inv_id' := begin ext, dsimp, rw ←unop_comp, rw α.inv_hom_id_app, refl, end,
+  inv_hom_id' := begin ext, dsimp, rw ←unop_comp, rw α.hom_inv_id_app, refl, end }
+
+@[simp] lemma remove_op_hom (α : F.op ≅ G.op) :
+  (nat_iso.remove_op α).hom = nat_trans.remove_op α.hom := rfl
+@[simp] lemma remove_op_inv (α : F.op ≅ G.op) :
+  (nat_iso.remove_op α).inv = nat_trans.remove_op α.inv := rfl
+
+protected def unop {F G : Cᵒᵖ ⥤ Dᵒᵖ} (α : F ≅ G) : G.unop ≅ F.unop :=
 { hom := nat_trans.unop α.hom,
   inv := nat_trans.unop α.inv,
   hom_inv_id' := begin ext, dsimp, rw ←unop_comp, rw α.inv_hom_id_app, refl, end,
   inv_hom_id' := begin ext, dsimp, rw ←unop_comp, rw α.hom_inv_id_app, refl, end }
 
-@[simp] lemma unop_hom (α : F.op ≅ G.op) : (nat_iso.unop α).hom = nat_trans.unop α.hom := rfl
-@[simp] lemma unop_inv (α : F.op ≅ G.op) : (nat_iso.unop α).inv = nat_trans.unop α.inv := rfl
+@[simp] lemma unop_hom {F G : Cᵒᵖ ⥤ Dᵒᵖ} (α : F ≅ G) :
+  (nat_iso.unop α).hom = nat_trans.unop α.hom := rfl
+@[simp] lemma unop_inv {F G : Cᵒᵖ ⥤ Dᵒᵖ} (α : F ≅ G) :
+  (nat_iso.unop α).inv = nat_trans.unop α.inv := rfl
+
 
 end nat_iso
 
@@ -300,18 +320,8 @@ An equivalence between opposite categories gives an equivalence between the orig
 def unop (e : Cᵒᵖ ≌ Dᵒᵖ) : C ≌ D :=
 { functor := e.functor.unop,
   inverse := e.inverse.unop,
-  unit_iso := nat_iso.of_components (λ X,
-  { hom := (e.unit_iso.app (opposite.op X)).inv.unop,
-    inv := (e.unit_iso.app (opposite.op X)).hom.unop,
-    hom_inv_id' := by { apply has_hom.hom.op_inj, dsimp, simp, dsimp, refl, },
-    inv_hom_id' := by { apply has_hom.hom.op_inj, dsimp, simp, dsimp, refl, }, })
-  (by { intros, apply has_hom.hom.op_inj, dsimp, simp, dsimp, simp, }),
-  counit_iso := nat_iso.of_components (λ X,
-  { hom := (e.counit_iso.app (opposite.op X)).inv.unop,
-    inv := (e.counit_iso.app (opposite.op X)).hom.unop,
-    hom_inv_id' := by { apply has_hom.hom.op_inj, dsimp, simp, dsimp, refl, },
-    inv_hom_id' := by { apply has_hom.hom.op_inj, dsimp, simp, dsimp, refl, }, })
-  (by { intros, apply has_hom.hom.op_inj, dsimp, simp, }),
+  unit_iso := (nat_iso.unop e.unit_iso).symm,
+  counit_iso := (nat_iso.unop e.counit_iso).symm,
   functor_unit_iso_comp' := λ X, by { apply has_hom.hom.op_inj, dsimp, simp, }, }
 
 end equivalence

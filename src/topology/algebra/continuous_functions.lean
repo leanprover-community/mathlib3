@@ -349,8 +349,8 @@ instance continuous_map_has_scalar' {α : Type*} [topological_space α]
 instance continuous_map_module' {α : Type*} [topological_space α]
   (R : Type*) [ring R] [topological_space R] [topological_ring R]
   (M : Type*) [topological_space M] [add_comm_monoid M] [has_continuous_add M]
-  [semimodule R M] [topological_semimodule R M]
-  : semimodule C(α, R) C(α, M) :=
+  [semimodule R M] [topological_semimodule R M] :
+  semimodule C(α, R) C(α, M) :=
 { smul     := (•),
   smul_add := λ c f g, by ext x; exact smul_add (c x) (f x) (g x),
   add_smul := λ c₁ c₂ f, by ext x; exact add_smul (c₁ x) (c₂ x) (f x),

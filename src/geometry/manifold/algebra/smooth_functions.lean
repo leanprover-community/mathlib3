@@ -10,7 +10,7 @@ import geometry.manifold.times_cont_mdiff_map
 /-!
 # Algebraic structures over smooth functions
 
-In this file we define instances of algebraic sturctures over smooth functions.
+In this file, we define instances of algebraic structures over smooth functions.
 -/
 
 noncomputable theory
@@ -28,7 +28,7 @@ namespace smooth_map
 
 @[to_additive]
 instance has_mul {G : Type*} [has_mul G] [topological_space G] [has_continuous_mul G]
-  [charted_space H' G] [smooth_manifold_with_corners I' G] [has_smooth_mul I' G] :
+  [charted_space H' G] [has_smooth_mul I' G] :
   has_mul C^∞⟮I, N; I', G⟯ :=
 ⟨λ f g, ⟨f * g, smooth_mul.comp (f.smooth.prod_mk g.smooth)⟩⟩
 
@@ -43,14 +43,15 @@ end smooth_map
 section group_structure
 
 /-!
-### Group stucture
+### Group structure
 
-In this section we show that smooth functions valued in a Lie group inherit a structure of group.
+In this section we show that smooth functions valued in a Lie group inherit a group structure
+under pointwise multiplication.
 -/
 
 @[to_additive]
 instance smooth_map_semigroup {G : Type*} [semigroup G] [topological_space G] [has_continuous_mul G]
-  [charted_space H' G] [smooth_manifold_with_corners I' G] [has_smooth_mul I' G]
+  [charted_space H' G] [has_smooth_mul I' G]
  : semigroup C^∞⟮I, N; I', G⟯ :=
 { mul_assoc := λ a b c, by ext; exact mul_assoc _ _ _,
   ..smooth_map.has_mul}
@@ -66,8 +67,7 @@ instance smooth_map_monoid {G : Type*} [monoid G] [topological_space G] [has_con
 
 @[to_additive]
 instance smooth_map_comm_monoid {G : Type*} [comm_monoid G] [topological_space G]
-  [has_continuous_mul G] [charted_space H' G]
-  [smooth_manifold_with_corners I' G] [has_smooth_mul I' G] :
+  [has_continuous_mul G] [charted_space H' G] [has_smooth_mul I' G] :
   comm_monoid C^∞⟮I, N; I', G⟯ :=
 { one_mul := λ a, by ext; exact one_mul _,
   mul_one := λ a, by ext; exact mul_one _,
@@ -97,8 +97,8 @@ section ring_structure
 /-!
 ### Ring stucture
 
-In this section we show that smooth functions valued in a smooth ring `R` inherit a structure of
-ring.
+In this section we show that smooth functions valued in a smooth ring `R` inherit a ring structure
+under pointwise multiplication.
 -/
 
 instance smooth_map_semiring {R : Type*} [semiring R] [topological_space R] [topological_semiring R]
@@ -131,8 +131,8 @@ section semimodule_structure
 /-!
 ### Semiodule stucture
 
-In this section we show that smooth functions valued in a smooth vector space `M` over a normed
-field `𝕜` inherit a structure of vector space.
+In this section we show that smooth functions valued in a vector space `M` over a normed
+field `𝕜` inherit a vector space structure.
 -/
 
 instance smooth_map_has_scalar
@@ -157,11 +157,11 @@ section algebra_structure
 /-!
 ### Algebra structure
 
-In this section we show that smooth functions valued in a smooth algebra `A` over a normed field `𝕜`
-inherit a structure of algebra.
+In this section we show that smooth functions valued in a normed algebra `A` over a normed field `𝕜`
+inherit an algebra structure.
 -/
 
-variables {A : Type*} [normed_ring A] [normed_algebra 𝕜 A] [topological_ring A]
+variables {A : Type*} [normed_ring A] [normed_algebra 𝕜 A]
 [smooth_ring 𝓘(𝕜, A) A]
 
 /-- Smooth constant functions as a `ring_hom`. -/

@@ -10,9 +10,8 @@ variables {α : Type*} [add_comm_group α]
 
 /-!
 # Smooth monoid
-A smooth monoid is a monoid that is also a smooth manifold, in which the group operations of
-multiplication and inversion are smooth maps. Smoothness of the group multiplication means that
-multiplication is a smooth mapping of the product manifold `G` × `G` into `G`.
+A smooth monoid is a monoid that is also a smooth manifold, in which multiplication is a smooth map
+of the product manifold `G` × `G` into `G`.
 
 In this file we define the basic structures to talk about smooth monoids: `has_smooth_mul` and its
 additive counterpart `has_smooth_add`. These structures are general enough to also talk about smooth
@@ -34,8 +33,8 @@ class has_smooth_add {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 (smooth_add : smooth (I.prod I) I (λ p : G×G, p.1 + p.2))
 
 /-- Basic hypothesis to talk about a smooth (Lie) monoid or a smooth semigroup.
-A smooth monoid over `α`, for example, is obtained by requiring both the instances `monoid α`
-and `has_smooth_mul α`. -/
+A smooth monoid over `G`, for example, is obtained by requiring both the instances `monoid G`
+and `has_smooth_mul I G`. -/
 @[ancestor smooth_manifold_with_corners, to_additive]
 class has_smooth_mul {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]

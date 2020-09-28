@@ -234,8 +234,8 @@ section normed_space_lie_group
 /-! ### Normed spaces are Lie groups -/
 
 instance normed_space_lie_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E] :
-lie_add_group (model_with_corners_self 𝕜 E) E :=
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] :
+  lie_add_group (model_with_corners_self 𝕜 E) E :=
 { smooth_add :=
   begin
     rw smooth_iff,

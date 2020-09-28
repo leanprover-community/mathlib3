@@ -1288,7 +1288,7 @@ begin
   have b0 := ne_of_gt (lt_trans zero_lt_one b1),
   refine CNF_rec b0 (λ _, by rw [CNF_zero]; exact false.elim) _ o,
   intros o o0 H IH,
-  simp only [CNF_ne_zero b0 o0, list.mem_cons_iff, list.forall_mem_cons', iff_true_intro IH, and_true],
+  simp only [CNF_ne_zero b0 o0, list.mem_cons_iff, forall_eq_or_imp, iff_true_intro IH, and_true],
   rw [div_lt (power_ne_zero _ b0), ← power_succ],
   exact lt_power_succ_log b1 _,
 end

@@ -507,6 +507,11 @@ by rwa zero_mul at this
 
 end ordered_ring
 
+/-- An `ordered_comm_ring α` is a commutative ring `α` with a partial order
+such that multiplication with a positive number and addition are monotone. -/
+@[protect_proj]
+class ordered_comm_ring (α : Type u) extends ordered_ring α, comm_monoid α
+
 /-- A `linear_ordered_ring α` is a ring `α` with a linear order such that
 multiplication with a positive number and addition are monotone. -/
 @[protect_proj] class linear_ordered_ring (α : Type u) extends ordered_ring α, linear_order α :=

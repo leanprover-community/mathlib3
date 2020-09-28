@@ -1,5 +1,6 @@
 import tactic.apply_fun
 import ring_theory.algebra
+import algebra.ordered_ring
 
 /-!
 # star_monoid, star_ring, star_algebra
@@ -51,7 +52,7 @@ begin
 end
 
 /--
-A star monoid is a monoid `R` with an involutive operations `star`
+A *-monoid is a monoid `R` with an involutive operations `star`
 so `star (r * s) = star s * star r`.
 -/
 class star_monoid (R : Type u) [monoid R] extends star_involutive R :=
@@ -68,8 +69,8 @@ begin
 end
 
 /--
-A star ring `R` is a (semi)ring with an involutive `star` operation which is additive
-which makes `R` with its multiplicative structure into a star monoid
+A *-ring `R` is a (semi)ring with an involutive `star` operation which is additive
+which makes `R` with its multiplicative structure into a *-monoid
 (i.e. `star (r * s) = star s * star r`).
 -/
 class star_ring (R : Type u) [semiring R] extends star_monoid R :=
@@ -88,6 +89,20 @@ begin
   apply star_injective,
   simp,
 end
+
+/--
+An ordered *-ring is a ring which is both an ordered ring and a *-star,
+and `0 ≤ star r * r` for every `r`.
+
+(In a Banach algebra, the natural ordering is given by the positive cone
+which is the closure of the sums of elements `star r * r`.
+This ordering makes the Banach algebra an ordered *-ring.)
+-/
+class star_ordered_ring (R : Type u) [ordered_semiring R] extends star_ring R :=
+(star_mul_self_nonneg : ∀ r : R, 0 ≤ star r * r)
+
+lemma star_mul_self_nonneg [ordered_semiring R] [star_ordered_ring R] {r : R} : 0 ≤ star r * r :=
+star_ordered_ring.star_mul_self_nonneg r
 
 /--
 A star algebra `A` over a star ring `R` is an algebra which is a star ring,

@@ -63,6 +63,14 @@ lemma mul_inv_of_self [has_mul α] [has_one α] (a : α) [invertible a] : a * �
 invertible.mul_inv_of_self
 
 @[simp]
+lemma inv_of_mul_self_assoc [monoid α] (a b : α) [invertible a] : ⅟a * (a * b) = b :=
+by rw [←mul_assoc, inv_of_mul_self, one_mul]
+
+@[simp]
+lemma mul_inv_of_self_assoc [monoid α] (a b : α) [invertible a] : a * (⅟a * b) = b :=
+by rw [←mul_assoc, mul_inv_of_self, one_mul]
+
+@[simp]
 lemma mul_inv_of_mul_self_cancel [monoid α] (a b : α) [invertible b] : a * ⅟b * b = a :=
 by simp [mul_assoc]
 

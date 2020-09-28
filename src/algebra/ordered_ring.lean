@@ -14,11 +14,33 @@ variable {α : Type u}
 multiplication with a positive number and addition are monotone. -/
 @[protect_proj]
 class ordered_semiring (α : Type u) extends semiring α, ordered_cancel_add_comm_monoid α :=
+(zero_lt_one : zero < one)
 (mul_lt_mul_of_pos_left :  ∀ a b c : α, a < b → 0 < c → c * a < c * b)
 (mul_lt_mul_of_pos_right : ∀ a b c : α, a < b → 0 < c → a * c < b * c)
 
 section ordered_semiring
 variables [ordered_semiring α] {a b c d : α}
+
+lemma zero_lt_one : 0 < (1:α) :=
+ordered_semiring.zero_lt_one
+
+lemma zero_le_one : 0 ≤ (1:α) :=
+zero_lt_one.le
+
+/-- `0 < 2`: an alternative version of `two_pos` that only assumes `linear_ordered_semiring`. -/
+lemma zero_lt_two : 0 < (2:α) := add_pos zero_lt_one zero_lt_one
+
+@[field_simps] lemma two_ne_zero : (2:α) ≠ 0 :=
+ne.symm (ne_of_lt zero_lt_two)
+
+lemma one_lt_two : 1 < (2:α) :=
+calc (2:α) = 1+1 : one_add_one_eq_two
+     ...   > 1+0 : add_lt_add_left zero_lt_one _
+     ...   = 1   : add_zero 1
+
+lemma one_le_two : 1 ≤ (2:α) := one_lt_two.le
+
+lemma four_pos : 0 < (4:α) := add_pos zero_lt_two zero_lt_two
 
 lemma mul_lt_mul_of_pos_left (h₁ : a < b) (h₂ : 0 < c) : c * a < c * b :=
 ordered_semiring.mul_lt_mul_of_pos_left a b c h₁ h₂
@@ -91,31 +113,10 @@ end ordered_semiring
 /-- A `linear_ordered_semiring α` is a semiring `α` with a linear order
 such that multiplication with a positive number and addition are monotone. -/
 @[protect_proj]
-class linear_ordered_semiring (α : Type u) extends ordered_semiring α, linear_order α :=
-(zero_lt_one : zero < one)
+class linear_ordered_semiring (α : Type u) extends ordered_semiring α, linear_order α
 
 section linear_ordered_semiring
 variables [linear_ordered_semiring α] {a b c d : α}
-
-lemma zero_lt_one : 0 < (1:α) :=
-linear_ordered_semiring.zero_lt_one
-
-lemma zero_le_one : 0 ≤ (1:α) :=
-zero_lt_one.le
-
-lemma two_pos : 0 < (2:α) := add_pos zero_lt_one zero_lt_one
-
-@[field_simps] lemma two_ne_zero : (2:α) ≠ 0 :=
-ne.symm (ne_of_lt two_pos)
-
-lemma one_lt_two : 1 < (2:α) :=
-calc (2:α) = 1+1 : one_add_one_eq_two
-     ...   > 1+0 : add_lt_add_left zero_lt_one _
-     ...   = 1   : add_zero 1
-
-lemma one_le_two : 1 ≤ (2:α) := one_lt_two.le
-
-lemma four_pos : 0 < (4:α) := add_pos two_pos two_pos
 
 lemma lt_of_mul_lt_mul_left (h : c * a < c * b) (hc : 0 ≤ c) : a < b :=
 lt_of_not_ge
@@ -170,10 +171,6 @@ le_of_not_gt (assume h2 : b > 0, (mul_pos h1 h2).not_le h)
 
 lemma nonpos_of_mul_nonpos_right (h : a * b ≤ 0) (h1 : 0 < b) : a ≤ 0 :=
 le_of_not_gt (assume h2 : a > 0, (mul_pos h2 h1).not_le h)
-
-/-- `0 < 2`: an alternative version of `two_pos` that only assumes `linear_ordered_semiring`. -/
-lemma zero_lt_two : (0:α) < 2 :=
-by { rw [← zero_add (0:α), bit0], exact add_lt_add zero_lt_one zero_lt_one }
 
 @[simp] lemma mul_le_mul_left (h : 0 < c) : c * a ≤ c * b ↔ a ≤ b :=
 ⟨λ h', le_of_mul_le_mul_left h' h, λ h', mul_le_mul_of_nonneg_left h' h.le⟩
@@ -418,6 +415,7 @@ end decidable_linear_ordered_semiring
 multiplication with a positive number and addition are monotone. -/
 @[protect_proj]
 class ordered_ring (α : Type u) extends ring α, ordered_add_comm_group α, nontrivial α :=
+(zero_lt_one : zero < one)
 (mul_pos     : ∀ a b : α, 0 < a → 0 < b → 0 < a * b)
 
 section ordered_ring
@@ -509,8 +507,7 @@ end ordered_ring
 
 /-- A `linear_ordered_ring α` is a ring `α` with a linear order such that
 multiplication with a positive number and addition are monotone. -/
-@[protect_proj] class linear_ordered_ring (α : Type u) extends ordered_ring α, linear_order α :=
-(zero_lt_one : zero < one)
+@[protect_proj] class linear_ordered_ring (α : Type u) extends ordered_ring α, linear_order α
 
 section linear_ordered_ring
 variables [linear_ordered_ring α] {a b c : α}
@@ -807,12 +804,14 @@ end decidable_linear_ordered_comm_ring
 /-- Extend `nonneg_add_comm_group` to support ordered rings
   specified by their nonnegative elements -/
 class nonneg_ring (α : Type*) extends ring α, nonneg_add_comm_group α, nontrivial α :=
+(one_pos : pos 1)
 (mul_nonneg : ∀ {a b}, nonneg a → nonneg b → nonneg (a * b))
 (mul_pos : ∀ {a b}, pos a → pos b → pos (a * b))
 
 /-- Extend `nonneg_add_comm_group` to support linearly ordered rings
   specified by their nonnegative elements -/
 class linear_nonneg_ring (α : Type*) extends domain α, nonneg_add_comm_group α :=
+(one_pos : pos 1)
 (mul_nonneg : ∀ {a b}, nonneg a → nonneg b → nonneg (a * b))
 (nonneg_total : ∀ a, nonneg a ∨ nonneg (-a))
 
@@ -822,7 +821,8 @@ variable [nonneg_ring α]
 
 @[priority 100] -- see Note [lower instance priority]
 instance to_ordered_ring : ordered_ring α :=
-{ mul_pos := λ a b, by simp [pos_def.symm]; exact mul_pos,
+{ zero_lt_one := begin dsimp [(<), preorder.lt, partial_order.lt], convert one_pos, exact sub_zero _, end,
+  mul_pos := λ a b, by simp [pos_def.symm]; exact mul_pos,
   ..‹nonneg_ring α›, ..(infer_instance : ordered_add_comm_group α) }
 
 /-- `to_linear_nonneg_ring` shows that a `nonneg_ring` with a total order is a `domain`,

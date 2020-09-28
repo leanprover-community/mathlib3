@@ -505,6 +505,14 @@ lemma integrable_norm_iff [opens_measurable_space β] {f : α → β} (hf : meas
   integrable (λa, ∥f a∥) μ ↔ integrable f μ :=
 by simp_rw [integrable, and_iff_right hf, and_iff_right hf.norm, has_finite_integral_norm_iff]
 
+lemma integrable.prod_mk [opens_measurable_space β] [opens_measurable_space γ] {f : α → β}
+  {g : α → γ} (hf : integrable f μ) (hg : integrable g μ) :
+  integrable (λ x, (f x, g x)) μ :=
+⟨hf.measurable.prod_mk hg.measurable,
+  (hf.norm.add' hg.norm).mono $ eventually_of_forall $ λ x,
+  calc max ∥f x∥ ∥g x∥ ≤ ∥f x∥ + ∥g x∥   : max_le_add_of_nonneg (norm_nonneg _) (norm_nonneg _)
+                 ... ≤ ∥(∥f x∥ + ∥g x∥)∥ : le_abs_self _⟩
+
 section pos_part
 /-! ### Lemmas used for defining the positive part of a `L¹` function -/
 

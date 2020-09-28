@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 
-import data.mv_polynomial.variables
+import data.mv_polynomial.basic
 
 /-!
 # Renaming variables of polynomials
@@ -45,9 +45,6 @@ open_locale big_operators
 variables {σ τ α R S : Type*} [comm_semiring R] [comm_semiring S]
 
 namespace mv_polynomial
-
--- variables {a : R} {e : ℕ} {n m : σ} {s : σ →₀ ℕ}
-
 
 section rename
 
@@ -111,21 +108,6 @@ begin
   rw this,
   exact finsupp.map_domain_injective (finsupp.map_domain_injective hf)
 end
-
-lemma total_degree_rename_le (f : σ → τ) (p : mv_polynomial σ R) :
-  (rename f p).total_degree ≤ p.total_degree :=
-finset.sup_le $ assume b,
-  begin
-    assume h,
-    rw rename_eq at h,
-    have h' := finsupp.map_domain_support h,
-    rw finset.mem_image at h',
-    rcases h' with ⟨s, hs, rfl⟩,
-    rw finsupp.sum_map_domain_index,
-    exact le_trans (le_refl _) (finset.le_sup hs),
-    exact assume _, rfl,
-    exact assume _ _ _, rfl
-  end
 
 section
 variables (f : R →+* S) (k : σ → τ) (g : τ → S) (p : mv_polynomial σ R)

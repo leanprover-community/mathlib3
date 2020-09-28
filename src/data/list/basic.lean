@@ -42,7 +42,7 @@ theorem tail_eq_of_cons_eq {h₁ h₂ : α} {t₁ t₂ : list α} :
       (h₁::t₁) = (h₂::t₂) → t₁ = t₂ :=
 assume Peq, list.no_confusion Peq (assume Pheq Pteq, Pteq)
 
-theorem cons_injective {a : α} : injective (cons a) :=
+@[simp] theorem cons_injective {a : α} : injective (cons a) :=
 assume l₁ l₂, assume Pe, tail_eq_of_cons_eq Pe
 
 theorem cons_inj (a : α) {l l' : list α} : a::l = a::l' ↔ l = l' :=
@@ -204,7 +204,7 @@ lemma exists_of_length_succ {n} :
 | [] H := absurd H.symm $ succ_ne_zero n
 | (h :: t) H := ⟨h, t, rfl⟩
 
-lemma length_injective_iff : injective (list.length : list α → ℕ) ↔ subsingleton α :=
+@[simp] lemma length_injective_iff : injective (list.length : list α → ℕ) ↔ subsingleton α :=
 begin
   split,
   { intro h, refine ⟨λ x y, _⟩, suffices : [x] = [y], { simpa using this }, apply h, refl },
@@ -213,7 +213,7 @@ begin
     congr, exactI subsingleton.elim _ _, apply l1_ih, simpa using hl }
 end
 
-lemma length_injective [subsingleton α] : injective (length : list α → ℕ) :=
+@[simp] lemma length_injective [subsingleton α] : injective (length : list α → ℕ) :=
 length_injective_iff.mpr $ by apply_instance
 
 /-! ### set-theoretic notation of lists -/
@@ -237,9 +237,9 @@ theorem forall_mem_nil (p : α → Prop) : ∀ x ∈ @nil α, p x.
   (∀ (x : α), x = a ∨ x ∈ l → p x) ↔ p a ∧ ∀ x ∈ l, p x :=
 by simp only [or_imp_distrib, forall_and_distrib, forall_eq]
 
-theorem forall_mem_cons {p : α → Prop} {a : α} {l : list α} :
+theorem forall_mem_cons : ∀ {p : α → Prop} {a : α} {l : list α},
   (∀ x ∈ a :: l, p x) ↔ p a ∧ ∀ x ∈ l, p x :=
-by simp only [mem_cons_iff, forall_mem_cons']
+ball_cons
 
 theorem forall_mem_of_forall_mem_cons {p : α → Prop} {a : α} {l : list α}
     (h : ∀ x ∈ a :: l, p x) :
@@ -552,8 +552,11 @@ by rw [concat_eq_append, reverse_append, reverse_singleton, singleton_append]
 @[simp] theorem reverse_reverse (l : list α) : reverse (reverse l) = l :=
 by induction l; [refl, simp only [*, reverse_cons, reverse_append]]; refl
 
-theorem reverse_injective : injective (@reverse α) :=
-left_inverse.injective reverse_reverse
+@[simp] theorem reverse_involutive : involutive (@reverse α) :=
+λ l, reverse_reverse l
+
+@[simp] theorem reverse_injective : injective (@reverse α) :=
+reverse_involutive.injective
 
 @[simp] theorem reverse_inj {l₁ l₂ : list α} : reverse l₁ = reverse l₂ ↔ l₁ = l₂ :=
 reverse_injective.eq_iff
@@ -3036,6 +3039,47 @@ instance decidable_suffix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidab
   | ._, t, ⟨[], rfl⟩ := or.inl rfl
   | s, t, ⟨b::l, he⟩ := list.no_confusion he (λab lt, or.inr ⟨l, lt⟩)
   end⟩
+
+lemma inits_cons (a : α) (l : list α) : inits (a :: l) = [] :: l.inits.map (λ t, a :: t) :=
+by simp
+
+lemma tails_cons (a : α) (l : list α) : tails (a :: l) = (a :: l) :: l.tails :=
+by simp
+
+@[simp]
+lemma inits_append : ∀ (s t : list α), inits (s ++ t) = s.inits ++ t.inits.tail.map (λ l, s ++ l)
+| [] [] := by simp
+| [] (a::t) := by simp
+| (a::s) t := by simp [inits_append s t]
+
+@[simp]
+lemma tails_append : ∀ (s t : list α), tails (s ++ t) = s.tails.map (λ l, l ++ t) ++ t.tails.tail
+| [] [] := by simp
+| [] (a::t) := by simp
+| (a::s) t := by simp [tails_append s t]
+
+-- the lemma names `inits_eq_tails` and `tails_eq_inits` are like `sublists_eq_sublists'`
+lemma inits_eq_tails :
+  ∀ (l : list α), l.inits = (reverse $ map reverse $ tails $ reverse l)
+| [] := by simp
+| (a :: l) := by simp [inits_eq_tails l, map_eq_map_iff]
+
+lemma tails_eq_inits :
+  ∀ (l : list α), l.tails = (reverse $ map reverse $ inits $ reverse l)
+| [] := by simp
+| (a :: l) := by simp [tails_eq_inits l, append_left_inj]
+
+lemma inits_reverse (l : list α) : inits (reverse l) = reverse (map reverse l.tails) :=
+by { rw tails_eq_inits l, simp [reverse_involutive.comp_self], }
+
+lemma tails_reverse (l : list α) : tails (reverse l) = reverse (map reverse l.inits) :=
+by { rw inits_eq_tails l, simp [reverse_involutive.comp_self], }
+
+lemma map_reverse_inits (l : list α) : map reverse l.inits = (reverse $ tails $ reverse l) :=
+by { rw inits_eq_tails l, simp [reverse_involutive.comp_self], }
+
+lemma map_reverse_tails (l : list α) : map reverse l.tails = (reverse $ inits $ reverse l) :=
+by { rw tails_eq_inits l, simp [reverse_involutive.comp_self], }
 
 instance decidable_infix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <:+: l₂)
 | []      l₂ := is_true ⟨[], l₂, rfl⟩

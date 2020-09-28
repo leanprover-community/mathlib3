@@ -107,6 +107,11 @@ begin
     simpa using hp }
 end
 
+lemma dvd_map_of_is_scalar_tower {α γ : Type*} (β : Type*) [comm_ring α] [field β] [comm_ring γ]
+  [algebra α β] [algebra α γ] [algebra β γ] [is_scalar_tower α β γ] {x : γ} (hx : is_integral α x) :
+  minimal_polynomial (is_integral_of_is_scalar_tower x hx) ∣ (minimal_polynomial hx).map (algebra_map α β) :=
+by { apply minimal_polynomial.dvd, rw [← is_scalar_tower.aeval_apply, minimal_polynomial.aeval] }
+
 variables [nontrivial β]
 
 /--The degree of a minimal polynomial is nonzero.-/

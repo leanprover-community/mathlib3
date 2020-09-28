@@ -122,6 +122,9 @@ _
 lemma uniform_embedding_mul_rat {q : ℚ} (hq : q ≠ 0) : uniform_embedding ((*) q) :=
 _ -/
 
+lemma real.mem_closure_iff {s : set ℝ} {x : ℝ} : x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, abs (y - x) < ε :=
+by simp [mem_closure_iff_nhds_basis nhds_basis_ball, real.dist_eq]
+
 lemma real.uniform_continuous_inv (s : set ℝ) {r : ℝ} (r0 : 0 < r) (H : ∀ x ∈ s, r ≤ abs x) :
   uniform_continuous (λp:s, p.1⁻¹) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0,
@@ -317,16 +320,8 @@ end
 
 section subgroups
 
--- Rename and move
-lemma aux {a : ℝ} (h : 0 < a) (b : ℝ) : 0 ≤ b - floor(b/a) * a :=
-sub_floor_div_mul_nonneg b h
-
--- Rename and move
-lemma aux₂ {a : ℝ} (h : 0 < a) (b : ℝ) : b - floor(b/a) * a < a :=
-sub_floor_div_mul_lt b h
-
--- Rename and find more general statement?
-lemma mul_mem {G : add_subgroup ℝ} (k : ℤ) {g : ℝ} (h : g ∈ G) : (k : ℝ) * g ∈ G :=
+lemma add_subgroup.int_mul_mem {R : Type*} [ring R] {G : add_subgroup R} (k : ℤ) {g : R} (h : g ∈ G) :
+  (k : R) * g ∈ G :=
 begin
   convert add_subgroup.gsmul_mem G h k,
   exact (gsmul_eq_mul g k).symm,
@@ -353,12 +348,64 @@ begin
   exact lt_of_le_of_ne (h₁.1 hb) h₅
 end
 
--- Move
-lemma real.mem_closure_iff {s : set ℝ} {x : ℝ} : x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, abs (y - x) < ε :=
-by simp [mem_closure_iff_nhds_basis nhds_basis_ball, real.dist_eq]
+/-- Given a subgroup `G ⊆ ℝ`, if `a` is the minimum of `G ∩ ℝ_{>0}` then `G = aℤ`. -/
+lemma real.subgroup_eq_of_min {G : add_subgroup ℝ} {a : ℝ}
+  (ha : is_least {g : ℝ | g ∈ G ∧ 0 < g} a) : (G : set ℝ)  = range (λ k : ℤ, k*a) :=
+begin
+  let G_pos := {x : ℝ | x ∈ G ∧ 0 < x},
+  rcases ha with ⟨⟨a_in, a_pos⟩, a_min⟩,
+  ext g,
+  split,
+  { intro g_in,
+    use floor (g/a),
+    have nonneg : 0 ≤ g - floor (g/a) * a := sub_floor_div_mul_nonneg _ a_pos,
+    have lt : g - floor (g/a) * a  < a := sub_floor_div_mul_lt _ a_pos,
+    cases eq_or_lt_of_le nonneg,
+    { conv_rhs { rw eq_of_sub_eq_zero h.symm } },
+    { exfalso,
+      linarith [a_min ⟨G.sub_mem g_in (add_subgroup.int_mul_mem ⌊g / a⌋ a_in), h⟩] } },
+  { rintros ⟨k, rfl⟩,
+    exact add_subgroup.int_mul_mem _ a_in }
+end
 
-lemma real.subgroup_classification (G : add_subgroup ℝ) :
-  closure (G : set ℝ) = univ ∨ ∃ a : ℝ, (G : set ℝ)  = range (λ k : ℤ, k*a) :=
+/-- Given a subgroup `G ⊆ ℝ`, if `G ∩ ℝ_{>0}` has no minimum then `G` is dense. -/
+lemma real.subgroup_dense_of_no_min {G : add_subgroup ℝ} {g₀ : ℝ} (g₀_in : g₀ ∈ G) (g₀_ne : g₀ ≠ 0)
+  (H' : ¬ ∃ a : ℝ, is_least {g : ℝ | g ∈ G ∧ 0 < g} a) :
+  closure (G : set ℝ) = univ :=
+begin
+  let G_pos := {g : ℝ | g ∈ G ∧ 0 < g},
+  push_neg at H',
+  rw eq_univ_iff_forall,
+  intros x,
+  suffices : ∀ ε > (0 : ℝ), ∃ g ∈ G, abs (x - g) < ε,
+  by simpa only [real.mem_closure_iff, abs_sub],
+  intros ε ε_pos,
+  obtain ⟨g₁, g₁_in, g₁_pos⟩ : ∃ g₁ : ℝ, g₁ ∈ G ∧ 0 < g₁,
+  { cases lt_or_gt_of_ne g₀_ne with Hg₀ Hg₀,
+    { exact ⟨-g₀, G.neg_mem g₀_in, neg_pos.mpr Hg₀⟩ },
+    { exact ⟨g₀, g₀_in, Hg₀⟩ } },
+  obtain ⟨a, ha⟩ : ∃ a, is_glb G_pos a,
+  { use Inf G_pos,
+    exact is_glb_cInf ⟨g₁, g₁_in, g₁_pos⟩ ⟨0, λ _ hx, le_of_lt hx.2⟩ },
+  have a_notin : a ∉ G_pos,
+  { intros H,
+    apply H' a,
+    exact ⟨H, ha.1⟩ },
+  obtain ⟨g₂, g₂_in, g₂_pos, g₂_lt⟩ : ∃ g₂ : ℝ, g₂ ∈ G ∧ 0 < g₂ ∧ g₂ < ε,
+  { obtain ⟨b, hb, hb', hb''⟩ := inf_property ha a_notin ε_pos,
+    obtain ⟨c, hc, hc', hc''⟩ := inf_property ha a_notin (by linarith : 0 < b - a),
+    refine ⟨b - c, add_subgroup.sub_mem G hb.1 hc.1, _, _⟩ ;
+    linarith },
+  use floor (x/g₂) * g₂,
+  split,
+  { exact add_subgroup.int_mul_mem _ g₂_in },
+  { rw abs_of_nonneg (sub_floor_div_mul_nonneg x g₂_pos),
+    linarith [sub_floor_div_mul_lt x g₂_pos] }
+end
+
+
+lemma real.subgroup_dense_or_cyclic (G : add_subgroup ℝ) :
+  closure (G : set ℝ) = univ ∨ ∃ a, (G : set ℝ)  = range (λ k : ℤ, k*a) :=
 begin
   by_cases H : ∀ x : ℝ, x ∈ G → x = 0,
   { right,
@@ -366,59 +413,14 @@ begin
     ext x,
     suffices : x ∈ G ↔ x = 0, by simpa,
     exact ⟨H x, by { rintros rfl, exact G.zero_mem }⟩ },
-  { let G_pos := {x : ℝ | x ∈ G ∧ 0 < x},
-    by_cases H' : ∃ a ∈ G_pos, ∀ b ∈ G_pos, a ≤ b,
+  { let G_pos := {g : ℝ | g ∈ G ∧ 0 < g},
+    by_cases H' : ∃ a, is_least G_pos a,
     { right,
-      rcases H' with ⟨a, ⟨a_in, a_pos⟩, a_min⟩,
-      use a,
-      ext g,
-      split,
-      { intro g_in,
-        use floor (g/a),
-        dsimp only,
-        have nonneg : 0 ≤ g - floor (g/a) * a := aux a_pos _,
-        have : (floor (g/a) : ℝ) * a ∈ G := mul_mem _ a_in,
-        have lt : g - floor (g/a) * a  < a := aux₂ a_pos _,
-        cases eq_or_lt_of_le nonneg,
-        { conv_rhs { rw eq_of_sub_eq_zero h.symm } },
-        { exfalso,
-          have key : g - ⌊g / a⌋ * a ∈ G_pos := ⟨G.sub_mem g_in (mul_mem _ a_in), h⟩,
-          linarith [a_min _ key] } },
-      { rintros ⟨k, rfl⟩,
-        exact mul_mem _ a_in } },
+      rcases H' with ⟨a, ha⟩,
+      exact ⟨a, real.subgroup_eq_of_min ha⟩ },
     { left,
-      push_neg at H',
-      rw eq_univ_iff_forall,
-      intros x,
-      suffices : ∀ ε > (0 : ℝ), ∃ g ∈ G, abs (x - g) < ε,
-      { rwa real.mem_closure_iff,
-        simpa [abs_sub] },
-      intros ε ε_pos,
-      obtain ⟨g₁, g₁_in, g₁_pos⟩ : ∃ g₁ : ℝ, g₁ ∈ G_pos,
-      { push_neg at H,
-        rcases H with ⟨y, y_in, hy⟩,
-        cases lt_or_gt_of_ne hy with Hy Hy,
-        { exact ⟨-y, G.neg_mem y_in, neg_pos.mpr Hy⟩ },
-        { exact ⟨y, y_in, Hy⟩ } },
-      obtain ⟨a, ha⟩ : ∃ a, is_glb G_pos a,
-      { use Inf G_pos,
-        exact is_glb_cInf ⟨g₁, g₁_in, g₁_pos⟩ ⟨0, λ _ hx, le_of_lt hx.2⟩ },
-      have a_notin : a ∉ G_pos,
-      { revert H',
-        contrapose!,
-        intros H',
-        exact ⟨a, H', ha.1⟩ },
-      obtain ⟨g₂, g₂_in, g₂_pos, g₂_lt⟩ : ∃ g₂ : ℝ, g₂ ∈ G ∧ 0 < g₂ ∧ g₂ < ε,
-      { obtain ⟨b, hb, hb', hb''⟩ := inf_property ha a_notin ε_pos,
-        have ba_pos : 0 < b - a := by linarith,
-        obtain ⟨c, hc, hc', hc''⟩ := inf_property ha a_notin ba_pos,
-        refine ⟨b - c, add_subgroup.sub_mem G hb.1 hc.1, _, _⟩;
-        linarith },
-      use floor (x/g₂) * g₂,
-      split,
-      { exact mul_mem _ g₂_in },
-      { rw abs_of_nonneg (aux g₂_pos x),
-        linarith [aux₂ g₂_pos x] } } }
+      push_neg at H,
+      rcases H with ⟨g₀, g₀_in, g₀_ne⟩,
+      exact real.subgroup_dense_of_no_min g₀_in g₀_ne H' } }
 end
-
 end subgroups

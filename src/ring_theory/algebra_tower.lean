@@ -136,6 +136,7 @@ by { letI := (f : A →+* B).to_algebra, exact of_algebra_map_eq (λ x, (f.commu
 instance polynomial : is_scalar_tower R S (polynomial A) :=
 of_algebra_map_eq $ λ x, congr_arg polynomial.C $ algebra_map_apply R S A x
 
+variables (R S A)
 theorem aeval_apply (x : A) (p : polynomial R) : polynomial.aeval x p =
   polynomial.aeval x (polynomial.map (algebra_map R S) p) :=
 by rw [polynomial.aeval_def, polynomial.aeval_def, polynomial.eval₂_map, algebra_map_eq R S A]

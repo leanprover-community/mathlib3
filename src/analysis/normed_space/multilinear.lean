@@ -580,9 +580,9 @@ variables {𝕜 ι}
 @[simp] lemma mk_pi_field_apply (z : E₂) (m : ι → 𝕜) :
   (continuous_multilinear_map.mk_pi_field 𝕜 ι z : (ι → 𝕜) → E₂) m = (∏ i, m i) • z := rfl
 
-lemma mk_pi_fiel_apply_one_eq_self (f : continuous_multilinear_map 𝕜 (λ(i : ι), 𝕜) E₂) :
+lemma mk_pi_field_apply_one_eq_self (f : continuous_multilinear_map 𝕜 (λ(i : ι), 𝕜) E₂) :
   continuous_multilinear_map.mk_pi_field 𝕜 ι (f (λi, 1)) = f :=
-f.to_multilinear_map.mk_pi_ring_apply_one_eq_self
+to_multilinear_map_inj f.to_multilinear_map.mk_pi_ring_apply_one_eq_self
 
 variables (𝕜 ι E₂)
 
@@ -597,7 +597,7 @@ protected def pi_field_equiv_aux : E₂ ≃ₗ[𝕜] (continuous_multilinear_map
   map_add'  := λ z z', by { ext m, simp [smul_add] },
   map_smul' := λ c z, by { ext m, simp [smul_smul, mul_comm] },
   left_inv  := λ z, by simp,
-  right_inv := λ f, f.mk_pi_ring_apply_one_eq_self }
+  right_inv := λ f, f.mk_pi_field_apply_one_eq_self }
 
 /-- Continuous multilinear maps on `𝕜^n` with values in `E₂` are in bijection with `E₂`, as such a
 continuous multilinear map is completely determined by its value on the constant vector made of

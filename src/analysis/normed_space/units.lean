@@ -235,7 +235,7 @@ begin
   rw hLHS,
   refine le_trans (norm_mul_le _ _ ) _,
   have h' : ∥(-(↑x⁻¹ * t)) ^ n∥ ≤ ∥(↑x⁻¹ : R)∥ ^ n * ∥t∥ ^ n,
-  { calc ∥(-(↑x⁻¹ * t)) ^ n∥ ≤ ∥(-(↑x⁻¹ * t))∥ ^ n : norm_pow_le _ hn
+  { calc ∥(-(↑x⁻¹ * t)) ^ n∥ ≤ ∥(-(↑x⁻¹ * t))∥ ^ n : norm_pow_le' _ hn
     ... = ∥↑x⁻¹ * t∥ ^ n : by rw norm_neg
     ... ≤ (∥(↑x⁻¹ : R)∥ * ∥t∥) ^ n : _
     ... =  ∥(↑x⁻¹ : R)∥ ^ n * ∥t∥ ^ n : mul_pow _ _ n,

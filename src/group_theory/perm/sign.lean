@@ -755,6 +755,14 @@ begin
   simp_rw ← λ a, sign_extend a (σ a)
 end
 
+lemma sign_prod_congr_left [fintype β] (σ : α → perm β) :
+  sign (prod_congr_left σ) = ∏ k, (σ k).sign :=
+begin
+  refine (sign_eq_sign_of_equiv _ _ (prod_comm β α) _).trans (sign_prod_congr_right σ),
+  rintro ⟨b, α⟩,
+  refl
+end
+
 end
 
 end sign

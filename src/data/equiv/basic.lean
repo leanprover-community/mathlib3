@@ -758,9 +758,24 @@ def sigma_equiv_prod_of_equiv {α β} {β₁ : α → Sort*} (F : Π a, β₁ a 
 
 end
 
-section prod_congr_right
+section prod_congr
 
 variables {α₁ β₁ β₂ : Type*} (e : α₁ → β₁ ≃ β₂)
+
+/-- A family of equivalences `Π (a : α₁), β₁ ≃ β₂` generates an equivalence
+between `β₁ × α₁` and `β₂ × α₁`. -/
+def prod_congr_left : β₁ × α₁ ≃ β₂ × α₁ :=
+{ to_fun := λ ab, ⟨e ab.2 ab.1, ab.2⟩,
+  inv_fun := λ ab, ⟨(e ab.2).symm ab.1, ab.2⟩,
+  left_inv := by { rintros ⟨a, b⟩, simp },
+  right_inv := by { rintros ⟨a, b⟩, simp } }
+
+@[simp] lemma prod_congr_left_apply (b : β₁) (a : α₁) :
+prod_congr_left e (b, a) = (e a b, a) := rfl
+
+lemma prod_congr_refl_right (e : β₁ ≃ β₂) :
+  prod_congr e (equiv.refl α₁) = prod_congr_left (λ _, e) :=
+by { ext ⟨a, b⟩ : 1, simp }
 
 /-- A family of equivalences `Π (a : α₁), β₁ ≃ β₂` generates an equivalence
 between `α₁ × β₁` and `α₁ × β₂`. -/
@@ -773,7 +788,15 @@ def prod_congr_right : α₁ × β₁ ≃ α₁ × β₂ :=
 @[simp] lemma prod_congr_right_apply (a : α₁) (b : β₁) :
   prod_congr_right e (a, b) = (a, e a b) := rfl
 
-lemma prod_congr_refl (e : β₁ ≃ β₂) :
+@[simp] lemma prod_congr_left_trans_prod_comm :
+  (prod_congr_left e).trans (prod_comm _ _) = (prod_comm _ _).trans (prod_congr_right e) :=
+by { ext ⟨a, b⟩ : 1, simp }
+
+@[simp] lemma prod_congr_right_trans_prod_comm :
+  (prod_congr_right e).trans (prod_comm _ _) = (prod_comm _ _).trans (prod_congr_left e) :=
+by { ext ⟨a, b⟩ : 1, simp }
+
+lemma prod_congr_refl_left (e : β₁ ≃ β₂) :
   prod_congr (equiv.refl α₁) e = prod_congr_right (λ _, e) :=
 by { ext ⟨a, b⟩ : 1, simp }
 
@@ -787,7 +810,7 @@ lemma sigma_equiv_prod_sigma_congr_right :
     (prod_congr_right e).trans (sigma_equiv_prod α₁ β₂).symm :=
 by { ext ⟨a, b⟩ : 1, simp }
 
-end prod_congr_right
+end prod_congr
 
 namespace perm
 

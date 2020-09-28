@@ -11,20 +11,22 @@ import tactic.ring
 open int
 open nat
 
-/-
-The 1969 IMO, problem 1:
+/-!
+# IMO 1969 Q1
+
 Prove that there are infinitely many natural numbers $a$ with the following property:
 the number $z = n^4 + a$ is not prime for any natural number $n$.
 
-The key to the solution is that you can factor this into the product of two polynomials, if a = 4*m^4.
+The key to the solution is that you can factor z into the product of two polynomials,
+if a = 4*m^4.
 -/
 
 lemma factorization (m n: ℤ): (n^2 + 2*m^2 - 2*n*m) * (n^2 + 2*m^2 + 2*n*m) = n^4 + 4*m^4
 := by ring
 
-/-
-To show that the product is not prime, we need to show each of the factors is at least 2, which we can
-do with a sum-of-squares expression.
+/-!
+To show that the product is not prime, we need to show each of the factors is at least 2,
+which we can do with a sum-of-squares expression.
 -/
 lemma left_factor_large (m n: ℤ) (h: m > 1): (n^2 + 2*m^2 - 2*n*m) > 1 :=
 have h: (n^2 + 2*m^2 - 2*n*m) = (m-n)^2 + m^2, by ring,
@@ -40,7 +42,7 @@ begin
   nlinarith,
 end
 
-/-
+/-!
 The factorization is over the integers, but we need the nonprimality over the natural numbers.
 -/
 
@@ -64,9 +66,10 @@ begin
 end
 
 
-/-
-Now we just need to show this works for an arbitrarily large a, to prove there are infinitely many of them.
-a = 4*(2+b)^4 should do. So m = 2+b.
+/-!
+Now we just need to show this works for an arbitrarily large $a$, to prove there are
+infinitely many of them.
+$a = 4*(2+b)^4$ should do. So $m = 2+b$.
 -/
 
 theorem imo1969_q1: ∀ b: ℕ, ∃ a: ℕ, a ≥ b ∧ ∀ n: ℕ, ¬ prime (n^4 + a) :=

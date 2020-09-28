@@ -332,6 +332,27 @@ begin
   exact (gsmul_eq_mul g k).symm,
 end
 
+-- Rename and move (or exists in library)
+lemma inf_property {s : set ℝ} {a ε : ℝ} (h₁ : is_glb s a) (h₂ : a ∉ s) (h₃ : 0 < ε) :
+  ∃ b, b ∈ s ∧ a < b ∧ b < a + ε :=
+begin
+  have h' : a + ε ∉ lower_bounds s,
+  { set A := a + ε,
+    have : a < A := by { simp [A], linarith },
+    revert this,
+    contrapose!,
+    intros hA,
+    exact h₁.2 hA },
+  simp [lower_bounds] at h',
+  obtain ⟨b, hb, hb'⟩ := h',
+  refine ⟨b, hb, _, hb'⟩,
+  have h₅ : a ≠ b,
+  { intros contra,
+    rw ← contra at hb,
+    contradiction },
+  exact lt_of_le_of_ne (h₁.1 hb) h₅
+end
+
 -- Move
 lemma real.mem_closure_iff {s : set ℝ} {x : ℝ} : x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, abs (y - x) < ε :=
 by simp [mem_closure_iff_nhds_basis nhds_basis_ball, real.dist_eq]
@@ -379,11 +400,20 @@ begin
         cases lt_or_gt_of_ne hy with Hy Hy,
         { exact ⟨-y, G.neg_mem y_in, neg_pos.mpr Hy⟩ },
         { exact ⟨y, y_in, Hy⟩ } },
+      obtain ⟨a, ha⟩ : ∃ a, is_glb G_pos a,
+      { use Inf G_pos,
+        exact is_glb_cInf ⟨g₁, g₁_in, g₁_pos⟩ ⟨0, λ _ hx, le_of_lt hx.2⟩ },
+      have a_notin : a ∉ G_pos,
+      { revert H',
+        contrapose!,
+        intros H',
+        exact ⟨a, H', ha.1⟩ },
       obtain ⟨g₂, g₂_in, g₂_pos, g₂_lt⟩ : ∃ g₂ : ℝ, g₂ ∈ G ∧ 0 < g₂ ∧ g₂ < ε,
-      { refine ⟨floor (ε/2/g₁) * g₁, _, _, _⟩,
-        exact mul_mem _ g₁_in,
-        sorry,
-        sorry },
+      { obtain ⟨b, hb, hb', hb''⟩ := inf_property ha a_notin ε_pos,
+        have ba_pos : 0 < b - a := by linarith,
+        obtain ⟨c, hc, hc', hc''⟩ := inf_property ha a_notin ba_pos,
+        refine ⟨b - c, add_subgroup.sub_mem G hb.1 hc.1, _, _⟩;
+        linarith },
       use floor (x/g₂) * g₂,
       split,
       { exact mul_mem _ g₂_in },

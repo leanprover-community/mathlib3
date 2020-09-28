@@ -1743,7 +1743,7 @@ quot.induction_on s $ λ l, le_count_iff_repeat_sublist.trans repeat_le_coe.symm
   {a} {s : multiset α} (h : p a) : count a (filter p s) = count a s :=
 quot.induction_on s $ λ l, count_filter h
 
-@[simp] theorem count_filter_of_neg {p} [decidable_pred p] [decidable_eq α]
+@[simp] theorem count_filter_of_neg {p} [decidable_pred p]
   {a} {s : multiset α} (h : ¬ p a) : count a (filter p s) = 0 :=
 multiset.count_eq_zero_of_not_mem (λ t, h (of_mem_filter t))
 

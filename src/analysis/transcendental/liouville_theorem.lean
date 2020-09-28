@@ -132,58 +132,39 @@ begin
   simp only [coeff_map, int.cast_eq_zero, ring_hom.eq_int_cast, coeff_zero] at ⊢ rid,
   exact rid
 end,
+have H : _, from is_compact.exists_forall_ge (@compact_Icc (α-1) (α+1))
+          begin rw set.nonempty, use α, rw set.mem_Icc, split; linarith end
+          (show continuous_on (λ x, abs ((f.map (algebra_map ℤ ℝ)).derivative.eval x)) _,
+          begin apply continuous.continuous_on, continuity, exact continuous_abs end),
+
 begin
   classical, rw irrational_iff_ne_rational at hα,
-  set Df_ℝ := (f.map (algebra_map ℤ ℝ)).derivative with h_Df,
-  have H := is_compact.exists_forall_ge (@compact_Icc (α-1) (α+1))
-            begin rw set.nonempty, use α, rw set.mem_Icc, split; linarith end
-            (show continuous_on (λ x, abs (Df_ℝ.eval x)) _,
-            begin apply continuous.continuous_on, continuity, exact continuous_abs end),
-
-  rcases H with ⟨x_max, ⟨x_max_range, hM⟩⟩,
-  simp only [and_imp, id.def] at hM,
-  set M := abs (Df_ℝ.eval x_max) with M_def,
+  obtain ⟨x_max, ⟨x_max_range, hM⟩⟩ := H,
+  set M := abs ((f.map (algebra_map ℤ ℝ)).derivative.eval x_max),
   have M_nonzero : M ≠ 0,
   { intro absurd, rw absurd at hM,
-    replace hM : ∀ (y : ℝ), y ∈ Icc (α - 1) (α + 1) → (polynomial.eval y Df_ℝ) = 0,
-    { intros y hy, specialize hM _ hy,simp only [abs_nonpos_iff] at hM, exact hM },
-    replace hM := Df_ℝ.eq_zero_of_infinite_is_root
-                    (infinite_mono (λ y hy, by simp only [mem_set_of_eq, is_root.def, hM y hy])
-                      (Icc.infinite (show α - 1 < α + 1, by linarith))),
-    replace hM := nat_degree_eq_zero_of_derivative_eq_zero hM,
-    rw ←degree_eq_iff_nat_degree_eq f_ℝ_nonzero at hM,
-    simp only [with_top.coe_zero] at hM,
-    replace hM := eq_C_of_degree_eq_zero hM,
-    replace hM : f = C (f.coeff 0),
-    { ext, rw polynomial.ext_iff at hM,
-      simp only [coeff_map, coeff_C] at hM ⊢,
-      specialize hM n,
-      split_ifs,
-      { rwa h },
-      { simp only [h, int.cast_eq_zero, ring_hom.eq_int_cast, if_false] at hM, exact hM } },
-    replace hM : f.nat_degree = 0,
-    { rw [hM, nat_degree_C] }, linarith },
-  have M_pos : 0 < M,
-  { rw [M_def] at M_nonzero ⊢, exact lt_of_le_of_ne (abs_nonneg _) M_nonzero.symm },
+    replace hM := nat_degree_eq_zero_of_derivative_eq_zero
+      ((f.map (algebra_map ℤ ℝ)).derivative.eq_zero_of_infinite_is_root
+        (infinite_mono (λ y hy, by simp only [mem_set_of_eq, is_root.def, abs_nonpos_iff.1 (hM y hy)])
+        (Icc.infinite (show α - 1 < α + 1, by linarith)))),
+    rw [nat_degree_map' (show function.injective (algebra_map ℤ ℝ), from int.cast_injective)] at hM,
+    linarith only [f_deg, hM] },
+  have M_pos : 0 < M := lt_of_le_of_ne (abs_nonneg _) M_nonzero.symm,
+  clear M_nonzero,
 
-  set f_roots := (f.map (algebra_map ℤ ℝ)).roots.to_finset with roots_def,
-  set f_roots' := f_roots.erase α with roots'_def,
-  set distances := f_roots'.image (λ x, abs (α - x)) with roots_distance_to_α,
-  set distances' := insert (1/M) (insert (1:ℝ) distances) with hdistances',
-  have h_nonempty: distances'.nonempty,
-  { rw [hdistances', finset.nonempty],
-    use (1/M), simp only [true_or, eq_self_iff_true, finset.mem_insert] },
+  set f_roots' := (f.map (algebra_map ℤ ℝ)).roots.to_finset.erase α,
+  set distances' := insert (1/M) (insert (1 : ℝ) (f_roots'.image (λ x, abs (α - x)))),
+  have h_nonempty: distances'.nonempty := ⟨1/M, by simp only [true_or, eq_self_iff_true, finset.mem_insert]⟩,
 
   set B := distances'.min' h_nonempty with hB,
   have allpos : ∀ x : ℝ, x ∈ distances' → 0 < x,
-  { intros x hx, rw [hdistances', finset.mem_insert, finset.mem_insert] at hx,
+  { intros x hx, rw [finset.mem_insert, finset.mem_insert] at hx,
     rcases hx with hx | hx | hx,
     { rw hx, simp only [one_div, gt_iff_lt, inv_pos], exact M_pos },
     { rw hx, exact zero_lt_one },
-    { rw [roots_distance_to_α] at hx,
-      simp only [exists_prop, finset.mem_image] at hx,
+    { simp only [exists_prop, finset.mem_image] at hx,
       rcases hx with ⟨α₀, hα₀⟩,
-      rw [roots'_def, finset.mem_erase] at hα₀,
+      rw [finset.mem_erase] at hα₀,
       rw [←hα₀.2, abs_pos_iff, sub_ne_zero], exact hα₀.1.1.symm } },
   have B_pos : 0 < B := hB.symm ▸ allpos (min' distances' h_nonempty) (min'_mem distances' h_nonempty),
 
@@ -193,100 +174,56 @@ begin
   { exact hB₂ },
   { by_contra absurd, simp only [exists_prop, not_lt, not_forall] at absurd,
     rcases absurd with ⟨a, b, b_pos, abs_lt⟩,
-    have hb : 1 ≤ b ^ f.nat_degree,
-    { change 0 < b ^ f.nat_degree, exact pow_pos b_pos f.nat_degree },
+    have hb : 1 ≤ b ^ f.nat_degree := pow_pos b_pos f.nat_degree,
     have hb₁ : abs (α - a / b) ≤ B / 2,
     { refine le_trans abs_lt _,
       rw [div_le_iff, le_mul_iff_one_le_right],
-      { norm_cast, exact hb },
-      { exact hB₂ },
-      { norm_cast, exact pow_pos b_pos _ } },
+      repeat { norm_cast <|> assumption, assumption <|> exact pow_pos b_pos _} },
     have hb₂ : abs (α - a / b) < B := lt_of_le_of_lt hb₁ (by linarith),
 
     have hab₀ : (a / b : ℝ) ∈ Icc (α - 1) (α + 1),
     { suffices : abs (α - a/b) ≤ 1,
-      { rw [←closed_ball_Icc, metric.mem_closed_ball, real.dist_eq, abs_sub],
-        exact this, },
+      { rwa [←closed_ball_Icc, metric.mem_closed_ball, real.dist_eq, abs_sub] },
       suffices : B ≤ 1, linarith,
       rw hB, refine finset.min'_le distances' 1 _,
-      rw [hdistances', finset.mem_insert, finset.mem_insert], tauto },
+      rw [finset.mem_insert, finset.mem_insert], right, left, refl },
     have hab₁ : α ≠ a/b := hα a b,
-    have hab₂ : (a/b:ℝ) ∉ f_roots,
+    have hab₂ : (a/b:ℝ) ∉ (f.map (algebra_map ℤ ℝ)).roots.to_finset,
     { intro absurd,
       have H₁ : (a/b:ℝ) ∈ f_roots',
-      { rw [roots'_def, finset.mem_erase], exact ⟨hab₁.symm, absurd⟩ },
+      { rw [finset.mem_erase], exact ⟨hab₁.symm, absurd⟩ },
       have H₂ : abs (α - a/b) ∈ distances',
-      { rw [hdistances', finset.mem_insert, finset.mem_insert], right, right,
-        rw [roots_distance_to_α, finset.mem_image], use (a/b:ℝ), exact ⟨H₁, rfl⟩ },
+      { rw [finset.mem_insert, finset.mem_insert, finset.mem_image], right, right,
+        exact ⟨a/b, ⟨H₁, rfl⟩⟩ },
       have H₃ := finset.min'_le distances' (abs (α - a/b)) H₂,
-      erw ←hB at H₃, linarith },
+      erw ←hB at H₃, linarith only [lt_of_lt_of_le hb₂ H₃] },
     have hab₂' : (f.map (algebra_map ℤ ℝ)).eval (a/b) ≠ 0,
     { rwa [multiset.mem_to_finset, mem_roots f_ℝ_nonzero, is_root.def] at hab₂ },
     have hab₃ := ne_iff_lt_or_gt.1 hab₁.symm,
 
     rcases hab₃ with α_gt | α_lt,
-    { have cont_eval : continuous_on (λ x, (f.map (algebra_map ℤ ℝ)).eval x) (Icc (a/b) α),
-      { refine continuous.continuous_on _, continuity },
-      have diff_eval : differentiable_on ℝ (λ x, (f.map (algebra_map ℤ ℝ)).eval x) (Ioo (a/b) α),
-      { refine differentiable.differentiable_on _, exact (map (algebra_map ℤ ℝ) f).differentiable},
-      rcases (exists_deriv_eq_slope (λ x, (f.map (algebra_map ℤ ℝ)).eval x)
-                α_gt cont_eval diff_eval) with ⟨x₀, x₀_range, hx₀⟩,
-      clear cont_eval diff_eval,
-      simp only [polynomial.deriv, α_root, zero_sub] at hx₀,
 
-      have Df_x₀_nonzero : (f.map (algebra_map ℤ ℝ)).derivative.eval x₀ ≠ 0,
-      { rw hx₀, intro rid,
-        rw [neg_div, neg_eq_zero, div_eq_iff (show α - a/b ≠ 0, by linarith), zero_mul] at rid,
-        exact hab₂' rid },
+    have cont_eval : continuous_on (λ x, (f.map (algebra_map ℤ ℝ)).eval x) (Icc (a/b) α) :=
+      (map (algebra_map ℤ ℝ) f).continuous_eval.continuous_on,
+    have diff_eval : differentiable_on ℝ (λ x, (f.map (algebra_map ℤ ℝ)).eval x) (Ioo (a/b) α) :=
+      differentiable.differentiable_on (map (algebra_map ℤ ℝ) f).differentiable,
+    rcases (exists_deriv_eq_slope (λ x, (f.map (algebra_map ℤ ℝ)).eval x)
+      α_gt cont_eval diff_eval) with ⟨x₀, x₀_range, hx₀⟩,
+    clear cont_eval diff_eval,
+    simp only [polynomial.deriv, α_root, zero_sub] at hx₀,
 
-      replace hx₀ := hx₀.symm,
-      replace hx₀ : (α - ↑a / ↑b) = -(f.map (algebra_map ℤ ℝ)).eval (a/b) / (f.map (algebra_map ℤ ℝ)).derivative.eval x₀,
-      { symmetry, rw div_eq_iff at hx₀ ⊢,  rw mul_comm, exact hx₀,
-        exact Df_x₀_nonzero,
-        rwa sub_ne_zero },
+    replace hx₀ := hx₀.symm,
+    have Df_x₀_nonzero : (f.map (algebra_map ℤ ℝ)).derivative.eval x₀ ≠ 0 := hx₀.symm ▸ λ rid, hab₂'
+      begin rwa [rid, neg_div, neg_eq_zero, div_eq_iff (show α - a/b ≠ 0, by linarith), zero_mul] at hx₀ end,
 
-      have ineq :=
-        calc B / 2 / b^f.nat_degree
-          ≥ abs (α - ↑a / ↑b) : ge_iff_le.2 abs_lt
-      ... = abs((f.map (algebra_map ℤ ℝ)).eval (a/b) / (Df_ℝ.eval x₀))
-          : by rw [congr_arg abs hx₀, neg_div, abs_neg]
-      ... = abs ((f.map (algebra_map ℤ ℝ)).eval (a/b)) / abs (Df_ℝ.eval x₀)
-          : by rw abs_div
-      ... ≥ 1/b^f.nat_degree / abs (Df_ℝ.eval x₀)
-          : begin
-              rw ge_iff_le,
-              refine div_le_div (abs_nonneg _)
-                (abs_eval_rat_ge_one_div_denom_pow_n f a b b_pos hab₂')
-                (abs_pos_of_ne_zero Df_x₀_nonzero) (le_refl _),
-            end
-      ... ≥ 1/b^f.nat_degree / M
-          : begin
-              rw ge_iff_le,
-              refine div_le_div _ (le_refl _) (abs_pos_of_ne_zero Df_x₀_nonzero) _,
-              { rw one_div_nonneg, apply pow_nonneg, norm_cast, exact le_of_lt b_pos },
-              { refine hM x₀ _, simp only [mem_Ioo, mem_Icc] at x₀_range hab₀ ⊢, split,
-                { exact le_trans hab₀.1 (le_of_lt x₀_range.1) },
-                { exact le_trans (le_of_lt x₀_range.2) (by linarith) } }
-            end
-      ... = 1/M / b^f.nat_degree
-          : by ring
-      ... ≥ B / b^f.nat_degree
-          : begin
-              rw ge_iff_le,
-              refine div_le_div _ _ _ (le_refl _),
-              { rw one_div_nonneg, exact le_of_lt M_pos },
-              { refine finset.min'_le distances' (1/M) (mem_insert_self _ _) },
-              { apply pow_pos, norm_cast, exact b_pos },
-            end
-      ... > B / 2 / b^f.nat_degree
-          : begin
-              rw [gt_iff_lt, div_lt_div_right],
-              { exact half_lt_self B_pos },
-              { apply pow_pos, norm_cast, exact b_pos },
-            end,
+    replace hx₀ : (α - ↑a / ↑b) = -(f.map (algebra_map ℤ ℝ)).eval (a/b) / (f.map (algebra_map ℤ ℝ)).derivative.eval x₀,
+    { symmetry, rw div_eq_iff at hx₀ ⊢,  rwa mul_comm,
+      exact Df_x₀_nonzero,
+      rwa sub_ne_zero },
 
-      linarith only [ineq] },
-    { have cont_eval : continuous_on (λ x, (f.map (algebra_map ℤ ℝ)).eval x) (Icc α (a/b)),
+    swap,
+
+    have cont_eval : continuous_on (λ x, (f.map (algebra_map ℤ ℝ)).eval x) (Icc α (a/b)),
       { refine continuous.continuous_on _, continuity },
       have diff_eval : differentiable_on ℝ (λ x, (f.map (algebra_map ℤ ℝ)).eval x) (Ioo α (a/b)),
       { refine differentiable.differentiable_on _, exact (map (algebra_map ℤ ℝ) f).differentiable },
@@ -295,58 +232,57 @@ begin
       clear cont_eval diff_eval,
       simp only [polynomial.deriv, α_root, sub_zero] at hx₀,
 
-      have Df_x₀_nonzero : (f.map (algebra_map ℤ ℝ)).derivative.eval x₀ ≠ 0,
-      { rw hx₀, intro rid,
-        rw [div_eq_iff (show (a/b:ℝ) - α ≠ 0, by linarith), zero_mul] at rid,
-        exact hab₂' rid },
-
       replace hx₀ := hx₀.symm,
+      have Df_x₀_nonzero : (f.map (algebra_map ℤ ℝ)).derivative.eval x₀ ≠ 0 := hx₀.symm ▸ λ rid, hab₂'
+        begin rwa [rid, div_eq_iff (show (a / b : ℝ) - α ≠ 0, by linarith), zero_mul] at hx₀ end,
+
       replace hx₀ : (↑a / ↑b - α) = (f.map (algebra_map ℤ ℝ)).eval (a/b) / (f.map (algebra_map ℤ ℝ)).derivative.eval x₀,
-      { symmetry, rw div_eq_iff at hx₀ ⊢,  rw mul_comm, exact hx₀,
+      { symmetry, rw div_eq_iff at hx₀ ⊢,  rwa mul_comm,
         exact Df_x₀_nonzero,
         rw sub_ne_zero, exact hab₁.symm },
 
-      have ineq :=
-        calc B / 2 / b^f.nat_degree
-          ≥ abs (↑a / ↑b - α) : abs_sub α (a/b:ℝ) ▸ ge_iff_le.2 abs_lt
-      ... = abs((f.map (algebra_map ℤ ℝ)).eval (a/b) / (Df_ℝ.eval x₀))
-          : by rw congr_arg abs hx₀
-      ... = abs ((f.map (algebra_map ℤ ℝ)).eval (a/b)) / abs (Df_ℝ.eval x₀)
-          : by rw abs_div
-      ... ≥ 1/b^f.nat_degree / abs (Df_ℝ.eval x₀)
-          : begin
-              rw ge_iff_le,
-              refine div_le_div (abs_nonneg _)
-                (abs_eval_rat_ge_one_div_denom_pow_n f a b b_pos hab₂')
-                (abs_pos_of_ne_zero Df_x₀_nonzero) (le_refl _),
-            end
-      ... ≥ 1/b^f.nat_degree / M
-          : begin
-              rw ge_iff_le,
-              refine div_le_div _ (le_refl _) (abs_pos_of_ne_zero Df_x₀_nonzero) _,
-              { rw one_div_nonneg, apply pow_nonneg, norm_cast, exact le_of_lt b_pos },
-              { refine hM x₀ _, simp only [mem_Ioo, mem_Icc] at x₀_range hab₀ ⊢, split,
-                { exact le_trans (by linarith) (le_of_lt x₀_range.1) },
-                { exact le_trans (le_of_lt x₀_range.2) (by linarith) } }
-            end
-      ... = 1/M / b^f.nat_degree
-          : by ring
-      ... ≥ B / b^f.nat_degree
-          : begin
-              rw ge_iff_le,
-              refine div_le_div _ _ _ (le_refl _),
-              { rw one_div_nonneg, exact le_of_lt M_pos },
-              { refine finset.min'_le distances' (1/M) (mem_insert_self _ _) },
-              { apply pow_pos, norm_cast, exact b_pos },
-            end
-      ... > B / 2 / b^f.nat_degree
-          : begin
-              rw [gt_iff_lt, div_lt_div_right],
-              { exact half_lt_self B_pos },
-              { apply pow_pos, norm_cast, exact b_pos },
-            end,
+  repeat {
+  have ineq :=
+      calc B / 2 / b^f.nat_degree
+        ≥ abs (α - ↑a / ↑b) : ge_iff_le.2 abs_lt
+    ... = abs((f.map (algebra_map ℤ ℝ)).eval (a/b) / ((f.map (algebra_map ℤ ℝ)).derivative.eval x₀))
+        : by rw [congr_arg abs hx₀, neg_div, abs_neg] <|> rw [show abs (α - a / b) = abs (a / b - α), from abs_sub α (a/b), congr_arg abs hx₀]
+    ... = abs ((f.map (algebra_map ℤ ℝ)).eval (a/b)) / abs ((f.map (algebra_map ℤ ℝ)).derivative.eval x₀)
+        : by rw abs_div
+    ... ≥ 1/b^f.nat_degree / abs ((f.map (algebra_map ℤ ℝ)).derivative.eval x₀)
+        : begin
+            rw ge_iff_le,
+            refine div_le_div (abs_nonneg _)
+              (abs_eval_rat_ge_one_div_denom_pow_n f a b b_pos hab₂')
+              (abs_pos_of_ne_zero Df_x₀_nonzero) (le_refl _),
+          end
+    ... ≥ 1/b^f.nat_degree / M
+        : begin
+            rw ge_iff_le,
+            refine div_le_div _ (le_refl _) (abs_pos_of_ne_zero Df_x₀_nonzero) _,
+            { rw one_div_nonneg, apply pow_nonneg, norm_cast, exact le_of_lt b_pos },
+            { refine hM x₀ _, simp only [mem_Ioo, mem_Icc] at x₀_range hab₀ ⊢, split,
+              { exact le_trans hab₀.1 (le_of_lt x₀_range.1) <|> exact le_trans (by linarith) (le_of_lt x₀_range.1) },
+              { exact le_trans (le_of_lt x₀_range.2) (by linarith) } }
+          end
+    ... = 1/M / b^f.nat_degree
+        : by ring
+    ... ≥ B / b^f.nat_degree
+        : begin
+            rw ge_iff_le,
+            refine div_le_div _ _ _ (le_refl _),
+            { rw one_div_nonneg, exact le_of_lt M_pos },
+            { refine finset.min'_le distances' (1/M) (mem_insert_self _ _) },
+            { apply pow_pos, norm_cast, exact b_pos },
+          end
+    ... > B / 2 / b^f.nat_degree
+        : begin
+            rw [gt_iff_lt, div_lt_div_right],
+            { exact half_lt_self B_pos },
+            { apply pow_pos, norm_cast, exact b_pos },
+          end,
 
-      linarith only [ineq] } }
+    linarith only [ineq] } }
 end
 
 lemma irrational_of_liouville (x : ℝ) (liouvilleₓ : liouville_number x) : irrational x :=
@@ -366,18 +302,17 @@ begin
   { intros a b b_pos rid,
     have b_nonneg : 0 ≤ b := le_of_lt b_pos,
     lift b to ℕ using b_nonneg,
-    replace rid : x = (a/b:ℝ) := by tidy,
+    rw ←coe_coe at rid,
+    norm_cast at b_pos,
     set n := b + 1 with hn,
-    have b_ineq : b < 2 ^ (n-1),
-    { simp only [nat.add_succ_sub_one, add_zero],
-      exact nat.lt_two_pow b },
+    have b_ineq : b < 2 ^ (n-1) := nat.lt_two_pow b,
 
     rcases liouvilleₓ n with ⟨p, q, q_gt_1, abs_sub_pos, abs_sub_small⟩,
     have q_pos : 0 < q := by linarith,
     have q_nonneg : 0 ≤ q := le_of_lt q_pos,
     lift q to ℕ using q_nonneg,
     rw [←coe_coe, rid] at *,
-    norm_cast at b_pos q_gt_1 q_pos,
+    norm_cast at q_gt_1 q_pos,
     rw [div_sub_div, abs_div] at abs_sub_pos abs_sub_small,
 
     by_cases (abs ((a:ℝ) * q - b * p) = 0),
@@ -385,8 +320,8 @@ begin
       simp only [one_div, zero_div, inv_pos] at abs_sub_pos abs_sub_small,
       linarith [abs_sub_pos] },
 
-    { replace h : 0 < abs ((a:ℝ) * q - b * p),
-      { apply abs_pos_of_ne_zero, intro rid, refine h _, rw rid, exact abs_zero },
+    { replace h : 0 < abs ((a:ℝ) * q - b * p) := abs_pos_of_ne_zero (λ rid, h begin rw [rid, abs_zero] end),
+      -- by { refine h _, rw rid, exact abs_zero }),
       have h' : 1 ≤ abs ((a:ℝ) * q - b * p),
       { norm_cast at h ⊢, linarith },
       rw (show abs (b * q : ℝ) = b * q,

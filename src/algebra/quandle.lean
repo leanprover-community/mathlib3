@@ -381,9 +381,59 @@ def to_conj (R : Type*) [rack R] : R →◃ quandle.conj (R ≃ R) :=
 section envel_group
 
 /-!
-## Universal enveloping group of a rack
+### Universal enveloping group of a rack
 
-Joyce, for quandles, called this AdConj.
+The universal enveloping group `envel_group R` of a rack `R` is the
+universal group such that every rack homomorphism `R →◃ conj G` is
+induced by a unique group homomorphism `envel_group R →* G`.
+For quandles, Joyce called this group `AdConj R`.
+
+The `envel_group` functor is left adjoint to the `conj` forgetful
+functor, and the way we construct the enveloping group is via a
+technique that should work for left adjoints of forgetful functors in
+general.  It involves thinking a little about 2-categories, but the
+payoff is that the map `envel_group R →* G` has a nice description.
+
+Let's think of a group as being a one-object category.  The first step
+is to define `pre_envel_group`, which gives formal expressions for all
+the 1-morphisms and includes the unit element, elements of `R`,
+multiplication, and inverses.  To introduce relations, the second step
+is to define `pre_envel_group_rel'`, which gives formal expressions
+for all 2-morphisms between the 1-morphisms.  The 2-morphisms include
+associativity, multiplication by the unit, multiplication by inverses,
+compatibility with multiplication and inverses (`congr_mul` and
+`congr_inv`), the axioms for an equivalence relation, and,
+importantly, the relationship between conjugation and the rack action
+(see `rack.ad_conj).
+
+None of this forms a 2-category yet, for example due to lack of
+associativity of `trans`.  The `pre_envel_group_rel` relation is a
+`Prop`-valued version of `pre_envel_group_rel'`, and making it
+`Prop`-valued essentially introduces enough 3-isomorphisms so that
+every pair of compatible 2-morphisms is isomorphic.  Now, while
+composition in `pre_envel_group` does not stricly satisfy the category
+axioms, `pre_envel_group` and `pre_envel_group_rel'` do form a weak
+2-category.
+
+Since we just want a 1-category, the last step is to quotient
+`pre_envel_group` by `pre_envel_group_rel'`, and the result is the
+group `envel_group`.
+
+For a homomorphism `f : R →◃ conj G`, how does
+`envel_group.map f : envel_group R →* G` work?  Let's think of `G` as
+being a 2-category with one object, a 1-morphism per element of `G`,
+and a single 2-morphism called `eq.refl` for each 1-morphism.  We
+define the map using a "higher `quotient.lift`" -- not only do we
+evaluate elements of `pre_envel_group` as expressions in `G` (this is
+`to_envel_group.map_aux`), but we evaluate elements of
+`pre_envel_group'` as expressions of 2-morphisms of `G` (this is
+`to_envel_group.map_aux.well_def`).  That is to say,
+`to_envel_group.map_aux.well_def` recursively evaluates formal
+expressions of 2-morphisms as equality proofs in `G`.
+
+Note: `Type`-valued relations are not common.  The fact it is
+`Type`-valued is what makes `to_envel_group.map_aux.well_def` have
+well-founded recursion.
 -/
 
 /--

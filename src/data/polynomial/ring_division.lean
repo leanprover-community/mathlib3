@@ -373,21 +373,6 @@ then if h : (X : polynomial R) ^ n - C a = 0
 else by rw [← with_bot.coe_le_coe, ← degree_X_pow_sub_C (nat.pos_of_ne_zero hn) a];
   exact card_roots (X_pow_sub_C_ne_zero (nat.pos_of_ne_zero hn) a)
 
-/-- `roots_of_unity n R` is the multiset of elements `r : R` that satisfy `r ^ n = 1` -/
-def roots_of_unity (n : ℕ) (R : Type*) [integral_domain R] : multiset R :=
-nth_roots n (1 : R)
-
-@[simp] lemma mem_roots_of_unity {n : ℕ} (hn : 0 < n) (x : R) :
-  x ∈ roots_of_unity n R ↔ x ^ n = 1 :=
-mem_nth_roots hn
-
-@[simp] lemma roots_of_unity_zero : roots_of_unity 0 R = 0 :=
-nth_roots_zero _
-
-lemma card_roots_of_unity (n : ℕ) :
-  (roots_of_unity n R).card ≤ n :=
-card_nth_roots n _
-
 end nth_roots
 
 lemma coeff_comp_degree_mul_degree (hqd0 : nat_degree q ≠ 0) :

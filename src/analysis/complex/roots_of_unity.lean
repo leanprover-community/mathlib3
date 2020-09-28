@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import data.polynomial.ring_division
+import ring_theory.roots_of_unity
 import analysis.special_functions.trigonometric
 import analysis.special_functions.pow
 

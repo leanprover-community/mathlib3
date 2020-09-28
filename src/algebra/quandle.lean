@@ -404,7 +404,7 @@ associativity, multiplication by the unit, multiplication by inverses,
 compatibility with multiplication and inverses (`congr_mul` and
 `congr_inv`), the axioms for an equivalence relation, and,
 importantly, the relationship between conjugation and the rack action
-(see `rack.ad_conj).
+(see `rack.ad_conj`).
 
 None of this forms a 2-category yet, for example due to lack of
 associativity of `trans`.  The `pre_envel_group_rel` relation is a

@@ -49,6 +49,32 @@ together with `is_polyₙ.comp` that shows how such functions compose.
 Since mathlib does not have a library on composition of higher arity functions,
 we have only implemented the unary and binary variants so far.
 Nullary functions (a.k.a. constants) are treated as constant functions and fall under the unary case.
+
+## Tactics
+
+There are important metaprograms defined in this file:
+the tactics `witt_simp` and `polify` and the attributes `@[is_poly]` and `@[ghost_simps]`.
+These are used in combination to discharge proofs of identities between polynomial functions.
+
+Any atomic proof of `is_poly` or `is_poly₂` (i.e. not taking additional `is_poly` arguments)
+should be tagged as `@[is_poly]`.
+
+Any lemma doing "ring equation rewriting" with polynomial functions should be tagged
+`@[ghost_simps]`, e.g.
+```lean
+@[ghost_simps]
+lemma bind₁_frobenius_poly_witt_polynomial (n : ℕ) :
+  bind₁ (frobenius_poly p) (witt_polynomial p ℤ n) = (witt_polynomial p ℤ (n+1))
+```
+
+Proofs of identities between polynomial functions will often follow the pattern
+```lean
+begin
+  polify _,
+  <minor preprocessing>,
+  witt_simp
+end
+```
 -/
 
 /-

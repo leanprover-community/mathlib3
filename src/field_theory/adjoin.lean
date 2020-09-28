@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning and Patrick Lutz
 -/
 
-import deprecated.subfield
 import field_theory.tower
 import field_theory.intermediate_field
 
@@ -33,26 +32,19 @@ variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (S : set E)
 
 /-- `adjoin F S` extends a field `F` by adjoining a set `S ⊆ E`. -/
 def adjoin : intermediate_field F E :=
-{ carrier := field.closure (set.range (algebra_map F E) ∪ S),
-  zero_mem' := is_add_submonoid.zero_mem,
-  neg_mem' := λ x, is_add_subgroup.neg_mem,
-  add_mem' := λ x y, is_add_submonoid.add_mem,
-  one_mem' := is_submonoid.one_mem,
-  inv_mem' := λ x, is_subfield.inv_mem,
-  mul_mem' := λ x y, is_submonoid.mul_mem,
-  algebra_map_mem' := λ x, field.mem_closure (or.inl (set.mem_range.mpr ⟨x,rfl⟩)), }
+{ algebra_map_mem' := λ x, subfield.subset_closure
+  (set.subset_union_left  _ _ (set.mem_range_self x)),
+  .. subfield.closure (set.range (algebra_map F E) ∪ S), }
 
 end adjoin_def
 
 section lattice
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 
---need this instance to apply closure_subset
-instance (K : intermediate_field F E) : is_subfield (K : set E) := sorry
-
 protected lemma gc : galois_connection (adjoin F : set E → intermediate_field F E) coe :=
-λ S T, ⟨λ H, le_trans (le_trans (set.subset_union_right _ _) field.subset_closure) H,
-λ H, field.closure_subset (set.union_subset (intermediate_field.set_range_subset T) H)⟩
+λ S T, ⟨λ H, le_trans (le_trans (set.subset_union_right _ _) subfield.subset_closure) H,
+λ H, (@subfield.closure_le E _ (set.range (algebra_map F E) ∪ S) T.to_subfield).mpr
+(set.union_subset (intermediate_field.set_range_subset T) H)⟩
 
 /-- Galois insertion between `adjoin` and `coe`. -/
 protected def gi : galois_insertion (adjoin F : set E → intermediate_field F E) coe :=

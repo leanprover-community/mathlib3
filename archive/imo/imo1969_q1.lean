@@ -45,10 +45,7 @@ The factorization is over the integers, but we need the nonprimality over the na
 -/
 
 lemma int_large (a : ℤ) (h : 1 < a) : 1 < a.nat_abs :=
-have a = ↑(a.nat_abs) ∨ a = -↑(a.nat_abs), from nat_abs_eq a,
-or.elim this
-  (assume : a = ↑(a.nat_abs), by linarith)
-  (assume : a = -↑(a.nat_abs), by linarith)
+by exact_mod_cast lt_of_lt_of_le h le_nat_abs
 
 lemma int_not_prime (a b : ℤ) (c : ℕ) (h1 : 1 < a) (h2 : 1 < b) (h3 : a*b = ↑c) : ¬ prime c :=
 have h4 : (a*b).nat_abs = a.nat_abs * b.nat_abs, from nat_abs_mul a b,

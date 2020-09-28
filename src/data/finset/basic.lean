@@ -981,7 +981,8 @@ theorem filter_union_right (p q : α → Prop) [decidable_pred p] [decidable_pre
   s.filter p ∪ s.filter q = s.filter (λx, p x ∨ q x) :=
 ext $ λ x, by simp only [mem_filter, mem_union, and_or_distrib_left.symm]
 
-lemma filter_mem_eq_inter {s t : finset α} : s.filter (λ i, i ∈ t) = s ∩ t :=
+lemma filter_mem_eq_inter {s t : finset α} [Π i, decidable (i ∈ t)] :
+  s.filter (λ i, i ∈ t) = s ∩ t :=
 ext $ λ i, by rw [mem_filter, mem_inter]
 
 theorem filter_inter {s t : finset α} : filter p s ∩ t = filter p (s ∩ t) :=

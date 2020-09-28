@@ -521,7 +521,7 @@ def pos_sum_of_encodable {ε : ℝ} (hε : 0 < ε)
 begin
   let f := λ n, (ε / 2) / 2 ^ n,
   have hf : has_sum f ε := has_sum_geometric_two' _,
-  have f0 : ∀ n, 0 < f n := λ n, div_pos (half_pos hε) (pow_pos two_pos _),
+  have f0 : ∀ n, 0 < f n := λ n, div_pos (half_pos hε) (pow_pos zero_lt_two _),
   refine ⟨f ∘ encodable.encode, λ i, f0 _, _⟩,
   rcases hf.summable.comp_injective (@encodable.encode_injective ι _) with ⟨c, hg⟩,
   refine ⟨c, hg, has_sum_le_inj _ (@encodable.encode_injective ι _) _ _ hg hf⟩,

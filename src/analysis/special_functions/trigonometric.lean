@@ -866,7 +866,7 @@ lemma sqrt_two_add_series_lt_two : ∀(n : ℕ), sqrt_two_add_series 0 n < 2
 | 0     := by norm_num
 | (n+1) :=
   begin
-    refine lt_of_lt_of_le _ (le_of_eq $ sqrt_sqr $ le_of_lt two_pos),
+    refine lt_of_lt_of_le _ (le_of_eq $ sqrt_sqr $ le_of_lt zero_lt_two),
     rw [sqrt_two_add_series, sqrt_lt],
     apply add_lt_of_lt_sub_left,
     apply lt_of_lt_of_le (sqrt_two_add_series_lt_two n),

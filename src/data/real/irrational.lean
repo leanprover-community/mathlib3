@@ -7,6 +7,8 @@ import data.real.basic
 import data.rat.sqrt
 import algebra.gcd_monoid
 import ring_theory.multiplicity
+import data.polynomial.eval
+import data.polynomial.degree
 /-!
 # Irrational real numbers
 
@@ -202,6 +204,48 @@ theorem of_fpow : ∀ m : ℤ, irrational (x^m) → irrational x
 | -[1+n] := λ h, by { rw fpow_neg_succ_of_nat at h, exact h.of_inv.of_pow _ }
 
 end irrational
+
+
+section polynomial
+open polynomial
+variables (x : ℝ) (p : polynomial ℤ)
+
+lemma nat_degree_gt_one_of_irrational_root (hx : irrational x) (p_nonzero : p ≠ 0)
+  (x_is_root : (p.map (algebra_map ℤ ℝ)).is_root x) : 1 < p.nat_degree :=
+begin
+  have degree_eq : p.nat_degree = (p.map (algebra_map ℤ ℝ)).nat_degree,
+  { rw nat_degree_map', exact int.cast_injective },
+
+  by_contra rid,
+  simp only [not_lt] at rid,
+  replace rid := lt_or_eq_of_le rid,
+  replace rid : p.nat_degree = 0 ∨ p.nat_degree = 1,
+  { cases rid, left, linarith, right, assumption },
+  rcases rid with zero | one,
+  { replace zero := eq_C_of_nat_degree_eq_zero zero,
+    have about_p := x_is_root,
+    rw zero at about_p,
+    rw [is_root.def, eval_map, eval₂_C] at about_p,
+    simp only [int.cast_eq_zero, ring_hom.eq_int_cast] at about_p,
+    rw about_p at zero, simp only [int.cast_zero, ring_hom.eq_int_cast] at zero,
+    exact p_nonzero zero
+  },
+
+  { rw irrational_iff_ne_rational at hx,
+    rw [is_root.def, as_sum p, one, eval_map, eval₂_finset_sum, ←nat.succ_eq_add_one,
+      finset.sum_range_succ, finset.sum_range_one, eval₂_mul, eval₂_C, eval₂_X_pow,
+      eval₂_mul, eval₂_C, eval₂_X_pow, pow_one, pow_zero, mul_one, add_eq_zero_iff_eq_neg] at x_is_root,
+    refine hx (-(p.coeff 0)) (p.coeff 1) _,
+    simp only [ring_hom.eq_int_cast] at x_is_root,
+    symmetry,
+    rw [div_eq_iff, mul_comm], convert x_is_root.symm using 2,
+    simp only [int.cast_neg],
+    norm_cast, intro rid, rw ←one at rid, rw [←leading_coeff, leading_coeff_eq_zero] at rid,
+    exact p_nonzero rid }
+end
+
+end polynomial
+
 
 section
 variables {q : ℚ} {x : ℝ}

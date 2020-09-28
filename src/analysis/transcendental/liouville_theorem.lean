@@ -368,4 +368,57 @@ begin
     repeat { norm_cast, assumption <|> linarith } }
 end
 
+theorem transcendental_of_liouville_numbers (x : ℝ) (liouville_x : liouville_number x) : transcendental x :=
+have pow_big_enough : ∀ A : ℝ, ∃ r : ℕ, 1/A ≤ 2 ^ r, from
+begin
+  intro A,
+  have H := @pow_unbounded_of_one_lt ℝ _ _ (1/A) 2 _,
+  choose n hn using H,
+  use n, exact le_of_lt hn, exact lt_add_one 1,
+end,
+begin
+  have irr_x : irrational x, exact irrational_of_liouville x liouville_x,
+  intros rid,
+  rcases rid with ⟨f, f_nonzero, root⟩,
+  replace root : (f.map (algebra_map ℤ ℝ)).eval x = 0,
+  { rw aeval_def at root, rwa [eval_map] },
+  have root' : (f.map (algebra_map ℤ ℝ)).is_root x,
+  { rwa is_root.def },
+  have f_deg : 1 < f.nat_degree := nat_degree_gt_one_of_irrational_root x f irr_x f_nonzero root',
+
+
+  rcases about_irrational_root x irr_x f f_deg root with ⟨A, A_pos, h⟩,
+  rcases pow_big_enough A with ⟨r, hr⟩,
+  have hr' : 1/(2^r) ≤ A,
+  { rw [div_le_iff, mul_comm, <-div_le_iff], repeat { assumption <|> apply pow_pos <|> linarith } },
+
+  specialize liouville_x (r + f.nat_degree),
+  rcases liouville_x with ⟨a, b, b_gt_1, abs_sub_pos, abs_sub_small⟩,
+  specialize h a b (by linarith),
+
+  have ineq :=
+    calc abs (x - a/b)
+        < 1 / b ^ (r + f.nat_degree) : abs_sub_small
+    ... = 1 / (b ^ r * b ^ f.nat_degree) : by rw pow_add
+    ... = 1 / b ^ r * (1 / b ^ f.nat_degree) : by rw one_div_mul_one_div
+    ... ≤ 1 / 2 ^ r * (1 / b ^ f.nat_degree)
+        : begin
+            refine mul_le_mul _ (le_refl _) _ _,
+            { rw [div_le_div_iff, one_mul, one_mul],
+              refine pow_le_pow_of_le_left _ _ r,
+              repeat { norm_cast, linarith <|> apply pow_nonneg <|> apply pow_pos } },
+            all_goals { rw one_div_nonneg, apply pow_nonneg, norm_cast, linarith }
+          end
+    ... ≤ A * (1 / b ^ f.nat_degree)
+        : begin
+            apply mul_le_mul,
+            repeat {linarith <|> assumption },
+            rw one_div_nonneg, apply pow_nonneg, norm_cast, linarith
+          end
+    ... = A / b ^ f.nat_degree : by rw ←div_eq_mul_one_div
+    ... < abs (x - a/b) : h,
+
+    linarith only [ineq]
+end
+
 end liouville

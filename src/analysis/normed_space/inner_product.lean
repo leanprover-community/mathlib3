@@ -1022,7 +1022,7 @@ instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
 
 
 /-- The standard real/complex Euclidean space, functions on a finite type. For an `n`-dimensional space
-use `euclidean_space K (fin n)`.  -/
+use `euclidean_space 𝕜 (fin n)`.  -/
 @[reducible, nolint unused_arguments]
 def euclidean_space (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜] [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 one_le_two (λ (i : n), 𝕜)

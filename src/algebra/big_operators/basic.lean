@@ -1012,6 +1012,21 @@ end prod_eq_zero
 
 end finset
 
+namespace list
+
+@[to_additive, simp] lemma prod_to_finset {M : Type*} [decidable_eq α] [comm_monoid M]
+  (f : α → M) {l : list α} (hl : l.nodup) : l.to_finset.prod f = (l.map f).prod :=
+begin
+  revert hl,
+  apply l.rec_on,
+  { simp },
+  intros a l ih hl,
+  obtain ⟨not_mem, hl⟩ := list.nodup_cons.mp hl,
+  simp [finset.prod_insert (mt list.mem_to_finset.mp not_mem), ih hl]
+end
+
+end list
+
 namespace multiset
 variables [decidable_eq α]
 

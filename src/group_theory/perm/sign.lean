@@ -698,6 +698,65 @@ calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
       pow_one, units.neg_mul_neg]
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ f, f.support.card)⟩]}
 
+/-- If we have a list of all elements of `α`, we can write
+`equiv.prod_congr_right (e : α → perm β)` as `extend` applied to each element
+in turn. -/
+lemma prod_congr_right_eq_prod_extend (σ : α → perm β)
+  {l : list α} (hl : l.nodup) (mem_l : ∀ a, a ∈ l) :
+  prod_congr_right σ = (l.map (λ a, extend a (σ a))).prod :=
+begin
+  ext ⟨a, b⟩ : 1,
+  -- We'll use induction on the list of elements,
+  -- but we have to keep track of whether we already passed `a` in the list.
+  suffices : (a ∈ l ∧ (l.map (λ a, extend a (σ a))).prod (a, b) = (a, σ a b)) ∨
+             (a ∉ l ∧ (l.map (λ a, extend a (σ a))).prod (a, b) = (a, b)),
+  { obtain ⟨_, prod_eq⟩ := or.resolve_right this (not_and.mpr (λ h _, h (mem_l a))),
+    rw [prod_eq, prod_congr_right_apply] },
+  clear mem_l,
+
+  induction l with a' l ih,
+  { refine or.inr ⟨list.not_mem_nil _, _⟩,
+    rw [list.map_nil, list.prod_nil, one_apply] },
+
+  rw [list.map_cons, list.prod_cons, mul_apply],
+  rcases ih (list.nodup_cons.mp hl).2 with ⟨mem_l, prod_eq⟩ | ⟨not_mem_l, prod_eq⟩; rw prod_eq,
+  { refine or.inl ⟨list.mem_cons_of_mem _ mem_l, _⟩,
+    rw extend_apply_ne _ (λ (h : a = a'), (list.nodup_cons.mp hl).1 (h ▸ mem_l)) },
+  by_cases ha' : a = a',
+  { rw ← ha' at *,
+    refine or.inl ⟨l.mem_cons_self a, _⟩,
+    rw extend_apply_eq },
+  { refine or.inr ⟨λ h, not_or ha' not_mem_l ((list.mem_cons_iff _ _ _).mp h), _⟩,
+    rw extend_apply_ne _ ha' },
+end
+
+section
+
+open_locale classical
+
+lemma sign_extend [fintype β] (a : α) (σ : perm β) :
+  (extend a σ).sign = σ.sign :=
+sign_bij (λ (ab : α × β) _, ab.snd)
+  (λ ⟨a', b⟩ hab hab', by simp [eq_of_extend_apply_ne hab])
+  (λ ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ hab₁ hab₂ h,
+    by simpa [eq_of_extend_apply_ne hab₁, eq_of_extend_apply_ne hab₂] using h)
+  (λ y hy, ⟨(a, y), by simpa, by simp⟩)
+
+lemma sign_prod_congr_right [fintype β] (σ : α → perm β) :
+  sign (prod_congr_right σ) = ∏ k, (σ k).sign :=
+begin
+  obtain ⟨l, hl, mem_l⟩ := fintype.exists_univ_list α,
+  have l_to_finset : l.to_finset = finset.univ,
+  { apply eq_top_iff.mpr,
+    intros b _,
+    exact list.mem_to_finset.mpr (mem_l b) },
+  rw [prod_congr_right_eq_prod_extend σ hl mem_l, sign.map_list_prod,
+      list.map_map, ← l_to_finset, list.prod_to_finset _ hl],
+  simp_rw ← λ a, sign_extend a (σ a)
+end
+
+end
+
 end sign
 
 end equiv.perm

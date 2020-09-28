@@ -758,6 +758,70 @@ def sigma_equiv_prod_of_equiv {α β} {β₁ : α → Sort*} (F : Π a, β₁ a 
 
 end
 
+section prod_congr_right
+
+variables {α₁ β₁ β₂ : Type*} (e : α₁ → β₁ ≃ β₂)
+
+/-- A family of equivalences `Π (a : α₁), β₁ ≃ β₂` generates an equivalence
+between `α₁ × β₁` and `α₁ × β₂`. -/
+def prod_congr_right : α₁ × β₁ ≃ α₁ × β₂ :=
+{ to_fun := λ ab, ⟨ab.1, e ab.1 ab.2⟩,
+  inv_fun := λ ab, ⟨ab.1, (e ab.1).symm ab.2⟩,
+  left_inv := by { rintros ⟨a, b⟩, simp },
+  right_inv := by { rintros ⟨a, b⟩, simp } }
+
+@[simp] lemma prod_congr_right_apply (a : α₁) (b : β₁) :
+  prod_congr_right e (a, b) = (a, e a b) := rfl
+
+lemma prod_congr_refl (e : β₁ ≃ β₂) :
+  prod_congr (equiv.refl α₁) e = prod_congr_right (λ _, e) :=
+by { ext ⟨a, b⟩ : 1, simp }
+
+lemma sigma_congr_right_sigma_equiv_prod :
+  (sigma_congr_right e).trans (sigma_equiv_prod α₁ β₂) =
+    (sigma_equiv_prod α₁ β₁).trans (prod_congr_right e) :=
+by { ext ⟨a, b⟩ : 1, simp }
+
+lemma sigma_equiv_prod_sigma_congr_right :
+  (sigma_equiv_prod α₁ β₁).symm.trans (sigma_congr_right e) =
+    (prod_congr_right e).trans (sigma_equiv_prod α₁ β₂).symm :=
+by { ext ⟨a, b⟩ : 1, simp }
+
+end prod_congr_right
+
+namespace perm
+
+variables {α₁ β₁ β₂ : Type*} [decidable_eq α₁] (a : α₁) (e : perm β₁)
+
+/-- `extend a e` extends `e : perm β` to `perm (α × β)` by sending `(a, b)` to
+`(a, e b)` and keeping the other `(a', b)` fixed. -/
+def extend : perm (α₁ × β₁) :=
+{ to_fun := λ ab, if ab.fst = a then (a, e ab.snd) else ab,
+  inv_fun := λ ab, if ab.fst = a then (a, e⁻¹ ab.snd) else ab,
+  left_inv := by { rintros ⟨k', x⟩, simp only, split_ifs with h; simp [h] },
+  right_inv := by { rintros ⟨k', x⟩, simp only, split_ifs with h; simp [h] } }
+
+@[simp] lemma extend_apply_eq (b : β₁) :
+extend a e (a, b) = (a, e b) := if_pos rfl
+
+lemma extend_apply_ne {a a' : α₁} (h : a' ≠ a) (b : β₁) :
+extend a e (a', b) = (a', b) := if_neg h
+
+lemma eq_of_extend_apply_ne {e : perm β₁} {a a' : α₁} {b : β₁}
+  (h : extend a e (a', b) ≠ (a', b)) : a' = a :=
+by { contrapose! h, exact extend_apply_ne _ h _ }
+
+@[simp] lemma fst_extend (ab : α₁ × β₁) :
+  (extend a e ab).fst = ab.fst :=
+begin
+  rw [extend, coe_fn_mk],
+  split_ifs with h,
+  { rw h },
+  { refl }
+end
+
+end perm
+
 section
 /-- The type of functions to a product `α × β` is equivalent to the type of pairs of functions
 `γ → α` and `γ → β`. -/
@@ -1588,3 +1652,17 @@ begin
       by { contrapose! h, have : (e j : α) ∈ s := (e j).2, rwa ← h at this },
     simp [h, this] }
 end
+
+namespace equiv
+
+section extend
+
+variables {α' β' γ' : Type*}
+
+lemma mk_eq_of_preserves_fst {f : α' × β' → α' × γ'} (hf : ∀ x, (f x).fst = x.fst)
+  (a : α') (b : β') : (a, (f (a, b)).snd) = f (a, b) :=
+by rw [← @prod.mk.eta _ _ (f (a, b)), hf (a, b)]
+
+end extend
+
+end equiv

@@ -119,12 +119,7 @@ end
 lemma about_irrational_root (α : ℝ) (hα : irrational α) (f : polynomial ℤ)
   (f_deg : 1 < f.nat_degree) (α_root : (f.map (algebra_map ℤ ℝ)).eval α = 0) :
   ∃ A : ℝ, 0 < A ∧ ∀ a b : ℤ, 0 < b → (A / b ^ (f.nat_degree)) < abs(α - a / b)  :=
-have f_nonzero : f ≠ 0, from
-begin
-  intro rid,
-  have : f.nat_degree = 0 := (congr_arg polynomial.nat_degree rid).trans rfl,
-  rw this at f_deg, linarith,
-end,
+have f_nonzero : f ≠ 0, from ne_zero_of_nat_degree_gt f_deg,
 have f_ℝ_nonzero : (f.map (algebra_map ℤ ℝ)) ≠ 0, from
 begin
   intro rid, refine f_nonzero _,

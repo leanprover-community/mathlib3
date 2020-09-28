@@ -351,6 +351,9 @@ coeff_eq_zero_of_degree_lt (lt_of_lt_of_le h degree_le_nat_degree)
 lemma ne_zero_of_degree_gt {n : with_bot ℕ} (h : n < degree p) : p ≠ 0 :=
 mt degree_eq_bot.2 (ne.symm (ne_of_lt (lt_of_le_of_lt bot_le h)))
 
+lemma ne_zero_of_nat_degree_gt {n : ℕ} (h : n < nat_degree p) : p ≠ 0 :=
+λ p_zero, nat.not_lt_zero n ((eq.trans (congr_arg nat_degree p_zero) nat_degree_zero) ▸ h)
+
 lemma eq_C_of_degree_le_zero (h : degree p ≤ 0) : p = C (coeff p 0) :=
 begin
   refine ext (λ n, _),

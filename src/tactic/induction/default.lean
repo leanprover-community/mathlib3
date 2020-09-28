@@ -349,9 +349,8 @@ meta def constructor_argument_naming_rule_type : constructor_argument_naming_rul
 λ i, typical_variable_names i.ainfo.type <|> pure []
 
 /--
-Naming rule for constructor arguments whose type is `Prop`.
+Naming rule for constructor arguments whose type is in `Prop`.
 -/
--- TODO should be subsumed by the type-based naming rule.
 meta def constructor_argument_naming_rule_prop : constructor_argument_naming_rule :=
 λ i, do
   (sort level.zero) ← infer_type i.ainfo.type | pure [],

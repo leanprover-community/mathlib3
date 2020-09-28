@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Robert Y. Lewis
 -/
 
-import data.mv_polynomial.comap
 import algebra.invertible
+import data.mv_polynomial.monad
+import data.mv_polynomial.variables
+import data.mv_polynomial.comm_ring
 
 import ring_theory.witt_vector.witt_vector_preps
 
@@ -18,6 +20,18 @@ open_locale big_operators
 
 local attribute [-simp] coe_eval₂_hom
 
+-- move this
+lemma inv_of_commute {M : Type*} [has_one M] [has_mul M] (m : M) [invertible m] :
+  commute m (⅟m) :=
+calc m * ⅟m = 1       : mul_inv_of_self m
+        ... = ⅟ m * m : (inv_of_mul_self m).symm
+
+-- move this
+instance invertible_pow {M : Type*} [monoid M] (m : M) [invertible m] (n : ℕ) :
+  invertible (m ^ n) :=
+{ inv_of := ⅟ m ^ n,
+  inv_of_mul_self := by rw [← (inv_of_commute m).symm.mul_pow, inv_of_mul_self, one_pow],
+  mul_inv_of_self := by rw [← (inv_of_commute m).mul_pow, mul_inv_of_self, one_pow] }
 variables (p : ℕ)
 variables (R : Type*) [comm_ring R]
 
@@ -221,26 +235,18 @@ begin
   -- TODO: change `vars_X` to use `nontrivial` instead of `0 ≠ 1`
   rw [X_in_terms_of_W_eq, mul_comm, vars_C_mul, vars_sub_of_disjoint, vars_X zero_ne_one,
       finset.range_succ, finset.insert_eq],
-  { simp only [true_and, true_or, eq_self_iff_true,
+  swap, { apply_instance },
+  swap 3, { apply nonzero_of_invertible },
+  work_on_goal 0 {
+    simp only [true_and, true_or, eq_self_iff_true,
       finset.mem_union, finset.mem_singleton],
     intro i,
     rw [finset.mem_union, finset.mem_union],
-    apply or.imp id,
-    intro hi,
-    replace hi := vars_sum_subset _ _ hi,
-    rw finset.mem_bind at hi,
-    rcases hi with ⟨j, hj, hi⟩,
-    rw vars_C_mul at hi,
-    swap,
-    { apply pow_ne_zero, exact_mod_cast hp.ne_zero },
-    rw finset.mem_range at hj,
-    replace hi := (ih j hj).2 (vars_pow _ _ hi),
-    rw finset.mem_range at hi ⊢,
-    exact lt_of_lt_of_le hi hj },
-  { apply_instance },
-  { rw [vars_X zero_ne_one, finset.singleton_disjoint],
-    swap, apply_instance,
-    -- the duplication, aaahrg
+    apply or.imp id },
+  work_on_goal 1 {
+    rw [vars_X zero_ne_one, finset.singleton_disjoint],
+    swap, apply_instance },
+  all_goals {
     intro H,
     replace H := vars_sum_subset _ _ H,
     rw finset.mem_bind at H,
@@ -250,9 +256,10 @@ begin
     { apply pow_ne_zero, exact_mod_cast hp.ne_zero },
     rw finset.mem_range at hj,
     replace H := (ih j hj).2 (vars_pow _ _ H),
-    rw finset.mem_range at H,
-    exact lt_irrefl n (lt_of_lt_of_le H hj) },
-  { apply nonzero_of_invertible, }
+    rw finset.mem_range at H },
+  { rw finset.mem_range,
+    exact lt_of_lt_of_le H hj },
+  { exact lt_irrefl n (lt_of_lt_of_le H hj) },
 end
 
 lemma X_in_terms_of_W_vars_subset (n : ℕ) :
@@ -287,17 +294,8 @@ begin
     pow_one, add_sub_cancel, nat.pow_zero],
   rw [finset.sum_congr rfl, this],
   { -- this is really slow for some reason
-    rw [mul_right_comm, ← C_mul, ← mul_pow, mul_inv_of_self, one_pow, C_1, one_mul], },
+    rw [mul_right_comm, ← C_mul, ← mul_pow, mul_inv_of_self, one_pow, C_1, one_mul] },
   { intros i h,
     rw finset.mem_range at h,
     simp only [alg_hom.map_mul, alg_hom.map_pow, alg_hom_C, H i h] },
 end
-
-/--
-The Witt polynomials induce an algebra equivalence from `mv_polynomial ℕ R` to itself,
-under the assumption that `p` is invertible in `R`.
--/
-noncomputable def witt.alg_equiv [invertible (p : R)] : mv_polynomial ℕ R ≃ₐ[R] mv_polynomial ℕ R :=
-equiv_of_family (W_ R) (X_in_terms_of_W p R)
-(bind₁_X_in_terms_of_W_witt_polynomial p R)
-(bind₁_witt_polynomial_X_in_terms_of_W p R)

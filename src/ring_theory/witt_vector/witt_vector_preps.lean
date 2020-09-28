@@ -27,13 +27,6 @@ open finsupp
 
 variables (σ R A : Type*) [comm_semiring R] [comm_semiring A]
 
-
-section constant_coeff
-open_locale classical
-variables {σ R}
-
-end constant_coeff
-
 open_locale big_operators
 
 lemma C_dvd_iff_dvd_coeff {σ : Type*} {R : Type*} [comm_ring R]
@@ -78,48 +71,6 @@ end mv_polynomial
 
 namespace mv_polynomial
 variables {σ : Type*} {τ : Type*} {υ : Type*} {R : Type*} [comm_semiring R]
-
-
-
-lemma equiv_of_family_aux (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (h : ∀ i, bind₁ g (f i) = X i) (φ : mv_polynomial σ R) :
-  (bind₁ g) (bind₁ f φ) = φ :=
-begin
-  rw ← alg_hom.comp_apply,
-  suffices : (bind₁ g).comp (bind₁ f) = alg_hom.id _ _,
-  { rw [this, alg_hom.id_apply], },
-  refine mv_polynomial.alg_hom_ext _ (alg_hom.id _ _) _,
-  intro i,
-  rw [alg_hom.comp_apply, alg_hom.id_apply, bind₁_X_right, h],
-end
-
-/-- I think this has been PR'd to mathlib already. If not, fix this docstring. -/
-noncomputable def equiv_of_family (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (hfg : ∀ i, bind₁ g (f i) = X i) (hgf : ∀ i, bind₁ f (g i) = X i) :
-  mv_polynomial σ R ≃ₐ[R] mv_polynomial τ R :=
-{ to_fun    := bind₁ f,
-  inv_fun   := bind₁ g,
-  left_inv  := equiv_of_family_aux f g hfg,
-  right_inv := equiv_of_family_aux g f hgf,
-  .. bind₁ f}
-
-@[simp] lemma equiv_of_family_coe (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (hfg : ∀ i, bind₁ g (f i) = X i) (hgf : ∀ i, bind₁ f (g i) = X i) :
-  (equiv_of_family f g hfg hgf : mv_polynomial σ R →ₐ[R] mv_polynomial τ R) = bind₁ f := rfl
-
-@[simp] lemma equiv_of_family_symm_coe (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (hfg : ∀ i, bind₁ g (f i) = X i) (hgf : ∀ i, bind₁ f (g i) = X i) :
-  ((equiv_of_family f g hfg hgf).symm : mv_polynomial τ R →ₐ[R] mv_polynomial σ R) = bind₁ g := rfl
-
-@[simp] lemma equiv_of_family_apply (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (hfg : ∀ i, bind₁ g (f i) = X i) (hgf : ∀ i, bind₁ f (g i) = X i)
-  (φ : mv_polynomial σ R) :
-  equiv_of_family f g hfg hgf φ = bind₁ f φ := rfl
-
-@[simp] lemma equiv_of_family_symm_apply (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-  (hfg : ∀ i, bind₁ g (f i) = X i) (hgf : ∀ i, bind₁ f (g i) = X i)
-  (φ : mv_polynomial τ R) :
-  (equiv_of_family f g hfg hgf).symm φ = bind₁ g φ := rfl
 
 section monadic_stuff
 
@@ -245,6 +196,7 @@ end
 section rename
 open function
 
+@[simp]
 lemma coeff_rename_map_domain (f : σ → τ) (hf : injective f) (φ : mv_polynomial σ R) (d : σ →₀ ℕ) :
   (rename f φ).coeff (d.map_domain f) = φ.coeff d :=
 begin
@@ -322,12 +274,6 @@ begin
   { intros p q hp hq, simp only [hp, hq, ring_hom.map_add, alg_hom.map_add] },
   { intros p n hp, simp only [hp, rename_X, constant_coeff_X, ring_hom.map_mul, alg_hom.map_mul] }
 end
-
--- @[simp] lemma constant_coeff_comp_rename {τ : Type*} (f : σ → τ) :
---   (constant_coeff : mv_polynomial τ R →+* R).comp
---   (rename f) =
---   constant_coeff :=
--- by { ext, apply constant_coeff_rename }
 
 end move_this
 
@@ -482,18 +428,6 @@ end
 
 end isos_to_zmod
 
-lemma inv_of_commute {M : Type*} [has_one M] [has_mul M] (m : M) [invertible m] :
-  commute m (⅟m) :=
-calc m * ⅟m = 1       : mul_inv_of_self m
-        ... = ⅟ m * m : (inv_of_mul_self m).symm
-
--- move this
-instance invertible_pow {M : Type*} [monoid M] (m : M) [invertible m] (n : ℕ) :
-  invertible (m ^ n) :=
-{ inv_of := ⅟ m ^ n,
-  inv_of_mul_self := by rw [← (inv_of_commute m).symm.mul_pow, inv_of_mul_self, one_pow],
-  mul_inv_of_self := by rw [← (inv_of_commute m).mul_pow, mul_inv_of_self, one_pow] }
-
 section
 -- move this
 lemma prod_mk_injective {α β : Type*} (a : α) :
@@ -533,7 +467,8 @@ variables (A B R : Type*) [comm_semiring A] [comm_semiring B] [comm_ring R] [alg
 /-- `mv_polynomial.acounit R A` is the natural surjective algebra homomorphism
 `mv_polynomial A R →ₐ[R] A` obtained by `X a ↦ a`.
 
-See `mv_polynomial.counit` for the “absolute” variant with `R = ℤ`. -/
+See `mv_polynomial.counit` for the “absolute” variant with `R = ℤ`,
+and `mv_polynomial.counit_nat` for the “absolute” variant with `R = ℕ`. -/
 noncomputable def acounit : mv_polynomial B A →ₐ[A] B :=
 aeval id
 
@@ -543,21 +478,27 @@ lemma acounit_surjective : surjective (acounit A B) :=
 /-- `mv_polynomial.counit R` is the natural surjective ring homomorphism
 `mv_polynomial R ℤ →+* R` obtained by `X r ↦ r`.
 
-See `mv_polynomial.acounit` for a “relative” variant for algebras over a base ring. -/
+See `mv_polynomial.acounit` for a “relative” variant for algebras over a base ring,
+and `mv_polynomial.counit_nat` for the “absolute” variant with `R = ℕ`. -/
 noncomputable def counit : mv_polynomial R ℤ →+* R :=
 acounit ℤ R
 
 lemma counit_surjective : surjective (counit R) :=
 acounit_surjective ℤ R
 
--- TODO: we could have a similar counit for semirings over `ℕ`.
+/-- `mv_polynomial.counit_nat R` is the natural surjective ring homomorphism
+`mv_polynomial R ℕ →+* R` obtained by `X r ↦ r`.
+
+See `mv_polynomial.acounit` for a “relative” variant for algebras over a base ring
+and `mv_polynomial.counit` for the “absolute” variant with `R = ℤ`. -/
+noncomputable def counit_nat : mv_polynomial A ℕ →+* A :=
+acounit ℕ A
+
+lemma counit_nat_surjective : surjective (counit_nat A) :=
+acounit_surjective ℕ A
 
 end
 end mv_polynomial
-
-lemma congr₂ {α β γ : Type*} (f : α → β → γ) (a₁ a₂ : α) (b₁ b₂ : β) :
-  a₁ = a₂ → b₁ = b₂ → f a₁ b₁ = f a₂ b₂ :=
-by rintro rfl rfl; refl
 
 lemma nontrivial_of_char_ne_one {v : ℕ} (hv : v ≠ 1) {R : Type*} [semiring R] [hr : char_p R v] :
   nontrivial R :=
@@ -597,8 +538,8 @@ begin
   simp only [dvd_mul_right, nat.cast_dvd_char_zero],
 end
 
+@[simp]
 lemma ideal.mem_bot {R : Type*} [comm_ring R] {x : R} : x ∈ (⊥ : ideal R) ↔ x = 0 :=
 submodule.mem_bot _
-
 
 -- ### end FOR_MATHLIB

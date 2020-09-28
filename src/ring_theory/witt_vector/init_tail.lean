@@ -72,25 +72,29 @@ local attribute [semireducible] witt_vector
 whose `n`-th coefficient is `x.coeff n` if `P n` is true, and `0` otherwise.
 -/
 def select (P : ℕ → Prop) (x : 𝕎 R) : 𝕎 R :=
-mk p (λ k, if P k then x.coeff k else 0)
+mk p (λ n, if P n then x.coeff n else 0)
 
 section select
 variables (P : ℕ → Prop)
 
-/-- The underlying polynomial structure of `select`. -/
-def select_poly (k : ℕ) : mv_polynomial ℕ ℤ := if P k then X k else 0
+def select_poly (n : ℕ) : mv_polynomial ℕ ℤ := if P n then X n else 0
 
-/-- `select_poly` is the underlying polynomial structure of `select`. -/
-@[is_poly] def select_is_poly : is_poly p (λ R _Rcr x, by exactI select P x) (select_poly P) :=
-{ coeff :=
-  begin
-    rintro R _Rcr x,
-    funext i,
-    dsimp [select, select_poly],
-    split_ifs with hi,
-    { rw [aeval_X] },
-    { rw [alg_hom.map_zero] }
-  end }
+lemma coeff_select (x : 𝕎 R) (n : ℕ) :
+  (select P x).coeff n = aeval x.coeff (select_poly P n) :=
+begin
+  dsimp [select, select_poly],
+  split_ifs with hi,
+  { rw [aeval_X] },
+  { rw [alg_hom.map_zero] }
+end
+
+@[is_poly] lemma select_is_poly (P : ℕ → Prop) : is_poly p (λ R _Rcr x, by exactI select P x) :=
+begin
+  use (select_poly P),
+  rintro R _Rcr x,
+  funext i,
+  apply coeff_select
+end
 
 include hp
 
@@ -98,14 +102,16 @@ lemma add_select_select_not :
   ∀ (x : 𝕎 R), select P x + select (λ i, ¬ P i) x = x :=
 begin
   polify _,
-  intro n,
-  suffices : (bind₁ (select_poly P)) (witt_polynomial p ℤ n) + (bind₁ (select_poly (λ i, ¬P i))) (witt_polynomial p ℤ n) = witt_polynomial p ℤ n,
-  { witt_simp; assumption },
-  simp only [witt_polynomial_eq_sum_C_mul_X_pow, select_poly, alg_hom.map_sum, alg_hom.map_pow,
-    alg_hom.map_mul, bind₁_X_right, bind₁_C_right, ← finset.sum_add_distrib, ← mul_add],
-  apply finset.sum_congr rfl,
-  intros, congr' 2,
-  split_ifs; simp only [zero_pow (pow_pos hp.pos _), add_zero, zero_add]
+  introsI,
+  simp only [ghost_component_add],
+  have : (bind₁ (select_poly P)) (witt_polynomial p ℤ n) + (bind₁ (select_poly (λ i, ¬P i))) (witt_polynomial p ℤ n) = witt_polynomial p ℤ n,
+  { simp only [witt_polynomial_eq_sum_C_mul_X_pow, select_poly, alg_hom.map_sum, alg_hom.map_pow,
+      alg_hom.map_mul, bind₁_X_right, bind₁_C_right, ← finset.sum_add_distrib, ← mul_add],
+    apply finset.sum_congr rfl,
+    intros, congr' 2,
+    split_ifs; simp only [zero_pow (pow_pos hp.pos _), add_zero, zero_add] },
+  apply_fun (aeval x.coeff) at this,
+  simpa only [alg_hom.map_add, aeval_bind₁, ← coeff_select]
 end
 
 lemma coeff_add_of_disjoint (x y : 𝕎 R) (h : ∀ n, x.coeff n = 0 ∨ y.coeff n = 0) :
@@ -183,7 +189,7 @@ variables (p)
 omit hp
 
 /-- `witt_vector.init n x` is polynomial in the coefficients of `x`. -/
-def init_is_poly (n : ℕ) : is_poly p (λ R _Rcr, by exactI init n) _ :=
+def init_is_poly (n : ℕ) : is_poly p (λ R _Rcr, by exactI init n) :=
 select_is_poly (λ i, i < n)
 
 end

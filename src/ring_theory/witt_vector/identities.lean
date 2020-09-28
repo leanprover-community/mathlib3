@@ -35,12 +35,7 @@ include hp
 /-- The composition of Frobenius and Verschiebung is multiplication by `p`. -/
 lemma frobenius_verschiebung (x : 𝕎 R) :
   frobenius (verschiebung x) = x * p :=
-begin
-  ghost_calc x,
-  introsI,
-  simp only [ghost_component_verschiebung, ghost_component_frobenius,
-    ring_hom.map_mul, ring_hom.map_nat_cast, mul_comm],
-end
+by { ghost_calc x, ghost_simp [mul_comm] }
 
 lemma verschiebung_zmod (x : 𝕎 (zmod p)) :
   verschiebung x = x * p :=
@@ -61,9 +56,7 @@ lemma verschiebung_mul_frobenius (x y : 𝕎 R) :
   verschiebung (x * frobenius y) = verschiebung x * y :=
 begin
   ghost_calc x y,
-  rintro ⟨⟩;
-  simp [ghost_component_zero_verschiebung, zero_mul, ring_hom.map_mul,
-    ghost_component_verschiebung, ghost_component_frobenius, nat.succ_eq_add_one, mul_assoc],
+  rintro ⟨⟩; ghost_simp [mul_assoc]
 end
 
 end witt_vector

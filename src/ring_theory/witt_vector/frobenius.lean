@@ -298,7 +298,7 @@ begin
   simp only [int.cast_coe_nat, add_zero, ring_hom.eq_int_cast, zmod.cast_self, zero_mul, C_0],
 end
 
-@[ghost_simps]
+@[simp]
 lemma bind₁_frobenius_poly_witt_polynomial (n : ℕ) :
   bind₁ (frobenius_poly p) (witt_polynomial p ℤ n) = (witt_polynomial p ℤ (n+1)) :=
 begin
@@ -329,7 +329,7 @@ See also `frobenius_is_poly`. -/
 
 variable {p}
 
-@[simp] lemma ghost_component_frobenius_fun (n : ℕ) (x : 𝕎 R) :
+@[ghost_simps] lemma ghost_component_frobenius_fun (n : ℕ) (x : 𝕎 R) :
   ghost_component n (frobenius_fun x) = ghost_component (n + 1) x :=
 by simp only [ghost_component_apply, frobenius_fun, coeff_mk,
     ← bind₁_frobenius_poly_witt_polynomial, aeval_bind₁]
@@ -341,33 +341,23 @@ def frobenius : 𝕎 R →+* 𝕎 R :=
     refine is_poly.ext
       ((frobenius_fun_is_poly p).comp (witt_vector.zero_is_poly))
       ((witt_vector.zero_is_poly).comp (frobenius_fun_is_poly p)) _ _ 0,
-    introsI,
-    simp only [ghost_component_frobenius_fun, ring_hom.map_zero]
+    ghost_simp
   end,
   map_one' :=
   begin
     refine is_poly.ext
       ((frobenius_fun_is_poly p).comp (witt_vector.one_is_poly))
       ((witt_vector.one_is_poly).comp (frobenius_fun_is_poly p)) _ _ 0,
-    introsI,
-    simp only [ghost_component_frobenius_fun, ring_hom.map_one]
+    ghost_simp
   end,
-  map_add' :=
-  begin
-    ghost_calc _ _,
-    simp only [ghost_component_frobenius_fun, ring_hom.map_add, forall_const, eq_self_iff_true],
-  end,
-  map_mul' :=
-  begin
-    ghost_calc _ _,
-    introsI, simp only [ghost_component_frobenius_fun, ring_hom.map_mul]
-  end }
+  map_add' := by ghost_calc _ _; ghost_simp,
+  map_mul' := by ghost_calc _ _; ghost_simp }
 
 lemma coeff_frobenius (x : 𝕎 R) (n : ℕ) :
   coeff (frobenius x) n = mv_polynomial.aeval x.coeff (frobenius_poly p n) :=
 coeff_frobenius_fun _ _
 
-@[simp] lemma ghost_component_frobenius (n : ℕ) (x : 𝕎 R) :
+@[ghost_simps] lemma ghost_component_frobenius (n : ℕ) (x : 𝕎 R) :
   ghost_component n (frobenius x) = ghost_component (n + 1) x :=
 ghost_component_frobenius_fun _ _
 

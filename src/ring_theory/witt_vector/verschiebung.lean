@@ -43,12 +43,12 @@ by rw [verschiebung_fun_coeff, if_pos rfl]
 
 include hp
 
-@[simp] lemma ghost_component_zero_verschiebung_fun (x : 𝕎 R) :
+@[ghost_simps] lemma ghost_component_zero_verschiebung_fun (x : 𝕎 R) :
   ghost_component 0 (verschiebung_fun x) = 0 :=
 by rw [ghost_component_apply, aeval_witt_polynomial, finset.range_one, finset.sum_singleton,
        verschiebung_fun_coeff_zero, pow_zero, pow_zero, pow_one, one_mul]
 
-@[simp] lemma ghost_component_verschiebung_fun (x : 𝕎 R) (n : ℕ) :
+@[ghost_simps] lemma ghost_component_verschiebung_fun (x : 𝕎 R) (n : ℕ) :
   ghost_component (n + 1) (verschiebung_fun x) = p * ghost_component n x :=
 begin
   simp only [ghost_component_apply, aeval_witt_polynomial],
@@ -71,39 +71,16 @@ if n = 0 then 0 else X (n-1)
 @[simp] lemma verschiebung_poly_zero :
   verschiebung_poly 0 = 0 := rfl
 
-include hp
-
-@[ghost_simps]
-lemma bind₁_verschiebung_poly_witt_polynomial (n : ℕ) :
-  bind₁ verschiebung_poly (witt_polynomial p ℤ n) =
-  if n = 0 then 0 else p * witt_polynomial p ℤ (n-1) :=
+lemma aeval_verschiebung_poly' (x : 𝕎 R) (n : ℕ) :
+  aeval x.coeff (verschiebung_poly n) = (verschiebung_fun x).coeff n :=
 begin
-  have aux : ∀ k : ℕ, p ^ k ≠ 0,
-  { intro k, apply pow_ne_zero _ hp.ne_zero, },
-  split_ifs with hn,
-  { rw [hn, witt_polynomial_zero, bind₁_X_right, verschiebung_poly, if_pos rfl] },
-  { obtain ⟨n, rfl⟩ := nat.exists_eq_succ_of_ne_zero hn,
-    rw [nat.succ_eq_add_one, nat.add_sub_cancel],
-    dsimp [witt_polynomial],
-    rw [alg_hom.map_sum, finset.sum_range_succ', finset.mul_sum],
-    rw [bind₁_monomial],
-    simp only [finsupp.support_single_ne_zero, aux, add_zero, finset.prod_singleton,
-      nat.succ_sub_succ_eq_sub, finsupp.single_eq_same, verschiebung_poly_zero, ne.def,
-      nat.sub_zero, not_false_iff, int.nat_cast_eq_coe_nat, C_1, mul_zero, pow_zero, zero_pow'],
-    apply finset.sum_congr rfl,
-    intros i hi,
-    rw bind₁_monomial,
-    simp only [finsupp.support_single_ne_zero, aux, int.cast_coe_nat, finset.prod_singleton,
-      ring_hom.eq_int_cast, finsupp.single_eq_same, C_pow, ne.def, not_false_iff],
-    rw [verschiebung_poly],
-    simp only [monomial_eq, finsupp.prod_single_index, int.cast_coe_nat, nat.add_succ_sub_one,
-      add_zero, ring_hom.eq_int_cast, C_pow, eq_self_iff_true, add_eq_zero_iff, if_false,
-      one_ne_zero, pow_zero, and_false],
-    ring_exp, }
+ cases n,
+  { simp only [verschiebung_poly, verschiebung_fun_coeff_zero, if_pos rfl, alg_hom.map_zero] },
+  { rw [verschiebung_poly, verschiebung_fun_coeff_succ, if_neg (n.succ_ne_zero),
+        aeval_X, nat.succ_eq_add_one, nat.add_sub_cancel] }
 end
 
 variable (p)
-omit hp
 
 /--
 `witt_vector.verschiebung` has polynomial structure given by `witt_vector.verschiebung_poly`.
@@ -111,11 +88,7 @@ omit hp
 @[is_poly] lemma verschiebung_fun_is_poly : is_poly p (λ R _Rcr, @verschiebung_fun p R _Rcr) :=
 begin
   use verschiebung_poly,
-  rintro R _Rcr x, resetI,
-  funext n, cases n,
-  { simp only [verschiebung_poly, verschiebung_fun_coeff_zero, if_pos rfl, alg_hom.map_zero] },
-  { rw [verschiebung_poly, verschiebung_fun_coeff_succ, if_neg (n.succ_ne_zero),
-        aeval_X, nat.succ_eq_add_one, nat.add_sub_cancel], }
+  simp only [aeval_verschiebung_poly', eq_self_iff_true, forall_3_true_iff]
 end
 
 variable {p}
@@ -132,13 +105,7 @@ def verschiebung : 𝕎 R →+ 𝕎 R :=
 { to_fun := verschiebung_fun,
   map_zero' :=
   by ext ⟨⟩; rw [verschiebung_fun_coeff]; simp only [if_true, eq_self_iff_true, zero_coeff, if_t_t],
-  map_add' :=
-  begin
-    ghost_calc _ _,
-    rintro ⟨⟩;
-    simp only [ring_hom.map_add, ghost_component_verschiebung_fun,
-      ghost_component_zero_verschiebung_fun, mul_add, add_zero],
-  end }
+  map_add' := by { ghost_calc _ _, rintro ⟨⟩; ghost_simp } }
 
 omit hp
 
@@ -153,11 +120,11 @@ include hp
   map f (verschiebung x) = verschiebung (map f x) :=
 by { ext ⟨-, -⟩, exact f.map_zero, refl }
 
-@[simp] lemma ghost_component_zero_verschiebung (x : 𝕎 R) :
+@[ghost_simps] lemma ghost_component_zero_verschiebung (x : 𝕎 R) :
   ghost_component 0 (verschiebung x) = 0 :=
 ghost_component_zero_verschiebung_fun _
 
-@[simp] lemma ghost_component_verschiebung (x : 𝕎 R) (n : ℕ) :
+@[ghost_simps] lemma ghost_component_verschiebung (x : 𝕎 R) (n : ℕ) :
   ghost_component (n + 1) (verschiebung x) = p * ghost_component n x :=
 ghost_component_verschiebung_fun _ _
 
@@ -170,5 +137,32 @@ lemma verschiebung_coeff_add_one (x : 𝕎 R) (n : ℕ) :
 
 @[simp] lemma verschiebung_coeff_succ (x : 𝕎 R) (n : ℕ) :
   (verschiebung x).coeff n.succ = x.coeff n := rfl
+
+lemma aeval_verschiebung_poly (x : 𝕎 R) (n : ℕ) :
+  aeval x.coeff (verschiebung_poly n) = (verschiebung x).coeff n :=
+aeval_verschiebung_poly' x n
+
+@[simp]
+lemma bind₁_verschiebung_poly_witt_polynomial (n : ℕ) :
+  bind₁ verschiebung_poly (witt_polynomial p ℤ n) =
+  if n = 0 then 0 else p * witt_polynomial p ℤ (n-1) :=
+begin
+  apply mv_polynomial.funext,
+  intro x,
+  split_ifs with hn,
+  { simp only [hn, verschiebung_poly_zero, witt_polynomial_zero, bind₁_X_right] },
+  { obtain ⟨n, rfl⟩ := nat.exists_eq_succ_of_ne_zero hn,
+    rw [nat.succ_eq_add_one, nat.add_sub_cancel, ring_hom.map_mul, ring_hom.map_nat_cast, hom_bind₁],
+    calc  _
+        = ghost_component (n + 1) (verschiebung $ mk p x) : _
+    ... = _ : _,
+    { apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+      simp only [←aeval_verschiebung_poly, coeff_mk],
+      funext k,
+      exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl },
+    { rw [ghost_component_verschiebung],
+      congr' 1,
+      exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl } }
+end
 
 end witt_vector

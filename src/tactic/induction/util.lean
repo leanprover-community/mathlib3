@@ -17,6 +17,13 @@ namespace list
 
 variables {α : Type u} {β : Type v}
 
+def mfirst' {m : Type v → Type w} [monad m] (f : α → m (option β)) :
+  list α → m (option β)
+| [] := pure none
+| (a :: as) := do
+  (some b) ← f a | mfirst' as,
+  pure (some b)
+
 def to_rbmap : list α → rbmap ℕ α :=
 foldl_with_index (λ i mapp a, mapp.insert i a) (mk_rbmap ℕ α)
 

@@ -293,11 +293,9 @@ meta structure constructor_argument_naming_info :=
 
 /--
 A constructor argument naming rule takes a `constructor_argument_naming_info`
-structure and returns a list of suitable names for the argument. The list must
-be nonempty. If the rule is not applicable to the given constructor argument, it
-fails.
+structure and returns a list of suitable names for the argument. If the rule is
+not applicable to the given constructor argument, the returned list is empty.
 -/
--- TODO we should signal failure by returning the empty list.
 @[reducible] meta def constructor_argument_naming_rule : Type :=
 constructor_argument_naming_info → tactic (list name)
 
@@ -305,7 +303,7 @@ constructor_argument_naming_info → tactic (list name)
 Naming rule for recursive constructor arguments.
 -/
 meta def constructor_argument_naming_rule_rec : constructor_argument_naming_rule :=
-λ i, if i.ainfo.is_recursive then pure [i.einfo.ename] else failed
+λ i, pure $ if i.ainfo.is_recursive then [i.einfo.ename] else []
 
 /--
 Naming rule for constructor arguments associated with an index.
@@ -320,14 +318,15 @@ let local_index_instantiations :=
 -- rule only triggers if the eliminee arg is exactly a local const. We probably
 -- want a more permissive rule where the eliminee arg can be an arbitrary term
 -- as long as that term *contains* only a single local const.
-match local_index_instantiations with
-| none := failed
-| some [] := failed
-| some ((uname, ppname) :: is) :=
-  if is.all (λ ⟨uname', _⟩, uname' = uname)
-    then pure [ppname]
-    else failed
-end
+pure $
+  match local_index_instantiations with
+  | none := []
+  | some [] := []
+  | some ((uname, ppname) :: is) :=
+    if is.all (λ ⟨uname', _⟩, uname' = uname)
+      then [ppname]
+      else []
+  end
 
 /--
 Naming rule for constructor arguments which are named in the constructor
@@ -337,16 +336,17 @@ meta def constructor_argument_naming_rule_named : constructor_argument_naming_ru
 λ i,
 let arg_name := i.ainfo.aname in
 let arg_dep := i.ainfo.dependent in
-if ! arg_dep && arg_name.is_likely_generated_name
-  then failed
-  else pure [arg_name]
+pure $
+  if ! arg_dep && arg_name.is_likely_generated_name
+    then []
+    else [arg_name]
 
 /--
 Naming rule for constructor arguments whose type is associated with a list of
 typical variable names. See `tactic.typical_variable_names`.
 -/
 meta def constructor_argument_naming_rule_type : constructor_argument_naming_rule :=
-λ i, typical_variable_names i.ainfo.type
+λ i, typical_variable_names i.ainfo.type <|> pure []
 
 /--
 Naming rule for constructor arguments whose type is `Prop`.
@@ -354,7 +354,7 @@ Naming rule for constructor arguments whose type is `Prop`.
 -- TODO should be subsumed by the type-based naming rule.
 meta def constructor_argument_naming_rule_prop : constructor_argument_naming_rule :=
 λ i, do
-  (sort level.zero) ← infer_type i.ainfo.type,
+  (sort level.zero) ← infer_type i.ainfo.type | pure [],
   pure [`h]
 
 /--
@@ -366,13 +366,22 @@ meta def constructor_argument_naming_rule_fallback : constructor_argument_naming
 /--
 `apply_constructor_argument_naming_rules info rules` applies the constructor
 argument naming rules in `rules` to the constructor argument given by `info`.
-Returns the result of the first rule that does not fail; fails if all rules
-fail.
+Returns the result of the first applicable rule. Fails if no rule is applicable.
 -/
 meta def apply_constructor_argument_naming_rules
   (info : constructor_argument_naming_info)
-  (rules : list constructor_argument_naming_rule) : tactic (list name) :=
-first $ rules.map ($ info)
+  (rules : list constructor_argument_naming_rule) : tactic (list name) := do
+  names ← rules.mfirst' (λ r, do
+    names ← r info,
+    match names with
+    | [] := pure none
+    | _ := pure $ some names
+    end),
+  match names with
+  | none := fail
+      "apply_constructor_argument_naming_rules: no applicable naming rule"
+  | (some names) := pure names
+  end
 
 /--
 Get possible names for a constructor argument. This tactic applies all the

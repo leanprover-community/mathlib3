@@ -56,6 +56,8 @@ end
 
 variables {R M} {M' : Type*} [add_comm_group M'] [module R M']
 
+/-- The transposition of linear maps, as a linear map from `M →ₗ[R] M'` to
+`dual R M' →ₗ[R] dual R M`. -/
 def transpose : (M →ₗ[R] M') →ₗ[R] (dual R M' →ₗ[R] dual R M) :=
 { to_fun := λ u, linear_map.lcomp R R u,
   map_add' := begin

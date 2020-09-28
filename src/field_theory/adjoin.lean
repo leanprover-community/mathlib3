@@ -30,6 +30,11 @@ namespace intermediate_field
 section adjoin_def
 variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (S : set E)
 
+def adjoin : intermediate_field F E :=
+{ algebra_map_mem' := λ x, subfield.subset_closure
+  (set.subset_union_left  _ _ (set.mem_range_self x)),
+  .. subfield.closure (set.range (algebra_map F E) ∪ S), }
+
 /-- `adjoin F S` extends a field `F` by adjoining a set `S ⊆ E`. -/
 lemma adjoin_le {T : intermediate_field F E} : adjoin F S ≤ T ↔ S ≤ T :=
 ⟨λ H, le_trans (le_trans (set.subset_union_right _ _) subfield.subset_closure) H,

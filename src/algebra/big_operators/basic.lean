@@ -1083,3 +1083,15 @@ begin
 end
 
 end multiset
+
+@[simp, norm_cast] lemma nat.prod_coe {R : Type*} [comm_semiring R]
+  (f : α → ℕ) (s : finset α) : (↑∏ i in s, f i : R) = ∏ i in s, f i :=
+(nat.cast_ring_hom R).map_prod _ _
+
+@[simp, norm_cast] lemma int.prod_coe {R : Type*} [comm_ring R]
+  (f : α → ℤ) (s : finset α) : (↑∏ i in s, f i : R) = ∏ i in s, f i :=
+(int.cast_ring_hom R).map_prod _ _
+
+@[simp, norm_cast] lemma units.prod_coe {M : Type*} [comm_monoid M]
+  (f : α → units M) (s : finset α) : (↑∏ i in s, f i : M) = ∏ i in s, f i :=
+(units.coe_hom M).map_prod _ _

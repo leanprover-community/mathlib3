@@ -1343,7 +1343,7 @@ However, there is a canonical one at a point of the zero section (since there is
 horizontal space there, the tangent space to the zero section, in addition to the canonical vertical
 space which is the kernel of the derivative of the projection), and this is the one that comes
 from our definitions, so this statement is not as crazy as it may seem. In general, avoid using it
-though, since coordinate-free concepts are always better. -/
+though, since genuinely coordinate-free concepts are always better. -/
 lemma tangent_map_tangent_bundle_pure (p : tangent_bundle I M) :
   tangent_map I I.tangent (tangent_bundle.zero_section I M) p = ⟨⟨p.1, 0⟩, ⟨p.2, 0⟩⟩ :=
 begin
@@ -1361,7 +1361,6 @@ begin
     { exact differentiable_at_id' },
     { exact differentiable_at_const _ },
     { exact model_with_corners.unique_diff_at_image I },
-    { exact set.mem_range_self _ },
     { exact differentiable_at_id'.prod (differentiable_at_const _) } },
   simp only [tangent_bundle.zero_section, tangent_map, mfderiv,
     A, dif_pos, chart_at, basic_smooth_bundle_core.chart,

@@ -327,26 +327,27 @@ begin
   exact (gsmul_eq_mul g k).symm,
 end
 
--- Rename and move (or exists in library)
-lemma inf_property {s : set ℝ} {a ε : ℝ} (h₁ : is_glb s a) (h₂ : a ∉ s) (h₃ : 0 < ε) :
-  ∃ b, b ∈ s ∧ a < b ∧ b < a + ε :=
+lemma inf_property' {α : Type*} [ordered_add_comm_group α] {s : set α} {a ε : α}
+  (h₁ : is_glb s a) (h₂ : a ∉ s) (h₃ : 0 < ε) : ∃ b, b ∈ s ∧ a < b ∧ ¬ a + ε ≤ b :=
 begin
   have h' : a + ε ∉ lower_bounds s,
   { set A := a + ε,
-    have : a < A := by { simp [A], linarith },
-    revert this,
-    contrapose!,
+    have : a < A := by { simp [A, h₃] },
     intros hA,
-    exact h₁.2 hA },
+    exact lt_irrefl a (lt_of_lt_of_le this (h₁.2 hA)) },
   simp [lower_bounds] at h',
   obtain ⟨b, hb, hb'⟩ := h',
   refine ⟨b, hb, _, hb'⟩,
   have h₅ : a ≠ b,
   { intros contra,
-    rw ← contra at hb,
-    contradiction },
-  exact lt_of_le_of_ne (h₁.1 hb) h₅
+    apply h₂,
+    rwa ← contra at hb },
+  exact lt_of_le_of_ne (h₁.1 hb) h₅,
 end
+
+lemma inf_property {α : Type*} [decidable_linear_ordered_add_comm_group α] {s : set α} {a ε : α}
+  (h₁ : is_glb s a) (h₂ : a ∉ s) (h₃ : 0 < ε) : ∃ b, b ∈ s ∧ a < b ∧ b < a + ε :=
+by simpa using inf_property' h₁ h₂ h₃
 
 /-- Given a subgroup `G ⊆ ℝ`, if `a` is the minimum of `G ∩ ℝ_{>0}` then `G = aℤ`. -/
 lemma real.subgroup_eq_of_min {G : add_subgroup ℝ} {a : ℝ}

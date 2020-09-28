@@ -326,6 +326,26 @@ lemma continuous_linear_map.exists_right_inverse_of_surjective [finite_dimension
 let ⟨g, hg⟩ := (f : E →ₗ[𝕜] F).exists_right_inverse_of_surjective hf in
 ⟨g.to_continuous_linear_map, continuous_linear_map.ext $ linear_map.ext_iff.1 hg⟩
 
+lemma closed_embedding_smul_left {c : E} (hc : c ≠ 0) : closed_embedding (λ x : 𝕜, x • c) :=
+begin
+  haveI : finite_dimensional 𝕜 (submodule.span 𝕜 {c}) :=
+    finite_dimensional.span_of_finite 𝕜 (finite_singleton c),
+  have m1 : closed_embedding (coe : submodule.span 𝕜 {c} → E) :=
+  (submodule.span 𝕜 {c}).closed_of_finite_dimensional.closed_embedding_subtype_coe,
+  have m2 : closed_embedding
+    (linear_equiv.to_span_nonzero_singleton 𝕜 E c hc : 𝕜 → submodule.span 𝕜 {c}) :=
+  (continuous_linear_equiv.to_span_nonzero_singleton 𝕜 c hc).to_homeomorph.closed_embedding,
+  exact m1.comp m2
+end
+
+/- `smul` is a closed map in the first argument. -/
+lemma is_closed_map_smul_left (c : E) : is_closed_map (λ x : 𝕜, x • c) :=
+begin
+  by_cases hc : c = 0,
+  { simp_rw [hc, smul_zero], exact is_closed_map_const },
+  { exact (closed_embedding_smul_left hc).is_closed_map }
+end
+
 end complete_field
 
 section proper_field

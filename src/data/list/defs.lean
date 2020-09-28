@@ -529,6 +529,8 @@ variables {R}
   pairwise R (a::l) ↔ (∀ a' ∈ l, R a a') ∧ pairwise R l :=
 ⟨λ p, by cases p with a l n p; exact ⟨n, p⟩, λ ⟨n, p⟩, p.cons n⟩
 
+attribute [simp] pairwise.nil
+
 instance decidable_pairwise [decidable_rel R] (l : list α) : decidable (pairwise R l) :=
 by induction l with hd tl ih; [exact is_true pairwise.nil,
   exactI decidable_of_iff' _ pairwise_cons]

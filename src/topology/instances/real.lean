@@ -319,15 +319,18 @@ section subgroups
 
 -- Rename and move
 lemma aux {a : ℝ} (h : 0 < a) (b : ℝ) : 0 ≤ b - floor(b/a) * a :=
-sorry
+sub_floor_div_mul_nonneg b h
 
 -- Rename and move
 lemma aux₂ {a : ℝ} (h : 0 < a) (b : ℝ) : b - floor(b/a) * a < a :=
-sorry
+sub_floor_div_mul_lt b h
 
 -- Rename and find more general statement?
 lemma mul_mem {G : add_subgroup ℝ} (k : ℤ) {g : ℝ} (h : g ∈ G) : (k : ℝ) * g ∈ G :=
-sorry
+begin
+  convert add_subgroup.gsmul_mem G h k,
+  exact (gsmul_eq_mul g k).symm,
+end
 
 -- Move
 lemma real.mem_closure_iff {s : set ℝ} {x : ℝ} : x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, abs (y - x) < ε :=

@@ -57,6 +57,12 @@ instance [decidable_eq α] : boolean_algebra (finset α) :=
 
 lemma compl_eq_univ_sdiff [decidable_eq α] (s : finset α) : sᶜ = univ \ s := rfl
 
+@[simp] lemma mem_compl [decidable_eq α] {s : finset α} {x : α} : x ∈ sᶜ ↔ x ∉ s :=
+by simp [compl_eq_univ_sdiff]
+
+@[simp, norm_cast] lemma coe_compl [decidable_eq α] (s : finset α) : ↑(sᶜ) = (↑s : set α)ᶜ :=
+set.ext $ λ x, mem_compl
+
 theorem eq_univ_iff_forall {s : finset α} : s = univ ↔ ∀ x, x ∈ s :=
 by simp [ext_iff]
 
@@ -179,7 +185,7 @@ multiset.card_pmap _ _ _
 theorem card_of_subtype {p : α → Prop} (s : finset α)
   (H : ∀ x : α, x ∈ s ↔ p x) [fintype {x // p x}] :
   card {x // p x} = s.card :=
-by rw ← subtype_card s H; congr
+by { rw ← subtype_card s H, congr }
 
 /-- Construct a fintype from a finset with the same elements. -/
 def of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) : fintype p :=
@@ -407,6 +413,10 @@ instance {α : Type*} (β : α → Type*)
 
 instance (α β : Type*) [fintype α] [fintype β] : fintype (α × β) :=
 ⟨univ.product univ, λ ⟨a, b⟩, by simp⟩
+
+@[simp] lemma finset.univ_product_univ {α β : Type*} [fintype α] [fintype β] :
+  (univ : finset α).product (univ : finset β) = univ :=
+rfl
 
 @[simp] theorem fintype.card_prod (α β : Type*) [fintype α] [fintype β] :
   fintype.card (α × β) = fintype.card α * fintype.card β :=
@@ -1045,6 +1055,19 @@ class infinite (α : Type*) : Prop :=
 
 @[simp] lemma not_nonempty_fintype {α : Type*} : ¬nonempty (fintype α) ↔ infinite α :=
 ⟨λf, ⟨λ x, f ⟨x⟩⟩, λ⟨f⟩ ⟨x⟩, f x⟩
+
+lemma finset.exists_minimal {α : Type*} [preorder α] (s : finset α) (h : s.nonempty) :
+  ∃ m ∈ s, ∀ x ∈ s, ¬ (x < m) :=
+begin
+  obtain ⟨c, hcs : c ∈ s⟩ := h,
+  have : well_founded (@has_lt.lt {x // x ∈ s} _) := fintype.well_founded_of_trans_of_irrefl _,
+  obtain ⟨⟨m, hms : m ∈ s⟩, -, H⟩ := this.has_min set.univ ⟨⟨c, hcs⟩, trivial⟩,
+  exact ⟨m, hms, λ x hx hxm, H ⟨x, hx⟩ trivial hxm⟩,
+end
+
+lemma finset.exists_maximal {α : Type*} [preorder α] (s : finset α) (h : s.nonempty) :
+  ∃ m ∈ s, ∀ x ∈ s, ¬ (m < x) :=
+@finset.exists_minimal (order_dual α) _ s h
 
 namespace infinite
 

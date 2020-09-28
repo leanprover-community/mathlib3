@@ -120,9 +120,12 @@ section preorder
 variables [topological_space α] [preorder α] [t : order_closed_topology α]
 include t
 
+lemma is_closed_le_prod : is_closed {p : α × α | p.1 ≤ p.2} :=
+t.is_closed_le'
+
 lemma is_closed_le [topological_space β] {f g : β → α} (hf : continuous f) (hg : continuous g) :
   is_closed {b | f b ≤ g b} :=
-continuous_iff_is_closed.mp (hf.prod_mk hg) _ t.is_closed_le'
+continuous_iff_is_closed.mp (hf.prod_mk hg) _ is_closed_le_prod
 
 lemma is_closed_le' (a : α) : is_closed {b | b ≤ a} :=
 is_closed_le continuous_id continuous_const
@@ -248,6 +251,10 @@ end partial_order
 
 section linear_order
 variables [topological_space α] [linear_order α] [order_closed_topology α]
+
+lemma is_open_lt_prod : is_open {p : α × α | p.1 < p.2} :=
+by { simp_rw [← is_closed_compl_iff, compl_set_of, not_lt],
+     exact is_closed_le continuous_snd continuous_fst }
 
 lemma is_open_lt [topological_space β] {f g : β → α} (hf : continuous f) (hg : continuous g) :
   is_open {b | f b < g b} :=
@@ -1432,7 +1439,7 @@ begin
   intro b,
   refine (hf (b/(C/2))).mp ((hg.2 (C/2) (by linarith)).mp ((hf 1).mp (eventually_of_forall _))),
   intros x hx hltg hlef,
-  nlinarith [(div_le_iff_of_neg (div_neg_of_neg_of_pos hC two_pos)).mp hlef],
+  nlinarith [(div_le_iff_of_neg (div_neg_of_neg_of_pos hC zero_lt_two)).mp hlef],
 end
 
 end linear_ordered_field

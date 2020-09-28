@@ -62,7 +62,7 @@ measurable space, measurable function, dynkin system
 -/
 
 local attribute [instance] classical.prop_decidable
-open set encodable
+open set encodable function
 open_locale classical filter
 
 universes u v w x
@@ -608,9 +608,33 @@ measurable.of_le_map $ sup_le
   (by { rw [measurable_space.comap_le_iff_le_map, measurable_space.map_comp], exact hf₁ })
   (by { rw [measurable_space.comap_le_iff_le_map, measurable_space.map_comp], exact hf₂ })
 
+lemma measurable_prod {f : α → β × γ} : measurable f ↔
+  measurable (λa, (f a).1) ∧ measurable (λa, (f a).2) :=
+⟨λ hf, ⟨measurable_fst.comp hf, measurable_snd.comp hf⟩, λ h, measurable.prod h.1 h.2⟩
+
 lemma measurable.prod_mk {f : α → β} {g : α → γ} (hf : measurable f) (hg : measurable g) :
   measurable (λa:α, (f a, g a)) :=
 measurable.prod hf hg
+
+lemma measurable_prod_mk_left {x : α} : measurable (@prod.mk _ β x) :=
+measurable_const.prod_mk measurable_id
+
+lemma measurable_prod_mk_right {y : β} : measurable (λ x : α, (x, y)) :=
+measurable_id.prod_mk measurable_const
+
+lemma measurable.of_uncurry_left {f : α → β → γ} (hf : measurable (uncurry f)) {x : α} :
+  measurable (f x) :=
+hf.comp measurable_prod_mk_left
+
+lemma measurable.of_uncurry_right {f : α → β → γ} (hf : measurable (uncurry f)) {y : β} :
+  measurable (λ x, f x y) :=
+hf.comp measurable_prod_mk_right
+
+lemma measurable_swap : measurable (prod.swap : α × β → β × α) :=
+measurable.prod measurable_snd measurable_fst
+
+lemma measurable_swap_iff {f : α × β → γ} : measurable (f ∘ prod.swap) ↔ measurable f :=
+⟨λ hf, by { convert hf.comp measurable_swap, ext ⟨x, y⟩, refl }, λ hf, hf.comp measurable_swap⟩
 
 lemma is_measurable.prod {s : set α} {t : set β} (hs : is_measurable s) (ht : is_measurable t) :
   is_measurable (s.prod t) :=
@@ -633,6 +657,10 @@ begin
   { simp [h, prod_eq_empty_iff.mp h] },
   { simp [←not_nonempty_iff_eq_empty, prod_nonempty_iff.mp h, is_measurable_prod_of_nonempty h] }
 end
+
+lemma is_measurable_swap_iff {s : set (α × β)} :
+  is_measurable (prod.swap ⁻¹' s) ↔ is_measurable s :=
+⟨λ hs, by { convert measurable_swap hs, ext ⟨x, y⟩, refl }, λ hs, measurable_swap hs⟩
 
 end prod
 
@@ -1099,7 +1127,7 @@ lemma induction_on_inter {C : set α → Prop} {s : set (set α)} [m : measurabl
   (h_empty : C ∅) (h_basic : ∀t∈s, C t) (h_compl : ∀t, is_measurable t → C t → C tᶜ)
   (h_union : ∀f:ℕ → set α, pairwise (disjoint on f) →
     (∀i, is_measurable (f i)) → (∀i, C (f i)) → C (⋃i, f i)) :
-  ∀{t}, is_measurable t → C t :=
+  ∀ ⦃t⦄, is_measurable t → C t :=
 have eq : is_measurable = dynkin_system.generate_has s,
   by { rw [h_eq, dynkin_system.generate_from_eq h_inter], refl },
 assume t ht,

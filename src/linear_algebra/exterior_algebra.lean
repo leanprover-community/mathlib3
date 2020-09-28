@@ -71,7 +71,7 @@ def exterior_algebra := ring_quot (exterior_algebra.rel R M)
 
 namespace exterior_algebra
 
-instance : ring (exterior_algebra S N) := algebra.ring_of_comm_ring_algebra S
+instance : ring (exterior_algebra S N) := algebra.semiring_to_ring S
 
 /--
 The canonical quotient map `tensor_algebra R M → exterior_algebra R M`.

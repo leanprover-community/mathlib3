@@ -64,7 +64,7 @@ def tensor_algebra := ring_quot (tensor_algebra.rel R M)
 
 namespace tensor_algebra
 
-instance : ring (tensor_algebra S N) := algebra.ring_of_comm_ring_algebra S
+instance : ring (tensor_algebra S N) := algebra.semiring_to_ring S
 
 /--
 The canonical linear map `M →ₗ[R] tensor_algebra R M`.

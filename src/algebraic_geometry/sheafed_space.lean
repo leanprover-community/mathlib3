@@ -72,7 +72,7 @@ induced_functor _
 variables {C}
 
 section
-local attribute [simp] id comp presheaf.pushforward
+local attribute [simp] id comp
 
 @[simp] lemma id_base (X : SheafedSpace C) :
   ((𝟙 X) : X ⟶ X).base = (𝟙 (X : Top.{v})) := rfl

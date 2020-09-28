@@ -6,7 +6,8 @@ Author: Paul van Wamelen.
 import algebra.field
 import algebra.gcd_monoid
 import algebra.group_with_zero_power
-import tactic
+import tactic.ring
+import tactic.ring_exp
 
 /-!
 # Pythagorean Triples

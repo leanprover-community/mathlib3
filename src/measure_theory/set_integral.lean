@@ -546,7 +546,7 @@ lemma norm_comp_l1_le (φ : α →₁[μ] E) (L : E →L[ℝ] F) : ∥L.comp_l1 
 begin
   erw l1.norm_of_fun_eq_integral_norm,
   calc
-  ∫ a, ∥L (φ a)∥ ∂μ ≤ ∫ a, ∥L∥ *∥φ a∥ ∂μ : integral_mono (L.integrable_comp_l1 φ).norm
+  ∫ a, ∥L (φ a)∥ ∂μ ≤ ∫ a, ∥L∥ *∥φ a∥ ∂μ : integral_mono_ae (L.integrable_comp_l1 φ).norm
                                 (φ.integrable_norm.const_mul $ ∥L∥) (L.norm_comp_l1_apply_le φ)
   ... = ∥L∥ * ∥φ∥ : by rw [integral_mul_left, φ.norm_eq_integral_norm]
 end
@@ -595,6 +595,21 @@ lemma integral_comp_l1_comm (L : E →L[ℝ] F) (φ : α →₁[μ] E) : ∫ a, 
 L.integral_comp_comm φ.integrable
 
 end continuous_linear_map
+
+variables [borel_space E] [second_countable_topology E] [complete_space E]
+  [measurable_space F] [borel_space F] [second_countable_topology F] [complete_space F]
+
+lemma fst_integral {f : α → E × F} (hf : integrable f μ) :
+  (∫ x, f x ∂μ).1 = ∫ x, (f x).1 ∂μ :=
+((continuous_linear_map.fst ℝ E F).integral_comp_comm hf).symm
+
+lemma snd_integral {f : α → E × F} (hf : integrable f μ) :
+  (∫ x, f x ∂μ).2 = ∫ x, (f x).2 ∂μ :=
+((continuous_linear_map.snd ℝ E F).integral_comp_comm hf).symm
+
+lemma integral_pair {f : α → E} {g : α → F} (hf : integrable f μ) (hg : integrable g μ) :
+  ∫ x, (f x, g x) ∂μ = (∫ x, f x ∂μ, ∫ x, g x ∂μ) :=
+have _ := hf.prod_mk hg, prod.ext (fst_integral this) (snd_integral this)
 
 end
 

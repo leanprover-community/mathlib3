@@ -26,7 +26,7 @@ For example, `algebra.adjoin K {x}` might not include `x⁻¹`.
  - `F⟮α⟯`: adjoin a single element `α` to `F`.
 -/
 
-namespace field
+namespace intermediate_field
 
 section adjoin_def
 variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (S : set E)
@@ -41,6 +41,33 @@ def adjoin : intermediate_field F E :=
   inv_mem' := λ x, is_subfield.inv_mem,
   mul_mem' := λ x y, is_submonoid.mul_mem,
   algebra_map_mem' := λ x, field.mem_closure (or.inl (set.mem_range.mpr ⟨x,rfl⟩)), }
+
+end adjoin_def
+
+section lattice
+variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
+
+--need this instance to apply closure_subset
+instance (K : intermediate_field F E) : is_subfield (K : set E) := sorry
+
+protected lemma gc : galois_connection (adjoin F : set E → intermediate_field F E) coe :=
+λ S T, ⟨λ H, le_trans (le_trans (set.subset_union_right _ _) field.subset_closure) H,
+λ H, field.closure_subset (set.union_subset (intermediate_field.set_range_subset T) H)⟩
+
+/-- Galois insertion between `adjoin` and `coe`. -/
+protected def gi : galois_insertion (adjoin F : set E → intermediate_field F E) coe :=
+{ choice := λ S _, adjoin F S,
+  gc := intermediate_field.gc,
+  le_l_u := λ S, (intermediate_field.gc (S : set E) (adjoin F S)).1 $ le_refl _,
+  choice_eq := λ _ _, rfl }
+
+instance : complete_lattice (intermediate_field F E) :=
+galois_insertion.lift_complete_lattice intermediate_field.gi
+
+end lattice
+
+section adjoin_def
+variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (S : set E)
 
 lemma adjoin_eq_range_algebra_map_adjoin :
   (adjoin F S : set E) = set.range (algebra_map (adjoin F S) E) := (subtype.range_coe).symm

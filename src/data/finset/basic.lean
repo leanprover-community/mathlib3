@@ -172,7 +172,7 @@ instance : inhabited (finset α) := ⟨∅⟩
 
 @[simp] theorem not_mem_empty (a : α) : a ∉ (∅ : finset α) := id
 
-@[simp] theorem ne_empty_of_mem {a : α} {s : finset α} (h : a ∈ s) : s ≠ ∅ :=
+theorem ne_empty_of_mem {a : α} {s : finset α} (h : a ∈ s) : s ≠ ∅ :=
 λ e, not_mem_empty a $ e ▸ h
 
 theorem nonempty.ne_empty {s : finset α} (h : s.nonempty) : s ≠ ∅ :=
@@ -932,10 +932,13 @@ by ext; simp
 @[simp] theorem filter_false {h} (s : finset α) : @filter α (λa, false) h s = ∅ :=
 ext $ assume a, by simp only [mem_filter, and_false]; refl
 
-/-- If all elements of a `finset` satisfy the predicate `p`, `s.filter
-p` is `s`. -/
+/-- If all elements of a `finset` satisfy the predicate `p`, `s.filter p` is `s`. -/
 @[simp] lemma filter_true_of_mem {s : finset α} (h : ∀ x ∈ s, p x) : s.filter p = s :=
 ext $ λ x, ⟨λ h, (mem_filter.1 h).1, λ hx, mem_filter.2 ⟨hx, h x hx⟩⟩
+
+/-- If all elements of a `finset` fail to satisfy the predicate `p`, `s.filter p` is `∅`. -/
+lemma filter_false_of_mem {s : finset α} (h : ∀ x ∈ s, ¬ p x) : s.filter p = ∅ :=
+eq_empty_of_forall_not_mem (by simpa)
 
 lemma filter_congr {s : finset α} (H : ∀ x ∈ s, p x ↔ q x) : filter p s = filter q s :=
 eq_of_veq $ filter_congr H
@@ -962,7 +965,8 @@ theorem filter_union_right (p q : α → Prop) [decidable_pred p] [decidable_pre
   s.filter p ∪ s.filter q = s.filter (λx, p x ∨ q x) :=
 ext $ λ x, by simp only [mem_filter, mem_union, and_or_distrib_left.symm]
 
-lemma filter_mem_eq_inter {s t : finset α} : s.filter (λ i, i ∈ t) = s ∩ t :=
+lemma filter_mem_eq_inter {s t : finset α} [Π i, decidable (i ∈ t)] :
+  s.filter (λ i, i ∈ t) = s ∩ t :=
 ext $ λ i, by rw [mem_filter, mem_inter]
 
 theorem filter_inter {s t : finset α} : filter p s ∩ t = filter p (s ∩ t) :=

@@ -260,6 +260,13 @@ theorem coe_monoid_hom_injective : function.injective (coe : (α →+* β) → (
 /-- Ring homomorphisms preserve multiplication. -/
 @[simp] lemma map_mul (f : α →+* β) (a b : α) : f (a * b) = f a * f b := f.map_mul' a b
 
+/-- Ring homomorphisms preserve `bit0`. -/
+@[simp] lemma map_bit0 (f : α →+* β) (a : α) : f (bit0 a) = bit0 (f a) := map_add _ _ _
+
+/-- Ring homomorphisms preserve `bit1`. -/
+@[simp] lemma map_bit1 (f : α →+* β) (a : α) : f (bit1 a) = bit1 (f a) :=
+by simp [bit1]
+
 /-- `f : R →+* S` has a trivial codomain iff `f 1 = 0`. -/
 lemma codomain_trivial_iff_map_one_eq_zero : (0 : β) = 1 ↔ f 1 = 0 :=
 by rw [map_one, eq_comm]
@@ -775,11 +782,14 @@ noncomputable def inverse : R → R :=
 λ x, if h : is_unit x then (((classical.some h)⁻¹ : units R) : R) else 0
 
 /-- By definition, if `x` is invertible then `inverse x = x⁻¹`. -/
-lemma inverse_unit (a : units R) : inverse (a : R) = (a⁻¹ : units R) :=
+@[simp] lemma inverse_unit (a : units R) : inverse (a : R) = (a⁻¹ : units R) :=
 begin
   simp [is_unit_unit, inverse],
   exact units.inv_unique (classical.some_spec (is_unit_unit a)),
 end
+
+/-- By definition, if `x` is not invertible then `inverse x = 0`. -/
+@[simp] lemma inverse_non_unit (x : R) (h : ¬(is_unit x)) : inverse x = 0 := dif_neg h
 
 end ring
 

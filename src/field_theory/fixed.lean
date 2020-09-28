@@ -64,7 +64,7 @@ polynomial.induction_on p
   (λ n x ih, by rw [smul_mul', polynomial.smul_C, smul, smul_pow, polynomial.smul_X])
 
 instance : algebra (fixed_points G F) F :=
-algebra.of_subring _
+algebra.of_is_subring _
 
 theorem coe_algebra_map :
   algebra_map (fixed_points G F) F = is_subring.subtype (fixed_points G F) :=

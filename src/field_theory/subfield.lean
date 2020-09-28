@@ -61,7 +61,6 @@ subfield, subfields
 open_locale big_operators
 universes u v w
 
-open group
 variables {K : Type u} {L : Type v} {M : Type w} [field K] [field L] [field M]
 
 set_option old_structure_cmd true
@@ -144,6 +143,9 @@ theorem add_mem : ∀ {x y : K}, x ∈ s → y ∈ s → x + y ∈ s := s.add_me
 
 /-- A subfield is closed under negation. -/
 theorem neg_mem : ∀ {x : K}, x ∈ s → -x ∈ s := s.neg_mem'
+
+/-- A subfield is closed under subtraction. -/
+theorem sub_mem {x y : K} : x ∈ s → y ∈ s → x - y ∈ s := s.to_subring.sub_mem
 
 /-- A subfield is closed under inverses. -/
 theorem inv_mem : ∀ {x : K}, x ∈ s → x⁻¹ ∈ s := s.inv_mem'

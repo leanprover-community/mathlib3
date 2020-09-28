@@ -194,7 +194,7 @@ begin
     have : ¬(n + 2 ≤ 1), by linarith,
     have not_terminated_at_n : ¬g.terminated_at n, from or.resolve_left hyp this,
     obtain ⟨gp, s_ppred_nth_eq⟩ : ∃ gp, g.s.nth n = some gp, from
-      option.ne_none_iff_exists.elim_left not_terminated_at_n,
+      option.ne_none_iff_exists'.mp not_terminated_at_n,
     set pconts := g.continuants_aux (n + 1) with pconts_eq,
     set ppconts := g.continuants_aux n with ppconts_eq,
     -- use the recurrence of continuants_aux
@@ -302,7 +302,7 @@ begin
       denominators_stable_of_terminated n.le_succ this,
     rw this },
   { obtain ⟨b, nth_part_denom_eq⟩ : ∃ b, g.partial_denominators.nth n = some b, from
-      option.ne_none_iff_exists.elim_left not_terminated,
+      option.ne_none_iff_exists'.mp not_terminated,
     have : 1 ≤ b, from of_one_le_nth_part_denom nth_part_denom_eq,
     calc
       (gcf.of v).denominators n ≤ b * (gcf.of v).denominators n   : by simpa using

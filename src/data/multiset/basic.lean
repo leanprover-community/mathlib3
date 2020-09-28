@@ -630,6 +630,9 @@ quot.induction_on s $ λ l, rfl
 
 lemma map_singleton (f : α → β) (a : α) : ({a} : multiset α).map f = {f a} := rfl
 
+theorem map_repeat (f : α → β) (a : α) (k : ℕ) : (repeat a k).map f = repeat (f a) k := by
+{ induction k, simp, simpa }
+
 @[simp] theorem map_add (f : α → β) (s t) : map f (s + t) = map f s + map f t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
 
@@ -770,7 +773,7 @@ lemma prod_smul {α : Type*} [comm_monoid α] (m : multiset α) :
   ∀n, (n •ℕ m).prod = m.prod ^ n
 | 0       := rfl
 | (n + 1) :=
-  by rw [add_nsmul, one_nsmul, _root_.pow_add, _root_.pow_one, prod_add, prod_smul n]
+  by rw [add_nsmul, one_nsmul, pow_add, pow_one, prod_add, prod_smul n]
 
 @[simp] theorem prod_repeat [comm_monoid α] (a : α) (n : ℕ) : prod (multiset.repeat a n) = a ^ n :=
 by simp [repeat, list.prod_repeat]
@@ -833,8 +836,14 @@ theorem prod_hom_rel [comm_monoid β] [comm_monoid γ] (s : multiset α) {r : β
 quotient.induction_on s $ λ l,
   by simp only [l.prod_hom_rel h₁ h₂, quot_mk_to_coe, coe_map, coe_prod]
 
-lemma dvd_prod [comm_semiring α] {a : α} {s : multiset α} : a ∈ s → a ∣ s.prod :=
+lemma dvd_prod [comm_monoid α] {a : α} {s : multiset α} : a ∈ s → a ∣ s.prod :=
 quotient.induction_on s (λ l a h, by simpa using list.dvd_prod h) a
+
+theorem prod_eq_zero_iff [comm_cancel_monoid_with_zero α] [nontrivial α]
+  {s : multiset α} :
+  s.prod = 0 ↔ (0 : α) ∈ s :=
+multiset.induction_on s (by simp) $
+  assume a s, by simp [mul_eq_zero, @eq_comm _ 0 a] {contextual := tt}
 
 lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_add_comm_monoid β]
   (f : α → β) (h_zero : f 0 = 0) (h_add : ∀x y, f (x + y) ≤ f x + f y) (s : multiset α) :
@@ -1649,8 +1658,17 @@ iff_not_comm.1 $ count_pos.symm.trans pos_iff_ne_zero
 theorem count_ne_zero {a : α} {s : multiset α} : count a s ≠ 0 ↔ a ∈ s :=
 by simp [ne.def, count_eq_zero]
 
-@[simp] theorem count_repeat (a : α) (n : ℕ) : count a (repeat a n) = n :=
+@[simp] theorem count_repeat_self (a : α) (n : ℕ) : count a (repeat a n) = n :=
 by simp [repeat]
+
+theorem count_repeat (a b : α) (n : ℕ)  :
+  count a (repeat b n) = if (a = b) then n else 0 :=
+begin
+  split_ifs with h₁,
+  { rw [h₁, count_repeat_self] },
+  { rw [count_eq_zero],
+    apply mt eq_of_mem_repeat h₁ },
+end
 
 @[simp] theorem count_erase_self (a : α) (s : multiset α) : count a (erase s a) = pred (count a s) :=
 begin
@@ -1686,9 +1704,12 @@ begin
   rw [← count_add, sub_add_inter, count_sub, sub_add_min],
 end
 
+lemma count_sum {m : multiset β} {f : β → multiset α} {a : α} :
+  count a (map f m).sum = sum (m.map $ λb, count a $ f b) :=
+multiset.induction_on m (by simp) ( by simp)
+
 lemma count_bind {m : multiset β} {f : β → multiset α} {a : α} :
-  count a (bind m f) = sum (m.map $ λb, count a $ f b) :=
-multiset.induction_on m (by simp) (by simp)
+  count a (bind m f) = sum (m.map $ λb, count a $ f b) := count_sum
 
 theorem le_count_iff_repeat_le {a : α} {s : multiset α} {n : ℕ} : n ≤ count a s ↔ repeat a n ≤ s :=
 quot.induction_on s $ λ l, le_count_iff_repeat_sublist.trans repeat_le_coe.symm

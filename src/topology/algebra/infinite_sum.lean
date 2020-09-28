@@ -436,6 +436,22 @@ end encodable
 
 end tsum
 
+section pi
+variables {ι : Type*} {π : α → Type*} [∀ x, add_comm_monoid (π x)] [∀ x, topological_space (π x)]
+
+lemma pi.has_sum {f : ι → ∀ x, π x} {g : ∀ x, π x} :
+  has_sum f g ↔ ∀ x, has_sum (λ i, f i x) (g x) :=
+by simp [has_sum, tendsto_pi]
+
+lemma pi.summable {f : ι → ∀ x, π x} : summable f ↔ ∀ x, summable (λ i, f i x) :=
+by simp [summable, pi.has_sum, classical.skolem]
+
+lemma tsum_apply [∀ x, t2_space (π x)] {f : ι → ∀ x, π x}{x : α} (hf : summable f) :
+  (∑' i, f i) x = ∑' i, f i x :=
+(pi.has_sum.mp hf.has_sum x).tsum_eq.symm
+
+end pi
+
 section topological_group
 variables [add_comm_group α] [topological_space α] [topological_add_group α]
 variables {f g : β → α} {a a₁ a₂ : α}
@@ -634,9 +650,16 @@ lemma sum_le_has_sum {f : β → α} (s : finset β) (hs : ∀ b∉s, 0 ≤ f b)
 ge_of_tendsto hf (eventually_at_top.2 ⟨s, λ t hst,
   sum_le_sum_of_subset_of_nonneg hst $ λ b hbt hbs, hs b hbs⟩)
 
+lemma le_has_sum (hf : has_sum f a) (b : β) (hb : ∀ b' ≠ b, 0 ≤ f b') : f b ≤ a :=
+calc f b = ∑ b in {b}, f b : finset.sum_singleton.symm
+... ≤ a : sum_le_has_sum _ (by { convert hb, simp }) hf
+
 lemma sum_le_tsum {f : β → α} (s : finset β) (hs : ∀ b∉s, 0 ≤ f b) (hf : summable f) :
   ∑ b in s, f b ≤ tsum f :=
 sum_le_has_sum s hs hf.has_sum
+
+lemma le_tsum (hf : summable f) (b : β) (hb : ∀ b' ≠ b, 0 ≤ f b') : f b ≤ ∑' b, f b :=
+le_has_sum (summable.has_sum hf) b hb
 
 lemma tsum_le_tsum (h : ∀b, f b ≤ g b) (hf : summable f) (hg : summable g) : (∑'b, f b) ≤ (∑'b, g b) :=
 has_sum_le h hf.has_sum hg.has_sum
@@ -656,6 +679,30 @@ begin
 end
 
 end order_topology
+
+section canonically_ordered
+variables [canonically_ordered_add_monoid α] [topological_space α] [order_closed_topology α]
+variables {f : β → α} {a : α}
+
+lemma le_has_sum' (hf : has_sum f a) (b : β) : f b ≤ a :=
+le_has_sum hf b $ λ _ _, zero_le _
+
+lemma le_tsum' (hf : summable f) (b : β) : f b ≤ ∑' b, f b :=
+le_tsum hf b $ λ _ _, zero_le _
+
+lemma has_sum_zero_iff : has_sum f 0 ↔ ∀ x, f x = 0 :=
+begin
+  refine ⟨_, λ h, _⟩,
+  { contrapose!,
+    exact λ ⟨x, hx⟩ h, irrefl _ (lt_of_lt_of_le (zero_lt_iff_ne_zero.2 hx) (le_has_sum' h x)) },
+  { convert has_sum_zero,
+    exact funext h }
+end
+
+lemma tsum_eq_zero_iff (hf : summable f) : (∑' i, f i) = 0 ↔ ∀ x, f x = 0 :=
+by rw [←has_sum_zero_iff, hf.has_sum_iff]
+
+end canonically_ordered
 
 section uniform_group
 

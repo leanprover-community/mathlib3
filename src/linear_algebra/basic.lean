@@ -388,9 +388,13 @@ end comm_semiring
 
 section ring
 
-instance endomorphism_ring [ring R] [add_comm_group M] [semimodule R M] : ring (M →ₗ[R] M) :=
+variables [ring R] [add_comm_group M] [semimodule R M]
+
+instance endomorphism_ring : ring (M →ₗ[R] M) :=
 by refine {mul := (*), one := 1, ..linear_map.add_comm_group, ..};
   { intros, apply linear_map.ext, simp {proj := ff} }
+
+@[simp] lemma mul_apply (f g : M →ₗ[R] M) (x : M) : (f * g) x = f (g x) := rfl
 
 end ring
 
@@ -1220,6 +1224,10 @@ by rw [ker, comap_cod_restrict, map_bot]; refl
 lemma range_cod_restrict (p : submodule R M) (f : M₂ →ₗ[R] M) (hf) :
   range (cod_restrict p f hf) = comap p.subtype f.range :=
 map_cod_restrict _ _ _ _
+
+lemma ker_restrict {p : submodule R M} {f : M →ₗ[R] M} (hf : ∀ x : M, x ∈ p → f x ∈ p) :
+  ker (f.restrict hf) = (f.dom_restrict p).ker :=
+by rw [restrict_eq_cod_restrict_dom_restrict, ker_cod_restrict]
 
 lemma map_comap_eq (f : M →ₗ[R] M₂) (q : submodule R M₂) :
   map f (comap f q) = range f ⊓ q :=
@@ -2088,22 +2096,24 @@ section
 noncomputable theory
 open_locale classical
 
+lemma ker_to_span_singleton {x : M} (h : x ≠ 0) : (to_span_singleton K M x).ker = ⊥ :=
+begin
+  ext c, split,
+  { intros hc, rw submodule.mem_bot, rw mem_ker at hc, by_contra hc',
+    have : x = 0,
+      calc x = c⁻¹ • (c • x) : by rw [← mul_smul, inv_mul_cancel hc', one_smul]
+      ... = c⁻¹ • ((to_span_singleton K M x) c) : rfl
+      ... = 0 : by rw [hc, smul_zero],
+    tauto },
+  { rw [mem_ker, submodule.mem_bot], intros h, rw h, simp }
+end
+
 /-- Given a nonzero element `x` of a vector space `M` over a field `K`, the natural
     map from `K` to the span of `x`, with invertibility check to consider it as an
     isomorphism.-/
 def to_span_nonzero_singleton (x : M) (h : x ≠ 0) : K ≃ₗ[K] (submodule.span K ({x} : set M)) :=
 linear_equiv.trans
-  ( linear_equiv.of_injective (to_span_singleton K M x)
-    begin
-      ext c, split,
-      { intros hc, rw submodule.mem_bot, rw mem_ker at hc, by_contra hc',
-        have : x = 0,
-          calc x = c⁻¹ • (c • x) : by rw [← mul_smul, inv_mul_cancel hc', one_smul]
-          ... = c⁻¹ • ((to_span_singleton K M x) c) : rfl
-          ... = 0 : by rw [hc, smul_zero],
-        tauto },
-      { rw [mem_ker, submodule.mem_bot], intros h, rw h, simp }
-    end )
+  (linear_equiv.of_injective (to_span_singleton K M x) (ker_to_span_singleton K M h))
   (of_eq (to_span_singleton K M x).range (submodule.span K {x}) (span_singleton_eq_range K M x).symm)
 
 lemma to_span_nonzero_singleton_one (x : M) (h : x ≠ 0) : to_span_nonzero_singleton K M x h 1

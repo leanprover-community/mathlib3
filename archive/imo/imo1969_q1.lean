@@ -1,5 +1,9 @@
-import tactic
-import tactic.basic
+/-
+Copyright (c) 2020 Kevin Lacker. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kevin Lacker
+-/
+
 import tactic.linarith
 import tactic.norm_cast
 import tactic.ring

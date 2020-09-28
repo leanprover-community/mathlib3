@@ -7,10 +7,13 @@ import tactic
 import data.polynomial.degree.basic
 
 /-!
-# Theory of univariate polynomials
+# Trailing degree of univariate polynomials
 
-The definitions include
-`trailing_degree`, `nat_trailing_degree`, `trailing_coeff`
+## Main definitions
+
+* `trailing_degree p`: the multiplicity of `X` in the polynomial `p`
+* `nat_trailing_degree`: a variant of `trailing_degree` that takes values in the natural numbers
+* `trailing_coeff`: the coefficient at index `nat_trailing_degree p`
 
 Converts most results about `degree`, `nat_degree` and `leading_coeff` to results about the bottom end of a polynomial
 -/

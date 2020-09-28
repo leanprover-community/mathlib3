@@ -39,7 +39,7 @@ We locally denote the inner product by `⟪·, ·⟫`. We also provide two notat
 
 ## Implementation notes
 
-We define both the real and complex cases at the same time using the `is_R_of_C` typeclass.
+We define both the real and complex cases at the same time using the `is_R_or_C` typeclass.
 We choose the convention that inner products are conjugate linear in the first argument and linear
 in the second.
 

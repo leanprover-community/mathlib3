@@ -51,14 +51,14 @@ under pointwise multiplication.
 
 @[to_additive]
 instance smooth_map_semigroup {G : Type*} [semigroup G] [topological_space G] [has_continuous_mul G]
-  [charted_space H' G] [has_smooth_mul I' G]
- : semigroup C^∞⟮I, N; I', G⟯ :=
+  [charted_space H' G] [has_smooth_mul I' G] :
+  semigroup C^∞⟮I, N; I', G⟯ :=
 { mul_assoc := λ a b c, by ext; exact mul_assoc _ _ _,
   ..smooth_map.has_mul}
 
 @[to_additive]
 instance smooth_map_monoid {G : Type*} [monoid G] [topological_space G] [has_continuous_mul G]
-  [charted_space H' G] [smooth_manifold_with_corners I' G] [has_smooth_mul I' G] :
+  [charted_space H' G] [has_smooth_mul I' G] :
   monoid C^∞⟮I, N; I', G⟯ :=
 { one_mul := λ a, by ext; exact one_mul _,
   mul_one := λ a, by ext; exact mul_one _,
@@ -187,8 +187,8 @@ section module_over_continuous_functions
 /-!
 ### Structure as module over scalar functions
 
-If `M` is a module over `R`, then we show that the space of smooth functions from `α` to `M`
-is naturally a module over the ring of smooth functions from `α` to `M`. -/
+If `V` is a module over `𝕜`, then we show that the space of smooth functions from `N` to `V`
+is naturally a vector space over the ring of smooth functions from `N` to `𝕜`. -/
 
 instance smooth_map_has_scalar'
   {V : Type*} [normed_group V] [normed_space 𝕜 V] :
@@ -196,8 +196,8 @@ instance smooth_map_has_scalar'
 ⟨λ f g, ⟨λ x, (f x) • (g x), (smooth.smul f.2 g.2)⟩⟩
 
 instance smooth_map_module'
-  {V : Type*} [normed_group V] [normed_space 𝕜 V]
-  : semimodule C^∞⟮I, N; 𝓘(𝕜), 𝕜⟯ C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
+  {V : Type*} [normed_group V] [normed_space 𝕜 V] :
+  semimodule C^∞⟮I, N; 𝓘(𝕜), 𝕜⟯ C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
 { smul     := (•),
   smul_add := λ c f g, by ext x; exact smul_add (c x) (f x) (g x),
   add_smul := λ c₁ c₂ f, by ext x; exact add_smul (c₁ x) (c₂ x) (f x),
@@ -207,7 +207,3 @@ instance smooth_map_module'
   smul_zero := λ r, by ext x; exact smul_zero _, }
 
 end module_over_continuous_functions
-
-instance field_valued_smooth_maps_ring : ring C^∞⟮I, N; 𝕜⟯ := by apply_instance
-
-instance field_valued_smooth_maps_algebra : algebra 𝕜 C^∞⟮I, N; 𝕜⟯ := by apply_instance

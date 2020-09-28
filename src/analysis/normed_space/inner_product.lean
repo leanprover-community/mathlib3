@@ -722,7 +722,7 @@ omit 𝕜
 
 lemma parallelogram_law_with_norm_real {x y : β} :
   ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
-by have h := @parallelogram_law_with_norm ℝ _ β _ x y; simpa using h
+by { have h := @parallelogram_law_with_norm ℝ _ β _ x y, simpa using h }
 
 /-- Polarization identity: The real inner product, in terms of the norm. -/
 lemma real_inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two (x y : β) :

@@ -1014,7 +1014,7 @@ end finset
 
 namespace list
 
-@[to_additive, simp] lemma prod_to_finset {M : Type*} [decidable_eq α] [comm_monoid M]
+@[to_additive] lemma prod_to_finset {M : Type*} [decidable_eq α] [comm_monoid M]
   (f : α → M) {l : list α} (hl : l.nodup) : l.to_finset.prod f = (l.map f).prod :=
 begin
   revert hl,

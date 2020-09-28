@@ -194,7 +194,7 @@ begin
   { exact (coeff_eq_zero_of_nat_degree_lt (not_le.1 (λ w, h (nat.lt_one_add_iff.2 w)))).symm, }
 end
 
-lemma as_sum (p : polynomial R) :
+lemma as_sum_range (p : polynomial R) :
   p = ∑ i in range (p.nat_degree + 1), C (p.coeff i) * X^i :=
 begin
   ext n,
@@ -202,7 +202,7 @@ begin
     finset.sum_mul_boole, finset_sum_coeff, ite_le_nat_degree_coeff],
 end
 
-lemma as_sum'(p : polynomial R) :
+lemma as_sum_support (p : polynomial R) :
   p = ∑ i in p.support, C (p.coeff i) * X^i :=
 begin
   ext n,

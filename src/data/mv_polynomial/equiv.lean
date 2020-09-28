@@ -252,28 +252,6 @@ end
     (λ i : fin (n+1), fin.cases polynomial.X (λ k, polynomial.C (X k)) i) p :=
 by { rw ← fin_succ_equiv_eq, refl }
 
-@[simp] lemma fin_succ_equiv_apply (n : ℕ) (p : mv_polynomial (fin (n + 1)) α) :
-  fin_succ_equiv α n p =
-  eval₂_hom (polynomial.C.comp (C : α →+* mv_polynomial (fin n) α))
-    (λ i : fin (n+1), fin.cases polynomial.X (λ k, polynomial.C (X k)) i) p :=
-begin
-  apply induction_on p,
-  { intro r,
-    dsimp [fin_succ_equiv, option_equiv_left, sum_ring_equiv],
-    simp only [sum_to_iter_C, eval₂_C, rename_C, ring_hom.coe_comp], },
-  { intros, simp only [*, ring_equiv.map_add, ring_hom.map_add] },
-  { intros q i h,
-    dsimp at h,
-    rw [ring_equiv.map_mul, h],
-    dsimp [fin_succ_equiv, option_equiv_left, sum_ring_equiv, _root_.fin_succ_equiv],
-    simp only [rename_X, equiv.sum_comm_apply, function.comp_app, eval₂_mul, eval₂_X],
-    by_cases hi : i = 0,
-    { subst hi,
-      simp only [fin.cases_zero, sum.swap, equiv.option_equiv_sum_punit_none, sum_to_iter_Xl, eval₂_X] },
-    { rw [← fin.succ_pred i hi],
-      simp only [equiv.option_equiv_sum_punit_some, sum.swap, fin.cases_succ, sum_to_iter_Xr, eval₂_C] } }
-end
-
 end
 
 end equiv

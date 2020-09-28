@@ -40,12 +40,13 @@ include hp
 private lemma ghost_component_teichmuller_fun (r : R) (n : ℕ) :
   ghost_component n (teichmuller_fun p r) = r ^ p ^ n :=
 begin
-  rw [ghost_component, aeval_witt_polynomial, finset.sum_eq_single 0, pow_zero, one_mul, nat.sub_zero],
+  rw [ghost_component_apply, aeval_witt_polynomial, finset.sum_eq_single 0,
+      pow_zero, one_mul, nat.sub_zero],
   { refl },
   { intros i hi h0,
     convert mul_zero _, convert zero_pow _,
     { cases i, { contradiction }, { refl } },
-    { apply nat.pow_pos, apply nat.prime.pos, assumption } },
+    { apply pow_pos, apply nat.prime.pos, assumption } },
   { rw finset.mem_range, intro h, exact (h (nat.succ_pos n)).elim }
 end
 

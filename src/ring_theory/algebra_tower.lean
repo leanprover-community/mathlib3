@@ -47,16 +47,22 @@ end semimodule
 
 section semiring
 variables [comm_semiring R] [comm_semiring S] [semiring A] [semiring B]
-variables [algebra R S] [algebra S A] [algebra R A] [algebra S B] [algebra R B]
-variables {R S A}
+variables [algebra R S] [algebra S A] [algebra S B]
 
-theorem of_algebra_map_eq (h : ∀ x, algebra_map R A x = algebra_map S A (algebra_map R S x)) :
+variables {R S A}
+theorem of_algebra_map_eq [algebra R A]
+  (h : ∀ x, algebra_map R A x = algebra_map S A (algebra_map R S x)) :
   is_scalar_tower R S A :=
 ⟨λ x y z, by simp_rw [algebra.smul_def, ring_hom.map_mul, mul_assoc, h]⟩
 
+variables (R S A)
+
+instance subalgebra (S₀ : subalgebra R S) : is_scalar_tower S₀ S A :=
+of_algebra_map_eq $ λ x, rfl
+
+variables [algebra R A] [algebra R B]
 variables [is_scalar_tower R S A] [is_scalar_tower R S B]
 
-variables (R S A)
 theorem algebra_map_eq :
   algebra_map R A = (algebra_map S A).comp (algebra_map R S) :=
 ring_hom.ext $ λ x, by simp_rw [ring_hom.comp_apply, algebra.algebra_map_eq_smul_one,
@@ -64,6 +70,10 @@ ring_hom.ext $ λ x, by simp_rw [ring_hom.comp_apply, algebra.algebra_map_eq_smu
 
 theorem algebra_map_apply (x : R) : algebra_map R A x = algebra_map S A (algebra_map R S x) :=
 by rw [algebra_map_eq R S A, ring_hom.comp_apply]
+
+instance subalgebra' (S₀ : subalgebra R S) : is_scalar_tower R S₀ A :=
+@is_scalar_tower.of_algebra_map_eq R S₀ A _ _ _ _ _ _ $ λ _,
+(is_scalar_tower.algebra_map_apply R S A _ : _)
 
 @[ext] lemma algebra.ext {S : Type u} {A : Type v} [comm_semiring S] [semiring A]
   (h1 h2 : algebra S A) (h : ∀ {r : S} {x : A}, (by haveI := h1; exact r • x) = r • x) : h1 = h2 :=
@@ -108,10 +118,12 @@ instance comap {R S A : Type*} [comm_semiring R] [comm_semiring S] [semiring A]
   [algebra R S] [algebra S A] : is_scalar_tower R S (algebra.comap R S A) :=
 of_algebra_map_eq $ λ x, rfl
 
-instance subsemiring (U : subsemiring S) : is_scalar_tower U S A :=
+-- conflicts with is_scalar_tower.subalgebra
+@[priority 999] instance subsemiring (U : subsemiring S) : is_scalar_tower U S A :=
 of_algebra_map_eq $ λ x, rfl
 
-instance subring {S A : Type*} [comm_ring S] [ring A] [algebra S A]
+-- conflicts with is_scalar_tower.subalgebra
+@[priority 999] instance subring {S A : Type*} [comm_ring S] [ring A] [algebra S A]
   (U : set S) [is_subring U] : is_scalar_tower U S A :=
 of_algebra_map_eq $ λ x, rfl
 
@@ -121,29 +133,18 @@ instance of_ring_hom {R A B : Type*} [comm_semiring R] [comm_semiring A] [comm_s
   @is_scalar_tower R A B _ (f.to_ring_hom.to_algebra.to_has_scalar) _ :=
 by { letI := (f : A →+* B).to_algebra, exact of_algebra_map_eq (λ x, (f.commutes x).symm) }
 
+instance polynomial : is_scalar_tower R S (polynomial A) :=
+of_algebra_map_eq $ λ x, congr_arg polynomial.C $ algebra_map_apply R S A x
+
+theorem aeval_apply (x : A) (p : polynomial R) : polynomial.aeval x p =
+  polynomial.aeval x (polynomial.map (algebra_map R S) p) :=
+by rw [polynomial.aeval_def, polynomial.aeval_def, polynomial.eval₂_map, algebra_map_eq R S A]
+
 end semiring
 
 section comm_semiring
-variables [comm_semiring R] [comm_semiring A] [semiring B] [algebra R A] [algebra A B]
-
-instance subalgebra (S : subalgebra R A) : is_scalar_tower R S A :=
-of_algebra_map_eq $ λ x, rfl
-
-instance subalgebra' (A₀ : subalgebra R A) : is_scalar_tower A₀ A B :=
-is_scalar_tower.subsemiring _
-
-variables [algebra R B] [is_scalar_tower R A B]
-
-instance subalgebra'' (A₀ : subalgebra R A) : is_scalar_tower R A₀ B :=
-@is_scalar_tower.of_algebra_map_eq R A₀ B _ _ _ _ _ _ $ λ _,
-(is_scalar_tower.algebra_map_apply R A B _ : _)
-
-instance polynomial : is_scalar_tower R A (polynomial B) :=
-of_algebra_map_eq $ λ x, congr_arg polynomial.C $ algebra_map_apply R A B x
-
-theorem aeval_apply (x : B) (p : polynomial R) : polynomial.aeval x p =
-  polynomial.aeval x (polynomial.map (algebra_map R A) p) :=
-by rw [polynomial.aeval_def, polynomial.aeval_def, polynomial.eval₂_map, algebra_map_eq R A B]
+variables [comm_semiring R] [comm_semiring A] [comm_semiring B]
+variables [algebra R A] [algebra A B] [algebra R B] [is_scalar_tower R A B]
 
 lemma algebra_map_aeval (x : A) (p : polynomial R) :
   algebra_map A B (polynomial.aeval x p) = polynomial.aeval (algebra_map A B x) p :=

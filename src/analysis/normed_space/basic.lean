@@ -625,14 +625,14 @@ instance to_norm_one_class : norm_one_class α :=
 /-- `norm` as a `monoid_hom`. -/
 @[simps] def norm_hom : α →* ℝ := ⟨norm, norm_one, norm_mul⟩
 
-@[simp] lemma norm_pow (a : α) : ∀ (n : ℕ), ∥a^n∥ = ∥a∥^n :=
+@[simp] lemma norm_pow (a : α) : ∀ (n : ℕ), ∥a ^ n∥ = ∥a∥ ^ n :=
 norm_hom.map_pow a
 
 @[simp] lemma norm_prod (s : finset β) (f : β → α) :
   ∥∏ b in s, f b∥ = ∏ b in s, ∥f b∥ :=
 (norm_hom : α →* ℝ).map_prod f s
 
-@[simp] lemma norm_div (a b : α) : ∥a/b∥ = ∥a∥/∥b∥ :=
+@[simp] lemma norm_div (a b : α) : ∥a / b∥ = ∥a∥ / ∥b∥ :=
 (norm_hom : α →* ℝ).map_div norm_zero a b
 
 @[simp] lemma norm_inv (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ :=

@@ -35,4 +35,4 @@ Short-cut for typeclass resolution. -/
 noncomputable instance mv_polynomial.invertible_coe_nat
   (σ R : Type*) (p : ℕ) [comm_semiring R] [invertible (p : R)] :
   invertible (p : mv_polynomial σ R) :=
-invertible_algebra_coe_nat _ _
+invertible_algebra_coe_nat R _ _

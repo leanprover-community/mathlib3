@@ -3,14 +3,7 @@
 import algebra.invertible
 import data.mv_polynomial.monad
 
--- ### FOR_MATHLIB
-
-section
--- move this
-lemma prod_mk_injective {α β : Type*} (a : α) :
-  function.injective (prod.mk a : β → α × β) :=
-by { intros b₁ b₂ h, simpa only [true_and, prod.mk.inj_iff, eq_self_iff_true] using h }
-end
+-- ### FOR_MATHLIB (existing open PR #4320)
 
 -- TODO: making this a global instance causes timeouts in the comm_ring instance for Witt vectors
 -- :scream: :scream: :scream:

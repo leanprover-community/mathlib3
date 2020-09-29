@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import topology.metric_space.basic
 import topology.algebra.uniform_group
 import topology.algebra.ring
+import ring_theory.subring
 /-!
 # Topological properties of ℝ
 -/
@@ -320,14 +321,6 @@ end
 
 section subgroups
 
-lemma add_subgroup.int_mul_mem {R : Type*} [ring R] {G : add_subgroup R} (k : ℤ) {g : R} (h : g ∈ G) :
-  (k : R) * g ∈ G :=
-begin
-  convert add_subgroup.gsmul_mem G h k,
-  exact (gsmul_eq_mul g k).symm,
-end
-
-
 /-- Given a subgroup `G ⊆ ℝ`, if `a` is the minimum of `G ∩ ℝ_{>0}` then `G = aℤ`. -/
 lemma real.subgroup_eq_of_min {G : add_subgroup ℝ} {a : ℝ}
   (ha : is_least {g : ℝ | g ∈ G ∧ 0 < g} a) : (G : set ℝ)  = range (λ k : ℤ, k*a) :=
@@ -342,13 +335,12 @@ begin
     have lt : g - floor (g/a) * a  < a := sub_floor_div_mul_lt _ a_pos,
     cases eq_or_lt_of_le nonneg,
     { conv_rhs { rw eq_of_sub_eq_zero h.symm } },
-    { exfalso,
-      linarith [a_min ⟨G.sub_mem g_in (add_subgroup.int_mul_mem ⌊g / a⌋ a_in), h⟩] } },
+    { linarith [a_min ⟨G.sub_mem g_in (add_subgroup.int_mul_mem ⌊g / a⌋ a_in), h⟩] } },
   { rintros ⟨k, rfl⟩,
     exact add_subgroup.int_mul_mem _ a_in }
 end
 
-/-- Given a subgroup `G ⊆ ℝ`, if `G ∩ ℝ_{>0}` has no minimum then `G` is dense. -/
+/-- Given a nontrivial subgroup `G ⊆ ℝ`, if `G ∩ ℝ_{>0}` has no minimum then `G` is dense. -/
 lemma real.subgroup_dense_of_no_min {G : add_subgroup ℝ} {g₀ : ℝ} (g₀_in : g₀ ∈ G) (g₀_ne : g₀ ≠ 0)
   (H' : ¬ ∃ a : ℝ, is_least {g : ℝ | g ∈ G ∧ 0 < g} a) :
   closure (G : set ℝ) = univ :=
@@ -358,26 +350,23 @@ begin
   rw eq_univ_iff_forall,
   intros x,
   suffices : ∀ ε > (0 : ℝ), ∃ g ∈ G, abs (x - g) < ε,
-  by simpa only [real.mem_closure_iff, abs_sub],
+  { by simpa only [real.mem_closure_iff, abs_sub] },
   intros ε ε_pos,
   obtain ⟨g₁, g₁_in, g₁_pos⟩ : ∃ g₁ : ℝ, g₁ ∈ G ∧ 0 < g₁,
   { cases lt_or_gt_of_ne g₀_ne with Hg₀ Hg₀,
     { exact ⟨-g₀, G.neg_mem g₀_in, neg_pos.mpr Hg₀⟩ },
     { exact ⟨g₀, g₀_in, Hg₀⟩ } },
-  obtain ⟨a, ha⟩ : ∃ a, is_glb G_pos a,
-  { use Inf G_pos,
-    exact is_glb_cInf ⟨g₁, g₁_in, g₁_pos⟩ ⟨0, λ _ hx, le_of_lt hx.2⟩ },
+  obtain ⟨a, ha⟩ : ∃ a, is_glb G_pos a :=
+    ⟨Inf G_pos, is_glb_cInf ⟨g₁, g₁_in, g₁_pos⟩ ⟨0, λ _ hx, le_of_lt hx.2⟩⟩,
   have a_notin : a ∉ G_pos,
   { intros H,
-    apply H' a,
-    exact ⟨H, ha.1⟩ },
+    exact H' a ⟨H, ha.1⟩ },
   obtain ⟨g₂, g₂_in, g₂_pos, g₂_lt⟩ : ∃ g₂ : ℝ, g₂ ∈ G ∧ 0 < g₂ ∧ g₂ < ε,
   { obtain ⟨b, hb, hb', hb''⟩ := ha.exists_between_self_add' ε_pos a_notin,
     obtain ⟨c, hc, hc', hc''⟩ := ha.exists_between_self_add' (by linarith : 0 < b - a) a_notin,
     refine ⟨b - c, add_subgroup.sub_mem G hb.1 hc.1, _, _⟩ ;
     linarith },
-  use floor (x/g₂) * g₂,
-  split,
+  refine ⟨floor (x/g₂) * g₂, _, _⟩,
   { exact add_subgroup.int_mul_mem _ g₂_in },
   { rw abs_of_nonneg (sub_floor_div_mul_nonneg x g₂_pos),
     linarith [sub_floor_div_mul_lt x g₂_pos] }
@@ -388,19 +377,16 @@ end
 lemma real.subgroup_dense_or_cyclic (G : add_subgroup ℝ) :
   closure (G : set ℝ) = univ ∨ ∃ a, (G : set ℝ)  = range (λ k : ℤ, k*a) :=
 begin
-  by_cases H : ∀ x : ℝ, x ∈ G → x = 0,
+  cases add_subgroup.bot_or_nontrivial G with H H,
   { right,
     use 0,
-    ext x,
-    suffices : x ∈ G ↔ x = 0, by simpa,
-    exact ⟨H x, by { rintros rfl, exact G.zero_mem }⟩ },
+    simp [H] },
   { let G_pos := {g : ℝ | g ∈ G ∧ 0 < g},
     by_cases H' : ∃ a, is_least G_pos a,
     { right,
       rcases H' with ⟨a, ha⟩,
       exact ⟨a, real.subgroup_eq_of_min ha⟩ },
     { left,
-      push_neg at H,
       rcases H with ⟨g₀, g₀_in, g₀_ne⟩,
       exact real.subgroup_dense_of_no_min g₀_in g₀_ne H' } }
 end

@@ -339,6 +339,18 @@ instance : inhabited (subgroup G) := ⟨⊥⟩
 
 @[simp, to_additive] lemma coe_bot : ((⊥ : subgroup G) : set G) = {1} := rfl
 
+/-- A subgroup is either the trivial subgroup or contains a nonzero element. -/
+@[to_additive] lemma bot_or_nontrivial (K : subgroup G) : K = ⊥ ∨ ∃ x ∈ K, x ≠ (1:G) :=
+begin
+  classical,
+  refine dite (K = ⊥) (λ h, or.inl h) _,
+  contrapose!,
+  rintros ⟨_, hK⟩,
+  ext x,
+  refine ⟨hK x, λ _, _⟩,
+  convert subgroup.one_mem K
+end
+
 /-- The inf of two subgroups is their intersection. -/
 @[to_additive "The inf of two `add_subgroups`s is their intersection."]
 instance : has_inf (subgroup G) :=

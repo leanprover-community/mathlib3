@@ -21,8 +21,8 @@ The key to the solution is that you can factor z into the product of two polynom
 if a = 4*m^4.
 -/
 
-lemma factorization (m n : ℤ) : (n^2 + 2*m^2 - 2*n*m) * (n^2 + 2*m^2 + 2*n*m) = n^4 + 4*m^4
-:= by ring
+lemma factorization (m n : ℤ) :
+  (n^2 + 2*m^2 - 2*n*m) * (n^2 + 2*m^2 + 2*n*m) = n^4 + 4*m^4 := by ring
 
 /-!
 To show that the product is not prime, we need to show each of the factors is at least 2,

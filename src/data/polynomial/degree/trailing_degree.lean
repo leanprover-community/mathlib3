@@ -15,7 +15,8 @@ import data.polynomial.degree.basic
 * `nat_trailing_degree`: a variant of `trailing_degree` that takes values in the natural numbers
 * `trailing_coeff`: the coefficient at index `nat_trailing_degree p`
 
-Converts most results about `degree`, `nat_degree` and `leading_coeff` to results about the bottom end of a polynomial
+Converts most results about `degree`, `nat_degree` and `leading_coeff` to results about the bottom
+end of a polynomial
 -/
 
 noncomputable theory
@@ -31,12 +32,15 @@ variables {R : Type u} {S : Type v} {a b : R} {n m : ℕ}
 section semiring
 variables [semiring R] {p q r : polynomial R}
 
-/-- `trailing_degree p` is the multiplicity of `x` in the polynomial `p`, i.e. the smallest `X`-exponent in `p`.
-`trailing_degree p = some n` when `p ≠ 0` and `n` is the smallest power of `X` that appears in `p`, otherwise
+/-- `trailing_degree p` is the multiplicity of `x` in the polynomial `p`, i.e. the smallest
+`X`-exponent in `p`.
+`trailing_degree p = some n` when `p ≠ 0` and `n` is the smallest power of `X` that appears
+in `p`, otherwise
 `trailing_degree 0 = ⊤`. -/
 def trailing_degree (p : polynomial R) : with_top ℕ := p.support.inf some
 
-lemma trailing_degree_lt_wf : well_founded (λp q : polynomial R, trailing_degree p < trailing_degree q) :=
+lemma trailing_degree_lt_wf : well_founded
+(λp q : polynomial R, trailing_degree p < trailing_degree q) :=
 inv_image.wf trailing_degree (with_top.well_founded_lt nat.lt_wf)
 
 /-- `nat_trailing_degree p` forces `trailing_degree p` to ℕ, by defining nat_trailing_degree 0 = 0. -/
@@ -178,10 +182,8 @@ begin
 end
 
 @[simp] lemma coeff_nat_trailing_degree_pred_eq_zero {p : polynomial R} {hp : (0 : with_top ℕ) < nat_trailing_degree p} : p.coeff (p.nat_trailing_degree - 1) = 0 :=
-begin
-  apply coeff_eq_zero_of_lt_nat_trailing_degree,
-  apply nat.sub_lt ((with_top.zero_lt_coe (nat_trailing_degree p)).mp hp) nat.one_pos,
-end
+coeff_eq_zero_of_lt_nat_trailing_degree $ nat.sub_lt
+  ((with_top.zero_lt_coe (nat_trailing_degree p)).mp hp) nat.one_pos
 
 theorem le_trailing_degree_C_mul_X_pow (r : R) (n : ℕ) : (n : with_top ℕ) ≤ trailing_degree (C r * X^n) :=
 begin

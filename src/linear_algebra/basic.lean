@@ -2046,6 +2046,13 @@ def arrow_congr {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_ring R]
   arrow_congr e₁ e₂ f x = e₂ (f (e₁.symm x)) :=
 rfl
 
+@[simp] lemma arrow_congr_symm_apply {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_ring R]
+  [add_comm_group M₁] [add_comm_group M₂] [add_comm_group M₂₁] [add_comm_group M₂₂]
+  [module R M₁] [module R M₂] [module R M₂₁] [module R M₂₂]
+  (e₁ : M₁ ≃ₗ[R] M₂) (e₂ : M₂₁ ≃ₗ[R] M₂₂) (f : M₂ →ₗ[R] M₂₂) (x : M₁) :
+  (arrow_congr e₁ e₂).symm f x = e₂.symm (f (e₁ x)) :=
+rfl
+
 lemma arrow_congr_comp {N N₂ N₃ : Sort*}
   [add_comm_group N] [add_comm_group N₂] [add_comm_group N₃] [module R N] [module R N₂] [module R N₃]
   (e₁ : M ≃ₗ[R] N) (e₂ : M₂ ≃ₗ[R] N₂) (e₃ : M₃ ≃ₗ[R] N₃) (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) :

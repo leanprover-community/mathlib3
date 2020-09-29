@@ -618,6 +618,9 @@ instance nnreal.borel_space : borel_space nnreal := ⟨rfl⟩
 instance ennreal.measurable_space : measurable_space ennreal := borel ennreal
 instance ennreal.borel_space : borel_space ennreal := ⟨rfl⟩
 
+instance complex.measurable_space : measurable_space ℂ := borel ℂ
+instance complex.borel_space : borel_space ℂ := ⟨rfl⟩
+
 section metric_space
 
 variables [metric_space α] [measurable_space α] [opens_measurable_space α]
@@ -792,82 +795,73 @@ def ennreal_equiv_sum :
   measurable_inv_fun := measurable_sum measurable_coe (@measurable_const ennreal unit _ _ ⊤),
   .. equiv.option_equiv_sum_punit nnreal }
 
+open function (uncurry)
+
+lemma measurable_of_measurable_nnreal_prod [measurable_space β] [measurable_space γ]
+  {f : ennreal × β → γ} (H₁ : measurable (λ p : nnreal × β, f (p.1, p.2)))
+  (H₂ : measurable (λ x, f (⊤, x))) :
+  measurable f :=
+let e : measurable_equiv (ennreal × β) (nnreal × β ⊕ unit × β) :=
+  (ennreal_equiv_sum.prod_congr (measurable_equiv.refl β)).trans
+    (measurable_equiv.sum_prod_distrib _ _ _) in
+e.symm.measurable_coe_iff.1 $ measurable_sum H₁ (H₂.comp measurable_id.snd)
+
 lemma measurable_of_measurable_nnreal_nnreal [measurable_space β]
-  (f : ennreal → ennreal → β) {g : α → ennreal} {h : α → ennreal}
-  (h₁ : measurable (λp:nnreal × nnreal, f p.1 p.2))
-  (h₂ : measurable (λr:nnreal, f ⊤ r))
-  (h₃ : measurable (λr:nnreal, f r ⊤))
-  (hg : measurable g) (hh : measurable h) : measurable (λa, f (g a) (h a)) :=
-let e : measurable_equiv (ennreal × ennreal)
-  (((nnreal × nnreal) ⊕ (nnreal × unit)) ⊕ ((unit × nnreal) ⊕ (unit × unit))) :=
-  (measurable_equiv.prod_congr ennreal_equiv_sum ennreal_equiv_sum).trans
-    (measurable_equiv.sum_prod_sum _ _ _ _) in
-have measurable (λp:ennreal×ennreal, f p.1 p.2),
-begin
-  refine e.symm.measurable_coe_iff.1 (measurable_sum (measurable_sum _ _) (measurable_sum _ _)),
-  { show measurable (λp:nnreal × nnreal, f p.1 p.2),
-    exact h₁ },
-  { show measurable (λp:nnreal × unit, f p.1 ⊤),
-    exact h₃.comp (measurable.fst measurable_id) },
-  { show measurable ((λp:nnreal, f ⊤ p) ∘ (λp:unit × nnreal, p.2)),
-    exact h₂.comp (measurable.snd measurable_id) },
-  { show measurable (λp:unit × unit, f ⊤ ⊤),
-    exact measurable_const }
-end,
-this.comp (measurable.prod_mk hg hh)
+  {f : ennreal × ennreal → β} (h₁ : measurable (λp:nnreal × nnreal, f (p.1, p.2)))
+  (h₂ : measurable (λr:nnreal, f (⊤, r))) (h₃ : measurable (λr:nnreal, f (r, ⊤))) :
+  measurable f :=
+measurable_of_measurable_nnreal_prod
+  (measurable_swap_iff.1 $ measurable_of_measurable_nnreal_prod (h₁.comp measurable_swap) h₃)
+  (measurable_of_measurable_nnreal h₂)
 
 lemma measurable_of_real : measurable ennreal.of_real :=
 ennreal.continuous_of_real.measurable
 
-end ennreal
+lemma measurable_to_real : measurable ennreal.to_real :=
+ennreal.measurable_of_measurable_nnreal nnreal.measurable_coe
 
 lemma measurable_to_nnreal : measurable ennreal.to_nnreal :=
 ennreal.measurable_of_measurable_nnreal measurable_id
 
+lemma measurable_mul : measurable (λ p : ennreal × ennreal, p.1 * p.2) :=
+begin
+  apply measurable_of_measurable_nnreal_nnreal,
+  { simp only [← ennreal.coe_mul, measurable_mul.ennreal_coe] },
+  { simp only [ennreal.top_mul, ennreal.coe_eq_zero],
+    exact measurable_const.piecewise (is_measurable_singleton _) measurable_const },
+  { simp only [ennreal.mul_top, ennreal.coe_eq_zero],
+    exact measurable_const.piecewise (is_measurable_singleton _) measurable_const }
+end
+
+lemma measurable_sub : measurable (λ p : ennreal × ennreal, p.1 - p.2) :=
+by apply measurable_of_measurable_nnreal_nnreal;
+  simp [← ennreal.coe_sub, nnreal.continuous_sub.measurable.ennreal_coe]
+
+end ennreal
+
 lemma measurable.to_nnreal {f : α → ennreal} (hf : measurable f) :
   measurable (λ x, (f x).to_nnreal) :=
-measurable_to_nnreal.comp hf
+ennreal.measurable_to_nnreal.comp hf
 
 lemma measurable_ennreal_coe_iff {f : α → nnreal} :
   measurable (λ x, (f x : ennreal)) ↔ measurable f :=
 ⟨λ h, h.to_nnreal, λ h, h.ennreal_coe⟩
 
-lemma measurable_ennreal_to_real : measurable ennreal.to_real :=
-ennreal.measurable_of_measurable_nnreal nnreal.measurable_coe
-
 lemma measurable.to_real {f : α → ennreal} (hf : measurable f) :
   measurable (λ x, ennreal.to_real (f x)) :=
-measurable_ennreal_to_real.comp hf
+ennreal.measurable_to_real.comp hf
 
-lemma measurable.ennreal_mul {f g : α → ennreal} :
-  measurable f → measurable g → measurable (λa, f a * g a) :=
-begin
-  refine ennreal.measurable_of_measurable_nnreal_nnreal (*) _ _ _,
-  { simp only [ennreal.coe_mul.symm],
-    exact ennreal.measurable_coe.comp measurable_mul },
-  { simp [ennreal.top_mul],
-    exact measurable_const.piecewise
-      (is_closed_eq continuous_id continuous_const).is_measurable
-      measurable_const },
-  { simp [ennreal.mul_top],
-    exact measurable_const.piecewise
-      (is_closed_eq continuous_id continuous_const).is_measurable
-      measurable_const }
-end
+lemma measurable.ennreal_mul {f g : α → ennreal} (hf : measurable f) (hg : measurable g) :
+  measurable (λa, f a * g a) :=
+ennreal.measurable_mul.comp (hf.prod_mk hg)
 
 lemma measurable.ennreal_add {f g : α → ennreal}
   (hf : measurable f) (hg : measurable g) : measurable (λa, f a + g a) :=
 hf.add hg
 
-lemma measurable.ennreal_sub {f g : α → ennreal} :
-  measurable f → measurable g → measurable (λa, f a - g a) :=
-begin
-  refine ennreal.measurable_of_measurable_nnreal_nnreal (has_sub.sub) _ _ _,
-  { simp only [ennreal.coe_sub.symm],
-    exact ennreal.measurable_coe.comp nnreal.continuous_sub.measurable },
-  { simp [measurable_const] },
-  { simp [measurable_const] }
-end
+lemma measurable.ennreal_sub {f g : α → ennreal} (hf : measurable f) (hg : measurable g) :
+  measurable (λa, f a - g a) :=
+ennreal.measurable_sub.comp (hf.prod_mk hg)
 
 /-- note: `ennreal` can probably be generalized in a future version of this lemma. -/
 lemma measurable.ennreal_tsum {ι} [encodable ι] {f : ι → α → ennreal} (h : ∀ i, measurable (f i)) :

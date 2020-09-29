@@ -297,131 +297,40 @@ end
 
 open_locale big_operators
 
-instance {R X : Type*} [semiring X] : has_coe_to_fun (add_monoid_algebra X R) := finsupp.has_coe_to_fun
-
-
-/-- Maps a vector `X` to its graded representation, (ie with only grade-1 components) -/
-noncomputable
-def grading_fun {R X : out_param Type*} [comm_semiring R] (x : X) :
-  add_monoid_algebra (free_algebra R X) ℕ := finsupp.single 1 (ι R x)
-
-theorem grading_fun_def (R : Type*) [comm_semiring R] :
-  grading_fun = λ (x : X), finsupp.single 1 (ι R x) := rfl
-
-theorem grading_fun_comp_def (R : Type*) [comm_semiring R] :
-  grading_fun = (finsupp.single 1 : free_algebra R X → ℕ →₀ free_algebra R X) ∘ (ι R) := rfl
-
-variables (R X)
-
-noncomputable
-def grades : subalgebra R (add_monoid_algebra (free_algebra R X) ℕ) :=
-algebra.adjoin R {f | ∃ (x : X), f = @grading_fun R X _ x }
-
 /--
-The inverse mapping, summing together the grade components to recover the original
+Separate an element of the free algebra into its ℕ-graded components.
 
-The proofs here look an awful lot like `add_monoid_algebra.lift`, but that has an incompatible
-signature
+This is defined as an `alg_hom` to `add_monoid_algebra` so that algebra operators can be moved
+before and after the mapping.
 -/
 noncomputable
-def grading_inv : add_monoid_algebra (free_algebra R X) ℕ →ₐ[R] (free_algebra R X)
-:=
-{ to_fun := λ g, g.sum (λ _ gi, gi),
-  map_one' := by {
-    rw add_monoid_algebra.one_def,
-    rw finsupp.sum_single_index;
-    simp,
-  },
-  map_mul' := λ x y, by {
-    rw [add_monoid_algebra.mul_def, finsupp.sum_mul, finsupp.sum_sum_index];
-      try { intros, simp, done },
-    refine finset.sum_congr rfl (λ a ha, _), simp only,
-    rw [finsupp.mul_sum, finsupp.sum_sum_index];
-      try { intros, simp, done },
-    refine finset.sum_congr rfl (λ a' ha', _), simp only,
-    rw [finsupp.sum_single_index];
-      simp,
-  },
-  map_zero' := finsupp.sum_zero_index,
-  map_add' := λ f g, by rw [finsupp.sum_add_index]; simp [id],
-  commutes' := λ r, by {
-    rw [add_monoid_algebra.coe_algebra_map, finsupp.sum_single_index],
-    refl,
-  } }
+def grades : (free_algebra R X) →ₐ[R] add_monoid_algebra (free_algebra R X) ℕ :=
+lift R $ λ x, finsupp.single 1 $ ι R x
 
-/-
-This seemed like it ought to be useful but rw didn't like it
--/
-section alg_hom
+/-- Recombining the grades recovers the original element-/
+lemma sum_id_grades :
+  (add_monoid_algebra.sum_id R).comp grades = alg_hom.id R (free_algebra R X) :=
+begin
+  ext,
+  unfold grades add_monoid_algebra.sum_id,
+  simp [finsupp.sum_single_index],
+end
 
-variables {A : Type*} {B : Type*}
-variables [comm_semiring R] [semiring A] [semiring B]
-variables [algebra R A] [algebra R B]
-variables (φ : A →ₐ[R] B)
-
-lemma finsupp_map_sum {ι : Type*} (f : ι →₀ A) :
-  φ (f.sum (λ i fi, fi)) = f.sum (λ i, φ) :=
-φ.map_sum f f.support
-
-end alg_hom
--- -/
-
-/--
-The equivalence combining `lift R $ grading_fun` and `grading_inv X`.→ₐ₀
-
-Either I'm missing some useful lemmas, my statement is badly phrased, or finsupp is a pain to work with
--/
 noncomputable
-def grading : free_algebra R X ≃ₐ[R] add_monoid_algebra (free_algebra R X) ℕ :=
-alg_equiv.of_alg_hom
-  (lift R $ grading_fun)
-  -- (@add_monoid_algebra.lift ( _ : multiplicative ℕ →* free_algebra R X))
-  (grading_inv X)
-  begin
-    ext1,
-    unfold grading_inv,
-    simp,
-    rw finsupp_map_sum,
-    suffices : ∀ a, (lift R grading_fun) (x a) = finsupp.single a (x a),
-    {
-      conv in ((lift R grading_fun)) {
-        rw this _,
-      },
-      have q := finsupp.sum_single x,
-      unfold finsupp.sum at q,
-      exact q,
-    },
-    rw grading_fun_comp_def,
-    intro a,
-    revert x,
-    -- could do this to get (⇑x a ≠ 0), seems unhelpful
-    -- `unfold finsupp.single, split_ifs, { simp_rw h, ext, simp, refl, },`
-    induction a; intro x,
-    {
-      -- base case - prove true for the scalars
-      /-
-      x : add_monoid_algebra (free_algebra R X) ℕ
-      ⊢ ⇑(lift R grading_fun) (⇑x 0) = finsupp.single 0 (⇑x 0)
-      -/
-      sorry,
-    },
-    {
-      /-
-      a_n : ℕ,
-      a_ih :
-        ∀ (x : add_monoid_algebra (free_algebra R X) ℕ),
-          ⇑(lift R grading_fun) (⇑x a_n) = finsupp.single a_n (⇑x a_n),
-      x : add_monoid_algebra (free_algebra R X) ℕ
-      ⊢ ⇑(lift R grading_fun) (⇑x a_n.succ) = finsupp.single a_n.succ (⇑x a_n.succ)
-      -/
-      sorry,
-    },
-  end
-  begin
-    ext,
-    unfold grading_inv,
-    rw grading_fun_def,
-    simp [finsupp.sum_single_index],
-  end
+instance : has_coe (add_monoid_algebra (free_algebra R X) ℕ) (free_algebra R X) := ⟨
+  (add_monoid_algebra.sum_id R : add_monoid_algebra (free_algebra R X) ℕ →ₐ[R] (free_algebra R X))
+⟩
+
+@[simp, norm_cast]
+lemma coe_def (x : add_monoid_algebra (free_algebra R X) ℕ) : (x : free_algebra R X) = add_monoid_algebra.sum_id R x := rfl
+
+/-- An element of `X` lifted with the canonical `ι` function has a single grade 1 element -/
+lemma grades_ι (x : X) : grades (ι R x) = finsupp.single 1 (ι R x) :=
+by {unfold grades, simp}
+
+/-- An element of `R` lifted with `algebra_map` has a single grade 0 element -/
+lemma grades_algebra_map (r : R) :
+  grades (algebra_map R (free_algebra R X) r) = finsupp.single 0 (algebra_map R (free_algebra R X) r) :=
+by {unfold grades, simp}
 
 end free_algebra

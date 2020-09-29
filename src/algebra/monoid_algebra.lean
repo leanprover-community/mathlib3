@@ -732,6 +732,39 @@ lemma alg_hom_ext_iff {A : Type u₃} [comm_semiring k] [add_monoid G]
   (∀ x, φ₁ (finsupp.single x 1) = φ₂ (finsupp.single x 1)) ↔ φ₁ = φ₂ :=
 ⟨λ h, alg_hom_ext h, by rintro rfl _; refl⟩
 
+variables (k)
+
+/--
+The `alg_hom` which maps from a grading of an algebra `A` back to that algebra.
+
+The proofs here look an awful lot like `add_monoid_algebra.lift`, but that signature does not allow
+us to distinguish `k` and `A`.
+-/
+def sum_id {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [add_monoid G] :
+  add_monoid_algebra A G →ₐ[k] A
+:=
+{ to_fun := λ g, g.sum (λ _ gi, gi),
+  map_one' := by {
+    rw add_monoid_algebra.one_def,
+    rw finsupp.sum_single_index;
+    simp,
+  },
+  map_mul' := λ x y, by {
+    rw [add_monoid_algebra.mul_def, finsupp.sum_mul, finsupp.sum_sum_index];
+      try { intros, simp, done },
+    refine finset.sum_congr rfl (λ a ha, _), simp only,
+    rw [finsupp.mul_sum, finsupp.sum_sum_index];
+      try { intros, simp, done },
+    refine finset.sum_congr rfl (λ a' ha', _), simp only,
+    rw [finsupp.sum_single_index];
+      simp,
+  },
+  map_zero' := finsupp.sum_zero_index,
+  map_add' := λ f g, by rw [finsupp.sum_add_index]; simp [id],
+  commutes' := λ r, by {
+    rw [add_monoid_algebra.coe_algebra_map, finsupp.sum_single_index],
+    refl,
+  } }
 
 end lift
 

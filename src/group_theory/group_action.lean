@@ -64,9 +64,11 @@ section gwz
 
 variables {G : Type*} [group_with_zero G] [mul_action G β]
 
+@[simp]
 lemma inv_smul_smul' {c : G} (hc : c ≠ 0) (x : β) : c⁻¹ • c • x = x :=
 (units.mk0 c hc).inv_smul_smul x
 
+@[simp]
 lemma smul_inv_smul' {c : G} (hc : c ≠ 0) (x : β) : c • c⁻¹ • x = x :=
 (units.mk0 c hc).smul_inv_smul x
 

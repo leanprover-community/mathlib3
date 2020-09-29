@@ -1,5 +1,5 @@
 import tactic.apply_fun
-import ring_theory.algebra
+import algebra.algebra.basic
 import algebra.ordered_ring
 
 /-!

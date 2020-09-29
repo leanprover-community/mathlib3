@@ -1,6 +1,25 @@
 import algebra.star.basic
-import algebra.invertible
-import algebra.ordered_ring
+import algebra.algebra.ordered
+import data.real.basic
+
+/-!
+# The Clauser-Horne-Shimony-Holt (CHSH) inequality.
+
+Bell's inequality
+
+
+
+
+## References
+
+* J.F. Clauser; M.A. Horne; A. Shimony; R.A. Holt (1969),
+  "Proposed experiment to test local hidden-variable theories",
+  Phys. Rev. Lett., 23 (15): 880–4, doi:10.1103/PhysRevLett.23.880
+* J.S. Bell (1964), "On the Einstein Podolsky Rosen Paradox",
+  Physics Physique Физика, 1 (3): 195–200, doi:10.1103/PhysicsPhysiqueFizika.1.195,
+  reproduced as Ch. 2 of J. S. Bell (1987), "Speakable and Unspeakable in Quantum Mechanics", CUP
+
+-/
 
 universes u
 
@@ -25,38 +44,35 @@ end
 section
 variables {R}
 
-lemma nat_mul_le_nat_mul [ordered_semiring R] {a b : R} (h : a ≤ b) (c : ℕ) : (c : R) * a ≤ c * b :=
-sorry
-
-lemma nonneg_of_two_mul_nonneg [ordered_semiring R] [invertible (2 : R)] {r : R} (h : 0 ≤ 2 * r) :
-  0 ≤ r :=
-begin
-  have := mul_le_mul_of_nonneg_left h (by { simp, sorry, } : 0 ≤ ⅟(2 : R)),
-  simpa using this,
-end
-
 /--
-Given a CHSH tuple (A, B, C, D) in a *commutative* ordered *-ring with `⅟2`,
+Given a CHSH tuple (A, B, C, D) in a *commutative* ordered *-algebra over ℝ,
 `A * B + B * C + C * D - A * D ≤ 2`.
+
+(We could work over ℤ[⅟2] if we wanted to!)
 -/
 lemma commutative_chsh_inequality
-  [ordered_comm_ring R] [star_ordered_ring R] [invertible (2 : R)]
+  [ordered_comm_ring R] [star_ordered_ring R] [ordered_algebra ℝ R]
   (A B C D : R) (T : is_chsh_tuple A B C D) :
   A * B + B * C + C * D - A * D ≤ 2 :=
 begin
-  let P := 2 + A * D - A * B - B * C - C * D,
+  let P := (1/2 : ℝ) • (2 + A * D - A * B - B * C - C * D),
   have i₁ : 0 ≤ P,
-  { have idem : P * P = 2 * P,
-    { dsimp [P], sorry },
+  { have idem : P * P = P,
+    { dsimp [P],
+      cancel_denoms,
+      simp [add_mul, mul_add, sub_mul, mul_sub], },
     have sa : star P = P,
     { dsimp [P], sorry, },
     rw ←idem,
     conv_rhs { congr, rw ←sa, },
     exact star_mul_self_nonneg, },
   have i₂ : 0 ≤ 2 + A * D - A * B - B * C - C * D,
-  { have := mul_le_mul_of_nonneg_left i₁ (sorry : 0 ≤ (2 : R)),
-    simpa [P] using this, },
-  sorry,
+  { have := smul_le_smul_of_nonneg i₁ (by norm_num : 0 ≤ (2 : ℝ)),
+    simpa [P, two_ne_zero] using this, },
+  apply le_of_sub_nonneg,
+  simp only [sub_add_eq_sub_sub, ←sub_add],
+  convert i₂ using 1,
+  abel,
 end
 
 

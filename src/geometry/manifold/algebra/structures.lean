@@ -34,8 +34,8 @@ class smooth_ring (I : model_with_corners 𝕜 E H)
   extends lie_add_group I R, has_smooth_mul I R : Prop
 
 instance smooth_ring.to_smooth_semiring {I : model_with_corners 𝕜 E H}
-  {R : Type*} [ring R] [topological_space R] [topological_ring R] [charted_space H R]
-  [t : smooth_ring I R] :
+  {R : Type*} [ring R] [topological_space R] [topological_ring R]
+  [charted_space H R] [t : smooth_ring I R] :
   smooth_semiring I R := { ..t }
 
 end smooth_ring

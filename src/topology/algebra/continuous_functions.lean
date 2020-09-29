@@ -224,12 +224,12 @@ instance continuous_map_semimodule {α : Type*} [topological_space α]
 [semimodule R M] [topological_semimodule R M] :
   semimodule R C(α, M) :=
 { smul     := (•),
-  smul_add := λ c f g, by {ext, exact smul_add c (f x) (g x),},
-  add_smul := λ c₁ c₂ f, by ext x; exact add_smul c₁ c₂ (f x),
-  mul_smul := λ c₁ c₂ f, by ext x; exact mul_smul c₁ c₂ (f x),
-  one_smul := λ f, by ext x; exact one_smul R (f x),
-  zero_smul := λ f, by ext x; exact zero_smul _ _,
-  smul_zero := λ r, by ext x; exact smul_zero _, }
+  smul_add := λ c f g, by { ext, exact smul_add c (f x) (g x) },
+  add_smul := λ c₁ c₂ f, by { ext, exact add_smul c₁ c₂ (f x) },
+  mul_smul := λ c₁ c₂ f, by { ext, exact mul_smul c₁ c₂ (f x) },
+  one_smul := λ f, by { ext, exact one_smul R (f x) },
+  zero_smul := λ f, by { ext, exact zero_smul _ _ },
+  smul_zero := λ r, by { ext, exact smul_zero _ } }
 
 end continuous_map
 

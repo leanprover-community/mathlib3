@@ -529,12 +529,14 @@ instance model_space_smooth {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {I : model_with_corners 𝕜 E H} :
   smooth_manifold_with_corners I H := { .. has_groupoid_model_space _ _ }
 
+end smooth_manifold_with_corners
+
 namespace smooth_manifold_with_corners
 /- We restate in the namespace `smooth_manifolds_with_corners` some lemmas that hold for general
 charted space with a structure groupoid, avoiding the need to specify the groupoid
 `times_cont_diff_groupoid ∞ I` explicitly. -/
 
-variables  {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   (M : Type*) [topological_space M] [charted_space H M]
@@ -577,8 +579,6 @@ instance prod {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
     have h2 := has_groupoid.compatible (times_cont_diff_groupoid ⊤ I') hf2 hg2,
     exact times_cont_diff_groupoid_prod h1 h2,
   end }
-
-end smooth_manifold_with_corners
 
 end smooth_manifold_with_corners
 

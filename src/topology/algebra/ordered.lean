@@ -2677,25 +2677,10 @@ begin
   exact this hf hb
 end
 
-lemma continuous_within_at_Ioi_iff_Ici
-  {α β : Type*} [topological_space α] [linear_order α] [topological_space β] {a : α} {f : α → β} :
+lemma continuous_within_at_Ioi_iff_Ici {α β : Type*} [topological_space α] [partial_order α]
+  [topological_space β] {a : α} {f : α → β} :
   continuous_within_at f (Ioi a) a ↔ continuous_within_at f (Ici a) a :=
-begin
-  split,
-  { intros h s hs,
-    specialize h hs,
-    rw [mem_map, mem_nhds_within_iff_exists_mem_nhds_inter] at *,
-    rcases h with ⟨u, huna, hu⟩,
-    use [u, huna],
-    { intros x hx,
-      cases hx with hxu hx,
-      by_cases h : x = a,
-      { rw [h, mem_set_of_eq],
-        exact mem_of_nhds hs, },
-      exact hu ⟨hxu, lt_of_le_of_ne hx (ne_comm.2 h)⟩ } },
-  { intros h,
-    exact h.mono Ioi_subset_Ici_self }
-end
+by simp only [← Ici_diff_left, continuous_within_at_diff_self]
 
 lemma continuous_within_at_Iio_iff_Iic
   {α β : Type*} [topological_space α] [linear_order α] [topological_space β] {a : α} {f : α → β} :

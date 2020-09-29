@@ -311,7 +311,11 @@ theorem grading_fun_def (R : Type*) [comm_semiring R] :
 theorem grading_fun_comp_def (R : Type*) [comm_semiring R] :
   grading_fun = (finsupp.single 1 : free_algebra R X → ℕ →₀ free_algebra R X) ∘ (ι R) := rfl
 
-variables (X)
+variables (R X)
+
+noncomputable
+def grades : subalgebra R (add_monoid_algebra (free_algebra R X) ℕ) :=
+algebra.adjoin R {f | ∃ (x : X), f = @grading_fun R X _ x }
 
 /--
 The inverse mapping, summing together the grade components to recover the original
@@ -320,8 +324,7 @@ The proofs here look an awful lot like `add_monoid_algebra.lift`, but that has a
 signature
 -/
 noncomputable
-def grading_inv :
-  add_monoid_algebra (free_algebra R X) ℕ →ₐ[R] (free_algebra R X)
+def grading_inv : add_monoid_algebra (free_algebra R X) ℕ →ₐ[R] (free_algebra R X)
 :=
 { to_fun := λ g, g.sum (λ _ gi, gi),
   map_one' := by {
@@ -348,7 +351,7 @@ def grading_inv :
 
 /-
 This seemed like it ought to be useful but rw didn't like it
-
+-/
 section alg_hom
 
 variables {A : Type*} {B : Type*}
@@ -357,14 +360,14 @@ variables [algebra R A] [algebra R B]
 variables (φ : A →ₐ[R] B)
 
 lemma finsupp_map_sum {ι : Type*} (f : ι →₀ A) :
-  φ (∑ x in f.support, f x) = ∑ x in f.support, φ (f x) :=
-φ.to_ring_hom.map_sum f f.support
+  φ (f.sum (λ i fi, fi)) = f.sum (λ i, φ) :=
+φ.map_sum f f.support
 
 end alg_hom
--/
+-- -/
 
 /--
-The equivalence combining `lift R $ grading_fun` and `grading_inv X`.
+The equivalence combining `lift R $ grading_fun` and `grading_inv X`.→ₐ₀
 
 Either I'm missing some useful lemmas, my statement is badly phrased, or finsupp is a pain to work with
 -/
@@ -378,11 +381,10 @@ alg_equiv.of_alg_hom
     ext1,
     unfold grading_inv,
     simp,
-    unfold finsupp.sum,
-    rw alg_hom.map_sum (lift R _) x x.support,
+    rw finsupp_map_sum,
     suffices : ∀ a, (lift R grading_fun) (x a) = finsupp.single a (x a),
     {
-      conv in ((lift R grading_fun) _) {
+      conv in ((lift R grading_fun)) {
         rw this _,
       },
       have q := finsupp.sum_single x,
@@ -419,16 +421,7 @@ alg_equiv.of_alg_hom
     ext,
     unfold grading_inv,
     rw grading_fun_def,
-    simp,
-    unfold finsupp.sum,
-    by_cases h : ι R x = 0,
-    { rw h,
-      rw finset.sum_eq_zero,
-      simp,
-    },
-    rw finsupp.support_single_ne_zero h,
-    rw finset.sum_singleton,
-    simp,
+    simp [finsupp.sum_single_index],
   end
 
 end free_algebra

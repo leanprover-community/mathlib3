@@ -206,6 +206,7 @@ begin
     { unfold nat_trailing_degree,
       unfold trailing_degree,
       rw [support_X, inf_singleton, option.get_or_else_some],
+      rw [← C_inj],
       intro,
       apply h,
       rw [← mul_one X, ← C_1, a, C_0, mul_zero], },

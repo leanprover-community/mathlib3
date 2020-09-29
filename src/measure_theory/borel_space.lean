@@ -95,7 +95,7 @@ begin
   refine le_antisymm _ (generate_from_le _),
   { rw borel_eq_generate_from_of_subbasis (@order_topology.topology_eq_generate_intervals α _ _ _),
     letI : measurable_space α := measurable_space.generate_from (range Iio),
-    have H : ∀ a:α, is_measurable (Iio a) := λ a, generate_measurable.basic _ ⟨_, rfl⟩,
+    have H : ∀ a : α, is_measurable (Iio a) := λ a, generate_measurable.basic _ ⟨_, rfl⟩,
     refine generate_from_le _, rintro _ ⟨a, rfl | rfl⟩; [skip, apply H],
     by_cases h : ∃ a', ∀ b, a < b ↔ a' ≤ b,
     { rcases h with ⟨a', ha'⟩,
@@ -313,11 +313,11 @@ is_measurable_Icc
 variables [second_countable_topology α]
 
 lemma measurable.max {f g : δ → α} (hf : measurable f) (hg : measurable g) :
-  measurable (λa, max (f a) (g a)) :=
+  measurable (λ a, max (f a) (g a)) :=
 hf.piecewise (is_measurable_le hg hf) hg
 
 lemma measurable.min {f g : δ → α} (hf : measurable f) (hg : measurable g) :
-  measurable (λa, min (f a) (g a)) :=
+  measurable (λ a, min (f a) (g a)) :=
 hf.piecewise (is_measurable_le hf hg) hg
 
 end decidable_linear_order
@@ -346,8 +346,8 @@ measurable_of_measurable_on_compl_singleton a
 
 lemma continuous.measurable2 [second_countable_topology α] [second_countable_topology β]
   {f : δ → α} {g : δ → β} {c : α → β → γ}
-  (h : continuous (λp:α×β, c p.1 p.2)) (hf : measurable f) (hg : measurable g) :
-  measurable (λa, c (f a) (g a)) :=
+  (h : continuous (λ p : α × β, c p.1 p.2)) (hf : measurable f) (hg : measurable g) :
+  measurable (λ a, c (f a) (g a)) :=
 h.measurable.comp (hf.prod_mk hg)
 
 lemma measurable.smul [semiring α] [second_countable_topology α]
@@ -411,7 +411,7 @@ continuous_mul.measurable
 
 @[to_additive]
 lemma measurable.mul [has_mul α] [has_continuous_mul α] [second_countable_topology α]
-  {f : δ → α} {g : δ → α} : measurable f → measurable g → measurable (λa, f a * g a) :=
+  {f : δ → α} {g : δ → α} : measurable f → measurable g → measurable (λ a, f a * g a) :=
 continuous_mul.measurable2
 
 /-- A variant of `measurable.mul` that uses `*` on functions -/
@@ -433,7 +433,7 @@ continuous.measurable $ continuous_id.mul continuous_const
 @[to_additive]
 lemma finset.measurable_prod {ι : Type*} [comm_monoid α] [has_continuous_mul α]
   [second_countable_topology α] {f : ι → δ → α} (s : finset ι) (hf : ∀i, measurable (f i)) :
-  measurable (λa, ∏ i in s, f i a) :=
+  measurable (λ a, ∏ i in s, f i a) :=
 finset.induction_on s
   (by simp only [finset.prod_empty, measurable_const])
   (assume i s his ih, by simpa [his] using (hf i).mul ih)
@@ -444,7 +444,7 @@ continuous_inv.measurable
 
 @[to_additive]
 lemma measurable.inv [group α] [topological_group α] {f : δ → α} (hf : measurable f) :
-  measurable (λa, (f a)⁻¹) :=
+  measurable (λ a, (f a)⁻¹) :=
 measurable_inv.comp hf
 
 lemma measurable_inv' {α : Type*} [normed_field α] [measurable_space α] [borel_space α] :
@@ -453,7 +453,7 @@ measurable_of_continuous_on_compl_singleton 0 normed_field.continuous_on_inv
 
 lemma measurable.inv' {α : Type*} [normed_field α] [measurable_space α] [borel_space α]
   {f : δ → α} (hf : measurable f) :
-  measurable (λa, (f a)⁻¹) :=
+  measurable (λ a, (f a)⁻¹) :=
 measurable_inv'.comp hf
 
 @[to_additive]
@@ -683,14 +683,14 @@ lemma measurable.inf_nndist {f : β → α} (hf : measurable f) {s : set α} :
 measurable_inf_nndist.comp hf
 
 variables [second_countable_topology α]
-lemma measurable_dist : measurable (λp:α×α, dist p.1 p.2) :=
+lemma measurable_dist : measurable (λ p : α × α, dist p.1 p.2) :=
 continuous_dist.measurable
 
 lemma measurable.dist {f g : β → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ b, dist (f b) (g b)) :=
 continuous_dist.measurable2 hf hg
 
-lemma measurable_nndist : measurable (λp:α×α, nndist p.1 p.2) :=
+lemma measurable_nndist : measurable (λ p : α × α, nndist p.1 p.2) :=
 continuous_nndist.measurable
 
 lemma measurable.nndist {f g : β → α} (hf : measurable f) (hg : measurable g) :
@@ -724,7 +724,7 @@ measurable_inf_edist.comp hf
 
 variables [second_countable_topology α]
 
-lemma measurable_edist : measurable (λp:α×α, edist p.1 p.2) :=
+lemma measurable_edist : measurable (λ p : α × α, edist p.1 p.2) :=
 continuous_edist.measurable
 
 lemma measurable.edist {f g : β → α} (hf : measurable f) (hg : measurable g) :
@@ -764,7 +764,7 @@ begin
 end
 
 lemma borel_eq_generate_from_Iio_rat :
-  borel ℝ = generate_from (⋃a:ℚ, {Iio a}) :=
+  borel ℝ = generate_from (⋃ a : ℚ, {Iio a}) :=
 begin
   let g, swap,
   apply le_antisymm (_ : _ ≤ g) (measurable_space.generate_from_le (λ t, _)),
@@ -772,7 +772,7 @@ begin
     refine generate_from_le (λ t, _),
     simp only [mem_Union], rintro ⟨a, b, h, H⟩,
     rw [mem_singleton_iff.1 H],
-    rw (set.ext (λ x, _) : Ioo (a:ℝ) b = (⋃c>a, (Iio c)ᶜ) ∩ Iio b),
+    rw (set.ext (λ x, _) : Ioo (a : ℝ) b = (⋃c>a, (Iio c)ᶜ) ∩ Iio b),
     { have hg : ∀ q : ℚ, g.is_measurable' (Iio q) :=
         λ q, generate_measurable.basic (Iio q) (by { simp, exact ⟨_, rfl⟩ }),
       refine @is_measurable.inter _ g _ _ _ (hg _),
@@ -824,7 +824,7 @@ lemma measurable_coe : measurable (coe : ℝ≥0 → ennreal) :=
 measurable_id.ennreal_coe
 
 lemma measurable_of_measurable_nnreal {f : ennreal → α}
-  (h : measurable (λp : ℝ≥0, f p)) : measurable f :=
+  (h : measurable (λ p : ℝ≥0, f p)) : measurable f :=
 measurable_of_measurable_on_compl_singleton ⊤
   (measurable_equiv.ennreal_equiv_nnreal.symm.measurable_coe_iff.1 h)
 
@@ -838,17 +838,17 @@ def ennreal_equiv_sum :
 open function (uncurry)
 
 lemma measurable_of_measurable_nnreal_prod [measurable_space β] [measurable_space γ]
-  {f : ennreal × β → γ} (H₁ : measurable (λ p : nnreal × β, f (p.1, p.2)))
+  {f : ennreal × β → γ} (H₁ : measurable (λ p : ℝ≥0 × β, f (p.1, p.2)))
   (H₂ : measurable (λ x, f (⊤, x))) :
   measurable f :=
-let e : measurable_equiv (ennreal × β) (nnreal × β ⊕ unit × β) :=
+let e : measurable_equiv (ennreal × β) (ℝ≥0 × β ⊕ unit × β) :=
   (ennreal_equiv_sum.prod_congr (measurable_equiv.refl β)).trans
     (measurable_equiv.sum_prod_distrib _ _ _) in
 e.symm.measurable_coe_iff.1 $ measurable_sum H₁ (H₂.comp measurable_id.snd)
 
 lemma measurable_of_measurable_nnreal_nnreal [measurable_space β]
-  {f : ennreal × ennreal → β} (h₁ : measurable (λp:nnreal × nnreal, f (p.1, p.2)))
-  (h₂ : measurable (λr:nnreal, f (⊤, r))) (h₃ : measurable (λr:nnreal, f (r, ⊤))) :
+  {f : ennreal × ennreal → β} (h₁ : measurable (λ p : ℝ≥0 × ℝ≥0, f (p.1, p.2)))
+  (h₂ : measurable (λ r : ℝ≥0, f (⊤, r))) (h₃ : measurable (λ r : ℝ≥0, f (r, ⊤))) :
   measurable f :=
 measurable_of_measurable_nnreal_prod
   (measurable_swap_iff.1 $ measurable_of_measurable_nnreal_prod (h₁.comp measurable_swap) h₃)
@@ -892,15 +892,15 @@ lemma measurable.to_real {f : α → ennreal} (hf : measurable f) :
 ennreal.measurable_to_real.comp hf
 
 lemma measurable.ennreal_mul {f g : α → ennreal} (hf : measurable f) (hg : measurable g) :
-  measurable (λa, f a * g a) :=
+  measurable (λ a, f a * g a) :=
 ennreal.measurable_mul.comp (hf.prod_mk hg)
 
 lemma measurable.ennreal_add {f g : α → ennreal}
-  (hf : measurable f) (hg : measurable g) : measurable (λa, f a + g a) :=
+  (hf : measurable f) (hg : measurable g) : measurable (λ a, f a + g a) :=
 hf.add hg
 
 lemma measurable.ennreal_sub {f g : α → ennreal} (hf : measurable f) (hg : measurable g) :
-  measurable (λa, f a - g a) :=
+  measurable (λ a, f a - g a) :=
 ennreal.measurable_sub.comp (hf.prod_mk hg)
 
 /-- note: `ennreal` can probably be generalized in a future version of this lemma. -/
@@ -915,20 +915,20 @@ variables [normed_group α] [opens_measurable_space α] [measurable_space β]
 lemma measurable_norm : measurable (norm : α → ℝ) :=
 continuous_norm.measurable
 
-lemma measurable.norm {f : β → α} (hf : measurable f) : measurable (λa, norm (f a)) :=
+lemma measurable.norm {f : β → α} (hf : measurable f) : measurable (λ a, norm (f a)) :=
 measurable_norm.comp hf
 
 lemma measurable_nnnorm : measurable (nnnorm : α → ℝ≥0) :=
 continuous_nnnorm.measurable
 
-lemma measurable.nnnorm {f : β → α} (hf : measurable f) : measurable (λa, nnnorm (f a)) :=
+lemma measurable.nnnorm {f : β → α} (hf : measurable f) : measurable (λ a, nnnorm (f a)) :=
 measurable_nnnorm.comp hf
 
 lemma measurable_ennnorm : measurable (λ x : α, (nnnorm x : ennreal)) :=
 measurable_nnnorm.ennreal_coe
 
 lemma measurable.ennnorm {f : β → α} (hf : measurable f) :
-  measurable (λa, (nnnorm (f a) : ennreal)) :=
+  measurable (λ a, (nnnorm (f a) : ennreal)) :=
 hf.nnnorm.ennreal_coe
 
 end normed_group
@@ -965,7 +965,7 @@ lemma measurable_of_tendsto_metric' {ι ι'} {f : ι → α → β} {g : α → 
   measurable g :=
 begin
   apply measurable_of_is_closed', intros s h1s h2s h3s,
-  have : measurable (λx, inf_nndist (g x) s),
+  have : measurable (λ x, inf_nndist (g x) s),
   { refine measurable_of_tendsto_nnreal' u (λ i, (hf i).inf_nndist) _ hu hs, swap,
     rw [tendsto_pi], rw [tendsto_pi] at lim, intro x,
     exact ((continuous_inf_nndist_pt s).tendsto (g x)).comp (lim x) },

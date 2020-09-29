@@ -416,16 +416,16 @@ begin
   exact tendsto_at_top_mono' at_top B A
 end
 
-/-- The real exponential function tends to `0`at `-∞` or, equivalently, `exp(-x)` tends to `0`
+/-- The real exponential function tends to `0` at `-∞` or, equivalently, `exp(-x)` tends to `0`
 at `+∞` -/
 lemma tendsto_exp_neg_at_top_nhds_0 : tendsto (λx, exp (-x)) at_top (𝓝 0) :=
 (tendsto_inv_at_top_zero.comp (tendsto_exp_at_top)).congr (λx, (exp_neg x).symm)
 
-/-- The real exponential function tends to `1`at `0` -/
+/-- The real exponential function tends to `1` at `0` -/
 lemma tendsto_exp_nhds_0_nhds_1 : tendsto exp (𝓝 0) (𝓝 1) :=
-by { convert continuous.tendsto continuous_exp 0, simp }
+by { convert continuous_exp.tendsto 0, simp }
 
-/-- The function `exp(x)/x^n` tends to +infinity at +infinity, for any natural number `n` -/
+/-- The function `exp(x)/x^n` tends to `+∞` at `+∞`, for any natural number `n` -/
 lemma tendsto_exp_div_pow_at_top (n : ℕ) : tendsto (λx, exp x / x^n) at_top at_top :=
 begin
   have n_pos : (0 : ℝ) < n + 1 := nat.cast_add_one_pos n,

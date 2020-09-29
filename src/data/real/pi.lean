@@ -146,7 +146,7 @@ lemma pi_lt_3141593 : pi < 3.141593 := by pi_upper_bound [
 /-! ### Leibniz's Series for Pi -/
 
 noncomputable theory
-open real filter
+open real filter set
 open_locale classical big_operators topological_space
 local notation `|`x`|` := abs x
 local notation `π` := real.pi
@@ -160,10 +160,11 @@ begin
   -- We introduce a useful sequence `u` of values in [0,1], then prove that another sequence
   -- constructed from `u` tends to `0` at `+∞`
   let u := λ (k:ℕ), (k:nnreal) ^ (-1 / (2 * (k:ℝ) + 1)),
-  have H : tendsto (λ (k : ℕ), (1:ℝ) - (u k) + (u k) ^ (2 * (k:ℝ) + 1)) at_top (𝓝 0),
+  have H : tendsto (λ (k:ℕ), (1:ℝ) - (u k) + (u k) ^ (2 * (k:ℝ) + 1)) at_top (𝓝 0),
     { convert (tendsto.const_add (1:ℝ) (((tendsto_rpow_of_div_mul_add (-1) 2 1 (by norm_num)).neg).add
         tendsto_inv_at_top_zero)).comp tendsto_coe_nat_real_at_top_at_top,
-    { ext k, simp only [nnreal.coe_nat_cast, function.comp_app, nnreal.coe_rpow],
+    { ext k,
+      simp only [nnreal.coe_nat_cast, function.comp_app, nnreal.coe_rpow],
       rw [← rpow_mul (nat.cast_nonneg k) ((-1)/(2*(k:ℝ)+1)) (2*(k:ℝ)+1),
           @div_mul_cancel _ _ _ (2*(k:ℝ)+1) (by { norm_cast, linarith }), rpow_neg_one k],
       ring },
@@ -180,11 +181,19 @@ begin
   { rw ← norm_neg,
     convert f_bound,
     simp only [f], simp [b] }, -- SHOULD BE ABLE TO COMBINE?
+  -- We show that `U` is indeed in [0,1]
+  have hU1 : (U:ℝ) ≤ 1,
+  { by_cases hk : k = 0,
+    { simpa only [U, hk] using zero_rpow_le_one _ },
+    { exact rpow_le_one_of_one_le_of_nonpos (by { norm_cast, exact nat.succ_le_iff.mpr
+        (nat.pos_of_ne_zero hk) }) (le_of_lt (@div_neg_of_neg_of_pos _ _ (-(1:ℝ)) (2*k+1)
+          (by norm_num) (by { norm_cast, linarith } ))) } },
+  have hU2 := nnreal.coe_nonneg U,
   -- We compute the derivative of `f`, denoted by `f'`
   let f' := λ (x:ℝ), (-x^2) ^ k / (1 + x^2),
   have has_deriv_at_f : ∀ (x:ℝ), has_deriv_at f (f' x) x,
   { intro x,
-    have b_deriv : ∀ (i:ℕ), i ∈ finset.range k → (has_deriv_at (b i) ((-x^2)^i) x),
+    have has_deriv_at_b : ∀ i ∈ finset.range k, (has_deriv_at (b i) ((-x^2)^i) x),
     { intros i hi,
       convert has_deriv_at.const_mul ((-1:ℝ)^i / (2*i+1)) (@has_deriv_at.pow _ _ _ _ _ (2*i+1)
         (has_deriv_at_id x)),
@@ -193,54 +202,43 @@ begin
         ring },
       { simp only [nat.add_succ_sub_one, add_zero, mul_one, id.def, nat.cast_bit0, nat.cast_add,
                   nat.cast_one, nat.cast_mul],
-        rw [← mul_assoc, @div_mul_cancel _ _ _ (2*(i:ℝ)+1) (by {norm_cast, linarith}), pow_mul x 2 i,
-            ← mul_pow (-1) (x^2) i],
+        rw [← mul_assoc, @div_mul_cancel _ _ _ (2*(i:ℝ)+1) (by { norm_cast, linarith }),
+            pow_mul x 2 i, ← mul_pow (-1) (x^2) i],
         ring } },
-    convert has_deriv_at.sub (has_deriv_at_arctan x) (has_deriv_at.sum b_deriv),
+    convert (has_deriv_at_arctan x).sub (has_deriv_at.sum has_deriv_at_b),
     have g_sum := @geom_sum _ _ (-x^2) (by linarith [neg_nonpos.mpr (pow_two_nonneg x)]) k,
     simp only [geom_series, f'] at g_sum ⊢,
     rw [g_sum, ← neg_add' (x^2) 1, add_comm (x^2) 1, sub_eq_add_neg, neg_div', neg_div_neg_eq],
     ring },
-  have f_deriv1 : ∀ x ∈ set.Icc (U:ℝ) 1, has_deriv_within_at f (f' x) (set.Icc (U:ℝ) 1) x :=
+  have f_deriv1 : ∀ x ∈ Icc (U:ℝ) 1, has_deriv_within_at f (f' x) (Icc (U:ℝ) 1) x :=
     λ x hx, (has_deriv_at_f x).has_deriv_within_at,
-  have f_deriv2 : ∀ x ∈ set.Icc 0 (U:ℝ), has_deriv_within_at f (f' x) (set.Icc 0 (U:ℝ)) x :=
+  have f_deriv2 : ∀ x ∈ Icc 0 (U:ℝ), has_deriv_within_at f (f' x) (Icc 0 (U:ℝ)) x :=
     λ x hx, (has_deriv_at_f x).has_deriv_within_at,
-  -- We show that `U` is indeed in [0,1] (only the right bound is shown; `U` is nonnegative by definition)
-  have hU : (U:ℝ) ≤ 1,
-  { simp [U],
-    by_cases hk1 : k = 0,
-    { rw hk1,
-      exact zero_rpow_le_one (-1 / (2 * 0 + 1)) },
-    { have hk2 : 1 ≤ (k:ℝ) := by { norm_cast, exact nat.succ_le_iff.mpr (nat.pos_of_ne_zero hk1) },
-      exact rpow_le_one_of_one_le_of_nonpos hk2 (le_of_lt (@div_neg_of_neg_of_pos _ _
-              (-(1:ℝ)) (2*(k:ℝ)+1) (by norm_num) (by {norm_cast, linarith} ))) } },
   -- We prove a general bound for `f'` and then more precise bounds on each of two subintervals
-  have f'_bound : ∀ (x ∈ set.Icc (-1:ℝ) 1), |f' x| ≤ |x|^(2*k),
+  have f'_bound : ∀ (x ∈ Icc (-1:ℝ) 1), |f' x| ≤ |x|^(2*k),
   { intros x hx,
     rw [abs_div, is_monoid_hom.map_pow abs (-x^2) k, abs_neg, is_monoid_hom.map_pow abs x 2,
         tactic.ring_exp.pow_e_pf_exp rfl rfl, @abs_of_pos _ _ (1+x^2) (by nlinarith)],
     convert @div_le_div_of_le_left _ _ _ (1+x^2) 1 (pow_nonneg (abs_nonneg x) (2*k)) (by norm_num)
-              (by nlinarith),
+      (by nlinarith),
     simp },
-  have hbound1 : ∀ x ∈ set.Ico (U:ℝ) 1, |f' x| ≤ 1,
+  have hbound1 : ∀ x ∈ Ico (U:ℝ) 1, |f' x| ≤ 1,
   { intros x hx,
     cases hx,
-    have hincr := pow_le_pow_of_le_left (le_trans (nnreal.coe_nonneg U) hx_left) (le_of_lt hx_right) (2*k),
-    rw [one_pow (2*k), ← abs_of_nonneg (le_trans (nnreal.coe_nonneg U) hx_left)] at hincr,
-    rw ← abs_of_nonneg (le_trans (nnreal.coe_nonneg U) hx_left) at hx_right,
-    linarith [f'_bound x (set.mem_Icc.mpr (abs_le.mp (le_of_lt hx_right)))] },
-  have hbound2 : ∀ x ∈ set.Ico 0 (U:ℝ), |f' x| ≤ U ^ (2*k),
+    have hincr := pow_le_pow_of_le_left (le_trans hU2 hx_left) (le_of_lt hx_right) (2*k),
+    rw [one_pow (2*k), ← abs_of_nonneg (le_trans hU2 hx_left)] at hincr,
+    rw ← abs_of_nonneg (le_trans hU2 hx_left) at hx_right,
+    linarith [f'_bound x (mem_Icc.mpr (abs_le.mp (le_of_lt hx_right)))] },
+  have hbound2 : ∀ x ∈ Ico 0 (U:ℝ), |f' x| ≤ U ^ (2*k),
   { intros x hx,
     cases hx,
     have hincr := pow_le_pow_of_le_left hx_left (le_of_lt hx_right) (2*k),
     rw ← abs_of_nonneg hx_left at hincr hx_right,
-    rw ← abs_of_nonneg (nnreal.coe_nonneg U) at hU hx_right,
-    linarith [f'_bound x (set.mem_Icc.mpr (abs_le.mp (le_trans (le_of_lt hx_right) hU)))] },
+    rw ← abs_of_nonneg hU2 at hU1 hx_right,
+    linarith [f'_bound x (mem_Icc.mpr (abs_le.mp (le_trans (le_of_lt hx_right) hU1)))] },
   -- Finally, we twice apply the Mean Value Theorem to obtain bounds on `f` from the bounds on `f'`
-  have mvt1 := norm_image_sub_le_of_norm_deriv_le_segment' f_deriv1 hbound1 _
-                (set.right_mem_Icc.mpr hU),
-  have mvt2 := norm_image_sub_le_of_norm_deriv_le_segment' f_deriv2 hbound2 _
-                (set.right_mem_Icc.mpr (nnreal.coe_nonneg U)),
+  have mvt1 := norm_image_sub_le_of_norm_deriv_le_segment' f_deriv1 hbound1 _ (right_mem_Icc.mpr hU1),
+  have mvt2 := norm_image_sub_le_of_norm_deriv_le_segment' f_deriv2 hbound2 _ (right_mem_Icc.mpr hU2),
   -- The following algebra is enough to complete the proof
   calc |f 1 - f 0| = |(f 1 - f U) + (f U - f 0)| : by ring
                ... ≤ 1 * (1-U) + U^(2*k) * (U - 0) : le_trans (abs_add (f 1 - f U) (f U - f 0))

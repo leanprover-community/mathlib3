@@ -741,7 +741,7 @@ section limits
 open real filter
 
 /-- The function `x^y` tends to `+∞` at `+∞` for any real number `1 ≤ y` -/
-lemma tendsto_rpow_at_top {y:ℝ} (hy : 1 ≤ y) : tendsto (λ (x:ℝ), (x^y)) at_top at_top :=
+lemma tendsto_rpow_at_top {y : ℝ} (hy : 1 ≤ y) : tendsto (λ (x:ℝ), (x^y)) at_top at_top :=
 begin
   rw tendsto_at_top_at_top,
   intro b, use max b 1, intros x hx,
@@ -750,7 +750,7 @@ begin
 end
 
 /-- The function `x^(-y)` tends to `0` at `+∞` for any real number `1 ≤ y` -/
-lemma tendsto_rpow_of_neg_at_top_zero {y:ℝ} (hy : 1 ≤ y) : tendsto (λ (x:ℝ), x^(-y)) at_top (𝓝 0) :=
+lemma tendsto_rpow_of_neg_at_top_zero {y : ℝ} (hy : 1 ≤ y) : tendsto (λ (x:ℝ), x^(-y)) at_top (𝓝 0) :=
 tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) (λ x hx, (rpow_neg (le_of_lt hx) y).symm))
   (tendsto.inv_tendsto_at_top (tendsto_rpow_at_top hy))
 

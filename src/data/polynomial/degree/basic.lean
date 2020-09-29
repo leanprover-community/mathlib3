@@ -297,11 +297,11 @@ begin
   rw [← mul_one X, ← C_1, H, C_0, mul_zero, support_zero],
 end
 
-lemma support_X (H : (1:R) ≠ 0) : (X : polynomial R).support = singleton 1 :=
+lemma support_X (H : ¬ (1 : R) = 0) : (X : polynomial R).support = singleton 1 :=
 begin
-  convert support_mul_X_pow 1 1 H,
-  rw [C_1, one_mul, pow_one],
+  rw [← one_mul X, ← C_1, ← pow_one X, support_mul_X_pow 1 1 H],
 end
+
 
 
 end semiring

@@ -37,8 +37,8 @@ def adjoin : intermediate_field F E :=
 
 lemma adjoin_le {T : intermediate_field F E} : adjoin F S ≤ T ↔ S ≤ T :=
 ⟨λ H, le_trans (le_trans (set.subset_union_right _ _) subfield.subset_closure) H,
-λ H, (@subfield.closure_le E _ (set.range (algebra_map F E) ∪ S) T.to_subfield).mpr
-(set.union_subset (intermediate_field.set_range_subset T) H)⟩
+  λ H, (@subfield.closure_le E _ (set.range (algebra_map F E) ∪ S) T.to_subfield).mpr
+  (set.union_subset (intermediate_field.set_range_subset T) H)⟩
 
 end adjoin_def
 
@@ -219,7 +219,11 @@ section adjoin_dim
 open finite_dimensional vector_space
 
 lemma sub_bot_of_adjoin_dim_eq_one (h : dim F (adjoin F S) = 1) : S ⊆ (⊥ : intermediate_field F E) :=
-by rwa [adjoin_eq_bot_iff, ← subalgebra.dim_eq_one_iff]
+begin
+  rw adjoin_eq_bot_iff,
+  sorry,
+end
+-- by rwa [adjoin_eq_bot_iff, ← subalgebra.dim_eq_one_iff]
 
 lemma mem_bot_of_adjoin_simple_dim_eq_one (h : dim F F⟮α⟯ = 1) : α ∈ ((⊥ : intermediate_field F E) : set E) :=
 set.singleton_subset_iff.mp (sub_bot_of_adjoin_dim_eq_one h)

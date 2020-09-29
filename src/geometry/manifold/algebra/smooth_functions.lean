@@ -50,15 +50,15 @@ under pointwise multiplication.
 -/
 
 @[to_additive]
-instance smooth_map_semigroup {G : Type*} [semigroup G] [topological_space G] [has_continuous_mul G]
-  [charted_space H' G] [has_smooth_mul I' G] :
+instance smooth_map_semigroup {G : Type*} [semigroup G] [topological_space G]
+  [has_continuous_mul G] [charted_space H' G] [has_smooth_mul I' G] :
   semigroup C^∞⟮I, N; I', G⟯ :=
 { mul_assoc := λ a b c, by ext; exact mul_assoc _ _ _,
   ..smooth_map.has_mul}
 
 @[to_additive]
-instance smooth_map_monoid {G : Type*} [monoid G] [topological_space G] [has_continuous_mul G]
-  [charted_space H' G] [has_smooth_mul I' G] :
+instance smooth_map_monoid {G : Type*} [monoid G] [topological_space G]
+  [has_continuous_mul G] [charted_space H' G] [has_smooth_mul I' G] :
   monoid C^∞⟮I, N; I', G⟯ :=
 { one_mul := λ a, by ext; exact one_mul _,
   mul_one := λ a, by ext; exact mul_one _,
@@ -69,10 +69,8 @@ instance smooth_map_monoid {G : Type*} [monoid G] [topological_space G] [has_con
 instance smooth_map_comm_monoid {G : Type*} [comm_monoid G] [topological_space G]
   [has_continuous_mul G] [charted_space H' G] [has_smooth_mul I' G] :
   comm_monoid C^∞⟮I, N; I', G⟯ :=
-{ one_mul := λ a, by ext; exact one_mul _,
-  mul_one := λ a, by ext; exact mul_one _,
-  mul_comm := λ a b, by ext; exact mul_comm _ _,
-  ..smooth_map_semigroup,
+{ mul_comm := λ a b, by ext; exact mul_comm _ _,
+  ..smooth_map_monoid,
   ..smooth_map.has_one }
 
 @[to_additive]
@@ -85,7 +83,7 @@ instance smooth_map_group {G : Type*} [group G] [topological_space G] [topologic
 
 @[to_additive]
 instance smooth_map_comm_group {G : Type*} [comm_group G] [topological_space G]
-  [topological_group G] [charted_space H' G] [smooth_manifold_with_corners I' G] [lie_group I' G] :
+  [topological_group G] [charted_space H' G] [lie_group I' G] :
   comm_group C^∞⟮I, N; I', G⟯ :=
 { ..smooth_map_group,
   ..smooth_map_comm_monoid }
@@ -101,8 +99,8 @@ In this section we show that smooth functions valued in a smooth ring `R` inheri
 under pointwise multiplication.
 -/
 
-instance smooth_map_semiring {R : Type*} [semiring R] [topological_space R] [topological_semiring R]
-  [charted_space H' R] [smooth_manifold_with_corners I' R] [smooth_semiring I' R] :
+instance smooth_map_semiring {R : Type*} [semiring R] [topological_space R]
+  [topological_semiring R] [charted_space H' R] [smooth_semiring I' R] :
   semiring C^∞⟮I, N; I', R⟯ :=
 { left_distrib := λ a b c, by ext; exact left_distrib _ _ _,
   right_distrib := λ a b c, by ext; exact right_distrib _ _ _,
@@ -111,14 +109,14 @@ instance smooth_map_semiring {R : Type*} [semiring R] [topological_space R] [top
   ..smooth_map_add_comm_monoid,
   ..smooth_map_monoid }
 
-instance smooth_map_ring {R : Type*} [ring R] [topological_space R] [topological_ring R]
-  [charted_space H' R] [smooth_manifold_with_corners I' R] [smooth_ring I' R] :
+instance smooth_map_ring {R : Type*} [ring R] [topological_space R]
+  [topological_ring R] [charted_space H' R] [smooth_ring I' R] :
   ring C^∞⟮I, N; I', R⟯ :=
 { ..smooth_map_semiring,
   ..smooth_map_add_comm_group, }
 
-instance smooth_map_comm_ring {R : Type*} [comm_ring R] [topological_space R] [topological_ring R]
-  [charted_space H' R] [smooth_manifold_with_corners I' R] [smooth_ring I' R] :
+instance smooth_map_comm_ring {R : Type*} [comm_ring R] [topological_space R]
+  [topological_ring R] [charted_space H' R] [smooth_ring I' R] :
   comm_ring C^∞⟮I, N; I', R⟯ :=
 { ..smooth_map_semiring,
   ..smooth_map_add_comm_group,
@@ -161,8 +159,7 @@ In this section we show that smooth functions valued in a normed algebra `A` ove
 inherit an algebra structure.
 -/
 
-variables {A : Type*} [normed_ring A] [normed_algebra 𝕜 A]
-[smooth_ring 𝓘(𝕜, A) A]
+variables {A : Type*} [normed_ring A] [normed_algebra 𝕜 A] [smooth_ring 𝓘(𝕜, A) A]
 
 /-- Smooth constant functions as a `ring_hom`. -/
 def smooth_map.C : 𝕜 →+* C^∞⟮I, N; 𝓘(𝕜, A), A⟯ :=

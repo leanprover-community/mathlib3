@@ -254,8 +254,4 @@ instance normed_space_lie_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   end,
   .. model_space_smooth }
 
-instance field_lie_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜] :
-  lie_add_group (model_with_corners_self 𝕜 𝕜) 𝕜 :=
-by apply_instance
-
 end normed_space_lie_group

@@ -21,6 +21,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
 set_option old_structure_cmd true
+set_option default_priority 100 -- see Note [default priority]
 
 /-- A smooth semiring is a semiring where addition and multiplication are smooth. -/
 class smooth_semiring (I : model_with_corners 𝕜 E H)
@@ -49,24 +50,4 @@ instance field_smooth_ring {𝕜 : Type*} [nondiscrete_normed_field 𝕜] :
     rw times_cont_diff_on_univ,
     exact times_cont_diff_mul,
   end,
-  ..field_lie_group }
-
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{V : Type*} [normed_group V] [normed_space 𝕜 V]
-{H : Type*} [topological_space H]
-{E : Type*} [normed_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
-
-lemma smooth_smul : smooth (𝓘(𝕜).prod 𝓘(𝕜, V)) 𝓘(𝕜, V) (λp : 𝕜 × V, p.1 • p.2) :=
-begin
-  rw smooth_iff,
-  refine ⟨continuous_smul, λ x y, _⟩,
-  simp only [prod.mk.eta] with mfld_simps,
-  rw times_cont_diff_on_univ,
-  exact times_cont_diff_smul,
-end
-
-lemma smooth.smul {N : Type*} [topological_space N] [charted_space H N]
-  [smooth_manifold_with_corners I N] {f : N → 𝕜} {g : N → V}
-  (hf : smooth I 𝓘(𝕜) f) (hg : smooth I 𝓘(𝕜, V) g) :
-  smooth I 𝓘(𝕜, V) (λ p, f p • g p) :=
-smooth_smul.comp (hf.prod_mk hg)
+  ..normed_space_lie_group }

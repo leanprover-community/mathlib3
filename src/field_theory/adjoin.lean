@@ -35,7 +35,7 @@ def adjoin : intermediate_field F E :=
 { algebra_map_mem' := λ x, subfield.subset_closure (or.inl (set.mem_range_self x)),
   ..subfield.closure (set.range (algebra_map F E) ∪ S) }
 
-lemma adjoin_le {T : intermediate_field F E} : adjoin F S ≤ T ↔ S ≤ T :=
+lemma adjoin_le_iff {T : intermediate_field F E} : adjoin F S ≤ T ↔ S ≤ T :=
 ⟨λ H, le_trans (le_trans (set.subset_union_right _ _) subfield.subset_closure) H,
   λ H, (@subfield.closure_le E _ (set.range (algebra_map F E) ∪ S) T.to_subfield).mpr
   (set.union_subset (intermediate_field.set_range_subset T) H)⟩
@@ -45,7 +45,7 @@ end adjoin_def
 section lattice
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 
-lemma gc : galois_connection (adjoin F : set E → intermediate_field F E) coe := adjoin_le F
+lemma gc : galois_connection (adjoin F : set E → intermediate_field F E) coe := adjoin_le_iff F
 
 /-- Galois insertion between `adjoin` and `coe`. -/
 def gi : galois_insertion (adjoin F : set E → intermediate_field F E) coe :=
@@ -89,13 +89,12 @@ lemma adjoin.mono (T : set E) (h : S ⊆ T) : (adjoin F S : set E) ⊆ adjoin F 
 subfield.closure_mono (set.union_subset (set.subset_union_left _ _)
   (set.subset_union_of_subset_right h _))
 
--- instance adjoin.is_subfield : is_subfield (adjoin F S : set E) := field.closure.is_subfield
-
---Lean has trouble figuring this out on its own
--- instance adjoin.is_field : field (adjoin F S) := by library_search--@is_subfield.field E _ ((adjoin F S) : set E) _
-
 lemma adjoin_contains_field_as_subfield (F : subfield E) : (F : set E) ⊆ adjoin F S :=
 λ x hx, adjoin.algebra_map_mem F S ⟨x, hx⟩
+
+lemma subset_adjoin_of_subset_left {F : subfield E} {T : set E} (HT : T ⊆ F) :
+  T ⊆ adjoin F S :=
+λ x hx, (adjoin F S).algebra_map_mem ⟨x, HT hx⟩
 
 lemma subset_adjoin_of_subset_right {T : set E} (H : T ⊆ S) : T ⊆ adjoin F S :=
 begin
@@ -103,9 +102,9 @@ begin
   exact subset_adjoin F S (H hx),
 end
 
-/-- If `K` is a field with `F ⊆ K` and `S ⊆ K` then `adjoin F S ⊆ K`. -/
-lemma adjoin_subset_subfield {K : subfield E} (HF : set.range (algebra_map F E) ⊆ K)
-  (HS : S ⊆ K) : (adjoin F S : set E) ⊆ K :=
+/-- If `K` is a field with `F ⊆ K` and `S ⊆ K` then `adjoin F S ≤ K`. -/
+lemma adjoin_le_subfield {K : subfield E} (HF : set.range (algebra_map F E) ⊆ K)
+  (HS : S ⊆ K) : (adjoin F S).to_subfield ≤ K :=
 begin
   apply subfield.closure_le.mpr,
   rw set.union_subset_iff,
@@ -113,12 +112,9 @@ begin
 end
 
 /-- `S ⊆ adjoin F T` if and only if `adjoin F S ⊆ adjoin F T`. -/
-lemma adjoin_subset_iff {T : set E} : S ⊆ adjoin F T ↔ (adjoin F S : set E) ⊆ adjoin F T :=
-⟨λ h, adjoin_subset_subfield F S (adjoin.range_algebra_map_subset F T) h,
-  λ h, set.subset.trans (subset_adjoin F S) h⟩
-
-lemma subfield_subset_adjoin_self {F : subfield E} {T : set E} (HT : T ⊆ F) : T ⊆ adjoin F S :=
-λ x hx, adjoin.algebra_map_mem F S ⟨x, HT hx⟩
+lemma subset_adjoin_iff {T : set E} : S ≤ adjoin F T ↔ adjoin F S ≤ adjoin F T :=
+⟨λ h, adjoin_le_subfield F S (adjoin.range_algebra_map_subset F T) h,
+ λ h, set.subset.trans (subset_adjoin F S) h⟩
 
 lemma adjoin_subset_adjoin_iff {F' : Type*} [field F'] [algebra F' E]
   {S S' : set E} : (adjoin F S : set E) ⊆ adjoin F' S' ↔
@@ -132,9 +128,9 @@ begin
   apply set.eq_of_subset_of_subset; rw adjoin_subset_adjoin_iff; split,
   { rintros _ ⟨⟨x, hx⟩, rfl⟩, exact adjoin.mono _ _ _ (set.subset_union_left _ _) hx },
   { exact subset_adjoin_of_subset_right _ _ (set.subset_union_right _ _) },
-  { exact subfield_subset_adjoin_self _ (adjoin.range_algebra_map_subset _ _) },
+  { exact subset_adjoin_of_subset_left _ (adjoin.range_algebra_map_subset _ _) },
   { exact set.union_subset
-            (subfield_subset_adjoin_self _ (subset_adjoin _ _))
+            (subset_adjoin_of_subset_left _ (subset_adjoin _ _))
             (subset_adjoin _ _) },
 end
 
@@ -142,6 +138,43 @@ end
 lemma adjoin_adjoin_comm (T : set E) :
   (adjoin (adjoin F S) T : set E) = (adjoin (adjoin F T) S : set E) :=
 by rw [adjoin_adjoin_left, adjoin_adjoin_left, set.union_comm]
+
+lemma adjoin_map {E' : Type*} [field E'] [algebra F E'] (f : E →ₐ[F] E') :
+  (adjoin F S).map f = adjoin F (f '' S) :=
+begin
+  ext x,
+  show x ∈ (subfield.closure (set.range (algebra_map F E) ∪ S)).map (f : E →+* E') ↔
+       x ∈ subfield.closure (set.range (algebra_map F E') ∪ f '' S),
+  rw [ring_hom.map_field_closure, set.image_union, ← set.range_comp, ← ring_hom.coe_comp,
+      f.comp_algebra_map],
+  refl,
+end
+
+/-- `adjoin F S ≤ K` if `K` is an intermediate field that contains `S`. -/
+lemma adjoin_le {K : intermediate_field F E} (HS : S ⊆ K) :
+  adjoin F S ≤ K :=
+show (adjoin F S).to_subfield ≤ K.to_subfield,
+from adjoin_le_subfield _ S K.set_range_subset HS
+
+lemma algebra_adjoin_le_adjoin : algebra.adjoin F S ≤ (adjoin F S).to_subalgebra :=
+algebra.adjoin_le (subset_adjoin _ _)
+
+lemma adjoin_le_algebra_adjoin (inv_mem : ∀ x ∈ algebra.adjoin F S, x⁻¹ ∈ algebra.adjoin F S) :
+  (adjoin F S).to_subalgebra ≤ algebra.adjoin F S :=
+show adjoin F S ≤
+  { neg_mem' := λ x, (algebra.adjoin F S).neg_mem, inv_mem' := inv_mem, .. algebra.adjoin F S},
+from adjoin_le _ _ algebra.subset_adjoin
+
+@[elab_as_eliminator]
+lemma adjoin_induction {s : set E} {p : E → Prop} {x} (h : x ∈ adjoin F s)
+  (Hs : ∀ x ∈ s, p x) (Hmap : ∀ x, p (algebra_map F E x))
+  (Hadd : ∀ x y, p x → p y → p (x + y))
+  (Hneg : ∀ x, p x → p (-x))
+  (Hinv : ∀ x, p x → p x⁻¹)
+  (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
+subfield.closure_induction h (λ x hx, or.cases_on hx (λ ⟨x, hx⟩, hx ▸ Hmap x) (Hs x))
+  ((algebra_map F E).map_one ▸ Hmap 1)
+  Hadd Hneg Hinv Hmul
 
 /--
 Variation on `set.insert` to enable good notation for adjoining elements to fields.
@@ -207,7 +240,12 @@ calc S ⊆ adjoin F S : subset_adjoin _ _
   ... = (⊥ : subalgebra F E) : congr_arg coe h
 
 lemma mem_bot_of_adjoin_simple_sub_bot (h : F⟮α⟯ = ⊥) : α ∈ (⊥ : intermediate_field F E) :=
-set.singleton_subset_iff.mp (sub_bot_of_adjoin_sub_bot h)
+begin
+  -- Originally, this proof was `set.singleton_subset_iff.mp (sub_bot_of_adjoin_sub_bot h)`.
+  -- That proof no longer works, but the following one does. What's going on here??
+  have := set.singleton_subset_iff.mp (sub_bot_of_adjoin_sub_bot h),
+  exact this,
+end
 
 lemma adjoin_eq_bot_iff : S ⊆ (⊥ : intermediate_field F E) ↔ adjoin F S = ⊥ :=
 ⟨adjoin_eq_bot, sub_bot_of_adjoin_sub_bot⟩
@@ -219,10 +257,7 @@ section adjoin_dim
 open finite_dimensional vector_space
 
 lemma sub_bot_of_adjoin_dim_eq_one (h : dim F (adjoin F S) = 1) : S ⊆ (⊥ : intermediate_field F E) :=
-begin
-  rw adjoin_eq_bot_iff,
-  sorry,
-end
+sorry
 -- by rwa [adjoin_eq_bot_iff, ← subalgebra.dim_eq_one_iff]
 
 lemma mem_bot_of_adjoin_simple_dim_eq_one (h : dim F F⟮α⟯ = 1) : α ∈ ((⊥ : intermediate_field F E) : set E) :=
@@ -265,4 +300,4 @@ end
 end adjoin_dim
 end adjoin_subalgebra_lattice
 
-end field
+end intermediate_field

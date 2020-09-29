@@ -33,8 +33,7 @@ primitive element, separable field extension, separable extension, intermediate 
 noncomputable theory
 open_locale classical
 
-open finite_dimensional
-open polynomial
+open finite_dimensional polynomial intermediate_field
 
 namespace field
 
@@ -104,7 +103,7 @@ begin
   let γ := α + c • β,
   suffices β_in_Fγ : β ∈ F⟮γ⟯,
   { use γ,
-    apply (adjoin_subset_iff F {α, β}).mp,
+    apply (adjoin_le_iff F {α, β}).mpr,
     have α_in_Fγ : α ∈ F⟮γ⟯,
     { rw ← add_sub_cancel α (c • β),
       exact F⟮γ⟯.sub_mem (mem_adjoin_simple_self F γ) (F⟮γ⟯.smul_mem β_in_Fγ c) },

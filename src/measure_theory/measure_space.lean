@@ -1523,13 +1523,13 @@ begin
   { rw [sum_apply _ (this n), tsum_fintype, ennreal.sum_lt_top_iff],
     rintro i -,
     exact (measure_mono $ Inter_subset _ i).trans_lt (measure_spanning_sets_lt_top (μ i) n) },
-  { rw [Union_Inter_subset_of_monotone], simp_rw [Union_spanning_sets, Inter_univ],
+  { rw [Union_Inter_of_monotone], simp_rw [Union_spanning_sets, Inter_univ],
     exact λ i, monotone_spanning_sets (μ i), }
 end
 
 instance add.sigma_finite (μ ν : measure α) [sigma_finite μ] [sigma_finite ν] :
   sigma_finite (μ + ν) :=
-by { rw [measure.add_eq_sum], refine @sum.sigma_finite _ _ _ _ _ (bool.rec _ _); simpa }
+by { rw [← sum_cond], refine @sum.sigma_finite _ _ _ _ _ (bool.rec _ _); simpa }
 
 /-- A measure is called locally finite if it is finite in some neighborhood of each point. -/
 class locally_finite_measure [topological_space α] (μ : measure α) : Prop :=

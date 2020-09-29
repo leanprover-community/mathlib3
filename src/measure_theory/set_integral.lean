@@ -619,7 +619,7 @@ begin
   { by_cases hc : c = 0,
     { simp only [hc, integral_zero, smul_zero] },
     rw [integral_undef hf, integral_undef, zero_smul],
-    rwa [integrable_smul_const hc] }
+    simp_rw [integrable_smul_const hc, hf, not_false_iff] }
 end
 
 end

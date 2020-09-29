@@ -809,7 +809,7 @@ e.symm.measurable_coe_iff.1 $ measurable_sum H₁ (H₂.comp measurable_id.snd)
 lemma measurable_of_measurable_nnreal_nnreal [measurable_space β]
   {f : ennreal × ennreal → β} (h₁ : measurable (λp:nnreal × nnreal, f (p.1, p.2)))
   (h₂ : measurable (λr:nnreal, f (⊤, r))) (h₃ : measurable (λr:nnreal, f (r, ⊤))) :
-    measurable f :=
+  measurable f :=
 measurable_of_measurable_nnreal_prod
   (measurable_swap_iff.1 $ measurable_of_measurable_nnreal_prod (h₁.comp measurable_swap) h₃)
   (measurable_of_measurable_nnreal h₂)

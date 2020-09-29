@@ -6,6 +6,7 @@ Author: Johannes Hölzl, Patrick Massot, Casper Putz
 import linear_algebra.finite_dimensional
 import linear_algebra.nonsingular_inverse
 import linear_algebra.multilinear
+import linear_algebra.dual
 
 /-!
 # Linear maps and matrices
@@ -214,6 +215,9 @@ def linear_equiv_matrix' : ((n → R) →ₗ[R] (m → R)) ≃ₗ[R] matrix m n 
 @[simp] lemma linear_equiv_matrix'_apply (f : (n → R) →ₗ[R] (m → R)) :
   linear_equiv_matrix' f = to_matrix f := rfl
 
+@[simp] lemma linear_equiv_matrix'_symm_apply (M : matrix m n R) :
+  linear_equiv_matrix'.symm M = M.to_lin := rfl
+
 variables {ι κ M₁ M₂ : Type*}
   [add_comm_group M₁] [module R M₁]
   [add_comm_group M₂] [module R M₂]
@@ -234,6 +238,11 @@ by simp only [linear_equiv_matrix, to_matrix, to_matrixₗ, ite_smul,
   linear_equiv.trans_apply, linear_equiv.arrow_congr_apply,
   linear_equiv.coe_coe, linear_equiv_matrix'_apply, finset.mem_univ, if_true,
   one_smul, zero_smul, finset.sum_ite_eq, hv₁.equiv_fun_symm_apply]
+
+lemma linear_equiv_matrix_symm_apply (m : matrix κ ι R) (x : M₁) :
+  (linear_equiv_matrix hv₁ hv₂).symm m x = hv₂.equiv_fun.symm (m.to_lin $ hv₁.equiv_fun x) :=
+by simp only [linear_equiv_matrix, linear_equiv.arrow_congr_symm_apply,
+    linear_equiv_matrix'_symm_apply, linear_equiv.symm_trans_apply]
 
 lemma linear_equiv_matrix_apply' (f : M₁ →ₗ[R] M₂) (i : κ) (j : ι) :
   linear_equiv_matrix hv₁ hv₂ f i j = hv₂.repr (f (v₁ j)) i :=
@@ -465,6 +474,40 @@ end
 
 end det
 
+section transpose
+
+variables {K V₁ V₂ ι₁ ι₂ : Type*} [field K]
+          [add_comm_group V₁] [vector_space K V₁]
+          [add_comm_group V₂] [vector_space K V₂]
+          [fintype ι₁] [fintype ι₂] [decidable_eq ι₁] [decidable_eq ι₂]
+          {B₁ : ι₁ → V₁} (h₁ : is_basis K B₁)
+          {B₂ : ι₂ → V₂} (h₂ : is_basis K B₂)
+
+@[simp] lemma linear_equiv_matrix_transpose (u : V₁ →ₗ[K] V₂) :
+  linear_equiv_matrix h₂.dual_basis_is_basis h₁.dual_basis_is_basis (module.dual.transpose u) =
+  (linear_equiv_matrix h₁ h₂ u)ᵀ :=
+begin
+  ext i j,
+  simp only [linear_equiv_matrix_apply, module.dual.transpose_apply, h₁.dual_basis_equiv_fun,
+             h₂.dual_basis_apply, matrix.transpose_apply, linear_map.comp_apply]
+end
+
+lemma linear_equiv_matrix_symm_transpose (M : matrix ι₁ ι₂ K) :
+  (linear_equiv_matrix h₁.dual_basis_is_basis h₂.dual_basis_is_basis).symm Mᵀ =
+  module.dual.transpose ((linear_equiv_matrix h₂ h₁).symm M) :=
+begin
+  apply (linear_equiv_matrix h₁.dual_basis_is_basis h₂.dual_basis_is_basis).injective,
+  rw [linear_equiv.apply_symm_apply],
+  ext i j,
+  simp only [linear_equiv_matrix_apply, module.dual.transpose_apply, h₂.dual_basis_equiv_fun,
+    h₁.dual_basis_apply, matrix.transpose_apply, linear_map.comp_apply, if_true,
+    linear_equiv_matrix_symm_apply, linear_equiv.map_smul, mul_boole, algebra.id.smul_eq_mul,
+    linear_equiv.map_sum, is_basis.equiv_fun_self, fintype.sum_apply, finset.sum_ite_eq',
+    finset.sum_ite_eq, is_basis.equiv_fun_symm_apply, pi.smul_apply, matrix.to_lin_apply,
+    matrix.mul_vec, matrix.dot_product, is_basis.equiv_fun_self, finset.mem_univ]
+end
+
+end transpose
 namespace matrix
 
 section trace

@@ -788,16 +788,16 @@ def prod_congr_right : α₁ × β₁ ≃ α₁ × β₂ :=
 @[simp] lemma prod_congr_right_apply (a : α₁) (b : β₁) :
   prod_congr_right e (a, b) = (a, e a b) := rfl
 
+lemma prod_congr_refl_left (e : β₁ ≃ β₂) :
+  prod_congr (equiv.refl α₁) e = prod_congr_right (λ _, e) :=
+by { ext ⟨a, b⟩ : 1, simp }
+
 @[simp] lemma prod_congr_left_trans_prod_comm :
   (prod_congr_left e).trans (prod_comm _ _) = (prod_comm _ _).trans (prod_congr_right e) :=
 by { ext ⟨a, b⟩ : 1, simp }
 
 @[simp] lemma prod_congr_right_trans_prod_comm :
   (prod_congr_right e).trans (prod_comm _ _) = (prod_comm _ _).trans (prod_congr_left e) :=
-by { ext ⟨a, b⟩ : 1, simp }
-
-lemma prod_congr_refl_left (e : β₁ ≃ β₂) :
-  prod_congr (equiv.refl α₁) e = prod_congr_right (λ _, e) :=
 by { ext ⟨a, b⟩ : 1, simp }
 
 lemma sigma_congr_right_sigma_equiv_prod :

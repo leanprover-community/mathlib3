@@ -411,7 +411,7 @@ associativity of `trans`.  The `pre_envel_group_rel` relation is a
 `Prop`-valued version of `pre_envel_group_rel'`, and making it
 `Prop`-valued essentially introduces enough 3-isomorphisms so that
 every pair of compatible 2-morphisms is isomorphic.  Now, while
-composition in `pre_envel_group` does not stricly satisfy the category
+composition in `pre_envel_group` does not strictly satisfy the category
 axioms, `pre_envel_group` and `pre_envel_group_rel'` do form a weak
 2-category.
 
@@ -429,7 +429,9 @@ evaluate elements of `pre_envel_group` as expressions in `G` (this is
 `pre_envel_group'` as expressions of 2-morphisms of `G` (this is
 `to_envel_group.map_aux.well_def`).  That is to say,
 `to_envel_group.map_aux.well_def` recursively evaluates formal
-expressions of 2-morphisms as equality proofs in `G`.
+expressions of 2-morphisms as equality proofs in `G`.  Now that all
+morphisms are accounted for, the map descends to a homomorphism
+`envel_group R →* G`.
 
 Note: `Type`-valued relations are not common.  The fact it is
 `Type`-valued is what makes `to_envel_group.map_aux.well_def` have

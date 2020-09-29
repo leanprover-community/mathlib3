@@ -1513,6 +1513,24 @@ begin
   exact (measure_mono $ inter_subset_left _ _).trans_lt (measure_spanning_sets_lt_top μ i)
 end
 
+instance sum.sigma_finite {ι} [fintype ι] (μ : ι → measure α) [∀ i, sigma_finite (μ i)] :
+  sigma_finite (sum μ) :=
+begin
+  haveI : encodable ι := (encodable.trunc_encodable_of_fintype ι).out,
+  have : ∀ n, is_measurable (⋂ (i : ι), spanning_sets (μ i) n) :=
+  λ n, is_measurable.Inter (λ i, is_measurable_spanning_sets (μ i) n),
+  refine ⟨⟨λ n, ⋂ i, spanning_sets (μ i) n, this, λ n, _, _⟩⟩,
+  { rw [sum_apply _ (this n), tsum_fintype, ennreal.sum_lt_top_iff],
+    rintro i -,
+    exact (measure_mono $ Inter_subset _ i).trans_lt (measure_spanning_sets_lt_top (μ i) n) },
+  { rw [Union_Inter_subset_of_monotone], simp_rw [Union_spanning_sets, Inter_univ],
+    exact λ i, monotone_spanning_sets (μ i), }
+end
+
+instance add.sigma_finite (μ ν : measure α) [sigma_finite μ] [sigma_finite ν] :
+  sigma_finite (μ + ν) :=
+by { rw [measure.add_eq_sum], refine @sum.sigma_finite _ _ _ _ _ (bool.rec _ _); simpa }
+
 /-- A measure is called locally finite if it is finite in some neighborhood of each point. -/
 class locally_finite_measure [topological_space α] (μ : measure α) : Prop :=
 (finite_at_nhds : ∀ x, μ.finite_at_filter (𝓝 x))

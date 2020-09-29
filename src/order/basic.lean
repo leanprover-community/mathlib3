@@ -380,6 +380,14 @@ iff.rfl
   (⟨x, hx⟩ : subtype p) < ⟨y, hy⟩ ↔ x < y :=
 iff.rfl
 
+@[simp, norm_cast] lemma subtype.coe_le_coe {α} [preorder α] {p : α → Prop} {x y : subtype p} :
+  (x : α) ≤ y ↔ x ≤ y :=
+iff.rfl
+
+@[simp, norm_cast] lemma subtype.coe_lt_coe {α} [preorder α] {p : α → Prop} {x y : subtype p} :
+  (x : α) < y ↔ x < y :=
+iff.rfl
+
 instance subtype.partial_order {α} [partial_order α] (p : α → Prop) :
   partial_order (subtype p) :=
 partial_order.lift subtype.val subtype.val_injective

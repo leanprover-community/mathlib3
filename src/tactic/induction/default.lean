@@ -585,10 +585,10 @@ meta def to_generalize (eliminee : expr) : generalization_mode → tactic name_s
     let rev :=
       ¬ fixed_dependencies.contains h_name ∧
       (h_depends_on_eliminee_deps ∨ tgt_dependencies.contains h_name),
-    -- TODO I think `h_depends_on_eliminee_deps` is an
-    -- overapproximation. What we actually want is any hyp that depends either
-    -- on the eliminee or on one of the eliminee's index args. (But the
-    -- overapproximation seems to work okay in practice as well.)
+    -- I think `h_depends_on_eliminee_deps` is an overapproximation. What we
+    -- actually want is any hyp that depends either on the eliminee or on one of
+    -- the eliminee's index args. (But the overapproximation seems to work okay
+    -- in practice as well.)
     pure $ if rev then some h_name else none
   },
   pure $ name_set.of_list to_revert
@@ -901,9 +901,9 @@ focus1 $ do
     "The type of {eliminee} should be an inductive type, but it is\n{eliminee_type}",
   iinfo ← get_inductive_info iname,
 
-  -- TODO We would like to disallow mutual/nested inductive types, since these
-  -- have complicated recursors which we probably don't support. However, there
-  -- seems to be no way to find out whether an inductive type is mutual/nested.
+  -- We would like to disallow mutual/nested inductive types, since these have
+  -- complicated recursors which we probably don't support. However, there seems
+  -- to be no way to find out whether an inductive type is mutual/nested.
   -- (`environment.is_ginductive` doesn't seem to work.)
 
   trace_state_eliminate_hyp "State before complex index generalisation:",
@@ -963,7 +963,6 @@ focus1 $ do
 
       -- Get the eliminee's arguments. (Some of these may have changed due to
       -- the generalising step above.)
-      -- TODO propagate this information instead of re-parsing the type here?
       eliminee_type ← infer_type eliminee,
       (_, eliminee_args) ← decompose_app_normalizing eliminee_type,
 
@@ -971,10 +970,6 @@ focus1 $ do
       try $ clear eliminee,
 
       -- Clear the index args (unless other stuff in the goal depends on them)
-      -- TODO is this the right thing to do? I don't think this necessarily
-      -- preserves provability: The args we clear could contain interesting
-      -- information, even if nothing else depends on them. Is there a way to
-      -- avoid this, i.e. clean up even more conservatively?
       eliminee_args.mmap' (try ∘ clear),
 
       trace_state_eliminate_hyp

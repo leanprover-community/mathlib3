@@ -28,7 +28,7 @@ noncomputable instance mv_polynomial.invertible_C
   invertible (C r : mv_polynomial σ R) :=
 invertible.map ⟨C, C_1, λ x y, C_mul⟩ _
 
-/-- A natural number that is invertible when coerced to `ℚ` is also invertible
+/-- A natural number that is invertible when coerced to a commutative semiring `R` is also invertible
 when coerced to any polynomial ring with rational coefficients.
 
 Short-cut for typeclass resolution. -/

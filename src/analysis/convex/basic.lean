@@ -599,20 +599,20 @@ begin
   convert this; symmetry; simp only [div_eq_iff (ne_of_gt B), y]; ring
 end
 
-lemma convex_on.slope_mono_adjacent {s : set ℝ} {f : ℝ → ℝ} {x y z: ℝ} (hx: x ∈ s) (hz: z ∈ s)
-  (hxy: x < y) (hyz: y < z) (hf: convex_on s f) : (f y - f x) / (y - x) ≤ (f z - f y) / (z - y) :=
+lemma convex_on.slope_mono_adjacent {s : set ℝ} {f : ℝ → ℝ} {x y z : ℝ} (hx : x ∈ s) (hz : z ∈ s)
+  (hxy : x < y) (hyz : y < z) (hf : convex_on s f) : (f y - f x) / (y - x) ≤ (f z - f y) / (z - y) :=
 begin
-  have h₁: 0 < y - x := by linarith,
-  have h₂: 0 < z - y := by linarith,
-  have h₃: 0 < z - x := by linarith,
+  have h₁ : 0 < y - x := by linarith,
+  have h₂ : 0 < z - y := by linarith,
+  have h₃ : 0 < z - x := by linarith,
 
-  suffices: f y / (y - x) + f y / (z - y) ≤ f x / (y - x) + f z / (z - y),
+  suffices : f y / (y - x) + f y / (z - y) ≤ f x / (y - x) + f z / (z - y),
     by { ring at this ⊢, linarith },
 
   set a := (z - y) / (z - x),
   set b := (y - x) / (z - x),
 
-  have heqz: a • x + b • z = y, by { field_simp, rw div_eq_iff; [ring, linarith], },
+  have heqz : a • x + b • z = y, by { field_simp, rw div_eq_iff; [ring, linarith], },
 
   have key, from
     hf.2

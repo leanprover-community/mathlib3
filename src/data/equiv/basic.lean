@@ -816,28 +816,28 @@ namespace perm
 
 variables {α₁ β₁ β₂ : Type*} [decidable_eq α₁] (a : α₁) (e : perm β₁)
 
-/-- `extend a e` extends `e : perm β` to `perm (α × β)` by sending `(a, b)` to
+/-- `prod_extend_right a e` extends `e : perm β` to `perm (α × β)` by sending `(a, b)` to
 `(a, e b)` and keeping the other `(a', b)` fixed. -/
-def extend : perm (α₁ × β₁) :=
+def prod_extend_right : perm (α₁ × β₁) :=
 { to_fun := λ ab, if ab.fst = a then (a, e ab.snd) else ab,
   inv_fun := λ ab, if ab.fst = a then (a, e⁻¹ ab.snd) else ab,
   left_inv := by { rintros ⟨k', x⟩, simp only, split_ifs with h; simp [h] },
   right_inv := by { rintros ⟨k', x⟩, simp only, split_ifs with h; simp [h] } }
 
-@[simp] lemma extend_apply_eq (b : β₁) :
-extend a e (a, b) = (a, e b) := if_pos rfl
+@[simp] lemma prod_extend_right_apply_eq (b : β₁) :
+  prod_extend_right a e (a, b) = (a, e b) := if_pos rfl
 
-lemma extend_apply_ne {a a' : α₁} (h : a' ≠ a) (b : β₁) :
-extend a e (a', b) = (a', b) := if_neg h
+lemma prod_extend_right_apply_ne {a a' : α₁} (h : a' ≠ a) (b : β₁) :
+  prod_extend_right a e (a', b) = (a', b) := if_neg h
 
-lemma eq_of_extend_apply_ne {e : perm β₁} {a a' : α₁} {b : β₁}
-  (h : extend a e (a', b) ≠ (a', b)) : a' = a :=
-by { contrapose! h, exact extend_apply_ne _ h _ }
+lemma eq_of_prod_extend_right_ne {e : perm β₁} {a a' : α₁} {b : β₁}
+  (h : prod_extend_right a e (a', b) ≠ (a', b)) : a' = a :=
+by { contrapose! h, exact prod_extend_right_apply_ne _ h _ }
 
-@[simp] lemma fst_extend (ab : α₁ × β₁) :
-  (extend a e ab).fst = ab.fst :=
+@[simp] lemma fst_prod_extend_right (ab : α₁ × β₁) :
+  (prod_extend_right a e ab).fst = ab.fst :=
 begin
-  rw [extend, coe_fn_mk],
+  rw [prod_extend_right, coe_fn_mk],
   split_ifs with h,
   { rw h },
   { refl }

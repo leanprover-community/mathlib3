@@ -463,6 +463,26 @@ begin
   rw [mem_roots_of_unity, units.ext_iff, units.coe_pow, hξ, units.coe_one]
 end
 
+lemma card_roots_of_unity' (n : ℕ+) (h : is_primitive_root ζ n) :
+  fintype.card (roots_of_unity n R) = n :=
+begin
+  haveI : fact (0 < ↑n) := n.pos,
+  let e := h.zmod_equiv_gpowers,
+  haveI F : fintype (subgroup.gpowers ζ) := fintype.of_equiv _ e.to_equiv,
+  calc fintype.card (roots_of_unity n R)
+      = fintype.card (subgroup.gpowers ζ) : fintype.card_congr $ by rw h.gpowers_eq
+  ... = fintype.card (zmod n)             : fintype.card_congr e.to_equiv.symm
+  ... = n                                 : zmod.card n
+end
+
+lemma card_roots_of_unity {ζ : R} (n : ℕ+) (h : is_primitive_root ζ n) :
+  fintype.card (roots_of_unity n R) = n :=
+begin
+  obtain ⟨ζ, hζ⟩ := h.is_unit n.pos,
+  rw [← hζ, is_primitive_root.coe_units_iff] at h,
+  exact h.card_roots_of_unity' n
+end
+
 end integral_domain
 
 end is_primitive_root

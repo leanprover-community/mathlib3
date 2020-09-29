@@ -3,6 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
+import tactic.nth_rewrite
 import data.matrix.basic
 import linear_algebra.tensor_product
 import ring_theory.subring
@@ -286,13 +287,22 @@ instance linear_map.semimodule' (R : Type u) [comm_semiring R]
 end semiring
 
 section ring
-variables [comm_ring R] [comm_ring S] [ring A] [algebra R A]
+variables [comm_ring R]
 
-lemma mul_sub_algebra_map_commutes (x : A) (r : R) :
+variables (R)
+
+/-- A `semiring` that is an `algebra` over a commutative ring carries a natural `ring` structure. -/
+def semiring_to_ring [semiring A] [algebra R A] : ring A := {
+  ..semimodule.add_comm_monoid_to_add_comm_group R,
+  ..(infer_instance : semiring A) }
+
+variables {R}
+
+lemma mul_sub_algebra_map_commutes [ring A] [algebra R A] (x : A) (r : R) :
   x * (x - algebra_map R A r) = (x - algebra_map R A r) * x :=
 by rw [mul_sub, ←commutes, sub_mul]
 
-lemma mul_sub_algebra_map_pow_commutes (x : A) (r : R) (n : ℕ) :
+lemma mul_sub_algebra_map_pow_commutes [ring A] [algebra R A] (x : A) (r : R) (n : ℕ) :
   x * (x - algebra_map R A r) ^ n = (x - algebra_map R A r) ^ n * x :=
 begin
   induction n with n ih,
@@ -938,9 +948,9 @@ instance algebra : algebra R S :=
   smul_def' := λ c x, subtype.eq $ algebra.smul_def _ _,
   .. (algebra_map R A).cod_srestrict S $ λ x, S.range_le ⟨x, rfl⟩ }
 
-instance to_algebra {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
-  [algebra R A] (S : subalgebra R A) : algebra S A :=
-algebra.of_subsemiring _
+instance to_algebra {R A B : Type*} [comm_semiring R] [comm_semiring A] [semiring B]
+  [algebra R A] [algebra A B] (A₀ : subalgebra R A) : algebra A₀ B :=
+algebra.of_subsemiring A₀
 
 instance nontrivial [nontrivial A] : nontrivial S :=
 subsemiring.nontrivial S
@@ -952,7 +962,8 @@ subsemiring.nontrivial S
 def val : S →ₐ[R] A :=
 by refine_struct { to_fun := (coe : S → A) }; intros; refl
 
-@[simp]
+@[simp] lemma coe_val : (S.val : S → A) = coe := rfl
+
 lemma val_apply (x : S) : S.val x = (x : A) := rfl
 
 /-- Convert a `subalgebra` to `submodule` -/
@@ -1009,9 +1020,17 @@ def comap' (S : subalgebra R B) (f : A →ₐ[R] B) : subalgebra R A :=
     from (f.commutes r).symm ▸ S.algebra_map_mem r,
   .. subsemiring.comap (f : A →+* B) S,}
 
+lemma map_mono {S₁ S₂ : subalgebra R A} {f : A →ₐ[R] B} :
+  S₁ ≤ S₂ → S₁.map f ≤ S₂.map f :=
+set.image_subset f
+
 theorem map_le {S : subalgebra R A} {f : A →ₐ[R] B} {U : subalgebra R B} :
   map S f ≤ U ↔ S ≤ comap' U f :=
 set.image_subset_iff
+
+lemma map_injective {S₁ S₂ : subalgebra R A} (f : A →ₐ[R] B)
+  (hf : function.injective f) (ih : S₁.map f = S₂.map f) : S₁ = S₂ :=
+ext $ set.ext_iff.1 $ set.image_injective.2 hf $ set.ext $ ext_iff.1 ih
 
 lemma mem_map {S : subalgebra R A} {f : A →ₐ[R] B} {y : B} :
   y ∈ map S f ↔ ∃ x ∈ S, f x = y :=
@@ -1104,6 +1123,9 @@ subsemiring.subset_closure $ or.inr trivial
 @[simp] theorem coe_top : ((⊤ : subalgebra R A) : submodule R A) = ⊤ :=
 submodule.ext $ λ x, iff_of_true mem_top trivial
 
+@[simp] theorem coe_bot : ((⊥ : subalgebra R A) : set A) = set.range (algebra_map R A) :=
+by simp [set.ext_iff, algebra.mem_bot]
+
 theorem eq_top_iff {S : subalgebra R A} :
   S = ⊤ ↔ ∀ x : A, x ∈ S :=
 ⟨λ h x, by rw h; exact mem_top, λ h, by ext x; exact ⟨λ _, mem_top, λ _, h x⟩⟩
@@ -1146,6 +1168,17 @@ def bot_equiv (F R : Type*) [field F] [semiring R] [nontrivial R] [algebra F R] 
 bot_equiv_of_injective (ring_hom.injective _)
 
 end algebra
+
+namespace subalgebra
+
+variables {R : Type u} {A : Type v}
+variables [comm_semiring R] [semiring A] [algebra R A]
+variables (S : subalgebra R A)
+
+lemma range_val : S.val.range = S :=
+ext $ set.ext_iff.1 $ S.val.coe_range.trans subtype.range_val
+
+end subalgebra
 
 section nat
 

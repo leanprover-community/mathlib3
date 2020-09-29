@@ -235,7 +235,7 @@ lemma add_monoid_hom.continuous_of_bound (f :α →+ β) (C : ℝ) (h : ∀x, �
 section nnnorm
 
 /-- Version of the norm taking values in nonnegative reals. -/
-def nnnorm (a : α) : nnreal := ⟨norm a, norm_nonneg a⟩
+def nnnorm (a : α) : ℝ≥0 := ⟨norm a, norm_nonneg a⟩
 
 @[simp] lemma coe_nnnorm (a : α) : (nnnorm a : ℝ) = norm a := rfl
 
@@ -328,6 +328,9 @@ instance prod.normed_group : normed_group (α × β) :=
 
 lemma prod.norm_def (x : α × β) : ∥x∥ = (max ∥x.1∥ ∥x.2∥) := rfl
 
+lemma prod.nnnorm_def (x : α × β) : nnnorm x = max (nnnorm x.1) (nnnorm x.2) :=
+by { have := x.norm_def, simp only [← coe_nnnorm] at this, exact_mod_cast this }
+
 lemma norm_fst_le (x : α × β) : ∥x.1∥ ≤ ∥x∥ :=
 le_max_left _ _
 
@@ -343,7 +346,7 @@ instance pi.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (�
   normed_group (Πi, π i) :=
 { norm := λf, ((finset.sup finset.univ (λ b, nnnorm (f b)) : nnreal) : ℝ),
   dist_eq := assume x y,
-    congr_arg (coe : nnreal → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ assume a,
+    congr_arg (coe : ℝ≥0 → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ assume a,
     show nndist (x a) (y a) = nnnorm (x a - y a), from nndist_eq_nnnorm _ _ }
 
 /-- The norm of an element in a product space is `≤ r` if and only if the norm of each
@@ -720,11 +723,14 @@ namespace real
 
 lemma norm_eq_abs (r : ℝ) : ∥r∥ = abs r := rfl
 
+lemma norm_of_nonneg {x : ℝ} (hx : 0 ≤ x) : ∥x∥ = x :=
+abs_of_nonneg hx
+
 @[simp] lemma norm_coe_nat (n : ℕ) : ∥(n : ℝ)∥ = n := abs_of_nonneg n.cast_nonneg
 
 @[simp] lemma nnnorm_coe_nat (n : ℕ) : nnnorm (n : ℝ) = n := nnreal.eq $ by simp
 
-@[simp] lemma norm_two : ∥(2:ℝ)∥ = 2 := abs_of_pos (@two_pos ℝ _)
+@[simp] lemma norm_two : ∥(2:ℝ)∥ = 2 := abs_of_pos (@zero_lt_two ℝ _)
 
 @[simp] lemma nnnorm_two : nnnorm (2:ℝ) = 2 := nnreal.eq $ by simp
 
@@ -733,10 +739,19 @@ open_locale nnreal
 @[simp] lemma nnreal.norm_eq (x : ℝ≥0) : ∥(x : ℝ)∥ = x :=
 by rw [real.norm_eq_abs, x.abs_eq]
 
+lemma nnnorm_coe_eq_self {x : ℝ≥0} : nnnorm (x : ℝ) = x :=
+by { ext, exact norm_of_nonneg (zero_le x) }
+
+lemma nnnorm_of_nonneg {x : ℝ} (hx : 0 ≤ x) : nnnorm x = ⟨x, hx⟩ :=
+@nnnorm_coe_eq_self ⟨x, hx⟩
+
+lemma ennnorm_eq_of_real {x : ℝ} (hx : 0 ≤ x) : (nnnorm x : ennreal) = ennreal.of_real x :=
+by { rw [← of_real_norm_eq_coe_nnnorm, norm_of_nonneg hx] }
+
 end real
 
 @[simp] lemma norm_norm [normed_group α] (x : α) : ∥∥x∥∥ = ∥x∥ :=
-by rw [real.norm_eq_abs, abs_of_nonneg (norm_nonneg _)]
+by rw [real.norm_of_nonneg (norm_nonneg _)]
 
 @[simp] lemma nnnorm_norm [normed_group α] (a : α) : nnnorm ∥a∥ = nnnorm a :=
 by simp only [nnnorm, norm_norm]

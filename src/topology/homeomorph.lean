@@ -123,6 +123,9 @@ begin
   exact continuous_iff_is_closed.1 (h.symm.continuous) _
 end
 
+protected lemma closed_embedding (h : α ≃ₜ β) : closed_embedding h :=
+closed_embedding_of_embedding_closed h.embedding h.is_closed_map
+
 @[simp] lemma is_open_preimage (h : α ≃ₜ β) {s : set β} : is_open (h ⁻¹' s) ↔ is_open s :=
 begin
   refine ⟨λ hs, _, h.continuous_to_fun s⟩,

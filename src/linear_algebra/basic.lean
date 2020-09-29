@@ -723,6 +723,11 @@ le_antisymm (span_le.2 h₁) h₂
 @[simp] lemma span_eq : span R (p : set M) = p :=
 span_eq_of_le _ (subset.refl _) subset_span
 
+lemma map_span (f : M →ₗ[R] M₂) (s : set M) :
+  (span R s).map f = span R (f '' s) :=
+eq.symm $ span_eq_of_le _ (set.image_subset f subset_span) $
+map_le_iff_le_comap.2 $ span_le.2 $ λ x hx, subset_span ⟨x, hx, rfl⟩
+
 /-- An induction principle for span membership. If `p` holds for 0 and all elements of `s`, and is
 preserved under addition and scalar multiplication, then `p` holds for all elements of the span of
 `s`. -/
@@ -2096,22 +2101,24 @@ section
 noncomputable theory
 open_locale classical
 
+lemma ker_to_span_singleton {x : M} (h : x ≠ 0) : (to_span_singleton K M x).ker = ⊥ :=
+begin
+  ext c, split,
+  { intros hc, rw submodule.mem_bot, rw mem_ker at hc, by_contra hc',
+    have : x = 0,
+      calc x = c⁻¹ • (c • x) : by rw [← mul_smul, inv_mul_cancel hc', one_smul]
+      ... = c⁻¹ • ((to_span_singleton K M x) c) : rfl
+      ... = 0 : by rw [hc, smul_zero],
+    tauto },
+  { rw [mem_ker, submodule.mem_bot], intros h, rw h, simp }
+end
+
 /-- Given a nonzero element `x` of a vector space `M` over a field `K`, the natural
     map from `K` to the span of `x`, with invertibility check to consider it as an
     isomorphism.-/
 def to_span_nonzero_singleton (x : M) (h : x ≠ 0) : K ≃ₗ[K] (submodule.span K ({x} : set M)) :=
 linear_equiv.trans
-  ( linear_equiv.of_injective (to_span_singleton K M x)
-    begin
-      ext c, split,
-      { intros hc, rw submodule.mem_bot, rw mem_ker at hc, by_contra hc',
-        have : x = 0,
-          calc x = c⁻¹ • (c • x) : by rw [← mul_smul, inv_mul_cancel hc', one_smul]
-          ... = c⁻¹ • ((to_span_singleton K M x) c) : rfl
-          ... = 0 : by rw [hc, smul_zero],
-        tauto },
-      { rw [mem_ker, submodule.mem_bot], intros h, rw h, simp }
-    end )
+  (linear_equiv.of_injective (to_span_singleton K M x) (ker_to_span_singleton K M h))
   (of_eq (to_span_singleton K M x).range (submodule.span K {x}) (span_singleton_eq_range K M x).symm)
 
 lemma to_span_nonzero_singleton_one (x : M) (h : x ≠ 0) : to_span_nonzero_singleton K M x h 1

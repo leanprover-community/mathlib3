@@ -2,13 +2,16 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
-
-A collection of specific limit computations.
 -/
 import analysis.normed_space.basic
 import algebra.geom_sum
+import order.filter.archimedean
 import topology.instances.ennreal
 import tactic.ring_exp
+
+/-!
+# A collection of specific limit computations
+-/
 
 noncomputable theory
 open_locale classical topological_space
@@ -32,7 +35,7 @@ lemma summable_of_absolute_convergence_real {f : ℕ → ℝ} :
   end
 
 lemma tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ)⁻¹) at_top (𝓝 0) :=
-tendsto_inv_at_top_zero.comp (tendsto_coe_nat_real_at_top_iff.2 tendsto_id)
+tendsto_inv_at_top_zero.comp tendsto_coe_nat_at_top_at_top
 
 lemma tendsto_const_div_at_top_nhds_0_nat (C : ℝ) : tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
 by simpa only [mul_zero] using tendsto_const_nhds.mul tendsto_inverse_at_top_nhds_0_nat
@@ -518,7 +521,7 @@ def pos_sum_of_encodable {ε : ℝ} (hε : 0 < ε)
 begin
   let f := λ n, (ε / 2) / 2 ^ n,
   have hf : has_sum f ε := has_sum_geometric_two' _,
-  have f0 : ∀ n, 0 < f n := λ n, div_pos (half_pos hε) (pow_pos two_pos _),
+  have f0 : ∀ n, 0 < f n := λ n, div_pos (half_pos hε) (pow_pos zero_lt_two _),
   refine ⟨f ∘ encodable.encode, λ i, f0 _, _⟩,
   rcases hf.summable.comp_injective (@encodable.encode_injective ι _) with ⟨c, hg⟩,
   refine ⟨c, hg, has_sum_le_inj _ (@encodable.encode_injective ι _) _ _ hg hf⟩,
@@ -617,5 +620,5 @@ begin
   apply tendsto_at_top_mono self_div_two_le_harmonic_two_pow,
   apply tendsto_at_top_div,
   norm_num,
-  exact tendsto_coe_nat_real_at_top_at_top
+  exact tendsto_coe_nat_at_top_at_top
 end

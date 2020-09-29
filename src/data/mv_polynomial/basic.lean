@@ -506,6 +506,16 @@ lemma constant_coeff_monomial (d : σ →₀ ℕ) (r : R) :
   constant_coeff (monomial d r) = if d = 0 then r else 0 :=
 by rw [constant_coeff_eq, coeff_monomial]
 
+variables (σ R)
+
+@[simp] lemma constant_coeff_comp_C :
+  constant_coeff.comp (C : R →+* mv_polynomial σ R) = ring_hom.id R :=
+by { ext, apply constant_coeff_C }
+
+@[simp] lemma constant_coeff_comp_algebra_map :
+  constant_coeff.comp (algebra_map R (mv_polynomial σ R)) = ring_hom.id R :=
+constant_coeff_comp_C _ _
+
 end constant_coeff
 
 section as_sum

@@ -15,12 +15,12 @@ This file is a stub containing some basic facts about invertible elements in the
 
 open mv_polynomial
 
-/-- A natural number that is invertible when coerced to `ℚ` is also invertible
-when coerced to any `ℚ`-algebra. -/
-def invertible_rat_algebra_coe_nat (R : Type*) (p : ℕ)
-  [semiring R] [algebra ℚ R] [invertible (p : ℚ)] :
-  invertible (p : R) :=
-invertible.copy (invertible.map (algebra_map ℚ R : ℚ →* R) p) p
+/-- A natural number that is invertible when coerced to `R` is also invertible
+when coerced to any `R`-algebra. -/
+def invertible_algebra_coe_nat (R S : Type*) (p : ℕ)
+  [comm_semiring R] [semiring S] [algebra R S] [invertible (p : R)] :
+  invertible (p : S) :=
+invertible.copy (invertible.map (algebra_map R S : R →* S) p) p
   (by simp only [ring_hom.map_nat_cast, coe_monoid_hom])
 
 noncomputable instance mv_polynomial.invertible_C
@@ -32,7 +32,7 @@ invertible.map ⟨C, C_1, λ x y, C_mul⟩ _
 when coerced to any polynomial ring with rational coefficients.
 
 Short-cut for typeclass resolution. -/
-noncomputable instance mv_polynomial.invertible_rat_coe_nat
-  (σ : Type*) (p : ℕ) [invertible (p : ℚ)] :
-  invertible (p : mv_polynomial σ ℚ) :=
-invertible_rat_algebra_coe_nat _ _
+noncomputable instance mv_polynomial.invertible_coe_nat
+  (σ R : Type*) (p : ℕ) [comm_semiring R] [invertible (p : R)] :
+  invertible (p : mv_polynomial σ R) :=
+invertible_algebra_coe_nat _ _

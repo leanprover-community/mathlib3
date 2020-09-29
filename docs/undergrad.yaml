@@ -23,7 +23,7 @@ Linear algebra:
   Duality:
     dual vector space: 'module.dual'
     dual basis: 'is_basis.dual_basis'
-    transpose of a linear map: ''
+    transpose of a linear map: 'module.dual.transpose'
     orthogonality: ''
   Finite-dimensional vector spaces:
     finite-dimensionality : 'finite_dimensional'

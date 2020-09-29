@@ -186,10 +186,7 @@ def equiv_iso_limit {r t : cone F} (i : r ≅ t) : is_limit r ≃ is_limit t :=
 
 @[simp] lemma equiv_iso_limit_apply {r t : cone F} (i : r ≅ t) (P : is_limit r) :
   equiv_iso_limit i P = P.of_iso_limit i := rfl
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/master
 @[simp] lemma equiv_iso_limit_symm_apply {r t : cone F} (i : r ≅ t) (P : is_limit t) :
   (equiv_iso_limit i).symm P = P.of_iso_limit i.symm := rfl
 

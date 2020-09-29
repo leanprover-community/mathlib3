@@ -187,18 +187,6 @@ instance : inhabited (submonoid M) := ⟨⊥⟩
 
 @[simp, to_additive] lemma coe_bot : ((⊥ : submonoid M) : set M) = {1} := rfl
 
-/-- A submonoid is either the trivial submonoid or contains a nonzero element. -/
-@[to_additive] lemma bot_or_nontrivial (S : submonoid M) : S = ⊥ ∨ ∃ x ∈ S, x ≠ (1:M) :=
-begin
-  classical,
-  refine dite (S = ⊥) (λ h, or.inl h) _,
-  contrapose!,
-  rintros ⟨_, hS⟩,
-  ext x,
-  refine ⟨hS x, λ _, _⟩,
-  convert submonoid.one_mem S
-end
-
 /-- The inf of two submonoids is their intersection. -/
 @[to_additive "The inf of two `add_submonoid`s is their intersection."]
 instance : has_inf (submonoid M) :=

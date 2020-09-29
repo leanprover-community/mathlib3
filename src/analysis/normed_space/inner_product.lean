@@ -106,7 +106,7 @@ class inner_product_space (𝕜 : Type*) (E : Type*) [is_R_or_C 𝕜]
 attribute [nolint dangerous_instance] inner_product_space.to_normed_group
 
 /-!
-### Constructing a normed space structure from a scalar product
+### Constructing a normed space structure from an inner product
 
 In the definition of an inner product space, we require the existence of a norm, which is equal
 (but maybe not defeq) to the square root of the scalar product. This makes it possible to put
@@ -1036,6 +1036,16 @@ use `euclidean_space 𝕜 (fin n)`.  -/
 @[reducible, nolint unused_arguments]
 def euclidean_space (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜] [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 one_le_two (λ (i : n), 𝕜)
+
+instance has_inner.complex_to_real {G : Type*} [has_inner ℂ G] : has_inner ℝ G :=
+{ inner := λ x y, re ⟪x, y⟫_ℂ }
+
+instance inner_product_space.complex_to_real {G : Type*} [inner_product_space ℂ G] : inner_product_space ℝ G :=
+{ norm_sq_eq_inner := norm_sq_eq_inner,
+  conj_sym := λ x y, inner_re_symm,
+  nonneg_im := λ x, rfl,
+  add_left := λ x y z, by { change re ⟪x + y, z⟫_ℂ = re ⟪x, z⟫_ℂ + re ⟪y, z⟫_ℂ, simp [inner_add_left] },
+  smul_left := λ x y r, by { change re ⟪(r : ℂ) • x, y⟫_ℂ = r * re ⟪x, y⟫_ℂ, simp [inner_smul_left] } }
 
 section pi_Lp
 local attribute [reducible] pi_Lp

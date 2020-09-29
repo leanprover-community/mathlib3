@@ -3,7 +3,7 @@ Copyright (c) 2020 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import algebra.lie_algebra
+import algebra.lie.basic
 import algebra.ring_quot
 import linear_algebra.tensor_algebra
 
@@ -38,7 +38,7 @@ universes u₁ u₂ u₃
 variables (R : Type u₁) (L : Type u₂)
 variables [comm_ring R] [lie_ring L] [lie_algebra R L]
 
-local notation `ιₜ` := tensor_algebra.ι R L
+local notation `ιₜ` := tensor_algebra.ι R
 
 namespace universal_enveloping_algebra
 
@@ -65,6 +65,8 @@ associative algebras. -/
 def mk_alg_hom : tensor_algebra R L →ₐ[R] universal_enveloping_algebra R L :=
 ring_quot.mk_alg_hom R (rel R L)
 
+variables {L}
+
 /-- The natural Lie algebra morphism from a Lie algebra to its universal enveloping algebra. -/
 def ι : L →ₗ⁅R⁆ universal_enveloping_algebra R L :=
 { map_lie   := λ x y, by
@@ -78,23 +80,23 @@ variables {A : Type u₃} [ring A] [algebra R A] (f : L →ₗ⁅R⁆ A)
 /-- The universal property of the universal enveloping algebra: Lie algebra morphisms into
 associative algebras lift to associative algebra morphisms from the universal enveloping algebra. -/
 def lift : universal_enveloping_algebra R L →ₐ[R] A :=
-ring_quot.lift_alg_hom R (tensor_algebra.lift R L (f : L →ₗ[R] A))
+ring_quot.lift_alg_hom R (tensor_algebra.lift R (f : L →ₗ[R] A))
 begin
   intros a b h, induction h with x y,
   simp [lie_ring.of_associative_ring_bracket],
 end
 
-@[simp] lemma lift_ι_apply (x : L) : lift R L f (ι R L x) = f x :=
+@[simp] lemma lift_ι_apply (x : L) : lift R f (ι R x) = f x :=
 begin
-  have : ι R L x = ring_quot.mk_alg_hom R (rel R L) (ιₜ x), by refl,
+  have : ι R x = ring_quot.mk_alg_hom R (rel R L) (ιₜ x), by refl,
   simp [this, lift],
 end
 
-lemma ι_comp_lift : (lift R L f) ∘ (ι R L) = f :=
+lemma ι_comp_lift : (lift R f) ∘ (ι R) = f :=
 by { ext, simp, }
 
 lemma lift_unique (g : universal_enveloping_algebra R L →ₐ[R] A) :
-  g ∘ (ι R L) = f ↔ g = lift R L f :=
+  g ∘ (ι R) = f ↔ g = lift R f :=
 begin
   split; intros h,
   { apply ring_quot.lift_alg_hom_unique,
@@ -106,13 +108,13 @@ begin
 end
 
 @[ext] lemma hom_ext {g₁ g₂ : universal_enveloping_algebra R L →ₐ[R] A}
-  (h : g₁ ∘ (ι R L) = g₂ ∘ (ι R L)) : g₁ = g₂ :=
+  (h : g₁ ∘ (ι R) = g₂ ∘ (ι R)) : g₁ = g₂ :=
 begin
-  let f₁ := (lie_algebra.of_associative_algebra_hom g₁).comp (ι R L),
-  let f₂ := (lie_algebra.of_associative_algebra_hom g₂).comp (ι R L),
+  let f₁ := (lie_algebra.of_associative_algebra_hom g₁).comp (ι R),
+  let f₂ := (lie_algebra.of_associative_algebra_hom g₂).comp (ι R),
   have h' : f₁ = f₂, { ext, exact congr h rfl, },
-  have h₁ : g₁ = lift R L f₁, { rw ← lift_unique, refl, },
-  have h₂ : g₂ = lift R L f₂, { rw ← lift_unique, refl, },
+  have h₁ : g₁ = lift R f₁, { rw ← lift_unique, refl, },
+  have h₂ : g₂ = lift R f₂, { rw ← lift_unique, refl, },
   rw [h₁, h₂, h'],
 end
 

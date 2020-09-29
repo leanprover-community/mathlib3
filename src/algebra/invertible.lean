@@ -134,6 +134,15 @@ lemma inv_of_mul [monoid α] (a b : α) [invertible a] [invertible b] [invertibl
   ⅟(a * b) = ⅟b * ⅟a :=
 inv_of_eq_right_inv (by simp [←mul_assoc])
 
+/--
+If `r` is invertible and `s = r`, then `s` is invertible.
+-/
+def invertible.copy [monoid α] {r : α} (hr : invertible r) (s : α) (hs : s = r) : invertible s :=
+{ inv_of := ⅟r,
+  inv_of_mul_self := by rw [hs, inv_of_mul_self],
+  mul_inv_of_self := by rw [hs, mul_inv_of_self] }
+
+
 lemma commute_inv_of {M : Type*} [has_one M] [has_mul M] (m : M) [invertible m] :
   commute m (⅟m) :=
 calc m * ⅟m = 1       : mul_inv_of_self m

@@ -219,7 +219,7 @@ by rw [pow_two, mul_assoc, mul_div_cancel_left _ ha]
 
 end
 
-/-- If monoid homomorphism `f` between two `group_with_zero`s maps `0` to `0`, then it maps `x^n`,
+/-- If a monoid homomorphism `f` between two `group_with_zero`s maps `0` to `0`, then it maps `x^n`,
 `n : ℤ`, to `(f x)^n`. -/
 lemma monoid_hom.map_fpow {G₀ G₀' : Type*} [group_with_zero G₀] [group_with_zero G₀']
   (f : G₀ →* G₀') (h0 : f 0 = 0) (x : G₀) :

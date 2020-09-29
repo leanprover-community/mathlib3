@@ -240,7 +240,7 @@ lemma exists_ideal_over_maximal_of_is_integral (H : algebra.is_integral R S)
 begin
   obtain ⟨Q, ⟨Q_prime, hQ⟩⟩ := exists_ideal_over_prime_of_is_integral' H P hP,
   haveI : Q.is_prime := Q_prime,
-  refine ⟨Q, ⟨is_maximal_of_is_integral_of_is_maximal_comap H _ (hQ.symm ▸ P_max), hQ⟩⟩,
+  exact ⟨Q, is_maximal_of_is_integral_of_is_maximal_comap H _ (hQ.symm ▸ P_max), hQ⟩,
 end
 
 end integral_domain

@@ -16,9 +16,9 @@ are exactly the complex numbers `e ^ (2 * real.pi * complex.I * (i / n))` for `i
 
 ## Main declarations
 
-* `roots_of_unity_eq`: the complex `n`-th roots of unity are equal to the multiset of
-  complex numbers of the form `e ^ (2 * real.pi * complex.I * (i / n))` for `i ∈ finset.range n`.
-* `card_roots_of_unity`: the number of `n`-th roots of unity is exactly `n`.
+* `complex.mem_roots_of_unity`: the complex `n`-th roots of unity are exactly the
+  complex numbers of the form `e ^ (2 * real.pi * complex.I * (i / n))` for some `i < n`.
+* `complex.card_roots_of_unity`: the number of `n`-th roots of unity is exactly `n`.
 
 -/
 
@@ -26,63 +26,56 @@ namespace complex
 
 open polynomial real
 
-/-- The complex `n`-th roots of unity are equal to the multiset of
-  complex numbers of the form `e ^ (2 * real.pi * complex.I * (i / n))` for `i ∈ finset.range n`. -/
-lemma roots_of_unity_eq (n : ℕ) :
-  roots_of_unity n ℂ =
-  multiset.map (λ (i : ℕ), exp (2 * pi * I * (i / n))) (multiset.range n) :=
+lemma is_primitive_root (n : ℕ) (h0 : n ≠ 0) : is_primitive_root (exp (2 * pi * I / n)) n :=
 begin
-  by_cases hn : n = 0,
-  { simp only [hn, div_zero, roots_of_unity_zero, multiset.card_zero, nat.cast_zero,
-      multiset.map_const, multiset.range_zero, multiset.repeat_zero] },
-  have hn0 : (n : ℂ) ≠ 0, by assumption_mod_cast,
-  symmetry,
-  rw eq_iff_le_not_lt,
+  rw is_primitive_root.iff_def,
+  simp only [← exp_nat_mul, exp_eq_one_iff],
+  have hn0 : (n : ℂ) ≠ 0, by exact_mod_cast h0,
   split,
-  { rw multiset.le_iff_subset,
-    { intro x,
-      simp only [multiset.mem_map, multiset.mem_range, mem_roots_of_unity (nat.pos_of_ne_zero hn)],
-      rintro ⟨i, hi, rfl⟩,
-      rw [← complex.exp_nat_mul, complex.exp_eq_one_iff],
-      use i,
-      field_simp [hn0, mul_comm (n : ℂ), mul_comm (i : ℂ)] },
-    { apply multiset.nodup_map_on _ (multiset.nodup_range n),
-      intros i hi j hj H,
-      rw [multiset.mem_range] at hi hj,
-      rw exp_eq_exp_iff_exists_int at H,
-      rcases H with ⟨k, hk⟩,
-      rw [mul_comm (k : ℂ), ← mul_add, mul_right_inj' two_pi_I_ne_zero] at hk,
-      field_simp [hn0, mul_left_inj'] at hk,
-      zify,
-      norm_cast at hk,
-      rw hk,
-      simp only [hn, add_right_eq_self, int.coe_nat_eq_zero, or_false, mul_eq_zero],
-      suffices : ∀ {i j : ℕ} {k : ℤ}, i < n → 0 < k → (i : ℤ) = j + k * n → false,
-      { rcases lt_trichotomy k 0 with hk0|rfl|hk0;
-        [skip, refl, exact (this hi hk0 hk).elim],
-        rw [← sub_eq_iff_eq_add, eq_comm, sub_eq_add_neg, ← neg_mul_eq_neg_mul_symm] at hk,
-        refine (this hj _ hk).elim,
-        exact neg_pos.mpr hk0 },
-      clear_dependent i j k,
-      intros i j k hi hk0 hk,
-      apply not_le.mpr hi,
-      zify,
-      rw [hk],
-      calc (n : ℤ) ≤ k * n : le_mul_of_one_le_left (int.coe_zero_le n) (int.add_one_le_of_lt hk0)
-               ... ≤ 0 + k * n : by rw [zero_add]
-               ... ≤ j + k * n : add_le_add_right (int.coe_zero_le j) _ } },
-  { intro h,
-    replace h := multiset.card_lt_of_lt h,
-    rw [multiset.card_map, multiset.card_range, ← not_le] at h,
-    apply h,
-    exact card_roots_of_unity n }
+  { use 1,
+    field_simp [hn0, mul_comm (n : ℂ)] },
+  { simp only [hn0, mul_right_comm _ _ ↑n, mul_left_inj' two_pi_I_ne_zero, ne.def, not_false_iff,
+      exists_imp_distrib] with field_simps,
+    norm_cast,
+    rintro l k hk,
+    rw ← int.coe_nat_dvd,
+    rw mul_comm at hk,
+    exact ⟨k, hk⟩ }
 end
 
-lemma mem_roots_of_unity (n : ℕ) (x : ℂ) :
-  x ∈ roots_of_unity n ℂ ↔ (∃ i < n, exp (2 * pi * I * (i / n)) = x) :=
-by simp only [roots_of_unity_eq, multiset.mem_map, exists_prop, multiset.mem_range]
+/-- The complex `n`-th roots of unity are exactly the
+complex numbers of the form `e ^ (2 * real.pi * complex.I * (i / n))` for some `i < n`. -/
+lemma mem_roots_of_unity (n : ℕ+) (x : units ℂ) :
+  x ∈ roots_of_unity n ℂ ↔ (∃ i < (n : ℕ), exp (2 * pi * I * (i / n)) = x) :=
+begin
+  rw [mem_roots_of_unity, units.ext_iff, units.coe_pow, units.coe_one],
+  have hn0 : (n : ℂ) ≠ 0 := by exact_mod_cast (nat.pos_iff_ne_zero.mp n.pos),
+  split,
+  { intro h,
+    obtain ⟨i, hi, H⟩ : ∃ i < (n : ℕ), exp (2 * pi * I / n) ^ i = x,
+    { simpa only using (is_primitive_root n n.ne_zero).eq_pow_of_pow_eq_one h n.pos },
+    refine ⟨i, hi, _⟩,
+    rw [← H, ← exp_nat_mul],
+    congr' 1,
+    field_simp [hn0, mul_comm (i : ℂ)] },
+  { rintro ⟨i, hi, H⟩,
+    rw [← H, ← exp_nat_mul, exp_eq_one_iff],
+    use i,
+    field_simp [hn0, mul_comm ((n : ℕ) : ℂ), mul_comm (i : ℂ)] }
+end
 
-lemma card_roots_of_unity (n : ℕ) : (roots_of_unity n ℂ).card = n :=
-by simp only [roots_of_unity_eq, multiset.card_map, multiset.card_range]
+lemma card_roots_of_unity (n : ℕ+) : fintype.card (roots_of_unity n ℂ) = n :=
+begin
+  have h := is_primitive_root n n.ne_zero,
+  obtain ⟨ζ, hζ⟩ := h.is_unit n.pos,
+  rw [← hζ, is_primitive_root.coe_units_iff] at h,
+  haveI : fact (0 < ↑n) := n.pos,
+  let e := h.zmod_equiv_gpowers,
+  haveI F : fintype (subgroup.gpowers ζ) := fintype.of_equiv _ e.to_equiv,
+  calc fintype.card (roots_of_unity n ℂ)
+      = fintype.card (subgroup.gpowers ζ) : fintype.card_congr $ by rw h.gpowers_eq
+  ... = fintype.card (zmod n)             : fintype.card_congr e.to_equiv.symm
+  ... = n                                 : zmod.card n
+end
 
 end complex

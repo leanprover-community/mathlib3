@@ -126,3 +126,14 @@ begin
 end
 
 end int
+
+lemma pow_gcd_eq_one {M : Type*} [monoid M] (x : M) {m n : ℕ} (hm : x ^ m = 1) (hn : x ^ n = 1) :
+  x ^ m.gcd n = 1 :=
+begin
+  cases m, { simp only [hn, nat.gcd_zero_left] },
+  obtain ⟨x, rfl⟩ : is_unit x,
+  { apply is_unit_of_pow_eq_one _ _ hm m.succ_pos },
+  simp only [← units.coe_pow] at *,
+  rw [← units.coe_one, ← gpow_coe_nat, ← units.ext_iff] at *,
+  simp only [nat.gcd_eq_gcd_ab, gpow_add, gpow_mul, hm, hn, one_gpow, one_mul]
+end

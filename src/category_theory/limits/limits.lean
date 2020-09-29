@@ -606,10 +606,7 @@ def equiv_iso_colimit {r t : cocone F} (i : r ≅ t) : is_colimit r ≃ is_colim
 
 @[simp] lemma equiv_iso_colimit_apply {r t : cocone F} (i : r ≅ t) (P : is_colimit r) :
   equiv_iso_colimit i P = P.of_iso_colimit i := rfl
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/master
 @[simp] lemma equiv_iso_colimit_symm_apply {r t : cocone F} (i : r ≅ t) (P : is_colimit t) :
   (equiv_iso_colimit i).symm P = P.of_iso_colimit i.symm := rfl
 

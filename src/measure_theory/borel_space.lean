@@ -32,8 +32,8 @@ import analysis.normed_space.finite_dimension
 
 noncomputable theory
 
-open classical set
-open_locale classical big_operators topological_space
+open classical set filter
+open_locale classical big_operators topological_space nnreal
 
 universes u v w x y
 variables {α β γ δ : Type*} {ι : Sort y} {s t u : set α}
@@ -574,6 +574,40 @@ lemma measurable_binfi {ι} (s : set ι) {f : ι → δ → α} (hs : countable 
 by { haveI : encodable s := hs.to_encodable, simp only [infi_subtype'],
      exact measurable_infi (λ i, hf i) }
 
+/-- `liminf` over a general filter is measurable. See `measurable_liminf` for the version over `ℕ`.
+-/
+lemma measurable_liminf' {ι ι'} {f : ι → δ → α} {u : filter ι} (hf : ∀ i, measurable (f i))
+  {p : ι' → Prop} {s : ι' → set ι} (hu : u.has_countable_basis p s) (hs : ∀ i, (s i).countable) :
+  measurable (λ x, liminf u (λ i, f i x)) :=
+begin
+  simp_rw [hu.to_has_basis.liminf_eq_supr_infi],
+  refine measurable_bsupr _ hu.countable _,
+  exact λ i, measurable_binfi _ (hs i) hf
+end
+
+/-- `limsup` over a general filter is measurable. See `measurable_limsup` for the version over `ℕ`.
+-/
+lemma measurable_limsup' {ι ι'}  {f : ι → δ → α} {u : filter ι} (hf : ∀ i, measurable (f i))
+  {p : ι' → Prop} {s : ι' → set ι} (hu : u.has_countable_basis p s) (hs : ∀ i, (s i).countable) :
+  measurable (λ x, limsup u (λ i, f i x)) :=
+begin
+  simp_rw [hu.to_has_basis.limsup_eq_infi_supr],
+  refine measurable_binfi _ hu.countable _,
+  exact λ i, measurable_bsupr _ (hs i) hf
+end
+
+/-- `liminf` over `ℕ` is measurable. See `measurable_liminf'` for a version with a general filter.
+-/
+lemma measurable_liminf {f : ℕ → δ → α} (hf : ∀ i, measurable (f i)) :
+  measurable (λ x, liminf at_top (λ i, f i x)) :=
+measurable_liminf' hf at_top_countable_basis (λ i, countable_encodable _)
+
+/-- `limsup` over `ℕ` is measurable. See `measurable_limsup'` for a version with a general filter.
+-/
+lemma measurable_limsup {f : ℕ → δ → α} (hf : ∀ i, measurable (f i)) :
+  measurable (λ x, limsup at_top (λ i, f i x)) :=
+measurable_limsup' hf at_top_countable_basis (λ i, countable_encodable _)
+
 end complete_linear_order
 
 section conditionally_complete_linear_order
@@ -612,8 +646,8 @@ instance rat.borel_space : borel_space ℚ := ⟨borel_eq_top_of_encodable.symm�
 instance real.measurable_space : measurable_space ℝ := borel ℝ
 instance real.borel_space : borel_space ℝ := ⟨rfl⟩
 
-instance nnreal.measurable_space : measurable_space nnreal := borel nnreal
-instance nnreal.borel_space : borel_space nnreal := ⟨rfl⟩
+instance nnreal.measurable_space : measurable_space ℝ≥0 := borel ℝ≥0
+instance nnreal.borel_space : borel_space ℝ≥0 := ⟨rfl⟩
 
 instance ennreal.measurable_space : measurable_space ennreal := borel ennreal
 instance ennreal.borel_space : borel_space ennreal := ⟨rfl⟩
@@ -640,6 +674,13 @@ lemma measurable_inf_dist {s : set α} : measurable (λ x, inf_dist x s) :=
 lemma measurable.inf_dist {f : β → α} (hf : measurable f) {s : set α} :
   measurable (λ x, inf_dist (f x) s) :=
 measurable_inf_dist.comp hf
+
+lemma measurable_inf_nndist {s : set α} : measurable (λ x, inf_nndist x s) :=
+(continuous_inf_nndist_pt s).measurable
+
+lemma measurable.inf_nndist {f : β → α} (hf : measurable f) {s : set α} :
+  measurable (λ x, inf_nndist (f x) s) :=
+measurable_inf_nndist.comp hf
 
 variables [second_countable_topology α]
 lemma measurable_dist : measurable (λp:α×α, dist p.1 p.2) :=
@@ -750,7 +791,7 @@ end real
 
 variable [measurable_space α]
 
-lemma measurable.sub_nnreal {f g : α → nnreal} :
+lemma measurable.sub_nnreal {f g : α → ℝ≥0} :
   measurable f → measurable g → measurable (λ a, f a - g a) :=
 nnreal.continuous_sub.measurable2
 
@@ -758,14 +799,14 @@ lemma measurable.nnreal_of_real {f : α → ℝ} (hf : measurable f) :
   measurable (λ x, nnreal.of_real (f x)) :=
 nnreal.continuous_of_real.measurable.comp hf
 
-lemma nnreal.measurable_coe : measurable (coe : nnreal → ℝ) :=
+lemma nnreal.measurable_coe : measurable (coe : ℝ≥0 → ℝ) :=
 nnreal.continuous_coe.measurable
 
-lemma measurable.nnreal_coe {f : α → nnreal} (hf : measurable f) :
+lemma measurable.nnreal_coe {f : α → ℝ≥0} (hf : measurable f) :
   measurable (λ x, (f x : ℝ)) :=
 nnreal.measurable_coe.comp hf
 
-lemma measurable.ennreal_coe {f : α → nnreal} (hf : measurable f) :
+lemma measurable.ennreal_coe {f : α → ℝ≥0} (hf : measurable f) :
   measurable (λ x, (f x : ennreal)) :=
 ennreal.continuous_coe.measurable.comp hf
 
@@ -773,27 +814,26 @@ lemma measurable.ennreal_of_real {f : α → ℝ} (hf : measurable f) :
   measurable (λ x, ennreal.of_real (f x)) :=
 ennreal.continuous_of_real.measurable.comp hf
 
-/-- The set of finite `ennreal` numbers is `measurable_equiv` to `nnreal`. -/
-def measurable_equiv.ennreal_equiv_nnreal : measurable_equiv {r : ennreal | r ≠ ⊤} nnreal :=
+/-- The set of finite `ennreal` numbers is `measurable_equiv` to `ℝ≥0`. -/
+def measurable_equiv.ennreal_equiv_nnreal : measurable_equiv {r : ennreal | r ≠ ⊤} ℝ≥0 :=
 ennreal.ne_top_homeomorph_nnreal.to_measurable_equiv
 
 namespace ennreal
-open filter
 
-lemma measurable_coe : measurable (coe : nnreal → ennreal) :=
+lemma measurable_coe : measurable (coe : ℝ≥0 → ennreal) :=
 measurable_id.ennreal_coe
 
 lemma measurable_of_measurable_nnreal {f : ennreal → α}
-  (h : measurable (λp:nnreal, f p)) : measurable f :=
+  (h : measurable (λp : ℝ≥0, f p)) : measurable f :=
 measurable_of_measurable_on_compl_singleton ⊤
   (measurable_equiv.ennreal_equiv_nnreal.symm.measurable_coe_iff.1 h)
 
-/-- `ennreal` is `measurable_equiv` to `nnreal ⊕ unit`. -/
+/-- `ennreal` is `measurable_equiv` to `ℝ≥0 ⊕ unit`. -/
 def ennreal_equiv_sum :
-  measurable_equiv ennreal (nnreal ⊕ unit) :=
+  measurable_equiv ennreal (ℝ≥0 ⊕ unit) :=
 { measurable_to_fun  := measurable_of_measurable_nnreal measurable_inl,
   measurable_inv_fun := measurable_sum measurable_coe (@measurable_const ennreal unit _ _ ⊤),
-  .. equiv.option_equiv_sum_punit nnreal }
+  .. equiv.option_equiv_sum_punit ℝ≥0 }
 
 open function (uncurry)
 
@@ -843,7 +883,7 @@ lemma measurable.to_nnreal {f : α → ennreal} (hf : measurable f) :
   measurable (λ x, (f x).to_nnreal) :=
 ennreal.measurable_to_nnreal.comp hf
 
-lemma measurable_ennreal_coe_iff {f : α → nnreal} :
+lemma measurable_ennreal_coe_iff {f : α → ℝ≥0} :
   measurable (λ x, (f x : ennreal)) ↔ measurable f :=
 ⟨λ h, h.to_nnreal, λ h, h.ennreal_coe⟩
 
@@ -878,7 +918,7 @@ continuous_norm.measurable
 lemma measurable.norm {f : β → α} (hf : measurable f) : measurable (λa, norm (f a)) :=
 measurable_norm.comp hf
 
-lemma measurable_nnnorm : measurable (nnnorm : α → nnreal) :=
+lemma measurable_nnnorm : measurable (nnnorm : α → ℝ≥0) :=
 continuous_nnnorm.measurable
 
 lemma measurable.nnnorm {f : β → α} (hf : measurable f) : measurable (λa, nnnorm (f a)) :=
@@ -892,6 +932,55 @@ lemma measurable.ennnorm {f : β → α} (hf : measurable f) :
 hf.nnnorm.ennreal_coe
 
 end normed_group
+
+section limits
+
+variables [measurable_space β] [metric_space β] [borel_space β]
+
+open metric
+
+/-- A limit (over a general filter) of measurable `ℝ≥0` valued functions is measurable. -/
+lemma measurable_of_tendsto_nnreal' {ι ι'} {f : ι → α → ℝ≥0} {g : α → ℝ≥0} (u : filter ι)
+  [ne_bot u] (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) {p : ι' → Prop}
+  {s : ι' → set ι} (hu : u.has_countable_basis p s) (hs : ∀ i, (s i).countable) : measurable g :=
+begin
+  rw [tendsto_pi] at lim, rw [← measurable_ennreal_coe_iff],
+  have : (λ x, liminf u (λ n, (f n x : ennreal))) = λ x, (g x : ennreal) :=
+  funext (λ x, ((ennreal.continuous_coe.tendsto (g x)).comp (lim x)).liminf_eq),
+  rw [← this],
+  show measurable (λ x, liminf u (λ n, (f n x : ennreal))),
+  exact measurable_liminf' (λ i, (hf i).ennreal_coe) hu hs,
+end
+
+/-- A sequential limit of measurable `ℝ≥0` valued functions is measurable. -/
+lemma measurable_of_tendsto_nnreal {f : ℕ → α → ℝ≥0} {g : α → ℝ≥0}
+  (hf : ∀ i, measurable (f i)) (lim : tendsto f at_top (𝓝 g)) : measurable g :=
+measurable_of_tendsto_nnreal' at_top hf lim at_top_countable_basis (λ i, countable_encodable _)
+
+/-- A limit (over a general filter) of measurable functions valued in a metric space is measurable.
+-/
+lemma measurable_of_tendsto_metric' {ι ι'} {f : ι → α → β} {g : α → β}
+  (u : filter ι) [ne_bot u] (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) {p : ι' → Prop}
+  {s : ι' → set ι} (hu : u.has_countable_basis p s) (hs : ∀ i, (s i).countable) :
+  measurable g :=
+begin
+  apply measurable_of_is_closed', intros s h1s h2s h3s,
+  have : measurable (λx, inf_nndist (g x) s),
+  { refine measurable_of_tendsto_nnreal' u (λ i, (hf i).inf_nndist) _ hu hs, swap,
+    rw [tendsto_pi], rw [tendsto_pi] at lim, intro x,
+    exact ((continuous_inf_nndist_pt s).tendsto (g x)).comp (lim x) },
+    have h4s : g ⁻¹' s = (λ x, inf_nndist (g x) s) ⁻¹' {0},
+    { ext x, simp [h1s, ← mem_iff_inf_dist_zero_of_closed h1s h2s, ← nnreal.coe_eq_zero] },
+    rw [h4s], exact this (is_measurable_singleton 0),
+end
+
+/-- A sequential limit of measurable functions valued in a metric space is measurable. -/
+lemma measurable_of_tendsto_metric {f : ℕ → α → β} {g : α → β}
+  (hf : ∀ i, measurable (f i)) (lim : tendsto f at_top (𝓝 g)) :
+  measurable g :=
+measurable_of_tendsto_metric' at_top hf lim at_top_countable_basis (λ i, countable_encodable _)
+
+end limits
 
 namespace continuous_linear_map
 

@@ -212,6 +212,16 @@ lemma integral_eq_sum_filter (f : α →ₛ F) (μ) :
   f.integral μ = ∑ x in f.range.filter (λ x, x ≠ 0), (ennreal.to_real (μ (f ⁻¹' {x}))) • x :=
 eq.symm $ sum_filter_of_ne $ λ x _, mt $ λ h0, h0.symm ▸ smul_zero _
 
+/-- The Bochner integral is equal to a sum over any set that includes `f.range` (except `0`). -/
+lemma integral_eq_sum_of_subset {f : α →ₛ F} {μ : measure α} {s : finset F}
+  (hs : f.range.filter (λ x, x ≠ 0) ⊆ s) : f.integral μ = ∑ x in s, (μ (f ⁻¹' {x})).to_real • x :=
+begin
+  rw [simple_func.integral_eq_sum_filter, finset.sum_subset hs],
+  rintro x - hx, rw [finset.mem_filter, not_and_distrib, ne.def, not_not] at hx,
+  rcases hx with hx|rfl; [skip, simp],
+  rw [simple_func.mem_range] at hx, rw [preimage_eq_empty]; simp [disjoint_singleton_left, hx]
+end
+
 /-- Calculate the integral of `g ∘ f : α →ₛ F`, where `f` is an integrable function from `α` to `E`
     and `g` is a function from `E` to `F`. We require `g 0 = 0` so that `g ∘ f` is integrable. -/
 lemma map_integral (f : α →ₛ E) (g : E → F) (hf : integrable f μ) (hg : g 0 = 0) :
@@ -940,10 +950,10 @@ variables [normed_group E] [second_countable_topology E] [normed_space ℝ E] [c
 def integral (μ : measure α) (f : α → E) : E :=
 if hf : integrable f μ then (l1.of_fun f hf).integral else 0
 
-notation `∫` binders `, ` r:(scoped:60 f, f) ` ∂` μ:70 := integral μ r
-notation `∫` binders `, ` r:(scoped:60 f, integral volume f) := r
-notation `∫` binders ` in ` s `, ` r:(scoped:60 f, f) ` ∂` μ:70 := integral (measure.restrict μ s) r
-notation `∫` binders ` in ` s `, ` r:(scoped:60 f, integral (measure.restrict volume s) f) := r
+notation `∫` binders `, ` r:(scoped:0 f, f) ` ∂` μ:70 := integral μ r
+notation `∫` binders `, ` r:(scoped:0 f, integral volume f) := r
+notation `∫` binders ` in ` s `, ` r:(scoped:0 f, f) ` ∂` μ:70 := integral (measure.restrict μ s) r
+notation `∫` binders ` in ` s `, ` r:(scoped:0 f, integral (measure.restrict volume s) f) := r
 
 section properties
 
@@ -965,15 +975,23 @@ lemma integral_non_measurable (h : ¬ measurable f) : ∫ a, f a ∂μ = 0 :=
 integral_undef $ not_and_of_not_left _ h
 
 variables (α E)
-local attribute [simp] -- Follows from `integral_const` below
+
 lemma integral_zero : ∫ a : α, (0:E) ∂μ = 0 :=
 by rw [integral_eq, l1.of_fun_zero, l1.integral_zero]
+
+lemma integral_zero' : integral μ (0 : α → E) = 0 :=
+integral_zero α E
+
 variables {α E}
 
 lemma integral_add (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, f a + g a ∂μ = ∫ a, f a ∂μ + ∫ a, g a ∂μ :=
 by { rw [integral_eq, integral_eq f hf, integral_eq g hg, ← l1.integral_add, ← l1.of_fun_add],
      refl }
+
+lemma integral_add' (hf : integrable f μ) (hg : integrable g μ) :
+  ∫ a, (f + g) a ∂μ = ∫ a, f a ∂μ + ∫ a, g a ∂μ :=
+integral_add hf hg
 
 lemma integral_neg (f : α → E) : ∫ a, -f a ∂μ = - ∫ a, f a ∂μ :=
 begin
@@ -983,9 +1001,16 @@ begin
   { rw [integral_undef hf, integral_undef, neg_zero], rwa [← integrable_neg_iff] at hf }
 end
 
+lemma integral_neg' (f : α → E) : ∫ a, (-f) a ∂μ = - ∫ a, f a ∂μ :=
+integral_neg f
+
 lemma integral_sub (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, f a - g a ∂μ = ∫ a, f a ∂μ - ∫ a, g a ∂μ :=
 by { rw [sub_eq_add_neg, ← integral_neg], exact integral_add hf hg.neg }
+
+lemma integral_sub' (hf : integrable f μ) (hg : integrable g μ) :
+  ∫ a, (f - g) a ∂μ = ∫ a, f a ∂μ - ∫ a, g a ∂μ :=
+integral_sub hf hg
 
 lemma integral_smul (r : ℝ) (f : α → E) : ∫ a, r • (f a) ∂μ = r • ∫ a, f a ∂μ :=
 begin
@@ -1033,8 +1058,13 @@ begin
   { rw [integral_undef hf, norm_zero], exact to_real_nonneg }
 end
 
+lemma ennnorm_integral_le_lintegral_norm (f : α → E) :
+  (nnnorm (∫ a, f a ∂μ) : ennreal) ≤ ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ :=
+by { rw [← of_real_norm_eq_coe_nnnorm], apply ennreal.of_real_le_of_le_to_real,
+  exact norm_integral_le_lintegral_norm f }
+
 lemma integral_eq_zero_of_ae {f : α → E} (hf : f =ᵐ[μ] 0) : ∫ a, f a ∂μ = 0 :=
-if hfm : measurable f then by simp [integral_congr_ae hfm measurable_zero hf]
+if hfm : measurable f then by simp [integral_congr_ae hfm measurable_zero hf, integral_zero]
 else integral_non_measurable hfm
 
 /-- If `F i → f` in `L1`, then `∫ x, F i x ∂μ → ∫ x, f x∂μ`. -/
@@ -1185,6 +1215,24 @@ begin
   { rw integral_non_measurable hfm }
 end
 
+lemma lintegral_coe_eq_integral (f : α → nnreal) (hfi : integrable (λ x, (f x : real)) μ) :
+  ∫⁻ a, f a ∂μ = ennreal.of_real ∫ a, f a ∂μ :=
+begin
+  simp_rw [integral_eq_lintegral_of_nonneg_ae (eventually_of_forall (λ x, (f x).coe_nonneg))
+    hfi.measurable, ← ennreal.coe_nnreal_eq], rw [ennreal.of_real_to_real],
+  rw [← lt_top_iff_ne_top], convert hfi.has_finite_integral, ext1 x, rw [real.nnnorm_coe_eq_self]
+end
+
+lemma integral_to_real {f : α → ennreal} (hfm : measurable f) (hf : ∀ᵐ x ∂μ, f x < ⊤) :
+  ∫ a, (f a).to_real ∂μ = (∫⁻ a, f a ∂μ).to_real :=
+begin
+  rw [integral_eq_lintegral_of_nonneg_ae _ hfm.to_real],
+  { rw lintegral_congr_ae, refine hf.mp (eventually_of_forall _),
+    intros x hx, rw [lt_top_iff_ne_top] at hx, simp [hx] },
+  { exact (eventually_of_forall $ λ x, ennreal.to_real_nonneg) }
+end
+
+
 lemma integral_nonneg {f : α → ℝ} (hf : 0 ≤ f) : 0 ≤ ∫ a, f a ∂μ :=
 integral_nonneg_of_ae $ eventually_of_forall hf
 
@@ -1286,7 +1334,7 @@ begin
     { resetI, simp [preimage_const_of_mem] },
     { simp [μ.eq_zero_of_not_nonempty ha] } },
   { by_cases hc : c = 0,
-    { simp [hc] },
+    { simp [hc, integral_zero] },
     { have : ¬integrable (λ x : α, c) μ,
       { simp only [integrable_const_iff, not_or_distrib],
         exact ⟨hc, hμ⟩ },
@@ -1367,7 +1415,7 @@ begin
     ennreal.to_real_mul_to_real]
 end
 
-lemma integral_map_measure {β} [measurable_space β] {φ : α → β} (hφ : measurable φ)
+lemma integral_map {β} [measurable_space β] {φ : α → β} (hφ : measurable φ)
   {f : β → E} (hfm : measurable f) :
   ∫ y, f y ∂(measure.map φ μ) = ∫ x, f (φ x) ∂μ :=
 begin

@@ -174,28 +174,6 @@ by induction m with m ih; [exact int.coe_nat_one, rw [pow_succ', pow_succ', int.
 theorem int.nat_abs_pow (n : ℤ) (k : ℕ) : int.nat_abs (n ^ k) = (int.nat_abs n) ^ k :=
 by induction k with k ih; [refl, rw [pow_succ', int.nat_abs_mul, pow_succ', ih]]
 
-section ring
-
-variables [ring R] {n : ℤ} {r : R}
-
-@[simp] lemma bit0_gsmul_one : bit0 n •ℤ (1 : R) = n •ℤ 2 :=
-by simp [bit0, add_gsmul, gsmul_add]
-@[simp] lemma bit0_gsmul_bit0 : bit0 n •ℤ bit0 r = n •ℤ (bit0 (bit0 r)) :=
-by simp [bit0, add_gsmul, gsmul_add]
-@[simp] lemma bit0_gsmul_bit1 : bit0 n •ℤ bit1 r = n •ℤ (bit0 (bit1 r)) :=
-by simp [bit0, add_gsmul, gsmul_add]
-@[simp] lemma bit1_gsmul_one : bit1 n •ℤ (1 : R) = n •ℤ 2 + 1 :=
-by simp [bit1, add_gsmul, gsmul_add]
-@[simp] lemma bit1_gsmul_bit0 : bit1 n •ℤ bit0 r = n •ℤ (bit0 (bit0 r)) + bit0 r :=
-by simp [bit1, add_gsmul, gsmul_add]
-@[simp] lemma bit1_gsmul_bit1 : bit1 n •ℤ bit1 r = n •ℤ (bit0 (bit1 r)) + bit1 r :=
-begin
-  conv_lhs { congr, dsimp [bit1], },
-  simp only [bit0, add_gsmul, gsmul_add, one_gsmul],
-end
-
-end ring
-
 -- The next four lemmas allow us to replace multiplication by a numeral with a `gsmul` expression.
 -- They are used by the `noncomm_ring` tactic, to normalise expressions before passing to `abel`.
 

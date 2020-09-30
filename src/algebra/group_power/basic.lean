@@ -546,4 +546,3 @@ variables (a) (m n : ℕ)
 @[simp] theorem gpow_gpow_self : commute (a ^ m) (a ^ n) := (commute.refl a).gpow_gpow m n
 
 end commute
-

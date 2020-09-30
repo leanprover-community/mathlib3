@@ -114,10 +114,10 @@ theorem lift_unique {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)
   (cond : ∀ m : M, f m * f m = 0)
   (g : exterior_algebra R M →ₐ[R] A) : g.to_linear_map.comp (ι R) = f ↔ g = lift R f cond :=
 begin
-  refine ⟨λ hyp, _, λ hyp, by rw [hyp, ι_comp_lift]⟩,
+  refine ⟨_, λ hyp, by rw [hyp, ι_comp_lift]⟩,
+  rintro rfl,
   ext,
-  -- TODO: why can't I combine these into `simp [lift, ← hyp]`?
-  simp [lift], rw ← hyp, simp,
+  simp [lift],
   refl,
 end
 

@@ -1139,9 +1139,9 @@ pigeonholes.  If there are infinitely many pigeons in finitely many
 pigeonholes, then there are at least two pigeons in the same
 pigeonhole.
 
-See also: `fintype.pigeonhole`, `fintype.strong_infinite_pigeonhole`
+See also: `fintype.exists_ne_map_eq_of_card_lt`, `fintype.exists_infinite_fiber`.
 -/
-lemma fintype.infinite_pigeonhole [infinite α] [fintype β] (f : α → β) :
+lemma fintype.exists_ne_map_eq_of_infinite [infinite α] [fintype β] (f : α → β) :
   ∃ x y : α, x ≠ y ∧ f x = f y :=
 begin
   classical, by_contra hf, push_neg at hf,
@@ -1155,9 +1155,9 @@ finitely many pigeonholes.  If there are infinitely many pigeons in
 finitely many pigeonholes, then there is a pigeonhole with infinitely
 many pigeons.
 
-See also: `fintype.infinite_pigeonhole`
+See also: `fintype.exists_ne_map_eq_of_infinite`
 -/
-lemma fintype.strong_infinite_pigeonhole [infinite α] [fintype β] (f : α → β) :
+lemma fintype.exists_infinite_fiber [infinite α] [fintype β] (f : α → β) :
   ∃ y : β, infinite (f ⁻¹' {y}) :=
 begin
   classical, by_contra hf, push_neg at hf,

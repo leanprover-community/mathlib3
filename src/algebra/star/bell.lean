@@ -50,6 +50,23 @@ structure is_chsh_tuple (A₀ A₁ B₀ B₁ : R) :=
 
 end
 
+example {α : Type} [ring α] : 4 •ℤ (1 : α) = 4 :=
+by abel
+
+example {α : Type} [ring α] {a : α} : -1 •ℤ (2 * a) = -2 •ℤ a :=
+by abel
+
+
+example {α : Type} [add_comm_group α] {x y : α} (h : false) :
+   x = - y :=
+begin
+  abel,
+  abel, -- should fail, but instead inserts an additional `1 •ℤ `
+
+  exfalso, assumption,
+end
+
+
 section
 variables {R}
 
@@ -66,14 +83,33 @@ lemma commutative_chsh_inequality
 begin
   let P := (2 - A₀ * B₀ - A₀ * B₁ - A₁ * B₀ + A₁ * B₁),
   have i₁ : 0 ≤ P,
-  { have idem : P * P = 2 * P,
-    { -- If we have a Gröbner basis algorithm, this would be trivial.
+  { have idem : P * P = 4 * P,
+    { -- If we had a Gröbner basis algorithm, this would be trivial.
       -- Without one, it is a painful mess!
       dsimp [P],
-      simp [add_mul, mul_add, sub_mul, mul_sub, mul_comm, mul_assoc],
-      have q := T.B₀_inv,
-      have qq := T.A₁B₀_commutes.symm,
-      simp [q, qq],
+      simp only [add_mul, mul_add, sub_mul, mul_sub, mul_comm, mul_assoc, add_assoc],
+      repeat { conv in (B₀ * (A₀ * B₀))
+      { rw [T.A₀B₀_commutes, ←mul_assoc B₀ B₀ A₀, ←pow_two, T.B₀_inv, one_mul], } },
+      repeat { conv in (B₀ * (A₁ * B₀))
+      { rw [T.A₁B₀_commutes, ←mul_assoc B₀ B₀ A₁, ←pow_two, T.B₀_inv, one_mul], } },
+      repeat { conv in (B₁ * (A₀ * B₁))
+      { rw [T.A₀B₁_commutes, ←mul_assoc B₁ B₁ A₀, ←pow_two, T.B₁_inv, one_mul], } },
+      repeat { conv in (B₁ * (A₁ * B₁))
+      { rw [T.A₁B₁_commutes, ←mul_assoc B₁ B₁ A₁, ←pow_two, T.B₁_inv, one_mul], } },
+      conv in (A₀ * (B₀ * (A₀ * B₁)))
+      { rw [←mul_assoc, T.A₀B₀_commutes, mul_assoc, ←mul_assoc A₀, ←pow_two, T.A₀_inv, one_mul], },
+      conv in (A₀ * (B₁ * (A₀ * B₀)))
+      { rw [←mul_assoc, T.A₀B₁_commutes, mul_assoc, ←mul_assoc A₀, ←pow_two, T.A₀_inv, one_mul], },
+      conv in (A₁ * (B₀ * (A₁ * B₁)))
+      { rw [←mul_assoc, T.A₁B₀_commutes, mul_assoc, ←mul_assoc A₁, ←pow_two, T.A₁_inv, one_mul], },
+      conv in (A₁ * (B₁ * (A₁ * B₀)))
+      { rw [←mul_assoc, T.A₁B₁_commutes, mul_assoc, ←mul_assoc A₁, ←pow_two, T.A₁_inv, one_mul], },
+      simp only [←pow_two, T.A₀_inv, T.A₁_inv],
+      simp only [mul_comm A₁ A₀, mul_comm B₁ B₀, mul_left_comm A₁ A₀, mul_left_comm B₁ B₀,
+        mul_left_comm B₀ A₀, mul_left_comm B₀ A₁, mul_left_comm B₁ A₀, mul_left_comm B₁ A₁],
+      norm_num,
+      simp only [mul_comm _ (2 : R), mul_comm _ (4 : R), mul_left_comm _ (2 : R), mul_left_comm _ (4 : R)],
+      abel, -- abel should succeed from there!
       },
     have sa : star P = P,
     { dsimp [P], sorry, },
@@ -99,14 +135,6 @@ local notation `√2` := (2^(2⁻¹ : ℝ) : ℝ)
 @[simp] lemma foo' {α : Type*} [add_comm_group α] [module ℝ α] {X : α} :
   (-2) •ℤ (2⁻¹ : ℝ) • X = - X := sorry
 
-example {α : Type} [add_comm_group α] {x y : α} (h : false) :
-   x = - y :=
-begin
-  abel,
-  abel, -- should fail, but instead inserts an additional `1 •ℤ `
-
-  exfalso, assumption,
-end
 
 /--
 In a noncommutative ordered *-algebra over ℝ,

@@ -29,7 +29,7 @@ begin
 end
 
 /-- Every subgroup of `ℤ` is cyclic. -/
-lemma int_subgroup_cyclic {H : add_subgroup ℤ} : ∃ a, H = add_subgroup.closure {a} :=
+lemma int.subgroup_cyclic (H : add_subgroup ℤ) : ∃ a, H = add_subgroup.closure {a} :=
 begin
   cases add_subgroup.bot_or_exists_ne_zero H with h h,
   { use 0,

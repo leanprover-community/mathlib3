@@ -397,8 +397,8 @@ begin
 end
 
 
-lemma le_ind_with_N (N : ℕ) {P : polynomial R → Prop}
- (Psum : ∀ p q : polynomial R, (P p) → (P q) → (P (p+q)))
+lemma pol_ind_with_N (N : ℕ) {P : polynomial R → Prop}
+ (Psum : ∀ (p q : polynomial R), (P p) → (P q) → (P (p+q)))
  (Pmon : ∀ r : R , ∀ n : ℕ , P (C r * X^n)) :
  ∀ p : polynomial R, p.support.card ≤ N.succ → P p :=
 begin
@@ -420,12 +420,12 @@ begin
             { exact Pmon (leading_coeff p) (nat_degree p), }, }, },
 end
 
-lemma le_ind (f : polynomial R) {P : polynomial R → Prop}
+lemma pol_ind (f : polynomial R) {P : polynomial R → Prop}
  {Psum : ∀ p q : polynomial R, (P p) → (P q) → (P (p+q))}
  {Pmon : ∀ r : R , ∀ n : ℕ , P (C r * X^n)} :
  P f :=
 begin
-  apply le_ind_with_N f.support.card Psum Pmon,
+  apply pol_ind_with_N f.support.card Psum Pmon,
   exact f.support.card.le_succ,
 end
 
@@ -454,7 +454,7 @@ end
 theorem le_nat_trailing_degree_C_mul_X_pow (n : ℕ) (H : f ≠ 0) : n ≤ nat_trailing_degree (f * X^n) :=
 begin
   revert H,
-  apply le_ind f,
+  apply pol_ind f,
     intros p q hp hq hpq,
     by_cases p0 : p = 0,
       rw [p0, zero_add],
@@ -524,6 +524,22 @@ begin
     simp [nat.sub_eq_zero_of_le (le_of_lt (h)), min_eq_left (nat.succ_le_of_lt (nat.sub_pos_of_lt h))], },
 end
 
+lemma rev_at_add {M N m n : ℕ} : rev_at (M + N) (m + n) = rev_at M m + rev_at N n :=
+begin
+  by_cases n0 : n ≤ N ∧ m ≤ M ∧ m+n ≤ M+N,
+    { rcases n0 with ⟨ n0, m0, mn0 ⟩,
+      rw rev_at_small n0,
+        rw rev_at_small m0,
+        rw rev_at_small (add_le_add m0 n0),
+        omega, },
+    {
+      push_neg at n0,
+      sorry,
+    },
+end
+
+
+
 
 def rev_support (f : polynomial R) : set ℕ := {a : ℕ | ∃ aa ∈ f.1 , a = rev_at (nat_degree f) aa}
 
@@ -558,17 +574,119 @@ def reflect : ℕ → polynomial R → polynomial R := λ N : ℕ , λ p : polyn
       rwa [rev_at_invol, eq_self_iff_true, and_true], },
 end ⟩
 
-
-@[simp] lemma reflect_zero {n : ℕ} : reflect n (0 : polynomial R) = 0 :=
-begin
-  refl,
-end
-
 @[simp] lemma reflect_add {f g : polynomial R} {n : ℕ} : reflect n (f+g) = reflect n f + reflect n g :=
 begin
   ext1,
   unfold reflect,
   simp only [coeff_mk, coeff_add],
+end
+
+
+@[simp] lemma reflect_term (N n : ℕ) {c : R} : reflect N (C c * X ^ n) = C c * X ^ (rev_at N n) :=
+begin
+  ext1,
+  unfold reflect,
+  rw coeff_mk,
+  by_cases h : rev_at N n = n_1,
+    { rw [h, coeff_C_mul, coeff_C_mul, coeff_X_pow_self, ← h, rev_at_invol, coeff_X_pow_self], },
+    { rw coeff_eq_zero_of_not_mem_support,
+        { symmetry,
+          apply coeff_eq_zero_of_not_mem_support,
+          intro,
+          apply h,
+          exact (mem_support_term a).symm, },
+        {
+          intro,
+          apply h,
+          rw ← @rev_at_invol N n_1,
+          apply congr_arg _,
+          exact (mem_support_term a).symm, }, },
+end
+
+
+
+lemma reflect_mul {f g : polynomial R} : reflect (f.nat_degree+g.nat_degree) (f*g) = reflect f.nat_degree (f) * reflect g.nat_degree (g) :=
+begin
+  revert f,
+  apply pol_ind g,
+    { intros p q hp hq f,
+      rw [mul_add, reflect_add, reflect_add, mul_add, @hp f, @hq f], },
+    {
+      intros r n f Hf,
+      apply pol_ind f,
+        {
+          intros p q hp hq,
+          rw [reflect_add, add_mul, add_mul, reflect_add, reflect_term, hp, hq, reflect_term],
+        },
+        {
+          intros r m,
+          rw [mul_assoc, X_pow_mul, mul_assoc, ← pow_add, ← mul_assoc, ← C_mul],
+          repeat {rw reflect_term},
+          rw [mul_assoc, X_pow_mul, mul_assoc, ← pow_add, ← mul_assoc, ← C_mul],
+          repeat {apply congr_arg},
+          by_cases n0 : n ≤ Ng,
+            by_cases m0 : m ≤ Nf,
+              rw rev_at_small n0,
+              rw rev_at_small m0,
+              rw add_comm,
+              rw rev_at_small (add_le_add n0 m0),
+              zify,
+
+
+
+          sorry,
+        },
+    },
+end
+
+
+#exit
+
+
+
+lemma reflect_mul {f g : polynomial R} {Nf Ng : ℕ} {Hf : (f).nat_degree ≤ Nf} {Hg : (g).nat_degree ≤ Ng} : reflect (Nf+Ng) (f*g) = reflect Nf (f) * reflect Ng (g) :=
+begin
+  revert f,
+  apply pol_ind g,
+    { intros p q hp hq f hf,
+      rw [mul_add, reflect_add, reflect_add, mul_add, @hp f hf, @hq f hf], },
+    {
+      intros r n f Hf,
+      apply pol_ind f,
+        {
+          intros p q hp hq,
+          rw [reflect_add, add_mul, add_mul, reflect_add, reflect_term, hp, hq, reflect_term],
+        },
+        {
+          intros r m,
+          rw [mul_assoc, X_pow_mul, mul_assoc, ← pow_add, ← mul_assoc, ← C_mul],
+          repeat {rw reflect_term},
+          rw [mul_assoc, X_pow_mul, mul_assoc, ← pow_add, ← mul_assoc, ← C_mul],
+          repeat {apply congr_arg},
+          by_cases n0 : n ≤ Ng,
+            by_cases m0 : m ≤ Nf,
+              rw rev_at_small n0,
+              rw rev_at_small m0,
+              rw add_comm,
+              rw rev_at_small (add_le_add n0 m0),
+              zify,
+
+
+
+          sorry,
+        },
+    },
+end
+
+
+
+
+#exit
+
+
+@[simp] lemma reflect_zero {n : ℕ} : reflect n (0 : polynomial R) = 0 :=
+begin
+  refl,
 end
 
 lemma coeff_eq_zero_of_not_mem_support {a : ℕ} : a ∉ f.support → f.coeff a = 0 :=
@@ -655,15 +773,26 @@ begin
     rw this,
     apply coeff_mul_X_pow,
     exact le_add_left n1s,
-    have : Ng < n_1, exact not_le.mp n1s,
-    rw rev_at_large this,
-    have : g.nat_degree < n_1,exact gt_of_gt_of_ge this Hg,
-    rw coeff_eq_zero_of_nat_degree_lt this,
-    simp * at *,
+    have Ngs : Ng < n_1, exact not_le.mp n1s,
+    rw rev_at_large Ngs,
+    have gdl : g.nat_degree < n_1,exact gt_of_gt_of_ge Ngs Hg,
+    rw coeff_eq_zero_of_nat_degree_lt gdl,
     by_cases hn : n_1 ≤ n + Ng,
       rw rev_at_small hn,
-      have : n+Ng - n_1 < n,linarith,
-      apply coeff_mul_X_pow,
+      have : n+Ng - n_1 < n,
+        sorry,
+      apply coeff_eq_zero_of_lt_nat_trailing_degree,
+      rw defs_by_Johann_trailing,
+      apply gt_of_ge_of_gt _ this,
+      apply le_min',
+      intros y hy,
+      sorry,
+      sorry,
+      rw not_le at hn,
+      rw rev_at_large hn,
+      apply coeff_eq_zero_of_nat_degree_lt,
+      apply gt_of_gt_of_ge hn _,
+
 
 --  tidy,
   sorry,
@@ -685,7 +814,7 @@ end
 lemma reflect_mul_ind {f g : polynomial R} {Nf Ng : ℕ} {Hf : (f).nat_degree ≤ Nf} {Hg : (g).nat_degree ≤ Ng} : reflect (Nf+Ng) (f*g) = reflect Nf (f) * reflect Ng (g) :=
 begin
   revert g,
-  apply le_ind f,
+  apply pol_ind f,
     { sorry, },
 --      intros p q hp hq g Hg,
 --      ext1,
@@ -716,7 +845,7 @@ end
 lemma reflect_mul_ind (N : ℕ) {f g : polynomial R} {h : f.nat_degree ≤ N} : reflect N (f*g) = reflect N (f) * reflect N (g) :=
 begin
   revert g,
-  apply le_ind f,
+  apply pol_ind f,
     intros p q hp hq g,
     simp [add_mul],
 

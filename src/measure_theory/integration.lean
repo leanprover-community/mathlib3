@@ -1463,13 +1463,11 @@ end lintegral
 namespace simple_func
 
 lemma restrict.compose_eq_multiply {α : Type*} [measurable_space α] (μ : measure α) 
-    (f : α → ennreal) (S : set α) (x : ennreal) :
-    measurable f →
-    is_measurable S →
+    (f : α → ennreal) (S : set α) (x : ennreal)
+    (A1 : measurable f) (A2 : is_measurable S) :
     ((const α x).restrict S).lintegral (μ.with_density f)
     = (∫⁻ a : α, (f * ⇑((const α x).restrict S)) a ∂ μ) :=
 begin
-  intros A1 A2,
   rw [restrict_const_lintegral,with_density_apply,←lintegral_indicator,
       restrict_const_eq_mul_indicator,lintegral_const_mul],
   apply measurable.indicator,

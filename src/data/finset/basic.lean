@@ -1372,7 +1372,7 @@ by { ext, rw [mem_filter, mem_image],
      simp only [and_imp, exists_prop, and_iff_right_iff_imp, exists_imp_distrib],
      rintros x xel rfl, exact h _ xel }
 
-lemma preimage_nonempty_iff_mem_image (f : α → β) (s : finset α) (y : β) :
+lemma fiber_nonempty_iff_mem_image (f : α → β) (s : finset α) (y : β) :
   (s.filter (λ x, f x = y)).nonempty ↔ y ∈ s.image f :=
 by simp [finset.nonempty]
 
@@ -1640,9 +1640,9 @@ theorem card_image_of_injective [decidable_eq β] {f : α → β} (s : finset α
   (H : function.injective f) : card (image f s) = card s :=
 card_image_of_inj_on $ λ x _ y _ h, H h
 
-lemma preimage_card_ne_zero_iff_mem_image (s : finset α) (f : α → β) [decidable_eq β] (y : β) :
+lemma fiber_card_ne_zero_iff_mem_image (s : finset α) (f : α → β) [decidable_eq β] (y : β) :
   (s.filter (λ x, f x = y)).card ≠ 0 ↔ y ∈ s.image f :=
-by { rw [←zero_lt_iff_ne_zero, card_pos, preimage_nonempty_iff_mem_image] }
+by { rw [←zero_lt_iff_ne_zero, card_pos, fiber_nonempty_iff_mem_image] }
 
 @[simp] lemma card_map {α β} (f : α ↪ β) {s : finset α} : (s.map f).card = s.card :=
 multiset.card_map _ _

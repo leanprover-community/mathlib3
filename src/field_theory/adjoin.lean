@@ -60,9 +60,9 @@ galois_insertion.lift_complete_lattice intermediate_field.gi
 lemma mem_bot {x : E} : x ∈ (⊥ : intermediate_field F E) ↔ x ∈ set.range (algebra_map F E) :=
 begin
   suffices : set.range (algebra_map F E) = (⊥ : intermediate_field F E),
-  {rw this, refl},
+  { rw this, refl },
   { change set.range (algebra_map F E) = subfield.closure (set.range (algebra_map F E) ∪ ∅),
-    simp[←set.image_univ,←ring_hom.map_field_closure] }
+    simp [←set.image_univ, ←ring_hom.map_field_closure] }
 end
 
 lemma mem_top {x : E} : x ∈ (⊤ : intermediate_field F E) :=

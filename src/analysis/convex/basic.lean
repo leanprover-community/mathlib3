@@ -623,8 +623,8 @@ begin
   replace key := mul_le_mul_of_nonneg_left key (le_of_lt h₃),
   field_simp [ne_of_gt h₁, ne_of_gt h₂, ne_of_gt h₃, mul_comm (z - x) _] at key ⊢,
   rw div_le_div_right,
-    { linarith, },
-    { nlinarith, },
+  { linarith, },
+  { nlinarith, },
 end
 
 /-- For a function `f` defined on a convex subset `D` of `ℝ`, `f` is convex on `D` iff for any three

@@ -135,6 +135,7 @@ theorem lift_comp_ι {A : Type*} [semiring A] [algebra R A] (g : exterior_algebr
   lift R (g.to_linear_map.comp (ι R)) (comp_ι_square_zero _) = g :=
 by { symmetry, rw ←lift_unique, }
 
+@[ext]
 theorem hom_ext {A : Type*} [semiring A] [algebra R A] {f g : exterior_algebra R M →ₐ[R] A} :
   f.to_linear_map.comp (ι R) = g.to_linear_map.comp (ι R) → f = g :=
 begin

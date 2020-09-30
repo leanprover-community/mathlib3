@@ -93,7 +93,7 @@ Group Theory:
   Abelian group:
     cyclic group: 'is_cyclic'
     finite type abelian groups: ''
-    complex roots of unity: 'complex.roots_of_unity_eq'
+    complex roots of unity: 'complex.mem_roots_of_unity'
     primitive complex roots of unity: 'complex.is_primitive_root_iff'
   Permutation group:
     permutation group of a type: 'equiv.perm'

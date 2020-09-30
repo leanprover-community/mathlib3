@@ -455,11 +455,12 @@ finset.card_le_card_of_inj_on f (λ _ _, finset.mem_univ _) (λ _ _ _ _ h, hf h)
 
 /--
 The pigeonhole principle for finitely many pigeons and pigeonholes.
-This is the `fintype` version of `finset.pigeonhole`.
+This is the `fintype` version of `finset.exists_ne_map_eq_of_card_lt_of_maps_to`.
 -/
-lemma pigeonhole (f : α → β) (h : fintype.card β < fintype.card α) :
+lemma exists_ne_map_eq_of_card_lt (f : α → β) (h : fintype.card β < fintype.card α) :
   ∃ x y, x ≠ y ∧ f x = f y :=
-let ⟨x, _, y, _, h⟩ := @finset.pigeonhole α β univ univ h f (by simp) in ⟨x, y, h⟩
+let ⟨x, _, y, _, h⟩ := finset.exists_ne_map_eq_of_card_lt_of_maps_to h (λ x _, mem_univ (f x))
+in ⟨x, y, h⟩
 
 lemma card_eq_one_iff : card α = 1 ↔ (∃ x : α, ∀ y, y = x) :=
 by rw [← card_unit, card_eq]; exact

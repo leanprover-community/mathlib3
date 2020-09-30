@@ -78,6 +78,20 @@ calc (∑ x in s₁, f x) ≤ (∑ x in s₂ \ s₁, f x) + (∑ x in s₁, f x)
 lemma sum_mono_set_of_nonneg (hf : ∀ x, 0 ≤ f x) : monotone (λ s, ∑ x in s, f x) :=
 λ s₁ s₂ hs, sum_le_sum_of_subset_of_nonneg hs $ λ x _ _, hf x
 
+lemma sum_fiberwise_le_sum_of_sum_fiber_nonneg [decidable_eq γ] {s : finset α} {t : finset γ}
+  {g : α → γ} {f : α → β} (h : ∀ y ∉ t, (0 : β) ≤ ∑ x in s.filter (λ x, g x = y), f x) :
+  (∑ y in t, ∑ x in s.filter (λ x, g x = y), f x) ≤ ∑ x in s, f x :=
+calc (∑ y in t, ∑ x in s.filter (λ x, g x = y), f x) ≤
+  (∑ y in t ∪ s.image g, ∑ x in s.filter (λ x, g x = y), f x) :
+  sum_le_sum_of_subset_of_nonneg (subset_union_left _ _) $ λ y hyts, h y
+... = ∑ x in s, f x :
+  sum_fiberwise_of_maps_to (λ x hx, mem_union.2 $ or.inr $ mem_image_of_mem _ hx) _
+
+lemma sum_le_sum_fiberwise_of_sum_fiber_nonpos [decidable_eq γ] {s : finset α} {t : finset γ}
+  {g : α → γ} {f : α → β} (h : ∀ y ∉ t, (∑ x in s.filter (λ x, g x = y), f x) ≤ 0) :
+  (∑ x in s, f x) ≤ ∑ y in t, ∑ x in s.filter (λ x, g x = y), f x :=
+@sum_fiberwise_le_sum_of_sum_fiber_nonneg α (order_dual β) _ _ _ _ _ _ _ h
+
 lemma sum_eq_zero_iff_of_nonneg : (∀x∈s, 0 ≤ f x) → ((∑ x in s, f x) = 0 ↔ ∀x∈s, f x = 0) :=
 begin
   classical,

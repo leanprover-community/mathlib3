@@ -1701,7 +1701,7 @@ end
 If there are more pigeons than pigeonholes, then there are two pigeons
 in the same pigeonhole.
 -/
-lemma pigeonhole {s : finset α} {t : finset β} (hc : t.card < s.card)
+lemma exists_ne_map_eq_of_card_lt_of_maps_to {s : finset α} {t : finset β} (hc : t.card < s.card)
   {f : α → β} (hf : ∀ a ∈ s, f a ∈ t) :
   ∃ (x ∈ s) (y ∈ s), x ≠ y ∧ f x = f y :=
 begin

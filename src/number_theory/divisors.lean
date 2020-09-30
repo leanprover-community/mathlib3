@@ -3,8 +3,8 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import data.nat.totient
-import number_theory.quadratic_reciprocity
+import algebra.big_operators.basic
+import tactic
 
 /-!
 # Divisor finsets

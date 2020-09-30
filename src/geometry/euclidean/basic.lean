@@ -607,7 +607,7 @@ def orthogonal_projection_of_nonempty_of_complete {s : affine_subspace ℝ P}
   linear := orthogonal_projection s.direction,
   map_vadd' := λ p v, begin
     have hs : (orthogonal_projection s.direction) v +ᵥ orthogonal_projection_fn hn hc p ∈ s :=
-      vadd_mem_of_mem_direction (orthogonal_projection_mem_real hc _)
+      vadd_mem_of_mem_direction (orthogonal_projection_mem hc _)
                                 (orthogonal_projection_fn_mem hn hc p),
     have ho : (orthogonal_projection s.direction) v +ᵥ orthogonal_projection_fn hn hc p ∈
       mk' (v +ᵥ p) s.direction.orthogonal,
@@ -616,7 +616,7 @@ def orthogonal_projection_of_nonempty_of_complete {s : affine_subspace ℝ P}
       refine submodule.add_mem _ (orthogonal_projection_fn_vsub_mem_direction_orthogonal hn hc p) _,
       rw submodule.mem_orthogonal',
       intros w hw,
-      rw [←neg_sub, inner_neg_left, orthogonal_projection_real_inner_eq_zero _ _ w hw, neg_zero] },
+      rw [←neg_sub, inner_neg_left, orthogonal_projection_inner_eq_zero _ _ w hw, neg_zero] },
     have hm : (orthogonal_projection s.direction) v +ᵥ orthogonal_projection_fn hn hc p ∈
       ({orthogonal_projection_fn hn hc (v +ᵥ p)} : set P),
     { rw ←inter_eq_singleton_orthogonal_projection_fn hn hc (v +ᵥ p),
@@ -871,7 +871,7 @@ def reflection (s : affine_subspace ℝ P) : P ≃ᵢ P :=
                  real_inner_comm (p₁ -ᵥ p₂)],
            ring }
   ... = -4 * 0 + ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫
-    : by rw orthogonal_projection_real_inner_eq_zero s.direction _ _ (_root_.orthogonal_projection_mem_real h.2 _)
+    : by rw orthogonal_projection_inner_eq_zero s.direction _ _ (_root_.orthogonal_projection_mem h.2 _)
   ... = ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫ : by simp },
     { simp [orthogonal_projection_def, h] }
   end }

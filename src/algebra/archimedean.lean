@@ -15,6 +15,39 @@ such that `0 < y` there exists a natural number `n` such that `x ≤ n •ℕ y`
 class archimedean (α) [ordered_add_comm_monoid α] : Prop :=
 (arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n •ℕ y)
 
+section linear_ordered_comm_group
+variables [decidable_linear_ordered_add_comm_group α] [archimedean α]
+
+/-- An archimedean decidable linearly ordered `add_comm_group` has a version of the floor: for `a > 0`,
+any `g` in the group lies between some two consecutive multiples of `a`. -/
+lemma floor_prop {a g : α} (ha : 0 < a) : ∃ k, k •ℤ a ≤ g ∧ g < (k + 1) •ℤ a :=
+begin
+  let s : set ℤ := {n : ℤ | n •ℤ a ≤ g},
+  obtain ⟨k, hk : -g ≤ k •ℕ a⟩ := archimedean.arch (-g) ha,
+  have h_ne : s.nonempty := ⟨-k, by simpa using neg_le_neg hk⟩,
+  obtain ⟨k, hk⟩ := archimedean.arch g ha,
+  have h_bdd : ∀ n ∈ s, n ≤ ↑k,
+  { intros n hn,
+    by_contra H,
+    refine not_lt.mpr _ (gsmul_lt_gsmul ha (not_le.mp H)),
+    exact le_trans hn hk },
+  obtain ⟨m, hm, hm'⟩ := int.exists_greatest_of_bdd ⟨k, h_bdd⟩ h_ne,
+  refine ⟨m, hm, _⟩,
+  by_contra H,
+  push_neg at H,
+  linarith [hm' _ H]
+end
+
+lemma floor_prop' {a g : α} (ha : 0 < a) : ∃ k, 0 ≤ g - k •ℤ a ∧ g - k •ℤ a < a :=
+begin
+  obtain ⟨k, h1, h2⟩ := floor_prop ha,
+  refine ⟨k, sub_nonneg.mpr h1, _⟩,
+  have : g < k •ℤ a + 1 •ℤ a, by rwa ← add_gsmul a k 1,
+  simpa [sub_lt_iff_lt_add']
+end
+
+end linear_ordered_comm_group
+
 theorem exists_nat_gt [linear_ordered_semiring α] [archimedean α]
   (x : α) : ∃ n : ℕ, x < n :=
 let ⟨n, h⟩ := archimedean.arch x zero_lt_one in

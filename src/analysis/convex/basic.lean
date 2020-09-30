@@ -605,25 +605,18 @@ begin
   have h₁ : 0 < y - x := by linarith,
   have h₂ : 0 < z - y := by linarith,
   have h₃ : 0 < z - x := by linarith,
-
   suffices : f y / (y - x) + f y / (z - y) ≤ f x / (y - x) + f z / (z - y),
     by { ring at this ⊢, linarith },
-
   set a := (z - y) / (z - x),
   set b := (y - x) / (z - x),
-
   have heqz : a • x + b • z = y, by { field_simp, rw div_eq_iff; [ring, linarith], },
-
   have key, from
-    hf.2
-      hx
-      hz
+    hf.2 hx hz
       (show 0 ≤ a, by apply div_nonneg; linarith)
       (show 0 ≤ b, by apply div_nonneg; linarith)
       (show a + b = 1, by { field_simp, rw div_eq_iff; [ring, linarith], }),
   rw heqz at key,
   replace key := mul_le_mul_of_nonneg_left key (le_of_lt h₃),
-
   field_simp [ne_of_gt h₁, ne_of_gt h₂, ne_of_gt h₃, mul_comm (z - x) _] at key ⊢,
   rw div_le_div_right,
     { linarith, },

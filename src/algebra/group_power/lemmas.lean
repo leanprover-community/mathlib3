@@ -48,6 +48,15 @@ theorem list.sum_repeat : ∀ (a : A) (n : ℕ), (list.repeat a n).sum = n •�
 @[simp, norm_cast] lemma units.coe_pow (u : units M) (n : ℕ) : ((u ^ n : units M) : M) = u ^ n :=
 (units.coe_hom M).map_pow u n
 
+lemma is_unit_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : 0 < n) :
+  is_unit x :=
+begin
+  cases n, { exact (nat.not_lt_zero _ hn).elim },
+  refine ⟨⟨x, x ^ n, _, _⟩, rfl⟩,
+  { rwa [pow_succ] at hx },
+  { rwa [pow_succ'] at hx }
+end
+
 end monoid
 
 theorem nat.nsmul_eq_mul (m n : ℕ) : m •ℕ n = m * n :=

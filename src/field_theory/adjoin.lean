@@ -218,26 +218,20 @@ section adjoin_subalgebra_lattice
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E] {α : E} {S : set E}
 
 lemma adjoin_eq_bot (h : S ⊆ (⊥ : intermediate_field F E)) : adjoin F S = ⊥ :=
-begin
-  rw eq_bot_iff,
-  intros x,
-  rw [subalgebra.mem_coe, subalgebra.mem_coe, algebra.mem_bot],
-  rw algebra.coe_bot at h,
-  apply adjoin_subset_subfield _ _ set.subset.rfl h,
-end
+eq_bot_iff.mpr ((adjoin_le_iff F S).mpr h)
 
 lemma adjoin_simple_eq_bot (hα : α ∈ (⊥ : intermediate_field F E)) : F⟮α⟯ = ⊥ :=
 adjoin_eq_bot (set.singleton_subset_iff.mpr hα)
 
 lemma adjoin_zero : F⟮(0 : E)⟯ = ⊥ :=
-adjoin_simple_eq_bot (algebra.mem_bot.mpr (is_add_submonoid.zero_mem))
+adjoin_simple_eq_bot (⊥ : intermediate_field F E).zero_mem
 
 lemma adjoin_one : F⟮(1 : E)⟯ = ⊥ :=
-adjoin_simple_eq_bot (algebra.mem_bot.mpr (is_submonoid.one_mem))
+adjoin_simple_eq_bot (⊥ : intermediate_field F E).one_mem
 
 lemma sub_bot_of_adjoin_sub_bot (h : adjoin F S = ⊥) : S ⊆ (⊥ : intermediate_field F E) :=
 calc S ⊆ adjoin F S : subset_adjoin _ _
-  ... = (⊥ : subalgebra F E) : congr_arg coe h
+  ... = (⊥ : intermediate_field F E) : congr_arg coe h
 
 lemma mem_bot_of_adjoin_simple_sub_bot (h : F⟮α⟯ = ⊥) : α ∈ (⊥ : intermediate_field F E) :=
 begin

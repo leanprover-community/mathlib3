@@ -169,24 +169,6 @@ lemma gsmul_mem {x : L} (hx : x ∈ S) (n : ℤ) :
 lemma coe_int_mem (n : ℤ) : (n : L) ∈ S :=
 by simp only [← gsmul_one, gsmul_mem, one_mem]
 
-instance : has_bot (intermediate_field K L) :=
-⟨{ neg_mem' := λ x hx, (⊥ : subalgebra K L).neg_mem hx,
-   inv_mem' := λ x hx,
-    begin
-      erw algebra.mem_bot at *,
-      exact Exists.cases_on (set.mem_range.mp hx) (λ y hy, ⟨y⁻¹, by rw [ring_hom.map_inv,hy]⟩),
-    end,
-   ..(⊥ : subalgebra K L) }⟩
-
-instance : has_top (intermediate_field K L) :=
-⟨{ neg_mem' := λ x hx, (⊤ : subalgebra K L).neg_mem hx,
-   inv_mem' := λ x hx, algebra.mem_top,
-   ..(⊤ : subalgebra K L) }⟩
-
-instance : bounded_lattice (intermediate_field K L) := sorry
-
-instance : inhabited (intermediate_field K L) := ⟨⊤⟩
-
 end intermediate_field
 
 /-- Turn a subalgebra closed under inverses into an intermediate field -/

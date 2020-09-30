@@ -77,8 +77,10 @@ equiv_to_opposite.symm.apply_eq_iff_eq_symm_apply _ _
 
 instance [inhabited α] : inhabited αᵒᵖ := ⟨op (default _)⟩
 
+@[simp]
 def op_induction {F : Π (X : αᵒᵖ), Sort v} (h : Π X, F (op X)) : Π X, F X :=
 λ X, h (unop X)
+
 end opposite
 
 namespace tactic

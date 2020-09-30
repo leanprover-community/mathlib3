@@ -1163,15 +1163,15 @@ eq_top_iff.2 $ λ x, mem_top
 def to_top : A →ₐ[R] (⊤ : subalgebra R A) :=
 by refine_struct { to_fun := λ x, (⟨x, mem_top⟩ : (⊤ : subalgebra R A)) }; intros; refl
 
-theorem surjective_algbera_map_iff :
+theorem surjective_algebra_map_iff :
   function.surjective (algebra_map R A) ↔ (⊤ : subalgebra R A) = ⊥ :=
 ⟨λ h, eq_bot_iff.2 $ λ y _, let ⟨x, hx⟩ := h y in hx ▸ subalgebra.algebra_map_mem _ _,
 λ h y, algebra.mem_bot.1 $ eq_bot_iff.1 h (algebra.mem_top : y ∈ _)⟩
 
-theorem bijective_algbera_map_iff {R A : Type*} [field R] [semiring A] [nontrivial A] [algebra R A] :
+theorem bijective_algebra_map_iff {R A : Type*} [field R] [semiring A] [nontrivial A] [algebra R A] :
   function.bijective (algebra_map R A) ↔ (⊤ : subalgebra R A) = ⊥ :=
-⟨λ h, surjective_algbera_map_iff.1 h.2,
-λ h, ⟨(algebra_map R A).injective, surjective_algbera_map_iff.2 h⟩⟩
+⟨λ h, surjective_algebra_map_iff.1 h.2,
+λ h, ⟨(algebra_map R A).injective, surjective_algebra_map_iff.2 h⟩⟩
 
 /-- The bottom subalgebra is isomorphic to the base ring. -/
 def bot_equiv_of_injective (h : function.injective (algebra_map R A)) :

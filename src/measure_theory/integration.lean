@@ -392,6 +392,20 @@ theorem restrict_apply (f : α →ₛ β) {s : set α} (hs : is_measurable s) (a
   restrict f s a = if a ∈ s then f a else 0 :=
 by simp only [hs, coe_restrict]
 
+lemma restrict_const_eq_mul_indicator 
+    (f : α → ennreal) (s : set α) (x : ennreal) : (is_measurable s) →
+    (f * ⇑((const α x).restrict s)) = λ ω, (x * (set.indicator s f ω)) := 
+begin
+  intro A1,
+  apply funext,
+  intro ω,
+  simp,
+  rw [restrict_apply, const_apply],
+  simp,
+  rw mul_comm,
+  apply A1,
+end
+
 theorem restrict_preimage (f : α →ₛ β) {s : set α} (hs : is_measurable s)
   {t : set β} (ht : (0:β) ∉ t) : restrict f s ⁻¹' t = s ∩ f ⁻¹' t :=
 by simp [hs, indicator_preimage_of_not_mem _ _ ht]
@@ -1445,7 +1459,26 @@ measure.of_measurable_apply s hs
 
 end lintegral
 
+
+namespace simple_func
+
+lemma restrict.compose_eq_multiply {α:Type*} [measurable_space α] (μ:measure α) 
+    (f:α → ennreal) (S:set α) (x:ennreal):
+    measurable f →
+    is_measurable S →
+    ((const α x).restrict S).lintegral (μ.with_density f)
+    = (∫⁻ a:α, (f * ⇑((const α x).restrict S)) a ∂ μ) :=
+begin
+  intros A1 A2,
+  rw [restrict_const_lintegral,with_density_apply,←lintegral_indicator,
+      restrict_const_eq_mul_indicator,lintegral_const_mul],
+  apply measurable.indicator,
+  repeat {assumption},
+end
+
+end simple_func
 end measure_theory
+
 
 open measure_theory measure_theory.simple_func
 /-- To prove something for an arbitrary measurable function into `ennreal`, it suffices to show

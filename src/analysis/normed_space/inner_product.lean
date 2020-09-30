@@ -1037,15 +1037,45 @@ use `euclidean_space 𝕜 (fin n)`.  -/
 def euclidean_space (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜] [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 one_le_two (λ (i : n), 𝕜)
 
-instance has_inner.complex_to_real {G : Type*} [has_inner ℂ G] : has_inner ℝ G :=
+section is_R_or_C_to_real
+
+variables {G : Type*}
+
+/-- A complex inner product implies a real inner product -/
+instance has_inner.complex_to_real [has_inner ℂ G] : has_inner ℝ G :=
 { inner := λ x y, re ⟪x, y⟫_ℂ }
 
-instance inner_product_space.complex_to_real {G : Type*} [inner_product_space ℂ G] : inner_product_space ℝ G :=
+/-- A complex inner product implies a real inner product -/
+instance inner_product_space.complex_to_real [inner_product_space ℂ G] : inner_product_space ℝ G :=
 { norm_sq_eq_inner := norm_sq_eq_inner,
   conj_sym := λ x y, inner_re_symm,
   nonneg_im := λ x, rfl,
   add_left := λ x y z, by { change re ⟪x + y, z⟫_ℂ = re ⟪x, z⟫_ℂ + re ⟪y, z⟫_ℂ, simp [inner_add_left] },
   smul_left := λ x y r, by { change re ⟪(r : ℂ) • x, y⟫_ℂ = r * re ⟪x, y⟫_ℂ, simp [inner_smul_left] } }
+
+/-- A complex inner product implies a real inner product. This is not registered as an instance
+since it creates problems with the case 𝕜 = ℝ. -/
+def has_inner.is_R_or_C_to_real : has_inner ℝ E :=
+{ inner := λ x y, re ⟪x, y⟫ }
+
+/-- A complex inner product implies a real inner product. This is not registered as an instance
+since it creates problems with the case 𝕜 = ℝ. -/
+def inner_product_space.is_R_or_C_to_real : inner_product_space ℝ E :=
+{ norm_sq_eq_inner := norm_sq_eq_inner,
+  conj_sym := λ x y, inner_re_symm,
+  nonneg_im := λ x, rfl,
+  add_left := λ x y z, by { change re ⟪x + y, z⟫ = re ⟪x, z⟫ + re ⟪y, z⟫, simp [inner_add_left] },
+  smul_left :=
+  begin
+    intros x y r,
+    change re ⟪(algebra_map ℝ 𝕜 r) • x, y⟫ = r * re ⟪x, y⟫,
+    have : algebra_map ℝ 𝕜 r = r • (1 : 𝕜) := by simp [algebra_map, algebra.smul_def'],
+    simp [this, inner_smul_left, smul_coe_mul_ax],
+  end,
+  ..has_inner.is_R_or_C_to_real,
+  ..normed_space.restrict_scalars' ℝ 𝕜 E }
+
+end is_R_or_C_to_real
 
 section pi_Lp
 local attribute [reducible] pi_Lp
@@ -1068,20 +1098,16 @@ section orthogonal
 
 open filter
 
-include 𝕜
 /--
 Existence of minimizers
-Let `u` be a point in an inner product space, and let `K` be a nonempty complete convex subset.
+Let `u` be a point in a real inner product space, and let `K` be a nonempty complete convex subset.
 Then there exists a unique `v` in `K` that minimizes the distance `∥u - v∥` to `u`.
  -/
 -- FIXME this monolithic proof causes a deterministic timeout with `-T50000`
 -- It should be broken in a sequence of more manageable pieces,
 -- perhaps with individual statements for the three steps below.
-/- Normally we would want `[is_scalar_tower ℝ 𝕜 E]` in applications as well, to ensure that this
-`[normed_space ℝ E]` instance is compatible with the `[normed_space 𝕜 E]` defined above, but
-here this is not strictly needed as these lemmas never use the 𝕜 instance. -/
-theorem exists_norm_eq_infi_of_complete_convex [normed_space ℝ E] {K : set E} (ne : K.nonempty) (h₁ : is_complete K)
-  (h₂ : convex K) : ∀ u : E, ∃ v ∈ K, ∥u - v∥ = ⨅ w : K, ∥u - w∥ := assume u,
+theorem exists_norm_eq_infi_of_complete_convex {K : set F} (ne : K.nonempty) (h₁ : is_complete K)
+  (h₂ : convex K) : ∀ u : F, ∃ v ∈ K, ∥u - v∥ = ⨅ w : K, ∥u - w∥ := assume u,
 begin
   let δ := ⨅ w : K, ∥u - w∥,
   letI : nonempty K := ne.to_subtype,
@@ -1106,7 +1132,7 @@ begin
     exact tendsto_of_tendsto_of_tendsto_of_le_of_le h h'
       (λ x, δ_le _) (λ x, le_of_lt (hw _)) },
   -- Step 2: Prove that the sequence `w : ℕ → K` is a Cauchy sequence
-  have seq_is_cauchy : cauchy_seq (λ n, ((w n):E)),
+  have seq_is_cauchy : cauchy_seq (λ n, ((w n):F)),
   { rw cauchy_seq_iff_le_tendsto_0, -- splits into three goals
     let b := λ n:ℕ, (8 * δ * (1/(n+1)) + 4 * (1/(n+1)) * (1/(n+1))),
     use (λn, sqrt (b n)),
@@ -1116,7 +1142,7 @@ begin
     split,
     -- second goal : `∀ (n m N : ℕ), N ≤ n → N ≤ m → dist ↑(w n) ↑(w m) ≤ sqrt (b N)`
     assume p q N hp hq,
-    let wp := ((w p):E), let wq := ((w q):E),
+    let wp := ((w p):F), let wq := ((w q):F),
     let a := u - wq, let b := u - wp,
     let half := 1 / (2:ℝ), let div := 1 / ((N:ℝ) + 1),
     have : 4 * ∥u - half • (wq + wp)∥ * ∥u - half • (wq + wp)∥ + ∥wp - wq∥ * ∥wp - wq∥ =
@@ -1133,7 +1159,9 @@ begin
         rw [smul_sub, smul_smul, mul_one_div_cancel (_root_.two_ne_zero : (2 : ℝ) ≠ 0),
             ← one_add_one_eq_two, add_smul],
         simp only [one_smul],
-        have eq₁ : wp - wq = a - b, show wp - wq = (u - wq) - (u - wp), abel,
+        have eq₁ : wp - wq = a - b := calc
+            wp - wq = (u - wq) - (u - wp)    : by rw [sub_sub_assoc_swap, add_sub_assoc, sub_add_sub_cancel']
+                ... = a - b                  : rfl,
         have eq₂ : u + u - (wq + wp) = a + b, show u + u - (wq + wp) = (u - wq) + (u - wp), abel,
         rw [eq₁, eq₂],
       end
@@ -1188,7 +1216,6 @@ begin
   exact tendsto_nhds_unique this norm_tendsto,
   exact subtype.mem _
 end
-omit 𝕜
 
 /-- Characterization of minimizers in the above theorem, in the real case. -/
 theorem norm_eq_infi_iff_real_inner_le_zero {K : set F} (h : convex K) {u : F} {v : F}
@@ -1271,18 +1298,15 @@ begin
       apply cinfi_le, use 0, rintros y ⟨z, rfl⟩, exact norm_nonneg _ }
 end
 
-include 𝕜
 /--
 Existence of minimizers.
 Let `u` be a point in an inner product space, and let `K` be a nonempty complete subspace.
 Then there exists a unique `v` in `K` that minimizes the distance `∥u - v∥` to `u`.
 This point `v` is usually called the orthogonal projection of `u` onto `K`.
 -/
-theorem exists_norm_eq_infi_of_complete_subspace [normed_space ℝ E] (K : subspace ℝ E)
-  (h : is_complete (↑K : set E)) : ∀ u : E, ∃ v ∈ K, ∥u - v∥ = ⨅ w : (↑K : set E), ∥u - w∥ :=
+theorem exists_norm_eq_infi_of_complete_subspace (K : subspace ℝ F)
+  (h : is_complete (↑K : set F)) : ∀ u : F, ∃ v ∈ K, ∥u - v∥ = ⨅ w : (↑K : set F), ∥u - w∥ :=
 exists_norm_eq_infi_of_complete_convex ⟨0, K.zero_mem⟩ h K.convex
-
-omit 𝕜
 
 /--
 Characterization of minimizers in the above theorem.
@@ -1325,23 +1349,20 @@ begin
   exacts [submodule.convex _, hv]
 end
 
-include 𝕜
 /-- The orthogonal projection onto a complete subspace, as an
 unbundled function.  This definition is only intended for use in
 setting up the bundled version `orthogonal_projection` and should not
 be used once that is defined. -/
-def orthogonal_projection_fn [normed_space ℝ E] {K : submodule ℝ E} (h : is_complete (K : set E)) (v : E) :=
-(exists_norm_eq_infi_of_complete_subspace K h v).some
+def orthogonal_projection_fn {K : subspace ℝ F} (h : is_complete (K : set F)) (v : F) :=
+(@exists_norm_eq_infi_of_complete_subspace F _ K h v).some
 
 
 /-- The unbundled orthogonal projection is in the given subspace.
 This lemma is only intended for use in setting up the bundled version
 and should not be used once that is defined. -/
-lemma orthogonal_projection_fn_mem [normed_space ℝ E] {K : submodule ℝ E} (h : is_complete (K : set E)) (v : E) :
+lemma orthogonal_projection_fn_mem {K : submodule ℝ F} (h : is_complete (K : set F)) (v : F) :
   orthogonal_projection_fn h v ∈ K :=
 (exists_norm_eq_infi_of_complete_subspace K h v).some_spec.some
-
-omit 𝕜
 
 /-- The characterization of the unbundled orthogonal projection.  This
 lemma is only intended for use in setting up the bundled version

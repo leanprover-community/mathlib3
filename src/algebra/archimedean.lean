@@ -26,16 +26,12 @@ begin
   obtain ⟨k, hk : -g ≤ k •ℕ a⟩ := archimedean.arch (-g) ha,
   have h_ne : s.nonempty := ⟨-k, by simpa using neg_le_neg hk⟩,
   obtain ⟨k, hk⟩ := archimedean.arch g ha,
-  have h_bdd : ∀ n ∈ s, n ≤ ↑k,
-  { intros n hn,
-    by_contra H,
-    refine not_lt.mpr _ (gsmul_lt_gsmul ha (not_le.mp H)),
-    exact le_trans hn hk },
+  have h_bdd : ∀ n ∈ s, n ≤ (k : ℤ) :=
+    λ n hn, (gsmul_le_gsmul_iff ha).mp (le_trans hn hk : n •ℤ a ≤ k •ℤ a),
   obtain ⟨m, hm, hm'⟩ := int.exists_greatest_of_bdd ⟨k, h_bdd⟩ h_ne,
   refine ⟨m, hm, _⟩,
   by_contra H,
-  push_neg at H,
-  linarith [hm' _ H]
+  linarith [hm' _ $ not_lt.mp H]
 end
 
 lemma floor_prop' {a g : α} (ha : 0 < a) : ∃ k, 0 ≤ g - k •ℤ a ∧ g - k •ℤ a < a :=

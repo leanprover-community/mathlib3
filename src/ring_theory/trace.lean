@@ -76,7 +76,7 @@ begin
     rcases set.mem_insert_iff.mp hx with rfl | ⟨_, ⟨⟩⟩,
     exact ⟨X, (aeval_X _).symm⟩ },
   { intros x,
-    exact ⟨C x, (aeval_C _ _).symm⟩ },
+    refine ⟨C x, (aeval_C _ _).symm⟩ },
   { rintros x y ⟨fx, rfl⟩ ⟨fy, rfl⟩,
     exact ⟨fx + fy, (ring_hom.map_add _ _ _).symm⟩ },
   { rintros x ⟨fx, rfl⟩,
@@ -108,6 +108,63 @@ noncomputable def has_power_basis_of_is_simple_extension
 { dim := (is_simple_extension.minimal_polynomial alg).nat_degree,
   gen := is_simple_extension.primitive_element K L,
   is_basis := is_simple_extension.power_basis_is_basis alg }
+
+lemma gen_simple_extension (alg : is_algebraic K L) [is_simple_extension K L] :
+  (has_power_basis_of_is_simple_extension _ alg).gen = is_simple_extension.primitive_element K L :=
+rfl
+
+@[simp] lemma total_power_basis_eq {n : ℕ} (f : fin n →₀ K) :
+  finsupp.total _ _ _ (λ i : fin n, x  ^(i : ℕ)) f =
+  aeval x (finsupp.emb_fin_nat f) :=
+by simp_rw [aeval_def, eval₂_eq_sum, finsupp.total_apply, finsupp.emb_fin_nat_sum, algebra.smul_def]
+
+lemma linear_independent_power_basis (hx : is_integral K x) :
+  linear_independent K (λ (i : fin (minimal_polynomial hx).nat_degree),
+    adjoin_simple.gen K x ^ (i : ℕ)) :=
+begin
+  rw linear_independent_iff,
+  intros p hp,
+  rw total_power_basis_eq at hp,
+  rw ← finsupp.emb_fin_nat_eq_zero,
+  refine minimal_polynomial.eq_zero_of_degree_lt hx _ hp,
+  rw degree_eq_nat_degree (minimal_polynomial.ne_zero _),
+  exact polynomial.degree_emb_fin_nat_lt _
+end
+
+lemma mem_span_power_basis (y : K⟮x⟯) : y ∈ submodule.span K (set.range (power_basis alg)) :=
+begin
+  have mp_monic := minimal_polynomial.monic (primitive_element_is_integral alg),
+  have mp_ne_zero := minimal_polynomial.ne_zero (primitive_element_is_integral alg),
+
+  obtain ⟨f, rfl⟩ := exists_eq_aeval_primitive_element K L x alg,
+  change (eval₂ (algebra_map K L) (primitive_element K L)) f ∈
+    submodule.span K (set.range (power_basis alg)),
+  rw [← polynomial.eval₂_mod_by_monic_eq_self_of_root mp_monic (minimal_polynomial.aeval _),
+    eval₂_eq_sum, finsupp.sum],
+  refine submodule.sum_mem _ (λ i i_mem, _),
+  rw ← algebra.smul_def,
+  by_cases hi : i < simple_degree alg,
+  { exact submodule.smul_mem _ _ (submodule.subset_span ⟨⟨i, hi⟩, rfl⟩) },
+  convert submodule.zero_mem _,
+  convert zero_smul _ _,
+  refine coeff_eq_zero_of_degree_lt _,
+  calc (f %ₘ minimal_polynomial _).degree
+      < (minimal_polynomial _).degree : degree_mod_by_monic_lt _ mp_monic mp_ne_zero
+  ... ≤ (minimal_polynomial _).nat_degree : degree_le_nat_degree
+  ... ≤ i : with_bot.some_le_some.mpr (le_of_not_gt hi),
+end
+
+noncomputable def has_power_basis_adjoin_simple
+  (K) [field K] [algebra K L] (alg : is_algebraic K L) (x : L) :
+  has_power_basis K K⟮x⟯ :=
+let hx := ((is_algebraic_iff_is_integral _).mp (alg x)) in
+{ dim := (minimal_polynomial ((is_algebraic_iff_is_integral _).mp (alg x))).nat_degree,
+  gen := field.adjoin_simple.gen K x,
+  is_basis := ⟨linear_independent_power_basis _, _⟩ }
+
+@[simp] lemma gen_adjoin_simple (alg : is_algebraic K L) :
+  (has_power_basis_adjoin_simple _ alg x).gen = adjoin_simple.gen K x :=
+by rw [has_power_basis_adjoin_simple, gen_simple_extension]
 
 lemma findim_eq_dim (h : has_power_basis K L) :
   findim K L = h.dim :=
@@ -616,31 +673,70 @@ noncomputable def lmul_matrix : S →ₐ[R] matrix ι ι R :=
 lemma lmul_matrix_apply (x : S) (i j) :
   lmul_matrix hb x i j = linear_equiv_matrix hb hb (lmul R S x) i j := rfl
 
+lemma trace_eq_matrix_trace (x : S) :
+  algebra.trace R S x = matrix.trace _ R R (lmul_matrix hb x) :=
+by { rw [trace_apply, trace_eq_matrix_trace _ hb], congr }
+
 section
 
-lemma lmul_matrix_smul_gen [algebra S T] [is_scalar_tower R S T] (h : has_power_basis R S)
-  {b : ι → T} (hb : is_basis S b) (ni nj ki kj) :
-  lmul_matrix (h.is_basis.smul hb) (algebra_map _ _ h.gen) (ni, ki) (nj, kj) =
-    if kj = ki then lmul_matrix h.is_basis h.gen ni nj else 0 :=
+def linear_map.restrict_base (R : Type*) {S M M' : Type*} [comm_semiring R] [semiring S] [algebra R S]
+  [add_comm_monoid M] [semimodule R M] [semimodule S M] [is_scalar_tower R S M]
+  [add_comm_monoid M'] [semimodule R M'] [semimodule S M'] [is_scalar_tower R S M']
+  (l : M →ₗ[S] M') : M →ₗ[R] M' :=
+{ map_smul' := λ c x,
+    show l (c • x) = c • l x,
+    by rw [← is_scalar_tower.algebra_map_smul S c x, l.map_smul, is_scalar_tower.algebra_map_smul],
+  .. (l.to_add_monoid_hom) }
+
+@[simp] lemma linear_map.restrict_base_apply
+  (R : Type*) {S M M' : Type*} [comm_semiring R] [semiring S] [algebra R S]
+  [add_comm_monoid M] [semimodule R M] [semimodule S M] [is_scalar_tower R S M]
+  [add_comm_monoid M'] [semimodule R M'] [semimodule S M'] [is_scalar_tower R S M']
+  (l : M →ₗ[S] M') (x : M) : l.restrict_base R x = l x := rfl
+
+instance is_scalar_tower.finsupp {α : Type*} : is_scalar_tower R S (α →₀ S) :=
+⟨λ r s t, finsupp.ext (λ x, show ((r • s) • t x) = (r • s • t x), by { rw [smul_assoc] })⟩
+
+lemma lmul_matrix_smul {κ : Type*} [fintype κ] [decidable_eq κ] [algebra S T] [is_scalar_tower R S T]
+  {b : ι → S} (hb : is_basis R b) {c : κ → T} (hc : is_basis S c) (x) (i j) (k k') :
+  lmul_matrix (hb.smul hc) x (i, k) (j, k') = lmul_matrix hb (lmul_matrix hc x k k') i j :=
+by simp only [lmul_matrix_apply, linear_equiv_matrix_apply, is_basis.equiv_fun_apply, mul_comm,
+              is_basis.smul_repr, finsupp.smul_apply, lmul_apply, id.smul_eq_mul,
+              map_smul_eq_smul_map, mul_smul_comm]
+
+lemma lmul_matrix_smul_algebra_map {κ : Type*} [fintype κ] [decidable_eq κ]
+  {b : ι → S} (hb : is_basis R b) {c : κ → T} (hc : is_basis S c) (x : S) :
+  lmul_matrix (hb.smul hc) (algebra_map _ _ x) = block_matrix' (λ k, lmul_matrix hb x) :=
 begin
-  rw [lmul_matrix_apply, lmul_matrix_apply, linear_equiv_matrix_lmul,
-      is_basis.smul_repr_mk, linear_equiv_matrix_lmul, ← algebra.smul_def, linear_map.map_smul,
-      linear_map.map_smul, finsupp.smul_apply, finsupp.smul_apply, hb.repr_self_apply],
-  dsimp only,
-  split_ifs; simp only [mul_one, smul_eq_mul, linear_map.map_zero, finsupp.zero_apply, mul_zero]
+  ext ⟨i, k⟩ ⟨j, k'⟩,
+  rw [lmul_matrix_smul, alg_hom.commutes, block_matrix'_apply_mk, algebra_map_matrix_apply],
+  split_ifs with h; simp [h],
 end
 
-lemma lmul_matrix_smul_gen_eq [algebra S T] [is_scalar_tower R S T] (h : has_power_basis R S)
-  {b : ι → T} (hb : is_basis S b) (ni nj ki) :
-  lmul_matrix (h.is_basis.smul hb) (algebra_map _ _ h.gen) (ni, ki) (nj, ki) =
-    lmul_matrix h.is_basis h.gen ni nj :=
-trans (lmul_matrix_smul_gen h hb ni nj ki ki) (if_pos rfl)
+lemma lmul_matrix_smul_algebra_map_eq {κ : Type*} [fintype κ] [decidable_eq κ]
+  {b : ι → S} (hb : is_basis R b) {c : κ → T} (hc : is_basis S c) (x : S) (i j k) :
+  lmul_matrix (hb.smul hc) (algebra_map _ _ x) (i, k) (j, k) = lmul_matrix hb x i j :=
+by rw [lmul_matrix_smul_algebra_map, block_matrix'_apply_eq]
 
-lemma lmul_matrix_smul_gen_ne [algebra S T] [is_scalar_tower R S T] (h : has_power_basis R S)
-  [decidable_eq ι] {b : ι → T} (hb : is_basis S b) (ni nj) {ki kj} (hk : kj ≠ ki) :
-  lmul_matrix (h.is_basis.smul hb) (algebra_map _ _ h.gen) (ni, ki) (nj, kj) = 0 :=
-trans (lmul_matrix_smul_gen h hb ni nj ki kj) (if_neg hk)
+lemma lmul_matrix_smul_algebra_map_ne {κ : Type*} [fintype κ] [decidable_eq κ]
+  {b : ι → S} (hb : is_basis R b) {c : κ → T} (hc : is_basis S c) (x : S) (i j) {k k'}
+  (h : k ≠ k') : lmul_matrix (hb.smul hc) (algebra_map _ _ x) (i, k) (j, k') = 0 :=
+by rw [lmul_matrix_smul_algebra_map, block_matrix'_apply_ne _ _ _ h]
 
+end
+
+lemma trace_comp_of_basis [algebra S T] [is_scalar_tower R S T]
+  {ι κ : Type*} [fintype ι] [fintype κ] [decidable_eq ι] [decidable_eq κ] {b : ι → S} {c : κ → T}
+  (hb : is_basis R b) (hc : is_basis S c) (x : T) :
+  algebra.trace R T x = trace R S (trace S T x) :=
+begin
+  rw [trace_eq_matrix_trace (hb.smul hc), trace_eq_matrix_trace hb, trace_eq_matrix_trace hc,
+      matrix.trace_apply, matrix.trace_apply, matrix.trace_apply,
+      ← finset.univ_product_univ, finset.sum_product],
+  refine finset.sum_congr rfl (λ i _, _),
+  rw [alg_hom.map_sum, finset.sum_apply, finset.sum_apply],
+      refine finset.sum_congr rfl (λ j _, _),
+  apply lmul_matrix_smul
 end
 
 lemma aeval_lmul_matrix (p : polynomial R) (x : S) :
@@ -675,21 +771,22 @@ begin
     exact dim_le_nat_degree_of_root h q_monic.ne_zero root_q }
 end
 
-lemma char_matrix_lmul_matrix_smul [algebra K R] [algebra L R] [is_scalar_tower K L R]
-  (h : has_power_basis K L) {c : ι → R} (hc : is_basis L c) :
-  char_matrix (lmul_matrix (h.is_basis.smul hc) (algebra_map L R h.gen)) =
-    block_matrix' (λ _, char_matrix (lmul_matrix h.is_basis h.gen)) :=
+lemma char_matrix_lmul_matrix_smul {κ : Type*} [fintype κ] [decidable_eq κ]
+  {b : ι → S} (hb : is_basis R b) {c : κ → T} (hc : is_basis S c) (x : S) :
+  char_matrix (lmul_matrix (hb.smul hc) (algebra_map _ _ x)) =
+    block_matrix' (λ _, char_matrix (lmul_matrix hb x)) :=
 begin
   ext ⟨i, k⟩ ⟨j, k'⟩,
   rw block_matrix'_apply_mk,
   split_ifs with hk,
   { rw hk,
     by_cases hij : i = j,
-    { rw [hij, char_matrix_apply_eq, char_matrix_apply_eq, lmul_matrix_smul_gen_eq] },
+    { rw [hij, char_matrix_apply_eq, char_matrix_apply_eq, lmul_matrix_smul_algebra_map_eq] },
     { have : (i, k') ≠ (j, k') := mt prod.fst_eq_iff.mpr hij,
-      rw [char_matrix_apply_ne _ this, char_matrix_apply_ne _ hij, lmul_matrix_smul_gen_eq] } },
+      rw [char_matrix_apply_ne _ this, char_matrix_apply_ne _ hij,
+          lmul_matrix_smul_algebra_map_eq] } },
   { have : (i, k) ≠ (j, k') := mt prod.mk.inj_iff.mp (not_and.mpr (λ _, hk)),
-    rw [char_matrix_apply_ne _ this, lmul_matrix_smul_gen_ne h hc _ _ (ne.symm hk),
+    rw [char_matrix_apply_ne _ this, lmul_matrix_smul_algebra_map_ne hb hc _ _ _ hk,
         polynomial.C.map_zero, neg_zero] },
 end
 
@@ -702,25 +799,24 @@ begin
       char_matrix_lmul_matrix_smul, det_block_matrix', finset.prod_const, finset.card_univ],
 end
 
-lemma char_poly_eq_minimal_polynomial_pow (x : L) [finite_dimensional K L] :
-  char_poly (lmul_matrix _ (algebra_map L R h.gen)) =
-    (minimal_polynomial (gen_is_integral h))^(findim K⟨x⟩ L) :=
-begin
-  
-end
+instance finite_dimensional.tower_top {V : Type*} [add_comm_group V]
+  [vector_space K V] [vector_space L V] [is_scalar_tower K L V]
+  [finite_dimensional K V] : finite_dimensional L V := sorry
 
-lemma trace_comp_of_basis [algebra S T] [is_scalar_tower R S T]
-  {ι κ : Type*} [fintype ι] [fintype κ] [decidable_eq ι] [decidable_eq κ] {b : ι → S} {c : κ → T}
-  (hb : is_basis R b) (hc : is_basis S c) (x : T) :
-  algebra.trace R T x = trace R S (trace S T x) :=
+lemma char_poly_eq_minimal_polynomial_pow (x : L) [finite_dimensional K L]
+  {b : ι → L} (hb : is_basis K b) :
+  char_poly (lmul_matrix hb x) =
+    (minimal_polynomial ((is_algebraic_iff_is_integral K).mp (is_algebraic_of_finite x)))^(findim K⟮x⟯ L) :=
 begin
-  haveI hι : nonempty ι := _,
-  haveI hκ : nonempty κ := _,
-  haveI : nonempty (ι × κ) := prod.nonempty,
-  rw [trace_apply R T, trace_eq_matrix_trace R (hb.smul hc)],
-  have := trace_eq_neg_char_poly_coeff (linear_equiv_matrix (hb.smul hc) (hb.smul hc) (lmul R T x)),
-  simp at this ⊢,
-  refine trans this _,
+  obtain ⟨c, hc⟩ := exists_is_basis_finset K⟮x⟯ L,
+  haveI : decidable_eq (@coe_sort.{(max (u_6+1) 1) (max 1 (u_6+1))+1} (set.{u_6} L) (@set.has_coe_to_sort.{u_6} L)
+  (@coe.{u_6+1 (max (u_6+1) 1)} (finset.{u_6} L) (set.{u_6} L)
+  (@lift_base.{u_6+1 (max (u_6+1) 1)} (finset.{u_6} L) (set.{u_6} L) (@finset.has_lift.{u_6} L))
+  c)) := λ _ _, classical.prop_decidable _,
+  rw findim_eq_card_basis hc,
+  let h := has_power_basis_adjoin_simple K is_algebraic_of_finite x,
+  have : char_poly (lmul_matrix hb x) = char_poly (lmul_matrix (h.is_basis.smul hc) x) := sorry,
+  rw [this, char_poly_lmul_matrix_smul h hc],
 end
 
 lemma repr_primitive_element_pow_of_lt'

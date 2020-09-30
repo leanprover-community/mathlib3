@@ -218,3 +218,11 @@ lemma div_sq_cancel {a : G₀} (ha : a ≠ 0) (b : G₀) : a ^ 2 * b / a = a * b
 by rw [pow_two, mul_assoc, mul_div_cancel_left _ ha]
 
 end
+
+/-- If a monoid homomorphism `f` between two `group_with_zero`s maps `0` to `0`, then it maps `x^n`,
+`n : ℤ`, to `(f x)^n`. -/
+lemma monoid_hom.map_fpow {G₀ G₀' : Type*} [group_with_zero G₀] [group_with_zero G₀']
+  (f : G₀ →* G₀') (h0 : f 0 = 0) (x : G₀) :
+  ∀ n : ℤ, f (x ^ n) = f x ^ n
+| (n : ℕ) := f.map_pow x n
+| -[1+n] := (f.map_inv' h0 _).trans $ congr_arg _ $ f.map_pow x _

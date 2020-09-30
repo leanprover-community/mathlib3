@@ -271,17 +271,12 @@ begin
       rw e.right_inv hx.1.1,
       have := Z.coord_change_comp ⟨e, he⟩ ⟨f, chart_mem_atlas _ _⟩ ⟨e', he'⟩ (I.symm x) A v,
       simpa only [] using this } },
-  haveI : has_groupoid Z.to_topological_fiber_bundle_core.total_space
-         (times_cont_diff_groupoid ∞ (I.prod (model_with_corners_self 𝕜 F))) :=
-  begin
-    split,
-    assume e₀ e₀' he₀ he₀',
-    rcases (Z.mem_atlas_iff _).1 he₀ with ⟨e, he, rfl⟩,
-    rcases (Z.mem_atlas_iff _).1 he₀' with ⟨e', he', rfl⟩,
-    rw [times_cont_diff_groupoid, mem_groupoid_of_pregroupoid],
-    exact ⟨A e e' he he', A e' e he' he⟩
-  end,
-  constructor
+  constructor,
+  assume e₀ e₀' he₀ he₀',
+  rcases (Z.mem_atlas_iff _).1 he₀ with ⟨e, he, rfl⟩,
+  rcases (Z.mem_atlas_iff _).1 he₀' with ⟨e', he', rfl⟩,
+  rw [times_cont_diff_groupoid, mem_groupoid_of_pregroupoid],
+  exact ⟨A e e' he he', A e' e he' he⟩
 end
 
 end basic_smooth_bundle_core

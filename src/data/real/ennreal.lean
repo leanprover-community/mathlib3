@@ -144,8 +144,8 @@ protected lemma zero_lt_one : 0 < (1 : ennreal) :=
   canonically_ordered_semiring.zero_lt_one
 
 @[simp] lemma one_lt_two : (1:ennreal) < 2 := coe_one ▸ coe_two ▸ by exact_mod_cast one_lt_two
-@[simp] lemma two_pos : (0:ennreal) < 2 := lt_trans ennreal.zero_lt_one one_lt_two
-lemma two_ne_zero : (2:ennreal) ≠ 0 := ne_of_gt two_pos
+@[simp] lemma zero_lt_two : (0:ennreal) < 2 := lt_trans ennreal.zero_lt_one one_lt_two
+lemma two_ne_zero : (2:ennreal) ≠ 0 := (ne_of_lt zero_lt_two).symm
 lemma two_ne_top : (2:ennreal) ≠ ∞ := coe_two ▸ coe_ne_top
 
 @[simp] lemma add_top : a + ∞ = ∞ := with_top.add_top
@@ -750,7 +750,7 @@ if hr : r = 0 then by simp only [hr, nnreal.inv_zero, inv_zero, coe_zero, zero_l
 else by simp only [coe_inv hr, le_refl]
 
 @[norm_cast] lemma coe_inv_two : ((2⁻¹:nnreal):ennreal) = 2⁻¹ :=
-by rw [coe_inv (ne_of_gt zero_lt_two), coe_two]
+by rw [coe_inv (ne_of_gt _root_.zero_lt_two), coe_two]
 
 @[simp, norm_cast] lemma coe_div (hr : r ≠ 0) : (↑(p / r) : ennreal) = p / r :=
 show ↑(p * r⁻¹) = ↑p * (↑r)⁻¹, by rw [coe_mul, coe_inv hr]
@@ -944,7 +944,7 @@ forall_ennreal.2 $ and.intro
       rw [(≠), coe_eq_zero],
       refine zero_lt_iff_ne_zero.1 _,
       show 0 < (1 / 2 : ℝ),
-      exact div_pos zero_lt_one _root_.two_pos
+      linarith,
     end,
     by rwa [mul_top, if_neg ne] at this)
 

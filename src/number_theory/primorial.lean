@@ -25,12 +25,12 @@ open_locale big_operators
 
 /-- The primorial `n#` of `n` is the product of the primes less than or equal to `n`.
 -/
-def primorial (n : ℕ) : ℕ := ∏ p in (filter prime (range (n + 1))), p
+def primorial (n : ℕ) : ℕ := ∏ p in (filter nat.prime (range (n + 1))), p
 local notation x`#` := primorial x
 
 lemma primorial_succ {n : ℕ} (n_big : 1 < n) (r : n % 2 = 1) : (n + 1)# = n# :=
 begin
-  have not_prime : ¬prime (n + 1),
+  have not_prime : ¬nat.prime (n + 1),
   { intros is_prime,
     cases (prime.eq_two_or_odd is_prime) with _ n_even,
     { linarith, },
@@ -44,7 +44,7 @@ begin
   { exact λ _ _, rfl, },
 end
 
-lemma dvd_choose_of_middling_prime (p : ℕ) (is_prime : prime p) (m : ℕ)
+lemma dvd_choose_of_middling_prime (p : ℕ) (is_prime : nat.prime p) (m : ℕ)
   (p_big : m + 1 < p) (p_small : p ≤ 2 * m + 1) : p ∣ choose (2 * m + 1) (m + 1) :=
 begin
   have m_size : m + 1 ≤ 2 * m + 1 := le_of_lt (lt_of_lt_of_le p_big p_small),
@@ -73,7 +73,7 @@ begin
   cc, cc,
 end
 
-lemma prod_primes_dvd {s : finset ℕ} : ∀ (n : ℕ) (h : ∀ a ∈ s, prime a) (div : ∀ a ∈ s, a ∣ n),
+lemma prod_primes_dvd {s : finset ℕ} : ∀ (n : ℕ) (h : ∀ a ∈ s, nat.prime a) (div : ∀ a ∈ s, a ∣ n),
   (∏ p in s, p) ∣ n :=
 begin
   apply finset.induction_on s,
@@ -87,13 +87,13 @@ begin
         exact primes b (finset.mem_insert_of_mem b_in_s), },
       { intros b b_in_s,
         have b_div_n, by exact divs b (finset.mem_insert_of_mem b_in_s),
-        have a_prime : prime a, { exact primes a (finset.mem_insert_self a s), },
-        have b_prime : prime b, { exact primes b (finset.mem_insert_of_mem b_in_s), },
+        have a_prime : nat.prime a, { exact primes a (finset.mem_insert_self a s), },
+        have b_prime : nat.prime b, { exact primes b (finset.mem_insert_of_mem b_in_s), },
         obtain b_div_a | b_div_k : b ∣ a ∨ b ∣ k, exact (prime.dvd_mul b_prime).mp b_div_n,
         { exfalso,
           have b_eq_a : b = a,
           { cases (nat.dvd_prime a_prime).1 b_div_a with b_eq_1 b_eq_a,
-            { subst b_eq_1, exfalso, exact prime.ne_one b_prime rfl, },
+            { subst b_eq_1, exfalso, exact nat.prime.ne_one b_prime rfl, },
             { exact b_eq_a } },
           subst b_eq_a,
           exact a_not_in_s b_in_s, },
@@ -112,18 +112,18 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
       let recurse : m + 1 < n + 2 := by linarith in
       begin
         calc (n + 2)#
-            = ∏ i in filter prime (range (2 * m + 2)), i : by simpa [←twice_m]
-        ... = ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2) ∪ range (m + 2)), i :
+            = ∏ i in filter nat.prime (range (2 * m + 2)), i : by simpa [←twice_m]
+        ... = ∏ i in filter nat.prime (finset.Ico (m + 2) (2 * m + 2) ∪ range (m + 2)), i :
               begin
                 rw [range_eq_Ico, range_eq_Ico, finset.union_comm, finset.Ico.union_consecutive],
                 exact bot_le,
                 simp only [add_le_add_iff_right],
                 linarith,
               end
-        ... = ∏ i in (filter prime (finset.Ico (m + 2) (2 * m + 2)) ∪ (filter prime (range (m + 2)))), i :
+        ... = ∏ i in (filter nat.prime (finset.Ico (m + 2) (2 * m + 2)) ∪ (filter nat.prime (range (m + 2)))), i :
               by rw filter_union
-        ... = (∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)), i)
-              * (∏ i in filter prime (range (m + 2)), i) :
+        ... = (∏ i in filter nat.prime (finset.Ico (m + 2) (2 * m + 2)), i)
+              * (∏ i in filter nat.prime (range (m + 2)), i) :
               begin
                 apply finset.prod_union,
                 have disj : disjoint (finset.Ico (m + 2) (2 * m + 2)) (range (m + 2)),
@@ -131,11 +131,11 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
                   intros _ pr _, exact pr, },
                 exact finset.disjoint_filter_filter disj,
               end
-        ... ≤ (∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)), i) * 4 ^ (m + 1) :
+        ... ≤ (∏ i in filter nat.prime (finset.Ico (m + 2) (2 * m + 2)), i) * 4 ^ (m + 1) :
               by exact nat.mul_le_mul_left _ (primorial_le_4_pow (m + 1))
         ... ≤ (choose (2 * m + 1) (m + 1)) * 4 ^ (m + 1) :
               begin
-                have s : ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)), i ∣ choose (2 * m + 1) (m + 1),
+                have s : ∏ i in filter nat.prime (finset.Ico (m + 2) (2 * m + 2)), i ∣ choose (2 * m + 1) (m + 1),
                 { refine prod_primes_dvd  (choose (2 * m + 1) (m + 1)) _ _,
                   { intros a, rw finset.mem_filter, cc, },
                   { intros a, rw finset.mem_filter,
@@ -144,7 +144,7 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
                     simp only [finset.Ico.mem] at size,
                     rcases size with ⟨ a_big , a_small ⟩,
                     exact dvd_choose_of_middling_prime a is_prime m a_big (nat.lt_succ_iff.mp a_small), }, },
-                have r : ∏ i in filter prime (finset.Ico (m + 2) (2 * m + 2)), i ≤ choose (2 * m + 1) (m + 1),
+                have r : ∏ i in filter nat.prime (finset.Ico (m + 2) (2 * m + 2)), i ≤ choose (2 * m + 1) (m + 1),
                 { refine @nat.le_of_dvd _ _ _ s,
                   exact @choose_pos (2 * m + 1) (m + 1) (by linarith), },
                 exact nat.mul_le_mul_right _ r,

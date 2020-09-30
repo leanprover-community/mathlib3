@@ -6,7 +6,7 @@ Authors: Chris Hughes
 import data.nat.choose.dvd
 import ring_theory.multiplicity
 import data.nat.modeq
-import algebra.gcd_monoid
+import data.int.gcd
 import data.finset.intervals
 
 /-!

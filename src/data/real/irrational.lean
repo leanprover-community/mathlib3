@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Yury K
 -/
 import data.real.basic
 import data.rat.sqrt
-import algebra.gcd_monoid
+import data.int.gcd
 import ring_theory.multiplicity
 /-!
 # Irrational real numbers

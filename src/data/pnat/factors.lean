@@ -5,7 +5,6 @@ Author: Neil Strickland
 -/
 import data.pnat.basic
 import data.multiset.sort
-import data.int.gcd
 import algebra.group
 
 /-- The type of multisets of prime numbers.  Unique factorization

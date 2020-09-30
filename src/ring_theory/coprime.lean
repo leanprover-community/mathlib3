@@ -6,7 +6,6 @@ Authors: Kenny Lau, Ken Lee, Chris Hughes
 import tactic.ring
 import algebra.big_operators.basic
 import data.fintype.basic
-import data.int.gcd
 import data.set.disjointed
 
 /-!
@@ -33,13 +32,6 @@ that `a * x + b * y = 1`. Note that elements with no common divisors are not nec
 e.g., the multivariate polynomials `x₁` and `x₂` are not coprime. -/
 @[simp] def is_coprime : Prop :=
 ∃ a b, a * x + b * y = 1
-
-theorem nat.is_coprime_iff_coprime {m n : ℕ} : is_coprime (m : ℤ) n ↔ nat.coprime m n :=
-⟨λ ⟨a, b, H⟩, nat.eq_one_of_dvd_one $ int.coe_nat_dvd.1 $ by { rw [int.coe_nat_one, ← H],
-  exact dvd_add (dvd_mul_of_dvd_right (int.coe_nat_dvd.2 $ nat.gcd_dvd_left m n) _)
-    (dvd_mul_of_dvd_right (int.coe_nat_dvd.2 $ nat.gcd_dvd_right m n) _) },
-λ H, ⟨nat.gcd_a m n, nat.gcd_b m n, by rw [mul_comm _ (m : ℤ), mul_comm _ (n : ℤ),
-    ← nat.gcd_eq_gcd_ab, show _ = _, from H, int.coe_nat_one]⟩⟩
 
 variables {x y z}
 

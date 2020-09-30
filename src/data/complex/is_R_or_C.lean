@@ -24,7 +24,7 @@ immediately from the two instances of the class.
 /--
 This typeclass captures properties shared by ℝ and ℂ, with an API that closely matches that of ℂ.
 -/
-class is_R_or_C (K : Type*) extends nondiscrete_normed_field K, normed_algebra ℝ K :=
+class is_R_or_C (K : Type*) extends nondiscrete_normed_field K, normed_algebra ℝ K, complete_space K :=
 (re : K →+ ℝ)
 (im : K →+ ℝ)
 (conj : K →+* K)
@@ -63,7 +63,7 @@ is_R_or_C.mul_re_ax
 @[simp] lemma mul_im : ∀ z w : K, im (z * w) = re z * im w + im z * re w :=
 is_R_or_C.mul_im_ax
 
-lemma inv_def {z : K}: z⁻¹ = conj z * of_real ((∥z∥^2)⁻¹) := is_R_or_C.inv_def_ax z
+lemma inv_def {z : K} : z⁻¹ = conj z * of_real ((∥z∥^2)⁻¹) := is_R_or_C.inv_def_ax z
 
 theorem ext_iff : ∀ {z w : K}, z = w ↔ re z = re w ∧ im z = im w :=
 λ z w, { mp := by { rintro rfl, cc },
@@ -136,6 +136,9 @@ lemma smul_im' : ∀ (r : ℝ) (z : K), im (r • z) = r * (im z) :=
 /-- The imaginary unit. -/
 @[simp] lemma I_re : re (I : K) = 0 := I_re_ax
 @[simp] lemma I_im (z : K) : im z * im (I : K) = im z := mul_im_I_ax z
+@[simp] lemma I_im' (z : K) : im (I : K) * im z = im z :=
+by rw [mul_comm, I_im _]
+
 lemma I_mul_I : (I : K) = 0 ∨ (I : K) * I = -1 := I_mul_I_ax
 
 @[simp] lemma conj_re (z : K) : re (conj z) = re z := is_R_or_C.conj_re_ax z

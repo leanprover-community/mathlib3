@@ -182,11 +182,13 @@ def ι : X → free_algebra R X := λ m, quot.mk _ m
 
 @[simp] lemma quot_mk_eq_ι (m : X) : quot.mk (free_algebra.rel R X) m = ι R m := rfl
 
+variables {A : Type*} [semiring A] [algebra R A]
+
 /--
 Given a function `f : X → A` where `A` is an `R`-algebra, `lift R f` is the unique lift
 of `f` to a morphism of `R`-algebras `free_algebra R X → A`.
 -/
-def lift {A : Type*} [semiring A] [algebra R A] (f : X → A) : free_algebra R X →ₐ[R] A :=
+def lift (f : X → A) : free_algebra R X →ₐ[R] A :=
 { to_fun := λ a, quot.lift_on a (lift_fun _ _ f) $ λ a b h,
   begin
     induction h,
@@ -229,16 +231,15 @@ def lift {A : Type*} [semiring A] [algebra R A] (f : X → A) : free_algebra R X
 variables {R X}
 
 @[simp]
-theorem ι_comp_lift {A : Type*} [semiring A] [algebra R A] (f : X → A) :
+theorem ι_comp_lift (f : X → A) :
   (lift R f : free_algebra R X → A) ∘ (ι R) = f := by {ext, refl}
 
 @[simp]
-theorem lift_ι_apply {A : Type*} [semiring A] [algebra R A] (f : X → A) (x) :
+theorem lift_ι_apply (f : X → A) (x) :
   lift R f (ι R x) = f x := rfl
 
 @[simp]
-theorem lift_unique {A : Type*} [semiring A] [algebra R A] (f : X → A)
-  (g : free_algebra R X →ₐ[R] A) :
+theorem lift_unique (f : X → A) (g : free_algebra R X →ₐ[R] A) :
   (g : free_algebra R X → A) ∘ (ι R) = f ↔ g = lift R f :=
 begin
   refine ⟨λ hyp, _, λ hyp, by rw [hyp, ι_comp_lift]⟩,
@@ -265,11 +266,11 @@ Of course, one still has the option to locally make these definitions `semireduc
 attribute [irreducible] free_algebra ι lift
 
 @[simp]
-theorem lift_comp_ι {A : Type*} [semiring A] [algebra R A] (g : free_algebra R X →ₐ[R] A) :
+theorem lift_comp_ι (g : free_algebra R X →ₐ[R] A) :
   lift R ((g : free_algebra R X → A) ∘ (ι R)) = g := by {symmetry, rw ←lift_unique}
 
 @[ext]
-theorem hom_ext {A : Type*} [semiring A] [algebra R A] {f g : free_algebra R X →ₐ[R] A}
+theorem hom_ext {f g : free_algebra R X →ₐ[R] A}
   (w : ((f : free_algebra R X → A) ∘ (ι R)) = ((g : free_algebra R X → A) ∘ (ι R))) : f = g :=
 begin
   have : g = lift R ((g : free_algebra R X → A) ∘ (ι R)), by rw ←lift_unique,

@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Robert Y. Lewis
 -/
 
-import ring_theory.witt_vector.witt_vector_preps
 import ring_theory.witt_vector.structure_polynomial
 import data.mv_polynomial.counit
+import data.mv_polynomial.invertible
 
 /-!
 # Witt vectors
@@ -374,7 +374,7 @@ lemma ghost_map_fun.bijective_of_invertible [invertible (p : R)] :
   function.bijective (ghost_map_fun : 𝕎 R → ℕ → R) :=
 by { rw ghost_map_fun_eq, exact (ghost_map_fun.equiv_of_invertible p R).bijective }
 
-local attribute [instance] mv_polynomial.invertible_rat_coe_nat
+local attribute [instance] mv_polynomial.invertible_coe_nat
 
 variable (R)
 

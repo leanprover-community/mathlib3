@@ -47,7 +47,7 @@ def divisors_antidiagonal : finset (ℕ × ℕ) :=
 
 variable {n}
 
-lemma not_proper_self : ¬ n ∈ proper_divisors n :=
+lemma proper_divisors.not_self_mem : ¬ n ∈ proper_divisors n :=
 begin
   rw proper_divisors,
   simp,
@@ -87,8 +87,8 @@ begin
 end
 
 @[simp]
-lemma mem_divisors_antidiagonal {m : ℕ × ℕ} :
-  m ∈ divisors_antidiagonal n ↔ m.fst * m.snd = n ∧ n ≠ 0 :=
+lemma mem_divisors_antidiagonal {x : ℕ × ℕ} :
+  x ∈ divisors_antidiagonal n ↔ x.fst * x.snd = n ∧ n ≠ 0 :=
 begin
   simp only [divisors_antidiagonal, finset.Ico.mem, ne.def, finset.mem_filter, finset.mem_product],
   rw and_comm,

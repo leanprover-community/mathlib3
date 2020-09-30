@@ -154,6 +154,24 @@ by rw [smul_def, smul_def, left_comm]
   (r • x) * y = r • (x * y) :=
 by rw [smul_def, smul_def, mul_assoc]
 
+section
+variables (r : R) (a : A)
+
+@[simp] lemma bit0_smul_one : bit0 r • (1 : A) = r • 2 :=
+by simp [bit0, add_smul, smul_add]
+@[simp] lemma bit0_smul_bit0 : bit0 r • bit0 a = r • (bit0 (bit0 a)) :=
+by simp [bit0, add_smul, smul_add]
+@[simp] lemma bit0_smul_bit1 : bit0 r • bit1 a = r • (bit0 (bit1 a)) :=
+by simp [bit0, add_smul, smul_add]
+@[simp] lemma bit1_smul_one : bit1 r • (1 : A) = r • 2 + 1 :=
+by simp [bit1, add_smul, smul_add]
+@[simp] lemma bit1_smul_bit0 : bit1 r • bit0 a = r • (bit0 (bit0 a)) + bit0 a :=
+by simp [bit1, add_smul, smul_add]
+@[simp] lemma bit1_smul_bit1 : bit1 r • bit1 a = r • (bit0 (bit1 a)) + bit1 a :=
+by { simp only [bit0, bit1, add_smul, smul_add, one_smul], abel }
+
+end
+
 variables (R A)
 
 /--

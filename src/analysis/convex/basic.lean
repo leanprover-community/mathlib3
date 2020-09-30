@@ -599,8 +599,12 @@ begin
   convert this; symmetry; simp only [div_eq_iff (ne_of_gt B), y]; ring
 end
 
-lemma convex_on.slope_mono_adjacent {s : set ℝ} {f : ℝ → ℝ} {x y z : ℝ} (hx : x ∈ s) (hz : z ∈ s)
-  (hxy : x < y) (hyz : y < z) (hf : convex_on s f) : (f y - f x) / (y - x) ≤ (f z - f y) / (z - y) :=
+/-- For a function `f` defined on a subset `D` of `ℝ`, if `f` is convex on `D`, then for any three
+points `x<y<z`, the slope of the secant line of `f` on `[x, y]` is less than or equal to the slope
+of the secant line of `f` on `[x, z]`. -/
+lemma convex_on.slope_mono_adjacent {s : set ℝ} {f : ℝ → ℝ} (hf : convex_on s f)
+  {x y z : ℝ} (hx : x ∈ s) (hz : z ∈ s) (hxy : x < y) (hyz : y < z) :
+  (f y - f x) / (y - x) ≤ (f z - f y) / (z - y) :=
 begin
   have h₁ : 0 < y - x := by linarith,
   have h₂ : 0 < z - y := by linarith,
@@ -623,6 +627,15 @@ begin
     { nlinarith, },
 end
 
+/-- For a function `f` defined on a convex subset `D` of `ℝ`, `f` is convex on `D` iff for any three
+points `x<y<z` the slope of the secant line of `f` on `[x, y]` is less than or equal to the slope
+of the secant line of `f` on `[x, z]`. -/
+lemma convex_on_real_iff_slope_mono_adjacent {s : set ℝ} (hs : convex s) {f : ℝ → ℝ} :
+  convex_on s f ↔
+  (∀ {x y z : ℝ}, x ∈ s → z ∈ s → x < y → y < z →
+    (f y - f x) / (y - x) ≤ (f z - f y) / (z - y)) :=
+⟨convex_on.slope_mono_adjacent, convex_on_real_of_slope_mono_adjacent hs⟩
+
 /-- For a function `f` defined on a convex subset `D` of `ℝ`, if for any three points `x<y<z`
 the slope of the secant line of `f` on `[x, y]` is greater than or equal to the slope
 of the secant line of `f` on `[x, z]`, then `f` is concave on `D`. -/
@@ -636,6 +649,29 @@ begin
   rw [←neg_le_neg_iff, ←neg_div, ←neg_div, neg_sub, neg_sub],
   simp only [hf xs zs xy yz, neg_sub_neg, pi.neg_apply],
 end
+
+/-- For a function `f` defined on a subset `D` of `ℝ`, if `f` is concave on `D`, then for any three
+points `x<y<z`, the slope of the secant line of `f` on `[x, y]` is greater than or equal to the
+slope of the secant line of `f` on `[x, z]`. -/
+lemma concave_on.slope_mono_adjacent {s : set ℝ} {f : ℝ → ℝ} (hf : concave_on s f)
+  {x y z : ℝ} (hx : x ∈ s) (hz : z ∈ s) (hxy : x < y) (hyz : y < z) :
+  (f z - f y) / (z - y) ≤ (f y - f x) / (y - x) :=
+begin
+  rw [←neg_le_neg_iff, ←neg_div, ←neg_div, neg_sub, neg_sub],
+  rw [←neg_sub_neg (f y), ←neg_sub_neg (f z)],
+  simp_rw [←pi.neg_apply],
+  rw [←neg_convex_on_iff] at hf,
+  apply convex_on.slope_mono_adjacent hf; assumption,
+end
+
+/-- For a function `f` defined on a convex subset `D` of `ℝ`, `f` is concave on `D` iff for any
+three points `x<y<z` the slope of the secant line of `f` on `[x, y]` is greater than or equal to
+the slope of the secant line of `f` on `[x, z]`. -/
+lemma concave_on_real_iff_slope_mono_adjacent {s : set ℝ} (hs : convex s) {f : ℝ → ℝ} :
+  concave_on s f ↔
+  (∀ {x y z : ℝ}, x ∈ s → z ∈ s → x < y → y < z →
+    (f z - f y) / (z - y) ≤ (f y - f x) / (y - x)) :=
+⟨concave_on.slope_mono_adjacent, concave_on_real_of_slope_mono_adjacent hs⟩
 
 lemma convex_on.subset {f : E → β} (h_convex_on : convex_on t f)
   (h_subset : s ⊆ t) (h_convex : convex s) : convex_on s f :=

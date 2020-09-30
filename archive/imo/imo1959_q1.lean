@@ -11,7 +11,7 @@ open nat
 /-!
 # IMO 1959 Q1
 
-Prove that the fraction (21n+4)/(14n+3) is irreducible for every natural number n.
+Prove that the fraction `(21n+4)/(14n+3)` is irreducible for every natural number `n`.
 
 Since Lean doesn't have a concept of "irreducible fractions" per se, we just formalize this
 as saying the numerator and denominator are relatively prime.

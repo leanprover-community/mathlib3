@@ -25,6 +25,7 @@ are exactly the complex numbers `e ^ (2 * real.pi * complex.I * (i / n))` for `i
 namespace complex
 
 open polynomial real
+open_locale nat
 
 lemma is_primitive_root_exp_of_coprime (i n : ℕ) (h0 : n ≠ 0) (hi : i.coprime n) :
   is_primitive_root (exp (2 * pi * I * (i / n))) n :=
@@ -57,7 +58,7 @@ begin
   intro h,
   obtain ⟨i, hi, rfl⟩ :=
     (is_primitive_root_exp n hn).eq_pow_of_pow_eq_one h.pow_eq_one (nat.pos_of_ne_zero hn),
-  refine ⟨i, hi, ((is_primitive_root_exp n hn).pow_iff_coprime i).mp h, _⟩,
+  refine ⟨i, hi, ((is_primitive_root_exp n hn).pow_iff_coprime (nat.pos_of_ne_zero hn) i).mp h, _⟩,
   rw [← exp_nat_mul],
   congr' 1,
   field_simp [hn0, mul_comm (i : ℂ)]
@@ -85,6 +86,9 @@ begin
 end
 
 lemma card_roots_of_unity (n : ℕ+) : fintype.card (roots_of_unity n ℂ) = n :=
-(is_primitive_root_exp n n.ne_zero).card_roots_of_unity n
+(is_primitive_root_exp n n.ne_zero).card_roots_of_unity
+
+lemma card_primitive_roots (k : ℕ) (h : k ≠ 0) : (primitive_roots k ℂ).card = φ k :=
+(is_primitive_root_exp k h).card_primitive_roots (nat.pos_of_ne_zero h)
 
 end complex

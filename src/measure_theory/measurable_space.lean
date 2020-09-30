@@ -62,7 +62,7 @@ measurable space, measurable function, dynkin system
 -/
 
 local attribute [instance] classical.prop_decidable
-open set encodable
+open set encodable function
 open_locale classical filter
 
 universes u v w x
@@ -470,7 +470,7 @@ begin
   exact (hs.inter $ hf ht).union (hs.compl.inter $ hg ht)
 end
 
-lemma measurable_const {α β} [measurable_space α] [measurable_space β] {a : α} :
+@[simp] lemma measurable_const {α β} [measurable_space α] [measurable_space β] {a : α} :
   measurable (λb:β, a) :=
 by { intros s hs, by_cases a ∈ s; simp [*, preimage] }
 
@@ -495,11 +495,15 @@ instance : measurable_space ℤ := ⊤
 instance : measurable_space ℚ := ⊤
 
 lemma measurable_to_encodable [encodable α] [measurable_space α] [measurable_space β] {f : β → α}
-  (h : ∀ y, is_measurable {x | f x = y}) : measurable f :=
+  (h : ∀ y, is_measurable (f ⁻¹' {f y})) : measurable f :=
 begin
-  assume s hs, show is_measurable {x | f x ∈ s},
-  have : {x | f x ∈ s} = ⋃ (n ∈ s), {x | f x = n}, { ext, simp },
-  rw this, simp [is_measurable.Union, is_measurable.Union_Prop, h]
+  assume s hs,
+  rw [← bUnion_preimage_singleton],
+  refine is_measurable.Union (λ y, is_measurable.Union_Prop $ λ hy, _),
+  by_cases hyf : y ∈ range f,
+  { rcases hyf with ⟨y, rfl⟩,
+    apply h },
+  { simp only [preimage_singleton_eq_empty.2 hyf, is_measurable.empty] }
 end
 
 lemma measurable_unit [measurable_space α] (f : unit → α) : measurable f :=
@@ -512,24 +516,33 @@ lemma measurable_from_nat [measurable_space α] {f : ℕ → α} : measurable f 
 measurable_from_top
 
 lemma measurable_to_nat [measurable_space α] {f : α → ℕ} :
-  (∀ k, is_measurable {x | f x = k}) → measurable f :=
+  (∀ y, is_measurable (f ⁻¹' {f y})) → measurable f :=
 measurable_to_encodable
 
-lemma measurable_find_greatest [measurable_space α] {p : ℕ → α → Prop} :
-  ∀ {N}, (∀ k ≤ N, is_measurable {x | nat.find_greatest (λ n, p n x) N = k}) →
-  measurable (λ x, nat.find_greatest (λ n, p n x) N)
-| 0 := assume h s hs, show is_measurable {x : α | (nat.find_greatest (λ n, p n x) 0) ∈ s},
+lemma measurable_find_greatest' [measurable_space α] {p : α → ℕ → Prop}
+  {N} (hN : ∀ k ≤ N, is_measurable {x | nat.find_greatest (p x) N = k}) :
+  measurable (λ x, nat.find_greatest (p x) N) :=
+measurable_to_nat $ λ x, hN _ nat.find_greatest_le
+
+lemma measurable_find_greatest [measurable_space α] {p : α → ℕ → Prop}
+  {N} (hN : ∀ k ≤ N, is_measurable {x | p x k}) :
+  measurable (λ x, nat.find_greatest (p x) N) :=
 begin
-  by_cases h : 0 ∈ s,
-  { convert is_measurable.univ, simp only [nat.find_greatest_zero, h] },
-  { convert is_measurable.empty, simp only [nat.find_greatest_zero, h], refl }
+  refine measurable_find_greatest' (λ k hk, _),
+  simp only [nat.find_greatest_eq_iff, set_of_and, set_of_forall, ← compl_set_of],
+  repeat { apply_rules [is_measurable.inter, is_measurable.const, is_measurable.Inter,
+    is_measurable.Inter_Prop, is_measurable.compl, hN]; try { intros } }
 end
-| (n + 1) := assume h,
+
+lemma measurable_find [measurable_space α] {p : α → ℕ → Prop} (hp : ∀ x, ∃ N, p x N)
+  (hm : ∀ k, is_measurable {x | p x k}) :
+  measurable (λ x, nat.find (hp x)) :=
 begin
-  apply measurable_to_nat, assume k, by_cases hk : k ≤ n + 1,
-  { exact h k hk },
-  { have := is_measurable.empty, rw ← set_of_false at this, convert this, funext, rw eq_false,
-    assume h, rw ← h at hk, have := nat.find_greatest_le, contradiction }
+  refine measurable_to_nat (λ x, _),
+  simp only [set.preimage, mem_singleton_iff, nat.find_eq_iff, set_of_and, set_of_forall,
+    ← compl_set_of],
+  repeat { apply_rules [is_measurable.inter, hm, is_measurable.Inter, is_measurable.Inter_Prop,
+    is_measurable.compl]; try { intros } }
 end
 
 end nat
@@ -608,9 +621,33 @@ measurable.of_le_map $ sup_le
   (by { rw [measurable_space.comap_le_iff_le_map, measurable_space.map_comp], exact hf₁ })
   (by { rw [measurable_space.comap_le_iff_le_map, measurable_space.map_comp], exact hf₂ })
 
+lemma measurable_prod {f : α → β × γ} : measurable f ↔
+  measurable (λa, (f a).1) ∧ measurable (λa, (f a).2) :=
+⟨λ hf, ⟨measurable_fst.comp hf, measurable_snd.comp hf⟩, λ h, measurable.prod h.1 h.2⟩
+
 lemma measurable.prod_mk {f : α → β} {g : α → γ} (hf : measurable f) (hg : measurable g) :
   measurable (λa:α, (f a, g a)) :=
 measurable.prod hf hg
+
+lemma measurable_prod_mk_left {x : α} : measurable (@prod.mk _ β x) :=
+measurable_const.prod_mk measurable_id
+
+lemma measurable_prod_mk_right {y : β} : measurable (λ x : α, (x, y)) :=
+measurable_id.prod_mk measurable_const
+
+lemma measurable.of_uncurry_left {f : α → β → γ} (hf : measurable (uncurry f)) {x : α} :
+  measurable (f x) :=
+hf.comp measurable_prod_mk_left
+
+lemma measurable.of_uncurry_right {f : α → β → γ} (hf : measurable (uncurry f)) {y : β} :
+  measurable (λ x, f x y) :=
+hf.comp measurable_prod_mk_right
+
+lemma measurable_swap : measurable (prod.swap : α × β → β × α) :=
+measurable.prod measurable_snd measurable_fst
+
+lemma measurable_swap_iff {f : α × β → γ} : measurable (f ∘ prod.swap) ↔ measurable f :=
+⟨λ hf, by { convert hf.comp measurable_swap, ext ⟨x, y⟩, refl }, λ hf, hf.comp measurable_swap⟩
 
 lemma is_measurable.prod {s : set α} {t : set β} (hs : is_measurable s) (ht : is_measurable t) :
   is_measurable (s.prod t) :=
@@ -633,6 +670,10 @@ begin
   { simp [h, prod_eq_empty_iff.mp h] },
   { simp [←not_nonempty_iff_eq_empty, prod_nonempty_iff.mp h, is_measurable_prod_of_nonempty h] }
 end
+
+lemma is_measurable_swap_iff {s : set (α × β)} :
+  is_measurable (prod.swap ⁻¹' s) ↔ is_measurable s :=
+⟨λ hs, by { convert measurable_swap hs, ext ⟨x, y⟩, refl }, λ hs, measurable_swap hs⟩
 
 end prod
 
@@ -1099,7 +1140,7 @@ lemma induction_on_inter {C : set α → Prop} {s : set (set α)} [m : measurabl
   (h_empty : C ∅) (h_basic : ∀t∈s, C t) (h_compl : ∀t, is_measurable t → C t → C tᶜ)
   (h_union : ∀f:ℕ → set α, pairwise (disjoint on f) →
     (∀i, is_measurable (f i)) → (∀i, C (f i)) → C (⋃i, f i)) :
-  ∀{t}, is_measurable t → C t :=
+  ∀ ⦃t⦄, is_measurable t → C t :=
 have eq : is_measurable = dynkin_system.generate_has s,
   by { rw [h_eq, dynkin_system.generate_from_eq h_inter], refl },
 assume t ht,

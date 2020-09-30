@@ -948,9 +948,9 @@ instance algebra : algebra R S :=
   smul_def' := λ c x, subtype.eq $ algebra.smul_def _ _,
   .. (algebra_map R A).cod_srestrict S $ λ x, S.range_le ⟨x, rfl⟩ }
 
-instance to_algebra {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
-  [algebra R A] (S : subalgebra R A) : algebra S A :=
-algebra.of_subsemiring _
+instance to_algebra {R A B : Type*} [comm_semiring R] [comm_semiring A] [semiring B]
+  [algebra R A] [algebra A B] (A₀ : subalgebra R A) : algebra A₀ B :=
+algebra.of_subsemiring A₀
 
 instance nontrivial [nontrivial A] : nontrivial S :=
 subsemiring.nontrivial S
@@ -962,7 +962,8 @@ subsemiring.nontrivial S
 def val : S →ₐ[R] A :=
 by refine_struct { to_fun := (coe : S → A) }; intros; refl
 
-@[simp]
+@[simp] lemma coe_val : (S.val : S → A) = coe := rfl
+
 lemma val_apply (x : S) : S.val x = (x : A) := rfl
 
 /-- Convert a `subalgebra` to `submodule` -/
@@ -1019,9 +1020,17 @@ def comap' (S : subalgebra R B) (f : A →ₐ[R] B) : subalgebra R A :=
     from (f.commutes r).symm ▸ S.algebra_map_mem r,
   .. subsemiring.comap (f : A →+* B) S,}
 
+lemma map_mono {S₁ S₂ : subalgebra R A} {f : A →ₐ[R] B} :
+  S₁ ≤ S₂ → S₁.map f ≤ S₂.map f :=
+set.image_subset f
+
 theorem map_le {S : subalgebra R A} {f : A →ₐ[R] B} {U : subalgebra R B} :
   map S f ≤ U ↔ S ≤ comap' U f :=
 set.image_subset_iff
+
+lemma map_injective {S₁ S₂ : subalgebra R A} (f : A →ₐ[R] B)
+  (hf : function.injective f) (ih : S₁.map f = S₂.map f) : S₁ = S₂ :=
+ext $ set.ext_iff.1 $ set.image_injective.2 hf $ set.ext $ ext_iff.1 ih
 
 lemma mem_map {S : subalgebra R A} {f : A →ₐ[R] B} {y : B} :
   y ∈ map S f ↔ ∃ x ∈ S, f x = y :=
@@ -1159,6 +1168,17 @@ def bot_equiv (F R : Type*) [field F] [semiring R] [nontrivial R] [algebra F R] 
 bot_equiv_of_injective (ring_hom.injective _)
 
 end algebra
+
+namespace subalgebra
+
+variables {R : Type u} {A : Type v}
+variables [comm_semiring R] [semiring A] [algebra R A]
+variables (S : subalgebra R A)
+
+lemma range_val : S.val.range = S :=
+ext $ set.ext_iff.1 $ S.val.coe_range.trans subtype.range_val
+
+end subalgebra
 
 section nat
 

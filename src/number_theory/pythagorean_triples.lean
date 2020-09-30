@@ -312,7 +312,7 @@ begin
   cases int.prime.dvd_mul hp hp2 with hp2m hpn,
   { rw int.nat_abs_mul at hp2m,
     cases (nat.prime.dvd_mul hp).mp hp2m with hp2 hpm,
-    { have hp2' : p = 2, { exact le_antisymm (nat.le_of_dvd two_pos hp2) (nat.prime.two_le hp) },
+    { have hp2' : p = 2, { exact le_antisymm (nat.le_of_dvd zero_lt_two hp2) (nat.prime.two_le hp) },
       revert hp1, rw hp2',
       apply mt int.mod_eq_zero_of_dvd,
       norm_num [pow_two, int.sub_mod, int.mul_mod, hm, hn],

@@ -584,6 +584,10 @@ lemma summable_to_nnreal_of_tsum_ne_top {α : Type*} {f : α → ennreal} (hf : 
   summable (ennreal.to_nnreal ∘ f) :=
 by simpa only [←tsum_coe_ne_top_iff_summable, to_nnreal_apply_of_tsum_ne_top hf] using hf
 
+protected lemma tsum_apply {ι α : Type*} {f : ι → α → ennreal} {x : α} :
+  (∑' i, f i) x = ∑' i, f i x :=
+tsum_apply $ pi.summable.mpr $ λ _, ennreal.summable
+
 end tsum
 
 end ennreal

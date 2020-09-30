@@ -60,6 +60,12 @@ instance [decidable_eq α] : boolean_algebra (finset α) :=
 
 lemma compl_eq_univ_sdiff [decidable_eq α] (s : finset α) : sᶜ = univ \ s := rfl
 
+@[simp] lemma mem_compl [decidable_eq α] {s : finset α} {x : α} : x ∈ sᶜ ↔ x ∉ s :=
+by simp [compl_eq_univ_sdiff]
+
+@[simp, norm_cast] lemma coe_compl [decidable_eq α] (s : finset α) : ↑(sᶜ) = (↑s : set α)ᶜ :=
+set.ext $ λ x, mem_compl
+
 theorem eq_univ_iff_forall {s : finset α} : s = univ ↔ ∀ x, x ∈ s :=
 by simp [ext_iff]
 
@@ -182,7 +188,7 @@ multiset.card_pmap _ _ _
 theorem card_of_subtype {p : α → Prop} (s : finset α)
   (H : ∀ x : α, x ∈ s ↔ p x) [fintype {x // p x}] :
   card {x // p x} = s.card :=
-by rw ← subtype_card s H; congr
+by { rw ← subtype_card s H, congr }
 
 /-- Construct a fintype from a finset with the same elements. -/
 def of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) : fintype p :=

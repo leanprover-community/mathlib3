@@ -7,7 +7,7 @@ import data.finset.fold
 import data.multiset.lattice
 
 /-!
-# Lattice operations on multisets
+# Lattice operations on finsets
 -/
 
 variables {α β γ : Type*}

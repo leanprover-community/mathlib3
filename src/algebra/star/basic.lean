@@ -1,5 +1,10 @@
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison.
+-/
 import tactic.apply_fun
-import algebra.algebra.basic
+import algebra.algebra.ordered
 import algebra.ordered_ring
 
 /-!
@@ -128,3 +133,9 @@ variables {A : Type v}
   [comm_semiring R] [star_ring R] [semiring A] [algebra R A] [star_algebra R A] (r : R) (a : A) :
   star (r • a) = star r • star a :=
 star_algebra.star_smul r a
+
+set_option old_structure_cmd true
+
+class star_ordered_algebra (R : Type u) (A : Type v)
+  [ordered_comm_semiring R] [star_ring R] [ordered_semiring A] [ordered_algebra R A]
+  extends star_ordered_ring A, star_algebra R A.

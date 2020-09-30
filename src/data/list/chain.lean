@@ -84,7 +84,7 @@ theorem chain_iff_pairwise (tr : transitive R) {a : α} {l : list α} :
   chain R a l ↔ pairwise R (a::l) :=
 ⟨λ c, begin
   induction c with b b c l r p IH, {exact pairwise_singleton _ _},
-  apply IH.cons _, simp only [mem_cons_iff, forall_mem_cons', r, true_and],
+  apply IH.cons _, simp only [mem_cons_iff, forall_eq_or_imp, r, true_and],
   show ∀ x ∈ l, R b x, from λ x m, (tr r (rel_of_pairwise_cons IH m)),
 end, chain_of_pairwise⟩
 

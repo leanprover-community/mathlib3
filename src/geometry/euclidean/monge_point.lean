@@ -345,11 +345,97 @@ lemma altitude_def {n : ℕ} (s : simplex ℝ P (n + 1)) (i : fin (n + 2)) :
     affine_span ℝ (set.range s.points) :=
 rfl
 
+/-- A vertex lies in the corresponding altitude. -/
+lemma mem_altitude {n : ℕ} (s : simplex ℝ P (n + 1)) (i : fin (n + 2)) :
+  s.points i ∈ s.altitude i :=
+(mem_inf_iff _ _ _).2 ⟨self_mem_mk' _ _, mem_affine_span ℝ (set.mem_range_self _)⟩
+
+/-- The direction of an altitude. -/
+lemma direction_altitude {n : ℕ} (s : simplex ℝ P (n + 1)) (i : fin (n + 2)) :
+  (s.altitude i).direction = (vector_span ℝ (s.points '' ↑(finset.univ.erase i))).orthogonal ⊓
+    vector_span ℝ (set.range s.points) :=
+by rw [altitude_def,
+       direction_inf_of_mem (self_mem_mk' (s.points i) _)
+         (mem_affine_span ℝ (set.mem_range_self _)), direction_mk', direction_affine_span,
+       direction_affine_span]
+
+/-- The vector span of the opposite face lies in the direction
+orthogonal to an altitude. -/
+lemma vector_span_le_altitude_direction_orthogonal  {n : ℕ} (s : simplex ℝ P (n + 1))
+    (i : fin (n + 2)) :
+  vector_span ℝ (s.points '' ↑(finset.univ.erase i)) ≤ (s.altitude i).direction.orthogonal :=
+begin
+  rw direction_altitude,
+  exact le_trans
+    (vector_span ℝ (s.points '' ↑(finset.univ.erase i))).le_orthogonal_orthogonal
+    (submodule.orthogonal_le inf_le_left)
+end
+
+open finite_dimensional
+
+/-- An altitude is finite-dimensional. -/
+instance finite_dimensional_direction_altitude {n : ℕ} (s : simplex ℝ P (n + 1))
+  (i : fin (n + 2)) : finite_dimensional ℝ ((s.altitude i).direction) :=
+begin
+  rw direction_altitude,
+  apply_instance
+end
+
+/-- An altitude is one-dimensional (i.e., a line). -/
+@[simp] lemma findim_direction_altitude {n : ℕ} (s : simplex ℝ P (n + 1)) (i : fin (n + 2)) :
+  findim ℝ ((s.altitude i).direction) = 1 :=
+begin
+  rw direction_altitude,
+  have h := submodule.findim_add_inf_findim_orthogonal
+    (vector_span_mono ℝ (set.image_subset_range s.points ↑(univ.erase i))),
+  have hc : card (univ.erase i) = n + 1, { rw card_erase_of_mem (mem_univ _), simp },
+  rw [findim_vector_span_of_affine_independent s.independent (fintype.card_fin _),
+      findim_vector_span_image_finset_of_affine_independent s.independent hc] at h,
+  simpa using h
+end
+
+/-- A line through a vertex is the altitude through that vertex if and
+only if it is orthogonal to the opposite face. -/
+lemma affine_span_insert_singleton_eq_altitude_iff {n : ℕ} (s : simplex ℝ P (n + 1))
+    (i : fin (n + 2)) (p : P) :
+  affine_span ℝ {p, s.points i} = s.altitude i ↔ (p ≠ s.points i ∧
+    p ∈ affine_span ℝ (set.range s.points) ∧
+    p -ᵥ s.points i ∈ (affine_span ℝ (s.points '' ↑(finset.univ.erase i))).direction.orthogonal) :=
+begin
+  rw [eq_iff_direction_eq_of_mem
+        (mem_affine_span ℝ (set.mem_insert_of_mem _ (set.mem_singleton _))) (s.mem_altitude _),
+      ←vsub_right_mem_direction_iff_mem (mem_affine_span ℝ (set.mem_range_self i)) p,
+      direction_affine_span, direction_affine_span, direction_affine_span],
+  split,
+  { intro h,
+    split,
+    { intro heq,
+      rw [heq, set.pair_eq_singleton, vector_span_singleton] at h,
+      have hd : findim ℝ (s.altitude i).direction = 0,
+      { rw [←h, findim_bot] },
+      simpa using hd },
+    { rw [←submodule.mem_inf, inf_comm, ←direction_altitude, ←h],
+      exact vsub_mem_vector_span ℝ (set.mem_insert _ _)
+                                   (set.mem_insert_of_mem _ (set.mem_singleton _)) } },
+  { rintro ⟨hne, h⟩,
+    rw [←submodule.mem_inf, inf_comm, ←direction_altitude] at h,
+    rw [vector_span_eq_span_vsub_set_left_ne ℝ (set.mem_insert _ _),
+        set.insert_diff_of_mem _ (set.mem_singleton _),
+        set.diff_singleton_eq_self (λ h, hne (set.mem_singleton_iff.1 h)), set.image_singleton],
+    refine eq_of_le_of_findim_eq _ _,
+    { rw submodule.span_le,
+      simpa using h },
+    { rw [findim_direction_altitude, findim_span_set_eq_card],
+      { simp },
+      { refine linear_independent_singleton _,
+        simpa using hne } } }
+end
+
 end simplex
 
 namespace triangle
 
-open euclidean_geometry finset simplex
+open euclidean_geometry finset simplex affine_subspace finite_dimensional
 
 variables {V : Type*} {P : Type*} [inner_product_space V] [metric_space P]
     [normed_add_torsor V P]
@@ -458,6 +544,76 @@ lemma dist_orthocenter_reflection_circumcenter_finset (t : triangle ℝ P) {i₁
 begin
   convert dist_orthocenter_reflection_circumcenter t h,
   simp
+end
+
+/-- The affine span of the orthocenter and a vertex is contained in
+the altitude. -/
+lemma affine_span_orthocenter_point_le_altitude (t : triangle ℝ P) (i : fin 3) :
+  affine_span ℝ {t.orthocenter, t.points i} ≤ t.altitude i :=
+begin
+  refine span_points_subset_coe_of_subset_coe _,
+  rw [set.insert_subset, set.singleton_subset_iff],
+  exact ⟨t.orthocenter_mem_altitude, t.mem_altitude i⟩
+end
+
+/-- Suppose we are given a triangle `t₁`, and replace one of its
+vertices by its orthocenter, yielding triangle `t₂` (with vertices not
+necessarily listed in the same order).  Then an altitude of `t₂` from
+a vertex that was not replaced is the corresponding side of `t₁`. -/
+lemma altitude_replace_orthocenter_eq_affine_span {t₁ t₂ : triangle ℝ P} {i₁ i₂ i₃ j₁ j₂ j₃ : fin 3}
+    (hi₁₂ : i₁ ≠ i₂) (hi₁₃ : i₁ ≠ i₃) (hi₂₃ : i₂ ≠ i₃) (hj₁₂ : j₁ ≠ j₂) (hj₁₃ : j₁ ≠ j₃)
+    (hj₂₃ : j₂ ≠ j₃) (h₁ : t₂.points j₁ = t₁.orthocenter) (h₂ : t₂.points j₂ = t₁.points i₂)
+    (h₃ : t₂.points j₃ = t₁.points i₃) :
+  t₂.altitude j₂ = affine_span ℝ {t₁.points i₁, t₁.points i₂} :=
+begin
+  symmetry,
+  rw [←h₂, t₂.affine_span_insert_singleton_eq_altitude_iff],
+  rw [h₂],
+  use (injective_of_affine_independent t₁.independent).ne hi₁₂,
+  have he : affine_span ℝ (set.range t₂.points) = affine_span ℝ (set.range t₁.points),
+  { refine ext_of_direction_eq _
+      ⟨t₁.points i₃, mem_affine_span ℝ ⟨j₃, h₃⟩, mem_affine_span ℝ (set.mem_range_self _)⟩,
+    refine eq_of_le_of_findim_eq (direction_le (span_points_subset_coe_of_subset_coe _)) _,
+    { have hu : (finset.univ : finset (fin 3)) = {j₁, j₂, j₃}, { clear h₁ h₂ h₃, dec_trivial! },
+      rw [←set.image_univ, ←finset.coe_univ, hu, finset.coe_insert, finset.coe_insert,
+          finset.coe_singleton, set.image_insert_eq, set.image_insert_eq, set.image_singleton,
+          h₁, h₂, h₃, set.insert_subset, set.insert_subset, set.singleton_subset_iff],
+      exact ⟨t₁.orthocenter_mem_affine_span,
+             mem_affine_span ℝ (set.mem_range_self _),
+             mem_affine_span ℝ (set.mem_range_self _)⟩ },
+    { rw [direction_affine_span, direction_affine_span,
+          findim_vector_span_of_affine_independent t₁.independent (fintype.card_fin _),
+          findim_vector_span_of_affine_independent t₂.independent (fintype.card_fin _)] } },
+  rw he,
+  use mem_affine_span ℝ (set.mem_range_self _),
+  have hu : finset.univ.erase j₂ = {j₁, j₃}, { clear h₁ h₂ h₃, dec_trivial! },
+  rw [hu, finset.coe_insert, finset.coe_singleton, set.image_insert_eq, set.image_singleton,
+      h₁, h₃],
+  have hle : (t₁.altitude i₃).direction.orthogonal ≤
+    (affine_span ℝ ({t₁.orthocenter, t₁.points i₃} : set P)).direction.orthogonal :=
+      submodule.orthogonal_le (direction_le (affine_span_orthocenter_point_le_altitude _ _)),
+  refine hle ((t₁.vector_span_le_altitude_direction_orthogonal i₃) _),
+  have hui : finset.univ.erase i₃ = {i₁, i₂}, { clear hle h₂ h₃, dec_trivial! },
+  rw [hui, finset.coe_insert, finset.coe_singleton, set.image_insert_eq, set.image_singleton],
+  refine vsub_mem_vector_span ℝ (set.mem_insert _ _)
+    (set.mem_insert_of_mem _ (set.mem_singleton _))
+end
+
+/-- Suppose we are given a triangle `t₁`, and replace one of its
+vertices by its orthocenter, yielding triangle `t₂` (with vertices not
+necessarily listed in the same order).  Then the orthocenter of `t₂`
+is the vertex of `t₁` that was replaced. -/
+lemma orthocenter_replace_orthocenter_eq_point {t₁ t₂ : triangle ℝ P} {i₁ i₂ i₃ j₁ j₂ j₃ : fin 3}
+    (hi₁₂ : i₁ ≠ i₂) (hi₁₃ : i₁ ≠ i₃) (hi₂₃ : i₂ ≠ i₃) (hj₁₂ : j₁ ≠ j₂) (hj₁₃ : j₁ ≠ j₃)
+    (hj₂₃ : j₂ ≠ j₃) (h₁ : t₂.points j₁ = t₁.orthocenter) (h₂ : t₂.points j₂ = t₁.points i₂)
+    (h₃ : t₂.points j₃ = t₁.points i₃) :
+  t₂.orthocenter = t₁.points i₁ :=
+begin
+  refine (triangle.eq_orthocenter_of_forall_mem_altitude hj₂₃ _ _).symm,
+  { rw altitude_replace_orthocenter_eq_affine_span hi₁₂ hi₁₃ hi₂₃ hj₁₂ hj₁₃ hj₂₃ h₁ h₂ h₃,
+    exact mem_affine_span ℝ (set.mem_insert _ _) },
+  { rw altitude_replace_orthocenter_eq_affine_span hi₁₃ hi₁₂ hi₂₃.symm hj₁₃ hj₁₂ hj₂₃.symm h₁ h₃ h₂,
+    exact mem_affine_span ℝ (set.mem_insert _ _) }
 end
 
 end triangle

@@ -179,13 +179,25 @@ lemma pow_eq_one_iff_dvd (l : ℕ) : ζ ^ l = 1 ↔ k ∣ l :=
 ⟨h.dvd_of_pow_eq_one l,
 by { rintro ⟨i, rfl⟩, simp only [pow_mul, h.pow_eq_one, one_pow, pnat.mul_coe] }⟩
 
-lemma pow_ne_one_of_pos_of_lt (h0 : 0 < l) (hl : l < k) : ζ ^ l ≠ 1 :=
-mt (nat.le_of_dvd h0 ∘ h.dvd_of_pow_eq_one _) $ not_le_of_lt hl
-
 lemma is_unit (h : is_primitive_root ζ k) (h0 : 0 < k) : is_unit ζ :=
 begin
   apply is_unit_of_mul_eq_one ζ (ζ ^ (k - 1)),
   rw [← pow_succ, nat.sub_add_cancel h0, h.pow_eq_one]
+end
+
+lemma pow_ne_one_of_pos_of_lt (h0 : 0 < l) (hl : l < k) : ζ ^ l ≠ 1 :=
+mt (nat.le_of_dvd h0 ∘ h.dvd_of_pow_eq_one _) $ not_le_of_lt hl
+
+lemma pow_inj (h : is_primitive_root ζ k) ⦃i j : ℕ⦄ (hi : i < k) (hj : j < k) (H : ζ ^ i = ζ ^ j) :
+  i = j :=
+begin
+  wlog hij : i ≤ j,
+  apply le_antisymm hij,
+  rw ← nat.sub_eq_zero_iff_le,
+  apply nat.eq_zero_of_dvd_of_lt _ (lt_of_le_of_lt (nat.sub_le_self _ _) hj),
+  apply h.dvd_of_pow_eq_one,
+  rw [← ((h.is_unit (lt_of_le_of_lt (nat.zero_le _) hi)).pow i).mul_left_inj,
+      ← pow_add, nat.sub_add_cancel hij, H, one_mul]
 end
 
 lemma one : is_primitive_root (1 : M) 1 :=
@@ -201,12 +213,7 @@ end
 
 @[simp] lemma coe_units_iff {ζ : units M} :
   is_primitive_root (ζ : M) k ↔ is_primitive_root ζ k :=
-begin
-  rw [iff_def, iff_def, ← units.coe_pow, ← units.coe_one, ← units.ext_iff],
-  apply and_congr iff.rfl,
-  apply forall_congr, intro l,
-  rw [← units.coe_pow, ← units.ext_iff],
-end
+by simp only [iff_def, units.ext_iff, units.coe_pow, units.coe_one]
 
 lemma pow_of_coprime (h : is_primitive_root ζ k) (i : ℕ) (hi : i.coprime k) :
   is_primitive_root (ζ ^ i) k :=
@@ -224,6 +231,21 @@ begin
   rw [← pow_one ζ, ← gpow_coe_nat ζ, ← hi.gcd_eq_one, nat.gcd_eq_gcd_ab, gpow_add,
       mul_pow, ← gpow_coe_nat, ← gpow_mul, mul_right_comm],
   simp only [gpow_mul, hl, h.pow_eq_one, one_gpow, one_pow, one_mul, gpow_coe_nat]
+end
+
+lemma pow_iff_coprime (h : is_primitive_root ζ k) (h0 : 0 < k) (i : ℕ) :
+  is_primitive_root (ζ ^ i) k ↔ i.coprime k :=
+begin
+  refine ⟨_, h.pow_of_coprime i⟩,
+  intro hi,
+  obtain ⟨a, ha⟩ := i.gcd_dvd_left k,
+  obtain ⟨b, hb⟩ := i.gcd_dvd_right k,
+  suffices : b = k,
+  { rwa [this, ← one_mul k, nat.mul_left_inj h0, eq_comm] at hb { occs := occurrences.pos [1] } },
+  rw [ha] at hi,
+  rw [mul_comm] at hb,
+  apply nat.dvd_antisymm ⟨i.gcd k, hb⟩ (hi.dvd_of_pow_eq_one b _),
+  rw [← pow_mul', ← mul_assoc, ← hb, pow_mul, h.pow_eq_one, one_pow]
 end
 
 end comm_monoid
@@ -270,6 +292,10 @@ begin
   rw [int.gcd, ← int.nat_abs_neg, ← hi'] at hi,
   exact hi
 end
+
+@[simp] lemma coe_subgroup_iff (H : subgroup G) {ζ : H} :
+  is_primitive_root (ζ : G) k ↔ is_primitive_root ζ k :=
+by simp only [iff_def, ← subgroup.coe_pow, ← H.coe_one, ← subtype.ext_iff]
 
 end comm_group
 
@@ -452,7 +478,7 @@ end
 
 lemma eq_pow_of_pow_eq_one {k : ℕ} {ζ ξ : R}
   (h : is_primitive_root ζ k) (hξ : ξ ^ k = 1) (h0 : 0 < k) :
-  ∃ (i : ℕ) (hi : i < k), ζ ^ i = ξ :=
+  ∃ i < k, ζ ^ i = ξ :=
 begin
   obtain ⟨ζ, rfl⟩ := h.is_unit h0,
   obtain ⟨ξ, rfl⟩ := is_unit_of_pow_eq_one ξ k hξ h0,
@@ -463,7 +489,29 @@ begin
   rw [mem_roots_of_unity, units.ext_iff, units.coe_pow, hξ, units.coe_one]
 end
 
-lemma card_roots_of_unity' (n : ℕ+) (h : is_primitive_root ζ n) :
+lemma is_primitive_root_iff' {k : ℕ+} {ζ ξ : units R} (h : is_primitive_root ζ k) :
+  is_primitive_root ξ k ↔ ∃ (i < (k : ℕ)) (hi : i.coprime k), ζ ^ i = ξ :=
+begin
+  split,
+  { intro hξ,
+    obtain ⟨i, hik, rfl⟩ := h.eq_pow_of_mem_roots_of_unity hξ.pow_eq_one,
+    rw h.pow_iff_coprime k.pos at hξ,
+    exact ⟨i, hik, hξ, rfl⟩ },
+  { rintro ⟨i, -, hi, rfl⟩, exact h.pow_of_coprime i hi }
+end
+
+lemma is_primitive_root_iff {k : ℕ} {ζ ξ : R} (h : is_primitive_root ζ k) (h0 : 0 < k) :
+  is_primitive_root ξ k ↔ ∃ (i < k) (hi : i.coprime k), ζ ^ i = ξ :=
+begin
+  split,
+  { intro hξ,
+    obtain ⟨i, hik, rfl⟩ := h.eq_pow_of_pow_eq_one hξ.pow_eq_one h0,
+    rw h.pow_iff_coprime h0 at hξ,
+    exact ⟨i, hik, hξ, rfl⟩ },
+  { rintro ⟨i, -, hi, rfl⟩, exact h.pow_of_coprime i hi }
+end
+
+lemma card_roots_of_unity' {n : ℕ+} (h : is_primitive_root ζ n) :
   fintype.card (roots_of_unity n R) = n :=
 begin
   haveI : fact (0 < ↑n) := n.pos,
@@ -475,12 +523,43 @@ begin
   ... = n                                 : zmod.card n
 end
 
-lemma card_roots_of_unity {ζ : R} (n : ℕ+) (h : is_primitive_root ζ n) :
+lemma card_roots_of_unity {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) :
   fintype.card (roots_of_unity n R) = n :=
 begin
   obtain ⟨ζ, hζ⟩ := h.is_unit n.pos,
   rw [← hζ, is_primitive_root.coe_units_iff] at h,
-  exact h.card_roots_of_unity' n
+  exact h.card_roots_of_unity'
+end
+
+open_locale nat
+
+lemma card_filter_is_primitive_root' {n : ℕ+} (h : is_primitive_root ζ n) :
+  ((finset.univ : finset (roots_of_unity n R)).filter (λ ζ, is_primitive_root ζ n)).card = φ n :=
+begin
+  symmetry,
+  obtain ⟨ζ, rfl⟩ : ∃ ξ : roots_of_unity n R, ζ = ξ := ⟨⟨ζ, h.pow_eq_one⟩, rfl⟩,
+  rw [coe_subgroup_iff] at h,
+  refine finset.card_congr (λ i _, ζ ^ i) _ _ _,
+  { simp only [true_and, and_imp, mem_filter, mem_range, mem_univ],
+    rintro i - hi,
+    exact h.pow_of_coprime i hi.symm },
+  { simp only [true_and, and_imp, mem_filter, mem_range, mem_univ],
+    rintro i j hi - hj - H,
+    exact h.pow_inj hi hj H },
+  { simp only [exists_prop, true_and, mem_filter, mem_range, mem_univ],
+    intros ξ hξ,
+    rw [← coe_subgroup_iff] at h hξ,
+    simp only [h.is_primitive_root_iff', ← subgroup.coe_pow, ← subtype.ext_iff] at hξ,
+    rcases hξ with ⟨i, hin, hi, H⟩,
+    exact ⟨i, ⟨hin, hi.symm⟩, H⟩ }
+end
+
+lemma card_filter_is_primitive_root {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) :
+  ((finset.univ : finset (roots_of_unity n R)).filter (λ ζ, is_primitive_root ζ n)).card = φ n :=
+begin
+  obtain ⟨ζ, hζ⟩ := h.is_unit n.pos,
+  rw [← hζ, is_primitive_root.coe_units_iff] at h,
+  exact h.card_filter_is_primitive_root'
 end
 
 end integral_domain

@@ -57,11 +57,10 @@ begin
   intro h,
   obtain ⟨i, hi, rfl⟩ :=
     (is_primitive_root_exp n hn).eq_pow_of_pow_eq_one h.pow_eq_one (nat.pos_of_ne_zero hn),
-  refine ⟨i, hi, _, _⟩,
-  { sorry },
-  { rw [← exp_nat_mul],
-    congr' 1,
-    field_simp [hn0, mul_comm (i : ℂ)] }
+  refine ⟨i, hi, ((is_primitive_root_exp n hn).pow_iff_coprime i).mp h, _⟩,
+  rw [← exp_nat_mul],
+  congr' 1,
+  field_simp [hn0, mul_comm (i : ℂ)]
 end
 
 /-- The complex `n`-th roots of unity are exactly the

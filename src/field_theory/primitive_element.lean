@@ -106,7 +106,7 @@ begin
     apply (adjoin_le_iff F {α, β}).mpr,
     have α_in_Fγ : α ∈ F⟮γ⟯,
     { rw ← add_sub_cancel α (c • β),
-      exact F⟮γ⟯.sub_mem (mem_adjoin_simple_self F γ) (F⟮γ⟯.smul_mem β_in_Fγ c) },
+      exact F⟮γ⟯.sub_mem (mem_adjoin_simple_self F γ) (F⟮γ⟯.to_subalgebra.smul_mem β_in_Fγ c) },
     exact λ x hx, by cases hx; cases hx; cases hx; assumption },
   let p := euclidean_domain.gcd ((f.map (algebra_map F F⟮γ⟯)).comp
     (C (adjoin_simple.gen F γ) - (C ↑c * X))) (g.map (algebra_map F F⟮γ⟯)),

@@ -293,5 +293,4 @@ end
 
 end adjoin_dim
 end adjoin_subalgebra_lattice
-
 end intermediate_field

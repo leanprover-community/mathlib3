@@ -251,7 +251,7 @@ def whiskering_equivalence {K : Type v} [small_category K] (e : K ≌ J) :
     intro k,
     have t := s.π.naturality (e.unit_inv.app k),
     dsimp at t,
-    simp only [←e.counit_functor k, id_comp] at t,
+    simp only [←e.counit_app_functor k, id_comp] at t,
     dsimp,
     simp [t],
   end)) (by tidy), }
@@ -415,7 +415,7 @@ def whiskering_equivalence {K : Type v} [small_category K] (e : K ≌ J) :
     intro k,
     have t := s.ι.naturality (e.unit.app k),
     dsimp at t,
-    simp only [e.functor_unit k, comp_id] at t,
+    simp only [←e.counit_inv_app_functor k, comp_id] at t,
     dsimp,
     simp [t],
   end)) (by tidy), }
@@ -476,9 +476,11 @@ let f : (F ⋙ e.functor) ⋙ e.inverse ≅ F :=
   unit_iso := nat_iso.of_components (λ c, cocones.ext (e.unit_iso.app _) (by tidy)) (by tidy),
   counit_iso := nat_iso.of_components (λ c, cocones.ext (e.counit_iso.app _)
   begin
+    -- Unfortunately this doesn't work by `tidy`.
+    -- In this configuration `simp` reaches a dead-end and needs help.
     intros j,
     dsimp,
-    simp only [equivalence.functor_unit, iso.inv_hom_id_app, map_comp, equivalence.fun_inv_map,
+    simp only [←equivalence.counit_inv_app_functor, iso.inv_hom_id_app, map_comp, equivalence.fun_inv_map,
       assoc, id_comp, iso.inv_hom_id_app_assoc],
     dsimp, simp, -- See note [dsimp, simp].
   end) (by tidy), }
@@ -648,7 +650,7 @@ variables {F : J ⥤ Cᵒᵖ}
 -- as we can write a simpler `rfl` lemma for the components of the natural transformation by hand.
 @[simps X] def cone_of_cocone_left_op (c : cocone F.left_op) : cone F :=
 { X := op c.X,
-  π := nat_trans.right_op (c.ι ≫ (const.op_obj_unop (op c.X)).hom) }
+  π := nat_trans.remove_left_op (c.ι ≫ (const.op_obj_unop (op c.X)).hom) }
 
 @[simp] lemma cone_of_cocone_left_op_π_app (c : cocone F.left_op) (j) :
   (cone_of_cocone_left_op c).π.app j = (c.ι.app (op j)).op :=
@@ -666,7 +668,7 @@ by { dsimp [cocone_left_op_of_cone], simp }
 /-- Change a cone on `F.left_op : Jᵒᵖ ⥤ C` to a cocone on `F : J ⥤ Cᵒᵖ`. -/
 @[simps X] def cocone_of_cone_left_op (c : cone F.left_op) : cocone F :=
 { X := op c.X,
-  ι := nat_trans.right_op ((const.op_obj_unop (op c.X)).hom ≫ c.π) }
+  ι := nat_trans.remove_left_op ((const.op_obj_unop (op c.X)).hom ≫ c.π) }
 
 @[simp] lemma cocone_of_cone_left_op_ι_app (c : cone F.left_op) (j) :
   (cocone_of_cone_left_op c).ι.app j = (c.π.app (op j)).op :=

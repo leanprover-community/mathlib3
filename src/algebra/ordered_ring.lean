@@ -27,7 +27,7 @@ ordered_semiring.zero_lt_one
 lemma zero_le_one : 0 ≤ (1:α) :=
 zero_lt_one.le
 
-/-- `0 < 2`: an alternative version of `two_pos` that only assumes `linear_ordered_semiring`. -/
+/-- `0 < 2`: an alternative version of `two_pos` that only assumes `ordered_semiring`. -/
 lemma zero_lt_two : 0 < (2:α) := add_pos zero_lt_one zero_lt_one
 
 @[field_simps] lemma two_ne_zero : (2:α) ≠ 0 :=

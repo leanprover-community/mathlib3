@@ -20,8 +20,8 @@ as saying the numerator and denominator are relatively prime.
 lemma calculation (n k : ℕ) (h1 : k ∣ 21 * n + 4) (h2 : k ∣ 14 * n + 3) : k ∣ 1 :=
 have h3 : k ∣ 2 * (21 * n + 4), from dvd_mul_of_dvd_right h1 2,
 have h4 : k ∣ 3 * (14 * n + 3), from dvd_mul_of_dvd_right h2 3,
-have h5 : 2 * (21 * n + 4) + 1 = 3 * (14 * n + 3), by ring,
-(nat.dvd_add_right h3).mp (eq.subst h5.symm h4)
+have h5 : 3 * (14 * n + 3) = 2 * (21 * n + 4) + 1 , by ring,
+(nat.dvd_add_right h3).mp (h5 ▸ h4)
 
 theorem imo1959_q1 : ∀ n : ℕ, coprime (21 * n + 4) (14 * n + 3) :=
 assume n, coprime_of_dvd' (calculation n)

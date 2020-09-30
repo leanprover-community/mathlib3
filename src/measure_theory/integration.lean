@@ -393,16 +393,16 @@ theorem restrict_apply (f : α →ₛ β) {s : set α} (hs : is_measurable s) (a
 by simp only [hs, coe_restrict]
 
 lemma restrict_const_eq_mul_indicator 
-    (f : α → ennreal) (s : set α) (x : ennreal) (A1 : is_measurable s) :
+    (f : α → ennreal) (s : set α) (x : ennreal) (h : is_measurable s) :
     (f * ⇑((const α x).restrict s)) = λ ω, (x * (set.indicator s f ω)) := 
 begin
   apply funext,
   intro ω,
-  simp,
+  simp only [pi.mul_apply, mul_ite, mul_zero],
   rw [restrict_apply, const_apply],
-  simp,
+  simp only [mul_ite, mul_zero],
   rw mul_comm,
-  apply A1,
+  apply h,
 end
 
 theorem restrict_preimage (f : α →ₛ β) {s : set α} (hs : is_measurable s)
@@ -1463,7 +1463,7 @@ namespace simple_func
 
 lemma restrict.compose_eq_multiply {α : Type*} [measurable_space α] (μ : measure α) 
     (f : α → ennreal) (S : set α) (x : ennreal)
-    (A1 : measurable f) (A2 : is_measurable S) :
+    (h₁ : measurable f) (h₂ : is_measurable S) :
     ((const α x).restrict S).lintegral (μ.with_density f)
     = (∫⁻ a : α, (f * ⇑((const α x).restrict S)) a ∂ μ) :=
 begin

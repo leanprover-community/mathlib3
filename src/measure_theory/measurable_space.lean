@@ -470,7 +470,7 @@ begin
   exact (hs.inter $ hf ht).union (hs.compl.inter $ hg ht)
 end
 
-lemma measurable_const {α β} [measurable_space α] [measurable_space β] {a : α} :
+@[simp] lemma measurable_const {α β} [measurable_space α] [measurable_space β] {a : α} :
   measurable (λb:β, a) :=
 by { intros s hs, by_cases a ∈ s; simp [*, preimage] }
 

@@ -633,31 +633,40 @@ rfl
 def lift [comm_semiring k] [add_monoid G] {R : Type u₃} [semiring R] [algebra k R] :
   (multiplicative G →* R) ≃ (add_monoid_algebra k G →ₐ[k] R) :=
 { inv_fun := λ f, ((f : add_monoid_algebra k G →+* R) : add_monoid_algebra k G →* R).comp (of k G),
-  to_fun := λ F, { to_fun := λ f, f.sum (λ a b, b • F a),
+  to_fun := λ F, {
+    to_fun := λ f, f.sum (λ a b, b • F a),
     map_one' := by { rw [one_def, sum_single_index, one_smul], erw [F.map_one], apply zero_smul },
-    map_mul' :=
+    map_mul' := λ f g,
       begin
-        intros f g,
-        rw [mul_def, finsupp.sum_mul, finsupp.sum_sum_index];
-          try { intros, simp only [zero_smul, add_smul], done },
-        refine finset.sum_congr rfl (λ a ha, _), simp only,
-        rw [finsupp.mul_sum, finsupp.sum_sum_index];
-          try { intros, simp only [zero_smul, add_smul], done },
-        refine finset.sum_congr rfl (λ a' ha', _), simp only,
+        rw [mul_def, finsupp.sum_mul, finsupp.sum_sum_index],
+        work_on_goal 1 { intros, rw zero_smul, },
+        work_on_goal 1 { intros, rw add_smul, },
+        refine finset.sum_congr rfl (λ a ha, _),
+        simp only,
+        rw [finsupp.mul_sum, finsupp.sum_sum_index],
+        work_on_goal 1 { intros, rw zero_smul, },
+        work_on_goal 1 { intros, rw add_smul, },
+        refine finset.sum_congr rfl (λ a' ha', _),
+        simp only,
         rw [sum_single_index],
         erw [F.map_mul],
         rw [algebra.mul_smul_comm, algebra.smul_mul_assoc, smul_smul, mul_comm],
-        apply zero_smul
+        apply zero_smul,
       end,
     map_zero' := sum_zero_index,
-    map_add' := λ f g, by rw [sum_add_index]; intros; simp only [zero_smul, add_smul],
+    map_add' := λ f g,
+      begin
+        rw [sum_add_index],
+        { intros, rw zero_smul, },
+        { intros, rw add_smul, },
+      end,
     commutes' := λ r,
-    begin
-      rw [coe_algebra_map, sum_single_index],
-      erw [F.map_one],
-      rw [algebra.smul_def, mul_one],
-      apply zero_smul
-    end, },
+      begin
+        rw [coe_algebra_map, sum_single_index],
+        erw [F.map_one],
+        rw [algebra.smul_def, mul_one],
+        apply zero_smul
+      end, },
   left_inv := λ f, begin ext x, simp [sum_single_index] end,
   right_inv := λ F,
     begin

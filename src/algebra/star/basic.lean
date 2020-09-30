@@ -90,6 +90,15 @@ begin
   simp,
 end
 
+@[simp] lemma star_sub [ring R] [star_ring R] (r s : R) : star (r - s) = star r - star s :=
+by simp [sub_eq_add_neg]
+
+@[simp] lemma star_bit0 [ring R] [star_ring R] (r : R) : star (bit0 r) = bit0 (star r) :=
+by simp [bit0]
+
+@[simp] lemma star_bit1 [ring R] [star_ring R] (r : R) : star (bit1 r) = bit1 (star r) :=
+by simp [bit1]
+
 /--
 An ordered *-ring is a ring which is both an ordered ring and a *-star,
 and `0 ≤ star r * r` for every `r`.

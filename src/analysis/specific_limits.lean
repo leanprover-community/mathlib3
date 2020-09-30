@@ -258,6 +258,8 @@ summable_geometric_of_norm_lt_1 h
 lemma tsum_geometric_of_abs_lt_1 {r : ℝ} (h : abs r < 1) : (∑'n:ℕ, r ^ n) = (1 - r)⁻¹ :=
 tsum_geometric_of_norm_lt_1 h
 
+/-- A geometric series in a normed field is summable iff the norm of the common ratio is less than
+one. -/
 @[simp] lemma summable_geometric_iff_norm_lt_1 : summable (λ n : ℕ, ξ ^ n) ↔ ∥ξ∥ < 1 :=
 begin
   refine ⟨λ h, _, summable_geometric_of_norm_lt_1⟩,

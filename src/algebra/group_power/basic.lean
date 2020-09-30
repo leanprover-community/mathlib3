@@ -227,6 +227,28 @@ lemma dvd_pow {x y : M} :
 
 end comm_monoid
 
+section semiring
+
+variables [semiring R] {n : ℕ} {r : R}
+
+@[simp] lemma bit0_nsmul_one : bit0 n •ℕ (1 : R) = n •ℕ 2 :=
+by simp [bit0, add_nsmul, nsmul_add]
+@[simp] lemma bit0_nsmul_bit0 : bit0 n •ℕ bit0 r = n •ℕ (bit0 (bit0 r)) :=
+by simp [bit0, add_nsmul, nsmul_add]
+@[simp] lemma bit0_nsmul_bit1 : bit0 n •ℕ bit1 r = n •ℕ (bit0 (bit1 r)) :=
+by simp [bit0, add_nsmul, nsmul_add]
+@[simp] lemma bit1_nsmul_one : bit1 n •ℕ (1 : R) = n •ℕ 2 + 1 :=
+by simp [bit1, add_nsmul, nsmul_add]
+@[simp] lemma bit1_nsmul_bit0 : bit1 n •ℕ bit0 r = n •ℕ (bit0 (bit0 r)) + bit0 r :=
+by simp [bit1, add_nsmul, nsmul_add]
+@[simp] lemma bit1_nsmul_bit1 : bit1 n •ℕ bit1 r = n •ℕ (bit0 (bit1 r)) + bit1 r :=
+begin
+  conv_lhs { congr, dsimp [bit1], },
+  simp only [bit0, add_nsmul, nsmul_add, one_nsmul],
+end
+
+end semiring
+
 section group
 variables [group G] [group H] [add_group A] [add_group B]
 
@@ -546,4 +568,3 @@ variables (a) (m n : ℕ)
 @[simp] theorem gpow_gpow_self : commute (a ^ m) (a ^ n) := (commute.refl a).gpow_gpow m n
 
 end commute
-

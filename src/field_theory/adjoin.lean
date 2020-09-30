@@ -57,6 +57,30 @@ def gi : galois_insertion (adjoin F : set E → intermediate_field F E) coe :=
 instance : complete_lattice (intermediate_field F E) :=
 galois_insertion.lift_complete_lattice intermediate_field.gi
 
+lemma mem_bot {x : E} : x ∈ (⊥ : intermediate_field F E) ↔ x ∈ set.range (algebra_map F E) :=
+begin
+  suffices : set.range (algebra_map F E) = (⊥ : intermediate_field F E),
+  {rw this, refl},
+  { change set.range (algebra_map F E) = subfield.closure (set.range (algebra_map F E) ∪ ∅),
+    simp[←set.image_univ,←ring_hom.map_field_closure] }
+end
+
+lemma mem_top {x : E} : x ∈ (⊤ : intermediate_field F E) :=
+subfield.subset_closure $ or.inr trivial
+
+lemma bot_to_subalgebra_eq_bot : (⊥ : intermediate_field F E).to_subalgebra = ⊥ :=
+begin
+  ext,
+  rw [mem_to_subalgebra, algebra.mem_bot, mem_bot],
+end
+
+lemma top_to_subalgebra_eq_top : (⊤ : intermediate_field F E).to_subalgebra = ⊤ :=
+begin
+  ext,
+  rw [mem_to_subalgebra, iff_true_right algebra.mem_top],
+  exact mem_top,
+end
+
 end lattice
 
 section adjoin_def
@@ -251,7 +275,15 @@ section adjoin_dim
 open finite_dimensional vector_space
 
 lemma sub_bot_of_adjoin_dim_eq_one (h : dim F (adjoin F S) = 1) : S ⊆ (⊥ : intermediate_field F E) :=
-sorry
+begin
+  rw adjoin_eq_bot_iff,
+  suffices : (adjoin F S).to_subalgebra = (⊥ : intermediate_field F E).to_subalgebra,
+  { ext,
+    exact subalgebra.ext_iff.mp this x },
+  { rw [bot_to_subalgebra_eq_bot, ←subalgebra.dim_eq_one_iff],
+    exact h }
+end
+--sorry
 -- by rwa [adjoin_eq_bot_iff, ← subalgebra.dim_eq_one_iff]
 
 lemma mem_bot_of_adjoin_simple_dim_eq_one (h : dim F F⟮α⟯ = 1) : α ∈ ((⊥ : intermediate_field F E) : set E) :=
@@ -293,4 +325,5 @@ end
 
 end adjoin_dim
 end adjoin_subalgebra_lattice
+
 end intermediate_field

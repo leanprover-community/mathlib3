@@ -393,10 +393,9 @@ theorem restrict_apply (f : α →ₛ β) {s : set α} (hs : is_measurable s) (a
 by simp only [hs, coe_restrict]
 
 lemma restrict_const_eq_mul_indicator 
-    (f : α → ennreal) (s : set α) (x : ennreal) : (is_measurable s) →
+    (f : α → ennreal) (s : set α) (x : ennreal) (A1 : is_measurable s) :
     (f * ⇑((const α x).restrict s)) = λ ω, (x * (set.indicator s f ω)) := 
 begin
-  intro A1,
   apply funext,
   intro ω,
   simp,

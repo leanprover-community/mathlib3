@@ -14,7 +14,7 @@ import tactic.zify
 /-!
 # Roots of unity and primitive roots of unity
 
-We define roots of unity in the context in the context of an arbitrary commutative monoid,
+We define roots of unity in the context of an arbitrary commutative monoid,
 as a subgroup of the group of units. We also define a predicate `is_primitive_root` on commutative
 monoids, expressing that an element is a primitive root of unity.
 

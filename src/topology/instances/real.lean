@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import topology.metric_space.basic
 import topology.algebra.uniform_group
-import topology.algebra.ring
+import topology.algebra.continuous_functions
 /-!
 # Topological properties of ℝ
 -/
@@ -314,3 +314,8 @@ eq_Icc_of_connected_compact ⟨(nonempty_Icc.2 hab).image f, is_preconnected_Icc
   (compact_Icc.image_of_continuous_on h)
 
 end
+
+instance reals_semimodule : topological_semimodule ℝ ℝ := ⟨continuous_mul⟩
+
+instance real_maps_algebra {α : Type*} [topological_space α] :
+  algebra ℝ C(α, ℝ) := continuous_map_algebra

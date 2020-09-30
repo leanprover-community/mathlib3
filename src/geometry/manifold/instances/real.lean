@@ -3,7 +3,7 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import geometry.manifold.smooth_manifold_with_corners
+import geometry.manifold.algebra.smooth_functions
 import linear_algebra.finite_dimensional
 import analysis.normed_space.real_inner_product
 
@@ -324,48 +324,42 @@ begin
   have M : times_cont_diff_on ℝ ∞ (λz : euclidean_space (fin 1), - z + (λi, y - x)) univ,
   { rw times_cont_diff_on_univ,
     exact times_cont_diff_id.neg.add times_cont_diff_const  },
-  haveI : has_groupoid (Icc x y) (times_cont_diff_groupoid ∞ (𝓡∂ 1)) :=
-  begin
-    apply has_groupoid_of_pregroupoid,
-    assume e e' he he',
-    simp only [atlas, mem_singleton_iff, mem_insert_iff] at he he',
-    /- We need to check that any composition of two charts gives a `C^∞` function. Each chart can be
-    either the left chart or the right chart, leaving 4 possibilities that we handle successively.
-    -/
-    rcases he with rfl | rfl; rcases he' with rfl | rfl,
-    { -- `e = left chart`, `e' = left chart`
-      refine (mem_groupoid_of_pregroupoid.mpr _).1,
-      exact symm_trans_mem_times_cont_diff_groupoid _ _ _ },
-    { -- `e = left chart`, `e' = right chart`
-      apply M.congr_mono _ (subset_univ _),
-      assume z hz,
-      simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, dif_pos,
-        lt_add_iff_pos_left, max_lt_iff, lt_min_iff, sub_pos, lt_max_iff, subtype.range_val]
-        with mfld_simps at hz,
-      have A : 0 ≤ z 0 := hz.2,
-      have B : z 0 + x ≤ y, by { have := hz.1.1.1, linarith },
-      ext i,
-      rw subsingleton.elim i 0,
-      simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B,
-        pi_Lp.add_apply, dif_pos, min_eq_left, max_eq_left, pi_Lp.neg_apply] with mfld_simps,
-      ring },
-    { -- `e = right chart`, `e' = left chart`
-      apply M.congr_mono _ (subset_univ _),
-      assume z hz,
-      simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, dif_pos,
-        max_lt_iff, sub_pos, subtype.range_val] with mfld_simps at hz,
-      have A : 0 ≤ z 0 := hz.2,
-      have B : x ≤ y - z 0, by { have := hz.1.1.1, dsimp at this, linarith },
-      ext i,
-      rw subsingleton.elim i 0,
-      simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B,
-        pi_Lp.add_apply, dif_pos, max_eq_left, pi_Lp.neg_apply] with mfld_simps,
-      ring },
-    { -- `e = right chart`, `e' = right chart`
-      refine (mem_groupoid_of_pregroupoid.mpr _).1,
-      exact symm_trans_mem_times_cont_diff_groupoid _ _ _ }
-  end,
-  constructor
+  apply smooth_manifold_with_corners_of_times_cont_diff_on,
+  assume e e' he he',
+  simp only [atlas, mem_singleton_iff, mem_insert_iff] at he he',
+  /- We need to check that any composition of two charts gives a `C^∞` function. Each chart can be
+  either the left chart or the right chart, leaving 4 possibilities that we handle successively.
+  -/
+  rcases he with rfl | rfl; rcases he' with rfl | rfl,
+  { -- `e = left chart`, `e' = left chart`
+    exact (mem_groupoid_of_pregroupoid.mpr (symm_trans_mem_times_cont_diff_groupoid _ _ _)).1 },
+  { -- `e = left chart`, `e' = right chart`
+    apply M.congr_mono _ (subset_univ _),
+    assume z hz,
+    simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, dif_pos,
+      lt_add_iff_pos_left, max_lt_iff, lt_min_iff, sub_pos, lt_max_iff, subtype.range_val]
+      with mfld_simps at hz,
+    have A : 0 ≤ z 0 := hz.2,
+    have B : z 0 + x ≤ y, by { have := hz.1.1.1, linarith },
+    ext i,
+    rw subsingleton.elim i 0,
+    simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B,
+      pi_Lp.add_apply, dif_pos, min_eq_left, max_eq_left, pi_Lp.neg_apply] with mfld_simps,
+    ring },
+  { -- `e = right chart`, `e' = left chart`
+    apply M.congr_mono _ (subset_univ _),
+    assume z hz,
+    simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, dif_pos,
+      max_lt_iff, sub_pos, subtype.range_val] with mfld_simps at hz,
+    have A : 0 ≤ z 0 := hz.2,
+    have B : x ≤ y - z 0, by { have := hz.1.1.1, dsimp at this, linarith },
+    ext i,
+    rw subsingleton.elim i 0,
+    simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B,
+      pi_Lp.add_apply, dif_pos, max_eq_left, pi_Lp.neg_apply] with mfld_simps,
+    ring },
+  { -- `e = right chart`, `e' = right chart`
+    exact (mem_groupoid_of_pregroupoid.mpr (symm_trans_mem_times_cont_diff_groupoid _ _ _)).1 }
 end
 
 /-! Register the manifold structure on `Icc 0 1`, and also its zero and one. -/

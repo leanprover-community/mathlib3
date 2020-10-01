@@ -71,7 +71,7 @@ begin
   { simp only [coeff_scale_roots, nat.sub_zero] at this,
     haveI := classical.prop_decidable,
     by_cases hr : f.num r = 0,
-    { obtain ⟨u, hu⟩ := is_unit_pow p.nat_degree (f.is_unit_denom_of_num_eq_zero hr),
+    { obtain ⟨u, hu⟩ := (f.is_unit_denom_of_num_eq_zero hr).pow p.nat_degree,
       rw ←hu at this,
       exact units.dvd_mul_right.mp this },
     { refine dvd_of_dvd_mul_left_of_no_prime_of_factor hr _ this,

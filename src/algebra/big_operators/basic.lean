@@ -246,7 +246,7 @@ end
 @[to_additive]
 lemma prod_product' {s : finset γ} {t : finset α} {f : γ → α → β} :
   (∏ x in s.product t, f x.1 x.2) = ∏ x in s, ∏ y in t, f x y :=
-by rw prod_product
+prod_product
 
 @[to_additive]
 lemma prod_sigma {σ : α → Type*}
@@ -263,23 +263,25 @@ calc (∏ x in s.sigma t, f x) =
     prod_congr rfl $ λ _ _, prod_map _ _ _
 
 @[to_additive]
+lemma prod_fiberwise_of_maps_to [decidable_eq γ] {s : finset α} {t : finset γ} {g : α → γ}
+  (h : ∀ x ∈ s, g x ∈ t) (f : α → β) :
+  (∏ y in t, ∏ x in s.filter (λ x, g x = y), f x) = ∏ x in s, f x :=
+begin
+  letI := classical.dec_eq α,
+  rw [← bind_filter_eq_of_maps_to h] {occs := occurrences.pos [2]},
+  refine (prod_bind $ λ x' hx y' hy hne, _).symm,
+  rw [disjoint_filter],
+  rintros x hx rfl,
+  exact hne
+end
+
+@[to_additive]
 lemma prod_image' [decidable_eq α] {s : finset γ} {g : γ → α} (h : γ → β)
   (eq : ∀c∈s, f (g c) = ∏ x in s.filter (λc', g c' = g c), h x) :
   (∏ x in s.image g, f x) = ∏ x in s, h x :=
-begin
-  letI := classical.dec_eq γ,
-  rw [← image_bind_filter_eq s g] {occs := occurrences.pos [2]},
-  rw [finset.prod_bind],
-  { refine finset.prod_congr rfl (assume a ha, _),
-    rcases finset.mem_image.1 ha with ⟨b, hb, rfl⟩,
-    exact eq b hb },
-  assume a₀ _ a₁ _ ne,
-  refine (disjoint_iff_ne.2 _),
-  assume c₀ h₀ c₁ h₁,
-  rcases mem_filter.1 h₀ with ⟨h₀, rfl⟩,
-  rcases mem_filter.1 h₁ with ⟨h₁, rfl⟩,
-  exact mt (congr_arg g) ne
-end
+calc (∏ x in s.image g, f x) = ∏ x in s.image g, ∏ x in s.filter (λ c', g c' = x), h x :
+  prod_congr rfl $ λ x hx, let ⟨c, hcs, hc⟩ := mem_image.1 hx in hc ▸ (eq c hcs)
+... = ∏ x in s, h x : prod_fiberwise_of_maps_to (λ x, mem_image_of_mem g) _
 
 @[to_additive]
 lemma prod_mul_distrib : ∏ x in s, (f x * g x) = (∏ x in s, f x) * (∏ x in s, g x) :=
@@ -954,16 +956,14 @@ finset.induction_on s (by simp)
     ... ≤ ∑ a in insert a s, card (t a) :
     by rw sum_insert has; exact add_le_add_left ih _)
 
+theorem card_eq_sum_card_fiberwise [decidable_eq β] {f : α → β} {s : finset α} {t : finset β}
+  (H : ∀ x ∈ s, f x ∈ t) :
+  s.card = ∑ a in t, (s.filter (λ x, f x = a)).card :=
+by simp only [card_eq_sum_ones, sum_fiberwise_of_maps_to H]
+
 theorem card_eq_sum_card_image [decidable_eq β] (f : α → β) (s : finset α) :
   s.card = ∑ a in s.image f, (s.filter (λ x, f x = a)).card :=
-by letI := classical.dec_eq α; exact
-calc s.card = ((s.image f).bind (λ a, s.filter (λ x, f x = a))).card :
-  congr_arg _ (finset.ext $ λ x,
-    ⟨λ hs, mem_bind.2 ⟨f x, mem_image_of_mem _ hs,
-      mem_filter.2 ⟨hs, rfl⟩⟩,
-    λ h, let ⟨a, ha₁, ha₂⟩ := mem_bind.1 h in by convert filter_subset s ha₂⟩)
-... = ∑ a in s.image f, (s.filter (λ x, f x = a)).card :
-  card_bind (by simp [disjoint_left, finset.ext_iff] {contextual := tt})
+card_eq_sum_card_fiberwise (λ _, mem_image_of_mem _)
 
 lemma gsmul_sum [add_comm_group β] {f : α → β} {s : finset α} (z : ℤ) :
   gsmul z (∑ a in s, f a) = ∑ a in s, gsmul z (f a) :=

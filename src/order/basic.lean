@@ -131,14 +131,104 @@ lemma strict_mono_id [has_lt α] : strict_mono (id : α → α) := λ a b, id
 /-- A function `f` is strictly monotone increasing on `t` if `x < y` for `x,y ∈ t` implies
 `f x < f y`. -/
 def strict_mono_incr_on [has_lt α] [has_lt β] (f : α → β) (t : set α) : Prop :=
-∀ (x ∈ t) (y ∈ t), x < y → f x < f y
+∀ ⦃x⦄ (hx : x ∈ t) ⦃y⦄ (hy : y ∈ t), x < y → f x < f y
+
 /-- A function `f` is strictly monotone decreasing on `t` if `x < y` for `x,y ∈ t` implies
 `f y < f x`. -/
 def strict_mono_decr_on [has_lt α] [has_lt β] (f : α → β) (t : set α) : Prop :=
-∀ (x ∈ t) (y ∈ t), x < y → f y < f x
+∀ ⦃x⦄ (hx : x ∈ t) ⦃y⦄ (hy : y ∈ t), x < y → f y < f x
+
+/-- Type tag for a set with dual order: `≤` means `≥` and `<` means `>`. -/
+def order_dual (α : Type*) := α
+
+namespace order_dual
+instance (α : Type*) [h : nonempty α] : nonempty (order_dual α) := h
+instance (α : Type*) [has_le α] : has_le (order_dual α) := ⟨λx y:α, y ≤ x⟩
+instance (α : Type*) [has_lt α] : has_lt (order_dual α) := ⟨λx y:α, y < x⟩
+
+-- `dual_le` and `dual_lt` should not be simp lemmas:
+-- they cause a loop since `α` and `order_dual α` are definitionally equal
+
+lemma dual_le [has_le α] {a b : α} :
+  @has_le.le (order_dual α) _ a b ↔ @has_le.le α _ b a := iff.rfl
+
+lemma dual_lt [has_lt α] {a b : α} :
+  @has_lt.lt (order_dual α) _ a b ↔ @has_lt.lt α _ b a := iff.rfl
+
+lemma dual_compares [has_lt α] {a b : α} {o : ordering} :
+  @ordering.compares (order_dual α) _ o a b ↔ @ordering.compares α _ o b a :=
+by { cases o, exacts [iff.rfl, eq_comm, iff.rfl] }
+
+instance (α : Type*) [preorder α] : preorder (order_dual α) :=
+{ le_refl  := le_refl,
+  le_trans := assume a b c hab hbc, hbc.trans hab,
+  lt_iff_le_not_le := λ _ _, lt_iff_le_not_le,
+  .. order_dual.has_le α,
+  .. order_dual.has_lt α }
+
+instance (α : Type*) [partial_order α] : partial_order (order_dual α) :=
+{ le_antisymm := assume a b hab hba, @le_antisymm α _ a b hba hab, .. order_dual.preorder α }
+
+instance (α : Type*) [linear_order α] : linear_order (order_dual α) :=
+{ le_total := assume a b:α, le_total b a, .. order_dual.partial_order α }
+
+instance (α : Type*) [decidable_linear_order α] : decidable_linear_order (order_dual α) :=
+{ decidable_le := show decidable_rel (λa b:α, b ≤ a), by apply_instance,
+  decidable_lt := show decidable_rel (λa b:α, b < a), by apply_instance,
+  .. order_dual.linear_order α }
+
+instance : Π [inhabited α], inhabited (order_dual α) := id
+
+end order_dual
+
+namespace strict_mono_incr_on
+
+variables [linear_order α] [preorder β] {f : α → β} {s : set α} {x y : α}
+
+lemma le_iff_le (H : strict_mono_incr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
+  f x ≤ f y ↔ x ≤ y :=
+⟨λ h, le_of_not_gt $ λ h', not_le_of_lt (H hy hx h') h,
+ λ h, (lt_or_eq_of_le h).elim (λ h', le_of_lt (H hx hy h')) (λ h', h' ▸ le_refl _)⟩
+
+lemma lt_iff_lt (H : strict_mono_incr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
+  f x < f y ↔ x < y :=
+by simp only [H.le_iff_le, hx, hy, lt_iff_le_not_le]
+
+protected theorem compares (H : strict_mono_incr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
+  ∀ {o}, ordering.compares o (f x) (f y) ↔ ordering.compares o x y
+| ordering.lt := H.lt_iff_lt hx hy
+| ordering.eq := ⟨λ h, le_antisymm ((H.le_iff_le hx hy).1 h.le) ((H.le_iff_le hy hx).1 h.symm.le),
+                   congr_arg _⟩
+| ordering.gt := H.lt_iff_lt hy hx
+
+end strict_mono_incr_on
+
+namespace strict_mono_decr_on
+
+variables [linear_order α] [preorder β] {f : α → β} {s : set α} {x y : α}
+
+lemma le_iff_le (H : strict_mono_decr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
+  f x ≤ f y ↔ y ≤ x :=
+@strict_mono_incr_on.le_iff_le α (order_dual β) _ _ _ _ _ _ H hy hx
+
+lemma lt_iff_lt (H : strict_mono_decr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
+  f x < f y ↔ y < x :=
+@strict_mono_incr_on.lt_iff_lt α (order_dual β) _ _ _ _ _ _ H hy hx
+
+protected theorem compares (H : strict_mono_decr_on f s) (hx : x ∈ s) (hy : y ∈ s) {o : ordering} :
+  ordering.compares o (f x) (f y) ↔ ordering.compares o y x :=
+order_dual.dual_compares.trans $
+  @strict_mono_incr_on.compares α (order_dual β) _ _ _ _ _ _ H hy hx _
+
+end strict_mono_decr_on
 
 namespace strict_mono
 open ordering function
+
+protected lemma strict_mono_incr_on [has_lt α] [has_lt β] {f : α → β} (hf : strict_mono f)
+  (s : set α) :
+  strict_mono_incr_on f s :=
+λ x hx y hy hxy, hf hxy
 
 lemma comp [has_lt α] [has_lt β] [has_lt γ] {g : β → γ} {f : α → β}
   (hg : strict_mono g) (hf : strict_mono f) :
@@ -155,27 +245,18 @@ lemma id_le {φ : ℕ → ℕ} (h : strict_mono φ) : ∀ n, n ≤ φ n :=
 section
 variables [linear_order α] [preorder β] {f : α → β}
 
-lemma lt_iff_lt (H : strict_mono f) {a b} :
-  f a < f b ↔ a < b :=
-⟨λ h, ((lt_trichotomy b a)
-  .resolve_left $ λ h', lt_asymm h $ H h')
-  .resolve_left $ λ e, ne_of_gt h $ congr_arg _ e, @H _ _⟩
+lemma lt_iff_lt (H : strict_mono f) {a b} : f a < f b ↔ a < b :=
+(H.strict_mono_incr_on set.univ).lt_iff_lt trivial trivial
 
-lemma injective (H : strict_mono f) : injective f
-| a b e := ((lt_trichotomy a b)
-  .resolve_left $ λ h, ne_of_lt (H h) e)
-  .resolve_right $ λ h, ne_of_gt (H h) e
+protected theorem compares (H : strict_mono f) {a b} {o} :
+  compares o (f a) (f b) ↔ compares o a b :=
+(H.strict_mono_incr_on set.univ).compares trivial trivial
 
-theorem compares (H : strict_mono f) {a b} :
-  ∀ {o}, compares o (f a) (f b) ↔ compares o a b
-| lt := H.lt_iff_lt
-| eq := ⟨λ h, H.injective h, congr_arg _⟩
-| gt := H.lt_iff_lt
+lemma injective (H : strict_mono f) : injective f :=
+λ x y h, show compares eq x y, from H.compares.1 h
 
-lemma le_iff_le (H : strict_mono f) {a b} :
-  f a ≤ f b ↔ a ≤ b :=
-⟨λ h, le_of_not_gt $ λ h', not_le_of_lt (H h') h,
- λ h, (lt_or_eq_of_le h).elim (λ h', le_of_lt (H h')) (λ h', h' ▸ le_refl _)⟩
+lemma le_iff_le (H : strict_mono f) {a b} : f a ≤ f b ↔ a ≤ b :=
+(H.strict_mono_incr_on set.univ).le_iff_le trivial trivial
 
 lemma top_preimage_top (H : strict_mono f) {a} (h_top : ∀ p, p ≤ f a) (x : α) : x ≤ a :=
 H.le_iff_le.mp (h_top (f x))
@@ -223,46 +304,7 @@ lemma strict_mono_of_le_iff_le [preorder α] [preorder β] {f : α → β}
 
 end
 
-/-- Type tag for a set with dual order: `≤` means `≥` and `<` means `>`. -/
-def order_dual (α : Type*) := α
-
-namespace order_dual
-instance (α : Type*) [h : nonempty α] : nonempty (order_dual α) := h
-instance (α : Type*) [has_le α] : has_le (order_dual α) := ⟨λx y:α, y ≤ x⟩
-instance (α : Type*) [has_lt α] : has_lt (order_dual α) := ⟨λx y:α, y < x⟩
-
--- `dual_le` and `dual_lt` should not be simp lemmas:
--- they cause a loop since `α` and `order_dual α` are definitionally equal
-
-lemma dual_le [has_le α] {a b : α} :
-  @has_le.le (order_dual α) _ a b ↔ @has_le.le α _ b a := iff.rfl
-
-lemma dual_lt [has_lt α] {a b : α} :
-  @has_lt.lt (order_dual α) _ a b ↔ @has_lt.lt α _ b a := iff.rfl
-
-instance (α : Type*) [preorder α] : preorder (order_dual α) :=
-{ le_refl  := le_refl,
-  le_trans := assume a b c hab hbc, hbc.trans hab,
-  lt_iff_le_not_le := λ _ _, lt_iff_le_not_le,
-  .. order_dual.has_le α,
-  .. order_dual.has_lt α }
-
-instance (α : Type*) [partial_order α] : partial_order (order_dual α) :=
-{ le_antisymm := assume a b hab hba, @le_antisymm α _ a b hba hab, .. order_dual.preorder α }
-
-instance (α : Type*) [linear_order α] : linear_order (order_dual α) :=
-{ le_total := assume a b:α, le_total b a, .. order_dual.partial_order α }
-
-instance (α : Type*) [decidable_linear_order α] : decidable_linear_order (order_dual α) :=
-{ decidable_le := show decidable_rel (λa b:α, b ≤ a), by apply_instance,
-  decidable_lt := show decidable_rel (λa b:α, b < a), by apply_instance,
-  .. order_dual.linear_order α }
-
-instance : Π [inhabited α], inhabited (order_dual α) := id
-
-end order_dual
-
-/- order instances on the function space -/
+/-! ### Order instances on the function space -/
 
 instance pi.preorder {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] : preorder (Πi, α i) :=
 { le       := λx y, ∀i, x i ≤ y i,
@@ -329,6 +371,22 @@ def decidable_linear_order.lift {α β} [decidable_linear_order β] (f : α → 
 
 instance subtype.preorder {α} [preorder α] (p : α → Prop) : preorder (subtype p) :=
 preorder.lift subtype.val
+
+@[simp] lemma subtype.mk_le_mk {α} [preorder α] {p : α → Prop} {x y : α} {hx : p x} {hy : p y} :
+  (⟨x, hx⟩ : subtype p) ≤ ⟨y, hy⟩ ↔ x ≤ y :=
+iff.rfl
+
+@[simp] lemma subtype.mk_lt_mk {α} [preorder α] {p : α → Prop} {x y : α} {hx : p x} {hy : p y} :
+  (⟨x, hx⟩ : subtype p) < ⟨y, hy⟩ ↔ x < y :=
+iff.rfl
+
+@[simp, norm_cast] lemma subtype.coe_le_coe {α} [preorder α] {p : α → Prop} {x y : subtype p} :
+  (x : α) ≤ y ↔ x ≤ y :=
+iff.rfl
+
+@[simp, norm_cast] lemma subtype.coe_lt_coe {α} [preorder α] {p : α → Prop} {x y : subtype p} :
+  (x : α) < y ↔ x < y :=
+iff.rfl
 
 instance subtype.partial_order {α} [partial_order α] (p : α → Prop) :
   partial_order (subtype p) :=
@@ -448,6 +506,7 @@ def as_linear_order (α : Type u) := α
 instance {α} [inhabited α] : inhabited (as_linear_order α) :=
 ⟨ (default α : α) ⟩
 
-instance as_linear_order.linear_order {α} [partial_order α] [is_total α (≤)] : linear_order (as_linear_order α) :=
+instance as_linear_order.linear_order {α} [partial_order α] [is_total α (≤)] :
+  linear_order (as_linear_order α) :=
 { le_total := @total_of α (≤) _,
   .. (_ : partial_order α) }

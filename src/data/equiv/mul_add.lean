@@ -64,6 +64,9 @@ variables [has_mul M] [has_mul N] [has_mul P]
 @[simp, to_additive]
 lemma to_fun_apply {f : M ≃* N} {m : M} : f.to_fun m = f m := rfl
 
+@[simp, to_additive]
+lemma to_equiv_apply {f : M ≃* N} {m : M} : f.to_equiv m = f m := rfl
+
 /-- A multiplicative isomorphism preserves multiplication (canonical form). -/
 @[simp, to_additive]
 lemma map_mul (f : M ≃* N) : ∀ x y, f (x * y) = f x * f y := f.map_mul'
@@ -261,6 +264,7 @@ def conj [group G] : G →* mul_aut G :=
 
 @[simp] lemma conj_apply [group G] (g h : G) : conj g h = g * h * g⁻¹ := rfl
 @[simp] lemma conj_symm_apply [group G] (g h : G) : (conj g).symm h = g⁻¹ * h * g := rfl
+@[simp] lemma conj_inv_apply {G : Type*} [group G] (g h : G) : (conj g)⁻¹ h = g⁻¹ * h * g := rfl
 
 end mul_aut
 

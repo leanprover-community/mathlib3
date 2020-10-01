@@ -18,7 +18,6 @@ import algebra.field
     decidable.
 -/
 
-set_option default_priority 100 -- see Note [default priority]
 set_option old_structure_cmd true
 
 variable {α : Type*}
@@ -121,6 +120,36 @@ lt_iff_lt_of_le_iff_le (le_div_iff hc)
 
 lemma div_lt_iff' (hc : 0 < c) : b / c < a ↔ b < c * a :=
 by rw [mul_comm, div_lt_iff hc]
+
+lemma inv_mul_le_iff (h : 0 < b) : b⁻¹ * a ≤ c ↔ a ≤ b * c :=
+begin
+  rw [inv_eq_one_div, mul_comm, ← div_eq_mul_one_div],
+  exact div_le_iff' h,
+end
+
+lemma inv_mul_le_iff' (h : 0 < b) : b⁻¹ * a ≤ c ↔ a ≤ c * b :=
+by rw [inv_mul_le_iff h, mul_comm]
+
+lemma mul_inv_le_iff (h : 0 < b) : a * b⁻¹ ≤ c ↔ a ≤ b * c :=
+by rw [mul_comm, inv_mul_le_iff h]
+
+lemma mul_inv_le_iff' (h : 0 < b) : a * b⁻¹ ≤ c ↔ a ≤ c * b :=
+by rw [mul_comm, inv_mul_le_iff' h]
+
+lemma inv_mul_lt_iff (h : 0 < b) : b⁻¹ * a < c ↔ a < b * c :=
+begin
+  rw [inv_eq_one_div, mul_comm, ← div_eq_mul_one_div],
+  exact div_lt_iff' h,
+end
+
+lemma inv_mul_lt_iff' (h : 0 < b) : b⁻¹ * a < c ↔ a < c * b :=
+by rw [inv_mul_lt_iff h, mul_comm]
+
+lemma mul_inv_lt_iff (h : 0 < b) : a * b⁻¹ < c ↔ a < b * c :=
+by rw [mul_comm, inv_mul_lt_iff h]
+
+lemma mul_inv_lt_iff' (h : 0 < b) : a * b⁻¹ < c ↔ a < c * b :=
+by rw [mul_comm, inv_mul_lt_iff' h]
 
 lemma div_le_iff_of_neg (hc : c < 0) : b / c ≤ a ↔ a * c ≤ b :=
 ⟨λ h, div_mul_cancel b (ne_of_lt hc) ▸ mul_le_mul_of_nonpos_right h hc.le,
@@ -418,12 +447,12 @@ by rw [sub_add_eq_sub_sub, sub_self, zero_sub]
 lemma add_self_div_two (a : α) : (a + a) / 2 = a :=
 by rw [← mul_two, mul_div_cancel a two_ne_zero]
 
-lemma half_pos (h : 0 < a) : 0 < a / 2 := div_pos h two_pos
+lemma half_pos (h : 0 < a) : 0 < a / 2 := div_pos h zero_lt_two
 
 lemma one_half_pos : (0:α) < 1 / 2 := half_pos zero_lt_one
 
 lemma div_two_lt_of_pos (h : 0 < a) : a / 2 < a :=
-by { rw [div_lt_iff (@two_pos α _)], exact lt_mul_of_one_lt_right h one_lt_two }
+by { rw [div_lt_iff (@zero_lt_two α _)], exact lt_mul_of_one_lt_right h one_lt_two }
 
 lemma half_lt_self : 0 < a → a / 2 < a := div_two_lt_of_pos
 
@@ -432,7 +461,7 @@ lemma one_half_lt_one : (1 / 2 : α) < 1 := half_lt_self zero_lt_one
 lemma add_sub_div_two_lt (h : a < b) : a + (b - a) / 2 < b :=
 begin
   rwa [← div_sub_div_same, sub_eq_add_neg, add_comm (b/2), ← add_assoc, ← sub_eq_add_neg,
-    ← lt_sub_iff_add_lt, sub_self_div_two, sub_self_div_two, div_lt_div_right (@two_pos α _)]
+    ← lt_sub_iff_add_lt, sub_self_div_two, sub_self_div_two, div_lt_div_right (@zero_lt_two α _)]
 end
 
 
@@ -467,7 +496,7 @@ begin
 end
 
 lemma exists_add_lt_and_pos_of_lt (h : b < a) : ∃ c : α, b + c < a ∧ 0 < c :=
-⟨(a - b) / 2, add_sub_div_two_lt h, div_pos (sub_pos_of_lt h) two_pos⟩
+⟨(a - b) / 2, add_sub_div_two_lt h, div_pos (sub_pos_of_lt h) zero_lt_two⟩
 
 lemma le_of_forall_sub_le (h : ∀ ε > 0, b - ε ≤ a) : b ≤ a :=
 begin
@@ -485,11 +514,12 @@ lemma strict_mono.div_const {β : Type*} [preorder β] {f : β → α} (hf : str
   strict_mono (λ x, (f x) / c) :=
 hf.mul_const (inv_pos.2 hc)
 
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_field.to_densely_ordered : densely_ordered α :=
 { dense := λ a₁ a₂ h, ⟨(a₁ + a₂) / 2,
   calc a₁ = (a₁ + a₁) / 2 : (add_self_div_two a₁).symm
-      ... < (a₁ + a₂) / 2 : div_lt_div_of_lt two_pos (add_lt_add_left h _),
-  calc (a₁ + a₂) / 2 < (a₂ + a₂) / 2 : div_lt_div_of_lt two_pos (add_lt_add_right h _)
+      ... < (a₁ + a₂) / 2 : div_lt_div_of_lt zero_lt_two (add_lt_add_left h _),
+  calc (a₁ + a₂) / 2 < (a₂ + a₂) / 2 : div_lt_div_of_lt zero_lt_two (add_lt_add_right h _)
                  ... = a₂            : add_self_div_two a₂⟩ }
 
 lemma mul_self_inj_of_nonneg (a0 : 0 ≤ a) (b0 : 0 ≤ b) : a * a = b * b ↔ a = b :=

@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import topology.metric_space.basic
 import topology.algebra.uniform_group
-import topology.algebra.ring
+import topology.algebra.continuous_functions
 /-!
 # Topological properties of ℝ
 -/
@@ -263,23 +263,6 @@ begin
   refine this.imp (λ N hN n hn, hε (hN n hn))
 end
 
-lemma tendsto_coe_nat_real_at_top_iff {f : α → ℕ} {l : filter α} :
-  tendsto (λ n, (f n : ℝ)) l at_top ↔ tendsto f l at_top :=
-tendsto_at_top_embedding (assume a₁ a₂, nat.cast_le) $
-  assume r, let ⟨n, hn⟩ := exists_nat_gt r in ⟨n, le_of_lt hn⟩
-
-lemma tendsto_coe_nat_real_at_top_at_top : tendsto (coe : ℕ → ℝ) at_top at_top :=
-tendsto_coe_nat_real_at_top_iff.2 tendsto_id
-
-lemma tendsto_coe_int_real_at_top_iff {f : α → ℤ} {l : filter α} :
-  tendsto (λ n, (f n : ℝ)) l at_top ↔ tendsto f l at_top :=
-tendsto_at_top_embedding (assume a₁ a₂, int.cast_le) $
-  assume r, let ⟨n, hn⟩ := exists_nat_gt r in
-  ⟨(n:ℤ), le_of_lt $ by rwa [int.cast_coe_nat]⟩
-
-lemma tendsto_coe_int_real_at_top_at_top : tendsto (coe : ℤ → ℝ) at_top at_top :=
-tendsto_coe_int_real_at_top_iff.2 tendsto_id
-
 section
 
 lemma closure_of_rat_image_lt {q : ℚ} : closure ((coe:ℚ → ℝ) '' {x | q < x}) = {r | ↑q ≤ r} :=
@@ -331,3 +314,8 @@ eq_Icc_of_connected_compact ⟨(nonempty_Icc.2 hab).image f, is_preconnected_Icc
   (compact_Icc.image_of_continuous_on h)
 
 end
+
+instance reals_semimodule : topological_semimodule ℝ ℝ := ⟨continuous_mul⟩
+
+instance real_maps_algebra {α : Type*} [topological_space α] :
+  algebra ℝ C(α, ℝ) := continuous_map_algebra

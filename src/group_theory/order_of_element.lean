@@ -6,6 +6,7 @@ Authors: Johannes Hölzl
 import algebra.big_operators.order
 import group_theory.coset
 import data.nat.totient
+import data.int.gcd
 import data.set.finite
 
 open function
@@ -169,7 +170,7 @@ calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ a : 
   assume a,
   suffices : order_of a ≤ n ∧ order_of a ∣ n ↔ a ^ n = 1,
   { simpa [nat.lt_succ_iff], },
-  exact ⟨λ h, let ⟨m, hm⟩ := h.2 in by rw [hm, pow_mul, pow_order_of_eq_one, _root_.one_pow],
+  exact ⟨λ h, let ⟨m, hm⟩ := h.2 in by rw [hm, pow_mul, pow_order_of_eq_one, one_pow],
     λ h, ⟨order_of_le_of_pow_eq_one hn h, order_of_dvd_of_pow_eq_one h⟩⟩
 end))
 
@@ -253,7 +254,7 @@ lemma order_of_pow (a : α) (n : ℕ) : order_of (a ^ n) = order_of a / gcd (ord
 dvd_antisymm
   (order_of_dvd_of_pow_eq_one
     (by rw [← pow_mul, ← nat.mul_div_assoc _ (gcd_dvd_left _ _), mul_comm,
-      nat.mul_div_assoc _ (gcd_dvd_right _ _), pow_mul, pow_order_of_eq_one, _root_.one_pow]))
+      nat.mul_div_assoc _ (gcd_dvd_right _ _), pow_mul, pow_order_of_eq_one, one_pow]))
   (have gcd_pos : 0 < gcd (order_of a) n, from gcd_pos_of_pos_left n (order_of_pos a),
     have hdvd : order_of a ∣ n * order_of (a ^ n),
       from order_of_dvd_of_pow_eq_one (by rw [pow_mul, pow_order_of_eq_one]),
@@ -271,14 +272,9 @@ open_locale classical
 
 lemma pow_gcd_card_eq_one_iff {n : ℕ} {a : α} :
   a ^ n = 1 ↔ a ^ (gcd n (fintype.card α)) = 1 :=
-⟨λ h, have hn : order_of a ∣ n, from dvd_of_mod_eq_zero $
-      by_contradiction (λ ha, by rw pow_eq_mod_order_of at h;
-        exact (not_le_of_gt (nat.mod_lt n (order_of_pos a)))
-          (order_of_le_of_pow_eq_one (nat.pos_of_ne_zero ha) h)),
-    let ⟨m, hm⟩ := dvd_gcd hn order_of_dvd_card_univ in
-    by rw [hm, pow_mul, pow_order_of_eq_one, _root_.one_pow],
+⟨λ h, pow_gcd_eq_one _ h $ pow_card_eq_one _,
   λ h, let ⟨m, hm⟩ := gcd_dvd_left n (fintype.card α) in
-    by rw [hm, pow_mul, h, _root_.one_pow]⟩
+    by rw [hm, pow_mul, h, one_pow]⟩
 
 end
 

@@ -101,7 +101,7 @@ begin
   intros j hjn hj1,
   obtain rfl : j = 0, { linarith },
   refine congr_arg v _,
-  rw [fin.ext_iff, fin.cast_le_val, composition.ones_embedding],
+  rw [fin.ext_iff, fin.coe_cast_le, composition.ones_embedding, fin.coe_mk],
 end
 
 /-- Technical lemma stating how `p.apply_composition` commutes with updating variables. This
@@ -168,7 +168,7 @@ calc ∥q.comp_along_composition_multilinear p c v∥ = ∥q c.length (p.apply_c
         ∏ i (j : fin (c.blocks_fun i)), ∥(v ∘ (c.embedding i)) j∥ :
   by rw [finset.prod_mul_distrib, mul_assoc]
 ... = ∥q c.length∥ * (∏ i, ∥p (c.blocks_fun i)∥) * (∏ i : fin n, ∥v i∥) :
-  by { rw [← finset.prod_equiv c.blocks_fin_equiv, ← finset.univ_sigma_univ, finset.prod_sigma],
+  by { rw [← c.blocks_fin_equiv.prod_comp, ← finset.univ_sigma_univ, finset.prod_sigma],
        congr }
 
 /-- Given two formal multilinear series `q` and `p` and a composition `c` of `n`, one may
@@ -227,8 +227,7 @@ begin
   rw ← this,
   simp only [finset.sum_singleton, continuous_multilinear_map.sum_apply],
   change q c.length (p.apply_composition c v) = q 0 v',
-  congr,
-  ext i,
+  congr' with i,
   simp only [composition.ones_length] at i,
   exact fin_zero_elim i
 end
@@ -296,7 +295,7 @@ begin
     intros,
     rw apply_composition_ones,
     refine congr_arg v _,
-    rw [fin.ext_iff, fin.cast_le_val], },
+    rw [fin.ext_iff, fin.coe_cast_le, fin.coe_mk, fin.coe_mk], },
   show ∀ (b : composition n),
     b ∈ finset.univ → b ≠ composition.ones n → comp_along_composition p (id 𝕜 E) b = 0,
   { assume b _ hb,
@@ -428,8 +427,7 @@ begin
   ... = (∑' (n : ℕ), (∑' (c : composition n), (Cq : ennreal) * a ^ n)) : ennreal.tsum_sigma' _
   ... = (∑' (n : ℕ), ↑(fintype.card (composition n)) * (Cq : ennreal) * a ^ n) :
     begin
-      congr' 1,
-      ext1 n,
+      congr' 1 with n : 1,
       rw [tsum_fintype, finset.sum_const, nsmul_eq_mul, finset.card_univ, mul_assoc]
     end
   ... ≤ (∑' (n : ℕ), (2 : ennreal) ^ n * (Cq : ennreal) * a ^ n) :
@@ -443,7 +441,7 @@ begin
       rw ← ennreal.coe_le_coe at this,
       exact this
     end
-  ... = (∑' (n : ℕ), (Cq : ennreal) * (2 * a) ^ n) : by { congr' 1, ext1 n, rw mul_pow, ring }
+  ... = (∑' (n : ℕ), (Cq : ennreal) * (2 * a) ^ n) : by { congr' 1 with n : 1, rw mul_pow, ring }
   ... = (Cq : ennreal) * (1 - 2 * a) ⁻¹ : by rw [ennreal.tsum_mul_left, ennreal.tsum_geometric]
   ... < ⊤ : by simp [lt_top_iff_ne_top, ennreal.mul_eq_top, two_a]
 end
@@ -522,13 +520,13 @@ end
 lemma comp_change_of_variables_blocks_fun
   (N : ℕ) {i : Σ n, (fin n) → ℕ} (hi : i ∈ comp_partial_sum_source N) (j : fin i.1) :
   (comp_change_of_variables N i hi).2.blocks_fun
-    ⟨j.val, (comp_change_of_variables_length N hi).symm ▸ j.2⟩ = i.2 j :=
+    ⟨j, (comp_change_of_variables_length N hi).symm ▸ j.2⟩ = i.2 j :=
 begin
   rcases i with ⟨n, f⟩,
   dsimp [composition.blocks_fun, composition.blocks, comp_change_of_variables],
   simp only [map_of_fn, nth_le_of_fn', function.comp_app],
   apply congr_arg,
-  rw fin.ext_iff
+  rw [fin.ext_iff, fin.mk_coe]
 end
 
 /-- Target set in the change of variables to compute the composition of partial sums of formal
@@ -548,7 +546,8 @@ begin
   { dsimp [comp_change_of_variables],
     rw composition.sigma_eq_iff_blocks_eq,
     simp only [composition.blocks_fun, composition.blocks, subtype.coe_eta, nth_le_map'],
-    conv_lhs { rw ← of_fn_nth_le c.blocks } }
+    conv_lhs { rw ← of_fn_nth_le c.blocks },
+    simp only [fin.val_eq_coe], refl, /- where does this fin.val come from? -/ }
 end
 
 /-- Target set in the change of variables to compute the composition of partial sums of formal
@@ -838,10 +837,7 @@ begin
   rcases j with ⟨a', b'⟩,
   rintros ⟨h, h'⟩,
   have H : a = a', by { ext1, exact h },
-  induction H,
-  congr,
-  ext1,
-  exact h'
+  induction H, congr, ext1, exact h'
 end
 
 /-- Rewriting equality in the dependent type
@@ -866,8 +862,8 @@ begin
   induction h,
   simp only [true_and, eq_self_iff_true, heq_iff_eq],
   ext i : 2,
-  have : nth_le (of_fn (λ (i : fin (composition.length a)), (b i).blocks)) i.1 (by simp [i.2]) =
-         nth_le (of_fn (λ (i : fin (composition.length a)), (b' i).blocks)) i.1 (by simp [i.2]) :=
+  have : nth_le (of_fn (λ (i : fin (composition.length a)), (b i).blocks)) i (by simp [i.is_lt]) =
+         nth_le (of_fn (λ (i : fin (composition.length a)), (b' i).blocks)) i (by simp [i.is_lt]) :=
     nth_le_of_eq H _,
   rwa [nth_le_of_fn, nth_le_of_fn] at this
 end
@@ -904,22 +900,23 @@ two compositions `a` of `n` and `b` of `a.length`, and an index `i` bounded by t
 def sigma_composition_aux (a : composition n) (b : composition a.length)
   (i : fin (a.gather b).length) :
   composition ((a.gather b).blocks_fun i) :=
-{ blocks := nth_le (a.blocks.split_wrt_composition b) i.val
+{ blocks := nth_le (a.blocks.split_wrt_composition b) i
     (by { rw [length_split_wrt_composition, ← length_gather], exact i.2 }),
   blocks_pos := assume i hi, a.blocks_pos
     (by { rw ← a.blocks.join_split_wrt_composition b, exact mem_join_of_mem (nth_le_mem _ _ _) hi }),
-  blocks_sum := by simp only [composition.blocks_fun, nth_le_map', composition.gather] }
+  blocks_sum := by simp only [composition.blocks_fun, nth_le_map', composition.gather, fin.val_eq_coe] }
+  /- Where did the fin.val come from in the proof on the preceding line? -/
 
 lemma length_sigma_composition_aux (a : composition n) (b : composition a.length) (i : fin b.length) :
-  composition.length (composition.sigma_composition_aux a b ⟨i.val, (length_gather a b).symm ▸ i.2⟩) =
+  composition.length (composition.sigma_composition_aux a b ⟨i, (length_gather a b).symm ▸ i.2⟩) =
   composition.blocks_fun b i :=
-show list.length (nth_le (split_wrt_composition a.blocks b) i.val _) = blocks_fun b i,
+show list.length (nth_le (split_wrt_composition a.blocks b) i _) = blocks_fun b i,
 by { rw [nth_le_map_rev list.length, nth_le_of_eq (map_length_split_wrt_composition _ _)], refl }
 
 lemma blocks_fun_sigma_composition_aux (a : composition n) (b : composition a.length)
   (i : fin b.length) (j : fin (blocks_fun b i)) :
-  blocks_fun (sigma_composition_aux a b ⟨i.val, (length_gather a b).symm ▸ i.2⟩)
-      ⟨j.val, (length_sigma_composition_aux a b i).symm ▸ j.2⟩ = blocks_fun a (embedding b i j) :=
+  blocks_fun (sigma_composition_aux a b ⟨i, (length_gather a b).symm ▸ i.2⟩)
+      ⟨j, (length_sigma_composition_aux a b i).symm ▸ j.2⟩ = blocks_fun a (embedding b i j) :=
 show nth_le (nth_le _ _ _) _ _ = nth_le a.blocks _ _,
 by { rw [nth_le_of_eq (nth_le_split_wrt_composition _ _ _), nth_le_drop', nth_le_take'], refl }
 
@@ -956,14 +953,14 @@ begin
       rw [take_append_drop] } },
   { have A : j < blocks_fun b ⟨i, hi⟩ := lt_trans (lt_add_one j) hj,
     have B : j < length (sigma_composition_aux a b ⟨i, (length_gather a b).symm ▸ hi⟩),
-      by { convert A, rw ← length_sigma_composition_aux },
+      by { convert A, rw [← length_sigma_composition_aux], refl },
     have C : size_up_to b i + j < size_up_to b (i + 1),
     { simp only [size_up_to_succ b hi, add_lt_add_iff_left],
       exact A },
     have D : size_up_to b i + j < length a := lt_of_lt_of_le C (b.size_up_to_le _),
     have : size_up_to b i + nat.succ j = (size_up_to b i + j).succ := rfl,
     rw [this, size_up_to_succ _ D, IHj A, size_up_to_succ _ B],
-    simp only [sigma_composition_aux, add_assoc, add_left_inj],
+    simp only [sigma_composition_aux, add_assoc, add_left_inj, fin.coe_mk],
     rw [nth_le_of_eq (nth_le_split_wrt_composition _ _ _), nth_le_drop', nth_le_take _ _ C] }
 end
 
@@ -1019,7 +1016,7 @@ def sigma_equiv_sigma_pi (n : ℕ) :
       { exact B },
       { apply (fin.heq_fun_iff B).2 (λ i, _),
         rw [sigma_composition_aux, composition.length, nth_le_map_rev list.length,
-            nth_le_of_eq (map_length_split_wrt_composition _ _)] } }
+            nth_le_of_eq (map_length_split_wrt_composition _ _)], refl } }
   end,
   right_inv :=
   begin
@@ -1076,7 +1073,7 @@ begin
     exact A },
   /- Now, we use `composition.sigma_equiv_sigma_pi n` to change
   variables in the second sum, and check that we get exactly the same sums. -/
-  rw ← finset.sum_equiv (sigma_equiv_sigma_pi n),
+  rw ← (sigma_equiv_sigma_pi n).sum_comp,
   /- To check that we have the same terms, we should check that we apply the same component of
   `r`, and the same component of `q`, and the same component of `p`, to the same coordinate of
   `v`. This is true by definition, but at each step one needs to convince Lean that the types

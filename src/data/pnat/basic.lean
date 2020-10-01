@@ -14,6 +14,9 @@ notation `ℕ+` := pnat
 instance coe_pnat_nat : has_coe ℕ+ ℕ := ⟨subtype.val⟩
 instance : has_repr ℕ+ := ⟨λ n, repr n.1⟩
 
+/-- Predecessor of a `ℕ+`, as a `ℕ`. -/
+def pnat.nat_pred (i : ℕ+) : ℕ := i - 1
+
 namespace nat
 
 /-- Convert a natural number to a positive natural number. The
@@ -174,7 +177,7 @@ lemma coe_eq_one_iff {m : ℕ+} :
 
 @[simp] theorem pow_coe (m : ℕ+) (n : ℕ) : ((m ^ n : ℕ+) : ℕ) = (m : ℕ) ^ n :=
 by induction n with n ih;
- [refl, rw [nat.pow_succ, pow_succ, mul_coe, mul_comm, ih]]
+ [refl, rw [pow_succ', pow_succ, mul_coe, mul_comm, ih]]
 
 instance : left_cancel_semigroup ℕ+ :=
 { mul_left_cancel := λ a b c h, by {

@@ -19,10 +19,14 @@ variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D
 `F ⊣ G` represents the data of an adjunction between two functors
 `F : C ⥤ D` and `G : D ⥤ C`. `F` is the left adjoint and `G` is the right adjoint.
 
-To construct an `adjunction` between two functors, it's often easier to instead use the 
-constructors `mk_of_hom_equiv` or `mk_of_unit_counit`. To construct a left adjoint, 
+To construct an `adjunction` between two functors, it's often easier to instead use the
+constructors `mk_of_hom_equiv` or `mk_of_unit_counit`. To construct a left adjoint,
 there are also constructors `left_adjoint_of_equiv` and `adjunction_of_equiv_left` (as
 well as their duals) which can be simpler in practice.
+
+Uniqueness of adjoints is shown in `category_theory.adjunction.opposites`.
+
+See https://stacks.math.columbia.edu/tag/0037.
 -/
 structure adjunction (F : C ⥤ D) (G : D ⥤ C) :=
 (hom_equiv : Π (X Y), (F.obj X ⟶ Y) ≃ (X ⟶ G.obj Y))
@@ -291,7 +295,11 @@ def left_adjoint_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [r : is_left_adjoint F
 section
 variables {E : Type u₃} [ℰ : category.{v₃} E] (H : D ⥤ E) (I : E ⥤ D)
 
-/-- Show that adjunctions can be composed. -/
+/--
+Composition of adjunctions.
+
+See https://stacks.math.columbia.edu/tag/0DV0.
+-/
 def comp (adj₁ : F ⊣ G) (adj₂ : H ⊣ I) : F ⋙ H ⊣ I ⋙ G :=
 { hom_equiv := λ X Z, equiv.trans (adj₂.hom_equiv _ _) (adj₁.hom_equiv _ _),
   unit := adj₁.unit ≫

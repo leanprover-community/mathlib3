@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 
-import field_theory.finite
+import field_theory.finite.basic
 import data.zmod.basic
 import data.nat.parity
 
@@ -34,22 +34,6 @@ namespace zmod
 
 variables (p q : ℕ) [fact p.prime] [fact q.prime]
 
-@[simp] lemma card_units : fintype.card (units (zmod p)) = p - 1 :=
-by rw [card_units, card]
-
-/-- Fermat's Little Theorem: for every unit `a` of `zmod p`, we have `a ^ (p - 1) = 1`. -/
-theorem fermat_little_units {p : ℕ} [fact p.prime] (a : units (zmod p)) :
-  a ^ (p - 1) = 1 :=
-by rw [← card_units p, pow_card_eq_one]
-
-/-- Fermat's Little Theorem: for all nonzero `a : zmod p`, we have `a ^ (p - 1) = 1`. -/
-theorem fermat_little {a : zmod p} (ha : a ≠ 0) : a ^ (p - 1) = 1 :=
-begin
-  have := fermat_little_units (units.mk0 a ha),
-  apply_fun (coe : units (zmod p) → zmod p) at this,
-  simpa,
-end
-
 /-- Euler's Criterion: A unit `x` of `zmod p` is a square if and only if `x ^ (p / 2) = 1`. -/
 lemma euler_criterion_units (x : units (zmod p)) :
   (∃ y : units (zmod p), y ^ 2 = x) ↔ x ^ (p / 2) = 1 :=
@@ -59,7 +43,7 @@ begin
   obtain ⟨g, hg⟩ := is_cyclic.exists_generator (units (zmod p)),
   obtain ⟨n, hn⟩ : x ∈ submonoid.powers g, { rw mem_powers_iff_mem_gpowers, apply hg },
   split,
-  { rintro ⟨y, rfl⟩, rw [← pow_mul, two_mul_odd_div_two hp_odd, fermat_little_units], },
+  { rintro ⟨y, rfl⟩, rw [← pow_mul, two_mul_odd_div_two hp_odd, units_pow_card_sub_one_eq_one], },
   { subst x, assume h,
     have key : 2 * (p / 2) ∣ n * (p / 2),
     { rw [← pow_mul] at h,
@@ -76,10 +60,10 @@ lemma euler_criterion {a : zmod p} (ha : a ≠ 0) :
   (∃ y : zmod p, y ^ 2 = a) ↔ a ^ (p / 2) = 1 :=
 begin
   apply (iff_congr _ (by simp [units.ext_iff])).mp (euler_criterion_units p (units.mk0 a ha)),
-  simp only [units.ext_iff, _root_.pow_two, units.coe_mk0, units.coe_mul],
+  simp only [units.ext_iff, pow_two, units.coe_mk0, units.coe_mul],
   split, { rintro ⟨y, hy⟩, exact ⟨y, hy⟩ },
   { rintro ⟨y, rfl⟩,
-    have hy : y ≠ 0, { rintro rfl, simpa [_root_.zero_pow] using ha, },
+    have hy : y ≠ 0, { rintro rfl, simpa [zero_pow] using ha, },
     refine ⟨units.mk0 y hy, _⟩, simp, }
 end
 
@@ -92,17 +76,17 @@ begin
   have neg_one_ne_zero : (-1 : zmod p) ≠ 0, from mt neg_eq_zero.1 one_ne_zero,
   rw [euler_criterion p neg_one_ne_zero, neg_one_pow_eq_pow_mod_two],
   cases mod_two_eq_zero_or_one (p / 2) with p_half_even p_half_odd,
-  { rw [p_half_even, _root_.pow_zero, eq_self_iff_true, true_iff],
+  { rw [p_half_even, pow_zero, eq_self_iff_true, true_iff],
     contrapose! p_half_even with hp,
     rw [← nat.mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hp],
     exact dec_trivial },
-  { rw [p_half_odd, _root_.pow_one,
+  { rw [p_half_odd, pow_one,
         iff_false_intro (ne_neg_self p one_ne_zero).symm, false_iff, not_not],
     rw [← nat.mod_mul_right_div_self, show 2 * 2 = 4, from rfl] at p_half_odd,
     rw [_root_.fact, ← nat.mod_mul_left_mod _ 2, show 2 * 2 = 4, from rfl] at hp_odd,
     have hp : p % 4 < 4, from nat.mod_lt _ dec_trivial,
     revert hp hp_odd p_half_odd,
-    generalize : p % 4 = k, revert k, exact dec_trivial }
+    generalize : p % 4 = k, dec_trivial! }
 end
 
 lemma pow_div_two_eq_neg_one_or_one {a : zmod p} (ha : a ≠ 0) :
@@ -110,8 +94,8 @@ lemma pow_div_two_eq_neg_one_or_one {a : zmod p} (ha : a ≠ 0) :
 begin
   cases nat.prime.eq_two_or_odd ‹p.prime› with hp2 hp_odd,
   { substI p, revert a ha, exact dec_trivial },
-  rw [← mul_self_eq_one_iff, ← _root_.pow_add, ← two_mul, two_mul_odd_div_two hp_odd],
-  exact fermat_little p ha
+  rw [← mul_self_eq_one_iff, ← pow_add, ← two_mul, two_mul_odd_div_two hp_odd],
+  exact pow_card_sub_one_eq_one ha
 end
 
 /-- Wilson's Lemma: the product of `1`, ..., `p-1` is `-1` modulo `p`. -/
@@ -382,13 +366,10 @@ lemma legendre_sym_eq_pow (a p : ℕ) [hp : fact p.prime] :
 begin
   rw legendre_sym,
   by_cases ha : (a : zmod p) = 0,
-  { simp only [if_pos, ha, _root_.zero_pow (nat.div_pos (hp.two_le) (succ_pos 1)), int.cast_zero] },
+  { simp only [if_pos, ha, zero_pow (nat.div_pos (hp.two_le) (succ_pos 1)), int.cast_zero] },
   cases hp.eq_two_or_odd with hp2 hp_odd,
   { substI p,
-    have : ∀ (a : zmod 2),
-      ((if a = 0 then 0 else if a ^ (2 / 2) = 1 then 1 else -1 : ℤ) : zmod 2) = a ^ (2 / 2),
-    by exact dec_trivial,
-    exact this a },
+    generalize : (a : (zmod 2)) = b, revert b, dec_trivial, },
   { change fact (p % 2 = 1) at hp_odd, resetI,
     rw if_neg ha,
     have : (-1 : zmod p) ≠ 1, from (ne_neg_self p one_ne_zero).symm,
@@ -445,7 +426,7 @@ theorem quadratic_reciprocity [hp1 : fact (p % 2 = 1)] [hq1 : fact (q % 2 = 1)] 
 have hpq0 : (p : zmod q) ≠ 0, from prime_ne_zero q p hpq.symm,
 have hqp0 : (q : zmod p) ≠ 0, from prime_ne_zero p q hpq,
 by rw [eisenstein_lemma q hp1 hpq0, eisenstein_lemma p hq1 hqp0,
-  ← _root_.pow_add, sum_mul_div_add_sum_mul_div_eq_mul q p hpq0, mul_comm]
+  ← pow_add, sum_mul_div_add_sum_mul_div_eq_mul q p hpq0, mul_comm]
 
 -- move this
 instance fact_prime_two : fact (nat.prime 2) := nat.prime_two
@@ -497,10 +478,8 @@ begin
   resetI, rw _root_.fact at hp1,
   revert this hp1,
   erw [hpm4, hpm2],
-  generalize hm : p % 8 = m,
-  clear hm,
-  revert m,
-  exact dec_trivial
+  generalize hm : p % 8 = m, unfreezingI {clear_dependent p},
+  dec_trivial!,
 end
 
 lemma exists_pow_two_eq_prime_iff_of_mod_four_eq_one (hp1 : p % 4 = 1) [hq1 : fact (q % 2 = 1)] :

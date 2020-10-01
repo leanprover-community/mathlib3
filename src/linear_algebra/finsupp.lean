@@ -11,12 +11,12 @@ noncomputable theory
 
 open set linear_map submodule
 
-open_locale classical
+open_locale classical big_operators
 
 namespace finsupp
 
 variables {α : Type*} {M : Type*} {N : Type*} {R : Type*}
-variables [ring R] [add_comm_group M] [module R M] [add_comm_group N] [module R N]
+variables [semiring R] [add_comm_monoid M] [semimodule R M] [add_comm_monoid N] [semimodule R N]
 
 def lsingle (a : α) : M →ₗ[R] (α →₀ M) :=
 ⟨single a, assume a b, single_add, assume c b, (smul_single _ _ _).symm⟩
@@ -41,7 +41,7 @@ rfl
 rfl
 
 @[simp] lemma ker_lsingle (a : α) : (lsingle a : M →ₗ[R] (α →₀ M)).ker = ⊥ :=
-ker_eq_bot.2 (single_injective a)
+ker_eq_bot_of_injective (single_injective a)
 
 lemma lsingle_range_le_ker_lapply (s t : set α) (h : disjoint s t) :
   (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range) ≤ (⨅a∈t, ker (lapply a)) :=
@@ -70,8 +70,8 @@ lemma disjoint_lsingle_lsingle (s t : set α) (hs : disjoint s t) :
   disjoint (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range) (⨆a∈t, (lsingle a).range) :=
 begin
   refine disjoint.mono
-    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl s)
-    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl t)
+    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl_right s)
+    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl_right t)
     (le_trans (le_infi $ assume i, _) infi_ker_lapply_le_bot),
   classical,
   by_cases his : i ∈ s,
@@ -284,7 +284,7 @@ end lmap_domain
 
 section total
 variables (α) {α' : Type*} (M) {M' : Type*} (R)
-          [add_comm_group M'] [module R M']
+          [add_comm_monoid M'] [semimodule R M']
           (v : α → M) {v' : α' → M'}
 
 /-- Interprets (l : α →₀ R) as linear combination of the elements in the family (v : α → M) and
@@ -295,6 +295,11 @@ variables {α M v}
 
 theorem total_apply (l : α →₀ R) :
   finsupp.total α M R v l = l.sum (λ i a, a • v i) := rfl
+
+theorem total_apply_of_mem_supported {l : α →₀ R} {s : finset α}
+  (hs : l ∈ supported R R (↑s : set α)) :
+  finsupp.total α M R v l = s.sum (λ i, l i • v i) :=
+finset.sum_subset hs $ λ x _ hxg, show l x • v x = 0, by rw [not_mem_support_iff.1 hxg, zero_smul]
 
 @[simp] theorem total_single (c : R) (a : α) :
   finsupp.total α M R v (single a c) = c • (v a) :=
@@ -395,6 +400,18 @@ lemma total_comap_domain
    (l.support.preimage f hf).sum (λ i, (l (f i)) • (v i)) :=
 by rw finsupp.total_apply; refl
 
+lemma total_on_finset
+  {s : finset α} {f : α → R} (g : α → M) (hf : ∀ a, f a ≠ 0 → a ∈ s):
+  finsupp.total α M R g (finsupp.on_finset s f hf) =
+    finset.sum s (λ (x : α), f x • g x) :=
+begin
+  simp only [finsupp.total_apply, finsupp.sum, finsupp.on_finset_apply, finsupp.support_on_finset],
+  rw finset.sum_filter_of_ne,
+  intros x hx h,
+  contrapose! h,
+  simp [h],
+end
+
 end total
 
 /-- An equivalence of domains induces a linear equivalence of finitely supported functions. -/
@@ -446,7 +463,7 @@ by simp [lcongr]
 end finsupp
 
 variables {R : Type*} {M : Type*} {N : Type*}
-variables [ring R] [add_comm_group M] [module R M] [add_comm_group N] [module R N]
+variables [semiring R] [add_comm_monoid M] [semimodule R M] [add_comm_monoid N] [semimodule R N]
 
 lemma linear_map.map_finsupp_total
   (f : M →ₗ[R] N) {ι : Type*} {g : ι → M} (l : ι →₀ R) :
@@ -479,3 +496,10 @@ begin
   have hi : i ∈ s, { rw finset.mem_image, exact ⟨⟨x, hx⟩, finset.mem_univ _, rfl⟩ },
   exact hN i hi (hg _),
 end
+
+lemma mem_span_finset {s : finset M} {x : M} :
+  x ∈ span R (↑s : set M) ↔ ∃ f : M → R, ∑ i in s, f i • i = x :=
+⟨λ hx, let ⟨v, hvs, hvx⟩ := (finsupp.mem_span_iff_total _).1
+    (show x ∈ span R (id '' (↑s : set M)), by rwa set.image_id) in
+  ⟨v, hvx ▸ (finsupp.total_apply_of_mem_supported _ hvs).symm⟩,
+λ ⟨f, hf⟩, hf ▸ sum_mem _ (λ i hi, smul_mem _ _ $ subset_span hi)⟩

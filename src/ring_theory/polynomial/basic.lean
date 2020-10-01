@@ -8,9 +8,10 @@ Ring-theoretic supplement of data.polynomial.
 Main result: Hilbert basis theorem, that if a ring is noetherian then so is its polynomial ring.
 -/
 import algebra.char_p
-import data.mv_polynomial
-import data.polynomial.ring_division
-import ring_theory.noetherian
+import data.mv_polynomial.comm_ring
+import data.mv_polynomial.equiv
+import data.polynomial.field_division
+import ring_theory.principal_ideal_domain
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
@@ -99,7 +100,7 @@ def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set
 @[simp] theorem coeff_restriction' {p : polynomial R} {n : ℕ} : (coeff (restriction p) n).1 = coeff p n := rfl
 
 @[simp] theorem map_restriction (p : polynomial R) : p.restriction.map (algebra_map _ _) = p :=
-ext $ λ n, by rw [coeff_map, algebra.subring_algebra_map_apply, coeff_restriction]
+ext $ λ n, by rw [coeff_map, algebra.is_subring_algebra_map_apply, coeff_restriction]
 
 @[simp] theorem degree_restriction {p : polynomial R} : (restriction p).degree = p.degree := rfl
 
@@ -173,7 +174,7 @@ def of_subring (p : polynomial T) : polynomial R :=
 
 end polynomial
 
-variables {R : Type u} {σ : Type v} [comm_ring R]
+variables {R : Type u} {σ : Type v} {M : Type w} [comm_ring R] [add_comm_group M] [module R M]
 
 namespace ideal
 open polynomial
@@ -413,7 +414,7 @@ namespace polynomial
 
 theorem exists_irreducible_of_degree_pos {R : Type u} [integral_domain R] [is_noetherian_ring R]
   {f : polynomial R} (hf : 0 < f.degree) : ∃ g, irreducible g ∧ g ∣ f :=
-is_noetherian_ring.exists_irreducible_factor
+wf_dvd_monoid.exists_irreducible_factor
   (λ huf, ne_of_gt hf $ degree_eq_zero_of_is_unit huf)
   (λ hf0, not_lt_of_lt hf $ hf0.symm ▸ (@degree_zero R _).symm ▸ with_bot.bot_lt_coe _)
 
@@ -424,6 +425,80 @@ exists_irreducible_of_degree_pos $ by { contrapose! hf, exact nat_degree_le_of_d
 theorem exists_irreducible_of_nat_degree_ne_zero {R : Type u} [integral_domain R] [is_noetherian_ring R]
   {f : polynomial R} (hf : f.nat_degree ≠ 0) : ∃ g, irreducible g ∧ g ∣ f :=
 exists_irreducible_of_nat_degree_pos $ nat.pos_of_ne_zero hf
+
+lemma linear_independent_powers_iff_eval₂
+  (f : M →ₗ[R] M) (v : M) :
+  linear_independent R (λ n : ℕ, (f ^ n) v)
+    ↔ ∀ (p : polynomial R), aeval f p v = 0 → p = 0 :=
+begin
+  rw linear_independent_iff,
+  simp only [finsupp.total_apply, aeval_endomorphism],
+  refl
+end
+
+lemma disjoint_ker_aeval_of_coprime
+  (f : M →ₗ[R] M) {p q : polynomial R} (hpq : is_coprime p q) :
+  disjoint (aeval f p).ker (aeval f q).ker :=
+begin
+  intros v hv,
+  rcases hpq with ⟨p', q', hpq'⟩,
+  simpa [linear_map.mem_ker.1 (submodule.mem_inf.1 hv).1,
+         linear_map.mem_ker.1 (submodule.mem_inf.1 hv).2]
+    using congr_arg (λ p : polynomial R, aeval f p v) hpq'.symm,
+end
+
+lemma sup_aeval_range_eq_top_of_coprime
+  (f : M →ₗ[R] M) {p q : polynomial R} (hpq : is_coprime p q) :
+  (aeval f p).range ⊔ (aeval f q).range = ⊤ :=
+begin
+  rw eq_top_iff,
+  intros v hv,
+  rw submodule.mem_sup,
+  rcases hpq with ⟨p', q', hpq'⟩,
+  use aeval f (p * p') v,
+  use linear_map.mem_range.2 ⟨aeval f p' v, by simp only [linear_map.mul_app, aeval_mul]⟩,
+  use aeval f (q * q') v,
+  use linear_map.mem_range.2 ⟨aeval f q' v, by simp only [linear_map.mul_app, aeval_mul]⟩,
+  simpa only [mul_comm p p', mul_comm q q', aeval_one, aeval_add]
+    using congr_arg (λ p : polynomial R, aeval f p v) hpq'
+end
+
+lemma sup_ker_aeval_le_ker_aeval_mul {f : M →ₗ[R] M} {p q : polynomial R} :
+  (aeval f p).ker ⊔ (aeval f q).ker ≤ (aeval f (p * q)).ker :=
+begin
+  intros v hv,
+  rcases submodule.mem_sup.1 hv with ⟨x, hx, y, hy, hxy⟩,
+  have h_eval_x : aeval f (p * q) x = 0,
+  { rw [mul_comm, aeval_mul, linear_map.mul_apply, linear_map.mem_ker.1 hx, linear_map.map_zero] },
+  have h_eval_y : aeval f (p * q) y = 0,
+  { rw [aeval_mul, linear_map.mul_apply, linear_map.mem_ker.1 hy, linear_map.map_zero] },
+  rw [linear_map.mem_ker, ←hxy, linear_map.map_add, h_eval_x, h_eval_y, add_zero],
+end
+
+lemma sup_ker_aeval_eq_ker_aeval_mul_of_coprime
+  (f : M →ₗ[R] M) {p q : polynomial R} (hpq : is_coprime p q) :
+  (aeval f p).ker ⊔ (aeval f q).ker = (aeval f (p * q)).ker :=
+begin
+  apply le_antisymm sup_ker_aeval_le_ker_aeval_mul,
+  intros v hv,
+  rw submodule.mem_sup,
+  rcases hpq with ⟨p', q', hpq'⟩,
+  have h_eval₂_qpp' := calc
+    aeval f (q * (p * p')) v = aeval f (p' * (p * q)) v :
+      by rw [mul_comm, mul_assoc, mul_comm, mul_assoc, mul_comm q p]
+    ... = 0 :
+      by rw [aeval_mul, linear_map.mul_apply, linear_map.mem_ker.1 hv, linear_map.map_zero],
+  have h_eval₂_pqq' := calc
+    aeval f (p * (q * q')) v = aeval f (q' * (p * q)) v :
+      by rw [←mul_assoc, mul_comm]
+    ... = 0 :
+      by rw [aeval_mul, linear_map.mul_apply, linear_map.mem_ker.1 hv, linear_map.map_zero],
+  rw aeval_mul at h_eval₂_qpp' h_eval₂_pqq',
+  refine ⟨aeval f (q * q') v, linear_map.mem_ker.1 h_eval₂_pqq',
+          aeval f (p * p') v, linear_map.mem_ker.1 h_eval₂_qpp', _⟩,
+  rw [add_comm, mul_comm p p', mul_comm q q'],
+  simpa using congr_arg (λ p : polynomial R, aeval f p v) hpq'
+end
 
 end polynomial
 

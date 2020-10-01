@@ -373,7 +373,7 @@ begin
   rw ← findim_eq_dim ℝ at ⊢ dim_le dim_add dimW,
   rw [← findim_eq_dim ℝ, ← findim_eq_dim ℝ] at dim_add,
   norm_cast at ⊢ dim_le dim_add dimW,
-  rw nat.pow_succ at dim_le,
+  rw pow_succ' at dim_le,
   rw set.to_finset_card at hH,
   linarith
 end
@@ -410,7 +410,7 @@ begin
     ... = ∑ p in (coeffs y).support.filter (Q.adjacent q), |coeffs y p|     : by simp [finset.sum_filter]
     ... ≤ ∑ p in (coeffs y).support.filter (Q.adjacent q), |coeffs y q|     : finset.sum_le_sum (λ p _, H_max p)
     ... = (finset.card ((coeffs y).support.filter (Q.adjacent q)): ℝ) * |coeffs y q| : by rw [finset.sum_const, nsmul_eq_mul]
-    ... = (finset.card ((coeffs y).support ∩ (Q.adjacent q).to_finset): ℝ) * |coeffs y q| : by {congr, ext, simp, refl}
+    ... = (finset.card ((coeffs y).support ∩ (Q.adjacent q).to_finset): ℝ) * |coeffs y q| : by { congr' with x, simp, refl }
     ... ≤ (finset.card ((H ∩ Q.adjacent q).to_finset )) * |ε q y| :
      (mul_le_mul_right H_q_pos).mpr (by {
              norm_cast,

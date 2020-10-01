@@ -59,10 +59,8 @@ variables {A : Type v} [comm_group A] (f : G →* A)
 lemma commutator_subset_ker : commutator G ≤ f.ker :=
 begin
   apply subgroup.normal_closure_le_normal,
- -- FIXME why is the apply_instance needed?
-  { apply_instance },
-  { rintros x ⟨p, q, rfl⟩,
-    simp [monoid_hom.mem_ker, mul_right_comm (f p) (f q)] }
+  rintros x ⟨p, q, rfl⟩,
+  simp [monoid_hom.mem_ker, mul_right_comm (f p) (f q)],
 end
 
 def lift : abelianization G →* A :=

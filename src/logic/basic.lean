@@ -168,6 +168,8 @@ into an automated theorem prover for first order logic. -/
 @[class]
 def fact (p : Prop) := p
 
+lemma fact.elim {p : Prop} (h : fact p) : p := h
+
 end miscellany
 
 /-!
@@ -252,6 +254,9 @@ library_note "decidable namespace"
 protected theorem decidable.not_not [decidable a] : ¬¬a ↔ a :=
 iff.intro decidable.by_contradiction not_not_intro
 
+/-- The Double Negation Theorem: `¬ ¬ P` is equivalent to `P`.
+The left-to-right direction, double negation elimination (DNE),
+is classically true but not constructively. -/
 @[simp] theorem not_not : ¬¬a ↔ a := decidable.not_not
 
 theorem of_not_not : ¬¬a → a := by_contra
@@ -369,17 +374,21 @@ theorem not_imp_not : (¬ a → ¬ b) ↔ (b → a) := decidable.not_imp_not
 
 /-! ### Declarations about distributivity -/
 
+/-- `∧` distributes over `∨` (on the left). -/
 theorem and_or_distrib_left : a ∧ (b ∨ c) ↔ (a ∧ b) ∨ (a ∧ c) :=
 ⟨λ ⟨ha, hbc⟩, hbc.imp (and.intro ha) (and.intro ha),
  or.rec (and.imp_right or.inl) (and.imp_right or.inr)⟩
 
+/-- `∧` distributes over `∨` (on the right). -/
 theorem or_and_distrib_right : (a ∨ b) ∧ c ↔ (a ∧ c) ∨ (b ∧ c) :=
 (and.comm.trans and_or_distrib_left).trans (or_congr and.comm and.comm)
 
+/-- `∨` distributes over `∧` (on the left). -/
 theorem or_and_distrib_left : a ∨ (b ∧ c) ↔ (a ∨ b) ∧ (a ∨ c) :=
 ⟨or.rec (λha, and.intro (or.inl ha) (or.inl ha)) (and.imp or.inr or.inr),
  and.rec $ or.rec (imp_intro ∘ or.inl) (or.imp_right ∘ and.intro)⟩
 
+/-- `∨` distributes over `∧` (on the right). -/
 theorem and_or_distrib_right : (a ∧ b) ∨ c ↔ (a ∨ c) ∧ (b ∨ c) :=
 (or.comm.trans or_and_distrib_left).trans (and_congr or.comm or.comm)
 
@@ -535,6 +544,8 @@ protected theorem decidable.not_and_distrib [decidable a] : ¬ (a ∧ b) ↔ ¬a
 protected theorem decidable.not_and_distrib' [decidable b] : ¬ (a ∧ b) ↔ ¬a ∨ ¬b :=
 ⟨λ h, if hb : b then or.inl (λ ha, h ⟨ha, hb⟩) else or.inr hb, not_and_of_not_or_not⟩
 
+/-- One of de Morgan's laws: the negation of a conjunction is logically equivalent to the
+disjunction of the negations. -/
 theorem not_and_distrib : ¬ (a ∧ b) ↔ ¬a ∨ ¬b := decidable.not_and_distrib
 
 @[simp] theorem not_and : ¬ (a ∧ b) ↔ (a → ¬ b) := and_imp
@@ -542,6 +553,8 @@ theorem not_and_distrib : ¬ (a ∧ b) ↔ ¬a ∨ ¬b := decidable.not_and_dist
 theorem not_and' : ¬ (a ∧ b) ↔ b → ¬a :=
 not_and.trans imp_not_comm
 
+/-- One of de Morgan's laws: the negation of a disjunction is logically equivalent to the
+conjunction of the negations. -/
 theorem not_or_distrib : ¬ (a ∨ b) ↔ ¬ a ∧ ¬ b :=
 ⟨λ h, ⟨λ ha, h (or.inl ha), λ hb, h (or.inr hb)⟩,
  λ ⟨h₁, h₂⟩ h, or.elim h h₁ h₂⟩
@@ -721,15 +734,28 @@ by simp [and_comm]
 @[simp] theorem forall_eq {a' : α} : (∀a, a = a' → p a) ↔ p a' :=
 ⟨λ h, h a' rfl, λ h a e, e.symm ▸ h⟩
 
+@[simp] theorem forall_eq' {a' : α} : (∀a, a' = a → p a) ↔ p a' :=
+by simp [@eq_comm _ a']
+
+-- this lemma is needed to simplify the output of `list.mem_cons_iff`
+@[simp] theorem forall_eq_or_imp {a' : α} : (∀ a, a = a' ∨ q a → p a) ↔ p a' ∧ ∀ a, q a → p a :=
+by simp only [or_imp_distrib, forall_and_distrib, forall_eq]
+
 @[simp] theorem exists_eq {a' : α} : ∃ a, a = a' := ⟨_, rfl⟩
 
-@[simp] theorem exists_eq' {a' : α} : Exists (eq a') := ⟨_, rfl⟩
+@[simp] theorem exists_eq' {a' : α} : ∃ a, a' = a := ⟨_, rfl⟩
 
 @[simp] theorem exists_eq_left {a' : α} : (∃ a, a = a' ∧ p a) ↔ p a' :=
 ⟨λ ⟨a, e, h⟩, e ▸ h, λ h, ⟨_, rfl, h⟩⟩
 
 @[simp] theorem exists_eq_right {a' : α} : (∃ a, p a ∧ a = a') ↔ p a' :=
 (exists_congr $ by exact λ a, and.comm).trans exists_eq_left
+
+@[simp] theorem exists_apply_eq_apply {α β : Type*} (f : α → β) (a' : α) : ∃ a, f a = f a' :=
+⟨a', rfl⟩
+
+@[simp] theorem exists_apply_eq_apply' {α β : Type*} (f : α → β) (a' : α) : ∃ a, f a' = f a :=
+⟨a', rfl⟩
 
 @[simp] theorem exists_exists_and_eq_and {f : α → β} {p : α → Prop} {q : β → Prop} :
   (∃ b, (∃ a, p a ∧ f a = b) ∧ q b) ↔ ∃ a, p a ∧ q (f a) :=
@@ -739,8 +765,21 @@ by simp [and_comm]
   (∃ b, (∃ a, f a = b) ∧ p b) ↔ ∃ a, p (f a) :=
 ⟨λ ⟨b, ⟨a, ha⟩, hb⟩, ⟨a, ha.symm ▸ hb⟩, λ ⟨a, ha⟩, ⟨f a, ⟨a, rfl⟩, ha⟩⟩
 
-@[simp] theorem forall_eq' {a' : α} : (∀a, a' = a → p a) ↔ p a' :=
-by simp [@eq_comm _ a']
+@[simp] theorem forall_apply_eq_imp_iff {f : α → β} {p : β → Prop} :
+  (∀ a, ∀ b, f a = b → p b) ↔ (∀ a, p (f a)) :=
+⟨λ h a, h a (f a) rfl, λ h a b hab, hab ▸ h a⟩
+
+@[simp] theorem forall_apply_eq_imp_iff' {f : α → β} {p : β → Prop} :
+  (∀ b, ∀ a, f a = b → p b) ↔ (∀ a, p (f a)) :=
+by { rw forall_swap, simp }
+
+@[simp] theorem forall_eq_apply_imp_iff {f : α → β} {p : β → Prop} :
+  (∀ a, ∀ b, b = f a → p b) ↔ (∀ a, p (f a)) :=
+by simp [@eq_comm _ _ (f _)]
+
+@[simp] theorem forall_eq_apply_imp_iff' {f : α → β} {p : β → Prop} :
+  (∀ b, ∀ a, b = f a → p b) ↔ (∀ a, p (f a)) :=
+by { rw forall_swap, simp }
 
 @[simp] theorem exists_eq_left' {a' : α} : (∃ a, a' = a ∧ p a) ↔ p a' :=
 by simp [@eq_comm _ a']
@@ -1098,22 +1137,51 @@ end nonempty
 
 section ite
 
-lemma apply_dite {α β : Type*} (f : α → β) (P : Prop) [decidable P] (x : P → α) (y : ¬P → α) :
+/-- A function applied to a `dite` is a `dite` of that function applied to each of the branches. -/
+lemma apply_dite {α β : Sort*} (f : α → β) (P : Prop) [decidable P] (x : P → α) (y : ¬P → α) :
   f (dite P x y) = dite P (λ h, f (x h)) (λ h, f (y h)) :=
-by { by_cases h : P; simp [h], }
+by { by_cases h : P; simp [h] }
 
-lemma apply_ite {α β : Type*} (f : α → β) (P : Prop) [decidable P] (x y : α) :
+/-- A function applied to a `ite` is a `ite` of that function applied to each of the branches. -/
+lemma apply_ite {α β : Sort*} (f : α → β) (P : Prop) [decidable P] (x y : α) :
   f (ite P x y) = ite P (f x) (f y) :=
 apply_dite f P (λ _, x) (λ _, y)
 
-lemma dite_apply {α : Type*} {β : α → Type*} (P : Prop) [decidable P]
+/-- A two-argument function applied to two `dite`s is a `dite` of that two-argument function
+applied to each of the branches. -/
+lemma apply_dite2 {α β γ : Sort*} (f : α → β → γ) (P : Prop) [decidable P] (a : P → α)
+  (b : ¬P → α) (c : P → β) (d : ¬P → β) :
+  f (dite P a b) (dite P c d) = dite P (λ h, f (a h) (c h)) (λ h, f (b h) (d h)) :=
+by { by_cases h : P; simp [h] }
+
+/-- A two-argument function applied to two `ite`s is a `ite` of that two-argument function
+applied to each of the branches. -/
+lemma apply_ite2 {α β γ : Sort*} (f : α → β → γ) (P : Prop) [decidable P] (a b : α) (c d : β) :
+  f (ite P a b) (ite P c d) = ite P (f a c) (f b d) :=
+apply_dite2 f P (λ _, a) (λ _, b) (λ _, c) (λ _, d)
+
+/-- A 'dite' producing a `Pi` type `Π a, β a`, applied to a value `x : α`
+is a `dite` that applies either branch to `x`. -/
+lemma dite_apply {α : Sort*} {β : α → Sort*} (P : Prop) [decidable P]
   (f : P → Π a, β a) (g : ¬ P → Π a, β a) (x : α) :
   (dite P f g) x = dite P (λ h, f h x) (λ h, g h x) :=
-by { by_cases h : P; simp [h], }
+by { by_cases h : P; simp [h] }
 
-lemma ite_apply {α : Type*} {β : α → Type*} (P : Prop) [decidable P]
+/-- A 'ite' producing a `Pi` type `Π a, β a`, applied to a value `x : α`
+is a `ite` that applies either branch to `x` -/
+lemma ite_apply {α : Sort*} {β : α → Sort*} (P : Prop) [decidable P]
   (f g : Π a, β a) (x : α) :
   (ite P f g) x = ite P (f x) (g x) :=
 dite_apply P (λ _, f) (λ _, g) x
+
+/-- Negation of the condition `P : Prop` in a `dite` is the same as swapping the branches. -/
+@[simp] lemma dite_not {α : Sort*} (P : Prop) [decidable P] (x : ¬ P → α) (y : ¬¬ P → α) :
+  dite (¬ P) x y = dite P (λ h, y (not_not_intro h)) x :=
+by { by_cases h : P; simp [h] }
+
+/-- Negation of the condition `P : Prop` in a `ite` is the same as swapping the branches. -/
+@[simp] lemma ite_not {α : Sort*} (P : Prop) [decidable P] (x y : α) :
+  ite (¬ P) x y = ite P y x :=
+dite_not P (λ _, x) (λ _, y)
 
 end ite

@@ -365,6 +365,10 @@ lemma deriv_within_inter (ht : t ∈ 𝓝 x) (hs : unique_diff_within_at 𝕜 s 
   deriv_within f (s ∩ t) x = deriv_within f s x :=
 by { unfold deriv_within, rw fderiv_within_inter ht hs }
 
+lemma deriv_within_of_open (hs : is_open s) (hx : x ∈ s) :
+  deriv_within f s x = deriv f x :=
+by { unfold deriv_within, rw fderiv_within_of_open hs hx, refl }
+
 section congr
 /-! ### Congruence properties of derivatives -/
 

@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Aaron Anderson, Jalex Stark.
 -/
 
+import data.matrix.char_p
 import linear_algebra.char_poly
 import linear_algebra.matrix
 import ring_theory.polynomial.basic
 import algebra.polynomial.big_operators
 import group_theory.perm.cycles
+import field_theory.finite.basic
 
 /-!
 # Characteristic polynomials
@@ -160,3 +162,54 @@ begin
   rw [coeff_zero_eq_eval_zero, char_poly, eval_det, mat_poly_equiv_char_matrix, ← det_smul],
   simp
 end
+
+variables {p : ℕ} [fact p.prime]
+
+@[simp] lemma finite_field.char_poly_pow_card {K : Type*} [field K] [fintype K] (M : matrix n n K) :
+  char_poly (M ^ (fintype.card K)) = char_poly M :=
+begin
+  by_cases hn : nonempty n,
+  { letI := hn,
+    cases char_p.exists K with p hp, letI := hp,
+    rcases finite_field.card K p with ⟨⟨k, kpos⟩, ⟨hp, hk⟩⟩,
+    letI : fact p.prime := hp,
+    dsimp at hk, rw hk at *,
+    apply (frobenius_inj (polynomial K) p).iterate k,
+    repeat { rw iterate_frobenius, rw ← hk },
+    rw ← finite_field.expand_card,
+    unfold char_poly, rw [alg_hom.map_det, ← is_monoid_hom.map_pow],
+    apply congr_arg det,
+    apply mat_poly_equiv.injective, swap, { apply_instance },
+    rw [← mat_poly_equiv.coe_alg_hom, alg_hom.map_pow, mat_poly_equiv.coe_alg_hom,
+          mat_poly_equiv_char_matrix, hk, sub_pow_char_pow_of_commute, ← C_pow],
+    swap, { apply polynomial.commute_X },
+    -- the following is a nasty case bash that should be abstracted as a lemma
+    -- (and maybe it can be proven more... algebraically?)
+    ext, rw [coeff_sub, coeff_C],
+    by_cases hij : i = j; simp [char_matrix, hij, coeff_X_pow];
+    simp only [coeff_C]; split_ifs; simp *, },
+  { congr, apply @subsingleton.elim _ (subsingleton_of_empty_left hn) _ _, },
+end
+
+@[simp] lemma zmod.char_poly_pow_card (M : matrix n n (zmod p)) :
+  char_poly (M ^ p) = char_poly M :=
+by { have h := finite_field.char_poly_pow_card M, rwa zmod.card at h, }
+
+lemma finite_field.trace_pow_card {K : Type*} [field K] [fintype K] [nonempty n] (M : matrix n n K) :
+  trace n K K (M ^ (fintype.card K)) = (trace n K K M) ^ (fintype.card K) :=
+by rw [trace_eq_neg_char_poly_coeff, trace_eq_neg_char_poly_coeff,
+       finite_field.char_poly_pow_card, finite_field.pow_card]
+
+lemma zmod.trace_pow_card {p:ℕ} [fact p.prime] [nonempty n] (M : matrix n n (zmod p)) :
+  trace n (zmod p) (zmod p) (M ^ p) = (trace n (zmod p) (zmod p) M)^p :=
+by { have h := finite_field.trace_pow_card M, rwa zmod.card at h, }
+
+namespace matrix
+
+theorem is_integral : is_integral R M := ⟨char_poly M, ⟨char_poly_monic M, aeval_self_char_poly M⟩⟩
+
+theorem min_poly_dvd_char_poly {K : Type*} [field K] (M : matrix n n K) :
+  (minimal_polynomial M.is_integral) ∣ char_poly M :=
+minimal_polynomial.dvd M.is_integral (aeval_self_char_poly M)
+
+end matrix

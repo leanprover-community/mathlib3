@@ -376,20 +376,28 @@ variables {α : Type*} [decidable_eq α]
 instance [has_mul α] : has_mul (finset α) :=
 ⟨λ s t, (s.product t).image (λ p : α × α, p.1 * p.2)⟩
 
+@[to_additive]
 lemma mul_def [has_mul α] {s t : finset α} :
   s * t = (s.product t).image (λ p : α × α, p.1 * p.2) := rfl
 
+@[to_additive]
 lemma mem_mul [has_mul α] {s t : finset α} {x : α} :
   x ∈ s * t ↔ ∃ y z, y ∈ s ∧ z ∈ t ∧ y * z = x :=
 by { simp only [finset.mul_def, and.assoc, mem_image, exists_prop, prod.exists, mem_product] }
 
+@[simp, norm_cast, to_additive]
 lemma coe_mul [has_mul α] {s t : finset α} : (↑(s * t) : set α) = ↑s * ↑t :=
 by { ext, simp only [mem_mul, set.mem_mul, mem_coe] }
 
+@[to_additive]
 lemma mul_mem_mul [has_mul α] {s t : finset α} {x y : α} (hx : x ∈ s) (hy : y ∈ t) :
   x * y ∈ s * t :=
 by { simp only [finset.mem_mul], exact ⟨x, y, hx, hy, rfl⟩ }
 
+lemma add_card_le [has_add α] {s t : finset α} : (s + t).card ≤ s.card * t.card :=
+by { convert finset.card_image_le, rw [finset.card_product, mul_comm] }
+
+@[to_additive]
 lemma mul_card_le [has_mul α] {s t : finset α} : (s * t).card ≤ s.card * t.card :=
 by { convert finset.card_image_le, rw [finset.card_product, mul_comm] }
 

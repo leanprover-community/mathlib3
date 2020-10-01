@@ -464,9 +464,8 @@ apply_nolint fin2.elim0 doc_blame
 
 -- data/fintype/basic.lean
 apply_nolint finset.insert_none doc_blame
-apply_nolint fintype.bij_inv unused_arguments
 apply_nolint fintype.choose doc_blame
-apply_nolint fintype.choose_x doc_blame unused_arguments
+apply_nolint fintype.choose_x doc_blame
 apply_nolint fintype.fintype_prod_left doc_blame
 apply_nolint fintype.fintype_prod_right doc_blame
 apply_nolint fintype.of_injective doc_blame
@@ -552,9 +551,6 @@ apply_nolint list.func.sub doc_blame
 apply_nolint list.kextract doc_blame
 apply_nolint list.kreplace doc_blame
 apply_nolint list.nodupkeys doc_blame
-
--- data/list/tfae.lean
-apply_nolint list.tfae doc_blame
 
 -- data/matrix/basic.lean
 apply_nolint matrix doc_blame
@@ -963,11 +959,13 @@ apply_nolint simple_group doc_blame
 -- deprecated/subring.lean
 apply_nolint ring.closure doc_blame
 
--- field_theory/mv_polynomial.lean
+-- field_theory/finite/polynomial.lean
 apply_nolint mv_polynomial.R doc_blame unused_arguments
 apply_nolint mv_polynomial.evalᵢ doc_blame
 apply_nolint mv_polynomial.evalₗ doc_blame unused_arguments
 apply_nolint mv_polynomial.indicator doc_blame
+
+-- field_theory/mv_polynomial.lean
 apply_nolint mv_polynomial.restrict_degree doc_blame
 apply_nolint mv_polynomial.restrict_total_degree doc_blame
 
@@ -1177,9 +1175,6 @@ apply_nolint multiplicity.finite doc_blame
 
 -- ring_theory/ring_invo.lean
 apply_nolint ring_invo.id doc_blame
-
--- ring_theory/unique_factorization_domain.lean
-apply_nolint unique_irreducible_factorization has_inhabited_instance
 
 -- set_theory/cofinality.lean
 apply_nolint strict_order.cof doc_blame
@@ -1822,7 +1817,6 @@ apply_nolint topological_space.opens.is_basis doc_blame
 
 -- topology/sheaves/presheaf.lean
 apply_nolint Top.presheaf doc_blame has_inhabited_instance
-apply_nolint Top.presheaf.pushforward doc_blame
 apply_nolint Top.presheaf.pushforward.comp doc_blame
 apply_nolint Top.presheaf.pushforward.id doc_blame
 apply_nolint Top.presheaf.pushforward_eq doc_blame

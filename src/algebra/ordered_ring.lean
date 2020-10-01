@@ -103,10 +103,10 @@ linear_ordered_semiring.zero_lt_one
 lemma zero_le_one : 0 ≤ (1:α) :=
 zero_lt_one.le
 
-lemma two_pos : 0 < (2:α) := add_pos zero_lt_one zero_lt_one
+lemma zero_lt_two : 0 < (2:α) := add_pos zero_lt_one zero_lt_one
 
 @[field_simps] lemma two_ne_zero : (2:α) ≠ 0 :=
-ne.symm (ne_of_lt two_pos)
+ne.symm (ne_of_lt zero_lt_two)
 
 lemma one_lt_two : 1 < (2:α) :=
 calc (2:α) = 1+1 : one_add_one_eq_two
@@ -115,7 +115,7 @@ calc (2:α) = 1+1 : one_add_one_eq_two
 
 lemma one_le_two : 1 ≤ (2:α) := one_lt_two.le
 
-lemma four_pos : 0 < (4:α) := add_pos two_pos two_pos
+lemma zero_lt_four : 0 < (4:α) := add_pos zero_lt_two zero_lt_two
 
 lemma lt_of_mul_lt_mul_left (h : c * a < c * b) (hc : 0 ≤ c) : a < b :=
 lt_of_not_ge
@@ -170,10 +170,6 @@ le_of_not_gt (assume h2 : b > 0, (mul_pos h1 h2).not_le h)
 
 lemma nonpos_of_mul_nonpos_right (h : a * b ≤ 0) (h1 : 0 < b) : a ≤ 0 :=
 le_of_not_gt (assume h2 : a > 0, (mul_pos h2 h1).not_le h)
-
-/-- `0 < 2`: an alternative version of `two_pos` that only assumes `linear_ordered_semiring`. -/
-lemma zero_lt_two : (0:α) < 2 :=
-by { rw [← zero_add (0:α), bit0], exact add_lt_add zero_lt_one zero_lt_one }
 
 @[simp] lemma mul_le_mul_left (h : 0 < c) : c * a ≤ c * b ↔ a ≤ b :=
 ⟨λ h', le_of_mul_le_mul_left h' h, λ h', mul_le_mul_of_nonneg_left h' h.le⟩

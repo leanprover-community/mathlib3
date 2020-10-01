@@ -69,6 +69,9 @@ by { rw [nontrivial_iff, subsingleton_iff], push_neg, refl }
 lemma subsingleton_or_nontrivial (α : Type*) :  subsingleton α ∨ nontrivial α :=
 by { rw [← not_nontrivial_iff_subsingleton, or_comm], exact classical.em _ }
 
+lemma false_of_nontrivial_of_subsingleton (α : Type*) [nontrivial α] [subsingleton α] : false :=
+let ⟨x, y, h⟩ := exists_pair_ne α in h $ subsingleton.elim x y
+
 instance nontrivial_prod_left [nontrivial α] [nonempty β] : nontrivial (α × β) :=
 begin
   inhabit β,

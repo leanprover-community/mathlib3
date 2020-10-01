@@ -459,7 +459,7 @@ class normed_comm_ring (α : Type*) extends normed_ring α :=
 
 /-- A mixin class with the axiom `∥1∥ = 1`. Many `normed_ring`s and all `normed_field`s satisfy this
 axiom. -/
-class norm_one_class (α : Type*) [has_norm α] [has_one α] :=
+class norm_one_class (α : Type*) [has_norm α] [has_one α] : Prop :=
 (norm_one : ∥(1:α)∥ = 1)
 
 export norm_one_class (norm_one)

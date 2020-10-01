@@ -10,6 +10,7 @@ import order.category.Preorder
 import category_theory.closed.cartesian
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.types
+import category_theory.currying
 import tactic.find_unused
 
 /-!
@@ -71,11 +72,15 @@ instance : has_terminal ωCPO.{u} :=
 
 open omega_complete_partial_order category_theory category_theory.limits
 
+/--
+(internal implementation) the limit cone of the binary product in a ωCPO.
+It is implemented as the product type -/
 def product_cone (X Y : ωCPO.{u}) : cone (pair X Y) :=
 binary_fan.mk
   (continuous_hom.of_mono preorder_hom.prod.fst (λ c, rfl) : ωCPO.of (X × Y) ⟶ _)
   (continuous_hom.of_mono preorder_hom.prod.snd (λ c, rfl))
 
+/-- (internal implementation) the fact that the proposed product cone is the limit -/
 def product_cone_is_limit (X Y : ωCPO.{u}) : is_limit (product_cone X Y) :=
 { lift := λ s, ⟨λ x, (s.π.app walking_pair.left x, s.π.app walking_pair.right x),
                λ x y h, ⟨(s.π.app walking_pair.left).monotone h, (s.π.app walking_pair.right).monotone h⟩,
@@ -89,14 +94,15 @@ has_limit.mk ⟨_, product_cone_is_limit X Y⟩
 instance : has_binary_products ωCPO.{u} :=
 has_binary_products_of_has_limit_pair _
 
+/-- Constructor for values in binary products of ωCPOs, as an arrow from a unit type -/
 noncomputable def prod_lift {X Y : ωCPO.{u}} (x : X) (y : Y) : ωCPO.of punit.{u + 1} ⟶ X ⨯ Y :=
 limits.prod.lift (continuous_hom.const x) (continuous_hom.const y)
 
-def star : ωCPO.of punit := punit.star
-
+/-- Constructor for values in binary products of ωCPOs -/
 noncomputable def prod.mk {X Y : ωCPO.{u}} (x : X) (y : Y) : ↥(X ⨯ Y) :=
-prod_lift x y star
+prod_lift x y punit.star
 
+/-- Isomorphism between binary products of ωCPOs and product types -/
 noncomputable def of_prod_iso (X Y : ωCPO.{u}) : X ⨯ Y ≅ ωCPO.of (X × Y) :=
 limits.is_limit.cone_point_unique_up_to_iso (limit.is_limit _) (product_cone_is_limit X Y)
 
@@ -154,10 +160,10 @@ begin
     suffices : i.hom (prod.mk x y) ≤ i.hom (prod.mk x' y'),
     { replace this := i.inv.monotone this,
       simpa using this },
-    change (prod_lift x  y  ≫ i.hom ≫ continuous_hom.prod.fst) star ≤
-           (prod_lift x' y' ≫ i.hom ≫ continuous_hom.prod.fst) star   ∧
-           (prod_lift x  y  ≫ i.hom ≫ continuous_hom.prod.snd) star ≤
-           (prod_lift x' y' ≫ i.hom ≫ continuous_hom.prod.snd) star,
+    change (prod_lift x  y  ≫ i.hom ≫ continuous_hom.prod.fst) punit.star ≤
+           (prod_lift x' y' ≫ i.hom ≫ continuous_hom.prod.fst) punit.star   ∧
+           (prod_lift x  y  ≫ i.hom ≫ continuous_hom.prod.snd) punit.star ≤
+           (prod_lift x' y' ≫ i.hom ≫ continuous_hom.prod.snd) punit.star,
     simp only [i, ωCPO.of_prod_iso_prod_fst, ωCPO.of_prod_iso_prod_snd, prod_lift_prod_fst, prod_lift_prod_snd, continuous_hom.const_apply, *],
     exact ⟨trivial, trivial⟩ }
 end
@@ -178,6 +184,7 @@ begin
   rw limits.prod.map_snd
 end
 
+/-- Convert a binary product into a product type -/
 @[simps]
 noncomputable def prod.elim {X Y : ωCPO.{u}} : ↥(X ⨯ Y) →𝒄 X × Y :=
 { to_fun := λ a, ((limits.prod.fst : (X ⨯ Y) ⟶ X) a, (limits.prod.snd : (X ⨯ Y) ⟶ Y) a),
@@ -185,8 +192,16 @@ noncomputable def prod.elim {X Y : ωCPO.{u}} : ↥(X ⨯ Y) →𝒄 X × Y :=
   cont := λ c, by ext; dsimp; rw continuous_hom.continuous; refl
  }
 
+noncomputable instance : monoidal_category ωCPO :=
+monoidal_of_has_finite_products _
+
+noncomputable instance : symmetric_category ωCPO :=
+symmetric_of_has_finite_products _
+
+/-- Definition of `obj` for `hom` functor. -/
 def hom_obj (X Y : ωCPO) : ωCPO := of (X ⟶ Y)
 
+/-- Definition of `map` for `hom` functor. -/
 @[simps]
 def hom_map {X X' : ωCPO.{u}} {Y Y' : ωCPO.{u}}
   (f : X' ⟶ X) (g : Y ⟶ Y') :
@@ -195,16 +210,19 @@ def hom_map {X X' : ωCPO.{u}} {Y Y' : ωCPO.{u}}
   monotone' := λ x y h a, g.monotone (h _),
   cont := λ c, by ext; simp; rw g.continuous; refl }
 
-@[pp_nodot, simps]
+/-- `hom` functor, mapping arrows in `ωCPO` to an object in `ωCPO` -/
+@[pp_nodot, simps obj]
 def hom : ωCPO.{u}ᵒᵖ × ωCPO.{u} ⥤ ωCPO.{u} :=
 { obj := λ x, hom_obj x.1.unop x.2,
   map := λ X Y f, hom_map f.1.unop f.2 }
 
-@[pp_nodot, simps]
-def hom' (X : ωCPO.{u}) : ωCPO.{u} ⥤ ωCPO.{u} :=
-{ obj := λ Y, hom_obj X Y,
-  map := λ Y Z f, hom_map (𝟙 _) f }
+@[simp]
+lemma hom_map_coe_to_fun {X₀ X₁ : ωCPO.{u}ᵒᵖ} {Y₀ Y₁ : ωCPO.{u}} (x : hom.obj (X₀, Y₀))
+  (f : X₀ ⟶ X₁) (g : Y₀ ⟶ Y₁) : hom.map ((f, g) : (X₀, Y₀) ⟶ (X₁, Y₁)) x = f.unop ≫ x ≫ g := rfl
 
+/--
+Evaluation morphisms for arrow objects
+-/
 @[pp_nodot, simps {rhs_md := semireducible}]
 noncomputable def eval (X Y : ωCPO.{u}) : (ωCPO.of (X ⟶ Y) ⨯ X : ωCPO) ⟶ Y :=
 continuous_hom.of_mono (continuous_hom.prod.apply.comp prod.elim.to_preorder_hom)
@@ -217,33 +235,16 @@ lemma eval_nat (X Y Y' : ωCPO) (f : Y ⟶ Y') :
   eval X Y ≫ f = limits.prod.map (hom.map (𝟙 _, f) : hom.obj (op X, Y) ⟶ hom.obj (op X, Y')) (𝟙 _) ≫ eval X Y' :=
 by ext; simp
 
-noncomputable def swap {X Y : ωCPO.{u}} : X ⨯ Y ⟶ Y ⨯ X :=
-prod.lift limits.prod.snd limits.prod.fst
-
-@[simp, reassoc]
-lemma swap_fst  {X Y : ωCPO.{u}} : swap ≫ limits.prod.fst = (limits.prod.snd : X ⨯ Y ⟶ Y) :=
-by simp [swap]
-
-@[simp, reassoc]
-lemma swap_snd  {X Y : ωCPO.{u}} : swap ≫ limits.prod.snd = (limits.prod.fst : X ⨯ Y ⟶ X) :=
-by simp [swap]
-
-@[simp, reassoc]
-lemma swap_swap  {X Y : ωCPO.{u}} : swap ≫ swap = 𝟙 (X ⨯ Y) :=
-by apply limits.prod.hom_ext; simp
-
-@[simp, reassoc]
-lemma map_swap  {X X' Y Y' : ωCPO.{u}} (f : X ⟶ X') (g : Y ⟶ Y') :
-  limits.prod.map f g ≫ swap = swap ≫ limits.prod.map g f :=
-by apply limits.prod.hom_ext; simp
-
+/--
+Auxiliary definition for exponentiation in `ωCPO`
+-/
 @[pp_nodot, simps]
-def abs₀ {X Y : Type u}
+def exp₀ {X Y : Type u}
   [omega_complete_partial_order X]
   [omega_complete_partial_order Y]
   {Z : ωCPO.{u}} (f : ωCPO.of (X × Y) ⟶ Z) : of X ⟶ of (of Y ⟶ Z) :=
 { to_fun := λ x,
-  { to_fun := λ y, f (x, y), -- (x, y),
+  { to_fun := λ y, f (x, y),
     monotone' := λ a b h, f.monotone ⟨le_refl _, h⟩,
     cont :=
     begin
@@ -262,36 +263,40 @@ def abs₀ {X Y : Type u}
     { rw continuous_hom.continuous, refl }
   end }
 
+/--
+Exponentiation in `ωCPO`
+-/
 @[pp_nodot, simps {rhs_md := semireducible}]
-noncomputable def abs {X Y Z : ωCPO.{u}} (f : (X ⨯ Y) ⟶ Z) : X ⟶ of (Y ⟶ Z) :=
-abs₀ (prod.lift continuous_hom.prod.fst continuous_hom.prod.snd ≫ f)
+noncomputable def exp {X Y Z : ωCPO.{u}} (f : (X ⨯ Y) ⟶ Z) : X ⟶ of (Y ⟶ Z) :=
+exp₀ (prod.lift continuous_hom.prod.fst continuous_hom.prod.snd ≫ f)
 
+/--
+Exponentiation in `ωCPO` with arguments flipped
+-/
 @[pp_nodot, simps {rhs_md := semireducible}]
-noncomputable def abs' {X Y Z : ωCPO.{u}} (f : Y ⨯ X ⟶ Z) : X ⟶ of (Y ⟶ Z) :=
-abs.{u} $ swap.{u} ≫ f
+noncomputable def exp' {X Y Z : ωCPO.{u}} (f : Y ⨯ X ⟶ Z) : X ⟶ of (Y ⟶ Z) :=
+exp.{u} $ (β_ _ _).hom ≫ f
 
 @[simp, reassoc]
-lemma abs₀_nat_left
+lemma exp₀_nat_left
  {X X' Y Z : ωCPO.{u}}
   (f : of (X × Y) ⟶ Z) (g : X' ⟶ X) :
-  g ≫ abs₀ f = abs₀ (@category_struct.comp _ _ (of $ X' × Y) (of $ X × Y) Z (continuous_hom.prod.map.{u u u u} g (@continuous_hom.id.{u} Y _)) f) :=
-begin
-  ext, simp,
-end
+  g ≫ exp₀ f = exp₀ (@category_struct.comp _ _ (of $ X' × Y) (of $ X × Y) Z (continuous_hom.prod.map.{u u u u} g (@continuous_hom.id.{u} Y _)) f) :=
+by  { ext, simp }
 
 @[simp, reassoc]
-lemma abs_nat_left {X X' Y Z : ωCPO} (f : X ⨯ Y ⟶ Z) (g : X' ⟶ X) :
-  g ≫ abs f = abs (limits.prod.map g (𝟙 _) ≫ f) :=
+lemma exp_nat_left {X X' Y Z : ωCPO} (f : X ⨯ Y ⟶ Z) (g : X' ⟶ X) :
+  g ≫ exp f = exp (limits.prod.map g (𝟙 _) ≫ f) :=
 begin
-  rw [abs, abs, prod.lift_map_assoc],
-  rw [abs₀_nat_left, ← prod.lift_comp_comp_assoc],
+  rw [exp, exp, prod.lift_map_assoc],
+  rw [exp₀_nat_left, ← prod.lift_comp_comp_assoc],
   dsimp [(≫), category_theory.bundled_hom.comp],
   erw [continuous_hom.prod.map_fst, continuous_hom.prod.map_snd],
 end
 
 @[reassoc]
-lemma abs_nat_right {X Y Z Z' : ωCPO} (f : X ⨯ Y ⟶ Z) (g : Z ⟶ Z') :
-  abs f ≫ (hom.map (𝟙 (opposite.op Y), g) : hom.obj (opposite.op Y, Z) ⟶ hom.obj (opposite.op Y, Z')) = abs (f ≫ g) :=
+lemma exp_nat_right {X Y Z Z' : ωCPO} (f : X ⨯ Y ⟶ Z) (g : Z ⟶ Z') :
+  exp f ≫ (hom.map (𝟙 (opposite.op Y), g) : hom.obj (opposite.op Y, Z) ⟶ hom.obj (opposite.op Y, Z')) = exp (f ≫ g) :=
 by ext; simp
 
 lemma hcongr_fun {α : Sort*} {β : Sort*} [omega_complete_partial_order α] [omega_complete_partial_order β] {f g : α →𝒄 β} (h : f = g) (a : α) : f a = g a :=
@@ -317,29 +322,28 @@ lemma limits.prod.lift_coe_fn {X Y Z : ωCPO} (f : X ⟶ Y) (g : X ⟶ Z) (x : X
 begin
   suffices : (continuous_hom.const x ≫ limits.prod.lift f g : of punit ⟶ (Y ⨯ Z)) =
              limits.prod.lift (continuous_hom.const x ≫ f) (continuous_hom.const x ≫ g),
-  { replace this := hcongr_fun this star,
+  { replace this := hcongr_fun this punit.star,
     simpa only [-prod.lift_comp_comp] using this },
   rw prod.lift_comp_comp
 end
 
 @[simp, reassoc]
-lemma abs_eval {X Y Z : ωCPO} (f : X ⨯ Y ⟶ Z) : limits.prod.map (abs f) (𝟙 _) ≫ eval _ _ = f :=
-by ext; simp [abs]; rw [← limits.prod.lift_coe_fn, prod_lift_fst_snd]; simp
-
-noncomputable instance : monoidal_category ωCPO :=
-monoidal_of_has_finite_products _
+lemma exp_eval {X Y Z : ωCPO} (f : X ⨯ Y ⟶ Z) : limits.prod.map (exp f) (𝟙 _) ≫ eval _ _ = f :=
+by ext; simp [exp]; rw [← limits.prod.lift_coe_fn, prod_lift_fst_snd]; simp
 
 noncomputable instance {X : ωCPO.{u}} : closed X :=
 { is_adj :=
-  { right := hom' X,
+  { right := (curry.{u u}.obj hom).obj (op X),
     adj :=
     { hom_equiv := λ Y Z,
-      { to_fun := λ f, abs'.{u} f,
-        inv_fun := λ f, swap ≫ limits.prod.map f (𝟙 _) ≫ eval.{u} X _,
-        left_inv := λ f, by simp [abs'],
+      { to_fun := λ f, exp'.{u} f,
+        inv_fun := λ f, (β_ _ _).hom ≫ limits.prod.map f (𝟙 _) ≫ eval.{u} X _,
+        left_inv := λ f, by simp [exp'],
         right_inv := λ f, by ext; simp },
-      unit := { app := λ Y, abs swap, naturality' := by intros Y Z f; simp; rw ← abs_nat_right; refl },
-      counit := { app := λ Y, swap ≫ eval X _, naturality' := by intros Y Z f; simp; erw eval_nat; refl },
+        unit := { app := λ Y, exp (β_ _ _).hom,
+                  naturality' := by { intros Y Z f, dsimp, simp [exp_nat_right, limits.prod.lift_map, ← limits.prod.lift_comp_comp, limits.prod.map_fst, limits.prod.map_snd], } },
+      counit := { app := λ Y, (β_ _ _).hom ≫ eval X _,
+                  naturality' := by { intros Y Z f, dsimp, simp [eval_nat, limits.prod.lift_map_assoc, ← limits.prod.lift_comp_comp_assoc], dsimp, rw category.comp_id } },
       hom_equiv_unit' := λ Y Z f, by ext; refl,
       hom_equiv_counit' := λ Y Z f, by ext; simp } } }
 
@@ -348,78 +352,3 @@ noncomputable instance : monoidal_closed ωCPO.{u} :=
 ⟨ λ X, by apply_instance ⟩
 
 end ωCPO
--- #print ωCPO.abs_nat_left_assoc
--- #print ωCPO.hom_obj_2
--- #print ωCPO.abs₀_nat_left_assoc
--- #print ωCPO.abs_eval_assoc
--- #print ωCPO.inhabited
--- #print ωCPO.eval_nat_assoc
--- #print ωCPO.abs_nat_right_assoc
--- #print ωCPO.hom'_obj
-
--- #list_unused_decls []
-/- Checking 73 declarations (plus 55 automatically generated ones) in the current file -/
-
-/- The `def_lemma` linter reports
- -/
-/- INCORRECT DEF/LEMMA
- -/
--- #print ωCPO.product_cone_is_limit /- is a lemma/theorem, should be a def -/
-#print ωCPO.star /- LINTER FAILED
-
-match failed -/
-
-/- The `doc_blame` linter reports
- -/
-/- DEFINITIONS ARE MISSING DOCUMENTATION STRINGS
- -/
-#print ωCPO.product_cone /- def missing doc string -/
-#print ωCPO.prod_lift /- def missing doc string -/
-#print ωCPO.star /- def missing doc string -/
-#print ωCPO.prod.mk /- def missing doc string -/
--- #print ωCPO.ωCPO.of_prod_iso /- def missing doc string -/
-#print ωCPO.prod.elim /- def missing doc string -/
--- #print ωCPO.prod.elim' /- def missing doc string -/
-#print ωCPO.hom_obj /- def missing doc string -/
-#print ωCPO.hom_map /- def missing doc string -/
-#print ωCPO.hom /- def missing doc string -/
-#print ωCPO.hom' /- def missing doc string -/
-#print ωCPO.eval /- def missing doc string -/
-#print ωCPO.swap /- def missing doc string -/
-#print ωCPO.abs₀ /- def missing doc string -/
-#print ωCPO.abs /- def missing doc string -/
-#print ωCPO.abs' /- def missing doc string -/
-
-/- The `dup_namespace` linter reports
- -/
-/- DUPLICATED NAMESPACES IN NAME
- -/
--- #print ωCPO.ωCPO.of_prod_iso /- The namespace `ωCPO` is duplicated in the name -/
--- #print ωCPO.ωCPO.of_prod_iso_prod_fst /- The namespace `ωCPO` is duplicated in the name -/
--- #print ωCPO.ωCPO.of_prod_iso_prod_snd /- The namespace `ωCPO` is duplicated in the name -/
-
-/- The `simp_nf` linter reports
- -/
-/- SOME SIMP LEMMAS ARE NOT IN SIMP-NORMAL FORM.
-see note [simp-normal form] for tips how to debug this.
-https
-//leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20form
-
- -/
-#print ωCPO.abs_nat_right_assoc /- Left-hand side simplifies from
-  ωCPO.abs f ≫ ωCPO.hom.map (𝟙 (opposite.op Y), g) ≫ f'
-to
-  ωCPO.abs f ≫ ωCPO.hom_map (𝟙 Y) g ≫ f'
-using
-  [category_theory.unop_id_op, ωCPO.hom_map_2]
-Try to change the left-hand side to the simplified term!
- -/
-#print ωCPO.abs_nat_right /- Left-hand side simplifies from
-  ωCPO.abs f ≫ ωCPO.hom.map (𝟙 (opposite.op Y), g)
-to
-  ωCPO.abs f ≫ ωCPO.hom_map (𝟙 Y) g
-using
-  [category_theory.unop_id_op, ωCPO.hom_map_2]
-Try to change the left-hand side to the simplified term!
- -/
--- #lint

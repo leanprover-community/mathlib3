@@ -783,6 +783,11 @@ instance pfun_fintype (p : Prop) [decidable p] (α : p → Type*)
 if hp : p then fintype.of_equiv (α hp) ⟨λ a _, a, λ f, f hp, λ _, rfl, λ _, rfl⟩
           else ⟨singleton (λ h, (hp h).elim), by simp [hp, function.funext_iff]⟩
 
+@[simp] lemma finset.univ_pi_univ {α : Type*} {β : α → Type*}
+  [decidable_eq α] [fintype α] [∀a, fintype (β a)] :
+  finset.univ.pi (λ a : α, (finset.univ : finset (β a))) = finset.univ :=
+by { ext, simp }
+
 lemma mem_image_univ_iff_mem_range
   {α β : Type*} [fintype α] [decidable_eq β] {f : α → β} {b : β} :
   b ∈ univ.image f ↔ b ∈ set.range f :=

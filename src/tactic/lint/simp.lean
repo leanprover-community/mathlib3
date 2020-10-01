@@ -19,7 +19,7 @@ open tactic expr
 
 /-- `simp_lhs_rhs ty` returns the left-hand and right-hand side of a simp lemma with type `ty`. -/
 private meta def simp_lhs_rhs : expr → tactic (expr × expr) | ty := do
-ty ← whnf ty transparency.reducible,
+ty ← head_beta ty,
 -- We only detect a fixed set of simp relations here.
 -- This is somewhat justified since for a custom simp relation R,
 -- the simp lemma `R a b` is implicitly converted to `R a b ↔ true` as well.
@@ -42,7 +42,7 @@ prod.fst <$> simp_lhs_rhs ty
 lemma, and `some lhs` otherwise.
 -/
 private meta def simp_is_conditional_core : expr → tactic (option expr) | ty := do
-ty ← whnf ty transparency.semireducible,
+ty ← head_beta ty,
 match ty with
 | `(¬ %%lhs) := pure lhs
 | `(%%lhs = _) := pure lhs
@@ -202,7 +202,7 @@ tt ← is_simp_lemma d.to_name | pure none,
 tt ← is_valid_simp_lemma_cnst d.to_name | pure none,
 (lhs, rhs) ← simp_lhs_rhs d.type,
 if lhs.get_app_fn.const_name ≠ rhs.get_app_fn.const_name then pure none else do
-(lhs', rhs') ← (prod.snd <$> mk_meta_pis d.type) >>= simp_lhs_rhs,
+(lhs', rhs') ← (prod.snd <$> open_pis_metas d.type) >>= simp_lhs_rhs,
 tt ← succeeds $ unify rhs lhs' transparency.reducible | pure none,
 tt ← succeeds $ is_def_eq rhs lhs' transparency.reducible | pure none,
 -- ensure that the second application makes progress:

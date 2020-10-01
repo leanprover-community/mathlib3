@@ -29,18 +29,20 @@ instance [nonempty α] : nontrivial (with_one α) := option.nontrivial
 @[to_additive]
 instance : has_coe_t α (with_one α) := ⟨some⟩
 
-@[simp, to_additive]
-lemma one_ne_coe {a : α} : (1 : with_one α) ≠ a :=
-λ h, option.no_confusion h
+@[to_additive]
+lemma some_eq_coe {a : α} : (some a : with_one α) = ↑a := rfl
 
 @[simp, to_additive]
 lemma coe_ne_one {a : α} : (a : with_one α) ≠ (1 : with_one α) :=
-λ h, option.no_confusion h
+option.some_ne_none a
+
+@[simp, to_additive]
+lemma one_ne_coe {a : α} : (1 : with_one α) ≠ a :=
+coe_ne_one.symm
 
 @[to_additive]
-lemma ne_one_iff_exists : ∀ {x : with_one α}, x ≠ 1 ↔ ∃ (a : α), x = a
-| 1       := ⟨λ h, false.elim $ h rfl, by { rintros ⟨a,ha⟩ h, simpa using h }⟩
-| (a : α) := ⟨λ h, ⟨a, rfl⟩, λ h, with_one.coe_ne_one⟩
+lemma ne_one_iff_exists {x : with_one α} : x ≠ 1 ↔ ∃ (a : α), ↑a = x :=
+option.ne_none_iff_exists
 
 @[to_additive]
 lemma coe_inj {a b : α} : (a : with_one α) = b ↔ a = b :=
@@ -54,9 +56,6 @@ option.cases_on
 @[to_additive]
 instance [has_mul α] : has_mul (with_one α) :=
 { mul := option.lift_or_get (*) }
-
-@[simp, to_additive]
-lemma mul_coe [has_mul α] (a b : α) : (a : with_one α) * b = (a * b : α) := rfl
 
 @[to_additive]
 instance [semigroup α] : monoid (with_one α) :=
@@ -118,6 +117,11 @@ lift (coe ∘ f) (λ x y, coe_inj.2 $ hf x y)
 
 end map
 
+attribute [irreducible] with_one
+
+@[simp, norm_cast, to_additive]
+lemma coe_mul [has_mul α] (a b : α) : ((a * b : α) : with_one α) = a * b := rfl
+
 end with_one
 
 namespace with_zero
@@ -133,8 +137,14 @@ instance [has_mul α] : mul_zero_class (with_zero α) :=
   mul_zero  := λ a, by cases a; refl,
   ..with_zero.has_zero }
 
-@[simp] lemma mul_coe [has_mul α] (a b : α) :
-  (a : with_zero α) * b = (a * b : α) := rfl
+@[simp, norm_cast] lemma coe_mul {α : Type u} [has_mul α]
+  {a b : α} : ((a * b : α) : with_zero α) = a * b := rfl
+
+@[simp] lemma zero_mul {α : Type u} [has_mul α]
+  (a : with_zero α) : 0 * a = 0 := rfl
+
+@[simp] lemma mul_zero {α : Type u} [has_mul α]
+  (a : with_zero α) : a * 0 = 0 := by cases a; refl
 
 instance [semigroup α] : semigroup (with_zero α) :=
 { mul_assoc := λ a b c, match a, b, c with
@@ -176,8 +186,9 @@ do a ← x, return a⁻¹
 
 instance [has_inv α] : has_inv (with_zero α) := ⟨with_zero.inv⟩
 
-@[simp] lemma inv_coe [has_inv α] (a : α) :
-  (a : with_zero α)⁻¹ = (a⁻¹ : α) := rfl
+@[simp, norm_cast] lemma coe_inv [has_inv α] (a : α) :
+  ((a⁻¹ : α) : with_zero α) = a⁻¹ := rfl
+
 @[simp] lemma inv_zero [has_inv α] :
   (0 : with_zero α)⁻¹ = 0 := rfl
 
@@ -206,17 +217,17 @@ lemma one_div (x : with_zero α) : 1 / x = x⁻¹ := one_mul _
 
 @[simp] lemma mul_right_inv : ∀  (x : with_zero α) (h : x ≠ 0), x * x⁻¹ = 1
 | 0       h := false.elim $ h rfl
-| (a : α) h := by simp [coe_one]
+| (a : α) h := by {norm_cast, simp [coe_one]}
 
 @[simp] lemma mul_left_inv : ∀  (x : with_zero α) (h : x ≠ 0), x⁻¹ * x = 1
 | 0       h := false.elim $ h rfl
-| (a : α) h := by simp [coe_one]
+| (a : α) h := by {norm_cast, simp [coe_one]}
 
 @[simp] lemma mul_inv_rev : ∀ (x y : with_zero α), (x * y)⁻¹ = y⁻¹ * x⁻¹
 | 0       0       := rfl
 | 0       (b : α) := rfl
 | (a : α) 0       := rfl
-| (a : α) (b : α) := by simp
+| (a : α) (b : α) := by {norm_cast, exact _root_.mul_inv_rev _ _}
 
 @[simp] lemma mul_div_cancel {a b : with_zero α} (hb : b ≠ 0) : a * b / b = a :=
 show _ * _ * _ = _, by simp [mul_assoc, hb]
@@ -227,6 +238,20 @@ show _ * _ * _ = _, by simp [mul_assoc, hb]
 lemma div_eq_iff_mul_eq {a b c : with_zero α} (hb : b ≠ 0) : a / b = c ↔ c * b = a :=
 by split; intro h; simp [h.symm, hb]
 
+lemma mul_inv_cancel : ∀ (a : with_zero α), a ≠ 0 → a * a⁻¹ = 1 :=
+begin
+  rintro (_ | a) h,
+    {exact absurd rfl h },
+    { refine option.some_inj.2 (_root_.mul_right_inv _) }
+end
+
+/-- if `G` is a group then `with_zero G` is a group with zero. -/
+instance : group_with_zero (with_zero α) :=
+{ inv_zero := with_zero.inv_zero,
+  mul_inv_cancel := with_zero.mul_inv_cancel,
+  ..with_zero.monoid_with_zero,
+  ..with_zero.has_inv,
+  ..with_zero.nontrivial }
 end group
 
 section comm_group
@@ -250,6 +275,23 @@ begin
   { rw [mul_inv_eq_iff_eq_mul, mul_right_comm, mul_comm c, ← H, mul_inv_cancel_right] }
 end
 
+theorem mul_comm {α : Type u}
+  [comm_group α] :
+  ∀ (a b : with_zero α), a * b = b * a :=
+begin
+  rintro (_ | a) (_ | b),
+  { refl },
+  { refl },
+  { refl },
+  { apply option.some_inj.2,
+    apply mul_comm }
+end
+
+/-- if `G` is a `comm_group` then `with_zero G` is a `comm_group_with_zero`. -/
+instance : comm_group_with_zero (with_zero α) :=
+{ mul_comm := mul_comm,
+  ..with_zero.group_with_zero }
+
 end comm_group
 
 section semiring
@@ -271,5 +313,7 @@ instance [semiring α] : semiring (with_zero α) :=
   ..with_zero.monoid_with_zero }
 
 end semiring
+
+attribute [irreducible] with_zero
 
 end with_zero

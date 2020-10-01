@@ -49,8 +49,7 @@ class has_vsub (G : out_param Type*) (P : Type*) :=
 infix ` +ᵥ `:65 := has_vadd.vadd
 infix ` -ᵥ `:65 := has_vsub.vsub
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
+section old_structure_cmd
 set_option old_structure_cmd true
 /-- Type class for additive monoid actions. -/
 class add_action (G : Type*) (P : Type*) [add_monoid G] extends has_vadd G P :=
@@ -70,7 +69,7 @@ class add_torsor (G : out_param Type*) (P : Type*) [out_param $ add_group G]
 
 attribute [instance, priority 100, nolint dangerous_instance] add_torsor.nonempty
 
-end prio
+end old_structure_cmd
 
 /-- An `add_group G` is a torsor for itself. -/
 @[nolint instance_priority]
@@ -231,50 +230,28 @@ lemma eq_vadd_iff_vsub_eq (p1 : P) (g : G) (p2 : P) : p1 = g +ᵥ p2 ↔ p1 -ᵥ
 ⟨λ h, h.symm ▸ vadd_vsub _ _, λ h, h ▸ (vsub_vadd _ _).symm⟩
 
 /-- The pairwise differences of a set of points. -/
-def vsub_set (s : set P) : set G := {g | ∃ x ∈ s, ∃ y ∈ s, g = x -ᵥ y}
+def vsub_set (s : set P) : set G := set.image2 (-ᵥ) s s
 
 /-- `vsub_set` of an empty set. -/
 @[simp] lemma vsub_set_empty : vsub_set (∅ : set P) = ∅ :=
-begin
-  rw set.eq_empty_iff_forall_not_mem,
-  rintros g ⟨p, hp, hg⟩,
-  exact hp
-end
+set.image2_empty_left
 
 /-- `vsub_set` of a single point. -/
 @[simp] lemma vsub_set_singleton (p : P) : vsub_set ({p} : set P) = {(0:G)} :=
-begin
-  ext g,
-  rw set.mem_singleton_iff,
-  split,
-  { rintros ⟨p1, hp1, p2, hp2, rfl⟩,
-    rw set.mem_singleton_iff at hp1 hp2,
-    simp [hp1, hp2] },
-  { exact λ h, h.symm ▸ ⟨p, set.mem_singleton p, p, set.mem_singleton p, (vsub_self p).symm⟩ }
-end
+by simp [vsub_set]
 
 /-- `vsub_set` of a finite set is finite. -/
 lemma vsub_set_finite_of_finite {s : set P} (h : set.finite s) : set.finite (vsub_set s) :=
-begin
-  have hi : vsub_set s = set.image2 (-ᵥ) s s,
-  { ext,
-    exact ⟨λ ⟨p1, hp1, p2, hp2, hg⟩, ⟨p1, p2, hp1, hp2, hg.symm⟩,
-           λ ⟨p1, p2, hp1, hp2, hg⟩, ⟨p1, hp1, p2, hp2, hg.symm⟩⟩ },
-  rw hi,
-  exact set.finite.image2 _ h h
-end
+h.image2 _ h
 
 /-- Each pairwise difference is in the `vsub_set`. -/
 lemma vsub_mem_vsub_set {p1 p2 : P} {s : set P} (hp1 : p1 ∈ s) (hp2 : p2 ∈ s) :
   (p1 -ᵥ p2) ∈ vsub_set s :=
-⟨p1, hp1, p2, hp2, rfl⟩
+set.mem_image2_of_mem hp1 hp2
 
 /-- `vsub_set` is contained in `vsub_set` of a larger set. -/
 lemma vsub_set_mono {s1 s2 : set P} (h : s1 ⊆ s2) : vsub_set s1 ⊆ vsub_set s2 :=
-begin
-  rintros v ⟨p1, hp1, p2, hp2, hv⟩,
-  exact ⟨p1, set.mem_of_mem_of_subset hp1 h, p2, set.mem_of_mem_of_subset hp2 h, hv⟩
-end
+set.image2_subset h h
 
 @[simp] lemma vadd_vsub_vadd_cancel_right (v₁ v₂ : G) (p : P) :
   (v₁ +ᵥ p) -ᵥ (v₂ +ᵥ p) = v₁ - v₂ :=
@@ -326,6 +303,12 @@ by rw [sub_eq_add_neg, neg_vsub_eq_vsub_rev, add_comm, vsub_add_vsub_cancel]
 @[simp] lemma vadd_vsub_vadd_cancel_left (v : G) (p1 p2 : P) :
   (v +ᵥ p1) -ᵥ (v +ᵥ p2) = p1 -ᵥ p2 :=
 by rw [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_sub_cancel']
+
+lemma vsub_vadd_comm (p1 p2 p3 : P) : (p1 -ᵥ p2 : G) +ᵥ p3 = p3 -ᵥ p2 +ᵥ p1 :=
+begin
+  rw [←@vsub_eq_zero_iff_eq G, vadd_vsub_assoc, vsub_vadd_eq_vsub_sub],
+  simp
+end
 
 end comm
 

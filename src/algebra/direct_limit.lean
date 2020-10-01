@@ -3,9 +3,10 @@ Copyright (c) 2019 Kenny Lau, Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes
 -/
-import ring_theory.free_comm_ring
-import linear_algebra.direct_sum_module
 import data.finset.order
+import linear_algebra.direct_sum_module
+import ring_theory.free_comm_ring
+import ring_theory.ideal.operations
 /-!
 # Direct limit of modules, abelian groups, rings, and fields.
 
@@ -348,6 +349,7 @@ let ⟨i, x, hx⟩ := exists_of z in hx ▸ ih i x
 section of_zero_exact
 open_locale classical
 variables (G f)
+
 lemma of.zero_exact_aux2 {x : free_comm_ring Σ i, G i} {s t} (hxs : is_supported x s) {j k}
   (hj : ∀ z : Σ i, G i, z ∈ s → z.1 ≤ j) (hk : ∀ z : Σ i, G i, z ∈ t → z.1 ≤ k)
   (hjk : j ≤ k) (hst : s ⊆ t) :
@@ -355,16 +357,23 @@ lemma of.zero_exact_aux2 {x : free_comm_ring Σ i, G i} {s t} (hxs : is_supporte
   lift (λ ix : t, f ix.1.1 k (hk ix ix.2) ix.1.2) (restriction t x) :=
 begin
   refine ring.in_closure.rec_on hxs _ _ _ _,
-  { rw [restriction_one, lift_one, is_ring_hom.map_one (f j k hjk), restriction_one, lift_one] },
-  { rw [restriction_neg, restriction_one, lift_neg, lift_one,
-      is_ring_hom.map_neg (f j k hjk), is_ring_hom.map_one (f j k hjk),
-      restriction_neg, restriction_one, lift_neg, lift_one] },
+  { rw [(restriction _).map_one, (free_comm_ring.lift _).map_one, is_ring_hom.map_one (f j k hjk),
+        (restriction _).map_one, (free_comm_ring.lift _).map_one] },
+  { rw [(restriction _).map_neg, (restriction _).map_one,
+        (free_comm_ring.lift _).map_neg, (free_comm_ring.lift _).map_one,
+        is_ring_hom.map_neg (f j k hjk), is_ring_hom.map_one (f j k hjk),
+        (restriction _).map_neg, (restriction _).map_one,
+        (free_comm_ring.lift _).map_neg, (free_comm_ring.lift _).map_one] },
   { rintros _ ⟨p, hps, rfl⟩ n ih,
-    rw [restriction_mul, lift_mul, is_ring_hom.map_mul (f j k hjk), ih, restriction_mul, lift_mul,
+    rw [(restriction _).map_mul, (free_comm_ring.lift _).map_mul,
+        is_ring_hom.map_mul (f j k hjk), ih,
+        (restriction _).map_mul, (free_comm_ring.lift _).map_mul,
         restriction_of, dif_pos hps, lift_of, restriction_of, dif_pos (hst hps), lift_of],
     dsimp only, rw directed_system.map_map f, refl },
   { rintros x y ihx ihy,
-    rw [restriction_add, lift_add, is_ring_hom.map_add (f j k hjk), ihx, ihy, restriction_add, lift_add] }
+    rw [(restriction _).map_add, (free_comm_ring.lift _).map_add,
+        is_ring_hom.map_add (f j k hjk), ihx, ihy,
+        (restriction _).map_add, (free_comm_ring.lift _).map_add] }
 end
 variables {G f}
 
@@ -377,20 +386,25 @@ begin
     { refine ⟨j, {⟨i, x⟩, ⟨j, f i j hij x⟩}, _,
         is_supported_sub (is_supported_of.2 $ or.inr rfl) (is_supported_of.2 $ or.inl rfl), _⟩,
       { rintros k (rfl | ⟨rfl | _⟩), exact hij, refl },
-      { rw [restriction_sub, lift_sub, restriction_of, dif_pos, restriction_of, dif_pos, lift_of, lift_of],
+      { rw [(restriction _).map_sub, (free_comm_ring.lift _).map_sub,
+            restriction_of, dif_pos, restriction_of, dif_pos, lift_of, lift_of],
         dsimp only, rw directed_system.map_map f, exact sub_self _,
         exacts [or.inr rfl, or.inl rfl] } },
     { refine ⟨i, {⟨i, 1⟩}, _, is_supported_sub (is_supported_of.2 rfl) is_supported_one, _⟩,
       { rintros k (rfl|h), refl },
-      { rw [restriction_sub, lift_sub, restriction_of, dif_pos, restriction_one, lift_of, lift_one],
+      { rw [(restriction _).map_sub, (free_comm_ring.lift _).map_sub,
+            restriction_of, dif_pos, (restriction _).map_one, lift_of, (free_comm_ring.lift _).map_one],
         dsimp only, rw [is_ring_hom.map_one (f i i _), sub_self], exacts [_inst_7 i i _, rfl] } },
     { refine ⟨i, {⟨i, x+y⟩, ⟨i, x⟩, ⟨i, y⟩}, _,
         is_supported_sub (is_supported_of.2 $ or.inl rfl)
           (is_supported_add (is_supported_of.2 $ or.inr $ or.inl rfl)
             (is_supported_of.2 $ or.inr $ or.inr rfl)), _⟩,
       { rintros k (rfl | ⟨rfl | ⟨rfl | hk⟩⟩); refl },
-      { rw [restriction_sub, restriction_add, restriction_of, restriction_of, restriction_of,
-          dif_pos, dif_pos, dif_pos, lift_sub, lift_add, lift_of, lift_of, lift_of],
+      { rw [(restriction _).map_sub, (restriction _).map_add,
+            restriction_of, restriction_of, restriction_of,
+            dif_pos, dif_pos, dif_pos,
+            (free_comm_ring.lift _).map_sub, (free_comm_ring.lift _).map_add,
+            lift_of, lift_of, lift_of],
         dsimp only, rw is_ring_hom.map_add (f i i _), exact sub_self _,
         exacts [or.inl rfl, by apply_instance, or.inr (or.inr rfl), or.inr (or.inl rfl)] } },
     { refine ⟨i, {⟨i, x*y⟩, ⟨i, x⟩, ⟨i, y⟩}, _,
@@ -398,21 +412,24 @@ begin
           (is_supported_mul (is_supported_of.2 $ or.inr $ or.inl rfl)
             (is_supported_of.2 $ or.inr $ or.inr rfl)), _⟩,
       { rintros k (rfl | ⟨rfl | ⟨rfl | hk⟩⟩); refl },
-      { rw [restriction_sub, restriction_mul, restriction_of, restriction_of, restriction_of,
-          dif_pos, dif_pos, dif_pos, lift_sub, lift_mul, lift_of, lift_of, lift_of],
+      { rw [(restriction _).map_sub, (restriction _).map_mul,
+            restriction_of, restriction_of, restriction_of,
+            dif_pos, dif_pos, dif_pos,
+            (free_comm_ring.lift _).map_sub, (free_comm_ring.lift _).map_mul,
+            lift_of, lift_of, lift_of],
         dsimp only, rw is_ring_hom.map_mul (f i i _),
         exacts [sub_self _, or.inl rfl, by apply_instance, or.inr (or.inr rfl),
           or.inr (or.inl rfl)] } } },
   { refine nonempty.elim (by apply_instance) (assume ind : ι, _),
     refine ⟨ind, ∅, λ _, false.elim, is_supported_zero, _⟩,
-    rw [restriction_zero, lift_zero] },
+    rw [(restriction _).map_zero, (free_comm_ring.lift _).map_zero] },
   { rintros x y ⟨i, s, hi, hxs, ihs⟩ ⟨j, t, hj, hyt, iht⟩,
     rcases directed_order.directed i j with ⟨k, hik, hjk⟩,
     have : ∀ z : Σ i, G i, z ∈ s ∪ t → z.1 ≤ k,
     { rintros z (hz | hz), exact le_trans (hi z hz) hik, exact le_trans (hj z hz) hjk },
     refine ⟨k, s ∪ t, this, is_supported_add (is_supported_upwards hxs $ set.subset_union_left s t)
       (is_supported_upwards hyt $ set.subset_union_right s t), _⟩,
-    { rw [restriction_add, lift_add,
+    { rw [(restriction _).map_add, (free_comm_ring.lift _).map_add,
         ← of.zero_exact_aux2 G f hxs hi this hik (set.subset_union_left s t),
         ← of.zero_exact_aux2 G f hyt hj this hjk (set.subset_union_right s t),
         ihs, is_ring_hom.map_zero (f i k hik), iht, is_ring_hom.map_zero (f j k hjk), zero_add] } },
@@ -424,7 +441,7 @@ begin
     { rintros z (hz | hz), exact le_trans (hi z.1 $ finset.mem_image.2 ⟨z, hz, rfl⟩) hik, exact le_trans (hj z hz) hjk },
     refine ⟨k, ↑s ∪ t, this, is_supported_mul (is_supported_upwards hxs $ set.subset_union_left ↑s t)
       (is_supported_upwards hyt $ set.subset_union_right ↑s t), _⟩,
-    rw [restriction_mul, lift_mul,
+    rw [(restriction _).map_mul, (free_comm_ring.lift _).map_mul,
         ← of.zero_exact_aux2 G f hyt hj this hjk (set.subset_union_right ↑s t),
         iht, is_ring_hom.map_zero (f j k hjk), mul_zero] }
 end
@@ -464,14 +481,14 @@ to a unique map out of the direct limit.
 We don't use this function as the canonical form because Lean 3 fails to automatically coerce
 it to a function; use `lift` instead. -/
 def lift_hom : direct_limit G f →+* P :=
-ideal.quotient.lift _ (free_comm_ring.lift_hom $ λ x, g x.1 x.2) begin
+ideal.quotient.lift _ (free_comm_ring.lift $ λ x, g x.1 x.2) begin
   suffices : ideal.span _ ≤
-    ideal.comap (free_comm_ring.lift_hom (λ (x : Σ (i : ι), G i), g (x.fst) (x.snd))) ⊥,
+    ideal.comap (free_comm_ring.lift (λ (x : Σ (i : ι), G i), g (x.fst) (x.snd))) ⊥,
   { intros x hx, exact (mem_bot P).1 (this hx) },
   rw ideal.span_le, intros x hx,
   rw [mem_coe, ideal.mem_comap, mem_bot],
   rcases hx with ⟨i, j, hij, x, rfl⟩ | ⟨i, rfl⟩ | ⟨i, x, y, rfl⟩ | ⟨i, x, y, rfl⟩;
-  simp only [coe_lift_hom, lift_sub, lift_of, Hg, lift_one, lift_add, lift_mul,
+  simp only [ring_hom.map_sub, lift_of, Hg, ring_hom.map_one, ring_hom.map_add, ring_hom.map_mul,
       is_ring_hom.map_one (g i), is_ring_hom.map_add (g i), is_ring_hom.map_mul (g i), sub_self]
 end
 

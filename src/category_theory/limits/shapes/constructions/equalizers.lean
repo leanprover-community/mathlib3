@@ -14,6 +14,9 @@ If a category has pullbacks and binary products, then it has equalizers.
 
 TODO: provide the dual result.
 -/
+
+noncomputable theory
+
 universes v u
 
 open category_theory category_theory.category
@@ -73,9 +76,9 @@ end has_equalizers_of_pullbacks_and_binary_products
 open has_equalizers_of_pullbacks_and_binary_products
 /-- Any category with pullbacks and binary products, has equalizers. -/
 -- This is not an instance, as it is not always how one wants to construct equalizers!
-def has_equalizers_of_pullbacks_and_binary_products :
+lemma has_equalizers_of_pullbacks_and_binary_products :
   has_equalizers C :=
-{ has_limit := λ F,
+{ has_limit := λ F, has_limit.mk
   { cone := equalizer_cone F,
     is_limit := equalizer_cone_is_limit F } }
 

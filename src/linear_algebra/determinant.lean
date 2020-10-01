@@ -7,6 +7,7 @@ import data.matrix.pequiv
 import data.fintype.card
 import group_theory.perm.sign
 import ring_theory.algebra
+import tactic.ring
 
 universes u v w z
 open equiv equiv.perm finset function
@@ -88,7 +89,7 @@ calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) 
   sum_congr rfl (λ σ _, sum_bij (λ τ _, τ * σ⁻¹) (λ _ _, mem_univ _)
     (λ τ _,
       have ∏ j, M (τ j) (σ j) = ∏ j, M ((τ * σ⁻¹) j) j,
-        by rw ← finset.prod_equiv σ⁻¹; simp [mul_apply],
+        by rw ← σ⁻¹.prod_comp; simp [mul_apply],
       have h : ε σ * ε (τ * σ⁻¹) = ε τ :=
         calc ε σ * ε (τ * σ⁻¹) = ε ((τ * σ⁻¹) * σ) :
           by rw [mul_comm, sign_mul (τ * σ⁻¹)]; simp [sign_mul]
@@ -222,5 +223,50 @@ begin
 end
 
 end det_zero
+
+lemma det_update_column_add (M : matrix n n R) (j : n) (u v : n → R) :
+  det (update_column M j $ u + v) = det (update_column M j u) + det (update_column M j v) :=
+begin
+  simp only [det],
+  have : ∀ σ : perm n, ∏ i, M.update_column j (u + v) (σ i) i =
+                       ∏ i, M.update_column j u (σ i) i + ∏ i, M.update_column j v (σ i) i,
+  { intros σ,
+    simp only [update_column_apply, prod_ite, filter_eq',
+               finset.prod_singleton, finset.mem_univ, if_true, pi.add_apply, add_mul] },
+  rw [← sum_add_distrib],
+  apply sum_congr rfl,
+  intros x _,
+  rw [this, mul_add]
+end
+
+lemma det_update_row_add (M : matrix n n R) (j : n) (u v : n → R) :
+  det (update_row M j $ u + v) = det (update_row M j u) + det (update_row M j v) :=
+begin
+  rw [← det_transpose, ← update_column_transpose, det_update_column_add],
+  simp [update_column_transpose, det_transpose]
+end
+
+lemma det_update_column_smul (M : matrix n n R) (j : n) (s : R) (u : n → R) :
+  det (update_column M j $ s • u) = s * det (update_column M j u) :=
+begin
+  simp only [det],
+  have : ∀ σ : perm n, ∏ i, M.update_column j (s • u) (σ i) i = s * ∏ i, M.update_column j u (σ i) i,
+  { intros σ,
+    simp only [update_column_apply, prod_ite, filter_eq', finset.prod_singleton, finset.mem_univ,
+               if_true, algebra.id.smul_eq_mul, pi.smul_apply],
+    ring },
+  rw mul_sum,
+  apply sum_congr rfl,
+  intros x _,
+  rw this,
+  ring
+end
+
+lemma det_update_row_smul (M : matrix n n R) (j : n) (s : R) (u : n → R) :
+  det (update_row M j $ s • u) = s * det (update_row M j u) :=
+begin
+  rw [← det_transpose, ← update_column_transpose, det_update_column_smul],
+  simp [update_column_transpose, det_transpose]
+end
 
 end matrix

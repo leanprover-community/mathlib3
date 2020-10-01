@@ -6,6 +6,7 @@ Authors: Nicolò Cavalleri
 
 import geometry.manifold.times_cont_mdiff
 
+<<<<<<< HEAD
 /-!
 # Smooth monoid
 
@@ -21,10 +22,32 @@ semigroups.
 /-- Basic hypothesis to talk about a smooth (Lie) additive monoid or a smooth additive
 semigroup. A smooth additive monoid over `α`, for example, is obtained by requiring both the
 instances `add_monoid α` and `has_smooth_add α`. -/
+=======
+variables {α : Type*} [add_comm_group α]
+
+/-!
+# Smooth monoid
+A smooth monoid is a monoid that is also a smooth manifold, in which multiplication is a smooth map
+of the product manifold `G` × `G` into `G`.
+
+In this file we define the basic structures to talk about smooth monoids: `has_smooth_mul` and its
+additive counterpart `has_smooth_add`. These structures are general enough to also talk about smooth
+semigroups.
+-/
+
+section
+set_option old_structure_cmd true
+
+/-- Basic hypothesis to talk about a smooth (Lie) additive monoid or a smooth additive
+semigroup. A smooth additive monoid over `α`, for example, is obtained by requiring both the
+instances `add_monoid α` and `has_smooth_add α`. -/
+@[ancestor smooth_manifold_with_corners]
+>>>>>>> master
 class has_smooth_add {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
   (G : Type*) [has_add G] [topological_space G] [has_continuous_add G] [charted_space H G]
+<<<<<<< HEAD
  [smooth_manifold_with_corners I G] : Prop :=
 (smooth_add : smooth (I.prod I) I (λ p : G×G, p.1 + p.2))
 
@@ -32,20 +55,41 @@ class has_smooth_add {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 A smooth monoid over `α`, for example, is obtained by requiring both the instances `monoid α`
 and `has_smooth_mul α`. -/
 @[to_additive]
+=======
+  extends smooth_manifold_with_corners I G : Prop :=
+(smooth_add : smooth (I.prod I) I (λ p : G×G, p.1 + p.2))
+
+/-- Basic hypothesis to talk about a smooth (Lie) monoid or a smooth semigroup.
+A smooth monoid over `G`, for example, is obtained by requiring both the instances `monoid G`
+and `has_smooth_mul I G`. -/
+@[ancestor smooth_manifold_with_corners, to_additive]
+>>>>>>> master
 class has_smooth_mul {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
   (G : Type*) [has_mul G] [topological_space G] [has_continuous_mul G] [charted_space H G]
+<<<<<<< HEAD
   [smooth_manifold_with_corners I G] : Prop :=
 (smooth_mul : smooth (I.prod I) I (λ p : G×G, p.1 * p.2))
 
+=======
+  extends smooth_manifold_with_corners I G : Prop :=
+(smooth_mul : smooth (I.prod I) I (λ p : G×G, p.1 * p.2))
+
+end
+
+>>>>>>> master
 section has_smooth_mul
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {H : Type*} [topological_space H]
 {E : Type*} [normed_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
 {G : Type*} [has_mul G] [topological_space G] [has_continuous_mul G] [charted_space H G]
+<<<<<<< HEAD
 [smooth_manifold_with_corners I G] [has_smooth_mul I G]
+=======
+  [has_smooth_mul I G]
+>>>>>>> master
 {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M : Type*} [topological_space M] [charted_space H' M] [smooth_manifold_with_corners I' M]
@@ -76,6 +120,7 @@ lemma smooth_on.mul {f : M → G} {g : M → G} {s : set M}
 /- Instance of product -/
 @[to_additive]
 instance has_smooth_mul.prod {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+<<<<<<< HEAD
   {H : Type*} [topological_space H]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]  {I : model_with_corners 𝕜 E H}
   {G : Type*} [topological_space G] [charted_space H G] [has_mul G] [has_continuous_mul G]
@@ -86,6 +131,20 @@ instance has_smooth_mul.prod {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   has_smooth_mul (I.prod I') (G×G') :=
 { smooth_mul := ((smooth_fst.comp smooth_fst).smooth.mul (smooth_fst.comp smooth_snd)).prod_mk
   ((smooth_snd.comp smooth_fst).smooth.mul (smooth_snd.comp smooth_snd)), }
+=======
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
+  (G : Type*) [topological_space G] [charted_space H G]
+  [has_mul G] [has_continuous_mul G] [has_smooth_mul I G]
+  {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+  {H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E' H')
+  (G' : Type*) [topological_space G'] [charted_space H' G']
+  [has_mul G'] [has_continuous_mul G'] [has_smooth_mul I' G'] :
+  has_smooth_mul (I.prod I') (G×G') :=
+{ smooth_mul := ((smooth_fst.comp smooth_fst).smooth.mul (smooth_fst.comp smooth_snd)).prod_mk
+    ((smooth_snd.comp smooth_fst).smooth.mul (smooth_snd.comp smooth_snd)),
+  .. smooth_manifold_with_corners.prod _ _ }
+>>>>>>> master
 
 end has_smooth_mul
 
@@ -97,22 +156,35 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 /-- Morphism of additive smooth monoids. -/
 structure smooth_add_monoid_morphism (I : model_with_corners 𝕜 E E) (I' : model_with_corners 𝕜 E' E')
+<<<<<<< HEAD
   (G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G]
   [add_monoid G] [has_continuous_add G] [has_smooth_add I G]
   (G' : Type*) [topological_space G'] [charted_space E' G'] [smooth_manifold_with_corners I' G']
+=======
+  (G : Type*) [topological_space G] [charted_space E G]
+  [add_monoid G] [has_continuous_add G] [has_smooth_add I G]
+  (G' : Type*) [topological_space G'] [charted_space E' G']
+>>>>>>> master
   [add_monoid G'] [has_continuous_add G'] [has_smooth_add I' G'] extends add_monoid_hom G G' :=
 (smooth_to_fun : smooth I I' to_fun)
 
 /-- Morphism of smooth monoids. -/
 @[to_additive]
 structure smooth_monoid_morphism (I : model_with_corners 𝕜 E E) (I' : model_with_corners 𝕜 E' E')
+<<<<<<< HEAD
   (G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G]
   [monoid G] [has_continuous_mul G] [has_smooth_mul I G]
   (G' : Type*) [topological_space G'] [charted_space E' G'] [smooth_manifold_with_corners I' G']
+=======
+  (G : Type*) [topological_space G] [charted_space E G]
+  [monoid G] [has_continuous_mul G] [has_smooth_mul I G]
+  (G' : Type*) [topological_space G'] [charted_space E' G']
+>>>>>>> master
   [monoid G'] [has_continuous_mul G'] [has_smooth_mul I' G'] extends monoid_hom G G' :=
 (smooth_to_fun : smooth I I' to_fun)
 
 variables {I : model_with_corners 𝕜 E E} {I' : model_with_corners 𝕜 E' E'}
+<<<<<<< HEAD
 {G : Type*} [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G]
 [monoid G] [has_continuous_mul G] [has_smooth_mul I G]
 {G' : Type*} [topological_space G'] [charted_space E' G'] [smooth_manifold_with_corners I' G']
@@ -120,6 +192,16 @@ variables {I : model_with_corners 𝕜 E E} {I' : model_with_corners 𝕜 E' E'}
 
 @[to_additive]
 instance : has_one (smooth_monoid_morphism I I' G G') := ⟨⟨1, smooth_const⟩⟩
+=======
+{G : Type*} [topological_space G] [charted_space E G]
+[monoid G] [has_continuous_mul G] [has_smooth_mul I G]
+{G' : Type*} [topological_space G'] [charted_space E' G']
+[monoid G'] [has_continuous_mul G'] [has_smooth_mul I' G']
+
+@[to_additive]
+instance : has_one (smooth_monoid_morphism I I' G G') :=
+⟨{ smooth_to_fun := smooth_const, .. (1 : G →* G') }⟩
+>>>>>>> master
 
 @[to_additive]
 instance : inhabited (smooth_monoid_morphism I I' G G') := ⟨1⟩
@@ -135,28 +217,48 @@ section has_smooth_mul_core
 that `G` is a topological additive monoid. In such case it is possible to use `has_smooth_add_core`
 that does not require such instance, and then get a smooth additive monoid by invoking
 `to_has_smooth_add`. -/
+<<<<<<< HEAD
+=======
+@[ancestor smooth_manifold_with_corners]
+>>>>>>> master
 structure has_smooth_add_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
   (G : Type*) [has_add G] [topological_space G] [charted_space H G]
+<<<<<<< HEAD
   [smooth_manifold_with_corners I G] : Prop :=
+=======
+  extends smooth_manifold_with_corners I G : Prop :=
+>>>>>>> master
 (smooth_add : smooth (I.prod I) I (λ p : G×G, p.1 + p.2))
 
 /-- Sometimes one might want to define a smooth monoid `G` without having proved previously that `G`
 is a topological monoid. In such case it is possible to use `has_smooth_mul_core` that does not
 require such instance, and then get a smooth monoid by invoking `to_has_smooth_mul`. -/
+<<<<<<< HEAD
 @[to_additive]
+=======
+@[ancestor smooth_manifold_with_corners, to_additive]
+>>>>>>> master
 structure has_smooth_mul_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
   (G : Type*) [has_mul G] [topological_space G] [charted_space H G]
+<<<<<<< HEAD
   [smooth_manifold_with_corners I G] : Prop :=
+=======
+  extends smooth_manifold_with_corners I G : Prop :=
+>>>>>>> master
 (smooth_mul : smooth (I.prod I) I (λ p : G×G, p.1 * p.2))
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E E}
 {F : Type*} [normed_group F] [normed_space 𝕜 F] {J : model_with_corners 𝕜 F F}
+<<<<<<< HEAD
 {G : Type*} [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G] [group G]
+=======
+{G : Type*} [topological_space G] [charted_space E G] [group G]
+>>>>>>> master
 
 namespace has_smooth_mul_core
 
@@ -168,8 +270,14 @@ protected lemma to_has_continuous_mul : has_continuous_mul G :=
 
 @[to_additive]
 protected lemma to_has_smooth_mul :
+<<<<<<< HEAD
   @has_smooth_mul 𝕜 _ _ _ E _ _ I G _ _ c.to_has_continuous_mul _ _ :=
 { smooth_mul := c.smooth_mul, }
+=======
+  @has_smooth_mul 𝕜 _ _ _ E _ _ I G _ _ c.to_has_continuous_mul _ :=
+{ smooth_mul := c.smooth_mul,
+  compatible := c.compatible }
+>>>>>>> master
 
 end has_smooth_mul_core
 

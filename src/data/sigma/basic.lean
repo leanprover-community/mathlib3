@@ -7,7 +7,9 @@ import tactic.lint
 import tactic.ext
 
 section sigma
-variables {α : Type*} {β : α → Type*}
+variables {α α₁ α₂ : Type*} {β : α → Type*} {β₁ : α₁ → Type*} {β₂ : α₂ → Type*}
+
+namespace sigma
 
 instance [inhabited α] [inhabited (β (default α))] : inhabited (sigma β) :=
 ⟨⟨default α, default (β (default α))⟩⟩
@@ -22,37 +24,37 @@ instance [h₁ : decidable_eq α] [h₂ : ∀a, decidable_eq (β a)] : decidable
   | a₁, _, a₂, _, is_false n := is_false (assume h, sigma.no_confusion h (λe₁ e₂, n e₁))
   end
 
-lemma sigma_mk_injective {i : α} : function.injective (@sigma.mk α β i)
-| _ _ rfl := rfl
-
 @[simp, nolint simp_nf] -- sometimes the built-in injectivity support does not work
-theorem sigma.mk.inj_iff {a₁ a₂ : α} {b₁ : β a₁} {b₂ : β a₂} :
+theorem mk.inj_iff {a₁ a₂ : α} {b₁ : β a₁} {b₂ : β a₂} :
   sigma.mk a₁ b₁ = ⟨a₂, b₂⟩ ↔ (a₁ = a₂ ∧ b₁ == b₂) :=
 by simp
 
-@[simp] theorem sigma.eta : ∀ x : Σ a, β a, sigma.mk x.1 x.2 = x
+@[simp] theorem eta : ∀ x : Σ a, β a, sigma.mk x.1 x.2 = x
 | ⟨i, x⟩ := rfl
 
 @[ext]
-lemma ext {x₀ x₁ : sigma β}
-  (h₀ : x₀.1 = x₁.1)
-  (h₁ : x₀.1 = x₁.1 → x₀.2 == x₁.2) :
-  x₀ = x₁ :=
-by casesm* sigma _; cases h₀; cases h₁ h₀; refl
+lemma ext {x₀ x₁ : sigma β} (h₀ : x₀.1 = x₁.1) (h₁ : x₀.2 == x₁.2) : x₀ = x₁ :=
+by { cases x₀, cases x₁, cases h₀, cases h₁, refl }
 
-@[simp] theorem sigma.forall {p : (Σ a, β a) → Prop} :
+lemma ext_iff {x₀ x₁ : sigma β} : x₀ = x₁ ↔ x₀.1 = x₁.1 ∧ x₀.2 == x₁.2 :=
+by { cases x₀, cases x₁, exact sigma.mk.inj_iff }
+
+@[simp] theorem «forall» {p : (Σ a, β a) → Prop} :
   (∀ x, p x) ↔ (∀ a b, p ⟨a, b⟩) :=
 ⟨assume h a b, h ⟨a, b⟩, assume h ⟨a, b⟩, h a b⟩
 
-@[simp] theorem sigma.exists {p : (Σ a, β a) → Prop} :
+@[simp] theorem «exists» {p : (Σ a, β a) → Prop} :
   (∃ x, p x) ↔ (∃ a b, p ⟨a, b⟩) :=
 ⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
 
-variables {α₁ : Type*} {α₂ : Type*} {β₁ : α₁ → Type*} {β₂ : α₂ → Type*}
-
 /-- Map the left and right components of a sigma -/
-def sigma.map (f₁ : α₁ → α₂) (f₂ : Πa, β₁ a → β₂ (f₁ a)) (x : sigma β₁) : sigma β₂ :=
+def map (f₁ : α₁ → α₂) (f₂ : Πa, β₁ a → β₂ (f₁ a)) (x : sigma β₁) : sigma β₂ :=
 ⟨f₁ x.1, f₂ x.1 x.2⟩
+
+end sigma
+
+lemma sigma_mk_injective {i : α} : function.injective (@sigma.mk α β i)
+| _ _ rfl := rfl
 
 lemma function.injective.sigma_map {f₁ : α₁ → α₂} {f₂ : Πa, β₁ a → β₂ (f₁ a)}
   (h₁ : function.injective f₁) (h₂ : ∀ a, function.injective (f₂ a)) :
@@ -78,17 +80,39 @@ begin
   exact ⟨⟨i, x⟩, rfl⟩
 end
 
+/-- Interpret a function on `Σ x : α, β x` as a dependent function with two arguments. -/
+def sigma.curry {γ : Π a, β a → Type*} (f : Π x : sigma β, γ x.1 x.2) (x : α) (y : β x) : γ x y :=
+f ⟨x,y⟩
+
+/-- Interpret a dependent function with two arguments as a function on `Σ x : α, β x` -/
+def sigma.uncurry {γ : Π a, β a → Type*} (f : Π x (y : β x), γ x y) (x : sigma β) : γ x.1 x.2 :=
+f x.1 x.2
+
+/-- Convert a product type to a Σ-type. -/
+@[simp]
+def prod.to_sigma {α β} : α × β → Σ _ : α, β
+| ⟨x,y⟩ := ⟨x,y⟩
+
+@[simp]
+lemma prod.fst_to_sigma {α β} (x : α × β) : (prod.to_sigma x).fst = x.fst :=
+by cases x; refl
+
+@[simp]
+lemma prod.snd_to_sigma {α β} (x : α × β) : (prod.to_sigma x).snd = x.snd :=
+by cases x; refl
 
 end sigma
 
 section psigma
 variables {α : Sort*} {β : α → Sort*}
 
+namespace psigma
+
 /-- Nondependent eliminator for `psigma`. -/
-def psigma.elim {γ} (f : ∀ a, β a → γ) (a : psigma β) : γ :=
+def elim {γ} (f : ∀ a, β a → γ) (a : psigma β) : γ :=
 psigma.cases_on a f
 
-@[simp] theorem psigma.elim_val {γ} (f : ∀ a, β a → γ) (a b) : psigma.elim f ⟨a, b⟩ = f a b := rfl
+@[simp] theorem elim_val {γ} (f : ∀ a, β a → γ) (a b) : psigma.elim f ⟨a, b⟩ = f a b := rfl
 
 instance [inhabited α] [inhabited (β (default α))] : inhabited (psigma β) :=
 ⟨⟨default α, default (β (default α))⟩⟩
@@ -103,15 +127,24 @@ instance [h₁ : decidable_eq α] [h₂ : ∀a, decidable_eq (β a)] : decidable
   | a₁, _, a₂, _, is_false n := is_false (assume h, psigma.no_confusion h (λe₁ e₂, n e₁))
   end
 
-theorem psigma.mk.inj_iff {a₁ a₂ : α} {b₁ : β a₁} {b₂ : β a₂} :
+theorem mk.inj_iff {a₁ a₂ : α} {b₁ : β a₁} {b₂ : β a₂} :
   @psigma.mk α β a₁ b₁ = @psigma.mk α β a₂ b₂ ↔ (a₁ = a₂ ∧ b₁ == b₂) :=
 iff.intro psigma.mk.inj $
   assume ⟨h₁, h₂⟩, match a₁, a₂, b₁, b₂, h₁, h₂ with _, _, _, _, eq.refl a, heq.refl b := rfl end
 
+@[ext]
+lemma ext {x₀ x₁ : psigma β} (h₀ : x₀.1 = x₁.1) (h₁ : x₀.2 == x₁.2) : x₀ = x₁ :=
+by { cases x₀, cases x₁, cases h₀, cases h₁, refl }
+
+lemma ext_iff {x₀ x₁ : psigma β} : x₀ = x₁ ↔ x₀.1 = x₁.1 ∧ x₀.2 == x₁.2 :=
+by { cases x₀, cases x₁, exact psigma.mk.inj_iff }
+
 variables {α₁ : Sort*} {α₂ : Sort*} {β₁ : α₁ → Sort*} {β₂ : α₂ → Sort*}
 
 /-- Map the left and right components of a sigma -/
-def psigma.map (f₁ : α₁ → α₂) (f₂ : Πa, β₁ a → β₂ (f₁ a)) : psigma β₁ → psigma β₂
+def map (f₁ : α₁ → α₂) (f₂ : Πa, β₁ a → β₂ (f₁ a)) : psigma β₁ → psigma β₂
 | ⟨a, b⟩ := ⟨f₁ a, f₂ a b⟩
+
+end psigma
 
 end psigma

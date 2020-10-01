@@ -19,7 +19,7 @@ in the same way, and then define the convolution product on these.
 When the domain is additive, this is used to define polynomials:
 ```
 polynomial α := add_monoid_algebra ℕ α
-mv_polynominal σ α := add_monoid_algebra (σ →₀ ℕ) α
+mv_polynomial σ α := add_monoid_algebra (σ →₀ ℕ) α
 ```
 
 When the domain is multiplicative, e.g. a group, this will be used to define the group ring.
@@ -90,7 +90,7 @@ calc (f * g) x = (∑ a₁ in f.support, ∑ a₂ in g.support, F (a₁, a₂)) 
 ... = ∑ p in (f.support.product g.support).filter (λ p : G × G, p.1 * p.2 = x), f p.1 * g p.2 :
   (finset.sum_filter _ _).symm
 ... = ∑ p in s.filter (λ p : G × G, p.1 ∈ f.support ∧ p.2 ∈ g.support), f p.1 * g p.2 :
-  sum_congr (by { ext, simp [hs, and_comm] }) (λ _ _, rfl)
+  sum_congr (by { ext, simp only [mem_filter, mem_product, hs, and_comm] }) (λ _ _, rfl)
 ... = ∑ p in s, f p.1 * g p.2 : sum_subset (filter_subset _) $ λ p hps hp,
   begin
     simp only [mem_filter, mem_support_iff, not_and, not_not] at hp ⊢,
@@ -195,7 +195,7 @@ have f.sum (λ a b, ite (x * a = y) (0 * b) 0) = 0, by simp,
 calc (single x r * f) y = sum f (λ a b, ite (x * a = y) (r * b) 0) :
   (mul_apply _ _ _).trans $ sum_single_index this
 ... = f.sum (λ a b, ite (a = z) (r * b) 0) :
-  by { simp only [H], congr, ext; split_ifs; refl  }
+  by { simp only [H], congr' with g s, split_ifs; refl  }
 ... = if z ∈ f.support then (r * f z) else 0 : f.support.sum_ite_eq' _ _
 ... = _ : by split_ifs with h; simp at h; simp [h]
 
@@ -337,6 +337,7 @@ by conv_lhs { rw lift_unique' F, simp [lift_apply] }
 
 /-- A `k`-algebra homomorphism from `monoid_algebra k G` is uniquely defined by its
 values on the functions `single a 1`. -/
+-- @[ext] -- FIXME I would really like to make this an `ext` lemma, but it seems to cause `ext` to loop.
 lemma alg_hom_ext ⦃φ₁ φ₂ : monoid_algebra k G →ₐ[k] R⦄
   (h : ∀ x, φ₁ (single x 1) = φ₂ (single x 1)) : φ₁ = φ₂ :=
 (lift k G R).symm.injective $ monoid_hom.ext h
@@ -418,7 +419,7 @@ f.single_mul_apply_aux $ λ z, eq_inv_mul_iff_mul_eq.symm
 
 lemma mul_apply_left (f g : monoid_algebra k G) (x : G) :
   (f * g) x = (f.sum $ λ a b, b * (g (a⁻¹ * x))) :=
-calc (f * g) x = sum f (λ a b, (single a (f a) * g) x) :
+calc (f * g) x = sum f (λ a b, (single a b * g) x) :
   by rw [← finsupp.sum_apply, ← finsupp.sum_mul, f.sum_single]
 ... = _ : by simp only [single_mul_apply, finsupp.sum]
 
@@ -426,7 +427,7 @@ calc (f * g) x = sum f (λ a b, (single a (f a) * g) x) :
 -- If we'd assumed `comm_semiring`, we could deduce this from `mul_apply_left`.
 lemma mul_apply_right (f g : monoid_algebra k G) (x : G) :
   (f * g) x = (g.sum $ λa b, (f (x * a⁻¹)) * b) :=
-calc (f * g) x = sum g (λ a b, (f * single a (g a)) x) :
+calc (f * g) x = sum g (λ a b, (f * single a b) x) :
   by rw [← finsupp.sum_apply, ← finsupp.mul_sum, g.sum_single]
 ... = _ : by simp only [mul_single_apply, finsupp.sum]
 
@@ -559,7 +560,7 @@ have f.sum (λ a b, ite (x + a = y) (0 * b) 0) = 0, by simp,
 calc (single x r * f) y = sum f (λ a b, ite (x + a = y) (r * b) 0) :
   (mul_apply _ _ _).trans $ sum_single_index this
 ... = f.sum (λ a b, ite (a = z) (r * b) 0) :
-  by { simp only [H], congr, ext; split_ifs; refl  }
+  by { simp only [H], congr' with g s, split_ifs; refl  }
 ... = if z ∈ f.support then (r * f z) else 0 : f.support.sum_ite_eq' _ _
 ... = _ : by split_ifs with h; simp at h; simp [h]
 
@@ -632,31 +633,40 @@ rfl
 def lift [comm_semiring k] [add_monoid G] {R : Type u₃} [semiring R] [algebra k R] :
   (multiplicative G →* R) ≃ (add_monoid_algebra k G →ₐ[k] R) :=
 { inv_fun := λ f, ((f : add_monoid_algebra k G →+* R) : add_monoid_algebra k G →* R).comp (of k G),
-  to_fun := λ F, { to_fun := λ f, f.sum (λ a b, b • F a),
+  to_fun := λ F, {
+    to_fun := λ f, f.sum (λ a b, b • F a),
     map_one' := by { rw [one_def, sum_single_index, one_smul], erw [F.map_one], apply zero_smul },
-    map_mul' :=
+    map_mul' := λ f g,
       begin
-        intros f g,
-        rw [mul_def, finsupp.sum_mul, finsupp.sum_sum_index];
-          try { intros, simp only [zero_smul, add_smul], done },
-        refine finset.sum_congr rfl (λ a ha, _), simp only,
-        rw [finsupp.mul_sum, finsupp.sum_sum_index];
-          try { intros, simp only [zero_smul, add_smul], done },
-        refine finset.sum_congr rfl (λ a' ha', _), simp only,
+        rw [mul_def, finsupp.sum_mul, finsupp.sum_sum_index],
+        work_on_goal 1 { intros, rw zero_smul, },
+        work_on_goal 1 { intros, rw add_smul, },
+        refine finset.sum_congr rfl (λ a ha, _),
+        simp only,
+        rw [finsupp.mul_sum, finsupp.sum_sum_index],
+        work_on_goal 1 { intros, rw zero_smul, },
+        work_on_goal 1 { intros, rw add_smul, },
+        refine finset.sum_congr rfl (λ a' ha', _),
+        simp only,
         rw [sum_single_index],
         erw [F.map_mul],
         rw [algebra.mul_smul_comm, algebra.smul_mul_assoc, smul_smul, mul_comm],
-        apply zero_smul
+        apply zero_smul,
       end,
     map_zero' := sum_zero_index,
-    map_add' := λ f g, by rw [sum_add_index]; intros; simp only [zero_smul, add_smul],
+    map_add' := λ f g,
+      begin
+        rw [sum_add_index],
+        { intros, rw zero_smul, },
+        { intros, rw add_smul, },
+      end,
     commutes' := λ r,
-    begin
-      rw [coe_algebra_map, sum_single_index],
-      erw [F.map_one],
-      rw [algebra.smul_def, mul_one],
-      apply zero_smul
-    end, },
+      begin
+        rw [coe_algebra_map, sum_single_index],
+        erw [F.map_one],
+        rw [algebra.smul_def, mul_one],
+        apply zero_smul
+      end, },
   left_inv := λ f, begin ext x, simp [sum_single_index] end,
   right_inv := λ F,
     begin
@@ -667,6 +677,16 @@ def lift [comm_semiring k] [add_monoid G] {R : Type u₃} [semiring R] [algebra 
 
 -- It is hard to state the equivalent of `distrib_mul_action G (monoid_algebra k G)`
 -- because we've never discussed actions of additive groups.
+
+lemma alg_hom_ext {R : Type u₃} [comm_semiring k] [add_monoid G]
+  [semiring R] [algebra k R] ⦃φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] R⦄
+  (h : ∀ x, φ₁ (finsupp.single x 1) = φ₂ (finsupp.single x 1)) : φ₁ = φ₂ :=
+lift.symm.injective $ by {ext, apply h}
+
+lemma alg_hom_ext_iff {R : Type u₃} [comm_semiring k] [add_monoid G]
+  [semiring R] [algebra k R] ⦃φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] R⦄ :
+  (∀ x, φ₁ (finsupp.single x 1) = φ₂ (finsupp.single x 1)) ↔ φ₁ = φ₂ :=
+⟨λ h, alg_hom_ext h, by rintro rfl _; refl⟩
 
 universe ui
 variable {ι : Type ui}

@@ -3,7 +3,8 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Myers.
 -/
-import analysis.normed_space.real_inner_product
+import analysis.normed_space.inner_product
+import algebra.quadratic_discriminant
 import analysis.normed_space.add_torsor
 import data.matrix.notation
 import linear_algebra.affine_space.combination
@@ -13,6 +14,7 @@ noncomputable theory
 open_locale big_operators
 open_locale classical
 open_locale real
+open_locale real_inner_product_space
 
 /-!
 # Euclidean spaces
@@ -21,7 +23,7 @@ This file makes some definitions and proves very basic geometrical
 results about real inner product spaces and Euclidean affine spaces.
 Results about real inner product spaces that involve the norm and
 inner product but not angles generally go in
-`analysis.normed_space.real_inner_product`.  Results with longer
+`analysis.normed_space.inner_product`.  Results with longer
 proofs or more geometrical content generally go in separate files.
 
 ## Main definitions
@@ -41,7 +43,7 @@ proofs or more geometrical content generally go in separate files.
 ## Implementation notes
 
 To declare `P` as the type of points in a Euclidean affine space with
-`V` as the type of vectors, use `[inner_product_space V] [metric_space P]
+`V` as the type of vectors, use `[inner_product_space ℝ V] [metric_space P]
 [normed_add_torsor V P]`.  This works better with `out_param` to make
 `V` implicit in most cases than having a separate type alias for
 Euclidean affine spaces.
@@ -66,7 +68,7 @@ conveniently be developed in terms of vectors and then used to deduce
 corresponding results for Euclidean affine spaces.
 -/
 
-variables {V : Type*} [inner_product_space V]
+variables {V : Type*} [inner_product_space ℝ V]
 
 /-- The undirected angle between two vectors. If either vector is 0,
 this is π/2. -/
@@ -74,14 +76,14 @@ def angle (x y : V) : ℝ := real.arccos (inner x y / (∥x∥ * ∥y∥))
 
 /-- The cosine of the angle between two vectors. -/
 lemma cos_angle (x y : V) : real.cos (angle x y) = inner x y / (∥x∥ * ∥y∥) :=
-real.cos_arccos (abs_le.mp (abs_inner_div_norm_mul_norm_le_one x y)).1
-                (abs_le.mp (abs_inner_div_norm_mul_norm_le_one x y)).2
+real.cos_arccos (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).1
+                (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).2
 
 /-- The angle between two vectors does not depend on their order. -/
 lemma angle_comm (x y : V) : angle x y = angle y x :=
 begin
   unfold angle,
-  rw [inner_comm, mul_comm]
+  rw [real_inner_comm, mul_comm]
 end
 
 /-- The angle between the negation of two vectors. -/
@@ -128,7 +130,7 @@ end
 @[simp] lemma angle_self {x : V} (hx : x ≠ 0) : angle x x = 0 :=
 begin
   unfold angle,
-  rw [←inner_self_eq_norm_square, div_self (λ h, hx (inner_self_eq_zero.1 h)),
+  rw [←real_inner_self_eq_norm_square, div_self (λ h, hx (inner_self_eq_zero.1 h)),
       real.arccos_one]
 end
 
@@ -187,12 +189,12 @@ lemma sin_angle_mul_norm_mul_norm (x y : V) : real.sin (angle x y) * (∥x∥ * 
     real.sqrt (inner x x * inner y y - inner x y * inner x y) :=
 begin
   unfold angle,
-  rw [real.sin_arccos (abs_le.mp (abs_inner_div_norm_mul_norm_le_one x y)).1
-                      (abs_le.mp (abs_inner_div_norm_mul_norm_le_one x y)).2,
+  rw [real.sin_arccos (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).1
+                      (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).2,
       ←real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)),
       ←real.sqrt_mul' _ (mul_self_nonneg _), pow_two,
-      real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)), inner_self_eq_norm_square,
-      inner_self_eq_norm_square],
+      real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)), real_inner_self_eq_norm_square,
+      real_inner_self_eq_norm_square],
   by_cases h : (∥x∥ * ∥y∥) = 0,
   { rw [(show ∥x∥ * ∥x∥ * (∥y∥ * ∥y∥) = (∥x∥ * ∥y∥) * (∥x∥ * ∥y∥), by ring), h, mul_zero, mul_zero,
         zero_sub],
@@ -210,11 +212,11 @@ nonzero and one is a positive multiple of the other. -/
 lemma angle_eq_zero_iff (x y : V) : angle x y = 0 ↔ (x ≠ 0 ∧ ∃ (r : ℝ), 0 < r ∧ y = r • x) :=
 begin
   unfold angle,
-  rw [←inner_div_norm_mul_norm_eq_one_iff, ←real.arccos_one],
+  rw [←real_inner_div_norm_mul_norm_eq_one_iff, ←real.arccos_one],
   split,
   { intro h,
-    exact real.arccos_inj (abs_le.mp (abs_inner_div_norm_mul_norm_le_one x y)).1
-                          (abs_le.mp (abs_inner_div_norm_mul_norm_le_one x y)).2
+    exact real.arccos_inj (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).1
+                          (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).2
                           (by norm_num)
                           (by norm_num)
                           h },
@@ -227,11 +229,11 @@ and one is a negative multiple of the other. -/
 lemma angle_eq_pi_iff (x y : V) : angle x y = π ↔ (x ≠ 0 ∧ ∃ (r : ℝ), r < 0 ∧ y = r • x) :=
 begin
   unfold angle,
-  rw [←inner_div_norm_mul_norm_eq_neg_one_iff, ←real.arccos_neg_one],
+  rw [←real_inner_div_norm_mul_norm_eq_neg_one_iff, ←real.arccos_neg_one],
   split,
   { intro h,
-    exact real.arccos_inj (abs_le.mp (abs_inner_div_norm_mul_norm_le_one x y)).1
-                          (abs_le.mp (abs_inner_div_norm_mul_norm_le_one x y)).2
+    exact real.arccos_inj (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).1
+                          (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).2
                           (by norm_num)
                           (by norm_num)
                           h },
@@ -252,7 +254,7 @@ end
 
 /-- Two vectors have inner product 0 if and only if the angle between
 them is π/2. -/
-lemma inner_eq_zero_iff_angle_eq_pi_div_two (x y : V) : inner x y = 0 ↔ angle x y = π / 2 :=
+lemma inner_eq_zero_iff_angle_eq_pi_div_two (x y : V) : ⟪x, y⟫ = 0 ↔ angle x y = π / 2 :=
 begin
   split,
   { intro h,
@@ -262,8 +264,8 @@ begin
     unfold angle at h,
     rw ←real.arccos_zero at h,
     have h2 : inner x y / (∥x∥ * ∥y∥) = 0 :=
-      real.arccos_inj (abs_le.mp (abs_inner_div_norm_mul_norm_le_one x y)).1
-                      (abs_le.mp (abs_inner_div_norm_mul_norm_le_one x y)).2
+      real.arccos_inj (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).1
+                      (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).2
                       (by norm_num)
                       (by norm_num)
                       h,
@@ -287,8 +289,9 @@ Euclidean affine spaces.
 -/
 open inner_product_geometry
 
-variables {V : Type*} {P : Type*} [inner_product_space V] [metric_space P]
+variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
+local notation `⟪`x`, `y`⟫` := @inner ℝ V _ x y
 include V
 
 /-- The undirected angle at `p2` between the line segments to `p1` and
@@ -412,16 +415,16 @@ applies to `c₂`.  Then the vector between `c₁` and `c₂` is orthogonal
 to that between `p₁` and `p₂`.  (In two dimensions, this says that the
 diagonals of a kite are orthogonal.) -/
 lemma inner_vsub_vsub_of_dist_eq_of_dist_eq {c₁ c₂ p₁ p₂ : P} (hc₁ : dist p₁ c₁ = dist p₂ c₁)
-  (hc₂ : dist p₁ c₂ = dist p₂ c₂) : inner (c₂ -ᵥ c₁) (p₂ -ᵥ p₁) = 0 :=
+  (hc₂ : dist p₁ c₂ = dist p₂ c₂) : ⟪c₂ -ᵥ c₁, p₂ -ᵥ p₁⟫ = 0 :=
 begin
-  have h : inner ((c₂ -ᵥ c₁) + (c₂ -ᵥ c₁)) (p₂ -ᵥ p₁) = 0,
+  have h : ⟪(c₂ -ᵥ c₁) + (c₂ -ᵥ c₁), p₂ -ᵥ p₁⟫ = 0,
   { conv_lhs { congr, congr, rw ←vsub_sub_vsub_cancel_right c₂ c₁ p₁,
                skip, rw ←vsub_sub_vsub_cancel_right c₂ c₁ p₂ },
     rw [←add_sub_comm, inner_sub_left],
     conv_lhs { congr, rw ←vsub_sub_vsub_cancel_right p₂ p₁ c₂,
                skip, rw ←vsub_sub_vsub_cancel_right p₂ p₁ c₁ },
     rw [dist_comm p₁, dist_comm p₂, dist_eq_norm_vsub V _ p₁,
-        dist_eq_norm_vsub V _ p₂, ←inner_add_sub_eq_zero_iff] at hc₁ hc₂,
+        dist_eq_norm_vsub V _ p₂, ←real_inner_add_sub_eq_zero_iff] at hc₁ hc₂,
     simp_rw [←neg_vsub_eq_vsub_rev c₁, ←neg_vsub_eq_vsub_rev c₂, sub_neg_eq_add,
              neg_add_eq_sub, hc₁, hc₂, sub_zero] },
   simpa [inner_add_left, ←mul_two, (by norm_num : (2 : ℝ) ≠ 0)] using h
@@ -432,23 +435,23 @@ multiple of a fixed vector added to a point) and another point,
 expressed as a quadratic. -/
 lemma dist_smul_vadd_square (r : ℝ) (v : V) (p₁ p₂ : P) :
   dist (r • v +ᵥ p₁) p₂ * dist (r • v +ᵥ p₁) p₂ =
-    inner v v * r * r + 2 * inner v (p₁ -ᵥ p₂) * r + inner (p₁ -ᵥ p₂) (p₁ -ᵥ p₂) :=
+    ⟪v, v⟫ * r * r + 2 * ⟪v, p₁ -ᵥ p₂⟫ * r + ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫ :=
 begin
-  rw [dist_eq_norm_vsub V _ p₂, ←inner_self_eq_norm_square, vadd_vsub_assoc, inner_add_add_self,
-      inner_smul_left, inner_smul_left, inner_smul_right],
+  rw [dist_eq_norm_vsub V _ p₂, ←real_inner_self_eq_norm_square, vadd_vsub_assoc, real_inner_add_add_self,
+      real_inner_smul_left, real_inner_smul_left, real_inner_smul_right],
   ring
 end
 
 /-- The condition for two points on a line to be equidistant from
 another point. -/
 lemma dist_smul_vadd_eq_dist {v : V} (p₁ p₂ : P) (hv : v ≠ 0) (r : ℝ) :
-  dist (r • v +ᵥ p₁) p₂ = dist p₁ p₂ ↔ (r = 0 ∨ r = -2 * inner v (p₁ -ᵥ p₂) / inner v v) :=
+  dist (r • v +ᵥ p₁) p₂ = dist p₁ p₂ ↔ (r = 0 ∨ r = -2 * ⟪v, p₁ -ᵥ p₂⟫ / ⟪v, v⟫) :=
 begin
   conv_lhs { rw [←mul_self_inj_of_nonneg dist_nonneg dist_nonneg, dist_smul_vadd_square,
                  ←sub_eq_zero_iff_eq, add_sub_assoc, dist_eq_norm_vsub V p₁ p₂,
-                 ←inner_self_eq_norm_square, sub_self] },
-  have hvi : inner v v ≠ 0, by simpa using hv,
-  have hd : discrim (inner v v) (2 * inner v (p₁ -ᵥ p₂)) 0 =
+                 ←real_inner_self_eq_norm_square, sub_self] },
+  have hvi : ⟪v, v⟫ ≠ 0, by simpa using hv,
+  have hd : discrim ⟪v, v⟫ (2 * ⟪v, p₁ -ᵥ p₂⟫) 0 =
     (2 * inner v (p₁ -ᵥ p₂)) * (2 * inner v (p₁ -ᵥ p₂)),
   { rw discrim, ring },
   rw [quadratic_eq_zero_iff hvi hd, add_left_neg, zero_div, neg_mul_eq_neg_mul,
@@ -469,7 +472,7 @@ lemma eq_of_dist_eq_of_dist_eq_of_mem_of_findim_eq_two {s : affine_subspace ℝ 
   (hpc₁ : dist p c₁ = r₁) (hp₁c₂ : dist p₁ c₂ = r₂) (hp₂c₂ : dist p₂ c₂ = r₂)
   (hpc₂ : dist p c₂ = r₂) : p = p₁ ∨ p = p₂ :=
 begin
-  have ho : inner (c₂ -ᵥ c₁) (p₂ -ᵥ p₁) = 0 :=
+  have ho : ⟪c₂ -ᵥ c₁, p₂ -ᵥ p₁⟫ = 0 :=
     inner_vsub_vsub_of_dist_eq_of_dist_eq (by cc) (by cc),
   let b : fin 2 → V := ![c₂ -ᵥ c₁, p₂ -ᵥ p₁],
   have hb : linear_independent ℝ b,
@@ -479,7 +482,7 @@ begin
     { intros i j hij,
       fin_cases i; fin_cases j; try { exact false.elim (hij rfl) },
       { exact ho },
-      { rw inner_comm, exact ho } } },
+      { rw real_inner_comm, exact ho } } },
   have hbs : submodule.span ℝ (set.range b) = s.direction,
   { refine eq_of_le_of_findim_eq _ _,
     { rw [submodule.span_le, set.range_subset_iff],
@@ -501,7 +504,7 @@ begin
     rcases hv' with ⟨t₂, rfl⟩,
     exact ⟨t₁, t₂, hv⟩ },
   rcases hv (p -ᵥ p₁) (vsub_mem_direction hps hp₁s) with ⟨t₁, t₂, hpt⟩,
-  have hop : inner (c₂ -ᵥ c₁) (p -ᵥ p₁) = 0 :=
+  have hop : ⟪c₂ -ᵥ c₁, p -ᵥ p₁⟫ = 0 :=
     inner_vsub_vsub_of_dist_eq_of_dist_eq (by cc) (by cc),
   simp only [hpt, inner_add_right, inner_smul_right, ho, mul_zero, add_zero, mul_eq_zero,
              inner_self_eq_zero, vsub_eq_zero_iff_eq, hc.symm, or_false] at hop,
@@ -543,7 +546,7 @@ def orthogonal_projection_fn {s : affine_subspace ℝ P} (hn : (s : set P).nonem
 classical.some $ inter_eq_singleton_of_nonempty_of_is_compl
   hn
   (mk'_nonempty p s.direction.orthogonal)
-  ((direction_mk' p s.direction.orthogonal).symm ▸ submodule.is_compl_orthogonal_of_is_complete hc)
+  ((direction_mk' p s.direction.orthogonal).symm ▸ submodule.is_compl_orthogonal_of_is_complete_real hc)
 
 /-- The intersection of the subspace and the orthogonal subspace
 through the given point is the `orthogonal_projection_fn` of that
@@ -556,7 +559,7 @@ lemma inter_eq_singleton_orthogonal_projection_fn {s : affine_subspace ℝ P}
 classical.some_spec $ inter_eq_singleton_of_nonempty_of_is_compl
   hn
   (mk'_nonempty p s.direction.orthogonal)
-  ((direction_mk' p s.direction.orthogonal).symm ▸ submodule.is_compl_orthogonal_of_is_complete hc)
+  ((direction_mk' p s.direction.orthogonal).symm ▸ submodule.is_compl_orthogonal_of_is_complete_real hc)
 
 /-- The `orthogonal_projection_fn` lies in the given subspace.  This
 lemma is only intended for use in setting up the bundled version and
@@ -794,7 +797,7 @@ lemma dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_proje
 begin
   rw [metric_space.dist_comm p2 _, dist_eq_norm_vsub V p1 _, dist_eq_norm_vsub V p1 _,
     dist_eq_norm_vsub V _ p2, ← vsub_add_vsub_cancel p1 (orthogonal_projection s p2) p2,
-    norm_add_square_eq_norm_square_add_norm_square_iff_inner_eq_zero],
+    norm_add_square_eq_norm_square_add_norm_square_iff_real_inner_eq_zero],
   rw orthogonal_projection_def,
   split_ifs,
   { rw orthogonal_projection_of_nonempty_of_complete_eq,
@@ -817,7 +820,7 @@ calc dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2) * dist (r1 • v +ᵥ p1) (r2 �
   : by { rw [dist_eq_norm_vsub V (r1 • v +ᵥ p1), vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, sub_smul],
          abel }
 ... = ∥p1 -ᵥ p2∥ * ∥p1 -ᵥ p2∥ + ∥(r1 - r2) • v∥ * ∥(r1 - r2) • v∥
-  : norm_add_square_eq_norm_square_add_norm_square
+  : norm_add_square_eq_norm_square_add_norm_square_real
       (submodule.inner_right_of_mem_orthogonal (vsub_mem_direction hp1 hp2)
         (submodule.smul_mem _ _ hv))
 ... = ∥(p1 -ᵥ p2 : V)∥ * ∥(p1 -ᵥ p2 : V)∥ + abs (r1 - r2) * abs (r1 - r2) * ∥v∥ * ∥v∥
@@ -847,30 +850,29 @@ def reflection (s : affine_subspace ℝ P) : P ≃ᵢ P :=
           ((orthogonal_projection s p₁ -ᵥ p₁) +ᵥ orthogonal_projection s p₁),
         dist_eq_norm_vsub V p₁, ←inner_self_eq_norm_square, ←inner_self_eq_norm_square],
     by_cases h : (s : set P).nonempty ∧ is_complete (s.direction : set V),
-    { calc inner
+    { calc
+        ⟪(orthogonal_projection s p₁ -ᵥ p₁ +ᵥ orthogonal_projection s p₁ -ᵥ
+         (orthogonal_projection s p₂ -ᵥ p₂ +ᵥ orthogonal_projection s p₂)),
         (orthogonal_projection s p₁ -ᵥ p₁ +ᵥ orthogonal_projection s p₁ -ᵥ
-         (orthogonal_projection s p₂ -ᵥ p₂ +ᵥ orthogonal_projection s p₂))
-        (orthogonal_projection s p₁ -ᵥ p₁ +ᵥ orthogonal_projection s p₁ -ᵥ
-         (orthogonal_projection s p₂ -ᵥ p₂ +ᵥ orthogonal_projection s p₂))
-      = inner
-        ((_root_.orthogonal_projection s.direction (p₁ -ᵥ p₂)) +
+         (orthogonal_projection s p₂ -ᵥ p₂ +ᵥ orthogonal_projection s p₂))⟫
+      = ⟪(_root_.orthogonal_projection s.direction (p₁ -ᵥ p₂)) +
           _root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) -
-          (p₁ -ᵥ p₂))
-         (_root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) +
+          (p₁ -ᵥ p₂),
+         _root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) +
           _root_.orthogonal_projection s.direction (p₁ -ᵥ p₂) -
-          (p₁ -ᵥ p₂))
+          (p₁ -ᵥ p₂)⟫
     : by rw [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_comm, add_sub_assoc,
              ←vsub_vadd_eq_vsub_sub, vsub_vadd_comm, vsub_vadd_eq_vsub_sub, ←add_sub_assoc,
              ←affine_map.linear_map_vsub, orthogonal_projection_linear h.1]
   ... = -4 * inner (p₁ -ᵥ p₂ - (_root_.orthogonal_projection s.direction (p₁ -ᵥ p₂)))
                    (_root_.orthogonal_projection s.direction (p₁ -ᵥ p₂)) +
-          inner (p₁ -ᵥ p₂) (p₁ -ᵥ p₂)
+          ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫
     : by { simp [inner_sub_left, inner_sub_right, inner_add_left, inner_add_right,
-                 inner_comm (p₁ -ᵥ p₂)],
+                 real_inner_comm (p₁ -ᵥ p₂)],
            ring }
-  ... = -4 * 0 + inner (p₁ -ᵥ p₂) (p₁ -ᵥ p₂)
+  ... = -4 * 0 + ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫
     : by rw orthogonal_projection_inner_eq_zero s.direction _ _ (_root_.orthogonal_projection_mem h.2 _)
-  ... = inner (p₁ -ᵥ p₂) (p₁ -ᵥ p₂) : by simp },
+  ... = ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫ : by simp },
     { simp [orthogonal_projection_def, h] }
   end }
 

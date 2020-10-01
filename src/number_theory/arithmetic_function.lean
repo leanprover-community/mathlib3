@@ -1,5 +1,33 @@
+/-
+Copyright (c) 2020 Aaron Anderson. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Aaron Anderson
+-/
 import data.nat.totient
 import number_theory.divisors
+
+/-!
+# Arithmetic Functions
+
+This file defines sets of divisors of a natural number. This is particularly useful as background
+for defining Dirichlet convolution.
+
+## Main Definitions
+Let `n : ℕ`. All of the following definitions are in the `nat` namespace:
+ * `divisors n` is the `finset` of natural numbers that divide `n`.
+ * `proper_divisors n` is the `finset` of natural numbers that divide `n`, other than `n`.
+ * `divisors_antidiagonal n` is the `finset` of pairs `(x,y)` such that `x * y = n`.
+ * `perfect n` is true when the sum of `proper_divisors n` is `n`.
+
+## Notation
+
+## Implementation details
+ * All of `divisors 0`, `proper_divisors 0`, and `divisors_antidiagonal 0` are defined to be `∅`.
+
+## Tags
+divisors, perfect numbers
+
+-/
 
 open finset
 open_locale big_operators

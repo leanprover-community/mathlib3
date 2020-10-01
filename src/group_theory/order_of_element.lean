@@ -6,6 +6,7 @@ Authors: Johannes Hölzl
 import algebra.big_operators.order
 import group_theory.coset
 import data.nat.totient
+import data.int.gcd
 import data.set.finite
 
 open function
@@ -271,12 +272,7 @@ open_locale classical
 
 lemma pow_gcd_card_eq_one_iff {n : ℕ} {a : α} :
   a ^ n = 1 ↔ a ^ (gcd n (fintype.card α)) = 1 :=
-⟨λ h, have hn : order_of a ∣ n, from dvd_of_mod_eq_zero $
-      by_contradiction (λ ha, by rw pow_eq_mod_order_of at h;
-        exact (not_le_of_gt (nat.mod_lt n (order_of_pos a)))
-          (order_of_le_of_pow_eq_one (nat.pos_of_ne_zero ha) h)),
-    let ⟨m, hm⟩ := dvd_gcd hn order_of_dvd_card_univ in
-    by rw [hm, pow_mul, pow_order_of_eq_one, one_pow],
+⟨λ h, pow_gcd_eq_one _ h $ pow_card_eq_one _,
   λ h, let ⟨m, hm⟩ := gcd_dvd_left n (fintype.card α) in
     by rw [hm, pow_mul, h, one_pow]⟩
 

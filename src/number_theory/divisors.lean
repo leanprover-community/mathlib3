@@ -38,7 +38,7 @@ variable (n : ℕ)
 def divisors : finset ℕ := finset.filter (λ x : ℕ, x ∣ n) (finset.range (n + 1))
 
 /-- `proper_divisors n` is the `finset` of divisors of `n`, other than `n`.
-  As a special case, `divisors 0 = ∅`. -/
+  As a special case, `proper_divisors 0 = ∅`. -/
 def proper_divisors : finset ℕ := finset.filter (λ x : ℕ, x ∣ n) (finset.range n)
 
 /-- `divisors_antidiagonal n` is the `finset` of pairs `(x,y)` such that `x * y = n`.

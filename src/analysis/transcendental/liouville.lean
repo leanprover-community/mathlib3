@@ -20,8 +20,6 @@ This file contains the proof of Liouville's theorem stating that all Liouville's
 transcendental.
 -/
 
-notation `transcendental` x := ¬ is_algebraic ℤ x
-
 /--
 - a number is transcendental ↔ a number is not algebraic
 - a Liouville's number `x` is a number such that
@@ -240,7 +238,8 @@ begin
       calc B / 2 / b^f.nat_degree
         ≥ abs (α - ↑a / ↑b) : ge_iff_le.2 abs_lt
     ... = abs((f.map (algebra_map ℤ ℝ)).eval (a/b) / ((f.map (algebra_map ℤ ℝ)).derivative.eval x₀))
-        : by rw [congr_arg abs hx₀, neg_div, abs_neg] <|> rw [show abs (α - a / b) = abs (a / b - α), from abs_sub α (a/b), congr_arg abs hx₀]
+        : by rw [congr_arg abs hx₀, neg_div, abs_neg] <|>
+            rw [show abs (α - a / b) = abs (a / b - α), from abs_sub α (a/b), congr_arg abs hx₀]
     ... = abs ((f.map (algebra_map ℤ ℝ)).eval (a/b)) / abs ((f.map (algebra_map ℤ ℝ)).derivative.eval x₀)
         : by rw abs_div
     ... ≥ 1/b^f.nat_degree / abs ((f.map (algebra_map ℤ ℝ)).derivative.eval x₀)
@@ -368,7 +367,7 @@ begin
     repeat { norm_cast, assumption <|> linarith } }
 end
 
-theorem transcendental_of_liouville_numbers (x : ℝ) (liouville_x : liouville_number x) : transcendental x :=
+theorem transcendental_of_liouville_numbers (x : ℝ) (liouville_x : liouville_number x) : is_transcendental ℤ x :=
 have pow_big_enough : ∀ A : ℝ, ∃ r : ℕ, 1/A ≤ 2 ^ r, from
 begin
   intro A,

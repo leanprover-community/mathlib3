@@ -85,7 +85,10 @@ def product_cone_is_limit (X Y : ωCPO.{u}) : is_limit (product_cone X Y) :=
                λ x y h, ⟨(s.π.app walking_pair.left).monotone h, (s.π.app walking_pair.right).monotone h⟩,
                λ c, by ext; dsimp; rw continuous_hom.continuous; refl⟩,
   fac' := by rintros s ⟨ ⟩; ext; refl,
-  uniq' := by { dsimp, intros, ext; dsimp; delta binary_fan.fst binary_fan.snd; rw ← w; simp only [continuous_hom.continuous_hom.coe_fn_mk, binary_fan.π_app_left, binary_fan.π_app_right]; refl, } }
+  uniq' := by { dsimp, intros,
+                ext; dsimp; delta binary_fan.fst binary_fan.snd; rw ← w;
+                  simp only [continuous_hom.coe_fn_mk, binary_fan.π_app_left, binary_fan.π_app_right];
+                  refl, } }
 
 instance {X Y : ωCPO} : has_limit (pair X Y) :=
 has_limit.mk ⟨_, product_cone_is_limit X Y⟩

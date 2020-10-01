@@ -1511,16 +1511,6 @@ instance (R : Type*) (S : Type*) (E : Type*) [I : add_comm_group E] :
 
 end module
 
-variables (𝕜 : Type*) [field 𝕜] (𝕜' : Type*) [field 𝕜'] [algebra 𝕜 𝕜']
-variables (W : Type*) [add_comm_group W] [vector_space 𝕜' W]
-
-/--
-`V.restrict_scalars 𝕜` is the `𝕜`-subspace of the `𝕜`-vector space given by restriction of scalars,
-corresponding to `V`, a `𝕜'`-subspace of the original `𝕜'`-vector space.
--/
-def subspace.restrict_scalars (V : subspace 𝕜' W) : subspace 𝕜 (semimodule.restrict_scalars 𝕜 𝕜' W) :=
-{ ..submodule.restrict_scalars 𝕜 (V : submodule 𝕜' W) }
-
 end restrict_scalars
 
 section extend_scalars

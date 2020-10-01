@@ -179,6 +179,7 @@ lemma map_comp : (c.map f).map g = c.map (g.comp f) := rfl
 lemma map_le_map {g : α →ₘ β} (h : f ≤ g) : c.map f ≤ c.map g :=
 λ i, by simp [mem_map_iff]; intros; existsi i; apply h
 
+/-- A chain containing only one value. -/
 def const (x : α) : chain α := ⟨λ _, x, λ a b h, le_refl _⟩
 
 /-- `chain.zip` pairs up the elements of two chains that have the same index -/
@@ -677,10 +678,10 @@ lemma continuous (F : α →𝒄 β) (C : chain α) : F (ωSup C) = ωSup (C.map
 continuous_hom.cont _ _
 
 @[simp]
-lemma continuous_hom.coe_fn_mk {f : α → β} (h h') (x) : continuous_hom.mk f h h' x = f x := rfl
+lemma coe_fn_mk {f : α → β} (h h') (x) : continuous_hom.mk f h h' x = f x := rfl
 
 @[simp]
-def to_preorder_hom_eq_coe (F : α →𝒄 β) : F.to_preorder_hom = F := rfl
+lemma to_preorder_hom_eq_coe (F : α →𝒄 β) : F.to_preorder_hom = F := rfl
 
 /-- Construct a continuous function from a bare function, a continuous function, and a proof that
 they are equal. -/

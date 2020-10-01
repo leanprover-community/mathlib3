@@ -9,6 +9,9 @@ import algebra.gcd_monoid
 import ring_theory.multiplicity
 import data.polynomial.eval
 import data.polynomial.degree
+import tactic.interval_cases
+
+
 /-!
 # Irrational real numbers
 
@@ -215,33 +218,24 @@ lemma nat_degree_gt_one_of_irrational_root (hx : irrational x) (p_nonzero : p �
 begin
   have degree_eq : p.nat_degree = (p.map (algebra_map ℤ ℝ)).nat_degree,
   { rw nat_degree_map', exact int.cast_injective },
-
   by_contra rid,
-  simp only [not_lt] at rid,
-  replace rid := lt_or_eq_of_le rid,
-  replace rid : p.nat_degree = 0 ∨ p.nat_degree = 1,
-  { cases rid, left, linarith, right, assumption },
-  rcases rid with zero | one,
-  { replace zero := eq_C_of_nat_degree_eq_zero zero,
-    have about_p := x_is_root,
-    rw zero at about_p,
-    rw [is_root.def, eval_map, eval₂_C] at about_p,
-    simp only [int.cast_eq_zero, ring_hom.eq_int_cast] at about_p,
-    rw about_p at zero, simp only [int.cast_zero, ring_hom.eq_int_cast] at zero,
-    exact p_nonzero zero
-  },
-
+  push_neg at rid,
+  interval_cases p.nat_degree with h_degree,
+  { have hp := eq_C_of_nat_degree_eq_zero h_degree,
+    have hpx := x_is_root,
+    rw [hp, is_root.def, eval_map, eval₂_C, ring_hom.eq_int_cast, int.cast_eq_zero] at hpx,
+    rw [hpx, C_0] at hp,
+    exact p_nonzero hp },
   { rw irrational_iff_ne_rational at hx,
-    rw [is_root.def, as_sum p, one, eval_map, eval₂_finset_sum, ←nat.succ_eq_add_one,
-      finset.sum_range_succ, finset.sum_range_one, eval₂_mul, eval₂_C, eval₂_X_pow,
-      eval₂_mul, eval₂_C, eval₂_X_pow, pow_one, pow_zero, mul_one, add_eq_zero_iff_eq_neg] at x_is_root,
-    refine hx (-(p.coeff 0)) (p.coeff 1) _,
-    simp only [ring_hom.eq_int_cast] at x_is_root,
-    symmetry,
-    rw [div_eq_iff, mul_comm], convert x_is_root.symm using 2,
-    simp only [int.cast_neg],
-    norm_cast, intro rid, rw ←one at rid, rw [←leading_coeff, leading_coeff_eq_zero] at rid,
-    exact p_nonzero rid }
+    apply hx (-(p.coeff 0)) (p.coeff 1),
+    rw [as_sum p] at x_is_root,
+    simp only [is_root.def, h_degree, eval_map, finset.sum_range_succ, finset.sum_range_one,
+      eval₂_mul, eval₂_add, eval₂_X, eval₂_C, eval₂_one, pow_one, pow_zero, mul_one] at x_is_root,
+    simp only [ring_hom.eq_int_cast, add_eq_zero_iff_eq_neg] at x_is_root,
+    suffices : (p.coeff 1 : ℝ) ≠ 0,
+    { rw [eq_div_iff this, mul_comm, x_is_root, int.cast_neg] },
+    norm_cast,
+    rwa [← h_degree, ← leading_coeff, leading_coeff_eq_zero] }
 end
 
 end polynomial

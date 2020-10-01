@@ -1254,7 +1254,8 @@ Z.times_cont_mdiff_within_at_proj
 
 /-- If an element of `E'` is invariant under all coordinate changes, then one can define a
 corresponding section of the fiber bundle, which is smooth. This applies in particular to the
-zero section of a vector bundle. -/
+zero section of a vector bundle. Another example (not yet defined) would be the identity 
+section of the endomorphism bundle of a vector bundle. -/
 lemma smooth_const_section (v : E')
   (h : ∀ (i j : atlas H M), ∀ x ∈ i.1.source ∩ j.1.source, Z.coord_change i j (i.1 x) v = v) :
   smooth I ((I.prod (model_with_corners_self 𝕜 E')))

@@ -238,7 +238,6 @@ end
 
 end polynomial
 
-
 section
 variables {q : ℚ} {x : ℝ}
 

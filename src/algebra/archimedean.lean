@@ -15,12 +15,13 @@ such that `0 < y` there exists a natural number `n` such that `x ≤ n •ℕ y`
 class archimedean (α) [ordered_add_comm_monoid α] : Prop :=
 (arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n •ℕ y)
 
-section linear_ordered_comm_group
+namespace decidable_linear_ordered_add_comm_group
 variables [decidable_linear_ordered_add_comm_group α] [archimedean α]
 
 /-- An archimedean decidable linearly ordered `add_comm_group` has a version of the floor: for `a > 0`,
 any `g` in the group lies between some two consecutive multiples of `a`. -/
-lemma floor_prop {a g : α} (ha : 0 < a) : ∃ k, k •ℤ a ≤ g ∧ g < (k + 1) •ℤ a :=
+lemma exists_int_smul_near_of_pos {a : α} (ha : 0 < a) (g : α) :
+  ∃ k, k •ℤ a ≤ g ∧ g < (k + 1) •ℤ a :=
 begin
   let s : set ℤ := {n : ℤ | n •ℤ a ≤ g},
   obtain ⟨k, hk : -g ≤ k •ℕ a⟩ := archimedean.arch (-g) ha,
@@ -34,15 +35,16 @@ begin
   linarith [hm' _ $ not_lt.mp H]
 end
 
-lemma floor_prop' {a g : α} (ha : 0 < a) : ∃ k, 0 ≤ g - k •ℤ a ∧ g - k •ℤ a < a :=
+lemma exists_int_smul_near_of_pos' {a : α} (ha : 0 < a) (g : α) :
+  ∃ k, 0 ≤ g - k •ℤ a ∧ g - k •ℤ a < a :=
 begin
-  obtain ⟨k, h1, h2⟩ := floor_prop ha,
+  obtain ⟨k, h1, h2⟩ := exists_int_smul_near_of_pos ha g,
   refine ⟨k, sub_nonneg.mpr h1, _⟩,
   have : g < k •ℤ a + 1 •ℤ a, by rwa ← add_gsmul a k 1,
   simpa [sub_lt_iff_lt_add']
 end
 
-end linear_ordered_comm_group
+end decidable_linear_ordered_add_comm_group
 
 theorem exists_nat_gt [linear_ordered_semiring α] [archimedean α]
   (x : α) : ∃ n : ℕ, x < n :=

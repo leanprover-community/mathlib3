@@ -373,7 +373,7 @@ begin
     by_cases H' : ∃ a, is_least G_pos a,
     { right,
       rcases H' with ⟨a, ha⟩,
-      exact ⟨a, subgroup_cyclic_of_min ha⟩ },
+      exact ⟨a, add_subgroup.cyclic_of_min ha⟩ },
     { left,
       rcases H with ⟨g₀, g₀_in, g₀_ne⟩,
       exact real.subgroup_dense_of_no_min g₀_in g₀_ne H' } }

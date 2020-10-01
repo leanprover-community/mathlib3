@@ -1470,3 +1470,57 @@ begin
   { exact λ n, simple_func.induction (λ c s hs, h_ind c hs)
       (λ f g hfg hf hg, h_sum hfg f.measurable g.measurable hf hg) (eapprox f n) }
 end
+
+namespace measure_theory
+namespace with_density
+
+lemma compose_eq_multiply {α} [measurable_space α] (μ : measure_theory.measure α) 
+  (f : α → ennreal) (h_mf : measurable f):∀ (g : α → ennreal), measurable g → 
+  ∫⁻ a, g a ∂(μ.with_density f)  =  ∫⁻ a, (f * g) a ∂μ :=
+begin
+  apply measurable.ennreal_induction,
+  { intros c s h_ms,
+    rw lintegral_indicator,
+    rw lintegral_const,
+    rw measure_theory.measure.restrict_apply,
+    have h_comm:∀ a, (f * s.indicator (λ _,c)) a = s.indicator (λ x, c * f x) a,
+    {intro a,rw mul_comm,simp},
+    rw lintegral_congr h_comm,
+    rw lintegral_indicator,
+    rw measure_theory.with_density_apply,
+    rw lintegral_const_mul,
+    repeat {simp [h_ms,h_mf,is_measurable.univ]}},
+  { intros g h h_univ h_mea_g h_mea_h h_ind_g h_ind_h,
+    simp,
+    rw lintegral_add,
+    have h_distrib:∀ a, (f a) * ((g a) + (h a))  = (f * g ) a  + (f * h) a,
+    {intro a,rw left_distrib,simp},
+    rw [(measure_theory.lintegral_congr h_distrib), h_ind_g, h_ind_h, measure_theory.lintegral_add],
+    simp only [pi.mul_apply],
+    apply measurable.ennreal_mul h_mf h_mea_g,
+    apply measurable.ennreal_mul h_mf h_mea_h,
+    repeat {assumption}},
+  { intros g h_mea_g h_mono_g h_ind,
+    rw lintegral_supr,
+    have h_apply_ind:(λ n : ℕ, ∫⁻ (a : α), (g n) a ∂μ.with_density f) =λ n, ∫⁻ (a : α), (f * (g n)) a ∂μ,
+    {apply funext,apply h_ind},
+    rw h_apply_ind,
+    rw ← lintegral_supr,
+    simp,
+    have h_apply_mul_supr:∀ a, (⨆ (n : ℕ), f a *  (g n) a) = (f a * ⨆ (n : ℕ), (g n) a),
+    { intro a, rw ennreal.mul_supr},
+    rw lintegral_congr h_apply_mul_supr,
+    intro n,
+    apply measurable.ennreal_mul h_mf (h_mea_g _),
+    intros n1 n2 A4 ω,
+    apply ennreal.mul_le_mul,
+    apply le_refl _,
+    apply h_mono_g,
+    apply A4,
+    intro n,
+    apply h_mea_g,
+    apply h_mono_g},
+end
+
+end with_density
+end measure_theory

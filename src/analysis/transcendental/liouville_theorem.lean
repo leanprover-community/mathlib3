@@ -236,8 +236,7 @@ begin
         exact Df_x₀_nonzero,
         rw sub_ne_zero, exact hab₁.symm },
 
-  repeat {
-  have ineq :=
+    repeat { have ineq :=
       calc B / 2 / b^f.nat_degree
         ≥ abs (α - ↑a / ↑b) : ge_iff_le.2 abs_lt
     ... = abs((f.map (algebra_map ℤ ℝ)).eval (a/b) / ((f.map (algebra_map ℤ ℝ)).derivative.eval x₀))
@@ -257,7 +256,8 @@ begin
             refine div_le_div _ (le_refl _) (abs_pos_of_ne_zero Df_x₀_nonzero) _,
             { rw one_div_nonneg, apply pow_nonneg, norm_cast, exact le_of_lt b_pos },
             { refine hM x₀ _, simp only [mem_Ioo, mem_Icc] at x₀_range hab₀ ⊢, split,
-              { exact le_trans hab₀.1 (le_of_lt x₀_range.1) <|> exact le_trans (by linarith) (le_of_lt x₀_range.1) },
+              { exact le_trans hab₀.1 (le_of_lt x₀_range.1) <|>
+                exact le_trans (by linarith) (le_of_lt x₀_range.1) },
               { exact le_trans (le_of_lt x₀_range.2) (by linarith) } }
           end
     ... = 1/M / b^f.nat_degree
@@ -412,7 +412,7 @@ begin
     ... ≤ A * (1 / b ^ f.nat_degree)
         : begin
             apply mul_le_mul,
-            repeat {linarith <|> assumption },
+            repeat { linarith <|> assumption },
             rw one_div_nonneg, apply pow_nonneg, norm_cast, linarith
           end
     ... = A / b ^ f.nat_degree : by rw ←div_eq_mul_one_div

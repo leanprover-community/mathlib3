@@ -20,7 +20,8 @@ Let `n : ℕ`. All of the following definitions are in the `nat` namespace:
  * `perfect n` is true when the sum of `proper_divisors n` is `n`.
 
 ## Implementation details
- * All of `divisors 0`, `proper_divisors 0`, and `divisors_antidiagonal 0` are defined to be `∅`.
+ * `divisors 0` is defined to be `{0}`, while
+`proper_divisors 0`, and `divisors_antidiagonal 0` are defined to be `∅`.
 
 ## Tags
 divisors, perfect numbers
@@ -33,7 +34,7 @@ open_locale big_operators
 namespace nat
 variable (n : ℕ)
 
-/-- `divisors n` is the `finset` of divisors of `n`. As a special case, `divisors 0 = ∅`. -/
+/-- `divisors n` is the `finset` of divisors of `n`. As a special case, `divisors 0 = {0}`. -/
 def divisors : finset ℕ := finset.filter (λ x : ℕ, x ∣ n) (finset.range (n + 1))
 
 /-- `proper_divisors n` is the `finset` of divisors of `n`, other than `n`.

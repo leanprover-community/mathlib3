@@ -392,17 +392,12 @@ theorem restrict_apply (f : α →ₛ β) {s : set α} (hs : is_measurable s) (a
   restrict f s a = if a ∈ s then f a else 0 :=
 by simp only [hs, coe_restrict]
 
-lemma restrict_const_eq_mul_indicator 
-    (f : α → ennreal) (s : set α) (x : ennreal) (h : is_measurable s) :
-    (f * ⇑((const α x).restrict s)) = λ ω, (x * (set.indicator s f ω)) := 
+lemma restrict_const_eq_mul_indicator (f : α → ennreal) {s : set α} (c : ennreal)
+  (h : is_measurable s) :
+  f * ((const α c).restrict s) = c • set.indicator s f :=
 begin
-  apply funext,
-  intro ω,
-  simp only [pi.mul_apply, mul_ite, mul_zero],
-  rw [restrict_apply, const_apply],
-  simp only [mul_ite, mul_zero],
-  rw mul_comm,
-  apply h,
+  ext1 x,
+  simp [mul_ite, h, mul_comm c]
 end
 
 theorem restrict_preimage (f : α →ₛ β) {s : set α} (hs : is_measurable s)

@@ -112,6 +112,19 @@ dvd_gcd.2 $ assume b hb, gcd_dvd (h hb)
 @[simp] lemma normalize_gcd (s : multiset α) : normalize (s.gcd) = s.gcd :=
 multiset.induction_on s (by simp) $ λ a s IH, by simp
 
+theorem gcd_eq_zero_iff (s : multiset α) : s.gcd = 0 ↔ ∀ (x : α), x ∈ s → x = 0 :=
+begin
+  split,
+  { intros h x hx,
+    apply eq_zero_of_zero_dvd,
+    rw ← h,
+    apply gcd_dvd hx },
+  { apply s.induction_on,
+    { simp },
+    intros a s sgcd h,
+    simp [h a (mem_cons_self a s), sgcd (λ x hx, h x (mem_cons_of_mem hx))] }
+end
+
 variables [decidable_eq α]
 
 @[simp] lemma gcd_erase_dup (s : multiset α) : (erase_dup s).gcd = s.gcd :=

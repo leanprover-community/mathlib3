@@ -2457,6 +2457,12 @@ by induction l; [refl, simp only [*, pmap, length]]
 
 @[simp] lemma length_attach (L : list α) : L.attach.length = L.length := length_pmap
 
+@[simp] lemma pmap_eq_nil {p : α → Prop} {f : Π a, p a → β}
+  {l H} : pmap f l H = [] ↔ l = [] :=
+by rw [← length_eq_zero, length_pmap, length_eq_zero]
+
+@[simp] lemma attach_eq_nil (l : list α) : l.attach = [] ↔ l = [] := pmap_eq_nil
+
 /-! ### find -/
 
 section find

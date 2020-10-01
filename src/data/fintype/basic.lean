@@ -38,6 +38,15 @@ fintype.complete x
 @[simp] lemma coe_univ : ↑(univ : finset α) = (set.univ : set α) :=
 by ext; simp
 
+lemma univ_nonempty_iff : (univ : finset α).nonempty ↔ nonempty α :=
+by rw [← coe_nonempty, coe_univ, set.nonempty_iff_univ_nonempty]
+
+lemma univ_nonempty [nonempty α] : (univ : finset α).nonempty :=
+univ_nonempty_iff.2 ‹_›
+
+lemma univ_eq_empty : (univ : finset α) = ∅ ↔ ¬nonempty α :=
+by rw [← univ_nonempty_iff, nonempty_iff_ne_empty, ne.def, not_not]
+
 theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 
 instance : order_top (finset α) :=
@@ -291,6 +300,8 @@ finset.card_univ_diff s
 
 instance (n : ℕ) : fintype (fin n) :=
 ⟨finset.fin_range n, finset.mem_fin_range⟩
+
+lemma fin.univ_def (n : ℕ) : (univ : finset (fin n)) = finset.fin_range n := rfl
 
 @[simp] theorem fintype.card_fin (n : ℕ) : fintype.card (fin n) = n :=
 list.length_fin_range n

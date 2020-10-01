@@ -752,6 +752,8 @@ theorem prod_eq_foldl [comm_monoid α] (s : multiset α) :
 theorem coe_prod [comm_monoid α] (l : list α) : prod ↑l = l.prod :=
 prod_eq_foldl _
 
+attribute [norm_cast] coe_prod coe_sum
+
 @[simp, to_additive]
 theorem prod_zero [comm_monoid α] : @prod α _ 0 = 1 := rfl
 

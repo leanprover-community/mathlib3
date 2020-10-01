@@ -155,7 +155,7 @@ begin
     have ha := ((product_cone X Y).π.app walking_pair.left).monotone this,
     have hb := ((product_cone X Y).π.app walking_pair.right).monotone this,
     simp only [continuous_hom.const_apply, prod_lift_binary_fst, prod_lift_binary_snd, ← coe_comp, is_limit.cone_point_unique_up_to_iso_hom_comp, binary_fan.π_app_left, prod.mk, category.assoc, ωCPO.of_prod_iso, i] at ha hb,
-    simp [ha, hb], },
+    simp only [ha, hb, and_self], },
   { rintro ⟨h₀, h₁⟩,
     suffices : i.hom (prod.mk x y) ≤ i.hom (prod.mk x' y'),
     { replace this := i.inv.monotone this,
@@ -208,7 +208,9 @@ def hom_map {X X' : ωCPO.{u}} {Y Y' : ωCPO.{u}}
   of (X ⟶ Y) ⟶ of (X' ⟶ Y') :=
 { to_fun := λ h, f ≫ h ≫ g,
   monotone' := λ x y h a, g.monotone (h _),
-  cont := λ c, by ext; simp; rw g.continuous; refl }
+  cont := λ c, by { ext, simp only [continuous_hom.continuous g, continuous_hom.omega_complete_partial_order_ωSup, preorder_hom.coe_fun_mk,
+                                    continuous_hom.ωSup_to_fun, preorder_hom.omega_complete_partial_order_ωSup_to_fun, coe_comp],
+                    refl } }
 
 /-- `hom` functor, mapping arrows in `ωCPO` to an object in `ωCPO` -/
 @[pp_nodot, simps obj]
@@ -275,7 +277,9 @@ lemma exp₀_nat_left
  {X Y Y' Z : ωCPO.{u}}
   (f : of (X × Y) ⟶ Z) (g : Y' ⟶ Y) :
   g ≫ exp₀ f = exp₀ (@category_struct.comp _ _ (of $ X × Y') (of $ X × Y) Z (continuous_hom.prod.map.{u u u u} (@continuous_hom.id.{u} X _) g) f) :=
-by  { ext, simp }
+by  { ext, simp only [preorder_hom.prod.map_to_fun, exp₀_to_fun_to_fun, continuous_hom.to_preorder_hom_eq_coe, id.def,
+                      continuous_hom.id_to_fun, preorder_hom.id_to_fun, prod.map_mk, coe_comp, continuous_hom.coe_apply,
+                      continuous_hom.prod.map_to_fun] }
 
 @[simp, reassoc]
 lemma exp_nat_left {X Y Y' Z : ωCPO} (f : X ⨯ Y ⟶ Z) (g : Y' ⟶ Y) :
@@ -322,7 +326,13 @@ end
 
 @[simp, reassoc]
 lemma exp_eval {X Y Z : ωCPO} (f : X ⨯ Y ⟶ Z) : limits.prod.map (exp f) (𝟙 _) ≫ eval _ _ = (β_ Y X).hom ≫ f :=
-by ext; simp [exp]; rw [← limits.prod.lift_coe_fn, prod_lift_fst_snd]; simp
+by { ext, simp only [eval_to_fun, prod.snd_map', continuous_hom.to_preorder_hom_eq_coe, continuous_hom.prod.apply_to_fun,
+                     limits.prod.lift_coe_fn, prod.fst_map', coe_id, symmetric_of_has_finite_products_to_braided_category_braiding,
+                     function.comp_app, continuous_hom.prod.snd_to_fun, preorder_hom.prod.snd_to_fun, preorder_hom.prod.fst_to_fun,
+                     prod.braiding_hom, continuous_hom.prod.fst_to_fun, preorder_hom.comp_to_fun, coe_comp, continuous_hom.coe_apply,
+                     prod.elim_to_fun, exp_to_fun_to_fun] }
+
+-- #exit
 
 noncomputable instance {X : ωCPO.{u}} : closed X :=
 { is_adj :=
@@ -331,12 +341,18 @@ noncomputable instance {X : ωCPO.{u}} : closed X :=
     { hom_equiv := λ Y Z,
       { to_fun := λ f, exp.{u} f,
         inv_fun := λ f, (β_ _ _).hom ≫ limits.prod.map f (𝟙 _) ≫ eval.{u} X _,
-        left_inv := λ f, by dsimp; simp [],
-        right_inv := λ f, by ext; simp },
+        left_inv := λ f, by dsimp; simp only [symmetric_of_has_finite_products_to_braided_category_braiding, prod.symmetry'_assoc, prod.braiding_hom, exp_eval],
+        right_inv := λ f, by ext; simp only [eval_to_fun, prod.snd_map', continuous_hom.to_preorder_hom_eq_coe, continuous_hom.prod.apply_to_fun,
+                                             limits.prod.lift_coe_fn, prod.fst_map', coe_id, symmetric_of_has_finite_products_to_braided_category_braiding,
+                                             function.comp_app, continuous_hom.prod.snd_to_fun, preorder_hom.prod.snd_to_fun, limits.prod.snd_mk,
+                                             preorder_hom.prod.fst_to_fun, prod.braiding_hom, limits.prod.fst_mk, continuous_hom.prod.fst_to_fun,
+                                             preorder_hom.comp_to_fun, coe_comp, continuous_hom.coe_apply, prod.elim_to_fun, exp_to_fun_to_fun], },
       unit := { app := λ Y, exp (𝟙 _),
-                naturality' := by { intros Y Z f, dsimp, simp [exp_nat_right, limits.prod.lift_map, ← limits.prod.lift_comp_comp, limits.prod.map_fst, limits.prod.map_snd], erw category.id_comp } },
+                naturality' := by { intros Y Z f, dsimp, simp only [exp_nat_right, category.comp_id, exp_nat_left], dsimp, rw category.id_comp } },
       counit := { app := λ Y, (β_ _ _).hom ≫ eval X _,
-                  naturality' := by { intros Y Z f, dsimp, simp [eval_nat, limits.prod.lift_map_assoc, ← limits.prod.lift_comp_comp_assoc], dsimp, rw category.comp_id } },
+                  naturality' := by { intros Y Z f, dsimp, simp only [eval_nat, prod.lift_map_assoc, ←prod.lift_comp_comp_assoc, map_pair_right, map_pair_left, category.comp_id,
+                                                                      limit.map_π, category.assoc],
+                                      dsimp, rw category.comp_id } },
       hom_equiv_unit' := λ Y Z f, by ext; refl,
       hom_equiv_counit' := λ Y Z f, by ext; simp } } }
 

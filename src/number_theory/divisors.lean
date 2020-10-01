@@ -76,6 +76,13 @@ begin
   exact nat.le_of_dvd (nat.succ_pos m)
 end
 
+lemma dvd_of_mem_divisors {m : ℕ} (h : n ∈ divisors m) : n ∣ m :=
+begin
+  cases m,
+  { apply dvd_zero },
+  { rwa [mem_divisors, if_neg (nat.succ_ne_zero _)] at h }
+end
+
 @[simp]
 lemma mem_divisors_antidiagonal {x : ℕ × ℕ} :
   x ∈ divisors_antidiagonal n ↔ x.fst * x.snd = n ∧ n ≠ 0 :=

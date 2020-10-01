@@ -175,8 +175,9 @@ begin
   simp [gcd_zero_left, normalize_gcd],
 end
 
-lemma gcd_mul_left [decidable_eq β] {a : α} : s.gcd (λ x, a * f x) = normalize a * s.gcd f :=
+lemma gcd_mul_left {a : α} : s.gcd (λ x, a * f x) = normalize a * s.gcd f :=
 begin
+  classical,
   apply s.induction_on,
   { simp },
   intros b t hbt h,
@@ -186,8 +187,9 @@ begin
   apply normalize_associated,
 end
 
-lemma gcd_mul_right [decidable_eq β] {a : α} : s.gcd (λ x, f x * a) = s.gcd f * normalize a :=
+lemma gcd_mul_right {a : α} : s.gcd (λ x, f x * a) = s.gcd f * normalize a :=
 begin
+  classical,
   apply s.induction_on,
   { simp },
   intros b t hbt h,

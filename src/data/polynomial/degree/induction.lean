@@ -1285,6 +1285,14 @@ begin
 end
 
 
+lemma reflect_invol (N : ℕ) (f : polynomial R) : reflect N (reflect N f) = f :=
+begin
+  unfold reflect,
+  simp only [coeff_mk, rev_at_invol, set.coe_to_finset],
+  ext1,
+  refl,
+end
+
 
 lemma reflect_mul_term_total (N n : ℕ) (f : polynomial R) {h : f.nat_degree ≤ N} : myProp n N f :=
 --lemma reflect_mul_term_total (N n : ℕ) (f : polynomial R) : f.nat_degree ≤ N → (reflect (n + N) (f*X^n)) = (reflect N f) :=
@@ -1306,8 +1314,6 @@ begin
   rw add_comm,
   exact add_le_add_left Mn1 n,
 
-  have : f.support ⊆ range (N+1),
-    sorry,
   rw ← card_range N.succ,
   apply card_le_of_subset,
   exact support_bound N h,
@@ -1316,6 +1322,93 @@ begin
 end
 
 
+
+
+def myPropExt (L n : ℕ) (hL : n ≤ L) : ℕ → polynomial R → Prop := λ N : ℕ , λ f : polynomial R , f.nat_degree ≤ N → (reflect (L + N) (f*X^n)) = (reflect (N+L-n) f)
+
+lemma reflect_mul_term_total_ext (N L n : ℕ) (f : polynomial R) {hL : n ≤ L} {h : f.nat_degree ≤ N} : myPropExt L n hL N f :=
+--lemma reflect_mul_term_total (N n : ℕ) (f : polynomial R) : f.nat_degree ≤ N → (reflect (n + N) (f*X^n)) = (reflect N f) :=
+begin
+  apply (pol_ind_card_degree_bound N),
+
+  unfold myPropExt,
+  intros f g M Mf Mg Prf Prg dfg,
+  rw [add_mul, reflect_add, reflect_add],
+  simp only [*],
+
+  unfold myPropExt,
+  intros r n1 M Mn1 Mmon,
+  rw [mul_assoc, ← pow_add],
+  simp only [*, rev_at_small, reflect_monomial, reflect_smul],
+  repeat {apply congr_arg},
+  repeat {rw rev_at_small},
+  omega,
+  omega,
+  omega,
+
+  rw ← card_range N.succ,
+  apply card_le_of_subset,
+  exact support_bound N h,
+
+  assumption,
+end
+
+
+
+@[simp] lemma reflect_mul_term {N n : ℕ} {H : f.nat_degree ≤ N } : reflect (N+n) (f * X ^ n) = reflect N f :=
+begin
+
+  apply reflect_mul_term_total_ext (N+n) 0 n f,--cerca di trasformarlo!
+end
+
+--def myProp (n : ℕ) : ℕ → polynomial R → Prop := λ N : ℕ , λ f : polynomial R , f.nat_degree ≤ N → (reflect (n + N) (f*X^n)) = (reflect N f)
+
+def myPropReflect (g : polynomial R) (N : ℕ) (Ng : g.nat_degree ≤ N) :
+ ℕ → polynomial R → Prop :=
+ λ M : ℕ , λ f : polynomial R , f.nat_degree ≤ M → (reflect (M + N) (f*g)) = (reflect M f) * (reflect N g)
+
+
+lemma reflect_reflect (f g : polynomial R) (M N : ℕ) (Nf : f.nat_degree ≤ M) (Ng : g.nat_degree ≤ N) : myPropReflect g N Ng M f :=
+--lemma reflect_reflect (f g : polynomial R) (M N : ℕ) {hf : f.nat_degree ≤ M} {hg : g.nat_degree ≤ N} : reflect (M+N) (f*g) = reflect M f * reflect N g :=
+begin
+  apply pol_ind_card_degree_bound M,
+
+  unfold myPropReflect,
+  intros f g_1 M Mf Mg1 fmul g1add Nfg1,
+
+  rw [reflect_add, add_mul, add_mul, reflect_add],
+  simp only [*],
+
+  unfold myPropReflect,
+  intros r n M Mn Mmon,
+  rw [mul_assoc, X_pow_mul, ← mul_assoc],
+  simp only [*, rev_at_small, reflect_monomial, reflect_smul],
+  rw reflect_mul_term_total_ext,
+  simp only [reflect_smul],
+  rw mul_assoc,
+  apply congr_arg,
+  rw X_pow_mul,
+--  rw ← reflect_invol (N+M-n) (reflect (N+M-n) g),
+--  rw reflect_mul_term_total (N+M) 0 (reflect N g * X ^ (M - n)),
+--  rw ← reflect_invol (N+M-n) (reflect N g * X ^ (M - n)),
+--  rw ← reflect_mul_term_total (N+M-n) (N) (reflect N g * X ^ (M - n)),
+
+  rw ← reflect_mul_term_total N (M-n) g,
+
+--  rw ← add_zero (M - n + N),
+  rw reflect_mul_term_total N-n (M-n) g,
+
+  rw [← zero_add (N + M - n), ← mul_one g, ← pow_zero X],
+  rw reflect_mul_term_total (N+M-n) 0 g,
+  rw [← zero_add (N)],
+  rw reflect_mul_term_total (N) 0 g,
+  simp *,
+
+
+  rw ← reflect_mul_term_total N (M-n) g,
+
+    sorry,
+end
 
 #exit
 lemma reflect_mul_term_total (c : ℕ) (N n : ℕ) (f : polynomial R) : f.support.card ≤ c.succ → f.nat_degree ≤ N → (reflect (n + N) (f*X^n)) = (reflect N f) :=

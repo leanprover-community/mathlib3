@@ -29,7 +29,7 @@ variables (R : Type u) {A : Type v} [comm_ring R] [comm_ring A] [algebra R A]
 def is_algebraic (x : A) : Prop :=
 ∃ p : polynomial R, p ≠ 0 ∧ aeval x p = 0
 
-def is_transcendental (x : A) : Prop := ¬ is_algebraic x R
+def is_transcendental (x : A) : Prop := ¬ is_algebraic R x
 
 variables {R}
 

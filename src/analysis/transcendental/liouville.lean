@@ -63,7 +63,7 @@ have eq₁ : (f.map (algebra_map ℤ ℝ)).eval (a/b) =
 calc ((f.map (algebra_map ℤ ℝ)).eval (a/b))
           = ∑ i in f.support, f.coeff i * (a / b) ^ i
           : begin
-              conv_lhs { rw [eval_map, as_sum' f, eval₂_finset_sum] },
+              conv_lhs { rw [eval_map, as_sum_support f, eval₂_finset_sum] },
               simp only [coeff_map, eval₂_X_pow, div_pow, eval₂_mul, eval₂_C],
               congr
             end
@@ -378,7 +378,7 @@ end,
 begin
   have irr_x : irrational x, exact irrational_of_liouville x liouville_x,
   intros rid,
-  rcases rid with ⟨f, f_nonzero, root⟩,
+  rcases rid with ⟨f : polynomial ℤ, f_nonzero, root⟩,
   replace root : (f.map (algebra_map ℤ ℝ)).eval x = 0,
   { rw aeval_def at root, rwa [eval_map] },
   have root' : (f.map (algebra_map ℤ ℝ)).is_root x,

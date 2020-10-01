@@ -161,21 +161,32 @@ instance [comm_group α] : add_comm_group (additive α) :=
 instance [add_comm_group α] : comm_group (multiplicative α) :=
 { .. multiplicative.group, .. multiplicative.comm_monoid }
 
-/-- Reinterpret `f : α →+ β` as `multiplicative α →* multiplicative β`. -/
+/-- Reinterpret `α →+ β` as `multiplicative α →* multiplicative β`. -/
 def add_monoid_hom.to_multiplicative [add_monoid α] [add_monoid β] :
   (α →+ β) ≃ (multiplicative α →* multiplicative β) :=
 ⟨λ f, ⟨f.1, f.2, f.3⟩, λ f, ⟨f.1, f.2, f.3⟩, λ x, by { ext, refl, }, λ x, by { ext, refl, }⟩
 
-/-- Reinterpret `f : α →* β` as `additive α →+ additive β`. -/
-def monoid_hom.to_additive [monoid α] [monoid β] : (α →* β) ≃ (additive α →+ additive β) :=
+/-- Reinterpret `α →* β` as `additive α →+ additive β`. -/
+def monoid_hom.to_additive [monoid α] [monoid β] :
+  (α →* β) ≃ (additive α →+ additive β) :=
 ⟨λ f, ⟨f.1, f.2, f.3⟩, λ f, ⟨f.1, f.2, f.3⟩, λ x, by { ext, refl, }, λ x, by { ext, refl, }⟩
 
-/-- Reinterpret `f : additive α →+ β` as `α →* multiplicative β`. -/
+/-- Reinterpret `additive α →+ β` as `α →* multiplicative β`. -/
 def add_monoid_hom.to_multiplicative' [monoid α] [add_monoid β] :
   (additive α →+ β) ≃ (α →* multiplicative β) :=
 ⟨λ f, ⟨f.1, f.2, f.3⟩, λ f, ⟨f.1, f.2, f.3⟩, λ x, by { ext, refl, }, λ x, by { ext, refl, }⟩
 
-/-- Reinterpret `f : α →* multiplicative β` as `additive α →+ β`. -/
+/-- Reinterpret `α →* multiplicative β` as `additive α →+ β`. -/
 def monoid_hom.to_additive' [monoid α] [add_monoid β] :
   (α →* multiplicative β) ≃ (additive α →+ β) :=
 add_monoid_hom.to_multiplicative'.symm
+
+/-- Reinterpret `α →+ additive β` as `multiplicative α →* β`. -/
+def add_monoid_hom.to_multiplicative'' [add_monoid α] [monoid β] :
+  (α →+ additive β) ≃ (multiplicative α →* β) :=
+⟨λ f, ⟨f.1, f.2, f.3⟩, λ f, ⟨f.1, f.2, f.3⟩, λ x, by { ext, refl, }, λ x, by { ext, refl, }⟩
+
+/-- Reinterpret `multiplicative α →* β` as `α →+ additive β`. -/
+def monoid_hom.to_additive'' [add_monoid α] [monoid β] :
+  (multiplicative α →* β) ≃ (α →+ additive β) :=
+add_monoid_hom.to_multiplicative''.symm

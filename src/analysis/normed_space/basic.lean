@@ -475,6 +475,11 @@ instance normed_comm_ring.to_comm_ring [β : normed_comm_ring α] : comm_ring α
 @[priority 100] -- see Note [lower instance priority]
 instance normed_ring.to_normed_group [β : normed_ring α] : normed_group α := { ..β }
 
+instance prod.norm_one_class [normed_group α] [has_one α] [norm_one_class α]
+  [normed_group β] [has_one β] [norm_one_class β] :
+  norm_one_class (α × β) :=
+⟨by simp [prod.norm_def]⟩
+
 variables [normed_ring α]
 
 lemma norm_mul_le (a b : α) : (∥a*b∥) ≤ (∥a∥) * (∥b∥) :=
@@ -536,7 +541,7 @@ lemma mul_left_bound (x : α) :
 norm_mul_le x
 
 /-- In a normed ring, the right-multiplication `add_monoid_hom` is bounded. -/
-lemma mul_right_bound {α : Type*} [normed_ring α] (x : α) :
+lemma mul_right_bound (x : α) :
   ∀ (y:α), ∥add_monoid_hom.mul_right x y∥ ≤ ∥x∥ * ∥y∥ :=
 λ y, by {rw mul_comm, convert norm_mul_le y x}
 
@@ -812,6 +817,9 @@ instance : normed_comm_ring ℤ :=
 
 @[norm_cast] lemma int.norm_cast_real (m : ℤ) : ∥(m : ℝ)∥ = ∥m∥ := rfl
 
+instance : norm_one_class ℤ :=
+⟨by simp [← int.norm_cast_real]⟩
+
 instance : normed_field ℚ :=
 { norm := λ r, ∥(r : ℝ)∥,
   norm_mul' := λ r₁ r₂, by simp only [norm, rat.cast_mul, abs_mul],
@@ -1052,13 +1060,16 @@ include 𝕜
 @[simp] lemma normed_algebra.norm_one : ∥(1:𝕜')∥ = 1 :=
 by simpa using (norm_algebra_map_eq 𝕜' (1:𝕜))
 
+lemma normed_algebra.norm_one_class : norm_one_class 𝕜' :=
+⟨normed_algebra.norm_one 𝕜⟩
+
 lemma normed_algebra.zero_ne_one : (0:𝕜') ≠ 1 :=
 begin
   refine (norm_pos_iff.mp _).symm,
   rw @normed_algebra.norm_one 𝕜, norm_num,
 end
 
-lemma normed_algebra.to_nonzero : nontrivial 𝕜' :=
+lemma normed_algebra.nontrivial : nontrivial 𝕜' :=
 ⟨⟨0, 1, normed_algebra.zero_ne_one 𝕜⟩⟩
 
 end normed_algebra

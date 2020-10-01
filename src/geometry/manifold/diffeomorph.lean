@@ -32,11 +32,12 @@ variables (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold
 (n : with_top ℕ)
 
 /-- M and M' are diffeomorph with respect to I and I' -/
-@[protect_proj]
+@[protect_proj, nolint has_inhabited_instance]
 structure times_diffeomorph extends M ≃ M' :=
 (times_cont_mdiff_to_fun  : times_cont_mdiff I I' n to_fun)
 (times_cont_mdiff_inv_fun : times_cont_mdiff I' I n inv_fun)
 
+/-- A `diffeomorph` is just a smooth `times_diffeomorph`. -/
 @[reducible] def diffeomorph := times_diffeomorph I I' M M' ⊤
 
 infix ` ≃ₘ `:50 := times_diffeomorph _ _

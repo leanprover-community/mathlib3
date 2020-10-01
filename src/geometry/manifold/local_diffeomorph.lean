@@ -53,6 +53,7 @@ extends local_equiv M M' :=
 (times_cont_mdiff_to_fun      : times_cont_mdiff_on I I' n to_fun source)
 (times_cont_mdiff_inv_fun     : times_cont_mdiff_on I' I n inv_fun target)
 
+/-- A `local_diffeomorph` is just a smooth `local_times_diffeomorph`. -/
 @[reducible] def local_diffeomorph (I : model_with_corners 𝕜 E H) (I' : model_with_corners 𝕜 E' H')
 (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 (M' : Type*) [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M'] :=
@@ -84,6 +85,7 @@ variables {I : model_with_corners 𝕜 E H} {I' : model_with_corners 𝕜 E' H'}
 (e : local_times_diffeomorph I I' M M' n) (e' : local_times_diffeomorph I' J M' N n)
 (f : local_times_diffeomorph I I' M M' ⊤)
 
+/-- A local diffeomorphism is clearly also a local homeomorphism. -/
 def to_local_homeomorph (h : local_times_diffeomorph I I' M M' n) : local_homeomorph M M' :=
 { continuous_to_fun := h.times_cont_mdiff_to_fun.continuous_on,
   continuous_inv_fun :=  h.times_cont_mdiff_inv_fun.continuous_on,

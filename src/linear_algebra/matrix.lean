@@ -125,7 +125,15 @@ linear_map.to_matrix'.apply_symm_apply M
 matrix.to_lin'.apply_symm_apply f
 
 @[simp] lemma linear_map.to_matrix'_apply (f : (n → R) →ₗ[R] (m → R)) (i j) :
-  linear_map.to_matrix' f i j = f (std_basis R (λ _, R) j 1) i := rfl
+  linear_map.to_matrix' f i j = f (λ j', if j' = j then 1 else 0) i :=
+begin
+  simp only [linear_map.to_matrix', linear_equiv.mk_apply],
+  congr,
+  ext j',
+  split_ifs with h,
+  { rw [h, std_basis_same] },
+  apply std_basis_ne _ _ _ _ h
+end
 
 @[simp] lemma matrix.to_lin'_apply (M : matrix m n R) (v : n → R) :
   matrix.to_lin' M v = M.mul_vec v := rfl
@@ -136,7 +144,7 @@ by { ext, simp }
 
 @[simp] lemma linear_map.to_matrix'_id :
   (linear_map.to_matrix' (linear_map.id : (n → R) →ₗ[R] (n → R))) = 1 :=
-by { ext, rw [matrix.one_apply], split_ifs with h; simp [h, std_basis_apply] }
+by { ext, rw [matrix.one_apply, linear_map.to_matrix'_apply, id_apply] }
 
 @[simp] lemma matrix.to_lin'_mul [decidable_eq m] (M : matrix l m R) (N : matrix m n R) :
   matrix.to_lin' (M ⬝ N) = (matrix.to_lin' M).comp (matrix.to_lin' N) :=
@@ -197,9 +205,9 @@ lemma linear_map.to_matrix_apply (f : M₁ →ₗ[R] M₂) (i : m) (j : n) :
 begin
   rw [linear_map.to_matrix, linear_equiv.trans_apply, linear_map.to_matrix'_apply,
       linear_equiv.arrow_congr_apply, is_basis.equiv_fun_symm_apply, finset.sum_eq_single j,
-      std_basis_same, one_smul],
+      if_pos rfl, one_smul],
   { intros j' _ hj',
-    rw [std_basis_ne _ _ _ _ hj', zero_smul] },
+    rw [if_neg hj', zero_smul] },
   { intro hj,
     have := finset.mem_univ j,
     contradiction }

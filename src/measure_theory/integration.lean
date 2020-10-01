@@ -1472,9 +1472,8 @@ begin
 end
 
 namespace measure_theory
-namespace with_density
 
-lemma compose_eq_multiply {α} [measurable_space α] (μ : measure_theory.measure α) 
+lemma lintegral_with_density_eq_lintegral_mul {α} [measurable_space α] (μ : measure_theory.measure α) 
   (f : α → ennreal) (h_mf : measurable f):∀ (g : α → ennreal), measurable g → 
   ∫⁻ a, g a ∂(μ.with_density f)  =  ∫⁻ a, (f * g) a ∂μ :=
 begin
@@ -1522,5 +1521,4 @@ begin
     apply h_mono_g},
 end
 
-end with_density
 end measure_theory

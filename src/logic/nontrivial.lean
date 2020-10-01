@@ -40,8 +40,11 @@ begin
   { exact ⟨y, ne.symm hx⟩ }
 end
 
-lemma nontrivial_of_ne (x y : α) (h : x ≠ y) : nontrivial α :=
+lemma nontrivial_of_ne {x y : α} (h : x ≠ y) : nontrivial α :=
 ⟨⟨x, y, h⟩⟩
+
+lemma nontrivial_of_lt [preorder α] {x y : α} (h : x < y) : nontrivial α :=
+⟨⟨x, y, ne_of_lt h⟩⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance nontrivial.to_nonempty [nontrivial α] : nonempty α :=
@@ -66,7 +69,7 @@ lemma not_nontrivial_iff_subsingleton : ¬(nontrivial α) ↔ subsingleton α :=
 by { rw [nontrivial_iff, subsingleton_iff], push_neg, refl }
 
 /-- A type is either a subsingleton or nontrivial. -/
-lemma subsingleton_or_nontrivial (α : Type*) :  subsingleton α ∨ nontrivial α :=
+lemma subsingleton_or_nontrivial (α : Type*) : subsingleton α ∨ nontrivial α :=
 by { rw [← not_nontrivial_iff_subsingleton, or_comm], exact classical.em _ }
 
 lemma false_of_nontrivial_of_subsingleton (α : Type*) [nontrivial α] [subsingleton α] : false :=
@@ -128,3 +131,28 @@ begin
   { exact ⟨x₁, (hf.ne_iff' h).2 hx⟩ },
   { exact ⟨x₂, h⟩ }
 end
+
+namespace tactic.interactive
+
+open tactic
+
+/--
+Given a goal `a = b` or `a ≤ b` in a type `α`, generates an additional hypothesis `nontrivial α`
+(as otherwise `α` is a subsingleton and the goal is trivial).
+-/
+meta def nontriviality : tactic unit :=
+do
+  t ← (do `(%%a = %%b) ← target, infer_type a) <|> (do `(%%a ≤ %%b) ← target, infer_type a) <|>
+    fail "Goal is not `_ = _` or `_ ≤ _`",
+  alternative ← to_expr ``(subsingleton_or_nontrivial %%t),
+  tactic.cases alternative,
+  `[{ resetI, try { apply le_of_eq }, apply subsingleton.elim, }],
+  reset_instance_cache
+
+add_tactic_doc
+{ name                     := "nontriviality",
+  category                 := doc_category.tactic,
+  decl_names               := [`tactic.interactive.nontriviality],
+  tags                     := ["logic", "typeclass"] }
+
+end tactic.interactive

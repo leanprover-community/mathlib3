@@ -6,6 +6,7 @@ Author: Johannes Hölzl, Patrick Massot, Casper Putz
 import linear_algebra.finite_dimensional
 import linear_algebra.nonsingular_inverse
 import linear_algebra.multilinear
+import linear_algebra.dual
 
 /-!
 # Linear maps and matrices
@@ -167,12 +168,9 @@ end to_matrix'
 section to_matrix
 
 variables {R : Type*} [comm_ring R]
-variables {l m n : Type*} [fintype l] [fintype m] [fintype n]
-
-variables {M₁ M₂ : Type*} [add_comm_group M₁] [module R M₁] [add_comm_group M₂] [module R M₂]
-variables {v₁ : n → M₁} {v₂ : m → M₂} (hv₁ : is_basis R v₁) (hv₂ : is_basis R v₂)
-
-variables [decidable_eq n]
+variables {l m n : Type*} [fintype l] [fintype m] [fintype n] [decidable_eq n]
+variables {M₁ M₂ : Type*} [add_comm_group M₁] [add_comm_group M₂] [module R M₁] [module R M₂]
+variables {v₁ : n → M₁} (hv₁ : is_basis R v₁) {v₂ : m → M₂} (hv₂ : is_basis R v₂)
 
 /-- Given bases of two modules `M₁` and `M₂` over a commutative ring `R`, we get a linear
 equivalence between linear maps `M₁ →ₗ M₂` and matrices over `R` indexed by the bases. -/
@@ -212,6 +210,10 @@ begin
     have := finset.mem_univ j,
     contradiction }
 end
+
+lemma linear_map.to_matrix_apply' (f : M₁ →ₗ[R] M₂) (i : m) (j : n) :
+  linear_map.to_matrix hv₁ hv₂ f i j = hv₂.repr (f (v₁ j)) i :=
+linear_map.to_matrix_apply hv₁ hv₂ f i j
 
 lemma matrix.to_lin_apply (M : matrix m n R) (v : M₁) :
   matrix.to_lin hv₁ hv₂ M v = ∑ j, M.mul_vec (hv₁.equiv_fun v) j • v₂ j :=
@@ -402,6 +404,40 @@ end
 
 end det
 
+section transpose
+
+variables {K V₁ V₂ ι₁ ι₂ : Type*} [field K]
+          [add_comm_group V₁] [vector_space K V₁]
+          [add_comm_group V₂] [vector_space K V₂]
+          [fintype ι₁] [fintype ι₂] [decidable_eq ι₁] [decidable_eq ι₂]
+          {B₁ : ι₁ → V₁} (h₁ : is_basis K B₁)
+          {B₂ : ι₂ → V₂} (h₂ : is_basis K B₂)
+
+@[simp] lemma linear_map.to_matrix_transpose (u : V₁ →ₗ[K] V₂) :
+  linear_map.to_matrix h₂.dual_basis_is_basis h₁.dual_basis_is_basis (module.dual.transpose u) =
+  (linear_map.to_matrix h₁ h₂ u)ᵀ :=
+begin
+  ext i j,
+  simp only [linear_map.to_matrix_apply, module.dual.transpose_apply, h₁.dual_basis_equiv_fun,
+             h₂.dual_basis_apply, matrix.transpose_apply, linear_map.comp_apply]
+end
+
+lemma linear_map.to_matrix_symm_transpose (M : matrix ι₁ ι₂ K) :
+  (linear_map.to_matrix h₁.dual_basis_is_basis h₂.dual_basis_is_basis).symm Mᵀ =
+  module.dual.transpose (matrix.to_lin h₂ h₁ M) :=
+begin
+  apply (linear_map.to_matrix h₁.dual_basis_is_basis h₂.dual_basis_is_basis).injective,
+  rw [linear_equiv.apply_symm_apply],
+  ext i j,
+  simp only [linear_map.to_matrix_apply, module.dual.transpose_apply, h₂.dual_basis_equiv_fun,
+    h₁.dual_basis_apply, matrix.transpose_apply, linear_map.comp_apply, if_true,
+    matrix.to_lin_apply, linear_equiv.map_smul, mul_boole, algebra.id.smul_eq_mul,
+    linear_equiv.map_sum, is_basis.equiv_fun_self, fintype.sum_apply, finset.sum_ite_eq',
+    finset.sum_ite_eq, is_basis.equiv_fun_symm_apply, pi.smul_apply, matrix.to_lin_apply,
+    matrix.mul_vec, matrix.dot_product, is_basis.equiv_fun_self, finset.mem_univ]
+end
+
+end transpose
 namespace matrix
 
 section trace

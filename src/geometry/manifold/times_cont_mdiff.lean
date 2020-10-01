@@ -1513,3 +1513,23 @@ begin
   rw times_cont_diff_on_univ,
   exact continuous_linear_map.times_cont_diff L,
 end
+
+/-! ### Smoothness of standard operations -/
+
+variables {V : Type*} [normed_group V] [normed_space 𝕜 V]
+
+/-- On any vector space, multiplication by a scalar is a smooth operation. -/
+lemma smooth_smul : smooth (𝓘(𝕜).prod 𝓘(𝕜, V)) 𝓘(𝕜, V) (λp : 𝕜 × V, p.1 • p.2) :=
+begin
+  rw smooth_iff,
+  refine ⟨continuous_smul, λ x y, _⟩,
+  simp only [prod.mk.eta] with mfld_simps,
+  rw times_cont_diff_on_univ,
+  exact times_cont_diff_smul,
+end
+
+lemma smooth.smul {N : Type*} [topological_space N] [charted_space H N]
+  [smooth_manifold_with_corners I N] {f : N → 𝕜} {g : N → V}
+  (hf : smooth I 𝓘(𝕜) f) (hg : smooth I 𝓘(𝕜, V) g) :
+  smooth I 𝓘(𝕜, V) (λ p, f p • g p) :=
+smooth_smul.comp (hf.prod_mk hg)

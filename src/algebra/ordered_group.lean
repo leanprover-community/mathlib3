@@ -1895,6 +1895,11 @@ instance [decidable_linear_ordered_add_comm_group α] :
   ..order_dual.decidable_linear_order α,
   ..show add_comm_group α, by apply_instance }
 
+instance [decidable_linear_ordered_cancel_add_comm_monoid α] :
+  decidable_linear_ordered_cancel_add_comm_monoid (order_dual α) :=
+{ .. order_dual.decidable_linear_order α,
+  .. order_dual.ordered_cancel_add_comm_monoid }
+
 end order_dual
 
 section type_tags

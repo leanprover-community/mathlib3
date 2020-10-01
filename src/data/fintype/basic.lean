@@ -38,6 +38,9 @@ fintype.complete x
 @[simp] lemma coe_univ : ↑(univ : finset α) = (set.univ : set α) :=
 by ext; simp
 
+lemma univ_nonempty [h : nonempty α] : (univ : finset α).nonempty :=
+nonempty.elim h (λ x, ⟨x, mem_univ x⟩)
+
 theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 
 instance : order_top (finset α) :=
@@ -449,6 +452,15 @@ variables [fintype α] [fintype β]
 
 lemma card_le_of_injective (f : α → β) (hf : function.injective f) : card α ≤ card β :=
 finset.card_le_card_of_inj_on f (λ _ _, finset.mem_univ _) (λ _ _ _ _ h, hf h)
+
+/--
+The pigeonhole principle for finitely many pigeons and pigeonholes.
+This is the `fintype` version of `finset.exists_ne_map_eq_of_card_lt_of_maps_to`.
+-/
+lemma exists_ne_map_eq_of_card_lt (f : α → β) (h : fintype.card β < fintype.card α) :
+  ∃ x y, x ≠ y ∧ f x = f y :=
+let ⟨x, _, y, _, h⟩ := finset.exists_ne_map_eq_of_card_lt_of_maps_to h (λ x _, mem_univ (f x))
+in ⟨x, y, h⟩
 
 lemma card_eq_one_iff : card α = 1 ↔ (∃ x : α, ∀ y, y = x) :=
 by rw [← card_unit, card_eq]; exact
@@ -1120,6 +1132,45 @@ lemma not_injective_infinite_fintype [infinite α] [fintype β] (f : α → β) 
 assume (hf : injective f),
 have H : fintype α := fintype.of_injective f hf,
 infinite.not_fintype H
+
+/--
+The pigeonhole principle for infinitely many pigeons in finitely many
+pigeonholes.  If there are infinitely many pigeons in finitely many
+pigeonholes, then there are at least two pigeons in the same
+pigeonhole.
+
+See also: `fintype.exists_ne_map_eq_of_card_lt`, `fintype.exists_infinite_fiber`.
+-/
+lemma fintype.exists_ne_map_eq_of_infinite [infinite α] [fintype β] (f : α → β) :
+  ∃ x y : α, x ≠ y ∧ f x = f y :=
+begin
+  classical, by_contra hf, push_neg at hf,
+  apply not_injective_infinite_fintype f,
+  intros x y, contrapose, apply hf,
+end
+
+/--
+The strong pigeonhole principle for infinitely many pigeons in
+finitely many pigeonholes.  If there are infinitely many pigeons in
+finitely many pigeonholes, then there is a pigeonhole with infinitely
+many pigeons.
+
+See also: `fintype.exists_ne_map_eq_of_infinite`
+-/
+lemma fintype.exists_infinite_fiber [infinite α] [fintype β] (f : α → β) :
+  ∃ y : β, infinite (f ⁻¹' {y}) :=
+begin
+  classical, by_contra hf, push_neg at hf,
+  haveI h' : ∀ (y : β), fintype (f ⁻¹' {y}) := begin
+    intro y, specialize hf y,
+    rw [←not_nonempty_fintype, not_not] at hf,
+    exact classical.choice hf,
+  end,
+  let key : fintype α :=
+  { elems := univ.bind (λ (y : β), (f ⁻¹' {y}).to_finset),
+    complete := by simp },
+  exact infinite.not_fintype key,
+end
 
 lemma not_surjective_fintype_infinite [fintype α] [infinite β] (f : α → β) :
   ¬ surjective f :=

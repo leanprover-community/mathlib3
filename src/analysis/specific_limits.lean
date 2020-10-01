@@ -483,7 +483,7 @@ begin
   simp only [pow_zero],
   refine le_trans (norm_add_le _ _) _,
   have : ∥(∑' (b : ℕ), (λ n, x ^ (n + 1)) b)∥ ≤ (1 - ∥x∥)⁻¹ - 1,
-  { refine tsum_of_norm_bounded _ (λ b, norm_pow_le _ (nat.succ_pos b)),
+  { refine tsum_of_norm_bounded _ (λ b, norm_pow_le' _ (nat.succ_pos b)),
     convert (has_sum_nat_add_iff' 1).mpr (has_sum_geometric_of_lt_1 (norm_nonneg x) h),
     simp },
   linarith

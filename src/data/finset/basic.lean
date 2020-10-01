@@ -49,7 +49,7 @@ erase_dup_eq_self.2 s.2
 instance has_decidable_eq [decidable_eq α] : decidable_eq (finset α)
 | s₁ s₂ := decidable_of_iff _ val_inj
 
-/- membership -/
+/-! ### membership -/
 
 instance : has_mem α (finset α) := ⟨λ a s, a ∈ s.1⟩
 
@@ -172,6 +172,11 @@ instance : inhabited (finset α) := ⟨∅⟩
 
 @[simp] theorem not_mem_empty (a : α) : a ∉ (∅ : finset α) := id
 
+@[simp] theorem not_nonempty_empty : ¬(∅ : finset α).nonempty :=
+λ ⟨x, hx⟩, not_mem_empty x hx
+
+@[simp] theorem mk_zero : (⟨0, nodup_zero⟩ : finset α) = ∅ := rfl
+
 theorem ne_empty_of_mem {a : α} {s : finset α} (h : a ∈ s) : s ≠ ∅ :=
 λ e, not_mem_empty a $ e ▸ h
 
@@ -263,6 +268,17 @@ def cons {α} (a : α) (s : finset α) (h : a ∉ s) : finset α :=
 by rcases s with ⟨⟨s⟩⟩; apply list.mem_cons_iff
 
 @[simp] theorem cons_val {a : α} {s : finset α} (h : a ∉ s) : (cons a s h).1 = a :: s.1 := rfl
+
+@[simp] theorem mk_cons {a : α} {s : multiset α} (h : (a :: s).nodup) :
+  (⟨a :: s, h⟩ : finset α) = cons a ⟨s, (multiset.nodup_cons.1 h).2⟩ (multiset.nodup_cons.1 h).1 :=
+rfl
+
+@[simp] theorem nonempty_cons {a : α} {s : finset α} (h : a ∉ s) : (cons a s h).nonempty :=
+⟨a, mem_cons.2 (or.inl rfl)⟩
+
+@[simp] lemma nonempty_mk_coe : ∀ {l : list α} {hl}, (⟨↑l, hl⟩ : finset α).nonempty ↔ l ≠ []
+| [] hl := by simp
+| (a::l) hl := by simp [← multiset.cons_coe]
 
 /-! ### disjoint union -/
 

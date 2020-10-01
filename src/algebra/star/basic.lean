@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison.
 -/
 import tactic.apply_fun
-import algebra.algebra.ordered
 import algebra.ordered_ring
+import algebra.big_operators.basic
 
 /-!
 # star_monoid, star_ring, star_algebra
@@ -88,6 +88,22 @@ star_ring.star_zero
 @[simp] lemma star_add [semiring R] [star_ring R] (r s : R) : star (r + s) = star r + star s :=
 star_ring.star_add r s
 
+section
+open_locale big_operators
+
+@[simp] lemma star_sum [semiring R] [star_ring R] {α : Type*} [decidable_eq α]
+  (s : finset α) (f : α → R):
+  star (∑ x in s, f x) = ∑ x in s, star (f x) :=
+begin
+  apply finset.induction_on s,
+  { simp, },
+  { intros a s nm w,
+    rw [finset.sum_insert nm, finset.sum_insert nm],
+    simp [w], }
+end
+
+end
+
 @[simp] lemma star_neg [ring R] [star_ring R] (r : R) : star (-r) = - star r :=
 begin
   apply (add_left_inj (star r)).1,
@@ -105,6 +121,23 @@ by simp [bit0]
 by simp [bit1]
 
 /--
+Any commutative semiring admits the trivial *-structure.
+-/
+def star_ring_of_comm {R : Type*} [comm_semiring R] : star_ring R :=
+{ star := id,
+  star_star := by simp,
+  star_mul := by simp [mul_comm],
+  star_zero := by simp,
+  star_add := by simp, }
+
+section
+local attribute [instance] star_ring_of_comm
+
+@[simp] lemma star_id_of_comm {R : Type*} [comm_semiring R] {x : R} : star x = x := rfl
+
+end
+
+/--
 An ordered *-ring is a ring which is both an ordered ring and a *-star,
 and `0 ≤ star r * r` for every `r`.
 
@@ -117,25 +150,3 @@ class star_ordered_ring (R : Type u) [ordered_semiring R] extends star_ring R :=
 
 lemma star_mul_self_nonneg [ordered_semiring R] [star_ordered_ring R] {r : R} : 0 ≤ star r * r :=
 star_ordered_ring.star_mul_self_nonneg r
-
-/--
-A star algebra `A` over a star ring `R` is an algebra which is a star ring,
-and the two star structures are compatible in the sense
-`star (r • a) = star r • star a`.
--/
-class star_algebra (R : Type u) (A : Type v)
-  [comm_semiring R] [star_ring R] [semiring A] [algebra R A] extends star_ring A :=
-(star_smul : ∀ (r : R) (a : A), star (r • a) = (@has_star.star R _ r) • star a)
-
-variables {A : Type v}
-
-@[simp] lemma star_smul
-  [comm_semiring R] [star_ring R] [semiring A] [algebra R A] [star_algebra R A] (r : R) (a : A) :
-  star (r • a) = star r • star a :=
-star_algebra.star_smul r a
-
-set_option old_structure_cmd true
-
-class star_ordered_algebra (R : Type u) (A : Type v)
-  [ordered_comm_semiring R] [star_ring R] [ordered_semiring A] [ordered_algebra R A]
-  extends star_ordered_ring A, star_algebra R A.

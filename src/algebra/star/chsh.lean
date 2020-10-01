@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison.
 -/
-import algebra.star.basic
+import algebra.star.algebra
 import algebra.algebra.ordered
 import analysis.special_functions.pow
 
@@ -19,12 +19,11 @@ As usually stated the CHSH ienquality requires substantial language from physics
 but it is possible to give a statement that is purely about ordered *-algebras.
 We do that here, to avoid as many practical and logical dependencies as possible.
 Since the algebra of observables of any quantum system is an ordered *-algebra
-(in particular a von Neumann algebra, where the ordering is determined by the *-algebra structure)
-this is a strict generalization of the usual statement.
+(in particular a von Neumann algebra) this is a strict generalization of the usual statement.
 
 Let `R` be a *-ring.
 
-A CHSH tuple consists of
+A CHSH tuple in `R` consists of
 * four elements `A₀ A₁ B₀ B₁ : R`, such that
 * each `Aᵢ` and `Bⱼ` is a self-adjoint involution, and
 * the `Aᵢ` commute with the `Bⱼ`.
@@ -76,17 +75,7 @@ There is a CHSH tuple in 4-by-4 matrices such that
 
 universes u
 
-instance : star_ring ℝ :=
-{ star := id,
-  star_star := by simp,
-  star_mul := by simp [mul_comm],
-  star_zero := by simp,
-  star_add := by simp, }
-
-@[simp] lemma star_real {x : ℝ} : star x = x := rfl
-
-
-structure is_chsh_tuple {R} [monoid R] [star_monoid R] (A₀ A₁ B₀ B₁ : R) :=
+structure is_CHSH_tuple {R} [monoid R] [star_monoid R] (A₀ A₁ B₀ B₁ : R) :=
 (A₀_inv : A₀^2 = 1) (A₁_inv : A₁^2 = 1) (B₀_inv : B₀^2 = 1) (B₁_inv : B₁^2 = 1)
 (A₀_sa : star A₀ = A₀) (A₁_sa : star A₁ = A₁) (B₀_sa : star B₀ = B₀) (B₁_sa : star B₁ = B₁)
 (A₀B₀_commutes : A₀ * B₀ = B₀ * A₀)
@@ -103,9 +92,9 @@ Given a CHSH tuple (A₀, A₁, B₀, B₁) in a *commutative* ordered *-algebra
 
 (We could work over ℤ[⅟2] if we wanted to!)
 -/
-lemma commutative_CHSH_inequality
+lemma CHSH_inequality_of_comm
   [ordered_comm_ring R] [star_ordered_ring R] [ordered_algebra ℝ R]
-  (A₀ A₁ B₀ B₁ : R) (T : is_chsh_tuple A₀ A₁ B₀ B₁) :
+  (A₀ A₁ B₀ B₁ : R) (T : is_CHSH_tuple A₀ A₁ B₀ B₁) :
   A₀ * B₀ + A₀ * B₁ + A₁ * B₀ - A₁ * B₁ ≤ 2 :=
 begin
   let P := (2 - A₀ * B₀ - A₀ * B₁ - A₁ * B₀ + A₁ * B₁),
@@ -224,11 +213,14 @@ In a noncommutative ordered *-algebra over ℝ,
 Tsirelson's bound for a CHSH tuple (A₀, A₁, B₀, B₁) is
 `A₀ * B₀ + A₀ * B₁ + A₁ * B₀ - A₁ * B₁ ≤ 2^(3/2) • 1`.
 
+We prove this by providing an explicit sum-of-squares decomposition
+of the difference.
+
 (We could work over `ℤ[2^(1/2), 2^(-1/2)]` if we really wanted to!)
 -/
-lemma noncommutative_CHSH_inequality
+lemma tsirelson_inequality
   [ordered_comm_ring R] [ordered_algebra ℝ R] [star_ordered_algebra ℝ R]
-  (A₀ A₁ B₀ B₁ : R) (T : is_chsh_tuple A₀ A₁ B₀ B₁) :
+  (A₀ A₁ B₀ B₁ : R) (T : is_CHSH_tuple A₀ A₁ B₀ B₁) :
   A₀ * B₀ + A₀ * B₁ + A₁ * B₀ - A₁ * B₁ ≤ √2^3 • 1 :=
 begin
   let P := √2⁻¹ • (A₁ + A₀) - B₀,
@@ -250,11 +242,11 @@ begin
   have pos : 0 ≤ √2⁻¹ • (P^2 + Q^2), {
     have P_sa : star P = P,
     { dsimp [P],
-      simp only [star_smul, star_add, star_sub, star_real,
+      simp only [star_smul, star_add, star_sub, star_id_of_comm,
         T.A₀_sa, T.A₁_sa, T.B₀_sa, T.B₁_sa], },
     have Q_sa : star Q = Q,
     { dsimp [Q],
-      simp only [star_smul, star_add, star_sub, star_real,
+      simp only [star_smul, star_add, star_sub, star_id_of_comm,
         T.A₀_sa, T.A₁_sa, T.B₀_sa, T.B₁_sa], },
     have P2_nonneg : 0 ≤ P^2,
     { rw [pow_two],
@@ -264,12 +256,8 @@ begin
     { rw [pow_two],
       conv { congr, skip, congr, rw ←Q_sa, },
       convert (star_mul_self_nonneg : 0 ≤ star Q * Q), },
-    convert smul_le_smul_of_nonneg (add_nonneg ‹_› ‹_› : 0 ≤ P^2 + Q^2) (le_of_lt zero_lt_sqrt_two_inv),
+    convert smul_le_smul_of_nonneg (add_nonneg P2_nonneg Q2_nonneg) (le_of_lt zero_lt_sqrt_two_inv),
     simp, },
   apply le_of_sub_nonneg,
   simpa only [sub_add_eq_sub_sub, ←sub_add, w] using pos,
 end
-
--- In fact, this is optimal, witnessed by
--- `R = (matrix (fin 2) (fin 2) ℝ) ⊗ (matrix (fin 2) (fin 2) ℝ)`
--- and `A =

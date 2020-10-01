@@ -9,6 +9,7 @@ from Cauchy sequences.
 import order.conditionally_complete_lattice
 import data.real.cau_seq_completion
 import algebra.archimedean
+import algebra.star.basic
 
 def real := @cau_seq.completion.Cauchy ℚ _ _ _ abs _
 notation `ℝ` := real
@@ -39,6 +40,9 @@ instance : monoid ℝ             := by apply_instance
 instance : comm_semigroup ℝ     := by apply_instance
 instance : semigroup ℝ          := by apply_instance
 instance : inhabited ℝ := ⟨0⟩
+
+/-- The real numbers are a *-ring, with the trivial *-structure. -/
+instance : star_ring ℝ          := star_ring_of_comm
 
 /-- Coercion `ℚ` → `ℝ` as a `ring_hom`. Note that this
 is `cau_seq.completion.of_rat`, not `rat.cast`. -/
@@ -123,6 +127,10 @@ instance : has_zero ℝ                   := by apply_instance
 instance : has_mul ℝ                    := by apply_instance
 instance : has_add ℝ                    := by apply_instance
 instance : has_sub ℝ                    := by apply_instance
+
+/-- The real numbers are an ordered *-ring, with the trivial *-structure. -/
+instance : star_ordered_ring ℝ :=
+{ star_mul_self_nonneg := λ r, mul_self_nonneg r, }
 
 open_locale classical
 

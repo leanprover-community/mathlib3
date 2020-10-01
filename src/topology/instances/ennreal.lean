@@ -528,7 +528,7 @@ sum_le_tsum s (λ x hx, zero_le _) ennreal.summable
 
 protected lemma tsum_eq_supr_nat' {f : ℕ → ennreal} {N : ℕ → ℕ} (hN : tendsto N at_top at_top) :
   (∑'i:ℕ, f i) = (⨆i:ℕ, ∑ a in finset.range (N i), f a) :=
-ennreal.tsum_eq_supr_sum' _ $ λ t, 
+ennreal.tsum_eq_supr_sum' _ $ λ t,
   let ⟨n, hn⟩    := t.exists_nat_subset_range,
       ⟨k, _, hk⟩ := exists_le_of_tendsto_at_top hN 0 n in
   ⟨k, finset.subset.trans hn (finset.range_mono hk)⟩

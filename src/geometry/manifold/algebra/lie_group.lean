@@ -76,7 +76,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
 {F : Type*} [normed_group F] [normed_space 𝕜 F] {J : model_with_corners 𝕜 F F}
 {G : Type*} [topological_space G] [charted_space H G] [group G]
-[topological_group G] [smooth_manifold_with_corners I G] [lie_group I G]
+[topological_group G] [lie_group I G]
 {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M : Type*} [topological_space M] [charted_space H' M] [smooth_manifold_with_corners I' M]
@@ -220,7 +220,7 @@ protected lemma to_topological_group : topological_group G :=
   continuous_inv := c.smooth_inv.continuous, }
 
 @[to_additive]
-protected lemma to_lie_group : @lie_group 𝕜 _ _ _ E _ _ I G _ _ c.to_topological_group _ _ :=
+protected lemma to_lie_group : @lie_group 𝕜 _ _ _ E _ _ I G _ _ c.to_topological_group _ :=
 { smooth_mul := c.smooth_mul,
   smooth_inv := c.smooth_inv,
   .. c.to_smooth_manifold_with_corners }

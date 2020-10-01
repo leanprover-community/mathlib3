@@ -10,8 +10,6 @@ import ring_theory.multiplicity
 import data.polynomial.eval
 import data.polynomial.degree
 import tactic.interval_cases
-
-
 /-!
 # Irrational real numbers
 
@@ -208,8 +206,8 @@ theorem of_fpow : ∀ m : ℤ, irrational (x^m) → irrational x
 
 end irrational
 
-
 section polynomial
+
 open polynomial
 variables (x : ℝ) (p : polynomial ℤ)
 
@@ -239,7 +237,6 @@ begin
 end
 
 end polynomial
-
 
 section
 variables {q : ℚ} {x : ℝ}

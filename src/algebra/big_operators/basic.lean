@@ -676,6 +676,10 @@ by haveI := classical.dec_eq α; exact
 finset.induction_on s rfl (λ a s has ih,
 by rw [prod_insert has, card_insert_of_not_mem has, pow_succ, ih])
 
+lemma pow_eq_prod_const (b : β) : ∀ n, b ^ n = ∏ k in range n, b
+| 0 := rfl
+| (n+1) := by simp
+
 lemma prod_pow (s : finset α) (n : ℕ) (f : α → β) :
   (∏ x in s, f x ^ n) = (∏ x in s, f x) ^ n :=
 by haveI := classical.dec_eq α; exact
@@ -1009,6 +1013,24 @@ theorem prod_ne_zero_iff : (∏ x in s, f x) ≠ 0 ↔ (∀ a ∈ s, f a ≠ 0) 
 by { rw [ne, prod_eq_zero_iff], push_neg }
 
 end prod_eq_zero
+
+section comm_group_with_zero
+variables [comm_group_with_zero β]
+
+@[simp]
+lemma prod_inv_distrib' : (∏ x in s, (f x)⁻¹) = (∏ x in s, f x)⁻¹ :=
+begin
+  classical,
+  by_cases h : ∃ x ∈ s, f x = 0,
+  { simpa [prod_eq_zero_iff.mpr h, prod_eq_zero_iff] using h },
+  { push_neg at h,
+    have h' := prod_ne_zero_iff.mpr h,
+    have hf : ∀ x ∈ s, (f x)⁻¹ * f x = 1 := λ x hx, inv_mul_cancel (h x hx),
+    apply mul_right_cancel' h',
+    simp [h, h', ← finset.prod_mul_distrib, prod_congr rfl hf] }
+end
+
+end comm_group_with_zero
 
 end finset
 

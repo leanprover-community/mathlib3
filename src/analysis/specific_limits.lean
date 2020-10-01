@@ -14,11 +14,9 @@ import tactic.ring_exp
 -/
 
 noncomputable theory
-open_locale classical topological_space
-
 open classical function filter finset metric
 
-open_locale big_operators
+open_locale classical topological_space nat big_operators
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 
@@ -565,6 +563,34 @@ begin
 end
 
 end ennreal
+
+/-!
+### Factorial
+-/
+
+lemma factorial_tendsto_at_top : tendsto nat.factorial at_top at_top :=
+tendsto_at_top_at_top_of_monotone nat.monotone_factorial (λ n, ⟨n, n.self_le_factorial⟩)
+
+lemma tendsto_factorial_div_pow_self_at_top : tendsto (λ n, n! / n^n : ℕ → ℝ) at_top (𝓝 0) :=
+tendsto_of_tendsto_of_tendsto_of_le_of_le'
+  tendsto_const_nhds
+  (tendsto_const_div_at_top_nhds_0_nat 1)
+  (eventually_of_forall $ λ n, div_nonneg (by exact_mod_cast n.factorial_pos.le)
+    (pow_nonneg (by exact_mod_cast n.zero_le) _))
+  begin
+    rw eventually_iff_exists_mem,
+    use [set.Ioi 0, Ioi_mem_at_top 0],
+    rintros n (hn : 0 < n),
+    rcases nat.exists_eq_succ_of_ne_zero hn.ne.symm with ⟨k, rfl⟩,
+    rw [← prod_range_add_one_eq_factorial, pow_eq_prod_const, div_eq_mul_inv, ← inv_eq_one_div, prod_nat_cast,
+        nat.cast_succ, ← prod_inv_distrib', ← prod_mul_distrib, finset.prod_range_succ'],
+    simp only [prod_range_succ', one_mul, nat.cast_add, zero_add, nat.cast_one],
+    refine mul_le_of_le_one_left (inv_nonneg.mpr $ by exact_mod_cast hn.le) (prod_le_one _ _);
+    intros x hx;
+    rw finset.mem_range at hx,
+    { refine mul_nonneg _ (inv_nonneg.mpr _); norm_cast; linarith },
+    { refine (div_le_one $ by exact_mod_cast hn).mpr _, norm_cast, linarith }
+  end
 
 /-!
 ### Harmonic series

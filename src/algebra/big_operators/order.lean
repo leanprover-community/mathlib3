@@ -243,6 +243,13 @@ begin
       apply le_trans (h0 a (mem_insert_self a s)) (h1 a (mem_insert_self a s)) }
 end
 
+lemma prod_le_one {s : finset α} {f : α → β} (h0 : ∀(x ∈ s), 0 ≤ f x)
+  (h1 : ∀(x ∈ s), f x ≤ 1) : (∏ x in s, f x) ≤ 1 :=
+begin
+  convert ← prod_le_prod h0 h1,
+  exact finset.prod_const_one
+end
+
 /-- If `g, h ≤ f` and `g i + h i ≤ f i`, then the product of `f` over `s` is at least the
   sum of the products of `g` and `h`. This is the version for `linear_ordered_comm_ring`. -/
 lemma prod_add_prod_le {s : finset α} {i : α} {f g h : α → β}

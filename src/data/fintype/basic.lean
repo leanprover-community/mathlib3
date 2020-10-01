@@ -11,6 +11,8 @@ import data.finset.lattice
 import data.finset.pi
 import data.array.lemmas
 
+open_locale nat
+
 universes u v
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -868,11 +870,11 @@ def perms_of_list : list α → list (perm α)
 | []       := [1]
 | (a :: l) := perms_of_list l ++ l.bind (λ b, (perms_of_list l).map (λ f, swap a b * f))
 
-lemma length_perms_of_list : ∀ l : list α, length (perms_of_list l) = l.length.fact
+lemma length_perms_of_list : ∀ l : list α, length (perms_of_list l) = l.length!
 | []       := rfl
 | (a :: l) :=
 begin
-  rw [length_cons, nat.fact_succ],
+  rw [length_cons, nat.factorial_succ],
   simp [perms_of_list, length_bind, length_perms_of_list, function.comp, nat.succ_mul],
   cc
 end
@@ -963,7 +965,7 @@ lemma mem_perms_of_finset_iff : ∀ {s : finset α} {f : perm α},
 by rintros ⟨⟨l⟩, hs⟩ f; exact mem_perms_of_list_iff
 
 lemma card_perms_of_finset : ∀ (s : finset α),
-  (perms_of_finset s).card = s.card.fact :=
+  (perms_of_finset s).card = s.card! :=
 by rintros ⟨⟨l⟩, hs⟩; exact length_perms_of_list l
 
 def fintype_perm [fintype α] : fintype (perm α) :=
@@ -977,12 +979,12 @@ then trunc.rec_on_subsingleton (fintype.equiv_fin α)
       (equiv_congr (equiv.refl α) (eα.trans (eq.rec_on h eβ.symm)) : (α ≃ α) ≃ (α ≃ β))))
 else ⟨∅, λ x, false.elim (h (fintype.card_eq.2 ⟨x.symm⟩))⟩
 
-lemma fintype.card_perm [fintype α] : fintype.card (perm α) = (fintype.card α).fact :=
+lemma fintype.card_perm [fintype α] : fintype.card (perm α) = (fintype.card α)! :=
 subsingleton.elim (@fintype_perm α _ _) (@equiv.fintype α α _ _ _ _) ▸
 card_perms_of_finset _
 
 lemma fintype.card_equiv [fintype α] [fintype β] (e : α ≃ β) :
-  fintype.card (α ≃ β) = (fintype.card α).fact :=
+  fintype.card (α ≃ β) = (fintype.card α)! :=
 fintype.card_congr (equiv_congr (equiv.refl α) e) ▸ fintype.card_perm
 
 lemma univ_eq_singleton_of_card_one {α} [fintype α] (x : α) (h : fintype.card α = 1) :

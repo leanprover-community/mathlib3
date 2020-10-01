@@ -13,7 +13,7 @@ a proof that every natural number is the sum of four square numbers.
 The proof used is close to Lagrange's original proof.
 -/
 import data.zmod.basic
-import field_theory.finite
+import field_theory.finite.basic
 import data.int.parity
 import data.fintype.card
 
@@ -94,7 +94,7 @@ let ⟨x, hx⟩ := h01 in let ⟨y, hy⟩ := h23 in
       ← int.sum_two_squares_of_two_mul_sum_two_squares hy.symm,
       ← mul_right_inj' (show (2 : ℤ) ≠ 0, from dec_trivial), ← h, mul_add, ← hx, ← hy],
     have : ∑ x, f (σ x)^2 = ∑ x, f x^2,
-    { conv_rhs { rw ← finset.sum_equiv σ } },
+    { conv_rhs { rw ← σ.sum_comp } },
     have fin4univ : (univ : finset (fin 4)).1 = 0::1::2::3::0, from dec_trivial,
     simpa [finset.sum_eq_multiset_sum, fin4univ, multiset.sum_cons, f, add_assoc]
   end⟩

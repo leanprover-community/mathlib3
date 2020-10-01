@@ -46,7 +46,7 @@ def uniform_space_core : uniform_space.core R :=
       have h : abv (y - x) < ε, by simpa [-sub_eq_add_neg] using h,
       by rwa abv_sub abv at h,
   comp := le_infi $ assume ε, le_infi $ assume h, lift'_le
-    (mem_infi_sets (ε / 2) $ mem_infi_sets (div_pos h two_pos) (subset.refl _)) $
+    (mem_infi_sets (ε / 2) $ mem_infi_sets (div_pos h zero_lt_two) (subset.refl _)) $
     have ∀ (a b c : R), abv (c-a) < ε / 2 → abv (b-c) < ε / 2 → abv (b-a) < ε,
       from assume a b c hac hcb,
        calc abv (b - a) ≤ _ : abv_sub_le abv b c a

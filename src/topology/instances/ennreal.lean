@@ -526,6 +526,13 @@ tsum_le_tsum h ennreal.summable ennreal.summable
 protected lemma sum_le_tsum {f : α → ennreal} (s : finset α) : ∑ x in s, f x ≤ ∑' x, f x :=
 sum_le_tsum s (λ x hx, zero_le _) ennreal.summable
 
+protected lemma tsum_eq_supr_nat' {f : ℕ → ennreal} {N : ℕ → ℕ} (hN : tendsto N at_top at_top) :
+  (∑'i:ℕ, f i) = (⨆i:ℕ, ∑ a in finset.range (N i), f a) :=
+ennreal.tsum_eq_supr_sum' _ $ λ t,
+  let ⟨n, hn⟩    := t.exists_nat_subset_range,
+      ⟨k, _, hk⟩ := exists_le_of_tendsto_at_top hN 0 n in
+  ⟨k, finset.subset.trans hn (finset.range_mono hk)⟩
+
 protected lemma tsum_eq_supr_nat {f : ℕ → ennreal} :
   (∑'i:ℕ, f i) = (⨆i:ℕ, ∑ a in finset.range i, f a) :=
 ennreal.tsum_eq_supr_sum' _ finset.exists_nat_subset_range
@@ -584,13 +591,20 @@ lemma summable_to_nnreal_of_tsum_ne_top {α : Type*} {f : α → ennreal} (hf : 
   summable (ennreal.to_nnreal ∘ f) :=
 by simpa only [←tsum_coe_ne_top_iff_summable, to_nnreal_apply_of_tsum_ne_top hf] using hf
 
+protected lemma tsum_apply {ι α : Type*} {f : ι → α → ennreal} {x : α} :
+  (∑' i, f i) x = ∑' i, f i x :=
+tsum_apply $ pi.summable.mpr $ λ _, ennreal.summable
+
 end tsum
 
 end ennreal
 
 namespace nnreal
 
-lemma exists_le_has_sum_of_le {f g : β → nnreal} {r : nnreal}
+open_locale nnreal
+
+/-- Comparison test of convergence of `ℝ≥0`-valued series. -/
+lemma exists_le_has_sum_of_le {f g : β → ℝ≥0} {r : ℝ≥0}
   (hgf : ∀b, g b ≤ f b) (hfr : has_sum f r) : ∃p≤r, has_sum g p :=
 have (∑'b, (g b : ennreal)) ≤ r,
 begin
@@ -600,10 +614,13 @@ end,
 let ⟨p, eq, hpr⟩ := ennreal.le_coe_iff.1 this in
 ⟨p, hpr, ennreal.has_sum_coe.1 $ eq ▸ ennreal.summable.has_sum⟩
 
-lemma summable_of_le {f g : β → nnreal} (hgf : ∀b, g b ≤ f b) : summable f → summable g
+/-- Comparison test of convergence of `ℝ≥0`-valued series. -/
+lemma summable_of_le {f g : β → ℝ≥0} (hgf : ∀b, g b ≤ f b) : summable f → summable g
 | ⟨r, hfr⟩ := let ⟨p, _, hp⟩ := exists_le_has_sum_of_le hgf hfr in hp.summable
 
-lemma has_sum_iff_tendsto_nat {f : ℕ → nnreal} (r : nnreal) :
+/-- A series of non-negative real numbers converges to `r` in the sense of `has_sum` if and only if
+the sequence of partial sum converges to `r`. -/
+lemma has_sum_iff_tendsto_nat {f : ℕ → ℝ≥0} (r : ℝ≥0) :
   has_sum f r ↔ tendsto (λn:ℕ, ∑ i in finset.range n, f i) at_top (𝓝 r) :=
 begin
   rw [← ennreal.has_sum_coe, ennreal.has_sum_iff_tendsto_nat],
@@ -611,14 +628,14 @@ begin
   exact ennreal.tendsto_coe
 end
 
-lemma tsum_comp_le_tsum_of_inj {β : Type*} {f : α → nnreal} (hf : summable f)
-  {i : β → α} (hi : function.injective i) : tsum (f ∘ i) ≤ tsum f :=
+lemma tsum_comp_le_tsum_of_inj {β : Type*} {f : α → ℝ≥0} (hf : summable f)
+  {i : β → α} (hi : function.injective i) : (∑' x, f (i x)) ≤ ∑' x, f x :=
 tsum_le_tsum_of_inj i hi (λ c hc, zero_le _) (λ b, le_refl _) (summable_comp_injective hf hi) hf
 
 open finset
 
 /-- If `f : ℕ → ℝ≥0` and `∑' f` exists, then `∑' k, f (k + i)` tends to zero. -/
-lemma tendsto_sum_nat_add (f : ℕ → nnreal) (hf : summable f) :
+lemma tendsto_sum_nat_add (f : ℕ → ℝ≥0) (hf : summable f) :
   tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
 begin
   have h₀ : (λ i, (∑' i, f i) - ∑ j in range i, f j) = λ i, ∑' (k : ℕ), f (k + i),
@@ -655,6 +672,7 @@ begin
   { rw nnreal.coe_tsum, congr }
 end
 
+/-- Comparison test of convergence of series of non-negative real numbers. -/
 lemma summable_of_nonneg_of_le {f g : β → ℝ}
   (hg : ∀b, 0 ≤ g b) (hgf : ∀b, g b ≤ f b) (hf : summable f) : summable g :=
 let f' (b : β) : nnreal := ⟨f b, le_trans (hg b) (hgf b)⟩ in
@@ -664,6 +682,8 @@ have summable g', from
   nnreal.summable_of_le (assume b, (@nnreal.coe_le_coe (g' b) (f' b)).2 $ hgf b) this,
 show summable (λb, g' b : β → ℝ), from nnreal.summable_coe.2 this
 
+/-- A series of non-negative real numbers converges to `r` in the sense of `has_sum` if and only if
+the sequence of partial sum converges to `r`. -/
 lemma has_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} (hf : ∀i, 0 ≤ f i) (r : ℝ) :
   has_sum f r ↔ tendsto (λn:ℕ, ∑ i in finset.range n, f i) at_top (𝓝 r) :=
 ⟨has_sum.tendsto_sum_nat,

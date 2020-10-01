@@ -291,7 +291,7 @@ Single Variable Real Analysis:
     Bolzano-Weierstrass theorem: 'tendsto_subseq_of_bounded'
     compact subsets of $\R$: 'metric.compact_iff_closed_bounded'
     connected subsets of $\R$: 'set_of_is_preconnected_eq_of_ordered'
-    additive subgroups of $\R$:
+    additive subgroups of $\R$: 'real.subgroup_dense_or_cyclic'
   Numerical series:
     Convergence of real valued-series:
     Geometric series:

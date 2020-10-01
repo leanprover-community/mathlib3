@@ -1447,30 +1447,22 @@ measure such that for a measurable set `s` we have `μ.with_density f s = ∫⁻
 def measure.with_density (μ : measure α) (f : α → ennreal) : measure α :=
 measure.of_measurable (λs hs, ∫⁻ a in s, f a ∂μ) (by simp) (λ s hs hd, lintegral_Union hs hd _)
 
-lemma with_density_apply (f : α → ennreal) {s : set α} (hs : is_measurable s) :
+@[simp] lemma with_density_apply (f : α → ennreal) {s : set α} (hs : is_measurable s) :
   μ.with_density f s = ∫⁻ a in s, f a ∂μ :=
 measure.of_measurable_apply s hs
 
 end lintegral
 
-
 namespace simple_func
 
-lemma restrict.compose_eq_multiply {α : Type*} [measurable_space α] (μ : measure α) 
-    (f : α → ennreal) (S : set α) (x : ennreal)
-    (h₁ : measurable f) (h₂ : is_measurable S) :
-    ((const α x).restrict S).lintegral (μ.with_density f)
-    = (∫⁻ a : α, (f * ⇑((const α x).restrict S)) a ∂ μ) :=
-begin
-  rw [restrict_const_lintegral,with_density_apply,←lintegral_indicator,
-      restrict_const_eq_mul_indicator,lintegral_const_mul],
-  apply measurable.indicator,
-  repeat {assumption},
-end
+lemma restrict.compose_eq_multiply [measurable_space α] (μ : measure α) {f : α → ennreal}
+  {s : set α} (x : ennreal) (hf : measurable f) (hs : is_measurable s) :
+  ((const α x).restrict s).lintegral (μ.with_density f)
+    = (∫⁻ a : α, (f * ⇑((const α x).restrict s)) a ∂ μ) :=
+by simp [*, restrict_const_lintegral, lintegral_const_mul, mul_comm _ x]
 
 end simple_func
 end measure_theory
-
 
 open measure_theory measure_theory.simple_func
 /-- To prove something for an arbitrary measurable function into `ennreal`, it suffices to show

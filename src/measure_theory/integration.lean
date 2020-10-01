@@ -1472,14 +1472,14 @@ begin
 end
 
 namespace measure_theory
-/-- This is Exercise 1.2.1 from Terence Tao's "An Epsilon of Room". It allows you to express integration
-of a measurable function with respect to (μ.with_density f) as an integral with respect to μ, called the base
-measure. μ is often the Lebesgue measure, and in this circumstance f is the probability density function.
-(μ.with_density f) can be used to represent any continuous random variable as a probability measure, such
-as the uniform distribution between 0 and 1, the Gaussian distribution, the exponential distribution,
-the Beta distribution, and the Cauchy distribution (see Section 2.4 of Larry Wasserman's "All of Statistics").
-Thus, this method shows how to one can calculate expectations, variances, and other moments as a function of
-the probability density function.
+/-- This is Exercise 1.2.1 from [tao2010]. It allows you to express integration of a measurable
+function with respect to (μ.with_density f) as an integral with respect to μ, called the base
+measure. μ is often the Lebesgue measure, and in this circumstance f is the probability density
+function, and (μ.with_density f) represents any continuous random variable as a
+probability measure, such as the uniform distribution between 0 and 1, the Gaussian distribution,
+the exponential distribution, the Beta distribution, or the Cauchy distribution (see Section 2.4
+of [wasserman2004]). Thus, this method shows how to one can calculate expectations, variances,
+and other moments as a function of the probability density function.
  -/
 lemma lintegral_with_density_eq_lintegral_mul {α} [measurable_space α] (μ : measure_theory.measure α) 
   (f : α → ennreal) (h_mf : measurable f) : ∀ (g : α → ennreal), measurable g → 

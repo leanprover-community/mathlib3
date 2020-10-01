@@ -1474,8 +1474,8 @@ end
 namespace measure_theory
 
 lemma lintegral_with_density_eq_lintegral_mul {α} [measurable_space α] (μ : measure_theory.measure α) 
-  (f : α → ennreal) (h_mf : measurable f):∀ (g : α → ennreal), measurable g → 
-  ∫⁻ a, g a ∂(μ.with_density f)  =  ∫⁻ a, (f * g) a ∂μ :=
+  (f : α → ennreal) (h_mf : measurable f) : ∀ (g : α → ennreal), measurable g → 
+  ∫⁻ a, g a ∂(μ.with_density f) = ∫⁻ a, (f * g) a ∂μ :=
 begin
   apply measurable.ennreal_induction,
   { intros c s h_ms,

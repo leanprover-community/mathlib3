@@ -11,7 +11,6 @@ import category_theory.closed.cartesian
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.types
 import category_theory.currying
-import tactic.find_unused
 
 /-!
 # Category of types with a omega complete partial order
@@ -142,7 +141,7 @@ begin
   refl,
 end
 
-@[main_declaration, simp]
+@[simp]
 lemma prod.mk_le {X Y : ωCPO.{u}} (x x' : X) (y y' : Y) :
   prod.mk x y ≤ prod.mk x' y' ↔ x ≤ x' ∧ y ≤ y' :=
 begin
@@ -332,32 +331,40 @@ by { ext, simp only [eval_to_fun, prod.snd_map', continuous_hom.to_preorder_hom_
                      prod.braiding_hom, continuous_hom.prod.fst_to_fun, preorder_hom.comp_to_fun, coe_comp, continuous_hom.coe_apply,
                      prod.elim_to_fun, exp_to_fun_to_fun] }
 
--- #exit
+open category_theory.monoidal_category
+
+/-- Equivalence of the adjunction between tensor product and exponentiation. -/
+noncomputable def exp.adj.equiv (X Y Z : ωCPO.{u}) :
+  (X ⊗ Y ⟶ Z) ≃ (Y ⟶ ((curry.{u u}.obj hom).obj (op X)).obj Z) :=
+{ to_fun := λ f, exp.{u} f,
+  inv_fun := λ f, (β_ _ _).hom ≫ limits.prod.map f (𝟙 _) ≫ eval.{u} X _,
+  left_inv := λ f, by dsimp; simp only [symmetric_of_has_finite_products_to_braided_category_braiding, prod.symmetry'_assoc, prod.braiding_hom, exp_eval],
+  right_inv := λ f, by ext; simp only [eval_to_fun, prod.snd_map', continuous_hom.to_preorder_hom_eq_coe, continuous_hom.prod.apply_to_fun,
+                                       limits.prod.lift_coe_fn, prod.fst_map', coe_id, symmetric_of_has_finite_products_to_braided_category_braiding,
+                                       function.comp_app, continuous_hom.prod.snd_to_fun, preorder_hom.prod.snd_to_fun, limits.prod.snd_mk,
+                                       preorder_hom.prod.fst_to_fun, prod.braiding_hom, limits.prod.fst_mk, continuous_hom.prod.fst_to_fun,
+                                       preorder_hom.comp_to_fun, coe_comp, continuous_hom.coe_apply, prod.elim_to_fun, exp_to_fun_to_fun], }
+
+
+/-- An adjunction between tensor product and exponentiation. -/
+noncomputable def exp.adj {X : ωCPO.{u}} : tensor_left.{u} X ⊣ (curry.{u u}.obj hom).obj (op X) :=
+{ hom_equiv := λ Y Z, exp.adj.equiv X Y Z,
+  unit := { app := λ Y, exp (𝟙 _),
+            naturality' := by { intros Y Z f, dsimp,
+                                simp only [exp_nat_right, category.comp_id, exp_nat_left], dsimp, rw category.id_comp } },
+  counit := { app := λ Y, (β_ _ _).hom ≫ eval X _,
+              naturality' := by { intros Y Z f, dsimp, simp only [eval_nat, prod.lift_map_assoc, ←prod.lift_comp_comp_assoc, map_pair_right, map_pair_left, category.comp_id,
+                                                                  limit.map_π, category.assoc],
+                                  dsimp, rw category.comp_id } },
+  hom_equiv_unit' := λ Y Z f, by ext; refl,
+  hom_equiv_counit' := λ Y Z f, by ext; simp [exp.adj.equiv] }
 
 noncomputable instance {X : ωCPO.{u}} : closed X :=
 { is_adj :=
   { right := (curry.{u u}.obj hom).obj (op X),
-    adj :=
-    { hom_equiv := λ Y Z,
-      { to_fun := λ f, exp.{u} f,
-        inv_fun := λ f, (β_ _ _).hom ≫ limits.prod.map f (𝟙 _) ≫ eval.{u} X _,
-        left_inv := λ f, by dsimp; simp only [symmetric_of_has_finite_products_to_braided_category_braiding, prod.symmetry'_assoc, prod.braiding_hom, exp_eval],
-        right_inv := λ f, by ext; simp only [eval_to_fun, prod.snd_map', continuous_hom.to_preorder_hom_eq_coe, continuous_hom.prod.apply_to_fun,
-                                             limits.prod.lift_coe_fn, prod.fst_map', coe_id, symmetric_of_has_finite_products_to_braided_category_braiding,
-                                             function.comp_app, continuous_hom.prod.snd_to_fun, preorder_hom.prod.snd_to_fun, limits.prod.snd_mk,
-                                             preorder_hom.prod.fst_to_fun, prod.braiding_hom, limits.prod.fst_mk, continuous_hom.prod.fst_to_fun,
-                                             preorder_hom.comp_to_fun, coe_comp, continuous_hom.coe_apply, prod.elim_to_fun, exp_to_fun_to_fun], },
-      unit := { app := λ Y, exp (𝟙 _),
-                naturality' := by { intros Y Z f, dsimp, simp only [exp_nat_right, category.comp_id, exp_nat_left], dsimp, rw category.id_comp } },
-      counit := { app := λ Y, (β_ _ _).hom ≫ eval X _,
-                  naturality' := by { intros Y Z f, dsimp, simp only [eval_nat, prod.lift_map_assoc, ←prod.lift_comp_comp_assoc, map_pair_right, map_pair_left, category.comp_id,
-                                                                      limit.map_π, category.assoc],
-                                      dsimp, rw category.comp_id } },
-      hom_equiv_unit' := λ Y Z f, by ext; refl,
-      hom_equiv_counit' := λ Y Z f, by ext; simp } } }
+    adj   := exp.adj.{u} } }
 
-@[main_declaration]
 noncomputable instance : monoidal_closed ωCPO.{u} :=
-⟨ λ X, by apply_instance ⟩
+⟨λ X, by apply_instance⟩
 
 end ωCPO

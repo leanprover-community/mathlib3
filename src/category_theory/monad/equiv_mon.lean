@@ -87,28 +87,43 @@ def Mon_to_Monad : Mon_ (C ⥤ C) ⥤ Monad C :=
       finish,
     end,
     ..f.hom } }
+
+namespace Monad_Mon_equiv
 variable {C}
 
 /-- Isomorphism of functors used in `Monad_Mon_equiv` -/
 @[simps]
-def of_to_mon_end_iso : Mon_to_Monad C ⋙ Monad_to_Mon C ≅ 𝟭 _ :=
+def counit_iso : Mon_to_Monad C ⋙ Monad_to_Mon C ≅ 𝟭 _ :=
 { hom := { app := λ _, { hom := 𝟙 _ } },
   inv := { app := λ _, { hom := 𝟙 _ } } }
 
+/-- Auxilliary definition for `Monad_Mon_equiv` -/
+@[simps]
+def unit_iso_hom : 𝟭 _ ⟶ Monad_to_Mon C ⋙ Mon_to_Monad C :=
+{ app := λ _, { app := λ _, 𝟙 _ } }
+
+/-- Auxilliary definition for `Monad_Mon_equiv` -/
+@[simps]
+def unit_iso_inv : Monad_to_Mon C ⋙ Mon_to_Monad C ⟶ 𝟭 _ :=
+{ app := λ _, { app := λ _, 𝟙 _ } }
+
 /-- Isomorphism of functors used in `Monad_Mon_equiv` -/
 @[simps]
-def to_of_mon_end_iso : Monad_to_Mon C ⋙ Mon_to_Monad C ≅ 𝟭 _ :=
-{ hom := { app := λ _, { app := λ _, 𝟙 _ } },
-  inv := { app := λ _, { app := λ _, 𝟙 _ } } }
+def unit_iso : 𝟭 _ ≅ Monad_to_Mon C ⋙ Mon_to_Monad C :=
+{ hom := unit_iso_hom,
+  inv := unit_iso_inv }
 
-variable (C)
+end Monad_Mon_equiv
+
+open Monad_Mon_equiv
+
 /-- Oh, monads are just monoids in the category of endofunctors (equivalence of categories). -/
 @[simps]
 def Monad_Mon_equiv : (Monad C) ≌ (Mon_ (C ⥤ C)) :=
 { functor := Monad_to_Mon _,
   inverse := Mon_to_Monad _,
-  unit_iso := to_of_mon_end_iso.symm,
-  counit_iso := of_to_mon_end_iso }
+  unit_iso := unit_iso,
+  counit_iso := counit_iso }
 
 -- Sanity check
 example (A : Monad C) {X : C} : ((Monad_Mon_equiv C).unit_iso.app A).hom.app X = 𝟙 _ := rfl

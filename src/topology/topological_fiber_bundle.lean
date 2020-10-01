@@ -505,7 +505,8 @@ Z.local_triv_ext (Z.index_at (Z.proj p))
 
 /-- If an element of `F` is invariant under all coordinate changes, then one can define a
 corresponding section of the fiber bundle, which is continuous. This applies in particular to the
-zero section of a vector bundle. -/
+zero section of a vector bundle. Another example (not yet defined) would be the identity 
+section of the endomorphism bundle of a vector bundle. -/
 lemma continuous_const_section (v : F)
   (h : ∀ i j, ∀ x ∈ (Z.base_set i) ∩ (Z.base_set j), Z.coord_change i j x v = v) :
   continuous (show B → Z.total_space, from λ x, ⟨x, v⟩) :=

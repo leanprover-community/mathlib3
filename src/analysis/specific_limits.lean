@@ -14,11 +14,9 @@ import tactic.ring_exp
 -/
 
 noncomputable theory
-open_locale classical topological_space factorial
-
 open classical function filter finset metric
 
-open_locale big_operators
+open_locale classical topological_space nat big_operators
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 

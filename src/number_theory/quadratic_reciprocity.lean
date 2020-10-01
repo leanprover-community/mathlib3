@@ -28,7 +28,7 @@ The proof of quadratic reciprocity implemented uses Gauss' lemma and Eisenstein'
 -/
 
 open function finset nat finite_field zmod
-open_locale big_operators factorial
+open_locale big_operators nat
 
 namespace zmod
 

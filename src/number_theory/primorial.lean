@@ -21,7 +21,7 @@ than or equal to `n`.
 
 open finset
 open nat
-open_locale big_operators factorial
+open_locale big_operators nat
 
 /-- The primorial `n#` of `n` is the product of the primes less than or equal to `n`.
 -/

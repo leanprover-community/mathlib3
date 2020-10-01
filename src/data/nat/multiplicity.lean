@@ -23,7 +23,7 @@ There are also lemmas about the multiplicity of primes in factorials and in bino
 -/
 
 open finset nat multiplicity
-open_locale big_operators factorial
+open_locale big_operators nat
 
 namespace nat
 

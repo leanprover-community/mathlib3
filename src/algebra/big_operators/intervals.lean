@@ -16,7 +16,7 @@ We prove results about big operators over intervals (mostly the `ℕ`-valued `Ic
 
 universes u v w
 
-open_locale big_operators factorial
+open_locale big_operators nat
 
 namespace finset
 

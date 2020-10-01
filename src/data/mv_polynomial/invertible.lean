@@ -26,7 +26,7 @@ invertible.copy (invertible.map (algebra_map R S : R →* S) p) p
 noncomputable instance mv_polynomial.invertible_C
   (σ : Type*) {R : Type*} [comm_semiring R] (r : R) [invertible r] :
   invertible (C r : mv_polynomial σ R) :=
-invertible.map ⟨C, C_1, λ x y, C_mul⟩ _
+invertible.map C.to_monoid_hom _
 
 /-- A natural number that is invertible when coerced to a commutative semiring `R` is also invertible
 when coerced to any polynomial ring with rational coefficients.

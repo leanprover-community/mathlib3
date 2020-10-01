@@ -1339,12 +1339,18 @@ end
 
 /-- The derivative of the zero section of the tangent bundle maps `⟨x, v⟩` to `⟨⟨x, 0⟩, ⟨v, 0⟩⟩`.
 
-Note that this statement relies on the choice of the coordinate system we use on the tangent bundle.
-However, there is a canonical one at a point of the zero section (since there is a canonical
-horizontal space there, the tangent space to the zero section, in addition to the canonical vertical
-space which is the kernel of the derivative of the projection), and this is the one that comes
-from our definitions, so this statement is not as crazy as it may seem. In general, avoid using it
-though, since genuinely coordinate-free concepts are always better. -/
+Note that, as currently framed, this is a statement in coordinates, thus reliant on the choice 
+of the coordinate system we use on the tangent bundle.
+
+However, the result itself is coordinate-dependent only to the extent that the coordinates
+determine a splitting of the tangent bundle.  Moreover, there is a canonical splitting at each
+point of the zero section (since there is a canonical horizontal space there, the tangent space 
+to the zero section, in addition to the canonical vertical space which is the kernel of the 
+derivative of the projection), and this canonical splitting is also the one that comes from the
+coordinates on the tangent bundle in our definitions. So this statement is not as crazy as it
+may seem.
+
+TODO define splittings of vector bundles; state this result invariantly. -/
 lemma tangent_map_tangent_bundle_pure (p : tangent_bundle I M) :
   tangent_map I I.tangent (tangent_bundle.zero_section I M) p = ⟨⟨p.1, 0⟩, ⟨p.2, 0⟩⟩ :=
 begin

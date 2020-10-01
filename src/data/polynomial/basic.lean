@@ -104,6 +104,9 @@ coeff_monomial
 
 lemma coeff_X : coeff (X : polynomial R) n = if 1 = n then 1 else 0 := coeff_monomial
 
+lemma mem_support_iff {p : polynomial R} {n : ℕ} : n ∈ p.support ↔ p.coeff n ≠ 0 :=
+finsupp.mem_support_iff
+
 theorem ext_iff {p q : polynomial R} : p = q ↔ ∀ n, coeff p n = coeff q n :=
 ⟨λ h n, h ▸ rfl, finsupp.ext⟩
 

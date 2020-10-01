@@ -242,23 +242,23 @@ Auxiliary definition for exponentiation in `ωCPO`
 def exp₀ {X Y : Type u}
   [omega_complete_partial_order X]
   [omega_complete_partial_order Y]
-  {Z : ωCPO.{u}} (f : ωCPO.of (X × Y) ⟶ Z) : of X ⟶ of (of Y ⟶ Z) :=
+  {Z : ωCPO.{u}} (f : ωCPO.of (X × Y) ⟶ Z) : of Y ⟶ of (of X ⟶ Z) :=
 { to_fun := λ x,
-  { to_fun := λ y, f (x, y),
-    monotone' := λ a b h, f.monotone ⟨le_refl _, h⟩,
+  { to_fun := λ y, f (y, x),
+    monotone' := λ a b h, f.monotone ⟨h, le_refl _⟩,
     cont :=
     begin
       intro, dsimp, rw ← continuous_hom.ωSup_const x,
-      transitivity f (ωSup $ chain.zip (preorder_hom.const _ x) c),
+      transitivity f (ωSup $ chain.zip c (preorder_hom.const _ x)),
       { congr, ext; refl },
       { rw continuous_hom.continuous,
         congr' 1, ext, dsimp, rw continuous_hom.ωSup_const x }
-    end},
-  monotone' := λ a b h y, f.monotone ⟨h, le_refl _⟩,
+    end },
+  monotone' := λ a b h y, f.monotone ⟨le_refl _, h⟩,
   cont :=
   begin
     intro, ext, dsimp [continuous_hom.ωSup],
-    transitivity f (ωSup $ c.zip (preorder_hom.const _ x)),
+    transitivity f (ωSup $ chain.zip (preorder_hom.const _ x) c),
     { congr' 1, ext; simp [continuous_hom.ωSup_const], },
     { rw continuous_hom.continuous, refl }
   end }
@@ -267,26 +267,19 @@ def exp₀ {X Y : Type u}
 Exponentiation in `ωCPO`
 -/
 @[pp_nodot, simps {rhs_md := semireducible}]
-noncomputable def exp {X Y Z : ωCPO.{u}} (f : (X ⨯ Y) ⟶ Z) : X ⟶ of (Y ⟶ Z) :=
+noncomputable def exp {X Y Z : ωCPO.{u}} (f : Y ⨯ X ⟶ Z) : X ⟶ of (Y ⟶ Z) :=
 exp₀ (prod.lift continuous_hom.prod.fst continuous_hom.prod.snd ≫ f)
-
-/--
-Exponentiation in `ωCPO` with arguments flipped
--/
-@[pp_nodot, simps {rhs_md := semireducible}]
-noncomputable def exp' {X Y Z : ωCPO.{u}} (f : Y ⨯ X ⟶ Z) : X ⟶ of (Y ⟶ Z) :=
-exp.{u} $ (β_ _ _).hom ≫ f
 
 @[simp, reassoc]
 lemma exp₀_nat_left
- {X X' Y Z : ωCPO.{u}}
-  (f : of (X × Y) ⟶ Z) (g : X' ⟶ X) :
-  g ≫ exp₀ f = exp₀ (@category_struct.comp _ _ (of $ X' × Y) (of $ X × Y) Z (continuous_hom.prod.map.{u u u u} g (@continuous_hom.id.{u} Y _)) f) :=
+ {X Y Y' Z : ωCPO.{u}}
+  (f : of (X × Y) ⟶ Z) (g : Y' ⟶ Y) :
+  g ≫ exp₀ f = exp₀ (@category_struct.comp _ _ (of $ X × Y') (of $ X × Y) Z (continuous_hom.prod.map.{u u u u} (@continuous_hom.id.{u} X _) g) f) :=
 by  { ext, simp }
 
 @[simp, reassoc]
-lemma exp_nat_left {X X' Y Z : ωCPO} (f : X ⨯ Y ⟶ Z) (g : X' ⟶ X) :
-  g ≫ exp f = exp (limits.prod.map g (𝟙 _) ≫ f) :=
+lemma exp_nat_left {X Y Y' Z : ωCPO} (f : X ⨯ Y ⟶ Z) (g : Y' ⟶ Y) :
+  g ≫ exp f = exp (limits.prod.map (𝟙 _) g ≫ f) :=
 begin
   rw [exp, exp, prod.lift_map_assoc],
   rw [exp₀_nat_left, ← prod.lift_comp_comp_assoc],
@@ -296,7 +289,7 @@ end
 
 @[reassoc]
 lemma exp_nat_right {X Y Z Z' : ωCPO} (f : X ⨯ Y ⟶ Z) (g : Z ⟶ Z') :
-  exp f ≫ (hom.map (𝟙 (opposite.op Y), g) : hom.obj (opposite.op Y, Z) ⟶ hom.obj (opposite.op Y, Z')) = exp (f ≫ g) :=
+  exp f ≫ (hom.map (𝟙 (opposite.op X), g) : hom.obj (opposite.op X, Z) ⟶ hom.obj (opposite.op X, Z')) = exp (f ≫ g) :=
 by ext; simp
 
 lemma hcongr_fun {α : Sort*} {β : Sort*} [omega_complete_partial_order α] [omega_complete_partial_order β] {f g : α →𝒄 β} (h : f = g) (a : α) : f a = g a :=
@@ -328,7 +321,7 @@ begin
 end
 
 @[simp, reassoc]
-lemma exp_eval {X Y Z : ωCPO} (f : X ⨯ Y ⟶ Z) : limits.prod.map (exp f) (𝟙 _) ≫ eval _ _ = f :=
+lemma exp_eval {X Y Z : ωCPO} (f : X ⨯ Y ⟶ Z) : limits.prod.map (exp f) (𝟙 _) ≫ eval _ _ = (β_ Y X).hom ≫ f :=
 by ext; simp [exp]; rw [← limits.prod.lift_coe_fn, prod_lift_fst_snd]; simp
 
 noncomputable instance {X : ωCPO.{u}} : closed X :=
@@ -336,12 +329,12 @@ noncomputable instance {X : ωCPO.{u}} : closed X :=
   { right := (curry.{u u}.obj hom).obj (op X),
     adj :=
     { hom_equiv := λ Y Z,
-      { to_fun := λ f, exp'.{u} f,
+      { to_fun := λ f, exp.{u} f,
         inv_fun := λ f, (β_ _ _).hom ≫ limits.prod.map f (𝟙 _) ≫ eval.{u} X _,
-        left_inv := λ f, by simp [exp'],
+        left_inv := λ f, by dsimp; simp [],
         right_inv := λ f, by ext; simp },
-        unit := { app := λ Y, exp (β_ _ _).hom,
-                  naturality' := by { intros Y Z f, dsimp, simp [exp_nat_right, limits.prod.lift_map, ← limits.prod.lift_comp_comp, limits.prod.map_fst, limits.prod.map_snd], } },
+      unit := { app := λ Y, exp (𝟙 _),
+                naturality' := by { intros Y Z f, dsimp, simp [exp_nat_right, limits.prod.lift_map, ← limits.prod.lift_comp_comp, limits.prod.map_fst, limits.prod.map_snd], erw category.id_comp } },
       counit := { app := λ Y, (β_ _ _).hom ≫ eval X _,
                   naturality' := by { intros Y Z f, dsimp, simp [eval_nat, limits.prod.lift_map_assoc, ← limits.prod.lift_comp_comp_assoc], dsimp, rw category.comp_id } },
       hom_equiv_unit' := λ Y Z f, by ext; refl,

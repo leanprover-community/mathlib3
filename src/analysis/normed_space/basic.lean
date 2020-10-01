@@ -812,6 +812,9 @@ begin
     rwa [ne.def, norm_eq_zero] }
 end
 
+@[simp] lemma abs_norm_eq_norm (z : β) : abs ∥z∥ = ∥z∥ :=
+  (abs_eq (norm_nonneg z)).mpr (or.inl rfl)
+
 lemma dist_smul [normed_space α β] (s : α) (x y : β) : dist (s • x) (s • y) = ∥s∥ * dist x y :=
 by simp only [dist_eq_norm, (norm_smul _ _).symm, smul_sub]
 

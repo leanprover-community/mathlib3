@@ -452,7 +452,7 @@ open_locale matrix
 
 @[simp]
 lemma to_matrix_comp (Q : quadratic_form R₁ (m → R₁)) (f : (n → R₁) →ₗ[R₁] (m → R₁)) :
-  (Q.comp f).to_matrix = f.to_matrixᵀ ⬝ Q.to_matrix ⬝ f.to_matrix :=
+  (Q.comp f).to_matrix = f.to_matrix'ᵀ ⬝ Q.to_matrix ⬝ f.to_matrix' :=
 by { ext, simp [to_matrix, bilin_form.to_matrix_comp] }
 
 section discriminant
@@ -465,7 +465,7 @@ lemma discr_smul (a : R₁) : (a • Q).discr = a ^ fintype.card n * Q.discr :=
 by simp only [discr, to_matrix_smul, matrix.det_smul]
 
 lemma discr_comp (f : (n → R₁) →ₗ[R₁] (n → R₁)) :
-  (Q.comp f).discr = f.to_matrix.det * f.to_matrix.det * Q.discr :=
+  (Q.comp f).discr = f.to_matrix'.det * f.to_matrix'.det * Q.discr :=
 by simp [discr, mul_left_comm, mul_comm]
 
 end discriminant

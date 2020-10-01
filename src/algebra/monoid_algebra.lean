@@ -262,12 +262,16 @@ instance {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] :
     by { ext, rw [single_one_mul_apply, mul_single_one_apply, algebra.commutes], },
   ..algebra_map' (algebra_map k A) }
 
-@[simp] lemma coe_algebra_map [comm_semiring k] [monoid G] :
-  (algebra_map k (monoid_algebra k G) : k → monoid_algebra k G) = single 1 :=
+@[simp] lemma coe_algebra_map {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] :
+  (algebra_map k (monoid_algebra A G) : k → monoid_algebra A G) = single 1 ∘ (algebra_map k A) :=
 rfl
 
 lemma single_eq_algebra_map_mul_of [comm_semiring k] [monoid G] (a : G) (b : k) :
   single a b = (algebra_map k (monoid_algebra k G) : k → monoid_algebra k G) b * of k G a :=
+by simp
+
+lemma single_algebra_map_eq_algebra_map_mul_of {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] (a : G) (b : k) :
+  single a (algebra_map k A b) = (algebra_map k (monoid_algebra A G) : k → monoid_algebra A G) b * of A G a :=
 by simp
 
 instance [group G] [semiring k] :
@@ -309,7 +313,7 @@ def lift : (G →* R) ≃ (monoid_algebra k G →ₐ[k] R) :=
       end,
     commutes' := λ r,
       begin
-        rw [coe_algebra_map, sum_single_index, F.map_one, algebra.smul_def, mul_one],
+        rw [coe_algebra_map, sum_single_index, F.map_one, algebra.smul_def, mul_one, algebra.id.map_eq_self],
         apply zero_smul
       end, },
   left_inv := λ f, begin ext x, simp [sum_single_index] end,
@@ -635,8 +639,8 @@ instance {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [add_monoid G]
     by { ext, rw [single_zero_mul_apply, mul_single_zero_apply, algebra.commutes], },
   ..algebra_map' (algebra_map k A) }
 
-@[simp] lemma coe_algebra_map [comm_semiring k] [add_monoid G] :
-  (algebra_map k (add_monoid_algebra k G) : k → add_monoid_algebra k G) = single 0 :=
+@[simp] lemma coe_algebra_map {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [add_monoid G] :
+  (algebra_map k (add_monoid_algebra A G) : k → add_monoid_algebra A G) = single 0 ∘ (algebra_map k A) :=
 rfl
 
 /-- Any monoid homomorphism `multiplicative G →* R` can be lifted to an algebra homomorphism
@@ -677,7 +681,7 @@ def lift [comm_semiring k] [add_monoid G] {R : Type u₃} [semiring R] [algebra 
       begin
         rw [coe_algebra_map, sum_single_index],
         erw [F.map_one],
-        rw [algebra.smul_def, mul_one],
+        rw [algebra.smul_def, mul_one, algebra.id.map_eq_self],
         apply zero_smul
       end, },
   left_inv := λ f, begin ext x, simp [sum_single_index] end,

@@ -127,22 +127,6 @@ apply_nolint category_theory.monoidal_functor has_inhabited_instance
 apply_nolint category_theory.monoidal_functor.ε_iso doc_blame
 apply_nolint category_theory.monoidal_functor.μ_iso doc_blame
 
--- category_theory/opposites.lean
-apply_nolint category_theory.functor.left_op doc_blame
-apply_nolint category_theory.functor.op doc_blame
-apply_nolint category_theory.functor.op_hom doc_blame
-apply_nolint category_theory.functor.op_inv doc_blame
-apply_nolint category_theory.functor.right_op doc_blame
-apply_nolint category_theory.functor.unop doc_blame
-apply_nolint category_theory.has_hom.hom.op doc_blame
-apply_nolint category_theory.has_hom.hom.unop doc_blame
-apply_nolint category_theory.is_iso_of_op doc_blame
-apply_nolint category_theory.iso.op doc_blame
-apply_nolint category_theory.nat_trans.left_op doc_blame
-apply_nolint category_theory.nat_trans.op doc_blame
-apply_nolint category_theory.nat_trans.right_op doc_blame
-apply_nolint category_theory.nat_trans.unop doc_blame
-
 -- category_theory/products/basic.lean
 apply_nolint category_theory.evaluation doc_blame
 apply_nolint category_theory.evaluation_uncurried doc_blame

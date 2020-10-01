@@ -164,10 +164,9 @@ variables [ordered_add_comm_group A]
 with their friends) because they require facts from `data.int.basic`-/
 open int
 
-/- -/
 lemma gsmul_pos {a : A} (ha : 0 < a) {k : ℤ} (hk : (0:ℤ) < k) : 0 < k •ℤ a :=
 begin
-  lift k to ℕ using (int.le_of_lt hk),
+  lift k to ℕ using int.le_of_lt hk,
   apply nsmul_pos ha,
   exact coe_nat_pos.mp hk,
 end

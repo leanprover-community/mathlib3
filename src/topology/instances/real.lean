@@ -338,7 +338,7 @@ begin
   rw eq_univ_iff_forall,
   intros x,
   suffices : ∀ ε > (0 : ℝ), ∃ g ∈ G, abs (x - g) < ε,
-  { by simpa only [real.mem_closure_iff, abs_sub] },
+    by simpa only [real.mem_closure_iff, abs_sub],
   intros ε ε_pos,
   obtain ⟨g₁, g₁_in, g₁_pos⟩ : ∃ g₁ : ℝ, g₁ ∈ G ∧ 0 < g₁,
   { cases lt_or_gt_of_ne g₀_ne with Hg₀ Hg₀,

@@ -357,7 +357,7 @@ begin
     rcases exists_ne (1 : H) with ⟨⟨h, h_in⟩, h_ne⟩,
     use [h, h_in],
     intro hyp,
-    apply  h_ne,
+    apply h_ne,
     simpa [hyp] },
   { rintros ⟨x, x_in, hx⟩,
     apply nontrivial_of_ne (⟨x, x_in⟩ : H) 1,

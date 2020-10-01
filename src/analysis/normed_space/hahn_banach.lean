@@ -93,11 +93,11 @@ variables {F : Type*} [normed_group F] [normed_space ℂ F]
 -- Inlining the following two definitions causes a type mismatch between
 -- subspace ℝ (semimodule.restrict_scalars ℝ ℂ F) and subspace ℂ F.
 /-- Restrict a `ℂ`-subspace to an `ℝ`-subspace. -/
-noncomputable def restrict_scalars (p : subspace ℂ F) : subspace ℝ F := p.restrict_scalars ℝ ℂ F
+noncomputable def restrict_scalars (p : subspace ℂ F) : subspace ℝ F := p.restrict_scalars ℝ
 
 private lemma apply_real (p : subspace ℂ F) (f' : p →L[ℝ] ℝ) :
   ∃ g : F →L[ℝ] ℝ, (∀ x : restrict_scalars p, g x = f' x) ∧ ∥g∥ = ∥f'∥ :=
-  exists_extension_norm_eq (p.restrict_scalars ℝ ℂ F) f'
+  exists_extension_norm_eq (p.restrict_scalars ℝ) f'
 
 open complex
 

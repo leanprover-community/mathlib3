@@ -268,9 +268,9 @@ begin
   refine ⟨λ hfg, _, λ h, h.1.add h.2⟩,
   rw [← indicator_add_eq_left h],
   conv { congr, skip, rw [← indicator_add_eq_right h] },
-  rw [integrable_indicator_iff _ (hf (is_measurable_singleton 0)).compl],
-  rw [integrable_indicator_iff _ (hg (is_measurable_singleton 0)).compl],
-  exact ⟨hfg.integrable_on, hfg.integrable_on⟩, exact hf.add hg, exact hf.add hg
+  rw [integrable_indicator_iff (hf.add' hg) (hf (is_measurable_singleton 0)).compl],
+  rw [integrable_indicator_iff (hf.add' hg) (hg (is_measurable_singleton 0)).compl],
+  exact ⟨hfg.integrable_on, hfg.integrable_on⟩
 end
 
 /-- To prove something for an arbitrary measurable + integrable function in a second countable

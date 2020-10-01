@@ -432,6 +432,7 @@ dvd_antisymm_of_normalize_eq (normalize_lcm _ _) (normalize_lcm _ _)
 
 end lcm
 
+namespace gcd_monoid
 section coprime
 
 /-- Two elements of a `gcd_monoid` are coprime if their `gcd` is 1. -/
@@ -446,12 +447,6 @@ begin
   rw [coprime, ← normalize_gcd, normalize_eq_one, is_unit_iff_dvd_one],
   apply H _ (gcd_dvd_left _ _) (gcd_dvd_right _ _),
 end
-
-theorem is_unit.coprime_left {m : α} (h : is_unit m) (n : α) : coprime m n :=
-coprime_of_dvd $ λ k km _, dvd_trans km (is_unit_iff_dvd_one.1 h)
-
-theorem is_unit.coprime_right {m : α} (h : is_unit m) (n : α) : coprime n m :=
-(h.coprime_left n).symm
 
 theorem coprime.dvd_of_dvd_mul_right {m n k : α} (H1 : coprime k n) (H2 : k ∣ m * n) : k ∣ m :=
 let t := dvd_gcd (dvd_mul_left k m) H2 in
@@ -560,6 +555,18 @@ by simp [coprime]
 by simp [← normalize_eq_one, coprime]
 
 end coprime
+end gcd_monoid
+
+section gcd_monoid
+open gcd_monoid
+
+theorem is_unit.coprime_left {m : α} (h : is_unit m) (n : α) : coprime m n :=
+coprime_of_dvd $ λ k km _, dvd_trans km (is_unit_iff_dvd_one.1 h)
+
+theorem is_unit.coprime_right {m : α} (h : is_unit m) (n : α) : coprime n m :=
+(h.coprime_left n).symm
+
+end gcd_monoid
 
 namespace gcd_monoid
 theorem prime_of_irreducible {x : α} (hi: irreducible x) : prime x :=

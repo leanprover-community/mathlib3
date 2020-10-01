@@ -1034,6 +1034,16 @@ end comm_group_with_zero
 
 end finset
 
+namespace list
+
+@[to_additive] lemma prod_to_finset {M : Type*} [decidable_eq α] [comm_monoid M]
+  (f : α → M) : ∀ {l : list α} (hl : l.nodup), l.to_finset.prod f = (l.map f).prod
+| [] _ := by simp
+| (a :: l) hl := let ⟨not_mem, hl⟩ := list.nodup_cons.mp hl in
+  by simp [finset.prod_insert (mt list.mem_to_finset.mp not_mem), prod_to_finset hl]
+
+end list
+
 namespace multiset
 variables [decidable_eq α]
 
@@ -1090,3 +1100,15 @@ begin
 end
 
 end multiset
+
+@[simp, norm_cast] lemma nat.coe_prod {R : Type*} [comm_semiring R]
+  (f : α → ℕ) (s : finset α) : (↑∏ i in s, f i : R) = ∏ i in s, f i :=
+(nat.cast_ring_hom R).map_prod _ _
+
+@[simp, norm_cast] lemma int.coe_prod {R : Type*} [comm_ring R]
+  (f : α → ℤ) (s : finset α) : (↑∏ i in s, f i : R) = ∏ i in s, f i :=
+(int.cast_ring_hom R).map_prod _ _
+
+@[simp, norm_cast] lemma units.coe_prod {M : Type*} [comm_monoid M]
+  (f : α → units M) (s : finset α) : (↑∏ i in s, f i : M) = ∏ i in s, f i :=
+(units.coe_hom M).map_prod _ _

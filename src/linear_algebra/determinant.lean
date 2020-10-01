@@ -269,4 +269,68 @@ begin
   simp [update_column_transpose, det_transpose]
 end
 
+@[simp] lemma det_block_diagonal {o : Type*} [fintype o] [decidable_eq o] (M : o → matrix n n R) :
+  (block_diagonal M).det = ∏ k, (M k).det :=
+begin
+  -- Rewrite the determinants as a sum over permutations.
+  unfold det,
+  -- The right hand side is a product of sums, rewrite it as a sum of products.
+  rw finset.prod_sum,
+  simp_rw [finset.mem_univ, finset.prod_attach_univ, finset.univ_pi_univ],
+  -- We claim that the only permutations contributing to the sum are those that
+  -- preserve their second component.
+  let preserving_snd : finset (equiv.perm (n × o)) :=
+    finset.univ.filter (λ σ, ∀ x, (σ x).snd = x.snd),
+  have mem_preserving_snd : ∀ {σ : equiv.perm (n × o)},
+    σ ∈ preserving_snd ↔ ∀ x, (σ x).snd = x.snd :=
+    λ σ, finset.mem_filter.trans ⟨λ h, h.2, λ h, ⟨finset.mem_univ _, h⟩⟩,
+  rw ← finset.sum_subset (finset.subset_univ preserving_snd) _,
+  -- And that these are in bijection with `o → equiv.perm m`.
+  rw (finset.sum_bij (λ (σ : ∀ (k : o), k ∈ finset.univ → equiv.perm n) _,
+                        prod_congr_left (λ k, σ k (finset.mem_univ k))) _ _ _ _).symm,
+  { intros σ _,
+    rw mem_preserving_snd,
+    rintros ⟨k, x⟩,
+    simp },
+  { intros σ _,
+    rw finset.prod_mul_distrib,
+    congr,
+    { convert congr_arg (λ (x : units ℤ), (↑x : R)) (sign_prod_congr_left (λ k, σ k _)).symm,
+      simp, congr, ext, congr },
+    rw [← finset.univ_product_univ, finset.prod_product, finset.prod_comm],
+    simp },
+  { intros σ σ' _ _ eq,
+    ext x hx k,
+    simp only at eq,
+    have : ∀ k x, prod_congr_left (λ k, σ k (finset.mem_univ _)) (k, x) =
+                  prod_congr_left (λ k, σ' k (finset.mem_univ _)) (k, x) :=
+      λ k x, by rw eq,
+    simp only [prod_congr_left_apply, prod.mk.inj_iff] at this,
+    exact (this k x).1 },
+  { intros σ hσ,
+    rw mem_preserving_snd at hσ,
+    have hσ' : ∀ x, (σ⁻¹ x).snd = x.snd,
+    { intro x, conv_rhs { rw [← perm.apply_inv_self σ x, hσ] } },
+    have mk_apply_eq : ∀ k x, ((σ (x, k)).fst, k) = σ (x, k),
+    { intros k x,
+      ext; simp [hσ] },
+    have mk_inv_apply_eq : ∀ k x, ((σ⁻¹ (x, k)).fst, k) = σ⁻¹ (x, k),
+    { intros k x,
+      conv_lhs { rw ← perm.apply_inv_self σ (x, k) },
+      ext; simp [hσ'] },
+    refine ⟨λ k _, ⟨λ x, (σ (x, k)).fst, λ x, (σ⁻¹ (x, k)).fst, _, _⟩, _, _⟩,
+    { intro x,
+      simp [mk_apply_eq, mk_inv_apply_eq] },
+    { intro x,
+      simp [mk_apply_eq, mk_inv_apply_eq] },
+    { apply finset.mem_univ },
+    { ext ⟨k, x⟩; simp [hσ] } },
+  { intros σ _ hσ,
+    rw mem_preserving_snd at hσ,
+    obtain ⟨⟨k, x⟩, hkx⟩ := not_forall.mp hσ,
+    rw [finset.prod_eq_zero (finset.mem_univ (k, x)), mul_zero],
+    rw [← @prod.mk.eta _ _ (σ (k, x)), block_diagonal_apply_ne],
+    exact hkx }
+end
+
 end matrix

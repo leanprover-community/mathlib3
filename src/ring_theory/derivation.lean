@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Nicolò Cavalleri.
 -/
 
-import algebra.lie_algebra
+import algebra.lie.basic
 import ring_theory.algebra_tower
 
 /-!

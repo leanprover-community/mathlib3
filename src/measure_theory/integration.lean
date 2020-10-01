@@ -1286,7 +1286,7 @@ calc
      by simp only [liminf_eq_supr_infi_of_nat]
   ... = ⨆n:ℕ, ∫⁻ a, ⨅i≥n, f i a ∂μ :
     lintegral_supr
-      (assume n, measurable_binfi _ h_meas)
+      (assume n, measurable_binfi _ (countable_encodable _) h_meas)
       (assume n m hnm a, infi_le_infi_of_subset $ λ i hi, le_trans hnm hi)
   ... ≤ ⨆n:ℕ, ⨅i≥n, ∫⁻ a, f i a ∂μ :
     supr_le_supr $ λ n, le_infi2_lintegral _
@@ -1303,7 +1303,7 @@ calc
   ... = ∫⁻ a, ⨅n:ℕ, ⨆i≥n, f i a ∂μ :
     begin
       refine (lintegral_infi _ _ _).symm,
-      { assume n, exact measurable_bsupr _ hf_meas },
+      { assume n, exact measurable_bsupr _ (countable_encodable _) hf_meas },
       { assume n m hnm a, exact (supr_le_supr_of_subset $ λ i hi, le_trans hnm hi) },
       { refine lt_of_le_of_lt (lintegral_mono_ae _) h_fin,
         refine (ae_all_iff.2 h_bound).mono (λ n hn, _),

@@ -80,7 +80,7 @@ section comp
 
 lemma eval₂_comp [comm_semiring S] (f : R →+* S) {x : S} :
   (p.comp q).eval₂ f x = p.eval₂ f (q.eval₂ f x) :=
-by rw [comp, p.as_sum]; simp only [eval₂_mul, eval₂_C, eval₂_pow, eval₂_finset_sum, eval₂_X]
+by rw [comp, p.as_sum_range]; simp only [eval₂_mul, eval₂_C, eval₂_pow, eval₂_finset_sum, eval₂_X]
 
 
 lemma eval_comp : (p.comp q).eval a = p.eval (q.eval a) := eval₂_comp _

@@ -28,7 +28,7 @@ All the following declarations exist in the namespace `nat`.
 -/
 
 open bool subtype
-open_locale factorial
+open_locale nat
 
 namespace nat
 

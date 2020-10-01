@@ -13,7 +13,7 @@ import data.nat.factorial
 # List permutations
 -/
 
-open_locale factorial
+open_locale nat
 
 namespace list
 universe variables uu vv

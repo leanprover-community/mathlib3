@@ -11,7 +11,7 @@ import data.finset.lattice
 import data.finset.pi
 import data.array.lemmas
 
-open_locale factorial
+open_locale nat
 
 universes u v
 

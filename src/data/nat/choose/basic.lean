@@ -20,7 +20,7 @@ requiring more imports).
 
 -/
 
-open_locale factorial
+open_locale nat
 
 namespace nat
 

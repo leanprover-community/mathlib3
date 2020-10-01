@@ -17,7 +17,7 @@ variables {m n : ℕ}
 | 0        := 1
 | (succ n) := succ n * factorial n
 
-localized "notation n `!`:10000 := nat.factorial n" in factorial
+localized "notation n `!`:10000 := nat.factorial n" in nat
 
 @[simp] theorem factorial_zero : 0! = 1! := rfl
 

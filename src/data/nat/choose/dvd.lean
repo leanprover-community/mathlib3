@@ -12,7 +12,7 @@ import data.nat.prime
 namespace nat
 namespace prime
 
-open_locale factorial
+open_locale nat
 
 lemma dvd_choose_add {p a b : ℕ} (hap : a < p) (hbp : b < p) (h : p ≤ a + b)
   (hp : prime p) : p ∣ choose (a + b) a :=

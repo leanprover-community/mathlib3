@@ -228,7 +228,7 @@ begin
     exact p_nonzero hp },
   { rw irrational_iff_ne_rational at hx,
     apply hx (-(p.coeff 0)) (p.coeff 1),
-    rw [as_sum p] at x_is_root,
+    rw [as_sum_range p] at x_is_root,
     simp only [is_root.def, h_degree, eval_map, finset.sum_range_succ, finset.sum_range_one,
       eval₂_mul, eval₂_add, eval₂_X, eval₂_C, eval₂_one, pow_one, pow_zero, mul_one] at x_is_root,
     simp only [ring_hom.eq_int_cast, add_eq_zero_iff_eq_neg] at x_is_root,

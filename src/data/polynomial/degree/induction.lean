@@ -14,6 +14,98 @@ namespace reverse
 
 variables {R : Type*} [semiring R] {f : polynomial R}
 
+def shift_by : ℕ → ℕ → ℕ := λ n , λ i , i+n
+
+@[simp] lemma shift_by_zero : shift_by 0 = id :=
+rfl
+
+@[simp] lemma shift_by_add (a b : ℕ): shift_by a ∘ shift_by b = shift_by (a+b) :=
+begin
+  ext1,
+  unfold shift_by,
+  rw [comp_app, add_comm a b, add_assoc],
+end
+
+@[simp] lemma shift_by_add_v (a b c : ℕ): shift_by (shift_by a b) c = shift_by (a+b) c :=
+begin
+  unfold shift_by,
+  rw add_comm b a,
+end
+
+@[simp] lemma shift_small {N a : ℕ} (H : a ≤ N) : shift_by a (N - a) = N :=
+nat.sub_add_cancel H
+
+lemma shift_by_monotone (i : ℕ) : monotone (shift_by i) :=
+begin
+  intros m n hmn,
+  exact add_le_add_right hmn i,
+end
+
+@[simp] lemma mul_X_mem_support {n : ℕ} : n.succ ∈ (f*X).support ↔ n ∈ f.support :=
+begin
+  repeat {rw mem_support_iff_coeff_ne_zero},
+  rw coeff_mul_X,
+end
+
+@[simp] lemma mul_X_mem_support_shift {n : ℕ} : shift_by 1 n ∈ (f*X).support ↔ n ∈ f.support :=
+begin
+  unfold shift_by,
+  rw [← nat.succ_eq_add_one, mul_X_mem_support],
+end
+
+@[simp] lemma nonzero_of_mem_support_mul_X {n : ℕ} : n ∈ (f*X).support → 1 ≤ n :=
+begin
+  intro a,
+  suffices : n ≠ 0, by omega,
+  intro n0,
+  rw [n0,mem_support_iff] at a,
+  apply a,
+  exact coeff_mul_X_zero f,
+end
+
+@[simp] lemma mul_X_mem_support_shift' {n : ℕ} : n ∈ (f*X).support ↔ 1 ≤ n ∧ (n-1) ∈ f.support :=
+begin
+  split,
+    { intro,
+      refine ⟨ nonzero_of_mem_support_mul_X a , _ ⟩,
+      rwa [← mul_X_mem_support_shift, shift_small (nonzero_of_mem_support_mul_X a)], },
+    { intro,
+      convert mul_X_mem_support_shift.mpr a.2,
+      exact (shift_small a.1).symm, },
+end
+
+
+lemma mul_X_support : (f*X).support = ((shift_by 1) '' ↑(f.support)).to_finset :=
+begin
+  ext1,
+  rw [mul_X_mem_support_shift', set.mem_to_finset],
+  split,
+    { intro,
+      rw [← coe_image, ← shift_small a_1.left],
+      exact (mem_image_of_mem (shift_by 1) a_1.right), },
+    { intro,
+      rw set.mem_image at a_1,
+      rcases a_1 with ⟨ a_1 , ha_1 , rfl ⟩,
+      refine ⟨ le_add_left rfl.ge , ha_1 ⟩, },
+end
+
+
+lemma mul_X_pow_support (n : ℕ) : (f*X^n).support = ((shift_by n) '' ↑(f.support)).to_finset :=
+begin
+  induction n with n hn,
+    { rw [pow_zero, mul_one, shift_by_zero],
+      ext,
+      simp, },
+    {
+      rw [nat.succ_eq_add_one, pow_add, pow_one, ← mul_assoc, mul_X_support, hn],
+      rw [set.to_finset_inj, set.coe_to_finset],
+      repeat {rw ← coe_image},
+      rw [image_image, shift_by_add, add_comm],
+    },
+end
+
+
+
 lemma nonempty_of_card_nonzero {α : Type*} {s : finset α} : s.card ≠ 0 → s.nonempty :=
 begin
   contrapose,
@@ -42,7 +134,7 @@ end
 
 def inj_mul (x : R) := ∀ ⦃a b : R⦄ , x*a=x*b → a=b
 
-lemma non_zero_of_nonempty_support : f.1.nonempty → f ≠ 0 :=
+lemma non_zero_of_nonempty_support : f.support.nonempty → f ≠ 0 :=
 begin
   intro,
   cases a with N Nhip,
@@ -50,7 +142,7 @@ begin
   finish,
 end
 
-lemma nonempty_support_of_non_zero : f ≠ 0 → f.1.nonempty :=
+lemma nonempty_support_of_non_zero : f ≠ 0 → f.support.nonempty :=
 begin
   intro fne,
   rw nonempty_iff_ne_empty,
@@ -59,18 +151,30 @@ begin
   exact leading_coeff_nonzero_of_nonzero.mp fne,
 end
 
-lemma non_zero_iff : f.1.nonempty ↔ f ≠ 0 :=
+lemma non_zero_iff : f.support.nonempty ↔ f ≠ 0 :=
 begin
   split,
     { exact non_zero_of_nonempty_support, },
     { exact nonempty_support_of_non_zero, },
 end
 
-lemma zero_iff : ¬ f.1.nonempty ↔ f = 0 :=
+lemma zero_iff : ¬ f.support.nonempty ↔ f = 0 :=
 begin
   rw not_congr,
     { exact not_not, },
     { exact non_zero_iff, },
+end
+
+lemma zero_iff_empty : f.support = ∅ ↔ f = 0 :=
+begin
+  exact support_eq_empty,
+end
+
+lemma le_nat_degree_of_mem_supp (a : ℕ) :
+  a ∈ f.support → a ≤ nat_degree f:=
+begin
+  rw mem_support_iff_coeff_ne_zero,
+  exact le_nat_degree_of_ne_zero,
 end
 
 lemma nat_trailing_degree_le_of_mem_supp (a : ℕ) :
@@ -241,7 +345,7 @@ begin
   rwa coeff_remove_eq_coeff_of_ne asmall,
 end
 
-lemma support_remove_leading_coefficient (f0 : f ≠ 0) : (remove_leading_coefficient f).support = f.support \ {f.nat_degree} :=
+lemma support_remove_leading_coefficient_v (f0 : f ≠ 0) : (remove_leading_coefficient f).support = f.support \ {f.nat_degree} :=
 begin
   ext,
   split,
@@ -256,6 +360,93 @@ begin
           exact ⟨mem_support_iff_coeff_ne_zero.mpr a_1 , ha ⟩,
         }, },
     { exact mem_remove_leading_coefficient_of_mem_diff, },
+end
+
+lemma support_remove_leading_coefficient : (remove_leading_coefficient f).support = f.support \ {f.nat_degree} :=
+begin
+  by_cases f0 : f = 0,
+    { rw f0,
+      apply (support_eq_empty).mpr,
+      refl, },
+    { ext,
+      split,
+        { rw mem_support_iff_coeff_ne_zero,
+          by_cases ha : a = f.nat_degree,
+            { rw ha,
+              intro,
+              exfalso,
+              exact a_1 coeff_remove_nat_degree, },
+            { rw [coeff_remove_eq_coeff_of_ne ha, mem_sdiff, not_mem_singleton],
+              intro,
+              exact ⟨mem_support_iff_coeff_ne_zero.mpr a_1 , ha ⟩,
+            }, },
+        { exact mem_remove_leading_coefficient_of_mem_diff, }, },
+end
+
+lemma xx {n : ℕ} : n ≠ 0 → 1 ≤ n :=
+begin
+  intro,
+  omega,
+end
+
+lemma support_remove_leading_coefficient_succ (h : f ≠ 0) : (remove_leading_coefficient f).support.card.succ = f.support.card :=
+begin
+  rw support_remove_leading_coefficient,
+  rw card_sdiff,
+    { rw [card_singleton, nat.succ_eq_add_one, nat.sub_add_cancel],
+      apply xx,
+      intro,
+      rw card_eq_zero at a,
+      apply h,
+      exact zero_iff_empty.mp a, },
+    { intros a,
+      rw mem_singleton,
+      rintro rfl,
+      rw defs_by_Johann h,
+      apply max'_mem f.support, },
+end
+
+/-
+lemma xxx {s t : finset ℕ} : s ⊆ t ∧ s ≠ t → s ⊂ t:=
+begin
+  intro,
+  cases a,
+  fsplit,
+    { exact a_left, },
+    { suggest,
+
+      sorry, },
+end
+--#exit
+lemma xxx {s : finset ℕ} {n : ℕ} {h : n ∈ s} : s \ singleton n ⊂ s :=
+begin
+--  rw subset
+  split,
+    exact sdiff_subset s {n},
+    apply set.nonempty_diff.mp _,
+  rw sdiff
+  rw ← sdiff_eq_self,
+  apply set.not_subset.mpr,
+  use n,
+  split,
+    exact h,
+
+    rw singleton_disjoint,
+
+
+  rw set.not_subset,
+end
+-/
+
+lemma support_remove_leading_coefficient_lt (h : f ≠ 0) : (remove_leading_coefficient f).support.card < f.support.card :=
+begin
+  apply card_lt_card,
+  rw [support_remove_leading_coefficient, ssubset_iff_of_subset],
+    { use f.nat_degree,
+      rw [← mem_sdiff, sdiff_sdiff_self_left, inter_singleton_of_mem, mem_singleton],
+      rw mem_support_iff_coeff_ne_zero,
+      exact leading_coeff_nonzero_of_nonzero.mp h, },
+    { exact f.support.sdiff_subset {nat_degree f}, },
 end
 
 lemma remove_leading_coefficient_nonzero_of_large_support (f0 : 2 ≤ f.support.card) : (remove_leading_coefficient f).support.nonempty :=
@@ -280,20 +471,17 @@ begin
   rw defs_by_Johann (non_zero_iff.mp (remove_leading_coefficient_nonzero_of_large_support f0)),
   apply nat.lt_of_le_and_ne _ (ne_nat_degree_of_mem_support_remove ((remove_leading_coefficient f).support.max'_mem (non_zero_iff.mpr _))),
   apply max'_le,
-    rw support_remove_leading_coefficient,
-      { intros y hy,
-        apply le_nat_degree_of_ne_zero,
-        rw mem_sdiff at hy,
-        exact (mem_support_iff_coeff_ne_zero.mp hy.1), },
-      { rw ← non_zero_iff,
-        apply nonempty_of_card_nonzero,
-        omega, },
+  rw support_remove_leading_coefficient,
+    { intros y hy,
+      apply le_nat_degree_of_ne_zero,
+      rw mem_sdiff at hy,
+      exact (mem_support_iff_coeff_ne_zero.mp hy.1), },
 end
 
 
 lemma support_remove_lt (h : f ≠ 0) : (remove_leading_coefficient f).support.card < f.support.card :=
 begin
-  rw support_remove_leading_coefficient h,
+  rw support_remove_leading_coefficient,
   apply card_lt_card,
   split,
     { exact f.support.sdiff_subset {nat_degree f}, },
@@ -344,6 +532,13 @@ begin
   exact card_le_of_subset (singleton_subset_iff.mpr (nat_degree_mem_support_of_nonzero f0)),
 end
 
+lemma sset {s : finset ℕ} : s \ s = ∅ :=
+begin
+  exact sdiff_self s,
+end
+
+
+
 lemma mem_support_term {n a : ℕ} {c : R} : a ∈ (C c * X ^ n).support → a = n :=
 begin
   intro,
@@ -351,7 +546,7 @@ begin
   finish,
 end
 
-lemma support_term_nonzero {n : ℕ} {c : R} (h : c ≠ 0): (C c * X ^ n).support = singleton n :=
+lemma support_term_nonzero {c : R} {n : ℕ} (h : c ≠ 0): (C c * X ^ n).support = singleton n :=
 begin
   ext1,
   rw mem_singleton,
@@ -381,6 +576,95 @@ begin
           exact sum_leading_term_remove f, }, },
 end
 
+lemma mem_support_monomial {R : Type*} [semiring R] {n a : ℕ} :
+  a ∈ (X ^ n : polynomial R).support → a = n :=
+begin
+  intro,
+  rw [mem_support_iff_coeff_ne_zero, coeff_X_pow n a] at a_1,
+  finish,
+end
+
+lemma support_monomial {R : Type*} [semiring R] {n : ℕ} :
+  (X ^ n : polynomial R).support ⊆ singleton n :=
+begin
+  intros a,
+  rw mem_singleton,
+  exact mem_support_monomial,
+end
+
+lemma support_term (c : R) (n : ℕ) : (C c * X ^ n).support ⊆ singleton n :=
+begin
+  intro a,
+  rw mem_singleton,
+  exact mem_support_term,
+end
+
+/-
+lemma remove_leading_coefficient_zero : remove_leading_coefficient (0 : polynomial R) = 0 :=
+begin
+  refl,
+end
+-/
+
+@[simp] lemma nat_degree_monomial {a : R} (n : ℕ) (ha : a ≠ 0) : nat_degree (C a * X ^ n) = n :=
+begin
+  rw defs_by_Johann,
+    { simp_rw support_term_nonzero ha,
+      exact max'_singleton n, },
+    { intro,
+      apply ha,
+      rw [← C_inj, C_0],
+      apply mul_X_pow_eq_zero a_1, },
+end
+
+
+lemma nat_degree_term_le {a : R} {n : ℕ} : nat_degree (C a * X ^ n) ≤ n :=
+begin
+  by_cases a0 : a = 0,
+    rw [a0, C_0, zero_mul, nat_degree_zero],
+    exact nat.zero_le _,
+
+
+    rw defs_by_Johann,
+      { simp_rw [support_term_nonzero a0, max'_singleton n], },
+      { intro,
+        apply a0,
+        rw [← C_inj, C_0],
+        apply mul_X_pow_eq_zero a_1, },
+end
+
+
+lemma remove_leading_coefficient_monomial {r : R} {n : ℕ} : remove_leading_coefficient (C r * X^n) = 0 :=
+begin
+  by_cases h : r = 0,
+    { rw [h, C_0, zero_mul],
+      refl, },
+    { rw [← support_eq_empty, ← sdiff_self (singleton n), support_remove_leading_coefficient],
+      congr,
+        { exact support_term_nonzero h, },
+        { exact nat_degree_monomial n h, }, },
+end
+
+
+lemma remove_leading_coefficient_card : f.support.card ≤ 1 → (remove_leading_coefficient f) = 0 :=
+begin
+  intro,
+  rw [monomial_of_card_support_le_one a, remove_leading_coefficient_monomial],
+end
+
+
+lemma nat_degree_remove_leading_coefficient_le : (remove_leading_coefficient f).nat_degree ≤ f.nat_degree :=
+begin
+  by_cases su : f.support.card ≤ 1,
+    {
+      rw [remove_leading_coefficient_card su, nat_degree_zero],
+      exact zero_le f.nat_degree, },
+    { apply le_of_lt,
+      exact nat_degree_remove_leading_coefficient (nat.succ_le_iff.mpr (not_le.mp su)), },
+end
+
+
+
 lemma nonzero_or_of_nonzero_sum {a b : R} : a+b ≠ 0 → a ≠ 0 ∨ b ≠ 0 :=
 begin
   contrapose,
@@ -396,6 +680,170 @@ begin
   exact nonzero_or_of_nonzero_sum,
 end
 
+
+lemma xxy {a b : ℕ} : a ≤ b ↔ a < b.succ :=
+begin
+  exact nat.lt_succ_iff.symm,
+end
+
+lemma yy {s : finset ℕ} : s = ∅ → ¬s.nonempty :=
+begin
+  intros a a_1,
+  cases a_1,
+  exact eq_empty_iff_forall_not_mem.mp a a_1_w a_1_h,
+end
+
+lemma pol_ind_with_N_bound (P : ℕ → polynomial R → Prop) :
+ (∀ (p q : polynomial R), ∀ Np Nq Npq : ℕ , (P Np p) → (P Nq q) → (P Npq (p+q))) →
+ (∀ r : R , ∀ n Nd : ℕ , n ≤ Nd → P Nd (C r * X^n)) →
+ ∀ p : polynomial R, ∀ Nd : ℕ , p.nat_degree ≤ Nd → P Nd p :=
+begin
+  intros Psum Pmon p Nd,
+  revert p,
+  induction Nd,
+    { intros p hp,
+      convert Pmon p.leading_coeff p.nat_degree 0 hp,
+      convert monomial_of_card_support_le_one _,
+      rw ← card_singleton 0,
+      apply card_le_of_subset _,
+      rw [eq_C_of_nat_degree_le_zero hp, ← mul_one (C (p.coeff 0)), ← pow_zero X],
+      exact support_term (p.coeff 0) 0, },
+
+    { intros p hp,
+      by_cases p0 : p = 0,
+        { rw [p0, ← zero_mul (X^0), ← C_0],
+          refine Pmon 0 0 Nd_n.succ (zero_le Nd_n.succ), },
+        { rw sum_leading_term_remove p,
+          apply Psum,
+            { by_cases ps : p.support.card ≤ 1,
+                { rw remove_leading_coefficient_card ps,
+                  rw [← zero_mul (X^0), ← C_0],
+                  refine Pmon 0 0 Nd_n (zero_le Nd_n), },
+                { refine Nd_ih _ _,
+                  rw ← nat.lt_succ_iff,
+                  apply gt_of_ge_of_gt hp _,
+                  exact nat_degree_remove_leading_coefficient (not_le.mp ps), }, },
+            { exact Pmon (leading_coeff p) _ _ (le_refl _), }, }, },
+end
+
+
+
+
+/-
+
+#exit
+lemma pol_ind_with_N_bound_vecchio (Nd Ns : ℕ) (P : polynomial R → Prop)
+ {Psum : ∀ (p q : polynomial R), (P p) → (P q) → (P (p+q))}
+ {Pmon : ∀ r : R , ∀ n : ℕ , n ≤ Nd → P (C r * X^n)} :
+ ∀ p : polynomial R, p.nat_degree ≤ Nd → p.support.card ≤ Ns.succ → P p :=
+begin
+  induction Ns,
+    { intros p hp hs,
+      rw monomial_of_card_support_le_one hs,
+      apply Pmon p.leading_coeff p.nat_degree hp, },
+
+    { intros p hp,
+      by_cases p0 : p = 0,
+        { rw [p0, ← zero_mul (X^0), ← C_0],
+          intro,
+          exact Pmon 0 0 (zero_le Nd), },
+        { rw sum_leading_term_remove p,
+          intro,
+          apply Psum,
+            { apply Ns_ih _ (le_trans nat_degree_remove_leading_coefficient_le hp),
+              rw ← nat.lt_succ_iff,
+              apply gt_of_ge_of_gt a _,
+              rw ← sum_leading_term_remove p,
+              exact support_remove_lt p0, },
+            { exact Pmon (leading_coeff p) (nat_degree p) hp, }, }, },
+end
+
+
+
+
+
+
+lemma pol_ind_con_bounds (f : polynomial R) {P : ℕ → polynomial R → Prop}
+{H : true → (pol_ind_with_N_bound P) } :
+ P f :=
+begin
+  apply pol_ind_with_N f.support.card Psum Pmon,
+  exact f.support.card.le_succ,
+end
+
+
+
+#exit
+/-
+lemma pol_ind_with_N_bound (N : ℕ) {P : polynomial R → Prop}
+ (Psum : ∀ (p q : polynomial R), (P p) → (P q) → (P (p+q)))
+ (Pmon : ∀ r : R , ∀ n : ℕ , n ≤ N.succ → P (C r * X^n)) :
+ ∀ p : polynomial R, p.nat_degree ≤ N.succ → p.support.card ≤ N.succ → P p :=
+begin
+  induction N,
+    { intros p hp hs,
+      rw monomial_of_card_support_le_one hs,
+      apply Pmon p.leading_coeff p.nat_degree hp, },
+
+    { intros p hp,
+      by_cases p0 : p = 0,
+        { rw [p0, ← zero_mul X, ← C_0, ← pow_one X],
+          intro,
+          apply Pmon 0 1,omega, },
+        { rw sum_leading_term_remove p,
+          intro,
+          apply Psum,
+            { apply N_ih,
+              intros r n hn,
+              apply Pmon,
+              exact nat.le_succ_of_le hn,
+--              apply nat.le_of_lt_succ,
+--              apply gt_of_ge_of_gt hp _,
+              by_cases psu : p.support.card ≤ 1,
+                convert nat.zero_le N_n.succ,
+                convert nat_degree_zero,
+                have : (remove_leading_coefficient p).support = ∅ ,
+                  rw support_remove_leading_coefficient p0,
+                  rw sdiff_eq_empty_iff_subset,
+                  convert support_term p.leading_coeff p.nat_degree,
+                  exact monomial_of_card_support_le_one psu,
+                rw ← zero_iff,
+                clear psu a p0 hp Pmon N_ih N_n Psum P,
+                rw eq_empty_iff_forall_not_mem at this,
+                intro,
+                cases a,
+                exact this a_w a_h,
+
+
+              rw ← nat.lt_succ_iff,
+              apply gt_of_ge_of_gt hp _,
+              apply nat_degree_remove_leading_coefficient,
+              exact not_le.mp psu,
+
+              rw ← nat.lt_succ_iff,
+
+              apply gt_of_ge_of_gt (a) _,
+              rw ← sum_leading_term_remove p,
+              exact support_remove_lt p0,
+                },
+            { apply Pmon (leading_coeff p) (nat_degree p),
+              rwa ← sum_leading_term_remove p at a, }, }, },
+end
+-/
+
+
+
+lemma pol_ind_bound (f : polynomial R) {P : polynomial R → Prop}
+ {Psum : ∀ p q : polynomial R, (P p) → (P q) → (P (p+q))}
+ {Pmon : ∀ r : R , ∀ n : ℕ , n ≤ f.nat_degree.succ → P (C r * X^n)} :
+ P f :=
+begin
+  apply pol_ind_with_N_bound f.nat_degree Psum Pmon,
+  exact f.nat_degree.le_succ,
+  exact f.support.card.le_succ,
+end
+
+-/
 
 lemma pol_ind_with_N (N : ℕ) {P : polynomial R → Prop}
  (Psum : ∀ (p q : polynomial R), (P p) → (P q) → (P (p+q)))
@@ -524,6 +972,7 @@ begin
     simp [nat.sub_eq_zero_of_le (le_of_lt (h)), min_eq_left (nat.succ_le_of_lt (nat.sub_pos_of_lt h))], },
 end
 
+/-
 lemma rev_at_add {M N m n : ℕ} : rev_at (M + N) (m + n) = rev_at M m + rev_at N n :=
 begin
   by_cases n0 : n ≤ N ∧ m ≤ M ∧ m+n ≤ M+N,
@@ -537,7 +986,7 @@ begin
       sorry,
     },
 end
-
+-/
 
 
 
@@ -558,6 +1007,16 @@ begin
 --/
 end
 
+lemma coeff_eq_zero_of_not_mem_support {a : ℕ} : a ∉ f.support → f.coeff a = 0 :=
+begin
+--  sorry,
+--/-
+  contrapose,
+  push_neg,
+  exact mem_support_iff_coeff_ne_zero.mpr,
+--/
+end
+
 --#exit
 
 
@@ -573,6 +1032,11 @@ def reflect : ℕ → polynomial R → polynomial R := λ N : ℕ , λ p : polyn
       use (rev_at N a),
       rwa [rev_at_invol, eq_self_iff_true, and_true], },
 end ⟩
+
+@[simp] lemma reflect_zero {n : ℕ} : reflect n (0 : polynomial R) = 0 :=
+begin
+  refl,
+end
 
 @[simp] lemma reflect_add {f g : polynomial R} {n : ℕ} : reflect n (f+g) = reflect n f + reflect n g :=
 begin
@@ -602,6 +1066,619 @@ begin
           apply congr_arg _,
           exact (mem_support_term a).symm, }, },
 end
+
+@[simp] lemma reflect_monomial (N n : ℕ) : reflect N ((X : polynomial R) ^ n) = X ^ (rev_at N n) :=
+begin
+  rw [← one_mul (X^n), ← one_mul (X^(rev_at N n)), ← C_1, reflect_term],
+end
+
+
+@[simp] lemma reflect_term_small (N n : ℕ) {c : R} : n ≤ N → reflect N (C c * X ^ n) = C c * X ^ (N-n) :=
+begin
+  intro,
+  rw ← rev_at_small a,
+  exact reflect_term N n,
+end
+
+@[simp] lemma reflect_smul (N : ℕ) {r : R} : reflect N (C r * f) = C r * (reflect N f) :=
+begin
+  ext1,
+  unfold reflect,
+  simp only [coeff_mk, coeff_C_mul],
+end
+
+@[simp] lemma reflect_support_small_set (N : ℕ) {h : f.nat_degree ≤ N} : ↑(reflect N f).support = rev_at N '' ↑f.support :=
+begin
+  unfold reflect,
+  rw set.coe_to_finset,
+end
+
+@[simp] lemma reflect_support_small (N : ℕ) {h : f.nat_degree ≤ N} : (reflect N f).support = (rev_at N '' ↑f.support).to_finset :=
+rfl
+
+lemma remove_leading_coefficient_zero : remove_leading_coefficient (0 : polynomial R) = 0 :=
+rfl
+
+
+lemma excongr {a b c : polynomial R} : b=c → a*b=a*c :=
+begin
+  exact congr_arg (λ {b : _}, a * b),
+end
+
+lemma pol_ind_card_degree_bound (N : ℕ) {P : ℕ → polynomial R → Prop}
+ (Padd : ∀ f g : polynomial R , ∀ M : ℕ , f.nat_degree ≤ M → g.nat_degree ≤ M → P  M f → P M g → P M (f+g))
+ (Pmon : ∀ r : R , ∀ n M : ℕ , n ≤ M → P M (C r * X^n)) :
+ ∀ f : polynomial R , ∀ M : ℕ , f.support.card ≤ N.succ → f.nat_degree ≤ M → P M f :=
+begin
+    induction N with N hN,
+    {
+      intros f M hf hM,
+      rw monomial_of_card_support_le_one (hf),
+      apply Pmon (f.leading_coeff) f.nat_degree M hM,
+    },
+    { intros f M hf hM,
+      rw sum_leading_term_remove f,
+      apply Padd,
+        apply le_trans _ hM,
+        exact nat_degree_remove_leading_coefficient_le,
+
+        apply le_trans _ hM,
+        apply nat_degree_term_le,
+        apply hN,
+
+        by_cases f0 : f = 0,
+        rw [f0, remove_leading_coefficient_zero, polynomial.support_zero, card_empty],
+        exact zero_le _,
+
+        rw ← support_remove_leading_coefficient_succ at hf,
+        repeat {rw nat.succ_eq_add_one at hf},
+        finish,
+
+        intro,
+        rw a at hf,
+        simp at hf,
+        finish,
+
+        { apply le_trans _ hM,
+          exact nat_degree_remove_leading_coefficient_le, },
+
+        apply Pmon f.leading_coeff f.nat_degree M hM, },
+end
+
+
+lemma pol_ind_degree_bound {P : ℕ → polynomial R → Prop} {M : ℕ}
+ {Padd : ∀ f g : polynomial R , ∀ N : ℕ , f.nat_degree ≤ N → g.nat_degree ≤ N → P N f → P N g → P N (f+g) }
+ {Pmon : ∀ r : R , ∀ n N : ℕ , n ≤ N → P N (C r * X^n) } :
+ f.nat_degree ≤ M → P M f :=
+ begin
+  intro,
+  by_cases f0 : f = 0,
+    { rw f0,
+      convert Pmon 0 0 M (nat.zero_le _),
+      rw [C_0, zero_mul], },
+    { apply pol_ind_card_degree_bound f.support.card.pred Padd Pmon,
+      rw [nat.succ_eq_add_one, nat.pred_eq_sub_one],
+      rw nat.sub_add_cancel,
+      apply xx,
+      intro,
+      apply f0,
+      rw card_eq_zero at a_1,
+      rwa ← zero_iff_empty,
+
+      assumption, },
+ end
+
+
+lemma pol_ind_card (N : ℕ) {P : polynomial R → Prop}
+ (Padd : ∀ f g : polynomial R , P f → P g → P (f+g))
+ (Pmon : ∀ r : R , ∀ n : ℕ , P (C r * X^n)) :
+ ∀ f : polynomial R , f.support.card = N.succ → P f :=
+begin
+  induction N with N hN,
+    {
+      intros f hf,
+      rw monomial_of_card_support_le_one (le_of_eq hf),
+      apply Pmon,
+    },
+    { intros f hf,
+      rw sum_leading_term_remove f,
+      apply Padd,
+        apply hN,
+        rw ← support_remove_leading_coefficient_succ at hf,
+        finish,
+
+        intro,
+        rw a at hf,
+        simp at hf,
+        finish,
+
+        apply Pmon, },
+end
+
+
+
+
+lemma pol_ind_1 {P : polynomial R → Prop}
+ {Padd : ∀ f g : polynomial R , P f → P g → P (f+g) }
+ {Pmon : ∀ r : R , ∀ n : ℕ , P (C r * X^n) } :
+ P f :=
+begin
+  by_cases f0 : f = 0,
+    { rw f0,
+      convert Pmon 0 0,
+      rw [C_0, zero_mul], },
+    { apply pol_ind_card f.support.card.pred Padd Pmon,
+      rw [nat.succ_eq_add_one, nat.pred_eq_sub_one],
+      rw nat.sub_add_cancel,
+      apply xx,
+      intro,
+      apply f0,
+      rw card_eq_zero at a,
+      rwa ← zero_iff_empty, },
+end
+
+
+@[simp] lemma shift_rev_at (n : ℕ) {Ng a : ℕ} (h : a ≤ Ng) : rev_at (n + Ng) (shift_by n a) = rev_at Ng a :=
+begin
+  unfold shift_by,
+  rw [rev_at_small h, rev_at_small];
+  { omega, },
+end
+
+
+@[simp] lemma shift_rev_at_comp (n : ℕ) {Ng a : ℕ} (h : a ≤ Ng) : ((rev_at (n + Ng)) ∘ shift_by n) a = rev_at Ng a :=
+begin
+  exact shift_rev_at n h,
+end
+
+
+
+lemma reflect_mul_term_total_support (Ng n : ℕ) {s : finset ℕ} (hs : s.nonempty) : s.max' hs ≤ Ng → rev_at (n + Ng) '' (shift_by n '' ↑s) = rev_at Ng '' ↑s :=
+begin
+  intros Hs,
+  repeat {rw ← coe_image},
+  rw image_image,
+  apply congr_arg,
+  ext1,
+  repeat {rw mem_image},
+  split;
+    { intro,
+      rcases a_1 with ⟨ a , ha , rfl ⟩,
+      use a,
+      rw shift_rev_at_comp n (le_trans (le_max' _ _ ha) Hs),
+      refine ⟨ ha , rfl ⟩, },
+end
+
+
+
+
+
+@[simp] lemma reflect_mul_term_total_zero_support (N n : ℕ) : f.nat_degree ≤ N → (reflect (n + N) (f*X^n)).support = (reflect N f).support :=
+begin
+  intro,
+  by_cases f0 : f = 0,
+    { rw [f0, zero_mul, reflect_zero, reflect_zero], },
+    { rw defs_by_Johann f0 at a,
+      unfold reflect,
+      rw [set.to_finset_inj, mul_X_pow_support, set.coe_to_finset],
+      exact @reflect_mul_term_total_support N n f.support (non_zero_iff.mpr f0) a, },
+end
+
+
+@[simp] lemma reflect_mul_term_total_support_plus (N n m : ℕ) {Hn : n ≤ m} {HN : f.nat_degree ≤ N} : (reflect (m + N) (f*X^n)).support = (reflect (m + N - n) f).support :=
+begin
+  rw le_iff_exists_add at Hn,
+  cases Hn with c hc,
+  rw [hc, add_assoc, reflect_mul_term_total_zero_support _ _ (le_add_left HN)],
+  congr,
+  rw [add_comm n, nat.add_sub_cancel],
+end
+
+def myProp (n : ℕ) : ℕ → polynomial R → Prop := λ N : ℕ , λ f : polynomial R , f.nat_degree ≤ N → (reflect (n + N) (f*X^n)) = (reflect N f)
+
+lemma support_bound (N : ℕ) (h: f.nat_degree ≤ N) : f.support ⊆ range (N + 1) :=
+begin
+  intros a ha,
+  rw [mem_range, nat.lt_succ_iff],
+  apply le_trans _ h,
+  apply le_nat_degree_of_mem_supp a ha,
+end
+
+
+
+lemma reflect_mul_term_total (N n : ℕ) (f : polynomial R) {h : f.nat_degree ≤ N} : myProp n N f :=
+--lemma reflect_mul_term_total (N n : ℕ) (f : polynomial R) : f.nat_degree ≤ N → (reflect (n + N) (f*X^n)) = (reflect N f) :=
+begin
+  apply (pol_ind_card_degree_bound N),
+
+  unfold myProp,
+  intros f g M Mf Mg Prf Prg dfg,
+  rw [add_mul, reflect_add, reflect_add],
+  simp only [*],
+
+  unfold myProp,
+  intros r n1 M Mn1 Mmon,
+  rw [mul_assoc, ← pow_add],
+  simp only [*, rev_at_small, reflect_monomial, reflect_smul],
+  congr,
+  rw rev_at_small,
+  omega,
+  rw add_comm,
+  exact add_le_add_left Mn1 n,
+
+  have : f.support ⊆ range (N+1),
+    sorry,
+  rw ← card_range N.succ,
+  apply card_le_of_subset,
+  exact support_bound N h,
+
+  assumption,
+end
+
+
+
+#exit
+lemma reflect_mul_term_total (c : ℕ) (N n : ℕ) (f : polynomial R) : f.support.card ≤ c.succ → f.nat_degree ≤ N → (reflect (n + N) (f*X^n)) = (reflect N f) :=
+begin
+  revert f,
+  induction c with c hc,
+    { intros f fc fd,
+      rw monomial_of_card_support_le_one fc,
+      rw [mul_assoc, ← pow_add X],
+      repeat {rw reflect_term, rw rev_at_small},
+        { repeat {apply congr_arg},
+          omega, },
+        { exact fd, },
+        { rw add_comm,
+          exact add_le_add_left fd n, }, },
+    {
+      intros f fc fd,
+      rw [sum_leading_term_remove f, add_mul, mul_assoc, ← pow_add],
+      simp only [*, rev_at_small, reflect_monomial, reflect_smul, reflect_add],
+      have : (remove_leading_coefficient f).support.card ≤ c.succ,
+        apply nat.le_of_lt_succ,
+        apply gt_of_ge_of_gt fc _,
+      apply hc (remove_leading_coefficient f),
+      sorry,
+    },
+
+  intro,
+  by_cases f0 : f = 0,
+    { rw [f0, zero_mul, reflect_zero, reflect_zero], },
+    { rw defs_by_Johann f0 at a,
+      unfold reflect,
+      rw [set.to_finset_inj, mul_X_pow_support, set.coe_to_finset],
+      exact @reflect_mul_term_total_support N n f.support (non_zero_iff.mpr f0) a, },
+end
+
+
+
+
+
+
+
+#exit
+
+lemma reflect_mul (M N : ℕ) : ∀ (Nf Ng : ℕ) (f g : polynomial R) , g.support.card ≤ M.succ → f.support.card ≤ N.succ → f.nat_degree ≤ Nf → g.nat_degree ≤ Ng → reflect (Nf+Ng) (f*g) = reflect Nf (f) * reflect Ng (g) :=
+begin
+  induction N with N hN,
+    { intros Nf Ng f g hgc hfc hf hg,
+      rw monomial_of_card_support_le_one hfc,
+      rw [reflect_term, rev_at_small hf, mul_assoc],
+      rw reflect_smul,
+      rw mul_assoc,
+      apply congr_arg (λ {b : polynomial R}, (C f.leading_coeff) * b),
+      rw X_pow_mul,
+
+      revert g,
+      induction M,
+        { intros g hgc hg,
+          rw monomial_of_card_support_le_one hgc,
+          rw [reflect_smul, reflect_monomial, X_pow_mul, mul_assoc, ← pow_add X],
+          rw [reflect_smul, reflect_monomial, mul_assoc, X_pow_mul, ← pow_add X],
+          congr,
+          rw [rev_at_small hg, rev_at_small _],
+            { omega, },
+            { rw add_comm Nf Ng,
+              exact add_le_add hg hf, }, },
+        {
+          intros g hgc hg,
+          rw sum_leading_term_remove g,
+          rw [reflect_add, reflect_smul, add_mul, mul_add, reflect_add, reflect_monomial],
+          rw rev_at_small hg,
+          rw M_ih (remove_leading_coefficient g) _ _,
+          congr,
+          rw [mul_assoc, ← pow_add X],
+          rw  reflect_mul_term_total Ng (g.nat_degree+f.nat_degree) Nf,
+          sorry,
+        }, },
+
+    {
+      intros Nf Ng f g fs fd gd,
+      by_cases f0 : f = 0,
+        { rw [f0, zero_mul, reflect_zero, reflect_zero, zero_mul], },
+
+        { rw sum_leading_term_remove f,
+          rw [reflect_add, reflect_smul, add_mul, reflect_add, add_mul, reflect_monomial],
+          have : (remove_leading_coefficient f).support.card ≤ N.succ,
+            rw ← nat.lt_succ_iff,
+            apply gt_of_ge_of_gt fs,
+            exact support_remove_leading_coefficient_lt f0,
+          rw hN Nf Ng (remove_leading_coefficient f) g this (le_trans nat_degree_remove_leading_coefficient_le fd) gd,
+          apply congr_arg (λ b : polynomial R , reflect Nf (remove_leading_coefficient f) * reflect Ng g + b),
+          sorry, --lemma un po' più forte
+ }, },
+end
+
+
+
+#exit
+
+
+lemma reflect_mul (N : ℕ) : ∀ (Nf Ng : ℕ) (f g : polynomial R) , f.support.card ≤ N.succ → f.nat_degree ≤ Nf → g.nat_degree ≤ Ng → reflect (Nf+Ng) (f*g) = reflect Nf (f) * reflect Ng (g) :=
+begin
+  induction N with N hN,
+    { intros Nf Ng f g hfc hf hg,
+      rw monomial_of_card_support_le_one hfc,
+      rw [reflect_term, rev_at_small hf, mul_assoc],
+      rw reflect_smul,
+      rw mul_assoc,
+      apply congr_arg (λ {b : polynomial R}, (C f.leading_coeff) * b),
+      rw X_pow_mul,
+
+      ext,
+      unfold reflect,
+      simp * at *,
+      rw reflect_mul_term_total Ng f.nat_degree Nf,
+      sorry, --requires a lemma
+    },
+    {
+      intros Nf Ng f g fs fd gd,
+      by_cases f0 : f = 0,
+        { rw [f0, zero_mul, reflect_zero, reflect_zero, zero_mul], },
+
+        { rw sum_leading_term_remove f,
+          rw [reflect_add, reflect_smul, add_mul, reflect_add, add_mul, reflect_monomial],
+          have : (remove_leading_coefficient f).support.card ≤ N.succ,
+            rw ← nat.lt_succ_iff,
+            apply gt_of_ge_of_gt fs,
+            exact support_remove_leading_coefficient_lt f0,
+          rw hN Nf Ng (remove_leading_coefficient f) g this (le_trans nat_degree_remove_leading_coefficient_le fd) gd,
+          apply congr_arg (λ b : polynomial R , reflect Nf (remove_leading_coefficient f) * reflect Ng g + b),
+          sorry, --lemma un po' più forte
+ }, },
+end
+
+
+
+#exit
+
+
+lemma reflect_mul_term_total (Ng n : ℕ) (g : polynomial R) : g.nat_degree ≤ Ng → reflect (n + Ng) (g * X ^ n) = reflect Ng g :=
+begin
+  intros Hg,
+  induction n with n hn,
+    { simp only [mul_one, zero_add, pow_zero], },
+    { --rw ← hn,
+      --simp only [*],
+      ext,
+      rw [nat.succ_eq_add_one, pow_add, pow_one],
+      simp * at *,
+      unfold reflect,
+--      unfold reflect at hn,
+      simp * at *,
+      sorry,
+    },
+end
+
+#exit
+
+lemma reflect_mul_term (Nf Ng n : ℕ) (g : polynomial R) : n ≤ Nf → g.nat_degree ≤ Ng → reflect (Nf + Ng) (X ^ n * g) = X ^ (Nf - n) * reflect Ng g :=
+begin
+  intros Hn Hg,
+  ext1,
+  by_cases ns : n_1 ≤
+
+  unfold reflect,
+
+
+  simp *,
+  sorry,
+end
+
+#exit
+
+lemma reflect_mul (N : ℕ) : ∀ (Nf Ng : ℕ) (f g : polynomial R) , f.support.card ≤ N.succ → f.nat_degree ≤ Nf → g.nat_degree ≤ Ng → reflect (Nf+Ng) (f*g) = reflect Nf (f) * reflect Ng (g) :=
+begin
+  induction N with N hN,
+    { intros Nf Ng f g hfc hf hg,
+      rw monomial_of_card_support_le_one hfc,
+      rw [reflect_term, rev_at_small hf, mul_assoc],
+      rw reflect_smul,
+      rw mul_assoc,
+      apply congr_arg (λ {b : polynomial R}, (C f.leading_coeff) * b),
+      sorry, --requires a lemma
+    },
+    {
+      intros Nf Ng f g fs fd gd,
+      by_cases f0 : f = 0,
+        { rw [f0, zero_mul, reflect_zero, reflect_zero, zero_mul], },
+
+        { rw sum_leading_term_remove f,
+          rw [reflect_add, reflect_smul, add_mul, reflect_add, add_mul, reflect_monomial],
+          have : (remove_leading_coefficient f).support.card ≤ N.succ,
+            rw ← nat.lt_succ_iff,
+            apply gt_of_ge_of_gt fs,
+            exact support_remove_leading_coefficient_lt f0,
+          rw hN Nf Ng (remove_leading_coefficient f) g this (le_trans nat_degree_remove_leading_coefficient_le fd) gd,
+          apply congr_arg (λ b : polynomial R , reflect Nf (remove_leading_coefficient f) * reflect Ng g + b),
+          sorry, --lemma un po' più forte
+ }, },
+end
+
+lemma reflect_mul (N Nf Ng : ℕ) (f g : polynomial R) : f.support.card ≤ N.succ → f.nat_degree ≤ Nf → g.nat_degree ≤ Ng → reflect (Nf+Ng) (f*g) = reflect Nf (f) * reflect Ng (g) :=
+begin
+  induction N,
+    { intros hfc hf hg,
+      rw monomial_of_card_support_le_one hfc,
+      rw [reflect_term, rev_at_small hf, mul_assoc],
+      rw reflect_smul,
+      rw mul_assoc,
+      apply congr_arg (λ {b : polynomial R}, (C f.leading_coeff) * b),
+      sorry, --requires a lemma
+    },
+    {
+      intros fcar fdeg gdeg,
+      by_cases f0 : f = 0,
+        { rw [f0, zero_mul, reflect_zero, reflect_zero, zero_mul], },
+
+        { rw sum_leading_term_remove f,
+          rw [reflect_add, reflect_smul, add_mul, reflect_add, add_mul, reflect_monomial],
+          have : (remove_leading_coefficient f).support.card ≤ N_n.succ,
+            rw ← nat.lt_succ_iff,
+            apply gt_of_ge_of_gt fcar,
+            exact support_remove_leading_coefficient_lt f0,
+          --rw N_ih,
+          sorry, }, },
+end
+#exit
+--      simp only [nat.nat_zero_eq_zero, reflect_smul, zero_add],
+
+      rw eq_C_of_nat_degree_le_zero hf,
+      congr,
+      unfold reflect,
+      have : rev_at 0 = id,
+        ext,
+        by_cases x0 : x = 0,
+          rw x0,
+          refl,
+          apply rev_at_large (nat.pos_of_ne_zero x0),
+      simp_rw this,
+      ext1,
+      refl, },
+    {
+      intros a a_1,
+
+
+      induction Ng,
+
+      ext1,
+      sorry,
+    },
+end
+
+
+#exit
+
+lemma reflect_mul (Nf Ng : ℕ) (f g : polynomial R) : f.nat_degree ≤ Nf → g.nat_degree ≤ Ng → reflect (Nf+Ng) (f*g) = reflect Nf (f) * reflect Ng (g) :=
+begin
+  induction Nf,
+    { intros hf hg,
+      rw eq_C_of_nat_degree_le_zero hf,
+      simp only [nat.nat_zero_eq_zero, reflect_smul, zero_add],
+      congr,
+      unfold reflect,
+      have : rev_at 0 = id,
+        ext,
+        by_cases x0 : x = 0,
+          rw x0,
+          refl,
+          apply rev_at_large (nat.pos_of_ne_zero x0),
+      simp_rw this,
+      ext1,
+      refl, },
+    {
+      intros a a_1,
+
+
+      induction Ng,
+
+      ext1,
+      sorry,
+    },
+end
+
+
+#exit
+lemma reflect_mul {Nf Ng : ℕ} {Hf : f.nat_degree ≤ Nf} : ∀ g : polynomial R, ∀ Ng : ℕ, g.nat_degree ≤ Ng → reflect (Nf+Ng) (f*g) = reflect Nf (f) * reflect Ng (g) :=
+begin
+  apply pol_ind_with_N_bound,
+    { intros p q Np Nq Npq hp hq,
+      rw [mul_add, reflect_add, reflect_add, mul_add],
+      revert Np Nq Npq,
+      sorry, },
+    {
+      sorry,
+    },
+end
+
+
+#exit
+
+
+
+lemma reflect_mul {Nf Ng : ℕ} {Hf : f.nat_degree ≤ Nf} : ∀ g : polynomial R, ∀ Ng : ℕ , g.nat_degree ≤ Ng → reflect (Nf+Ng) (f*g) = reflect Nf (f) * reflect Ng (g) :=
+begin
+  intro g,
+  apply pol_ind g,
+  {
+    intros p q hp hq Ng Hg,
+    simp [mul_add],
+    rw hq Ng,
+    rw hp Ng,
+  },
+  {
+    intros r n g Ng Hg,
+    rw mul_assoc,
+    simp [X_pow_mul],
+    rw ← mul_assoc,
+    simp,
+    sorry,
+  },
+end
+
+#exit
+lemma reflect_mul {f g : polynomial R} {Nf Ng : ℕ} {Hf : (f).nat_degree ≤ Nf} {Hg : (g).nat_degree ≤ Ng} : reflect (Nf+Ng) (f*g) = reflect Nf (f) * reflect Ng (g) :=
+begin
+  revert Nf f,
+--  revert f,
+  apply pol_ind g,
+    { intros p q hp hq Nf f Hf,
+      rwa [mul_add, reflect_add, reflect_add, mul_add, @hp _ _ Hf, @hq _ _ _], },
+    {
+      intros r n Nf f Hf,
+      apply pol_ind f,
+        {
+          intros p q hp hq Hf_1,
+          rw [reflect_add, add_mul, add_mul, reflect_add],
+          rw reflect_term_small Ng n,
+          --, reflect_term_small, hp, hq, reflect_term],
+        },
+        {
+          intros r m,
+          rw [mul_assoc, X_pow_mul, mul_assoc, ← pow_add, ← mul_assoc, ← C_mul],
+
+          rw reflect_term_small Hf,
+--          repeat {rw reflect_term_small _},
+          rw [mul_assoc, X_pow_mul, mul_assoc, ← pow_add, ← mul_assoc, ← C_mul],
+          repeat {apply congr_arg},
+          by_cases n0 : n ≤ Ng,
+            by_cases m0 : m ≤ Nf,
+              rw rev_at_small n0,
+              rw rev_at_small m0,
+              rw add_comm,
+              rw rev_at_small (add_le_add n0 m0),
+              zify,
+
+
+
+          sorry,
+        },
+    },
+end
+
+#exit
+
 
 
 
@@ -684,20 +1761,6 @@ end
 #exit
 
 
-@[simp] lemma reflect_zero {n : ℕ} : reflect n (0 : polynomial R) = 0 :=
-begin
-  refl,
-end
-
-lemma coeff_eq_zero_of_not_mem_support {a : ℕ} : a ∉ f.support → f.coeff a = 0 :=
-begin
---  sorry,
---/-
-  contrapose,
-  push_neg,
-  exact mem_support_iff_coeff_ne_zero.mpr,
---/
-end
 
 @[simp] lemma reflect_term (N n : ℕ) {c : R} : reflect N (C c * X ^ n) = C c * X ^ (rev_at N n) :=
 begin

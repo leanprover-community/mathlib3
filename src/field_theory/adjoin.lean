@@ -57,6 +57,8 @@ def gi : galois_insertion (adjoin F : set E → intermediate_field F E) coe :=
 instance : complete_lattice (intermediate_field F E) :=
 galois_insertion.lift_complete_lattice intermediate_field.gi
 
+instance : inhabited (intermediate_field F E) := ⟨⊤⟩
+
 lemma mem_bot {x : E} : x ∈ (⊥ : intermediate_field F E) ↔ x ∈ set.range (algebra_map F E) :=
 begin
   suffices : set.range (algebra_map F E) = (⊥ : intermediate_field F E),

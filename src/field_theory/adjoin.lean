@@ -274,6 +274,12 @@ lemma adjoin_simple_eq_bot_iff : α ∈ (⊥ : intermediate_field F E) ↔ F⟮�
 section adjoin_dim
 open finite_dimensional vector_space
 
+lemma dim_intermediate_field_eq_dim_subalgebra :
+  dim F (adjoin F S) = dim F (adjoin F S).to_subalgebra := rfl
+
+lemma findim_intermediate_field_eq_findim_subalgebra :
+  findim F (adjoin F S) = findim F (adjoin F S).to_subalgebra := rfl
+
 lemma sub_bot_of_adjoin_dim_eq_one (h : dim F (adjoin F S) = 1) : S ⊆ (⊥ : intermediate_field F E) :=
 begin
   rw adjoin_eq_bot_iff,
@@ -283,14 +289,15 @@ begin
   { rw [bot_to_subalgebra_eq_bot, ←subalgebra.dim_eq_one_iff],
     exact h }
 end
---sorry
--- by rwa [adjoin_eq_bot_iff, ← subalgebra.dim_eq_one_iff]
 
 lemma mem_bot_of_adjoin_simple_dim_eq_one (h : dim F F⟮α⟯ = 1) : α ∈ ((⊥ : intermediate_field F E) : set E) :=
 set.singleton_subset_iff.mp (sub_bot_of_adjoin_dim_eq_one h)
 
 lemma adjoin_dim_eq_one_of_sub_bot (h : S ⊆ (⊥ : intermediate_field F E)) : dim F (adjoin F S) = 1 :=
-by { rw adjoin_eq_bot h, exact subalgebra.dim_bot }
+begin
+  rw [dim_intermediate_field_eq_dim_subalgebra, adjoin_eq_bot h, bot_to_subalgebra_eq_bot],
+  exact subalgebra.dim_bot,
+end
 
 lemma adjoin_simple_dim_eq_one_of_mem_bot (h : α ∈ ((⊥ : intermediate_field F E) : set E)) : dim F F⟮α⟯ = 1 :=
 adjoin_dim_eq_one_of_sub_bot (set.singleton_subset_iff.mpr h)
@@ -302,10 +309,19 @@ lemma adjoin_simple_dim_eq_one_iff : dim F F⟮α⟯ = 1 ↔ α ∈ (⊥ : inter
 ⟨mem_bot_of_adjoin_simple_dim_eq_one, adjoin_simple_dim_eq_one_of_mem_bot⟩
 
 lemma adjoin_findim_eq_one_iff : findim F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
-by rw [← adjoin_dim_eq_one_iff, subalgebra.dim_eq_one_iff, subalgebra.findim_eq_one_iff]
+begin
+  rw findim_intermediate_field_eq_findim_subalgebra,
+  rw ← adjoin_dim_eq_one_iff,
+  rw dim_intermediate_field_eq_dim_subalgebra,
+  rw subalgebra.dim_eq_one_iff,
+  rw subalgebra.findim_eq_one_iff,
+end
 
 lemma adjoin_simple_findim_eq_one_iff : findim F F⟮α⟯ = 1 ↔ α ∈ (⊥ : intermediate_field F E) :=
-by rw [← adjoin_simple_dim_eq_one_iff, subalgebra.dim_eq_one_iff, subalgebra.findim_eq_one_iff]
+begin
+  rw adjoin_findim_eq_one_iff,
+  exact set.singleton_subset_iff,
+end
 
 /-- If `F⟮x⟯` has dimension `1` over `F` for every `x ∈ E` then `F = E`. -/
 lemma bot_eq_top_of_dim_adjoin_eq_one (h : ∀ x : E, dim F F⟮x⟯ = 1) : (⊥ : intermediate_field F E) = ⊤ :=

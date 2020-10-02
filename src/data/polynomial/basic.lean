@@ -144,7 +144,7 @@ section nonzero_semiring
 variables [semiring R] [nontrivial R]
 instance : nontrivial (polynomial R) :=
 begin
-  refine @nontrivial_of_ne _ 0 1 _, intro h,
+  refine nontrivial_of_ne 0 1 _, intro h,
   have := coeff_zero 0, revert this, rw h, simp,
 end
 

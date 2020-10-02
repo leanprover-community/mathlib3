@@ -467,7 +467,7 @@ namespace canonically_ordered_semiring
 variable [canonically_ordered_comm_semiring R]
 
 theorem pow_pos {a : R} (H : 0 < a) : ∀ n : ℕ, 0 < a ^ n
-| 0     := by { haveI := nontrivial_of_lt _ _ H, exact canonically_ordered_semiring.zero_lt_one }
+| 0     := by { nontriviality, exact canonically_ordered_semiring.zero_lt_one }
 | (n+1) := canonically_ordered_semiring.mul_pos.2 ⟨H, pow_pos n⟩
 
 lemma pow_le_pow_of_le_left {a b : R} (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
@@ -486,7 +486,7 @@ section linear_ordered_semiring
 variable [linear_ordered_semiring R]
 
 theorem pow_pos {a : R} (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
-| 0     := by { haveI := nontrivial_of_lt _ _ H, exact zero_lt_one }
+| 0     := by { nontriviality, exact zero_lt_one }
 | (n+1) := mul_pos H (pow_pos _)
 
 theorem pow_nonneg {a : R} (H : 0 ≤ a) : ∀ (n : ℕ), 0 ≤ a ^ n
@@ -528,7 +528,7 @@ calc a ^ n = a ^ n * 1 : (mul_one _).symm
 
 lemma pow_lt_pow {a : R} {n m : ℕ} (h : 1 < a) (h2 : n < m) : a ^ n < a ^ m :=
 begin
-  haveI := nontrivial_of_lt _ _ h,
+  nontriviality,
   have h' : 1 ≤ a := le_of_lt h,
   have h'' : 0 < a := lt_trans zero_lt_one h,
   cases m, cases h2, rw [pow_succ, ←one_mul (a ^ n)],
@@ -549,8 +549,7 @@ by { rw pow_two, exact mul_self_nonneg _ }
 
 theorem pow_two_pos_of_ne_zero [linear_ordered_ring R] (a : R) (h : a ≠ 0) : 0 < a ^ 2 :=
 begin
-  haveI := nontrivial_of_ne _ _ h,
-  letI : domain R := linear_ordered_ring.to_domain,
+  nontriviality,
   exact lt_of_le_of_ne (pow_two_nonneg a) (pow_ne_zero 2 h).symm
 end
 

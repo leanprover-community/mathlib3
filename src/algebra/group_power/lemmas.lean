@@ -157,6 +157,65 @@ f.to_multiplicative.map_gpow a n
 
 end group
 
+section ordered_add_comm_group
+
+variables [ordered_add_comm_group A]
+/-! Lemmas about `gsmul` under ordering,  placed here (rather than in `algebra.group_power.basic`
+with their friends) because they require facts from `data.int.basic`-/
+open int
+
+lemma gsmul_pos {a : A} (ha : 0 < a) {k : ℤ} (hk : (0:ℤ) < k) : 0 < k •ℤ a :=
+begin
+  lift k to ℕ using int.le_of_lt hk,
+  apply nsmul_pos ha,
+  exact coe_nat_pos.mp hk,
+end
+
+theorem gsmul_le_gsmul {a : A} {n m : ℤ} (ha : 0 ≤ a) (h : n ≤ m) : n •ℤ a ≤ m •ℤ a :=
+calc n •ℤ a = n •ℤ a + 0 : (add_zero _).symm
+  ... ≤ n •ℤ a + (m - n) •ℤ a : add_le_add_left (gsmul_nonneg ha (sub_nonneg.mpr h)) _
+  ... = m •ℤ a : by { rw [← add_gsmul], simp }
+
+theorem gsmul_lt_gsmul {a : A} {n m : ℤ} (ha : 0 < a) (h : n < m) : n •ℤ a < m •ℤ a :=
+calc n •ℤ a = n •ℤ a + 0 : (add_zero _).symm
+  ... < n •ℤ a + (m - n) •ℤ a : add_lt_add_left (gsmul_pos ha (sub_pos.mpr h)) _
+  ... = m •ℤ a : by { rw [← add_gsmul], simp }
+
+end ordered_add_comm_group
+
+section decidable_linear_ordered_add_comm_group
+variable [decidable_linear_ordered_add_comm_group A]
+
+theorem gsmul_le_gsmul_iff {a : A} {n m : ℤ} (ha : 0 < a) : n •ℤ a ≤ m •ℤ a ↔ n ≤ m :=
+begin
+  refine ⟨λ h, _, gsmul_le_gsmul $ le_of_lt ha⟩,
+  by_contra H,
+  exact lt_irrefl _ (lt_of_lt_of_le (gsmul_lt_gsmul ha (not_le.mp H)) h)
+end
+
+theorem gsmul_lt_gsmul_iff {a : A} {n m : ℤ} (ha : 0 < a) : n •ℤ a < m •ℤ a ↔ n < m :=
+begin
+  refine ⟨λ h, _, gsmul_lt_gsmul ha⟩,
+  by_contra H,
+  exact lt_irrefl _ (lt_of_le_of_lt (gsmul_le_gsmul (le_of_lt ha) $ not_lt.mp H) h)
+end
+
+theorem nsmul_le_nsmul_iff {a : A} {n m : ℕ} (ha : 0 < a) : n •ℕ a ≤ m •ℕ a ↔ n ≤ m :=
+begin
+  refine ⟨λ h, _, nsmul_le_nsmul $ le_of_lt ha⟩,
+  by_contra H,
+  exact lt_irrefl _ (lt_of_lt_of_le (nsmul_lt_nsmul ha (not_le.mp H)) h)
+end
+
+theorem nsmul_lt_nsmul_iff {a : A} {n m : ℕ} (ha : 0 < a) : n •ℕ a < m •ℕ a ↔ n < m :=
+begin
+  refine ⟨λ h, _, nsmul_lt_nsmul ha⟩,
+  by_contra H,
+  exact lt_irrefl _ (lt_of_le_of_lt (nsmul_le_nsmul (le_of_lt ha) $ not_lt.mp H) h)
+end
+
+end decidable_linear_ordered_add_comm_group
+
 @[simp] lemma with_bot.coe_nsmul [add_monoid A] (a : A) (n : ℕ) :
   ((nsmul n a : A) : with_bot A) = nsmul n a :=
 add_monoid_hom.map_nsmul ⟨(coe : A → with_bot A), with_bot.coe_zero, with_bot.coe_add⟩ a n

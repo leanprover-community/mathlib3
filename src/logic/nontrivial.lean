@@ -177,8 +177,8 @@ Alternatively, given a hypothesis `a ≠ b` or `a < b` in a type `α`, tries to 
 hypothesis from existing hypotheses using `nontrivial_of_ne` and `nontrivial_of_lt`.
 -/
 meta def nontriviality : tactic unit :=
-nontriviality_by_elim <|>
-  nontriviality_by_assumption <|>
+nontriviality_by_assumption <|>
+  nontriviality_by_elim <|>
   fail "Failed to add a relevant `nontrivial` hypothesis."
 
 add_tactic_doc

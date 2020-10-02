@@ -375,7 +375,7 @@ lt_of_not_ge (λ hb, absurd h (mul_nonpos_of_nonpos_of_nonneg ha hb).not_lt)
 commutative monoids rather than linearly ordered rings; however, the former concept does not
 currently exist in mathlib. -/
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_semiring.to_no_top_order {α : Type*} [nontrivial α] [linear_ordered_semiring α] :
+instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_semiring α] :
   no_top_order α :=
 ⟨assume a, ⟨a + 1, lt_add_of_pos_right _ zero_lt_one⟩⟩
 
@@ -453,7 +453,7 @@ end decidable_linear_ordered_semiring
 multiplication with a positive number and addition are monotone. -/
 @[protect_proj]
 class ordered_ring (α : Type u) extends ring α, ordered_add_comm_group α :=
-(zero_le_one : zero ≤ one)
+(zero_le_one : 0 ≤ (1 : α))
 (mul_pos     : ∀ a b : α, 0 < a → 0 < b → 0 < a * b)
 
 section ordered_ring
@@ -595,13 +595,13 @@ have h3 : (-c) * b < (-c) * a, from calc
 lt_of_mul_lt_mul_left h3 nhc
 
 
-lemma neg_one_lt_zero [nontrivial α] : -1 < (0:α) :=
+lemma neg_one_lt_zero : -1 < (0:α) :=
 begin
   have this := neg_lt_neg (@zero_lt_one α _ _),
   rwa neg_zero at this
 end
 
-lemma le_of_mul_le_of_one_le [nontrivial α] {a b c : α} (h : a * c ≤ b) (hb : 0 ≤ b) (hc : 1 ≤ c) :
+lemma le_of_mul_le_of_one_le {a b c : α} (h : a * c ≤ b) (hb : 0 ≤ b) (hc : 1 ≤ c) :
   a ≤ b :=
 have h' : a * c ≤ b * c, from calc
      a * c ≤ b : h
@@ -671,7 +671,7 @@ lt_iff_lt_of_le_iff_le (mul_le_mul_left_of_neg h)
 @[simp] lemma mul_lt_mul_right_of_neg {a b c : α} (h : c < 0) : a * c < b * c ↔ b < a :=
 lt_iff_lt_of_le_iff_le (mul_le_mul_right_of_neg h)
 
-lemma sub_one_lt [nontrivial α] (a : α) : a - 1 < a :=
+lemma sub_one_lt (a : α) : a - 1 < a :=
 sub_lt_iff_lt_add.2 (lt_add_one a)
 
 lemma mul_self_pos {a : α} (ha : a ≠ 0) : 0 < a * a :=

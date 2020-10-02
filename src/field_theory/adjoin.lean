@@ -335,11 +335,7 @@ begin
 end
 
 instance [finite_dimensional F E] (K : intermediate_field F E) : finite_dimensional F K :=
-begin
-  change finite_dimensional F K.to_subalgebra,
-  apply submodule.finite_dimensional_of_le,
-  exact le_top,
-end
+  finite_dimensional.finite_dimensional_submodule (K.to_subalgebra.to_submodule)
 
 /-- If `F⟮x⟯` has dimension `≤1` over `F` for every `x ∈ E` then `F = E`. -/
 lemma bot_eq_top_of_findim_adjoin_le_one [finite_dimensional F E]

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import linear_algebra.basic
-import ring_theory.algebra
+import algebra.algebra.basic
 import tactic.omega
 import data.fintype.sort
 

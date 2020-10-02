@@ -157,15 +157,15 @@ begin
   rw [this, ←lift_unique, hyp],
 end
 
-lemma ι_add_mul (x y z : M) : ι R M (x + y) * ι R M z = ι R M x * ι R M z + ι R M y * ι R M z :=
+lemma ι_add_mul (x y z : M) : ι R (x + y) * ι R z = ι R x * ι R z + ι R y * ι R z :=
 by rw [linear_map.map_add, right_distrib]
 
-lemma ι_mul_add (x y z : M) : ι R M x * ι R M (y + z) = ι R M x * ι R M y + ι R M x * ι R M z :=
+lemma ι_mul_add (x y z : M) : ι R x * ι R (y + z) = ι R x * ι R y + ι R x * ι R z :=
 by rw [linear_map.map_add, left_distrib]
 
 @[simp]
-lemma ι_add_swap (x y : M) : ι R M x * ι R M y + ι R M y * ι R M x = 0 :=
-let ι := ι R M in calc ι x * ι y + ι y * ι x
+lemma ι_add_swap (x y : M) : ι R x * ι R y + ι R y * ι R x = 0 :=
+let ι := (ι R : M →ₗ[R] _) in calc ι x * ι y + ι y * ι x
   = ι x * ι y + ι y * ι y + ι y * ι x :
     by rw [ι_square_zero, add_zero]
   ...= ι x * ι y + ι y * ι y + ι y * ι x + ι x * ι x :
@@ -191,8 +191,14 @@ def wedge : multilinear_map R (λ i : fin q, M) (exterior_algebra R M) :=
 
 variables {R M}
 
+
+section
+
+-- TODO: we should not be relying on these definitions
+local attribute [semireducible] exterior_algebra ι
+
 lemma wedge_split (ν : fin q.succ → M) :
-wedge R M ν = ι R M (ν 0) * wedge R M (λ i : fin q, ν i.succ) :=
+wedge R M ν = ι R (ν 0) * wedge R M (λ i : fin q, ν i.succ) :=
 begin
   change exterior_algebra.quot R M _ = _,
   rw tensor_algebra.mk_split,
@@ -200,11 +206,13 @@ begin
   refl,
 end
 
+end
+
 /--
 Auxiliary lemma used to prove `wedge_self_adj`.
 -/
 lemma wedge_self_adj_aux (ν : fin q.succ → M) {j : fin q.succ} (hj : j.val = 1) (hv : ν 0 = ν j):
-ι R M (ν 0) * wedge R M (λ i : fin q, ν i.succ) = 0 :=
+ι R (ν 0) * wedge R M (λ i : fin q, ν i.succ) = 0 :=
 begin
   induction q with q hq,
   --Base case (we get a contradiction)

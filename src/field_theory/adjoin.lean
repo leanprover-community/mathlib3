@@ -324,17 +324,23 @@ begin
 end
 
 /-- If `F⟮x⟯` has dimension `1` over `F` for every `x ∈ E` then `F = E`. -/
-lemma bot_eq_top_of_dim_adjoin_eq_one (h : ∀ x : E, dim F F⟮x⟯ = 1) : (⊥ : intermediate_field F E) = ⊤ :=
+lemma bot_eq_top_of_dim_adjoin_eq_one (h : ∀ x : E, dim F F⟮x⟯ = 1) :
+  (⊥ : intermediate_field F E) = ⊤ :=
 begin
   ext,
   rw iff_true_right intermediate_field.mem_top,
   exact mem_bot_of_adjoin_simple_dim_eq_one (h x),
 end
---by simp [subalgebra.ext_iff, algebra.mem_top, ← adjoin_simple_dim_eq_one_iff, h]
 
 lemma bot_eq_top_of_findim_adjoin_eq_one (h : ∀ x : E, findim F F⟮x⟯ = 1) :
-  (⊥ : subalgebra F E) = ⊤ :=
-by simp [subalgebra.ext_iff, algebra.mem_top, ← adjoin_simple_findim_eq_one_iff, h]
+  (⊥ : intermediate_field F E) = ⊤ :=
+begin
+  ext,
+  rw iff_true_right intermediate_field.mem_top,
+  exact ((⊥ : intermediate_field F E).mem_coe x).mp
+    (set.singleton_subset_iff.mp (adjoin_findim_eq_one_iff.mp (h x))),
+end
+--y simp [subalgebra.ext_iff, algebra.mem_top, ← adjoin_simple_findim_eq_one_iff, h]
 
 /-- If `F⟮x⟯` has dimension `≤1` over `F` for every `x ∈ E` then `F = E`. -/
 lemma bot_eq_top_of_findim_adjoin_le_one [finite_dimensional F E]

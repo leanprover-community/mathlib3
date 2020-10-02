@@ -118,7 +118,7 @@ begin
     { exact nonempty_support_of_non_zero, },
 end
 
-lemma defs_by_Johann {R : Type*} [semiring R] {f : polynomial R} (h : f ≠ 0) :
+lemma nat_degree_eq_support_max' {R : Type*} [semiring R] {f : polynomial R} (h : f ≠ 0) :
   f.nat_degree = f.support.max' (non_zero_iff.mpr h) :=
 begin
   apply le_antisymm,

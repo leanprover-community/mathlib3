@@ -4,14 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenji Nakagawa
 -/
 
-import tactic
-import tactic.fin_cases
-import data.zmod.basic
 import field_theory.finite.basic
-
-@[simp] lemma zmod.pow_bit0 (n : ℕ) [fact (bit1 n).prime] (k : zmod (bit1 n)) (hk : k ≠ 0) :
-  k ^ (bit0 n) = 1 :=
-zmod.pow_card_sub_one_eq_one hk
 
 lemma modfact (n : ℕ) : (2^n : zmod 7) = 2 ^ (n : zmod 3).val :=
 begin
@@ -31,7 +24,6 @@ end
 
 * (a) Find all positive integers `n` for which `2^n-1` is divisble by `7`.
 * (b) Prove that there is no positive integer `n` for which `2^n+1` is divisible by `7`.
-
 -/
 example (n : ℕ) (gt_zero : 0 < n) : ((2^n -1) : zmod 7) = 0 ↔ (n : zmod 3) = 0 :=
 begin

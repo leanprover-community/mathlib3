@@ -314,6 +314,10 @@ theorem pow_card_sub_one_eq_one {p : ℕ} [fact p.prime] {a : zmod p} (ha : a �
   a ^ (p - 1) = 1 :=
 by { have h := pow_card_sub_one_eq_one a ha, rwa zmod.card p at h }
 
+@[simp] lemma pow_bit0 (n : ℕ) [fact (bit1 n).prime] (k : zmod (bit1 n)) (hk : k ≠ 0) :
+  k ^ (bit0 n) = 1 :=
+pow_card_sub_one_eq_one hk
+
 open polynomial
 
 lemma expand_card {p : ℕ} [fact p.prime] (f : polynomial (zmod p)) :

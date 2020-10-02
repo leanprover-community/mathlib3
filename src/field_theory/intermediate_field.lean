@@ -80,7 +80,7 @@ instance : has_mem L (intermediate_field K L) := ⟨λ m S, m ∈ (S : set L)⟩
   (ho hm hz ha hn hi) (x : L) :
   x ∈ intermediate_field.mk s ho hm hz ha hK hn hi ↔ x ∈ s := iff.rfl
 
-@[simp] lemma mem_coe (x : L) : x ∈ (S : set L) ↔ x ∈ S := iff.rfl
+@[simp] lemma mem_coe {x : L} : x ∈ (S : set L) ↔ x ∈ S := iff.rfl
 
 @[simp] lemma mem_to_subalgebra (s : intermediate_field K L) (x : L) :
   x ∈ s.to_subalgebra ↔ x ∈ s := iff.rfl
@@ -209,6 +209,14 @@ S.to_subalgebra.algebra
 instance to_algebra : algebra S L :=
 S.to_subalgebra.to_algebra
 
+/-
+-- Instances for `coe_sort (coe S)`.
+-- TODO: do we really want this?
+instance to_field' : field (S : set L) := S.to_field
+instance algebra' : algebra K (S : set L) := S.algebra
+instance to_algebra' : algebra (S : set L) L := S.to_algebra
+-/
+
 instance : is_scalar_tower K S L :=
 is_scalar_tower.subalgebra' _ _ _ S.to_subalgebra
 
@@ -234,6 +242,10 @@ variables {S}
 lemma to_subalgebra_injective {S S' : intermediate_field K L}
   (h : S.to_subalgebra = S'.to_subalgebra) : S = S' :=
 by { ext, rw [← mem_to_subalgebra, ← mem_to_subalgebra, h] }
+
+lemma to_subalgebra_inj_iff {S S' : intermediate_field K L} :
+  (S.to_subalgebra = S'.to_subalgebra) ↔ (S = S') :=
+⟨to_subalgebra_injective, λ h, h ▸ rfl⟩
 
 instance : partial_order (intermediate_field K L) :=
 { le := λ S T, (S : set L) ⊆ T,

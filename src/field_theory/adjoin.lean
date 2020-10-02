@@ -5,15 +5,15 @@ Authors: Thomas Browning and Patrick Lutz
 -/
 
 import field_theory.intermediate_field
+import linear_algebra.finite_dimensional
 import ring_theory.adjoin
->>>>>>> mathlib/master
 
 /-!
 # Adjoining Elements to Fields
 
 In this file we introduce the notion of adjoining elements to fields.
 This isn't quite the same as adjoining elements to rings.
-For example, `algebra.adjoin K {x}` might not include `x⁻¹`.
+For example, `algebra.adjoin F {x}` might not include `x⁻¹`.
 
 ## Main results
 
@@ -154,10 +154,90 @@ begin
   refl
 end
 
+end adjoin_def
+
+end field
+
+namespace intermediate_field
+
+section lattice
+
+variables {F E : Type*} [field F] [field E] [algebra F E]
+
+protected lemma gc : galois_connection (field.adjoin F : set E → intermediate_field F E) coe :=
+λ s S, ⟨λ H, le_trans (field.subset_adjoin _ _) H,
+        λ H, field.adjoin_le _ _ H⟩
+
+protected def gi : galois_insertion (field.adjoin F : set E → intermediate_field F E) coe :=
+{ choice := λ s hs, field.adjoin F s,
+  gc := intermediate_field.gc,
+  le_l_u := λ S, (intermediate_field.gc (S : set E) (field.adjoin F S)).1 $ le_refl _,
+  choice_eq := λ _ _, rfl }
+
+instance : complete_lattice (intermediate_field F E) :=
+galois_insertion.lift_complete_lattice intermediate_field.gi
+
+lemma mem_top (x : E) : x ∈ (⊤ : intermediate_field F E) :=
+field.subset_adjoin _ _ trivial
+
+lemma mem_bot {x : E} : x ∈ (⊥ : intermediate_field F E) ↔ x ∈ set.range (algebra_map F E) :=
+begin
+  refine ⟨_, λ hx, intermediate_field.set_range_subset ⊥ hx⟩,
+  rintros ⟨y, hy, z, hz, rfl⟩,
+  have : subring.closure (set.range (algebra_map F E) ∪ ⊥) = (algebra_map F E).range,
+  { rw [set.bot_eq_empty, set.union_empty, ← ring_hom.coe_range, subring.closure_subring] },
+  simp only [set.mem_range, this] at hy hz ⊢,
+  obtain ⟨y, rfl⟩ := ring_hom.mem_range.mp hy,
+  obtain ⟨z, rfl⟩ := ring_hom.mem_range.mp hz,
+  exact ⟨y / z, ring_hom.map_div _ _ _⟩,
+end
+
+@[simp] lemma to_subalgebra_bot : (⊥ : intermediate_field F E).to_subalgebra = ⊥ :=
+by { ext, rw [mem_to_subalgebra, mem_bot, algebra.mem_bot] }
+
+@[simp] lemma coe_bot : ↑(⊥ : intermediate_field F E) = set.range (algebra_map F E) :=
+by { ext, rw [mem_coe, mem_bot] }
+
+variables {S : intermediate_field F E}
+
+@[simp] lemma dim_to_subalgebra :
+  vector_space.dim F S.to_subalgebra = vector_space.dim F S :=
+rfl
+
+@[simp] lemma findim_to_subalgebra :
+  finite_dimensional.findim F S.to_subalgebra = finite_dimensional.findim F S :=
+rfl
+
+@[simp]
+theorem dim_eq_one_iff : vector_space.dim F S = 1 ↔ S = ⊥ :=
+by rw [← dim_to_subalgebra, subalgebra.dim_eq_one_iff, ← to_subalgebra_bot, to_subalgebra_inj_iff]
+
+@[simp]
+theorem findim_eq_one_iff : finite_dimensional.findim F S = 1 ↔ S = ⊥ :=
+by rw [← findim_to_subalgebra, subalgebra.findim_eq_one_iff, ← to_subalgebra_bot,
+       to_subalgebra_inj_iff]
+
+@[simp] lemma dim_bot : vector_space.dim F (⊥ : intermediate_field F E) = 1 :=
+by rw [← dim_to_subalgebra, to_subalgebra_bot, subalgebra.dim_bot]
+
+instance findim_algebra [finite_dimensional F E] : finite_dimensional F S :=
+finite_dimensional.finite_dimensional_submodule S.to_subalgebra.to_submodule
+
+instance findim_top [finite_dimensional F E] : finite_dimensional S E :=
+sorry
+
+end lattice
+
+end intermediate_field
+
+namespace field
+
+variables (F : Type*) {E : Type*} [field F] [field E] [algebra F E] (S T : set E)
+
 variables (α : E)
 /-- `F[S][T] = F[T][S]` -/
 lemma adjoin_adjoin_comm (T : set E) :
-  (adjoin (adjoin F S : set E) T : set E) = (adjoin (adjoin F T : set E) S : set E) :=
+  ((adjoin (adjoin F S) T) : set E) = (adjoin (adjoin F T) S : set E) :=
 by rw [adjoin_adjoin_left, adjoin_adjoin_left, set.union_comm]
 
 /--
@@ -176,10 +256,9 @@ instance insert_empty {α : Type*} : insert (∅ : set α) :=
 instance insert_nonempty {α : Type*} (s : set α) : insert s :=
 { insert := λ x, set.insert x s }
 
-notation K`⟮`:std.prec.max_plus l:(foldr `, ` (h t, insert.insert t h) ∅) `⟯` := adjoin K l
+notation F`⟮`:std.prec.max_plus l:(foldr `, ` (h t, insert.insert t h) ∅) `⟯` := adjoin F l
 
 section adjoin_simple
-variables (α : E)
 
 lemma mem_adjoin_simple_self : α ∈ F⟮α⟯ :=
 subset_adjoin F {α} (set.mem_singleton α)
@@ -196,83 +275,84 @@ lemma adjoin_simple_comm (β : E) : (F⟮α⟯⟮β⟯ : set E) = (F⟮β⟯⟮�
 adjoin_adjoin_comm _ _ _
 
 end adjoin_simple
-end adjoin_def
 
 section adjoin_subalgebra_lattice
-variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E] {α : E} {S : set E}
+variables {α} {S}
 
-lemma adjoin_eq_bot (h : S ⊆ (⊥ : subalgebra F E)) : adjoin F S = ⊥ :=
+lemma adjoin_eq_bot (h : S ⊆ (⊥ : intermediate_field F E)) : adjoin F S = ⊥ :=
 begin
   rw eq_bot_iff,
-  intros x,
-  rw [subalgebra.mem_coe, subalgebra.mem_coe, algebra.mem_bot],
-  rw algebra.coe_bot at h,
-  apply adjoin_subset_subfield _ _ set.subset.rfl h,
+  exact adjoin_le _ _ h
 end
 
-lemma adjoin_simple_eq_bot (hα : α ∈ ((⊥ : subalgebra F E) : set E)) : F⟮α⟯ = (⊥ : subalgebra F E) :=
-adjoin_eq_bot (set.singleton_subset_iff.mpr hα)
+lemma adjoin_simple_eq_bot (hα : α ∈ (⊥ : intermediate_field F E)) :
+  F⟮α⟯ = ⊥ :=
+adjoin_eq_bot _ (set.singleton_subset_iff.mpr hα)
 
-lemma adjoin_zero : F⟮0⟯ = (⊥ : subalgebra F E) :=
-adjoin_simple_eq_bot (algebra.mem_bot.mpr (is_add_submonoid.zero_mem))
+lemma adjoin_zero : F⟮(0 : E)⟯ = ⊥ :=
+adjoin_simple_eq_bot _ (intermediate_field.zero_mem _)
 
-lemma adjoin_one : F⟮1⟯ = (⊥ : subalgebra F E) :=
-adjoin_simple_eq_bot (algebra.mem_bot.mpr (is_submonoid.one_mem))
+lemma adjoin_one : F⟮(1 : E)⟯ = ⊥ :=
+adjoin_simple_eq_bot _ (intermediate_field.one_mem _)
 
-lemma sub_bot_of_adjoin_sub_bot (h : adjoin F S = ⊥) : S ⊆ (⊥ : subalgebra F E) :=
+lemma sub_bot_of_adjoin_sub_bot (h : adjoin F S = ⊥) : S ⊆ (⊥ : intermediate_field F E) :=
 calc S ⊆ adjoin F S : subset_adjoin _ _
-  ... = (⊥ : subalgebra F E) : congr_arg coe h
+  ... = (⊥ : intermediate_field F E) : congr_arg coe h
 
-lemma mem_bot_of_adjoin_simple_sub_bot (h : F⟮α⟯ = ⊥) : α ∈ ((⊥ : subalgebra F E) : set E) :=
-set.singleton_subset_iff.mp (sub_bot_of_adjoin_sub_bot h)
+lemma mem_bot_of_adjoin_simple_sub_bot (h : F⟮α⟯ = ⊥) :
+  α ∈ (⊥ : intermediate_field F E) :=
+show α ∈ ((⊥ : intermediate_field F E) : set E),
+from set.singleton_subset_iff.mp (sub_bot_of_adjoin_sub_bot _ h)
 
-lemma adjoin_eq_bot_iff : S ⊆ (⊥ : subalgebra F E) ↔ adjoin F S = ⊥ :=
-⟨adjoin_eq_bot, sub_bot_of_adjoin_sub_bot⟩
+lemma adjoin_eq_bot_iff : S ⊆ (⊥ : intermediate_field F E) ↔ adjoin F S = ⊥ :=
+⟨adjoin_eq_bot _, sub_bot_of_adjoin_sub_bot _⟩
 
-lemma adjoin_simple_eq_bot_iff : α ∈ (⊥ : subalgebra F E) ↔ F⟮α⟯ = ⊥ :=
-⟨adjoin_simple_eq_bot, mem_bot_of_adjoin_simple_sub_bot⟩
+lemma adjoin_simple_eq_bot_iff : α ∈ (⊥ : intermediate_field F E) ↔ F⟮α⟯ = ⊥ :=
+⟨adjoin_simple_eq_bot _, mem_bot_of_adjoin_simple_sub_bot _⟩
 
 section adjoin_dim
 open finite_dimensional vector_space
 
-lemma sub_bot_of_adjoin_dim_eq_one (h : dim F (adjoin F S) = 1) : S ⊆ (⊥ : subalgebra F E) :=
-by rwa [adjoin_eq_bot_iff, ← subalgebra.dim_eq_one_iff]
+lemma sub_bot_of_adjoin_dim_eq_one (h : dim F (adjoin F S) = 1) : S ⊆ (⊥ : intermediate_field F E) :=
+by rwa [adjoin_eq_bot_iff, ← intermediate_field.dim_eq_one_iff]
 
-lemma mem_bot_of_adjoin_simple_dim_eq_one (h : dim F F⟮α⟯ = 1) : α ∈ ((⊥ : subalgebra F E) : set E) :=
-set.singleton_subset_iff.mp (sub_bot_of_adjoin_dim_eq_one h)
+lemma mem_bot_of_adjoin_simple_dim_eq_one (h : dim F F⟮α⟯ = 1) : α ∈ (⊥ : intermediate_field F E) :=
+show α ∈ ((⊥ : intermediate_field F E) : set E),
+from set.singleton_subset_iff.mp (sub_bot_of_adjoin_dim_eq_one _ h)
 
-lemma adjoin_dim_eq_one_of_sub_bot (h : S ⊆ (⊥ : subalgebra F E)) : dim F (adjoin F S) = 1 :=
-by { rw adjoin_eq_bot h, exact subalgebra.dim_bot }
+lemma adjoin_dim_eq_one_of_sub_bot (h : S ⊆ (⊥ : intermediate_field F E)) : dim F (adjoin F S) = 1 :=
+by { rw adjoin_eq_bot _ h, exact intermediate_field.dim_bot }
 
-lemma adjoin_simple_dim_eq_one_of_mem_bot (h : α ∈ ((⊥ : subalgebra F E) : set E)) : dim F F⟮α⟯ = 1 :=
-adjoin_dim_eq_one_of_sub_bot (set.singleton_subset_iff.mpr h)
+lemma adjoin_simple_dim_eq_one_of_mem_bot (h : α ∈ (⊥ : intermediate_field F E)) : dim F F⟮α⟯ = 1 :=
+adjoin_dim_eq_one_of_sub_bot _ (set.singleton_subset_iff.mpr h)
 
-lemma adjoin_dim_eq_one_iff : dim F (adjoin F S) = 1 ↔ S ⊆ (⊥ : subalgebra F E) :=
-⟨sub_bot_of_adjoin_dim_eq_one, adjoin_dim_eq_one_of_sub_bot⟩
+lemma adjoin_dim_eq_one_iff : dim F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
+⟨sub_bot_of_adjoin_dim_eq_one _, adjoin_dim_eq_one_of_sub_bot _⟩
 
-lemma adjoin_simple_dim_eq_one_iff : dim F F⟮α⟯ = 1 ↔ α ∈ (⊥ : subalgebra F E) :=
-⟨mem_bot_of_adjoin_simple_dim_eq_one, adjoin_simple_dim_eq_one_of_mem_bot⟩
+lemma adjoin_simple_dim_eq_one_iff : dim F F⟮α⟯ = 1 ↔ α ∈ (⊥ : intermediate_field F E) :=
+⟨mem_bot_of_adjoin_simple_dim_eq_one _, adjoin_simple_dim_eq_one_of_mem_bot _⟩
 
-lemma adjoin_findim_eq_one_iff : findim F (adjoin F S) = 1 ↔ S ⊆ (⊥ : subalgebra F E) :=
-by rw [← adjoin_dim_eq_one_iff, subalgebra.dim_eq_one_iff, subalgebra.findim_eq_one_iff]
+lemma adjoin_findim_eq_one_iff : findim F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
+by rw [← adjoin_dim_eq_one_iff, intermediate_field.dim_eq_one_iff, intermediate_field.findim_eq_one_iff]
 
-lemma adjoin_simple_findim_eq_one_iff : findim F F⟮α⟯ = 1 ↔ α ∈ (⊥ : subalgebra F E) :=
-by rw [← adjoin_simple_dim_eq_one_iff, subalgebra.dim_eq_one_iff, subalgebra.findim_eq_one_iff]
+lemma adjoin_simple_findim_eq_one_iff : findim F F⟮α⟯ = 1 ↔ α ∈ (⊥ : intermediate_field F E) :=
+by rw [← adjoin_simple_dim_eq_one_iff, intermediate_field.dim_eq_one_iff, intermediate_field.findim_eq_one_iff]
 
 /-- If `F⟮x⟯` has dimension `1` over `F` for every `x ∈ E` then `F = E`. -/
-lemma bot_eq_top_of_dim_adjoin_eq_one (h : ∀ x : E, dim F F⟮x⟯ = 1) : (⊥ : subalgebra F E) = ⊤ :=
-by simp [subalgebra.ext_iff, algebra.mem_top, ← adjoin_simple_dim_eq_one_iff, h]
+lemma bot_eq_top_of_dim_adjoin_eq_one (h : ∀ x : E, dim F F⟮x⟯ = 1) : (⊥ : intermediate_field F E) = ⊤ :=
+by { ext, simp [intermediate_field.mem_top, ← adjoin_simple_dim_eq_one_iff, h] }
 
 lemma bot_eq_top_of_findim_adjoin_eq_one (h : ∀ x : E, findim F F⟮x⟯ = 1) :
-  (⊥ : subalgebra F E) = ⊤ :=
-by simp [subalgebra.ext_iff, algebra.mem_top, ← adjoin_simple_findim_eq_one_iff, h]
+  (⊥ : intermediate_field F E) = ⊤ :=
+by { ext, simp [intermediate_field.mem_top, ← adjoin_simple_findim_eq_one_iff, h] }
 
 /-- If `F⟮x⟯` has dimension `≤1` over `F` for every `x ∈ E` then `F = E`. -/
 lemma bot_eq_top_of_findim_adjoin_le_one [finite_dimensional F E]
-  (h : ∀ x : E, findim F F⟮x⟯ ≤ 1) : (⊥ : subalgebra F E) = ⊤ :=
+  (h : ∀ x : E, findim F F⟮x⟯ ≤ 1) : (⊥ : intermediate_field F E) = ⊤ :=
 begin
-  have : ∀ x : E, findim F F⟮x⟯ = 1 := λ x, by linarith [h x, show 0 < findim F F⟮x⟯, from findim_pos],
-  exact bot_eq_top_of_findim_adjoin_eq_one this,
+  have : ∀ x : E, findim F F⟮x⟯ = 1 :=
+    λ x, by linarith [h x, show 0 < findim F F⟮x⟯, from findim_pos],
+  exact bot_eq_top_of_findim_adjoin_eq_one _ this,
 end
 
 end adjoin_dim

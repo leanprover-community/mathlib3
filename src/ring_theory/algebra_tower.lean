@@ -258,16 +258,27 @@ by { ext z, exact ⟨λ ⟨⟨x, y, _, h1⟩, h2⟩, ⟨y, h2 ▸ h1⟩, λ ⟨y
 
 end is_scalar_tower
 
+namespace algebra
+
+theorem adjoin_algebra_map (R : Type u) (S : Type v) (A : Type w)
+  [comm_ring R] [comm_ring S] [comm_ring A] [algebra R S] [algebra S A] [algebra R A]
+  [is_scalar_tower R S A] (s : set S) :
+  adjoin R (algebra_map S A '' s) = subalgebra.map (adjoin R s) (is_scalar_tower.to_alg_hom R S A) :=
+le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin hy, rfl⟩)
+  (subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
+
 section
 open_locale classical
-lemma algebra.fg_trans' {R S A : Type*} [comm_ring R] [comm_ring S] [comm_ring A]
+lemma fg_trans' {R S A : Type*} [comm_ring R] [comm_ring S] [comm_ring A]
   [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
   (hRS : (⊤ : subalgebra R S).fg) (hSA : (⊤ : subalgebra S A).fg) :
   (⊤ : subalgebra R A).fg :=
 let ⟨s, hs⟩ := hRS, ⟨t, ht⟩ := hSA in ⟨s.image (algebra_map S A) ∪ t,
-by rw [finset.coe_union, finset.coe_image, algebra.adjoin_union, algebra.adjoin_algebra_map, hs,
-    algebra.map_top, is_scalar_tower.range_under_adjoin, ht, subalgebra.res_top]⟩
+by rw [finset.coe_union, finset.coe_image, adjoin_union, adjoin_algebra_map, hs,
+       map_top, is_scalar_tower.range_under_adjoin, ht, subalgebra.res_top]⟩
 end
+
+end algebra
 
 namespace submodule
 
@@ -465,3 +476,11 @@ by exactI fg_of_injective (is_scalar_tower.to_alg_hom B₀ B C).to_linear_map
   (linear_map.ker_eq_bot.2 hBCi)
 
 end artin_tate
+
+lemma is_noetherian_ring_of_is_noetherian_coe_submodule (R) {S} [comm_ring R] [ring S] [algebra R S]
+(N : subalgebra R S) (h : is_noetherian R (N : submodule R S)) : is_noetherian_ring N :=
+begin
+  apply is_noetherian_of_is_scalar_tower R h,
+  { apply_instance },
+  exact is_scalar_tower.subalgebra_to_submodule R N,
+end

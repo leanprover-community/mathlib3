@@ -10,34 +10,6 @@ open polynomial
 namespace intermediate_field
 variables {K L : Type*} [field K] [field L] [algebra K L]
 
-protected lemma gc : galois_connection (field.adjoin K : set L → intermediate_field K L) coe :=
-λ s S, ⟨λ H, le_trans (field.subset_adjoin _ _) H,
-        λ H, field.adjoin_le _ _ H⟩
-
-protected def gi : galois_insertion (field.adjoin K : set L → intermediate_field K L) coe :=
-{ choice := λ s hs, field.adjoin K s,
-  gc := intermediate_field.gc,
-  le_l_u := λ S, (intermediate_field.gc (S : set L) (field.adjoin K S)).1 $ le_refl _,
-  choice_eq := λ _ _, rfl }
-
-instance : complete_lattice (intermediate_field K L) :=
-galois_insertion.lift_complete_lattice intermediate_field.gi
-
-lemma mem_top (x : L) : x ∈ (⊤ : intermediate_field K L) :=
-field.subset_adjoin _ _ trivial
-
-lemma mem_bot {x : L} : x ∈ (⊥ : intermediate_field K L) ↔ x ∈ set.range (algebra_map K L) :=
-begin
-  refine ⟨_, λ hx, intermediate_field.set_range_subset ⊥ hx⟩,
-  rintros ⟨y, hy, z, hz, rfl⟩,
-  have : subring.closure (set.range (algebra_map K L) ∪ ⊥) = (algebra_map K L).range,
-  { rw [set.bot_eq_empty, set.union_empty, ← ring_hom.coe_range, subring.closure_subring] },
-  simp only [set.mem_range, this] at hy hz ⊢,
-  obtain ⟨y, rfl⟩ := ring_hom.mem_range.mp hy,
-  obtain ⟨z, rfl⟩ := ring_hom.mem_range.mp hz,
-  exact ⟨y / z, ring_hom.map_div _ _ _⟩,
-end
-
 lemma fg_of_noetherian (F : intermediate_field K L)
   [is_noetherian K L] : ∃ (t : finset L), F = field.adjoin K ↑t :=
 begin
@@ -166,8 +138,7 @@ lemma is_simple_intermediate_field_iff {A : intermediate_field K L} :
 
 instance field.adjoin_singleton_is_simple_extension (x : L) :
   is_simple_extension K K⟮x⟯ :=
-is_simple_intermediate_field_iff.mpr ⟨x, field.subset_adjoin _ _ (set.mem_insert _ _),
-  by { rw set.singleton_def, refl }⟩
+is_simple_intermediate_field_iff.mpr ⟨x, field.subset_adjoin _ _ (set.mem_singleton _), rfl⟩
 
 namespace is_simple_extension
 
@@ -664,7 +635,7 @@ begin
   use Hx,
   exact separable.of_dvd
     ((separable_map _).mpr (is_separable.minimal_polynomial_separable K x))
-    (minimal_polynomial.dvd_minimal_polynomial_map (is_separable.is_integral K x) Hx)
+    (minimal_polynomial.dvd_map_of_is_scalar_tower _ (is_separable.is_integral K x))
 end
 
 include inf_K
@@ -681,7 +652,7 @@ minimal_polynomial.dvd _ (aeval_f_z_y K M x y)
 
 lemma minpoly_y_dvd_g_z :
   minpoly_y K M x y ∣ g_z K M x y :=
-minimal_polynomial.dvd_minimal_polynomial_map (is_separable.is_integral K y) _
+minimal_polynomial.dvd_map_of_is_scalar_tower _ (is_separable.is_integral K y)
 
 include splits
 lemma minpoly_y_splits :

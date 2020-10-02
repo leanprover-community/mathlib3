@@ -5,7 +5,6 @@ Authors: Mario Carneiro, Kevin Buzzard
 -/
 import linear_algebra.basis
 import order.order_iso_nat
-import ring_theory.algebra_tower
 import ring_theory.ideal.operations
 
 /-!
@@ -429,14 +428,6 @@ theorem is_noetherian_of_is_scalar_tower (R) {S M} [comm_ring R] [ring S]
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
   exact (@scalar_tower_order_embedding R _ S _ _ M _ _ _ _).dual.well_founded h
-end
-
-lemma is_noetherian_ring_of_is_noetherian_coe_submodule (R) {S} [comm_ring R] [ring S] [algebra R S]
-  (N : subalgebra R S) (h : is_noetherian R (N : submodule R S)) : is_noetherian_ring N :=
-begin
-  apply is_noetherian_of_is_scalar_tower R h,
-  { apply_instance },
-  exact is_scalar_tower.subalgebra_to_submodule R N,
 end
 
 theorem is_noetherian_of_quotient_of_noetherian (R) [ring R] (M) [add_comm_group M] [module R M]

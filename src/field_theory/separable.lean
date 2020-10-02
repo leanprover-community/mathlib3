@@ -502,6 +502,7 @@ begin
   rw [hs, roots_mul prod_ne_zero, roots_C, zero_add,
       roots_multiset_prod _ ne_zero_of_mem,
       map_bind_roots_eq]
+end
 
 lemma eq_X_sub_C_of_separable_of_root_eq {x : F} {h : polynomial F} (h_ne_zero : h ≠ 0)
   (h_sep : h.separable) (h_root : h.eval x = 0) (h_splits : splits i h)

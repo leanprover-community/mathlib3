@@ -314,7 +314,7 @@ let w' : e.inverse ⋙ F ≅ G := (iso_whisker_left e.inverse w).symm ≪≫ inv
     dsimp,
     simp only [limits.cone.whisker_π, limits.cones.postcompose_obj_π, fac, whisker_left_app,
       assoc, id_comp, inv_fun_id_assoc_hom_app, fac_assoc, nat_trans.comp_app],
-    rw [counit_functor, ←functor.comp_map, w.hom.naturality],
+    rw [counit_app_functor, ←functor.comp_map, w.hom.naturality],
     simp,
   end,
   inv_hom_id' := by { apply hom_ext Q, tidy, }, }
@@ -734,7 +734,7 @@ let w' : e.inverse ⋙ F ≅ G := (iso_whisker_left e.inverse w).symm ≪≫ inv
     dsimp,
     simp only [limits.cocone.whisker_ι, fac, inv_fun_id_assoc_inv_app, whisker_left_app, assoc,
       comp_id, limits.cocones.precompose_obj_ι, fac_assoc, nat_trans.comp_app],
-    rw [←functor_unit, ←functor.comp_map, ←w.inv.naturality_assoc],
+    rw [counit_inv_app_functor, ←functor.comp_map, ←w.inv.naturality_assoc],
     dsimp,
     simp,
   end,

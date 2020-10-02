@@ -212,7 +212,7 @@ begin
   have : (F'⟮α⟯ : set E) = F⟮α⟯,
   { rw [adjoin_simple_comm, adjoin_zero, adjoin_eq_range_algebra_map_adjoin],
     simp [set.ext_iff, intermediate_field.mem_bot] },
-  exact ⟨α, by simp [subalgebra.ext_iff, set.ext_iff, algebra.mem_top, *] at *⟩,
+  exact ⟨α, by simp [intermediate_field.ext'_iff, set.ext_iff, intermediate_field.mem_top, *] at *⟩,
 end
 
 end field

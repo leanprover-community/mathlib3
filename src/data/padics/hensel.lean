@@ -121,7 +121,7 @@ lt_of_le_of_lt (by simpa) T_lt_one
 
 private lemma T_pow' (n : ℕ) : T ^ (2 ^ n) < 1 := (T_pow (pow_pos (by norm_num) _))
 
-private lemma T_pow_nonneg (n : ℕ) : T ^ n ≥ 0 := pow_nonneg (norm_nonneg _) _
+private lemma T_pow_nonneg (n : ℕ) : 0 ≤ T ^ n := pow_nonneg (norm_nonneg _) _
 
 /-- We will construct a sequence of elements of ℤ_p satisfying successive values of `ih`. -/
 private def ih (n : ℕ) (z : ℤ_[p]) : Prop :=
@@ -267,7 +267,7 @@ calc ∥newton_seq (n+2) - newton_seq (n+1)∥
 
 private lemma newton_seq_dist_aux (n : ℕ) :
   ∀ k : ℕ, ∥newton_seq (n + k) - newton_seq n∥ ≤ ∥F.derivative.eval a∥ * T^(2^n)
-| 0 := begin simp, apply mul_nonneg, {apply norm_nonneg}, {apply T_pow_nonneg} end
+| 0 := by simp [T_pow_nonneg hnorm]
 | (k+1) :=
   have 2^n ≤ 2^(n+k),
     by {apply pow_le_pow, norm_num, apply nat.le_add_right},

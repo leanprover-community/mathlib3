@@ -6,7 +6,7 @@ on:
     types: [closed, reopened]
 
   # the action works on pull request events as well
-  pull_requests:
+  pull_request:
     types: [closed, reopened]
 
 jobs:

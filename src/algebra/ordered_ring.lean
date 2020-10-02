@@ -14,7 +14,7 @@ variable {α : Type u}
 multiplication with a positive number and addition are monotone. -/
 @[protect_proj]
 class ordered_semiring (α : Type u) extends semiring α, ordered_cancel_add_comm_monoid α :=
-(zero_lt_one : zero < one)
+(zero_lt_one : 0 < (1 : α))
 (mul_lt_mul_of_pos_left :  ∀ a b c : α, a < b → 0 < c → c * a < c * b)
 (mul_lt_mul_of_pos_right : ∀ a b c : α, a < b → 0 < c → a * c < b * c)
 
@@ -27,7 +27,6 @@ ordered_semiring.zero_lt_one
 lemma zero_le_one : 0 ≤ (1:α) :=
 zero_lt_one.le
 
-/-- `0 < 2`: an alternative version of `two_pos` that only assumes `linear_ordered_semiring`. -/
 lemma zero_lt_two : 0 < (2:α) := add_pos zero_lt_one zero_lt_one
 
 @[field_simps] lemma two_ne_zero : (2:α) ≠ 0 :=

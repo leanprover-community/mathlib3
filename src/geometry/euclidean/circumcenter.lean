@@ -11,6 +11,7 @@ noncomputable theory
 open_locale big_operators
 open_locale classical
 open_locale real
+open_locale real_inner_product_space
 
 /-!
 # Circumcenter and circumradius
@@ -36,7 +37,7 @@ namespace euclidean_geometry
 
 open inner_product_geometry
 
-variables {V : Type*} {P : Type*} [inner_product_space V] [metric_space P]
+variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
 include V
 
@@ -265,7 +266,7 @@ namespace simplex
 
 open finset affine_subspace euclidean_geometry
 
-variables {V : Type*} {P : Type*} [inner_product_space V] [metric_space P]
+variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
 include V
 
@@ -662,7 +663,7 @@ namespace euclidean_geometry
 
 open affine affine_subspace finite_dimensional
 
-variables {V : Type*} {P : Type*} [inner_product_space V] [metric_space P]
+variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
 include V
 
@@ -841,14 +842,13 @@ begin
         dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square p₂ h],
     simp [h₂', dist_comm p₂] },
   rw [←hd₂, hp₁, hp₂, dist_eq_norm_vsub V _ s.circumcenter,
-      dist_eq_norm_vsub V _ s.circumcenter, vadd_vsub, vadd_vsub, ←inner_self_eq_norm_square,
-      ←inner_self_eq_norm_square, inner_smul_left, inner_smul_left, inner_smul_right,
-      inner_smul_right, ←mul_assoc, ←mul_assoc] at hd₁,
+      dist_eq_norm_vsub V _ s.circumcenter, vadd_vsub, vadd_vsub, ←real_inner_self_eq_norm_square,
+      ←real_inner_self_eq_norm_square, real_inner_smul_left, real_inner_smul_left, real_inner_smul_right,
+      real_inner_smul_right, ←mul_assoc, ←mul_assoc] at hd₁,
   by_cases hp : p = orthogonal_projection span_s p,
   { rw [hp₁, hp₂, ←hp],
     simp },
-  { have hz : inner (p -ᵥ orthogonal_projection span_s p)
-                    (p -ᵥ orthogonal_projection span_s p) ≠ 0,
+  { have hz : ⟪p -ᵥ orthogonal_projection span_s p, p -ᵥ orthogonal_projection span_s p⟫ ≠ 0,
     { simpa using hp },
     rw [mul_left_inj' hz, mul_self_eq_mul_self_iff] at hd₁,
     rw [hp₁, hp₂],

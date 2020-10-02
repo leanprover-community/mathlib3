@@ -339,6 +339,52 @@ instance : inhabited (subgroup G) := ⟨⊥⟩
 
 @[simp, to_additive] lemma coe_bot : ((⊥ : subgroup G) : set G) = {1} := rfl
 
+@[to_additive] lemma eq_bot_iff_forall : H = ⊥ ↔ ∀ x ∈ H, x = (1 : G) :=
+begin
+  split,
+  { intros h x x_in,
+    rwa [h, mem_bot] at x_in },
+  { intros h,
+    ext x,
+    rw mem_bot,
+    exact ⟨h x, by { rintros rfl, exact H.one_mem }⟩ },
+end
+
+@[to_additive] lemma nontrivial_iff_exists_ne_one (H : subgroup G) : nontrivial H ↔ ∃ x ∈ H, x ≠ (1:G) :=
+begin
+  split,
+  { introI h,
+    rcases exists_ne (1 : H) with ⟨⟨h, h_in⟩, h_ne⟩,
+    use [h, h_in],
+    intro hyp,
+    apply h_ne,
+    simpa [hyp] },
+  { rintros ⟨x, x_in, hx⟩,
+    apply nontrivial_of_ne (⟨x, x_in⟩ : H) 1,
+    intro hyp,
+    apply hx,
+    simpa [has_one.one] using hyp },
+end
+
+/-- A subgroup is either the trivial subgroup or nontrivial. -/
+@[to_additive] lemma bot_or_nontrivial (H : subgroup G) : H = ⊥ ∨ nontrivial H :=
+begin
+  classical,
+  by_cases h : ∀ x ∈ H, x = (1 : G),
+  { left,
+    exact H.eq_bot_iff_forall.mpr h },
+  { right,
+    push_neg at h,
+    simpa [nontrivial_iff_exists_ne_one] using h },
+end
+
+/-- A subgroup is either the trivial subgroup or contains a nonzero element. -/
+@[to_additive] lemma bot_or_exists_ne_one (H : subgroup G) : H = ⊥ ∨ ∃ x ∈ H, x ≠ (1:G) :=
+begin
+  convert H.bot_or_nontrivial,
+  rw nontrivial_iff_exists_ne_one
+end
+
 /-- The inf of two subgroups is their intersection. -/
 @[to_additive "The inf of two `add_subgroups`s is their intersection."]
 instance : has_inf (subgroup G) :=
@@ -499,6 +545,9 @@ begin
     rintros _ ⟨n, rfl⟩,
     exact ⟨-n, gpow_neg x n⟩
 end
+
+lemma closure_singleton_one : closure ({1} : set G) = ⊥ :=
+by simp [eq_bot_iff_forall, mem_closure_singleton]
 
 @[to_additive]
 lemma mem_supr_of_directed {ι} [hι : nonempty ι] {K : ι → subgroup G} (hK : directed (≤) K)
@@ -888,6 +937,9 @@ begin
   { rintros _ ⟨n, rfl⟩,
     refine ⟨-n, neg_gsmul x n⟩ }
 end
+
+lemma closure_singleton_zero : closure ({0} : set A) = ⊥ :=
+by simp [eq_bot_iff_forall, mem_closure_singleton]
 
 variable (H : add_subgroup A)
 @[simp] lemma coe_smul (x : H) (n : ℕ) : ((nsmul n x : H) : A) = nsmul n x :=

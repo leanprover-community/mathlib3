@@ -5,7 +5,10 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import topology.metric_space.basic
 import topology.algebra.uniform_group
+import topology.algebra.ring
 import topology.algebra.continuous_functions
+import ring_theory.subring
+import group_theory.archimedean
 /-!
 # Topological properties of ℝ
 -/
@@ -121,6 +124,9 @@ _
 
 lemma uniform_embedding_mul_rat {q : ℚ} (hq : q ≠ 0) : uniform_embedding ((*) q) :=
 _ -/
+
+lemma real.mem_closure_iff {s : set ℝ} {x : ℝ} : x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, abs (y - x) < ε :=
+by simp [mem_closure_iff_nhds_basis nhds_basis_ball, real.dist_eq]
 
 lemma real.uniform_continuous_inv (s : set ℝ) {r : ℝ} (r0 : 0 < r) (H : ∀ x ∈ s, r ≤ abs x) :
   uniform_continuous (λp:s, p.1⁻¹) :=
@@ -319,3 +325,58 @@ instance reals_semimodule : topological_semimodule ℝ ℝ := ⟨continuous_mul�
 
 instance real_maps_algebra {α : Type*} [topological_space α] :
   algebra ℝ C(α, ℝ) := continuous_map_algebra
+
+section subgroups
+
+/-- Given a nontrivial subgroup `G ⊆ ℝ`, if `G ∩ ℝ_{>0}` has no minimum then `G` is dense. -/
+lemma real.subgroup_dense_of_no_min {G : add_subgroup ℝ} {g₀ : ℝ} (g₀_in : g₀ ∈ G) (g₀_ne : g₀ ≠ 0)
+  (H' : ¬ ∃ a : ℝ, is_least {g : ℝ | g ∈ G ∧ 0 < g} a) :
+  closure (G : set ℝ) = univ :=
+begin
+  let G_pos := {g : ℝ | g ∈ G ∧ 0 < g},
+  push_neg at H',
+  rw eq_univ_iff_forall,
+  intros x,
+  suffices : ∀ ε > (0 : ℝ), ∃ g ∈ G, abs (x - g) < ε,
+    by simpa only [real.mem_closure_iff, abs_sub],
+  intros ε ε_pos,
+  obtain ⟨g₁, g₁_in, g₁_pos⟩ : ∃ g₁ : ℝ, g₁ ∈ G ∧ 0 < g₁,
+  { cases lt_or_gt_of_ne g₀_ne with Hg₀ Hg₀,
+    { exact ⟨-g₀, G.neg_mem g₀_in, neg_pos.mpr Hg₀⟩ },
+    { exact ⟨g₀, g₀_in, Hg₀⟩ } },
+  obtain ⟨a, ha⟩ : ∃ a, is_glb G_pos a :=
+    ⟨Inf G_pos, is_glb_cInf ⟨g₁, g₁_in, g₁_pos⟩ ⟨0, λ _ hx, le_of_lt hx.2⟩⟩,
+  have a_notin : a ∉ G_pos,
+  { intros H,
+    exact H' a ⟨H, ha.1⟩ },
+  obtain ⟨g₂, g₂_in, g₂_pos, g₂_lt⟩ : ∃ g₂ : ℝ, g₂ ∈ G ∧ 0 < g₂ ∧ g₂ < ε,
+  { obtain ⟨b, hb, hb', hb''⟩ := ha.exists_between_self_add' ε_pos a_notin,
+    obtain ⟨c, hc, hc', hc''⟩ := ha.exists_between_self_add' (by linarith : 0 < b - a) a_notin,
+    refine ⟨b - c, add_subgroup.sub_mem G hb.1 hc.1, _, _⟩ ;
+    linarith },
+  refine ⟨floor (x/g₂) * g₂, _, _⟩,
+  { exact add_subgroup.int_mul_mem _ g₂_in },
+  { rw abs_of_nonneg (sub_floor_div_mul_nonneg x g₂_pos),
+    linarith [sub_floor_div_mul_lt x g₂_pos] }
+end
+
+/-- Subgroups of `ℝ` are either dense or cyclic. See `real.subgroup_dense_of_no_min` and
+`subgroup_cyclic_of_min` for more precise statements. -/
+lemma real.subgroup_dense_or_cyclic (G : add_subgroup ℝ) :
+  closure (G : set ℝ) = univ ∨ ∃ a : ℝ, G = add_subgroup.closure {a} :=
+begin
+  cases add_subgroup.bot_or_exists_ne_zero G with H H,
+  { right,
+    use 0,
+    rw [H, add_subgroup.closure_singleton_zero] },
+  { let G_pos := {g : ℝ | g ∈ G ∧ 0 < g},
+    by_cases H' : ∃ a, is_least G_pos a,
+    { right,
+      rcases H' with ⟨a, ha⟩,
+      exact ⟨a, add_subgroup.cyclic_of_min ha⟩ },
+    { left,
+      rcases H with ⟨g₀, g₀_in, g₀_ne⟩,
+      exact real.subgroup_dense_of_no_min g₀_in g₀_ne H' } }
+end
+
+end subgroups

@@ -39,6 +39,10 @@ namespace finset
 of the finite set `s`."]
 protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1.map f).prod
 
+@[simp] lemma prod_mk [comm_monoid β] (s : multiset α) (hs) (f : α → β) :
+  (⟨s, hs⟩ : finset α).prod f = (s.map f).prod :=
+rfl
+
 end finset
 
 /-
@@ -676,6 +680,10 @@ by haveI := classical.dec_eq α; exact
 finset.induction_on s rfl (λ a s has ih,
 by rw [prod_insert has, card_insert_of_not_mem has, pow_succ, ih])
 
+lemma pow_eq_prod_const (b : β) : ∀ n, b ^ n = ∏ k in range n, b
+| 0 := rfl
+| (n+1) := by simp
+
 lemma prod_pow (s : finset α) (n : ℕ) (f : α → β) :
   (∏ x in s, f x ^ n) = (∏ x in s, f x) ^ n :=
 by haveI := classical.dec_eq α; exact
@@ -1010,7 +1018,35 @@ by { rw [ne, prod_eq_zero_iff], push_neg }
 
 end prod_eq_zero
 
+section comm_group_with_zero
+variables [comm_group_with_zero β]
+
+@[simp]
+lemma prod_inv_distrib' : (∏ x in s, (f x)⁻¹) = (∏ x in s, f x)⁻¹ :=
+begin
+  classical,
+  by_cases h : ∃ x ∈ s, f x = 0,
+  { simpa [prod_eq_zero_iff.mpr h, prod_eq_zero_iff] using h },
+  { push_neg at h,
+    have h' := prod_ne_zero_iff.mpr h,
+    have hf : ∀ x ∈ s, (f x)⁻¹ * f x = 1 := λ x hx, inv_mul_cancel (h x hx),
+    apply mul_right_cancel' h',
+    simp [h, h', ← finset.prod_mul_distrib, prod_congr rfl hf] }
+end
+
+end comm_group_with_zero
+
 end finset
+
+namespace list
+
+@[to_additive] lemma prod_to_finset {M : Type*} [decidable_eq α] [comm_monoid M]
+  (f : α → M) : ∀ {l : list α} (hl : l.nodup), l.to_finset.prod f = (l.map f).prod
+| [] _ := by simp
+| (a :: l) hl := let ⟨not_mem, hl⟩ := list.nodup_cons.mp hl in
+  by simp [finset.prod_insert (mt list.mem_to_finset.mp not_mem), prod_to_finset hl]
+
+end list
 
 namespace multiset
 variables [decidable_eq α]
@@ -1068,3 +1104,15 @@ begin
 end
 
 end multiset
+
+@[simp, norm_cast] lemma nat.coe_prod {R : Type*} [comm_semiring R]
+  (f : α → ℕ) (s : finset α) : (↑∏ i in s, f i : R) = ∏ i in s, f i :=
+(nat.cast_ring_hom R).map_prod _ _
+
+@[simp, norm_cast] lemma int.coe_prod {R : Type*} [comm_ring R]
+  (f : α → ℤ) (s : finset α) : (↑∏ i in s, f i : R) = ∏ i in s, f i :=
+(int.cast_ring_hom R).map_prod _ _
+
+@[simp, norm_cast] lemma units.coe_prod {M : Type*} [comm_monoid M]
+  (f : α → units M) (s : finset α) : (↑∏ i in s, f i : M) = ∏ i in s, f i :=
+(units.coe_hom M).map_prod _ _

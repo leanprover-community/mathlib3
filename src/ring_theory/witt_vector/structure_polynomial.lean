@@ -39,7 +39,7 @@ addition and multiplication on the ring of Witt vectors.
 ## Outline of the proof
 
 The proof of `witt_structure_int_exists_unique` is rather technical, and takes up most of this file.
-We start by proving the analagous version for polynomials with rational coefficients,
+We start by proving the analogous version for polynomials with rational coefficients,
 instead of integer coefficients.
 In this case, the solution is rather easy,
 since the Witt polynomials form a faithful change of coordinates
@@ -52,7 +52,7 @@ Proving this claim is the essential core of this file, and culminates in
 `map_witt_structure_int`, which proves that upon mapping the coefficients of `witt_structure_int Φ n`
 from the integers to the rationals, one obtains `witt_structure_rat Φ n`.
 Ultimately, the proof of `map_witt_structure_int` relies on
-```lean
+```
 dvd_sub_pow_of_dvd_sub {R : Type*} [comm_ring R] {p : ℕ} {a b : R} :
     (p : R) ∣ a - b → ∀ (k : ℕ), (p : R) ^ (k + 1) ∣ a ^ p ^ k - b ^ p ^ k
 ```
@@ -63,7 +63,7 @@ dvd_sub_pow_of_dvd_sub {R : Type*} [comm_ring R] {p : ℕ} {a b : R} :
   associated with `Φ : mv_polynomial idx ℤ` and satisfying the property explained above.
 * `witt_structure_int_prop`: the proof that `witt_structure_int` indeed satisfies the property.
 
-* Five families of polynomials that will be used to define the rings structure
+* Five families of polynomials that will be used to define the ring structure
   on the ring of Witt vectors:
   - `witt_vector.witt_zero`
   - `witt_vector.witt_one`

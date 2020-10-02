@@ -3,7 +3,7 @@ Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 
-The `even` predicate on the natural numbers.
+The `even` and `odd` predicates on the natural numbers.
 -/
 import data.nat.modeq
 

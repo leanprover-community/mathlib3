@@ -48,8 +48,10 @@ instance : inhabited (arithmetic_function α) := ⟨0⟩
 
 instance : has_coe_to_fun (arithmetic_function α) := ⟨λ _, ℕ → α, to_fun⟩
 
+@[simp] lemma to_fun_eq (f : arithmetic_function α) : f.to_fun = f := rfl
+
 theorem coe_inj ⦃f g : arithmetic_function α⦄ (h : (f : ℕ → α) = g) : f = g :=
-by cases f; cases g; cases h; refl
+by { cases f, cases g, cases h, refl }
 
 @[ext] theorem ext ⦃f g : arithmetic_function α⦄ (h : ∀ x, f x = g x) : f = g :=
 coe_inj (funext h)
@@ -109,23 +111,23 @@ instance : add_monoid (arithmetic_function α) :=
 { add_assoc := λ _ _ _, ext (λ _, add_assoc _ _ _),
   zero_add := λ _, ext (λ _, zero_add _),
   add_zero := λ _, ext (λ _, add_zero _),
-  .. (infer_instance : has_zero (arithmetic_function α)),
-  .. (infer_instance : has_add (arithmetic_function α)) }
+  .. arithmetic_function.has_zero,
+  .. arithmetic_function.has_add }
 
 end add_monoid
 
 instance [add_comm_monoid α] : add_comm_monoid (arithmetic_function α) :=
 { add_comm := λ _ _, ext (λ _, add_comm _ _),
-  .. (infer_instance : add_monoid (arithmetic_function α)) }
+  .. arithmetic_function.add_monoid }
 
 instance [add_group α] : add_group (arithmetic_function α) :=
 { neg := λ f, ⟨λ n, - f n, by simp⟩,
   add_left_neg := λ _, ext (λ _, add_left_neg _),
-  .. (infer_instance : add_monoid (arithmetic_function α)) }
+  .. arithmetic_function.add_monoid }
 
 instance [add_comm_group α] : add_comm_group (arithmetic_function α) :=
-{ .. (infer_instance : add_comm_monoid (arithmetic_function α)),
-  .. (infer_instance : add_group (arithmetic_function α)) }
+{ .. arithmetic_function.add_comm_monoid,
+  .. arithmetic_function.add_group }
 
 section dirichlet_ring
 variable [semiring α]

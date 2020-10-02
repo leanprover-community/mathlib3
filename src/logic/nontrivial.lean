@@ -173,7 +173,7 @@ open tactic
 Given a goal `a = b` or `a ≤ b` in a type `α`, generates an additional hypothesis `nontrivial α`
 (as otherwise `α` is a subsingleton and the goal is trivial).
 
-Alternatively, given a goal `a ≠ b` or `a < b` in a type `α`, tries to generate a `nontrivial α`
+Alternatively, given a hypothesis `a ≠ b` or `a < b` in a type `α`, tries to generate a `nontrivial α`
 hypothesis from existing hypotheses using `nontrivial_of_ne` and `nontrivial_of_lt`.
 -/
 meta def nontriviality : tactic unit :=

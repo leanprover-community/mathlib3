@@ -49,6 +49,9 @@ not_even_iff
 instance : decidable_pred even :=
 λ n, decidable_of_decidable_of_iff (by apply_instance) even_iff.symm
 
+instance decidable_pred_odd : decidable_pred odd :=
+λ n, decidable_of_decidable_of_iff (by apply_instance) not_even_iff.symm
+
 @[simp] theorem even_zero : even (0 : int) := ⟨0, dec_trivial⟩
 
 @[simp] theorem not_even_one : ¬ even (1 : int) :=

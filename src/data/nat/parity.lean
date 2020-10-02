@@ -38,6 +38,9 @@ def odd (n : ℕ) : Prop := ¬ even n
 instance : decidable_pred even :=
 λ n, decidable_of_decidable_of_iff (by apply_instance) even_iff.symm
 
+instance decidable_pred_odd : decidable_pred odd :=
+λ n, decidable_of_decidable_of_iff (by apply_instance) not_even_iff.symm
+
 mk_simp_attribute parity_simps "Simp attribute for lemmas about `even`"
 
 @[simp] theorem even_zero : even 0 := ⟨0, dec_trivial⟩

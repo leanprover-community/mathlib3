@@ -210,6 +210,12 @@ theorem of_fn_eq_pmap {α n} {f : fin n → α} :
 by rw [pmap_eq_map_attach]; from ext_le (by simp)
   (λ i hi1 hi2, by { simp at hi1, simp [nth_le_of_fn f ⟨i, hi1⟩, -subtype.val_eq_coe] })
 
+theorem of_fn_id (n) : of_fn id = fin_range n := of_fn_eq_pmap
+
+theorem of_fn_eq_map {α n} {f : fin n → α} :
+  of_fn f = (fin_range n).map f :=
+by rw [← of_fn_id, map_of_fn, function.right_id]
+
 theorem nodup_of_fn {α n} {f : fin n → α} (hf : function.injective f) :
   nodup (of_fn f) :=
 by rw of_fn_eq_pmap; from nodup_pmap

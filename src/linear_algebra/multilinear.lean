@@ -487,33 +487,33 @@ section
 
 variables (R n) (A : Type*) [semiring A] [algebra R A]
 
-/-- Given an `R`-algebra `A`, `mk_pi_algebra` is the multilinear map on `A^n` associating
+/-- Given an `R`-algebra `A`, `mk_pi_algebra_fin` is the multilinear map on `A^n` associating
 to `m` the product of all the `m i`.
 
 See also `multilinear_map.mk_pi_algebra` for a version that assumes `[comm_semiring A]` but works
 for `A^ι` with any finite type `ι`. -/
 protected def mk_pi_algebra_fin : multilinear_map R (λ i : fin n, A) A :=
-{ to_fun := λ m, ((list.fin_range n).map m).prod,
+{ to_fun := λ m, (list.of_fn m).prod,
   map_add' :=
     begin
       intros m i x y,
       have : (list.fin_range n).index_of i < n,
         by simpa using list.index_of_lt_length.2 (list.mem_fin_range i),
-      simp [(list.nodup_fin_range n).map_update, list.prod_update_nth, add_mul, this, mul_add,
-        add_mul]
+      simp [list.of_fn_eq_map, (list.nodup_fin_range n).map_update, list.prod_update_nth, add_mul,
+        this, mul_add, add_mul]
     end,
   map_smul' :=
     begin
       intros m i c x,
       have : (list.fin_range n).index_of i < n,
         by simpa using list.index_of_lt_length.2 (list.mem_fin_range i),
-      simp [(list.nodup_fin_range n).map_update, list.prod_update_nth, this]
+      simp [list.of_fn_eq_map, (list.nodup_fin_range n).map_update, list.prod_update_nth, this]
     end }
 
 variables {R A n}
 
 @[simp] lemma mk_pi_algebra_fin_apply (m : fin n → A) :
-  multilinear_map.mk_pi_algebra_fin R n A m = ((list.fin_range n).map m).prod :=
+  multilinear_map.mk_pi_algebra_fin R n A m = (list.of_fn m).prod :=
 rfl
 
 lemma mk_pi_algebra_fin_apply_const (a : A) :

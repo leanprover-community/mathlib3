@@ -267,7 +267,7 @@ calc ∥newton_seq (n+2) - newton_seq (n+1)∥
 
 private lemma newton_seq_dist_aux (n : ℕ) :
   ∀ k : ℕ, ∥newton_seq (n + k) - newton_seq n∥ ≤ ∥F.derivative.eval a∥ * T^(2^n)
-| 0 := by simp [T_pow_nonneg hnorm]
+| 0 := by simp [T_pow_nonneg hnorm, mul_nonneg]
 | (k+1) :=
   have 2^n ≤ 2^(n+k),
     by {apply pow_le_pow, norm_num, apply nat.le_add_right},

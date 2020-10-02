@@ -462,7 +462,7 @@ instance : normalization_monoid ℤ :=
   norm_unit_mul  := assume a b hna hnb,
   begin
     cases hna.lt_or_lt with ha ha; cases hnb.lt_or_lt with hb hb;
-      simp [ha.le, ha.not_le, hb.le, hb.not_le]
+      simp [mul_nonneg_iff, ha.le, ha.not_le, hb.le, hb.not_le]
   end,
   norm_unit_coe_units := assume u, (units_eq_one_or u).elim
     (assume eq, eq.symm ▸ if_pos zero_le_one)

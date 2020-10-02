@@ -560,7 +560,10 @@ include Is I's
 lemma tangent_map_within_subset {p : tangent_bundle I M}
   (st : s ⊆ t) (hs : unique_mdiff_within_at I s p.1) (h : mdifferentiable_within_at I I' f t p.1) :
   tangent_map_within I I' f s p = tangent_map_within I I' f t p :=
-by { simp only [tangent_map_within], rw mfderiv_within_subset st hs h }
+begin
+  simp only [tangent_map_within] with mfld_simps,
+  rw mfderiv_within_subset st hs h,
+end
 
 lemma tangent_map_within_univ :
   tangent_map_within I I' f univ = tangent_map I I' f :=
@@ -681,7 +684,8 @@ lemma tangent_map_within_congr (h : ∀ x ∈ s, f x = f₁ x)
   (p : tangent_bundle I M) (hp : p.1 ∈ s) (hs : unique_mdiff_within_at I s p.1) :
   tangent_map_within I I' f s p = tangent_map_within I I' f₁ s p :=
 begin
-  simp only [tangent_map_within, h p.fst hp, true_and, prod.mk.inj_iff, eq_self_iff_true],
+  simp only [tangent_map_within, h p.fst hp, true_and, eq_self_iff_true, heq_iff_eq,
+    sigma.mk.inj_iff],
   congr' 1,
   exact mfderiv_within_congr hs h (h _ hp)
 end
@@ -808,7 +812,7 @@ lemma tangent_map_within_comp_at (p : tangent_bundle I M)
   tangent_map_within I I'' (g ∘ f) s p =
   tangent_map_within I' I'' g u (tangent_map_within I I' f s p) :=
 begin
-  simp only [tangent_map_within],
+  simp only [tangent_map_within] with mfld_simps,
   rw mfderiv_within_comp p.1 hg hf h hps,
   refl
 end
@@ -817,7 +821,7 @@ lemma tangent_map_comp_at (p : tangent_bundle I M)
   (hg : mdifferentiable_at I' I'' g (f p.1)) (hf : mdifferentiable_at I I' f p.1) :
   tangent_map I I'' (g ∘ f) p = tangent_map I' I'' g (tangent_map I I' f p) :=
 begin
-  simp only [tangent_map],
+  simp only [tangent_map] with mfld_simps,
   rw mfderiv_comp p.1 hg hf,
   refl
 end
@@ -881,7 +885,7 @@ begin
 end
 
 @[simp, mfld_simps] lemma tangent_map_id : tangent_map I I (id : M → M) = id :=
-by { ext1 p, simp [tangent_map] }
+by { ext1 ⟨x, v⟩, simp [tangent_map] }
 
 lemma tangent_map_within_id {p : tangent_bundle I M}
   (hs : unique_mdiff_within_at I s (tangent_bundle.proj I M p)) :
@@ -1033,9 +1037,12 @@ lemma mdifferentiable_of_mem_atlas (h : e ∈ atlas H M) : e.mdifferentiable I I
 lemma mdifferentiable_chart (x : M) : (chart_at H x).mdifferentiable I I :=
 mdifferentiable_of_mem_atlas _ (chart_mem_atlas _ _)
 
-/-- The derivative of the chart at a base point is the chart of the tangent bundle. -/
+/-- The derivative of the chart at a base point is the chart of the tangent bundle, composed with
+the identification between the tangent bundle of the model space and the product space. -/
 lemma tangent_map_chart {p q : tangent_bundle I M} (h : q.1 ∈ (chart_at H p.1).source) :
-  tangent_map I I (chart_at H p.1) q = (chart_at (model_prod H E) p : tangent_bundle I M → model_prod H E) q :=
+  tangent_map I I (chart_at H p.1) q =
+  (equiv.sigma_equiv_prod _ _).symm
+    ((chart_at (model_prod H E) p : tangent_bundle I M → model_prod H E) q) :=
 begin
   dsimp [tangent_map],
   rw mdifferentiable_at.mfderiv,
@@ -1044,19 +1051,21 @@ begin
 end
 
 /-- The derivative of the inverse of the chart at a base point is the inverse of the chart of the
-tangent bundle. -/
-lemma tangent_map_chart_symm {p : tangent_bundle I M} {q : model_prod H E}
+tangent bundle, composed with the identification between the tangent bundle of the model space and
+the product space. -/
+lemma tangent_map_chart_symm {p : tangent_bundle I M} {q : tangent_bundle I H}
   (h : q.1 ∈ (chart_at H p.1).target) :
   tangent_map I I (chart_at H p.1).symm q =
-  ((chart_at (model_prod H E) p).symm : model_prod H E → tangent_bundle I M) q :=
+  ((chart_at (model_prod H E) p).symm : model_prod H E → tangent_bundle I M)
+    ((equiv.sigma_equiv_prod H E) q) :=
 begin
   dsimp only [tangent_map],
   rw mdifferentiable_at.mfderiv (mdifferentiable_at_atlas_symm _ (chart_mem_atlas _ _) h),
   -- a trivial instance is needed after the rewrite, handle it right now.
   rotate, { apply_instance },
-  simp only [chart_at, basic_smooth_bundle_core.chart, topological_fiber_bundle_core.local_triv,
-    basic_smooth_bundle_core.to_topological_fiber_bundle_core,
-    topological_fiber_bundle_core.local_triv', tangent_bundle_core, h] with mfld_simps
+  simp only [chart_at, basic_smooth_bundle_core.chart, subtype.coe_mk, tangent_bundle_core, h,
+    basic_smooth_bundle_core.to_topological_fiber_bundle_core, equiv.sigma_equiv_prod_apply]
+    with mfld_simps,
 end
 
 end charts
@@ -1390,7 +1399,7 @@ begin
     simp only [hq] with mfld_simps },
   -- rewrite the relevant set in the chart as a direct product
   have : (λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' e.target ∩
-         (λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' (e.symm ⁻¹' (prod.fst ⁻¹' s)) ∩
+         (λ (p : E × F), (I.symm p.1, p.snd)) ⁻¹' (e.symm ⁻¹' (sigma.fst ⁻¹' s)) ∩
          ((range I).prod univ)
         = set.prod (I.symm ⁻¹' (e₀.target ∩ e₀.symm⁻¹' s) ∩ range I) univ,
     by mfld_set_tac,

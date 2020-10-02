@@ -80,7 +80,7 @@ section comp
 
 lemma eval₂_comp [comm_semiring S] (f : R →+* S) {x : S} :
   (p.comp q).eval₂ f x = p.eval₂ f (q.eval₂ f x) :=
-by rw [comp, p.as_sum]; simp only [eval₂_mul, eval₂_C, eval₂_pow, eval₂_finset_sum, eval₂_X]
+by rw [comp, p.as_sum_range]; simp only [eval₂_mul, eval₂_C, eval₂_pow, eval₂_finset_sum, eval₂_X]
 
 
 lemma eval_comp : (p.comp q).eval a = p.eval (q.eval a) := eval₂_comp _
@@ -95,27 +95,52 @@ end comp
 end comm_semiring
 
 section aeval
-variables [comm_semiring R] {p : polynomial R}
+variables [comm_semiring R] {p q : polynomial R}
 
--- TODO this could be generalized: there's no need for `A` to be commutative,
--- we just need that `x` is central.
-variables [comm_semiring A] [algebra R A]
-variables {B : Type*} [comm_semiring B] [algebra R B]
+variables [semiring A] [algebra R A]
+variables {B : Type*} [semiring B] [algebra R B]
 variables (x : A)
 
 /-- Given a valuation `x` of the variable in an `R`-algebra `A`, `aeval R A x` is
 the unique `R`-algebra homomorphism from `R[X]` to `A` sending `X` to `x`. -/
 def aeval : polynomial R →ₐ[R] A :=
 { commutes' := λ r, eval₂_C _ _,
-  ..eval₂_ring_hom (algebra_map R A) x }
+  ..eval₂_ring_hom' (algebra_map R A) algebra.commutes x }
 
 variables {R A}
 
 theorem aeval_def (p : polynomial R) : aeval x p = eval₂ (algebra_map R A) x p := rfl
 
+@[simp] lemma aeval_zero : aeval x (0 : polynomial R) = 0 :=
+alg_hom.map_zero (aeval x)
+
 @[simp] lemma aeval_X : aeval x (X : polynomial R) = x := eval₂_X _ x
 
 @[simp] lemma aeval_C (r : R) : aeval x (C r) = algebra_map R A r := eval₂_C _ x
+
+lemma aeval_monomial {n : ℕ} {r : R} : aeval x (monomial n r) = (algebra_map _ _ r) * x^n :=
+eval₂_monomial _ _
+
+@[simp] lemma aeval_X_pow {n : ℕ} : aeval x ((X : polynomial R)^n) = x^n :=
+eval₂_X_pow _ _
+
+@[simp] lemma aeval_add : aeval x (p + q) = aeval x p + aeval x q :=
+alg_hom.map_add _ _ _
+
+@[simp] lemma aeval_one : aeval x (1 : polynomial R) = 1 :=
+alg_hom.map_one _
+
+@[simp] lemma aeval_bit0 : aeval x (bit0 p) = bit0 (aeval x p) :=
+alg_hom.map_bit0 _ _
+
+@[simp] lemma aeval_bit1 : aeval x (bit1 p) = bit1 (aeval x p) :=
+alg_hom.map_bit1 _ _
+
+@[simp] lemma aeval_nat_cast (n : ℕ) : aeval x (n : polynomial R) = n :=
+alg_hom.map_nat_cast _ _
+
+lemma aeval_mul : aeval x (p * q) = aeval x p * aeval x q :=
+alg_hom.map_mul _ _ _
 
 theorem eval_unique (φ : polynomial R →ₐ[R] A) (p) :
   φ p = eval₂ (algebra_map R A) (φ X) p :=
@@ -125,7 +150,8 @@ begin
   { intros f g ih1 ih2,
     rw [φ.map_add, ih1, ih2, eval₂_add] },
   { intros n r ih,
-    rw [pow_succ', ← mul_assoc, φ.map_mul, eval₂_mul (algebra_map R A), eval₂_X, ih] }
+    rw [pow_succ', ← mul_assoc, φ.map_mul,
+        eval₂_mul_noncomm (algebra_map R A) _ algebra.commutes, eval₂_X, ih] }
 end
 
 theorem aeval_alg_hom (f : A →ₐ[R] B) (x : A) : aeval (f x) = f.comp (aeval x) :=
@@ -217,5 +243,14 @@ theorem not_is_unit_X_sub_C [nontrivial R] {r : R} : ¬ is_unit (X - C r) :=
 λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ $ by erw [← eval_mul_X_sub_C, hgf, eval_one]
 
 end ring
+
+lemma aeval_endomorphism {M : Type*}
+  [comm_ring R] [add_comm_group M] [module R M]
+  (f : M →ₗ[R] M) (v : M) (p : polynomial R) :
+  aeval f p v = p.sum (λ n b, b • (f ^ n) v) :=
+begin
+  rw [aeval_def, eval₂],
+  exact (finset.sum_hom p.support (λ h : M →ₗ[R] M, h v)).symm
+end
 
 end polynomial

@@ -269,7 +269,7 @@ begin
   { have : squash_gcf g n = g, from squash_gcf_eq_self_of_terminated terminated_at_n,
     simp only [this, (convergents_stable_of_terminated n.le_succ terminated_at_n)] },
   { obtain ⟨⟨a, b⟩, s_nth_eq⟩ : ∃ gp_n, g.s.nth n = some gp_n, from
-      with_one.ne_one_iff_exists.elim_left not_terminated_at_n,
+      option.ne_none_iff_exists'.mp not_terminated_at_n,
     have b_ne_zero : b ≠ 0, from nth_part_denom_ne_zero (part_denom_eq_s_b s_nth_eq),
     cases n with n',
     case nat.zero
@@ -358,7 +358,7 @@ begin
           { -- the difficult case at the squashed position: we first obtain the values from
             -- the sequence
             obtain ⟨gp_succ_m, s_succ_mth_eq⟩ : ∃ gp_succ_m, g.s.nth (m + 1) = some gp_succ_m, from
-              with_one.ne_one_iff_exists.elim_left not_terminated_at_n,
+              option.ne_none_iff_exists'.mp not_terminated_at_n,
             obtain ⟨gp_m, mth_s_eq⟩ : ∃ gp_m, g.s.nth m = some gp_m, from
               g.s.ge_stable m.le_succ s_succ_mth_eq,
             -- we then plug them into the recurrence

@@ -82,6 +82,10 @@ lemma mem_nhds_within_iff_exists_mem_nhds_inter {t : set α} {a : α} {s : set �
   t ∈ 𝓝[s] a ↔ ∃ u ∈ 𝓝 a, u ∩ s ⊆ t :=
 (nhds_within_has_basis (𝓝 a).basis_sets s).mem_iff
 
+lemma diff_mem_nhds_within_compl {X : Type*} [topological_space X] {x : X} {s : set X}
+  (hs : s ∈ 𝓝 x) (t : set X) : s \ t ∈ 𝓝[tᶜ] x :=
+diff_mem_inf_principal_compl hs t
+
 lemma nhds_of_nhds_within_of_nhds
   {s t : set α} {a : α} (h1 : s ∈ 𝓝 a) (h2 : t ∈ 𝓝[s] a) : (t ∈ 𝓝 a) :=
 begin
@@ -103,13 +107,20 @@ inter_mem_sets (mem_inf_sets_of_right (mem_principal_self s)) (mem_inf_sets_of_l
 theorem nhds_within_mono (a : α) {s t : set α} (h : s ⊆ t) : 𝓝[s] a ≤ 𝓝[t] a :=
 inf_le_inf_left _ (principal_mono.mpr h)
 
+lemma pure_le_nhds_within {a : α} {s : set α} (ha : a ∈ s) : pure a ≤ 𝓝[s] a :=
+le_inf (pure_le_nhds a) (le_principal_iff.2 ha)
+
 lemma mem_of_mem_nhds_within {a : α} {s t : set α} (ha : a ∈ s) (ht : t ∈ 𝓝[s] a) :
   a ∈ t :=
-let ⟨u, hu, H⟩ := mem_nhds_within.1 ht in H.2 ⟨H.1, ha⟩
+pure_le_nhds_within ha ht
 
 lemma filter.eventually.self_of_nhds_within {p : α → Prop} {s : set α} {x : α}
   (h : ∀ᶠ y in 𝓝[s] x, p y) (hx : x ∈ s) : p x :=
 mem_of_mem_nhds_within hx h
+
+lemma tendsto_const_nhds_within {l : filter β} {s : set α} {a : α} (ha : a ∈ s) :
+  tendsto (λ x : β, a) l (𝓝[s] a) :=
+tendsto_const_pure.mono_right $ pure_le_nhds_within ha
 
 theorem nhds_within_restrict'' {a : α} (s : set α) {t : set α} (h : t ∈ 𝓝[s] a) :
   𝓝[s] a = 𝓝[s ∩ t] a :=
@@ -172,7 +183,7 @@ end
 
 lemma nhds_within_prod_eq {α : Type*} [topological_space α] {β : Type*} [topological_space β]
   (a : α) (b : β) (s : set α) (t : set β) :
-  𝓝[s.prod t] (a, b) = (𝓝[s] a).prod (𝓝[t] b) :=
+  𝓝[s.prod t] (a, b) = 𝓝[s] a ×ᶠ 𝓝[t] b :=
 by { delta nhds_within, rw [nhds_prod_eq, ←filter.prod_inf_prod, filter.prod_principal_principal] }
 
 lemma nhds_within_prod {α : Type*} [topological_space α] {β : Type*} [topological_space β]
@@ -196,17 +207,17 @@ lemma map_nhds_within (f : α → β) (a : α) (s : set α) :
 theorem tendsto_nhds_within_mono_left {f : α → β} {a : α}
     {s t : set α} {l : filter β} (hst : s ⊆ t) (h : tendsto f (𝓝[t] a) l) :
   tendsto f (𝓝[s] a) l :=
-tendsto_le_left (nhds_within_mono a hst) h
+h.mono_left $ nhds_within_mono a hst
 
 theorem tendsto_nhds_within_mono_right {f : β → α} {l : filter β}
     {a : α} {s t : set α} (hst : s ⊆ t) (h : tendsto f l (𝓝[s] a)) :
   tendsto f l (𝓝[t] a) :=
-tendsto_le_right (nhds_within_mono a hst) h
+h.mono_right (nhds_within_mono a hst)
 
 theorem tendsto_nhds_within_of_tendsto_nhds {f : α → β} {a : α}
     {s : set α} {l : filter β} (h : tendsto f (𝓝 a) l) :
   tendsto f (𝓝[s] a) l :=
-tendsto_le_left inf_le_left h
+h.mono_left inf_le_left
 
 theorem principal_subtype {α : Type*} (s : set α) (t : set {x // x ∈ s}) :
   𝓟 t = comap coe (𝓟 ((coe : s → α) '' t)) :=
@@ -253,8 +264,13 @@ lemma filter.eventually_eq.eq_of_nhds_within {s : set α} {f g : α → β} {a :
   (h : f =ᶠ[𝓝[s] a] g) (hmem : a ∈ s) : f a = g a :=
 h.self_of_nhds_within hmem
 
-/-
-nhds_within and subtypes
+lemma eventually_nhds_within_of_eventually_nhds {α : Type*} [topological_space α]
+  {s : set α} {a : α} {p : α → Prop} (h : ∀ᶠ x in 𝓝 a, p x) :
+  ∀ᶠ x in 𝓝[s] a, p x :=
+mem_nhds_within_of_mem_nhds h
+
+/-!
+### `nhds_within` and subtypes
 -/
 
 theorem mem_nhds_within_subtype {s : set α} {a : {x // x ∈ s}} {t u : set {x // x ∈ s}} :
@@ -384,7 +400,7 @@ by simp [continuous_iff_continuous_at, continuous_on, continuous_at, continuous_
 
 lemma continuous_within_at.mono {f : α → β} {s t : set α} {x : α} (h : continuous_within_at f t x)
   (hs : s ⊆ t) : continuous_within_at f s x :=
-tendsto_le_left (nhds_within_mono x hs) h
+h.mono_left (nhds_within_mono x hs)
 
 lemma continuous_within_at_inter' {f : α → β} {s t : set α} {x : α} (h : t ∈ 𝓝[s] x) :
   continuous_within_at f (s ∩ t) x ↔ continuous_within_at f s x :=
@@ -416,6 +432,19 @@ begin
   rintros _ ⟨x, hx, rfl⟩,
   exact (hf x hx).mem_closure_image hx
 end
+
+lemma continuous_within_at_singleton {f : α → β} {x : α} : continuous_within_at f {x} x :=
+by simp [continuous_within_at, nhds_within, inf_eq_right.2 (pure_le_nhds x), tendsto_pure_nhds]
+
+lemma continuous_within_at.diff_iff {f : α → β} {s t : set α} {x : α}
+  (ht : continuous_within_at f t x) :
+  continuous_within_at f (s \ t) x ↔ continuous_within_at f s x :=
+⟨λ h, (h.union ht).mono $ by simp only [diff_union_self, subset_union_left],
+  λ h, h.mono (diff_subset _ _)⟩
+
+@[simp] lemma continuous_within_at_diff_self {f : α → β} {s : set α} {x : α} :
+  continuous_within_at f (s \ {x}) x ↔ continuous_within_at f s x :=
+continuous_within_at_singleton.diff_iff
 
 theorem is_open_map.continuous_on_image_of_left_inv_on {f : α → β} {s : set α}
   (h : is_open_map (s.restrict f)) {finv : β → α} (hleft : left_inv_on finv f s) :
@@ -482,7 +511,7 @@ begin
   have : tendsto f (𝓟 s) (𝓟 t),
     by { rw tendsto_principal_principal, exact λx hx, h hx },
   have : tendsto f (𝓝[s] x) (𝓟 t) :=
-    tendsto_le_left inf_le_right this,
+    this.mono_left inf_le_right,
   have : tendsto f (𝓝[s] x) (𝓝[t] (f x)) :=
     tendsto_inf.2 ⟨hf, this⟩,
   exact tendsto.comp hg this
@@ -500,7 +529,7 @@ lemma continuous_on.comp {g : β → γ} {f : α → β} {s : set α} {t : set �
 
 lemma continuous_on.mono {f : α → β} {s t : set α} (hf : continuous_on f s) (h : t ⊆ s)  :
   continuous_on f t :=
-λx hx, tendsto_le_left (nhds_within_mono _ h) (hf x (h hx))
+λx hx, (hf x (h hx)).mono_left (nhds_within_mono _ h)
 
 lemma continuous_on.comp' {g : β → γ} {f : α → β} {s : set α} {t : set β}
   (hg : continuous_on g t) (hf : continuous_on f s) :
@@ -516,7 +545,7 @@ end
 
 lemma continuous.continuous_within_at {f : α → β} {s : set α} {x : α} (h : continuous f) :
   continuous_within_at f s x :=
-tendsto_le_left inf_le_left (h.tendsto x)
+h.continuous_at.continuous_within_at
 
 lemma continuous.comp_continuous_on {g : β → γ} {f : α → β} {s : set α}
   (hg : continuous g) (hf : continuous_on f s) :
@@ -662,7 +691,7 @@ lemma continuous_within_at_of_not_mem_closure {f : α → β} {s : set α} {x : 
   x ∉ closure s → continuous_within_at f s x :=
 begin
   intros hx,
-  rw [mem_closure_iff_nhds_within_ne_bot, ne_bot, classical.not_not] at hx,
+  rw [mem_closure_iff_nhds_within_ne_bot, ne_bot, not_not] at hx,
   rw [continuous_within_at, hx],
   exact tendsto_bot,
 end

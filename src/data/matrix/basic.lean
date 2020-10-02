@@ -11,15 +11,15 @@ import data.fintype.card
 /-!
 # Matrices
 -/
-universes u v w
+universes u u' v w
 
 open_locale big_operators
 
 @[nolint unused_arguments]
-def matrix (m n : Type u) [fintype m] [fintype n] (α : Type v) : Type (max u v) :=
+def matrix (m : Type u) (n : Type u') [fintype m] [fintype n] (α : Type v) : Type (max u u' v) :=
 m → n → α
 
-variables {l m n o : Type u} [fintype l] [fintype m] [fintype n] [fintype o]
+variables {l m n o : Type*} [fintype l] [fintype m] [fintype n] [fintype o]
 variables {α : Type v}
 
 namespace matrix
@@ -47,10 +47,10 @@ def transpose (M : matrix m n α) : matrix n m α
 
 localized "postfix `ᵀ`:1500 := matrix.transpose" in matrix
 
-def col (w : m → α) : matrix m punit α
+def col (w : m → α) : matrix m unit α
 | x y := w x
 
-def row (v : n → α) : matrix punit n α
+def row (v : n → α) : matrix unit n α
 | x y := v y
 
 instance [inhabited α] : inhabited (matrix m n α) := pi.inhabited _
@@ -75,6 +75,16 @@ by { ext, simp [h], }
 lemma map_add [add_monoid α] {β : Type w} [add_monoid β] (f : α →+ β)
   (M N : matrix m n α) : (M + N).map f = M.map f + N.map f :=
 by { ext, simp, }
+
+lemma map_sub [add_group α] {β : Type w} [add_group β] (f : α →+ β)
+  (M N : matrix m n α) : (M - N).map f = M.map f - N.map f :=
+by { ext, simp }
+
+lemma subsingleton_of_empty_left (hm : ¬ nonempty m) : subsingleton (matrix m n α) :=
+⟨λ M N, by { ext, contrapose! hm, use i }⟩
+
+lemma subsingleton_of_empty_right (hn : ¬ nonempty n) : subsingleton (matrix m n α) :=
+⟨λ M N, by { ext, contrapose! hn, use j }⟩
 
 end matrix
 
@@ -445,6 +455,15 @@ by simp only [coe_scalar, mul_one, one_apply_eq, smul_apply]
 lemma scalar_apply_ne (a : α) (i j : n) (h : i ≠ j) :
   scalar n a i j = 0 :=
 by simp only [h, coe_scalar, one_apply_ne, ne.def, not_false_iff, smul_apply, mul_zero]
+
+lemma scalar_inj [nonempty n] {r s : α} : scalar n r = scalar n s ↔ r = s :=
+begin
+  split,
+  { intro h,
+    inhabit n,
+    rw [← scalar_apply_eq r (arbitrary n), ← scalar_apply_eq s (arbitrary n), h] },
+  { rintro rfl, refl }
+end
 
 end scalar
 
@@ -901,7 +920,7 @@ begin
   ext i j, rcases i; rcases j; refl,
 end
 
-lemma from_blocks_multiply {p q : Type u} [fintype p] [fintype q]
+lemma from_blocks_multiply {p q : Type*} [fintype p] [fintype q]
   (A  : matrix n l α) (B  : matrix n m α) (C  : matrix o l α) (D  : matrix o m α)
   (A' : matrix l p α) (B' : matrix l q α) (C' : matrix m p α) (D' : matrix m q α) :
   (from_blocks A B C D) ⬝ (from_blocks A' B' C' D') =
@@ -925,6 +944,96 @@ end
 by { ext i j, rcases i; rcases j; simp [one_apply] }
 
 end block_matrices
+
+section block_diagonal
+
+variables (M N : o → matrix m n α) [decidable_eq o]
+
+section has_zero
+
+variables [has_zero α]
+
+/-- `matrix.block_diagonal M` turns `M : o → matrix m n α'` into a
+`m × o`-by`n × o` block matrix which has the entries of `M` along the diagonal
+and zero elsewhere. -/
+def block_diagonal : matrix (m × o) (n × o) α
+| ⟨i, k⟩ ⟨j, k'⟩ := if k = k' then M k i j else 0
+
+lemma block_diagonal_apply (ik jk) :
+  block_diagonal M ik jk = if ik.2 = jk.2 then M ik.2 ik.1 jk.1 else 0 :=
+by { cases ik, cases jk, refl }
+
+@[simp]
+lemma block_diagonal_apply_eq (i j k) :
+  block_diagonal M (i, k) (j, k) = M k i j :=
+if_pos rfl
+
+lemma block_diagonal_apply_ne (i j) {k k'} (h : k ≠ k') :
+  block_diagonal M (i, k) (j, k') = 0 :=
+if_neg h
+
+@[simp] lemma block_diagonal_transpose :
+  (block_diagonal M)ᵀ = (block_diagonal (λ k, (M k)ᵀ)) :=
+begin
+  ext,
+  simp only [transpose_apply, block_diagonal_apply, eq_comm],
+  split_ifs with h,
+  { rw h },
+  { refl }
+end
+
+@[simp] lemma block_diagonal_zero :
+  block_diagonal (0 : o → matrix m n α) = 0 :=
+by { ext, simp [block_diagonal_apply] }
+
+@[simp] lemma block_diagonal_diagonal [decidable_eq m] (d : o → m → α) :
+  (block_diagonal (λ k, diagonal (d k))) = diagonal (λ ik, d ik.2 ik.1) :=
+begin
+  ext ⟨i, k⟩ ⟨j, k'⟩,
+  simp only [block_diagonal_apply, diagonal],
+  split_ifs; finish
+end
+
+@[simp] lemma block_diagonal_one [decidable_eq m] [has_one α] :
+  (block_diagonal (1 : o → matrix m m α)) = 1 :=
+show (block_diagonal (λ (_ : o), diagonal (λ (_ : m), (1 : α)))) = diagonal (λ _, 1),
+by rw [block_diagonal_diagonal]
+
+end has_zero
+
+@[simp] lemma block_diagonal_add [add_monoid α] :
+  block_diagonal (M + N) = block_diagonal M + block_diagonal N :=
+begin
+  ext,
+  simp only [block_diagonal_apply, add_apply],
+  split_ifs; simp
+end
+
+@[simp] lemma block_diagonal_neg [add_group α] :
+  block_diagonal (-M) = - block_diagonal M :=
+begin
+  ext,
+  simp only [block_diagonal_apply, neg_apply],
+  split_ifs; simp
+end
+
+@[simp] lemma block_diagonal_sub [add_group α] :
+  block_diagonal (M - N) = block_diagonal M - block_diagonal N :=
+by simp [sub_eq_add_neg]
+
+@[simp] lemma block_diagonal_mul {p : Type*} [fintype p] [semiring α]
+  (N : o → matrix n p α) : block_diagonal (λ k, M k ⬝ N k) = block_diagonal M ⬝ block_diagonal N :=
+begin
+  ext ⟨i, k⟩ ⟨j, k'⟩,
+  simp only [block_diagonal_apply, mul_apply, ← finset.univ_product_univ, finset.sum_product],
+  split_ifs with h; simp [h]
+end
+
+@[simp] lemma block_diagonal_smul {R : Type*} [semiring R] [add_comm_monoid α] [semimodule R α]
+  (x : R) : block_diagonal (x • M) = x • block_diagonal M :=
+by { ext, simp only [block_diagonal_apply, pi.smul_apply, smul_apply], split_ifs; simp }
+
+end block_diagonal
 
 end matrix
 

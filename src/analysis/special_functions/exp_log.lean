@@ -6,7 +6,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 import data.complex.exponential
 import analysis.complex.basic
 import analysis.calculus.mean_value
-
+import measure_theory.borel_space
 
 /-!
 # Complex and real exponential, real logarithm
@@ -27,7 +27,6 @@ instead `trigonometric.lean`.
 
 exp, log
 -/
-
 
 noncomputable theory
 
@@ -70,10 +69,15 @@ funext $ λ x, (has_deriv_at_exp x).deriv
 lemma continuous_exp : continuous exp :=
 differentiable_exp.continuous
 
+lemma measurable_exp : measurable exp := continuous_exp.measurable
+
 end complex
 
 section
 variables {f : ℂ → ℂ} {f' x : ℂ} {s : set ℂ}
+
+lemma measurable.cexp (hf : measurable f) : measurable (λ x, complex.exp (f x)) :=
+complex.measurable_exp.comp hf
 
 lemma has_deriv_at.cexp (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, complex.exp (f x)) (complex.exp (f x) * f') x :=
@@ -133,6 +137,8 @@ funext $ λ x, (has_deriv_at_exp x).deriv
 lemma continuous_exp : continuous exp :=
 differentiable_exp.continuous
 
+lemma measurable_exp : measurable exp := continuous_exp.measurable
+
 end real
 
 
@@ -144,6 +150,9 @@ section
 variables {f : ℝ → ℝ} {f' x : ℝ} {s : set ℝ}
 
 /-! `real.exp`-/
+
+lemma measurable.exp (hf : measurable f) : measurable (λ x, real.exp (f x)) :=
+real.measurable_exp.comp hf
 
 lemma has_deriv_at.exp (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, real.exp (f x)) (real.exp (f x) * f') x :=
@@ -198,7 +207,7 @@ end
 to `log |x|` for `x < 0`, and to `0` for `0`. We use this unconventional extension to
 `(-∞, 0]` as it gives the formula `log (x * y) = log x + log y` for all nonzero `x` and `y`, and
 the derivative of `log` is `1/x` away from `0`. -/
-noncomputable def log (x : ℝ) : ℝ :=
+@[pp_nodot] noncomputable def log (x : ℝ) : ℝ :=
 if hx : x ≠ 0 then classical.some (exists_exp_eq_of_pos (abs_pos_iff.mpr hx)) else 0
 
 lemma exp_log_eq_abs (hx : x ≠ 0) : exp (log x) = abs x :=
@@ -299,7 +308,7 @@ begin
       ... < ε : by { rw [neg_lt, ← exp_lt_exp, exp_log], assumption' } }
 end
 
-lemma continuous_log' : continuous (λx : {x:ℝ // 0 < x}, log x.val) :=
+lemma continuous_log' : continuous (λx : {x:ℝ // 0 < x}, log x) :=
 continuous_iff_continuous_at.2 $ λ x,
 begin
   rw continuous_at,
@@ -354,12 +363,20 @@ begin
   { field_simp [hx] }
 end
 
+lemma measurable_log : measurable log :=
+measurable_of_measurable_on_compl_singleton 0 $ continuous.measurable $
+  continuous_iff_continuous_at.2 $ λ x, (real.has_deriv_at_log x.2).continuous_at.comp
+    continuous_at_subtype_coe
+
 end real
 
 section log_differentiable
 open real
 
 variables {f : ℝ → ℝ} {x f' : ℝ} {s : set ℝ}
+
+lemma measurable.log (hf : measurable f) : measurable (λ x, log (f x)) :=
+measurable_log.comp hf
 
 lemma has_deriv_within_at.log (hf : has_deriv_within_at f f' s x) (hx : f x ≠ 0) :
   has_deriv_within_at (λ y, log (f y)) (f' / (f x)) s x :=
@@ -434,7 +451,7 @@ begin
       exp y = exp y * 1 : by simp
       ... ≤ exp y * (exp y / y)^n : begin
           apply mul_le_mul_of_nonneg_left (one_le_pow_of_one_le _ n) (le_of_lt (exp_pos _)),
-          apply one_le_div_of_le _ y_pos,
+          rw one_le_div y_pos,
           apply le_trans _ (add_one_le_exp_of_nonneg (le_of_lt y_pos)),
           exact le_add_of_le_of_nonneg (le_refl _) (zero_le_one)
         end
@@ -460,6 +477,17 @@ lemma tendsto_pow_mul_exp_neg_at_top_nhds_0 (n : ℕ) : tendsto (λx, x^n * exp 
 (tendsto_inv_at_top_zero.comp (tendsto_exp_div_pow_at_top n)).congr $ λx,
   by rw [function.comp_app, inv_eq_one_div, div_div_eq_mul_div, one_mul, div_eq_mul_inv, exp_neg]
 
+/-- The real logarithm function tends to `+∞` at `+∞`. -/
+lemma tendsto_log_at_top : tendsto log at_top at_top :=
+begin
+  rw tendsto_at_top_at_top,
+  intro b,
+  use exp b,
+  intros a hab,
+  rw [← exp_le_exp, exp_log_eq_abs (ne_of_gt $ lt_of_lt_of_le (exp_pos b) hab)],
+  exact le_trans hab (le_abs_self a)
+end
+
 open_locale big_operators
 
 /-- A crude lemma estimating the difference between `log (1-x)` and its Taylor series at `0`,
@@ -476,8 +504,7 @@ begin
   have A : ∀ y ∈ set.Ioo (-1 : ℝ) 1, deriv F y = - (y^n) / (1 - y),
   { assume y hy,
     have : (∑ i in range n, (↑i + 1) * y ^ i / (↑i + 1)) = (∑ i in range n, y ^ i),
-    { congr,
-      ext i,
+    { congr' with i,
       have : (i : ℝ) + 1 ≠ 0 := ne_of_gt (nat.cast_add_one_pos i),
       field_simp [this, mul_comm] },
     field_simp [F, this, ← geom_series_def, geom_sum (ne_of_lt hy.2),

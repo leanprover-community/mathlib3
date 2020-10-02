@@ -95,7 +95,7 @@ begin
     replace nth_fr_ne_zero : ∀ ifp, int_fract_pair.stream v n = some ifp → ifp.fr ≠ 0, by
       simpa using nth_fr_ne_zero,
     obtain ⟨ifp_n, stream_nth_eq⟩ : ∃ ifp_n, int_fract_pair.stream v n = some ifp_n, from
-      with_one.ne_one_iff_exists.elim_left stream_nth_ne_none,
+      option.ne_none_iff_exists'.mp stream_nth_ne_none,
     existsi ifp_n,
     have ifp_n_fr_ne_zero : ifp_n.fr ≠ 0, from nth_fr_ne_zero ifp_n stream_nth_eq,
     cases ifp_n with _ ifp_n_fr,

@@ -298,7 +298,7 @@ end bilin_form
 
 section matrix
 variables {R : Type u} [comm_ring R]
-variables {n o : Type w} [fintype n] [fintype o]
+variables {n o : Type*} [fintype n] [fintype o]
 
 open bilin_form finset matrix
 open_locale matrix

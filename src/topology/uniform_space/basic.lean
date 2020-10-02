@@ -220,8 +220,6 @@ def uniform_space.core.to_topological_space {α : Type u} (u : uniform_space.cor
 lemma uniform_space.core_eq : ∀{u₁ u₂ : uniform_space.core α}, u₁.uniformity = u₂.uniformity → u₁ = u₂
 | ⟨u₁, _, _, _⟩  ⟨u₂, _, _, _⟩ h := have u₁ = u₂, from h, by simp [*]
 
-section prio
-
 /-- Suppose that one can put two mathematical structures on a type, a rich one `R` and a poor one
 `P`, and that one can deduce the poor structure from the rich structure through a map `F` (called a
 forgetful functor) (think `R = metric_space` and `P = topological_space`). A possible
@@ -273,7 +271,6 @@ analysis](https://hal.inria.fr/hal-02463336).
 -/
 library_note "forgetful inheritance"
 
-set_option default_priority 100 -- see Note [default priority]
 /-- A uniform space is a generalization of the "uniform" topological aspects of a
   metric space. It consists of a filter on `α × α` called the "uniformity", which
   satisfies properties analogous to the reflexivity, symmetry, and triangle properties
@@ -283,7 +280,6 @@ set_option default_priority 100 -- see Note [default priority]
   A topological group also has a natural uniformity, even when it is not metrizable. -/
 class uniform_space (α : Type u) extends topological_space α, uniform_space.core α :=
 (is_open_uniformity : ∀s, is_open s ↔ (∀x∈s, { p : α × α | p.1 = x → p.2 ∈ s } ∈ uniformity))
-end prio
 
 /-- Alternative constructor for `uniform_space α` when a topology is already given. -/
 @[pattern] def uniform_space.mk' {α} (t : topological_space α)
@@ -654,7 +650,7 @@ calc (𝓝 x).lift g = (𝓤 α).lift (λs:set (α×α), g {y | (x, y) ∈ s}) :
   ... = _ : by simp [image_swap_eq_preimage_swap]
 
 lemma nhds_nhds_eq_uniformity_uniformity_prod {a b : α} :
-  filter.prod (𝓝 a) (𝓝 b) =
+  𝓝 a ×ᶠ 𝓝 b =
   (𝓤 α).lift (λs:set (α×α), (𝓤 α).lift' (λt:set (α×α),
     set.prod {y : α | (y, a) ∈ s} {y : α | (b, y) ∈ t})) :=
 begin
@@ -907,6 +903,12 @@ lemma filter.has_basis.uniform_continuous_iff [uniform_space β] {p : γ → Pro
   uniform_continuous f ↔ ∀ i (hi : q i), ∃ j (hj : p j), ∀ x y, (x, y) ∈ s j → (f x, f y) ∈ t i :=
 (ha.tendsto_iff hb).trans $ by simp only [prod.forall]
 
+lemma filter.has_basis.uniform_continuous_on_iff [uniform_space β] {p : γ → Prop} {s : γ → set (α×α)}
+  (ha : (𝓤 α).has_basis p s) {q : δ → Prop} {t : δ → set (β×β)} (hb : (𝓤 β).has_basis q t)
+  {f : α → β} {S : set α} :
+  uniform_continuous_on f S ↔ ∀ i (hi : q i), ∃ j (hj : p j), ∀ x y ∈ S, (x, y) ∈ s j → (f x, f y) ∈ t i :=
+((ha.inf_principal (S.prod S)).tendsto_iff hb).trans $ by finish [prod.forall]
+
 end uniform_space
 
 open_locale uniformity
@@ -1111,7 +1113,7 @@ lemma uniform_continuous_subtype_mk {p : α → Prop} [uniform_space α] [unifor
   uniform_continuous (λx, ⟨f x, h x⟩ : β → subtype p) :=
 uniform_continuous_comap' hf
 
-lemma uniform_continuous_on_iff_restrict [uniform_space α] [uniform_space β] (f : α → β) (s : set α) :
+lemma uniform_continuous_on_iff_restrict [uniform_space α] [uniform_space β] {f : α → β} {s : set α} :
   uniform_continuous_on f s ↔ uniform_continuous (s.restrict f) :=
 begin
   unfold uniform_continuous_on set.restrict uniform_continuous tendsto,
@@ -1129,6 +1131,13 @@ lemma tendsto_of_uniform_continuous_subtype
 by rw [(@map_nhds_subtype_coe_eq α _ s a (mem_of_nhds ha) ha).symm]; exact
 tendsto_map' (continuous_iff_continuous_at.mp hf.continuous _)
 
+lemma uniform_continuous_on.continuous_on [uniform_space α] [uniform_space β] {f : α → β}
+  {s : set α} (h : uniform_continuous_on f s) : continuous_on f s :=
+begin
+  rw uniform_continuous_on_iff_restrict at h,
+  rw continuous_on_iff_continuous_restrict,
+  exact h.continuous
+end
 
 section prod
 
@@ -1149,7 +1158,7 @@ inf_uniformity
 
 lemma uniformity_prod_eq_prod [uniform_space α] [uniform_space β] :
   𝓤 (α×β) =
-    map (λp:(α×α)×(β×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))) (filter.prod (𝓤 α) (𝓤 β)) :=
+    map (λp:(α×α)×(β×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))) (𝓤 α ×ᶠ 𝓤 β) :=
 have map (λp:(α×α)×(β×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))) =
   comap (λp:(α×β)×(α×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))),
   from funext $ assume f, map_eq_comap_of_inverse

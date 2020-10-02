@@ -552,7 +552,8 @@ instance linear_ordered_ring.to_domain : domain α :=
   .. ‹linear_ordered_ring α› }
 
 @[simp] lemma mul_pos_iff : 0 < a * b ↔ 0 < a ∧ 0 < b ∨ a < 0 ∧ b < 0 :=
-⟨pos_and_pos_or_neg_and_neg_of_mul_pos, λ h, h.elim (and_imp.2 mul_pos) (and_imp.2 mul_pos_of_neg_of_neg)⟩
+⟨pos_and_pos_or_neg_and_neg_of_mul_pos,
+  λ h, h.elim (and_imp.2 mul_pos) (and_imp.2 mul_pos_of_neg_of_neg)⟩
 
 @[simp] lemma mul_neg_iff : a * b < 0 ↔ 0 < a ∧ b < 0 ∨ a < 0 ∧ 0 < b :=
 by rw [← neg_pos, neg_mul_eq_mul_neg, mul_pos_iff, neg_pos, neg_lt_zero]

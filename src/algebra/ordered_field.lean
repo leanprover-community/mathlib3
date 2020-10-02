@@ -58,6 +58,18 @@ inv_eq_one_div a ▸ inv_nonneg
 lemma one_div_nonpos : 1 / a ≤ 0 ↔ a ≤ 0 :=
 inv_eq_one_div a ▸ inv_nonpos
 
+@[simp] lemma div_pos_iff : 0 < a / b ↔ 0 < a ∧ 0 < b ∨ a < 0 ∧ b < 0 :=
+by simp [division_def]
+
+@[simp] lemma div_neg_iff : a / b < 0 ↔ 0 < a ∧ b < 0 ∨ a < 0 ∧ 0 < b :=
+by simp [division_def]
+
+@[simp] lemma div_nonneg_iff : 0 ≤ a / b ↔ 0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤ 0 :=
+by simp [division_def]
+
+@[simp] lemma div_nonpos_iff : a / b ≤ 0 ↔ 0 ≤ a ∧ b ≤ 0 ∨ a ≤ 0 ∧ 0 ≤ b :=
+by simp [division_def]
+
 lemma div_pos (ha : 0 < a) (hb : 0 < b) : 0 < a / b :=
 mul_pos ha (inv_pos.2 hb)
 
@@ -390,6 +402,38 @@ by simpa using le_inv_of_neg ha hb
 
 lemma lt_one_div_of_neg (ha : a < 0) (hb : b < 0) : a < 1 / b ↔ b < 1 / a :=
 by simpa using lt_inv_of_neg ha hb
+
+@[simp] lemma one_lt_div_iff : 1 < a / b ↔ 0 < b ∧ b < a ∨ b < 0 ∧ a < b :=
+begin
+  rcases lt_trichotomy b 0 with (hb|rfl|hb),
+  { simp [hb, hb.not_lt, one_lt_div_of_neg] },
+  { simp [lt_irrefl, zero_le_one] },
+  { simp [hb, hb.not_lt, one_lt_div] }
+end
+
+@[simp] lemma one_le_div_iff : 1 ≤ a / b ↔ 0 < b ∧ b ≤ a ∨ b < 0 ∧ a ≤ b :=
+begin
+  rcases lt_trichotomy b 0 with (hb|rfl|hb),
+  { simp [hb, hb.not_lt, one_le_div_of_neg] },
+  { simp [lt_irrefl, zero_lt_one.not_le, zero_lt_one] },
+  { simp [hb, hb.not_lt, one_le_div] }
+end
+
+@[simp] lemma div_lt_one_iff : a / b < 1 ↔ 0 < b ∧ a < b ∨ b = 0 ∨ b < 0 ∧ b < a :=
+begin
+  rcases lt_trichotomy b 0 with (hb|rfl|hb),
+  { simp [hb, hb.not_lt, hb.ne, div_lt_one_of_neg] },
+  { simp [zero_lt_one], },
+  { simp [hb, hb.not_lt, div_lt_one, hb.ne.symm] }
+end
+
+@[simp] lemma div_le_one_iff : a / b ≤ 1 ↔ 0 < b ∧ a ≤ b ∨ b = 0 ∨ b < 0 ∧ b ≤ a :=
+begin
+  rcases lt_trichotomy b 0 with (hb|rfl|hb),
+  { simp [hb, hb.not_lt, hb.ne, div_le_one_of_neg] },
+  { simp [zero_le_one], },
+  { simp [hb, hb.not_lt, div_le_one, hb.ne.symm] }
+end
 
 /-!
 ### Relating two divisions, involving `1`

@@ -118,7 +118,7 @@ rfl
   aeval x (finsupp.emb_fin_nat f) :=
 by simp_rw [aeval_def, eval₂_eq_sum, finsupp.total_apply, finsupp.emb_fin_nat_sum, algebra.smul_def]
 
-lemma linear_independent_power_basis (hx : is_integral K x) :
+lemma linear_independent_power_basis (hx : is_integral K (adjoin_simple.gen K x)) :
   linear_independent K (λ (i : fin (minimal_polynomial hx).nat_degree),
     adjoin_simple.gen K x ^ (i : ℕ)) :=
 begin
@@ -131,15 +131,17 @@ begin
   exact polynomial.degree_emb_fin_nat_lt _
 end
 
-lemma mem_span_power_basis (y : K⟮x⟯) : y ∈ submodule.span K (set.range (power_basis alg)) :=
+lemma mem_span_power_basis (alg : is_algebraic K L)
+  (hx : is_integral K (adjoin_simple.gen K x)) (y : K⟮x⟯) :
+  y ∈ submodule.span K (set.range ((λ (i : fin (minimal_polynomial hx).nat_degree),
+    adjoin_simple.gen K x ^ (i : ℕ)))) :=
 begin
-  have mp_monic := minimal_polynomial.monic (primitive_element_is_integral alg),
-  have mp_ne_zero := minimal_polynomial.ne_zero (primitive_element_is_integral alg),
+  obtain ⟨y, hy⟩ := y,
+  have mp_monic := minimal_polynomial.monic hx,
+  have mp_ne_zero := minimal_polynomial.ne_zero hx,
 
-  obtain ⟨f, rfl⟩ := exists_eq_aeval_primitive_element K L x alg,
-  change (eval₂ (algebra_map K L) (primitive_element K L)) f ∈
-    submodule.span K (set.range (power_basis alg)),
-  rw [← polynomial.eval₂_mod_by_monic_eq_self_of_root mp_monic (minimal_polynomial.aeval _),
+  obtain ⟨f, rfl⟩ := exists_eq_aeval_gen alg hy,
+  rw [aeval_def, ← eval₂_mod_by_monic_eq_self_of_root mp_monic (minimal_polynomial.aeval _),
     eval₂_eq_sum, finsupp.sum],
   refine submodule.sum_mem _ (λ i i_mem, _),
   rw ← algebra.smul_def,

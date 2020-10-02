@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 import algebra.big_operators.order
 import group_theory.coset
 import data.nat.totient
-import data.int.gcd
+import data.int.xgcd
 import data.set.finite
 
 open function

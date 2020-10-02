@@ -4,61 +4,61 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenji Nakagawa
 -/
 
-import tactic.basic
+import tactic
+import tactic.fin_cases
 import data.zmod.basic
+import field_theory.finite.basic
 
+@[simp] lemma zmod.pow_bit0 (n : ℕ) [fact (bit1 n).prime] (k : zmod (bit1 n)) (hk : k ≠ 0) :
+  k ^ (bit0 n) = 1 :=
+zmod.pow_card_sub_one_eq_one hk
+
+lemma modfact (n : ℕ) : (2^n : zmod 7) = 2 ^ (n : zmod 3).val :=
+begin
+  have h1 : ∀ (k : ℕ), k < 6 → (2^k : zmod 7) = 2 ^ (k : zmod 3).val := by dec_trivial,
+  haveI : fact (nat.prime 7) := by { delta fact, norm_num },
+  have h2 : (2 : zmod 7) ≠ 0 := dec_trivial,
+  rw ← nat.mod_add_div n 6,
+  simp only [h2, pow_add, pow_mul, bit0_zero, one_pow, add_zero, mul_one, zmod.cast_self,
+    zmod.pow_bit0, nat.cast_bit0, zero_mul, ne.def, nat.cast_add, not_false_iff, nat.cast_mul],
+  apply h1,
+  apply nat.mod_lt,
+  norm_num,
+end
 
 /-!
-# IMO 1959 Q1
+# IMO 1964 Q1
 
-Prove that the fraction `(21n+4)/(14n+3)` is irreducible for every natural number `n`.
+* (a) Find all positive integers `n` for which `2^n-1` is divisble by `7`.
+* (b) Prove that there is no positive integer `n` for which `2^n+1` is divisible by `7`.
 
-Since Lean doesn't have a concept of "irreducible fractions" per se, we just formalize this
-as saying the numerator and denominator are relatively prime.
 -/
-
-lemma modfact1 (n : ℕ): ((2^(3+n)) : zmod 7).val = (2^n : zmod 7).val :=
-begin
-  have h2 : (2^3 : zmod 7) = 1 := by refl,
-  have h4 : (2^(3+n) : zmod 7).val = (2^3*2^n : zmod 7).val := congr_arg zmod.val (pow_add 2 3 n),
-  rwa [h2,one_mul] at h4,
-end
-
-lemma modfact2 (n : ℕ) : (2^n : zmod 7) = 2^(n : zmod 3).val :=
-begin
-  norm_cast at *,
-
-  sorry,
-
-end
-
-example (n : ℕ) : ((2^n -1) : zmod 7).val = 0 ↔ (n : zmod 3).val = 0 :=
+example (n : ℕ) (gt_zero : 0 < n) : ((2^n -1) : zmod 7) = 0 ↔ (n : zmod 3) = 0 :=
 begin
   split,
-  { rw modfact2,
+  { rw modfact,
     have h1 := zmod.val_lt (n : zmod 3),
     intro hn,
-    rw zmod.val_eq_zero _ at hn,
     have h2 : (n : zmod 3).val = 0 ∨ (n : zmod 3).val = 1 ∨ (n : zmod 3).val = 2 := by omega,
     cases h2,
-    assumption,
+    exact fin.ext h2,
     cases h2;
     rw h2 at hn;
-    exfalso;
+    exfalso,
     norm_num at hn,
     contrapose! hn,
     dec_trivial },
   { intro hn,
-    rw [(zmod.val_eq_zero (2^n - 1)), modfact2, hn],
+    rw [modfact, hn],
     norm_num }
 end
 
-example (n : ℕ) : ¬((2^n + 1) : zmod 7).val = 0 :=
+example (n : ℕ) (gt_zero : 0 < n) : ¬((2^n + 1) : zmod 7) = 0 :=
 begin
   intro hn,
   have h1 := zmod.val_lt (n : zmod 3),
   have h2 : (n : zmod 3).val = 0 ∨ (n : zmod 3).val = 1 ∨ (n : zmod 3).val = 2 := by omega,
-  rw [zmod.val_eq_zero,modfact2] at hn,
+  rw [modfact] at hn,
   repeat {cases h2};
   rw h2 at hn; ring at hn; contrapose! hn; dec_trivial,
 end

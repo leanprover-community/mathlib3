@@ -79,12 +79,9 @@ lemma calc_sods (n : ℕ) (h : 0 < n) :
 sum_of_digit_squares n = (n % 10) ^ 2 + (sum_of_digit_squares (n / 10)) :=
 begin
   unfold sum_of_digit_squares,
-  rw digit_recursion,
+  rw digit_recursion _ h,
   unfold sum_of_squares,
-  unfold list.foldr,
-  simp,
-  ring,
-  exact h
+  simp [pow_two],
 end
 
 /-

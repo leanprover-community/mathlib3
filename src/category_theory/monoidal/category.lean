@@ -92,6 +92,7 @@ notation `λ_` := left_unitor
 notation `ρ_` := right_unitor
 
 /-- The tensor product of two isomorphisms is an isomorphism. -/
+@[simps]
 def tensor_iso {C : Type u} {X Y X' Y' : C} [category.{v} C] [monoidal_category.{v} C] (f : X ≅ Y) (g : X' ≅ Y') :
     X ⊗ X' ≅ Y ⊗ Y' :=
 { hom := f.hom ⊗ g.hom,
@@ -138,11 +139,11 @@ by { rw ←tensor_comp, simp }
   (𝟙 Z) ⊗ (f ≫ g) = (𝟙 Z ⊗ f) ≫ (𝟙 Z ⊗ g) :=
 by { rw ←tensor_comp, simp }
 
-@[simp] lemma id_tensor_comp_tensor_id (f : W ⟶ X) (g : Y ⟶ Z) :
+@[simp, reassoc] lemma id_tensor_comp_tensor_id (f : W ⟶ X) (g : Y ⟶ Z) :
   ((𝟙 Y) ⊗ f) ≫ (g ⊗ (𝟙 X)) = g ⊗ f :=
 by { rw [←tensor_comp], simp }
 
-@[simp] lemma tensor_id_comp_id_tensor (f : W ⟶ X) (g : Y ⟶ Z) :
+@[simp, reassoc] lemma tensor_id_comp_id_tensor (f : W ⟶ X) (g : Y ⟶ Z) :
   (g ⊗ (𝟙 W)) ≫ ((𝟙 Z) ⊗ f) = g ⊗ f :=
 by { rw [←tensor_comp], simp }
 

@@ -460,6 +460,12 @@ begin
     rwa [← nnreal.coe_lt_coe, nnreal.coe_sub this, lt_sub_iff_add_lt, ← nnreal.coe_add] }
 end
 
+lemma sub_lt_iff_lt_add {a b c : nnreal} (h : b ≤ a) : a - b < c ↔ a < b + c :=
+by simp only [←nnreal.coe_lt_coe, nnreal.coe_sub h, nnreal.coe_add, sub_lt_iff_lt_add']
+
+lemma sub_eq_iff_eq_add {a b c : nnreal} (h : b ≤ a) : a - b = c ↔ a = c + b :=
+by rw [←nnreal.eq_iff, nnreal.coe_sub h, ←nnreal.eq_iff, nnreal.coe_add, sub_eq_iff_eq_add]
+
 end sub
 
 section inv

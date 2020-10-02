@@ -281,6 +281,10 @@ theorem map_le_iff : ∀ {a b}, a ≤ b ↔ (f a) ≤ (f b) := f.map_rel_iff'
 theorem map_lt_iff : ∀ {a b}, a < b ↔ (f a) < (f b) :=
 f.lt_embedding.map_rel_iff'
 
+protected theorem monotone : monotone f := λ x y, f.map_le_iff.1
+
+protected theorem strict_mono : strict_mono f := λ x y, f.map_lt_iff.1
+
 protected theorem acc (a : α) : acc (<) (f a) → acc (<) a :=
 f.lt_embedding.acc a
 
@@ -459,6 +463,23 @@ lemma mul_apply (e₁ e₂ : r ≃r r) (x : α) : (e₁ * e₂) x = e₁ (e₂ x
 @[simp] lemma apply_inv_self (e : r ≃r r) (x) : e (e⁻¹ x) = x := e.apply_symm_apply x
 
 end rel_iso
+
+namespace order_iso
+
+/-- Reinterpret an order isomorphism as an order embedding-/
+def to_order_embedding [has_le α] [has_le β] (e : α ≃o β) : α ↪o β :=
+e.to_rel_embedding
+
+@[simp] lemma coe_to_order_embedding [has_le α] [has_le β] (e : α ≃o β) :
+  ⇑(e.to_order_embedding) = e := rfl
+
+variables [preorder α] [preorder β]
+
+protected lemma monotone (e : α ≃o β) : monotone e := e.to_order_embedding.monotone
+
+protected lemma strict_mono (e : α ≃o β) : strict_mono e := e.to_order_embedding.strict_mono
+
+end order_iso
 
 /-- A subset `p : set α` embeds into `α` -/
 def set_coe_embedding {α : Type*} (p : set α) : p ↪ α := ⟨subtype.val, @subtype.eq _ _⟩

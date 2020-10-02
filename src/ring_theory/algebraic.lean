@@ -83,7 +83,7 @@ begin
   refine ⟨_, is_integral.is_algebraic K⟩,
   rintro ⟨p, hp, hpx⟩,
   refine ⟨_, monic_mul_leading_coeff_inv hp, _⟩,
-  rw [alg_hom.map_mul, hpx, zero_mul],
+  rw [← aeval_def, alg_hom.map_mul, hpx, zero_mul],
 end
 
 end field

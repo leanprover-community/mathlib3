@@ -78,13 +78,16 @@ def normalize : α →* α :=
   classical.by_cases (λ hy : y = 0, by rw [hy, mul_zero, zero_mul, mul_zero]) $ λ hy,
   by simp only [norm_unit_mul hx hy, units.coe_mul]; simp only [mul_assoc, mul_left_comm y], }
 
-@[simp] lemma normalize_apply {x : α} : normalize x = x * norm_unit x := rfl
-
 theorem associated_normalize {x : α} : associated x (normalize x) :=
 ⟨_, rfl⟩
 
 theorem normalize_associated {x : α} : associated (normalize x) x :=
 associated_normalize.symm
+
+lemma associates.mk_normalize {x : α} : associates.mk (normalize x) = associates.mk x :=
+associates.mk_eq_mk_iff_associated.2 normalize_associated
+
+@[simp] lemma normalize_apply {x : α} : normalize x = x * norm_unit x := rfl
 
 @[simp] lemma normalize_zero : normalize (0 : α) = 0 := by simp
 
@@ -287,6 +290,16 @@ gcd_dvd_gcd (dvd_refl _) (dvd_mul_left _ _)
 theorem gcd_dvd_gcd_mul_right_right (m n k : α) : gcd m n ∣ gcd m (n * k) :=
 gcd_dvd_gcd (dvd_refl _) (dvd_mul_right _ _)
 
+theorem gcd_eq_of_associated_left {m n : α} (h : associated m n) (k : α) : gcd m k = gcd n k :=
+dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _)
+  (gcd_dvd_gcd (dvd_of_associated h) (dvd_refl _))
+  (gcd_dvd_gcd (dvd_of_associated h.symm) (dvd_refl _))
+
+theorem gcd_eq_of_associated_right {m n : α} (h : associated m n) (k : α) : gcd k m = gcd k n :=
+dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _)
+  (gcd_dvd_gcd (dvd_refl _) (dvd_of_associated h))
+  (gcd_dvd_gcd (dvd_refl _) (dvd_of_associated h.symm))
+
 end gcd
 
 section lcm
@@ -406,6 +419,16 @@ lcm_dvd_lcm (dvd_refl _) (dvd_mul_left _ _)
 
 theorem lcm_dvd_lcm_mul_right_right (m n k : α) : lcm m n ∣ lcm m (n * k) :=
 lcm_dvd_lcm (dvd_refl _) (dvd_mul_right _ _)
+
+theorem lcm_eq_of_associated_left {m n : α} (h : associated m n) (k : α) : lcm m k = lcm n k :=
+dvd_antisymm_of_normalize_eq (normalize_lcm _ _) (normalize_lcm _ _)
+  (lcm_dvd_lcm (dvd_of_associated h) (dvd_refl _))
+  (lcm_dvd_lcm (dvd_of_associated h.symm) (dvd_refl _))
+
+theorem lcm_eq_of_associated_right {m n : α} (h : associated m n) (k : α) : lcm k m = lcm k n :=
+dvd_antisymm_of_normalize_eq (normalize_lcm _ _) (normalize_lcm _ _)
+  (lcm_dvd_lcm (dvd_refl _) (dvd_of_associated h))
+  (lcm_dvd_lcm (dvd_refl _) (dvd_of_associated h.symm))
 
 end lcm
 
@@ -701,7 +724,7 @@ lemma prime_two_or_dvd_of_dvd_two_mul_pow_self_two {m : ℤ} {p : ℕ}
 begin
   cases int.prime.dvd_mul hp h with hp2 hpp,
   { apply or.intro_left,
-    exact le_antisymm (nat.le_of_dvd two_pos hp2) (nat.prime.two_le hp) },
+    exact le_antisymm (nat.le_of_dvd zero_lt_two hp2) (nat.prime.two_le hp) },
   { apply or.intro_right,
     rw [pow_two, int.nat_abs_mul] at hpp,
     exact (or_self _).mp ((nat.prime.dvd_mul hp).mp hpp)}

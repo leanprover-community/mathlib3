@@ -45,7 +45,7 @@ have hia : i a ≠ 0, from mt ((is_add_group_hom.injective_iff i).1
 or.inr $ λ g hg ⟨p, hp⟩, absurd hg.1 (not_not.2 (is_unit_iff_degree_eq_zero.2 $
   by have := congr_arg degree hp;
     simp [degree_C hia, @eq_comm (with_bot ℕ) 0,
-      nat.with_bot.add_eq_zero_iff] at this; clear _fun_match; tautology))
+      nat.with_bot.add_eq_zero_iff] at this; clear _fun_match; tauto))
 
 lemma splits_of_degree_eq_one {f : polynomial α} (hf : degree f = 1) : splits i f :=
 or.inr $ λ g hg ⟨p, hp⟩,
@@ -82,6 +82,14 @@ lemma splits_of_splits_mul {f g : polynomial α} (hfg : f * g ≠ 0) (h : splits
 lemma splits_of_splits_of_dvd {f g : polynomial α} (hf0 : f ≠ 0) (hf : splits i f) (hgf : g ∣ f) :
   splits i g :=
 by { obtain ⟨f, rfl⟩ := hgf, exact (splits_of_splits_mul i hf0 hf).1 }
+
+lemma splits_of_splits_gcd_left {f g : polynomial α} (hf0 : f ≠ 0) (hf : splits i f) :
+  splits i (euclidean_domain.gcd f g) :=
+polynomial.splits_of_splits_of_dvd i hf0 hf (euclidean_domain.gcd_dvd_left f g)
+
+lemma splits_of_splits_gcd_right {f g : polynomial α} (hg0 : g ≠ 0) (hg : splits i g) :
+  splits i (euclidean_domain.gcd f g) :=
+polynomial.splits_of_splits_of_dvd i hg0 hg (euclidean_domain.gcd_dvd_right f g)
 
 lemma splits_map_iff (j : β →+* γ) {f : polynomial α} :
   splits j (f.map i) ↔ splits (j.comp i) f :=
@@ -221,6 +229,14 @@ begin
       map_bind_roots_eq]
 end
 
+lemma eq_X_sub_C_of_splits_of_single_root {x : α} {h : polynomial α} (h_splits : splits i h)
+  (h_roots : (h.map i).roots = {i x}) : h = (C (leading_coeff h)) * (X - C x) :=
+begin
+  apply polynomial.map_injective _ i.injective,
+  rw [eq_prod_roots_of_splits h_splits, h_roots],
+  simp,
+end
+
 lemma nat_degree_multiset_prod {R : Type*} [integral_domain R] {s : multiset (polynomial R)}
   (h : ∀ p ∈ s, p ≠ (0 : polynomial R)) :
   nat_degree s.prod = (s.map nat_degree).sum :=
@@ -258,10 +274,10 @@ by rw [degree_eq_nat_degree p_ne_zero, nat_degree_eq_card_roots hsplit]
 
 section UFD
 
-local attribute [instance, priority 10] principal_ideal_ring.to_unique_factorization_domain
+local attribute [instance, priority 10] principal_ideal_ring.to_unique_factorization_monoid
 local infix ` ~ᵤ ` : 50 := associated
 
-open unique_factorization_domain associates
+open unique_factorization_monoid associates
 
 lemma splits_of_exists_multiset {f : polynomial α} {s : multiset β}
   (hs : f.map i = C (i f.leading_coeff) * (s.map (λ a : β, (X : polynomial β) - C a)).prod) :
@@ -271,8 +287,8 @@ else
   or.inr $ λ p hp hdp,
     have ht : multiset.rel associated
       (factors (f.map i)) (s.map (λ a : β, (X : polynomial β) - C a)) :=
-    unique
-      (λ p hp, irreducible_factors (map_ne_zero hf0) _ hp)
+    factors_unique
+      (λ p hp, irreducible_of_factor _ hp)
       (λ p' m, begin
           obtain ⟨a,m,rfl⟩ := multiset.mem_map.1 m,
           exact irreducible_of_degree_eq_one (degree_X_sub_C _),
@@ -281,7 +297,7 @@ else
         ⟨(units.map' C : units β →* units (polynomial β)) (units.mk0 (f.map i).leading_coeff
             (mt leading_coeff_eq_zero.1 (map_ne_zero hf0))),
           by conv_rhs {rw [hs, ← leading_coeff_map i, mul_comm]}; refl⟩
-        ... ~ᵤ _ : associated.symm (unique_factorization_domain.factors_prod (by simpa using hf0))),
+        ... ~ᵤ _ : associated.symm (unique_factorization_monoid.factors_prod (by simpa using hf0))),
   let ⟨q, hq, hpq⟩ := exists_mem_factors_of_dvd (by simpa) hp hdp in
   let ⟨q', hq', hqq'⟩ := multiset.exists_mem_of_rel_of_mem ht hq in
   let ⟨a, ha⟩ := multiset.mem_map.1 hq' in
@@ -289,7 +305,7 @@ else
     exact degree_eq_degree_of_associated (hpq.trans hqq')
 
 lemma splits_of_splits_id {f : polynomial α} : splits (ring_hom.id _) f → splits i f :=
-unique_factorization_domain.induction_on_prime f (λ _, splits_zero _)
+unique_factorization_monoid.induction_on_prime f (λ _, splits_zero _)
   (λ _ hu _, splits_of_degree_le_one _
     ((is_unit_iff_degree_eq_zero.1 hu).symm ▸ dec_trivial))
   (λ a p ha0 hp ih hfi, splits_mul _
@@ -588,7 +604,7 @@ theorem splits_iff (f : polynomial α) [is_splitting_field α β f] :
     let ⟨x, hxs, hxy⟩ := finset.mem_image.1 (by rwa multiset.to_finset_map at hy) in
     hxy ▸ subalgebra.algebra_map_mem _ _),
  λ h, @ring_equiv.to_ring_hom_refl α _ ▸
-  ring_equiv.trans_symm (ring_equiv.of_bijective _ $ algebra.bijective_algbera_map_iff.2 h) ▸
+  ring_equiv.trans_symm (ring_equiv.of_bijective _ $ algebra.bijective_algebra_map_iff.2 h) ▸
   by { rw ring_equiv.to_ring_hom_trans, exact splits_comp_of_splits _ _ (splits β f) }⟩
 
 theorem mul (f g : polynomial α) (hf : f ≠ 0) (hg : g ≠ 0) [is_splitting_field α β f]

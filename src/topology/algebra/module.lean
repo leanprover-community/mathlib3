@@ -5,7 +5,7 @@ Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo, Yury Kudryashov
 -/
 import topology.algebra.ring
 import topology.uniform_space.uniform_embedding
-import ring_theory.algebra
+import algebra.algebra.basic
 import linear_algebra.projection
 
 /-!
@@ -68,14 +68,18 @@ tendsto_smul.comp (hf.prod_mk_nhds hg)
 
 end
 
+instance topological_semiring.to_semimodule {R : Type*} [topological_space R]
+  [semiring R] [topological_semiring R] :
+  topological_semimodule R R :=
+{ continuous_smul := continuous_mul }
+
 /-- A topological module, over a ring which is also a topological space, is a module in which
 scalar multiplication is continuous. In applications, `R` will be a topological ring and `M` a
 topological additive group, but this is not needed for the definition -/
-class topological_module (R : Type u) (M : Type v)
+abbreviation topological_module (R : Type u) (M : Type v)
   [ring R] [topological_space R]
-  [topological_space M] [add_comm_group M]
-  [module R M]
-  extends topological_semimodule R M : Prop
+  [topological_space M] [add_comm_group M] [module R M] :=
+topological_semimodule R M
 
 /-- A topological vector space is a topological module over a field. -/
 abbreviation topological_vector_space (R : Type u) (M : Type v)
@@ -147,6 +151,10 @@ protected def homeomorph.smul_of_ne_zero (ha : a ≠ 0) : M ≃ₜ M :=
 lemma is_open_map_smul_of_ne_zero (ha : a ≠ 0) : is_open_map (λ (x : M), a • x) :=
 (homeomorph.smul_of_ne_zero ha).is_open_map
 
+/-- `smul` is a closed map in the second argument.
+
+The lemma that `smul` is a closed map in the first argument (for a normed space over a complete
+normed field) is `is_closed_map_smul_left` in `analysis.normed_space.finite_dimension`. -/
 lemma is_closed_map_smul_of_ne_zero (ha : a ≠ 0) : is_closed_map (λ (x : M), a • x) :=
 (homeomorph.smul_of_ne_zero ha).is_closed_map
 
@@ -799,8 +807,19 @@ theorem bijective (e : M ≃L[R] M₂) : function.bijective e := e.to_linear_equ
 theorem injective (e : M ≃L[R] M₂) : function.injective e := e.to_linear_equiv.to_equiv.injective
 theorem surjective (e : M ≃L[R] M₂) : function.surjective e := e.to_linear_equiv.to_equiv.surjective
 
+@[simp] theorem trans_apply (e₁ : M ≃L[R] M₂) (e₂ : M₂ ≃L[R] M₃) (c : M) :
+  (e₁.trans e₂) c = e₂ (e₁ c) :=
+rfl
 @[simp] theorem apply_symm_apply (e : M ≃L[R] M₂) (c : M₂) : e (e.symm c) = c := e.1.6 c
 @[simp] theorem symm_apply_apply (e : M ≃L[R] M₂) (b : M) : e.symm (e b) = b := e.1.5 b
+@[simp] theorem symm_trans_apply (e₁ : M₂ ≃L[R] M) (e₂ : M₃ ≃L[R] M₂) (c : M) :
+  (e₂.trans e₁).symm c = e₂.symm (e₁.symm c) :=
+rfl
+
+@[simp, norm_cast]
+lemma comp_coe (f : M ≃L[R] M₂) (f' : M₂ ≃L[R] M₃) :
+  (f' : M₂ →L[R] M₃).comp (f : M →L[R] M₂) = (f.trans f' : M →L[R] M₃) :=
+rfl
 
 @[simp] theorem coe_comp_coe_symm (e : M ≃L[R] M₂) :
   (e : M →L[R] M₂).comp (e.symm : M₂ →L[R] M) = continuous_linear_map.id R M₂ :=
@@ -828,6 +847,10 @@ self_comp_symm e
 
 @[simp] theorem symm_symm (e : M ≃L[R] M₂) : e.symm.symm = e :=
 by { ext x, refl }
+
+@[simp] lemma refl_symm :
+ (continuous_linear_equiv.refl R M).symm = continuous_linear_equiv.refl R M :=
+rfl
 
 theorem symm_symm_apply (e : M ≃L[R] M₂) (x : M) : e.symm.symm x = e x :=
 rfl
@@ -858,6 +881,18 @@ rfl
 @[simp] lemma symm_equiv_of_inverse (f₁ : M →L[R] M₂) (f₂ h₁ h₂) :
   (equiv_of_inverse f₁ f₂ h₁ h₂).symm = equiv_of_inverse f₂ f₁ h₂ h₁ :=
 rfl
+
+variable (M)
+
+/-- The continuous linear equivalences from `M` to itself form a group under composition. -/
+instance automorphism_group : group (M ≃L[R] M) :=
+{ mul          := λ f g, g.trans f,
+  one          := continuous_linear_equiv.refl R M,
+  inv          := λ f, f.symm,
+  mul_assoc    := λ f g h, by {ext, refl},
+  mul_one      := λ f, by {ext, refl},
+  one_mul      := λ f, by {ext, refl},
+  mul_left_inv := λ f, by {ext, exact f.left_inv x} }
 
 end add_comm_monoid
 
@@ -900,6 +935,47 @@ variables {R : Type*} [ring R]
 (e : M →L[R] M₂).map_sub x y
 
 @[simp] lemma map_neg (e : M ≃L[R] M₂) (x : M) : e (-x) = -e x := (e : M →L[R] M₂).map_neg x
+
+section
+/-! The next theorems cover the identification between `M ≃L[𝕜] M`and the group of units of the ring
+`M →L[R] M`. -/
+variables [topological_add_group M]
+
+/-- An invertible continuous linear map `f` determines a continuous equivalence from `M` to itself.
+-/
+def of_unit (f : units (M →L[R] M)) : (M ≃L[R] M) :=
+{ to_linear_equiv :=
+  { to_fun    := f.val,
+    map_add'  := by simp,
+    map_smul' := by simp,
+    inv_fun   := f.inv,
+    left_inv  := λ x, show (f.inv * f.val) x = x, by {rw f.inv_val, simp},
+    right_inv := λ x, show (f.val * f.inv) x = x, by {rw f.val_inv, simp}, },
+  continuous_to_fun  := f.val.continuous,
+  continuous_inv_fun := f.inv.continuous }
+
+/-- A continuous equivalence from `M` to itself determines an invertible continuous linear map. -/
+def to_unit (f : (M ≃L[R] M)) : units (M →L[R] M) :=
+{ val     := f,
+  inv     := f.symm,
+  val_inv := by {ext, simp},
+  inv_val := by {ext, simp} }
+
+variables (R M)
+
+/-- The units of the algebra of continuous `R`-linear endomorphisms of `M` is multiplicatively
+equivalent to the type of continuous linear equivalences between `M` and itself. -/
+def units_equiv : units (M →L[R] M) ≃* (M ≃L[R] M) :=
+{ to_fun    := of_unit,
+  inv_fun   := to_unit,
+  left_inv  := λ f, by {ext, refl},
+  right_inv := λ f, by {ext, refl},
+  map_mul'  := λ x y, by {ext, refl} }
+
+@[simp] lemma units_equiv_apply (f : units (M →L[R] M)) (x : M) :
+  (units_equiv R M f) x = f x := rfl
+
+end
 
 section
 variables (R) [topological_space R] [topological_module R R]
@@ -957,6 +1033,87 @@ equiv_of_inverse (f₁.prod (f₁.proj_ker_of_right_inverse f₂ h)) (f₂.copro
 end ring
 
 end continuous_linear_equiv
+
+namespace continuous_linear_map
+
+open_locale classical
+
+variables {R : Type*} {M : Type*} {M₂ : Type*} [topological_space M] [topological_space M₂]
+
+section
+variables [semiring R]
+variables [add_comm_monoid M₂] [semimodule R M₂]
+variables [add_comm_monoid M] [semimodule R M]
+
+/-- Introduce a function `inverse` from `M →L[R] M₂` to `M₂ →L[R] M`, which sends `f` to `f.symm` if
+`f` is a continuous linear equivalence and to `0` otherwise.  This definition is somewhat ad hoc,
+but one needs a fully (rather than partially) defined inverse function for some purposes, including
+for calculus. -/
+noncomputable def inverse : (M →L[R] M₂) → (M₂ →L[R] M) :=
+λ f, if h : ∃ (e : M ≃L[R] M₂), (e : M →L[R] M₂) = f then ((classical.some h).symm : M₂ →L[R] M) else 0
+
+/-- By definition, if `f` is invertible then `inverse f = f.symm`. -/
+@[simp] lemma inverse_equiv (e : M ≃L[R] M₂) : inverse (e : M →L[R] M₂) = e.symm :=
+begin
+  have h : ∃ (e' : M ≃L[R] M₂), (e' : M →L[R] M₂) = ↑e := ⟨e, rfl⟩,
+  simp only [inverse, dif_pos h],
+  congr,
+  ext x,
+  have h' := classical.some_spec h,
+  simpa using continuous_linear_map.ext_iff.1 (h') x -- for some reason `h'` cannot be substituted here
+end
+
+/-- By definition, if `f` is not invertible then `inverse f = 0`. -/
+@[simp] lemma inverse_non_equiv (f : M →L[R] M₂) (h : ¬∃ (e' : M ≃L[R] M₂), ↑e' = f) :
+  inverse f = 0 :=
+dif_neg h
+
+end
+
+section
+variables [ring R]
+variables [add_comm_group M] [topological_add_group M] [module R M]
+variables [add_comm_group M₂] [module R M₂]
+
+@[simp] lemma ring_inverse_equiv (e : M ≃L[R] M) :
+  ring.inverse ↑e = inverse (e : M →L[R] M) :=
+begin
+  suffices :
+    ring.inverse ((((continuous_linear_equiv.units_equiv _ _).symm e) : M →L[R] M)) = inverse ↑e,
+  { convert this },
+  simp,
+  refl,
+end
+
+/-- The function `continuous_linear_equiv.inverse` can be written in terms of `ring.inverse` for the
+ring of self-maps of the domain. -/
+lemma to_ring_inverse (e : M ≃L[R] M₂) (f : M →L[R] M₂) :
+  inverse f = (ring.inverse ((e.symm : (M₂ →L[R] M)).comp f)).comp e.symm :=
+begin
+  by_cases h₁ : ∃ (e' : M ≃L[R] M₂), ↑e' = f,
+  { obtain ⟨e', he'⟩ := h₁,
+    rw ← he',
+    ext,
+    simp },
+  { suffices : ¬is_unit ((e.symm : M₂ →L[R] M).comp f),
+    { simp [this, h₁] },
+    revert h₁,
+    contrapose!,
+    rintros ⟨F, hF⟩,
+    use (continuous_linear_equiv.units_equiv _ _ F).trans e,
+    ext,
+    simp [hF] }
+end
+
+lemma ring_inverse_eq_map_inverse : ring.inverse = @inverse R M M _ _ _ _ _ _ _ :=
+begin
+  ext,
+  simp [to_ring_inverse (continuous_linear_equiv.refl R M)],
+end
+
+end
+
+end continuous_linear_map
 
 namespace submodule
 

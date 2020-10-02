@@ -429,7 +429,7 @@ begin
     haveI Hp : fact p.prime := hp.2,
     rw [multiset.mem_to_finset, multiset.mem_coe, mem_factors_iff_dvd hn Hp],
     contrapose! hpn,
-    rw [padic_val_nat_of_not_dvd hpn, nat.pow_zero], },
+    rw [padic_val_nat_of_not_dvd hpn, pow_zero], },
   { intros, assumption },
   { intros p hp hpn,
     rw [multiset.mem_to_finset, multiset.mem_coe] at hp,

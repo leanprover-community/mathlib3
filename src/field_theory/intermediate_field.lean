@@ -80,7 +80,7 @@ instance : has_mem L (intermediate_field K L) := ⟨λ m S, m ∈ (S : set L)⟩
   (ho hm hz ha hn hi) (x : L) :
   x ∈ intermediate_field.mk s ho hm hz ha hK hn hi ↔ x ∈ s := iff.rfl
 
-@[simp] lemma mem_coe {x : L} : x ∈ (S : set L) ↔ x ∈ S := iff.rfl
+@[simp] lemma mem_coe (x : L) : x ∈ (S : set L) ↔ x ∈ S := iff.rfl
 
 @[simp] lemma mem_to_subalgebra (s : intermediate_field K L) (x : L) :
   x ∈ s.to_subalgebra ↔ x ∈ s := iff.rfl
@@ -210,7 +210,7 @@ instance to_algebra : algebra S L :=
 S.to_subalgebra.to_algebra
 
 instance : is_scalar_tower K S L :=
-is_scalar_tower.subalgebra _ _ S.to_subalgebra
+is_scalar_tower.subalgebra' _ _ _ S.to_subalgebra
 
 variables {L' : Type*} [field L'] [algebra K L']
 

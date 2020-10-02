@@ -7,7 +7,6 @@ import algebra.associated
 import data.int.gcd
 import algebra.big_operators.basic
 import data.nat.enat
-import tactic
 
 variables {α : Type*}
 
@@ -53,11 +52,11 @@ lemma not_finite_iff_forall {a b : α} : (¬ finite a b) ↔ ∀ n : ℕ, a ^ n 
   by simp [finite, multiplicity, not_not]; tauto⟩
 
 lemma not_unit_of_finite {a b : α} (h : finite a b) : ¬is_unit a :=
-let ⟨n, hn⟩ := h in mt (is_unit_iff_forall_dvd.1 ∘ is_unit_pow (n + 1)) $
+let ⟨n, hn⟩ := h in mt (is_unit_iff_forall_dvd.1 ∘ is_unit.pow (n + 1)) $
 λ h, hn (h b)
 
 lemma finite_of_finite_mul_left {a b c : α} : finite a (b * c) → finite a c :=
-λ ⟨n, hn⟩, ⟨n, λ h, hn (dvd.trans h (by simp [_root_.mul_pow]))⟩
+λ ⟨n, hn⟩, ⟨n, λ h, hn (dvd.trans h (by simp [mul_pow]))⟩
 
 lemma finite_of_finite_mul_right {a b c : α} : finite a (b * c) → finite a b :=
 by rw mul_comm; exact finite_of_finite_mul_left
@@ -124,7 +123,7 @@ get_eq_iff_eq_some.2 (eq_some_iff.2 ⟨dvd_refl _,
   by simpa [is_unit_iff_dvd_one.symm] using not_unit_of_finite ha⟩)
 
 @[simp] lemma multiplicity_unit {a : α} (b : α) (ha : is_unit a) : multiplicity a b = ⊤ :=
-eq_top_iff.2 (λ _, is_unit_iff_forall_dvd.1 (is_unit_pow _ ha) _)
+eq_top_iff.2 (λ _, is_unit_iff_forall_dvd.1 (ha.pow _) _)
 
 @[simp] lemma one_left (b : α) : multiplicity 1 b = ⊤ := by simp [eq_top_iff]
 
@@ -147,7 +146,7 @@ lemma multiplicity_le_multiplicity_iff {a b c d : α} : multiplicity a b ≤ mul
       (not_finite_iff_forall.2 this)]⟩
 
 lemma dvd_of_multiplicity_pos {a b : α} (h : (0 : enat) < multiplicity a b) : a ∣ b :=
-by rw [← _root_.pow_one a]; exact pow_dvd_of_le_multiplicity (enat.pos_iff_one_le.1 h)
+by rw [← pow_one a]; exact pow_dvd_of_le_multiplicity (enat.pos_iff_one_le.1 h)
 
 lemma dvd_iff_multiplicity_pos {a b : α} : (0 : enat) < multiplicity a b ↔ a ∣ b :=
 ⟨dvd_of_multiplicity_pos,
@@ -268,7 +267,7 @@ lemma finite_mul_aux {p : α} (hp : prime p) : ∀ {n m : ℕ} {a b : α},
   ¬p ^ (n + 1) ∣ a → ¬p ^ (m + 1) ∣ b → ¬p ^ (n + m + 1) ∣ a * b
 | n m := λ a b ha hb ⟨s, hs⟩,
   have p ∣ a * b, from ⟨p ^ (n + m) * s,
-    by simp [hs, _root_.pow_add, mul_comm, mul_assoc, mul_left_comm]⟩,
+    by simp [hs, pow_add, mul_comm, mul_assoc, mul_left_comm]⟩,
   (hp.2.2 a b this).elim
     (λ ⟨x, hx⟩, have hn0 : 0 < n,
         from nat.pos_of_ne_zero (λ hn0, by clear _fun_match _fun_match; simpa [hx, hn0] using ha),
@@ -276,12 +275,12 @@ lemma finite_mul_aux {p : α} (hp : prime p) : ∀ {n m : ℕ} {a b : α},
       have hpx : ¬ p ^ (n - 1 + 1) ∣ x,
         from λ ⟨y, hy⟩, ha (hx.symm ▸ ⟨y, mul_right_cancel' hp.1
           $ by rw [nat.sub_add_cancel hn0] at hy;
-            simp [hy, _root_.pow_add, mul_comm, mul_assoc, mul_left_comm]⟩),
+            simp [hy, pow_add, mul_comm, mul_assoc, mul_left_comm]⟩),
       have 1 ≤ n + m, from le_trans hn0 (le_add_right n m),
       finite_mul_aux hpx hb ⟨s, mul_right_cancel' hp.1 begin
           rw [← nat.sub_add_comm hn0, nat.sub_add_cancel this],
           clear _fun_match _fun_match finite_mul_aux,
-          simp [*, mul_comm, mul_assoc, mul_left_comm, _root_.pow_add] at *
+          simp [*, mul_comm, mul_assoc, mul_left_comm, pow_add] at *
         end⟩)
     (λ ⟨x, hx⟩, have hm0 : 0 < m,
         from nat.pos_of_ne_zero (λ hm0, by clear _fun_match _fun_match; simpa [hx, hm0] using hb),
@@ -289,11 +288,11 @@ lemma finite_mul_aux {p : α} (hp : prime p) : ∀ {n m : ℕ} {a b : α},
       have hpx : ¬ p ^ (m - 1 + 1) ∣ x,
         from λ ⟨y, hy⟩, hb (hx.symm ▸ ⟨y, mul_right_cancel' hp.1
           $ by rw [nat.sub_add_cancel hm0] at hy;
-            simp [hy, _root_.pow_add, mul_comm, mul_assoc, mul_left_comm]⟩),
+            simp [hy, pow_add, mul_comm, mul_assoc, mul_left_comm]⟩),
       finite_mul_aux ha hpx ⟨s, mul_right_cancel' hp.1 begin
           rw [add_assoc, nat.sub_add_cancel hm0],
           clear _fun_match _fun_match finite_mul_aux,
-          simp [*, mul_comm, mul_assoc, mul_left_comm, _root_.pow_add] at *
+          simp [*, mul_comm, mul_assoc, mul_left_comm, pow_add] at *
         end⟩)
 
 lemma finite_mul {p a b : α} (hp : prime p) : finite p a → finite p b → finite p (a * b) :=
@@ -319,7 +318,7 @@ eq_some_iff.2 ⟨by simp, λ ⟨b, hb⟩, ha (is_unit_iff_dvd_one.2
   get (multiplicity a a) ha = 1 :=
 roption.get_eq_iff_eq_some.2 (eq_some_iff.2
   ⟨by simp, λ ⟨b, hb⟩,
-    by rw [← mul_one a, _root_.pow_add, _root_.pow_one, mul_assoc, mul_assoc,
+    by rw [← mul_one a, pow_add, pow_one, mul_assoc, mul_assoc,
         mul_right_inj' (ne_zero_of_finite ha)] at hb;
       exact mt is_unit_iff_dvd_one.2 (not_unit_of_finite ha)
         ⟨b, by clear _fun_match; simp * at *⟩⟩)
@@ -335,7 +334,7 @@ have hpoweq : p ^ (get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
     get (multiplicity p b) ((finite_mul_iff hp).1 h).2) =
     p ^ get (multiplicity p a) ((finite_mul_iff hp).1 h).1 *
     p ^ get (multiplicity p b) ((finite_mul_iff hp).1 h).2,
-  by simp [_root_.pow_add],
+  by simp [pow_add],
 have hdiv : p ^ (get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
     get (multiplicity p b) ((finite_mul_iff hp).1 h).2) ∣ a * b,
   by rw [hpoweq]; apply mul_dvd_mul; assumption,
@@ -374,7 +373,7 @@ end
 
 protected lemma pow' {p a : α} (hp : prime p) (ha : finite p a) : ∀ {k : ℕ},
   get (multiplicity p (a ^ k)) (finite_pow hp ha) = k * get (multiplicity p a) ha
-| 0     := by dsimp [_root_.pow_zero]; simp [one_right hp.not_unit]; refl
+| 0     := by dsimp [pow_zero]; simp [one_right hp.not_unit]; refl
 | (k+1) := by dsimp only [pow_succ];
   erw [multiplicity.mul' hp, pow', add_mul, one_mul, add_comm]
 
@@ -408,7 +407,7 @@ begin
     ← pow_dvd_iff_le_multiplicity],
   assume h,
   have := nat.dvd_gcd h (hle _ h),
-  rw [coprime.gcd_eq_one hab, nat.dvd_one, _root_.pow_one] at this,
+  rw [coprime.gcd_eq_one hab, nat.dvd_one, pow_one] at this,
   exact hp this
 end
 

@@ -148,6 +148,26 @@ The inclusion `U ⟶ (map f).obj ⊤` as a morphism in the category of open sets
 def le_map_top (f : X ⟶ Y) (U : opens X) : U ⟶ (map f).obj ⊤ :=
 hom_of_le $ λ _ _, trivial
 
+@[simp] lemma map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
+  (map (f ≫ g)).obj U = (map f).obj ((map g).obj U) :=
+by { ext, refl } -- not quite `rfl`, since we don't have eta for records
+
+@[simp] lemma map_comp_obj' (f : X ⟶ Y) (g : Y ⟶ Z) (U) (p) :
+  (map (f ≫ g)).obj ⟨U, p⟩ = (map f).obj ((map g).obj ⟨U, p⟩) :=
+rfl
+
+@[simp] lemma map_comp_map (f : X ⟶ Y) (g : Y ⟶ Z) {U V} (i : U ⟶ V) :
+  (map (f ≫ g)).map i = (map f).map ((map g).map i) :=
+rfl
+
+@[simp] lemma map_comp_obj_unop (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
+  (map (f ≫ g)).obj (unop U) = (map f).obj ((map g).obj (unop U)) :=
+map_comp_obj f g (unop U)
+
+@[simp] lemma op_map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
+  (map (f ≫ g)).op.obj U = (map f).op.obj ((map g).op.obj U) :=
+by simp
+
 section
 variable (X)
 
@@ -161,21 +181,6 @@ def map_id : map (𝟙 X) ≅ 𝟭 (opens X) :=
   inv := { app := λ U, eq_to_hom (map_id_obj U).symm } }
 
 end
-
-@[simp] lemma map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
-  (map (f ≫ g)).obj U = (map f).obj ((map g).obj U) :=
-by { ext, refl } -- not quite `rfl`, since we don't have eta for records
-
-@[simp] lemma map_comp_obj' (f : X ⟶ Y) (g : Y ⟶ Z) (U) (p) :
-  (map (f ≫ g)).obj ⟨U, p⟩ = (map f).obj ((map g).obj ⟨U, p⟩) :=
-rfl
-
-@[simp] lemma map_comp_obj_unop (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
-  (map (f ≫ g)).obj (unop U) = (map f).obj ((map g).obj (unop U)) :=
-by simp
-@[simp] lemma op_map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
-  (map (f ≫ g)).op.obj U = (map f).op.obj ((map g).op.obj U) :=
-by simp
 
 /--
 The natural isomorphism between taking preimages under `f ≫ g`, and the composite

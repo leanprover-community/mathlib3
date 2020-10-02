@@ -22,7 +22,7 @@ It is based purely on the polynomial exponents and coefficients.
 
 ## Notation
 
-This file uses notation slightly different from other `mv_polynomial` files:
+As in other polynomial files, we typically use the notation:
 
 + `σ : Type*` (indexing the variables)
 

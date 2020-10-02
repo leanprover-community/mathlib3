@@ -28,6 +28,7 @@ All the following declarations exist in the namespace `nat`.
 -/
 
 open bool subtype
+open_locale nat
 
 namespace nat
 
@@ -317,11 +318,11 @@ theorem exists_prime_and_dvd {n : ℕ} (n2 : 2 ≤ n) : ∃ p, prime p ∧ p ∣
 /-- Euclid's theorem. There exist infinitely many prime numbers.
 Here given in the form: for every `n`, there exists a prime number `p ≥ n`. -/
 theorem exists_infinite_primes (n : ℕ) : ∃ p, n ≤ p ∧ prime p :=
-let p := min_fac (fact n + 1) in
-have f1 : fact n + 1 ≠ 1, from ne_of_gt $ succ_lt_succ $ fact_pos _,
+let p := min_fac (n! + 1) in
+have f1 : n! + 1 ≠ 1, from ne_of_gt $ succ_lt_succ $ factorial_pos _,
 have pp : prime p, from min_fac_prime f1,
 have np : n ≤ p, from le_of_not_ge $ λ h,
-  have h₁ : p ∣ fact n, from dvd_fact (min_fac_pos _) h,
+  have h₁ : p ∣ n!, from dvd_factorial (min_fac_pos _) h,
   have h₂ : p ∣ 1, from (nat.dvd_add_iff_right h₁).2 (min_fac_dvd _),
   pp.not_dvd_one h₂,
 ⟨p, np, pp⟩
@@ -414,33 +415,33 @@ by induction n with n IH;
     exact (pp.dvd_mul.1 h).elim id IH]
 
 lemma prime.pow_not_prime {x n : ℕ} (hn : 2 ≤ n) : ¬ (x ^ n).prime :=
-λ hp, (hp.2 x $ dvd_trans ⟨x, nat.pow_two _⟩ (nat.pow_dvd_pow _ hn)).elim
-  (λ hx1, hp.ne_one $ hx1.symm ▸ nat.one_pow _)
-  (λ hxn, lt_irrefl x $ calc x = x ^ 1 : (nat.pow_one _).symm
+λ hp, (hp.2 x $ dvd_trans ⟨x, pow_two _⟩ (pow_dvd_pow _ hn)).elim
+  (λ hx1, hp.ne_one $ hx1.symm ▸ one_pow _)
+  (λ hxn, lt_irrefl x $ calc x = x ^ 1 : (pow_one _).symm
      ... < x ^ n : nat.pow_right_strict_mono (hxn.symm ▸ hp.two_le) hn
      ... = x : hxn.symm)
 
 lemma prime.mul_eq_prime_pow_two_iff {x y p : ℕ} (hp : p.prime) (hx : x ≠ 1) (hy : y ≠ 1) :
   x * y = p ^ 2 ↔ x = p ∧ y = p :=
-⟨λ h, have pdvdxy : p ∣ x * y, by rw h; simp [nat.pow_two],
+⟨λ h, have pdvdxy : p ∣ x * y, by rw h; simp [pow_two],
 begin
   wlog := hp.dvd_mul.1 pdvdxy using x y,
   cases case with a ha,
-  have hap : a ∣ p, from ⟨y, by rwa [ha, nat.pow_two,
+  have hap : a ∣ p, from ⟨y, by rwa [ha, pow_two,
         mul_assoc, nat.mul_right_inj hp.pos, eq_comm] at h⟩,
   exact ((nat.dvd_prime hp).1 hap).elim
-    (λ _, by clear_aux_decl; simp [*, nat.pow_two, nat.mul_right_inj hp.pos] at *
+    (λ _, by clear_aux_decl; simp [*, pow_two, nat.mul_right_inj hp.pos] at *
       {contextual := tt})
-    (λ _, by clear_aux_decl; simp [*, nat.pow_two, mul_comm, mul_assoc,
+    (λ _, by clear_aux_decl; simp [*, pow_two, mul_comm, mul_assoc,
       nat.mul_right_inj hp.pos, nat.mul_right_eq_self_iff hp.pos] at *
       {contextual := tt})
 end,
-λ ⟨h₁, h₂⟩, h₁.symm ▸ h₂.symm ▸ (nat.pow_two _).symm⟩
+λ ⟨h₁, h₂⟩, h₁.symm ▸ h₂.symm ▸ (pow_two _).symm⟩
 
-lemma prime.dvd_fact : ∀ {n p : ℕ} (hp : prime p), p ∣ n.fact ↔ p ≤ n
+lemma prime.dvd_factorial : ∀ {n p : ℕ} (hp : prime p), p ∣ n! ↔ p ≤ n
 | 0 p hp := iff_of_false hp.not_dvd_one (not_le_of_lt hp.pos)
 | (n+1) p hp := begin
-  rw [fact_succ, hp.dvd_mul, prime.dvd_fact hp],
+  rw [factorial_succ, hp.dvd_mul, prime.dvd_factorial hp],
   exact ⟨λ h, h.elim (le_of_dvd (succ_pos _)) le_succ_of_le,
     λ h, (_root_.lt_or_eq_of_le h).elim (or.inr ∘ le_of_lt_succ)
       (λ h, or.inl $ by rw h)⟩
@@ -464,14 +465,14 @@ begin
   induction m with m IH generalizing i, {simp [pow_succ, le_zero_iff] at *},
   by_cases p ∣ i,
   { cases h with a e, subst e,
-    rw [nat.pow_succ, mul_comm (p^m) p, nat.mul_dvd_mul_iff_left pp.pos, IH],
+    rw [pow_succ, nat.mul_dvd_mul_iff_left pp.pos, IH],
     split; intro h; rcases h with ⟨k, h, e⟩,
     { exact ⟨succ k, succ_le_succ h, by rw [e]; refl⟩ },
     cases k with k,
     { apply pp.not_dvd_one.elim,
       simp at e, rw ← e, apply dvd_mul_right },
     { refine ⟨k, le_of_succ_le_succ h, _⟩,
-      rwa [mul_comm, nat.pow_succ, nat.mul_left_inj pp.pos] at e } },
+      rwa [mul_comm, pow_succ', nat.mul_left_inj pp.pos] at e } },
   { split; intro d,
     { rw (pp.coprime_pow_of_not_dvd h).eq_one_of_dvd d,
       exact ⟨0, zero_le _, rfl⟩ },
@@ -550,7 +551,7 @@ lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul {p : ℕ} (p_prime : prime p) {m 
       p ^ (k+1) ∣ m ∨ p ^ (l+1) ∣ n :=
 have hpd : p^(k+l)*p ∣ m*n, by rwa pow_succ' at hpmn,
 have hpd2 : p ∣ (m*n) / p ^ (k+l), from dvd_div_of_mul_dvd hpd,
-have hpd3 : p ∣ (m*n) / (p^k * p^l), by simpa [nat.pow_add] using hpd2,
+have hpd3 : p ∣ (m*n) / (p^k * p^l), by simpa [pow_add] using hpd2,
 have hpd4 : p ∣ (m / p^k) * (n / p^l), by simpa [nat.div_mul_div hpm hpn] using hpd3,
 have hpd5 : p ∣ (m / p^k) ∨ p ∣ (n / p^l), from (prime.dvd_mul p_prime).1 hpd4,
 suffices p^k*p ∣ m ∨ p^l*p ∣ n, by rwa [pow_succ', pow_succ'],

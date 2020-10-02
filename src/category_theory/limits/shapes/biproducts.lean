@@ -269,7 +269,7 @@ lemma biproduct.map_eq_map' [fintype J] {f g : J → C} [has_finite_biproducts C
   (p : Π b, f b ⟶ g b) : biproduct.map p = biproduct.map' p :=
 begin
   ext j j',
-  simp only [discrete.nat_trans_app, limits.ι_is_colimit_map, limits.is_limit_map_π, category.assoc,
+  simp only [discrete.nat_trans_app, limits.is_colimit.ι_map, limits.is_limit.map_π, category.assoc,
     ←bicone.to_cone_π_app, ←biproduct.bicone_π, ←bicone.to_cocone_ι_app, ←biproduct.bicone_ι],
   simp only [biproduct.bicone_ι, biproduct.bicone_π, bicone.to_cocone_ι_app, bicone.to_cone_π_app],
   rw [biproduct.ι_π_assoc, biproduct.ι_π],
@@ -292,7 +292,7 @@ instance biproduct.π_epi (f : J → C) [has_biproduct f]
 lemma biproduct.map_π [fintype J] {f g : J → C} [has_finite_biproducts C]
   (p : Π j, f j ⟶ g j) (j : J) :
   biproduct.map p ≫ biproduct.π g j = biproduct.π f j ≫ p j :=
-limits.is_limit_map_π _ _ _ _
+limits.is_limit.map_π _ _ _ _
 
 @[simp, reassoc]
 lemma biproduct.ι_map [fintype J] {f g : J → C} [has_finite_biproducts C]
@@ -300,7 +300,7 @@ lemma biproduct.ι_map [fintype J] {f g : J → C} [has_finite_biproducts C]
   biproduct.ι f j ≫ biproduct.map p = p j ≫ biproduct.ι g j :=
 begin
   rw biproduct.map_eq_map',
-  convert limits.ι_is_colimit_map _ _ _ _; refl
+  convert limits.is_colimit.ι_map _ _ _ _; refl
 end
 
 variables {C}
@@ -628,21 +628,21 @@ lemma biprod.map_eq_map' {W X Y Z : C} [has_binary_biproduct W X] [has_binary_bi
   (f : W ⟶ Y) (g : X ⟶ Z) : biprod.map f g = biprod.map' f g :=
 begin
   ext,
-  { simp only [map_pair_left, ι_is_colimit_map, is_limit_map_π, biprod.inl_fst_assoc, category.assoc,
+  { simp only [map_pair_left, is_colimit.ι_map, is_limit.map_π, biprod.inl_fst_assoc, category.assoc,
     ←binary_bicone.to_cone_π_app_left, ←binary_biproduct.bicone_fst,
     ←binary_bicone.to_cocone_ι_app_left, ←binary_biproduct.bicone_inl],
     simp },
-  { simp only [map_pair_left, ι_is_colimit_map, is_limit_map_π, zero_comp,
+  { simp only [map_pair_left, is_colimit.ι_map, is_limit.map_π, zero_comp,
       biprod.inl_snd_assoc, category.assoc,
       ←binary_bicone.to_cone_π_app_right, ←binary_biproduct.bicone_snd,
       ←binary_bicone.to_cocone_ι_app_left, ←binary_biproduct.bicone_inl],
     simp },
-  { simp only [map_pair_right, biprod.inr_fst_assoc, ι_is_colimit_map, is_limit_map_π,
+  { simp only [map_pair_right, biprod.inr_fst_assoc, is_colimit.ι_map, is_limit.map_π,
       zero_comp, category.assoc,
       ←binary_bicone.to_cone_π_app_left, ←binary_biproduct.bicone_fst,
       ←binary_bicone.to_cocone_ι_app_right, ←binary_biproduct.bicone_inr],
     simp },
-  { simp only [map_pair_right, ι_is_colimit_map, is_limit_map_π, biprod.inr_snd_assoc, category.assoc,
+  { simp only [map_pair_right, is_colimit.ι_map, is_limit.map_π, biprod.inr_snd_assoc, category.assoc,
       ←binary_bicone.to_cone_π_app_right, ←binary_biproduct.bicone_snd,
       ←binary_bicone.to_cocone_ι_app_right, ←binary_biproduct.bicone_inr],
     simp }
@@ -668,13 +668,13 @@ instance biprod.snd_epi {X Y : C} [has_binary_biproduct X Y] :
 lemma biprod.map_fst {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduct Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) :
   biprod.map f g ≫ biprod.fst = biprod.fst ≫ f :=
-is_limit_map_π _ _ _ walking_pair.left
+is_limit.map_π _ _ _ walking_pair.left
 
 @[simp,reassoc]
 lemma biprod.map_snd {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduct Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) :
   biprod.map f g ≫ biprod.snd = biprod.snd ≫ g :=
-is_limit_map_π _ _ _ walking_pair.right
+is_limit.map_π _ _ _ walking_pair.right
 
 -- Because `biprod.map` is defined in terms of `lim` rather than `colim`,
 -- we need to provide additional `simp` lemmas.
@@ -684,7 +684,7 @@ lemma biprod.inl_map {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biprod
   biprod.inl ≫ biprod.map f g = f ≫ biprod.inl :=
 begin
   rw biprod.map_eq_map',
-  exact ι_is_colimit_map (binary_biproduct.is_colimit W X) _ _ walking_pair.left
+  exact is_colimit.ι_map (binary_biproduct.is_colimit W X) _ _ walking_pair.left
 end
 
 @[simp,reassoc]
@@ -693,7 +693,7 @@ lemma biprod.inr_map {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biprod
   biprod.inr ≫ biprod.map f g = g ≫ biprod.inr :=
 begin
   rw biprod.map_eq_map',
-  exact ι_is_colimit_map (binary_biproduct.is_colimit W X) _ _ walking_pair.right
+  exact is_colimit.ι_map (binary_biproduct.is_colimit W X) _ _ walking_pair.right
 end
 
 /-- Given a pair of isomorphisms between the summands of a pair of binary biproducts,

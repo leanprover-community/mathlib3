@@ -3,8 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Scott Morrison
 -/
-import data.monoid_algebra
-import ring_theory.algebra
+import algebra.monoid_algebra
 import algebra.invertible
 import algebra.char_p
 import linear_algebra.basis

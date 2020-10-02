@@ -3,10 +3,8 @@ Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Scott Morrison, Adam Topaz.
 -/
-
-import ring_theory.algebra
+import algebra.monoid_algebra
 import linear_algebra
-import data.monoid_algebra
 
 /-!
 # Free Algebras
@@ -16,15 +14,15 @@ Given a commutative semiring `R`, and a type `X`, we construct the free `R`-alge
 ## Notation
 
 1. `free_algebra R X` is the free algebra itself. It is endowed with an `R`-algebra structure.
-2. `free_algebra.ι R X` is the function `X → free_algebra R X`.
-3. Given a function `f : X → A` to an R-algebra `A`, `lift R X f` is the lift of `f` to an
+2. `free_algebra.ι R` is the function `X → free_algebra R X`.
+3. Given a function `f : X → A` to an R-algebra `A`, `lift R f` is the lift of `f` to an
   `R`-algebra morphism `free_algebra R X → A`.
 
 ## Theorems
 
-1. `ι_comp_lift` states that the composition `(lift R X f) ∘ (ι R X)` is identical to `f`.
+1. `ι_comp_lift` states that the composition `(lift R f) ∘ (ι R)` is identical to `f`.
 2. `lift_unique` states that whenever an R-algebra morphism `g : free_algebra R X → A` is
-  given whose composition with `ι R X` is `f`, then one has `g = lift R X f`.
+  given whose composition with `ι R` is `f`, then one has `g = lift R f`.
 3. `hom_ext` is a variant of `lift_unique` in the form of an extensionality theorem.
 4. `lift_comp_ι` is a combination of `ι_comp_lift` and `lift_unique`. It states that the lift
   of the composition of an algebra morphism with `ι` is the algebra morphism itself.
@@ -173,18 +171,22 @@ instance : algebra R (free_algebra R X) :=
   commutes' := λ _, by { rintros ⟨⟩, exact quot.sound rel.central_scalar },
   smul_def' := λ _ _, rfl }
 
+variables {X}
+
 /--
 The canonical function `X → free_algebra R X`.
 -/
 def ι : X → free_algebra R X := λ m, quot.mk _ m
 
-@[simp] lemma quot_mk_eq_ι (m : X) : quot.mk (free_algebra.rel R X) m = ι R X m := rfl
+@[simp] lemma quot_mk_eq_ι (m : X) : quot.mk (free_algebra.rel R X) m = ι R m := rfl
+
+variables {A : Type*} [semiring A] [algebra R A]
 
 /--
-Given a function `f : X → A` where `A` is an `R`-algebra, `lift R X f` is the unique lift
+Given a function `f : X → A` where `A` is an `R`-algebra, `lift R f` is the unique lift
 of `f` to a morphism of `R`-algebras `free_algebra R X → A`.
 -/
-def lift {A : Type*} [semiring A] [algebra R A] (f : X → A) : free_algebra R X →ₐ[R] A :=
+def lift (f : X → A) : free_algebra R X →ₐ[R] A :=
 { to_fun := λ a, quot.lift_on a (lift_fun _ _ f) $ λ a b h,
   begin
     induction h,
@@ -227,23 +229,22 @@ def lift {A : Type*} [semiring A] [algebra R A] (f : X → A) : free_algebra R X
 variables {R X}
 
 @[simp]
-theorem ι_comp_lift {A : Type*} [semiring A] [algebra R A] (f : X → A) :
-  (lift R X f : free_algebra R X → A) ∘ (ι R X) = f := by {ext, refl}
+theorem ι_comp_lift (f : X → A) :
+  (lift R f : free_algebra R X → A) ∘ (ι R) = f := by {ext, refl}
 
 @[simp]
-theorem lift_ι_apply {A : Type*} [semiring A] [algebra R A] (f : X → A) (x) :
-  lift R X f (ι R X x) = f x := rfl
+theorem lift_ι_apply (f : X → A) (x) :
+  lift R f (ι R x) = f x := rfl
 
 @[simp]
-theorem lift_unique {A : Type*} [semiring A] [algebra R A] (f : X → A)
-  (g : free_algebra R X →ₐ[R] A) :
-  (g : free_algebra R X → A) ∘ (ι R X) = f ↔ g = lift R X f :=
+theorem lift_unique (f : X → A) (g : free_algebra R X →ₐ[R] A) :
+  (g : free_algebra R X → A) ∘ (ι R) = f ↔ g = lift R f :=
 begin
   refine ⟨λ hyp, _, λ hyp, by rw [hyp, ι_comp_lift]⟩,
   ext,
   rcases x,
   induction x,
-  { change ((g : free_algebra R X → A) ∘ (ι R X)) _ = _,
+  { change ((g : free_algebra R X → A) ∘ (ι R)) _ = _,
     rw hyp,
     refl },
   { exact alg_hom.commutes g x },
@@ -263,14 +264,14 @@ Of course, one still has the option to locally make these definitions `semireduc
 attribute [irreducible] free_algebra ι lift
 
 @[simp]
-theorem lift_comp_ι {A : Type*} [semiring A] [algebra R A] (g : free_algebra R X →ₐ[R] A) :
-  lift R X ((g : free_algebra R X → A) ∘ (ι R X)) = g := by {symmetry, rw ←lift_unique}
+theorem lift_comp_ι (g : free_algebra R X →ₐ[R] A) :
+  lift R ((g : free_algebra R X → A) ∘ (ι R)) = g := by {symmetry, rw ←lift_unique}
 
 @[ext]
-theorem hom_ext {A : Type*} [semiring A] [algebra R A] {f g : free_algebra R X →ₐ[R] A}
-  (w : ((f : free_algebra R X → A) ∘ (ι R X)) = ((g : free_algebra R X → A) ∘ (ι R X))) : f = g :=
+theorem hom_ext {f g : free_algebra R X →ₐ[R] A}
+  (w : ((f : free_algebra R X → A) ∘ (ι R)) = ((g : free_algebra R X → A) ∘ (ι R))) : f = g :=
 begin
-  have : g = lift R X ((g : free_algebra R X → A) ∘ (ι R X)), by rw ←lift_unique,
+  have : g = lift R ((g : free_algebra R X → A) ∘ (ι R)), by rw ←lift_unique,
   rw [this, ←lift_unique, w],
 end
 
@@ -283,8 +284,8 @@ for example.
 noncomputable
 def equiv_monoid_algebra_free_monoid : free_algebra R X ≃ₐ[R] monoid_algebra R (free_monoid X) :=
 alg_equiv.of_alg_hom
-  (lift R X (λ x, (monoid_algebra.of R (free_monoid X)) (free_monoid.of x)))
-  ((monoid_algebra.lift R (free_monoid X) (free_algebra R X)) (free_monoid.lift (ι R X)))
+  (lift R (λ x, (monoid_algebra.of R (free_monoid X)) (free_monoid.of x)))
+  ((monoid_algebra.lift R (free_monoid X) (free_algebra R X)) (free_monoid.lift (ι R)))
 begin
   apply monoid_algebra.alg_hom_ext, intro x,
   apply free_monoid.rec_on x,

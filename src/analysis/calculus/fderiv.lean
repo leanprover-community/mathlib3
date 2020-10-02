@@ -570,6 +570,13 @@ begin
   exact fderiv_within_inter (mem_nhds_sets hs hx) (unique_diff_on_univ _ (mem_univ _))
 end
 
+lemma fderiv_within_eq_fderiv (hs : unique_diff_within_at 𝕜 s x) (h : differentiable_at 𝕜 f x) :
+  fderiv_within 𝕜 f s x = fderiv 𝕜 f x :=
+begin
+  rw ← fderiv_within_univ,
+  exact fderiv_within_subset (subset_univ _) hs h.differentiable_within_at
+end
+
 end fderiv_properties
 
 section continuous
@@ -773,7 +780,7 @@ differentiable_id.differentiable_on
 lemma fderiv_id : fderiv 𝕜 id x = id 𝕜 E :=
 has_fderiv_at.fderiv (has_fderiv_at_id x)
 
-lemma fderiv_id' : fderiv 𝕜 (λ (x : E), x) x = continuous_linear_map.id 𝕜 E :=
+@[simp] lemma fderiv_id' : fderiv 𝕜 (λ (x : E), x) x = continuous_linear_map.id 𝕜 E :=
 fderiv_id
 
 lemma fderiv_within_id (hxs : unique_diff_within_at 𝕜 s x) :
@@ -817,7 +824,7 @@ differentiable_at.differentiable_within_at (differentiable_at_const _)
 lemma fderiv_const_apply (c : F) : fderiv 𝕜 (λy, c) x = 0 :=
 has_fderiv_at.fderiv (has_fderiv_at_const c x)
 
-lemma fderiv_const (c : F) : fderiv 𝕜 (λ (y : E), c) = 0 :=
+@[simp] lemma fderiv_const (c : F) : fderiv 𝕜 (λ (y : E), c) = 0 :=
 by { ext m, rw fderiv_const_apply, refl }
 
 lemma fderiv_within_const_apply (c : F) (hxs : unique_diff_within_at 𝕜 s x) :
@@ -2142,8 +2149,8 @@ open normed_ring continuous_linear_map ring
 
 /-- At an invertible element `x` of a normed algebra `R`, the Fréchet derivative of the inversion
 operation is the linear map `λ t, - x⁻¹ * t * x⁻¹`. -/
-lemma has_fderiv_at_inverse  (x : units R) :
-  has_fderiv_at inverse (- (lmul_right 𝕜 R ↑x⁻¹).comp (lmul_left 𝕜 R ↑x⁻¹)) x :=
+lemma has_fderiv_at_ring_inverse (x : units R) :
+  has_fderiv_at ring.inverse (- (lmul_right 𝕜 R ↑x⁻¹).comp (lmul_left 𝕜 R ↑x⁻¹)) x :=
 begin
   have h_is_o : is_o (λ (t : R), inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹)
     (λ (t : R), t) (𝓝 0),
@@ -2163,12 +2170,12 @@ begin
   abel
 end
 
-lemma differentiable_at_inverse (x : units R) : differentiable_at 𝕜 (@inverse R _) x :=
-(has_fderiv_at_inverse x).differentiable_at
+lemma differentiable_at_inverse (x : units R) : differentiable_at 𝕜 (@ring.inverse R _) x :=
+(has_fderiv_at_ring_inverse x).differentiable_at
 
 lemma fderiv_inverse (x : units R) :
-  fderiv 𝕜 (@inverse R _) x = - (lmul_right 𝕜 R ↑x⁻¹).comp (lmul_left 𝕜 R ↑x⁻¹) :=
-(has_fderiv_at_inverse x).fderiv
+  fderiv 𝕜 (@ring.inverse R _) x = - (lmul_right 𝕜 R ↑x⁻¹).comp (lmul_left 𝕜 R ↑x⁻¹) :=
+(has_fderiv_at_ring_inverse x).fderiv
 
 end algebra_inverse
 

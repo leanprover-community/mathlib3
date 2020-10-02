@@ -33,6 +33,8 @@ instance : has_coe_to_fun (C(α, β)) := ⟨_, continuous_map.to_fun⟩
 
 variables {α β} {f g : continuous_map α β}
 
+protected lemma continuous (f : C(α, β)) : continuous f := f.continuous_to_fun
+
 @[continuity] lemma coe_continuous : continuous (f : α → β) := f.continuous_to_fun
 
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
@@ -44,20 +46,13 @@ instance [inhabited β] : inhabited C(α, β) :=
 lemma coe_inj ⦃f g : C(α, β)⦄ (h : (f : α → β) = g) : f = g :=
 by cases f; cases g; cases h; refl
 
-/--
-The identity as a continuous map.
--/
+/-- The identity as a continuous map. -/
 def id : C(α, α) := ⟨id⟩
 
-/--
-The composition of continuous maps, as a continuous map.
--/
-def comp (f : C(β, γ)) (g : C(α, β)) : C(α, γ) :=
-{ to_fun := λ a, f (g a), }
+/-- The composition of continuous maps, as a continuous map. -/
+def comp (f : C(β, γ)) (g : C(α, β)) : C(α, γ) := ⟨f ∘ g⟩
 
-protected lemma continuous (f : C(α, β)) : continuous f := f.continuous_to_fun
-
-/-- Takes `b` in input and gives the continuous bundled function constantly valued `b` in output. -/
-def const (b : β) : C(α, β) := { to_fun := λ x, b, }
+/-- Constant map as a continuous map -/
+def const (b : β) : C(α, β) := ⟨λ x, b⟩
 
 end continuous_map

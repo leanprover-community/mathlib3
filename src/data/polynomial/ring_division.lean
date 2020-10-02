@@ -1,12 +1,13 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
+Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker, Johan Commelin
 -/
 
 import data.polynomial.basic
 import data.polynomial.div
 import data.polynomial.algebra_map
+import data.set.finite
 
 /-!
 # Theory of univariate polynomials
@@ -259,6 +260,24 @@ by { rw [roots, dif_neg hp], exact (classical.some_spec (exists_multiset_roots h
 @[simp] lemma mem_roots (hp : p ≠ 0) : a ∈ p.roots ↔ is_root p a :=
 by rw [← count_pos, count_roots hp, root_multiplicity_pos hp]
 
+lemma eq_zero_of_infinite_is_root
+  (p : polynomial R) (h : set.infinite {x | is_root p x}) : p = 0 :=
+begin
+  by_contradiction hp,
+  apply h,
+  convert p.roots.to_finset.finite_to_set using 1,
+  ext1 r,
+  simp only [mem_roots hp, multiset.mem_to_finset, set.mem_set_of_eq, finset.mem_coe]
+end
+
+lemma eq_of_infinite_eval_eq {R : Type*} [integral_domain R]
+  (p q : polynomial R) (h : set.infinite {x | eval x p = eval x q}) : p = q :=
+begin
+  rw [← sub_eq_zero],
+  apply eq_zero_of_infinite_is_root,
+  simpa only [is_root, eval_sub, sub_eq_zero]
+end
+
 lemma roots_mul {p q : polynomial R} (hpq : p * q ≠ 0) : (p * q).roots = p.roots + q.roots :=
 multiset.ext.mpr $ λ r,
   by rw [count_add, count_roots hpq, count_roots (left_ne_zero_of_mul hpq),
@@ -329,17 +348,21 @@ calc ((roots ((X : polynomial R) ^ n - C a)).card : with_bot ℕ)
       ≤ degree ((X : polynomial R) ^ n - C a) : card_roots (X_pow_sub_C_ne_zero hn a)
   ... = n : degree_X_pow_sub_C hn a
 
+section nth_roots
 
 /-- `nth_roots n a` noncomputably returns the solutions to `x ^ n = a`-/
-def nth_roots {R : Type*} [integral_domain R] (n : ℕ) (a : R) : multiset R :=
+def nth_roots (n : ℕ) (a : R) : multiset R :=
 roots ((X : polynomial R) ^ n - C a)
 
-@[simp] lemma mem_nth_roots {R : Type*} [integral_domain R] {n : ℕ} (hn : 0 < n) {a x : R} :
+@[simp] lemma mem_nth_roots {n : ℕ} (hn : 0 < n) {a x : R} :
   x ∈ nth_roots n a ↔ x ^ n = a :=
 by rw [nth_roots, mem_roots (X_pow_sub_C_ne_zero hn a),
   is_root.def, eval_sub, eval_C, eval_pow, eval_X, sub_eq_zero_iff_eq]
 
-lemma card_nth_roots {R : Type*} [integral_domain R] (n : ℕ) (a : R) :
+@[simp] lemma nth_roots_zero (r : R) : nth_roots 0 r = 0 :=
+by simp only [empty_eq_zero, pow_zero, nth_roots, ← C_1, ← C_sub, roots_C]
+
+lemma card_nth_roots (n : ℕ) (a : R) :
   (nth_roots n a).card ≤ n :=
 if hn : n = 0
 then if h : (X : polynomial R) ^ n - C a = 0
@@ -349,6 +372,8 @@ then if h : (X : polynomial R) ^ n - C a = 0
       exact degree_C_le))
 else by rw [← with_bot.coe_le_coe, ← degree_X_pow_sub_C (nat.pos_of_ne_zero hn) a];
   exact card_roots (X_pow_sub_C_ne_zero (nat.pos_of_ne_zero hn) a)
+
+end nth_roots
 
 lemma coeff_comp_degree_mul_degree (hqd0 : nat_degree q ≠ 0) :
   coeff (p.comp q) (nat_degree p * nat_degree q) =
@@ -405,6 +430,18 @@ by rw [←polynomial.C_mul', ←polynomial.eq_C_of_degree_eq_zero (degree_coe_un
 @[simp] lemma nat_degree_coe_units (u : units (polynomial R)) :
   nat_degree (u : polynomial R) = 0 :=
 nat_degree_eq_of_degree_eq_some (degree_coe_units u)
+
+lemma zero_of_eval_zero [infinite R] (p : polynomial R) (h : ∀ x, p.eval x = 0) : p = 0 :=
+by classical; by_contradiction hp; exact
+infinite.not_fintype ⟨p.roots.to_finset, λ x, multiset.mem_to_finset.mpr ((mem_roots hp).mpr (h _))⟩
+
+lemma funext [infinite R] {p q : polynomial R} (ext : ∀ r : R, p.eval r = q.eval r) : p = q :=
+begin
+  rw ← sub_eq_zero,
+  apply zero_of_eval_zero,
+  intro x,
+  rw [eval_sub, sub_eq_zero, ext],
+end
 
 end roots
 

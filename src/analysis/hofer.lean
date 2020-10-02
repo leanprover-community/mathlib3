@@ -62,8 +62,7 @@ begin
   { intro n,
     induction n using nat.case_strong_induction_on with n IH,
     { specialize hu 0,
-      simp [show u 0 = x, from rfl, le_refl] at *,
-      exact hu (by linarith) },
+      simpa [show u 0 = x, from rfl, zero_le_one, ε_pos.le] using hu },
     have A : d (u (n+1)) x ≤ 2 * ε,
     { rw [dist_comm],
       let r := range (n+1), -- range (n+1) = {0, ..., n}

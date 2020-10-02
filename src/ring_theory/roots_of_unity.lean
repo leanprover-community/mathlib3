@@ -14,7 +14,7 @@ import tactic.zify
 /-!
 # Roots of unity and primitive roots of unity
 
-We define roots of unity in the context in the context of an arbitrary commutative monoid,
+We define roots of unity in the context of an arbitrary commutative monoid,
 as a subgroup of the group of units. We also define a predicate `is_primitive_root` on commutative
 monoids, expressing that an element is a primitive root of unity.
 
@@ -127,11 +127,11 @@ variables {k R}
 
 @[simp] lemma roots_of_unity_equiv_nth_roots_apply (x : roots_of_unity k R) :
   (roots_of_unity_equiv_nth_roots R k x : R) = x :=
-by { delta roots_of_unity_equiv_nth_roots, refl } -- rfl fails
+rfl
 
 @[simp] lemma roots_of_unity_equiv_nth_roots_symm_apply (x : {x // x ∈ nth_roots k (1 : R)}) :
   ((roots_of_unity_equiv_nth_roots R k).symm x : R) = x :=
-by { delta roots_of_unity_equiv_nth_roots, refl } -- rfl fails
+rfl
 
 variables (k R)
 

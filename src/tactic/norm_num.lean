@@ -243,7 +243,7 @@ open match_numeral_result
 meta def prove_pos_nat (c : instance_cache) : expr → tactic (instance_cache × expr)
 | e :=
   match match_numeral e with
-  | one := c.mk_app ``zero_lt_one []
+  | one := c.mk_app ``zero_lt_one' []
   | bit0 e := do (c, p) ← prove_pos_nat e, c.mk_app ``bit0_pos [e, p]
   | bit1 e := do (c, p) ← prove_pos_nat e, c.mk_app ``bit1_pos' [e, p]
   | _ := failed

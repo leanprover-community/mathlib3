@@ -53,7 +53,7 @@ instance : distrib int            := by apply_instance
 instance : decidable_linear_ordered_comm_ring int :=
 { add_le_add_left := @int.add_le_add_left,
   mul_pos         := @int.mul_pos,
-  zero_lt_one     := int.zero_lt_one,
+  zero_le_one     := le_of_lt int.zero_lt_one,
   .. int.comm_ring, .. int.decidable_linear_order, .. int.nontrivial }
 
 instance : decidable_linear_ordered_add_comm_group int :=

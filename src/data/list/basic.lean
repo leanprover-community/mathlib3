@@ -2011,7 +2011,7 @@ lemma one_le_prod_of_one_le [ordered_comm_monoid α] {l : list α} (hl₁ : ∀ 
 begin
   induction l with hd tl ih,
   { simp },
-  rw [prod_cons],
+  rw prod_cons,
   exact one_le_mul (hl₁ hd (mem_cons_self hd tl)) (ih (λ x h, hl₁ x (mem_cons_of_mem hd h))),
 end
 
@@ -2023,13 +2023,14 @@ begin
   { simp },
   simp_rw [prod_cons, forall_mem_cons] at ⊢ hl₁,
   split,
-  { exact le_mul_of_one_le_right' (one_le_prod_of_one_le hl₁.2)},
-  { exact λ x H, le_mul_of_one_le_of_le hl₁.1 (l_ih hl₁.right x H)},
+  { exact le_mul_of_one_le_right' (one_le_prod_of_one_le hl₁.2) },
+  { exact λ x H, le_mul_of_one_le_of_le hl₁.1 (l_ih hl₁.right x H) },
 end
 
 @[to_additive all_zero_of_le_zero_le_of_sum_eq_zero]
-lemma all_one_of_le_one_le_of_prod_eq_one [ordered_comm_monoid α] {l : list α} (hl₁ : ∀ x ∈ l, (1 : α) ≤ x)
-  (hl₂ : l.prod = 1) : ∀ x ∈ l, x = (1 : α) :=
+lemma all_one_of_le_one_le_of_prod_eq_one [ordered_comm_monoid α]
+  {l : list α} (hl₁ : ∀ x ∈ l, (1 : α) ≤ x) (hl₂ : l.prod = 1) :
+  ∀ x ∈ l, x = (1 : α) :=
 λ x hx, le_antisymm (hl₂ ▸ single_le_prod hl₁ _ hx) (hl₁ x hx)
 
 lemma sum_eq_zero_iff [canonically_ordered_add_monoid α] (l : list α) :

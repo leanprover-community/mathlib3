@@ -977,21 +977,15 @@ apply_nolint equiv.perm.cycle_of doc_blame
 apply_nolint equiv.perm.same_cycle doc_blame
 
 -- group_theory/perm/sign.lean
-apply_nolint equiv.perm.card_support_swap unused_arguments
-apply_nolint equiv.perm.eq_swap_of_is_cycle_of_apply_apply_eq_self unused_arguments
 apply_nolint equiv.perm.is_cycle doc_blame
-apply_nolint equiv.perm.is_cycle_swap unused_arguments
-apply_nolint equiv.perm.is_cycle_swap_mul_aux₁ unused_arguments
 apply_nolint equiv.perm.is_swap doc_blame
 apply_nolint equiv.perm.of_subtype doc_blame
 apply_nolint equiv.perm.sign_aux doc_blame
 apply_nolint equiv.perm.sign_aux2 doc_blame
 apply_nolint equiv.perm.sign_aux3 doc_blame
 apply_nolint equiv.perm.sign_bij_aux doc_blame
-apply_nolint equiv.perm.sign_cycle unused_arguments
 apply_nolint equiv.perm.subtype_perm doc_blame
 apply_nolint equiv.perm.support doc_blame
-apply_nolint equiv.perm.support_swap unused_arguments
 apply_nolint equiv.perm.swap_factors_aux doc_blame
 apply_nolint equiv.perm.trunc_swap_factors doc_blame
 

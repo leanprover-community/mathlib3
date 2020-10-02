@@ -1,4 +1,5 @@
 name: Cross off linked issues
+
 on:
   # the closed event type causes unchecked checkbox references to be checked / marked complete
   # the reopened event type causes checked checkbox references to be unchecked / marked incomplete

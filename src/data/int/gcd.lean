@@ -15,11 +15,14 @@ import ring_theory.unique_factorization_domain
 * Given `x y : ℕ`, `xgcd x y` computes the pair of integers `(a, b)` such that
   `gcd x y = x * a + y * b`. `gcd_a x y` and `gcd_b x y` are defined to be `a` and `b`,
   respectively.
+* `lcm (i j : ℤ)` is the ℤ specific version of least common multiple.
 
 ## Main statements
 
 * `gcd_eq_gcd_ab`: Bézout's lemma, given `x y : ℕ`, `gcd x y = x * gcd_a x y + y * gcd_b x y`.
-
+* ℤ is a `normalization_monoid`
+* ℤ is a `gcd_monoid`
+* Many results on `gcd` and `lcm` for ℤ
 -/
 
 /-! ### Extended Euclidean algorithm -/
@@ -83,6 +86,27 @@ by have := @xgcd_aux_P x y x y 1 0 0 1 (by simp [P]) (by simp [P]);
 end
 
 end nat
+
+instance int.euclidean_domain : euclidean_domain ℤ :=
+{ add := (+),
+  mul := (*),
+  one := 1,
+  zero := 0,
+  neg := has_neg.neg,
+  quotient := (/),
+  quotient_zero := int.div_zero,
+  remainder := (%),
+  quotient_mul_add_remainder_eq := λ a b, by rw add_comm; exact int.mod_add_div _ _,
+  r := λ a b, a.nat_abs < b.nat_abs,
+  r_well_founded := measure_wf (λ a, int.nat_abs a),
+  remainder_lt := λ a b b0, int.coe_nat_lt.1 $
+    by rw [int.nat_abs_of_nonneg (int.mod_nonneg _ b0), ← int.abs_eq_nat_abs];
+    exact int.mod_lt _ b0,
+  mul_left_not_lt := λ a b b0, not_lt_of_ge $
+    by rw [← mul_one a.nat_abs, int.nat_abs_mul];
+    exact mul_le_mul_of_nonneg_left (int.nat_abs_pos_of_ne_zero b0) (nat.zero_le _),
+  .. int.comm_ring,
+  .. int.nontrivial }
 
 /-! ### Divisibility over ℤ -/
 namespace int

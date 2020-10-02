@@ -1000,7 +1000,7 @@ calc (∫⁻ a, f a ∂μ) = (∫⁻ a, ⨆n, (eapprox f n : α → ennreal) a �
  end
  ... = (⨆n, (eapprox f n).lintegral μ) : by congr; ext n; rw [(eapprox f n).lintegral_eq_lintegral]
 
-lemma lintegral_add {f g : α → ennreal} (hf : measurable f) (hg : measurable g) :
+@[simp] lemma lintegral_add {f g : α → ennreal} (hf : measurable f) (hg : measurable g) :
   (∫⁻ a, f a + g a ∂μ) = (∫⁻ a, f a ∂μ) + (∫⁻ a, g a ∂μ) :=
 calc (∫⁻ a, f a + g a ∂μ) =
     (∫⁻ a, (⨆n, (eapprox f n : α → ennreal) a) + (⨆n, (eapprox g n : α → ennreal) a) ∂μ) :
@@ -1029,11 +1029,11 @@ calc (∫⁻ a, f a + g a ∂μ) =
 
 lemma lintegral_zero : (∫⁻ a:α, 0 ∂μ) = 0 := by simp
 
-lemma lintegral_smul_measure (c : ennreal) (f : α → ennreal) :
+@[simp] lemma lintegral_smul_measure (c : ennreal) (f : α → ennreal) :
   ∫⁻ a, f a ∂ (c • μ) = c * ∫⁻ a, f a ∂μ :=
 by simp only [lintegral, supr_subtype', simple_func.lintegral_smul, ennreal.mul_supr, smul_eq_mul]
 
-lemma lintegral_sum_measure {ι} (f : α → ennreal) (μ : ι → measure α) :
+@[simp] lemma lintegral_sum_measure {ι} (f : α → ennreal) (μ : ι → measure α) :
   ∫⁻ a, f a ∂(measure.sum μ) = ∑' i, ∫⁻ a, f a ∂(μ i) :=
 begin
   simp only [lintegral, supr_subtype', simple_func.lintegral_sum, ennreal.tsum_eq_supr_sum],
@@ -1048,7 +1048,7 @@ begin
       (finset.sum_le_sum $ λ j hj, simple_func.lintegral_mono le_sup_right (le_refl _))⟩
 end
 
-lemma lintegral_add_measure (f : α → ennreal) (μ ν : measure α) :
+@[simp] lemma lintegral_add_measure (f : α → ennreal) (μ ν : measure α) :
   ∫⁻ a, f a ∂ (μ + ν) = ∫⁻ a, f a ∂μ + ∫⁻ a, f a ∂ν :=
 by simpa [tsum_fintype] using lintegral_sum_measure f (λ b, cond b μ ν)
 
@@ -1065,7 +1065,7 @@ begin
     rw [lintegral_add (hf _) (s.measurable_sum hf), ih] }
 end
 
-lemma lintegral_const_mul (r : ennreal) {f : α → ennreal} (hf : measurable f) :
+@[simp] lemma lintegral_const_mul (r : ennreal) {f : α → ennreal} (hf : measurable f) :
   (∫⁻ a, r * f a ∂μ) = r * (∫⁻ a, f a ∂μ) :=
 calc (∫⁻ a, r * f a ∂μ) = (∫⁻ a, (⨆n, (const α r * eapprox f n) a) ∂μ) :
     by { congr, funext a, rw [← supr_eapprox_apply f hf, ennreal.mul_supr], refl }
@@ -1439,7 +1439,7 @@ measure such that for a measurable set `s` we have `μ.with_density f s = ∫⁻
 def measure.with_density (μ : measure α) (f : α → ennreal) : measure α :=
 measure.of_measurable (λs hs, ∫⁻ a in s, f a ∂μ) (by simp) (λ s hs hd, lintegral_Union hs hd _)
 
-lemma with_density_apply (f : α → ennreal) {s : set α} (hs : is_measurable s) :
+@[simp] lemma with_density_apply (f : α → ennreal) {s : set α} (hs : is_measurable s) :
   μ.with_density f s = ∫⁻ a in s, f a ∂μ :=
 measure.of_measurable_apply s hs
 
@@ -1472,6 +1472,7 @@ begin
 end
 
 namespace measure_theory
+
 /-- This is Exercise 1.2.1 from [tao2010]. It allows you to express integration of a measurable
 function with respect to `(μ.with_density f)` as an integral with respect to `μ`, called the base
 measure. `μ` is often the Lebesgue measure, and in this circumstance `f` is the probability density
@@ -1481,52 +1482,18 @@ the exponential distribution, the Beta distribution, or the Cauchy distribution 
 of [wasserman2004]). Thus, this method shows how to one can calculate expectations, variances,
 and other moments as a function of the probability density function.
  -/
-lemma lintegral_with_density_eq_lintegral_mul {α} [measurable_space α] (μ : measure_theory.measure α) 
-  (f : α → ennreal) (h_mf : measurable f) : ∀ (g : α → ennreal), measurable g → 
+lemma lintegral_with_density_eq_lintegral_mul {α} [measurable_space α] (μ : measure α)
+  {f : α → ennreal} (h_mf : measurable f) : ∀ {g : α → ennreal}, measurable g → 
   ∫⁻ a, g a ∂(μ.with_density f) = ∫⁻ a, (f * g) a ∂μ :=
 begin
   apply measurable.ennreal_induction,
   { intros c s h_ms,
-    rw lintegral_indicator,
-    rw lintegral_const,
-    rw measure_theory.measure.restrict_apply,
-    have h_comm : ∀ a, (f * s.indicator (λ _,c)) a = s.indicator (λ x, c * f x) a,
-    {intro a,rw mul_comm,simp},
-    rw lintegral_congr h_comm,
-    rw lintegral_indicator,
-    rw measure_theory.with_density_apply,
-    rw lintegral_const_mul,
-    repeat {simp [h_ms,h_mf,is_measurable.univ]}},
+    simp [*, mul_comm _ c] },
   { intros g h h_univ h_mea_g h_mea_h h_ind_g h_ind_h,
-    simp,
-    rw lintegral_add,
-    have h_distrib : ∀ a, (f a) * ((g a) + (h a))  = (f * g ) a  + (f * h) a,
-    {intro a,rw left_distrib,simp},
-    rw [(measure_theory.lintegral_congr h_distrib), h_ind_g, h_ind_h, measure_theory.lintegral_add],
-    simp only [pi.mul_apply],
-    apply measurable.ennreal_mul h_mf h_mea_g,
-    apply measurable.ennreal_mul h_mf h_mea_h,
-    repeat {assumption}},
+    simp [mul_add, *, measurable.ennreal_mul] },
   { intros g h_mea_g h_mono_g h_ind,
-    rw lintegral_supr,
-    have h_apply_ind : (λ n : ℕ, ∫⁻ (a : α), (g n) a ∂μ.with_density f) =λ n, ∫⁻ (a : α), (f * (g n)) a ∂μ,
-    {apply funext,apply h_ind},
-    rw h_apply_ind,
-    rw ← lintegral_supr,
-    simp,
-    have h_apply_mul_supr : ∀ a, (⨆ (n : ℕ), f a *  (g n) a) = (f a * ⨆ (n : ℕ), (g n) a),
-    { intro a, rw ennreal.mul_supr},
-    rw lintegral_congr h_apply_mul_supr,
-    intro n,
-    apply measurable.ennreal_mul h_mf (h_mea_g _),
-    intros n1 n2 A4 ω,
-    apply ennreal.mul_le_mul,
-    apply le_refl _,
-    apply h_mono_g,
-    apply A4,
-    intro n,
-    apply h_mea_g,
-    apply h_mono_g},
+    have : monotone (λ n a, f a * g n a) := λ m n hmn x, ennreal.mul_le_mul le_rfl (h_mono_g hmn x),
+    simp [lintegral_supr, ennreal.mul_supr, h_mf.ennreal_mul (h_mea_g _), *] }
 end
 
 end measure_theory

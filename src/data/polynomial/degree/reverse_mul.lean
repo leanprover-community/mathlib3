@@ -118,7 +118,7 @@ begin
     { exact nonempty_support_of_non_zero, },
 end
 
-lemma nat_degree_eq_support_max' {R : Type*} [semiring R] {f : polynomial R} (h : f ≠ 0) :
+lemma nat_degree_eq_support_max' (h : f ≠ 0) :
   f.nat_degree = f.support.max' (non_zero_iff.mpr h) :=
 begin
   apply le_antisymm,
@@ -142,7 +142,7 @@ end
 
 @[simp] lemma nat_degree_monomial {a : R} (n : ℕ) (ha : a ≠ 0) : nat_degree (C a * X ^ n) = n :=
 begin
-  rw defs_by_Johann,
+  rw nat_degree_eq_support_max',
     { simp_rw support_term_nonzero ha,
       exact max'_singleton n, },
     { intro,
@@ -158,7 +158,7 @@ begin
     exact nat.zero_le _,
 
 
-    rw defs_by_Johann,
+    rw nat_degree_eq_support_max',
       { simp_rw [support_term_nonzero a0, max'_singleton n], },
       { intro,
         apply a0,
@@ -169,7 +169,7 @@ end
 
 lemma nat_degree_term_nonzero {a : R} (n : ℕ) (ha : a ≠ 0) : nat_degree (C a * X ^ n) = n :=
 begin
-  rw defs_by_Johann,
+  rw nat_degree_eq_support_max',
     { simp_rw [support_term_nonzero ha, max'_singleton n], },
     { intro,
       apply ha,
@@ -202,7 +202,7 @@ begin
   exact nat_trailing_degree_le_of_ne_zero,
 end
 
-lemma defs_by_Johann_trailing {R : Type*} [semiring R] {f : polynomial R} (h : f ≠ 0) :
+lemma nat_degree_eq_support_max'_trailing (h : f ≠ 0) :
   nat_trailing_degree f = f.support.min' (non_zero_iff.mpr h) :=
 begin
   apply le_antisymm,
@@ -276,7 +276,7 @@ begin
   apply @ne_empty_of_mem _ (nat_trailing_degree f),
   rw [mem_support_iff_coeff_ne_zero, coeff_remove_eq_coeff_of_ne, ← mem_support_iff_coeff_ne_zero],
     { exact nat_trailing_degree_mem_support_of_nonzero fn0, },
-    { rw [defs_by_Johann fn0, defs_by_Johann_trailing fn0],
+    { rw [nat_degree_eq_support_max' fn0, nat_degree_eq_support_max'_trailing fn0],
       apply card_two_d f0, },
 end
 
@@ -340,7 +340,7 @@ end
 
 lemma nat_degree_remove_leading_coefficient (f0 : 2 ≤ f.support.card) : (remove_leading_coefficient f).nat_degree < f.nat_degree :=
 begin
-  rw defs_by_Johann (non_zero_iff.mp (remove_leading_coefficient_nonzero_of_large_support f0)),
+  rw nat_degree_eq_support_max' (non_zero_iff.mp (remove_leading_coefficient_nonzero_of_large_support f0)),
   apply nat.lt_of_le_and_ne _ (ne_nat_degree_of_mem_support_remove ((remove_leading_coefficient f).support.max'_mem (non_zero_iff.mpr _))),
   simp_rw remove_leading_coefficient_support f,
   apply max'_le,
@@ -357,7 +357,7 @@ begin
   split,
     { exact f.support.sdiff_subset {nat_degree f}, },
     { intro,
-      rw defs_by_Johann h at a,
+      rw nat_degree_eq_support_max' h at a,
       have : f.support.max' (non_zero_iff.mpr h) ∈ f.support \ {f.support.max' (non_zero_iff.mpr h)} := a (max'_mem f.support (non_zero_iff.mpr h)),
       simp only [mem_sdiff, eq_self_iff_true, not_true, and_false, mem_singleton] at this,
       cases this, },

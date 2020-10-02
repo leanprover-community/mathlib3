@@ -154,6 +154,17 @@ end
 
 end int
 
+lemma pow_gcd_eq_one {M : Type*} [monoid M] (x : M) {m n : ℕ} (hm : x ^ m = 1) (hn : x ^ n = 1) :
+  x ^ m.gcd n = 1 :=
+begin
+  cases m, { simp only [hn, nat.gcd_zero_left] },
+  obtain ⟨x, rfl⟩ : is_unit x,
+  { apply is_unit_of_pow_eq_one _ _ hm m.succ_pos },
+  simp only [← units.coe_pow] at *,
+  rw [← units.coe_one, ← gpow_coe_nat, ← units.ext_iff] at *,
+  simp only [nat.gcd_eq_gcd_ab, gpow_add, gpow_mul, hm, hn, one_gpow, one_mul]
+end
+
 theorem nat.is_coprime_iff_coprime {m n : ℕ} : is_coprime (m : ℤ) n ↔ nat.coprime m n :=
 ⟨λ ⟨a, b, H⟩, nat.eq_one_of_dvd_one $ int.coe_nat_dvd.1 $ by { rw [int.coe_nat_one, ← H],
   exact dvd_add (dvd_mul_of_dvd_right (int.coe_nat_dvd.2 $ nat.gcd_dvd_left m n) _)

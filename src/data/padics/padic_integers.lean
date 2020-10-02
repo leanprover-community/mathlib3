@@ -201,22 +201,6 @@ instance : has_norm ℤ_[p] := ⟨λ z, ∥(z : ℚ_[p])∥⟩
 
 variables {p}
 
-lemma norm_def {z : ℤ_[p]} : ∥z∥ = ∥(z : ℚ_[p])∥ := rfl
-
-variables (p)
-
-instance : normed_ring ℤ_[p] :=
-{ dist_eq := λ ⟨_, _⟩ ⟨_, _⟩, rfl,
-  norm_mul := λ ⟨_, _⟩ ⟨_, _⟩, norm_mul_le _ _ }
-
-instance : is_absolute_value (λ z : ℤ_[p], ∥z∥) :=
-{ abv_nonneg := norm_nonneg,
-  abv_eq_zero := λ ⟨_, _⟩, by simp [norm_eq_zero],
-  abv_add := λ ⟨_,_⟩ ⟨_, _⟩, norm_add_le _ _,
-  abv_mul := λ _ _, by simp only [norm_def, padic_norm_e.mul, padic_int.coe_mul]}
-
-variables {p}
-
 protected lemma mul_comm : ∀ z1 z2 : ℤ_[p], z1*z2 = z2*z1
 | ⟨q1, h1⟩ ⟨q2, h2⟩ := show (⟨q1*q2, _⟩ : ℤ_[p]) = ⟨q2*q1, _⟩, by simp [_root_.mul_comm]
 
@@ -231,15 +215,29 @@ have a * b = 0, from subtype.ext_iff_val.1 h,
   (λ h1, or.inl (by simp [h1]; refl))
   (λ h2, or.inr (by simp [h2]; refl))
 
+lemma norm_def {z : ℤ_[p]} : ∥z∥ = ∥(z : ℚ_[p])∥ := rfl
 
-instance : comm_ring ℤ_[p] :=
-{ mul_comm := padic_int.mul_comm,
-  ..padic_int.ring }
+variables (p)
+
+instance : normed_comm_ring ℤ_[p] :=
+{ dist_eq := λ ⟨_, _⟩ ⟨_, _⟩, rfl,
+  norm_mul := λ ⟨_, _⟩ ⟨_, _⟩, norm_mul_le _ _,
+  mul_comm := padic_int.mul_comm }
+
+instance : norm_one_class ℤ_[p] := ⟨norm_def.trans norm_one⟩
+
+instance : is_absolute_value (λ z : ℤ_[p], ∥z∥) :=
+{ abv_nonneg := norm_nonneg,
+  abv_eq_zero := λ ⟨_, _⟩, by simp [norm_eq_zero],
+  abv_add := λ ⟨_,_⟩ ⟨_, _⟩, norm_add_le _ _,
+  abv_mul := λ _ _, by simp only [norm_def, padic_norm_e.mul, padic_int.coe_mul]}
+
+variables {p}
 
 instance : integral_domain ℤ_[p] :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ x y, padic_int.eq_zero_or_eq_zero_of_mul_eq_zero x y,
   exists_pair_ne := ⟨0, 1, padic_int.zero_ne_one⟩,
-  ..padic_int.comm_ring }
+  .. padic_int.normed_comm_ring p }
 
 end padic_int
 
@@ -249,8 +247,6 @@ variables {p : ℕ} [fact p.prime]
 
 lemma norm_le_one : ∀ z : ℤ_[p], ∥z∥ ≤ 1
 | ⟨_, h⟩ := h
-
-@[simp] lemma norm_one : ∥(1 : ℤ_[p])∥ = 1 := normed_field.norm_one
 
 @[simp] lemma norm_mul (z1 z2 : ℤ_[p]) : ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ :=
 by simp [norm_def]

@@ -42,28 +42,28 @@ namespace arithmetic_function
 section has_zero
 variable [has_zero α]
 
-instance : has_zero (arithmetic_function α) := ⟨⟨λ _, 0, rfl⟩⟩
-
-instance : inhabited (arithmetic_function α) := ⟨0⟩
-
 instance : has_coe_to_fun (arithmetic_function α) := ⟨λ _, ℕ → α, to_fun⟩
 
 @[simp] lemma to_fun_eq (f : arithmetic_function α) : f.to_fun = f := rfl
 
+@[simp]
+lemma map_zero {f : arithmetic_function α} : f 0 = 0 := f.map_zero'
+
 theorem coe_inj ⦃f g : arithmetic_function α⦄ (h : (f : ℕ → α) = g) : f = g :=
 by { cases f, cases g, cases h, refl }
+
+instance : has_zero (arithmetic_function α) := ⟨⟨λ _, 0, rfl⟩⟩
+
+@[simp]
+lemma zero_apply {x : ℕ} : (0 : arithmetic_function α) x = 0 := rfl
+
+instance : inhabited (arithmetic_function α) := ⟨0⟩
 
 @[ext] theorem ext ⦃f g : arithmetic_function α⦄ (h : ∀ x, f x = g x) : f = g :=
 coe_inj (funext h)
 
 theorem ext_iff {f g : arithmetic_function α} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
-
-@[simp]
-lemma map_zero {f : arithmetic_function α} : f 0 = 0 := f.map_zero'
-
-@[simp]
-lemma zero_apply {x : ℕ} : (0 : arithmetic_function α) x = 0 := rfl
 
 section has_one
 variable [has_one α]
@@ -74,7 +74,7 @@ instance : has_one (arithmetic_function α) := ⟨⟨λ x, ite (x = 1) 1 0, rfl�
 lemma one_one : (1 : arithmetic_function α) 1 = 1 := rfl
 
 @[simp]
-lemma one_apply_of_ne_one {x : ℕ} (h : x ≠ 1) : (1 : arithmetic_function α) x = 0 := if_neg h
+lemma one_apply_ne {x : ℕ} (h : x ≠ 1) : (1 : arithmetic_function α) x = 0 := if_neg h
 
 end has_one
 end has_zero
@@ -134,125 +134,95 @@ variable [semiring α]
 
 /-- The Dirichlet convolution of two arithmetic functions `f` and `g` is another arithmetic function
   such that `(f * g) n` is the sum of `f x * g y` over all `(x,y)` such that `x * y = n`. -/
-def convolve (f g : arithmetic_function α) : arithmetic_function α :=
-⟨λ n, ∑ x in divisors_antidiagonal n, f x.fst * g x.snd, by simp⟩
-
-@[simp]
-lemma convolve_apply {f g : arithmetic_function α} {n : ℕ} :
-  (convolve f g) n = ∑ x in divisors_antidiagonal n, f x.fst * g x.snd := rfl
-
-@[simp]
-lemma one_convolve (f : arithmetic_function α) : convolve 1 f = f :=
-begin
-  ext,
-  rw convolve_apply,
-  by_cases x0 : x = 0, {simp [x0]},
-  have h : {(1,x)} ⊆ divisors_antidiagonal x := by simp [x0],
-  rw ← sum_subset h, {simp},
-  intros y ymem ynmem,
-  have y1ne : y.fst ≠ 1,
-  { intro con,
-    simp only [con, mem_divisors_antidiagonal, one_mul, ne.def] at ymem,
-    simp only [mem_singleton, prod.ext_iff] at ynmem,
-    tauto },
-  simp [y1ne],
-end
-
-@[simp]
-lemma convolve_one (f : arithmetic_function α) : convolve f 1 = f :=
-begin
-  ext,
-  rw convolve_apply,
-  by_cases x0 : x = 0, {simp [x0]},
-  have h : {(x,1)} ⊆ divisors_antidiagonal x := by simp [x0],
-  rw ← sum_subset h, {simp},
-  intros y ymem ynmem,
-  have y2ne : y.snd ≠ 1,
-  { intro con,
-    simp only [con, mem_divisors_antidiagonal, mul_one, ne.def] at ymem,
-    simp only [mem_singleton, prod.ext_iff] at ynmem,
-    tauto },
-  simp [y2ne],
-end
-
-@[simp]
-lemma zero_convolve (f : arithmetic_function α) : convolve 0 f = 0 :=
-by { ext, simp }
-
-@[simp]
-lemma convolve_zero (f : arithmetic_function α) : convolve f 0 = 0 :=
-by { ext, simp }
-
-lemma convolve_assoc (f g h : arithmetic_function α) :
-  convolve (convolve f g) h = convolve f (convolve g h) :=
-begin
-  ext n,
-  simp only [convolve_apply],
-  have := @finset.sum_sigma (ℕ × ℕ) α _ _ (divisors_antidiagonal n)
-    (λ p, (divisors_antidiagonal p.1)) (λ x, f x.2.1 * g x.2.2 * h x.1.2),
-  convert this.symm using 1; clear this,
-  { apply finset.sum_congr rfl,
-    intros p hp, exact finset.sum_mul },
-  have := @finset.sum_sigma (ℕ × ℕ) α _ _ (divisors_antidiagonal n)
-    (λ p, (divisors_antidiagonal p.2)) (λ x, f x.1.1 * (g x.2.1 * h x.2.2)),
-  convert this.symm using 1; clear this,
-  { apply finset.sum_congr rfl, intros p hp, rw finset.mul_sum },
-  apply finset.sum_bij,
-  swap 5,
-  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, exact ⟨(k, l*j), (l, j)⟩ },
-  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H,
-    simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢, finish },
-  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, simp only [mul_assoc] },
-  { rintros ⟨⟨a,b⟩, ⟨c,d⟩⟩ ⟨⟨i,j⟩, ⟨k,l⟩⟩ H₁ H₂,
-    simp only [finset.mem_sigma, mem_divisors_antidiagonal,
-      and_imp, prod.mk.inj_iff, add_comm, heq_iff_eq] at H₁ H₂ ⊢,
-    finish },
-  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, refine ⟨⟨(i*k, l), (i, k)⟩, _, _⟩;
-    { simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢, finish } }
-end
-
-lemma convolve_add (a b c : arithmetic_function α) :
-  convolve a (b + c) = convolve a b + convolve a c :=
-by { ext, simp [← sum_add_distrib, mul_add] }
-
-lemma add_convolve (a b c : arithmetic_function α) :
-  convolve (a + b) c = convolve a c + convolve b c :=
-by { ext, simp [← sum_add_distrib, add_mul] }
-
-instance : has_mul (arithmetic_function α) := ⟨convolve⟩
+instance : has_mul (arithmetic_function α) :=
+⟨λ f g, ⟨λ n, ∑ x in divisors_antidiagonal n, f x.fst * g x.snd, by simp⟩⟩
 
 @[simp]
 lemma mul_apply {f g : arithmetic_function α} {n : ℕ} :
   (f * g) n = ∑ x in divisors_antidiagonal n, f x.fst * g x.snd := rfl
 
+instance : monoid (arithmetic_function α) :=
+{ one_mul := λ f,
+  begin
+    ext,
+    rw mul_apply,
+    by_cases x0 : x = 0, {simp [x0]},
+    have h : {(1,x)} ⊆ divisors_antidiagonal x := by simp [x0],
+    rw ← sum_subset h, {simp},
+    intros y ymem ynmem,
+    have y1ne : y.fst ≠ 1,
+    { intro con,
+      simp only [con, mem_divisors_antidiagonal, one_mul, ne.def] at ymem,
+      simp only [mem_singleton, prod.ext_iff] at ynmem,
+      tauto },
+    simp [y1ne],
+  end,
+  mul_one := λ f,
+  begin
+    ext,
+    rw mul_apply,
+    by_cases x0 : x = 0, {simp [x0]},
+    have h : {(x,1)} ⊆ divisors_antidiagonal x := by simp [x0],
+    rw ← sum_subset h, {simp},
+    intros y ymem ynmem,
+    have y2ne : y.snd ≠ 1,
+    { intro con,
+      simp only [con, mem_divisors_antidiagonal, mul_one, ne.def] at ymem,
+      simp only [mem_singleton, prod.ext_iff] at ynmem,
+      tauto },
+    simp [y2ne],
+  end,
+  mul_assoc := λ f g h,
+  begin
+    ext n,
+    simp only [mul_apply],
+    have := @finset.sum_sigma (ℕ × ℕ) α _ _ (divisors_antidiagonal n)
+      (λ p, (divisors_antidiagonal p.1)) (λ x, f x.2.1 * g x.2.2 * h x.1.2),
+    convert this.symm using 1; clear this,
+    { apply finset.sum_congr rfl,
+      intros p hp, exact finset.sum_mul },
+    have := @finset.sum_sigma (ℕ × ℕ) α _ _ (divisors_antidiagonal n)
+      (λ p, (divisors_antidiagonal p.2)) (λ x, f x.1.1 * (g x.2.1 * h x.2.2)),
+    convert this.symm using 1; clear this,
+    { apply finset.sum_congr rfl, intros p hp, rw finset.mul_sum },
+    apply finset.sum_bij,
+    swap 5,
+    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, exact ⟨(k, l*j), (l, j)⟩ },
+    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H,
+      simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢, finish },
+    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, simp only [mul_assoc] },
+    { rintros ⟨⟨a,b⟩, ⟨c,d⟩⟩ ⟨⟨i,j⟩, ⟨k,l⟩⟩ H₁ H₂,
+      simp only [finset.mem_sigma, mem_divisors_antidiagonal,
+        and_imp, prod.mk.inj_iff, add_comm, heq_iff_eq] at H₁ H₂ ⊢,
+      finish },
+    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, refine ⟨⟨(i*k, l), (i, k)⟩, _, _⟩;
+      { simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢, finish } }
+  end,
+  .. arithmetic_function.has_one,
+  .. arithmetic_function.has_mul }
+
 instance : semiring (arithmetic_function α) :=
-{ one_mul := one_convolve,
-  mul_one := convolve_one,
-  zero_mul := zero_convolve,
-  mul_zero := convolve_zero,
-  mul_assoc := convolve_assoc,
-  left_distrib := convolve_add,
-  right_distrib := add_convolve,
-  .. (infer_instance : has_one (arithmetic_function α)),
-  .. (infer_instance : has_mul (arithmetic_function α)),
-  .. (infer_instance : add_comm_monoid (arithmetic_function α)) }
+{ zero_mul := λ f, by { ext, simp, },
+  mul_zero := λ f, by { ext, simp, },
+  left_distrib := λ a b c, by { ext, simp [← sum_add_distrib, mul_add] },
+  right_distrib := λ a b c, by { ext, simp [← sum_add_distrib, add_mul] },
+  .. arithmetic_function.has_zero,
+  .. arithmetic_function.has_mul,
+  .. arithmetic_function.has_add,
+  .. arithmetic_function.add_comm_monoid,
+  .. arithmetic_function.monoid }
 
 end dirichlet_ring
 
-lemma convolve_comm [comm_semiring α] (f g : arithmetic_function α) : convolve f g = convolve g f :=
-begin
-  ext,
-  rw [convolve_apply, ← map_swap_divisors_antidiagonal, sum_map],
-  simp [mul_comm],
-end
-
 instance [comm_semiring α] : comm_semiring (arithmetic_function α) :=
-{ mul_comm := convolve_comm,
-  .. (infer_instance : semiring (arithmetic_function α)) }
+{ mul_comm := λ f g, by { ext,
+    rw [mul_apply, ← map_swap_divisors_antidiagonal, sum_map],
+    simp [mul_comm] },
+  .. arithmetic_function.semiring }
 
 instance [comm_ring α] : comm_ring (arithmetic_function α) :=
-{ .. (infer_instance : add_comm_group (arithmetic_function α)),
-  .. (infer_instance : comm_semiring (arithmetic_function α)) }
+{ .. arithmetic_function.add_comm_group,
+  .. arithmetic_function.comm_semiring }
 
 end arithmetic_function
 end nat

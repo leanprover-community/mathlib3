@@ -42,9 +42,8 @@ digits_ne_nil_iff_ne_zero.mp h2
 lemma ge_100 (n : ℕ) (h1 : problem_predicate n) : n ≥ 100 :=
 have h2 : 10^3 ≤ 10 * n, from begin
   rw ← h1.left,
-  refine nat.base_pow_length_digits_le 10 n _ _,
+  refine nat.base_pow_length_digits_le 10 n _ (not_zero n h1),
   simp,
-  exact not_zero n h1,
 end,
 by linarith
 
@@ -65,18 +64,15 @@ These are basically "hints" to speed up norm_num.
 def sum_of_digit_squares (n : ℕ) := sum_of_squares (nat.digits 10 n)
 
 lemma sods_zero : sum_of_digit_squares 0 = 0 :=
-begin
-  norm_num [sum_of_digit_squares, sum_of_squares],
-end
+by norm_num [sum_of_digit_squares, sum_of_squares]
 
 lemma digit_recursion (n : ℕ) (h1 : 0 < n) :
 (nat.digits 10 n) = (n % 10) :: (nat.digits 10 (n / 10)) :=
 begin
   have h2: n ≥ 1, by linarith,
   have h3: (n - 1) + 1 = n, from nat.sub_add_cancel h2,
-  unfold nat.digits,
   rw ← h3,
-  unfold nat.digits_aux,
+  refl,
 end
 
 lemma calc_sods (n : ℕ) (h : 0 < n) :

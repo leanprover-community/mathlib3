@@ -168,7 +168,6 @@ begin
   { have h := @is_submonoid.pow_mem L _ S.to_subfield.to_submonoid x _ hx _,
     exact subfield.inv_mem S.to_subfield h, },
 end
---S.to_subfield.pow_mem hx n
 
 lemma gsmul_mem {x : L} (hx : x ∈ S) (n : ℤ) :
   n •ℤ x ∈ S := S.to_subfield.gsmul_mem hx n

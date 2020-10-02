@@ -179,8 +179,9 @@ begin
     have Fα_sep : is_separable F⟮α⟯ E := is_separable_tower_top_of_is_separable F⟮α⟯ F_sep,
     obtain ⟨β, hβ⟩ := ih _ Fα_dim_lt_F_dim Fα_sep Fα_inf rfl,
     obtain ⟨γ, hγ⟩ := primitive_element_inf_aux α β F_sep,
-    simp only [←adjoin_simple_adjoin_simple, subalgebra.ext_iff, algebra.mem_top, iff_true, *] at *,
-    exact ⟨γ, λ x, hγ algebra.mem_top⟩ },
+    rw [←adjoin_simple_adjoin_simple, hβ] at hγ,
+    exact ⟨γ, intermediate_field.ext'_iff.mpr
+      (set.subset.antisymm (λ _ _, mem_top) (λ _ _, hγ mem_top))⟩ },
   { push_neg at key,
     rw ← bot_eq_top_of_findim_adjoin_le_one key,
     exact ⟨0, by rw adjoin_zero⟩ },

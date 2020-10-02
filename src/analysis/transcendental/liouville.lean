@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import ring_theory.algebraic
+import data.polynomial.degree
 import topology.algebra.polynomial
 import analysis.calculus.mean_value
 import data.real.irrational
@@ -59,43 +60,26 @@ begin
   refine div_pos (show 0 < (1 : ℝ), from by linarith) (pow_pos _ _),
   norm_cast, exact b_pos,
 end,
-have eq₁ : (f.map (algebra_map ℤ ℝ)).eval (a/b) =
-  1 / b ^ f.nat_degree * ∑ (i : ℕ) in f.support, f.coeff i * a ^ i * b ^ (f.nat_degree - i), from
-calc ((f.map (algebra_map ℤ ℝ)).eval (a/b))
-          = ∑ i in f.support, f.coeff i * (a / b) ^ i
-          : begin
-              conv_lhs { rw [eval_map, as_sum_support f, eval₂_finset_sum] },
-              simp only [coeff_map, eval₂_X_pow, div_pow, eval₂_mul, eval₂_C],
-              congr
-            end
-      ... = 1/b^f.nat_degree * (∑ i in f.support, f.coeff i*a^i*b^(f.nat_degree - i)) :
-            begin
-              rw mul_sum, apply sum_congr rfl,
-              intros n h,
-              rw [calc (f.coeff n : ℝ) * (a/b)^n
-                      = f.coeff n * (a ^ n / b ^ n) : by rw div_pow
-                  ... = f.coeff n * a ^ n * (b ^ n)⁻¹ : by ring
-                  ... = f.coeff n * a ^ n * b ^ (- n : ℤ) : by simp only [fpow_neg, fpow_coe_nat],
-                  calc 1/(b : ℝ) ^ f.nat_degree * (f.coeff n * a ^ n * b ^ (f.nat_degree - n))
-                      = f.coeff n * a ^ n * (b^(f.nat_degree - n) / (b ^ f.nat_degree)) : by ring
-                  ... = f.coeff n * a ^ n * (b ^ ((f.nat_degree - n : ℕ) - f.nat_degree : ℤ))
-                      : by {rw fpow_sub, simp only [fpow_coe_nat], norm_cast, exact b_nonzero}
-                  ],
-              congr,
-              rw [neg_eq_iff_neg_eq, neg_sub, sub_eq_iff_eq_add],
-              norm_cast,
-              rw calc n + (f.nat_degree - n) = n + f.nat_degree - n
-                  : begin
-                      rw ←nat.add_sub_assoc, by_contra a,
-                      simp only [gt_iff_lt, not_le, finsupp.mem_support_iff, ne.def] at a,
-                      rw mem_support_iff_coeff_ne_zero at h,
-                      refine h _, rw coeff_eq_zero_of_nat_degree_lt a
-                    end
-                ...  = f.nat_degree + n - n : by rw add_comm
-                ...  = f.nat_degree + (n - n) : by rw nat.add_sub_assoc (rfl.ge)
-                ...  = f.nat_degree + 0 : by rw nat.sub_self
-                ...  = f.nat_degree : by rw add_zero,
-            end,
+have eq₁ : _, from
+  calc ((f.map (algebra_map ℤ ℝ)).eval (a/b))
+      = ∑ i in f.support, f.coeff i * (a / b) ^ i
+      : begin
+          conv_lhs { rw [eval_map, as_sum_support f, eval₂_finset_sum] },
+          simp only [coeff_map, eval₂_X_pow, div_pow, eval₂_mul, eval₂_C],
+          congr
+        end
+  ... = ∑ i in f.support, f.coeff i * a^i / b^i : sum_congr rfl (λ _ _, by rw [div_pow, mul_div_assoc])
+  ... = ∑ i in f.support, f.coeff i * a^i * b^(-i:ℤ) : sum_congr rfl (λ _ _, by {ring, simp} )
+  ... = ∑ i in f.support, f.coeff i * a^i * b^(-i+ f.nat_degree - f.nat_degree : ℤ)
+      : sum_congr rfl (λ _ _, by { simp only [add_sub_cancel] })
+  ... = ∑ i in f.support, f.coeff i * a^i * b^(-i + f.nat_degree:ℤ)/b^f.nat_degree
+      : sum_congr rfl (λ _ _, by { rw [fpow_sub, fpow_coe_nat, mul_div_assoc], norm_cast, assumption })
+  ... = ∑ i in f.support, f.coeff i * a^i * b^(f.nat_degree - i:ℤ)/b^f.nat_degree
+      : sum_congr rfl (λ _ _, by rw [add_comm _ ↑f.nat_degree, sub_eq_add_neg])
+  ... = ∑ i in f.support, f.coeff i * a^i * b^(f.nat_degree - i)/b^f.nat_degree
+      : sum_congr rfl (λ _ h, by { rw [←int.sub_nat_nat_eq_coe, int.sub_nat_nat_of_ge (le_nat_degree_of_mem_support h), int.of_nat_eq_coe], refl })
+  ... = (∑ i in f.support, f.coeff i * a^i * b^(f.nat_degree - i))/b^f.nat_degree : by rw [sum_div]
+  ... = 1/b^f.nat_degree * (∑ i in f.support, f.coeff i*a^i*b^(f.nat_degree - i)) : by ring,
 have cast_eq : ∑ i in f.support, (f.coeff i : ℝ) * a ^ i * b ^ (f.nat_degree - i)
             = ↑(∑ i in f.support, f.coeff i * a ^ i * b ^ (f.nat_degree - i)), from
 begin
@@ -106,12 +90,11 @@ begin
 end,
 begin
   rw [eq₁, cast_eq, abs_mul, abs_of_pos pos, le_mul_iff_one_le_right pos],
-  norm_cast,
+  rw [eq₁, mul_ne_zero_iff, cast_eq] at not_root,
+  norm_cast at ⊢ not_root,
   suffices : 0 < abs (∑ (i : ℕ) in f.support, f.coeff i * a ^ i * b ^ (f.nat_degree - i)),
   { omega },
   { rw abs_pos_iff,
-    rw [eq₁, mul_ne_zero_iff, cast_eq] at not_root,
-    norm_cast at not_root,
     exact not_root.2 }
 end
 

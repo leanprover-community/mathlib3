@@ -21,17 +21,16 @@ transcendental.
 -/
 
 /--
-- a number is transcendental ↔ a number is not algebraic
-- a Liouville's number `x` is a number such that
-  for every natural number `n`, there is a `a/b ∈ ℚ - ℤ` such that `0 < |x - a/b| < 1/bⁿ`
+A Liouville's number `x` is a number such that for every natural number `n`, there is a `a/b ∈ ℚ`
+such that `0 < |x - a/b| < 1/bⁿ`. We can assume without lose of generality that `1 < b`.
 -/
 
-def liouville_number (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ,
+def is_liouville (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ,
   1 < b ∧ 0 < abs(x - a / b) ∧ abs(x - a / b) < 1/b^n
 
 namespace liouville
 
-lemma not_liouville_zero : ¬ liouville_number 0 :=
+lemma not_liouville_zero : ¬ is_liouville 0 :=
 begin
   classical,
   intro rid,
@@ -114,7 +113,7 @@ begin
     exact not_root.2 }
 end
 
-lemma about_irrational_root (α : ℝ) (hα : irrational α) (f : polynomial ℤ)
+lemma exists_pos_real_of_irrational_root (α : ℝ) (hα : irrational α) (f : polynomial ℤ)
   (f_deg : 1 < f.nat_degree) (α_root : (f.map (algebra_map ℤ ℝ)).eval α = 0) :
   ∃ A : ℝ, 0 < A ∧ ∀ a b : ℤ, 0 < b → (A / b ^ (f.nat_degree)) < abs(α - a / b)  :=
 have f_nonzero : f ≠ 0, from ne_zero_of_nat_degree_gt f_deg,
@@ -279,7 +278,7 @@ begin
     linarith only [ineq] } }
 end
 
-lemma irrational_of_liouville (x : ℝ) (liouvilleₓ : liouville_number x) : irrational x :=
+lemma irrational_of_is_liouville (x : ℝ) (x_is_liouville : is_liouville x) : irrational x :=
 begin
   rw irrational_iff_ne_rational,
   suffices : ∀ (a b : ℤ), 0 < b → x ≠ ↑a / ↑b,
@@ -288,8 +287,8 @@ begin
     { exact this a b b_gt },
     { intro rid, rw ←b_0 at rid,
       simp only [div_zero, int.cast_zero] at rid,
-      rw rid at liouvilleₓ,
-      exact not_liouville_zero liouvilleₓ },
+      rw rid at x_is_liouville,
+      exact not_liouville_zero x_is_liouville },
     { specialize this (-a) (-b) (neg_pos.mpr b_lt),
       simp only [ne.def, int.cast_neg, neg_div_neg_eq] at this ⊢, exact this } },
 
@@ -301,7 +300,7 @@ begin
     set n := b + 1 with hn,
     have b_ineq : b < 2 ^ (n-1) := nat.lt_two_pow b,
 
-    rcases liouvilleₓ n with ⟨p, q, q_gt_1, abs_sub_pos, abs_sub_small⟩,
+    rcases x_is_liouville n with ⟨p, q, q_gt_1, abs_sub_pos, abs_sub_small⟩,
     have q_pos : 0 < q := by linarith,
     have q_nonneg : 0 ≤ q := le_of_lt q_pos,
     lift q to ℕ using q_nonneg,
@@ -315,7 +314,6 @@ begin
       linarith [abs_sub_pos] },
 
     { replace h : 0 < abs ((a:ℝ) * q - b * p) := abs_pos_of_ne_zero (λ rid, h begin rw [rid, abs_zero] end),
-      -- by { refine h _, rw rid, exact abs_zero }),
       have h' : 1 ≤ abs ((a:ℝ) * q - b * p),
       { norm_cast at h ⊢, linarith },
       rw (show abs (b * q : ℝ) = b * q,
@@ -367,7 +365,7 @@ begin
     repeat { norm_cast, assumption <|> linarith } }
 end
 
-theorem transcendental_of_liouville_numbers (x : ℝ) (liouville_x : liouville_number x) : is_transcendental ℤ x :=
+theorem transcendental_of_is_liouville (x : ℝ) (liouville_x : is_liouville x) : is_transcendental ℤ x :=
 have pow_big_enough : ∀ A : ℝ, ∃ r : ℕ, 1/A ≤ 2 ^ r, from
 begin
   intro A,
@@ -376,7 +374,7 @@ begin
   use n, exact le_of_lt hn, exact lt_add_one 1,
 end,
 begin
-  have irr_x : irrational x, exact irrational_of_liouville x liouville_x,
+  have irr_x : irrational x, exact irrational_of_is_liouville x liouville_x,
   intros rid,
   rcases rid with ⟨f : polynomial ℤ, f_nonzero, root⟩,
   replace root : (f.map (algebra_map ℤ ℝ)).eval x = 0,
@@ -386,7 +384,7 @@ begin
   have f_deg : 1 < f.nat_degree := nat_degree_gt_one_of_irrational_root x f irr_x f_nonzero root',
 
 
-  rcases about_irrational_root x irr_x f f_deg root with ⟨A, A_pos, h⟩,
+  rcases exists_pos_real_of_irrational_root x irr_x f f_deg root with ⟨A, A_pos, h⟩,
   rcases pow_big_enough A with ⟨r, hr⟩,
   have hr' : 1/(2^r) ≤ A,
   { rw [div_le_iff, mul_comm, <-div_le_iff], repeat { assumption <|> apply pow_pos <|> linarith } },

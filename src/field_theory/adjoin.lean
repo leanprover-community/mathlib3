@@ -282,12 +282,10 @@ lemma findim_intermediate_field_eq_findim_subalgebra :
 
 lemma sub_bot_of_adjoin_dim_eq_one (h : dim F (adjoin F S) = 1) : S ⊆ (⊥ : intermediate_field F E) :=
 begin
+  rw [dim_intermediate_field_eq_dim_subalgebra, subalgebra.dim_eq_one_iff, ←bot_to_subalgebra_eq_bot] at h,
   rw adjoin_eq_bot_iff,
-  suffices : (adjoin F S).to_subalgebra = (⊥ : intermediate_field F E).to_subalgebra,
-  { ext,
-    exact subalgebra.ext_iff.mp this x },
-  { rw [bot_to_subalgebra_eq_bot, ←subalgebra.dim_eq_one_iff],
-    exact h }
+  ext,
+  exact subalgebra.ext_iff.mp h x,
 end
 
 lemma mem_bot_of_adjoin_simple_dim_eq_one (h : dim F F⟮α⟯ = 1) : α ∈ ((⊥ : intermediate_field F E) : set E) :=
@@ -309,13 +307,8 @@ lemma adjoin_simple_dim_eq_one_iff : dim F F⟮α⟯ = 1 ↔ α ∈ (⊥ : inter
 ⟨mem_bot_of_adjoin_simple_dim_eq_one, adjoin_simple_dim_eq_one_of_mem_bot⟩
 
 lemma adjoin_findim_eq_one_iff : findim F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
-begin
-  rw findim_intermediate_field_eq_findim_subalgebra,
-  rw ← adjoin_dim_eq_one_iff,
-  rw dim_intermediate_field_eq_dim_subalgebra,
-  rw subalgebra.dim_eq_one_iff,
-  rw subalgebra.findim_eq_one_iff,
-end
+by rw [findim_intermediate_field_eq_findim_subalgebra, ←adjoin_dim_eq_one_iff,
+    dim_intermediate_field_eq_dim_subalgebra, subalgebra.dim_eq_one_iff, subalgebra.findim_eq_one_iff]
 
 lemma adjoin_simple_findim_eq_one_iff : findim F F⟮α⟯ = 1 ↔ α ∈ (⊥ : intermediate_field F E) :=
 begin
@@ -340,7 +333,13 @@ begin
   exact ((⊥ : intermediate_field F E).mem_coe x).mp
     (set.singleton_subset_iff.mp (adjoin_findim_eq_one_iff.mp (h x))),
 end
---y simp [subalgebra.ext_iff, algebra.mem_top, ← adjoin_simple_findim_eq_one_iff, h]
+
+instance [finite_dimensional F E] (K : intermediate_field F E) : finite_dimensional F K :=
+begin
+  change finite_dimensional F K.to_subalgebra,
+  apply submodule.finite_dimensional_of_le,
+  exact le_top,
+end
 
 /-- If `F⟮x⟯` has dimension `≤1` over `F` for every `x ∈ E` then `F = E`. -/
 lemma bot_eq_top_of_findim_adjoin_le_one [finite_dimensional F E]

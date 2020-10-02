@@ -35,12 +35,12 @@ def solution_predicate (n : ℕ) := n = 550 ∨ n = 803
 Proving that three digit numbers are the ones in [100, 1000).
 -/
 
-lemma not_zero (n : ℕ) (h1: problem_predicate n) : n ≠ 0 :=
+lemma not_zero (n : ℕ) (h1 : problem_predicate n) : n ≠ 0 :=
 have h2: nat.digits 10 n ≠ list.nil, from list.ne_nil_of_length_eq_succ h1.left,
 digits_ne_nil_iff_ne_zero.mp h2
 
-lemma ge_100 (n : ℕ) (h1: problem_predicate n) : n ≥ 100 :=
-have h2: 10^3 ≤ 10 * n, from begin
+lemma ge_100 (n : ℕ) (h1 : problem_predicate n) : n ≥ 100 :=
+have h2 : 10^3 ≤ 10 * n, from begin
   rw ← h1.left,
   refine nat.base_pow_length_digits_le 10 n _ _,
   simp,
@@ -49,7 +49,7 @@ end,
 by linarith
 
 lemma lt_1000 (n : ℕ) (h1: problem_predicate n) : n < 1000 :=
-have h2: n < 10^3, from begin
+have h2 : n < 10^3, from begin
   rw ← h1.left,
   refine nat.lt_base_pow_length_digits _,
   simp,
@@ -70,7 +70,7 @@ begin
 end
 
 lemma digit_recursion (n : ℕ) (h1 : 0 < n) :
-(nat.digits 10 n) = (n % 10) :: (nat.digits 10 (n/10)) :=
+(nat.digits 10 n) = (n % 10) :: (nat.digits 10 (n / 10)) :=
 begin
   have h2: n ≥ 1, by linarith,
   have h3: (n - 1) + 1 = n, from nat.sub_add_cancel h2,
@@ -80,7 +80,7 @@ begin
 end
 
 lemma calc_sods (n : ℕ) (h : 0 < n) :
-sum_of_digit_squares n = (n%10)^2 + (sum_of_digit_squares (n / 10)) :=
+sum_of_digit_squares n = (n % 10) ^ 2 + (sum_of_digit_squares (n / 10)) :=
 begin
   unfold sum_of_digit_squares,
   rw digit_recursion,
@@ -104,7 +104,7 @@ begin
   cases h2 with c h3,
   use c,
   split,
-  have h4: c = (c*11) / 11, by simp,
+  have h4: c = (c * 11) / 11, by simp,
   have h5: c = n / 11, from h3.symm ▸ h4,
   unfold fails_sum,
   rw [h3.symm, h5],
@@ -119,19 +119,19 @@ begin
   exact h3,
 end
 
-lemma step_helper (b c : ℕ) (h1: b < c) : b + 1 = c ∨ b + 1 < c :=
+lemma step_helper (b c : ℕ) (h1 : b < c) : b + 1 = c ∨ b + 1 < c :=
 begin
-  have h2: b + 1 ≤ c, from succ_le_iff.mpr h1,
+  have h2 : b + 1 ≤ c, from succ_le_iff.mpr h1,
   exact eq_or_lt_of_le h2
 end
 
-lemma iterative_step (c bound: ℕ) (h1: fails_sum (bound + 1)) (h2 : fails_sum c ∨ bound < c) :
+lemma iterative_step (c bound : ℕ) (h1 : fails_sum (bound + 1)) (h2 : fails_sum c ∨ bound < c) :
 fails_sum c ∨ bound + 1 < c :=
 begin
   cases h2,
   left,
   exact h2,
-  have h3: bound + 1 = c ∨ bound + 1 < c, from step_helper bound c h2,
+  have h3 : bound + 1 = c ∨ bound + 1 < c, from step_helper bound c h2,
   cases h3,
   left,
   exact h3 ▸ h1,
@@ -149,7 +149,7 @@ begin
   exact lower_bound,
 end
 
-lemma mid_search (c : ℕ) (lower_bound: 50 < c) : fails_sum c ∨ 72 < c :=
+lemma mid_search (c : ℕ) (lower_bound : 50 < c) : fails_sum c ∨ 72 < c :=
 begin
   iterate 22 {
     refine iterative_step _ _ _ _,
@@ -159,7 +159,7 @@ begin
   exact lower_bound,
 end
 
-lemma high_search (c : ℕ) (lower_bound: 73 < c) : fails_sum c ∨ 90 < c :=
+lemma high_search (c : ℕ) (lower_bound : 73 < c) : fails_sum c ∨ 90 < c :=
 begin
   iterate 17 {
     refine iterative_step _ _ _ _,
@@ -176,25 +176,25 @@ Now we just need to combine the results from the `search` lemmas.
 lemma right_direction (n : ℕ) : problem_predicate n → solution_predicate n :=
 begin
   intro ppn,
-  have h1: ∃ c : ℕ, ¬ fails_sum c ∧ 9 < c ∧ c < 91 ∧ n = c * 11, from multiples_of_11 n ppn,
+  have h1 : ∃ c : ℕ, ¬ fails_sum c ∧ 9 < c ∧ c < 91 ∧ n = c * 11, from multiples_of_11 n ppn,
   cases h1 with c h2,
-  have h3: fails_sum c ∨ 49 < c, from low_search c h2.right.left,
+  have h3 : fails_sum c ∨ 49 < c, from low_search c h2.right.left,
   cases h3,
   exact absurd h3 h2.left,
-  have h4: 50 = c ∨ 50 < c, from step_helper 49 c h3,
+  have h4 : 50 = c ∨ 50 < c, from step_helper 49 c h3,
   unfold solution_predicate,
-  have h5: n = c * 11, from h2.right.right.right,
+  have h5 : n = c * 11, from h2.right.right.right,
   cases h4,
   left,
   linarith,
-  have h6: fails_sum c ∨ 72 < c, from mid_search c h4,
+  have h6 : fails_sum c ∨ 72 < c, from mid_search c h4,
   cases h6,
   exact absurd h6 h2.left,
-  have h7: 73 = c ∨ 73 < c, from step_helper 72 c h6,
+  have h7 : 73 = c ∨ 73 < c, from step_helper 72 c h6,
   cases h7,
   right,
   linarith,
-  have h8: fails_sum c ∨ 90 < c, from high_search c h7,
+  have h8 : fails_sum c ∨ 90 < c, from high_search c h7,
   cases h8,
   exact absurd h8 h2.left,
   linarith,
@@ -211,7 +211,7 @@ begin
   norm_num [problem_predicate, sum_of_squares],
 end
 
-theorem imo1960_q1 (n: ℕ) : problem_predicate n ↔ solution_predicate n :=
+theorem imo1960_q1 (n : ℕ) : problem_predicate n ↔ solution_predicate n :=
 begin
   split,
   exact right_direction n,

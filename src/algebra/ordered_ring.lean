@@ -165,6 +165,15 @@ calc a * b ≤ b : mul_le_of_le_one_left hb0 ha
 
 end ordered_semiring
 
+section ordered_comm_semiring
+
+/-- An `ordered_comm_semiring α` is a commutative semiring `α` with a partial order such that
+multiplication with a positive number and addition are monotone. -/
+@[protect_proj]
+class ordered_comm_semiring (α : Type u) extends ordered_semiring α, comm_semiring α
+
+end ordered_comm_semiring
+
 /-- A `linear_ordered_semiring α` is a semiring `α` with a linear order
 such that multiplication with a positive number and addition are monotone. -/
 @[protect_proj]
@@ -414,7 +423,7 @@ end decidable_linear_ordered_semiring
 multiplication with a positive number and addition are monotone. -/
 @[protect_proj]
 class ordered_ring (α : Type u) extends ring α, ordered_add_comm_group α, nontrivial α :=
-(zero_lt_one : zero < one)
+(zero_lt_one : 0 < (1 : α))
 (mul_pos     : ∀ a b : α, 0 < a → 0 < b → 0 < a * b)
 
 section ordered_ring

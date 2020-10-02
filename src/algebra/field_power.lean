@@ -117,7 +117,7 @@ end
   x ^ m ≤ x ^ n ↔ m ≤ n :=
 (fpow_strict_mono hx).le_iff_le
 
-@[simp] lemma pos_div_pow_pos {a b : K} (ha : 0 < a) (hb : 0 < b) (k : ℕ) : 0 < a/b^k :=
+lemma pos_div_pow_pos {a b : K} (ha : 0 < a) (hb : 0 < b) (k : ℕ) : 0 < a/b^k :=
 div_pos ha (pow_pos hb k)
 
 @[simp] lemma div_pow_le {a b : K} (ha : 0 < a) (hb : 1 ≤ b) (k : ℕ) : a/b^k ≤ a :=

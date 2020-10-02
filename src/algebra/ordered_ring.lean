@@ -210,7 +210,7 @@ begin
     exact mul_nonpos_of_nonpos_of_nonneg ha.le hab }
 end
 
-lemma nonneg_and_nonneg_or_nonpos_and_nonpos_of_mul_nnonneg [no_zero_divisors α] (hab : 0 ≤ a * b) :
+lemma nonneg_and_nonneg_or_nonpos_and_nonpos_of_mul_nnonneg (hab : 0 ≤ a * b) :
     (0 ≤ a ∧ 0 ≤ b) ∨ (a ≤ 0 ∧ b ≤ 0) :=
 begin
   contrapose! hab,

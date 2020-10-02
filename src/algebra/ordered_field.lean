@@ -59,16 +59,16 @@ lemma one_div_nonpos : 1 / a ≤ 0 ↔ a ≤ 0 :=
 inv_eq_one_div a ▸ inv_nonpos
 
 lemma div_pos_iff : 0 < a / b ↔ 0 < a ∧ 0 < b ∨ a < 0 ∧ b < 0 :=
-by simp [division_def]
+by simp [division_def, mul_pos_iff]
 
 lemma div_neg_iff : a / b < 0 ↔ 0 < a ∧ b < 0 ∨ a < 0 ∧ 0 < b :=
-by simp [division_def]
+by simp [division_def, mul_neg_iff]
 
 lemma div_nonneg_iff : 0 ≤ a / b ↔ 0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤ 0 :=
-by simp [division_def]
+by simp [division_def, mul_nonneg_iff]
 
 lemma div_nonpos_iff : a / b ≤ 0 ↔ 0 ≤ a ∧ b ≤ 0 ∨ a ≤ 0 ∧ 0 ≤ b :=
-by simp [division_def]
+by simp [division_def, mul_nonpos_iff]
 
 lemma div_pos (ha : 0 < a) (hb : 0 < b) : 0 < a / b :=
 mul_pos ha (inv_pos.2 hb)
@@ -269,7 +269,7 @@ lemma inv_le_one_iff : a⁻¹ ≤ 1 ↔ a ≤ 0 ∨ 1 ≤ a :=
 begin
   rcases em (a = 1) with (rfl|ha),
   { simp [le_rfl] },
-  { simp [ne.le_iff_lt (ne.symm ha), ne.le_iff_lt (mt inv_eq_one'.1 ha)] }
+  { simp only [ne.le_iff_lt (ne.symm ha), ne.le_iff_lt (mt inv_eq_one'.1 ha), inv_lt_one_iff] }
 end
 
 lemma one_le_inv_iff : 1 ≤ a⁻¹ ↔ 0 < a ∧ a ≤ 1 :=

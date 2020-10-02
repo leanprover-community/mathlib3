@@ -120,6 +120,15 @@ lemma comap_ne_bot_of_integral_mem [nontrivial R] {x : S}
   (x_ne_zero : x ≠ 0) (x_mem : x ∈ I) (hx : is_integral R x) : I.comap (algebra_map R S) ≠ ⊥ :=
 comap_ne_bot_of_algebraic_mem x_ne_zero x_mem (hx.is_algebraic R)
 
+lemma eq_bot_of_comap_eq_bot [nontrivial R] (hRS : algebra.is_integral R S)
+  (hI : I.comap (algebra_map R S) = ⊥) : I = ⊥ :=
+begin
+  refine eq_bot_iff.2 (λ x hx, _),
+  by_cases hx0 : x = 0,
+  { exact hx0.symm ▸ ideal.zero_mem ⊥ },
+  { exact absurd hI (comap_ne_bot_of_integral_mem hx0 hx (hRS x)) }
+end
+
 lemma mem_of_one_mem (h : (1 : S) ∈ I) (x) : x ∈ I :=
 (I.eq_top_iff_one.mpr h).symm ▸ mem_top
 
@@ -221,6 +230,17 @@ begin
   { simpa [comap_comap] },
   { refine trans (comap_map_of_surjective _ quotient.mk_surjective _) (sup_eq_left.2 _),
     simpa [← ring_hom.ker_eq_comap_bot] using hIP},
+end
+
+/-- `comap (algebra_map R S)` is a surjection from the max spec of `S` to max spec of `R`.
+`hP : (algebra_map R S).ker ≤ P` is a slight generalization of the extension being injective -/
+lemma exists_ideal_over_maximal_of_is_integral (H : algebra.is_integral R S)
+  (P : ideal R) [P_max : is_maximal P] (hP : (algebra_map R S).ker ≤ P) :
+  ∃ (Q : ideal S), is_maximal Q ∧ Q.comap (algebra_map R S) = P :=
+begin
+  obtain ⟨Q, ⟨Q_prime, hQ⟩⟩ := exists_ideal_over_prime_of_is_integral' H P hP,
+  haveI : Q.is_prime := Q_prime,
+  exact ⟨Q, is_maximal_of_is_integral_of_is_maximal_comap H _ (hQ.symm ▸ P_max), hQ⟩,
 end
 
 end integral_domain

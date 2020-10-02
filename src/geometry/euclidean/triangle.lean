@@ -10,6 +10,7 @@ noncomputable theory
 open_locale big_operators
 open_locale classical
 open_locale real
+open_locale real_inner_product_space
 
 /-!
 # Triangles
@@ -48,13 +49,13 @@ most conveniently be developed in terms of vectors and then used to
 deduce corresponding results for Euclidean affine spaces.
 -/
 
-variables {V : Type*} [inner_product_space V]
+variables {V : Type*} [inner_product_space ℝ V]
 
 /-- Pythagorean theorem, if-and-only-if vector angle form. -/
 lemma norm_add_square_eq_norm_square_add_norm_square_iff_angle_eq_pi_div_two (x y : V) :
   ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ ↔ angle x y = π / 2 :=
 begin
-  rw norm_add_square_eq_norm_square_add_norm_square_iff_inner_eq_zero,
+  rw norm_add_square_eq_norm_square_add_norm_square_iff_real_inner_eq_zero,
   exact inner_eq_zero_iff_angle_eq_pi_div_two x y
 end
 
@@ -67,7 +68,7 @@ lemma norm_add_square_eq_norm_square_add_norm_square' (x y : V) (h : angle x y =
 lemma norm_sub_square_eq_norm_square_add_norm_square_iff_angle_eq_pi_div_two (x y : V) :
   ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ ↔ angle x y = π / 2 :=
 begin
-  rw norm_sub_square_eq_norm_square_add_norm_square_iff_inner_eq_zero,
+  rw norm_sub_square_eq_norm_square_add_norm_square_iff_real_inner_eq_zero,
   exact inner_eq_zero_iff_angle_eq_pi_div_two x y
 end
 
@@ -82,8 +83,8 @@ lemma norm_sub_square_eq_norm_square_add_norm_square_sub_two_mul_norm_mul_norm_m
   ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ - 2 * ∥x∥ * ∥y∥ * real.cos (angle x y) :=
 by rw [(show 2 * ∥x∥ * ∥y∥ * real.cos (angle x y) =
              2 * (real.cos (angle x y) * (∥x∥ * ∥y∥)), by ring),
-       cos_angle_mul_norm_mul_norm, ←inner_self_eq_norm_square,
-       ←inner_self_eq_norm_square, ←inner_self_eq_norm_square, inner_sub_sub_self,
+       cos_angle_mul_norm_mul_norm, ←real_inner_self_eq_norm_square,
+       ←real_inner_self_eq_norm_square, ←real_inner_self_eq_norm_square, real_inner_sub_sub_self,
        sub_add_eq_add_sub]
 
 /-- Pons asinorum, vector angle form. -/
@@ -95,8 +96,8 @@ begin
                                          (angle_nonneg _ _)
                                          (angle_le_pi _ _) _,
   rw [cos_angle, cos_angle, h, ←neg_sub, norm_neg, neg_sub,
-      inner_sub_right, inner_sub_right, inner_self_eq_norm_square, inner_self_eq_norm_square, h,
-      inner_comm x y]
+      inner_sub_right, inner_sub_right, real_inner_self_eq_norm_square, real_inner_self_eq_norm_square, h,
+      real_inner_comm x y]
 end
 
 /-- Converse of pons asinorum, vector angle form. -/
@@ -104,10 +105,10 @@ lemma norm_eq_of_angle_sub_eq_angle_sub_rev_of_angle_ne_pi {x y : V}
     (h : angle x (x - y) = angle y (y - x)) (hpi : angle x y ≠ π) : ∥x∥ = ∥y∥ :=
 begin
   replace h := real.arccos_inj
-    (abs_le.mp (abs_inner_div_norm_mul_norm_le_one x (x - y))).1
-    (abs_le.mp (abs_inner_div_norm_mul_norm_le_one x (x - y))).2
-    (abs_le.mp (abs_inner_div_norm_mul_norm_le_one y (y - x))).1
-    (abs_le.mp (abs_inner_div_norm_mul_norm_le_one y (y - x))).2
+    (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x (x - y))).1
+    (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x (x - y))).2
+    (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one y (y - x))).1
+    (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one y (y - x))).2
     h,
   by_cases hxy : x = y,
   { rw hxy },
@@ -115,8 +116,8 @@ begin
         mul_inv_rev', mul_inv_rev', ←mul_assoc, ←mul_assoc] at h,
     replace h :=
       mul_right_cancel' (inv_ne_zero (λ hz, hxy (eq_of_sub_eq_zero (norm_eq_zero.1 hz)))) h,
-    rw [inner_sub_right, inner_sub_right, inner_comm y x, inner_self_eq_norm_square,
-        inner_self_eq_norm_square, mul_sub_right_distrib, mul_sub_right_distrib,
+    rw [inner_sub_right, inner_sub_right, real_inner_comm x y, real_inner_self_eq_norm_square,
+        real_inner_self_eq_norm_square, mul_sub_right_distrib, mul_sub_right_distrib,
         mul_self_mul_inv, mul_self_mul_inv, sub_eq_sub_iff_sub_eq_sub,
         ←mul_sub_left_distrib] at h,
     by_cases hx0 : x = 0,
@@ -130,7 +131,7 @@ begin
         symmetry,
         by_contradiction hyx,
         replace h := (mul_left_cancel' (sub_ne_zero_of_ne hyx) h).symm,
-        rw [inner_div_norm_mul_norm_eq_neg_one_iff, ←angle_eq_pi_iff] at h,
+        rw [real_inner_div_norm_mul_norm_eq_neg_one_iff, ←angle_eq_pi_iff] at h,
         exact hpi h } } }
 end
 
@@ -154,19 +155,19 @@ begin
                 ∥x∥ * ∥y∥ * ∥x - y∥ * ∥x - y∥ =
               (real.sin (angle x (x - y)) * (∥x∥ * ∥x - y∥)) *
                 (real.sin (angle y (y - x)) * (∥y∥ * ∥x - y∥)), { ring },
-    have H2 : inner x x * (inner x x - inner x y - (inner x y - inner y y)) -
+    have H2 : ⟪x, x⟫ * (inner x x - inner x y - (inner x y - inner y y)) -
                 (inner x x - inner x y) * (inner x x - inner x y) =
               inner x x * inner y y - inner x y * inner x y, { ring },
-    have H3 : inner y y * (inner y y - inner x y - (inner x y - inner x x)) -
+    have H3 : ⟪y, y⟫ * (inner y y - inner x y - (inner x y - inner x x)) -
                 (inner y y - inner x y) * (inner y y - inner x y) =
               inner x x * inner y y - inner x y * inner x y, { ring },
     rw [mul_sub_right_distrib, mul_sub_right_distrib, mul_sub_right_distrib,
         mul_sub_right_distrib, H1, sin_angle_mul_norm_mul_norm, norm_sub_rev x y,
         sin_angle_mul_norm_mul_norm, norm_sub_rev y x, inner_sub_left, inner_sub_left,
-        inner_sub_right, inner_sub_right, inner_sub_right, inner_sub_right, inner_comm y x, H2,
-        H3, real.mul_self_sqrt (sub_nonneg_of_le (inner_mul_inner_self_le x y)),
-        inner_self_eq_norm_square, inner_self_eq_norm_square,
-        inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two],
+        inner_sub_right, inner_sub_right, inner_sub_right, inner_sub_right, real_inner_comm x y, H2,
+        H3, real.mul_self_sqrt (sub_nonneg_of_le (real_inner_mul_inner_self_le x y)),
+        real_inner_self_eq_norm_square, real_inner_self_eq_norm_square,
+        real_inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two],
     field_simp [hxn, hyn, hxyn],
     ring }
 end
@@ -187,25 +188,25 @@ begin
     apply mul_right_cancel' hyn,
     apply mul_right_cancel' hxyn,
     apply mul_right_cancel' hxyn,
-    have H1 : real.sin (angle x (x - y)) * (inner y (y - x) / (∥y∥ * ∥y - x∥)) * ∥x∥ * ∥y∥ * ∥x - y∥ =
+    have H1 : real.sin (angle x (x - y)) * (⟪y, y - x⟫ / (∥y∥ * ∥y - x∥)) * ∥x∥ * ∥y∥ * ∥x - y∥ =
                 real.sin (angle x (x - y)) * (∥x∥ * ∥x - y∥) *
-                  (inner y (y - x) / (∥y∥ * ∥y - x∥)) * ∥y∥, { ring },
-    have H2 : inner x (x - y) / (∥x∥ * ∥y - x∥) * real.sin (angle y (y - x)) * ∥x∥ * ∥y∥ * ∥y - x∥ =
-                inner x (x - y) / (∥x∥ * ∥y - x∥) *
+                  (⟪y, y - x⟫ / (∥y∥ * ∥y - x∥)) * ∥y∥, { ring },
+    have H2 : ⟪x, x - y⟫ / (∥x∥ * ∥y - x∥) * real.sin (angle y (y - x)) * ∥x∥ * ∥y∥ * ∥y - x∥ =
+                ⟪x, x - y⟫ / (∥x∥ * ∥y - x∥) *
                   (real.sin (angle y (y - x)) * (∥y∥ * ∥y - x∥)) * ∥x∥, { ring },
-    have H3 : inner x x * (inner x x - inner x y - (inner x y - inner y y)) -
-                (inner x x - inner x y) * (inner x x - inner x y) =
-              inner x x * inner y y - inner x y * inner x y, { ring },
-    have H4 : inner y y * (inner y y - inner x y - (inner x y - inner x x)) -
-                (inner y y - inner x y) * (inner y y - inner x y) =
-              inner x x * inner y y - inner x y * inner x y, { ring },
+    have H3 : ⟪x, x⟫ * (⟪x, x⟫ - ⟪x, y⟫ - (⟪x, y⟫ - ⟪y, y⟫)) -
+                (⟪x, x⟫ - ⟪x, y⟫) * (⟪x, x⟫ - ⟪x, y⟫) =
+              ⟪x, x⟫ * ⟪y, y⟫ - ⟪x, y⟫ * ⟪x, y⟫, { ring },
+    have H4 : ⟪y, y⟫ * (⟪y, y⟫ - ⟪x, y⟫ - (⟪x, y⟫ - ⟪x, x⟫)) -
+                (⟪y, y⟫ - ⟪x, y⟫) * (⟪y, y⟫ - ⟪x, y⟫) =
+              ⟪x, x⟫ * ⟪y, y⟫ - ⟪x, y⟫  * ⟪x, y⟫, { ring },
     rw [right_distrib, right_distrib, right_distrib, right_distrib, H1,
         sin_angle_mul_norm_mul_norm, norm_sub_rev x y, H2, sin_angle_mul_norm_mul_norm,
         norm_sub_rev y x, mul_assoc (real.sin (angle x y)), sin_angle_mul_norm_mul_norm,
         inner_sub_left, inner_sub_left, inner_sub_right, inner_sub_right, inner_sub_right,
-        inner_sub_right, inner_comm y x, H3, H4, inner_self_eq_norm_square,
-        inner_self_eq_norm_square,
-        inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two],
+        inner_sub_right, real_inner_comm x y, H3, H4, real_inner_self_eq_norm_square,
+        real_inner_self_eq_norm_square,
+        real_inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two],
     field_simp [hxn, hyn, hxyn],
     ring }
 end
@@ -292,7 +293,7 @@ open inner_product_geometry
 
 open_locale euclidean_geometry
 
-variables {V : Type*} {P : Type*} [inner_product_space V] [metric_space P]
+variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
 include V
 

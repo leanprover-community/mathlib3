@@ -18,7 +18,6 @@ class ordered_semiring (α : Type u) extends semiring α, ordered_cancel_add_com
 (mul_lt_mul_of_pos_left :  ∀ a b c : α, a < b → 0 < c → c * a < c * b)
 (mul_lt_mul_of_pos_right : ∀ a b c : α, a < b → 0 < c → a * c < b * c)
 
-
 section ordered_semiring
 variables [ordered_semiring α] {a b c d : α}
 
@@ -147,13 +146,13 @@ end
 
 lemma bit1_pos' (h : 0 < a) : 0 < bit1 a :=
 begin
-  letI := nontrivial_of_lt h,
+  letI := nontrivial_of_lt _ _ h,
   exact bit1_pos h.le,
 end
 
 lemma one_lt_mul (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
 begin
-  letI := nontrivial_of_lt hb,
+  letI := nontrivial_of_lt _ _ hb,
   exact (one_mul (1 : α)) ▸ mul_lt_mul' ha hb zero_le_one (zero_lt_one.trans_le ha)
 end
 
@@ -162,14 +161,14 @@ begin rw ← one_mul (1 : α), apply mul_le_mul; {assumption <|> apply zero_le_o
 
 lemma one_lt_mul_of_le_of_lt (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
 begin
-  letI := nontrivial_of_lt hb,
+  letI := nontrivial_of_lt _ _ hb,
   calc 1 = 1 * 1 : by rw one_mul
      ... < a * b : mul_lt_mul' ha hb zero_le_one (zero_lt_one.trans_le ha)
 end
 
 lemma one_lt_mul_of_lt_of_le (ha : 1 < a) (hb : 1 ≤ b) : 1 < a * b :=
 begin
-  letI := nontrivial_of_lt ha,
+  letI := nontrivial_of_lt _ _ ha,
   calc 1 = 1 * 1 : by rw one_mul
     ... < a * b : mul_lt_mul ha hb zero_lt_one $ zero_le_one.trans ha.le
 end
@@ -192,13 +191,26 @@ calc a * b ≤ b : mul_le_of_le_one_left hb0 ha
 
 end ordered_semiring
 
-/-- A `linear_ordered_semiring α` is a semiring `α` with a linear order
-such that multiplication with a positive number and addition are monotone. -/
+/--
+A `linear_ordered_semiring α` is a nontrivial semiring `α` with a linear order
+such that multiplication with a positive number and addition are monotone.
+-/
+-- It's not entirely clear we should assume `nontrivial` at this point;
+-- it would be reasonable to explore changing this,
+-- but be warned that the instances involving `domain` may cause
+-- typeclass search loops.
 @[protect_proj]
 class linear_ordered_semiring (α : Type u) extends ordered_semiring α, linear_order α, nontrivial α
 
 section linear_ordered_semiring
 variables [linear_ordered_semiring α] {a b c d : α}
+
+-- `norm_num` expects the lemma stating `0 < 1` to have a single typeclass argument
+-- (see `norm_num.prove_pos_nat`).
+-- Rather than working out how to relax that assumption,
+-- we provide a synonym for `zero_lt_one` (which needs both `ordered_semiring α` and `nontrivial α`)
+-- with only a `linear_ordered_semiring` typeclass argument.
+lemma zero_lt_one' : 0 < (1 : α) := zero_lt_one
 
 lemma lt_of_mul_lt_mul_left (h : c * a < c * b) (hc : 0 ≤ c) : a < b :=
 lt_of_not_ge

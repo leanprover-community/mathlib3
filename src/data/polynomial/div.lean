@@ -501,7 +501,6 @@ end
 @[simp] lemma div_by_monic_one (p : polynomial R) : p /ₘ 1 = p :=
 by conv_rhs { rw [← mod_by_monic_add_div p monic_one] }; simp
 
-
 @[simp] lemma mod_by_monic_X_sub_C_eq_C_eval (p : polynomial R) (a : R) :
   p %ₘ (X - C a) = C (p.eval a) :=
 if h0 : (0 : R) = 1 then by letI := subsingleton_of_zero_eq_one h0; exact subsingleton.elim _ _

@@ -27,7 +27,6 @@ by refine
   .. };
 intros; exact subsingleton.elim _ _
 
-
 instance : complete_boolean_algebra punit :=
 by refine
 { le := λ _ _, true,

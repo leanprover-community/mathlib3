@@ -104,9 +104,6 @@ end linear_ordered_comm_monoid
 lemma zero_le_one' : (0 : α) ≤ 1 :=
 linear_ordered_comm_group_with_zero.zero_le_one
 
-lemma zero_lt_one' : (0 : α) < 1 :=
-lt_of_le_of_ne zero_le_one' zero_ne_one
-
 @[simp] lemma zero_le' : 0 ≤ a :=
 by simpa only [mul_zero, mul_one] using mul_le_mul_left' (@zero_le_one' α _) a
 

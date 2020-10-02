@@ -563,7 +563,7 @@ or.elim (eq_zero_or_eq_zero_of_mul_eq_zero
 instance : decidable_linear_ordered_comm_ring ℤ√d :=
 { add_le_add_left := @zsqrtd.add_le_add_left,
   mul_pos         := @zsqrtd.mul_pos,
-  zero_lt_one     := dec_trivial,
+  zero_le_one     := dec_trivial,
   .. zsqrtd.comm_ring, .. zsqrtd.decidable_linear_order, .. zsqrtd.nontrivial }
 
 instance : decidable_linear_ordered_semiring ℤ√d := by apply_instance

@@ -40,10 +40,12 @@ begin
   { exact ⟨y, ne.symm hx⟩ }
 end
 
-lemma nontrivial_of_ne {x y : α} (h : x ≠ y) : nontrivial α :=
+-- `x` and `y` are explicit here, as they are often needed to guide typechecking of `h`.
+lemma nontrivial_of_ne (x y : α) (h : x ≠ y) : nontrivial α :=
 ⟨⟨x, y, h⟩⟩
 
-lemma nontrivial_of_lt [preorder α] {x y : α} (h : x < y) : nontrivial α :=
+-- `x` and `y` are explicit here, as they are often needed to guide typechecking of `h`.
+lemma nontrivial_of_lt [preorder α] (x y : α) (h : x < y) : nontrivial α :=
 ⟨⟨x, y, ne_of_lt h⟩⟩
 
 @[priority 100] -- see Note [lower instance priority]

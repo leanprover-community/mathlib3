@@ -440,7 +440,7 @@ def coprime (a b : α) : Prop := gcd a b = 1
 
 theorem coprime.gcd_eq_one {m n : α} : coprime m n → gcd m n = 1 := id
 
-theorem coprime.symm {m n : α} : coprime n m → coprime m n := (gcd_comm m n).trans
+@[symm] theorem coprime.symm {m n : α} : coprime n m → coprime m n := (gcd_comm m n).trans
 
 theorem coprime_of_dvd {m n : α} (H : ∀ k, k ∣ m → k ∣ n → k ∣ 1) : coprime m n :=
 begin

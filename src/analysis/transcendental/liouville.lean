@@ -16,7 +16,7 @@ open polynomial real set finset
 /-!
 # Liouville's theorem
 
-This file contains the proof of Liouville's theorem stating that all Liouville's numbers are
+This file contains the proof of Liouville's theorem stating that all Liouville numbers are
 transcendental.
 -/
 

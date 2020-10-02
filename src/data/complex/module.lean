@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Sébastien Gouëzel
 -/
 import data.complex.basic
-import ring_theory.algebra
+import algebra.algebra.basic
+
 /-!
 # Complex number as a vector space over `ℝ`
 

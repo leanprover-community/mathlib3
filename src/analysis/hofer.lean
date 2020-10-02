@@ -48,6 +48,7 @@ begin
   choose! F hF using H,  -- Use the axiom of choice
   -- Now define u by induction starting at x, with u_{n+1} = F(n, u_n)
   let u : ℕ → X := λ n, nat.rec_on n x F,
+  have hu0 : u 0 = x := rfl,
   -- The properties of F translate to properties of u
   have hu :
     ∀ n,
@@ -56,13 +57,12 @@ begin
   { intro n,
     exact hF n (u n) },
   clear hF,
-
   -- Key properties of u, to be proven by induction
   have key : ∀ n, d (u n) (u (n + 1)) ≤ ε / 2 ^ n ∧ 2 * ϕ (u n) < ϕ (u (n + 1)),
   { intro n,
     induction n using nat.case_strong_induction_on with n IH,
     { specialize hu 0,
-      simpa [show u 0 = x, from rfl, zero_le_one, ε_pos.le] using hu },
+      simpa [hu0, mul_nonneg_iff, zero_le_one, ε_pos.le] using hu },
     have A : d (u (n+1)) x ≤ 2 * ε,
     { rw [dist_comm],
       let r := range (n+1), -- range (n+1) = {0, ..., n}
@@ -81,18 +81,15 @@ begin
     exact hu (n+1) ⟨A, B⟩, },
   cases forall_and_distrib.mp key with key₁ key₂,
   clear hu key,
-
   -- Hence u is Cauchy
   have cauchy_u : cauchy_seq u,
   { apply cauchy_seq_of_le_geometric _ ε (by norm_num : 1/(2:ℝ) < 1),
     intro n,
     convert key₁ n,
     simp },
-
   -- So u converges to some y
   obtain ⟨y, limy⟩ : ∃ y, tendsto u at_top (𝓝 y),
     from complete_space.complete cauchy_u,
-
   -- And ϕ ∘ u goes to +∞
   have lim_top : tendsto (ϕ ∘ u) at_top at_top,
   { let v := λ n, (ϕ ∘ u) (n+1),
@@ -104,11 +101,9 @@ begin
       ... < ϕ (u (0 + 1)) : key₂ 0 },
     apply tendsto_at_top_of_geom_lt hv₀ (by norm_num : (1 : ℝ) < 2),
     exact λ n, key₂ (n+1) },
-
   -- But ϕ ∘ u also needs to go to ϕ(y)
   have lim : tendsto (ϕ ∘ u) at_top (𝓝 (ϕ y)),
     from tendsto.comp cont.continuous_at limy,
-
   -- So we have our contradiction!
   exact not_tendsto_at_top_of_tendsto_nhds lim lim_top,
 end

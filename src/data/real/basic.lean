@@ -568,9 +568,7 @@ begin
   rw [mul_self_le_mul_self_iff (le_of_lt hx) (sqrt_nonneg _), pow_two],
   cases le_total 0 y with hy hy,
   { rw [mul_self_sqrt hy] },
-  { have h1 : 0 < x * x := mul_pos hx hx,
-    have h2 : ¬x * x ≤ y := not_le_of_lt (lt_of_le_of_lt hy h1),
-    simp [sqrt_eq_zero_of_nonpos, hy, h1, h2] }
+  { simp [sqrt_eq_zero_of_nonpos, hy, hx.le, hx.not_le, hy.trans_lt (mul_pos hx hx)] }
 end
 
 lemma le_sqrt_of_sqr_le (h : x ^ 2 ≤ y) : x ≤ sqrt y :=

@@ -389,8 +389,7 @@ lemma of_real_mul {p q : ℝ} (hp : 0 ≤ p) :
 begin
   cases le_total 0 q with hq hq,
   { apply nnreal.eq,
-    have := max_eq_left (mul_nonneg hp hq),
-    simpa [nnreal.of_real, hp, hq, max_eq_left] },
+    simp [nnreal.of_real, hp, hq, max_eq_left] },
   { have hpq := mul_nonpos_of_nonneg_of_nonpos hp hq,
     rw [of_real_eq_zero.2 hq, of_real_eq_zero.2 hpq, mul_zero] }
 end

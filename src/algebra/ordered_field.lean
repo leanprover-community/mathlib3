@@ -240,6 +240,29 @@ by rwa [inv_le ((@zero_lt_one α _).trans_le ha) zero_lt_one, inv_one]
 lemma one_le_inv (h₁ : 0 < a) (h₂ : a ≤ 1) : 1 ≤ a⁻¹ :=
 by rwa [le_inv (@zero_lt_one α _) h₁, inv_one]
 
+lemma inv_lt_one_iff_of_pos (h₀ : 0 < a) : a⁻¹ < 1 ↔ 1 < a :=
+⟨λ h₁, inv_inv' a ▸ one_lt_inv (inv_pos.2 h₀) h₁, inv_lt_one⟩
+
+@[simp] lemma inv_lt_one_iff : a⁻¹ < 1 ↔ a ≤ 0 ∨ 1 < a :=
+begin
+  cases le_or_lt a 0 with ha ha,
+  { simp [ha, (inv_nonpos.2 ha).trans_lt zero_lt_one] },
+  { simp only [ha.not_le, false_or, inv_lt_one_iff_of_pos ha] }
+end
+
+@[simp] lemma one_lt_inv_iff : 1 < a⁻¹ ↔ 0 < a ∧ a < 1 :=
+⟨λ h, ⟨inv_pos.1 (zero_lt_one.trans h), inv_inv' a ▸ inv_lt_one h⟩, and_imp.2 one_lt_inv⟩
+
+@[simp] lemma inv_le_one_iff : a⁻¹ ≤ 1 ↔ a ≤ 0 ∨ 1 ≤ a :=
+begin
+  rcases em (a = 1) with (rfl|ha),
+  { simp [le_rfl] },
+  { simp [ne.le_iff_lt (ne.symm ha), ne.le_iff_lt (mt inv_eq_one'.1 ha)] }
+end
+
+@[simp] lemma one_le_inv_iff : 1 ≤ a⁻¹ ↔ 0 < a ∧ a ≤ 1 :=
+⟨λ h, ⟨inv_pos.1 (zero_lt_one.trans_le h), inv_inv' a ▸ inv_le_one h⟩, and_imp.2 one_le_inv⟩
+
 /-!
 ### Relating two divisions.
 -/

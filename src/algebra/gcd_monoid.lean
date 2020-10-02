@@ -461,11 +461,8 @@ instance : normalization_monoid ℤ :=
   norm_unit_zero := if_pos (le_refl _),
   norm_unit_mul  := assume a b hna hnb,
   begin
-    by_cases ha : 0 ≤ a; by_cases hb : 0 ≤ b; simp [ha, hb],
-    exact if_pos (mul_nonneg ha hb),
-    exact if_neg (assume h, hb $ nonneg_of_mul_nonneg_left h $ lt_of_le_of_ne ha hna.symm),
-    exact if_neg (assume h, ha $ nonneg_of_mul_nonneg_right h $ lt_of_le_of_ne hb hnb.symm),
-    exact if_pos (mul_nonneg_of_nonpos_of_nonpos (le_of_not_ge ha) (le_of_not_ge hb))
+    cases hna.lt_or_lt with ha ha; cases hnb.lt_or_lt with hb hb;
+      simp [ha.le, ha.not_le, hb.le, hb.not_le]
   end,
   norm_unit_coe_units := assume u, (units_eq_one_or u).elim
     (assume eq, eq.symm ▸ if_pos zero_le_one)

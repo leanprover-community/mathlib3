@@ -161,7 +161,14 @@ lemma sum_mem {ι : Type*} {t : finset ι} {f : ι → L} (h : ∀ c ∈ t, f c 
   ∑ i in t, f i ∈ S :=
 S.to_subfield.sum_mem h
 
-lemma pow_mem {x : L} (hx : x ∈ S) (n : ℕ) : x^n ∈ S := S.to_subfield.pow_mem hx n
+lemma pow_mem {x : L} (hx : x ∈ S) (n : ℤ) : x^n ∈ S :=
+begin
+  cases n,
+  { exact @is_submonoid.pow_mem L _ S.to_subfield.to_submonoid x _ hx n, },
+  { have h := @is_submonoid.pow_mem L _ S.to_subfield.to_submonoid x _ hx _,
+    exact subfield.inv_mem S.to_subfield h, },
+end
+--S.to_subfield.pow_mem hx n
 
 lemma gsmul_mem {x : L} (hx : x ∈ S) (n : ℤ) :
   n •ℤ x ∈ S := S.to_subfield.gsmul_mem hx n

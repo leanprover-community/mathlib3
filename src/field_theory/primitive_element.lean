@@ -54,7 +54,7 @@ begin
     exact F⟮α.val⟯.zero_mem },
   { obtain ⟨n, hn⟩ := set.mem_range.mp (hα (units.mk0 x hx)),
     rw (show x = α^n, by { norm_cast, rw [hn, units.coe_mk0] }),
-    exact @is_subfield.pow_mem E _ α.val n F⟮α.val⟯ _ (mem_adjoin_simple_self F α.val) },
+    exact pow_mem F⟮↑α⟯ (mem_adjoin_simple_self F ↑α) n, },
 end
 
 /-- Primitive element theorem for finite dimensional extension of a finite field. -/
@@ -210,7 +210,7 @@ begin
   obtain ⟨α, hα⟩ := exists_primitive_element_aux F'_sep,
   have : (F'⟮α⟯ : set E) = F⟮α⟯,
   { rw [adjoin_simple_comm, adjoin_zero, adjoin_eq_range_algebra_map_adjoin],
-    simp [set.ext_iff, algebra.mem_bot] },
+    simp [set.ext_iff, intermediate_field.mem_bot] },
   exact ⟨α, by simp [subalgebra.ext_iff, set.ext_iff, algebra.mem_top, *] at *⟩,
 end
 

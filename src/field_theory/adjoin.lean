@@ -258,12 +258,8 @@ calc S ⊆ adjoin F S : subset_adjoin _ _
   ... = (⊥ : intermediate_field F E) : congr_arg coe h
 
 lemma mem_bot_of_adjoin_simple_sub_bot (h : F⟮α⟯ = ⊥) : α ∈ (⊥ : intermediate_field F E) :=
-begin
-  -- Originally, this proof was `set.singleton_subset_iff.mp (sub_bot_of_adjoin_sub_bot h)`.
-  -- That proof no longer works, but the following one does. What's going on here??
-  have := set.singleton_subset_iff.mp (sub_bot_of_adjoin_sub_bot h),
-  exact this,
-end
+  ((⊥ : intermediate_field F E).mem_coe α).mp
+    (set.singleton_subset_iff.mp (sub_bot_of_adjoin_sub_bot h))
 
 lemma adjoin_eq_bot_iff : S ⊆ (⊥ : intermediate_field F E) ↔ adjoin F S = ⊥ :=
 ⟨adjoin_eq_bot, sub_bot_of_adjoin_sub_bot⟩

@@ -13,6 +13,8 @@ import algebra.big_operators
 open_locale big_operators
 open polynomial real set finset
 
+namespace real
+
 /-!
 # Liouville's theorem
 
@@ -419,3 +421,5 @@ begin
 end
 
 end liouville
+
+end real

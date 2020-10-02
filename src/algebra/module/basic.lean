@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import group_theory.group_action
+import tactic.nth_rewrite
 
 /-!
 # Modules over a ring
@@ -106,6 +107,19 @@ lemma finset.sum_smul {f : ι → R} {s : finset ι} {x : M} :
 ((smul_add_hom R M).flip x).map_sum f s
 
 end add_comm_monoid
+
+variables (R)
+
+/-- An `add_comm_monoid` that is a `semimodule` over a `ring` carries a natural `add_comm_group` structure. -/
+def semimodule.add_comm_monoid_to_add_comm_group [ring R] [add_comm_monoid M] [semimodule R M] :
+  add_comm_group M :=
+{ neg          := λ a, (-1 : R) • a,
+  add_left_neg := λ a, by {
+    nth_rewrite 1 ← one_smul _ a,
+    rw [← add_smul, add_left_neg, zero_smul], },
+  ..(infer_instance : add_comm_monoid M), }
+
+variables {R}
 
 section add_comm_group
 

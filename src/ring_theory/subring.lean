@@ -767,3 +767,7 @@ lemma closure_preimage_le (f : R →+* S) (s : set S) :
 closure_le.2 $ λ x hx, mem_coe.2 $ mem_comap.2 $ subset_closure hx
 
 end subring
+
+lemma add_subgroup.int_mul_mem {G : add_subgroup R} (k : ℤ) {g : R} (h : g ∈ G) :
+  (k : R) * g ∈ G :=
+by { convert add_subgroup.gsmul_mem G h k, simp }

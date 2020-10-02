@@ -14,11 +14,9 @@ import tactic.ring_exp
 -/
 
 noncomputable theory
-open_locale classical topological_space
-
 open classical function filter finset metric
 
-open_locale big_operators
+open_locale classical topological_space nat big_operators
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 
@@ -258,6 +256,18 @@ summable_geometric_of_norm_lt_1 h
 lemma tsum_geometric_of_abs_lt_1 {r : ℝ} (h : abs r < 1) : (∑'n:ℕ, r ^ n) = (1 - r)⁻¹ :=
 tsum_geometric_of_norm_lt_1 h
 
+/-- A geometric series in a normed field is summable iff the norm of the common ratio is less than
+one. -/
+@[simp] lemma summable_geometric_iff_norm_lt_1 : summable (λ n : ℕ, ξ ^ n) ↔ ∥ξ∥ < 1 :=
+begin
+  refine ⟨λ h, _, summable_geometric_of_norm_lt_1⟩,
+  obtain ⟨k : ℕ, hk : dist (ξ ^ k) 0 < 1⟩ :=
+    (h.tendsto_cofinite_zero.eventually (ball_mem_nhds _ zero_lt_one)).exists,
+  simp only [normed_field.norm_pow, dist_zero_right] at hk,
+  rw [← one_pow k] at hk,
+  exact lt_of_pow_lt_pow _ zero_le_one hk
+end
+
 end geometric
 
 /-!
@@ -473,7 +483,7 @@ begin
   simp only [pow_zero],
   refine le_trans (norm_add_le _ _) _,
   have : ∥(∑' (b : ℕ), (λ n, x ^ (n + 1)) b)∥ ≤ (1 - ∥x∥)⁻¹ - 1,
-  { refine tsum_of_norm_bounded _ (λ b, norm_pow_le _ (nat.succ_pos b)),
+  { refine tsum_of_norm_bounded _ (λ b, norm_pow_le' _ (nat.succ_pos b)),
     convert (has_sum_nat_add_iff' 1).mpr (has_sum_geometric_of_lt_1 (norm_nonneg x) h),
     simp },
   linarith
@@ -521,7 +531,7 @@ def pos_sum_of_encodable {ε : ℝ} (hε : 0 < ε)
 begin
   let f := λ n, (ε / 2) / 2 ^ n,
   have hf : has_sum f ε := has_sum_geometric_two' _,
-  have f0 : ∀ n, 0 < f n := λ n, div_pos (half_pos hε) (pow_pos two_pos _),
+  have f0 : ∀ n, 0 < f n := λ n, div_pos (half_pos hε) (pow_pos zero_lt_two _),
   refine ⟨f ∘ encodable.encode, λ i, f0 _, _⟩,
   rcases hf.summable.comp_injective (@encodable.encode_injective ι _) with ⟨c, hg⟩,
   refine ⟨c, hg, has_sum_le_inj _ (@encodable.encode_injective ι _) _ _ hg hf⟩,
@@ -553,6 +563,34 @@ begin
 end
 
 end ennreal
+
+/-!
+### Factorial
+-/
+
+lemma factorial_tendsto_at_top : tendsto nat.factorial at_top at_top :=
+tendsto_at_top_at_top_of_monotone nat.monotone_factorial (λ n, ⟨n, n.self_le_factorial⟩)
+
+lemma tendsto_factorial_div_pow_self_at_top : tendsto (λ n, n! / n^n : ℕ → ℝ) at_top (𝓝 0) :=
+tendsto_of_tendsto_of_tendsto_of_le_of_le'
+  tendsto_const_nhds
+  (tendsto_const_div_at_top_nhds_0_nat 1)
+  (eventually_of_forall $ λ n, div_nonneg (by exact_mod_cast n.factorial_pos.le)
+    (pow_nonneg (by exact_mod_cast n.zero_le) _))
+  begin
+    rw eventually_iff_exists_mem,
+    use [set.Ioi 0, Ioi_mem_at_top 0],
+    rintros n (hn : 0 < n),
+    rcases nat.exists_eq_succ_of_ne_zero hn.ne.symm with ⟨k, rfl⟩,
+    rw [← prod_range_add_one_eq_factorial, pow_eq_prod_const, div_eq_mul_inv, ← inv_eq_one_div, prod_nat_cast,
+        nat.cast_succ, ← prod_inv_distrib', ← prod_mul_distrib, finset.prod_range_succ'],
+    simp only [prod_range_succ', one_mul, nat.cast_add, zero_add, nat.cast_one],
+    refine mul_le_of_le_one_left (inv_nonneg.mpr $ by exact_mod_cast hn.le) (prod_le_one _ _);
+    intros x hx;
+    rw finset.mem_range at hx,
+    { refine mul_nonneg _ (inv_nonneg.mpr _); norm_cast; linarith },
+    { refine (div_le_one $ by exact_mod_cast hn).mpr _, norm_cast, linarith }
+  end
 
 /-!
 ### Harmonic series

@@ -442,6 +442,9 @@ namespace involutive
 variables {α : Sort u} {f : α → α} (h : involutive f)
 include h
 
+@[simp]
+lemma comp_self : f ∘ f = id := funext h
+
 protected lemma left_inverse : left_inverse f f := h
 protected lemma right_inverse : right_inverse f f := h
 

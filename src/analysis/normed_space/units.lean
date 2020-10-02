@@ -177,7 +177,7 @@ begin
   have ht' : ∥t∥ < 1,
   { have : (2:ℝ)⁻¹ < 1 := by cancel_denoms,
     linarith },
-  simp only [inverse_one_sub t ht', normed_field.norm_one, mul_one, set.mem_set_of_eq],
+  simp only [inverse_one_sub t ht', norm_one, mul_one, set.mem_set_of_eq],
   change ∥(∑' (n : ℕ), t ^ n)∥ ≤ _,
   have := normed_ring.tsum_geometric_of_norm_lt_1 t ht',
   have : (1 - ∥t∥)⁻¹ ≤ 2,
@@ -191,7 +191,7 @@ end
 /-- The function `λ t, inverse (x + t)` is O(1) as `t → 0`. -/
 lemma inverse_add_norm (x : units R) : is_O (λ t, inverse (↑x + t)) (λ t, (1:ℝ)) (𝓝 (0:R)) :=
 begin
-  simp only [is_O_iff, normed_field.norm_one, mul_one],
+  simp only [is_O_iff, norm_one, mul_one],
   cases subsingleton_or_nontrivial R; resetI,
   { refine ⟨1, eventually_of_forall (λ t, _)⟩,
     have : ∥inverse (↑x + t)∥ = 0 := by simp,
@@ -235,7 +235,7 @@ begin
   rw hLHS,
   refine le_trans (norm_mul_le _ _ ) _,
   have h' : ∥(-(↑x⁻¹ * t)) ^ n∥ ≤ ∥(↑x⁻¹ : R)∥ ^ n * ∥t∥ ^ n,
-  { calc ∥(-(↑x⁻¹ * t)) ^ n∥ ≤ ∥(-(↑x⁻¹ * t))∥ ^ n : norm_pow_le _ hn
+  { calc ∥(-(↑x⁻¹ * t)) ^ n∥ ≤ ∥(-(↑x⁻¹ * t))∥ ^ n : norm_pow_le' _ hn
     ... = ∥↑x⁻¹ * t∥ ^ n : by rw norm_neg
     ... ≤ (∥(↑x⁻¹ : R)∥ * ∥t∥) ^ n : _
     ... =  ∥(↑x⁻¹ : R)∥ ^ n * ∥t∥ ^ n : mul_pow _ _ n,

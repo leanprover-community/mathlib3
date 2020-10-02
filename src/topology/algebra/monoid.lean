@@ -21,8 +21,8 @@ class has_continuous_add (α : Type*) [topological_space α] [has_add α] : Prop
 (continuous_add : continuous (λp:α×α, p.1 + p.2))
 
 /-- Basic hypothesis to talk about a topological monoid or a topological semigroup.
-A topological monoid over `α`, for example, is obtained by requiring both the instances `monoid α` and
-`has_continuous_mul α`. -/
+A topological monoid over `α`, for example, is obtained by requiring both the instances `monoid α`
+and `has_continuous_mul α`. -/
 @[to_additive]
 class has_continuous_mul (α : Type*) [topological_space α] [has_mul α] : Prop :=
 (continuous_mul : continuous (λp:α×α, p.1 * p.2))

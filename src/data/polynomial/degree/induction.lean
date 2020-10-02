@@ -1374,13 +1374,13 @@ end
 -/
 
 
-lemma pol_ind_Rhom_prod_on_card (cf cg : ℕ) (rp : ℕ → polynomial R → polynomial R)
- {rp_add  : ∀ f g : polynomial R , ∀ F : ℕ ,
-  rp F (f+g) = rp F f + rp F g }
- {rp_smul : ∀ f : polynomial R , ∀ r : R , ∀ F : ℕ ,
-  rp F ((C r)*f) = C r * rp F f }
- {rp_mon : ∀ n N : ℕ , n ≤ N →
-  rp N (X^n) = X^(N-n) } :
+lemma pol_ind_Rhom_prod_on_card (cf cg : ℕ) {rp : ℕ → polynomial R → polynomial R}
+ (rp_add  : ∀ f g : polynomial R , ∀ F : ℕ ,
+  rp F (f+g) = rp F f + rp F g)
+ (rp_smul : ∀ f : polynomial R , ∀ r : R , ∀ F : ℕ ,
+  rp F ((C r)*f) = C r * rp F f)
+ (rp_mon : ∀ n N : ℕ , n ≤ N →
+  rp N (X^n) = X^(N-n)) :
  ∀ N O : ℕ , ∀ f g : polynomial R ,
  f.support.card ≤ cf.succ → g.support.card ≤ cg.succ → f.nat_degree ≤ N → g.nat_degree ≤ O →
  (rp (N + O) (f*g)) = (rp N f) * (rp O g) :=
@@ -1389,6 +1389,7 @@ begin
     intro,
     rw [← zero_mul (1 : polynomial R), ← C_0, rp_smul (1 : polynomial R) 0 T, C_0, zero_mul, zero_mul],
   induction cf with cf hcf,
+  --first induction: base case
     { induction cg with cg hcg,
     -- second induction: base case
       { intros N O f g Cf Cg Nf Og,
@@ -1405,45 +1406,94 @@ begin
     -- second induction: induction step
       { intros N O f g Cf Cg Nf Og,
         by_cases g0 : g = 0,
-          rw [g0, mul_zero, rp_zero, rp_zero, mul_zero],
+          { rw [g0, mul_zero, rp_zero, rp_zero, mul_zero], },
 
-        rw [sum_leading_term_remove g, mul_add, rp_add, rp_add, mul_add],
+          { rw [sum_leading_term_remove g, mul_add, rp_add, rp_add, mul_add],
 
---        exact (le_add_left card_support_term_le_one),
---        exact (le_trans (nat_degree_term_le g.leading_coeff g.nat_degree) Og),
+            rw hcg N O f (remove_leading_coefficient g) Cf _ Nf _,
+            rw hcg N O f (_) Cf _ Nf _,
 
-          rw hcg N O f (remove_leading_coefficient g) Cf _ Nf _,
-          rw hcg N O f (_) Cf _ Nf _,
+            exact (le_add_left card_support_term_le_one),
+            exact (le_trans (nat_degree_term_le g.leading_coeff g.nat_degree) Og),
+
+            rw ← nat.lt_succ_iff,
+            apply gt_of_ge_of_gt Cg _,
+            apply support_remove_leading_coefficient_lt g0,
+
+            exact le_trans nat_degree_remove_leading_coefficient_le Og, }, }, },
+
+  --first induction: induction step
+    { intros N O f g Cf Cg Nf Og,
+
+      by_cases f0 : f=0,
+        { rw [f0, zero_mul, rp_zero, rp_zero, zero_mul], },
+
+        { rw [sum_leading_term_remove f, add_mul, rp_add, rp_add, add_mul],
+
+          rw hcf N O (remove_leading_coefficient f) (g) _ Cg _ Og,
+          rw hcf N O (_) (g) _ Cg _ Og,
 
           exact (le_add_left card_support_term_le_one),
-          exact (le_trans (nat_degree_term_le g.leading_coeff g.nat_degree) Og),
+          exact (le_trans (nat_degree_term_le f.leading_coeff f.nat_degree) Nf),
 
           rw ← nat.lt_succ_iff,
-          apply gt_of_ge_of_gt Cg _,
-          apply support_remove_leading_coefficient_lt g0,
-
-          exact le_trans nat_degree_remove_leading_coefficient_le Og, }, },
-
-
-        --induction step
-        intros N O f g Cf Cg Nf Og,
-
-        by_cases f0 : f=0,
-          rw [f0, zero_mul, rp_zero, rp_zero, zero_mul],
-
-        rw [sum_leading_term_remove f, add_mul, rp_add, rp_add, add_mul],
-
-        rw hcf N O (remove_leading_coefficient f) (g) _ Cg _ Og,
-        rw hcf N O (_) (g) _ Cg _ Og,
-
-        exact (le_add_left card_support_term_le_one),
-        exact (le_trans (nat_degree_term_le f.leading_coeff f.nat_degree) Nf),
-
-        { rw ← nat.lt_succ_iff,
           apply gt_of_ge_of_gt Cf _,
-          apply support_remove_leading_coefficient_lt f0, },
+          apply support_remove_leading_coefficient_lt f0,
 
-        exact le_trans nat_degree_remove_leading_coefficient_le Nf,
+          exact le_trans nat_degree_remove_leading_coefficient_le Nf, }, },
+end
+
+
+lemma pol_ind_Rhom_prod {rp : ℕ → polynomial R → polynomial R}
+ (rp_add  : ∀ f g : polynomial R , ∀ F : ℕ ,
+  rp F (f+g) = rp F f + rp F g)
+ (rp_smul : ∀ f : polynomial R , ∀ r : R , ∀ F : ℕ ,
+  rp F ((C r)*f) = C r * rp F f)
+ (rp_mon : ∀ n N : ℕ , n ≤ N →
+  rp N (X^n) = X^(N-n)) :
+ ∀ N O : ℕ , ∀ f g : polynomial R ,
+ f.nat_degree ≤ N → g.nat_degree ≤ O →
+ (rp (N + O) (f*g)) = (rp N f) * (rp O g) :=
+begin
+  intros N O f g,
+  apply pol_ind_Rhom_prod_on_card f.support.card g.support.card rp_add rp_smul rp_mon,
+  exact f.support.card.le_succ,
+  exact g.support.card.le_succ,
+end
+
+@[simp] theorem reflect_mul {f g : polynomial R} {F G : ℕ} (Ff : f.nat_degree ≤ F) (Gg : g.nat_degree ≤ G) :
+ reflect (F+G) (f*g) = reflect F f * reflect G g :=
+begin
+  apply pol_ind_Rhom_prod,
+    { apply reflect_add, },
+    { intros f r F,
+      rw reflect_smul, },
+    { intros n N Nn,
+      rw [reflect_monomial, rev_at_small Nn], },
+    { assumption },
+    { assumption },
+end
+
+def reverse : polynomial R → polynomial R := λ f , reflect f.nat_degree f
+
+lemma nat_degree_add_of_mul_leading_coeff_nonzero (f g: polynomial R) (fg: f.leading_coeff * g.leading_coeff ≠ 0) :
+ (f * g).nat_degree = f.nat_degree + g.nat_degree :=
+begin
+  apply le_antisymm,
+    { exact nat_degree_mul_le, },
+    { apply le_nat_degree_of_mem_supp,
+      rw mem_support_iff_coeff_ne_zero,
+      convert fg,
+      exact coeff_mul_degree_add_degree f g, },
+end
+
+
+theorem reverse_mul (f g : polynomial R) {fg : f.leading_coeff*g.leading_coeff ≠ 0} :
+ reverse (f*g) = reverse f * reverse g :=
+begin
+  unfold reverse,
+  convert reflect_mul (le_refl _) (le_refl _),
+    exact nat_degree_add_of_mul_leading_coeff_nonzero f g fg,
 end
 
 /-

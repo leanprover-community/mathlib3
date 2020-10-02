@@ -1361,6 +1361,17 @@ begin
   assumption,
 end
 
+/-
+lemma zero_of_smul {R S T : Type*} [semiring R] [semiring S] [semiring T] (rs : R → S) (rt : R → T) (rp : S → T)
+ (rt_zero : rt 0 = 0)
+ (comm : ∀ r : R , rp (rs r) = rt r )
+ (rp_smul : ∀ r : R , ∀ s : S , rp (rs r * s) = rt r * (rp (s)) ) : rp (0) = 0 :=
+begin
+  convert rp_smul 0 0,
+  rw [mul_zero],
+  rw [rt_zero, zero_mul],
+end
+-/
 
 
 lemma pol_ind_Rhom_prod_on_card (cf cg : ℕ) (rp : ℕ → polynomial R → polynomial R)
@@ -1375,46 +1386,43 @@ lemma pol_ind_Rhom_prod_on_card (cf cg : ℕ) (rp : ℕ → polynomial R → pol
  (rp (N + O) (f*g)) = (rp N f) * (rp O g) :=
 begin
   have rp_zero : ∀ T : ℕ , rp T (0 : polynomial R) = 0,
-    intro T,
+    intro,
     rw [← zero_mul (1 : polynomial R), ← C_0, rp_smul (1 : polynomial R) 0 T, C_0, zero_mul, zero_mul],
   induction cf with cf hcf,
-    induction cg with cg hcg,
-      intros N O f g Cf Cg Nf Og,
-      rw [term_of_card_support_le_one Cf, term_of_card_support_le_one Cg],
-      rw [mul_assoc, X_pow_mul, mul_assoc, ← pow_add X],
-      repeat {rw rp_smul},
-      repeat {rw rp_mon},
-      rw [mul_assoc, X_pow_mul, mul_assoc, ← pow_add X],
-      congr,
-      omega,
-      repeat {assumption,},
-      rw add_comm,
-      exact add_le_add Nf Og,
+    { induction cg with cg hcg,
+    -- second induction: base case
+      { intros N O f g Cf Cg Nf Og,
+        rw [term_of_card_support_le_one Cf, term_of_card_support_le_one Cg],
+        rw [mul_assoc, X_pow_mul, mul_assoc, ← pow_add X],
+        repeat {rw rp_smul},
+        repeat {rw rp_mon},
+        rw [mul_assoc, X_pow_mul, mul_assoc, ← pow_add X],
+        congr,
+        omega,
+        repeat {assumption,},
+        rw add_comm,
+        exact add_le_add Nf Og, },
+    -- second induction: induction step
+      { intros N O f g Cf Cg Nf Og,
+        by_cases g0 : g = 0,
+          rw [g0, mul_zero, rp_zero, rp_zero, mul_zero],
 
-      intros N O f g Cf Cg Nf Og,
+        rw [sum_leading_term_remove g, mul_add, rp_add, rp_add, mul_add],
 
-      by_cases g0 : g = 0,
-        rw [g0, mul_zero, rp_zero, rp_zero, zero_add, mul_zero, zero_add],
-        apply hcg N O f _ Cf _ Nf _,
-      rw [sum_leading_term_remove g, mul_add, rp_add, rp_add, mul_add],
+--        exact (le_add_left card_support_term_le_one),
+--        exact (le_trans (nat_degree_term_le g.leading_coeff g.nat_degree) Og),
 
-        exact (le_add_left card_support_term_le_one),
-        exact (le_trans (nat_degree_term_le g.leading_coeff g.nat_degree) Og),
+          rw hcg N O f (remove_leading_coefficient g) Cf _ Nf _,
+          rw hcg N O f (_) Cf _ Nf _,
 
-        rw hcg N O f (remove_leading_coefficient g) Cf _ Nf _,
-        rw hcg N O f (_) Cf _ Nf _,
+          exact (le_add_left card_support_term_le_one),
+          exact (le_trans (nat_degree_term_le g.leading_coeff g.nat_degree) Og),
 
-        exact (le_add_left card_support_term_le_one),
-        exact (le_trans (nat_degree_term_le g.leading_coeff g.nat_degree) Og),
+          rw ← nat.lt_succ_iff,
+          apply gt_of_ge_of_gt Cg _,
+          apply support_remove_leading_coefficient_lt g0,
 
-        rw ← nat.lt_succ_iff,
-        apply gt_of_ge_of_gt Cg _,
-        apply support_remove_leading_coefficient_lt,
-        intro,
-        apply rg0,
-        rw [a, remove_leading_coefficient_zero],
-
-        exact le_trans nat_degree_remove_leading_coefficient_le Og,
+          exact le_trans nat_degree_remove_leading_coefficient_le Og, }, },
 
 
         --induction step

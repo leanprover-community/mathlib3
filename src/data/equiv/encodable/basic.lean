@@ -292,10 +292,10 @@ def up (a : ulower α) : α := (equiv α).symm a
 @[simp] lemma up_down {a : α} : (down a).up = a := equiv.left_inv _ _
 
 @[simp] lemma up_eq_up {a b : ulower α} : a.up = b.up ↔ a = b :=
-equiv.apply_eq_iff_eq _ _ _
+equiv.apply_eq_iff_eq _
 
 @[simp] lemma down_eq_down {a b : α} : down a = down b ↔ a = b :=
-equiv.apply_eq_iff_eq _ _ _
+equiv.apply_eq_iff_eq _
 
 @[ext] protected lemma ext {a b : ulower α} : a.up = b.up → a = b :=
 up_eq_up.1

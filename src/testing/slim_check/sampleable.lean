@@ -32,6 +32,38 @@ This is a port of the Haskell QuickCheck library.
 
 ## Main definitions
   * `sampleable` class
+  * `sampleable_functor` and `sampleable_bifunctor` class
+  * `sampleable_ext` class
+
+### `sampleable`
+
+`sampleable α` provides ways of creating examples of type `α`,
+and given such an example `x : α`, gives us a way to shrink it
+and find simpler examples.
+
+### `sampleable_ext`
+
+`sampleable_ext` generalizes the behavior of `sampleable`
+and makes it possible to express instances for types that
+do not lend themselves to introspection, such as `ℕ → ℕ`.
+If we test a quantification over functions the
+counter-examples cannot be shrunken or printed meaningfully.
+
+For that purpose, `sampleable_ext` provides a proxy representation
+`proxy_repr` that can be printed and shrunken as well
+as interpreted (using `interp`) as an object of the right type.
+
+### `sampleable_functor` and `sampleable_bifunctor`
+
+`sampleable_functor F` and `sampleable_bifunctor F` makes it possible
+to create samples of and shrink `F α` given a sampling function and a
+shrinking function for arbitrary `α`.
+
+This allows us to separate the logic for generating the shape of a
+collection from the logic for generating its contents. Specifically,
+the contents could be generated using either `sampleable` or
+`sampleable_ext` instance and the `sampleable_(bi)functor` does not
+need to use that information
 
 ## Shrinking
 

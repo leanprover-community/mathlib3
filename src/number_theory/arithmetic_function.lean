@@ -49,8 +49,15 @@ instance : has_coe_to_fun (arithmetic_function α) := ⟨λ _, ℕ → α, to_fu
 @[simp]
 lemma map_zero {f : arithmetic_function α} : f 0 = 0 := f.map_zero'
 
-theorem coe_inj ⦃f g : arithmetic_function α⦄ (h : (f : ℕ → α) = g) : f = g :=
-by { cases f, cases g, cases h, refl }
+theorem coe_inj {f g : arithmetic_function α} : (f : ℕ → α) = g ↔ f = g :=
+begin
+  split; intro h,
+  { cases f,
+    cases g,
+    cases h,
+    refl },
+  { rw h }
+end
 
 instance : has_zero (arithmetic_function α) := ⟨⟨λ _, 0, rfl⟩⟩
 
@@ -60,7 +67,7 @@ lemma zero_apply {x : ℕ} : (0 : arithmetic_function α) x = 0 := rfl
 instance : inhabited (arithmetic_function α) := ⟨0⟩
 
 @[ext] theorem ext ⦃f g : arithmetic_function α⦄ (h : ∀ x, f x = g x) : f = g :=
-coe_inj (funext h)
+coe_inj.1 (funext h)
 
 theorem ext_iff {f g : arithmetic_function α} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
@@ -102,7 +109,7 @@ section add_monoid
 
 variable [add_monoid α]
 
-instance : has_add (arithmetic_function α) := ⟨λ x y, ⟨λ n, x n + y n, by simp⟩⟩
+instance : has_add (arithmetic_function α) := ⟨λ f g, ⟨λ n, f n + g n, by simp⟩⟩
 
 @[simp]
 lemma add_apply {f g : arithmetic_function α} {n : ℕ} : (f + g) n = f n + g n := rfl

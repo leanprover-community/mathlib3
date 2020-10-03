@@ -181,16 +181,17 @@ dvd_antisymm
     (dvd.trans (dvd_lcm_left m n) (dvd_lcm_left (lcm m n) k))
     (lcm_dvd (dvd.trans (dvd_lcm_right m n) (dvd_lcm_left (lcm m n) k)) (dvd_lcm_right (lcm m n) k)))
 
-/-! ### `coprime` -/
+/-!
+### `coprime`
+
+See also `nat.coprime_of_dvd` and `nat.coprime_of_dvd'` to prove `nat.coprime m n`.
+-/
 
 instance (m n : ℕ) : decidable (coprime m n) := by unfold coprime; apply_instance
 
 theorem coprime.gcd_eq_one {m n : ℕ} : coprime m n → gcd m n = 1 := id
 
 theorem coprime.symm {m n : ℕ} : coprime n m → coprime m n := (gcd_comm m n).trans
-
--- see coprime_of_dvd / coprime_of_dvd' in prime.lean
--- TODO: should this be mentioned in a doc comment?
 
 theorem coprime.dvd_of_dvd_mul_right {m n k : ℕ} (H1 : coprime k n) (H2 : k ∣ m * n) : k ∣ m :=
 let t := dvd_gcd (dvd_mul_left k m) H2 in

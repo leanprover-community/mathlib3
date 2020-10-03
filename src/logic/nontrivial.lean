@@ -150,7 +150,7 @@ do
     fail format!"Could not prove goal assuming `subsingleton {t}`",
   reset_instance_cache
 
-/-
+/--
 Given a goal `a ≠ b` or `a < b` in a type `α`, tries to generate a `nontrivial α`
 hypothesis from existing hypotheses using `nontrivial_of_ne` and `nontrivial_of_lt`.
 -/

@@ -71,6 +71,8 @@ end
 Given a multiset which sums to `n`, construct a partition of `n` with the same multiset, but
 without the zeros.
 -/
+-- The argument `n` is kept explicit here since it is useful in tactic mode proofs to generate the
+-- proof obligation `l.sum = n`.
 def of_sums (n : ℕ) (l : multiset ℕ) (hl : l.sum = n) : partition n :=
 { parts := l.filter (≠ 0),
   parts_pos := λ i hi, nat.pos_of_ne_zero $ by apply of_mem_filter hi,
@@ -106,10 +108,7 @@ count_filter_of_pos hi
 
 lemma count_of_sums_zero {n : ℕ} {l : multiset ℕ} (hl : l.sum = n) :
   (of_sums n l hl).parts.count 0 = 0 :=
-begin
-  apply count_filter_of_neg,
-  simp,
-end
+count_filter_of_neg (λ h, h rfl)
 
 /--
 Show there are finitely many partitions by considering the surjection from compositions to

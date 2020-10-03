@@ -18,7 +18,7 @@ variables {R : Type*} [semiring R] {f : polynomial R}
 
 open erase_leading
 
-namespace reverse
+namespace rev
 /-- rev_at is a function of two natural variables (N,i).  If i ≤ N, then rev_at N i returns N-i, otherwise it returns N.  Essentially, this function is only used for i ≤ N. -/
 def rev_at (N : ℕ) : ℕ → ℕ := λ i : ℕ , ite (i ≤ N) (N-i) i
 
@@ -205,5 +205,5 @@ begin
     exact nat_degree_add_of_mul_leading_coeff_nonzero f g fg,
 end
 
-end reverse
+end rev
 end polynomial

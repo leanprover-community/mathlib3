@@ -302,7 +302,6 @@ begin
   rw [← one_mul X, ← C_1, ← pow_one X, support_mul_X_pow 1 1 H],
 end
 
-
 end semiring
 
 

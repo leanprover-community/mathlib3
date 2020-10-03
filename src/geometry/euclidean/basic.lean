@@ -546,7 +546,7 @@ def orthogonal_projection_fn {s : affine_subspace ℝ P} (hn : (s : set P).nonem
 classical.some $ inter_eq_singleton_of_nonempty_of_is_compl
   hn
   (mk'_nonempty p s.direction.orthogonal)
-  ((direction_mk' p s.direction.orthogonal).symm ▸ submodule.is_compl_orthogonal_of_is_complete_real hc)
+  ((direction_mk' p s.direction.orthogonal).symm ▸ submodule.is_compl_orthogonal_of_is_complete hc)
 
 /-- The intersection of the subspace and the orthogonal subspace
 through the given point is the `orthogonal_projection_fn` of that
@@ -559,7 +559,7 @@ lemma inter_eq_singleton_orthogonal_projection_fn {s : affine_subspace ℝ P}
 classical.some_spec $ inter_eq_singleton_of_nonempty_of_is_compl
   hn
   (mk'_nonempty p s.direction.orthogonal)
-  ((direction_mk' p s.direction.orthogonal).symm ▸ submodule.is_compl_orthogonal_of_is_complete_real hc)
+  ((direction_mk' p s.direction.orthogonal).symm ▸ submodule.is_compl_orthogonal_of_is_complete hc)
 
 /-- The `orthogonal_projection_fn` lies in the given subspace.  This
 lemma is only intended for use in setting up the bundled version and

@@ -411,13 +411,14 @@ instance {X : C} [has_binary_product X X] : split_mono (diag X) :=
 end prod_lemmas
 
 section coprod_lemmas
-variable [has_colimits_of_shape (discrete walking_pair) C]
 
 /- The redundant simp lemma linter says that simp can prove the reassoc version of this lemma. -/
 @[reassoc, simp]
 lemma coprod.desc_comp_comp {V W X Y : C} [has_binary_coproduct X Y] (f : V ⟶ W) (g : X ⟶ V)
   (h : Y ⟶ V) : coprod.desc (g ≫ f) (h ≫ f) = coprod.desc g h ≫ f :=
 by tidy
+
+variable [has_colimits_of_shape (discrete walking_pair) C]
 
 @[reassoc]
 lemma coprod.inl_map {W X Y Z : C}

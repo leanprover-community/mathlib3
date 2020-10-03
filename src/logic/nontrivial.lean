@@ -142,10 +142,11 @@ Given a goal `a = b` or `a ≤ b` in a type `α`, generates an additional hypoth
 -/
 meta def nontriviality_by_elim : tactic unit :=
 do
-  t ← (do `(%%a = %%b) ← target, infer_type a) <|> (do `(%%a ≤ %%b) ← target, infer_type a) <|>
+  t ← (do `(%%a = %%b) ← target >>= whnf, infer_type a) <|> (do `(%%a ≤ %%b) ← target, infer_type a) <|>
     fail "Goal is not `_ = _` or `_ ≤ _`",
   alternative ← to_expr ``(subsingleton_or_nontrivial %%t),
-  tactic.cases alternative,
+  n ← get_unused_name "_inst",
+  tactic.cases alternative [n, n],
   `[{ resetI, try { apply le_of_eq }, apply subsingleton.elim, }] <|>
     fail format!"Could not prove goal assuming `subsingleton {t}`",
   reset_instance_cache

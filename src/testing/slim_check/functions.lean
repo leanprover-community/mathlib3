@@ -54,6 +54,9 @@ the partial function.
 
 `with_default f y` encodes `x ↦ f x` when `x ∈ f` and `x ↦ y`
 otherwise.
+
+We use `Σ` to encode mappings instead of `×` because we
+rely on the association list API defined in `data.list.sigma`.
  -/
 inductive total_function (α : Type u) (β : Type v) : Type (max u v)
 | with_default : list (Σ _ : α, β) → β → total_function
@@ -151,6 +154,9 @@ the partial function.
 
 `map_to_self f` encodes `x ↦ f x` when `x ∈ f` and `x ↦ x`,
 i.e. `x` to itself, otherwise.
+
+We use `Σ` to encode mappings instead of `×` because we
+rely on the association list API defined in `data.list.sigma`.
 -/
 inductive injective_function (α : Type u) : Type u
 | map_to_self (xs : list (Σ _ : α, α)) : xs.map sigma.fst ~ xs.map sigma.snd → list.nodup (xs.map sigma.snd) → injective_function

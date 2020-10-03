@@ -412,7 +412,7 @@ def zmod_equiv_gpowers (h : is_primitive_root ζ k) : zmod k ≃+ additive (subg
 add_equiv.of_bijective
 (add_monoid_hom.lift_of_surjective (int.cast_add_hom _)
   zmod.int_cast_surjective
-  { to_fun := λ i, additive.of_mul ⟨_, i, rfl⟩,
+  { to_fun := λ i, additive.of_mul (⟨_, i, rfl⟩ : subgroup.gpowers ζ),
     map_zero' := by { simp only [gpow_zero], refl },
     map_add' := by { intros i j, simp only [gpow_add], refl } }
   (λ i hi,
@@ -438,7 +438,7 @@ begin
 end
 
 @[simp] lemma zmod_equiv_gpowers_apply_coe_int (i : ℤ) :
-  h.zmod_equiv_gpowers i = additive.of_mul ⟨ζ ^ i, i, rfl⟩ :=
+  h.zmod_equiv_gpowers i = additive.of_mul (⟨ζ ^ i, i, rfl⟩ : subgroup.gpowers ζ) :=
 begin
   apply add_monoid_hom.lift_of_surjective_comp_apply,
   intros j hj,
@@ -450,7 +450,7 @@ begin
 end
 
 @[simp] lemma zmod_equiv_gpowers_apply_coe_nat (i : ℕ) :
-  h.zmod_equiv_gpowers i = additive.of_mul ⟨ζ ^ i, i, rfl⟩ :=
+  h.zmod_equiv_gpowers i = additive.of_mul (⟨ζ ^ i, i, rfl⟩ : subgroup.gpowers ζ) :=
 begin
   have : (i : zmod k) = (i : ℤ), by norm_cast,
   simp only [this, zmod_equiv_gpowers_apply_coe_int, gpow_coe_nat],
@@ -458,7 +458,7 @@ begin
 end
 
 @[simp] lemma zmod_equiv_gpowers_symm_apply_gpow (i : ℤ) :
-  h.zmod_equiv_gpowers.symm (additive.of_mul ⟨ζ ^ i, i, rfl⟩) = i :=
+  h.zmod_equiv_gpowers.symm (additive.of_mul (⟨ζ ^ i, i, rfl⟩ : subgroup.gpowers ζ)) = i :=
 by rw [← h.zmod_equiv_gpowers.symm_apply_apply i, zmod_equiv_gpowers_apply_coe_int]
 
 @[simp] lemma zmod_equiv_gpowers_symm_apply_gpow' (i : ℤ) :
@@ -466,7 +466,7 @@ by rw [← h.zmod_equiv_gpowers.symm_apply_apply i, zmod_equiv_gpowers_apply_coe
 h.zmod_equiv_gpowers_symm_apply_gpow i
 
 @[simp] lemma zmod_equiv_gpowers_symm_apply_pow (i : ℕ) :
-  h.zmod_equiv_gpowers.symm (additive.of_mul ⟨ζ ^ i, i, rfl⟩) = i :=
+  h.zmod_equiv_gpowers.symm (additive.of_mul (⟨ζ ^ i, i, rfl⟩ : subgroup.gpowers ζ)) = i :=
 by rw [← h.zmod_equiv_gpowers.symm_apply_apply i, zmod_equiv_gpowers_apply_coe_nat]
 
 @[simp] lemma zmod_equiv_gpowers_symm_apply_pow' (i : ℕ) :

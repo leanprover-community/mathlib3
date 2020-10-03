@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Heather Macbeth
+Authors: Heather Macbeth, Frédéric Dupuis
 -/
 import analysis.normed_space.hahn_banach
 import analysis.normed_space.inner_product
@@ -15,6 +15,18 @@ a normed space into its double dual.
 We also prove that, for base field such as the real or the complex numbers, this map is an isometry.
 More generically, this is proved for any field in the class `has_exists_extension_norm_eq`, i.e.,
 satisfying the Hahn-Banach theorem.
+
+In the case of inner product spaces, we define `to_dual` which maps an element x of the space
+to `λ y, ⟪x, y⟫`. We also give the Fréchet-Riesz representation, which states that every element
+of the dual of a Hilbert space `E` has the form `λ u, ⟪x, u⟫` for some `x : E`.
+
+## References
+
+* [M. Einsiedler and T. Ward, *Functional Analysis, Spectral Theory, and Applications*][EinsiedlerWard2017]
+
+## Tags
+
+dual, Fréchet-Riesz
 -/
 
 noncomputable theory
@@ -99,6 +111,7 @@ end bidual_isometry
 end normed_space
 
 namespace inner_product_space
+open is_R_or_C continuous_linear_map
 
 variables (𝕜 : Type*)
 variables {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
@@ -121,32 +134,53 @@ linear_map.mk_continuous
 by { ext, simp [to_dual] }
 
 /--
-Fréchet-Riesz representation: if x is in the dual of a Hilbert space E, it can be represented
-by the function λ u, ⟪y, u⟫ for some y in E.
+Fréchet-Riesz representation: any ℓ in the dual of a Hilbert space E is of the form
+λ u, ⟪y, u⟫ for some y in E.
 -/
-lemma exists_elem_of_mem_dual [complete_space E] (x : normed_space.dual 𝕜 E) :
-  ∃ y : E, x = to_dual 𝕜 y :=
+lemma exists_elem_of_mem_dual [complete_space E] (ℓ : normed_space.dual 𝕜 E) :
+  ∃ y : E, ℓ = to_dual 𝕜 y :=
 begin
-  set Y := continuous_linear_map.ker x with hY,
+  set Y := ker ℓ with hY,
   by_cases htriv : Y = ⊤,
-  { have hx : x = 0,
+  { have hℓ : ℓ = 0,
     { have h' := linear_map.ker_eq_top.mp htriv,
-      rw [←continuous_linear_map.coe_zero] at h',
-      apply continuous_linear_map.coe_injective,
+      rw [←coe_zero] at h',
+      apply coe_injective,
       exact h' },
-    exact ⟨0, by simp [hx]⟩ },
-  {
-    have Ycomplete := continuous_linear_map.is_complete_ker x,
+    exact ⟨0, by simp [hℓ]⟩ },
+  { have Ycomplete := is_complete_ker ℓ,
     rw [submodule.eq_top_iff_orthogonal_eq_bot Ycomplete, ←hY] at htriv,
     change Y.orthogonal ≠ ⊥ at htriv,
     rw [submodule.ne_bot_iff] at htriv,
-    rcases htriv with ⟨z, hz, z_ne_0⟩,
-    refine ⟨((x z)† / ⟪z, z⟫) • z, _⟩,
-    ext u,
-    simp [to_dual],
-
-    sorry,
-  }
+    obtain ⟨z : E, hz : z ∈ Y.orthogonal, z_ne_0 : z ≠ 0⟩ := htriv,
+    refine ⟨((ℓ z)† / ⟪z, z⟫) • z, _⟩,
+    ext x,
+    have h₁ : (ℓ z) • x - (ℓ x) • z ∈ Y,
+    { rw [mem_ker, map_sub, map_smul, map_smul, algebra.id.smul_eq_mul, algebra.id.smul_eq_mul,
+          mul_comm],
+      exact sub_self (ℓ x * ℓ z) },
+    have h₂ : (ℓ z) * ⟪z, x⟫ = (ℓ x) * ⟪z, z⟫,
+    { have h₃ := calc
+        0    = ⟪z, (ℓ z) • x - (ℓ x) • z⟫       : by { rw [(Y.mem_orthogonal' z).mp hz], exact h₁ }
+         ... = ⟪z, (ℓ z) • x⟫ - ⟪z, (ℓ x) • z⟫  : by rw [inner_sub_right]
+         ... = (ℓ z) * ⟪z, x⟫ - (ℓ x) * ⟪z, z⟫  : by simp [inner_smul_right],
+      exact sub_eq_zero.mp (eq.symm h₃) },
+    dsimp [to_dual],
+    have h₄ := calc
+      ⟪((ℓ z)† / ⟪z, z⟫) • z, x⟫ = (ℓ z) / ⟪z, z⟫ * ⟪z, x⟫
+            : by simp [inner_smul_left, conj_div, conj_conj]
+                            ... = (ℓ z) * ⟪z, x⟫ / ⟪z, z⟫
+            : by rw [←div_mul_eq_mul_div]
+                            ... = (ℓ x) * ⟪z, z⟫ / ⟪z, z⟫
+            : by rw [h₂]
+                            ... = ℓ x
+            : begin
+                have : ⟪z, z⟫ ≠ 0,
+                { change z = 0 → false at z_ne_0,
+                  rwa ←inner_self_eq_zero at z_ne_0 },
+                field_simp [this]
+              end,
+    exact h₄.symm }
 end
 
 end inner_product_space

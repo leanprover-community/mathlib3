@@ -758,7 +758,7 @@ section integral_domain
 
 variables [integral_domain α] [gcd_monoid α]
 
-lemma gcd_eq_of_dvd_sub {a b c : α} (h : a ∣ b - c) : gcd a b = gcd a c :=
+lemma gcd_eq_of_dvd_sub_right {a b c : α} (h : a ∣ b - c) : gcd a b = gcd a c :=
 begin
   apply dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _);
   rw dvd_gcd_iff; refine ⟨gcd_dvd_left _ _, _⟩,
@@ -773,5 +773,8 @@ begin
     use e + f * d,
     rw [mul_add, ← he, ← mul_assoc, ← hf, ← hd, ← add_sub_assoc, add_comm c b, add_sub_cancel] }
 end
+
+lemma gcd_eq_of_dvd_sub_left {a b c : α} (h : a ∣ b - c) : gcd b a = gcd c a :=
+by rw [gcd_comm _ a, gcd_comm _ a, gcd_eq_of_dvd_sub_right h]
 
 end integral_domain

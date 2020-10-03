@@ -220,7 +220,7 @@ begin
       gcd_comm a, gcd_assoc, gcd_comm a (gcd_monoid.gcd _ _),
       gcd_comm (g b), gcd_assoc _ _ a, gcd_comm _ a],
   refine congr rfl _,
-  apply gcd_eq_of_dvd_sub (h _ (mem_insert_self _ _)),
+  apply gcd_eq_of_dvd_sub_right (h _ (mem_insert_self _ _)),
 end
 
 end integral_domain

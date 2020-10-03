@@ -130,6 +130,8 @@ linear_map.mk_continuous
 ∥x∥
 (λ y, by { rw [is_R_or_C.norm_eq_abs], exact abs_inner_le_norm _ _ })
 
+variables {𝕜}
+
 @[simp] lemma to_dual_zero : to_dual 𝕜 (0 : E) = 0 :=
 by { ext, simp [to_dual] }
 

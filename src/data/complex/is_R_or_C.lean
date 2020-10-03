@@ -386,6 +386,8 @@ local notation `absK` := @abs K _
 @[simp] lemma abs_of_real (r : ℝ) : absK (𝓚 r) = abs' r :=
 by simp [abs, norm_sq, norm_sq_of_real, real.sqrt_mul_self_eq_abs]
 
+lemma norm_eq_abs (z : K) : ∥z∥ = absK z := by simp [abs, norm_sq_eq_def']
+
 lemma abs_of_nonneg {r : ℝ} (h : 0 ≤ r) : absK (𝓚 r) = r :=
 (abs_of_real _).trans (abs_of_nonneg h)
 

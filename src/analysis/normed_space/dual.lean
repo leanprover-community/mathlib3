@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import analysis.normed_space.hahn_banach
+import analysis.normed_space.inner_product
 
 /-!
 # The topological dual of a normed space
@@ -96,3 +97,56 @@ end
 end bidual_isometry
 
 end normed_space
+
+namespace inner_product_space
+
+variables (𝕜 : Type*)
+variables {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
+local postfix `†`:90 := @is_R_or_C.conj 𝕜 _
+
+/--
+Given some x in an inner product space, we can define its dual as the continuous linear map
+λ y, ⟪x, y⟫.
+-/
+def to_dual (x : E) : normed_space.dual 𝕜 E :=
+linear_map.mk_continuous
+{ to_fun := λ y, ⟪x, y⟫,
+  map_add' := by simp only [inner_add_right, forall_const, eq_self_iff_true],
+  map_smul' := by simp [inner_smul_right] }
+∥x∥
+(λ y, by { rw [is_R_or_C.norm_eq_abs], exact abs_inner_le_norm _ _ })
+
+@[simp] lemma to_dual_zero : to_dual 𝕜 (0 : E) = 0 :=
+by { ext, simp [to_dual] }
+
+/--
+Fréchet-Riesz representation: if x is in the dual of a Hilbert space E, it can be represented
+by the function λ u, ⟪y, u⟫ for some y in E.
+-/
+lemma exists_elem_of_mem_dual [complete_space E] (x : normed_space.dual 𝕜 E) :
+  ∃ y : E, x = to_dual 𝕜 y :=
+begin
+  set Y := continuous_linear_map.ker x with hY,
+  by_cases htriv : Y = ⊤,
+  { have hx : x = 0,
+    { have h' := linear_map.ker_eq_top.mp htriv,
+      rw [←continuous_linear_map.coe_zero] at h',
+      apply continuous_linear_map.coe_injective,
+      exact h' },
+    exact ⟨0, by simp [hx]⟩ },
+  {
+    have Ycomplete := continuous_linear_map.is_complete_ker x,
+    rw [submodule.eq_top_iff_orthogonal_eq_bot Ycomplete, ←hY] at htriv,
+    change Y.orthogonal ≠ ⊥ at htriv,
+    rw [submodule.ne_bot_iff] at htriv,
+    rcases htriv with ⟨z, hz, z_ne_0⟩,
+    refine ⟨((x z)† / ⟪z, z⟫) • z, _⟩,
+    ext u,
+    simp [to_dual],
+
+    sorry,
+  }
+end
+
+end inner_product_space

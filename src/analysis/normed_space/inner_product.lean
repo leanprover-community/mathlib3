@@ -373,8 +373,6 @@ end
 
 variables [inner_product_space 𝕜 E] [inner_product_space ℝ F]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
-local notation `⟪`x`, `y`⟫_ℝ` := @inner ℝ _ _ x y
-local notation `⟪`x`, `y`⟫_ℂ` := @inner ℂ _ _ x y
 local notation `IK` := @is_R_or_C.I 𝕜 _
 local notation `absR` := _root_.abs
 local postfix `†`:90 := @is_R_or_C.conj 𝕜 _
@@ -815,7 +813,7 @@ itself, divided by the product of their norms, has absolute value
 lemma abs_real_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul
   {x : F} {r : ℝ} (hx : x ≠ 0) (hr : r ≠ 0) : absR ⟪x, r • x⟫_ℝ / (∥x∥ * ∥r • x∥) = 1 :=
 begin
-  simp [real_inner_smul_self_right, norm_smul, _root_.abs_mul, norm_eq_abs],
+  simp [real_inner_smul_self_right, norm_smul, _root_.abs_mul, real.norm_eq_abs],
   conv_lhs { congr, rw [←mul_assoc, mul_comm] },
   apply div_self,
   intro h,
@@ -832,7 +830,7 @@ itself, divided by the product of their norms, has value 1. -/
 lemma real_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_pos_mul
   {x : F} {r : ℝ} (hx : x ≠ 0) (hr : 0 < r) : ⟪x, r • x⟫_ℝ / (∥x∥ * ∥r • x∥) = 1 :=
 begin
-  rw [real_inner_smul_self_right, norm_smul, norm_eq_abs, ←mul_assoc ∥x∥, mul_comm _ (absR r),
+  rw [real_inner_smul_self_right, norm_smul, real.norm_eq_abs, ←mul_assoc ∥x∥, mul_comm _ (absR r),
       mul_assoc, _root_.abs_of_nonneg (le_of_lt hr), div_self],
   exact mul_ne_zero (ne_of_gt hr)
     (λ h, hx (norm_eq_zero.1 (eq_zero_of_mul_self_eq_zero h)))
@@ -1029,11 +1027,10 @@ instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
   add_left := λ x y z, by simp [inner, add_mul],
   smul_left := λ x y z, by simp [inner, mul_assoc] }
 
-
 /-- The standard real/complex Euclidean space, functions on a finite type. For an `n`-dimensional space
 use `euclidean_space 𝕜 (fin n)`.  -/
 @[reducible, nolint unused_arguments]
-def euclidean_space (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜] [is_R_or_C 𝕜]
+def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 one_le_two (λ (i : n), 𝕜)
 
 section is_R_or_C_to_real
@@ -1604,9 +1601,35 @@ end
 
 /-- If `K` is complete, `K` and `K.orthogonal` are complements of each
 other. -/
-lemma submodule.is_compl_orthogonal_of_is_complete_real {K : submodule 𝕜 E}
+lemma submodule.is_compl_orthogonal_of_is_complete {K : submodule 𝕜 E}
     (h : is_complete (K : set E)) : is_compl K K.orthogonal :=
 ⟨K.orthogonal_disjoint, le_of_eq (submodule.sup_orthogonal_of_is_complete h).symm⟩
+
+@[simp] lemma submodule.top_orthogonal_eq_bot : (⊤ : submodule 𝕜 E).orthogonal = ⊥ :=
+begin
+  ext,
+  rw [submodule.mem_bot, submodule.mem_orthogonal],
+  exact ⟨λ h, inner_self_eq_zero.mp (h x submodule.mem_top), by { rintro rfl, simp }⟩
+end
+
+@[simp] lemma submodule.bot_orthogonal_eq_top : (⊥ : submodule 𝕜 E).orthogonal = ⊤ :=
+begin
+  ext,
+  refine ⟨λ h, submodule.mem_top, λ h, _⟩,
+  rw [submodule.mem_orthogonal],
+  intros u hu,
+  rw [submodule.mem_bot] at hu,
+  simp [hu],
+end
+
+lemma submodule.eq_top_iff_orthogonal_eq_bot {K : submodule 𝕜 E} (hK : is_complete (K : set E)) :
+  K = ⊤ ↔ K.orthogonal = ⊥ :=
+begin
+  refine ⟨by { rintro rfl, exact submodule.top_orthogonal_eq_bot }, _⟩,
+  intro h,
+  have : K ⊔ K.orthogonal = ⊤ := submodule.sup_orthogonal_of_is_complete hK,
+  rwa [h, sup_comm, bot_sup_eq] at this,
+end
 
 open finite_dimensional
 

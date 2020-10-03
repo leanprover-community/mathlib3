@@ -2,11 +2,13 @@
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
-
-Opposites.
 -/
 import data.opposite
 import algebra.field
+
+/-!
+# Algebraic operations on `αᵒᵖ`
+-/
 
 namespace opposite
 universes u

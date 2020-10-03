@@ -181,7 +181,7 @@ lemma eval₂_pow (n : ℕ) : (p ^ n).eval₂ f x = p.eval₂ f x ^ n := (eval�
 
 lemma eval₂_eq_sum_range :
   p.eval₂ f x = ∑ i in finset.range (p.nat_degree + 1), f (p.coeff i) * x^i :=
-trans (congr_arg _ p.as_sum) (trans (eval₂_finset_sum f _ _ x) (congr_arg _ (by simp)))
+trans (congr_arg _ p.as_sum_range) (trans (eval₂_finset_sum f _ _ x) (congr_arg _ (by simp)))
 
 end eval₂
 
@@ -222,7 +222,8 @@ lemma eval_sum (p : polynomial R) (f : ℕ → R → polynomial R) (x : R) :
   (p.sum f).eval x = p.sum (λ n a, (f n a).eval x) :=
 eval₂_sum _ _ _ _
 
-
+lemma eval_finset_sum (s : finset ι) (g : ι → polynomial R) (x : R) :
+  (∑ i in s, g i).eval x = ∑ i in s, (g i).eval x := eval₂_finset_sum _ _ _ _
 
 /-- `is_root p x` implies `x` is a root of `p`. The evaluation of `p` at `x` is zero -/
 def is_root (p : polynomial R) (a : R) : Prop := p.eval a = 0
@@ -395,7 +396,7 @@ lemma mem_map_range {p : polynomial S} :
 begin
   split,
   { rintro ⟨p, rfl⟩ n, rw coeff_map, exact set.mem_range_self _ },
-  { intro h, rw p.as_sum,
+  { intro h, rw p.as_sum_range,
     apply is_add_submonoid.finset_sum_mem,
     intros i hi,
     rcases h i with ⟨c, hc⟩,

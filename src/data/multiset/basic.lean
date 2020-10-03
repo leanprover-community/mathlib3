@@ -858,7 +858,7 @@ quotient.induction_on m $ λ l hl x hx, by simpa using list.single_le_prod hl x 
 
 @[to_additive all_zero_of_le_zero_le_of_sum_eq_zero]
 lemma all_one_of_le_one_le_of_prod_eq_one [ordered_comm_monoid α] {m : multiset α} :
-  (∀ x ∈ m, (1 : α) ≤ x) → (m.prod = 1) → (∀ x ∈ m, x = (1 : α)) :=
+  (∀ x ∈ m, (1 : α) ≤ x) → m.prod = 1 → (∀ x ∈ m, x = (1 : α)) :=
 begin
   apply quotient.induction_on m,
   simp only [quot_mk_to_coe, coe_prod, mem_coe],
@@ -1743,7 +1743,7 @@ quot.induction_on s $ λ l, le_count_iff_repeat_sublist.trans repeat_le_coe.symm
   {a} {s : multiset α} (h : p a) : count a (filter p s) = count a s :=
 quot.induction_on s $ λ l, count_filter h
 
-@[simp] theorem count_filter_of_neg {p} [decidable_pred p] [decidable_eq α]
+@[simp] theorem count_filter_of_neg {p} [decidable_pred p]
   {a} {s : multiset α} (h : ¬ p a) : count a (filter p s) = 0 :=
 multiset.count_eq_zero_of_not_mem (λ t, h (of_mem_filter t))
 

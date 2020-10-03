@@ -303,26 +303,23 @@ structure grade_proof (C : free_algebra R X → Prop) : Prop :=
 
 namespace grade_proof
 
-/-- bundle each element with its proof -/
-structure aux {C : free_algebra R X → Prop} (p : grade_proof C) :=
-(value : free_algebra R X)
-(proof : C value)
+/-- auxiliary type to bundle each element with its proof -/
+def aux {C : free_algebra R X → Prop} (p : grade_proof C) :=
+{value // C value}
 
 variables {C : free_algebra R X → Prop} (p : grade_proof C)
 
 namespace aux
 
-@[simp] lemma eta (a : aux p): aux.mk a.value a.proof = a := by { cases a, refl }
-
--- declare these first so that proofs below can use simp
-@[simps mul] instance : has_mul (aux p) := ⟨λ a b, ⟨a.value * b.value, p.mul a.proof b.proof⟩⟩
-@[simps add] instance : has_add (aux p) := ⟨λ a b, ⟨a.value + b.value, p.add a.proof b.proof⟩⟩
+-- declare these first so that instances below can use simp
+@[simps mul] instance : has_mul (aux p) := ⟨λ a b, ⟨↑a * ↑b, p.mul a.prop b.prop⟩⟩
+@[simps add] instance : has_add (aux p) := ⟨λ a b, ⟨↑a + ↑b, p.add a.prop b.prop⟩⟩
 @[simps zero] instance : has_zero (aux p) := ⟨⟨0, p.grade0 0⟩⟩
 @[simps one] instance : has_one (aux p) := ⟨⟨1, p.grade0 1⟩⟩
 
 instance : inhabited (aux p) := ⟨0⟩
 
-/-- semiring operates on `.value`, and constructs proofs automatically -/
+/-- semiring operates on `↑x`, and constructs proofs automatically -/
 @[simps mul]
 instance : semiring (aux p) := {
   add_assoc := by simp [add_assoc],
@@ -341,7 +338,7 @@ instance : semiring (aux p) := {
   ..aux.has_one p,
   ..aux.has_zero p, }
 
-/-- algebra operates on `.value`, and constructs proofs automatically -/
+/-- algebra operates on `↑x`, and constructs proofs automatically -/
 instance : algebra R (aux p) := {
   smul := λ r a, ⟨algebra_map R _ r, p.grade0 r⟩ * a,
   to_fun := λ r, ⟨algebra_map R _ r, p.grade0 r⟩,
@@ -352,9 +349,10 @@ instance : algebra R (aux p) := {
   commutes' := by simp [algebra.commutes],
   smul_def' := by simp, }
 
-/-- projecting with `.value` preserves algebra operations -/
-def value_hom : aux p →ₐ[R] free_algebra R X := {
-  to_fun := aux.value,
+
+/-- projecting with `↑` preserves algebra operations -/
+def coe_hom : aux p →ₐ[R] free_algebra R X := {
+  to_fun := subtype.val,  -- I can't use ↑ here and I don't know why
   map_one' := by simp,
   map_mul' := by simp,
   map_zero' := by simp,
@@ -365,10 +363,10 @@ def value_hom : aux p →ₐ[R] free_algebra R X := {
     unfold algebra.to_ring_hom,
     simp, }, }
 
-lemma value_hom_eq (a : aux p) : value_hom p a = a.value := rfl
+lemma val_hom_eq (a : aux p) : coe_hom p a = a.val := rfl
 
 /-- construct a bundled proof for a grade-1 element, x -/
-def of (x : X) : aux p := aux.mk (ι R x) (p.grade1 x)
+def of (x : X) : aux p := ⟨ι R x, p.grade1 x⟩
 
 end aux
 
@@ -378,14 +376,14 @@ include p
 @[elab_as_eliminator]
 lemma induction (a) : C a :=
 begin
-  convert aux.proof ((lift R $ aux.of p) a),
-  rw ← aux.value_hom_eq,
+  convert subtype.prop ((lift R $ aux.of p) a),
+  rw [←subtype.val_eq_coe, ←aux.val_hom_eq],
   rw ← alg_hom.comp_apply,
   conv_lhs {rw ← @alg_hom.id_apply R _ _ _ _ a},
   revert a,
   rw ← alg_hom.ext_iff,
   ext,
-  simp [aux.value_hom_eq, aux.of],
+  simp [aux.val_hom_eq, aux.of],
 end
 
 end grade_proof

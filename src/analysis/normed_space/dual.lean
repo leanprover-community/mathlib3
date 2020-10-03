@@ -130,6 +130,8 @@ linear_map.mk_continuous
 ∥x∥
 (λ y, by { rw [is_R_or_C.norm_eq_abs], exact abs_inner_le_norm _ _ })
 
+@[simp] lemma to_dual_def {x y : E} : to_dual 𝕜 x y = ⟪x, y⟫ := rfl
+
 variables {𝕜}
 
 @[simp] lemma to_dual_zero : to_dual 𝕜 (0 : E) = 0 :=
@@ -167,7 +169,6 @@ begin
          ... = ⟪z, (ℓ z) • x⟫ - ⟪z, (ℓ x) • z⟫  : by rw [inner_sub_right]
          ... = (ℓ z) * ⟪z, x⟫ - (ℓ x) * ⟪z, z⟫  : by simp [inner_smul_right],
       exact sub_eq_zero.mp (eq.symm h₃) },
-    dsimp [to_dual],
     have h₄ := calc
       ⟪((ℓ z)† / ⟪z, z⟫) • z, x⟫ = (ℓ z) / ⟪z, z⟫ * ⟪z, x⟫
             : by simp [inner_smul_left, conj_div, conj_conj]

@@ -182,10 +182,10 @@ e.left_inv x
 @[simp] lemma symm_trans_apply (f : α ≃ β) (g : β ≃ γ) (a : γ) :
   (f.trans g).symm a = f.symm (g.symm a) := rfl
 
-@[simp] theorem apply_eq_iff_eq (f : α ≃ β) (x y : α) : f x = f y ↔ x = y :=
+@[simp] theorem apply_eq_iff_eq (f : α ≃ β) {x y : α} : f x = f y ↔ x = y :=
 f.injective.eq_iff
 
-theorem apply_eq_iff_eq_symm_apply {α β : Sort*} (f : α ≃ β) (x : α) (y : β) :
+theorem apply_eq_iff_eq_symm_apply {α β : Sort*} (f : α ≃ β) {x : α} {y : β} :
   f x = y ↔ x = f.symm y :=
 begin
   conv_lhs { rw ←apply_symm_apply f y, },

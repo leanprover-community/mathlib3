@@ -83,10 +83,10 @@ lemma equiv_to_opposite_apply (a : α) : equiv_to_opposite a = op a := rfl
 lemma equiv_to_opposite_symm_apply (a : αᵒᵖ) : equiv_to_opposite.symm a = unop a := rfl
 
 lemma op_eq_iff_eq_unop {x : α} {y} : op x = y ↔ x = unop y :=
-equiv_to_opposite.apply_eq_iff_eq_symm_apply _ _
+equiv_to_opposite.apply_eq_iff_eq_symm_apply
 
 lemma unop_eq_iff_eq_op {x} {y : α} : unop x = y ↔ x = op y :=
-equiv_to_opposite.symm.apply_eq_iff_eq_symm_apply _ _
+equiv_to_opposite.symm.apply_eq_iff_eq_symm_apply
 
 instance [inhabited α] : inhabited αᵒᵖ := ⟨op (default _)⟩
 

@@ -359,6 +359,8 @@ instance subsingleton.discrete_topology [t : topological_space α] [subsingleton
 
 instance : topological_space empty := ⊥
 instance : discrete_topology empty := ⟨rfl⟩
+instance : topological_space pempty := ⊥
+instance : discrete_topology pempty := ⟨rfl⟩
 instance : topological_space unit := ⊥
 instance : discrete_topology unit := ⟨rfl⟩
 instance : topological_space bool := ⊥
@@ -431,6 +433,11 @@ assume s h, ⟨_, h, rfl⟩
 lemma continuous_induced_rng {g : γ → α} {t₂ : tspace β} {t₁ : tspace γ}
   (h : cont t₁ t₂ (f ∘ g)) : cont t₁ (induced f t₂) g :=
 assume s ⟨t, ht, s_eq⟩, s_eq ▸ h t ht
+
+lemma continuous_induced_rng' [topological_space α] [topological_space β] [topological_space γ]
+  {g : γ → α} (f : α → β) (H : ‹topological_space α› = ‹topological_space β›.induced f)
+  (h : continuous (f ∘ g)) : continuous g :=
+H.symm ▸ continuous_induced_rng h
 
 lemma continuous_coinduced_rng {t : tspace α} : cont t (coinduced f t) f :=
 assume s h, h

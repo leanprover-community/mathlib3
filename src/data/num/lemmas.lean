@@ -6,6 +6,7 @@ Author: Mario Carneiro
 import data.num.bitwise
 import data.int.char_zero
 import data.nat.gcd
+import data.nat.psub
 
 /-!
 # Properties of the binary representation of integers
@@ -97,7 +98,7 @@ theorem cmp_swap (m) : ∀n, (cmp m n).swap = cmp n m :=
 by induction m with m IH m IH; intro n;
    cases n with n n; try {unfold cmp}; try {refl}; rw ←IH; cases cmp m n; refl
 
-theorem cmp_to_nat : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℕ) < n) (m = n) ((m:ℕ) > n) : Prop)
+theorem cmp_to_nat : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℕ) < n) (m = n) ((n:ℕ) < m) : Prop)
 | 1        1        := rfl
 | (bit0 a) 1        := let h : (1:ℕ) ≤ a := to_nat_pos a in add_le_add h h
 | (bit1 a) 1        := nat.succ_lt_succ $ to_nat_pos $ bit0 a
@@ -227,7 +228,7 @@ theorem mul_to_nat : ∀ m n, ((m * n : num) : ℕ) = m * n
 | (pos p) 0       := rfl
 | (pos p) (pos q) := pos_num.mul_to_nat _ _
 
-theorem cmp_to_nat : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℕ) < n) (m = n) ((m:ℕ) > n) : Prop)
+theorem cmp_to_nat : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℕ) < n) (m = n) ((n:ℕ) < m) : Prop)
 | 0       0       := rfl
 | 0       (pos b) := to_nat_pos _
 | (pos a) 0       := to_nat_pos _
@@ -517,7 +518,7 @@ end num
 namespace pos_num
 open num
 
-theorem pred_to_nat {n : pos_num} (h : n > 1) : (pred n : ℕ) = nat.pred n :=
+theorem pred_to_nat {n : pos_num} (h : 1 < n) : (pred n : ℕ) = nat.pred n :=
 begin
   unfold pred,
   have := pred'_to_nat n,
@@ -950,7 +951,7 @@ of_int_cast n
 | (n : ℕ) := to_int_inj.1 $ by simp [znum.of_int']
 | -[1+ n] := to_int_inj.1 $ by simp [znum.of_int']
 
-theorem cmp_to_int : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℤ) < n) (m = n) ((m:ℤ) > n) : Prop)
+theorem cmp_to_int : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℤ) < n) (m = n) ((n:ℤ) < m) : Prop)
 | 0       0       := rfl
 | (pos a) (pos b) := begin
     have := pos_num.cmp_to_nat a b; revert this; dsimp [cmp];
@@ -1135,7 +1136,7 @@ theorem gcd_to_nat_aux : ∀ {n} {a b : num},
     exact le_of_lt (nat.mod_lt _ (pos_num.cast_pos _)) },
   rw [nat_size_to_nat, mul_to_nat, nat.size_le] at h ⊢,
   rw [mod_to_nat, mul_comm],
-  rw [nat.pow_succ, ← nat.mod_add_div b (pos a)] at h,
+  rw [pow_succ', ← nat.mod_add_div b (pos a)] at h,
   refine lt_of_mul_lt_mul_right (lt_of_le_of_lt _ h) (nat.zero_le 2),
   rw [mul_two, mul_add],
   refine add_le_add_left (nat.mul_le_mul_left _
@@ -1150,7 +1151,7 @@ have ∀ a b : num, (a * b).nat_size ≤ a.nat_size + b.nat_size,
 begin
   intros,
   simp [nat_size_to_nat],
-  rw [nat.size_le, nat.pow_add],
+  rw [nat.size_le, pow_add],
   exact mul_lt_mul'' (nat.lt_size_self _)
     (nat.lt_size_self _) (nat.zero_le _) (nat.zero_le _)
 end,

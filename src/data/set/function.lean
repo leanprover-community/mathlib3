@@ -143,6 +143,22 @@ theorem maps_to.mono (hs : s₂ ⊆ s₁) (ht : t₁ ⊆ t₂) (hf : maps_to f s
   maps_to f s₂ t₂ :=
 λ x hx, ht (hf $ hs hx)
 
+theorem maps_to.union_union (h₁ : maps_to f s₁ t₁) (h₂ : maps_to f s₂ t₂) :
+  maps_to f (s₁ ∪ s₂) (t₁ ∪ t₂) :=
+λ x hx, hx.elim (λ hx, or.inl $ h₁ hx) (λ hx, or.inr $ h₂ hx)
+
+theorem maps_to.union (h₁ : maps_to f s₁ t) (h₂ : maps_to f s₂ t) :
+  maps_to f (s₁ ∪ s₂) t :=
+union_self t ▸ h₁.union_union h₂
+
+theorem maps_to.inter (h₁ : maps_to f s t₁) (h₂ : maps_to f s t₂) :
+  maps_to f s (t₁ ∩ t₂) :=
+λ x hx, ⟨h₁ hx, h₂ hx⟩
+
+theorem maps_to.inter_inter (h₁ : maps_to f s₁ t₁) (h₂ : maps_to f s₂ t₂) :
+  maps_to f (s₁ ∩ s₂) (t₁ ∩ t₂) :=
+λ x hx, ⟨h₁ hx.1, h₂ hx.2⟩
+
 theorem maps_to_univ (f : α → β) (s : set α) : maps_to f s univ := λ x h, trivial
 
 theorem maps_to_image (f : α → β) (s : set α) : maps_to f s (f '' s) := by rw maps_to'
@@ -170,6 +186,18 @@ theorem eq_on.inj_on_iff (H : eq_on f₁ f₂ s) : inj_on f₁ s ↔ inj_on f₂
 
 theorem inj_on.mono (h : s₁ ⊆ s₂) (ht : inj_on f s₂) : inj_on f s₁ :=
 λ x hx y hy H, ht (h hx) (h hy) H
+
+theorem inj_on_insert {f : α → β} {s : set α} {a : α} (has : a ∉ s) :
+  set.inj_on f (insert a s) ↔ set.inj_on f s ∧ f a ∉ f '' s :=
+⟨λ hf, ⟨hf.mono $ subset_insert a s,
+  λ ⟨x, hxs, hx⟩, has $ mem_of_eq_of_mem (hf (or.inl rfl) (or.inr hxs) hx.symm) hxs⟩,
+λ ⟨h1, h2⟩ x hx y hy hfxy, or.cases_on hx
+  (λ hxa : x = a, or.cases_on hy
+    (λ hya : y = a, hxa.trans hya.symm)
+    (λ hys : y ∈ s, h2.elim ⟨y, hys, hxa ▸ hfxy.symm⟩))
+  (λ hxs : x ∈ s, or.cases_on hy
+    (λ hya : y = a, h2.elim ⟨x, hxs, hya ▸ hfxy⟩)
+    (λ hys : y ∈ s, h1 hxs hys hfxy))⟩
 
 lemma injective_iff_inj_on_univ : injective f ↔ inj_on f univ :=
 ⟨λ h x hx y hy hxy, h hxy, λ h _ _ heq, h trivial trivial heq⟩
@@ -215,6 +243,29 @@ theorem eq_on.surj_on_iff (h : eq_on f₁ f₂ s) : surj_on f₁ s t ↔ surj_on
 theorem surj_on.mono (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) (hf : surj_on f s₁ t₂) : surj_on f s₂ t₁ :=
 subset.trans ht $ subset.trans hf $ image_subset _ hs
 
+theorem surj_on.union (h₁ : surj_on f s t₁) (h₂ : surj_on f s t₂) : surj_on f s (t₁ ∪ t₂) :=
+λ x hx, hx.elim (λ hx, h₁ hx) (λ hx, h₂ hx)
+
+theorem surj_on.union_union (h₁ : surj_on f s₁ t₁) (h₂ : surj_on f s₂ t₂) :
+  surj_on f (s₁ ∪ s₂) (t₁ ∪ t₂) :=
+(h₁.mono (subset_union_left _ _) (subset.refl _)).union
+  (h₂.mono (subset_union_right _ _) (subset.refl _))
+
+theorem surj_on.inter_inter (h₁ : surj_on f s₁ t₁) (h₂ : surj_on f s₂ t₂) (h : inj_on f (s₁ ∪ s₂)) :
+  surj_on f (s₁ ∩ s₂) (t₁ ∩ t₂) :=
+begin
+  intros y hy,
+  rcases h₁ hy.1 with ⟨x₁, hx₁, rfl⟩,
+  rcases h₂ hy.2 with ⟨x₂, hx₂, heq⟩,
+  have : x₁ = x₂, from h (or.inl hx₁) (or.inr hx₂) heq.symm,
+  subst x₂,
+  exact mem_image_of_mem f ⟨hx₁, hx₂⟩
+end
+
+theorem surj_on.inter (h₁ : surj_on f s₁ t) (h₂ : surj_on f s₂ t) (h : inj_on f (s₁ ∪ s₂)) :
+  surj_on f (s₁ ∩ s₂) t :=
+inter_self t ▸ h₁.inter_inter h₂ h
+
 theorem surj_on.comp (hg : surj_on g t p) (hf : surj_on f s t) : surj_on (g ∘ f) s p :=
 subset.trans hg $ subset.trans (image_subset g hf) $ (image_comp g f s) ▸ subset.refl _
 
@@ -247,6 +298,15 @@ lemma bij_on.mk (h₁ : maps_to f s t) (h₂ : inj_on f s) (h₃ : surj_on f s t
 
 lemma bij_on_empty (f : α → β) : bij_on f ∅ ∅ :=
 ⟨maps_to_empty f ∅, inj_on_empty f, surj_on_empty f ∅⟩
+
+lemma bij_on.inter (h₁ : bij_on f s₁ t₁) (h₂ : bij_on f s₂ t₂) (h : inj_on f (s₁ ∪ s₂)) :
+  bij_on f (s₁ ∩ s₂) (t₁ ∩ t₂) :=
+⟨h₁.maps_to.inter_inter h₂.maps_to, h₁.inj_on.mono $ inter_subset_left _ _,
+  h₁.surj_on.inter_inter h₂.surj_on h⟩
+
+lemma bij_on.union (h₁ : bij_on f s₁ t₁) (h₂ : bij_on f s₂ t₂) (h : inj_on f (s₁ ∪ s₂)) :
+  bij_on f (s₁ ∪ s₂) (t₁ ∪ t₂) :=
+⟨h₁.maps_to.union_union h₂.maps_to, h, h₁.surj_on.union_union h₂.surj_on⟩
 
 theorem bij_on.subset_range (h : bij_on f s t) : t ⊆ range f :=
 h.surj_on.subset_range
@@ -432,6 +492,8 @@ by simp [piecewise]
 
 variable [∀j, decidable (j ∈ s)]
 
+instance compl.decidable_mem (j : α) : decidable (j ∈ sᶜ) := not.decidable
+
 lemma piecewise_insert [decidable_eq α] (j : α) [∀i, decidable (i ∈ insert j s)] :
   (insert j s).piecewise f g = function.update (s.piecewise f g) j (f j) :=
 begin
@@ -473,7 +535,31 @@ lemma piecewise_preimage (f g : α → β) (t) :
   s.piecewise f g ⁻¹' t = s ∩ f ⁻¹' t ∪ sᶜ ∩ g ⁻¹' t :=
 ext $ λ x, by by_cases x ∈ s; simp *
 
+lemma comp_piecewise (h : β → γ) {f g : α → β} {x : α} :
+  h (s.piecewise f g x) = s.piecewise (h ∘ f) (h ∘ g) x :=
+by by_cases hx : x ∈ s; simp [hx]
+
+@[simp] lemma piecewise_same : s.piecewise f f = f :=
+by { ext x, by_cases hx : x ∈ s; simp [hx] }
+
+lemma range_piecewise (f g : α → β) : range (s.piecewise f g) = f '' s ∪ g '' sᶜ :=
+begin
+  ext y, split,
+  { rintro ⟨x, rfl⟩, by_cases h : x ∈ s;[left, right]; use x; simp [h] },
+  { rintro (⟨x, hx, rfl⟩|⟨x, hx, rfl⟩); use x; simp * at * }
+end
+
 end set
+
+lemma strict_mono_incr_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}
+  (H : strict_mono_incr_on f s) :
+  s.inj_on f :=
+λ x hx y hy hxy, show ordering.eq.compares x y, from (H.compares hx hy).1 hxy
+
+lemma strict_mono_decr_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}
+  (H : strict_mono_decr_on f s) :
+  s.inj_on f :=
+@strict_mono_incr_on.inj_on α (order_dual β) _ _ f s H
 
 namespace function
 

@@ -122,7 +122,18 @@ lemma prime.dvd_nat_abs_of_coe_dvd_pow_two {p : ℕ} (hp : p.prime) (k : ℤ) (h
   p ∣ k.nat_abs :=
 begin
   apply @nat.prime.dvd_of_dvd_pow _ _ 2 hp,
-  rwa [nat.pow_two, ← nat_abs_mul, ← coe_nat_dvd_left, ← pow_two]
+  rwa [pow_two, ← nat_abs_mul, ← coe_nat_dvd_left, ← pow_two]
 end
 
 end int
+
+lemma pow_gcd_eq_one {M : Type*} [monoid M] (x : M) {m n : ℕ} (hm : x ^ m = 1) (hn : x ^ n = 1) :
+  x ^ m.gcd n = 1 :=
+begin
+  cases m, { simp only [hn, nat.gcd_zero_left] },
+  obtain ⟨x, rfl⟩ : is_unit x,
+  { apply is_unit_of_pow_eq_one _ _ hm m.succ_pos },
+  simp only [← units.coe_pow] at *,
+  rw [← units.coe_one, ← gpow_coe_nat, ← units.ext_iff] at *,
+  simp only [nat.gcd_eq_gcd_ab, gpow_add, gpow_mul, hm, hn, one_gpow, one_mul]
+end

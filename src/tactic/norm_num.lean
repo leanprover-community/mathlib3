@@ -255,7 +255,7 @@ end
 meta def prove_pos (c : instance_cache) : expr → tactic (instance_cache × expr)
 | `(%%e₁ / %%e₂) := do
   (c, p₁) ← prove_pos_nat c e₁, (c, p₂) ← prove_pos_nat c e₂,
-  c.mk_app ``div_pos_of_pos_of_pos [e₁, e₂, p₁, p₂]
+  c.mk_app ``div_pos [e₁, e₂, p₁, p₂]
 | e := prove_pos_nat c e
 
 /-- `match_neg (- e) = some e`, otherwise `none` -/
@@ -434,7 +434,7 @@ h ▸ by simp only [inv_eq_one_div, one_div_neg_eq_neg_one_div]
 
 theorem inv_one {α} [division_ring α] : (1 : α)⁻¹ = 1 := inv_one
 theorem inv_one_div {α} [division_ring α] (a : α) : (1 / a)⁻¹ = a :=
-by rw [one_div_eq_inv, inv_inv']
+by rw [one_div, inv_inv']
 theorem inv_div_one {α} [division_ring α] (a : α) : a⁻¹ = 1 / a :=
 inv_eq_one_div _
 theorem inv_div {α} [division_ring α] (a b : α) : (a / b)⁻¹ = b / a :=
@@ -619,9 +619,6 @@ meta def prove_pow (a : expr) (na : ℚ) : instance_cache → expr → tactic (i
 
 end
 
-lemma from_nat_pow (a b c : ℕ) (h : @has_pow.pow _ _ monoid.has_pow a b = c) : a ^ b = c :=
-(nat.pow_eq_pow _ _).symm.trans h
-
 /-- Evaluates expressions of the form `a ^ b`, `monoid.pow a b` or `nat.pow a b`. -/
 meta def eval_pow : expr → tactic (expr × expr)
 | `(@has_pow.pow %%α _ %%m %%e₁ %%e₂) := do
@@ -629,20 +626,12 @@ meta def eval_pow : expr → tactic (expr × expr)
   c ← infer_type e₁ >>= mk_instance_cache,
   match m with
   | `(@monoid.has_pow %%_ %%_) := prod.snd <$> prove_pow e₁ n₁ c e₂
-  | `(nat.has_pow) := do
-    (_, c, p) ← prove_pow e₁ n₁ c e₂,
-    return (c, `(from_nat_pow).mk_app [e₁, e₂, c, p])
   | _ := failed
   end
 | `(monoid.pow %%e₁ %%e₂) := do
   n₁ ← e₁.to_rat,
   c ← infer_type e₁ >>= mk_instance_cache,
   prod.snd <$> prove_pow e₁ n₁ c e₂
-| `(nat.pow %%e₁ %%e₂) := do
-  n₁ ← e₁.to_rat,
-  c ← mk_instance_cache `(ℕ),
-  (_, c, p) ← prove_pow e₁ n₁ c e₂,
-  return (c, `(from_nat_pow).mk_app [e₁, e₂, c, p])
 | _ := failed
 
 theorem nonneg_pos {α} [ordered_cancel_add_comm_monoid α] (a : α) : 0 < a → 0 ≤ a := le_of_lt

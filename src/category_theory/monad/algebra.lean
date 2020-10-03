@@ -5,7 +5,7 @@ Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monad.basic
 import category_theory.adjunction.basic
-import category_theory.reflect_isomorphisms
+import category_theory.reflects_isomorphisms
 
 /-!
 # Eilenberg-Moore (co)algebras for a (co)monad
@@ -99,13 +99,13 @@ adjunction.mk_of_hom_equiv
     { f := T.map f ≫ Y.a,
       h' :=
       begin
-        dsimp, simp,
+        simp,
         conv { to_rhs, rw [←category.assoc, ←(μ_ T).naturality, category.assoc], erw algebra.assoc },
         refl,
       end },
     left_inv := λ f,
     begin
-      ext1, dsimp,
+      ext1,
       simp only [free_obj_a, functor.map_comp, algebra.hom.h, category.assoc],
       erw [←category.assoc, monad.right_unit, id_comp],
     end,
@@ -130,6 +130,8 @@ def algebra_iso_of_iso {A B : algebra T} (f : A ⟶ B) [i : is_iso f.f] : is_iso
 
 instance forget_reflects_iso : reflects_isomorphisms (forget T) :=
 { reflects := λ A B, algebra_iso_of_iso T }
+
+instance forget_faithful : faithful (forget T) := {}
 
 end monad
 
@@ -217,9 +219,12 @@ adjunction.mk_of_hom_equiv
       ext1, dsimp,
       rw [functor.map_comp, ← category.assoc, coalgebra.hom.h, assoc,
           cofree_obj_a, comonad.right_counit],
+      -- See note [dsimp, simp].
       dsimp, simp
     end
     }}
+    
+instance forget_faithful : faithful (forget G) := {}
 
 end comonad
 

@@ -32,7 +32,7 @@ open polynomial matrix
 open_locale big_operators
 
 variables {R : Type u} [comm_ring R]
-variables {n : Type w} [fintype n] [decidable_eq n]
+variables {n : Type w} [decidable_eq n] [fintype n]
 
 open finset
 
@@ -79,8 +79,8 @@ applied to the matrix itself, is zero.
 This holds over any commutative ring.
 -/
 -- This proof follows http://drorbn.net/AcademicPensieve/2015-12/CayleyHamilton.pdf
-theorem char_poly_map_eval_self (M : matrix n n R) :
-  ((char_poly M).map (algebra_map R (matrix n n R))).eval M = 0 :=
+theorem aeval_self_char_poly (M : matrix n n R) :
+  aeval M (char_poly M) = 0 :=
 begin
   -- We begin with the fact $χ_M(t) I = adjugate (t I - M) * (t I - M)$,
   -- as an identity in `matrix n n (polynomial R)`.
@@ -101,7 +101,7 @@ begin
   rw eval_mul_X_sub_C at h,
   -- Now $χ_M (t) I$, when thought of as a polynomial of matrices
   -- and evaluated at some `N` is exactly $χ_M (N)$.
-  rw mat_poly_equiv_smul_one at h,
+  rw [mat_poly_equiv_smul_one, eval_map] at h,
   -- Thus we have $χ_M(M) = 0$, which is the desired result.
   exact h,
 end

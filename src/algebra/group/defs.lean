@@ -22,7 +22,6 @@ The file does not contain any lemmas except for
 For basic lemmas about these classes see `algebra.group.basic`.
 -/
 
-set_option default_priority 100
 set_option old_structure_cmd true
 
 universe u
@@ -47,6 +46,20 @@ universe u
    Remark: we use a tactic for transporting theorems from the multiplicative fragment
    to the additive one.
 -/
+
+section has_mul
+
+variables {G : Type u} [has_mul G]
+
+/-- `left_mul g` denotes left multiplication by `g` -/
+@[to_additive "`left_add g` denotes left addition by `g`"]
+def left_mul : G → G → G := λ g : G, λ x : G, g * x
+
+/-- `right_mul g` denotes right multiplication by `g` -/
+@[to_additive "`right_add g` denotes right addition by `g`"]
+def right_mul : G → G → G := λ g : G, λ x : G, x * g
+
+end has_mul
 
 /-- A semigroup is a type with an associative `(*)`. -/
 @[protect_proj, ancestor has_mul] class semigroup (G : Type u) extends has_mul G :=
@@ -207,9 +220,7 @@ class comm_monoid (M : Type u) extends monoid M, comm_semigroup M
 class add_comm_monoid (M : Type u) extends add_monoid M, add_comm_semigroup M
 attribute [to_additive] comm_monoid
 
-/-- A monoid in which multiplication is left-cancellative. -/
-@[protect_proj, ancestor left_cancel_semigroup monoid]
-class left_cancel_monoid (M : Type u) extends left_cancel_semigroup M, monoid M
+section left_cancel_monoid
 
 /-- An additive monoid in which addition is left-cancellative.
 Main examples are `ℕ` and groups. This is the right typeclass for many sum lemmas, as having a zero
@@ -219,7 +230,65 @@ class add_left_cancel_monoid (M : Type u) extends add_left_cancel_semigroup M, a
 -- TODO: I found 1 (one) lemma assuming `[add_left_cancel_monoid]`.
 -- Should we port more lemmas to this typeclass?
 
-attribute [to_additive add_left_cancel_monoid] left_cancel_monoid
+/-- A monoid in which multiplication is left-cancellative. -/
+@[protect_proj, ancestor left_cancel_semigroup monoid, to_additive add_left_cancel_monoid]
+class left_cancel_monoid (M : Type u) extends left_cancel_semigroup M, monoid M
+
+/-- Commutative version of add_left_cancel_monoid. -/
+@[protect_proj, ancestor add_left_cancel_monoid add_comm_monoid]
+class add_left_cancel_comm_monoid (M : Type u) extends add_left_cancel_monoid M, add_comm_monoid M
+
+/-- Commutative version of left_cancel_monoid. -/
+@[protect_proj, ancestor left_cancel_monoid comm_monoid, to_additive add_left_cancel_comm_monoid]
+class left_cancel_comm_monoid (M : Type u) extends left_cancel_monoid M, comm_monoid M
+
+end left_cancel_monoid
+
+section right_cancel_monoid
+
+/-- An additive monoid in which addition is right-cancellative.
+Main examples are `ℕ` and groups. This is the right typeclass for many sum lemmas, as having a zero
+is useful to define the sum over the empty set, so `add_right_cancel_semigroup` is not enough. -/
+@[protect_proj, ancestor add_right_cancel_semigroup add_monoid]
+class add_right_cancel_monoid (M : Type u) extends add_right_cancel_semigroup M, add_monoid M
+
+/-- A monoid in which multiplication is right-cancellative. -/
+@[protect_proj, ancestor right_cancel_semigroup monoid, to_additive add_right_cancel_monoid]
+class right_cancel_monoid (M : Type u) extends right_cancel_semigroup M, monoid M
+
+/-- Commutative version of add_right_cancel_monoid. -/
+@[protect_proj, ancestor add_right_cancel_monoid add_comm_monoid]
+class add_right_cancel_comm_monoid (M : Type u) extends add_right_cancel_monoid M, add_comm_monoid M
+
+/-- Commutative version of right_cancel_monoid. -/
+@[protect_proj, ancestor right_cancel_monoid comm_monoid, to_additive add_right_cancel_comm_monoid]
+class right_cancel_comm_monoid (M : Type u) extends right_cancel_monoid M, comm_monoid M
+
+end right_cancel_monoid
+
+section cancel_monoid
+
+/-- An additive monoid in which addition is cancellative on both sides.
+Main examples are `ℕ` and groups. This is the right typeclass for many sum lemmas, as having a zero
+is useful to define the sum over the empty set, so `add_right_cancel_semigroup` is not enough. -/
+@[protect_proj, ancestor add_left_cancel_monoid add_right_cancel_monoid]
+class add_cancel_monoid (M : Type u)
+  extends add_left_cancel_monoid M, add_right_cancel_monoid M
+
+/-- A monoid in which multiplication is cancellative. -/
+@[protect_proj, ancestor left_cancel_monoid right_cancel_monoid, to_additive add_cancel_monoid]
+class cancel_monoid (M : Type u) extends left_cancel_monoid M, right_cancel_monoid M
+
+/-- Commutative version of add_cancel_monoid. -/
+@[protect_proj, ancestor add_left_cancel_comm_monoid add_right_cancel_comm_monoid]
+class add_cancel_comm_monoid (M : Type u)
+  extends add_left_cancel_comm_monoid M, add_right_cancel_comm_monoid M
+
+/-- Commutative version of cancel_monoid. -/
+@[protect_proj, ancestor right_cancel_comm_monoid left_cancel_comm_monoid, to_additive add_cancel_comm_monoid]
+class cancel_comm_monoid (M : Type u) extends left_cancel_comm_monoid M, right_cancel_comm_monoid M
+
+end cancel_monoid
 
 /-- A `group` is a `monoid` with an operation `⁻¹` satisfying `a⁻¹ * a = 1`. -/
 @[protect_proj, ancestor monoid has_inv]
@@ -263,15 +332,20 @@ by rwa [inv_inv] at this
 lemma mul_inv_cancel_right (a b : G) : a * b * b⁻¹ = a :=
 by rw [mul_assoc, mul_right_inv, mul_one]
 
-@[to_additive]
+@[priority 100, to_additive]    -- see Note [lower instance priority]
 instance group.to_left_cancel_semigroup : left_cancel_semigroup G :=
 { mul_left_cancel := λ a b c h, by rw [← inv_mul_cancel_left a b, h, inv_mul_cancel_left],
   ..‹group G› }
 
-@[to_additive]
+@[priority 100, to_additive]    -- see Note [lower instance priority]
 instance group.to_right_cancel_semigroup : right_cancel_semigroup G :=
 { mul_right_cancel := λ a b c h, by rw [← mul_inv_cancel_right a b, h, mul_inv_cancel_right],
   ..‹group G› }
+
+@[priority 100, to_additive]    -- see Note [lower instance priority]
+instance group.to_cancel_monoid : cancel_monoid G :=
+{ ..‹group G›, .. group.to_left_cancel_semigroup,
+  ..group.to_right_cancel_semigroup }
 
 end group
 
@@ -279,17 +353,16 @@ section add_group
 
 variables {G : Type u} [add_group G]
 
+/-- The subtraction operation on an `add_group` -/
 @[reducible] protected def algebra.sub (a b : G) : G :=
 a + -b
 
+@[priority 100]    -- see Note [lower instance priority]
 instance add_group_has_sub : has_sub G :=
 ⟨algebra.sub⟩
 
 lemma sub_eq_add_neg (a b : G) : a - b = a + -b :=
 rfl
-
-instance add_group.to_add_left_cancel_monoid : add_left_cancel_monoid G :=
-{ ..‹add_group G›, .. add_group.to_left_cancel_add_semigroup }
 
 end add_group
 
@@ -301,3 +374,15 @@ class comm_group (G : Type u) extends group G, comm_monoid G
 class add_comm_group (G : Type u) extends add_group G, add_comm_monoid G
 attribute [to_additive] comm_group
 attribute [instance, priority 300] add_comm_group.to_add_comm_monoid
+
+section comm_group
+
+variables {G : Type u} [comm_group G]
+
+@[priority 100, to_additive]    -- see Note [lower instance priority]
+instance comm_group.to_cancel_comm_monoid : cancel_comm_monoid G :=
+{ ..‹comm_group G›,
+  ..group.to_left_cancel_semigroup,
+  ..group.to_right_cancel_semigroup }
+
+end comm_group

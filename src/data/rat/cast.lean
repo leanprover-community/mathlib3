@@ -233,7 +233,7 @@ by by_cases a ≤ b; simp [h, min]
 
 @[simp, norm_cast] theorem cast_max [discrete_linear_ordered_field α] {a b : ℚ} :
   (↑(max a b) : α) = max a b :=
-by by_cases a ≤ b; simp [h, max]
+by by_cases b ≤ a; simp [h, max]
 
 @[simp, norm_cast] theorem cast_abs [discrete_linear_ordered_field α] {q : ℚ} :
   ((abs q : ℚ) : α) = abs q :=

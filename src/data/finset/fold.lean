@@ -106,6 +106,20 @@ end
 
 omit hc ha
 
+@[simp]
+lemma fold_union_empty_singleton [decidable_eq α] (s : finset α) :
+  finset.fold (∪) ∅ singleton s = s :=
+begin
+  apply finset.induction_on s,
+  { simp only [fold_empty], },
+  { intros a s has ih, rw [fold_insert has, ih, insert_eq], }
+end
+
+@[simp]
+lemma fold_sup_bot_singleton [decidable_eq α] (s : finset α) :
+  finset.fold (⊔) ⊥ singleton s = s :=
+fold_union_empty_singleton s
+
 section order
 variables [decidable_linear_order β] (c : β)
 

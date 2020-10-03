@@ -84,6 +84,12 @@ mem_nhds_sets is_closed_singleton $ by rwa [mem_compl_eq, mem_singleton_iff]
   closure ({a} : set α) = {a} :=
 is_closed_singleton.closure_eq
 
+lemma is_closed_map_const {α β} [topological_space α] [topological_space β] [t1_space β] {y : β} :
+  is_closed_map (function.const α y) :=
+begin
+  apply is_closed_map.of_nonempty, intros s hs h2s, simp_rw [h2s.image_const, is_closed_singleton]
+end
+
 /-- A T₂ space, also known as a Hausdorff space, is one in which for every
   `x ≠ y` there exists disjoint open sets around `x` and `y`. This is
   the most widely used of the separation axioms. -/
@@ -200,12 +206,12 @@ Lim_eq (le_refl _)
 Lim_nhds a
 
 @[simp] lemma Lim_nhds_within {a : α} {s : set α} (h : a ∈ closure s) :
-  @Lim _ _ ⟨a⟩ (nhds_within a s) = a :=
-by haveI : ne_bot (nhds_within a s) := mem_closure_iff_cluster_pt.1 h;
+  @Lim _ _ ⟨a⟩ (𝓝[s] a) = a :=
+by haveI : ne_bot (𝓝[s] a) := mem_closure_iff_cluster_pt.1 h;
 exact Lim_eq inf_le_left
 
 @[simp] lemma lim_nhds_within_id {a : α} {s : set α} (h : a ∈ closure s) :
-  @lim _ _ _ ⟨a⟩ (nhds_within a s) id = a :=
+  @lim _ _ _ ⟨a⟩ (𝓝[s] a) id = a :=
 Lim_nhds_within h
 
 end lim
@@ -369,19 +375,16 @@ end separation
 
 section regularity
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A T₃ space, also known as a regular space (although this condition sometimes
   omits T₂), is one in which for every closed `C` and `x ∉ C`, there exist
   disjoint open sets containing `x` and `C` respectively. -/
 class regular_space (α : Type u) [topological_space α] extends t1_space α : Prop :=
-(regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝 a ⊓ 𝓟 t = ⊥)
-end prio
+(regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝[t] a = ⊥)
 
 lemma nhds_is_closed [regular_space α] {a : α} {s : set α} (h : s ∈ 𝓝 a) :
   ∃t∈(𝓝 a), t ⊆ s ∧ is_closed t :=
 let ⟨s', h₁, h₂, h₃⟩ := mem_nhds_sets_iff.mp h in
-have ∃t, is_open t ∧ s'ᶜ ⊆ t ∧ 𝓝 a ⊓ 𝓟 t = ⊥,
+have ∃t, is_open t ∧ s'ᶜ ⊆ t ∧ 𝓝[t] a = ⊥,
   from regular_space.regular (is_closed_compl_iff.mpr h₂) (not_not_intro h₃),
 let ⟨t, ht₁, ht₂, ht₃⟩ := this in
 ⟨tᶜ,
@@ -400,7 +403,7 @@ instance subtype.regular_space [regular_space α] {p : α → Prop} : regular_sp
    rcases is_closed_induced_iff.1 hs with ⟨s, hs', rfl⟩,
    rcases regular_space.regular hs' ha with ⟨t, ht, hst, hat⟩,
    refine ⟨coe ⁻¹' t, is_open_induced ht, preimage_mono hst, _⟩,
-   rw [nhds_induced, ← comap_principal, ← comap_inf, hat, comap_bot]
+   rw [nhds_within, nhds_induced, ← comap_principal, ← comap_inf, ← nhds_within, hat, comap_bot]
  end⟩
 
 variable (α)
@@ -432,15 +435,12 @@ end regularity
 
 section normality
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A T₄ space, also known as a normal space (although this condition sometimes
   omits T₂), is one in which for every pair of disjoint closed sets `C` and `D`,
   there exist disjoint open sets containing `C` and `D` respectively. -/
 class normal_space (α : Type u) [topological_space α] extends t1_space α : Prop :=
 (normal : ∀ s t : set α, is_closed s → is_closed t → disjoint s t →
   ∃ u v, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v)
-end prio
 
 theorem normal_separation [normal_space α] (s t : set α)
   (H1 : is_closed s) (H2 : is_closed t) (H3 : disjoint s t) :

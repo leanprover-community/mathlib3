@@ -39,6 +39,12 @@ lemma coeff_sum [semiring S] (n : ℕ) (f : ℕ → R → polynomial S) :
 @[simp] lemma coeff_smul (p : polynomial R) (r : R) (n : ℕ) :
 coeff (r • p) n = r * coeff p n := finsupp.smul_apply
 
+lemma mem_support_iff_coeff_ne_zero : n ∈ p.support ↔ p.coeff n ≠ 0 :=
+by { rw mem_support_to_fun, refl }
+
+lemma not_mem_support_iff_coeff_zero : n ∉ p.support ↔ p.coeff n = 0 :=
+by { rw [mem_support_to_fun, not_not], refl, }
+
 variable (R)
 /-- The nth coefficient, as a linear map. -/
 def lcoeff (n : ℕ) : polynomial R →ₗ[R] R :=
@@ -149,6 +155,25 @@ by simpa only [pow_one] using coeff_mul_X_pow p 1 n
 theorem mul_X_pow_eq_zero {p : polynomial R} {n : ℕ}
   (H : p * X ^ n = 0) : p = 0 :=
 ext $ λ k, (coeff_mul_X_pow p n k).symm.trans $ ext_iff.1 H (k+n)
+
+lemma C_dvd_iff_dvd_coeff (r : R) (φ : polynomial R) :
+  C r ∣ φ ↔ ∀ i, r ∣ φ.coeff i :=
+begin
+  split,
+  { rintros ⟨φ, rfl⟩ c, rw coeff_C_mul, apply dvd_mul_right },
+  { intro h,
+    choose c hc using h,
+    classical,
+    let c' : ℕ → R := λ i, if i ∈ φ.support then c i else 0,
+    let ψ : polynomial R := ∑ i in φ.support, monomial i (c' i),
+    use ψ,
+    ext i,
+    simp only [ψ, c', coeff_C_mul, mem_support_iff, coeff_monomial,
+               finset_sum_coeff, finset.sum_ite_eq'],
+    split_ifs with hi hi,
+    { rw hc },
+    { rw [not_not] at hi, rwa mul_zero } },
+end
 
 end coeff
 

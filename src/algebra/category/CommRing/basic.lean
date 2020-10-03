@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl, Yury Kudryashov
 -/
 import algebra.category.Group.basic
-import category_theory.reflect_isomorphisms
 import data.equiv.ring
 
 /-!
@@ -39,6 +38,8 @@ instance : inhabited SemiRing := ⟨of punit⟩
 
 instance (R : SemiRing) : semiring R := R.str
 
+@[simp] lemma coe_of (R : Type u) [semiring R] : (SemiRing.of R : Type u) = R := rfl
+
 instance has_forget_to_Mon : has_forget₂ SemiRing Mon :=
 bundled_hom.mk_has_forget₂
   (λ R hR, @monoid_with_zero.to_monoid R (@semiring.to_monoid_with_zero R hR))
@@ -68,6 +69,8 @@ instance : inhabited Ring := ⟨of punit⟩
 
 instance (R : Ring) : ring R := R.str
 
+@[simp] lemma coe_of (R : Type u) [ring R] : (Ring.of R : Type u) = R := rfl
+
 instance has_forget_to_SemiRing : has_forget₂ Ring SemiRing := bundled_hom.forget₂ _ _
 instance has_forget_to_AddCommGroup : has_forget₂ Ring AddCommGroup :=
 -- can't use bundled_hom.mk_has_forget₂, since AddCommGroup is an induced category
@@ -92,6 +95,8 @@ def of (R : Type u) [comm_semiring R] : CommSemiRing := bundled.of R
 instance : inhabited CommSemiRing := ⟨of punit⟩
 
 instance (R : CommSemiRing) : comm_semiring R := R.str
+
+@[simp] lemma coe_of (R : Type u) [comm_semiring R] : (CommSemiRing.of R : Type u) = R := rfl
 
 instance has_forget_to_SemiRing : has_forget₂ CommSemiRing SemiRing := bundled_hom.forget₂ _ _
 
@@ -118,6 +123,8 @@ def of (R : Type u) [comm_ring R] : CommRing := bundled.of R
 instance : inhabited CommRing := ⟨of punit⟩
 
 instance (R : CommRing) : comm_ring R := R.str
+
+@[simp] lemma coe_of (R : Type u) [comm_ring R] : (CommRing.of R : Type u) = R := rfl
 
 instance has_forget_to_Ring : has_forget₂ CommRing Ring := bundled_hom.forget₂ _ _
 
@@ -153,16 +160,6 @@ variables {X Y : Type u}
 
 end ring_equiv
 
-namespace Ring
-
-instance : reflects_isomorphisms (forget₂ Ring AddCommGroup) :=
-{ reflects := λ R S f i, by exactI
-  { ..ring_equiv.to_Ring_iso
-    { ..(as_iso ((forget₂ Ring AddCommGroup).map f)).AddCommGroup_iso_to_add_equiv,
-      ..f } } }
-
-end Ring
-
 namespace category_theory.iso
 
 /-- Build a `ring_equiv` from an isomorphism in the category `Ring`. -/
@@ -196,3 +193,23 @@ def ring_equiv_iso_CommRing_iso {X Y : Type u} [comm_ring X] [comm_ring Y] :
   (X ≃+* Y) ≅ (CommRing.of X ≅ CommRing.of Y) :=
 { hom := λ e, e.to_CommRing_iso,
   inv := λ i, i.CommRing_iso_to_ring_equiv, }
+
+instance Ring.forget_reflects_isos : reflects_isomorphisms (forget Ring.{u}) :=
+{ reflects := λ X Y f _,
+  begin
+    resetI,
+    let i := as_iso ((forget Ring).map f),
+    let e : X ≃+* Y := { ..f, ..i.to_equiv },
+    exact { ..e.to_Ring_iso },
+  end }
+
+instance CommRing.forget_reflects_isos : reflects_isomorphisms (forget CommRing.{u}) :=
+{ reflects := λ X Y f _,
+  begin
+    resetI,
+    let i := as_iso ((forget CommRing).map f),
+    let e : X ≃+* Y := { ..f, ..i.to_equiv },
+    exact { ..e.to_CommRing_iso },
+  end }
+
+example : reflects_isomorphisms (forget₂ Ring AddCommGroup) := by apply_instance

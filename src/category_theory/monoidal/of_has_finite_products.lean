@@ -3,7 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Simon Hudon
 -/
-import category_theory.monoidal.category
+import category_theory.monoidal.braided
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.terminal
 
@@ -19,13 +19,18 @@ and sometimes we want to think of a different monoidal structure entirely,
 we don't set up either construct as an instance.
 
 ## Implementation
-For the sake of nicer definitional properties,
-we rely on `has_terminal` and `has_binary_products` instead of `has_finite_products`,
-so that if a particular category provides customised instances of these
-we pick those up instead.
+We had previously chosen to rely on `has_terminal` and `has_binary_products` instead of
+`has_finite_products`, because we were later relying on the definitional form of the tensor product.
+Now that `has_limit` has been refactored to be a `Prop`,
+this issue is irrelevant and we could simplify the construction here.
+
+See `category_theory.monoidal.of_chosen_finite_products` for a variant of this construction
+which allows specifying a particular choice of terminal object and binary products.
 -/
 
 universes v u
+
+noncomputable theory
 
 namespace category_theory
 
@@ -208,6 +213,28 @@ def monoidal_of_has_finite_products [has_terminal C] [has_binary_products C] : m
   associator_naturality' := @prod.associator_naturality _ _ _, }
 end
 
+section
+local attribute [instance] monoidal_of_has_finite_products
+
+open monoidal_category
+
+/--
+The monoidal structure coming from finite products is symmetric.
+-/
+@[simps]
+def symmetric_of_has_finite_products [has_terminal C] [has_binary_products C] :
+  symmetric_category C :=
+{ braiding := limits.prod.braiding,
+  braiding_naturality' := λ X X' Y Y' f g,
+    by { dsimp [tensor_hom], ext; simp, },
+  hexagon_forward' := λ X Y Z,
+    by ext; { dsimp [monoidal_of_has_finite_products], simp; dsimp; simp, },
+  hexagon_reverse' := λ X Y Z,
+    by ext; { dsimp [monoidal_of_has_finite_products], simp; dsimp; simp, },
+  symmetry' := λ X Y, by { dsimp, simp, refl, }, }
+
+end
+
 namespace monoidal_of_has_finite_products
 
 variables [has_terminal C] [has_binary_products C]
@@ -253,6 +280,29 @@ def monoidal_of_has_finite_coproducts [has_initial C] [has_binary_coproducts C] 
   associator_naturality' := @coprod.associator_naturality _ _ _, }
 end
 
+
+section
+local attribute [instance] monoidal_of_has_finite_coproducts
+
+open monoidal_category
+
+/--
+The monoidal structure coming from finite coproducts is symmetric.
+-/
+@[simps]
+def symmetric_of_has_finite_coproducts [has_initial C] [has_binary_coproducts C] :
+  symmetric_category C :=
+{ braiding := limits.coprod.braiding,
+  braiding_naturality' := λ X X' Y Y' f g,
+    by { dsimp [tensor_hom], ext; simp, },
+  hexagon_forward' := λ X Y Z,
+    by ext; { dsimp [monoidal_of_has_finite_coproducts], simp; dsimp; simp, },
+  hexagon_reverse' := λ X Y Z,
+    by ext; { dsimp [monoidal_of_has_finite_coproducts], simp; dsimp; simp, },
+  symmetry' := λ X Y, by { dsimp, simp, refl, }, }
+
+end
+
 namespace monoidal_of_has_finite_coproducts
 
 variables [has_initial C] [has_binary_coproducts C]
@@ -283,6 +333,3 @@ lemma associator_hom (X Y Z : C) :
 end monoidal_of_has_finite_coproducts
 
 end category_theory
-
--- TODO in fact, a category with finite products is braided, and symmetric,
--- and we should say that here, once braided categories arrive in mathlib.

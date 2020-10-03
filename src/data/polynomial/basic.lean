@@ -5,7 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import tactic.ring_exp
 import tactic.chain
-import data.monoid_algebra
+import algebra.monoid_algebra
 import data.finset.sort
 
 /-!
@@ -64,10 +64,7 @@ def X : polynomial R := monomial 1 1
 
 /-- `X` commutes with everything, even when the coefficients are noncommutative. -/
 lemma X_mul : X * p = p * X :=
-begin
-  ext,
-  simp [X, monomial, add_monoid_algebra.mul_apply, sum_single_index, add_comm],
-end
+by { ext, simp [X, monomial, add_monoid_algebra.mul_apply, sum_single_index, add_comm] }
 
 lemma X_pow_mul {n : ℕ} : X^n * p = p * X^n :=
 begin
@@ -79,6 +76,8 @@ end
 
 lemma X_pow_mul_assoc {n : ℕ} : (p * X^n) * q = (p * q) * X^n :=
 by rw [mul_assoc, X_pow_mul, ←mul_assoc]
+
+lemma commute_X (p : polynomial R) : commute X p := X_mul
 
 /-- coeff p n is the coefficient of X^n in p -/
 def coeff (p : polynomial R) := p.to_fun
@@ -118,6 +117,14 @@ by rw [←one_smul R p, ←h, zero_smul]
 
 end semiring
 
+section comm_semiring
+variables [comm_semiring R]
+
+instance : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
+instance : comm_monoid (polynomial R) := comm_semiring.to_comm_monoid (polynomial R)
+
+end comm_semiring
+
 section ring
 variables [ring R]
 
@@ -130,7 +137,6 @@ lemma coeff_sub (p q : polynomial R) (n : ℕ) : coeff (p - q) n = coeff p n - c
 
 end ring
 
-instance [comm_semiring R] : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
 instance [comm_ring R] : comm_ring (polynomial R) := add_monoid_algebra.comm_ring
 
 section nonzero_semiring

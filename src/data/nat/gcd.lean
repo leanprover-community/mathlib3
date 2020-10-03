@@ -2,14 +2,17 @@
 Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
-
-Definitions and properties of gcd, lcm, and coprime.
 -/
 import data.nat.basic
 
+/-!
+# Definitions and properties of `gcd`, `lcm`, and `coprime`
+
+-/
+
 namespace nat
 
-/- gcd -/
+/-! ### `gcd` -/
 
 theorem gcd_dvd (m n : ℕ) : (gcd m n ∣ m) ∧ (gcd m n ∣ n) :=
 gcd.induction m n
@@ -133,7 +136,7 @@ by rw [gcd_comm, gcd_gcd_self_right_right]
 @[simp] lemma gcd_gcd_self_left_left (m n : ℕ) : gcd (gcd m n) m = gcd m n :=
 by rw [gcd_comm m n, gcd_gcd_self_left_right]
 
-/- lcm -/
+/-! ### `lcm` -/
 
 theorem lcm_comm (m n : ℕ) : lcm m n = lcm n m :=
 by delta lcm; rw [mul_comm, gcd_comm]
@@ -178,7 +181,7 @@ dvd_antisymm
     (dvd.trans (dvd_lcm_left m n) (dvd_lcm_left (lcm m n) k))
     (lcm_dvd (dvd.trans (dvd_lcm_right m n) (dvd_lcm_left (lcm m n) k)) (dvd_lcm_right (lcm m n) k)))
 
-/- coprime -/
+/-! ### `coprime` -/
 
 instance (m n : ℕ) : decidable (coprime m n) := by unfold coprime; apply_instance
 
@@ -305,7 +308,7 @@ theorem coprime_one_left : ∀ n, coprime 1 n := gcd_one_left
 theorem coprime_one_right : ∀ n, coprime n 1 := gcd_one_right
 
 theorem coprime.pow_left {m k : ℕ} (n : ℕ) (H1 : coprime m k) : coprime (m ^ n) k :=
-nat.rec_on n (coprime_one_left _) (λn IH, IH.mul H1)
+nat.rec_on n (coprime_one_left _) (λn IH, H1.mul IH)
 
 theorem coprime.pow_right {m k : ℕ} (n : ℕ) (H1 : coprime k m) : coprime k (m ^ n) :=
 (H1.symm.pow_left n).symm
@@ -376,7 +379,7 @@ begin
   { simp [eq_zero_of_gcd_eq_zero_right g0] },
   rcases exists_coprime' g0 with ⟨g, a', b', g0', co, rfl, rfl⟩,
   rw [mul_pow, mul_pow] at h,
-  replace h := dvd_of_mul_dvd_mul_right (pos_pow_of_pos _ g0') h,
+  replace h := dvd_of_mul_dvd_mul_right (pow_pos g0' _) h,
   have := pow_dvd_pow a' n0,
   rw [pow_one, (co.pow n n).eq_one_of_dvd h] at this,
   simp [eq_one_of_dvd_one this]

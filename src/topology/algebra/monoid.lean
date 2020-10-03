@@ -7,7 +7,7 @@ Theory of topological monoids.
 -/
 import topology.continuous_on
 import group_theory.submonoid.basic
-import deprecated.submonoid
+import algebra.group.prod
 
 open classical set filter topological_space
 open_locale classical topological_space big_operators
@@ -21,8 +21,8 @@ class has_continuous_add (α : Type*) [topological_space α] [has_add α] : Prop
 (continuous_add : continuous (λp:α×α, p.1 + p.2))
 
 /-- Basic hypothesis to talk about a topological monoid or a topological semigroup.
-A topological monoid over `α`, for example, is obtained by requiring both the instances `monoid α` and
-`has_continuous_mul α`. -/
+A topological monoid over `α`, for example, is obtained by requiring both the instances `monoid α`
+and `has_continuous_mul α`. -/
 @[to_additive]
 class has_continuous_mul (α : Type*) [topological_space α] [has_mul α] : Prop :=
 (continuous_mul : continuous (λp:α×α, p.1 * p.2))
@@ -127,9 +127,9 @@ section
 variables [topological_space α] [comm_monoid α]
 
 @[to_additive]
-lemma is_submonoid.mem_nhds_one (β : set α) [is_submonoid β] (oβ : is_open β) :
-  β ∈ 𝓝 (1 : α) :=
-mem_nhds_sets_iff.2 ⟨β, (by refl), oβ, is_submonoid.one_mem⟩
+lemma submonoid.mem_nhds_one (β : submonoid α) (oβ : is_open (β : set α)) :
+  (β : set α) ∈ 𝓝 (1 : α) :=
+mem_nhds_sets_iff.2 ⟨β, (by refl), oβ, β.one_mem⟩
 
 variable [has_continuous_mul α]
 

@@ -11,7 +11,6 @@ import data.real.cau_seq
 
 open polynomial is_absolute_value
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma polynomial.tendsto_infinity {α β : Type*} [comm_ring α] [discrete_linear_ordered_field β]
   (abv : α → β) [is_absolute_value abv] {p : polynomial α} (h : 0 < degree p) :
   ∀ x : β, ∃ r > 0, ∀ z : α, r < abv z → x < abv (p.eval z) :=
@@ -21,7 +20,7 @@ degree_pos_induction_on p h
   (λ p hp ih x, let ⟨r, hr0, hr⟩ := ih x in
     ⟨max r 1, lt_max_iff.2 (or.inr zero_lt_one), λ z hz, by rw [eval_mul, eval_X, abv_mul abv];
         calc x < abv (p.eval z) : hr _ (max_lt_iff.1 hz).1
-        ... ≤ abv (eval z p) * abv z : le_mul_of_ge_one_right
+        ... ≤ abv (eval z p) * abv z : le_mul_of_one_le_right
           (abv_nonneg _ _) (max_le_iff.1 (le_of_lt hz)).2⟩)
   (λ p a hp ih x, let ⟨r, hr0, hr⟩ := ih (x + abv a) in
     ⟨r, hr0, λ z hz, by rw [eval_add, eval_C, ← sub_neg_eq_add];

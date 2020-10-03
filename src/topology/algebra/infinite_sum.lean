@@ -50,7 +50,7 @@ def has_sum (f : β → α) (a : α) : Prop := tendsto (λs:finset β, ∑ b in 
 def summable (f : β → α) : Prop := ∃a, has_sum f a
 
 /-- `∑' i, f i` is the sum of `f` it exists, or 0 otherwise -/
-def tsum (f : β → α) := if h : summable f then classical.some h else 0
+def tsum {β} (f : β → α) := if h : summable f then classical.some h else 0
 
 notation `∑'` binders `, ` r:(scoped f, tsum f) := r
 
@@ -105,7 +105,7 @@ by rw [← set.indicator_range_comp, subtype.range_coe,
 has_sum_subtype_iff_of_support_subset $ set.subset.refl _
 
 lemma has_sum_fintype [fintype β] (f : β → α) : has_sum f (∑ b, f b) :=
-order_top.tendsto_at_top _
+order_top.tendsto_at_top_nhds _
 
 protected lemma finset.has_sum (s : finset β) (f : β → α) :
   has_sum (f ∘ coe : (↑s : set β) → α) (∑ b in s, f b) :=
@@ -240,48 +240,22 @@ lemma summable.compl_add {s : set β} (hs : summable (f ∘ coe : sᶜ → α))
 
 lemma has_sum.sigma [regular_space α] {γ : β → Type*} {f : (Σ b:β, γ b) → α} {g : β → α} {a : α}
   (ha : has_sum f a) (hf : ∀b, has_sum (λc, f ⟨b, c⟩) (g b)) : has_sum g a :=
-assume s' hs',
-let
-  ⟨s, hs, hss', hsc⟩ := nhds_is_closed hs',
-  ⟨u, hu⟩ := mem_at_top_sets.mp $ ha hs,
-  fsts := u.image sigma.fst,
-  snds := λb, u.bind (λp, (if h : p.1 = b then {cast (congr_arg γ h) p.2} else ∅ : finset (γ b)))
-in
-have u_subset : u ⊆ fsts.sigma snds,
-  from subset_iff.mpr $ assume ⟨b, c⟩ hu,
-  have hb : b ∈ fsts, from finset.mem_image.mpr ⟨_, hu, rfl⟩,
-  have hc : c ∈ snds b, from mem_bind.mpr ⟨_, hu, by simp; refl⟩,
-  by simp [mem_sigma, hb, hc] ,
-mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
-  have h : ∀cs : Π b ∈ bs, finset (γ b),
-      ((⋂b (hb : b ∈ bs), (λp:Πb, finset (γ b), p b) ⁻¹' {cs' | cs b hb ⊆ cs' }) ∩
-      (λp, ∑ b in bs, ∑ c in p b, f ⟨b, c⟩) ⁻¹' s).nonempty,
-    from assume cs,
-    let cs' := λb, (if h : b ∈ bs then cs b h else ∅) ∪ snds b in
-    have sum_eq : ∑ b in bs, ∑ c in cs' b, f ⟨b, c⟩ = ∑ x in bs.sigma cs', f x,
-      from sum_sigma.symm,
-    have ∑ x in bs.sigma cs', f x ∈ s,
-      from hu _ $ finset.subset.trans u_subset $ sigma_mono hbs $
-        assume b, @finset.subset_union_right (γ b) _ _ _,
-    exists.intro cs' $
-    by simp [sum_eq, this]; { intros b hb, simp [cs', hb, finset.subset_union_left] },
-  have tendsto (λp:(Πb:β, finset (γ b)), ∑ b in bs, ∑ c in p b, f ⟨b, c⟩)
-      (⨅b (h : b ∈ bs), at_top.comap (λp, p b)) (𝓝 (∑ b in bs, g b)),
-    from tendsto_finset_sum bs $
-      assume c hc, tendsto_infi' c $ tendsto_infi' hc $ by apply tendsto.comp (hf c) tendsto_comap,
-  have ∑ b in bs, g b ∈ s,
-    from @mem_of_closed_of_tendsto' _ _ _ _ _ _ _ this hsc $ forall_sets_nonempty_iff_ne_bot.mp $
-      begin
-        simp only [mem_inf_sets, exists_imp_distrib, forall_and_distrib, and_imp,
-               filter.mem_infi_sets_finset, mem_comap_sets, mem_at_top_sets, and_comm,
-               mem_principal_sets, set.preimage_subset_iff, exists_prop, skolem],
-        intros s₁ s₂ s₃ hs₁ hs₃ p hs₂ p' hp cs hp',
-        have : (⋂b (h : b ∈ bs), (λp:(Πb, finset (γ b)), p b) ⁻¹' {cs' | cs b h ⊆ cs' }) ≤ (⨅b∈bs, p b),
-          from (infi_le_infi $ assume b, infi_le_infi $ assume hb,
-            le_trans (set.preimage_mono $ hp' b hb) (hp b hb)),
-        exact (h _).mono (set.subset.trans (set.inter_subset_inter (le_trans this hs₂) hs₃) hs₁)
-      end,
-  hss' this
+begin
+  refine (at_top_basis.tendsto_iff (closed_nhds_basis a)).mpr _,
+  rintros s ⟨hs, hsc⟩,
+  rcases mem_at_top_sets.mp (ha hs) with ⟨u, hu⟩,
+  use [u.image sigma.fst, trivial],
+  intros bs hbs,
+  simp only [set.mem_preimage, ge_iff_le, finset.le_iff_subset] at hu,
+  have : tendsto (λ t : finset (Σ b, γ b), ∑ p in t.filter (λ p, p.1 ∈ bs), f p)
+    at_top (𝓝 $ ∑ b in bs, g b),
+  { simp only [← sigma_preimage_mk, sum_sigma],
+    refine tendsto_finset_sum _ (λ b hb, _),
+    change tendsto (λ t, (λ t, ∑ s in t, f ⟨b, s⟩) (preimage t (sigma.mk b) _)) at_top (𝓝 (g b)),
+    exact tendsto.comp (hf b) (tendsto_finset_preimage_at_top_at_top _) },
+  refine hsc.mem_of_tendsto this (eventually_at_top.2 ⟨u, λ t ht, hu _ (λ x hx, _)⟩),
+  exact mem_filter.2 ⟨ht hx, hbs $ mem_image_of_mem _ hx⟩
+end
 
 /-- If a series `f` on `β × γ` has sum `a` and for each `b` the restriction of `f` to `{b} × γ`
 has sum `g b`, then the series `g` has sum `a`. -/
@@ -455,13 +429,28 @@ theorem rel_sup_add [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
 begin
   convert rel_supr_tsum m m0 R m_supr (λ b, cond b s₁ s₂),
   { simp only [supr_bool_eq, cond] },
-  { rw tsum_fintype, simp only [finset.sum_insert, not_false_iff, fintype.univ_bool,
-      finset.mem_singleton, cond, finset.sum_singleton] }
+  { rw [tsum_fintype, fintype.sum_bool, cond, cond] }
 end
 
 end encodable
 
 end tsum
+
+section pi
+variables {ι : Type*} {π : α → Type*} [∀ x, add_comm_monoid (π x)] [∀ x, topological_space (π x)]
+
+lemma pi.has_sum {f : ι → ∀ x, π x} {g : ∀ x, π x} :
+  has_sum f g ↔ ∀ x, has_sum (λ i, f i x) (g x) :=
+by simp [has_sum, tendsto_pi]
+
+lemma pi.summable {f : ι → ∀ x, π x} : summable f ↔ ∀ x, summable (λ i, f i x) :=
+by simp [summable, pi.has_sum, classical.skolem]
+
+lemma tsum_apply [∀ x, t2_space (π x)] {f : ι → ∀ x, π x}{x : α} (hf : summable f) :
+  (∑' i, f i) x = ∑' i, f i x :=
+(pi.has_sum.mp hf.has_sum x).tsum_eq.symm
+
+end pi
 
 section topological_group
 variables [add_comm_group α] [topological_space α] [topological_add_group α]
@@ -661,9 +650,16 @@ lemma sum_le_has_sum {f : β → α} (s : finset β) (hs : ∀ b∉s, 0 ≤ f b)
 ge_of_tendsto hf (eventually_at_top.2 ⟨s, λ t hst,
   sum_le_sum_of_subset_of_nonneg hst $ λ b hbt hbs, hs b hbs⟩)
 
+lemma le_has_sum (hf : has_sum f a) (b : β) (hb : ∀ b' ≠ b, 0 ≤ f b') : f b ≤ a :=
+calc f b = ∑ b in {b}, f b : finset.sum_singleton.symm
+... ≤ a : sum_le_has_sum _ (by { convert hb, simp }) hf
+
 lemma sum_le_tsum {f : β → α} (s : finset β) (hs : ∀ b∉s, 0 ≤ f b) (hf : summable f) :
   ∑ b in s, f b ≤ tsum f :=
 sum_le_has_sum s hs hf.has_sum
+
+lemma le_tsum (hf : summable f) (b : β) (hb : ∀ b' ≠ b, 0 ≤ f b') : f b ≤ ∑' b, f b :=
+le_has_sum (summable.has_sum hf) b hb
 
 lemma tsum_le_tsum (h : ∀b, f b ≤ g b) (hf : summable f) (hg : summable g) : (∑'b, f b) ≤ (∑'b, g b) :=
 has_sum_le h hf.has_sum hg.has_sum
@@ -684,16 +680,39 @@ end
 
 end order_topology
 
+section canonically_ordered
+variables [canonically_ordered_add_monoid α] [topological_space α] [order_closed_topology α]
+variables {f : β → α} {a : α}
+
+lemma le_has_sum' (hf : has_sum f a) (b : β) : f b ≤ a :=
+le_has_sum hf b $ λ _ _, zero_le _
+
+lemma le_tsum' (hf : summable f) (b : β) : f b ≤ ∑' b, f b :=
+le_tsum hf b $ λ _ _, zero_le _
+
+lemma has_sum_zero_iff : has_sum f 0 ↔ ∀ x, f x = 0 :=
+begin
+  refine ⟨_, λ h, _⟩,
+  { contrapose!,
+    exact λ ⟨x, hx⟩ h, irrefl _ (lt_of_lt_of_le (zero_lt_iff_ne_zero.2 hx) (le_has_sum' h x)) },
+  { convert has_sum_zero,
+    exact funext h }
+end
+
+lemma tsum_eq_zero_iff (hf : summable f) : (∑' i, f i) = 0 ↔ ∀ x, f x = 0 :=
+by rw [←has_sum_zero_iff, hf.has_sum_iff]
+
+end canonically_ordered
+
 section uniform_group
 
 variables [add_comm_group α] [uniform_space α]
-variables {f g : β → α} {a a₁ a₂ : α}
 
-lemma summable_iff_cauchy_seq_finset [complete_space α] :
+lemma summable_iff_cauchy_seq_finset [complete_space α] {f : β → α} :
   summable f ↔ cauchy_seq (λ (s : finset β), ∑ b in s, f b) :=
 cauchy_map_iff_exists_tendsto.symm
 
-variable [uniform_add_group α]
+variables [uniform_add_group α] {f g : β → α} {a a₁ a₂ : α}
 
 lemma cauchy_seq_finset_iff_vanishing :
   cauchy_seq (λ (s : finset β), ∑ b in s, f b)
@@ -718,7 +737,7 @@ begin
     { simp only [(finset.sum_sdiff ht₁).symm, (finset.sum_sdiff ht₂).symm,
         add_sub_add_right_eq_sub] },
     simp only [this],
-    exact hde _ _ (h _ finset.sdiff_disjoint) (h _ finset.sdiff_disjoint) }
+    exact hde _ (h _ finset.sdiff_disjoint) _ (h _ finset.sdiff_disjoint) }
 end
 
 variable [complete_space α]
@@ -789,6 +808,33 @@ tsum_comm' h h.prod_factor h.prod_symm.prod_factor
 
 end uniform_group
 
+section topological_group
+
+variables {G : Type*} [topological_space G] [add_comm_group G] [topological_add_group G]
+  {f : α → G}
+
+lemma summable.vanishing (hf : summable f) ⦃e : set G⦄ (he : e ∈ 𝓝 (0 : G)) :
+  ∃ s : finset α, ∀ t, disjoint t s → ∑ k in t, f k ∈ e :=
+begin
+  letI : uniform_space G := topological_add_group.to_uniform_space G,
+  letI : uniform_add_group G := topological_add_group_is_uniform,
+  rcases hf with ⟨y, hy⟩,
+  exact cauchy_seq_finset_iff_vanishing.1 hy.cauchy_seq e he
+end
+
+/-- Series divergence test: if `f` is a convergent series, then `f x` tends to zero along
+`cofinite`. -/
+lemma summable.tendsto_cofinite_zero (hf : summable f) : tendsto f cofinite (𝓝 0) :=
+begin
+  intros e he,
+  rw [filter.mem_map],
+  rcases hf.vanishing he with ⟨s, hs⟩,
+  refine s.eventually_cofinite_nmem.mono (λ x hx, _),
+  by simpa using hs {x} (singleton_disjoint.2 hx)
+end
+
+end topological_group
+
 section cauchy_seq
 open finset.Ico filter
 
@@ -800,7 +846,7 @@ begin
   refine emetric.cauchy_seq_iff_nnreal.2 (λ ε εpos, _),
   -- Actually we need partial sums of `d` to be a Cauchy sequence
   replace hd : cauchy_seq (λ (n : ℕ), ∑ x in range n, d x) :=
-    let ⟨_, H⟩ := hd in cauchy_seq_of_tendsto_nhds _ H.tendsto_sum_nat,
+    let ⟨_, H⟩ := hd in H.tendsto_sum_nat.cauchy_seq,
   -- Now we take the same `N` as in one of the definitions of a Cauchy sequence
   refine (metric.cauchy_seq_iff'.1 hd ε (nnreal.coe_pos.2 εpos)).imp (λ N hN n hn, _),
   have hsum := hN n hn,
@@ -822,7 +868,7 @@ lemma cauchy_seq_of_dist_le_of_summable [metric_space α] {f : ℕ → α} (d : 
 begin
   refine metric.cauchy_seq_iff'.2 (λε εpos, _),
   replace hd : cauchy_seq (λ (n : ℕ), ∑ x in range n, d x) :=
-    let ⟨_, H⟩ := hd in cauchy_seq_of_tendsto_nhds _ H.tendsto_sum_nat,
+    let ⟨_, H⟩ := hd in H.tendsto_sum_nat.cauchy_seq,
   refine (metric.cauchy_seq_iff'.1 hd ε εpos).imp (λ N hN n hn, _),
   have hsum := hN n hn,
   rw [real.dist_eq, ← sum_Ico_eq_sub _ hn] at hsum,

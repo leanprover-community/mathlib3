@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro, Jeremy Avigad
 -/
 import order.filter.ultrafilter
 import order.filter.partial
-import order.filter.bases
 
 /-!
 # Basic theory of topological spaces.
@@ -23,6 +22,11 @@ For topological spaces `α` and `β`, a function `f : α → β` and a point `a 
 `continuous_at f a` means `f` is continuous at `a`, and global continuity is
 `continuous f`. There is also a version of continuity `pcontinuous` for
 partially defined functions.
+
+## Notation
+
+* `𝓝 x`: the filter of neighborhoods of a point `x`;
+* `𝓟 s`: the principal filter of a set `s`;
 
 ## Implementation notes
 
@@ -422,6 +426,12 @@ begin
   rwa [inter_diff_self, subset_empty_iff] at this,
 end
 
+lemma closure_eq_interior_union_frontier (s : set α) : closure s = interior s ∪ frontier s :=
+(union_diff_cancel interior_subset_closure).symm
+
+lemma closure_eq_self_union_frontier (s : set α) : closure s = s ∪ frontier s :=
+(union_diff_cancel' interior_subset subset_closure).symm
+
 /-!
 ### Neighborhoods
 -/
@@ -567,11 +577,11 @@ assume a s hs, mem_pure_sets.2 $ mem_of_nhds hs
 
 lemma tendsto_pure_nhds {α : Type*} [topological_space β] (f : α → β) (a : α) :
   tendsto f (pure a) (𝓝 (f a)) :=
-tendsto_le_right (pure_le_nhds _) (tendsto_pure_pure f a)
+(tendsto_pure_pure f a).mono_right (pure_le_nhds _)
 
-lemma order_top.tendsto_at_top {α : Type*} [order_top α] [topological_space β] (f : α → β) :
+lemma order_top.tendsto_at_top_nhds {α : Type*} [order_top α] [topological_space β] (f : α → β) :
   tendsto f at_top (𝓝 $ f ⊤) :=
-tendsto_le_right (pure_le_nhds _) $ tendsto_at_top_pure f
+(tendsto_at_top_pure f).mono_right (pure_le_nhds _)
 
 @[simp] instance nhds_ne_bot {a : α} : ne_bot (𝓝 a) :=
 ne_bot_of_le (pure_le_nhds a)
@@ -598,6 +608,10 @@ set. -/
 lemma cluster_pt_principal_iff {x : α} {s : set α} :
   cluster_pt x (𝓟 s) ↔ ∀ U ∈ 𝓝 x, (U ∩ s).nonempty :=
 inf_principal_ne_bot_iff
+
+lemma cluster_pt_principal_iff_frequently {x : α} {s : set α} :
+  cluster_pt x (𝓟 s) ↔ ∃ᶠ y in 𝓝 x, y ∈ s :=
+by simp only [cluster_pt_principal_iff, frequently_iff, set.nonempty, exists_prop, mem_inter_iff]
 
 lemma cluster_pt.of_le_nhds {x : α} {f : filter α} (H : f ≤ 𝓝 x) [ne_bot f] : cluster_pt x f :=
 by rwa [cluster_pt, inf_eq_right.mpr H]
@@ -662,14 +676,17 @@ calc is_open s ↔ s ⊆ interior s : subset_interior_iff_open.symm
 lemma is_open_iff_mem_nhds {s : set α} : is_open s ↔ ∀a∈s, s ∈ 𝓝 a :=
 is_open_iff_nhds.trans $ forall_congr $ λ _, imp_congr_right $ λ _, le_principal_iff
 
-lemma closure_eq_cluster_pts {s : set α} : closure s = {a | cluster_pt a (𝓟 s)} :=
-calc closure s = (interior sᶜ)ᶜ : closure_eq_compl_interior_compl
-  ... = {a | ¬ 𝓝 a ≤ 𝓟 sᶜ} : by rw [interior_eq_nhds]; refl
-  ... = {a | cluster_pt a (𝓟 s)} : set.ext $ assume a, not_congr
-    (is_compl_principal s).inf_left_eq_bot_iff.symm
+lemma mem_closure_iff_frequently {s : set α} {a : α} : a ∈ closure s ↔ ∃ᶠ x in 𝓝 a, x ∈ s :=
+by rw [filter.frequently, filter.eventually, ← mem_interior_iff_mem_nhds,
+  closure_eq_compl_interior_compl]; refl
+
+alias mem_closure_iff_frequently ↔ _ filter.frequently.mem_closure
 
 theorem mem_closure_iff_cluster_pt {s : set α} {a : α} : a ∈ closure s ↔ cluster_pt a (𝓟 s) :=
-by simp only [closure_eq_cluster_pts, mem_set_of_eq]
+mem_closure_iff_frequently.trans cluster_pt_principal_iff_frequently.symm
+
+lemma closure_eq_cluster_pts {s : set α} : closure s = {a | cluster_pt a (𝓟 s)} :=
+set.ext $ λ x, mem_closure_iff_cluster_pt
 
 theorem mem_closure_iff_nhds {s : set α} {a : α} :
   a ∈ closure s ↔ ∀ t ∈ 𝓝 a, (t ∩ s).nonempty :=
@@ -705,6 +722,9 @@ lemma is_closed_iff_cluster_pt {s : set α} : is_closed s ↔ ∀a, cluster_pt a
 calc is_closed s ↔ closure s ⊆ s : closure_subset_iff_is_closed.symm
   ... ↔ (∀a, cluster_pt a (𝓟 s) → a ∈ s) : by simp only [subset_def, mem_closure_iff_cluster_pt]
 
+lemma is_closed_iff_nhds {s : set α} : is_closed s ↔ ∀ x, (∀ U ∈ 𝓝 x, (U ∩ s).nonempty) → x ∈ s :=
+by simp_rw [is_closed_iff_cluster_pt, cluster_pt, inf_principal_ne_bot_iff]
+
 lemma closure_inter_open {s t : set α} (h : is_open s) : s ∩ closure t ⊆ closure (s ∩ t) :=
 assume a ⟨hs, ht⟩,
 have s ∈ 𝓝 a, from mem_nhds_sets h hs,
@@ -732,22 +752,24 @@ calc closure s \ closure t = (closure t)ᶜ ∩ closure s : by simp only [diff_e
   ... = closure (s \ closure t) : by simp only [diff_eq, inter_comm]
   ... ⊆ closure (s \ t) : closure_mono $ diff_subset_diff (subset.refl s) subset_closure
 
-lemma mem_of_closed_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
-  [ne_bot b] (hf : tendsto f b (𝓝 a)) (hs : is_closed s) (h : f ⁻¹' s ∈ b) : a ∈ s :=
-is_closed_iff_cluster_pt.mp hs a $ ne_bot_of_le $ le_inf hf (le_principal_iff.mpr h)
+lemma filter.frequently.mem_of_closed {a : α} {s : set α} (h : ∃ᶠ x in 𝓝 a, x ∈ s)
+  (hs : is_closed s) : a ∈ s :=
+hs.closure_subset h.mem_closure
 
-lemma mem_of_closed_of_tendsto' {f : β → α} {x : filter β} {a : α} {s : set α}
-  (hf : tendsto f x (𝓝 a)) (hs : is_closed s) [ne_bot (x ⊓ 𝓟 (f ⁻¹' s))] : a ∈ s :=
-have tendsto f (x ⊓ 𝓟 (f ⁻¹' s)) (𝓝 a) := tendsto_inf_left hf,
-mem_of_closed_of_tendsto this hs $ mem_inf_sets_of_right $ mem_principal_self _
+lemma is_closed.mem_of_frequently_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
+  (hs : is_closed s) (h : ∃ᶠ x in b, f x ∈ s) (hf : tendsto f b (𝓝 a)) : a ∈ s :=
+(hf.frequently $ show ∃ᶠ x in b, (λ y, y ∈ s) (f x), from h).mem_of_closed hs
+
+lemma is_closed.mem_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
+  [ne_bot b] (hs : is_closed s) (hf : tendsto f b (𝓝 a)) (h : ∀ᶠ x in b, f x ∈ s) : a ∈ s :=
+hs.mem_of_frequently_of_tendsto h.frequently hf
 
 lemma mem_closure_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
   [ne_bot b] (hf : tendsto f b (𝓝 a)) (h : ∀ᶠ x in b, f x ∈ s) : a ∈ closure s :=
-mem_of_closed_of_tendsto hf is_closed_closure $
-  filter.mem_sets_of_superset h (preimage_mono subset_closure)
+is_closed_closure.mem_of_tendsto hf $ h.mono (preimage_mono subset_closure)
 
 /-- Suppose that `f` sends the complement to `s` to a single point `a`, and `l` is some filter.
-Then `f` tends to `a` along `l` restricted to `s` if and only it tends to `a` along `l`. -/
+Then `f` tends to `a` along `l` restricted to `s` if and only if it tends to `a` along `l`. -/
 lemma tendsto_inf_principal_nhds_iff_of_forall_eq {f : β → α} {l : filter β} {s : set β}
   {a : α} (h : ∀ x ∉ s, f x = a) :
   tendsto f (l ⊓ 𝓟 s) (𝓝 a) ↔ tendsto f l (𝓝 a) :=

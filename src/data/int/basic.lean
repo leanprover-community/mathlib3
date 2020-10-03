@@ -360,7 +360,7 @@ by have := int.mul_div_cancel 1 H; rwa one_mul at this
 
 theorem of_nat_mod (m n : nat) : (m % n : ℤ) = of_nat (m % n) := rfl
 
-@[simp] theorem coe_nat_mod (m n : ℕ) : (↑(m % n) : ℤ) = ↑m % ↑n := rfl
+@[simp, norm_cast] theorem coe_nat_mod (m n : ℕ) : (↑(m % n) : ℤ) = ↑m % ↑n := rfl
 
 theorem neg_succ_of_nat_mod (m : ℕ) {b : ℤ} (bpos : 0 < b) :
   -[1+m] % b = b - 1 - m % b :=
@@ -763,7 +763,7 @@ begin
 end
 
 lemma dvd_of_pow_dvd {p k : ℕ} {m : ℤ} (hk : 1 ≤ k) (hpk : ↑(p^k) ∣ m) : ↑p ∣ m :=
-by rw ←nat.pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
+by rw ←pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
 
 /- / and ordering -/
 
@@ -929,6 +929,10 @@ def to_nat' : ℤ → option ℕ
 theorem mem_to_nat' : ∀ (a : ℤ) (n : ℕ), n ∈ to_nat' a ↔ a = n
 | (m : ℕ) n := option.some_inj.trans coe_nat_inj'.symm
 | -[1+ m] n := by split; intro h; cases h
+
+lemma to_nat_zero_of_neg : ∀ {z : ℤ}, z < 0 → z.to_nat = 0
+| (-[1+n]) _ := rfl
+| (int.of_nat n) h := (not_le_of_gt h $ int.of_nat_nonneg n).elim
 
 /- units -/
 
@@ -1150,7 +1154,7 @@ lemma shiftr_eq_div_pow : ∀ (m : ℤ) (n : ℕ), shiftr m n = m / ↑(2 ^ n)
 | (m : ℕ) n := by rw shiftr_coe_nat; exact congr_arg coe (nat.shiftr_eq_div_pow _ _)
 | -[1+ m] n := begin
   rw [shiftr_neg_succ, neg_succ_of_nat_div, nat.shiftr_eq_div_pow], refl,
-  exact coe_nat_lt_coe_nat_of_lt (nat.pos_pow_of_pos _ dec_trivial)
+  exact coe_nat_lt_coe_nat_of_lt (pow_pos dec_trivial _)
 end
 
 lemma one_shiftl (n : ℕ) : shiftl 1 n = (2 ^ n : ℕ) :=

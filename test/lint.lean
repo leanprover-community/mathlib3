@@ -21,7 +21,7 @@ l.mmap_filter $ λ d, option.map (λ x, (d, x)) <$> tac d
 run_cmd do
   let t := name × list ℕ,
   e ← get_env,
-  let l := e.filter (λ d, e.in_current_file' d.to_name ∧ ¬ d.is_auto_or_internal e),
+  let l := e.filter (λ d, e.in_current_file d.to_name ∧ ¬ d.is_auto_or_internal e),
   l2 ← fold_over_with_cond l (return ∘ check_unused_arguments),
   guard $ l2.length = 4,
   let l2 : list t := l2.map $ λ x, ⟨x.1.to_name, x.2⟩,
@@ -62,7 +62,7 @@ meta def linter.dummy_linter : linter :=
 def bar.foo : (if 3 = 3 then 1 else 2) = 1 := if_pos (by refl)
 
 run_cmd do
-  (_, s) ← lint tt tt [`linter.dummy_linter] tt,
+  (_, s) ← lint tt lint_verbosity.medium [`linter.dummy_linter] tt,
   guard $ "/- found something: -/\n#print foo.foo /- gotcha! -/\n".is_suffix_of s.to_string
 
 def incorrect_type_class_argument_test {α : Type} (x : α) [x = x] [decidable_eq α] [group α] :

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad
+Author: Jeremy Avigad, Simon Hudon
 -/
 import control.functor.multivariate
 import data.pfunctor.univariate
@@ -10,7 +10,7 @@ import data.sigma
 /-!
 # Multivariate polynomial functors.
 
-Multivariate polynomial functors are used for defining M-types and W-types. 
+Multivariate polynomial functors are used for defining M-types and W-types.
 They map a type vector `α` to the type `Σ a : A, B a ⟹ α`, with `A : Type` and
 `B : A → typevec n`. They interact well with Lean's inductive definitions because
 they guarantee that occurrences of `α` are positive.
@@ -58,6 +58,10 @@ theorem comp_map {α β γ : typevec n} (f : α ⟹ β) (g : β ⟹ γ) :
   ∀ x : P.obj α, (g ⊚ f) <$$> x = g <$$> (f <$$> x)
 | ⟨a, h⟩ := rfl
 
+instance : is_lawful_mvfunctor P.obj :=
+{ id_map := @id_map _ P,
+  comp_map := @comp_map _ P }
+
 /-- Constant functor where the input object does not affect the output -/
 def const (n : ℕ) (A : Type u) : mvpfunctor n :=
 { A := A, B := λ a i, pempty }
@@ -78,7 +82,7 @@ x.1
 @[simp]
 lemma const.get_map (f : α ⟹ β) (x : (const n A).obj α) :
   const.get (f <$$> x) = const.get x :=
-by cases x; refl
+by { cases x, refl }
 
 @[simp]
 lemma const.get_mk (x : A) : const.get (const.mk n x : (const n A).obj α) = x :=
@@ -86,7 +90,7 @@ by refl
 
 @[simp]
 lemma const.mk_get (x : (const n A).obj α) : const.mk n (const.get x) = x :=
-by cases x; dsimp [const.get,const.mk]; congr; ext _ ⟨ ⟩
+by { cases x, dsimp [const.get,const.mk], congr' with _ ⟨ ⟩ }
 
 end const
 
@@ -107,7 +111,7 @@ def comp.get (x : (comp P Q).obj α) : P.obj (λ i, (Q i).obj α) :=
 
 lemma comp.get_map (f : α ⟹ β) (x : (comp P Q).obj α) :
   comp.get (f <$$> x) = (λ i (x : (Q i).obj α), f <$$> x) <$$> comp.get x :=
-by cases x; refl
+by { cases x, refl }
 
 @[simp]
 lemma comp.get_mk (x : P.obj (λ i, (Q i).obj α)) : comp.get (comp.mk x) = x :=
@@ -121,9 +125,9 @@ lemma comp.mk_get (x : (comp P Q).obj α) : comp.mk (comp.get x) = x :=
 begin
   cases x,
   dsimp [comp.get,comp.mk],
-  ext; intros, refl, refl,
-  congr, ext; intros; refl,
-  ext, congr, rcases x_1 with ⟨a,b,c⟩; refl,
+  ext : 2; intros, refl, refl,
+  congr, ext1; intros; refl,
+  ext : 2, congr, rcases x_1 with ⟨a,b,c⟩; refl
 end
 
 /-

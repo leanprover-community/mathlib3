@@ -1,11 +1,11 @@
 /-
 Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin
+Authors: Johan Commelin, Bhavik Mehta
 -/
 import category_theory.comma
 import category_theory.punit
-import category_theory.reflect_isomorphisms
+import category_theory.reflects_isomorphisms
 
 /-!
 # Over and under categories
@@ -26,10 +26,14 @@ namespace category_theory
 universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 variables {T : Type u₁} [category.{v₁} T]
 
-/-- The over category has as objects arrows in `T` with codomain `X` and as morphisms commutative
-    triangles. -/
+/--
+The over category has as objects arrows in `T` with codomain `X` and as morphisms commutative
+triangles.
+
+See https://stacks.math.columbia.edu/tag/001G.
+-/
 @[derive category]
-def over (X : T) := comma.{v₁ 0 v₁} (𝟭 T) (functor.from_punit X)
+def over (X : T) := comma.{v₁ v₁ v₁} (𝟭 T) (functor.from_punit X)
 
 -- Satisfying the inhabited linter
 instance over.inhabited [inhabited T] : inhabited (over (default T)) :=
@@ -55,11 +59,20 @@ by tidy
 by have := f.w; tidy
 
 /-- To give an object in the over category, it suffices to give a morphism with codomain `X`. -/
+@[simps]
 def mk {X Y : T} (f : Y ⟶ X) : over X :=
 { left := Y, hom := f }
 
-@[simp] lemma mk_left {X Y : T} (f : Y ⟶ X) : (mk f).left = Y := rfl
-@[simp] lemma mk_hom {X Y : T} (f : Y ⟶ X) : (mk f).hom = f := rfl
+/-- We can set up a coercion from arrows with codomain `X` to `over X`. This most likely should not
+    be a global instance, but it is sometimes useful. -/
+def coe_from_hom {X Y : T} : has_coe (Y ⟶ X) (over X) :=
+{ coe := mk }
+
+section
+local attribute [instance] coe_from_hom
+
+@[simp] lemma coe_hom {X Y : T} (f : Y ⟶ X) : (f : over X).hom = f := rfl
+end
 
 /-- To give a morphism in the over category, it suffices to give an arrow fitting in a commutative
     triangle. -/
@@ -68,13 +81,33 @@ def hom_mk {U V : over X} (f : U.left ⟶ V.left) (w : f ≫ V.hom = U.hom . obv
   U ⟶ V :=
 { left := f }
 
-/-- The forgetful functor mapping an arrow to its domain. -/
-def forget : (over X) ⥤ T := comma.fst _ _
+/--
+Construct an isomorphism in the over category given isomorphisms of the objects whose forward
+direction gives a commutative triangle.
+-/
+@[simps {rhs_md:=semireducible}]
+def iso_mk {f g : over X} (hl : f.left ≅ g.left) (hw : hl.hom ≫ g.hom = f.hom . obviously) : f ≅ g :=
+comma.iso_mk hl (eq_to_iso (subsingleton.elim _ _)) (by simp [hw])
 
-@[simp] lemma forget_obj {U : over X} : forget.obj U = U.left := rfl
-@[simp] lemma forget_map {U V : over X} {f : U ⟶ V} : forget.map f = f.left := rfl
+section
+variable (X)
+/--
+The forgetful functor mapping an arrow to its domain.
 
-/-- A morphism `f : X ⟶ Y` induces a functor `over X ⥤ over Y` in the obvious way. -/
+See https://stacks.math.columbia.edu/tag/001G.
+-/
+def forget : over X ⥤ T := comma.fst _ _
+
+end
+
+@[simp] lemma forget_obj {U : over X} : (forget X).obj U = U.left := rfl
+@[simp] lemma forget_map {U V : over X} {f : U ⟶ V} : (forget X).map f = f.left := rfl
+
+/--
+A morphism `f : X ⟶ Y` induces a functor `over X ⥤ over Y` in the obvious way.
+
+See https://stacks.math.columbia.edu/tag/001G.
+-/
 def map {Y : T} (f : X ⟶ Y) : over X ⥤ over Y := comma.map_right _ $ discrete.nat_trans (λ _, f)
 
 section
@@ -82,11 +115,20 @@ variables {Y : T} {f : X ⟶ Y} {U V : over X} {g : U ⟶ V}
 @[simp] lemma map_obj_left : ((map f).obj U).left = U.left := rfl
 @[simp] lemma map_obj_hom  : ((map f).obj U).hom  = U.hom ≫ f := rfl
 @[simp] lemma map_map_left : ((map f).map g).left = g.left := rfl
+
+/-- Mapping by the identity morphism is just the identity functor. -/
+def map_id : map (𝟙 Y) ≅ 𝟭 _ :=
+nat_iso.of_components (λ X, iso_mk (iso.refl _) (by tidy)) (by tidy)
+
+/-- Mapping by the composite morphism `f ≫ g` is the same as mapping by `f` then by `g`. -/
+def map_comp {Y Z : T} (f : X ⟶ Y) (g : Y ⟶ Z) : map (f ≫ g) ≅ map f ⋙ map g :=
+nat_iso.of_components (λ X, iso_mk (iso.refl _) (by tidy)) (by tidy)
+
 end
 
-instance forget_reflects_iso : reflects_isomorphisms (forget : over X ⥤ T) :=
-{ reflects := λ X Y f t, by exactI
-  { inv := over.hom_mk t.inv ((as_iso (forget.map f)).inv_comp_eq.2 (over.w f).symm) } }
+instance forget_reflects_iso : reflects_isomorphisms (forget X) :=
+{ reflects := λ Y Z f t, by exactI
+  { inv := over.hom_mk t.inv ((as_iso ((forget X).map f)).inv_comp_eq.2 (over.w f).symm) } }
 
 section iterated_slice
 variables (f : over X)
@@ -110,23 +152,19 @@ def iterated_slice_equiv : over f ≌ over f.left :=
   inverse := iterated_slice_backward f,
   unit_iso :=
     nat_iso.of_components
-    (λ g, ⟨hom_mk (hom_mk (𝟙 g.left.left)) (by apply_auto_param),
-           hom_mk (hom_mk (𝟙 g.left.left)) (by apply_auto_param),
-           by { ext, dsimp, simp }, by { ext, dsimp, simp }⟩)
+    (λ g, over.iso_mk (over.iso_mk (iso.refl _) (by tidy)) (by tidy))
     (λ X Y g, by { ext, dsimp, simp }),
   counit_iso :=
     nat_iso.of_components
-    (λ g, ⟨hom_mk (𝟙 g.left) (by apply_auto_param),
-           hom_mk (𝟙 g.left) (by apply_auto_param),
-           by { ext, dsimp, simp }, by { ext, dsimp, simp }⟩)
+    (λ g, over.iso_mk (iso.refl _) (by tidy))
     (λ X Y g, by { ext, dsimp, simp }) }
 
 lemma iterated_slice_forward_forget :
-  iterated_slice_forward f ⋙ forget = forget ⋙ forget :=
+  iterated_slice_forward f ⋙ forget f.left = forget f ⋙ forget X :=
 rfl
 
 lemma iterated_slice_backward_forget_forget :
-  iterated_slice_backward f ⋙ forget ⋙ forget = forget :=
+  iterated_slice_backward f ⋙ forget f ⋙ forget X = forget f.left :=
 rfl
 
 end iterated_slice
@@ -135,6 +173,7 @@ section
 variables {D : Type u₂} [category.{v₂} D]
 
 /-- A functor `F : T ⥤ D` induces a functor `over X ⥤ over (F.obj X)` in the obvious way. -/
+@[simps]
 def post (F : T ⥤ D) : over X ⥤ over (F.obj X) :=
 { obj := λ Y, mk $ F.map Y.hom,
   map := λ Y₁ Y₂ f,
@@ -148,7 +187,7 @@ end over
 /-- The under category has as objects arrows with domain `X` and as morphisms commutative
     triangles. -/
 @[derive category]
-def under (X : T) := comma.{0 v₁ v₁} (functor.from_punit X) (𝟭 T)
+def under (X : T) := comma.{v₁ v₁ v₁} (functor.from_punit X) (𝟭 T)
 
 -- Satisfying the inhabited linter
 instance under.inhabited [inhabited T] : inhabited (under (default T)) :=
@@ -185,11 +224,30 @@ def hom_mk {U V : under X} (f : U.right ⟶ V.right) (w : U.hom ≫ f = V.hom . 
   U ⟶ V :=
 { right := f }
 
-/-- The forgetful functor mapping an arrow to its domain. -/
-def forget : (under X) ⥤ T := comma.snd _ _
+/--
+Construct an isomorphism in the over category given isomorphisms of the objects whose forward
+direction gives a commutative triangle.
+-/
+def iso_mk {f g : under X} (hr : f.right ≅ g.right) (hw : f.hom ≫ hr.hom = g.hom) : f ≅ g :=
+comma.iso_mk (eq_to_iso (subsingleton.elim _ _)) hr (by simp [hw])
 
-@[simp] lemma forget_obj {U : under X} : forget.obj U = U.right := rfl
-@[simp] lemma forget_map {U V : under X} {f : U ⟶ V} : forget.map f = f.right := rfl
+@[simp]
+lemma iso_mk_hom_right {f g : under X} (hr : f.right ≅ g.right) (hw : f.hom ≫ hr.hom = g.hom) :
+  (iso_mk hr hw).hom.right = hr.hom := rfl
+
+@[simp]
+lemma iso_mk_inv_right {f g : under X} (hr : f.right ≅ g.right) (hw : f.hom ≫ hr.hom = g.hom) :
+  (iso_mk hr hw).inv.right = hr.inv := rfl
+
+section
+variables (X)
+/-- The forgetful functor mapping an arrow to its domain. -/
+def forget : under X ⥤ T := comma.snd _ _
+
+end
+
+@[simp] lemma forget_obj {U : under X} : (forget X).obj U = U.right := rfl
+@[simp] lemma forget_map {U V : under X} {f : U ⟶ V} : (forget X).map f = f.right := rfl
 
 /-- A morphism `X ⟶ Y` induces a functor `under Y ⥤ under X` in the obvious way. -/
 def map {Y : T} (f : X ⟶ Y) : under Y ⥤ under X := comma.map_left _ $ discrete.nat_trans (λ _, f)
@@ -199,12 +257,22 @@ variables {Y : T} {f : X ⟶ Y} {U V : under Y} {g : U ⟶ V}
 @[simp] lemma map_obj_right : ((map f).obj U).right = U.right := rfl
 @[simp] lemma map_obj_hom   : ((map f).obj U).hom   = f ≫ U.hom := rfl
 @[simp] lemma map_map_right : ((map f).map g).right = g.right := rfl
+
+/-- Mapping by the identity morphism is just the identity functor. -/
+def map_id : map (𝟙 Y) ≅ 𝟭 _ :=
+nat_iso.of_components (λ X, iso_mk (iso.refl _) (by tidy)) (by tidy)
+
+/-- Mapping by the composite morphism `f ≫ g` is the same as mapping by `f` then by `g`. -/
+def map_comp {Y Z : T} (f : X ⟶ Y) (g : Y ⟶ Z) : map (f ≫ g) ≅ map g ⋙ map f :=
+nat_iso.of_components (λ X, iso_mk (iso.refl _) (by tidy)) (by tidy)
+
 end
 
 section
 variables {D : Type u₂} [category.{v₂} D]
 
 /-- A functor `F : T ⥤ D` induces a functor `under X ⥤ under (F.obj X)` in the obvious way. -/
+@[simps]
 def post {X : T} (F : T ⥤ D) : under X ⥤ under (F.obj X) :=
 { obj := λ Y, mk $ F.map Y.hom,
   map := λ Y₁ Y₂ f,

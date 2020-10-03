@@ -154,7 +154,7 @@ lemma is_open_prod {s : set α} {t : set β} (hs : is_open s) (ht : is_open t) :
   is_open (set.prod s t) :=
 is_open_inter (continuous_fst s hs) (continuous_snd t ht)
 
-lemma nhds_prod_eq {a : α} {b : β} : 𝓝 (a, b) = filter.prod (𝓝 a) (𝓝 b) :=
+lemma nhds_prod_eq {a : α} {b : β} : 𝓝 (a, b) = 𝓝 a ×ᶠ 𝓝 b :=
 by rw [filter.prod, prod.topological_space, nhds_inf, nhds_induced, nhds_induced]
 
 instance [discrete_topology α] [discrete_topology β] : discrete_topology (α × β) :=
@@ -314,8 +314,7 @@ end
 lemma closure_prod_eq {s : set α} {t : set β} :
   closure (set.prod s t) = set.prod (closure s) (closure t) :=
 set.ext $ assume ⟨a, b⟩,
-have filter.prod (𝓝 a) (𝓝 b) ⊓ 𝓟 (set.prod s t) =
-  filter.prod (𝓝 a ⊓ 𝓟 s) (𝓝 b ⊓ 𝓟 t),
+have (𝓝 a ×ᶠ 𝓝 b) ⊓ 𝓟 (set.prod s t) = (𝓝 a ⊓ 𝓟 s) ×ᶠ (𝓝 b ⊓ 𝓟 t),
   by rw [←prod_inf_prod, prod_principal_principal],
 by simp [closure_eq_cluster_pts, cluster_pt, nhds_prod_eq, this]; exact prod_ne_bot
 
@@ -601,6 +600,10 @@ lemma nhds_pi [t : ∀i, topological_space (π i)] {a : Πi, π i} :
   𝓝 a = (⨅i, comap (λx, x i) (𝓝 (a i))) :=
 calc 𝓝 a = (⨅i, @nhds _ (@topological_space.induced _ _ (λx:Πi, π i, x i) (t i)) a) : nhds_infi
   ... = (⨅i, comap (λx, x i) (𝓝 (a i))) : by simp [nhds_induced]
+
+lemma tendsto_pi [t : ∀i, topological_space (π i)] {f : α → Πi, π i} {g : Πi, π i} {u : filter α} :
+  tendsto f u (𝓝 g) ↔ ∀ x, tendsto (λ i, f i x) u (𝓝 (g x)) :=
+by simp [nhds_pi, filter.tendsto_comap_iff]
 
 lemma is_open_set_pi [∀a, topological_space (π a)] {i : set ι} {s : Πa, set (π a)}
   (hi : finite i) (hs : ∀a∈i, is_open (s a)) : is_open (pi i s) :=

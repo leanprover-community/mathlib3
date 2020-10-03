@@ -27,7 +27,7 @@ instance : has_coe ℝ≥0 ℝ := ⟨subtype.val⟩
 
 instance : can_lift ℝ nnreal :=
 { coe := coe,
-  cond := λ r, r ≥ 0,
+  cond := λ r, 0 ≤ r,
   prf := λ x hx, ⟨⟨x, hx⟩, rfl⟩ }
 
 protected lemma eq {n m : ℝ≥0} : (n : ℝ) = (m : ℝ) → n = m := subtype.eq
@@ -265,7 +265,7 @@ instance : archimedean nnreal :=
   let ⟨n, hr⟩ := archimedean.arch (x:ℝ) (pos_y : (0 : ℝ) < y) in
   ⟨n, show (x:ℝ) ≤ (n •ℕ y : nnreal), by simp [*, -nsmul_eq_mul, nsmul_coe]⟩ ⟩
 
-lemma le_of_forall_epsilon_le {a b : nnreal} (h : ∀ε, ε > 0 → a ≤ b + ε) : a ≤ b :=
+lemma le_of_forall_epsilon_le {a b : nnreal} (h : ∀ε, 0 < ε → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,
 begin
   rcases le_iff_exists_add.1 (le_of_lt hxb) with ⟨ε, rfl⟩,
@@ -358,10 +358,10 @@ nnreal.coe_le_coe.1 $ max_le (add_le_add (le_max_left _ _) (le_max_left _ _)) nn
 lemma of_real_le_iff_le_coe {r : ℝ} {p : nnreal} : nnreal.of_real r ≤ p ↔ r ≤ ↑p :=
 nnreal.gi.gc r p
 
-lemma le_of_real_iff_coe_le {r : nnreal} {p : ℝ} (hp : p ≥ 0) : r ≤ nnreal.of_real p ↔ ↑r ≤ p :=
+lemma le_of_real_iff_coe_le {r : nnreal} {p : ℝ} (hp : 0 ≤ p) : r ≤ nnreal.of_real p ↔ ↑r ≤ p :=
 by rw [← nnreal.coe_le_coe, nnreal.coe_of_real p hp]
 
-lemma of_real_lt_iff_lt_coe {r : ℝ} {p : nnreal} (ha : r ≥ 0) : nnreal.of_real r < p ↔ r < ↑p :=
+lemma of_real_lt_iff_lt_coe {r : ℝ} {p : nnreal} (ha : 0 ≤ r) : nnreal.of_real r < p ↔ r < ↑p :=
 by rw [← nnreal.coe_lt_coe, nnreal.coe_of_real r ha]
 
 lemma lt_of_real_iff_coe_lt {r : nnreal} {p : ℝ} : r < nnreal.of_real p ↔ ↑r < p :=
@@ -459,6 +459,12 @@ begin
     have : r ≤ q := le_trans (le_add_left (le_refl _)) (le_of_lt H),
     rwa [← nnreal.coe_lt_coe, nnreal.coe_sub this, lt_sub_iff_add_lt, ← nnreal.coe_add] }
 end
+
+lemma sub_lt_iff_lt_add {a b c : nnreal} (h : b ≤ a) : a - b < c ↔ a < b + c :=
+by simp only [←nnreal.coe_lt_coe, nnreal.coe_sub h, nnreal.coe_add, sub_lt_iff_lt_add']
+
+lemma sub_eq_iff_eq_add {a b c : nnreal} (h : b ≤ a) : a - b = c ↔ a = c + b :=
+by rw [←nnreal.eq_iff, nnreal.coe_sub h, ←nnreal.eq_iff, nnreal.coe_add, sub_eq_iff_eq_add]
 
 end sub
 
@@ -594,7 +600,7 @@ by simpa using div_add_div b a one_ne_zero hc
   a / c + b = (a + b * c) / c :=
 by rwa [add_comm, add_div', add_comm]
 
-lemma one_div_eq_inv (a : ℝ≥0) : 1 / a = a⁻¹ :=
+lemma one_div (a : ℝ≥0) : 1 / a = a⁻¹ :=
 one_mul a⁻¹
 
 lemma one_div_div (a b : ℝ≥0) : 1 / (a / b) = b / a :=
@@ -635,4 +641,14 @@ mt pow_eq_zero h
 
 end pow
 
+
+@[simp] lemma abs_eq (x : ℝ≥0) : abs (x : ℝ) = x :=
+abs_of_nonneg x.property
+
 end nnreal
+
+/-- The absolute value on `ℝ` as a map to `ℝ≥0`. -/
+@[pp_nodot] def real.nnabs (x : ℝ) : ℝ≥0 := ⟨abs x, abs_nonneg x⟩
+
+@[norm_cast, simp] lemma nnreal.coe_nnabs (x : ℝ) : (real.nnabs x : ℝ) = abs x :=
+by simp [real.nnabs]

@@ -164,7 +164,3 @@ variables {G : Type*} [comm_group G] (a b : G)
 (commute.all a b).inv_mul_cancel_assoc
 
 end comm_group
-
-section add_comm_group
-
-end add_comm_group

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Guy Leroy. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sangwoo Jo (aka Jason), Guy Leroy, Johannes Hölzl, Mario Carneiro
+Authors: Sangwoo Jo (aka Jason), Guy Leroy, Johannes Hölzl, Mario Carneiro, Aaron Anderson
 -/
 
 import data.int.xgcd
@@ -21,29 +21,8 @@ import ring_theory.euclidean_domain
 
 * ℤ is a `normalization_monoid`
 * ℤ is a `gcd_monoid`
-* Many results on `gcd` and `lcm` for ℤ
+* Many results for greatest common divisors and least common multiples in ℤ
 -/
-
-instance int.euclidean_domain : euclidean_domain ℤ :=
-{ add := (+),
-  mul := (*),
-  one := 1,
-  zero := 0,
-  neg := has_neg.neg,
-  quotient := (/),
-  quotient_zero := int.div_zero,
-  remainder := (%),
-  quotient_mul_add_remainder_eq := λ a b, by rw add_comm; exact int.mod_add_div _ _,
-  r := λ a b, a.nat_abs < b.nat_abs,
-  r_well_founded := measure_wf (λ a, int.nat_abs a),
-  remainder_lt := λ a b b0, int.coe_nat_lt.1 $
-    by rw [int.nat_abs_of_nonneg (int.mod_nonneg _ b0), ← int.abs_eq_nat_abs];
-    exact int.mod_lt _ b0,
-  mul_left_not_lt := λ a b b0, not_lt_of_ge $
-    by rw [← mul_one a.nat_abs, int.nat_abs_mul];
-    exact mul_le_mul_of_nonneg_left (int.nat_abs_pos_of_ne_zero b0) (nat.zero_le _),
-  .. int.comm_ring,
-  .. int.nontrivial }
 
 /-! ### Divisibility over ℤ -/
 namespace int

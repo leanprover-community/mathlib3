@@ -12,7 +12,7 @@ import algebra.group.basic
 In this file we define two types:
 
 * `equiv α β` a.k.a. `α ≃ β`: a bijective map `α → β` bundled with its inverse map; we use this (and
-  not the equality!) to express that various `Type`s or `Sort`s are equivalent.
+  not equality!) to express that various `Type`s or `Sort`s are equivalent.
 
 * `equiv.perm α`: the group of permutations `α ≃ α`.
 
@@ -53,7 +53,6 @@ Then we define
 ## Tags
 
 equivalence, congruence, bijective map
-
 -/
 
 open function

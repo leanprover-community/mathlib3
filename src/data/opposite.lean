@@ -9,10 +9,10 @@ import data.equiv.basic
 # Opposites
 
 In this file we define a type synonym `opposite α := α`, denoted by `αᵒᵖ` and two synonyms for the
-identity map, `op : α → αᵒᵖ` and `unop : αᵒᵖ → α`. The type tag `αᵒᵖ` is used in two different
+identity map, `op : α → αᵒᵖ` and `unop : αᵒᵖ → α`. The type tag `αᵒᵖ` is used with two different
 meanings:
 
-- if `α` is a category, then `αᵒᵖ` is the opposite cateogry, with all arrows reversed;
+- if `α` is a category, then `αᵒᵖ` is the opposite category, with all arrows reversed;
 
 - if `α` is a monoid (group, etc), then `αᵒᵖ` is the opposite monoid (group, etc) with
   `op (x * y) = op x * op y`.
@@ -21,7 +21,7 @@ meanings:
 universes v u -- declare the `v` first; see `category_theory.category` for an explanation
 variable (α : Sort u)
 
-/-- The type of objects of the opposite of `α`; used to define opposite category or group.
+/-- The type of objects of the opposite of `α`; used to define the opposite category or group.
 
   In order to avoid confusion between `α` and its opposite type, we
   set up the type of objects `opposite α` using the following pattern,

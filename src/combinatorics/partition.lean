@@ -11,10 +11,11 @@ import tactic.apply_fun
 /-!
 # Partitions
 
-A partition of a natural number `n` is a way of writing `n` as a sum of positive integers, where the order
-does not matter: two sums that differ only in the order of their summands are considered the same
-partition. This notion is closely related to that of a composition of `n`, but in a composition of
-`n` the order does matter.
+A partition of a natural number `n` is a way of writing `n` as a sum of positive integers, where the
+order does not matter: two sums that differ only in the order of their summands are considered the
+same partition. This notion is closely related to that of a composition of `n`, but in a composition
+of `n` the order does matter.
+A summand of the partition is called a part.
 
 ## Main functions
 
@@ -118,14 +119,14 @@ instance (n : ℕ) : fintype (partition n) :=
 fintype.of_surjective (of_composition n) of_composition_surj
 
 /-- The finset of those partitions in which every part is odd. -/
-def odd_partition (n : ℕ) : finset (partition n) :=
+def odds (n : ℕ) : finset (partition n) :=
 finset.univ.filter (λ c, ∀ i ∈ c.parts, ¬ even i)
 
 /-- The finset of those partitions in which each part is used at most once. -/
-def distinct_partition (n : ℕ) : finset (partition n) :=
+def distincts (n : ℕ) : finset (partition n) :=
 finset.univ.filter (λ c, c.parts.nodup)
 
 /-- The finset of those partitions in which every part is odd and used at most once. -/
-def odd_distinct_partition (n : ℕ) : finset (partition n) := odd_partition n ∩ distinct_partition n
+def odd_distincts (n : ℕ) : finset (partition n) := odds n ∩ distincts n
 
 end partition

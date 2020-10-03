@@ -127,6 +127,44 @@ theorem inv_inv : commute a b → commute a⁻¹ b⁻¹ := semiconj_by.inv_inv_s
 @[simp, to_additive]
 theorem inv_inv_iff : commute a⁻¹ b⁻¹ ↔ commute a b := semiconj_by.inv_inv_symm_iff
 
+@[to_additive]
+protected theorem inv_mul_cancel (h : commute a b) : a⁻¹ * b * a = b :=
+by rw [h.inv_left.eq, inv_mul_cancel_right]
+
+@[to_additive]
+theorem inv_mul_cancel_assoc (h : commute a b) : a⁻¹ * (b * a) = b :=
+by rw [← mul_assoc, h.inv_mul_cancel]
+
+@[to_additive]
+protected theorem mul_inv_cancel (h : commute a b) : a * b * a⁻¹ = b :=
+by rw [h.eq, mul_inv_cancel_right]
+
+@[to_additive]
+theorem mul_inv_cancel_assoc (h : commute a b) : a * (b * a⁻¹) = b :=
+by rw [← mul_assoc, h.mul_inv_cancel]
+
 end group
 
 end commute
+
+section comm_group
+
+variables {G : Type*} [comm_group G] (a b : G)
+
+@[simp, to_additive] lemma mul_inv_cancel_comm : a * b * a⁻¹ = b :=
+(commute.all a b).mul_inv_cancel
+
+@[simp, to_additive] lemma mul_inv_cancel_comm_assoc : a * (b * a⁻¹) = b :=
+(commute.all a b).mul_inv_cancel_assoc
+
+@[simp, to_additive] lemma inv_mul_cancel_comm : a⁻¹ * b * a = b :=
+(commute.all a b).inv_mul_cancel
+
+@[simp, to_additive] lemma inv_mul_cancel_comm_assoc : a⁻¹ * (b * a) = b :=
+(commute.all a b).inv_mul_cancel_assoc
+
+end comm_group
+
+section add_comm_group
+
+end add_comm_group

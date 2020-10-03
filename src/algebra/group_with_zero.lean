@@ -350,6 +350,12 @@ lemma mul_left_inj' (hc : c ≠ 0) : a * c = b * c ↔ a = b := ⟨mul_right_can
 
 lemma mul_right_inj' (ha : a ≠ 0) : a * b = a * c ↔ b = c := ⟨mul_left_cancel' ha, λ h, h ▸ rfl⟩
 
+@[simp] lemma mul_eq_mul_right_iff : a * c = b * c ↔ a = b ∨ c = 0 :=
+by by_cases hc : c = 0; [simp [hc], simp [mul_left_inj', hc]]
+
+@[simp] lemma mul_eq_mul_left_iff : a * b = a * c ↔ b = c ∨ a = 0 :=
+by by_cases ha : a = 0; [simp [ha], simp [mul_right_inj', ha]]
+
 /-- Pullback a `monoid_with_zero` class along an injective function. -/
 protected def function.injective.cancel_monoid_with_zero [has_zero M₀'] [has_mul M₀'] [has_one M₀']
   (f : M₀' → M₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -757,7 +763,7 @@ local attribute [simp] mul_assoc mul_comm mul_left_comm
 
 lemma div_mul_div (a b c d : G₀) :
       (a / b) * (c / d) = (a * c) / (b * d) :=
-by { simp [div_eq_mul_inv], rw [mul_inv_rev', mul_comm d⁻¹] }
+by simp [div_eq_mul_inv, mul_inv']
 
 lemma mul_div_mul_left (a b : G₀) {c : G₀} (hc : c ≠ 0) :
       (c * a) / (c * b) = a / b :=

@@ -87,6 +87,12 @@ def of_sums (n : ℕ) (l : multiset ℕ) (hl : l.sum = n) : partition n :=
 def of_multiset (l : multiset ℕ) : partition l.sum :=
 of_sums _ l rfl
 
+/-- The partition of exactly one part. -/
+def indiscrete_partition (n : ℕ) : partition n :=
+of_sums n {n} rfl
+
+instance {n : ℕ} : inhabited (partition n) := ⟨indiscrete_partition n⟩
+
 /--
 The number of times a positive integer `i` appears in the partition `of_sums n l hl` is the same
 as the number of times it appears in the multiset `l`.

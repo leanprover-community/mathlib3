@@ -97,6 +97,16 @@ closed.is_adj.adj.counit
 def coev : 𝟭 C ⟶ prod_functor.obj A ⋙ exp A :=
 closed.is_adj.adj.unit
 
+@[simp, reassoc]
+lemma ev_naturality {X Y : C} (f : X ⟶ Y) :
+  limits.prod.map (𝟙 A) ((exp A).map f) ≫ (ev A).app Y = (ev A).app X ≫ f :=
+(ev A).naturality f
+
+@[simp, reassoc]
+def coev_naturality {X Y : C} (f : X ⟶ Y) :
+  f ≫ (coev A).app Y = (coev A).app X ≫ ((exp A).map (limits.prod.map (𝟙 A) f)) :=
+(coev A).naturality f
+
 notation A ` ⟹ `:20 B:20 := (exp A).obj B
 notation B ` ^^ `:30 A:30 := (exp A).obj B
 
@@ -214,10 +224,17 @@ by { rw [pre, prod_map_id_id, id_comp, ← uncurry_id_eq_ev], simp }
 
 -- There's probably a better proof of this somehow
 /-- Precomposition is contrafunctorial. -/
+-- @[simp, reassoc] lemma ev_coev :
+--   limits.prod.map (𝟙 A) ((coev A).app B) ≫ (ev A).app (A ⨯ B) = 𝟙 (A ⨯ B) :=
+-- adjunction.left_triangle_components (exp.adjunction A)
+
+-- @[simp, reassoc] lemma coev_ev : (coev A).app (A⟹B) ≫ (exp A).map ((ev A).app B) = 𝟙 (A⟹B) :=
+-- adjunction.right_triangle_components (exp.adjunction A)
+
 lemma pre_map [exponentiable B] {D : C} [exponentiable D] (f : A ⟶ B) (g : B ⟶ D) :
   pre X (f ≫ g) = pre X g ≫ pre X f :=
 begin
-  rw [pre, curry_eq_iff, pre, pre, uncurry_natural_left, uncurry_curry, prod_map_map_assoc,
+  rw [pre, curry_eq_iff, pre, uncurry_natural_left, pre, uncurry_curry, prod_map_swap_assoc,
       prod_map_comp_id, assoc, ← uncurry_id_eq_ev, ← uncurry_id_eq_ev, ← uncurry_natural_left,
       curry_natural_right, comp_id, uncurry_natural_right, uncurry_curry],
 end
@@ -227,8 +244,8 @@ end pre
 lemma pre_post_comm [cartesian_closed C] {A B : C} {X Y : Cᵒᵖ} (f : A ⟶ B) (g : X ⟶ Y) :
   pre A g.unop ≫ (exp Y.unop).map f = (exp X.unop).map f ≫ pre B g.unop :=
 begin
-  erw [← curry_natural_left, eq_curry_iff, uncurry_natural_right, uncurry_curry, prod_map_map_assoc,
-       (ev _).naturality, assoc], refl
+  rw [pre, pre, ← curry_natural_left, eq_curry_iff, uncurry_natural_right, uncurry_curry,
+      prod_map_swap_assoc, ev_naturality, assoc],
 end
 
 /-- The internal hom functor given by the cartesian closed structure. -/
@@ -339,21 +356,13 @@ def cartesian_closed_of_equiv (e : C ≌ D) [h : cartesian_closed C] : cartesian
       apply nat_iso.of_components _ _,
       intro Y,
       { apply as_iso (prod_comparison e.inverse X (e.functor.obj Y)) ≪≫ _,
-        exact ⟨limits.prod.map (𝟙 _) (e.unit_inv.app _),
-              limits.prod.map (𝟙 _) (e.unit.app _),
-              by simpa [←prod_map_id_comp, prod_map_id_id],
-              by simpa [←prod_map_id_comp, prod_map_id_id]⟩, },
+        apply prod.map_iso (iso.refl _) (e.unit_iso.app Y).symm },
       { intros Y Z g,
-        simp only [prod_comparison, inv_prod_comparison_map_fst, inv_prod_comparison_map_snd,
-          prod.lift_map, functor.comp_map, prod_functor_obj_map, assoc, comp_id,
-          iso.trans_hom, as_iso_hom],
-        apply prod.hom_ext,
-        { rw [assoc, prod.lift_fst, prod.lift_fst, ←functor.map_comp,
-            limits.prod.map_fst, comp_id], },
-        { rw [assoc, prod.lift_snd, prod.lift_snd, ←functor.map_comp_assoc, limits.prod.map_snd],
-          simp only [iso.hom_inv_id_app, assoc, equivalence.inv_fun_map,
-            functor.map_comp, comp_id],
-          erw comp_id, }, },
+        dsimp [prod_comparison],
+        simp [prod.lift_comp_comp, ← e.inverse.map_comp, ← e.inverse.map_comp_assoc],
+          -- I wonder if it would be a good idea to make `map_comp` a simp lemma the other way round
+        dsimp, simp -- See note [dsimp, simp]
+        },
       { have : is_left_adjoint (e.functor ⋙ prod_functor.obj X ⋙ e.inverse) :=
           by exactI adjunction.left_adjoint_of_nat_iso this.symm,
         have : is_left_adjoint (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) :=
@@ -383,8 +392,8 @@ lemma exp_comparison_natural_left (A A' B : C) (f : A' ⟶ A) :
   exp_comparison F A B ≫ pre (F.obj B) (F.map f) = F.map (pre B f) ≫ exp_comparison F A' B :=
 begin
   rw [exp_comparison, exp_comparison, ← curry_natural_left, eq_curry_iff, uncurry_natural_left,
-       pre, uncurry_curry, prod_map_map_assoc, curry_eq, prod_map_id_comp, assoc],
-  erw [(ev _).naturality, ev_coev_assoc, ← F.map_id, ← prod_comparison_inv_natural_assoc,
+       pre, uncurry_curry, prod_map_swap_assoc, curry_eq, prod_map_id_comp, assoc, ev_naturality],
+  erw [ev_coev_assoc, ← F.map_id, ← prod_comparison_inv_natural_assoc,
        ← F.map_id, ← prod_comparison_inv_natural_assoc, ← F.map_comp, ← F.map_comp, pre, curry_eq,
        prod_map_id_comp, assoc, (ev _).naturality, ev_coev_assoc], refl,
 end

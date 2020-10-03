@@ -320,12 +320,12 @@ section prod_lemmas
 
 @[simp]
 lemma prod.lift_comp_comp {V W X Y : C} [has_binary_product X Y] (f : V ⟶ W) (g : W ⟶ X) (h : W ⟶ Y) :
-  prod.lift (f ≫ g) (f ≫ h) = f ≫ prod.lift g h :=
+   f ≫ prod.lift g h = prod.lift (f ≫ g) (f ≫ h):=
 by {ext; simp}
 
 lemma prod.lift_self {X Y : C} [has_binary_product Y Y] (f : X ⟶ Y) :
-  prod.lift f f = f ≫ diag Y :=
-by simpa using prod.lift_comp_comp f (𝟙 _) (𝟙 _)
+  f ≫ diag Y = prod.lift f f :=
+by simp
 
 @[simp, reassoc]
 lemma prod.map_fst {W X Y Z : C} [has_binary_product W X] [has_binary_product Y Z]
@@ -358,7 +358,7 @@ by { rw ← prod.lift_map, simp }
 -- We take the right hand side here to be simp normal form, as this way composition lemmas for
 -- `f ≫ h` and `g ≫ k` can fire (eg `id_comp`) , while `map_fst` and `map_snd` can still work just
 -- as well.
-@[simp]
+@[simp, reassoc]
 lemma prod_map_map {A₁ A₂ A₃ B₁ B₂ B₃ : C}
   [has_binary_product A₁ B₁] [has_binary_product A₂ B₂] [has_binary_product A₃ B₃]
   (f : A₁ ⟶ A₂) (g : B₁ ⟶ B₂) (h : A₂ ⟶ A₃) (k : B₂ ⟶ B₃) :
@@ -392,7 +392,7 @@ def prod.map_iso {W X Y Z : C} [has_binary_product W X] [has_binary_product Y Z]
 @[simp, reassoc]
 lemma prod.diag_map {X Y : C} (f : X ⟶ Y) [has_binary_product X X] [has_binary_product Y Y] :
   diag X ≫ prod.map f f = f ≫ diag Y :=
-by simp [prod.lift_self]
+by simp
 
 @[simp, reassoc]
 lemma prod.diag_map_fst_snd {X Y : C} [has_binary_product X Y] [has_binary_product (X ⨯ Y) (X ⨯ Y)] :
@@ -534,7 +534,7 @@ prod.lift (F.map prod.fst) (F.map prod.snd)
   F.map (prod.map f g) ≫ prod_comparison F A' B' = prod_comparison F A B ≫ prod.map (F.map f) (F.map g) :=
 begin
   rw [prod_comparison, prod_comparison, prod.lift_map, ← F.map_comp, ← F.map_comp,
-      ← prod.lift_comp_comp, ← F.map_comp, prod.map_fst, ← F.map_comp, prod.map_snd]
+      prod.lift_comp_comp, ← F.map_comp, prod.map_fst, ← F.map_comp, prod.map_snd]
 end
 
 @[reassoc]

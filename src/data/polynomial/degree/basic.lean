@@ -265,43 +265,6 @@ by simpa only [C_1, one_mul] using degree_C_mul_X_pow_le (1:R) n
 theorem degree_X_le : degree (X : polynomial R) ≤ 1 :=
 by simpa only [C_1, one_mul, pow_one] using degree_C_mul_X_pow_le (1:R) 1
 
-lemma nat_degree_X_le : (X : polynomial R).nat_degree ≤ 1 :=
-nat_degree_le_of_degree_le degree_X_le
-
-lemma support_mul_X_pow (c : R) (n : ℕ) (H : c ≠ 0) : (C c * X^n).support = singleton n :=
-begin
-  ext1,
-  rw [mem_singleton, mem_support_iff_coeff_ne_zero, coeff_C_mul, coeff_X_pow, mul_boole],
-  split_ifs,
-    { exact iff_of_true H h, },
-    { rwa [ne.def, ne_self_iff_false, false_iff], },
-end
-
-lemma support_mul_X_pow' {c : R} {n : ℕ} : (C c * X^n).support ⊆ singleton n :=
-begin
-  by_cases h : c = 0,
-    { rw [h, C_0, zero_mul, support_zero],
-      exact empty_subset {n}, },
-    { rw support_mul_X_pow c n h,
-      exact subset.refl {n}, },
-end
-
-lemma support_X_pow (H : (1:R) ≠ 0) (n : ℕ) : (X^n : polynomial R).support = singleton n :=
-begin
-  convert support_mul_X_pow 1 n H,
-  rw [C_1, one_mul],
-end
-
-lemma support_X_empty (H : (1:R)=0) : (X : polynomial R).support = ∅ :=
-begin
-  rw [← mul_one X, ← C_1, H, C_0, mul_zero, support_zero],
-end
-
-lemma support_X (H : ¬ (1 : R) = 0) : (X : polynomial R).support = singleton 1 :=
-begin
-  rw [← one_mul X, ← C_1, ← pow_one X, support_mul_X_pow 1 1 H],
-end
-
 end semiring
 
 

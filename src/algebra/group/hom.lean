@@ -349,7 +349,11 @@ lemma coe_mk' {f : M → G} (map_mul : ∀ a b : M, f (a * b) = f a * f b) :
 
 omit mM
 
-@[to_additive]
+/-- Makes a group homomorphism from a proof that the map preserves right division `λ x y, x * y⁻¹`.
+-/
+@[to_additive "Makes an additive group homomorphism from a proof that the map preserves
+the operation `λ a b, a + -b`. See also `add_monoid_hom.of_map_sub` for a version using
+`λ a b, a - b`."]
 def of_map_mul_inv {H : Type*} [group H] (f : G → H)
   (map_div : ∀ a b : G, f (a * b⁻¹) = f a * (f b)⁻¹) :
   G →* H :=

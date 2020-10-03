@@ -83,11 +83,9 @@ apply_nolint category_theory.small_groupoid doc_blame
 apply_nolint category_theory.limits.cocone has_inhabited_instance
 apply_nolint category_theory.limits.cocone.extensions doc_blame
 apply_nolint category_theory.limits.cocone_morphism has_inhabited_instance
-apply_nolint category_theory.limits.cocones.functoriality doc_blame
 apply_nolint category_theory.limits.cone has_inhabited_instance
 apply_nolint category_theory.limits.cone.extensions doc_blame
 apply_nolint category_theory.limits.cone_morphism has_inhabited_instance
-apply_nolint category_theory.limits.cones.functoriality doc_blame
 
 -- category_theory/limits/over.lean
 apply_nolint category_theory.functor.to_cocone doc_blame

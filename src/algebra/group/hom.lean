@@ -349,6 +349,23 @@ lemma coe_mk' {f : M → G} (map_mul : ∀ a b : M, f (a * b) = f a * f b) :
 
 omit mM
 
+/-- Makes a group homomorphism from a proof that the map preserves right division `λ x y, x * y⁻¹`.
+-/
+@[to_additive "Makes an additive group homomorphism from a proof that the map preserves
+the operation `λ a b, a + -b`. See also `add_monoid_hom.of_map_sub` for a version using
+`λ a b, a - b`."]
+def of_map_mul_inv {H : Type*} [group H] (f : G → H)
+  (map_div : ∀ a b : G, f (a * b⁻¹) = f a * (f b)⁻¹) :
+  G →* H :=
+mk' f $ λ x y,
+calc f (x * y) = f x * (f $ 1 * 1⁻¹ * y⁻¹)⁻¹ : by simp only [one_mul, one_inv, ← map_div, inv_inv]
+... = f x * f y : by { simp only [map_div], simp only [mul_right_inv, one_mul, inv_inv] }
+
+@[simp, to_additive] lemma coe_of_map_mul_inv {H : Type*} [group H] (f : G → H)
+  (map_div : ∀ a b : G, f (a * b⁻¹) = f a * (f b)⁻¹) :
+  ⇑(of_map_mul_inv f map_div) = f :=
+rfl
+
 /-- If `f` is a monoid homomorphism to a commutative group, then `f⁻¹` is the homomorphism sending
 `x` to `(f x)⁻¹`. -/
 @[to_additive]
@@ -377,9 +394,18 @@ end monoid_hom
 
 namespace add_monoid_hom
 
+variables [add_group G] [add_group H]
+
 /-- Additive group homomorphisms preserve subtraction. -/
-@[simp] theorem map_sub {G H} [add_group G] [add_group H] (f : G →+ H) (g h : G) :
-  f (g - h) = (f g) - (f h) := f.map_add_neg g h
+@[simp] theorem map_sub (f : G →+ H) (g h : G) : f (g - h) = (f g) - (f h) := f.map_add_neg g h
+
+/-- Define a morphism of additive groups given a map which respects difference. -/
+def of_map_sub (f : G → H) (hf : ∀ x y, f (x - y) = f x - f y) : G →+ H :=
+of_map_add_neg f hf
+
+@[simp] lemma coe_of_map_sub (f : G → H) (hf : ∀ x y, f (x - y) = f x - f y) :
+  ⇑(of_map_sub f hf) = f :=
+rfl
 
 end add_monoid_hom
 

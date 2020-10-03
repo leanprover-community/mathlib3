@@ -300,7 +300,7 @@ dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _)
   (gcd_dvd_gcd (dvd_refl _) (dvd_of_associated h))
   (gcd_dvd_gcd (dvd_refl _) (dvd_of_associated h.symm))
 
--- Represent a divisor of `m * n` as a product of a divisor of `m` and a divisor of `n`. -/
+/-- Represent a divisor of `m * n` as a product of a divisor of `m` and a divisor of `n`. -/
 noncomputable def prod_dvd_and_dvd_of_dvd_prod {m n k : α} (H : k ∣ m * n) :
   { d : {m' // m' ∣ m} × {n' // n' ∣ n} // k = d.1 * d.2 } :=
 begin

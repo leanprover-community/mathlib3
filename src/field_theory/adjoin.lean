@@ -328,8 +328,7 @@ lemma bot_eq_top_of_findim_adjoin_eq_one (h : ∀ x : E, findim F F⟮x⟯ = 1) 
 begin
   ext,
   rw iff_true_right intermediate_field.mem_top,
-  exact ((⊥ : intermediate_field F E).mem_coe x).mp
-    (set.singleton_subset_iff.mp (adjoin_findim_eq_one_iff.mp (h x))),
+  exact adjoin_simple_findim_eq_one_iff.mp (h x),
 end
 
 instance [finite_dimensional F E] (K : intermediate_field F E) : finite_dimensional F K :=
@@ -339,8 +338,8 @@ instance [finite_dimensional F E] (K : intermediate_field F E) : finite_dimensio
 lemma bot_eq_top_of_findim_adjoin_le_one [finite_dimensional F E]
   (h : ∀ x : E, findim F F⟮x⟯ ≤ 1) : (⊥ : intermediate_field F E) = ⊤ :=
 begin
-  have : ∀ x : E, findim F F⟮x⟯ = 1 := λ x, by linarith [h x, show 0 < findim F F⟮x⟯, from findim_pos],
-  exact bot_eq_top_of_findim_adjoin_eq_one this,
+  apply bot_eq_top_of_findim_adjoin_eq_one,
+  exact λ x, by linarith [h x, show 0 < findim F F⟮x⟯, from findim_pos],
 end
 
 end adjoin_dim

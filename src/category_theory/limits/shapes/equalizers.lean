@@ -537,17 +537,6 @@ rfl
   (equalizer.iso_source_of_self f).inv = equalizer.lift (𝟙 X) (by simp) :=
 rfl
 
--- { hom := cofork.mk_hom i.hom _,
---   inv := cofork.mk_hom i.inv _ }
-
--- cocones.ext i
--- begin
---   rintro ⟨⟩,
---   { rw [←cofork.left_app_one, ←cofork.π_eq_app_one, w],
---     simp, },
---   { rw [←cofork.π_eq_app_one, w], simp },
--- end
-
 section
 /--
 `has_coequalizer f g` represents a particular choice of colimiting cocone

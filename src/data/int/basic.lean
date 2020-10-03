@@ -655,6 +655,10 @@ protected theorem div_eq_of_eq_mul_right {a b c : ℤ} (H1 : b ≠ 0) (H2 : a = 
   a / b = c :=
 by rw [H2, int.mul_div_cancel_left _ H1]
 
+protected theorem eq_div_of_mul_eq_right {a b c : ℤ} (H1 : a ≠ 0) (H2 : a * b = c) :
+  b = c / a :=
+eq.symm $ int.div_eq_of_eq_mul_right H1 H2.symm
+
 protected theorem div_eq_iff_eq_mul_right {a b c : ℤ} (H : b ≠ 0) (H' : b ∣ a) :
   a / b = c ↔ a = b * c :=
 ⟨int.eq_mul_of_div_eq_right H', int.div_eq_of_eq_mul_right H⟩

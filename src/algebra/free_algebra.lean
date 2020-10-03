@@ -310,6 +310,8 @@ def aux {C : free_algebra R X → Prop} (p : grade_proof C) :=
 
 variables {C : free_algebra R X → Prop} (p : grade_proof C)
 
+instance : has_coe (aux p) (free_algebra R X) := ⟨subtype.val⟩
+
 namespace aux
 
 -- declare these first so that instances below can use simp
@@ -353,7 +355,7 @@ instance : algebra R (aux p) := {
 
 /-- projecting with `↑` preserves algebra operations -/
 def coe_hom : aux p →ₐ[R] free_algebra R X := {
-  to_fun := subtype.val,  -- I can't use ↑ here and I don't know why
+  to_fun := λ x, x,
   map_one' := by simp,
   map_mul' := by simp,
   map_zero' := by simp,
@@ -364,7 +366,7 @@ def coe_hom : aux p →ₐ[R] free_algebra R X := {
     unfold algebra.to_ring_hom,
     simp, }, }
 
-lemma val_hom_eq (a : aux p) : coe_hom p a = a.val := rfl
+lemma coe_hom_eq (a : aux p) : coe_hom p a = (a : free_algebra R X) := rfl
 
 /-- construct a bundled proof for a grade-1 element, x -/
 def of (x : X) : aux p := ⟨ι R x, p.grade1 x⟩
@@ -378,13 +380,13 @@ include p
 lemma induction (a) : C a :=
 begin
   convert subtype.prop ((lift R $ aux.of p) a),
-  rw [←subtype.val_eq_coe, ←aux.val_hom_eq],
-  rw ← alg_hom.comp_apply,
-  conv_lhs {rw ← @alg_hom.id_apply R _ _ _ _ a},
+  rw ←aux.coe_hom_eq,
+  rw ←alg_hom.comp_apply,
+  conv_lhs {rw ←@alg_hom.id_apply R _ _ _ _ a},
   revert a,
-  rw ← alg_hom.ext_iff,
+  rw ←alg_hom.ext_iff,
   ext,
-  simp [aux.val_hom_eq, aux.of],
+  simp [aux.coe_hom_eq, aux.of],
 end
 
 end grade_proof

@@ -12,13 +12,13 @@ import algebra.group.basic
 In this file we define
 
 * `equiv α β` a.k.a. `α ≃ β`: a bijective map `α → β` bundled with its inverse map; we use this (and
-  not the equality!) to express that various `Type`s or `Sort`s are equivalent.
+  not equality!) to express that various `Type`s or `Sort`s are equivalent.
 
 * `equiv.perm α`: the group of permutations `α ≃ α`;
 
 We also define many operations. E.g., `equiv.refl α` is the identity map interpreted as `α ≃ α`, and
 `equiv.prod_congr` says that `α₁ ≃ α₂` and `β₁ ≃ β₂` imply `α₁ × β₁ ≃ α₂ × β₂`. All these statements
-are formulated as `def`s because they provide specific bijections, not just existence of a
+are formulated as `def`s because they provide specific bijections, not just the existence of a
 bijection.
 
 -/

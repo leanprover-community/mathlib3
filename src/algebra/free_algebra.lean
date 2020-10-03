@@ -304,6 +304,7 @@ structure grade_proof (C : free_algebra R X → Prop) : Prop :=
 namespace grade_proof
 
 /-- auxiliary type to bundle each element with its proof -/
+@[nolint unused_arguments]
 def aux {C : free_algebra R X → Prop} (p : grade_proof C) :=
 {value // C value}
 

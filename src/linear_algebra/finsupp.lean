@@ -418,7 +418,7 @@ end total
 protected def dom_lcongr
   {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) :
   (α₁ →₀ M) ≃ₗ[R] (α₂ →₀ M) :=
-(finsupp.dom_congr e).to_linear_equiv
+(finsupp.dom_congr e).to_equiv.to_linear_equiv
 begin
   change is_linear_map R (lmap_domain M R e : (α₁ →₀ M) →ₗ[R] (α₂ →₀ M)),
   exact linear_map.is_linear _

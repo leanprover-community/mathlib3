@@ -1,10 +1,8 @@
-import category_theory.elements
-import category_theory.limits.limits
-import category_theory.functor_category
-import category_theory.limits.types
-import category_theory.limits.functor_category
 import category_theory.adjunction
-import category_theory.limits.shapes.terminal
+import category_theory.elements
+import category_theory.limits.functor_category
+import category_theory.limits.shapes
+import category_theory.limits.types
 
 namespace category_theory
 
@@ -128,19 +126,11 @@ def the_cocone (P : Cᵒᵖ ⥤ Type u₁) :
   cocone ((category_of_elements.π P).left_op ⋙ yoneda) :=
 cocone.extend (colimit.cocone _) (left_is_id.hom.app P)
 
-lemma desc_self {J : Type v₁} {C : Type u₁} [small_category J] [category.{v₁} C]
-  (F : J ⥤ C) {c : cocone F} (t : is_colimit c) : t.desc c = 𝟙 c.X :=
-(t.uniq _ _ (λ j, comp_id _)).symm
-
-lemma col_desc_self {J : Type v₁} {C : Type u₁} [small_category J] [category.{v₁} C] (F : J ⥤ C)
-  [has_colimit F] : colimit.desc F (colimit.cocone F) = 𝟙 (colimit F) :=
-desc_self F (colimit.is_colimit _)
-
 def is_a_limit (P : Cᵒᵖ ⥤ Type u₁) : is_colimit (the_cocone P) :=
 begin
   apply is_colimit.of_point_iso (colimit.is_colimit ((category_of_elements.π P).left_op ⋙ yoneda)),
   change is_iso (colimit.desc _ (cocone.extend _ _)),
-  rw [colimit.desc_extend, col_desc_self],
+  rw [colimit.desc_extend, desc_colimit_cocone],
   apply_instance,
 end
 

@@ -83,10 +83,8 @@ class bounded_random (α : Type u) [preorder α] :=
               (x ≤ y) → rand_g g (x .. y))
 
 /-- `random α` gives us machinery to generate values of type `α` -/
-class random (α : Type u) [preorder α] extends bounded_random α :=
+class random (α : Type u) :=
 (random [] : Π (g : Type) [random_gen g], rand_g g α)
-
-attribute [instance, priority 100] random.to_bounded_random
 
 /-- shift_31_left = 2^31; multiplying by it shifts the binary
 representation of a number left by 31 bits, dividing by it shifts it
@@ -107,7 +105,7 @@ def split : rand_g g g := ⟨ prod.map id up ∘ random_gen.split ∘ down ⟩
 variables {g}
 
 section random
-variables [preorder α] [random α]
+variables [random α]
 
 export random (random)
 
@@ -157,7 +155,7 @@ def run_rand_with (seed : ℕ) (cmd : _root_.rand α) : io α :=
 return $ (cmd.run ⟨mk_std_gen seed⟩).1
 
 section random
-variables [preorder α] [random α]
+variables [random α]
 
 /-- randomly generate a value of type α -/
 def random : io α :=
@@ -213,7 +211,7 @@ end bounded_random
 
 section random
 
-variables [preorder α] [random α]
+variables [random α]
 
 /-- randomly generate a value of type α -/
 meta def random : tactic α :=
@@ -250,9 +248,23 @@ instance nat_bounded_random : bounded_random ℕ :=
      pure ⟨z.val + x, nat.le_add_left _ _,
        by rw ← nat.le_sub_right_iff_add_le hxy; apply le_of_succ_le_succ z.is_lt⟩ }
 
+/-- This `bounded_random` interval generates integers between `x` and
+`y` by first generating a natural number between `0` and `y - x` and
+shifting the result appropriately. -/
+instance int_bounded_random : bounded_random ℤ :=
+{ random_r := λ g inst x y hxy,
+  do ⟨z,h₀,h₁⟩ ← @bounded_random.random_r ℕ _ _ g inst 0 (int.nat_abs $ y - x) dec_trivial,
+     pure ⟨z + x,
+       int.le_add_of_nonneg_left (int.coe_nat_nonneg _),
+       int.add_le_of_le_sub_right $ le_trans
+         (int.coe_nat_le_coe_nat_of_le h₁)
+         (le_of_eq $ int.of_nat_nat_abs_eq_of_nonneg (int.sub_nonneg_of_le hxy)) ⟩ }
+
 instance fin_random (n : ℕ) [fact (0 < n)] : random (fin n) :=
-{ random := λ g inst, @fin.random g inst _ _,
-  random_r := λ g inst (x y : fin n) p,
+{ random := λ g inst, @fin.random g inst _ _ }
+
+instance fin_bounded_random (n : ℕ) : bounded_random (fin n) :=
+{ random_r := λ g inst (x y : fin n) p,
     do ⟨r, h, h'⟩ ← @rand.random_r ℕ g inst _ _ x.val y.val p,
        pure ⟨⟨r,lt_of_le_of_lt h' y.is_lt⟩, h, h'⟩ }
 
@@ -272,8 +284,10 @@ begin
 end
 
 instance : random bool :=
-{ random   := λ g inst, (bool.of_nat ∘ subtype.val) <$> @bounded_random.random_r ℕ _ _ g inst 0 1 (nat.zero_le _),
-  random_r := λ g _inst x y p, subtype.map bool.of_nat (bool_of_nat_mem_Icc_of_mem_Icc_to_nat x y) <$> @bounded_random.random_r ℕ _ _ g _inst x.to_nat y.to_nat (bool.to_nat_le_to_nat p) }
+{ random   := λ g inst, (bool.of_nat ∘ subtype.val) <$> @bounded_random.random_r ℕ _ _ g inst 0 1 (nat.zero_le _) }
+
+instance : bounded_random bool :=
+{ random_r := λ g _inst x y p, subtype.map bool.of_nat (bool_of_nat_mem_Icc_of_mem_Icc_to_nat x y) <$> @bounded_random.random_r ℕ _ _ g _inst x.to_nat y.to_nat (bool.to_nat_le_to_nat p) }
 
 open_locale fin_fact
 
@@ -295,5 +309,7 @@ subtype.map bitvec.of_fin h' <$> rand.random_r x.to_fin y.to_fin (bitvec.to_fin_
 open nat
 
 instance random_bitvec (n : ℕ) : random (bitvec n) :=
-{ random := λ _ inst, @bitvec.random _ inst n,
-  random_r := λ _ inst x y p, @bitvec.random_r _ inst _ _ _ p }
+{ random := λ _ inst, @bitvec.random _ inst n }
+
+instance bounded_random_bitvec (n : ℕ) : bounded_random (bitvec n) :=
+{ random_r := λ _ inst x y p, @bitvec.random_r _ inst _ _ _ p }

@@ -874,6 +874,16 @@ begin
   exact ⟨by rwa insert_eq_of_mem hx, λ x hx, by simp [ftaylor_series_within]⟩
 end
 
+lemma times_cont_diff_within_at_zero (hx : x ∈ s)
+  (h : ∃ u ∈ 𝓝[s] x, continuous_on f (s ∩ u)) :
+  times_cont_diff_within_at 𝕜 0 f s x :=
+begin
+  obtain ⟨u, H, hu⟩ := h,
+  rw ← times_cont_diff_within_at_inter' H,
+  have h' : x ∈ s ∩ u := ⟨hx, mem_of_mem_nhds_within hx H⟩,
+  exact (times_cont_diff_on_zero.mpr hu).times_cont_diff_within_at h'
+end
+
 /-- On a set with unique differentiability, any choice of iterated differential has to coincide
 with the one we have chosen in `iterated_fderiv_within 𝕜 m f s`. -/
 theorem has_ftaylor_series_up_to_on.eq_ftaylor_series_of_unique_diff_on {n : with_top ℕ}
@@ -1054,8 +1064,8 @@ begin
     exact with_top.coe_le_coe.2 (nat.le_succ n) }
 end
 
-/-- A function is `C^∞` on a domain with unique derivatives if and only if it is differentiable
-there, and its derivative (expressed with `fderiv`) is `C^∞`. -/
+/-- A function is `C^∞` on an open domain if and only if it is differentiable there, and its
+derivative (expressed with `fderiv`) is `C^∞`. -/
 theorem times_cont_diff_on_top_iff_fderiv_of_open (hs : is_open s) :
   times_cont_diff_on 𝕜 ∞ f s ↔
   differentiable_on 𝕜 f s ∧ times_cont_diff_on 𝕜 ∞ (λ y, fderiv 𝕜 f y) s :=
@@ -1314,6 +1324,15 @@ lemma times_cont_diff.times_cont_diff_on {n : with_top ℕ}
 begin
   rw [← times_cont_diff_on_univ, continuous_iff_continuous_on_univ],
   exact times_cont_diff_on_zero
+end
+
+lemma times_cont_diff_at_zero (h : ∃ u ∈ 𝓝 x, continuous_on f u) :
+  times_cont_diff_at 𝕜 0 f x :=
+begin
+  obtain ⟨u, H, hu⟩ := h,
+  refine times_cont_diff_within_at_univ.mpr (times_cont_diff_within_at_zero (mem_univ x) ⟨u, _⟩),
+  simp only [nhds_within_univ, exists_prop, univ_inter],
+  exact ⟨H, hu⟩
 end
 
 lemma times_cont_diff.of_le {m n : with_top ℕ}
@@ -2325,7 +2344,7 @@ begin
   let O₂ : (E →L[𝕜] F) → (E →L[𝕜] E) := λ f, (e.symm : (F →L[𝕜] E)).comp f,
   have : continuous_linear_map.inverse = O₁ ∘ ring.inverse ∘ O₂,
   { funext f,
-    rw to_ring_inverse e},
+    rw to_ring_inverse e },
   rw this,
   -- `O₁` and `O₂` are `times_cont_diff`, so we reduce to proving that `ring.inverse` is `times_cont_diff`
   have h₁ : times_cont_diff 𝕜 n O₁,
@@ -2345,6 +2364,66 @@ begin
 end
 
 end map_inverse
+
+section function_inverse
+open continuous_linear_map
+
+/-- If `f` is a local homeomorphism and the point `a` is in its target, and if `f` is `n` times
+continuously differentiable at `f.symm a`, and if the derivative at `f.symm a` is a continuous linear
+equivalence, then `f.symm` is `n` times continuously differentiable at the point `a`.
+
+This is one of the easy parts of the inverse function theorem: it assumes that we already have
+an inverse function. -/
+theorem times_cont_diff_at.of_local_homeomorph [complete_space E] {n : with_top ℕ}
+  {f : local_homeomorph E F} {f₀' : E ≃L[𝕜] F} {a : F} (ha : a ∈ f.target)
+  (hf₀' : has_fderiv_at f (f₀' : E →L[𝕜] F) (f.symm a)) (hf : times_cont_diff_at 𝕜 n f (f.symm a)) :
+  times_cont_diff_at 𝕜 n f.symm a :=
+begin
+  -- We prove this by induction on `n`
+  induction n using with_top.nat_induction with n IH Itop,
+  { apply times_cont_diff_at_zero,
+    exact ⟨f.target, mem_nhds_sets f.open_target ha, f.continuous_inv_fun⟩ },
+  { obtain ⟨f', ⟨u, hu, hff'⟩, hf'⟩ := times_cont_diff_at_succ_iff_has_fderiv_at.mp hf,
+    apply times_cont_diff_at_succ_iff_has_fderiv_at.mpr,
+    -- For showing `n.succ` times continuous differentiability (the main inductive step), it
+    -- suffices to produce the derivative and show that it is `n` times continuously differentiable
+    have eq_f₀' : f' (f.symm a) = f₀',
+    { exact has_fderiv_at_unique (hff' (f.symm a) (mem_of_nhds hu)) hf₀' },
+    -- This follows by a bootstrapping formula expressing the derivative as a function of `f` itself
+    refine ⟨inverse ∘ f' ∘ f.symm, _, _⟩,
+    { -- We first check that the derivative of `f` is that formula
+      have h_nhds : {y : E | ∃ (e : E ≃L[𝕜] F), f' y = ↑e} ∈ 𝓝 ((f.symm) a),
+      { have hf₀' := f₀'.nhds,
+        rw ← eq_f₀' at hf₀',
+        exact hf'.continuous_at.preimage_mem_nhds hf₀' },
+      obtain ⟨t, htu, ht, htf⟩ := mem_nhds_sets_iff.mp (filter.inter_mem_sets hu h_nhds),
+      use f.target ∩ (f.symm) ⁻¹' t,
+      refine ⟨mem_nhds_sets _ _, _⟩,
+      { exact f.preimage_open_of_open_symm ht },
+      { exact mem_inter ha (mem_preimage.mpr htf) },
+      intros x hx,
+      obtain ⟨hxu, e, he⟩ := htu hx.2,
+      have h_deriv : has_fderiv_at f ↑e ((f.symm) x),
+      { rw ← he,
+        exact hff' (f.symm x) hxu },
+      convert h_deriv.of_local_homeomorph hx.1,
+      simp [he] },
+    { -- Then we check that the formula, being a composition of `times_cont_diff` pieces, is
+      -- itself `times_cont_diff`
+      have h_deriv₁ : times_cont_diff_at 𝕜 n inverse (f' (f.symm a)),
+      { rw eq_f₀',
+        exact times_cont_diff_at_map_inverse _ },
+      have h_deriv₂ : times_cont_diff_at 𝕜 n f.symm a,
+      { refine IH (hf.of_le _),
+        norm_cast,
+        exact nat.le_succ n },
+      exact (h_deriv₁.comp _ hf').comp _ h_deriv₂ } },
+  { refine times_cont_diff_at_top.mpr _,
+    intros n,
+    exact Itop n (times_cont_diff_at_top.mp hf n) }
+end
+
+end function_inverse
 
 section real
 /-!

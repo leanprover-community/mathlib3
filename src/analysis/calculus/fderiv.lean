@@ -1916,7 +1916,8 @@ end bilinear_map
 
 namespace continuous_linear_equiv
 
-/-! ### The set of continuous linear equivalences between two Banach spaces is open
+/-!
+### The set of continuous linear equivalences between two Banach spaces is open
 
 In this section we establish that the set of continuous linear equivalences between two Banach
 spaces is an open subset of the space of linear maps between them.  These facts are placed here
@@ -1962,10 +1963,7 @@ end
 
 lemma nhds [complete_space E] (e : E ≃L[𝕜] F) :
   {f : E →L[𝕜] F | ∃ e' : E ≃L[𝕜] F, f = e'} ∈ 𝓝 (e : E →L[𝕜] F) :=
-begin
-  refine mem_nhds_sets continuous_linear_equiv.is_open _,
-  simp
-end
+mem_nhds_sets continuous_linear_equiv.is_open (by simp)
 
 end continuous_linear_equiv
 

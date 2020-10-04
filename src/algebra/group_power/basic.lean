@@ -48,7 +48,7 @@ def monoid.pow [has_mul M] [has_one M] (a : M) : ℕ → M
 /-- The scalar multiplication in an additive monoid.
 `n •ℕ a = a+a+...+a` n times. -/
 def nsmul [has_add A] [has_zero A] (n : ℕ) (a : A) : A :=
-@monoid.pow (multiplicative A) _  _ a n
+@monoid.pow (multiplicative A) _ _ a n
 
 infix ` •ℕ `:70 := nsmul
 

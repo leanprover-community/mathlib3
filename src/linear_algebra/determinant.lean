@@ -6,7 +6,7 @@ Authors: Kenny Lau, Chris Hughes, Tim Baanen
 import data.matrix.pequiv
 import data.fintype.card
 import group_theory.perm.sign
-import ring_theory.algebra
+import algebra.algebra.basic
 import tactic.ring
 
 universes u v w z

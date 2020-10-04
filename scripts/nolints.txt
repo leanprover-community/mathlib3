@@ -83,11 +83,9 @@ apply_nolint category_theory.small_groupoid doc_blame
 apply_nolint category_theory.limits.cocone has_inhabited_instance
 apply_nolint category_theory.limits.cocone.extensions doc_blame
 apply_nolint category_theory.limits.cocone_morphism has_inhabited_instance
-apply_nolint category_theory.limits.cocones.functoriality doc_blame
 apply_nolint category_theory.limits.cone has_inhabited_instance
 apply_nolint category_theory.limits.cone.extensions doc_blame
 apply_nolint category_theory.limits.cone_morphism has_inhabited_instance
-apply_nolint category_theory.limits.cones.functoriality doc_blame
 
 -- category_theory/limits/over.lean
 apply_nolint category_theory.functor.to_cocone doc_blame
@@ -383,10 +381,6 @@ apply_nolint dlist.join doc_blame
 
 -- data/dlist/instances.lean
 apply_nolint dlist.list_equiv_dlist doc_blame
-
--- data/equiv/basic.lean
-apply_nolint equiv has_inhabited_instance
-apply_nolint equiv.subtype_quotient_equiv_quotient_subtype doc_blame
 
 -- data/equiv/denumerable.lean
 apply_nolint denumerable.equiv₂ doc_blame
@@ -721,14 +715,10 @@ apply_nolint znum.transfer doc_blame
 apply_nolint znum.transfer_rw doc_blame
 
 -- data/opposite.lean
-apply_nolint opposite.op doc_blame
 apply_nolint opposite.op_induction doc_blame
-apply_nolint opposite.unop doc_blame
 apply_nolint tactic.interactive.op_induction doc_blame
 apply_nolint tactic.op_induction doc_blame
 apply_nolint tactic.op_induction' doc_blame
-apply_nolint tactic.op_induction.find_opposite_hyp doc_blame
-apply_nolint tactic.op_induction.is_opposite doc_blame
 
 -- data/option/defs.lean
 apply_nolint option.lift_or_get doc_blame
@@ -828,7 +818,6 @@ apply_nolint rat.le doc_blame
 apply_nolint rat.nonneg doc_blame
 
 -- data/real/basic.lean
-apply_nolint real doc_blame
 apply_nolint real.comm_ring_aux doc_blame
 apply_nolint real.le doc_blame
 apply_nolint real.sqrt_aux doc_blame
@@ -840,12 +829,6 @@ apply_nolint cau_seq.completion.mk doc_blame
 apply_nolint cau_seq.completion.of_rat doc_blame
 apply_nolint cau_seq.is_complete doc_blame
 apply_nolint cau_seq.lim doc_blame
-
--- data/real/ereal.lean
-apply_nolint ereal has_inhabited_instance
-
--- data/real/nnreal.lean
-apply_nolint nnreal.of_real doc_blame
 
 -- data/semiquot.lean
 apply_nolint semiquot.bind doc_blame

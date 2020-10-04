@@ -38,6 +38,7 @@ iff.intro nnreal.eq (congr_arg coe)
 lemma ne_iff {x y : ℝ≥0} : (x : ℝ) ≠ (y : ℝ) ↔ x ≠ y :=
 not_iff_not_of_iff $ nnreal.eq_iff
 
+/-- Reinterpret a real number `r` as a non-negative real number. Returns `0` if `r < 0`. -/
 protected def of_real (r : ℝ) : ℝ≥0 := ⟨max r 0, le_max_right _ _⟩
 
 lemma coe_of_real (r : ℝ) (hr : 0 ≤ r) : (nnreal.of_real r : ℝ) = r :=
@@ -389,8 +390,7 @@ lemma of_real_mul {p q : ℝ} (hp : 0 ≤ p) :
 begin
   cases le_total 0 q with hq hq,
   { apply nnreal.eq,
-    have := max_eq_left (mul_nonneg hp hq),
-    simpa [nnreal.of_real, hp, hq, max_eq_left] },
+    simp [nnreal.of_real, hp, hq, max_eq_left, mul_nonneg] },
   { have hpq := mul_nonpos_of_nonneg_of_nonpos hp hq,
     rw [of_real_eq_zero.2 hq, of_real_eq_zero.2 hpq, mul_zero] }
 end

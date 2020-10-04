@@ -3,7 +3,7 @@ Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 
-The `even` predicate on the integers.
+The `even` and `odd` predicates on the integers.
 -/
 import data.int.modeq
 import data.nat.parity
@@ -32,11 +32,25 @@ theorem even_iff {n : int} : even n ↔ n % 2 = 0 :=
 lemma not_even_iff {n : ℤ} : ¬ even n ↔ n % 2 = 1 :=
 by rw [even_iff, mod_two_ne_zero]
 
+/-- An integer `n` is `odd` if it is not even.  The mathlib API
+for parity is developed in terms of `even`; to avoid duplication,
+results should not be stated in terms of `odd`.  The purpose of this
+definition is for code outside mathlib that wishes to have a formal
+statement that is as literal a translation as possible of the
+corresponding informal statement, where that informal statement refers
+to odd numbers. -/
+def odd (n : ℤ) : Prop := ¬ even n
+
+@[simp] lemma odd_def (n : ℤ) : odd n ↔ ¬ even n := iff.rfl
+
 @[simp] theorem two_dvd_ne_zero {n : int} : ¬ 2 ∣ n ↔ n % 2 = 1 :=
 not_even_iff
 
 instance : decidable_pred even :=
 λ n, decidable_of_decidable_of_iff (by apply_instance) even_iff.symm
+
+instance decidable_pred_odd : decidable_pred odd :=
+λ n, decidable_of_decidable_of_iff (by apply_instance) not_even_iff.symm
 
 @[simp] theorem even_zero : even (0 : int) := ⟨0, dec_trivial⟩
 

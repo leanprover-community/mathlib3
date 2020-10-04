@@ -3,10 +3,8 @@ Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Scott Morrison, Adam Topaz.
 -/
-
-import ring_theory.algebra
+import algebra.monoid_algebra
 import linear_algebra
-import data.monoid_algebra
 
 /-!
 # Free Algebras

@@ -355,7 +355,7 @@ end
 /-- `q` is the minimum factor of `mersenne p`, so `M p = 0` in `X q`. -/
 theorem mersenne_coe_X (p : ℕ) : (mersenne p : X (q p)) = 0 :=
 begin
-  ext; simp [mersenne, q, zmod.nat_coe_zmod_eq_zero_iff_dvd],
+  ext; simp [mersenne, q, zmod.nat_coe_zmod_eq_zero_iff_dvd, -pow_pos],
   apply nat.min_fac_dvd,
 end
 

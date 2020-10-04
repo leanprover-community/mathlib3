@@ -857,6 +857,20 @@ by rintro ⟨a, y, rfl⟩; exact
 lemma span_singleton_eq_range (y : M) : (span R ({y} : set M) : set M) = range ((• y) : R → M) :=
 set.ext $ λ x, mem_span_singleton
 
+lemma span_singleton_smul_le (r : R) (x : M) : span R ({r • x} : set M) ≤ span R {x} :=
+begin
+  rw [span_le, set.singleton_subset_iff, mem_coe],
+  exact smul_mem _ _ (mem_span_singleton_self _)
+end
+
+lemma span_singleton_smul_eq {K E : Type*} [division_ring K] [add_comm_group E] [module K E]
+  {r : K} (x : E) (hr : r ≠ 0) : span K ({r • x} : set E) = span K {x} :=
+begin
+  refine le_antisymm (span_singleton_smul_le r x) _,
+  convert span_singleton_smul_le r⁻¹ (r • x),
+  exact (inv_smul_smul' hr _).symm
+end
+
 lemma disjoint_span_singleton {K E : Type*} [division_ring K] [add_comm_group E] [module K E]
   {s : submodule K E} {x : E} :
   disjoint s (span K {x}) ↔ (x ∈ s → x = 0) :=

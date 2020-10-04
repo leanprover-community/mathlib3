@@ -73,6 +73,9 @@ instance category.opposite : category.{v₁} Cᵒᵖ :=
 @[simp] lemma unop_id_op {X : C} : (𝟙 (op X)).unop = 𝟙 X := rfl
 @[simp] lemma op_id_unop {X : Cᵒᵖ} : (𝟙 (unop X)).op = 𝟙 X := rfl
 
+section
+variables (C)
+
 /-- The functor from the double-opposite of a category to the underlying category. -/
 @[simps]
 def op_op : (Cᵒᵖ)ᵒᵖ ⥤ C :=
@@ -88,10 +91,12 @@ def unop_unop : C ⥤ Cᵒᵖᵒᵖ :=
 /-- The double opposite category is equivalent to the original. -/
 @[simps]
 def op_op_equivalence : Cᵒᵖᵒᵖ ≌ C :=
-{ functor := op_op,
-  inverse := unop_unop,
+{ functor := op_op C,
+  inverse := unop_unop C,
   unit_iso := iso.refl (𝟭 Cᵒᵖᵒᵖ),
-  counit_iso := iso.refl (unop_unop ⋙ op_op) }
+  counit_iso := iso.refl (unop_unop C ⋙ op_op C) }
+
+end
 
 /--
 If `f.op` is an isomorphism `f` must be too.

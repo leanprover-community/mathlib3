@@ -676,7 +676,7 @@ protected lemma ext (f g : α →𝒄 β) (h : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; congr; ext; apply h
 
 protected lemma coe_inj (f g : α →𝒄 β) (h : (f : α → β) = g) : f = g :=
-continuous_hom.ext _ _ $ congr_fun h
+continuous_hom.ext _ _ $ _root_.congr_fun h
 
 @[simp]
 lemma comp_id (f : β →𝒄 γ) : f.comp id = f := by ext; refl

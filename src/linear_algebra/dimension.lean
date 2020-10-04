@@ -516,10 +516,9 @@ end
 
 /-- A submodule has dimension at most `1` if and only if there is a
 single vector in the submodule of which all vectors are multiples. -/
-lemma dim_submodule_le_one_iff (s : submodule K V) :
-  dim K s ≤ 1 ↔ ∃ v₀ ∈ s, ∀ v ∈ s, ∃ r : K, r • v₀ = v :=
+lemma dim_submodule_le_one_iff (s : submodule K V) : dim K s ≤ 1 ↔ ∃ v₀ ∈ s, s ≤ span K {v₀} :=
 begin
-  rw dim_le_one_iff,
+  simp_rw [dim_le_one_iff, le_span_singleton_iff],
   split,
   { rintro ⟨⟨v₀, hv₀⟩, h⟩,
     use [v₀, hv₀],
@@ -540,8 +539,7 @@ end
 /-- A submodule has dimension at most `1` if and only if there is a
 single vector, not necessarily in the submodule, of which all vectors
 are multiples. -/
-lemma dim_submodule_le_one_iff' (s : submodule K V) :
-  dim K s ≤ 1 ↔ ∃ v₀ : V, ∀ v ∈ s, ∃ r : K, r • v₀ = v :=
+lemma dim_submodule_le_one_iff' (s : submodule K V) : dim K s ≤ 1 ↔ ∃ v₀, s ≤ span K {v₀} :=
 begin
   rw dim_submodule_le_one_iff,
   split,
@@ -551,14 +549,11 @@ begin
     by_cases hw : ∃ w : V, w ∈ s ∧ w ≠ 0,
     { rcases hw with ⟨w, hw, hw0⟩,
       use [w, hw],
-      intros v hv,
-      rcases h v hv with ⟨r, rfl⟩,
-      rcases h w hw with ⟨r', rfl⟩,
-      use r / r',
+      rcases mem_span_singleton.1 (h hw) with ⟨r', rfl⟩,
       have h0 : r' ≠ 0,
       { rintro rfl,
         simpa using hw0 },
-      simp [smul_smul, h0] },
+      rwa span_singleton_smul_eq _ h0 },
     { push_neg at hw,
       rw ←submodule.eq_bot_iff at hw,
       simp [hw] } }

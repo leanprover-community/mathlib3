@@ -400,6 +400,11 @@ lemma dense_inducing_coe : dense_inducing (coe : α → completion α) :=
 { dense := dense,
   ..(uniform_inducing_coe α).inducing }
 
+open topological_space
+
+instance separable_space_completion [separable_space α] : separable_space (completion α) :=
+completion.dense_inducing_coe.separable
+
 lemma dense_embedding_coe [separated_space α]: dense_embedding (coe : α → completion α) :=
 { inj := separated_pure_cauchy_injective,
   ..dense_inducing_coe }

@@ -112,6 +112,10 @@ variables (α)
 class separable_space : Prop :=
 (exists_countable_closure_eq_univ : ∃s:set α, countable s ∧ closure s = univ)
 
+lemma exists_countable_closure_eq_univ [separable_space α] :
+  ∃ s : set α, countable s ∧ closure s = univ :=
+separable_space.exists_countable_closure_eq_univ
+
 lemma exists_dense_seq [separable_space α] [nonempty α] : ∃ u : ℕ → α, closure (range u) = univ :=
 begin
   obtain ⟨s : set α, hs, s_dense⟩ := @separable_space.exists_countable_closure_eq_univ α _ _,
@@ -126,6 +130,15 @@ def dense_seq [separable_space α] [nonempty α] : ℕ → α := classical.some 
 
 @[simp] lemma dense_seq_dense [separable_space α] [nonempty α] :
   closure (range $ dense_seq α) = univ := classical.some_spec (exists_dense_seq α)
+
+omit t
+
+lemma separable_of_dense_range {α β : Type*} [topological_space α] [separable_space α] [topological_space β]
+  {f : α → β} (h : ∀ b, b ∈ closure (set.range f)) (h' : continuous f) : separable_space β :=
+let ⟨s, s_count, s_clos⟩ := exists_countable_closure_eq_univ α in
+⟨⟨f '' s, countable.image s_count f, h'.closure_image_eq_univ_of_dense_range h s_clos⟩⟩
+
+include t
 
 /-- A first-countable space is one in which every point has a
   countable neighborhood basis. -/

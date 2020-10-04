@@ -1052,4 +1052,14 @@ lemma mem_closure {s : set α} {t : set β} {f : α → β} {a : α}
 subset.trans (image_closure_subset_closure_image hf) (closure_mono $ image_subset_iff.2 ht) $
   (mem_image_of_mem f ha)
 
+lemma continuous.closure_image_eq_univ_of_dense_range {f : α → β}
+  (hf : continuous f) (hf' : ∀ b, b ∈ closure (range f)) {s : set α} (hs : closure s = univ) :
+  closure (f '' s) = univ :=
+begin
+  have : f '' (closure s) ⊆ closure (f '' s) := image_closure_subset_closure_image hf,
+  have := closure_mono this,
+  rw [hs, image_univ, eq_univ_of_forall hf', closure_closure] at this,
+  exact eq_univ_of_univ_subset this
+end
+
 end continuous

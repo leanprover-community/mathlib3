@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import topology.separation
+import topology.bases
 
 /-!
 # Dense embeddings
@@ -74,6 +75,7 @@ lemma dense_range.prod {ι : Type*} {κ : Type*} {f : ι → β} {g : κ → γ}
 have closure (range $ λ p : ι×κ, (f p.1, g p.2)) = set.prod (closure $ range f) (closure $ range g),
     by rw [←closure_prod_eq, prod_range_range_eq],
 assume ⟨b, d⟩, this.symm ▸ mem_prod.2 ⟨hf _, hg _⟩
+
 end dense_range
 
 /-- `i : α → β` is "dense inducing" if it has dense range and the topology on `α`
@@ -128,6 +130,11 @@ protected lemma prod [topological_space γ] [topological_space δ]
   dense_inducing (λ(p : α × γ), (e₁ p.1, e₂ p.2)) :=
 { induced := (de₁.to_inducing.prod_mk de₂.to_inducing).induced,
   dense := de₁.dense.prod de₂.dense }
+
+open topological_space
+
+lemma separable [separable_space α] : separable_space β :=
+separable_of_dense_range di.dense di.continuous
 
 variables [topological_space δ] {f : γ → α} {g : γ → δ} {h : δ → β}
 /--
@@ -254,6 +261,7 @@ theorem dense_embedding.mk'
   ..dense_inducing.mk' e c dense H}
 
 namespace dense_embedding
+open topological_space
 variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
 variables {e : α → β} (de : dense_embedding e)
 
@@ -262,6 +270,8 @@ lemma inj_iff {x y} : e x = e y ↔ x = y := de.inj.eq_iff
 lemma to_embedding : embedding e :=
 { induced := de.induced,
   inj := de.inj }
+
+lemma separable [separable_space α] : separable_space β := de.to_dense_inducing.separable
 
 /-- The product of two dense embeddings is a dense embedding -/
 protected lemma prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_embedding e₁) (de₂ : dense_embedding e₂) :

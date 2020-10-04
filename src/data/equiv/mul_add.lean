@@ -80,6 +80,15 @@ instance (h : M ≃* N) : is_mul_hom h := ⟨h.map_mul⟩
 def mk' (f : M ≃ N) (h : ∀ x y, f (x * y) = f x * f y) : M ≃* N :=
 ⟨f.1, f.2, f.3, f.4, h⟩
 
+@[to_additive]
+protected lemma bijective (e : M ≃* N) : function.bijective e := e.to_equiv.bijective
+
+@[to_additive]
+protected lemma injective (e : M ≃* N) : function.injective e := e.to_equiv.injective
+
+@[to_additive]
+protected lemma surjective (e : M ≃* N) : function.surjective e := e.to_equiv.surjective
+
 /-- The identity map is a multiplicative isomorphism. -/
 @[refl, to_additive "The identity map is an additive isomorphism."]
 def refl (M : Type*) [has_mul M] : M ≃* M :=
@@ -91,13 +100,12 @@ instance : inhabited (M ≃* M) := ⟨refl M⟩
 /-- The inverse of an isomorphism is an isomorphism. -/
 @[symm, to_additive "The inverse of an isomorphism is an isomorphism."]
 def symm (h : M ≃* N) : N ≃* M :=
-{ map_mul' := λ n₁ n₂, h.left_inv.injective begin
-    show h.to_equiv (h.to_equiv.symm (n₁ * n₂)) =
-      h ((h.to_equiv.symm n₁) * (h.to_equiv.symm n₂)),
-   rw h.map_mul,
-   show _ = h.to_equiv (_) * h.to_equiv (_),
-   rw [h.to_equiv.apply_symm_apply, h.to_equiv.apply_symm_apply, h.to_equiv.apply_symm_apply], end,
-  ..h.to_equiv.symm}
+{ map_mul' := λ n₁ n₂, h.injective $
+    begin
+      have : ∀ x, h (h.to_equiv.symm.to_fun x) = x := h.to_equiv.apply_symm_apply,
+      simp only [this, h.map_mul]
+    end,
+  .. h.to_equiv.symm}
 
 @[simp, to_additive]
 theorem to_equiv_symm (f : M ≃* N) : f.symm.to_equiv = f.to_equiv.symm := rfl
@@ -131,6 +139,21 @@ theorem refl_apply (m : M) : refl M m = m := rfl
 @[simp, to_additive]
 theorem trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (m : M) : e₁.trans e₂ m = e₂ (e₁ m) := rfl
 
+@[simp, to_additive] theorem apply_eq_iff_eq (e : M ≃* N) {x y : M} : e x = e y ↔ x = y :=
+e.injective.eq_iff
+
+@[to_additive]
+lemma apply_eq_iff_symm_apply (e : M ≃* N) {x : M} {y : N} : e x = y ↔ x = e.symm y :=
+e.to_equiv.apply_eq_iff_eq_symm_apply
+
+@[to_additive]
+lemma symm_apply_eq (e : M ≃* N) {x y} : e.symm x = y ↔ x = e y :=
+e.to_equiv.symm_apply_eq
+
+@[to_additive]
+lemma eq_symm_apply (e : M ≃* N) {x y} : y = e.symm x ↔ e y = x :=
+e.to_equiv.eq_symm_apply
+
 /-- a multiplicative equiv of monoids sends 1 to 1 (and is hence a monoid isomorphism) -/
 @[simp, to_additive]
 lemma map_one {M N} [monoid M] [monoid N] (h : M ≃* N) : h 1 = 1 :=
@@ -139,7 +162,7 @@ by rw [←mul_one (h 1), ←h.apply_symm_apply 1, ←h.map_mul, one_mul]
 @[simp, to_additive]
 lemma map_eq_one_iff {M N} [monoid M] [monoid N] (h : M ≃* N) {x : M} :
   h x = 1 ↔ x = 1 :=
-h.map_one ▸ h.to_equiv.apply_eq_iff_eq x 1
+h.map_one ▸ h.to_equiv.apply_eq_iff_eq
 
 @[to_additive]
 lemma map_ne_one_iff {M N} [monoid M] [monoid N] (h : M ≃* N) {x : M} :

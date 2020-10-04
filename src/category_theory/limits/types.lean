@@ -349,7 +349,7 @@ let t' := colimit_cocone F,
     e' : t'.X ≅ t.X := (cocones.forget _).map_iso e in
 begin
   refine iff.trans _ (colimit_eq_iff_aux F),
-  convert equiv.apply_eq_iff_eq e'.to_equiv _ _; rw ←e.hom.w; refl
+  convert e'.to_equiv.apply_eq_iff_eq; rw ←e.hom.w; refl
 end
 
 lemma colimit_eq_iff {i j : J} {xi : F.obj i} {xj : F.obj j} :

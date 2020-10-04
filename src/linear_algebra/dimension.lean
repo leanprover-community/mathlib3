@@ -515,7 +515,8 @@ begin
 end
 
 /-- A submodule has dimension at most `1` if and only if there is a
-single vector in the submodule of which all vectors are multiples. -/
+single vector in the submodule such that the submodule is contained in
+its span. -/
 lemma dim_submodule_le_one_iff (s : submodule K V) : dim K s ≤ 1 ↔ ∃ v₀ ∈ s, s ≤ span K {v₀} :=
 begin
   simp_rw [dim_le_one_iff, le_span_singleton_iff],
@@ -537,8 +538,8 @@ begin
 end
 
 /-- A submodule has dimension at most `1` if and only if there is a
-single vector, not necessarily in the submodule, of which all vectors
-are multiples. -/
+single vector, not necessarily in the submodule, such that the
+submodule is contained in its span. -/
 lemma dim_submodule_le_one_iff' (s : submodule K V) : dim K s ≤ 1 ↔ ∃ v₀, s ≤ span K {v₀} :=
 begin
   rw dim_submodule_le_one_iff,

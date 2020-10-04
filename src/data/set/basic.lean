@@ -1447,10 +1447,8 @@ is a subsingleton set. -/
 begin
   split,
   { refine λ h, (λ a ha b hb, _),
-    rw set.set_coe_eq_subtype at h,
-    haveI := h,
-    exact subtype.ext_iff.1 (subsingleton.elim ⟨a, ha⟩ ⟨b, hb⟩) },
-  { exact λ h, subsingleton.intro (λ a b, subtype.ext (h a.property b.property)) }
+    exact set_coe.ext_iff.2 (@subsingleton.elim s h ⟨a, ha⟩ ⟨b, hb⟩) },
+  { exact λ h, subsingleton.intro (λ a b, set_coe.ext (h a.property b.property)) }
 end
 
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=

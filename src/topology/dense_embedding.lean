@@ -85,7 +85,7 @@ protected lemma prod [topological_space γ] [topological_space δ]
 open topological_space
 
 lemma separable [separable_space α] : separable_space β :=
-separable_of_dense_range di.dense di.continuous
+di.dense.separable_space di.continuous
 
 variables [topological_space δ] {f : γ → α} {g : γ → δ} {h : δ → β}
 /--

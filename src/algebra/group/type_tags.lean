@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.group.hom
+import data.equiv.basic
 /-!
 # Type tags that turn additive structures into multiplicative, and vice versa
 
@@ -28,22 +29,16 @@ multiplicative structure. -/
 def multiplicative (α : Type*) := α
 
 /-- Reinterpret `x : α` as an element of `additive α`. -/
-def additive.of_mul (x : α) : additive α := x
+def additive.of_mul : α ≃ additive α := ⟨λ x, x, λ x, x, λ x, rfl, λ x, rfl⟩
 
 /-- Reinterpret `x : additive α` as an element of `α`. -/
-def additive.to_mul (x : additive α) : α := x
-
-lemma of_mul_injective : function.injective (@additive.of_mul α) := λ _ _, id
-lemma to_mul_injective : function.injective (@additive.to_mul α) := λ _ _, id
+def additive.to_mul : additive α ≃ α := additive.of_mul.symm
 
 /-- Reinterpret `x : α` as an element of `multiplicative α`. -/
-def multiplicative.of_add (x : α) : multiplicative α := x
+def multiplicative.of_add : α ≃ multiplicative α := ⟨λ x, x, λ x, x, λ x, rfl, λ x, rfl⟩
 
 /-- Reinterpret `x : multiplicative α` as an element of `α`. -/
-def multiplicative.to_add (x : multiplicative α) : α := x
-
-lemma of_add_injective : function.injective (@multiplicative.of_add α) := λ _ _, id
-lemma to_add_injective : function.injective (@multiplicative.to_add α) := λ _ _, id
+def multiplicative.to_add : multiplicative α ≃ α := multiplicative.of_add.symm
 
 @[simp] lemma to_add_of_add (x : α) : (multiplicative.of_add x).to_add = x := rfl
 @[simp] lemma of_add_to_add (x : multiplicative α) : multiplicative.of_add x.to_add = x := rfl
@@ -166,21 +161,32 @@ instance [comm_group α] : add_comm_group (additive α) :=
 instance [add_comm_group α] : comm_group (multiplicative α) :=
 { .. multiplicative.group, .. multiplicative.comm_monoid }
 
-/-- Reinterpret `f : α →+ β` as `multiplicative α →* multiplicative β`. -/
-def add_monoid_hom.to_multiplicative [add_monoid α] [add_monoid β] (f : α →+ β) :
-  multiplicative α →* multiplicative β :=
-⟨f.1, f.2, f.3⟩
+/-- Reinterpret `α →+ β` as `multiplicative α →* multiplicative β`. -/
+def add_monoid_hom.to_multiplicative [add_monoid α] [add_monoid β] :
+  (α →+ β) ≃ (multiplicative α →* multiplicative β) :=
+⟨λ f, ⟨f.1, f.2, f.3⟩, λ f, ⟨f.1, f.2, f.3⟩, λ x, by { ext, refl, }, λ x, by { ext, refl, }⟩
 
-/-- Reinterpret `f : α →* β` as `additive α →+ additive β`. -/
-def monoid_hom.to_additive [monoid α] [monoid β] (f : α →* β) : additive α →+ additive β :=
-⟨f.1, f.2, f.3⟩
+/-- Reinterpret `α →* β` as `additive α →+ additive β`. -/
+def monoid_hom.to_additive [monoid α] [monoid β] :
+  (α →* β) ≃ (additive α →+ additive β) :=
+⟨λ f, ⟨f.1, f.2, f.3⟩, λ f, ⟨f.1, f.2, f.3⟩, λ x, by { ext, refl, }, λ x, by { ext, refl, }⟩
 
-/-- Reinterpret `f : additive α →+ β` as `α →* multiplicative β`. -/
-def add_monoid_hom.to_multiplicative' [monoid α] [add_monoid β] (f : additive α →+ β) :
-  α →* multiplicative β :=
-⟨f.1, f.2, f.3⟩
+/-- Reinterpret `additive α →+ β` as `α →* multiplicative β`. -/
+def add_monoid_hom.to_multiplicative' [monoid α] [add_monoid β] :
+  (additive α →+ β) ≃ (α →* multiplicative β) :=
+⟨λ f, ⟨f.1, f.2, f.3⟩, λ f, ⟨f.1, f.2, f.3⟩, λ x, by { ext, refl, }, λ x, by { ext, refl, }⟩
 
-/-- Reinterpret `f : α →* multiplicative β` as `additive α →+ β`. -/
-def monoid_hom.to_additive' [monoid α] [add_monoid β] (f : α →* multiplicative β) :
-  additive α →+ β :=
-⟨f.1, f.2, f.3⟩
+/-- Reinterpret `α →* multiplicative β` as `additive α →+ β`. -/
+def monoid_hom.to_additive' [monoid α] [add_monoid β] :
+  (α →* multiplicative β) ≃ (additive α →+ β) :=
+add_monoid_hom.to_multiplicative'.symm
+
+/-- Reinterpret `α →+ additive β` as `multiplicative α →* β`. -/
+def add_monoid_hom.to_multiplicative'' [add_monoid α] [monoid β] :
+  (α →+ additive β) ≃ (multiplicative α →* β) :=
+⟨λ f, ⟨f.1, f.2, f.3⟩, λ f, ⟨f.1, f.2, f.3⟩, λ x, by { ext, refl, }, λ x, by { ext, refl, }⟩
+
+/-- Reinterpret `multiplicative α →* β` as `α →+ additive β`. -/
+def monoid_hom.to_additive'' [add_monoid α] [monoid β] :
+  (multiplicative α →* β) ≃ (α →+ additive β) :=
+add_monoid_hom.to_multiplicative''.symm

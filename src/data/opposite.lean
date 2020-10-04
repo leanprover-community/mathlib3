@@ -2,15 +2,26 @@
 Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Reid Barton, Simon Hudon, Kenny Lau
-
-Opposites.
 -/
 import data.equiv.basic
+
+/-!
+# Opposites
+
+In this file we define a type synonym `opposite α := α`, denoted by `αᵒᵖ` and two synonyms for the
+identity map, `op : α → αᵒᵖ` and `unop : αᵒᵖ → α`. The type tag `αᵒᵖ` is used with two different
+meanings:
+
+- if `α` is a category, then `αᵒᵖ` is the opposite category, with all arrows reversed;
+
+- if `α` is a monoid (group, etc), then `αᵒᵖ` is the opposite monoid (group, etc) with
+  `op (x * y) = op x * op y`.
+-/
 
 universes v u -- declare the `v` first; see `category_theory.category` for an explanation
 variable (α : Sort u)
 
-/-- The type of objects of the opposite of `α`; used to defined opposite category/group/...
+/-- The type of objects of the opposite of `α`; used to define the opposite category or group.
 
   In order to avoid confusion between `α` and its opposite type, we
   set up the type of objects `opposite α` using the following pattern,
@@ -41,8 +52,10 @@ notation α `ᵒᵖ`:std.prec.max_plus := opposite α
 namespace opposite
 
 variables {α}
+/-- The canonical map `α → αᵒᵖ`. -/
 @[pp_nodot]
 def op : α → αᵒᵖ := id
+/-- The canonical map `αᵒᵖ → α`. -/
 @[pp_nodot]
 def unop : αᵒᵖ → α := id
 
@@ -61,8 +74,8 @@ attribute [irreducible] opposite
 def equiv_to_opposite : α ≃ αᵒᵖ :=
 { to_fun := op,
   inv_fun := unop,
-  left_inv := λ a, by simp,
-  right_inv := λ a, by simp, }
+  left_inv := unop_op,
+  right_inv := op_unop }
 
 @[simp]
 lemma equiv_to_opposite_apply (a : α) : equiv_to_opposite a = op a := rfl
@@ -91,11 +104,14 @@ local postfix `?`:9001 := optional
 
 namespace op_induction
 
+/-- Test if `e : expr` is of type `opposite α` for some `α`. -/
 meta def is_opposite (e : expr) : tactic bool :=
 do t ← infer_type e,
    `(opposite _) ← whnf t | return ff,
    return tt
 
+/-- Find the first hypothesis of type `opposite _`. Fail if no such hypothesis exist in the local
+context. -/
 meta def find_opposite_hyp : tactic name :=
 do lc ← local_context,
    h :: _ ← lc.mfilter $ is_opposite | fail "No hypotheses of the form Xᵒᵖ",

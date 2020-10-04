@@ -111,6 +111,9 @@ h.lt_or_eq.symm
 
 alias eq_or_lt_of_le ← has_le.le.eq_or_lt
 
+lemma ne.le_iff_lt [partial_order α] {a b : α} (h : a ≠ b) : a ≤ b ↔ a < b :=
+⟨λ h', lt_of_le_of_ne h' h, λ h, h.le⟩
+
 lemma lt_of_not_ge' [linear_order α] {a b : α} (h : ¬ b ≤ a) : a < b :=
 ((le_total _ _).resolve_right h).lt_of_not_le h
 
@@ -121,6 +124,9 @@ lemma le_of_not_lt [linear_order α] {a b : α} : ¬ a < b → b ≤ a := not_lt
 
 lemma lt_or_le [linear_order α] : ∀ a b : α, a < b ∨ b ≤ a := lt_or_ge
 lemma le_or_lt [linear_order α] : ∀ a b : α, a ≤ b ∨ b < a := le_or_gt
+
+lemma ne.lt_or_lt [linear_order α] {a b : α} (h : a ≠ b) : a < b ∨ b < a :=
+lt_or_gt_of_ne h
 
 lemma has_le.le.lt_or_le [linear_order α] {a b : α} (h : a ≤ b) (c : α) : a < c ∨ c ≤ b :=
 (lt_or_le a c).imp id $ λ hc, hc.trans h

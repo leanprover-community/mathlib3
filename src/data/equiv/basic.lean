@@ -2,14 +2,58 @@
 Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
-
-In the standard library we cannot assume the univalence axiom.
-We say two types are equivalent if they are isomorphic.
-
-Two equivalent types have the same cardinality.
 -/
 import data.set.function
 import algebra.group.basic
+
+/-!
+# Equivalence between types
+
+In this file we define two types:
+
+* `equiv α β` a.k.a. `α ≃ β`: a bijective map `α → β` bundled with its inverse map; we use this (and
+  not equality!) to express that various `Type`s or `Sort`s are equivalent.
+
+* `equiv.perm α`: the group of permutations `α ≃ α`.
+
+Then we define
+
+* canonical isomorphisms between various types: e.g.,
+
+  - `equiv.refl α` is the identity map interpreted as `α ≃ α`;
+
+  - `equiv.sum_equiv_sigma_bool` is the canonical equivalence between the sum of two types `α ⊕ β`
+    and the sigma-type `Σ b : bool, cond b α β`;
+
+  - `equiv.prod_sum_distrib : α × (β ⊕ γ) ≃ (α × β) ⊕ (α × γ)` shows that type product and type sum
+    satisfy the distributive law up to a canonical equivalence;
+
+* operations on equivalences: e.g.,
+
+  - `equiv.symm e : β ≃ α` is the inverse of `e : α ≃ β`;
+
+  - `equiv.trans e₁ e₂ : α ≃ γ` is the composition of `e₁ : α ≃ β` and `e₂ : β ≃ γ` (note the order
+    of the arguments!);
+
+  - `equiv.prod_congr ea eb : α₁ × β₁ ≃ α₂ × β₂`: combine two equivalences `ea : α₁ ≃ α₂` and
+    `eb : β₁ ≃ β₂` using `prod.map`.
+
+* definitions that transfer some instances along an equivalence. By convention, we transfer
+  instances from right to left.
+
+  - `equiv.inhabited` takes `e : α ≃ β` and `[inhabited β]` and returns `inhabited α`;
+  - `equiv.unique` takes `e : α ≃ β` and `[unique β]` and returns `unique α`;
+  - `equiv.decidable_eq` takes `e : α ≃ β` and `[decidable_eq β]` and returns `decidable_eq α`.
+
+  More definitions of this kind can be found in other files. E.g., `data/equiv/transfer_instance`
+  does it for many algebraic type classes like `group`, `module`, etc.
+
+* group structure on `equiv.perm α`. More lemmas about `equiv.perm` can be found in `data/equiv/perm`.
+
+## Tags
+
+equivalence, congruence, bijective map
+-/
 
 open function
 
@@ -63,6 +107,8 @@ ext_iff
 
 /-- Any type is equivalent to itself. -/
 @[refl] protected def refl (α : Sort*) : α ≃ α := ⟨id, id, λ x, rfl, λ x, rfl⟩
+
+instance inhabited' : inhabited (α ≃ α) := ⟨equiv.refl α⟩
 
 /-- Inverse of an equivalence `e : α ≃ β`. -/
 @[symm] protected def symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun, e.right_inv, e.left_inv⟩
@@ -198,7 +244,9 @@ protected lemma image_compl {α β} (f : equiv α β) (s : set α) :
   f '' sᶜ = (f '' s)ᶜ :=
 set.image_compl_eq f.bijective
 
-/- The group of permutations (self-equivalences) of a type `α` -/
+/-!
+### The group of permutations (self-equivalences) of a type `α`
+-/
 
 namespace perm
 
@@ -1344,6 +1392,10 @@ of_bijective (λ x, ⟨f x, set.mem_range_self x⟩) ⟨λ x y hxy, hf $ by inje
   of_injective f hf x = ⟨f x, set.mem_range_self x⟩ :=
 rfl
 
+/-- Subtype of the quotient is equivalent to the quotient of the subtype. Let `α` be a setoid with
+equivalence relation `~`. Let `p₂` be a predicate on the quotient type `α/~`, and `p₁` be the lift
+of this predicate to `α`: `p₁ a ↔ p₂ ⟦a⟧`. Let `~₂` be the restriction of `~` to `{x // p₁ x}`.
+Then `{x // p₂ x}` is equivalent to the quotient of `{x // p₁ x}` by `~₂`. -/
 def subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid α]
   [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ :  ∀ a, p₁ a ↔ p₂ ⟦a⟧)
   (h : ∀ x y : subtype p₁, @setoid.r _ s₂ x y ↔ (x : α) ≈ y) :

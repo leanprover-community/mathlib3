@@ -29,55 +29,6 @@ open_locale classical topological_space filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
-section dense_range
-variables [topological_space β] [topological_space γ] (f : α → β) (g : β → γ)
-
-/-- `f : α → β` has dense range if its range (image) is a dense subset of β. -/
-def dense_range := ∀ x, x ∈ closure (range f)
-
-variables {f}
-
-lemma dense_range_iff_closure_range : dense_range f ↔ closure (range f) = univ :=
-eq_univ_iff_forall.symm
-
-lemma dense_range.closure_range (h : dense_range f) : closure (range f) = univ :=
-eq_univ_iff_forall.mpr h
-
-lemma dense_range.nhds_within_ne_bot (h : dense_range f) (x : β) :
-  ne_bot (𝓝[range f] x) :=
-mem_closure_iff_cluster_pt.1 (h x)
-
-lemma dense_range.comp (hg : dense_range g) (hf : dense_range f) (cg : continuous g) :
-  dense_range (g ∘ f) :=
-begin
-  have : g '' (closure $ range f) ⊆ closure (g '' range f),
-    from image_closure_subset_closure_image cg,
-  have : closure (g '' closure (range f)) ⊆ closure (g '' range f),
-    by simpa [closure_closure] using (closure_mono this),
-  intro c,
-  rw range_comp,
-  apply this,
-  rw [hf.closure_range, image_univ],
-  exact hg c
-end
-
-/-- If `f : α → β` has dense range and `β` contains some element, then `α` must too. -/
-def dense_range.inhabited (df : dense_range f) (b : β) : inhabited α :=
-⟨classical.choice $
-  by simpa only [univ_inter, range_nonempty_iff_nonempty] using
-    mem_closure_iff.1 (df b) _ is_open_univ trivial⟩
-
-lemma dense_range.nonempty (hf : dense_range f) : nonempty α ↔ nonempty β :=
-⟨nonempty.map f, λ ⟨b⟩, @nonempty_of_inhabited _ (hf.inhabited b)⟩
-
-lemma dense_range.prod {ι : Type*} {κ : Type*} {f : ι → β} {g : κ → γ}
-  (hf : dense_range f) (hg : dense_range g) : dense_range (λ p : ι × κ, (f p.1, g p.2)) :=
-have closure (range $ λ p : ι×κ, (f p.1, g p.2)) = set.prod (closure $ range f) (closure $ range g),
-    by rw [←closure_prod_eq, prod_range_range_eq],
-assume ⟨b, d⟩, this.symm ▸ mem_prod.2 ⟨hf _, hg _⟩
-
-end dense_range
-
 /-- `i : α → β` is "dense inducing" if it has dense range and the topology on `α`
   is the one induced by `i` from the topology on `β`. -/
 structure dense_inducing [topological_space α] [topological_space β] (i : α → β)
@@ -105,7 +56,7 @@ begin
   rw [image_preimage_eq_inter_range, mem_closure_iff],
   intros U U_op b_in,
   rw ←inter_assoc,
-  exact (dense_iff_inter_open.1 di.closure_range) _ (is_open_inter U_op s_op) ⟨b, b_in, b_in_s⟩
+  exact (dense_iff_inter_open.1 di.dense) _ (is_open_inter U_op s_op) ⟨b, b_in, b_in_s⟩
 end
 
 lemma closure_image_nhds_of_nhds {s : set α} {a : α} (di : dense_inducing i) :

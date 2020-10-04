@@ -1592,18 +1592,19 @@ end
 /-- Given `add_comm_monoid β` and `e : α₁ ≃ α₂`, `dom_congr e` is the corresponding `equiv` between
 `α₁ →₀ β` and `α₂ →₀ β`. -/
 protected def dom_congr [add_comm_monoid β] (e : α₁ ≃ α₂) : (α₁ →₀ β) ≃+ (α₂ →₀ β) :=
-⟨map_domain e, map_domain e.symm,
-  begin
+{ to_fun := map_domain e,
+  inv_fun := map_domain e.symm,
+  left_inv := begin
     assume v,
     simp only [map_domain_comp.symm, (∘), equiv.symm_apply_apply],
     exact map_domain_id
   end,
-  begin
+  right_inv := begin
     assume v,
     simp only [map_domain_comp.symm, (∘), equiv.apply_symm_apply],
     exact map_domain_id
   end,
-  λ a b, map_domain_add⟩
+  map_add' := λ a b, map_domain_add, }
 
 /-! ### Declarations about sigma types -/
 

@@ -488,6 +488,82 @@ end
 lemma dim_pos [h : nontrivial V] : 0 < vector_space.dim K V :=
 dim_pos_iff_nontrivial.2 h
 
+/-- A vector space has dimension at most `1` if and only if there is a
+single vector of which all vectors are multiples. -/
+lemma dim_le_one_iff : dim K V ≤ 1 ↔ ∃ v₀ : V, ∀ v, ∃ r : K, r • v₀ = v :=
+begin
+  obtain ⟨b, h⟩ := exists_is_basis K V,
+  split,
+  { intro hd,
+    rw [←is_basis.mk_eq_dim'' h, cardinal.le_one_iff_subsingleton, subsingleton_coe] at hd,
+    rcases eq_empty_or_nonempty b with rfl | ⟨⟨v₀, hv₀⟩⟩,
+    { use 0,
+      have h' : ∀ v : V, v = 0, { simpa [submodule.eq_bot_iff] using h.2.symm },
+      intro v,
+      simp [h' v] },
+    { use v₀,
+      have h' : span K {v₀} = ⊤, { simpa [hd.eq_singleton_of_mem hv₀] using h.2 },
+      intro v,
+      have hv : v ∈ (⊤ : submodule K V) := mem_top,
+      rwa [←h', mem_span_singleton] at hv } },
+  { rintros ⟨v₀, hv₀⟩,
+    have h : span K ({v₀} : set V) = ⊤,
+    { ext, simp [mem_span_singleton, hv₀] },
+    rw [←dim_top, ←h],
+    convert dim_span_le _,
+    simp }
+end
+
+/-- A submodule has dimension at most `1` if and only if there is a
+single vector in the submodule of which all vectors are multiples. -/
+lemma dim_submodule_le_one_iff (s : submodule K V) :
+  dim K s ≤ 1 ↔ ∃ v₀ ∈ s, ∀ v ∈ s, ∃ r : K, r • v₀ = v :=
+begin
+  rw dim_le_one_iff,
+  split,
+  { rintro ⟨⟨v₀, hv₀⟩, h⟩,
+    use [v₀, hv₀],
+    intros v hv,
+    obtain ⟨r, hr⟩ := h ⟨v, hv⟩,
+    use r,
+    simp_rw [subtype.ext_iff, coe_smul, coe_mk] at hr,
+    exact hr },
+  { rintro ⟨v₀, hv₀, h⟩,
+    use ⟨v₀, hv₀⟩,
+    rintro ⟨v, hv⟩,
+    obtain ⟨r, hr⟩ := h v hv,
+    use r,
+    simp_rw [subtype.ext_iff, coe_smul, coe_mk],
+    exact hr }
+end
+
+/-- A submodule has dimension at most `1` if and only if there is a
+single vector, not necessarily in the submodule, of which all vectors
+are multiples. -/
+lemma dim_submodule_le_one_iff' (s : submodule K V) :
+  dim K s ≤ 1 ↔ ∃ v₀ : V, ∀ v ∈ s, ∃ r : K, r • v₀ = v :=
+begin
+  rw dim_submodule_le_one_iff,
+  split,
+  { rintros ⟨v₀, hv₀, h⟩,
+    exact ⟨v₀, h⟩ },
+  { rintros ⟨v₀, h⟩,
+    by_cases hw : ∃ w : V, w ∈ s ∧ w ≠ 0,
+    { rcases hw with ⟨w, hw, hw0⟩,
+      use [w, hw],
+      intros v hv,
+      rcases h v hv with ⟨r, rfl⟩,
+      rcases h w hw with ⟨r', rfl⟩,
+      use r / r',
+      have h0 : r' ≠ 0,
+      { rintro rfl,
+        simpa using hw0 },
+      simp [smul_smul, h0] },
+    { push_neg at hw,
+      rw ←submodule.eq_bot_iff at hw,
+      simp [hw] } }
+end
+
 end vector_space
 
 section unconstrained_universes

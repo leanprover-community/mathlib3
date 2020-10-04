@@ -1886,8 +1886,11 @@ by { split_ifs; simp [h] }
 theorem image_swap_eq_preimage_swap : image (@prod.swap α β) = preimage prod.swap :=
 image_eq_preimage_of_inverse prod.swap_left_inverse prod.swap_right_inverse
 
+theorem preimage_swap_prod {s : set α} {t : set β} : prod.swap ⁻¹' t.prod s = s.prod t :=
+by { ext ⟨x, y⟩, simp [and_comm] }
+
 theorem image_swap_prod : prod.swap '' t.prod s = s.prod t :=
-by { ext ⟨x, y⟩, simp [image_swap_eq_preimage_swap, and_comm] }
+by rw [image_swap_eq_preimage_swap, preimage_swap_prod]
 
 theorem prod_image_image_eq {m₁ : α → γ} {m₂ : β → δ} :
   (image m₁ s).prod (image m₂ t) = image (λp:α×β, (m₁ p.1, m₂ p.2)) (s.prod t) :=

@@ -525,6 +525,25 @@ instance : normed_ring (α →ᵇ R) :=
 
 end normed_ring
 
+section normed_comm_ring
+/-!
+### Normed commutative ring structure
+
+In this section, if `R` is a normed commutative ring, then we show that the space of bounded
+continuous functions from `α` to `R` inherits a normed commutative ring structure, by using
+pointwise operations and checking that they are compatible with the uniform distance. -/
+
+variables [topological_space α] {R : Type*} [normed_comm_ring R]
+
+instance : comm_ring (α →ᵇ R) :=
+{ mul_comm := λ f₁ f₂, ext $ λ x, mul_comm _ _,
+  .. bounded_continuous_function.ring }
+
+instance : normed_comm_ring (α →ᵇ R) :=
+{ .. bounded_continuous_function.comm_ring, .. bounded_continuous_function.normed_group }
+
+end normed_comm_ring
+
 section normed_algebra
 /-!
 ### Normed algebra structure

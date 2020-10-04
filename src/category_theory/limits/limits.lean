@@ -279,16 +279,19 @@ def cone_points_iso_of_nat_iso {F G : J ⥤ C} {s : cone F} {t : cone G}
   hom_inv_id' := P.hom_ext (by tidy),
   inv_hom_id' := Q.hom_ext (by tidy), }
 
+@[reassoc]
 lemma cone_points_iso_of_nat_iso_hom_comp {F G : J ⥤ C} {s : cone F} {t : cone G}
   (P : is_limit s) (Q : is_limit t) (w : F ≅ G) (j : J) :
   (cone_points_iso_of_nat_iso P Q w).hom ≫ t.π.app j = s.π.app j ≫ w.hom.app j :=
 by simp
 
+@[reassoc]
 lemma cone_points_iso_of_nat_iso_inv_comp {F G : J ⥤ C} {s : cone F} {t : cone G}
   (P : is_limit s) (Q : is_limit t) (w : F ≅ G) (j : J) :
   (cone_points_iso_of_nat_iso P Q w).inv ≫ s.π.app j = t.π.app j ≫ w.inv.app j :=
 by simp
 
+@[reassoc]
 lemma lift_comp_cone_points_iso_of_nat_iso_hom {F G : J ⥤ C} {r s : cone F} {t : cone G}
   (P : is_limit s) (Q : is_limit t) (w : F ≅ G) :
   P.lift r ≫ (cone_points_iso_of_nat_iso P Q w).hom = Q.map r w.hom :=
@@ -326,7 +329,7 @@ let w' : e.inverse ⋙ F ≅ G := (iso_whisker_left e.inverse w).symm ≪≫ inv
     dsimp,
     simp only [limits.cone.whisker_π, limits.cones.postcompose_obj_π, fac, whisker_left_app,
       assoc, id_comp, inv_fun_id_assoc_hom_app, fac_assoc, nat_trans.comp_app],
-    rw [counit_functor, ←functor.comp_map, w.hom.naturality],
+    rw [counit_app_functor, ←functor.comp_map, w.hom.naturality],
     simp,
   end,
   inv_hom_id' := by { apply hom_ext Q, tidy, }, }
@@ -697,16 +700,19 @@ def cocone_points_iso_of_nat_iso {F G : J ⥤ C} {s : cocone F} {t : cocone G}
   hom_inv_id' := P.hom_ext (by tidy),
   inv_hom_id' := Q.hom_ext (by tidy) }
 
+@[reassoc]
 lemma comp_cocone_points_iso_of_nat_iso_hom {F G : J ⥤ C} {s : cocone F} {t : cocone G}
   (P : is_colimit s) (Q : is_colimit t) (w : F ≅ G) (j : J) :
   s.ι.app j ≫ (cocone_points_iso_of_nat_iso P Q w).hom = w.hom.app j ≫ t.ι.app j :=
 by simp
 
+@[reassoc]
 lemma comp_cocone_points_iso_of_nat_iso_inv {F G : J ⥤ C} {s : cocone F} {t : cocone G}
   (P : is_colimit s) (Q : is_colimit t) (w : F ≅ G) (j : J) :
   t.ι.app j ≫ (cocone_points_iso_of_nat_iso P Q w).inv = w.inv.app j ≫ s.ι.app j :=
 by simp
 
+@[reassoc]
 lemma cocone_points_iso_of_nat_iso_hom_desc {F G : J ⥤ C} {s : cocone F} {r t : cocone G}
   (P : is_colimit s) (Q : is_colimit t) (w : F ≅ G) :
   (cocone_points_iso_of_nat_iso P Q w).hom ≫ Q.desc r = P.map _ w.hom :=
@@ -744,7 +750,7 @@ let w' : e.inverse ⋙ F ≅ G := (iso_whisker_left e.inverse w).symm ≪≫ inv
     dsimp,
     simp only [limits.cocone.whisker_ι, fac, inv_fun_id_assoc_inv_app, whisker_left_app, assoc,
       comp_id, limits.cocones.precompose_obj_ι, fac_assoc, nat_trans.comp_app],
-    rw [←functor_unit, ←functor.comp_map, ←w.inv.naturality_assoc],
+    rw [counit_inv_app_functor, ←functor.comp_map, ←w.inv.naturality_assoc],
     dsimp,
     simp,
   end,
@@ -1019,6 +1025,10 @@ by { dsimp [limit.iso_limit_cone, is_limit.cone_point_unique_up_to_iso], tidy, }
 @[ext] lemma limit.hom_ext {F : J ⥤ C} [has_limit F] {X : C} {f f' : X ⟶ limit F}
   (w : ∀ j, f ≫ limit.π F j = f' ≫ limit.π F j) : f = f' :=
 (limit.is_limit F).hom_ext w
+
+@[simp] lemma limit.lift_cone {F : J ⥤ C} [has_limit F] :
+  limit.lift F (limit.cone F) = 𝟙 (limit F) :=
+by { ext, dsimp, simp, }
 
 /--
 The isomorphism (in `Type`) between
@@ -1429,6 +1439,10 @@ by { dsimp [colimit.iso_colimit_cocone, is_colimit.cocone_point_unique_up_to_iso
 @[ext] lemma colimit.hom_ext {F : J ⥤ C} [has_colimit F] {X : C} {f f' : colimit F ⟶ X}
   (w : ∀ j, colimit.ι F j ≫ f = colimit.ι F j ≫ f') : f = f' :=
 (colimit.is_colimit F).hom_ext w
+
+@[simp] lemma colimit.desc_cocone {F : J ⥤ C} [has_colimit F] :
+  colimit.desc F (colimit.cocone F) = 𝟙 (colimit F) :=
+by { ext, dsimp, simp, }
 
 /--
 The isomorphism (in `Type`) between

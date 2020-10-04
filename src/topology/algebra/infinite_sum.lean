@@ -436,6 +436,22 @@ end encodable
 
 end tsum
 
+section pi
+variables {ι : Type*} {π : α → Type*} [∀ x, add_comm_monoid (π x)] [∀ x, topological_space (π x)]
+
+lemma pi.has_sum {f : ι → ∀ x, π x} {g : ∀ x, π x} :
+  has_sum f g ↔ ∀ x, has_sum (λ i, f i x) (g x) :=
+by simp [has_sum, tendsto_pi]
+
+lemma pi.summable {f : ι → ∀ x, π x} : summable f ↔ ∀ x, summable (λ i, f i x) :=
+by simp [summable, pi.has_sum, classical.skolem]
+
+lemma tsum_apply [∀ x, t2_space (π x)] {f : ι → ∀ x, π x}{x : α} (hf : summable f) :
+  (∑' i, f i) x = ∑' i, f i x :=
+(pi.has_sum.mp hf.has_sum x).tsum_eq.symm
+
+end pi
+
 section topological_group
 variables [add_comm_group α] [topological_space α] [topological_add_group α]
 variables {f g : β → α} {a a₁ a₂ : α}
@@ -691,13 +707,12 @@ end canonically_ordered
 section uniform_group
 
 variables [add_comm_group α] [uniform_space α]
-variables {f g : β → α} {a a₁ a₂ : α}
 
-lemma summable_iff_cauchy_seq_finset [complete_space α] :
+lemma summable_iff_cauchy_seq_finset [complete_space α] {f : β → α} :
   summable f ↔ cauchy_seq (λ (s : finset β), ∑ b in s, f b) :=
 cauchy_map_iff_exists_tendsto.symm
 
-variable [uniform_add_group α]
+variables [uniform_add_group α] {f g : β → α} {a a₁ a₂ : α}
 
 lemma cauchy_seq_finset_iff_vanishing :
   cauchy_seq (λ (s : finset β), ∑ b in s, f b)
@@ -793,6 +808,33 @@ tsum_comm' h h.prod_factor h.prod_symm.prod_factor
 
 end uniform_group
 
+section topological_group
+
+variables {G : Type*} [topological_space G] [add_comm_group G] [topological_add_group G]
+  {f : α → G}
+
+lemma summable.vanishing (hf : summable f) ⦃e : set G⦄ (he : e ∈ 𝓝 (0 : G)) :
+  ∃ s : finset α, ∀ t, disjoint t s → ∑ k in t, f k ∈ e :=
+begin
+  letI : uniform_space G := topological_add_group.to_uniform_space G,
+  letI : uniform_add_group G := topological_add_group_is_uniform,
+  rcases hf with ⟨y, hy⟩,
+  exact cauchy_seq_finset_iff_vanishing.1 hy.cauchy_seq e he
+end
+
+/-- Series divergence test: if `f` is a convergent series, then `f x` tends to zero along
+`cofinite`. -/
+lemma summable.tendsto_cofinite_zero (hf : summable f) : tendsto f cofinite (𝓝 0) :=
+begin
+  intros e he,
+  rw [filter.mem_map],
+  rcases hf.vanishing he with ⟨s, hs⟩,
+  refine s.eventually_cofinite_nmem.mono (λ x hx, _),
+  by simpa using hs {x} (singleton_disjoint.2 hx)
+end
+
+end topological_group
+
 section cauchy_seq
 open finset.Ico filter
 
@@ -804,7 +846,7 @@ begin
   refine emetric.cauchy_seq_iff_nnreal.2 (λ ε εpos, _),
   -- Actually we need partial sums of `d` to be a Cauchy sequence
   replace hd : cauchy_seq (λ (n : ℕ), ∑ x in range n, d x) :=
-    let ⟨_, H⟩ := hd in cauchy_seq_of_tendsto_nhds _ H.tendsto_sum_nat,
+    let ⟨_, H⟩ := hd in H.tendsto_sum_nat.cauchy_seq,
   -- Now we take the same `N` as in one of the definitions of a Cauchy sequence
   refine (metric.cauchy_seq_iff'.1 hd ε (nnreal.coe_pos.2 εpos)).imp (λ N hN n hn, _),
   have hsum := hN n hn,
@@ -826,7 +868,7 @@ lemma cauchy_seq_of_dist_le_of_summable [metric_space α] {f : ℕ → α} (d : 
 begin
   refine metric.cauchy_seq_iff'.2 (λε εpos, _),
   replace hd : cauchy_seq (λ (n : ℕ), ∑ x in range n, d x) :=
-    let ⟨_, H⟩ := hd in cauchy_seq_of_tendsto_nhds _ H.tendsto_sum_nat,
+    let ⟨_, H⟩ := hd in H.tendsto_sum_nat.cauchy_seq,
   refine (metric.cauchy_seq_iff'.1 hd ε εpos).imp (λ N hN n hn, _),
   have hsum := hN n hn,
   rw [real.dist_eq, ← sum_Ico_eq_sub _ hn] at hsum,

@@ -53,6 +53,16 @@ instance : has_coe_to_fun (R ≃+* S) := ⟨_, ring_equiv.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe_fun (f : R ≃+* S) : f.to_fun = f := rfl
 
+/-- Two ring isomorphisms agree if they are defined by the
+    same underlying function. -/
+@[ext] lemma ext {f g : R ≃+* S} (h : ∀ x, f x = g x) : f = g :=
+begin
+  have h₁ : f.to_equiv = g.to_equiv := equiv.ext h,
+  cases f, cases g, congr,
+  { exact (funext h) },
+  { exact congr_arg equiv.inv_fun h₁ }
+end
+
 instance has_coe_to_mul_equiv : has_coe (R ≃+* S) (R ≃* S) := ⟨ring_equiv.to_mul_equiv⟩
 
 instance has_coe_to_add_equiv : has_coe (R ≃+* S) (R ≃+ S) := ⟨ring_equiv.to_add_equiv⟩
@@ -83,6 +93,10 @@ variables {R}
 /-- Transitivity of `ring_equiv`. -/
 @[trans] protected def trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') : R ≃+* S' :=
 { .. (e₁.to_mul_equiv.trans e₂.to_mul_equiv), .. (e₁.to_add_equiv.trans e₂.to_add_equiv) }
+
+@[simp] lemma trans_apply {A B C : Type*}
+  [semiring A] [semiring B] [semiring C] (e : A ≃+* B) (f : B ≃+* C) (a : A) :
+  e.trans f a = f (e a) := rfl
 
 protected lemma bijective (e : R ≃+* S) : function.bijective e := e.to_equiv.bijective
 protected lemma injective (e : R ≃+* S) : function.injective e := e.to_equiv.injective
@@ -170,6 +184,10 @@ instance has_coe_to_ring_hom : has_coe (R ≃+* S) (R →+* S) := ⟨ring_equiv.
 @[norm_cast] lemma coe_ring_hom (f : R ≃+* S) (a : R) :
   (f : R →+* S) a = f a := rfl
 
+lemma coe_ring_hom_inj_iff {R S : Type*} [semiring R] [semiring S] (f g : R ≃+* S) :
+  f = g ↔ (f : R →+* S) = g :=
+⟨congr_arg _, λ h, ext $ ring_hom.ext_iff.mp h⟩
+
 /-- Reinterpret a ring equivalence as a monoid homomorphism. -/
 abbreviation to_monoid_hom (e : R ≃+* S) : R →* S := e.to_ring_hom.to_monoid_hom
 
@@ -234,16 +252,6 @@ end mul_equiv
 namespace ring_equiv
 
 variables [has_add R] [has_add S] [has_mul R] [has_mul S]
-
-/-- Two ring isomorphisms agree if they are defined by the
-    same underlying function. -/
-@[ext] lemma ext {f g : R ≃+* S} (h : ∀ x, f x = g x) : f = g :=
-begin
-  have h₁ : f.to_equiv = g.to_equiv := equiv.ext h,
-  cases f, cases g, congr,
-  { exact (funext h) },
-  { exact congr_arg equiv.inv_fun h₁ }
-end
 
 @[simp] theorem trans_symm (e : R ≃+* S) : e.trans e.symm = ring_equiv.refl R := ext e.3
 @[simp] theorem symm_trans (e : R ≃+* S) : e.symm.trans e = ring_equiv.refl S := ext e.4

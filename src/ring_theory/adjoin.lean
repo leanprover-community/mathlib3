@@ -29,11 +29,11 @@ open submodule
 
 namespace algebra
 
-variables {R : Type u} {A : Type v}
+variables {R : Type u} {A : Type v} {B : Type w}
 
 section semiring
-variables [comm_semiring R] [semiring A]
-variables [algebra R A] {s t : set A}
+variables [comm_semiring R] [semiring A] [semiring B]
+variables [algebra R A] [algebra R B] {s t : set A}
 open subsemiring
 
 theorem subset_adjoin : s ⊆ adjoin R s :=
@@ -75,6 +75,11 @@ begin
         (mul_smul_comm _ _ _).symm⟩ } },
   exact span_le.2 (show monoid.closure s ⊆ adjoin R s, from monoid.closure_subset subset_adjoin)
 end
+
+lemma adjoin_image (f : A →ₐ[R] B) (s : set A) :
+  adjoin R (f '' s) = (adjoin R s).map f :=
+le_antisymm (adjoin_le $ set.image_subset _ subset_adjoin) $
+subalgebra.map_le.2 $ adjoin_le $ set.image_subset_iff.1 subset_adjoin
 
 end semiring
 
@@ -199,13 +204,16 @@ end algebra
 
 namespace subalgebra
 
-variables {R : Type u} {A : Type v}
-variables [comm_ring R] [comm_ring A] [algebra R A]
+variables {R : Type u} {A : Type v} {B : Type w}
+variables [comm_semiring R] [semiring A] [algebra R A] [semiring B] [algebra R B]
 
 /-- A subalgebra `S` is finitely generated if there exists `t : finset A` such that
 `algebra.adjoin R t = S`. -/
 def fg (S : subalgebra R A) : Prop :=
 ∃ t : finset A, algebra.adjoin R ↑t = S
+
+lemma fg_adjoin_finset (s : finset A) : (algebra.adjoin R (↑s : set A)).fg :=
+⟨s, rfl⟩
 
 theorem fg_def {S : subalgebra R A} : S.fg ↔ ∃ t : set A, set.finite t ∧ algebra.adjoin R t = S :=
 ⟨λ ⟨t, ht⟩, ⟨↑t, set.finite_mem_finset t, ht⟩,
@@ -213,6 +221,26 @@ theorem fg_def {S : subalgebra R A} : S.fg ↔ ∃ t : set A, set.finite t ∧ a
 
 theorem fg_bot : (⊥ : subalgebra R A).fg :=
 ⟨∅, algebra.adjoin_empty R A⟩
+
+lemma fg_of_submodule_fg (h : (⊤ : submodule R A).fg) : (⊤ : subalgebra R A).fg :=
+let ⟨s, hs⟩ := h in ⟨s, to_submodule_injective $
+by { rw [algebra.coe_top, eq_top_iff, ← hs, span_le], exact algebra.subset_adjoin }⟩
+
+section
+open_locale classical
+lemma fg_map (S : subalgebra R A) (f : A →ₐ[R] B) (hs : S.fg) : (S.map f).fg :=
+let ⟨s, hs⟩ := hs in ⟨s.image f, by rw [finset.coe_image, algebra.adjoin_image, hs]⟩
+end
+
+lemma fg_of_fg_map (S : subalgebra R A) (f : A →ₐ[R] B) (hf : function.injective f)
+  (hs : (S.map f).fg) : S.fg :=
+let ⟨s, hs⟩ := hs in ⟨s.preimage f $ λ _ _ _ _ h, hf h, map_injective f hf $
+by { rw [← algebra.adjoin_image, finset.coe_preimage, set.image_preimage_eq_of_subset, hs],
+  rw [← alg_hom.coe_range, ← algebra.adjoin_le_iff, hs, ← algebra.map_top], exact map_mono le_top }⟩
+
+lemma fg_top (S : subalgebra R A) : (⊤ : subalgebra R S).fg ↔ S.fg :=
+⟨λ h, by { rw [← S.range_val, ← algebra.map_top], exact fg_map _ _ h },
+λ h, fg_of_fg_map _ S.val subtype.val_injective $ by { rw [algebra.map_top, range_val], exact h }⟩
 
 end subalgebra
 

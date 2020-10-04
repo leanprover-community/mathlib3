@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import algebra.invertible
-import algebra.lie_algebra
+import algebra.lie.basic
 import linear_algebra.matrix
 
 /-!

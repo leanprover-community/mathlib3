@@ -23,7 +23,7 @@ There are also lemmas about the multiplicity of primes in factorials and in bino
 -/
 
 open finset nat multiplicity
-open_locale big_operators
+open_locale big_operators nat
 
 namespace nat
 
@@ -81,27 +81,27 @@ lemma multiplicity_pow_self {p n : ℕ} (hp : p.prime) : multiplicity p (p ^ n) 
 by induction n; simp [hp.multiplicity_one, pow_succ', hp.multiplicity_mul, *,
   hp.multiplicity_self, succ_eq_add_one]
 
-/-- The multiplicity of a prime in `fact n` is the sum of the quotients `n / p ^ i`.
+/-- The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i`.
   This sum is expressed over the set `Ico 1 b` where `b` is any bound at least `n` -/
-lemma multiplicity_fact {p : ℕ} (hp : p.prime) :
-  ∀ {n b : ℕ}, n ≤ b → multiplicity p n.fact = (∑ i in Ico 1 b, n / p ^ i : ℕ)
+lemma multiplicity_factorial {p : ℕ} (hp : p.prime) :
+  ∀ {n b : ℕ}, n ≤ b → multiplicity p n! = (∑ i in Ico 1 b, n / p ^ i : ℕ)
 | 0     b hb := by simp [Ico, hp.multiplicity_one]
 | (n+1) b hb :=
-  calc multiplicity p (n+1).fact = multiplicity p n.fact + multiplicity p (n+1) :
-    by rw [fact_succ, hp.multiplicity_mul, add_comm]
+  calc multiplicity p (n+1)! = multiplicity p n! + multiplicity p (n+1) :
+    by rw [factorial_succ, hp.multiplicity_mul, add_comm]
   ... = (∑ i in Ico 1 b, n / p ^ i : ℕ) + ((finset.Ico 1 b).filter (λ i, p ^ i ∣ n+1)).card :
-    by rw [multiplicity_fact (le_of_succ_le hb),
+    by rw [multiplicity_factorial (le_of_succ_le hb),
       ← multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) (succ_pos _) hb]
   ... = (∑ i in Ico 1 b, (n / p ^ i + if p^i ∣ n+1 then 1 else 0) : ℕ) :
     by rw [sum_add_distrib, sum_boole]; simp
   ... = (∑ i in Ico 1 b, (n + 1) / p ^ i : ℕ) :
     congr_arg coe $ finset.sum_congr rfl (by intros; simp [nat.succ_div]; congr)
 
-/-- A prime power divides `fact n` iff it is at most the sum of the quotients `n / p ^ i`.
+/-- A prime power divides `n!` iff it is at most the sum of the quotients `n / p ^ i`.
   This sum is expressed over the set `Ico 1 b` where `b` is any bound at least `n` -/
-lemma pow_dvd_fact_iff {p : ℕ} {n r b : ℕ} (hp : p.prime) (hbn : n ≤ b) :
-   p ^ r ∣ fact n ↔ r ≤ ∑ i in Ico 1 b, n / p ^ i :=
-by rw [← enat.coe_le_coe, ← hp.multiplicity_fact hbn, ← pow_dvd_iff_le_multiplicity]
+lemma pow_dvd_factorial_iff {p : ℕ} {n r b : ℕ} (hp : p.prime) (hbn : n ≤ b) :
+   p ^ r ∣ n! ↔ r ≤ ∑ i in Ico 1 b, n / p ^ i :=
+by rw [← enat.coe_le_coe, ← hp.multiplicity_factorial hbn, ← pow_dvd_iff_le_multiplicity]
 
 lemma multiplicity_choose_aux {p n b k : ℕ} (hp : p.prime) (hkn : k ≤ n) :
   ∑ i in finset.Ico 1 b, n / p ^ i =
@@ -120,19 +120,20 @@ calc ∑ i in finset.Ico 1 b, n / p ^ i
 lemma multiplicity_choose {p n k b : ℕ} (hp : p.prime) (hkn : k ≤ n) (hnb : n ≤ b) :
   multiplicity p (choose n k) =
   ((Ico 1 b).filter (λ i, p ^ i ≤ k % p ^ i + (n - k) % p ^ i)).card :=
-have h₁ : multiplicity p (choose n k) + multiplicity p (k.fact * (n - k).fact) =
+have h₁ : multiplicity p (choose n k) + multiplicity p (k! * (n - k)!) =
     ((finset.Ico 1 b).filter (λ i, p ^ i ≤ k % p ^ i + (n - k) % p ^ i)).card +
-    multiplicity p (k.fact * (n - k).fact),
+    multiplicity p (k! * (n - k)!),
   begin
-    rw [← hp.multiplicity_mul, ← mul_assoc, choose_mul_fact_mul_fact hkn,
-      hp.multiplicity_fact hnb, hp.multiplicity_mul, hp.multiplicity_fact (le_trans hkn hnb),
-      hp.multiplicity_fact (le_trans (nat.sub_le_self _ _) hnb),
-      multiplicity_choose_aux hp hkn],
+    rw [← hp.multiplicity_mul, ← mul_assoc, choose_mul_factorial_mul_factorial hkn,
+        hp.multiplicity_factorial hnb, hp.multiplicity_mul,
+        hp.multiplicity_factorial (le_trans hkn hnb),
+        hp.multiplicity_factorial (le_trans (nat.sub_le_self _ _) hnb),
+        multiplicity_choose_aux hp hkn],
     simp [add_comm],
   end,
 (enat.add_right_cancel_iff
   (enat.ne_top_iff_dom.2 $
-    by exact finite_nat_iff.2 ⟨ne_of_gt hp.one_lt, mul_pos (fact_pos k) (fact_pos (n - k))⟩)).1
+    by exact finite_nat_iff.2 ⟨ne_of_gt hp.one_lt, mul_pos (factorial_pos k) (factorial_pos (n - k))⟩)).1
   h₁
 
 /-- A lower bound on the multiplicity of `p` in `choose n k`. -/

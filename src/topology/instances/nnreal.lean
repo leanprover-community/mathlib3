@@ -24,36 +24,7 @@ instance : topological_semiring ℝ≥0 :=
 instance : second_countable_topology nnreal :=
 topological_space.subtype.second_countable_topology _ _
 
-instance : order_topology ℝ≥0 :=
-⟨ le_antisymm
-    (le_generate_from $ assume s hs,
-    match s, hs with
-    | _, ⟨⟨a, ha⟩, or.inl rfl⟩ := ⟨{b : ℝ | a < b}, is_open_lt' a, rfl⟩
-    | _, ⟨⟨a, ha⟩, or.inr rfl⟩ := ⟨{b : ℝ | b < a}, is_open_gt' a, set.ext $ assume b, iff.rfl⟩
-    end)
-    begin
-      apply coinduced_le_iff_le_induced.1,
-      rw @order_topology.topology_eq_generate_intervals ℝ _,
-      apply le_generate_from,
-      assume s hs,
-      rcases hs with ⟨a, rfl | rfl⟩,
-      { show topological_space.generate_open _ {b : ℝ≥0 | a < b },
-        by_cases ha : 0 ≤ a,
-        { exact topological_space.generate_open.basic _ ⟨⟨a, ha⟩, or.inl rfl⟩ },
-        { have : a < 0, from lt_of_not_ge ha,
-          have : {b : ℝ≥0 | a < b } = set.univ,
-            from (set.eq_univ_iff_forall.2 $ assume b, lt_of_lt_of_le this b.2),
-          rw [this],
-          exact topological_space.generate_open.univ } },
-      { show (topological_space.generate_from _).is_open {b : ℝ≥0 | a > b },
-        by_cases ha : 0 ≤ a,
-        { exact topological_space.generate_open.basic _ ⟨⟨a, ha⟩, or.inr rfl⟩ },
-        { have : {b : ℝ≥0 | a > b } = ∅,
-            from (set.eq_empty_iff_forall_not_mem.2 $ assume b hb, ha $
-              show 0 ≤ a, from le_trans b.2 (le_of_lt hb)),
-          rw [this],
-          apply @is_open_empty } },
-    end⟩
+instance : order_topology ℝ≥0 := @order_topology_of_ord_connected _ _ _ _ (Ici 0) _
 
 section coe
 variable {α : Type*}

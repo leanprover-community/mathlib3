@@ -297,6 +297,10 @@ namespace zmod
 @[simp] lemma pow_card {p : ℕ} [fact p.prime] (x : zmod p) : x ^ p = x :=
 by { have h := finite_field.pow_card x, rwa zmod.card p at h }
 
+@[simp] lemma frobenius_zmod (p : ℕ) [hp : fact p.prime] :
+  frobenius (zmod p) p = ring_hom.id _ :=
+by { ext a, rw [frobenius_def, zmod.pow_card, ring_hom.id_apply] }
+
 @[simp] lemma card_units (p : ℕ) [fact p.prime] : fintype.card (units (zmod p)) = p - 1 :=
 by rw [card_units, card]
 

@@ -9,6 +9,8 @@ import data.nat.choose
 import data.int.modeq
 import algebra.module.basic
 import algebra.iterate_hom
+import group_theory.order_of_element
+import algebra.group.type_tags
 
 /-!
 # Characteristic of semirings
@@ -22,6 +24,13 @@ class char_p (α : Type u) [semiring α] (p : ℕ) : Prop :=
 
 theorem char_p.cast_eq_zero (α : Type u) [semiring α] (p : ℕ) [char_p α p] : (p:α) = 0 :=
 (char_p.cast_eq_zero_iff α p p).2 (dvd_refl p)
+
+@[simp] lemma char_p.cast_card_eq_zero (R : Type*) [ring R] [fintype R] : (fintype.card R : R) = 0 :=
+begin
+  have : fintype.card R •ℕ (1 : R) = 0 :=
+    @pow_card_eq_one (multiplicative R) _ _ (multiplicative.of_add 1),
+  simpa only [mul_one, nsmul_eq_mul]
+end
 
 lemma char_p.int_cast_eq_zero_iff (R : Type u) [ring R] (p : ℕ) [char_p R p] (a : ℤ) :
   (a : R) = 0 ↔ (p:ℤ) ∣ a :=
@@ -317,3 +326,38 @@ lemma nontrivial_of_char_ne_one {v : ℕ} (hv : v ≠ 1) {R : Type*} [semiring R
 end char_one
 
 end char_p
+
+section
+
+variables (n : ℕ) (R : Type*) [comm_ring R] [fintype R]
+
+lemma char_p_of_ne_zero (hn : fintype.card R = n) (hR : ∀ i < n, (i : R) = 0 → i = 0) :
+  char_p R n :=
+{ cast_eq_zero_iff :=
+  begin
+    have H : (n : R) = 0, by { rw [← hn, char_p.cast_card_eq_zero] },
+    intro k,
+    split,
+    { intro h,
+      rw [← nat.mod_add_div k n, nat.cast_add, nat.cast_mul, H, zero_mul, add_zero] at h,
+      rw nat.dvd_iff_mod_eq_zero,
+      apply hR _ (nat.mod_lt _ _) h,
+      rw [← hn, gt, fintype.card_pos_iff],
+      exact ⟨0⟩, },
+    { rintro ⟨k, rfl⟩, rw [nat.cast_mul, H, zero_mul] }
+  end }
+
+lemma char_p_of_prime_pow_injective (p : ℕ) [hp : fact p.prime] (n : ℕ) (hn : fintype.card R = p ^ n)
+  (hR : ∀ i ≤ n, (p ^ i : R) = 0 → i = n) :
+  char_p R (p ^ n) :=
+begin
+  obtain ⟨c, hc⟩ := char_p.exists R, resetI,
+  have hcpn : c ∣ p ^ n,
+  { rw [← char_p.cast_eq_zero_iff R c, ← hn, char_p.cast_card_eq_zero], },
+  obtain ⟨i, hi, hc⟩ : ∃ i ≤ n, c = p ^ i, by rwa nat.dvd_prime_pow hp at hcpn,
+  obtain rfl : i = n,
+  { apply hR i hi, rw [← nat.cast_pow, ← hc, char_p.cast_eq_zero] },
+  rwa ← hc
+end
+
+end

@@ -24,11 +24,17 @@ namespace category_theory
 
 namespace coyoneda
 
+/--
+The colimit cocone over `coyoneda.obj X`, with cocone point `punit`.
+-/
 @[simps]
 def colimit_cocone (X : Cᵒᵖ) : cocone (coyoneda.obj X) :=
 { X := punit,
   ι := { app := by tidy, } }
 
+/--
+The proposed colimit cocone over `coyoneda.obj X` is a colimit cocone.
+-/
 @[simps]
 def colimit_cocone_is_colimit (X : Cᵒᵖ) : is_colimit (colimit_cocone X) :=
 { desc := λ s x, s.ι.app (unop X) (𝟙 _),
@@ -38,6 +44,9 @@ def colimit_cocone_is_colimit (X : Cᵒᵖ) : is_colimit (colimit_cocone X) :=
 instance (X : Cᵒᵖ) : has_colimit (coyoneda.obj X) :=
 has_colimit.mk { cocone := _, is_colimit := colimit_cocone_is_colimit X }
 
+/--
+The colimit of `coyoneda.obj X` is isomorphic to `punit`.
+-/
 noncomputable
 def colimit_coyoneda_iso (X : Cᵒᵖ) : colimit (coyoneda.obj X) ≅ punit :=
 colimit.iso_colimit_cocone { cocone := _, is_colimit := colimit_cocone_is_colimit X }

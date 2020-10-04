@@ -164,20 +164,28 @@ end
 
 variables {H : Dᵒᵖ ⥤ E}
 
+/-- An auxilliary construction for `extend_cone`, moving `op` around. -/
 @[simps]
-def extend_cone_cone_to_cocone (c : cone (F.op ⋙ H)) : cocone (F ⋙ H.right_op) :=
+def extend_cone_cone_to_cocone {F : C ⥤ D} {H : Dᵒᵖ ⥤ E} (c : cone (F.op ⋙ H)) :
+  cocone (F ⋙ H.right_op) :=
 { X := op c.X,
   ι :=
   { app := λ j, (c.π.app (op j)).op,
-    naturality' := λ j j' f, begin apply has_hom.hom.unop_inj, dsimp, simp only [category.id_comp], exact c.w f.op, end }}
+    naturality' := λ j j' f,
+    begin apply has_hom.hom.unop_inj, dsimp, simp only [category.id_comp], exact c.w f.op, end }}
 
+/-- An auxilliary construction for `extend_cone`, moving `op` around. -/
 @[simps]
 def extend_cone_cocone_to_cone (c : cocone H.right_op) : cone H :=
 { X := unop c.X,
   π :=
   { app := λ j, (c.ι.app (unop j)).unop,
-    naturality' := λ j j' f, begin apply has_hom.hom.op_inj, dsimp, simp only [category.comp_id], exact (c.w f.unop).symm, end }}
+    naturality' := λ j j' f,
+    begin apply has_hom.hom.op_inj, dsimp, simp only [category.comp_id], exact (c.w f.unop).symm, end }}
 
+/--
+Given a cone over `F.op ⋙ H`, we can construct a `cone H` with the same cone point.
+-/
 @[simps]
 def extend_cone : cone (F.op ⋙ H) ⥤ cone H :=
 { obj := λ c, extend_cone_cocone_to_cone (extend_cocone.obj (extend_cone_cone_to_cocone c)),
@@ -408,7 +416,7 @@ def colimit_comp_coyoneda_iso (d : D) [is_iso (colimit.pre (coyoneda.obj (op d))
   colimit (F ⋙ coyoneda.obj (op d)) ≅ punit :=
 as_iso (colimit.pre (coyoneda.obj (op d)) F) ≪≫ coyoneda.colimit_coyoneda_iso (op d)
 
-lemma zigzag_of_eqv_gen_quot_rel {d : D} {f₁ f₂ : Σ X, d ⟶ F.obj X}
+lemma zigzag_of_eqv_gen_quot_rel {F : C ⥤ D} {d : D} {f₁ f₂ : Σ X, d ⟶ F.obj X}
   (t : eqv_gen (types.quot.rel (F ⋙ coyoneda.obj (op d))) f₁ f₂) :
   zigzag
     ({left := punit.star, right := f₁.1, hom := f₁.2} : comma (functor.from_punit d) F)
@@ -434,7 +442,7 @@ end
 /--
 If `colimit (F ⋙ coyoneda.obj (op d)) ≅ punit` for all `d : D`, then `F` is cofinal.
 -/
-def cofinal_of_colimit_comp_coyoneda_iso_punit
+lemma cofinal_of_colimit_comp_coyoneda_iso_punit
   (I : Π d, colimit (F ⋙ coyoneda.obj (op d)) ≅ punit) : cofinal F :=
 λ d,
 begin
@@ -451,7 +459,7 @@ begin
   { apply (I d).to_equiv.injective, ext, },
   have t := types.colimit_eq e,
   clear e y₁ y₂,
-  exact zigzag_of_eqv_gen_quot_rel F t,
+  exact zigzag_of_eqv_gen_quot_rel t,
 end
 
 end cofinal

@@ -49,13 +49,17 @@ begin
   by simpa only [sum_insert ha]
 end
 
+theorem card_le_mul_card_image_of_maps_to [decidable_eq γ] {f : α → γ} {s : finset α} {t : finset γ}
+  (Hf : ∀ a ∈ s, f a ∈ t) (n : ℕ) (hn : ∀ a ∈ t, (s.filter (λ x, f x = a)).card ≤ n) :
+  s.card ≤ n * t.card :=
+calc s.card = (∑ a in t, (s.filter (λ x, f x = a)).card) : card_eq_sum_card_fiberwise Hf
+        ... ≤ (∑ _ in t, n)                              : sum_le_sum hn
+        ... = _                                          : by simp [mul_comm]
+
 theorem card_le_mul_card_image [decidable_eq γ] {f : α → γ} (s : finset α)
   (n : ℕ) (hn : ∀ a ∈ s.image f, (s.filter (λ x, f x = a)).card ≤ n) :
   s.card ≤ n * (s.image f).card :=
-calc s.card = (∑ a in s.image f, (s.filter (λ x, f x = a)).card) :
-  card_eq_sum_card_image _ _
-... ≤ (∑ _ in s.image f, n) : sum_le_sum hn
-... = _ : by simp [mul_comm]
+card_le_mul_card_image_of_maps_to (λ x, mem_image_of_mem _) n hn
 
 lemma sum_nonneg (h : ∀x∈s, 0 ≤ f x) : 0 ≤ (∑ x in s, f x) :=
 le_trans (by rw [sum_const_zero]) (sum_le_sum h)
@@ -73,6 +77,20 @@ calc (∑ x in s₁, f x) ≤ (∑ x in s₂ \ s₁, f x) + (∑ x in s₁, f x)
 
 lemma sum_mono_set_of_nonneg (hf : ∀ x, 0 ≤ f x) : monotone (λ s, ∑ x in s, f x) :=
 λ s₁ s₂ hs, sum_le_sum_of_subset_of_nonneg hs $ λ x _ _, hf x
+
+lemma sum_fiberwise_le_sum_of_sum_fiber_nonneg [decidable_eq γ] {s : finset α} {t : finset γ}
+  {g : α → γ} {f : α → β} (h : ∀ y ∉ t, (0 : β) ≤ ∑ x in s.filter (λ x, g x = y), f x) :
+  (∑ y in t, ∑ x in s.filter (λ x, g x = y), f x) ≤ ∑ x in s, f x :=
+calc (∑ y in t, ∑ x in s.filter (λ x, g x = y), f x) ≤
+  (∑ y in t ∪ s.image g, ∑ x in s.filter (λ x, g x = y), f x) :
+  sum_le_sum_of_subset_of_nonneg (subset_union_left _ _) $ λ y hyts, h y
+... = ∑ x in s, f x :
+  sum_fiberwise_of_maps_to (λ x hx, mem_union.2 $ or.inr $ mem_image_of_mem _ hx) _
+
+lemma sum_le_sum_fiberwise_of_sum_fiber_nonpos [decidable_eq γ] {s : finset α} {t : finset γ}
+  {g : α → γ} {f : α → β} (h : ∀ y ∉ t, (∑ x in s.filter (λ x, g x = y), f x) ≤ 0) :
+  (∑ x in s, f x) ≤ ∑ y in t, ∑ x in s.filter (λ x, g x = y), f x :=
+@sum_fiberwise_le_sum_of_sum_fiber_nonneg α (order_dual β) _ _ _ _ _ _ _ h
 
 lemma sum_eq_zero_iff_of_nonneg : (∀x∈s, 0 ≤ f x) → ((∑ x in s, f x) = 0 ↔ ∀x∈s, f x = 0) :=
 begin
@@ -169,10 +187,16 @@ section decidable_linear_ordered_cancel_comm_monoid
 
 variables [decidable_linear_ordered_cancel_add_comm_monoid β]
 
+theorem exists_lt_of_sum_lt (Hlt : (∑ x in s, f x) < ∑ x in s, g x) :
+  ∃ i ∈ s, f i < g i :=
+begin
+  contrapose! Hlt with Hle,
+  exact sum_le_sum Hle
+end
+
 theorem exists_le_of_sum_le (hs : s.nonempty) (Hle : (∑ x in s, f x) ≤ ∑ x in s, g x) :
   ∃ i ∈ s, f i ≤ g i :=
 begin
-  classical,
   contrapose! Hle with Hlt,
   rcases hs with ⟨i, hi⟩,
   exact sum_lt_sum (λ i hi, le_of_lt (Hlt i hi)) ⟨i, hi, Hlt i hi⟩
@@ -185,7 +209,7 @@ begin
   contrapose! h₁,
   obtain ⟨x, m, x_nz⟩ : ∃ x ∈ s, f x ≠ 0 := h₂,
   apply ne_of_lt,
-  calc ∑ e in s, f e < ∑ e in s, 0 : by { apply sum_lt_sum h₁ ⟨x, m, lt_of_le_of_ne (h₁ x m) x_nz⟩ }
+  calc ∑ e in s, f e < ∑ e in s, 0 : sum_lt_sum h₁ ⟨x, m, lt_of_le_of_ne (h₁ x m) x_nz⟩
                  ... = 0           : by rw [finset.sum_const, nsmul_zero],
 end
 
@@ -217,6 +241,13 @@ begin
       apply ih (λ x H, h0 _ _) (λ x H, h1 _ _); exact (mem_insert_of_mem H),
       apply prod_nonneg (λ x H, h0 x (mem_insert_of_mem H)),
       apply le_trans (h0 a (mem_insert_self a s)) (h1 a (mem_insert_self a s)) }
+end
+
+lemma prod_le_one {s : finset α} {f : α → β} (h0 : ∀(x ∈ s), 0 ≤ f x)
+  (h1 : ∀(x ∈ s), f x ≤ 1) : (∏ x in s, f x) ≤ 1 :=
+begin
+  convert ← prod_le_prod h0 h1,
+  exact finset.prod_const_one
 end
 
 /-- If `g, h ≤ f` and `g i + h i ≤ f i`, then the product of `f` over `s` is at least the

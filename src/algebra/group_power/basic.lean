@@ -401,10 +401,6 @@ end
   {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero h
 
-theorem nsmul_nonneg [ordered_add_comm_monoid R] {a : R} (H : 0 ≤ a) : ∀ n : ℕ, 0 ≤ n •ℕ a
-| 0     := le_refl _
-| (n+1) := add_nonneg H (nsmul_nonneg n)
-
 lemma pow_abs [decidable_linear_ordered_comm_ring R] (a : R) (n : ℕ) : (abs a)^n = abs (a^n) :=
 by induction n with n ih; [exact (abs_one).symm,
   rw [pow_succ, pow_succ, ih, abs_mul]]
@@ -414,6 +410,19 @@ by rw [←pow_abs, abs_neg, abs_one, one_pow]
 
 section add_monoid
 variable [ordered_add_comm_monoid A]
+
+theorem nsmul_nonneg {a : A} (H : 0 ≤ a) : ∀ n : ℕ, 0 ≤ n •ℕ a
+| 0     := le_refl _
+| (n+1) := add_nonneg H (nsmul_nonneg n)
+
+lemma nsmul_pos {a : A} (ha : 0 < a) {k : ℕ} (hk : 0 < k) : 0 < k •ℕ a :=
+begin
+  rcases nat.exists_eq_succ_of_ne_zero (ne_of_gt hk) with ⟨l, rfl⟩,
+  clear hk,
+  induction l with l IH,
+  { simpa using ha },
+  { exact add_pos ha IH }
+end
 
 theorem nsmul_le_nsmul {a : A} {n m : ℕ} (ha : 0 ≤ a) (h : n ≤ m) : n •ℕ a ≤ m •ℕ a :=
 let ⟨k, hk⟩ := nat.le.dest h in
@@ -426,6 +435,33 @@ lemma nsmul_le_nsmul_of_le_right {a b : A} (hab : a ≤ b) : ∀ i : ℕ, i •�
 | (k+1) := add_le_add hab (nsmul_le_nsmul_of_le_right _)
 
 end add_monoid
+
+section add_group
+variable [ordered_add_comm_group A]
+
+theorem gsmul_nonneg {a : A} (H : 0 ≤ a) {n : ℤ} (hn : 0 ≤ n) :
+  0 ≤ n •ℤ a :=
+begin
+  lift n to ℕ using hn,
+  apply nsmul_nonneg H
+end
+
+end add_group
+
+section cancel_add_monoid
+variable [ordered_cancel_add_comm_monoid A]
+
+theorem nsmul_lt_nsmul {a : A} {n m : ℕ} (ha : 0 < a) (h : n < m) :
+  n •ℕ a < m •ℕ a :=
+let ⟨k, hk⟩ := nat.le.dest h in
+begin
+  have succ_swap : n.succ + k = n + k.succ := nat.succ_add n k,
+  calc n •ℕ a = (n •ℕ a : A) + (0 : A) : (add_zero _).symm
+    ... < n •ℕ a + (k.succ •ℕ a : A) : add_lt_add_left (nsmul_pos ha (nat.succ_pos k)) _
+    ... = m •ℕ a : by rw [← hk, succ_swap, add_nsmul]
+end
+
+end cancel_add_monoid
 
 namespace canonically_ordered_semiring
 variable [canonically_ordered_comm_semiring R]
@@ -449,11 +485,11 @@ end canonically_ordered_semiring
 section linear_ordered_semiring
 variable [linear_ordered_semiring R]
 
-theorem pow_pos {a : R} (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
+@[simp] theorem pow_pos {a : R} (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
 | 0     := zero_lt_one
 | (n+1) := mul_pos H (pow_pos _)
 
-theorem pow_nonneg {a : R} (H : 0 ≤ a) : ∀ (n : ℕ), 0 ≤ a ^ n
+@[simp] theorem pow_nonneg {a : R} (H : 0 ≤ a) : ∀ (n : ℕ), 0 ≤ a ^ n
 | 0     := zero_le_one
 | (n+1) := mul_nonneg H (pow_nonneg _)
 
@@ -546,4 +582,3 @@ variables (a) (m n : ℕ)
 @[simp] theorem gpow_gpow_self : commute (a ^ m) (a ^ n) := (commute.refl a).gpow_gpow m n
 
 end commute
-

@@ -39,6 +39,11 @@ noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
 @[simp] theorem finite.mem_to_finset {s : set α} {h : finite s} {a : α} : a ∈ h.to_finset ↔ a ∈ s :=
 @mem_to_finset _ _ h.fintype _
 
+@[simp] theorem finite.to_finset.nonempty {s : set α} (h : finite s) :
+  h.to_finset.nonempty ↔ s.nonempty :=
+show (∃ x, x ∈ h.to_finset) ↔ (∃ x, x ∈ s),
+from exists_congr (λ _, finite.mem_to_finset)
+
 @[simp] lemma finite.coe_to_finset {α} {s : set α} (h : finite s) : ↑h.to_finset = s :=
 @set.coe_to_finset _ s h.fintype
 
@@ -220,6 +225,9 @@ by rw ← inter_eq_self_of_subset_right h; apply_instance
 
 theorem finite.subset {s : set α} : finite s → ∀ {t : set α}, t ⊆ s → finite t
 | ⟨hs⟩ t h := ⟨@set.fintype_subset _ _ _ hs (classical.dec_pred t) h⟩
+
+theorem infinite_mono {s t : set α} (h : s ⊆ t) : infinite s → infinite t :=
+mt (λ ht, ht.subset h)
 
 instance fintype_image [decidable_eq β] (s : set α) (f : α → β) [fintype s] : fintype (f '' s) :=
 fintype.of_finset (s.to_finset.image f) $ by simp

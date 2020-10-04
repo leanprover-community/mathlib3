@@ -24,9 +24,9 @@ namespace category_theory.limits
 variables {C : Type u} [category.{v} C]
 
 /-- Construct a cone for the empty diagram given an object. -/
-def as_empty_cone (X : C) : cone (functor.empty C) := { X := X, π := by tidy }
+@[simps] def as_empty_cone (X : C) : cone (functor.empty C) := { X := X, π := by tidy }
 /-- Construct a cocone for the empty diagram given an object. -/
-def as_empty_cocone (X : C) : cocone (functor.empty C) := { X := X, ι := by tidy }
+@[simps] def as_empty_cocone (X : C) : cocone (functor.empty C) := { X := X, ι := by tidy }
 
 /-- `X` is terminal if the cone it induces on the empty diagram is limiting. -/
 abbreviation is_terminal (X : C) := is_limit (as_empty_cone X)
@@ -133,6 +133,40 @@ is_terminal.mono_from terminal_is_terminal _
 /-- Any morphism to an initial object is epi. -/
 instance initial.epi_to {Y : C} [has_initial C] (f : Y ⟶ ⊥_ C) : epi f :=
 is_initial.epi_to initial_is_initial _
+
+/-- From a functor `F : J ⥤ C`, given a terminal object of `J`, construct a cocone for `J`.
+In `is_col` we show it is a colimit cocone. -/
+@[simps]
+def cocone_of_diagram_terminal {J : Type v} [small_category J]
+  {X : J} (tX : is_terminal X) (F : J ⥤ C) : cocone F :=
+{ X := F.obj X,
+  ι :=
+  { app := λ j, F.map (tX.from j),
+    naturality' := λ j j' k,
+    begin
+      dsimp,
+      rw [← F.map_comp, category.comp_id, tX.hom_ext (k ≫ tX.from j') (tX.from j)],
+    end } }
+
+/-- From a functor `F : J ⥤ C`, given a terminal object of `J`, show the cocone
+`cocone_of_diagram_terminal` is a colimit. -/
+def colimit_of_diagram_terminal {J : Type v} [small_category J]
+  {X : J} (tX : is_terminal X) (F : J ⥤ C) :
+is_colimit (cocone_of_diagram_terminal tX F) :=
+{ desc := λ s, s.ι.app X,
+  uniq' := λ s m w,
+    by { rw [← w X, cocone_of_diagram_terminal_ι_app, tX.hom_ext (tX.from X) (𝟙 _)], simp } }
+
+-- This is reducible to allow usage of lemmas about `cocone_point_unique_up_to_iso`.
+/-- For a functor `F : J ⥤ C`, if `J` has a terminal object then the image of it is isomorphic
+to the colimit of `F`. -/
+@[reducible]
+def colimit_of_terminal {J : Type v} [small_category J] (F : J ⥤ C)
+  [has_terminal J] [has_colimit F] :
+colimit F ≅ F.obj (⊤_ J) :=
+is_colimit.cocone_point_unique_up_to_iso
+  (colimit.is_colimit _)
+  (colimit_of_diagram_terminal terminal_is_terminal F)
 
 end
 

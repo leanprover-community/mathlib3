@@ -55,7 +55,6 @@ def Le' (P : Cᵒᵖ ⥤ Type u₁) (E : ℰ) {c : cocone ((category_of_elements
   right_inv :=
   begin
     rintro ⟨_, _⟩,
-    ext,
     refl,
   end }
 
@@ -69,34 +68,10 @@ end
 
 def L : (Cᵒᵖ ⥤ Type u₁) ⥤ ℰ :=
 adjunction.left_adjoint_of_equiv
-(λ P E, Le' A P E (colimit.is_colimit _))
-(λ P E E' g, Le'_natural A P E E' g _)
+  (λ P E, Le' A P E (colimit.is_colimit _))
+  (λ P E E' g, Le'_natural A P E E' g _)
 
 def L_adjunction : L A ⊣ R A := adjunction.adjunction_of_equiv_left _ _
-
-@[simps]
-def colimit_terminal {J : Type v₁} [small_category J] {C : Type u₁} [category.{v₁} C]
-  {X : J} (tX : is_terminal X) (F : J ⥤ C) :
-cocone F :=
-{ X := F.obj X,
-  ι :=
-  { app := λ j, F.map (tX.from j),
-    naturality' := λ j j' k,
-    begin
-      dsimp,
-      rw [← F.map_comp, comp_id, tX.hom_ext (k ≫ tX.from j') (tX.from j)],
-    end } }
-
-def is_col {J : Type v₁} [small_category J] {C : Type u₁} [category.{v₁} C]
-  {X : J} (tX : is_terminal X) (F : J ⥤ C) :
-is_colimit (colimit_terminal tX F) :=
-{ desc := λ s, s.ι.app X,
-  fac' := λ s j, s.w _,
-  uniq' := λ s m w,
-  begin
-    dsimp at w,
-    rw [← w X, tX.hom_ext (tX.from X) (𝟙 _), F.map_id, id_comp],
-  end }
 
 def term_element (A : C) : (yoneda.obj A).elementsᵒᵖ :=
 opposite.op ⟨opposite.op A, 𝟙 _⟩
@@ -107,9 +82,8 @@ def is_term (A : C) : is_terminal (term_element A) :=
     refine (has_hom.hom.op (_ : _ ⟶ opposite.unop s.X) : s.X ⟶ opposite.op ⟨opposite.op A, 𝟙 A⟩),
     refine ⟨s.X.unop.2.op, comp_id _⟩,
   end,
-  uniq' := λ s m w,
+  uniq' := λ s m w, has_hom.hom.unop_inj
   begin
-    apply has_hom.hom.unop_inj,
     simp_rw ← m.unop.2,
     dsimp [as_empty_cone, term_element],
     simp,
@@ -117,19 +91,17 @@ def is_term (A : C) : is_terminal (term_element A) :=
 
 def extend : (yoneda : C ⥤ _) ⋙ L A ≅ A :=
 nat_iso.of_components
-(λ X, (colimit.is_colimit _).cocone_point_unique_up_to_iso (is_col (is_term X) _))
+(λ X, (colimit.is_colimit _).cocone_point_unique_up_to_iso (colimit_of_diagram_terminal (is_term X) _))
 begin
   intros X Y f,
-  dsimp,
-  change colimit.desc _ _ ≫ _ = _,
-  change _ ≫ colimit.desc _ _ = colimit.desc _ _ ≫ _,
+  change (colimit.desc _ ⟨_, _⟩ ≫ colimit.desc _ _) = colimit.desc _ _ ≫ _,
   apply colimit.hom_ext,
   intro j,
-  rw colimit.ι_desc_assoc,
-  rw colimit.ι_desc_assoc,
-  dsimp [Le', is_colimit.hom_iso'],
-  rw [comp_id, colimit.ι_desc, ← A.map_comp],
-  change A.map _ = A.map _,
+  rw [colimit.ι_desc_assoc, colimit.ι_desc_assoc],
+  change (colimit.ι _ _ ≫ 𝟙 _) ≫ colimit.desc _ _ = _,
+  rw [comp_id, colimit.ι_desc],
+  dsimp,
+  rw ← A.map_comp,
   congr' 1,
 end
 
@@ -146,19 +118,15 @@ nat_iso.of_components
     dsimp [ulift_trivial, yoneda_lemma],
     simp only [id_comp, comp_id],
   end))
-(λ _ _ _, nat_trans.ext _ _ $ funext $ λ _, funext $ λ _, rfl)
+(λ _ _ _, rfl)
 
 def left_is_id : L (yoneda : C ⥤ _) ≅ 𝟭 _ :=
-adjunction.left_adjoint_uniq (L_adjunction _) (adjunction.of_nat_iso_right adjunction.id right_is_id.symm)
-
-def main (P : Cᵒᵖ ⥤ Type u₁) :
-  colimit ((category_of_elements.π P).left_op ⋙ yoneda) ≅ P :=
-left_is_id.app P
+adjunction.left_adjoint_uniq (L_adjunction _) (adjunction.id.of_nat_iso_right right_is_id.symm)
 
 -- This is a cocone with point `P`, for which the diagram consists solely of representables.
 def the_cocone (P : Cᵒᵖ ⥤ Type u₁) :
   cocone ((category_of_elements.π P).left_op ⋙ yoneda) :=
-cocone.extend (colimit.cocone _) (main P).hom
+cocone.extend (colimit.cocone _) (left_is_id.hom.app P)
 
 lemma desc_self {J : Type v₁} {C : Type u₁} [small_category J] [category.{v₁} C]
   (F : J ⥤ C) {c : cocone F} (t : is_colimit c) : t.desc c = 𝟙 c.X :=
@@ -172,21 +140,22 @@ def is_a_limit (P : Cᵒᵖ ⥤ Type u₁) : is_colimit (the_cocone P) :=
 begin
   apply is_colimit.of_point_iso (colimit.is_colimit ((category_of_elements.π P).left_op ⋙ yoneda)),
   change is_iso (colimit.desc _ (cocone.extend _ _)),
-  rw [colimit.desc_extend, col_desc_self, id_comp],
+  rw [colimit.desc_extend, col_desc_self],
   apply_instance,
 end
 
-def unique_extension (L' : (Cᵒᵖ ⥤ Type u₁) ⥤ ℰ) (hL : (yoneda : C ⥤ _) ⋙ L' ≅ A)
-  [preserves_colimits L'] :
-  L' ≅ L A :=
-begin
-  apply nat_iso.of_components _ _,
-  intro P,
-  apply (preserves_colimit.preserves (is_a_limit P)).cocone_points_iso_of_nat_iso (colimit.is_colimit ((category_of_elements.π P).left_op ⋙ A)),
-  apply functor.associator _ _ _ ≪≫ iso_whisker_left _ hL,
-  apply_instance,
-  intros X Y f,
-  simp,
-end
+-- Probably needs preserves branch for simp to be nice
+-- def unique_extension (L' : (Cᵒᵖ ⥤ Type u₁) ⥤ ℰ) (hL : (yoneda : C ⥤ _) ⋙ L' ≅ A)
+--   [preserves_colimits L'] :
+--   L' ≅ L A :=
+-- begin
+--   apply nat_iso.of_components _ _,
+--   intro P,
+--   apply (preserves_colimit.preserves (is_a_limit P)).cocone_points_iso_of_nat_iso (colimit.is_colimit ((category_of_elements.π P).left_op ⋙ A)),
+--   apply functor.associator _ _ _ ≪≫ iso_whisker_left _ hL,
+--   apply_instance,
+--   intros X Y f,
+--   simp,
+-- end
 
 end category_theory

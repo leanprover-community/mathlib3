@@ -726,6 +726,10 @@ instance unique_singleton (a : α) : unique ↥({a} : set α) :=
     apply eq_of_mem_singleton (subtype.mem x),
   end}
 
+lemma eq_singleton_iff_unique_mem {s : set α} {a : α} :
+  s = {a} ↔ a ∈ s ∧ ∀ x ∈ s, x = a :=
+by simp [ext_iff, @iff_def (_ ∈ s), forall_and_distrib, and_comm]
+
 /-! ### Lemmas about sets defined as `{x ∈ s | p x}`. -/
 
 theorem mem_sep {s : set α} {p : α → Prop} {x : α} (xs : x ∈ s) (px : p x) : x ∈ {x ∈ s | p x} :=

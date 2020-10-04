@@ -174,8 +174,24 @@ open tactic
 Given a goal `a = b` or `a ≤ b` in a type `α`, generates an additional hypothesis `nontrivial α`
 (as otherwise `α` is a subsingleton and the goal is trivial).
 
+```
+example {R : Type} [ring R] (h : false) : 0 = (1 : R) :=
+begin
+  nontriviality, -- There is now a `nontrivial R` hypothesis available.
+  exfalso, assumption,
+end
+```
+
 Alternatively, given a hypothesis `a ≠ b` or `a < b` in a type `α`, tries to generate a `nontrivial α`
 hypothesis from existing hypotheses using `nontrivial_of_ne` and `nontrivial_of_lt`.
+
+```
+example {R : Type} [ordered_ring R] {a : R} (h : 0 < a) : 0 < a :=
+begin
+  nontriviality, -- There is now a `nontrivial R` hypothesis available.
+  assumption,
+end
+```
 -/
 meta def nontriviality : tactic unit :=
 nontriviality_by_assumption <|>

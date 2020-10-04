@@ -224,13 +224,6 @@ by { rw [pre, prod_map_id_id, id_comp, ← uncurry_id_eq_ev], simp }
 
 -- There's probably a better proof of this somehow
 /-- Precomposition is contrafunctorial. -/
--- @[simp, reassoc] lemma ev_coev :
---   limits.prod.map (𝟙 A) ((coev A).app B) ≫ (ev A).app (A ⨯ B) = 𝟙 (A ⨯ B) :=
--- adjunction.left_triangle_components (exp.adjunction A)
-
--- @[simp, reassoc] lemma coev_ev : (coev A).app (A⟹B) ≫ (exp A).map ((ev A).app B) = 𝟙 (A⟹B) :=
--- adjunction.right_triangle_components (exp.adjunction A)
-
 lemma pre_map [exponentiable B] {D : C} [exponentiable D] (f : A ⟶ B) (g : B ⟶ D) :
   pre X (f ≫ g) = pre X g ≫ pre X f :=
 begin

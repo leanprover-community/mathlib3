@@ -854,6 +854,10 @@ end,
 by rintro ⟨a, y, rfl⟩; exact
   smul_mem _ _ (subset_span $ by simp)⟩
 
+lemma le_span_singleton_iff {s : submodule R M} {v₀ : M} :
+  s ≤ span R {v₀} ↔ ∀ v ∈ s, ∃ r : R, r • v₀ = v :=
+by simp_rw [le_def', mem_span_singleton]
+
 lemma span_singleton_eq_range (y : M) : (span R ({y} : set M) : set M) = range ((• y) : R → M) :=
 set.ext $ λ x, mem_span_singleton
 

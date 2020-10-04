@@ -67,7 +67,7 @@ def a (b : ℕ) : good_nats :=
 ⟨4*(2+b)^4, polynomial_not_prime (show 1 < 2+b, by linarith)⟩
 
 /-- For all `b : good_nats`, $a(b) > b$. (This is true for `b : ℕ`, but it's more convenient to
-state it this way.)-/
+state it this way.) -/
 lemma lt_a (b : good_nats) : b < a b :=
 begin
   simp only [←subtype.coe_lt_coe, subtype.coe_mk, a],
@@ -75,7 +75,7 @@ begin
 end
 
 /-- We conclude by using `a` to get a contradiction with the assumption that `good_nats` is
-a `fintype`, since the elements of a fintype must have a maximal element. -/
+a `fintype`, since the elements of a `fintype` must have a maximal element. -/
 theorem imo1969_q1 : infinite good_nats :=
 ⟨begin
   intro h,

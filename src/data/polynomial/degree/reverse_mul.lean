@@ -86,7 +86,20 @@ begin
 end
 
 /-- reflect of a natural number N and a polynomial f, applies the function rev_at to the exponents of the terms appearing in the expansion of f.  In practice, reflect is only used when N is at least as large as the degree of f.  Eventually, it will be used with N exactly equal to the degree of f.  -/
-def reflect : ℕ → polynomial R → polynomial R := λ N : ℕ , λ f : polynomial R , ⟨ (rev_at N '' ↑(f.support)).to_finset , λ i : ℕ , f.coeff (rev_at N i) , begin
+def reflect : ℕ → polynomial R → polynomial R := λ N : ℕ , λ f : polynomial R , ⟨ image (rev_at N)  (f.support) , λ i : ℕ , f.coeff (rev_at N i) , begin
+  simp only [mem_image, exists_prop, mem_support_iff, ne.def],
+  intro,
+  split,
+    { intro a_1,
+      rcases a_1 with ⟨ a , ha , rfl⟩,
+      rwa rev_at_invol, },
+    { intro,
+      use (rev_at N a),
+      rwa [rev_at_invol, eq_self_iff_true, and_true], },
+end ⟩
+
+
+def reflectv : ℕ → polynomial R → polynomial R := λ N : ℕ , λ f : polynomial R , ⟨ (rev_at N '' ↑(f.support)).to_finset , λ i : ℕ , f.coeff (rev_at N i) , begin
   simp_rw [set.mem_to_finset, set.mem_image, mem_coe, mem_support_iff],
   intro,
   split,
@@ -261,11 +274,16 @@ begin
   rw this,
   rw nat_degree_eq_support_min'_trailing f0,
   rw nat_degree_eq_support_max' _,
+  rw support
+  convert @min_max f.support (nonempty_support_iff.mpr f0),
+  work_on_goal 0 { dsimp at *, simp at *, fsplit, work_on_goal 0 { intros a }, work_on_goal 1 { intros a } }, work_on_goal 2 { intros a, injections_and_clear, dsimp at *, simp at *, injections_and_clear, simp at *, injections_and_clear, dsimp at * }, work_on_goal 0 { dsimp at * }, work_on_goal 1 { dsimp at * },
+
   unfold reverse,
   unfold reflect,
-  simp_rw monotone_rev_at_eq_rev_at_small,
-  apply min_max monotone_rev_at,
   unfold rev_at,
+  simp * at *,
+  rw min_max monotone_rev_at,
+  simp_rw monotone_rev_at_eq_rev_at_small,
 --  tidy,
 
   sorry,

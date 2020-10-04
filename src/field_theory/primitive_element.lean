@@ -209,10 +209,8 @@ begin
   have F'_sep : is_separable F' E := is_separable_tower_top_of_is_separable F' F_sep,
   haveI : finite_dimensional F' E := finite_dimensional.right F F' E,
   obtain ⟨α, hα⟩ := exists_primitive_element_aux F'_sep,
-  have : (F'⟮α⟯ : set E) = F⟮α⟯,
-  { rw [adjoin_simple_comm, adjoin_zero, adjoin_eq_range_algebra_map_adjoin],
-    simp [set.ext_iff, intermediate_field.mem_bot] },
-  exact ⟨α, by simp [intermediate_field.ext'_iff, set.ext_iff, intermediate_field.mem_top, *] at *⟩,
+  use α,
+  rw [←lift2_bot F⟮α⟯, ←adjoin_zero, adjoin_simple_comm, hα, lift2_top],
 end
 
 end field

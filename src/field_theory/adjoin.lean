@@ -83,6 +83,20 @@ begin
   exact mem_top,
 end
 
+lemma lift2_bot (K : intermediate_field F E) : ↑(⊥ : intermediate_field K E) = K :=
+begin
+  ext,
+  rw [mem_lift2, mem_bot, (show ⇑(algebra_map K E) = coe, by ext;refl), subtype.range_coe],
+  refl,
+end
+
+lemma lift2_top (K : intermediate_field F E) :
+  ↑(⊤ : intermediate_field K E) = (⊤ : intermediate_field F E) :=
+begin
+  ext,
+  exact iff_of_true mem_top mem_top,
+end
+
 end lattice
 
 section adjoin_def
@@ -111,7 +125,7 @@ lemma subset_adjoin : S ⊆ adjoin F S :=
 instance adjoin.set_coe : has_coe_t S (adjoin F S) :=
 {coe := λ x, ⟨x,subset_adjoin F S (subtype.mem x)⟩}
 
-lemma adjoin.mono (T : set E) (h : S ⊆ T) : (adjoin F S : set E) ⊆ adjoin F T :=
+lemma adjoin.mono (T : set E) (h : S ⊆ T) : adjoin F S ≤ adjoin F T :=
 subfield.closure_mono (set.union_subset (set.subset_union_left _ _)
   (set.subset_union_of_subset_right h _))
 
@@ -149,8 +163,10 @@ lemma adjoin_subset_adjoin_iff {F' : Type*} [field F'] [algebra F' E]
   λ ⟨hF, hS⟩, subfield.closure_le.mpr (set.union_subset hF hS)⟩
 
 /-- `F[S][T] = F[S ∪ T]` -/
-lemma adjoin_adjoin_left (T : set E) : (adjoin (adjoin F S) T : set E) = adjoin F (S ∪ T) :=
+lemma adjoin_adjoin_left (T : set E) : ↑(adjoin (adjoin F S) T) = adjoin F (S ∪ T) :=
 begin
+  rw intermediate_field.ext'_iff,
+  change ↑(adjoin (adjoin F S) T) = _,
   apply set.eq_of_subset_of_subset; rw adjoin_subset_adjoin_iff; split,
   { rintros _ ⟨⟨x, hx⟩, rfl⟩, exact adjoin.mono _ _ _ (set.subset_union_left _ _) hx },
   { exact subset_adjoin_of_subset_right _ _ (set.subset_union_right _ _) },
@@ -162,7 +178,7 @@ end
 
 /-- `F[S][T] = F[T][S]` -/
 lemma adjoin_adjoin_comm (T : set E) :
-  (adjoin (adjoin F S) T : set E) = (adjoin (adjoin F T) S : set E) :=
+  ↑(adjoin (adjoin F S) T) = (↑(adjoin (adjoin F T) S) : (intermediate_field F E)) :=
 by rw [adjoin_adjoin_left, adjoin_adjoin_left, set.union_comm]
 
 lemma adjoin_map {E' : Type*} [field E'] [algebra F E'] (f : E →ₐ[F] E') :
@@ -231,10 +247,10 @@ def adjoin_simple.gen : F⟮α⟯ := ⟨α, mem_adjoin_simple_self F α⟩
 
 @[simp] lemma adjoin_simple.algebra_map_gen : algebra_map F⟮α⟯ E (adjoin_simple.gen F α) = α := rfl
 
-lemma adjoin_simple_adjoin_simple (β : E) : (F⟮α⟯⟮β⟯ : set E) = (F⟮α, β⟯ : set E) :=
+lemma adjoin_simple_adjoin_simple (β : E) : ↑F⟮α⟯⟮β⟯ = F⟮α, β⟯ :=
 adjoin_adjoin_left _ _ _
 
-lemma adjoin_simple_comm (β : E) : (F⟮α⟯⟮β⟯ : set E) = (F⟮β⟯⟮α⟯ : set E) :=
+lemma adjoin_simple_comm (β : E) : ↑F⟮α⟯⟮β⟯ = (↑F⟮β⟯⟮α⟯ : intermediate_field F E) :=
 adjoin_adjoin_comm _ _ _
 
 end adjoin_simple

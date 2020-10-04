@@ -868,7 +868,7 @@ lemma span_singleton_smul_eq {K E : Type*} [division_ring K] [add_comm_group E] 
 begin
   refine le_antisymm (span_singleton_smul_le r x) _,
   convert span_singleton_smul_le r⁻¹ (r • x),
-  simp [smul_smul, hr]
+  exact (inv_smul_smul' hr _).symm
 end
 
 lemma disjoint_span_singleton {K E : Type*} [division_ring K] [add_comm_group E] [module K E]

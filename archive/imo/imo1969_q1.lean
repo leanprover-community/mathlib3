@@ -18,11 +18,11 @@ Prove that there are infinitely many natural numbers $a$ with the following prop
 the number $z = n^4 + a$ is not prime for any natural number $n$.
 
 The key to the solution is that you can factor $z$ into the product of two polynomials,
-if $a = 4*m^4$. This is Sophie Germain's identity, called `pow_four_plus_four_mul_pow_four`
+if $a = 4*m^4$. This is Sophie Germain's identity, called `pow_four_add_four_mul_pow_four`
 in mathlib.
 -/
 lemma factorization {m n : ℤ} : ((n - m)^2 + m^2) * ((n + m)^2 + m^2) = n^4 + 4*m^4 :=
-pow_four_plus_four_mul_pow_four.symm
+pow_four_add_four_mul_pow_four.symm
 
 /-!
 To show that the product is not prime, we need to show each of the factors is at least 2,

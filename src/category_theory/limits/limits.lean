@@ -958,7 +958,7 @@ def limit.lift (F : J ⥤ C) [has_limit F] (c : cone F) : c.X ⟶ limit F :=
   (limit.is_limit F).lift c = limit.lift F c := rfl
 
 @[simp]
-lemma lift_limit_cone [has_limit F] : limit.lift F (limit.cone F) = 𝟙 (limit F) :=
+lemma limit.lift_cone [has_limit F] : limit.lift F (limit.cone F) = 𝟙 (limit F) :=
 (limit.is_limit _).lift_self
 
 @[simp, reassoc] lemma limit.lift_π {F : J ⥤ C} [has_limit F] (c : cone F) (j : J) :
@@ -1020,10 +1020,6 @@ by { dsimp [limit.iso_limit_cone, is_limit.cone_point_unique_up_to_iso], tidy, }
 @[ext] lemma limit.hom_ext {F : J ⥤ C} [has_limit F] {X : C} {f f' : X ⟶ limit F}
   (w : ∀ j, f ≫ limit.π F j = f' ≫ limit.π F j) : f = f' :=
 (limit.is_limit F).hom_ext w
-
-@[simp] lemma limit.lift_cone {F : J ⥤ C} [has_limit F] :
-  limit.lift F (limit.cone F) = 𝟙 (limit F) :=
-by { ext, dsimp, simp, }
 
 /--
 The isomorphism (in `Type`) between
@@ -1365,7 +1361,7 @@ def colimit.desc (F : J ⥤ C) [has_colimit F] (c : cocone F) : colimit F ⟶ c.
   (colimit.is_colimit F).desc c = colimit.desc F c := rfl
 
 @[simp]
-lemma desc_colimit_cocone [has_colimit F] : colimit.desc F (colimit.cocone F) = 𝟙 (colimit F) :=
+lemma colimit.desc_cocone [has_colimit F] : colimit.desc F (colimit.cocone F) = 𝟙 (colimit F) :=
 (colimit.is_colimit _).desc_self
 
 /--
@@ -1438,10 +1434,6 @@ by { dsimp [colimit.iso_colimit_cocone, is_colimit.cocone_point_unique_up_to_iso
 @[ext] lemma colimit.hom_ext {F : J ⥤ C} [has_colimit F] {X : C} {f f' : colimit F ⟶ X}
   (w : ∀ j, colimit.ι F j ≫ f = colimit.ι F j ≫ f') : f = f' :=
 (colimit.is_colimit F).hom_ext w
-
-@[simp] lemma colimit.desc_cocone {F : J ⥤ C} [has_colimit F] :
-  colimit.desc F (colimit.cocone F) = 𝟙 (colimit F) :=
-by { ext, dsimp, simp, }
 
 /--
 The isomorphism (in `Type`) between

@@ -74,7 +74,7 @@ begin
   apply @ne_empty_of_mem _ (nat_trailing_degree f),
   rw [mem_support_iff_coeff_ne_zero, coeff_eq_coeff_of_ne, ← mem_support_iff_coeff_ne_zero],
     { exact nat_trailing_degree_mem_support_of_nonzero fn0, },
-    { rw [nat_degree_eq_support_max' fn0, nat_degree_eq_support_max'_trailing fn0],
+    { rw [nat_degree_eq_support_max' fn0, nat_degree_eq_support_min'_trailing fn0],
       exact ne_of_lt (finset.min'_lt_max'_of_card _ f0), },
 end
 

@@ -40,6 +40,51 @@ begin
   refl,
 end
 
+/-- mon is the property of being monotone non-increasing. -/
+def mon {α β : Type*} [linear_order α] [linear_order β] (f : α → β) := ∀ ⦃x y : α⦄, x ≤ y → f y ≤ f x
+
+lemma min_max_mon {α β : Type*} [decidable_linear_order α] [decidable_linear_order β]
+  {s : finset α} (hs : s.nonempty) {f : α → β} (mf : mon f) :
+  max' (image f s) (hs.image f) = f (min' s hs) :=
+begin
+  apply le_antisymm,
+    { refine (image f s).max'_le (nonempty.image hs f) (f (min' s hs)) _,
+      intros x hx,
+      rw mem_image at hx,
+      rcases hx with ⟨ b , bs , rfl⟩,
+      apply mf,
+      apply min'_le,
+      assumption, },
+    { apply le_max',
+      refine mem_image_of_mem f _,
+      exact min'_mem s hs, },
+end
+
+/-- monotone_rev_at N _ coincides with rev_at N _ in the range [0,..,N].  I use monotone_rev_at just to show that rev_at exchanges mins and maxs.  If you can find an alternative proof that does not use this definition, then it can be removed! -/
+def monotone_rev_at (N : ℕ) : ℕ → ℕ := λ i : ℕ , (N-i)
+
+lemma min_max {s : finset ℕ} {hs : s.nonempty} : max' (image (monotone_rev_at (max' s hs)) s) (by exact nonempty.image hs (monotone_rev_at (max' s hs))) = monotone_rev_at (max' s hs) (min' s hs) :=
+begin
+  refine min_max_mon hs _,
+  intros x y hxy,
+  unfold monotone_rev_at,
+  rw nat.sub_le_iff,
+  by_cases xle : x ≤ (s.max' hs),
+    { rwa nat.sub_sub_self xle, },
+    { rw not_le at xle,
+      apply le_of_lt,
+      convert gt_of_ge_of_gt hxy xle,
+      convert nat.sub_zero (s.max' hs),
+      rw nat.sub_eq_zero_iff_le,
+      exact le_of_lt xle, },
+end
+
+lemma monotone_rev_at_eq_rev_at_small {N n : ℕ} (n ≤ N) : monotone_rev_at N n = rev_at N n :=
+begin
+  unfold monotone_rev_at,
+  rw rev_at_small H,
+end
+
 /-- reflect of a natural number N and a polynomial f, applies the function rev_at to the exponents of the terms appearing in the expansion of f.  In practice, reflect is only used when N is at least as large as the degree of f.  Eventually, it will be used with N exactly equal to the degree of f.  -/
 def reflect : ℕ → polynomial R → polynomial R := λ N : ℕ , λ f : polynomial R , ⟨ (rev_at N '' ↑(f.support)).to_finset , λ i : ℕ , f.coeff (rev_at N i) , begin
   simp_rw [set.mem_to_finset, set.mem_image, mem_coe, mem_support_iff],
@@ -203,6 +248,27 @@ begin
   unfold reverse,
   convert reflect_mul (le_refl _) (le_refl _),
     exact nat_degree_add_of_mul_leading_coeff_nonzero f g fg,
+end
+
+lemma leading_eq_trailing : leading_coeff (reverse f) = trailing_coeff f :=
+begin
+  by_cases f0 : f=0,
+  unfold reverse,
+    { rw [f0, reflect_zero, leading_coeff, trailing_coeff, coeff_zero, coeff_zero], },
+  have : (reverse f).leading_coeff = (reverse f).coeff (reverse f).nat_degree, by congr,
+  rw this,
+  have : f.trailing_coeff = f.coeff f.nat_trailing_degree, by congr,
+  rw this,
+  rw nat_degree_eq_support_min'_trailing f0,
+  rw nat_degree_eq_support_max' _,
+  unfold reverse,
+  unfold reflect,
+  simp_rw monotone_rev_at_eq_rev_at_small,
+  apply min_max monotone_rev_at,
+  unfold rev_at,
+--  tidy,
+
+  sorry,
 end
 
 end rev

@@ -29,7 +29,7 @@ begin
   exact nat_trailing_degree_le_of_ne_zero,
 end
 
-lemma nat_degree_eq_support_max'_trailing (h : f ≠ 0) :
+lemma nat_degree_eq_support_min'_trailing (h : f ≠ 0) :
   nat_trailing_degree f = f.support.min' (nonempty_support_iff.mpr h) :=
 begin
   apply le_antisymm,

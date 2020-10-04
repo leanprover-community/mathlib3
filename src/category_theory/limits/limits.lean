@@ -105,6 +105,9 @@ P.lift ((cones.postcompose α).obj s)
   (α : F ⟶ G) (j : J) : hd.map c α ≫ d.π.app j = c.π.app j ≫ α.app j :=
 fac _ _ _
 
+lemma lift_self {c : cone F} (t : is_limit c) : t.lift c = 𝟙 c.X :=
+(t.uniq _ _ (λ j, id_comp _)).symm
+
 /- Repackaging the definition in terms of cone morphisms. -/
 
 /-- The universal morphism from any other cone to a limit cone. -/
@@ -511,6 +514,10 @@ P.desc ((cocones.precompose α).obj t)
 lemma ι_map {F G : J ⥤ C} {c : cocone F} (hc : is_colimit c) (d : cocone G) (α : F ⟶ G)
   (j : J) : c.ι.app j ≫ is_colimit.map hc d α = α.app j ≫ d.ι.app j :=
 fac _ _ _
+
+@[simp]
+lemma desc_self {t : cocone F} (h : is_colimit t) : h.desc t = 𝟙 t.X :=
+(h.uniq _ _ (λ j, comp_id _)).symm
 
 /- Repackaging the definition in terms of cocone morphisms. -/
 
@@ -950,6 +957,10 @@ def limit.lift (F : J ⥤ C) [has_limit F] (c : cone F) : c.X ⟶ limit F :=
 @[simp] lemma limit.is_limit_lift {F : J ⥤ C} [has_limit F] (c : cone F) :
   (limit.is_limit F).lift c = limit.lift F c := rfl
 
+@[simp]
+lemma lift_limit_cone [has_limit F] : limit.lift F (limit.cone F) = 𝟙 (limit F) :=
+(limit.is_limit _).lift_self
+
 @[simp, reassoc] lemma limit.lift_π {F : J ⥤ C} [has_limit F] (c : cone F) (j : J) :
   limit.lift F c ≫ limit.π F j = c.π.app j :=
 is_limit.fac _ c j
@@ -1352,6 +1363,10 @@ def colimit.desc (F : J ⥤ C) [has_colimit F] (c : cocone F) : colimit F ⟶ c.
 
 @[simp] lemma colimit.is_colimit_desc {F : J ⥤ C} [has_colimit F] (c : cocone F) :
   (colimit.is_colimit F).desc c = colimit.desc F c := rfl
+
+@[simp]
+lemma desc_colimit_cocone [has_colimit F] : colimit.desc F (colimit.cocone F) = 𝟙 (colimit F) :=
+(colimit.is_colimit _).desc_self
 
 /--
 We have lots of lemmas describing how to simplify `colimit.ι F j ≫ _`,

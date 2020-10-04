@@ -208,7 +208,7 @@ let ⟨w, x, y, z, h₂⟩ := sum_four_squares (n / min_fac n) in
  (a * z + b * y - c * x + d * w).nat_abs,
   begin
     rw [← int.coe_nat_inj', ← nat.mul_div_cancel' (min_fac_dvd (k+2)), int.coe_nat_mul, ← h₁, ← h₂],
-    simp [sum_four_sq_mul_eq_sum_four_sq],
+    simp [sum_four_sq_mul_sum_four_sq],
   end⟩
 
 end nat

@@ -271,4 +271,3 @@ end
 
 end gcd_monoid
 end polynomial
-#lint

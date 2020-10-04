@@ -608,15 +608,14 @@ protected def mk_pi_algebra_fin : continuous_multilinear_map 𝕜 (λ i : fin n,
     intro m,
     cases n,
     { simp },
-    { have : @list.map (fin _) A m (list.fin_range n.succ) ≠ [] :=
-        by simp [nat.succ_ne_zero],
-      simpa [fin.prod_univ_def] using list.norm_prod_le' this }
+    { have : @list.of_fn A n.succ m ≠ [] := by simp,
+      simpa [← fin.prod_of_fn] using list.norm_prod_le' this }
   end
 
 variables {A 𝕜 n}
 
 @[simp] lemma mk_pi_algebra_fin_apply (m : fin n → A) :
-  continuous_multilinear_map.mk_pi_algebra_fin 𝕜 n A m = ((list.fin_range n).map m).prod :=
+  continuous_multilinear_map.mk_pi_algebra_fin 𝕜 n A m = (list.of_fn m).prod :=
 rfl
 
 lemma norm_mk_pi_algebra_fin_succ_le :

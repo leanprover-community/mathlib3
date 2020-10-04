@@ -1443,7 +1443,7 @@ lemma subsingleton_univ [subsingleton α] : (univ : set α).subsingleton :=
 
 /-- `s`, coerced to a type, is a subsingleton type if and only if `s`
 is a subsingleton set. -/
-@[simp] lemma subsingleton_coe (s : set α) : subsingleton s ↔ s.subsingleton :=
+@[simp, norm_cast] lemma subsingleton_coe (s : set α) : subsingleton s ↔ s.subsingleton :=
 begin
   split,
   { refine λ h, (λ a ha b hb, _),

@@ -238,6 +238,17 @@ begin
   apply ωSup_le _ _ a,
 end
 
+/-- A subset `p : α → Prop` of the type closed under `ωSup` induces an
+`omega_complete_partial_order` on the subtype `{a : α // p a}`. -/
+def subtype {α : Type*} [omega_complete_partial_order α] (p : α → Prop)
+  (hp : ∀ (c : chain α), (∀ i ∈ c, p i) → p (ωSup c)) :
+  omega_complete_partial_order (subtype p) :=
+omega_complete_partial_order.lift
+  (preorder_hom.subtype.val p)
+  (λ c, ⟨ωSup _, hp (c.map (preorder_hom.subtype.val p)) (λ i ⟨n, q⟩, q.symm ▸ (c n).2)⟩)
+  (λ x y h, h)
+  (λ c, rfl)
+
 section continuity
 open chain
 

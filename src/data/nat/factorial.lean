@@ -93,4 +93,25 @@ lemma self_le_factorial : ∀ n : ℕ, n ≤ n!
 | 0 := zero_le_one
 | (k+1) := le_mul_of_one_le_right k.zero_lt_succ.le (nat.one_le_of_lt $ nat.factorial_pos _)
 
+lemma add_factorial_le_factorial_add (i n : ℕ) : i + (n+1)! ≤ (i + (n+1))! :=
+begin
+  induction n with n hn,
+  { simp only [add_zero, factorial_succ, factorial_one],
+    have := (@nat.mul_le_mul_right 1 i! i.succ) (factorial_pos _),
+    rw [one_mul, mul_comm] at this,
+    exact this },
+  { set m := n.succ with hm, rw [←succ_eq_add_one, ←hm] at hn,
+    transitivity (i + m + 1) * (i + m!),
+    { transitivity (i + m + 1) * m!,
+      { rw [factorial_succ, add_mul, succ_eq_add_one, add_mul, one_mul, add_mul, add_assoc],
+        apply nat.add_le_add_right,
+        conv_lhs { rw show i = i * 1, by rw mul_one },
+        exact mul_le_mul_left _ m.factorial_pos },
+      { exact nat.mul_le_mul_left _ (m!.le_add_left _) } },
+    { exact calc (i + (m + 1))! = (i + m + 1)! : by rw add_assoc
+                            ... = (i + m + 1) * (i + m)! : by rw factorial_succ
+                            ... ≥ (i + m + 1) * (i + m!)
+                            : by { rw ge_iff_le, apply mul_le_mul_left _ hn } } },
+end
+
 end nat

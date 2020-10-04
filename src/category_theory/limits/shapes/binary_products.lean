@@ -319,11 +319,11 @@ def coprod.map_iso {W X Y Z : C} [has_binary_coproduct W X] [has_binary_coproduc
 section prod_lemmas
 
 @[simp]
-lemma prod.lift_comp_comp {V W X Y : C} [has_binary_product X Y] (f : V ⟶ W) (g : W ⟶ X) (h : W ⟶ Y) :
+lemma prod.comp_lift {V W X Y : C} [has_binary_product X Y] (f : V ⟶ W) (g : W ⟶ X) (h : W ⟶ Y) :
    f ≫ prod.lift g h = prod.lift (f ≫ g) (f ≫ h):=
-by {ext; simp}
+by { ext; simp }
 
-lemma prod.lift_self {X Y : C} [has_binary_product Y Y] (f : X ⟶ Y) :
+lemma prod.comp_diag {X Y : C} [has_binary_product Y Y] (f : X ⟶ Y) :
   f ≫ diag Y = prod.lift f f :=
 by simp
 
@@ -382,7 +382,7 @@ by simp
 by simp
 
 /-- If the products `W ⨯ X` and `Y ⨯ Z` exist, then every pair of isomorphisms `f : W ≅ Y` and
-    `g : X ≅ Z` induces a isomorphism `prod.map_iso f g : W ⨯ X ≅ Y ⨯ Z`. -/
+    `g : X ≅ Z` induces an isomorphism `prod.map_iso f g : W ⨯ X ≅ Y ⨯ Z`. -/
 @[simps]
 def prod.map_iso {W X Y Z : C} [has_binary_product W X] [has_binary_product Y Z]
   (f : W ≅ Y) (g : X ≅ Z) : W ⨯ X ≅ Y ⨯ Z :=
@@ -535,7 +535,7 @@ prod.lift (F.map prod.fst) (F.map prod.snd)
   F.map (prod.map f g) ≫ prod_comparison F A' B' = prod_comparison F A B ≫ prod.map (F.map f) (F.map g) :=
 begin
   rw [prod_comparison, prod_comparison, prod.lift_map, ← F.map_comp, ← F.map_comp,
-      prod.lift_comp_comp, ← F.map_comp, prod.map_fst, ← F.map_comp, prod.map_snd]
+      prod.comp_lift, ← F.map_comp, prod.map_fst, ← F.map_comp, prod.map_snd]
 end
 
 @[reassoc]

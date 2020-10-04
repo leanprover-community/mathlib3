@@ -12,6 +12,7 @@ a proof that every natural number is the sum of four square numbers.
 
 The proof used is close to Lagrange's original proof.
 -/
+import algebra.group_power.identities
 import data.zmod.basic
 import field_theory.finite.basic
 import data.int.parity
@@ -201,14 +202,13 @@ have n / min_fac n < n := factors_lemma,
 let ⟨a, b, c, d, h₁⟩ := show ∃ a b c d : ℤ, a^2 + b^2 + c^2 + d^2 = min_fac n,
   by exactI prime_sum_four_squares (min_fac (k+2)) in
 let ⟨w, x, y, z, h₂⟩ := sum_four_squares (n / min_fac n) in
-⟨(a * x - b * w - c * z + d * y).nat_abs,
- (a * y + b * z - c * w - d * x).nat_abs,
- (a * z - b * y + c * x - d * w).nat_abs,
- (a * w + b * x + c * y + d * z).nat_abs,
+⟨(a * w - b * x - c * y - d * z).nat_abs,
+ (a * x + b * w + c * z - d * y).nat_abs,
+ (a * y - b * z + c * w + d * x).nat_abs,
+ (a * z + b * y - c * x + d * w).nat_abs,
   begin
     rw [← int.coe_nat_inj', ← nat.mul_div_cancel' (min_fac_dvd (k+2)), int.coe_nat_mul, ← h₁, ← h₂],
-    simp,
-    ring
+    simp [sum_four_sq_mul_sum_four_sq],
   end⟩
 
 end nat

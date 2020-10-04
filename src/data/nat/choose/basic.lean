@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Bhavik Mehta
 -/
-import data.nat.fact
+import data.nat.factorial
 /-!
 # Binomial coefficients
 
@@ -13,12 +13,14 @@ requiring more imports).
 ## Main definition and results
 
 - `nat.choose`: binomial coefficients, defined inductively
-- `nat.choose_eq_fact_div_fact`: a proof that `choose n k = fact n / (fact k * fact (n - k))`
+- `nat.choose_eq_factorial_div_factorial`: a proof that `choose n k = n! / (k! * (n - k)!)`
 - `nat.choose_symm`: symmetry of binomial coefficients
 - `nat.choose_le_succ_of_lt_half_left`: `choose n k` is increasing for small values of `k`
 - `nat.choose_le_middle`: `choose n r` is maximised when `r` is `n/2`
 
 -/
+
+open_locale nat
 
 namespace nat
 
@@ -81,40 +83,40 @@ lemma succ_mul_choose_eq : ∀ n k, succ n * choose n k = choose (succ n) (succ 
   by rw [choose_succ_succ (succ n) (succ k), add_mul, ←succ_mul_choose_eq, mul_succ,
   ←succ_mul_choose_eq, add_right_comm, ←mul_add, ←choose_succ_succ, ←succ_mul]
 
-lemma choose_mul_fact_mul_fact : ∀ {n k}, k ≤ n → choose n k * fact k * fact (n - k) = fact n
+lemma choose_mul_factorial_mul_factorial : ∀ {n k}, k ≤ n → choose n k * k! * (n - k)! = n!
 | 0              _ hk := by simp [eq_zero_of_le_zero hk]
 | (n + 1)        0 hk := by simp
 | (n + 1) (succ k) hk :=
 begin
   cases lt_or_eq_of_le hk with hk₁ hk₁,
-  { have h : choose n k * fact (succ k) * fact (n - k) = succ k * fact n :=
-      by rw ← choose_mul_fact_mul_fact (le_of_succ_le_succ hk);
-      simp [fact_succ, mul_comm, mul_left_comm],
-    have h₁ : fact (n - k) = (n - k) * fact (n - succ k) :=
-      by rw [← succ_sub_succ, succ_sub (le_of_lt_succ hk₁), fact_succ],
-    have h₂ : choose n (succ k) * fact (succ k) * ((n - k) * fact (n - succ k)) = (n - k) * fact n :=
-      by rw ← choose_mul_fact_mul_fact (le_of_lt_succ hk₁);
-      simp [fact_succ, mul_comm, mul_left_comm, mul_assoc],
-    have h₃ : k * fact n ≤ n * fact n := mul_le_mul_right _ (le_of_succ_le_succ hk),
+  { have h : choose n k * k.succ! * (n-k)! = k.succ * n! :=
+      by rw ← choose_mul_factorial_mul_factorial (le_of_succ_le_succ hk);
+      simp [factorial_succ, mul_comm, mul_left_comm],
+    have h₁ : (n - k)! = (n - k) * (n - k.succ)! :=
+      by rw [← succ_sub_succ, succ_sub (le_of_lt_succ hk₁), factorial_succ],
+    have h₂ : choose n (succ k) * k.succ! * ((n - k) * (n - k.succ)!) = (n - k) * n! :=
+      by rw ← choose_mul_factorial_mul_factorial (le_of_lt_succ hk₁);
+      simp [factorial_succ, mul_comm, mul_left_comm, mul_assoc],
+    have h₃ : k * n! ≤ n * n! := mul_le_mul_right _ (le_of_succ_le_succ hk),
   rw [choose_succ_succ, add_mul, add_mul, succ_sub_succ, h, h₁, h₂, ← add_one, add_mul,
-      nat.mul_sub_right_distrib, fact_succ, ← nat.add_sub_assoc h₃, add_assoc, ← add_mul,
+      nat.mul_sub_right_distrib, factorial_succ, ← nat.add_sub_assoc h₃, add_assoc, ← add_mul,
       nat.add_sub_cancel_left, add_comm] },
   { simp [hk₁, mul_comm, choose, nat.sub_self] }
 end
 
-theorem choose_eq_fact_div_fact {n k : ℕ} (hk : k ≤ n) :
-  choose n k = fact n / (fact k * fact (n - k)) :=
+theorem choose_eq_factorial_div_factorial {n k : ℕ} (hk : k ≤ n) :
+  choose n k = n! / (k! * (n - k)!) :=
 begin
-  have : fact n = choose n k * (fact k * fact (n - k)) :=
-    by rw ← mul_assoc; exact (choose_mul_fact_mul_fact hk).symm,
-  exact (nat.div_eq_of_eq_mul_left (mul_pos (fact_pos _) (fact_pos _)) this).symm
+  have : n! = choose n k * (k! * (n - k)!) :=
+    by rw ← mul_assoc; exact (choose_mul_factorial_mul_factorial hk).symm,
+  exact (nat.div_eq_of_eq_mul_left (mul_pos (factorial_pos _) (factorial_pos _)) this).symm
 end
 
-theorem fact_mul_fact_dvd_fact {n k : ℕ} (hk : k ≤ n) : fact k * fact (n - k) ∣ fact n :=
-by rw [←choose_mul_fact_mul_fact hk, mul_assoc]; exact dvd_mul_left _ _
+theorem factorial_mul_factorial_dvd_factorial {n k : ℕ} (hk : k ≤ n) : k! * (n - k)! ∣ n! :=
+by rw [←choose_mul_factorial_mul_factorial hk, mul_assoc]; exact dvd_mul_left _ _
 
 @[simp] lemma choose_symm {n k : ℕ} (hk : k ≤ n) : choose n (n-k) = choose n k :=
-by rw [choose_eq_fact_div_fact hk, choose_eq_fact_div_fact (sub_le _ _),
+by rw [choose_eq_factorial_div_factorial hk, choose_eq_factorial_div_factorial (sub_le _ _),
   nat.sub_sub_self hk, mul_comm]
 
 lemma choose_symm_of_eq_add {n a b : ℕ} (h : n = a + b) : nat.choose n a = nat.choose n b :=

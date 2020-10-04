@@ -546,15 +546,15 @@ begin
   show (chart_at (model_prod H E) p : tangent_bundle I H → model_prod H E) x =
     (equiv.sigma_equiv_prod H E) x,
   { cases x,
-    simp only [chart_at, basic_smooth_bundle_core.chart, topological_fiber_bundle_core.local_triv,
-      topological_fiber_bundle_core.local_triv', tangent_bundle_core, continuous_linear_map.coe_id',
-      basic_smooth_bundle_core.to_topological_fiber_bundle_core, A] with mfld_simps },
+    simp only [chart_at, basic_smooth_bundle_core.chart, tangent_bundle_core,
+      basic_smooth_bundle_core.to_topological_fiber_bundle_core, A, prod.mk.inj_iff,
+      continuous_linear_map.coe_id'] with mfld_simps, },
   show ∀ x, ((chart_at (model_prod H E) p).to_local_equiv).symm x =
     (equiv.sigma_equiv_prod H E).symm x,
   { rintros ⟨x_fst, x_snd⟩,
-    simp only [chart_at, basic_smooth_bundle_core.chart, topological_fiber_bundle_core.local_triv,
-      topological_fiber_bundle_core.local_triv', tangent_bundle_core, continuous_linear_map.coe_id',
-      basic_smooth_bundle_core.to_topological_fiber_bundle_core, A] with mfld_simps},
+    simp only [chart_at, basic_smooth_bundle_core.chart, tangent_bundle_core,
+      continuous_linear_map.coe_id', basic_smooth_bundle_core.to_topological_fiber_bundle_core, A]
+      with mfld_simps},
   show ((chart_at (model_prod H E) p).to_local_equiv).source = univ,
     by simp only [chart_at] with mfld_simps,
 end

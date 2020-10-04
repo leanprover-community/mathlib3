@@ -254,9 +254,11 @@ variables {S}
 
 section tower
 
+/-- Lift an intermediate_field of an intermediate_field -/
 def lift1 {F : intermediate_field K L} (E : intermediate_field K F) : intermediate_field K L :=
   map E (val F)
 
+/-- Lift an intermediate_field of an intermediate_field -/
 def lift2 {F : intermediate_field K L} (E : intermediate_field F L) : intermediate_field K L :=
 { carrier := E.carrier,
   zero_mem' := zero_mem E,

@@ -116,14 +116,14 @@ def equalizer {X Y : ωCPO.{v}} (f g : X ⟶ Y) :
 
 def is_equalizer {X Y : ωCPO.{v}} (f g : X ⟶ Y) : is_limit (equalizer f g) :=
 fork.is_limit.mk' _ $ λ s,
-⟨{ to_fun := λ x, ⟨s.ι x, by { apply congr_fun (congr_arg continuous_hom.to_fun s.condition : _ = _) }⟩,
+⟨{ to_fun := λ x, ⟨s.ι x, by { apply continuous_hom.congr_fun s.condition }⟩,
     monotone' := λ x y h, s.ι.monotone h,
     cont := λ x, subtype.ext (s.ι.continuous x) },
   by { ext, refl },
   λ m hm,
   begin
     ext,
-    apply congr_fun (congr_arg continuous_hom.to_fun hm : _ = _),
+    apply continuous_hom.congr_fun hm,
   end⟩
 
 end has_equalizers

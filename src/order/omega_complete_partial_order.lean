@@ -582,6 +582,12 @@ end old_struct
 
 namespace continuous_hom
 
+theorem congr_fun {f g : α →𝒄 β} (h : f = g) (x : α) : f x = g x :=
+congr_arg (λ h : α →𝒄 β, h x) h
+
+theorem congr_arg (f : α →𝒄 β) {x y : α} (h : x = y) : f x = f y :=
+congr_arg (λ x : α, f x) h
+
 @[mono]
 lemma monotone (f : α →𝒄 β) : monotone f :=
 continuous_hom.monotone' f

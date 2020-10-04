@@ -43,7 +43,7 @@ end
 /-- mon is the property of being monotone non-increasing. -/
 def mon {α β : Type*} [linear_order α] [linear_order β] (f : α → β) := ∀ ⦃x y : α⦄, x ≤ y → f y ≤ f x
 
-lemma min_max_mon {α β : Type*} [decidable_linear_order α] [decidable_linear_order β]
+lemma monotone_min_max {α β : Type*} [decidable_linear_order α] [decidable_linear_order β]
   {s : finset α} (hs : s.nonempty) {f : α → β} (mf : mon f) :
   max' (image f s) (hs.image f) = f (min' s hs) :=
 begin
@@ -63,27 +63,54 @@ end
 /-- monotone_rev_at N _ coincides with rev_at N _ in the range [0,..,N].  I use monotone_rev_at just to show that rev_at exchanges mins and maxs.  If you can find an alternative proof that does not use this definition, then it can be removed! -/
 def monotone_rev_at (N : ℕ) : ℕ → ℕ := λ i : ℕ , (N-i)
 
-lemma min_max {s : finset ℕ} {hs : s.nonempty} : max' (image (monotone_rev_at (max' s hs)) s) (by exact nonempty.image hs (monotone_rev_at (max' s hs))) = monotone_rev_at (max' s hs) (min' s hs) :=
+lemma min_max {N : ℕ} {s : finset ℕ} {hs : s.nonempty} (H : s.max' hs ≤ N) : max' (image (monotone_rev_at N) s) (nonempty.image hs (monotone_rev_at N)) = monotone_rev_at N (min' s hs) :=
 begin
-  refine min_max_mon hs _,
+  refine monotone_min_max hs _,
   intros x y hxy,
   unfold monotone_rev_at,
   rw nat.sub_le_iff,
-  by_cases xle : x ≤ (s.max' hs),
+  by_cases xle : x ≤ N,
     { rwa nat.sub_sub_self xle, },
     { rw not_le at xle,
       apply le_of_lt,
       convert gt_of_ge_of_gt hxy xle,
-      convert nat.sub_zero (s.max' hs),
+      convert nat.sub_zero N,
       rw nat.sub_eq_zero_iff_le,
       exact le_of_lt xle, },
 end
 
-lemma monotone_rev_at_eq_rev_at_small {N n : ℕ} (n ≤ N) : monotone_rev_at N n = rev_at N n :=
+@[simp] lemma monotone_rev_at_eq_rev_at_small {N n : ℕ} (H : n ≤ N) : monotone_rev_at N n = rev_at N n :=
 begin
   unfold monotone_rev_at,
   rw rev_at_small H,
 end
+
+
+lemma rev_at_small_min_max {N : ℕ} {s : finset ℕ} {hs : s.nonempty} {sm : s.max' hs ≤ N} : max' (image (rev_at N) s) ((nonempty.image hs (rev_at N))) = rev_at N (min' s hs) :=
+begin
+  rwa [← monotone_rev_at_eq_rev_at_small, ← min_max sm],
+  have : (image (rev_at N) s) = (image (monotone_rev_at N) s) →
+    (image (rev_at N) s).max' ((nonempty.image hs (rev_at N))) = (image (monotone_rev_at N) s).max' ((nonempty.image hs (monotone_rev_at N))),
+    { intro,
+      simp only [a], },
+  apply this,
+  ext1,
+  repeat { rw mem_image },
+  split;
+    { intro,
+      rcases a_1 with ⟨ a , ha , rfl ⟩ ,
+      use a,
+      refine ⟨ ha , _ ⟩,
+      rw monotone_rev_at_eq_rev_at_small,
+      apply le_trans _ sm,
+      apply le_max',
+      assumption, },
+  apply le_trans _ sm,
+  apply le_max',
+  exact min'_mem s hs,
+end
+
+
 
 /-- reflect of a natural number N and a polynomial f, applies the function rev_at to the exponents of the terms appearing in the expansion of f.  In practice, reflect is only used when N is at least as large as the degree of f.  Eventually, it will be used with N exactly equal to the degree of f.  -/
 def reflect : ℕ → polynomial R → polynomial R := λ N : ℕ , λ f : polynomial R , ⟨ image (rev_at N)  (f.support) , λ i : ℕ , f.coeff (rev_at N i) , begin
@@ -263,30 +290,39 @@ begin
     exact nat_degree_add_of_mul_leading_coeff_nonzero f g fg,
 end
 
-lemma leading_eq_trailing : leading_coeff (reverse f) = trailing_coeff f :=
+lemma leading_eq_trailing {N : ℕ} (H : f.nat_degree ≤ N) : leading_coeff (reflect N f) = trailing_coeff f :=
 begin
   by_cases f0 : f=0,
-  unfold reverse,
+--  unfold reflect,
     { rw [f0, reflect_zero, leading_coeff, trailing_coeff, coeff_zero, coeff_zero], },
-  have : (reverse f).leading_coeff = (reverse f).coeff (reverse f).nat_degree, by congr,
+  have : (reflect N f).leading_coeff = (reflect N f).coeff (reflect N f).nat_degree, by congr,
   rw this,
   have : f.trailing_coeff = f.coeff f.nat_trailing_degree, by congr,
   rw this,
   rw nat_degree_eq_support_min'_trailing f0,
   rw nat_degree_eq_support_max' _,
-  rw support
-  convert @min_max f.support (nonempty_support_iff.mpr f0),
-  work_on_goal 0 { dsimp at *, simp at *, fsplit, work_on_goal 0 { intros a }, work_on_goal 1 { intros a } }, work_on_goal 2 { intros a, injections_and_clear, dsimp at *, simp at *, injections_and_clear, simp at *, injections_and_clear, dsimp at * }, work_on_goal 0 { dsimp at * }, work_on_goal 1 { dsimp at * },
-
-  unfold reverse,
+  convert @rev_at_small_min_max N f.support (nonempty_support_iff.mpr f0) (by
+    rwa ← nat_degree_eq_support_max'),
   unfold reflect,
-  unfold rev_at,
   simp * at *,
-  rw min_max monotone_rev_at,
-  simp_rw monotone_rev_at_eq_rev_at_small,
---  tidy,
+  work_on_goal 0 { dsimp at *, fsplit, work_on_goal 0 { intros a }, work_on_goal 1 { intros a } }, work_on_goal 2 { intros a, injections_and_clear, dsimp at *, simp at *, simp at *, solve_by_elim }, work_on_goal 0 { dsimp at * }, work_on_goal 1 { dsimp at * },
+  { rw ← monotone_rev_at_eq_rev_at_small,
+    rw @rev_at_small_min_max N f.support _ _ ,
+    rw monotone_rev_at_eq_rev_at_small,
+    apply le_trans _ H,
+    apply min'_le,
+    exact nat_degree_mem_support_of_nonzero f0,
 
-  sorry,
+    apply le_trans _ H,
+    convert le_refl f.nat_degree,
+    rw nat_degree_eq_support_max',
+
+    apply le_trans _ H,
+    apply min'_le,
+    exact nat_degree_mem_support_of_nonzero f0,
+    },
+  congr,
+  simp only [*, rev_at_invol],
 end
 
 end rev

@@ -19,27 +19,27 @@ Brahmagupta-Fibonacci identity or Diophantus identity, see
 
 This sign choice here corresponds to the signs obtained by multiplying two complex numbers.
 -/
-theorem pow_two_plus_pow_two_mul_pow_two_plus_pow_two :
+theorem pow_two_add_pow_two_mul_pow_two_add_pow_two :
   (x₁^2 + x₂^2) * (y₁^2 + y₂^2) = (x₁*y₁ - x₂*y₂)^2 + (x₁*y₂ + x₂*y₁)^2 :=
 by ring
 
 /--
 Brahmagupta's identity, see <https://en.wikipedia.org/wiki/Brahmagupta%27s_identity>
 -/
-theorem pow_two_plus_mul_pow_two_mul_pow_two_plus_mul_pow_two :
+theorem pow_two_add_mul_pow_two_mul_pow_two_add_mul_pow_two :
   (x₁^2 + n*x₂^2) * (y₁^2 + n*y₂^2) = (x₁*y₁ - n*x₂*y₂)^2 + n*(x₁*y₂ + x₂*y₁)^2 :=
 by ring
 
 /--
 Sophie Germain's identity, see <https://www.cut-the-knot.org/blue/SophieGermainIdentity.shtml>.
 -/
-theorem pow_four_plus_four_mul_pow_four : a^4 + 4*b^4 = ((a - b)^2 + b^2) * ((a + b)^2 + b^2) :=
+theorem pow_four_add_four_mul_pow_four : a^4 + 4*b^4 = ((a - b)^2 + b^2) * ((a + b)^2 + b^2) :=
 by ring
 
 /--
 Sophie Germain's identity, see <https://www.cut-the-knot.org/blue/SophieGermainIdentity.shtml>.
 -/
-theorem pow_four_plus_four_mul_pow_four' :
+theorem pow_four_add_four_mul_pow_four' :
   a^4 + 4*b^4 = (a^2 - 2*a*b + 2*b^2) * (a^2 + 2*a*b + 2*b^2) :=
 by ring
 

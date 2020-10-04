@@ -941,6 +941,38 @@ lemma vector_span_range_eq_span_range_vsub_right (p : ι → P) (i0 : ι) :
   vector_span k (set.range p) = submodule.span k (set.range (λ (i : ι), p i -ᵥ p i0)) :=
 by rw [vector_span_eq_span_vsub_set_right k (set.mem_range_self i0), ←set.range_comp]
 
+/-- The `vector_span` of an indexed family is the span of the pairwise
+subtractions with a given point on the left, excluding the subtraction
+of that point from itself. -/
+lemma vector_span_range_eq_span_range_vsub_left_ne (p : ι → P) (i₀ : ι) :
+  vector_span k (set.range p) = submodule.span k (set.range (λ (i : {x // x ≠ i₀}), p i₀ -ᵥ p i)) :=
+begin
+  rw [←set.image_univ, vector_span_image_eq_span_vsub_set_left_ne k _ (set.mem_univ i₀)],
+  congr' with v,
+  simp only [set.mem_range, set.mem_image, set.mem_diff, set.mem_singleton_iff, subtype.exists,
+             subtype.coe_mk],
+  split,
+  { rintros ⟨x, ⟨i₁, ⟨⟨hi₁u, hi₁⟩, rfl⟩⟩, hv⟩,
+    exact ⟨i₁, hi₁, hv⟩ },
+  { exact λ ⟨i₁, hi₁, hv⟩, ⟨p i₁, ⟨i₁, ⟨set.mem_univ _, hi₁⟩, rfl⟩, hv⟩ }
+end
+
+/-- The `vector_span` of an indexed family is the span of the pairwise
+subtractions with a given point on the right, excluding the subtraction
+of that point from itself. -/
+lemma vector_span_range_eq_span_range_vsub_right_ne (p : ι → P) (i₀ : ι) :
+  vector_span k (set.range p) = submodule.span k (set.range (λ (i : {x // x ≠ i₀}), p i -ᵥ p i₀)) :=
+begin
+  rw [←set.image_univ, vector_span_image_eq_span_vsub_set_right_ne k _ (set.mem_univ i₀)],
+  congr' with v,
+  simp only [set.mem_range, set.mem_image, set.mem_diff, set.mem_singleton_iff, subtype.exists,
+             subtype.coe_mk],
+  split,
+  { rintros ⟨x, ⟨i₁, ⟨⟨hi₁u, hi₁⟩, rfl⟩⟩, hv⟩,
+    exact ⟨i₁, hi₁, hv⟩ },
+  { exact λ ⟨i₁, hi₁, hv⟩, ⟨p i₁, ⟨i₁, ⟨set.mem_univ _, hi₁⟩, rfl⟩, hv⟩ }
+end
+
 /-- The affine span of a set is nonempty if and only if that set
 is. -/
 lemma affine_span_nonempty (s : set P) :

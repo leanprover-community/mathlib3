@@ -28,6 +28,7 @@ namespace polynomial
 section gcd_monoid
 variable [gcd_monoid R]
 
+/-- `p.content` is the `gcd` of the coefficients of `p`. -/
 def content (p : polynomial R) : R := (p.support).gcd p.coeff
 
 lemma content_dvd_coeff {p : polynomial R} (n : ℕ) : p.content ∣ p.coeff n :=
@@ -161,22 +162,6 @@ begin
     apply h _ (C_content_dvd _) }
 end
 
-lemma add_erase (p : polynomial R) :
-  monomial p.nat_degree p.leading_coeff + (finsupp.erase p.nat_degree p : polynomial R) = p :=
-begin
-  ext n,
-  simp only [finsupp.erase, coeff_monomial, coeff_mk, coeff_add],
-  by_cases h : n = p.nat_degree,
-  { rw [if_pos h.symm, if_pos _, h, add_zero],
-    { refl },
-    apply h },
-  { rw [if_neg, if_neg, zero_add],
-    { refl },
-    { apply h },
-    { intro con, apply h con.symm } }
-end
-
-@[simp]
 lemma content_C_mul (r : R) (p : polynomial R) : (C r * p).content = normalize r * p.content :=
 begin
   by_cases h0 : r = 0, { simp [h0] },
@@ -215,30 +200,6 @@ begin
   cases h with w hw,
   use w.coeff x,
   rw [← coeff_sub, hw, coeff_C_mul]
-end
-
-lemma nat_degree_sub_leading_coeff_mul_X_pow_lt {p : polynomial R} (h : 0 < p.nat_degree) :
-  (p - C p.leading_coeff * X ^ p.nat_degree).nat_degree < p.nat_degree :=
-begin
-  have hp : p ≠ 0,
-  { rintro rfl,
-    rw nat_degree_zero at h,
-    apply lt_irrefl _ h },
-  by_cases hp' : p - C p.leading_coeff * X ^ p.nat_degree = 0,
-  { rw [hp', nat_degree_zero],
-    apply h },
-  rw [← with_bot.coe_lt_coe, ← degree_eq_nat_degree hp,
-      ← degree_eq_nat_degree hp'],
-  convert degree_erase_lt hp,
-  apply polynomial.ext,
-  intro a,
-  by_cases ha : a = p.nat_degree,
-  { simp only [ha, leading_coeff, coeff_X_pow_self, mul_one, coeff_C_mul, coeff_sub, sub_self],
-    symmetry,
-    apply finsupp.erase_same, },
-  { rw [coeff_sub, coeff_C_mul, coeff_X_pow, if_neg ha, mul_zero, sub_zero],
-    symmetry,
-    apply finsupp.erase_ne ha, }
 end
 
 @[simp]
@@ -310,3 +271,4 @@ end
 
 end gcd_monoid
 end polynomial
+#lint

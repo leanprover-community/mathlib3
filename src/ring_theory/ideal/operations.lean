@@ -765,6 +765,70 @@ calc I = comap f (map f I) : ((rel_iso_of_bijective f hf).right_inv I).symm
 
 end bijective
 
+section
+
+/-- Every ideal of the product ring is of the form `I × J`, where `I` and `J` can be explicitly
+    given as the image under the projection maps. -/
+theorem ideal_prod_eq (I : ideal (R × S)) :
+  I = ideal.prod (map (ring_hom.fst R S) I) (map (ring_hom.snd R S) I) :=
+begin
+  apply ideal.ext,
+  rintro ⟨r, s⟩,
+  rw [mem_prod, mem_map_iff_of_surjective (ring_hom.fst R S) prod.fst_surjective,
+    mem_map_iff_of_surjective (ring_hom.snd R S) prod.snd_surjective],
+  refine ⟨λ h, ⟨⟨_, ⟨h, rfl⟩⟩, ⟨_, ⟨h, rfl⟩⟩⟩, _⟩,
+  rintro ⟨⟨⟨r, s'⟩, ⟨h₁, rfl⟩⟩, ⟨⟨r', s⟩, ⟨h₂, rfl⟩⟩⟩,
+  have hr : (r, s') * (1, 0) ∈ I := ideal.mul_mem_right _ h₁,
+  have hs : (r', s) * (0, 1) ∈ I := ideal.mul_mem_right _ h₂,
+  simpa using ideal.add_mem _ hr hs
+end
+
+lemma ideal_prod_prime_aux {I : ideal R} {J : ideal S} (h : (ideal.prod I J).is_prime) :
+  I = ⊤ ∨ J = ⊤ :=
+begin
+  unfreezingI { revert h },
+  contrapose!,
+  simp only [ne_top_iff_one, is_prime],
+  push_neg,
+  exact λ ⟨hI, hJ⟩ hIJ, ⟨⟨0, 1⟩, ⟨1, 0⟩, by simp, by simp [hJ], by simp [hI]⟩
+end
+
+/-- Classification of prime ideals in product rings: the prime ideals of `R × S` are precisely the
+    ideals of the form `p × S` or `R × p`, where `p` is a prime ideal of `R` or `S`. -/
+theorem ideal_prod_prime (I : ideal (R × S)) : I.is_prime ↔
+  ((∃ p : ideal R, p.is_prime ∧ I = ideal.prod p ⊤) ∨
+   (∃ p : ideal S, p.is_prime ∧ I = ideal.prod ⊤ p)) :=
+begin
+  split,
+  { rw ideal_prod_eq I,
+    introI hI,
+    rcases ideal_prod_prime_aux hI with (h|h),
+    { right,
+      refine ⟨map (ring_hom.snd R S) I, ⟨_, _⟩, by rw h⟩,
+      { unfreezingI { contrapose! hI },
+        simp only [is_prime, not_and_distrib, not_not],
+        left,
+        simp only [h, hI, prod_top_top] },
+      simp only [mem_map_iff_of_surjective (ring_hom.snd R S) prod.snd_surjective],
+      rintros s₀ s₁ ⟨⟨r, s⟩, ⟨h₀, (h₁ : s = s₀ * s₁)⟩⟩,
+      have : (⟨1, s₀⟩ : R × S) * ⟨r, s₁⟩ ∈ I,
+      { simpa [←h₁] using h₀ },
+      rw ideal_prod_eq I at this ⊢,
+      rcases is_prime.mem_or_mem hI this with (h'|h'),
+      { exact or.inl ⟨_, ⟨h', rfl⟩⟩ },
+      { exact or.inr ⟨_, ⟨h', rfl⟩⟩ } },
+    { sorry, } },
+  { rintro (⟨p, ⟨⟨hp₁, hp₂⟩, rfl⟩⟩|h),
+    { split,
+      { contrapose! hp₁,
+
+       } }
+
+   }
+end
+
+end
+
 end map_and_comap
 
 section is_primary

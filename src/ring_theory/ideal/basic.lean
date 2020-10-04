@@ -5,6 +5,7 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
 import algebra.associated
 import linear_algebra.basic
+import algebra.ring.prod
 import order.zorn
 /-!
 
@@ -456,6 +457,45 @@ or_iff_not_imp_right.mp I.eq_bot_or_top h.1
 lemma bot_is_maximal {K : Type u} [field K] : is_maximal (⊥ : ideal K) :=
 ⟨λ h, absurd ((eq_top_iff_one (⊤ : ideal K)).mp rfl) (by rw ← h; simp),
 λ I hI, or_iff_not_imp_left.mp (eq_bot_or_top I) (ne_of_gt hI)⟩
+
+section prod
+variables [comm_ring β] (J : ideal β)
+
+/-- `I × J` as an ideal of `α × β`. -/
+def prod : ideal (α × β) :=
+{ carrier := { x | x.fst ∈ I ∧ x.snd ∈ J },
+  zero_mem' := by simp,
+  add_mem' :=
+  begin
+    rintros ⟨a₁, a₂⟩ ⟨b₁, b₂⟩ ⟨ha₁, ha₂⟩ ⟨hb₁, hb₂⟩,
+    refine ⟨ideal.add_mem _ _ _, ideal.add_mem _ _ _⟩;
+    simp only [ha₁, ha₂, hb₁, hb₂]
+  end,
+  smul_mem' :=
+  begin
+    rintros ⟨a₁, a₂⟩ ⟨b₁, b₂⟩ ⟨hb₁, hb₂⟩,
+    refine ⟨ideal.mul_mem_left _ _, ideal.mul_mem_left _ _⟩;
+    simp only [hb₁, hb₂]
+  end }
+
+@[simp] lemma mem_prod {a : α} {b : β} : (⟨a, b⟩ : α × β) ∈ prod I J ↔ a ∈ I ∧ b ∈ J := iff.rfl
+@[simp] lemma prod_top_top : prod (⊤ : ideal α) (⊤ : ideal β) = ⊤ := ideal.ext $ by simp
+
+lemma prod.ext (I' : ideal α) (J' : ideal β) : prod I J = prod I' J' ↔ I = I' ∧ J = J' :=
+begin
+  split,
+  { intro h,
+    split,
+    { apply ideal.ext,
+
+    }
+
+   },
+  { rintro ⟨rfl, rfl⟩,
+    refl }
+end
+
+end prod
 
 section pi
 variables (ι : Type v)

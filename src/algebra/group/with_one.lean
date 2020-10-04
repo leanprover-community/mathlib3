@@ -33,17 +33,16 @@ instance : has_coe_t α (with_one α) := ⟨some⟩
 lemma some_eq_coe {a : α} : (some a : with_one α) = ↑a := rfl
 
 @[simp, to_additive]
-lemma one_ne_coe {a : α} : (1 : with_one α) ≠ a :=
-λ h, option.no_confusion h
+lemma coe_ne_one {a : α} : (a : with_one α) ≠ (1 : with_one α) :=
+option.some_ne_none a
 
 @[simp, to_additive]
-lemma coe_ne_one {a : α} : (a : with_one α) ≠ (1 : with_one α) :=
-λ h, option.no_confusion h
+lemma one_ne_coe {a : α} : (1 : with_one α) ≠ a :=
+coe_ne_one.symm
 
 @[to_additive]
-lemma ne_one_iff_exists : ∀ {x : with_one α}, x ≠ 1 ↔ ∃ (a : α), x = a
-| 1       := ⟨λ h, false.elim $ h rfl, by { rintros ⟨a,ha⟩ h, simpa using h }⟩
-| (a : α) := ⟨λ h, ⟨a, rfl⟩, λ h, with_one.coe_ne_one⟩
+lemma ne_one_iff_exists {x : with_one α} : x ≠ 1 ↔ ∃ (a : α), ↑a = x :=
+option.ne_none_iff_exists
 
 @[to_additive]
 lemma coe_inj {a b : α} : (a : with_one α) = b ↔ a = b :=

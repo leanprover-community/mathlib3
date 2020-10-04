@@ -287,7 +287,7 @@ instance strong_epi_of_regular_epi (f : X ⟶ Y) [regular_epi f] : strong_epi f 
     { apply (cancel_mono z).1,
       simp only [category.assoc, h, regular_epi.w_assoc] },
     obtain ⟨t, ht⟩ := regular_epi.desc' f u this,
-    exact ⟨t, ht, (cancel_epi f).1
+    exact arrow.has_lift.mk ⟨t, ht, (cancel_epi f).1
       (by simp only [←category.assoc, ht, ←h, arrow.mk_hom, arrow.hom_mk'_right])⟩,
   end }
 

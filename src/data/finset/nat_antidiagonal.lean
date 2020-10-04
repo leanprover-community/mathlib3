@@ -40,8 +40,7 @@ begin
   rw [insert_val_of_not_mem, map_val],
   {apply multiset.nat.antidiagonal_succ},
   { intro con, rcases mem_map.1 con with ⟨⟨a,b⟩, ⟨h1, h2⟩⟩,
-    simp only [prod.mk.inj_iff, function.embedding.coe_fn_mk, function.embedding.refl_apply,
-               function.embedding.coe_prod_map, prod.map_mk] at h2,
+    simp only [prod.mk.inj_iff, function.embedding.coe_prod_map, prod.map_mk] at h2,
     apply nat.succ_ne_zero a h2.1, }
 end
 
@@ -49,8 +48,7 @@ lemma map_swap_antidiagonal {n : ℕ} :
   (antidiagonal n).map ⟨prod.swap, prod.swap_right_inverse.injective⟩ = antidiagonal n :=
 begin
   ext,
-  simp only [exists_prop, mem_map, mem_antidiagonal,
-    function.embedding.coe_fn_mk, prod.swap_prod_mk, prod.exists],
+  simp only [exists_prop, mem_map, mem_antidiagonal, prod.exists],
   rw add_comm,
   split,
   { rintro ⟨b, c, ⟨rfl, rfl⟩⟩,

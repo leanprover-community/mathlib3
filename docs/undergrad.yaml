@@ -23,7 +23,7 @@ Linear algebra:
   Duality:
     dual vector space: 'module.dual'
     dual basis: 'is_basis.dual_basis'
-    transpose of a linear map: ''
+    transpose of a linear map: 'module.dual.transpose'
     orthogonality: ''
   Finite-dimensional vector spaces:
     finite-dimensionality : 'finite_dimensional'
@@ -34,7 +34,7 @@ Linear algebra:
     isomorphism with bidual: 'vector_space.eval_equiv'
   Multilinearity:
     multilinear map: 'multilinear_map'
-    determinant of vectors: ''
+    determinant of vectors: 'is_basis.det'
     determinant of endomorphisms: ''
     special linear group: ''
     orientation of a $\R$-valued vector space: ''
@@ -165,7 +165,7 @@ Ring Theory:
     relationship between the coefficients and the roots of a split polynomial:
     Newton's identities:
     polynomial derivative: 'polynomial.derivative'
-    decomposition into sums of homogeneous polynomials:
+    decomposition into sums of homogeneous polynomials: 'mv_polynomial.sum_homogeneous_component'
     symmetric polynomials:
   Field Theory:
     fields: 'field'
@@ -291,7 +291,7 @@ Single Variable Real Analysis:
     Bolzano-Weierstrass theorem: 'tendsto_subseq_of_bounded'
     compact subsets of $\R$: 'metric.compact_iff_closed_bounded'
     connected subsets of $\R$: 'set_of_is_preconnected_eq_of_ordered'
-    additive subgroups of $\R$:
+    additive subgroups of $\R$: 'real.subgroup_dense_or_cyclic'
   Numerical series:
     Convergence of real valued-series:
     Geometric series:

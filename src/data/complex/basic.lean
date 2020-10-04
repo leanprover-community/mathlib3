@@ -405,7 +405,7 @@ lemma abs_add (z w : ℂ) : abs (z + w) ≤ abs z + abs w :=
 begin
   rw [mul_self_abs, add_mul_self_eq, mul_self_abs, mul_self_abs,
       add_right_comm, norm_sq_add, add_le_add_iff_left,
-      mul_assoc, mul_le_mul_left (@two_pos ℝ _)],
+      mul_assoc, mul_le_mul_left (@zero_lt_two ℝ _)],
   simpa [-mul_re] using re_le_abs (z * conj w)
 end
 

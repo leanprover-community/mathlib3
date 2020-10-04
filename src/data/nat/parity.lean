@@ -3,7 +3,7 @@ Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 
-The `even` predicate on the natural numbers.
+The `even` and `odd` predicates on the natural numbers.
 -/
 import data.nat.modeq
 
@@ -24,8 +24,22 @@ theorem even_iff {n : nat} : even n ↔ n % 2 = 0 :=
 lemma not_even_iff {n : ℕ} : ¬ even n ↔ n % 2 = 1 :=
 by rw [even_iff, mod_two_ne_zero]
 
+/-- A natural number `n` is `odd` if it is not even.  The mathlib API
+for parity is developed in terms of `even`; to avoid duplication,
+results should not be stated in terms of `odd`.  The purpose of this
+definition is for code outside mathlib that wishes to have a formal
+statement that is as literal a translation as possible of the
+corresponding informal statement, where that informal statement refers
+to odd numbers. -/
+def odd (n : ℕ) : Prop := ¬ even n
+
+@[simp] lemma odd_def (n : ℕ) : odd n ↔ ¬ even n := iff.rfl
+
 instance : decidable_pred even :=
 λ n, decidable_of_decidable_of_iff (by apply_instance) even_iff.symm
+
+instance decidable_pred_odd : decidable_pred odd :=
+λ n, decidable_of_decidable_of_iff (by apply_instance) not_even_iff.symm
 
 mk_simp_attribute parity_simps "Simp attribute for lemmas about `even`"
 
@@ -89,7 +103,7 @@ end
 /-- If `m` and `n` are natural numbers, then the natural number `m^n` is even 
 if and only if `m` is even and `n` is positive. -/
 @[parity_simps] theorem even_pow {m n : nat} : even (m^n) ↔ even m ∧ n ≠ 0 :=
-by { induction n with n ih; simp [*, nat.pow_succ, even_mul], tauto }
+by { induction n with n ih; simp [*, pow_succ', even_mul], tauto }
 
 lemma even_div {a b : ℕ} : even (a / b) ↔ a % (2 * b) / b = 0 :=
 by rw [even, dvd_iff_mod_eq_zero, nat.div_mod_eq_mod_mul_div, mul_comm]
@@ -97,7 +111,7 @@ by rw [even, dvd_iff_mod_eq_zero, nat.div_mod_eq_mod_mul_div, mul_comm]
 theorem neg_one_pow_eq_one_iff_even {α : Type*} [ring α] {n : ℕ} (h1 : (-1 : α) ≠ 1):
   (-1 : α) ^ n = 1 ↔ even n :=
 ⟨λ h, n.mod_two_eq_zero_or_one.elim (dvd_iff_mod_eq_zero _ _).2
-  (λ hn, by rw [neg_one_pow_eq_pow_mod_two, hn, _root_.pow_one] at h; exact (h1 h).elim),
+  (λ hn, by rw [neg_one_pow_eq_pow_mod_two, hn, pow_one] at h; exact (h1 h).elim),
   λ ⟨m, hm⟩, by rw [neg_one_pow_eq_pow_mod_two, hm]; simp⟩
 
 -- Here are examples of how `parity_simps` can be used with `nat`.

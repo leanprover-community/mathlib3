@@ -16,7 +16,7 @@ This file does not define any new operations, but proves some of these stronger 
 
 ## Notation
 
-As in other polynomial files we typically use the notation:
+As in other polynomial files, we typically use the notation:
 
 + `σ : Type*` (indexing the variables)
 

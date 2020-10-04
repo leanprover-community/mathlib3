@@ -45,7 +45,7 @@ congr_fun (limit.lift_π (fan.mk s) b) x
 @[simp]
 lemma pi_map_π_apply {β : Type u} {f g : β → Type u} (α : Π j, f j ⟶ g j) (b : β) (x) :
   (pi.π g b : (∏ g) → g b) (pi.map α x) = α b ((pi.π f b : (∏ f) → f b) x) :=
-map_π_apply _ _ _
+limit.map_π_apply _ _ _
 
 /-- The category of types has `punit` as a terminal object. -/
 def terminal_limit_cone : limits.limit_cone (functor.empty (Type u)) :=

@@ -1136,7 +1136,7 @@ theorem gcd_to_nat_aux : ∀ {n} {a b : num},
     exact le_of_lt (nat.mod_lt _ (pos_num.cast_pos _)) },
   rw [nat_size_to_nat, mul_to_nat, nat.size_le] at h ⊢,
   rw [mod_to_nat, mul_comm],
-  rw [nat.pow_succ, ← nat.mod_add_div b (pos a)] at h,
+  rw [pow_succ', ← nat.mod_add_div b (pos a)] at h,
   refine lt_of_mul_lt_mul_right (lt_of_le_of_lt _ h) (nat.zero_le 2),
   rw [mul_two, mul_add],
   refine add_le_add_left (nat.mul_le_mul_left _
@@ -1151,7 +1151,7 @@ have ∀ a b : num, (a * b).nat_size ≤ a.nat_size + b.nat_size,
 begin
   intros,
   simp [nat_size_to_nat],
-  rw [nat.size_le, nat.pow_add],
+  rw [nat.size_le, pow_add],
   exact mul_lt_mul'' (nat.lt_size_self _)
     (nat.lt_size_self _) (nat.zero_le _) (nat.zero_le _)
 end,

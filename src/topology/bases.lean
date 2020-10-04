@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Bases of topologies. Countability axioms.
 -/
-import topology.constructions
 import topology.continuous_on
 
 open set filter classical
@@ -125,7 +124,7 @@ end
 /-- A sequence dense in a non-empty separable topological space. -/
 def dense_seq [separable_space α] [nonempty α] : ℕ → α := classical.some (exists_dense_seq α)
 
-lemma dense_seq_dense [separable_space α] [nonempty α] :
+@[simp] lemma dense_seq_dense [separable_space α] [nonempty α] :
   closure (range $ dense_seq α) = univ := classical.some_spec (exists_dense_seq α)
 
 /-- A first-countable space is one in which every point has a

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import data.set.intervals.basic
+import algebra.ordered_group
 /-!
 
 # Upper / lower bounds
@@ -635,6 +636,61 @@ lemma is_glb_lt_iff (h : is_glb s a) : a < b ↔ ∃ c ∈ s, c < b :=
 @lt_is_lub_iff (order_dual α) _ _ _ _ h
 
 end linear_order
+
+/-!
+### Least upper bound and the greatest lower bound in linear ordered additive commutative groups
+-/
+
+section decidable_linear_ordered_add_comm_group
+
+variables [decidable_linear_ordered_add_comm_group α] {s : set α} {a ε : α} (h₃ : 0 < ε)
+include h₃
+
+lemma is_glb.exists_between_self_add (h₁ : is_glb s a) : ∃ b, b ∈ s ∧ a ≤ b ∧ b < a + ε :=
+begin
+  have h' : a + ε ∉ lower_bounds s,
+  { set A := a + ε,
+    have : a < A := by { simp [A, h₃] },
+    intros hA,
+    exact lt_irrefl a (lt_of_lt_of_le this (h₁.2 hA)) },
+  obtain ⟨b, hb, hb'⟩ : ∃ b ∈ s, b < a + ε, by simpa [lower_bounds] using h',
+  exact ⟨b, hb, h₁.1 hb, hb'⟩
+end
+
+lemma is_glb.exists_between_self_add' (h₁ : is_glb s a) (h₂ : a ∉ s) :
+  ∃ b, b ∈ s ∧ a < b ∧ b < a + ε :=
+begin
+  rcases h₁.exists_between_self_add h₃ with ⟨b, b_in, hb₁, hb₂⟩,
+  have h₅ : a ≠ b,
+  { intros contra,
+    apply h₂,
+    rwa ← contra at b_in },
+  exact ⟨b, b_in, lt_of_le_of_ne (h₁.1 b_in) h₅, hb₂⟩
+end
+
+lemma is_lub.exists_between_sub_self  (h₁ : is_lub s a) : ∃ b, b ∈ s ∧ a - ε < b ∧ b ≤ a :=
+begin
+  have h' : a - ε ∉ upper_bounds s,
+  { set A := a - ε,
+    have : A < a := sub_lt_self a h₃,
+    intros hA,
+    exact lt_irrefl a (lt_of_le_of_lt (h₁.2 hA) this) },
+  obtain ⟨b, hb, hb'⟩ : ∃ (x : α), x ∈ s ∧ a - ε < x, by simpa [upper_bounds] using h',
+  exact ⟨b, hb, hb', h₁.1 hb⟩
+end
+
+lemma is_lub.exists_between_sub_self' (h₁ : is_lub s a) (h₂ : a ∉ s) :
+  ∃ b, b ∈ s ∧ a - ε < b ∧ b < a :=
+begin
+  rcases h₁.exists_between_sub_self h₃ with ⟨b, b_in, hb₁, hb₂⟩,
+  have h₅ : a ≠ b,
+  { intros contra,
+    apply h₂,
+    rwa ← contra at b_in },
+  exact ⟨b, b_in, hb₁, lt_of_le_of_ne (h₁.1 b_in) h₅.symm⟩
+end
+
+end decidable_linear_ordered_add_comm_group
 
 /-!
 ### Images of upper/lower bounds under monotone functions

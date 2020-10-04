@@ -594,14 +594,7 @@ variables [module R M] [module R N] [module R P] [module R Q] [module R S]
 open_locale tensor_product
 open linear_map
 
-instance : add_comm_group (M ⊗[R] N) :=
-{ neg := tensor_product.lift $ (mk R M N).comp $ (-1 : R) • linear_map.id,
-  add_left_neg := λ x,
-    suffices (tensor_product.lift $ (mk R M N).comp $ (-1 : R) • linear_map.id) + linear_map.id = 0,
-      from linear_map.ext_iff.1 this x,
-    ext $ λ m n, by rw [add_apply, lift.tmul, comp_apply, mk_apply, smul_apply, neg_one_smul,
-        id_apply, id_apply, ← add_tmul, neg_add_self, zero_tmul, zero_apply],
-  .. tensor_product.add_comm_monoid M N }
+instance : add_comm_group (M ⊗[R] N) := semimodule.add_comm_monoid_to_add_comm_group R
 
 lemma neg_tmul (m : M) (n : N) : (-m) ⊗ₜ n = -(m ⊗ₜ[R] n) := (mk R M N).map_neg₂ _ _
 lemma tmul_neg (m : M) (n : N) : m ⊗ₜ (-n) = -(m ⊗ₜ[R] n) := (mk R M N _).map_neg _

@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import measure_theory.outer_measure
 import order.filter.countable_Inter
+import data.set.accumulate
 
 /-!
 # Measure spaces
@@ -28,6 +29,8 @@ We introduce the following typeclasses for measures:
 
 * `probability_measure μ`: `μ univ = 1`;
 * `finite_measure μ`: `μ univ < ⊤`;
+* `sigma_finite μ`: there exists a countable collection of measurable sets that cover `univ`
+  where `μ` is finite;
 * `locally_finite_measure μ` : `∀ x, ∃ s ∈ 𝓝 x, μ s < ⊤`;
 * `has_no_atoms μ` : `∀ x, μ {x} = 0`; possibly should be redefined as
   `∀ s, 0 < μ s → ∃ t ⊆ s, 0 < μ t ∧ μ t < μ s`.
@@ -220,6 +223,14 @@ lemma measure_bUnion_finset_le (s : finset β) (f : β → set α) :
 begin
   rw [← finset.sum_attach, finset.attach_eq_univ, ← tsum_fintype],
   exact measure_bUnion_le s.countable_to_set f
+end
+
+lemma measure_bUnion_lt_top {s : set β} {f : β → set α} (hs : finite s)
+  (hfin : ∀ i ∈ s, μ (f i) < ⊤) : μ (⋃ i ∈ s, f i) < ⊤ :=
+begin
+  convert (measure_bUnion_finset_le hs.to_finset f).trans_lt _,
+  { ext, rw [finite.mem_to_finset] },
+  apply ennreal.sum_lt_top, simpa only [finite.mem_to_finset]
 end
 
 lemma measure_Union_null {β} [encodable β] {s : β → set α} :
@@ -1161,7 +1172,7 @@ lemma compl_mem_ae_iff {s : set α} : sᶜ ∈ μ.ae ↔ μ s = 0 := by simp onl
 lemma measure_zero_iff_ae_nmem {s : set α} : μ s = 0 ↔ ∀ᵐ a ∂ μ, a ∉ s :=
 compl_mem_ae_iff.symm
 
-lemma ae_eq_bot : μ.ae = ⊥ ↔ μ = 0 :=
+@[simp] lemma ae_eq_bot : μ.ae = ⊥ ↔ μ = 0 :=
 by rw [← empty_in_sets_eq_bot, mem_ae_iff, compl_empty, measure.measure_univ_eq_zero]
 
 lemma ae_of_all {p : α → Prop} (μ : measure α) : (∀a, p a) → ∀ᵐ a ∂ μ, p a :=
@@ -1333,6 +1344,10 @@ class probability_measure (μ : measure α) : Prop := (measure_univ : μ univ = 
 /-- A measure `μ` is called finite if `μ univ < ⊤`. -/
 class finite_measure (μ : measure α) : Prop := (measure_univ_lt_top : μ univ < ⊤)
 
+instance restrict.finite_measure (μ : measure α) {s : set α} [hs : fact (μ s < ⊤)] :
+  finite_measure (μ.restrict s) :=
+⟨by simp [hs.elim]⟩
+
 /-- Measure `μ` *has no atoms* if the measure of each singleton is zero.
 
 NB: Wikipedia assumes that for any measurable set `s` with positive `μ`-measure,
@@ -1355,6 +1370,9 @@ ne_of_lt (measure_lt_top μ s)
 instance probability_measure.to_finite_measure (μ : measure α) [probability_measure μ] :
   finite_measure μ :=
 ⟨by simp only [measure_univ, ennreal.one_lt_top]⟩
+
+lemma probability_measure.ne_zero (μ : measure α) [probability_measure μ] : μ ≠ 0 :=
+mt measure.measure_univ_eq_zero.2 $ by simp [measure_univ]
 
 section no_atoms
 
@@ -1417,10 +1435,72 @@ lemma finite_at_filter_of_finite (μ : measure α) [finite_measure μ] (f : filt
 lemma measure.finite_at_bot (μ : measure α) : μ.finite_at_filter ⊥ :=
 ⟨∅, mem_bot_sets, by simp only [measure_empty, with_top.zero_lt_top]⟩
 
+/-- A measure `μ` is called σ-finite if there is a countable collection of sets
+  `{ A i | i ∈ ℕ }` such that `μ (A i) < ⊤` and `⋃ i, A i = s`. -/
+class sigma_finite (μ : measure α) : Prop :=
+(exists_finite_spanning_sets :
+  ∃ s : ℕ → set α,
+  (∀ i, is_measurable (s i)) ∧
+  (∀ i, μ (s i) < ⊤) ∧
+  (⋃ i, s i) = univ)
 
-instance restrict.finite_measure (μ : measure α) {s : set α} [hs : fact (μ s < ⊤)] :
-  finite_measure (μ.restrict s) :=
-⟨by simp [hs.elim]⟩
+lemma exists_finite_spanning_sets (μ : measure α) [sigma_finite μ] :
+  ∃ s : ℕ → set α,
+  (∀ i, is_measurable (s i)) ∧
+  (∀ i, μ (s i) < ⊤) ∧
+  (⋃ i, s i) = univ :=
+sigma_finite.exists_finite_spanning_sets
+
+/-- A noncomputable way to get a monotone collection of sets that span `univ` and have finite
+  measure using `classical.some`. This definition satisfies monotonicity in addition to all other
+  properties in `sigma_finite`. -/
+def spanning_sets (μ : measure α) [sigma_finite μ] (i : ℕ) : set α :=
+accumulate (classical.some $ exists_finite_spanning_sets μ) i
+
+lemma monotone_spanning_sets (μ : measure α) [sigma_finite μ] :
+  monotone (spanning_sets μ) :=
+monotone_accumulate
+
+lemma is_measurable_spanning_sets (μ : measure α) [sigma_finite μ] (i : ℕ) :
+  is_measurable (spanning_sets μ i) :=
+is_measurable.Union $ λ j, is_measurable.Union_Prop $
+  λ hij, (classical.some_spec $ exists_finite_spanning_sets μ).1 j
+
+lemma measure_spanning_sets_lt_top (μ : measure α) [sigma_finite μ] (i : ℕ) :
+  μ (spanning_sets μ i) < ⊤ :=
+measure_bUnion_lt_top (finite_le_nat i) $
+  λ j _, (classical.some_spec $ exists_finite_spanning_sets μ).2.1 j
+
+lemma Union_spanning_sets (μ : measure α) [sigma_finite μ] :
+  (⋃ i : ℕ, spanning_sets μ i) = univ :=
+by simp_rw [spanning_sets, Union_accumulate,
+  (classical.some_spec $ exists_finite_spanning_sets μ).2.2]
+
+namespace measure
+
+lemma supr_restrict_spanning_sets {μ : measure α} [sigma_finite μ] {s : set α}
+  (hs : is_measurable s) :
+  (⨆ i, μ.restrict (spanning_sets μ i) s) = μ s :=
+begin
+  convert (restrict_Union_apply_eq_supr (is_measurable_spanning_sets μ) _ hs).symm,
+  { simp [Union_spanning_sets] },
+  { exact directed_of_sup (monotone_spanning_sets μ) }
+end
+end measure
+open measure
+
+/-- Every finite measure is σ-finite. -/
+@[priority 100]
+instance finite_measure.to_sigma_finite (μ : measure α) [finite_measure μ] : sigma_finite μ :=
+⟨⟨λ _, univ, λ _, is_measurable.univ, λ _, measure_lt_top μ _, Union_const _⟩⟩
+
+instance restrict.sigma_finite (μ : measure α) [sigma_finite μ] (s : set α) :
+  sigma_finite (μ.restrict s) :=
+begin
+  refine ⟨⟨spanning_sets μ, is_measurable_spanning_sets μ, λ i, _, Union_spanning_sets μ⟩⟩,
+  rw [restrict_apply (is_measurable_spanning_sets μ i)],
+  exact (measure_mono $ inter_subset_left _ _).trans_lt (measure_spanning_sets_lt_top μ i)
+end
 
 /-- A measure is called locally finite if it is finite in some neighborhood of each point. -/
 class locally_finite_measure [topological_space α] (μ : measure α) : Prop :=

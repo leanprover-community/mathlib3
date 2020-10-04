@@ -26,8 +26,7 @@ lemma sum_antidiagonal_succ {n : ℕ} {f : ℕ × ℕ → α} :
 begin
   rw [antidiagonal_succ, sum_insert],
   intro con, rcases mem_map.1 con with ⟨⟨a,b⟩, ⟨h1, h2⟩⟩,
-  simp only [prod.mk.inj_iff, function.embedding.coe_fn_mk, function.embedding.refl_apply,
-               function.embedding.coe_prod_map, prod.map_mk] at h2,
+  simp only [prod.mk.inj_iff, function.embedding.coe_prod_map, prod.map_mk] at h2,
   apply nat.succ_ne_zero a h2.1,
 end
 

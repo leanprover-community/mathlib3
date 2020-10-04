@@ -373,7 +373,7 @@ begin
   rw ← findim_eq_dim ℝ at ⊢ dim_le dim_add dimW,
   rw [← findim_eq_dim ℝ, ← findim_eq_dim ℝ] at dim_add,
   norm_cast at ⊢ dim_le dim_add dimW,
-  rw nat.pow_succ at dim_le,
+  rw pow_succ' at dim_le,
   rw set.to_finset_card at hH,
   linarith
 end

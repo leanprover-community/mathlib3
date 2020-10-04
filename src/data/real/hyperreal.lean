@@ -158,8 +158,8 @@ end
 
 theorem not_infinite_of_exists_st {x : ℝ*} : (∃ r : ℝ, is_st x r) → ¬ infinite x :=
 λ he hi, Exists.dcases_on he $ λ r hr, hi.elim
-   (λ hip, not_lt_of_lt (hr 2 two_pos).2 (hip $ r + 2))
-   (λ hin, not_lt_of_lt (hr 2 two_pos).1 (hin $ r - 2))
+   (λ hip, not_lt_of_lt (hr 2 zero_lt_two).2 (hip $ r + 2))
+   (λ hin, not_lt_of_lt (hr 2 zero_lt_two).1 (hin $ r - 2))
 
 theorem is_st_Sup {x : ℝ*} (hni : ¬ infinite x) : is_st x (Sup {y : ℝ | (y : ℝ*) < x}) :=
 let S : set ℝ := {y : ℝ | (y : ℝ*) < x} in
@@ -342,7 +342,7 @@ lemma infinite_iff_infinite_neg {x : ℝ*} : infinite x ↔ infinite (-x) :=
   (λ hinp, or.inl (infinite_pos_iff_infinite_neg_neg.mpr hinp))⟩
 
 lemma not_infinite_of_infinitesimal {x : ℝ*} : infinitesimal x → ¬ infinite x :=
-λ hi hI, have hi' : _ := (hi 2 two_pos), or.dcases_on hI
+λ hi hI, have hi' : _ := (hi 2 zero_lt_two), or.dcases_on hI
   (λ hip, have hip' : _ := hip 2, not_lt_of_lt hip' (by convert hi'.2; exact (zero_add 2).symm))
   (λ hin, have hin' : _ := hin (-2), not_lt_of_lt hin' (by convert hi'.1; exact (zero_sub 2).symm))
 

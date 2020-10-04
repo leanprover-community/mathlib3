@@ -15,7 +15,7 @@ based on equivalences between the underlying types.
 
 ## Notation
 
-As in other polynomial files we typically use the notation:
+As in other polynomial files, we typically use the notation:
 
 + `σ : Type*` (indexing the variables)
 
@@ -41,7 +41,6 @@ noncomputable theory
 open_locale classical big_operators
 
 open set function finsupp add_monoid_algebra
-open_locale big_operators
 
 universes u v w x
 variables {R : Type u} {S₁ : Type v} {S₂ : Type w} {S₃ : Type x}
@@ -54,6 +53,7 @@ section equiv
 variables (R) [comm_semiring R]
 
 /-- The ring isomorphism between multivariable polynomials in no variables and the ground ring. -/
+@[simps]
 def pempty_ring_equiv : mv_polynomial pempty R ≃+* R :=
 { to_fun    := mv_polynomial.eval₂ (ring_hom.id _) $ pempty.elim,
   inv_fun   := C,
@@ -67,6 +67,7 @@ def pempty_ring_equiv : mv_polynomial pempty R ≃+* R :=
 The ring isomorphism between multivariable polynomials in a single variable and
 polynomials over the ground ring.
 -/
+@[simps]
 def punit_ring_equiv : mv_polynomial punit R ≃+* polynomial R :=
 { to_fun    := eval₂ polynomial.C (λu:punit, polynomial.X),
   inv_fun   := polynomial.eval₂ mv_polynomial.C (X punit.star),
@@ -91,6 +92,7 @@ def punit_ring_equiv : mv_polynomial punit R ≃+* polynomial R :=
   map_add'  := λ _ _, eval₂_add _ _ }
 
 /-- The ring isomorphism between multivariable polynomials induced by an equivalence of the variables.  -/
+@[simps]
 def ring_equiv_of_equiv (e : S₁ ≃ S₂) : mv_polynomial S₁ R ≃+* mv_polynomial S₂ R :=
 { to_fun    := rename e,
   inv_fun   := rename e.symm,
@@ -100,6 +102,7 @@ def ring_equiv_of_equiv (e : S₁ ≃ S₂) : mv_polynomial S₁ R ≃+* mv_poly
   map_add'  := (rename e).map_add }
 
 /-- The ring isomorphism between multivariable polynomials induced by a ring isomorphism of the ground ring. -/
+@[simps]
 def ring_equiv_congr [comm_semiring S₂] (e : R ≃+* S₂) : mv_polynomial S₁ R ≃+* mv_polynomial S₁ S₂ :=
 { to_fun    := map (e : R →+* S₂),
   inv_fun   := map (e.symm : S₂ →+* R),
@@ -130,12 +133,15 @@ eval₂_hom (C.comp C) (λbc, sum.rec_on bc X (C ∘ X))
 instance is_semiring_hom_sum_to_iter : is_semiring_hom (sum_to_iter R S₁ S₂) :=
 eval₂.is_semiring_hom _ _
 
+@[simp]
 lemma sum_to_iter_C (a : R) : sum_to_iter R S₁ S₂ (C a) = C (C a) :=
 eval₂_C _ _ a
 
+@[simp]
 lemma sum_to_iter_Xl (b : S₁) : sum_to_iter R S₁ S₂ (X (sum.inl b)) = X b :=
 eval₂_X _ _ (sum.inl b)
 
+@[simp]
 lemma sum_to_iter_Xr (c : S₂) : sum_to_iter R S₁ S₂ (X (sum.inr c)) = C (X c) :=
 eval₂_X _ _ (sum.inr c)
 
@@ -159,6 +165,7 @@ lemma iter_to_sum_C_X (c : S₂) : iter_to_sum R S₁ S₂ (C (X c)) = X (sum.in
 eq.trans (eval₂_C _ _ (X c)) (eval₂_X _ _ _)
 
 /-- A helper function for `sum_ring_equiv`. -/
+@[simps]
 def mv_polynomial_equiv_mv_polynomial [comm_semiring S₃]
   (f : mv_polynomial S₁ R →+* mv_polynomial S₂ S₃)
   (g : mv_polynomial S₂ S₃ →+* mv_polynomial S₁ R)
@@ -198,7 +205,7 @@ The ring isomorphism between multivariable polynomials in `option S₁` and
 polynomials with coefficients in `mv_polynomial S₁ R`.
 -/
 def option_equiv_left : mv_polynomial (option S₁) R ≃+* polynomial (mv_polynomial S₁ R) :=
-(ring_equiv_of_equiv R $ (equiv.option_equiv_sum_punit S₁).trans (equiv.sum_comm _ _)).trans $
+(ring_equiv_of_equiv R $ (equiv.option_equiv_sum_punit.{0} S₁).trans (equiv.sum_comm _ _)).trans $
 (sum_ring_equiv R _ _).trans $
 punit_ring_equiv _
 
@@ -219,6 +226,31 @@ def fin_succ_equiv (n : ℕ) :
   mv_polynomial (fin (n + 1)) R ≃+* polynomial (mv_polynomial (fin n) R) :=
 (ring_equiv_of_equiv R (fin_succ_equiv n)).trans
   (option_equiv_left R (fin n))
+
+lemma fin_succ_equiv_eq (n : ℕ) :
+  (fin_succ_equiv R n : mv_polynomial (fin (n + 1)) R →+* polynomial (mv_polynomial (fin n) R)) =
+  eval₂_hom (polynomial.C.comp (C : R →+* mv_polynomial (fin n) R))
+    (λ i : fin (n+1), fin.cases polynomial.X (λ k, polynomial.C (X k)) i) :=
+begin
+  apply ring_hom_ext,
+  { intro r,
+    dsimp [ring_equiv.coe_ring_hom, fin_succ_equiv, option_equiv_left, sum_ring_equiv],
+    simp only [sum_to_iter_C, eval₂_C, rename_C, ring_hom.coe_comp] },
+  { intro i,
+    dsimp [ring_equiv.coe_ring_hom, fin_succ_equiv, option_equiv_left, sum_ring_equiv, _root_.fin_succ_equiv],
+    by_cases hi : i = 0,
+    { simp only [hi, fin.cases_zero, sum.swap, rename_X, equiv.option_equiv_sum_punit_none,
+        equiv.sum_comm_apply, comp_app, sum_to_iter_Xl, eval₂_X] },
+    { rw [← fin.succ_pred i hi],
+      simp only [rename_X, equiv.sum_comm_apply, comp_app, eval₂_X,
+        equiv.option_equiv_sum_punit_some, sum.swap, fin.cases_succ, sum_to_iter_Xr, eval₂_C] } }
+end
+
+@[simp] lemma fin_succ_equiv_apply (n : ℕ) (p : mv_polynomial (fin (n + 1)) R) :
+  fin_succ_equiv R n p =
+  eval₂_hom (polynomial.C.comp (C : R →+* mv_polynomial (fin n) R))
+    (λ i : fin (n+1), fin.cases polynomial.X (λ k, polynomial.C (X k)) i) p :=
+by { rw ← fin_succ_equiv_eq, refl }
 
 end
 

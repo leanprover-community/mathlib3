@@ -186,7 +186,11 @@ instance decidable_set_of (p : α → Prop) [H : decidable_pred p] : decidable_p
 @[simp] theorem set_of_subset_set_of {p q : α → Prop} :
   {a | p a} ⊆ {a | q a} ↔ (∀a, p a → q a) := iff.rfl
 
-@[simp] lemma sep_set_of {α} {p q : α → Prop} : {a ∈ {a | p a } | q a} = {a | p a ∧ q a} := rfl
+@[simp] lemma sep_set_of {p q : α → Prop} : {a ∈ {a | p a } | q a} = {a | p a ∧ q a} := rfl
+
+lemma set_of_and {p q : α → Prop} : {a | p a ∧ q a} = {a | p a} ∩ {a | q a} := rfl
+
+lemma set_of_or {p q : α → Prop} : {a | p a ∨ q a} = {a | p a} ∪ {a | q a} := rfl
 
 /-! ### Lemmas about subsets -/
 
@@ -721,6 +725,10 @@ instance unique_singleton (a : α) : unique ↥({a} : set α) :=
     apply subtype.ext,
     apply eq_of_mem_singleton (subtype.mem x),
   end}
+
+lemma eq_singleton_iff_unique_mem {s : set α} {a : α} :
+  s = {a} ↔ a ∈ s ∧ ∀ x ∈ s, x = a :=
+by simp [ext_iff, @iff_def (_ ∈ s), forall_and_distrib, and_comm]
 
 /-! ### Lemmas about sets defined as `{x ∈ s | p x}`. -/
 
@@ -1437,6 +1445,16 @@ s.eq_empty_or_nonempty.elim or.inl (λ ⟨x, hx⟩, or.inr ⟨x, hs.eq_singleton
 lemma subsingleton_univ [subsingleton α] : (univ : set α).subsingleton :=
 λ x hx y hy, subsingleton.elim x y
 
+/-- `s`, coerced to a type, is a subsingleton type if and only if `s`
+is a subsingleton set. -/
+@[simp, norm_cast] lemma subsingleton_coe (s : set α) : subsingleton s ↔ s.subsingleton :=
+begin
+  split,
+  { refine λ h, (λ a ha b hb, _),
+    exact set_coe.ext_iff.2 (@subsingleton.elim s h ⟨a, ha⟩ ⟨b, hb⟩) },
+  { exact λ h, subsingleton.intro (λ a b, set_coe.ext (h a.property b.property)) }
+end
+
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)
 
@@ -1882,8 +1900,11 @@ by { split_ifs; simp [h] }
 theorem image_swap_eq_preimage_swap : image (@prod.swap α β) = preimage prod.swap :=
 image_eq_preimage_of_inverse prod.swap_left_inverse prod.swap_right_inverse
 
+theorem preimage_swap_prod {s : set α} {t : set β} : prod.swap ⁻¹' t.prod s = s.prod t :=
+by { ext ⟨x, y⟩, simp [and_comm] }
+
 theorem image_swap_prod : prod.swap '' t.prod s = s.prod t :=
-by { ext ⟨x, y⟩, simp [image_swap_eq_preimage_swap, and_comm] }
+by rw [image_swap_eq_preimage_swap, preimage_swap_prod]
 
 theorem prod_image_image_eq {m₁ : α → γ} {m₂ : β → δ} :
   (image m₁ s).prod (image m₂ t) = image (λp:α×β, (m₁ p.1, m₂ p.2)) (s.prod t) :=

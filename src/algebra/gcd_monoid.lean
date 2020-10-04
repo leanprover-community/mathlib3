@@ -290,6 +290,16 @@ gcd_dvd_gcd (dvd_refl _) (dvd_mul_left _ _)
 theorem gcd_dvd_gcd_mul_right_right (m n k : α) : gcd m n ∣ gcd m (n * k) :=
 gcd_dvd_gcd (dvd_refl _) (dvd_mul_right _ _)
 
+theorem gcd_eq_of_associated_left {m n : α} (h : associated m n) (k : α) : gcd m k = gcd n k :=
+dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _)
+  (gcd_dvd_gcd (dvd_of_associated h) (dvd_refl _))
+  (gcd_dvd_gcd (dvd_of_associated h.symm) (dvd_refl _))
+
+theorem gcd_eq_of_associated_right {m n : α} (h : associated m n) (k : α) : gcd k m = gcd k n :=
+dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _)
+  (gcd_dvd_gcd (dvd_refl _) (dvd_of_associated h))
+  (gcd_dvd_gcd (dvd_refl _) (dvd_of_associated h.symm))
+
 end gcd
 
 section lcm
@@ -410,6 +420,16 @@ lcm_dvd_lcm (dvd_refl _) (dvd_mul_left _ _)
 theorem lcm_dvd_lcm_mul_right_right (m n k : α) : lcm m n ∣ lcm m (n * k) :=
 lcm_dvd_lcm (dvd_refl _) (dvd_mul_right _ _)
 
+theorem lcm_eq_of_associated_left {m n : α} (h : associated m n) (k : α) : lcm m k = lcm n k :=
+dvd_antisymm_of_normalize_eq (normalize_lcm _ _) (normalize_lcm _ _)
+  (lcm_dvd_lcm (dvd_of_associated h) (dvd_refl _))
+  (lcm_dvd_lcm (dvd_of_associated h.symm) (dvd_refl _))
+
+theorem lcm_eq_of_associated_right {m n : α} (h : associated m n) (k : α) : lcm k m = lcm k n :=
+dvd_antisymm_of_normalize_eq (normalize_lcm _ _) (normalize_lcm _ _)
+  (lcm_dvd_lcm (dvd_refl _) (dvd_of_associated h))
+  (lcm_dvd_lcm (dvd_refl _) (dvd_of_associated h.symm))
+
 end lcm
 
 namespace gcd_monoid
@@ -441,11 +461,8 @@ instance : normalization_monoid ℤ :=
   norm_unit_zero := if_pos (le_refl _),
   norm_unit_mul  := assume a b hna hnb,
   begin
-    by_cases ha : 0 ≤ a; by_cases hb : 0 ≤ b; simp [ha, hb],
-    exact if_pos (mul_nonneg ha hb),
-    exact if_neg (assume h, hb $ nonneg_of_mul_nonneg_left h $ lt_of_le_of_ne ha hna.symm),
-    exact if_neg (assume h, ha $ nonneg_of_mul_nonneg_right h $ lt_of_le_of_ne hb hnb.symm),
-    exact if_pos (mul_nonneg_of_nonpos_of_nonpos (le_of_not_ge ha) (le_of_not_ge hb))
+    cases hna.lt_or_lt with ha ha; cases hnb.lt_or_lt with hb hb;
+      simp [mul_nonneg_iff, ha.le, ha.not_le, hb.le, hb.not_le]
   end,
   norm_unit_coe_units := assume u, (units_eq_one_or u).elim
     (assume eq, eq.symm ▸ if_pos zero_le_one)
@@ -704,7 +721,7 @@ lemma prime_two_or_dvd_of_dvd_two_mul_pow_self_two {m : ℤ} {p : ℕ}
 begin
   cases int.prime.dvd_mul hp h with hp2 hpp,
   { apply or.intro_left,
-    exact le_antisymm (nat.le_of_dvd two_pos hp2) (nat.prime.two_le hp) },
+    exact le_antisymm (nat.le_of_dvd zero_lt_two hp2) (nat.prime.two_le hp) },
   { apply or.intro_right,
     rw [pow_two, int.nat_abs_mul] at hpp,
     exact (or_self _).mp ((nat.prime.dvd_mul hp).mp hpp)}
@@ -733,3 +750,28 @@ instance normalization_monoid_of_unique_units : normalization_monoid α :=
 @[simp] lemma normalize_eq (x : α) : normalize x = x := mul_one x
 
 end unique_unit
+
+section integral_domain
+
+variables [integral_domain α] [gcd_monoid α]
+
+lemma gcd_eq_of_dvd_sub_right {a b c : α} (h : a ∣ b - c) : gcd a b = gcd a c :=
+begin
+  apply dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _);
+  rw dvd_gcd_iff; refine ⟨gcd_dvd_left _ _, _⟩,
+  { rcases h with ⟨d, hd⟩,
+    rcases gcd_dvd_right a b with ⟨e, he⟩,
+    rcases gcd_dvd_left a b with ⟨f, hf⟩,
+    use e - f * d,
+    rw [mul_sub, ← he, ← mul_assoc, ← hf, ← hd, sub_sub_cancel] },
+  { rcases h with ⟨d, hd⟩,
+    rcases gcd_dvd_right a c with ⟨e, he⟩,
+    rcases gcd_dvd_left a c with ⟨f, hf⟩,
+    use e + f * d,
+    rw [mul_add, ← he, ← mul_assoc, ← hf, ← hd, ← add_sub_assoc, add_comm c b, add_sub_cancel] }
+end
+
+lemma gcd_eq_of_dvd_sub_left {a b c : α} (h : a ∣ b - c) : gcd b a = gcd c a :=
+by rw [gcd_comm _ a, gcd_comm _ a, gcd_eq_of_dvd_sub_right h]
+
+end integral_domain

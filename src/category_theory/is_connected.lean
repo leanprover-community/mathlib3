@@ -157,15 +157,35 @@ begin
   rw [w j, w j'],
 end)
 
+/--
+Another induction principle for `is_preconnected J`:
+given a type family `Z : J → Sort*` and
+a rule for transporting in *both* directions along a morphism in `J`,
+we can transport an `x : Z j₀` to a point in `Z j` for any `j`.
+-/
+lemma is_preconnected_induction [is_preconnected J] (Z : J → Sort*)
+  (h₁ : Π {j₁ j₂ : J} (f : j₁ ⟶ j₂), Z j₁ → Z j₂)
+  (h₂ : Π {j₁ j₂ : J} (f : j₁ ⟶ j₂), Z j₂ → Z j₁)
+  {j₀ : J} (x : Z j₀) (j : J) : nonempty (Z j) :=
+(induct_on_objects {j | nonempty (Z j)} ⟨x⟩
+  (λ j₁ j₂ f, ⟨by { rintro ⟨y⟩, exact ⟨h₁ f y⟩, }, by { rintro ⟨y⟩, exact ⟨h₂ f y⟩, }⟩) j : _)
+
 /-- j₁ and j₂ are related by `zag` if there is a morphism between them. -/
 @[reducible]
 def zag (j₁ j₂ : J) : Prop := nonempty (j₁ ⟶ j₂) ∨ nonempty (j₂ ⟶ j₁)
+
+lemma zag_symmetric : symmetric (@zag J _) :=
+λ j₂ j₁ h, h.swap
+
 /--
 `j₁` and `j₂` are related by `zigzag` if there is a chain of
 morphisms from `j₁` to `j₂`, with backward morphisms allowed.
 -/
 @[reducible]
 def zigzag : J → J → Prop := relation.refl_trans_gen zag
+
+lemma zigzag_symmetric : symmetric (@zigzag J _) :=
+relation.refl_trans_gen.symmetric zag_symmetric
 
 /-- Any equivalence relation containing (⟶) holds for all pairs of a connected category. -/
 lemma equiv_relation [is_connected J] (r : J → J → Prop) (hr : _root_.equivalence r)

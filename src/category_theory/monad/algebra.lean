@@ -131,6 +131,8 @@ def algebra_iso_of_iso {A B : algebra T} (f : A ⟶ B) [i : is_iso f.f] : is_iso
 instance forget_reflects_iso : reflects_isomorphisms (forget T) :=
 { reflects := λ A B, algebra_iso_of_iso T }
 
+instance forget_faithful : faithful (forget T) := {}
+
 end monad
 
 namespace comonad
@@ -221,6 +223,8 @@ adjunction.mk_of_hom_equiv
       dsimp, simp
     end
     }}
+    
+instance forget_faithful : faithful (forget G) := {}
 
 end comonad
 

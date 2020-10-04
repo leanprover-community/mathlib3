@@ -182,7 +182,7 @@ lemma is_bounded_linear_map_prod_multilinear
 continuous multilinear map `f (g m₁, ..., g mₙ)` is a bounded linear operation. -/
 lemma is_bounded_linear_map_continuous_multilinear_map_comp_linear (g : G →L[𝕜] E) :
   is_bounded_linear_map 𝕜 (λ f : continuous_multilinear_map 𝕜 (λ (i : ι), E) F,
-    f.comp_continuous_linear_map 𝕜 E  g) :=
+    f.comp_continuous_linear_map (λ _, g)) :=
 begin
   refine is_linear_map.with_bound ⟨λ f₁ f₂, by { ext m, refl }, λ c f, by { ext m, refl }⟩
     (∥g∥ ^ (fintype.card ι)) (λ f, _),

@@ -184,18 +184,34 @@ lemma snoc_smul (f : multilinear_map R M M₂)
   f (snoc m (c • x)) = c • f (snoc m x) :=
 by rw [← update_snoc_last x m (c • x), f.map_smul, update_snoc_last]
 
-/- If `R` and `M₂` are implicit in the next definition, Lean is never able to infer them, even
-given `g` and `f`. Therefore, we make them explicit. -/
-variables (R M₂)
+section
 
-/-- If `g` is multilinear and `f` is linear, then `g (f m₁, ..., f mₙ)` is again a multilinear
-function, that we call `g.comp_linear_map f`. -/
-def comp_linear_map (g : multilinear_map R (λ (i : ι), M₂) M₃) (f : M' →ₗ[R] M₂) :
-  multilinear_map R (λ (i : ι), M') M₃ :=
-{ to_fun    := λ m, g (f ∘ m),
-  map_add'  := λ m i x y, by simp [comp_update],
-  map_smul' := λ m i c x, by simp [comp_update] }
-variables {R M₂}
+variables {M₁' : ι → Type*} [Π i, add_comm_monoid (M₁' i)] [Π i, semimodule R (M₁' i)]
+
+/-- Compose a multilinear map with a collection of linear maps: apply `f i` to `m i` before feeding
+the resulting vector to `g`. -/
+def comp_linear_map (g : multilinear_map R M₁' M₂) (f : Π i, M₁ i →ₗ[R] M₁' i) :
+  multilinear_map R M₁ M₂ :=
+{ to_fun := λ m, g $ λ i, f i (m i),
+  map_add' := λ m i x y,
+    begin
+      have : ∀ j z, f j (update m i z j) = update (λ k, f k (m k)) i (f i z) j :=
+        λ j z, function.apply_update (λ k, f k) _ _ _ _,
+      simp [this]
+    end,
+  map_smul' := λ m i c x,
+    begin
+      have : ∀ j z, f j (update m i z j) = update (λ k, f k (m k)) i (f i z) j :=
+        λ j z, function.apply_update (λ k, f k) _ _ _ _,
+      simp [this]
+    end }
+
+@[simp] lemma comp_linear_map_apply (g : multilinear_map R M₁' M₂) (f : Π i, M₁ i →ₗ[R] M₁' i)
+  (m : Π i, M₁ i) :
+  g.comp_linear_map f m = g (λ i, f i (m i)) :=
+rfl
+
+end
 
 /-- If one adds to a vector `m'` another vector `m`, but only for coordinates in a finset `t`, then
 the image under a multilinear map `f` is the sum of `f (s.piecewise m m')` along all subsets `s` of

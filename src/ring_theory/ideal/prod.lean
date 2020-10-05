@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import ring_theory.ideal.operations
-import algebraic_geometry.prime_spectrum
 
 /-!
 # Ideals in product rings
@@ -160,18 +159,20 @@ begin
     { exactI is_prime_ideal_prod_top' } }
 end
 
-@[simp] private def prime_spectrum_prod_impl :
-  prime_spectrum R ⊕ prime_spectrum S → prime_spectrum (R × S)
+@[simp] private def prime_ideals_equiv_impl :
+  { I : ideal R // I.is_prime } ⊕ { J : ideal S // J.is_prime } →
+    { K : ideal (R × S) // K.is_prime }
 | (sum.inl ⟨I, hI⟩) := ⟨ideal.prod I ⊤, by exactI is_prime_ideal_prod_top⟩
 | (sum.inr ⟨J, hJ⟩) := ⟨ideal.prod ⊤ J, by exactI is_prime_ideal_prod_top'⟩
 
+section
 variables (R S)
 
-/-- The prime spectrum of `R × S` is in bijection with the disjoint union of the prime spectrum
-    of `R` and the prime spectrum of `S`. -/
-noncomputable def prime_spectrum_prod :
-  prime_spectrum (R × S) ≃ prime_spectrum R ⊕ prime_spectrum S :=
-equiv.symm $ equiv.of_bijective prime_spectrum_prod_impl
+/-- The prime ideals of `R × S` are in bijection with the disjoint union of the prime ideals
+    of `R` and the prime ideals of `S`. -/
+noncomputable def prime_ideals_equiv : { K : ideal (R × S) // K.is_prime } ≃
+  { I : ideal R // I.is_prime } ⊕ { J : ideal S // J.is_prime } :=
+equiv.symm $ equiv.of_bijective prime_ideals_equiv_impl
 begin
   split,
   { rintros (⟨I, hI⟩|⟨J, hJ⟩) (⟨I',  hI'⟩|⟨J', hJ'⟩) h;
@@ -185,5 +186,14 @@ begin
     { exact ⟨sum.inl ⟨p, hp⟩, rfl⟩ },
     { exact ⟨sum.inr ⟨p, hp⟩, rfl⟩ } }
 end
+
+end
+
+@[simp] lemma prime_ideals_equiv_symm_inl (h : I.is_prime) :
+  (prime_ideals_equiv R S).symm (sum.inl ⟨I, h⟩) = ⟨prod I ⊤, by exactI is_prime_ideal_prod_top⟩ :=
+rfl
+@[simp] lemma prime_ideals_equiv_symm_inr (h : J.is_prime) :
+  (prime_ideals_equiv R S).symm (sum.inr ⟨J, h⟩) = ⟨prod ⊤ J, by exactI is_prime_ideal_prod_top'⟩ :=
+rfl
 
 end ideal

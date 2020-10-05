@@ -110,7 +110,7 @@ variables (R S) [semiring R] [semiring S]
 
 /-- Swapping components as an equivalence of (semi)rings. -/
 def prod_comm : R × S ≃+* S × R :=
-{ map_add' := λ ⟨_, _⟩ ⟨_, _⟩, rfl, ..mul_equiv.prod_comm R S }
+{ ..add_equiv.prod_comm R S, ..mul_equiv.prod_comm R S }
 
 @[simp] lemma coe_prod_comm : ⇑(prod_comm R S) = prod.swap := rfl
 @[simp] lemma coe_prod_comm_symm : ⇑((prod_comm R S).symm) = prod.swap := rfl

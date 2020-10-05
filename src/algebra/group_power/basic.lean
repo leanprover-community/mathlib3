@@ -467,6 +467,25 @@ end
 
 end cancel_add_monoid
 
+namespace comm_semiring
+
+variables [comm_semiring R]
+
+lemma min_pow_dvd_sum {n m : ℕ} {a b c : R} (ha : c^n ∣ a) (hb : c^m ∣ b) :
+c^(min n m) ∣ a + b :=
+begin
+by_cases n ≤ m,
+{ simp [h],
+  replace hb := dvd.trans (pow_dvd_pow c h) hb,
+  exact dvd_add ha hb },
+{ simp [le_of_not_ge h],
+  replace ha := dvd.trans (pow_dvd_pow c (le_of_not_ge h)) ha,
+  exact dvd_add ha hb,
+ },
+end
+
+end comm_semiring
+
 namespace canonically_ordered_semiring
 variable [canonically_ordered_comm_semiring R]
 

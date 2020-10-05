@@ -195,9 +195,9 @@ abbreviation fork.ι (t : fork f g) := t.π.app zero
 abbreviation cofork.π (t : cofork f g) := t.ι.app one
 
 @[simp] lemma fork.ι_of_ι {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) :
-  fork.ι (fork.of_ι P ι w) = ι := rfl
+  fork.ι (fork.of_ι ι w) = ι := rfl
 @[simp] lemma cofork.π_of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) :
-  cofork.π (cofork.of_π P π w) = π := rfl
+  cofork.π (cofork.of_π π w) = π := rfl
 
 lemma fork.ι_eq_app_zero (t : fork f g) : fork.ι t = t.π.app zero := rfl
 lemma cofork.π_eq_app_one (t : cofork f g) : cofork.π t = t.ι.app one := rfl
@@ -238,13 +238,13 @@ hs.hom_ext $ cofork.coequalizer_ext _ h
     `k ≫ f = k ≫ g` induces a morphism `l : W ⟶ s.X` such that `l ≫ fork.ι s = k`. -/
 def fork.is_limit.lift' {s : fork f g} (hs : is_limit s) {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) :
   {l : W ⟶ s.X // l ≫ fork.ι s = k} :=
-⟨hs.lift $ fork.of_ι _ _ h, hs.fac _ _⟩
+⟨hs.lift $ fork.of_ι _ h, hs.fac _ _⟩
 
 /-- If `s` is a colimit cofork over `f` and `g`, then a morphism `k : Y ⟶ W` satisfying
     `f ≫ k = g ≫ k` induces a morphism `l : s.X ⟶ W` such that `cofork.π s ≫ l = k`. -/
 def cofork.is_colimit.desc' {s : cofork f g} (hs : is_colimit s) {W : C} (k : Y ⟶ W)
   (h : f ≫ k = g ≫ k) : {l : s.X ⟶ W // cofork.π s ≫ l = k} :=
-⟨hs.desc $ cofork.of_π _ _ h, hs.fac _ _⟩
+⟨hs.desc $ cofork.of_π _ h, hs.fac _ _⟩
 
 /-- This is a slightly more convenient method to verify that a fork is a limit cone. It
     only asks for a proof of facts that carry any mathematical content -/
@@ -432,7 +432,7 @@ abbreviation equalizer.fork : fork f g := limit.cone (parallel_pair f g)
 fork.condition $ limit.cone $ parallel_pair f g
 
 /-- The equalizer built from `equalizer.ι f g` is limiting. -/
-def equalizer_is_equalizer : is_limit (fork.of_ι _ (equalizer.ι f g) (equalizer.condition f g)) :=
+def equalizer_is_equalizer : is_limit (fork.of_ι (equalizer.ι f g) (equalizer.condition f g)) :=
 is_limit.of_iso_limit (limit.is_limit _) (fork.ext (iso.refl _) (by tidy))
 
 variables {f g}
@@ -440,7 +440,7 @@ variables {f g}
 /-- A morphism `k : W ⟶ X` satisfying `k ≫ f = k ≫ g` factors through the equalizer of `f` and `g`
     via `equalizer.lift : W ⟶ equalizer f g`. -/
 abbreviation equalizer.lift {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) : W ⟶ equalizer f g :=
-limit.lift (parallel_pair f g) (fork.of_ι _ k h)
+limit.lift (parallel_pair f g) (fork.of_ι k h)
 
 @[simp, reassoc]
 lemma equalizer.lift_ι {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) :
@@ -479,7 +479,7 @@ variables {f g}
 
 /-- The identity determines a cone on the equalizer diagram of `f` and `g` if `f = g`. -/
 def id_fork (h : f = g) : fork f g :=
-fork.of_ι _ (𝟙 X) $ h ▸ rfl
+fork.of_ι (𝟙 X) $ h ▸ rfl
 
 /-- The identity on `X` is an equalizer of `(f, g)`, if `f = g`. -/
 def is_limit_id_fork (h : f = g) : is_limit (id_fork h) :=
@@ -564,7 +564,7 @@ cofork.condition $ colimit.cocone $ parallel_pair f g
 
 /-- The cofork built from `coequalizer.π f g` is colimiting. -/
 def coequalizer_is_coequalizer :
-  is_colimit (cofork.of_π _ (coequalizer.π f g) (coequalizer.condition f g)) :=
+  is_colimit (cofork.of_π (coequalizer.π f g) (coequalizer.condition f g)) :=
 is_colimit.of_iso_colimit (colimit.is_colimit _) (cofork.ext (iso.refl _) (by tidy))
 
 variables {f g}
@@ -572,7 +572,7 @@ variables {f g}
 /-- Any morphism `k : Y ⟶ W` satisfying `f ≫ k = g ≫ k` factors through the coequalizer of `f`
     and `g` via `coequalizer.desc : coequalizer f g ⟶ W`. -/
 abbreviation coequalizer.desc {W : C} (k : Y ⟶ W) (h : f ≫ k = g ≫ k) : coequalizer f g ⟶ W :=
-colimit.desc (parallel_pair f g) (cofork.of_π _ k h)
+colimit.desc (parallel_pair f g) (cofork.of_π k h)
 
 @[simp, reassoc]
 lemma coequalizer.π_desc {W : C} (k : Y ⟶ W) (h : f ≫ k = g ≫ k) :
@@ -612,7 +612,7 @@ variables {f g}
 
 /-- The identity determines a cocone on the coequalizer diagram of `f` and `g`, if `f = g`. -/
 def id_cofork (h : f = g) : cofork f g :=
-cofork.of_π _ (𝟙 Y) $ h ▸ rfl
+cofork.of_π (𝟙 Y) $ h ▸ rfl
 
 /-- The identity on `Y` is a coequalizer of `(f, g)`, where `f = g`.  -/
 def is_colimit_id_cofork (h : f = g) : is_colimit (id_cofork h) :=
@@ -692,7 +692,7 @@ A split mono `f` equalizes `(retraction f ≫ f)` and `(𝟙 Y)`.
 Here we build the cone, and show in `split_mono_equalizes` that it is a limit cone.
 -/
 def cone_of_split_mono : cone (parallel_pair (𝟙 Y) (retraction f ≫ f)) :=
-fork.of_ι _ f (by tidy)
+fork.of_ι f (by tidy)
 
 @[simp] lemma cone_of_split_mono_π_app_zero : (cone_of_split_mono f).π.app zero = f := rfl
 @[simp] lemma cone_of_split_mono_π_app_one : (cone_of_split_mono f).π.app one = f ≫ 𝟙 Y := rfl
@@ -723,7 +723,7 @@ A split epi `f` coequalizes `(f ≫ section_ f)` and `(𝟙 X)`.
 Here we build the cocone, and show in `split_epi_coequalizes` that it is a colimit cocone.
 -/
 def cocone_of_split_epi : cocone (parallel_pair (𝟙 X) (f ≫ section_ f)) :=
-cofork.of_π _ f (by tidy)
+cofork.of_π f (by tidy)
 
 @[simp] lemma cocone_of_split_epi_ι_app_one : (cocone_of_split_epi f).ι.app one = f := rfl
 @[simp] lemma cocone_of_split_epi_ι_app_zero : (cocone_of_split_epi f).ι.app zero = 𝟙 X ≫ f := rfl

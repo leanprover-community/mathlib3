@@ -47,7 +47,7 @@ by convert pullback.condition =≫ limits.prod.fst; simp
 @[reducible]
 def equalizer_cone (F : walking_parallel_pair ⥤ C) : cone F :=
 cone.of_fork
-  (fork.of_ι _ (pullback_fst F)
+  (fork.of_ι (pullback_fst F)
     (begin
       conv_rhs { rw pullback_fst_eq_pullback_snd, },
       convert pullback.condition =≫ limits.prod.snd using 1; simp

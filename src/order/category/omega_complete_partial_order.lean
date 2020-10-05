@@ -100,7 +100,7 @@ continuous_hom.of_mono (preorder_hom.subtype.val _) (λ c, rfl)
 /-- A construction of the equalizer fork. -/
 def equalizer {X Y : ωCPO.{v}} (f g : X ⟶ Y) :
   fork f g :=
-fork.of_ι (ωCPO.of {a // f a = g a}) (equalizer_ι f g) (continuous_hom.ext _ _ (λ x, x.2))
+@fork.of_ι _ _ _ _ _ _ (ωCPO.of {a // f a = g a}) (equalizer_ι f g) (continuous_hom.ext _ _ (λ x, x.2))
 
 /-- The equalizer fork is a limit. -/
 def is_equalizer {X Y : ωCPO.{v}} (f g : X ⟶ Y) : is_limit (equalizer f g) :=

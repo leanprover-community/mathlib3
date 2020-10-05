@@ -130,13 +130,11 @@ begin
   exact is_prime_ideal_prod_top,
 end
 
-lemma ideal_prod_prime_aux {I : ideal R} {J : ideal S} (h : (ideal.prod I J).is_prime) :
+lemma ideal_prod_prime_aux {I : ideal R} {J : ideal S} : (ideal.prod I J).is_prime →
   I = ⊤ ∨ J = ⊤ :=
 begin
-  unfreezingI { revert h },
   contrapose!,
-  simp only [ne_top_iff_one, is_prime],
-  push_neg,
+  simp only [ne_top_iff_one, is_prime, not_and, not_forall, not_or_distrib],
   exact λ ⟨hI, hJ⟩ hIJ, ⟨⟨0, 1⟩, ⟨1, 0⟩, by simp, by simp [hJ], by simp [hI]⟩
 end
 

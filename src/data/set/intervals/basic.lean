@@ -121,7 +121,7 @@ set.ext $ λ x, and_comm _ _
 @[simp] lemma nonempty_Iic : (Iic a).nonempty := ⟨a, right_mem_Iic⟩
 
 @[simp] lemma nonempty_Ioo [densely_ordered α] : (Ioo a b).nonempty ↔ a < b :=
-⟨λ ⟨x, ha, hb⟩, lt_trans ha hb, dense⟩
+⟨λ ⟨x, ha, hb⟩, lt_trans ha hb, exists_between⟩
 
 @[simp] lemma nonempty_Ioi [no_top_order α] : (Ioi a).nonempty := no_top a
 
@@ -489,7 +489,7 @@ by rw [diff_eq, compl_Iio, inter_comm, Ici_inter_Iio]
 
 lemma Ioo_eq_empty_iff [densely_ordered α] : Ioo a b = ∅ ↔ b ≤ a :=
 ⟨λ eq, le_of_not_lt $ λ h,
-  let ⟨x, h₁, h₂⟩ := dense h in
+  let ⟨x, h₁, h₂⟩ := exists_between h in
   eq_empty_iff_forall_not_mem.1 eq x ⟨h₁, h₂⟩,
 Ioo_eq_empty⟩
 
@@ -510,7 +510,7 @@ lemma Ico_subset_Ico_iff (h₁ : a₁ < b₁) :
 lemma Ioo_subset_Ioo_iff [densely_ordered α] (h₁ : a₁ < b₁) :
   Ioo a₁ b₁ ⊆ Ioo a₂ b₂ ↔ a₂ ≤ a₁ ∧ b₁ ≤ b₂ :=
 ⟨λ h, begin
-  rcases dense h₁ with ⟨x, xa, xb⟩,
+  rcases exists_between h₁ with ⟨x, xa, xb⟩,
   split; refine le_of_not_lt (λ h', _),
   { have ab := lt_trans (h ⟨xa, xb⟩).1 xb,
     exact lt_irrefl _ (h ⟨h', ab⟩).1 },
@@ -540,7 +540,7 @@ end
 begin
   refine ⟨λh, _, λh, Ioi_subset_Ici h⟩,
   by_contradiction ba,
-  obtain ⟨c, bc, ca⟩ : ∃c, b < c ∧ c < a := dense (not_le.mp ba),
+  obtain ⟨c, bc, ca⟩ : ∃c, b < c ∧ c < a := exists_between (not_le.mp ba),
   exact lt_irrefl _ (lt_of_lt_of_le ca (h bc))
 end
 

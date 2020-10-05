@@ -204,7 +204,7 @@ begin
   obtain ⟨q, hq⟩ := exists_eq_mul_right_of_dvd h,
   rw hq at hzero,
   simp only [hq, root_multiplicity_mul hzero, root_multiplicity_X_sub_C_pow,
-             ge_iff_le, zero_le, le_add_iff_nonneg_right],
+             ge_iff_le, _root_.zero_le, le_add_iff_nonneg_right],
 end
 
 /-- The multiplicity of `p + q` is at least the minimum of the multiplicities. -/

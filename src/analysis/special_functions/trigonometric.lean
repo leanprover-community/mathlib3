@@ -874,7 +874,7 @@ begin
   rw [add_comm, sub_add, sub_neg_eq_add], apply sub_lt_sub_left,
   apply add_lt_of_lt_sub_left,
   rw (show x ^ 3 / 4 - x ^ 3 / 6 = x ^ 3 / 12,
-    by simp [div_eq_mul_inv, (mul_sub _ _ _).symm, -sub_eq_add_neg]; congr; norm_num),
+    by simp [div_eq_mul_inv, ← mul_sub]; norm_num),
   apply mul_lt_mul',
   { rw [pow_succ x 3], refine le_trans _ (le_of_eq (one_mul _)),
     rw mul_le_mul_right, exact h', apply pow_pos h },

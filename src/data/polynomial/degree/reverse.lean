@@ -55,7 +55,7 @@ end ⟩
 
 @[simp] lemma reflect_zero {n : ℕ} : reflect n (0 : polynomial R) = 0 := rfl
 
-@[simp] lemma reflect_zero_iff {n : ℕ} : reflect n (f : polynomial R) = 0 ↔ f=0 :=
+@[simp] lemma reflect_zero_iff {n : ℕ} (f : polynomial R) : reflect n (f : polynomial R) = 0 ↔ f=0 :=
 begin
   split,
     { intros a,
@@ -68,7 +68,7 @@ begin
       exact reflect_zero, },
 end
 
-@[simp] lemma reflect_add {f g : polynomial R} {n : ℕ} : reflect n (f+g) = reflect n f + reflect n g :=
+@[simp] lemma reflect_add (f g : polynomial R) (n : ℕ) : reflect n (f+g) = reflect n f + reflect n g :=
 begin
   ext1,
   refl,
@@ -176,7 +176,7 @@ lemma pol_ind_Rhom_prod {rp : ℕ → polynomial R → polynomial R}
  f.nat_degree ≤ N → g.nat_degree ≤ O →
  (rp (N + O) (f*g)) = (rp N f) * (rp O g) :=
 begin
-  intros N O f g,
+  intros _ _ f g,
   apply pol_ind_Rhom_prod_on_card f.support.card g.support.card rp_add rp_smul rp_mon,
     { exact (f.support).card.le_succ, },
     { exact (g.support).card.le_succ, },
@@ -185,20 +185,16 @@ end
 @[simp] theorem reflect_mul {f g : polynomial R} {F G : ℕ} (Ff : f.nat_degree ≤ F) (Gg : g.nat_degree ≤ G) :
  reflect (F+G) (f*g) = reflect F f * reflect G g :=
 begin
-  apply pol_ind_Rhom_prod,
-    { apply reflect_add, },
-    { exact reflect_smul, },
+  apply pol_ind_Rhom_prod reflect_add reflect_smul _ F G f g Ff Gg,
     { intros N n Nn,
       rw [reflect_monomial, rev_at_small Nn], },
-    repeat { assumption },
 end
 
 theorem reverse_mul (f g : polynomial R) {fg : f.leading_coeff*g.leading_coeff ≠ 0} :
  reverse (f*g) = reverse f * reverse g :=
 begin
   unfold reverse,
-  convert reflect_mul (le_refl _) (le_refl _),
-    exact nat_degree_mul' fg,
+  rw [nat_degree_mul' fg, reflect_mul (le_refl _) (le_refl _)],
 end
 
 end rev

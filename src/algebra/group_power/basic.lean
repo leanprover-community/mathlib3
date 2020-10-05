@@ -467,7 +467,7 @@ end
 
 end cancel_add_monoid
 
-namespace comm_semiring
+section comm_semiring
 
 variables [comm_semiring R]
 

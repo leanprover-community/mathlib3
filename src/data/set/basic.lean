@@ -346,6 +346,18 @@ classical.by_cases or.inr (λ h, or.inl $ not_nonempty_iff_eq_empty.1 h)
 theorem ne_empty_iff_nonempty : s ≠ ∅ ↔ s.nonempty :=
 (not_congr not_nonempty_iff_eq_empty.symm).trans not_not
 
+theorem ne_empty_iff_exists_mem {s : set α} : s ≠ ∅ ↔ ∃ x, x ∈ s := ne_empty_iff_nonempty
+
+theorem ne_empty_of_mem {s : set α} {x : α} (h : x ∈ s) : s ≠ ∅ :=
+ne_empty_iff_nonempty.2 ⟨x, h⟩
+
+theorem coe_nonempty_iff_ne_empty {s : set α} : nonempty s ↔ s ≠ ∅ :=
+nonempty_subtype.trans ne_empty_iff_exists_mem.symm
+
+-- TODO: remove when simplifier stops rewriting `a ≠ b` to `¬ a = b`
+theorem not_eq_empty_iff_exists {s : set α} : ¬ (s = ∅) ↔ ∃ x, x ∈ s :=
+ne_empty_iff_exists_mem
+
 theorem subset_eq_empty {s t : set α} (h : t ⊆ s) (e : s = ∅) : t = ∅ :=
 subset_empty_iff.1 $ e ▸ h
 

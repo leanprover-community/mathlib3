@@ -196,7 +196,7 @@ section
   by injection (pell_zd_sub a1 h) with _ h; repeat {rw ← neg_mul_eq_mul_neg at h}; rw [add_comm, mul_comm] at h; exact h
 
   theorem xy_coprime (n) : (xn n).coprime (yn n) :=
-  nat.coprime_of_dvd' $ λk kx ky,
+  nat.coprime_of_dvd' $ λk kp kx ky,
   let p := pell_eq n in by rw ← p; exact
   nat.dvd_sub (le_of_lt $ nat.lt_of_sub_eq_succ p)
     (dvd_mul_of_dvd_right kx _) (dvd_mul_of_dvd_right ky _)

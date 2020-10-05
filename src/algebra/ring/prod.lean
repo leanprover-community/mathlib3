@@ -117,4 +117,11 @@ def prod_comm : R × S ≃+* S × R :=
 @[simp] lemma coe_coe_prod_comm : ⇑(prod_comm R S : R × S →+* S × R) = prod.swap := rfl
 @[simp] lemma coe_coe_prod_comm_symm : ⇑((prod_comm R S).symm : S × R →+* R × S) = prod.swap := rfl
 
+@[simp] lemma fst_comp_coe_prod_comm :
+  (ring_hom.fst S R).comp (prod_comm R S : R × S →+* S × R) = ring_hom.snd R S :=
+ring_hom.ext $ λ _, rfl
+@[simp] lemma snd_comp_prod_coe_prod_comm :
+  (ring_hom.snd S R).comp (prod_comm R S : R × S →+* S × R) = ring_hom.fst R S :=
+ring_hom.ext $ λ _, rfl
+
 end ring_equiv

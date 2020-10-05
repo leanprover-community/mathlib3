@@ -5,12 +5,21 @@ Authors: Markus Himmel
 -/
 import ring_theory.ideal.operations
 
+/-!
+# Ideals in product rings
+
+For commutative rings `R` and `S` and ideals `I ≤ R`, `J ≤ S`, we define `ideal.prod I J` as the
+product `I × J`, viewed as an ideal of `R × S`. In `ideal_prod_eq` we show that every ideal of
+`R × S` is of this form.  Furthermore, we show that every prime ideal of `R × S` is of the form
+`p × S` or `R × p`, where `p` is a prime ideal.
+-/
+
 universes u v
 variables {R : Type u} {S : Type v} [comm_ring R] [comm_ring S] (I I' : ideal R) (J J' : ideal S)
 
 namespace ideal
 
-/-- `I × J` as an ideal of `α × β`. -/
+/-- `I × J` as an ideal of `R × S`. -/
 def prod : ideal (R × S) :=
 { carrier := { x | x.fst ∈ I ∧ x.snd ∈ J },
   zero_mem' := by simp,
@@ -29,22 +38,6 @@ def prod : ideal (R × S) :=
 
 @[simp] lemma mem_prod {r : R} {s : S} : (⟨r, s⟩ : R × S) ∈ prod I J ↔ r ∈ I ∧ s ∈ J := iff.rfl
 @[simp] lemma prod_top_top : prod (⊤ : ideal R) (⊤ : ideal S) = ⊤ := ideal.ext $ by simp
-
-@[simp] lemma map_prod_comm_prod :
-  map (ring_equiv.prod_comm R S : R × S →+* S × R) (prod I J) = prod J I :=
-begin
-  apply ideal.ext,
-  rintro ⟨s, r⟩,
-  rw mem_map_iff_of_surjective (ring_equiv.prod_comm R S : R × S →+* S × R)
-    (ring_equiv.prod_comm R S).surjective,
-  refine ⟨_, _⟩,
-  { rintro ⟨⟨r', s'⟩, ⟨⟨hr, hs⟩, h⟩⟩,
-    simp only [prod.mk.inj_iff, prod.swap_prod_mk, ring_equiv.coe_coe_prod_comm] at h,
-    rw [←h.1, ←h.2],
-    exact ⟨hs, hr⟩ },
-  { rintro ⟨(hs : s ∈ J), (hr : r ∈ I)⟩,
-    exact ⟨⟨r, s⟩, ⟨⟨hr, hs⟩, rfl⟩⟩ }
-end
 
 /-- Every ideal of the product ring is of the form `I × J`, where `I` and `J` can be explicitly
     given as the image under the projection maps. -/
@@ -76,6 +69,13 @@ begin
   exact ⟨by { rintro ⟨x, ⟨h, rfl⟩⟩, exact h.2 }, λ h, ⟨⟨0, x⟩, ⟨⟨ideal.zero_mem _, h⟩, rfl⟩⟩⟩
 end
 
+@[simp] lemma map_prod_comm_prod :
+  map (ring_equiv.prod_comm R S : R × S →+* S × R) (prod I J) = prod J I :=
+begin
+  rw [ideal_prod_eq (map (ring_equiv.prod_comm R S : R × S →+* S × R) (prod I J))],
+  simp [map_map]
+end
+
 /-- Ideals of `R × S` are in one-to-one correspondence with pairs of ideals of `R` and ideals of
     `S`. -/
 def ideal_prod_equiv : ideal (R × S) ≃ ideal R × ideal S :=
@@ -90,17 +90,7 @@ def ideal_prod_equiv : ideal (R × S) ≃ ideal R × ideal S :=
 lemma prod.ext_iff {I I' : ideal R} {J J' : ideal S} : prod I J = prod I' J' ↔ I = I' ∧ J = J' :=
 by simp only [←ideal_prod_equiv_symm_apply, ideal_prod_equiv.symm.injective.eq_iff, prod.mk.inj_iff]
 
-lemma ideal_prod_prime_aux₀ {I : ideal R} {J : ideal S} (h : (ideal.prod I J).is_prime) :
-  I = ⊤ ∨ J = ⊤ :=
-begin
-  unfreezingI { revert h },
-  contrapose!,
-  simp only [ne_top_iff_one, is_prime],
-  push_neg,
-  exact λ ⟨hI, hJ⟩ hIJ, ⟨⟨0, 1⟩, ⟨1, 0⟩, by simp, by simp [hJ], by simp [hI]⟩
-end
-
-lemma ideal_prod_prime_aux₁ {I : ideal R} (h : (ideal.prod I (⊤ : ideal S)).is_prime) :
+lemma is_prime_of_is_prime_prod_top {I : ideal R} (h : (ideal.prod I (⊤ : ideal S)).is_prime) :
   I.is_prime :=
 begin
   split,
@@ -113,10 +103,10 @@ begin
     simpa using h.mem_or_mem this }
 end
 
-lemma ideal_prod_prime_aux₁' {I : ideal S} (h : (ideal.prod (⊤ : ideal R) I).is_prime) :
+lemma is_prime_of_is_prime_prod_top' {I : ideal S} (h : (ideal.prod (⊤ : ideal R) I).is_prime) :
   I.is_prime :=
 begin
-  apply @ideal_prod_prime_aux₁ _ R,
+  apply @is_prime_of_is_prime_prod_top _ R,
   rw ←map_prod_comm_prod,
   exact map_is_prime_of_equiv _
 end
@@ -140,6 +130,16 @@ begin
   exact is_prime_ideal_prod_top,
 end
 
+lemma ideal_prod_prime_aux {I : ideal R} {J : ideal S} (h : (ideal.prod I J).is_prime) :
+  I = ⊤ ∨ J = ⊤ :=
+begin
+  unfreezingI { revert h },
+  contrapose!,
+  simp only [ne_top_iff_one, is_prime],
+  push_neg,
+  exact λ ⟨hI, hJ⟩ hIJ, ⟨⟨0, 1⟩, ⟨1, 0⟩, by simp, by simp [hJ], by simp [hI]⟩
+end
+
 /-- Classification of prime ideals in product rings: the prime ideals of `R × S` are precisely the
     ideals of the form `p × S` or `R × p`, where `p` is a prime ideal of `R` or `S`. -/
 theorem ideal_prod_prime (I : ideal (R × S)) : I.is_prime ↔
@@ -149,13 +149,13 @@ begin
   split,
   { rw ideal_prod_eq I,
     introsI hI,
-    rcases ideal_prod_prime_aux₀ hI with (h|h),
+    rcases ideal_prod_prime_aux hI with (h|h),
     { right,
       rw h at hI ⊢,
-      exact ⟨_, ⟨ideal_prod_prime_aux₁' hI, rfl⟩⟩ },
+      exact ⟨_, ⟨is_prime_of_is_prime_prod_top' hI, rfl⟩⟩ },
     { left,
       rw h at hI ⊢,
-      exact ⟨_, ⟨ideal_prod_prime_aux₁ hI, rfl⟩⟩ } },
+      exact ⟨_, ⟨is_prime_of_is_prime_prod_top hI, rfl⟩⟩ } },
   { rintro (⟨p, ⟨h, rfl⟩⟩|⟨p, ⟨h, rfl⟩⟩),
     { exactI is_prime_ideal_prod_top },
     { exactI is_prime_ideal_prod_top' } }

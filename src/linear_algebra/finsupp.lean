@@ -133,7 +133,7 @@ end
 
 variables (M R)
 
-/-- Interpret `finsupp.filter s` as a linear map from `α →₀ M` to `supported M R s` -/
+/-- Interpret `finsupp.filter s` as a linear map from `α →₀ M` to `supported M R s`. -/
 def restrict_dom (s : set α) : (α →₀ M) →ₗ supported M R s :=
 linear_map.cod_restrict _
   { to_fun := filter (∈ s),

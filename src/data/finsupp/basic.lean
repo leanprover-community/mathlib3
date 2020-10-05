@@ -464,6 +464,14 @@ lemma prod_fintype [fintype α] [has_zero β] [comm_monoid γ]
   f.prod g = ∏ i, g i (f i) :=
 f.prod_of_support_subset (subset_univ _) g (λ x _, h x)
 
+@[simp, to_additive]
+lemma prod_single_index [has_zero β] [comm_monoid γ] {a : α} {b : β} {h : α → β → γ}
+  (h_zero : h a 0 = 1) :
+  (single a b).prod h = h a b :=
+calc (single a b).prod h = ∏ x in {a}, h x (single a b x) :
+  prod_of_support_subset _ support_single_subset h $ λ x hx, (mem_singleton.1 hx).symm ▸ h_zero
+... = h a b : by simp
+
 @[to_additive]
 lemma prod_map_range_index [has_zero β₁] [has_zero β₂] [comm_monoid γ]
   {f : β₁ → β₂} {hf : f 0 = 0} {g : α →₀ β₁} {h : α → β₂ → γ} (h0 : ∀a, h a 0 = 1) :
@@ -519,13 +527,6 @@ end
 
 section add_monoid
 variables [add_monoid β]
-
-@[simp, to_additive]
-lemma prod_single_index [comm_monoid γ] {a : α} {b : β} {h : α → β → γ} (h_zero : h a 0 = 1) :
-  (single a b).prod h = h a b :=
-calc (single a b).prod h = ∏ x in {a}, h x (single a b x) :
-  prod_of_support_subset _ support_single_subset h $ λ x hx, (mem_singleton.1 hx).symm ▸ h_zero
-... = h a b : by simp
 
 instance : has_add (α →₀ β) := ⟨zip_with (+) (add_zero 0)⟩
 

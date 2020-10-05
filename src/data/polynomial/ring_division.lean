@@ -206,7 +206,7 @@ begin
              ge_iff_le, zero_le, le_add_iff_nonneg_right],
 end
 
-/-The multiplicty of p+q is at leas the minimum of the multiplicities-/
+/- The multiplicty of `p + q` is at leas the minimum of the multiplicities. -/
 lemma root_multiplicity_add {p q : polynomial R} (a : R) (hzero : p + q ≠ 0) :
   min (root_multiplicity a p) (root_multiplicity a q) ≤ root_multiplicity a (p + q) :=
 begin

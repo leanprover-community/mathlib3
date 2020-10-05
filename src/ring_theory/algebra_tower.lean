@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import ring_theory.adjoin
 import algebra.invertible
+import ring_theory.adjoin
+import linear_algebra.basis
 
 /-!
 # Towers of algebras

@@ -3,29 +3,22 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import data.nat.totient
+import algebra.big_operators.ring
 import number_theory.divisors
 
 /-!
-# Arithmetic Functions
+# Arithmetic Functions and Dirichlet Convolution
 
-This file defines sets of divisors of a natural number. This is particularly useful as background
-for defining Dirichlet convolution.
+This file defines arithmetic functions, which are functions from `ℕ` to a specified type that map 0
+to 0. In the literature, they are often instead defined as functions from `ℕ+`. These arithmetic
+functions are endowed with a multiplication, given by Dirichlet convolution, and pointwise addition,
+to form the Dirichlet ring.
 
 ## Main Definitions
-Let `n : ℕ`. All of the following definitions are in the `nat` namespace:
- * `divisors n` is the `finset` of natural numbers that divide `n`.
- * `proper_divisors n` is the `finset` of natural numbers that divide `n`, other than `n`.
- * `divisors_antidiagonal n` is the `finset` of pairs `(x,y)` such that `x * y = n`.
- * `perfect n` is true when the sum of `proper_divisors n` is `n`.
-
-## Notation
-
-## Implementation details
- * All of `divisors 0`, `proper_divisors 0`, and `divisors_antidiagonal 0` are defined to be `∅`.
+ * `arithmetic_function α` consists of functions `f : ℕ → α` such that `f 0 = 0`.
 
 ## Tags
-divisors, perfect numbers
+arithmetic functions, dirichlet convolution, divisors
 
 -/
 
@@ -49,26 +42,35 @@ namespace arithmetic_function
 section has_zero
 variable [has_zero α]
 
-instance : has_zero (arithmetic_function α) := ⟨⟨λ _, 0, rfl⟩⟩
-
-instance : inhabited (arithmetic_function α) := ⟨0⟩
-
 instance : has_coe_to_fun (arithmetic_function α) := ⟨λ _, ℕ → α, to_fun⟩
 
-theorem coe_inj ⦃f g : arithmetic_function α⦄ (h : (f : ℕ → α) = g) : f = g :=
-by cases f; cases g; cases h; refl
-
-@[ext] theorem ext ⦃f g : arithmetic_function α⦄ (h : ∀ x, f x = g x) : f = g :=
-coe_inj (funext h)
-
-theorem ext_iff {f g : arithmetic_function α} : f = g ↔ ∀ x, f x = g x :=
-⟨λ h x, h ▸ rfl, λ h, ext h⟩
+@[simp] lemma to_fun_eq (f : arithmetic_function α) : f.to_fun = f := rfl
 
 @[simp]
 lemma map_zero {f : arithmetic_function α} : f 0 = 0 := f.map_zero'
 
+theorem coe_inj {f g : arithmetic_function α} : (f : ℕ → α) = g ↔ f = g :=
+begin
+  split; intro h,
+  { cases f,
+    cases g,
+    cases h,
+    refl },
+  { rw h }
+end
+
+instance : has_zero (arithmetic_function α) := ⟨⟨λ _, 0, rfl⟩⟩
+
 @[simp]
 lemma zero_apply {x : ℕ} : (0 : arithmetic_function α) x = 0 := rfl
+
+instance : inhabited (arithmetic_function α) := ⟨0⟩
+
+@[ext] theorem ext ⦃f g : arithmetic_function α⦄ (h : ∀ x, f x = g x) : f = g :=
+coe_inj.1 (funext h)
+
+theorem ext_iff {f g : arithmetic_function α} : f = g ↔ ∀ x, f x = g x :=
+⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
 section has_one
 variable [has_one α]
@@ -79,17 +81,7 @@ instance : has_one (arithmetic_function α) := ⟨⟨λ x, ite (x = 1) 1 0, rfl�
 lemma one_one : (1 : arithmetic_function α) 1 = 1 := rfl
 
 @[simp]
-lemma one_apply_of_ne_one {x : ℕ} (h : x ≠ 1) : (1 : arithmetic_function α) x = 0 := if_neg h
-
-/-- `ζ 0 = 0`, otherwise `ζ x = 1`. The Dirichlet Series is the Riemann ζ.  -/
-def zeta : arithmetic_function α := ⟨λ x, ite (x = 0) 0 1, rfl⟩
-
-localized "notation `ζ` := zeta" in arithmetic_function
-
-@[simp]
-lemma zeta_apply {x : ℕ} : (ζ : arithmetic_function α) x = if (x = 0) then 0 else 1 := rfl
-
-lemma zeta_apply_of_ne_zero {x : ℕ} (h : x ≠ 0) : (ζ : arithmetic_function α) x = 1 := if_neg h
+lemma one_apply_ne {x : ℕ} (h : x ≠ 1) : (1 : arithmetic_function α) x = 0 := if_neg h
 
 end has_one
 end has_zero
@@ -113,13 +105,11 @@ lemma coe_coe [ring α] {f : arithmetic_function ℕ} :
   ((f : arithmetic_function ℤ) : arithmetic_function α) = f :=
 by { ext, simp, }
 
-open_locale arithmetic_function
-
 section add_monoid
 
 variable [add_monoid α]
 
-instance : has_add (arithmetic_function α) := ⟨λ x y, ⟨λ n, x n + y n, by simp⟩⟩
+instance : has_add (arithmetic_function α) := ⟨λ f g, ⟨λ n, f n + g n, by simp⟩⟩
 
 @[simp]
 lemma add_apply {f g : arithmetic_function α} {n : ℕ} : (f + g) n = f n + g n := rfl
@@ -128,119 +118,118 @@ instance : add_monoid (arithmetic_function α) :=
 { add_assoc := λ _ _ _, ext (λ _, add_assoc _ _ _),
   zero_add := λ _, ext (λ _, zero_add _),
   add_zero := λ _, ext (λ _, add_zero _),
-  .. (infer_instance : has_zero (arithmetic_function α)),
-  .. (infer_instance : has_add (arithmetic_function α)) }
+  .. arithmetic_function.has_zero,
+  .. arithmetic_function.has_add }
 
 end add_monoid
 
 instance [add_comm_monoid α] : add_comm_monoid (arithmetic_function α) :=
 { add_comm := λ _ _, ext (λ _, add_comm _ _),
-  .. (infer_instance : add_monoid (arithmetic_function α)) }
+  .. arithmetic_function.add_monoid }
 
 instance [add_group α] : add_group (arithmetic_function α) :=
 { neg := λ f, ⟨λ n, - f n, by simp⟩,
   add_left_neg := λ _, ext (λ _, add_left_neg _),
-  .. (infer_instance : add_monoid (arithmetic_function α)) }
+  .. arithmetic_function.add_monoid }
 
 instance [add_comm_group α] : add_comm_group (arithmetic_function α) :=
-{ .. (infer_instance : add_comm_monoid (arithmetic_function α)),
-  .. (infer_instance : add_group (arithmetic_function α)) }
+{ .. arithmetic_function.add_comm_monoid,
+  .. arithmetic_function.add_group }
 
 section dirichlet_ring
 variable [semiring α]
 
 /-- The Dirichlet convolution of two arithmetic functions `f` and `g` is another arithmetic function
   such that `(f * g) n` is the sum of `f x * g y` over all `(x,y)` such that `x * y = n`. -/
-def convolve (f g : arithmetic_function α) : arithmetic_function α :=
-⟨λ n, ∑ x in divisors_antidiagonal n, f x.fst * g x.snd, by simp⟩
-
-@[simp]
-lemma convolve_apply {f g : arithmetic_function α} {n : ℕ} :
-  (convolve f g) n = ∑ x in divisors_antidiagonal n, f x.fst * g x.snd := rfl
-
-@[simp]
-lemma one_convolve (f : arithmetic_function α) : convolve 1 f = f :=
-begin
-  ext,
-  rw convolve_apply,
-  by_cases x0 : x = 0, {simp [x0]},
-  have h : {(1,x)} ⊆ divisors_antidiagonal x := by simp [x0],
-  rw ← sum_subset h, {simp},
-  intros y ymem ynmem,
-  have y1ne : y.fst ≠ 1,
-  { intro con,
-    simp only [con, mem_divisors_antidiagonal, one_mul, ne.def] at ymem,
-    simp only [mem_singleton, prod.ext_iff] at ynmem,
-    tauto },
-  simp [y1ne],
-end
-
-@[simp]
-lemma convolve_one (f : arithmetic_function α) : convolve f 1 = f :=
-begin
-  ext,
-  rw convolve_apply,
-  by_cases x0 : x = 0, {simp [x0]},
-  have h : {(x,1)} ⊆ divisors_antidiagonal x := by simp [x0],
-  rw ← sum_subset h, {simp},
-  intros y ymem ynmem,
-  have y2ne : y.snd ≠ 1,
-  { intro con,
-    simp only [con, mem_divisors_antidiagonal, mul_one, ne.def] at ymem,
-    simp only [mem_singleton, prod.ext_iff] at ynmem,
-    tauto },
-  simp [y2ne],
-end
-
-@[simp]
-lemma zero_convolve (f : arithmetic_function α) : convolve 0 f = 0 :=
-by { ext, simp }
-
-@[simp]
-lemma convolve_zero (f : arithmetic_function α) : convolve f 0 = 0 :=
-by { ext, simp }
-
-lemma convolve_assoc (f g h : arithmetic_function α) :
-  convolve (convolve f g) h = convolve f (convolve g h) :=
-begin
-  ext n,
-  simp only [convolve_apply],
-  have := @finset.sum_sigma (ℕ × ℕ) α _ _ (divisors_antidiagonal n)
-    (λ p, (divisors_antidiagonal p.1)) (λ x, f x.2.1 * g x.2.2 * h x.1.2),
-  convert this.symm using 1; clear this,
-  { apply finset.sum_congr rfl,
-    intros p hp, exact finset.sum_mul },
-  have := @finset.sum_sigma (ℕ × ℕ) α _ _ (divisors_antidiagonal n)
-    (λ p, (divisors_antidiagonal p.2)) (λ x, f x.1.1 * (g x.2.1 * h x.2.2)),
-  convert this.symm using 1; clear this,
-  { apply finset.sum_congr rfl, intros p hp, rw finset.mul_sum },
-  apply finset.sum_bij,
-  swap 5,
-  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, exact ⟨(k, l*j), (l, j)⟩ },
-  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H,
-    simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢, finish },
-  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, simp only [mul_assoc] },
-  { rintros ⟨⟨a,b⟩, ⟨c,d⟩⟩ ⟨⟨i,j⟩, ⟨k,l⟩⟩ H₁ H₂,
-    simp only [finset.mem_sigma, mem_divisors_antidiagonal,
-      and_imp, prod.mk.inj_iff, add_comm, heq_iff_eq] at H₁ H₂ ⊢,
-    finish },
-  { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, refine ⟨⟨(i*k, l), (i, k)⟩, _, _⟩;
-    { simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢, finish } }
-end
-
-lemma convolve_add (a b c : arithmetic_function α) :
-  convolve a (b + c) = convolve a b + convolve a c :=
-by { ext, simp [← sum_add_distrib, mul_add] }
-
-lemma add_convolve (a b c : arithmetic_function α) :
-  convolve (a + b) c = convolve a c + convolve b c :=
-by { ext, simp [← sum_add_distrib, add_mul] }
-
-instance : has_mul (arithmetic_function α) := ⟨convolve⟩
+instance : has_mul (arithmetic_function α) :=
+⟨λ f g, ⟨λ n, ∑ x in divisors_antidiagonal n, f x.fst * g x.snd, by simp⟩⟩
 
 @[simp]
 lemma mul_apply {f g : arithmetic_function α} {n : ℕ} :
   (f * g) n = ∑ x in divisors_antidiagonal n, f x.fst * g x.snd := rfl
+
+instance : monoid (arithmetic_function α) :=
+{ one_mul := λ f,
+  begin
+    ext,
+    rw mul_apply,
+    by_cases x0 : x = 0, {simp [x0]},
+    have h : {(1,x)} ⊆ divisors_antidiagonal x := by simp [x0],
+    rw ← sum_subset h, {simp},
+    intros y ymem ynmem,
+    have y1ne : y.fst ≠ 1,
+    { intro con,
+      simp only [con, mem_divisors_antidiagonal, one_mul, ne.def] at ymem,
+      simp only [mem_singleton, prod.ext_iff] at ynmem,
+      tauto },
+    simp [y1ne],
+  end,
+  mul_one := λ f,
+  begin
+    ext,
+    rw mul_apply,
+    by_cases x0 : x = 0, {simp [x0]},
+    have h : {(x,1)} ⊆ divisors_antidiagonal x := by simp [x0],
+    rw ← sum_subset h, {simp},
+    intros y ymem ynmem,
+    have y2ne : y.snd ≠ 1,
+    { intro con,
+      simp only [con, mem_divisors_antidiagonal, mul_one, ne.def] at ymem,
+      simp only [mem_singleton, prod.ext_iff] at ynmem,
+      tauto },
+    simp [y2ne],
+  end,
+  mul_assoc := λ f g h,
+  begin
+    ext n,
+    simp only [mul_apply],
+    have := @finset.sum_sigma (ℕ × ℕ) α _ _ (divisors_antidiagonal n)
+      (λ p, (divisors_antidiagonal p.1)) (λ x, f x.2.1 * g x.2.2 * h x.1.2),
+    convert this.symm using 1; clear this,
+    { apply finset.sum_congr rfl,
+      intros p hp, exact finset.sum_mul },
+    have := @finset.sum_sigma (ℕ × ℕ) α _ _ (divisors_antidiagonal n)
+      (λ p, (divisors_antidiagonal p.2)) (λ x, f x.1.1 * (g x.2.1 * h x.2.2)),
+    convert this.symm using 1; clear this,
+    { apply finset.sum_congr rfl, intros p hp, rw finset.mul_sum },
+    apply finset.sum_bij,
+    swap 5,
+    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, exact ⟨(k, l*j), (l, j)⟩ },
+    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H,
+      simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢, finish },
+    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, simp only [mul_assoc] },
+    { rintros ⟨⟨a,b⟩, ⟨c,d⟩⟩ ⟨⟨i,j⟩, ⟨k,l⟩⟩ H₁ H₂,
+      simp only [finset.mem_sigma, mem_divisors_antidiagonal,
+        and_imp, prod.mk.inj_iff, add_comm, heq_iff_eq] at H₁ H₂ ⊢,
+      finish },
+    { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H, refine ⟨⟨(i*k, l), (i, k)⟩, _, _⟩;
+      { simp only [finset.mem_sigma, mem_divisors_antidiagonal] at H ⊢, finish } }
+  end,
+  .. arithmetic_function.has_one,
+  .. arithmetic_function.has_mul }
+
+instance : semiring (arithmetic_function α) :=
+{ zero_mul := λ f, by { ext, simp, },
+  mul_zero := λ f, by { ext, simp, },
+  left_distrib := λ a b c, by { ext, simp [← sum_add_distrib, mul_add] },
+  right_distrib := λ a b c, by { ext, simp [← sum_add_distrib, add_mul] },
+  .. arithmetic_function.has_zero,
+  .. arithmetic_function.has_mul,
+  .. arithmetic_function.has_add,
+  .. arithmetic_function.add_comm_monoid,
+  .. arithmetic_function.monoid }
+
+end dirichlet_ring
+
+instance [comm_semiring α] : comm_semiring (arithmetic_function α) :=
+{ mul_comm := λ f g, by { ext,
+    rw [mul_apply, ← map_swap_divisors_antidiagonal, sum_map],
+    simp [mul_comm] },
+  .. arithmetic_function.semiring }
+
+instance [comm_ring α] : comm_ring (arithmetic_function α) :=
+{ .. arithmetic_function.add_comm_group,
+  .. arithmetic_function.comm_semiring }
 
 instance : semiring (arithmetic_function α) :=
 { one_mul := one_convolve,
@@ -485,6 +474,16 @@ end⟩
 end multiplicative
 
 section special_functions
+
+/-- `ζ 0 = 0`, otherwise `ζ x = 1`. The Dirichlet Series is the Riemann ζ.  -/
+def zeta : arithmetic_function α := ⟨λ x, ite (x = 0) 0 1, rfl⟩
+
+localized "notation `ζ` := zeta" in arithmetic_function
+
+@[simp]
+lemma zeta_apply {x : ℕ} : (ζ : arithmetic_function α) x = if (x = 0) then 0 else 1 := rfl
+
+lemma zeta_apply_of_ne_zero {x : ℕ} (h : x ≠ 0) : (ζ : arithmetic_function α) x = 1 := if_neg h
 
 /-- `σ k n` is the sum of the `k`th powers of the divisors of `n` -/
 def sigma (k : ℕ) : arithmetic_function ℕ :=

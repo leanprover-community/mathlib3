@@ -5,7 +5,7 @@ Author: Johannes Hölzl
 
 Linear structures on function with finite support `α →₀ M`.
 -/
-import data.monoid_algebra
+import algebra.monoid_algebra
 
 noncomputable theory
 
@@ -18,14 +18,17 @@ namespace finsupp
 variables {α : Type*} {M : Type*} {N : Type*} {R : Type*}
 variables [semiring R] [add_comm_monoid M] [semimodule R M] [add_comm_monoid N] [semimodule R N]
 
+/-- Interpret `finsupp.single a` as a linear map. -/
 def lsingle (a : α) : M →ₗ[R] (α →₀ M) :=
 ⟨single a, assume a b, single_add, assume c b, (smul_single _ _ _).symm⟩
 
+/-- Interpret `λ (f : α →₀ M), f a` as a linear map. -/
 def lapply (a : α) : (α →₀ M) →ₗ[R] M := ⟨λg, g a, assume a b, rfl, assume a b, rfl⟩
 
 section lsubtype_domain
 variables (s : set α)
 
+/-- Interpret `finsupp.subtype_domain s` as a linear map. -/
 def lsubtype_domain : (α →₀ M) →ₗ[R] (s →₀ M) :=
 ⟨subtype_domain (λx, x ∈ s), assume a b, subtype_domain_add, assume c a, ext $ assume a, rfl⟩
 
@@ -87,6 +90,7 @@ by rw ← span_image; refl
 
 variables (M R)
 
+/-- `finsupp.supported M R s` is the `R`-submodule of all `p : α →₀ M` such that `p.support ⊆ s`. -/
 def supported (s : set α) : submodule R (α →₀ M) :=
 begin
   refine ⟨ {p | ↑p.support ⊆ s }, _, _, _ ⟩,
@@ -129,6 +133,7 @@ end
 
 variables (M R)
 
+/-- Interpret `finsupp.filter s` as a linear map from `α →₀ M` to `supported M R s`. -/
 def restrict_dom (s : set α) : (α →₀ M) →ₗ supported M R s :=
 linear_map.cod_restrict _
   { to_fun := filter (∈ s),
@@ -198,6 +203,8 @@ begin
   exact λ l, set.subset_Inter
 end
 
+/-- Interpret `finsupp.restrict_support_equiv` as a linear equivalence between
+`supported M R s` and `s →₀ M`. -/
 def supported_equiv_finsupp (s : set α) : (supported M R s) ≃ₗ[R] (s →₀ M) :=
 begin
   let F : (supported M R s) ≃ (s →₀ M) := restrict_support_equiv s M,
@@ -208,7 +215,7 @@ begin
   exact linear_map.is_linear _
 end
 
-/-- finsupp.sum as a linear map. -/
+/-- `finsupp.sum` as a linear map. -/
 def lsum (f : α → M →ₗ[R] N) : (α →₀ M) →ₗ[R] N :=
 ⟨λ d, d.sum (λ i, f i),
   assume d₁ d₂, by simp [sum_add_index],
@@ -226,6 +233,7 @@ finsupp.sum_single_index (f i).map_zero
 section lmap_domain
 variables {α' : Type*} {α'' : Type*} (M R)
 
+/-- Interpret `finsupp.lmap_domain` as a linear map. -/
 def lmap_domain (f : α → α') : (α →₀ M) →ₗ[R] (α' →₀ M) :=
 ⟨map_domain f, assume a b, map_domain_add, map_domain_smul⟩
 
@@ -376,6 +384,11 @@ by rw span_eq_map_total; simp
 
 variables (α) (M) (v)
 
+/-- `finsupp.total_on M v s` interprets `p : α →₀ R` as a linear combination of a
+subset of the vectors in `v`, mapping it to the span of those vectors.
+
+The subset is indicated by a set `s : set α` of indices.
+-/
 protected def total_on (s : set α) : supported R R s →ₗ[R] span R (v '' s) :=
 linear_map.cod_restrict _ ((finsupp.total _ _ _ v).comp (submodule.subtype (supported R R s))) $
   λ ⟨l, hl⟩, (mem_span_iff_total _).2 ⟨l, hl, rfl⟩
@@ -418,16 +431,13 @@ end total
 protected def dom_lcongr
   {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) :
   (α₁ →₀ M) ≃ₗ[R] (α₂ →₀ M) :=
-(finsupp.dom_congr e).to_linear_equiv
-begin
-  change is_linear_map R (lmap_domain M R e : (α₁ →₀ M) →ₗ[R] (α₂ →₀ M)),
-  exact linear_map.is_linear _
-end
+(@finsupp.dom_congr M _ _ _ e).to_linear_equiv (lmap_domain M R e).map_smul
 
 @[simp] theorem dom_lcongr_single {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) (i : α₁) (m : M) :
   (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (finsupp.single i m) = finsupp.single (e i) m :=
-by simp [finsupp.dom_lcongr, equiv.to_linear_equiv, finsupp.dom_congr, map_domain_single]
+by simp [finsupp.dom_lcongr, finsupp.dom_congr, map_domain_single]
 
+/-- An equivalence of sets induces a linear equivalence of `finsupp`s supported on those sets. -/
 noncomputable def congr {α' : Type*} (s : set α) (t : set α') (e : s ≃ t) :
   supported M R s ≃ₗ[R] supported M R t :=
 begin

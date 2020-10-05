@@ -845,6 +845,31 @@ theorem prod_eq_zero_iff [comm_cancel_monoid_with_zero α] [nontrivial α]
 multiset.induction_on s (by simp) $
   assume a s, by simp [mul_eq_zero, @eq_comm _ 0 a] {contextual := tt}
 
+
+@[to_additive sum_nonneg]
+lemma one_le_prod_of_one_le [ordered_comm_monoid α] {m : multiset α} :
+  (∀ x ∈ m, (1 : α) ≤ x) → 1 ≤ m.prod :=
+quotient.induction_on m $ λ l hl, by simpa using list.one_le_prod_of_one_le hl
+
+@[to_additive]
+lemma single_le_prod [ordered_comm_monoid α] {m : multiset α} :
+  (∀ x ∈ m, (1 : α) ≤ x) → ∀ x ∈ m, x ≤ m.prod :=
+quotient.induction_on m $ λ l hl x hx, by simpa using list.single_le_prod hl x hx
+
+@[to_additive all_zero_of_le_zero_le_of_sum_eq_zero]
+lemma all_one_of_le_one_le_of_prod_eq_one [ordered_comm_monoid α] {m : multiset α} :
+  (∀ x ∈ m, (1 : α) ≤ x) → m.prod = 1 → (∀ x ∈ m, x = (1 : α)) :=
+begin
+  apply quotient.induction_on m,
+  simp only [quot_mk_to_coe, coe_prod, mem_coe],
+  intros l hl₁ hl₂ x hx,
+  apply all_one_of_le_one_le_of_prod_eq_one hl₁ hl₂ _ hx,
+end
+
+lemma sum_eq_zero_iff [canonically_ordered_add_monoid α] {m : multiset α} :
+  m.sum = 0 ↔ ∀ x ∈ m, x = (0 : α) :=
+quotient.induction_on m $ λ l, by simpa using list.sum_eq_zero_iff l
+
 lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_add_comm_monoid β]
   (f : α → β) (h_zero : f 0 = 0) (h_add : ∀x y, f (x + y) ≤ f x + f y) (s : multiset α) :
   f s.sum ≤ (s.map f).sum :=
@@ -1714,9 +1739,13 @@ lemma count_bind {m : multiset β} {f : β → multiset α} {a : α} :
 theorem le_count_iff_repeat_le {a : α} {s : multiset α} {n : ℕ} : n ≤ count a s ↔ repeat a n ≤ s :=
 quot.induction_on s $ λ l, le_count_iff_repeat_sublist.trans repeat_le_coe.symm
 
-@[simp] theorem count_filter {p} [decidable_pred p]
+@[simp] theorem count_filter_of_pos {p} [decidable_pred p]
   {a} {s : multiset α} (h : p a) : count a (filter p s) = count a s :=
 quot.induction_on s $ λ l, count_filter h
+
+@[simp] theorem count_filter_of_neg {p} [decidable_pred p]
+  {a} {s : multiset α} (h : ¬ p a) : count a (filter p s) = 0 :=
+multiset.count_eq_zero_of_not_mem (λ t, h (of_mem_filter t))
 
 theorem ext {s t : multiset α} : s = t ↔ ∀ a, count a s = count a t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, quotient.eq.trans perm_iff_count

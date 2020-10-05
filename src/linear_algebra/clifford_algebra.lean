@@ -81,10 +81,7 @@ def ι : M →ₗ[R] clifford_algebra Q :=
 @[simp]
 theorem ι_square_scalar (m : M) : ι Q m * ι Q m = algebra_map R _ (Q m) :=
 begin
-  dsimp [ι],
-  rw ←alg_hom.map_mul,
-  rw ring_quot.mk_alg_hom_rel R (rel.of m),
-  rw alg_hom.commutes,
+  erw [←alg_hom.map_mul, ring_quot.mk_alg_hom_rel R (rel.of m), alg_hom.commutes],
   refl,
 end
 
@@ -112,7 +109,7 @@ by { ext, simp [lift, ι] }
 @[simp]
 theorem lift_ι_apply (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = algebra_map _ _ (Q m)) (x) :
   lift Q f cond (ι Q x) = f x :=
-by { dsimp [lift, ι], rw tensor_algebra.lift_ι_apply }
+by simp [lift, ι]
 
 @[simp]
 theorem lift_unique (f : M →ₗ[R] A) (cond : ∀ m : M, f m * f m = algebra_map _ _ (Q m))
@@ -151,8 +148,8 @@ end
 /-- A clifford algebra with a zero quadratic form is isomorphic to an `exterior_algebra` -/
 def as_exterior : clifford_algebra (0 : quadratic_form R M) ≃ₐ[R] exterior_algebra R M :=
 alg_equiv.of_alg_hom
-  (clifford_algebra.lift (0 : quadratic_form R M) (exterior_algebra.ι R) $ λ m, by simp)
-  (exterior_algebra.lift R (ι (0 : quadratic_form R M)) $ λ m, by simp)
+  (clifford_algebra.lift 0 (exterior_algebra.ι R) $ λ m, by simp)
+  (exterior_algebra.lift R (ι 0) $ λ m, by simp)
   (by { ext, simp, })
   (by { ext, simp, })
 

@@ -588,6 +588,7 @@ end
 
 open tactic
 
+/-- Helper function for the `norm_digits` tactic. -/
 meta def eval_aux (eb : expr) (b : ℕ) :
   expr → ℕ → instance_cache → tactic (instance_cache × expr × expr)
 | en n ic := do
@@ -605,6 +606,7 @@ meta def eval_aux (eb : expr) (b : ℕ) :
     return (ic, `(@list.cons ℕ %%er %%el),
       `(digits_succ %%eb %%en %%em %%er %%el %%pe %%pr %%p))
 
+/-- Helper function for the `norm_digits` tactic. -/
 meta def eval : expr → ℕ → expr → ℕ → tactic (expr × expr)
 | eb b en 0 := return (`([] : list ℕ), `(nat.digits_zero %%eb))
 | eb 0 en n := do
@@ -628,8 +630,14 @@ end norm_digits
 
 open tactic
 
-/-- A tactic for normalizing expressions of the form `nat.digits a b = l` where
-`a` and `b` are numerals. -/
+/--
+A tactic for normalizing expressions of the form `nat.digits a b = l` where
+`a` and `b` are numerals.
+
+```
+example : nat.digits 10 123 = [3,2,1] := by norm_digits
+```
+-/
 meta def norm_digits : tactic unit :=
 do `(nat.digits %%eb %%en = %%el') ← target,
   b ← expr.to_nat eb,
@@ -638,4 +646,11 @@ do `(nat.digits %%eb %%en = %%el') ← target,
   unify el el',
   exact p
 
+run_cmd add_interactive [``norm_digits]
+
+add_tactic_doc
+{ name        := "norm_digits",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.norm_digits],
+  tags        := ["arithmetic", "decision procedure"] }
 end nat

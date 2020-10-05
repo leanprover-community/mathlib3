@@ -471,17 +471,11 @@ namespace comm_semiring
 
 variables [comm_semiring R]
 
-lemma min_pow_dvd_sum {n m : ℕ} {a b c : R} (ha : c^n ∣ a) (hb : c^m ∣ b) :
-c^(min n m) ∣ a + b :=
+lemma min_pow_dvd_sum {n m : ℕ} {a b c : R} (ha : c ^ n ∣ a) (hb : c ^ m ∣ b) : c ^ (min n m) ∣ a + b :=
 begin
-by_cases n ≤ m,
-{ simp [h],
-  replace hb := dvd.trans (pow_dvd_pow c h) hb,
-  exact dvd_add ha hb },
-{ simp [le_of_not_ge h],
-  replace ha := dvd.trans (pow_dvd_pow c (le_of_not_ge h)) ha,
-  exact dvd_add ha hb,
- },
+  replace ha := dvd.trans (pow_dvd_pow c (min_le_left n m)) ha,
+  replace hb := dvd.trans (pow_dvd_pow c (min_le_right n m)) hb,
+  exact dvd_add ha hb
 end
 
 end comm_semiring

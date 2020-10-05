@@ -185,7 +185,7 @@ begin
   exact root_multiplicity_eq_zero (mt root_X_sub_C.mp (ne.symm hxy))
 end
 
-/-- The multiplicity of `a` as root of `(X - a) ^ n` is `n`. --/
+/-- The multiplicity of `a` as root of `(X - a) ^ n` is `n`. -/
 lemma root_multiplicity_X_sub_C_pow (a : R) (n : ℕ) : root_multiplicity a ((X - C a) ^ n) = n :=
 begin
   induction n with n hn,

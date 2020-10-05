@@ -252,6 +252,9 @@ structure linear_map (R : Type u) (M : Type v) (M₂ : Type w)
   [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂] extends add_hom M M₂ :=
 (map_smul' : ∀(c : R) x, to_fun (c • x) = c • to_fun x)
 
+/-- The `add_hom` underlying a `linear_equiv`. -/
+add_decl_doc linear_equiv.to_add_hom
+
 set_option old_structure_cmd false
 
 infixr ` →ₗ `:25 := linear_map _

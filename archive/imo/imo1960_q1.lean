@@ -66,20 +66,11 @@ def sum_of_digit_squares (n : ℕ) := sum_of_squares (nat.digits 10 n)
 lemma sods_zero : sum_of_digit_squares 0 = 0 :=
 by norm_num [sum_of_digit_squares, sum_of_squares]
 
-lemma digit_recursion (n : ℕ) (h1 : 0 < n) :
-(nat.digits 10 n) = (n % 10) :: (nat.digits 10 (n / 10)) :=
-begin
-  have h2: n ≥ 1, by linarith,
-  have h3: (n - 1) + 1 = n, from nat.sub_add_cancel h2,
-  rw ← h3,
-  refl,
-end
-
-lemma calc_sods (n : ℕ) (h : 0 < n) :
+lemma calc_sods (n : ℕ) (h1 : 0 < n) :
 sum_of_digit_squares n = (n % 10) ^ 2 + (sum_of_digit_squares (n / 10)) :=
 begin
   unfold sum_of_digit_squares,
-  rw digit_recursion _ h,
+  rw [nat.digits, nat.digits_aux_def _ _ _ h1],
   unfold sum_of_squares,
   simp [pow_two],
 end

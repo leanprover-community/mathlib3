@@ -85,19 +85,16 @@ def multiples_of_11 (n : ℕ) (h1: problem_predicate n) :
 ∃ c : ℕ, ¬ fails_sum c ∧ 9 < c ∧ c < 91 ∧ n = c * 11 :=
 begin
   obtain ⟨c, h2⟩ : ∃ c : ℕ, n = c * 11, from exists_eq_mul_left_of_dvd h1.right.left,
-  use c,
-  split,
+  refine ⟨c, _, _, _, _⟩,
   { have h3: c = (c * 11) / 11, by simp,
     have h4: c = n / 11, from h2.symm ▸ h3,
     unfold fails_sum,
     rw [h2.symm, h4],
     simp,
     exact h1.right.right },
-  split,
   { have h5: n ≥ 100, from ge_100 n h1,
     linarith },
   have h6: n < 1000, from lt_1000 n h1,
-  split,
   linarith,
   exact h2,
 end

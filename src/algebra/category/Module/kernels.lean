@@ -23,7 +23,7 @@ variables {M N : Module.{v} R} (f : M ⟶ N)
 
 /-- The kernel cone induced by the concrete kernel. -/
 def kernel_cone : kernel_fork f :=
-kernel_fork.of_ι (as_hom f.ker.subtype) $ by tidy
+kernel_fork.of_ι _ (as_hom f.ker.subtype) $ by tidy
 
 /-- The kernel of a linear map is a kernel in the categorical sense. -/
 def kernel_is_limit : is_limit (kernel_cone f) :=

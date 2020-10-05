@@ -84,23 +84,22 @@ def fails_sum (c : ℕ) := c ≠ sum_of_digit_squares (c*11)
 def multiples_of_11 (n : ℕ) (h1: problem_predicate n) :
 ∃ c : ℕ, ¬ fails_sum c ∧ 9 < c ∧ c < 91 ∧ n = c * 11 :=
 begin
-  have h2: ∃ c : ℕ, n = c * 11, from exists_eq_mul_left_of_dvd h1.right.left,
-  cases h2 with c h3,
+  obtain ⟨c, h2⟩ : ∃ c : ℕ, n = c * 11, from exists_eq_mul_left_of_dvd h1.right.left,
   use c,
   split,
-  { have h4: c = (c * 11) / 11, by simp,
-    have h5: c = n / 11, from h3.symm ▸ h4,
+  { have h3: c = (c * 11) / 11, by simp,
+    have h4: c = n / 11, from h2.symm ▸ h3,
     unfold fails_sum,
-    rw [h3.symm, h5],
+    rw [h2.symm, h4],
     simp,
     exact h1.right.right },
   split,
-  { have h6: n ≥ 100, from ge_100 n h1,
+  { have h5: n ≥ 100, from ge_100 n h1,
     linarith },
-  have h7: n < 1000, from lt_1000 n h1,
+  have h6: n < 1000, from lt_1000 n h1,
   split,
   linarith,
-  exact h3,
+  exact h2,
 end
 
 lemma step_helper (b c : ℕ) (h : b < c) : b + 1 = c ∨ b + 1 < c := eq_or_lt_of_le h

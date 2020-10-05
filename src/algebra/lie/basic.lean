@@ -297,7 +297,7 @@ open dfinsupp
 open_locale direct_sum
 
 variables {R : Type u} [comm_ring R]
-variables {ι : Type v} [decidable_eq ι] {L : ι → Type w}
+variables {ι : Type v} {L : ι → Type w}
 variables [Π i, lie_ring (L i)] [Π i, lie_algebra R (L i)]
 
 /-- The direct sum of Lie rings carries a natural Lie ring structure. -/

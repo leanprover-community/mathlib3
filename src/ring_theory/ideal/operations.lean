@@ -765,114 +765,6 @@ calc I = comap f (map f I) : ((rel_iso_of_bijective f hf).right_inv I).symm
 
 end bijective
 
-section
-
-/-- Every ideal of the product ring is of the form `I × J`, where `I` and `J` can be explicitly
-    given as the image under the projection maps. -/
-theorem ideal_prod_eq (I : ideal (R × S)) :
-  I = ideal.prod (map (ring_hom.fst R S) I) (map (ring_hom.snd R S) I) :=
-begin
-  apply ideal.ext,
-  rintro ⟨r, s⟩,
-  rw [mem_prod, mem_map_iff_of_surjective (ring_hom.fst R S) prod.fst_surjective,
-    mem_map_iff_of_surjective (ring_hom.snd R S) prod.snd_surjective],
-  refine ⟨λ h, ⟨⟨_, ⟨h, rfl⟩⟩, ⟨_, ⟨h, rfl⟩⟩⟩, _⟩,
-  rintro ⟨⟨⟨r, s'⟩, ⟨h₁, rfl⟩⟩, ⟨⟨r', s⟩, ⟨h₂, rfl⟩⟩⟩,
-  have hr : (r, s') * (1, 0) ∈ I := ideal.mul_mem_right _ h₁,
-  have hs : (r', s) * (0, 1) ∈ I := ideal.mul_mem_right _ h₂,
-  simpa using ideal.add_mem _ hr hs
-end
-
-@[simp] lemma map_fst_prod (I : ideal R) (J : ideal S) : map (ring_hom.fst R S) (prod I J) = I :=
-begin
-  ext,
-  rw mem_map_iff_of_surjective (ring_hom.fst R S) prod.fst_surjective,
-  exact ⟨by { rintro ⟨x, ⟨h, rfl⟩⟩, exact h.1 }, λ h, ⟨⟨x, 0⟩, ⟨⟨h, ideal.zero_mem _⟩, rfl⟩⟩⟩
-end
-
-@[simp] lemma map_snd_prod (I : ideal R) (J : ideal S) : map (ring_hom.snd R S) (prod I J) = J :=
-begin
-  ext,
-  rw mem_map_iff_of_surjective (ring_hom.snd R S) prod.snd_surjective,
-  exact ⟨by { rintro ⟨x, ⟨h, rfl⟩⟩, exact h.2 }, λ h, ⟨⟨0, x⟩, ⟨⟨ideal.zero_mem _, h⟩, rfl⟩⟩⟩
-end
-
-/-- Ideals of `R × S` are in one-to-one correspondence with pairs of ideals of `R` and ideals of
-    `S`. -/
-def ideal_prod_equiv : ideal (R × S) ≃ ideal R × ideal S :=
-{ to_fun := λ I, ⟨map (ring_hom.fst R S) I, map (ring_hom.snd R S) I⟩,
-  inv_fun := λ I, prod I.1 I.2,
-  left_inv := λ I, (ideal_prod_eq I).symm,
-  right_inv := λ ⟨I, J⟩, by simp }
-
-@[simp] lemma ideal_prod_equiv_symm_apply (I : ideal R) (J : ideal S) :
-  ideal_prod_equiv.symm ⟨I, J⟩ = prod I J := rfl
-
-lemma prod.ext_iff {I I' : ideal R} {J J' : ideal S} : prod I J = prod I' J' ↔ I = I' ∧ J = J' :=
-by simp only [←ideal_prod_equiv_symm_apply, ideal_prod_equiv.symm.injective.eq_iff, prod.mk.inj_iff]
-
-lemma ideal_prod_prime_aux₀ {I : ideal R} {J : ideal S} (h : (ideal.prod I J).is_prime) :
-  I = ⊤ ∨ J = ⊤ :=
-begin
-  unfreezingI { revert h },
-  contrapose!,
-  simp only [ne_top_iff_one, is_prime],
-  push_neg,
-  exact λ ⟨hI, hJ⟩ hIJ, ⟨⟨0, 1⟩, ⟨1, 0⟩, by simp, by simp [hJ], by simp [hI]⟩
-end
-
-lemma ideal_prod_prime_aux₁ {I : ideal R} (h : (ideal.prod I (⊤ : ideal S)).is_prime) :
-  I.is_prime :=
-begin
-
-end
-
-/-- Classification of prime ideals in product rings: the prime ideals of `R × S` are precisely the
-    ideals of the form `p × S` or `R × p`, where `p` is a prime ideal of `R` or `S`. -/
-theorem ideal_prod_prime (I : ideal (R × S)) : I.is_prime ↔
-  ((∃ p : ideal R, p.is_prime ∧ I = ideal.prod p ⊤) ∨
-   (∃ p : ideal S, p.is_prime ∧ I = ideal.prod ⊤ p)) :=
-begin
-  split,
-  { rw ideal_prod_eq I,
-    introI hI,
-    rcases ideal_prod_prime_aux hI with (h|h),
-    { right,
-      refine ⟨map (ring_hom.snd R S) I, ⟨_, _⟩, by rw h⟩,
-      { unfreezingI { contrapose! hI },
-        simp only [is_prime, not_and_distrib, not_not],
-        left,
-        simp only [h, hI, prod_top_top] },
-      simp only [mem_map_iff_of_surjective (ring_hom.snd R S) prod.snd_surjective],
-      rintros s₀ s₁ ⟨⟨r, s⟩, ⟨h₀, (h₁ : s = s₀ * s₁)⟩⟩,
-      have : (⟨1, s₀⟩ : R × S) * ⟨r, s₁⟩ ∈ I,
-      { simpa [←h₁] using h₀ },
-      rw ideal_prod_eq I at this ⊢,
-      rcases is_prime.mem_or_mem hI this with (h'|h'),
-      { exact or.inl ⟨_, ⟨h', rfl⟩⟩ },
-      { exact or.inr ⟨_, ⟨h', rfl⟩⟩ } },
-    { sorry, } },
-  { rintro (⟨p, ⟨⟨hp₁, hp₂⟩, rfl⟩⟩|⟨⟨p, ⟨⟨hp₁, hp₂⟩, rfl⟩⟩⟩),
-    { split,
-      { contrapose! hp₁,
-        rw [←prod_top_top, prod.ext_iff] at hp₁,
-        exact hp₁.1 },
-      rintros ⟨r₁, s₁⟩ ⟨r₂, s₂⟩ ⟨h₁, h₂⟩,
-      cases hp₂ h₁,
-      { exact or.inl ⟨h, trivial⟩ },
-      { exact or.inr ⟨h, trivial⟩ } },
-    { split,
-      { contrapose! hp₁,
-        rw [←prod_top_top, prod.ext_iff] at hp₁,
-        exact hp₁.2 },
-      rintros ⟨r₁, s₁⟩ ⟨r₂, s₂⟩ ⟨h₁, h₂⟩,
-      cases hp₂ h₂,
-      { exact or.inl ⟨trivial, h⟩ },
-      { exact or.inr ⟨trivial, h⟩ } } }
-end
-
-end
-
 end map_and_comap
 
 section is_primary
@@ -938,6 +830,9 @@ by rw [submodule.ext'_iff, ker_eq]; exact is_add_group_hom.trivial_ker_iff_eq_ze
 lemma not_one_mem_ker [nontrivial S] (f : R →+* S) : (1:R) ∉ ker f :=
 by { rw [mem_ker, f.map_one], exact one_ne_zero }
 
+@[simp] lemma ker_coe_equiv (f : R ≃+* S) : ker (f : R →+* S) = ⊥ :=
+by simpa only [←injective_iff_ker_eq_bot] using f.injective
+
 end comm_ring
 
 /-- The kernel of a homomorphism to an integral domain is a prime ideal.-/
@@ -1000,6 +895,10 @@ begin
       ring },
     exact (H.right this).imp (λ h, ha ▸ mem_map_of_mem h) (λ h, hb ▸ mem_map_of_mem h) }
 end
+
+theorem map_is_prime_of_equiv (f : R ≃+* S) {I : ideal R} [is_prime I] :
+  is_prime (map (f : R →+* S) I) :=
+map_is_prime_of_surjective f.surjective $ by simp
 
 theorem map_radical_of_surjective {f : R →+* S} (hf : function.surjective f) {I : ideal R}
   (h : ring_hom.ker f ≤ I) : map f (I.radical) = (map f I).radical :=

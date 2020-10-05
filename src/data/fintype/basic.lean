@@ -440,7 +440,7 @@ def fintype.fintype_prod_left {α β} [decidable_eq α] [fintype (α × β)] [no
 ⟨(fintype.elems (α × β)).image prod.fst,
   assume a, let ⟨b⟩ := ‹nonempty β› in by simp; exact ⟨b, fintype.complete _⟩⟩
 
-/-- Given that `α × β` is a fintype, `β` is also a fintype -/
+/-- Given that `α × β` is a fintype, `β` is also a fintype. -/
 def fintype.fintype_prod_right {α β} [decidable_eq β] [fintype (α × β)] [nonempty α] : fintype β :=
 ⟨(fintype.elems (α × β)).image prod.snd,
   assume b, let ⟨a⟩ := ‹nonempty α› in by simp; exact ⟨a, fintype.complete _⟩⟩

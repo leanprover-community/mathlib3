@@ -142,25 +142,23 @@ begin
     hmin ⟨g, hg₁, le_trans hg₂ uτ.property.right⟩ hg₂⟩
 end
 
-lemma exists_ultrafilter' (S : set (set α)) (cond : ∀ T : finset (set α),
-  ↑T ⊆ S → ⋂₀ (↑T : set (set α)) ≠ ∅) : ∃ F : filter α, S ⊆ F.sets ∧ is_ultrafilter F :=
+lemma exists_ultrafilter_of_finite_inter_nonempty (S : set (set α)) (cond : ∀ T : finset (set α),
+  ↑T ⊆ S → (⋂₀ (↑T : set (set α))).nonempty) : ∃ F : filter α, S ⊆ F.sets ∧ is_ultrafilter F :=
 begin
-suffices : ∃ (F : filter α), ne_bot F ∧ S ⊆ F.sets,
-{ rcases this with ⟨F,cond,hF⟩,
-  rcases @exists_ultrafilter _ F cond with ⟨G,h1,h2⟩,
-  exact ⟨G,λ T hT, h1 (hF hT),h2⟩ },
-use filter.generate S,
-refine ⟨_,λ T hT, filter.generate_sets.basic hT⟩,
-rw ←forall_sets_nonempty_iff_ne_bot,
-intros T hT,
-rw mem_generate_iff at hT,
-rcases hT with ⟨A,h1,h2,h3⟩,
-let B := set.finite.to_finset h2,
-have : A = ↑B, by simp, rw this at *, clear this,
-specialize cond B h1,
-rw ne_empty_iff_nonempty at cond,
-rcases cond with ⟨x,hx⟩,
-exact ⟨x,h3 hx⟩,
+  suffices : ∃ (F : filter α), ne_bot F ∧ S ⊆ F.sets,
+  { rcases this with ⟨F,cond,hF⟩,
+    rcases @exists_ultrafilter _ F cond with ⟨G,h1,h2⟩,
+    exact ⟨G,λ T hT, h1 (hF hT),h2⟩ },
+  use filter.generate S,
+  refine ⟨_,λ T hT, filter.generate_sets.basic hT⟩,
+  rw ←forall_sets_nonempty_iff_ne_bot,
+  intros T hT,
+  rw mem_generate_iff at hT,
+  rcases hT with ⟨A,h1,h2,h3⟩,
+  let B := set.finite.to_finset h2,
+  have : A = ↑B, by simp, rw this at *, clear this,
+  rcases cond B h1 with ⟨x,hx⟩,
+  exact ⟨x,h3 hx⟩,
 end
 
 /-- Construct an ultrafilter extending a given filter.

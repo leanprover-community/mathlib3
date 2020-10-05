@@ -783,6 +783,39 @@ begin
   simpa using ideal.add_mem _ hr hs
 end
 
+@[simp] lemma map_fst_prod (I : ideal R) (J : ideal S) : map (ring_hom.fst R S) (prod I J) = I :=
+begin
+  ext,
+  rw mem_map_iff_of_surjective (ring_hom.fst R S) prod.fst_surjective,
+  exact ⟨by { rintro ⟨x, ⟨h, rfl⟩⟩, exact h.1 }, λ h, ⟨⟨x, 0⟩, ⟨⟨h, ideal.zero_mem _⟩, rfl⟩⟩⟩
+end
+
+@[simp] lemma map_snd_prod (I : ideal R) (J : ideal S) : map (ring_hom.snd R S) (prod I J) = J :=
+begin
+  ext,
+  rw mem_map_iff_of_surjective (ring_hom.snd R S) prod.snd_surjective,
+  exact ⟨by { rintro ⟨x, ⟨h, rfl⟩⟩, exact h.2 }, λ h, ⟨⟨0, x⟩, ⟨⟨ideal.zero_mem _, h⟩, rfl⟩⟩⟩
+end
+
+/-- Ideals of `R × S` are in one-to-one correspondence with pairs of ideals of `R` and ideals of
+    `S`. -/
+def ideal_prod_equiv : ideal (R × S) ≃ ideal R × ideal S :=
+{ to_fun := λ I, ⟨map (ring_hom.fst R S) I, map (ring_hom.snd R S) I⟩,
+  inv_fun := λ I, prod I.1 I.2,
+  left_inv := λ I, (ideal_prod_eq I).symm,
+  right_inv := λ ⟨I, J⟩, by simp }
+
+@[simp] lemma ideal_prod_equiv_symm_apply (I : ideal R) (J : ideal S) :
+  ideal_prod_equiv.symm ⟨I, J⟩ = prod I J := rfl
+
+lemma prod.ext_iff {I I' : ideal R} {J J' : ideal S} : prod I J = prod I' J' ↔ I = I' ∧ J = J' :=
+by simp only [←ideal_prod_equiv_symm_apply,
+  function.injective.eq_iff ideal_prod_equiv.symm.injective, prod.mk.inj_iff]
+
+@[ext] lemma prod.ext {I I' : ideal R} {J J' : ideal S} (hI : I = I') (hJ : J = J') :
+  prod I J = prod I' J' :=
+prod.ext_iff.2 ⟨hI, hJ⟩
+
 lemma ideal_prod_prime_aux {I : ideal R} {J : ideal S} (h : (ideal.prod I J).is_prime) :
   I = ⊤ ∨ J = ⊤ :=
 begin
@@ -818,13 +851,23 @@ begin
       { exact or.inl ⟨_, ⟨h', rfl⟩⟩ },
       { exact or.inr ⟨_, ⟨h', rfl⟩⟩ } },
     { sorry, } },
-  { rintro (⟨p, ⟨⟨hp₁, hp₂⟩, rfl⟩⟩|h),
+  { rintro (⟨p, ⟨⟨hp₁, hp₂⟩, rfl⟩⟩|⟨⟨p, ⟨⟨hp₁, hp₂⟩, rfl⟩⟩⟩),
     { split,
       { contrapose! hp₁,
-
-       } }
-
-   }
+        rw [←prod_top_top, prod.ext_iff] at hp₁,
+        exact hp₁.1 },
+      rintros ⟨r₁, s₁⟩ ⟨r₂, s₂⟩ ⟨h₁, h₂⟩,
+      cases hp₂ h₁,
+      { exact or.inl ⟨h, trivial⟩ },
+      { exact or.inr ⟨h, trivial⟩ } },
+    { split,
+      { contrapose! hp₁,
+        rw [←prod_top_top, prod.ext_iff] at hp₁,
+        exact hp₁.2 },
+      rintros ⟨r₁, s₁⟩ ⟨r₂, s₂⟩ ⟨h₁, h₂⟩,
+      cases hp₂ h₂,
+      { exact or.inl ⟨trivial, h⟩ },
+      { exact or.inr ⟨trivial, h⟩ } } }
 end
 
 end

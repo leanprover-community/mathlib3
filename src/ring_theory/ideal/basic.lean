@@ -481,20 +481,6 @@ def prod : ideal (α × β) :=
 @[simp] lemma mem_prod {a : α} {b : β} : (⟨a, b⟩ : α × β) ∈ prod I J ↔ a ∈ I ∧ b ∈ J := iff.rfl
 @[simp] lemma prod_top_top : prod (⊤ : ideal α) (⊤ : ideal β) = ⊤ := ideal.ext $ by simp
 
-lemma prod.ext (I' : ideal α) (J' : ideal β) : prod I J = prod I' J' ↔ I = I' ∧ J = J' :=
-begin
-  split,
-  { intro h,
-    split,
-    { apply ideal.ext,
-
-    }
-
-   },
-  { rintro ⟨rfl, rfl⟩,
-    refl }
-end
-
 end prod
 
 section pi

@@ -108,7 +108,7 @@ begin
     have : ∀ᶠ x in 𝓝[Ioi x] x, f x < B x,
       from nhds_within_le_of_mem (Icc_mem_nhds_within_Ioi xab) this,
     refine mem_sets_of_superset this (set_of_subset_set_of.2 $ λ y, le_of_lt) },
-  { rcases dense (bound x xab hxB) with ⟨r, hfr, hrB⟩,
+  { rcases exists_between (bound x xab hxB) with ⟨r, hfr, hrB⟩,
     specialize hf' x xab r hfr,
     have HB : ∀ᶠ z in 𝓝[Ioi x] x, r < (z - x)⁻¹ * (B z - B x),
       from (has_deriv_within_at_iff_tendsto_slope' $ lt_irrefl x).1 (hB' x xab)

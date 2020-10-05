@@ -5,7 +5,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 
 /-!
-# Binary representation of integers using inductive types.
+# Binary representation of integers using inductive types
 
 Note: Unlike in Coq, where this representation is preferred because of
 the reliance on kernel reduction, in Lean this representation is discouraged

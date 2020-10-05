@@ -32,11 +32,7 @@ First, it's inconvenient to work with digits, so let's simplify them out of the 
 
 lemma digit_recursion (n : ℕ) (h1 : n > 0) :
   (nat.digits 10 n) = (n % 10) :: (nat.digits 10 (n / 10)) :=
-begin
-  have h2 : (n - 1) + 1 = n, from nat.sub_add_cancel h1,
-  rw ← h2,
-  refl,
-end
+by rw [nat.digits, nat.digits_aux_def _ _ _ h1]
 
 lemma without_digits (n : ℕ) (h1 : problem_predicate n) :
 ∃ c : ℕ, n = 10 * c + 6 ∧ 6 * 10 ^ (nat.digits 10 c).length + c = 4 * n :=

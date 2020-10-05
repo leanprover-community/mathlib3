@@ -57,6 +57,8 @@ namespace direct_limit
 instance : add_comm_group (direct_limit G f) := quotient.add_comm_group _
 instance : semimodule R (direct_limit G f) := quotient.semimodule _
 
+instance : inhabited (direct_limit G f) := ⟨0⟩
+
 variables (R ι)
 /-- The canonical map from a component to the direct limit. -/
 def of (i) : G i →ₗ[R] direct_limit G f :=
@@ -204,6 +206,7 @@ local attribute [instance] directed_system
 instance : add_comm_group (direct_limit G f) :=
 module.direct_limit.add_comm_group G (λ i j hij, (add_monoid_hom.of $f i j hij).to_int_linear_map)
 
+instance : inhabited (direct_limit G f) := ⟨0⟩
 
 /-- The canonical map from a component to the direct limit. -/
 def of (i) : G i → direct_limit G f :=
@@ -288,6 +291,8 @@ ideal.quotient.comm_ring _
 
 instance : ring (direct_limit G f) :=
 comm_ring.to_ring _
+
+instance : inhabited (direct_limit G f) := ⟨0⟩
 
 /-- The canonical map from a component to the direct limit. -/
 def of (i) (x : G i) : direct_limit G f :=

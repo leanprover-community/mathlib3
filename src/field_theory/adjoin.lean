@@ -311,7 +311,7 @@ begin
   exact subalgebra.dim_bot,
 end
 
-lemma adjoin_simple_dim_eq_one_of_mem_bot (h : α ∈ ((⊥ : intermediate_field F E) : set E)) : dim F F⟮α⟯ = 1 :=
+lemma adjoin_simple_dim_eq_one_of_mem_bot (h : α ∈ (⊥ : intermediate_field F E)) : dim F F⟮α⟯ = 1 :=
 adjoin_dim_eq_one_of_sub_bot (set.singleton_subset_iff.mpr h)
 
 lemma adjoin_dim_eq_one_iff : dim F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=

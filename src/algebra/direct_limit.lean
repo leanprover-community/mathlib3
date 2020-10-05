@@ -554,7 +554,7 @@ end ring
 
 namespace field
 
-variables  [nonempty ι] [Π i, field (G i)]
+variables [nonempty ι] [Π i, field (G i)]
 variables (f : Π i j, i ≤ j → G i → G j)
 
 namespace direct_limit

@@ -214,7 +214,7 @@ begin
   refine multiplicity_of_dvd hzero _,
   have hdivp : (X - C a) ^ root_multiplicity a p ∣ p := pow_root_multiplicity_dvd p a,
   have hdivq : (X - C a) ^ root_multiplicity a q ∣ q := pow_root_multiplicity_dvd q a,
-  exact min_pow_dvd_sum hdivp hdivq
+  exact comm_semiring.min_pow_dvd_sum hdivp hdivq
 end
 
 lemma exists_multiset_roots : ∀ {p : polynomial R} (hp : p ≠ 0),

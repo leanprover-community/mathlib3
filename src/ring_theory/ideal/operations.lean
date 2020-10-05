@@ -809,14 +809,9 @@ def ideal_prod_equiv : ideal (R × S) ≃ ideal R × ideal S :=
   ideal_prod_equiv.symm ⟨I, J⟩ = prod I J := rfl
 
 lemma prod.ext_iff {I I' : ideal R} {J J' : ideal S} : prod I J = prod I' J' ↔ I = I' ∧ J = J' :=
-by simp only [←ideal_prod_equiv_symm_apply,
-  function.injective.eq_iff ideal_prod_equiv.symm.injective, prod.mk.inj_iff]
+by simp only [←ideal_prod_equiv_symm_apply, ideal_prod_equiv.symm.injective.eq_iff, prod.mk.inj_iff]
 
-@[ext] lemma prod.ext {I I' : ideal R} {J J' : ideal S} (hI : I = I') (hJ : J = J') :
-  prod I J = prod I' J' :=
-prod.ext_iff.2 ⟨hI, hJ⟩
-
-lemma ideal_prod_prime_aux {I : ideal R} {J : ideal S} (h : (ideal.prod I J).is_prime) :
+lemma ideal_prod_prime_aux₀ {I : ideal R} {J : ideal S} (h : (ideal.prod I J).is_prime) :
   I = ⊤ ∨ J = ⊤ :=
 begin
   unfreezingI { revert h },
@@ -824,6 +819,12 @@ begin
   simp only [ne_top_iff_one, is_prime],
   push_neg,
   exact λ ⟨hI, hJ⟩ hIJ, ⟨⟨0, 1⟩, ⟨1, 0⟩, by simp, by simp [hJ], by simp [hI]⟩
+end
+
+lemma ideal_prod_prime_aux₁ {I : ideal R} (h : (ideal.prod I (⊤ : ideal S)).is_prime) :
+  I.is_prime :=
+begin
+
 end
 
 /-- Classification of prime ideals in product rings: the prime ideals of `R × S` are precisely the

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot, Yury Kudryashov
 -/
 import algebra.group.hom
+import data.equiv.mul_add
 import data.prod
 
 /-!
@@ -229,3 +230,17 @@ ext $ λ x, by simp
 end coprod
 
 end monoid_hom
+
+namespace mul_equiv
+variables (M N) [monoid M] [monoid N]
+
+/-- The equivalence between `M × N` and `N × M` given by swapping the components is multiplicative. -/
+@[to_additive "The equivalence between `M × N` and `N × M` given by swapping the components is
+additive."]
+def prod_comm : M × N ≃* N × M :=
+{ map_mul' := λ ⟨x₁, y₁⟩ ⟨x₂, y₂⟩, rfl, ..equiv.prod_comm M N }
+
+@[simp, to_additive] lemma coe_prod_comm : ⇑(prod_comm M N) = prod.swap := rfl
+@[simp, to_additive] lemma coe_prod_comm_symm : ⇑((prod_comm M N).symm) = prod.swap := rfl
+
+end mul_equiv

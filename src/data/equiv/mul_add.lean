@@ -43,7 +43,7 @@ structure add_equiv (A B : Type*) [has_add A] [has_add B] extends A ≃ B, add_h
 /-- The `equiv` underlying an `add_equiv`. -/
 add_decl_doc add_equiv.to_equiv
 /-- The `add_hom` underlying a `add_equiv`. -/
-add_decl_doc mul_equiv.to_mul_hom
+add_decl_doc add_equiv.to_add_hom
 
 /-- `mul_equiv α β` is the type of an equiv `α ≃ β` which preserves multiplication. -/
 @[to_additive]

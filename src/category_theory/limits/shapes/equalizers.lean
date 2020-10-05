@@ -157,7 +157,7 @@ by rw [←s.w right, parallel_pair_map_right]
 /-- A fork on `f g : X ⟶ Y` is determined by the morphism `ι : P ⟶ X` satisfying `ι ≫ f = ι ≫ g`.
 -/
 @[simps]
-def fork.of_ι (P : C) (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) : fork f g :=
+def fork.of_ι {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) : fork f g :=
 { X := P,
   π :=
   { app := λ X, begin cases X, exact ι, exact ι ≫ f, end,
@@ -172,7 +172,7 @@ def fork.of_ι (P : C) (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) : fork f g :=
 /-- A cofork on `f g : X ⟶ Y` is determined by the morphism `π : Y ⟶ P` satisfying
     `f ≫ π = g ≫ π`. -/
 @[simps]
-def cofork.of_π (P : C) (π : Y ⟶ P) (w : f ≫ π = g ≫ π) : cofork f g :=
+def cofork.of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) : cofork f g :=
 { X := P,
   ι :=
   { app := λ X, begin cases X, exact f ≫ π, exact π, end,

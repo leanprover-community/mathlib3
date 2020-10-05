@@ -300,23 +300,25 @@ dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _)
   (gcd_dvd_gcd (dvd_refl _) (dvd_of_associated h))
   (gcd_dvd_gcd (dvd_refl _) (dvd_of_associated h.symm))
 
-/-- Represent a divisor of `m * n` as a product of a divisor of `m` and a divisor of `n`. -/
-noncomputable def prod_dvd_and_dvd_of_dvd_prod {m n k : α} (H : k ∣ m * n) :
-  { d : {m' // m' ∣ m} × {n' // n' ∣ n} // k = d.1 * d.2 } :=
+/-- Represent a divisor of `m * n` as a product of a divisor of `m` and a divisor of `n`.
+
+ Note: In general, this representation is highly non-unique. -/
+lemma exists_dvd_and_dvd_of_dvd_mul {m n k : α} (H : k ∣ m * n) :
+  ∃ d₁ (hd₁ : d₁ ∣ m) d₂ (hd₂ : d₂ ∣ n), k = d₁ * d₂ :=
 begin
   by_cases h0 : gcd k m = 0,
   { rw gcd_eq_zero_iff at h0,
     rcases h0 with ⟨rfl, rfl⟩,
-    refine ⟨⟨⟨0, dvd_refl 0⟩, ⟨n, dvd_refl n⟩⟩, _⟩,
+    refine ⟨0, dvd_refl 0, n, dvd_refl n, _⟩,
     simp },
-  { let a := classical.some (gcd_dvd_left k m),
-    refine ⟨⟨⟨gcd k m, gcd_dvd_right _ _⟩, ⟨a, _⟩⟩, classical.some_spec (gcd_dvd_left k m)⟩,
+  { obtain ⟨a, ha⟩ := gcd_dvd_left k m,
+    refine ⟨gcd k m, gcd_dvd_right _ _, a, _, ha⟩,
     suffices h : gcd k m * a ∣ gcd k m * n,
     { cases h with b hb,
       use b,
       rw mul_assoc at hb,
       apply mul_left_cancel' h0 hb },
-    rw ← classical.some_spec (gcd_dvd_left k m),
+    rw ← ha,
     transitivity gcd k m * normalize n,
     { rw ← gcd_mul_right,
       exact dvd_gcd (dvd_mul_right _ _) H },
@@ -327,15 +329,15 @@ end
 
 theorem gcd_mul_dvd_mul_gcd (k m n : α) : gcd k (m * n) ∣ gcd k m * gcd k n :=
 begin
-  rcases (prod_dvd_and_dvd_of_dvd_prod $ gcd_dvd_right k (m * n)) with ⟨⟨⟨m', hm'⟩, ⟨n', hn'⟩⟩, h⟩,
+  obtain ⟨m', hm', n', hn', h⟩ := (exists_dvd_and_dvd_of_dvd_mul $ gcd_dvd_right k (m * n)),
   replace h : gcd k (m * n) = m' * n' := h,
   rw h,
   have hm'n' : m' * n' ∣ k := h ▸ gcd_dvd_left _ _,
   apply mul_dvd_mul,
-    { have hm'k : m' ∣ k := dvd_trans (dvd_mul_right m' n') hm'n',
-      exact dvd_gcd hm'k hm' },
-    { have hn'k : n' ∣ k := dvd_trans (dvd_mul_left n' m') hm'n',
-      exact dvd_gcd hn'k hn' }
+  { have hm'k : m' ∣ k := dvd_trans (dvd_mul_right m' n') hm'n',
+    exact dvd_gcd hm'k hm' },
+  { have hn'k : n' ∣ k := dvd_trans (dvd_mul_left n' m') hm'n',
+    exact dvd_gcd hn'k hn' }
 end
 
 end gcd

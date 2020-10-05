@@ -58,7 +58,7 @@ namespace has_products
 
 /-- The pi-type gives a cone for a product. -/
 def product {J : Type v} (f : J → ωCPO.{v}) : fan f :=
-@fan.mk _ _ _ _ (of (Π j, f j)) (λ j, continuous_hom.of_mono (pi.monotone_apply j : _) (λ c, rfl))
+fan.mk (of (Π j, f j)) (λ j, continuous_hom.of_mono (pi.monotone_apply j : _) (λ c, rfl))
 
 /-- The pi-type is a limit cone for the product. -/
 def is_product (J : Type v) (f : J → ωCPO) : is_limit (product f) :=
@@ -100,7 +100,7 @@ continuous_hom.of_mono (preorder_hom.subtype.val _) (λ c, rfl)
 /-- A construction of the equalizer fork. -/
 def equalizer {X Y : ωCPO.{v}} (f g : X ⟶ Y) :
   fork f g :=
-@fork.of_ι _ _ _ _ _ _ (ωCPO.of {a // f a = g a}) (equalizer_ι f g) (continuous_hom.ext _ _ (λ x, x.2))
+fork.of_ι (ωCPO.of {a // f a = g a}) (equalizer_ι f g) (continuous_hom.ext _ _ (λ x, x.2))
 
 /-- The equalizer fork is a limit. -/
 def is_equalizer {X Y : ωCPO.{v}} (f g : X ⟶ Y) : is_limit (equalizer f g) :=

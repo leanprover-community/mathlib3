@@ -82,7 +82,7 @@ local attribute [semireducible] op unop opposite
 @[simp] def cones_inv : F.cones ⟶ (diagram F).cones :=
 { app := λ X c,
   begin
-    refine (fork.of_ι _ _).π,
+    refine (fork.of_ι _ _ _).π,
     { exact pi.lift c.app },
     { ext ⟨⟨A,B⟩,f⟩,
       dsimp,

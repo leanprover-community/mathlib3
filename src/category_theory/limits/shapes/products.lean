@@ -23,16 +23,15 @@ variables {C : Type u} [category.{v} C]
 abbreviation fan (f : β → C) := cone (discrete.functor f)
 abbreviation cofan (f : β → C) := cocone (discrete.functor f)
 
-def fan.mk {f : β → C} {P : C} (p : Π b, P ⟶ f b) : fan f :=
+@[simps]
+def fan.mk {f : β → C} (P : C) (p : Π b, P ⟶ f b) : fan f :=
 { X := P,
   π := { app := p } }
 
-def cofan.mk {f : β → C} {P : C} (p : Π b, f b ⟶ P) : cofan f :=
+@[simps]
+def cofan.mk {f : β → C} (P : C) (p : Π b, f b ⟶ P) : cofan f :=
 { X := P,
   ι := { app := p } }
-
-@[simp] lemma fan.mk_π_app {f : β → C} {P : C} (p : Π b, P ⟶ f b) (b : β) : (fan.mk p).π.app b = p b := rfl
-@[simp] lemma cofan.mk_π_app {f : β → C} {P : C} (p : Π b, f b ⟶ P) (b : β) : (cofan.mk p).ι.app b = p b := rfl
 
 /-- An abbreviation for `has_limit (discrete.functor f)`. -/
 abbreviation has_product (f : β → C) := has_limit (discrete.functor f)
@@ -67,9 +66,9 @@ abbreviation sigma.ι (f : β → C) [has_coproduct f] (b : β) : f b ⟶ ∐ f 
 colimit.ι (discrete.functor f) b
 
 abbreviation pi.lift {f : β → C} [has_product f] {P : C} (p : Π b, P ⟶ f b) : P ⟶ ∏ f :=
-limit.lift _ (fan.mk p)
+limit.lift _ (fan.mk P p)
 abbreviation sigma.desc {f : β → C} [has_coproduct f] {P : C} (p : Π b, f b ⟶ P) : ∐ f ⟶ P :=
-colimit.desc _ (cofan.mk p)
+colimit.desc _ (cofan.mk P p)
 
 /--
 Construct a morphism between categorical products (indexed by the same type)

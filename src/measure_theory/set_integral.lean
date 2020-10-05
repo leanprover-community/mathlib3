@@ -392,7 +392,7 @@ lemma norm_set_integral_le_of_norm_le_const' {C : ℝ} (hs : μ s < ⊤) (hsm : 
 norm_set_integral_le_of_norm_le_const_ae'' hs hsm $ eventually_of_forall hC
 
 lemma set_integral_eq_zero_iff_of_nonneg_ae {f : α → ℝ} (hf : 0 ≤ᵐ[μ.restrict s] f)
-  (hs : is_measurable s) (hfi : integrable_on f s μ) :
+  (hfi : integrable_on f s μ) :
   ∫ x in s, f x ∂μ = 0 ↔ f =ᵐ[μ.restrict s] 0 :=
 integral_eq_zero_iff_of_nonneg_ae hf hfi
 

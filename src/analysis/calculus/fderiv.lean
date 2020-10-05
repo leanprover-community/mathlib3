@@ -244,6 +244,7 @@ end
 theorem unique_diff_within_at.eq (H : unique_diff_within_at 𝕜 s x)
   (h : has_fderiv_within_at f f' s x) (h₁ : has_fderiv_within_at f f₁' s x) : f' = f₁' :=
 begin
+  refine (continuous_linear_map.ext
   have A : ∀y ∈ tangent_cone_at 𝕜 s x, f' y = f₁' y,
   { rintros y ⟨c, d, dtop, clim, cdlim⟩,
     exact tendsto_nhds_unique (h.lim at_top dtop clim cdlim) (h₁.lim at_top dtop clim cdlim) },
@@ -262,7 +263,7 @@ begin
       closure_mono this,
     have : y ∈ closure K := this hy,
     rwa (is_closed_eq f'.continuous f₁'.continuous).closure_eq at this },
-  rw H.1 at C,
+  rw H.1.closure_eq at C,
   ext y,
   exact C y (mem_univ _)
 end

@@ -360,7 +360,7 @@ lemma uniform_inducing_coe : uniform_inducing  (coe : α → completion α) :=
 
 variables {α}
 
-lemma dense : dense_range (coe : α → completion α) :=
+lemma dense_range_coe : dense_range (coe : α → completion α) :=
 dense_range_pure_cauchy.quotient
 
 variables (α)
@@ -372,7 +372,7 @@ def cpkg {α : Type*} [uniform_space α] : abstract_completion α :=
   complete := by apply_instance,
   separation := by apply_instance,
   uniform_inducing := completion.uniform_inducing_coe α,
-  dense := completion.dense }
+  dense := completion.dense_range_coe }
 
 instance abstract_completion.inhabited : inhabited (abstract_completion α) :=
 ⟨cpkg⟩
@@ -396,7 +396,7 @@ lemma uniform_embedding_coe [separated_space α] : uniform_embedding  (coe : α 
 variable {α}
 
 lemma dense_inducing_coe : dense_inducing (coe : α → completion α) :=
-{ dense := dense,
+{ dense := dense_range_coe,
   ..(uniform_inducing_coe α).inducing }
 
 open topological_space
@@ -408,17 +408,18 @@ lemma dense_embedding_coe [separated_space α]: dense_embedding (coe : α → co
 { inj := separated_pure_cauchy_injective,
   ..dense_inducing_coe }
 
-lemma dense₂ : dense_range (λx:α × β, ((x.1 : completion α), (x.2 : completion β))) :=
-dense.prod dense
+lemma dense_range_coe₂ :
+  dense_range (λx:α × β, ((x.1 : completion α), (x.2 : completion β))) :=
+dense_range_coe.prod dense_range_coe
 
-lemma dense₃ :
+lemma dense_range_coe₃ :
   dense_range (λx:α × (β × γ), ((x.1 : completion α), ((x.2.1 : completion β), (x.2.2 : completion γ)))) :=
-dense.prod dense₂
+dense_range_coe.prod dense_range_coe₂
 
 @[elab_as_eliminator]
 lemma induction_on {p : completion α → Prop}
   (a : completion α) (hp : is_closed {a | p a}) (ih : ∀a:α, p a) : p a :=
-is_closed_property dense hp ih a
+is_closed_property dense_range_coe hp ih a
 
 @[elab_as_eliminator]
 lemma induction_on₂ {p : completion α → completion β → Prop}
@@ -426,7 +427,7 @@ lemma induction_on₂ {p : completion α → completion β → Prop}
   (hp : is_closed {x : completion α × completion β | p x.1 x.2})
   (ih : ∀(a:α) (b:β), p a b) : p a b :=
 have ∀x : completion α × completion β, p x.1 x.2, from
-  is_closed_property dense₂ hp $ assume ⟨a, b⟩, ih a b,
+  is_closed_property dense_range_coe₂ hp $ assume ⟨a, b⟩, ih a b,
 this (a, b)
 
 @[elab_as_eliminator]
@@ -435,7 +436,7 @@ lemma induction_on₃ {p : completion α → completion β → completion γ →
   (hp : is_closed {x : completion α × completion β × completion γ | p x.1 x.2.1 x.2.2})
   (ih : ∀(a:α) (b:β) (c:γ), p a b c) : p a b c :=
 have ∀x : completion α × completion β × completion γ, p x.1 x.2.1 x.2.2, from
-  is_closed_property dense₃ hp $ assume ⟨a, b, c⟩, ih a b c,
+  is_closed_property dense_range_coe₃ hp $ assume ⟨a, b, c⟩, ih a b c,
 this (a, b, c)
 
 lemma ext [t2_space β] {f g : completion α → β} (hf : continuous f) (hg : continuous g)

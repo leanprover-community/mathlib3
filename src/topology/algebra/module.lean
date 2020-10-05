@@ -238,6 +238,15 @@ lemma map_sum {ι : Type*} (s : finset ι) (g : ι → M) :
 
 @[simp, norm_cast] lemma coe_coe : ((f : M →ₗ[R] M₂) : (M → M₂)) = (f : M → M₂) := rfl
 
+lemma eq_on_closure_span {s : set M} {f g : M →L[R] M₂} (h : set.eq_on f g s) :
+  set.eq_on f g (closure (submodule.span R s : set M)) :=
+(linear_map.eq_on_span' h).closure f.continuous g.continuous
+
+lemma ext_on {s : set M} (hs : dense (submodule.span R s : set M)) {f g : M →L[R] M₂}
+  (h : set.eq_on f g s) :
+  f = g :=
+ext $ λ x, eq_on_closure_span h (hs x)
+
 /-- The continuous map that is constantly zero. -/
 instance: has_zero (M →L[R] M₂) := ⟨⟨0, continuous_const⟩⟩
 instance : inhabited (M →L[R] M₂) := ⟨0⟩

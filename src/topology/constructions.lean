@@ -64,18 +64,13 @@ instance Pi.topological_space {β : α → Type v} [t₂ : Πa, topological_spac
 instance ulift.topological_space [t : topological_space α] : topological_space (ulift.{v u} α) :=
 t.induced ulift.down
 
-lemma quotient_dense_of_dense [setoid α] [topological_space α] {s : set α} (H : ∀ x, x ∈ closure s) :
-  closure (quotient.mk '' s) = univ :=
-eq_univ_of_forall $ λ x, begin
-  rw mem_closure_iff,
-  intros U U_op x_in_U,
-  let V := quotient.mk ⁻¹' U,
-  cases quotient.exists_rep x with y y_x,
-  have y_in_V : y ∈ V, by simp only [mem_preimage, y_x, x_in_U],
-  have V_op : is_open V := U_op,
-  obtain ⟨w, w_in_V, w_in_range⟩ : (V ∩ s).nonempty := mem_closure_iff.1 (H y) V V_op y_in_V,
-  exact ⟨_, w_in_V, mem_image_of_mem quotient.mk w_in_range⟩
-end
+lemma dense.quotient [setoid α] [topological_space α] {s : set α} (H : dense s) :
+  dense (quotient.mk '' s) :=
+(surjective_quotient_mk α).dense_range.dense_image continuous_coinduced_rng H
+
+lemma dense_range.quotient [setoid α] [topological_space α] {f : β → α} (hf : dense_range f) :
+  dense_range (quotient.mk ∘ f) :=
+(surjective_quotient_mk α).dense_range.comp hf continuous_coinduced_rng
 
 instance {p : α → Prop} [topological_space α] [discrete_topology α] :
   discrete_topology (subtype p) :=
@@ -330,11 +325,13 @@ lemma is_closed_prod {s₁ : set α} {s₂ : set β} (h₁ : is_closed s₁) (h�
   is_closed (set.prod s₁ s₂) :=
 closure_eq_iff_is_closed.mp $ by simp only [h₁.closure_eq, h₂.closure_eq, closure_prod_eq]
 
+lemma dense.prod {s : set α} {t : set β} (hs : dense s) (ht : dense t) :
+  dense (s.prod t) :=
+λ x, by { rw closure_prod_eq, exact ⟨hs x.1, ht x.2⟩ }
+
 lemma dense_range.prod {ι : Type*} {κ : Type*} {f : ι → β} {g : κ → γ}
   (hf : dense_range f) (hg : dense_range g) : dense_range (λ p : ι × κ, (f p.1, g p.2)) :=
-have closure (range $ λ p : ι×κ, (f p.1, g p.2)) = set.prod (closure $ range f) (closure $ range g),
-    by rw [←closure_prod_eq, prod_range_range_eq],
-assume ⟨b, d⟩, this.symm ▸ mem_prod.2 ⟨hf _, hg _⟩
+by { rw [dense_range, ← prod_range_range_eq], exact hf.prod hg }
 
 lemma inducing.prod_mk {f : α → β} {g : γ → δ} (hf : inducing f) (hg : inducing g) :
   inducing (λx:α×γ, (f x.1, g x.2)) :=

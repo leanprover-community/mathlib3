@@ -1318,7 +1318,7 @@ begin
       by { rw (Diff.mdifferentiable_at Mmem).mfderiv, refl },
     rw this,
     exact Diff.range_mfderiv_eq_univ Mmem },
-  have C₂ : closure (range (G' : E → E')) = univ, by rw [C₁, closure_univ],
+  have C₂ : dense_range (G' : E → E'), λ x, by simp [C₁],
   -- key step: thanks to what we have proved about it, `G` preserves the unique derivative property
   have key : unique_diff_within_at 𝕜
     (G '' (F.symm ⁻¹' (s ∩ (e.source ∩ e ⁻¹' ((ext_chart_at I' x).source))) ∩ F.target))

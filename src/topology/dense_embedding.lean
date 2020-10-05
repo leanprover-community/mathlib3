@@ -84,7 +84,7 @@ protected lemma prod [topological_space γ] [topological_space δ]
 
 open topological_space
 
-lemma separable [separable_space α] : separable_space β :=
+protected lemma separable_space [separable_space α] : separable_space β :=
 di.dense.separable_space di.continuous
 
 variables [topological_space δ] {f : γ → α} {g : γ → δ} {h : δ → β}
@@ -119,7 +119,7 @@ variables [topological_space γ]
   continuous extension, then `g` is the unique such extension. In general,
   `g` might not be continuous or even extend `f`. -/
 def extend (di : dense_inducing i) (f : α → γ) (b : β) : γ :=
-@@lim _ ⟨f (di.dense.inhabited b).default⟩ (comap i (𝓝 b)) f
+@@lim _ ⟨f (classical.choice $ di.dense.nonempty_iff.2 ⟨b⟩)⟩ (comap i (𝓝 b)) f
 
 lemma extend_eq_of_tendsto [t2_space γ] {b : β} {c : γ} {f : α → γ}
   (hf : tendsto f (comap i (𝓝 b)) (𝓝 c)) :
@@ -222,7 +222,8 @@ lemma to_embedding : embedding e :=
 { induced := de.induced,
   inj := de.inj }
 
-lemma separable [separable_space α] : separable_space β := de.to_dense_inducing.separable
+protected lemma separable_space [separable_space α] : separable_space β :=
+de.to_dense_inducing.separable_space
 
 /-- The product of two dense embeddings is a dense embedding -/
 protected lemma prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_embedding e₁) (de₂ : dense_embedding e₂) :

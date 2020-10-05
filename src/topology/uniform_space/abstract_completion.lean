@@ -67,7 +67,7 @@ variables {α : Type*} [uniform_space α] (pkg : abstract_completion α)
 local notation `hatα` := pkg.space
 local notation `ι` := pkg.coe
 
-lemma dense' : closure (range ι) = univ :=
+lemma closure_range : closure (range ι) = univ :=
 pkg.dense.closure_range
 
 lemma dense_inducing : dense_inducing ι :=
@@ -96,7 +96,7 @@ protected def extend (f : α → β) : hatα → β :=
 if uniform_continuous f then
   pkg.dense_inducing.extend f
 else
-  λ x, f (classical.inhabited_of_nonempty $ pkg.dense.nonempty.2 ⟨x⟩).default
+  λ x, f (classical.choice $ pkg.dense.nonempty_iff.2 ⟨x⟩)
 
 variables {f : α → β}
 

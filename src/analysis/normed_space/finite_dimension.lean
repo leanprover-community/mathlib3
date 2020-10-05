@@ -258,7 +258,7 @@ begin
   from metric.second_countable_of_countable_discretization
     (λ ε ε_pos, ⟨fin d → ℕ, by apply_instance, this ε ε_pos⟩),
   intros ε ε_pos,
-  obtain ⟨u : ℕ → F, hu : closure (range u) = univ⟩ := exists_dense_seq F,
+  obtain ⟨u : ℕ → F, hu : dense_range u⟩ := exists_dense_seq F,
   obtain ⟨v : fin d → E, hv : is_basis 𝕜 v⟩ := finite_dimensional.fin_basis 𝕜 E,
   obtain ⟨C : ℝ, C_pos : 0 < C,
           hC : ∀ {φ : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ∥φ (v i)∥ ≤ M) → ∥φ∥ ≤ C * M⟩ := hv.op_norm_le,
@@ -269,7 +269,7 @@ begin
     have : ∀ i, ∃ n, ∥φ (v i) - u n∥ ≤ ε/(2*C),
     { simp only [norm_sub_rev],
       intro i,
-      have : φ (v i) ∈ closure (range u), by simp [hu],
+      have : φ (v i) ∈ closure (range u) := hu _,
       obtain ⟨n, hn⟩ : ∃ n, ∥u n - φ (v i)∥ < ε / (2 * C),
       { rw mem_closure_iff_nhds_basis metric.nhds_basis_ball at this,
         specialize this (ε/(2*C)) hε2C,

@@ -2406,7 +2406,7 @@ end
 under a map with onto derivative has also the unique differentiability property at the image point.
 -/
 lemma has_fderiv_within_at.unique_diff_within_at {x : E} (h : has_fderiv_within_at f f' s x)
-  (hs : unique_diff_within_at 𝕜 s x) (h' : closure (range f') = univ) :
+  (hs : unique_diff_within_at 𝕜 s x) (h' : dense_range f') :
   unique_diff_within_at 𝕜 (f '' s) (f x) :=
 begin
   have B : ∀v ∈ (submodule.span 𝕜 (tangent_cone_at 𝕜 s x) : set E),

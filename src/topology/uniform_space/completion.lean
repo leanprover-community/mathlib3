@@ -155,7 +155,7 @@ lemma uniform_embedding_pure_cauchy : uniform_embedding (pure_cauchy : α → Ca
 { inj := assume a₁ a₂ h, pure_injective $ subtype.ext_iff_val.1 h,
   ..uniform_inducing_pure_cauchy }
 
-lemma pure_cauchy_dense : ∀x, x ∈ closure (range pure_cauchy) :=
+lemma dense_range_pure_cauchy : dense_range pure_cauchy :=
 assume f,
 have h_ex : ∀ s ∈ 𝓤 (Cauchy α), ∃y:α, (f, pure_cauchy y) ∈ s, from
   assume s hs,
@@ -172,7 +172,8 @@ have h_ex : ∀ s ∈ 𝓤 (Cauchy α), ∃y:α, (f, pure_cauchy y) ∈ s, from
         ht'₂ $ prod_mk_mem_comp_rel (@h (a, x) ⟨h₁, hx⟩) h₂⟩,
   ⟨x, ht''₂ $ by dsimp [gen]; exact this⟩,
 begin
-  simp [closure_eq_cluster_pts, cluster_pt, nhds_eq_uniformity, lift'_inf_principal_eq, set.inter_comm],
+  simp only [closure_eq_cluster_pts, cluster_pt, nhds_eq_uniformity, lift'_inf_principal_eq,
+    set.inter_comm _ (range pure_cauchy), mem_set_of_eq],
   exact (lift'_ne_bot_iff $ monotone_inter monotone_const monotone_preimage).mpr
     (assume s hs,
       let ⟨y, hy⟩ := h_ex s hs in
@@ -182,10 +183,10 @@ begin
 end
 
 lemma dense_inducing_pure_cauchy : dense_inducing pure_cauchy :=
-uniform_inducing_pure_cauchy.dense_inducing pure_cauchy_dense
+uniform_inducing_pure_cauchy.dense_inducing dense_range_pure_cauchy
 
 lemma dense_embedding_pure_cauchy : dense_embedding pure_cauchy :=
-uniform_embedding_pure_cauchy.dense_embedding pure_cauchy_dense
+uniform_embedding_pure_cauchy.dense_embedding dense_range_pure_cauchy
 
 lemma nonempty_Cauchy_iff : nonempty (Cauchy α) ↔ nonempty α :=
 begin
@@ -201,7 +202,7 @@ set_option eqn_compiler.zeta true
 instance : complete_space (Cauchy α) :=
 complete_space_extension
   uniform_inducing_pure_cauchy
-  pure_cauchy_dense $
+  dense_range_pure_cauchy $
   assume f hf,
   let f' : Cauchy α := ⟨f, hf⟩ in
   have map pure_cauchy f ≤ (𝓤 $ Cauchy α).lift' (preimage (prod.mk f')),
@@ -234,7 +235,7 @@ lemma extend_pure_cauchy {f : α → β} (hf : uniform_continuous f) (a : α) :
   extend f (pure_cauchy a) = f a :=
 begin
   rw [extend, if_pos hf],
-  exact uniformly_extend_of_ind uniform_inducing_pure_cauchy pure_cauchy_dense hf _
+  exact uniformly_extend_of_ind uniform_inducing_pure_cauchy dense_range_pure_cauchy hf _
 end
 
 variables [_root_.complete_space β]
@@ -243,7 +244,8 @@ lemma uniform_continuous_extend {f : α → β} : uniform_continuous (extend f) 
 begin
   by_cases hf : uniform_continuous f,
   { rw [extend, if_pos hf],
-    exact uniform_continuous_uniformly_extend uniform_inducing_pure_cauchy pure_cauchy_dense hf },
+    exact uniform_continuous_uniformly_extend uniform_inducing_pure_cauchy
+      dense_range_pure_cauchy hf },
   { rw [extend, if_neg hf],
     exact uniform_continuous_of_const (assume a b, by congr) }
 end
@@ -359,10 +361,7 @@ lemma uniform_inducing_coe : uniform_inducing  (coe : α → completion α) :=
 variables {α}
 
 lemma dense : dense_range (coe : α → completion α) :=
-begin
-  rw [dense_range_iff_closure_range, completion.coe_eq, range_comp],
-  exact quotient_dense_of_dense pure_cauchy_dense
-end
+dense_range_pure_cauchy.quotient
 
 variables (α)
 
@@ -382,7 +381,7 @@ local attribute [instance]
 abstract_completion.uniform_struct abstract_completion.complete abstract_completion.separation
 
 lemma nonempty_completion_iff : nonempty (completion α) ↔ nonempty α :=
-(dense_range.nonempty (cpkg.dense)).symm
+cpkg.dense.nonempty_iff.symm
 
 lemma uniform_continuous_coe : uniform_continuous (coe : α → completion α) :=
 cpkg.uniform_continuous_coe
@@ -403,7 +402,7 @@ lemma dense_inducing_coe : dense_inducing (coe : α → completion α) :=
 open topological_space
 
 instance separable_space_completion [separable_space α] : separable_space (completion α) :=
-completion.dense_inducing_coe.separable
+completion.dense_inducing_coe.separable_space
 
 lemma dense_embedding_coe [separated_space α]: dense_embedding (coe : α → completion α) :=
 { inj := separated_pure_cauchy_injective,

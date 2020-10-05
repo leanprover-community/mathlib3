@@ -220,11 +220,9 @@ def stone_cech_unit (x : α) : stone_cech α := ⟦pure x⟧
 
 /-- The image of stone_cech_unit is dense. (But stone_cech_unit need
   not be an embedding, for example if α is not Hausdorff.) -/
-lemma stone_cech_unit_dense : closure (range (@stone_cech_unit α _)) = univ :=
-begin
-  convert quotient_dense_of_dense (eq_univ_iff_forall.mp dense_inducing_pure.closure_range),
-  rw [←range_comp], refl
-end
+lemma dense_range_stone_cech_unit : dense_range (@stone_cech_unit α _) :=
+-- With term mode proof Lean tries to use wrong instances
+by convert dense_inducing_pure.dense.quotient
 
 section extension
 

@@ -218,7 +218,7 @@ def uniform_space.core.to_topological_space {α : Type u} (u : uniform_space.cor
     assume s hs x ⟨t, ts, xt⟩, by filter_upwards [hs t ts x xt] assume p ph h, ⟨t, ts, ph h⟩ }
 
 lemma uniform_space.core_eq : ∀{u₁ u₂ : uniform_space.core α}, u₁.uniformity = u₂.uniformity → u₁ = u₂
-| ⟨u₁, _, _, _⟩  ⟨u₂, _, _, _⟩ h := have u₁ = u₂, from h, by simp [*]
+| ⟨u₁, _, _, _⟩  ⟨u₂, _, _, _⟩ h := by { congr, exact h }
 
 /-- Suppose that one can put two mathematical structures on a type, a rich one `R` and a poor one
 `P`, and that one can deduce the poor structure from the rich structure through a map `F` (called a
@@ -478,6 +478,10 @@ def uniform_space.ball (x : β) (V : set (β × β)) : set β := (prod.mk x) ⁻
 
 open uniform_space (ball)
 
+lemma uniform_space.mem_ball_self (x : α) {V : set (α × α)} (hV : V ∈ 𝓤 α) :
+  x ∈ ball x V :=
+refl_mem_uniformity hV
+
 /-- The triangle inequality for `uniform_space.ball` -/
 lemma mem_ball_comp {V W : set (β × β)} {x y z} (h : y ∈ ball x V) (h' : z ∈ ball y W) :
   z ∈ ball x (V ○ W) :=
@@ -504,6 +508,10 @@ begin
   rw mem_ball_symmetry hV at hx,
   exact ⟨z, hx, hy⟩
 end
+
+lemma uniform_space.is_open_ball (x : α) {V : set (α × α)} (hV : is_open V) :
+  is_open (ball x V) :=
+continuous_const.prod_mk continuous_id V hV
 
 lemma mem_comp_comp {V W M : set (β × β)} (hW' : symmetric_rel W) {p : β × β} :
   p ∈ V ○ M ○ W ↔ ((ball p.1 V).prod (ball p.2 W) ∩ M).nonempty :=
@@ -615,7 +623,7 @@ begin
          ball_mono (inter_subset_left U V) x, ball_mono (inter_subset_right U V) y⟩,
 end
 
-lemma nhds_eq_uniformity {x : α} : 𝓝 x = (𝓤 α).lift' (λs:set (α×α), {y | (x, y) ∈ s}) :=
+lemma nhds_eq_uniformity {x : α} : 𝓝 x = (𝓤 α).lift' (ball x) :=
 (nhds_basis_uniformity' (𝓤 α).basis_sets).eq_binfi
 
 lemma mem_nhds_left (x : α) {s : set (α×α)} (h : s ∈ 𝓤 α) :
@@ -816,15 +824,17 @@ by rw [uniformity_eq_uniformity_interior]; exact mem_lift' hs
 
 lemma mem_uniformity_is_closed {s : set (α×α)} (h : s ∈ 𝓤 α) :
   ∃t ∈ 𝓤 α, is_closed t ∧ t ⊆ s :=
-have s ∈ (𝓤 α).lift' closure, by rwa [uniformity_eq_uniformity_closure] at h,
-have ∃ t ∈ 𝓤 α, closure t ⊆ s,
-  by rwa [mem_lift'_sets] at this; apply closure_mono,
-let ⟨t, ht, hst⟩ := this in
-⟨closure t, (𝓤 α).sets_of_superset ht subset_closure, is_closed_closure, hst⟩
+let ⟨t, ⟨ht_mem, htc⟩, hts⟩ := uniformity_has_basis_closed.mem_iff.1 h in
+⟨t, ht_mem, htc, hts⟩
 
 /-!
 ### Uniformity bases
 -/
+
+lemma uniformity_has_basis_open : has_basis (𝓤 α) (λ V : set (α × α), V ∈ 𝓤 α ∧ is_open V) id :=
+has_basis_self.2 $ λ s,
+  ⟨λ hs, ⟨interior s, interior_mem_uniformity hs, is_open_interior, interior_subset⟩,
+   λ ⟨t, htU, hto, hts⟩, mem_sets_of_superset htU hts⟩
 
 lemma filter.has_basis.mem_uniformity_iff {p : β → Prop} {s : β → set (α×α)}
   (h : (𝓤 α).has_basis p s) {t : set (α × α)} :
@@ -834,29 +844,23 @@ h.mem_iff.trans $ by simp only [prod.forall, subset_def]
 /-- Symmetric entourages form a basis of `𝓤 α` -/
 lemma uniform_space.has_basis_symmetric :
   (𝓤 α).has_basis (λ s : set (α × α), s ∈ 𝓤 α ∧ symmetric_rel s) id :=
-⟨λ t, ⟨λ t_in, ⟨symmetrize_rel t,
-           ⟨⟨symmetrize_mem_uniformity t_in, symmetric_symmetrize_rel t⟩,
-            symmetrize_rel_subset_self _⟩⟩,
-       λ ⟨s, ⟨s_in, h⟩, hst⟩, mem_sets_of_superset s_in hst⟩⟩
+has_basis_self.2 $ λ t,
+  ⟨λ t_in, ⟨symmetrize_rel t, symmetrize_mem_uniformity t_in, symmetric_symmetrize_rel t,
+    symmetrize_rel_subset_self t⟩, λ ⟨s, s_in, _, hst⟩, mem_sets_of_superset s_in hst⟩
+
+lemma uniformity_has_basis_open_symmetric :
+  has_basis (𝓤 α) (λ V : set (α × α), V ∈ 𝓤 α ∧ is_open V ∧ symmetric_rel V) id :=
+begin
+  simp only [← and_assoc],
+  refine uniformity_has_basis_open.restrict (λ s hs, ⟨symmetrize_rel s, _⟩),
+  exact ⟨⟨symmetrize_mem_uniformity hs.1, is_open_inter hs.2 (continuous_swap _ hs.2)⟩,
+    symmetric_symmetrize_rel s, symmetrize_rel_subset_self s⟩
+end
 
 lemma uniform_space.has_seq_basis (h : is_countably_generated $ 𝓤 α) :
   ∃ V : ℕ → set (α × α), has_antimono_basis (𝓤 α) (λ _, true) V ∧ ∀ n, symmetric_rel (V n) :=
-begin
-  rcases h.has_antimono_basis with ⟨U, hbasis, hdec, monotrue⟩, clear monotrue,
-  simp only [forall_prop_of_true] at hdec,
-  use λ n, symmetrize_rel (U n),
-  refine ⟨⟨⟨_⟩, by intros ; mono, by tauto⟩, λ n, symmetric_symmetrize_rel _⟩,
-  intros t,
-  rw hbasis.mem_iff,
-  split,
-  { rintro ⟨i, _, hi⟩,
-    exact ⟨i, trivial, subset.trans (inter_subset_left _ _) hi⟩ },
-  { rintro ⟨i, _, hi⟩,
-    rcases hbasis.mem_iff.mp (symmetrize_mem_uniformity $ hbasis.mem_of_mem trivial)
-      with ⟨j, _, hj⟩,
-    use j,
-    tauto }
-end
+let ⟨U, hsym, hbasis⟩ := h.exists_antimono_subbasis uniform_space.has_basis_symmetric
+in ⟨U, hbasis, λ n, (hsym n).2⟩
 
 /-! ### Uniform continuity -/
 

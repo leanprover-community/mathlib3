@@ -822,16 +822,14 @@ lemma tendsto_iff_seq_tendsto {f : α → β} {k : filter α} {l : filter β}
 suffices (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l,
   from ⟨by intros; apply tendsto.comp; assumption, by assumption⟩,
 begin
-  rcases hcb.exists_antimono_seq with ⟨g, gmon, gbasis⟩,
-  have gbasis : k.has_basis (λ _, true) (λ i, (g i)),
-  { subst gbasis,
-    exact has_basis_infi_principal (directed_of_sup gmon) },
+  rcases hcb.exists_antimono_basis with ⟨g, gbasis, gmon, -⟩,
   contrapose,
   simp only [not_forall, gbasis.tendsto_left_iff, exists_const, not_exists, not_imp],
   rintro ⟨B, hBl, hfBk⟩,
   choose x h using hfBk,
   use x, split,
-  { exact (at_top_basis.tendsto_iff gbasis).2 (λ i _, ⟨i, trivial, λ j hj, gmon hj (h j).1⟩) },
+  { exact (at_top_basis.tendsto_iff gbasis).2
+      (λ i _, ⟨i, trivial, λ j hj, gmon trivial trivial hj (h j).1⟩) },
   { simp only [tendsto_at_top', (∘), not_forall, not_exists],
     use [B, hBl],
     intro i, use [i, (le_refl _)],
@@ -848,7 +846,7 @@ lemma subseq_tendsto {f : filter α} (hf : is_countably_generated f)
   (hx : ne_bot (f ⊓ map u at_top)) :
   ∃ (θ : ℕ → ℕ), (strict_mono θ) ∧ (tendsto (u ∘ θ) at_top f) :=
 begin
-  rcases hf.has_antimono_basis with ⟨B, h⟩,
+  rcases hf.exists_antimono_basis with ⟨B, h⟩,
   have : ∀ N, ∃ n ≥ N, u n ∈ B N,
     from λ N, filter.inf_map_at_top_ne_bot_iff.mp hx _ (h.to_has_basis.mem_of_mem trivial) N,
   choose φ hφ using this,

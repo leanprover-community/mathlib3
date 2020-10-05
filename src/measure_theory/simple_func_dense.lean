@@ -134,7 +134,7 @@ lemma tendsto_approx_on {f : β → α} (hf : measurable f) {s : set α} {y₀ :
   tendsto (λ n, approx_on f hf s y₀ h₀ n x) at_top (𝓝 $ f x) :=
 begin
   haveI : nonempty s := ⟨⟨y₀, h₀⟩⟩,
-  rw [← @subtype.range_coe _ s, ← image_univ, ← dense_seq_dense s] at hx,
+  rw [← @subtype.range_coe _ s, ← image_univ, ← (dense_range_dense_seq s).closure_eq] at hx,
   simp only [approx_on, coe_comp],
   refine tendsto_nearest_pt (closure_minimal _ is_closed_closure hx),
   simp only [nat.range_cases_on, closure_union, @range_comp _ _ _ _ coe],

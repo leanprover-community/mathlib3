@@ -331,11 +331,10 @@ section subgroups
 /-- Given a nontrivial subgroup `G ⊆ ℝ`, if `G ∩ ℝ_{>0}` has no minimum then `G` is dense. -/
 lemma real.subgroup_dense_of_no_min {G : add_subgroup ℝ} {g₀ : ℝ} (g₀_in : g₀ ∈ G) (g₀_ne : g₀ ≠ 0)
   (H' : ¬ ∃ a : ℝ, is_least {g : ℝ | g ∈ G ∧ 0 < g} a) :
-  closure (G : set ℝ) = univ :=
+  dense (G : set ℝ) :=
 begin
   let G_pos := {g : ℝ | g ∈ G ∧ 0 < g},
   push_neg at H',
-  rw eq_univ_iff_forall,
   intros x,
   suffices : ∀ ε > (0 : ℝ), ∃ g ∈ G, abs (x - g) < ε,
     by simpa only [real.mem_closure_iff, abs_sub],
@@ -363,7 +362,7 @@ end
 /-- Subgroups of `ℝ` are either dense or cyclic. See `real.subgroup_dense_of_no_min` and
 `subgroup_cyclic_of_min` for more precise statements. -/
 lemma real.subgroup_dense_or_cyclic (G : add_subgroup ℝ) :
-  closure (G : set ℝ) = univ ∨ ∃ a : ℝ, G = add_subgroup.closure {a} :=
+  dense (G : set ℝ) ∨ ∃ a : ℝ, G = add_subgroup.closure {a} :=
 begin
   cases add_subgroup.bot_or_exists_ne_zero G with H H,
   { right,

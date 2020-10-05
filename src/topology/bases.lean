@@ -110,35 +110,34 @@ variables (α)
 
 /-- A separable space is one with a countable dense subset. -/
 class separable_space : Prop :=
-(exists_countable_closure_eq_univ : ∃s:set α, countable s ∧ closure s = univ)
+(exists_countable_dense : ∃s:set α, countable s ∧ dense s)
 
-lemma exists_countable_closure_eq_univ [separable_space α] :
-  ∃ s : set α, countable s ∧ closure s = univ :=
-separable_space.exists_countable_closure_eq_univ
+lemma exists_countable_dense [separable_space α] :
+  ∃ s : set α, countable s ∧ dense s :=
+separable_space.exists_countable_dense
 
-lemma exists_dense_seq [separable_space α] [nonempty α] : ∃ u : ℕ → α, closure (range u) = univ :=
+lemma exists_dense_seq [separable_space α] [nonempty α] : ∃ u : ℕ → α, dense_range u :=
 begin
-  obtain ⟨s : set α, hs, s_dense⟩ := @separable_space.exists_countable_closure_eq_univ α _ _,
+  obtain ⟨s : set α, hs, s_dense⟩ := exists_countable_dense α,
   cases countable_iff_exists_surjective.mp hs with u hu,
-  use u,
-  apply eq_univ_of_univ_subset,
-  simpa [s_dense] using closure_mono hu
+  exact ⟨u, s_dense.mono hu⟩,
 end
 
 /-- A sequence dense in a non-empty separable topological space. -/
 def dense_seq [separable_space α] [nonempty α] : ℕ → α := classical.some (exists_dense_seq α)
 
-@[simp] lemma dense_seq_dense [separable_space α] [nonempty α] :
-  closure (range $ dense_seq α) = univ := classical.some_spec (exists_dense_seq α)
+@[simp] lemma dense_range_dense_seq [separable_space α] [nonempty α] :
+  dense_range (dense_seq α) := classical.some_spec (exists_dense_seq α)
 
 end topological_space
 
 open topological_space
 
-lemma dense_range.separable_space {α β : Type*} [topological_space α] [separable_space α]
-  [topological_space β] {f : α → β} (h : dense_range f) (h' : continuous f) : separable_space β :=
-let ⟨s, s_cnt, s_cl⟩ := exists_countable_closure_eq_univ α in
-⟨⟨f '' s, countable.image s_cnt f, h'.dense_image_of_dense_range h (dense_iff_closure_eq.mpr s_cl)⟩⟩
+protected lemma dense_range.separable_space {α β : Type*} [topological_space α] [separable_space α]
+  [topological_space β] {f : α → β} (h : dense_range f) (h' : continuous f) :
+  separable_space β :=
+let ⟨s, s_cnt, s_dense⟩ := exists_countable_dense α in
+⟨⟨f '' s, countable.image s_cnt f, h.dense_image h' s_dense⟩⟩
 
 namespace topological_space
 universe u
@@ -248,8 +247,7 @@ begin
   have : ∀ s ∈ b, set.nonempty s :=
     assume s hs, ne_empty_iff_nonempty.1 $ λ eq, absurd hs (eq.symm ▸ hbne),
   choose f hf,
-  refine ⟨⟨⋃ s ∈ b, {f s ‹_›}, hbc.bUnion (λ _ _, countable_singleton _), _⟩⟩,
-  refine eq_univ_of_forall (λ a, _),
+  refine ⟨⟨⋃ s ∈ b, {f s ‹_›}, hbc.bUnion (λ _ _, countable_singleton _), λ a, _⟩⟩,
   suffices : (⨅ s ∈ S a, 𝓟 (s ∩ ⋃ t ∈ b, {f t ‹_›})).ne_bot,
   { obtain ⟨t, htb, hta⟩ : a ∈ ⋃₀ b, { simp only [hbU] },
     have A : ∃ s, s ∈ S a := ⟨t, hta, htb⟩,

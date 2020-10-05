@@ -162,7 +162,6 @@ begin
   cases h3,
   exact absurd h3 h2.left,
   have h4 : 50 = c ∨ 50 < c, from step_helper 49 c h3,
-  unfold solution_predicate,
   have h5 : n = c * 11, from h2.right.right.right,
   cases h4,
   { left,
@@ -182,7 +181,6 @@ end
 
 lemma left_direction (n : ℕ) : solution_predicate n → problem_predicate n :=
 begin
-  unfold solution_predicate,
   intro spn,
   cases spn,
   { rw spn,

@@ -16,7 +16,7 @@ variables {r : α → β → Prop} {p : β → γ → Prop} {q : γ → δ → P
 
 /--
 The composition of two relations, yielding a new relation.  The result
-relates a term of `α` and a term of `γ` if there is an intermedate
+relates a term of `α` and a term of `γ` if there is an intermediate
 term of `β` related to both.
 -/
 def comp (r : α → β → Prop) (p : β → γ → Prop) (a : α) (c : γ) : Prop := ∃b, r a b ∧ p b c

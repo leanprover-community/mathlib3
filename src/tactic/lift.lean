@@ -131,10 +131,12 @@ do
 
 open lean.parser interactive interactive.types
 
+reserve notation `to`
+
 local postfix `?`:9001 := optional
 /-- Parses an optional token "using" followed by a trailing `pexpr`. -/
 meta def using_texpr := (tk "using" *> texpr)?
-reserve notation `to`
+
 /-- Parses a token "to" followed by a trailing `pexpr`. -/
 meta def to_texpr := (tk "to" *> texpr)
 

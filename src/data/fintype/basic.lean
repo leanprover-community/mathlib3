@@ -854,7 +854,7 @@ end
 /-- Given a collection of setoids indexed by a fintype `ι` and a
 function that for each `i : ι` gives a term of the corresponding
 quotient type, then there is corresponding term in the quotient of the
-product of the setoids.  -/
+product of the setoids. -/
 def quotient.fin_choice {ι : Type*} [decidable_eq ι] [fintype ι]
   {α : ι → Type*} [S : ∀ i, setoid (α i)]
   (f : Π i, quotient (S i)) : @quotient (Π i, α i) (by apply_instance) :=

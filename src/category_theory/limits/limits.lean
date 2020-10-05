@@ -973,10 +973,6 @@ def limit.lift (F : J ⥤ C) [has_limit F] (c : cone F) : c.X ⟶ limit F :=
 @[simp] lemma limit.is_limit_lift {F : J ⥤ C} [has_limit F] (c : cone F) :
   (limit.is_limit F).lift c = limit.lift F c := rfl
 
-@[simp]
-lemma lift_limit_cone [has_limit F] : limit.lift F (limit.cone F) = 𝟙 (limit F) :=
-(limit.is_limit _).lift_self
-
 @[simp, reassoc] lemma limit.lift_π {F : J ⥤ C} [has_limit F] (c : cone F) (j : J) :
   limit.lift F c ≫ limit.π F j = c.π.app j :=
 is_limit.fac _ c j
@@ -1379,10 +1375,6 @@ def colimit.desc (F : J ⥤ C) [has_colimit F] (c : cocone F) : colimit F ⟶ c.
 
 @[simp] lemma colimit.is_colimit_desc {F : J ⥤ C} [has_colimit F] (c : cocone F) :
   (colimit.is_colimit F).desc c = colimit.desc F c := rfl
-
-@[simp]
-lemma desc_colimit_cocone [has_colimit F] : colimit.desc F (colimit.cocone F) = 𝟙 (colimit F) :=
-(colimit.is_colimit _).desc_self
 
 /--
 We have lots of lemmas describing how to simplify `colimit.ι F j ≫ _`,

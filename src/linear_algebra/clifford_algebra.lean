@@ -71,7 +71,7 @@ def clifford_algebra := ring_quot (clifford_algebra.rel Q)
 
 namespace clifford_algebra
 
-/-
+/--
 The canonical linear map `M →ₗ[R] clifford_algebra Q`.
 -/
 def ι : M →ₗ[R] clifford_algebra Q :=

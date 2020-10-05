@@ -10,8 +10,8 @@ import tactic.omega
 /-!
 # Compositions
 
-A composition of an integer `n` is a decomposition `n = i₀ + ... + i_{k-1}` of `n` into a sum of
-positive integers. Combinatorially, it corresponds to a decomposition of `{0, ..., n-1}` into
+A composition of a natural number `n` is a decomposition `n = i₀ + ... + i_{k-1}` of `n` into a sum
+of positive integers. Combinatorially, it corresponds to a decomposition of `{0, ..., n-1}` into
 non-empty blocks of consecutive integers, where the `iⱼ` are the lengths of the blocks.
 This notion is closely related to that of a partition of `n`, but in a composition of `n` the
 order of the `iⱼ`s matters.

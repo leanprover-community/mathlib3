@@ -32,7 +32,7 @@ such that `0 < |x - a/b| < 1/bⁿ`. We can assume without lose of generality tha
 def is_liouville (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ,
   1 < b ∧ 0 < abs(x - a / b) ∧ abs(x - a / b) < 1/b^n
 
-namespace liouville
+namespace is_liouville
 
 lemma not_liouville_zero : ¬ is_liouville 0 :=
 begin
@@ -54,41 +54,35 @@ end
 lemma abs_eval_rat_ge_one_div_denom_pow_n (f : polynomial ℤ) (a b : ℤ)
   (b_pos : 0 < b) (not_root : (f.map (algebra_map ℤ ℝ)).eval (a/b) ≠ 0) :
   1/(b : ℝ)^f.nat_degree ≤ abs ((f.map (algebra_map ℤ ℝ)).eval (a/b)) :=
-have b_nonzero : b ≠ 0, from ne_of_gt b_pos,
-have pos : 0 < 1 / (b : ℝ) ^ f.nat_degree, from div_pos (show 0 < (1 : ℝ), from by linarith) (pow_pos (show _, by {norm_cast, exact b_pos}) _),
-have eq₁ : _, from
-  calc ((f.map (algebra_map ℤ ℝ)).eval (a/b))
-      = ∑ i in f.support, f.coeff i * (a / b) ^ i :
-      begin
-          conv_lhs { rw [eval_map, as_sum_support f, eval₂_finset_sum] },
-          simp only [coeff_map, eval₂_X_pow, div_pow, eval₂_mul, eval₂_C],
-          congr
-      end
-  ... = ∑ i in f.support, f.coeff i * a^i / b^i : sum_congr rfl (λ _ _, by rw [div_pow, mul_div_assoc])
-  ... = ∑ i in f.support, f.coeff i * a^i * b^(-i:ℤ) : sum_congr rfl (λ _ _, by {ring, simp} )
-  ... = ∑ i in f.support, f.coeff i * a^i * b^(-i+ f.nat_degree - f.nat_degree : ℤ) :
-      sum_congr rfl (λ _ _, by { simp only [add_sub_cancel] })
-  ... = ∑ i in f.support, f.coeff i * a^i * b^(-i + f.nat_degree:ℤ)/b^f.nat_degree :
-      sum_congr rfl (λ _ _, by { rw [fpow_sub, fpow_coe_nat, mul_div_assoc], norm_cast, assumption })
-  ... = ∑ i in f.support, f.coeff i * a^i * b^(f.nat_degree - i:ℤ)/b^f.nat_degree :
-      sum_congr rfl (λ _ _, by rw [add_comm _ ↑f.nat_degree, sub_eq_add_neg])
-  ... = ∑ i in f.support, f.coeff i * a^i * b^(f.nat_degree - i)/b^f.nat_degree :
-      sum_congr rfl (λ _ h, by { rw [←int.sub_nat_nat_eq_coe, int.sub_nat_nat_of_ge (le_nat_degree_of_mem_support h), int.of_nat_eq_coe], refl })
-  ... = (∑ i in f.support, f.coeff i * a^i * b^(f.nat_degree - i))/b^f.nat_degree : by rw [sum_div]
-  ... = 1/b^f.nat_degree * (∑ i in f.support, f.coeff i*a^i*b^(f.nat_degree - i)) : by ring,
-have cast_eq : ∑ i in f.support, (f.coeff i : ℝ) * a ^ i * b ^ (f.nat_degree - i)
-            = ↑(∑ i in f.support, f.coeff i * a ^ i * b ^ (f.nat_degree - i)), from
 begin
-  induction f.support using finset.induction_on with a s H ih,
-  { simp only [int.cast_zero, sum_empty] },
-  { rw [sum_insert H, sum_insert H, ih],
-    simp only [int.cast_pow, int.cast_add, int.cast_mul] }
-end,
-begin
+  have b_nonzero : b ≠ 0, from ne_of_gt b_pos,
+  have b0 : (b : ℝ) ≠ 0, { exact_mod_cast ne_of_gt b_pos },
+  have pos : 0 < 1 / (b : ℝ) ^ f.nat_degree,
+  { exact div_pos zero_lt_one (pow_pos (by exact_mod_cast b_pos) _) },
+  have eq₁ : ((f.map (algebra_map ℤ ℝ)).eval (a / b)) =
+    1 / b ^ f.nat_degree * (∑ i in f.support, f.coeff i * a ^ i * b ^ (f.nat_degree - i)),
+  -- we give a rough outline of the calculation, and prove two obligations below
+  calc  ((f.map (algebra_map ℤ ℝ)).eval (a / b))
+      = ∑ i in f.support, f.coeff i * (a / b) ^ i : _ -- (1)
+  ... = ∑ i in f.support, f.coeff i * a ^ i * b ^ (f.nat_degree - i) / b ^ f.nat_degree :
+        sum_congr rfl _ -- (2)
+  ... = (∑ i in f.support, f.coeff i * a ^ i * b ^ (f.nat_degree - i)) / b ^ f.nat_degree : by rw [sum_div]
+  ... = 1 / b ^ f.nat_degree * (∑ i in f.support, f.coeff i * a ^ i * b ^ (f.nat_degree - i)) : by ring,
+  { -- proof of (1)
+    conv_lhs { rw [eval_map, as_sum_support f, eval₂_finset_sum] },
+    simp only [coeff_map, eval₂_X_pow, div_pow, eval₂_mul, eval₂_C],
+    congr },
+  { -- proof of (2)
+    intros i hi,
+    suffices : (b ^ f.nat_degree : ℝ) = b ^ (f.nat_degree - i) * b ^ i,
+    { field_simp [b0, this, mul_assoc] },
+    rw [← pow_add, nat.sub_add_cancel (le_nat_degree_of_mem_support hi)] },
+  have cast_eq : ∑ i in f.support, (f.coeff i : ℝ) * a ^ i * b ^ (f.nat_degree - i) =
+                 ↑(∑ i in f.support, f.coeff i * a ^ i * b ^ (f.nat_degree - i)),
+  { simp only [← int.coe_cast_ring_hom, ring_hom.map_sum, ring_hom.map_mul, ring_hom.map_pow] },
   rw [eq₁, cast_eq, abs_mul, abs_of_pos pos, le_mul_iff_one_le_right pos],
   rw [eq₁, mul_ne_zero_iff, cast_eq] at not_root,
   norm_cast at ⊢ not_root,
-  change 0 < abs (∑ (i : ℕ) in f.support, f.coeff i * a ^ i * b ^ (f.nat_degree - i)),
   exact abs_pos_iff.2 not_root.2
 end
 
@@ -506,6 +500,6 @@ lemma is_transcendental_of_α : is_transcendental ℤ α := transcendental_of_is
 
 end construction
 
-end liouville
+end is_liouville
 
 end real

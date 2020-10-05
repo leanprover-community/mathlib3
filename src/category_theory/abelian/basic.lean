@@ -158,7 +158,7 @@ variables {P Q : C} (f : P ⟶ Q)
 section
 
 lemma mono_of_zero_kernel (R : C)
-  (l : is_limit (kernel_fork.of_ι R 0 (show 0 ≫ f = 0, by simp))) : mono f :=
+  (l : is_limit (kernel_fork.of_ι (0 : R ⟶ P) (show 0 ≫ f = 0, by simp))) : mono f :=
 non_preadditive_abelian.mono_of_zero_kernel _ _ l
 
 lemma mono_of_kernel_ι_eq_zero (h : kernel.ι f = 0) : mono f :=
@@ -321,7 +321,7 @@ non_preadditive_abelian.epi_is_cokernel_of_kernel s h
     If `f` is a monomorphism and `s` is some colimit cokernel cocone on `f`, then `f` is a kernel
     of `cofork.π s`. -/
 def mono_is_kernel_of_cokernel [mono f] (s : cofork f 0) (h : is_colimit s) :
-  is_limit (kernel_fork.of_ι _ f (cokernel_cofork.condition s)) :=
+  is_limit (kernel_fork.of_ι f (cokernel_cofork.condition s)) :=
 non_preadditive_abelian.mono_is_kernel_of_cokernel s h
 
 end cokernel_of_kernel
@@ -362,7 +362,7 @@ biprod.lift pullback.fst pullback.snd
     this may be that it induces an equalizer fork on the maps induced by `(f, 0)` and
     `(0, g)`. -/
 abbreviation pullback_to_biproduct_fork : kernel_fork (biprod.desc f (-g)) :=
-kernel_fork.of_ι _ (pullback_to_biproduct f g) $
+kernel_fork.of_ι (pullback_to_biproduct f g) $
 by rw [biprod.lift_desc, comp_neg, pullback.condition, add_right_neg]
 
 local attribute [irreducible] has_limit_cospan_of_has_limit_pair_of_has_limit_parallel_pair

@@ -2001,6 +2001,46 @@ begin
     simp [take_all_of_le h, take_all_of_le (le_trans h (nat.le_succ _))] }
 end
 
+@[to_additive sum_nonneg]
+lemma one_le_prod_of_one_le [ordered_comm_monoid α] {l : list α} (hl₁ : ∀ x ∈ l, (1 : α) ≤ x) :
+  1 ≤ l.prod :=
+begin
+  induction l with hd tl ih,
+  { simp },
+  rw prod_cons,
+  exact one_le_mul (hl₁ hd (mem_cons_self hd tl)) (ih (λ x h, hl₁ x (mem_cons_of_mem hd h))),
+end
+
+@[to_additive]
+lemma single_le_prod [ordered_comm_monoid α] {l : list α} (hl₁ : ∀ x ∈ l, (1 : α) ≤ x) :
+  ∀ x ∈ l, x ≤ l.prod :=
+begin
+  induction l,
+  { simp },
+  simp_rw [prod_cons, forall_mem_cons] at ⊢ hl₁,
+  split,
+  { exact le_mul_of_one_le_right' (one_le_prod_of_one_le hl₁.2) },
+  { exact λ x H, le_mul_of_one_le_of_le hl₁.1 (l_ih hl₁.right x H) },
+end
+
+@[to_additive all_zero_of_le_zero_le_of_sum_eq_zero]
+lemma all_one_of_le_one_le_of_prod_eq_one [ordered_comm_monoid α]
+  {l : list α} (hl₁ : ∀ x ∈ l, (1 : α) ≤ x) (hl₂ : l.prod = 1) :
+  ∀ x ∈ l, x = (1 : α) :=
+λ x hx, le_antisymm (hl₂ ▸ single_le_prod hl₁ _ hx) (hl₁ x hx)
+
+lemma sum_eq_zero_iff [canonically_ordered_add_monoid α] (l : list α) :
+  l.sum = 0 ↔ ∀ x ∈ l, x = (0 : α) :=
+⟨all_zero_of_le_zero_le_of_sum_eq_zero (λ _ _, zero_le _),
+begin
+  induction l,
+  { simp },
+  { intro,
+    rw [sum_cons, add_eq_zero_iff],
+    rw forall_mem_cons at a,
+    exact ⟨a.1, l_ih a.2⟩ },
+end⟩
+
 /-- A list with sum not zero must have positive length. -/
 lemma length_pos_of_sum_ne_zero [add_monoid α] (L : list α) (h : L.sum ≠ 0) : 0 < L.length :=
 by { cases L, { simp at h, cases h, }, { simp, }, }

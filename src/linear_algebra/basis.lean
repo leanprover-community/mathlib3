@@ -837,6 +837,30 @@ begin
   rw [hv.repr_eq_single, f_eq]
 end
 
+lemma is_basis.range_repr_self (i : ι) :
+  hv.range.repr (v i) = finsupp.single ⟨v i, mem_range_self i⟩ 1 :=
+hv.1.to_subtype_range.repr_eq_single _ _ rfl
+
+@[simp] lemma is_basis.range_repr (i : ι) :
+  hv.range.repr x ⟨v i, mem_range_self i⟩ = hv.repr x i :=
+begin
+  by_cases H : (0 : R) = 1,
+  { exact eq_of_zero_eq_one H _ _ },
+  refine (hv.repr_apply_eq _ _ _ x i).symm,
+  { intros x y,
+    ext j,
+    rw [linear_map.map_add, finsupp.add_apply],
+    refl },
+  { intros c x,
+    ext j,
+    rw [linear_map.map_smul, finsupp.smul_apply],
+    refl },
+  { intro i,
+    ext j,
+    haveI : nontrivial R := ⟨⟨0, 1, H⟩⟩,
+    simp [hv.range_repr_self, finsupp.single_apply, hv.injective] }
+end
+
 /-- Construct a linear map given the value at the basis. -/
 def is_basis.constr (f : ι → M') : M →ₗ[R] M' :=
 (finsupp.total M' M' R id).comp $ (finsupp.lmap_domain R R f).comp hv.repr

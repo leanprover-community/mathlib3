@@ -511,6 +511,52 @@ S.subtype.cod_mrestrict _ (λ x, h x.2)
 lemma range_subtype (s : submonoid M) : s.subtype.mrange = s :=
 ext' $ (coe_mrange _).trans $ subtype.range_coe
 
+@[to_additive] lemma eq_bot_iff_forall : S = ⊥ ↔ ∀ x ∈ S, x = (1 : M) :=
+begin
+  split,
+  { intros h x x_in,
+    rwa [h, mem_bot] at x_in },
+  { intros h,
+    ext x,
+    rw mem_bot,
+    exact ⟨h x, by { rintros rfl, exact S.one_mem }⟩ },
+end
+
+@[to_additive] lemma nontrivial_iff_exists_ne_one (S : submonoid M) : nontrivial S ↔ ∃ x ∈ S, x ≠ (1:M) :=
+begin
+  split,
+  { introI h,
+    rcases exists_ne (1 : S) with ⟨⟨h, h_in⟩, h_ne⟩,
+    use [h, h_in],
+    intro hyp,
+    apply  h_ne,
+    simpa [hyp] },
+  { rintros ⟨x, x_in, hx⟩,
+    apply nontrivial_of_ne (⟨x, x_in⟩ : S) 1,
+    intro hyp,
+    apply hx,
+    simpa [has_one.one] using hyp },
+end
+
+/-- A submonoid is either the trivial submonoid or nontrivial. -/
+@[to_additive] lemma bot_or_nontrivial (S : submonoid M) : S = ⊥ ∨ nontrivial S :=
+begin
+  classical,
+  by_cases h : ∀ x ∈ S, x = (1 : M),
+  { left,
+    exact S.eq_bot_iff_forall.mpr h },
+  { right,
+    push_neg at h,
+    simpa [nontrivial_iff_exists_ne_one] using h },
+end
+
+/-- A submonoid is either the trivial submonoid or contains a nonzero element. -/
+@[to_additive] lemma bot_or_exists_ne_one (S : submonoid M) : S = ⊥ ∨ ∃ x ∈ S, x ≠ (1:M) :=
+begin
+  convert S.bot_or_nontrivial,
+  rw nontrivial_iff_exists_ne_one
+end
+
 end submonoid
 
 namespace mul_equiv

@@ -136,7 +136,7 @@ end adjunction
 namespace adjunction
 
 /--
-This an auxilliary data structure useful for constructing adjunctions.
+This is an auxiliary data structure useful for constructing adjunctions.
 See `adjunction.mk_of_hom_equiv`.
 This structure won't typically be used anywhere else.
 -/
@@ -167,7 +167,7 @@ by rw [equiv.symm_apply_eq]; simp
 end core_hom_equiv
 
 /--
-This an auxilliary data structure useful for constructing adjunctions.
+This is an auxiliary data structure useful for constructing adjunctions.
 See `adjunction.mk_of_hom_equiv`.
 This structure won't typically be used anywhere else.
 -/

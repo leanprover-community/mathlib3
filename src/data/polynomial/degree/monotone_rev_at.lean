@@ -1,7 +1,7 @@
 import data.polynomial.degree.basic
 import data.polynomial.degree.to_basic
-import data.polynomial.degree.erase_leading
-import data.polynomial.degree.reverse_mul
+import data.polynomial.degree.erase_lead
+import data.polynomial.degree.reverse
 import data.polynomial.degree.to_trailing_degree
 import data.polynomial.degree.trailing_degree
 
@@ -11,7 +11,7 @@ namespace polynomial
 
 variables {R : Type*} [semiring R] {f : polynomial R}
 
-open erase_leading
+open erase_lead
 
 def mon {α β : Type*} [linear_order α] [linear_order β] (f : α → β) := ∀ ⦃x y : α⦄, x ≤ y → f y ≤ f x
 

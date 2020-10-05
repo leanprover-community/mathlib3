@@ -6,7 +6,7 @@ Authors: Damiano Testa
 
 import data.polynomial.degree.basic
 import data.polynomial.degree.to_basic
-import data.polynomial.degree.erase_leading
+import data.polynomial.degree.erase_lead
 import data.polynomial.degree.to_trailing_degree
 import data.polynomial.degree.trailing_degree
 
@@ -16,7 +16,7 @@ namespace polynomial
 
 variables {R : Type*} [semiring R] {f : polynomial R}
 
-open erase_leading
+open erase_lead
 
 namespace rev
 /-- rev_at is a function of two natural variables (N,i).  If i ≤ N, then rev_at N i returns N-i, otherwise it returns N.  Essentially, this function is only used for i ≤ N. -/
@@ -114,15 +114,15 @@ end
 
 /-- reflect of a natural number N and a polynomial f, applies the function rev_at to the exponents of the terms appearing in the expansion of f.  In practice, reflect is only used when N is at least as large as the degree of f.  Eventually, it will be used with N exactly equal to the degree of f.  -/
 def reflect : ℕ → polynomial R → polynomial R := λ N : ℕ , λ f : polynomial R , ⟨ image (rev_at N)  (f.support) , λ i : ℕ , f.coeff (rev_at N i) , begin
-  simp only [mem_image, exists_prop, mem_support_iff, ne.def],
   intro,
+  rw mem_image,
   split,
     { intro a_1,
       rcases a_1 with ⟨ a , ha , rfl⟩,
-      rwa rev_at_invol, },
+      rwa [rev_at_invol, ← mem_support_iff_coeff_ne_zero], },
     { intro,
       use (rev_at N a),
-      rwa [rev_at_invol, eq_self_iff_true, and_true], },
+      rwa [rev_at_invol, eq_self_iff_true, and_true, mem_support_iff_coeff_ne_zero], },
 end ⟩
 
 
@@ -138,10 +138,7 @@ def reflectv : ℕ → polynomial R → polynomial R := λ N : ℕ , λ f : poly
       rwa [rev_at_invol, eq_self_iff_true, and_true], },
 end ⟩
 
-@[simp] lemma reflect_zero {n : ℕ} : reflect n (0 : polynomial R) = 0 :=
-begin
-  refl,
-end
+@[simp] lemma reflect_zero {n : ℕ} : reflect n (0 : polynomial R) = 0 := rfl
 
 @[simp] lemma reflect_add {f g : polynomial R} {n : ℕ} : reflect n (f+g) = reflect n f + reflect n g :=
 begin
@@ -184,18 +181,6 @@ end
 
 /-- The reverse of a polynomial f is the polynomial obtained by "reading f backwards".  Even though this is not the actual definition, reverse f = f (1/X) * X ^ f.nat_degree. -/
 def reverse : polynomial R → polynomial R := λ f , reflect f.nat_degree f
-
-lemma nat_degree_add_of_mul_leading_coeff_nonzero (f g: polynomial R) (fg: f.leading_coeff * g.leading_coeff ≠ 0) :
- (f * g).nat_degree = f.nat_degree + g.nat_degree :=
-begin
---  apply coeff_mul_degree_add_degree f g,
-  apply le_antisymm,
-    { exact nat_degree_mul_le, },
-    { apply le_nat_degree_of_mem_supp,
-      rw mem_support_iff_coeff_ne_zero,
-      convert fg,
-      exact coeff_mul_degree_add_degree f g, },
-end
 
 lemma pol_ind_Rhom_prod_on_card (cf cg : ℕ) {rp : ℕ → polynomial R → polynomial R}
  (rp_add  : ∀ f g : polynomial R , ∀ F : ℕ ,
@@ -287,24 +272,23 @@ theorem reverse_mul (f g : polynomial R) {fg : f.leading_coeff*g.leading_coeff �
 begin
   unfold reverse,
   convert reflect_mul (le_refl _) (le_refl _),
-    exact nat_degree_add_of_mul_leading_coeff_nonzero f g fg,
+    exact nat_degree_mul' fg,
 end
 
 lemma leading_eq_trailing {N : ℕ} (H : f.nat_degree ≤ N) : leading_coeff (reflect N f) = trailing_coeff f :=
 begin
   by_cases f0 : f=0,
---  unfold reflect,
     { rw [f0, reflect_zero, leading_coeff, trailing_coeff, coeff_zero, coeff_zero], },
-  have : (reflect N f).leading_coeff = (reflect N f).coeff (reflect N f).nat_degree, by congr,
-  rw this,
-  have : f.trailing_coeff = f.coeff f.nat_trailing_degree, by congr,
-  rw this,
-  rw nat_degree_eq_support_min'_trailing f0,
-  rw nat_degree_eq_support_max' _,
-  convert @rev_at_small_min_max N f.support (nonempty_support_iff.mpr f0) (by
-    rwa ← nat_degree_eq_support_max'),
-  unfold reflect,
-  simp * at *,
+    {
+      have : f.trailing_coeff = f.coeff f.nat_trailing_degree, by congr,
+      rw this,
+      rw nat_degree_eq_support_min'_trailing f0,
+      have : (reflect N f).leading_coeff = (reflect N f).coeff (reflect N f).nat_degree, by congr,
+      rw this,
+      rw nat_degree_eq_support_max' _,
+      convert @rev_at_small_min_max N f.support (nonempty_support_iff.mpr f0) (by rwa ← nat_degree_eq_support_max'),
+      unfold reflect,
+      simp * at *,
   work_on_goal 0 { dsimp at *, fsplit, work_on_goal 0 { intros a }, work_on_goal 1 { intros a } }, work_on_goal 2 { intros a, injections_and_clear, dsimp at *, simp at *, simp at *, solve_by_elim }, work_on_goal 0 { dsimp at * }, work_on_goal 1 { dsimp at * },
   { rw ← monotone_rev_at_eq_rev_at_small,
     rw @rev_at_small_min_max N f.support _ _ ,
@@ -319,10 +303,9 @@ begin
 
     apply le_trans _ H,
     apply min'_le,
-    exact nat_degree_mem_support_of_nonzero f0,
-    },
+    exact nat_degree_mem_support_of_nonzero f0, },
   congr,
-  simp only [*, rev_at_invol],
+  simp only [*, rev_at_invol], },
 end
 
 end rev

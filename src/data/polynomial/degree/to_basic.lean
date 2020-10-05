@@ -10,9 +10,14 @@ nat_degree_eq_of_degree_eq_some (degree_monomial n ha)
 
 lemma mem_support_C_mul_X_pow {n a : ℕ} {c : R} : a ∈ (C c * X ^ n).support → a = n :=
 begin
-  intro,
-  rw [mem_support_iff_coeff_ne_zero, coeff_C_mul_X c n a] at a_1,
-  finish,
+  rw [mem_support_iff_coeff_ne_zero, coeff_C_mul_X c n a],
+  split_ifs,
+    { intro,
+      assumption, },
+    { intro a_1,
+    exfalso,
+    apply a_1,
+    refl, },
 end
 
 lemma support_C_mul_X_pow (c : R) (n : ℕ) : (C c * X ^ n).support ⊆ singleton n :=
@@ -25,8 +30,7 @@ end
 lemma card_support_C_mul_X_pow_le_one {c : R} {n : ℕ} : (C c * X ^ n).support.card ≤ 1 :=
 begin
   rw ← card_singleton n,
-  apply card_le_of_subset,
-  exact support_C_mul_X_pow c n,
+  apply card_le_of_subset (support_C_mul_X_pow c n),
 end
 
 lemma nat_degree_mem_support_of_nonzero (H : f ≠ 0) : f.nat_degree ∈ f.support :=
@@ -34,29 +38,15 @@ lemma nat_degree_mem_support_of_nonzero (H : f ≠ 0) : f.nat_degree ∈ f.suppo
 
 lemma le_nat_degree_of_mem_supp (a : ℕ) :
   a ∈ f.support → a ≤ nat_degree f:=
-begin
-  rw mem_support_iff_coeff_ne_zero,
-  exact le_nat_degree_of_ne_zero,
-end
+le_nat_degree_of_ne_zero ∘ mem_support_iff_coeff_ne_zero.mp
 
 lemma le_degree_of_mem_supp (a : ℕ) :
-  a ∈ f.support → a ≤ nat_degree f :=
-begin
-  rw mem_support_iff_coeff_ne_zero,
-  exact le_nat_degree_of_ne_zero,
-end
+  a ∈ f.support → ↑a ≤ degree f :=
+le_degree_of_ne_zero ∘ mem_support_iff_coeff_ne_zero.mp
 
 lemma nonempty_support_iff : f.support.nonempty ↔ f ≠ 0 :=
 begin
-  split,
-    { intro,
-      cases a with N Nhip,
-      rw mem_support_iff_coeff_ne_zero at Nhip,
-      finish, },
-    { intro fne,
-      apply nonempty_iff_ne_empty.mpr,
-      apply ne_empty_of_mem,
-      exact mem_support_iff_coeff_ne_zero.mpr ((not_congr leading_coeff_eq_zero).mpr fne), },
+  rw [ne.def, nonempty_iff_ne_empty, ne.def, ← support_eq_empty],
 end
 
 lemma nat_degree_eq_support_max' (h : f ≠ 0) :
@@ -67,14 +57,13 @@ begin
     rw mem_support_iff_coeff_ne_zero,
     exact (not_congr leading_coeff_eq_zero).mpr h, },
   { apply max'_le,
-    intros y hy,
-    exact le_degree_of_mem_supp y hy, }
+    refine le_nat_degree_of_mem_supp, },
 end
 
 lemma support_C_mul_X_pow_nonzero {c : R} {n : ℕ} (h : c ≠ 0): (C c * X ^ n).support = singleton n :=
 begin
   ext1,
-  rw mem_singleton,
+  rw [mem_singleton],
   split,
     { exact mem_support_C_mul_X_pow, },
     { intro,
@@ -84,16 +73,14 @@ end
 lemma nat_degree_C_mul_X_pow_le (a : R) (n : ℕ) : nat_degree (C a * X ^ n) ≤ n :=
 begin
   by_cases a0 : a = 0,
-    rw [a0, C_0, zero_mul, nat_degree_zero],
-    exact nat.zero_le _,
-
-
-    rw nat_degree_eq_support_max',
+    { rw [a0, C_0, zero_mul, nat_degree_zero],
+      exact nat.zero_le _, },
+    { rw nat_degree_eq_support_max',
       { simp_rw [support_C_mul_X_pow_nonzero a0, max'_singleton n], },
       { intro,
         apply a0,
         rw [← C_inj, C_0],
-        apply mul_X_pow_eq_zero a_1, },
+        apply mul_X_pow_eq_zero a_1, }, },
 end
 
 
@@ -104,5 +91,5 @@ begin
     { intro,
       apply ha,
       rw [← C_inj, C_0],
-      apply mul_X_pow_eq_zero a_1, },
+      exact mul_X_pow_eq_zero a_1, },
 end

@@ -125,21 +125,33 @@ lemma commute_cast [semiring α] (x : α) (n : ℕ) : commute x n :=
 | 0     := le_refl _
 | (n+1) := add_nonneg (cast_nonneg n) zero_le_one
 
-@[simp, norm_cast] theorem cast_le [linear_ordered_semiring α] : ∀ {m n : ℕ}, (m : α) ≤ n ↔ m ≤ n
-| 0     n     := by simp [zero_le]
-| (m+1) 0     := by simpa [not_succ_le_zero] using
-  lt_add_of_nonneg_of_lt (@cast_nonneg α _ m) zero_lt_one
-| (m+1) (n+1) := (add_le_add_iff_right 1).trans $
-  (@cast_le m n).trans $ (add_le_add_iff_right 1).symm
+theorem strict_mono_cast [linear_ordered_semiring α] : strict_mono (coe : ℕ → α) :=
+λ m n h, nat.le_induction (lt_add_of_pos_right _ zero_lt_one)
+  (λ n _ h, lt_add_of_lt_of_pos h zero_lt_one) _ h
+
+@[simp, norm_cast] theorem cast_le [linear_ordered_semiring α] {m n : ℕ} : (m : α) ≤ n ↔ m ≤ n :=
+strict_mono_cast.le_iff_le
 
 @[simp, norm_cast] theorem cast_lt [linear_ordered_semiring α] {m n : ℕ} : (m : α) < n ↔ m < n :=
-by simpa [-cast_le] using not_congr (@cast_le α _ n m)
+strict_mono_cast.lt_iff_lt
 
 @[simp] theorem cast_pos [linear_ordered_semiring α] {n : ℕ} : (0 : α) < n ↔ 0 < n :=
 by rw [← cast_zero, cast_lt]
 
 lemma cast_add_one_pos [linear_ordered_semiring α] (n : ℕ) : 0 < (n : α) + 1 :=
   add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
+
+@[simp, norm_cast] theorem one_lt_cast [linear_ordered_semiring α] {n : ℕ} : 1 < (n : α) ↔ 1 < n :=
+by rw [← cast_one, cast_lt]
+
+@[simp, norm_cast] theorem one_le_cast [linear_ordered_semiring α] {n : ℕ} : 1 ≤ (n : α) ↔ 1 ≤ n :=
+by rw [← cast_one, cast_le]
+
+@[simp, norm_cast] theorem cast_lt_one [linear_ordered_semiring α] {n : ℕ} : (n : α) < 1 ↔ n = 0 :=
+by rw [← cast_one, cast_lt, lt_succ_iff, le_zero_iff]
+
+@[simp, norm_cast] theorem cast_le_one [linear_ordered_semiring α] {n : ℕ} : (n : α) ≤ 1 ↔ n ≤ 1 :=
+by rw [← cast_one, cast_le]
 
 @[simp, norm_cast] theorem cast_min [decidable_linear_ordered_semiring α] {a b : ℕ} :
   (↑(min a b) : α) = min a b :=
@@ -153,9 +165,11 @@ by by_cases a ≤ b; simp [h, max]
   abs (a : α) = a :=
 abs_of_nonneg (cast_nonneg a)
 
-lemma coe_nat_dvd [comm_semiring α] (m n : ℕ) (h : m ∣ n) :
+lemma coe_nat_dvd [comm_semiring α] {m n : ℕ} (h : m ∣ n) :
   (m : α) ∣ (n : α) :=
 ring_hom.map_dvd (nat.cast_ring_hom α) h
+
+alias coe_nat_dvd ← has_dvd.dvd.nat_cast
 
 section linear_ordered_field
 variables [linear_ordered_field α]

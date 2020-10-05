@@ -361,4 +361,52 @@ end
 end adjoin_dim
 end adjoin_subalgebra_lattice
 
+section induction
+
+variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
+
+lemma induction_on_adjoin [fd : finite_dimensional F E] (P : intermediate_field F E → Prop)
+  (base : P ⊥) (ih : ∀ (K : intermediate_field F E) (x : E), P K → P ↑K⟮x⟯)
+  (K : intermediate_field F E) : P K :=
+begin
+  haveI := classical.prop_decidable,
+  have induction : ∀ (s : finset E), P (adjoin F ↑s),
+  { intro s,
+    apply @finset.induction_on E (λ s, P (adjoin F ↑s)) _ s base,
+    intros a t _ h,
+    rw [finset.coe_insert, ←set.union_singleton],
+    have key := ih (adjoin F ↑t) a h,
+    rw adjoin_adjoin_left at key,
+    exact key },
+  cases finite_dimensional.iff_fg.mp (intermediate_field.finite_dimensional K) with s hs,
+  suffices : adjoin F ↑(finset.image coe s) = K,
+  { rw ←this, exact induction (s.image coe) },
+  apply le_antisymm,
+  { rw adjoin_le_iff,
+    intros x hx,
+    rw [finset.mem_coe, finset.mem_image] at hx,
+    cases hx with y hy,
+    cases hy with _ hy,
+    rw ←hy,
+    exact subtype.mem y, },
+  { change K.to_subalgebra.to_submodule ≤ (adjoin F _).to_subalgebra.to_submodule,
+    suffices step : submodule.span F _ = K.to_subalgebra.to_submodule,
+    { rw ← step,
+      exact submodule.span_le.mpr (subset_adjoin F ↑(finset.image coe s)) },
+    have swap : coe = (⇑((val K).to_linear_map : K →ₗ[F] E) : K → E) := rfl,
+    rw [finset.coe_image, swap, submodule.span_image, hs, submodule.map_top],
+    ext,
+    split,
+    { intro hx,
+      rw linear_map.mem_range at hx,
+      cases hx with y hy,
+      rw [←hy, alg_hom.to_linear_map_apply, coe_val],
+      exact subtype.mem y },
+    { intro hx,
+      rw linear_map.mem_range,
+      exact ⟨⟨x, hx⟩, rfl⟩ } },
+end
+
+end induction
+
 end intermediate_field

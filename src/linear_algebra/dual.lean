@@ -118,9 +118,11 @@ by rw [← h.to_dual_total_left, h.total_repr]
 lemma to_dual_apply_right (i : ι) (v : V) : h.to_dual (B i) v = h.repr v i :=
 by rw [← h.to_dual_total_right, h.total_repr]
 
+/-- Apply `v` to the second argument of `to_dual : V →ₗ V →ₗ K`. -/
 def to_dual_flip (v : V) : (V →ₗ[K] K) := (linear_map.flip h.to_dual).to_fun v
 
 omit de h
+-- TODO: unify this with `finsupp.lapply`.
 /-- Evaluation of finitely supported functions at a fixed point `i`, as a `K`-linear map. -/
 def eval_finsupp_at (i : ι) : (ι →₀ K) →ₗ[K] K :=
 { to_fun    := λ f, f i,
@@ -128,13 +130,14 @@ def eval_finsupp_at (i : ι) : (ι →₀ K) →ₗ[K] K :=
   map_smul' := by intros; rw finsupp.smul_apply }
 include h
 
-
+/-- `h.coord_fun i` sends vectors to their `i`'th coordinate with respect to the basis `h`. -/
 def coord_fun (i : ι) : (V →ₗ[K] K) := linear_map.comp (eval_finsupp_at i) h.repr
 
 lemma coord_fun_eq_repr (v : V) (i : ι) : h.coord_fun i v = h.repr v i := rfl
 
 include de
 
+-- TODO: this lemma should be called something like `to_dual_flip_apply`
 lemma to_dual_swap_eq_to_dual (v w : V) : h.to_dual_flip v w = h.to_dual w v := rfl
 
 lemma to_dual_eq_repr (v : V) (i : ι) : (h.to_dual v) (B i) = h.repr v i :=
@@ -298,6 +301,7 @@ variables [field K] [add_comm_group V] [vector_space K V]
 local notation `V'` := dual K V
 
 /-- `e` and `ε` have characteristic properties of a basis and its dual -/
+@[nolint has_inhabited_instance]
 structure dual_pair (e : ι → V) (ε : ι → V') :=
 (eval : ∀ i j : ι, ε i (e j) = if i = j then 1 else 0)
 (total : ∀ {v : V}, (∀ i, ε i v = 0) → v = 0)

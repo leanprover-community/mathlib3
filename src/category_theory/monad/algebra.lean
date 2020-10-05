@@ -10,7 +10,9 @@ import category_theory.reflects_isomorphisms
 /-!
 # Eilenberg-Moore (co)algebras for a (co)monad
 
-This file defines Eilenberg-Moore (co)algebras for a (co)monad, and provides the category instance for them.
+This file defines Eilenberg-Moore (co)algebras for a (co)monad,
+and provides the category instance for them.
+
 Further it defines the adjoint pair of free and forgetful functors, respectively
 from and to the original category, as well as the adjoint pair of forgetful and
 cofree functors, respectively from and to the original category.
@@ -41,11 +43,6 @@ restate_axiom algebra.assoc'
 
 namespace algebra
 variables {T : C ⥤ C} [monad T]
-
-instance (X : C) : inhabited (algebra (𝟭 C)) :=
-inhabited.mk
-{ A := X,
-  a := 𝟙 X, }
 
 /-- A morphism of Eilenberg–Moore algebras for the monad `T`. -/
 @[ext] structure hom (A B : algebra T) :=
@@ -95,6 +92,9 @@ variables (T : C ⥤ C) [monad T]
   map := λ X Y f,
   { f := T.map f,
     h' := by erw (μ_ T).naturality } }
+
+instance [inhabited C] : inhabited (algebra T) :=
+⟨(free T).obj (default C)⟩
 
 /-- The adjunction between the free and forgetful constructions for Eilenberg-Moore algebras for a monad.
     cf Lemma 5.2.8 of [Riehl][riehl2017]. -/

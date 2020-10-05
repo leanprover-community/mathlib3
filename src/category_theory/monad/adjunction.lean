@@ -34,7 +34,7 @@ end adjunction
 namespace monad
 
 /--
-Gven any adjunction `L ⊣ R`, there is a comparison functor `monad.comparison R`
+Gven any adjunction `L ⊣ R`, there is a comparison functor `category_theory.monad.comparison R`
 sending objects `Y : D` to Eilenberg-Moore algebras for `L ⋙ R` with underlying object `R.obj X`.
 
 We later show that this is full when `R` is full, faithful when `R` is faithful,

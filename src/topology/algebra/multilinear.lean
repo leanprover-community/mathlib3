@@ -56,11 +56,11 @@ section semiring
 
 variables [semiring R]
 [Πi, add_comm_monoid (M i)] [Πi, add_comm_monoid (M₁ i)] [Πi, add_comm_monoid (M₁' i)]
-[add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
-[Πi, semimodule R (M i)] [Πi, semimodule R (M₁ i)]  [Πi, semimodule R (M₁' i)] [semimodule R M₂]
-[semimodule R M₃] [semimodule R M₄]
-[Πi, topological_space (M i)] [Πi, topological_space (M₁ i)] [Πi, topological_space (M₁' i)]
-[topological_space M₂] [topological_space M₃] [topological_space M₄]
+  [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
+  [Π i, semimodule R (M i)] [Π i, semimodule R (M₁ i)]  [Π i, semimodule R (M₁' i)] [semimodule R M₂]
+  [semimodule R M₃] [semimodule R M₄]
+  [Π i, topological_space (M i)] [Π i, topological_space (M₁ i)] [Π i, topological_space (M₁' i)]
+  [topological_space M₂] [topological_space M₃] [topological_space M₄]
 (f f' : continuous_multilinear_map R M₁ M₂)
 
 instance : has_coe_to_fun (continuous_multilinear_map R M₁ M₂) :=

@@ -195,17 +195,13 @@ def comp_linear_map (g : multilinear_map R M₁' M₂) (f : Π i, M₁ i →ₗ[
   multilinear_map R M₁ M₂ :=
 { to_fun := λ m, g $ λ i, f i (m i),
   map_add' := λ m i x y,
-    begin
-      have : ∀ j z, f j (update m i z j) = update (λ k, f k (m k)) i (f i z) j :=
-        λ j z, function.apply_update (λ k, f k) _ _ _ _,
-      simp [this]
-    end,
+    have ∀ j z, f j (update m i z j) = update (λ k, f k (m k)) i (f i z) j :=
+      λ j z, function.apply_update (λ k, f k) _ _ _ _,
+    by simp [this],
   map_smul' := λ m i c x,
-    begin
-      have : ∀ j z, f j (update m i z j) = update (λ k, f k (m k)) i (f i z) j :=
-        λ j z, function.apply_update (λ k, f k) _ _ _ _,
-      simp [this]
-    end }
+    have ∀ j z, f j (update m i z j) = update (λ k, f k (m k)) i (f i z) j :=
+      λ j z, function.apply_update (λ k, f k) _ _ _ _,
+    by simp [this] }
 
 @[simp] lemma comp_linear_map_apply (g : multilinear_map R M₁' M₂) (f : Π i, M₁ i →ₗ[R] M₁' i)
   (m : Π i, M₁ i) :

@@ -391,7 +391,7 @@ begin
       exact submodule.span_le.mpr (subset_adjoin F ↑(finset.image coe s)) },
     have swap : coe = (⇑((val K).to_linear_map : K →ₗ[F] E) : K → E) := rfl,
     rw [finset.coe_image, swap, submodule.span_image, hs, submodule.map_top],
-    have h := subalgebra.val_linear_map_range_eq_submodule K.to_submodule,
+    exact subalgebra.val_linear_map_range_eq_submodule K.to_subalgebra }
 end
 
 end induction

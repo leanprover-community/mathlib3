@@ -44,6 +44,8 @@ coe_ne_one.symm
 lemma ne_one_iff_exists {x : with_one α} : x ≠ 1 ↔ ∃ (a : α), ↑a = x :=
 option.ne_none_iff_exists
 
+-- `to_additive` fails to generate some meta info around eqn lemmas, so `lift` doesn't work
+-- unless we explicitly define this instance
 instance : can_lift (with_one α) α :=
 { coe := coe,
   cond := λ a, a ≠ 1,
@@ -133,7 +135,7 @@ end with_one
 
 namespace with_zero
 
--- `to_additive` fails to generate some meta info around eqn lemmas, so `lift` doesn't workf
+-- `to_additive` fails to generate some meta info around eqn lemmas, so `lift` doesn't work
 -- unless we explicitly define this instance
 instance : can_lift (with_zero α) α :=
 { coe := coe,

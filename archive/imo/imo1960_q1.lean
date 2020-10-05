@@ -192,9 +192,5 @@ begin
 end
 
 theorem imo1960_q1 (n : ℕ) : problem_predicate n ↔ solution_predicate n :=
-begin
-  split,
-  exact right_direction n,
-  exact left_direction n,
-end
+⟨right_direction n, left_direction n⟩
 

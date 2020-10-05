@@ -343,11 +343,13 @@ theorem dvd_antisymm {m n : ℕ+} : m ∣ n → n ∣ m → m = n :=
 theorem dvd_one_iff (n : ℕ+) : n ∣ 1 ↔ n = 1 :=
  ⟨λ h, dvd_antisymm h (one_dvd n), λ h, h.symm ▸ (dvd_refl 1)⟩
 
-/-- If `(n m : ℕ+)`, then `nat.gcd n m` is also positive. -/
+/-- The greatest common divisor (gcd) of two positive natural numbers,
+  viewed as positive natural number. -/
 def gcd (n m : ℕ+) : ℕ+ :=
  ⟨nat.gcd (n : ℕ) (m : ℕ), nat.gcd_pos_of_pos_left (m : ℕ) n.pos⟩
 
-/-- If `(n m : ℕ+)`, then `nat.lcm n m` is also positive. -/
+/-- The least common multiple (lcm) of two positive natural numbers,
+  viewed as positive natural number. -/
 def lcm (n m : ℕ+) : ℕ+ :=
  ⟨nat.lcm (n : ℕ) (m : ℕ),
   by { let h := mul_pos n.pos m.pos,

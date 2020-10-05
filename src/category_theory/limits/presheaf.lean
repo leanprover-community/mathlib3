@@ -13,7 +13,6 @@ universes v₁ v₂ u₁ u₂
 
 variables {C : Type u₁} [small_category C]
 variables {ℰ : Type u₂} [category.{u₁} ℰ]
-variables [has_colimits ℰ]
 variable (A : C ⥤ ℰ)
 
 namespace colimit_adj
@@ -22,19 +21,22 @@ namespace colimit_adj
 def R : ℰ ⥤ (Cᵒᵖ ⥤ Type u₁) :=
 { obj := λ E,
   { obj := λ c, A.obj c.unop ⟶ E,
-    map := λ c c' f k, A.map f.unop ≫ k },
-  map := λ E E' k, { app := λ c f, f ≫ k } }.
+    map := λ c c' f k, A.map f.unop ≫ k,
+    map_id' := λ X, by { ext, simp } },
+    map_comp' := λ X Y Z f g, by { ext, simp },
+  map := λ E E' k,
+  { app := λ c f, f ≫ k,
+    naturality' := λ X Y f, by { ext, apply assoc } },
+  map_id' := λ X, by { ext, simp },
+  map_comp' := λ X Y Z f g, by { ext, simp } }.
 
 def Le' (P : Cᵒᵖ ⥤ Type u₁) (E : ℰ) {c : cocone ((category_of_elements.π P).left_op ⋙ A)}
   (t : is_colimit c) : (c.X ⟶ E) ≃ (P ⟶ (R A).obj E) :=
 (t.hom_iso' E).to_equiv.trans
 { to_fun := λ k,
   { app := λ c p, k.1 (opposite.op ⟨_, p⟩),
-    naturality' := λ c c' f,
-    begin
-      ext p,
-      apply (k.2 (has_hom.hom.op ⟨f, rfl⟩ : (opposite.op ⟨c', P.map f p⟩ : P.elementsᵒᵖ) ⟶ opposite.op ⟨c, p⟩)).symm,
-    end },
+    naturality' := λ c c' f, funext $ λ p,
+      (k.2 (has_hom.hom.op ⟨f, rfl⟩ : (opposite.op ⟨c', P.map f p⟩ : P.elementsᵒᵖ) ⟶ opposite.op ⟨c, p⟩)).symm },
   inv_fun := λ τ,
   { val := λ p, τ.app p.unop.1 p.unop.2,
     property := λ p p' f,
@@ -64,6 +66,7 @@ begin
   apply (assoc _ _ _).symm,
 end
 
+variables [has_colimits ℰ]
 def L : (Cᵒᵖ ⥤ Type u₁) ⥤ ℰ :=
 adjunction.left_adjoint_of_equiv
   (λ P E, Le' A P E (colimit.is_colimit _))
@@ -71,9 +74,16 @@ adjunction.left_adjoint_of_equiv
 
 def L_adjunction : L A ⊣ R A := adjunction.adjunction_of_equiv_left _ _
 
+/--
+The terminal object in the category of elements for a representable functor.
+In `is_term` it is shown that this is terminal.
+-/
 def term_element (A : C) : (yoneda.obj A).elementsᵒᵖ :=
 opposite.op ⟨opposite.op A, 𝟙 _⟩
 
+/--
+Show that `term_element A` is terminal in the category of elements for the `yoneda` functor.
+-/
 def is_term (A : C) : is_terminal (term_element A) :=
 { lift := λ s,
   begin
@@ -135,7 +145,7 @@ begin
 end
 
 -- Probably needs preserves branch for simp to be nice
--- def unique_extension (L' : (Cᵒᵖ ⥤ Type u₁) ⥤ ℰ) (hL : (yoneda : C ⥤ _) ⋙ L' ≅ A)
+-- def unique_extension [has_colimits ℰ] (L' : (Cᵒᵖ ⥤ Type u₁) ⥤ ℰ) (hL : (yoneda : C ⥤ _) ⋙ L' ≅ A)
 --   [preserves_colimits L'] :
 --   L' ≅ L A :=
 -- begin

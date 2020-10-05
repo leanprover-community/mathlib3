@@ -3,7 +3,7 @@ Copyright (c) 2019 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import ring_theory.algebra
+import algebra.algebra.basic
 import linear_algebra.linear_action
 import linear_algebra.bilinear_form
 import linear_algebra.direct_sum.finsupp

@@ -28,6 +28,7 @@ All the following declarations exist in the namespace `nat`.
 -/
 
 open bool subtype
+open_locale nat
 
 namespace nat
 
@@ -317,11 +318,11 @@ theorem exists_prime_and_dvd {n : ℕ} (n2 : 2 ≤ n) : ∃ p, prime p ∧ p ∣
 /-- Euclid's theorem. There exist infinitely many prime numbers.
 Here given in the form: for every `n`, there exists a prime number `p ≥ n`. -/
 theorem exists_infinite_primes (n : ℕ) : ∃ p, n ≤ p ∧ prime p :=
-let p := min_fac (fact n + 1) in
-have f1 : fact n + 1 ≠ 1, from ne_of_gt $ succ_lt_succ $ fact_pos _,
+let p := min_fac (n! + 1) in
+have f1 : n! + 1 ≠ 1, from ne_of_gt $ succ_lt_succ $ factorial_pos _,
 have pp : prime p, from min_fac_prime f1,
 have np : n ≤ p, from le_of_not_ge $ λ h,
-  have h₁ : p ∣ fact n, from dvd_fact (min_fac_pos _) h,
+  have h₁ : p ∣ n!, from dvd_factorial (min_fac_pos _) h,
   have h₂ : p ∣ 1, from (nat.dvd_add_iff_right h₁).2 (min_fac_dvd _),
   pp.not_dvd_one h₂,
 ⟨p, np, pp⟩
@@ -330,6 +331,25 @@ lemma prime.eq_two_or_odd {p : ℕ} (hp : prime p) : p = 2 ∨ p % 2 = 1 :=
 (nat.mod_two_eq_zero_or_one p).elim
   (λ h, or.inl ((hp.2 2 (dvd_of_mod_eq_zero h)).resolve_left dec_trivial).symm)
   or.inr
+
+theorem coprime_of_dvd {m n : ℕ} (H : ∀ k, prime k → k ∣ m → ¬ k ∣ n) : coprime m n :=
+begin
+  cases eq_zero_or_pos (gcd m n) with g0 g1,
+  { rw [eq_zero_of_gcd_eq_zero_left g0, eq_zero_of_gcd_eq_zero_right g0] at H,
+    exfalso,
+    exact H 2 prime_two (dvd_zero _) (dvd_zero _) },
+  apply eq.symm,
+  change 1 ≤ _ at g1,
+  apply (lt_or_eq_of_le g1).resolve_left,
+  intro g2,
+  obtain ⟨p, hp, hpdvd⟩ := exists_prime_and_dvd g2,
+  apply H p hp; apply dvd_trans hpdvd,
+  { exact gcd_dvd_left _ _ },
+  { exact gcd_dvd_right _ _ }
+end
+
+theorem coprime_of_dvd' {m n : ℕ} (H : ∀ k, prime k → k ∣ m → k ∣ n → k ∣ 1) : coprime m n :=
+coprime_of_dvd $ λk kp km kn, not_le_of_gt kp.one_lt $ le_of_dvd zero_lt_one $ H k kp km kn
 
 theorem factors_lemma {k} : (k+2) / min_fac (k+2) < k+2 :=
 div_lt_self dec_trivial (min_fac_prime dec_trivial).one_lt
@@ -381,7 +401,7 @@ lemma factors_add_two (n : ℕ) :
 
 theorem prime.coprime_iff_not_dvd {p n : ℕ} (pp : prime p) : coprime p n ↔ ¬ p ∣ n :=
 ⟨λ co d, pp.not_dvd_one $ co.dvd_of_dvd_mul_left (by simp [d]),
- λ nd, coprime_of_dvd $ λ m m2 mp, ((dvd_prime_two_le pp m2).1 mp).symm ▸ nd⟩
+ λ nd, coprime_of_dvd $ λ m m2 mp, ((prime_dvd_prime_iff_eq m2 pp).1 mp).symm ▸ nd⟩
 
 theorem prime.dvd_iff_not_coprime {p n : ℕ} (pp : prime p) : p ∣ n ↔ ¬ coprime p n :=
 iff_not_comm.2 pp.coprime_iff_not_dvd
@@ -437,10 +457,10 @@ begin
 end,
 λ ⟨h₁, h₂⟩, h₁.symm ▸ h₂.symm ▸ (pow_two _).symm⟩
 
-lemma prime.dvd_fact : ∀ {n p : ℕ} (hp : prime p), p ∣ n.fact ↔ p ≤ n
+lemma prime.dvd_factorial : ∀ {n p : ℕ} (hp : prime p), p ∣ n! ↔ p ≤ n
 | 0 p hp := iff_of_false hp.not_dvd_one (not_le_of_lt hp.pos)
 | (n+1) p hp := begin
-  rw [fact_succ, hp.dvd_mul, prime.dvd_fact hp],
+  rw [factorial_succ, hp.dvd_mul, prime.dvd_factorial hp],
   exact ⟨λ h, h.elim (le_of_dvd (succ_pos _)) le_succ_of_le,
     λ h, (_root_.lt_or_eq_of_le h).elim (or.inr ∘ le_of_lt_succ)
       (λ h, or.inl $ by rw h)⟩

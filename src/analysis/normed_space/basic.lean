@@ -457,41 +457,96 @@ the inequality `∥x y∥ ≤ ∥x∥ ∥y∥`. -/
 class normed_comm_ring (α : Type*) extends normed_ring α :=
 (mul_comm : ∀ x y : α, x * y = y * x)
 
+/-- A mixin class with the axiom `∥1∥ = 1`. Many `normed_ring`s and all `normed_field`s satisfy this
+axiom. -/
+class norm_one_class (α : Type*) [has_norm α] [has_one α] : Prop :=
+(norm_one : ∥(1:α)∥ = 1)
+
+export norm_one_class (norm_one)
+
+attribute [simp] norm_one
+
+@[simp] lemma nnnorm_one [normed_group α] [has_one α] [norm_one_class α] : nnnorm (1:α) = 1 :=
+nnreal.eq norm_one
+
 @[priority 100]
 instance normed_comm_ring.to_comm_ring [β : normed_comm_ring α] : comm_ring α := { ..β }
 
 @[priority 100] -- see Note [lower instance priority]
 instance normed_ring.to_normed_group [β : normed_ring α] : normed_group α := { ..β }
 
-lemma norm_mul_le {α : Type*} [normed_ring α] (a b : α) : (∥a*b∥) ≤ (∥a∥) * (∥b∥) :=
+instance prod.norm_one_class [normed_group α] [has_one α] [norm_one_class α]
+  [normed_group β] [has_one β] [norm_one_class β] :
+  norm_one_class (α × β) :=
+⟨by simp [prod.norm_def]⟩
+
+variables [normed_ring α]
+
+lemma norm_mul_le (a b : α) : (∥a*b∥) ≤ (∥a∥) * (∥b∥) :=
 normed_ring.norm_mul _ _
 
-lemma norm_pow_le {α : Type*} [normed_ring α] (a : α) : ∀ {n : ℕ}, 0 < n → ∥a^n∥ ≤ ∥a∥^n
+lemma list.norm_prod_le' : ∀ {l : list α}, l ≠ [] → ∥l.prod∥ ≤ (l.map norm).prod
+| [] h := (h rfl).elim
+| [a] _ := by simp
+| (a :: b :: l) _ :=
+  begin
+    rw [list.map_cons, list.prod_cons, @list.prod_cons _ _ _ ∥a∥],
+    refine le_trans (norm_mul_le _ _) (mul_le_mul_of_nonneg_left _ (norm_nonneg _)),
+    exact list.norm_prod_le' (list.cons_ne_nil b l)
+  end
+
+lemma list.norm_prod_le [norm_one_class α] : ∀ l : list α, ∥l.prod∥ ≤ (l.map norm).prod
+| [] := by simp
+| (a::l) := list.norm_prod_le' (list.cons_ne_nil a l)
+
+lemma finset.norm_prod_le' {α : Type*} [normed_comm_ring α] (s : finset ι) (hs : s.nonempty)
+  (f : ι → α) :
+  ∥∏ i in s, f i∥ ≤ ∏ i in s, ∥f i∥ :=
+begin
+  rcases s with ⟨⟨l⟩, hl⟩,
+  have : l.map f ≠ [], by simpa using hs,
+  simpa using list.norm_prod_le' this
+end
+
+lemma finset.norm_prod_le {α : Type*} [normed_comm_ring α] [norm_one_class α] (s : finset ι)
+  (f : ι → α) :
+  ∥∏ i in s, f i∥ ≤ ∏ i in s, ∥f i∥ :=
+begin
+  rcases s with ⟨⟨l⟩, hl⟩,
+  simpa using (l.map f).norm_prod_le
+end
+
+/-- If `α` is a normed ring, then `∥a^n∥≤ ∥a∥^n` for `n > 0`. See also `norm_pow_le`. -/
+lemma norm_pow_le' (a : α) : ∀ {n : ℕ}, 0 < n → ∥a^n∥ ≤ ∥a∥^n
 | 1 h := by simp
 | (n+2) h :=
   le_trans (norm_mul_le a (a^(n+1)))
            (mul_le_mul (le_refl _)
-                       (norm_pow_le (nat.succ_pos _)) (norm_nonneg _) (norm_nonneg _))
+                       (norm_pow_le' (nat.succ_pos _)) (norm_nonneg _) (norm_nonneg _))
 
-lemma eventually_norm_pow_le {α : Type*} [normed_ring α] (a : α) :
-  ∀ᶠ (n:ℕ) in at_top, ∥a ^ n∥ ≤ ∥a∥ ^ n :=
-eventually_at_top.mpr ⟨1, λ b h, norm_pow_le a (nat.succ_le_iff.mp h)⟩
+/-- If `α` is a normed ring with `∥1∥=1`, then `∥a^n∥≤ ∥a∥^n`. See also `norm_pow_le'`. -/
+lemma norm_pow_le [norm_one_class α] (a : α) : ∀ (n : ℕ), ∥a^n∥ ≤ ∥a∥^n
+| 0 := by simp
+| (n+1) := norm_pow_le' a n.zero_lt_succ
 
-lemma units.norm_pos {α : Type*} [normed_ring α] [nontrivial α] (x : units α) : 0 < ∥(x:α)∥ :=
+lemma eventually_norm_pow_le (a : α) : ∀ᶠ (n:ℕ) in at_top, ∥a ^ n∥ ≤ ∥a∥ ^ n :=
+eventually_at_top.mpr ⟨1, λ b h, norm_pow_le' a (nat.succ_le_iff.mp h)⟩
+
+lemma units.norm_pos [nontrivial α] (x : units α) : 0 < ∥(x:α)∥ :=
 norm_pos_iff.mpr (units.ne_zero x)
 
 /-- In a normed ring, the left-multiplication `add_monoid_hom` is bounded. -/
-lemma mul_left_bound {α : Type*} [normed_ring α] (x : α) :
+lemma mul_left_bound (x : α) :
   ∀ (y:α), ∥add_monoid_hom.mul_left x y∥ ≤ ∥x∥ * ∥y∥ :=
 norm_mul_le x
 
 /-- In a normed ring, the right-multiplication `add_monoid_hom` is bounded. -/
-lemma mul_right_bound {α : Type*} [normed_ring α] (x : α) :
+lemma mul_right_bound (x : α) :
   ∀ (y:α), ∥add_monoid_hom.mul_right x y∥ ≤ ∥x∥ * ∥y∥ :=
 λ y, by {rw mul_comm, convert norm_mul_le y x}
 
 /-- Normed ring structure on the product of two normed rings, using the sup norm. -/
-instance prod.normed_ring [normed_ring α] [normed_ring β] : normed_ring (α × β) :=
+instance prod.normed_ring [normed_ring β] : normed_ring (α × β) :=
 { norm_mul := assume x y,
   calc
     ∥x * y∥ = ∥(x.1*y.1, x.2*y.2)∥ : rfl
@@ -567,13 +622,10 @@ normed_field.norm_mul' a b
 instance to_normed_comm_ring : normed_comm_ring α :=
 { norm_mul := λ a b, (norm_mul a b).le, ..‹normed_field α› }
 
-@[simp] lemma norm_one : ∥(1 : α)∥ = 1 :=
-have  ∥(1 : α)∥ * ∥(1 : α)∥ = ∥(1 : α)∥ * 1, by calc
- ∥(1 : α)∥ * ∥(1 : α)∥ = ∥(1 : α) * (1 : α)∥ : by rw normed_field.norm_mul'
-                  ... = ∥(1 : α)∥ * 1 : by simp,
-mul_left_cancel' (ne_of_gt (norm_pos_iff.2 (by simp))) this
-
-@[simp] lemma nnnorm_one : nnnorm (1:α) = 1 := nnreal.eq $ by simp
+@[priority 900]
+instance to_norm_one_class : norm_one_class α :=
+⟨mul_left_cancel' (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
+  by rw [← norm_mul, mul_one, mul_one]⟩
 
 /-- `norm` as a `monoid_hom`. -/
 @[simps] def norm_hom : α →* ℝ := ⟨norm, norm_one, norm_mul⟩
@@ -757,12 +809,16 @@ by rw [real.norm_of_nonneg (norm_nonneg _)]
 @[simp] lemma nnnorm_norm [normed_group α] (a : α) : nnnorm ∥a∥ = nnnorm a :=
 by simp only [nnnorm, norm_norm]
 
-instance : normed_ring ℤ :=
+instance : normed_comm_ring ℤ :=
 { norm := λ n, ∥(n : ℝ)∥,
   norm_mul := λ m n, le_of_eq $ by simp only [norm, int.cast_mul, abs_mul],
-  dist_eq := λ m n, by simp only [int.dist_eq, norm, int.cast_sub] }
+  dist_eq := λ m n, by simp only [int.dist_eq, norm, int.cast_sub],
+  mul_comm := mul_comm }
 
 @[norm_cast] lemma int.norm_cast_real (m : ℤ) : ∥(m : ℝ)∥ = ∥m∥ := rfl
+
+instance : norm_one_class ℤ :=
+⟨by simp [← int.norm_cast_real]⟩
 
 instance : normed_field ℚ :=
 { norm := λ r, ∥(r : ℝ)∥,
@@ -811,6 +867,9 @@ begin
     rw [normed_field.norm_inv, ← mul_assoc, mul_inv_cancel, one_mul],
     rwa [ne.def, norm_eq_zero] }
 end
+
+@[simp] lemma abs_norm_eq_norm (z : β) : abs ∥z∥ = ∥z∥ :=
+  (abs_eq (norm_nonneg z)).mpr (or.inl rfl)
 
 lemma dist_smul [normed_space α β] (s : α) (x y : β) : dist (s • x) (s • y) = ∥s∥ * dist x y :=
 by simp only [dist_eq_norm, (norm_smul _ _).symm, smul_sub]
@@ -1004,13 +1063,16 @@ include 𝕜
 @[simp] lemma normed_algebra.norm_one : ∥(1:𝕜')∥ = 1 :=
 by simpa using (norm_algebra_map_eq 𝕜' (1:𝕜))
 
+lemma normed_algebra.norm_one_class : norm_one_class 𝕜' :=
+⟨normed_algebra.norm_one 𝕜⟩
+
 lemma normed_algebra.zero_ne_one : (0:𝕜') ≠ 1 :=
 begin
   refine (norm_pos_iff.mp _).symm,
   rw @normed_algebra.norm_one 𝕜, norm_num,
 end
 
-lemma normed_algebra.to_nonzero : nontrivial 𝕜' :=
+lemma normed_algebra.nontrivial : nontrivial 𝕜' :=
 ⟨⟨0, 1, normed_algebra.zero_ne_one 𝕜⟩⟩
 
 end normed_algebra

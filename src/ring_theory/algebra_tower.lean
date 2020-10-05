@@ -5,6 +5,7 @@ Authors: Kenny Lau
 -/
 
 import ring_theory.adjoin
+import algebra.invertible
 
 /-!
 # Towers of algebras
@@ -140,6 +141,19 @@ variables (R S A)
 theorem aeval_apply (x : A) (p : polynomial R) : polynomial.aeval x p =
   polynomial.aeval x (polynomial.map (algebra_map R S) p) :=
 by rw [polynomial.aeval_def, polynomial.aeval_def, polynomial.eval₂_map, algebra_map_eq R S A]
+
+/-- Suppose that `R -> S -> A` is a tower of algebras.
+If an element `r : R` is invertible in `S`, then it is invertible in `A`. -/
+def invertible.algebra_tower (r : R) [invertible (algebra_map R S r)] :
+  invertible (algebra_map R A r) :=
+invertible.copy (invertible.map (algebra_map S A : S →* A) (algebra_map R S r)) (algebra_map R A r)
+  (by rw [coe_monoid_hom, is_scalar_tower.algebra_map_apply R S A])
+
+/-- A natural number that is invertible when coerced to `R` is also invertible
+when coerced to any `R`-algebra. -/
+def invertible_algebra_coe_nat (n : ℕ) [inv : invertible (n : R)] :
+  invertible (n : A) :=
+by { haveI : invertible (algebra_map ℕ R n) := inv, exact invertible.algebra_tower ℕ R A n }
 
 end semiring
 

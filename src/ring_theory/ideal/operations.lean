@@ -5,7 +5,7 @@ Authors: Kenny Lau
 -/
 import data.nat.choose.sum
 import data.equiv.ring
-import ring_theory.algebra_operations
+import algebra.algebra.operations
 import ring_theory.ideal.basic
 /-!
 # More operations on modules and ideals

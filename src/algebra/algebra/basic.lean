@@ -154,6 +154,24 @@ by rw [smul_def, smul_def, left_comm]
   (r • x) * y = r • (x * y) :=
 by rw [smul_def, smul_def, mul_assoc]
 
+section
+variables (r : R) (a : A)
+
+@[simp] lemma bit0_smul_one : bit0 r • (1 : A) = r • 2 :=
+by simp [bit0, add_smul, smul_add]
+@[simp] lemma bit0_smul_bit0 : bit0 r • bit0 a = r • (bit0 (bit0 a)) :=
+by simp [bit0, add_smul, smul_add]
+@[simp] lemma bit0_smul_bit1 : bit0 r • bit1 a = r • (bit0 (bit1 a)) :=
+by simp [bit0, add_smul, smul_add]
+@[simp] lemma bit1_smul_one : bit1 r • (1 : A) = r • 2 + 1 :=
+by simp [bit1, add_smul, smul_add]
+@[simp] lemma bit1_smul_bit0 : bit1 r • bit0 a = r • (bit0 (bit0 a)) + bit0 a :=
+by simp [bit1, add_smul, smul_add]
+@[simp] lemma bit1_smul_bit1 : bit1 r • bit1 a = r • (bit0 (bit1 a)) + bit1 a :=
+by { simp only [bit0, bit1, add_smul, smul_add, one_smul], abel }
+
+end
+
 variables (R A)
 
 /--
@@ -1117,7 +1135,7 @@ suffices (of_id R A).range = (⊥ : subalgebra R A),
 by { rw [← this, ← subalgebra.mem_coe, alg_hom.coe_range], refl },
 le_bot_iff.mp (λ x hx, subalgebra.range_le _ ((of_id R A).coe_range ▸ hx))
 
-theorem mem_top {x : A} : x ∈ (⊤ : subalgebra R A) :=
+@[simp] theorem mem_top {x : A} : x ∈ (⊤ : subalgebra R A) :=
 subsemiring.subset_closure $ or.inr trivial
 
 @[simp] theorem coe_top : ((⊤ : subalgebra R A) : submodule R A) = ⊤ :=
@@ -1145,15 +1163,15 @@ eq_top_iff.2 $ λ x, mem_top
 def to_top : A →ₐ[R] (⊤ : subalgebra R A) :=
 by refine_struct { to_fun := λ x, (⟨x, mem_top⟩ : (⊤ : subalgebra R A)) }; intros; refl
 
-theorem surjective_algbera_map_iff :
+theorem surjective_algebra_map_iff :
   function.surjective (algebra_map R A) ↔ (⊤ : subalgebra R A) = ⊥ :=
 ⟨λ h, eq_bot_iff.2 $ λ y _, let ⟨x, hx⟩ := h y in hx ▸ subalgebra.algebra_map_mem _ _,
 λ h y, algebra.mem_bot.1 $ eq_bot_iff.1 h (algebra.mem_top : y ∈ _)⟩
 
-theorem bijective_algbera_map_iff {R A : Type*} [field R] [semiring A] [nontrivial A] [algebra R A] :
+theorem bijective_algebra_map_iff {R A : Type*} [field R] [semiring A] [nontrivial A] [algebra R A] :
   function.bijective (algebra_map R A) ↔ (⊤ : subalgebra R A) = ⊥ :=
-⟨λ h, surjective_algbera_map_iff.1 h.2,
-λ h, ⟨(algebra_map R A).injective, surjective_algbera_map_iff.2 h⟩⟩
+⟨λ h, surjective_algebra_map_iff.1 h.2,
+λ h, ⟨(algebra_map R A).injective, surjective_algebra_map_iff.2 h⟩⟩
 
 /-- The bottom subalgebra is isomorphic to the base ring. -/
 def bot_equiv_of_injective (h : function.injective (algebra_map R A)) :
@@ -1492,16 +1510,6 @@ instance (R : Type*) (S : Type*) (E : Type*) [I : add_comm_group E] :
   add_comm_group (semimodule.restrict_scalars R S E) := I
 
 end module
-
-variables (𝕜 : Type*) [field 𝕜] (𝕜' : Type*) [field 𝕜'] [algebra 𝕜 𝕜']
-variables (W : Type*) [add_comm_group W] [vector_space 𝕜' W]
-
-/--
-`V.restrict_scalars 𝕜` is the `𝕜`-subspace of the `𝕜`-vector space given by restriction of scalars,
-corresponding to `V`, a `𝕜'`-subspace of the original `𝕜'`-vector space.
--/
-def subspace.restrict_scalars (V : subspace 𝕜' W) : subspace 𝕜 (semimodule.restrict_scalars 𝕜 𝕜' W) :=
-{ ..submodule.restrict_scalars 𝕜 (V : submodule 𝕜' W) }
 
 end restrict_scalars
 

@@ -11,6 +11,8 @@ import data.finset.lattice
 import data.finset.pi
 import data.array.lemmas
 
+open_locale nat
+
 universes u v
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -37,6 +39,9 @@ fintype.complete x
 
 @[simp] lemma coe_univ : ↑(univ : finset α) = (set.univ : set α) :=
 by ext; simp
+
+lemma univ_nonempty [h : nonempty α] : (univ : finset α).nonempty :=
+nonempty.elim h (λ x, ⟨x, mem_univ x⟩)
 
 theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 
@@ -450,6 +455,15 @@ variables [fintype α] [fintype β]
 lemma card_le_of_injective (f : α → β) (hf : function.injective f) : card α ≤ card β :=
 finset.card_le_card_of_inj_on f (λ _ _, finset.mem_univ _) (λ _ _ _ _ h, hf h)
 
+/--
+The pigeonhole principle for finitely many pigeons and pigeonholes.
+This is the `fintype` version of `finset.exists_ne_map_eq_of_card_lt_of_maps_to`.
+-/
+lemma exists_ne_map_eq_of_card_lt (f : α → β) (h : fintype.card β < fintype.card α) :
+  ∃ x y, x ≠ y ∧ f x = f y :=
+let ⟨x, _, y, _, h⟩ := finset.exists_ne_map_eq_of_card_lt_of_maps_to h (λ x _, mem_univ (f x))
+in ⟨x, y, h⟩
+
 lemma card_eq_one_iff : card α = 1 ↔ (∃ x : α, ∀ y, y = x) :=
 by rw [← card_unit, card_eq]; exact
 ⟨λ ⟨a⟩, ⟨a.symm (), λ y, a.injective (subsingleton.elim _ _)⟩,
@@ -769,6 +783,11 @@ instance pfun_fintype (p : Prop) [decidable p] (α : p → Type*)
 if hp : p then fintype.of_equiv (α hp) ⟨λ a _, a, λ f, f hp, λ _, rfl, λ _, rfl⟩
           else ⟨singleton (λ h, (hp h).elim), by simp [hp, function.funext_iff]⟩
 
+@[simp] lemma finset.univ_pi_univ {α : Type*} {β : α → Type*}
+  [decidable_eq α] [fintype α] [∀a, fintype (β a)] :
+  finset.univ.pi (λ a : α, (finset.univ : finset (β a))) = finset.univ :=
+by { ext, simp }
+
 lemma mem_image_univ_iff_mem_range
   {α β : Type*} [fintype α] [decidable_eq β] {f : α → β} {b : β} :
   b ∈ univ.image f ↔ b ∈ set.range f :=
@@ -856,11 +875,11 @@ def perms_of_list : list α → list (perm α)
 | []       := [1]
 | (a :: l) := perms_of_list l ++ l.bind (λ b, (perms_of_list l).map (λ f, swap a b * f))
 
-lemma length_perms_of_list : ∀ l : list α, length (perms_of_list l) = l.length.fact
+lemma length_perms_of_list : ∀ l : list α, length (perms_of_list l) = l.length!
 | []       := rfl
 | (a :: l) :=
 begin
-  rw [length_cons, nat.fact_succ],
+  rw [length_cons, nat.factorial_succ],
   simp [perms_of_list, length_bind, length_perms_of_list, function.comp, nat.succ_mul],
   cc
 end
@@ -951,7 +970,7 @@ lemma mem_perms_of_finset_iff : ∀ {s : finset α} {f : perm α},
 by rintros ⟨⟨l⟩, hs⟩ f; exact mem_perms_of_list_iff
 
 lemma card_perms_of_finset : ∀ (s : finset α),
-  (perms_of_finset s).card = s.card.fact :=
+  (perms_of_finset s).card = s.card! :=
 by rintros ⟨⟨l⟩, hs⟩; exact length_perms_of_list l
 
 def fintype_perm [fintype α] : fintype (perm α) :=
@@ -965,12 +984,12 @@ then trunc.rec_on_subsingleton (fintype.equiv_fin α)
       (equiv_congr (equiv.refl α) (eα.trans (eq.rec_on h eβ.symm)) : (α ≃ α) ≃ (α ≃ β))))
 else ⟨∅, λ x, false.elim (h (fintype.card_eq.2 ⟨x.symm⟩))⟩
 
-lemma fintype.card_perm [fintype α] : fintype.card (perm α) = (fintype.card α).fact :=
+lemma fintype.card_perm [fintype α] : fintype.card (perm α) = (fintype.card α)! :=
 subsingleton.elim (@fintype_perm α _ _) (@equiv.fintype α α _ _ _ _) ▸
 card_perms_of_finset _
 
 lemma fintype.card_equiv [fintype α] [fintype β] (e : α ≃ β) :
-  fintype.card (α ≃ β) = (fintype.card α).fact :=
+  fintype.card (α ≃ β) = (fintype.card α)! :=
 fintype.card_congr (equiv_congr (equiv.refl α) e) ▸ fintype.card_perm
 
 lemma univ_eq_singleton_of_card_one {α} [fintype α] (x : α) (h : fintype.card α = 1) :
@@ -1120,6 +1139,45 @@ lemma not_injective_infinite_fintype [infinite α] [fintype β] (f : α → β) 
 assume (hf : injective f),
 have H : fintype α := fintype.of_injective f hf,
 infinite.not_fintype H
+
+/--
+The pigeonhole principle for infinitely many pigeons in finitely many
+pigeonholes.  If there are infinitely many pigeons in finitely many
+pigeonholes, then there are at least two pigeons in the same
+pigeonhole.
+
+See also: `fintype.exists_ne_map_eq_of_card_lt`, `fintype.exists_infinite_fiber`.
+-/
+lemma fintype.exists_ne_map_eq_of_infinite [infinite α] [fintype β] (f : α → β) :
+  ∃ x y : α, x ≠ y ∧ f x = f y :=
+begin
+  classical, by_contra hf, push_neg at hf,
+  apply not_injective_infinite_fintype f,
+  intros x y, contrapose, apply hf,
+end
+
+/--
+The strong pigeonhole principle for infinitely many pigeons in
+finitely many pigeonholes.  If there are infinitely many pigeons in
+finitely many pigeonholes, then there is a pigeonhole with infinitely
+many pigeons.
+
+See also: `fintype.exists_ne_map_eq_of_infinite`
+-/
+lemma fintype.exists_infinite_fiber [infinite α] [fintype β] (f : α → β) :
+  ∃ y : β, infinite (f ⁻¹' {y}) :=
+begin
+  classical, by_contra hf, push_neg at hf,
+  haveI h' : ∀ (y : β), fintype (f ⁻¹' {y}) := begin
+    intro y, specialize hf y,
+    rw [←not_nonempty_fintype, not_not] at hf,
+    exact classical.choice hf,
+  end,
+  let key : fintype α :=
+  { elems := univ.bind (λ (y : β), (f ⁻¹' {y}).to_finset),
+    complete := by simp },
+  exact infinite.not_fintype key,
+end
 
 lemma not_surjective_fintype_infinite [fintype α] [infinite β] (f : α → β) :
   ¬ surjective f :=

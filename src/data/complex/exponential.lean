@@ -15,7 +15,7 @@ hyperbolic sine, hypebolic cosine, and hyperbolic tangent functions.
 -/
 local notation `abs'` := _root_.abs
 open is_absolute_value
-open_locale classical big_operators
+open_locale classical big_operators nat
 
 section
 open real is_absolute_value finset
@@ -331,13 +331,13 @@ open cau_seq
 namespace complex
 
 lemma is_cau_abs_exp (z : ℂ) : is_cau_seq _root_.abs
-  (λ n, ∑ m in range n, abs (z ^ m / nat.fact m)) :=
+  (λ n, ∑ m in range n, abs (z ^ m / m!)) :=
 let ⟨n, hn⟩ := exists_nat_gt (abs z) in
 have hn0 : (0 : ℝ) < n, from lt_of_le_of_lt (abs_nonneg _) hn,
 series_ratio_test n (complex.abs z / n) (div_nonneg (complex.abs_nonneg _) (le_of_lt hn0))
   (by rwa [div_lt_iff hn0, one_mul])
   (λ m hm,
-    by rw [abs_abs, abs_abs, nat.fact_succ, pow_succ,
+    by rw [abs_abs, abs_abs, nat.factorial_succ, pow_succ,
       mul_comm m.succ, nat.cast_mul, ← div_div_eq_div_mul, mul_div_assoc,
       mul_div_right_comm, abs_mul, abs_div, abs_cast_nat];
     exact mul_le_mul_of_nonneg_right
@@ -347,14 +347,14 @@ series_ratio_test n (complex.abs z / n) (div_nonneg (complex.abs_nonneg _) (le_o
 noncomputable theory
 
 lemma is_cau_exp (z : ℂ) :
-  is_cau_seq abs (λ n, ∑ m in range n, z ^ m / nat.fact m) :=
+  is_cau_seq abs (λ n, ∑ m in range n, z ^ m / m!) :=
 is_cau_series_of_abv_cau (is_cau_abs_exp z)
 
 /-- The Cauchy sequence consisting of partial sums of the Taylor series of
 the complex exponential function -/
 @[pp_nodot] def exp' (z : ℂ) :
   cau_seq ℂ complex.abs :=
-⟨λ n, ∑ m in range n, z ^ m / nat.fact m, is_cau_exp z⟩
+⟨λ n, ∑ m in range n, z ^ m / m!, is_cau_exp z⟩
 
 /-- The complex exponential function, defined via its Taylor series -/
 @[pp_nodot] def exp (z : ℂ) : ℂ := lim (exp' z)
@@ -430,15 +430,15 @@ show lim (⟨_, is_cau_exp (x + y)⟩ : cau_seq ℂ abs) =
   lim (show cau_seq ℂ abs, from ⟨_, is_cau_exp x⟩)
   * lim (show cau_seq ℂ abs, from ⟨_, is_cau_exp y⟩),
 from
-have hj : ∀ j : ℕ, ∑ m in range j, (x + y) ^ m / m.fact =
-    ∑ i in range j, ∑ k in range (i + 1), x ^ k / k.fact * (y ^ (i - k) / (i - k).fact),
+have hj : ∀ j : ℕ, ∑ m in range j, (x + y) ^ m / m! =
+    ∑ i in range j, ∑ k in range (i + 1), x ^ k / k! * (y ^ (i - k) / (i - k)!),
   from assume j,
     finset.sum_congr rfl (λ m hm, begin
       rw [add_pow, div_eq_mul_inv, sum_mul],
       refine finset.sum_congr rfl (λ i hi, _),
       have h₁ : (m.choose i : ℂ) ≠ 0 := nat.cast_ne_zero.2
         (nat.pos_iff_ne_zero.1 (nat.choose_pos (nat.le_of_lt_succ (mem_range.1 hi)))),
-      have h₂ := nat.choose_mul_fact_mul_fact (nat.le_of_lt_succ $ finset.mem_range.1 hi),
+      have h₂ := nat.choose_mul_factorial_mul_factorial (nat.le_of_lt_succ $ finset.mem_range.1 hi),
       rw [← h₂, nat.cast_mul, nat.cast_mul, mul_inv', mul_inv'],
       simp only [mul_left_comm (m.choose i : ℂ), mul_assoc, mul_left_comm (m.choose i : ℂ)⁻¹,
         mul_comm (m.choose i : ℂ)],
@@ -917,9 +917,9 @@ open is_absolute_value
 lemma add_one_le_exp_of_nonneg {x : ℝ} (hx : 0 ≤ x) : x + 1 ≤ exp x :=
 calc x + 1 ≤ lim (⟨(λ n : ℕ, ((exp' x) n).re), is_cau_seq_re (exp' x)⟩ : cau_seq ℝ abs') :
   le_lim (cau_seq.le_of_exists ⟨2,
-    λ j hj, show x + (1 : ℝ) ≤ (∑ m in range j, (x ^ m / m.fact : ℂ)).re,
-      from have h₁ : (((λ m : ℕ, (x ^ m / m.fact : ℂ)) ∘ nat.succ) 0).re = x, by simp,
-      have h₂ : ((x : ℂ) ^ 0 / nat.fact 0).re = 1, by simp,
+    λ j hj, show x + (1 : ℝ) ≤ (∑ m in range j, (x ^ m / m! : ℂ)).re,
+      from have h₁ : (((λ m : ℕ, (x ^ m / m! : ℂ)) ∘ nat.succ) 0).re = x, by simp,
+      have h₂ : ((x : ℂ) ^ 0 / 0!).re = 1, by simp,
       begin
         rw [← nat.sub_add_cancel hj, sum_range_succ', sum_range_succ',
           add_re, add_re, h₁, h₂, add_assoc,
@@ -972,10 +972,10 @@ end real
 
 namespace complex
 
-lemma sum_div_fact_le {α : Type*} [discrete_linear_ordered_field α] (n j : ℕ) (hn : 0 < n) :
-  ∑ m in filter (λ k, n ≤ k) (range j), (1 / m.fact : α) ≤ n.succ * (n.fact * n)⁻¹ :=
-calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m.fact : α)
-    = ∑ m in range (j - n), 1 / (m + n).fact :
+lemma sum_div_factorial_le {α : Type*} [discrete_linear_ordered_field α] (n j : ℕ) (hn : 0 < n) :
+  ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α) ≤ n.succ * (n! * n)⁻¹ :=
+calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
+    = ∑ m in range (j - n), 1 / (m + n)! :
   sum_bij (λ m _, m - n)
     (λ m hm, mem_range.2 $ (nat.sub_lt_sub_right_iff (by simp at hm; tauto)).2
       (by simp at hm; tauto))
@@ -985,80 +985,80 @@ calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m.fact : α)
         simp at *; tauto)
     (λ b hb, ⟨b + n, mem_filter.2 ⟨mem_range.2 $ nat.add_lt_of_lt_sub_right (mem_range.1 hb), nat.le_add_left _ _⟩,
       by rw nat.add_sub_cancel⟩)
-... ≤ ∑ m in range (j - n), (nat.fact n * n.succ ^ m)⁻¹ :
+... ≤ ∑ m in range (j - n), (n! * n.succ ^ m)⁻¹ :
   begin
     refine  sum_le_sum (assume m n, _),
     rw [one_div, inv_le_inv],
     { rw [← nat.cast_pow, ← nat.cast_mul, nat.cast_le, add_comm],
-      exact nat.fact_mul_pow_le_fact },
-    { exact nat.cast_pos.2 (nat.fact_pos _) },
-    { exact mul_pos (nat.cast_pos.2 (nat.fact_pos _))
+      exact nat.factorial_mul_pow_le_factorial },
+    { exact nat.cast_pos.2 (nat.factorial_pos _) },
+    { exact mul_pos (nat.cast_pos.2 (nat.factorial_pos _))
         (pow_pos (nat.cast_pos.2 (nat.succ_pos _)) _) },
   end
-... = (nat.fact n)⁻¹ * ∑ m in range (j - n), n.succ⁻¹ ^ m :
-  by simp [mul_inv', mul_sum.symm, sum_mul.symm, -nat.fact_succ, mul_comm, inv_pow']
-... = (n.succ - n.succ * n.succ⁻¹ ^ (j - n)) / (n.fact * n) :
+... = n!⁻¹ * ∑ m in range (j - n), n.succ⁻¹ ^ m :
+  by simp [mul_inv', mul_sum.symm, sum_mul.symm, -nat.factorial_succ, mul_comm, inv_pow']
+... = (n.succ - n.succ * n.succ⁻¹ ^ (j - n)) / (n! * n) :
   have h₁ : (n.succ : α) ≠ 1, from @nat.cast_one α _ _ ▸ mt nat.cast_inj.1
         (mt nat.succ.inj (nat.pos_iff_ne_zero.1 hn)),
   have h₂ : (n.succ : α) ≠ 0, from nat.cast_ne_zero.2 (nat.succ_ne_zero _),
-  have h₃ : (n.fact * n : α) ≠ 0,
-    from mul_ne_zero (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 (nat.fact_pos _)))
+  have h₃ : (n! * n : α) ≠ 0,
+    from mul_ne_zero (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 (nat.factorial_pos _)))
     (nat.cast_ne_zero.2 (nat.pos_iff_ne_zero.1 hn)),
   have h₄ : (n.succ - 1 : α) = n, by simp,
   by rw [← geom_series_def, geom_sum_inv h₁ h₂, eq_div_iff_mul_eq h₃,
-      mul_comm _ (n.fact * n : α), ← mul_assoc (n.fact⁻¹ : α), ← mul_inv_rev', h₄,
-      ← mul_assoc (n.fact * n : α), mul_comm (n : α) n.fact, mul_inv_cancel h₃];
+      mul_comm _ (n! * n : α), ← mul_assoc (n!⁻¹ : α), ← mul_inv_rev', h₄,
+      ← mul_assoc (n! * n : α), mul_comm (n : α) n!, mul_inv_cancel h₃];
     simp [mul_add, add_mul, mul_assoc, mul_comm]
-... ≤ n.succ / (n.fact * n) :
+... ≤ n.succ / (n! * n) :
   begin
     refine iff.mpr (div_le_div_right (mul_pos _ _)) _,
-    exact nat.cast_pos.2 (nat.fact_pos _),
+    exact nat.cast_pos.2 (nat.factorial_pos _),
     exact nat.cast_pos.2 hn,
     exact sub_le_self _
       (mul_nonneg (nat.cast_nonneg _) (pow_nonneg (inv_nonneg.2 (nat.cast_nonneg _)) _))
   end
 
 lemma exp_bound {x : ℂ} (hx : abs x ≤ 1) {n : ℕ} (hn : 0 < n) :
-  abs (exp x - ∑ m in range n, x ^ m / m.fact) ≤ abs x ^ n * (n.succ * (n.fact * n)⁻¹) :=
+  abs (exp x - ∑ m in range n, x ^ m / m!) ≤ abs x ^ n * (n.succ * (n! * n)⁻¹) :=
 begin
   rw [← lim_const (∑ m in range n, _), exp, sub_eq_add_neg, ← lim_neg, lim_add, ← lim_abs],
   refine lim_le (cau_seq.le_of_exists ⟨n, λ j hj, _⟩),
-  show abs (∑ m in range j, x ^ m / m.fact - ∑ m in range n, x ^ m / m.fact)
-    ≤ abs x ^ n * (n.succ * (n.fact * n)⁻¹),
+  show abs (∑ m in range j, x ^ m / m! - ∑ m in range n, x ^ m / m!)
+    ≤ abs x ^ n * (n.succ * (n! * n)⁻¹),
   rw sum_range_sub_sum_range hj,
-  exact calc abs (∑ m in (range j).filter (λ k, n ≤ k), (x ^ m / m.fact : ℂ))
-      = abs (∑ m in (range j).filter (λ k, n ≤ k), (x ^ n * (x ^ (m - n) / m.fact) : ℂ)) :
+  exact calc abs (∑ m in (range j).filter (λ k, n ≤ k), (x ^ m / m! : ℂ))
+      = abs (∑ m in (range j).filter (λ k, n ≤ k), (x ^ n * (x ^ (m - n) / m!) : ℂ)) :
     congr_arg abs (sum_congr rfl (λ m hm, by rw [← mul_div_assoc, ← pow_add, nat.add_sub_cancel']; simp at hm; tauto))
-  ... ≤ ∑ m in filter (λ k, n ≤ k) (range j), abs (x ^ n * (_ / m.fact)) : abv_sum_le_sum_abv _ _
-  ... ≤ ∑ m in filter (λ k, n ≤ k) (range j), abs x ^ n * (1 / m.fact) :
+  ... ≤ ∑ m in filter (λ k, n ≤ k) (range j), abs (x ^ n * (_ / m!)) : abv_sum_le_sum_abv _ _
+  ... ≤ ∑ m in filter (λ k, n ≤ k) (range j), abs x ^ n * (1 / m!) :
     begin
       refine sum_le_sum (λ m hm, _),
       rw [abs_mul, abv_pow abs, abs_div, abs_cast_nat],
       refine mul_le_mul_of_nonneg_left ((div_le_div_right _).2 _) _,
-      exact nat.cast_pos.2 (nat.fact_pos _),
+      exact nat.cast_pos.2 (nat.factorial_pos _),
       rw abv_pow abs,
       exact (pow_le_one _ (abs_nonneg _) hx),
       exact pow_nonneg (abs_nonneg _) _
     end
-  ... = abs x ^ n * (∑ m in (range j).filter (λ k, n ≤ k), (1 / m.fact : ℝ)) :
+  ... = abs x ^ n * (∑ m in (range j).filter (λ k, n ≤ k), (1 / m! : ℝ)) :
     by simp [abs_mul, abv_pow abs, abs_div, mul_sum.symm]
-  ... ≤ abs x ^ n * (n.succ * (n.fact * n)⁻¹) :
-    mul_le_mul_of_nonneg_left (sum_div_fact_le _ _ hn) (pow_nonneg (abs_nonneg _) _)
+  ... ≤ abs x ^ n * (n.succ * (n! * n)⁻¹) :
+    mul_le_mul_of_nonneg_left (sum_div_factorial_le _ _ hn) (pow_nonneg (abs_nonneg _) _)
 end
 
 lemma abs_exp_sub_one_le {x : ℂ} (hx : abs x ≤ 1) :
   abs (exp x - 1) ≤ 2 * abs x :=
-calc abs (exp x - 1) = abs (exp x - ∑ m in range 1, x ^ m / m.fact) :
+calc abs (exp x - 1) = abs (exp x - ∑ m in range 1, x ^ m / m!) :
   by simp [sum_range_succ]
-... ≤ abs x ^ 1 * ((nat.succ 1) * (nat.fact 1 * (1 : ℕ))⁻¹) :
+... ≤ abs x ^ 1 * ((nat.succ 1) * (1! * (1 : ℕ))⁻¹) :
   exp_bound hx dec_trivial
 ... = 2 * abs x : by simp [two_mul, mul_two, mul_add, mul_comm]
 
 lemma abs_exp_sub_one_sub_id_le {x : ℂ} (hx : abs x ≤ 1) :
   abs (exp x - 1 - x) ≤ (abs x)^2 :=
-calc abs (exp x - 1 - x) = abs (exp x - ∑ m in range 2, x ^ m / m.fact) :
+calc abs (exp x - 1 - x) = abs (exp x - ∑ m in range 2, x ^ m / m!) :
   by simp [sub_eq_add_neg, sum_range_succ, add_assoc]
-... ≤ (abs x)^2 * (nat.succ 2 * (nat.fact 2 * (2 : ℕ))⁻¹) :
+... ≤ (abs x)^2 * (nat.succ 2 * (2! * (2 : ℕ))⁻¹) :
   exp_bound hx dec_trivial
 ... ≤ (abs x)^2 * 1 :
   mul_le_mul_of_nonneg_left (by norm_num) (pow_two_nonneg (abs x))
@@ -1077,21 +1077,21 @@ calc abs' (cos x - (1 - x ^ 2 / 2)) = abs (complex.cos x - (1 - x ^ 2 / 2)) :
   by rw ← abs_of_real; simp [of_real_bit0, of_real_one, of_real_inv]
 ... = abs ((complex.exp (x * I) + complex.exp (-x * I) - (2 - x ^ 2)) / 2) :
   by simp [complex.cos, sub_div, add_div, neg_div, div_self (@two_ne_zero' ℂ _ _ _)]
-... = abs (((complex.exp (x * I) - ∑ m in range 4, (x * I) ^ m / m.fact) +
-    ((complex.exp (-x * I) - ∑ m in range 4, (-x * I) ^ m / m.fact))) / 2) :
+... = abs (((complex.exp (x * I) - ∑ m in range 4, (x * I) ^ m / m!) +
+    ((complex.exp (-x * I) - ∑ m in range 4, (-x * I) ^ m / m!))) / 2) :
   congr_arg abs (congr_arg (λ x : ℂ, x / 2) begin
     simp only [sum_range_succ],
     simp [pow_succ],
     apply complex.ext; simp [div_eq_mul_inv, norm_sq]; ring
   end)
-... ≤ abs ((complex.exp (x * I) - ∑ m in range 4, (x * I) ^ m / m.fact) / 2) +
-    abs ((complex.exp (-x * I) - ∑ m in range 4, (-x * I) ^ m / m.fact) / 2) :
+... ≤ abs ((complex.exp (x * I) - ∑ m in range 4, (x * I) ^ m / m!) / 2) +
+    abs ((complex.exp (-x * I) - ∑ m in range 4, (-x * I) ^ m / m!) / 2) :
   by rw add_div; exact abs_add _ _
-... = (abs ((complex.exp (x * I) - ∑ m in range 4, (x * I) ^ m / m.fact)) / 2 +
-    abs ((complex.exp (-x * I) - ∑ m in range 4, (-x * I) ^ m / m.fact)) / 2) :
+... = (abs ((complex.exp (x * I) - ∑ m in range 4, (x * I) ^ m / m!)) / 2 +
+    abs ((complex.exp (-x * I) - ∑ m in range 4, (-x * I) ^ m / m!)) / 2) :
   by simp [complex.abs_div]
-... ≤ ((complex.abs (x * I) ^ 4 * (nat.succ 4 * (nat.fact 4 * (4 : ℕ))⁻¹)) / 2 +
-    (complex.abs (-x * I) ^ 4 * (nat.succ 4 * (nat.fact 4 * (4 : ℕ))⁻¹)) / 2)  :
+... ≤ ((complex.abs (x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2 +
+    (complex.abs (-x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2)  :
   add_le_add ((div_le_div_right (by norm_num)).2 (exp_bound (by simpa) dec_trivial))
              ((div_le_div_right (by norm_num)).2 (exp_bound (by simpa) dec_trivial))
 ... ≤ abs' x ^ 4 * (5 / 96) : by norm_num; simp [mul_assoc, mul_comm, mul_left_comm, mul_div_assoc]
@@ -1103,21 +1103,21 @@ calc abs' (sin x - (x - x ^ 3 / 6)) = abs (complex.sin x - (x - x ^ 3 / 6)) :
 ... = abs (((complex.exp (-x * I) - complex.exp (x * I)) * I - (2 * x - x ^ 3 / 3)) / 2) :
   by simp [complex.sin, sub_div, add_div, neg_div, mul_div_cancel_left _ (@two_ne_zero' ℂ _ _ _),
     div_div_eq_div_mul, show (3 : ℂ) * 2 = 6, by norm_num]
-... = abs ((((complex.exp (-x * I) - ∑ m in range 4, (-x * I) ^ m / m.fact) -
-    (complex.exp (x * I) - ∑ m in range 4, (x * I) ^ m / m.fact)) * I) / 2) :
+... = abs ((((complex.exp (-x * I) - ∑ m in range 4, (-x * I) ^ m / m!) -
+    (complex.exp (x * I) - ∑ m in range 4, (x * I) ^ m / m!)) * I) / 2) :
   congr_arg abs (congr_arg (λ x : ℂ, x / 2) begin
     simp only [sum_range_succ],
     simp [pow_succ],
     apply complex.ext; simp [div_eq_mul_inv, norm_sq]; ring
   end)
-... ≤ abs ((complex.exp (-x * I) - ∑ m in range 4, (-x * I) ^ m / m.fact) * I / 2) +
-    abs (-((complex.exp (x * I) - ∑ m in range 4, (x * I) ^ m / m.fact) * I) / 2) :
+... ≤ abs ((complex.exp (-x * I) - ∑ m in range 4, (-x * I) ^ m / m!) * I / 2) +
+    abs (-((complex.exp (x * I) - ∑ m in range 4, (x * I) ^ m / m!) * I) / 2) :
   by rw [sub_mul, sub_eq_add_neg, add_div]; exact abs_add _ _
-... = (abs ((complex.exp (x * I) - ∑ m in range 4, (x * I) ^ m / m.fact)) / 2 +
-    abs ((complex.exp (-x * I) - ∑ m in range 4, (-x * I) ^ m / m.fact)) / 2) :
+... = (abs ((complex.exp (x * I) - ∑ m in range 4, (x * I) ^ m / m!)) / 2 +
+    abs ((complex.exp (-x * I) - ∑ m in range 4, (-x * I) ^ m / m!)) / 2) :
   by simp [add_comm, complex.abs_div, complex.abs_mul]
-... ≤ ((complex.abs (x * I) ^ 4 * (nat.succ 4 * (nat.fact 4 * (4 : ℕ))⁻¹)) / 2 +
-    (complex.abs (-x * I) ^ 4 * (nat.succ 4 * (nat.fact 4 * (4 : ℕ))⁻¹)) / 2) :
+... ≤ ((complex.abs (x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2 +
+    (complex.abs (-x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2) :
   add_le_add ((div_le_div_right (by norm_num)).2 (exp_bound (by simpa) dec_trivial))
              ((div_le_div_right (by norm_num)).2 (exp_bound (by simpa) dec_trivial))
 ... ≤ abs' x ^ 4 * (5 / 96) : by norm_num; simp [mul_assoc, mul_comm, mul_left_comm, mul_div_assoc]

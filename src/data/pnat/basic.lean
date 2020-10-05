@@ -222,7 +222,7 @@ theorem add_sub_of_lt {a b : ℕ+} : a < b → a + (b - a) = b :=
  λ h, eq $ by { rw [add_coe, sub_coe, if_pos h],
                 exact nat.add_sub_of_le (le_of_lt h) }
 
-/-- We define `m % k` and `m / k` in the same way as for nat
+/-- We define `m % k` and `m / k` in the same way as for `ℕ`
   except that when `m = n * k` we take `m % k = k` and
   `m / k = n - 1`.  This ensures that `m % k` is always positive
   and `m = (m % k) + k * (m / k)` in all cases.  Later we
@@ -242,7 +242,7 @@ lemma mod_div_aux_spec : ∀ (k : ℕ+) (r q : ℕ) (h : ¬ (r = 0 ∧ q = 0)),
 | k (r + 1) q h := rfl
 
 /-- `mod_div m k = (m % k, m / k)`.
-  We define `m % k` and `m / k` in the same way as for nat
+  We define `m % k` and `m / k` in the same way as for `ℕ`
   except that when `m = n * k` we take `m % k = k` and
   `m / k = n - 1`.  This ensures that `m % k` is always positive
   and `m = (m % k) + k * (m / k)` in all cases.  Later we
@@ -251,12 +251,12 @@ lemma mod_div_aux_spec : ∀ (k : ℕ+) (r q : ℕ) (h : ¬ (r = 0 ∧ q = 0)),
 -/
 def mod_div (m k : ℕ+) : ℕ+ × ℕ := mod_div_aux k ((m : ℕ) % (k : ℕ)) ((m : ℕ) / (k : ℕ))
 
-/-- We define `m % k` in the same way as for nat
+/-- We define `m % k` in the same way as for `ℕ`
   except that when `m = n * k` we take `m % k = k` This ensures that `m % k` is always positive.
 -/
 def mod (m k : ℕ+) : ℕ+ := (mod_div m k).1
 
-/-- We define `m / k` in the same way as for nat except that when `m = n * k` we take
+/-- We define `m / k` in the same way as for `ℕ` except that when `m = n * k` we take
   `m / k = n - 1`. This ensures that `m = (m % k) + k * (m / k)` in all cases. Later we
   define a function `div_exact` which gives the usual `m / k` in the case where `k` divides `m`.
 -/
@@ -385,7 +385,7 @@ end
 section prime
 /-! ### Prime numbers -/
 
-/-- Defined using `nat.prime`. -/
+/-- Primality predicate for `ℕ+`, defined in terms of `nat.prime`. -/
 def prime (p : ℕ+) : Prop := (p : ℕ).prime
 
 lemma prime.one_lt {p : ℕ+} : p.prime → 1 < p := nat.prime.one_lt

@@ -109,6 +109,10 @@ direct_limit.induction_on x $ λ i x, by rw lift_of; refl
 section totalize
 open_locale classical
 variables (G f)
+
+/-- `totalize G f i j` is a linear map from `G i` to `G j`, for *every* `i` and `j`.
+If `i ≤ j`, then it is the map `f i j` that comes with the directed system `G`,
+and otherwise it is the zero map. -/
 noncomputable def totalize : Π i j, G i →ₗ[R] G j :=
 λ i j, if h : i ≤ j then f i j h else 0
 variables {G f}
@@ -557,6 +561,7 @@ ring.direct_limit.induction_on p $ λ i x H,
 section
 open_locale classical
 
+/-- Noncomputable multiplicative inverse in a direct limit of fields. -/
 noncomputable def inv (p : ring.direct_limit G f) : ring.direct_limit G f :=
 if H : p = 0 then 0 else classical.some (direct_limit.exists_inv G f H)
 
@@ -566,6 +571,7 @@ by rw [inv, dif_neg hp, classical.some_spec (direct_limit.exists_inv G f hp)]
 protected theorem inv_mul_cancel {p : ring.direct_limit G f} (hp : p ≠ 0) : inv G f p * p = 1 :=
 by rw [_root_.mul_comm, direct_limit.mul_inv_cancel G f hp]
 
+/-- Noncomputable field structure on the direct limit of fields. -/
 protected noncomputable def field : field (ring.direct_limit G f) :=
 { inv := inv G f,
   mul_inv_cancel := λ p, direct_limit.mul_inv_cancel G f,

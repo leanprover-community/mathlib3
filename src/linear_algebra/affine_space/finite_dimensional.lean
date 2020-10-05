@@ -16,6 +16,11 @@ open_locale classical
 This file provides a few results relating to finite-dimensional
 subspaces of affine spaces.
 
+## Main definitions
+
+* `collinear` defines collinear sets of points as those that span a
+  subspace of dimension at most 1.
+
 -/
 
 section affine_space'
@@ -25,7 +30,7 @@ variables (k : Type*) {V : Type*} {P : Type*} [field k] [add_comm_group V] [modu
 variables {ι : Type*}
 include V
 
-open affine_subspace finite_dimensional
+open affine_subspace finite_dimensional vector_space
 
 /-- The `vector_span` of a finite set is finite-dimensional. -/
 lemma finite_dimensional_vector_span_of_finite {s : set P} (h : set.finite s) :
@@ -253,5 +258,121 @@ lemma findim_vector_span_le_iff_not_affine_independent [fintype ι] (p : ι → 
   (hc : fintype.card ι = n + 2) :
   findim k (vector_span k (set.range p)) ≤ n ↔ ¬ affine_independent k p :=
 (not_iff_comm.1 (affine_independent_iff_not_findim_vector_span_le k p hc).symm).symm
+
+/-- A set of points is collinear if their `vector_span` has dimension
+at most `1`. -/
+def collinear (s : set P) : Prop := dim k (vector_span k s) ≤ 1
+
+/-- The definition of `collinear`. -/
+lemma collinear_iff_dim_le_one (s : set P) : collinear k s ↔ dim k (vector_span k s) ≤ 1 :=
+iff.rfl
+
+/-- A set of points, whose `vector_span` is finite-dimensional, is
+collinear if and only if their `vector_span` has dimension at most
+`1`. -/
+lemma collinear_iff_findim_le_one (s : set P) [finite_dimensional k (vector_span k s)] :
+  collinear k s ↔ findim k (vector_span k s) ≤ 1 :=
+begin
+  have h := collinear_iff_dim_le_one k s,
+  rw ←findim_eq_dim at h,
+  exact_mod_cast h
+end
+
+variables (P)
+
+/-- The empty set is collinear. -/
+lemma collinear_empty : collinear k (∅ : set P) :=
+begin
+  rw [collinear_iff_dim_le_one, vector_span_empty],
+  simp
+end
+
+variables {P}
+
+/-- A single point is collinear. -/
+lemma collinear_singleton (p : P) : collinear k ({p} : set P) :=
+begin
+  rw [collinear_iff_dim_le_one, vector_span_singleton],
+  simp
+end
+
+/-- Given a point `p₀` in a set of points, that set is collinear if and
+only if the points can all be expressed as multiples of the same
+vector, added to `p₀`. -/
+lemma collinear_iff_of_mem {s : set P} {p₀ : P} (h : p₀ ∈ s) :
+  collinear k s ↔ ∃ v : V, ∀ p ∈ s, ∃ r : k, p = r • v +ᵥ p₀ :=
+begin
+  simp_rw [collinear_iff_dim_le_one, dim_submodule_le_one_iff', submodule.le_span_singleton_iff],
+  split,
+  { rintro ⟨v₀, hv⟩,
+    use v₀,
+    intros p hp,
+    obtain ⟨r, hr⟩ := hv (p -ᵥ p₀) (vsub_mem_vector_span k hp h),
+    use r,
+    rw eq_vadd_iff_vsub_eq,
+    exact hr.symm },
+  { rintro ⟨v, hp₀v⟩,
+    use v,
+    intros w hw,
+    have hs : vector_span k s ≤ submodule.span k ({v} : set V),
+    { rw [vector_span_eq_span_vsub_set_right k h, submodule.span_le, set.subset_def],
+      intros x hx,
+      rw [submodule.mem_coe, submodule.mem_span_singleton],
+      rw set.mem_image at hx,
+      rcases hx with ⟨p, hp, rfl⟩,
+      rcases hp₀v p hp with ⟨r, rfl⟩,
+      use r,
+      simp },
+    have hw' := submodule.le_def'.1 hs w hw,
+    rwa submodule.mem_span_singleton at hw' }
+end
+
+/-- A set of points is collinear if and only if they can all be
+expressed as multiples of the same vector, added to the same base
+point. -/
+lemma collinear_iff_exists_forall_eq_smul_vadd (s : set P) :
+  collinear k s ↔ ∃ (p₀ : P) (v : V), ∀ p ∈ s, ∃ r : k, p = r • v +ᵥ p₀ :=
+begin
+  rcases set.eq_empty_or_nonempty s with rfl | ⟨⟨p₁, hp₁⟩⟩,
+  { simp [collinear_empty] },
+  { rw collinear_iff_of_mem k hp₁,
+    split,
+    { exact λ h, ⟨p₁, h⟩ },
+    { rintros ⟨p, v, hv⟩,
+      use v,
+      intros p₂ hp₂,
+      rcases hv p₂ hp₂ with ⟨r, rfl⟩,
+      rcases hv p₁ hp₁ with ⟨r₁, rfl⟩,
+      use r - r₁,
+      simp [vadd_assoc, ←add_smul] } }
+end
+
+/-- Two points are collinear. -/
+lemma collinear_insert_singleton (p₁ p₂ : P) : collinear k ({p₁, p₂} : set P) :=
+begin
+  rw collinear_iff_exists_forall_eq_smul_vadd,
+  use [p₁, p₂ -ᵥ p₁],
+  intros p hp,
+  rw [set.mem_insert_iff, set.mem_singleton_iff] at hp,
+  cases hp,
+  { use 0,
+    simp [hp] },
+  { use 1,
+    simp [hp] }
+end
+
+/-- Three points are affinely independent if and only if they are not
+collinear. -/
+lemma affine_independent_iff_not_collinear (p : fin 3 → P) :
+  affine_independent k p ↔ ¬ collinear k (set.range p) :=
+by rw [collinear_iff_findim_le_one,
+       affine_independent_iff_not_findim_vector_span_le k p (fintype.card_fin 3)]
+
+/-- Three points are collinear if and only if they are not affinely
+independent. -/
+lemma collinear_iff_not_affine_independent (p : fin 3 → P) :
+  collinear k (set.range p) ↔ ¬ affine_independent k p :=
+by rw [collinear_iff_findim_le_one,
+       findim_vector_span_le_iff_not_affine_independent k p (fintype.card_fin 3)]
 
 end affine_space'

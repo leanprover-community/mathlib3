@@ -103,11 +103,7 @@ begin
   exact h3,
 end
 
-lemma step_helper (b c : ℕ) (h1 : b < c) : b + 1 = c ∨ b + 1 < c :=
-begin
-  have h2 : b + 1 ≤ c, from succ_le_iff.mpr h1,
-  exact eq_or_lt_of_le h2
-end
+lemma step_helper (b c : ℕ) (h : b < c) : b + 1 = c ∨ b + 1 < c := eq_or_lt_of_le h
 
 lemma iterative_step (c bound : ℕ) (h1 : fails_sum (bound + 1)) (h2 : fails_sum c ∨ bound < c) :
 fails_sum c ∨ bound + 1 < c :=

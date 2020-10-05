@@ -65,6 +65,10 @@ begin
     { simp only [*, coeff_eq_coeff_of_ne nm, coeff_X_pow f.nat_degree n, add_zero, coeff_C_mul, coeff_add, if_false, mul_zero], },
 end
 
+@[simp] lemma sum_leading_C_mul_X_pow_ring {S : Type*} [ring S] (g : polynomial S)
+ : g.erase_lead = g - (C g.leading_coeff) * X^g.nat_degree :=
+eq_sub_iff_add_eq.mpr (sum_leading_C_mul_X_pow g).symm
+
 lemma nonzero_of_large_support (f0 : 2 ≤ f.support.card) : ¬ (erase_lead f) = 0 :=
 begin
   have fn0 : f ≠ 0,
@@ -164,10 +168,6 @@ begin
     { apply le_of_lt,
       exact nat_degree (nat.succ_le_iff.mpr (not_le.mp su)), },
 end
-
-@[simp] lemma sum_leading_C_mul_X_pow_ring {S : Type*} [ring S] (g : polynomial S)
- : g.erase_lead = g - (C g.leading_coeff) * X^g.nat_degree :=
-eq_sub_iff_add_eq.mpr (sum_leading_C_mul_X_pow g).symm
 
 end erase_lead
 end polynomial

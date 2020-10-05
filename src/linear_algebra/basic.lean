@@ -1687,7 +1687,7 @@ set_option old_structure_cmd true
 @[nolint has_inhabited_instance]
 structure linear_equiv (R : Type u) (M : Type v) (M₂ : Type w)
   [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂]
-  extends M →ₗ[R] M₂, M ≃ M₂
+  extends M →ₗ[R] M₂, M ≃+ M₂
 end
 
 attribute [nolint doc_blame] linear_equiv.to_linear_map

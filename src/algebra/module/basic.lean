@@ -240,15 +240,19 @@ structure is_linear_map (R : Type u) {M : Type v} {M₂ : Type w}
 (map_add : ∀ x y, f (x + y) = f x + f y)
 (map_smul : ∀ (c : R) x, f (c • x) = c • f x)
 
+
+set_option old_structure_cmd true
+
 /-- A map `f` between semimodules over a semiring is linear if it satisfies the two properties
 `f (x + y) = f x + f y` and `f (c • x) = c • f x`. Elements of `linear_map R M M₂` (available under
 the notation `M →ₗ[R] M₂`) are bundled versions of such maps. An unbundled version is available with
 the predicate `is_linear_map`, but it should be avoided most of the time. -/
 structure linear_map (R : Type u) (M : Type v) (M₂ : Type w)
-  [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂] :=
-(to_fun : M → M₂)
+  [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂] extends add_hom M M₂ :=
 (map_add'  : ∀x y, to_fun (x + y) = to_fun x + to_fun y)
 (map_smul' : ∀(c : R) x, to_fun (c • x) = c • to_fun x)
+
+set_option old_structure_cmd false
 
 infixr ` →ₗ `:25 := linear_map _
 notation M ` →ₗ[`:25 R:25 `] `:0 M₂:0 := linear_map R M M₂

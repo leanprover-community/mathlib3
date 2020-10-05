@@ -216,9 +216,9 @@ def cocones_iso_component_inv {J : Type v} [small_category J] {K : J ⥤ C}
 
 /--
 When `F ⊣ G`,
-the functor associating to each `Y` the cocones over `K ⋙ F` with cone point `Y`.
+the functor associating to each `Y` the cocones over `K ⋙ F` with cone point `Y`
 is naturally isomorphic to
-the functor associating to each `Y` the cocones over `K` with cone point `G.obj Y`
+the functor associating to each `Y` the cocones over `K` with cone point `G.obj Y`.
 -/
 -- Note: this is natural in K, but we do not yet have the tools to formulate that.
 def cocones_iso {J : Type v} [small_category J] {K : J ⥤ C} :

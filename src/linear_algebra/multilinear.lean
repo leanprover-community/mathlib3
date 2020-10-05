@@ -188,8 +188,9 @@ section
 
 variables {M₁' : ι → Type*} [Π i, add_comm_monoid (M₁' i)] [Π i, semimodule R (M₁' i)]
 
-/-- Compose a multilinear map with a collection of linear maps: apply `f i` to `m i` before feeding
-the resulting vector to `g`. -/
+/-- If `g` is a multilinear map and `f` is a collection of linear maps,
+then `g (f₁ m₁, ..., fₙ mₙ)` is again a multilinear map, that we call
+`g.comp_linear_map f`. -/
 def comp_linear_map (g : multilinear_map R M₁' M₂) (f : Π i, M₁ i →ₗ[R] M₁' i) :
   multilinear_map R M₁ M₂ :=
 { to_fun := λ m, g $ λ i, f i (m i),

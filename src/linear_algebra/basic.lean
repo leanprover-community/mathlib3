@@ -2264,6 +2264,14 @@ variables [semiring R] [add_comm_monoid M] [semimodule R M] [add_comm_monoid M�
 def to_linear_equiv (e : M ≃+ M₂) (h : ∀ (c : R) x, e (c • x) = c • e x) : M ≃ₗ[R] M₂ :=
 { map_smul' := h, .. e, }
 
+@[simp] lemma coe_to_linear_equiv (e : M ≃+ M₂) (h : ∀ (c : R) x, e (c • x) = c • e x) :
+  ⇑(e.to_linear_equiv h) = e :=
+rfl
+
+@[simp] lemma coe_to_linear_equiv_symm (e : M ≃+ M₂) (h : ∀ (c : R) x, e (c • x) = c • e x) :
+  ⇑(e.to_linear_equiv h).symm = e.symm :=
+rfl
+
 end add_equiv
 
 namespace linear_map

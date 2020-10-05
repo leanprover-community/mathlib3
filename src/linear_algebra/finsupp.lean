@@ -422,7 +422,7 @@ protected def dom_lcongr
 
 @[simp] theorem dom_lcongr_single {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) (i : α₁) (m : M) :
   (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (finsupp.single i m) = finsupp.single (e i) m :=
-by simp [finsupp.dom_lcongr, add_equiv.to_linear_equiv, finsupp.dom_congr, map_domain_single]
+by simp [finsupp.dom_lcongr, finsupp.dom_congr, map_domain_single]
 
 noncomputable def congr {α' : Type*} (s : set α) (t : set α') (e : s ≃ t) :
   supported M R s ≃ₗ[R] supported M R t :=

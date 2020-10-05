@@ -128,20 +128,19 @@ lemma case_more_digits (c n : ℕ) (h1 : (nat.digits 10 c).length ≥ 6)
 begin
    have h3 : c ≠ 0,
   { intro h4,
-    have h5 : (nat.digits 10 0).length = 0, by norm_num,
-    have h6 : (nat.digits 10 c).length = 0, by rw [h4, h5],
-    exact case_0_digit c n h6 h2 },
+    have h5 : (nat.digits 10 c).length = 0, by simp [h4],
+    exact case_0_digit c n h5 h2 },
 
-  have h7 : 2 ≤ 10, by linarith,
-  have h8 : 10 ^ (nat.digits 10 c).length ≤ 10 * c, from base_pow_length_digits_le 10 c h7 h3,
-  have h9 : 10 ^ 6 ≤ 10 ^ (nat.digits 10 c).length, from (pow_le_iff_le_right h7).mpr h1,
-  have h10 : 10 ^ 6 ≤ 10 * c, from le_trans h9 h8,
-  norm_num at h10,
-  have h11 : n = 10 * c + 6, from h2.left,
-  have h12 : 10 * c ≤ n, from le.intro h11.symm,
-  have h13 : 1000000 ≤ n, from le_trans h10 h12,
-  have h14 : 153846 ≤ 1000000, by norm_num,
-  exact le_trans h14 h13
+  have h6 : 2 ≤ 10, by linarith,
+  have h7 : 10 ^ (nat.digits 10 c).length ≤ 10 * c, from base_pow_length_digits_le 10 c h6 h3,
+  have h8 : 10 ^ 6 ≤ 10 ^ (nat.digits 10 c).length, from (pow_le_iff_le_right h6).mpr h1,
+  have h9 : 10 ^ 6 ≤ 10 * c, from le_trans h8 h7,
+  norm_num at h9,
+  have h10 : n = 10 * c + 6, from h2.left,
+  have h11 : 10 * c ≤ n, from le.intro h10.symm,
+  have h12 : 1000000 ≤ n, from le_trans h9 h11,
+  have h13 : 153846 ≤ 1000000, by norm_num,
+  exact le_trans h13 h12
 end
 
 /-

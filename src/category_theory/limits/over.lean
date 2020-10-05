@@ -20,7 +20,7 @@ namespace category_theory.functor
 
 /-- We can interpret a functor `F` into the category of arrows with codomain `X` as a cocone over
     the diagram given by the domains of the arrows in the image of `F` such that the apex of the
-    cocone ix `X`. -/
+    cocone is `X`. -/
 @[simps] def to_cocone (F : J ⥤ over X) : cocone (F ⋙ over.forget X) :=
 { X := X,
   ι := { app := λ j, (F.obj j).hom } }

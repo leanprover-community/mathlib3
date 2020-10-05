@@ -49,10 +49,10 @@ Left-composition gives a functor `(C ⥤ D) ⥤ ((D ⥤ E) ⥤ (C ⥤ E))`.
     naturality' := λ X Y f, begin ext, dsimp, rw [f.naturality] end } }
 
 /--
-Left-composition gives a functor `(D ⥤ E) ⥤ ((C ⥤ D) ⥤ (C ⥤ E))`.
+Right-composition gives a functor `(D ⥤ E) ⥤ ((C ⥤ D) ⥤ (C ⥤ E))`.
 
 `(whiskering_right.obj H).obj F` is `F ⋙ H`, and
-`(whiskering_right.obj H).map α` is `whisker_left α H`.
+`(whiskering_right.obj H).map α` is `whisker_right α H`.
 -/
 @[simps] def whiskering_right : (D ⥤ E) ⥤ ((C ⥤ D) ⥤ (C ⥤ E)) :=
 { obj := λ H,

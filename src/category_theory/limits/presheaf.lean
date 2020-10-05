@@ -75,7 +75,7 @@ def term_element (A : C) : (yoneda.obj A).elementsᵒᵖ :=
 opposite.op ⟨opposite.op A, 𝟙 _⟩
 
 def is_term (A : C) : is_terminal (term_element A) :=
-{ lift := λ s, -- _,
+{ lift := λ s,
   begin
     refine (has_hom.hom.op (_ : _ ⟶ opposite.unop s.X) : s.X ⟶ opposite.op ⟨opposite.op A, 𝟙 A⟩),
     refine ⟨s.X.unop.2.op, comp_id _⟩,
@@ -130,7 +130,7 @@ def is_a_limit (P : Cᵒᵖ ⥤ Type u₁) : is_colimit (the_cocone P) :=
 begin
   apply is_colimit.of_point_iso (colimit.is_colimit ((category_of_elements.π P).left_op ⋙ yoneda)),
   change is_iso (colimit.desc _ (cocone.extend _ _)),
-  rw [colimit.desc_extend, desc_colimit_cocone],
+  rw [colimit.desc_extend, colimit.desc_cocone],
   apply_instance,
 end
 

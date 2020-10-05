@@ -42,6 +42,11 @@ restate_axiom algebra.assoc'
 namespace algebra
 variables {T : C ⥤ C} [monad T]
 
+instance (X : C) : inhabited (algebra (𝟭 C)) :=
+inhabited.mk
+{ A := X,
+  a := 𝟙 X, }
+
 /-- A morphism of Eilenberg–Moore algebras for the monad `T`. -/
 @[ext] structure hom (A B : algebra T) :=
 (f : A.A ⟶ B.A)
@@ -55,6 +60,8 @@ namespace hom
 /-- The identity homomorphism for an Eilenberg–Moore algebra. -/
 @[simps] def id (A : algebra T) : hom A A :=
 { f := 𝟙 A.A }
+
+instance (A : algebra T) : inhabited (hom A A) := ⟨{ f := 𝟙 _ }⟩
 
 /-- Composition of Eilenberg–Moore algebra homomorphisms. -/
 @[simps] def comp {P Q R : algebra T} (f : hom P Q) (g : hom Q R) : hom P R :=
@@ -223,7 +230,7 @@ adjunction.mk_of_hom_equiv
       dsimp, simp
     end
     }}
-    
+
 instance forget_faithful : faithful (forget G) := {}
 
 end comonad

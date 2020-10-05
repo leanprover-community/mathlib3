@@ -5,6 +5,36 @@ Authors: Michael Jendrusch, Scott Morrison
 -/
 import category_theory.monoidal.category
 
+/-!
+# (Lax) monoidal functors
+
+A lax monoidal functor `F` between monoidal categories `C` and `D`
+is a functor between the underlying categories equipped with morphisms
+* `ε : 𝟙_ D ⟶ F.obj (𝟙_ C)` (called the unit morphism)
+* `μ X Y : (F.obj X) ⊗ (F.obj Y) ⟶ F.obj (X ⊗ Y)` (called the tensorator, or strength).
+satisfying various axioms.
+
+A monoidal functor is a lax monoidal functor for which `ε` and `μ` are isomorphisms.
+
+We show that the composition of (lax) monoidal functors gives a (lax) monoidal functor.
+
+See also `category_theory.monoidal.functorial` for a typeclass decorating an object-level
+function with the additional data of a monoidal functor.
+This is useful when stating that a pre-existing functor is monoidal.
+
+See `category_theory.monoidal.natural_transformation` for monoidal natural transformations.
+
+We show in `category_theory.monoidal.Mon_` that lax monoidal functors take monoid objects
+to monoid objects.
+
+## Future work
+* Oplax monoidal functors.
+
+## References
+
+See https://stacks.math.columbia.edu/tag/0FFL.
+-/
+
 open category_theory
 
 universes v₁ v₂ v₃ u₁ u₂ u₃

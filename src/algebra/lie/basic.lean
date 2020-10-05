@@ -313,7 +313,7 @@ instance : lie_ring (⨁ i, L i) :=
   ⁅x, y⁆ i = ⁅x i, y i⁆ := zip_with_apply
 
 /-- The direct sum of Lie algebras carries a natural Lie algebra structure. -/
-instance [decidable_eq ι] : lie_algebra R (⨁ i, L i) :=
+instance : lie_algebra R (⨁ i, L i) :=
 { lie_smul := λ c x y, by { ext, simp only [zip_with_apply, smul_apply, bracket_apply, lie_smul], },
   ..(infer_instance : module R _) }
 

@@ -94,9 +94,9 @@ begin
     exact h1.right.right },
   { have h5: n ≥ 100, from ge_100 n h1,
     linarith },
-  have h6: n < 1000, from lt_1000 n h1,
-  linarith,
-  exact h2,
+  { have h6: n < 1000, from lt_1000 n h1,
+    linarith },
+  { exact h2 },
 end
 
 lemma step_helper (b c : ℕ) (h : b < c) : b + 1 = c ∨ b + 1 < c := eq_or_lt_of_le h
@@ -156,7 +156,7 @@ begin
   cases h1 with c h2,
   have h3 : fails_sum c ∨ 49 < c, from low_search c h2.right.left,
   cases h3,
-  exact absurd h3 h2.left,
+  { exact absurd h3 h2.left },
   have h4 : 50 = c ∨ 50 < c, from step_helper 49 c h3,
   have h5 : n = c * 11, from h2.right.right.right,
   cases h4,
@@ -164,14 +164,14 @@ begin
     linarith },
   have h6 : fails_sum c ∨ 72 < c, from mid_search c h4,
   cases h6,
-  exact absurd h6 h2.left,
+  { exact absurd h6 h2.left },
   have h7 : 73 = c ∨ 73 < c, from step_helper 72 c h6,
   cases h7,
   { right,
     linarith },
   have h8 : fails_sum c ∨ 90 < c, from high_search c h7,
   cases h8,
-  exact absurd h8 h2.left,
+  { exact absurd h8 h2.left },
   linarith,
 end
 

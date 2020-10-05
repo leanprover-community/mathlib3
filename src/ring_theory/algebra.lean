@@ -987,6 +987,20 @@ ext $ λ x, by rw [← mem_to_submodule, ← mem_to_submodule, h]
 theorem to_submodule_inj {S U : subalgebra R A} : (S : submodule R A) = U ↔ S = U :=
 ⟨to_submodule_injective, congr_arg _⟩
 
+lemma val_linear_map_range_eq_submodule : S.val.to_linear_map.range = S.to_submodule :=
+begin
+  ext,
+  split,
+  { intro hx,
+    rw linear_map.mem_range at hx,
+    cases hx with y hy,
+    rw [←hy, alg_hom.to_linear_map_apply],
+    exact subtype.mem y },
+  { intro hx,
+    rw linear_map.mem_range,
+    exact ⟨⟨x, hx⟩, rfl⟩ }
+end
+
 instance : partial_order (subalgebra R A) :=
 { le := λ S T, (S : set A) ⊆ (T : set A),
   le_refl := λ S, set.subset.refl S,

@@ -16,6 +16,11 @@ open_locale classical
 This file provides a few results relating to finite-dimensional
 subspaces of affine spaces.
 
+## Main definitions
+
+* `collinear` defines collinear sets of points as those that span a
+  subspace of dimension at most 1.
+
 -/
 
 section affine_space'

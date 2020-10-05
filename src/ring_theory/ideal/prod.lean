@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import ring_theory.ideal.operations
+import algebraic_geometry.prime_spectrum
 
 /-!
 # Ideals in product rings
@@ -157,6 +158,32 @@ begin
   { rintro (⟨p, ⟨h, rfl⟩⟩|⟨p, ⟨h, rfl⟩⟩),
     { exactI is_prime_ideal_prod_top },
     { exactI is_prime_ideal_prod_top' } }
+end
+
+@[simp] private def prime_spectrum_prod_impl :
+  prime_spectrum R ⊕ prime_spectrum S → prime_spectrum (R × S)
+| (sum.inl ⟨I, hI⟩) := ⟨ideal.prod I ⊤, by exactI is_prime_ideal_prod_top⟩
+| (sum.inr ⟨J, hJ⟩) := ⟨ideal.prod ⊤ J, by exactI is_prime_ideal_prod_top'⟩
+
+variables (R S)
+
+/-- The prime spectrum of `R × S` is in bijection with the disjoint union of the prime spectrum
+    of `R` and the prime spectrum of `S`. -/
+noncomputable def prime_spectrum_prod :
+  prime_spectrum (R × S) ≃ prime_spectrum R ⊕ prime_spectrum S :=
+equiv.symm $ equiv.of_bijective prime_spectrum_prod_impl
+begin
+  split,
+  { rintros (⟨I, hI⟩|⟨J, hJ⟩) (⟨I',  hI'⟩|⟨J', hJ'⟩) h;
+    simp [prod.ext_iff] at h,
+    { simp [h] },
+    { exact false.elim (hI.1 h.1) },
+    { exact false.elim (hJ.1 h.2) },
+    { simp [h] } },
+  { rintro ⟨I, hI⟩,
+    rcases (ideal_prod_prime I).1 hI with (⟨p, ⟨hp, rfl⟩⟩|⟨p, ⟨hp, rfl⟩⟩),
+    { exact ⟨sum.inl ⟨p, hp⟩, rfl⟩ },
+    { exact ⟨sum.inr ⟨p, hp⟩, rfl⟩ } }
 end
 
 end ideal

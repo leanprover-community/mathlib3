@@ -178,19 +178,13 @@ lemma solutions_nonempty : {n : ℕ | problem_predicate n}.nonempty :=
   have h : 153846 ∈ {n : ℕ | problem_predicate n}, from satisfied_by_153846,
   set.nonempty_of_mem h
 
-theorem imo1962_q1 : lt_wf.min {n | problem_predicate n} solutions_nonempty = 153846 :=
+theorem imo1962_q1 : is_least {n | problem_predicate n} 153846 :=
 begin
-  have h1 : lt_wf.min {n | problem_predicate n} solutions_nonempty ∈ {n | problem_predicate n},
-    by apply lt_wf.min_mem,
-  have h2 : problem_predicate (lt_wf.min {n | problem_predicate n} solutions_nonempty),
-    from h1,
-  have h3 : lt_wf.min {n | problem_predicate n} solutions_nonempty ≥ 153846,
-    from no_smaller_solutions (lt_wf.min {n | problem_predicate n} solutions_nonempty) h2,
-  have h4 : 153846 ∈ {n : ℕ | problem_predicate n}, from satisfied_by_153846,
-  have h5 : ¬ (153846 < lt_wf.min {n | problem_predicate n} solutions_nonempty),
-    from lt_wf.not_lt_min {n | problem_predicate n} solutions_nonempty h4,
-  have h6 : 153846 ≥ lt_wf.min {n | problem_predicate n} solutions_nonempty, from not_lt.mp h5,
-  exact le_antisymm h6 h3
+  split,
+  exact satisfied_by_153846,
+  intro k,
+  intro h,
+  exact no_smaller_solutions k h,
 end
 
 

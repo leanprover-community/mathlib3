@@ -24,7 +24,7 @@ In practice, the Lean tactics that are capable of checking a single number, like
 are not efficient enough to run a thousand times while compiling one file.
 -/
 
-def sum_of_squares (L : list ℕ) : ℕ := L.foldr (λ x y, x*x + y) 0
+def sum_of_squares (L : list ℕ) : ℕ := (list.map (λ x, x * x) L).sum
 
 def problem_predicate (n : ℕ) :=
 (nat.digits 10 n).length = 3 ∧ 11 ∣ n ∧ n / 11 = sum_of_squares (nat.digits 10 n)

@@ -96,6 +96,10 @@ protected def function.surjective.distrib {S} [distrib R] [has_add S] [has_mul S
 ### Semirings
 -/
 
+/-- A (unital) semiring is an additive commutative monoid with a
+(noncommutative) unital multiplication operation that distributes over
+addition, with the property that zero annihilates everything. In other
+words, it is a (unital) `ring` without additive inverses. -/
 @[protect_proj, ancestor add_comm_monoid monoid_with_zero distrib]
 class semiring (α : Type u) extends add_comm_monoid α, monoid_with_zero α, distrib α
 
@@ -193,6 +197,9 @@ end add_monoid_hom
 /-- Bundled semiring homomorphisms; use this for bundled ring homomorphisms too. -/
 structure ring_hom (α : Type*) (β : Type*) [semiring α] [semiring β]
   extends monoid_hom α β, add_monoid_hom α β
+
+-- The linter does not recognize that these are structure projections.
+attribute [nolint doc_blame] ring_hom.to_monoid_hom ring_hom.to_add_monoid_hom
 
 infixr ` →+* `:25 := ring_hom
 
@@ -358,8 +365,11 @@ lemma cancel_left {g : β →+* γ} {f₁ f₂ : α →+* β} (hg : injective g)
 
 omit rα rβ rγ
 
+instance (α : Type*) [semiring α]: inhabited (α →+* α) := ⟨id α⟩
+
 end ring_hom
 
+/-- Commutative `semiring`. (A commutative `ring` without additive inverses.) -/
 @[protect_proj, ancestor semiring comm_monoid]
 class comm_semiring (α : Type u) extends semiring α, comm_monoid α
 
@@ -406,6 +416,8 @@ end comm_semiring
 ### Rings
 -/
 
+/-- A (unital) ring is an additive commutative group with a unital
+multiplication operation that distributes over addition. -/
 @[protect_proj, ancestor add_comm_group monoid distrib]
 class ring (α : Type u) extends add_comm_group α, monoid α, distrib α
 
@@ -567,6 +579,7 @@ def mk' {γ} [semiring α] [ring γ] (f : α →* γ) (map_add : ∀ a b : α, f
 
 end ring_hom
 
+/-- Commutative `ring`. -/
 @[protect_proj, ancestor ring comm_semigroup]
 class comm_ring (α : Type u) extends ring α, comm_semigroup α
 
@@ -739,6 +752,7 @@ end domain
 ### Integral domains
 -/
 
+/-- An integral domain is a commutative ring without zero divisors. See `domain`. -/
 @[protect_proj, ancestor comm_ring domain]
 class integral_domain (α : Type u) extends comm_ring α, domain α
 

@@ -196,7 +196,7 @@ begin
   simp only [root_multiplicity_mul hzero, root_multiplicity_X_sub_C_self, hn, nat.one_add]
 end
 
-/-If (X - a)^n divides a polynomial p then the multipicity of a as root of p is at least n-/
+/- If `(X - a) ^ n` divides a polynomial `p` then the multipicity of `a` as root of `p` is at least `n`. -/
 lemma multiplicity_of_dvd {p : polynomial R} {a : R} {n : ℕ}
   (hzero : p ≠ 0) (h : (X - C a) ^ n ∣ p) : n ≤ root_multiplicity a p :=
 begin

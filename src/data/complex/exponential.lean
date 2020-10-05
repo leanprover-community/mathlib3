@@ -1071,6 +1071,33 @@ namespace real
 
 open complex finset
 
+lemma exp_bound {x : ℝ} (hx : abs' x ≤ 1) {n : ℕ} (hn : 0 < n) :
+  abs' (exp x - ∑ m in range n, x ^ m / m!) ≤ abs' x ^ n * (n.succ * (n! * n)⁻¹) :=
+begin
+  have hxc : complex.abs x ≤ 1, by exact_mod_cast hx,
+  convert exp_bound hxc hn; norm_cast
+end
+
+lemma exp_one_gt_271828182 : 2.71828182 < exp 1:=
+begin
+  have h := exp_bound (by norm_num : abs' (1 : ℝ) ≤ 1) (by norm_num : 0 < 12),
+  rw abs_le at h,
+  replace h := h.1,
+  simp only [sum_range_succ] at h,
+  norm_num at h,
+  linarith
+end
+
+lemma exp_one_lt_271828183 : exp 1 < 2.71828183 :=
+begin
+  have h := exp_bound (by norm_num : abs' (1 : ℝ) ≤ 1) (by norm_num : 0 < 12),
+  rw abs_le at h,
+  replace h := h.2,
+  simp only [sum_range_succ] at h,
+  norm_num at h,
+  linarith
+end
+
 lemma cos_bound {x : ℝ} (hx : abs' x ≤ 1) :
   abs' (cos x - (1 - x ^ 2 / 2)) ≤ abs' x ^ 4 * (5 / 96) :=
 calc abs' (cos x - (1 - x ^ 2 / 2)) = abs (complex.cos x - (1 - x ^ 2 / 2)) :
@@ -1092,8 +1119,8 @@ calc abs' (cos x - (1 - x ^ 2 / 2)) = abs (complex.cos x - (1 - x ^ 2 / 2)) :
   by simp [complex.abs_div]
 ... ≤ ((complex.abs (x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2 +
     (complex.abs (-x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2)  :
-  add_le_add ((div_le_div_right (by norm_num)).2 (exp_bound (by simpa) dec_trivial))
-             ((div_le_div_right (by norm_num)).2 (exp_bound (by simpa) dec_trivial))
+  add_le_add ((div_le_div_right (by norm_num)).2 (complex.exp_bound (by simpa) dec_trivial))
+             ((div_le_div_right (by norm_num)).2 (complex.exp_bound (by simpa) dec_trivial))
 ... ≤ abs' x ^ 4 * (5 / 96) : by norm_num; simp [mul_assoc, mul_comm, mul_left_comm, mul_div_assoc]
 
 lemma sin_bound {x : ℝ} (hx : abs' x ≤ 1) :
@@ -1118,8 +1145,8 @@ calc abs' (sin x - (x - x ^ 3 / 6)) = abs (complex.sin x - (x - x ^ 3 / 6)) :
   by simp [add_comm, complex.abs_div, complex.abs_mul]
 ... ≤ ((complex.abs (x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2 +
     (complex.abs (-x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2) :
-  add_le_add ((div_le_div_right (by norm_num)).2 (exp_bound (by simpa) dec_trivial))
-             ((div_le_div_right (by norm_num)).2 (exp_bound (by simpa) dec_trivial))
+  add_le_add ((div_le_div_right (by norm_num)).2 (complex.exp_bound (by simpa) dec_trivial))
+             ((div_le_div_right (by norm_num)).2 (complex.exp_bound (by simpa) dec_trivial))
 ... ≤ abs' x ^ 4 * (5 / 96) : by norm_num; simp [mul_assoc, mul_comm, mul_left_comm, mul_div_assoc]
 
 lemma cos_pos_of_le_one {x : ℝ} (hx : abs' x ≤ 1) : 0 < cos x :=

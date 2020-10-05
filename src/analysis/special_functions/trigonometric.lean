@@ -571,6 +571,9 @@ lemma pi_le_four : π ≤ 4 :=
 lemma pi_pos : 0 < π :=
 lt_of_lt_of_le (by norm_num) two_le_pi
 
+lemma pi_ne_zero : pi ≠ 0 :=
+ne_of_gt pi_pos
+
 lemma pi_div_two_pos : 0 < π / 2 :=
 half_pos pi_pos
 
@@ -1603,6 +1606,9 @@ lemma log_neg_one : log (-1) = π * I := by simp [log]
 lemma log_I : log I = π / 2 * I := by simp [log]
 
 lemma log_neg_I : log (-I) = -(π / 2) * I := by simp [log]
+
+lemma two_pi_I_ne_zero : (2 * π * I : ℂ) ≠ 0 :=
+by norm_num [real.pi_ne_zero, I_ne_zero]
 
 lemma exp_eq_one_iff {x : ℂ} : exp x = 1 ↔ ∃ n : ℤ, x = n * ((2 * π) * I) :=
 have real.exp (x.re) * real.cos (x.im) = 1 → real.cos x.im ≠ -1,

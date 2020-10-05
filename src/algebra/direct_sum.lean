@@ -47,12 +47,12 @@ variables β
 
 include dec_ι
 
-/-- `mk β s x`, is the element of `⨁ i, β i` that is zero outside `s`,
-and has coefficient `x i` for `i` in `s` -/
+/-- `mk β s x` is the element of `⨁ i, β i` that is zero outside `s`
+and has coefficient `x i` for `i` in `s`. -/
 def mk : Π s : finset ι, (Π i : (↑s : set ι), β i.1) → ⨁ i, β i :=
 dfinsupp.mk
 
-/-- `of i` is the natural inclusion map from `β i` to `⨁ i, β i` -/
+/-- `of i` is the natural inclusion map from `β i` to `⨁ i, β i`. -/
 def of : Π i : ι, β i → ⨁ i, β i :=
 dfinsupp.single
 variables {β}
@@ -108,8 +108,8 @@ variables {γ : Type u₁} [add_comm_group γ]
 variables (φ : Π i, β i → γ) [Π i, is_add_group_hom (φ i)]
 
 variables (φ)
-/-- `to_group φ` is the natural homomorphism from `⨁ i, β i` to `γ`,
-induced by a family `φ` of homomorphisms `β i → γ` -/
+/-- `to_group φ` is the natural homomorphism from `⨁ i, β i` to `γ`
+induced by a family `φ` of homomorphisms `β i → γ`. -/
 def to_group (f : ⨁ i, β i) : γ :=
 quotient.lift_on f (λ x, ∑ i in x.2.to_finset, φ i (x.1 i)) $ λ x y H,
 begin

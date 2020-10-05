@@ -118,7 +118,7 @@ by rw [← h.to_dual_total_left, h.total_repr]
 lemma to_dual_apply_right (i : ι) (v : V) : h.to_dual (B i) v = h.repr v i :=
 by rw [← h.to_dual_total_right, h.total_repr]
 
-/-- Apply `v` to the second argument of `to_dual : V →ₗ V →ₗ K`. -/
+/-- `h.to_dual_flip v` is the linear map sending `w` to `h.to_dual w v`. -/
 def to_dual_flip (v : V) : (V →ₗ[K] K) := (linear_map.flip h.to_dual).to_fun v
 
 omit de h

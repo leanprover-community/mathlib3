@@ -854,6 +854,16 @@ begin
   simp only [coeff_map, ring_hom.coe_of, coeff_zero, hr],
 end
 
+lemma map_map_range_eq_iff (f : R →+* S₁) (g : S₁ → R) (hg : g 0 = 0) (φ : mv_polynomial σ S₁) :
+  map f (finsupp.map_range g hg φ) = φ ↔ ∀ d, f (g (coeff d φ)) = coeff d φ :=
+begin
+  rw mv_polynomial.ext_iff,
+  apply forall_congr, intro m,
+  rw [coeff_map],
+  apply eq_iff_eq_cancel_right.mpr,
+  refl
+end
+
 end map
 
 

@@ -189,6 +189,7 @@ def equiv_iso_limit {r t : cone F} (i : r ≅ t) : is_limit r ≃ is_limit t :=
 
 @[simp] lemma equiv_iso_limit_apply {r t : cone F} (i : r ≅ t) (P : is_limit r) :
   equiv_iso_limit i P = P.of_iso_limit i := rfl
+
 @[simp] lemma equiv_iso_limit_symm_apply {r t : cone F} (i : r ≅ t) (P : is_limit t) :
   (equiv_iso_limit i).symm P = P.of_iso_limit i.symm := rfl
 
@@ -239,6 +240,20 @@ def of_cone_equiv {D : Type u'} [category.{v} D] {G : K ⥤ D}
   inv_fun := of_right_adjoint h.functor,
   left_inv := by tidy,
   right_inv := by tidy, }
+
+@[simp] lemma of_cone_equiv_apply_desc {D : Type u'} [category.{v} D] {G : K ⥤ D}
+  (h : cone G ≌ cone F) {c : cone G} (P : is_limit (h.functor.obj c)) (s) :
+  (of_cone_equiv h P).lift s =
+    ((h.unit_iso.hom.app s).hom ≫
+      (h.functor.inv.map (P.lift_cone_morphism (h.functor.obj s))).hom) ≫
+      (h.unit_iso.inv.app c).hom :=
+rfl
+
+@[simp] lemma of_cone_equiv_symm_apply_desc {D : Type u'} [category.{v} D] {G : K ⥤ D}
+  (h : cone G ≌ cone F) {c : cone G} (P : is_limit c) (s) :
+  ((of_cone_equiv h).symm P).lift s =
+    (h.counit_iso.inv.app s).hom ≫ (h.functor.map (P.lift_cone_morphism (h.inverse.obj s))).hom :=
+rfl
 
 /--
 A cone postcomposed with a natural isomorphism is a limit cone if and only if the original cone is.
@@ -598,6 +613,7 @@ def equiv_iso_colimit {r t : cocone F} (i : r ≅ t) : is_colimit r ≃ is_colim
 
 @[simp] lemma equiv_iso_colimit_apply {r t : cocone F} (i : r ≅ t) (P : is_colimit r) :
   equiv_iso_colimit i P = P.of_iso_colimit i := rfl
+
 @[simp] lemma equiv_iso_colimit_symm_apply {r t : cocone F} (i : r ≅ t) (P : is_colimit t) :
   (equiv_iso_colimit i).symm P = P.of_iso_colimit i.symm := rfl
 
@@ -653,14 +669,14 @@ def of_cocone_equiv {D : Type u'} [category.{v} D] {G : K ⥤ D}
   (h : cocone G ≌ cocone F) {c : cocone G} (P : is_colimit (h.functor.obj c)) (s) :
   (of_cocone_equiv h P).desc s =
     (h.unit.app c).hom ≫
-    (h.inverse.map {hom := P.desc (h.functor.obj s), w' := (by tidy)}).hom ≫
+    (h.inverse.map (P.desc_cocone_morphism (h.functor.obj s))).hom ≫
     (h.unit_inv.app s).hom :=
 rfl
 
 @[simp] lemma of_cocone_equiv_symm_apply_desc {D : Type u'} [category.{v} D] {G : K ⥤ D}
   (h : cocone G ≌ cocone F) {c : cocone G} (P : is_colimit c) (s) :
   ((of_cocone_equiv h).symm P).desc s =
-    (h.functor.map {hom := P.desc (h.inverse.obj s), w' := (by tidy)}).hom ≫ (h.counit.app s).hom :=
+    (h.functor.map (P.desc_cocone_morphism (h.inverse.obj s))).hom ≫ (h.counit.app s).hom :=
 rfl
 
 /--
@@ -1023,7 +1039,7 @@ by { dsimp [limit.iso_limit_cone, is_limit.cone_point_unique_up_to_iso], tidy, }
 
 @[simp] lemma limit.lift_cone {F : J ⥤ C} [has_limit F] :
   limit.lift F (limit.cone F) = 𝟙 (limit F) :=
-by { ext, dsimp, simp, }
+(limit.is_limit _).lift_self
 
 /--
 The isomorphism (in `Type`) between
@@ -1441,7 +1457,7 @@ by { dsimp [colimit.iso_colimit_cocone, is_colimit.cocone_point_unique_up_to_iso
 
 @[simp] lemma colimit.desc_cocone {F : J ⥤ C} [has_colimit F] :
   colimit.desc F (colimit.cocone F) = 𝟙 (colimit F) :=
-by { ext, dsimp, simp, }
+(colimit.is_colimit _).desc_self
 
 /--
 The isomorphism (in `Type`) between

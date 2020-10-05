@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.pempty
 import category_theory.limits.limits
@@ -134,8 +134,45 @@ is_terminal.mono_from terminal_is_terminal _
 instance initial.epi_to {Y : C} [has_initial C] (f : Y ⟶ ⊥_ C) : epi f :=
 is_initial.epi_to initial_is_initial _
 
+/-- From a functor `F : J ⥤ C`, given an initial object of `J`, construct a cone for `J`.
+In `limit_of_diagram_initial` we show it is a limit cone. -/
+@[simps]
+def cone_of_diagram_initial {J : Type v} [small_category J]
+  {X : J} (tX : is_initial X) (F : J ⥤ C) : cone F :=
+{ X := F.obj X,
+  π :=
+  { app := λ j, F.map (tX.to j),
+    naturality' := λ j j' k,
+    begin
+      dsimp,
+      rw [← F.map_comp, category.id_comp, tX.hom_ext (tX.to j ≫ k) (tX.to j')],
+    end } }
+
+/-- From a functor `F : J ⥤ C`, given an initial object of `J`, show the cone
+`cone_of_diagram_initial` is a limit. -/
+def limit_of_diagram_initial {J : Type v} [small_category J]
+  {X : J} (tX : is_initial X) (F : J ⥤ C) :
+is_limit (cone_of_diagram_initial tX F) :=
+{ lift := λ s, s.π.app X,
+  uniq' := λ s m w,
+    begin
+      rw [← w X, cone_of_diagram_initial_π_app, tX.hom_ext (tX.to X) (𝟙 _)],
+      dsimp, simp -- See note [dsimp, simp]
+    end}
+
+-- This is reducible to allow usage of lemmas about `cone_point_unique_up_to_iso`.
+/-- For a functor `F : J ⥤ C`, if `J` has an initial object then the image of it is isomorphic
+to the limit of `F`. -/
+@[reducible]
+def limit_of_initial {J : Type v} [small_category J] (F : J ⥤ C)
+  [has_initial J] [has_limit F] :
+limit F ≅ F.obj (⊥_ J) :=
+is_limit.cone_point_unique_up_to_iso
+  (limit.is_limit _)
+  (limit_of_diagram_initial initial_is_initial F)
+
 /-- From a functor `F : J ⥤ C`, given a terminal object of `J`, construct a cocone for `J`.
-In `is_col` we show it is a colimit cocone. -/
+In `colimit_of_diagram_terminal` we show it is a colimit cocone. -/
 @[simps]
 def cocone_of_diagram_terminal {J : Type v} [small_category J]
   {X : J} (tX : is_terminal X) (F : J ⥤ C) : cocone F :=

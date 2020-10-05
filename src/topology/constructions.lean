@@ -330,6 +330,12 @@ lemma is_closed_prod {s₁ : set α} {s₂ : set β} (h₁ : is_closed s₁) (h�
   is_closed (set.prod s₁ s₂) :=
 closure_eq_iff_is_closed.mp $ by simp only [h₁.closure_eq, h₂.closure_eq, closure_prod_eq]
 
+lemma dense_range.prod {ι : Type*} {κ : Type*} {f : ι → β} {g : κ → γ}
+  (hf : dense_range f) (hg : dense_range g) : dense_range (λ p : ι × κ, (f p.1, g p.2)) :=
+have closure (range $ λ p : ι×κ, (f p.1, g p.2)) = set.prod (closure $ range f) (closure $ range g),
+    by rw [←closure_prod_eq, prod_range_range_eq],
+assume ⟨b, d⟩, this.symm ▸ mem_prod.2 ⟨hf _, hg _⟩
+
 lemma inducing.prod_mk {f : α → β} {g : γ → δ} (hf : inducing f) (hg : inducing g) :
   inducing (λx:α×γ, (f x.1, g x.2)) :=
 ⟨by rw [prod.topological_space, prod.topological_space, hf.induced, hg.induced,

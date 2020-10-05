@@ -510,6 +510,9 @@ inv_involutive'.injective
 lemma inv_eq_iff {g h : G₀} : g⁻¹ = h ↔ h⁻¹ = g :=
 by rw [← inv_inj', eq_comm, inv_inv']
 
+@[simp] lemma inv_eq_one' {g : G₀} : g⁻¹ = 1 ↔ g = 1 :=
+by rw [inv_eq_iff, inv_one, eq_comm]
+
 end group_with_zero
 
 namespace units

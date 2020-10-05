@@ -172,4 +172,86 @@ begin
   exact affine_span_eq_of_le_of_affine_independent_of_card_eq_findim_add_one hi le_top hc
 end
 
+variables (k)
+
+/-- The `vector_span` of `n + 1` points in an indexed family has
+dimension at most `n`. -/
+lemma findim_vector_span_image_finset_le (p : ι → P) (s : finset ι) {n : ℕ}
+  (hc : finset.card s = n + 1) : findim k (vector_span k (p '' ↑s)) ≤ n :=
+begin
+  have hn : (p '' ↑s).nonempty,
+  { simp [hc, ←finset.card_pos] },
+  rcases hn with ⟨p₁, hp₁⟩,
+  rw [vector_span_eq_span_vsub_set_right_ne k hp₁],
+  have hfp₁ : (p '' ↑s \ {p₁}).finite :=
+    ((finset.finite_to_set _).image _).subset (set.diff_subset _ _),
+  haveI := hfp₁.fintype,
+  have hf : ((λ p, p -ᵥ p₁) '' (p '' ↑s \ {p₁})).finite := hfp₁.image _,
+  haveI := hf.fintype,
+  convert le_trans (findim_span_le_card ((λ p, p -ᵥ p₁) '' (p '' ↑s \ {p₁}))) _,
+  have hm : p₁ ∉ p '' ↑s \ {p₁}, by simp,
+  haveI := set.fintype_insert' (p '' ↑s \ {p₁}) hm,
+  rw [set.to_finset_card, set.card_image_of_injective (p '' ↑s \ {p₁}) (vsub_left_injective p₁),
+      ←add_le_add_iff_right 1, ←set.card_fintype_insert' _ hm],
+  have h : fintype.card (↑(s.image p) : set P) ≤ n + 1,
+  { rw [fintype.card_coe, ←hc],
+    exact finset.card_image_le },
+  convert h,
+  simp [hp₁]
+end
+
+/-- The `vector_span` of an indexed family of `n + 1` points has
+dimension at most `n`. -/
+lemma findim_vector_span_range_le [fintype ι] (p : ι → P) {n : ℕ}
+  (hc : fintype.card ι = n + 1) : findim k (vector_span k (set.range p)) ≤ n :=
+begin
+  rw [←set.image_univ, ←finset.coe_univ],
+  rw ←finset.card_univ at hc,
+  exact findim_vector_span_image_finset_le _ _ _ hc
+end
+
+/-- `n + 1` points are affinely independent if and only if their
+`vector_span` has dimension `n`. -/
+lemma affine_independent_iff_findim_vector_span_eq [fintype ι] (p : ι → P) {n : ℕ}
+  (hc : fintype.card ι = n + 1) :
+  affine_independent k p ↔ findim k (vector_span k (set.range p)) = n :=
+begin
+  have hn : nonempty ι, by simp [←fintype.card_pos_iff, hc],
+  cases hn with i₁,
+  rw [affine_independent_iff_linear_independent_vsub _ _ i₁,
+      linear_independent_iff_card_eq_findim_span, eq_comm,
+      vector_span_range_eq_span_range_vsub_right_ne k p i₁],
+  congr',
+  rw ←finset.card_univ at hc,
+  rw fintype.subtype_card,
+  simp [finset.filter_ne', finset.card_erase_of_mem, hc]
+end
+
+/-- `n + 1` points are affinely independent if and only if their
+`vector_span` has dimension at least `n`. -/
+lemma affine_independent_iff_le_findim_vector_span [fintype ι] (p : ι → P) {n : ℕ}
+  (hc : fintype.card ι = n + 1) :
+  affine_independent k p ↔ n ≤ findim k (vector_span k (set.range p)) :=
+begin
+  rw affine_independent_iff_findim_vector_span_eq k p hc,
+  split,
+  { rintro rfl,
+    refl },
+  { exact λ hle, le_antisymm (findim_vector_span_range_le k p hc) hle }
+end
+
+/-- `n + 2` points are affinely independent if and only if their
+`vector_span` does not have dimension at most `n`. -/
+lemma affine_independent_iff_not_findim_vector_span_le [fintype ι] (p : ι → P) {n : ℕ}
+  (hc : fintype.card ι = n + 2) :
+  affine_independent k p ↔ ¬ findim k (vector_span k (set.range p)) ≤ n :=
+by rw [affine_independent_iff_le_findim_vector_span k p hc, ←nat.lt_iff_add_one_le, lt_iff_not_ge]
+
+/-- `n + 2` points have a `vector_span` with dimension at most `n` if
+and only if they are not affinely independent. -/
+lemma findim_vector_span_le_iff_not_affine_independent [fintype ι] (p : ι → P) {n : ℕ}
+  (hc : fintype.card ι = n + 2) :
+  findim k (vector_span k (set.range p)) ≤ n ↔ ¬ affine_independent k p :=
+(not_iff_comm.1 (affine_independent_iff_not_findim_vector_span_le k p hc).symm).symm
+
 end affine_space'

@@ -485,11 +485,11 @@ end canonically_ordered_semiring
 section linear_ordered_semiring
 variable [linear_ordered_semiring R]
 
-theorem pow_pos {a : R} (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
+@[simp] theorem pow_pos {a : R} (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
 | 0     := zero_lt_one
 | (n+1) := mul_pos H (pow_pos _)
 
-theorem pow_nonneg {a : R} (H : 0 ≤ a) : ∀ (n : ℕ), 0 ≤ a ^ n
+@[simp] theorem pow_nonneg {a : R} (H : 0 ≤ a) : ∀ (n : ℕ), 0 ≤ a ^ n
 | 0     := zero_le_one
 | (n+1) := mul_nonneg H (pow_nonneg _)
 

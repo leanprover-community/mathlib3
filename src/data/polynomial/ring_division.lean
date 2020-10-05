@@ -185,7 +185,7 @@ begin
   exact root_multiplicity_eq_zero (mt root_X_sub_C.mp (ne.symm hxy))
 end
 
-/- The multiplicity of `a` as root of `(X - a) ^ n` is `n`. -/
+/-- The multiplicity of `a` as root of `(X - a) ^ n` is `n`. --/
 lemma root_multiplicity_X_sub_C_pow (a : R) (n : ℕ) : root_multiplicity a ((X - C a) ^ n) = n :=
 begin
   induction n with n hn,
@@ -196,7 +196,7 @@ begin
   simp only [root_multiplicity_mul hzero, root_multiplicity_X_sub_C_self, hn, nat.one_add]
 end
 
-/- If `(X - a) ^ n` divides a polynomial `p` then the multipicity of `a` as root of `p` is at least `n`. -/
+/-- If `(X - a) ^ n` divides a polynomial `p` then the multipicity of `a` as root of `p` is at least `n`. --/
 lemma multiplicity_of_dvd {p : polynomial R} {a : R} {n : ℕ}
   (hzero : p ≠ 0) (h : (X - C a) ^ n ∣ p) : n ≤ root_multiplicity a p :=
 begin
@@ -206,7 +206,7 @@ begin
              ge_iff_le, zero_le, le_add_iff_nonneg_right],
 end
 
-/- The multiplicty of `p + q` is at leas the minimum of the multiplicities. -/
+/-- The multiplicty of `p + q` is at leas the minimum of the multiplicities. --/
 lemma root_multiplicity_add {p q : polynomial R} (a : R) (hzero : p + q ≠ 0) :
   min (root_multiplicity a p) (root_multiplicity a q) ≤ root_multiplicity a (p + q) :=
 begin

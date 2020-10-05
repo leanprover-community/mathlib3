@@ -578,8 +578,8 @@ lemma rename_me
 begin
   have := hf.image_to_local_homeomorph_image_basepoint hf' hn,
   apply times_cont_diff_at.of_local_homeomorph (image_mem_to_local_homeomorph_target hf hf' hn),
-  convert hf',
-  convert hf
+  { convert hf' },
+  { convert hf }
 end
 
 end times_cont_diff_at

@@ -70,6 +70,7 @@ private meta def fin_cases_at_aux : Π (with_list : list expr) (e : expr), tacti
 `fin_cases_at with_list e` performs case analysis on `e : α`, where `α` is a fintype.
 The optional list of expressions `with_list` provides descriptions for the cases of `e`,
 for example, to display nats as `n.succ` instead of `n+1`.
+These should be defeq to and in the same order as the terms in the enumeration of `α`.
 -/
 meta def fin_cases_at : Π (with_list : option pexpr) (e : expr), tactic unit
 | with_list e :=

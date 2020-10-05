@@ -435,7 +435,7 @@ rfl
   fintype.card (α × β) = fintype.card α * fintype.card β :=
 card_product _ _
 
-/-- Given that `α × β` is a fintype, `a` is also a fintype -/
+/-- Given that `α × β` is a fintype, `α` is also a fintype. -/
 def fintype.fintype_prod_left {α β} [decidable_eq α] [fintype (α × β)] [nonempty β] : fintype α :=
 ⟨(fintype.elems (α × β)).image prod.fst,
   assume a, let ⟨b⟩ := ‹nonempty β› in by simp; exact ⟨b, fintype.complete _⟩⟩

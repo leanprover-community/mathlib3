@@ -7,7 +7,7 @@ import analysis.normed_space.inner_product
 import algebra.quadratic_discriminant
 import analysis.normed_space.add_torsor
 import data.matrix.notation
-import linear_algebra.affine_space.combination
+import linear_algebra.affine_space.finite_dimensional
 import tactic.fin_cases
 
 noncomputable theory
@@ -1039,6 +1039,46 @@ begin
     conv_lhs { congr, congr, rw ←one_smul ℝ (p₂ -ᵥ p₁ : V) },
     rw [←sub_smul, norm_smul],
     norm_num }
+end
+
+/-- Any three points in a cospherical set are affinely independent. -/
+lemma affine_independent_of_cospherical {s : set P} (hs : cospherical s) {p : fin 3 → P}
+    (hps : set.range p ⊆ s) (hpi : function.injective p) :
+  affine_independent ℝ p :=
+begin
+  rw affine_independent_iff_not_collinear,
+  intro hc,
+  rw collinear_iff_of_mem ℝ (set.mem_range_self (0 : fin 3)) at hc,
+  rcases hc with ⟨v, hv⟩,
+  rw set.forall_range_iff at hv,
+  have hv0 : v ≠ 0,
+  { intro h,
+    have he : p 1 = p 0, by simpa [h] using hv 1,
+    exact (dec_trivial : (1 : fin 3) ≠ 0) (hpi he) },
+  rcases hs with ⟨c, r, hs⟩,
+  have hs' := λ i, hs (p i) (set.mem_of_mem_of_subset (set.mem_range_self _) hps),
+  choose f hf using hv,
+  have hsd : ∀ i, dist ((f i • v) +ᵥ p 0) c = r,
+  { intro i,
+    rw ←hf,
+    exact hs' i },
+  have hf0 : f 0 = 0,
+  { have hf0' := hf 0,
+    rw [eq_comm, ←@vsub_eq_zero_iff_eq V, vadd_vsub, smul_eq_zero] at hf0',
+    simpa [hv0] using hf0' },
+  have hfi : function.injective f,
+  { intros i j h,
+    have hi := hf i,
+    rw [h, ←hf j] at hi,
+    exact hpi hi },
+  simp_rw [←hsd 0, hf0, zero_smul, zero_vadd, dist_smul_vadd_eq_dist (p 0) c hv0] at hsd,
+  have hfn0 : ∀ i, i ≠ 0 → f i ≠ 0 := λ i, (hfi.ne_iff' hf0).2,
+  have hfn0' : ∀ i, i ≠ 0 → f i = (-2) * ⟪v, (p 0 -ᵥ c)⟫ / ⟪v, v⟫,
+  { intros i hi,
+    have hsdi := hsd i,
+    simpa [hfn0, hi] using hsdi },
+  have hf12 : f 1 = f 2, { rw [hfn0' 1 dec_trivial, hfn0' 2 dec_trivial] },
+  exact (dec_trivial : (1 : fin 3) ≠ 2) (hfi hf12)
 end
 
 end euclidean_geometry

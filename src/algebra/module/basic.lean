@@ -5,6 +5,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import group_theory.group_action
 import tactic.nth_rewrite
+import algebra.group.hom
 
 /-!
 # Modules over a ring
@@ -249,7 +250,6 @@ the notation `M →ₗ[R] M₂`) are bundled versions of such maps. An unbundled
 the predicate `is_linear_map`, but it should be avoided most of the time. -/
 structure linear_map (R : Type u) (M : Type v) (M₂ : Type w)
   [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂] extends add_hom M M₂ :=
-(map_add'  : ∀x y, to_fun (x + y) = to_fun x + to_fun y)
 (map_smul' : ∀(c : R) x, to_fun (c • x) = c • to_fun x)
 
 set_option old_structure_cmd false

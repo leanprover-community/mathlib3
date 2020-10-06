@@ -221,19 +221,15 @@ end monoid_hom
 /-- The identity map from a type with 1 to itself. -/
 @[to_additive]
 def one_hom.id (M : Type*) [has_one M] : one_hom M M :=
-{ to_fun := id,
-  map_one' := rfl, }
+{ to_fun := id, map_one' := rfl, }
 /-- The identity map from a type with multiplication to itself. -/
 @[to_additive]
 def mul_hom.id (M : Type*) [has_mul M] : mul_hom M M :=
-{ to_fun := id,
-  map_mul' := λ _ _, rfl }
+{ to_fun := id, map_mul' := λ _ _, rfl, }
 /-- The identity map from a monoid to itself. -/
 @[to_additive]
 def monoid_hom.id (M : Type*) [monoid M] : M →* M :=
-{ to_fun := id,
-  map_one' := rfl,
-  map_mul' := λ _ _, rfl }
+{ to_fun := id, map_one' := rfl, map_mul' := λ _ _, rfl, }
 
 /-- The identity map from an type with zero to itself. -/
 add_decl_doc zero_hom.id
@@ -257,14 +253,11 @@ def one_hom.comp [has_one M] [has_one N] [has_one P] (hnp : one_hom N P) (hmn : 
 /-- Composition of `mul_hom`s as a `mul_hom`. -/
 @[to_additive]
 def mul_hom.comp [has_mul M] [has_mul N] [has_mul P] (hnp : mul_hom N P) (hmn : mul_hom M N) : mul_hom M P :=
-{ to_fun := hnp ∘ hmn,
-  map_mul' := by simp }
+{ to_fun := hnp ∘ hmn, map_mul' := by simp, }
 /-- Composition of monoid morphisms as a monoid morphism. -/
 @[to_additive]
 def monoid_hom.comp [monoid M] [monoid N] [monoid P] (hnp : N →* P) (hmn : M →* N) : M →* P :=
-{ to_fun := hnp ∘ hmn,
-  map_one' := by simp,
-  map_mul' := by simp }
+{ to_fun := hnp ∘ hmn, map_one' := by simp, map_mul' := by simp, }
 
 /-- Composition of `zero_hom`s as a `zero_hom`. -/
 add_decl_doc zero_hom.comp

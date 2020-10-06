@@ -198,7 +198,7 @@ end
 
 /-- If `(X - a) ^ n` divides a polynomial `p` then the multiplicity of `a` as root of `p` is at
 least `n`. -/
-lemma multiplicity_of_dvd {p : polynomial R} {a : R} {n : ℕ}
+lemma root_multiplicity_of_dvd {p : polynomial R} {a : R} {n : ℕ}
   (hzero : p ≠ 0) (h : (X - C a) ^ n ∣ p) : n ≤ root_multiplicity a p :=
 begin
   obtain ⟨q, hq⟩ := exists_eq_mul_right_of_dvd h,

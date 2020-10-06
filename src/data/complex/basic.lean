@@ -457,6 +457,10 @@ by rw [← of_real_nat_cast, abs_of_nonneg (nat.cast_nonneg n)]
 lemma norm_sq_eq_abs (x : ℂ) : norm_sq x = abs x ^ 2 :=
 by rw [abs, pow_two, real.mul_self_sqrt (norm_sq_nonneg _)]
 
+/--
+We put a partial order on ℂ so that `z ≤ w` exactly if `w - z` is real and nonnegative.
+Complex numbers with different imaginary parts are incomparable.
+-/
 instance : partial_order ℂ :=
 { le := λ z w, ∃ x : ℝ, 0 ≤ x ∧ w = z + x,
   le_refl := λ x, ⟨0, by simp⟩,
@@ -579,36 +583,6 @@ instance : star_ordered_ring ℂ :=
     norm_cast,
     rw [←norm_sq_eq_abs, norm_sq_eq_conj_mul_self],
   end, }
-
-instance : algebra ℝ ℂ :=
-of_real.to_algebra
-
-@[simp] lemma smul_coe {x : ℝ} {z : ℂ} : x • z = x * z := rfl
-
-instance : ordered_algebra ℝ ℂ :=
-{ smul_lt_smul_of_pos := λ z w x h₁ h₂,
-  begin
-    obtain ⟨y, l, rfl⟩ := lt_def.mp h₁,
-    refine lt_def.mpr ⟨x * y, _, _⟩,
-    exact mul_pos h₂ l,
-    ext; simp [mul_add],
-  end,
-  lt_of_smul_lt_smul_of_nonneg := λ z w x h₁ h₂,
-  begin
-    obtain ⟨y, l, e⟩ := lt_def.mp h₁,
-    by_cases h : x = 0,
-    { subst h, simp at h₁, exfalso, exact lt_irrefl 0 h₁, },
-    { replace h₂ : 0 < x := lt_of_le_of_ne h₂ (by { symmetry, exact h }),
-      refine lt_def.mpr ⟨y / x, div_pos l h₂, _⟩,
-      replace e := congr_arg (λ z, (x⁻¹ : ℂ) * z) e,
-      simp only [mul_add, ←mul_assoc, h, one_mul, of_real_eq_zero, smul_coe, ne.def,
-        not_false_iff, inv_mul_cancel] at e,
-      convert e,
-      simp only [div_eq_iff_mul_eq, h, of_real_eq_zero, of_real_div, ne.def, not_false_iff],
-      norm_cast,
-      simp [mul_comm _ y, mul_assoc, h],
-    },
-  end }
 
 /-! ### Cauchy sequences -/
 

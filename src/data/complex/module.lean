@@ -30,6 +30,33 @@ namespace complex
 
 instance algebra_over_reals : algebra ℝ ℂ := (complex.of_real).to_algebra
 
+@[simp] lemma smul_coe {x : ℝ} {z : ℂ} : x • z = x * z := rfl
+
+instance : ordered_algebra ℝ ℂ :=
+{ smul_lt_smul_of_pos := λ z w x h₁ h₂,
+  begin
+    obtain ⟨y, l, rfl⟩ := lt_def.mp h₁,
+    refine lt_def.mpr ⟨x * y, _, _⟩,
+    exact mul_pos h₂ l,
+    ext; simp [mul_add],
+  end,
+  lt_of_smul_lt_smul_of_nonneg := λ z w x h₁ h₂,
+  begin
+    obtain ⟨y, l, e⟩ := lt_def.mp h₁,
+    by_cases h : x = 0,
+    { subst h, simp at h₁, exfalso, exact lt_irrefl 0 h₁, },
+    { replace h₂ : 0 < x := lt_of_le_of_ne h₂ (by { symmetry, exact h }),
+      refine lt_def.mpr ⟨y / x, div_pos l h₂, _⟩,
+      replace e := congr_arg (λ z, (x⁻¹ : ℂ) * z) e,
+      simp only [mul_add, ←mul_assoc, h, one_mul, of_real_eq_zero, smul_coe, ne.def,
+        not_false_iff, inv_mul_cancel] at e,
+      convert e,
+      simp only [div_eq_iff_mul_eq, h, of_real_eq_zero, of_real_div, ne.def, not_false_iff],
+      norm_cast,
+      simp [mul_comm _ y, mul_assoc, h],
+    },
+  end }
+
 end complex
 
 /- Register as an instance (with low priority) the fact that a complex vector space is also a real
@@ -64,7 +91,7 @@ def linear_map.im : ℂ →ₗ[ℝ] ℝ :=
 def linear_map.of_real : ℝ →ₗ[ℝ] ℂ :=
 { to_fun := coe,
   map_add' := by simp,
-  map_smul' := λc x, by { simp, refl } }
+  map_smul' := λc x, by simp }
 
 @[simp] lemma linear_map.coe_of_real : ⇑linear_map.of_real = coe := rfl
 

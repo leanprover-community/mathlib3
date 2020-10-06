@@ -140,6 +140,12 @@ by refine {to_fun := coe, ..}; simp [coe_smul]
 
 lemma subtype_eq_val : ((submodule.subtype p) : p → M) = subtype.val := rfl
 
+lemma subtype_injective : function.injective p.subtype :=
+λ x y h, by { cases x, cases y, cases h, refl }
+
+lemma subtype_inj_iff {x y : p} : p.subtype x = p.subtype y ↔ x = y :=
+⟨@subtype_injective _ _ _ _ _ _ _ _, λ h, h ▸ rfl⟩
+
 end add_comm_monoid
 
 section add_comm_group

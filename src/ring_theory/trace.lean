@@ -73,7 +73,7 @@ lemma exists_eq_aeval_gen (alg : is_algebraic K L) {y : L} (hy : y ∈ K⟮x⟯)
 begin
   refine field.adjoin_induction _ hy _ _ _ _ _ _,
   { intros x hx,
-    rcases set.mem_insert_iff.mp hx with rfl | ⟨_, ⟨⟩⟩,
+    rcases set.mem_singleton_iff.mp hx with rfl,
     exact ⟨X, (aeval_X _).symm⟩ },
   { intros x,
     refine ⟨C x, (aeval_C _ _).symm⟩ },
@@ -102,6 +102,11 @@ structure has_power_basis (R S : Type*) [comm_ring R] [ring S] [algebra R S] :=
 (gen : S)
 (is_basis : is_basis R (λ (i : fin dim), gen ^ (i : ℕ)))
 
+@[simp] lemma has_power_basis.total_eq (h : has_power_basis A S) (f : fin h.dim →₀ S) :
+  finsupp.total _ _ _ (λ (i : fin h.dim), h.gen ^ (i : ℕ)) f =
+    aeval h.gen (finsupp.emb_fin_nat f) :=
+by simp [aeval_def, eval₂_eq_sum, finsupp.total, linear_map.smul_right, algebra.smul_def]
+
 noncomputable def has_power_basis_of_is_simple_extension
   (K) [field K] [algebra K L] (alg : is_algebraic K L) [is_simple_extension K L] :
   has_power_basis K L :=
@@ -114,7 +119,7 @@ lemma gen_simple_extension (alg : is_algebraic K L) [is_simple_extension K L] :
 rfl
 
 @[simp] lemma total_power_basis_eq {n : ℕ} (f : fin n →₀ K) :
-  finsupp.total _ _ _ (λ i : fin n, x  ^(i : ℕ)) f =
+  finsupp.total _ _ _ (λ i : fin n, x ^ (i : ℕ)) f =
   aeval x (finsupp.emb_fin_nat f) :=
 by simp_rw [aeval_def, eval₂_eq_sum, finsupp.total_apply, finsupp.emb_fin_nat_sum, algebra.smul_def]
 
@@ -131,42 +136,80 @@ begin
   exact polynomial.degree_emb_fin_nat_lt _
 end
 
+@[simp] lemma mem_span_set_submodule {M : Type*} [add_comm_monoid M] [semimodule R M]
+  (S : submodule R M) (x : S) (s : set S) :
+  x ∈ submodule.span R s ↔ (x : M) ∈ submodule.span R (coe '' s : set M) :=
+show x ∈ submodule.span R s ↔ S.subtype x ∈ submodule.span R (S.subtype '' s),
+by { rw [← submodule.map_span S.subtype, submodule.mem_map],
+     simp only [S.subtype_inj_iff, exists_eq_right] }
+
+@[simp] lemma intermediate_field.coe_eq (S : intermediate_field K L) :
+  (coe : S → L) = algebra_map S L := rfl
+
+lemma nat_degree_lt_nat_degree {p q : polynomial R} (hp : p ≠ 0) (hpq : p.degree < q.degree) :
+  p.nat_degree < q.nat_degree :=
+begin
+  by_cases hq : q = 0, { rw [hq, degree_zero] at hpq, have := not_lt_bot hpq, contradiction },
+  rwa [degree_eq_nat_degree hp, degree_eq_nat_degree hq, with_bot.coe_lt_coe] at hpq
+end
+
 lemma mem_span_power_basis (alg : is_algebraic K L)
   (hx : is_integral K (adjoin_simple.gen K x)) (y : K⟮x⟯) :
-  y ∈ submodule.span K (set.range ((λ (i : fin (minimal_polynomial hx).nat_degree),
-    adjoin_simple.gen K x ^ (i : ℕ)))) :=
+  y ∈ submodule.span K (set.range (λ (i : fin (minimal_polynomial hx).nat_degree),
+    adjoin_simple.gen K x ^ (i : ℕ))) :=
 begin
   obtain ⟨y, hy⟩ := y,
   have mp_monic := minimal_polynomial.monic hx,
   have mp_ne_zero := minimal_polynomial.ne_zero hx,
 
   obtain ⟨f, rfl⟩ := exists_eq_aeval_gen alg hy,
-  rw [aeval_def, ← eval₂_mod_by_monic_eq_self_of_root mp_monic (minimal_polynomial.aeval _),
-    eval₂_eq_sum, finsupp.sum],
+
+  have : aeval x f = algebra_map K⟮x⟯ L
+    (eval₂ (algebra_map K K⟮x⟯) (adjoin_simple.gen K x) f),
+  { rw [aeval_def, hom_eval₂, ← is_scalar_tower.algebra_map_eq, adjoin_simple.algebra_map_gen] },
+
+  rw [mem_span_set_submodule K⟮x⟯.to_subalgebra.to_submodule, subtype.coe_mk, this,
+      ← eval₂_mod_by_monic_eq_self_of_root mp_monic (minimal_polynomial.aeval _),
+      eval₂_eq_sum_range],
+
+  change K⟮x⟯.to_subalgebra.to_submodule.subtype
+    (∑ (a : ℕ) in _,
+      (algebra_map K ↥K⟮x⟯) ((f %ₘ minimal_polynomial hx).coeff a) * (adjoin_simple.gen K x ^ a) : K⟮x⟯) ∈
+    submodule.span K (K⟮x⟯.to_subalgebra.to_submodule.subtype ''
+      set.range (λ (i : fin (minimal_polynomial hx).nat_degree), adjoin_simple.gen K x ^ ↑i)),
+  rw [← submodule.map_span, submodule.mem_map],
+  refine ⟨_, _, rfl⟩,
   refine submodule.sum_mem _ (λ i i_mem, _),
+  rw finset.mem_range at i_mem,
   rw ← algebra.smul_def,
-  by_cases hi : i < simple_degree alg,
-  { exact submodule.smul_mem _ _ (submodule.subset_span ⟨⟨i, hi⟩, rfl⟩) },
-  convert submodule.zero_mem _,
-  convert zero_smul _ _,
-  refine coeff_eq_zero_of_degree_lt _,
-  calc (f %ₘ minimal_polynomial _).degree
-      < (minimal_polynomial _).degree : degree_mod_by_monic_lt _ mp_monic mp_ne_zero
-  ... ≤ (minimal_polynomial _).nat_degree : degree_le_nat_degree
-  ... ≤ i : with_bot.some_le_some.mpr (le_of_not_gt hi),
+  refine submodule.smul_mem _ _ (submodule.subset_span ⟨⟨i, _⟩, rfl⟩),
+  by_cases hf : f %ₘ minimal_polynomial hx = 0,
+  { rw [hf, nat_degree_zero, nat.lt_succ_iff, nat.le_zero_iff] at i_mem,
+    rw i_mem,
+    rw nat_degree_pos_iff_degree_pos,
+    apply minimal_polynomial.degree_pos },
+  calc i < (f %ₘ minimal_polynomial hx).nat_degree + 1 : i_mem
+  ... ≤ (minimal_polynomial hx).nat_degree : _,
+  rw nat.succ_le_iff,
+  exact nat_degree_lt_nat_degree hf (degree_mod_by_monic_lt _ mp_monic mp_ne_zero),
 end
+
+example : ring K⟮x⟯ := infer_instance
+example : algebra K K⟮x⟯ := infer_instance
 
 noncomputable def has_power_basis_adjoin_simple
   (K) [field K] [algebra K L] (alg : is_algebraic K L) (x : L) :
   has_power_basis K K⟮x⟯ :=
-let hx := ((is_algebraic_iff_is_integral _).mp (alg x)) in
-{ dim := (minimal_polynomial ((is_algebraic_iff_is_integral _).mp (alg x))).nat_degree,
+let hx : is_integral K (adjoin_simple.gen K x) :=
+    (is_algebraic_iff_is_integral _).mp (K⟮x⟯.is_algebraic (alg x)) in
+{ dim := (minimal_polynomial hx).nat_degree,
   gen := field.adjoin_simple.gen K x,
-  is_basis := ⟨linear_independent_power_basis _, _⟩ }
+  is_basis := ⟨linear_independent_power_basis _,
+               _root_.eq_top_iff.mpr (λ y _, mem_span_power_basis alg _ _)⟩ }
 
 @[simp] lemma gen_adjoin_simple (alg : is_algebraic K L) :
   (has_power_basis_adjoin_simple _ alg x).gen = adjoin_simple.gen K x :=
-by rw [has_power_basis_adjoin_simple, gen_simple_extension]
+rfl
 
 lemma findim_eq_dim (h : has_power_basis K L) :
   findim K L = h.dim :=
@@ -253,11 +296,6 @@ end
 lemma gen_is_integral (h : has_power_basis A S) : is_integral A h.gen :=
 ⟨minpoly_gen h, minpoly_gen_monic h, aeval_minpoly_gen h⟩
 
-@[simp] lemma total_power_basis_eq (h : has_power_basis A S) (f : fin h.dim →₀ S) :
-  finsupp.total _ _ _ (λ (i : fin h.dim), h.gen ^ (i : ℕ)) f =
-    aeval h.gen (finsupp.emb_fin_nat f) :=
-by simp [aeval_def, eval₂_eq_sum, finsupp.total, linear_map.smul_right, algebra.smul_def]
-
 lemma eval₂_eq_sum_range' (f : R →+* S) {p : polynomial R} {n : ℕ} (hn : p.nat_degree < n) (x : S) :
   eval₂ f x p = ∑ i in finset.range n, f (p.coeff i) * x ^ i :=
 begin
@@ -306,259 +344,6 @@ begin
 end
 
 end power_basis
-
-section block_matrix
-
-variables {o : Type*} [fintype o] [decidable_eq o]
-variables {m n : Type*} [fintype m] [fintype n]
-
-/-- For `M : Π (k : o), matrix m n R`, `block_matrix M` is the
-`(o × m)`-by-`(o × n)` matrix with `M k` along the diagonal and `0` elsewhere.
-
-For an `(m × o)`-by-`(n × o)` matrix, see `block_matrix'`.
--/
-def block_matrix (M : o → matrix m n R) : matrix (o × m) (o × n) R
-| ⟨k, i⟩ ⟨k', j⟩ := if k = k' then M k i j else 0
-
-/-- For `M : Π (k : o), matrix m n R`, `block_matrix M` is the
-`(m × o)`-by-`(n × o)` matrix with `M k` along the diagonal and `0` elsewhere.
-
-For an `(o × m)`-by-`(o × n)` matrix, see `block_matrix`.
--/
-def block_matrix' (M : o → matrix m n R) : matrix (m × o) (n × o) R
-| ⟨i, k⟩ ⟨j, k'⟩ := if k = k' then M k i j else 0
-
-variables (M : o → matrix m n R)
-
-lemma block_matrix_apply_mk (k i k' j) :
-  block_matrix M ⟨k, i⟩ ⟨k', j⟩ = if k = k' then M k i j else 0 := rfl
-
-lemma block_matrix_apply : Π (ki kj),
-  block_matrix M ki kj = if ki.fst = kj.fst then M ki.fst ki.snd kj.snd else 0
-| ⟨k, i⟩ ⟨k', j⟩ := rfl
-
-@[simp] lemma block_matrix_apply_eq (k i j) :
-  block_matrix M ⟨k, i⟩ ⟨k, j⟩ = M k i j := if_pos rfl
-
-lemma block_matrix_apply_ne {k k'} (i j) (h : k ≠ k') :
-  block_matrix M ⟨k, i⟩ ⟨k', j⟩ = 0 := if_neg h
-
-lemma block_matrix'_eq_block_matrix_swap :
-  block_matrix' M = (λ i j, block_matrix M (prod.swap i) (prod.swap j)) :=
-by { ext ⟨i, k⟩ ⟨j, k⟩, refl }
-
-lemma block_matrix'_eq_block_matrix_prod_comm :
-  block_matrix' M = (λ i j, block_matrix M (equiv.prod_comm _ _ i) (equiv.prod_comm _ _ j)) :=
-by { ext ⟨i, k⟩ ⟨j, k⟩, refl }
-
-lemma block_matrix'_apply_mk (k i k' j) :
-  block_matrix' M ⟨i, k⟩ ⟨j, k'⟩ = if k = k' then M k i j else 0 := rfl
-
-lemma block_matrix'_apply : Π (ki kj),
-  block_matrix' M ki kj = if ki.snd = kj.snd then M ki.snd ki.fst kj.fst else 0
-| ⟨k, i⟩ ⟨k', j⟩ := rfl
-
-@[simp] lemma block_matrix'_apply_eq (k i j) :
-  block_matrix' M ⟨i, k⟩ ⟨j, k⟩ = M k i j := if_pos rfl
-
-lemma block_matrix'_apply_ne {k k'} (i j) (h : k ≠ k') :
-  block_matrix' M ⟨i, k⟩ ⟨j, k'⟩ = 0 := if_neg h
-
-@[simp] lemma finset.univ_pi_univ {m : o → Type*} [Π k, fintype (m k)] :
-  finset.univ.pi (λ (k : o), (finset.univ : finset (m k))) = finset.univ :=
-eq_top_iff.mpr (λ f _, finset.mem_pi.mpr (λ x _, finset.mem_univ _))
-
-@[simp] lemma finset.univ_product_univ :
-  (finset.univ.product finset.univ : finset (o × m)) = finset.univ :=
-eq_top_iff.mpr (λ x _, finset.mem_product.mpr ⟨finset.mem_univ _, finset.mem_univ _⟩)
-
-lemma mk_eq_of_preserves_fst {f : o × m → o × n} (hf : ∀ x, (f x).fst = x.fst)
-  (k : o) (x : m) :
-  (k, (f (k, x)).snd) = f (k, x) :=
-by rw [← @prod.mk.eta _ _ (f (k, x)), hf (k, x)]
-
-/- Turn a function returning permutations into a permutation of the product type. -/
-def uncurry (σ : o → equiv.perm m) : equiv.perm (o × m) :=
-{ to_fun := λ kx, ⟨kx.1, σ kx.1 kx.2⟩,
-  inv_fun := λ kx, ⟨kx.1, (σ kx.1)⁻¹ kx.2⟩,
-  left_inv := by { rintros ⟨k, x⟩, simp },
-  right_inv := by { rintros ⟨k, x⟩, simp } }
-
-@[simp] lemma uncurry_apply_mk (σ : o → equiv.perm m) (k : o) (x : m) :
-  uncurry σ (k, x) = (k, σ k x) := rfl
-
-/-- Extends `σ` to `o × m` by keeping everything except `(k, _)` fixed.  -/
-def extend (σ : equiv.perm m) (k : o) : equiv.perm (o × m) :=
-{ to_fun := λ kx, if k = kx.fst then (k, σ kx.snd) else kx,
-  inv_fun := λ kx, if k = kx.fst then (k, σ⁻¹ kx.snd) else kx,
-  left_inv := by { rintros ⟨k', x⟩, simp only, split_ifs with h; simp [h] },
-  right_inv := by { rintros ⟨k', x⟩, simp only, split_ifs with h; simp [h] } }
-
-@[simp] lemma extend_apply_eq (σ : equiv.perm m) (k : o) (x : m) :
-  extend σ k (k, x) = (k, σ x) := if_pos rfl
-
-lemma extend_apply_ne (σ : equiv.perm m) {k k' : o} (h : k ≠ k') (x : m) :
-  extend σ k (k', x) = (k', x) := if_neg h
-
-lemma eq_of_extend_apply_ne {σ : equiv.perm m} {k k' : o} {x : m}
-  (h : extend σ k (k', x) ≠ (k', x)) : k = k' :=
-by { contrapose! h, exact extend_apply_ne _ h _ }
-
-@[simp] lemma fst_extend (σ : equiv.perm m) (k : o) (kx : o × m) :
-  (extend σ k kx).fst = kx.fst :=
-begin
-  simp only [extend, equiv.coe_fn_mk],
-  split_ifs,
-  { assumption },
-  { refl }
-end
-
-@[simp] lemma list.prod_to_finset {α M : Type*} [decidable_eq α] [comm_monoid M] (f : α → M)
-  {l : list α} (hl : l.nodup) : l.to_finset.prod f = (l.map f).prod :=
-begin
-  revert hl,
-  apply l.rec_on,
-  { simp },
-  intros a l ih hl,
-  obtain ⟨not_mem, hl⟩ := list.nodup_cons.mp hl,
-  simp [finset.prod_insert (mt list.mem_to_finset.mp not_mem), ih hl]
-end
-
-lemma uncurry_eq_prod_extend (σ : o → equiv.perm m)
-  {l : list o} (hl : l.nodup) (mem_l : ∀ k, k ∈ l) :
-  uncurry σ = (l.map (λ k, extend (σ k) k)).prod :=
-begin
-  ext ⟨k, x⟩ : 1,
-  suffices : (k ∈ l ∧ (l.map (λ k, extend (σ k) k)).prod (k, x) = (k, σ k x)) ∨
-             (k ∉ l ∧ (l.map (λ k, extend (σ k) k)).prod (k, x) = (k, x)),
-  { obtain ⟨_, prod_eq⟩ := or.resolve_right this (not_and.mpr (λ h _, h (mem_l k))),
-    rw [prod_eq, uncurry_apply_mk] },
-  clear mem_l,
-
-  induction l with k' l ih,
-  { refine or.inr ⟨list.not_mem_nil _, _⟩,
-    rw [list.map_nil, list.prod_nil, equiv.perm.one_apply] },
-
-  rw [list.map_cons, list.prod_cons, equiv.perm.mul_apply],
-  rcases ih (list.nodup_cons.mp hl).2 with ⟨mem_l, prod_eq⟩ | ⟨not_mem_l, prod_eq⟩; rw prod_eq,
-  { refine or.inl ⟨list.mem_cons_of_mem _ mem_l, _⟩,
-    rw extend_apply_ne _ (λ (h : k' = k), (list.nodup_cons.mp hl).1 (h.symm ▸ mem_l)) },
-  by_cases hk' : k = k',
-  { rw ← hk' at *,
-    refine or.inl ⟨list.mem_cons_self k l, _⟩,
-    rw extend_apply_eq },
-  { refine or.inr ⟨λ h, not_or hk' not_mem_l ((list.mem_cons_iff _ _ _).mp h), _⟩,
-    rw extend_apply_ne _ (ne.symm hk') },
-end
-
-lemma sign_extend (σ : equiv.perm m) (k : o) [decidable_eq m] :
-  (extend σ k).sign = σ.sign :=
-equiv.perm.sign_bij (λ (x : o × m) hx, x.snd)
-  (λ ⟨k', x⟩ hx hx', by simp [eq_of_extend_apply_ne hx])
-  (λ ⟨k₁, x₁⟩ ⟨k₂, x₂⟩ hx₁ hx₂ h,
-    by simpa [← eq_of_extend_apply_ne hx₁, ← eq_of_extend_apply_ne hx₂] using h)
-  (λ y hy, ⟨(k, y), by simpa, by simp⟩)
-
-lemma sign_uncurry (σ : o → equiv.perm m) [decidable_eq m] :
-  (uncurry σ).sign = ∏ k, (σ k).sign :=
-begin
-  obtain ⟨l, hl, mem_l⟩ := fintype.exists_univ_list o,
-  have l_to_finset : l.to_finset = finset.univ,
-  { apply eq_top_iff.mpr,
-    intros x _,
-    exact list.mem_to_finset.mpr (mem_l x) },
-  rw [uncurry_eq_prod_extend σ hl mem_l, equiv.perm.sign.map_list_prod,
-      list.map_map, ← l_to_finset, list.prod_to_finset _ hl],
-  simp_rw ← λ k, sign_extend (σ k) k
-end
-
-@[simp, norm_cast] lemma prod_coe (f : o → ℤ) (s : finset o) :
-  (↑∏ i in s, f i : R) = ∏ i in s, f i :=
-(int.cast_ring_hom R).map_prod _ _
-
-@[simp, norm_cast] lemma units.prod_coe (f : o → units R) (s : finset o) :
-  (↑∏ i in s, f i : R) = ∏ i in s, f i :=
-(units.coe_hom R).map_prod _ _
-
-@[simp] lemma det_block_matrix [decidable_eq m] (M : o → matrix m m R) :
-  (block_matrix M).det = ∏ k, (M k).det :=
-begin
-  -- Rewrite the determinants as a sum over permutations.
-  unfold det,
-  -- The right hand side is a product of sums, rewrite it as a sum of products.
-  rw finset.prod_sum,
-  simp_rw [finset.mem_univ, finset.prod_attach_univ, finset.univ_pi_univ],
-  -- We claim that the only permutations contributing to the sum are those that
-  -- preserve their first component.
-  let preserving_fst : finset (equiv.perm (o × m)) :=
-    finset.univ.filter (λ σ, ∀ x, (σ x).fst = x.fst),
-  have mem_preserving_fst : ∀ {σ : equiv.perm (o × m)},
-    σ ∈ preserving_fst ↔ ∀ x, (σ x).fst = x.fst :=
-    λ σ, finset.mem_filter.trans ⟨λ h, h.2, λ h, ⟨finset.mem_univ _, h⟩⟩,
-  rw ← finset.sum_subset (finset.subset_univ preserving_fst) _,
-  -- And that these are in bijection with `o → equiv.perm m`.
-  rw (finset.sum_bij (λ (σ : ∀ (k : o), k ∈ finset.univ → equiv.perm m) _,
-                        uncurry (λ k, σ k (finset.mem_univ k))) _ _ _ _).symm,
-  { intros σ _,
-    rw mem_preserving_fst,
-    rintros ⟨k, x⟩,
-    simp },
-  { intros σ _,
-    rw finset.prod_mul_distrib,
-    congr,
-    { simp [sign_uncurry] },
-    rw [← finset.univ_product_univ, finset.prod_product],
-    simp },
-  { intros σ σ' _ _ eq,
-    ext k hk x,
-    simp only at eq,
-    have : ∀ k x,
-      uncurry (λ k, σ k (finset.mem_univ _)) (k, x) = uncurry (λ k, σ' k (finset.mem_univ _)) (k, x) :=
-      λ k x, by rw eq,
-    simp only [uncurry_apply_mk, prod.mk.inj_iff] at this,
-    exact (this k x).2 },
-  { intros σ hσ,
-    rw mem_preserving_fst at hσ,
-    refine ⟨λ k _, ⟨λ x, (σ (k, x)).snd, λ x, (σ⁻¹ (k, x)).snd, _, _⟩, _, _⟩,
-    { intro x,
-      simp [mk_eq_of_preserves_fst hσ] },
-    { intro x,
-      have hσ' : ∀ x, (σ⁻¹ x).fst = x.fst,
-      { intro x, conv_rhs { rw [← σ.apply_inv_self x, hσ] } },
-      simp [mk_eq_of_preserves_fst hσ'] },
-    { apply finset.mem_univ },
-    { ext ⟨k, x⟩; simp [hσ] } },
-  { intros σ _ hσ,
-    rw mem_preserving_fst at hσ,
-    obtain ⟨⟨k, x⟩, hkx⟩ := not_forall.mp hσ,
-    rw [finset.prod_eq_zero (finset.mem_univ (k, x)), mul_zero],
-    rw [← @prod.mk.eta _ _ (σ (k, x)), block_matrix_apply_ne],
-    exact hkx }
-end
-
-.
-@[simp] lemma perm_congr_apply (e : n ≃ m) (σ : equiv.perm n) (x : m) :
-  equiv.perm_congr e σ x = e (σ (e.symm x)) := rfl
-
-@[simp] lemma sign_perm_congr [decidable_eq m] [decidable_eq n] (e : n ≃ m) (σ : equiv.perm n) :
-  (e.perm_congr σ).sign = σ.sign :=
-equiv.perm.sign_eq_sign_of_equiv _ _ e.symm (by simp)
-
-@[simp] lemma det_equiv [decidable_eq m] [decidable_eq n] (e : n ≃ m) (M : matrix m m R) :
-  matrix.det (λ i j, M (e i) (e j)) = M.det :=
-calc  ∑ (σ : equiv.perm n), ↑σ.sign * ∏ (i : n), M (e (σ i)) (e i)
-    = ∑ (σ : equiv.perm n), ↑(equiv.perm_congr e σ).sign * ∏ (i : n), M (equiv.perm_congr e σ (e i)) (e i) :
-  by simp_rw [sign_perm_congr, perm_congr_apply, e.symm_apply_apply]
-... = ∑ (σ : equiv.perm m), ↑σ.sign * ∏ (i : n), M (σ (e i)) (e i) :
-  finset.sum_equiv (equiv.perm_congr e) (λ σ, ↑σ.sign * ∏ (i : n), M (σ (e i)) (e i))
-... = ∑ (σ : equiv.perm m), ↑σ.sign * ∏ (i : m), M (σ i) i :
-  by simp_rw (λ (σ : equiv.perm m), finset.prod_equiv e (λ (i : m), M (σ i) i))
-
-@[simp] lemma det_block_matrix' [decidable_eq m] (M : o → matrix m m R) :
-  (block_matrix' M).det = ∏ k, (M k).det :=
-by rw [block_matrix'_eq_block_matrix_prod_comm, det_equiv, det_block_matrix]
-
-end block_matrix
 
 namespace algebra
 
@@ -708,22 +493,22 @@ by simp only [lmul_matrix_apply, linear_equiv_matrix_apply, is_basis.equiv_fun_a
 
 lemma lmul_matrix_smul_algebra_map {κ : Type*} [fintype κ] [decidable_eq κ]
   {b : ι → S} (hb : is_basis R b) {c : κ → T} (hc : is_basis S c) (x : S) :
-  lmul_matrix (hb.smul hc) (algebra_map _ _ x) = block_matrix' (λ k, lmul_matrix hb x) :=
+  lmul_matrix (hb.smul hc) (algebra_map _ _ x) = block_diagonal (λ k, lmul_matrix hb x) :=
 begin
   ext ⟨i, k⟩ ⟨j, k'⟩,
-  rw [lmul_matrix_smul, alg_hom.commutes, block_matrix'_apply_mk, algebra_map_matrix_apply],
+  rw [lmul_matrix_smul, alg_hom.commutes, block_diagonal_apply, algebra_map_matrix_apply],
   split_ifs with h; simp [h],
 end
 
 lemma lmul_matrix_smul_algebra_map_eq {κ : Type*} [fintype κ] [decidable_eq κ]
   {b : ι → S} (hb : is_basis R b) {c : κ → T} (hc : is_basis S c) (x : S) (i j k) :
   lmul_matrix (hb.smul hc) (algebra_map _ _ x) (i, k) (j, k) = lmul_matrix hb x i j :=
-by rw [lmul_matrix_smul_algebra_map, block_matrix'_apply_eq]
+by rw [lmul_matrix_smul_algebra_map, block_diagonal_apply_eq]
 
 lemma lmul_matrix_smul_algebra_map_ne {κ : Type*} [fintype κ] [decidable_eq κ]
   {b : ι → S} (hb : is_basis R b) {c : κ → T} (hc : is_basis S c) (x : S) (i j) {k k'}
   (h : k ≠ k') : lmul_matrix (hb.smul hc) (algebra_map _ _ x) (i, k) (j, k') = 0 :=
-by rw [lmul_matrix_smul_algebra_map, block_matrix'_apply_ne _ _ _ h]
+by rw [lmul_matrix_smul_algebra_map, block_diagonal_apply_ne _ _ _ h]
 
 end
 
@@ -773,15 +558,18 @@ begin
     exact dim_le_nat_degree_of_root h q_monic.ne_zero root_q }
 end
 
+example {α : Type*} {a b c : set α} : c ∩ (a ∩ b) = a ∩ (b ∩ c) := by finish
+
+
 lemma char_matrix_lmul_matrix_smul {κ : Type*} [fintype κ] [decidable_eq κ]
   {b : ι → S} (hb : is_basis R b) {c : κ → T} (hc : is_basis S c) (x : S) :
   char_matrix (lmul_matrix (hb.smul hc) (algebra_map _ _ x)) =
-    block_matrix' (λ _, char_matrix (lmul_matrix hb x)) :=
+    block_diagonal (λ _, char_matrix (lmul_matrix hb x)) :=
 begin
   ext ⟨i, k⟩ ⟨j, k'⟩,
-  rw block_matrix'_apply_mk,
+  rw block_diagonal_apply,
   split_ifs with hk,
-  { rw hk,
+  { rw (show k = k', from hk),
     by_cases hij : i = j,
     { rw [hij, char_matrix_apply_eq, char_matrix_apply_eq, lmul_matrix_smul_algebra_map_eq] },
     { have : (i, k') ≠ (j, k') := mt prod.fst_eq_iff.mpr hij,
@@ -798,7 +586,7 @@ lemma char_poly_lmul_matrix_smul [algebra K R] [algebra L R] [is_scalar_tower K 
     (minimal_polynomial (gen_is_integral h))^(fintype.card ι) :=
 begin
   rw [← char_poly_lmul_matrix_power_basis h, char_poly, char_poly,
-      char_matrix_lmul_matrix_smul, det_block_matrix', finset.prod_const, finset.card_univ],
+      char_matrix_lmul_matrix_smul, det_block_diagonal, finset.prod_const, finset.card_univ],
 end
 
 instance finite_dimensional.tower_top {V : Type*} [add_comm_group V]

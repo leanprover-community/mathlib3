@@ -237,6 +237,12 @@ S.to_subalgebra.val
 
 @[simp] lemma val_mk {x : L} (hx : x ∈ S) : S.val ⟨x, hx⟩ = x := rfl
 
+@[simp] lemma coe_pow {x : S} (n : ℕ) : ↑(x^n) = (x : L)^n := S.val.map_pow x n
+
+@[simp] lemma pow_mk {x : L} (hx : x ∈ S) (n : ℕ) :
+  (⟨x, hx⟩ : S) ^ n = ⟨x ^ n, S.pow_mem hx n⟩ :=
+by { ext, simp }
+
 variables {S}
 
 lemma to_subalgebra_injective {S S' : intermediate_field K L}

@@ -27,12 +27,19 @@ namespace topological_space
 /-- The type of closed subsets of a topological space. -/
 def closeds := {s : set α // is_closed s}
 
+/-- The type of closed subsets is inhabited, with default element the empty set. -/
+instance : inhabited (closeds α) := ⟨⟨∅, is_closed_empty ⟩⟩
+
 /-- The compact sets of a topological space. See also `nonempty_compacts`. -/
 def compacts : Type* := { s : set α // is_compact s }
 
 /-- The type of non-empty compact subsets of a topological space. The
 non-emptiness will be useful in metric spaces, as we will be able to put
-a distance (and not merely an edistance) on this space. -/
+a distance (and not merely an edistance) on this space.
+
+The type is not necessarily inhabited, for example (1) if `α` is empty,
+(2) if `α` is infinite and has the trivial topology. -/
+@[nolint has_inhabited_instance]
 def nonempty_compacts := {s : set α // s.nonempty ∧ is_compact s}
 
 /-- The compact sets with nonempty interior of a topological space. See also `compacts` and

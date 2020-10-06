@@ -6,7 +6,7 @@ Authors: Kenny Lau, Yury Kudryashov
 import algebra.algebra.basic
 
 /-!
-# Subalgebras over Commutative Semiring (under category)
+# Subalgebras over Commutative Semiring
 
 In this file we define `subalgebra`s and the usual operations on them (`map`, `comap`).
 
@@ -15,6 +15,8 @@ More lemmas about `adjoin` can be found in `ring_theory.adjoin`.
 universes u v w
 
 open_locale tensor_product big_operators
+
+set_option old_structure_cmd true
 
 /-- A subalgebra is a sub(semi)ring that includes the range of `algebra_map`. -/
 structure subalgebra (R : Type u) (A : Type v)

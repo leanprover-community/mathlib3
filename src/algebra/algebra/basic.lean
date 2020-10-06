@@ -16,7 +16,7 @@ In this file we define algebra over commutative (semi)rings, algebra homomorphis
 algebra equivalences `alg_equiv`. We also define usual operations on `alg_hom`s
 (`id`, `comp`).
 
-`subalgebra`s are defined in a separate file.
+`subalgebra`s are defined in `algebra.algebra.subalgebra`.
 
 If `S` is an `R`-algebra and `A` is an `S`-algebra then `algebra.comap.algebra R S A` can be used
 to provide `A` with a structure of an `R`-algebra. Other than that, `algebra.comap` is now

@@ -149,7 +149,8 @@ def comp (η' : applicative_transformation G H) (η : applicative_transformation
 
 @[simp]
 lemma comp_apply (η' : applicative_transformation G H) (η : applicative_transformation F G)
-{α : Type u} (x : F α) : η'.comp η x = η' (η x) := rfl
+  {α : Type u} (x : F α) :
+  η'.comp η x = η' (η x) := rfl
 
 lemma comp_assoc {I : Type u → Type t} [applicative I] [is_lawful_applicative I]
   (η'' : applicative_transformation H I)

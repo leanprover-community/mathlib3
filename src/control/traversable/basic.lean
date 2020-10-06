@@ -97,7 +97,7 @@ by rw [← pure_seq_eq_map, η.preserves_seq]; simp with functor_norm
 def id : applicative_transformation F F :=
 { app := λ α, id,
   preserves_pure' := by simp,
-  preserves_seq' := λ a b x y, by simp }
+  preserves_seq' := λ α β x y, by simp }
 
 instance : inhabited (applicative_transformation F F) := ⟨id⟩
 

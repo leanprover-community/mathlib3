@@ -26,11 +26,13 @@ abbreviation fan (f : β → C) := cone (discrete.functor f)
 abbreviation cofan (f : β → C) := cocone (discrete.functor f)
 
 /-- A fan over `f : β → C` consists of a collection of maps from an object `P` to every `f b`. -/
+@[simps]
 def fan.mk {f : β → C} (P : C) (p : Π b, P ⟶ f b) : fan f :=
 { X := P,
   π := { app := p } }
 
 /-- A cofan over `f : β → C` consists of a collection of maps from every `f b` to an object `P`. -/
+@[simps]
 def cofan.mk {f : β → C} (P : C) (p : Π b, f b ⟶ P) : cofan f :=
 { X := P,
   ι := { app := p } }

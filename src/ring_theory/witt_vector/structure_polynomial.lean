@@ -23,7 +23,7 @@ such that for all `n : ℕ` we have (`witt_structure_int_exists_unique`)
 bind₁ φ (witt_polynomial p ℤ n) = bind₁ (λ i, (rename (prod.mk i) (witt_polynomial p ℤ n))) Φ
 ```
 In other words: evaluating the `n`-th Witt polynomial on the family `φ`
-is the same as evaluation `Φ` on the (appropriately renamed) `n`-th Witt polynomials.
+is the same as evaluating `Φ` on the (appropriately renamed) `n`-th Witt polynomials.
 
 N.b.: As far as we know, these polynomials do not have a name in the literature,
 so we have decided to call them the “Witt structure polynomials”. See `witt_structure_int`.
@@ -90,7 +90,7 @@ include hp
 that are uniquely characterised by the property that
 `bind₁ (witt_structure_rat p Φ) (witt_polynomial p ℚ n) = bind₁ (λ i, (rename (prod.mk i) (witt_polynomial p ℚ n))) Φ`.
 In other words: evaluating the `n`-th Witt polynomial on the family `witt_structure_rat Φ`
-is the same as evaluation `Φ` on the (appropriately renamed) `n`-th Witt polynomials.
+is the same as evaluating `Φ` on the (appropriately renamed) `n`-th Witt polynomials.
 
 See `witt_structure_rat_prop` for this property,
 and `witt_structure_rat_exists_unique` for the fact that `witt_structure_rat`

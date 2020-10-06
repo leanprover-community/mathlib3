@@ -61,7 +61,7 @@ begin
   simp,
 end
 
-@[simp] lemma content_X_mul {p : polynomial R} : content (X * p) = content p :=
+lemma content_X_mul {p : polynomial R} : content (X * p) = content p :=
 begin
   rw [content, content, finset.gcd_def, finset.gcd_def],
   refine congr rfl _,

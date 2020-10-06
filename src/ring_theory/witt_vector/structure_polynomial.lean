@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Robert Y. Lewis
 -/
 
-import ring_theory.witt_vector.witt_polynomial
-import number_theory.basic
+import data.matrix.notation
 import field_theory.mv_polynomial
 import field_theory.finite.polynomial
-import data.matrix.notation
+import number_theory.basic
+import ring_theory.witt_vector.witt_polynomial
 
 /-!
 # Witt structure polynomials
@@ -19,11 +19,11 @@ with polynomials variables indexed by an arbitrary type `idx`.
 
 Then there exists a unique family of polynomials `φ : ℕ → mv_polynomial (idx × ℕ) Φ`
 such that for all `n : ℕ` we have (`witt_structure_int_exists_unique`)
-```lean
+```
 bind₁ φ (witt_polynomial p ℤ n) = bind₁ (λ i, (rename (prod.mk i) (witt_polynomial p ℤ n))) Φ
 ```
 In other words: evaluating the `n`-th Witt polynomial on the family `φ`
-is the same as evaluation `Φ` on the (appropriately renamed) `n`-th Witt polynomials.
+is the same as evaluating `Φ` on the (appropriately renamed) `n`-th Witt polynomials.
 
 N.b.: As far as we know, these polynomials do not have a name in the literature,
 so we have decided to call them the “Witt structure polynomials”. See `witt_structure_int`.
@@ -94,7 +94,7 @@ include hp
 that are uniquely characterised by the property that
 `bind₁ (witt_structure_rat p Φ) (witt_polynomial p ℚ n) = bind₁ (λ i, (rename (prod.mk i) (witt_polynomial p ℚ n))) Φ`.
 In other words: evaluating the `n`-th Witt polynomial on the family `witt_structure_rat Φ`
-is the same as evaluation `Φ` on the (appropriately renamed) `n`-th Witt polynomials.
+is the same as evaluating `Φ` on the (appropriately renamed) `n`-th Witt polynomials.
 
 See `witt_structure_rat_prop` for this property,
 and `witt_structure_rat_exists_unique` for the fact that `witt_structure_rat`
@@ -111,10 +111,10 @@ bind₁ (λ k, bind₁ (λ i, rename (prod.mk i) (W_ ℚ k)) Φ) (X_in_terms_of_
 
 theorem witt_structure_rat_prop (Φ : mv_polynomial idx ℚ) (n : ℕ) :
   bind₁ (witt_structure_rat p Φ) (W_ ℚ n) =
-  bind₁ (λ i, (rename (prod.mk i) (W_ ℚ n))) Φ :=
+    bind₁ (λ i, (rename (prod.mk i) (W_ ℚ n))) Φ :=
 calc bind₁ (witt_structure_rat p Φ) (W_ ℚ n)
     = bind₁ (λ k, bind₁ (λ i, (rename (prod.mk i)) (W_ ℚ k)) Φ) (bind₁ (X_in_terms_of_W p ℚ) (W_ ℚ n)) :
-      by { rw [bind₁_bind₁], apply eval₂_hom_congr (ring_hom.ext_rat _ _) rfl rfl }
+      by { rw bind₁_bind₁, apply eval₂_hom_congr (ring_hom.ext_rat _ _) rfl rfl }
 ... = bind₁ (λ i, (rename (prod.mk i) (W_ ℚ n))) Φ :
       by rw [bind₁_X_in_terms_of_W_witt_polynomial p _ n, bind₁_X_right]
 
@@ -129,8 +129,7 @@ begin
     rw show φ n = bind₁ φ (bind₁ (W_ ℚ) (X_in_terms_of_W p ℚ n)),
     { rw [bind₁_witt_polynomial_X_in_terms_of_W p, bind₁_X_right] },
     rw [bind₁_bind₁],
-    apply eval₂_hom_congr (ring_hom.ext_rat _ _) _ rfl,
-    funext k, exact H k },
+        exact eval₂_hom_congr (ring_hom.ext_rat _ _) (funext H) rfl },
 end
 
 lemma witt_structure_rat_rec_aux (Φ : mv_polynomial idx ℚ) (n : ℕ) :

@@ -256,4 +256,9 @@ begin
   exact C_p_pow_dvd_bind₁_rename_witt_polynomial_sub_sum Φ n IH,
 end
 
+/-
+TODO: in a follow-up PR, we deduce `witt_structure_int_prop` from `witt_structure_rat_prop`
+using `map_witt_structure_int` (easy, 5 lines) and some other properties.
+-/
+
 end p_prime

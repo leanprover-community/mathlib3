@@ -104,7 +104,7 @@ instance [densely_ordered α] {s : set α} [hs : ord_connected s] :
 ⟨ begin
     intros a₁ a₂ ha,
     have ha' : ↑a₁ < ↑a₂ := ha,
-    obtain ⟨x, ha₁x, hxa₂⟩ := dense ha',
+    obtain ⟨x, ha₁x, hxa₂⟩ := exists_between ha',
     refine ⟨⟨x, _⟩, ⟨ha₁x, hxa₂⟩⟩,
     exact (hs a₁.2 a₂.2) (Ioo_subset_Icc_self ⟨ha₁x, hxa₂⟩),
   end ⟩

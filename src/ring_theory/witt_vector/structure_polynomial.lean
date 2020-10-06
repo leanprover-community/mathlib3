@@ -133,12 +133,12 @@ begin
 end
 
 lemma witt_structure_rat_rec_aux (Φ : mv_polynomial idx ℚ) (n : ℕ) :
-  (witt_structure_rat p Φ n) * C (p ^ n : ℚ) =
-  ((bind₁ (λ b, (rename (λ i, (b, i)) (W_ ℚ n))) Φ)) -
-  ∑ i in range n, C (p ^ i : ℚ) * (witt_structure_rat p Φ i) ^ p ^ (n - i) :=
+  witt_structure_rat p Φ n * C (p ^ n : ℚ) =
+    bind₁ (λ b, rename (λ i, (b, i)) (W_ ℚ n)) Φ -
+      ∑ i in range n, C (p ^ i : ℚ) * (witt_structure_rat p Φ i) ^ p ^ (n - i) :=
 begin
   have := X_in_terms_of_W_aux p ℚ n,
-  replace := congr_arg (bind₁ (λ k : ℕ, (bind₁ (λ i, (rename (prod.mk i) (W_ ℚ k)))) Φ)) this,
+  replace := congr_arg (bind₁ (λ k : ℕ, bind₁ (λ i, rename (prod.mk i) (W_ ℚ k)) Φ)) this,
   rw [alg_hom.map_mul, bind₁_C_right] at this,
   convert this, clear this,
   conv_rhs { simp only [alg_hom.map_sub, bind₁_X_right] },
@@ -147,13 +147,16 @@ begin
   refl
 end
 
+/-- Write `witt_structure_rat p φ n` in terms of `witt_structure_rat p φ i` for `i < n`. -/
 lemma witt_structure_rat_rec (Φ : mv_polynomial idx ℚ) (n : ℕ) :
   (witt_structure_rat p Φ n) = C (1 / p ^ n : ℚ) *
   (bind₁ (λ b, (rename (λ i, (b, i)) (W_ ℚ n))) Φ -
   ∑ i in range n, C (p ^ i : ℚ) * (witt_structure_rat p Φ i) ^ p ^ (n - i)) :=
 begin
-  rw [← witt_structure_rat_rec_aux p Φ n, mul_comm, mul_assoc,
-      ← C_mul, mul_one_div_cancel, C_1, mul_one],
+  calc witt_structure_rat p Φ n
+      = C (1 / p ^ n : ℚ) * (witt_structure_rat p Φ n * C (p ^ n : ℚ)) : _
+  ... = _ : by rw witt_structure_rat_rec_aux,
+  rw [mul_left_comm, ← C_mul, div_mul_cancel, C_1, mul_one],
   exact pow_ne_zero _ (nat.cast_ne_zero.2 $ ne_of_gt (nat.prime.pos ‹_›)),
 end
 
@@ -161,7 +164,7 @@ end
 that are uniquely characterised by the property that
 `bind₁ (witt_structure_int p Φ) (witt_polynomial p ℚ n) = bind₁ (λ i, (rename (prod.mk i) (witt_polynomial p ℚ n))) Φ`.
 In other words: evaluating the `n`-th Witt polynomial on the family `witt_structure_int Φ`
-is the same as evaluation `Φ` on the (appropriately renamed) `n`-th Witt polynomials.
+is the same as evaluating `Φ` on the (appropriately renamed) `n`-th Witt polynomials.
 
 See `witt_structure_int_prop` for this property,
 and `witt_structure_int_exists_unique` for the fact that `witt_structure_int`
@@ -174,9 +177,10 @@ variable {p}
 
 lemma bind₁_rename_expand_witt_polynomial (Φ : mv_polynomial idx ℤ) (n : ℕ)
   (IH : ∀ m : ℕ, m < (n + 1) →
-    map (int.cast_ring_hom ℚ) (witt_structure_int p Φ m) = witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) m) :
+    map (int.cast_ring_hom ℚ) (witt_structure_int p Φ m) =
+      witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) m) :
   bind₁ (λ b, rename (λ i, (b, i)) (expand p (W_ ℤ n))) Φ =
-  bind₁ (λ i, expand p (witt_structure_int p Φ i)) (W_ ℤ n) :=
+    bind₁ (λ i, expand p (witt_structure_int p Φ i)) (W_ ℤ n) :=
 begin
   apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
   simp only [map_bind₁, map_rename, map_expand, rename_expand, map_witt_polynomial],
@@ -192,22 +196,24 @@ end
 
 lemma C_p_pow_dvd_bind₁_rename_witt_polynomial_sub_sum (Φ : mv_polynomial idx ℤ) (n : ℕ)
   (IH : ∀ m : ℕ, m < n →
-    map (int.cast_ring_hom ℚ) (witt_structure_int p Φ m) = witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) m) :
+    map (int.cast_ring_hom ℚ) (witt_structure_int p Φ m) =
+      witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) m) :
   C ↑(p ^ n) ∣
     (bind₁ (λ (b : idx), rename (λ i, (b, i)) (witt_polynomial p ℤ n)) Φ -
       ∑ i in range n, C (↑p ^ i) * witt_structure_int p Φ i ^ p ^ (n - i)) :=
 begin
   cases n,
   { simp only [is_unit_one, int.coe_nat_zero, int.coe_nat_succ, zero_add, pow_zero, C_1, is_unit.dvd] },
-  rw [nat.succ_eq_add_one, C_dvd_iff_zmod, ring_hom.map_sub, sub_eq_zero, map_bind₁],
-  simp only [map_rename, map_witt_polynomial, witt_polynomial_zmod_self],
+
   -- prepare a useful equation for rewriting
   have key := bind₁_rename_expand_witt_polynomial Φ n IH,
   apply_fun (map (int.cast_ring_hom (zmod (p ^ (n + 1))))) at key,
   conv_lhs at key { simp only [map_bind₁, map_rename, map_expand, map_witt_polynomial] },
-  rw key,
-  clear key IH,
+
   -- clean up and massage
+  rw [nat.succ_eq_add_one, C_dvd_iff_zmod, ring_hom.map_sub, sub_eq_zero, map_bind₁],
+  simp only [map_rename, map_witt_polynomial, witt_polynomial_zmod_self],
+  rw key, clear key IH,
   rw [bind₁, aeval_witt_polynomial, ring_hom.map_sum, ring_hom.map_sum, finset.sum_congr rfl],
   intros k hk,
   rw finset.mem_range at hk,
@@ -218,7 +224,7 @@ begin
   rw [nat.cast_mul, nat.cast_pow, nat.cast_pow],
   apply mul_dvd_mul_left,
   rw show p ^ (n + 1 - k) = p * p ^ (n - k),
-  { rw [mul_comm, ← pow_succ'], congr' 1, omega },
+  { rw ← pow_succ, congr' 1, omega },
   rw [pow_mul],
   -- the machine!
   apply dvd_sub_pow_of_dvd_sub,
@@ -238,8 +244,10 @@ begin
   intro c,
   rw [witt_structure_rat_rec, coeff_C_mul, mul_comm, mul_div_assoc', mul_one],
   have sum_induction_steps : map (int.cast_ring_hom ℚ)
-   (∑ i in range n, C (p ^ i : ℤ) * (witt_structure_int p Φ i) ^ p ^ (n - i)) =
-    ∑ i in range n, C (p ^ i : ℚ) * (witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) i) ^ p ^ (n - i),
+   (∑ i in range n, C (p ^ i : ℤ) *
+     (witt_structure_int p Φ i) ^ p ^ (n - i)) =
+    ∑ i in range n, C (p ^ i : ℚ) *
+      (witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) i) ^ p ^ (n - i),
   { rw [ring_hom.map_sum],
     apply finset.sum_congr rfl,
     intros i hi,

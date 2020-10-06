@@ -142,7 +142,9 @@ Given a goal `a = b` or `a ≤ b` in a type `α`, generates an additional hypoth
 -/
 meta def nontriviality_by_elim : tactic unit :=
 do
-  t ← (do `(%%a = %%b) ← target >>= whnf, infer_type a) <|> (do `(%%a ≤ %%b) ← target, infer_type a) <|>
+  t ←
+    (do t ← mk_mvar, e ← to_expr ``(@eq %%t _ _), target >>= unify e, return t) <|>
+    (do t ← mk_mvar, e ← to_expr ``(@has_le.le %%t _ _), target >>= unify e, return t) <|>
     fail "Goal is not `_ = _` or `_ ≤ _`",
   alternative ← to_expr ``(subsingleton_or_nontrivial %%t),
   n ← get_unused_name "_inst",
@@ -157,7 +159,9 @@ hypothesis from existing hypotheses using `nontrivial_of_ne` and `nontrivial_of_
 -/
 meta def nontriviality_by_assumption : tactic unit :=
 do
-  t ← (do `(%%a ≠ %%b) ← target, infer_type a) <|> (do `(%%a < %%b) ← target, infer_type a) <|>
+  t ←
+    (do t ← mk_mvar, e ← to_expr ``(@ne %%t _ _), target >>= unify e, return t) <|>
+    (do t ← mk_mvar, e ← to_expr ``(@has_lt.lt %%t _ _), target >>= unify e, return t) <|>
     fail "Goal is not `_ ≠ _` or `_ < _`",
   n ← get_unused_name "_inst",
   to_expr ``(nontrivial %%t) >>= assert n,

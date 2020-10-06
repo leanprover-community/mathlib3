@@ -334,7 +334,7 @@ begin
   revert a,
   rw ←alg_hom.ext_iff,
   ext,
-  squeeze_simp [of],
+  simp [of],
 end
 
 end free_algebra

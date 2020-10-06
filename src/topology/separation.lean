@@ -258,7 +258,7 @@ lemma set.eq_on.closure [t2_space α] {s : set β} {f g : β → α} (h : eq_on 
   eq_on f g (closure s) :=
 closure_minimal h (is_closed_eq hf hg)
 
-lemma continuous.ext [t2_space α] {s : set β} (hs : dense s) {f g : β → α}
+lemma continuous.ext_on [t2_space α] {s : set β} (hs : dense s) {f g : β → α}
   (hf : continuous f) (hg : continuous g) (h : eq_on f g s) :
   f = g :=
 funext $ λ x, h.closure hf hg (hs x)

@@ -27,6 +27,9 @@ elements of `α` and the children of a node labeled `a` are indexed by elements 
 inductive W {α : Type*} (β : α → Type*)
 | mk (a : α) (f : β a → W) : W
 
+instance : inhabited (W (λ (_ : unit), empty)) :=
+⟨W.mk unit.star empty.elim⟩
+
 namespace W
 
 variables {α : Type*} {β : α → Type*} [Π a : α, fintype (β a)]

@@ -754,6 +754,13 @@ by simp only [sdiff_inter_distrib_right, sdiff_self, empty_union]
 @[simp] theorem sdiff_inter_self_right (s₁ s₂ : finset α) : s₁ \ (s₂ ∩ s₁) = s₁ \ s₂ :=
 by simp only [sdiff_inter_distrib_right, sdiff_self, union_empty]
 
+lemma inter_eq_sdiff_sdiff (s₁ s₂ : finset α) : s₁ ∩ s₂ = s₁ \ (s₁ \ s₂) :=
+begin
+  ext a, split; intros h;
+  simp only [not_and, not_not, finset.mem_sdiff, finset.mem_inter] at h;
+  simp [h],
+end
+
 @[simp] theorem sdiff_empty {s₁ : finset α} : s₁ \ ∅ = s₁ :=
 ext (by simp)
 

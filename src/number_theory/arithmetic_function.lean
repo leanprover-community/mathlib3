@@ -15,10 +15,10 @@ functions are endowed with a multiplication, given by Dirichlet convolution, and
 to form the Dirichlet ring.
 
 ## Main Definitions
- * `arithmetic_function α` consists of functions `f : ℕ → α` such that `f 0 = 0`.
+ * `arithmetic_function R` consists of functions `f : ℕ → R` such that `f 0 = 0`.
  * An arithmetic function `f` `is_multiplicative` when `x.coprime y → f (x * y) = f x * f y`.
- * The pointwise operations `pointwise_mul` and `pointwise_pow` differ from the multiplication
-  and power instances on `arithmetic_function α`, which use Dirichlet multiplication
+ * The pointwise operations `pmul` and `ppow` differ from the multiplication
+  and power instances on `arithmetic_function R`, which use Dirichlet multiplication.
  * `ζ` is the arithmetic function such that `ζ x = 1` for `0 < x`.
  * `σ k` is the arithmetic function such that `σ k x = ∑ y in divisors x, y ^ k` for `0 < x`.
  * `pow k` is the arithmetic function such that `pow k x = x ^ k` for `0 < x`.
@@ -37,30 +37,30 @@ open finset
 open_locale big_operators
 
 namespace nat
-variable (α : Type*)
+variable (R : Type*)
 
 /-- An arithmetic function is a function from `ℕ` that maps 0 to 0. In the literature, they are
   often instead defined as functions from `ℕ+`. Multiplication on `arithmetic_functions` is by
   Dirichlet convolution. -/
-structure arithmetic_function [has_zero α] :=
-(to_fun : ℕ → α)
+structure arithmetic_function [has_zero R] :=
+(to_fun : ℕ → R)
 (map_zero' : to_fun 0 = 0)
 
-variable {α}
+variable {R}
 
 namespace arithmetic_function
 
 section has_zero
-variable [has_zero α]
+variable [has_zero R]
 
-instance : has_coe_to_fun (arithmetic_function α) := ⟨λ _, ℕ → α, to_fun⟩
+instance : has_coe_to_fun (arithmetic_function R) := ⟨λ _, ℕ → R, to_fun⟩
 
-@[simp] lemma to_fun_eq (f : arithmetic_function α) : f.to_fun = f := rfl
+@[simp] lemma to_fun_eq (f : arithmetic_function R) : f.to_fun = f := rfl
 
 @[simp]
-lemma map_zero {f : arithmetic_function α} : f 0 = 0 := f.map_zero'
+lemma map_zero {f : arithmetic_function R} : f 0 = 0 := f.map_zero'
 
-theorem coe_inj {f g : arithmetic_function α} : (f : ℕ → α) = g ↔ f = g :=
+theorem coe_inj {f g : arithmetic_function R} : (f : ℕ → R) = g ↔ f = g :=
 begin
   split; intro h,
   { cases f,
@@ -70,62 +70,62 @@ begin
   { rw h }
 end
 
-instance : has_zero (arithmetic_function α) := ⟨⟨λ _, 0, rfl⟩⟩
+instance : has_zero (arithmetic_function R) := ⟨⟨λ _, 0, rfl⟩⟩
 
 @[simp]
-lemma zero_apply {x : ℕ} : (0 : arithmetic_function α) x = 0 := rfl
+lemma zero_apply {x : ℕ} : (0 : arithmetic_function R) x = 0 := rfl
 
-instance : inhabited (arithmetic_function α) := ⟨0⟩
+instance : inhabited (arithmetic_function R) := ⟨0⟩
 
-@[ext] theorem ext ⦃f g : arithmetic_function α⦄ (h : ∀ x, f x = g x) : f = g :=
+@[ext] theorem ext ⦃f g : arithmetic_function R⦄ (h : ∀ x, f x = g x) : f = g :=
 coe_inj.1 (funext h)
 
-theorem ext_iff {f g : arithmetic_function α} : f = g ↔ ∀ x, f x = g x :=
+theorem ext_iff {f g : arithmetic_function R} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
 section has_one
-variable [has_one α]
+variable [has_one R]
 
-instance : has_one (arithmetic_function α) := ⟨⟨λ x, ite (x = 1) 1 0, rfl⟩⟩
-
-@[simp]
-lemma one_one : (1 : arithmetic_function α) 1 = 1 := rfl
+instance : has_one (arithmetic_function R) := ⟨⟨λ x, ite (x = 1) 1 0, rfl⟩⟩
 
 @[simp]
-lemma one_apply_ne {x : ℕ} (h : x ≠ 1) : (1 : arithmetic_function α) x = 0 := if_neg h
+lemma one_one : (1 : arithmetic_function R) 1 = 1 := rfl
+
+@[simp]
+lemma one_apply_ne {x : ℕ} (h : x ≠ 1) : (1 : arithmetic_function R) x = 0 := if_neg h
 
 end has_one
 end has_zero
 
-instance nat_coe [semiring α] : has_coe (arithmetic_function ℕ) (arithmetic_function α) :=
+instance nat_coe [semiring R] : has_coe (arithmetic_function ℕ) (arithmetic_function R) :=
 ⟨λ f, ⟨↑(f : ℕ → ℕ), by { transitivity ↑(f 0), refl, simp }⟩⟩
 
 @[simp]
-lemma nat_coe_apply [semiring α] {f : arithmetic_function ℕ} {x : ℕ} :
-  (f : arithmetic_function α) x = f x := rfl
+lemma nat_coe_apply [semiring R] {f : arithmetic_function ℕ} {x : ℕ} :
+  (f : arithmetic_function R) x = f x := rfl
 
-instance int_coe [ring α] : has_coe (arithmetic_function ℤ) (arithmetic_function α) :=
+instance int_coe [ring R] : has_coe (arithmetic_function ℤ) (arithmetic_function R) :=
 ⟨λ f, ⟨↑(f : ℕ → ℤ), by { transitivity ↑(f 0), refl, simp }⟩⟩
 
 @[simp]
-lemma int_coe_apply [ring α] {f : arithmetic_function ℤ} {x : ℕ} :
-  (f : arithmetic_function α) x = f x := rfl
+lemma int_coe_apply [ring R] {f : arithmetic_function ℤ} {x : ℕ} :
+  (f : arithmetic_function R) x = f x := rfl
 
 @[simp]
-lemma coe_coe [ring α] {f : arithmetic_function ℕ} :
-  ((f : arithmetic_function ℤ) : arithmetic_function α) = f :=
+lemma coe_coe [ring R] {f : arithmetic_function ℕ} :
+  ((f : arithmetic_function ℤ) : arithmetic_function R) = f :=
 by { ext, simp, }
 
 section add_monoid
 
-variable [add_monoid α]
+variable [add_monoid R]
 
-instance : has_add (arithmetic_function α) := ⟨λ f g, ⟨λ n, f n + g n, by simp⟩⟩
+instance : has_add (arithmetic_function R) := ⟨λ f g, ⟨λ n, f n + g n, by simp⟩⟩
 
 @[simp]
-lemma add_apply {f g : arithmetic_function α} {n : ℕ} : (f + g) n = f n + g n := rfl
+lemma add_apply {f g : arithmetic_function R} {n : ℕ} : (f + g) n = f n + g n := rfl
 
-instance : add_monoid (arithmetic_function α) :=
+instance : add_monoid (arithmetic_function R) :=
 { add_assoc := λ _ _ _, ext (λ _, add_assoc _ _ _),
   zero_add := λ _, ext (λ _, zero_add _),
   add_zero := λ _, ext (λ _, add_zero _),
@@ -134,32 +134,32 @@ instance : add_monoid (arithmetic_function α) :=
 
 end add_monoid
 
-instance [add_comm_monoid α] : add_comm_monoid (arithmetic_function α) :=
+instance [add_comm_monoid R] : add_comm_monoid (arithmetic_function R) :=
 { add_comm := λ _ _, ext (λ _, add_comm _ _),
   .. arithmetic_function.add_monoid }
 
-instance [add_group α] : add_group (arithmetic_function α) :=
+instance [add_group R] : add_group (arithmetic_function R) :=
 { neg := λ f, ⟨λ n, - f n, by simp⟩,
   add_left_neg := λ _, ext (λ _, add_left_neg _),
   .. arithmetic_function.add_monoid }
 
-instance [add_comm_group α] : add_comm_group (arithmetic_function α) :=
+instance [add_comm_group R] : add_comm_group (arithmetic_function R) :=
 { .. arithmetic_function.add_comm_monoid,
   .. arithmetic_function.add_group }
 
 section dirichlet_ring
-variable [semiring α]
+variable [semiring R]
 
 /-- The Dirichlet convolution of two arithmetic functions `f` and `g` is another arithmetic function
   such that `(f * g) n` is the sum of `f x * g y` over all `(x,y)` such that `x * y = n`. -/
-instance : has_mul (arithmetic_function α) :=
+instance : has_mul (arithmetic_function R) :=
 ⟨λ f g, ⟨λ n, ∑ x in divisors_antidiagonal n, f x.fst * g x.snd, by simp⟩⟩
 
 @[simp]
-lemma mul_apply {f g : arithmetic_function α} {n : ℕ} :
+lemma mul_apply {f g : arithmetic_function R} {n : ℕ} :
   (f * g) n = ∑ x in divisors_antidiagonal n, f x.fst * g x.snd := rfl
 
-instance : monoid (arithmetic_function α) :=
+instance : monoid (arithmetic_function R) :=
 { one_mul := λ f,
   begin
     ext,
@@ -194,12 +194,12 @@ instance : monoid (arithmetic_function α) :=
   begin
     ext n,
     simp only [mul_apply],
-    have := @finset.sum_sigma (ℕ × ℕ) α _ _ (divisors_antidiagonal n)
+    have := @finset.sum_sigma (ℕ × ℕ) R _ _ (divisors_antidiagonal n)
       (λ p, (divisors_antidiagonal p.1)) (λ x, f x.2.1 * g x.2.2 * h x.1.2),
     convert this.symm using 1; clear this,
     { apply finset.sum_congr rfl,
       intros p hp, exact finset.sum_mul },
-    have := @finset.sum_sigma (ℕ × ℕ) α _ _ (divisors_antidiagonal n)
+    have := @finset.sum_sigma (ℕ × ℕ) R _ _ (divisors_antidiagonal n)
       (λ p, (divisors_antidiagonal p.2)) (λ x, f x.1.1 * (g x.2.1 * h x.2.2)),
     convert this.symm using 1; clear this,
     { apply finset.sum_congr rfl, intros p hp, rw finset.mul_sum },
@@ -219,7 +219,7 @@ instance : monoid (arithmetic_function α) :=
   .. arithmetic_function.has_one,
   .. arithmetic_function.has_mul }
 
-instance : semiring (arithmetic_function α) :=
+instance : semiring (arithmetic_function R) :=
 { zero_mul := λ f, by { ext, simp, },
   mul_zero := λ f, by { ext, simp, },
   left_distrib := λ a b c, by { ext, simp [← sum_add_distrib, mul_add] },
@@ -232,79 +232,171 @@ instance : semiring (arithmetic_function α) :=
 
 end dirichlet_ring
 
-instance [comm_semiring α] : comm_semiring (arithmetic_function α) :=
+instance [comm_semiring R] : comm_semiring (arithmetic_function R) :=
 { mul_comm := λ f g, by { ext,
     rw [mul_apply, ← map_swap_divisors_antidiagonal, sum_map],
     simp [mul_comm] },
   .. arithmetic_function.semiring }
 
-instance [comm_ring α] : comm_ring (arithmetic_function α) :=
+instance [comm_ring R] : comm_ring (arithmetic_function R) :=
 { .. arithmetic_function.add_comm_group,
   .. arithmetic_function.comm_semiring }
 
-section pointwise_mul
+section zeta
+
+/-- `ζ 0 = 0`, otherwise `ζ x = 1`. The Dirichlet Series is the Riemann ζ.  -/
+def zeta [has_zero R] [has_one R] : arithmetic_function R :=
+⟨λ x, ite (x = 0) 0 1, rfl⟩
+
+localized "notation `ζ` := zeta" in arithmetic_function
+
+@[simp]
+lemma zeta_apply [has_zero R] [has_one R] {x : ℕ} : (ζ x : R) = if (x = 0) then 0 else 1 := rfl
+
+lemma zeta_apply_ne [has_zero R] [has_one R] {x : ℕ} (h : x ≠ 0) : ζ x = (1 : R) := if_neg h
+
+theorem zeta_mul_apply [semiring R] {f : arithmetic_function R} {x : ℕ} :
+  (ζ * f) x = ∑ i in divisors x, f i :=
+begin
+  rw mul_apply,
+  transitivity ∑ i in divisors_antidiagonal x, f i.snd,
+  { apply sum_congr rfl,
+    intros i hi,
+    rcases mem_divisors_antidiagonal.1 hi with ⟨rfl, h⟩,
+    rw [zeta_apply_ne (left_ne_zero_of_mul h), one_mul] },
+  { apply sum_bij (λ i h, prod.snd i),
+    { rintros ⟨a, b⟩ h, simp [snd_mem_divisors_of_mem_antidiagonal h] },
+    { rintros ⟨a, b⟩ h, refl },
+    { rintros ⟨a1, b1⟩ ⟨a2, b2⟩ h1 h2 h,
+      dsimp at h,
+      rw h at *,
+      rw mem_divisors_antidiagonal at *,
+      ext, swap, {refl},
+      simp only [prod.fst, prod.snd] at *,
+      apply nat.eq_of_mul_eq_mul_right _ (eq.trans h1.1 h2.1.symm),
+      rcases h1 with ⟨rfl, h⟩,
+      apply nat.pos_of_ne_zero (right_ne_zero_of_mul h) },
+    { intros a ha,
+      rcases mem_divisors.1 ha with ⟨⟨b, rfl⟩, ne0⟩,
+      use (b, a),
+      simp [ne0, mul_comm] } }
+end
+
+theorem mul_zeta_apply [semiring R] {f : arithmetic_function R} {x : ℕ} :
+  (f * ζ) x = ∑ i in divisors x, f i :=
+begin
+  apply opposite.op_injective,
+  rw [← opposite.coe_op_add_hom, add_monoid_hom.map_sum],
+  convert @zeta_mul_apply Rᵒᵖ _ { to_fun := opposite.op_add_hom ∘ f, map_zero' := by simp} x,
+  rw [mul_apply, mul_apply, add_monoid_hom.map_sum],
+  conv_lhs { rw ← map_swap_divisors_antidiagonal, },
+  rw sum_map,
+  apply sum_congr rfl,
+  intros y hy,
+  by_cases h1 : y.fst = 0,
+  { simp [function.comp_apply, h1] },
+  { simp only [h1, mul_one, one_mul, prod.fst_swap, function.embedding.coe_fn_mk, prod.snd_swap,
+    if_false, zeta_apply, opposite.coe_op_add_hom],
+    refl }
+end
+
+end zeta
+
+open_locale arithmetic_function
+
+section pmul
 
 /-- This is the pointwise product of `arithmetic_function`s. -/
-def pointwise_mul [mul_zero_class α] (f g : arithmetic_function α) :
-  arithmetic_function α :=
+def pmul [mul_zero_class R] (f g : arithmetic_function R) :
+  arithmetic_function R :=
 ⟨λ x, f x * g x, by simp⟩
 
 @[simp]
-lemma pointwise_mul_apply [mul_zero_class α] {f g : arithmetic_function α} {x : ℕ} :
-  (pointwise_mul f g) x = f x * g x := rfl
+lemma pmul_apply [mul_zero_class R] {f g : arithmetic_function R} {x : ℕ} :
+  (pmul f g) x = f x * g x := rfl
 
-lemma pointwise_mul_comm [comm_monoid_with_zero α] (f g : arithmetic_function α) :
-  pointwise_mul f g = pointwise_mul g f :=
+lemma pmul_comm [comm_monoid_with_zero R] (f g : arithmetic_function R) :
+  pmul f g = pmul g f :=
 by { ext, simp [mul_comm] }
 
-variable [monoid_with_zero α]
-
-/-- This is the pointwise power of `arithmetic_function`s. -/
-def pointwise_pow (f : arithmetic_function α) (k : ℕ) (kpos : 0 < k) :
-  arithmetic_function α :=
-⟨λ x, (f x) ^ k, by { rw [map_zero], exact zero_pow kpos }⟩
+variable [monoid_with_zero R]
 
 @[simp]
-lemma pointwise_pow_apply {f : arithmetic_function α} {k x : ℕ} {kpos : 0 < k} :
-  (pointwise_pow f k kpos) x = (f x) ^ k := rfl
+lemma pmul_zeta (f : arithmetic_function R) : f.pmul ζ = f :=
+begin
+  ext x,
+  cases x;
+  simp [nat.succ_ne_zero],
+end
 
-lemma pointwise_pow_succ {f : arithmetic_function α} {k : ℕ} {kpos : 0 < k} :
-  pointwise_pow f (k + 1) (k.succ_pos) = pointwise_mul f (pointwise_pow f k kpos) :=
-by { ext, simp [pow_succ] }
+@[simp]
+lemma zeta_pmul (f : arithmetic_function R) : pmul ζ f = f :=
+begin
+  ext x,
+  cases x;
+  simp [nat.succ_ne_zero],
+end
 
-lemma pointwise_pow_succ' {f : arithmetic_function α} {k : ℕ} {kpos : 0 < k} :
-  pointwise_pow f (k + 1) (k.succ_pos) = pointwise_mul (pointwise_pow f k kpos) f :=
-by { ext, simp [pow_succ'] }
+/-- This is the pointwise power of `arithmetic_function`s. -/
+def ppow (f : arithmetic_function R) (k : ℕ) :
+  arithmetic_function R :=
+if h0 : k = 0 then ζ else ⟨λ x, (f x) ^ k,
+  by { rw [map_zero], exact zero_pow (nat.pos_of_ne_zero h0) }⟩
 
-end pointwise_mul
+@[simp]
+lemma ppow_zero {f : arithmetic_function R} : f.ppow 0 = ζ :=
+by rw [ppow, dif_pos rfl]
+
+@[simp]
+lemma ppow_apply {f : arithmetic_function R} {k x : ℕ} (kpos : 0 < k) :
+  (ppow f k) x = (f x) ^ k :=
+by { rw [ppow, dif_neg (ne_of_gt kpos)], refl }
+
+lemma ppow_succ {f : arithmetic_function R} {k : ℕ} :
+  ppow f (k + 1) = f.pmul (ppow f k) :=
+begin
+  ext x,
+  rw [ppow_apply (nat.succ_pos k), pow_succ],
+  induction k; simp,
+end
+
+lemma ppow_succ' {f : arithmetic_function R} {k : ℕ} {kpos : 0 < k} :
+  ppow f (k + 1) = (ppow f k).pmul f :=
+begin
+  ext x,
+  rw [ppow_apply (nat.succ_pos k), pow_succ'],
+  induction k; simp,
+end
+
+end pmul
 
 section multiplicative
 
 section monoid_with_zero
-variable [monoid_with_zero α]
+variable [monoid_with_zero R]
 
 /-- Multiplicative functions -/
-class is_multiplicative  (f : arithmetic_function α) : Prop :=
+class is_multiplicative  (f : arithmetic_function R) : Prop :=
 (map_one' : f 1 = 1)
 (map_mul_of_coprime : ∀ {m n : ℕ}, m.coprime n → f (m * n) = f m * f n)
 
 @[simp]
-lemma is_multiplicative.map_one {f : arithmetic_function α} [is_multiplicative f] : f 1 = 1 :=
+lemma is_multiplicative.map_one {f : arithmetic_function R} [is_multiplicative f] : f 1 = 1 :=
 is_multiplicative.map_one'
 
 @[simp]
-lemma map_mul_of_coprime {f : arithmetic_function α} [is_multiplicative f] {m n : ℕ}
+lemma map_mul_of_coprime {f : arithmetic_function R} [is_multiplicative f] {m n : ℕ}
   (h : m.coprime n) : f (m * n) = f m * f n :=
 is_multiplicative.map_mul_of_coprime h
 
 end monoid_with_zero
 
-instance is_multiplicative_nat_cast {f : arithmetic_function ℕ} [semiring α] [is_multiplicative f] :
-  is_multiplicative (f : arithmetic_function α) :=
+instance is_multiplicative_nat_cast {f : arithmetic_function ℕ} [semiring R] [is_multiplicative f] :
+  is_multiplicative (f : arithmetic_function R) :=
 ⟨by simp, λ m n cop, by simp [cop]⟩
 
-instance is_multiplicative_int_cast {f : arithmetic_function ℤ} [ring α] [is_multiplicative f] :
-  is_multiplicative (f : arithmetic_function α) :=
+instance is_multiplicative_int_cast {f : arithmetic_function ℤ} [ring R] [is_multiplicative f] :
+  is_multiplicative (f : arithmetic_function R) :=
 ⟨by simp, λ m n cop, by simp [cop]⟩
 
 lemma nat.gcd_mul_gcd_of_coprime_of_mul_eq_mul {a b c d : ℕ} (cop : c.coprime d) (h : a * b = c * d) :
@@ -320,7 +412,7 @@ begin
     apply gcd_mul_dvd_mul_gcd }
 end
 
-instance is_multiplicative_mul [comm_semiring α] {f g : arithmetic_function α}
+instance is_multiplicative_mul [comm_semiring R] {f g : arithmetic_function R}
   [is_multiplicative f]  [is_multiplicative g] :
   is_multiplicative (f * g) :=
 ⟨by { simp, }, begin
@@ -392,73 +484,8 @@ def id : arithmetic_function ℕ := ⟨id, rfl⟩
 @[simp]
 lemma id_apply {x : ℕ} : id x = x := rfl
 
-/-- `ζ 0 = 0`, otherwise `ζ x = 1`. The Dirichlet Series is the Riemann ζ.  -/
-def zeta [has_zero α] [has_one α] : arithmetic_function α := ⟨λ x, ite (x = 0) 0 1, rfl⟩
-
-localized "notation `ζ` := zeta" in arithmetic_function
-
-@[simp]
-lemma zeta_apply [has_zero α] [has_one α] {x : ℕ} : (ζ x : α) = if (x = 0) then 0 else 1 := rfl
-
-lemma zeta_apply_ne [has_zero α] [has_one α] {x : ℕ} (h : x ≠ 0) : ζ x = (1 : α) := if_neg h
-
-theorem zeta_mul_apply [semiring α] {f : arithmetic_function α} {x : ℕ} :
-  (ζ * f) x = ∑ i in divisors x, f i :=
-begin
-  rw mul_apply,
-  transitivity ∑ i in divisors_antidiagonal x, f i.snd,
-  { apply sum_congr rfl,
-    intros i hi,
-    rcases mem_divisors_antidiagonal.1 hi with ⟨rfl, h⟩,
-    rw [zeta_apply_ne (left_ne_zero_of_mul h), one_mul] },
-  { apply sum_bij (λ i h, prod.snd i),
-    { rintros ⟨a, b⟩ h, simp [snd_mem_divisors_of_mem_antidiagonal h] },
-    { rintros ⟨a, b⟩ h, refl },
-    { rintros ⟨a1, b1⟩ ⟨a2, b2⟩ h1 h2 h,
-      dsimp at h,
-      rw h at *,
-      rw mem_divisors_antidiagonal at *,
-      ext, swap, {refl},
-      simp only [prod.fst, prod.snd] at *,
-      apply nat.eq_of_mul_eq_mul_right _ (eq.trans h1.1 h2.1.symm),
-      rcases h1 with ⟨rfl, h⟩,
-      apply nat.pos_of_ne_zero (right_ne_zero_of_mul h) },
-    { intros a ha,
-      rcases mem_divisors.1 ha with ⟨⟨b, rfl⟩, ne0⟩,
-      use (b, a),
-      simp [ne0, mul_comm] } }
-end
-
-theorem mul_zeta_apply [semiring α] {f : arithmetic_function α} {x : ℕ} :
-  (f * ζ) x = ∑ i in divisors x, f i :=
-begin
-  rw mul_apply,
-  transitivity ∑ i in divisors_antidiagonal x, f i.fst,
-  { apply sum_congr rfl,
-    intros i hi,
-    rcases mem_divisors_antidiagonal.1 hi with ⟨rfl, h⟩,
-    rw [zeta_apply_ne (right_ne_zero_of_mul h), mul_one] },
-  { apply sum_bij (λ i h, prod.fst i),
-    { rintros ⟨a, b⟩ h, simp [fst_mem_divisors_of_mem_antidiagonal h] },
-    { rintros ⟨a, b⟩ h, refl },
-    { rintros ⟨a1, b1⟩ ⟨a2, b2⟩ h1 h2 h,
-      dsimp at h,
-      rw h at *,
-      rw mem_divisors_antidiagonal at *,
-      ext, {refl},
-      simp only [prod.fst, prod.snd] at *,
-      apply nat.eq_of_mul_eq_mul_left _ (eq.trans h1.1 h2.1.symm),
-      rcases h1 with ⟨rfl, h⟩,
-      apply nat.pos_of_ne_zero (left_ne_zero_of_mul h) },
-    { intros a ha,
-      rcases mem_divisors.1 ha with ⟨⟨b, rfl⟩, ne0⟩,
-      use (a, b),
-      simp [ne0] } }
-end
-
 /-- `pow k n = n ^ k`, except `pow 0 0 = 0`. -/
-def pow (k : ℕ) : arithmetic_function ℕ :=
-if h : k = 0 then ζ else pointwise_pow id k (nat.pos_of_ne_zero h)
+def pow (k : ℕ) : arithmetic_function ℕ := id.ppow k
 
 @[simp]
 lemma pow_apply {k n : ℕ} : pow k n = if (k = 0 ∧ n = 0) then 0 else n ^ k :=
@@ -488,7 +515,7 @@ begin
   simp [hx],
 end
 
-instance is_multiplicative_zeta [semiring α] : is_multiplicative (ζ : arithmetic_function α) :=
+instance is_multiplicative_zeta [semiring R] : is_multiplicative (ζ : arithmetic_function R) :=
 ⟨by simp, λ m n cop, begin
   cases m, {simp},
   cases n, {simp},
@@ -501,8 +528,8 @@ instance is_multiplicative_pow {k : ℕ} :
   is_multiplicative (pow k) :=
 ⟨by cases k; simp, λ m n cop, by cases m; cases k; simp [nat.succ_ne_zero, mul_pow, zero_pow]⟩
 
-instance is_multiplicative_sigma [semiring α] {k : ℕ} :
-  is_multiplicative (sigma k : arithmetic_function α) :=
+instance is_multiplicative_sigma [semiring R] {k : ℕ} :
+  is_multiplicative (sigma k : arithmetic_function R) :=
 by { rw ← zeta_mul_pow_eq_sigma, apply_instance, }
 
 end special_functions

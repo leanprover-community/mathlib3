@@ -940,7 +940,9 @@ variables [measurable_space β] [metric_space β] [borel_space β]
 
 open metric
 
-/-- A limit (over a general filter) of measurable `ℝ≥0` valued functions is measurable. -/
+/-- A limit (over a general filter) of measurable `ℝ≥0` valued functions is measurable.
+The assumption `hs` can be dropped using `filter.is_countably_generated.has_antimono_basis`, but we
+don't need that case yet. -/
 lemma measurable_of_tendsto_nnreal' {ι ι'} {f : ι → α → ℝ≥0} {g : α → ℝ≥0} (u : filter ι)
   [ne_bot u] (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) {p : ι' → Prop}
   {s : ι' → set ι} (hu : u.has_countable_basis p s) (hs : ∀ i, (s i).countable) : measurable g :=
@@ -966,7 +968,8 @@ begin
 end
 
 /-- A limit (over a general filter) of measurable functions valued in a metric space is measurable.
--/
+The assumption `hs` can be dropped using `filter.is_countably_generated.has_antimono_basis`, but we
+don't need that case yet. -/
 lemma measurable_of_tendsto_metric' {ι ι'} {f : ι → α → β} {g : α → β}
   (u : filter ι) [ne_bot u] (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) {p : ι' → Prop}
   {s : ι' → set ι} (hu : u.has_countable_basis p s) (hs : ∀ i, (s i).countable) :

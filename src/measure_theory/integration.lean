@@ -832,11 +832,14 @@ variables [measurable_space α] {μ : measure α}
 def lintegral (μ : measure α) (f : α → ennreal) : ennreal :=
 ⨆ (g : α →ₛ ennreal) (hf : ⇑g ≤ f), g.lintegral μ
 
-notation `∫⁻` binders `, ` r:(scoped:0 f, f) ` ∂` μ:70 := lintegral μ r
-notation `∫⁻` binders `, ` r:(scoped:0 f, lintegral volume f) := r
-notation `∫⁻` binders ` in ` s `, ` r:(scoped:0 f, f) ` ∂` μ:70 :=
+/-! In the notation for integrals, an expression like `∫⁻ x, g ∥x∥ ∂μ` will not be parsed correctly,
+  and needs parentheses. We do not set the binding power of `r` to `0`, because then
+  `∫⁻ x, f x = 0` will be parsed incorrectly. -/
+notation `∫⁻` binders `, ` r:(scoped:60 f, f) ` ∂` μ:70 := lintegral μ r
+notation `∫⁻` binders `, ` r:(scoped:60 f, lintegral volume f) := r
+notation `∫⁻` binders ` in ` s `, ` r:(scoped:60 f, f) ` ∂` μ:70 :=
   lintegral (measure.restrict μ s) r
-notation `∫⁻` binders ` in ` s `, ` r:(scoped:0 f, lintegral (measure.restrict volume s) f) := r
+notation `∫⁻` binders ` in ` s `, ` r:(scoped:60 f, lintegral (measure.restrict volume s) f) := r
 
 theorem simple_func.lintegral_eq_lintegral (f : α →ₛ ennreal) (μ : measure α) :
   ∫⁻ a, f a ∂ μ = f.lintegral μ :=

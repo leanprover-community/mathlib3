@@ -950,6 +950,9 @@ variables [normed_group E] [second_countable_topology E] [normed_space ℝ E] [c
 def integral (μ : measure α) (f : α → E) : E :=
 if hf : integrable f μ then (l1.of_fun f hf).integral else 0
 
+/-! In the notation for integrals, an expression like `∫ x, g ∥x∥ ∂μ` will not be parsed correctly,
+  and needs parentheses. We do not set the binding power of `r` to `0`, because then
+  `∫ x, f x = 0` will be parsed incorrectly. -/
 notation `∫` binders `, ` r:(scoped:60 f, f) ` ∂` μ:70 := integral μ r
 notation `∫` binders `, ` r:(scoped:60 f, integral volume f) := r
 notation `∫` binders ` in ` s `, ` r:(scoped:60 f, f) ` ∂` μ:70 := integral (measure.restrict μ s) r
@@ -979,7 +982,7 @@ variables (α E)
 lemma integral_zero : ∫ a : α, (0:E) ∂μ = 0 :=
 by rw [integral_eq, l1.of_fun_zero, l1.integral_zero]
 
-lemma integral_zero' : integral μ (0 : α → E) = 0 :=
+@[simp] lemma integral_zero' : integral μ (0 : α → E) = 0 :=
 integral_zero α E
 
 variables {α E}
@@ -1058,9 +1061,9 @@ begin
   { rw [integral_undef hf, norm_zero], exact to_real_nonneg }
 end
 
-lemma ennnorm_integral_le_lintegral_norm (f : α → E) :
-  (nnnorm (∫ a, f a ∂μ) : ennreal) ≤ ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ :=
-by { rw [← of_real_norm_eq_coe_nnnorm], apply ennreal.of_real_le_of_le_to_real,
+lemma ennnorm_integral_le_lintegral_ennnorm (f : α → E) :
+  (nnnorm (∫ a, f a ∂μ) : ennreal) ≤ ∫⁻ a, (nnnorm (f a)) ∂μ :=
+by { simp_rw [← of_real_norm_eq_coe_nnnorm], apply ennreal.of_real_le_of_le_to_real,
   exact norm_integral_le_lintegral_norm f }
 
 lemma integral_eq_zero_of_ae {f : α → E} (hf : f =ᵐ[μ] 0) : ∫ a, f a ∂μ = 0 :=

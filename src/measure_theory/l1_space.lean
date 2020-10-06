@@ -817,6 +817,9 @@ ae_eq_fun.coe_fn_smul _ _
 lemma norm_eq_lintegral (f : α →₁[μ] β) : ∥f∥ = (∫⁻ x, (nnnorm (f x) : ennreal) ∂μ).to_real :=
 by simp [l1.norm_eq, ae_eq_fun.edist_zero_eq_coe, ← edist_eq_coe_nnnorm]
 
+/-- Computing the norm of a difference between two L¹-functions. Note that this is not a
+  special case of `norm_eq_lintegral` since `(f - g) x` and `f x - g x` are not equal
+  (but only a.e.-equal). -/
 lemma norm_sub_eq_lintegral (f g : α →₁[μ] β) :
   ∥f - g∥ = (∫⁻ x, (nnnorm (f x - g x) : ennreal) ∂μ).to_real :=
 begin
@@ -831,6 +834,9 @@ lemma of_real_norm_eq_lintegral (f : α →₁[μ] β) :
 by { rw [norm_eq_lintegral, ennreal.of_real_to_real], rw [← ennreal.lt_top_iff_ne_top],
   exact f.has_finite_integral }
 
+/-- Computing the norm of a difference between two L¹-functions. Note that this is not a
+  special case of `of_real_norm_eq_lintegral` since `(f - g) x` and `f x - g x` are not equal
+  (but only a.e.-equal). -/
 lemma of_real_norm_sub_eq_lintegral (f g : α →₁[μ] β) :
   ennreal.of_real ∥f - g∥ = ∫⁻ x, (nnnorm (f x - g x) : ennreal) ∂μ :=
 begin

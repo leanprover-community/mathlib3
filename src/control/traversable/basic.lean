@@ -60,10 +60,10 @@ section applicative_transformation
 variables (F : Type u → Type v) [applicative F] [is_lawful_applicative F]
 variables (G : Type u → Type w) [applicative G] [is_lawful_applicative G]
 
-/-- A transformation between applicative functors.  It is similar to a
-natural transformation, but instead the function `app` preserves the
-`has_pure.pure` and `has_seq.seq` (`<*>`) operations, rather than
-function composition. -/
+/-- A transformation between applicative functors.  It a natural
+transformation such that `app` preserves the `has_pure.pure` and
+`functor.map` (`<*>`) operations. See
+`applicative_transformation.preserves_map` for naturality. -/
 structure applicative_transformation : Type (max (u+1) v w) :=
 (app : Π α : Type u, F α → G α)
 (preserves_pure' : ∀ {α : Type u} (x : α), app _ (pure x) = pure x)
@@ -124,7 +124,9 @@ lemma preserves_seq :
 lemma preserves_map {α β} (x : α → β) (y : F α) : η (x <$> y) = x <$> η y :=
 by rw [← pure_seq_eq_map, η.preserves_seq]; simp with functor_norm
 
---@[functor_norm]
+@[functor_norm]
+lemma preserves_map' {α β} (x : α → β) : @η _ ∘ functor.map x = functor.map x ∘ @η _ :=
+by { ext y, exact preserves_map η x y }
 
 end preserves
 

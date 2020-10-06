@@ -35,19 +35,19 @@ def solution_predicate (n : ℕ) := n = 550 ∨ n = 803
 Proving that three digit numbers are the ones in [100, 1000).
 -/
 
-lemma not_zero (n : ℕ) (h1 : problem_predicate n) : n ≠ 0 :=
+lemma not_zero {n : ℕ} (h1 : problem_predicate n) : n ≠ 0 :=
 have h2: nat.digits 10 n ≠ list.nil, from list.ne_nil_of_length_eq_succ h1.left,
 digits_ne_nil_iff_ne_zero.mp h2
 
-lemma ge_100 (n : ℕ) (h1 : problem_predicate n) : n ≥ 100 :=
+lemma ge_100 {n : ℕ} (h1 : problem_predicate n) : n ≥ 100 :=
 have h2 : 10^3 ≤ 10 * n, from begin
   rw ← h1.left,
-  refine nat.base_pow_length_digits_le 10 n _ (not_zero n h1),
+  refine nat.base_pow_length_digits_le 10 n _ (not_zero h1),
   simp,
 end,
 by linarith
 
-lemma lt_1000 (n : ℕ) (h1: problem_predicate n) : n < 1000 :=
+lemma lt_1000 {n : ℕ} (h1: problem_predicate n) : n < 1000 :=
 have h2 : n < 10^3, from begin
   rw ← h1.left,
   refine nat.lt_base_pow_length_digits _,
@@ -66,13 +66,12 @@ def sum_of_digit_squares (n : ℕ) := sum_of_squares (nat.digits 10 n)
 lemma sods_zero : sum_of_digit_squares 0 = 0 :=
 by norm_num [sum_of_digit_squares, sum_of_squares]
 
-lemma calc_sods (n : ℕ) (h1 : 0 < n) :
+lemma calc_sods {n : ℕ} (h1 : 0 < n) :
 sum_of_digit_squares n = (n % 10) ^ 2 + (sum_of_digit_squares (n / 10)) :=
 begin
   unfold sum_of_digit_squares,
   rw [nat.digits, nat.digits_aux_def _ _ _ h1],
-  unfold sum_of_squares,
-  simp [pow_two],
+  simp [sum_of_squares, pow_two],
 end
 
 /-
@@ -81,7 +80,7 @@ This part is doing an exhaustive search.
 
 def fails_sum (c : ℕ) := c ≠ sum_of_digit_squares (c*11)
 
-def multiples_of_11 (n : ℕ) (h1: problem_predicate n) :
+def multiples_of_11 {n : ℕ} (h1: problem_predicate n) :
 ∃ c : ℕ, ¬ fails_sum c ∧ 9 < c ∧ c < 91 ∧ n = c * 11 :=
 begin
   obtain ⟨c, h2⟩ : ∃ c : ℕ, n = c * 11, from exists_eq_mul_left_of_dvd h1.right.left,
@@ -92,9 +91,9 @@ begin
     rw [h2.symm, h4],
     simp only [not_not],
     exact h1.right.right },
-  { have h5: n ≥ 100, from ge_100 n h1,
+  { have h5: n ≥ 100, from ge_100 h1,
     linarith },
-  { have h6: n < 1000, from lt_1000 n h1,
+  { have h6: n < 1000, from lt_1000 h1,
     linarith },
   { exact h2 },
 end
@@ -149,33 +148,25 @@ Now we just need to combine the results from the `search` lemmas.
 lemma right_direction (n : ℕ) : problem_predicate n → solution_predicate n :=
 begin
   intro ppn,
-  have h1 : ∃ c : ℕ, ¬ fails_sum c ∧ 9 < c ∧ c < 91 ∧ n = c * 11, from multiples_of_11 n ppn,
-  cases h1 with c h2,
-  obtain (h3 | h3) : fails_sum c ∨ 49 < c, from low_search c h2.right.left,
-  { exact absurd h3 h2.left },
-  have h4 : n = c * 11, from h2.right.right.right,
-  obtain (h5 | h5) : 50 = c ∨ 50 < c, from eq_or_lt_of_le h3,
+  obtain ⟨c, h1⟩ : ∃ c : ℕ, ¬ fails_sum c ∧ 9 < c ∧ c < 91 ∧ n = c * 11, from multiples_of_11 ppn,
+  obtain (h2 | h2) : fails_sum c ∨ 49 < c, from low_search c h1.right.left,
+  { exact absurd h2 h1.left },
+  have h3 : n = c * 11, from h1.right.right.right,
+  obtain (h4 | h4) : 50 = c ∨ 50 < c, from eq_or_lt_of_le h2,
   { left,
     linarith },
-  obtain (h6 | h6) : fails_sum c ∨ 72 < c, from mid_search c h5,
-  { exact absurd h6 h2.left },
-  obtain (h7 | h7) : 73 = c ∨ 73 < c, from eq_or_lt_of_le h6,
+  obtain (h5 | h5) : fails_sum c ∨ 72 < c, from mid_search c h4,
+  { exact absurd h5 h1.left },
+  obtain (h6 | h6) : 73 = c ∨ 73 < c, from eq_or_lt_of_le h5,
   { right,
     linarith },
-  obtain (h8 | h8) : fails_sum c ∨ 90 < c, from high_search c h7,
-  { exact absurd h8 h2.left },
+  obtain (h7 | h7) : fails_sum c ∨ 90 < c, from high_search c h6,
+  { exact absurd h7 h1.left },
   linarith,
 end
 
 lemma left_direction (n : ℕ) : solution_predicate n → problem_predicate n :=
-begin
-  intro spn,
-  cases spn,
-  { rw spn,
-    norm_num [problem_predicate, sum_of_squares] },
-  rw spn,
-  norm_num [problem_predicate, sum_of_squares],
-end
+by rintros (rfl | rfl); norm_num [problem_predicate, sum_of_squares]
 
 theorem imo1960_q1 (n : ℕ) : problem_predicate n ↔ solution_predicate n :=
 ⟨right_direction n, left_direction n⟩

@@ -35,12 +35,13 @@ def compacts : Type* := { s : set α // is_compact s }
 
 /-- The type of non-empty compact subsets of a topological space. The
 non-emptiness will be useful in metric spaces, as we will be able to put
-a distance (and not merely an edistance) on this space.
-
-The type is not necessarily inhabited, for example (1) if `α` is empty,
-(2) if `α` is infinite and has the trivial topology. -/
-@[nolint has_inhabited_instance]
+a distance (and not merely an edistance) on this space. -/
 def nonempty_compacts := {s : set α // s.nonempty ∧ is_compact s}
+
+/-- In an inhabited space, the type of nonempty compact subsets is also inhabited, with
+default element the singleton set containing the default element. -/
+instance nonempty_compacts_inhabited [inhabited α] : inhabited (nonempty_compacts α) :=
+⟨⟨{default α}, singleton_nonempty (default α), compact_singleton ⟩⟩
 
 /-- The compact sets with nonempty interior of a topological space. See also `compacts` and
   `nonempty_compacts`. -/
@@ -112,3 +113,5 @@ set.inclusion $ λ s hs, hs.2.is_closed
 end nonempty_compacts
 
 end topological_space
+
+#lint

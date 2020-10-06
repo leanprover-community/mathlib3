@@ -772,7 +772,7 @@ end
 
 /-- Given any triangle in an orthocentric system, the fourth point is
 its orthocenter. -/
-lemma eq_insert_orthocenter_of_orthocentric_system {s : set P} (ho : orthocentric_system s)
+lemma orthocentric_system.eq_insert_orthocenter {s : set P} (ho : orthocentric_system s)
     {t : triangle ℝ P} (ht : set.range t.points ⊆ s) :
   s = insert t.orthocenter (set.range t.points) :=
 begin

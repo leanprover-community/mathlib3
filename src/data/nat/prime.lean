@@ -132,7 +132,7 @@ section min_fac
   nat.lt_add_of_pos_right dec_trivial
 
   /-- If `n < k * k`, then `min_fac_aux n k = n`, if `k | n`, then `min_fac_aux n k = k`.
-    Otherwise, `min_fac_aux n (k + 2) = n` using well-founded recursion.
+    Otherwise, `min_fac_aux n k = min_fac_aux n (k+2)` using well-founded recursion.
     If `n` is odd and `1 < n`, then then `min_fac_aux n 3` is the smallest prime factor of `n`. -/
   def min_fac_aux (n : ℕ) : ℕ → ℕ | k :=
   if h : n < k * k then n else

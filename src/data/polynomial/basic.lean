@@ -131,10 +131,10 @@ end
 lemma support_monomial' (n) (a : R) : (monomial n a).support ⊆ singleton n :=
 begin
   by_cases h : a = 0,
-    { rw [h, monomial_zero_right, support_zero],
-      exact finset.empty_subset {n}, },
-    { rw support_monomial n a h,
-      exact finset.subset.refl {n}, },
+  { rw [h, monomial_zero_right, support_zero],
+    exact finset.empty_subset {n}, },
+  { rw support_monomial n a h,
+    exact finset.subset.refl {n}, },
 end
 
 lemma monomial_eq_X_pow (n) : X^n = monomial n (1:R) :=

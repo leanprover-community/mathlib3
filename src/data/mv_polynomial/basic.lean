@@ -403,12 +403,12 @@ begin
     { apply finset.sum_bij, swap 5,
       { intros x hx, exact (x.1, x.2) },
       { intros x hx, rw [finset.mem_filter, finset.mem_sigma] at hx,
-        simpa [finset.mem_filter, mem_antidiagonal_support] using hx.symm },
+        simpa only [finset.mem_filter, mem_antidiagonal_support] using hx.symm, },
       { intros x hx, rw finset.mem_filter at hx, simp only [if_pos hx.2], },
       { rintros ⟨i,j⟩ ⟨k,l⟩ hij hkl, simpa using and.intro },
       { rintros ⟨i,j⟩ hij, refine ⟨⟨i,j⟩, _, _⟩, { apply_instance },
         { rw [finset.mem_filter, mem_antidiagonal_support] at hij,
-          simpa [finset.mem_filter, finset.mem_sigma] using hij.symm },
+          simpa only [finset.mem_filter, finset.mem_sigma] using hij.symm},
         { refl } } },
     all_goals { apply_instance } }
 end

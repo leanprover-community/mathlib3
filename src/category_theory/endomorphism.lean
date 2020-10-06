@@ -54,7 +54,7 @@ variables {C : Type u} [category.{v} C] (X : C)
 /--
 Automorphisms of an object in a category.
 
-Arguments order in multiplication agrees with
+The order of arguments in multiplication agrees with
 `function.comp`, not with `category.comp`.
 -/
 def Aut (X : C) := X ≅ X

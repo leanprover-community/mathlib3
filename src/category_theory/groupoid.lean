@@ -27,7 +27,7 @@ where the objects live in `Type (u+1)` while the morphisms live in `Type u`.
 abbreviation large_groupoid (C : Type (u+1)) : Type (u+1) := groupoid.{u} C
 /--
 A `small_groupoid` is a groupoid
-where the objects and morphims live in the same universe.
+where the objects and morphisms live in the same universe.
 -/
 abbreviation small_groupoid (C : Type u) : Type (u+1) := groupoid.{u} C
 

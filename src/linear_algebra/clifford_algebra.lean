@@ -29,7 +29,7 @@ The canonical linear map `M → clifford_algebra Q` is denoted `clifford_algebra
 ## Theorems
 
 The main theorems proved ensure that `clifford_algebra Q` satisfies the universal property
-of the clifford algebra.
+of the Clifford algebra.
 1. `ι_comp_lift` is the fact that the composition of `ι Q` with `lift Q f cond` agrees with `f`.
 2. `lift_unique` ensures the uniqueness of `lift Q f cond` with respect to 1.
 
@@ -37,10 +37,10 @@ Additionally, when `Q = 0` an `alg_equiv` to the `exterior_algebra` is provided 
 
 ## Implementation details
 
-The clifford algebra of `M` is constructed as a quotient of the tensor algebra, as follows.
+The Clifford algebra of `M` is constructed as a quotient of the tensor algebra, as follows.
 1. We define a relation `clifford_algebra.rel Q` on `tensor_algebra R M`.
    This is the smallest relation which identifies squares of elements of `M` with `Q m`.
-2. The clifford algebra is the quotient of the tensor algebra by this relation.
+2. The Clifford algebra is the quotient of the tensor algebra by this relation.
 
 This file is almost identical to `linear_algebra/exterior_algebra.lean`.
 -/
@@ -56,7 +56,7 @@ open tensor_algebra
 
 /-- `rel` relates each `ι m * ι m`, for `m : M`, with `Q m`.
 
-The clifford algebra of `M` is defined as the quotient modulo this relation.
+The Clifford algebra of `M` is defined as the quotient modulo this relation.
 -/
 inductive rel : tensor_algebra R M → tensor_algebra R M → Prop
 | of (m : M) : rel (ι R m * ι R m) (algebra_map R _ (Q m))
@@ -145,7 +145,7 @@ begin
   rw [this, ←lift_unique, hyp],
 end
 
-/-- A clifford algebra with a zero quadratic form is isomorphic to an `exterior_algebra` -/
+/-- A Clifford algebra with a zero quadratic form is isomorphic to an `exterior_algebra` -/
 def as_exterior : clifford_algebra (0 : quadratic_form R M) ≃ₐ[R] exterior_algebra R M :=
 alg_equiv.of_alg_hom
   (clifford_algebra.lift 0 (exterior_algebra.ι R) $ λ m, by simp)

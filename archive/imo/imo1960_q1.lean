@@ -39,7 +39,7 @@ lemma not_zero {n : ℕ} (h1 : problem_predicate n) : n ≠ 0 :=
 have h2 : nat.digits 10 n ≠ list.nil, from list.ne_nil_of_length_eq_succ h1.left,
 digits_ne_nil_iff_ne_zero.mp h2
 
-lemma ge_100 {n : ℕ} (h1 : problem_predicate n) : n ≥ 100 :=
+lemma ge_100 {n : ℕ} (h1 : problem_predicate n) : 100 ≤ n :=
 have h2 : 10^3 ≤ 10 * n, from begin
   rw ← h1.left,
   refine nat.base_pow_length_digits_le 10 n _ (not_zero h1),
@@ -57,11 +57,11 @@ by linarith
 
 /-
 How to calculate the sum of square digits, so that we can quickly simplify a
-sum_of_digit_squares expression.
-These are basically "hints" to speed up norm_num.
+`sum_of_digit_squares` expression.
+These are basically "hints" to speed up `norm_num`.
 -/
 
-def sum_of_digit_squares (n : ℕ) := sum_of_squares (nat.digits 10 n)
+def sum_of_digit_squares (n : ℕ) : ℕ := sum_of_squares (nat.digits 10 n)
 
 lemma sods_zero : sum_of_digit_squares 0 = 0 :=
 by norm_num [sum_of_digit_squares, sum_of_squares]
@@ -80,7 +80,7 @@ This part is doing an exhaustive search.
 
 def fails_sum (c : ℕ) : Prop := c ≠ sum_of_digit_squares (c*11)
 
-def multiples_of_11 {n : ℕ} (h1 : problem_predicate n) :
+lemma multiples_of_11 {n : ℕ} (h1 : problem_predicate n) :
 ∃ c : ℕ, ¬ fails_sum c ∧ 9 < c ∧ c < 91 ∧ n = c * 11 :=
 begin
   obtain ⟨c, h2⟩ : ∃ c : ℕ, n = c * 11, from exists_eq_mul_left_of_dvd h1.right.left,
@@ -91,7 +91,7 @@ begin
     rw [h2.symm, h4],
     simp only [not_not],
     exact h1.right.right },
-  { have h5 : n ≥ 100, from ge_100 h1,
+  { have h5 : 100 ≤ n, from ge_100 h1,
     linarith },
   { have h6 : n < 1000, from lt_1000 h1,
     linarith },
@@ -111,32 +111,29 @@ begin
   exact h3,
 end
 
-lemma low_search (c : ℕ) (lower_bound : 9 < c) : fails_sum c ∨ 49 < c :=
+lemma low_search {c : ℕ} (lower_bound : 9 < c) : fails_sum c ∨ 49 < c :=
 begin
-  iterate 40 {
-    refine iterative_step _ _ _ _,
-    norm_num [fails_sum, calc_sods, sods_zero],
-  },
+  iterate 40
+  { refine iterative_step _ _ _ _,
+    norm_num [fails_sum, calc_sods, sods_zero] },
   right,
   exact lower_bound,
 end
 
-lemma mid_search (c : ℕ) (lower_bound : 50 < c) : fails_sum c ∨ 72 < c :=
+lemma mid_search {c : ℕ} (lower_bound : 50 < c) : fails_sum c ∨ 72 < c :=
 begin
-  iterate 22 {
-    refine iterative_step _ _ _ _,
-    norm_num [fails_sum, calc_sods, sods_zero],
-  },
+  iterate 22
+  { refine iterative_step _ _ _ _,
+    norm_num [fails_sum, calc_sods, sods_zero] },
   right,
   exact lower_bound,
 end
 
-lemma high_search (c : ℕ) (lower_bound : 73 < c) : fails_sum c ∨ 90 < c :=
+lemma high_search {c : ℕ} (lower_bound : 73 < c) : fails_sum c ∨ 90 < c :=
 begin
-  iterate 17 {
-    refine iterative_step _ _ _ _,
-    norm_num [fails_sum, calc_sods, sods_zero],
-  },
+  iterate 17
+  { refine iterative_step _ _ _ _,
+    norm_num [fails_sum, calc_sods, sods_zero] },
   right,
   exact lower_bound,
 end
@@ -145,22 +142,21 @@ end
 Now we just need to combine the results from the `search` lemmas.
 -/
 
-lemma right_direction (n : ℕ) : problem_predicate n → solution_predicate n :=
+lemma right_direction (n : ℕ) (ppn : problem_predicate n) : solution_predicate n :=
 begin
-  intro ppn,
   obtain ⟨c, h1⟩ : ∃ c : ℕ, ¬ fails_sum c ∧ 9 < c ∧ c < 91 ∧ n = c * 11, from multiples_of_11 ppn,
-  obtain (h2 | h2) : fails_sum c ∨ 49 < c, from low_search c h1.right.left,
+  obtain (h2 | h2) : fails_sum c ∨ 49 < c, from low_search h1.right.left,
   { exact absurd h2 h1.left },
   have h3 : n = c * 11, from h1.right.right.right,
   obtain (h4 | h4) : 50 = c ∨ 50 < c, from eq_or_lt_of_le h2,
   { left,
     linarith },
-  obtain (h5 | h5) : fails_sum c ∨ 72 < c, from mid_search c h4,
+  obtain (h5 | h5) : fails_sum c ∨ 72 < c, from mid_search h4,
   { exact absurd h5 h1.left },
   obtain (h6 | h6) : 73 = c ∨ 73 < c, from eq_or_lt_of_le h5,
   { right,
     linarith },
-  obtain (h7 | h7) : fails_sum c ∨ 90 < c, from high_search c h6,
+  obtain (h7 | h7) : fails_sum c ∨ 90 < c, from high_search h6,
   { exact absurd h7 h1.left },
   linarith,
 end

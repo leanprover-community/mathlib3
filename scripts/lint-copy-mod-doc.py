@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.8
+#!/usr/bin/env python3
 
 import sys
 
@@ -13,13 +13,15 @@ exceptions = []
 with open("scripts/copy-mod-doc-exceptions-short.txt") as f:
     lines = f.readlines()
     for line in lines:
-        (errno, c, fn) = line.split()
+        (fn, c, errno) = line.split()
         if errno == "ERR_COP":
             exceptions += [(ERR_COP, fn)]
         if errno == "ERR_IMP":
             exceptions += [(ERR_IMP, fn)]
         if errno == "ERR_MOD":
             exceptions += [(ERR_MOD, fn)]
+
+new_exceptions = False
 
 def import_only_check(lines, fn):
     import_only_file = True
@@ -41,8 +43,6 @@ def import_only_check(lines, fn):
     return (import_only_file, errors)
 
 def regular_check(lines, fn):
-    in_comment = False
-    file_started = False
     line_nr = 0
     errors = []
     copy_started = False
@@ -85,15 +85,18 @@ def regular_check(lines, fn):
     return errors
 
 def format_errors(errors):
+    global new_exceptions
     for (errno, line_nr, fn) in errors:
         if (errno, fn) in exceptions:
             continue
+        new_exceptions = True
+        # filename first, then line so that we can call "sort" on the output
         if errno == ERR_COP:
-            print("ERR_COP : Malformed or missing copyright header : line {:02d} : {}".format(line_nr, fn))
+            print("{} : line {:02d} : ERR_COP : Malformed or missing copyright header".format(fn, line_nr))
         if errno == ERR_IMP:
-            print("ERR_IMP : More than one file imported per line  : line {:02d} : {}".format(line_nr, fn))
+            print("{} : line {:02d} : ERR_IMP : More than one file imported per line".format(fn, line_nr))
         if errno == ERR_MOD:
-            print("ERR_MOD : Module docstring missing, or too late : line {:02d} : {}".format(line_nr, fn))
+            print("{} : line {:02d} : ERR_MOD : Module docstring missing, or too late".format(fn, line_nr))
 
 def lint(fn):
     with open(fn) as f:
@@ -108,3 +111,8 @@ def lint(fn):
 for fn in fns:
     lint(fn)
 
+# if "exceptions" is empty,
+# we're trying to generate copy-mod-doc-exceptions.txt,
+# so new exceptions are expected
+if new_exceptions and len(exceptions) > 0:
+    exit(1)

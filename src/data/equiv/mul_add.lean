@@ -64,6 +64,9 @@ variables [has_mul M] [has_mul N] [has_mul P]
 @[simp, to_additive]
 lemma to_fun_apply {f : M ≃* N} {m : M} : f.to_fun m = f m := rfl
 
+@[simp, to_additive]
+lemma to_equiv_apply {f : M ≃* N} {m : M} : f.to_equiv m = f m := rfl
+
 /-- A multiplicative isomorphism preserves multiplication (canonical form). -/
 @[simp, to_additive]
 lemma map_mul (f : M ≃* N) : ∀ x y, f (x * y) = f x * f y := f.map_mul'
@@ -77,6 +80,15 @@ instance (h : M ≃* N) : is_mul_hom h := ⟨h.map_mul⟩
 def mk' (f : M ≃ N) (h : ∀ x y, f (x * y) = f x * f y) : M ≃* N :=
 ⟨f.1, f.2, f.3, f.4, h⟩
 
+@[to_additive]
+protected lemma bijective (e : M ≃* N) : function.bijective e := e.to_equiv.bijective
+
+@[to_additive]
+protected lemma injective (e : M ≃* N) : function.injective e := e.to_equiv.injective
+
+@[to_additive]
+protected lemma surjective (e : M ≃* N) : function.surjective e := e.to_equiv.surjective
+
 /-- The identity map is a multiplicative isomorphism. -/
 @[refl, to_additive "The identity map is an additive isomorphism."]
 def refl (M : Type*) [has_mul M] : M ≃* M :=
@@ -88,13 +100,12 @@ instance : inhabited (M ≃* M) := ⟨refl M⟩
 /-- The inverse of an isomorphism is an isomorphism. -/
 @[symm, to_additive "The inverse of an isomorphism is an isomorphism."]
 def symm (h : M ≃* N) : N ≃* M :=
-{ map_mul' := λ n₁ n₂, h.left_inv.injective begin
-    show h.to_equiv (h.to_equiv.symm (n₁ * n₂)) =
-      h ((h.to_equiv.symm n₁) * (h.to_equiv.symm n₂)),
-   rw h.map_mul,
-   show _ = h.to_equiv (_) * h.to_equiv (_),
-   rw [h.to_equiv.apply_symm_apply, h.to_equiv.apply_symm_apply, h.to_equiv.apply_symm_apply], end,
-  ..h.to_equiv.symm}
+{ map_mul' := λ n₁ n₂, h.injective $
+    begin
+      have : ∀ x, h (h.to_equiv.symm.to_fun x) = x := h.to_equiv.apply_symm_apply,
+      simp only [this, h.map_mul]
+    end,
+  .. h.to_equiv.symm}
 
 @[simp, to_additive]
 theorem to_equiv_symm (f : M ≃* N) : f.symm.to_equiv = f.to_equiv.symm := rfl
@@ -128,6 +139,21 @@ theorem refl_apply (m : M) : refl M m = m := rfl
 @[simp, to_additive]
 theorem trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (m : M) : e₁.trans e₂ m = e₂ (e₁ m) := rfl
 
+@[simp, to_additive] theorem apply_eq_iff_eq (e : M ≃* N) {x y : M} : e x = e y ↔ x = y :=
+e.injective.eq_iff
+
+@[to_additive]
+lemma apply_eq_iff_symm_apply (e : M ≃* N) {x : M} {y : N} : e x = y ↔ x = e.symm y :=
+e.to_equiv.apply_eq_iff_eq_symm_apply
+
+@[to_additive]
+lemma symm_apply_eq (e : M ≃* N) {x y} : e.symm x = y ↔ x = e y :=
+e.to_equiv.symm_apply_eq
+
+@[to_additive]
+lemma eq_symm_apply (e : M ≃* N) {x y} : y = e.symm x ↔ e y = x :=
+e.to_equiv.eq_symm_apply
+
 /-- a multiplicative equiv of monoids sends 1 to 1 (and is hence a monoid isomorphism) -/
 @[simp, to_additive]
 lemma map_one {M N} [monoid M] [monoid N] (h : M ≃* N) : h 1 = 1 :=
@@ -136,7 +162,7 @@ by rw [←mul_one (h 1), ←h.apply_symm_apply 1, ←h.map_mul, one_mul]
 @[simp, to_additive]
 lemma map_eq_one_iff {M N} [monoid M] [monoid N] (h : M ≃* N) {x : M} :
   h x = 1 ↔ x = 1 :=
-h.map_one ▸ h.to_equiv.apply_eq_iff_eq x 1
+h.map_one ▸ h.to_equiv.apply_eq_iff_eq
 
 @[to_additive]
 lemma map_ne_one_iff {M N} [monoid M] [monoid N] (h : M ≃* N) {x : M} :
@@ -261,6 +287,7 @@ def conj [group G] : G →* mul_aut G :=
 
 @[simp] lemma conj_apply [group G] (g h : G) : conj g h = g * h * g⁻¹ := rfl
 @[simp] lemma conj_symm_apply [group G] (g h : G) : (conj g).symm h = g⁻¹ * h * g := rfl
+@[simp] lemma conj_inv_apply {G : Type*} [group G] (g h : G) : (conj g)⁻¹ h = g⁻¹ * h * g := rfl
 
 end mul_aut
 
@@ -433,13 +460,46 @@ end equiv
 
 section type_tags
 
-/-- Reinterpret `f : G ≃+ H` as `multiplicative G ≃* multiplicative H`. -/
-def add_equiv.to_multiplicative [add_monoid G] [add_monoid H] (f : G ≃+ H) :
-  multiplicative G ≃* multiplicative H :=
-⟨f.to_add_monoid_hom.to_multiplicative, f.symm.to_add_monoid_hom.to_multiplicative, f.3, f.4, f.5⟩
+/-- Reinterpret `G ≃+ H` as `multiplicative G ≃* multiplicative H`. -/
+def add_equiv.to_multiplicative [add_monoid G] [add_monoid H] :
+  (G ≃+ H) ≃ (multiplicative G ≃* multiplicative H) :=
+{ to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative, f.symm.to_add_monoid_hom.to_multiplicative, f.3, f.4, f.5⟩,
+  inv_fun := λ f, ⟨f.to_monoid_hom, f.symm.to_monoid_hom, f.3, f.4, f.5⟩,
+  left_inv := λ x, by { ext, refl, },
+  right_inv := λ x, by { ext, refl, }, }
 
-/-- Reinterpret `f : G ≃* H` as `additive G ≃+ additive H`. -/
-def mul_equiv.to_additive [monoid G] [monoid H] (f : G ≃* H) : additive G ≃+ additive H :=
-⟨f.to_monoid_hom.to_additive, f.symm.to_monoid_hom.to_additive, f.3, f.4, f.5⟩
+/-- Reinterpret `G ≃* H` as `additive G ≃+ additive H`. -/
+def mul_equiv.to_additive [monoid G] [monoid H] :
+  (G ≃* H) ≃ (additive G ≃+ additive H) :=
+{ to_fun := λ f, ⟨f.to_monoid_hom.to_additive, f.symm.to_monoid_hom.to_additive, f.3, f.4, f.5⟩,
+  inv_fun := λ f, ⟨f.to_add_monoid_hom, f.symm.to_add_monoid_hom, f.3, f.4, f.5⟩,
+  left_inv := λ x, by { ext, refl, },
+  right_inv := λ x, by { ext, refl, }, }
+
+/-- Reinterpret `additive G ≃+ H` as `G ≃* multiplicative H`. -/
+def add_equiv.to_multiplicative' [monoid G] [add_monoid H] :
+  (additive G ≃+ H) ≃ (G ≃* multiplicative H) :=
+{ to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative', f.symm.to_add_monoid_hom.to_multiplicative'', f.3, f.4, f.5⟩,
+  inv_fun := λ f, ⟨f.to_monoid_hom, f.symm.to_monoid_hom, f.3, f.4, f.5⟩,
+  left_inv := λ x, by { ext, refl, },
+  right_inv := λ x, by { ext, refl, }, }
+
+/-- Reinterpret `G ≃* multiplicative H` as `additive G ≃+ H` as. -/
+def mul_equiv.to_additive' [monoid G] [add_monoid H] :
+  (G ≃* multiplicative H) ≃ (additive G ≃+ H) :=
+add_equiv.to_multiplicative'.symm
+
+/-- Reinterpret `G ≃+ additive H` as `multiplicative G ≃* H`. -/
+def add_equiv.to_multiplicative'' [add_monoid G] [monoid H] :
+  (G ≃+ additive H) ≃ (multiplicative G ≃* H) :=
+{ to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative'', f.symm.to_add_monoid_hom.to_multiplicative', f.3, f.4, f.5⟩,
+  inv_fun := λ f, ⟨f.to_monoid_hom, f.symm.to_monoid_hom, f.3, f.4, f.5⟩,
+  left_inv := λ x, by { ext, refl, },
+  right_inv := λ x, by { ext, refl, }, }
+
+/-- Reinterpret `multiplicative G ≃* H` as `G ≃+ additive H` as. -/
+def mul_equiv.to_additive'' [add_monoid G] [monoid H] :
+  (multiplicative G ≃* H) ≃ (G ≃+ additive H) :=
+add_equiv.to_multiplicative''.symm
 
 end type_tags

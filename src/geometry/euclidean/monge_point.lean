@@ -9,6 +9,7 @@ noncomputable theory
 open_locale big_operators
 open_locale classical
 open_locale real
+open_locale real_inner_product_space
 
 /-!
 # Monge point and orthocenter
@@ -51,7 +52,7 @@ namespace simplex
 
 open finset affine_subspace euclidean_geometry points_with_circumcenter_index
 
-variables {V : Type*} {P : Type*} [inner_product_space V] [metric_space P]
+variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
 include V
 
@@ -206,8 +207,8 @@ n-dimensional face, is orthogonal to the difference of the two
 vertices not in that face. -/
 lemma inner_monge_point_vsub_face_centroid_vsub {n : ℕ} (s : simplex ℝ P (n + 2))
   {i₁ i₂ : fin (n + 3)} (h : i₁ ≠ i₂) :
-  inner (s.monge_point -ᵥ ({i₁, i₂}ᶜ : finset (fin (n + 3))).centroid ℝ s.points)
-        (s.points i₁ -ᵥ s.points i₂) = 0 :=
+  ⟪s.monge_point -ᵥ ({i₁, i₂}ᶜ : finset (fin (n + 3))).centroid ℝ s.points,
+        s.points i₁ -ᵥ s.points i₂⟫ = 0 :=
 begin
   simp_rw [monge_point_vsub_face_centroid_eq_weighted_vsub_of_points_with_circumcenter s h,
            point_eq_affine_combination_of_points_with_circumcenter,
@@ -437,9 +438,8 @@ namespace triangle
 
 open euclidean_geometry finset simplex affine_subspace finite_dimensional
 
-variables {V : Type*} {P : Type*} [inner_product_space V] [metric_space P]
+variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
-
 include V
 
 /-- The orthocenter of a triangle is the intersection of its

@@ -248,8 +248,7 @@ add_decl_doc add_monoid_hom.id
 /-- Composition of `one_hom`s as a `one_hom`. -/
 @[to_additive]
 def one_hom.comp [has_one M] [has_one N] [has_one P] (hnp : one_hom N P) (hmn : one_hom M N) : one_hom M P :=
-{ to_fun := hnp ∘ hmn,
-  map_one' := by simp }
+{ to_fun := hnp ∘ hmn, map_one' := by simp, }
 /-- Composition of `mul_hom`s as a `mul_hom`. -/
 @[to_additive]
 def mul_hom.comp [has_mul M] [has_mul N] [has_mul P] (hnp : mul_hom N P) (hmn : mul_hom M N) : mul_hom M P :=

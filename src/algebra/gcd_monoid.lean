@@ -466,7 +466,7 @@ instance : normalization_monoid ℤ :=
   end,
   norm_unit_coe_units := assume u, (units_eq_one_or u).elim
     (assume eq, eq.symm ▸ if_pos zero_le_one)
-    (assume eq, eq.symm ▸ if_neg (not_le_of_gt $ show (-1:ℤ) < 0, by simp [@neg_lt ℤ _ 1 0])), }
+    (assume eq, eq.symm ▸ if_neg (not_le_of_gt $ show (-1:ℤ) < 0, by dec_trivial)), }
 
 lemma normalize_of_nonneg {z : ℤ} (h : 0 ≤ z) : normalize z = z :=
 show z * ↑(ite _ _ _) = z, by rw [if_pos h, units.coe_one, mul_one]

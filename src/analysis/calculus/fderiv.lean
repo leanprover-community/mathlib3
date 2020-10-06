@@ -1925,7 +1925,7 @@ because the proof uses `is_bounded_bilinear_map_comp.continuous`, proved just ab
 of its differentiability.
 -/
 
-lemma is_open [complete_space E] :
+protected lemma is_open [complete_space E] :
   is_open {f : E →L[𝕜] F | ∃ e : E ≃L[𝕜] F, f = e} :=
 begin
   by_cases h : nonempty (E ≃L[𝕜] F),

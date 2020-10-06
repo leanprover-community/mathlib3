@@ -1125,7 +1125,7 @@ lemma eq_on_span {s : set M} {f g : M →ₗ[R] M₂} (H : set.eq_on f g s) ⦃x
 by apply span_induction h H; simp {contextual := tt}
 
 lemma eq_on_span' {s : set M} {f g : M →ₗ[R] M₂} (H : set.eq_on f g s) :
-  eq_on f g (span R s : set M) :=
+  set.eq_on f g (span R s : set M) :=
 eq_on_span H
 
 lemma ext_on {v : ι → M} {f g : M →ₗ[R] M₂} (hv : span R (set.range v) = ⊤)

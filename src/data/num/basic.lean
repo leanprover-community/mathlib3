@@ -163,7 +163,7 @@ section
   variables {α : Type*} [has_zero α] [has_one α] [has_add α]
 
   /--
-  Casting a `pos_num` into any type which has `0`, `1` and `+`.
+  `cast_pos_num` casts a `pos_num` into any type which has `0`, `1` and `+`.
   -/
   def cast_pos_num : pos_num → α
   | 1                := 1
@@ -171,7 +171,7 @@ section
   | (pos_num.bit1 a) := bit1 (cast_pos_num a)
 
   /--
-  Casting a `pos_num` into any type which has `0`, `1` and `+`.
+  `cast_num` casts a `num` into any type which has `0`, `1` and `+`.
   -/
   def cast_num : num → α
   | 0           := 0
@@ -654,7 +654,7 @@ section
   variables {α : Type*} [has_zero α] [has_one α] [has_add α] [has_neg α]
 
   /--
-  Casting `znum` into any type which has `0`, `1`, `+` and `neg`
+  `cast_znum` casts a `znum` into any type which has `0`, `1`, `+` and `neg`
   -/
   def cast_znum : znum → α
   | 0            := 0

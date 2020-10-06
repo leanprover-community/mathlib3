@@ -6,6 +6,8 @@ Authors: Scott Morrison.
 import algebra.algebra.ordered
 import algebra.star.basic
 
+universes u v
+
 /--
 A star algebra `A` over a star ring `R` is an algebra which is a star ring,
 and the two star structures are compatible in the sense
@@ -17,13 +19,7 @@ class star_algebra (R : Type u) (A : Type v)
 
 variables {A : Type v}
 
-@[simp] lemma star_smul
+@[simp] lemma star_smul (R : Type u) (A : Type v)
   [comm_semiring R] [star_ring R] [semiring A] [algebra R A] [star_algebra R A] (r : R) (a : A) :
   star (r • a) = star r • star a :=
 star_algebra.star_smul r a
-
-set_option old_structure_cmd true
-
-class star_ordered_algebra (R : Type u) (A : Type v)
-  [ordered_comm_semiring R] [star_ring R] [ordered_semiring A] [ordered_algebra R A]
-  extends star_ordered_ring A, star_algebra R A.

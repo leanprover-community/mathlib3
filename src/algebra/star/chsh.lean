@@ -194,7 +194,7 @@ by { rw [mul_comm 4 x, mul_smul], simp, }
 
 -- This calculation, which we need for Tsirelson's bound,
 -- defeated me. Thanks for the rescue from Shing Tak Lam!
-lemma noncommutative_CHSH_inequality_aux : √2 * √2 ^ 3 = √2 * (2 * √2⁻¹ + 4 * (√2⁻¹ * 2⁻¹)) :=
+lemma tsirelson_inequality_aux : √2 * √2 ^ 3 = √2 * (2 * √2⁻¹ + 4 * (√2⁻¹ * 2⁻¹)) :=
 begin
   ring,
   rw [mul_assoc, inv_mul_cancel, ←real.rpow_nat_cast, ←real.rpow_mul],
@@ -219,7 +219,7 @@ of the difference.
 (We could work over `ℤ[2^(1/2), 2^(-1/2)]` if we really wanted to!)
 -/
 lemma tsirelson_inequality
-  [ordered_comm_ring R] [ordered_algebra ℝ R] [star_ordered_algebra ℝ R]
+  [ordered_comm_ring R] [star_ordered_ring R] [ordered_algebra ℝ R] [star_algebra ℝ R]
   (A₀ A₁ B₀ B₁ : R) (T : is_CHSH_tuple A₀ A₁ B₀ B₁) :
   A₀ * B₀ + A₀ * B₁ + A₁ * B₀ - A₁ * B₁ ≤ √2^3 • 1 :=
 begin

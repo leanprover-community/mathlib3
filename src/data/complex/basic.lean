@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Mario Carneiro
 -/
 import data.real.basic
+import algebra.star.algebra
 
 /-!
 # The complex numbers
@@ -191,6 +192,9 @@ instance : star_ring ℂ :=
 
 @[simp] lemma norm_sq_of_real (r : ℝ) : norm_sq r = r * r :=
 by simp [norm_sq]
+
+lemma norm_sq_eq_conj_mul_self {z : ℂ} : (norm_sq z : ℂ) = conj z * z :=
+by { ext; simp [norm_sq, mul_comm], }
 
 @[simp] lemma norm_sq_zero : norm_sq 0 = 0 := by simp [norm_sq]
 @[simp] lemma norm_sq_one : norm_sq 1 = 1 := by simp [norm_sq]
@@ -452,6 +456,159 @@ by rw [← of_real_nat_cast, abs_of_nonneg (nat.cast_nonneg n)]
 
 lemma norm_sq_eq_abs (x : ℂ) : norm_sq x = abs x ^ 2 :=
 by rw [abs, pow_two, real.mul_self_sqrt (norm_sq_nonneg _)]
+
+instance : partial_order ℂ :=
+{ le := λ z w, ∃ x : ℝ, 0 ≤ x ∧ w = z + x,
+  le_refl := λ x, ⟨0, by simp⟩,
+  le_trans := λ x y z h₁ h₂,
+  begin
+    obtain ⟨w₁, l₁, rfl⟩ := h₁,
+    obtain ⟨w₂, l₂, rfl⟩ := h₂,
+    refine ⟨w₁ + w₂, _, _⟩,
+    { linarith, },
+    { simp [add_assoc], },
+  end,
+  le_antisymm := λ z w h₁ h₂,
+  begin
+    obtain ⟨w₁, l₁, rfl⟩ := h₁,
+    obtain ⟨w₂, l₂, e⟩ := h₂,
+    have h₃ : w₁ + w₂ = 0,
+    { symmetry,
+      rw add_assoc at e,
+      apply of_real_inj.mp,
+      apply add_left_cancel,
+      convert e; simp, },
+    have h₄ : w₁ = 0, linarith,
+    simp [h₄],
+  end, }
+
+lemma le_def {z w : ℂ} : z ≤ w ↔ ∃ x : ℝ, 0 ≤ x ∧ w = z + x := iff.refl _
+lemma lt_def {z w : ℂ} : z < w ↔ ∃ x : ℝ, 0 < x ∧ w = z + x :=
+begin
+  rw [lt_iff_le_not_le],
+  fsplit,
+  { rintro ⟨⟨x, l, rfl⟩, h⟩,
+    by_cases hx : x = 0,
+    { simp [hx] at h, exfalso, exact h (le_refl _), },
+    { replace l : 0 < x := lt_of_le_of_ne l (by { symmetry, exact hx }),
+      exact ⟨x, l, rfl⟩, } },
+  { rintro ⟨x, l, rfl⟩,
+    fsplit,
+    { exact ⟨x, le_of_lt l, rfl⟩, },
+    { rintro ⟨x', l', e⟩,
+      rw [add_assoc] at e,
+      replace e := add_left_cancel (by { convert e, simp }),
+      norm_cast at e,
+      apply lt_irrefl (0 : ℝ),
+      conv { congr, skip, rw e, },
+      apply lt_of_lt_of_le l (le_add_of_nonneg_right l'), } }
+end
+
+@[simp, norm_cast] lemma real_le_real {x y : ℝ} : (x : ℂ) ≤ (y : ℂ) ↔ x ≤ y :=
+begin
+  rw [le_def],
+  fsplit,
+  { rintro ⟨r, l, e⟩,
+    norm_cast at e,
+    subst e,
+    exact le_add_of_nonneg_right l, },
+  { intro h,
+    refine ⟨y - x, sub_nonneg.mpr h, (by simp)⟩, },
+end
+@[simp, norm_cast] lemma real_lt_real {x y : ℝ} : (x : ℂ) < (y : ℂ) ↔ x < y :=
+begin
+  rw [lt_def],
+  fsplit,
+  { rintro ⟨r, l, e⟩,
+    norm_cast at e,
+    subst e,
+    exact lt_add_of_pos_right x l, },
+  { intro h,
+    refine ⟨y - x, sub_pos.mpr h, (by simp)⟩, },
+end
+@[simp, norm_cast] lemma zero_le_real {x : ℝ} : (0 : ℂ) ≤ (x : ℂ) ↔ 0 ≤ x := real_le_real
+@[simp, norm_cast] lemma zero_lt_real {x : ℝ} : (0 : ℂ) < (x : ℂ) ↔ 0 < x := real_lt_real
+
+instance : ordered_comm_ring ℂ :=
+{ zero_le_one := ⟨1, zero_le_one, by simp⟩,
+  add_le_add_left := λ w z h y,
+  begin
+    obtain ⟨x, l, rfl⟩ := h,
+    refine ⟨x, l, by simp [add_assoc]⟩,
+  end,
+  mul_pos := λ z w hz hw,
+  begin
+    obtain ⟨zx, lz, rfl⟩ := lt_def.mp hz,
+    obtain ⟨wx, lw, rfl⟩ := lt_def.mp hw,
+    norm_cast,
+    simp only [mul_pos, lz, lw, zero_add],
+  end,
+  le_of_add_le_add_left := λ u v z h,
+  begin
+    obtain ⟨x, l, e⟩ := h,
+    rw add_assoc at e,
+    exact ⟨x, l, add_left_cancel e⟩,
+  end,
+  mul_lt_mul_of_pos_left := λ u v z h₁ h₂,
+  begin
+    obtain ⟨x₁, l₁, rfl⟩ := lt_def.mp h₁,
+    obtain ⟨x₂, l₂, rfl⟩ := lt_def.mp h₂,
+    simp only [mul_add, zero_add],
+    exact lt_def.mpr ⟨x₂ * x₁, mul_pos l₂ l₁, (by norm_cast)⟩,
+  end,
+  mul_lt_mul_of_pos_right := λ u v z h₁ h₂,
+  begin
+    obtain ⟨x₁, l₁, rfl⟩ := lt_def.mp h₁,
+    obtain ⟨x₂, l₂, rfl⟩ := lt_def.mp h₂,
+    simp only [add_mul, zero_add],
+    exact lt_def.mpr ⟨x₁ * x₂, mul_pos l₁ l₂, (by norm_cast)⟩,
+  end,
+  -- Why do we need these next four fields? They should be copied from `comm_ring ℂ`.
+  zero_mul := λ z, zero_mul z,
+  mul_zero := λ z, mul_zero z,
+  add_left_cancel := λ z₁ z₂ z₃, add_left_cancel,
+  add_right_cancel := λ z₁ z₂ z₃, add_right_cancel,
+  ..(by apply_instance : partial_order ℂ),
+  ..(by apply_instance : comm_ring ℂ), }
+
+instance : star_ordered_ring ℂ :=
+{ star_mul_self_nonneg := λ z,
+  begin
+    refine ⟨z.abs^2, pow_nonneg (abs_nonneg z) 2, _⟩,
+    simp only [has_star.star, of_real_pow, zero_add],
+    norm_cast,
+    rw [←norm_sq_eq_abs, norm_sq_eq_conj_mul_self],
+  end, }
+
+instance : algebra ℝ ℂ :=
+of_real.to_algebra
+
+@[simp] lemma smul_coe {x : ℝ} {z : ℂ} : x • z = x * z := rfl
+
+instance : ordered_algebra ℝ ℂ :=
+{ smul_lt_smul_of_pos := λ z w x h₁ h₂,
+  begin
+    obtain ⟨y, l, rfl⟩ := lt_def.mp h₁,
+    refine lt_def.mpr ⟨x * y, _, _⟩,
+    exact mul_pos h₂ l,
+    ext; simp [mul_add],
+  end,
+  lt_of_smul_lt_smul_of_nonneg := λ z w x h₁ h₂,
+  begin
+    obtain ⟨y, l, e⟩ := lt_def.mp h₁,
+    by_cases h : x = 0,
+    { subst h, simp at h₁, exfalso, exact lt_irrefl 0 h₁, },
+    { replace h₂ : 0 < x := lt_of_le_of_ne h₂ (by { symmetry, exact h }),
+      refine lt_def.mpr ⟨y / x, div_pos l h₂, _⟩,
+      replace e := congr_arg (λ z, (x⁻¹ : ℂ) * z) e,
+      simp only [mul_add, ←mul_assoc, h, one_mul, of_real_eq_zero, smul_coe, ne.def,
+        not_false_iff, inv_mul_cancel] at e,
+      convert e,
+      simp only [div_eq_iff_mul_eq, h, of_real_eq_zero, of_real_div, ne.def, not_false_iff],
+      norm_cast,
+      simp [mul_comm _ y, mul_assoc, h],
+    },
+  end }
 
 /-! ### Cauchy sequences -/
 

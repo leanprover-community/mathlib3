@@ -314,9 +314,9 @@ begin
   ext1,
   rw [mem_singleton],
   split,
-    { exact mem_support_C_mul_X_pow, },
-    { intro,
-      rwa [mem_support_iff_coeff_ne_zero, ne.def, a_1, coeff_C_mul, coeff_X_pow_self n, mul_one], },
+  { exact mem_support_C_mul_X_pow, },
+  { intro,
+    rwa [mem_support_iff_coeff_ne_zero, ne.def, a_1, coeff_C_mul, coeff_X_pow_self n, mul_one], },
 end
 
 end semiring

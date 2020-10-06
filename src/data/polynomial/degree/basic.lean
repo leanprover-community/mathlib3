@@ -268,21 +268,6 @@ by simpa only [C_1, one_mul, pow_one] using degree_C_mul_X_pow_le (1:R) 1
 lemma nat_degree_X_le : (X : polynomial R).nat_degree ≤ 1 :=
 nat_degree_le_of_degree_le degree_X_le
 
-lemma mul_X_pow_eq_monomial (c : R) (n : ℕ) : C c * X^n = monomial n c :=
-begin
-  ext1,
-  rw [monomial_eq_smul_X, coeff_smul, coeff_C_mul],
-end
-
-lemma support_mul_X_pow (c : R) (n : ℕ) (H : c ≠ 0) : (C c * X^n).support = singleton n :=
-by rw [mul_X_pow_eq_monomial, support_monomial n c H]
-
-lemma support_mul_X_pow' {c : R} {n : ℕ} : (C c * X^n).support ⊆ singleton n :=
-begin
-  rw [mul_X_pow_eq_monomial],
-  exact support_monomial' n c,
-end
-
 end semiring
 
 

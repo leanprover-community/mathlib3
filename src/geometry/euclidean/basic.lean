@@ -1043,7 +1043,7 @@ end
 
 /-- Any three points in a cospherical set are affinely independent. -/
 lemma affine_independent_of_cospherical {s : set P} (hs : cospherical s) {p : fin 3 → P}
-    (hps : set.range p ⊆ s) (hpi : function.injective p) :
+  (hps : set.range p ⊆ s) (hpi : function.injective p) :
   affine_independent ℝ p :=
 begin
   rw affine_independent_iff_not_collinear,

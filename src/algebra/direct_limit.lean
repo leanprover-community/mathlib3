@@ -25,9 +25,9 @@ universes u v w u₁
 open submodule
 
 variables {R : Type u} [ring R]
-variables {ι : Type v} [nonempty ι]
-variables [decidable_eq ι] [directed_order ι]
-variables (G : ι → Type w) [Π i, decidable_eq (G i)]
+variables {ι : Type v}
+variables [dec_ι : decidable_eq ι] [directed_order ι]
+variables (G : ι → Type w)
 
 /-- A directed system is a functor from the category (directed poset) to another category.
 This is used for abelian groups and rings and fields because their maps are not bundled.
@@ -45,7 +45,9 @@ class directed_system (f : Π i j, i ≤ j → G i →ₗ[R] G j) : Prop :=
 (map_self [] : ∀ i x h, f i i h x = x)
 (map_map [] : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
 
-variables (f : Π i j, i ≤ j → G i →ₗ[R] G j) [directed_system G f]
+variables (f : Π i j, i ≤ j → G i →ₗ[R] G j)
+
+include dec_ι
 
 /-- The direct limit of a directed system is the modules glued together along the maps. -/
 def direct_limit : Type (max v w) :=
@@ -56,6 +58,8 @@ namespace direct_limit
 
 instance : add_comm_group (direct_limit G f) := quotient.add_comm_group _
 instance : semimodule R (direct_limit G f) := quotient.semimodule _
+
+instance : inhabited (direct_limit G f) := ⟨0⟩
 
 variables (R ι)
 /-- The canonical map from a component to the direct limit. -/
@@ -68,7 +72,7 @@ eq.symm $ (submodule.quotient.eq _).2 $ subset_span ⟨i, j, hij, x, rfl⟩
 
 /-- Every element of the direct limit corresponds to some element in
 some component of the directed system. -/
-theorem exists_of (z : direct_limit G f) : ∃ i x, of R ι G f i x = z :=
+theorem exists_of [nonempty ι] (z : direct_limit G f) : ∃ i x, of R ι G f i x = z :=
 nonempty.elim (by apply_instance) $ assume ind : ι,
 quotient.induction_on' z $ λ z, direct_sum.induction_on z
   ⟨ind, 0, linear_map.map_zero _⟩
@@ -77,7 +81,7 @@ quotient.induction_on' z $ λ z, direct_sum.induction_on z
     ⟨k, f i k hik x + f j k hjk y, by rw [linear_map.map_add, of_f, of_f, ihx, ihy]; refl⟩)
 
 @[elab_as_eliminator]
-protected theorem induction_on {C : direct_limit G f → Prop} (z : direct_limit G f)
+protected theorem induction_on [nonempty ι] {C : direct_limit G f → Prop} (z : direct_limit G f)
   (ih : ∀ i x, C (of R ι G f i x)) : C z :=
 let ⟨i, x, h⟩ := exists_of z in h ▸ ih i x
 
@@ -99,7 +103,7 @@ omit Hg
 lemma lift_of {i} (x) : lift R ι G f g Hg (of R ι G f i x) = g i x :=
 direct_sum.to_module_lof R _ _
 
-theorem lift_unique (F : direct_limit G f →ₗ[R] P) (x) :
+theorem lift_unique [nonempty ι] (F : direct_limit G f →ₗ[R] P) (x) :
   F x = lift R ι G f (λ i, F.comp $ of R ι G f i)
     (λ i j hij x, by rw [linear_map.comp_apply, of_f]; refl) x :=
 direct_limit.induction_on x $ λ i x, by rw lift_of; refl
@@ -107,6 +111,11 @@ direct_limit.induction_on x $ λ i x, by rw lift_of; refl
 section totalize
 open_locale classical
 variables (G f)
+omit dec_ι
+
+/-- `totalize G f i j` is a linear map from `G i` to `G j`, for *every* `i` and `j`.
+If `i ≤ j`, then it is the map `f i j` that comes with the directed system `G`,
+and otherwise it is the zero map. -/
 noncomputable def totalize : Π i j, G i →ₗ[R] G j :=
 λ i j, if h : i ≤ j then f i j h else 0
 variables {G f}
@@ -117,6 +126,9 @@ if h : i ≤ j
   then by dsimp only [totalize]; rw [dif_pos h, dif_pos h]
   else by dsimp only [totalize]; rw [dif_neg h, dif_neg h, linear_map.zero_apply]
 end totalize
+
+variables [directed_system G f]
+open_locale classical
 
 lemma to_module_totalize_of_le {x : direct_sum ι G} {i j : ι}
   (hij : i ≤ j) (hx : ∀ k ∈ x.support, k ≤ i) :
@@ -131,7 +143,7 @@ begin
   simp [totalize_apply, hx k hk, le_trans (hx k hk) hij, directed_system.map_map f]
 end
 
-lemma of.zero_exact_aux {x : direct_sum ι G} (H : submodule.quotient.mk x = (0 : direct_limit G f)) :
+lemma of.zero_exact_aux [nonempty ι] {x : direct_sum ι G} (H : submodule.quotient.mk x = (0 : direct_limit G f)) :
   ∃ j, (∀ k ∈ x.support, k ≤ j) ∧ direct_sum.to_module R ι (G j) (λ i, totalize G f i j) x = (0 : G j) :=
 nonempty.elim (by apply_instance) $ assume ind : ι,
 span_induction ((quotient.mk_eq_zero _).1 H)
@@ -167,6 +179,7 @@ span_induction ((quotient.mk_eq_zero _).1 H)
 bigger module in the directed system. -/
 theorem of.zero_exact {i x} (H : of R ι G f i x = 0) :
   ∃ j hij, f i j hij x = (0 : G j) :=
+by haveI : nonempty ι := ⟨i⟩; exact
 let ⟨j, hj, hxj⟩ := of.zero_exact_aux H in
 if hx0 : x = 0 then ⟨i, le_refl _, by simp [hx0]⟩
 else
@@ -182,28 +195,32 @@ end module
 namespace add_comm_group
 
 variables [Π i, add_comm_group (G i)]
+include dec_ι
 
 /-- The direct limit of a directed system is the abelian groups glued together along the maps. -/
-def direct_limit (f : Π i j, i ≤ j → G i → G j)
-  [Π i j hij, is_add_group_hom (f i j hij)] [directed_system G f] : Type* :=
-@module.direct_limit ℤ _ ι _ _ _ G _ _ _
+def direct_limit (f : Π i j, i ≤ j → G i → G j) [Π i j hij, is_add_group_hom (f i j hij)] : Type* :=
+@module.direct_limit ℤ _ ι _ _ G _ _
   (λ i j hij, (add_monoid_hom.of $ f i j hij).to_int_linear_map)
-  ⟨directed_system.map_self f, directed_system.map_map f⟩
 
 namespace direct_limit
 
 variables (f : Π i j, i ≤ j → G i → G j)
-variables [Π i j hij, is_add_group_hom (f i j hij)] [directed_system G f]
+variables [Π i j hij, is_add_group_hom (f i j hij)]
 
-lemma directed_system :
+omit dec_ι
+
+protected lemma directed_system [directed_system G f] :
   module.directed_system G (λ i j hij, (add_monoid_hom.of $ f i j hij).to_int_linear_map) :=
 ⟨directed_system.map_self f, directed_system.map_map f⟩
 
-local attribute [instance] directed_system
+include dec_ι
+
+local attribute [instance] direct_limit.directed_system
 
 instance : add_comm_group (direct_limit G f) :=
 module.direct_limit.add_comm_group G (λ i j hij, (add_monoid_hom.of $f i j hij).to_int_linear_map)
 
+instance : inhabited (direct_limit G f) := ⟨0⟩
 
 /-- The canonical map from a component to the direct limit. -/
 def of (i) : G i → direct_limit G f :=
@@ -222,13 +239,13 @@ module.direct_limit.of_f
 @[simp] lemma of_sub (i x y) : of G f i (x - y) = of G f i x - of G f i y := is_add_group_hom.map_sub _ _ _
 
 @[elab_as_eliminator]
-protected theorem induction_on {C : direct_limit G f → Prop} (z : direct_limit G f)
+protected theorem induction_on [nonempty ι] {C : direct_limit G f → Prop} (z : direct_limit G f)
   (ih : ∀ i x, C (of G f i x)) : C z :=
 module.direct_limit.induction_on z ih
 
 /-- A component that corresponds to zero in the direct limit is already zero in some
 bigger module in the directed system. -/
-theorem of.zero_exact (i x) (h : of G f i x = 0) : ∃ j hij, f i j hij x = 0 :=
+theorem of.zero_exact [directed_system G f] (i x) (h : of G f i x = 0) : ∃ j hij, f i j hij x = 0 :=
 module.direct_limit.of.zero_exact h
 
 variables (P : Type u₁) [add_comm_group P]
@@ -255,8 +272,8 @@ module.direct_limit.lift_of _ _ _
 @[simp] lemma lift_neg (x) : lift G f P g Hg (-x) = -lift G f P g Hg x := is_add_group_hom.map_neg _ _
 @[simp] lemma lift_sub (x y) : lift G f P g Hg (x - y) = lift G f P g Hg x - lift G f P g Hg y := is_add_group_hom.map_sub _ _ _
 
-lemma lift_unique (F : direct_limit G f → P) [is_add_group_hom F] (x) :
-  F x = @lift _ _ _ _ G _ _ f _ _ P _ (λ i x, F $ of G f i x) (λ i, is_add_group_hom.comp _ _)
+lemma lift_unique [nonempty ι] (F : direct_limit G f → P) [is_add_group_hom F] (x) :
+  F x = @lift _ _ _ G _ f _ P _ (λ i x, F $ of G f i x) (λ i, is_add_group_hom.comp _ _)
     (λ i j hij x, by dsimp; rw of_f) x :=
 direct_limit.induction_on x $ λ i x, by rw lift_of
 
@@ -269,8 +286,6 @@ namespace ring
 
 variables [Π i, comm_ring (G i)]
 variables (f : Π i j, i ≤ j → G i → G j)
-variables [Π i j hij, is_ring_hom (f i j hij)]
-variables [directed_system G f]
 
 open free_comm_ring
 
@@ -288,6 +303,8 @@ ideal.quotient.comm_ring _
 
 instance : ring (direct_limit G f) :=
 comm_ring.to_ring _
+
+instance : inhabited (direct_limit G f) := ⟨0⟩
 
 /-- The canonical map from a component to the direct limit. -/
 def of (i) (x : G i) : direct_limit G f :=
@@ -313,7 +330,7 @@ ideal.quotient.eq.2 $ subset_span $ or.inl ⟨i, j, hij, x, rfl⟩
 
 /-- Every element of the direct limit corresponds to some element in
 some component of the directed system. -/
-theorem exists_of (z : direct_limit G f) : ∃ i x, of G f i x = z :=
+theorem exists_of [nonempty ι] (z : direct_limit G f) : ∃ i x, of G f i x = z :=
 nonempty.elim (by apply_instance) $ assume ind : ι,
 quotient.induction_on' z $ λ x, free_abelian_group.induction_on x
   ⟨ind, 0, of_zero ind⟩
@@ -329,7 +346,9 @@ section
 open_locale classical
 open polynomial
 
-theorem polynomial.exists_of (q : polynomial (direct_limit G f)) :
+variables [Π i j hij, is_ring_hom (f i j hij)]
+
+theorem polynomial.exists_of [nonempty ι] (q : polynomial (direct_limit G f)) :
   ∃ i p, polynomial.map (ring_hom.of $ of G f i) p = q :=
 polynomial.induction_on q
   (λ z, let ⟨i, x, h⟩ := exists_of z in ⟨i, C x, by rw [map_C, ring_hom.coe_of, h]⟩)
@@ -342,12 +361,15 @@ polynomial.induction_on q
 
 end
 
-@[elab_as_eliminator] theorem induction_on {C : direct_limit G f → Prop} (z : direct_limit G f)
+@[elab_as_eliminator] theorem induction_on [nonempty ι] {C : direct_limit G f → Prop} (z : direct_limit G f)
   (ih : ∀ i x, C (of G f i x)) : C z :=
 let ⟨i, x, hx⟩ := exists_of z in hx ▸ ih i x
 
 section of_zero_exact
 open_locale classical
+
+variables [Π i j hij, is_ring_hom (f i j hij)]
+variables [directed_system G f]
 variables (G f)
 
 lemma of.zero_exact_aux2 {x : free_comm_ring Σ i, G i} {s t} (hxs : is_supported x s) {j k}
@@ -377,7 +399,7 @@ begin
 end
 variables {G f}
 
-lemma of.zero_exact_aux {x : free_comm_ring Σ i, G i} (H : ideal.quotient.mk _ x = (0 : direct_limit G f)) :
+lemma of.zero_exact_aux [nonempty ι] {x : free_comm_ring Σ i, G i} (H : ideal.quotient.mk _ x = (0 : direct_limit G f)) :
   ∃ j s, ∃ H : (∀ k : Σ i, G i, k ∈ s → k.1 ≤ j), is_supported x s ∧
     lift (λ ix : s, f ix.1.1 j (H ix ix.2) ix.1.2) (restriction s x) = (0 : G j) :=
 begin
@@ -394,7 +416,9 @@ begin
       { rintros k (rfl|h), refl },
       { rw [(restriction _).map_sub, (free_comm_ring.lift _).map_sub,
             restriction_of, dif_pos, (restriction _).map_one, lift_of, (free_comm_ring.lift _).map_one],
-        dsimp only, rw [is_ring_hom.map_one (f i i _), sub_self], exacts [_inst_7 i i _, rfl] } },
+        dsimp only, rw [is_ring_hom.map_one (f i i _), sub_self],
+        { apply_assumption },
+        { exact set.mem_singleton _ } } },
     { refine ⟨i, {⟨i, x+y⟩, ⟨i, x⟩, ⟨i, y⟩}, _,
         is_supported_sub (is_supported_of.2 $ or.inl rfl)
           (is_supported_add (is_supported_of.2 $ or.inr $ or.inl rfl)
@@ -449,6 +473,7 @@ end
 /-- A component that corresponds to zero in the direct limit is already zero in some
 bigger module in the directed system. -/
 lemma of.zero_exact {i x} (hix : of G f i x = 0) : ∃ j, ∃ hij : i ≤ j, f i j hij x = 0 :=
+by haveI : nonempty ι := ⟨i⟩; exact
 let ⟨j, s, H, hxs, hx⟩ := of.zero_exact_aux hix in
 have hixs : (⟨i, x⟩ : Σ i, G i) ∈ s, from is_supported_of.1 hxs,
 ⟨j, H ⟨i, x⟩ hixs, by rw [restriction_of, dif_pos hixs, lift_of] at hx; exact hx⟩
@@ -456,7 +481,8 @@ end of_zero_exact
 
 /-- If the maps in the directed system are injective, then the canonical maps
 from the components to the direct limits are injective. -/
-theorem of_injective (hf : ∀ i j hij, function.injective (f i j hij)) (i) :
+theorem of_injective [Π i j hij, is_ring_hom (f i j hij)] [directed_system G f]
+  (hf : ∀ i j hij, function.injective (f i j hij)) (i) :
   function.injective (of G f i) :=
 begin
   suffices : ∀ x, of G f i x = 0 → x = 0,
@@ -517,7 +543,7 @@ omit Hg
 (lift_hom G f P g Hg).map_pow x n
 
 local attribute [instance, priority 100] is_ring_hom.comp
-theorem lift_unique (F : direct_limit G f → P) [is_ring_hom F] (x) :
+theorem lift_unique [nonempty ι] (F : direct_limit G f → P) [is_ring_hom F] (x) :
   F x = lift G f P (λ i x, F $ of G f i x) (λ i j hij x, by rw [of_f]) x :=
 direct_limit.induction_on x $ λ i x, by rw lift_of
 
@@ -528,13 +554,13 @@ end ring
 
 namespace field
 
-variables [Π i, field (G i)]
-variables (f : Π i j, i ≤ j → G i → G j) [Π i j hij, is_ring_hom (f i j hij)]
-variables [directed_system G f]
+variables [nonempty ι] [Π i, field (G i)]
+variables (f : Π i j, i ≤ j → G i → G j)
 
 namespace direct_limit
 
-instance nontrivial : nontrivial (ring.direct_limit G f) :=
+instance nontrivial [Π i j hij, is_ring_hom (f i j hij)] [directed_system G f] :
+  nontrivial (ring.direct_limit G f) :=
 ⟨⟨0, 1, nonempty.elim (by apply_instance) $ assume i : ι, begin
   change (0 : ring.direct_limit G f) ≠ 1,
   rw ← ring.direct_limit.of_one,
@@ -552,6 +578,7 @@ ring.direct_limit.induction_on p $ λ i x H,
 section
 open_locale classical
 
+/-- Noncomputable multiplicative inverse in a direct limit of fields. -/
 noncomputable def inv (p : ring.direct_limit G f) : ring.direct_limit G f :=
 if H : p = 0 then 0 else classical.some (direct_limit.exists_inv G f H)
 
@@ -561,7 +588,9 @@ by rw [inv, dif_neg hp, classical.some_spec (direct_limit.exists_inv G f hp)]
 protected theorem inv_mul_cancel {p : ring.direct_limit G f} (hp : p ≠ 0) : inv G f p * p = 1 :=
 by rw [_root_.mul_comm, direct_limit.mul_inv_cancel G f hp]
 
-protected noncomputable def field : field (ring.direct_limit G f) :=
+/-- Noncomputable field structure on the direct limit of fields. -/
+protected noncomputable def field [Π i j hij, is_ring_hom (f i j hij)] [directed_system G f] :
+  field (ring.direct_limit G f) :=
 { inv := inv G f,
   mul_inv_cancel := λ p, direct_limit.mul_inv_cancel G f,
   inv_zero := dif_pos rfl,

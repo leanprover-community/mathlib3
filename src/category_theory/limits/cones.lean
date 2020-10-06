@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.const
+import category_theory.discrete_category
 import category_theory.yoneda
 import category_theory.reflects_isomorphisms
 
@@ -84,6 +85,13 @@ structure cone (F : J ⥤ C) :=
 (X : C)
 (π : (const J).obj X ⟶ F)
 
+instance inhabited_cone (F : discrete punit ⥤ C) : inhabited (cone F) :=
+⟨{ X := F.obj punit.star,
+  π :=
+  { app := λ X, match X with
+    | punit.star := 𝟙 _
+    end } }⟩
+
 @[simp, reassoc] lemma cone.w {F : J ⥤ C} (c : cone F) {j j' : J} (f : j ⟶ j') :
   c.π.app j ≫ F.map f = c.π.app j' :=
 by { rw ← (c.π.naturality f), apply id_comp }
@@ -98,6 +106,13 @@ A `c : cocone F` is
 structure cocone (F : J ⥤ C) :=
 (X : C)
 (ι : F ⟶ (const J).obj X)
+
+instance inhabited_cocone (F : discrete punit ⥤ C) : inhabited (cocone F) :=
+⟨{ X := F.obj punit.star,
+  ι :=
+  { app := λ X, match X with
+    | punit.star := 𝟙 _
+    end } }⟩
 
 @[simp, reassoc] lemma cocone.w {F : J ⥤ C} (c : cocone F) {j j' : J} (f : j ⟶ j') :
   F.map f ≫ c.ι.app j' = c.ι.app j :=
@@ -114,6 +129,7 @@ def equiv (F : J ⥤ C) : cone F ≅ Σ X, F.cones.obj X :=
   hom_inv_id' := begin ext, cases x, refl, end,
   inv_hom_id' := begin ext, cases x, refl, end }
 
+/-- A map to the vertex of a cone naturally induces a cone by composition. -/
 @[simp] def extensions (c : cone F) : yoneda.obj c.X ⟶ F.cones :=
 { app := λ X f, (const J).map f ≫ c.π }
 
@@ -142,6 +158,7 @@ def equiv (F : J ⥤ C) : cocone F ≅ Σ X, F.cocones.obj X :=
   hom_inv_id' := begin ext, cases x, refl, end,
   inv_hom_id' := begin ext, cases x, refl, end }
 
+/-- A map from the vertex of a cocone naturally induces a cocone by composition. -/
 @[simp] def extensions (c : cocone F) : coyoneda.obj (op c.X) ⟶ F.cocones :=
 { app := λ X f, c.ι ≫ (const J).map f }
 
@@ -172,6 +189,9 @@ commutes with the cone legs. -/
 
 restate_axiom cone_morphism.w'
 attribute [simp, reassoc] cone_morphism.w
+
+instance inhabited_cone_morphism (A : cone F) : inhabited (cone_morphism A A) :=
+⟨{ hom := 𝟙 _}⟩
 
 /-- The category of cones on a given diagram. -/
 @[simps] instance cone.category : category.{v} (cone F) :=
@@ -335,6 +355,9 @@ which commutes with the cocone legs. -/
 @[ext] structure cocone_morphism (A B : cocone F) :=
 (hom : A.X ⟶ B.X)
 (w'  : ∀ j : J, A.ι.app j ≫ hom = B.ι.app j . obviously)
+
+instance inhabited_cocone_morphism (A : cocone F) : inhabited (cocone_morphism A A) :=
+⟨{ hom := 𝟙 _ }⟩
 
 restate_axiom cocone_morphism.w'
 attribute [simp, reassoc] cocone_morphism.w

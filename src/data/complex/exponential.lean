@@ -1078,6 +1078,10 @@ begin
   convert exp_bound hxc hn; norm_cast
 end
 
+/-- A finite initial segment of the exponential series, followed by an arbitrary tail.
+For fixed `n` this is just a linear map wrt `r`, and each map is a simple linear function
+of the previous (see `exp_near_succ`), with `exp_near n x r ⟶ exp x` as `n ⟶ ∞`,
+for any `r`. -/
 def exp_near (n : ℕ) (x r : ℝ) : ℝ := ∑ m in range n, x ^ m / m! + x ^ n / n! * r
 
 @[simp] theorem exp_near_zero (x r) : exp_near 0 x r = r := by simp [exp_near]

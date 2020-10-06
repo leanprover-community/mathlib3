@@ -960,13 +960,6 @@ lemma measurable_of_tendsto_nnreal {f : ℕ → α → ℝ≥0} {g : α → ℝ�
   (hf : ∀ i, measurable (f i)) (lim : tendsto f at_top (𝓝 g)) : measurable g :=
 measurable_of_tendsto_nnreal' at_top hf lim at_top_countable_basis (λ i, countable_encodable _)
 
-lemma measurable_of_tendsto_nnreal'' {ι ι'} {f : ι → α → ℝ≥0} {g : α → ℝ≥0} (u : filter ι)
-  [ne_bot u] (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) {p : ι' → Prop}
-  {s : ι' → set ι} (hu : u.has_countable_basis p s) : measurable g :=
-begin
-  have := hu.countable.to_encodable,
-end
-
 /-- A limit (over a general filter) of measurable functions valued in a metric space is measurable.
 The assumption `hs` can be dropped using `filter.is_countably_generated.has_antimono_basis`, but we
 don't need that case yet. -/

@@ -15,31 +15,24 @@ by cases mod_two_eq_zero_or_one n with h h; simp [h]
 @[simp] theorem mod_two_ne_zero {n : nat} : ¬ n % 2 = 0 ↔ n % 2 = 1 :=
 by cases mod_two_eq_zero_or_one n with h h; simp [h]
 
-/-- A natural number `n` is `even` if `2 | n`. -/
-def even (n : nat) : Prop := 2 ∣ n
-
 theorem even_iff {n : nat} : even n ↔ n % 2 = 0 :=
 ⟨λ ⟨m, hm⟩, by simp [hm], λ h, ⟨n / 2, (mod_add_div n 2).symm.trans (by simp [h])⟩⟩
+
+theorem odd_iff {n : nat} : odd n ↔ n % 2 = 1 :=
+⟨λ ⟨m, hm⟩, by { rw [hm, add_mod], norm_num },
+ λ h, ⟨n / 2, (mod_add_div n 2).symm.trans (by { rw h, abel })⟩⟩
 
 lemma not_even_iff {n : ℕ} : ¬ even n ↔ n % 2 = 1 :=
 by rw [even_iff, mod_two_ne_zero]
 
-/-- A natural number `n` is `odd` if it is not even.  The mathlib API
-for parity is developed in terms of `even`; to avoid duplication,
-results should not be stated in terms of `odd`.  The purpose of this
-definition is for code outside mathlib that wishes to have a formal
-statement that is as literal a translation as possible of the
-corresponding informal statement, where that informal statement refers
-to odd numbers. -/
-def odd (n : ℕ) : Prop := ¬ even n
+@[simp] lemma odd_iff_not_even {n : ℕ} : odd n ↔ ¬ even n :=
+by rw [not_even_iff, odd_iff]
 
-@[simp] lemma odd_def (n : ℕ) : odd n ↔ ¬ even n := iff.rfl
-
-instance : decidable_pred even :=
+instance : decidable_pred (even : ℕ → Prop) :=
 λ n, decidable_of_decidable_of_iff (by apply_instance) even_iff.symm
 
-instance decidable_pred_odd : decidable_pred odd :=
-λ n, decidable_of_decidable_of_iff (by apply_instance) not_even_iff.symm
+instance decidable_pred_odd : decidable_pred (odd : ℕ → Prop) :=
+λ n, decidable_of_decidable_of_iff (by apply_instance) odd_iff_not_even.symm
 
 mk_simp_attribute parity_simps "Simp attribute for lemmas about `even`"
 
@@ -61,7 +54,7 @@ begin
   exact @modeq.modeq_add _ _ 1 _ 1 h₁ h₂
 end
 
-theorem even.add {m n : ℕ} (hm : m.even) (hn : n.even) : (m + n).even :=
+theorem even.add {m n : ℕ} (hm : even m) (hn : even n) : even (m + n) :=
 even_add.2 $ by simp only [*]
 
 @[simp] theorem not_even_bit1 (n : nat) : ¬ even (bit1 n) :=
@@ -82,7 +75,7 @@ begin
   by_cases h : even n; simp [h]
 end
 
-theorem even.sub {m n : ℕ} (hm : m.even) (hn : n.even) : (m - n).even :=
+theorem even.sub {m n : ℕ} (hm : even m) (hn : even n) : even (m - n) :=
 (le_total n m).elim
   (λ h, by simp only [even_sub h, *])
   (λ h, by simp only [sub_eq_zero_of_le h, even_zero])
@@ -100,13 +93,13 @@ begin
   exact @modeq.modeq_mul _ _ 1 _ 1 h₁ h₂
 end
 
-/-- If `m` and `n` are natural numbers, then the natural number `m^n` is even 
+/-- If `m` and `n` are natural numbers, then the natural number `m^n` is even
 if and only if `m` is even and `n` is positive. -/
 @[parity_simps] theorem even_pow {m n : nat} : even (m^n) ↔ even m ∧ n ≠ 0 :=
 by { induction n with n ih; simp [*, pow_succ', even_mul], tauto }
 
 lemma even_div {a b : ℕ} : even (a / b) ↔ a % (2 * b) / b = 0 :=
-by rw [even, dvd_iff_mod_eq_zero, nat.div_mod_eq_mod_mul_div, mul_comm]
+by rw [even_iff_two_dvd, dvd_iff_mod_eq_zero, nat.div_mod_eq_mod_mul_div, mul_comm]
 
 theorem neg_one_pow_eq_one_iff_even {α : Type*} [ring α] {n : ℕ} (h1 : (-1 : α) ≠ 1):
   (-1 : α) ^ n = 1 ↔ even n :=

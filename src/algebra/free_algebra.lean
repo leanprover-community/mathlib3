@@ -294,101 +294,47 @@ begin
 end
 (by { ext, simp, })
 
-/-- A proof by grade requires the following proofs. Once assembled, use `grade_proof.induction` -/
-structure grade_proof (C : free_algebra R X → Prop) : Prop :=
-(grade0 : Π r, C (algebra_map R (free_algebra R X) r))
-(grade1 : Π x, C (ι R x))
-(mul : Π {a b}, C a → C b → C (a * b))
-(add : Π {a b}, C a → C b → C (a + b))
+end free_algebra
 
-namespace grade_proof
+-- There is something weird in the above namespace that breaks the typeclass resolution of `has_coe_to_sort` below.
+-- Closing it and reopening it fixes it...
+namespace free_algebra
 
-/-- auxiliary type to bundle each element with its proof -/
-@[nolint unused_arguments]
-def aux {C : free_algebra R X → Prop} (p : grade_proof C) :=
-{value // C value}
+/-- An induction principle for the free algebra.
 
-variables {C : free_algebra R X → Prop} (p : grade_proof C)
-
-instance : has_coe (aux p) (free_algebra R X) := ⟨subtype.val⟩
-
-namespace aux
-
--- declare these first so that instances below can use simp
-@[simps mul] instance : has_mul (aux p) := ⟨λ a b, ⟨↑a * ↑b, p.mul a.prop b.prop⟩⟩
-@[simps add] instance : has_add (aux p) := ⟨λ a b, ⟨↑a + ↑b, p.add a.prop b.prop⟩⟩
-@[simps zero] instance : has_zero (aux p) := ⟨⟨0, p.grade0 0⟩⟩
-@[simps one] instance : has_one (aux p) := ⟨⟨1, p.grade0 1⟩⟩
-
-instance : inhabited (aux p) := ⟨0⟩
-
-/-- semiring operates on `↑x`, and constructs proofs automatically -/
-@[simps mul]
-instance : semiring (aux p) := {
-  add_assoc := by simp [add_assoc],
-  zero_add := by simp,
-  add_zero := by simp,
-  add_comm := by simp [add_comm],
-  mul_assoc := by simp [mul_assoc],
-  one_mul := by simp,
-  mul_one := by simp,
-  zero_mul := by simp,
-  mul_zero := by simp,
-  left_distrib := by simp [left_distrib],
-  right_distrib := by simp [right_distrib],
-  ..aux.has_add p,
-  ..aux.has_mul p,
-  ..aux.has_one p,
-  ..aux.has_zero p, }
-
-/-- algebra operates on `↑x`, and constructs proofs automatically -/
-instance : algebra R (aux p) := {
-  smul := λ r a, ⟨algebra_map R _ r, p.grade0 r⟩ * a,
-  to_fun := λ r, ⟨algebra_map R _ r, p.grade0 r⟩,
-  map_one' := by simp,
-  map_mul' := by simp,
-  map_zero' := by simp,
-  map_add' := by simp,
-  commutes' := by simp [algebra.commutes],
-  smul_def' := by simp, }
-
-
-/-- projecting with `↑` preserves algebra operations -/
-def coe_hom : aux p →ₐ[R] free_algebra R X := {
-  to_fun := λ x, x,
-  map_one' := by simp,
-  map_mul' := by simp,
-  map_zero' := by simp,
-  map_add' := by simp,
-  commutes' := by {
-    rw ← ring_hom.to_fun_eq_coe,
-    rw algebra_map,
-    unfold algebra.to_ring_hom,
-    simp, }, }
-
-lemma coe_hom_eq (a : aux p) : coe_hom p a = (a : free_algebra R X) := rfl
-
-/-- construct a bundled proof for a grade-1 element, x -/
-def of (x : X) : aux p := ⟨ι R x, p.grade1 x⟩
-
-end aux
-
-include p
-
-/-- Convert a `grade_proof` instance to a proof for all elements of the algebra -/
+If `C` holds for the `algebra_map` of `r : R` into `free_algebra R X`, the `ι` of `x : X`, and is
+preserved under addition and muliplication, then it holds for all of `free_algebra R X`.
+-/
 @[elab_as_eliminator]
-lemma induction (a) : C a :=
+lemma induction 
+  {C : free_algebra R X → Prop}
+  (h_grade0 : Π r, C (algebra_map R (free_algebra R X) r))
+  (h_grade1 : Π x, C (ι R x))
+  (h_mul : Π (a b), C a → C b → C (a * b))
+  (h_add : Π (a b), C a → C b → C (a + b)) (a : free_algebra R X) : C a :=
 begin
-  convert subtype.prop ((lift R $ aux.of p) a),
-  rw ←aux.coe_hom_eq,
+  -- the arguments are enough to construct a subalgebra
+  let s : subalgebra R (free_algebra R X) := {
+    carrier := C,
+    one_mem' := h_grade0 1,
+    zero_mem' := h_grade0 0,
+    mul_mem' := h_mul,
+    add_mem' := h_add,
+    algebra_map_mem' := h_grade0, },
+
+  -- and a mapping into it from X
+  let of : X → s := λ x, ⟨ι R x, h_grade1 x⟩,
+  
+  convert subtype.prop (lift R of a),
+
+  -- this mess eventually uses lift_ι_apply
+  rw ←subalgebra.coe_val,
   rw ←alg_hom.comp_apply,
   conv_lhs {rw ←@alg_hom.id_apply R _ _ _ _ a},
   revert a,
   rw ←alg_hom.ext_iff,
   ext,
-  simp [aux.coe_hom_eq, aux.of],
+  squeeze_simp [of],
 end
-
-end grade_proof
 
 end free_algebra

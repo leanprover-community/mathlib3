@@ -124,7 +124,6 @@ lemma preserves_seq :
 lemma preserves_map {α β} (x : α → β) (y : F α) : η (x <$> y) = x <$> η y :=
 by rw [← pure_seq_eq_map, η.preserves_seq]; simp with functor_norm
 
-@[functor_norm]
 lemma preserves_map' {α β} (x : α → β) : @η _ ∘ functor.map x = functor.map x ∘ @η _ :=
 by { ext y, exact preserves_map η x y }
 

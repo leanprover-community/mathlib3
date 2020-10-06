@@ -5,10 +5,35 @@ Authors: Johan Commelin
 -/
 import tactic.basic
 
+/-!
+# Types with a unique term
+
+In this file we define a typeclass `unique`,
+which expresses that a type has a unique term.
+In other words, a type that is `inhabited` and a `subsingleton`.
+
+## Main declaration
+
+* `unique`: a typeclass that expresses that a type has a unique term.
+
+## Implementation details
+
+The typeclass `unique α` is implemented as a type,
+rather than a `Prop`-valued predicate,
+for good definitional properties of the default term.
+
+There can not be an instance for `inhabited α` + `subsingleton α` to `unique α`
+because it would lead to loops in typeclass inference.
+-/
+
 universes u v w
 
 variables {α : Sort u} {β : Sort v} {γ : Sort w}
 
+/-- `unique α` expresses that `α` is a type with a unique term `default α`.
+
+This is implemented as a type, rather than a `Prop`-valued predicate,
+for good definitional properties of the default term. -/
 @[ext]
 structure unique (α : Sort u) extends inhabited α :=
 (uniq : ∀ a:α, a = default)

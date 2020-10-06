@@ -86,7 +86,8 @@ instance [topological_group α] [topological_space β] [group β] [topological_g
 
 attribute [instance] prod.topological_add_group
 
-@[to_additive]
+/-- Multiplication from the left in a topological group as a homeomorphism.-/
+@[to_additive "Addition from the left in a topological additive group as a homeomorphism."]
 protected def homeomorph.mul_left [topological_group α] (a : α) : α ≃ₜ α :=
 { continuous_to_fun  := continuous_const.mul continuous_id,
   continuous_inv_fun := continuous_const.mul continuous_id,
@@ -100,7 +101,8 @@ lemma is_open_map_mul_left [topological_group α] (a : α) : is_open_map (λ x, 
 lemma is_closed_map_mul_left [topological_group α] (a : α) : is_closed_map (λ x, a * x) :=
 (homeomorph.mul_left a).is_closed_map
 
-@[to_additive]
+/-- Multiplication from the right in a topological group as a homeomorphism.-/
+@[to_additive "Addition from the right in a topological additive group as a homeomorphism."]
 protected def homeomorph.mul_right
   {α : Type*} [topological_space α] [group α] [topological_group α] (a : α) :
   α ≃ₜ α :=
@@ -116,7 +118,8 @@ lemma is_open_map_mul_right [topological_group α] (a : α) : is_open_map (λ x,
 lemma is_closed_map_mul_right [topological_group α] (a : α) : is_closed_map (λ x, x * a) :=
 (homeomorph.mul_right a).is_closed_map
 
-@[to_additive]
+/-- Inversion in a topological group as a homeomorphism.-/
+@[to_additive "Negation in a topological group as a homeomorphism."]
 protected def homeomorph.inv (α : Type*) [topological_space α] [group α] [topological_group α] :
   α ≃ₜ α :=
 { continuous_to_fun  := continuous_inv,

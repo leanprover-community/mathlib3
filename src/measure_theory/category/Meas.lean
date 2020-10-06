@@ -28,6 +28,7 @@ noncomputable theory
 open category_theory measure_theory
 universes u v
 
+/-- The category of measurable spaces and measurable functions. -/
 @[derive has_coe_to_sort]
 def Meas : Type (u+1) := bundled measurable_space
 

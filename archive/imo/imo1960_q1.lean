@@ -90,7 +90,7 @@ begin
     have h4: c = n / 11, from h2.symm ▸ h3,
     unfold fails_sum,
     rw [h2.symm, h4],
-    simp,
+    simp only [not_not],
     exact h1.right.right },
   { have h5: n ≥ 100, from ge_100 n h1,
     linarith },

@@ -5,6 +5,19 @@ Authors: Damiano Testa
 -/
 import data.polynomial.degree.basic
 
+/-!
+# Trailing degree of univariate polynomials
+
+## Main definitions
+
+* `trailing_degree p`: the multiplicity of `X` in the polynomial `p`
+* `nat_trailing_degree`: a variant of `trailing_degree` that takes values in the natural numbers
+* `trailing_coeff`: the coefficient at index `nat_trailing_degree p`
+
+Converts most results about `degree`, `nat_degree` and `leading_coeff` to results about the bottom
+end of a polynomial
+-/
+
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
@@ -18,12 +31,15 @@ variables {R : Type u} {S : Type v} {a b : R} {n m : ℕ}
 section semiring
 variables [semiring R] {p q r : polynomial R}
 
-/-- `trailing_degree p` is the multiplicity of `x` in the polynomial `p`, i.e. the smallest `X`-exponent in `p`.
-`trailing_degree p = some n` when `p ≠ 0` and `n` is the smallest power of `X` that appears in `p`, otherwise
+/-- `trailing_degree p` is the multiplicity of `x` in the polynomial `p`, i.e. the smallest
+`X`-exponent in `p`.
+`trailing_degree p = some n` when `p ≠ 0` and `n` is the smallest power of `X` that appears
+in `p`, otherwise
 `trailing_degree 0 = ⊤`. -/
 def trailing_degree (p : polynomial R) : with_top ℕ := p.support.inf some
 
-lemma trailing_degree_lt_wf : well_founded (λp q : polynomial R, trailing_degree p < trailing_degree q) :=
+lemma trailing_degree_lt_wf : well_founded
+(λp q : polynomial R, trailing_degree p < trailing_degree q) :=
 inv_image.wf trailing_degree (with_top.well_founded_lt nat.lt_wf)
 
 /-- `nat_trailing_degree p` forces `trailing_degree p` to ℕ, by defining nat_trailing_degree 0 = 0. -/
@@ -137,9 +153,7 @@ by rw [← C_1]; exact le_trailing_degree_C
 @[simp] lemma nat_trailing_degree_C (a : R) : nat_trailing_degree (C a) = 0 :=
 begin
   by_cases ha : a = 0,
-  { have : C a = 0, { rw [ha, C_0] },
-    rw [nat_trailing_degree, trailing_degree_eq_top.2 this],
-    refl },
+  { rw [ha, C_0, nat_trailing_degree_zero], },
   { rw [nat_trailing_degree, trailing_degree_C ha], refl }
 end
 
@@ -167,13 +181,8 @@ begin
 end
 
 @[simp] lemma coeff_nat_trailing_degree_pred_eq_zero {p : polynomial R} {hp : (0 : with_top ℕ) < nat_trailing_degree p} : p.coeff (p.nat_trailing_degree - 1) = 0 :=
-begin
-  apply coeff_eq_zero_of_lt_nat_trailing_degree,
-  have inint : (p.nat_trailing_degree - 1 : int) < p.nat_trailing_degree,
-  { exact int.pred_self_lt p.nat_trailing_degree, },
-  norm_cast at *,
-  exact inint,
-end
+coeff_eq_zero_of_lt_nat_trailing_degree $ nat.sub_lt
+  ((with_top.zero_lt_coe (nat_trailing_degree p)).mp hp) nat.one_pos
 
 theorem le_trailing_degree_C_mul_X_pow (r : R) (n : ℕ) : (n : with_top ℕ) ≤ trailing_degree (C r * X^n) :=
 begin
@@ -192,21 +201,14 @@ by simpa only [C_1, one_mul, pow_one] using le_trailing_degree_C_mul_X_pow (1:R)
 lemma nat_trailing_degree_X_le : (X : polynomial R).nat_trailing_degree ≤ 1 :=
 begin
   by_cases h : X = 0,
-  { rw [h, nat_trailing_degree_zero],
-    exact zero_le 1, },
-  { apply le_of_eq,
-    rw [← trailing_degree_eq_iff_nat_trailing_degree_eq h, ← one_mul X, ← C_1, ← pow_one X],
-    have ne0p : (1 : polynomial R) ≠ 0,
-    { intro,
-      apply h,
-      rw [← one_mul X, a, zero_mul], },
-    have ne0R : (1 : R) ≠ 0,
-    { refine (push_neg.not_eq 1 0).mp _,
+    { rw [h, nat_trailing_degree_zero],
+      exact zero_le 1, },
+    { unfold nat_trailing_degree,
+      unfold trailing_degree,
+      rw [support_X, inf_singleton, option.get_or_else_some],
       intro,
-      apply ne0p,
-      rw [← C_1 , ← C_0, C_inj],
-      assumption, },
-    exact trailing_degree_monomial (1:ℕ) ne0R, },
+      apply h,
+      rw [← mul_one X, ← C_1, a, C_0, mul_zero], },
 end
 
 @[simp] lemma trailing_coeff_eq_zero : trailing_coeff p = 0 ↔ p = 0 :=
@@ -237,6 +239,7 @@ begin
 end
 
 end semiring
+
 
 section nonzero_semiring
 variables [semiring R] [nontrivial R] {p q : polynomial R}

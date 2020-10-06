@@ -51,7 +51,7 @@ instance : inhabited znum := ⟨0⟩
 namespace pos_num
 
   /--
-  Appending a bit to a `pos_num`, where `bit tt x = x1` and `bit ff x = x0`.
+  `bit b n` appends the bit `b` to the end of `n`, where `bit tt x = x1` and `bit ff x = x0`.
   -/
   def bit (b : bool) : pos_num → pos_num := cond b bit1 bit0
 
@@ -213,21 +213,21 @@ namespace num
   instance : has_add num := ⟨num.add⟩
 
   /--
-  Appending a `0` to a `num`.
+  `bit0 n` appends a `0` to the end of `n`, where `bit0 n = n0`.
   -/
   protected def bit0 : num → num
   | 0       := 0
   | (pos n) := pos (pos_num.bit0 n)
 
   /--
-  Appending a `1` to a `num`.
+  `bit1 n` appends a `1` to the end of `n`, where `bit1 n = n1`.
   -/
   protected def bit1 : num → num
   | 0       := 1
   | (pos n) := pos (pos_num.bit1 n)
 
   /--
-  Appending a bit to a `num`, where `bit tt x = x1` and `bit ff x = x0`.
+  `bit b n` appends the bit `b` to the end of `n`, where `bit tt x = x1` and `bit ff x = x0`.
   -/
   def bit (b : bool) : num → num := cond b num.bit1 num.bit0
 
@@ -334,7 +334,7 @@ namespace znum
   | (neg a) := neg (pos_num.succ a)
 
   /--
-  Appending a `0` to a `znum`.
+  `bit0 n` appends a `0` to the end of `n`, where `bit0 n = n0`.
   -/
   protected def bit0 : znum → znum
   | 0       := 0
@@ -342,7 +342,7 @@ namespace znum
   | (neg n) := neg (pos_num.bit0 n)
 
   /--
-  Appending a `1` to a `znum`, mapping `x` to `2 * x + 1`.
+  `bit1 x` appends a `1` to the end of `x`, mapping `x` to `2 * x + 1`.
   -/
   protected def bit1 : znum → znum
   | 0       := 1
@@ -350,7 +350,7 @@ namespace znum
   | (neg n) := neg (num.cases_on (pred' n) 1 pos_num.bit1)
 
   /--
-  Appending a `1` to a `znum`, mapping `x` to `2 * x - 1`.
+  `bitm1 x` appends a `1` to the end of `x`, mapping `x` to `2 * x - 1`.
   -/
   protected def bitm1 : znum → znum
   | 0       := neg 1

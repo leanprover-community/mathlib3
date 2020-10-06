@@ -596,10 +596,8 @@ begin
     ← le_div_iff B, add_div, mul_div_assoc, mul_div_assoc,
     mul_comm (f x), mul_comm (f z)] at this,
   rw [eq_comm, ← sub_eq_iff_eq_add] at hab; subst a,
-  convert this,
-  symmetry,
-  simp only [div_eq_iff (ne_of_gt B)], simp only [y],
-   ring
+  convert this;
+  { symmetry, apply (div_eq_iff (ne_of_gt B)).mpr, simp only [y], ring, },
 end
 
 /-- For a function `f` defined on a subset `D` of `ℝ`, if `f` is convex on `D`, then for any three

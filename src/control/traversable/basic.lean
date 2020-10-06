@@ -93,13 +93,13 @@ lemma preserves_seq :
 lemma preserves_map {α β} (x : α → β) (y : F α) : η (x <$> y) = x <$> η y :=
 by rw [← pure_seq_eq_map, η.preserves_seq]; simp with functor_norm
 
-/-- The (trivial) applicative transformation between identity functors. -/
-def id_transformation : applicative_transformation id id :=
+/-- The identity applicative transformation from a functor to itself. -/
+def id : applicative_transformation F F :=
 { app := λ α, id,
   preserves_pure' := by simp,
   preserves_seq' := λ a b x y, by simp }
 
-instance : inhabited (applicative_transformation id id) := ⟨id_transformation⟩
+instance : inhabited (applicative_transformation F F) := ⟨id⟩
 
 end applicative_transformation
 

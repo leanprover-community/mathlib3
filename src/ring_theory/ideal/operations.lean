@@ -218,7 +218,7 @@ begin
   rw [ring_hom.map_mul, hφ1, mul_one]
 end
 
-/-- The homomorphism from `(∏ i, R)/(∏ i, f i)` to `∏ i, (R / f i)` featured in the Chinese
+/-- The homomorphism from `R/(⋂ i, f i)` to `∏ i, (R / f i)` featured in the Chinese
   Remainder Theorem. It is bijective if the ideals `f i` are comaximal. -/
 def quotient_inf_to_pi_quotient (f : ι → ideal R) :
   (⨅ i, f i).quotient →+* Π i, (f i).quotient :=

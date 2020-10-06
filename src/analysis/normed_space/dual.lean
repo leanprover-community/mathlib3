@@ -125,8 +125,8 @@ Given some x in an inner product space, we can define its dual as the continuous
 def to_dual (x : E) : normed_space.dual 𝕜 E :=
 linear_map.mk_continuous
 { to_fun := λ y, ⟪x, y⟫,
-  map_add' := by simp only [inner_add_right, forall_const, eq_self_iff_true],
-  map_smul' := by simp [inner_smul_right] }
+  map_add' := λ _ _, inner_add_right,
+  map_smul' := λ _ _, inner_smul_right }
 ∥x∥
 (λ y, by { rw [is_R_or_C.norm_eq_abs], exact abs_inner_le_norm _ _ })
 

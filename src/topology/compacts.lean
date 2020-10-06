@@ -113,5 +113,3 @@ set.inclusion $ λ s hs, hs.2.is_closed
 end nonempty_compacts
 
 end topological_space
-
-#lint

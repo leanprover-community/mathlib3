@@ -1965,6 +1965,13 @@ lemma prod_take_succ :
 lemma length_pos_of_prod_ne_one (L : list α) (h : L.prod ≠ 1) : 0 < L.length :=
 by { cases L, { simp at h, cases h, }, { simp, }, }
 
+lemma prod_update_nth : ∀ (L : list α) (n : ℕ) (a : α),
+  (L.update_nth n a).prod =
+    (L.take n).prod * (if n < L.length then a else 1) * (L.drop (n + 1)).prod
+| (x::xs) 0     a := by simp [update_nth]
+| (x::xs) (i+1) a := by simp [update_nth, prod_update_nth xs i a, mul_assoc]
+| []      _     _ := by simp [update_nth, (nat.zero_le _).not_lt]
+
 end monoid
 
 @[simp]
@@ -2489,6 +2496,12 @@ by simp only [pmap_eq_map_attach, mem_map, mem_attach, true_and, subtype.exists]
 by induction l; [refl, simp only [*, pmap, length]]
 
 @[simp] lemma length_attach (L : list α) : L.attach.length = L.length := length_pmap
+
+@[simp] lemma pmap_eq_nil {p : α → Prop} {f : Π a, p a → β}
+  {l H} : pmap f l H = [] ↔ l = [] :=
+by rw [← length_eq_zero, length_pmap, length_eq_zero]
+
+@[simp] lemma attach_eq_nil (l : list α) : l.attach = [] ↔ l = [] := pmap_eq_nil
 
 /-! ### find -/
 

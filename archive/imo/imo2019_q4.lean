@@ -5,7 +5,7 @@ Authors: Floris van Doorn
 -/
 import data.padics.padic_norm ring_theory.multiplicity algebra.big_operators.intervals data.nat.log
 import data.nat.parity
-import tactic.fin_cases
+import tactic.interval_cases
 
 open_locale nat big_operators
 open multiplicity
@@ -82,18 +82,6 @@ begin
       exact_mod_cast nat.lt_succ_self _ }}
 end
 
-lemma nat_prime_iff_prime (n : ℕ) : nat.prime n ↔ prime n :=
-nat.prime_iff_prime
-
-lemma int.coe_nat_prime (n : ℕ) : prime (n : ℤ) ↔ prime n :=
-by { rw [← nat.prime_iff_prime_int, nat.prime_iff_prime] }
-
-lemma ne_zero_of_prime {α} [comm_semiring α] {p : α} (hp : prime p) : p ≠ 0 :=
-hp.1
-
-lemma not_unit_of_prime {α} [comm_semiring α] {p : α} (hp : prime p) : ¬ is_unit p :=
-hp.2.1
-
 namespace nat
 
 lemma ne_of_eq_monotone {α} [preorder α] {f : ℕ → α} (hf : monotone f)
@@ -128,9 +116,6 @@ by { change multiplicity ((2 : ℕ) : ℤ) (n! : ℤ) < _,
 end multiplicity
 open multiplicity
 
-lemma IMO2019_4_n_eq_6 : 2 ^ (6 * 6) < (6 * (6 - 1) / 2)! :=
-by norm_num
-
 theorem IMO2019_4_upper_bound {k n : ℕ} (hk : k > 0)
   (h : (k! : ℤ) = (range n).prod (λ i, 2 ^ n - 2 ^ i)) : n < 6 :=
 begin
@@ -155,7 +140,7 @@ begin
     refine nat.div_pos _ (by norm_num),
     refine le_trans _ (mul_le_mul hn (nat.pred_le_pred hn) (zero_le _) (zero_le _)),
     norm_num },
-  refine nat.le_induction IMO2019_4_n_eq_6 _ n hn,
+  refine nat.le_induction _ _ n hn, { norm_num },
   intros n' hn' ih,
   have h5 : 1 ≤ 2 * n',
   { apply nat.succ_le_of_lt, apply mul_pos, norm_num,
@@ -180,17 +165,11 @@ begin
     norm_num [prod_range_succ, nat.succ_mul] },
   intro h,
   have := IMO2019_4_upper_bound hk h,
-  fin_cases this,
-  rcases lt_or_eq_of_le (nat.le_of_lt_succ this) with this|rfl,
-  rcases lt_or_eq_of_le (nat.le_of_lt_succ this) with this|rfl,
-  rcases lt_or_eq_of_le (nat.le_of_lt_succ this) with this|rfl,
-  rcases lt_or_eq_of_le (nat.le_of_lt_succ this) with this|rfl,
-  rcases lt_or_eq_of_le (nat.le_of_lt_succ this) with this|rfl,
-  { exfalso, apply not_le_of_lt this, exact nat.succ_le_of_lt hn },
+  interval_cases n,
   { left, congr, norm_num at h, norm_cast at h, rw [nat.factorial_eq_one] at h, apply antisymm h,
     apply nat.succ_le_of_lt hk },
-  { right, congr, norm_num [prod_range_succ] at h, norm_cast at h, rw [← nat.factorial_inj], exact h,
-    rw [h], norm_num },
+  { right, congr, norm_num [prod_range_succ] at h, norm_cast at h, rw [← nat.factorial_inj],
+    exact h, rw [h], norm_num },
   all_goals { exfalso, norm_num [prod_range_succ] at h, norm_cast at h, },
   { refine nat.ne_of_eq_monotone nat.monotone_factorial 5 _ _ _ h; norm_num },
   { refine nat.ne_of_eq_monotone nat.monotone_factorial 7 _ _ _ h; norm_num },

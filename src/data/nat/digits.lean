@@ -557,7 +557,7 @@ begin
   exact t,
 end
 
-/-! # `norm_digits` tactic -/
+/-! ### `norm_digits` tactic -/
 
 namespace norm_digits
 

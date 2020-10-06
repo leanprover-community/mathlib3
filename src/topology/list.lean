@@ -5,7 +5,8 @@ Authors: Johannes Hölzl
 
 Topology on lists and vectors.
 -/
-import topology.constructions topology.algebra.group
+import topology.constructions
+import topology.algebra.group
 
 open topological_space set filter
 open_locale topological_space filter

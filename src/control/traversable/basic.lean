@@ -59,6 +59,9 @@ section applicative_transformation
 variables (F : Type u → Type v) [applicative F] [is_lawful_applicative F]
 variables (G : Type u → Type w) [applicative G] [is_lawful_applicative G]
 
+/-- A transformation between applicative functors.  It is similar to a
+natural transformation, but instead the function `app` preserves the
+`pure` and `seq` (`<*>`) operations. -/
 structure applicative_transformation : Type (max (u+1) v w) :=
 (app : Π α : Type u, F α → G α)
 (preserves_pure' : ∀ {α : Type u} (x : α), app _ (pure x) = pure x)
@@ -160,6 +163,11 @@ end applicative_transformation
 
 open applicative_transformation
 
+/-- A traversable functor is a functor along with a way to commute
+with all applicative functors (see `sequence`).  For example, if `t`
+is the traversable functor `list` and `m` is the applicative functor
+`io`, then given a function `f : α → io β`, the function `map f` is
+`list α → list (io β)`, but `traverse f` is `list α → io (list β)`. -/
 class traversable (t : Type u → Type u) extends functor t :=
 (traverse : Π {m : Type u → Type u} [applicative m] {α β},
    (α → m β) → t α → m (t β))
@@ -177,10 +185,17 @@ variables {α β : Type u}
 
 variables {f : Type u → Type u} [applicative f]
 
+/-- A traversable functor commutes with all applicative functors. -/
 def sequence [traversable t] : t (f α) → f (t α) := traverse id
 
 end functions
 
+/-- A traversable functor is lawful if its `traverse` satisfies a
+number of additional properties.  It must send `id.mk` to `id.mk`,
+send the composition of applicative functors to the composition of the
+`traverse` of each, send each function `f` to `λ x, f <$> x`, and
+satisfy a naturality condition with respect to applicative
+transformations. -/
 class is_lawful_traversable (t : Type u → Type u) [traversable t]
   extends is_lawful_functor t : Type (u+1) :=
 (id_traverse : ∀ {α} (x : t α), traverse id.mk x = x )
@@ -215,6 +230,8 @@ variables {σ : Type u}
 variables {F : Type u → Type u}
 variables [applicative F]
 
+/-- Defines a `traverse` function on the second component of a sum type.
+This is used to give a `traversable` instance for the functor `σ ⊕ -`. -/
 protected def traverse {α β} (f : α → F β) : σ ⊕ α → F (σ ⊕ β)
 | (sum.inl x) := pure (sum.inl x)
 | (sum.inr x) := sum.inr <$> f x

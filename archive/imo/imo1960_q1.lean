@@ -40,7 +40,7 @@ have h2 : nat.digits 10 n ≠ list.nil, from list.ne_nil_of_length_eq_succ h1.le
 digits_ne_nil_iff_ne_zero.mp h2
 
 lemma ge_100 {n : ℕ} (h1 : problem_predicate n) : 100 ≤ n :=
-have h2 : 10^3 ≤ 10 * n, from begin
+have h2 : 10^3 ≤ 10 * n, begin
   rw ← h1.left,
   refine nat.base_pow_length_digits_le 10 n _ (not_zero h1),
   simp,
@@ -48,7 +48,7 @@ end,
 by linarith
 
 lemma lt_1000 {n : ℕ} (h1 : problem_predicate n) : n < 1000 :=
-have h2 : n < 10^3, from begin
+have h2 : n < 10^3, begin
   rw ← h1.left,
   refine nat.lt_base_pow_length_digits _,
   simp,
@@ -83,7 +83,7 @@ def fails_sum (c : ℕ) : Prop := c ≠ sum_of_digit_squares (c*11)
 lemma multiples_of_11 {n : ℕ} (h1 : problem_predicate n) :
 ∃ c : ℕ, ¬ fails_sum c ∧ 9 < c ∧ c < 91 ∧ n = c * 11 :=
 begin
-  obtain ⟨c, h2⟩ : ∃ c : ℕ, n = c * 11, from exists_eq_mul_left_of_dvd h1.right.left,
+  obtain ⟨c : ℕ, h2 : n = c * 11⟩ := exists_eq_mul_left_of_dvd h1.right.left,
   refine ⟨c, _, _, _, _⟩,
   { have h3 : c = (c * 11) / 11, by simp,
     have h4 : c = n / 11, from h2.symm ▸ h3,
@@ -144,7 +144,7 @@ Now we just need to combine the results from the `search` lemmas.
 
 lemma right_direction (n : ℕ) (ppn : problem_predicate n) : solution_predicate n :=
 begin
-  obtain ⟨c, h1⟩ : ∃ c : ℕ, ¬ fails_sum c ∧ 9 < c ∧ c < 91 ∧ n = c * 11, from multiples_of_11 ppn,
+  obtain ⟨c : ℕ, h1 : ¬ fails_sum c ∧ 9 < c ∧ c < 91 ∧ n = c * 11⟩ := multiples_of_11 ppn,
   obtain (h2 | h2) : fails_sum c ∨ 49 < c, from low_search h1.right.left,
   { exact absurd h2 h1.left },
   have h3 : n = c * 11, from h1.right.right.right,

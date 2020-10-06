@@ -1072,30 +1072,101 @@ namespace real
 open complex finset
 
 lemma exp_bound {x : ℝ} (hx : abs' x ≤ 1) {n : ℕ} (hn : 0 < n) :
-  abs' (exp x - ∑ m in range n, x ^ m / m!) ≤ abs' x ^ n * (n.succ * (n! * n)⁻¹) :=
+  abs' (exp x - ∑ m in range n, x ^ m / m!) ≤ abs' x ^ n * (n.succ / (n! * n)) :=
 begin
   have hxc : complex.abs x ≤ 1, by exact_mod_cast hx,
   convert exp_bound hxc hn; norm_cast
 end
 
-lemma exp_one_gt_271828182 : 2.71828182 < exp 1:=
+def exp_near (n : ℕ) (x r : ℝ) : ℝ := ∑ m in range n, x ^ m / m! + x ^ n / n! * r
+
+@[simp] theorem exp_near_zero (x r) : exp_near 0 x r = r := by simp [exp_near]
+
+@[simp] theorem exp_near_succ (n x r) : exp_near (n + 1) x r = exp_near n x (1 + x / (n+1) * r) :=
+by { simp [exp_near, range_succ, mul_add, add_left_comm, add_assoc, pow_succ],
+     field_simp [mul_assoc, mul_left_comm] }
+
+theorem exp_near_sub (n x r₁ r₂) : exp_near n x r₁ - exp_near n x r₂ = x ^ n / n! * (r₁ - r₂) :=
+by simp [exp_near, mul_sub]
+
+lemma exp_approx_end (n m : ℕ) (x : ℝ)
+  (e₁ : n + 1 = m) (h : abs' x ≤ 1) :
+  abs' (exp x - exp_near m x 0) ≤ abs' x ^ m / m! * ((m+1)/m) :=
+by { simp [exp_near], convert exp_bound h _ using 1, field_simp [mul_comm], linarith }
+
+lemma exp_approx_succ {n} {x a₁ b₁ : ℝ} (m : ℕ)
+  (e₁ : n + 1 = m) (a₂ b₂ : ℝ)
+  (e : abs' (1 + x / m * a₂ - a₁) ≤ b₁ - abs' x / m * b₂)
+  (h : abs' (exp x - exp_near m x a₂) ≤ abs' x ^ m / m! * b₂) :
+  abs' (exp x - exp_near n x a₁) ≤ abs' x ^ n / n! * b₁ :=
 begin
-  have h := exp_bound (by norm_num : abs' (1 : ℝ) ≤ 1) (by norm_num : 0 < 12),
-  rw abs_le at h,
-  replace h := h.1,
-  simp only [sum_range_succ] at h,
-  norm_num at h,
-  linarith
+  refine le_trans (_root_.abs_sub_le _ _ _)
+    (le_trans (add_le_add_right h _) _),
+  subst e₁, rw [exp_near_succ, exp_near_sub, _root_.abs_mul],
+  convert mul_le_mul_of_nonneg_left (le_sub_iff_add_le'.1 e) _,
+  { simp [mul_add, pow_succ', _root_.abs_div, ← pow_abs],
+    field_simp [mul_assoc] },
+  { simp [_root_.div_nonneg, _root_.abs_nonneg] }
 end
 
-lemma exp_one_lt_271828183 : exp 1 < 2.71828183 :=
+lemma exp_approx_end' {n} {x a b : ℝ} (m : ℕ)
+  (e₁ : n + 1 = m) (rm : ℝ) (er : ↑m = rm) (h : abs' x ≤ 1)
+  (e : abs' (1 - a) ≤ b - abs' x / rm * ((rm+1)/rm)) :
+  abs' (exp x - exp_near n x a) ≤ abs' x ^ n / n! * b :=
+by subst er; exact
+exp_approx_succ _ e₁ _ _ (by simpa using e) (exp_approx_end _ _ _ e₁ h)
+
+lemma exp_1_approx_succ_eq {n} {a₁ b₁ : ℝ} {m : ℕ}
+  (en : n + 1 = m) {rm : ℝ} (er : ↑m = rm)
+  (h : abs' (exp 1 - exp_near m 1 ((a₁ - 1) * rm)) ≤ abs' 1 ^ m / m! * (b₁ * rm)) :
+  abs' (exp 1 - exp_near n 1 a₁) ≤ abs' 1 ^ n / n! * b₁ :=
 begin
-  have h := exp_bound (by norm_num : abs' (1 : ℝ) ≤ 1) (by norm_num : 0 < 12),
-  rw abs_le at h,
-  replace h := h.2,
-  simp only [sum_range_succ] at h,
-  norm_num at h,
-  linarith
+  subst er,
+  refine exp_approx_succ _ en _ _ _ h,
+  field_simp [show (m : ℝ) ≠ 0, by norm_cast; linarith],
+end
+
+lemma exp_approx_start (x a b : ℝ)
+  (h : abs' (exp x - exp_near 0 x a) ≤ abs' x ^ 0 / 0! * b) :
+  abs' (exp x - a) ≤ b :=
+by simpa using h
+
+lemma exp_one_near_10 : abs' (exp 1 - 419314/154257) ≤ 1/10^10 :=
+begin
+  apply exp_approx_start,
+  iterate 13 { refine exp_1_approx_succ_eq (by norm_num1; refl) (by norm_cast; refl) _ },
+  norm_num1,
+  refine exp_approx_end' _ (by norm_num1; refl) _ (by norm_cast; refl) (by simp) _,
+  rw [_root_.abs_one, abs_of_pos]; norm_num1,
+end
+
+lemma exp_one_near_20 : abs' (exp 1 - 28875761731/10622799089) ≤ 1/10^20 :=
+begin
+  apply exp_approx_start,
+  iterate 21 { refine exp_1_approx_succ_eq (by norm_num1; refl) (by norm_cast; refl) _ },
+  norm_num1,
+  refine exp_approx_end' _ (by norm_num1; refl) _ (by norm_cast; refl) (by simp) _,
+  rw [_root_.abs_one, abs_of_neg]; norm_num1,
+end
+
+lemma exp_one_gt_271828182 : 2.71828182 < exp 1 :=
+lt_of_lt_of_le (by norm_num) (sub_le.1 (abs_sub_le_iff.1 exp_one_near_10).2)
+
+lemma exp_one_lt_271828183 : exp 1 < 2.71828183 :=
+lt_of_le_of_lt (sub_le_iff_le_add.1 (abs_sub_le_iff.1 exp_one_near_10).1) (by norm_num)
+
+lemma exp_neg_one_gt_0367879441 : 0.367879441 < exp (-1) :=
+begin
+  rw [exp_neg, lt_inv _ (exp_pos _)],
+  refine lt_of_le_of_lt (sub_le_iff_le_add.1 (abs_sub_le_iff.1 exp_one_near_10).1) _,
+  all_goals {norm_num},
+end
+
+lemma exp_neg_one_lt_0367879442 : exp (-1) < 0.367879442 :=
+begin
+  rw [exp_neg, inv_lt (exp_pos _)],
+  refine lt_of_lt_of_le _ (sub_le.1 (abs_sub_le_iff.1 exp_one_near_10).2),
+  all_goals {norm_num},
 end
 
 lemma cos_bound {x : ℝ} (hx : abs' x ≤ 1) :

@@ -1109,6 +1109,11 @@ lemma dense_range.dense_image {f : α → β} (hf' : dense_range f) (hf : contin
   dense (f '' s)  :=
 (hf'.mono $ hf.range_subset_closure_image_dense hs).of_closure
 
+lemma dense_range.dense_of_maps_to {f : α → β} (hf' : dense_range f) (hf : continuous f)
+  {s : set α} (hs : dense s) {t : set β} (ht : maps_to f s t) :
+  dense t :=
+(hf'.dense_image hf hs).mono ht.image_subset
+
 lemma dense_range.comp {g : β → γ} {f : κ → β} (hg : dense_range g) (hf : dense_range f)
   (cg : continuous g) :
   dense_range (g ∘ f) :=

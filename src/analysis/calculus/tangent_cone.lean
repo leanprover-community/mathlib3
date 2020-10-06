@@ -250,16 +250,6 @@ section unique_diff
 
 This section is devoted to properties of the predicates `unique_diff_within_at` and `unique_diff_on`. -/
 
-/-- Two continuous linear maps `f g : E →L[𝕜] F` are equal provided that they are equal on the
-tangent -/
-lemma unique_diff_within_at.clm_ext {s : set E} {x} (hs : unique_diff_within_at 𝕜 s x)
-  {f g : E →L[𝕜] F} (h : eq_on f g (tangent_cone_at 𝕜 s x)) :
-  f = g :=
-begin
-  ext y,
-  refine hs.1
-end
-
 lemma unique_diff_on.unique_diff_within_at {s : set E} {x} (hs : unique_diff_on 𝕜 s) (h : x ∈ s) :
   unique_diff_within_at 𝕜 s x :=
 hs x h

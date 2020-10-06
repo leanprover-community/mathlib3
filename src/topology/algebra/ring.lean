@@ -47,6 +47,7 @@ end topological_ring
 section topological_comm_ring
 variables {α : Type*} [topological_space α] [comm_ring α] [topological_ring α]
 
+/-- The closure of an ideal in a topological ring as an ideal. -/
 def ideal.closure (S : ideal α) : ideal α :=
 { carrier := closure S,
   zero_mem' := subset_closure S.zero_mem,

@@ -48,11 +48,13 @@ def monoid.pow [has_mul M] [has_one M] (a : M) : ℕ → M
 /-- The scalar multiplication in an additive monoid.
 `n •ℕ a = a+a+...+a` n times. -/
 def nsmul [has_add A] [has_zero A] (n : ℕ) (a : A) : A :=
-@monoid.pow (multiplicative A) _ { one := (0 : A) } a n
+@monoid.pow (multiplicative A) _ _ a n
 
 infix ` •ℕ `:70 := nsmul
 
-@[priority 5] instance monoid.has_pow [monoid M] : has_pow M ℕ := ⟨monoid.pow⟩
+instance monoid.has_pow [monoid M] : has_pow M ℕ := ⟨monoid.pow⟩
+
+@[simp] lemma monoid.pow_eq_has_pow [monoid M] (a : M) (n : ℕ) : monoid.pow a n = a^n := rfl
 
 /-!
 ### Commutativity
@@ -248,9 +250,11 @@ with the definition `(-n) •ℤ a = -(n •ℕ a)`.
 def gsmul (n : ℤ) (a : A) : A :=
 @gpow (multiplicative A) _ a n
 
-@[priority 10] instance group.has_pow : has_pow G ℤ := ⟨gpow⟩
+instance group.has_pow : has_pow G ℤ := ⟨gpow⟩
 
 infix ` •ℤ `:70 := gsmul
+
+@[simp] lemma group.gpow_eq_has_pow (a : G) (n : ℤ) : gpow a n = a ^ n := rfl
 
 section nat
 
@@ -485,11 +489,11 @@ end canonically_ordered_semiring
 section linear_ordered_semiring
 variable [linear_ordered_semiring R]
 
-theorem pow_pos {a : R} (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
+@[simp] theorem pow_pos {a : R} (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
 | 0     := zero_lt_one
 | (n+1) := mul_pos H (pow_pos _)
 
-theorem pow_nonneg {a : R} (H : 0 ≤ a) : ∀ (n : ℕ), 0 ≤ a ^ n
+@[simp] theorem pow_nonneg {a : R} (H : 0 ≤ a) : ∀ (n : ℕ), 0 ≤ a ^ n
 | 0     := zero_le_one
 | (n+1) := mul_nonneg H (pow_nonneg _)
 

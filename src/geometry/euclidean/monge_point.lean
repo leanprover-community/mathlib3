@@ -725,7 +725,7 @@ begin
   rcases ho with ⟨t, hto, hst⟩,
   rw hst at hps,
   rcases exists_dist_eq_circumradius_of_subset_insert_orthocenter hto hps hpi with ⟨c, hcs, hc⟩,
-  exact affine_independent_of_cospherical ⟨c, t.circumradius, hc⟩ set.subset.rfl hpi
+  exact cospherical.affine_independent ⟨c, t.circumradius, hc⟩ set.subset.rfl hpi
 end
 
 /-- Any three points in an orthocentric system span the same subspace
@@ -734,7 +734,7 @@ lemma affine_span_of_orthocentric_system {s : set P} (ho : orthocentric_system s
     {p : fin 3 → P} (hps : set.range p ⊆ s) (hpi : function.injective p) :
   affine_span ℝ (set.range p) = affine_span ℝ s :=
 begin
-  have ha := affine_independent_of_orthocentric_system ho hps hpi,
+  have ha := ho.affine_independent hps hpi,
   rcases ho with ⟨t, hto, hts⟩,
   have hs : affine_span ℝ s = affine_span ℝ (set.range t.points),
   { rw [hts, affine_span_insert_eq_affine_span ℝ t.orthocenter_mem_affine_span] },

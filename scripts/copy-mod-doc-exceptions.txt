@@ -95,11 +95,8 @@ src/control/basic.lean : line 05 : ERR_COP : Malformed or missing copyright head
 src/control/basic.lean : line 09 : ERR_MOD : Module docstring missing, or too late
 src/control/bifunctor.lean : line 05 : ERR_COP : Malformed or missing copyright header
 src/control/bifunctor.lean : line 12 : ERR_MOD : Module docstring missing, or too late
-src/control/bitraversable/instances.lean : line 04 : ERR_COP : Malformed or missing copyright header
-src/control/bitraversable/lemmas.lean : line 04 : ERR_COP : Malformed or missing copyright header
 src/control/functor.lean : line 05 : ERR_COP : Malformed or missing copyright header
 src/control/functor.lean : line 11 : ERR_MOD : Module docstring missing, or too late
-src/control/monad/basic.lean : line 04 : ERR_COP : Malformed or missing copyright header
 src/control/monad/cont.lean : line 05 : ERR_COP : Malformed or missing copyright header
 src/control/monad/cont.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/control/monad/writer.lean : line 05 : ERR_COP : Malformed or missing copyright header
@@ -112,13 +109,11 @@ src/control/traversable/instances.lean : line 05 : ERR_COP : Malformed or missin
 src/control/traversable/instances.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/control/traversable/lemmas.lean : line 05 : ERR_COP : Malformed or missing copyright header
 src/control/traversable/lemmas.lean : line 18 : ERR_MOD : Module docstring missing, or too late
-src/control/uliftable.lean : line 04 : ERR_COP : Malformed or missing copyright header
 src/data/analysis/filter.lean : line 05 : ERR_COP : Malformed or missing copyright header
 src/data/analysis/filter.lean : line 09 : ERR_MOD : Module docstring missing, or too late
 src/data/analysis/topology.lean : line 05 : ERR_COP : Malformed or missing copyright header
 src/data/analysis/topology.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/array/lemmas.lean : line 09 : ERR_MOD : Module docstring missing, or too late
-src/data/bitvec/basic.lean : line 04 : ERR_COP : Malformed or missing copyright header
 src/data/bitvec/basic.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/buffer/basic.lean : line 05 : ERR_COP : Malformed or missing copyright header
 src/data/buffer/basic.lean : line 12 : ERR_MOD : Module docstring missing, or too late
@@ -138,7 +133,6 @@ src/data/equiv/nat.lean : line 05 : ERR_COP : Malformed or missing copyright hea
 src/data/equiv/nat.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/data/erased.lean : line 08 : ERR_MOD : Module docstring missing, or too late
 src/data/fin2.lean : line 07 : ERR_MOD : Module docstring missing, or too late
-src/data/fin_enum.lean : line 04 : ERR_COP : Malformed or missing copyright header
 src/data/finset/order.lean : line 09 : ERR_MOD : Module docstring missing, or too late
 src/data/fintype/basic.lean : line 05 : ERR_COP : Malformed or missing copyright header
 src/data/fintype/basic.lean : line 14 : ERR_MOD : Module docstring missing, or too late
@@ -258,7 +252,6 @@ src/field_theory/mv_polynomial.lean : line 05 : ERR_COP : Malformed or missing c
 src/field_theory/mv_polynomial.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/field_theory/splitting_field.lean : line 05 : ERR_COP : Malformed or missing copyright header
 src/field_theory/splitting_field.lean : line 15 : ERR_MOD : Module docstring missing, or too late
-src/field_theory/subfield.lean : line 04 : ERR_COP : Malformed or missing copyright header
 src/geometry/euclidean/basic.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/geometry/euclidean/circumcenter.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/geometry/euclidean/monge_point.lean : line 08 : ERR_MOD : Module docstring missing, or too late
@@ -341,7 +334,6 @@ src/ring_theory/multiplicity.lean : line 11 : ERR_MOD : Module docstring missing
 src/ring_theory/polynomial/basic.lean : line 05 : ERR_COP : Malformed or missing copyright header
 src/ring_theory/polynomial/basic.lean : line 16 : ERR_MOD : Module docstring missing, or too late
 src/ring_theory/polynomial/scale_roots.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/ring_theory/subring.lean : line 04 : ERR_COP : Malformed or missing copyright header
 src/ring_theory/tensor_product.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/ring_theory/unique_factorization_domain.lean : line 05 : ERR_COP : Malformed or missing copyright header
 src/ring_theory/unique_factorization_domain.lean : line 11 : ERR_MOD : Module docstring missing, or too late
@@ -353,9 +345,7 @@ src/set_theory/schroeder_bernstein.lean : line 05 : ERR_COP : Malformed or missi
 src/set_theory/schroeder_bernstein.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/set_theory/zfc.lean : line 05 : ERR_COP : Malformed or missing copyright header
 src/set_theory/zfc.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/system/random/basic.lean : line 04 : ERR_COP : Malformed or missing copyright header
 src/tactic/algebra.lean : line 08 : ERR_MOD : Module docstring missing, or too late
-src/tactic/apply.lean : line 04 : ERR_COP : Malformed or missing copyright header
 src/tactic/apply_fun.lean : line 08 : ERR_MOD : Module docstring missing, or too late
 src/tactic/auto_cases.lean : line 08 : ERR_MOD : Module docstring missing, or too late
 src/tactic/chain.lean : line 08 : ERR_MOD : Module docstring missing, or too late
@@ -438,7 +428,6 @@ src/tactic/omega/term.lean : line 01 : ERR_COP : Malformed or missing copyright 
 src/tactic/omega/term.lean : line 01 : ERR_MOD : Module docstring missing, or too late
 src/tactic/push_neg.lean : line 05 : ERR_COP : Malformed or missing copyright header
 src/tactic/push_neg.lean : line 12 : ERR_MOD : Module docstring missing, or too late
-src/tactic/reassoc_axiom.lean : line 04 : ERR_COP : Malformed or missing copyright header
 src/tactic/restate_axiom.lean : line 09 : ERR_MOD : Module docstring missing, or too late
 src/tactic/rewrite.lean : line 09 : ERR_MOD : Module docstring missing, or too late
 src/tactic/rewrite_all/basic.lean : line 09 : ERR_MOD : Module docstring missing, or too late
@@ -462,9 +451,6 @@ src/tactic/transform_decl.lean : line 09 : ERR_MOD : Module docstring missing, o
 src/tactic/trunc_cases.lean : line 09 : ERR_MOD : Module docstring missing, or too late
 src/tactic/wlog.lean : line 05 : ERR_COP : Malformed or missing copyright header
 src/tactic/wlog.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/testing/slim_check/gen.lean : line 04 : ERR_COP : Malformed or missing copyright header
-src/testing/slim_check/sampleable.lean : line 04 : ERR_COP : Malformed or missing copyright header
-src/testing/slim_check/testable.lean : line 04 : ERR_COP : Malformed or missing copyright header
 src/topology/algebra/floor_ring.lean : line 05 : ERR_COP : Malformed or missing copyright header
 src/topology/algebra/floor_ring.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/topology/algebra/group.lean : line 05 : ERR_COP : Malformed or missing copyright header

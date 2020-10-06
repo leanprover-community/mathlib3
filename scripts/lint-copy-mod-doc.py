@@ -63,7 +63,7 @@ def regular_check(lines, fn):
                 errors += [(ERR_COP, line_nr, fn)]
             if line_nr == copy_start_line_nr + 2 and not "Apache" in line:
                 errors += [(ERR_COP, line_nr, fn)]
-            if line_nr == copy_start_line_nr + 3 and not ("Authors:" in line or "Author:" in line):
+            if line_nr == copy_start_line_nr + 3 and not "Author" in line:
                 errors += [(ERR_COP, line_nr, fn)]
             if line_nr == copy_start_line_nr + 4 and not line == "-/\n":
                 errors += [(ERR_COP, line_nr, fn)]

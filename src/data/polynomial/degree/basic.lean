@@ -275,9 +275,9 @@ lemma mem_support_C_mul_X_pow {n a : ℕ} {c : R} : a ∈ (C c * X ^ n).support 
 begin
   rw [mem_support_iff_coeff_ne_zero, coeff_C_mul_X c n a],
   split_ifs,
-    { intro,
-      assumption, },
-    { intro a_1,
+  { intro,
+    assumption, },
+  { intro a_1,
     exfalso,
     apply a_1,
     refl, },

@@ -718,7 +718,7 @@ begin
 end
 
 /-- Any three points in an orthocentric system are affinely independent. -/
-lemma affine_independent_of_orthocentric_system {s : set P} (ho : orthocentric_system s)
+lemma orthocentric_system.affine_independent {s : set P} (ho : orthocentric_system s)
     {p : fin 3 → P} (hps : set.range p ⊆ s) (hpi : function.injective p) :
   affine_independent ℝ p :=
 begin

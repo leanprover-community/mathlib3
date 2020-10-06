@@ -19,7 +19,7 @@ with polynomials variables indexed by an arbitrary type `idx`.
 
 Then there exists a unique family of polynomials `φ : ℕ → mv_polynomial (idx × ℕ) Φ`
 such that for all `n : ℕ` we have (`witt_structure_int_exists_unique`)
-```lean
+```
 bind₁ φ (witt_polynomial p ℤ n) = bind₁ (λ i, (rename (prod.mk i) (witt_polynomial p ℤ n))) Φ
 ```
 In other words: evaluating the `n`-th Witt polynomial on the family `φ`

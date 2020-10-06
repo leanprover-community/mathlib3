@@ -171,6 +171,14 @@ lemma ite_mul_zero_right {α : Type*} [mul_zero_class α] (P : Prop) [decidable 
   ite P (a * b) 0 = a * ite P b 0 :=
 by { by_cases h : P; simp [h], }
 
+/-- An element `a` of a semiring is even if there exists `k` such `a = 2*k`. -/
+def even (a : α) : Prop := ∃ k, a = 2*k
+
+lemma even_iff_two_dvd {a : α} : even a ↔ 2 ∣ a := iff.rfl
+
+/-- An element `a` of a semiring is odd if there exists `k` such `a = 2*k + 1`. -/
+def odd (a : α) : Prop := ∃ k, a = 2*k + 1
+
 end semiring
 
 namespace add_monoid_hom

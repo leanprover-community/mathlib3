@@ -68,6 +68,15 @@ dvd_sub_pow_of_dvd_sub {R : Type*} [comm_ring R] {p : ℕ} {a b : R} :
 * `map_witt_structure_int`: the proof that the integral polynomials `with_structure_int Φ`
   are equal to `witt_structure_rat Φ` when mapped to polynomials with rational coefficients.
 * `witt_structure_int_prop`: the proof that `witt_structure_int` indeed satisfies the property.
+* Five families of polynomials that will be used to define the rings structure
+  on the ring of Witt vectors:
+  - `witt_vector.witt_zero`
+  - `witt_vector.witt_one`
+  - `witt_vector.witt_add`
+  - `witt_vector.witt_mul`
+  - `witt_vector.witt_neg`
+  (We also define `witt_vector.witt_sub`, and later we will prove that it describes subtraction,
+  which is defined as `λ a b, a + -b`. See `witt_vector.sub_coeff` for this proof.)
 
 -/
 
@@ -316,4 +325,231 @@ begin
   refl
 end
 
+@[simp]
+lemma constant_coeff_witt_structure_rat_zero (Φ : mv_polynomial idx ℚ) :
+  constant_coeff (witt_structure_rat p Φ 0) = constant_coeff Φ :=
+begin
+  rw witt_structure_rat,
+  simp only [bind₁, map_aeval, X_in_terms_of_W_zero, aeval_X, constant_coeff_witt_polynomial,
+    constant_coeff_rename, constant_coeff_comp_algebra_map],
+  exact @aeval_zero' _ _ _ _ _ (algebra.id _) Φ
+end
+
+lemma constant_coeff_witt_structure_rat (Φ : mv_polynomial idx ℚ) (h : constant_coeff Φ = 0) (n : ℕ) :
+  constant_coeff (witt_structure_rat p Φ n) = 0 :=
+begin
+  rw witt_structure_rat,
+  -- we need `eval₂_hom_zero` but it doesn't exist
+  have : (eval₂_hom (ring_hom.id ℚ) (λ (_x : idx), 0)) Φ = constant_coeff Φ :=
+    @aeval_zero' _ _ _ _ _ (algebra.id _) Φ,
+  simp only [this, h, bind₁, map_aeval, constant_coeff_witt_polynomial, constant_coeff_rename,
+    constant_coeff_comp_algebra_map],
+  conv_rhs { rw ← constant_coeff_X_in_terms_of_W p ℚ n },
+  exact @aeval_zero' _ _ _ _ _ (algebra.id _) _
+end
+
+@[simp]
+lemma constant_coeff_witt_structure_int_zero (Φ : mv_polynomial idx ℤ) :
+  constant_coeff (witt_structure_int p Φ 0) = constant_coeff Φ :=
+begin
+  have inj : function.injective (int.cast_ring_hom ℚ),
+  { intros m n, exact int.cast_inj.mp, },
+  apply inj,
+  rw [← constant_coeff_map, map_witt_structure_int,
+      constant_coeff_witt_structure_rat_zero, constant_coeff_map],
+end
+
+lemma constant_coeff_witt_structure_int (Φ : mv_polynomial idx ℤ) (h : constant_coeff Φ = 0) (n : ℕ) :
+  constant_coeff (witt_structure_int p Φ n) = 0 :=
+begin
+  have inj : function.injective (int.cast_ring_hom ℚ),
+  { intros m n, exact int.cast_inj.mp, },
+  apply inj,
+  rw [← constant_coeff_map, map_witt_structure_int,
+      constant_coeff_witt_structure_rat, ring_hom.map_zero],
+  rw [constant_coeff_map, h, ring_hom.map_zero],
+end
+
 end p_prime
+
+namespace witt_vector
+variables (p) [hp : fact p.prime]
+include hp
+
+/-- The polynomials used for defining the element `0` of the ring of Witt vectors. -/
+noncomputable def witt_zero : ℕ → mv_polynomial (fin 0 × ℕ) ℤ :=
+witt_structure_int p 0
+
+/-- The polynomials used for defining the element `1` of the ring of Witt vectors. -/
+noncomputable def witt_one : ℕ → mv_polynomial (fin 0 × ℕ) ℤ :=
+witt_structure_int p 1
+
+/-- The polynomials used for defining the addition of the ring of Witt vectors. -/
+noncomputable def witt_add : ℕ → mv_polynomial (fin 2 × ℕ) ℤ :=
+witt_structure_int p (X 0 + X 1)
+
+/-- The polynomials used for describing the subtraction of the ring of Witt vectors.
+Note that `a - b` is defined as `a + -b`.
+See `witt_vector.sub_coeff` for a proof that subtraction is precisely
+given by these polynomials `witt_vector.witt_sub` -/
+noncomputable def witt_sub : ℕ → mv_polynomial (fin 2 × ℕ) ℤ :=
+witt_structure_int p (X 0 - X 1)
+
+/-- The polynomials used for defining the multiplication of the ring of Witt vectors. -/
+noncomputable def witt_mul : ℕ → mv_polynomial (fin 2 × ℕ) ℤ :=
+witt_structure_int p (X 0 * X 1)
+
+/-- The polynomials used for defining the negation of the ring of Witt vectors. -/
+noncomputable def witt_neg : ℕ → mv_polynomial (fin 1 × ℕ) ℤ :=
+witt_structure_int p (-X 0)
+
+section witt_structure_simplifications
+
+@[simp] lemma witt_zero_eq_zero (n : ℕ) : witt_zero p n = 0 :=
+begin
+  apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
+  simp only [witt_zero, witt_structure_rat, bind₁, aeval_zero',
+    constant_coeff_X_in_terms_of_W, ring_hom.map_zero,
+    alg_hom.map_zero, map_witt_structure_int],
+end
+
+@[simp] lemma witt_one_zero_eq_one : witt_one p 0 = 1 :=
+begin
+  apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
+  simp only [witt_one, witt_structure_rat, X_in_terms_of_W_zero, alg_hom.map_one,
+    ring_hom.map_one, bind₁_X_right, map_witt_structure_int]
+end
+
+@[simp] lemma witt_one_pos_eq_zero (n : ℕ) (hn : 0 < n) : witt_one p n = 0 :=
+begin
+  apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
+  simp only [witt_one, witt_structure_rat, ring_hom.map_zero, alg_hom.map_one,
+    ring_hom.map_one, map_witt_structure_int],
+  revert hn, apply nat.strong_induction_on n, clear n,
+  intros n IH hn,
+  rw X_in_terms_of_W_eq,
+  simp only [alg_hom.map_mul, alg_hom.map_sub, alg_hom.map_sum, alg_hom.map_pow, bind₁_X_right, bind₁_C_right],
+  rw [sub_mul, one_mul],
+  rw [finset.sum_eq_single 0],
+  { simp only [inv_of_eq_inv, one_mul, inv_pow', nat.sub_zero, ring_hom.map_one, pow_zero],
+    simp only [one_pow, one_mul, X_in_terms_of_W_zero, sub_self, bind₁_X_right] },
+  { intros i hin hi0,
+    rw [finset.mem_range] at hin,
+    rw [IH _ hin (nat.pos_of_ne_zero hi0), zero_pow (pow_pos hp.pos _), mul_zero], },
+  { rw finset.mem_range, intro, contradiction }
+end
+
+@[simp] lemma witt_add_zero : witt_add p 0 = X (0,0) + X (1,0) :=
+begin
+  apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
+  simp only [witt_add, witt_structure_rat, alg_hom.map_add, ring_hom.map_add,
+    rename_X, X_in_terms_of_W_zero, map_X,
+     witt_polynomial_zero, bind₁_X_right, map_witt_structure_int],
+end
+
+@[simp] lemma witt_sub_zero : witt_sub p 0 = X (0,0) - X (1,0) :=
+begin
+  apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
+  simp only [witt_sub, witt_structure_rat, alg_hom.map_sub, ring_hom.map_sub,
+    rename_X, X_in_terms_of_W_zero, map_X,
+     witt_polynomial_zero, bind₁_X_right, map_witt_structure_int],
+end
+
+@[simp] lemma witt_mul_zero : witt_mul p 0 = X (0,0) * X (1,0) :=
+begin
+  apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
+  simp only [witt_mul, witt_structure_rat, rename_X, X_in_terms_of_W_zero, map_X,
+    witt_polynomial_zero, ring_hom.map_mul,
+    bind₁_X_right, alg_hom.map_mul, map_witt_structure_int]
+
+end
+
+@[simp] lemma witt_neg_zero : witt_neg p 0 = - X (0,0) :=
+begin
+  apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
+  simp only [witt_neg, witt_structure_rat, rename_X, X_in_terms_of_W_zero, map_X,
+    witt_polynomial_zero, ring_hom.map_neg,
+   alg_hom.map_neg, bind₁_X_right, map_witt_structure_int]
+end
+
+@[simp] lemma constant_coeff_witt_add (n : ℕ) :
+  constant_coeff (witt_add p n) = 0 :=
+begin
+  apply constant_coeff_witt_structure_int p _ _ n,
+  simp only [add_zero, ring_hom.map_add, constant_coeff_X],
+end
+
+@[simp] lemma constant_coeff_witt_sub (n : ℕ) :
+  constant_coeff (witt_sub p n) = 0 :=
+begin
+  apply constant_coeff_witt_structure_int p _ _ n,
+  simp only [sub_zero, ring_hom.map_sub, constant_coeff_X],
+end
+
+@[simp] lemma constant_coeff_witt_mul (n : ℕ) :
+  constant_coeff (witt_mul p n) = 0 :=
+begin
+  apply constant_coeff_witt_structure_int p _ _ n,
+  simp only [mul_zero, ring_hom.map_mul, constant_coeff_X],
+end
+
+@[simp] lemma constant_coeff_witt_neg (n : ℕ) :
+  constant_coeff (witt_neg p n) = 0 :=
+begin
+  apply constant_coeff_witt_structure_int p _ _ n,
+  simp only [neg_zero, ring_hom.map_neg, constant_coeff_X],
+end
+
+end witt_structure_simplifications
+
+section witt_vars
+variable (R)
+
+-- we could relax the fintype on `idx`, but then we need to cast from finset to set.
+-- for our applications `idx` is always finite.
+lemma witt_structure_rat_vars [fintype idx] (Φ : mv_polynomial idx ℚ) (n : ℕ) :
+  (witt_structure_rat p Φ n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+begin
+  rw witt_structure_rat,
+  intros x hx,
+  simp only [finset.mem_product, true_and, finset.mem_univ, finset.mem_range],
+  replace hx := vars_bind₁ _ _ hx,
+  simp only [exists_prop, finset.mem_bind, finset.mem_range] at hx,
+  rcases hx with ⟨k, hk, hx⟩,
+  replace hk := X_in_terms_of_W_vars_subset p _ hk,
+  rw finset.mem_range at hk,
+  replace hx := vars_bind₁ _ _ hx,
+  simp only [exists_prop, finset.mem_bind, finset.mem_range] at hx,
+  rcases hx with ⟨i, -, hx⟩,
+  replace hx := vars_rename _ _ hx,
+  rw [finset.mem_image] at hx,
+  rcases hx with ⟨j, hj, rfl⟩,
+  rw [witt_polynomial_vars, finset.mem_range] at hj,
+  exact lt_of_lt_of_le hj hk,
+end
+
+-- we could relax the fintype on `idx`, but then we need to cast from finset to set.
+-- for our applications `idx` is always finite.
+lemma witt_structure_int_vars [fintype idx] (Φ : mv_polynomial idx ℤ) (n : ℕ) :
+  (witt_structure_int p Φ n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+begin
+  rw [← @vars_map_of_injective _ _ _ _ _ _ (int.cast_ring_hom ℚ) (λ m n, (rat.coe_int_inj m n).mp),
+      map_witt_structure_int],
+  apply witt_structure_rat_vars,
+end
+
+lemma witt_add_vars (n : ℕ) :
+  (witt_add p n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+witt_structure_int_vars _ _ _
+
+lemma witt_mul_vars (n : ℕ) :
+  (witt_mul p n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+witt_structure_int_vars _ _ _
+
+lemma witt_neg_vars (n : ℕ) :
+  (witt_neg p n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+witt_structure_int_vars _ _ _
+
+end witt_vars
+
+end witt_vector

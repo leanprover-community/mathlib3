@@ -380,38 +380,45 @@ lemma coeff_mul (p q : mv_polynomial σ R) (n : σ →₀ ℕ) :
   coeff n (p * q) = ∑ x in (antidiagonal n).support, coeff x.1 p * coeff x.2 q :=
 begin
   rw mul_def,
+  -- We need to manipulate both sides into a shape to which we can apply `finset.sum_bij`,
+  -- so we need to turn both sides into a sum over a sigma/product.
   have := @finset.sum_sigma (σ →₀ ℕ) R _ _ p.support (λ _, q.support)
     (λ x, if (x.1 + x.2 = n) then coeff x.1 p * coeff x.2 q else 0),
-  have aux₁ : (p.support.sigma $ λ _, q.support).filter (λ x, x.1 + x.2 = n) ⊆ _ :=
-    finset.filter_subset _,
-  have aux₂ : (antidiagonal n).support.filter (λ x, x.1 ∈ p.support ∧ x.2 ∈ q.support) ⊆
+  convert this.symm using 1; clear this,
+  { rw [coeff],
+    repeat { rw sum_apply, apply finset.sum_congr rfl, intros, dsimp only },
+    convert single_apply },
+  -- Now we should strip away irrelevant terms that are `0` anyhow.
+  -- We do that using the following equations:
+  have aux₁ : (antidiagonal n).support.filter (λ x, x.1 ∈ p.support ∧ x.2 ∈ q.support) ⊆
              (antidiagonal n).support := finset.filter_subset _,
-  rw [← finset.sum_sdiff aux₁, finset.sum_eq_zero, zero_add] at this, swap,
-  { intros x hx,
-    rw [finset.mem_sdiff, not_iff_not_of_iff (finset.mem_filter), not_and] at hx,
-    simp only [if_neg (hx.2 hx.1)] },
-  rw [← finset.sum_sdiff aux₂, finset.sum_eq_zero, zero_add], swap,
+  have aux₂ : (p.support.sigma $ λ _, q.support).filter (λ x, x.1 + x.2 = n) ⊆ _ :=
+    finset.filter_subset _,
+  -- First we rewrite the left-hand-side.
+  rw [← finset.sum_sdiff aux₁, finset.sum_eq_zero, zero_add], swap,
   { intros x hx,
     rw [finset.mem_sdiff, not_iff_not_of_iff (finset.mem_filter),
         not_and, not_and, not_mem_support_iff] at hx,
     by_cases H : x.1 ∈ p.support,
     { rw [coeff, coeff, hx.2 hx.1 H, mul_zero] },
     { rw not_mem_support_iff at H, rw [coeff, H, zero_mul] } },
-  convert this.symm using 1; clear this aux₁ aux₂,
-  { rw [coeff],
-    repeat { rw sum_apply, apply finset.sum_congr rfl, intros, dsimp only },
-    convert single_apply },
-  { symmetry,
-    apply finset.sum_bij (λ (x : Σ (a : σ →₀ ℕ), σ →₀ ℕ) hx, (x.1, x.2)),
-    { intros x hx, rw [finset.mem_filter, finset.mem_sigma] at hx,
-      simpa only [finset.mem_filter, mem_antidiagonal_support] using hx.symm },
-    { intros x hx, rw finset.mem_filter at hx, simp only [if_pos hx.2], },
-    { rintros ⟨i,j⟩ ⟨k,l⟩ hij hkl,
-      simpa only [and_imp, prod.mk.inj_iff, heq_iff_eq] using and.intro },
-    { rintros ⟨i,j⟩ hij, refine ⟨⟨i,j⟩, _, _⟩,
-      { rw [finset.mem_filter, mem_antidiagonal_support] at hij,
-        simpa only [finset.mem_filter, finset.mem_sigma] using hij.symm },
-      { refl } } }
+  -- Then we flip sides, and rewrite the other part.
+  symmetry,
+  rw [← finset.sum_sdiff aux₂, finset.sum_eq_zero, zero_add], swap,
+  { intros x hx,
+    rw [finset.mem_sdiff, not_iff_not_of_iff (finset.mem_filter), not_and] at hx,
+    simp only [if_neg (hx.2 hx.1)] },
+  -- We are now ready to show that both sums are equal using `finset.sum_bij`.
+  apply finset.sum_bij (λ (x : Σ (a : σ →₀ ℕ), σ →₀ ℕ) hx, (x.1, x.2)),
+  { intros x hx, rw [finset.mem_filter, finset.mem_sigma] at hx,
+    simpa only [finset.mem_filter, mem_antidiagonal_support] using hx.symm },
+  { intros x hx, rw finset.mem_filter at hx, simp only [if_pos hx.2], },
+  { rintros ⟨i,j⟩ ⟨k,l⟩ hij hkl,
+    simpa only [and_imp, prod.mk.inj_iff, heq_iff_eq] using and.intro },
+  { rintros ⟨i,j⟩ hij, refine ⟨⟨i,j⟩, _, _⟩,
+    { rw [finset.mem_filter, mem_antidiagonal_support] at hij,
+      simpa only [finset.mem_filter, finset.mem_sigma] using hij.symm },
+    { refl } }
 end
 
 @[simp] lemma coeff_mul_X (m) (s : σ) (p : mv_polynomial σ R) :

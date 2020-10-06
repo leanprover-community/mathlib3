@@ -950,10 +950,10 @@ variables [normed_group E] [second_countable_topology E] [normed_space ℝ E] [c
 def integral (μ : measure α) (f : α → E) : E :=
 if hf : integrable f μ then (l1.of_fun f hf).integral else 0
 
-notation `∫` binders `, ` r:(scoped:0 f, f) ` ∂` μ:70 := integral μ r
-notation `∫` binders `, ` r:(scoped:0 f, integral volume f) := r
-notation `∫` binders ` in ` s `, ` r:(scoped:0 f, f) ` ∂` μ:70 := integral (measure.restrict μ s) r
-notation `∫` binders ` in ` s `, ` r:(scoped:0 f, integral (measure.restrict volume s) f) := r
+notation `∫` binders `, ` r:(scoped:60 f, f) ` ∂` μ:70 := integral μ r
+notation `∫` binders `, ` r:(scoped:60 f, integral volume f) := r
+notation `∫` binders ` in ` s `, ` r:(scoped:60 f, f) ` ∂` μ:70 := integral (measure.restrict μ s) r
+notation `∫` binders ` in ` s `, ` r:(scoped:60 f, integral (measure.restrict volume s) f) := r
 
 section properties
 

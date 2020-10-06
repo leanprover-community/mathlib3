@@ -608,6 +608,7 @@ lemma measurable_limsup {f : ℕ → δ → α} (hf : ∀ i, measurable (f i)) :
   measurable (λ x, limsup at_top (λ i, f i x)) :=
 measurable_limsup' hf at_top_countable_basis (λ i, countable_encodable _)
 
+
 end complete_linear_order
 
 section conditionally_complete_linear_order
@@ -945,9 +946,9 @@ lemma measurable_of_tendsto_nnreal' {ι ι'} {f : ι → α → ℝ≥0} {g : α
   {s : ι' → set ι} (hu : u.has_countable_basis p s) (hs : ∀ i, (s i).countable) : measurable g :=
 begin
   rw [tendsto_pi] at lim, rw [← measurable_ennreal_coe_iff],
-  have : (λ x, liminf u (λ n, (f n x : ennreal))) = λ x, (g x : ennreal) :=
-  funext (λ x, ((ennreal.continuous_coe.tendsto (g x)).comp (lim x)).liminf_eq),
-  rw [← this],
+  have : ∀ x, liminf u (λ n, (f n x : ennreal)) = (g x : ennreal) :=
+  λ x, ((ennreal.continuous_coe.tendsto (g x)).comp (lim x)).liminf_eq,
+  simp_rw [← this],
   show measurable (λ x, liminf u (λ n, (f n x : ennreal))),
   exact measurable_liminf' (λ i, (hf i).ennreal_coe) hu hs,
 end
@@ -956,6 +957,13 @@ end
 lemma measurable_of_tendsto_nnreal {f : ℕ → α → ℝ≥0} {g : α → ℝ≥0}
   (hf : ∀ i, measurable (f i)) (lim : tendsto f at_top (𝓝 g)) : measurable g :=
 measurable_of_tendsto_nnreal' at_top hf lim at_top_countable_basis (λ i, countable_encodable _)
+
+lemma measurable_of_tendsto_nnreal'' {ι ι'} {f : ι → α → ℝ≥0} {g : α → ℝ≥0} (u : filter ι)
+  [ne_bot u] (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) {p : ι' → Prop}
+  {s : ι' → set ι} (hu : u.has_countable_basis p s) : measurable g :=
+begin
+  have := hu.countable.to_encodable,
+end
 
 /-- A limit (over a general filter) of measurable functions valued in a metric space is measurable.
 -/

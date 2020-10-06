@@ -814,10 +814,10 @@ variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 lemma smul_to_fun (c : 𝕜) (f : α →₁[μ] β) : ⇑(c • f) =ᵐ[μ] c • f :=
 ae_eq_fun.coe_fn_smul _ _
 
-lemma norm_eq_lintegral {f : α →₁[μ] β} : ∥f∥ = (∫⁻ x, (nnnorm (f x) : ennreal) ∂μ).to_real :=
+lemma norm_eq_lintegral (f : α →₁[μ] β) : ∥f∥ = (∫⁻ x, (nnnorm (f x) : ennreal) ∂μ).to_real :=
 by simp [l1.norm_eq, ae_eq_fun.edist_zero_eq_coe, ← edist_eq_coe_nnnorm]
 
-lemma norm_sub_eq_lintegral {f g : α →₁[μ] β} :
+lemma norm_sub_eq_lintegral (f g : α →₁[μ] β) :
   ∥f - g∥ = (∫⁻ x, (nnnorm (f x - g x) : ennreal) ∂μ).to_real :=
 begin
   simp_rw [l1.norm_eq, ae_eq_fun.edist_zero_eq_coe, ← edist_eq_coe_nnnorm],
@@ -826,12 +826,12 @@ begin
   apply eventually_of_forall, intros x hx, simp [hx]
 end
 
-lemma of_real_norm_eq_lintegral {f : α →₁[μ] β} :
+lemma of_real_norm_eq_lintegral (f : α →₁[μ] β) :
   ennreal.of_real ∥f∥ = ∫⁻ x, (nnnorm (f x) : ennreal) ∂μ :=
 by { rw [norm_eq_lintegral, ennreal.of_real_to_real], rw [← ennreal.lt_top_iff_ne_top],
   exact f.has_finite_integral }
 
-lemma of_real_norm_sub_eq_lintegral {f g : α →₁[μ] β} :
+lemma of_real_norm_sub_eq_lintegral (f g : α →₁[μ] β) :
   ennreal.of_real ∥f - g∥ = ∫⁻ x, (nnnorm (f x - g x) : ennreal) ∂μ :=
 begin
   simp_rw [of_real_norm_eq_lintegral, ← edist_eq_coe_nnnorm],

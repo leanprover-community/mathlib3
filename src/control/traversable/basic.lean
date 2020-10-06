@@ -31,7 +31,8 @@ For more on how to use traversable, consider the Haskell tutorial:
 ## Main definitions
   * `traversable` type class - exposes the `traverse` function
   * `sequence` - based on `traverse`, turns a collection of effects into an effect returning a collection
-  * is_lawful_traversable - laws
+  * `is_lawful_traversable` - laws for a traversable functor
+  * `applicative_transformation` - the notion of a natural transformation for applicative functors
 
 ## Tags
 
@@ -61,7 +62,8 @@ variables (G : Type u → Type w) [applicative G] [is_lawful_applicative G]
 
 /-- A transformation between applicative functors.  It is similar to a
 natural transformation, but instead the function `app` preserves the
-`pure` and `seq` (`<*>`) operations. -/
+`has_pure.pure` and `has_seq.seq` (`<*>`) operations, rather than
+function composition. -/
 structure applicative_transformation : Type (max (u+1) v w) :=
 (app : Π α : Type u, F α → G α)
 (preserves_pure' : ∀ {α : Type u} (x : α), app _ (pure x) = pure x)
@@ -122,6 +124,8 @@ lemma preserves_seq :
 lemma preserves_map {α β} (x : α → β) (y : F α) : η (x <$> y) = x <$> η y :=
 by rw [← pure_seq_eq_map, η.preserves_seq]; simp with functor_norm
 
+--@[functor_norm]
+
 end preserves
 
 /-- The identity applicative transformation from an applicative functor to itself. -/
@@ -149,15 +153,16 @@ lemma comp_apply (η' : applicative_transformation G H) (η : applicative_transf
 lemma comp_assoc {I : Type u → Type t} [applicative I] [is_lawful_applicative I]
   (η'' : applicative_transformation H I)
   (η' : applicative_transformation G H)
-  (η : applicative_transformation F G) : (η''.comp η').comp η = η''.comp (η'.comp η) := rfl
+  (η : applicative_transformation F G) :
+  (η''.comp η').comp η = η''.comp (η'.comp η) := rfl
 
 @[simp]
-lemma comp_id (η : applicative_transformation F G) :
-  η.comp id_transformation = η := ext $ λ α x, rfl
+lemma comp_id (η : applicative_transformation F G) : η.comp id_transformation = η :=
+ext $ λ α x, rfl
 
 @[simp]
-lemma id_comp (η : applicative_transformation F G) :
-  id_transformation.comp η = η := ext $ λ α x, rfl
+lemma id_comp (η : applicative_transformation F G) : id_transformation.comp η = η :=
+ext $ λ α x, rfl
 
 end applicative_transformation
 
@@ -166,7 +171,7 @@ open applicative_transformation
 /-- A traversable functor is a functor along with a way to commute
 with all applicative functors (see `sequence`).  For example, if `t`
 is the traversable functor `list` and `m` is the applicative functor
-`io`, then given a function `f : α → io β`, the function `map f` is
+`io`, then given a function `f : α → io β`, the function `functor.map f` is
 `list α → list (io β)`, but `traverse f` is `list α → io (list β)`. -/
 class traversable (t : Type u → Type u) extends functor t :=
 (traverse : Π {m : Type u → Type u} [applicative m] {α β},

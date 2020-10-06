@@ -8,7 +8,7 @@ begin
   assumption,
 end
 
-example {R : Type} [ring R] (h : false) : 0 ≤ (1 : R) :=
+example {R : Type} [ordered_ring R] (h : false) : 0 ≤ (1 : R) :=
 begin
   nontriviality,
   guard_hyp _inst : nontrivial R,

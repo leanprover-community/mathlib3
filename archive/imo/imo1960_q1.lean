@@ -24,19 +24,19 @@ In practice, the Lean tactics that are capable of checking a single number, like
 are not efficient enough to run a thousand times while compiling one file.
 -/
 
-def sum_of_squares (L : list ℕ) : ℕ := (list.map (λ x, x * x) L).sum
+def sum_of_squares (L : list ℕ) : ℕ := (L.map (λ x, x * x)).sum
 
-def problem_predicate (n : ℕ) :=
+def problem_predicate (n : ℕ) : Prop :=
 (nat.digits 10 n).length = 3 ∧ 11 ∣ n ∧ n / 11 = sum_of_squares (nat.digits 10 n)
 
-def solution_predicate (n : ℕ) := n = 550 ∨ n = 803
+def solution_predicate (n : ℕ) : Prop := n = 550 ∨ n = 803
 
 /-
 Proving that three digit numbers are the ones in [100, 1000).
 -/
 
 lemma not_zero {n : ℕ} (h1 : problem_predicate n) : n ≠ 0 :=
-have h2: nat.digits 10 n ≠ list.nil, from list.ne_nil_of_length_eq_succ h1.left,
+have h2 : nat.digits 10 n ≠ list.nil, from list.ne_nil_of_length_eq_succ h1.left,
 digits_ne_nil_iff_ne_zero.mp h2
 
 lemma ge_100 {n : ℕ} (h1 : problem_predicate n) : n ≥ 100 :=
@@ -47,7 +47,7 @@ have h2 : 10^3 ≤ 10 * n, from begin
 end,
 by linarith
 
-lemma lt_1000 {n : ℕ} (h1: problem_predicate n) : n < 1000 :=
+lemma lt_1000 {n : ℕ} (h1 : problem_predicate n) : n < 1000 :=
 have h2 : n < 10^3, from begin
   rw ← h1.left,
   refine nat.lt_base_pow_length_digits _,
@@ -78,22 +78,22 @@ end
 This part is doing an exhaustive search.
 -/
 
-def fails_sum (c : ℕ) := c ≠ sum_of_digit_squares (c*11)
+def fails_sum (c : ℕ) : Prop := c ≠ sum_of_digit_squares (c*11)
 
-def multiples_of_11 {n : ℕ} (h1: problem_predicate n) :
+def multiples_of_11 {n : ℕ} (h1 : problem_predicate n) :
 ∃ c : ℕ, ¬ fails_sum c ∧ 9 < c ∧ c < 91 ∧ n = c * 11 :=
 begin
   obtain ⟨c, h2⟩ : ∃ c : ℕ, n = c * 11, from exists_eq_mul_left_of_dvd h1.right.left,
   refine ⟨c, _, _, _, _⟩,
-  { have h3: c = (c * 11) / 11, by simp,
-    have h4: c = n / 11, from h2.symm ▸ h3,
+  { have h3 : c = (c * 11) / 11, by simp,
+    have h4 : c = n / 11, from h2.symm ▸ h3,
     unfold fails_sum,
     rw [h2.symm, h4],
     simp only [not_not],
     exact h1.right.right },
-  { have h5: n ≥ 100, from ge_100 h1,
+  { have h5 : n ≥ 100, from ge_100 h1,
     linarith },
-  { have h6: n < 1000, from lt_1000 h1,
+  { have h6 : n < 1000, from lt_1000 h1,
     linarith },
   { exact h2 },
 end
@@ -111,7 +111,7 @@ begin
   exact h3,
 end
 
-lemma low_search (c : ℕ) (lower_bound: 9 < c) : fails_sum c ∨ 49 < c :=
+lemma low_search (c : ℕ) (lower_bound : 9 < c) : fails_sum c ∨ 49 < c :=
 begin
   iterate 40 {
     refine iterative_step _ _ _ _,

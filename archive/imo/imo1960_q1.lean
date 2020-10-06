@@ -99,15 +99,13 @@ begin
   { exact h2 },
 end
 
-lemma step_helper (b c : ℕ) (h : b < c) : b + 1 = c ∨ b + 1 < c := eq_or_lt_of_le h
-
 lemma iterative_step (c bound : ℕ) (h1 : fails_sum (bound + 1)) (h2 : fails_sum c ∨ bound < c) :
 fails_sum c ∨ bound + 1 < c :=
 begin
   cases h2,
   { left,
     exact h2 },
-  obtain (h3 | h3) : bound + 1 = c ∨ bound + 1 < c, from step_helper bound c h2,
+  obtain (h3 | h3) : bound + 1 = c ∨ bound + 1 < c, from eq_or_lt_of_le h2,
   { left,
     exact h3 ▸ h1 },
   right,
@@ -156,12 +154,12 @@ begin
   obtain (h3 | h3) : fails_sum c ∨ 49 < c, from low_search c h2.right.left,
   { exact absurd h3 h2.left },
   have h4 : n = c * 11, from h2.right.right.right,
-  obtain (h5 | h5) : 50 = c ∨ 50 < c, from step_helper 49 c h3,
+  obtain (h5 | h5) : 50 = c ∨ 50 < c, from eq_or_lt_of_le h3,
   { left,
     linarith },
   obtain (h6 | h6) : fails_sum c ∨ 72 < c, from mid_search c h5,
   { exact absurd h6 h2.left },
-  obtain (h7 | h7) : 73 = c ∨ 73 < c, from step_helper 72 c h6,
+  obtain (h7 | h7) : 73 = c ∨ 73 < c, from eq_or_lt_of_le h6,
   { right,
     linarith },
   obtain (h8 | h8) : fails_sum c ∨ 90 < c, from high_search c h7,

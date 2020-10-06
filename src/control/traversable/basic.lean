@@ -60,7 +60,7 @@ variables (F : Type u → Type v) [applicative F] [is_lawful_applicative F]
 variables (G : Type u → Type w) [applicative G] [is_lawful_applicative G]
 
 structure applicative_transformation : Type (max (u+1) v w) :=
-(app : ∀ α : Type u, F α → G α)
+(app : Π α : Type u, F α → G α)
 (preserves_pure' : ∀ {α : Type u} (x : α), app _ (pure x) = pure x)
 (preserves_seq' : ∀ {α β : Type u} (x : F (α → β)) (y : F α), app _ (x <*> y) = app _ x <*> app _ y)
 
@@ -76,6 +76,35 @@ instance : has_coe_to_fun (applicative_transformation F G) :=
   coe := λ a, a.app }
 
 variables {F G}
+
+@[simp]
+lemma app_eq_coe (η : applicative_transformation F G) : η.app = η := rfl
+
+@[simp]
+lemma coe_mk (f : Π (α : Type u), F α → G α) (pp ps) :
+  ⇑(applicative_transformation.mk f pp ps) = f := rfl
+
+lemma congr_fun (η η' : applicative_transformation F G) (h : η = η') {α : Type u} (x : F α) :
+  η x = η' x :=
+congr_arg (λ η'' : applicative_transformation F G, η'' x) h
+
+lemma congr_arg (η : applicative_transformation F G) {α : Type u} {x y : F α} (h : x = y) :
+  η x = η y :=
+congr_arg (λ z : F α, η z) h
+
+lemma coe_inj ⦃η η' : applicative_transformation F G⦄ (h : (η : Π α, F α → G α) = η') : η = η' :=
+by { cases η, cases η', congr, exact h }
+
+@[ext]
+lemma ext ⦃η η' : applicative_transformation F G⦄ (h : ∀ (α : Type u) (x : F α), η x = η' x) :
+  η = η' :=
+by { apply coe_inj, ext1 α, exact funext (h α) }
+
+lemma ext_iff {η η' : applicative_transformation F G} :
+  η = η' ↔ ∀ (α : Type u) (x : F α), η x = η' x :=
+⟨λ h α x, h ▸ rfl, λ h, ext h⟩
+
+section preserves
 variables (η : applicative_transformation F G)
 
 @[functor_norm]
@@ -89,6 +118,43 @@ lemma preserves_seq :
 @[functor_norm]
 lemma preserves_map {α β} (x : α → β) (y : F α) : η (x <$> y) = x <$> η y :=
 by rw [← pure_seq_eq_map, η.preserves_seq]; simp with functor_norm
+
+end preserves
+
+/-- The identity applicative transformation from an applicative functor to itself. -/
+def id_transformation : applicative_transformation F F :=
+{ app := λ α, id,
+  preserves_pure' := by simp,
+  preserves_seq' := λ α β x y, by simp }
+
+instance : inhabited (applicative_transformation F F) := ⟨id_transformation⟩
+
+universes s t
+variables {H : Type u → Type s} [applicative H] [is_lawful_applicative H]
+
+/-- The composition of applicative transformations. -/
+def comp (η' : applicative_transformation G H) (η : applicative_transformation F G) :
+  applicative_transformation F H :=
+{ app := λ α x, η' (η x),
+  preserves_pure' := λ α x, by simp with functor_norm,
+  preserves_seq' := λ α β x y, by simp with functor_norm }
+
+@[simp]
+lemma comp_apply (η' : applicative_transformation G H) (η : applicative_transformation F G)
+{α : Type u} (x : F α) : η'.comp η x = η' (η x) := rfl
+
+lemma comp_assoc {I : Type u → Type t} [applicative I] [is_lawful_applicative I]
+  (η'' : applicative_transformation H I)
+  (η' : applicative_transformation G H)
+  (η : applicative_transformation F G) : (η''.comp η').comp η = η''.comp (η'.comp η) := rfl
+
+@[simp]
+lemma comp_id (η : applicative_transformation F G) :
+  η.comp id_transformation = η := ext $ λ α x, rfl
+
+@[simp]
+lemma id_comp (η : applicative_transformation F G) :
+  id_transformation.comp η = η := ext $ λ α x, rfl
 
 end applicative_transformation
 

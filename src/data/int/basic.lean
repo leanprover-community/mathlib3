@@ -1203,3 +1203,5 @@ let ⟨lb, Plb, al⟩ := exists_least_of_bdd Hbdd' Hinh' in
 end classical
 
 end int
+
+attribute [irreducible] int.lt

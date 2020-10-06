@@ -305,9 +305,7 @@ lemma le_degree_of_mem_supp (a : ℕ) :
 le_degree_of_ne_zero ∘ mem_support_iff_coeff_ne_zero.mp
 
 lemma nonempty_support_iff : p.support.nonempty ↔ p ≠ 0 :=
-begin
-  rw [ne.def, nonempty_iff_ne_empty, ne.def, ← support_eq_empty],
-end
+by rw [ne.def, nonempty_iff_ne_empty, ne.def, ← support_eq_empty]
 
 lemma support_C_mul_X_pow_nonzero {c : R} {n : ℕ} (h : c ≠ 0): (C c * X ^ n).support = singleton n :=
 begin

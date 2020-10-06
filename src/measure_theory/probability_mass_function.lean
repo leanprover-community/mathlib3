@@ -2,10 +2,27 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl
-
-Probability mass function -- discrete probability measures
 -/
 import topology.instances.ennreal
+
+/-!
+# Probability mass functions
+
+This file is about probability mass functions or discrete probability measures:
+a function `α → ℝ≥0` such that the values have (infinite) sum `1`.
+
+This file features the monadic structure of `pmf` and the Bernoulli distribution
+
+## Implementation Notes
+
+This file is not yet connected to the `measure_theory` library in any way.
+At some point we need to define a `measure` from a `pmf` and prove the appropriate lemmas about
+that.
+
+## Tags
+
+probability mass function, discrete probability measure, bernoulli distribution
+-/
 noncomputable theory
 variables {α : Type*} {β : Type*} {γ : Type*}
 open_locale classical big_operators nnreal
@@ -131,7 +148,7 @@ def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
 def of_fintype [fintype α] (f : α → ℝ≥0) (h : ∑ x, f x = 1) : pmf α :=
 ⟨f, h ▸ has_sum_sum_of_ne_finset_zero (by simp)⟩
 
-/-- Given a finite type `α` and a function `f : α → ℝ≥0` with sum 1, we get a `pmf`. -/
+/-- A `pmf` which assigns probability `p` to `tt` and `1 - p` to `ff`. -/
 def bernoulli (p : ℝ≥0) (h : p ≤ 1) : pmf bool :=
 of_fintype (λ b, cond b p (1 - p)) (nnreal.eq $ by simp [h])
 

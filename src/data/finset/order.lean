@@ -1,10 +1,14 @@
 /-
-Copyright (c) 2020 Scott Morrison. All rights reserved.
+Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Mario Carneiro, Kenny Lau
 -/
 
 import data.finset.basic
+
+/-!
+# Finsets of ordered types
+-/
 
 universes u v w
 variables {α : Type u}

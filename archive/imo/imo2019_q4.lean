@@ -4,13 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import tactic.interval_cases
-import tactic.linarith
-import algebra.big_operators.intervals
 import algebra.big_operators.order
 import algebra.big_operators.enat
-import data.nat.parity
 import data.nat.multiplicity
-import data.nat.bitwise
 
 /-!
 # IMO 2019 Q4
@@ -19,13 +15,14 @@ Find all pairs `(k, n)` of positive integers such that
 ```
   k! = (2 ^ n − 1)(2 ^ n − 2)(2 ^ n − 4)···(2 ^ n − 2 ^ (n − 1))
 ```
+We show in this file that this property holds iff `(k, n) = (1, 1) ∨ (k, n) = (3, 2)`.
 -/
 
 open_locale nat big_operators
 open finset multiplicity nat (hiding zero_le prime)
 
 theorem imo2019_q4_upper_bound {k n : ℕ} (hk : k > 0)
-  (h : (k! : ℤ) = ∏ i in range n, 2 ^ n - 2 ^ i) : n < 6 :=
+  (h : (k! : ℤ) = ∏ i in range n, (2 ^ n - 2 ^ i)) : n < 6 :=
 begin
   have prime_2 : prime (2 : ℤ),
   { exact prime_iff_prime_int.mp prime_two },
@@ -67,11 +64,11 @@ begin
   convert add_le_add_left (add_le_add_left h5 (2 * n')) (n' * n') using 1, ring
 end
 
-theorem imo2019_q4 {k n : ℕ} : k > 0 → n > 0 →
-  ((k! : ℤ) = (∏ i in range n, 2 ^ n - 2 ^ i) ↔ (k, n) = (1, 1) ∨ (k, n) = (3, 2)) :=
+theorem imo2019_q4 {k n : ℕ} (hk : k > 0) (hn : n > 0) :
+  (k! : ℤ) = (∏ i in range n, (2 ^ n - 2 ^ i)) ↔ (k, n) = (1, 1) ∨ (k, n) = (3, 2) :=
 begin
   /- The implication `←` holds. -/
-  intros hk hn, split, swap,
+  split, swap,
   { rintro (h|h); simp [prod.ext_iff] at h; rcases h with ⟨rfl, rfl⟩;
     norm_num [prod_range_succ, succ_mul] },
   intro h,

@@ -55,6 +55,57 @@ begin
   simp,
 end
 
+@[simp] lemma content_one : content (1 : polynomial R) = 1 :=
+begin
+  rw [← C_1, content_C],
+  simp,
+end
+
+@[simp] lemma content_X_mul {p : polynomial R} : content (X * p) = content p :=
+begin
+  rw [content, content, finset.gcd_def, finset.gcd_def],
+  refine congr rfl _,
+  have h : (X * p).support = p.support.map ⟨nat.succ, nat.succ_injective⟩,
+  { ext a,
+    simp only [exists_prop, finset.mem_map, function.embedding.coe_fn_mk, ne.def, mem_support_iff_coeff_ne_zero],
+    cases a,
+    { simp [coeff_X_mul_zero, nat.succ_ne_zero] },
+    rw [mul_comm, coeff_mul_X],
+    split,
+    { intro h,
+      use a,
+      simp [h] },
+    { rintros ⟨b, ⟨h1, h2⟩⟩,
+      rw ← nat.succ_injective h2,
+      apply h1 } },
+  rw h,
+  simp only [finset.map_val, function.comp_app, function.embedding.coe_fn_mk, multiset.map_map],
+  refine congr (congr rfl _) rfl,
+  ext a,
+  rw mul_comm,
+  simp [coeff_mul_X],
+end
+
+@[simp] lemma content_X_pow {k : ℕ} : content ((X : polynomial R) ^ k) = 1 :=
+begin
+  induction k with k hi,
+  { simp },
+  rw [pow_succ, content_X_mul, hi]
+end
+
+@[simp] lemma content_X : content (X : polynomial R) = 1 :=
+by { rw [← mul_one X, content_X_mul, content_one] }
+
+lemma content_C_mul (r : R) (p : polynomial R) : (C r * p).content = normalize r * p.content :=
+begin
+  by_cases h0 : r = 0, { simp [h0] },
+  rw content, rw content, rw ← finset.gcd_mul_left,
+  refine congr (congr rfl _) _; ext; simp [h0, mem_support_iff_coeff_ne_zero]
+end
+
+@[simp] lemma content_monomial {r : R} {k : ℕ} : content (monomial k r) = normalize r :=
+by { rw [single_eq_C_mul_X, content_C_mul, content_X_pow, mul_one] }
+
 lemma content_eq_zero_iff {p : polynomial R} : content p = 0 ↔ p = 0 :=
 begin
   rw [content, finset.gcd_eq_zero_iff],
@@ -160,13 +211,6 @@ begin
   { intro h,
     rw [← normalize_content, normalize_eq_one],
     apply h _ (C_content_dvd _) }
-end
-
-lemma content_C_mul (r : R) (p : polynomial R) : (C r * p).content = normalize r * p.content :=
-begin
-  by_cases h0 : r = 0, { simp [h0] },
-  rw content, rw content, rw ← finset.gcd_mul_left,
-  refine congr (congr rfl _) _; ext; simp [h0, mem_support_iff_coeff_ne_zero]
 end
 
 lemma eq_C_mul_primitive (p : polynomial R) :

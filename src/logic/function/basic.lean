@@ -326,14 +326,18 @@ begin
   { simp [h, hg.ne] }
 end
 
-lemma comp_update {α' : Sort*} {β : Sort*} (f : α' → β) (g : α → α') (i : α) (v : α') :
-  f ∘ (update g i v) = update (f ∘ g) i (f v) :=
+lemma apply_update {ι : Sort*} [decidable_eq ι] {α β : ι → Sort*}
+  (f : Π i, α i → β i) (g : Π i, α i) (i : ι) (v : α i) (j : ι) :
+  f j (update g i v j) = update (λ k, f k (g k)) i (f i v) j :=
 begin
-  refine funext (λj, _),
   by_cases h : j = i,
-  { rw h, simp },
+  { subst j, simp },
   { simp [h] }
 end
+
+lemma comp_update {α' : Sort*} {β : Sort*} (f : α' → β) (g : α → α') (i : α) (v : α') :
+  f ∘ (update g i v) = update (f ∘ g) i (f v) :=
+funext $ apply_update _ _ _ _
 
 theorem update_comm {α} [decidable_eq α] {β : α → Sort*}
   {a b : α} (h : a ≠ b) (v : β a) (w : β b) (f : Πa, β a) :

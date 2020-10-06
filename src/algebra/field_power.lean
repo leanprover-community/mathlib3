@@ -10,10 +10,9 @@ import tactic.linarith
 
 universe u
 
-@[simp] lemma ring_hom.map_fpow {K L : Type*} [division_ring K] [division_ring L] (f : K →+* L)
-  (a : K) : ∀ (n : ℤ), f (a ^ n) = f a ^ n
-| (n : ℕ) := f.map_pow a n
-| -[1+n] := by simp only [fpow_neg_succ_of_nat, f.map_pow, f.map_inv, f.map_one]
+@[simp] lemma ring_hom.map_fpow {K L : Type*} [division_ring K] [division_ring L] (f : K →+* L) :
+  ∀ (a : K) (n : ℤ), f (a ^ n) = f a ^ n :=
+f.to_monoid_hom.map_fpow f.map_zero
 
 section ordered_field_power
 open int

@@ -271,17 +271,12 @@ begin
       rw e.right_inv hx.1.1,
       have := Z.coord_change_comp ⟨e, he⟩ ⟨f, chart_mem_atlas _ _⟩ ⟨e', he'⟩ (I.symm x) A v,
       simpa only [] using this } },
-  haveI : has_groupoid Z.to_topological_fiber_bundle_core.total_space
-         (times_cont_diff_groupoid ∞ (I.prod (model_with_corners_self 𝕜 F))) :=
-  begin
-    split,
-    assume e₀ e₀' he₀ he₀',
-    rcases (Z.mem_atlas_iff _).1 he₀ with ⟨e, he, rfl⟩,
-    rcases (Z.mem_atlas_iff _).1 he₀' with ⟨e', he', rfl⟩,
-    rw [times_cont_diff_groupoid, mem_groupoid_of_pregroupoid],
-    exact ⟨A e e' he he', A e' e he' he⟩
-  end,
-  constructor
+  constructor,
+  assume e₀ e₀' he₀ he₀',
+  rcases (Z.mem_atlas_iff _).1 he₀ with ⟨e, he, rfl⟩,
+  rcases (Z.mem_atlas_iff _).1 he₀' with ⟨e', he', rfl⟩,
+  rw [times_cont_diff_groupoid, mem_groupoid_of_pregroupoid],
+  exact ⟨A e e' he he', A e' e he' he⟩
 end
 
 end basic_smooth_bundle_core
@@ -551,15 +546,15 @@ begin
   show (chart_at (model_prod H E) p : tangent_bundle I H → model_prod H E) x =
     (equiv.sigma_equiv_prod H E) x,
   { cases x,
-    simp only [chart_at, basic_smooth_bundle_core.chart, topological_fiber_bundle_core.local_triv,
-      topological_fiber_bundle_core.local_triv', tangent_bundle_core, continuous_linear_map.coe_id',
-      basic_smooth_bundle_core.to_topological_fiber_bundle_core, A] with mfld_simps },
+    simp only [chart_at, basic_smooth_bundle_core.chart, tangent_bundle_core,
+      basic_smooth_bundle_core.to_topological_fiber_bundle_core, A, prod.mk.inj_iff,
+      continuous_linear_map.coe_id'] with mfld_simps, },
   show ∀ x, ((chart_at (model_prod H E) p).to_local_equiv).symm x =
     (equiv.sigma_equiv_prod H E).symm x,
   { rintros ⟨x_fst, x_snd⟩,
-    simp only [chart_at, basic_smooth_bundle_core.chart, topological_fiber_bundle_core.local_triv,
-      topological_fiber_bundle_core.local_triv', tangent_bundle_core, continuous_linear_map.coe_id',
-      basic_smooth_bundle_core.to_topological_fiber_bundle_core, A] with mfld_simps},
+    simp only [chart_at, basic_smooth_bundle_core.chart, tangent_bundle_core,
+      continuous_linear_map.coe_id', basic_smooth_bundle_core.to_topological_fiber_bundle_core, A]
+      with mfld_simps},
   show ((chart_at (model_prod H E) p).to_local_equiv).source = univ,
     by simp only [chart_at] with mfld_simps,
 end

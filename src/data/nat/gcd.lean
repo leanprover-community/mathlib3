@@ -181,23 +181,17 @@ dvd_antisymm
     (dvd.trans (dvd_lcm_left m n) (dvd_lcm_left (lcm m n) k))
     (lcm_dvd (dvd.trans (dvd_lcm_right m n) (dvd_lcm_left (lcm m n) k)) (dvd_lcm_right (lcm m n) k)))
 
-/-! ### `coprime` -/
+/-!
+### `coprime`
+
+See also `nat.coprime_of_dvd` and `nat.coprime_of_dvd'` to prove `nat.coprime m n`.
+-/
 
 instance (m n : ℕ) : decidable (coprime m n) := by unfold coprime; apply_instance
 
 theorem coprime.gcd_eq_one {m n : ℕ} : coprime m n → gcd m n = 1 := id
 
 theorem coprime.symm {m n : ℕ} : coprime n m → coprime m n := (gcd_comm m n).trans
-
-theorem coprime_of_dvd {m n : ℕ} (H : ∀ k, 1 < k → k ∣ m → ¬ k ∣ n) : coprime m n :=
-or.elim (eq_zero_or_pos (gcd m n))
-  (λg0, by rw [eq_zero_of_gcd_eq_zero_left g0, eq_zero_of_gcd_eq_zero_right g0] at H; exact false.elim
-    (H 2 dec_trivial (dvd_zero _) (dvd_zero _)))
-  (λ(g1 : 1 ≤ _), eq.symm $ (lt_or_eq_of_le g1).resolve_left $ λg2,
-    H _ g2 (gcd_dvd_left _ _) (gcd_dvd_right _ _))
-
-theorem coprime_of_dvd' {m n : ℕ} (H : ∀ k, k ∣ m → k ∣ n → k ∣ 1) : coprime m n :=
-coprime_of_dvd $ λk kl km kn, not_le_of_gt kl $ le_of_dvd zero_lt_one (H k km kn)
 
 theorem coprime.dvd_of_dvd_mul_right {m n k : ℕ} (H1 : coprime k n) (H2 : k ∣ m * n) : k ∣ m :=
 let t := dvd_gcd (dvd_mul_left k m) H2 in

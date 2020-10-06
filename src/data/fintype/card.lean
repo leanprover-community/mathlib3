@@ -247,19 +247,7 @@ end
 @[to_additive] lemma finset.prod_fiberwise [decidable_eq β] [fintype β] [comm_monoid γ]
   (s : finset α) (f : α → β) (g : α → γ) :
   ∏ b : β, ∏ a in s.filter (λ a, f a = b), g a = ∏ a in s, g a :=
-begin
-  classical,
-  have key : ∏ (b : β), ∏ a in s.filter (λ a, f a = b), g a =
-    ∏ (a : α) in univ.bind (λ (b : β), s.filter (λ a, f a = b)), g a :=
-  (@prod_bind _ _ β g _ _ finset.univ (λ b : β, s.filter (λ a, f a = b)) _).symm,
-  { simp only [key, filter_congr_decidable],
-    apply finset.prod_congr,
-    { ext, simp only [mem_bind, mem_filter, mem_univ, exists_prop_of_true, exists_eq_right'] },
-    { intros, refl } },
-  { intros x hx y hy H z hz, apply H,
-    simp only [mem_filter, inf_eq_inter, mem_inter] at hz,
-    rw [← hz.1.2, ← hz.2.2] }
-end
+finset.prod_fiberwise_of_maps_to (λ x _, mem_univ _) _
 
 @[to_additive]
 lemma fintype.prod_fiberwise [fintype α] [decidable_eq β] [fintype β] [comm_monoid γ]

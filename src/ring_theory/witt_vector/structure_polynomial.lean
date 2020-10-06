@@ -65,7 +65,8 @@ dvd_sub_pow_of_dvd_sub {R : Type*} [comm_ring R] {p : ℕ} {a b : R} :
 * `witt_structure_rat_prop`: the proof that `witt_structure_rat` indeed satisfies the property.
 * `witt_structure_int Φ`: the family of polynomials `ℕ → mv_polynomial (idx × ℕ) ℤ`
   associated with `Φ : mv_polynomial idx ℤ` and satisfying the property explained above.
-* `witt_structure_int_prop`: the proof that `witt_structure_int` indeed satisfies the property.
+* `map_witt_structure_int`: the proof that the integral polynomials `with_structure_int Φ`
+  are equal to `witt_structure_rat Φ` when mapped to polynomials with rational coefficients.
 
 -/
 

@@ -1276,7 +1276,7 @@ begin
   /- It suffices to show that `α` admits a countable dense subset. -/
   suffices : separable_space α,
   { resetI, apply emetric.second_countable_of_separable },
-  refine ⟨_⟩,
+  constructor,
   /- We show that the space admits a countable dense subset. The case where the space is empty
   is special, and trivial. -/
   rcases _root_.em (nonempty α) with (⟨⟨x⟩⟩|hα), swap,

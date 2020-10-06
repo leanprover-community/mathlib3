@@ -333,10 +333,9 @@ def to_add_monoid_hom : M →+ M₂ :=
   f (∑ i in t, g i) = (∑ i in t, f (g i)) :=
 f.to_add_monoid_hom.map_sum _ _
 
-theorem to_add_monoid_hom_inj [semimodule R M] [semimodule R M₂] ⦃f g : M →ₗ[R] M₂⦄
-  (h : f.to_add_monoid_hom = g.to_add_monoid_hom) :
-  f = g :=
-coe_inj $ funext $ add_monoid_hom.congr_fun h
+theorem to_add_monoid_hom_injective [semimodule R M] [semimodule R M₂] :
+  function.injective (to_add_monoid_hom : (M →ₗ[R] M₂) → (M →+ M₂)) :=
+λ f g h, coe_inj $ funext $ add_monoid_hom.congr_fun h
 
 end
 

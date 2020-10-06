@@ -1534,7 +1534,7 @@ by rw [smul_single, smul_eq_mul, mul_one]
 /-- Two `R`-linear maps from `finsupp X R` which agree on `single x 1` agree everywhere. -/
 @[ext] lemma hom_ext [semiring β] [add_comm_monoid γ] [semimodule β γ] ⦃φ ψ : (α →₀ β) →ₗ[β] γ⦄
   (h : ∀ a : α, φ (single a 1) = ψ (single a 1)) : φ = ψ :=
-linear_map.to_add_monoid_hom_inj $ add_hom_ext $ λ x y,
+linear_map.to_add_monoid_hom_injective $ add_hom_ext $ λ x y,
   by simp only [← smul_single_one x y, linear_map.to_add_monoid_hom_coe, linear_map.map_smul, h]
 
 end

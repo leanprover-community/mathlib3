@@ -165,8 +165,8 @@ begin
   linarith,
 end
 
-lemma left_direction (n : ℕ) : solution_predicate n → problem_predicate n :=
-by rintros (rfl | rfl); norm_num [problem_predicate, sum_of_squares]
+lemma left_direction (n : ℕ) (spn : solution_predicate n) : problem_predicate n :=
+by rcases spn with (rfl | rfl); norm_num [problem_predicate, sum_of_squares]
 
 theorem imo1960_q1 (n : ℕ) : problem_predicate n ↔ solution_predicate n :=
 ⟨right_direction n, left_direction n⟩

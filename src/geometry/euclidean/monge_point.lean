@@ -748,8 +748,7 @@ begin
       findim_vector_span_of_affine_independent t.independent (fintype.card_fin _)]
 end
 
-/-- All triangles in an orthocentric system have the same
-circumradius. -/
+/-- All triangles in an orthocentric system have the same circumradius. -/
 lemma exists_circumradius_eq_of_orthocentric_system {s : set P} (ho : orthocentric_system s) :
   ∃ r : ℝ, ∀ t : triangle ℝ P, set.range t.points ⊆ s → t.circumradius = r :=
 begin

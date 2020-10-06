@@ -717,8 +717,7 @@ begin
     exact t.dist_circumcenter_eq_circumradius _ }
 end
 
-/-- Any three points in an orthocentric system are affinely
-independent. -/
+/-- Any three points in an orthocentric system are affinely independent. -/
 lemma affine_independent_of_orthocentric_system {s : set P} (ho : orthocentric_system s)
     {p : fin 3 → P} (hps : set.range p ⊆ s) (hpi : function.injective p) :
   affine_independent ℝ p :=

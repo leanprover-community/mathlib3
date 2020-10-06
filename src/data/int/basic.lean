@@ -176,6 +176,8 @@ begin
     exact this (i + 1) }
 end
 
+/-- Inductively define a function on `ℤ` by defining it at `b`, for the `succ` of a number greater
+  than `b`, and the `pred` of a number less than `b`. -/
 protected def induction_on' {C : ℤ → Sort*} (z : ℤ) (b : ℤ) :
   C b → (∀ k, b ≤ k → C k → C (k + 1)) → (∀ k ≤ b, C k → C (k - 1)) → C z :=
 λ H0 Hs Hp,
@@ -926,6 +928,8 @@ end
 lemma to_nat_add_one {a : ℤ} (h : 0 ≤ a) : (a + 1).to_nat = a.to_nat + 1 :=
 to_nat_add h (zero_le_one)
 
+/-- If `n : ℕ`, then `int.to_nat' n = some n`, if `n : ℤ` is negative, then `int.to_nat' n = none`.
+-/
 def to_nat' : ℤ → option ℕ
 | (n : ℕ) := some n
 | -[1+ n] := none
@@ -1002,6 +1006,8 @@ by { cases b, apply (bit0_val n).trans (add_zero _).symm, apply bit1_val }
 lemma bit_decomp (n : ℤ) : bit (bodd n) (div2 n) = n :=
 (bit_val _ _).trans $ (add_comm _ _).trans $ bodd_add_div2 _
 
+/-- Defines a function from `ℤ` conditionally, if it is defined for odd and even integers separately
+  using `bit`. -/
 def {u} bit_cases_on {C : ℤ → Sort u} (n) (h : ∀ b n, C (bit b n)) : C n :=
 by rw [← bit_decomp n]; apply h
 

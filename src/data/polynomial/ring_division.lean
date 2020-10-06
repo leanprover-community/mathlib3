@@ -211,7 +211,7 @@ end
 lemma root_multiplicity_add {p q : polynomial R} (a : R) (hzero : p + q ≠ 0) :
   min (root_multiplicity a p) (root_multiplicity a q) ≤ root_multiplicity a (p + q) :=
 begin
-  refine multiplicity_of_dvd hzero _,
+  refine root_multiplicity_of_dvd hzero _,
   have hdivp : (X - C a) ^ root_multiplicity a p ∣ p := pow_root_multiplicity_dvd p a,
   have hdivq : (X - C a) ^ root_multiplicity a q ∣ q := pow_root_multiplicity_dvd q a,
   exact min_pow_dvd_add hdivp hdivq

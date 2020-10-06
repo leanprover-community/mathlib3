@@ -116,6 +116,14 @@ begin
       { apply nat.succ_pos, }, }, },
 end
 
+lemma digits_rec (b n : ℕ) (h1 : 2 ≤ b) (h2 : 0 < n) : digits b n = (n % b) :: (digits b (n / b)) :=
+begin
+  have h3 : (n - 1) + 1 = n, from nat.sub_add_cancel h2,
+  have h4 : (b - 2) + 2 = b, from nat.sub_add_cancel h1,
+  rw [← h3, ← h4],
+  refl,
+end
+
 /--
 `of_digits b L` takes a list `L` of natural numbers, and interprets them
 as a number in semiring, as the little-endian digits in base `b`.

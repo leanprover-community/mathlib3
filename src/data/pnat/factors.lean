@@ -69,6 +69,7 @@ theorem coe_nat_prime (v : prime_multiset)
 by { rcases multiset.mem_map.mp h with ⟨⟨p', hp'⟩, ⟨h_mem, h_eq⟩⟩,
      exact h_eq ▸ hp' }
 
+/-- Converts a `prime_multiset` to a `multiset ℕ+`. -/
 def to_pnat_multiset : prime_multiset → multiset ℕ+ :=
 λ v, v.map (λ p, (p : ℕ+))
 
@@ -96,6 +97,7 @@ theorem coe_pnat_nat (v : prime_multiset) :
 by { change (v.map (coe : nat.primes → ℕ+)).map subtype.val = v.map subtype.val,
      rw [multiset.map_map], congr }
 
+/-- The product of a `prime_multiset`, as a `ℕ+`. -/
 def prod (v : prime_multiset) : ℕ+ := (v : multiset pnat).prod
 
 theorem coe_prod (v : prime_multiset) : (v.prod : ℕ) = (v : multiset ℕ).prod :=
@@ -111,6 +113,7 @@ theorem prod_of_prime (p : nat.primes) : (of_prime p).prod = (p : ℕ+) :=
 by { change multiset.prod ((p : ℕ+) :: 0) = (p : ℕ+),
      rw [multiset.prod_cons, multiset.prod_zero, mul_one] }
 
+/-- If a `multiset ℕ` consists only of primes, it can be recast as a `prime_multiset`. -/
 def of_nat_multiset
   (v : multiset ℕ) (h : ∀ (p : ℕ), p ∈ v → p.prime) : prime_multiset :=
 @multiset.pmap ℕ nat.primes nat.prime (λ p hp, ⟨p, hp⟩) v h
@@ -129,6 +132,7 @@ theorem prod_of_nat_multiset (v : multiset ℕ) (h) :
   ((of_nat_multiset v h).prod : ℕ) = (v.prod : ℕ) :=
 by rw[coe_prod, to_of_nat_multiset]
 
+/-- If a `multiset ℕ+` consists only of primes, it can be recast as a `prime_multiset`. -/
 def of_pnat_multiset
   (v : multiset ℕ+) (h : ∀ (p : ℕ+), p ∈ v → p.prime) : prime_multiset :=
 @multiset.pmap ℕ+ nat.primes pnat.prime (λ p hp, ⟨(p : ℕ), hp⟩) v h
@@ -156,6 +160,8 @@ theorem prod_of_nat_list (l : list ℕ) (h) : ((of_nat_list l h).prod : ℕ) = l
 by { have := prod_of_nat_multiset (l : multiset ℕ) h,
      rw [multiset.coe_prod] at this, exact this }
 
+/-- If a `list ℕ+` consists only of primes, it can be recast as a `prime_multiset` with
+  the coercion from lists to multisets. -/
 def of_pnat_list (l : list ℕ+) (h : ∀ (p : ℕ+), p ∈ l → p.prime) : prime_multiset :=
 of_pnat_multiset (l : multiset ℕ+) h
 

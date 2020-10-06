@@ -543,7 +543,7 @@ namespace nnreal
 
 theorem exists_pos_sum_of_encodable {ε : nnreal} (hε : 0 < ε) (ι) [encodable ι] :
   ∃ ε' : ι → nnreal, (∀ i, 0 < ε' i) ∧ ∃c, has_sum ε' c ∧ c < ε :=
-let ⟨a, a0, aε⟩ := dense hε in
+let ⟨a, a0, aε⟩ := exists_between hε in
 let ⟨ε', hε', c, hc, hcε⟩ := pos_sum_of_encodable a0 ι in
 ⟨ λi, ⟨ε' i, le_of_lt $ hε' i⟩, assume i, nnreal.coe_lt_coe.2 $ hε' i,
   ⟨c, has_sum_le (assume i, le_of_lt $ hε' i) has_sum_zero hc ⟩, nnreal.has_sum_coe.1 hc,
@@ -556,7 +556,7 @@ namespace ennreal
 theorem exists_pos_sum_of_encodable {ε : ennreal} (hε : 0 < ε) (ι) [encodable ι] :
   ∃ ε' : ι → nnreal, (∀ i, 0 < ε' i) ∧ (∑' i, (ε' i : ennreal)) < ε :=
 begin
-  rcases dense hε with ⟨r, h0r, hrε⟩,
+  rcases exists_between hε with ⟨r, h0r, hrε⟩,
   rcases lt_iff_exists_coe.1 hrε with ⟨x, rfl, hx⟩,
   rcases nnreal.exists_pos_sum_of_encodable (coe_lt_coe.1 h0r) ι with ⟨ε', hp, c, hc, hcr⟩,
   exact ⟨ε', hp, (ennreal.tsum_coe_eq hc).symm ▸ lt_trans (coe_lt_coe.2 hcr) hrε⟩

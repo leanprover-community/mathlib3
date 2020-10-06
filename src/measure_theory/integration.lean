@@ -1178,7 +1178,7 @@ lemma meas_ge_le_lintegral_div {f : α → ennreal} (hf : measurable f) {ε : en
 (ennreal.le_div_iff_mul_le (or.inl hε) (or.inl hε')).2 $
 by { rw [mul_comm], exact mul_meas_ge_le_lintegral hf ε }
 
-lemma lintegral_eq_zero_iff {f : α → ennreal} (hf : measurable f) :
+@[simp] lemma lintegral_eq_zero_iff {f : α → ennreal} (hf : measurable f) :
   ∫⁻ a, f a ∂μ = 0 ↔ (f =ᵐ[μ] 0) :=
 begin
   refine iff.intro (assume h, _) (assume h, _),
@@ -1198,6 +1198,10 @@ begin
   { calc ∫⁻ a, f a ∂μ = ∫⁻ a, 0 ∂μ : lintegral_congr_ae h
       ... = 0 : lintegral_zero }
 end
+
+lemma lintegral_pos_iff_support {f : α → ennreal} (hf : measurable f) :
+  0 < ∫⁻ a, f a ∂μ ↔ 0 < μ (function.support f) :=
+by simp [zero_lt_iff_ne_zero, hf, filter.eventually_eq, ae_iff, function.support]
 
 /-- Weaker version of the monotone convergence theorem-/
 lemma lintegral_supr_ae {f : ℕ → α → ennreal} (hf : ∀n, measurable (f n))

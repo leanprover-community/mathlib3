@@ -89,10 +89,12 @@ lemma app_eq_coe (η : applicative_transformation F G) : η.app = η := rfl
 lemma coe_mk (f : Π (α : Type u), F α → G α) (pp ps) :
   ⇑(applicative_transformation.mk f pp ps) = f := rfl
 
+protected
 lemma congr_fun (η η' : applicative_transformation F G) (h : η = η') {α : Type u} (x : F α) :
   η x = η' x :=
 congr_arg (λ η'' : applicative_transformation F G, η'' x) h
 
+protected
 lemma congr_arg (η : applicative_transformation F G) {α : Type u} {x y : F α} (h : x = y) :
   η x = η y :=
 congr_arg (λ z : F α, η z) h

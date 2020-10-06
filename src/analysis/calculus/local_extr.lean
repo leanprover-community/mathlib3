@@ -287,7 +287,7 @@ begin
     { have : ∀ x ∈ Icc a b, f x = f a,
         from λ x hx, le_antisymm (hC ▸ Cge x hx) (hc ▸ cle x hx),
       -- `f` is a constant, so we can take any point in `Ioo a b`
-      rcases dense hab with ⟨c', hc'⟩,
+      rcases exists_between hab with ⟨c', hc'⟩,
       refine ⟨c', hc', or.inl _⟩,
       assume x hx,
       rw [mem_set_of_eq, this x hx, ← hC],

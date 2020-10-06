@@ -173,6 +173,8 @@ theorem ext_iff {f g : r ↪r s} : f = g ↔ ∀ x, f x = g x :=
 @[trans] protected def trans (f : r ↪r s) (g : s ↪r t) : r ↪r t :=
 ⟨f.1.trans g.1, λ a b, by rw [f.2, g.2]; simp⟩
 
+instance (r : α → α → Prop) : inhabited (r ↪r r) := ⟨rel_embedding.refl _⟩
+
 @[simp] theorem refl_apply (x : α) : rel_embedding.refl r x = x := rfl
 
 @[simp] theorem trans_apply (f : r ↪r s) (g : s ↪r t) (a : α) : (f.trans g) a = g (f a) := rfl
@@ -379,6 +381,8 @@ theorem ext_iff {f g : r ≃r s} : f = g ↔ ∀ x, f x = g x :=
 @[trans] protected def trans (f₁ : r ≃r s) (f₂ : s ≃r t) : r ≃r t :=
 ⟨f₁.to_equiv.trans f₂.to_equiv, λ a b, f₁.map_rel_iff.trans f₂.map_rel_iff⟩
 
+instance (r : α → α → Prop) : inhabited (r ≃r r) := ⟨rel_iso.refl _⟩
+
 /-- a relation isomorphism is also a relation isomorphism between dual relations. -/
 protected def swap (f : r ≃r s) : (swap r) ≃r (swap s) :=
 ⟨f.to_equiv, λ _ _, f.map_rel_iff⟩
@@ -417,6 +421,10 @@ noncomputable def of_surjective (f : r ↪r s) (H : surjective f) : r ≃r s :=
 @[simp] theorem of_surjective_coe (f : r ↪r s) (H) : (of_surjective f H : α → β) = f :=
 rfl
 
+/--
+Given relation isomorphisms `r₁ ≃r r₂` and `s₁ ≃r s₂`, construct a relation isomorphism for the
+lexicographic orders on the sum.
+-/
 def sum_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
   (e₁ : @rel_iso α₁ α₂ r₁ r₂) (e₂ : @rel_iso β₁ β₂ s₁ s₂) :
   sum.lex r₁ s₁ ≃r sum.lex r₂ s₂ :=
@@ -424,6 +432,10 @@ def sum_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
  by cases e₁ with f hf; cases e₂ with g hg;
     cases a; cases b; simp [hf, hg]⟩
 
+/--
+Given relation isomorphisms `r₁ ≃r r₂` and `s₁ ≃r s₂`, construct a relation isomorphism for the
+lexicographic orders on the product.
+-/
 def prod_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
   (e₁ : @rel_iso α₁ α₂ r₁ r₂) (e₂ : @rel_iso β₁ β₂ s₁ s₂) :
   prod.lex r₁ s₁ ≃r prod.lex r₂ s₂ :=
@@ -466,7 +478,7 @@ end rel_iso
 
 namespace order_iso
 
-/-- Reinterpret an order isomorphism as an order embedding-/
+/-- Reinterpret an order isomorphism as an order embedding. -/
 def to_order_embedding [has_le α] [has_le β] (e : α ≃o β) : α ↪o β :=
 e.to_rel_embedding
 
@@ -493,6 +505,7 @@ def subrel (r : α → α → Prop) (p : set α) : p → p → Prop :=
 
 namespace subrel
 
+/-- The relation embedding from the inherited relation on a subset. -/
 protected def rel_embedding (r : α → α → Prop) (p : set α) :
   subrel r p ↪r r := ⟨set_coe_embedding _, λ a b, iff.rfl⟩
 
@@ -505,7 +518,7 @@ rel_embedding.is_well_order (subrel.rel_embedding r p)
 
 end subrel
 
-/-- Restrict the codomain of a relation embedding -/
+/-- Restrict the codomain of a relation embedding. -/
 def rel_embedding.cod_restrict (p : set β) (f : r ↪r s) (H : ∀ a, f a ∈ p) : r ↪r subrel s p :=
 ⟨f.to_embedding.cod_restrict p H, f.map_rel_iff'⟩
 

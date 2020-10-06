@@ -39,30 +39,35 @@ addition and multiplication on the ring of Witt vectors.
 ## Outline of the proof
 
 The proof of `witt_structure_int_exists_unique` is rather technical, and takes up most of this file.
-We start by proving the analagous version for polynomials with rational coefficients,
+
+We start by proving the analogous version for polynomials with rational coefficients,
 instead of integer coefficients.
 In this case, the solution is rather easy,
 since the Witt polynomials form a faithful change of coordinates
 in the polynomial ring `mv_polynomial ℕ ℚ`.
-
 We therefore obtain a family of polynomials `witt_structure_rat Φ`
 for every `Φ : mv_polynomial idx ℚ`.
+
 If `Φ` has integer coefficients, then the polynomials `witt_structure_rat Φ n` do so as well.
 Proving this claim is the essential core of this file, and culminates in
 `map_witt_structure_int`, which proves that upon mapping the coefficients of `witt_structure_int Φ n`
 from the integers to the rationals, one obtains `witt_structure_rat Φ n`.
 Ultimately, the proof of `map_witt_structure_int` relies on
-```lean
+```
 dvd_sub_pow_of_dvd_sub {R : Type*} [comm_ring R] {p : ℕ} {a b : R} :
     (p : R) ∣ a - b → ∀ (k : ℕ), (p : R) ^ (k + 1) ∣ a ^ p ^ k - b ^ p ^ k
 ```
 
 ## Main results
 
-* `witt_structure_int Φ`: the family of polynomials `ℕ → mv_polynomial (idx × ℕ) Φ`
+* `witt_structure_rat Φ`: the family of polynomials `ℕ → mv_polynomial (idx × ℕ) ℚ`
+  associated with `Φ : mv_polynomial idx ℚ` and satisfying the property explained above.
+* `witt_structure_rat_prop`: the proof that `witt_structure_rat` indeed satisfies the property.
+* `witt_structure_int Φ`: the family of polynomials `ℕ → mv_polynomial (idx × ℕ) ℤ`
   associated with `Φ : mv_polynomial idx ℤ` and satisfying the property explained above.
+* `map_witt_structure_int`: the proof that the integral polynomials `with_structure_int Φ`
+  are equal to `witt_structure_rat Φ` when mapped to polynomials with rational coefficients.
 * `witt_structure_int_prop`: the proof that `witt_structure_int` indeed satisfies the property.
-
 * Five families of polynomials that will be used to define the rings structure
   on the ring of Witt vectors:
   - `witt_vector.witt_zero`
@@ -176,47 +181,7 @@ noncomputable def witt_structure_int (Φ : mv_polynomial idx ℤ) (n : ℕ) : mv
 finsupp.map_range rat.num (rat.coe_int_num 0)
   (witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) n)
 
-end p_prime
-
-variables {ι : Type*} {σ : Type*}
-variables {S : Type*} [comm_ring S]
-variables {T : Type*} [comm_ring T]
-
 variable {p}
-
--- this seems overly specific. I wouldn't mind getting rid of it.
-lemma rat_mv_poly_is_integral_iff (p : mv_polynomial ι ℚ) :
-  map (int.cast_ring_hom ℚ) (finsupp.map_range rat.num (rat.coe_int_num 0) p) = p ↔
-  ∀ m, (coeff m p).denom = 1 :=
-begin
-  rw mv_polynomial.ext_iff,
-  apply forall_congr, intro m,
-  rw coeff_map,
-  split; intro h,
-  { rw [← h], apply rat.coe_int_denom },
-  { show (rat.num (coeff m p) : ℚ) = coeff m p,
-    lift (coeff m p) to ℤ using h with n hn,
-    rw rat.coe_int_num n }
-end
-
-section p_prime
-
-variable [hp : fact p.prime]
-include hp
-
-lemma sum_induction_steps (Φ : mv_polynomial idx ℤ) (n : ℕ)
-  (IH : ∀ m : ℕ, m < n →
-    map (int.cast_ring_hom ℚ) (witt_structure_int p Φ m) = witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) m) :
-  map (int.cast_ring_hom ℚ)
-    (∑ i in range n, C (p ^ i : ℤ) * (witt_structure_int p Φ i) ^ p ^ (n - i)) =
-  ∑ i in range n, C (p ^ i : ℚ) * (witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) i) ^ p ^ (n - i) :=
-begin
-  rw [ring_hom.map_sum],
-  apply finset.sum_congr rfl,
-  intros i hi,
-  rw finset.mem_range at hi,
-  simp only [IH i hi, ring_hom.map_mul, ring_hom.map_pow, map_C], refl
-end
 
 lemma bind₁_rename_expand_witt_polynomial (Φ : mv_polynomial idx ℤ) (n : ℕ)
   (IH : ∀ m : ℕ, m < (n + 1) →
@@ -280,13 +245,22 @@ variables (p)
 begin
   apply nat.strong_induction_on n, clear n,
   intros n IH,
-  rw [witt_structure_int, rat_mv_poly_is_integral_iff],
+  rw [witt_structure_int, map_map_range_eq_iff, int.coe_cast_ring_hom],
   intro c,
   rw [witt_structure_rat_rec, coeff_C_mul, mul_comm, mul_div_assoc', mul_one],
-  simp only [← sum_induction_steps Φ n IH, ← map_witt_polynomial p (int.cast_ring_hom ℚ),
+  have sum_induction_steps : map (int.cast_ring_hom ℚ)
+   (∑ i in range n, C (p ^ i : ℤ) * (witt_structure_int p Φ i) ^ p ^ (n - i)) =
+    ∑ i in range n, C (p ^ i : ℚ) * (witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) i) ^ p ^ (n - i),
+  { rw [ring_hom.map_sum],
+    apply finset.sum_congr rfl,
+    intros i hi,
+    rw finset.mem_range at hi,
+    simp only [IH i hi, ring_hom.map_mul, ring_hom.map_pow, map_C],
+    refl },
+  simp only [← sum_induction_steps, ← map_witt_polynomial p (int.cast_ring_hom ℚ),
     ← map_rename, ← map_bind₁, ← ring_hom.map_sub, coeff_map],
   rw show (p : ℚ)^n = ((p^n : ℕ) : ℤ), by norm_cast,
-  rw [ring_hom.eq_int_cast, rat.denom_div_cast_eq_one_iff],
+  rw [← rat.denom_eq_one_iff, ring_hom.eq_int_cast, rat.denom_div_cast_eq_one_iff],
   swap, { exact_mod_cast pow_ne_zero n hp.ne_zero },
   revert c, rw [← C_dvd_iff_dvd_coeff],
   exact C_p_pow_dvd_bind₁_rename_witt_polynomial_sub_sum Φ n IH,
@@ -339,7 +313,7 @@ begin
     simp only [map_rename, map_witt_polynomial] }
 end
 
-lemma witt_structure_int_rename (Φ : mv_polynomial idx ℤ) (f : idx → σ) (n : ℕ) :
+lemma witt_structure_int_rename {σ : Type*} (Φ : mv_polynomial idx ℤ) (f : idx → σ) (n : ℕ) :
   witt_structure_int p (rename f Φ) n = rename (prod.map f id) (witt_structure_int p Φ n) :=
 begin
   apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,

@@ -749,7 +749,7 @@ begin
 end
 
 /-- All triangles in an orthocentric system have the same circumradius. -/
-lemma exists_circumradius_eq_of_orthocentric_system {s : set P} (ho : orthocentric_system s) :
+lemma orthocentric_system.exists_circumradius_eq {s : set P} (ho : orthocentric_system s) :
   ∃ r : ℝ, ∀ t : triangle ℝ P, set.range t.points ⊆ s → t.circumradius = r :=
 begin
   rcases ho with ⟨t, hto, hts⟩,

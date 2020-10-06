@@ -1131,7 +1131,7 @@ lemma exp_approx_start (x a b : ℝ)
   abs' (exp x - a) ≤ b :=
 by simpa using h
 
-lemma exp_one_near_10 : abs' (exp 1 - 419314/154257) ≤ 1/10^10 :=
+lemma exp_one_near_10 : abs' (exp 1 - 2244083/825552) ≤ 1/10^10 :=
 begin
   apply exp_approx_start,
   iterate 13 { refine exp_1_approx_succ_eq (by norm_num1; refl) (by norm_cast; refl) _ },
@@ -1140,13 +1140,13 @@ begin
   rw [_root_.abs_one, abs_of_pos]; norm_num1,
 end
 
-lemma exp_one_near_20 : abs' (exp 1 - 28875761731/10622799089) ≤ 1/10^20 :=
+lemma exp_one_near_20 : abs' (exp 1 - 363916618873/133877442384) ≤ 1/10^20 :=
 begin
   apply exp_approx_start,
   iterate 21 { refine exp_1_approx_succ_eq (by norm_num1; refl) (by norm_cast; refl) _ },
   norm_num1,
   refine exp_approx_end' _ (by norm_num1; refl) _ (by norm_cast; refl) (by simp) _,
-  rw [_root_.abs_one, abs_of_neg]; norm_num1,
+  rw [_root_.abs_one, abs_of_pos]; norm_num1,
 end
 
 lemma exp_one_gt_271828182 : 2.71828182 < exp 1 :=

@@ -181,14 +181,14 @@ begin
   simp only [mem_set_of_eq] at hs, rcases hs with ⟨xs, ⟨a, ha⟩⟩,
   cases ha,
   { rw ha at *,
-    rcases dense xs with ⟨b, ⟨ab, bx⟩⟩,
+    rcases exists_between xs with ⟨b, ⟨ab, bx⟩⟩,
     have xb_pos : x - b > 0 := zero_lt_sub_iff_lt.2 bx,
     have xxb : x - (x - b) = b := sub_sub_cancel (by rwa lt_top_iff_ne_top) (le_of_lt bx),
     refine infi_le_of_le (x - b) (infi_le_of_le xb_pos _),
     simp only [mem_principal_sets, le_principal_iff],
     assume y, rintros ⟨h₁, h₂⟩, rw xxb at h₁, calc a < b : ab ... ≤ y : h₁ },
   { rw ha at *,
-    rcases dense xs with ⟨b, ⟨xb, ba⟩⟩,
+    rcases exists_between xs with ⟨b, ⟨xb, ba⟩⟩,
     have bx_pos : b - x > 0 := zero_lt_sub_iff_lt.2 xb,
     have xbx : x + (b - x) = b := add_sub_cancel_of_le (le_of_lt xb),
     refine infi_le_of_le (b - x) (infi_le_of_le bx_pos _),
@@ -239,7 +239,7 @@ protected lemma tendsto_mul (ha : a ≠ 0 ∨ b ≠ ⊤) (hb : b ≠ 0 ∨ a ≠
 have ht : ∀b:ennreal, b ≠ 0 → tendsto (λp:ennreal×ennreal, p.1 * p.2) (𝓝 ((⊤:ennreal), b)) (𝓝 ⊤),
 begin
   refine assume b hb, tendsto_nhds_top $ assume n, _,
-  rcases dense (zero_lt_iff_ne_zero.2 hb) with ⟨ε', hε', hεb'⟩,
+  rcases exists_between (zero_lt_iff_ne_zero.2 hb) with ⟨ε', hε', hεb'⟩,
   rcases ennreal.lt_iff_exists_coe.1 hεb' with ⟨ε, rfl, h⟩,
   rcases exists_nat_gt (↑n / ε) with ⟨m, hm⟩,
   have hε : ε > 0, from coe_lt_coe.1 hε',
@@ -526,6 +526,13 @@ tsum_le_tsum h ennreal.summable ennreal.summable
 protected lemma sum_le_tsum {f : α → ennreal} (s : finset α) : ∑ x in s, f x ≤ ∑' x, f x :=
 sum_le_tsum s (λ x hx, zero_le _) ennreal.summable
 
+protected lemma tsum_eq_supr_nat' {f : ℕ → ennreal} {N : ℕ → ℕ} (hN : tendsto N at_top at_top) :
+  (∑'i:ℕ, f i) = (⨆i:ℕ, ∑ a in finset.range (N i), f a) :=
+ennreal.tsum_eq_supr_sum' _ $ λ t,
+  let ⟨n, hn⟩    := t.exists_nat_subset_range,
+      ⟨k, _, hk⟩ := exists_le_of_tendsto_at_top hN 0 n in
+  ⟨k, finset.subset.trans hn (finset.range_mono hk)⟩
+
 protected lemma tsum_eq_supr_nat {f : ℕ → ennreal} :
   (∑'i:ℕ, f i) = (⨆i:ℕ, ∑ a in finset.range i, f a) :=
 ennreal.tsum_eq_supr_sum' _ finset.exists_nat_subset_range
@@ -594,7 +601,10 @@ end ennreal
 
 namespace nnreal
 
-lemma exists_le_has_sum_of_le {f g : β → nnreal} {r : nnreal}
+open_locale nnreal
+
+/-- Comparison test of convergence of `ℝ≥0`-valued series. -/
+lemma exists_le_has_sum_of_le {f g : β → ℝ≥0} {r : ℝ≥0}
   (hgf : ∀b, g b ≤ f b) (hfr : has_sum f r) : ∃p≤r, has_sum g p :=
 have (∑'b, (g b : ennreal)) ≤ r,
 begin
@@ -604,10 +614,13 @@ end,
 let ⟨p, eq, hpr⟩ := ennreal.le_coe_iff.1 this in
 ⟨p, hpr, ennreal.has_sum_coe.1 $ eq ▸ ennreal.summable.has_sum⟩
 
-lemma summable_of_le {f g : β → nnreal} (hgf : ∀b, g b ≤ f b) : summable f → summable g
+/-- Comparison test of convergence of `ℝ≥0`-valued series. -/
+lemma summable_of_le {f g : β → ℝ≥0} (hgf : ∀b, g b ≤ f b) : summable f → summable g
 | ⟨r, hfr⟩ := let ⟨p, _, hp⟩ := exists_le_has_sum_of_le hgf hfr in hp.summable
 
-lemma has_sum_iff_tendsto_nat {f : ℕ → nnreal} (r : nnreal) :
+/-- A series of non-negative real numbers converges to `r` in the sense of `has_sum` if and only if
+the sequence of partial sum converges to `r`. -/
+lemma has_sum_iff_tendsto_nat {f : ℕ → ℝ≥0} (r : ℝ≥0) :
   has_sum f r ↔ tendsto (λn:ℕ, ∑ i in finset.range n, f i) at_top (𝓝 r) :=
 begin
   rw [← ennreal.has_sum_coe, ennreal.has_sum_iff_tendsto_nat],
@@ -615,14 +628,14 @@ begin
   exact ennreal.tendsto_coe
 end
 
-lemma tsum_comp_le_tsum_of_inj {β : Type*} {f : α → nnreal} (hf : summable f)
-  {i : β → α} (hi : function.injective i) : tsum (f ∘ i) ≤ tsum f :=
+lemma tsum_comp_le_tsum_of_inj {β : Type*} {f : α → ℝ≥0} (hf : summable f)
+  {i : β → α} (hi : function.injective i) : (∑' x, f (i x)) ≤ ∑' x, f x :=
 tsum_le_tsum_of_inj i hi (λ c hc, zero_le _) (λ b, le_refl _) (summable_comp_injective hf hi) hf
 
 open finset
 
 /-- If `f : ℕ → ℝ≥0` and `∑' f` exists, then `∑' k, f (k + i)` tends to zero. -/
-lemma tendsto_sum_nat_add (f : ℕ → nnreal) (hf : summable f) :
+lemma tendsto_sum_nat_add (f : ℕ → ℝ≥0) (hf : summable f) :
   tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
 begin
   have h₀ : (λ i, (∑' i, f i) - ∑ j in range i, f j) = λ i, ∑' (k : ℕ), f (k + i),
@@ -659,6 +672,7 @@ begin
   { rw nnreal.coe_tsum, congr }
 end
 
+/-- Comparison test of convergence of series of non-negative real numbers. -/
 lemma summable_of_nonneg_of_le {f g : β → ℝ}
   (hg : ∀b, 0 ≤ g b) (hgf : ∀b, g b ≤ f b) (hf : summable f) : summable g :=
 let f' (b : β) : nnreal := ⟨f b, le_trans (hg b) (hgf b)⟩ in
@@ -668,6 +682,8 @@ have summable g', from
   nnreal.summable_of_le (assume b, (@nnreal.coe_le_coe (g' b) (f' b)).2 $ hgf b) this,
 show summable (λb, g' b : β → ℝ), from nnreal.summable_coe.2 this
 
+/-- A series of non-negative real numbers converges to `r` in the sense of `has_sum` if and only if
+the sequence of partial sum converges to `r`. -/
 lemma has_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} (hf : ∀i, 0 ≤ f i) (r : ℝ) :
   has_sum f r ↔ tendsto (λn:ℕ, ∑ i in finset.range n, f i) at_top (𝓝 r) :=
 ⟨has_sum.tendsto_sum_nat,
@@ -741,7 +757,7 @@ lemma emetric.cauchy_seq_iff_le_tendsto_0 [nonempty β] [semilattice_sup β] {s 
   --Prove that it tends to `0`, by using the Cauchy property of `s`
   have D : tendsto b at_top (𝓝 0),
   { refine tendsto_order.2 ⟨λa ha, absurd ha (ennreal.not_lt_zero), λε εpos, _⟩,
-    rcases dense εpos with ⟨δ, δpos, δlt⟩,
+    rcases exists_between εpos with ⟨δ, δpos, δlt⟩,
     rcases hs δ δpos with ⟨N, hN⟩,
     refine filter.mem_at_top_sets.2 ⟨N, λn hn, _⟩,
     have : b n ≤ δ := Sup_le begin

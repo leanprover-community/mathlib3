@@ -402,7 +402,7 @@ begin simp, rw [add_left_comm c], simp end
 lemma neg_neg_sub_neg (a b : G) : - (-a - -b) = a - b :=
 by simp
 
-lemma sub_sub_cancel (a b : G) : a - (a - b) = b := sub_sub_self a b
+@[simp] lemma sub_sub_cancel (a b : G) : a - (a - b) = b := sub_sub_self a b
 
 lemma sub_eq_neg_add (a b : G) : a - b = -b + a :=
 add_comm _ _
@@ -427,25 +427,27 @@ by rw [sub_eq_neg_add, neg_add_cancel_left]
 lemma add_sub_cancel'_right (a b : G) : a + (b - a) = b :=
 by rw [← add_sub_assoc, add_sub_cancel']
 
-@[simp] lemma add_add_neg_cancel'_right (a b : G) : a + (b + -a) = b :=
+-- This lemma is in the `simp` set under the name `add_neg_cancel_comm_assoc`,
+-- defined  in `algebra/group/commute`
+lemma add_add_neg_cancel'_right (a b : G) : a + (b + -a) = b :=
 add_sub_cancel'_right a b
 
 lemma sub_right_comm (a b c : G) : a - b - c = a - c - b :=
 add_right_comm _ _ _
 
-lemma add_add_sub_cancel (a b c : G) : (a + c) + (b - c) = a + b :=
+@[simp] lemma add_add_sub_cancel (a b c : G) : (a + c) + (b - c) = a + b :=
 by rw [add_assoc, add_sub_cancel'_right]
 
-lemma sub_add_add_cancel (a b c : G) : (a - c) + (b + c) = a + b :=
+@[simp] lemma sub_add_add_cancel (a b c : G) : (a - c) + (b + c) = a + b :=
 by rw [add_left_comm, sub_add_cancel, add_comm]
 
-lemma sub_add_sub_cancel' (a b c : G) : (a - b) + (c - a) = c - b :=
+@[simp] lemma sub_add_sub_cancel' (a b c : G) : (a - b) + (c - a) = c - b :=
 by rw add_comm; apply sub_add_sub_cancel
 
-lemma add_sub_sub_cancel (a b c : G) : (a + b) - (a - c) = b + c :=
+@[simp] lemma add_sub_sub_cancel (a b c : G) : (a + b) - (a - c) = b + c :=
 by rw [← sub_add, add_sub_cancel']
 
-lemma sub_sub_sub_cancel_left (a b c : G) : (c - a) - (c - b) = b - a :=
+@[simp] lemma sub_sub_sub_cancel_left (a b c : G) : (c - a) - (c - b) = b - a :=
 by rw [← neg_sub b c, sub_neg_eq_add, add_comm, sub_add_sub_cancel]
 
 lemma sub_eq_sub_iff_add_eq_add : a - b = c - d ↔ a + d = c + b :=

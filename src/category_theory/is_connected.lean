@@ -173,12 +173,19 @@ lemma is_preconnected_induction [is_preconnected J] (Z : J → Sort*)
 /-- j₁ and j₂ are related by `zag` if there is a morphism between them. -/
 @[reducible]
 def zag (j₁ j₂ : J) : Prop := nonempty (j₁ ⟶ j₂) ∨ nonempty (j₂ ⟶ j₁)
+
+lemma zag_symmetric : symmetric (@zag J _) :=
+λ j₂ j₁ h, h.swap
+
 /--
 `j₁` and `j₂` are related by `zigzag` if there is a chain of
 morphisms from `j₁` to `j₂`, with backward morphisms allowed.
 -/
 @[reducible]
 def zigzag : J → J → Prop := relation.refl_trans_gen zag
+
+lemma zigzag_symmetric : symmetric (@zigzag J _) :=
+relation.refl_trans_gen.symmetric zag_symmetric
 
 /-- Any equivalence relation containing (⟶) holds for all pairs of a connected category. -/
 lemma equiv_relation [is_connected J] (r : J → J → Prop) (hr : _root_.equivalence r)

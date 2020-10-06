@@ -1199,13 +1199,18 @@ by rw ←pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
 /-! ### `find` -/
 section find
 
-@[simp] lemma find_eq_zero {p : ℕ → Prop} [decidable_pred p] (h : ∃ (n : ℕ), p n) :
-  nat.find h = 0 ↔ p 0 :=
+lemma find_eq_iff {p : ℕ → Prop} [decidable_pred p] (h : ∃ n, p n) {m} :
+  nat.find h = m ↔ p m ∧ ∀ n < m, ¬ p n :=
 begin
   split,
-  { intro h0, rw [← h0], apply nat.find_spec },
-  { intro hp, apply nat.eq_zero_of_le_zero, exact nat.find_min' _ hp }
+  { rintro rfl, exact ⟨nat.find_spec h, λ _, nat.find_min h⟩ },
+  { rintro ⟨hm, hlt⟩,
+    exact le_antisymm (nat.find_min' h hm) (not_lt.1 $ imp_not_comm.1 (hlt _) $ nat.find_spec h) }
 end
+
+@[simp] lemma find_eq_zero {p : ℕ → Prop} [decidable_pred p] (h : ∃ (n : ℕ), p n) :
+  nat.find h = 0 ↔ p 0 :=
+by simp [find_eq_iff]
 
 @[simp] lemma find_pos {p : ℕ → Prop} [decidable_pred p] (h : ∃ (n : ℕ), p n) :
   0 < nat.find h ↔ ¬ p 0 :=
@@ -1234,54 +1239,58 @@ variables {P : ℕ → Prop} [decidable_pred P]
   nat.find_greatest P (b + 1) = nat.find_greatest P b :=
 by simp [nat.find_greatest, h]
 
-lemma find_greatest_spec_and_le :
-  ∀{b m}, m ≤ b → P m → P (nat.find_greatest P b) ∧ m ≤ nat.find_greatest P b
-| 0       m hm hP :=
-  have m = 0, from le_antisymm hm (nat.zero_le _),
-  show P 0 ∧ m ≤ 0, from this ▸ ⟨hP, le_refl _⟩
-| (b + 1) m hm hP :=
-  begin
-    by_cases h : P (b + 1),
-    { simp [h, hm] },
-    { have : m ≠ b + 1 := assume this, h $ this ▸ hP,
-      have : m ≤ b := (le_of_not_gt $ assume h : b + 1 ≤ m, this $ le_antisymm hm h),
-      have : P (nat.find_greatest P b) ∧ m ≤ nat.find_greatest P b :=
-        find_greatest_spec_and_le this hP,
-      simp [h, this] }
-  end
-
-lemma find_greatest_spec {b} : (∃m, m ≤ b ∧ P m) → P (nat.find_greatest P b)
-| ⟨m, hmb, hm⟩ := (find_greatest_spec_and_le hmb hm).1
-
-lemma find_greatest_le : ∀ {b}, nat.find_greatest P b ≤ b
-| 0       := le_refl _
-| (b + 1) :=
-  have nat.find_greatest P b ≤ b + 1, from le_trans find_greatest_le (nat.le_succ b),
-  by by_cases P (b + 1); simp [h, this]
-
-lemma le_find_greatest {b m} (hmb : m ≤ b) (hm : P m) : m ≤ nat.find_greatest P b :=
-(find_greatest_spec_and_le hmb hm).2
-
-lemma find_greatest_is_greatest {P : ℕ → Prop} [decidable_pred P] {b} :
-  (∃ m, m ≤ b ∧ P m) → ∀ k, nat.find_greatest P b < k ∧ k ≤ b → ¬ P k
-| ⟨m, hmb, hP⟩ k ⟨hk, hkb⟩ hPk := lt_irrefl k $ lt_of_le_of_lt (le_find_greatest hkb hPk) hk
-
-lemma find_greatest_eq_zero {P : ℕ → Prop} [decidable_pred P] :
-  ∀ {b}, (∀ n ≤ b, ¬ P n) → nat.find_greatest P b = 0
-| 0       h := find_greatest_zero
-| (n + 1) h :=
+lemma find_greatest_eq_iff {b m} :
+  nat.find_greatest P b = m ↔ m ≤ b ∧ (m ≠ 0 → P m) ∧ (∀ ⦃n⦄, m < n → n ≤ b → ¬P n) :=
 begin
-  have := nat.find_greatest_of_not (h (n + 1) (le_refl _)),
-  rw this, exact find_greatest_eq_zero (assume k hk, h k (le_trans hk $ nat.le_succ _))
+  induction b with b ihb generalizing m,
+  { rw [eq_comm, iff.comm],
+    simp only [le_zero_iff_eq, ne.def, and_iff_left_iff_imp, find_greatest_zero],
+    rintro rfl,
+    exact ⟨λ h, (h rfl).elim, λ n hlt heq, (hlt.ne heq.symm).elim⟩ },
+  { by_cases hb : P (b + 1),
+    { rw [find_greatest_eq hb], split,
+      { rintro rfl,
+        exact ⟨le_refl _, λ _, hb, λ n hlt hle, (hlt.not_le hle).elim⟩ },
+      { rintros ⟨hle, h0, hm⟩,
+        rcases hle.eq_or_lt with rfl|hlt,
+        exacts [rfl, (hm hlt (le_refl _) hb).elim] } },
+    { rw [find_greatest_of_not hb, ihb],
+      split,
+      { rintros ⟨hle, hP, hm⟩,
+        refine ⟨hle.trans b.le_succ, hP, λ n hlt hle, _⟩,
+        rcases hle.eq_or_lt with rfl|hlt',
+        exacts [hb, hm hlt $ lt_succ_iff.1 hlt'] },
+      { rintros ⟨hle, hP, hm⟩,
+        refine ⟨lt_succ_iff.1 (hle.lt_of_ne _), hP, λ n hlt hle, hm hlt (hle.trans b.le_succ)⟩,
+        rintro rfl,
+        exact hb (hP b.succ_ne_zero) } } }
 end
 
-lemma find_greatest_of_ne_zero {P : ℕ → Prop} [decidable_pred P] :
-  ∀ {b m}, nat.find_greatest P b = m → m ≠ 0 → P m
-| 0       m rfl h := by { have := @find_greatest_zero P _, contradiction }
-| (b + 1) m rfl h :=
-decidable.by_cases
-  (assume hb : P (b + 1), by { have := find_greatest_eq hb, rw this, exact hb })
-  (assume hb : ¬ P (b + 1), find_greatest_of_ne_zero (find_greatest_of_not hb).symm h)
+lemma find_greatest_eq_zero_iff {b} :
+  nat.find_greatest P b = 0 ↔ ∀ ⦃n⦄, 0 < n → n ≤ b → ¬P n :=
+by simp [find_greatest_eq_iff]
+
+lemma find_greatest_spec {b} (h : ∃m, m ≤ b ∧ P m) : P (nat.find_greatest P b) :=
+begin
+  rcases h with ⟨m, hmb, hm⟩,
+  by_cases h : nat.find_greatest P b = 0,
+  { cases m, { rwa h },
+    exact ((find_greatest_eq_zero_iff.1 h) m.zero_lt_succ hmb hm).elim },
+  { exact (find_greatest_eq_iff.1 rfl).2.1 h }
+end
+
+lemma find_greatest_le {b} : nat.find_greatest P b ≤ b :=
+(find_greatest_eq_iff.1 rfl).1
+
+lemma le_find_greatest {b m} (hmb : m ≤ b) (hm : P m) : m ≤ nat.find_greatest P b :=
+le_of_not_lt $ λ hlt, (find_greatest_eq_iff.1 rfl).2.2 hlt hmb hm
+
+lemma find_greatest_is_greatest {b k} (hk : nat.find_greatest P b < k) (hkb : k ≤ b) :
+  ¬ P k :=
+(find_greatest_eq_iff.1 rfl).2.2 hk hkb
+
+lemma find_greatest_of_ne_zero {b m} (h : nat.find_greatest P b = m) (h0 : m ≠ 0) : P m :=
+(find_greatest_eq_iff.1 h).2.1 h0
 
 end find_greatest
 
@@ -1357,6 +1366,10 @@ by { convert bit1_lt_bit0_iff, refl, }
 @[simp] lemma bit_le_bit1_iff : ∀ {b : bool}, bit b k ≤ bit1 n ↔ k ≤ n
 | ff := bit0_le_bit1_iff
 | tt := bit1_le_bit1
+
+@[simp] lemma bit0_mod_two : bit0 n % 2 = 0 := by { rw nat.mod_two_of_bodd, simp }
+
+@[simp] lemma bit1_mod_two : bit1 n % 2 = 1 := by { rw nat.mod_two_of_bodd, simp }
 
 lemma pos_of_bit0_pos {n : ℕ} (h : 0 < bit0 n) : 0 < n :=
 by { cases n, cases h, apply succ_pos, }

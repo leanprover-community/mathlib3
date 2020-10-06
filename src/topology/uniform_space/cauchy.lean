@@ -70,6 +70,11 @@ lemma cauchy_nhds {a : α} : cauchy (𝓝 a) :=
 lemma cauchy_pure {a : α} : cauchy (pure a) :=
 cauchy_nhds.mono (pure_le_nhds a)
 
+lemma filter.tendsto.cauchy_map {l : filter β} [ne_bot l] {f : β → α} {a : α}
+  (h : tendsto f l (𝓝 a)) :
+  cauchy (map f l) :=
+cauchy_nhds.mono h
+
 /-- The common part of the proofs of `le_nhds_of_cauchy_adhp` and
 `sequentially_complete.le_nhds_of_seq_tendsto_nhds`: if for any entourage `s`
 one can choose a set `t ∈ f` of diameter `s` such that it contains a point `y`
@@ -144,10 +149,10 @@ begin
   exact H (i, j) ⟨le_of_max_le_left  hi, le_of_max_le_right hj⟩,
 end
 
-lemma cauchy_seq_of_tendsto_nhds [semilattice_sup β] [nonempty β] (f : β → α) {x}
+lemma filter.tendsto.cauchy_seq [semilattice_sup β] [nonempty β] {f : β → α} {x}
   (hx : tendsto f at_top (𝓝 x)) :
   cauchy_seq f :=
-cauchy_nhds.mono hx
+hx.cauchy_map
 
 lemma cauchy_seq_iff_tendsto [nonempty β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ tendsto (prod.map u u) at_top (𝓤 α) :=

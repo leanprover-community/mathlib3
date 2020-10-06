@@ -128,12 +128,14 @@ begin
       (module_equiv_finsupp hm').symm⟩,
 end
 
+/-- Two `K`-vector spaces are equivalent if their dimension is the same. -/
 def equiv_of_dim_eq_dim (h : dim K V₁ = dim K V₂) : V₁ ≃ₗ[K] V₂ :=
 begin
   classical,
   exact classical.choice (equiv_of_dim_eq_lift_dim (cardinal.lift_inj.2 h))
 end
 
+/-- An `n`-dimensional `K`-vector space is equivalent to `fin n → K`. -/
 def fin_dim_vectorspace_equiv (n : ℕ)
   (hn : (dim K V) = n) : V ≃ₗ[K] (fin n → K) :=
 begin

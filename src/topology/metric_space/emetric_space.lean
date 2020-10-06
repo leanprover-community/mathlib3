@@ -215,7 +215,7 @@ begin
   refine ⟨λ s, uniformity_basis_edist.mem_iff.trans _⟩,
   split,
   { rintros ⟨ε, ε₀, hε⟩,
-    rcases dense ε₀ with ⟨ε', hε'⟩,
+    rcases exists_between ε₀ with ⟨ε', hε'⟩,
     rcases hf ε' hε'.1 with ⟨i, hi, H⟩,
     exact ⟨i, hi, λ x hx, hε $ lt_of_le_of_lt (le_trans hx H) hε'.2⟩ },
   { exact λ ⟨i, hi, H⟩, ⟨f i, hf₀ i hi, λ x hx, H (le_of_lt hx)⟩ }
@@ -228,13 +228,13 @@ emetric.mk_uniformity_basis_le (λ _, id) (λ ε ε₀, ⟨ε, ε₀, le_refl ε
 theorem uniformity_basis_edist' (ε' : ennreal) (hε' : 0 < ε') :
   (𝓤 α).has_basis (λ ε : ennreal, ε ∈ Ioo 0 ε') (λ ε, {p:α×α | edist p.1 p.2 < ε}) :=
 emetric.mk_uniformity_basis (λ _, and.left)
-  (λ ε ε₀, let ⟨δ, hδ⟩ := dense hε' in
+  (λ ε ε₀, let ⟨δ, hδ⟩ := exists_between hε' in
     ⟨min ε δ, ⟨lt_min ε₀ hδ.1, lt_of_le_of_lt (min_le_right _ _) hδ.2⟩, min_le_left _ _⟩)
 
 theorem uniformity_basis_edist_le' (ε' : ennreal) (hε' : 0 < ε') :
   (𝓤 α).has_basis (λ ε : ennreal, ε ∈ Ioo 0 ε') (λ ε, {p:α×α | edist p.1 p.2 ≤ ε}) :=
 emetric.mk_uniformity_basis_le (λ _, and.left)
-  (λ ε ε₀, let ⟨δ, hδ⟩ := dense hε' in
+  (λ ε ε₀, let ⟨δ, hδ⟩ := exists_between hε' in
     ⟨min ε δ, ⟨lt_min ε₀ hδ.1, lt_of_le_of_lt (min_le_right _ _) hδ.2⟩, min_le_left _ _⟩)
 
 theorem uniformity_basis_edist_nnreal :

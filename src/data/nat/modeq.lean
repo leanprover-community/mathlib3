@@ -131,7 +131,7 @@ lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℕ} (hmn : coprime m n) :
 λ h, ⟨nat.modeq.modeq_of_modeq_mul_right _ h, nat.modeq.modeq_of_modeq_mul_left _ h⟩⟩
 
 lemma coprime_of_mul_modeq_one (b : ℕ) {a n : ℕ} (h : a * b ≡ 1 [MOD n]) : coprime a n :=
-nat.coprime_of_dvd' (λ k ⟨ka, hka⟩ ⟨kb, hkb⟩, int.coe_nat_dvd.1 begin
+nat.coprime_of_dvd' (λ k kp ⟨ka, hka⟩ ⟨kb, hkb⟩, int.coe_nat_dvd.1 begin
   rw [hka, hkb, modeq_iff_dvd] at h,
   cases h with z hz,
   rw [sub_eq_iff_eq_add] at hz,

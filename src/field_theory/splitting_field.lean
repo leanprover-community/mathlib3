@@ -601,7 +601,7 @@ theorem splits_iff (f : polynomial α) [is_splitting_field α β f] :
     let ⟨x, hxs, hxy⟩ := finset.mem_image.1 (by rwa multiset.to_finset_map at hy) in
     hxy ▸ subalgebra.algebra_map_mem _ _),
  λ h, @ring_equiv.to_ring_hom_refl α _ ▸
-  ring_equiv.trans_symm (ring_equiv.of_bijective _ $ algebra.bijective_algbera_map_iff.2 h) ▸
+  ring_equiv.trans_symm (ring_equiv.of_bijective _ $ algebra.bijective_algebra_map_iff.2 h) ▸
   by { rw ring_equiv.to_ring_hom_trans, exact splits_comp_of_splits _ _ (splits β f) }⟩
 
 theorem mul (f g : polynomial α) (hf : f ≠ 0) (hg : g ≠ 0) [is_splitting_field α β f]

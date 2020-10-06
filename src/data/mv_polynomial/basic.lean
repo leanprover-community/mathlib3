@@ -506,6 +506,16 @@ lemma constant_coeff_monomial (d : σ →₀ ℕ) (r : R) :
   constant_coeff (monomial d r) = if d = 0 then r else 0 :=
 by rw [constant_coeff_eq, coeff_monomial]
 
+variables (σ R)
+
+@[simp] lemma constant_coeff_comp_C :
+  constant_coeff.comp (C : R →+* mv_polynomial σ R) = ring_hom.id R :=
+by { ext, apply constant_coeff_C }
+
+@[simp] lemma constant_coeff_comp_algebra_map :
+  constant_coeff.comp (algebra_map R (mv_polynomial σ R)) = ring_hom.id R :=
+constant_coeff_comp_C _ _
+
 end constant_coeff
 
 section as_sum
@@ -852,6 +862,16 @@ lemma C_dvd_iff_map_hom_eq_zero
 begin
   rw [C_dvd_iff_dvd_coeff, mv_polynomial.ext_iff],
   simp only [coeff_map, ring_hom.coe_of, coeff_zero, hr],
+end
+
+lemma map_map_range_eq_iff (f : R →+* S₁) (g : S₁ → R) (hg : g 0 = 0) (φ : mv_polynomial σ S₁) :
+  map f (finsupp.map_range g hg φ) = φ ↔ ∀ d, f (g (coeff d φ)) = coeff d φ :=
+begin
+  rw mv_polynomial.ext_iff,
+  apply forall_congr, intro m,
+  rw [coeff_map],
+  apply eq_iff_eq_cancel_right.mpr,
+  refl
 end
 
 end map

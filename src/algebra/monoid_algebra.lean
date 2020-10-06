@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury G. Kudryashov, Scott Morrison
 -/
-import ring_theory.algebra
+import algebra.algebra.basic
 
 /-!
 # Monoid algebras
@@ -19,7 +19,7 @@ in the same way, and then define the convolution product on these.
 When the domain is additive, this is used to define polynomials:
 ```
 polynomial α := add_monoid_algebra ℕ α
-mv_polynominal σ α := add_monoid_algebra (σ →₀ ℕ) α
+mv_polynomial σ α := add_monoid_algebra (σ →₀ ℕ) α
 ```
 
 When the domain is multiplicative, e.g. a group, this will be used to define the group ring.
@@ -225,10 +225,10 @@ instance [ring k] [monoid G] : ring (monoid_algebra k G) :=
 instance [comm_ring k] [comm_monoid G] : comm_ring (monoid_algebra k G) :=
 { mul_comm := mul_comm, .. monoid_algebra.ring}
 
-instance [semiring k] : has_scalar k (monoid_algebra k G) :=
+instance {R : Type*} [semiring R] [semiring k] [semimodule R k] : has_scalar R (monoid_algebra k G) :=
 finsupp.has_scalar
 
-instance [semiring k] : semimodule k (monoid_algebra k G) :=
+instance {R : Type*} [semiring R] [semiring k] [semimodule R k] : semimodule R (monoid_algebra k G) :=
 finsupp.semimodule G k
 
 lemma single_one_comm [comm_semiring k] [monoid G] (r : k) (f : monoid_algebra k G) :
@@ -262,12 +262,16 @@ instance {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] :
     by { ext, rw [single_one_mul_apply, mul_single_one_apply, algebra.commutes], },
   ..algebra_map' (algebra_map k A) }
 
-@[simp] lemma coe_algebra_map [comm_semiring k] [monoid G] :
-  (algebra_map k (monoid_algebra k G) : k → monoid_algebra k G) = single 1 :=
+@[simp] lemma coe_algebra_map {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] :
+  (algebra_map k (monoid_algebra A G) : k → monoid_algebra A G) = single 1 ∘ (algebra_map k A) :=
 rfl
 
 lemma single_eq_algebra_map_mul_of [comm_semiring k] [monoid G] (a : G) (b : k) :
   single a b = (algebra_map k (monoid_algebra k G) : k → monoid_algebra k G) b * of k G a :=
+by simp
+
+lemma single_algebra_map_eq_algebra_map_mul_of {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] (a : G) (b : k) :
+  single a (algebra_map k A b) = (algebra_map k (monoid_algebra A G) : k → monoid_algebra A G) b * of A G a :=
 by simp
 
 instance [group G] [semiring k] :
@@ -276,31 +280,42 @@ finsupp.comap_distrib_mul_action_self
 
 section lift
 
-variables (k G) [comm_semiring k] [monoid G] (R : Type u₃) [semiring R] [algebra k R]
+variables (k G) [comm_semiring k] [monoid G] (A : Type u₃) [semiring A] [algebra k A]
 
-/-- Any monoid homomorphism `G →* R` can be lifted to an algebra homomorphism
-`monoid_algebra k G →ₐ[k] R`. -/
-def lift : (G →* R) ≃ (monoid_algebra k G →ₐ[k] R) :=
-{ inv_fun := λ f, (f : monoid_algebra k G →* R).comp (of k G),
-  to_fun := λ F, { to_fun := λ f, f.sum (λ a b, b • F a),
+/-- Any monoid homomorphism `G →* A` can be lifted to an algebra homomorphism
+`monoid_algebra k G →ₐ[k] A`. -/
+def lift : (G →* A) ≃ (monoid_algebra k G →ₐ[k] A) :=
+{ inv_fun := λ f, (f : monoid_algebra k G →* A).comp (of k G),
+  to_fun := λ F, {
+    to_fun := λ f, f.sum (λ a b, b • F a),
     map_one' := by { rw [one_def, sum_single_index, one_smul, F.map_one], apply zero_smul },
-    map_mul' :=
+    map_mul' := λ f g,
       begin
-        intros f g,
-        rw [mul_def, finsupp.sum_mul, finsupp.sum_sum_index];
-          try { intros, simp only [zero_smul, add_smul], done },
-        refine finset.sum_congr rfl (λ a ha, _), simp only,
-        rw [finsupp.mul_sum, finsupp.sum_sum_index];
-          try { intros, simp only [zero_smul, add_smul], done },
-        refine finset.sum_congr rfl (λ a' ha', _), simp only,
-        rw [sum_single_index, F.map_mul, algebra.mul_smul_comm, algebra.smul_mul_assoc,
-          smul_smul, mul_comm],
-        apply zero_smul
+        rw [mul_def, finsupp.sum_mul, finsupp.sum_sum_index],
+        work_on_goal 1 { intros, rw zero_smul, },
+        work_on_goal 1 { intros, rw add_smul, },
+        refine finset.sum_congr rfl (λ a ha, _),
+        simp only,
+        rw [finsupp.mul_sum, finsupp.sum_sum_index],
+        work_on_goal 1 { intros, rw zero_smul, },
+        work_on_goal 1 { intros, rw add_smul, },
+        refine finset.sum_congr rfl (λ a' ha', _),
+        simp only,
+        rw [sum_single_index, F.map_mul, algebra.mul_smul_comm, algebra.smul_mul_assoc, smul_smul, mul_comm],
+        apply zero_smul,
       end,
     map_zero' := sum_zero_index,
-    map_add' := λ f g, by rw [sum_add_index]; intros; simp only [zero_smul, add_smul],
-    commutes' := λ r, by rw [coe_algebra_map, sum_single_index, F.map_one, algebra.smul_def,
-      mul_one]; apply zero_smul },
+    map_add' := λ f g,
+      begin
+        rw [sum_add_index],
+        { intros, rw zero_smul, },
+        { intros, rw add_smul, },
+      end,
+    commutes' := λ r,
+      begin
+        rw [coe_algebra_map, sum_single_index, F.map_one, algebra.smul_def, mul_one, algebra.id.map_eq_self],
+        apply zero_smul
+      end, },
   left_inv := λ f, begin ext x, simp [sum_single_index] end,
   right_inv := λ F,
     begin
@@ -309,38 +324,38 @@ def lift : (G →* R) ≃ (monoid_algebra k G →ₐ[k] R) :=
       simp [← F.map_smul, finsupp.sum, ← F.map_sum]
     end }
 
-variables {k G R}
+variables {k G A}
 
-lemma lift_apply (F : G →* R) (f : monoid_algebra k G) :
-  lift k G R F f = f.sum (λ a b, b • F a) := rfl
+lemma lift_apply (F : G →* A) (f : monoid_algebra k G) :
+  lift k G A F f = f.sum (λ a b, b • F a) := rfl
 
-@[simp] lemma lift_symm_apply (F : monoid_algebra k G →ₐ[k] R) (x : G) :
-  (lift k G R).symm F x = F (single x 1) := rfl
+@[simp] lemma lift_symm_apply (F : monoid_algebra k G →ₐ[k] A) (x : G) :
+  (lift k G A).symm F x = F (single x 1) := rfl
 
-lemma lift_of (F : G →* R) (x) :
-  lift k G R F (of k G x) = F x :=
+lemma lift_of (F : G →* A) (x) :
+  lift k G A F (of k G x) = F x :=
 by rw [of_apply, ← lift_symm_apply, equiv.symm_apply_apply]
 
-@[simp] lemma lift_single (F : G →* R) (a b) :
-  lift k G R F (single a b) = b • F a :=
+@[simp] lemma lift_single (F : G →* A) (a b) :
+  lift k G A F (single a b) = b • F a :=
 by rw [single_eq_algebra_map_mul_of, ← algebra.smul_def, alg_hom.map_smul, lift_of]
 
-lemma lift_unique' (F : monoid_algebra k G →ₐ[k] R) :
-  F = lift k G R ((F : monoid_algebra k G →* R).comp (of k G)) :=
-((lift k G R).apply_symm_apply F).symm
+lemma lift_unique' (F : monoid_algebra k G →ₐ[k] A) :
+  F = lift k G A ((F : monoid_algebra k G →* A).comp (of k G)) :=
+((lift k G A).apply_symm_apply F).symm
 
 /-- Decomposition of a `k`-algebra homomorphism from `monoid_algebra k G` by
 its values on `F (single a 1)`. -/
-lemma lift_unique (F : monoid_algebra k G →ₐ[k] R) (f : monoid_algebra k G) :
+lemma lift_unique (F : monoid_algebra k G →ₐ[k] A) (f : monoid_algebra k G) :
   F f = f.sum (λ a b, b • F (single a 1)) :=
 by conv_lhs { rw lift_unique' F, simp [lift_apply] }
 
 /-- A `k`-algebra homomorphism from `monoid_algebra k G` is uniquely defined by its
 values on the functions `single a 1`. -/
 -- @[ext] -- FIXME I would really like to make this an `ext` lemma, but it seems to cause `ext` to loop.
-lemma alg_hom_ext ⦃φ₁ φ₂ : monoid_algebra k G →ₐ[k] R⦄
+lemma alg_hom_ext ⦃φ₁ φ₂ : monoid_algebra k G →ₐ[k] A⦄
   (h : ∀ x, φ₁ (single x 1) = φ₂ (single x 1)) : φ₁ = φ₂ :=
-(lift k G R).symm.injective $ monoid_hom.ext h
+(lift k G A).symm.injective $ monoid_hom.ext h
 
 end lift
 
@@ -591,10 +606,12 @@ instance [ring k] [add_monoid G] : ring (add_monoid_algebra k G) :=
 instance [comm_ring k] [add_comm_monoid G] : comm_ring (add_monoid_algebra k G) :=
 { mul_comm := mul_comm, .. add_monoid_algebra.ring}
 
-instance [semiring k] : has_scalar k (add_monoid_algebra k G) :=
+variables {R : Type*}
+
+instance [semiring R] [semiring k] [semimodule R k] : has_scalar R (add_monoid_algebra k G) :=
 finsupp.has_scalar
 
-instance [semiring k] : semimodule k (add_monoid_algebra k G) :=
+instance [semiring R] [semiring k] [semimodule R k] : semimodule R (add_monoid_algebra k G) :=
 finsupp.semimodule G k
 
 /--
@@ -602,10 +619,10 @@ As a preliminary to defining the `k`-algebra structure on `add_monoid_algebra k 
 we define the underlying ring homomorphism.
 
 In fact, we do this in more generality, providing the ring homomorphism
-`k →+* add_monoid_algebra A G` given any ring homomorphism `k →+* A`.
+`R →+* add_monoid_algebra k G` given any ring homomorphism `R →+* k`.
 -/
-def algebra_map' {A : Type*} [semiring k] [semiring A] (f : k →+* A) [add_monoid G] :
-  k →+* add_monoid_algebra A G :=
+def algebra_map' [semiring R] [semiring k] (f : R →+* k) [add_monoid G] :
+  R →+* add_monoid_algebra k G :=
 { to_fun := λ x, single 0 (f x),
   map_one' := by { simp, refl },
   map_mul' := λ x y, by rw [single_mul_single, zero_add, f.map_mul],
@@ -613,51 +630,62 @@ def algebra_map' {A : Type*} [semiring k] [semiring A] (f : k →+* A) [add_mono
   map_add' := λ x y, by rw [f.map_add, single_add], }
 
 /--
-The instance `algebra k (add_monoid_algebra A G)` whenever we have `algebra k A`.
+The instance `algebra R (add_monoid_algebra k G)` whenever we have `algebra R k`.
 
 In particular this provides the instance `algebra k (add_monoid_algebra k G)`.
 -/
-instance {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [add_monoid G] :
-  algebra k (add_monoid_algebra A G) :=
+instance [comm_semiring R] [semiring k] [algebra R k] [add_monoid G] :
+  algebra R (add_monoid_algebra k G) :=
 { smul_def' := λ r a, by { ext x, dsimp [algebra_map'], rw single_zero_mul_apply, rw algebra.smul_def'', },
-  commutes' := λ r f, show single 0 (algebra_map k A r) * f = f * single 0 (algebra_map k A r),
+  commutes' := λ r f, show single 0 (algebra_map R k r) * f = f * single 0 (algebra_map R k r),
     by { ext, rw [single_zero_mul_apply, mul_single_zero_apply, algebra.commutes], },
-  ..algebra_map' (algebra_map k A) }
+  ..algebra_map' (algebra_map R k) }
 
-@[simp] lemma coe_algebra_map [comm_semiring k] [add_monoid G] :
-  (algebra_map k (add_monoid_algebra k G) : k → add_monoid_algebra k G) = single 0 :=
+@[simp] lemma coe_algebra_map [comm_semiring R] [semiring k] [algebra R k] [add_monoid G] :
+  (algebra_map R (add_monoid_algebra k G) : R → add_monoid_algebra k G) = single 0 ∘ (algebra_map R k) :=
 rfl
 
-/-- Any monoid homomorphism `multiplicative G →* R` can be lifted to an algebra homomorphism
-`add_monoid_algebra k G →ₐ[k] R`. -/
-def lift [comm_semiring k] [add_monoid G] {R : Type u₃} [semiring R] [algebra k R] :
-  (multiplicative G →* R) ≃ (add_monoid_algebra k G →ₐ[k] R) :=
-{ inv_fun := λ f, ((f : add_monoid_algebra k G →+* R) : add_monoid_algebra k G →* R).comp (of k G),
-  to_fun := λ F, { to_fun := λ f, f.sum (λ a b, b • F a),
+/-- Any monoid homomorphism `multiplicative G →* A` can be lifted to an algebra homomorphism
+`add_monoid_algebra k G →ₐ[k] A`. -/
+def lift [comm_semiring k] [add_monoid G] {A : Type u₃} [semiring A] [algebra k A] :
+  (multiplicative G →* A) ≃ (add_monoid_algebra k G →ₐ[k] A) :=
+{ inv_fun := λ f, ((f : add_monoid_algebra k G →+* A) : add_monoid_algebra k G →* A).comp (of k G),
+  to_fun := λ F, {
+    -- The proofs here are almost identical to `monoid_algebra.lift`, but use `erw` instead of `rw`
+    -- to unfold `multiplicative`
+    to_fun := λ f, f.sum (λ a b, b • F a),
     map_one' := by { rw [one_def, sum_single_index, one_smul], erw [F.map_one], apply zero_smul },
-    map_mul' :=
+    map_mul' := λ f g,
       begin
-        intros f g,
-        rw [mul_def, finsupp.sum_mul, finsupp.sum_sum_index];
-          try { intros, simp only [zero_smul, add_smul], done },
-        refine finset.sum_congr rfl (λ a ha, _), simp only,
-        rw [finsupp.mul_sum, finsupp.sum_sum_index];
-          try { intros, simp only [zero_smul, add_smul], done },
-        refine finset.sum_congr rfl (λ a' ha', _), simp only,
+        rw [mul_def, finsupp.sum_mul, finsupp.sum_sum_index],
+        work_on_goal 1 { intros, rw zero_smul, },
+        work_on_goal 1 { intros, rw add_smul, },
+        refine finset.sum_congr rfl (λ a ha, _),
+        simp only,
+        rw [finsupp.mul_sum, finsupp.sum_sum_index],
+        work_on_goal 1 { intros, rw zero_smul, },
+        work_on_goal 1 { intros, rw add_smul, },
+        refine finset.sum_congr rfl (λ a' ha', _),
+        simp only,
         rw [sum_single_index],
         erw [F.map_mul],
         rw [algebra.mul_smul_comm, algebra.smul_mul_assoc, smul_smul, mul_comm],
-        apply zero_smul
+        apply zero_smul,
       end,
     map_zero' := sum_zero_index,
-    map_add' := λ f g, by rw [sum_add_index]; intros; simp only [zero_smul, add_smul],
+    map_add' := λ f g,
+      begin
+        rw [sum_add_index],
+        { intros, rw zero_smul, },
+        { intros, rw add_smul, },
+      end,
     commutes' := λ r,
-    begin
-      rw [coe_algebra_map, sum_single_index],
-      erw [F.map_one],
-      rw [algebra.smul_def, mul_one],
-      apply zero_smul
-    end, },
+      begin
+        rw [coe_algebra_map, sum_single_index],
+        erw [F.map_one],
+        rw [algebra.smul_def, mul_one, algebra.id.map_eq_self],
+        apply zero_smul
+      end, },
   left_inv := λ f, begin ext x, simp [sum_single_index] end,
   right_inv := λ F,
     begin
@@ -669,13 +697,13 @@ def lift [comm_semiring k] [add_monoid G] {R : Type u₃} [semiring R] [algebra 
 -- It is hard to state the equivalent of `distrib_mul_action G (monoid_algebra k G)`
 -- because we've never discussed actions of additive groups.
 
-lemma alg_hom_ext {R : Type u₃} [comm_semiring k] [add_monoid G]
-  [semiring R] [algebra k R] ⦃φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] R⦄
+lemma alg_hom_ext {A : Type u₃} [comm_semiring k] [add_monoid G]
+  [semiring A] [algebra k A] ⦃φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] A⦄
   (h : ∀ x, φ₁ (finsupp.single x 1) = φ₂ (finsupp.single x 1)) : φ₁ = φ₂ :=
 lift.symm.injective $ by {ext, apply h}
 
-lemma alg_hom_ext_iff {R : Type u₃} [comm_semiring k] [add_monoid G]
-  [semiring R] [algebra k R] ⦃φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] R⦄ :
+lemma alg_hom_ext_iff {A : Type u₃} [comm_semiring k] [add_monoid G]
+  [semiring A] [algebra k A] ⦃φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] A⦄ :
   (∀ x, φ₁ (finsupp.single x 1) = φ₂ (finsupp.single x 1)) ↔ φ₁ = φ₂ :=
 ⟨λ h, alg_hom_ext h, by rintro rfl _; refl⟩
 

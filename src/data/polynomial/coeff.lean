@@ -151,6 +151,25 @@ by rw [C_mul_X_pow_eq_monomial, support_monomial n c H]
 lemma support_C_mul_X_pow' {c : R} {n : ℕ} : (C c * X^n).support ⊆ singleton n :=
 by { rw [C_mul_X_pow_eq_monomial], exact support_monomial' n c }
 
+lemma C_dvd_iff_dvd_coeff (r : R) (φ : polynomial R) :
+  C r ∣ φ ↔ ∀ i, r ∣ φ.coeff i :=
+begin
+  split,
+  { rintros ⟨φ, rfl⟩ c, rw coeff_C_mul, apply dvd_mul_right },
+  { intro h,
+    choose c hc using h,
+    classical,
+    let c' : ℕ → R := λ i, if i ∈ φ.support then c i else 0,
+    let ψ : polynomial R := ∑ i in φ.support, monomial i (c' i),
+    use ψ,
+    ext i,
+    simp only [ψ, c', coeff_C_mul, mem_support_iff, coeff_monomial,
+               finset_sum_coeff, finset.sum_ite_eq'],
+    split_ifs with hi hi,
+    { rw hc },
+    { rw [not_not] at hi, rwa mul_zero } },
+end
+
 end coeff
 
 end polynomial

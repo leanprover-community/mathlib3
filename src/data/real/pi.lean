@@ -92,8 +92,8 @@ begin
   refine lt_of_lt_of_le (pi_lt_sqrt_two_add_series n) _,
   rw [← le_sub_iff_add_le, ← le_div_iff', sqrt_le_left, sub_le],
   { rwa [nat.cast_zero, zero_div] at h },
-  { exact div_nonneg (sub_nonneg.2 h₂) (pow_nonneg (le_of_lt two_pos) _) },
-  { exact pow_pos two_pos _ }
+  { exact div_nonneg (sub_nonneg.2 h₂) (pow_nonneg (le_of_lt zero_lt_two) _) },
+  { exact pow_pos zero_lt_two _ }
 end
 
 lemma sqrt_two_add_series_step_down (a b : ℕ) {c d n : ℕ} {z : ℝ}

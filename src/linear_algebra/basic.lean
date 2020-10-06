@@ -723,6 +723,11 @@ le_antisymm (span_le.2 h₁) h₂
 @[simp] lemma span_eq : span R (p : set M) = p :=
 span_eq_of_le _ (subset.refl _) subset_span
 
+lemma map_span (f : M →ₗ[R] M₂) (s : set M) :
+  (span R s).map f = span R (f '' s) :=
+eq.symm $ span_eq_of_le _ (set.image_subset f subset_span) $
+map_le_iff_le_comap.2 $ span_le.2 $ λ x hx, subset_span ⟨x, hx, rfl⟩
+
 /-- An induction principle for span membership. If `p` holds for 0 and all elements of `s`, and is
 preserved under addition and scalar multiplication, then `p` holds for all elements of the span of
 `s`. -/
@@ -849,8 +854,26 @@ end,
 by rintro ⟨a, y, rfl⟩; exact
   smul_mem _ _ (subset_span $ by simp)⟩
 
+lemma le_span_singleton_iff {s : submodule R M} {v₀ : M} :
+  s ≤ span R {v₀} ↔ ∀ v ∈ s, ∃ r : R, r • v₀ = v :=
+by simp_rw [le_def', mem_span_singleton]
+
 lemma span_singleton_eq_range (y : M) : (span R ({y} : set M) : set M) = range ((• y) : R → M) :=
 set.ext $ λ x, mem_span_singleton
+
+lemma span_singleton_smul_le (r : R) (x : M) : span R ({r • x} : set M) ≤ span R {x} :=
+begin
+  rw [span_le, set.singleton_subset_iff, mem_coe],
+  exact smul_mem _ _ (mem_span_singleton_self _)
+end
+
+lemma span_singleton_smul_eq {K E : Type*} [division_ring K] [add_comm_group E] [module K E]
+  {r : K} (x : E) (hr : r ≠ 0) : span K ({r • x} : set E) = span K {x} :=
+begin
+  refine le_antisymm (span_singleton_smul_le r x) _,
+  convert span_singleton_smul_le r⁻¹ (r • x),
+  exact (inv_smul_smul' hr _).symm
+end
 
 lemma disjoint_span_singleton {K E : Type*} [division_ring K] [add_comm_group E] [module K E]
   {s : submodule K E} {x : E} :
@@ -2041,6 +2064,13 @@ def arrow_congr {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_ring R]
   arrow_congr e₁ e₂ f x = e₂ (f (e₁.symm x)) :=
 rfl
 
+@[simp] lemma arrow_congr_symm_apply {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_ring R]
+  [add_comm_group M₁] [add_comm_group M₂] [add_comm_group M₂₁] [add_comm_group M₂₂]
+  [module R M₁] [module R M₂] [module R M₂₁] [module R M₂₂]
+  (e₁ : M₁ ≃ₗ[R] M₂) (e₂ : M₂₁ ≃ₗ[R] M₂₂) (f : M₂ →ₗ[R] M₂₂) (x : M₁) :
+  (arrow_congr e₁ e₂).symm f x = e₂.symm (f (e₁ x)) :=
+rfl
+
 lemma arrow_congr_comp {N N₂ N₃ : Sort*}
   [add_comm_group N] [add_comm_group N₂] [add_comm_group N₃] [module R N] [module R N₂] [module R N₃]
   (e₁ : M ≃ₗ[R] N) (e₂ : M₂ ≃ₗ[R] N₂) (e₃ : M₃ ≃ₗ[R] N₃) (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) :
@@ -2244,6 +2274,23 @@ def to_linear_equiv (e : M ≃ M₂) (h : is_linear_map R (e : M → M₂)) : M 
 { .. e, .. h.mk' e}
 
 end equiv
+
+namespace add_equiv
+variables [semiring R] [add_comm_monoid M] [semimodule R M] [add_comm_monoid M₂] [semimodule R M₂]
+
+/-- An additive equivalence whose underlying function preserves `smul` is a linear equivalence. -/
+def to_linear_equiv (e : M ≃+ M₂) (h : ∀ (c : R) x, e (c • x) = c • e x) : M ≃ₗ[R] M₂ :=
+{ map_smul' := h, .. e, }
+
+@[simp] lemma coe_to_linear_equiv (e : M ≃+ M₂) (h : ∀ (c : R) x, e (c • x) = c • e x) :
+  ⇑(e.to_linear_equiv h) = e :=
+rfl
+
+@[simp] lemma coe_to_linear_equiv_symm (e : M ≃+ M₂) (h : ∀ (c : R) x, e (c • x) = c • e x) :
+  ⇑(e.to_linear_equiv h).symm = e.symm :=
+rfl
+
+end add_equiv
 
 namespace linear_map
 

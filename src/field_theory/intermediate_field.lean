@@ -210,7 +210,7 @@ instance to_algebra : algebra S L :=
 S.to_subalgebra.to_algebra
 
 instance : is_scalar_tower K S L :=
-is_scalar_tower.subalgebra _ _ S.to_subalgebra
+is_scalar_tower.subalgebra' _ _ _ S.to_subalgebra
 
 variables {L' : Type*} [field L'] [algebra K L']
 

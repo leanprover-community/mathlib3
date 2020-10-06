@@ -551,6 +551,16 @@ end
 
 end set
 
+lemma strict_mono_incr_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}
+  (H : strict_mono_incr_on f s) :
+  s.inj_on f :=
+λ x hx y hy hxy, show ordering.eq.compares x y, from (H.compares hx hy).1 hxy
+
+lemma strict_mono_decr_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}
+  (H : strict_mono_decr_on f s) :
+  s.inj_on f :=
+@strict_mono_incr_on.inj_on α (order_dual β) _ _ f s H
+
 namespace function
 
 open set

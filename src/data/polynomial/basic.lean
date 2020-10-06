@@ -5,7 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import tactic.ring_exp
 import tactic.chain
-import data.monoid_algebra
+import algebra.monoid_algebra
 import data.finset.sort
 
 /-!

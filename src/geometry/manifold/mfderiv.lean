@@ -1230,10 +1230,17 @@ protected def mfderiv {x : M} (hx : x ∈ e.source) :
   end,
   .. mfderiv I I' e x }
 
+lemma mfderiv_bijective {x : M} (hx : x ∈ e.source) :
+  function.bijective (mfderiv I I' e x) :=
+(he.mfderiv hx).bijective
+
+lemma mfderiv_surjective {x : M} (hx : x ∈ e.source) :
+  function.surjective (mfderiv I I' e x) :=
+(he.mfderiv hx).surjective
 
 lemma range_mfderiv_eq_univ {x : M} (hx : x ∈ e.source) :
   range (mfderiv I I' e x) = univ :=
-(he.mfderiv hx).to_linear_equiv.to_equiv.range_eq_univ
+(he.mfderiv_surjective hx).range_eq
 
 lemma trans (he': e'.mdifferentiable I' I'') : (e.trans e').mdifferentiable I I'' :=
 begin
@@ -1313,16 +1320,15 @@ begin
     D₁.mono (by mfld_set_tac),
   -- The derivative `G'` is onto, as it is the derivative of a local diffeomorphism, the composition
   -- of the two charts and of `e`.
-  have C₁ : range (G' : E → E') = univ,
+  have C : dense_range (G' : E → E'),
   { have : G' = mfderiv I I' ((chart_at H z).symm ≫ₕ e ≫ₕ (chart_at H' x)) ((chart_at H z : M → H) z),
       by { rw (Diff.mdifferentiable_at Mmem).mfderiv, refl },
     rw this,
-    exact Diff.range_mfderiv_eq_univ Mmem },
-  have C₂ : dense_range (G' : E → E'), λ x, by simp [C₁],
+    exact (Diff.mfderiv_surjective Mmem).dense_range },
   -- key step: thanks to what we have proved about it, `G` preserves the unique derivative property
   have key : unique_diff_within_at 𝕜
     (G '' (F.symm ⁻¹' (s ∩ (e.source ∩ e ⁻¹' ((ext_chart_at I' x).source))) ∩ F.target))
-    (G (F z)) := D₂.unique_diff_within_at B C₂,
+    (G (F z)) := D₂.unique_diff_within_at B C,
   have : G (F z) = (ext_chart_at I' x) x, by { dsimp [G, F], simp only [hx.1] with mfld_simps },
   rw this at key,
   apply key.mono,

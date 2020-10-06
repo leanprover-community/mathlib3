@@ -533,6 +533,9 @@ end
 @[simp, norm_cast] lemma zero_le_real {x : ℝ} : (0 : ℂ) ≤ (x : ℂ) ↔ 0 ≤ x := real_le_real
 @[simp, norm_cast] lemma zero_lt_real {x : ℝ} : (0 : ℂ) < (x : ℂ) ↔ 0 < x := real_lt_real
 
+/--
+With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is an ordered ring.
+-/
 instance : ordered_comm_ring ℂ :=
 { zero_le_one := ⟨1, zero_le_one, by simp⟩,
   add_le_add_left := λ w z h y,
@@ -575,6 +578,11 @@ instance : ordered_comm_ring ℂ :=
   ..(by apply_instance : partial_order ℂ),
   ..(by apply_instance : comm_ring ℂ), }
 
+/--
+With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is a star ordered ring.
+(That is, an ordered ring in which every element of the form `star z * z` is nonnegative.
+In fact, `ℂ` is a C*-algebra, and so the nonnegative elements are precisely those of this form.)
+-/
 instance : star_ordered_ring ℂ :=
 { star_mul_self_nonneg := λ z,
   begin

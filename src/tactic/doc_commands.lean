@@ -190,11 +190,11 @@ if `tde.description` is the empty string, `add_tactic_doc` uses the doc
 string of `decl` as the description. -/
 meta def tactic.add_tactic_doc (tde : tactic_doc_entry) : tactic unit :=
 do when (tde.description = "" ∧ tde.inherit_description_from.is_none ∧ tde.decl_names.length ≠ 1) $
-     fail
-     ("A tactic doc entry must either:\n" ++
-     " 1. have a description written as a doc-string for the `add_tactic_doc` invocation, or\n" ++
-     " 2. have a single declaration in the `decl_names` field, to inherit a description from, or\n" ++
-     " 3. explicitly indicate the declaration to inherit the description from using `inherit_description_from`."),
+     fail "A tactic doc entry must either:
+ 1. have a description written as a doc-string for the `add_tactic_doc` invocation, or
+ 2. have a single declaration in the `decl_names` field, to inherit a description from, or
+ 3. explicitly indicate the declaration to inherit the description from using
+    `inherit_description_from`.",
    tde ← if tde.description = "" then tde.update_description else return tde,
    let decl_name := (tde.name ++ tde.category.to_string).mk_hashed_name `tactic_doc,
    add_decl $ mk_definition decl_name [] `(tactic_doc_entry) (reflect tde),

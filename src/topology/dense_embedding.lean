@@ -80,7 +80,7 @@ protected lemma prod [topological_space γ] [topological_space δ]
   {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_inducing e₁) (de₂ : dense_inducing e₂) :
   dense_inducing (λ(p : α × γ), (e₁ p.1, e₂ p.2)) :=
 { induced := (de₁.to_inducing.prod_mk de₂.to_inducing).induced,
-  dense := de₁.dense.prod de₂.dense }
+  dense := de₁.dense.prod_map de₂.dense }
 
 open topological_space
 
@@ -269,14 +269,14 @@ lemma is_closed_property2 [topological_space β] {e : α → β} {p : β → β 
   (he : dense_range e) (hp : is_closed {q:β×β | p q.1 q.2}) (h : ∀a₁ a₂, p (e a₁) (e a₂)) :
   ∀b₁ b₂, p b₁ b₂ :=
 have ∀q:β×β, p q.1 q.2,
-  from is_closed_property (he.prod he) hp $ λ _, h _ _,
+  from is_closed_property (he.prod_map he) hp $ λ _, h _ _,
 assume b₁ b₂, this ⟨b₁, b₂⟩
 
 lemma is_closed_property3 [topological_space β] {e : α → β} {p : β → β → β → Prop}
   (he : dense_range e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2}) (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃)) :
   ∀b₁ b₂ b₃, p b₁ b₂ b₃ :=
 have ∀q:β×β×β, p q.1 q.2.1 q.2.2,
-  from is_closed_property (he.prod $ he.prod he) hp $ λ _, h _ _ _,
+  from is_closed_property (he.prod_map $ he.prod_map he) hp $ λ _, h _ _ _,
 assume b₁ b₂ b₃, this ⟨b₁, b₂, b₃⟩
 
 @[elab_as_eliminator]

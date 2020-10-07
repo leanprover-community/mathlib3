@@ -279,15 +279,15 @@ lemma mem_bot_of_adjoin_simple_sub_bot (h : F⟮α⟯ = ⊥) : α ∈ (⊥ : int
 section adjoin_dim
 open finite_dimensional vector_space
 
-lemma dim_intermediate_field_eq_dim_subalgebra :
-  dim F (adjoin F S) = dim F (adjoin F S).to_subalgebra := rfl
+@[simp] lemma dim_intermediate_field_eq_dim_subalgebra :
+  dim F (adjoin F S).to_subalgebra = dim F (adjoin F S) := rfl
 
-lemma findim_intermediate_field_eq_findim_subalgebra :
-  findim F (adjoin F S) = findim F (adjoin F S).to_subalgebra := rfl
+@[simp] lemma findim_intermediate_field_eq_findim_subalgebra :
+  findim F (adjoin F S).to_subalgebra = findim F (adjoin F S) := rfl
 
 lemma sub_bot_of_adjoin_dim_eq_one (h : dim F (adjoin F S) = 1) : S ⊆ (⊥ : intermediate_field F E) :=
 begin
-  rw [dim_intermediate_field_eq_dim_subalgebra, subalgebra.dim_eq_one_iff, ←bot_to_subalgebra] at h,
+  rw [←dim_intermediate_field_eq_dim_subalgebra, subalgebra.dim_eq_one_iff, ←bot_to_subalgebra] at h,
   rw ← adjoin_eq_bot_iff,
   ext,
   exact subalgebra.ext_iff.mp h x,
@@ -298,7 +298,7 @@ set.singleton_subset_iff.mp (sub_bot_of_adjoin_dim_eq_one h)
 
 lemma adjoin_dim_eq_one_of_sub_bot (h : S ⊆ (⊥ : intermediate_field F E)) : dim F (adjoin F S) = 1 :=
 begin
-  rw [dim_intermediate_field_eq_dim_subalgebra, adjoin_eq_bot h, bot_to_subalgebra],
+  rw [←dim_intermediate_field_eq_dim_subalgebra, adjoin_eq_bot h, bot_to_subalgebra],
   exact subalgebra.dim_bot,
 end
 
@@ -312,8 +312,8 @@ lemma adjoin_simple_dim_eq_one_iff : dim F F⟮α⟯ = 1 ↔ α ∈ (⊥ : inter
 ⟨mem_bot_of_adjoin_simple_dim_eq_one, adjoin_simple_dim_eq_one_of_mem_bot⟩
 
 lemma adjoin_findim_eq_one_iff : findim F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
-by rw [findim_intermediate_field_eq_findim_subalgebra, ←adjoin_dim_eq_one_iff,
-    dim_intermediate_field_eq_dim_subalgebra, subalgebra.dim_eq_one_iff, subalgebra.findim_eq_one_iff]
+by rw [←findim_intermediate_field_eq_findim_subalgebra, ←adjoin_dim_eq_one_iff,
+    ←dim_intermediate_field_eq_dim_subalgebra, subalgebra.dim_eq_one_iff, subalgebra.findim_eq_one_iff]
 
 lemma adjoin_simple_findim_eq_one_iff : findim F F⟮α⟯ = 1 ↔ α ∈ (⊥ : intermediate_field F E) :=
 begin

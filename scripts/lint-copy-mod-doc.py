@@ -27,8 +27,7 @@ def import_only_check(lines, fn):
     import_only_file = True
     errors = []
     line_nr = 0
-    for line in lines:
-        line_nr += 1
+    for line_nr, line in enumerate(lines):
         if line == "\n":
             continue
         imports = line.split()
@@ -43,13 +42,11 @@ def import_only_check(lines, fn):
     return (import_only_file, errors)
 
 def regular_check(lines, fn):
-    line_nr = 0
     errors = []
     copy_started = False
     copy_done = False
     copy_start_line_nr = 0
-    for line in lines:
-        line_nr += 1
+    for line_nr, line in enumerate(lines):
         if not copy_started and line == "\n":
             continue
         if not copy_started and line == "/-\n":
@@ -92,11 +89,11 @@ def format_errors(errors):
         new_exceptions = True
         # filename first, then line so that we can call "sort" on the output
         if errno == ERR_COP:
-            print("{} : line {:02d} : ERR_COP : Malformed or missing copyright header".format(fn, line_nr))
+            print("{} : line {} : ERR_COP : Malformed or missing copyright header".format(fn, line_nr))
         if errno == ERR_IMP:
-            print("{} : line {:02d} : ERR_IMP : More than one file imported per line".format(fn, line_nr))
+            print("{} : line {} : ERR_IMP : More than one file imported per line".format(fn, line_nr))
         if errno == ERR_MOD:
-            print("{} : line {:02d} : ERR_MOD : Module docstring missing, or too late".format(fn, line_nr))
+            print("{} : line {} : ERR_MOD : Module docstring missing, or too late".format(fn, line_nr))
 
 def lint(fn):
     with open(fn) as f:

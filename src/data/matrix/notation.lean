@@ -193,7 +193,7 @@ only alternate elements (odd-numbered). -/
 def vec_alt1' (hm : m = n + n) (v : fin m → α) (k : fin n) : α :=
 v ⟨(k : ℕ) + k + 1, hm.symm ▸ nat.add_succ_lt_add k.property k.property⟩
 
-lemma vec_alt0_eq_alt0' (v : fin n → α) : vec_alt0 v = vec_alt0' rfl (vec_join rfl v v) :=
+lemma vec_alt0'_vec_join (v : fin n → α) : vec_alt0' rfl (vec_join rfl v v) = vec_alt0 v :=
 begin
   ext i,
   simp_rw [vec_alt0, vec_alt0', vec_join],

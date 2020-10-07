@@ -299,22 +299,15 @@ lemma coeff_nat_trailing_degree_eq_zero_of_trailing_degree_lt (h : trailing_degr
   coeff q (nat_trailing_degree p) = 0 :=
 begin
   refine coeff_eq_zero_of_trailing_degree_lt _,
-  refine lt_of_lt_of_le _ _,
-  { exact q.trailing_degree, },
-  { cases h,
-    cases h_h,
-    rw option.mem_def at h_h_w,
-    unfold nat_trailing_degree,
-    rw [h_h_w, option.get_or_else_some],
-    simp only [option.mem_def] at h_h_h,
-    refine ⟨ h_w , _ ⟩,
-    fsplit,
-      work_on_goal 1
-      { simp only [exists_prop, option.mem_def] at *,
-    intros a H },
-    exact rfl,
-    exact h_h_h a H, },
-  { exact le_refl q.trailing_degree, },
+  refine lt_of_lt_of_le _ (le_refl q.trailing_degree),
+--  { exact q.trailing_degree, },
+  cases h,
+  cases h_h,
+  rw option.mem_def at h_h_w,
+  unfold nat_trailing_degree,
+  rw [h_h_w, option.get_or_else_some],
+  simp only [option.mem_def] at h_h_h,
+  exact ⟨ h_w , ⟨ rfl , h_h_h ⟩ ⟩,
 end
 
 lemma ne_zero_of_trailing_degree_lt {n : with_top ℕ} (h : trailing_degree p < n) : p ≠ 0 :=

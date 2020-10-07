@@ -8,7 +8,7 @@ Continuous linear functions -- functions between normed vector spaces which are 
 import analysis.normed_space.multilinear
 
 noncomputable theory
-open_locale classical filter big_operators
+open_locale classical big_operators topological_space
 
 open filter (tendsto)
 open metric
@@ -104,21 +104,22 @@ lemma comp {g : F → G}
   is_bounded_linear_map 𝕜 (g ∘ f) :=
 (hg.to_continuous_linear_map.comp hf.to_continuous_linear_map).is_bounded_linear_map
 
-lemma tendsto (x : E) (hf : is_bounded_linear_map 𝕜 f) : f →_{x} (f x) :=
+protected lemma tendsto (x : E) (hf : is_bounded_linear_map 𝕜 f) :
+  tendsto f (𝓝 x) (𝓝 (f x)) :=
 let ⟨hf, M, hMp, hM⟩ := hf in
 tendsto_iff_norm_tendsto_zero.2 $
   squeeze_zero (assume e, norm_nonneg _)
     (assume e,
       calc ∥f e - f x∥ = ∥hf.mk' f (e - x)∥ : by rw (hf.mk' _).map_sub e x; refl
                    ... ≤ M * ∥e - x∥        : hM (e - x))
-    (suffices (λ (e : E), M * ∥e - x∥) →_{x} (M * 0), by simpa,
+    (suffices tendsto (λ (e : E), M * ∥e - x∥) (𝓝 x) (𝓝 (M * 0)), by simpa,
       tendsto_const_nhds.mul (lim_norm _))
 
 lemma continuous (hf : is_bounded_linear_map 𝕜 f) : continuous f :=
 continuous_iff_continuous_at.2 $ λ _, hf.tendsto _
 
 lemma lim_zero_bounded_linear_map (hf : is_bounded_linear_map 𝕜 f) :
-  (f →_{0} 0) :=
+  tendsto f (𝓝 0) (𝓝 0) :=
 (hf.1.mk' _).map_zero ▸ continuous_iff_continuous_at.1 hf.continuous 0
 
 section

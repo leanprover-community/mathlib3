@@ -141,4 +141,42 @@ begin
   rw [this, ←lift_unique, hyp],
 end
 
+/-- An induction principle for the free algebra.
+
+If `C` holds for the `algebra_map` of `r : R` into `exterior_algebra R X`, the `ι` of `x : X`, and is
+preserved under addition and muliplication, then it holds for all of `exterior_algebra R X`.
+-/
+@[elab_as_eliminator]
+lemma induction
+  {C : exterior_algebra R M → Prop}
+  (h_grade0 : ∀ r, C (algebra_map R (exterior_algebra R M) r))
+  (h_grade1 : ∀ x, C (ι R x))
+  (h_mul : ∀ a b, C a → C b → C (a * b))
+  (h_add : ∀ a b, C a → C b → C (a + b))
+  (a : exterior_algebra R M) :
+    C a :=
+begin
+  -- the arguments are enough to construct a subalgebra, and a mapping into it from X
+  let s : subalgebra R (exterior_algebra R M) := {
+    carrier := C,
+    one_mem' := h_grade0 1,
+    zero_mem' := h_grade0 0,
+    mul_mem' := h_mul,
+    add_mem' := h_add,
+    algebra_map_mem' := h_grade0, },
+  let of : M →ₗ[R] s := {
+    to_fun := λ x, ⟨ι R x, h_grade1 x⟩,
+    map_add' := λ _ _, by {ext, simp, },
+    map_smul' := λ _ _, by {ext, simp, },
+  },
+  -- the mapping through the subalgebra is the identity
+  have of_id : alg_hom.id R (exterior_algebra R M) = s.val.comp (lift R of (λ m, by { ext, simp, refl, })),
+  { ext,
+    simp [of, subtype.coind], },
+  -- finding a proof is finding an element of the subalgebra
+  convert subtype.prop (lift R of _ a),
+  simp [alg_hom.ext_iff] at of_id,
+  exact of_id a,
+end
+
 end exterior_algebra

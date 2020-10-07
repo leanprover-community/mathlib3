@@ -14,9 +14,19 @@ An equivalence of categories `C` and `D` is a pair of functors `F : C ⥤ D` and
 that `η : 𝟭 C ≅ F ⋙ G` and `ε : G ⋙ F ≅ 𝟭 D`. In many situations, equivalences are a better
 notion of "sameness" of categories than the stricter isomorphims of categories.
 
-Our definition of equivalence includes an additional axiom, and the resulting notion of equivalence
-is called a "(half-)adjoint equivalence". We show that, given an equivalence in the sense of the
-previous paragraph, we can obtain a half-adjoint equivalence by refining `η` in an appropriate way.
+Recall that one way to express that two functors `F : C ⥤ D` and `G : D ⥤ C` are adjoint is using
+two natural transformations `η : 𝟭 C ⟶ F ⋙ G` and `ε : G ⋙ F ⟶ 𝟭 D`, called the unit and the
+counit, such that the compositions `F ⟶ FGF ⟶ F` and `G ⟶ GFG ⟶ G` are the identity. Unfortunately,
+it is not the case that the natural isomorphisms `η` and `ε` in the definition of an equivalence
+automatically give an adjunction. However, it is true that
+* if one of the two compositions is the identity, then so is the other, and
+* given an equivalence of categories, it is always possible to refine `η` in such a way that the
+  identities are satisfied.
+
+For this reason, in mathlib we define an equivalence to be a "half-adjoint equivalence", which is
+a tuple `(F, G, η, ε)` as in the first paragraph such that the composite `F ⟶ FGF ⟶ F` is the
+identity. By the remark above, this already implies that the tuple is an "adjoint equivalence",
+i.e., that the composite `G ⟶ GFG ⟶ G` is also the identity.
 
 We also define essentially surjective functors and show that a functor is an equivalence if and only
 if it is full, faithful and essentially surjective.
@@ -48,6 +58,9 @@ universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `categor
 /-- We define an equivalence as a (half)-adjoint equivalence, a pair of functors with
   a unit and counit which are natural isomorphisms and the triangle law `Fη ≫ εF = 1`, or in other
   words the composite `F ⟶ FGF ⟶ F` is the identity.
+
+  In `unit_inverse_comp`, we show that this is actually an adjoint equivalence, i.e., that the
+  composite `G ⟶ GFG ⟶ G` is also the identity.
 
   The triangle equation is written as a family of equalities between morphisms, it is more
   complicated if we write it as an equality of natural transformations, because then we would have

@@ -847,4 +847,3 @@ def quotient_quotient_equiv_quotient (c d : con M) (h : c ≤ d) :
   ..quotient_quotient_equiv_quotient c.to_setoid d.to_setoid h }
 
 end con
-#lint

@@ -199,7 +199,7 @@ begin
   simp_rw [function.comp, vec_alt1, vec_join],
   cases n,
   { simp, congr },
-  { split_ifs; simp_rw [bit1, bit0]; congr,
+  { split_ifs h; simp_rw [bit1, bit0]; congr,
     { rw fin.coe_mk at h,
       simp only [fin.ext_iff, fin.coe_add, fin.coe_mk],
       rw nat.mod_eq_of_lt (nat.lt_of_succ_lt h),

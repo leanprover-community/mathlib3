@@ -276,7 +276,7 @@ instance has_lift2 {F : intermediate_field K L} :
   has_lift_t (intermediate_field F L) (intermediate_field K L) := ⟨lift2⟩
 
 @[simp] lemma mem_lift2 {F : intermediate_field K L} {E : intermediate_field F L} {x : L} :
-  x ∈ (↑E : intermediate_field K L) ↔ x ∈ E := rfl
+  x ∈ (↑E : intermediate_field K L) ↔ x ∈ E := by refl
 
 end tower
 

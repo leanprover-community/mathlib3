@@ -303,7 +303,7 @@ begin
   simp_rw [option.mem_def] at hq,
   unfold nat_trailing_degree,
   rw [hn, option.get_or_else_some],
-  exact ⟨ n , ⟨ rfl , hq ⟩ ⟩,
+  exact ⟨n, ⟨rfl, hq⟩⟩,
 end
 
 lemma ne_zero_of_trailing_degree_lt {n : with_top ℕ} (h : trailing_degree p < n) : p ≠ 0 :=

@@ -12,7 +12,7 @@ import tactic.slice
 
 An equivalence of categories `C` and `D` is a pair of functors `F : C ⥤ D` and `G : D ⥤ C` such
 that `η : 𝟭 C ≅ F ⋙ G` and `ε : G ⋙ F ≅ 𝟭 D`. In many situations, equivalences are a better
-notion of "sameness" of categories rather than the stricter isomorphims of categories.
+notion of "sameness" of categories than the stricter isomorphims of categories.
 
 Our definition of equivalence includes an additional axiom, and the resulting notion of equivalence
 is called a "(half-)adjoint equivalence". We show that, given an equivalence in the sense of the
@@ -37,7 +37,7 @@ if it is full, faithful and essentially surjective.
 
 ## Notations
 
-We write `C ≌ D` (`\backcong`, not do be confused with `≅`/`\cong`) for a bunded equivalence.
+We write `C ≌ D` (`\backcong`, not do be confused with `≅`/`\cong`) for a bundled equivalence.
 
 -/
 
@@ -189,9 +189,9 @@ end
 
 end
 
-/-- Every equivalence of categories consisting of functors `F` and `G` such that
-    `F ⋙ G` and `G ⋙ F` are naturally isomorphic to identity functors can be transformed into a
-    half-adjoint equivalence without changing `F` or `G`. -/
+/-- Every equivalence of categories consisting of functors `F` and `G` such that `F ⋙ G` and
+    `G ⋙ F` are naturally isomorphic to identity functors can be transformed into a half-adjoint
+    equivalence without changing `F` or `G`. -/
 protected definition mk (F : C ⥤ D) (G : D ⥤ C)
   (η : 𝟭 C ≅ F ⋙ G) (ε : G ⋙ F ≅ 𝟭 D) : C ≌ D :=
 ⟨F, G, adjointify_η η ε, ε, adjointify_η_ε η ε⟩

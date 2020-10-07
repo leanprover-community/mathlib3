@@ -134,7 +134,6 @@ The final theorem is now just gluing together our lemmas.
 theorem imo1962_q4 {x : ℝ} : problem_equation x ↔ x ∈ solution_set :=
 begin
   rw [alt_equiv, finding_zeros, solve_cos3x_0, solve_cos2_half],
-  unfold solution_set,
-  refine exists_or_distrib.symm
+  exact exists_or_distrib.symm
 end
 

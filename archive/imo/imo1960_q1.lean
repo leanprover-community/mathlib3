@@ -6,8 +6,6 @@ Authors: Kevin Lacker
 
 import data.nat.digits
 
-open nat
-
 /-!
 # IMO 1960 Q1
 
@@ -23,6 +21,8 @@ In theory, we should be able to brute force this and check every number up to 10
 In practice, the Lean tactics that are capable of checking a single number, like `norm_num`,
 are not efficient enough to run a thousand times while compiling one file.
 -/
+
+open nat
 
 def sum_of_squares (L : list ℕ) : ℕ := (L.map (λ x, x * x)).sum
 

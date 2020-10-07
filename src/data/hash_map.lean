@@ -14,13 +14,38 @@ import data.sigma.basic
 
 Defines a hash map data structure, representing a finite key-value map
 with a value type that may depend on the key type.  The structure
-requires a `nat`-valued hash function.  For a hash map with `n`
-buckets, the hash function is taken modulo-`n` to determine the bucket
-associated to a given key.
+requires a `nat`-valued hash function to associate keys to buckets.
 
 ## Main definitions
 
 * `hash_map`, constructed with `mk_hash_map`.
+
+## Implementation details
+
+A hash map with key type `α` and (dependent) value type `β : α → Type*`
+consists of an array of *buckets*, which are lists containing
+key/value pairs for that bucket.  The hash function is taken modulo `n`
+to assign keys to their respective bucket.  Because of this, some care
+should be put into the hash function to ensure it evenly distributes
+keys.
+
+The bucket array is an `array`.  These have special VM support for
+in-place modification if there is only ever one reference to them.  If
+one takes special care to never keep references to old versions of a
+hash map alive after updating it, then the hash map will be modified
+in-place.  In this documentation, when we say a hash map is modified
+in-place, we are assuming the API is being used in this manner.
+
+When inserting (`hash_map.insert`), if the number of stored pairs (the
+*size*) is going to exceed the number of buckets, then a new hash map
+is first created with double the number of buckets and everything in
+the old hash map is reinserted along with the new key/value pair.
+Otherwise, the bucket array is modified in-place.  The amortized
+running time of inserting `n` elements into a hash map is `O(n)`.
+
+When removing (`hash_map.erase`), the hash map is modified in-place.
+The implementation does *not* reduce the number of buckets in the hash
+map if the size gets too low.
 
 ## Tags
 

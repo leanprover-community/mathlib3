@@ -200,15 +200,15 @@ begin
   split_ifs; simp_rw [bit0]; congr,
   { rw fin.coe_mk at h,
     simp only [fin.ext_iff, fin.coe_add, fin.coe_mk],
-    exact nat.mod_eq_of_lt h },
+    exact (nat.mod_eq_of_lt h).symm },
   { rw [fin.coe_mk, not_lt] at h,
     simp only [fin.ext_iff, fin.coe_add, fin.coe_mk, nat.mod_eq_sub_mod h],
-    refine nat.mod_eq_of_lt _,
+    refine (nat.mod_eq_of_lt _).symm,
     rw nat.sub_lt_left_iff_lt_add h,
     exact add_lt_add i.property i.property }
 end
 
-lemma vec_alt1_eq_alt1' (v : fin (n + 1) → α) : vec_alt1 v = vec_alt1' rfl (vec_join rfl v v) :=
+lemma vec_alt1'_vec_join (v : fin (n + 1) → α) : vec_alt1' rfl (vec_join rfl v v) = vec_alt1 v :=
 begin
   ext i,
   simp_rw [vec_alt1, vec_alt1', vec_join],
@@ -218,22 +218,22 @@ begin
     { rw fin.coe_mk at h,
       simp only [fin.ext_iff, fin.coe_add, fin.coe_mk],
       rw nat.mod_eq_of_lt (nat.lt_of_succ_lt h),
-      exact nat.mod_eq_of_lt h },
+      exact (nat.mod_eq_of_lt h).symm },
     { rw [fin.coe_mk, not_lt] at h,
       simp only [fin.ext_iff, fin.coe_add, fin.coe_mk, nat.mod_add_mod, fin.coe_one,
                  nat.mod_eq_sub_mod h],
-      refine nat.mod_eq_of_lt _,
+      refine (nat.mod_eq_of_lt _).symm,
       rw nat.sub_lt_left_iff_lt_add h,
       exact nat.add_succ_lt_add i.property i.property } }
 end
 
 @[simp] lemma cons_vec_alt0_eq_alt0' (x : α) (u : fin n → α) :
   vec_alt0 (vec_cons x u) = vec_alt0' rfl (vec_join rfl (vec_cons x u) (vec_cons x u)) :=
-vec_alt0_eq_alt0' _
+(vec_alt0'_vec_join _).symm
 
 @[simp] lemma cons_vec_alt1_eq_alt1' (x : α) (u : fin n → α) :
   vec_alt1 (vec_cons x u) = vec_alt1' rfl (vec_join rfl (vec_cons x u) (vec_cons x u)) :=
-vec_alt1_eq_alt1' _
+(vec_alt1'_vec_join _).symm
 
 @[simp] lemma cons_vec_alt0' (h : m + 1 + 1 = (n + 1) + (n + 1)) (x y : α) (u : fin m → α) :
   vec_alt0' h (vec_cons x (vec_cons y u)) = vec_cons x (vec_alt0'

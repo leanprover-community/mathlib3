@@ -27,7 +27,7 @@ def import_only_check(lines, fn):
     import_only_file = True
     errors = []
     line_nr = 0
-    for line_nr, line in enumerate(lines):
+    for line_nr, line in enumerate(lines, 1):
         if line == "\n":
             continue
         imports = line.split()
@@ -46,7 +46,8 @@ def regular_check(lines, fn):
     copy_started = False
     copy_done = False
     copy_start_line_nr = 0
-    for line_nr, line in enumerate(lines):
+    copy_lines = ""
+    for line_nr, line in enumerate(lines, 1):
         if not copy_started and line == "\n":
             continue
         if not copy_started and line == "/-\n":
@@ -56,15 +57,12 @@ def regular_check(lines, fn):
         if not copy_started:
             errors += [(ERR_COP, line_nr, fn)]
         if copy_started and not copy_done:
-            if line_nr == copy_start_line_nr + 1 and not "Copyright (c)" in line:
-                errors += [(ERR_COP, line_nr, fn)]
-            if line_nr == copy_start_line_nr + 2 and not "Apache" in line:
-                errors += [(ERR_COP, line_nr, fn)]
-            if line_nr == copy_start_line_nr + 3 and not "Author" in line:
-                errors += [(ERR_COP, line_nr, fn)]
-            if line_nr == copy_start_line_nr + 4 and not line == "-/\n":
-                errors += [(ERR_COP, line_nr, fn)]
+            copy_lines += line
             if line == "-/\n":
+                if ((not "Copyright (c)" in copy_lines) or
+                    (not "Apache" in copy_lines) or
+                    (not "Author" in copy_lines)):
+                    errors += [(ERR_COP, copy_start_line_nr, fn)]
                 copy_done = True
             continue
         if copy_done and line == "\n":

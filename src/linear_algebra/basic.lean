@@ -161,6 +161,15 @@ instance : inhabited (M →ₗ[R] M₂) := ⟨0⟩
 
 @[simp] lemma zero_apply (x : M) : (0 : M →ₗ[R] M₂) x = 0 := rfl
 
+@[simp] lemma default_def : default (M →ₗ[R] M₂) = 0 := rfl
+
+instance unique_of_left [subsingleton M] : unique (M →ₗ[R] M₂) :=
+{ uniq := λ f, ext $ λ x, by rw [subsingleton.elim x 0, map_zero, map_zero],
+  .. linear_map.inhabited }
+
+instance unique_of_right [subsingleton M₂] : unique (M →ₗ[R] M₂) :=
+coe_injective.unique
+
 /-- The sum of two linear maps is linear. -/
 instance : has_add (M →ₗ[R] M₂) :=
 ⟨λ f g, ⟨λ b, f b + g b, by simp [add_comm, add_left_comm], by simp [smul_add]⟩⟩

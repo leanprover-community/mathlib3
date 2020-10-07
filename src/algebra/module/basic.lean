@@ -290,12 +290,13 @@ variables (f g : M →ₗ[R] M₂)
 theorem is_linear : is_linear_map R f := ⟨f.2, f.3⟩
 
 variables {f g}
+include semimodule_M semimodule_M₂
 
-theorem coe_inj (h : (f : M → M₂) = g) : f = g :=
-by cases f; cases g; cases h; refl
+theorem coe_injective : injective (λ f : M →ₗ[R] M₂, show M → M₂, from f) :=
+by rintro ⟨f, _⟩ ⟨g, _⟩ ⟨h⟩; congr
 
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
-coe_inj $ funext H
+coe_injective $ funext H
 
 lemma coe_fn_congr : Π {x x' : M}, x = x' → f x = f x'
 | _ _ rfl := rfl

@@ -242,12 +242,19 @@ lemma map_sum {ι : Type*} (s : finset ι) (g : ι → M) :
 instance: has_zero (M →L[R] M₂) := ⟨⟨0, continuous_const⟩⟩
 instance : inhabited (M →L[R] M₂) := ⟨0⟩
 
+@[simp] lemma default_def : default (M →L[R] M₂) = 0 := rfl
 @[simp] lemma zero_apply : (0 : M →L[R] M₂) x = 0 := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : M →L[R] M₂) : M →ₗ[R] M₂) = 0 := rfl
 /- no simp attribute on the next line as simp does not always simplify `0 x` to `0`
 when `0` is the zero function, while it does for the zero continuous linear map,
 and this is the most important property we care about. -/
 @[norm_cast] lemma coe_zero' : ((0 : M →L[R] M₂) : M → M₂) = 0 := rfl
+
+instance unique_of_left [subsingleton M] : unique (M →L[R] M₂) :=
+coe_injective.unique
+
+instance unique_of_right [subsingleton M₂] : unique (M →L[R] M₂) :=
+coe_injective.unique
 
 section
 

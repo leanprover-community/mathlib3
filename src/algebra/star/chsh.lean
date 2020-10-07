@@ -238,7 +238,7 @@ begin
     simp only [mul_one, int.cast_bit0, algebra.mul_smul_comm, int.cast_one, gsmul_eq_mul],
     rw [smul_two, smul_four, ←add_smul],
     congr,
-    exact mul_left_cancel' sqrt_two_ne_zero noncommutative_CHSH_inequality_aux, },
+    exact mul_left_cancel' sqrt_two_ne_zero tsirelson_inequality_aux, },
   have pos : 0 ≤ √2⁻¹ • (P^2 + Q^2), {
     have P_sa : star P = P,
     { dsimp [P],

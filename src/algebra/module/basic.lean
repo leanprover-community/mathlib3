@@ -291,12 +291,13 @@ variables (f g : M →ₗ[R] M₂)
 theorem is_linear : is_linear_map R f := ⟨f.2, f.3⟩
 
 variables {f g}
+include semimodule_M semimodule_M₂
 
-theorem coe_inj (h : (f : M → M₂) = g) : f = g :=
-by cases f; cases g; cases h; refl
+theorem coe_injective : injective (λ f : M →ₗ[R] M₂, show M → M₂, from f) :=
+by rintro ⟨f, _⟩ ⟨g, _⟩ ⟨h⟩; congr
 
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
-coe_inj $ funext H
+coe_injective $ funext H
 
 lemma coe_fn_congr : Π {x x' : M}, x = x' → f x = f x'
 | _ _ rfl := rfl
@@ -316,15 +317,6 @@ variables (f g)
 
 @[simp] lemma map_zero : f 0 = 0 :=
 by rw [← zero_smul R, map_smul f 0 0, zero_smul]
-
--- Lean fails to include `[semimodule R M]` and `[semimodule R M₂]` automatically
-instance subsingleton_of_left [semimodule R M] [semimodule R M₂] [subsingleton M] :
-  subsingleton (M →ₗ[R] M₂) :=
-⟨λ f g, ext $ λ x, by rw [subsingleton.elim x 0, map_zero, map_zero]⟩
-
-instance subsingleton_of_right [semimodule R M] [semimodule R M₂] [subsingleton M₂] :
-  subsingleton (M →ₗ[R] M₂) :=
-⟨λ f g, ext $ λ x, subsingleton.elim _ _⟩
 
 instance : is_add_monoid_hom f :=
 { map_add := map_add f,

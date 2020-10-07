@@ -5,11 +5,22 @@ Authors: Johan Commelin
 -/
 import tactic.basic
 
+/-!
+# Singleton types
+
+`α : Sort*` is `unique` if it has a unique element `default α`. Equivalently, `unique α` means
+`inhabited α` and `subsingleton α`.
+
+We use `Type*`-valued structure for `unique` instead of `Prop` to get better definitional equalities
+for `default α`.
+-/
+
 universes u v w
 
 variables {α : Sort u} {β : Sort v} {γ : Sort w}
 
-@[ext]
+/-- `α : Sort*` is `unique` if it has a unique element `default α`. We use `Type*`-valued
+structure instead of `Prop` to get better definitional equalities for `default α`. -/
 structure unique (α : Sort u) extends inhabited α :=
 (uniq : ∀ a:α, a = default)
 
@@ -49,11 +60,24 @@ lemma exists_iff {p : α → Prop} : Exists p ↔ p (default α) :=
 
 end
 
-protected lemma subsingleton_unique' : ∀ (h₁ h₂ : unique α), h₁ = h₂
+@[simp] lemma pi.default_apply {β : Π a : α, Sort v} [Π a, inhabited (β a)] (a : α) :
+  default (Π a, β a) a = default (β a) :=
+rfl
+
+instance pi.unique {β : Π a : α, Sort v} [Π a, unique (β a)] : unique (Π a, β a) :=
+{ uniq := λ f, funext $ λ x, eq_default _,
+  .. pi.inhabited α }
+
+@[ext] protected lemma subsingleton_unique' : ∀ (h₁ h₂ : unique α), h₁ = h₂
 | ⟨⟨x⟩, h⟩ ⟨⟨y⟩, _⟩ := by congr; rw [h x, h y]
 
 instance subsingleton_unique : subsingleton (unique α) :=
 ⟨unique.subsingleton_unique'⟩
+
+/-- Construct `unique` from `inhabited` and `subsingleton`. Making this an instance would create
+a loop in the class inheritance graph. -/
+def mk' (α : Sort u) [h₁ : inhabited α] [subsingleton α] : unique α :=
+{ uniq := λ x, subsingleton.elim _ _, .. h₁ }
 
 end unique
 
@@ -63,24 +87,18 @@ variable {f : α → β}
 
 /-- If the domain of a surjective function is a singleton,
 then the codomain is a singleton as well. -/
-def surjective.unique (hf : surjective f) [unique α] : unique β :=
+protected def surjective.unique (hf : surjective f) [unique α] : unique β :=
 { default := f (default _),
   uniq := λ b, let ⟨a, ha⟩ := hf b in ha ▸ congr_arg f (unique.eq_default _) }
 
 /-- If the codomain of an injective function is a subsingleton, then the domain
 is a subsingleton as well. -/
-lemma injective.comap_subsingleton (hf : injective f) [subsingleton β] :
+protected lemma injective.subsingleton (hf : injective f) [subsingleton β] :
   subsingleton α :=
 ⟨λ x y, hf $ subsingleton.elim _ _⟩
 
+/-- If `α` is inhabited and admits an injective map to a subsingleton type, then `α` is `unique`. -/
+protected def injective.unique [inhabited α] [subsingleton β] (hf : injective f) : unique α :=
+@unique.mk' _ _ hf.subsingleton
+
 end function
-
-lemma nonempty_unique_or_exists_ne (x : α) : nonempty (unique α) ∨ ∃ y, y ≠ x :=
-classical.by_cases or.inr
-  (λ h, or.inl ⟨{ default := x,
-    uniq := λ y, classical.by_contradiction $ λ hy, h ⟨y, hy⟩ }⟩)
-
-lemma subsingleton_or_exists_ne (x : α) : subsingleton α ∨ ∃ y, y ≠ x :=
-(nonempty_unique_or_exists_ne x).elim
-  (λ ⟨h⟩, or.inl $ @unique.subsingleton _ h)
-  or.inr

@@ -2397,9 +2397,10 @@ begin
   -- this works differently depending on whether or not `E` is `nontrivial` (the condition for
   -- `E →L[𝕜] E` to be a `normed_algebra`)
   cases subsingleton_or_nontrivial E with _i _i; resetI,
-  { convert @times_cont_diff_at_const _ _ _ _ _ _ _ _ _ _ (0 :  E →L[𝕜] E),
+  { 
+convert @times_cont_diff_at_const _ _ _ _ _ _ _ _ _ _ (0 :  E →L[𝕜] E),
     ext,
-    simp },
+    simp, exact 0 },
   { convert times_cont_diff_at_ring_inverse 𝕜 (E →L[𝕜] E) 1,
     simp [O₂],
     refl },

@@ -94,7 +94,7 @@ def modify_nth (f : α → α) : ℕ → list α → list α :=
 modify_nth_tail (modify_head f)
 
 /-- Apply `f` to the last element of `l`, if it exists. -/
-def modify_last (f : α → α) : list α → list α
+@[simp] def modify_last (f : α → α) : list α → list α
 | [] := []
 | [x] := [f x]
 | (x :: xs) := x :: modify_last xs

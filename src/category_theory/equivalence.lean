@@ -7,6 +7,40 @@ import category_theory.fully_faithful
 import category_theory.whiskering
 import tactic.slice
 
+/-!
+# Equivalence of categories
+
+An equivalence of categories `C` and `D` is a pair of functors `F : C ⥤ D` and `G : D ⥤ C` such
+that `η : 𝟭 C ≅ F ⋙ G` and `ε : G ⋙ F ≅ 𝟭 D`. In many situations, equivalences are a better
+notion of "sameness" of categories rather than the stricter isomorphims of categories.
+
+Our definition of equivalence includes an additional axiom, and the resulting notion of equivalence
+is called a "(half-)adjoint equivalence". We show that, given an equivalence in the sense of the
+previous paragraph, we can obtain a half-adjoint equivalence by refining `η` in an appropriate way.
+
+We also define essentially surjective functors and show that a functor is an equivalence if and only
+if it is full, faithful and essentially surjective.
+
+## Main definitions
+
+* `equivalence`: bundled (half-)adjoint equivalences of categories
+* `is_equivalence`: type class on a functor `F` containing the data of the inverse `G` as well as
+  the natural isomorphisms `η` and `ε`.
+* `ess_surj`: type class on a functor `F` containing the data of the preimages and the isomorphisms
+  `F.obj (preimage d) ≅ d`.
+
+## Main results
+
+* `equivalence.mk`: upgrade an equivalence to a (half-)adjoint equivalence
+* `equivalence_of_fully_faithfully_ess_surj`: a fully faithful essentially surjective functor is an
+  equivalence.
+
+## Notations
+
+We write `C ≌ D` (`\backcong`, not do be confused with `≅`/`\cong`) for a bunded equivalence.
+
+-/
+
 namespace category_theory
 open category_theory.functor nat_iso category
 universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -435,6 +469,10 @@ class ess_surj (F : C ⥤ D) :=
 (iso' (d : D) : F.obj (obj_preimage d) ≅ d . obviously)
 
 restate_axiom ess_surj.iso'
+
+/-- Applying an essentially surjective functor to a preimage of `d` yields an object that is
+    isomorphic to `d`. -/
+add_decl_doc ess_surj.iso
 
 namespace functor
 /-- Given an essentially surjective functor, we can find a preimage for every object `d` in the

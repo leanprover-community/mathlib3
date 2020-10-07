@@ -158,9 +158,9 @@ rfl
 /-- `vec_join u v` joins two vectors of lengths `m` and `n` to produce
 one of length `o = m + n`. -/
 def vec_join (ho : o = m + n) (u : fin m → α) (v : fin n → α) : fin o → α :=
-λ i, if h : (i : ℕ) < m then u ⟨i, h⟩
-                        else v ⟨(i : ℕ) - m,
-                                (nat.sub_lt_left_iff_lt_add (le_of_not_lt h)).2 (ho ▸ i.property)⟩
+λ i, if h : (i : ℕ) < m
+  then u ⟨i, h⟩
+  else v ⟨(i : ℕ) - m, (nat.sub_lt_left_iff_lt_add (le_of_not_lt h)).2 (ho ▸ i.property)⟩
 
 @[simp] lemma empty_join (v : fin n → α) : vec_join (zero_add _).symm ![] v = v :=
 by { ext, simp [vec_join] }

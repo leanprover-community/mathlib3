@@ -25,12 +25,18 @@ do t ← infer_type e,
    to_expr ``(_ ∈ (_ : list %%α))     tt ff >>= unify t,
    instantiate_mvars α
 
+/--
+`expr_list_to_list_expr` converts an `expr` of type `list α`
+to a list of `expr`s each with type `α`.
+
+TODO: this should be moved, and possibly duplicates an existing definition.
+-/
 meta def expr_list_to_list_expr : Π (e : expr), tactic (list expr)
 | `(list.cons %%h %%t) := list.cons h <$> expr_list_to_list_expr t
 | `([]) := return []
 | _ := failed
 
-meta def fin_cases_at_aux : Π (with_list : list expr) (e : expr), tactic unit
+private meta def fin_cases_at_aux : Π (with_list : list expr) (e : expr), tactic unit
 | with_list e :=
 (do
   result ← cases_core e,
@@ -60,7 +66,12 @@ meta def fin_cases_at_aux : Π (with_list : list expr) (e : expr), tactic unit
   | _ := failed
   end)
 
-
+/--
+`fin_cases_at with_list e` performs case analysis on `e : α`, where `α` is a fintype.
+The optional list of expressions `with_list` provides descriptions for the cases of `e`,
+for example, to display nats as `n.succ` instead of `n+1`.
+These should be defeq to and in the same order as the terms in the enumeration of `α`.
+-/
 meta def fin_cases_at : Π (with_list : option pexpr) (e : expr), tactic unit
 | with_list e :=
 do ty ← try_core $ guard_mem_fin e,

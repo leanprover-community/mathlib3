@@ -152,7 +152,7 @@ If an element `r : R` is invertible in `S`, then it is invertible in `A`. -/
 def invertible.algebra_tower (r : R) [invertible (algebra_map R S r)] :
   invertible (algebra_map R A r) :=
 invertible.copy (invertible.map (algebra_map S A : S →* A) (algebra_map R S r)) (algebra_map R A r)
-  (by rw [coe_monoid_hom, is_scalar_tower.algebra_map_apply R S A])
+  (by rw [ring_hom.coe_monoid_hom, is_scalar_tower.algebra_map_apply R S A])
 
 /-- A natural number that is invertible when coerced to `R` is also invertible
 when coerced to any `R`-algebra. -/

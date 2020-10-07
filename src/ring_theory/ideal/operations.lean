@@ -831,6 +831,9 @@ by rw [submodule.ext'_iff, ker_eq]; exact is_add_group_hom.trivial_ker_iff_eq_ze
 lemma not_one_mem_ker [nontrivial S] (f : R →+* S) : (1:R) ∉ ker f :=
 by { rw [mem_ker, f.map_one], exact one_ne_zero }
 
+@[simp] lemma ker_coe_equiv (f : R ≃+* S) : ker (f : R →+* S) = ⊥ :=
+by simpa only [←injective_iff_ker_eq_bot] using f.injective
+
 end comm_ring
 
 /-- The kernel of a homomorphism to an integral domain is a prime ideal.-/
@@ -893,6 +896,10 @@ begin
       ring },
     exact (H.right this).imp (λ h, ha ▸ mem_map_of_mem h) (λ h, hb ▸ mem_map_of_mem h) }
 end
+
+theorem map_is_prime_of_equiv (f : R ≃+* S) {I : ideal R} [is_prime I] :
+  is_prime (map (f : R →+* S) I) :=
+map_is_prime_of_surjective f.surjective $ by simp
 
 theorem map_radical_of_surjective {f : R →+* S} (hf : function.surjective f) {I : ideal R}
   (h : ring_hom.ker f ≤ I) : map f (I.radical) = (map f I).radical :=

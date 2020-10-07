@@ -3,7 +3,7 @@ Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 
-The `even` predicate on the natural numbers.
+The `even` and `odd` predicates on the natural numbers.
 -/
 import data.nat.modeq
 
@@ -24,8 +24,22 @@ theorem even_iff {n : nat} : even n ↔ n % 2 = 0 :=
 lemma not_even_iff {n : ℕ} : ¬ even n ↔ n % 2 = 1 :=
 by rw [even_iff, mod_two_ne_zero]
 
+/-- A natural number `n` is `odd` if it is not even.  The mathlib API
+for parity is developed in terms of `even`; to avoid duplication,
+results should not be stated in terms of `odd`.  The purpose of this
+definition is for code outside mathlib that wishes to have a formal
+statement that is as literal a translation as possible of the
+corresponding informal statement, where that informal statement refers
+to odd numbers. -/
+def odd (n : ℕ) : Prop := ¬ even n
+
+@[simp] lemma odd_def (n : ℕ) : odd n ↔ ¬ even n := iff.rfl
+
 instance : decidable_pred even :=
 λ n, decidable_of_decidable_of_iff (by apply_instance) even_iff.symm
+
+instance decidable_pred_odd : decidable_pred odd :=
+λ n, decidable_of_decidable_of_iff (by apply_instance) not_even_iff.symm
 
 mk_simp_attribute parity_simps "Simp attribute for lemmas about `even`"
 

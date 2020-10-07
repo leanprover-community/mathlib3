@@ -100,7 +100,7 @@ by rw [← int.coe_nat_zero, coe_nat_inj']
 theorem coe_nat_ne_zero {n : ℕ} : (n : ℤ) ≠ 0 ↔ n ≠ 0 :=
 not_congr coe_nat_eq_zero
 
-lemma coe_nat_nonneg (n : ℕ) : 0 ≤ (n : ℤ) := coe_nat_le.2 (nat.zero_le _)
+@[simp] lemma coe_nat_nonneg (n : ℕ) : 0 ≤ (n : ℤ) := coe_nat_le.2 (nat.zero_le _)
 
 lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
 ⟨λ h, nat.pos_of_ne_zero (coe_nat_ne_zero.1 h),
@@ -176,6 +176,8 @@ begin
     exact this (i + 1) }
 end
 
+/-- Inductively define a function on `ℤ` by defining it at `b`, for the `succ` of a number greater
+  than `b`, and the `pred` of a number less than `b`. -/
 protected def induction_on' {C : ℤ → Sort*} (z : ℤ) (b : ℤ) :
   C b → (∀ k, b ≤ k → C k → C (k + 1)) → (∀ k ≤ b, C k → C (k - 1)) → C z :=
 λ H0 Hs Hp,
@@ -655,6 +657,10 @@ protected theorem div_eq_of_eq_mul_right {a b c : ℤ} (H1 : b ≠ 0) (H2 : a = 
   a / b = c :=
 by rw [H2, int.mul_div_cancel_left _ H1]
 
+protected theorem eq_div_of_mul_eq_right {a b c : ℤ} (H1 : a ≠ 0) (H2 : a * b = c) :
+  b = c / a :=
+eq.symm $ int.div_eq_of_eq_mul_right H1 H2.symm
+
 protected theorem div_eq_iff_eq_mul_right {a b c : ℤ} (H : b ≠ 0) (H' : b ∣ a) :
   a / b = c ↔ a = b * c :=
 ⟨int.eq_mul_of_div_eq_right H', int.div_eq_of_eq_mul_right H⟩
@@ -922,6 +928,8 @@ end
 lemma to_nat_add_one {a : ℤ} (h : 0 ≤ a) : (a + 1).to_nat = a.to_nat + 1 :=
 to_nat_add h (zero_le_one)
 
+/-- If `n : ℕ`, then `int.to_nat' n = some n`, if `n : ℤ` is negative, then `int.to_nat' n = none`.
+-/
 def to_nat' : ℤ → option ℕ
 | (n : ℕ) := some n
 | -[1+ n] := none
@@ -998,6 +1006,8 @@ by { cases b, apply (bit0_val n).trans (add_zero _).symm, apply bit1_val }
 lemma bit_decomp (n : ℤ) : bit (bodd n) (div2 n) = n :=
 (bit_val _ _).trans $ (add_comm _ _).trans $ bodd_add_div2 _
 
+/-- Defines a function from `ℤ` conditionally, if it is defined for odd and even integers separately
+  using `bit`. -/
 def {u} bit_cases_on {C : ℤ → Sort u} (n) (h : ∀ b n, C (bit b n)) : C n :=
 by rw [← bit_decomp n]; apply h
 

@@ -708,4 +708,140 @@ def slice {α} : ℕ → ℕ → list α → list α
 | (succ n) m [] := []
 | (succ n) m (x :: xs) := x :: slice n m xs
 
+/--
+Left-biased version of `list.map₂`. `map₂_left' f as bs` applies `f` to each
+pair of elements `aᵢ ∈ as` and `bᵢ ∈ bs`. If `bs` is shorter than `as`, `f` is
+applied to `none` for the remaining `aᵢ`. Returns the results of the `f`
+applications and the remaining `bs`.
+
+```
+map₂_left' prod.mk [1, 2] ['a'] = ([(1, some 'a'), (2, none)], [])
+
+map₂_left' prod.mk [1] ['a', 'b'] = ([(1, some 'a')], ['b'])
+```
+-/
+def map₂_left' (f : α → option β → γ) : list α → list β → (list γ × list β)
+| [] bs := ([], bs)
+| (a :: as) [] :=
+  let ⟨cs, rest⟩ := map₂_left' as [] in
+  (f a none :: cs, rest)
+| (a :: as) (b :: bs) :=
+  let ⟨cs, rest⟩ := map₂_left' as bs in
+  (f a (some b) :: cs, rest)
+
+/--
+Right-biased version of `list.map₂`. `map₂_right' f as bs` applies `f` to each
+pair of elements `aᵢ ∈ as` and `bᵢ ∈ bs`. If `as` is shorter than `bs`, `f` is
+applied to `none` for the remaining `bᵢ`. Returns the results of the `f`
+applications and the remaining `as`.
+
+```
+map₂_right' prod.mk [1] ['a', 'b'] = ([(some 1, 'a'), (none, 'b')], [])
+
+map₂_right' prod.mk [1, 2] ['a'] = ([(some 1, 'a')], [2])
+```
+-/
+def map₂_right' (f : option α → β → γ) (as : list α) (bs : list β) : (list γ × list α) :=
+map₂_left' (flip f) bs as
+
+/--
+Left-biased version of `list.zip`. `zip_left' as bs` returns the list of
+pairs `(aᵢ, bᵢ)` for `aᵢ ∈ as` and `bᵢ ∈ bs`. If `bs` is shorter than `as`, the
+remaining `aᵢ` are paired with `none`. Also returns the remaining `bs`.
+
+```
+zip_left' [1, 2] ['a'] = ([(1, some 'a'), (2, none)], [])
+
+zip_left' [1] ['a', 'b'] = ([(1, some 'a')], ['b'])
+
+zip_left' = map₂_left' prod.mk
+
+```
+-/
+def zip_left' : list α → list β → list (α × option β) × list β :=
+map₂_left' prod.mk
+
+/--
+Right-biased version of `list.zip`. `zip_right' as bs` returns the list of
+pairs `(aᵢ, bᵢ)` for `aᵢ ∈ as` and `bᵢ ∈ bs`. If `as` is shorter than `bs`, the
+remaining `bᵢ` are paired with `none`. Also returns the remaining `as`.
+
+```
+zip_right' [1] ['a', 'b'] = ([(some 1, 'a'), (none, 'b')], [])
+
+zip_right' [1, 2] ['a'] = ([(some 1, 'a')], [2])
+
+zip_right' = map₂_right' prod.mk
+```
+-/
+def zip_right' : list α → list β → list (option α × β) × list α :=
+map₂_right' prod.mk
+
+/--
+Left-biased version of `list.map₂`. `map₂_left f as bs` applies `f` to each pair
+`aᵢ ∈ as` and `bᵢ ‌∈ bs`. If `bs` is shorter than `as`, `f` is applied to `none`
+for the remaining `aᵢ`.
+
+```
+map₂_left prod.mk [1, 2] ['a'] = [(1, some 'a'), (2, none)]
+
+map₂_left prod.mk [1] ['a', 'b'] = [(1, some 'a')]
+
+map₂_left f as bs = (map₂_left' f as bs).fst
+```
+-/
+def map₂_left (f : α → option β → γ) : list α → list β → list γ
+| [] _ := []
+| (a :: as) [] := f a none :: map₂_left as []
+| (a :: as) (b :: bs) := f a (some b) :: map₂_left as bs
+
+/--
+Right-biased version of `list.map₂`. `map₂_right f as bs` applies `f` to each
+pair `aᵢ ∈ as` and `bᵢ ‌∈ bs`. If `as` is shorter than `bs`, `f` is applied to
+`none` for the remaining `bᵢ`.
+
+```
+map₂_right prod.mk [1, 2] ['a'] = [(some 1, 'a')]
+
+map₂_right prod.mk [1] ['a', 'b'] = [(some 1, 'a'), (none, 'b')]
+
+map₂_right f as bs = (map₂_right' f as bs).fst
+```
+-/
+def map₂_right (f : option α → β → γ) (as : list α) (bs : list β) :
+  list γ :=
+map₂_left (flip f) bs as
+
+/--
+Left-biased version of `list.zip`. `zip_left as bs` returns the list of pairs
+`(aᵢ, bᵢ)` for `aᵢ ∈ as` and `bᵢ ∈ bs`. If `bs` is shorter than `as`, the
+remaining `aᵢ` are paired with `none`.
+
+```
+zip_left [1, 2] ['a'] = [(1, some 'a'), (2, none)]
+
+zip_left [1] ['a', 'b'] = [(1, some 'a')]
+
+zip_left = map₂_left prod.mk
+```
+-/
+def zip_left : list α → list β → list (α × option β) :=
+map₂_left prod.mk
+
+/--
+Right-biased version of `list.zip`. `zip_right as bs` returns the list of pairs
+`(aᵢ, bᵢ)` for `aᵢ ∈ as` and `bᵢ ∈ bs`. If `as` is shorter than `bs`, the
+remaining `bᵢ` are paired with `none`.
+
+```
+zip_right [1, 2] ['a'] = [(some 1, 'a')]
+
+zip_right [1] ['a', 'b'] = [(some 1, 'a'), (none, 'b')]
+
+zip_right = map₂_right prod.mk
+```
+-/
+def zip_right : list α → list β → list (option α × β) :=
+map₂_right prod.mk
+
 end list

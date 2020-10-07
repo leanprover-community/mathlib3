@@ -1402,6 +1402,13 @@ by cases l; refl
 theorem map₂_nil (f : α → β → γ) (l : list α) : map₂ f l [] = [] :=
 by cases l; refl
 
+@[simp] theorem map₂_flip (f : α → β → γ) :
+  ∀ as bs, map₂ (flip f) bs as = map₂ f as bs
+| [] [] := rfl
+| [] (b :: bs) := rfl
+| (a :: as) [] := rfl
+| (a :: as) (b :: bs) := by { simp! [map₂_flip], refl }
+
 /-! ### take, drop -/
 @[simp] theorem take_zero (l : list α) : take 0 l = [] := rfl
 
@@ -4024,7 +4031,48 @@ lemma choose_property (hp : ∃ a, a ∈ l ∧ p a) : p (choose p l hp) := (choo
 
 end choose
 
--- A jumble of lost lemmas:
+/-! ### map₂_left' and derived functions -/
+
+section biased_map₂
+
+theorem map₂_left_eq_map₂_left' (f : α → option β → γ) :
+  ∀ as bs, map₂_left f as bs = (map₂_left' f as bs).fst
+| [] bs := by simp!
+| (a :: as) [] := by { simp! only [*], cases (map₂_left' f as nil), simp!  }
+| (a :: as) (b :: bs) := by { simp! only [*], cases (map₂_left' f as bs), simp! }
+
+theorem map₂_right_eq_map₂_right' (f : option α → β → γ) (as bs) :
+  map₂_right f as bs = (map₂_right' f as bs).fst :=
+by simp only [map₂_right, map₂_right', map₂_left_eq_map₂_left']
+
+theorem zip_left_eq_zip_left' (as : list α) (bs : list β) :
+  zip_left as bs = (zip_left' as bs).fst :=
+by simp only [zip_left, zip_left', map₂_left_eq_map₂_left']
+
+theorem zip_right_eq_zip_right' (as : list α) (bs : list β) :
+  zip_right as bs = (zip_right' as bs).fst :=
+by simp only [zip_right, zip_right', map₂_right_eq_map₂_right']
+
+theorem map₂_left_eq_map₂ (f : α → option β → γ) :
+  ∀ as bs,
+    length as ≤ length bs →
+    map₂_left f as bs = map₂ (λ a b, f a (some b)) as bs
+| [] [] h := by simp!
+| [] (b :: bs) h := by simp!
+| (a :: as) [] h := by { simp at h, contradiction  }
+| (a :: as) (b :: bs) h := by { simp at h, simp! [*] }
+
+theorem map₂_right_eq_map₂ (f : option α → β → γ) (as bs)
+  (h : length bs ≤ length as) :
+  map₂_right f as bs = map₂ (λ a b, f (some a) b) as bs :=
+begin
+  have eq : (λ a b, flip f a (some b)) = (flip (λ a b, f (some a) b)) := rfl,
+  simp only [map₂_right, map₂_left_eq_map₂, map₂_flip, *]
+end
+
+end biased_map₂
+
+/-! ### Miscellaneous lemmas -/
 
 theorem ilast'_mem : ∀ a l, @ilast' α a l ∈ a :: l
 | a []     := or.inl rfl

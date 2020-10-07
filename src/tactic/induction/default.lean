@@ -447,6 +447,11 @@ meta def constructor_intros (generate_induction_hyps : bool)
 meta def ih_name (arg_name : name) : name :=
 mk_simple_name ("ih_" ++ arg_name.to_string)
 
+meta def get_with_name : option name → option name
+| (some `_) := none
+| (some n) := some n
+| none := none
+
 /--
 Rename the new hypotheses in the goal for a minor premise.
 
@@ -468,23 +473,21 @@ Output:
 - The newly introduced hypotheses corresponding to constructor arguments.
 - The newly introduced induction hypotheses.
 -/
--- TODO spaghetti
 meta def constructor_renames (generate_induction_hyps : bool)
   (einfo : eliminee_info) (iinfo : inductive_info) (cinfo : constructor_info)
   (with_names : list name) (args : list (name × constructor_argument_info))
   (ihs : list (name × name)) :
   tactic (list expr × list expr) := do
+
   -- Rename constructor arguments
   let iname := iinfo.iname,
   let ⟨args, with_names⟩ := args.zip_left' with_names,
   arg_renames : list (name × list name) ←
     args.mmap $ λ ⟨⟨old, ainfo⟩, with_name⟩, do {
-      new ← constructor_argument_names ⟨einfo, iinfo, cinfo, ainfo⟩,
-      let new :=
-        match with_name with
-        | some `_ := new
-        | some with_name := [with_name]
-        | none := new
+      new ←
+        match get_with_name with_name with
+        | some with_name := pure [with_name]
+        | none := constructor_argument_names ⟨einfo, iinfo, cinfo, ainfo⟩
         end,
       pure (old, new)
     },
@@ -502,8 +505,7 @@ meta def constructor_renames (generate_induction_hyps : bool)
     some arg_hyp ← pure $ new_arg_names.find arg_hyp
       | fail "internal error in constructor_renames",
     let new :=
-      match with_name with
-      | some `_ := sum.inr $ ih_name arg_hyp
+      match get_with_name with_name with
       | some with_name := sum.inl with_name
       | none := sum.inr $ ih_name arg_hyp
       end,

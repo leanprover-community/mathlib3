@@ -70,7 +70,7 @@ end
 lemma mem_top {x : E} : x ∈ (⊤ : intermediate_field F E) :=
 subfield.subset_closure $ or.inr trivial
 
-lemma bot_to_subalgebra_eq_bot : (⊥ : intermediate_field F E).to_subalgebra = ⊥ :=
+@[simp] lemma bot_to_subalgebra : (⊥ : intermediate_field F E).to_subalgebra = ⊥ :=
 by { ext, rw [mem_to_subalgebra, algebra.mem_bot, mem_bot] }
 
 lemma top_to_subalgebra_eq_top : (⊤ : intermediate_field F E).to_subalgebra = ⊤ :=

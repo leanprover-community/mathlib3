@@ -138,15 +138,18 @@ structure tactic_doc_entry :=
 (description : string := "")
 (inherit_description_from : option _root_.name := none)
 
-/-- format a `tactic_doc_entry` -/
-meta def tactic_doc_entry.to_string : tactic_doc_entry → string
-| ⟨name, category, decl_names, tags, description, _⟩ :=
-let decl_names := decl_names.map (repr ∘ to_string),
-    tags := tags.map repr in
-"{" ++ to_string (format!"\"name\": {repr name}, \"category\": \"{category}\", \"decl_names\":{decl_names}, \"tags\": {tags}, \"description\": {repr description}") ++ "}"
+/-- Turns a `tactic_doc_entry` into a JSON representation. -/
+meta def tactic_doc_entry.to_json (d : tactic_doc_entry) : json :=
+json.object [
+  ("name", d.name),
+  ("category", d.category.to_string),
+  ("decl_names", d.decl_names.map (json.of_string ∘ to_string)),
+  ("tags", d.tags.map json.of_string),
+  ("description", d.description)
+]
 
 meta instance : has_to_string tactic_doc_entry :=
-⟨tactic_doc_entry.to_string⟩
+⟨json.unparse ∘ tactic_doc_entry.to_json⟩
 
 /-- `update_description_from tde inh_id` replaces the `description` field of `tde` with the
     doc string of the declaration named `inh_id`. -/

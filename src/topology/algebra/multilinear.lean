@@ -34,10 +34,9 @@ especially when defining iterated derivatives.
 open function fin set
 open_locale big_operators
 
-universes u v w w₁ w₂ w₃ w₄
-variables {R : Type u} {ι : Type v} {n : ℕ}
-{M : fin n.succ → Type w} {M₁ : ι → Type w₁} {M₂ : Type w₂} {M₃ : Type w₃} {M₄ : Type w₄}
-[decidable_eq ι]
+universes u v w w₁ w₁' w₂ w₃ w₄
+variables {R : Type u} {ι : Type v} {n : ℕ} {M : fin n.succ → Type w} {M₁ : ι → Type w₁}
+  {M₁' : ι → Type w₁'} {M₂ : Type w₂} {M₃ : Type w₃} {M₄ : Type w₄} [decidable_eq ι]
 
 /-- Continuous multilinear maps over the ring `R`, from `Πi, M₁ i` to `M₂` where `M₁ i` and `M₂`
 are modules over `R` with a topological structure. In applications, there will be compatibility
@@ -56,12 +55,12 @@ namespace continuous_multilinear_map
 section semiring
 
 variables [semiring R]
-[∀i, add_comm_monoid (M i)] [∀i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂] [add_comm_monoid M₃]
-[add_comm_monoid M₄]
-[∀i, semimodule R (M i)] [∀i, semimodule R (M₁ i)] [semimodule R M₂] [semimodule R M₃]
-[semimodule R M₄]
-[∀i, topological_space (M i)] [∀i, topological_space (M₁ i)] [topological_space M₂]
-[topological_space M₃] [topological_space M₄]
+[Πi, add_comm_monoid (M i)] [Πi, add_comm_monoid (M₁ i)] [Πi, add_comm_monoid (M₁' i)]
+  [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
+  [Π i, semimodule R (M i)] [Π i, semimodule R (M₁ i)]  [Π i, semimodule R (M₁' i)] [semimodule R M₂]
+  [semimodule R M₃] [semimodule R M₄]
+  [Π i, topological_space (M i)] [Π i, topological_space (M₁ i)] [Π i, topological_space (M₁' i)]
+  [topological_space M₂] [topological_space M₃] [topological_space M₄]
 (f f' : continuous_multilinear_map R M₁ M₂)
 
 instance : has_coe_to_fun (continuous_multilinear_map R M₁ M₂) :=
@@ -133,18 +132,19 @@ def prod (f : continuous_multilinear_map R M₁ M₂) (g : continuous_multilinea
   (f : continuous_multilinear_map R M₁ M₂) (g : continuous_multilinear_map R M₁ M₃) (m : Πi, M₁ i) :
   (f.prod g) m = (f m, g m) := rfl
 
-/- If `R` and `M₃` are implicit in the next definition, Lean is never able to infer them, even
-given `g` and `f`. Therefore, we make them explicit. -/
-variables (R M₃)
-
-/-- If `g` is continuous multilinear and `f` is continuous linear, then `g (f m₁, ..., f mₙ)` is
-again a continuous multilinear map, that we call `g.comp_continuous_linear_map f`. -/
+/-- If `g` is continuous multilinear and `f` is a collection of continuous linear maps,
+then `g (f₁ m₁, ..., fₙ mₙ)` is again a continuous multilinear map, that we call
+`g.comp_continuous_linear_map f`. -/
 def comp_continuous_linear_map
-  (g : continuous_multilinear_map R (λ (i : ι), M₃) M₄) (f : M₂ →L[R] M₃) :
-  continuous_multilinear_map R (λ (i : ι), M₂) M₄ :=
-{ cont := g.cont.comp $ continuous_pi $ λj, f.cont.comp $ continuous_apply _,
-  .. g.to_multilinear_map.comp_linear_map R M₃ f.to_linear_map }
-variables {R M₃}
+  (g : continuous_multilinear_map R M₁' M₄) (f : Π i : ι, M₁ i →L[R] M₁' i) :
+  continuous_multilinear_map R M₁ M₄ :=
+{ cont := g.cont.comp $ continuous_pi $ λj, (f j).cont.comp $ continuous_apply _,
+  .. g.to_multilinear_map.comp_linear_map (λ i, (f i).to_linear_map) }
+
+@[simp] lemma comp_continuous_linear_map_apply (g : continuous_multilinear_map R M₁' M₄)
+  (f : Π i : ι, M₁ i →L[R] M₁' i) (m : Π i, M₁ i) :
+  g.comp_continuous_linear_map f m = g (λ i, f i $ m i) :=
+rfl
 
 /-- In the specific case of continuous multilinear maps on spaces indexed by `fin (n+1)`, where one
 can build an element of `Π(i : fin (n+1)), M i` using `cons`, one can express directly the

@@ -323,6 +323,10 @@ lemma eq_of_zero_eq_one (h : (0 : M₀) = 1) (a b : M₀) : a = b :=
 @[simp] theorem not_is_unit_zero [nontrivial M₀] : ¬ is_unit (0 : M₀) :=
 mt is_unit_zero_iff.1 zero_ne_one
 
+lemma mul_eq_zero_of_ne_zero_imp_eq_zero {a b : M₀} (h : a ≠ 0 → b = 0) :
+  a * b = 0 :=
+if ha : a = 0 then by rw [ha, zero_mul] else by rw [h ha, mul_zero]
+
 variable (M₀)
 
 /-- In a monoid with zero, either zero and one are nonequal, or zero is the only element. -/

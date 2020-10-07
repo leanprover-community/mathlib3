@@ -227,8 +227,7 @@ by rw vec_alt1_vec_join
 begin
   ext i,
   simp_rw [vec_alt0],
-  cases i,
-  cases i_val,
+  rcases i with ⟨⟨⟩ | i, hi⟩,
   { refl },
   { simp [vec_alt0, nat.succ_add] }
 end

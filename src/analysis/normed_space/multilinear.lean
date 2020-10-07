@@ -546,7 +546,7 @@ variables (𝕜 ι) (A : Type*) [normed_comm_ring A] [normed_algebra 𝕜 A]
 /-- The continuous multilinear map on `A^ι`, where `A` is a normed commutative algebra
 over `𝕜`, associating to `m` the product of all the `m i`.
 
-See also `continuous_multilinear_map.mk_pi_algebra_fin`.  -/
+See also `continuous_multilinear_map.mk_pi_algebra_fin`. -/
 protected def mk_pi_algebra : continuous_multilinear_map 𝕜 (λ i : ι, A) A :=
 @multilinear_map.mk_continuous 𝕜 ι (λ i : ι, A) A _ _ _ _ _ _ _
   (multilinear_map.mk_pi_algebra 𝕜 ι A) (if nonempty ι then 1 else ∥(1 : A)∥) $

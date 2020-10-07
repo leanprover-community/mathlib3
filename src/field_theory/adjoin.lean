@@ -270,8 +270,8 @@ lemma mem_bot_of_adjoin_simple_sub_bot (h : F⟮α⟯ = ⊥) : α ∈ (⊥ : int
   ((⊥ : intermediate_field F E).mem_coe α).mp
     (set.singleton_subset_iff.mp (sub_bot_of_adjoin_sub_bot h))
 
-lemma adjoin_eq_bot_iff : S ⊆ (⊥ : intermediate_field F E) ↔ adjoin F S = ⊥ :=
-⟨adjoin_eq_bot, sub_bot_of_adjoin_sub_bot⟩
+@[simp] lemma adjoin_eq_bot_iff : adjoin F S = ⊥ ↔ S ⊆ (⊥ : intermediate_field F E) :=
+⟨sub_bot_of_adjoin_sub_bot, adjoin_eq_bot⟩
 
 lemma adjoin_simple_eq_bot_iff : α ∈ (⊥ : intermediate_field F E) ↔ F⟮α⟯ = ⊥ :=
 ⟨adjoin_simple_eq_bot, mem_bot_of_adjoin_simple_sub_bot⟩
@@ -288,7 +288,7 @@ lemma findim_intermediate_field_eq_findim_subalgebra :
 lemma sub_bot_of_adjoin_dim_eq_one (h : dim F (adjoin F S) = 1) : S ⊆ (⊥ : intermediate_field F E) :=
 begin
   rw [dim_intermediate_field_eq_dim_subalgebra, subalgebra.dim_eq_one_iff, ←bot_to_subalgebra] at h,
-  rw adjoin_eq_bot_iff,
+  rw ← adjoin_eq_bot_iff,
   ext,
   exact subalgebra.ext_iff.mp h x,
 end

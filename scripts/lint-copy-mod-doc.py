@@ -57,6 +57,7 @@ def regular_check(lines, fn):
     copy_lines = ""
     for line_nr, line in enumerate(lines, 1):
         if not copy_started and line == "\n":
+            errors += [(ERR_COP, copy_start_line_nr, fn)]
             continue
         if not copy_started and line == "/-\n":
             copy_started = True

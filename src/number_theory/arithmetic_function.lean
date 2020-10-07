@@ -530,9 +530,6 @@ begin
     apply hf.pmul hi },
 end
 
-lemma is_multiplicative_pmul {k : ℕ} : is_multiplicative (pow k) :=
-⟨by cases k; simp, λ m n cop, by cases m; cases k; simp [nat.succ_ne_zero, mul_pow, zero_pow]⟩
-
 lemma is_multiplicative_pow {k : ℕ} : is_multiplicative (pow k) :=
 is_multiplicative_id.ppow
 

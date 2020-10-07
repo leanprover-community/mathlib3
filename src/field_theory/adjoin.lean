@@ -74,25 +74,14 @@ subfield.subset_closure $ or.inr trivial
 by { ext, rw [mem_to_subalgebra, algebra.mem_bot, mem_bot] }
 
 @[simp] lemma top_to_subalgebra : (⊤ : intermediate_field F E).to_subalgebra = ⊤ :=
-begin
-  ext,
-  rw [mem_to_subalgebra, iff_true_right algebra.mem_top],
-  exact mem_top,
-end
+by { ext, rw [mem_to_subalgebra, iff_true_right algebra.mem_top], exact mem_top }
 
-@[simp] lemma lift2_bot (K : intermediate_field F E) : ↑(⊥ : intermediate_field K E) = K :=
-begin
-  ext,
-  rw [mem_lift2, mem_bot, (show ⇑(algebra_map K E) = coe, by ext;refl), subtype.range_coe],
-  refl,
-end
+@[simp] lemma coe_bot_eq_self (K : intermediate_field F E) : ↑(⊥ : intermediate_field K E) = K :=
+by { ext, rw [mem_lift2, mem_bot], exact set.ext_iff.mp subtype.range_coe x }
 
-@[simp] lemma lift2_top (K : intermediate_field F E) :
+@[simp] lemma coe_top_eq_top (K : intermediate_field F E) :
   ↑(⊤ : intermediate_field K E) = (⊤ : intermediate_field F E) :=
-begin
-  ext,
-  exact iff_of_true mem_top mem_top,
-end
+intermediate_field.ext'_iff.mpr (set.ext_iff.mpr (λ _, iff_of_true mem_top mem_top))
 
 end lattice
 

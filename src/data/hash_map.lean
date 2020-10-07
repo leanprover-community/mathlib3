@@ -18,7 +18,7 @@ requires a `nat`-valued hash function to associate keys to buckets.
 
 ## Main definitions
 
-* `hash_map`, constructed with `mk_hash_map`.
+* `hash_map`: constructed with `mk_hash_map`.
 
 ## Implementation details
 

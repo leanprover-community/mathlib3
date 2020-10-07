@@ -52,7 +52,7 @@ Linear algebra:
     row-reduced matrices: ''
   Endomorphism polynomials:
     annihilating polynomials: ''
-    minimal polynomial: ''
+    minimal polynomial: 'minimal_polynomial'
     characteristic polynomial: 'char_poly'
     Cayley-Hamilton theorem: 'aeval_self_char_poly'
   Structure theory of endomorphisms:
@@ -93,8 +93,8 @@ Group Theory:
   Abelian group:
     cyclic group: 'is_cyclic'
     finite type abelian groups: ''
-    complex roots of unity: ''
-    primitive complex roots of unity: ''
+    complex roots of unity: 'complex.mem_roots_of_unity'
+    primitive complex roots of unity: 'complex.is_primitive_root_iff'
   Permutation group:
     permutation group of a type: 'equiv.perm'
     decomposition into transpositions: ''

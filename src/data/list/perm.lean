@@ -902,6 +902,7 @@ begin
   { refine (IH₁ H).trans (IH₂ ((p₁.pairwise_iff _).1 H)),
     exact λ a b h h₁ h₂, h h₂ h₁ }
 end
+
 lemma perm.take_inter {α} [decidable_eq α] {xs ys : list α} (n : ℕ)
   (h : xs ~ ys) (h' : ys.nodup) :
   xs.take n ~ ys.inter (xs.take n) :=

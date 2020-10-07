@@ -51,13 +51,19 @@ protected lemma ge [preorder α] {x y : α} (h : x = y) : y ≤ x := h.symm.le
 lemma trans_le [preorder α] {x y z : α} (h1 : x = y) (h2 : y ≤ z) : x ≤ z := h1.le.trans h2
 end eq
 
-namespace has_le
-namespace le
+namespace has_le.le
+
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 protected lemma ge [has_le α] {x y : α} (h : x ≤ y) : y ≥ x := h
+
 lemma trans_eq [preorder α] {x y z : α} (h1 : x ≤ y) (h2 : y = z) : x ≤ z := h1.trans h2.le
-end le
-end has_le
+
+lemma lt_iff_ne [partial_order α] {x y : α} (h : x ≤ y) : x < y ↔ x ≠ y := ⟨λ h, h.ne, h.lt_of_ne⟩
+
+lemma le_iff_eq [partial_order α] {x y : α} (h : x ≤ y) : y ≤ x ↔ y = x :=
+⟨λ h', h'.antisymm h, eq.le⟩
+
+end has_le.le
 
 namespace has_lt
 namespace lt
@@ -111,6 +117,9 @@ h.lt_or_eq.symm
 
 alias eq_or_lt_of_le ← has_le.le.eq_or_lt
 
+lemma ne.le_iff_lt [partial_order α] {a b : α} (h : a ≠ b) : a ≤ b ↔ a < b :=
+⟨λ h', lt_of_le_of_ne h' h, λ h, h.le⟩
+
 lemma lt_of_not_ge' [linear_order α] {a b : α} (h : ¬ b ≤ a) : a < b :=
 ((le_total _ _).resolve_right h).lt_of_not_le h
 
@@ -121,6 +130,9 @@ lemma le_of_not_lt [linear_order α] {a b : α} : ¬ a < b → b ≤ a := not_lt
 
 lemma lt_or_le [linear_order α] : ∀ a b : α, a < b ∨ b ≤ a := lt_or_ge
 lemma le_or_lt [linear_order α] : ∀ a b : α, a ≤ b ∨ b < a := le_or_gt
+
+lemma ne.lt_or_lt [linear_order α] {a b : α} (h : a ≠ b) : a < b ∨ b < a :=
+lt_or_gt_of_ne h
 
 lemma has_le.le.lt_or_le [linear_order α] {a b : α} (h : a ≤ b) (c : α) : a < c ∨ c ≤ b :=
 (lt_or_le a c).imp id $ λ hc, hc.trans h

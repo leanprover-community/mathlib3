@@ -3,6 +3,7 @@ Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Scott Morrison, Adam Topaz.
 -/
+import algebra.algebra.subalgebra
 import algebra.monoid_algebra
 import linear_algebra
 
@@ -306,7 +307,7 @@ If `C` holds for the `algebra_map` of `r : R` into `free_algebra R X`, the `ι` 
 preserved under addition and muliplication, then it holds for all of `free_algebra R X`.
 -/
 @[elab_as_eliminator]
-lemma induction 
+lemma induction
   {C : free_algebra R X → Prop}
   (h_grade0 : Π r, C (algebra_map R (free_algebra R X) r))
   (h_grade1 : Π x, C (ι R x))
@@ -324,7 +325,7 @@ begin
 
   -- and a mapping into it from X
   let of : X → s := λ x, ⟨ι R x, h_grade1 x⟩,
-  
+
   convert subtype.prop (lift R of a),
 
   -- this mess eventually uses lift_ι_apply

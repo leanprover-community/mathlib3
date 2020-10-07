@@ -130,12 +130,14 @@ cons_val_succ x u 0
   vec_cons x u i = x :=
 by { fin_cases i, refl }
 
--- The following definitions and `simp` lemmas are to allow any
--- numeral-indexed element of a vector given with matrix notation to
--- be extracted by `simp` (even when the numeral is larger than the
--- number of elements in the vector, which is taken modulo that number
--- of elements by virtue of the semantics of `bit0` and `bit1` and of
--- addition on `fin n`).
+/-! ### Numeral (`bit0` and `bit1`) indices
+The following definitions and `simp` lemmas are to allow any
+numeral-indexed element of a vector given with matrix notation to
+be extracted by `simp` (even when the numeral is larger than the
+number of elements in the vector, which is taken modulo that number
+of elements by virtue of the semantics of `bit0` and `bit1` and of
+addition on `fin n`).
+-/
 
 /-- `vec_alt0 v` gives a vector with the same length as `v`, but with
 only alternate elements (even-numbered, counting cyclically). -/

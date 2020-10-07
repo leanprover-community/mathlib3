@@ -238,6 +238,12 @@ lemma map_sum {ι : Type*} (s : finset ι) (g : ι → M) :
 
 @[simp, norm_cast] lemma coe_coe : ((f : M →ₗ[R] M₂) : (M → M₂)) = (f : M → M₂) := rfl
 
+instance subsingleton_of_left [subsingleton M] : subsingleton (M →L[R] M₂) :=
+coe_injective.comap_subsingleton
+
+instance subsingleton_of_right [subsingleton M₂] : subsingleton (M →L[R] M₂) :=
+coe_injective.comap_subsingleton
+
 /-- The continuous map that is constantly zero. -/
 instance: has_zero (M →L[R] M₂) := ⟨⟨0, continuous_const⟩⟩
 instance : inhabited (M →L[R] M₂) := ⟨0⟩

@@ -317,6 +317,15 @@ variables (f g)
 @[simp] lemma map_zero : f 0 = 0 :=
 by rw [← zero_smul R, map_smul f 0 0, zero_smul]
 
+-- Lean fails to include `[semimodule R M]` and `[semimodule R M₂]` automatically
+instance subsingleton_of_left [semimodule R M] [semimodule R M₂] [subsingleton M] :
+  subsingleton (M →ₗ[R] M₂) :=
+⟨λ f g, ext $ λ x, by rw [subsingleton.elim x 0, map_zero, map_zero]⟩
+
+instance subsingleton_of_right [semimodule R M] [semimodule R M₂] [subsingleton M₂] :
+  subsingleton (M →ₗ[R] M₂) :=
+⟨λ f g, ext $ λ x, subsingleton.elim _ _⟩
+
 instance : is_add_monoid_hom f :=
 { map_add := map_add f,
   map_zero := map_zero f }

@@ -172,14 +172,12 @@ by { ext, simp [vec_join] }
 begin
   ext i,
   simp_rw [vec_join],
-  split_ifs,
-  { cases i,
-    cases i_val,
+  split_ifs with h,
+  { rcases i with ⟨⟨⟩ | i, hi⟩,
     { simp },
     { simp only [nat.succ_eq_add_one, add_lt_add_iff_right, fin.coe_mk] at h,
       simp [h] } },
-  { cases i,
-    cases i_val,
+  { rcases i with ⟨⟨⟩ | i, hi⟩,
     { simpa using h },
     { rw [not_lt, fin.coe_mk, nat.succ_eq_add_one, add_le_add_iff_right] at h,
       simp [h] } }

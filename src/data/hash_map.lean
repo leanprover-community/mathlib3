@@ -41,10 +41,10 @@ When inserting (`hash_map.insert`), if the number of stored pairs (the
 is first created with double the number of buckets and everything in
 the old hash map is reinserted along with the new key/value pair.
 Otherwise, the bucket array is modified in-place.  The amortized
-running time of inserting `n` elements into a hash map is `O(n)`.
+running time of inserting $$n$$ elements into a hash map is $$O(n)$$.
 
 When removing (`hash_map.erase`), the hash map is modified in-place.
-The implementation does *not* reduce the number of buckets in the hash
+The implementation does not reduce the number of buckets in the hash
 map if the size gets too low.
 
 ## Tags

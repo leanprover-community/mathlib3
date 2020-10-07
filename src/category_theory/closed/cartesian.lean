@@ -86,15 +86,15 @@ def exp : C ⥤ C :=
 (@closed.is_adj _ _ _ A _).right
 
 /-- The adjunction between A ⨯ - and (-)^A. -/
-def exp.adjunction : prod_functor.obj A ⊣ exp A :=
+def exp.adjunction : prod.functor.obj A ⊣ exp A :=
 closed.is_adj.adj
 
 /-- The evaluation natural transformation. -/
-def ev : exp A ⋙ prod_functor.obj A ⟶ 𝟭 C :=
+def ev : exp A ⋙ prod.functor.obj A ⟶ 𝟭 C :=
 closed.is_adj.adj.counit
 
 /-- The coevaluation natural transformation. -/
-def coev : 𝟭 C ⟶ prod_functor.obj A ⋙ exp A :=
+def coev : 𝟭 C ⟶ prod.functor.obj A ⋙ exp A :=
 closed.is_adj.adj.unit
 
 @[simp, reassoc]
@@ -183,7 +183,7 @@ lemma curry_eq (g : A ⨯ Y ⟶ X) : curry g = (coev A).app Y ≫ (exp A).map g 
 adjunction.hom_equiv_unit _
 
 lemma uncurry_id_eq_ev (A X : C) [exponentiable A] : uncurry (𝟙 (A ⟹ X)) = (ev A).app X :=
-by rw [uncurry_eq, prod_map_id_id, id_comp]
+by rw [uncurry_eq, prod.map_id_id, id_comp]
 
 lemma curry_id_eq_coev (A X : C) [exponentiable A] : curry (𝟙 _) = (coev A).app X :=
 by { rw [curry_eq, (exp A).map_id (A ⨯ _)], apply comp_id }
@@ -220,15 +220,15 @@ def pre (X : C) (f : B ⟶ A) [exponentiable B] : (A⟹X) ⟶ B⟹X :=
 curry (limits.prod.map f (𝟙 _) ≫ (ev A).app X)
 
 lemma pre_id (A X : C) [exponentiable A] : pre X (𝟙 A) = 𝟙 (A⟹X) :=
-by { rw [pre, prod_map_id_id, id_comp, ← uncurry_id_eq_ev], simp }
+by { rw [pre, prod.map_id_id, id_comp, ← uncurry_id_eq_ev], simp }
 
 -- There's probably a better proof of this somehow
 /-- Precomposition is contrafunctorial. -/
 lemma pre_map [exponentiable B] {D : C} [exponentiable D] (f : A ⟶ B) (g : B ⟶ D) :
   pre X (f ≫ g) = pre X g ≫ pre X f :=
 begin
-  rw [pre, curry_eq_iff, pre, uncurry_natural_left, pre, uncurry_curry, prod_map_swap_assoc,
-      prod_map_comp_id, assoc, ← uncurry_id_eq_ev, ← uncurry_id_eq_ev, ← uncurry_natural_left,
+  rw [pre, curry_eq_iff, pre, uncurry_natural_left, pre, uncurry_curry, prod.map_swap_assoc,
+      prod.map_comp_id, assoc, ← uncurry_id_eq_ev, ← uncurry_id_eq_ev, ← uncurry_natural_left,
       curry_natural_right, comp_id, uncurry_natural_right, uncurry_curry],
 end
 
@@ -238,7 +238,7 @@ lemma pre_post_comm [cartesian_closed C] {A B : C} {X Y : Cᵒᵖ} (f : A ⟶ B)
   pre A g.unop ≫ (exp Y.unop).map f = (exp X.unop).map f ≫ pre B g.unop :=
 begin
   rw [pre, pre, ← curry_natural_left, eq_curry_iff, uncurry_natural_right, uncurry_curry,
-      prod_map_swap_assoc, ev_naturality, assoc],
+      prod.map_swap_assoc, ev_naturality, assoc],
 end
 
 /-- The internal hom functor given by the cartesian closed structure. -/
@@ -356,15 +356,15 @@ def cartesian_closed_of_equiv (e : C ≌ D) [h : cartesian_closed C] : cartesian
           -- I wonder if it would be a good idea to make `map_comp` a simp lemma the other way round
         dsimp, simp -- See note [dsimp, simp]
         },
-      { have : is_left_adjoint (e.functor ⋙ prod_functor.obj X ⋙ e.inverse) :=
+      { have : is_left_adjoint (e.functor ⋙ prod.functor.obj X ⋙ e.inverse) :=
           by exactI adjunction.left_adjoint_of_nat_iso this.symm,
-        have : is_left_adjoint (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) :=
+        have : is_left_adjoint (e.inverse ⋙ e.functor ⋙ prod.functor.obj X ⋙ e.inverse) :=
           by exactI adjunction.left_adjoint_of_comp e.inverse _,
-        have : (e.inverse ⋙ e.functor ⋙ prod_functor.obj X ⋙ e.inverse) ⋙ e.functor ≅
-          prod_functor.obj X,
-        { apply iso_whisker_right e.counit_iso (prod_functor.obj X ⋙ e.inverse ⋙ e.functor) ≪≫ _,
-          change prod_functor.obj X ⋙ e.inverse ⋙ e.functor ≅ prod_functor.obj X,
-          apply iso_whisker_left (prod_functor.obj X) e.counit_iso, },
+        have : (e.inverse ⋙ e.functor ⋙ prod.functor.obj X ⋙ e.inverse) ⋙ e.functor ≅
+          prod.functor.obj X,
+        { apply iso_whisker_right e.counit_iso (prod.functor.obj X ⋙ e.inverse ⋙ e.functor) ≪≫ _,
+          change prod.functor.obj X ⋙ e.inverse ⋙ e.functor ≅ prod.functor.obj X,
+          apply iso_whisker_left (prod.functor.obj X) e.counit_iso, },
         resetI,
         apply adjunction.left_adjoint_of_nat_iso this },
     end } }

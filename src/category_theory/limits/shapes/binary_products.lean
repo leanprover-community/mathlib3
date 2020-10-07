@@ -536,7 +536,7 @@ variables {C} [has_binary_products C]
 -- FIXME deterministic timeout with `-T50000`
 /-- The binary product functor. -/
 @[simps]
-def prod_functor : C ⥤ C ⥤ C :=
+def prod.functor : C ⥤ C ⥤ C :=
 { obj := λ X, { obj := λ Y, X ⨯ Y, map := λ Y Z, prod.map (𝟙 X) },
   map := λ Y Z f, { app := λ T, prod.map f (𝟙 T) }}
 

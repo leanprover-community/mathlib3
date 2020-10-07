@@ -1120,17 +1120,32 @@ variables [semimodule R M] [semimodule R M₂] [semimodule R M₃]
 include R
 open submodule
 
+/-- If two linear maps are equal on a set `s`, then they are equal on `submodule.span s`.
+
+See also `linear_map.eq_on_span'` for a version using `set.eq_on`. -/
 lemma eq_on_span {s : set M} {f g : M →ₗ[R] M₂} (H : set.eq_on f g s) ⦃x⦄ (h : x ∈ span R s) :
   f x = g x :=
 by apply span_induction h H; simp {contextual := tt}
 
+/-- If two linear maps are equal on a set `s`, then they are equal on `submodule.span s`.
+
+This version uses `set.eq_on`, and the hidden argument will expand to `h : x ∈ (span R s : set M)`.
+See `linear_map.eq_on_span` for a version that takes `h : x ∈ span R s` as an argument. -/
 lemma eq_on_span' {s : set M} {f g : M →ₗ[R] M₂} (H : set.eq_on f g s) :
   set.eq_on f g (span R s : set M) :=
 eq_on_span H
 
-lemma ext_on {v : ι → M} {f g : M →ₗ[R] M₂} (hv : span R (set.range v) = ⊤)
+/-- If `s` generates the whole semimodule and linear maps `f`, `g` are equal on `s`, then they are
+equal. -/
+lemma ext_on {s : set M} {f g : M →ₗ[R] M₂} (hv : span R s = ⊤) (h : set.eq_on f g s) :
+  f = g :=
+linear_map.ext (λ x, eq_on_span h (eq_top_iff'.1 hv _))
+
+/-- If the range of `v : ι → M` generates the whole semimodule and linear maps `f`, `g` are equal at
+each `v i`, then they are equal. -/
+lemma ext_on_range {v : ι → M} {f g : M →ₗ[R] M₂} (hv : span R (set.range v) = ⊤)
   (h : ∀i, f (v i) = g (v i)) : f = g :=
-linear_map.ext (λ x, eq_on_span (set.forall_range_iff.2 h) (eq_top_iff'.1 hv _))
+ext_on hv (set.forall_range_iff.2 h)
 
 @[simp] lemma finsupp_sum {γ} [has_zero γ]
   (f : M →ₗ[R] M₂) {t : ι →₀ γ} {g : ι → γ → M} :

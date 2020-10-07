@@ -108,7 +108,16 @@ let ⟨S, sb, su⟩ := sUnion_basis_of_is_open hB ou in
 
 variables (α)
 
-/-- A separable space is one with a countable dense subset. -/
+/-- A separable space is one with a countable dense subset, available through
+`topological_space.exists_countable_dense`. If `α` is also known to be nonempty, then
+`topological_space.dense_seq` provides a sequence `ℕ → α` with dense range, see
+`topological_space.dense_range_dense_seq`.
+
+If `α` is a uniform space with countably generated uniformity filter (e.g., an `emetric_space`),
+then this condition is equivalent to `topological_space.second_countable_topology α`. In this case
+the latter should be used as a typeclass argument in theorems because Lean can automatically deduce
+`separable_space` from `second_countable_topology` but it can't deduce `second_countable_topology`
+and `emetric_space`. -/
 class separable_space : Prop :=
 (exists_countable_dense : ∃s:set α, countable s ∧ dense s)
 
@@ -116,6 +125,11 @@ lemma exists_countable_dense [separable_space α] :
   ∃ s : set α, countable s ∧ dense s :=
 separable_space.exists_countable_dense
 
+/-- A nonempty separable space admits a sequence with dense range. Instead of running `cases` on the
+conclusion of this lemma, you might want to use `topological_space.dense_seq` and
+`topological_space.dense_range_dense_seq`.
+
+If `α` might be empty, then `exists_countable_dense` is the main way to use separability of `α`. -/
 lemma exists_dense_seq [separable_space α] [nonempty α] : ∃ u : ℕ → α, dense_range u :=
 begin
   obtain ⟨s : set α, hs, s_dense⟩ := exists_countable_dense α,
@@ -123,9 +137,12 @@ begin
   exact ⟨u, s_dense.mono hu⟩,
 end
 
-/-- A sequence dense in a non-empty separable topological space. -/
+/-- A sequence dense in a non-empty separable topological space.
+
+If `α` might be empty, then `exists_countable_dense` is the main way to use separability of `α`. -/
 def dense_seq [separable_space α] [nonempty α] : ℕ → α := classical.some (exists_dense_seq α)
 
+/-- The sequence `dense_seq α` has dense range. -/
 @[simp] lemma dense_range_dense_seq [separable_space α] [nonempty α] :
   dense_range (dense_seq α) := classical.some_spec (exists_dense_seq α)
 
@@ -133,6 +150,8 @@ end topological_space
 
 open topological_space
 
+/-- If `α` is a separable space and `f : α → β` is a continuous map with dense range, then `β` is
+a separable space as well. E.g., the completion of a separable uniform space is separable. -/
 protected lemma dense_range.separable_space {α β : Type*} [topological_space α] [separable_space α]
   [topological_space β] {f : α → β} (h : dense_range f) (h' : continuous f) :
   separable_space β :=

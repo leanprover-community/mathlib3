@@ -370,6 +370,7 @@ eq_univ_iff_forall.symm
 lemma dense.closure_eq {s : set α} (h : dense s) : closure s = univ :=
 dense_iff_closure_eq.mp h
 
+/-- Closure of a set `s` is dense if and only if `s` is dense. -/
 @[simp] lemma dense_closure {s : set α} : dense (closure s) ↔ dense s :=
 by rw [dense, dense, closure_closure]
 
@@ -377,6 +378,7 @@ alias dense_closure ↔ dense.of_closure dense.closure
 
 @[simp] lemma dense_univ : dense (univ : set α) := λ x, subset_closure trivial
 
+/-- A set is dense if and only if it has a nonempty intersection with each nonempty open set. -/
 lemma dense_iff_inter_open {s : set α} :
   dense s ↔ ∀ U, is_open U → U.nonempty → (U ∩ s).nonempty :=
 begin
@@ -763,11 +765,13 @@ have cluster_pt a (𝓟 (s ∩ t)),
     ... ≠ ⊥ : by rw [closure_eq_cluster_pts] at ht; assumption,
 by rwa [closure_eq_cluster_pts]
 
+/-- The intersection of an open dense set with a dense set is a dense set. -/
 lemma dense.inter_of_open_left {s t : set α} (hs : dense s) (ht : dense t) (hso : is_open s) :
   dense (s ∩ t) :=
 λ x, (closure_minimal (closure_inter_open hso) is_closed_closure) $
   by simp [hs.closure_eq, ht.closure_eq]
 
+/-- The intersection of a dense set with an open dense set is a dense set. -/
 lemma dense.inter_of_open_right {s t : set α} (hs : dense s) (ht : dense t) (hto : is_open t) :
   dense (s ∩ t) :=
 inter_comm t s ▸ ht.inter_of_open_left hs hto
@@ -1090,6 +1094,7 @@ def dense_range := dense (range f)
 
 variables {f}
 
+/-- A surjective map has dense range. -/
 lemma function.surjective.dense_range (hf : function.surjective f) : dense_range f :=
 λ x, by simp [hf.range_eq]
 
@@ -1104,16 +1109,21 @@ lemma continuous.range_subset_closure_image_dense {f : α → β} (hf : continuo
   range f ⊆ closure (f '' s) :=
 by { rw [← image_univ, ← hs.closure_eq], exact image_closure_subset_closure_image hf }
 
+/-- The image of a dense set under a continuous map with dense range is a dense set. -/
 lemma dense_range.dense_image {f : α → β} (hf' : dense_range f) (hf : continuous f)
   {s : set α} (hs : dense s) :
   dense (f '' s)  :=
 (hf'.mono $ hf.range_subset_closure_image_dense hs).of_closure
 
+/-- If a continuous map with dense range maps a dense set to a subset of `t`, then `t` is a dense
+set. -/
 lemma dense_range.dense_of_maps_to {f : α → β} (hf' : dense_range f) (hf : continuous f)
   {s : set α} (hs : dense s) {t : set β} (ht : maps_to f s t) :
   dense t :=
 (hf'.dense_image hf hs).mono ht.image_subset
 
+/-- Composition of a continuous map with dense range and a function with dense range has dense
+range. -/
 lemma dense_range.comp {g : β → γ} {f : κ → β} (hg : dense_range g) (hf : dense_range f)
   (cg : continuous g) :
   dense_range (g ∘ f) :=

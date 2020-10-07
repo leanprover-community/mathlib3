@@ -84,6 +84,7 @@ protected lemma prod [topological_space γ] [topological_space δ]
 
 open topological_space
 
+/-- If the domain of a `dense_inducing` map is a separable space, then so is the codomain. -/
 protected lemma separable_space [separable_space α] : separable_space β :=
 di.dense.separable_space di.continuous
 
@@ -203,7 +204,7 @@ structure dense_embedding [topological_space α] [topological_space β] (e : α 
 theorem dense_embedding.mk'
   [topological_space α] [topological_space β] (e : α → β)
   (c     : continuous e)
-  (dense : ∀x, x ∈ closure (range e))
+  (dense : dense_range e)
   (inj   : function.injective e)
   (H     : ∀ (a:α) s ∈ 𝓝 a,
     ∃t ∈ 𝓝 (e a), ∀ b, e b ∈ t → b ∈ s) :
@@ -222,6 +223,7 @@ lemma to_embedding : embedding e :=
 { induced := de.induced,
   inj := de.inj }
 
+/-- If the domain of a `dense_embedding` is a separable space, then so is its codomain. -/
 protected lemma separable_space [separable_space α] : separable_space β :=
 de.to_dense_inducing.separable_space
 

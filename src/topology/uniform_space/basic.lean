@@ -831,6 +831,7 @@ let ⟨t, ⟨ht_mem, htc⟩, hts⟩ := uniformity_has_basis_closed.mem_iff.1 h i
 ### Uniformity bases
 -/
 
+/-- Open elements of `𝓤 α` form a basis of `𝓤 α`. -/
 lemma uniformity_has_basis_open : has_basis (𝓤 α) (λ V : set (α × α), V ∈ 𝓤 α ∧ is_open V) id :=
 has_basis_self.2 $ λ s,
   ⟨λ hs, ⟨interior s, interior_mem_uniformity hs, is_open_interior, interior_subset⟩,
@@ -848,6 +849,8 @@ has_basis_self.2 $ λ t,
   ⟨λ t_in, ⟨symmetrize_rel t, symmetrize_mem_uniformity t_in, symmetric_symmetrize_rel t,
     symmetrize_rel_subset_self t⟩, λ ⟨s, s_in, _, hst⟩, mem_sets_of_superset s_in hst⟩
 
+/-- Open elements `s : set (α × α)` of `𝓤 α` such that `(x, y) ∈ s ↔ (y, x) ∈ s` form a basis
+of `𝓤 α`. -/
 lemma uniformity_has_basis_open_symmetric :
   has_basis (𝓤 α) (λ V : set (α × α), V ∈ 𝓤 α ∧ is_open V ∧ symmetric_rel V) id :=
 begin

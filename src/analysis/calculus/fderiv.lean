@@ -240,6 +240,8 @@ begin
   rwa [this, zero_add] at L3
 end
 
+/-- If `f'` and `f₁'` are two derivatives of `f` within `s` at `x`, then they are equal on the
+tangent cone to `s` at `x` -/
 theorem has_fderiv_within_at.unique_on (hf : has_fderiv_within_at f f' s x)
   (hg : has_fderiv_within_at f f₁' s x) :
   eq_on f' f₁' (tangent_cone_at 𝕜 s x) :=
@@ -253,7 +255,7 @@ continuous_linear_map.ext_on H.1 (hf.unique_on hg)
 
 theorem unique_diff_on.eq (H : unique_diff_on 𝕜 s) (hx : x ∈ s)
   (h : has_fderiv_within_at f f' s x) (h₁ : has_fderiv_within_at f f₁' s x) : f' = f₁' :=
-unique_diff_within_at.eq (H x hx) h h₁
+(H x hx).eq h h₁
 
 end derivative_uniqueness
 

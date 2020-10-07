@@ -26,6 +26,10 @@ only if it contains some `s i` with `p i`. It implies `h : filter.is_basis p s`,
 `l = h.filter_basis.filter`. The point of this definition is that checking statements
 involving elements of `l` often reduces to checking them on the basis elements.
 
+We define a function `has_basis.index (h : filter.has_basis l p s) (t) (ht : t ∈ l)` that returns
+some index `i` such that `p i` and `s i ⊆ t`. This function can be useful to avoid manual
+destruction of `h.mem_iff.mpr ht` using `cases` or `let`.
+
 This file also introduces more restricted classes of bases, involving monotonicity or
 countability. In particular, for `l : filter α`, `l.is_countably_generated` means
 there is a countable set of sets which generates `s`. This is reformulated in term of bases,
@@ -657,6 +661,10 @@ begin
   exact countable_binfi_principal_eq_seq_infi Bcbl,
 end
 
+/-- If `f` is countably generated and `f.has_basis p s`, then `f` admits a decreasing basis
+enumerated by natural numbers such that all sets have the form `s i`. More precisely, there is a
+sequence `i n` such that `p (i n)` for all `n` and `s (i n)` is a decreasing sequence of sets which
+forms a basis of `f`-/
 lemma exists_antimono_subbasis {f : filter α} (cblb : f.is_countably_generated)
   {p : ι → Prop} {s : ι → set α} (hs : f.has_basis p s) :
   ∃ x : ℕ → ι, (∀ i, p (x i)) ∧ f.has_antimono_basis (λ _, true) (λ i, s (x i)) :=
@@ -682,6 +690,8 @@ begin
       this.to_has_basis.mem_iff.2 ⟨i, trivial, x_subset i⟩))
 end
 
+/-- A countably generated filter admits a basis formed by a monotonically decreasing sequence of
+sets. -/
 lemma exists_antimono_basis {f : filter α} (cblb : f.is_countably_generated) :
   ∃ x : ℕ → set α, f.has_antimono_basis (λ _, true) x :=
 let ⟨x, hxf, hx⟩ := cblb.exists_antimono_subbasis f.basis_sets in ⟨x, hx⟩

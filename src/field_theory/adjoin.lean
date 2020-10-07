@@ -73,7 +73,7 @@ subfield.subset_closure $ or.inr trivial
 @[simp] lemma bot_to_subalgebra : (⊥ : intermediate_field F E).to_subalgebra = ⊥ :=
 by { ext, rw [mem_to_subalgebra, algebra.mem_bot, mem_bot] }
 
-lemma top_to_subalgebra_eq_top : (⊤ : intermediate_field F E).to_subalgebra = ⊤ :=
+@[simp] lemma top_to_subalgebra : (⊤ : intermediate_field F E).to_subalgebra = ⊤ :=
 begin
   ext,
   rw [mem_to_subalgebra, iff_true_right algebra.mem_top],
@@ -293,7 +293,7 @@ lemma findim_intermediate_field_eq_findim_subalgebra :
 
 lemma sub_bot_of_adjoin_dim_eq_one (h : dim F (adjoin F S) = 1) : S ⊆ (⊥ : intermediate_field F E) :=
 begin
-  rw [dim_intermediate_field_eq_dim_subalgebra, subalgebra.dim_eq_one_iff, ←bot_to_subalgebra_eq_bot] at h,
+  rw [dim_intermediate_field_eq_dim_subalgebra, subalgebra.dim_eq_one_iff, ←bot_to_subalgebra] at h,
   rw adjoin_eq_bot_iff,
   ext,
   exact subalgebra.ext_iff.mp h x,
@@ -304,7 +304,7 @@ set.singleton_subset_iff.mp (sub_bot_of_adjoin_dim_eq_one h)
 
 lemma adjoin_dim_eq_one_of_sub_bot (h : S ⊆ (⊥ : intermediate_field F E)) : dim F (adjoin F S) = 1 :=
 begin
-  rw [dim_intermediate_field_eq_dim_subalgebra, adjoin_eq_bot h, bot_to_subalgebra_eq_bot],
+  rw [dim_intermediate_field_eq_dim_subalgebra, adjoin_eq_bot h, bot_to_subalgebra],
   exact subalgebra.dim_bot,
 end
 

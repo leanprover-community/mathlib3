@@ -170,7 +170,7 @@ end
 begin
   apply coeff_eq_zero_of_lt_nat_trailing_degree,
   have inint : (p.nat_trailing_degree - 1 : int) < p.nat_trailing_degree,
-    exact int.pred_self_lt p.nat_trailing_degree,
+  { exact int.pred_self_lt p.nat_trailing_degree, },
   norm_cast at *,
   exact inint,
 end
@@ -192,21 +192,21 @@ by simpa only [C_1, one_mul, pow_one] using le_trailing_degree_C_mul_X_pow (1:R)
 lemma nat_trailing_degree_X_le : (X : polynomial R).nat_trailing_degree ≤ 1 :=
 begin
   by_cases h : X = 0,
-    { rw [h, nat_trailing_degree_zero],
-      exact zero_le 1, },
-    { apply le_of_eq,
-      rw [← trailing_degree_eq_iff_nat_trailing_degree_eq h, ← one_mul X, ← C_1, ← pow_one X],
-      have ne0p : (1 : polynomial R) ≠ 0,
-        { intro,
-          apply h,
-          rw [← one_mul X, a, zero_mul], },
-      have ne0R : (1 : R) ≠ 0,
-        { refine (push_neg.not_eq 1 0).mp _,
-          intro,
-          apply ne0p,
-          rw [← C_1 , ← C_0, C_inj],
-          assumption, },
-      exact trailing_degree_monomial (1:ℕ) ne0R, },
+  { rw [h, nat_trailing_degree_zero],
+    exact zero_le 1, },
+  { apply le_of_eq,
+    rw [← trailing_degree_eq_iff_nat_trailing_degree_eq h, ← one_mul X, ← C_1, ← pow_one X],
+    have ne0p : (1 : polynomial R) ≠ 0,
+    { intro,
+      apply h,
+      rw [← one_mul X, a, zero_mul], },
+    have ne0R : (1 : R) ≠ 0,
+    { refine (push_neg.not_eq 1 0).mp _,
+      intro,
+      apply ne0p,
+      rw [← C_1 , ← C_0, C_inj],
+      assumption, },
+    exact trailing_degree_monomial (1:ℕ) ne0R, },
 end
 
 @[simp] lemma trailing_coeff_eq_zero : trailing_coeff p = 0 ↔ p = 0 :=
@@ -297,21 +297,21 @@ lemma coeff_nat_trailing_degree_eq_zero_of_trailing_degree_lt (h : trailing_degr
 begin
   refine coeff_eq_zero_of_trailing_degree_lt _,
   refine lt_of_lt_of_le _ _,
-    { exact q.trailing_degree, },
-    { cases h,
-      cases h_h,
-      rw option.mem_def at h_h_w,
-      unfold nat_trailing_degree,
-      rw [h_h_w, option.get_or_else_some],
-      simp only [option.mem_def] at h_h_h,
-      refine ⟨ h_w , _ ⟩,
-      fsplit,
-        work_on_goal 1
-        { simp only [exists_prop, option.mem_def] at *,
-      intros a H },
-      exact rfl,
-      exact h_h_h a H, },
-    { exact le_refl q.trailing_degree, },
+  { exact q.trailing_degree, },
+  { cases h,
+    cases h_h,
+    rw option.mem_def at h_h_w,
+    unfold nat_trailing_degree,
+    rw [h_h_w, option.get_or_else_some],
+    simp only [option.mem_def] at h_h_h,
+    refine ⟨ h_w , _ ⟩,
+    fsplit,
+      work_on_goal 1
+      { simp only [exists_prop, option.mem_def] at *,
+    intros a H },
+    exact rfl,
+    exact h_h_h a H, },
+  { exact le_refl q.trailing_degree, },
 end
 
 lemma ne_zero_of_trailing_degree_lt {n : with_top ℕ} (h : trailing_degree p < n) : p ≠ 0 :=

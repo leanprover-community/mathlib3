@@ -313,10 +313,10 @@ def pmul [mul_zero_class R] (f g : arithmetic_function R) :
 
 @[simp]
 lemma pmul_apply [mul_zero_class R] {f g : arithmetic_function R} {x : ℕ} :
-  (pmul f g) x = f x * g x := rfl
+  f.pmul g x = f x * g x := rfl
 
 lemma pmul_comm [comm_monoid_with_zero R] (f g : arithmetic_function R) :
-  pmul f g = pmul g f :=
+  f.pmul g = g.pmul f :=
 by { ext, simp [mul_comm] }
 
 variable [monoid_with_zero R]

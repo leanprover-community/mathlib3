@@ -284,13 +284,13 @@ section
 -- rather than via typeclass resolution.
 variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
 variables (f g : M →ₗ[R] M₂)
+include semimodule_M semimodule_M₂
 
 @[simp] lemma to_fun_eq_coe : f.to_fun = ⇑f := rfl
 
 theorem is_linear : is_linear_map R f := ⟨f.2, f.3⟩
 
 variables {f g}
-include semimodule_M semimodule_M₂
 
 theorem coe_injective : injective (λ f : M →ₗ[R] M₂, show M → M₂, from f) :=
 by rintro ⟨f, _⟩ ⟨g, _⟩ ⟨h⟩; congr
@@ -334,9 +334,9 @@ def to_add_monoid_hom : M →+ M₂ :=
   f (∑ i in t, g i) = (∑ i in t, f (g i)) :=
 f.to_add_monoid_hom.map_sum _ _
 
-theorem to_add_monoid_hom_injective [semimodule R M] [semimodule R M₂] :
+theorem to_add_monoid_hom_injective :
   function.injective (to_add_monoid_hom : (M →ₗ[R] M₂) → (M →+ M₂)) :=
-λ f g h, coe_inj $ funext $ add_monoid_hom.congr_fun h
+λ f g h, ext $ add_monoid_hom.congr_fun h
 
 end
 

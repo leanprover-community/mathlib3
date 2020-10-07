@@ -182,7 +182,7 @@ lemma vec_alt0_vec_join (v : fin n → α) : vec_alt0 rfl (vec_join rfl v v) = v
 begin
   ext i,
   simp_rw [function.comp, bit0, vec_alt0, vec_join],
-  split_ifs; congr,
+  split_ifs with h; congr,
   { rw fin.coe_mk at h,
     simp only [fin.ext_iff, fin.coe_add, fin.coe_mk],
     exact (nat.mod_eq_of_lt h).symm },

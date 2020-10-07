@@ -303,10 +303,10 @@ begin
 end
 
 lemma adjoin_simple_dim_eq_one_of_mem_bot (h : α ∈ (⊥ : intermediate_field F E)) : dim F F⟮α⟯ = 1 :=
-adjoin_dim_eq_one_of_sub_bot (set.singleton_subset_iff.mpr h)
+dim_adjoin_eq_one_of_sub_bot (set.singleton_subset_iff.mpr h)
 
 lemma adjoin_dim_eq_one_iff : dim F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
-⟨sub_bot_of_adjoin_dim_eq_one, adjoin_dim_eq_one_of_sub_bot⟩
+⟨sub_bot_of_adjoin_dim_eq_one, dim_adjoin_eq_one_of_sub_bot⟩
 
 lemma adjoin_simple_dim_eq_one_iff : dim F F⟮α⟯ = 1 ↔ α ∈ (⊥ : intermediate_field F E) :=
 ⟨mem_bot_of_adjoin_simple_dim_eq_one, adjoin_simple_dim_eq_one_of_mem_bot⟩

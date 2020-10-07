@@ -630,4 +630,8 @@ group $ to_fmt "⟨" ++
 meta instance : has_to_format (hash_map α β) :=
 ⟨to_format⟩
 end format
+
+/-- `hash_map` with `nat` keys and heterogeneous types for each key. -/
+instance {β : ℕ → Type*} : inhabited (hash_map ℕ β) := ⟨mk_hash_map id⟩
+
 end hash_map

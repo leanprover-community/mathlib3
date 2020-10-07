@@ -138,6 +138,8 @@ src/data/pnat/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too l
 src/data/pnat/factors.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/pnat/intervals.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/pnat/xgcd.lean : line 24 : ERR_MOD : Module docstring missing, or too late
+src/data/polynomial/field_division.lean : line 0 : ERR_COP : Malformed or missing copyright header
+src/data/polynomial/integral_normalization.lean : line 0 : ERR_COP : Malformed or missing copyright header
 src/data/qpf/multivariate/basic.lean : line 7 : ERR_MOD : Module docstring missing, or too late
 src/data/qpf/multivariate/constructions/fix.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/rat/denumerable.lean : line 9 : ERR_MOD : Module docstring missing, or too late
@@ -245,6 +247,7 @@ src/tactic/fin_cases.lean : line 13 : ERR_MOD : Module docstring missing, or too
 src/tactic/find.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/generalize_proofs.lean : line 7 : ERR_MOD : Module docstring missing, or too late
 src/tactic/hint.lean : line 9 : ERR_MOD : Module docstring missing, or too late
+src/tactic/interactive.lean : line 0 : ERR_COP : Malformed or missing copyright header
 src/tactic/interactive.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/interval_cases.lean : line 32 : ERR_MOD : Module docstring missing, or too late
 src/tactic/lint/default.lean : line 11 : ERR_MOD : Module docstring missing, or too late

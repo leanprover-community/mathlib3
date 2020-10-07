@@ -5,8 +5,4 @@
 
 touch scripts/copy-mod-doc-exceptions.txt
 
-cut -d: -f1,3 < scripts/copy-mod-doc-exceptions.txt > scripts/copy-mod-doc-exceptions-short.txt
-
 find src archive -name '*.lean' | xargs ./scripts/lint-copy-mod-doc.py
-
-rm scripts/copy-mod-doc-exceptions-short.txt

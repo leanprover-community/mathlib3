@@ -330,7 +330,7 @@ begin
 end
 
 @[simp]
-lemma zeta_pmul (f : arithmetic_function R) : ζ.pmul f = f :=
+lemma zeta_pmul (f : arithmetic_function R) : (ζ).pmul f = f :=
 begin
   ext x,
   cases x;
@@ -370,52 +370,38 @@ end
 
 end pmul
 
-section multiplicative
+/-- Multiplicative functions -/
+def is_multiplicative [monoid_with_zero R] (f : arithmetic_function R) : Prop :=
+f 1 = 1 ∧ (∀ {m n : ℕ}, m.coprime n → f (m * n) = f m * f n)
+
+namespace is_multiplicative
 
 section monoid_with_zero
 variable [monoid_with_zero R]
 
-/-- Multiplicative functions -/
-class is_multiplicative  (f : arithmetic_function R) : Prop :=
-(map_one' : f 1 = 1)
-(map_mul_of_coprime : ∀ {m n : ℕ}, m.coprime n → f (m * n) = f m * f n)
+@[simp]
+lemma map_one {f : arithmetic_function R} (h : f.is_multiplicative) : f 1 = 1 :=
+h.1
 
 @[simp]
-lemma is_multiplicative.map_one {f : arithmetic_function R} [is_multiplicative f] : f 1 = 1 :=
-is_multiplicative.map_one'
-
-@[simp]
-lemma map_mul_of_coprime {f : arithmetic_function R} [is_multiplicative f] {m n : ℕ}
-  (h : m.coprime n) : f (m * n) = f m * f n :=
-is_multiplicative.map_mul_of_coprime h
+lemma map_mul_of_coprime {f : arithmetic_function R} (hf : f.is_multiplicative)
+  {m n : ℕ} (h : m.coprime n) : f (m * n) = f m * f n :=
+hf.2 h
 
 end monoid_with_zero
 
-instance is_multiplicative_nat_cast {f : arithmetic_function ℕ} [semiring R] [is_multiplicative f] :
+lemma nat_cast {f : arithmetic_function ℕ} [semiring R] (h : f.is_multiplicative) :
   is_multiplicative (f : arithmetic_function R) :=
-⟨by simp, λ m n cop, by simp [cop]⟩
+⟨by simp [h], λ m n cop, by simp [cop, h]⟩
 
-instance is_multiplicative_int_cast {f : arithmetic_function ℤ} [ring R] [is_multiplicative f] :
+lemma int_cast {f : arithmetic_function ℤ} [ring R] (h : f.is_multiplicative) :
   is_multiplicative (f : arithmetic_function R) :=
-⟨by simp, λ m n cop, by simp [cop]⟩
+⟨by simp [h], λ m n cop, by simp [cop, h]⟩
 
-lemma nat.gcd_mul_gcd_of_coprime_of_mul_eq_mul {a b c d : ℕ} (cop : c.coprime d) (h : a * b = c * d) :
-  a.gcd c * b.gcd c = c :=
-begin
-  apply dvd_antisymm,
-  { apply nat.coprime.dvd_of_dvd_mul_right (nat.coprime.mul (cop.gcd_left _) (cop.gcd_left _)),
-    rw ← h,
-    apply mul_dvd_mul (gcd_dvd _ _).1 (gcd_dvd _ _).1 },
-  { rw [gcd_comm a _, gcd_comm b _],
-    transitivity c.gcd (a * b),
-    rw [h, gcd_mul_right_right d c],
-    apply gcd_mul_dvd_mul_gcd }
-end
-
-instance is_multiplicative_mul [comm_semiring R] {f g : arithmetic_function R}
-  [is_multiplicative f]  [is_multiplicative g] :
+lemma mul [comm_semiring R] {f g : arithmetic_function R}
+  (hf : f.is_multiplicative)  (hg : g.is_multiplicative) :
   is_multiplicative (f * g) :=
-⟨by { simp, }, begin
+⟨by { simp [hf, hg], }, begin
   simp only [mul_apply],
   intros m n cop,
   rw sum_mul_sum,
@@ -432,10 +418,9 @@ instance is_multiplicative_mul [comm_semiring R] {f g : arithmetic_function R}
     simp only [mem_divisors_antidiagonal, ne.def, mem_product] at h,
     rcases h with ⟨⟨rfl, ha⟩, ⟨rfl, hb⟩⟩,
     dsimp,
-    rw [map_mul_of_coprime cop.coprime_mul_right.coprime_mul_right_right,
-        map_mul_of_coprime cop.coprime_mul_left.coprime_mul_left_right],
-    ring,
-    apply_instance, apply_instance },
+    rw [hf.map_mul_of_coprime cop.coprime_mul_right.coprime_mul_right_right,
+        hg.map_mul_of_coprime cop.coprime_mul_left.coprime_mul_left_right],
+    ring, },
   { rintros ⟨⟨a1, a2⟩, ⟨b1, b2⟩⟩ ⟨⟨c1, c2⟩, ⟨d1, d2⟩⟩ hab hcd h,
     simp only [mem_divisors_antidiagonal, ne.def, mem_product] at hab,
     rcases hab with ⟨⟨rfl, ha⟩, ⟨rfl, hb⟩⟩,
@@ -474,7 +459,7 @@ instance is_multiplicative_mul [comm_semiring R] {f g : arithmetic_function R}
     rw [mul_comm n m, h.1] }
 end⟩
 
-end multiplicative
+end is_multiplicative
 
 section special_functions
 
@@ -515,7 +500,7 @@ begin
   simp [hx],
 end
 
-instance is_multiplicative_zeta [semiring R] : is_multiplicative (ζ : arithmetic_function R) :=
+lemma is_multiplicative_zeta [semiring R] : is_multiplicative (ζ : arithmetic_function R) :=
 ⟨by simp, λ m n cop, begin
   cases m, {simp},
   cases n, {simp},
@@ -524,13 +509,16 @@ instance is_multiplicative_zeta [semiring R] : is_multiplicative (ζ : arithmeti
   repeat { apply nat.succ_ne_zero },
 end⟩
 
-instance is_multiplicative_pow {k : ℕ} :
+lemma is_multiplicative_pow {k : ℕ} :
   is_multiplicative (pow k) :=
 ⟨by cases k; simp, λ m n cop, by cases m; cases k; simp [nat.succ_ne_zero, mul_pow, zero_pow]⟩
 
-instance is_multiplicative_sigma [semiring R] {k : ℕ} :
+lemma is_multiplicative_sigma [semiring R] {k : ℕ} :
   is_multiplicative (sigma k : arithmetic_function R) :=
-by { rw ← zeta_mul_pow_eq_sigma, apply_instance, }
+begin
+  rw [← zeta_mul_pow_eq_sigma],
+  apply ((is_multiplicative_zeta).mul is_multiplicative_pow).nat_cast
+end
 
 end special_functions
 end arithmetic_function

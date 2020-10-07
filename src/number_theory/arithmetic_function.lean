@@ -459,6 +459,14 @@ lemma mul [comm_semiring R] {f g : arithmetic_function R}
     rw [mul_comm n m, h.1] }
 end⟩
 
+lemma pmul [comm_semiring R] {f g : arithmetic_function R}
+  (hf : f.is_multiplicative)  (hg : g.is_multiplicative) :
+  is_multiplicative (f.pmul g) :=
+⟨by { simp [hf, hg], }, λ m n cop, begin
+  simp only [pmul_apply, hf.map_mul_of_coprime cop, hg.map_mul_of_coprime cop],
+  ring,
+end⟩
+
 end is_multiplicative
 
 section special_functions
@@ -509,15 +517,30 @@ lemma is_multiplicative_zeta [semiring R] : is_multiplicative (ζ : arithmetic_f
   repeat { apply nat.succ_ne_zero },
 end⟩
 
-lemma is_multiplicative_pow {k : ℕ} :
-  is_multiplicative (pow k) :=
+lemma is_multiplicative_id : is_multiplicative arithmetic_function.id :=
+⟨rfl, λ _ _ _, rfl⟩
+
+lemma is_multiplicative.ppow [comm_semiring R] {f : arithmetic_function R}
+  (hf : f.is_multiplicative) {k : ℕ} :
+  is_multiplicative (f.ppow k) :=
+begin
+  induction k with k hi,
+  { exact is_multiplicative_zeta },
+  { rw ppow_succ,
+    apply hf.pmul hi },
+end
+
+lemma is_multiplicative_pmul {k : ℕ} : is_multiplicative (pow k) :=
 ⟨by cases k; simp, λ m n cop, by cases m; cases k; simp [nat.succ_ne_zero, mul_pow, zero_pow]⟩
 
-lemma is_multiplicative_sigma [semiring R] {k : ℕ} :
-  is_multiplicative (sigma k : arithmetic_function R) :=
+lemma is_multiplicative_pow {k : ℕ} : is_multiplicative (pow k) :=
+is_multiplicative_id.ppow
+
+lemma is_multiplicative_sigma {k : ℕ} :
+  is_multiplicative (sigma k) :=
 begin
   rw [← zeta_mul_pow_eq_sigma],
-  apply ((is_multiplicative_zeta).mul is_multiplicative_pow).nat_cast
+  apply ((is_multiplicative_zeta).mul is_multiplicative_pow)
 end
 
 end special_functions

@@ -273,8 +273,8 @@ lemma mem_bot_of_adjoin_simple_sub_bot (h : F⟮α⟯ = ⊥) : α ∈ (⊥ : int
 @[simp] lemma adjoin_eq_bot_iff : adjoin F S = ⊥ ↔ S ⊆ (⊥ : intermediate_field F E) :=
 ⟨sub_bot_of_adjoin_sub_bot, adjoin_eq_bot⟩
 
-lemma adjoin_simple_eq_bot_iff : α ∈ (⊥ : intermediate_field F E) ↔ F⟮α⟯ = ⊥ :=
-⟨adjoin_simple_eq_bot, mem_bot_of_adjoin_simple_sub_bot⟩
+@[simp] lemma adjoin_simple_eq_bot_iff : F⟮α⟯ = ⊥ ↔ α ∈ (⊥ : intermediate_field F E) :=
+⟨mem_bot_of_adjoin_simple_sub_bot, adjoin_simple_eq_bot⟩
 
 section adjoin_dim
 open finite_dimensional vector_space

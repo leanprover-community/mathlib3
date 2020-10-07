@@ -10,10 +10,9 @@ ERR_MOD = 2
 
 exceptions = []
 
-with open("scripts/copy-mod-doc-exceptions-short.txt") as f:
-    lines = f.readlines()
-    for line in lines:
-        (fn, c, errno) = line.split()
+with open("scripts/copy-mod-doc-exceptions.txt") as f:
+    for line in f.readlines():
+    	fn, _, _, _, _, errno, *_ = l.split()
         if errno == "ERR_COP":
             exceptions += [(ERR_COP, fn)]
         if errno == "ERR_IMP":

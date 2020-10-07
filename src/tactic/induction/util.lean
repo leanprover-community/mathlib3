@@ -149,69 +149,6 @@ meta def local_names_option : expr → option (name × name)
 | (local_const n₁ n₂ _ _) := some (n₁, n₂)
 | _ := none
 
-/-- Given a closed type of the form `∀ (x : T) ... (z : U), V`, this function
-returns a tuple `(args, n, V)` where
-
-- `args` is a list containing information about the arguments `x ... z`:
-  argument name, binder info, argument type and whether the argument is
-  dependent (i.e. whether the rest of the input `expr` depends on it).
-- `n` is the length of `args`.
-- `V` is the return type.
-
-Given any other expression `e`, this function returns an empty list and `e`.
-
-Note that the type of each argument and the return type all live in a different
-contexts. For example, for the input `∀ (x : α) (y : β x) (z : γ x y), δ`,
-`decompose_pi` returns `β #0` as the type of `y` and `γ #1 #0` as the type of
-`z` -- the two `#0`s do not denote the same thing.
--/
-meta def decompose_pi : expr →
-  list (name × binder_info × expr × bool) × ℕ × expr
-| (pi name binfo T rest) :=
-  let (args, n_args, ret) := decompose_pi rest in
-  -- NOTE: the following makes this function quadratic in the size of the input
-  -- expression.
-  let dep := rest.has_var_idx 0 in
-  ((name, binfo, T, dep) :: args, n_args + 1, ret)
-| e := ([], 0, e)
-
-/-- Given a closed type of the form `∀ (x : T) ... (z : U), V`, this function
-returns a tuple `(args, n, V)` where
-
-- `args` is a list containing information about the arguments `x ... z`:
-  argument name, binder info, argument type and whether the argument is
-  dependent (i.e. whether the rest of the input `expr` depends on it).
-- `n` is the length of `args`.
-- `V` is the return type.
-
-Given any other expression `e`, this function returns an empty list and `e`.
-
-The input expression is normalised lazily. This means that the returned
-expressions are not necessarily in normal form.
-
-Note that the type of each argument and the return type all live in a different
-contexts. For example, for the input `∀ (x : α) (y : β x) (z : γ x y), δ`,
-`decompose_pi_normalizing` returns `β #0` as the type of `y` and `γ #1 #0`
-as the type of `z` -- the two `#0`s do not denote the same thing.
--/
-meta def decompose_pi_normalizing : expr →
-  tactic (list (name × binder_info × expr × bool) × expr) :=
-λ e, do
-  e ← tactic.whnf e,
-  match e with
-  | (pi n binfo T rest) := do
-      (args, ret) ← decompose_pi_normalizing rest,
-      -- NOTE: the following makes this function quadratic in the size of the input
-      -- expression.
-      let dep := rest.has_var_idx 0,
-      pure ((n , binfo, T, dep) :: args, ret)
-  | _ := pure ([] , e)
-  end
-
-meta def recompose_pi (binders : list (name × binder_info × expr)) (ret : expr) :
-  expr :=
-binders.foldr (λ ⟨name, info, t⟩ acc, pi name info t acc) ret
-
 /-- Auxiliary function for `decompose_app`. -/
 meta def decompose_app_aux : expr → expr × list expr
 | (app t u) :=
@@ -252,9 +189,7 @@ meta def decompose_app_normalizing (e : expr) (md := semireducible) :
 
 meta def locals (e : expr) : expr_set :=
 e.fold mk_expr_set $ λ e _ occs,
-  if e.is_local_constant
-    then occs.insert e
-    else occs
+  if e.is_local_constant then occs.insert e else occs
 
 meta def local_unique_names (e : expr) : name_set :=
 e.fold mk_name_set $ λ e _ occs,
@@ -262,15 +197,6 @@ e.fold mk_name_set $ λ e _ occs,
   | (local_const u _ _ _) := occs.insert u
   | _ := occs
   end
-
-meta def match_eq : expr → option (level × expr × expr × expr)
-| (app (app (app (const `eq [u]) type) lhs) rhs) := some (u, type, lhs, rhs)
-| _ := none
-
-meta def match_heq : expr → option (level × expr × expr × expr × expr)
-| (app (app (app (app (const `heq [u]) lhs_type) lhs) rhs_type) rhs) :=
-  some (u, lhs_type, lhs, rhs_type, rhs)
-| _ := none
 
 end expr
 
@@ -302,11 +228,6 @@ name is `a` or `a_n` for some `n ∈ ℕ`, then we assume that this name was
 auto-generated rather than chosen by the user.
 -/
 library_note "unnamed constructor arguments"
-
-meta def basename : name → name
-| anonymous := anonymous
-| (mk_string s _) := mk_string s anonymous
-| (mk_numeral n _) := mk_numeral n anonymous
 
 /-- See [note unnamed constructor arguments]. -/
 meta def likely_generated_name_p : parser unit := do

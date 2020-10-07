@@ -87,7 +87,7 @@ begin
   refl,
 end
 
-lemma lift2_top (K : intermediate_field F E) :
+@[simp] lemma lift2_top (K : intermediate_field F E) :
   ↑(⊤ : intermediate_field K E) = (⊤ : intermediate_field F E) :=
 begin
   ext,
@@ -122,9 +122,8 @@ lemma subset_adjoin : S ⊆ adjoin F S :=
 instance adjoin.set_coe : has_coe_t S (adjoin F S) :=
 {coe := λ x, ⟨x,subset_adjoin F S (subtype.mem x)⟩}
 
-lemma adjoin.mono (T : set E) (h : S ⊆ T) : adjoin F S ≤ adjoin F T :=
-subfield.closure_mono (set.union_subset (set.subset_union_left _ _)
-  (set.subset_union_of_subset_right h _))
+@[mono] lemma adjoin.mono (T : set E) (h : S ⊆ T) : adjoin F S ≤ adjoin F T :=
+galois_connection.monotone_l gc h
 
 lemma adjoin_contains_field_as_subfield (F : subfield E) : (F : set E) ⊆ adjoin F S :=
 λ x hx, adjoin.algebra_map_mem F S ⟨x, hx⟩

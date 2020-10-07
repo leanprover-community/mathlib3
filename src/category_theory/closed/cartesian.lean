@@ -205,7 +205,7 @@ yoneda.ext (⊤_ C ⟹ X) X
   (λ Y f, curry ((prod.left_unitor Y).hom ≫ f))
   (λ Z g, by rw [curry_eq_iff, iso.hom_inv_id_assoc] )
   (λ Z g, by simp)
-  (λ Z W f g, by rw [uncurry_natural_left, prod_left_unitor_inv_naturality_assoc f] )
+  (λ Z W f g, by rw [uncurry_natural_left, prod.left_unitor_inv_naturality_assoc f] )
 
 /-- The internal element which points at the given morphism. -/
 def internalize_hom (f : A ⟶ Y) : ⊤_C ⟶ (A ⟹ Y) :=
@@ -344,8 +344,8 @@ def cartesian_closed_of_equiv (e : C ≌ D) [h : cartesian_closed C] : cartesian
   { is_adj :=
     begin
       haveI q : exponentiable (e.inverse.obj X) := infer_instance,
-      have : is_left_adjoint (prod_functor.obj (e.inverse.obj X)) := q.is_adj,
-      have : e.functor ⋙ prod_functor.obj X ⋙ e.inverse ≅ prod_functor.obj (e.inverse.obj X),
+      have : is_left_adjoint (prod.functor.obj (e.inverse.obj X)) := q.is_adj,
+      have : e.functor ⋙ prod.functor.obj X ⋙ e.inverse ≅ prod.functor.obj (e.inverse.obj X),
       apply nat_iso.of_components _ _,
       intro Y,
       { apply as_iso (prod_comparison e.inverse X (e.functor.obj Y)) ≪≫ _,
@@ -385,10 +385,10 @@ lemma exp_comparison_natural_left (A A' B : C) (f : A' ⟶ A) :
   exp_comparison F A B ≫ pre (F.obj B) (F.map f) = F.map (pre B f) ≫ exp_comparison F A' B :=
 begin
   rw [exp_comparison, exp_comparison, ← curry_natural_left, eq_curry_iff, uncurry_natural_left,
-       pre, uncurry_curry, prod_map_swap_assoc, curry_eq, prod_map_id_comp, assoc, ev_naturality],
+       pre, uncurry_curry, prod.map_swap_assoc, curry_eq, prod.map_id_comp, assoc, ev_naturality],
   erw [ev_coev_assoc, ← F.map_id, ← prod_comparison_inv_natural_assoc,
        ← F.map_id, ← prod_comparison_inv_natural_assoc, ← F.map_comp, ← F.map_comp, pre, curry_eq,
-       prod_map_id_comp, assoc, (ev _).naturality, ev_coev_assoc], refl,
+       prod.map_id_comp, assoc, (ev _).naturality, ev_coev_assoc], refl,
 end
 
 /-- The exponential comparison map is natural in its right argument. -/

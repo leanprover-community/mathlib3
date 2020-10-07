@@ -2,8 +2,6 @@ archive/imo/imo1959_q1.lean : line 9 : ERR_MOD : Module docstring missing, or to
 archive/imo/imo1969_q1.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 archive/imo/imo1972_b2.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/algebra/archimedean.lean : line 11 : ERR_MOD : Module docstring missing, or too late
-src/algebra/big_operators/default.lean : line 1 : ERR_COP : Malformed or missing copyright header
-src/algebra/big_operators/default.lean : line 1 : ERR_MOD : Module docstring missing, or too late
 src/algebra/category/Algebra/basic.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/algebra/category/Module/basic.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/algebra/char_zero.lean : line 11 : ERR_MOD : Module docstring missing, or too late
@@ -245,7 +243,6 @@ src/tactic/converter/binders.lean : line 10 : ERR_MOD : Module docstring missing
 src/tactic/converter/interactive.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/tactic/converter/old_conv.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/core.lean : line 17 : ERR_MOD : Module docstring missing, or too late
-src/tactic/default.lean : line 1 : ERR_COP : Malformed or missing copyright header
 src/tactic/delta_instance.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/derive_fintype.lean : line 1 : ERR_COP : Malformed or missing copyright header
 src/tactic/derive_inhabited.lean : line 1 : ERR_COP : Malformed or missing copyright header

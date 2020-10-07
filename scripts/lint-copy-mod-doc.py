@@ -27,10 +27,18 @@ def import_only_check(lines, fn):
     import_only_file = True
     errors = []
     line_nr = 0
+    in_comment = False
     for line_nr, line in enumerate(lines, 1):
-        if line == "\n":
+        if "/-" in line:
+            in_comment = True
+        if "-/" in line:
+            in_comment = False
+            continue
+        if line == "\n" or in_comment:
             continue
         imports = line.split()
+        if imports[0] == "--":
+            continue
         if imports[0] != "import":
             import_only_file = False
             break

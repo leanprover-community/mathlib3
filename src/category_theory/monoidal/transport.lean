@@ -175,7 +175,7 @@ def lax_to_transported (e : C ≌ D) : lax_monoidal_functor C (transported e) :=
   begin
     dsimp,
     simp only [tensor_id, assoc, id_comp, functor.map_comp, e.inverse.map_id],
-    rw equivalence.counit_functor,
+    rw equivalence.counit_app_functor,
     simp only [←e.functor.map_comp],
     congr' 1,
     rw [←left_unitor_naturality],
@@ -185,7 +185,7 @@ def lax_to_transported (e : C ≌ D) : lax_monoidal_functor C (transported e) :=
   begin
     dsimp,
     simp only [tensor_id, assoc, id_comp, functor.map_comp, e.inverse.map_id],
-    rw equivalence.counit_functor,
+    rw equivalence.counit_app_functor,
     simp only [←e.functor.map_comp],
     congr' 1,
     rw [←right_unitor_naturality],
@@ -271,9 +271,9 @@ monoidal_nat_iso.of_components (λ X, e.counit_iso.app X) (λ X Y f, e.counit.na
   (λ X Y,
   begin
     dsimp, simp only [iso.hom_inv_id_app_assoc, id_comp, equivalence.inv_fun_map],
-    simp only [equivalence.counit_functor, ←e.functor.map_id, ←e.functor.map_comp],
+    simp only [equivalence.counit_app_functor, ←e.functor.map_id, ←e.functor.map_comp],
     congr' 1,
-    simp [equivalence.inverse_counit],
+    simp [equivalence.unit_inv_app_inverse],
     dsimp,
     simp, -- See note [dsimp, simp].
   end)

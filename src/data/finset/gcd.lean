@@ -26,10 +26,12 @@ TODO: simplify with a tactic and `data.finset.lattice`
 finset, gcd
 -/
 
-variables {α β γ : Type*} [comm_cancel_monoid_with_zero α] [nontrivial α] [gcd_monoid α]
+variables {α β γ : Type*}
 
 namespace finset
 open multiset
+
+variables [comm_cancel_monoid_with_zero α] [nontrivial α] [gcd_monoid α]
 
 /-! ### lcm -/
 section lcm
@@ -141,5 +143,86 @@ dvd_gcd (λ b hb, dvd_trans (gcd_dvd hb) (h b hb))
 lemma gcd_mono (h : s₁ ⊆ s₂) : s₂.gcd f ∣ s₁.gcd f :=
 dvd_gcd $ assume b hb, gcd_dvd (h hb)
 
+
+theorem gcd_eq_zero_iff : s.gcd f = 0 ↔ ∀ (x : β), x ∈ s → f x = 0 :=
+begin
+  rw [gcd_def, multiset.gcd_eq_zero_iff],
+  split; intro h,
+  { intros b bs,
+    apply h (f b),
+    simp only [multiset.mem_map, mem_def.1 bs],
+    use b,
+    simp [mem_def.1 bs] },
+  { intros a as,
+    rw multiset.mem_map at as,
+    rcases as with ⟨b, ⟨bs, rfl⟩⟩,
+    apply h b (mem_def.1 bs) }
+end
+
+lemma gcd_eq_gcd_filter_ne_zero [decidable_pred (λ (x : β), f x = 0)] :
+  s.gcd f = (s.filter (λ x, f x ≠ 0)).gcd f :=
+begin
+  classical,
+  transitivity ((s.filter (λ x, f x = 0)) ∪ (s.filter (λ x, f x ≠ 0))).gcd f,
+  { rw filter_union_filter_neg_eq },
+  rw gcd_union,
+  transitivity gcd_monoid.gcd (0 : α) _,
+  { refine congr (congr rfl _) rfl,
+    apply s.induction_on, { simp },
+    intros a s has h,
+    rw filter_insert,
+    split_ifs with h1; simp [h, h1], },
+  simp [gcd_zero_left, normalize_gcd],
+end
+
+lemma gcd_mul_left {a : α} : s.gcd (λ x, a * f x) = normalize a * s.gcd f :=
+begin
+  classical,
+  apply s.induction_on,
+  { simp },
+  intros b t hbt h,
+  rw [gcd_insert, gcd_insert, h, ← gcd_mul_left],
+  apply gcd_eq_of_associated_right,
+  apply associated_mul_mul _ (associated.refl _),
+  apply normalize_associated,
+end
+
+lemma gcd_mul_right {a : α} : s.gcd (λ x, f x * a) = s.gcd f * normalize a :=
+begin
+  classical,
+  apply s.induction_on,
+  { simp },
+  intros b t hbt h,
+  rw [gcd_insert, gcd_insert, h, ← gcd_mul_right],
+  apply gcd_eq_of_associated_right,
+  apply associated_mul_mul (associated.refl _),
+  apply normalize_associated,
+end
+
 end gcd
+end finset
+
+namespace finset
+section integral_domain
+
+variables [nontrivial β] [integral_domain α] [gcd_monoid α]
+
+lemma gcd_eq_of_dvd_sub {s : finset β} {f g : β → α} {a : α}
+  (h : ∀ x : β, x ∈ s → a ∣ f x - g x) :
+  gcd_monoid.gcd a (s.gcd f) = gcd_monoid.gcd a (s.gcd g) :=
+begin
+  classical,
+  revert h,
+  apply s.induction_on,
+  { simp },
+  intros b s bs hi h,
+  rw [gcd_insert, gcd_insert, gcd_comm (f b), ← gcd_assoc, hi (λ x hx, h _ (mem_insert_of_mem hx)),
+      gcd_comm a, gcd_assoc, gcd_comm a (gcd_monoid.gcd _ _),
+      gcd_comm (g b), gcd_assoc _ _ a, gcd_comm _ a],
+  refine congr rfl _,
+  apply gcd_eq_of_dvd_sub_right (h _ (mem_insert_self _ _)),
+end
+
+end integral_domain
+
 end finset

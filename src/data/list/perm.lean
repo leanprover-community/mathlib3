@@ -7,11 +7,13 @@ import data.list.bag_inter
 import data.list.erase_dup
 import data.list.zip
 import logic.relation
-import data.nat.fact
+import data.nat.factorial
 
 /-!
 # List permutations
 -/
+
+open_locale nat
 
 namespace list
 universe variables uu vv
@@ -900,6 +902,7 @@ begin
   { refine (IH₁ H).trans (IH₂ ((p₁.pairwise_iff _).1 H)),
     exact λ a b h h₁ h₂, h h₂ h₁ }
 end
+
 lemma perm.take_inter {α} [decidable_eq α] {xs ys : list α} (n : ℕ)
   (h : xs ~ ys) (h' : ys.nodup) :
   xs.take n ~ ys.inter (xs.take n) :=
@@ -1082,22 +1085,22 @@ theorem perm_of_mem_permutations {l₁ l₂ : list α}
   (λ m, append_nil l₂ ▸ perm_of_mem_permutations_aux m)
 
 theorem length_permutations_aux : ∀ ts is : list α,
-  length (permutations_aux ts is) + is.length.fact = (length ts + length is).fact :=
+  length (permutations_aux ts is) + is.length! = (length ts + length is)! :=
 begin
   refine permutations_aux.rec (by simp) _,
   intros t ts is IH1 IH2,
-  have IH2 : length (permutations_aux is nil) + 1 = is.length.fact,
+  have IH2 : length (permutations_aux is nil) + 1 = is.length!,
   { simpa using IH2 },
-  simp [-add_comm, nat.fact, nat.add_succ, mul_comm] at IH1,
+  simp [-add_comm, nat.factorial, nat.add_succ, mul_comm] at IH1,
   rw [permutations_aux_cons,
       length_foldr_permutations_aux2' _ _ _ _ _
         (λ l m, (perm_of_mem_permutations m).length_eq),
       permutations, length, length, IH2,
-      nat.succ_add, nat.fact_succ, mul_comm (nat.succ _), ← IH1,
+      nat.succ_add, nat.factorial_succ, mul_comm (nat.succ _), ← IH1,
       add_comm (_*_), add_assoc, nat.mul_succ, mul_comm]
 end
 
-theorem length_permutations (l : list α) : length (permutations l) = (length l).fact :=
+theorem length_permutations (l : list α) : length (permutations l) = (length l)! :=
 length_permutations_aux l []
 
 theorem mem_permutations_of_perm_lemma {is l : list α}

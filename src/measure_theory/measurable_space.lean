@@ -470,7 +470,7 @@ begin
   exact (hs.inter $ hf ht).union (hs.compl.inter $ hg ht)
 end
 
-lemma measurable_const {α β} [measurable_space α] [measurable_space β] {a : α} :
+@[simp] lemma measurable_const {α β} [measurable_space α] [measurable_space β] {a : α} :
   measurable (λb:β, a) :=
 by { intros s hs, by_cases a ∈ s; simp [*, preimage] }
 
@@ -761,6 +761,8 @@ lemma coe_eq {α β} [measurable_space α] [measurable_space β] (e : measurable
 def refl (α : Type*) [measurable_space α] : measurable_equiv α α :=
 { to_equiv := equiv.refl α,
   measurable_to_fun := measurable_id, measurable_inv_fun := measurable_id }
+
+instance {α} [measurable_space α] : inhabited (measurable_equiv α α) := ⟨refl α⟩
 
 /-- The composition of equivalences between measurable spaces. -/
 def trans [measurable_space α] [measurable_space β] [measurable_space γ]

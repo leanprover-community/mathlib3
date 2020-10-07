@@ -53,6 +53,8 @@ instance : inhabited Mon :=
 @[to_additive]
 instance (M : Mon) : monoid M := M.str
 
+@[simp, to_additive] lemma coe_of (R : Type u) [monoid R] : (Mon.of R : Type u) = R := rfl
+
 end Mon
 
 /-- The category of commutative monoids and monoid morphisms. -/
@@ -85,6 +87,8 @@ instance : inhabited CommMon :=
 @[to_additive]
 instance (M : CommMon) : comm_monoid M := M.str
 
+@[simp, to_additive] lemma coe_of (R : Type u) [comm_monoid R] : (CommMon.of R : Type u) = R := rfl
+
 @[to_additive has_forget_to_AddMon]
 instance has_forget_to_Mon : has_forget₂ CommMon Mon := bundled_hom.forget₂ _ _
 
@@ -101,7 +105,7 @@ example (R : CommMon.{u}) : R ⟶ R :=
 { to_fun := λ x,
   begin
     match_target (R : Type u),
-    match_hyp x := (R : Type u),
+    match_hyp x : (R : Type u),
     exact x * x
   end ,
   map_one' := by simp,

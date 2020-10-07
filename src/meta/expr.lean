@@ -312,6 +312,62 @@ e.replace $ λ e d,
   | _ := none
   end
 
+/-- Match a variable. -/
+meta def match_var {elab} : expr elab → option ℕ
+| (var n) := some n
+| _ := none
+
+/-- Match a sort. -/
+meta def match_sort {elab} : expr elab → option level
+| (sort u) := some u
+| _ := none
+
+/-- Match a constant. -/
+meta def match_const {elab} : expr elab → option (name × list level)
+| (const n lvls) := some (n, lvls)
+| _ := none
+
+/-- Match a metavariable. -/
+meta def match_mvar {elab} : expr elab →
+  option (name × name × expr elab)
+| (mvar unique pretty type) := some (unique, pretty, type)
+| _ := none
+
+/-- Match a local constant. -/
+meta def match_local_const {elab} : expr elab →
+  option (name × name × binder_info × expr elab)
+| (local_const unique pretty bi type) := some (unique, pretty, bi, type)
+| _ := none
+
+/-- Match an application. -/
+meta def match_app {elab} : expr elab → option (expr elab × expr elab)
+| (app t u) := some (t, u)
+| _ := none
+
+/-- Match an abstraction. -/
+meta def match_lam {elab} : expr elab →
+  option (name × binder_info × expr elab × expr elab)
+| (lam var_name bi type body) := some (var_name, bi, type, body)
+| _ := none
+
+/-- Match a Π type. -/
+meta def match_pi {elab} : expr elab →
+  option (name × binder_info × expr elab × expr elab)
+| (pi var_name bi type body) := some (var_name, bi, type, body)
+| _ := none
+
+/-- Match a let. -/
+meta def match_elet {elab} : expr elab →
+  option (name × expr elab × expr elab × expr elab)
+| (elet var_name type assignment body) := some (var_name, type, assignment, body)
+| _ := none
+
+/-- Match a macro. -/
+meta def match_macro {elab} : expr elab →
+  option (macro_def × list (expr elab))
+| (macro df args) := some (df, args)
+| _ := none
+
 /-- Tests whether an expression is a meta-variable. -/
 meta def is_mvar : expr → bool
 | (mvar _ _ _) := tt
@@ -637,11 +693,6 @@ end expr
 
 namespace environment
 
-/-- Tests whether a name is declared in the current file. Fixes an error in `in_current_file`
-  which returns `tt` for the four names `quot, quot.mk, quot.lift, quot.ind` -/
-meta def in_current_file' (env : environment) (n : name) : bool :=
-env.in_current_file n && (n ∉ [``quot, ``quot.mk, ``quot.lift, ``quot.ind])
-
 /-- Tests whether `n` is a structure. -/
 meta def is_structure (env : environment) (n : name) : bool :=
 (env.structure_fields n).is_some
@@ -787,10 +838,10 @@ let decl := decl.update_type $ decl.type.apply_replacement_fun f in
 decl.update_value $ decl.value.apply_replacement_fun f
 
 /-- Checks whether the declaration is declared in the current file.
-  This is a simple wrapper around `environment.in_current_file'`
-  Use `environment.in_current_file'` instead if performance matters. -/
+  This is a simple wrapper around `environment.in_current_file`
+  Use `environment.in_current_file` instead if performance matters. -/
 meta def in_current_file (d : declaration) : tactic bool :=
-do e ← get_env, return $ e.in_current_file' d.to_name
+do e ← get_env, return $ e.in_current_file d.to_name
 
 /-- Checks whether a declaration is a theorem -/
 meta def is_theorem : declaration → bool

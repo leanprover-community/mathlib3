@@ -233,7 +233,7 @@ meta def add_coinductive_predicate
   let u_params := u_names.map param,
 
   pre_info ← preds.mmap (λ⟨c, is⟩, do
-    (ls, t) ← mk_local_pis c.local_type,
+    (ls, t) ← open_pis c.local_type,
     (is_def_eq t `(Prop) <|>
       fail (format! "Type of {c.local_pp_name} is not Prop. Currently only " ++
                     "coinductive predicates are supported.")),
@@ -250,7 +250,7 @@ meta def add_coinductive_predicate
     sort u_f ← infer_type f₁ >>= infer_type,
     let pred_g := λc:expr, (const c.local_uniq_name u_params : expr).app_of_list params,
     intros ← is.mmap (λi, do
-      (args, t') ← mk_local_pis i.local_type,
+      (args, t') ← open_pis i.local_type,
       (name.mk_string sub p) ← return i.local_uniq_name,
       let loc_args := args.map $ λe, (fs₁.zip preds).foldl (λ(e:expr) ⟨f, c, _⟩,
         e.replace_with (pred_g c) f) e,
@@ -470,7 +470,7 @@ do
   g ← list.head <$> get_goals,
   (list.cons _ m_is) ← return $ mvars.drop_while (λv, v.2 ≠ g),
   tgt ← target,
-  (is, ty) ← mk_local_pis tgt,
+  (is, ty) ← open_pis tgt,
   -- construct coinduction predicate
   (bs, eqs) ← compact_relation ctxts <$>
     ((is.zip m_is).mmap (λ⟨i, m⟩, prod.mk i <$> instantiate_mvars m.2)),

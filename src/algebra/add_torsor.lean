@@ -49,8 +49,7 @@ class has_vsub (G : out_param Type*) (P : Type*) :=
 infix ` +ᵥ `:65 := has_vadd.vadd
 infix ` -ᵥ `:65 := has_vsub.vsub
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
+section old_structure_cmd
 set_option old_structure_cmd true
 /-- Type class for additive monoid actions. -/
 class add_action (G : Type*) (P : Type*) [add_monoid G] extends has_vadd G P :=
@@ -70,7 +69,7 @@ class add_torsor (G : out_param Type*) (P : Type*) [out_param $ add_group G]
 
 attribute [instance, priority 100, nolint dangerous_instance] add_torsor.nonempty
 
-end prio
+end old_structure_cmd
 
 /-- An `add_group G` is a torsor for itself. -/
 @[nolint instance_priority]
@@ -304,6 +303,12 @@ by rw [sub_eq_add_neg, neg_vsub_eq_vsub_rev, add_comm, vsub_add_vsub_cancel]
 @[simp] lemma vadd_vsub_vadd_cancel_left (v : G) (p1 p2 : P) :
   (v +ᵥ p1) -ᵥ (v +ᵥ p2) = p1 -ᵥ p2 :=
 by rw [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_sub_cancel']
+
+lemma vsub_vadd_comm (p1 p2 p3 : P) : (p1 -ᵥ p2 : G) +ᵥ p3 = p3 -ᵥ p2 +ᵥ p1 :=
+begin
+  rw [←@vsub_eq_zero_iff_eq G, vadd_vsub_assoc, vsub_vadd_eq_vsub_sub],
+  simp
+end
 
 end comm
 

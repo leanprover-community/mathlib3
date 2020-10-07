@@ -111,8 +111,8 @@ derivative, differentiable, Fréchet, calculus
 
 -/
 
-open filter asymptotics continuous_linear_map set
-open_locale topological_space classical
+open filter asymptotics continuous_linear_map set metric
+open_locale topological_space classical nnreal
 
 noncomputable theory
 
@@ -313,6 +313,34 @@ begin
       intro z; simp only [function.comp, add_sub_cancel'_right] }
 end
 
+/-- Converse to the mean value inequality: if `f` is differentiable at `x₀` and `C`-lipschitz
+on a neighborhood of `x₀` then it its derivative at `x₀` has norm bounded by `C`. -/
+lemma has_fderiv_at.le_of_lip {f : E → F} {f' : E →L[𝕜] F} {x₀ : E} (hf : has_fderiv_at f f' x₀)
+  {s : set E} (hs : s ∈ 𝓝 x₀) {C : ℝ≥0} (hlip : lipschitz_on_with C f s) : ∥f'∥ ≤ C :=
+begin
+  replace hf : ∀ ε > 0, ∃ δ > 0, ∀ x', ∥x' - x₀∥ < δ → ∥x' - x₀∥⁻¹ * ∥f x' - f x₀ - f' (x' - x₀)∥ < ε,
+    by simpa [has_fderiv_at_iff_tendsto, normed_group.tendsto_nhds_nhds] using hf,
+  obtain ⟨ε, ε_pos, hε⟩ : ∃ ε > 0, ball x₀ ε ⊆ s := mem_nhds_iff.mp hs,
+  apply real.le_of_forall_epsilon_le,
+  intros η η_pos,
+  rcases hf η η_pos with ⟨δ, δ_pos, h⟩, clear hf,
+  apply op_norm_le_of_ball (lt_min ε_pos δ_pos) (by linarith [C.coe_nonneg]: (0 : ℝ) ≤ C + η),
+  intros u u_in,
+  let x := x₀ + u,
+  rw show u = x - x₀, by rw [add_sub_cancel'],
+  have xε : x ∈ ball x₀ ε,
+    by simpa [dist_eq_norm] using ball_subset_ball (min_le_left ε δ) u_in,
+  have xδ : ∥x - x₀∥ < δ,
+    by simpa [dist_eq_norm] using ball_subset_ball (min_le_right ε δ) u_in,
+  replace h : ∥f x - f x₀ - f' (x - x₀)∥ ≤ η*∥x - x₀∥,
+  { by_cases H : x - x₀ = 0,
+    { simp [eq_of_sub_eq_zero H] },
+    { exact (inv_mul_le_iff' $ norm_pos_iff.mpr H).mp (le_of_lt $ h x xδ) } },
+  have := hlip.norm_sub_le (hε xε) (hε $ mem_ball_self ε_pos),
+  calc ∥f' (x - x₀)∥ ≤ ∥f x - f x₀∥ + ∥f x - f x₀ - f' (x - x₀)∥ : norm_le_insert _ _
+  ... ≤ (C + η) * ∥x - x₀∥ : by linarith,
+end
+
 theorem has_fderiv_at_filter.mono (h : has_fderiv_at_filter f f' x L₂) (hst : L₁ ≤ L₂) :
   has_fderiv_at_filter f f' x L₁ :=
 h.mono hst
@@ -423,6 +451,13 @@ end
 lemma has_fderiv_at.fderiv (h : has_fderiv_at f f' x) : fderiv 𝕜 f x = f' :=
 by { ext, rw has_fderiv_at_unique h h.differentiable_at.has_fderiv_at }
 
+/-- Converse to the mean value inequality: if `f` is differentiable at `x₀` and `C`-lipschitz
+on a neighborhood of `x₀` then it its derivative at `x₀` has norm bounded by `C`.
+Version using `fderiv`. -/
+lemma fderiv_at.le_of_lip {f : E → F} {x₀ : E} (hf : differentiable_at 𝕜 f x₀)
+  {s : set E} (hs : s ∈ 𝓝 x₀) {C : ℝ≥0} (hlip : lipschitz_on_with C f s) : ∥fderiv 𝕜 f x₀∥ ≤ C :=
+hf.has_fderiv_at.le_of_lip hs hlip
+
 lemma has_fderiv_within_at.fderiv_within
   (h : has_fderiv_within_at f f' s x) (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 f s x = f' :=
@@ -525,6 +560,21 @@ begin
       by contrapose! h; rw differentiable_within_at_inter; assumption,
     rw [fderiv_within_zero_of_not_differentiable_within_at h,
         fderiv_within_zero_of_not_differentiable_within_at this] }
+end
+
+lemma fderiv_within_of_open (hs : is_open s) (hx : x ∈ s) :
+  fderiv_within 𝕜 f s x = fderiv 𝕜 f x :=
+begin
+  have : s = univ ∩ s, by simp only [univ_inter],
+  rw [this, ← fderiv_within_univ],
+  exact fderiv_within_inter (mem_nhds_sets hs hx) (unique_diff_on_univ _ (mem_univ _))
+end
+
+lemma fderiv_within_eq_fderiv (hs : unique_diff_within_at 𝕜 s x) (h : differentiable_at 𝕜 f x) :
+  fderiv_within 𝕜 f s x = fderiv 𝕜 f x :=
+begin
+  rw ← fderiv_within_univ,
+  exact fderiv_within_subset (subset_univ _) hs h.differentiable_within_at
 end
 
 end fderiv_properties
@@ -730,7 +780,7 @@ differentiable_id.differentiable_on
 lemma fderiv_id : fderiv 𝕜 id x = id 𝕜 E :=
 has_fderiv_at.fderiv (has_fderiv_at_id x)
 
-lemma fderiv_id' : fderiv 𝕜 (λ (x : E), x) x = continuous_linear_map.id 𝕜 E :=
+@[simp] lemma fderiv_id' : fderiv 𝕜 (λ (x : E), x) x = continuous_linear_map.id 𝕜 E :=
 fderiv_id
 
 lemma fderiv_within_id (hxs : unique_diff_within_at 𝕜 s x) :
@@ -774,7 +824,7 @@ differentiable_at.differentiable_within_at (differentiable_at_const _)
 lemma fderiv_const_apply (c : F) : fderiv 𝕜 (λy, c) x = 0 :=
 has_fderiv_at.fderiv (has_fderiv_at_const c x)
 
-lemma fderiv_const (c : F) : fderiv 𝕜 (λ (y : E), c) = 0 :=
+@[simp] lemma fderiv_const (c : F) : fderiv 𝕜 (λ (y : E), c) = 0 :=
 by { ext m, rw fderiv_const_apply, refl }
 
 lemma fderiv_within_const_apply (c : F) (hxs : unique_diff_within_at 𝕜 s x) :
@@ -2099,8 +2149,8 @@ open normed_ring continuous_linear_map ring
 
 /-- At an invertible element `x` of a normed algebra `R`, the Fréchet derivative of the inversion
 operation is the linear map `λ t, - x⁻¹ * t * x⁻¹`. -/
-lemma has_fderiv_at_inverse  (x : units R) :
-  has_fderiv_at inverse (- (lmul_right 𝕜 R ↑x⁻¹).comp (lmul_left 𝕜 R ↑x⁻¹)) x :=
+lemma has_fderiv_at_ring_inverse (x : units R) :
+  has_fderiv_at ring.inverse (- (lmul_right 𝕜 R ↑x⁻¹).comp (lmul_left 𝕜 R ↑x⁻¹)) x :=
 begin
   have h_is_o : is_o (λ (t : R), inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹)
     (λ (t : R), t) (𝓝 0),
@@ -2120,12 +2170,12 @@ begin
   abel
 end
 
-lemma differentiable_at_inverse (x : units R) : differentiable_at 𝕜 (@inverse R _) x :=
-(has_fderiv_at_inverse x).differentiable_at
+lemma differentiable_at_inverse (x : units R) : differentiable_at 𝕜 (@ring.inverse R _) x :=
+(has_fderiv_at_ring_inverse x).differentiable_at
 
 lemma fderiv_inverse (x : units R) :
-  fderiv 𝕜 (@inverse R _) x = - (lmul_right 𝕜 R ↑x⁻¹).comp (lmul_left 𝕜 R ↑x⁻¹) :=
-(has_fderiv_at_inverse x).fderiv
+  fderiv 𝕜 (@ring.inverse R _) x = - (lmul_right 𝕜 R ↑x⁻¹).comp (lmul_left 𝕜 R ↑x⁻¹) :=
+(has_fderiv_at_ring_inverse x).fderiv
 
 end algebra_inverse
 

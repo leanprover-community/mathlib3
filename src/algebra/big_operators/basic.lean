@@ -39,6 +39,10 @@ namespace finset
 of the finite set `s`."]
 protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1.map f).prod
 
+@[simp, to_additive] lemma prod_mk [comm_monoid β] (s : multiset α) (hs) (f : α → β) :
+  (⟨s, hs⟩ : finset α).prod f = (s.map f).prod :=
+rfl
+
 end finset
 
 /-
@@ -118,7 +122,6 @@ lemma ring_hom.map_sum [semiring β] [semiring γ]
   (g : β →+* γ) (f : α → β) (s : finset α) :
   g (∑ x in s, f x) = ∑ x in s, g (f x) :=
 g.to_add_monoid_hom.map_sum f s
-
 
 namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
@@ -247,7 +250,7 @@ end
 @[to_additive]
 lemma prod_product' {s : finset γ} {t : finset α} {f : γ → α → β} :
   (∏ x in s.product t, f x.1 x.2) = ∏ x in s, ∏ y in t, f x y :=
-by rw prod_product
+prod_product
 
 @[to_additive]
 lemma prod_sigma {σ : α → Type*}
@@ -258,29 +261,31 @@ calc (∏ x in s.sigma t, f x) =
        ∏ x in s.bind (λa, (t a).map (function.embedding.sigma_mk a)), f x : by rw sigma_eq_bind
   ... = ∏ a in s, ∏ x in (t a).map (function.embedding.sigma_mk a), f x :
     prod_bind $ assume a₁ ha a₂ ha₂ h x hx,
-    by { simp only [inf_eq_inter, mem_inter, mem_map, function.embedding.coe_sigma_mk] at hx,
+    by { simp only [inf_eq_inter, mem_inter, mem_map, function.embedding.sigma_mk_to_fun] at hx,
       rcases hx with ⟨⟨y, hy, rfl⟩, ⟨z, hz, hz'⟩⟩, cc }
   ... = ∏ a in s, ∏ s in t a, f ⟨a, s⟩ :
     prod_congr rfl $ λ _ _, prod_map _ _ _
 
 @[to_additive]
+lemma prod_fiberwise_of_maps_to [decidable_eq γ] {s : finset α} {t : finset γ} {g : α → γ}
+  (h : ∀ x ∈ s, g x ∈ t) (f : α → β) :
+  (∏ y in t, ∏ x in s.filter (λ x, g x = y), f x) = ∏ x in s, f x :=
+begin
+  letI := classical.dec_eq α,
+  rw [← bind_filter_eq_of_maps_to h] {occs := occurrences.pos [2]},
+  refine (prod_bind $ λ x' hx y' hy hne, _).symm,
+  rw [disjoint_filter],
+  rintros x hx rfl,
+  exact hne
+end
+
+@[to_additive]
 lemma prod_image' [decidable_eq α] {s : finset γ} {g : γ → α} (h : γ → β)
   (eq : ∀c∈s, f (g c) = ∏ x in s.filter (λc', g c' = g c), h x) :
   (∏ x in s.image g, f x) = ∏ x in s, h x :=
-begin
-  letI := classical.dec_eq γ,
-  rw [← image_bind_filter_eq s g] {occs := occurrences.pos [2]},
-  rw [finset.prod_bind],
-  { refine finset.prod_congr rfl (assume a ha, _),
-    rcases finset.mem_image.1 ha with ⟨b, hb, rfl⟩,
-    exact eq b hb },
-  assume a₀ _ a₁ _ ne,
-  refine (disjoint_iff_ne.2 _),
-  assume c₀ h₀ c₁ h₁,
-  rcases mem_filter.1 h₀ with ⟨h₀, rfl⟩,
-  rcases mem_filter.1 h₁ with ⟨h₁, rfl⟩,
-  exact mt (congr_arg g) ne
-end
+calc (∏ x in s.image g, f x) = ∏ x in s.image g, ∏ x in s.filter (λ c', g c' = x), h x :
+  prod_congr rfl $ λ x hx, let ⟨c, hcs, hc⟩ := mem_image.1 hx in hc ▸ (eq c hcs)
+... = ∏ x in s, h x : prod_fiberwise_of_maps_to (λ x, mem_image_of_mem g) _
 
 @[to_additive]
 lemma prod_mul_distrib : ∏ x in s, (f x * g x) = (∏ x in s, f x) * (∏ x in s, g x) :=
@@ -675,15 +680,14 @@ by haveI := classical.dec_eq α; exact
 finset.induction_on s rfl (λ a s has ih,
 by rw [prod_insert has, card_insert_of_not_mem has, pow_succ, ih])
 
+lemma pow_eq_prod_const (b : β) : ∀ n, b ^ n = ∏ k in range n, b
+| 0 := rfl
+| (n+1) := by simp
+
 lemma prod_pow (s : finset α) (n : ℕ) (f : α → β) :
   (∏ x in s, f x ^ n) = (∏ x in s, f x) ^ n :=
 by haveI := classical.dec_eq α; exact
-finset.induction_on s (by simp) (by simp [_root_.mul_pow] {contextual := tt})
-
-lemma prod_nat_pow (s : finset α) (n : ℕ) (f : α → ℕ) :
-  (∏ x in s, f x ^ n) = (∏ x in s, f x) ^ n :=
-by haveI := classical.dec_eq α; exact
-finset.induction_on s (by simp) (by simp [nat.mul_pow] {contextual := tt})
+finset.induction_on s (by simp) (by simp [mul_pow] {contextual := tt})
 
 -- `to_additive` fails on this lemma, so we prove it manually below
 lemma prod_flip {n : ℕ} (f : ℕ → β) :
@@ -753,6 +757,16 @@ calc ∏ a in s, f (g a)
 lemma prod_piecewise [decidable_eq α] (s t : finset α) (f g : α → β) :
   (∏ x in s, (t.piecewise f g) x) = (∏ x in s ∩ t, f x) * (∏ x in s \ t, g x) :=
 by { rw [piecewise, prod_ite, filter_mem_eq_inter, ← sdiff_eq_filter], }
+
+@[to_additive]
+lemma prod_inter_mul_prod_diff [decidable_eq α] (s t : finset α) (f : α → β) :
+  (∏ x in s ∩ t, f x) * (∏ x in s \ t, f x) = (∏ x in s, f x) :=
+by { convert (s.prod_piecewise t f f).symm, simp [finset.piecewise] }
+
+@[to_additive]
+lemma mul_prod_diff_singleton [decidable_eq α] {s : finset α} {i : α} (h : i ∈ s)
+  (f : α → β) : f i * (∏ x in s \ {i}, f x) = ∏ x in s, f x :=
+by { convert s.prod_inter_mul_prod_diff {i} f, simp [h] }
 
 /-- If we can partition a product into subsets that cancel out, then the whole product cancels. -/
 @[to_additive]
@@ -860,6 +874,14 @@ by simp
 
 end comm_monoid
 
+/-- If `f = g = h` everywhere but at `i`, where `f i = g i + h i`, then the product of `f` over `s`
+  is the sum of the products of `g` and `h`. -/
+lemma prod_add_prod_eq [comm_semiring β] {s : finset α} {i : α} {f g h : α → β}
+  (hi : i ∈ s) (h1 : g i + h i = f i) (h2 : ∀ j ∈ s, j ≠ i → g j = f j)
+  (h3 : ∀ j ∈ s, j ≠ i → h j = f j) : ∏ i in s, g i + ∏ i in s, h i = ∏ i in s, f i :=
+by { classical, simp_rw [← mul_prod_diff_singleton hi, ← h1, right_distrib],
+     congr' 2; apply prod_congr rfl; simpa }
+
 lemma sum_update_of_mem [add_comm_monoid β] [decidable_eq α] {s : finset α} {i : α}
   (h : i ∈ s) (f : α → β) (b : β) :
   (∑ x in s, function.update f i b x) = b + (∑ x in s \ (singleton i), f x) :=
@@ -942,16 +964,14 @@ finset.induction_on s (by simp)
     ... ≤ ∑ a in insert a s, card (t a) :
     by rw sum_insert has; exact add_le_add_left ih _)
 
+theorem card_eq_sum_card_fiberwise [decidable_eq β] {f : α → β} {s : finset α} {t : finset β}
+  (H : ∀ x ∈ s, f x ∈ t) :
+  s.card = ∑ a in t, (s.filter (λ x, f x = a)).card :=
+by simp only [card_eq_sum_ones, sum_fiberwise_of_maps_to H]
+
 theorem card_eq_sum_card_image [decidable_eq β] (f : α → β) (s : finset α) :
   s.card = ∑ a in s.image f, (s.filter (λ x, f x = a)).card :=
-by letI := classical.dec_eq α; exact
-calc s.card = ((s.image f).bind (λ a, s.filter (λ x, f x = a))).card :
-  congr_arg _ (finset.ext $ λ x,
-    ⟨λ hs, mem_bind.2 ⟨f x, mem_image_of_mem _ hs,
-      mem_filter.2 ⟨hs, rfl⟩⟩,
-    λ h, let ⟨a, ha₁, ha₂⟩ := mem_bind.1 h in by convert filter_subset s ha₂⟩)
-... = ∑ a in s.image f, (s.filter (λ x, f x = a)).card :
-  card_bind (by simp [disjoint_left, finset.ext_iff] {contextual := tt})
+card_eq_sum_card_fiberwise (λ _, mem_image_of_mem _)
 
 lemma gsmul_sum [add_comm_group β] {f : α → β} {s : finset α} (z : ℤ) :
   gsmul z (∑ a in s, f a) = ∑ a in s, gsmul z (f a) :=
@@ -969,6 +989,19 @@ by haveI := classical.dec_eq α;
 calc (∏ x in s, f x) = ∏ x in insert a (erase s a), f x : by rw insert_erase ha
                  ... = 0 : by rw [prod_insert (not_mem_erase _ _), h, zero_mul]
 
+lemma prod_boole {s : finset α} {p : α → Prop} [decidable_pred p] :
+  ∏ i in s, ite (p i) (1 : β) (0 : β) = ite (∀ i ∈ s, p i) 1 0 :=
+begin
+  split_ifs,
+  { apply prod_eq_one,
+    intros i hi,
+    rw if_pos (h i hi) },
+  { push_neg at h,
+    rcases h with ⟨i, hi, hq⟩,
+    apply prod_eq_zero hi,
+    rw [if_neg hq] },
+end
+
 variables [nontrivial β] [no_zero_divisors β]
 
 lemma prod_eq_zero_iff : (∏ x in s, f x) = 0 ↔ (∃a∈s, f a = 0) :=
@@ -985,7 +1018,35 @@ by { rw [ne, prod_eq_zero_iff], push_neg }
 
 end prod_eq_zero
 
+section comm_group_with_zero
+variables [comm_group_with_zero β]
+
+@[simp]
+lemma prod_inv_distrib' : (∏ x in s, (f x)⁻¹) = (∏ x in s, f x)⁻¹ :=
+begin
+  classical,
+  by_cases h : ∃ x ∈ s, f x = 0,
+  { simpa [prod_eq_zero_iff.mpr h, prod_eq_zero_iff] using h },
+  { push_neg at h,
+    have h' := prod_ne_zero_iff.mpr h,
+    have hf : ∀ x ∈ s, (f x)⁻¹ * f x = 1 := λ x hx, inv_mul_cancel (h x hx),
+    apply mul_right_cancel' h',
+    simp [h, h', ← finset.prod_mul_distrib, prod_congr rfl hf] }
+end
+
+end comm_group_with_zero
+
 end finset
+
+namespace list
+
+@[to_additive] lemma prod_to_finset {M : Type*} [decidable_eq α] [comm_monoid M]
+  (f : α → M) : ∀ {l : list α} (hl : l.nodup), l.to_finset.prod f = (l.map f).prod
+| [] _ := by simp
+| (a :: l) hl := let ⟨not_mem, hl⟩ := list.nodup_cons.mp hl in
+  by simp [finset.prod_insert (mt list.mem_to_finset.mp not_mem), prod_to_finset hl]
+
+end list
 
 namespace multiset
 variables [decidable_eq α]
@@ -1012,4 +1073,46 @@ multiset.induction_on s rfl
             finset.sum_const_zero, ih, count_eq_zero_of_not_mem ha, zero_add, add_comm, card_cons] }
       end)
 
+lemma count_sum' {s : finset β} {a : α} {f : β → multiset α} :
+  count a (∑ x in s, f x) = ∑ x in s, count a (f x) :=
+by { dunfold finset.sum, rw count_sum }
+
+lemma to_finset_sum_count_smul_eq (s : multiset α) :
+  (∑ a in s.to_finset, s.count a •ℕ (a :: 0)) = s :=
+begin
+  apply ext', intro b,
+  rw count_sum',
+  have h : count b s = count b (count b s •ℕ (b :: 0)),
+  { rw [singleton_coe, count_smul, ← singleton_coe, count_singleton, mul_one] },
+  rw h, clear h,
+  apply finset.sum_eq_single b,
+  { intros c h hcb, rw count_smul, convert mul_zero (count c s),
+    apply count_eq_zero.mpr, exact finset.not_mem_singleton.mpr (ne.symm hcb) },
+  { intro hb, rw [count_eq_zero_of_not_mem (mt mem_to_finset.2 hb), count_smul, zero_mul]}
+end
+
+theorem exists_smul_of_dvd_count (s : multiset α) {k : ℕ} (h : ∀ (a : α), k ∣ multiset.count a s) :
+  ∃ (u : multiset α), s = k •ℕ u :=
+begin
+  use ∑ a in s.to_finset, (s.count a / k) •ℕ (a :: 0),
+  have h₂ : ∑ (x : α) in s.to_finset, k •ℕ (count x s / k •ℕ (x :: 0)) =
+    ∑ (x : α) in s.to_finset, count x s •ℕ (x :: 0),
+  { refine congr_arg s.to_finset.sum _,
+    apply funext, intro x,
+    rw [← mul_nsmul, nat.mul_div_cancel' (h x)] },
+  rw [← finset.sum_nsmul, h₂, to_finset_sum_count_smul_eq]
+end
+
 end multiset
+
+@[simp, norm_cast] lemma nat.coe_prod {R : Type*} [comm_semiring R]
+  (f : α → ℕ) (s : finset α) : (↑∏ i in s, f i : R) = ∏ i in s, f i :=
+(nat.cast_ring_hom R).map_prod _ _
+
+@[simp, norm_cast] lemma int.coe_prod {R : Type*} [comm_ring R]
+  (f : α → ℤ) (s : finset α) : (↑∏ i in s, f i : R) = ∏ i in s, f i :=
+(int.cast_ring_hom R).map_prod _ _
+
+@[simp, norm_cast] lemma units.coe_prod {M : Type*} [comm_monoid M]
+  (f : α → units M) (s : finset α) : (↑∏ i in s, f i : M) = ∏ i in s, f i :=
+(units.coe_hom M).map_prod _ _

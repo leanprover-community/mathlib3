@@ -1,4 +1,4 @@
-  /-
+/-
 Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad, Andrew Zipperer, Haitao Zhang, Minchao Wu, Yury Kudryashov
@@ -194,6 +194,18 @@ theorem eq_on.inj_on_iff (H : eq_on f₁ f₂ s) : inj_on f₁ s ↔ inj_on f₂
 
 theorem inj_on.mono (h : s₁ ⊆ s₂) (ht : inj_on f s₂) : inj_on f s₁ :=
 λ x hx y hy H, ht (h hx) (h hy) H
+
+theorem inj_on_insert {f : α → β} {s : set α} {a : α} (has : a ∉ s) :
+  set.inj_on f (insert a s) ↔ set.inj_on f s ∧ f a ∉ f '' s :=
+⟨λ hf, ⟨hf.mono $ subset_insert a s,
+  λ ⟨x, hxs, hx⟩, has $ mem_of_eq_of_mem (hf (or.inl rfl) (or.inr hxs) hx.symm) hxs⟩,
+λ ⟨h1, h2⟩ x hx y hy hfxy, or.cases_on hx
+  (λ hxa : x = a, or.cases_on hy
+    (λ hya : y = a, hxa.trans hya.symm)
+    (λ hys : y ∈ s, h2.elim ⟨y, hys, hxa ▸ hfxy.symm⟩))
+  (λ hxs : x ∈ s, or.cases_on hy
+    (λ hya : y = a, h2.elim ⟨x, hxs, hya ▸ hfxy⟩)
+    (λ hys : y ∈ s, h1 hxs hys hfxy))⟩
 
 lemma injective_iff_inj_on_univ : injective f ↔ inj_on f univ :=
 ⟨λ h x hx y hy hxy, h hxy, λ h _ _ heq, h trivial trivial heq⟩
@@ -488,6 +500,8 @@ by simp [piecewise]
 
 variable [∀j, decidable (j ∈ s)]
 
+instance compl.decidable_mem (j : α) : decidable (j ∈ sᶜ) := not.decidable
+
 lemma piecewise_insert [decidable_eq α] (j : α) [∀i, decidable (i ∈ insert j s)] :
   (insert j s).piecewise f g = function.update (s.piecewise f g) j (f j) :=
 begin
@@ -529,7 +543,31 @@ lemma piecewise_preimage (f g : α → β) (t) :
   s.piecewise f g ⁻¹' t = s ∩ f ⁻¹' t ∪ sᶜ ∩ g ⁻¹' t :=
 ext $ λ x, by by_cases x ∈ s; simp *
 
+lemma comp_piecewise (h : β → γ) {f g : α → β} {x : α} :
+  h (s.piecewise f g x) = s.piecewise (h ∘ f) (h ∘ g) x :=
+by by_cases hx : x ∈ s; simp [hx]
+
+@[simp] lemma piecewise_same : s.piecewise f f = f :=
+by { ext x, by_cases hx : x ∈ s; simp [hx] }
+
+lemma range_piecewise (f g : α → β) : range (s.piecewise f g) = f '' s ∪ g '' sᶜ :=
+begin
+  ext y, split,
+  { rintro ⟨x, rfl⟩, by_cases h : x ∈ s;[left, right]; use x; simp [h] },
+  { rintro (⟨x, hx, rfl⟩|⟨x, hx, rfl⟩); use x; simp * at * }
+end
+
 end set
+
+lemma strict_mono_incr_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}
+  (H : strict_mono_incr_on f s) :
+  s.inj_on f :=
+λ x hx y hy hxy, show ordering.eq.compares x y, from (H.compares hx hy).1 hxy
+
+lemma strict_mono_decr_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}
+  (H : strict_mono_decr_on f s) :
+  s.inj_on f :=
+@strict_mono_incr_on.inj_on α (order_dual β) _ _ f s H
 
 namespace function
 

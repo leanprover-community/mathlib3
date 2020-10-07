@@ -701,7 +701,27 @@ begin
     exact is_countably_generated_seq x },
 end
 
+lemma is_countably_generated_principal (s : set α) : is_countably_generated (𝓟 s) :=
+begin
+  rw show 𝓟 s = ⨅ i : ℕ, 𝓟 s, by simp,
+  apply is_countably_generated_seq
+end
+
 namespace is_countably_generated
+
+lemma inf {f g : filter α} (hf : is_countably_generated f)
+(hg : is_countably_generated g) : is_countably_generated (f ⊓ g) :=
+begin
+  rw is_countably_generated_iff_exists_antimono_basis at hf hg,
+  rcases hf with ⟨s, hs⟩,
+  rcases hg with ⟨t, ht⟩,
+  exact has_countable_basis.is_countably_generated
+    ⟨hs.to_has_basis.inf ht.to_has_basis, set.countable_encodable _⟩
+end
+
+lemma inf_principal {f : filter α} (h : is_countably_generated f)
+  (s : set α) : is_countably_generated (f ⊓ 𝓟 s) :=
+h.inf (filter.is_countably_generated_principal s)
 
 lemma exists_antimono_seq' {f : filter α} (cblb : f.is_countably_generated) :
   ∃ x : ℕ → set α, (∀ i j, i ≤ j → x j ⊆ x i) ∧ ∀ {s}, (s ∈ f ↔ ∃ i, x i ⊆ s) :=

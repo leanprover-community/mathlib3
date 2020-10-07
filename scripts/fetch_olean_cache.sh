@@ -25,6 +25,12 @@ dirs="src"
 find $dirs -name "*.olean" -delete || true
 }
 
+# Delete every <path>.olean where <path>.lean appears in "src/.noisy_files"
+if [ -e $dirs/.noisy_files ]; then
+  sed 's/\.lean$/.olean/' $dirs/.noisy_files | xargs -d'\n' rm -f
+  rm $dirs/.noisy_files
+fi
+
 # Archives no longer contain .lean files, but they used to.
 # Extracting such an archive overwrites all .lean files, which is fine if we
 # downloaded an "equivalent" cache. However, since we might be using an older

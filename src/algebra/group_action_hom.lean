@@ -62,7 +62,7 @@ variables {M X Y}
 f.map_smul' m x
 
 @[ext] theorem ext : ∀ {f g : X →[M] Y}, (∀ x, f x = g x) → f = g
-| ⟨f, _⟩ ⟨g, _⟩ H := by { congr' 1, ext x, exact H x }
+| ⟨f, _⟩ ⟨g, _⟩ H := by { congr' 1 with x, exact H x }
 
 theorem ext_iff {f g : X →[M] Y} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ H x, by rw H, ext⟩
@@ -132,7 +132,7 @@ variables {M A B}
 @[norm_cast] lemma coe_fn_coe' (f : A →+[M] B) : ((f : A →[M] B) : A → B) = f := rfl
 
 @[ext] theorem ext : ∀ {f g : A →+[M] B}, (∀ x, f x = g x) → f = g
-| ⟨f, _, _, _⟩ ⟨g, _, _, _⟩ H := by { congr' 1, ext x, exact H x }
+| ⟨f, _, _, _⟩ ⟨g, _, _, _⟩ H := by { congr' 1 with x, exact H x }
 
 theorem ext_iff {f g : A →+[M] B} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ H x, by rw H, ext⟩
@@ -206,7 +206,7 @@ variables {M R S}
 @[norm_cast] lemma coe_fn_coe' (f : R →+*[M] S) : ((f : R →+[M] S) : R → S) = f := rfl
 
 @[ext] theorem ext : ∀ {f g : R →+*[M] S}, (∀ x, f x = g x) → f = g
-| ⟨f, _, _, _, _, _⟩ ⟨g, _, _, _, _, _⟩ H := by { congr' 1, ext x, exact H x }
+| ⟨f, _, _, _, _, _⟩ ⟨g, _, _, _, _, _⟩ H := by { congr' 1 with x, exact H x }
 
 theorem ext_iff {f g : R →+*[M] S} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ H x, by rw H, ext⟩

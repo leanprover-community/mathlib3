@@ -6,8 +6,9 @@ Authors: Johannes Hölzl
 import data.equiv.basic
 import algebra.field
 import algebra.module
-import ring_theory.algebra
+import algebra.algebra.basic
 import algebra.group.type_tags
+import ring_theory.ideal.basic
 
 /-!
 # Transfer algebraic structures across `equiv`s
@@ -210,6 +211,7 @@ protected def field [field β] : field α :=
 { ..equiv.integral_domain e,
   ..equiv.division_ring e }
 
+section R
 variables (R : Type*)
 include R
 
@@ -318,6 +320,18 @@ begin
 end
 
 end
+end R
 
 end instances
 end equiv
+
+namespace ring_equiv
+
+protected lemma local_ring {A B : Type*} [comm_ring A] [local_ring A] [comm_ring B] (e : A ≃+* B) :
+  local_ring B :=
+begin
+  haveI := e.symm.to_equiv.nontrivial,
+  refine @local_of_surjective A B _ _ _ _ e e.to_equiv.surjective,
+end
+
+end ring_equiv

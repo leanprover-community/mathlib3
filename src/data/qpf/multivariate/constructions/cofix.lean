@@ -244,7 +244,7 @@ begin
   rw [←split_drop_fun_last_fun f₀, ←split_drop_fun_last_fun f₁],
   rw [append_fun_comp_split_fun, append_fun_comp_split_fun],
   rw [id_comp, id_comp],
-  congr' 2, ext i j, cases i with _ i; dsimp,
+  congr' 2 with i j, cases i with _ i; dsimp,
   { apply quot.sound, apply h' _ j },
   { change f₀ _ j = f₁ _ j, apply h' _ j },
 end
@@ -290,8 +290,7 @@ begin
   conv { to_lhs, congr, skip, rw [cofix.mk], rw cofix.dest_corec},
   rw [←comp_map, ←append_fun_comp, id_comp],
   rw [←comp_map, ←append_fun_comp, id_comp, ←cofix.mk],
-  congr' 2,
-  ext u, apply quot.sound, refl
+  congr' 2 with u, apply quot.sound, refl
 end
 
 lemma cofix.dest_mk {α : typevec n} (x : F (α.append1 $ cofix F α)) : cofix.dest (cofix.mk x) = x :=
@@ -449,12 +448,12 @@ theorem cofix.dest_corec' {α : typevec n} {β : Type u}
   cofix.dest (cofix.corec' g x) = append_fun id (sum.elim id (cofix.corec' g)) <$$> g x :=
 begin
   rw [cofix.corec',cofix.dest_corec], dsimp,
-  congr, ext (i|i); rw corec_roll; dsimp [cofix.corec'],
+  congr' with (i|i); rw corec_roll; dsimp [cofix.corec'],
   { mv_bisim i,
     rw [Ha,Hb,cofix.dest_corec], dsimp [(∘)],
     repeat { rw [mvfunctor.map_map,← append_fun_comp_id] },
     apply liftr_map_last', dsimp [(∘),R], intros, exact ⟨_,rfl,rfl⟩ },
-  { congr, ext, erw [append_fun_id_id], simp [mvfunctor.id_map] },
+  { congr' with y, erw [append_fun_id_id], simp [mvfunctor.id_map] },
 end
 
 theorem cofix.dest_corec₁ {α : typevec n} {β : Type u}

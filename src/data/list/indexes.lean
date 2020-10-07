@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2020 Jannis Limperg. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jannis Limperg
+-/
+
 import data.list.basic
 import data.list.defs
 import logic.basic
@@ -147,7 +153,7 @@ theorem mmap_with_index'_aux_eq_mmap_with_index_aux {α} (f : ℕ → α → m p
   mmap_with_index'_aux f start as =
   mmap_with_index_aux f start as *> pure punit.star :=
 by induction as generalizing start;
-    simp [mmap_with_index'_aux, mmap_with_index_aux, *, seq_right_eq, const]
+    simp [mmap_with_index'_aux, mmap_with_index_aux, *, seq_right_eq, const, -comp_const]
       with functor_norm
 
 theorem mmap_with_index'_eq_mmap_with_index {α} (f : ℕ → α → m punit) (as : list α) :

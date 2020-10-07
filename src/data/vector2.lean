@@ -61,7 +61,7 @@ begin
   rcases v with ⟨l, rfl⟩,
   apply to_list_injective,
   change nth ⟨l, eq.refl _⟩ with λ i, nth ⟨l, rfl⟩ i,
-  simp [nth, list.of_fn_nth_le]
+  simpa only [to_list_of_fn] using list.of_fn_nth_le _
 end
 
 @[simp] theorem nth_tail : ∀ (v : vector α n.succ) (i : fin n),
@@ -154,7 +154,7 @@ section insert_nth
 variable {a : α}
 
 def insert_nth (a : α) (i : fin (n+1)) (v : vector α n) : vector α (n+1) :=
-⟨v.1.insert_nth i.1 a,
+⟨v.1.insert_nth i a,
   begin
     rw [list.length_insert_nth, v.2],
     rw [v.2, ← nat.succ_le_succ_iff],
@@ -166,7 +166,7 @@ lemma insert_nth_val {i : fin (n+1)} {v : vector α n} :
 rfl
 
 @[simp] lemma remove_nth_val {i : fin n} :
-  ∀{v : vector α n}, (remove_nth i v).val = v.val.remove_nth i.1
+  ∀{v : vector α n}, (remove_nth i v).val = v.val.remove_nth i
 | ⟨l, hl⟩ := rfl
 
 lemma remove_nth_insert_nth {v : vector α n} {i : fin (n+1)} : remove_nth i (insert_nth a i v) = v :=
@@ -183,15 +183,19 @@ lemma remove_nth_insert_nth_ne {v : vector α (n+1)} :
     rcases lt_trichotomy i j with h | h | h,
     { have h_nji : ¬ j < i := lt_asymm h,
       have j_pos : 0 < j := lt_of_le_of_lt (zero_le i) h,
-      simp [h, h_nji, fin.lt_iff_val_lt_val, -subtype.val_eq_coe],
-      rw [show j.pred = j - 1, from rfl, list.insert_nth_remove_nth_of_ge, nat.sub_add_cancel j_pos],
+      rw [dif_neg], swap, { exact h_nji },
+      rw [dif_pos], swap, { exact h },
+      rw [fin.coe_pred, fin.coe_mk, remove_nth_val, fin.coe_mk],
+      rw [list.insert_nth_remove_nth_of_ge, nat.sub_add_cancel j_pos],
       { rw [v.2], exact lt_of_lt_of_le h (nat.le_of_succ_le_succ hj) },
       { exact nat.le_sub_right_of_add_le h } },
     { exact (this h).elim },
     { have h_nij : ¬ i < j := lt_asymm h,
       have i_pos : 0 < i := lt_of_le_of_lt (zero_le j) h,
-      simp [h, h_nij, fin.lt_iff_val_lt_val],
-      rw [show i.pred = i - 1, from rfl, list.insert_nth_remove_nth_of_le, nat.sub_add_cancel i_pos],
+      rw [dif_pos], swap, { exact h },
+      rw [dif_neg], swap, { exact h_nij },
+      rw [fin.coe_mk, remove_nth_val, fin.coe_pred, fin.coe_mk],
+      rw [list.insert_nth_remove_nth_of_le, nat.sub_add_cancel i_pos],
       { show i - 1 + 1 ≤ v.val.length,
         rw [v.2, nat.sub_add_cancel i_pos],
         exact nat.le_of_lt_succ hi },
@@ -203,7 +207,7 @@ lemma insert_nth_comm (a b : α) (i j : fin (n+1)) (h : i ≤ j) :
 | ⟨l, hl⟩ :=
   begin
     refine subtype.eq _,
-    simp [insert_nth_val, fin.succ_val, fin.cast_succ],
+    simp only [insert_nth_val, fin.coe_succ, fin.cast_succ, fin.val_eq_coe, fin.coe_cast_add],
     apply list.insert_nth_comm,
     { assumption },
     { rw hl, exact nat.le_of_succ_le_succ j.2 }

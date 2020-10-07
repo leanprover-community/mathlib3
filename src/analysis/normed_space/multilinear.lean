@@ -122,10 +122,10 @@ begin
     -- use the bound on `f` on the ball of size `δ` to conclude.
     calc
       ∥f m∥ = ∥f (λi, (d i)⁻¹ • (d i • m i))∥ :
-        by { unfold_coes, congr, ext i, rw [← mul_smul, inv_mul_cancel (hd i).1, one_smul] }
+        by { unfold_coes, congr' with i, rw [← mul_smul, inv_mul_cancel (hd i).1, one_smul] }
       ... = ∥(∏ i, (d i)⁻¹) • f (λi, d i • m i)∥ : by rw f.map_smul_univ
       ... = (∏ i, ∥d i∥⁻¹) * ∥f (λi, d i • m i)∥ :
-        by { rw [norm_smul, normed_field.norm_prod], congr, ext i, rw normed_field.norm_inv }
+        by { rw [norm_smul, normed_field.norm_prod], congr' with i, rw normed_field.norm_inv }
       ... ≤ (∏ i, ∥d i∥⁻¹) * (1 + ∥f 0∥) :
         mul_le_mul_of_nonneg_left (H ((pi_norm_le_iff (le_of_lt δ_pos)).2 (λi, (hd i).2.1)))
           (prod_nonneg B)
@@ -252,32 +252,14 @@ lemma restr_norm_le {k n : ℕ} (f : (multilinear_map 𝕜 (λ i : fin n, G) E�
   (s : finset (fin n)) (hk : s.card = k) (z : G) {C : ℝ}
   (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) (v : fin k → G) :
   ∥f.restr s hk z v∥ ≤ C * ∥z∥ ^ (n - k) * ∏ i, ∥v i∥ :=
-calc ∥f.restr s hk z v∥
-≤ C * ∏ j, ∥(if h : j ∈ s then v ((s.mono_equiv_of_fin hk).symm ⟨j, h⟩) else z)∥ : H _
-... = C * ((∏ j in finset.univ \ s,
-        ∥(if h : j ∈ s then v ((s.mono_equiv_of_fin hk).symm ⟨j, h⟩) else z)∥)
-      * (∏ j in s,
-        ∥(if h : j ∈ s then v ((s.mono_equiv_of_fin hk).symm ⟨j, h⟩) else z)∥)) :
-  by rw ← finset.prod_sdiff (finset.subset_univ _)
-... = C * (∥z∥ ^ (n - k) * ∏ i, ∥v i∥) :
-  begin
-    congr' 2,
-    { have : ∥z∥ ^ (n - k) = ∏ j in finset.univ \ s, ∥z∥,
-        by simp [finset.card_sdiff  (finset.subset_univ _), hk],
-      rw this,
-      exact finset.prod_congr rfl (λ i hi, by rw dif_neg (finset.mem_sdiff.1 hi).2) },
-    { apply finset.prod_bij (λ (i : fin n) (hi : i ∈ s), (s.mono_equiv_of_fin hk).symm ⟨i, hi⟩),
-      { exact λ _ _, finset.mem_univ _ },
-      { exact λ i hi, by simp [hi] },
-      { exact λ i j hi hi hij, subtype.mk.inj ((s.mono_equiv_of_fin hk).symm.injective hij) },
-      { assume i hi,
-        rcases (s.mono_equiv_of_fin hk).symm.surjective i with ⟨j, hj⟩,
-        refine ⟨j.1, j.2, _⟩,
-        unfold_coes,
-        convert hj.symm,
-        rw subtype.ext_iff_val } }
-  end
-... = C * ∥z∥ ^ (n - k) * ∏ i, ∥v i∥ : by rw mul_assoc
+begin
+  rw mul_assoc,
+  convert H _ using 2,
+  simp only [apply_dite norm, fintype.prod_dite, prod_const (∥z∥), finset.card_univ,
+    fintype.card_of_subtype sᶜ (λ x, mem_compl), card_compl, fintype.card_fin, hk, mk_coe,
+    (s.mono_equiv_of_fin hk).symm.prod_comp (λ x, ∥v x∥)],
+  apply mul_comm
+end
 
 end multilinear_map
 

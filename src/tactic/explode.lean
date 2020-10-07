@@ -56,7 +56,7 @@ meta def format_aux : list string → list string → list string → list entry
       end,
     p ← infer_type en.expr >>= pp,
     let lhs :=  line ++ "│" ++ dep ++ "│ " ++ thm ++ margin ++ " ",
-    return $ format.of_string lhs ++ to_string p ++ format.line },
+    return $ format.of_string lhs ++ (p.nest lhs.length).group ++ format.line },
   (++ fmt) <$> format_aux lines deps thms es
 | _ _ _ _ := return format.nil
 

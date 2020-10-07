@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import topology.opens
-import ring_theory.ideal.operations
+import ring_theory.ideal.prod
 import linear_algebra.finsupp
+import algebra.punit_instances
 
 /-!
 # Prime spectrum of a commutative ring
@@ -14,8 +15,7 @@ The prime spectrum of a commutative ring is the type of all prime ideals.
 It is naturally endowed with a topology: the Zariski topology.
 
 (It is also naturally endowed with a sheaf of rings,
-but that sheaf is not constructed in this file.
-It should be contributed to mathlib in future work.)
+which is constructed in `algebraic_geometry.structure_sheaf`.)
 
 ## Main definitions
 
@@ -48,11 +48,12 @@ universe variables u v
 variables (R : Type u) [comm_ring R]
 
 /-- The prime spectrum of a commutative ring `R`
-is the type of all prime ideal of `R`.
+is the type of all prime ideals of `R`.
 
 It is naturally endowed with a topology (the Zariski topology),
-and a sheaf of commutative rings (not yet in mathlib).
+and a sheaf of commutative rings (see `algebraic_geometry.structure_sheaf`).
 It is a fundamental building block in algebraic geometry. -/
+@[nolint has_inhabited_instance]
 def prime_spectrum := {I : ideal R // I.is_prime}
 
 variable {R}
@@ -63,8 +64,34 @@ namespace prime_spectrum
 as an ideal of that ring. -/
 abbreviation as_ideal (x : prime_spectrum R) : ideal R := x.val
 
-instance as_ideal.is_prime (x : prime_spectrum R) :
+instance is_prime (x : prime_spectrum R) :
   x.as_ideal.is_prime := x.2
+
+/--
+The prime spectrum of the zero ring is empty.
+-/
+lemma punit (x : prime_spectrum punit) : false :=
+x.1.ne_top_iff_one.1 x.2.1 $ subsingleton.elim (0 : punit) 1 ▸ x.1.zero_mem
+
+section
+variables (R) (S : Type v) [comm_ring S]
+
+/-- The prime spectrum of `R × S` is in bijection with the disjoint unions of the prime spectrum of
+    `R` and the prime spectrum of `S`. -/
+noncomputable def prime_spectrum_prod :
+  prime_spectrum (R × S) ≃ prime_spectrum R ⊕ prime_spectrum S :=
+ideal.prime_ideals_equiv R S
+
+variables {R S}
+
+@[simp] lemma prime_spectrum_prod_symm_inl_as_ideal (x : prime_spectrum R) :
+  ((prime_spectrum_prod R S).symm (sum.inl x)).as_ideal = ideal.prod x.as_ideal ⊤ :=
+by { cases x, refl }
+@[simp] lemma prime_spectrum_prod_symm_inr_as_ideal (x : prime_spectrum S) :
+  ((prime_spectrum_prod R S).symm (sum.inr x)).as_ideal = ideal.prod ⊤ x.as_ideal :=
+by { cases x, refl }
+
+end
 
 @[ext] lemma ext {x y : prime_spectrum R} :
   x = y ↔ x.as_ideal = y.as_ideal :=
@@ -378,5 +405,14 @@ begin
   rw [← ideal.eq_top_iff_one, ←zero_locus_empty_iff_eq_top] at hs,
   simpa only [zero_locus_supr, hI] using hs
 end
+
+section basic_open
+
+/-- `basic_open r` is the open subset containing all prime ideals not containing `r`. -/
+def basic_open (r : R) : topological_space.opens (prime_spectrum R) :=
+{ val := { x | r ∉ x.as_ideal },
+  property := ⟨{r}, set.ext $ λ x, set.singleton_subset_iff.trans $ not_not.symm⟩ }
+
+end basic_open
 
 end prime_spectrum

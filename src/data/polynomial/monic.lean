@@ -30,7 +30,7 @@ variables [semiring R] {p q r : polynomial R}
 lemma monic.as_sum {p : polynomial R} (hp : p.monic) :
   p = X^(p.nat_degree) + (∑ i in finset.range p.nat_degree, C (p.coeff i) * X^i) :=
 begin
-  conv_lhs { rw [p.as_sum, finset.sum_range_succ] },
+  conv_lhs { rw [p.as_sum_range, finset.sum_range_succ] },
   suffices : C (p.coeff p.nat_degree) = 1,
   { rw [this, one_mul] },
   exact congr_arg C hp
@@ -60,6 +60,11 @@ begin
   suffices : (map f p).nat_degree = p.nat_degree, rw this, exact hp,
   rwa nat_degree_eq_of_degree_eq (degree_map_eq_of_leading_coeff_ne_zero _ _),
 end
+
+lemma monic_mul_C_of_leading_coeff_mul_eq_one [nontrivial R] {b : R}
+  (hp : p.leading_coeff * b = 1) : monic (p * C b) :=
+by rw [monic, leading_coeff_mul' _]; simp [leading_coeff_C b, hp]
+
 theorem monic_of_degree_le (n : ℕ) (H1 : degree p ≤ n) (H2 : coeff p n = 1) : monic p :=
 decidable.by_cases
   (assume H : degree p < n, eq_of_zero_eq_one

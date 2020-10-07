@@ -157,6 +157,10 @@ by by_cases b ≤ a; simp [h, max]
   ((abs q : ℤ) : α) = abs q :=
 by simp [abs]
 
+lemma coe_int_dvd [comm_ring α] (m n : ℤ) (h : m ∣ n) :
+  (m : α) ∣ (n : α) :=
+ring_hom.map_dvd (int.cast_ring_hom α) h
+
 end cast
 
 end int

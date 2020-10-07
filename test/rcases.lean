@@ -12,60 +12,60 @@ variables {α β γ : Type u}
 example (x : α × β × γ) : true :=
 begin
   rcases x with ⟨a, b, c⟩,
-  { guard_hyp a := α,
-    guard_hyp b := β,
-    guard_hyp c := γ,
+  { guard_hyp a : α,
+    guard_hyp b : β,
+    guard_hyp c : γ,
     trivial }
 end
 
 example (x : α × β × γ) : true :=
 begin
   rcases x with ⟨a, ⟨-, c⟩⟩,
-  { guard_hyp a := α,
-    success_if_fail { guard_hyp x_snd_fst := β },
-    guard_hyp c := γ,
+  { guard_hyp a : α,
+    success_if_fail { guard_hyp x_snd_fst : β },
+    guard_hyp c : γ,
     trivial }
 end
 
 example (x : (α × β) × γ) : true :=
 begin
   rcases x with ⟨⟨a:α, b⟩, c⟩,
-  { guard_hyp a := α,
-    guard_hyp b := β,
-    guard_hyp c := γ,
+  { guard_hyp a : α,
+    guard_hyp b : β,
+    guard_hyp c : γ,
     trivial }
 end
 
 example : inhabited α × option β ⊕ γ → true :=
 begin
   rintro (⟨⟨a⟩, _ | b⟩ | c),
-  { guard_hyp a := α, trivial },
-  { guard_hyp a := α, guard_hyp b := β, trivial },
-  { guard_hyp c := γ, trivial }
+  { guard_hyp a : α, trivial },
+  { guard_hyp a : α, guard_hyp b : β, trivial },
+  { guard_hyp c : γ, trivial }
 end
 
 example (x y : ℕ) (h : x = y) : true :=
 begin
   rcases x with _|⟨⟩|z,
-  { guard_hyp h := nat.zero = y, trivial },
-  { guard_hyp h := nat.succ nat.zero = y, trivial },
-  { guard_hyp z := ℕ,
-    guard_hyp h := z.succ.succ = y, trivial },
+  { guard_hyp h : nat.zero = y, trivial },
+  { guard_hyp h : nat.succ nat.zero = y, trivial },
+  { guard_hyp z : ℕ,
+    guard_hyp h : z.succ.succ = y, trivial },
 end
 
 -- from equiv.sum_empty
 example (s : α ⊕ empty) : true :=
 begin
   rcases s with _ | ⟨⟨⟩⟩,
-  { guard_hyp s := α, trivial }
+  { guard_hyp s : α, trivial }
 end
 
 example : true :=
 begin
   obtain ⟨n : ℕ, h : n = n, -⟩ : ∃ n : ℕ, n = n ∧ true,
   { existsi 0, simp },
-  guard_hyp n := ℕ,
-  guard_hyp h := n = n,
+  guard_hyp n : ℕ,
+  guard_hyp h : n = n,
   success_if_fail {assumption},
   trivial
 end
@@ -81,22 +81,22 @@ example : true :=
 begin
   obtain (h : true) | ⟨⟨⟩⟩ : true ∨ false,
   { left, trivial },
-  guard_hyp h := true,
+  guard_hyp h : true,
   trivial
 end
 
 example : true :=
 begin
   obtain h | ⟨⟨⟩⟩ : true ∨ false := or.inl trivial,
-  guard_hyp h := true,
+  guard_hyp h : true,
   trivial
 end
 
 example : true :=
 begin
   obtain ⟨h, h2⟩ := and.intro trivial trivial,
-  guard_hyp h := true,
-  guard_hyp h2 := true,
+  guard_hyp h : true,
+  guard_hyp h2 : true,
   trivial
 end
 
@@ -110,7 +110,7 @@ example {i j : ℕ} : (Σ' x, i ≤ x ∧ x ≤ j) → i ≤ j :=
 begin
   intro h,
   rcases h' : h with ⟨x,h₀,h₁⟩,
-  guard_hyp h' := h = ⟨x,h₀,h₁⟩,
+  guard_hyp h' : h = ⟨x,h₀,h₁⟩,
   apply le_trans h₀ h₁,
 end
 
@@ -145,7 +145,7 @@ example (h : ∃ x : ℕ, x = x ∧ 1 = 1) : true :=
 begin
   rcases h with ⟨-, _, h⟩,
   (do lc ← tactic.local_context, guard (lc.length = 1)),
-  guard_hyp h := 1 = 1,
+  guard_hyp h : 1 = 1,
   trivial
 end
 

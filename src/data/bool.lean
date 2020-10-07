@@ -135,6 +135,8 @@ theorem bxor_left_comm : ∀ a b c, bxor a (bxor b c) = bxor b (bxor a c) := dec
 @[simp] theorem bxor_bnot_left : ∀ a, bxor (!a) a = tt := dec_trivial
 @[simp] theorem bxor_bnot_right : ∀ a, bxor a (!a) = tt := dec_trivial
 @[simp] theorem bxor_bnot_bnot : ∀ a b, bxor (!a) (!b) = bxor a b := dec_trivial
+@[simp] theorem bxor_ff_left : ∀ a, bxor ff a = a := dec_trivial
+@[simp] theorem bxor_ff_right : ∀ a, bxor a ff = a := dec_trivial
 
 lemma bxor_iff_ne : ∀ {x y : bool}, bxor x y = tt ↔ x ≠ y := dec_trivial
 

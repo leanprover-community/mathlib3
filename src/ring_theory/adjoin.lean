@@ -2,11 +2,27 @@
 Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
-
-Adjoining elements to form subalgebras.
 -/
-import ring_theory.polynomial
-import ring_theory.principal_ideal_domain
+import ring_theory.polynomial.basic
+import algebra.algebra.subalgebra
+
+/-!
+# Adjoining elements to form subalgebras
+
+This file develops the basic theory of subalgebras of an R-algebra generated
+by a set of elements. A basic interface for `adjoin` is set up, and various
+results about finitely-generated subalgebras and submodules are proved.
+
+## Definitions
+
+* `fg (S : subalgebra R A)` : A predicate saying that the subalgebra is finitely-generated
+as an A-algebra
+
+## Tags
+
+adjoin, algebra, finitely-generated algebra
+
+-/
 
 universes u v w
 
@@ -14,11 +30,11 @@ open submodule
 
 namespace algebra
 
-variables {R : Type u} {A : Type v}
+variables {R : Type u} {A : Type v} {B : Type w}
 
 section semiring
-variables [comm_semiring R] [semiring A]
-variables [algebra R A] {s t : set A}
+variables [comm_semiring R] [semiring A] [semiring B]
+variables [algebra R A] [algebra R B] {s t : set A}
 open subsemiring
 
 theorem subset_adjoin : s ⊆ adjoin R s :=
@@ -61,6 +77,11 @@ begin
   exact span_le.2 (show monoid.closure s ⊆ adjoin R s, from monoid.closure_subset subset_adjoin)
 end
 
+lemma adjoin_image (f : A →ₐ[R] B) (s : set A) :
+  adjoin R (f '' s) = (adjoin R s).map f :=
+le_antisymm (adjoin_le $ set.image_subset _ subset_adjoin) $
+subalgebra.map_le.2 $ adjoin_le $ set.image_subset_iff.1 subset_adjoin
+
 end semiring
 
 section comm_semiring
@@ -81,18 +102,20 @@ le_antisymm
 theorem adjoin_eq_range :
   adjoin R s = (mv_polynomial.aeval (coe : s → A)).range :=
 le_antisymm
-  (adjoin_le $ λ x hx, ⟨mv_polynomial.X ⟨x, hx⟩, mv_polynomial.eval₂_X _ _ _⟩)
-  (λ x ⟨p, hp⟩, hp ▸ mv_polynomial.induction_on p
-    (λ r, by rw [mv_polynomial.aeval_def, mv_polynomial.eval₂_C]; exact (adjoin R s).2 r)
+  (adjoin_le $ λ x hx, ⟨mv_polynomial.X ⟨x, hx⟩, set.mem_univ _, mv_polynomial.eval₂_X _ _ _⟩)
+  (λ x ⟨p, _, (hp : mv_polynomial.aeval coe p = x)⟩, hp ▸ mv_polynomial.induction_on p
+    (λ r, by { rw [mv_polynomial.aeval_def, mv_polynomial.eval₂_C],
+               exact (adjoin R s).algebra_map_mem r })
     (λ p q hp hq, by rw alg_hom.map_add; exact is_add_submonoid.add_mem hp hq)
     (λ p ⟨n, hn⟩ hp, by rw [alg_hom.map_mul, mv_polynomial.aeval_def _ (mv_polynomial.X _),
       mv_polynomial.eval₂_X]; exact is_submonoid.mul_mem hp (subset_adjoin hn)))
 
 theorem adjoin_singleton_eq_range (x : A) : adjoin R {x} = (polynomial.aeval x).range :=
 le_antisymm
-  (adjoin_le $ set.singleton_subset_iff.2 ⟨polynomial.X, polynomial.eval₂_X _ _⟩)
-  (λ y ⟨p, hp⟩, hp ▸ polynomial.induction_on p
-    (λ r, by rw [polynomial.aeval_def, polynomial.eval₂_C]; exact (adjoin R _).2 r)
+  (adjoin_le $ set.singleton_subset_iff.2 ⟨polynomial.X, set.mem_univ _, polynomial.eval₂_X _ _⟩)
+  (λ y ⟨p, _, (hp : polynomial.aeval x p = y)⟩, hp ▸ polynomial.induction_on p
+    (λ r, by { rw [polynomial.aeval_def, polynomial.eval₂_C],
+               exact (adjoin R _).algebra_map_mem r })
     (λ p q hp hq, by rw alg_hom.map_add; exact is_add_submonoid.add_mem hp hq)
     (λ n r ih, by { rw [pow_succ', ← mul_assoc, alg_hom.map_mul,
       polynomial.aeval_def _ polynomial.X, polynomial.eval₂_X],
@@ -102,7 +125,7 @@ theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t) : submodule R A) =
   (adjoin R s) * (adjoin R t) :=
 begin
   rw [adjoin_eq_span, adjoin_eq_span, adjoin_eq_span, span_mul_span],
-  congr' 1, ext z, simp [monoid.mem_closure_union_iff, set.mem_mul],
+  congr' 1 with z, simp [monoid.mem_closure_union_iff, set.mem_mul],
 end
 
 end comm_semiring
@@ -113,7 +136,7 @@ variables [algebra R A] {s t : set A}
 variables {R s t}
 open ring
 
-theorem adjoin_int (s : set R) : adjoin ℤ s = subalgebra_of_subring (closure s) :=
+theorem adjoin_int (s : set R) : adjoin ℤ s = subalgebra_of_is_subring (closure s) :=
 le_antisymm (adjoin_le subset_closure) (closure_subset subset_adjoin)
 
 theorem mem_adjoin_iff {s : set A} {x : A} :
@@ -182,13 +205,16 @@ end algebra
 
 namespace subalgebra
 
-variables {R : Type u} {A : Type v}
-variables [comm_ring R] [comm_ring A] [algebra R A]
+variables {R : Type u} {A : Type v} {B : Type w}
+variables [comm_semiring R] [semiring A] [algebra R A] [semiring B] [algebra R B]
 
 /-- A subalgebra `S` is finitely generated if there exists `t : finset A` such that
 `algebra.adjoin R t = S`. -/
 def fg (S : subalgebra R A) : Prop :=
 ∃ t : finset A, algebra.adjoin R ↑t = S
+
+lemma fg_adjoin_finset (s : finset A) : (algebra.adjoin R (↑s : set A)).fg :=
+⟨s, rfl⟩
 
 theorem fg_def {S : subalgebra R A} : S.fg ↔ ∃ t : set A, set.finite t ∧ algebra.adjoin R t = S :=
 ⟨λ ⟨t, ht⟩, ⟨↑t, set.finite_mem_finset t, ht⟩,
@@ -197,11 +223,32 @@ theorem fg_def {S : subalgebra R A} : S.fg ↔ ∃ t : set A, set.finite t ∧ a
 theorem fg_bot : (⊥ : subalgebra R A).fg :=
 ⟨∅, algebra.adjoin_empty R A⟩
 
+lemma fg_of_submodule_fg (h : (⊤ : submodule R A).fg) : (⊤ : subalgebra R A).fg :=
+let ⟨s, hs⟩ := h in ⟨s, to_submodule_injective $
+by { rw [algebra.coe_top, eq_top_iff, ← hs, span_le], exact algebra.subset_adjoin }⟩
+
+section
+open_locale classical
+lemma fg_map (S : subalgebra R A) (f : A →ₐ[R] B) (hs : S.fg) : (S.map f).fg :=
+let ⟨s, hs⟩ := hs in ⟨s.image f, by rw [finset.coe_image, algebra.adjoin_image, hs]⟩
+end
+
+lemma fg_of_fg_map (S : subalgebra R A) (f : A →ₐ[R] B) (hf : function.injective f)
+  (hs : (S.map f).fg) : S.fg :=
+let ⟨s, hs⟩ := hs in ⟨s.preimage f $ λ _ _ _ _ h, hf h, map_injective f hf $
+by { rw [← algebra.adjoin_image, finset.coe_preimage, set.image_preimage_eq_of_subset, hs],
+  rw [← alg_hom.coe_range, ← algebra.adjoin_le_iff, hs, ← algebra.map_top], exact map_mono le_top }⟩
+
+lemma fg_top (S : subalgebra R A) : (⊤ : subalgebra R S).fg ↔ S.fg :=
+⟨λ h, by { rw [← S.range_val, ← algebra.map_top], exact fg_map _ _ h },
+λ h, fg_of_fg_map _ S.val subtype.val_injective $ by { rw [algebra.map_top, range_val], exact h }⟩
+
 end subalgebra
 
 variables {R : Type u} {A : Type v} {B : Type w}
 variables [comm_ring R] [comm_ring A] [comm_ring B] [algebra R A] [algebra R B]
 
+/-- The image of a Noetherian R-algebra under an R-algebra map is a Noetherian ring. -/
 instance alg_hom.is_noetherian_ring_range (f : A →ₐ[R] B) [is_noetherian_ring A] :
   is_noetherian_ring f.range :=
 is_noetherian_ring_range f.to_ring_hom
@@ -215,5 +262,5 @@ convert alg_hom.is_noetherian_ring_range _; apply_instance
 
 theorem is_noetherian_ring_closure (s : set R) (hs : s.finite) :
   is_noetherian_ring (ring.closure s) :=
-show is_noetherian_ring (subalgebra_of_subring (ring.closure s)), from
+show is_noetherian_ring (subalgebra_of_is_subring (ring.closure s)), from
 algebra.adjoin_int s ▸ is_noetherian_ring_of_fg (subalgebra.fg_def.2 ⟨s, hs, rfl⟩)

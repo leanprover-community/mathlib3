@@ -117,13 +117,10 @@ def partial_order_of_SO (r) [is_strict_order α r] : partial_order α :=
       (asymm h)⟩,
     λ ⟨h₁, h₂⟩, h₁.resolve_left (λ e, h₂ $ e ▸ or.inl rfl)⟩ }
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- This is basically the same as `is_strict_total_order`, but that definition is
   in Type (probably by mistake) and also has redundant assumptions. -/
 @[algebra] class is_strict_total_order' (α : Type u) (lt : α → α → Prop)
   extends is_trichotomous α lt, is_strict_order α lt : Prop.
-end prio
 
 /-- Construct a linear order from a `is_strict_total_order'` relation -/
 def linear_order_of_STO' (r) [is_strict_total_order' α r] : linear_order α :=
@@ -195,13 +192,10 @@ instance is_extensional_of_is_strict_total_order'
   .resolve_left $ mt (H _).2 (irrefl a))
   .resolve_right $ mt (H _).1 (irrefl b)⟩
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A well order is a well-founded linear order. -/
 @[algebra] class is_well_order (α : Type u) (r : α → α → Prop)
   extends is_strict_total_order' α r : Prop :=
 (wf : well_founded r)
-end prio
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_strict_total_order {α} (r : α → α → Prop) [is_well_order α r] :
@@ -300,6 +294,43 @@ let ⟨h, _⟩ := classical.some_spec (H.has_min p h) in h
 theorem not_lt_min {α} {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p.nonempty) {x} (xp : x ∈ p) : ¬ r x (H.min p h) :=
 let ⟨_, h'⟩ := classical.some_spec (H.has_min p h) in h' _ xp
+
+theorem well_founded_iff_has_min  {α} {r : α → α → Prop} : (well_founded r) ↔
+  ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, ¬ r x m :=
+begin
+  classical,
+  split,
+  { exact has_min, },
+  { set counterexamples := { x : α | ¬ acc r x},
+    intro exists_max,
+    fconstructor,
+    intro x,
+    by_contra hx,
+    obtain ⟨m, m_mem, hm⟩ := exists_max counterexamples ⟨x, hx⟩,
+    refine m_mem (acc.intro _ ( λ y y_gt_m, _)),
+    by_contra hy,
+    exact hm y hy y_gt_m, },
+end
+
+lemma eq_iff_not_lt_of_le {α} [partial_order α] {x y : α} : x ≤ y → y = x ↔ ¬ x < y :=
+begin
+  split,
+  { intros xle nge,
+    cases le_not_le_of_lt nge,
+    rw xle left at nge,
+    exact lt_irrefl x nge },
+  { intros ngt xle,
+    contrapose! ngt,
+    exact lt_of_le_of_ne xle (ne.symm ngt) }
+end
+
+theorem well_founded_iff_has_max' [partial_order α] : (well_founded ((>) : α → α → Prop) ↔
+  ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, m ≤ x → x = m) :=
+by simp only [eq_iff_not_lt_of_le, well_founded_iff_has_min]
+
+theorem well_founded_iff_has_min' [partial_order α] : (well_founded (has_lt.lt : α → α → Prop)) ↔
+  ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, x ≤ m → x = m :=
+@well_founded_iff_has_max' (order_dual α) _
 
 open set
 /-- The supremum of a bounded, well-founded order -/

@@ -5,7 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import tactic.ring_exp
 import tactic.chain
-import data.monoid_algebra
+import algebra.monoid_algebra
 import data.finset.sort
 
 /-!
@@ -64,10 +64,7 @@ def X : polynomial R := monomial 1 1
 
 /-- `X` commutes with everything, even when the coefficients are noncommutative. -/
 lemma X_mul : X * p = p * X :=
-begin
-  ext,
-  simp [X, monomial, add_monoid_algebra.mul_apply, sum_single_index, add_comm],
-end
+by { ext, simp [X, monomial, add_monoid_algebra.mul_apply, sum_single_index, add_comm] }
 
 lemma X_pow_mul {n : ℕ} : X^n * p = p * X^n :=
 begin
@@ -79,6 +76,8 @@ end
 
 lemma X_pow_mul_assoc {n : ℕ} : (p * X^n) * q = (p * q) * X^n :=
 by rw [mul_assoc, X_pow_mul, ←mul_assoc]
+
+lemma commute_X (p : polynomial R) : commute X p := X_mul
 
 /-- coeff p n is the coefficient of X^n in p -/
 def coeff (p : polynomial R) := p.to_fun
@@ -115,8 +114,62 @@ theorem ext_iff {p q : polynomial R} : p = q ↔ ∀ n, coeff p n = coeff q n :=
 lemma eq_zero_of_eq_zero (h : (0 : R) = (1 : R)) (p : polynomial R) : p = 0 :=
 by rw [←one_smul R p, ←h, zero_smul]
 
+lemma support_monomial (n) (a : R) (H : a ≠ 0) : (monomial n a).support = singleton n :=
+begin
+  ext,
+  have m3 : a_1 ∈ (monomial n a).support ↔ coeff (monomial n a) a_1 ≠ 0 := (monomial n a).mem_support_to_fun a_1,
+  rw [finset.mem_singleton, m3, coeff_monomial],
+  split_ifs,
+    { rwa [h, eq_self_iff_true, iff_true], },
+    { rw [← @not_not (a_1=n)],
+      apply not_congr,
+      rw [eq_self_iff_true, true_iff, ← ne.def],
+      symmetry,
+      assumption, },
+end
+
+lemma support_monomial' (n) (a : R) : (monomial n a).support ⊆ singleton n :=
+begin
+  by_cases h : a = 0,
+  { rw [h, monomial_zero_right, support_zero],
+    exact finset.empty_subset {n}, },
+  { rw support_monomial n a h,
+    exact finset.subset.refl {n}, },
+end
+
+lemma monomial_eq_X_pow (n) : X^n = monomial n (1:R) :=
+begin
+  induction n with n hn,
+    { refl, },
+    { conv_rhs {rw nat.succ_eq_add_one, congr, skip, rw ← mul_one (1:R)},
+      rw [← monomial_mul_monomial, ← hn, pow_succ, X_mul, X], },
+end
+
+lemma support_X_pow (H : ¬ (1:R) = 0) (n : ℕ) : (X^n : polynomial R).support = singleton n :=
+begin
+  convert support_monomial n 1 H,
+  exact monomial_eq_X_pow n,
+end
+
+lemma support_X_empty (H : (1:R)=0) : (X : polynomial R).support = ∅ :=
+begin
+  rw [X, H, monomial_zero_right, support_zero],
+end
+
+lemma support_X (H : ¬ (1 : R) = 0) : (X : polynomial R).support = singleton 1 :=
+begin
+  rw [← pow_one X, support_X_pow H 1],
+end
 
 end semiring
+
+section comm_semiring
+variables [comm_semiring R]
+
+instance : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
+instance : comm_monoid (polynomial R) := comm_semiring.to_comm_monoid (polynomial R)
+
+end comm_semiring
 
 section ring
 variables [ring R]
@@ -130,7 +183,6 @@ lemma coeff_sub (p q : polynomial R) (n : ℕ) : coeff (p - q) n = coeff p n - c
 
 end ring
 
-instance [comm_semiring R] : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
 instance [comm_ring R] : comm_ring (polynomial R) := add_monoid_algebra.comm_ring
 
 section nonzero_semiring

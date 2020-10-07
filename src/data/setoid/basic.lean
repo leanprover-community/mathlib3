@@ -166,8 +166,7 @@ end
 lemma Sup_def {s : set (setoid α)} : Sup s = eqv_gen.setoid (Sup (rel '' s)) :=
 begin
   rw [Sup_eq_eqv_gen, Sup_image],
-  congr,
-  ext x y,
+  congr' with x y,
   simp only [supr_apply, supr_Prop_eq, exists_prop]
 end
 

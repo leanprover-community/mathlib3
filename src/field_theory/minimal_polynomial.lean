@@ -26,10 +26,14 @@ open polynomial set function
 variables {α : Type u} {β : Type v}
 
 section min_poly_def
-variables [comm_ring α] [comm_ring β] [algebra α β]
+variables [comm_ring α] [ring β] [algebra α β]
 
-/-- Let B be an A-algebra, and x an element of B that is integral over A.
-The minimal polynomial of x is a monic polynomial of smallest degree that has x as its root. -/
+/-- Let `B` be an `A`-algebra, and `x` an element of `B` that is integral over `A`
+so we have some term `hx : is_integral A x`.
+The minimal polynomial `minimal_polynomial hx` of `x` is a monic polynomial of smallest degree
+that has `x` as its root.
+For instance, if `V` is a `K`-vector space for some field `K`, and `f : V →ₗ[K] V` then
+the minimal polynomial of `f` is `minimal_polynomial f.is_integral`. -/
 noncomputable def minimal_polynomial {x : β} (hx : is_integral α x) : polynomial α :=
 well_founded.min degree_lt_wf _ hx
 
@@ -38,7 +42,7 @@ end min_poly_def
 namespace minimal_polynomial
 
 section ring
-variables [comm_ring α] [comm_ring β] [algebra α β]
+variables [comm_ring α] [ring β] [algebra α β]
 variables {x : β} (hx : is_integral α x)
 
 /--A minimal polynomial is monic.-/
@@ -60,8 +64,8 @@ end ring
 section field
 variables [field α]
 
-section comm_ring
-variables [comm_ring β] [algebra α β]
+section ring
+variables [ring β] [algebra α β]
 variables {x : β} (hx : is_integral α x)
 
 /--A minimal polynomial is nonzero.-/
@@ -106,6 +110,11 @@ begin
   { rw ← mod_by_monic_add_div p (monic hx) at hp,
     simpa using hp }
 end
+
+lemma dvd_map_of_is_scalar_tower {α γ : Type*} (β : Type*) [comm_ring α] [field β] [comm_ring γ]
+  [algebra α β] [algebra α γ] [algebra β γ] [is_scalar_tower α β γ] {x : γ} (hx : is_integral α x) :
+  minimal_polynomial (is_integral_of_is_scalar_tower x hx) ∣ (minimal_polynomial hx).map (algebra_map α β) :=
+by { apply minimal_polynomial.dvd, rw [← is_scalar_tower.aeval_apply, minimal_polynomial.aeval] }
 
 variables [nontrivial β]
 
@@ -164,10 +173,10 @@ by simpa only [add_zero, C_0, sub_eq_add_neg, neg_zero, ring_hom.map_zero]
 by simpa only [ring_hom.map_one, C_1, sub_eq_add_neg]
   using algebra_map' β (1:α)
 
-end comm_ring
+end ring
 
-section integral_domain
-variables [integral_domain β] [algebra α β]
+section domain
+variables [domain β] [algebra α β]
 variables {x : β} (hx : is_integral α x)
 
 /--A minimal polynomial is prime.-/
@@ -210,7 +219,7 @@ end
 lemma coeff_zero_ne_zero (h : x ≠ 0) : coeff (minimal_polynomial hx) 0 ≠ 0 :=
 by { contrapose! h, simpa using h }
 
-end integral_domain
+end domain
 
 end field
 

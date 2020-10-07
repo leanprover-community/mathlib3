@@ -14,7 +14,8 @@ In this file we define
 
 * `ordered_semimodule R M` : an ordered additive commutative monoid `M` is an `ordered_semimodule`
   over an `ordered_semiring` `R` if the scalar product respects the order relation on the
-  monoid and on the ring.
+  monoid and on the ring. There is a correspondence between this structure and convex cones,
+  which is proven in `analysis/convex/cone.lean`.
 
 ## Implementation notes
 
@@ -22,11 +23,6 @@ In this file we define
   for semimodules itself.
 * To get ordered modules and ordered vector spaces, it suffices to the replace the
   `order_add_comm_monoid` and the `ordered_semiring` as desired.
-
-## TODO
-
-* Connect this with convex cones: show that a convex cone defines an order on the vector space
-  and vice-versa.
 
 ## References
 
@@ -37,8 +33,6 @@ In this file we define
 ordered semimodule, ordered module, ordered vector space
 -/
 
-
-set_option default_priority 100 -- see Note [default priority]
 
 /--
 An ordered semimodule is an ordered additive commutative monoid

@@ -90,8 +90,7 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
   symm := begin
     refine le_of_eq _,
     rw map_supr,
-    congr,
-    ext1 x,
+    congr' with x : 1,
     erw [nhds_prod_eq, ← prod_comm],
   end,
   comp := begin

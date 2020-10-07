@@ -11,8 +11,7 @@ import algebra.field
 
 universe u
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
+section old_structure_cmd
 set_option old_structure_cmd true
 
 /-- A `euclidean_domain` is an `integral_domain` with a division and a remainder, satisfying
@@ -31,7 +30,7 @@ class euclidean_domain (R : Type u) extends comm_ring R, nontrivial R :=
 (r_well_founded : well_founded r)
 (remainder_lt : ∀ a {b}, b ≠ 0 → r (remainder a b) b)
 (mul_left_not_lt : ∀ a {b}, b ≠ 0 → ¬r (a * b) a)
-end prio
+end old_structure_cmd
 
 namespace euclidean_domain
 variable {R : Type u}

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import group_theory.group_action
+import tactic.nth_rewrite
 
 /-!
 # Modules over a ring
@@ -41,8 +42,6 @@ universes u u' v w x y z
 variables {R : Type u} {k : Type u'} {S : Type v} {M : Type w} {M₂ : Type x} {M₃ : Type y}
   {ι : Type z}
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A semimodule is a generalization of vector spaces to a scalar semiring.
   It consists of a scalar semiring `R` and an additive monoid of "vectors" `M`,
   connected by a "scalar multiplication" operation `r • x : M`
@@ -52,7 +51,6 @@ set_option default_priority 100 -- see Note [default priority]
   [add_comm_monoid M] extends distrib_mul_action R M :=
 (add_smul : ∀(r s : R) (x : M), (r + s) • x = r • x + s • x)
 (zero_smul : ∀x : M, (0 : R) • x = 0)
-end prio
 
 section add_comm_monoid
 variables [semiring R] [add_comm_monoid M] [semimodule R M] (r s : R) (x y : M)
@@ -109,6 +107,19 @@ lemma finset.sum_smul {f : ι → R} {s : finset ι} {x : M} :
 ((smul_add_hom R M).flip x).map_sum f s
 
 end add_comm_monoid
+
+variables (R)
+
+/-- An `add_comm_monoid` that is a `semimodule` over a `ring` carries a natural `add_comm_group` structure. -/
+def semimodule.add_comm_monoid_to_add_comm_group [ring R] [add_comm_monoid M] [semimodule R M] :
+  add_comm_group M :=
+{ neg          := λ a, (-1 : R) • a,
+  add_left_neg := λ a, by {
+    nth_rewrite 1 ← one_smul _ a,
+    rw [← add_smul, add_left_neg, zero_smul], },
+  ..(infer_instance : add_comm_monoid M), }
+
+variables {R}
 
 section add_comm_group
 
@@ -197,8 +208,7 @@ theorem smul_eq_zero {R E : Type*} [division_ring R] [add_comm_group E] [module 
 
 end module
 
-section
-set_option default_priority 910
+@[priority 910] -- see Note [lower instance priority]
 instance semiring.to_semimodule [semiring R] : semimodule R R :=
 { smul := (*),
   smul_add := mul_add,
@@ -207,7 +217,6 @@ instance semiring.to_semimodule [semiring R] : semimodule R R :=
   one_smul := one_mul,
   zero_smul := zero_mul,
   smul_zero := mul_zero }
-end
 
 @[simp] lemma smul_eq_mul [semiring R] {a a' : R} : a • a' = a * a' := rfl
 
@@ -258,7 +267,6 @@ instance : has_coe_to_fun (M →ₗ[R] M₂) := ⟨_, to_fun⟩
 @[simp] lemma coe_mk (f : M → M₂) (h₁ h₂) :
   ((linear_map.mk f h₁ h₂ : M →ₗ[R] M₂) : M → M₂) = f := rfl
 
-
 /-- Identity map as a `linear_map` -/
 def id : M →ₗ[R] M :=
 ⟨id, λ _ _, rfl, λ _ _, rfl⟩
@@ -295,6 +303,10 @@ lemma coe_fn_congr : Π {x x' : M}, x = x' → f x = f x'
 theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
 ⟨by { rintro rfl x, refl } , ext⟩
 
+/-- If two linear maps are equal, they are equal at each point. -/
+lemma lcongr_fun (h : f = g) (m : M) : f m = g m :=
+congr_fun (congr_arg linear_map.to_fun h) m
+
 variables (f g)
 
 @[simp] lemma map_add (x y : M) : f (x + y) = f x + f y := f.map_add' x y
@@ -320,6 +332,10 @@ def to_add_monoid_hom : M →+ M₂ :=
 @[simp] lemma map_sum {ι} {t : finset ι} {g : ι → M} :
   f (∑ i in t, g i) = (∑ i in t, f (g i)) :=
 f.to_add_monoid_hom.map_sum _ _
+
+theorem to_add_monoid_hom_injective [semimodule R M] [semimodule R M₂] :
+  function.injective (to_add_monoid_hom : (M →ₗ[R] M₂) → (M →+ M₂)) :=
+λ f g h, coe_inj $ funext $ add_monoid_hom.congr_fun h
 
 end
 

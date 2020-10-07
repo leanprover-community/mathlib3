@@ -228,7 +228,7 @@ lemma is_left_invariant_of_content [group G] [topological_group G]
 by convert of_content_preimage h2 (homeomorph.mul_left g) (λ K, h g) A
 
 lemma of_content_caratheodory (A : set G) :
-  (of_content μ h1).caratheodory.is_measurable A ↔ ∀ (U : opens G),
+  (of_content μ h1).caratheodory.is_measurable' A ↔ ∀ (U : opens G),
   of_content μ h1 (U ∩ A) + of_content μ h1 (U \ A) ≤ of_content μ h1 U :=
 begin
   dsimp [opens], rw subtype.forall,

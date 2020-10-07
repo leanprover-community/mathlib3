@@ -185,6 +185,15 @@ namespace interactive
 
 attribute [derive decidable_eq] simp_arg_type
 
+/-- Turn a `simp_arg_type` into a string. -/
+meta instance simp_arg_type.has_to_string : has_to_string simp_arg_type :=
+⟨λ a, match a with
+| simp_arg_type.all_hyps := "*"
+| (simp_arg_type.except n) := "-" ++ to_string n
+| (simp_arg_type.expr e) := to_string e
+| (simp_arg_type.symm_expr e) := "←" ++ to_string e
+end⟩
+
 /-- combinator meant to aggregate the suggestions issued by multiple calls
 of `squeeze_simp` (due, for instance, to `;`).
 

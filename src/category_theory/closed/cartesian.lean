@@ -31,6 +31,8 @@ for closed monoidal categories, and these could be generalised.
 -/
 universes v u u₂
 
+noncomputable theory
+
 namespace category_theory
 
 open category_theory category_theory.category category_theory.limits
@@ -240,33 +242,33 @@ def internal_hom [cartesian_closed C] : C ⥤ Cᵒᵖ ⥤ C :=
   map_id' := λ X, by { ext, apply functor.map_id },
   map_comp' := λ X Y Z f g, by { ext, apply functor.map_comp } }
 
-/-- If an initial object `0` exists in a CCC, then `A ⨯ 0 ≅ 0`. -/
+/-- If an initial object `I` exists in a CCC, then `A ⨯ I ≅ I`. -/
 @[simps]
-def zero_mul [has_initial C] : A ⨯ ⊥_ C ≅ ⊥_ C :=
+def zero_mul {I : C} (t : is_initial I) : A ⨯ I ≅ I :=
 { hom := limits.prod.snd,
-  inv := default (⊥_ C ⟶ A ⨯ ⊥_ C),
+  inv := t.to _,
   hom_inv_id' :=
   begin
-    have: (limits.prod.snd : A ⨯ ⊥_ C ⟶ ⊥_ C) = uncurry (default _),
+    have: (limits.prod.snd : A ⨯ I ⟶ I) = uncurry (t.to _),
       rw ← curry_eq_iff,
-      apply subsingleton.elim,
+      apply t.hom_ext,
     rw [this, ← uncurry_natural_right, ← eq_curry_iff],
-    apply subsingleton.elim
+    apply t.hom_ext,
   end,
-  }
+  inv_hom_id' := t.hom_ext _ _ }
 
 /-- If an initial object `0` exists in a CCC, then `0 ⨯ A ≅ 0`. -/
-def mul_zero [has_initial C] : ⊥_ C ⨯ A ≅ ⊥_ C :=
-limits.prod.braiding _ _ ≪≫ zero_mul
+def mul_zero {I : C} (t : is_initial I) : I ⨯ A ≅ I :=
+limits.prod.braiding _ _ ≪≫ zero_mul t
 
 /-- If an initial object `0` exists in a CCC then `0^B ≅ 1` for any `B`. -/
-def pow_zero [has_initial C] [cartesian_closed C] : ⊥_C ⟹ B ≅ ⊤_ C :=
+def pow_zero {I : C} (t : is_initial I) [cartesian_closed C] : I ⟹ B ≅ ⊤_ C :=
 { hom := default _,
-  inv := curry (mul_zero.hom ≫ default (⊥_ C ⟶ B)),
+  inv := curry ((mul_zero t).hom ≫ t.to _),
   hom_inv_id' :=
   begin
-    rw [← curry_natural_left, curry_eq_iff, ← cancel_epi mul_zero.inv],
-    { apply subsingleton.elim },
+    rw [← curry_natural_left, curry_eq_iff, ← cancel_epi (mul_zero t).inv],
+    { apply t.hom_ext },
     { apply_instance },
     { apply_instance }
   end }
@@ -293,20 +295,28 @@ def prod_coprod_distrib [has_binary_coproducts C] [cartesian_closed C] (X Y Z : 
   end }
 
 /--
-If an initial object `0` exists in a CCC then it is a strict initial object,
-i.e. any morphism to `0` is an iso.
+If an initial object `I` exists in a CCC then it is a strict initial object,
+i.e. any morphism to `I` is an iso.
+This actually shows a slightly stronger version: any morphism to an initial object from an
+exponentiable object is an isomorphism.
 -/
-instance strict_initial [has_initial C] {f : A ⟶ ⊥_ C} : is_iso f :=
+def strict_initial {I : C} (t : is_initial I) (f : A ⟶ I) : is_iso f :=
 begin
-  haveI : mono (limits.prod.lift (𝟙 A) f ≫ zero_mul.hom) := mono_comp _ _,
+  haveI : mono (limits.prod.lift (𝟙 A) f ≫ (zero_mul t).hom) := mono_comp _ _,
   rw [zero_mul_hom, prod.lift_snd] at _inst,
-  haveI: split_epi f := ⟨default _, subsingleton.elim _ _⟩,
+  haveI: split_epi f := ⟨t.to _, t.hom_ext _ _⟩,
   apply is_iso_of_mono_of_split_epi
 end
 
+instance to_initial_is_iso [has_initial C] (f : A ⟶ ⊥_ C) : is_iso f :=
+strict_initial initial_is_initial _
+
 /-- If an initial object `0` exists in a CCC then every morphism from it is monic. -/
-instance initial_mono (B : C) [has_initial C] [cartesian_closed C] : mono (initial.to B) :=
-⟨λ B g h _, eq_of_inv_eq_inv (subsingleton.elim (inv g) (inv h))⟩
+lemma initial_mono {I : C} (B : C) (t : is_initial I) [cartesian_closed C] : mono (t.to B) :=
+⟨λ B g h _, by { haveI := strict_initial t g, haveI := strict_initial t h, exact eq_of_inv_eq_inv (t.hom_ext _ _) }⟩
+
+instance initial.mono_to [has_initial C] (B : C) [cartesian_closed C] : mono (initial.to B) :=
+initial_mono B initial_is_initial
 
 variables {D : Type u₂} [category.{v} D]
 section functor

@@ -3,12 +3,11 @@ Copyright (c) 2020 Kevin Lacker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker
 -/
-
 import data.complex.exponential
-import data.polynomial.basic
 import data.real.pi
 
 open real
+noncomputable theory
 
 notation `π` := real.pi
 
@@ -19,25 +18,25 @@ Since Lean does not have a concept of "simplest form", we just express what is
 in fact the simplest form of the set of solutions, and then prove it equals the set of solutions.
 -/
 
-def problem_equation (x : ℝ) : Prop := (cos x)^2 + (cos 2*x)^2 + (cos 3*x)^2 = 1
+def problem_equation (x : ℝ) : Prop := (cos x)^2 + cos (2 * x) ^ 2 + cos (3 * x) ^ 2 = 1
 
 def solution_set : set ℝ :=
 { x : ℝ | ∃ k : ℤ, x = (2 * ↑k + 1) * π / 2 ∨ x = (2 * ↑k + 1) * π / 4 ∨
                    x = (6 * ↑k + 1) * π / 6 ∨ x = (6 * ↑k + 5) * π / 6 }
 
 /-
-First, we can simplify the left hand side of the problem_equation by writing it in terms
-of `(cos x)^2`.
+First, we can simplify the left hand side of the problem_equation by writing it as a
+polynomial in `(cos x)^2`.
 -/
 
-lemma cosx2 (x : ℝ) : (cos x) ^ 2 = 1 - (sin x) ^ 2 :=
+lemma cosx2 {x : ℝ} : (cos x) ^ 2 = 1 - (sin x) ^ 2 :=
 begin
   have h1 : (sin x)^2 = 1 - (cos x)^2, from real.sin_square x,
   rw h1,
   ring
 end
 
-lemma cos3x (x : ℝ) : cos (3 * x) = 4 * (cos x) ^ 3 - 3 * cos x :=
+lemma cos3x {x : ℝ} : cos (3 * x) = 4 * (cos x) ^ 3 - 3 * cos x :=
 begin
   have h1 : cos (x + 2 * x) = (cos x) * cos (2 * x) - (sin x) * sin (2 * x),
     from real.cos_add x (2 * x),
@@ -50,12 +49,39 @@ begin
   ring
 end
 
-lemma cos2_equiv (x : ℝ) :
-cos x ^ 2 + cos (2 * x) ^ 2 + cos (3 * x) ^ 2 =
-16 * (cos x ^ 2) ^ 3 - 20 * (cos x ^ 2) ^ 2 + 6 * (cos x ^ 2) + 1 :=
+def alt_formula (x : ℝ) : ℝ := (cos x) ^ 2 * ((cos x) ^ 2 - 1/2) * ((cos x) ^ 2 - 3/4)
+
+lemma cos2_equiv {x : ℝ} :
+cos x ^ 2 + cos (2 * x) ^ 2 + cos (3 * x) ^ 2 - 1 = 16 * alt_formula x :=
 begin
   simp [real.cos_two_mul, cos3x],
+  unfold alt_formula,
   ring
 end
 
-def four : polynomial ℝ := (4 : polynomial ℝ)
+lemma alt_equiv {x : ℝ} : problem_equation x ↔ alt_formula x = 0 :=
+begin
+  unfold problem_equation,
+  -- XXX need more here
+end
+
+/-
+def poly : polynomial ℝ := 16 * X ^ 3 - 20 * X ^ 2 + 6 * X
+
+def poly_cos2 {x : ℝ} : eval (cos x ^ 2) poly =
+16 * (cos x ^ 2) ^ 3 - 20 * (cos x ^ 2) ^ 2 + 6 * (cos x ^ 2) :=
+by conv_lhs { norm_num [poly] }
+
+lemma poly_equiv {x : ℝ} : problem_equation x ↔ eval (cos x ^ 2) poly = 0 :=
+begin
+  rw poly_cos2,
+  rw ← cos2_equiv,
+  unfold problem_equation,
+  exact sub_eq_zero.symm
+end
+
+lemma root_0 : eval 0 poly = 0 := by conv_lhs { norm_num [poly] }
+lemma root_1_2 : eval (1/2) poly = 0 := by conv_lhs { norm_num [poly] }
+lemma root_3_4 : eval (3/4) poly = 0 := by conv_lhs { norm_num [poly] }
+
+-/

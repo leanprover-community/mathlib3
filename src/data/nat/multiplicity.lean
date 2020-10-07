@@ -91,7 +91,8 @@ lemma multiplicity_factorial {p : ℕ} (hp : p.prime) :
   ... = (∑ i in Ico 1 b, (n + 1) / p ^ i : ℕ) :
     congr_arg coe $ finset.sum_congr rfl (by intros; simp [nat.succ_div]; congr)
 
-/-- The multiplicity of `p` in `(p(n+1))!` is one mor more than that of `n!`. -/
+/-- The multiplicity of `p` in `(p(n+1))!` is one more than the sum
+  of the multiplicities of `p` in `(p * n)!` and `n + 1`. -/
 lemma multiplicity_factorial_mul_succ {n p : ℕ} (hp : p.prime) :
   multiplicity p (p * (n + 1))! = multiplicity p (p * n)! + multiplicity p (n + 1) + 1 :=
 begin

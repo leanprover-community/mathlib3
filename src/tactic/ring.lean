@@ -446,14 +446,17 @@ meta def eval : expr → ring_m (horner_expr × expr)
   (e', p') ← eval_add e₁' e₂',
   p ← ic_lift $ λ ic, ic.mk_app ``norm_num.subst_into_add [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
   return (e', p)
-| e@`(@has_sub.sub %%α %%P %%e₁ %%e₂) :=
+| e@`(@has_sub.sub %%α %%inst %%e₁ %%e₂) :=
   mcond (succeeds (lift $ mk_app ``comm_ring [α] >>= mk_instance))
     (do
       e₂' ← ic_lift $ λ ic, ic.mk_app ``has_neg.neg [e₂],
       e ← ic_lift $ λ ic, ic.mk_app ``has_add.add [e₁, e₂'],
       (e', p) ← eval e,
       p' ← ic_lift $ λ ic, ic.mk_app ``unfold_sub [e₁, e₂, e', p],
-      return (e', p'))
+      return (e',
+        if inst = `(int.has_sub) then
+          `(norm_num.int_sub_hack).mk_app [e₁, e₂, e', p']
+        else p'))
     (eval_atom e)
 | `(- %%e) := do
   (e₁, p₁) ← eval e,

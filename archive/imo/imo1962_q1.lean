@@ -174,12 +174,7 @@ lemma solutions_nonempty : {n : ℕ | problem_predicate n}.nonempty :=
   set.nonempty_of_mem h
 
 theorem imo1962_q1 : is_least {n | problem_predicate n} 153846 :=
-begin
-  split,
-  exact satisfied_by_153846,
-  intro k,
-  intro h,
-  exact no_smaller_solutions k h,
-end
+⟨satisfied_by_153846, no_smaller_solutions⟩
+
 
 

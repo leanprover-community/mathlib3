@@ -139,8 +139,9 @@ of elements by virtue of the semantics of `bit0` and `bit1` and of
 addition on `fin n`).
 -/
 
-/-- `vec_join u v` joins two vectors of lengths `m` and `n` to produce
-one of length `o = m + n`. -/
+/-- `vec_join ho u v` joins two vectors of lengths `m` and `n` to produce
+one of length `o = m + n`.  `ho` provides control of definitional equality
+for the vector length. -/
 def vec_join (ho : o = m + n) (u : fin m → α) (v : fin n → α) : fin o → α :=
 λ i, if h : (i : ℕ) < m
   then u ⟨i, h⟩

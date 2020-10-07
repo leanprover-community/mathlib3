@@ -110,7 +110,7 @@ begin
   simp,
   norm_num,
   rw cos_eq_zero_iff,
-  split, all_goals
+  split;
   { intro h,
     cases h with k h,
     use k,
@@ -120,7 +120,7 @@ end
 lemma solve_cos3x_0 {x : ℝ} : cos (3 * x) = 0 ↔ ∃ k : ℤ, x = (2 * ↑k + 1) * π / 6 :=
 begin
   rw cos_eq_zero_iff,
-  split, all_goals
+  split;
   { intro h,
     cases h with k h,
     use k,
@@ -135,15 +135,6 @@ theorem imo1962_q4 {x : ℝ} : problem_equation x ↔ x ∈ solution_set :=
 begin
   rw [alt_equiv, finding_zeros, solve_cos3x_0, solve_cos2_half],
   unfold solution_set,
-  split,
-  { intro h,
-    cases h, all_goals
-    { cases h with k h,
-      use k,
-      finish } },
-  { intro h,
-    cases h with k h,
-    cases h,
-    { left, use k, finish },
-    { right, use k, finish } }
+  split; finish
 end
+

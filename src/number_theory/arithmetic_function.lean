@@ -330,7 +330,7 @@ begin
 end
 
 @[simp]
-lemma zeta_pmul (f : arithmetic_function R) : pmul ζ f = f :=
+lemma zeta_pmul (f : arithmetic_function R) : ζ.pmul f = f :=
 begin
   ext x,
   cases x;
@@ -349,11 +349,11 @@ by rw [ppow, dif_pos rfl]
 
 @[simp]
 lemma ppow_apply {f : arithmetic_function R} {k x : ℕ} (kpos : 0 < k) :
-  (ppow f k) x = (f x) ^ k :=
+  f.ppow k x = (f x) ^ k :=
 by { rw [ppow, dif_neg (ne_of_gt kpos)], refl }
 
 lemma ppow_succ {f : arithmetic_function R} {k : ℕ} :
-  ppow f (k + 1) = f.pmul (ppow f k) :=
+  f.ppow (k + 1) = f.pmul (f.ppow k) :=
 begin
   ext x,
   rw [ppow_apply (nat.succ_pos k), pow_succ],
@@ -361,7 +361,7 @@ begin
 end
 
 lemma ppow_succ' {f : arithmetic_function R} {k : ℕ} {kpos : 0 < k} :
-  ppow f (k + 1) = (ppow f k).pmul f :=
+  f.ppow (k + 1) = (f.ppow k).pmul f :=
 begin
   ext x,
   rw [ppow_apply (nat.succ_pos k), pow_succ'],

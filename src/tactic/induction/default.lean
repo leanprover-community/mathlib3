@@ -126,8 +126,6 @@ induction). Contains:
 - `args`: the eliminee's arguments. The eliminee has type `I x₀ ... xₙ`, where
   `I` is an inductive type. `args` is the map `[0 → x₀, ..., n → xₙ]`.
 -/
--- TODO we should probably kill this since most of this information changes over
--- the course of the tactic. E.g. `eexpr` changes multiple times.
 meta structure eliminee_info :=
 (ename : name)
 (eexpr : expr)
@@ -315,10 +313,9 @@ let index_occs := i.ainfo.index_occurrences in
 let eliminee_args := i.einfo.args in
 let local_index_instantiations :=
   (index_occs.map (eliminee_args.find >=> expr.local_names_option)).all_some in
--- TODO this needs to be updated when we allow complex indices. Right now, the
--- rule only triggers if the eliminee arg is exactly a local const. We probably
--- want a more permissive rule where the eliminee arg can be an arbitrary term
--- as long as that term *contains* only a single local const.
+-- Right now, this rule only triggers if the eliminee arg is exactly a local
+-- const. We could consider a more permissive rule where the eliminee arg can be
+-- an arbitrary term as long as that term *contains* only a single local const.
 pure $
   match local_index_instantiations with
   | none := []
@@ -921,7 +918,6 @@ meta def eliminate_hyp (generate_ihs : bool) (eliminee : expr)
   (gm := generalization_mode.generalize_all_except [])
   (with_names : list name := []) : tactic unit :=
 focus1 $ do
-  -- TODO make sure that the eliminee is not a local def.
   einfo ← get_eliminee_info eliminee,
   let eliminee := einfo.eexpr,
   let eliminee_type := einfo.type,
@@ -1088,7 +1084,8 @@ meta def eliminate_expr (generate_induction_hyps : bool) (eliminee : expr)
   (eq_name : option name := none) (gm := generalization_mode.generalize_all_except [])
   (with_names : list name := []) : tactic unit := do
   num_reverted ← revert_kdeps eliminee,
-  -- TODO use revert_deps instead?
+  -- TODO this should be `revert_deps`, but `revert_deps` fails for some of my
+  -- test cases.
   hyp ← match eq_name with
       | some h := do
           x ← get_unused_name `x,

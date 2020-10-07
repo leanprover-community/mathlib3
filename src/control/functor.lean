@@ -72,7 +72,7 @@ identity, and it can be used as a pattern to extract this value. -/
 @[pattern] def const.mk {α β} (x : α) : const α β := x
 
 /-- `const.mk'` is `const.mk` but specialized to map `α` to
-`const α punit`, where `punit` is the initial object in `Type*`.  -/
+`const α punit`, where `punit` is the initial object in `Type*`. -/
 def const.mk' {α} (x : α) : const α punit := x
 
 /-- Extract the element of `α` from the `const` functor. -/

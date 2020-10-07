@@ -38,9 +38,13 @@ variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D
 
 namespace equivalence
 
+/-- The unit of an equivalence of categories. -/
 abbreviation unit (e : C ≌ D) : 𝟭 C ⟶ e.functor ⋙ e.inverse := e.unit_iso.hom
+/-- The counit of an equivalence of categories. -/
 abbreviation counit (e : C ≌ D) : e.inverse ⋙ e.functor ⟶ 𝟭 D := e.counit_iso.hom
+/-- The inverse of the unit of an equivalence of categories. -/
 abbreviation unit_inv (e : C ≌ D) : e.functor ⋙ e.inverse ⟶ 𝟭 C := e.unit_iso.inv
+/-- The inverse of the counit of an equivalence of categories. -/
 abbreviation counit_inv (e : C ≌ D) : 𝟭 D ⟶ e.inverse ⋙ e.functor := e.counit_iso.inv
 
 /- While these abbreviations are convenient, they also cause some trouble,
@@ -125,6 +129,9 @@ section
 -- In this section we convert an arbitrary equivalence to a half-adjoint equivalence.
 variables {F : C ⥤ D} {G : D ⥤ C} (η : 𝟭 C ≅ F ⋙ G) (ε : G ⋙ F ≅ 𝟭 D)
 
+/-- If `η : 𝟭 C ≅ F ⋙ G` is part of a (not necessarily half-adjoint) equivalence, we can upgrade it
+to a refined natural isomorphism `adjointify_η η : 𝟭 C ≅ F ⋙ G` which exhibits the properties
+required for a half-adjoint equivalence. See `equivalence.mk`. -/
 def adjointify_η : 𝟭 C ≅ F ⋙ G :=
 calc
   𝟭 C ≅ F ⋙ G               : η
@@ -148,18 +155,27 @@ end
 
 end
 
+/-- Every equivalence of categories consisting of functors `F` and `G` such that
+    `F ⋙ G` and `G ⋙ F` are naturally isomorphic to identity functors can be transformed into a
+    half-adjoint equivalence without changing `F` or `G`. -/
 protected definition mk (F : C ⥤ D) (G : D ⥤ C)
   (η : 𝟭 C ≅ F ⋙ G) (ε : G ⋙ F ≅ 𝟭 D) : C ≌ D :=
 ⟨F, G, adjointify_η η ε, ε, adjointify_η_ε η ε⟩
 
+/-- Equivalence of categories is reflexive. -/
 @[refl, simps] def refl : C ≌ C :=
 ⟨𝟭 C, 𝟭 C, iso.refl _, iso.refl _, λ X, category.id_comp _⟩
 
+instance : inhabited (C ≌ C) :=
+⟨refl⟩
+
+/-- Equivalence of categories is symmetric. -/
 @[symm, simps] def symm (e : C ≌ D) : D ≌ C :=
 ⟨e.inverse, e.functor, e.counit_iso.symm, e.unit_iso.symm, e.inverse_counit_inv_comp⟩
 
 variables {E : Type u₃} [category.{v₃} E]
 
+/-- Equivalence of categories is transitive. -/
 @[trans, simps] def trans (e : C ≌ D) (f : D ≌ E) : C ≌ E :=
 { functor := e.functor ⋙ f.functor,
   inverse := f.inverse ⋙ e.inverse,
@@ -183,6 +199,7 @@ variables {E : Type u₃} [category.{v₃} E]
     erw [comp_id, iso.hom_inv_id_app, functor.map_id],
   end }
 
+/-- Composing a functor with both functors of an equivalence yields a naturally isomorphic functor. -/
 def fun_inv_id_assoc (e : C ≌ D) (F : C ⥤ E) : e.functor ⋙ e.inverse ⋙ F ≅ F :=
 (functor.associator _ _ _).symm ≪≫ iso_whisker_right e.unit_iso.symm F ≪≫ F.left_unitor
 
@@ -194,6 +211,7 @@ by { dsimp [fun_inv_id_assoc], tidy }
   (fun_inv_id_assoc e F).inv.app X = F.map (e.unit.app X) :=
 by { dsimp [fun_inv_id_assoc], tidy }
 
+/-- Composing a functor with both functors of an equivalence yields a naturally isomorphic functor. -/
 def inv_fun_id_assoc (e : C ≌ D) (F : D ⥤ E) : e.inverse ⋙ e.functor ⋙ F ≅ F :=
 (functor.associator _ _ _).symm ≪≫ iso_whisker_right e.counit_iso F ≪≫ F.left_unitor
 
@@ -306,6 +324,8 @@ instance of_equivalence_inverse (F : C ≌ D) : is_equivalence F.inverse :=
 is_equivalence.of_equivalence F.symm
 
 open equivalence
+/-- To see that a functor is an equivalence, it suffices to provide an inverse functor `G` such that
+    `F ⋙ G` and `G ⋙ F` are naturally isomorphic to identity functors. -/
 protected definition mk {F : C ⥤ D} (G : D ⥤ C)
   (η : 𝟭 C ≅ F ⋙ G) (ε : G ⋙ F ≅ 𝟭 D) : is_equivalence F :=
 ⟨G, adjointify_η η ε, ε, adjointify_η_ε η ε⟩
@@ -315,6 +335,7 @@ end is_equivalence
 
 namespace functor
 
+/-- Interpret a functor that is an equivalence as an equivalence. -/
 def as_equivalence (F : C ⥤ D) [is_equivalence F] : C ≌ D :=
 ⟨F, is_equivalence.inverse F, is_equivalence.unit_iso, is_equivalence.counit_iso,
   is_equivalence.functor_unit_iso_comp⟩
@@ -322,6 +343,7 @@ def as_equivalence (F : C ⥤ D) [is_equivalence F] : C ≌ D :=
 instance is_equivalence_refl : is_equivalence (𝟭 C) :=
 is_equivalence.of_equivalence equivalence.refl
 
+/-- The inverse functor of a functor that is an equivalence. -/
 def inv (F : C ⥤ D) [is_equivalence F] : D ⥤ C :=
 is_equivalence.inverse F
 
@@ -337,9 +359,13 @@ is_equivalence.of_equivalence F.as_equivalence.symm
 @[simp] lemma inv_inv (F : C ⥤ D) [is_equivalence F] :
   inv (inv F) = F := rfl
 
+/-- The composition of functor that is an equivalence with its inverse is naturally isomorphic to
+    the identity functor. -/
 def fun_inv_id (F : C ⥤ D) [is_equivalence F] : F ⋙ F.inv ≅ 𝟭 C :=
 is_equivalence.unit_iso.symm
 
+/-- The composition of functor that is an equivalence with its inverse is naturally isomorphic to
+    the identity functor. -/
 def inv_fun_id (F : C ⥤ D) [is_equivalence F] : F.inv ⋙ F ≅ 𝟭 D :=
 is_equivalence.counit_iso
 
@@ -411,7 +437,12 @@ class ess_surj (F : C ⥤ D) :=
 restate_axiom ess_surj.iso'
 
 namespace functor
+/-- Given an essentially surjective functor, we can find a preimage for every object `d` in the
+    codomain. Applying the functor to this preimage will yield an object isomorphic to `d`, see
+    `fun_obj_preimage_iso`. -/
 def obj_preimage (F : C ⥤ D) [ess_surj F] (d : D) : C := ess_surj.obj_preimage.{v₁ v₂} F d
+/-- Applying an essentially surjective functor to a preimage of `d` yields an object that is
+    isomorphic to `d`. -/
 def fun_obj_preimage_iso (F : C ⥤ D) [ess_surj F] (d : D) : F.obj (F.obj_preimage d) ≅ d :=
 ess_surj.iso d
 end functor

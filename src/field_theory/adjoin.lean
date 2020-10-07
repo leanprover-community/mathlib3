@@ -35,7 +35,7 @@ def adjoin : intermediate_field F E :=
 { algebra_map_mem' := λ x, subfield.subset_closure (or.inl (set.mem_range_self x)),
   ..subfield.closure (set.range (algebra_map F E) ∪ S) }
 
-lemma adjoin_le_iff {T : intermediate_field F E} : adjoin F S ≤ T ↔ S ≤ T :=
+@[simp] lemma adjoin_le_iff {T : intermediate_field F E} : adjoin F S ≤ T ↔ S ≤ T :=
 ⟨λ H, le_trans (le_trans (set.subset_union_right _ _) subfield.subset_closure) H,
   λ H, (@subfield.closure_le E _ (set.range (algebra_map F E) ∪ S) T.to_subfield).mpr
   (set.union_subset (intermediate_field.set_range_subset T) H)⟩
@@ -80,7 +80,7 @@ begin
   exact mem_top,
 end
 
-lemma lift2_bot (K : intermediate_field F E) : ↑(⊥ : intermediate_field K E) = K :=
+@[simp] lemma lift2_bot (K : intermediate_field F E) : ↑(⊥ : intermediate_field K E) = K :=
 begin
   ext,
   rw [mem_lift2, mem_bot, (show ⇑(algebra_map K E) = coe, by ext;refl), subtype.range_coe],
@@ -147,11 +147,6 @@ begin
   rw set.union_subset_iff,
   exact ⟨HF, HS⟩,
 end
-
-/-- `S ⊆ adjoin F T` if and only if `adjoin F S ⊆ adjoin F T`. -/
-lemma subset_adjoin_iff {T : set E} : S ≤ adjoin F T ↔ adjoin F S ≤ adjoin F T :=
-⟨λ h, adjoin_le_subfield F S (adjoin.range_algebra_map_subset F T) h,
- λ h, set.subset.trans (subset_adjoin F S) h⟩
 
 lemma adjoin_subset_adjoin_iff {F' : Type*} [field F'] [algebra F' E]
   {S S' : set E} : (adjoin F S : set E) ⊆ adjoin F' S' ↔

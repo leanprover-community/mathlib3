@@ -381,7 +381,7 @@ namespace pos_num
   | (bit1 a) (bit1 b) := (sub' a b).bit0
 
   /--
-  Converts `znum` to `option pos_num`, where it is `some` if the `znum` was positive and `none`
+  Converts a `znum` to `option pos_num`, where it is `some` if the `znum` was positive and `none`
   otherwise.
   -/
   def of_znum' : znum → option pos_num

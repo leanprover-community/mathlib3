@@ -245,8 +245,7 @@ by simp
 begin
   ext i,
   simp_rw [vec_alt1],
-  cases i,
-  cases i_val,
+  rcases i with ⟨⟨⟩ | i, hi⟩,
   { refl },
   { simp [vec_alt1, nat.succ_add] }
 end

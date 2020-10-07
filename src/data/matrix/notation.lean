@@ -130,6 +130,147 @@ cons_val_succ x u 0
   vec_cons x u i = x :=
 by { fin_cases i, refl }
 
+-- The following definitions and `simp` lemmas are to allow any
+-- numeral-indexed element of a vector given with matrix notation to
+-- be extracted by `simp` (even when the numeral is larger than the
+-- number of elements in the vector, which is taken modulo that number
+-- of elements by virtue of the semantics of `bit0` and `bit1` and of
+-- addition on `fin n`).
+
+/-- `vec_alt0 v` gives a vector with the same length as `v`, but with
+only alternate elements (even-numbered, counting cyclically). -/
+def vec_alt0 (v : fin n → α) (k : fin n) : α := v $ bit0 k
+
+/-- `vec_alt1 v` gives a vector with the same length as `v`, but with
+only alternate elements (odd-numbered, counting cyclically). -/
+def vec_alt1 (v : fin (n + 1) → α) (k : fin (n + 1)) : α := v $ bit1 k
+
+@[simp] lemma cons_val_bit0 (x : α) (u : fin m → α) (i : fin (m + 1)) :
+  vec_cons x u (bit0 i) = vec_alt0 (vec_cons x u) i :=
+rfl
+
+@[simp] lemma cons_val_bit1 (x : α) (u : fin m → α) (i : fin (m + 1)) :
+  vec_cons x u (bit1 i) = vec_alt1 (vec_cons x u) i :=
+rfl
+
+/-- `vec_join u v` joins two vectors of lengths `m` and `n` to produce
+one of length `o = m + n`. -/
+def vec_join (ho : o = m + n) (u : fin m → α) (v : fin n → α) : fin o → α :=
+λ i, if h : (i : ℕ) < m then u ⟨i, h⟩
+                        else v ⟨(i : ℕ) - m,
+                                (nat.sub_lt_left_iff_lt_add (le_of_not_lt h)).2 (ho ▸ i.property)⟩
+
+@[simp] lemma empty_join (v : fin n → α) : vec_join (zero_add _).symm ![] v = v :=
+by { ext, simp [vec_join] }
+
+@[simp] lemma cons_join (ho : o + 1 = m + 1 + n) (x : α) (u : fin m → α) (v : fin n → α) :
+  vec_join ho (vec_cons x u) v =
+    vec_cons x (vec_join (by rwa [add_assoc, add_comm 1, ←add_assoc,
+                                  add_right_cancel_iff] at ho) u v) :=
+begin
+  ext i,
+  simp_rw [vec_join],
+  split_ifs,
+  { cases i,
+    cases i_val,
+    { simp },
+    { simp only [nat.succ_eq_add_one, add_lt_add_iff_right, fin.coe_mk] at h,
+      simp [h] } },
+  { cases i,
+    cases i_val,
+    { simpa using h },
+    { rw [not_lt, fin.coe_mk, nat.succ_eq_add_one, add_le_add_iff_right] at h,
+      simp [h] } }
+end
+
+/-- `vec_alt0' v` gives a vector with half the length of `v`, with
+only alternate elements (even-numbered). -/
+def vec_alt0' (hm : m = n + n) (v : fin m → α) (k : fin n) : α :=
+v ⟨(k : ℕ) + k, hm.symm ▸ add_lt_add k.property k.property⟩
+
+/-- `vec_alt1' v` gives a vector with half the length of `v`, with
+only alternate elements (odd-numbered). -/
+def vec_alt1' (hm : m = n + n) (v : fin m → α) (k : fin n) : α :=
+v ⟨(k : ℕ) + k + 1, hm.symm ▸ nat.add_succ_lt_add k.property k.property⟩
+
+lemma vec_alt0_eq_alt0' (v : fin n → α) : vec_alt0 v = vec_alt0' rfl (vec_join rfl v v) :=
+begin
+  ext i,
+  simp_rw [vec_alt0, vec_alt0', vec_join],
+  split_ifs; simp_rw [bit0]; congr,
+  { rw fin.coe_mk at h,
+    simp only [fin.ext_iff, fin.coe_add, fin.coe_mk],
+    exact nat.mod_eq_of_lt h },
+  { rw [fin.coe_mk, not_lt] at h,
+    simp only [fin.ext_iff, fin.coe_add, fin.coe_mk, nat.mod_eq_sub_mod h],
+    refine nat.mod_eq_of_lt _,
+    rw nat.sub_lt_left_iff_lt_add h,
+    exact add_lt_add i.property i.property }
+end
+
+lemma vec_alt1_eq_alt1' (v : fin (n + 1) → α) : vec_alt1 v = vec_alt1' rfl (vec_join rfl v v) :=
+begin
+  ext i,
+  simp_rw [vec_alt1, vec_alt1', vec_join],
+  cases n,
+  { simp, congr },
+  { split_ifs; simp_rw [bit1, bit0]; congr,
+    { rw fin.coe_mk at h,
+      simp only [fin.ext_iff, fin.coe_add, fin.coe_mk],
+      rw nat.mod_eq_of_lt (nat.lt_of_succ_lt h),
+      exact nat.mod_eq_of_lt h },
+    { rw [fin.coe_mk, not_lt] at h,
+      simp only [fin.ext_iff, fin.coe_add, fin.coe_mk, nat.mod_add_mod, fin.coe_one,
+                 nat.mod_eq_sub_mod h],
+      refine nat.mod_eq_of_lt _,
+      rw nat.sub_lt_left_iff_lt_add h,
+      exact nat.add_succ_lt_add i.property i.property } }
+end
+
+@[simp] lemma cons_vec_alt0_eq_alt0' (x : α) (u : fin n → α) :
+  vec_alt0 (vec_cons x u) = vec_alt0' rfl (vec_join rfl (vec_cons x u) (vec_cons x u)) :=
+vec_alt0_eq_alt0' _
+
+@[simp] lemma cons_vec_alt1_eq_alt1' (x : α) (u : fin n → α) :
+  vec_alt1 (vec_cons x u) = vec_alt1' rfl (vec_join rfl (vec_cons x u) (vec_cons x u)) :=
+vec_alt1_eq_alt1' _
+
+@[simp] lemma cons_vec_alt0' (h : m + 1 + 1 = (n + 1) + (n + 1)) (x y : α) (u : fin m → α) :
+  vec_alt0' h (vec_cons x (vec_cons y u)) = vec_cons x (vec_alt0'
+    (by rwa [add_assoc n, add_comm 1, ←add_assoc, ←add_assoc, add_right_cancel_iff,
+             add_right_cancel_iff] at h) u) :=
+begin
+  ext i,
+  simp_rw [vec_alt0'],
+  cases i,
+  cases i_val,
+  { refl },
+  { simp [vec_alt0', nat.succ_add] }
+end
+
+-- Although proved by simp, extracting element 8 of a five-element
+-- vector does not work by simp unless this lemma is present.
+@[simp] lemma empty_vec_alt0' (α) {h} : vec_alt0' h (![] : fin 0 → α) = ![] :=
+by simp
+
+@[simp] lemma cons_vec_alt1' (h : m + 1 + 1 = (n + 1) + (n + 1)) (x y : α) (u : fin m → α) :
+  vec_alt1' h (vec_cons x (vec_cons y u)) = vec_cons y (vec_alt1'
+    (by rwa [add_assoc n, add_comm 1, ←add_assoc, ←add_assoc, add_right_cancel_iff,
+             add_right_cancel_iff] at h) u) :=
+begin
+  ext i,
+  simp_rw [vec_alt1'],
+  cases i,
+  cases i_val,
+  { refl },
+  { simp [vec_alt1', nat.succ_add] }
+end
+
+-- Although proved by simp, extracting element 9 of a five-element
+-- vector does not work by simp unless this lemma is present.
+@[simp] lemma empty_vec_alt1' (α) {h} : vec_alt1' h (![] : fin 0 → α) = ![] :=
+by simp
+
 end val
 
 section dot_product

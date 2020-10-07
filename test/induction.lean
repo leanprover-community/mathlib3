@@ -559,15 +559,15 @@ def accufact : ℕ → ℕ → ℕ
 | a (n + 1) := accufact ((n + 1) * a) n
 
 lemma accufact_1_eq_fact (n : ℕ) :
-  accufact 1 n = nat.fact n :=
-have accufact_eq_fact_mul : ∀m a, accufact a m = nat.fact m * a :=
+  accufact 1 n = nat.factorial n :=
+have accufact_eq_fact_mul : ∀m a, accufact a m = nat.factorial m * a :=
   begin
     intros m a,
     induction' m,
     case zero {
-      simp [nat.fact, accufact] },
+      simp [nat.factorial, accufact] },
     case succ {
-      simp [nat.fact, accufact, ih, nat.succ_eq_add_one],
+      simp [nat.factorial, accufact, ih, nat.succ_eq_add_one],
       cc }
   end,
 by simp [accufact_eq_fact_mul n 1]
@@ -771,12 +771,12 @@ end transitive_closure
 
 /- Evenness -/
 
-inductive even : ℕ → Prop
-| zero    : even 0
-| add_two : ∀k : ℕ, even k → even (k + 2)
+inductive Even : ℕ → Prop
+| zero    : Even 0
+| add_two : ∀k : ℕ, Even k → Even (k + 2)
 
 lemma not_even_2_mul_add_1 (n : ℕ) :
-  ¬ even (2 * n + 1) :=
+  ¬ Even (2 * n + 1) :=
 begin
   intro h,
   induction' h,

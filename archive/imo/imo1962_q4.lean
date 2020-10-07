@@ -135,6 +135,6 @@ theorem imo1962_q4 {x : ℝ} : problem_equation x ↔ x ∈ solution_set :=
 begin
   rw [alt_equiv, finding_zeros, solve_cos3x_0, solve_cos2_half],
   unfold solution_set,
-  split; finish
+  refine exists_or_distrib.symm
 end
 

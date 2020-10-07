@@ -112,7 +112,7 @@ from finset.inf_le (finsupp.mem_support_iff.2 h)
 lemma nat_trailing_degree_le_of_ne_zero (h : coeff p n ≠ 0) : nat_trailing_degree p ≤ n :=
 begin
   rw [← with_top.coe_le_coe, ← trailing_degree_eq_nat_trailing_degree],
-  exact le_trailing_degree_of_ne_zero h,
+  { exact le_trailing_degree_of_ne_zero h, },
   { assume h, subst h, exact h rfl }
 end
 
@@ -234,8 +234,7 @@ begin
     intros y hy,
     exact nat_trailing_degree_le_of_mem_supp y hy },
   { apply finset.min'_le,
-    rw mem_support_iff_coeff_ne_zero,
-    exact trailing_coeff_nonzero_iff_nonzero.mpr h, },
+    exact mem_support_iff_coeff_ne_zero.mpr (trailing_coeff_nonzero_iff_nonzero.mpr h), },
 end
 
 end semiring
@@ -299,21 +298,18 @@ lemma coeff_nat_trailing_degree_eq_zero_of_trailing_degree_lt (h : trailing_degr
   coeff q (nat_trailing_degree p) = 0 :=
 begin
   refine coeff_eq_zero_of_trailing_degree_lt _,
-  refine lt_of_lt_of_le _ (le_refl q.trailing_degree),
---  { exact q.trailing_degree, },
-  cases h,
-  cases h_h,
-  rw option.mem_def at h_h_w,
+  rcases h with ⟨ n , hn , hq ⟩,
+  rw option.mem_def at hn,
+  simp_rw [option.mem_def] at hq,
   unfold nat_trailing_degree,
-  rw [h_h_w, option.get_or_else_some],
-  simp only [option.mem_def] at h_h_h,
-  exact ⟨ h_w , ⟨ rfl , h_h_h ⟩ ⟩,
+  rw [hn, option.get_or_else_some],
+  exact ⟨ n , ⟨ rfl , hq ⟩ ⟩,
 end
 
 lemma ne_zero_of_trailing_degree_lt {n : with_top ℕ} (h : trailing_degree p < n) : p ≠ 0 :=
 begin
-  intro,
-  rw (trailing_degree_eq_top.mpr a) at h,
+  intro p0,
+  rw (trailing_degree_eq_top.mpr p0) at h,
   revert h,
   exact dec_trivial,
 end

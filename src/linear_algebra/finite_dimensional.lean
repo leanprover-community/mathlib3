@@ -5,6 +5,7 @@ Authors: Chris Hughes
 -/
 import linear_algebra.dimension
 import ring_theory.principal_ideal_domain
+import algebra.algebra.subalgebra
 
 /-!
 # Finite dimensional vector spaces

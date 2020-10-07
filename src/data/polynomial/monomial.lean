@@ -79,4 +79,18 @@ begin
   simpa only [and_true, eq_self_iff_true, or_false, one_ne_zero, and_self],
 end
 
+lemma monomial_one_eq_X_pow : ∀{n}, monomial n (1 : R) = X^n
+| 0     := rfl
+| (n+1) :=
+  calc monomial (n + 1) (1 : R) = monomial n 1 * X : by rw [X, monomial_mul_monomial, mul_one]
+    ... = X^n * X : by rw [monomial_one_eq_X_pow]
+    ... = X^(n+1) : by simp only [pow_add, pow_one]
+
+lemma monomial_eq_smul_X {n} : monomial n (a : R) = a • X^n :=
+begin
+  calc monomial n a = monomial n (a * 1) : by simp
+    ... = a • monomial n 1 : (smul_single' _ _ _).symm
+    ... = a • X^n  : by rw monomial_one_eq_X_pow
+end
+
 end polynomial

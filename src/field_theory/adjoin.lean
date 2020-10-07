@@ -296,7 +296,7 @@ end
 lemma mem_bot_of_adjoin_simple_dim_eq_one (h : dim F F⟮α⟯ = 1) : α ∈ ((⊥ : intermediate_field F E) : set E) :=
 set.singleton_subset_iff.mp (sub_bot_of_adjoin_dim_eq_one h)
 
-lemma adjoin_dim_eq_one_of_sub_bot (h : S ⊆ (⊥ : intermediate_field F E)) : dim F (adjoin F S) = 1 :=
+lemma dim_adjoin_eq_one_of_sub_bot (h : S ⊆ (⊥ : intermediate_field F E)) : dim F (adjoin F S) = 1 :=
 begin
   rw [←dim_intermediate_field_eq_dim_subalgebra, adjoin_eq_bot h, bot_to_subalgebra],
   exact subalgebra.dim_bot,

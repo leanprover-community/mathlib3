@@ -9,6 +9,25 @@ import data.array.lemmas
 import algebra.group
 import data.sigma.basic
 
+/-!
+# Hash maps
+
+Defines a hash map data structure, representing a finite key-value map
+with a value type that may depend on the key type.  The structure
+requires a `nat`-valued hash function.  For a hash map with `n`
+buckets, the hash function is taken modulo-`n` to determine the bucket
+associated to a given key.
+
+## Main definitions
+
+* `hash_map`, constructed with `mk_hash_map`.
+
+## Tags
+
+hash map
+
+-/
+
 universes u v w
 
 /-- `bucket_array α β` is the underlying data type for `hash_map α β`,
@@ -631,7 +650,7 @@ meta instance : has_to_format (hash_map α β) :=
 ⟨to_format⟩
 end format
 
-/-- `hash_map` with `nat` keys and heterogeneous types for each key. -/
+/-- `hash_map` with key type `nat` and value type that may vary. -/
 instance {β : ℕ → Type*} : inhabited (hash_map ℕ β) := ⟨mk_hash_map id⟩
 
 end hash_map

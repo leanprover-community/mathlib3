@@ -16,7 +16,7 @@ universes u u' v w
 open_locale big_operators
 
 /-- `matrix m n` is the type of matrices whose rows are indexed by the fintype `m`
-    and whose columns are indexed by the fintype `m`. -/
+    and whose columns are indexed by the fintype `n`. -/
 @[nolint unused_arguments]
 def matrix (m : Type u) (n : Type u') [fintype m] [fintype n] (α : Type v) : Type (max u u' v) :=
 m → n → α
@@ -50,11 +50,11 @@ def transpose (M : matrix m n α) : matrix n m α
 
 localized "postfix `ᵀ`:1500 := matrix.transpose" in matrix
 
-/-- `matrix.col u` is the column matrix whose entries are those of `u`. -/
+/-- `matrix.col u` is the column matrix whose entries are given by `u`. -/
 def col (w : m → α) : matrix m unit α
 | x y := w x
 
-/-- `matrix.row u` is the row matrix whose entries are those of `u`. -/
+/-- `matrix.row u` is the row matrix whose entries are given by `u`. -/
 def row (v : n → α) : matrix unit n α
 | x y := v y
 
@@ -263,7 +263,7 @@ by simp [dot_product, finset.mul_sum, mul_assoc, mul_comm, mul_left_comm]
 
 end dot_product
 
-/-- `M ⬝ N` is the usual product of matrices `M` and `N`, i.e we have that
+/-- `M ⬝ N` is the usual product of matrices `M` and `N`, i.e. we have that
     `(M ⬝ N) i k` is the dot product of the `i`-th row of `M` by the `k`-th column of `Ǹ`. -/
 protected def mul [has_mul α] [add_comm_monoid α] (M : matrix l m α) (N : matrix m n α) :
   matrix l n α :=

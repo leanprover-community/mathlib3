@@ -97,9 +97,8 @@ namespace native
 @[reducible] meta def rb_multimap (α β : Type) : Type :=
 rb_map α (rb_set β)
 
-meta def mk_rb_multimap (α β : Type) [ltα : has_lt α] [ltβ : has_lt β]
-  [decidable_rel ((<) : α → α → Prop)]
-  : rb_multimap α β :=
+meta def mk_rb_multimap (α β) [has_lt α] [decidable_rel ((<) : α → α → Prop)] :
+  rb_multimap α β :=
 mk_rb_map
 
 
@@ -381,9 +380,8 @@ meta def get_unused_name' (ns : list name) (reserved : name_set) : tactic name :
   get_unused_name'_aux fallback reserved none
 
 /- Precond: ns is nonempty. -/
-meta def intro_fresh_reserved (ns : list name) (reserved : name_set) : tactic expr := do
-  n ← get_unused_name' ns reserved,
-  intro n
+meta def intro_fresh_reserved (ns : list name) (reserved : name_set) : tactic expr :=
+get_unused_name' ns reserved >>= intro
 
 /- Precond: each of the name lists is nonempty. -/
 meta def intro_lst_fresh_reserved (ns : list (name ⊕ list name)) (reserved : name_set) :

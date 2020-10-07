@@ -67,7 +67,7 @@ def regular_check(lines, fn):
         if copy_started and not copy_done:
             copy_lines += line
             if line == "-/\n":
-                if ((not "Copyright (c)" in copy_lines) or
+                if ((not "Copyright" in copy_lines) or
                     (not "Apache" in copy_lines) or
                     (not "Author" in copy_lines)):
                     errors += [(ERR_COP, copy_start_line_nr, fn)]

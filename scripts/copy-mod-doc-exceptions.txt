@@ -32,8 +32,8 @@ src/category_theory/eq_to_hom.lean : line 8 : ERR_MOD : Module docstring missing
 src/category_theory/equivalence.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/full_subcategory.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/fully_faithful.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/functor.lean : line 17 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/functor_category.lean : line 8 : ERR_MOD : Module docstring missing, or too late
+src/category_theory/functor.lean : line 17 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/groupoid.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/cones.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/creates.lean : line 8 : ERR_MOD : Module docstring missing, or too late
@@ -89,7 +89,6 @@ src/data/equiv/list.lean : line 11 : ERR_MOD : Module docstring missing, or too 
 src/data/equiv/nat.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/data/erased.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/fin2.lean : line 7 : ERR_MOD : Module docstring missing, or too late
-src/data/finset/order.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/fintype/basic.lean : line 14 : ERR_MOD : Module docstring missing, or too late
 src/data/fintype/sort.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/fp/basic.lean : line 11 : ERR_MOD : Module docstring missing, or too late
@@ -175,13 +174,8 @@ src/geometry/euclidean/basic.lean : line 13 : ERR_MOD : Module docstring missing
 src/geometry/euclidean/circumcenter.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/geometry/euclidean/monge_point.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/geometry/euclidean/triangle.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/geometry/manifold/algebra/lie_group.lean : line 1 : ERR_COP : Malformed or missing copyright header
-src/geometry/manifold/algebra/monoid.lean : line 1 : ERR_COP : Malformed or missing copyright header
 src/geometry/manifold/algebra/monoid.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/geometry/manifold/algebra/smooth_functions.lean : line 1 : ERR_COP : Malformed or missing copyright header
-src/geometry/manifold/algebra/structures.lean : line 1 : ERR_COP : Malformed or missing copyright header
 src/geometry/manifold/algebra/structures.lean : line 7 : ERR_MOD : Module docstring missing, or too late
-src/geometry/manifold/times_cont_mdiff_map.lean : line 1 : ERR_COP : Malformed or missing copyright header
 src/group_theory/abelianization.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/group_theory/coset.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/group_theory/free_abelian_group.lean : line 14 : ERR_MOD : Module docstring missing, or too late
@@ -224,7 +218,6 @@ src/order/order_iso_nat.lean : line 10 : ERR_MOD : Module docstring missing, or 
 src/order/pilex.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/order/rel_iso.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/order/zorn.lean : line 11 : ERR_MOD : Module docstring missing, or too late
-src/ring_theory/derivation.lean : line 1 : ERR_COP : Malformed or missing copyright header
 src/ring_theory/multiplicity.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/ring_theory/polynomial/basic.lean : line 16 : ERR_MOD : Module docstring missing, or too late
 src/ring_theory/polynomial/scale_roots.lean : line 10 : ERR_MOD : Module docstring missing, or too late
@@ -305,8 +298,8 @@ src/tactic/omega/term.lean : line 1 : ERR_COP : Malformed or missing copyright h
 src/tactic/omega/term.lean : line 1 : ERR_MOD : Module docstring missing, or too late
 src/tactic/push_neg.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/tactic/restate_axiom.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/tactic/rewrite.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/rewrite_all/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
+src/tactic/rewrite.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/show_term.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/simpa.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/slice.lean : line 8 : ERR_MOD : Module docstring missing, or too late
@@ -321,8 +314,8 @@ src/tactic/transform_decl.lean : line 9 : ERR_MOD : Module docstring missing, or
 src/tactic/trunc_cases.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/wlog.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/topology/algebra/floor_ring.lean : line 12 : ERR_MOD : Module docstring missing, or too late
-src/topology/algebra/group.lean : line 14 : ERR_MOD : Module docstring missing, or too late
 src/topology/algebra/group_completion.lean : line 10 : ERR_MOD : Module docstring missing, or too late
+src/topology/algebra/group.lean : line 14 : ERR_MOD : Module docstring missing, or too late
 src/topology/algebra/monoid.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/topology/algebra/open_subgroup.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/topology/algebra/polynomial.lean : line 12 : ERR_MOD : Module docstring missing, or too late
@@ -332,12 +325,11 @@ src/topology/bases.lean : line 10 : ERR_MOD : Module docstring missing, or too l
 src/topology/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/topology/category/Top/adjunctions.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/topology/category/Top/basic.lean : line 10 : ERR_MOD : Module docstring missing, or too late
+src/topology/category/TopCommRing.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/topology/category/Top/epi_mono.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/topology/category/Top/limits.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/topology/category/Top/open_nhds.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/topology/category/TopCommRing.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/topology/compact_open.lean : line 12 : ERR_MOD : Module docstring missing, or too late
-src/topology/continuous_map.lean : line 1 : ERR_COP : Malformed or missing copyright header
 src/topology/homeomorph.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/topology/instances/complex.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/topology/instances/nnreal.lean : line 9 : ERR_MOD : Module docstring missing, or too late

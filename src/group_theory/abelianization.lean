@@ -63,6 +63,8 @@ begin
   simp [monoid_hom.mem_ker, mul_right_comm (f p) (f q)],
 end
 
+/-- If `f : G → A` is a group homomorphism to an abelian group, then `lift f` is the unique map from
+  the abelianization of a `G` to `A` that factors through `f`. -/
 def lift : abelianization G →* A :=
 quotient_group.lift _ f (λ x h, f.mem_ker.2 $ commutator_subset_ker _ h)
 

@@ -110,7 +110,7 @@ where `add_const α β = const α β`. It can be used as a pattern to extract th
 @[pattern]
 def add_const.mk {α β} (x : α) : add_const α β := x
 
-/-- Extract the element of `a` from the constant functor. -/
+/-- Extract the element of `α` from the constant functor. -/
 def add_const.run {α β} : add_const α β → α := id
 
 instance add_const.functor {γ} : functor (add_const γ) :=

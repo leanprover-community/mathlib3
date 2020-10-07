@@ -35,17 +35,17 @@ def adjoin : intermediate_field F E :=
 { algebra_map_mem' := λ x, subfield.subset_closure (or.inl (set.mem_range_self x)),
   ..subfield.closure (set.range (algebra_map F E) ∪ S) }
 
-@[simp] lemma adjoin_le_iff {T : intermediate_field F E} : adjoin F S ≤ T ↔ S ≤ T :=
-⟨λ H, le_trans (le_trans (set.subset_union_right _ _) subfield.subset_closure) H,
-  λ H, (@subfield.closure_le E _ (set.range (algebra_map F E) ∪ S) T.to_subfield).mpr
-  (set.union_subset (intermediate_field.set_range_subset T) H)⟩
-
 end adjoin_def
 
 section lattice
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 
-lemma gc : galois_connection (adjoin F : set E → intermediate_field F E) coe := adjoin_le_iff F
+@[simp] lemma adjoin_le_iff {S : set E} {T : intermediate_field F E} : adjoin F S ≤ T ↔ S ≤ T :=
+⟨λ H, le_trans (le_trans (set.subset_union_right _ _) subfield.subset_closure) H,
+  λ H, (@subfield.closure_le E _ (set.range (algebra_map F E) ∪ S) T.to_subfield).mpr
+  (set.union_subset (intermediate_field.set_range_subset T) H)⟩
+
+lemma gc : galois_connection (adjoin F : set E → intermediate_field F E) coe := λ _ _, adjoin_le_iff
 
 /-- Galois insertion between `adjoin` and `coe`. -/
 def gi : galois_insertion (adjoin F : set E → intermediate_field F E) coe :=
@@ -186,7 +186,7 @@ lemma adjoin_le_algebra_adjoin (inv_mem : ∀ x ∈ algebra.adjoin F S, x⁻¹ �
   (adjoin F S).to_subalgebra ≤ algebra.adjoin F S :=
 show adjoin F S ≤
   { neg_mem' := λ x, (algebra.adjoin F S).neg_mem, inv_mem' := inv_mem, .. algebra.adjoin F S},
-from (adjoin_le_iff F S).mpr (algebra.subset_adjoin)
+from adjoin_le_iff.mpr (algebra.subset_adjoin)
 
 @[elab_as_eliminator]
 lemma adjoin_induction {s : set E} {p : E → Prop} {x} (h : x ∈ adjoin F s)

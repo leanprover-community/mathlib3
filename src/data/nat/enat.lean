@@ -109,6 +109,7 @@ roption.ext' (iff_of_true trivial h) (λ _ _, rfl)
 lemma dom_of_le_some {x : enat} {y : ℕ} : x ≤ y → x.dom :=
 λ ⟨h, _⟩, h trivial
 
+/-- The coercion `ℕ → enat` preserves `0` and addition. -/
 def coe_hom : ℕ →+ enat := ⟨coe, enat.coe_zero, enat.coe_add⟩
 
 instance : partial_order enat :=

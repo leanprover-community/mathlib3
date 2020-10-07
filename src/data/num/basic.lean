@@ -275,21 +275,21 @@ namespace num
   | a b := by dsimp [(≤)]; apply_instance
 
   /--
-  Converting a `num` to a `znum`.
+  Converts a `num` to a `znum`.
   -/
   def to_znum : num → znum
   | 0       := 0
   | (pos a) := znum.pos a
 
   /--
-  Converting `x : num` to `-x : znum`.
+  Converts `x : num` to `-x : znum`.
   -/
   def to_znum_neg : num → znum
   | 0       := 0
   | (pos a) := znum.neg a
 
   /--
-  Converting a `nat` to a `num`.
+  Converts a `nat` to a `num`.
   -/
   def of_nat' : ℕ → num :=
   nat.binary_rec 0 (λ b n, cond b num.bit1 num.bit0)
@@ -358,7 +358,7 @@ namespace znum
   | (neg n) := neg (pos_num.bit1 n)
 
   /--
-  Converting an `int` to a `znum`.
+  Converts an `int` to a `znum`.
   -/
   def of_int' : ℤ → znum
   | (n : ℕ) := num.to_znum (num.of_nat' n)
@@ -370,7 +370,7 @@ namespace pos_num
   open znum
 
   /--
-  Subtraction of two `pos_num`s producing a `znum`.
+  Subtraction of two `pos_num`s, producing a `znum`.
   -/
   def sub' : pos_num → pos_num → znum
   | a        1        := (pred' a).to_znum
@@ -381,7 +381,7 @@ namespace pos_num
   | (bit1 a) (bit1 b) := (sub' a b).bit0
 
   /--
-  Converting `znum` to `option pos_num`, where it is `some` if the `znum` was positive and `none`
+  Converts `znum` to `option pos_num`, where it is `some` if the `znum` was positive and `none`
   otherwise.
   -/
   def of_znum' : znum → option pos_num
@@ -389,7 +389,7 @@ namespace pos_num
   | _            := none
 
   /--
-  Converting a `znum` to a `pos_num`, mapping all out of range values to `1`.
+  Converts a `znum` to a `pos_num`, mapping all out of range values to `1`.
   -/
   def of_znum : znum → pos_num
   | (znum.pos p) := p
@@ -423,7 +423,7 @@ namespace num
   | (pos p) := p.pred'
 
   /--
-  Dividing a `num` by `2`
+  Divides a `num` by `2`
   -/
   def div2 : num → num
   | 0 := 0
@@ -432,7 +432,7 @@ namespace num
   | (pos (pos_num.bit1 p)) := pos p
 
   /--
-  Converting a `znum` to an `option num`, where `of_znum' p = none` if `p < 0`.
+  Converts a `znum` to an `option num`, where `of_znum' p = none` if `p < 0`.
   -/
   def of_znum' : znum → option num
   | 0            := some 0
@@ -440,14 +440,14 @@ namespace num
   | (znum.neg p) := none
 
   /--
-  Converting a `znum` to an `option num`, where `of_znum p = 0` if `p < 0`.
+  Converts a `znum` to an `option num`, where `of_znum p = 0` if `p < 0`.
   -/
   def of_znum : znum → num
   | (znum.pos p) := pos p
   | _            := 0
 
   /--
-  Subtraction of two `num`s, producting a `znum`.
+  Subtraction of two `num`s, producing a `znum`.
   -/
   def sub' : num → num → znum
   | 0       0       := 0

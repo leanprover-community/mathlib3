@@ -20,12 +20,14 @@ two judges, their rating coincide for at most `k` contestants. Prove that `k / a
 open_locale classical
 noncomputable theory
 
+local notation x `/` y := (x : ℚ) / y
+
 variables {C J : Type*} (r : C → J → Prop)
 
 /-- The set of contestants on which two judges agree. -/
 def same_rating [fintype C] (j₁ j₂ : J) : finset C := finset.univ.filter (λ c, r c j₁ = r c j₂)
 
-section upper_bound
+section
 
 variables [fintype J] [fintype C]
 
@@ -36,7 +38,7 @@ finset.univ.filter (λ (a : C × J × J), r a.1 a.2.1 = r a.1 a.2.2 ∧ a.2.1 �
 lemma A_snd_mem (a : C × J × J) : a ∈ A r → a.2 ∈ finset.off_diag (@finset.univ J _) :=
 by simp [A, finset.mem_off_diag]
 
-lemma A_left_fibre (c : C) :
+lemma A_fst_fibre (c : C) :
   finset.univ.filter (λ (x : J × J), r c x.1 = r c x.2 ∧ x.1 ≠ x.2) =
   ((A r).filter (λ (x : C × J × J), x.1 = c)).image prod.snd :=
 begin
@@ -47,18 +49,18 @@ begin
   { intros h, finish, },
 end
 
-lemma A_left_fibre_card (c : C) :
+lemma A_fst_fibre_card (c : C) :
   (finset.univ.filter (λ (x : J × J), r c x.1 = r c x.2 ∧ x.1 ≠ x.2)).card =
   ((A r).filter (λ (x : C × J × J), x.fst = c)).card :=
-by { rw A_left_fibre r, apply finset.card_image_of_inj_on, tidy, }
+by { rw A_fst_fibre r, apply finset.card_image_of_inj_on, tidy, }
 
-lemma A_right_fibre {j₁ j₂ : J} (hj : j₁ ≠ j₂) :
+lemma A_snd_fibre {j₁ j₂ : J} (hj : j₁ ≠ j₂) :
   same_rating r j₁ j₂ = ((A r).filter(λ (x : C × J × J), x.2 = (j₁, j₂))).image prod.fst :=
 by { dunfold A same_rating, ext, split; finish, }
 
-lemma A_right_fibre_card {j₁ j₂ : J} (hj : j₁ ≠ j₂) :
+lemma A_snd_fibre_card {j₁ j₂ : J} (hj : j₁ ≠ j₂) :
   (same_rating r j₁ j₂).card = ((A r).filter(λ (x : C × J × J), x.2 = (j₁, j₂))).card :=
-by { rw A_right_fibre r hj, apply finset.card_image_of_inj_on, tidy, }
+by { rw A_snd_fibre r hj, apply finset.card_image_of_inj_on, tidy, }
 
 lemma agreement_upper_bound {k : ℕ} (hk : ∀ j₁ j₂, j₁ ≠ j₂ → (same_rating r j₁ j₂).card ≤ k) :
   (A r).card ≤ k * ((fintype.card J) * (fintype.card J) - (fintype.card J)) :=
@@ -68,10 +70,10 @@ begin
   apply finset.card_le_mul_card_image_of_maps_to (A_snd_mem r),
   rintros ⟨j₁, j₂⟩ hj,
   have hj' : j₁ ≠ j₂, { simp [finset.mem_off_diag] at hj, exact hj, },
-  rw ← A_right_fibre_card r hj', apply hk, exact hj',
+  rw ← A_snd_fibre_card r hj', apply hk, exact hj',
 end
 
-end upper_bound
+end
 
 lemma add_sq_add_sq_sub {α : Type*} [ring α] (x y : α) :
   (x + y) * (x + y) + (x - y) * (x - y) = 2*x*x + 2*y*y :=
@@ -88,7 +90,7 @@ begin
   apply mul_self_pos, rw sub_ne_zero, apply int.ne_of_odd_sum ⟨z, h⟩,
 end
 
-section lower_bound
+section
 
 variables [fintype J]
 
@@ -124,40 +126,44 @@ begin
   have A_fst_mem : ∀ a, a ∈ A r → prod.fst a ∈ @finset.univ C _, { intros, apply finset.mem_univ, },
   apply finset.mul_card_image_le_card_of_maps_to A_fst_mem,
   intros c hc,
-  rw ← A_left_fibre_card,
+  rw ← A_fst_fibre_card,
   apply agreement_lower_bound' r z hJ,
 end
 
-end lower_bound
+end
 
-local notation x `/` y := (x : ℚ) / y
+lemma annoying_lemma_1
+  {a z k : ℕ} (h : 2 * z * z * a ≤ k * ((2 * z + 1) * (2 * z + 1) - (2 * z + 1))) :
+  2 * z * a ≤ k * (2 * (2 * z + 1)) :=
+begin
+  have hl : k * ((2 * z + 1) * (2 * z + 1) - (2 * z + 1)) = (k * (2 * (2 * z + 1))) * z,
+  { simp only [add_mul, two_mul, mul_comm, mul_assoc], finish, },
+  have hr : 2 * z * z * a = 2 * z * a * z, { ring, },
+  rw [hl, hr] at h,
+  cases z,
+  { simp, },
+  { exact le_of_mul_le_mul_right h z.succ_pos, },
+end
 
--- ## TODO fix up disgusting proof below.
+lemma annoying_lemma_2
+  {a z k : ℕ} (ha : 0 < a) (h : 2 * z * z * a ≤ k * ((2 * z + 1) * (2 * z + 1) - (2 * z + 1))) :
+  (↑(2 * z + 1) - 1) / (2 * ↑(2 * z + 1)) ≤ k / a :=
+begin
+  have h' := annoying_lemma_1 h,
+  rw div_le_div_iff,
+  { rw ← @nat.cast_le ℚ at h',
+    simp only [nat.cast_one, nat.cast_two, nat.cast_add, nat.cast_mul] at h', simp [h'], },
+  { apply mul_pos zero_lt_two, rw [← nat.cast_zero, nat.cast_lt], exact nat.succ_pos', },
+  { rw nat.cast_pos, exact ha, },
+end
+
 theorem imo1998_q2 [fintype J] [fintype C]
   (a b k : ℕ) (hC : fintype.card C = a) (hJ : fintype.card J = b) (ha : 0 < a) (hb : odd b)
   (hk : ∀ j₁ j₂, j₁ ≠ j₂ → (same_rating r j₁ j₂).card ≤ k) :
   (b - 1) / (2*b) ≤ k / a :=
 begin
-  obtain ⟨B, hB⟩ := hb, rw hB at hJ, rw hB,
-  have h := le_trans (agreement_lower_bound'' r B hJ) (agreement_upper_bound r hk),
+  obtain ⟨z, hz⟩ := hb, rw hz at hJ, rw hz,
+  have h := le_trans (agreement_lower_bound'' r z hJ) (agreement_upper_bound r hk),
   rw [hC, hJ] at h,
-  have h' : (2 * B + 1) * (2 * B + 1) - (2 * B + 1) = 2 * (2 * B + 1) * B,
-  { simp only [add_mul, two_mul, mul_comm, mul_assoc], finish, },
-  have foo : 2 * B * B * a = a * 2 * B * B, { rw [mul_comm, ← mul_assoc, ← mul_assoc], },
-  rw [h', ← mul_assoc, foo] at h,
-  cases B,
-  { apply div_nonneg; simp, },
-  { have h'' := le_of_mul_le_mul_right h B.succ_pos, -- Maybe should cast to ℚ up here?
-    simp,
-    rw div_le_div_iff,
-    { rw [mul_comm, ← mul_assoc],
-      nth_rewrite 1 ← nat.cast_one,
-      nth_rewrite 4 ← nat.cast_one,
-      nth_rewrite 5 ← nat.cast_one,
-      rw ← nat.cast_two,
-      repeat { rw ← nat.cast_add <|> rw ← nat.cast_mul },
-      rw nat.cast_le, exact h'', },
-    { apply mul_pos zero_lt_two, refine add_pos _ zero_lt_one, apply mul_pos zero_lt_two,
-      rw [← nat.cast_one, ← nat.cast_add, nat.cast_pos], exact nat.succ_pos', },
-    { rw nat.cast_pos, exact ha, }, },
+  apply annoying_lemma_2 ha h,
 end

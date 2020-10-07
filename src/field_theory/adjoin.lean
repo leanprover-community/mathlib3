@@ -256,10 +256,10 @@ eq_bot_iff.mpr ((adjoin_le_iff F S).mpr h)
 lemma adjoin_simple_eq_bot (hα : α ∈ (⊥ : intermediate_field F E)) : F⟮α⟯ = ⊥ :=
 adjoin_eq_bot (set.singleton_subset_iff.mpr hα)
 
-lemma adjoin_zero : F⟮(0 : E)⟯ = ⊥ :=
+@[simp] lemma adjoin_zero : F⟮(0 : E)⟯ = ⊥ :=
 adjoin_simple_eq_bot (⊥ : intermediate_field F E).zero_mem
 
-lemma adjoin_one : F⟮(1 : E)⟯ = ⊥ :=
+@[simp] lemma adjoin_one : F⟮(1 : E)⟯ = ⊥ :=
 adjoin_simple_eq_bot (⊥ : intermediate_field F E).one_mem
 
 lemma sub_bot_of_adjoin_sub_bot (h : adjoin F S = ⊥) : S ⊆ (⊥ : intermediate_field F E) :=

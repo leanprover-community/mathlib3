@@ -723,69 +723,53 @@ focus1 $ do
 -- The following functions simplify induction hypotheses by instantiating index
 -- placeholders and removing redundant index equations.
 
--- TODO spaghetti much
-private meta def ih_apps_aux : expr → list expr → ℕ → expr → tactic (expr × list expr)
-| res cnsts 0       _ := pure (res, cnsts.reverse)
-| res cnsts (n + 1) (pi pp_name binfo type e) := do
-  match type with
-  | (app (app (app (const `eq [u]) type') lhs) rhs) := do
-    rhs_eq_lhs ← succeeds $ unify lhs rhs,
-    if rhs_eq_lhs
-      then do
-        let arg := (const `eq.refl [u]) type' lhs,
-        ih_apps_aux (app res arg) cnsts n e
-      else do
-        c ← mk_local' pp_name binfo type,
-        ih_apps_aux (app res c) (c :: cnsts) n e
-  | (app (app (app (app (const `heq [u]) lhs_type) lhs) rhs_type) rhs) := do
-    types_eq ← succeeds $ is_def_eq lhs_type rhs_type,
-    if ¬ types_eq
-      then do
-        c ← mk_local' pp_name binfo type,
-        ih_apps_aux (app res c) (c :: cnsts) n e
-      else do
-        rhs_eq_lhs ← succeeds $ unify lhs rhs,
-        if ¬ rhs_eq_lhs
-          then do
-            let type := (const `eq [u]) lhs_type lhs rhs,
-            c ← mk_local' pp_name binfo type,
-            let arg := (const `heq_of_eq [u]) lhs_type lhs rhs c,
-            ih_apps_aux (app res arg) (c :: cnsts) n e
-          else do
-            let arg := (const `heq.refl [u]) lhs_type lhs,
-            ih_apps_aux (app res arg) cnsts n e
-  | _ := fail!
-    "internal error in ih_apps_aux:\nexpected an equation, but got\n{type}"
-  end
-| _   _     _       e := fail!
-  "internal error in ih_apps_aux:\nexpected a pi type, but got\n{e}"
-
 /--
-Given an induction hypothesis `ih` of the form
+Process one index equation for `simplify_ih`.
 
-```
-ih : Hi₁ = i₁ → ... → Hiₙ = iₙ → P
-```
+Input: a local constant `h : x = y` or `h : x == y`.
 
-where the leading equations are index equations, this tactic creates a proof
-`p : P` in a new context `Γ`. `Γ` contains a subset of the index equations.
-Equations whose left-hand and right-hand sides can be unified are deleted, i.e.
-they do not appear in `Γ`.
+Output: A proof of `x = y` or `x == y` and possibly a local constant of type
+`x = y` or `x == y` used in the proof. More specifically:
 
-Input:
+- For `h : x = y` and `x` defeq `y`, we return the proof of `x = y` by
+  reflexivity and `none`.
+- For `h : x = y` and `x` not defeq `y`, we return `h` and `h`.
+- For `h : x == y` where `x` and `y` have defeq types:
+  - If `x` defeq `y`, we return the proof of `x == y` by reflexivity and `none`.
+  - If `x` not defeq `y`, we return `heq_of_eq h'` and a fresh local constant
+    `h' : x = y`.
+- For `h : x == y` where `x` and `y` do not have defeq types, we return
+  `h` and `h`.
 
-- `num_equations`: the number of index equations.
-- `ih`: the induction hypothesis.
-- `ih_type`: the type of `ih`.
-
-Output:
-
-The proof `p` and context `Γ` as described above. `Γ` is given as a list of
-local constants.
+Checking for definitional equality of the left- and right-hand sides may assign
+metavariables.
 -/
-meta def ih_apps (num_equations : ℕ) (ih : expr) (ih_type : expr) :
-  tactic (expr × list expr) :=
-ih_apps_aux ih [] num_equations ih_type
+meta def process_index_equation : expr → tactic (expr × option expr)
+| h@(local_const _ ppname binfo
+    T@(app (app (app (const `eq [u]) type) lhs) rhs)) := do
+  rhs_eq_lhs ← succeeds $ unify lhs rhs,
+  if rhs_eq_lhs
+    then pure ((const `eq.refl [u]) type lhs, none)
+    else do
+      pure (h, some h)
+| h@(local_const uname ppname binfo
+    T@(app (app (app (app (const `heq [u]) lhs_type) lhs) rhs_type) rhs)) := do
+  lhs_type_eq_rhs_type ← succeeds $ is_def_eq lhs_type rhs_type,
+  if ¬ lhs_type_eq_rhs_type
+    then do
+      pure (h, some h)
+    else do
+      lhs_eq_rhs ← succeeds $ unify lhs rhs,
+      if lhs_eq_rhs
+        then pure ((const `heq.refl [u]) lhs_type lhs, none)
+        else do
+          c ← mk_local' ppname binfo $ (const `eq [u]) lhs_type lhs rhs,
+          let arg := (const `heq_of_eq [u]) lhs_type lhs rhs c,
+          pure (arg, some c)
+| (local_const _ _ _ T) := fail!
+  "process_index_equation: expected a homogeneous or heterogeneous equation, but got:\n{T}"
+| e := fail!
+  "process_index_equation: expected a local constant, but got:\n{e}"
 
 /--
 `assign_local_to_unassigned_mvar mv pp_name binfo`, where `mv` is a
@@ -815,23 +799,71 @@ mvars.mmap_filter $ λ ⟨mv, pp_name, binfo⟩,
 
 /--
 Simplify an induction hypothesis.
+
+Input: a local constant
+```
+ih : ∀ (x₁ : T₁) ... (xₙ : Tₙ) (eq₁ : y₁ = z₁) ... (eqₘ : yₘ = zₘ), P
+```
+where `n = num_generalized` and `m = num_index_vars`. The `xᵢ` are hypotheses
+that we generalised over before performing induction. The `eqᵢ` are index
+equations.
+
+Output: a new local constant
+```
+ih' : ∀ (x'₁ : T'₁) ... (x'ₖ : T'ₖ) (eq'₁ : y'₁ = z'₁) ... (eq'ₗ : y'ₗ = z'ₗ), P'
+```
+This new induction hypothesis is derived from `ih` by removing those `eqᵢ` whose
+left- and right-hand sides can be unified. This unification may also determine
+some of the `xᵢ`. The `x'ᵢ` and `eq'ᵢ` are those `xᵢ` and `eqᵢ` that were not
+removed by this process.
+
+Some of the `eqᵢ` may be heterogeneous: `eqᵢ : yᵢ == zᵢ`. In this case, we
+proceed as follows:
+
+- If `yᵢ` and `zᵢ` are defeq, then `eqᵢ` is removed.
+- If `yᵢ` and `zᵢ` are not defeq but their types are, then `eqᵢ` is replaced by
+  `eq'ᵢ : x = y`.
+- Otherwise `eqᵢ` remains unchanged.
 -/
 meta def simplify_ih (num_generalized : ℕ) (num_index_vars : ℕ) (ih : expr) :
   tactic expr := do
-  ih_type ← infer_type ih,
-  (generalized_arg_mvars, ih_type) ← open_n_pis_metas' ih_type num_generalized,
-  let apps := ih.app_of_list (generalized_arg_mvars.map prod.fst),
-  ⟨apps, cnsts⟩ ← ih_apps num_index_vars apps ih_type,
-  generalized_arg_locals ←
+  T ← infer_type ih,
+
+  -- Replace the `xᵢ` with fresh metavariables.
+  (generalized_arg_mvars, body) ← open_n_pis_metas' T num_generalized,
+
+  -- Replace the `eqᵢ` with fresh local constants.
+  (index_eq_lcs, body) ← open_n_pis body num_index_vars,
+
+  -- Process the `eqᵢ` local constants, yielding
+  -- - `new_args`: proofs of `yᵢ = zᵢ`.
+  -- - `new_index_eq_lcs`: local constants of type `yᵢ = zᵢ` or `yᵢ == zᵢ` used
+  --   in `new_args`.
+  new_index_eq_lcs_new_args ← index_eq_lcs.mmap process_index_equation,
+  let (new_args, new_index_eq_lcs) := new_index_eq_lcs_new_args.unzip,
+  let new_index_eq_lcs := new_index_eq_lcs.reduce_option,
+
+  -- Assign fresh local constants to those `xᵢ` metavariables that were not
+  -- assigned by the previous step.
+  new_generalized_arg_lcs ←
     assign_locals_to_unassigned_mvars generalized_arg_mvars,
-  apps ← instantiate_mvars apps,
-  generalized_arg_locals ← generalized_arg_locals.mmap instantiate_mvars,
-  cnsts ← cnsts.mmap instantiate_mvars,
-  -- TODO implement a more efficient 'lambdas'
-  let new_ih := apps.lambdas (generalized_arg_locals ++ cnsts),
-  -- Sanity check to catch any errors in constructing new_ih.
+
+  -- Instantiate the metavariables assigned in the previous steps.
+  new_generalized_arg_lcs ← new_generalized_arg_lcs.mmap instantiate_mvars,
+  new_index_eq_lcs ← new_index_eq_lcs.mmap instantiate_mvars,
+
+  -- Construct a proof of the new induction hypothesis by applying `ih` to the
+  -- `xᵢ` metavariables and the `new_args`, then abstracting over the
+  -- `new_index_eq_lcs` and the `new_generalized_arg_lcs`.
+  b ← instantiate_mvars $
+    ih.mk_app (generalized_arg_mvars.map prod.fst ++ new_args),
+  new_ih ← lambdas (new_generalized_arg_lcs ++ new_index_eq_lcs) b,
+
+  -- Type-check the new induction hypothesis as a sanity check.
   type_check new_ih <|> fail!
     "internal error in simplify_ih: constructed term does not type check:\n{new_ih}",
+
+  -- Replace the old induction hypothesis with the new one.
   ih' ← note ih.local_pp_name none new_ih,
   clear ih,
   pure ih'
@@ -1026,10 +1058,8 @@ focus1 $ do
       -- Simplify the index equations. Stop after this step if the goal has been
       -- solved by the simplification.
       ff ← unify_equations index_equations
-        | do {
-            trace_eliminate_hyp "Case solved while simplifying index equations.",
-            pure none
-          },
+        | trace_eliminate_hyp "Case solved while simplifying index equations." >>
+          pure none,
 
       trace_state_eliminate_hyp
         "State after simplifying index equations and before simplifying IHs:",

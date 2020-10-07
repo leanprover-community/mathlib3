@@ -201,14 +201,14 @@ by simpa only [C_1, one_mul, pow_one] using le_trailing_degree_C_mul_X_pow (1:R)
 lemma nat_trailing_degree_X_le : (X : polynomial R).nat_trailing_degree ≤ 1 :=
 begin
   by_cases h : X = 0,
-    { rw [h, nat_trailing_degree_zero],
-      exact zero_le 1, },
-    { unfold nat_trailing_degree,
-      unfold trailing_degree,
-      rw [support_X, inf_singleton, option.get_or_else_some],
-      intro,
-      apply h,
-      rw [← mul_one X, ← C_1, a, C_0, mul_zero], },
+  { rw [h, nat_trailing_degree_zero],
+    exact zero_le 1, },
+  { unfold nat_trailing_degree,
+    unfold trailing_degree,
+    rw [support_X, inf_singleton, option.get_or_else_some],
+    intro,
+    apply h,
+    rw [← mul_one X, ← C_1, a, C_0, mul_zero], },
 end
 
 @[simp] lemma trailing_coeff_eq_zero : trailing_coeff p = 0 ↔ p = 0 :=

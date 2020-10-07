@@ -335,7 +335,7 @@ lemma dense.prod {s : set α} {t : set β} (hs : dense s) (ht : dense t) :
 /-- If `f` and `g` are maps with dense range, then `prod.map f g` has dense range. -/
 lemma dense_range.prod_map {ι : Type*} {κ : Type*} {f : ι → β} {g : κ → γ}
   (hf : dense_range f) (hg : dense_range g) : dense_range (prod.map f g) :=
-by { rw [dense_range, ← prod_range_range_eq], exact hf.prod hg }
+by simpa only [dense_range, prod_range_range_eq] using hf.prod hg
 
 lemma inducing.prod_mk {f : α → β} {g : γ → δ} (hf : inducing f) (hg : inducing g) :
   inducing (λx:α×γ, (f x.1, g x.2)) :=

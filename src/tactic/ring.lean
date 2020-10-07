@@ -454,7 +454,7 @@ meta def eval : expr → ring_m (horner_expr × expr)
       (e', p) ← eval e,
       p' ← ic_lift $ λ ic, ic.mk_app ``unfold_sub [e₁, e₂, e', p],
       return (e',
-        if inst = `(int.has_sub) then
+        if inst.const_name = `int.has_sub then
           `(norm_num.int_sub_hack).mk_app [e₁, e₂, e', p']
         else p'))
     (eval_atom e)

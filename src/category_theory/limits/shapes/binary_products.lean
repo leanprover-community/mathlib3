@@ -312,7 +312,8 @@ colim_map (map_pair f g)
 
 section prod_lemmas
 
-@[simp, reassoc]
+-- Making the reassoc version of this a simp lemma seems to be more harmful than helpful.
+@[reassoc, simp]
 lemma prod.comp_lift {V W X Y : C} [has_binary_product X Y] (f : V ⟶ W) (g : W ⟶ X) (h : W ⟶ Y) :
   f ≫ prod.lift g h = prod.lift (f ≫ g) (f ≫ h) :=
 by { ext; simp }

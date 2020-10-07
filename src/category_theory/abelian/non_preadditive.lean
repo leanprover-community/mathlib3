@@ -575,7 +575,7 @@ by simp
 
 /-- σ is a cokernel of Δ X. -/
 def is_colimit_σ {X : C} : is_colimit (cokernel_cofork.of_π σ diag_σ) :=
-cokernel.cokernel_iso _ σ (as_iso (r X)).symm (by simp)
+cokernel.cokernel_iso _ σ (as_iso (r X)).symm (by rw [iso.symm_hom, as_iso_inv])
 
 /-- This is the key identity satisfied by `σ`. -/
 lemma σ_comp {X Y : C} (f : X ⟶ Y) : σ ≫ f = limits.prod.map f f ≫ σ :=

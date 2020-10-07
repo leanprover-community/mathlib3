@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury Kudryashov.
+Authors: Yury Kudryashov, Heather Macbeth.
 -/
 import analysis.calculus.times_cont_diff
 import topology.local_homeomorph
@@ -31,8 +31,15 @@ and prove two versions of the inverse function theorem:
   `f'.symm` at `f a` in the strict sense.
 
 In the one-dimensional case we reformulate these theorems in terms of `has_strict_deriv_at` and
-`f'⁻¹`. Some other versions of the theorem assuming that we already know the inverse function are
-formulated in `fderiv.lean` and `deriv.lean`
+`f'⁻¹`.
+
+We also reformulate the theorems in terms of `times_cont_diff`, to give that `C^k` (respectively,
+smooth) inputs give `C^k` (smooth) inverses.  These versions require that continuous
+differentiability implying strict differentiability; this is false over a general field, true over
+`ℝ` (the setting in which it is implemented here), and true but (TODO) not yet implemented over `C`.
+
+Some related theorems, providing the derivative and higher regularity assuming that we already know
+the inverse function, are formulated in `fderiv.lean`, `deriv.lean`, and `times_cont_diff.lean`.
 
 ## Notations
 
@@ -45,7 +52,7 @@ shorter:
 
 ## Tags
 
-derivative, strictly differentiable, inverse function
+derivative, strictly differentiable, continuously differentiable, smooth, inverse function
 -/
 
 open function set filter metric

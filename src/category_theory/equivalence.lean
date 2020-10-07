@@ -37,7 +37,7 @@ if it is full, faithful and essentially surjective.
 
 ## Notations
 
-We write `C ≌ D` (`\backcong`, not do be confused with `≅`/`\cong`) for a bundled equivalence.
+We write `C ≌ D` (`\backcong`, not to be confused with `≅`/`\cong`) for a bundled equivalence.
 
 -/
 

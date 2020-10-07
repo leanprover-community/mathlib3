@@ -145,6 +145,7 @@ open filter
 variables {G : Type u} [add_comm_group G] [topological_space G] [topological_add_group G]
 
 variable (G)
+/-- The right uniformity on a topological group. -/
 def topological_add_group.to_uniform_space : uniform_space G :=
 { uniformity          := comap (λp:G×G, p.2 - p.1) (𝓝 0),
   refl                :=
@@ -228,6 +229,7 @@ variables [add_comm_group α] [add_comm_group β] [add_comm_group γ]
 
 /- TODO: when modules are changed to have more explicit base ring, then change replace `is_Z_bilin`
 by using `is_bilinear_map ℤ` from `tensor_product`. -/
+/-- `ℤ`-bilinearity for maps between additive commutative groups. -/
 class is_Z_bilin (f : α × β → γ) : Prop :=
 (add_left []  : ∀ a a' b, f (a + a', b) = f (a, b) + f (a', b))
 (add_right [] : ∀ a b b', f (a, b + b') = f (a, b) + f (a, b'))

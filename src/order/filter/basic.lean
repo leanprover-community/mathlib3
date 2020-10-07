@@ -1293,6 +1293,10 @@ lemma eventually_le_antisymm_iff [partial_order β] {l : filter α} {f g : α �
   f =ᶠ[l] g ↔ f ≤ᶠ[l] g ∧ g ≤ᶠ[l] f :=
 by simp only [eventually_eq, eventually_le, le_antisymm_iff, eventually_and]
 
+lemma eventually_le.le_iff_eq [partial_order β] {l : filter α} {f g : α → β} (h : f ≤ᶠ[l] g) :
+  g ≤ᶠ[l] f ↔ g =ᶠ[l] f :=
+⟨λ h', h'.antisymm h, eventually_eq.le⟩
+
 lemma join_le {f : filter (filter α)} {l : filter α} (h : ∀ᶠ m in f, m ≤ l) : join f ≤ l :=
 λ s hs, h.mono $ λ m hm, hm hs
 

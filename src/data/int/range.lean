@@ -32,6 +32,8 @@ instance decidable_le_le (P : int → Prop) [decidable_pred P] (m n : ℤ) :
   decidable (∀ r, m ≤ r → r ≤ n → P r) :=
 decidable_of_iff (∀ r ∈ range m (n+1), P r) $ by simp only [mem_range_iff, and_imp, lt_add_one_iff]
 
+local attribute [semireducible] int.lt
+
 instance decidable_lt_lt (P : int → Prop) [decidable_pred P] (m n : ℤ) :
   decidable (∀ r, m < r → r < n → P r) :=
 int.decidable_le_lt P _ _

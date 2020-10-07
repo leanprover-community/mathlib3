@@ -391,6 +391,17 @@ lemma norm_set_integral_le_of_norm_le_const' {C : ℝ} (hs : μ s < ⊤) (hsm : 
   ∥∫ x in s, f x ∂μ∥ ≤ C * (μ s).to_real :=
 norm_set_integral_le_of_norm_le_const_ae'' hs hsm $ eventually_of_forall hC
 
+lemma set_integral_eq_zero_iff_of_nonneg_ae {f : α → ℝ} (hf : 0 ≤ᵐ[μ.restrict s] f)
+  (hfi : integrable_on f s μ) :
+  ∫ x in s, f x ∂μ = 0 ↔ f =ᵐ[μ.restrict s] 0 :=
+integral_eq_zero_iff_of_nonneg_ae hf hfi
+
+lemma set_integral_pos_iff_support_of_nonneg_ae {f : α → ℝ} (hf : 0 ≤ᵐ[μ.restrict s] f)
+  (hfi : integrable_on f s μ) :
+  0 < ∫ x in s, f x ∂μ ↔ 0 < μ (support f ∩ s) :=
+by { rw [integral_pos_iff_support_of_nonneg_ae hf hfi, measure.restrict_apply],
+  exact hfi.1 (is_measurable_singleton 0).compl }
+
 end normed_group
 
 end measure_theory
@@ -451,6 +462,18 @@ lemma continuous.integrable_on_compact
   (hs : is_compact s) {f : α → E} (hf : continuous f) :
   integrable_on f s μ :=
 hf.continuous_on.integrable_on_compact hs hf.measurable
+
+/-- A continuous function with compact closure of the support is integrable on the whole space. -/
+lemma continuous.integrable_of_compact_closure_support
+  [topological_space α] [opens_measurable_space α] [t2_space α] [borel_space E]
+  {μ : measure α} [locally_finite_measure μ] {f : α → E} (hf : continuous f)
+  (hfc : is_compact (closure $ support f)) :
+  integrable f μ :=
+begin
+  rw [← indicator_of_support_subset (@subset_closure _ _ (support f)),
+    integrable_indicator_iff hf.measurable is_closed_closure.is_measurable],
+  exact hf.integrable_on_compact hfc
+end
 
 /-- Fundamental theorem of calculus for set integrals, `nhds` version: if `μ` is a locally finite
 measure that and `f` is a measurable function that is continuous at a point `a`,

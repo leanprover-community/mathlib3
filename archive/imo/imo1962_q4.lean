@@ -117,7 +117,7 @@ begin
     linarith },
 end
 
-lemma solve_cos3x_0 {x : ℝ} : cos (3 * x) = 0 ↔ ∃ k : ℤ, x = (2 * ↑ k + 1) * π / 6 :=
+lemma solve_cos3x_0 {x : ℝ} : cos (3 * x) = 0 ↔ ∃ k : ℤ, x = (2 * ↑k + 1) * π / 6 :=
 begin
   rw cos_eq_zero_iff,
   split, all_goals

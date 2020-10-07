@@ -14,10 +14,10 @@ This module provides additional functor lemmas, definitions, and instances.
 ## Main definitions
 
 * `const α` is the functor that sends all types to `α`.
-* `add_const` is the functor that sends all types to their `const` functor.
+* `add_const α` is `const α` but for when `α` has an additive structure.
 * `comp F G` for functors `F` and `G` is the functor that is the composition of the functors.
-* `liftp` and `liftr` lift properties and relations, respectively, to a term `x : F α`
-  interpreted as something containing elements of type α.
+* `liftp` and `liftr` respectively lift properties and relations on a type `α`
+  to a term `x : F α`, interpreted as something containing elements of type `α`.
 
 ## Tags
 
@@ -63,16 +63,18 @@ def id.mk {α : Sort u} : α → id α := id
 
 namespace functor
 
-/-- `const α` is the constant functor, mapping every type to `α`. -/
+/-- `const α` is the constant functor, mapping every type to `α`. When
+`α` has a monoid structure, `const α` has an `applicative` instance.
+(If `α` has an additive monoid structure, see `functor.add_const`.) -/
 @[nolint unused_arguments]
 def const (α : Type*) (β : Type*) := α
 
-/-- `const.mk` is the canonical map `α → const α β`, which is the
-identity, and it can be used as a pattern to extract this value. -/
+/-- `const.mk` is the canonical map `α → const α β` (the identity), and
+it can be used as a pattern to extract this value. -/
 @[pattern] def const.mk {α β} (x : α) : const α β := x
 
 /-- `const.mk'` is `const.mk` but specialized to map `α` to
-`const α punit`, where `punit` is the initial object in `Type*`.  -/
+`const α punit`, where `punit` is the terminal object in `Type*`. -/
 def const.mk' {α} (x : α) : const α punit := x
 
 /-- Extract the element of `α` from the `const` functor. -/
@@ -97,7 +99,10 @@ instance {α β} [inhabited α] : inhabited (const α β) :=
 
 end const
 
-/-- `add_const` is the functor mapping each type `α` to the constant functor `const α`. -/
+/-- `add_const α` is a synonym for constant functor `const α`, mapping
+every type to `α`. When `α` has a additive monoid structure,
+`add_const α` has an `applicative` instance. (If `α` has a
+multiplicative monoid structure, see `functor.const`.) -/
 def add_const (α : Type*) := const α
 
 /-- `add_const.mk` is the canonical map `α → add_const α β`, which is the identity,

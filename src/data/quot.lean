@@ -6,7 +6,13 @@ Authors: Johannes Hölzl
 import logic.relator
 
 /-!
-# Quotients -- extends the core library
+# Quotient types
+
+This module extensd the core library's treatment of quotient types (`init.data.quot`).
+
+## Tags
+
+quotient
 -/
 
 variables {α : Sort*} {β : Sort*}
@@ -270,6 +276,7 @@ trunc.induction_on₂ a b (λ x y, quot.sound trivial)
 
 instance : subsingleton (trunc α) := ⟨trunc.eq⟩
 
+/-- The `bind` operator for the `trunc` monad. -/
 def bind (q : trunc α) (f : α → trunc β) : trunc β :=
 trunc.lift_on q f (λ a b, trunc.eq _ _)
 

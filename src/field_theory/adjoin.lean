@@ -128,15 +128,11 @@ galois_connection.monotone_l gc h
 lemma adjoin_contains_field_as_subfield (F : subfield E) : (F : set E) ⊆ adjoin F S :=
 λ x hx, adjoin.algebra_map_mem F S ⟨x, hx⟩
 
-lemma subset_adjoin_of_subset_left {F : subfield E} {T : set E} (HT : T ⊆ F) :
-  T ⊆ adjoin F S :=
+lemma subset_adjoin_of_subset_left {F : subfield E} {T : set E} (HT : T ⊆ F) : T ⊆ adjoin F S :=
 λ x hx, (adjoin F S).algebra_map_mem ⟨x, HT hx⟩
 
 lemma subset_adjoin_of_subset_right {T : set E} (H : T ⊆ S) : T ⊆ adjoin F S :=
-begin
-  intros x hx,
-  exact subset_adjoin F S (H hx),
-end
+λ x hx, subset_adjoin F S (H hx)
 
 /-- If `K` is a field with `F ⊆ K` and `S ⊆ K` then `adjoin F S ≤ K`. -/
 lemma adjoin_le_subfield {K : subfield E} (HF : set.range (algebra_map F E) ⊆ K)
@@ -183,12 +179,6 @@ begin
   refl,
 end
 
-/-- `adjoin F S ≤ K` if `K` is an intermediate field that contains `S`. -/
-lemma adjoin_le {K : intermediate_field F E} (HS : S ⊆ K) :
-  adjoin F S ≤ K :=
-show (adjoin F S).to_subfield ≤ K.to_subfield,
-from adjoin_le_subfield _ S K.set_range_subset HS
-
 lemma algebra_adjoin_le_adjoin : algebra.adjoin F S ≤ (adjoin F S).to_subalgebra :=
 algebra.adjoin_le (subset_adjoin _ _)
 
@@ -196,7 +186,7 @@ lemma adjoin_le_algebra_adjoin (inv_mem : ∀ x ∈ algebra.adjoin F S, x⁻¹ �
   (adjoin F S).to_subalgebra ≤ algebra.adjoin F S :=
 show adjoin F S ≤
   { neg_mem' := λ x, (algebra.adjoin F S).neg_mem, inv_mem' := inv_mem, .. algebra.adjoin F S},
-from adjoin_le _ _ algebra.subset_adjoin
+from (adjoin_le_iff F S).mpr (algebra.subset_adjoin)
 
 @[elab_as_eliminator]
 lemma adjoin_induction {s : set E} {p : E → Prop} {x} (h : x ∈ adjoin F s)
@@ -250,31 +240,17 @@ end adjoin_def
 section adjoin_subalgebra_lattice
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E] {α : E} {S : set E}
 
-lemma adjoin_eq_bot (h : S ⊆ (⊥ : intermediate_field F E)) : adjoin F S = ⊥ :=
-eq_bot_iff.mpr ((adjoin_le_iff F S).mpr h)
-
-lemma adjoin_simple_eq_bot (hα : α ∈ (⊥ : intermediate_field F E)) : F⟮α⟯ = ⊥ :=
-adjoin_eq_bot (set.singleton_subset_iff.mpr hα)
-
-@[simp] lemma adjoin_zero : F⟮(0 : E)⟯ = ⊥ :=
-adjoin_simple_eq_bot (⊥ : intermediate_field F E).zero_mem
-
-@[simp] lemma adjoin_one : F⟮(1 : E)⟯ = ⊥ :=
-adjoin_simple_eq_bot (⊥ : intermediate_field F E).one_mem
-
-lemma sub_bot_of_adjoin_sub_bot (h : adjoin F S = ⊥) : S ⊆ (⊥ : intermediate_field F E) :=
-calc S ⊆ adjoin F S : subset_adjoin _ _
-  ... = (⊥ : intermediate_field F E) : congr_arg coe h
-
-lemma mem_bot_of_adjoin_simple_sub_bot (h : F⟮α⟯ = ⊥) : α ∈ (⊥ : intermediate_field F E) :=
-  ((⊥ : intermediate_field F E).mem_coe α).mp
-    (set.singleton_subset_iff.mp (sub_bot_of_adjoin_sub_bot h))
-
 @[simp] lemma adjoin_eq_bot_iff : adjoin F S = ⊥ ↔ S ⊆ (⊥ : intermediate_field F E) :=
-⟨sub_bot_of_adjoin_sub_bot, adjoin_eq_bot⟩
+by { rw [eq_bot_iff, adjoin_le_iff], refl, }
 
 @[simp] lemma adjoin_simple_eq_bot_iff : F⟮α⟯ = ⊥ ↔ α ∈ (⊥ : intermediate_field F E) :=
-⟨mem_bot_of_adjoin_simple_sub_bot, adjoin_simple_eq_bot⟩
+by { rw adjoin_eq_bot_iff, exact set.singleton_subset_iff }
+
+@[simp] lemma adjoin_zero : F⟮(0 : E)⟯ = ⊥ :=
+adjoin_simple_eq_bot_iff.mpr (⊥ : intermediate_field F E).zero_mem
+
+@[simp] lemma adjoin_one : F⟮(1 : E)⟯ = ⊥ :=
+adjoin_simple_eq_bot_iff.mpr (⊥ : intermediate_field F E).one_mem
 
 section adjoin_dim
 open finite_dimensional vector_space
@@ -353,7 +329,7 @@ begin
   suffices : adjoin F ↑(finset.image coe s) = K,
   { rw ←this, exact induction (s.image coe) },
   apply le_antisymm,
-  { apply adjoin_le,
+  { rw adjoin_le_iff,
     intros x hx,
     rcases finset.mem_image.mp (finset.mem_coe.mp hx) with ⟨y, _, hy⟩,
     rw ←hy,

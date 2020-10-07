@@ -4,9 +4,10 @@ import sys
 
 fns = sys.argv[1:]
 
-ERR_COP = 0
-ERR_IMP = 1
-ERR_MOD = 2
+ERR_COP = 0 # copyright header
+ERR_IMP = 1 # import statements
+ERR_MOD = 2 # module docstring
+ERR_LIN = 3 # line length
 
 exceptions = []
 
@@ -19,13 +20,23 @@ with open("scripts/copy-mod-doc-exceptions.txt") as f:
             exceptions += [(ERR_IMP, fn)]
         if errno == "ERR_MOD":
             exceptions += [(ERR_MOD, fn)]
+        if errno == "ERR_LIN":
+            exceptions += [(ERR_LIN, fn)]
 
 new_exceptions = False
+
+def long_lines_check(lines, fn):
+    errors = []
+    for line_nr, line in enumerate(lines, 1):
+        if "http" in line:
+            continue
+        if len(line) > 101:
+            errors += [(ERR_LIN, line_nr, fn)]
+    return errors
 
 def import_only_check(lines, fn):
     import_only_file = True
     errors = []
-    line_nr = 0
     in_comment = False
     for line_nr, line in enumerate(lines, 1):
         if "/-" in line:
@@ -100,10 +111,14 @@ def format_errors(errors):
             print("{} : line {} : ERR_IMP : More than one file imported per line".format(fn, line_nr))
         if errno == ERR_MOD:
             print("{} : line {} : ERR_MOD : Module docstring missing, or too late".format(fn, line_nr))
+        if errno == ERR_LIN:
+            print("{} : line {} : ERR_LIN : Line has more than 100 characters".format(fn, line_nr))
 
 def lint(fn):
     with open(fn) as f:
         lines = f.readlines()
+        errs = long_lines_check(lines, fn)
+        format_errors(errs)
         (b, errs) = import_only_check(lines, fn)
         if b:
             format_errors(errs)

@@ -51,13 +51,19 @@ protected lemma ge [preorder α] {x y : α} (h : x = y) : y ≤ x := h.symm.le
 lemma trans_le [preorder α] {x y z : α} (h1 : x = y) (h2 : y ≤ z) : x ≤ z := h1.le.trans h2
 end eq
 
-namespace has_le
-namespace le
+namespace has_le.le
+
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 protected lemma ge [has_le α] {x y : α} (h : x ≤ y) : y ≥ x := h
+
 lemma trans_eq [preorder α] {x y z : α} (h1 : x ≤ y) (h2 : y = z) : x ≤ z := h1.trans h2.le
-end le
-end has_le
+
+lemma lt_iff_ne [partial_order α] {x y : α} (h : x ≤ y) : x < y ↔ x ≠ y := ⟨λ h, h.ne, h.lt_of_ne⟩
+
+lemma le_iff_eq [partial_order α] {x y : α} (h : x ≤ y) : y ≤ x ↔ y = x :=
+⟨λ h', h'.antisymm h, eq.le⟩
+
+end has_le.le
 
 namespace has_lt
 namespace lt

@@ -6,21 +6,46 @@ Authors: Johan Commelin
 import tactic.basic
 
 /-!
-# Singleton types
+# Types with a unique term
 
-`α : Sort*` is `unique` if it has a unique element `default α`. Equivalently, `unique α` means
-`inhabited α` and `subsingleton α`.
+In this file we define a typeclass `unique`,
+which expresses that a type has a unique term.
+In other words, a type that is `inhabited` and a `subsingleton`.
 
-We use `Type*`-valued structure for `unique` instead of `Prop` to get better definitional equalities
-for `default α`.
+## Main declaration
+
+* `unique`: a typeclass that expresses that a type has a unique term.
+
+## Main statements
+
+* `unique.mk'`: an inhabited subsingleton type is `unique`. This can not be an instance because it
+  would lead to loops in typeclass inference.
+
+* `function.surjective.unique`: if the domain of a surjective function is `unique`, then its codomain is `unique` as well.
+
+* `function.injective.subsingleton`: if the codomain of an injective function is `subsingleton`,
+  then its domain is `subsingleton` as well.
+
+* `function.injective.unique`: if the codomain of an injective function is `subsingleton` and its
+  domain is `inhabited`, then its domain is `unique`.
+
+## Implementation details
+
+The typeclass `unique α` is implemented as a type,
+rather than a `Prop`-valued predicate,
+for good definitional properties of the default term.
+
 -/
 
 universes u v w
 
 variables {α : Sort u} {β : Sort v} {γ : Sort w}
 
-/-- `α : Sort*` is `unique` if it has a unique element `default α`. We use `Type*`-valued
-structure instead of `Prop` to get better definitional equalities for `default α`. -/
+/-- `unique α` expresses that `α` is a type with a unique term `default α`.
+
+This is implemented as a type, rather than a `Prop`-valued predicate,
+for good definitional properties of the default term. -/
+@[ext]
 structure unique (α : Sort u) extends inhabited α :=
 (uniq : ∀ a:α, a = default)
 

@@ -1198,6 +1198,27 @@ end
 lemma integral_nonpos {f : α → ℝ} (hf : f ≤ 0) : ∫ a, f a ∂μ ≤ 0 :=
 integral_nonpos_of_ae $ eventually_of_forall hf
 
+lemma integral_eq_zero_iff_of_nonneg_ae {f : α → ℝ} (hf : 0 ≤ᵐ[μ] f) (hfi : integrable f μ) :
+  ∫ x, f x ∂μ = 0 ↔ f =ᵐ[μ] 0 :=
+by simp_rw [integral_eq_lintegral_of_nonneg_ae hf hfi.1, ennreal.to_real_eq_zero_iff,
+  lintegral_eq_zero_iff (ennreal.measurable_of_real.comp hfi.1), ← ennreal.not_lt_top,
+  ← has_finite_integral_iff_of_real hf, hfi.2, not_true, or_false, ← hf.le_iff_eq,
+  filter.eventually_eq, filter.eventually_le, (∘), pi.zero_apply, ennreal.of_real_eq_zero]
+
+lemma integral_eq_zero_iff_of_nonneg {f : α → ℝ} (hf : 0 ≤ f) (hfi : integrable f μ) :
+  ∫ x, f x ∂μ = 0 ↔ f =ᵐ[μ] 0 :=
+integral_eq_zero_iff_of_nonneg_ae (eventually_of_forall hf) hfi
+
+lemma integral_pos_iff_support_of_nonneg_ae {f : α → ℝ} (hf : 0 ≤ᵐ[μ] f) (hfi : integrable f μ) :
+  (0 < ∫ x, f x ∂μ) ↔ 0 < μ (function.support f) :=
+by simp_rw [(integral_nonneg_of_ae hf).lt_iff_ne, zero_lt_iff_ne_zero, ne.def, @eq_comm ℝ 0,
+  integral_eq_zero_iff_of_nonneg_ae hf hfi, filter.eventually_eq, ae_iff, pi.zero_apply,
+  function.support]
+
+lemma integral_pos_iff_support_of_nonneg {f : α → ℝ} (hf : 0 ≤ f) (hfi : integrable f μ) :
+  (0 < ∫ x, f x ∂μ) ↔ 0 < μ (function.support f) :=
+integral_pos_iff_support_of_nonneg_ae (eventually_of_forall hf) hfi
+
 section normed_group
 variables {H : Type*} [normed_group H] [second_countable_topology H] [measurable_space H]
           [borel_space H]

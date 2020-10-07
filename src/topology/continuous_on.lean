@@ -235,6 +235,10 @@ lemma is_closed.mem_of_nhds_within_ne_bot {s : set α} (hs : is_closed s)
   {x : α} (hx : ne_bot $ 𝓝[s] x) : x ∈ s :=
 by simpa only [hs.closure_eq] using mem_closure_iff_nhds_within_ne_bot.2 hx
 
+lemma dense_range.nhds_within_ne_bot {ι : Type*} {f : ι → α} (h : dense_range f) (x : α) :
+  ne_bot (𝓝[range f] x) :=
+mem_closure_iff_cluster_pt.1 (h x)
+
 lemma eventually_eq_nhds_within_iff {f g : α → β} {s : set α} {a : α} :
   (f =ᶠ[𝓝[s] a] g) ↔ ∀ᶠ x in 𝓝 a, x ∈ s → f x = g x :=
 mem_inf_principal

@@ -300,6 +300,46 @@ dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _)
   (gcd_dvd_gcd (dvd_refl _) (dvd_of_associated h))
   (gcd_dvd_gcd (dvd_refl _) (dvd_of_associated h.symm))
 
+/-- Represent a divisor of `m * n` as a product of a divisor of `m` and a divisor of `n`.
+
+ Note: In general, this representation is highly non-unique. -/
+lemma exists_dvd_and_dvd_of_dvd_mul {m n k : α} (H : k ∣ m * n) :
+  ∃ d₁ (hd₁ : d₁ ∣ m) d₂ (hd₂ : d₂ ∣ n), k = d₁ * d₂ :=
+begin
+  by_cases h0 : gcd k m = 0,
+  { rw gcd_eq_zero_iff at h0,
+    rcases h0 with ⟨rfl, rfl⟩,
+    refine ⟨0, dvd_refl 0, n, dvd_refl n, _⟩,
+    simp },
+  { obtain ⟨a, ha⟩ := gcd_dvd_left k m,
+    refine ⟨gcd k m, gcd_dvd_right _ _, a, _, ha⟩,
+    suffices h : gcd k m * a ∣ gcd k m * n,
+    { cases h with b hb,
+      use b,
+      rw mul_assoc at hb,
+      apply mul_left_cancel' h0 hb },
+    rw ← ha,
+    transitivity gcd k m * normalize n,
+    { rw ← gcd_mul_right,
+      exact dvd_gcd (dvd_mul_right _ _) H },
+    { apply dvd.intro ↑(norm_unit n)⁻¹,
+      rw [normalize_apply, mul_assoc, mul_assoc, ← units.coe_mul],
+      simp } }
+end
+
+theorem gcd_mul_dvd_mul_gcd (k m n : α) : gcd k (m * n) ∣ gcd k m * gcd k n :=
+begin
+  obtain ⟨m', hm', n', hn', h⟩ := (exists_dvd_and_dvd_of_dvd_mul $ gcd_dvd_right k (m * n)),
+  replace h : gcd k (m * n) = m' * n' := h,
+  rw h,
+  have hm'n' : m' * n' ∣ k := h ▸ gcd_dvd_left _ _,
+  apply mul_dvd_mul,
+  { have hm'k : m' ∣ k := dvd_trans (dvd_mul_right m' n') hm'n',
+    exact dvd_gcd hm'k hm' },
+  { have hn'k : n' ∣ k := dvd_trans (dvd_mul_left n' m') hm'n',
+    exact dvd_gcd hn'k hn' }
+end
+
 end gcd
 
 section lcm
@@ -466,7 +506,7 @@ instance : normalization_monoid ℤ :=
   end,
   norm_unit_coe_units := assume u, (units_eq_one_or u).elim
     (assume eq, eq.symm ▸ if_pos zero_le_one)
-    (assume eq, eq.symm ▸ if_neg (not_le_of_gt $ show (-1:ℤ) < 0, by simp [@neg_lt ℤ _ 1 0])), }
+    (assume eq, eq.symm ▸ if_neg (not_le_of_gt $ show (-1:ℤ) < 0, by dec_trivial)), }
 
 lemma normalize_of_nonneg {z : ℤ} (h : 0 ≤ z) : normalize z = z :=
 show z * ↑(ite _ _ _) = z, by rw [if_pos h, units.coe_one, mul_one]

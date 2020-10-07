@@ -267,7 +267,6 @@ instance : has_coe_to_fun (M →ₗ[R] M₂) := ⟨_, to_fun⟩
 @[simp] lemma coe_mk (f : M → M₂) (h₁ h₂) :
   ((linear_map.mk f h₁ h₂ : M →ₗ[R] M₂) : M → M₂) = f := rfl
 
-
 /-- Identity map as a `linear_map` -/
 def id : M →ₗ[R] M :=
 ⟨id, λ _ _, rfl, λ _ _, rfl⟩
@@ -334,6 +333,10 @@ def to_add_monoid_hom : M →+ M₂ :=
 @[simp] lemma map_sum {ι} {t : finset ι} {g : ι → M} :
   f (∑ i in t, g i) = (∑ i in t, f (g i)) :=
 f.to_add_monoid_hom.map_sum _ _
+
+theorem to_add_monoid_hom_injective [semimodule R M] [semimodule R M₂] :
+  function.injective (to_add_monoid_hom : (M →ₗ[R] M₂) → (M →+ M₂)) :=
+λ f g h, coe_inj $ funext $ add_monoid_hom.congr_fun h
 
 end
 

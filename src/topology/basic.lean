@@ -6,6 +6,8 @@ Authors: Johannes Hölzl, Mario Carneiro, Jeremy Avigad
 import order.filter.ultrafilter
 import order.filter.partial
 
+noncomputable theory
+
 /-!
 # Basic theory of topological spaces.
 
@@ -359,21 +361,30 @@ theorem mem_closure_iff {s : set α} {a : α} :
 λ H c ⟨h₁, h₂⟩, classical.by_contradiction $ λ nc,
   let ⟨x, hc, hs⟩ := (H _ h₁ nc) in hc (h₂ hs)⟩
 
+/-- A set is dense in a topological space if every point belongs to its closure. -/
+def dense (s : set α) : Prop := ∀ x, x ∈ closure s
+
+lemma dense_iff_closure_eq {s : set α} : dense s ↔ closure s = univ :=
+by rw [dense, eq_univ_iff_forall]
+
+lemma dense.closure_eq {s : set α} (h : dense s) : closure s = univ :=
+dense_iff_closure_eq.mp h
+
 lemma dense_iff_inter_open {s : set α} :
-  closure s = univ ↔ ∀ U, is_open U → U.nonempty → (U ∩ s).nonempty :=
+  dense s ↔ ∀ U, is_open U → U.nonempty → (U ∩ s).nonempty :=
 begin
   split ; intro h,
   { rintros U U_op ⟨x, x_in⟩,
-    exact mem_closure_iff.1 (by simp only [h]) U U_op x_in },
-  { apply eq_univ_of_forall, intro x,
+    exact mem_closure_iff.1 (by simp only [h.closure_eq]) U U_op x_in },
+  { intro x,
     rw mem_closure_iff,
     intros U U_op x_in,
     exact h U U_op ⟨_, x_in⟩ },
 end
 
-lemma dense_of_subset_dense {s₁ s₂ : set α} (h : s₁ ⊆ s₂) (hd : closure s₁ = univ) :
-  closure s₂ = univ :=
-by { rw [← univ_subset_iff, ← hd], exact closure_mono h }
+@[mono]
+lemma dense_of_subset_dense {s₁ s₂ : set α} (h : s₁ ⊆ s₂) (hd : dense s₁) : dense s₂ :=
+λ x, closure_mono h (hd x)
 
 /-!
 ### Frontier of a set
@@ -490,6 +501,10 @@ mem_of_nhds h
 lemma mem_nhds_sets {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
   s ∈ 𝓝 a :=
 mem_nhds_sets_iff.2 ⟨s, subset.refl _, hs, ha⟩
+
+lemma is_open.eventually_mem {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
+  ∀ᶠ x in 𝓝 a, x ∈ s :=
+mem_nhds_sets hs ha
 
 /-- The open neighborhoods of `a` are a basis for the neighborhood filter. See `nhds_basis_opens`
 for a variant using open sets around `a` instead. -/
@@ -1051,5 +1066,59 @@ lemma mem_closure {s : set α} {t : set β} {f : α → β} {a : α}
   (hf : continuous f) (ha : a ∈ closure s) (ht : ∀a∈s, f a ∈ t) : f a ∈ closure t :=
 subset.trans (image_closure_subset_closure_image hf) (closure_mono $ image_subset_iff.2 ht) $
   (mem_image_of_mem f ha)
+
+
+/-!
+### Function with dense range
+-/
+
+section dense_range
+variables {κ ι : Type*} (f : κ → β) (g : β → γ)
+
+/-- `f : ι → β` has dense range if its range (image) is a dense subset of β. -/
+def dense_range := dense (range f)
+
+variables {f}
+
+lemma dense_range_iff_closure_range : dense_range f ↔ closure (range f) = univ :=
+eq_univ_iff_forall.symm
+
+lemma dense_range.closure_range (h : dense_range f) : closure (range f) = univ :=
+eq_univ_iff_forall.mpr h
+
+lemma dense_range.comp (hg : dense_range g) (hf : dense_range f) (cg : continuous g) :
+  dense_range (g ∘ f) :=
+begin
+  have : g '' (closure $ range f) ⊆ closure (g '' range f),
+    from image_closure_subset_closure_image cg,
+  have : closure (g '' closure (range f)) ⊆ closure (g '' range f),
+    by simpa [closure_closure] using (closure_mono this),
+  intro c,
+  rw range_comp,
+  apply this,
+  rw [hf.closure_range, image_univ],
+  exact hg c
+end
+
+/-- If `f : ι → β` has dense range and `β` contains some element, then `ι` must too. -/
+def dense_range.inhabited (df : dense_range f) (b : β) : inhabited κ :=
+⟨classical.choice $
+  by simpa only [univ_inter, range_nonempty_iff_nonempty] using
+    mem_closure_iff.1 (df b) _ is_open_univ trivial⟩
+
+lemma dense_range.nonempty (hf : dense_range f) : nonempty κ ↔ nonempty β :=
+⟨nonempty.map f, λ ⟨b⟩, @nonempty_of_inhabited _ (hf.inhabited b)⟩
+
+lemma continuous.dense_image_of_dense_range {f : α → β}
+  (hf : continuous f) (hf' : dense_range f) {s : set α} (hs : dense s) :
+  closure (f '' s) = univ :=
+begin
+  have : f '' (closure s) ⊆ closure (f '' s) := image_closure_subset_closure_image hf,
+  have := closure_mono this,
+  rw [hs.closure_eq, image_univ, hf'.closure_eq, closure_closure] at this,
+  exact eq_univ_of_univ_subset this
+end
+
+end dense_range
 
 end continuous

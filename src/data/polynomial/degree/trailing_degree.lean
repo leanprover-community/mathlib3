@@ -298,7 +298,7 @@ lemma coeff_nat_trailing_degree_eq_zero_of_trailing_degree_lt (h : trailing_degr
   coeff q (nat_trailing_degree p) = 0 :=
 begin
   refine coeff_eq_zero_of_trailing_degree_lt _,
-  rcases h with ⟨ n , hn , hq ⟩,
+  rcases h with ⟨n, hn, hq⟩,
   rw option.mem_def at hn,
   simp_rw [option.mem_def] at hq,
   unfold nat_trailing_degree,

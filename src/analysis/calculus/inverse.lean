@@ -513,11 +513,7 @@ def to_local_homeomorph
   {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f a) (hf' : has_fderiv_at f (f' : E' →L[ℝ] F') a)
   (hn : 1 ≤ n) :
   local_homeomorph E' F' :=
-begin
-  have hf₂ := hf.has_strict_fderiv_at hn,
-  rw hf'.fderiv at hf₂,
-  exact hf₂.to_local_homeomorph f
-end
+(hf.has_strict_fderiv_at' hf' hn).to_local_homeomorph f
 
 variable {f}
 
@@ -530,53 +526,36 @@ lemma mem_to_local_homeomorph_source
   {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f a) (hf' : has_fderiv_at f (f' : E' →L[ℝ] F') a)
   (hn : 1 ≤ n) :
   a ∈ (hf.to_local_homeomorph f hf' hn).source :=
-begin
-  have hf₂ := hf.has_strict_fderiv_at hn,
-  rw hf'.fderiv at hf₂,
-  exact hf₂.mem_to_local_homeomorph_source
-end
+(hf.has_strict_fderiv_at' hf' hn).mem_to_local_homeomorph_source
 
 lemma image_mem_to_local_homeomorph_target
   {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f a) (hf' : has_fderiv_at f (f' : E' →L[ℝ] F') a)
   (hn : 1 ≤ n) :
   f a ∈ (hf.to_local_homeomorph f hf' hn).target :=
-begin
-  have hf₂ := hf.has_strict_fderiv_at hn,
-  rw hf'.fderiv at hf₂,
-  exact hf₂.image_mem_to_local_homeomorph_target
-end
+(hf.has_strict_fderiv_at' hf' hn).image_mem_to_local_homeomorph_target
 
-lemma image_to_local_homeomorph_image_basepoint
+/-- Given a `times_cont_diff` function over `ℝ` with an invertible derivative at `a`, returns a
+function that is locally inverse to `f`. -/
+def local_inverse
   {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f a) (hf' : has_fderiv_at f (f' : E' →L[ℝ] F') a)
   (hn : 1 ≤ n) :
-  ((to_local_homeomorph f hf hf' hn).symm) (f a) = a :=
-begin
-  have h1 : f a = (hf.to_local_homeomorph f hf' hn : E' → F') a := by simp,
-  have h2 : (to_local_homeomorph f hf hf' hn).symm ((to_local_homeomorph f hf hf' hn) a)
-    = ((to_local_homeomorph f hf hf' hn).trans (to_local_homeomorph f hf hf' hn).symm) a := rfl,
-  have a_in := hf.mem_to_local_homeomorph_source hf' hn,
-  have h3 : a ∈ ((to_local_homeomorph f hf hf' hn).trans (to_local_homeomorph f hf hf' hn).symm).source,
-  { rw local_homeomorph.trans_source,
-    split,
-    { simpa using a_in },
-    { simpa using hf.image_mem_to_local_homeomorph_target hf' hn } },
-  rw [h1, h2, (local_homeomorph.trans_self_symm (hf.to_local_homeomorph f hf' hn)).2 h3],
-  let a' : subtype (hf.to_local_homeomorph f hf' hn).source := ⟨a, a_in⟩,
-  have : (local_homeomorph.of_set (to_local_homeomorph f hf hf' hn).source
-    (to_local_homeomorph f hf hf' hn).open_source) a' = a',
-  { rw local_homeomorph.of_set_coe (to_local_homeomorph f hf hf' hn).open_source,
-    refl },
-  convert this
-end
+  F' → E' :=
+(hf.has_strict_fderiv_at' hf' hn).local_inverse f f' a
+
+lemma local_inverse_apply_image
+  {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f a) (hf' : has_fderiv_at f (f' : E' →L[ℝ] F') a)
+  (hn : 1 ≤ n) :
+  hf.local_inverse hf' hn (f a) = a :=
+(hf.has_strict_fderiv_at' hf' hn).local_inverse_apply_image
 
 /-- Given a `times_cont_diff` function over `ℝ` with an invertible derivative at `a`, the inverse
 function (produced by `times_cont_diff.to_local_homeomorph`) is also `times_cont_diff`. -/
-lemma rename_me
+lemma to_local_inverse
   {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f a) (hf' : has_fderiv_at f (f' : E' →L[ℝ] F') a)
   (hn : 1 ≤ n) :
-  times_cont_diff_at ℝ n ((hf.to_local_homeomorph f hf' hn).symm : F' → E') (f a) :=
+  times_cont_diff_at ℝ n (hf.local_inverse hf' hn) (f a) :=
 begin
-  have := hf.image_to_local_homeomorph_image_basepoint hf' hn,
+  have := hf.local_inverse_apply_image hf' hn,
   apply times_cont_diff_at.of_local_homeomorph (image_mem_to_local_homeomorph_target hf hf' hn),
   { convert hf' },
   { convert hf }

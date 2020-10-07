@@ -874,14 +874,20 @@ begin
   exact ⟨by rwa insert_eq_of_mem hx, λ x hx, by simp [ftaylor_series_within]⟩
 end
 
-lemma times_cont_diff_within_at_zero (hx : x ∈ s)
-  (h : ∃ u ∈ 𝓝[s] x, continuous_on f (s ∩ u)) :
-  times_cont_diff_within_at 𝕜 0 f s x :=
+@[simp] lemma times_cont_diff_within_at_zero (hx : x ∈ s) :
+  times_cont_diff_within_at 𝕜 0 f s x ↔ ∃ u ∈ 𝓝[s] x, continuous_on f (s ∩ u) :=
 begin
-  obtain ⟨u, H, hu⟩ := h,
-  rw ← times_cont_diff_within_at_inter' H,
-  have h' : x ∈ s ∩ u := ⟨hx, mem_of_mem_nhds_within hx H⟩,
-  exact (times_cont_diff_on_zero.mpr hu).times_cont_diff_within_at h'
+  split,
+  { intros h,
+    obtain ⟨u, H, p, hp⟩ := h 0 (by norm_num),
+    refine ⟨u, _, _⟩,
+    { simpa [hx] using H },
+    { simp only [with_top.coe_zero, has_ftaylor_series_up_to_on_zero_iff] at hp,
+      exact hp.1.mono (inter_subset_right s u) } },
+  { rintros ⟨u, H, hu⟩,
+    rw ← times_cont_diff_within_at_inter' H,
+    have h' : x ∈ s ∩ u := ⟨hx, mem_of_mem_nhds_within hx H⟩,
+    exact (times_cont_diff_on_zero.mpr hu).times_cont_diff_within_at h' }
 end
 
 /-- On a set with unique differentiability, any choice of iterated differential has to coincide
@@ -1326,14 +1332,9 @@ begin
   exact times_cont_diff_on_zero
 end
 
-lemma times_cont_diff_at_zero (h : ∃ u ∈ 𝓝 x, continuous_on f u) :
-  times_cont_diff_at 𝕜 0 f x :=
-begin
-  obtain ⟨u, H, hu⟩ := h,
-  refine times_cont_diff_within_at_univ.mpr (times_cont_diff_within_at_zero (mem_univ x) ⟨u, _⟩),
-  simp only [nhds_within_univ, exists_prop, univ_inter],
-  exact ⟨H, hu⟩
-end
+@[simp] lemma times_cont_diff_at_zero :
+  times_cont_diff_at 𝕜 0 f x ↔ ∃ u ∈ 𝓝 x, continuous_on f u :=
+by { rw ← times_cont_diff_within_at_univ, simp [nhds_within_univ] }
 
 lemma times_cont_diff.of_le {m n : with_top ℕ}
   (h : times_cont_diff 𝕜 n f) (hmn : m ≤ n) :
@@ -2422,7 +2423,7 @@ theorem times_cont_diff_at.of_local_homeomorph [complete_space E] {n : with_top 
 begin
   -- We prove this by induction on `n`
   induction n using with_top.nat_induction with n IH Itop,
-  { apply times_cont_diff_at_zero,
+  { rw times_cont_diff_at_zero,
     exact ⟨f.target, mem_nhds_sets f.open_target ha, f.continuous_inv_fun⟩ },
   { obtain ⟨f', ⟨u, hu, hff'⟩, hf'⟩ := times_cont_diff_at_succ_iff_has_fderiv_at.mp hf,
     apply times_cont_diff_at_succ_iff_has_fderiv_at.mpr,
@@ -2504,6 +2505,14 @@ begin
   convert this,
   exact this.has_fderiv_at.fderiv
 end
+
+/-- If a function is `C^n` with `1 ≤ n` around a point, and its derivative of `f` at that point is
+given to us as `f`, then `f'` is also a strict derivative. -/
+lemma times_cont_diff_at.has_strict_fderiv_at'
+  {f : E' → F'} {f' : E' →L[ℝ] F'} {x : E'}
+  {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f x) (hf' : has_fderiv_at f f' x) (hn : 1 ≤ n) :
+  has_strict_fderiv_at f f' x :=
+by simpa only [hf'.fderiv] using hf.has_strict_fderiv_at hn
 
 /-- If a function is `C^n` with `1 ≤ n`, then the derivative of `f` is also a strict derivative. -/
 lemma times_cont_diff.has_strict_fderiv_at

@@ -144,7 +144,8 @@ lemma coe_two : ((2:nnreal) : ennreal) = 2 := by norm_cast
 protected lemma zero_lt_one : 0 < (1 : ennreal) :=
   canonically_ordered_semiring.zero_lt_one
 
-@[simp] lemma one_lt_two : (1:ennreal) < 2 := coe_one ▸ coe_two ▸ by exact_mod_cast (@one_lt_two ℕ _ _)
+@[simp] lemma one_lt_two : (1 : ennreal) < 2 :=
+coe_one ▸ coe_two ▸ by exact_mod_cast (@one_lt_two ℕ _ _)
 @[simp] lemma zero_lt_two : (0:ennreal) < 2 := lt_trans ennreal.zero_lt_one one_lt_two
 lemma two_ne_zero : (2:ennreal) ≠ 0 := (ne_of_lt zero_lt_two).symm
 lemma two_ne_top : (2:ennreal) ≠ ∞ := coe_two ▸ coe_ne_top

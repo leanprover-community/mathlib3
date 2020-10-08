@@ -16,6 +16,11 @@ Given a family of open sets `U : ι → opens X` we can form the subcategory
 The sheaf condition on a presheaf `F` is equivalent to
 `F` sending the opposite of this cocone to a limit cone in `C`, for every `U`.
 
+This condition is particularly nice when checking the sheaf condition
+because we don't need to do any case bashing
+(depending on whether we're looking at single or double intersections,
+or equivalently whether we're looking at the first or second object in an equalizer diagram).
+
 ## References
 * This is the definition Lurie uses in "Spectral Algebraic Geometry".
 -/
@@ -32,7 +37,7 @@ open topological_space.opens
 
 namespace Top
 
-variables {C : Type u} [category.{v} C] [has_limits C]
+variables {C : Type u} [category.{v} C]
 variables {X : Top.{v}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
 
 namespace presheaf
@@ -43,6 +48,9 @@ namespace sheaf_condition
 The category of open sets contained in some element of the cover.
 -/
 def opens_le_cover : Type v := { V : opens X // ∃ i, V ≤ U i }
+
+instance [inhabited ι] : inhabited (opens_le_cover U) :=
+⟨⟨⊥, default ι, bot_le⟩⟩
 
 instance : category (opens_le_cover U) := category_theory.full_subcategory _
 
@@ -85,7 +93,7 @@ A presheaf is a sheaf if `F` sends the cone `(opens_le_cover_cocone U).op` to a 
 (Recall `opens_le_cover_cocone U`, has cone point `supr U`,
 mapping down to any `V` which is contained in some `U i`.)
 -/
-@[derive subsingleton]
+@[derive subsingleton, nolint has_inhabited_instance]
 def sheaf_condition_opens_le_cover : Type (max u (v+1)) :=
 Π ⦃ι : Type v⦄ (U : ι → opens X), is_limit (F.map_cone (opens_le_cover_cocone U).op)
 
@@ -227,6 +235,8 @@ calc is_limit (F.map_cone (opens_le_cover_cocone U).op)
         : is_limit.equiv_iso_limit
             ((cones.functoriality _ _).map_iso (pairwise_cocone_iso U : _).symm)
 ))
+
+variables [has_products C]
 
 /--
 The sheaf condition in terms of an equalizer diagram is equivalent

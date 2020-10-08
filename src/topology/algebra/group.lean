@@ -423,10 +423,10 @@ variables [topological_space G] [group G] [topological_group G]
 lemma one_open_separated_mul {U : set G} (h1U : is_open U) (h2U : (1 : G) ∈ U) :
   ∃ V : set G, is_open V ∧ (1 : G) ∈ V ∧ V * V ⊆ U :=
 begin
-  rcases exists_nhds_square (continuous_mul U h1U) (by simp only [mem_preimage, one_mul, h2U] :
-    ((1 : G), (1 : G)) ∈ (λ p : G × G, p.1 * p.2) ⁻¹' U) with ⟨V, h1V, h2V, h3V⟩,
-  refine ⟨V, h1V, h2V, _⟩,
-  rwa [← image_subset_iff, image_mul_prod] at h3V
+  rcases exists_nhds_split hU with ⟨V, Vo, V1, hV⟩,
+  use [V, Vo, V1],
+  rintros _ ⟨x, y, hx, hy, rfl⟩,
+  exact hV _ hx _ hy
 end
 
 /-- Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of `1`

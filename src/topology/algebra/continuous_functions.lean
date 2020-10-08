@@ -188,7 +188,7 @@ topological semiring `R` inherit the structure of a semimodule.
 
 section subtype
 
-instance coninuous_has_scalar {α : Type*} [topological_space α]
+instance continuous_has_scalar {α : Type*} [topological_space α]
   {R : Type*} [semiring R] [topological_space R]
   {M : Type*} [topological_space M] [add_comm_group M]
   [semimodule R M] [topological_semimodule R M] :

@@ -15,14 +15,15 @@ section pi
 variables {α : Type*}
 open function
 
-/-- Given `δ : α → Type*`, `pi.empty δ` is the trivial dependent function out of the empty multiset. -/
+/-- Given `δ : α → Type*`, `pi.empty δ` is the trivial dependent function out of the empty
+multiset. -/
 def pi.empty (δ : α → Type*) : (Πa∈(0:multiset α), δ a) .
 
 variables [decidable_eq α] {δ : α → Type*}
 
-/-- Given `δ : α → Type*`, a multiset `m` and a term `a`, as well as a term `b : δ a` and a function `f`
-such that `f a' : δ a'` for all `a'` in `m`, `pi.cons m a b f` is a function `g` such that
-`g a'' : δ a''` for all `a''` in `a :: m`. -/
+/-- Given `δ : α → Type*`, a multiset `m` and a term `a`, as well as a term `b : δ a` and a
+function `f` such that `f a' : δ a'` for all `a'` in `m`, `pi.cons m a b f` is a function `g` such
+that `g a'' : δ a''` for all `a''` in `a :: m`. -/
 def pi.cons (m : multiset α) (a : α) (b : δ a) (f : Πa∈m, δ a) : Πa'∈a::m, δ a' :=
 λa' ha', if h : a' = a then eq.rec b h.symm else f a' $ (mem_cons.1 ha').resolve_left h
 
@@ -30,7 +31,8 @@ lemma pi.cons_same {m : multiset α} {a : α} {b : δ a} {f : Πa∈m, δ a} (h 
   pi.cons m a b f a h = b :=
 dif_pos rfl
 
-lemma pi.cons_ne {m : multiset α} {a a' : α} {b : δ a} {f : Πa∈m, δ a} (h' : a' ∈ a :: m) (h : a' ≠ a) :
+lemma pi.cons_ne {m : multiset α} {a a' : α} {b : δ a} {f : Πa∈m, δ a}
+  (h' : a' ∈ a :: m) (h : a' ≠ a) :
   pi.cons m a b f a' h' = f a' ((mem_cons.1 h').resolve_left h) :=
 dif_neg h
 

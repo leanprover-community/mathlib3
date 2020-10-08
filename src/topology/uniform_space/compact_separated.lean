@@ -146,7 +146,7 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
         { right,
           rw mem_prod,
           tauto }, },
-      all_goals { simp only [is_open_prod, *] } },
+      all_goals { simp only [is_open.prod, *] } },
     -- So W ○ W ∈ F by definition of F
     have : W ○ W ∈ F,
     { dsimp [F],-- Lean has weird elaboration trouble with this line

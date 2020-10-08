@@ -137,35 +137,28 @@ end
 namespace tactic
 
 /--
-Given a goal `a = b` or `a ≤ b` in a type `α`, generates an additional hypothesis `nontrivial α`
-(as otherwise `α` is a subsingleton and the goal is trivial).
+Tries to generate a `nontrivial α` instance by performing case analysis on
+`subsingleton_or_nontrivial α`,
+attempting to discharge the subsingleton branch using `le_of_eq` and `subsingleton.elim`.
 -/
-meta def nontriviality_by_elim : tactic unit :=
+meta def nontriviality_by_elim (α : expr) : tactic unit :=
 do
-  t ←
-    (do t ← mk_mvar, e ← to_expr ``(@eq %%t _ _), target >>= unify e, return t) <|>
-    (do t ← mk_mvar, e ← to_expr ``(@has_le.le %%t _ _ _), target >>= unify e, return t) <|>
-    fail "Goal is not `_ = _` or `_ ≤ _`",
-  alternative ← to_expr ``(subsingleton_or_nontrivial %%t),
+  alternative ← to_expr ``(subsingleton_or_nontrivial %%α),
   n ← get_unused_name "_inst",
   tactic.cases alternative [n, n],
   `[{ resetI, try { apply le_of_eq }, apply subsingleton.elim, }] <|>
-    fail format!"Could not prove goal assuming `subsingleton {t}`",
+    fail format!"Could not prove goal assuming `subsingleton {α}`",
   reset_instance_cache
 
 /--
-Given a goal `a ≠ b` or `a < b` in a type `α`, tries to generate a `nontrivial α`
-hypothesis from existing hypotheses using `nontrivial_of_ne` and `nontrivial_of_lt`.
+Tries to generate a `nontrivial α` instance using `nontrivial_of_ne` or `nontrivial_of_lt`
+and local hypotheses.
 -/
-meta def nontriviality_by_assumption : tactic unit :=
+meta def nontriviality_by_assumption (α : expr) : tactic unit :=
 do
-  t ←
-    (do t ← mk_mvar, e ← to_expr ``(@ne %%t _ _), target >>= unify e, return t) <|>
-    (do t ← mk_mvar, e ← to_expr ``(@has_lt.lt %%t _ _ _), target >>= unify e, return t) <|>
-    fail "Goal is not `_ ≠ _` or `_ < _`",
   n ← get_unused_name "_inst",
-  to_expr ``(nontrivial %%t) >>= assert n,
-  `[solve_by_elim [nontrivial_of_ne, nontrivial_of_lt]],
+  to_expr ``(nontrivial %%α) >>= assert n,
+  apply_instance <|> `[solve_by_elim [nontrivial_of_ne, nontrivial_of_lt]],
   reset_instance_cache
 
 end tactic
@@ -174,20 +167,21 @@ namespace tactic.interactive
 
 open tactic
 
+setup_tactic_parser
+
 /--
-Given a goal `a = b` or `a ≤ b` in a type `α`, generates an additional hypothesis `nontrivial α`
-(as otherwise `α` is a subsingleton and the goal is trivial).
+Attempts to generate a `nontrivial α` hypothesis.
 
-```
-example {R : Type} [ring R] (h : false) : 0 = (1 : R) :=
-begin
-  nontriviality, -- There is now a `nontrivial R` hypothesis available.
-  exfalso, assumption,
-end
-```
+The tactic first looks for an instance using `apply_instance`.
 
-Alternatively, given a hypothesis `a ≠ b` or `a < b` in a type `α`, tries to generate a `nontrivial α`
-hypothesis from existing hypotheses using `nontrivial_of_ne` and `nontrivial_of_lt`.
+If the goal is an (in)equality, the type `α` is inferred from the goal.
+Otherwise, the type needs to be specified in the tactic invocation, as `nontriviality α`.
+
+The `nontriviality` tactic will first look for strict inequalities amongst the hypotheses,
+and use these to derive the `nontrivial` instance directly.
+
+Otherwise, it will perform a case split on `subsingleton α ∨ nontrivial α`,
+and attempt to discharge the `subsingleton` goal.
 
 ```
 example {R : Type} [ordered_ring R] {a : R} (h : 0 < a) : 0 < a :=
@@ -196,11 +190,29 @@ begin
   assumption,
 end
 ```
+
+```
+example {R : Type} [comm_ring R] {r s : R} : r * s = s * r :=
+begin
+  nontriviality, -- There is now a `nontrivial R` hypothesis available.
+  apply mul_comm,
+end
+```
+
 -/
-meta def nontriviality : tactic unit :=
-nontriviality_by_assumption <|>
-  nontriviality_by_elim <|>
-  fail "Failed to add a relevant `nontrivial` hypothesis."
+meta def nontriviality (t : parse parser.pexpr?) : tactic unit :=
+do
+  α ← match t with
+  | some α := to_expr α
+  | none :=
+    (do t ← mk_mvar, e ← to_expr ``(@eq %%t _ _), target >>= unify e, return t) <|>
+    (do t ← mk_mvar, e ← to_expr ``(@has_le.le %%t _ _ _), target >>= unify e, return t) <|>
+    (do t ← mk_mvar, e ← to_expr ``(@ne %%t _ _), target >>= unify e, return t) <|>
+    (do t ← mk_mvar, e ← to_expr ``(@has_lt.lt %%t _ _ _), target >>= unify e, return t) <|>
+    fail "The goal is not an (in)equality, so you'll need to specify the desired `nontrivial α`
+      instance by invoking `nontriviality α`."
+  end,
+  nontriviality_by_assumption α <|> nontriviality_by_elim α
 
 add_tactic_doc
 { name                     := "nontriviality",

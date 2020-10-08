@@ -178,15 +178,20 @@ end nat
 
 namespace add_monoid_hom
 
-variables {A : Type*} [add_monoid A]
+variables {A B : Type*} [add_monoid A]
 
 @[ext] lemma ext_nat {f g : ℕ →+ A} (h : f 1 = g 1) : f = g :=
 ext $ λ n, nat.rec_on n (f.map_zero.trans g.map_zero.symm) $ λ n ihn,
 by simp only [nat.succ_eq_add_one, *, map_add]
 
-lemma eq_nat_cast {A} [add_monoid A] [has_one A] (f : ℕ →+ A) (h1 : f 1 = 1) :
+variables [has_one A] [add_monoid B] [has_one B]
+
+lemma eq_nat_cast (f : ℕ →+ A) (h1 : f 1 = 1) :
   ∀ n : ℕ, f n = n :=
-ext_iff.1 $ show f = nat.cast_add_monoid_hom A, from ext_nat (h1.trans nat.cast_one.symm)
+congr_fun $ show f = nat.cast_add_monoid_hom A, from ext_nat (h1.trans nat.cast_one.symm)
+
+lemma map_nat_cast (f : A →+ B) (h1 : f 1 = 1) (n : ℕ) : f n = n :=
+(f.comp (nat.cast_add_monoid_hom A)).eq_nat_cast (by simp [h1]) _
 
 end add_monoid_hom
 

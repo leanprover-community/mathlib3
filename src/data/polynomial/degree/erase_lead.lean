@@ -64,8 +64,8 @@ begin
   { refl, },
 end
 
-lemma sum_leading_C_mul_X_pow (f : polynomial R)
- : f = f.erase_lead + (C f.leading_coeff) * X^f.nat_degree :=
+lemma erase_lead_add_C_mul_X_pow (f : polynomial R) :
+  f.erase_lead + (C f.leading_coeff) * X^f.nat_degree = f :=
 begin
   ext1,
   by_cases nm : n = f.nat_degree,

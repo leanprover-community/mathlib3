@@ -153,7 +153,7 @@ end
 lemma nat_degree_le : (erase_lead f).nat_degree ≤ f.nat_degree :=
 begin
   by_cases su : f.support.card ≤ 1,
-  { rw [C_mul_X_pow_of_card_support_le_one su, monomial, nat_degree_zero],
+  { rw [C_mul_X_pow_of_card_support_le_one su, C_mul_X_pow_eq_zero, nat_degree_zero],
     exact zero_le _, },
   { apply le_of_lt,
     exact nat_degree (nat.succ_le_iff.mpr (not_le.mp su)), },

@@ -93,6 +93,10 @@ namespace sheaf_condition
 
 open category_theory.pairwise
 
+/--
+Implementation detail:
+the object level of `pairwise_to_opens_le_cover : pairwise ι ⥤ opens_le_cover U`
+-/
 @[simp]
 def pairwise_to_opens_le_cover_obj : pairwise ι → opens_le_cover U
 | (single i) := ⟨U i, ⟨i, le_refl _⟩⟩
@@ -100,6 +104,10 @@ def pairwise_to_opens_le_cover_obj : pairwise ι → opens_le_cover U
 
 open category_theory.pairwise.hom
 
+/--
+Implementation detail:
+the morphism level of `pairwise_to_opens_le_cover : pairwise ι ⥤ opens_le_cover U`
+-/
 def pairwise_to_opens_le_cover_map :
   Π {V W : pairwise ι}, (V ⟶ W) → (pairwise_to_opens_le_cover_obj U V ⟶ pairwise_to_opens_le_cover_obj U W)
 | _ _ (id_single i) := 𝟙 _
@@ -107,6 +115,10 @@ def pairwise_to_opens_le_cover_map :
 | _ _ (left i j) := hom_of_le inf_le_left
 | _ _ (right i j) := hom_of_le inf_le_right
 
+/--
+The category of single and double intersections of the `U i` maps into the category
+of open sets below some `U i`.
+-/
 @[simps]
 def pairwise_to_opens_le_cover : pairwise ι ⥤ opens_le_cover U :=
 { obj := pairwise_to_opens_le_cover_obj U,
@@ -166,33 +178,26 @@ instance : cofinal (pairwise_to_opens_le_cover U) :=
               (list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i' j', }⟩) list.chain.nil))), },
   end)
 
-def bar : pairwise_to_opens_le_cover U ⋙ full_subcategory_inclusion _ ≅ pairwise.diagram U :=
+/--
+The diagram in `opens X` indexed by pairwise intersections from `U` is isomorphic
+(in fact, equal) to the diagram factored through `opens_le_cover U`.
+-/
+def pairwise_diagram_iso :
+  pairwise.diagram U ≅
+  pairwise_to_opens_le_cover U ⋙ full_subcategory_inclusion _ :=
 { hom := { app := begin rintro (i|⟨i,j⟩); exact 𝟙 _, end, },
   inv := { app := begin rintro (i|⟨i,j⟩); exact 𝟙 _, end, }, }
 
-def foo :
-  (cocones.precompose_equivalence (bar U : _)).inverse.obj
-    ((opens_le_cover_cocone U).whisker (pairwise_to_opens_le_cover U)) ≅
-  pairwise.cocone U :=
-cocones.ext (iso.refl _) (by tidy)
-
-def foo_op : ((cocones.precompose_equivalence (bar U : _)).inverse.obj
-    ((opens_le_cover_cocone U).whisker (pairwise_to_opens_le_cover U))).op ≅ (pairwise.cocone U).op :=
+/--
+The cocone `pairwise.cocone U` with cocone point `supr U` over `pairwise.diagram U` is isomorphic
+to the cocone `opens_le_cover_cocone U` (with the same cocone point)
+after appropriate whiskering and postcomposition.
+-/
+def pairwise_cocone_iso :
+  (pairwise.cocone U).op ≅
+  (cones.postcompose_equivalence (nat_iso.op (pairwise_diagram_iso U : _) : _)).functor.obj
+    ((opens_le_cover_cocone U).op.whisker (pairwise_to_opens_le_cover U).op) :=
 cones.ext (iso.refl _) (by tidy)
--- begin
---   have := ((cocone_equivalence_op_cone_op (pairwise.diagram U)).functor.map_iso (foo U)),
---   dsimp at this,
---   exact this.remove_op.symm,
--- end
-
-def foo_op' : (cones.postcompose_equivalence begin apply nat_iso.op, exact bar U end).inverse.obj
-    ((opens_le_cover_cocone U).whisker (pairwise_to_opens_le_cover U)).op ≅ (pairwise.cocone U).op :=
-cones.ext (iso.refl _) (by tidy)
-
-def foo_op'' : (cones.postcompose_equivalence (nat_iso.op (bar U : _) : _)).inverse.obj
-    ((opens_le_cover_cocone U).op.whisker (pairwise_to_opens_le_cover U).op) ≅ (pairwise.cocone U).op :=
-cones.ext (iso.refl _) (by tidy)
-
 
 end sheaf_condition
 
@@ -207,30 +212,21 @@ in terms of a limit diagram over `U i` and `U i ⊓ U j`.
 def sheaf_condition_opens_le_cover_equiv_sheaf_condition_pairwise_intersections (F : presheaf C X) :
   F.sheaf_condition_opens_le_cover ≃ F.sheaf_condition_pairwise_intersections :=
 equiv.Pi_congr_right (λ ι, equiv.Pi_congr_right (λ U,
-begin
-  transitivity,
-  swap,
-  apply is_limit.equiv_iso_limit,
-  apply (cones.functoriality _ _).map_iso _,
-  swap,
-  exact foo_op'' U,
-  change _ ≃ is_limit (functor.map_cone _ _),
-  transitivity,
-  swap,
-  apply is_limit.equiv_iso_limit,
-  apply (functor.map_cone_postcompose_equivalence_inverse _).symm,
-  transitivity,
-  swap,
-  symmetry,
-  apply is_limit.postcompose_inv_equiv _ _,
-  transitivity,
-  swap,
-  apply is_limit.equiv_iso_limit,
-  symmetry,
-  apply functor.map_cone_whisker,
-  have := (cofinal.is_limit_whisker_equiv (pairwise_to_opens_le_cover U) _),
-  exact this.symm,
-end))
+calc is_limit (F.map_cone (opens_le_cover_cocone U).op)
+    ≃ is_limit ((F.map_cone (opens_le_cover_cocone U).op).whisker (pairwise_to_opens_le_cover U).op)
+        : (cofinal.is_limit_whisker_equiv (pairwise_to_opens_le_cover U) _).symm
+... ≃ is_limit (F.map_cone ((opens_le_cover_cocone U).op.whisker (pairwise_to_opens_le_cover U).op))
+        : is_limit.equiv_iso_limit F.map_cone_whisker.symm
+... ≃ is_limit ((cones.postcompose_equivalence _).functor.obj
+          (F.map_cone ((opens_le_cover_cocone U).op.whisker (pairwise_to_opens_le_cover U).op)))
+        : (is_limit.postcompose_hom_equiv _ _).symm
+... ≃ is_limit (F.map_cone ((cones.postcompose_equivalence _).functor.obj
+          ((opens_le_cover_cocone U).op.whisker (pairwise_to_opens_le_cover U).op)))
+        : is_limit.equiv_iso_limit (functor.map_cone_postcompose_equivalence_functor _).symm
+... ≃ is_limit (F.map_cone (pairwise.cocone U).op)
+        : is_limit.equiv_iso_limit
+            ((cones.functoriality _ _).map_iso (pairwise_cocone_iso U : _).symm)
+))
 
 /--
 The sheaf condition in terms of an equalizer diagram is equivalent

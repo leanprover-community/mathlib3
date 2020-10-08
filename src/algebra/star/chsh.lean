@@ -49,7 +49,8 @@ assume a significant framework for quantum mechanices,
 or assume the ring is a C*-algebra.
 In the C*-algebra case, the order structure is completely determined by the *-algebra structure:
 `0 ≤ A` iff there exists some `B` so `A = star B * B`.
-There's a nice proof of both bounds in this setting at https://en.wikipedia.org/wiki/Tsirelson%27s_bound
+There's a nice proof of both bounds in this setting at
+https://en.wikipedia.org/wiki/Tsirelson%27s_bound
 The proof given here is purely algebraic.
 
 ## Future work
@@ -124,7 +125,8 @@ begin
       simp only [mul_comm A₁ A₀, mul_comm B₁ B₀, mul_left_comm A₁ A₀, mul_left_comm B₁ B₀,
         mul_left_comm B₀ A₀, mul_left_comm B₀ A₁, mul_left_comm B₁ A₀, mul_left_comm B₁ A₁],
       norm_num,
-      simp only [mul_comm _ (2 : R), mul_comm _ (4 : R), mul_left_comm _ (2 : R), mul_left_comm _ (4 : R)],
+      simp only [mul_comm _ (2 : R), mul_comm _ (4 : R),
+        mul_left_comm _ (2 : R), mul_left_comm _ (4 : R)],
       abel,
       simp only [neg_mul_eq_neg_mul_symm, mul_one, int.cast_bit0, one_mul, int.cast_one,
         gsmul_eq_mul, int.cast_neg],

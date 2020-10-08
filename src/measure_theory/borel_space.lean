@@ -174,7 +174,7 @@ opens_measurable_space.borel_le _ $ generate_measurable.basic _ h
 lemma is_measurable_interior : is_measurable (interior s) := is_open_interior.is_measurable
 
 lemma is_closed.is_measurable (h : is_closed s) : is_measurable s :=
-is_measurable.compl_iff.1 $ h.is_measurable
+h.is_measurable.of_compl
 
 lemma is_compact.is_measurable [t2_space α] (h : is_compact s) : is_measurable s :=
 h.is_closed.is_measurable

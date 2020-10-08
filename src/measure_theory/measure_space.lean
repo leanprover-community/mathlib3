@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
+import data.fintype.card
 import measure_theory.outer_measure
 import order.filter.countable_Inter
 import data.set.accumulate
@@ -266,11 +267,16 @@ lemma measure_bUnion {s : set β} {f : β → set α} (hs : countable s)
   μ (⋃b∈s, f b) = ∑'p:s, μ (f p) :=
 begin
   haveI := hs.to_encodable,
-  rw [← measure_Union, bUnion_eq_Union],
-  { rintro ⟨i, hi⟩ ⟨j, hj⟩ ij x ⟨h₁, h₂⟩,
-    exact hd i hi j hj (mt subtype.ext_val ij:_) ⟨h₁, h₂⟩ },
-  { simpa }
+  rw bUnion_eq_Union,
+  exact measure_Union (hd.on_injective subtype.val_injective $ λ x, x.2) (λ x, h x.1 x.2)
 end
+
+lemma measure_bUnion_finset {β} {s : finset β} {f : β → set α}
+  (hd : pairwise_on ↑s (disjoint on f)) (hm : ∀b∈s, is_measurable (f b)) :
+  μ (⋃b∈s, f b) = ∑ p in s, μ (f p) :=
+calc μ (⋃b∈s, f b) = ∑' p : (↑s : set β), μ (f p.1) : measure_bUnion s.countable_to_set hd hm
+... = ∑ p : (↑s : set β), μ (f p.1) : tsum_fintype _
+... = ∑ p in s, μ (f p) : s.sum_subtype_univ (λ x : β, μ (f x))
 
 lemma measure_sUnion {S : set (set α)} (hs : countable S)
   (hd : pairwise_on S disjoint) (h : ∀s∈S, is_measurable s) :

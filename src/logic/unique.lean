@@ -21,7 +21,8 @@ In other words, a type that is `inhabited` and a `subsingleton`.
 * `unique.mk'`: an inhabited subsingleton type is `unique`. This can not be an instance because it
   would lead to loops in typeclass inference.
 
-* `function.surjective.unique`: if the domain of a surjective function is `unique`, then its codomain is `unique` as well.
+* `function.surjective.unique`: if the domain of a surjective function is `unique`, then its
+  codomain is `unique` as well.
 
 * `function.injective.subsingleton`: if the codomain of an injective function is `subsingleton`,
   then its domain is `subsingleton` as well.
@@ -85,14 +86,6 @@ lemma exists_iff {p : α → Prop} : Exists p ↔ p (default α) :=
 
 end
 
-@[simp] lemma pi.default_apply {β : Π a : α, Sort v} [Π a, inhabited (β a)] (a : α) :
-  default (Π a, β a) a = default (β a) :=
-rfl
-
-instance pi.unique {β : Π a : α, Sort v} [Π a, unique (β a)] : unique (Π a, β a) :=
-{ uniq := λ f, funext $ λ x, eq_default _,
-  .. pi.inhabited α }
-
 @[ext] protected lemma subsingleton_unique' : ∀ (h₁ h₂ : unique α), h₁ = h₂
 | ⟨⟨x⟩, h⟩ ⟨⟨y⟩, _⟩ := by congr; rw [h x, h y]
 
@@ -105,6 +98,18 @@ def mk' (α : Sort u) [h₁ : inhabited α] [subsingleton α] : unique α :=
 { uniq := λ x, subsingleton.elim _ _, .. h₁ }
 
 end unique
+
+@[simp] lemma pi.default_def {β : Π a : α, Sort v} [Π a, inhabited (β a)] :
+  default (Π a, β a) = λ a, default (β a) :=
+rfl
+
+lemma pi.default_apply {β : Π a : α, Sort v} [Π a, inhabited (β a)] (a : α) :
+  default (Π a, β a) a = default (β a) :=
+rfl
+
+instance pi.unique {β : Π a : α, Sort v} [Π a, unique (β a)] : unique (Π a, β a) :=
+{ uniq := λ f, funext $ λ x, unique.eq_default _,
+  .. pi.inhabited α }
 
 namespace function
 

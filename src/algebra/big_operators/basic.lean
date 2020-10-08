@@ -623,7 +623,7 @@ begin
   rintro rfl, exact has hx
 end
 
-lemma prod_multiset_count' [decidable_eq α] (s : multiset α) {M : Type*} [comm_monoid M] (f : α → M) :
+lemma prod_multiset_map_count [decidable_eq α] (s : multiset α) {M : Type*} [comm_monoid M] (f : α → M) :
   (multiset.map f s).prod = ∏ m in s.to_finset, (f m) ^ (s.count m) :=
 begin
   apply s.induction_on, { simp only [prod_const_one, count_zero, prod_zero, pow_zero, map_zero] },

@@ -88,11 +88,12 @@ end
 @[simp] lemma nat_degree_not_mem_erase_lead_support : f.nat_degree ∉ (erase_lead f).support :=
 by convert not_mem_erase _ _
 
-@[simp] lemma ne_nat_degree_of_mem_erase_lead_support {a : ℕ} (h : a ∈ (erase_lead f).support) :
+lemma ne_nat_degree_of_mem_erase_lead_support {a : ℕ} (h : a ∈ (erase_lead f).support) :
   a ≠ f.nat_degree :=
 by { rintro rfl, exact nat_degree_not_mem_erase_lead_support h }
 
-lemma erase_lead_nat_degree_lt (f0 : 2 ≤ f.support.card) : (erase_lead f).nat_degree < f.nat_degree :=
+lemma erase_lead_nat_degree_lt (f0 : 2 ≤ f.support.card) :
+  (erase_lead f).nat_degree < f.nat_degree :=
 begin
   rw nat_degree_eq_support_max' (erase_lead_ne_zero f0),
   apply nat.lt_of_le_and_ne _

@@ -222,7 +222,7 @@ begin
   assumption,
 end
 
-lemma str_eq_of_tendsto {X : Compactum} (F : ultrafilter X) (x : X) : F.1 ≤ nhds x → X.str F = x :=
+lemma str_eq_of_le_nhds {X : Compactum} (F : ultrafilter X) (x : X) : F.1 ≤ nhds x → X.str F = x :=
 begin
   --sorry,
   intro cond,
@@ -337,22 +337,16 @@ begin
   exact ht,
 end
 
-lemma tendsto_of_str_eq {X : Compactum} (F : ultrafilter X) (x : X) :
-  X.str F = x → F.1 ≤ nhds x :=
-begin
-  rintro ⟨rfl⟩,
-  rw le_nhds_iff,
-  intros S hx hS,
-  exact hS F hx,
-end
+lemma le_nhds_of_str_eq {X : Compactum} (F : ultrafilter X) (x : X) :
+  X.str F = x → F.1 ≤ nhds x := λ h, le_nhds_iff.mpr (λ s hx hs, hs _ $ by rwa h)
 
 instance {X : Compactum} : t2_space X :=
 begin
   rw t2_iff_ultrafilter,
   intros F x y hF hx hy,
   let G : ultrafilter X := ⟨F,hF⟩,
-  replace hx := str_eq_of_tendsto G x hx,
-  replace hy := str_eq_of_tendsto G y hy,
+  replace hx := str_eq_of_le_nhds G x hx,
+  replace hy := str_eq_of_le_nhds G y hy,
   cc,
 end
 
@@ -362,8 +356,8 @@ begin
   intros x F hF hx,
   let G : ultrafilter X := ⟨F,hF⟩,
   change (ultrafilter.map f G).1 ≤ _,
-  apply tendsto_of_str_eq,
-  replace hx := str_eq_of_tendsto G x hx,
+  apply le_nhds_of_str_eq,
+  replace hx := str_eq_of_le_nhds G x hx,
   rw ←str_hom_commute,
   congr,
   assumption,
@@ -497,9 +491,9 @@ def morphism_of_continuous' {X Y : Compactum} (f : X → Y) (cont : continuous f
     rw continuous_iff_ultrafilter at cont,
     ext (F : ultrafilter X),
     specialize cont (X.str F) F.1 F.2,
-    have := tendsto_of_str_eq F (X.str F) rfl,
+    have := le_nhds_of_str_eq F (X.str F) rfl,
     specialize cont this,
-    have cont' := str_eq_of_tendsto (ultrafilter.map f F) _ cont,
+    have cont' := str_eq_of_le_nhds (ultrafilter.map f F) _ cont,
     simp,
     erw ←cont',
     refl,
@@ -544,11 +538,10 @@ def faithful : faithful Compactum_to_CompHaus := {}
 def empty_Compactum : Compactum :=
 { A := pempty,
   a := λ F, begin
-     exfalso,
-     rcases nonempty_of_mem_ultrafilter set.univ F.2 (filter.univ_sets _),
-     apply pempty.elim,
-     exact w,
-  end }
+    exfalso,
+    obtain (⟨x⟩ : nonempty pempty) := nonempty_of_nonempty_ultrafilter ⟨F⟩,
+    exact pempty.elim x
+  end}
 
 theorem is_open_iff_ultrafilter {X : Type*} [topological_space X] (U : set X) : is_open U ↔
   (∀ (F : ultrafilter X) (x : X), F.1 ≤ nhds x → x ∈ U → U ∈ F.1) :=

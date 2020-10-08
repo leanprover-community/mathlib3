@@ -68,7 +68,7 @@ begin
   { intros h s, conv_rhs {rw (show s = sᶜᶜ, by simp)}, exact h _, }
 end
 
-lemma neq_empty_of_mem_ultrafilter (s : set α) : is_ultrafilter f → s ∈ f → s ≠ ∅ :=
+lemma ne_empty_of_mem_ultrafilter (s : set α) : is_ultrafilter f → s ∈ f → s ≠ ∅ :=
 begin
   rintros h hs rfl,
   have := f.univ_sets,
@@ -80,7 +80,7 @@ lemma nonempty_of_mem_ultrafilter (s : set α) : is_ultrafilter f → s ∈ f �
 begin
   intros h1 h2,
   rw ←ne_empty_iff_nonempty,
-  exact neq_empty_of_mem_ultrafilter _ h1 h2,
+  exact ne_empty_of_mem_ultrafilter _ h1 h2,
 end
 
 lemma mem_or_compl_mem_of_ultrafilter (hf : is_ultrafilter f) (s : set α) :
@@ -264,7 +264,7 @@ instance ultrafilter.monad : monad ultrafilter := { map := @ultrafilter.map }
 
 instance ultrafilter.inhabited [inhabited α] : inhabited (ultrafilter α) := ⟨pure (default _)⟩
 
-instance nonempty_of_nonempty_ultrafilter [nonempty (ultrafilter α)] : nonempty α :=
+lemma nonempty_of_nonempty_ultrafilter (h : nonempty (ultrafilter α)) : nonempty α :=
 begin
   obtain ⟨_,hF⟩ := (show nonempty (ultrafilter α), by apply_instance),
   obtain ⟨x⟩ := nonempty_of_mem_ultrafilter set.univ hF (filter.univ_sets _),

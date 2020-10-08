@@ -7,6 +7,7 @@ Author: Jannis Limperg
 import tactic.induction.type_based_naming
 import tactic.induction.util
 import tactic.induction.unify_equations
+import tactic.generalizes
 
 open expr native
 open tactic.interactive (case_tag.from_tag_hyps)

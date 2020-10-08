@@ -234,14 +234,6 @@ meta def open_n_pis_metas' :
 | e (n + 1) := fail! "expected an expression starting with a Π, but got: {e}"
 
 
-meta def get_app_fn_const_whnf (e : expr) (md := semireducible)
-  (unfold_ginductive := tt) : tactic name := do
-  f ← get_app_fn_whnf e md unfold_ginductive,
-  match f with
-  | (const n _) := pure n
-  | _ := fail! "expected a constant (possibly applied to some arguments), but got:\n{e}"
-  end
-
 meta def type_depends_on_locals (h : expr) (ns : name_set) : tactic bool := do
   h_type ← infer_type h,
   pure $ h_type.has_local_in ns

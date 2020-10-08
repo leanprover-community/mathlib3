@@ -3,15 +3,14 @@ Copyright (c) 2020 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jannis Limperg
 -/
-import tactic.induction.util
-import data.nat.basic
+import tactic.core
 
 /-!
 # The `unify_equations` tactic
 
 This module defines `unify_equations`, a first-order unification tactic that
-unifies one or more equations in the context. It implements Conor McBride's
-Qnify algorithm [^qnify].
+unifies one or more equations in the context. It implements the Qnify algorithm
+from [McBride, Inverting Inductively Defined Relations in LEGO][mcbride1996].
 
 The tactic takes as input some equations which it simplifies one after the
 other. Each equation is simplified by applying one of several possible
@@ -32,7 +31,7 @@ namespace unify_equations
 /--
 The result of a unification step:
 
-- `simplified hs` means that the step succeeded and produced new (simpler)
+- `simplified hs` means that the step succeeded and produced some new (simpler)
   equations `hs`. `hs` can be empty.
 - `goal_solved` means that the step succeeded and solved the goal (by deriving a
   contradiction from the given equation).
@@ -111,8 +110,10 @@ do {
 } <|>
 pure not_simplified
 
--- TODO copied from core (init/meta/injection_tactic.lean)
-meta def injection_with (h : expr) (ns : list name)
+-- TODO This is an improved version of `injection_with` from core
+-- (init/meta/injection_tactic). Remove when the improvements have landed in
+-- core.
+private meta def injection_with' (h : expr) (ns : list name)
   (base := `h) (offset := some 1) :
   tactic (option (list expr) × list name) :=
 do
@@ -126,15 +127,30 @@ do
   } <|> fail
     "injection tactic failed, argument must be an equality proof where lhs and rhs are of the form (c ...), where c is a constructor",
   if constructor_left = constructor_right then do
+    -- C.inj_arrow, for a given constructor C of datatype D, has type
+    --
+    --     ∀ (A₁ ... Aₙ) (x₁ ... xₘ) (y₁ ... yₘ), C x₁ ... xₘ = C y₁ ... yₘ
+    --       → ∀ ⦃P : Sort u⦄, (x₁ = y₁ → ... → yₖ = yₖ → P) → P
+    --
+    -- where the Aᵢ are parameters of D and the xᵢ/yᵢ are arguments of C.
+    -- Note that if xᵢ/yᵢ are propositions, no equation is generated, so the
+    -- number of equations is not necessarily the constructor arity.
+
+    -- First, we find out how many equations we need to intro later.
     inj ← mk_const inj_name,
     inj_type ← infer_type inj,
     inj_arity ← get_pi_arity inj_type,
     let num_equations :=
       (inj_type.nth_binding_body (inj_arity - 1)).binding_domain.pi_arity,
+
+    -- Now we generate the actual proof of the target.
     tgt ← target,
     proof ← mk_mapp inj_name (list.repeat none (inj_arity - 3) ++ [some h, some tgt]),
     eapply proof,
     (next, ns) ← intron_with num_equations ns base offset,
+
+    -- The following filters out 'next' hypotheses of type `true`. The
+    -- `inj_arrow` lemmas introduce these for nullary constructors.
     next ← next.mfilter $ λ h, do {
       `(true) ← infer_type h | pure tt,
       (clear h >> pure ff) <|> pure tt
@@ -164,7 +180,7 @@ same datatype `I`:
 meta def unify_constructor_headed : unification_step :=
 λ equ _ _ _ _ _ _ _,
 do {
-  (next, _) ← injection_with equ [] `_ none,
+  (next, _) ← injection_with' equ [] `_ none,
   try $ clear equ,
   pure $
     match next with
@@ -183,11 +199,13 @@ meta def get_sizeof (type : expr) : tactic pexpr := do
   n ← get_app_fn_const_whnf type semireducible ff,
   resolve_name $ n ++ `sizeof
 
-lemma plus_gt (n m : ℕ) : m ≠ 0 → n + m > n :=
-by { induction m, { contradiction }, { simp } }
-
-lemma n_plus_m_plus_one_ne_n (n m : ℕ) : n + (m + 1) ≠ n :=
-by simp [ne_of_gt, plus_gt]
+lemma add_add_one_ne (n m : ℕ) : n + (m + 1) ≠ n :=
+begin
+  apply ne_of_gt,
+  apply nat.lt_add_of_pos_right,
+  apply nat.pos_of_ne_zero,
+  contradiction
+end
 -- Linarith could prove this, but I want to avoid that dependency.
 
 /--
@@ -232,7 +250,7 @@ meta def contradict_n_eq_n_plus_m (md : transparency) (equ lhs rhs : expr) :
   let rhs_n_expr := reflect rhs_n,
   n ← to_expr ``(%%common + %%rhs_n_expr),
   let m := reflect (diff - 1),
-  pure `(n_plus_m_plus_one_ne_n %%n %%m %%equ)
+  pure `(add_add_one_ne %%n %%m %%equ)
 
 /--
 Given `equ : t = u` with `t, u : I` and `I.sizeof t ≠ I.sizeof u`, we solve the
@@ -387,13 +405,11 @@ meta def unify_equations (eqs : interactive.parse (many ident)) :
   tactic unit :=
 tactic.unify_equations eqs *> skip
 
--- TODO move to tests
-example (P : ∀ n, fin n → Prop) (n m : ℕ) (f : fin n) (g : fin m)
-  (h₁ : n + 1 = m + 1) (h₂ : f == g) (h₃ : P n f) : P m g :=
-begin
-  unify_equations h₁ h₂,
-  exact h₃
-end
+add_tactic_doc
+{ name := "unify_equations",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.unify_equations],
+  tags := ["simplification"] }
 
 end interactive
 end tactic

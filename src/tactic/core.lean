@@ -252,6 +252,21 @@ meta def get_app_fn_whnf : expr → opt_param _ semireducible → opt_param _ tt
   end
 
 /--
+`get_app_fn_const_whnf e md unfold_ginductive` expects that `e = C x₁ ... xₙ`,
+where `C` is a constant, after normalisation with transparency `md`. If so, the
+name of `C` is returned. Otherwise the tactic fails. `unfold_ginductive`
+controls whether constructors of generalised inductive types are unfolded.
+-/
+meta def get_app_fn_const_whnf (e : expr) (md := semireducible)
+  (unfold_ginductive := tt) : tactic name := do
+  f ← get_app_fn_whnf e md unfold_ginductive,
+  match f with
+  | (expr.const n _) := pure n
+  | _ := fail format!
+    "expected a constant (possibly applied to some arguments), but got:\n{e}"
+  end
+
+/--
 `get_app_args_whnf e md unfold_ginductive` is like `expr.get_app_args e` but `e`
 is normalised as necessary (with transparency `md`). `unfold_ginductive`
 controls whether constructors of generalised inductive types are unfolded. The

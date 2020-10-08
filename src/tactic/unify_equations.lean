@@ -9,8 +9,8 @@ import data.nat.basic
 # The `unify_equations` tactic
 
 This module defines `unify_equations`, a first-order unification tactic that
-unifies one or more equations in the context. It implements McBride's Qnify
-algorithm [^qnify].
+unifies one or more equations in the context. It implements the Qnify algorithm
+from [McBride, Inverting Inductively Defined Relations in LEGO][mcbride1996].
 
 The tactic takes as input some equations which it simplifies one after the
 other. Each equation is simplified by applying one of several possible

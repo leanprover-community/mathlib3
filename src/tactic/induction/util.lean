@@ -94,10 +94,6 @@ end list
 
 namespace expr
 
-meta def local_names_option : expr → option (name × name)
-| (local_const n₁ n₂ _ _) := some (n₁, n₂)
-| _ := none
-
 meta def locals (e : expr) : expr_set :=
 e.fold mk_expr_set $ λ e _ occs,
   if e.is_local_constant then occs.insert e else occs

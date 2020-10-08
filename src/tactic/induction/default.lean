@@ -312,8 +312,13 @@ meta def constructor_argument_naming_rule_index : constructor_argument_naming_ru
 λ i,
 let index_occs := i.ainfo.index_occurrences in
 let eliminee_args := i.einfo.args in
+let get_eliminee_arg_local_names : ℕ → option (name × name) := λ i, do {
+  arg ← eliminee_args.find i,
+  (uname, ppname, _) ← arg.match_local_const,
+  pure (uname, ppname)
+} in
 let local_index_instantiations :=
-  (index_occs.map (eliminee_args.find >=> expr.local_names_option)).all_some in
+  (index_occs.map get_eliminee_arg_local_names).all_some in
 -- Right now, this rule only triggers if the eliminee arg is exactly a local
 -- const. We could consider a more permissive rule where the eliminee arg can be
 -- an arbitrary term as long as that term *contains* only a single local const.

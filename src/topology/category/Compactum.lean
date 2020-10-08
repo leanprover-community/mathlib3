@@ -441,45 +441,9 @@ noncomputable def of_nonempty_Top (X : Type*) [nonempty X] [topological_space X]
   end }
 
 instance {X : Type*} [topological_space X] [compact_space X] [t2_space X] [nonempty X] :
-  nonempty (of_nonempty_Top X) :=
-begin
-  have c : nonempty X := by apply_instance,
-  rcases c,
-  use c,
-end
+  nonempty (of_nonempty_Top X) := by {obtain ⟨x⟩ := (show nonempty X, by apply_instance), use x}
 
-noncomputable def morphism_of_continuous {X Y : Type*} [topological_space X] [topological_space Y]
-  [compact_space X] [compact_space Y] [t2_space X] [t2_space Y] [nonempty X] [nonempty Y]
-  (f : X → Y) (cont : continuous f) : (of_nonempty_Top X) ⟶ (of_nonempty_Top Y) :=
-{ f := f,
-  h' := begin
-    rw continuous_iff_ultrafilter at cont,
-    ext (F : ultrafilter X),
-    simp,
-    change Lim _ = f (Lim _),
-    have : F.1 ≤ nhds (Lim F.1),
-    { have : is_compact (set.univ : set X),
-      { suffices : compact_space X,
-        { cases this,
-          assumption },
-        apply_instance },
-      have := compact_iff_ultrafilter_le_nhds.mp this,
-      specialize this F.1 F.2 _,
-      rcases this with ⟨a,ha,cond⟩,
-      apply Lim_spec,
-      use a,
-      assumption,
-      intros U hU,
-      simp at hU,
-      rw hU,
-      apply filter.univ_sets },
-    specialize cont _ F.1 F.2 this,
-    letI := (ultrafilter.map f F).2.1,
-    apply Lim_eq,
-    assumption,
-  end }
-
-def morphism_of_continuous' {X Y : Compactum} (f : X → Y) (cont : continuous f) : X ⟶ Y :=
+def morphism_of_continuous {X Y : Compactum} (f : X → Y) (cont : continuous f) : X ⟶ Y :=
 { f := f,
   h' := begin
     by_cases nonempty X,
@@ -531,7 +495,7 @@ def Compactum_to_CompHaus : Compactum ⥤ CompHaus :=
 namespace Compactum_to_CompHaus
 
 def full : full Compactum_to_CompHaus :=
-{ preimage := λ X Y f, Compactum.morphism_of_continuous' f.1 f.2 }
+{ preimage := λ X Y f, Compactum.morphism_of_continuous f.1 f.2 }
 
 def faithful : faithful Compactum_to_CompHaus := {}
 

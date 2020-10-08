@@ -24,8 +24,8 @@ namespace polynomial
 
 variables {R : Type*} [semiring R] {f : polynomial R}
 
-/-- erase_lead of a polynomial f is the polynomial obtained by
-subtracting from f the leading term of f. -/
+/-- `erase_lead f` for a polynomial `f` is the polynomial obtained by
+subtracting from `f` the leading term of `f`. -/
 def erase_lead (f : polynomial R) : polynomial R :=
  ⟨ f.support \ singleton f.nat_degree , λ a : ℕ , ite (a = f.nat_degree) 0 f.coeff a , λ a , begin
   simp only [mem_sdiff, mem_support_iff, ne.def, mem_singleton],

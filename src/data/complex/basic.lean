@@ -6,6 +6,8 @@ Authors: Kevin Buzzard, Mario Carneiro
 import data.real.basic
 import algebra.star.algebra
 
+open_locale big_operators
+
 /-!
 # The complex numbers
 
@@ -358,7 +360,7 @@ by rw [add_conj]; simp; rw [mul_div_cancel_left (z.re:ℂ) two_ne_zero']
 
 local notation `abs'` := _root_.abs
 
-@[simp] lemma abs_of_real (r : ℝ) : abs r = abs' r :=
+@[simp, norm_cast] lemma abs_of_real (r : ℝ) : abs r = abs' r :=
 by simp [abs, norm_sq_of_real, real.sqrt_mul_self_eq_abs]
 
 lemma abs_of_nonneg {r : ℝ} (h : 0 ≤ r) : abs r = r :=
@@ -669,5 +671,13 @@ lemma lim_abs (f : cau_seq ℂ abs) : lim (cau_seq_abs f) = abs (lim f) :=
 lim_eq_of_equiv_const (λ ε ε0,
 let ⟨i, hi⟩ := equiv_lim f ε ε0 in
 ⟨i, λ j hj, lt_of_le_of_lt (abs_abs_sub_le_abs_sub _ _) (hi j hj)⟩)
+
+@[simp, norm_cast] lemma of_real_prod {α : Type*} (s : finset α) (f : α → ℝ) :
+  ((∏ i in s, f i : ℝ) : ℂ) = ∏ i in s, (f i : ℂ) :=
+ring_hom.map_prod of_real _ _
+
+@[simp, norm_cast] lemma of_real_sum {α : Type*} (s : finset α) (f : α → ℝ) :
+  ((∑ i in s, f i : ℝ) : ℂ) = ∑ i in s, (f i : ℂ) :=
+ring_hom.map_sum of_real _ _
 
 end complex

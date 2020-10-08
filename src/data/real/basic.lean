@@ -11,6 +11,8 @@ import data.real.cau_seq_completion
 import algebra.archimedean
 import algebra.star.basic
 
+/-- The type `ℝ` of real numbers constructed as equivalence classes of Cauchy sequences of rational
+numbers. -/
 def real := @cau_seq.completion.Cauchy ℚ _ _ _ abs _
 notation `ℝ` := real
 

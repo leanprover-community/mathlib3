@@ -96,6 +96,10 @@ protected def function.surjective.distrib {S} [distrib R] [has_add S] [has_mul S
 ### Semirings
 -/
 
+/-- A semiring is a type with the following structures: additive commutative monoid
+(`add_comm_monoid`), multiplicative monoid (`monoid`), distributive laws (`distrib`), and
+multiplication by zero law (`mul_zero_class`). The actual definition extends `monoid_with_zero`
+instead of `monoid` and `mul_zero_class`. -/
 @[protect_proj, ancestor add_comm_monoid monoid_with_zero distrib]
 class semiring (α : Type u) extends add_comm_monoid α, monoid_with_zero α, distrib α
 
@@ -167,6 +171,14 @@ lemma ite_mul_zero_right {α : Type*} [mul_zero_class α] (P : Prop) [decidable 
   ite P (a * b) 0 = a * ite P b 0 :=
 by { by_cases h : P; simp [h], }
 
+/-- An element `a` of a semiring is even if there exists `k` such `a = 2*k`. -/
+def even (a : α) : Prop := ∃ k, a = 2*k
+
+lemma even_iff_two_dvd {a : α} : even a ↔ 2 ∣ a := iff.rfl
+
+/-- An element `a` of a semiring is odd if there exists `k` such `a = 2*k + 1`. -/
+def odd (a : α) : Prop := ∃ k, a = 2*k + 1
+
 end semiring
 
 namespace add_monoid_hom
@@ -196,34 +208,54 @@ structure ring_hom (α : Type*) (β : Type*) [semiring α] [semiring β]
 
 infixr ` →+* `:25 := ring_hom
 
-instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe_to_fun (α →+* β) :=
-⟨_, ring_hom.to_fun⟩
+/-- Reinterpret a ring homomorphism `f : R →+* S` as a monoid homomorphism `R →* S`.
+The `simp`-normal form is `(f : R →* S)`. -/
+add_decl_doc ring_hom.to_monoid_hom
 
-instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe (α →+* β) (α →* β) :=
-⟨ring_hom.to_monoid_hom⟩
-
-instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe (α →+* β) (α →+ β) :=
-⟨ring_hom.to_add_monoid_hom⟩
-
-@[simp, norm_cast]
-lemma coe_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) :
-  ⇑(f : α →* β) = f := rfl
-
-@[simp, norm_cast]
-lemma coe_add_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) :
-  ⇑(f : α →+ β) = f := rfl
+/-- Reinterpret a ring homomorphism `f : R →+* S` as an additive monoid homomorphism `R →+ S`.
+The `simp`-normal form is `(f : R →+ S)`. -/
+add_decl_doc ring_hom.to_add_monoid_hom
 
 namespace ring_hom
+
+section coe
+
+variables {rα : semiring α} {rβ : semiring β}
+
+include rα rβ
+
+instance : has_coe_to_fun (α →+* β) := ⟨_, ring_hom.to_fun⟩
+
+@[simp] lemma to_fun_eq_coe (f : α →+* β) : f.to_fun = f := rfl
+
+@[simp] lemma coe_mk (f : α → β) (h₁ h₂ h₃ h₄) : ⇑(⟨f, h₁, h₂, h₃, h₄⟩ : α →+* β) = f := rfl
+
+instance has_coe_monoid_hom : has_coe (α →+* β) (α →* β) := ⟨ring_hom.to_monoid_hom⟩
+
+@[simp, norm_cast] lemma coe_monoid_hom (f : α →+* β) : ⇑(f : α →* β) = f := rfl
+
+@[simp] lemma to_monoid_hom_eq_coe (f : α →+* β) : f.to_monoid_hom = f := rfl
+
+@[simp] lemma coe_monoid_hom_mk (f : α → β) (h₁ h₂ h₃ h₄) :
+  ((⟨f, h₁, h₂, h₃, h₄⟩ : α →+* β) : α →* β) = ⟨f, h₁, h₂⟩ :=
+rfl
+
+instance has_coe_add_monoid_hom : has_coe (α →+* β) (α →+ β) := ⟨ring_hom.to_add_monoid_hom⟩
+
+@[simp, norm_cast] lemma coe_add_monoid_hom (f : α →+* β) : ⇑(f : α →+ β) = f := rfl
+
+@[simp] lemma to_add_monoid_hom_eq_coe (f : α →+* β) : f.to_add_monoid_hom = f := rfl
+
+@[simp] lemma coe_add_monoid_hom_mk (f : α → β) (h₁ h₂ h₃ h₄) :
+  ((⟨f, h₁, h₂, h₃, h₄⟩ : α →+* β) : α →+ β) = ⟨f, h₃, h₄⟩ :=
+rfl
+
+end coe
 
 variables [rα : semiring α] [rβ : semiring β]
 
 section
 include rα rβ
-
-@[simp]
-lemma to_fun_eq_coe (f : α →+* β) : f.to_fun = f := rfl
-
-@[simp] lemma coe_mk (f : α → β) (h₁ h₂ h₃ h₄) : ⇑(⟨f, h₁, h₂, h₃, h₄⟩ : α →+* β) = f := rfl
 
 variables (f : α →+* β) {x y : α} {rα rβ}
 
@@ -301,6 +333,8 @@ by refine {to_fun := id, ..}; intros; refl
 
 include rα
 
+instance : inhabited (α →+* α) := ⟨id α⟩
+
 @[simp] lemma id_apply (x : α) : ring_hom.id α x = x := rfl
 
 variable {rγ : semiring γ}
@@ -360,6 +394,10 @@ omit rα rβ rγ
 
 end ring_hom
 
+/-- A commutative semiring is a `semiring` with commutative multiplication. In other words, it is a
+type with the following structures: additive commutative monoid (`add_comm_monoid`), multiplicative
+commutative monoid (`comm_monoid`), distributive laws (`distrib`), and multiplication by zero law
+(`mul_zero_class`). -/
 @[protect_proj, ancestor semiring comm_monoid]
 class comm_semiring (α : Type u) extends semiring α, comm_monoid α
 
@@ -406,6 +444,9 @@ end comm_semiring
 ### Rings
 -/
 
+/-- A ring is a type with the following structures: additive commutative group (`add_comm_group`),
+multiplicative monoid (`monoid`), and distributive laws (`distrib`).  Equivalently, a ring is a
+`semiring` with a negation operation making it an additive group.  -/
 @[protect_proj, ancestor add_comm_group monoid distrib]
 class ring (α : Type u) extends add_comm_group α, monoid α, distrib α
 
@@ -567,6 +608,7 @@ def mk' {γ} [semiring α] [ring γ] (f : α →* γ) (map_add : ∀ a b : α, f
 
 end ring_hom
 
+/-- A commutative ring is a `ring` with commutative multiplication. -/
 @[protect_proj, ancestor ring comm_semigroup]
 class comm_ring (α : Type u) extends ring α, comm_semigroup α
 
@@ -739,6 +781,9 @@ end domain
 ### Integral domains
 -/
 
+/-- An integral domain is a commutative ring with no zero divisors, i.e. satisfying the condition
+`a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, an integral domain is a domain with commutative
+multiplication. -/
 @[protect_proj, ancestor comm_ring domain]
 class integral_domain (α : Type u) extends comm_ring α, domain α
 

@@ -10,9 +10,12 @@ import algebra.order_functions
 variables {ι : Type*} {β : ι → Type*} (r : ι → ι → Prop)
   (s : Π {i}, β i → β i → Prop)
 
+/-- The lexicographic relation on `Π i : ι, β i`, where `ι` is ordered by `r`,
+  and each `β i` is ordered by `s`. -/
 def pi.lex (x y : Π i, β i) : Prop :=
 ∃ i, (∀ j, r j i → x j = y j) ∧ s (x i) (y i)
 
+/-- The cartesian product of an indexed family, equipped with the lexicographic order. -/
 def pilex (α : Type*) (β : α → Type*) : Type* := Π a, β a
 
 instance [has_lt ι] [∀ a, has_lt (β a)] : has_lt (pilex ι β) :=

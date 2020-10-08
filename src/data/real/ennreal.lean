@@ -324,7 +324,7 @@ lemma lt_iff_exists_rat_btwn :
 ⟨λ h,
   begin
     rcases lt_iff_exists_coe.1 h with ⟨p, rfl, _⟩,
-    rcases dense h with ⟨c, pc, cb⟩,
+    rcases exists_between h with ⟨c, pc, cb⟩,
     rcases lt_iff_exists_coe.1 cb with ⟨r, rfl, _⟩,
     rcases (nnreal.lt_iff_exists_rat_btwn _ _).1 (coe_lt_coe.1 pc) with ⟨q, hq0, pq, qr⟩,
     exact ⟨q, hq0, coe_lt_coe.2 pq, lt_trans (coe_lt_coe.2 qr) cb⟩
@@ -379,10 +379,10 @@ end
 
 lemma add_lt_add (ac : a < c) (bd : b < d) : a + b < c + d :=
 begin
-  rcases dense ac with ⟨a', aa', a'c⟩,
+  rcases exists_between ac with ⟨a', aa', a'c⟩,
   rcases lt_iff_exists_coe.1 aa' with ⟨aR, rfl, _⟩,
   rcases lt_iff_exists_coe.1 a'c with ⟨a'R, rfl, _⟩,
-  rcases dense bd with ⟨b', bb', b'd⟩,
+  rcases exists_between bd with ⟨b', bb', b'd⟩,
   rcases lt_iff_exists_coe.1 bb' with ⟨bR, rfl, _⟩,
   rcases lt_iff_exists_coe.1 b'd with ⟨b'R, rfl, _⟩,
   have I : ↑aR + ↑bR < ↑a'R + ↑b'R :=

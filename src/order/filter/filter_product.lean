@@ -72,14 +72,14 @@ lemma lt_def [preorder β] (U : is_ultrafilter φ) :
   ((<) : β* → β* → Prop) = lift_rel (<) :=
 by { ext ⟨f⟩ ⟨g⟩, exact coe_lt U }
 
-lemma le_def [preorder β] (U : is_ultrafilter φ) :
+lemma le_def [preorder β] :
   ((≤) : β* → β* → Prop) = lift_rel (≤) :=
 by { ext ⟨f⟩ ⟨g⟩, exact coe_le }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is an ordered ring.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
 protected def ordered_ring [ordered_ring β] (U : is_ultrafilter φ) : ordered_ring β* :=
-{ zero_le_one := by { rw le_def U, show (∀* i, (0 : β) ≤ 1), simp [zero_le_one] },
+{ zero_le_one := by { rw le_def, show (∀* i, (0 : β) ≤ 1), simp [zero_le_one] },
   mul_pos := λ x y, induction_on₂ x y $ λ f g hf hg, (coe_pos U).2 $
     ((coe_pos U).1 hg).mp $ ((coe_pos U).1 hf).mono $ λ x, mul_pos,
   .. germ.ring, .. germ.ordered_add_comm_group, .. @germ.nontrivial _ _ _ _ U.1 }

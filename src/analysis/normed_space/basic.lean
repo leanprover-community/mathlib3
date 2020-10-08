@@ -17,7 +17,6 @@ variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 noncomputable theory
 open filter metric
 open_locale topological_space big_operators nnreal
-localized "notation f `→_{`:50 a `}`:0 b := filter.tendsto f (_root_.nhds a) (_root_.nhds b)" in filter
 
 /-- Auxiliary class, endowing a type `α` with a function `norm : α → ℝ`. This class is designed to
 be extended in more interesting classes specifying the properties of the norm. -/
@@ -388,10 +387,10 @@ lemma squeeze_zero_norm {f : γ → α} {g : γ → ℝ} {t₀ : filter γ}
   tendsto f t₀ (𝓝 0) :=
 squeeze_zero_norm' (eventually_of_forall h) h'
 
-lemma lim_norm (x : α) : (λg:α, ∥g - x∥) →_{x} 0 :=
+lemma lim_norm (x : α) : tendsto (λg : α, ∥g - x∥) (𝓝 x) (𝓝 0) :=
 tendsto_iff_norm_tendsto_zero.1 (continuous_iff_continuous_at.1 continuous_id x)
 
-lemma lim_norm_zero : (λg:α, ∥g∥) →_{0} 0 :=
+lemma lim_norm_zero : tendsto (λg : α, ∥g∥) (𝓝 0) (𝓝 0) :=
 by simpa using lim_norm (0:α)
 
 lemma continuous_norm : continuous (λg:α, ∥g∥) :=

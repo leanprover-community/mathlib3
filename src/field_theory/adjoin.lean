@@ -285,6 +285,18 @@ begin
   exact findim_adjoin_simple_eq_one_iff.mp (h x),
 end
 
+lemma subsingleton_of_dim_adjoin_eq_one (h : ∀ x : E, dim F F⟮x⟯ = 1) :
+  subsingleton (intermediate_field F E) :=
+begin
+  exact subsingleton_of_bot_eq_top (bot_eq_top_of_dim_adjoin_eq_one h),
+end
+
+lemma subsingleton_of_findim_adjoin_eq_one (h : ∀ x : E, findim F F⟮x⟯ = 1) :
+  subsingleton (intermediate_field F E) :=
+begin
+  exact subsingleton_of_bot_eq_top (bot_eq_top_of_findim_adjoin_eq_one h),
+end
+
 instance [finite_dimensional F E] (K : intermediate_field F E) : finite_dimensional F K :=
   finite_dimensional.finite_dimensional_submodule (K.to_subalgebra.to_submodule)
 

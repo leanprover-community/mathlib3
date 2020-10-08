@@ -384,6 +384,14 @@ instance pi.bounded_lattice {ι : Type*} {α : ι → Type*} [Π i, bounded_latt
   bounded_lattice (Π i, α i) :=
 { .. pi.semilattice_sup_top, .. pi.semilattice_inf_bot }
 
+lemma eq_bot_of_bot_eq_top {α : Type*} [bounded_lattice α] (hα : (⊥ : α) = ⊤) (x : α) :
+  x = (⊥ : α) :=
+eq_bot_mono le_top (eq.symm hα)
+
+lemma subsingleton_of_bot_eq_top {α : Type*} [bounded_lattice α] (hα : (⊥ : α) = (⊤ : α)) :
+  subsingleton α :=
+⟨λ a b, by rw [eq_bot_of_bot_eq_top hα a, eq_bot_of_bot_eq_top hα b]⟩
+
 /-- Attach `⊥` to a type. -/
 def with_bot (α : Type*) := option α
 

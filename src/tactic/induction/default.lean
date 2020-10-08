@@ -161,7 +161,7 @@ of `cᵢ`.
 meta def get_index_occurrences (num_params : ℕ) (args : expr_set) :
   expr → tactic (rb_multimap expr ℕ) :=
 λ ret_type, do
-  ⟨_, ret_args⟩ ← decompose_app_normalizing ret_type,
+  ret_args ← get_app_args_whnf ret_type,
   ret_args.mfoldl_with_index
     (λ i occ_map ret_arg, do
       if i < num_params
@@ -267,7 +267,7 @@ Get information about an eliminee. The eliminee must be a local hypothesis.
 -/
 meta def get_eliminee_info (eliminee : expr) : tactic eliminee_info := do
   type ← infer_type eliminee,
-  ⟨f, args⟩ ← type.decompose_app_normalizing,
+  ⟨f, args⟩ ← get_app_fn_args_whnf type,
   pure
     { ename := eliminee.local_pp_name,
       eexpr := eliminee,
@@ -639,7 +639,7 @@ meta def generalize_complex_index_args (eliminee : expr) (num_params : ℕ)
   (generate_induction_hyps : bool) : tactic (expr × ℕ × list name × ℕ) :=
 focus1 $ do
   eliminee_type ← infer_type eliminee,
-  (eliminee_head, eliminee_args) ← decompose_app_normalizing eliminee_type,
+  (eliminee_head, eliminee_args) ← get_app_fn_args_whnf eliminee_type,
   let ⟨eliminee_param_args, eliminee_index_args⟩ :=
     eliminee_args.split_at num_params,
 
@@ -959,7 +959,7 @@ focus1 $ do
   env ← get_env,
 
   -- Get info about the inductive type
-  iname ← get_inductive_name eliminee_type <|> fail!
+  iname ← get_app_fn_const_whnf eliminee_type <|> fail!
     "The type of {eliminee} should be an inductive type, but it is\n{eliminee_type}",
   iinfo ← get_inductive_info iname,
 
@@ -1026,7 +1026,7 @@ focus1 $ do
       -- Get the eliminee's arguments. (Some of these may have changed due to
       -- the generalising step above.)
       eliminee_type ← infer_type eliminee,
-      (_, eliminee_args) ← decompose_app_normalizing eliminee_type,
+      eliminee_args ← get_app_args_whnf eliminee_type,
 
       -- Clear the eliminated hypothesis (if possible)
       try $ clear eliminee,

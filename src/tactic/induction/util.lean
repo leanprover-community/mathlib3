@@ -148,44 +148,6 @@ meta def local_names_option : expr → option (name × name)
 | (local_const n₁ n₂ _ _) := some (n₁, n₂)
 | _ := none
 
-/-- Auxiliary function for `decompose_app`. -/
-meta def decompose_app_aux : expr → expr × list expr
-| (app t u) :=
-  let (f, args) := decompose_app_aux t in
-  (f, u :: args)
-| e := (e, [])
-
-/-- Decomposes a function application. If `e` is of the form `f x ... z`, the
-result is `(f, [x, ..., z])`. If `e` is not of this form, the result is
-`(e, [])`.
--/
-meta def decompose_app (e : expr) : expr × list expr :=
-let (f , args) := decompose_app_aux e in
-(f , args.reverse)
-
-/-- Auxiliary function for `decompose_app_normalizing`. -/
-meta def decompose_app_normalizing_aux (md : tactic.transparency)
-  : expr → tactic (expr × list expr) := λ e, do
-  e ← tactic.whnf e md,
-  match e with
-  | (app t u) := do
-      (f , args) ← decompose_app_normalizing_aux t,
-      pure (f, u :: args)
-  | _ := pure (e, [])
-  end
-
-/-- Decomposes a function application. If `e` is of the form `f x ... z`, the
-result is `(f, [x, ..., z])`. If `e` is not of this form, the result is
-`(e, [])`.
-
-`e` is normalised lazily. This means that the returned expressions are not
-necessarily in normal form.
--/
-meta def decompose_app_normalizing (e : expr) (md := semireducible) :
-  tactic (expr × list expr) := do
-  (f , args) ← decompose_app_normalizing_aux md e,
-  pure (f , args.reverse)
-
 meta def locals (e : expr) : expr_set :=
 e.fold mk_expr_set $ λ e _ occs,
   if e.is_local_constant then occs.insert e else occs
@@ -272,19 +234,13 @@ meta def open_n_pis_metas' :
 | e (n + 1) := fail! "expected an expression starting with a Π, but got: {e}"
 
 
-meta def get_app_fn_const_whnf (e : expr) : tactic name := do
-  f ← get_app_fn_whnf e,
-  f ← whnf f,
+meta def get_app_fn_const_whnf (e : expr) (md := semireducible)
+  (unfold_ginductive := tt) : tactic name := do
+  f ← get_app_fn_whnf e md unfold_ginductive,
   match f with
   | (const n _) := pure n
   | _ := fail! "expected a constant (possibly applied to some arguments), but got:\n{e}"
   end
-
-meta def get_inductive_name (type : expr) : tactic name := do
-  n ← get_app_fn_const_whnf type,
-  env ← get_env,
-  guard (env.is_inductive n) <|> fail! "Expected {n} to be an inductive type.",
-  pure n
 
 meta def type_depends_on_locals (h : expr) (ns : name_set) : tactic bool := do
   h_type ← infer_type h,

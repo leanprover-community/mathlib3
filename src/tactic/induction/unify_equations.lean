@@ -119,9 +119,8 @@ do
   H ← infer_type h,
   (lhs, rhs, constructor_left, constructor_right, inj_name) ← do {
     (lhs, rhs) ← match_eq H,
-    env ← get_env,
-    (const constructor_left _) ← get_app_fn_whnf lhs semireducible ff,
-    (const constructor_right _) ← get_app_fn_whnf rhs semireducible ff,
+    constructor_left ← get_app_fn_const_whnf lhs semireducible ff,
+    constructor_right ← get_app_fn_const_whnf rhs semireducible ff,
     inj_name ← resolve_constant $ constructor_left ++ "inj_arrow",
     pure (lhs, rhs, constructor_left, constructor_right, inj_name)
   } <|> fail
@@ -149,7 +148,7 @@ do
     -- mutual/nested inductive type is compiled to does have a no-confusion
     -- principle which we can (usually? always?) use. To find it, we normalise
     -- the constructor with `unfold_ginductive = tt`.
-    (const constructor_left _) ← get_app_fn_whnf lhs semireducible tt,
+    constructor_left ← get_app_fn_const_whnf lhs semireducible tt,
     let no_confusion := constructor_left.get_prefix ++ "no_confusion",
     pr ← mk_app no_confusion [tgt, lhs, rhs, h],
     exact pr,
@@ -181,7 +180,7 @@ returns the constant `I.sizeof`. Fails if `type` is not of this form or if no
 such constant exists.
 -/
 meta def get_sizeof (type : expr) : tactic pexpr := do
-  n ← get_inductive_name type,
+  n ← get_app_fn_const_whnf type semireducible ff,
   resolve_name $ n ++ `sizeof
 
 lemma plus_gt (n m : ℕ) : m ≠ 0 → n + m > n :=

@@ -265,38 +265,41 @@ end to_matrix
 
 section is_basis_to_matrix
 
-variables {ι ι' : Type*} [fintype ι] [decidable_eq ι]
+variables {ι ι' : Type*} [fintype ι] [decidable_eq ι] [fintype ι'] [decidable_eq ι']
 variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
 
 open function matrix
 
 /-- From a basis `e : ι → M` and a family of vectors `v : ι → M`, make the matrix whose columns
 are the vectors `v i` written in the basis `e`. -/
-def is_basis.to_matrix {e : ι → M} (he : is_basis R e) (v : ι → M) : matrix ι ι R :=
-linear_map.to_matrix he he (he.constr v)
+def is_basis.to_matrix {e : ι → M} (he : is_basis R e) (v : ι' → M) : matrix ι ι' R :=
+λ i j, he.equiv_fun (v j) i
 
-variables {e : ι → M} (he : is_basis R e) (v : ι → M) (i j : ι)
+variables {e : ι → M} (he : is_basis R e) (v : ι' → M) (i : ι) (j : ι')
 
 namespace is_basis
 
 lemma to_matrix_apply : he.to_matrix v i j = he.equiv_fun (v j) i :=
-by simp [is_basis.to_matrix, linear_map.to_matrix_apply]
+rfl
+
+lemma to_matrix_eq_to_matrix_constr (v : ι → M) :
+  he.to_matrix v = linear_map.to_matrix he he (he.constr v) :=
+by { ext, simp [is_basis.to_matrix_apply, linear_map.to_matrix_apply] }
 
 @[simp] lemma to_matrix_self : he.to_matrix e = 1 :=
 begin
   rw is_basis.to_matrix,
   ext i j,
-  simp [linear_map.to_matrix_apply, is_basis.equiv_fun, matrix.one_apply, finsupp.single, eq_comm]
+  simp [is_basis.equiv_fun, matrix.one_apply, finsupp.single, eq_comm]
 end
 
 lemma to_matrix_update (x : M) :
-  he.to_matrix (function.update v i x) = matrix.update_column (he.to_matrix v) i (he.repr x) :=
+  he.to_matrix (function.update v j x) = matrix.update_column (he.to_matrix v) j (he.repr x) :=
 begin
-  ext j k,
-  rw [is_basis.to_matrix, linear_map.to_matrix_apply he he (he.constr (update v i x)),
-      matrix.update_column_apply, constr_basis, he.to_matrix_apply],
+  ext i' k,
+  rw [is_basis.to_matrix, matrix.update_column_apply, he.to_matrix_apply],
   split_ifs,
-  { rw [h, update_same i x v, he.equiv_fun_apply] },
+  { rw [h, update_same j x v, he.equiv_fun_apply] },
   { rw update_noteq h },
 end
 
@@ -394,9 +397,12 @@ lemma is_basis.iff_det {v : ι → M} : is_basis R v ↔ is_unit (he.det v) :=
 begin
   split,
   { intro hv,
-    change is_unit (linear_map.to_matrix he he (equiv_of_is_basis he hv $ equiv.refl ι)).det,
+    suffices : is_unit (linear_map.to_matrix he he (equiv_of_is_basis he hv $ equiv.refl ι)).det,
+    { rw [is_basis.det_apply, is_basis.to_matrix_eq_to_matrix_constr],
+      exact this },
     apply linear_equiv.is_unit_det },
   { intro h,
+    rw [is_basis.det_apply, is_basis.to_matrix_eq_to_matrix_constr] at h,
     convert linear_equiv.is_basis he (linear_equiv.of_is_unit_det h),
     ext i,
     exact (constr_basis he).symm },

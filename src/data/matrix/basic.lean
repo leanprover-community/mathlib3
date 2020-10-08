@@ -346,6 +346,11 @@ lemma map_mul {L : matrix m n α} {M : matrix n o α}
 (L ⬝ M).map f = L.map f ⬝ M.map f :=
 by { ext, simp [mul_apply, ring_hom.map_sum], }
 
+@[simp] lemma map_one [decidable_eq n]
+  {β : Type w} [semiring β] (f : α →+* β) :
+  (1 : matrix n n α).map f = 1 :=
+by { ext, simp }
+
 lemma is_add_monoid_hom_mul_left (M : matrix l m α) :
   is_add_monoid_hom (λ x : matrix m n α, M ⬝ x) :=
 { to_is_add_hom := ⟨matrix.mul_add _⟩, map_zero := matrix.mul_zero _ }

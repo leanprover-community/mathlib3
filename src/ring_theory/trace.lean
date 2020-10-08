@@ -370,9 +370,9 @@ theorem smul_id (r : R) : r • linear_map.id = lsmul R S r := rfl
 @[simp] lemma lmul_algebra_map (x : R) : lmul R S (algebra_map R S x) = lsmul R S x :=
 linear_map.ext (λ s, by simp [smul_def''])
 
-@[simp] lemma linear_equiv_matrix_lmul [decidable_eq ι] (x : S) (i j) :
-  linear_equiv_matrix hb hb (lmul R S x) i j = hb.repr (x * b j) i :=
-by rw [linear_equiv_matrix_apply', lmul_apply]
+@[simp] lemma to_matrix_lmul [decidable_eq ι] (x : S) (i j) :
+  linear_map.to_matrix hb hb (lmul R S x) i j = hb.repr (x * b j) i :=
+by rw [linear_map.to_matrix_apply', lmul_apply]
 
 include hb
 /-- If `x` is in the base field `K`, then the trace is `[L : K] * x`. -/
@@ -445,20 +445,126 @@ open algebra
 
 variables [decidable_eq ι] [algebra S T] [is_scalar_tower R S T]
 
-lemma linear_equiv_matrix_lsmul (x : R) :
-  linear_equiv_matrix hb hb (lsmul R S x) = algebra_map _ _ x :=
-by { ext i j, simp [linear_equiv_matrix_apply, algebra_map_matrix_apply, eq_comm] }
+lemma to_matrix_lsmul (x : R) :
+  linear_map.to_matrix hb hb (lsmul R S x) = algebra_map _ _ x :=
+by { ext i j, simp [linear_map.to_matrix_apply, algebra_map_matrix_apply, eq_comm] }
 
 noncomputable def lmul_matrix : S →ₐ[R] matrix ι ι R :=
-{ to_fun := λ x, linear_equiv_matrix hb hb (lmul R S x),
+{ to_fun := λ x, linear_map.to_matrix hb hb (lmul R S x),
   map_zero' := by rw [linear_map.map_zero, linear_equiv.map_zero],
-  map_one' := by rw [lmul_one, linear_equiv_matrix_id],
+  map_one' := by rw [lmul_one, linear_map.to_matrix_id],
   map_add' := λ x y, by rw [linear_map.map_add, linear_equiv.map_add],
-  map_mul' := λ x y, by rw [lmul_mul, linear_equiv_matrix_comp hb hb, matrix.mul_eq_mul],
-  commutes' := λ r, by rw [lmul_algebra_map, linear_equiv_matrix_lsmul] }
+  map_mul' := λ x y, by rw [lmul_mul, linear_map.to_matrix_comp hb hb, matrix.mul_eq_mul],
+  commutes' := λ r, by rw [lmul_algebra_map, to_matrix_lsmul] }
 
 lemma lmul_matrix_apply (x : S) (i j) :
-  lmul_matrix hb x i j = linear_equiv_matrix hb hb (lmul R S x) i j := rfl
+  lmul_matrix hb x i j = linear_map.to_matrix hb hb (lmul R S x) i j := rfl
+
+section
+
+open polynomial
+
+lemma ring_hom.map_matrix.map_mul {n : Type*} [fintype n] [decidable_eq n]
+  (M N : matrix n n R) (f : R →+* S) :
+  f.map_matrix (M ⬝ N) = f.map_matrix M ⬝ f.map_matrix N :=
+by rw [← mul_eq_mul, ring_hom.map_mul, mul_eq_mul]
+
+lemma det_reindex {m n : Type*} [fintype m] [decidable_eq m]
+  [fintype n] [decidable_eq n] (e : m ≃ n) (A : matrix m m R) :
+  det (reindex_linear_equiv e e A) = det A :=
+begin
+  simp only [det, reindex_linear_equiv_apply],
+  apply finset.sum_bij' (λ σ _, equiv.perm_congr e.symm σ) _ _ (λ σ _, equiv.perm_congr e σ),
+  { intros σ _, ext, simp [equiv.perm_congr, equiv.equiv_congr] },
+  { intros σ _, ext, simp [equiv.perm_congr, equiv.equiv_congr] },
+  { intros σ _, apply finset.mem_univ },
+  { intros σ _, apply finset.mem_univ },
+
+  intros σ _,
+  squeeze_simp,
+end
+
+@[simp] lemma reindex_refl_refl {m n : Type*} [fintype m] [decidable_eq m]
+  [fintype n] [decidable_eq n] (A : matrix m n R) :
+  (reindex_linear_equiv (equiv.refl _) (equiv.refl _) A) = A :=
+by { ext, simp only [reindex_linear_equiv_apply, equiv.refl_symm, equiv.refl_apply] }
+
+/-- If `A'` is a two-sided inverse for `A` (indexed differently), `det (A ⬝ B ⬝ A') = det B`. -/
+lemma det_conjugate_aux {m n : Type*} [fintype m] [decidable_eq m]
+  [fintype n] [decidable_eq n] {A : matrix m n R} {A' : matrix n m R} {B : matrix n n R}
+  (hAA' : A ⬝ A' = 1) (hA'A : A' ⬝ A = 1) :
+  det (A ⬝ B ⬝ A') = det B :=
+begin
+  -- Although `m` and `n` are different a priori, we will show they have the same cardinality.
+  -- This turns the problem into one for square matrices, which is easy.
+  have e : m ≃ n,
+  { sorry },
+  have : det (reindex_linear_equiv e (equiv.refl _) A ⬝ B ⬝ reindex_linear_equiv (equiv.refl _) e A') = det B,
+  { rw [det_mul, det_mul, mul_comm, ← mul_assoc, ← det_mul, reindex_mul, reindex_refl_refl, hA'A, det_one, one_mul] },
+  convert this,
+  rw [← det_reindex e (A ⬝ B ⬝ A'), ← reindex_mul e (equiv.refl n) e, ← reindex_mul e (equiv.refl n) (equiv.refl n), reindex_refl_refl],
+end
+
+/-- If `A'` is a two-sided inverse for `A`, `char_poly (A ⬝ B ⬝ A') = char_poly B`. -/
+lemma char_poly_conjugate_aux {m n : Type*} [fintype m] [decidable_eq m]
+  [fintype n] [decidable_eq n] {A : matrix m n R} {A' : matrix n m R} {B : matrix n n R}
+  (hAA' : A ⬝ A' = 1) (hA'A : A' ⬝ A = 1) :
+  char_poly (A ⬝ B ⬝ A') = char_poly B :=
+have hCACA' : A.map C ⬝ A'.map C = 1 := by rw [← matrix.map_mul, hAA', matrix.map_one],
+have hCA'CA : A'.map C ⬝ A.map C = 1 := by rw [← matrix.map_mul, hA'A, matrix.map_one],
+calc (X • 1 - C.map_matrix (A ⬝ B ⬝ A')).det
+    = (A.map C ⬝ (scalar n X - B.map C) ⬝ A'.map C).det :
+    by rw [matrix.mul_sub, matrix.sub_mul, ring_hom.map_matrix_apply, matrix.map_mul,
+           matrix.map_mul, coe_scalar, matrix.mul_smul, matrix.mul_one,
+           matrix.smul_mul, hCACA']
+... = (X • 1 - C.map_matrix B).det : det_conjugate_aux hCACA' hCA'CA
+
+lemma char_poly_conjugate {n : Type*} [fintype n] [decidable_eq n] {A B : matrix n n R}
+  (hA : is_unit A.det) :
+  char_poly (A⁻¹ ⬝ B ⬝ A) = char_poly B :=
+char_poly_conjugate_aux (nonsing_inv_mul _ hA) (mul_nonsing_inv _ hA)
+
+end
+
+variables {M M' : Type*} [add_comm_group M] [module R M] [add_comm_group M'] [module R M']
+
+lemma to_matrix_basis_change {ι' κ κ' : Type*} [fintype ι'] [decidable_eq ι']
+  [fintype κ] [decidable_eq κ] [fintype κ'] [decidable_eq κ']
+  {b : ι → M} {b' : ι' → M} (hb : is_basis R b) (hb' : is_basis R b')
+  {c : κ → M'} {c' : κ' → M'} (hc : is_basis R c) (hc' : is_basis R c')
+  (f : M →ₗ[R] M'):
+  to_matrix hb hc f = hc.to_matrix c' ⬝ to_matrix hb' hc' f ⬝ hb'.to_matrix b :=
+begin
+  ext j i,
+  calc to_matrix hb hc f j i = hc.repr (f (b i)) j :
+       by rw [linear_map.to_matrix_apply, is_basis.equiv_fun_apply]
+  ... = ∑ i', (∑ j', hc.repr (c' j') j * hc'.repr (f (b' i')) j') * hb'.repr (b i) i' :
+       _
+  ... = (hc.to_matrix c' ⬝ to_matrix hb' hc' f ⬝ hb'.to_matrix b) j i :
+      by simp only [matrix.mul_apply, is_basis.to_matrix_apply, linear_map.to_matrix_apply,
+                    is_basis.equiv_fun_apply],
+  conv_lhs { rw ← hb'.total_repr (b i) },
+  rw [finsupp.total_apply, f.finsupp_sum, hc.repr.finsupp_sum, finsupp.sum_apply,
+      finsupp.sum_fintype, finset.sum_congr rfl],
+  { rintros i' -,
+    rw [linear_map.map_smul, linear_map.map_smul, finsupp.smul_apply, smul_eq_mul, mul_comm],
+    congr,
+    conv_lhs { rw ← hc'.total_repr (f (b' i')) },
+    rw [finsupp.total_apply, hc.repr.finsupp_sum, finsupp.sum_apply, finsupp.sum_fintype,
+        finset.sum_congr rfl],
+    { rintros j' -,
+      simp [mul_comm] },
+    { simp } },
+  { simp }
+end
+
+lemma char_poly_lmul_matrix_basis_invariant {ι' : Type*} [fintype ι'] [decidable_eq ι']
+  {b' : ι' → S} (hb' : is_basis R b') (x : S) :
+  char_poly (lmul_matrix hb x) = char_poly (lmul_matrix hb' x) :=
+begin
+  change char_poly (to_matrix hb hb (lmul R S x)) = char_poly (to_matrix hb' hb' (lmul R S x)),
+  rw [to_matrix_basis_change hb hb' hb hb', is_basis.to_matrix_inv],
+end
 
 lemma trace_eq_matrix_trace (x : S) :
   algebra.trace R S x = matrix.trace _ R R (lmul_matrix hb x) :=
@@ -487,7 +593,7 @@ instance is_scalar_tower.finsupp {α : Type*} : is_scalar_tower R S (α →₀ S
 lemma lmul_matrix_smul {κ : Type*} [fintype κ] [decidable_eq κ] [algebra S T] [is_scalar_tower R S T]
   {b : ι → S} (hb : is_basis R b) {c : κ → T} (hc : is_basis S c) (x) (i j) (k k') :
   lmul_matrix (hb.smul hc) x (i, k) (j, k') = lmul_matrix hb (lmul_matrix hc x k k') i j :=
-by simp only [lmul_matrix_apply, linear_equiv_matrix_apply, is_basis.equiv_fun_apply, mul_comm,
+by simp only [lmul_matrix_apply, linear_map.to_matrix_apply, is_basis.equiv_fun_apply, mul_comm,
               is_basis.smul_repr, finsupp.smul_apply, lmul_apply, id.smul_eq_mul,
               map_smul_eq_smul_map, mul_smul_comm]
 
@@ -541,7 +647,7 @@ lemma linear_map.injective_iff {V V' : Type*} [add_comm_group V] [add_comm_monoi
 f.to_add_monoid_hom.injective_iff
 
 lemma lmul_matrix_injective : function.injective (lmul_matrix hb) :=
-λ x x' h, lmul_injective ((linear_equiv_matrix hb hb).injective h)
+λ x x' h, lmul_injective ((linear_map.to_matrix hb hb).injective h)
 
 lemma char_poly_lmul_matrix_power_basis [algebra K S] (h : has_power_basis K S) :
   char_poly (lmul_matrix h.is_basis h.gen) = minimal_polynomial (gen_is_integral h) :=

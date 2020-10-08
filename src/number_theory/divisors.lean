@@ -201,12 +201,10 @@ begin
   { apply add_right_cancel h }
 end
 
-@[simp]
 lemma mem_divisors_prime_pow {p : ℕ} (pp : p.prime) (k : ℕ) {x : ℕ} :
   x ∈ divisors (p ^ k) ↔  ∃ (j : ℕ) (H : j ≤ k), x = p ^ j :=
 by rw [mem_divisors, nat.dvd_prime_pow pp, and_iff_left (ne_of_gt (pow_pos pp.pos k))]
 
-@[simp]
 lemma divisors_prime {p : ℕ} (pp : p.prime) :
   divisors p = {1 , p} :=
 begin
@@ -218,10 +216,24 @@ begin
   apply one_dvd,
 end
 
-@[simp]
 lemma divisors_prime_pow {p : ℕ} (pp : p.prime) (k : ℕ) :
   divisors (p ^ k) = (finset.range (k + 1)).map ⟨pow p, pow_right_injective pp.two_le⟩ :=
-by { ext, simp [pp, nat.lt_succ_iff, @eq_comm _ a] }
+by { ext, simp [mem_divisors_prime_pow, pp, nat.lt_succ_iff, @eq_comm _ a] }
 
+open finset
+@[simp]
+lemma sum_divisors_prime {α : Type*} [add_comm_monoid α] {p : ℕ} {f : ℕ → α} (h : p.prime) :
+  ∑ x in p.divisors, f x = f p + f 1 :=
+begin
+  simp only [h, divisors_prime],
+  rw [sum_insert, sum_singleton, add_comm],
+  rw mem_singleton,
+  apply h.ne_one.symm,
+end
+
+@[simp]
+lemma sum_divisors_prime_pow {α : Type*} [add_comm_monoid α] {k p : ℕ} {f : ℕ → α} (h : p.prime) :
+  ∑ x in (p ^ k).divisors, f x = ∑ x in range (k + 1), f (p ^ x) :=
+by simp [h, divisors_prime_pow]
 
 end nat

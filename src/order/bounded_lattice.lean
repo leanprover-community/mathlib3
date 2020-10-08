@@ -388,6 +388,10 @@ lemma eq_bot_of_bot_eq_top {α : Type*} [bounded_lattice α] (hα : (⊥ : α) =
   x = (⊥ : α) :=
 eq_bot_mono le_top (eq.symm hα)
 
+lemma eq_top_of_bot_eq_top {α : Type*} [bounded_lattice α] (hα : (⊥ : α) = ⊤) (x : α) :
+  x = (⊤ : α) :=
+eq_top_mono bot_le hα
+
 lemma subsingleton_of_bot_eq_top {α : Type*} [bounded_lattice α] (hα : (⊥ : α) = (⊤ : α)) :
   subsingleton α :=
 ⟨λ a b, by rw [eq_bot_of_bot_eq_top hα a, eq_bot_of_bot_eq_top hα b]⟩

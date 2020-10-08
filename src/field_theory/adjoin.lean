@@ -287,15 +287,11 @@ end
 
 lemma subsingleton_of_dim_adjoin_eq_one (h : ∀ x : E, dim F F⟮x⟯ = 1) :
   subsingleton (intermediate_field F E) :=
-begin
-  exact subsingleton_of_bot_eq_top (bot_eq_top_of_dim_adjoin_eq_one h),
-end
+subsingleton_of_bot_eq_top (bot_eq_top_of_dim_adjoin_eq_one h)
 
 lemma subsingleton_of_findim_adjoin_eq_one (h : ∀ x : E, findim F F⟮x⟯ = 1) :
   subsingleton (intermediate_field F E) :=
-begin
-  exact subsingleton_of_bot_eq_top (bot_eq_top_of_findim_adjoin_eq_one h),
-end
+subsingleton_of_bot_eq_top (bot_eq_top_of_findim_adjoin_eq_one h)
 
 instance [finite_dimensional F E] (K : intermediate_field F E) : finite_dimensional F K :=
   finite_dimensional.finite_dimensional_submodule (K.to_subalgebra.to_submodule)
@@ -307,6 +303,10 @@ begin
   apply bot_eq_top_of_findim_adjoin_eq_one,
   exact λ x, by linarith [h x, show 0 < findim F F⟮x⟯, from findim_pos],
 end
+
+lemma subsingleton_of_findim_adjoin_le_one (h : ∀ x : E, findim F F⟮x⟯ = 1) :
+  subsingleton (intermediate_field F E) :=
+subsingleton_of_bot_eq_top (bot_eq_top_of_findim_adjoin_le_one h)
 
 end adjoin_dim
 end adjoin_subalgebra_lattice

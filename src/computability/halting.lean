@@ -130,11 +130,13 @@ option_some_iff.1 $ (cond
 
 end partrec
 
+/-- A computable predicate is one whose indicator function is computable. -/
 def computable_pred {α} [primcodable α] (p : α → Prop) :=
 ∃ [D : decidable_pred p],
 by exactI computable (λ a, to_bool (p a))
 
-/- recursively enumerable predicate -/
+/-- A recursively enumerable predicate is one which is the domain of a computable partial function.
+ -/
 def re_pred {α} [primcodable α] (p : α → Prop) :=
 partrec (λ a, roption.assert (p a) (λ _, roption.some ()))
 
@@ -281,6 +283,8 @@ protected theorem map {n f} {g : vector ℕ (n+1) → ℕ}
 by simp [(roption.bind_some_eq_map _ _).symm];
    exact hf.bind hg
 
+/-- Analogous to `nat.partrec'` for `ℕ`-valued functions, a predicate for partial recursive
+  vector-valued functions.-/
 def vec {n m} (f : vector ℕ n → vector ℕ m) :=
 ∀ i, partrec' (λ v, (f v).nth i)
 

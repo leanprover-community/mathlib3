@@ -608,7 +608,7 @@ Generalize hypotheses for the given eliminee and generalization mode. See
 -/
 meta def generalize_hyps (eliminee : expr) (gm : generalization_mode) : tactic ℕ := do
   to_revert ← gm.to_generalize eliminee,
-  ⟨n, _⟩ ← revert_lst'' to_revert,
+  ⟨n, _⟩ ← revert_set to_revert,
   pure n
 
 

@@ -297,21 +297,24 @@ Revert the local constants whose unique names appear in `hs`, as well as any
 hypotheses that depend on them. Returns the number of hypotheses that were
 reverted and a list containing these hypotheses and their types.
 -/
-meta def revert_lst'' (hs : name_set) : tactic (ℕ × list (expr × expr)) := do
+meta def revert_set (hs : name_set) : tactic (ℕ × list (expr × expr)) := do
   to_revert ← dependency_closure' hs,
-  to_revert_types ← to_revert.mmap infer_type,
+  to_revert_with_types ← to_revert.mmap $ λ h, do {
+    T ← infer_type h,
+    pure (h, T)
+  },
   num_reverted ← revert_lst to_revert,
-  pure (num_reverted, to_revert.zip to_revert_types)
+  pure (num_reverted, to_revert_with_types)
 
 /--
 Revert the local constants in `hs`, as well as any hypotheses that depend on
 them. See `revert_lst''`.
 -/
 meta def revert_lst' (hs : list expr) : tactic (ℕ × list (expr × expr)) :=
-revert_lst'' $ name_set.of_list $ hs.map expr.local_uniq_name
+revert_set $ name_set.of_list $ hs.map expr.local_uniq_name
 
 -- TODO the implementation is a bit of an 'orrible hack
-meta def get_unused_name'_aux (n : name) (reserved : name_set) :
+private meta def get_unused_name_reserved_aux (n : name) (reserved : name_set) :
   option nat → tactic name :=
 λ suffix, do
   n ← get_unused_name n suffix,
@@ -323,9 +326,10 @@ meta def get_unused_name'_aux (n : name) (reserved : name_set) :
         | none := some 1
         | some n := some (n + 1)
         end,
-      get_unused_name'_aux new_suffix
+      get_unused_name_reserved_aux new_suffix
 
-meta def get_unused_name' (ns : list name) (reserved : name_set) : tactic name := do
+meta def get_unused_name_reserved (ns : list name) (reserved : name_set) :
+  tactic name := do
   let fallback := match ns with | [] := `x | x :: _ := x end,
   (first $ ns.map $ λ n, do {
     guard (¬ reserved.contains n),
@@ -333,11 +337,11 @@ meta def get_unused_name' (ns : list name) (reserved : name_set) : tactic name :
     pure n
   })
   <|>
-  get_unused_name'_aux fallback reserved none
+  get_unused_name_reserved_aux fallback reserved none
 
 /- Precond: ns is nonempty. -/
 meta def intro_fresh_reserved (ns : list name) (reserved : name_set) : tactic expr :=
-get_unused_name' ns reserved >>= intro
+get_unused_name_reserved ns reserved >>= intro
 
 /- Precond: each of the name lists is nonempty. -/
 meta def intro_lst_fresh_reserved (ns : list (name ⊕ list name)) (reserved : name_set) :

@@ -13,7 +13,9 @@ import data.polynomial.degree.trailing_degree
 
 * `erase_lead f`: the polynomial `f - leading term of f`
 
-erase_lead serves as the reduction step in an induction, shaving off one monomial from a polynomial.
+`erase_lead` serves as the reduction step in an induction, shaving off one monomial from a polynomial.
+The definition is set up so that it does not mention subtraction in the definition,
+and thus works for polynomials over semirings as well as rings.
 -/
 
 open polynomial finsupp finset

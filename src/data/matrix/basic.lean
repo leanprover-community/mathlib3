@@ -45,15 +45,12 @@ def map (M : matrix m n α) {β : Type w} (f : α → β) : matrix m n β := λ 
 lemma map_apply {M : matrix m n α} {β : Type w} {f : α → β} {i : m} {j : n} :
   M.map f i j = f (M i j) := rfl
 
-<<<<<<< HEAD
 @[simp]
 lemma map_map {M : matrix m n α} {β γ : Type*} {f : α → β} {g : β → γ} :
   (M.map f).map g = M.map (g ∘ f) :=
 by { ext, simp, }
 
-=======
 /-- The transpose of a matrix. -/
->>>>>>> ordered_semiring_zero_le_one
 def transpose (M : matrix m n α) : matrix n m α
 | x y := M y x
 

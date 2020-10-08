@@ -64,7 +64,6 @@ theorem is_closed_iff {X : Compactum} (S : set X) : is_closed S ↔
 begin
   split,
   { intros cond F h,
-    change ∀ _, _ at cond,
     specialize cond F,
     by_contradiction c,
     specialize cond c,
@@ -92,6 +91,19 @@ end
 
 def basic {X : Compactum} (A : set X) : set (ultrafilter X) := {F | A ∈ F.1}
 def cl {X : Compactum} (A : set X) : set X := X.str '' (basic A)
+
+lemma basic_inter {X : Compactum} (A B : set X) : basic (A ∩ B) = basic A ∩ basic B :=
+begin
+  ext G,
+  split,
+  { intro hG, refine ⟨_,_⟩;
+    apply filter.sets_of_superset _ hG;
+    intros x hx;
+    finish },
+  { rintros ⟨h1,h2⟩,
+    apply filter.inter_sets,
+    assumption' }
+end
 
 lemma subset_cl {X : Compactum} (A : set X) : A ⊆ cl A :=
 begin
@@ -207,41 +219,23 @@ begin
     contradiction },
   have claim2 : ∀ (A : set X), A ∈ F.1 → x ∈ cl A,
   { intros A hA,
-    apply claim1,
-    exact is_closed_closure _,
-    apply filter.sets_of_superset _ hA,
-    exact subset_cl _ },
+    apply claim1 _ (is_closed_closure _),
+    exact filter.sets_of_superset _ hA (subset_cl _) },
   let T0 : set (set (ultrafilter X)) := { S | ∃ A ∈ F.1, S = basic A },
   let AA := (X.str ⁻¹' {x}),
   let T1 := insert AA T0,
   let T2 := finite_inter_closure T1,
   have claim3 : ∀ (S1 S2 ∈ T0), S1 ∩ S2 ∈ T0,
   { rintros S1 S2 ⟨S1,hS1,rfl⟩ ⟨S2,hS2,rfl⟩,
-    use S1 ∩ S2,
-    split,
-    apply filter.inter_sets, assumption',
-    unfold basic,
-    ext G,
-    split,
-    intro hG,
-    apply filter.inter_sets,
-    exact hG.1, exact hG.2,
-    intro hG,
-    split;
-    apply filter.sets_of_superset _ hG;
-    simp },
+    exact ⟨S1 ∩ S2, F.1.inter_sets hS1 hS2, by simp [basic_inter]⟩ },
   have claim4 : ∀ (S ∈ T0), (AA ∩ S).nonempty,
   { rintros S ⟨S,hS,rfl⟩,
-    specialize claim2 _ hS,
-    rcases claim2 with ⟨G,hG,hG2⟩, -- claim2 used!
-    use G,
-    split,
-    assumption' },
+    rcases claim2 _ hS with ⟨G,hG,hG2⟩, -- claim2 used!
+    exact ⟨G,hG2,hG⟩ },
   have claim5 : ∀ (S ∈ T0), set.nonempty S,
   { rintros S ⟨S,hS,rfl⟩,
-    use F,
-    assumption },
-  have claim6 : ∀ (S ∈ T2), set.nonempty S,
+    exact ⟨F,hS⟩ },
+  have claim6 : ∀ (S ∈ T2), set.nonempty S, -- clean up needed starting here.
   { suffices : ∀ S ∈ T2, S ∈ T0 ∨ ∃ Q ∈ T0, S = AA ∩ Q,
     { intros S hS,
       specialize this _ hS,
@@ -458,6 +452,7 @@ def empty_Compactum : Compactum :=
     exact pempty.elim x
   end}
 
+-- This will be in mathlib soon, thanks to @urkud
 theorem is_open_iff_ultrafilter {X : Type*} [topological_space X] (U : set X) : is_open U ↔
   (∀ (F : ultrafilter X) (x : X), F.1 ≤ nhds x → x ∈ U → U ∈ F.1) :=
 begin
@@ -489,6 +484,7 @@ begin
     contradiction },
 end
 
+-- Should this be added to mathlib?
 lemma le_nhds_Lim {X : Type*} [topological_space X] [compact_space X] [nonempty X]
   (F : ultrafilter X) : F.1 ≤ nhds (Lim F.1) :=
 begin
@@ -499,6 +495,7 @@ begin
   exact ⟨x,h⟩,
 end
 
+-- Should this be added to mathlib?
 lemma Lim_eq_iff_le_nhds {X : Type*} [topological_space X] [compact_space X] [t2_space X] [nonempty X]
   (x : X) (F : ultrafilter X) : Lim F.1 = x ↔ F.1 ≤ nhds x :=
   ⟨λ h, by {rw ←h, exact le_nhds_Lim F}, λ h, by {letI := F.2.1, exact Lim_eq h}⟩
@@ -555,9 +552,8 @@ end Compactum_to_CompHaus
 
 noncomputable def Compactum_CompHaus_equiv : is_equivalence Compactum_to_CompHaus :=
 begin
-  have I1 : full Compactum_to_CompHaus := Compactum_to_CompHaus.full,
-  have I2 : faithful Compactum_to_CompHaus := Compactum_to_CompHaus.faithful,
-  have I3 : ess_surj Compactum_to_CompHaus := Compactum_to_CompHaus.ess_surj,
   apply equivalence.equivalence_of_fully_faithfully_ess_surj _,
-  assumption',
+  exact Compactum_to_CompHaus.full,
+  exact Compactum_to_CompHaus.faithful,
+  exact Compactum_to_CompHaus.ess_surj,
 end

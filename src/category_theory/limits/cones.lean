@@ -586,6 +586,54 @@ def map_cocone_inv_map_cocone {F : J ⥤ D} (H : D ⥤ C) [is_equivalence H] (c 
   map_cocone_inv H (map_cocone H c) ≅ c :=
 (limits.cocones.functoriality_equivalence F (as_equivalence H)).unit_iso.symm.app c
 
+/--
+`map_cone` commutes with `postcompose`
+-/
+def map_cone_postcompose {α : F ⟶ G} {c} :
+  H.map_cone ((cones.postcompose α).obj c) ≅
+  (cones.postcompose (whisker_right α H : _)).obj (H.map_cone c) :=
+cones.ext (iso.refl _) (by tidy)
+
+/--
+`map_cone` commutes with `postcompose_equivalence`
+-/
+def map_cone_postcompose_equivalence_functor {α : F ≅ G} {c} :
+  H.map_cone ((cones.postcompose_equivalence α).functor.obj c) ≅
+    (cones.postcompose_equivalence (iso_whisker_right α H : _)).functor.obj (H.map_cone c) :=
+cones.ext (iso.refl _) (by tidy)
+
+/--
+`map_cocone` commutes with `precompose`
+-/
+def map_cocone_precompose {α : F ⟶ G} {c} :
+  H.map_cocone ((cocones.precompose α).obj c) ≅
+  (cocones.precompose (whisker_right α H : _)).obj (H.map_cocone c) :=
+cocones.ext (iso.refl _) (by tidy)
+
+/--
+`map_cocone` commutes with `precompose_equivalence`
+-/
+def map_cocone_precompose_equivalence_functor {α : F ≅ G} {c} :
+  H.map_cocone ((cocones.precompose_equivalence α).functor.obj c) ≅
+    (cocones.precompose_equivalence (iso_whisker_right α H : _)).functor.obj (H.map_cocone c) :=
+cocones.ext (iso.refl _) (by tidy)
+
+variables {K : Type v} [small_category K]
+
+/--
+`map_cone` commutes with `whisker`
+-/
+def map_cone_whisker {E : K ⥤ J} {c : cone F} :
+  H.map_cone (c.whisker E) ≅ (H.map_cone c).whisker E :=
+cones.ext (iso.refl _) (by tidy)
+
+/--
+`map_cocone` commutes with `whisker`
+-/
+def map_cocone_whisker {E : K ⥤ J} {c : cocone F} :
+  H.map_cocone (c.whisker E) ≅ (H.map_cocone c).whisker E :=
+cocones.ext (iso.refl _) (by tidy)
+
 end functor
 
 end category_theory

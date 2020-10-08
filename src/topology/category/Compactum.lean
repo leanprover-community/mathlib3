@@ -500,53 +500,28 @@ begin
     contradiction },
 end
 
-lemma eq_lim_iff {X : Type*} [topological_space X] [compact_space X] [t2_space X] [nonempty X]
-  (x : X) (F : ultrafilter X) : Lim F.1 = x ↔ F.1 ≤ nhds x :=
+lemma le_nhds_Lim {X : Type*} [topological_space X] [compact_space X] [nonempty X]
+  (F : ultrafilter X) : F.1 ≤ nhds (Lim F.1) :=
 begin
-  have claim : F.1 ≤ nhds (Lim F.1),
-  { have cpt : compact_space X := by apply_instance,
-    cases cpt,
-    rw compact_iff_ultrafilter_le_nhds at cpt,
-    specialize cpt F.1 F.2,
-    apply Lim_spec,
-    have : F.1 ≤ principal set.univ,
-    { intros S hS,
-      simp at hS,
-      rw hS,
-      apply filter.univ_sets },
-    specialize cpt this,
-    rcases cpt with ⟨a,ha,h1⟩,
-    use a,
-    assumption },
-  split,
-  { intro h,
-    rw ←h,
-    exact claim },
-  { intro h,
-    have t2 : t2_space X := by apply_instance,
-    rw t2_iff_ultrafilter at t2,
-    specialize t2 F.1 F.2 claim h,
-    assumption }
+  obtain ⟨cpt⟩ := (show compact_space X, by apply_instance),
+  rw compact_iff_ultrafilter_le_nhds at cpt,
+  apply Lim_spec,
+  rcases cpt F.1 F.2 (by finish) with ⟨x,_,h⟩,
+  exact ⟨x,h⟩,
 end
 
-theorem helper {X : Type*} [topological_space X] [compact_space X] [t2_space X] [nonempty X]
+lemma Lim_eq_iff_le_nhds {X : Type*} [topological_space X] [compact_space X] [t2_space X] [nonempty X]
+  (x : X) (F : ultrafilter X) : Lim F.1 = x ↔ F.1 ≤ nhds x :=
+  ⟨λ h, by {rw ←h, exact le_nhds_Lim F}, λ h, by {letI := F.2.1, exact Lim_eq h}⟩
+
+private theorem helper {X : Type*} [topological_space X] [compact_space X] [t2_space X] [nonempty X]
   (U : set X) : is_open U ↔ (∀ F : ultrafilter X, Lim F.1 ∈ U → U ∈ F.1) :=
 begin
-  split,
-  { intros hU F hF,
-    have : F.1 ≤ nhds (Lim F.1),
-    { rw ←eq_lim_iff },
-    rw le_nhds_iff at this,
-    apply this,
-    assumption' },
-  { intros cond,
-    rw is_open_iff_ultrafilter,
-    intros F x h hx,
-    specialize cond F,
-    rw ←eq_lim_iff at h,
-    rw ←h at hx,
-    specialize cond hx,
-    assumption },
+  rw is_open_iff_ultrafilter,
+  refine ⟨λ hU F hF, hU F (Lim F.1) (le_nhds_Lim _) hF, λ cond F x h hx, _⟩,
+  rw ←Lim_eq_iff_le_nhds at h,
+  rw ←h at *,
+  exact cond _ hx
 end
 
 noncomputable def iso_nonempty {D : CompHaus} [nonempty D] :

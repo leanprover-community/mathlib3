@@ -78,7 +78,7 @@ end
 
 @[simp] lemma sum_leading_C_mul_X_pow_ring {S : Type*} [ring S] (g : polynomial S)
  : g.erase_lead = g - (C g.leading_coeff) * X^g.nat_degree :=
-eq_sub_iff_add_eq.mpr (sum_leading_C_mul_X_pow g).symm
+eq_sub_iff_add_eq.mpr (erase_lead_add_C_mul_X_pow g)
 
 lemma nonzero_of_large_support (f0 : 2 ≤ f.support.card) : ¬ (erase_lead f) = 0 :=
 begin
@@ -143,7 +143,7 @@ begin
   by_cases f0 : f = 0,
   { ext1,
     rw [f0, leading_coeff_zero, C_0, zero_mul], },
-  { conv_lhs {rw sum_leading_C_mul_X_pow f},
+  { conv_lhs {rw ← erase_lead_add_C_mul_X_pow f},
     apply add_cancel,
     rw [← support_eq_empty, ← card_eq_zero],
     apply nat.eq_zero_of_le_zero (nat.lt_succ_iff.mp _),

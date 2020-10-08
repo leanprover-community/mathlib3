@@ -38,11 +38,25 @@ lemma erase_lead_support (f : polynomial R) :
   f.erase_lead.support = f.support.erase f.nat_degree :=
 by convert rfl
 
+@[simp] lemma erase_lead_coeff_nat_degree : f.erase_lead.coeff f.nat_degree = 0 :=
+ finsupp.erase_same
+
+lemma erase_lead_coeff_of_ne (i : ℕ) (hi : i ≠ f.nat_degree) :
+  f.erase_lead.coeff i = f.coeff i :=
+finsupp.erase_ne hi
+
+lemma erase_lead_coeff (i : ℕ) : f.erase_lead.coeff i = if i = f.nat_degree then 0 else f.coeff i :=
+begin
+  split_ifs with hi,
+  { subst i, exact erase_lead_coeff_nat_degree },
+  { exact erase_lead_coeff_of_ne i hi }
+end
+
 lemma erase_lead_add_C_mul_X_pow (f : polynomial R) :
   f.erase_lead + (C f.leading_coeff) * X^f.nat_degree = f :=
 begin
   ext i,
-  simp only [erase_lead_coeff_eq, coeff_monomial, coeff_add, @eq_comm _ _ i],
+  simp only [erase_lead_coeff, coeff_monomial, coeff_add, @eq_comm _ _ i],
   split_ifs with h,
   { subst i, simp only [leading_coeff, zero_add] },
   { exact add_zero _ }
@@ -121,7 +135,7 @@ lemma erase_lead_degree_le : (erase_lead f).degree ≤ f.degree :=
 begin
   rw degree_le_iff_coeff_zero,
   intros i hi,
-  rw erase_lead_coeff_eq,
+  rw erase_lead_coeff,
   split_ifs with h, { refl },
   apply coeff_eq_zero_of_degree_lt hi
 end

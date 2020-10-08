@@ -5,17 +5,17 @@ Authors: Kevin Lacker
 -/
 import data.real.pi
 
-open real
-noncomputable theory
-
-notation `π` := real.pi
-
 /-!
 Solve the equation `cos x ^ 2 + cos (2 * x) ^ 2 + cos (3 * x) ^ 2 = 1`.
 
 Since Lean does not have a concept of "simplest form", we just express what is
 in fact the simplest form of the set of solutions, and then prove it equals the set of solutions.
 -/
+
+open real
+noncomputable theory
+
+notation `π` := real.pi
 
 def problem_equation (x : ℝ) : Prop := cos x ^ 2 + cos (2 * x) ^ 2 + cos (3 * x) ^ 2 = 1
 

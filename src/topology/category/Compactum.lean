@@ -11,7 +11,14 @@ import topology.category.Top
 import data.set.constructions
 
 /-!
-TODO
+
+# Compact Hausdorff Spaces
+
+This file proves the equivalence between the category of compact Hausdorff topological spaces
+and the category of algebras for the ultrafilter monad.
+
+TODO: Add more details.
+
 -/
 
 open category_theory filter topological_space category_theory.limits has_finite_inter
@@ -221,7 +228,8 @@ begin
   exact cl_cl _ ⟨F,hF,rfl⟩,
 end
 
-lemma str_eq_of_le_nhds {X : Compactum} (F : ultrafilter X) (x : X) : F.1 ≤ nhds x → X.str F = x :=
+lemma str_eq_of_le_nhds {X : Compactum} (F : ultrafilter X) (x : X) :
+  F.1 ≤ nhds x → X.str F = x :=
 begin
   --sorry,
   intro cond,
@@ -515,12 +523,12 @@ begin
 end
 
 -- Should this be added to mathlib?
-lemma Lim_eq_iff_le_nhds {X : Type*} [topological_space X] [compact_space X] [t2_space X] [nonempty X]
-  (x : X) (F : ultrafilter X) : Lim F.1 = x ↔ F.1 ≤ nhds x :=
+lemma Lim_eq_iff_le_nhds {X : Type*} [topological_space X] [compact_space X] [t2_space X]
+  [nonempty X] (x : X) (F : ultrafilter X) : Lim F.1 = x ↔ F.1 ≤ nhds x :=
   ⟨λ h, by {rw ←h, exact le_nhds_Lim F}, λ h, by {letI := F.2.1, exact Lim_eq h}⟩
 
-private theorem helper {X : Type*} [topological_space X] [compact_space X] [t2_space X] [nonempty X]
-  (U : set X) : is_open U ↔ (∀ F : ultrafilter X, Lim F.1 ∈ U → U ∈ F.1) :=
+private theorem helper {X : Type*} [topological_space X] [compact_space X] [t2_space X]
+  [nonempty X] (U : set X) : is_open U ↔ (∀ F : ultrafilter X, Lim F.1 ∈ U → U ∈ F.1) :=
 begin
   rw is_open_iff_ultrafilter,
   refine ⟨λ hU F hF, hU F (Lim F.1) (le_nhds_Lim _) hF, λ cond F x h hx, _⟩,

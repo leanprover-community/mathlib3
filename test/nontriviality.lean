@@ -35,3 +35,10 @@ begin
   success_if_fail { nontriviality punit },
   exact zero_le_one,
 end
+
+example {R : Type} [ordered_ring R] {a : R} (h : 0 < a) : 2 ∣ 4 :=
+begin
+  nontriviality R,
+  guard_hyp _inst : nontrivial R,
+  dec_trivial
+end

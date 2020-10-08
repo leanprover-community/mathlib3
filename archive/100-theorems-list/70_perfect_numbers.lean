@@ -67,4 +67,15 @@ begin
   simp [pr, nat.prime_two]
 end
 
+theorem even_two_pow_mul_mersenne_of_prime (k : ℕ) (pr : (mersenne (k + 1)).prime) :
+  even ((2 ^ k) * mersenne (k + 1)) :=
+begin
+  simp only [true_and, even_zero, not_true, ne.def, not_false_iff] with parity_simps,
+  left,
+  rintro rfl,
+  apply nat.not_prime_one,
+  revert pr,
+  simp [mersenne],
+end
+
 end nat

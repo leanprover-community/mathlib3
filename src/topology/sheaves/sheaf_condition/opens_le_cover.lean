@@ -117,7 +117,8 @@ Implementation detail:
 the morphism level of `pairwise_to_opens_le_cover : pairwise ι ⥤ opens_le_cover U`
 -/
 def pairwise_to_opens_le_cover_map :
-  Π {V W : pairwise ι}, (V ⟶ W) → (pairwise_to_opens_le_cover_obj U V ⟶ pairwise_to_opens_le_cover_obj U W)
+  Π {V W : pairwise ι},
+    (V ⟶ W) → (pairwise_to_opens_le_cover_obj U V ⟶ pairwise_to_opens_le_cover_obj U W)
 | _ _ (id_single i) := 𝟙 _
 | _ _ (id_pair i j) := 𝟙 _
 | _ _ (left i j) := hom_of_le inf_le_left
@@ -176,14 +177,15 @@ instance : cofinal (pairwise_to_opens_le_cover U) :=
       { left := punit.star, right := single i,
         hom := hom_of_le ((le_of_hom a).trans inf_le_left), },
       { left := punit.star, right := pair i i',
-        hom := hom_of_le (le_inf ((le_of_hom a).trans inf_le_left) ((le_of_hom b).trans inf_le_left)), },
+        hom :=
+          hom_of_le (le_inf ((le_of_hom a).trans inf_le_left) ((le_of_hom b).trans inf_le_left)), },
       { left := punit.star, right := single i',
         hom := hom_of_le ((le_of_hom b).trans inf_le_left), }, _], _, rfl⟩,
       exact
         list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := left i j, }⟩)
-          (list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i i', }⟩)
-            (list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := right i i', }⟩)
-              (list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i' j', }⟩) list.chain.nil))), },
+        (list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i i', }⟩)
+        (list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := right i i', }⟩)
+        (list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i' j', }⟩) list.chain.nil))), },
   end)
 
 /--

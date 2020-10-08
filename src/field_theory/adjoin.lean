@@ -304,7 +304,7 @@ begin
   exact λ x, by linarith [h x, show 0 < findim F F⟮x⟯, from findim_pos],
 end
 
-lemma subsingleton_of_findim_adjoin_le_one (h : ∀ x : E, findim F F⟮x⟯ = 1) :
+lemma subsingleton_of_findim_adjoin_le_one (h : ∀ x : E, findim F F⟮x⟯ ≤ 1) :
   subsingleton (intermediate_field F E) :=
 subsingleton_of_bot_eq_top (bot_eq_top_of_findim_adjoin_le_one h)
 

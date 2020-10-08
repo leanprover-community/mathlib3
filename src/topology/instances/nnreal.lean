@@ -2,10 +2,13 @@
 Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
-
-Nonnegative real numbers.
 -/
 import topology.algebra.infinite_sum
+
+/-!
+# Topology on nonnegative real numbers
+-/
+
 noncomputable theory
 open set topological_space metric
 open_locale topological_space

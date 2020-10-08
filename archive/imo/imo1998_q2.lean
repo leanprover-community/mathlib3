@@ -6,7 +6,6 @@ Authors: Oliver Nash
 import data.fintype.basic
 import data.int.parity
 import algebra.big_operators.order
-import tactic.nth_rewrite
 import tactic.ring
 import tactic.noncomm_ring
 
@@ -51,7 +50,7 @@ end
 
 lemma A_fst_fibre_card (c : C) :
   (finset.univ.filter (λ (x : J × J), r c x.1 = r c x.2 ∧ x.1 ≠ x.2)).card =
-  ((A r).filter (λ (x : C × J × J), x.fst = c)).card :=
+  ((A r).filter (λ (x : C × J × J), x.1 = c)).card :=
 by { rw A_fst_fibre r, apply finset.card_image_of_inj_on, tidy, }
 
 lemma A_snd_fibre {j₁ j₂ : J} (hj : j₁ ≠ j₂) :
@@ -79,7 +78,7 @@ lemma add_sq_add_sq_sub {α : Type*} [ring α] (x y : α) :
   (x + y) * (x + y) + (x - y) * (x - y) = 2*x*x + 2*y*y :=
 by noncomm_ring
 
-lemma norm_bound_of_odd_sum (x y z : ℤ) (h : x + y = 2*z + 1) :
+lemma norm_bound_of_odd_sum {x y z : ℤ} (h : x + y = 2*z + 1) :
   2*z*z + 2*z + 1 ≤ x*x + y*y :=
 begin
   suffices : 4*z*z + 4*z + 1 + 1 ≤ 2*x*x + 2*y*y,
@@ -94,7 +93,7 @@ section
 
 variables [fintype J]
 
-lemma agreement_lower_bound (z : ℕ) (hJ : fintype.card J = 2*z + 1) (c : C) :
+lemma agreement_lower_bound {z : ℕ} (hJ : fintype.card J = 2*z + 1) (c : C) :
   2*z*z + 2*z + 1 ≤ (finset.univ.filter (λ (x : J × J), r c x.1 = r c x.2)).card :=
 begin
   let x := (finset.univ.filter (λ j, r c j)).card,
@@ -102,17 +101,17 @@ begin
   have h : (finset.univ.filter (λ (x : J × J), r c x.1 = r c x.2)).card = x*x + y*y,
   { simp [← finset.filter_product_card], },
   rw h, apply int.le_of_coe_nat_le_coe_nat, simp only [int.coe_nat_add, int.coe_nat_mul],
-  apply norm_bound_of_odd_sum ↑x ↑y ↑z,
+  apply norm_bound_of_odd_sum,
   suffices : x + y = 2*z + 1, { simp [← int.coe_nat_add, this], },
   rw [finset.filter_card_add_filter_neg_card_eq_card, ← hJ], refl,
 end
 
-lemma agreement_lower_bound' (z : ℕ) (hJ : fintype.card J = 2*z + 1) (c : C) :
+lemma agreement_lower_bound' {z : ℕ} (hJ : fintype.card J = 2*z + 1) (c : C) :
   2*z*z ≤ (finset.univ.filter (λ (x : J × J), r c x.1 = r c x.2 ∧ x.1 ≠ x.2)).card :=
 begin
   let s := finset.univ.filter (λ (x : J × J), r c x.1 = r c x.2),
   let t := finset.univ.filter (λ (x : J × J), x.1 ≠ x.2),
-  have hs : 2*z*z + 2*z + 1 ≤ s.card, { exact agreement_lower_bound r z hJ c, },
+  have hs : 2*z*z + 2*z + 1 ≤ s.card, { exact agreement_lower_bound r hJ c, },
   have hst : s \ t = finset.univ.diag, { ext, split; intros; finish, },
   have hst' : (s \ t).card = 2*z + 1, { rw [hst, finset.diag_card, ← hJ], refl, },
   rw [finset.filter_and, finset.inter_eq_sdiff_sdiff s t, finset.card_sdiff],
@@ -120,14 +119,14 @@ begin
   { apply finset.sdiff_subset_self, },
 end
 
-lemma agreement_lower_bound'' [fintype C] (z : ℕ) (hJ : fintype.card J = 2*z + 1) :
+lemma agreement_lower_bound'' [fintype C] {z : ℕ} (hJ : fintype.card J = 2*z + 1) :
   2*z*z * (fintype.card C) ≤ (A r).card :=
 begin
   have A_fst_mem : ∀ a, a ∈ A r → prod.fst a ∈ @finset.univ C _, { intros, apply finset.mem_univ, },
   apply finset.mul_card_image_le_card_of_maps_to A_fst_mem,
   intros c hc,
   rw ← A_fst_fibre_card,
-  apply agreement_lower_bound' r z hJ,
+  apply agreement_lower_bound' r hJ,
 end
 
 end
@@ -163,7 +162,7 @@ theorem imo1998_q2 [fintype J] [fintype C]
   (b - 1) / (2*b) ≤ k / a :=
 begin
   obtain ⟨z, hz⟩ := hb, rw hz at hJ, rw hz,
-  have h := le_trans (agreement_lower_bound'' r z hJ) (agreement_upper_bound r hk),
+  have h := le_trans (agreement_lower_bound'' r hJ) (agreement_upper_bound r hk),
   rw [hC, hJ] at h,
   apply annoying_lemma_2 ha h,
 end

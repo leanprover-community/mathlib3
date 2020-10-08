@@ -59,6 +59,21 @@ lemma eq_on_indicator : eq_on (indicator s f) f s := λ x hx, indicator_of_mem h
 lemma support_indicator : function.support (s.indicator f) ⊆ s :=
 λ x hx, hx.imp_symm (λ h, indicator_of_not_mem h f)
 
+lemma indicator_of_support_subset (h : support f ⊆ s) : s.indicator f = f :=
+begin
+  ext x,
+  by_cases hx : f x = 0,
+  { rw hx,
+    by_contradiction H,
+    have := mem_of_indicator_ne_zero H,
+    rw [indicator_of_mem this f, hx] at H,
+    exact H rfl },
+  { exact indicator_of_mem (h hx) f }
+end
+
+@[simp] lemma indicator_support : (support f).indicator f = f :=
+indicator_of_support_subset $ subset.refl _
+
 @[simp] lemma indicator_range_comp {ι : Sort*} (f : ι → α) (g : α → β) :
   indicator (range f) g ∘ f = g ∘ f :=
 piecewise_range_comp _ _ _

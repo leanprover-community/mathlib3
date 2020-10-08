@@ -222,7 +222,7 @@ theorem arzela_ascoli₁ [compact_space β]
 begin
   refine compact_of_totally_bounded_is_closed _ closed,
   refine totally_bounded_of_finite_discretization (λ ε ε0, _),
-  rcases dense ε0 with ⟨ε₁, ε₁0, εε₁⟩,
+  rcases exists_between ε0 with ⟨ε₁, ε₁0, εε₁⟩,
   let ε₂ := ε₁/2/2,
   /- We have to find a finite discretization of `u`, i.e., finite information
   that is sufficient to reconstruct `u` up to ε. This information will be

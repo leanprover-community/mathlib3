@@ -61,6 +61,18 @@ theorem card_le_mul_card_image [decidable_eq γ] {f : α → γ} (s : finset α)
   s.card ≤ n * (s.image f).card :=
 card_le_mul_card_image_of_maps_to (λ x, mem_image_of_mem _) n hn
 
+theorem mul_card_image_le_card_of_maps_to [decidable_eq γ] {f : α → γ} {s : finset α} {t : finset γ}
+  (Hf : ∀ a ∈ s, f a ∈ t) (n : ℕ) (hn : ∀ a ∈ t, n ≤ (s.filter (λ x, f x = a)).card) :
+  n * t.card ≤ s.card :=
+calc n * t.card = (∑ _ in t, n) : by simp [mul_comm]
+            ... ≤ (∑ a in t, (s.filter (λ x, f x = a)).card) : sum_le_sum hn
+            ... = s.card : by rw ← card_eq_sum_card_fiberwise Hf
+
+theorem mul_card_image_le_card [decidable_eq γ] {f : α → γ} (s : finset α)
+  (n : ℕ) (hn : ∀ a ∈ s.image f, n ≤ (s.filter (λ x, f x = a)).card) :
+  n * (s.image f).card ≤ s.card :=
+mul_card_image_le_card_of_maps_to (λ x, mem_image_of_mem _) n hn
+
 lemma sum_nonneg (h : ∀x∈s, 0 ≤ f x) : 0 ≤ (∑ x in s, f x) :=
 le_trans (by rw [sum_const_zero]) (sum_le_sum h)
 

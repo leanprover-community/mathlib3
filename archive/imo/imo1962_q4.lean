@@ -29,13 +29,6 @@ a product of terms, shown in `alt_formula`, being equal to zero.
 
 def alt_formula (x : ℝ) : ℝ := cos x * (cos x ^ 2 - 1/2) * cos (3 * x)
 
-lemma cosx2 {x : ℝ} : cos x ^ 2 = 1 - sin x ^ 2 :=
-begin
-  have h1 : sin x ^ 2 = 1 - cos x ^ 2, from real.sin_square x,
-  rw h1,
-  ring
-end
-
 lemma cos3x {x : ℝ} : cos (3 * x) = 4 * cos x ^ 3 - 3 * cos x :=
 begin
   have h1 : cos (x + 2 * x) = cos x * cos (2 * x) - sin x * sin (2 * x),
@@ -45,7 +38,7 @@ begin
   rw h1,
   simp only [cos_two_mul, sin_two_mul, mul_add, mul_sub, mul_one, pow_two],
   have h3 : 4 * cos x ^ 3 = 2 * cos x * cos x * cos x + 2 * cos x * cos x ^ 2, by ring,
-  rw [h3, cosx2],
+  rw [h3, cos_square'],
   ring
 end
 

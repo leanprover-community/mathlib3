@@ -3,7 +3,7 @@ Copyright (c) 2020 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jannis Limperg
 -/
-import data.nat.basic
+import tactic.core
 
 /-!
 # The `unify_equations` tactic
@@ -199,11 +199,14 @@ meta def get_sizeof (type : expr) : tactic pexpr := do
   n ← get_app_fn_const_whnf type semireducible ff,
   resolve_name $ n ++ `sizeof
 
-lemma plus_lt (n m : ℕ) : m ≠ 0 → n < n + m :=
-by { induction m, { contradiction }, { simp } }
-
-lemma n_plus_m_plus_one_ne_n (n m : ℕ) : n + (m + 1) ≠ n :=
-by simp [ne_of_gt, plus_lt]
+lemma add_add_one_ne (n m : ℕ) : n + (m + 1) ≠ n :=
+begin
+  apply ne_of_gt,
+  apply nat.lt_add_of_pos_right,
+  apply nat.pos_of_ne_zero,
+  intro,
+  contradiction
+end
 -- Linarith could prove this, but I want to avoid that dependency.
 
 /--
@@ -248,7 +251,7 @@ meta def contradict_n_eq_n_plus_m (md : transparency) (equ lhs rhs : expr) :
   let rhs_n_expr := reflect rhs_n,
   n ← to_expr ``(%%common + %%rhs_n_expr),
   let m := reflect (diff - 1),
-  pure `(n_plus_m_plus_one_ne_n %%n %%m %%equ)
+  pure `(add_add_one_ne %%n %%m %%equ)
 
 /--
 Given `equ : t = u` with `t, u : I` and `I.sizeof t ≠ I.sizeof u`, we solve the

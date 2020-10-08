@@ -7,7 +7,7 @@ Author: Aaron Anderson.
 import number_theory.arithmetic_function
 import number_theory.lucas_lehmer
 
-/-
+/-!
 # Perfect Numbers
 
 This file proves (currently one direction of)

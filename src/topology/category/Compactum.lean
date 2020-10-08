@@ -93,8 +93,7 @@ begin
   constructor,
   rw compact_iff_ultrafilter_le_nhds,
   intros F hF h,
-  use X.str ⟨F,hF⟩,
-  refine ⟨by tauto,_⟩,
+  refine ⟨X.str ⟨F,hF⟩,by tauto,_⟩,
   rw le_nhds_iff,
   intros S h1 h2,
   exact h2 ⟨F,hF⟩ h1,
@@ -108,17 +107,10 @@ begin
   suffices : basic (∅ : set X) = ∅,
   { unfold closure, rw this, simp },
   ext F,
-  split,
-  { intro h,
-    unfold basic at h,
-    dsimp at h,
-    rw ←set.compl_univ at h,
-    change _ ∈ F.val at h,
-    rw ultrafilter_iff_compl_mem_iff_not_mem.mp F.2 set.univ at h,
-    apply h,
-    exact filter.univ_sets _ },
-  { intro h,
-    exact false.elim h }
+  refine ⟨_,by tauto⟩,
+  intro h,
+  erw ultrafilter_iff_compl_mem_iff_not_mem'.mp F.2 at h,
+  finish [filter.univ_sets],
 end
 
 lemma subset_closure {X : Compactum} (A : set X) : A ⊆ closure A :=
@@ -217,9 +209,7 @@ lemma is_closed_closure {X : Compactum} (A : set X) : is_closed (closure A) :=
 begin
   rw is_closed_iff,
   intros F hF,
-  apply closure_closure,
-  refine ⟨F,_,rfl⟩,
-  assumption,
+  exact closure_closure _ ⟨F,hF,rfl⟩,
 end
 
 lemma str_eq_of_le_nhds {X : Compactum} (F : ultrafilter X) (x : X) : F.1 ≤ nhds x → X.str F = x :=
@@ -343,24 +333,19 @@ lemma le_nhds_of_str_eq {X : Compactum} (F : ultrafilter X) (x : X) :
 instance {X : Compactum} : t2_space X :=
 begin
   rw t2_iff_ultrafilter,
-  intros F x y hF hx hy,
-  let G : ultrafilter X := ⟨F,hF⟩,
-  replace hx := str_eq_of_le_nhds G x hx,
-  replace hy := str_eq_of_le_nhds G y hy,
+  intros _ _ _ hF hx hy,
+  replace hx := str_eq_of_le_nhds ⟨_,hF⟩ _ hx,
+  replace hy := str_eq_of_le_nhds ⟨_,hF⟩ _ hy,
   cc,
 end
 
 lemma continuous_of_morphism {X Y : Compactum} (f : X ⟶ Y) : continuous f :=
 begin
   rw continuous_iff_ultrafilter,
-  intros x F hF hx,
-  let G : ultrafilter X := ⟨F,hF⟩,
-  change (ultrafilter.map f G).1 ≤ _,
+  intros x _ h1 h2,
+  change (ultrafilter.map f ⟨_,h1⟩).1 ≤ _,
   apply le_nhds_of_str_eq,
-  replace hx := str_eq_of_le_nhds G x hx,
-  rw ←str_hom_commute,
-  congr,
-  assumption,
+  rw [←str_hom_commute, str_eq_of_le_nhds ⟨_,h1⟩ x h2],
 end
 
 def to_Top : Compactum ⥤ Top :=
@@ -375,13 +360,10 @@ noncomputable def of_nonempty_Top (X : Type*) [nonempty X] [topological_space X]
   a := λ (F : ultrafilter X), Lim F.1,
   unit' := begin
     ext x,
-    simp,
     change Lim (pure x : ultrafilter X).1 = x,
     letI := (pure x : ultrafilter X).2.1,
     apply Lim_eq,
-    rw le_nhds_iff,
-    intros U hx hU,
-    assumption,
+    finish [le_nhds_iff],
   end,
   assoc' := begin
     let Lim' : ultrafilter X → X := λ F, Lim F.1,

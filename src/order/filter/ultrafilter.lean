@@ -59,15 +59,28 @@ lemma ultrafilter_iff_compl_mem_iff_not_mem :
         have s ∩ sᶜ ∈ g, from inter_mem_sets hs (g_le this),
         by simp only [empty_in_sets_eq_bot, hg, inter_compl_self] at this; contradiction⟩⟩
 
-lemma nonempty_of_mem_ultrafilter (s : set α) : is_ultrafilter f → s ∈ f → s.nonempty := 
+lemma ultrafilter_iff_compl_mem_iff_not_mem' :
+  is_ultrafilter f ↔ (∀ s, s ∈ f ↔ sᶜ ∉ f) :=
+begin
+  rw ultrafilter_iff_compl_mem_iff_not_mem,
+  split,
+  { intros h s, conv_lhs {rw (show s = sᶜᶜ, by simp)}, exact h _, },
+  { intros h s, conv_rhs {rw (show s = sᶜᶜ, by simp)}, exact h _, }
+end
+
+lemma neq_empty_of_mem_ultrafilter (s : set α) : is_ultrafilter f → s ∈ f → s ≠ ∅ :=
+begin
+  rintros h hs rfl,
+  have := f.univ_sets,
+  replace h := ((ultrafilter_iff_compl_mem_iff_not_mem'.mp h) ∅).mp hs,
+  finish,
+end
+
+lemma nonempty_of_mem_ultrafilter (s : set α) : is_ultrafilter f → s ∈ f → s.nonempty :=
 begin
   intros h1 h2,
   rw ←ne_empty_iff_nonempty,
-  rintro rfl,
-  rw ultrafilter_iff_compl_mem_iff_not_mem at h1,
-  rw (show (∅ : set α) = set.univᶜ, by simp) at *,
-  rw h1 at h2,
-  exact h2 f.univ_sets,
+  exact neq_empty_of_mem_ultrafilter _ h1 h2,
 end
 
 lemma mem_or_compl_mem_of_ultrafilter (hf : is_ultrafilter f) (s : set α) :
@@ -154,7 +167,7 @@ begin
 end
 
 lemma exists_ultrafilter_of_finite_inter_nonempty (S : set (set α)) (cond : ∀ T : finset (set α),
-  (↑T : set (set α)) ⊆ S → (⋂₀ (↑T : set (set α))).nonempty) : 
+  (↑T : set (set α)) ⊆ S → (⋂₀ (↑T : set (set α))).nonempty) :
   ∃ F : filter α, S ⊆ F.sets ∧ is_ultrafilter F :=
 begin
   suffices : ∃ F : filter α, ne_bot F ∧ S ⊆ F.sets,
@@ -250,6 +263,13 @@ instance ultrafilter.functor : functor ultrafilter := { map := @ultrafilter.map 
 instance ultrafilter.monad : monad ultrafilter := { map := @ultrafilter.map }
 
 instance ultrafilter.inhabited [inhabited α] : inhabited (ultrafilter α) := ⟨pure (default _)⟩
+
+instance nonempty_of_nonempty_ultrafilter [nonempty (ultrafilter α)] : nonempty α :=
+begin
+  obtain ⟨_,hF⟩ := (show nonempty (ultrafilter α), by apply_instance),
+  obtain ⟨x⟩ := nonempty_of_mem_ultrafilter set.univ hF (filter.univ_sets _),
+  use x,
+end
 
 /-- The ultra-filter extending the cofinite filter. -/
 noncomputable def hyperfilter : filter α := ultrafilter_of cofinite

@@ -399,7 +399,7 @@ lemma int_cast {f : arithmetic_function ℤ} [ring R] (h : f.is_multiplicative) 
 ⟨by simp [h], λ m n cop, by simp [cop, h]⟩
 
 lemma mul [comm_semiring R] {f g : arithmetic_function R}
-  (hf : f.is_multiplicative)  (hg : g.is_multiplicative) :
+  (hf : f.is_multiplicative) (hg : g.is_multiplicative) :
   is_multiplicative (f * g) :=
 ⟨by { simp [hf, hg], }, begin
   simp only [mul_apply],
@@ -417,7 +417,7 @@ lemma mul [comm_semiring R] {f g : arithmetic_function R}
   { rintros ⟨⟨a1, a2⟩, ⟨b1, b2⟩⟩ h,
     simp only [mem_divisors_antidiagonal, ne.def, mem_product] at h,
     rcases h with ⟨⟨rfl, ha⟩, ⟨rfl, hb⟩⟩,
-    dsimp,
+    dsimp only,
     rw [hf.map_mul_of_coprime cop.coprime_mul_right.coprime_mul_right_right,
         hg.map_mul_of_coprime cop.coprime_mul_left.coprime_mul_left_right],
     ring, },
@@ -426,26 +426,27 @@ lemma mul [comm_semiring R] {f g : arithmetic_function R}
     rcases hab with ⟨⟨rfl, ha⟩, ⟨rfl, hb⟩⟩,
     simp only [mem_divisors_antidiagonal, ne.def, mem_product] at hcd,
     simp only [prod.mk.inj_iff] at h,
-    ext; dsimp,
+    ext; dsimp only,
     { transitivity nat.gcd (a1 * a2) (a1 * b1),
-      {rw [nat.gcd_mul_left, cop.coprime_mul_left.coprime_mul_right_right.gcd_eq_one, mul_one]},
+      { rw [nat.gcd_mul_left, cop.coprime_mul_left.coprime_mul_right_right.gcd_eq_one, mul_one] },
       { rw [← hcd.1.1, ← hcd.2.1] at cop,
         rw [← hcd.1.1, h.1, nat.gcd_mul_left,
             cop.coprime_mul_left.coprime_mul_right_right.gcd_eq_one, mul_one] } },
     { transitivity nat.gcd (a1 * a2) (a2 * b2),
-      {rw [mul_comm, nat.gcd_mul_left, cop.coprime_mul_right.coprime_mul_left_right.gcd_eq_one, mul_one]},
+      { rw [mul_comm, nat.gcd_mul_left, cop.coprime_mul_right.coprime_mul_left_right.gcd_eq_one,
+            mul_one] },
       { rw [← hcd.1.1, ← hcd.2.1] at cop,
         rw [← hcd.1.1, h.2, mul_comm, nat.gcd_mul_left,
             cop.coprime_mul_right.coprime_mul_left_right.gcd_eq_one, mul_one] } },
     { transitivity nat.gcd (b1 * b2) (a1 * b1),
-      {rw [mul_comm, nat.gcd_mul_right,
-           cop.coprime_mul_right.coprime_mul_left_right.symm.gcd_eq_one, one_mul]},
+      { rw [mul_comm, nat.gcd_mul_right,
+           cop.coprime_mul_right.coprime_mul_left_right.symm.gcd_eq_one, one_mul] },
       { rw [← hcd.1.1, ← hcd.2.1] at cop,
         rw [← hcd.2.1, h.1, mul_comm c1 d1, nat.gcd_mul_left,
             cop.coprime_mul_right.coprime_mul_left_right.symm.gcd_eq_one, mul_one] } },
     { transitivity nat.gcd (b1 * b2) (a2 * b2),
-      {rw [nat.gcd_mul_right,
-           cop.coprime_mul_left.coprime_mul_right_right.symm.gcd_eq_one, one_mul]},
+      { rw [nat.gcd_mul_right,
+           cop.coprime_mul_left.coprime_mul_right_right.symm.gcd_eq_one, one_mul] },
       { rw [← hcd.1.1, ← hcd.2.1] at cop,
         rw [← hcd.2.1, h.2, nat.gcd_mul_right,
             cop.coprime_mul_left.coprime_mul_right_right.symm.gcd_eq_one, one_mul] } } },
@@ -460,7 +461,7 @@ lemma mul [comm_semiring R] {f g : arithmetic_function R}
 end⟩
 
 lemma pmul [comm_semiring R] {f g : arithmetic_function R}
-  (hf : f.is_multiplicative)  (hg : g.is_multiplicative) :
+  (hf : f.is_multiplicative) (hg : g.is_multiplicative) :
   is_multiplicative (f.pmul g) :=
 ⟨by { simp [hf, hg], }, λ m n cop, begin
   simp only [pmul_apply, hf.map_mul_of_coprime cop, hg.map_mul_of_coprime cop],

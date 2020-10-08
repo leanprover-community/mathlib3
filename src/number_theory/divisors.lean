@@ -78,7 +78,7 @@ begin
   cases m,
   { simp [divisors] },
   simp only [divisors, finset.Ico.mem, ne.def, finset.mem_filter, succ_ne_zero, and_true,
-    and_iff_right_iff_imp, not_false_iff],
+             and_iff_right_iff_imp, not_false_iff],
   intro hdvd,
   split,
   { apply nat.pos_of_ne_zero,
@@ -108,7 +108,8 @@ begin
   { contrapose! h, simp [h], },
   { rw [nat.lt_add_one_iff, nat.lt_add_one_iff],
     rw [mul_eq_zero, decidable.not_or_iff_and_not] at h,
-    simp [nat.succ_le_of_lt (nat.pos_of_ne_zero h.1), nat.succ_le_of_lt (nat.pos_of_ne_zero h.2)],
+    simp only [succ_le_of_lt (nat.pos_of_ne_zero h.1), succ_le_of_lt (nat.pos_of_ne_zero h.2),
+               true_and],
     exact ⟨le_mul_of_pos_right (nat.pos_of_ne_zero h.2),
       le_mul_of_pos_left (nat.pos_of_ne_zero h.1)⟩ }
 end
@@ -166,8 +167,8 @@ lemma map_swap_divisors_antidiagonal {n : ℕ} :
   = divisors_antidiagonal n :=
 begin
   ext,
-  simp only [exists_prop, mem_divisors_antidiagonal, finset.mem_map, function.embedding.coe_fn_mk, ne.def, prod.swap_prod_mk,
- prod.exists],
+  simp only [exists_prop, mem_divisors_antidiagonal, finset.mem_map, function.embedding.coe_fn_mk,
+             ne.def, prod.swap_prod_mk, prod.exists],
   split,
   { rintros ⟨x, y, ⟨⟨rfl, h⟩, rfl⟩⟩,
     simp [mul_comm, h], },

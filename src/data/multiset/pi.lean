@@ -12,13 +12,13 @@ import data.multiset.nodup
 namespace multiset
 
 section pi
-variables {α : Type*} {δ : α → Type*}
+variables {α : Type*}
 open function
 
 /-- Given `δ : α → Type*`, `pi.empty δ` is the trivial dependent function out of the empty multiset. -/
 def pi.empty (δ : α → Type*) : (Πa∈(0:multiset α), δ a) .
 
-variable [decidable_eq α]
+variables [decidable_eq α] {δ : α → Type*}
 
 /-- Given `δ : α → Type*`, a multiset `m` and a term `a`, as well as a term `b : δ a` and a function `f`
 such that `f a' : δ a'` for all `a'` in `m`, `pi.cons m a b f` is a function `g` such that

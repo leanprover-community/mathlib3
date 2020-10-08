@@ -335,6 +335,10 @@ several different quotient relations on a type, for example quotient groups, rin
 instance argument. -/
 protected def mk' (a : α) : quotient s₁ := quot.mk s₁.1 a
 
+/-- `quotient.mk'` is a surjective function. -/
+lemma surjective_quotient_mk' : function.surjective (quotient.mk' : α → quotient s₁) :=
+quot.exists_rep
+
 /-- A version of `quotient.lift_on` taking `{s : setoid α}` as an implicit argument instead of an
 instance argument. -/
 @[elab_as_eliminator, reducible]

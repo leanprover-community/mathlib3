@@ -424,8 +424,7 @@ else
 begin
   unfold norm at ⊢ hfgne, split_ifs at ⊢ hfgne,
   padic_index_simp [hfg, hf, hg] at ⊢ hfgne,
-  apply padic_norm.add_eq_max_of_ne,
-  simpa only using hfgne
+  exact padic_norm.add_eq_max_of_ne p hfgne
 end
 
 end embedding

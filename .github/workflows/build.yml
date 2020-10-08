@@ -30,8 +30,8 @@ jobs:
           set -o pipefail
           curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
           ~/.elan/bin/lean --version
-          echo "::add-path::$HOME/.elan/bin"
-          echo "::set-env name=short_lean_version::$(~/.elan/bin/lean --run scripts/lean_version.lean)"
+          echo "$HOME/.elan/bin" >> $GITHUB_PATH
+          echo "short_lean_version=$(~/.elan/bin/lean --run scripts/lean_version.lean)" >> $GITHUB_ENV
 
       - name: install azcopy
         run: |
@@ -94,7 +94,7 @@ jobs:
           set -o pipefail
           curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
           ~/.elan/bin/lean --version
-          echo "::add-path::$HOME/.elan/bin"
+          echo "$HOME/.elan/bin" >> $GITHUB_PATH
 
       - name: lint
         run: |
@@ -119,7 +119,7 @@ jobs:
           set -o pipefail
           curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
           ~/.elan/bin/lean --version
-          echo "::add-path::$HOME/.elan/bin"
+          echo "$HOME/.elan/bin" >> $GITHUB_PATH
 
       - name: install Python
         uses: actions/setup-python@v1
@@ -144,3 +144,7 @@ jobs:
           python scripts/yaml_check.py docs/100.yaml docs/overview.yaml docs/undergrad.yaml
           bash scripts/mk_all.sh
           lean --run scripts/yaml_check.lean
+
+      - name: check for copyright headers and module docstrings
+        run: |
+          ./scripts/lint-copy-mod-doc.sh

@@ -1,4 +1,5 @@
-/- Copyright (c) 2018 Johannes Hölzl. All rights reserved.
+/-
+Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
@@ -28,6 +29,7 @@ noncomputable theory
 open category_theory measure_theory
 universes u v
 
+/-- The category of measurable spaces and measurable functions. -/
 @[derive has_coe_to_sort]
 def Meas : Type (u+1) := bundled measurable_space
 

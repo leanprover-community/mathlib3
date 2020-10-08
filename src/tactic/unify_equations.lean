@@ -113,7 +113,7 @@ pure not_simplified
 -- TODO This is an improved version of `injection_with` from core
 -- (init/meta/injection_tactic). Remove when the improvements have landed in
 -- core.
-meta def injection_with (h : expr) (ns : list name)
+private meta def injection_with' (h : expr) (ns : list name)
   (base := `h) (offset := some 1) :
   tactic (option (list expr) × list name) :=
 do
@@ -180,7 +180,7 @@ same datatype `I`:
 meta def unify_constructor_headed : unification_step :=
 λ equ _ _ _ _ _ _ _,
 do {
-  (next, _) ← injection_with equ [] `_ none,
+  (next, _) ← injection_with' equ [] `_ none,
   try $ clear equ,
   pure $
     match next with
@@ -199,11 +199,11 @@ meta def get_sizeof (type : expr) : tactic pexpr := do
   n ← get_app_fn_const_whnf type semireducible ff,
   resolve_name $ n ++ `sizeof
 
-lemma plus_gt (n m : ℕ) : m ≠ 0 → n + m > n :=
+lemma plus_lt (n m : ℕ) : m ≠ 0 → n < n + m :=
 by { induction m, { contradiction }, { simp } }
 
 lemma n_plus_m_plus_one_ne_n (n m : ℕ) : n + (m + 1) ≠ n :=
-by simp [ne_of_gt, plus_gt]
+by simp [ne_of_gt, plus_lt]
 -- Linarith could prove this, but I want to avoid that dependency.
 
 /--

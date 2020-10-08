@@ -72,6 +72,34 @@ instance : has_mul (monoid_algebra k G) :=
 lemma mul_def {f g : monoid_algebra k G} :
   f * g = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ * a₂) (b₁ * b₂)) :=
 rfl
+/-- The unit of the multiplication is `single 1 1`, i.e. the function
+  that is `1` at `1` and zero elsewhere. -/
+instance : has_one (monoid_algebra k G) :=
+⟨single 1 1⟩
+
+lemma one_def : (1 : monoid_algebra k G) = single 1 1 :=
+rfl
+
+instance : semiring (monoid_algebra k G) :=
+{ one       := 1,
+  mul       := (*),
+  zero      := 0,
+  add       := (+),
+  one_mul   := assume f, by simp only [mul_def, one_def, sum_single_index, zero_mul,
+    single_zero, sum_zero, zero_add, one_mul, sum_single],
+  mul_one   := assume f, by simp only [mul_def, one_def, sum_single_index, mul_zero,
+    single_zero, sum_zero, add_zero, mul_one, sum_single],
+  zero_mul  := assume f, by simp only [mul_def, sum_zero_index],
+  mul_zero  := assume f, by simp only [mul_def, sum_zero_index, sum_zero],
+  mul_assoc := assume f g h, by simp only [mul_def, sum_sum_index, sum_zero_index, sum_add_index,
+    sum_single_index, single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff,
+    add_mul, mul_add, add_assoc, mul_assoc, zero_mul, mul_zero, sum_zero, sum_add],
+  left_distrib  := assume f g h, by simp only [mul_def, sum_add_index, mul_add, mul_zero,
+    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add],
+  right_distrib := assume f g h, by simp only [mul_def, sum_add_index, add_mul, mul_zero, zero_mul,
+    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
+    sum_add],
+  .. finsupp.add_comm_monoid }
 
 lemma mul_apply (f g : monoid_algebra k G) (x : G) :
   (f * g) x = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, if a₁ * a₂ = x then b₁ * b₂ else 0) :=
@@ -109,34 +137,6 @@ lemma support_mul (a b : monoid_algebra k G) :
 subset.trans support_sum $ bind_mono $ assume a₁ _,
   subset.trans support_sum $ bind_mono $ assume a₂ _, support_single_subset
 
-/-- The unit of the multiplication is `single 1 1`, i.e. the function
-  that is `1` at `1` and zero elsewhere. -/
-instance : has_one (monoid_algebra k G) :=
-⟨single 1 1⟩
-
-lemma one_def : (1 : monoid_algebra k G) = single 1 1 :=
-rfl
-
-instance : semiring (monoid_algebra k G) :=
-{ one       := 1,
-  mul       := (*),
-  zero      := 0,
-  add       := (+),
-  one_mul   := assume f, by simp only [mul_def, one_def, sum_single_index, zero_mul,
-    single_zero, sum_zero, zero_add, one_mul, sum_single],
-  mul_one   := assume f, by simp only [mul_def, one_def, sum_single_index, mul_zero,
-    single_zero, sum_zero, add_zero, mul_one, sum_single],
-  zero_mul  := assume f, by simp only [mul_def, sum_zero_index],
-  mul_zero  := assume f, by simp only [mul_def, sum_zero_index, sum_zero],
-  mul_assoc := assume f g h, by simp only [mul_def, sum_sum_index, sum_zero_index, sum_add_index,
-    sum_single_index, single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff,
-    add_mul, mul_add, add_assoc, mul_assoc, zero_mul, mul_zero, sum_zero, sum_add],
-  left_distrib  := assume f g h, by simp only [mul_def, sum_add_index, mul_add, mul_zero,
-    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add],
-  right_distrib := assume f g h, by simp only [mul_def, sum_add_index, add_mul, mul_zero, zero_mul,
-    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
-    sum_add],
-  .. finsupp.add_comm_monoid }
 
 @[simp] lemma single_mul_single {a₁ a₂ : G} {b₁ b₂ : k} :
   (single a₁ b₁ : monoid_algebra k G) * single a₂ b₂ = single (a₁ * a₂) (b₁ * b₂) :=
@@ -472,18 +472,6 @@ lemma mul_def {f g : add_monoid_algebra k G} :
   f * g = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ + a₂) (b₁ * b₂)) :=
 rfl
 
-lemma mul_apply (f g : add_monoid_algebra k G) (x : G) :
-  (f * g) x = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, if a₁ + a₂ = x then b₁ * b₂ else 0) :=
-begin
-  rw [mul_def],
-  simp only [finsupp.sum_apply, single_apply],
-end
-
-lemma support_mul (a b : add_monoid_algebra k G) :
-  (a * b).support ⊆ a.support.bind (λa₁, b.support.bind $ λa₂, {a₁ + a₂}) :=
-subset.trans support_sum $ bind_mono $ assume a₁ _,
-  subset.trans support_sum $ bind_mono $ assume a₂ _, support_single_subset
-
 /-- The unit of the multiplication is `single 1 1`, i.e. the function
   that is `1` at `0` and zero elsewhere. -/
 instance : has_one (add_monoid_algebra k G) :=
@@ -512,6 +500,18 @@ instance : semiring (add_monoid_algebra k G) :=
     single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
     sum_add],
   .. finsupp.add_comm_monoid }
+
+lemma mul_apply (f g : add_monoid_algebra k G) (x : G) :
+  (f * g) x = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, if a₁ + a₂ = x then b₁ * b₂ else 0) :=
+begin
+  rw [mul_def],
+  simp only [finsupp.sum_apply, single_apply],
+end
+
+lemma support_mul (a b : add_monoid_algebra k G) :
+  (a * b).support ⊆ a.support.bind (λa₁, b.support.bind $ λa₂, {a₁ + a₂}) :=
+subset.trans support_sum $ bind_mono $ assume a₁ _,
+  subset.trans support_sum $ bind_mono $ assume a₂ _, support_single_subset
 
 lemma single_mul_single {a₁ a₂ : G} {b₁ b₂ : k} :
   (single a₁ b₁ : add_monoid_algebra k G) * single a₂ b₂ = single (a₁ + a₂) (b₁ * b₂) :=

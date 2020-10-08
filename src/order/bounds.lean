@@ -403,7 +403,7 @@ begin
   refine ⟨λx hx, le_of_lt hx.1, λy hy, le_of_not_lt $ λ h, _⟩,
   letI := classical.DLO γ,
   have : a < min b y, by { rw lt_min_iff, exact ⟨hab, h⟩ },
-  rcases dense this with ⟨z, az, zy⟩,
+  rcases exists_between this with ⟨z, az, zy⟩,
   rw lt_min_iff at zy,
   exact lt_irrefl _ (lt_of_le_of_lt (hy ⟨az, zy.1⟩) zy.2)
 end

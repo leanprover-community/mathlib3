@@ -427,7 +427,9 @@ by rw [sub_eq_neg_add, neg_add_cancel_left]
 lemma add_sub_cancel'_right (a b : G) : a + (b - a) = b :=
 by rw [← add_sub_assoc, add_sub_cancel']
 
-@[simp] lemma add_add_neg_cancel'_right (a b : G) : a + (b + -a) = b :=
+-- This lemma is in the `simp` set under the name `add_neg_cancel_comm_assoc`,
+-- defined  in `algebra/group/commute`
+lemma add_add_neg_cancel'_right (a b : G) : a + (b + -a) = b :=
 add_sub_cancel'_right a b
 
 lemma sub_right_comm (a b c : G) : a - b - c = a - c - b :=

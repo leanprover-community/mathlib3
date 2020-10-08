@@ -26,6 +26,10 @@ class can_lift (α : Type u) (β : Type v) : Type (max u v) :=
 
 open tactic
 
+/--
+A user attribute used internally by the `lift` tactic.
+This should not be applied by hand.
+-/
 @[user_attribute]
 meta def can_lift_attr : user_attribute (list name) :=
 { name := "_can_lift",
@@ -51,15 +55,19 @@ instance pi.can_lift (ι : Type u) (α : Π i : ι, Type v) (β : Π i : ι, Typ
 
 namespace tactic
 
-/- Construct the proof of `cond x` in the lift tactic.
-  `e` is the expression being lifted and `h` is the specified proof of `can_lift.cond e`.
-  `old_tp` and `new_tp` are the arguments to `can_lift` and `inst` is the `can_lift`-instance.
-  `s` and `to_unfold` contain the information of the simp set used to simplify.
-  If the proof was specified, we check whether it has the correct type.
-    If it doesn't have the correct type, we display an error message
-    (but first call dsimp on the expression in the message).
-  If the proof was not specified, we create assert it as a local constant.
-  (The name of this local constant doesn't matter, since `lift` will remove it from the context) -/
+/--
+Construct the proof of `cond x` in the lift tactic.
+*  `e` is the expression being lifted and `h` is the specified proof of `can_lift.cond e`.
+*  `old_tp` and `new_tp` are the arguments to `can_lift` and `inst` is the `can_lift`-instance.
+*  `s` and `to_unfold` contain the information of the simp set used to simplify.
+
+If the proof was specified, we check whether it has the correct type.
+If it doesn't have the correct type, we display an error message
+(but first call dsimp on the expression in the message).
+
+If the proof was not specified, we create assert it as a local constant.
+(The name of this local constant doesn't matter, since `lift` will remove it from the context.)
+-/
 meta def get_lift_prf (h : option pexpr) (old_tp new_tp inst e : expr)
   (s : simp_lemmas) (to_unfold : list name) : tactic expr :=
 if h_some : h.is_some then
@@ -123,9 +131,13 @@ do
 
 open lean.parser interactive interactive.types
 
-local postfix `?`:9001 := optional
-meta def using_texpr := (tk "using" *> texpr)?
 reserve notation `to`
+
+local postfix `?`:9001 := optional
+/-- Parses an optional token "using" followed by a trailing `pexpr`. -/
+meta def using_texpr := (tk "using" *> texpr)?
+
+/-- Parses a token "to" followed by a trailing `pexpr`. -/
 meta def to_texpr := (tk "to" *> texpr)
 
 namespace interactive

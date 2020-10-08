@@ -48,7 +48,7 @@ def monoid.pow [has_mul M] [has_one M] (a : M) : ℕ → M
 /-- The scalar multiplication in an additive monoid.
 `n •ℕ a = a+a+...+a` n times. -/
 def nsmul [has_add A] [has_zero A] (n : ℕ) (a : A) : A :=
-@monoid.pow (multiplicative A) _  _ a n
+@monoid.pow (multiplicative A) _ _ a n
 
 infix ` •ℕ `:70 := nsmul
 
@@ -467,6 +467,19 @@ end
 
 end cancel_add_monoid
 
+section comm_semiring
+
+variables [comm_semiring R]
+
+lemma min_pow_dvd_add {n m : ℕ} {a b c : R} (ha : c ^ n ∣ a) (hb : c ^ m ∣ b) : c ^ (min n m) ∣ a + b :=
+begin
+  replace ha := dvd.trans (pow_dvd_pow c (min_le_left n m)) ha,
+  replace hb := dvd.trans (pow_dvd_pow c (min_le_right n m)) hb,
+  exact dvd_add ha hb
+end
+
+end comm_semiring
+
 namespace canonically_ordered_semiring
 variable [canonically_ordered_comm_semiring R]
 
@@ -489,11 +502,11 @@ end canonically_ordered_semiring
 section linear_ordered_semiring
 variable [linear_ordered_semiring R]
 
-theorem pow_pos {a : R} (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
+@[simp] theorem pow_pos {a : R} (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
 | 0     := zero_lt_one
 | (n+1) := mul_pos H (pow_pos _)
 
-theorem pow_nonneg {a : R} (H : 0 ≤ a) : ∀ (n : ℕ), 0 ≤ a ^ n
+@[simp] theorem pow_nonneg {a : R} (H : 0 ≤ a) : ∀ (n : ℕ), 0 ≤ a ^ n
 | 0     := zero_le_one
 | (n+1) := mul_nonneg H (pow_nonneg _)
 

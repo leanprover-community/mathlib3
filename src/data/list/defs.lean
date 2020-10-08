@@ -93,6 +93,12 @@ def to_array (l : list α) : array l.length α :=
 def modify_nth (f : α → α) : ℕ → list α → list α :=
 modify_nth_tail (modify_head f)
 
+/-- Apply `f` to the last element of `l`, if it exists. -/
+@[simp] def modify_last (f : α → α) : list α → list α
+| [] := []
+| [x] := [f x]
+| (x :: xs) := x :: modify_last xs
+
 /-- `insert_nth n a l` inserts `a` into the list `l` after the first `n` elements of `l`
  `insert_nth 2 1 [1, 2, 3, 4] = [1, 2, 1, 3, 4]`-/
 def insert_nth (n : ℕ) (a : α) : list α → list α := modify_nth_tail (list.cons a) n
@@ -600,17 +606,6 @@ def erase_dup [decidable_eq α] : list α → list α := pw_filter (≠)
 /-- Drop `none`s from a list, and replace each remaining `some a` with `a`. -/
 def reduce_option {α} : list (option α) → list α :=
 list.filter_map id
-
-/-- Apply `f` to the first element of `l`. -/
-def map_head {α} (f : α → α) : list α → list α
-| [] := []
-| (x :: xs) := f x :: xs
-
-/-- Apply `f` to the last element of `l`. -/
-def map_last {α} (f : α → α) : list α → list α
-| [] := []
-| [x] := [f x]
-| (x :: xs) := x :: map_last xs
 
 /-- `ilast' x xs` returns the last element of `xs` if `xs` is non-empty;
 it returns `x` otherwise -/

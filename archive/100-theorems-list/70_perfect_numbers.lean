@@ -35,12 +35,9 @@ end
 
 lemma odd_mersenne_succ (k : ℕ) : ¬ 2 ∣ mersenne (k + 1) :=
 begin
-  rw [mersenne, ← even_iff_two_dvd, nat.even_sub],
-  { simp [pow_succ, even_iff_two_dvd],
-    dec_trivial },
-  { rw nat.succ_le_iff,
-    apply pow_pos,
-    dec_trivial }
+  rw [← even_iff_two_dvd, ← nat.even_succ, nat.succ_eq_add_one, succ_mersenne,
+    even_iff_two_dvd, pow_succ],
+  apply dvd.intro _ rfl,
 end
 
 namespace nat

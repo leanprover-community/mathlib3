@@ -1,17 +1,8 @@
-import category_theory.monad.algebra
 import category_theory.monad.types
-import category_theory.limits.creates
 import category_theory.monad.limits
-import category_theory.limits.types
-import category_theory.limits.preserves.basic
 import category_theory.equivalence
 import topology.category.Top
-import topology.stone_cech
-import topology.order
-import topology.separation
 import data.set.constructions
-import data.set.basic
-import data.finset
 
 open category_theory filter topological_space category_theory.limits
 open_locale classical

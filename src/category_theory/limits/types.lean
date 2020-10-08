@@ -123,9 +123,6 @@ lemma limit.map_π_apply {F G : J ⥤ Type u} (α : F ⟶ G) (j : J) (x) :
   limit.π G j (lim.map α x) = α.app j (limit.π F j x) :=
 congr_fun (limit.map_π α j) x
 
-def quot.rel (F : J ⥤ Type u) : (Σ j, F.obj j) → (Σ j, F.obj j) → Prop :=
-(λ p p', ∃ f : p.1 ⟶ p'.1, p'.2 = F.map f p.2)
-
 /--
 The relation defining the quotient type which implements the colimit of a functor `F : J ⥤ Type u`.
 See `category_theory.limits.types.quot`.

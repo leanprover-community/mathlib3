@@ -112,17 +112,16 @@ def pairwise_to_opens_le_cover : pairwise ι ⥤ opens_le_cover U :=
 { obj := pairwise_to_opens_le_cover_obj U,
   map := λ V W i, pairwise_to_opens_le_cover_map U i, }
 
-def bar : pairwise_to_opens_le_cover U ⋙ full_subcategory_inclusion _ ≅ pairwise.diagram U :=
-{ hom := { app := begin rintro (i|⟨i,j⟩); exact 𝟙 _, end, },
-  inv := { app := begin rintro (i|⟨i,j⟩); exact 𝟙 _, end, }, }
-
-def foo : (opens_le_cover_cocone U).whisker (pairwise_to_opens_le_cover U) ≅ pairwise.cocone U :=
-sorry
-
 instance (V : opens_le_cover U) :
   nonempty (comma (functor.from_punit V) (pairwise_to_opens_le_cover U)) :=
 ⟨{ right := single (V.index), hom := V.hom_to_index }⟩
 
+/--
+The diagram consisting of the `U i` and `U i ⊓ U j` is cofinal in the diagram
+of all opens contained in some `U i`.
+-/
+-- This is a case bash: for each pair of types of objects in `pairwise ι`,
+-- we have to explicitly construct a zigzag.
 instance : cofinal (pairwise_to_opens_le_cover U) :=
 λ V, is_connected_of_zigzag (λ A B,
   begin
@@ -167,23 +166,75 @@ instance : cofinal (pairwise_to_opens_le_cover U) :=
               (list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i' j', }⟩) list.chain.nil))), },
   end)
 
+def bar : pairwise_to_opens_le_cover U ⋙ full_subcategory_inclusion _ ≅ pairwise.diagram U :=
+{ hom := { app := begin rintro (i|⟨i,j⟩); exact 𝟙 _, end, },
+  inv := { app := begin rintro (i|⟨i,j⟩); exact 𝟙 _, end, }, }
+
+def foo :
+  (cocones.precompose_equivalence (bar U : _)).inverse.obj
+    ((opens_le_cover_cocone U).whisker (pairwise_to_opens_le_cover U)) ≅
+  pairwise.cocone U :=
+cocones.ext (iso.refl _) (by tidy)
+
+def foo_op : ((cocones.precompose_equivalence (bar U : _)).inverse.obj
+    ((opens_le_cover_cocone U).whisker (pairwise_to_opens_le_cover U))).op ≅ (pairwise.cocone U).op :=
+cones.ext (iso.refl _) (by tidy)
+-- begin
+--   have := ((cocone_equivalence_op_cone_op (pairwise.diagram U)).functor.map_iso (foo U)),
+--   dsimp at this,
+--   exact this.remove_op.symm,
+-- end
+
+def foo_op' : (cones.postcompose_equivalence begin apply nat_iso.op, exact bar U end).inverse.obj
+    ((opens_le_cover_cocone U).whisker (pairwise_to_opens_le_cover U)).op ≅ (pairwise.cocone U).op :=
+cones.ext (iso.refl _) (by tidy)
+
+def foo_op'' : (cones.postcompose_equivalence (nat_iso.op (bar U : _) : _)).inverse.obj
+    ((opens_le_cover_cocone U).op.whisker (pairwise_to_opens_le_cover U).op) ≅ (pairwise.cocone U).op :=
+cones.ext (iso.refl _) (by tidy)
+
+
 end sheaf_condition
 
+open sheaf_condition
+
 /--
-The sheaf condition in terms of an equalizer diagram is equivalent
-to the reformulation in terms of a limit diagram over `U i` and `U i ⊓ U j`.
+The sheaf condition
+in terms of a limit diagram over all `{ V : opens X // ∃ i, V ≤ U i }`
+is equivalent to the reformulation
+in terms of a limit diagram over `U i` and `U i ⊓ U j`.
 -/
 def sheaf_condition_opens_le_cover_equiv_sheaf_condition_pairwise_intersections (F : presheaf C X) :
   F.sheaf_condition_opens_le_cover ≃ F.sheaf_condition_pairwise_intersections :=
-equiv.Pi_congr_right (λ i, equiv.Pi_congr_right (λ U,
-  equiv_of_subsingleton_of_subsingleton
-    (λ P, begin  end)
-    begin sorry, end))
+equiv.Pi_congr_right (λ ι, equiv.Pi_congr_right (λ U,
+begin
+  transitivity,
+  swap,
+  apply is_limit.equiv_iso_limit,
+  apply (cones.functoriality _ _).map_iso _,
+  swap,
+  exact foo_op'' U,
+  change _ ≃ is_limit (functor.map_cone _ _),
+  transitivity,
+  swap,
+  apply is_limit.equiv_iso_limit,
+  apply (functor.map_cone_postcompose_equivalence_inverse _).symm,
+  transitivity,
+  swap,
+  symmetry,
+  apply is_limit.postcompose_inv_equiv _ _,
+  transitivity,
+  swap,
+  apply is_limit.equiv_iso_limit,
+  symmetry,
+  apply functor.map_cone_whisker,
+  have := (cofinal.is_limit_whisker_equiv (pairwise_to_opens_le_cover U) _),
+  exact this.symm,
+end))
 
 /--
 The sheaf condition in terms of an equalizer diagram is equivalent
-to the reformulation in terms of the presheaf preserving the limit of the diagram
-consisting of the `U i` and `U i ⊓ U j`.
+to the reformulation in terms of a limit diagram over all `{ V : opens X // ∃ i, V ≤ U i }`.
 -/
 def sheaf_condition_equiv_sheaf_condition_opens_le_cover (F : presheaf C X) :
   F.sheaf_condition ≃ F.sheaf_condition_opens_le_cover :=

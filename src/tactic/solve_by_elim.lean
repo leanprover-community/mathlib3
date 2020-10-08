@@ -26,7 +26,8 @@ namespace tactic
 
 namespace solve_by_elim
 /--
-`mk_assumption_set` builds a collection of lemmas for use in the backtracking search in `solve_by_elim`.
+`mk_assumption_set` builds a collection of lemmas for use in
+the backtracking search in `solve_by_elim`.
 
 * By default, it includes all local hypotheses, along with `rfl`, `trivial`, `congr_fun` and
   `congr_arg`.
@@ -309,7 +310,8 @@ makes other goals impossible.
 
 optional arguments passed via a configuration argument as `solve_by_elim { ... }`
 - max_depth: number of attempts at discharging generated sub-goals
-- discharger: a subsidiary tactic to try at each step when no lemmas apply (e.g. `cc` may be helpful).
+- discharger: a subsidiary tactic to try at each step when no lemmas apply
+  (e.g. `cc` may be helpful).
 - pre_apply: a subsidiary tactic to run at each step before applying lemmas (e.g. `intros`).
 - accept: a subsidiary tactic `list expr → tactic unit` that at each step,
     before any lemmas are applied, is passed the original proof terms

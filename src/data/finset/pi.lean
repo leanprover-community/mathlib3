@@ -17,7 +17,7 @@ open multiset
 section pi
 variables {α : Type*}
 
-/-- The empty dependent product function, defined on the emptyset. The assumption `a ∈ ∅` is never
+/-- The empty dependent product function, defined on the empty set. The assumption `a ∈ ∅` is never
 satisfied. -/
 def pi.empty (β : α → Sort*) (a : α) (h : a ∈ (∅ : finset α)) : β a :=
 multiset.pi.empty β a h

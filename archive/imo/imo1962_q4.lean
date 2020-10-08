@@ -29,26 +29,13 @@ a product of terms, shown in `alt_formula`, being equal to zero.
 
 def alt_formula (x : ℝ) : ℝ := cos x * (cos x ^ 2 - 1/2) * cos (3 * x)
 
-lemma cos3x {x : ℝ} : cos (3 * x) = 4 * cos x ^ 3 - 3 * cos x :=
-begin
-  have h1 : cos (x + 2 * x) = cos x * cos (2 * x) - sin x * sin (2 * x),
-    from real.cos_add x (2 * x),
-  have h2 : x + 2 * x = 3 * x, by ring,
-  rw ← h2,
-  rw h1,
-  simp only [cos_two_mul, sin_two_mul, mul_add, mul_sub, mul_one, pow_two],
-  have h3 : 4 * cos x ^ 3 = 2 * cos x * cos x * cos x + 2 * cos x * cos x ^ 2, by ring,
-  rw [h3, cos_square'],
-  ring
-end
-
 lemma cos3x_factorization {x : ℝ} : cos (3 * x) = 4 * (cos x) * (cos x ^ 2 - 3/4) :=
-by { rw cos3x, linarith }
+by { rw cos_three_mul, linarith }
 
 lemma cos_sum_equiv {x : ℝ} :
 (cos x ^ 2 + cos (2 * x) ^ 2 + cos (3 * x) ^ 2 - 1) / 4 = alt_formula x :=
 begin
-  simp [real.cos_two_mul, cos3x],
+  simp [real.cos_two_mul, cos_three_mul],
   unfold alt_formula,
   rw cos3x_factorization,
   ring
@@ -75,7 +62,7 @@ The `cos x = 0` implies `cos (3 * x) = 0` so we can drop that case.
 
 lemma cosx_0_imp_cos3x_0 {x : ℝ} (h : cos x = 0) : cos (3 * x) = 0 :=
 begin
-  rw [cos3x, h],
+  rw [cos_three_mul, h],
   ring
 end
 

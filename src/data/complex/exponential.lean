@@ -735,6 +735,30 @@ by { rw [←sin_sq_add_cos_sq x], simp }
 lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
 by { rw [←sin_sq_add_cos_sq x], simp }
 
+lemma cos_three_mul : cos (3 * x) = 4 * cos x ^ 3 - 3 * cos x :=
+begin
+  have h1 : cos (x + 2 * x) = cos x * cos (2 * x) - sin x * sin (2 * x),
+    from cos_add x (2 * x),
+  have h2 : x + 2 * x = 3 * x, by ring,
+  rw [← h2, h1],
+  simp only [cos_two_mul, sin_two_mul, mul_add, mul_sub, mul_one, pow_two],
+  have h3 : 4 * cos x ^ 3 = 2 * cos x * cos x * cos x + 2 * cos x * cos x ^ 2, by ring,
+  rw [h3, cos_square'],
+  ring
+end
+
+lemma sin_three_mul : sin (3 * x) = 3 * sin x - 4 * sin x ^ 3 :=
+begin
+  have h1 : sin (x + 2 * x) = sin x * cos (2 * x) + cos x * sin (2 * x),
+    from sin_add x (2 * x),
+  have h2 : x + 2 * x = 3 * x, by ring,
+  rw [← h2, h1],
+  simp only [cos_two_mul, sin_two_mul, cos_square'],
+  have h3 : cos x * (2 * sin x * cos x) = 2 * sin x * cos x ^ 2, by ring,
+  rw [h3, cos_square'],
+  ring
+end
+
 lemma exp_mul_I : exp (x * I) = cos x + sin x * I :=
 (cos_add_sin_I _).symm
 
@@ -856,6 +880,9 @@ lemma neg_one_le_cos : -1 ≤ cos x :=
 lemma cos_two_mul : cos (2 * x) = 2 * cos x ^ 2 - 1 :=
 by rw ← of_real_inj; simp [cos_two_mul]
 
+lemma cos_two_mul' : cos (2 * x) = cos x ^ 2 - sin x ^ 2 :=
+by rw ← of_real_inj; simp [cos_two_mul']
+
 lemma sin_two_mul : sin (2 * x) = 2 * sin x * cos x :=
 by rw ← of_real_inj; simp [sin_two_mul]
 
@@ -867,6 +894,12 @@ by { rw [←sin_sq_add_cos_sq x], simp }
 
 lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
 eq_sub_iff_add_eq.2 $ sin_sq_add_cos_sq _
+
+lemma cos_three_mul : cos (3 * x) = 4 * cos x ^ 3 - 3 * cos x :=
+by rw ← of_real_inj; simp [cos_three_mul]
+
+lemma sin_three_mul : sin (3 * x) = 3 * sin x - 4 * sin x ^ 3 :=
+by rw ← of_real_inj; simp [sin_three_mul]
 
 /-- The definition of `sinh` in terms of `exp`. -/
 lemma sinh_eq (x : ℝ) : sinh x = (exp x - exp (-x)) / 2 :=

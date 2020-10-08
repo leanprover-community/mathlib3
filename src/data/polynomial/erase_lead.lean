@@ -38,22 +38,22 @@ lemma erase_lead_support (f : polynomial R) :
   f.erase_lead.support = f.support.erase f.nat_degree :=
 by convert rfl
 
+lemma erase_lead_coeff (i : ℕ) :
+  f.erase_lead.coeff i = if i = f.nat_degree then 0 else f.coeff i :=
+by convert rfl
+
 @[simp] lemma erase_lead_coeff_nat_degree : f.erase_lead.coeff f.nat_degree = 0 :=
- finsupp.erase_same
+finsupp.erase_same
 
 lemma erase_lead_coeff_of_ne (i : ℕ) (hi : i ≠ f.nat_degree) :
   f.erase_lead.coeff i = f.coeff i :=
 finsupp.erase_ne hi
 
-lemma erase_lead_coeff (i : ℕ) : f.erase_lead.coeff i = if i = f.nat_degree then 0 else f.coeff i :=
-begin
-  split_ifs with hi,
-  { subst i, exact erase_lead_coeff_nat_degree },
-  { exact erase_lead_coeff_of_ne i hi }
-end
+@[simp] lemma erase_lead_zero : erase_lead (0 : polynomial R) = 0 :=
+finsupp.erase_zero _
 
-lemma erase_lead_add_C_mul_X_pow (f : polynomial R) :
-  f.erase_lead + (C f.leading_coeff) * X^f.nat_degree = f :=
+@[simp] lemma erase_lead_add_monomial_nat_degree_leading_coeff (f : polynomial R) :
+  f.erase_lead + monomial f.nat_degree f.leading_coeff = f :=
 begin
   ext i,
   simp only [erase_lead_coeff, coeff_monomial, coeff_add, @eq_comm _ _ i],
@@ -62,9 +62,17 @@ begin
   { exact add_zero _ }
 end
 
-@[simp] lemma sum_leading_C_mul_X_pow_ring {S : Type*} [ring S] (g : polynomial S)
- : g.erase_lead = g - (C g.leading_coeff) * X^g.nat_degree :=
-eq_sub_iff_add_eq.mpr (erase_lead_add_C_mul_X_pow g)
+@[simp] lemma erase_lead_add_C_mul_X_pow (f : polynomial R) :
+  f.erase_lead + (C f.leading_coeff) * X ^ f.nat_degree = f :=
+by rw [C_mul_X_pow_eq_monomial, erase_lead_add_monomial_nat_degree_leading_coeff]
+
+@[simp] lemma self_sub_monomial_nat_degree_leading_coeff {R : Type*} [ring R] (f : polynomial R) :
+  f - monomial f.nat_degree f.leading_coeff = f.erase_lead :=
+(eq_sub_iff_add_eq.mpr (erase_lead_add_monomial_nat_degree_leading_coeff f)).symm
+
+@[simp] lemma self_sub_C_mul_X_pow {R : Type*} [ring R] (f : polynomial R) :
+  f - (C f.leading_coeff) * X ^ f.nat_degree = f.erase_lead :=
+by rw [C_mul_X_pow_eq_monomial, self_sub_monomial_nat_degree_leading_coeff]
 
 lemma erase_lead_ne_zero (f0 : 2 ≤ f.support.card) : erase_lead f ≠ 0 :=
 begin
@@ -107,16 +115,9 @@ end
 @[simp] lemma erase_lead_monomial (i : ℕ) (r : R) :
   erase_lead (monomial i r) = 0 :=
 begin
-  by_cases f0 : f = 0,
-  { ext1,
-    rw [f0, leading_coeff_zero, C_0, zero_mul], },
-  { conv_lhs {rw ← erase_lead_add_C_mul_X_pow f},
-    apply add_cancel,
-    rw [← support_eq_empty, ← card_eq_zero],
-    apply nat.eq_zero_of_le_zero (nat.lt_succ_iff.mp _),
-    convert support_card_lt f0,
-    apply le_antisymm _ h,
-    exact card_le_of_subset (singleton_subset_iff.mpr (nat_degree_mem_support_of_nonzero f0)), },
+  by_cases hr : r = 0,
+  { subst r, simp only [monomial_zero_right, erase_lead_zero] },
+  { rw [erase_lead, nat_degree_monomial _ _ hr, monomial, erase_single] }
 end
 
 @[simp] lemma erase_lead_C (r : R) : erase_lead (C r) = 0 :=

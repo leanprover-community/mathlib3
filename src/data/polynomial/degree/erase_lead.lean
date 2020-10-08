@@ -3,9 +3,18 @@ Copyright (c) 2020 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-
 import data.polynomial.degree.basic
 import data.polynomial.degree.trailing_degree
+
+/-!
+# Erase the leading term of a univariate polynomial
+
+## Definition
+
+* `erase_lead f`: the polynomial `f - leading term of f`
+
+erase_lead serves as the reduction step in an induction, shaving off one monomial from a polynomial.
+-/
 
 open polynomial finsupp finset
 
@@ -103,7 +112,8 @@ by rw support
 lemma nat_degree (f0 : 2 ≤ f.support.card) : (erase_lead f).nat_degree < f.nat_degree :=
 begin
   rw nat_degree_eq_support_max' (nonzero_of_large_support f0),
-  apply nat.lt_of_le_and_ne _ (ne_nat_degree_of_mem_support ((erase_lead f).support.max'_mem (nonempty_support_iff.mpr _))),
+  apply nat.lt_of_le_and_ne _
+   (ne_nat_degree_of_mem_support ((erase_lead f).support.max'_mem (nonempty_support_iff.mpr _))),
   simp_rw support f,
   apply max'_le,
   intros y hy,

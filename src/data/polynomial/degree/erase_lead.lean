@@ -140,7 +140,7 @@ begin
     exact card_le_of_subset (singleton_subset_iff.mpr (nat_degree_mem_support_of_nonzero f0)), },
 end
 
-lemma monomial {r : R} {n : ℕ} : erase_lead (C r * X^n) = 0 :=
+lemma C_mul_X_pow_eq_zero {r : R} {n : ℕ} : erase_lead (C r * X^n) = 0 :=
 begin
   rw [← support_eq_empty, support, sdiff_eq_empty_iff_subset],
   by_cases r0 : r=0,

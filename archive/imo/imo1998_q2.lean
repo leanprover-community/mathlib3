@@ -131,10 +131,25 @@ end
 
 end
 
-lemma annoying_lemma_1
-  {a z k : ℕ} (h : 2 * z * z * a ≤ k * ((2 * z + 1) * (2 * z + 1) - (2 * z + 1))) :
-  2 * z * a ≤ k * (2 * (2 * z + 1)) :=
+lemma clear_denominators {a b k : ℕ} (ha : 0 < a) (hb : 0 < b) :
+  (b - 1) / (2 * b) ≤ k / a ↔ (b - 1) * a ≤ k * (2 * b) :=
 begin
+  rw div_le_div_iff,
+  { convert nat.cast_le; finish, },
+  { simp only [hb, zero_lt_mul_right, zero_lt_bit0, nat.cast_pos, zero_lt_one], },
+  { simp only [ha, nat.cast_pos], },
+end
+
+theorem imo1998_q2 [fintype J] [fintype C]
+  (a b k : ℕ) (hC : fintype.card C = a) (hJ : fintype.card J = b) (ha : 0 < a) (hb : odd b)
+  (hk : ∀ j₁ j₂, j₁ ≠ j₂ → (same_rating r j₁ j₂).card ≤ k) :
+  (b - 1) / (2 * b) ≤ k / a :=
+begin
+  rw clear_denominators ha (nat.odd_gt_zero hb),
+  obtain ⟨z, hz⟩ := hb, rw hz at hJ, rw hz,
+  have h := le_trans (agreement_lower_bound'' r hJ) (agreement_upper_bound r hk),
+  rw [hC, hJ] at h,
+  -- We are now essentially done; we just need to bash `h` into exactly the right shape.
   have hl : k * ((2 * z + 1) * (2 * z + 1) - (2 * z + 1)) = (k * (2 * (2 * z + 1))) * z,
   { simp only [add_mul, two_mul, mul_comm, mul_assoc], finish, },
   have hr : 2 * z * z * a = 2 * z * a * z, { ring, },
@@ -142,27 +157,4 @@ begin
   cases z,
   { simp, },
   { exact le_of_mul_le_mul_right h z.succ_pos, },
-end
-
-lemma annoying_lemma_2
-  {a z k : ℕ} (ha : 0 < a) (h : 2 * z * z * a ≤ k * ((2 * z + 1) * (2 * z + 1) - (2 * z + 1))) :
-  (↑(2 * z + 1) - 1) / (2 * ↑(2 * z + 1)) ≤ k / a :=
-begin
-  have h' := annoying_lemma_1 h,
-  rw div_le_div_iff,
-  { rw ← @nat.cast_le ℚ at h',
-    simp only [nat.cast_one, nat.cast_two, nat.cast_add, nat.cast_mul] at h', simp [h'], },
-  { apply mul_pos zero_lt_two, rw [← nat.cast_zero, nat.cast_lt], exact nat.succ_pos', },
-  { rw nat.cast_pos, exact ha, },
-end
-
-theorem imo1998_q2 [fintype J] [fintype C]
-  (a b k : ℕ) (hC : fintype.card C = a) (hJ : fintype.card J = b) (ha : 0 < a) (hb : odd b)
-  (hk : ∀ j₁ j₂, j₁ ≠ j₂ → (same_rating r j₁ j₂).card ≤ k) :
-  (b - 1) / (2*b) ≤ k / a :=
-begin
-  obtain ⟨z, hz⟩ := hb, rw hz at hJ, rw hz,
-  have h := le_trans (agreement_lower_bound'' r hJ) (agreement_upper_bound r hk),
-  rw [hC, hJ] at h,
-  apply annoying_lemma_2 ha h,
 end

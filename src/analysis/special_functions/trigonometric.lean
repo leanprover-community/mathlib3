@@ -571,6 +571,9 @@ lemma pi_le_four : π ≤ 4 :=
 lemma pi_pos : 0 < π :=
 lt_of_lt_of_le (by norm_num) two_le_pi
 
+lemma pi_ne_zero : pi ≠ 0 :=
+ne_of_gt pi_pos
+
 lemma pi_div_two_pos : 0 < π / 2 :=
 half_pos pi_pos
 
@@ -871,7 +874,7 @@ begin
   rw [add_comm, sub_add, sub_neg_eq_add], apply sub_lt_sub_left,
   apply add_lt_of_lt_sub_left,
   rw (show x ^ 3 / 4 - x ^ 3 / 6 = x ^ 3 / 12,
-    by simp [div_eq_mul_inv, (mul_sub _ _ _).symm, -sub_eq_add_neg]; congr; norm_num),
+    by simp [div_eq_mul_inv, ← mul_sub]; norm_num),
   apply mul_lt_mul',
   { rw [pow_succ x 3], refine le_trans _ (le_of_eq (one_mul _)),
     rw mul_le_mul_right, exact h', apply pow_pos h },
@@ -1604,6 +1607,9 @@ lemma log_neg_one : log (-1) = π * I := by simp [log]
 lemma log_I : log I = π / 2 * I := by simp [log]
 
 lemma log_neg_I : log (-I) = -(π / 2) * I := by simp [log]
+
+lemma two_pi_I_ne_zero : (2 * π * I : ℂ) ≠ 0 :=
+by norm_num [real.pi_ne_zero, I_ne_zero]
 
 lemma exp_eq_one_iff {x : ℂ} : exp x = 1 ↔ ∃ n : ℤ, x = n * ((2 * π) * I) :=
 have real.exp (x.re) * real.cos (x.im) = 1 → real.cos x.im ≠ -1,

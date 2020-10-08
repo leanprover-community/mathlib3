@@ -322,6 +322,12 @@ theorem le_add_one_iff {i j : ℕ} : i ≤ j + 1 ↔ (i ≤ j ∨ i = j + 1) :=
   end,
   or.rec (assume h, le_trans h $ nat.le_add_right _ _) le_of_eq⟩
 
+lemma add_succ_lt_add {a b c d : ℕ} (hab : a < b) (hcd : c < d) : a + c + 1 < b + d :=
+begin
+  rw add_assoc,
+  exact add_lt_add_of_lt_of_le hab (nat.succ_le_iff.2 hcd)
+end
+
 /-! ### `pred` -/
 
 @[simp]

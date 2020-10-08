@@ -938,10 +938,16 @@ begin
     apply mem_sets_of_superset (mem_nhds_sets is_open_Ioo ha) h }
 end
 
-/-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`. -/
+/-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`.
+-/
 lemma mem_nhds_iff_exists_Ioo_subset [no_top_order α] [no_bot_order α] {a : α} {s : set α} :
   s ∈ 𝓝 a ↔ ∃l u, a ∈ Ioo l u ∧ Ioo l u ⊆ s :=
 let ⟨l', hl'⟩ := no_bot a in let ⟨u', hu'⟩ := no_top a in mem_nhds_iff_exists_Ioo_subset' hl' hu'
+
+lemma filter.eventually.exists_Ioo_subset [no_top_order α] [no_bot_order α] {a : α} {p : α → Prop}
+  (hp : ∀ᶠ x in 𝓝 a, p x) :
+  ∃ l u, a ∈ Ioo l u ∧ Ioo l u ⊆ {x | p x} :=
+mem_nhds_iff_exists_Ioo_subset.1 hp
 
 lemma Iio_mem_nhds {a b : α} (h : a < b) : Iio b ∈ 𝓝 a :=
 mem_nhds_sets is_open_Iio h
@@ -1055,7 +1061,7 @@ begin
   rw mem_nhds_within_Ioi_iff_exists_Ioo_subset,
   split,
   { rintros ⟨u, au, as⟩,
-    rcases dense au with ⟨v, hv⟩,
+    rcases exists_between au with ⟨v, hv⟩,
     exact ⟨v, hv.1, λx hx, as ⟨hx.1, lt_of_le_of_lt hx.2 hv.2⟩⟩ },
   { rintros ⟨u, au, as⟩,
     exact ⟨u, au, subset.trans Ioo_subset_Ioc_self as⟩ }
@@ -1161,7 +1167,7 @@ begin
   rw mem_nhds_within_Ici_iff_exists_Ico_subset,
   split,
   { rintros ⟨u, au, as⟩,
-    rcases dense au with ⟨v, hv⟩,
+    rcases exists_between au with ⟨v, hv⟩,
     exact ⟨v, hv.1, λx hx, as ⟨hx.1, lt_of_le_of_lt hx.2 hv.2⟩⟩ },
   { rintros ⟨u, au, as⟩,
     exact ⟨u, au, subset.trans Ico_subset_Icc_self as⟩ }
@@ -1222,7 +1228,7 @@ begin
   rw mem_nhds_within_Ici_iff_exists_Ico_subset,
   split,
   { rintros ⟨u, au, as⟩,
-    rcases dense au with ⟨v, hv⟩,
+    rcases exists_between au with ⟨v, hv⟩,
     exact ⟨v, hv.1, λx hx, as ⟨hx.1, lt_of_le_of_lt hx.2 hv.2⟩⟩ },
   { rintros ⟨u, au, as⟩,
     exact ⟨u, au, subset.trans Ico_subset_Icc_self as⟩ }
@@ -1236,7 +1242,7 @@ begin
   rw mem_nhds_within_Iic_iff_exists_Ioc_subset,
   split,
   { rintros ⟨l, la, as⟩,
-    rcases dense la with ⟨v, hv⟩,
+    rcases exists_between la with ⟨v, hv⟩,
     refine ⟨v, hv.2, λx hx, as ⟨lt_of_lt_of_le hv.1 hx.1, hx.2⟩⟩, },
   { rintros ⟨l, la, as⟩,
     exact ⟨l, la, subset.trans Ioc_subset_Icc_self as⟩ }
@@ -1804,7 +1810,7 @@ begin
     simpa using hx z (le_of_lt hz.1) },
   { rintros ⟨t, ht, hts⟩,
     obtain ⟨x, hx, hxt⟩ : ∃ x ∈ Iio b, Ioo x b ⊆ t := (mem_nhds_within_Iio_iff_exists_Ioo_subset' h).mp ht,
-    obtain ⟨y, hay, hyb⟩ : ∃ y, max a x < y ∧ y < b := dense (max_lt_iff.mpr ⟨h, hx⟩),
+    obtain ⟨y, hay, hyb⟩ : ∃ y, max a x < y ∧ y < b := exists_between (max_lt_iff.mpr ⟨h, hx⟩),
     refine mem_at_top_sets.mpr ⟨⟨y, (max_lt_iff.mp hay).1, hyb⟩, _⟩,
     intros z hz,
     exact hts (hxt ⟨lt_of_lt_of_le (lt_of_le_of_lt (le_max_right a x) hay) hz, z.2.2⟩) }
@@ -1825,7 +1831,7 @@ begin
     simpa using hx z (le_of_lt hz.2) },
   { rintros ⟨t, ht, hts⟩,
     obtain ⟨x, hx, hxt⟩ : ∃ x ∈ Ioi a, Ioo a x ⊆ t := (mem_nhds_within_Ioi_iff_exists_Ioo_subset' h).mp ht,
-    obtain ⟨y, hay, hyb⟩ : ∃ y, a < y ∧ y < min b x := dense (lt_min_iff.mpr ⟨h, hx⟩),
+    obtain ⟨y, hay, hyb⟩ : ∃ y, a < y ∧ y < min b x := exists_between (lt_min_iff.mpr ⟨h, hx⟩),
     refine mem_at_bot_sets.mpr ⟨⟨y, hay, (lt_min_iff.mp hyb).1⟩, _⟩,
     intros z hz,
     exact hts (hxt ⟨z.2.1, lt_of_le_of_lt hz (lt_of_lt_of_le hyb (min_le_right b x))⟩) }

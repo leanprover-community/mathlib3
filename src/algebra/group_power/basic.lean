@@ -48,11 +48,13 @@ def monoid.pow [has_mul M] [has_one M] (a : M) : ℕ → M
 /-- The scalar multiplication in an additive monoid.
 `n •ℕ a = a+a+...+a` n times. -/
 def nsmul [has_add A] [has_zero A] (n : ℕ) (a : A) : A :=
-@monoid.pow (multiplicative A) _ { one := (0 : A) } a n
+@monoid.pow (multiplicative A) _ _ a n
 
 infix ` •ℕ `:70 := nsmul
 
-@[priority 5] instance monoid.has_pow [monoid M] : has_pow M ℕ := ⟨monoid.pow⟩
+instance monoid.has_pow [monoid M] : has_pow M ℕ := ⟨monoid.pow⟩
+
+@[simp] lemma monoid.pow_eq_has_pow [monoid M] (a : M) (n : ℕ) : monoid.pow a n = a^n := rfl
 
 /-!
 ### Commutativity
@@ -248,9 +250,11 @@ with the definition `(-n) •ℤ a = -(n •ℕ a)`.
 def gsmul (n : ℤ) (a : A) : A :=
 @gpow (multiplicative A) _ a n
 
-@[priority 10] instance group.has_pow : has_pow G ℤ := ⟨gpow⟩
+instance group.has_pow : has_pow G ℤ := ⟨gpow⟩
 
 infix ` •ℤ `:70 := gsmul
+
+@[simp] lemma group.gpow_eq_has_pow (a : G) (n : ℤ) : gpow a n = a ^ n := rfl
 
 section nat
 
@@ -462,6 +466,19 @@ begin
 end
 
 end cancel_add_monoid
+
+section comm_semiring
+
+variables [comm_semiring R]
+
+lemma min_pow_dvd_add {n m : ℕ} {a b c : R} (ha : c ^ n ∣ a) (hb : c ^ m ∣ b) : c ^ (min n m) ∣ a + b :=
+begin
+  replace ha := dvd.trans (pow_dvd_pow c (min_le_left n m)) ha,
+  replace hb := dvd.trans (pow_dvd_pow c (min_le_right n m)) hb,
+  exact dvd_add ha hb
+end
+
+end comm_semiring
 
 namespace canonically_ordered_semiring
 variable [canonically_ordered_comm_semiring R]

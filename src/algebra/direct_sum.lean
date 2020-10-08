@@ -25,8 +25,11 @@ open_locale big_operators
 
 universes u v w u₁
 
-variables (ι : Type v) [decidable_eq ι] (β : ι → Type w) [Π i, add_comm_group (β i)]
+variables (ι : Type v) [dec_ι : decidable_eq ι] (β : ι → Type w) [Π i, add_comm_group (β i)]
 
+/-- `direct_sum β` is the direct sum of a family of additive commutative groups `β i`.
+
+Note: `open_locale direct_sum` will enable the notation `⨁ i, β i` for `direct_sum β`. -/
 def direct_sum : Type* := Π₀ i, β i
 
 localized "notation `⨁` binders `, ` r:(scoped f, direct_sum _ f) := r" in direct_sum
@@ -41,9 +44,15 @@ dfinsupp.add_comm_group
 instance : inhabited (⨁ i, β i) := ⟨0⟩
 
 variables β
+
+include dec_ι
+
+/-- `mk β s x` is the element of `⨁ i, β i` that is zero outside `s`
+and has coefficient `x i` for `i` in `s`. -/
 def mk : Π s : finset ι, (Π i : (↑s : set ι), β i.1) → ⨁ i, β i :=
 dfinsupp.mk
 
+/-- `of i` is the natural inclusion map from `β i` to `⨁ i, β i`. -/
 def of : Π i : ι, β i → ⨁ i, β i :=
 dfinsupp.single
 variables {β}
@@ -99,6 +108,8 @@ variables {γ : Type u₁} [add_comm_group γ]
 variables (φ : Π i, β i → γ) [Π i, is_add_group_hom (φ i)]
 
 variables (φ)
+/-- `to_group φ` is the natural homomorphism from `⨁ i, β i` to `γ`
+induced by a family `φ` of homomorphisms `β i → γ`. -/
 def to_group (f : ⨁ i, β i) : γ :=
 quotient.lift_on f (λ x, ∑ i in x.2.to_finset, φ i (x.1 i)) $ λ x y H,
 begin
@@ -162,6 +173,9 @@ direct_sum.induction_on f
   (λ x y ihx ihy, by rw [is_add_hom.map_add ψ, is_add_hom.map_add (to_group (λ i, ψ ∘ of β i)), ihx, ihy])
 
 variables (β)
+/-- `set_to_set β S T h` is the natural homomorphism `⨁ (i : S), β i → ⨁ (i : T), β i`,
+where `h : S ⊆ T`. -/
+-- TODO: generalize this to remove the assumption `S ⊆ T`.
 def set_to_set (S T : set ι) (H : S ⊆ T) :
   (⨁ (i : S), β i) → (⨁ (i : T), β i) :=
 to_group $ λ i, of (β ∘ @subtype.val _ T) ⟨i.1, H i.2⟩
@@ -170,6 +184,10 @@ variables {β}
 instance (S T : set ι) (H : S ⊆ T) : is_add_group_hom (set_to_set β S T H) :=
 to_group.is_add_group_hom
 
+omit dec_ι
+
+/-- The natural equivalence between `⨁ _ : punit, M` and `M`. -/
+-- TODO: generalize this to a sum over any type `ι` that is `unique ι`.
 protected def id (M : Type v) [add_comm_group M] : (⨁ (_ : punit), M) ≃ M :=
 { to_fun := direct_sum.to_group (λ _, id),
   inv_fun := of (λ _, M) punit.star,

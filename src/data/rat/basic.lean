@@ -596,6 +596,9 @@ by rw coe_int_eq_of_int; refl
 lemma coe_int_num_of_denom_eq_one {q : ℚ} (hq : q.denom = 1) : ↑(q.num) = q :=
 by { conv_rhs { rw [←(@num_denom q), hq] }, rw [coe_int_eq_mk], refl }
 
+lemma denom_eq_one_iff (r : ℚ) : r.denom = 1 ↔ ↑r.num = r :=
+⟨rat.coe_int_num_of_denom_eq_one, λ h, h ▸ rat.coe_int_denom r.num⟩
+
 instance : can_lift ℚ ℤ :=
 ⟨coe, λ q, q.denom = 1, λ q hq, ⟨q.num, coe_int_num_of_denom_eq_one hq⟩⟩
 

@@ -211,7 +211,7 @@ instance : canonically_ordered_comm_semiring ℝ≥0 :=
   .. nnreal.comm_group_with_zero }
 
 instance : densely_ordered ℝ≥0 :=
-⟨assume a b (h : (a : ℝ) < b), let ⟨c, hac, hcb⟩ := dense h in
+⟨assume a b (h : (a : ℝ) < b), let ⟨c, hac, hcb⟩ := exists_between h in
   ⟨⟨c, le_trans a.property $ le_of_lt $ hac⟩, hac, hcb⟩⟩
 
 instance : no_top_order ℝ≥0 :=

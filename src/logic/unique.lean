@@ -21,7 +21,8 @@ In other words, a type that is `inhabited` and a `subsingleton`.
 * `unique.mk'`: an inhabited subsingleton type is `unique`. This can not be an instance because it
   would lead to loops in typeclass inference.
 
-* `function.surjective.unique`: if the domain of a surjective function is `unique`, then its codomain is `unique` as well.
+* `function.surjective.unique`: if the domain of a surjective function is `unique`, then its
+  codomain is `unique` as well.
 
 * `function.injective.subsingleton`: if the codomain of an injective function is `subsingleton`,
   then its domain is `subsingleton` as well.

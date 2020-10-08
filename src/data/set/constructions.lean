@@ -17,7 +17,7 @@ inductive finite_inter_closure : set (set α)
 def finite_inter_closure_has_finite_inter : has_finite_inter (finite_inter_closure S) :=
 { univ_mem := finite_inter_closure.univ,
   inter_mem := λ _ _, finite_inter_closure.inter }
-  
+
 variable {S}
 lemma finite_inter_mem (cond : has_finite_inter S) (F : finset (set α)) :
   ↑F ⊆ S → ⋂₀ (↑F : set (set α)) ∈ S :=
@@ -30,43 +30,24 @@ begin
     suffices : a ∩ ⋂₀ ↑s ∈ S, by simpa,
     apply cond.inter_mem,
     { apply h3, simp },
-    { apply h2, intros x hx, apply h3, 
+    { apply h2, intros x hx, apply h3,
       suffices : x = a ∨ x ∈ s, by simpa,
       right, assumption } }
 end
 
-lemma finite_inter_closure_insert {A : set α} (cond : has_finite_inter S) 
+lemma finite_inter_closure_insert {A : set α} (cond : has_finite_inter S)
   (P ∈ finite_inter_closure (insert A S)) : P ∈ S ∨ ∃ Q ∈ S, P = A ∩ Q :=
 begin
   induction H,
   { cases H_a,
-    { right,
-      use set.univ,
-      refine ⟨cond.univ_mem,_⟩,
-      simpa},
-    { left, assumption } },
-  { left, exact cond.univ_mem },
-  { rcases H_ih_a with (h | ⟨Q,hQ,rfl⟩),
-    { rcases H_ih_a_1 with (i | ⟨R,hR,rfl⟩),
-      { left,
-        apply cond.inter_mem,
-        assumption' },
-      { right,
-        use H_s ∩ R,
-        split,
-        { apply cond.inter_mem, assumption' },
-        { finish } } },
-    { rcases H_ih_a_1 with (i | ⟨R,hR,rfl⟩),
-      { right,
-        use Q ∩ H_t,
-        split,
-        { apply cond.inter_mem, assumption' },
-        { finish } },
-      { right,
-        use Q ∩ R,
-        split,
-        { apply cond.inter_mem, assumption' },
-        { tidy } } } },
+    { exact or.inr ⟨set.univ, cond.univ_mem, by simpa⟩ },
+    { exact or.inl H_a } },
+  { exact or.inl cond.univ_mem },
+  { rcases H_ih_a with (h | ⟨Q,hQ,rfl⟩); rcases H_ih_a_1 with (i | ⟨R,hR,rfl⟩),
+    { exact or.inl (cond.inter_mem h i) },
+    { exact or.inr ⟨H_s ∩ R, cond.inter_mem h hR, by finish⟩ },
+    { exact or.inr ⟨Q ∩ H_t, cond.inter_mem hQ i, by finish⟩ },
+    { refine or.inr ⟨Q ∩ R, cond.inter_mem hQ hR , by tidy⟩ } }
 end
 
 end has_finite_inter

@@ -434,6 +434,10 @@ begin
   { rw [erase_ne hs] }
 end
 
+@[simp] lemma erase_zero [has_zero β] (a : α) :
+  erase a (0 : α →₀ β) = 0 :=
+by rw [← support_eq_empty, support_erase, support_zero, erase_empty]
+
 end erase
 
 /-!

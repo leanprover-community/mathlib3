@@ -148,6 +148,29 @@ end
 
 end injective
 
+section
+variable {f : polynomial R}
+
+lemma monomial_nat_degree_leading_coeff_eq_self (h : f.support.card ≤ 1) :
+  monomial f.nat_degree f.leading_coeff = f :=
+begin
+  ext i,
+  rw [coeff_monomial],
+  split_ifs with hi,
+  { subst i, refl },
+  by_cases hf : f = 0,
+  { subst f, simp only [coeff_zero] },
+  rw [eq_comm, ← not_mem_support_iff_coeff_zero],
+  rw card_le_one_iff at h,
+  exact mt (h (nat_degree_mem_support_of_nonzero hf)) hi
+end
+
+lemma C_mul_X_pow_eq_self (h : f.support.card ≤ 1) :
+  C f.leading_coeff * X^f.nat_degree = f :=
+by rw [C_mul_X_pow_eq_monomial, monomial_nat_degree_leading_coeff_eq_self h]
+
+end
+
 end degree
 end semiring
 

@@ -302,18 +302,6 @@ protected def op (α : X ≅ Y) : op Y ≅ op X :=
 @[simp] lemma op_hom {α : X ≅ Y} : α.op.hom = α.hom.op := rfl
 @[simp] lemma op_inv {α : X ≅ Y} : α.op.inv = α.inv.op := rfl
 
-/--
-An isomorphism `op X ≅ op Y` gives an isomorphism `Y ≅ X`.
--/
-protected def remove_op (α : op X ≅ op Y) : Y ≅ X :=
-{ hom := α.hom.unop,
-  inv := α.inv.unop,
-  hom_inv_id' := has_hom.hom.op_inj α.inv_hom_id,
-  inv_hom_id' := has_hom.hom.op_inj α.hom_inv_id }
-
-@[simp] lemma remove_op_hom {α : op X ≅ op Y} : α.remove_op.hom = α.hom.unop := rfl
-@[simp] lemma remove_op_inv {α : op X ≅ op Y} : α.remove_op.inv = α.inv.unop := rfl
-
 end iso
 
 namespace nat_iso

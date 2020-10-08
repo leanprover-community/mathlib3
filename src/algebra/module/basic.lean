@@ -298,7 +298,6 @@ include semimodule_M semimodule_M₂
 theorem is_linear : is_linear_map R f := ⟨f.2, f.3⟩
 
 variables {f g}
-include semimodule_M semimodule_M₂
 
 theorem coe_injective : injective (λ f : M →ₗ[R] M₂, show M → M₂, from f) :=
 by rintro ⟨f, _⟩ ⟨g, _⟩ ⟨h⟩; congr

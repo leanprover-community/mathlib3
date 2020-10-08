@@ -116,20 +116,6 @@ begin
     assume i hi, by_cases i = n; simp [h], },
 end
 
-lemma monomial_one_eq_X_pow : ∀{n}, monomial n (1 : R) = X^n
-| 0     := rfl
-| (n+1) :=
-  calc monomial (n + 1) (1 : R) = monomial n 1 * X : by rw [X, monomial_mul_monomial, mul_one]
-    ... = X^n * X : by rw [monomial_one_eq_X_pow]
-    ... = X^(n+1) : by simp only [pow_add, pow_one]
-
-lemma monomial_eq_smul_X {n} : monomial n (a : R) = a • X^n :=
-begin
-  calc monomial n a = monomial n (a * 1) : by simp
-    ... = a • monomial n 1 : (smul_single' _ _ _).symm
-    ... = a • X^n  : by rw monomial_one_eq_X_pow
-end
-
 lemma coeff_X_pow (k n : ℕ) :
   coeff (X^k : polynomial R) n = if n = k then 1 else 0 :=
 by rw [← monomial_one_eq_X_pow]; simp [monomial, single, eq_comm, coeff]; congr
@@ -155,6 +141,15 @@ by simpa only [pow_one] using coeff_mul_X_pow p 1 n
 theorem mul_X_pow_eq_zero {p : polynomial R} {n : ℕ}
   (H : p * X ^ n = 0) : p = 0 :=
 ext $ λ k, (coeff_mul_X_pow p n k).symm.trans $ ext_iff.1 H (k+n)
+
+lemma C_mul_X_pow_eq_monomial (c : R) (n : ℕ) : C c * X^n = monomial n c :=
+by { ext1, rw [monomial_eq_smul_X, coeff_smul, coeff_C_mul] }
+
+lemma support_mul_X_pow (c : R) (n : ℕ) (H : c ≠ 0) : (C c * X^n).support = singleton n :=
+by rw [C_mul_X_pow_eq_monomial, support_monomial n c H]
+
+lemma support_C_mul_X_pow' {c : R} {n : ℕ} : (C c * X^n).support ⊆ singleton n :=
+by { rw [C_mul_X_pow_eq_monomial], exact support_monomial' n c }
 
 lemma C_dvd_iff_dvd_coeff (r : R) (φ : polynomial R) :
   C r ∣ φ ↔ ∀ i, r ∣ φ.coeff i :=

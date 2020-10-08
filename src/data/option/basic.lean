@@ -8,6 +8,8 @@ import tactic.basic
 namespace option
 variables {α : Type*} {β : Type*} {γ : Type*}
 
+lemma coe_def : (coe : α → option α) = some := rfl
+
 lemma some_ne_none (x : α) : some x ≠ none := λ h, option.no_confusion h
 
 @[simp] theorem get_mem : ∀ {o : option α} (h : is_some o), option.get h ∈ o

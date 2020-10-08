@@ -105,6 +105,9 @@ P.lift ((cones.postcompose α).obj s)
   (α : F ⟶ G) (j : J) : hd.map c α ≫ d.π.app j = c.π.app j ≫ α.app j :=
 fac _ _ _
 
+lemma lift_self {c : cone F} (t : is_limit c) : t.lift c = 𝟙 c.X :=
+(t.uniq _ _ (λ j, id_comp _)).symm
+
 /- Repackaging the definition in terms of cone morphisms. -/
 
 /-- The universal morphism from any other cone to a limit cone. -/
@@ -526,6 +529,10 @@ P.desc ((cocones.precompose α).obj t)
 lemma ι_map {F G : J ⥤ C} {c : cocone F} (hc : is_colimit c) (d : cocone G) (α : F ⟶ G)
   (j : J) : c.ι.app j ≫ is_colimit.map hc d α = α.app j ≫ d.ι.app j :=
 fac _ _ _
+
+@[simp]
+lemma desc_self {t : cocone F} (h : is_colimit t) : h.desc t = 𝟙 t.X :=
+(h.uniq _ _ (λ j, comp_id _)).symm
 
 /- Repackaging the definition in terms of cocone morphisms. -/
 
@@ -1028,7 +1035,7 @@ by { dsimp [limit.iso_limit_cone, is_limit.cone_point_unique_up_to_iso], tidy, }
 
 @[simp] lemma limit.lift_cone {F : J ⥤ C} [has_limit F] :
   limit.lift F (limit.cone F) = 𝟙 (limit F) :=
-by { ext, dsimp, simp, }
+(limit.is_limit _).lift_self
 
 /--
 The isomorphism (in `Type`) between
@@ -1442,7 +1449,7 @@ by { dsimp [colimit.iso_colimit_cocone, is_colimit.cocone_point_unique_up_to_iso
 
 @[simp] lemma colimit.desc_cocone {F : J ⥤ C} [has_colimit F] :
   colimit.desc F (colimit.cocone F) = 𝟙 (colimit F) :=
-by { ext, dsimp, simp, }
+(colimit.is_colimit _).desc_self
 
 /--
 The isomorphism (in `Type`) between

@@ -22,9 +22,11 @@ variables [comm_ring R] [add_comm_group M] [module R M]
 instance has_scalar' : has_scalar (ideal R) (submodule R M) :=
 ⟨λ I N, ⨆ r : I, N.map (r.1 • linear_map.id)⟩
 
+/-- `N.annihilator` is the ideal of all elements `r : R` such that `r • N = 0`. -/
 def annihilator (N : submodule R M) : ideal R :=
 (linear_map.lsmul R N).ker
 
+/-- `N.colon P` is the ideal of all elements `r : R` such that `r • P ⊆ N`. -/
 def colon (N P : submodule R M) : ideal R :=
 annihilator (P.map N.mkq)
 
@@ -216,6 +218,8 @@ begin
   rw [ring_hom.map_mul, hφ1, mul_one]
 end
 
+/-- The homomorphism from `R/(⋂ i, f i)` to `∏ i, (R / f i)` featured in the Chinese
+  Remainder Theorem. It is bijective if the ideals `f i` are comaximal. -/
 def quotient_inf_to_pi_quotient (f : ι → ideal R) :
   (⨅ i, f i).quotient →+* Π i, (f i).quotient :=
 begin
@@ -458,6 +462,8 @@ variables {R : Type u} {S : Type v} [comm_ring R] [comm_ring S]
 variables (f : R →+* S)
 variables {I J : ideal R} {K L : ideal S}
 
+/-- `I.map f` is the span of the image of the ideal `I` under `f`, which may be bigger than
+  the image itself. -/
 def map (I : ideal R) : ideal S :=
 span (f '' I)
 

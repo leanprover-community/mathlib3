@@ -189,7 +189,7 @@ end
 
 lemma ne_zero_of_coprime (hc : int.gcd x y = 1) : z ≠ 0 :=
 begin
-  suffices : 0 < z * z, { rintro rfl, simpa only [] },
+  suffices : 0 < z * z, { rintro rfl, norm_num at this },
   rw [← h.eq, ← pow_two, ← pow_two],
   have hc' : int.gcd x y ≠ 0, { rw hc, exact one_ne_zero },
   cases int.ne_zero_of_gcd hc' with hxz hyz,

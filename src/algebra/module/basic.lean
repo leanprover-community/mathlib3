@@ -5,6 +5,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import group_theory.group_action
 import tactic.nth_rewrite
+import algebra.group.hom
 
 /-!
 # Modules over a ring
@@ -240,15 +241,21 @@ structure is_linear_map (R : Type u) {M : Type v} {M₂ : Type w}
 (map_add : ∀ x y, f (x + y) = f x + f y)
 (map_smul : ∀ (c : R) x, f (c • x) = c • f x)
 
+
+set_option old_structure_cmd true
+
 /-- A map `f` between semimodules over a semiring is linear if it satisfies the two properties
 `f (x + y) = f x + f y` and `f (c • x) = c • f x`. Elements of `linear_map R M M₂` (available under
 the notation `M →ₗ[R] M₂`) are bundled versions of such maps. An unbundled version is available with
 the predicate `is_linear_map`, but it should be avoided most of the time. -/
 structure linear_map (R : Type u) (M : Type v) (M₂ : Type w)
-  [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂] :=
-(to_fun : M → M₂)
-(map_add'  : ∀x y, to_fun (x + y) = to_fun x + to_fun y)
+  [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂] extends add_hom M M₂ :=
 (map_smul' : ∀(c : R) x, to_fun (c • x) = c • to_fun x)
+
+/-- The `add_hom` underlying a `linear_map`. -/
+add_decl_doc linear_map.to_add_hom
+
+set_option old_structure_cmd false
 
 infixr ` →ₗ `:25 := linear_map _
 notation M ` →ₗ[`:25 R:25 `] `:0 M₂:0 := linear_map R M M₂
@@ -266,7 +273,6 @@ instance : has_coe_to_fun (M →ₗ[R] M₂) := ⟨_, to_fun⟩
 
 @[simp] lemma coe_mk (f : M → M₂) (h₁ h₂) :
   ((linear_map.mk f h₁ h₂ : M →ₗ[R] M₂) : M → M₂) = f := rfl
-
 
 /-- Identity map as a `linear_map` -/
 def id : M →ₗ[R] M :=
@@ -333,6 +339,10 @@ def to_add_monoid_hom : M →+ M₂ :=
 @[simp] lemma map_sum {ι} {t : finset ι} {g : ι → M} :
   f (∑ i in t, g i) = (∑ i in t, f (g i)) :=
 f.to_add_monoid_hom.map_sum _ _
+
+theorem to_add_monoid_hom_injective [semimodule R M] [semimodule R M₂] :
+  function.injective (to_add_monoid_hom : (M →ₗ[R] M₂) → (M →+ M₂)) :=
+λ f g h, coe_inj $ funext $ add_monoid_hom.congr_fun h
 
 end
 

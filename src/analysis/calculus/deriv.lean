@@ -1218,7 +1218,7 @@ begin
   suffices : is_o (λ p : 𝕜 × 𝕜, (p.1 - p.2) * ((x * x)⁻¹ - (p.1 * p.2)⁻¹))
     (λ (p : 𝕜 × 𝕜), (p.1 - p.2) * 1) (𝓝 (x, x)),
   { refine this.congr' _ (eventually_of_forall $ λ _, mul_one _),
-    refine eventually.mono (mem_nhds_sets (is_open_prod is_open_ne is_open_ne) ⟨hx, hx⟩) _,
+    refine eventually.mono (mem_nhds_sets (is_open_ne.prod is_open_ne) ⟨hx, hx⟩) _,
     rintro ⟨y, z⟩ ⟨hy, hz⟩,
     simp only [mem_set_of_eq] at hy hz, -- hy : y ≠ 0, hz : z ≠ 0
     field_simp [hx, hy, hz], ring, },

@@ -578,6 +578,7 @@ instance densely_ordered [partial_order α] [densely_ordered α] [no_bot_order �
 end with_bot
 
 --TODO(Mario): Construct using order dual on with_bot
+/-- Attach `⊤` to a type. -/
 def with_top (α : Type*) := option α
 
 namespace with_top

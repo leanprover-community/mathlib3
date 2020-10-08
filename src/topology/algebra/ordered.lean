@@ -938,10 +938,16 @@ begin
     apply mem_sets_of_superset (mem_nhds_sets is_open_Ioo ha) h }
 end
 
-/-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`. -/
+/-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`.
+-/
 lemma mem_nhds_iff_exists_Ioo_subset [no_top_order α] [no_bot_order α] {a : α} {s : set α} :
   s ∈ 𝓝 a ↔ ∃l u, a ∈ Ioo l u ∧ Ioo l u ⊆ s :=
 let ⟨l', hl'⟩ := no_bot a in let ⟨u', hu'⟩ := no_top a in mem_nhds_iff_exists_Ioo_subset' hl' hu'
+
+lemma filter.eventually.exists_Ioo_subset [no_top_order α] [no_bot_order α] {a : α} {p : α → Prop}
+  (hp : ∀ᶠ x in 𝓝 a, p x) :
+  ∃ l u, a ∈ Ioo l u ∧ Ioo l u ⊆ {x | p x} :=
+mem_nhds_iff_exists_Ioo_subset.1 hp
 
 lemma Iio_mem_nhds {a b : α} (h : a < b) : Iio b ∈ 𝓝 a :=
 mem_nhds_sets is_open_Iio h

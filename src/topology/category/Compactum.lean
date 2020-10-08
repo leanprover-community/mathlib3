@@ -405,27 +405,18 @@ noncomputable def of_nonempty_Top (X : Type*) [nonempty X] [topological_space X]
 instance {X : Type*} [topological_space X] [compact_space X] [t2_space X] [nonempty X] :
   nonempty (of_nonempty_Top X) := by {obtain ⟨x⟩ := (show nonempty X, by apply_instance), use x}
 
-def morphism_of_continuous {X Y : Compactum} (f : X → Y) (cont : continuous f) : X ⟶ Y :=
+def hom_of_continuous {X Y : Compactum} (f : X → Y) (cont : continuous f) : X ⟶ Y :=
 { f := f,
   h' := begin
-    by_cases nonempty X,
-    have : nonempty Y,
-    { rcases h,
-      use f h },
-    letI := this,
-    letI := h,
     rw continuous_iff_ultrafilter at cont,
     ext (F : ultrafilter X),
     specialize cont (X.str F) F.1 F.2,
     have := le_nhds_of_str_eq F (X.str F) rfl,
     specialize cont this,
     have cont' := str_eq_of_le_nhds (ultrafilter.map f F) _ cont,
-    simp,
+    simp only [types_comp_apply, of_type_functor_map],
     erw ←cont',
     refl,
-    ext (F : ultrafilter X),
-    rcases nonempty_of_mem_ultrafilter set.univ F.2 (filter.univ_sets _),
-    exact false.elim (h ⟨w⟩),
   end }
 
 end Compactum
@@ -447,17 +438,15 @@ induced_category.category to_Top
 end CompHaus
 
 def Compactum_to_CompHaus : Compactum ⥤ CompHaus :=
-{ obj := λ X,
-    { to_Top :=
-      { α := X } },
-    map := λ X Y f,
-    { to_fun := f,
-      continuous_to_fun := Compactum.continuous_of_morphism _ }}
+{ obj := λ X, { to_Top := { α := X } },
+  map := λ X Y f,
+  { to_fun := f,
+    continuous_to_fun := Compactum.continuous_of_morphism _ }}
 
 namespace Compactum_to_CompHaus
 
 def full : full Compactum_to_CompHaus :=
-{ preimage := λ X Y f, Compactum.morphism_of_continuous f.1 f.2 }
+{ preimage := λ X Y f, Compactum.hom_of_continuous f.1 f.2 }
 
 def faithful : faithful Compactum_to_CompHaus := {}
 

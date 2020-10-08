@@ -160,7 +160,7 @@ indexes `j` such that `cᵢ` appears in `xⱼ` and `xⱼ`'s type fuzzily matches
 of `cᵢ`.
 -/
 meta def get_index_occurrences (num_params : ℕ) (args : expr_set) :
-  expr → tactic (rb_multimap expr ℕ) :=
+  expr → tactic (rb_lmap expr ℕ) :=
 λ ret_type, do
   ret_args ← get_app_args_whnf ret_type,
   ret_args.mfoldl_with_index
@@ -173,7 +173,7 @@ meta def get_index_occurrences (num_params : ℕ) (args : expr_set) :
             ret_arg_type ← infer_type ret_arg,
             eq ← index_occurrence_type_match c.local_type ret_arg_type,
             pure $ if eq then occ_map.insert c i else occ_map)
-    (mk_rb_multimap _ _)
+    mk_rb_map
 
 /--
 Returns true iff `arg_type` is the local constant named `type_name`
@@ -208,7 +208,7 @@ meta def get_constructor_argument_info (inductive_name : name)
   let arg_constants := rb_map.set_of_list (args.map prod.fst),
   index_occs ← get_index_occurrences num_params arg_constants ret,
   pure $ args.map $ λ ⟨c, dep⟩,
-    let occs := (index_occs.find c).get_or_else mk_rb_map in
+    let occs := rb_set.of_list $ index_occs.find c in
     let type := c.local_type in
     let is_recursive := is_recursive_constructor_argument inductive_name type in
     ⟨c.local_pp_name, type, dep, occs.to_list, is_recursive⟩

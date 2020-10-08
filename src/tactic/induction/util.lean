@@ -32,7 +32,7 @@ foldl_with_index (λ i mapp a, mapp.insert i a) mk_rb_map
 
 def all_some : list (option α) → option (list α)
 | [] := some []
-| (some x :: xs) := (λ xs, x :: xs) <$> all_some xs
+| (some x :: xs) := (::) x <$> all_some xs
 | (none :: xs) := none
 
 def take_lst {α} : list α → list ℕ → list (list α) × list α
@@ -90,56 +90,6 @@ def fill_nones {α} : list (option α) → list α → list α
 | (none :: as) (a :: as') := a :: fill_nones as as'
 
 end list
-
-
-namespace native
-
-@[reducible] meta def rb_multimap (α β : Type) : Type :=
-rb_map α (rb_set β)
-
-meta def mk_rb_multimap (α β) [has_lt α] [decidable_rel ((<) : α → α → Prop)] :
-  rb_multimap α β :=
-mk_rb_map
-
-
-namespace rb_multimap
-
-variables {α β : Type}
-
-section
-
-variables [has_lt α] [decidable_rel ((<) : α → α → Prop)]
-
-meta def find (m : rb_multimap α β) (a : α) : option (rb_set β) :=
-rb_map.find m a
-
-variables [has_lt β] [decidable_rel ((<) : β → β → Prop)]
-
-meta def insert (m : rb_multimap α β) (a : α) (b : β) : rb_multimap α β :=
-let bs := m.find a in
-rb_map.insert m a
-  (match bs with
-   | none := rb_map.set_of_list [b]
-   | (some bs) := bs.insert b
-   end)
-
-meta def contains (m : rb_multimap α β) (a : α) (b : β) : bool :=
-match m.find a with
-| none := false
-| (some bs) := bs.contains b
-end
-
-end
-
-meta def to_list (m : rb_multimap α β) : list (α × rb_set β) :=
-rb_map.to_list m
-
-meta def to_list' (m : rb_multimap α β) : list (α × list β) :=
-(rb_map.to_list m).map (λ ⟨a, bs⟩, ⟨a, bs.to_list⟩)
-
-end rb_multimap
-
-end native
 
 
 namespace expr

@@ -410,6 +410,14 @@ by { ext, apply neg_dot_product }
   M ⬝ (-N) = -(M ⬝ N) :=
 by { ext, apply dot_product_neg }
 
+protected theorem sub_mul (M M' : matrix m n α) (N : matrix n o α) :
+  (M - M') ⬝ N = M ⬝ N - M' ⬝ N :=
+by rw [sub_eq_add_neg, matrix.add_mul, neg_mul, sub_eq_add_neg]
+
+protected theorem mul_sub (M : matrix m n α) (N N' : matrix n o α) :
+  M ⬝ (N - N') = M ⬝ N - M ⬝ N' :=
+by rw [sub_eq_add_neg, matrix.mul_add, mul_neg, sub_eq_add_neg]
+
 end ring
 
 instance [decidable_eq n] [ring α] : ring (matrix n n α) :=

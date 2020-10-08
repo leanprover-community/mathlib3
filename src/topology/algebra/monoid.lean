@@ -2,13 +2,19 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
-
-Theory of topological monoids.
 -/
 import topology.continuous_on
 import group_theory.submonoid.basic
 import algebra.group.prod
 import algebra.pointwise
+
+/-!
+# Theory of topological monoids
+
+In this file we define mixin classes `has_continuous_mul` and `has_continuous_add`. While in many
+applications the underlying type is a monoid (multiplicative or additive), we do not require this in
+the definitions.
+-/
 
 open classical set filter topological_space
 open_locale classical topological_space big_operators

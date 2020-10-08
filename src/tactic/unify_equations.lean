@@ -204,7 +204,6 @@ begin
   apply ne_of_gt,
   apply nat.lt_add_of_pos_right,
   apply nat.pos_of_ne_zero,
-  intro,
   contradiction
 end
 -- Linarith could prove this, but I want to avoid that dependency.

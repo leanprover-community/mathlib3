@@ -131,12 +131,7 @@ begin
   by_cases f0 : f = 0,
   { ext1,
     rw [f0, leading_coeff_zero, C_0, zero_mul], },
-  { conv
-    begin
-      congr,
-      rw sum_leading_C_mul_X_pow f,
-      skip,
-    end,
+  { conv_lhs {rw sum_leading_C_mul_X_pow f},
     apply add_cancel,
     rw [← support_eq_empty, ← card_eq_zero],
     apply nat.eq_zero_of_le_zero (nat.lt_succ_iff.mp _),
@@ -152,7 +147,7 @@ begin
   { rw [r0, C_0, zero_mul, polynomial.support_zero],
     exact empty_subset _, },
   { convert support_C_mul_X_pow r n,
-    rw nat_degree_C_mul_X_pow_nonzero n r0, },
+    rw nat_degree_C_mul_X_pow_of_nonzero n r0, },
 end
 
 lemma nat_degree_le : (erase_lead f).nat_degree ≤ f.nat_degree :=

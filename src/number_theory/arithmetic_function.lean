@@ -498,6 +498,17 @@ localized "notation `σ` := sigma" in arithmetic_function
 @[simp]
 lemma sigma_apply {k n : ℕ} : σ k n = ∑ d in divisors n, d ^ k := rfl
 
+lemma sigma_one_apply {n : ℕ} : σ 1 n = ∑ d in divisors n, d := by simp
+
+@[simp]
+lemma sigma_apply_of_prime {k p : ℕ} (h : p.prime) : σ k p = p ^ k + 1 :=
+begin
+  simp only [h, divisors_prime, sigma_apply],
+  rw [sum_insert, sum_singleton, one_pow, add_comm],
+  rw mem_singleton,
+  apply h.ne_one.symm,
+end
+
 lemma zeta_mul_pow_eq_sigma {k : ℕ} : ζ * pow k = σ k :=
 begin
   ext,

@@ -20,8 +20,7 @@ Let `n : ℕ`. All of the following definitions are in the `nat` namespace:
  * `perfect n` is true when the sum of `proper_divisors n` is `n`.
 
 ## Implementation details
- * `divisors 0` is defined to be `{0}`, while
-`proper_divisors 0`, and `divisors_antidiagonal 0` are defined to be `∅`.
+ * `divisors 0` , `proper_divisors 0`, and `divisors_antidiagonal 0` are defined to be `∅`.
 
 ## Tags
 divisors, perfect numbers
@@ -34,7 +33,7 @@ open_locale big_operators
 namespace nat
 variable (n : ℕ)
 
-/-- `divisors n` is the `finset` of divisors of `n`. As a special case, `divisors 0 = {0}`. -/
+/-- `divisors n` is the `finset` of divisors of `n`. As a special case, `divisors 0 = ∅`. -/
 def divisors : finset ℕ := finset.filter (λ x : ℕ, x ∣ n) (finset.Ico 1 (n + 1))
 
 /-- `proper_divisors n` is the `finset` of divisors of `n`, other than `n`.
@@ -201,5 +200,28 @@ begin
   { rw h },
   { apply add_right_cancel h }
 end
+
+@[simp]
+lemma mem_divisors_prime_pow {p : ℕ} (pp : p.prime) (k : ℕ) {x : ℕ} :
+  x ∈ divisors (p ^ k) ↔  ∃ (j : ℕ) (H : j ≤ k), x = p ^ j :=
+by rw [mem_divisors, nat.dvd_prime_pow pp, and_iff_left (ne_of_gt (pow_pos pp.pos k))]
+
+@[simp]
+lemma divisors_prime {p : ℕ} (pp : p.prime) :
+  divisors p = {1 , p} :=
+begin
+  ext,
+  simp only [pp.ne_zero, and_true, ne.def, not_false_iff, finset.mem_insert,
+    finset.mem_singleton, mem_divisors],
+  refine ⟨pp.2 a, λ h, _⟩,
+  rcases h; subst h,
+  apply one_dvd,
+end
+
+@[simp]
+lemma divisors_prime_pow {p : ℕ} (pp : p.prime) (k : ℕ) :
+  divisors (p ^ k) = (finset.range (k + 1)).map ⟨pow p, pow_right_injective pp.two_le⟩ :=
+by { ext, simp [pp, nat.lt_succ_iff, @eq_comm _ a] }
+
 
 end nat

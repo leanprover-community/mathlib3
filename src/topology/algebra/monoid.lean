@@ -8,6 +8,7 @@ Theory of topological monoids.
 import topology.continuous_on
 import group_theory.submonoid.basic
 import algebra.group.prod
+import algebra.pointwise
 
 open classical set filter topological_space
 open_locale classical topological_space big_operators
@@ -89,6 +90,38 @@ end has_continuous_mul
 section has_continuous_mul
 
 variables [topological_space M] [monoid M] [has_continuous_mul M]
+
+@[to_additive exists_nhds_half]
+lemma exists_nhds_split {s : set M} (hs : s ∈ 𝓝 (1 : M)) :
+  ∃ V : set M, is_open V ∧ (1 : M) ∈ V ∧ ∀ (v ∈ V) (w ∈ V), v * w ∈ s :=
+have ((λa:M×M, a.1 * a.2) ⁻¹' s) ∈ 𝓝 ((1, 1) : M × M),
+  from tendsto_mul (by simpa only [one_mul] using hs),
+by simpa only [prod_subset_iff] using exists_nhds_square this
+
+@[to_additive exists_nhds_quarter]
+lemma exists_nhds_split4 {u : set M} (hu : u ∈ 𝓝 (1 : M)) :
+  ∃ V : set M, is_open V ∧ (1 : M) ∈ V ∧
+    ∀ {v w s t}, v ∈ V → w ∈ V → s ∈ V → t ∈ V → v * w * s * t ∈ u :=
+begin
+  rcases exists_nhds_split hu with ⟨W, W_open, W1, h⟩,
+  rcases exists_nhds_split (mem_nhds_sets W_open W1) with ⟨V, V_open, V1, h'⟩,
+  use [V, V_open, V1],
+  intros v w s t v_in w_in s_in t_in,
+  simpa only [mul_assoc] using h _ (h' v v_in w w_in) _ (h' s s_in t t_in)
+end
+
+/-- Given a open neighborhood `U` of `1` there is a open neighborhood `V` of `1`
+  such that `VV ⊆ U`. -/
+@[to_additive "Given a open neighborhood `U` of `0` there is a open neighborhood `V` of `0`
+  such that `V + V ⊆ U`."]
+lemma exists_open_mem_mul_subset {U : set M} (hU : U ∈ 𝓝 (1 : M)) :
+  ∃ V : set M, is_open V ∧ (1 : M) ∈ V ∧ V * V ⊆ U :=
+begin
+  rcases exists_nhds_split hU with ⟨V, Vo, V1, hV⟩,
+  use [V, Vo, V1],
+  rintros _ ⟨x, y, hx, hy, rfl⟩,
+  exact hV _ hx _ hy
+end
 
 @[to_additive]
 lemma tendsto_list_prod {f : β → α → M} {x : filter α} {a : β → M} :

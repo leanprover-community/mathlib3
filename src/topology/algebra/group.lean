@@ -126,39 +126,13 @@ protected def homeomorph.inv (G : Type*) [topological_space G] [group G] [topolo
   continuous_inv_fun := continuous_inv,
   .. equiv.inv G }
 
-@[to_additive exists_nhds_half]
-lemma exists_nhds_split [topological_group G] {s : set G} (hs : s ∈ 𝓝 (1 : G)) :
-  ∃ V ∈ 𝓝 (1 : G), ∀ v w ∈ V, v * w ∈ s :=
-begin
-  have : ((λa:G×G, a.1 * a.2) ⁻¹' s) ∈ 𝓝 ((1, 1) : G × G) :=
-    tendsto_mul (by simpa using hs),
-  rw nhds_prod_eq at this,
-  rcases mem_prod_iff.1 this with ⟨V₁, H₁, V₂, H₂, H⟩,
-  exact ⟨V₁ ∩ V₂, inter_mem_sets H₁ H₂, assume v w ⟨hv, _⟩ ⟨_, hw⟩, @H (v, w) ⟨hv, hw⟩⟩
-end
-
 @[to_additive exists_nhds_half_neg]
 lemma exists_nhds_split_inv [topological_group G] {s : set G} (hs : s ∈ 𝓝 (1 : G)) :
   ∃ V ∈ 𝓝 (1 : G), ∀ (v ∈ V) (w ∈ V), v * w⁻¹ ∈ s :=
-begin
-  have : tendsto (λa:G×G, a.1 * (a.2)⁻¹) (𝓝 (1:G) ×ᶠ 𝓝 (1:G)) (𝓝 1),
-  { simpa using (@tendsto_fst G G (𝓝 1) (𝓝 1)).mul tendsto_snd.inv },
-  have : ((λa:G×G, a.1 * (a.2)⁻¹) ⁻¹' s) ∈ 𝓝 (1:G) ×ᶠ 𝓝 (1:G) :=
-    this (by simpa using hs),
-  rcases mem_prod_self_iff.1 this with ⟨V, H, H'⟩,
-  exact ⟨V, H, prod_subset_iff.1 H'⟩
-end
+have ((λp : G × G, p.1 * p.2⁻¹) ⁻¹' s) ∈ 𝓝 ((1, 1) : G × G),
+  from continuous_at_fst.mul continuous_at_snd.inv (by simpa),
+by simpa only [nhds_prod_eq, mem_prod_self_iff, prod_subset_iff, mem_preimage] using this
 
-@[to_additive exists_nhds_quarter]
-lemma exists_nhds_split4 [topological_group G] {u : set G} (hu : u ∈ 𝓝 (1 : G)) :
-  ∃ V ∈ 𝓝 (1 : G), ∀ {v w s t}, v ∈ V → w ∈ V → s ∈ V → t ∈ V → v * w * s * t ∈ u :=
-begin
-  rcases exists_nhds_split hu with ⟨W, W_nhd, h⟩,
-  rcases exists_nhds_split W_nhd with ⟨V, V_nhd, h'⟩,
-  existsi [V, V_nhd],
-  intros v w s t v_in w_in s_in t_in,
-  simpa [mul_assoc] using h _ _ (h' v w v_in w_in) (h' s t s_in t_in)
-end
 
 section
 variable (G)
@@ -386,16 +360,13 @@ lemma topological_group.t1_space (h : @is_closed G _ {1}) : t1_space G :=
 lemma topological_group.regular_space [t1_space G] : regular_space G :=
 ⟨assume s a hs ha,
  let f := λ p : G × G, p.1 * (p.2)⁻¹ in
- have hf : continuous f :=
-   continuous_mul.comp (continuous_fst.prod_mk (continuous_inv.comp continuous_snd)),
+ have hf : continuous f := continuous_fst.mul continuous_snd.inv,
  -- a ∈ -s implies f (a, 1) ∈ -s, and so (a, 1) ∈ f⁻¹' (-s);
  -- and so can find t₁ t₂ open such that a ∈ t₁ × t₂ ⊆ f⁻¹' (-s)
  let ⟨t₁, t₂, ht₁, ht₂, a_mem_t₁, one_mem_t₂, t_subset⟩ :=
    is_open_prod_iff.1 (hf _ (is_open_compl_iff.2 hs)) a (1:G) (by simpa [f]) in
  begin
-   use s * t₂,
-   use is_open_mul_left ht₂,
-   use λ x hx, ⟨x, 1, hx, one_mem_t₂, mul_one _⟩,
+   use [s * t₂, is_open_mul_left ht₂, λ x hx, ⟨x, 1, hx, one_mem_t₂, mul_one _⟩],
    apply inf_principal_eq_bot,
    rw mem_nhds_sets_iff,
    refine ⟨t₁, _, ht₁, a_mem_t₁⟩,
@@ -416,18 +387,6 @@ section
 /-! Some results about an open set containing the product of two sets in a topological group. -/
 
 variables [topological_space G] [group G] [topological_group G]
-/-- Given a open neighborhood `U` of `1` there is a open neighborhood `V` of `1`
-  such that `VV ⊆ U`. -/
-@[to_additive "Given a open neighborhood `U` of `0` there is a open neighborhood `V` of `0`
-  such that `V + V ⊆ U`."]
-lemma one_open_separated_mul {U : set G} (h1U : is_open U) (h2U : (1 : G) ∈ U) :
-  ∃ V : set G, is_open V ∧ (1 : G) ∈ V ∧ V * V ⊆ U :=
-begin
-  rcases exists_nhds_split hU with ⟨V, Vo, V1, hV⟩,
-  use [V, Vo, V1],
-  rintros _ ⟨x, y, hx, hy, rfl⟩,
-  exact hV _ hx _ hy
-end
 
 /-- Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of `1`
   such that `KV ⊆ U`. -/
@@ -439,7 +398,7 @@ begin
   let W : G → set G := λ x, (λ y, x * y) ⁻¹' U,
   have h1W : ∀ x, is_open (W x) := λ x, continuous_mul_left x U hU,
   have h2W : ∀ x ∈ K, (1 : G) ∈ W x := λ x hx, by simp only [mem_preimage, mul_one, hKU hx],
-  choose V hV using λ x : K, one_open_separated_mul (h1W x) (h2W x.1 x.2),
+  choose V hV using λ x : K, exists_open_mem_mul_subset (mem_nhds_sets (h1W x) (h2W x.1 x.2)),
   let X : K → set G := λ x, (λ y, (x : G)⁻¹ * y) ⁻¹' (V x),
   cases hK.elim_finite_subcover X (λ x, continuous_mul_left x⁻¹ (V x) (hV x).1) _ with t ht, swap,
   { intros x hx, rw [mem_Union], use ⟨x, hx⟩, rw [mem_preimage], convert (hV _).2.1,
@@ -481,12 +440,13 @@ begin
   rw [← nhds_translation_mul_inv x, ← nhds_translation_mul_inv y, ← nhds_translation_mul_inv (x*y)],
   split,
   { rintros ⟨t, ht, ts⟩,
-    rcases exists_nhds_split ht with ⟨V, V_mem, h⟩,
+    rcases exists_nhds_split ht with ⟨V, V_open, V_mem, h⟩,
     refine ⟨(λa, a * x⁻¹) ⁻¹' V, (λa, a * y⁻¹) ⁻¹' V,
-            ⟨V, V_mem, subset.refl _⟩, ⟨V, V_mem, subset.refl _⟩, _⟩,
+            ⟨V, mem_nhds_sets V_open V_mem, subset.refl _⟩,
+            ⟨V, mem_nhds_sets V_open V_mem, subset.refl _⟩, _⟩,
     rintros a ⟨v, w, v_mem, w_mem, rfl⟩,
     apply ts,
-    simpa [mul_comm, mul_assoc, mul_left_comm] using h (v * x⁻¹) (w * y⁻¹) v_mem w_mem },
+    simpa [mul_comm, mul_assoc, mul_left_comm] using h (v * x⁻¹) v_mem (w * y⁻¹) w_mem },
   { rintros ⟨a, c, ⟨b, hb, ba⟩, ⟨d, hd, dc⟩, ac⟩,
     refine ⟨b ∩ d, inter_mem_sets hb hd, assume v, _⟩,
     simp only [preimage_subset_iff, mul_inv_rev, mem_preimage] at *,

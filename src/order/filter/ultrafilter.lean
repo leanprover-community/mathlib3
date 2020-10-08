@@ -59,6 +59,17 @@ lemma ultrafilter_iff_compl_mem_iff_not_mem :
         have s ∩ sᶜ ∈ g, from inter_mem_sets hs (g_le this),
         by simp only [empty_in_sets_eq_bot, hg, inter_compl_self] at this; contradiction⟩⟩
 
+lemma nonempty_of_mem_ultrafilter (s : set α) : is_ultrafilter f → s ∈ f → s.nonempty := 
+begin
+  intros h1 h2,
+  rw ←ne_empty_iff_nonempty,
+  rintro rfl,
+  rw ultrafilter_iff_compl_mem_iff_not_mem at h1,
+  rw (show (∅ : set α) = set.univᶜ, by simp) at *,
+  rw h1 at h2,
+  exact h2 f.univ_sets,
+end
+
 lemma mem_or_compl_mem_of_ultrafilter (hf : is_ultrafilter f) (s : set α) :
   s ∈ f ∨ sᶜ ∈ f :=
 or_iff_not_imp_left.2 (ultrafilter_iff_compl_mem_iff_not_mem.mp hf s).mpr

@@ -403,5 +403,11 @@ meta def unify_equations (eqs : interactive.parse (many ident)) :
   tactic unit :=
 tactic.unify_equations eqs *> skip
 
+add_tactic_doc
+{ name := "unify_equations",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.unify_equations],
+  tags := ["simplification"] }
+
 end interactive
 end tactic

@@ -91,20 +91,9 @@ begin
 end
 
 def basic {X : Compactum} (A : set X) : set (ultrafilter X) := {F | A ∈ F.1}
-def closure {X : Compactum} (A : set X) : set X := X.str '' (basic A)
+def cl {X : Compactum} (A : set X) : set X := X.str '' (basic A)
 
-@[simp] lemma closure_empty {X : Compactum} : closure (∅ : set X) = ∅ :=
-begin
-  suffices : basic (∅ : set X) = ∅,
-  { unfold closure, rw this, simp },
-  ext F,
-  refine ⟨_,by tauto⟩,
-  intro h,
-  erw ultrafilter_iff_compl_mem_iff_not_mem'.mp F.2 at h,
-  finish [filter.univ_sets],
-end
-
-lemma subset_closure {X : Compactum} (A : set X) : A ⊆ closure A :=
+lemma subset_cl {X : Compactum} (A : set X) : A ⊆ cl A :=
 begin
   intros a ha,
   use X.incl a,
@@ -114,7 +103,7 @@ end
 
 open has_finite_inter
 
-theorem closure_closure {X : Compactum} (A : set X) : closure (closure A) ⊆ closure A :=
+theorem cl_cl {X : Compactum} (A : set X) : cl (cl A) ⊆ cl A :=
 begin
   let fsu := finset (set (ultrafilter X)),
   let ssu := set (set (ultrafilter X)),
@@ -140,10 +129,10 @@ begin
     assumption },
   have claim3 : ∀ B ∈ C0, (AA ∩ B).nonempty,
   { rintros B ⟨Q,hQ,rfl⟩,
-    have : (Q ∩ closure A) ∈ F.1,
+    have : (Q ∩ cl A) ∈ F.1,
     { apply filter.inter_sets,
       assumption' },
-    have : (Q ∩ closure A).nonempty,
+    have : (Q ∩ cl A).nonempty,
     { apply nonempty_of_mem_ultrafilter _ F.2,
       assumption },
     rcases this with ⟨q,hq1,P,hq2,hq3⟩,
@@ -196,11 +185,11 @@ begin
   assumption,
 end
 
-lemma is_closed_closure {X : Compactum} (A : set X) : is_closed (closure A) :=
+lemma is_closed_closure {X : Compactum} (A : set X) : is_closed (cl A) :=
 begin
   rw is_closed_iff,
   intros F hF,
-  exact closure_closure _ ⟨F,hF,rfl⟩,
+  exact cl_cl _ ⟨F,hF,rfl⟩,
 end
 
 lemma str_eq_of_le_nhds {X : Compactum} (F : ultrafilter X) (x : X) : F.1 ≤ nhds x → X.str F = x :=
@@ -216,12 +205,12 @@ begin
     have := ultrafilter_iff_compl_mem_iff_not_mem.mp F.2,
     rw this at cond,
     contradiction },
-  have claim2 : ∀ (A : set X), A ∈ F.1 → x ∈ closure A,
+  have claim2 : ∀ (A : set X), A ∈ F.1 → x ∈ cl A,
   { intros A hA,
     apply claim1,
     exact is_closed_closure _,
     apply filter.sets_of_superset _ hA,
-    exact subset_closure _ },
+    exact subset_cl _ },
   let T0 : set (set (ultrafilter X)) := { S | ∃ A ∈ F.1, S = basic A },
   let AA := (X.str ⁻¹' {x}),
   let T1 := insert AA T0,

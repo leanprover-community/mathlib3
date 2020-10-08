@@ -1,20 +1,34 @@
+/-
+Copyright (c) 2020 Adam Topaz. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Adam Topaz
+-/
+
 import category_theory.monad.types
 import category_theory.monad.limits
 import category_theory.equivalence
 import topology.category.Top
 import data.set.constructions
 
-open category_theory filter topological_space category_theory.limits
+/-!
+TODO
+-/
+
+open category_theory filter topological_space category_theory.limits has_finite_inter
 open_locale classical
 
+/-- The type `Compactum` of Compacta, defined as algebras for the ultrafilter monad. -/
 @[derive category]
 def Compactum := monad.algebra (of_type_functor $ ultrafilter)
 
 namespace Compactum
 
+/-- The forgetful functor to Type* -/
 @[derive [creates_limits,faithful]]
 def forget : Compactum ⥤ Type* := monad.forget _
+/-- The "free" Compactum functor. -/
 def free : Type* ⥤ Compactum := monad.free _
+/-- The adjunction between `free` and `forget`. -/
 def adj : free ⊣ forget := monad.adj _
 
 instance : concrete_category Compactum := { forget := forget }
@@ -22,9 +36,12 @@ instance : has_coe_to_sort Compactum := ⟨Type*,forget.obj⟩
 instance {X Y : Compactum} : has_coe_to_fun (X ⟶ Y) := ⟨λ f, X → Y, λ f, f.f⟩
 instance : has_limits Compactum := has_limits_of_has_limits_creates_limits forget
 
+/-- The structure map for a compactum, essentially sending an ultrafilter to its limit. -/
 def str (X : Compactum) : ultrafilter X → X := X.a
+/-- The monadic join. -/
 def join (X : Compactum) : ultrafilter (ultrafilter X) → ultrafilter X :=
   (μ_ $ of_type_functor ultrafilter).app _
+/-- The inclusion of `X` into `ultrafilter X`. -/
 def incl (X : Compactum) : X → ultrafilter X :=
   (η_ $ of_type_functor ultrafilter).app _
 
@@ -89,10 +106,12 @@ begin
   exact h2 ⟨F,hF⟩ h1,
 end
 
-def basic {X : Compactum} (A : set X) : set (ultrafilter X) := {F | A ∈ F.1}
-def cl {X : Compactum} (A : set X) : set X := X.str '' (basic A)
+/-- A local definition used only in the proofs. -/
+private def basic {X : Compactum} (A : set X) : set (ultrafilter X) := {F | A ∈ F.1}
+/-- A local definition used only in the proofs. -/
+private def cl {X : Compactum} (A : set X) : set X := X.str '' (basic A)
 
-lemma basic_inter {X : Compactum} (A B : set X) : basic (A ∩ B) = basic A ∩ basic B :=
+private lemma basic_inter {X : Compactum} (A B : set X) : basic (A ∩ B) = basic A ∩ basic B :=
 begin
   ext G,
   split,
@@ -105,7 +124,7 @@ begin
     assumption' }
 end
 
-lemma subset_cl {X : Compactum} (A : set X) : A ⊆ cl A :=
+private lemma subset_cl {X : Compactum} (A : set X) : A ⊆ cl A :=
 begin
   intros a ha,
   use X.incl a,
@@ -113,9 +132,7 @@ begin
   assumption,
 end
 
-open has_finite_inter
-
-theorem cl_cl {X : Compactum} (A : set X) : cl (cl A) ⊆ cl A :=
+private theorem cl_cl {X : Compactum} (A : set X) : cl (cl A) ⊆ cl A :=
 begin
   let fsu := finset (set (ultrafilter X)),
   let ssu := set (set (ultrafilter X)),
@@ -197,7 +214,7 @@ begin
   assumption,
 end
 
-lemma is_closed_closure {X : Compactum} (A : set X) : is_closed (cl A) :=
+lemma is_closed_cl {X : Compactum} (A : set X) : is_closed (cl A) :=
 begin
   rw is_closed_iff,
   intros F hF,
@@ -219,7 +236,7 @@ begin
     contradiction },
   have claim2 : ∀ (A : set X), A ∈ F.1 → x ∈ cl A,
   { intros A hA,
-    apply claim1 _ (is_closed_closure _),
+    apply claim1 _ (is_closed_cl _),
     exact filter.sets_of_superset _ hA (subset_cl _) },
   let T0 : set (set (ultrafilter X)) := { S | ∃ A ∈ F.1, S = basic A },
   let AA := (X.str ⁻¹' {x}),
@@ -313,7 +330,7 @@ begin
   cc,
 end
 
-lemma continuous_of_morphism {X Y : Compactum} (f : X ⟶ Y) : continuous f :=
+lemma continuous_of_hom {X Y : Compactum} (f : X ⟶ Y) : continuous f :=
 begin
   rw continuous_iff_ultrafilter,
   intros x _ h1 h2,
@@ -322,11 +339,13 @@ begin
   rw [←str_hom_commute, str_eq_of_le_nhds ⟨_,h1⟩ x h2],
 end
 
+/-
 def to_Top : Compactum ⥤ Top :=
 { obj := λ X, Top.of X,
   map := λ X Y f,
   { to_fun := f,
-    continuous_to_fun := continuous_of_morphism _ } }
+    continuous_to_fun := continuous_of_hom _ } }
+-/
 
 noncomputable def of_nonempty_Top (X : Type*) [nonempty X] [topological_space X]
   [compact_space X] [t2_space X] : Compactum :=
@@ -415,6 +434,7 @@ def hom_of_continuous {X Y : Compactum} (f : X → Y) (cont : continuous f) : X 
 
 end Compactum
 
+/-- The type of Compact Hausdorff topological spaces. -/
 structure CompHaus :=
 (to_Top : Top)
 [is_compact : compact_space to_Top . tactic.apply_instance]
@@ -426,8 +446,7 @@ instance : has_coe_to_sort CompHaus := ⟨Type*,λ X, X.to_Top⟩
 instance {X : CompHaus} : compact_space X := X.is_compact
 instance {X : CompHaus} : t2_space X := X.is_hausdorff
 
-instance category : large_category CompHaus :=
-induced_category.category to_Top
+instance category : category CompHaus := induced_category.category to_Top
 
 end CompHaus
 
@@ -435,7 +454,7 @@ def Compactum_to_CompHaus : Compactum ⥤ CompHaus :=
 { obj := λ X, { to_Top := { α := X } },
   map := λ X Y f,
   { to_fun := f,
-    continuous_to_fun := Compactum.continuous_of_morphism _ }}
+    continuous_to_fun := Compactum.continuous_of_hom _ }}
 
 namespace Compactum_to_CompHaus
 
@@ -548,12 +567,12 @@ noncomputable def ess_surj : ess_surj Compactum_to_CompHaus :=
     { exact iso_empty h },
   end}
 
-end Compactum_to_CompHaus
-
-noncomputable def Compactum_CompHaus_equiv : is_equivalence Compactum_to_CompHaus :=
+noncomputable def is_equivalence : is_equivalence Compactum_to_CompHaus :=
 begin
   apply equivalence.equivalence_of_fully_faithfully_ess_surj _,
   exact Compactum_to_CompHaus.full,
   exact Compactum_to_CompHaus.faithful,
   exact Compactum_to_CompHaus.ess_surj,
 end
+
+end Compactum_to_CompHaus

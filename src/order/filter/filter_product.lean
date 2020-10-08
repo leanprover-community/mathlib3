@@ -90,7 +90,8 @@ protected def linear_ordered_ring [linear_ordered_ring β] (U : is_ultrafilter �
   linear_ordered_ring β* :=
 { .. germ.ordered_ring U,
   .. germ.linear_order U,
-  .. (nontrivial_of_lt _ _ (by { rw lt_def U, show (∀* i, (0 : β) < 1), simp [zero_lt_one] } : 0 < (1 : β*))) }
+  .. nontrivial_of_lt 0 (1 : β*)
+       (by { rw lt_def U, show (∀* i, (0 : β) < 1), simp [zero_lt_one] }) }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a linear ordered field.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/

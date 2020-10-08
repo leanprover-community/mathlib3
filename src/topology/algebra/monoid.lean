@@ -12,7 +12,8 @@ import algebra.pointwise
 # Theory of topological monoids
 
 In this file we define mixin classes `has_continuous_mul` and `has_continuous_add`. While in many
-applications the underlying type is a monoid (multiplicative or additive), we do not require this in the definitions.
+applications the underlying type is a monoid (multiplicative or additive), we do not require this in
+the definitions.
 -/
 
 open classical set filter topological_space

@@ -474,6 +474,8 @@ lemma eq_of_dist_eq_of_dist_eq_of_mem_of_findim_eq_two {s : affine_subspace ℝ 
 begin
   have ho : ⟪c₂ -ᵥ c₁, p₂ -ᵥ p₁⟫ = 0 :=
     inner_vsub_vsub_of_dist_eq_of_dist_eq (by cc) (by cc),
+  have hop : ⟪c₂ -ᵥ c₁, p -ᵥ p₁⟫ = 0 :=
+    inner_vsub_vsub_of_dist_eq_of_dist_eq (by cc) (by cc),
   let b : fin 2 → V := ![c₂ -ᵥ c₁, p₂ -ᵥ p₁],
   have hb : linear_independent ℝ b,
   { refine linear_independent_of_ne_zero_of_inner_eq_zero _ _,
@@ -504,8 +506,6 @@ begin
     rcases hv' with ⟨t₂, rfl⟩,
     exact ⟨t₁, t₂, hv⟩ },
   rcases hv (p -ᵥ p₁) (vsub_mem_direction hps hp₁s) with ⟨t₁, t₂, hpt⟩,
-  have hop : ⟪c₂ -ᵥ c₁, p -ᵥ p₁⟫ = 0 :=
-    inner_vsub_vsub_of_dist_eq_of_dist_eq (by cc) (by cc),
   simp only [hpt, inner_add_right, inner_smul_right, ho, mul_zero, add_zero, mul_eq_zero,
              inner_self_eq_zero, vsub_eq_zero_iff_eq, hc.symm, or_false] at hop,
   rw [hop, zero_smul, zero_add, ←eq_vadd_iff_vsub_eq] at hpt,

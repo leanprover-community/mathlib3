@@ -222,6 +222,10 @@ begin
   { exact congr_arg equiv.inv_fun h₁ }
 end
 
+@[to_additive] lemma to_monoid_hom_injective
+  {M N} [monoid M] [monoid N] : function.injective (to_monoid_hom : (M ≃* N) → M →* N) :=
+λ f g h, mul_equiv.ext (monoid_hom.ext_iff.1 h)
+
 attribute [ext] add_equiv.ext
 
 end mul_equiv

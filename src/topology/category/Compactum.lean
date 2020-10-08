@@ -573,23 +573,10 @@ noncomputable def iso_nonempty {D : CompHaus} [nonempty D] :
   Compactum_to_CompHaus.obj (Compactum.of_nonempty_Top D) ≅ D :=
 { hom :=
   { to_fun := id,
-    continuous_to_fun := begin
-      intros U hU,
-      simp,
-      rw helper at hU,
-      assumption,
-    end},
+    continuous_to_fun := λ _ h, by {rw helper at h, exact h} },
   inv :=
   { to_fun := id,
-    continuous_to_fun := begin
-      intros U hU,
-      change set D at U,
-      simp,
-      rw helper,
-      intros F hF,
-      specialize hU F hF,
-      assumption,
-    end} }
+    continuous_to_fun := λ _ h1, by {rw helper, intros _ h2, exact h1 _ h2} } }
 
 def iso_empty {D : CompHaus} (cond : ¬ nonempty D) :
   Compactum_to_CompHaus.obj empty_Compactum ≅ D :=
@@ -597,30 +584,17 @@ def iso_empty {D : CompHaus} (cond : ¬ nonempty D) :
   { to_fun := λ (x : pempty), pempty.elim x,
     continuous_to_fun := begin
       intros U hU,
-      have : U = ∅, { apply set.eq_empty_of_not_nonempty, assumption },
-      rw this,
+      rw (show U = ∅, { apply set.eq_empty_of_not_nonempty, assumption }),
       simp,
     end},
   inv :=
   { to_fun := λ x, false.elim $ cond ⟨x⟩,
     continuous_to_fun := begin
       intros U hU,
-      have : U = ∅,
-      { apply set.eq_empty_of_not_nonempty,
-        change ¬nonempty pempty,
-        intro c,
-        cases c,
-        apply pempty.elim,
-        exact c },
-      rw this,
+      rw set.eq_empty_of_not_nonempty not_nonempty_pempty U,
       simp,
     end},
-  inv_hom_id' := begin
-    ext,
-    exfalso,
-    apply cond,
-    use x,
-  end}
+  inv_hom_id' := continuous_map.ext $ λ x, false.elim $ cond ⟨x⟩ }
 
 noncomputable def ess_surj : ess_surj Compactum_to_CompHaus :=
 { obj_preimage := λ X, if h : nonempty X then
@@ -628,12 +602,9 @@ noncomputable def ess_surj : ess_surj Compactum_to_CompHaus :=
     empty_Compactum,
   iso' := begin
     intros D,
-    simp,
-    split_ifs,
-    letI := h,
-    exact iso_nonempty,
-    apply iso_empty,
-    assumption,
+    split_ifs with h,
+    { resetI, exact iso_nonempty },
+    { exact iso_empty h },
   end}
 
 end Compactum_to_CompHaus

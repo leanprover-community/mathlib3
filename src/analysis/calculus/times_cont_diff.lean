@@ -2429,7 +2429,7 @@ begin
     -- This follows by a bootstrapping formula expressing the derivative as a function of `f` itself
     refine ⟨inverse ∘ f' ∘ f.symm, _, _⟩,
     { -- We first check that the derivative of `f` is that formula
-      have h_nhds : {y : E | ∃ (e : E ≃L[𝕜] F), f' y = ↑e} ∈ 𝓝 ((f.symm) a),
+      have h_nhds : {y : E | ∃ (e : E ≃L[𝕜] F), ↑e = f' y} ∈ 𝓝 ((f.symm) a),
       { have hf₀' := f₀'.nhds,
         rw ← eq_f₀' at hf₀',
         exact hf'.continuous_at.preimage_mem_nhds hf₀' },
@@ -2441,10 +2441,10 @@ begin
       intros x hx,
       obtain ⟨hxu, e, he⟩ := htu hx.2,
       have h_deriv : has_fderiv_at f ↑e ((f.symm) x),
-      { rw ← he,
+      { rw he,
         exact hff' (f.symm x) hxu },
       convert h_deriv.of_local_homeomorph hx.1,
-      simp [he] },
+      simp [← he] },
     { -- Then we check that the formula, being a composition of `times_cont_diff` pieces, is
       -- itself `times_cont_diff`
       have h_deriv₁ : times_cont_diff_at 𝕜 n inverse (f' (f.symm a)),

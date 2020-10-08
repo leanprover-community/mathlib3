@@ -10,6 +10,7 @@ import topology.stone_cech
 import topology.order
 import topology.separation
 import data.set.constructions
+import data.set.basic
 import data.finset
 
 open category_theory filter topological_space category_theory.limits
@@ -28,14 +29,14 @@ def adj : free ⊣ forget := monad.adj _
 instance : concrete_category Compactum := { forget := forget }
 instance : has_coe_to_sort Compactum := ⟨Type*,forget.obj⟩
 instance {X Y : Compactum} : has_coe_to_fun (X ⟶ Y) := ⟨λ f, X → Y, λ f, f.f⟩
-instance : has_limits Compactum := has_limits_of_has_limits_creates_limits forget 
+instance : has_limits Compactum := has_limits_of_has_limits_creates_limits forget
 
 def str (X : Compactum) : ultrafilter X → X := X.a
-def join (X : Compactum) : ultrafilter (ultrafilter X) → ultrafilter X := 
+def join (X : Compactum) : ultrafilter (ultrafilter X) → ultrafilter X :=
   (μ_ $ of_type_functor ultrafilter).app _
-def incl (X : Compactum) : X → ultrafilter X := 
+def incl (X : Compactum) : X → ultrafilter X :=
   (η_ $ of_type_functor ultrafilter).app _
-  
+
 @[simp] lemma str_incl (X : Compactum) (x : X) : X.str (X.incl x) = x :=
 begin
   change ((η_ (of_type_functor ultrafilter)).app _ ≫ X.a) _ = _,
@@ -44,7 +45,7 @@ begin
 end
 
 @[simp] lemma str_hom_commute (X Y : Compactum) (f : X ⟶ Y) (xs : ultrafilter X) :
-  f (X.str xs) = Y.str (ultrafilter.map f xs) := 
+  f (X.str xs) = Y.str (ultrafilter.map f xs) :=
 begin
   change (X.a ≫ f.f) _ = _,
   rw ←f.h,
@@ -52,23 +53,23 @@ begin
 end
 
 @[simp] lemma join_distrib (X : Compactum) (uux : ultrafilter (ultrafilter X)) :
-  X.str (X.join uux) = X.str (ultrafilter.map X.str uux) := 
+  X.str (X.join uux) = X.str (ultrafilter.map X.str uux) :=
 begin
   change ((μ_ (of_type_functor ultrafilter)).app _ ≫ X.a) _ = _,
   rw monad.algebra.assoc,
   refl,
 end
 
-instance {X : Compactum} : topological_space X := 
+instance {X : Compactum} : topological_space X :=
 { is_open := { U | ∀ (F : ultrafilter X), X.str F ∈ U → U ∈ F.1 },
   is_open_univ := λ _ _, filter.univ_sets _,
-  is_open_inter := λ S T h3 h4 h5 h6, 
+  is_open_inter := λ S T h3 h4 h5 h6,
     filter.inter_sets _ (h3 _ h6.1) (h4 _ h6.2),
-  is_open_sUnion := λ S h1 F ⟨T,hT,h2⟩, 
+  is_open_sUnion := λ S h1 F ⟨T,hT,h2⟩,
     filter.sets_of_superset _ (h1 T hT _ h2) (set.subset_sUnion_of_mem hT) }
-    
-theorem is_closed_iff {X : Compactum} (S : set X) : is_closed S ↔ 
-  (∀ F : ultrafilter X, S ∈ F.1 → X.str F ∈ S) := 
+
+theorem is_closed_iff {X : Compactum} (S : set X) : is_closed S ↔
+  (∀ F : ultrafilter X, S ∈ F.1 → X.str F ∈ S) :=
 begin
   split,
   { intros cond F h,
@@ -87,7 +88,7 @@ begin
     assumption }
 end
 
-instance {X : Compactum} : compact_space X := 
+instance {X : Compactum} : compact_space X :=
 begin
   constructor,
   rw compact_iff_ultrafilter_le_nhds,
@@ -102,9 +103,9 @@ end
 def basic {X : Compactum} (A : set X) : set (ultrafilter X) := {F | A ∈ F.1}
 def closure {X : Compactum} (A : set X) : set X := X.str '' (basic A)
 
-@[simp] lemma closure_empty {X : Compactum} : closure (∅ : set X) = ∅ := 
+@[simp] lemma closure_empty {X : Compactum} : closure (∅ : set X) = ∅ :=
 begin
-  suffices : basic (∅ : set X) = ∅, 
+  suffices : basic (∅ : set X) = ∅,
   { unfold closure, rw this, simp },
   ext F,
   split,
@@ -120,7 +121,7 @@ begin
     exact false.elim h }
 end
 
-lemma subset_closure {X : Compactum} (A : set X) : A ⊆ closure A := 
+lemma subset_closure {X : Compactum} (A : set X) : A ⊆ closure A :=
 begin
   intros a ha,
   use X.incl a,
@@ -152,26 +153,26 @@ begin
     { rcases this with ⟨q,hq⟩,
       use X.incl q,
       simpa },
-    apply nonempty_of_mem_ultrafilter _ F.2, 
+    apply nonempty_of_mem_ultrafilter _ F.2,
     assumption },
-  have claim3 : ∀ B ∈ C0, (AA ∩ B).nonempty, 
+  have claim3 : ∀ B ∈ C0, (AA ∩ B).nonempty,
   { rintros B ⟨Q,hQ,rfl⟩,
-    have : (Q ∩ closure A) ∈ F.1, 
+    have : (Q ∩ closure A) ∈ F.1,
     { apply filter.inter_sets,
       assumption' },
-    have : (Q ∩ closure A).nonempty, 
+    have : (Q ∩ closure A).nonempty,
     { apply nonempty_of_mem_ultrafilter _ F.2,
       assumption },
     rcases this with ⟨q,hq1,P,hq2,hq3⟩,
     refine ⟨P,hq2,_⟩,
     rw ←hq3 at hq1,
     simpa },
-  suffices : ∀ (T : fsu), ι T ⊆ C1 → (⋂₀ ι T).nonempty, 
+  suffices : ∀ (T : fsu), ι T ⊆ C1 → (⋂₀ ι T).nonempty,
   { obtain ⟨G,h1,hG⟩ := exists_ultrafilter_of_finite_inter_nonempty _ this,
     let GG : ultrafilter (ultrafilter X) := ⟨G,hG⟩,
     use X.join GG,
     have : ultrafilter.map X.str GG = F,
-    { suffices : (ultrafilter.map X.str GG).1 ≤ F.1, 
+    { suffices : (ultrafilter.map X.str GG).1 ≤ F.1,
       { ext1,
         exact is_ultrafilter.unique F.2 (ultrafilter.map X.str GG).2.1 this },
       intros S hS,
@@ -184,14 +185,14 @@ begin
     apply h1,
     left,
     refl },
-  have claim4 := finite_inter_closure_has_finite_inter C1, 
-  have claim5 : has_finite_inter C0, 
+  have claim4 := finite_inter_closure_has_finite_inter C1,
+  have claim5 : has_finite_inter C0,
   { split,
-    { use set.univ, 
+    { use set.univ,
       refine ⟨filter.univ_sets _,_⟩,
       simp },
     { assumption } },
-  have claim6 : ∀ P ∈ C2, (P : set (ultrafilter X)).nonempty, 
+  have claim6 : ∀ P ∈ C2, (P : set (ultrafilter X)).nonempty,
   { suffices : ∀ P ∈ C2, P ∈ C0 ∨ ∃ Q ∈ C0, P = AA ∩ Q,
     { intros P hP,
       cases this P hP,
@@ -212,7 +213,7 @@ begin
   assumption,
 end
 
-lemma is_closed_closure {X : Compactum} (A : set X) : is_closed (closure A) := 
+lemma is_closed_closure {X : Compactum} (A : set X) : is_closed (closure A) :=
 begin
   rw is_closed_iff,
   intros F hF,
@@ -225,7 +226,7 @@ lemma str_eq_of_tendsto {X : Compactum} (F : ultrafilter X) (x : X) : F.1 ≤ nh
 begin
   --sorry,
   intro cond,
-  have claim1 : ∀ (A : set X), is_closed A → A ∈ F.1 → x ∈ A, 
+  have claim1 : ∀ (A : set X), is_closed A → A ∈ F.1 → x ∈ A,
   { intros A hA h,
     rw le_nhds_iff at cond,
     by_contradiction,
@@ -234,7 +235,7 @@ begin
     have := ultrafilter_iff_compl_mem_iff_not_mem.mp F.2,
     rw this at cond,
     contradiction },
-  have claim2 : ∀ (A : set X), A ∈ F.1 → x ∈ closure A, 
+  have claim2 : ∀ (A : set X), A ∈ F.1 → x ∈ closure A,
   { intros A hA,
     apply claim1,
     exact is_closed_closure _,
@@ -244,7 +245,7 @@ begin
   let AA := (X.str ⁻¹' {x}),
   let T1 := insert AA T0,
   let T2 := finite_inter_closure T1,
-  have claim3 : ∀ (S1 S2 ∈ T0), S1 ∩ S2 ∈ T0, 
+  have claim3 : ∀ (S1 S2 ∈ T0), S1 ∩ S2 ∈ T0,
   { rintros S1 S2 ⟨S1,hS1,rfl⟩ ⟨S2,hS2,rfl⟩,
     use S1 ∩ S2,
     split,
@@ -259,18 +260,18 @@ begin
     split;
     apply filter.sets_of_superset _ hG;
     simp },
-  have claim4 : ∀ (S ∈ T0), (AA ∩ S).nonempty, 
+  have claim4 : ∀ (S ∈ T0), (AA ∩ S).nonempty,
   { rintros S ⟨S,hS,rfl⟩,
     specialize claim2 _ hS,
     rcases claim2 with ⟨G,hG,hG2⟩, -- claim2 used!
     use G,
     split,
     assumption' },
-  have claim5 : ∀ (S ∈ T0), set.nonempty S, 
+  have claim5 : ∀ (S ∈ T0), set.nonempty S,
   { rintros S ⟨S,hS,rfl⟩,
     use F,
     assumption },
-  have claim6 : ∀ (S ∈ T2), set.nonempty S, 
+  have claim6 : ∀ (S ∈ T2), set.nonempty S,
   { suffices : ∀ S ∈ T2, S ∈ T0 ∨ ∃ Q ∈ T0, S = AA ∩ Q,
     { intros S hS,
       specialize this _ hS,
@@ -282,22 +283,22 @@ begin
       assumption },
     intros S hS,
     apply finite_inter_closure_insert,
-    { split, 
-      { use set.univ, 
+    { split,
+      { use set.univ,
         refine ⟨filter.univ_sets _,_⟩,
         unfold basic,
         ext,
         split,
         { intro, apply filter.univ_sets, },
-        { tauto } }, 
+        { tauto } },
       { assumption } },
     { assumption } },
-  suffices : ∀ (F : finset (set (ultrafilter X))), ↑F ⊆ T1 → 
-    (⋂₀ (↑F : set (set (ultrafilter X)))).nonempty, 
+  suffices : ∀ (F : finset (set (ultrafilter X))), ↑F ⊆ T1 →
+    (⋂₀ (↑F : set (set (ultrafilter X)))).nonempty,
   { obtain ⟨G,h1,hG⟩ := exists_ultrafilter_of_finite_inter_nonempty _ this,
     let GG : ultrafilter (ultrafilter X) := ⟨G,hG⟩,
-    have c1 : X.join GG = F, 
-    { suffices : (X.join GG).1 ≤ F.1, 
+    have c1 : X.join GG = F,
+    { suffices : (X.join GG).1 ≤ F.1,
       { ext1,
         apply is_ultrafilter.unique,
         exact F.2,
@@ -309,14 +310,14 @@ begin
       use P,
       refine ⟨hP,_⟩,
       refl },
-    have c2 : ({x} : set X) ∈ (ultrafilter.map X.str GG).1, 
+    have c2 : ({x} : set X) ∈ (ultrafilter.map X.str GG).1,
     { apply h1,
       left,
       refl },
-    have c3 : ultrafilter.map X.str GG = X.incl x, 
+    have c3 : ultrafilter.map X.str GG = X.incl x,
     { suffices : (ultrafilter.map X.str GG).1 ≤ (X.incl x).1,
       { ext1,
-        apply is_ultrafilter.unique, 
+        apply is_ultrafilter.unique,
         exact (X.incl x).2,
         exact (ultrafilter.map X.str GG).2.1,
         assumption },
@@ -336,8 +337,8 @@ begin
   exact ht,
 end
 
-lemma tendsto_of_str_eq {X : Compactum} (F : ultrafilter X) (x : X) : 
-  X.str F = x → F.1 ≤ nhds x := 
+lemma tendsto_of_str_eq {X : Compactum} (F : ultrafilter X) (x : X) :
+  X.str F = x → F.1 ≤ nhds x :=
 begin
   rintro ⟨rfl⟩,
   rw le_nhds_iff,
@@ -368,13 +369,13 @@ begin
   assumption,
 end
 
-def to_Top : Compactum ⥤ Top := 
+def to_Top : Compactum ⥤ Top :=
 { obj := λ X, Top.of X,
-  map := λ X Y f, 
+  map := λ X Y f,
   { to_fun := f,
     continuous_to_fun := continuous_of_morphism _ } }
-    
-noncomputable def of_nonempty_Top (X : Type*) [nonempty X] [topological_space X] 
+
+noncomputable def of_nonempty_Top (X : Type*) [nonempty X] [topological_space X]
   [compact_space X] [t2_space X] : Compactum :=
 { A := X,
   a := λ (F : ultrafilter X), Lim F.1,
@@ -395,14 +396,14 @@ noncomputable def of_nonempty_Top (X : Type*) [nonempty X] [topological_space X]
     simp at *,
     change Lim' (mjoin FF) = Lim' (ultrafilter.map Lim' FF),
     set x := Lim' (ultrafilter.map Lim' FF),
-    have claim : ∀ (U : set X) (F : ultrafilter X), Lim' F ∈ U → is_open U → U ∈ F.1, 
+    have claim : ∀ (U : set X) (F : ultrafilter X), Lim' F ∈ U → is_open U → U ∈ F.1,
     { intros U F h1 hU,
       suffices : F.1 ≤ nhds (Lim' F),
       { rw le_nhds_iff at this,
         apply this,
         assumption' },
-      have : is_compact (set.univ : set X), 
-      { suffices : compact_space X, 
+      have : is_compact (set.univ : set X),
+      { suffices : compact_space X,
         { cases this,
           assumption },
         apply_instance },
@@ -411,21 +412,21 @@ noncomputable def of_nonempty_Top (X : Type*) [nonempty X] [topological_space X]
       rcases this with ⟨a,ha,cond⟩,
       apply Lim_spec,
       use a,
-      assumption, 
+      assumption,
       intros U hU,
       simp at hU,
       rw hU,
       apply filter.univ_sets },
     have c1 : Lim' (ultrafilter.map Lim' FF) = x, by refl,
-    have c2 : (ultrafilter.map Lim' FF).1 ≤ nhds x, 
+    have c2 : (ultrafilter.map Lim' FF).1 ≤ nhds x,
     { rw le_nhds_iff,
       intros U hx hU,
       apply claim,
       rwa c1,
       assumption },
-    have c3 : ∀ (U : set X), x ∈ U → is_open U → { G : ultrafilter X | U ∈ G.1 } ∈ FF.1, 
+    have c3 : ∀ (U : set X), x ∈ U → is_open U → { G : ultrafilter X | U ∈ G.1 } ∈ FF.1,
     { intros U hx hU,
-      suffices : Lim' ⁻¹' U ∈ FF.1, 
+      suffices : Lim' ⁻¹' U ∈ FF.1,
       { apply filter.sets_of_superset _ this,
         intros P hP,
         simp at hP,
@@ -435,18 +436,18 @@ noncomputable def of_nonempty_Top (X : Type*) [nonempty X] [topological_space X]
       apply c2,
       apply mem_nhds_sets,
       assumption' },
-    have : ∀ (U : set X), x ∈ U → is_open U → U ∈ (mjoin FF).1, 
+    have : ∀ (U : set X), x ∈ U → is_open U → U ∈ (mjoin FF).1,
     { apply c3 },
-    have : (mjoin FF).1 ≤ nhds x, 
+    have : (mjoin FF).1 ≤ nhds x,
     { rw le_nhds_iff,
       apply this },
     letI := (mjoin FF).2.1,
     apply Lim_eq,
     assumption,
   end }
-  
-instance {X : Type*} [topological_space X] [compact_space X] [t2_space X] [nonempty X] : 
-  nonempty (of_nonempty_Top X) := 
+
+instance {X : Type*} [topological_space X] [compact_space X] [t2_space X] [nonempty X] :
+  nonempty (of_nonempty_Top X) :=
 begin
   have c : nonempty X := by apply_instance,
   rcases c,
@@ -462,9 +463,9 @@ noncomputable def morphism_of_continuous {X Y : Type*} [topological_space X] [to
     ext (F : ultrafilter X),
     simp,
     change Lim _ = f (Lim _),
-    have : F.1 ≤ nhds (Lim F.1), 
-    { have : is_compact (set.univ : set X), 
-      { suffices : compact_space X, 
+    have : F.1 ≤ nhds (Lim F.1),
+    { have : is_compact (set.univ : set X),
+      { suffices : compact_space X,
         { cases this,
           assumption },
         apply_instance },
@@ -473,7 +474,7 @@ noncomputable def morphism_of_continuous {X Y : Type*} [topological_space X] [to
       rcases this with ⟨a,ha,cond⟩,
       apply Lim_spec,
       use a,
-      assumption, 
+      assumption,
       intros U hU,
       simp at hU,
       rw hU,
@@ -483,22 +484,22 @@ noncomputable def morphism_of_continuous {X Y : Type*} [topological_space X] [to
     apply Lim_eq,
     assumption,
   end }
-  
-def morphism_of_continuous' {X Y : Compactum} (f : X → Y) (cont : continuous f) : X ⟶ Y := 
+
+def morphism_of_continuous' {X Y : Compactum} (f : X → Y) (cont : continuous f) : X ⟶ Y :=
 { f := f,
   h' := begin
     by_cases nonempty X,
-    have : nonempty Y, 
-    { rcases h, 
+    have : nonempty Y,
+    { rcases h,
       use f h },
     letI := this,
     letI := h,
     rw continuous_iff_ultrafilter at cont,
     ext (F : ultrafilter X),
-    specialize cont (X.str F) F.1 F.2, 
+    specialize cont (X.str F) F.1 F.2,
     have := tendsto_of_str_eq F (X.str F) rfl,
     specialize cont this,
-    have cont' := str_eq_of_tendsto (ultrafilter.map f F) _ cont, 
+    have cont' := str_eq_of_tendsto (ultrafilter.map f F) _ cont,
     simp,
     erw ←cont',
     refl,
@@ -526,21 +527,21 @@ induced_category.category to_Top
 end CompHaus
 
 def Compactum_to_CompHaus : Compactum ⥤ CompHaus :=
-{ obj := λ X, 
-    { to_Top := 
+{ obj := λ X,
+    { to_Top :=
       { α := X } },
-    map := λ X Y f, 
+    map := λ X Y f,
     { to_fun := f,
       continuous_to_fun := Compactum.continuous_of_morphism _ }}
-      
-namespace Compactum_to_CompHaus 
 
-def full : full Compactum_to_CompHaus := 
+namespace Compactum_to_CompHaus
+
+def full : full Compactum_to_CompHaus :=
 { preimage := λ X Y f, Compactum.morphism_of_continuous' f.1 f.2 }
 
 def faithful : faithful Compactum_to_CompHaus := {}
 
-def empty_Compactum : Compactum := 
+def empty_Compactum : Compactum :=
 { A := pempty,
   a := λ F, begin
      exfalso,
@@ -548,19 +549,19 @@ def empty_Compactum : Compactum :=
      apply pempty.elim,
      exact w,
   end }
-  
-theorem is_open_iff_ultrafilter {X : Type*} [topological_space X] (U : set X) : is_open U ↔ 
+
+theorem is_open_iff_ultrafilter {X : Type*} [topological_space X] (U : set X) : is_open U ↔
   (∀ (F : ultrafilter X) (x : X), F.1 ≤ nhds x → x ∈ U → U ∈ F.1) :=
 begin
   split,
-  { intros hU F x h hx, 
+  { intros hU F x h hx,
     rw le_nhds_iff at h,
     specialize h U hx hU,
     assumption },
   { intro h,
     rw ←is_closed_compl_iff,
-    suffices : closure Uᶜ ⊆ Uᶜ, 
-    { have : closure Uᶜ = Uᶜ, 
+    suffices : closure Uᶜ ⊆ Uᶜ,
+    { have : closure Uᶜ = Uᶜ,
       { ext,
         split,
         apply this,
@@ -577,11 +578,11 @@ begin
     have : x ∈ U, rwa ←set.not_not_mem,
     specialize h this,
     rw ultrafilter_iff_compl_mem_iff_not_mem.mp F.2 at h1,
-    contradiction },  
+    contradiction },
 end
 
 lemma eq_lim_iff {X : Type*} [topological_space X] [compact_space X] [t2_space X] [nonempty X]
-  (x : X) (F : ultrafilter X) : Lim F.1 = x ↔ F.1 ≤ nhds x := 
+  (x : X) (F : ultrafilter X) : Lim F.1 = x ↔ F.1 ≤ nhds x :=
 begin
   have claim : F.1 ≤ nhds (Lim F.1),
   { have cpt : compact_space X := by apply_instance,
@@ -589,7 +590,7 @@ begin
     rw compact_iff_ultrafilter_le_nhds at cpt,
     specialize cpt F.1 F.2,
     apply Lim_spec,
-    have : F.1 ≤ principal set.univ, 
+    have : F.1 ≤ principal set.univ,
     { intros S hS,
       simp at hS,
       rw hS,
@@ -608,13 +609,13 @@ begin
     specialize t2 F.1 F.2 claim h,
     assumption }
 end
-  
+
 theorem helper {X : Type*} [topological_space X] [compact_space X] [t2_space X] [nonempty X]
-  (U : set X) : is_open U ↔ (∀ F : ultrafilter X, Lim F.1 ∈ U → U ∈ F.1) := 
+  (U : set X) : is_open U ↔ (∀ F : ultrafilter X, Lim F.1 ∈ U → U ∈ F.1) :=
 begin
   split,
   { intros hU F hF,
-    have : F.1 ≤ nhds (Lim F.1), 
+    have : F.1 ≤ nhds (Lim F.1),
     { rw ←eq_lim_iff },
     rw le_nhds_iff at this,
     apply this,
@@ -628,10 +629,10 @@ begin
     specialize cond hx,
     assumption },
 end
-  
-noncomputable def iso_nonempty {D : CompHaus} [nonempty D] : 
-  Compactum_to_CompHaus.obj (Compactum.of_nonempty_Top D) ≅ D := 
-{ hom := 
+
+noncomputable def iso_nonempty {D : CompHaus} [nonempty D] :
+  Compactum_to_CompHaus.obj (Compactum.of_nonempty_Top D) ≅ D :=
+{ hom :=
   { to_fun := id,
     continuous_to_fun := begin
       intros U hU,
@@ -639,7 +640,7 @@ noncomputable def iso_nonempty {D : CompHaus} [nonempty D] :
       rw helper at hU,
       assumption,
     end},
-  inv := 
+  inv :=
   { to_fun := id,
     continuous_to_fun := begin
       intros U hU,
@@ -650,31 +651,23 @@ noncomputable def iso_nonempty {D : CompHaus} [nonempty D] :
       specialize hU F hF,
       assumption,
     end} }
-    
-lemma set_eq_empty_of_not_nonempty {α : Type*} (h : ¬ nonempty α) (S : set α) : S = ∅ := 
-begin
-  ext,
-  exfalso,
-  apply h,
-  use x,
-end
 
-def iso_empty {D : CompHaus} (cond : ¬ nonempty D) : 
+def iso_empty {D : CompHaus} (cond : ¬ nonempty D) :
   Compactum_to_CompHaus.obj empty_Compactum ≅ D :=
-{ hom := 
+{ hom :=
   { to_fun := λ (x : pempty), pempty.elim x,
     continuous_to_fun := begin
       intros U hU,
-      have : U = ∅, { apply set_eq_empty_of_not_nonempty, assumption },
+      have : U = ∅, { apply set.eq_empty_of_not_nonempty, assumption },
       rw this,
       simp,
-    end}, 
-  inv := 
+    end},
+  inv :=
   { to_fun := λ x, false.elim $ cond ⟨x⟩,
     continuous_to_fun := begin
       intros U hU,
-      have : U = ∅, 
-      { apply set_eq_empty_of_not_nonempty,
+      have : U = ∅,
+      { apply set.eq_empty_of_not_nonempty,
         change ¬nonempty pempty,
         intro c,
         cases c,
@@ -690,9 +683,9 @@ def iso_empty {D : CompHaus} (cond : ¬ nonempty D) :
     use x,
   end}
 
-noncomputable def ess_surj : ess_surj Compactum_to_CompHaus := 
-{ obj_preimage := λ X, if h : nonempty X then 
-    by letI := h; exact Compactum.of_nonempty_Top X else 
+noncomputable def ess_surj : ess_surj Compactum_to_CompHaus :=
+{ obj_preimage := λ X, if h : nonempty X then
+    by letI := h; exact Compactum.of_nonempty_Top X else
     empty_Compactum,
   iso' := begin
     intros D,
@@ -703,8 +696,8 @@ noncomputable def ess_surj : ess_surj Compactum_to_CompHaus :=
     apply iso_empty,
     assumption,
   end}
-  
-end Compactum_to_CompHaus 
+
+end Compactum_to_CompHaus
 
 noncomputable def Compactum_CompHaus_equiv : is_equivalence Compactum_to_CompHaus :=
 begin
@@ -714,4 +707,3 @@ begin
   apply equivalence.equivalence_of_fully_faithfully_ess_surj _,
   assumption',
 end
-

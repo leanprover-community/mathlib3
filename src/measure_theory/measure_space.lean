@@ -910,7 +910,7 @@ begin
   induction s using finset.induction_on with i s hi hs, { simp },
   simp only [finset.mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at htm ⊢,
   simp only [finset.bUnion_insert, ← hs htm.2],
-  exact restrict_union_congr htm.1 (is_measurable.bUnion s.countable_to_set htm.2)
+  exact restrict_union_congr htm.1 (s.is_measurable_bUnion htm.2)
 end
 
 lemma restrict_Union_congr [encodable ι] {s : ι → set α} (hm : ∀ i, is_measurable (s i)) :
@@ -920,7 +920,7 @@ begin
   refine ⟨λ h i, restrict_congr_mono (subset_Union _ _) (hm i) h, λ h, _⟩,
   ext1 t ht,
   have M : ∀ t : finset ι, is_measurable (⋃ i ∈ t, s i) :=
-    λ t, is_measurable.bUnion t.countable_to_set (λ i _, hm i),
+    λ t, t.is_measurable_bUnion (λ i _, hm i),
   have D : directed (⊆) (λ t : finset ι, ⋃ i ∈ t, s i) :=
     directed_of_sup (λ t₁ t₂ ht, bUnion_subset_bUnion_left ht),
   rw [Union_eq_Union_finset],

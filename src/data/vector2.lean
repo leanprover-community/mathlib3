@@ -24,6 +24,16 @@ instance [inhabited α] : inhabited (vector α n) :=
 theorem to_list_injective : function.injective (@to_list α n) :=
 subtype.val_injective
 
+/-- Two `v w : vector α n` are equal iff they are equal at every single index. -/
+@[ext] theorem ext : ∀ {v w : vector α n}
+  (h : ∀ m : fin n, vector.nth v m = vector.nth w m), v = w
+| ⟨v, hv⟩ ⟨w, hw⟩ h := subtype.eq (list.ext_le (by rw [hv, hw])
+  (λ m hm hn, h ⟨m, hv ▸ hm⟩))
+
+/-- The empty `vector` is a `subsingleton` -/
+instance zero_subsingleton : subsingleton (vector α 0) :=
+⟨λ _ _, vector.ext (λ m, fin.elim0 m)⟩
+
 @[simp] theorem cons_val (a : α) : ∀ (v : vector α n), (a :: v).val = a :: v.val
 | ⟨_, _⟩ := rfl
 
@@ -71,9 +81,25 @@ end
 @[simp] theorem tail_val : ∀ (v : vector α n.succ), v.tail.val = v.val.tail
 | ⟨a::l, e⟩ := rfl
 
+/-- The `tail` of a `nil` vector is `nil`. -/
+@[simp] lemma tail_nil : (@nil α).tail = nil := rfl
+
+/-- The `tail` of a vector made up of one element is `nil`. -/
+@[simp] lemma singleton_tail (v : vector α 1) : v.tail = vector.nil :=
+by simp only [←cons_head_tail, eq_iff_true_of_subsingleton]
+
 @[simp] theorem tail_of_fn {n : ℕ} (f : fin n.succ → α) :
   tail (of_fn f) = of_fn (λ i, f i.succ) :=
 (of_fn_nth _).symm.trans $ by congr; funext i; simp
+
+/-- The list that makes up a `vector` made up of a single element,
+retrieved via `to_list`, is equal to the list of that single element. -/
+@[simp] lemma to_list_singleton (v : vector α 1) : v.to_list = [v.head] :=
+begin
+  rw ←cons_head_tail v,
+  simp only [to_list_cons, to_list_nil, cons_head, eq_self_iff_true,
+             and_self, singleton_tail]
+end
 
 lemma mem_iff_nth {a : α} {v : vector α n} : a ∈ v.to_list ↔ ∃ i, v.nth i = a :=
 by simp only [list.mem_iff_nth_le, fin.exists_iff, vector.nth_eq_nth_le];
@@ -102,6 +128,10 @@ theorem head'_to_list : ∀ (v : vector α n.succ),
 def reverse (v : vector α n) : vector α n :=
 ⟨v.to_list.reverse, by simp⟩
 
+/-- The `list` of a vector after a `reverse`, retrieved by `to_list` is equal
+to the `list.reverse` after retrieving a vector's `to_list`. -/
+lemma to_list_reverse {v : vector α n} : v.reverse.to_list = v.to_list.reverse := rfl
+
 @[simp] theorem nth_zero : ∀ (v : vector α n.succ), nth v 0 = head v
 | ⟨a::l, e⟩ := rfl
 
@@ -113,9 +143,32 @@ by rw [← nth_zero, nth_of_fn]
   (a : α) (v : vector α n) : nth (a :: v) 0 = a :=
 by simp [nth_zero]
 
+/-- Accessing the `nth` element of a vector made up
+of one element `x : α` is `x` itself. -/
+@[simp] lemma nth_cons_nil {ix}
+  (x : α) : nth (x :: nil) ix = x :=
+by convert nth_cons_zero x nil
+
 @[simp] theorem nth_cons_succ
   (a : α) (v : vector α n) (i : fin n) : nth (a :: v) i.succ = nth v i :=
 by rw [← nth_tail, tail_cons]
+
+/-- The last element of a `vector`, given that the vector is at least one element. -/
+def last (v : vector α (n + 1)) : α := v.nth (fin.last n)
+
+/-- The last element of a `vector`, given that the vector is at least one element. -/
+lemma last_def {v : vector α (n + 1)} : v.last = v.nth (fin.last n) := rfl
+
+/-- The `last` element of a vector is the `head` of the `reverse` vector. -/
+lemma reverse_nth_zero {v : vector α (n + 1)} : v.reverse.head = v.last :=
+begin
+  have : 0 = v.to_list.length - 1 - n,
+    { simp only [nat.add_succ_sub_one, add_zero, to_list_length, nat.sub_self,
+                 list.length_reverse] },
+  rw [←nth_zero, last_def, nth_eq_nth_le, nth_eq_nth_le],
+  simp_rw [to_list_reverse, fin.val_eq_coe, fin.coe_last, fin.coe_zero, this],
+  rw list.nth_le_reverse,
+end
 
 def m_of_fn {m} [monad m] {α : Type u} : ∀ {n}, (fin n → m α) → m (vector α n)
 | 0     f := pure nil
@@ -139,13 +192,21 @@ def mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
   do h' ← f a, t' ← mmap f v, pure (h' :: t')
 | _ ⟨l, rfl⟩ := rfl
 
-@[ext] theorem ext : ∀ {v w : vector α n}
-  (h : ∀ m : fin n, vector.nth v m = vector.nth w m), v = w
-| ⟨v, hv⟩ ⟨w, hw⟩ h := subtype.eq (list.ext_le (by rw [hv, hw])
-  (λ m hm hn, h ⟨m, hv ▸ hm⟩))
-
-instance zero_subsingleton : subsingleton (vector α 0) :=
-⟨λ _ _, vector.ext (λ m, fin.elim0 m)⟩
+@[elab_as_eliminator] protected lemma vector.induction_on
+  {α : Type*} {n : ℕ}
+  {C : Π {n}, vector α n → Sort*}
+  (v : vector α (n + 1))
+  (h0 : C vector.nil)
+  (hs : ∀ {n : ℕ} {x : α} {w : vector α n}, C w → C (x :: w)) :
+    C v :=
+begin
+  induction n with n hn,
+  { rw ←vector.cons_head_tail v,
+    convert hs h0 },
+  { rw ←vector.cons_head_tail v,
+    apply hs,
+    apply hn }
+end
 
 def to_array : vector α n → array n α
 | ⟨xs, h⟩ := cast (by rw h) xs.to_array

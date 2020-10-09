@@ -387,7 +387,7 @@ noncomputable def of_Top (X : Type*) [topological_space X]
       have := compact_iff_ultrafilter_le_nhds.mp this,
       specialize this F.1 F.2 _,
       rcases this with ⟨a,ha,cond⟩,
-      apply Lim_spec,
+      apply le_nhds_Lim,
       use a,
       assumption,
       intros U hU,
@@ -509,7 +509,7 @@ lemma le_nhds_Lim {X : Type*} [topological_space X] [compact_space X]
 begin
   obtain ⟨cpt⟩ := (show compact_space X, by apply_instance),
   rw compact_iff_ultrafilter_le_nhds at cpt,
-  apply Lim_spec,
+  apply le_nhds_Lim,
   rcases cpt F.1 F.2 (by finish) with ⟨x,_,h⟩,
   exact ⟨x,h⟩,
 end

@@ -192,18 +192,22 @@ def mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
   do h' ← f a, t' ← mmap f v, pure (h' :: t')
 | _ ⟨l, rfl⟩ := rfl
 
-@[elab_as_eliminator] protected lemma vector.induction_on
+/-- Define `C v` by induction on `v : vector α (n + 1)`, a vector of
+at least one element.
+This function has two arguments: `h0` handles the base case on `C nil`,
+and `hs` defines the inductive step using `∀ x : α, C v → C (x :: v)`. -/
+@[elab_as_eliminator] def vector.induction_on
   {α : Type*} {n : ℕ}
   {C : Π {n}, vector α n → Sort*}
   (v : vector α (n + 1))
-  (h0 : C vector.nil)
+  (h0 : C nil)
   (hs : ∀ {n : ℕ} {x : α} {w : vector α n}, C w → C (x :: w)) :
     C v :=
 begin
   induction n with n hn,
-  { rw ←vector.cons_head_tail v,
+  { rw ←v.cons_head_tail,
     convert hs h0 },
-  { rw ←vector.cons_head_tail v,
+  { rw ←v.cons_head_tail,
     apply hs,
     apply hn }
 end

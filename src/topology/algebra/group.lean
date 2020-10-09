@@ -198,30 +198,17 @@ variables [topological_space G] [group G] [topological_group G] (N : subgroup G)
 @[to_additive]
 instance {G : Type u} [group G] [topological_space G] (N : subgroup G) :
   topological_space (quotient_group.quotient N) :=
-by dunfold quotient_group.quotient; apply_instance
+quotient.topological_space
 
 open quotient_group
-@[to_additive]
-lemma quotient_group_saturate {G : Type u} [group G] (N : subgroup G) (s : set G) :
-  (coe : G → quotient N) ⁻¹' ((coe : G → quotient N) '' s) = (⋃ x : N, (λ y, y*x.1) '' s) :=
-begin
-  ext x,
-  simp only [mem_preimage, mem_image, mem_Union, quotient_group.eq],
-  split,
-  { exact assume ⟨a, a_in, h⟩, ⟨⟨_, h⟩, a, a_in, mul_inv_cancel_left _ _⟩ },
-  { exact assume ⟨⟨i, hi⟩, a, ha, eq⟩,
-      ⟨a, ha, by { simp only [eq.symm, (mul_assoc _ _ _).symm, inv_mul_cancel_left], exact hi }⟩ }
-end
 
 @[to_additive]
-lemma quotient_group.open_coe : is_open_map (coe : G →  quotient N) :=
+lemma quotient_group.is_open_map_coe : is_open_map (coe : G →  quotient N) :=
 begin
   intros s s_op,
   change is_open ((coe : G →  quotient N) ⁻¹' (coe '' s)),
-  rw quotient_group_saturate N s,
-  apply is_open_Union,
-  rintro ⟨n, _⟩,
-  exact is_open_map_mul_right n s s_op
+  rw quotient_group.preimage_image_coe N s,
+  exact is_open_Union (λ n, is_open_map_mul_right n s s_op)
 end
 
 @[to_additive]
@@ -231,11 +218,9 @@ instance topological_group_quotient (n : N.normal) : topological_group (quotient
       continuous_quot_mk.comp continuous_mul,
     have quot : quotient_map (λ p : G × G, ((p.1:quotient N), (p.2:quotient N))),
     { apply is_open_map.to_quotient_map,
-      { exact is_open_map.prod (quotient_group.open_coe N) (quotient_group.open_coe N) },
-      { exact (continuous_quot_mk.comp continuous_fst).prod_mk
-              (continuous_quot_mk.comp continuous_snd) },
-      { rintro ⟨⟨x⟩, ⟨y⟩⟩,
-        exact ⟨(x, y), rfl⟩ } },
+      { exact (quotient_group.is_open_map_coe N).prod (quotient_group.is_open_map_coe N) },
+      { exact continuous_quot_mk.prod_map continuous_quot_mk },
+      { exact (surjective_quot_mk _).prod_map (surjective_quot_mk _) } },
     exact (quotient_map.continuous_iff quot).2 cont,
   end,
   continuous_inv := begin

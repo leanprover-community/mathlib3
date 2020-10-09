@@ -137,7 +137,7 @@ protected theorem bijective (f : α ≃ β) : bijective f :=
 set.eq_univ_of_forall e.surjective
 
 protected theorem subsingleton (e : α ≃ β) [subsingleton β] : subsingleton α :=
-e.injective.comap_subsingleton
+e.injective.subsingleton
 
 /-- Transfer `decidable_eq` across an equivalence. -/
 protected def decidable_eq (e : α ≃ β) [decidable_eq β] : decidable_eq α :=

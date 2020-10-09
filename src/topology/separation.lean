@@ -197,13 +197,12 @@ lemma is_ultrafilter.Lim_eq_iff_le_nhds [compact_space α] (x : α) (F : ultrafi
   @Lim _ _ ⟨x⟩ F.1 = x ↔ F.1 ≤ 𝓝 x :=
 ⟨λ h, h ▸ is_ultrafilter.le_nhds_Lim _, Lim_eq⟩
 
-lemma filter.tendsto.lim_eq {a : α} {f : filter β} {g : β → α} (h : tendsto g f (𝓝 a))
-  [ne_bot f] :
+lemma filter.tendsto.lim_eq {a : α} {f : filter β} [ne_bot f] {g : β → α} (h : tendsto g f (𝓝 a)) :
   @lim _ _ _ ⟨a⟩ f g = a :=
 Lim_eq h
 
-lemma filter.lim_eq_iff {f : filter β} {g : β → α} (h : ∃ a, tendsto g f (𝓝 a))
-  [ne_bot f] {a} : @lim _ _ _ ⟨a⟩ f g = a ↔ tendsto g f (𝓝 a) :=
+lemma filter.lim_eq_iff {f : filter β} [ne_bot f] {g : β → α} (h : ∃ a, tendsto g f (𝓝 a)) {a} :
+  @lim _ _ _ ⟨a⟩ f g = a ↔ tendsto g f (𝓝 a) :=
 ⟨λ c, c ▸ tendsto_nhds_lim h, filter.tendsto.lim_eq⟩
 
 lemma continuous.lim_eq [topological_space β] {f : β → α} (h : continuous f) (a : β) :

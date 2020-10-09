@@ -471,60 +471,15 @@ def full : full Compactum_to_CompHaus :=
 
 def faithful : faithful Compactum_to_CompHaus := {}
 
--- This will be in mathlib soon, thanks to @urkud
-theorem is_open_iff_ultrafilter {X : Type*} [topological_space X] (U : set X) : is_open U ↔
-  (∀ (F : ultrafilter X) (x : X), F.1 ≤ nhds x → x ∈ U → U ∈ F.1) :=
-begin
-  split,
-  { intros hU F x h hx,
-    rw le_nhds_iff at h,
-    specialize h U hx hU,
-    assumption },
-  { intro h,
-    rw ←is_closed_compl_iff,
-    suffices : closure Uᶜ ⊆ Uᶜ,
-    { have : closure Uᶜ = Uᶜ,
-      { ext,
-        split,
-        apply this,
-        intro hx,
-        apply subset_closure,
-        assumption },
-      rw ←this,
-      exact is_closed_closure },
-    intros x hx,
-    rw mem_closure_iff_ultrafilter at hx,
-    rcases hx with ⟨F,h1,h2⟩,
-    specialize h F x h2,
-    by_contradiction,
-    have : x ∈ U, rwa ←set.not_not_mem,
-    specialize h this,
-    rw ultrafilter_iff_compl_mem_iff_not_mem.mp F.2 at h1,
-    contradiction },
-end
-
--- Should this be added to mathlib?
-lemma le_nhds_Lim {X : Type*} [topological_space X] [compact_space X]
-  (F : ultrafilter X) : F.1 ≤ nhds F.Lim :=
-begin
-  obtain ⟨cpt⟩ := (show compact_space X, by apply_instance),
-  rw compact_iff_ultrafilter_le_nhds at cpt,
-  apply le_nhds_Lim,
-  rcases cpt F.1 F.2 (by finish) with ⟨x,_,h⟩,
-  exact ⟨x,h⟩,
-end
-
--- Should this be added to mathlib?
-lemma Lim_eq_iff_le_nhds {X : Type*} [topological_space X] [compact_space X] [t2_space X]
-  (x : X) (F : ultrafilter X) : F.Lim = x ↔ F.1 ≤ nhds x :=
-  ⟨λ h, by {rw ←h, exact le_nhds_Lim F}, λ h, by {letI := F.2.1, exact Lim_eq h}⟩
-
 private theorem helper {X : Type*} [topological_space X] [compact_space X] [t2_space X]
   (U : set X) : is_open U ↔ (∀ F : ultrafilter X, F.Lim ∈ U → U ∈ F.1) :=
 begin
   rw is_open_iff_ultrafilter,
-  refine ⟨λ hU F hF, hU F F.Lim (le_nhds_Lim _) hF, λ cond F x h hx, _⟩,
-  rw ←Lim_eq_iff_le_nhds at h,
+  refine ⟨λ h F hF, h _ hF _ F.2 (is_ultrafilter.le_nhds_Lim _),_⟩,
+  intros cond x hx f hf h,
+  let F : ultrafilter X := ⟨f,hf⟩,
+  change F.1 ≤ _ at h,
+  rw ←is_ultrafilter.Lim_eq_iff_le_nhds at h,
   rw ←h at *,
   exact cond _ hx
 end

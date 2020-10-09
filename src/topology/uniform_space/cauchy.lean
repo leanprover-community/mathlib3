@@ -266,7 +266,7 @@ h₁ _ h₃ $ le_principal_iff.2 $ mem_map_sets_iff.2 ⟨univ, univ_mem_sets,
 
 theorem cauchy.le_nhds_Lim [complete_space α] [nonempty α] {f : filter α} (hf : cauchy f) :
   f ≤ 𝓝 (Lim f) :=
-Lim_spec (complete_space.complete hf)
+le_nhds_Lim (complete_space.complete hf)
 
 theorem cauchy_seq.tendsto_lim [semilattice_sup β] [complete_space α] [nonempty α] {u : β → α}
   (h : cauchy_seq u) :

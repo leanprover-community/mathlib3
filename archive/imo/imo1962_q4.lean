@@ -3,6 +3,7 @@ Copyright (c) 2020 Kevin Lacker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker
 -/
+
 import data.real.pi
 
 /-!
@@ -13,9 +14,8 @@ in fact the simplest form of the set of solutions, and then prove it equals the 
 -/
 
 open real
+open_locale real
 noncomputable theory
-
-notation `π` := real.pi
 
 def problem_equation (x : ℝ) : Prop := cos x ^ 2 + cos (2 * x) ^ 2 + cos (3 * x) ^ 2 = 1
 

@@ -173,12 +173,17 @@ lemma equiv.summable_iff_of_support {g : γ → α} (e : support f ≃ support g
 exists_congr $ λ _, e.has_sum_iff_of_support he
 
 protected lemma has_sum.map [add_comm_monoid γ] [topological_space γ] (hf : has_sum f a)
-  (g : α →+ γ) (h₃ : continuous g) :
+  (g : α →+ γ) (hg : continuous g) :
   has_sum (g ∘ f) (g a) :=
 have g ∘ (λs:finset β, ∑ b in s, f b) = (λs:finset β, ∑ b in s, g (f b)),
   from funext $ g.map_sum _,
 show tendsto (λs:finset β, ∑ b in s, g (f b)) at_top (𝓝 (g a)),
-  from this ▸ (h₃.tendsto a).comp hf
+  from this ▸ (hg.tendsto a).comp hf
+
+protected lemma summable.map [add_comm_monoid γ] [topological_space γ] (hf : summable f)
+  (g : α →+ γ) (hg : continuous g) :
+  summable (g ∘ f) :=
+(hf.has_sum.map g hg).summable
 
 /-- If `f : ℕ → α` has sum `a`, then the partial sums `∑_{i=0}^{n-1} f i` converge to `a`. -/
 lemma has_sum.tendsto_sum_nat {f : ℕ → α} (h : has_sum f a) :

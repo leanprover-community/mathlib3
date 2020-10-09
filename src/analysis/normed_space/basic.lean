@@ -1110,21 +1110,6 @@ open_locale classical
 open finset filter
 variables [normed_group α] [normed_group β]
 
--- Applying a bounded homomorphism commutes with taking an (infinite) sum.
-lemma has_sum_of_bounded_monoid_hom_of_has_sum
-  {f : ι → α} {φ : α →+ β} {x : α} (hf : has_sum f x) (C : ℝ) (hφ : ∀x, ∥φ x∥ ≤ C * ∥x∥) :
-  has_sum (λ (b:ι), φ (f b)) (φ x) :=
-begin
-  unfold has_sum,
-  convert (φ.continuous_of_bound C hφ).continuous_at.tendsto.comp hf,
-  ext s, rw [function.comp_app, finset.sum_hom s φ],
-end
-
-lemma has_sum_of_bounded_monoid_hom_of_summable
-  {f : ι → α} {φ : α →+ β} (hf : summable f) (C : ℝ) (hφ : ∀x, ∥φ x∥ ≤ C * ∥x∥) :
-  has_sum (λ (b:ι), φ (f b)) (φ (∑'b, f b)) :=
-has_sum_of_bounded_monoid_hom_of_has_sum hf.has_sum C hφ
-
 lemma cauchy_seq_finset_iff_vanishing_norm {f : ι → α} :
   cauchy_seq (λ s : finset ι, ∑ i in s, f i) ↔
     ∀ε > (0 : ℝ), ∃s:finset ι, ∀t, disjoint t s → ∥ ∑ i in t, f i ∥ < ε :=
@@ -1241,5 +1226,7 @@ calc summable (λ x, abs (f x)) ↔
 ... ↔ summable (λ x : {x | 0 ≤ f x}, f x) ∧ summable (λ x : {x | 0 ≤ f x}ᶜ, -f x) :
   by simp only [h1, h2]
 ... ↔ _ : by simp only [summable_neg_iff, summable_subtype_and_compl]
+
+alias real.summable_abs_iff ↔ summable.of_abs summable.abs
 
 end summable

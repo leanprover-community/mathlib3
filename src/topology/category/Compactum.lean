@@ -355,19 +355,20 @@ def to_Top : Compactum ⥤ Top :=
     continuous_to_fun := continuous_of_hom _ } }
 -/
 
-noncomputable def of_nonempty_Top (X : Type*) [nonempty X] [topological_space X]
+noncomputable def of_Top (X : Type*) [topological_space X]
   [compact_space X] [t2_space X] : Compactum :=
 { A := X,
-  a := λ (F : ultrafilter X), Lim F.1,
+  a := λ (F : ultrafilter X), @Lim _ _ (@nonempty_of_ne_bot _ F.1 F.2.1) F.1,
   unit' := begin
     ext x,
+    letI : nonempty X := ⟨x⟩,
     change Lim (pure x : ultrafilter X).1 = x,
     letI := (pure x : ultrafilter X).2.1,
     apply Lim_eq,
     finish [le_nhds_iff],
   end,
   assoc' := begin
-    let Lim' : ultrafilter X → X := λ F, Lim F.1,
+    let Lim' : ultrafilter X → X := λ F, @Lim _ _ (@nonempty_of_ne_bot _ F.1 F.2.1) F.1,
     ext FF,
     change ultrafilter (ultrafilter X) at FF,
     simp at *,
@@ -424,7 +425,7 @@ noncomputable def of_nonempty_Top (X : Type*) [nonempty X] [topological_space X]
   end }
 
 instance {X : Type*} [topological_space X] [compact_space X] [t2_space X] [nonempty X] :
-  nonempty (of_nonempty_Top X) := by {obtain ⟨x⟩ := (show nonempty X, by apply_instance), use x}
+  nonempty (of_Top X) := by {obtain ⟨x⟩ := (show nonempty X, by apply_instance), use x}
 
 def hom_of_continuous {X Y : Compactum} (f : X → Y) (cont : continuous f) : X ⟶ Y :=
 { f := f,
@@ -471,14 +472,6 @@ def full : full Compactum_to_CompHaus :=
 
 def faithful : faithful Compactum_to_CompHaus := {}
 
-def empty_Compactum : Compactum :=
-{ A := pempty,
-  a := λ F, begin
-    exfalso,
-    obtain (⟨x⟩ : nonempty pempty) := nonempty_of_nonempty_ultrafilter ⟨F⟩,
-    exact pempty.elim x
-  end}
-
 -- This will be in mathlib soon, thanks to @urkud
 theorem is_open_iff_ultrafilter {X : Type*} [topological_space X] (U : set X) : is_open U ↔
   (∀ (F : ultrafilter X) (x : X), F.1 ≤ nhds x → x ∈ U → U ∈ F.1) :=
@@ -512,8 +505,8 @@ begin
 end
 
 -- Should this be added to mathlib?
-lemma le_nhds_Lim {X : Type*} [topological_space X] [compact_space X] [nonempty X]
-  (F : ultrafilter X) : F.1 ≤ nhds (Lim F.1) :=
+lemma le_nhds_Lim {X : Type*} [topological_space X] [compact_space X]
+  (F : ultrafilter X) : F.1 ≤ nhds (@Lim _ _ (@nonempty_of_ne_bot _ F.1 F.2.1) F.1) :=
 begin
   obtain ⟨cpt⟩ := (show compact_space X, by apply_instance),
   rw compact_iff_ultrafilter_le_nhds at cpt,
@@ -524,21 +517,24 @@ end
 
 -- Should this be added to mathlib?
 lemma Lim_eq_iff_le_nhds {X : Type*} [topological_space X] [compact_space X] [t2_space X]
-  [nonempty X] (x : X) (F : ultrafilter X) : Lim F.1 = x ↔ F.1 ≤ nhds x :=
+  (x : X) (F : ultrafilter X) :
+  @Lim _ _ (@nonempty_of_ne_bot _ F.1 F.2.1) F.1 = x ↔ F.1 ≤ nhds x :=
   ⟨λ h, by {rw ←h, exact le_nhds_Lim F}, λ h, by {letI := F.2.1, exact Lim_eq h}⟩
 
 private theorem helper {X : Type*} [topological_space X] [compact_space X] [t2_space X]
-  [nonempty X] (U : set X) : is_open U ↔ (∀ F : ultrafilter X, Lim F.1 ∈ U → U ∈ F.1) :=
+  (U : set X) : is_open U ↔
+  (∀ F : ultrafilter X, @Lim _ _ ((@nonempty_of_ne_bot _ F.1 F.2.1)) F.1 ∈ U → U ∈ F.1) :=
 begin
+  let Lim' : ultrafilter X → X := λ F, @Lim _ _ (@nonempty_of_ne_bot _ F.1 F.2.1) F.1,
   rw is_open_iff_ultrafilter,
-  refine ⟨λ hU F hF, hU F (Lim F.1) (le_nhds_Lim _) hF, λ cond F x h hx, _⟩,
+  refine ⟨λ hU F hF, hU F (Lim' F) (le_nhds_Lim _) hF, λ cond F x h hx, _⟩,
   rw ←Lim_eq_iff_le_nhds at h,
   rw ←h at *,
   exact cond _ hx
 end
 
-noncomputable def iso_nonempty {D : CompHaus} [nonempty D] :
-  Compactum_to_CompHaus.obj (Compactum.of_nonempty_Top D) ≅ D :=
+noncomputable def iso_of_Top {D : CompHaus} :
+  Compactum_to_CompHaus.obj (Compactum.of_Top D) ≅ D :=
 { hom :=
   { to_fun := id,
     continuous_to_fun := λ _ h, by {rw helper at h, exact h} },
@@ -546,34 +542,9 @@ noncomputable def iso_nonempty {D : CompHaus} [nonempty D] :
   { to_fun := id,
     continuous_to_fun := λ _ h1, by {rw helper, intros _ h2, exact h1 _ h2} } }
 
-def iso_empty {D : CompHaus} (cond : ¬ nonempty D) :
-  Compactum_to_CompHaus.obj empty_Compactum ≅ D :=
-{ hom :=
-  { to_fun := λ (x : pempty), pempty.elim x,
-    continuous_to_fun := begin
-      intros U hU,
-      rw (show U = ∅, { apply set.eq_empty_of_not_nonempty, assumption }),
-      simp,
-    end},
-  inv :=
-  { to_fun := λ x, false.elim $ cond ⟨x⟩,
-    continuous_to_fun := begin
-      intros U hU,
-      rw set.eq_empty_of_not_nonempty not_nonempty_pempty U,
-      simp,
-    end},
-  inv_hom_id' := continuous_map.ext $ λ x, false.elim $ cond ⟨x⟩ }
-
 noncomputable def ess_surj : ess_surj Compactum_to_CompHaus :=
-{ obj_preimage := λ X, if h : nonempty X then
-    by letI := h; exact Compactum.of_nonempty_Top X else
-    empty_Compactum,
-  iso' := begin
-    intros D,
-    split_ifs with h,
-    { resetI, exact iso_nonempty },
-    { exact iso_empty h },
-  end}
+{ obj_preimage := λ X, Compactum.of_Top X,
+  iso' := λ _, iso_of_Top }
 
 noncomputable def is_equivalence : is_equivalence Compactum_to_CompHaus :=
 begin

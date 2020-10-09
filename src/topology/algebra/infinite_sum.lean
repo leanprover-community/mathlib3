@@ -463,6 +463,12 @@ by simpa only using h.map (-add_monoid_hom.id α) continuous_neg
 lemma summable.neg (hf : summable f) : summable (λb, - f b) :=
 hf.has_sum.neg.summable
 
+lemma summable.of_neg (hf : summable (λb, - f b)) : summable f :=
+by simpa only [neg_neg] using hf.neg
+
+lemma summable_neg_iff : summable (λ b, - f b) ↔ summable f :=
+⟨summable.of_neg, summable.neg⟩
+
 lemma has_sum.sub (hf : has_sum f a₁) (hg : has_sum g a₂) : has_sum (λb, f b - g b) (a₁ - a₂) :=
 by { simp [sub_eq_add_neg], exact hf.add hg.neg }
 
@@ -767,9 +773,7 @@ summable_iff_vanishing.2 $
 
 protected lemma summable.indicator (hf : summable f) (s : set β) :
   summable (s.indicator f) :=
-hf.summable_of_eq_zero_or_self $ λ b,
-  if hb : b ∈ s then or.inr (set.indicator_of_mem hb _)
-  else or.inl (set.indicator_of_not_mem hb _)
+hf.summable_of_eq_zero_or_self $ set.indicator_eq_zero_or_self _ _
 
 lemma summable.comp_injective {i : γ → β} (hf : summable f) (hi : injective i) :
   summable (f ∘ i) :=
@@ -781,6 +785,10 @@ end
 
 lemma summable.subtype (hf : summable f) (s : set β) : summable (f ∘ coe : s → α) :=
 hf.comp_injective subtype.coe_injective
+
+lemma summable_subtype_and_compl {s : set β} :
+  summable (λ x : s, f x) ∧ summable (λ x : sᶜ, f x) ↔ summable f :=
+⟨and_imp.2 summable.add_compl, λ h, ⟨h.subtype s, h.subtype sᶜ⟩⟩
 
 lemma summable.sigma_factor {γ : β → Type*} {f : (Σb:β, γ b) → α}
   (ha : summable f) (b : β) : summable (λc, f ⟨b, c⟩) :=

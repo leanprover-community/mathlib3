@@ -88,18 +88,16 @@ theorem is_closed_iff {X : Compactum} (S : set X) : is_closed S ↔
 begin
   split,
   { intros cond F h,
-    specialize cond F,
     by_contradiction c,
-    specialize cond c,
+    specialize cond F c,
     cases F with F hF,
     rw ultrafilter_iff_compl_mem_iff_not_mem at hF,
     rw hF at cond,
     contradiction },
   { intros h1 F h2,
     specialize h1 F,
-    cases mem_or_compl_mem_of_ultrafilter F.2 S,
-    { specialize h1 h, contradiction },
-    assumption }
+    cases mem_or_compl_mem_of_ultrafilter F.2 S;
+    finish }
 end
 
 instance {X : Compactum} : compact_space X :=
@@ -131,50 +129,42 @@ begin
     assumption' }
 end
 
-private lemma subset_cl {X : Compactum} (A : set X) : A ⊆ cl A :=
-begin
-  intros a ha,
-  use X.incl a,
-  refine ⟨_,by simp⟩,
-  assumption,
-end
+private lemma subset_cl {X : Compactum} (A : set X) : A ⊆ cl A := λ a ha, ⟨X.incl a, ha,by simp⟩
 
 private theorem cl_cl {X : Compactum} (A : set X) : cl (cl A) ⊆ cl A :=
 begin
+  -- WARNING: This is a long proof.
+  rintros _ ⟨F,hF,rfl⟩,
   let fsu := finset (set (ultrafilter X)),
   let ssu := set (set (ultrafilter X)),
   let ι : fsu → ssu := coe,
-  rintros _ ⟨F,hF,rfl⟩,
   let C0 : ssu := {Z | ∃ B ∈ F.1, X.str ⁻¹' B = Z},
   let AA := {G : ultrafilter X | A ∈ G.1},
   let C1 := insert AA C0,
   let C2 := finite_inter_closure C1,
+  -- C0 is closed under intersections.
   have claim1 : ∀ B C ∈ C0, B ∩ C ∈ C0,
   { rintros B C ⟨Q,hQ,rfl⟩ ⟨R,hR,rfl⟩,
     use Q ∩ R,
-    simp,
-    apply inter_sets,
-    assumption' },
+    simp only [and_true, eq_self_iff_true, set.preimage_inter, subtype.val_eq_coe],
+    exact inter_sets _ hQ hR },
+  -- All sets in C0 are nonempty.
   have claim2 : ∀ B ∈ C0, set.nonempty B,
   { rintros B ⟨Q,hQ,rfl⟩,
-    suffices : Q.nonempty,
-    { rcases this with ⟨q,hq⟩,
-      use X.incl q,
-      simpa },
-    apply nonempty_of_mem_ultrafilter _ F.2,
-    assumption },
+    obtain ⟨q⟩ := nonempty_of_mem_ultrafilter _ F.2 hQ,
+    use X.incl q,
+    simpa, },
+  -- The intersection of AA with every set in C0 is nonempty.
   have claim3 : ∀ B ∈ C0, (AA ∩ B).nonempty,
   { rintros B ⟨Q,hQ,rfl⟩,
-    have : (Q ∩ cl A) ∈ F.1,
-    { apply filter.inter_sets,
-      assumption' },
     have : (Q ∩ cl A).nonempty,
     { apply nonempty_of_mem_ultrafilter _ F.2,
-      assumption },
+      exact F.1.inter_sets hQ hF },
     rcases this with ⟨q,hq1,P,hq2,hq3⟩,
     refine ⟨P,hq2,_⟩,
     rw ←hq3 at hq1,
     simpa },
+  -- Suffices to show that the intersection of any finite subcollection of C1 is nonempty.
   suffices : ∀ (T : fsu), ι T ⊆ C1 → (⋂₀ ι T).nonempty,
   { obtain ⟨G,h1,hG⟩ := exists_ultrafilter_of_finite_inter_nonempty _ this,
     let GG : ultrafilter (ultrafilter X) := ⟨G,hG⟩,
@@ -184,41 +174,29 @@ begin
       { ext1,
         exact is_ultrafilter.unique F.2 (ultrafilter.map X.str GG).2.1 this },
       intros S hS,
-      apply h1,
-      right,
-      use S,
-      simpa },
+      refine h1 (or.inr ⟨S,by simpa⟩) },
     rw [join_distrib, this],
-    refine ⟨_,rfl⟩,
-    apply h1,
-    left,
-    refl },
+    exact ⟨h1 (or.inl rfl),rfl⟩ },
+  -- C2 is closed under finite intersections (by construction!).
   have claim4 := finite_inter_closure_has_finite_inter C1,
-  have claim5 : has_finite_inter C0,
-  { split,
-    { use set.univ,
-      refine ⟨filter.univ_sets _,_⟩,
-      simp },
-    { assumption } },
+  -- C0 is closed under finite intersections by claim2.
+  have claim5 : has_finite_inter C0 := ⟨⟨set.univ, filter.univ_sets _,by simp⟩,claim1⟩,
+  -- Everry element of C2 is nonempty.
   have claim6 : ∀ P ∈ C2, (P : set (ultrafilter X)).nonempty,
   { suffices : ∀ P ∈ C2, P ∈ C0 ∨ ∃ Q ∈ C0, P = AA ∩ Q,
     { intros P hP,
       cases this P hP,
-      apply claim2, assumption,
-      rcases h with ⟨Q,hQ,rfl⟩,
-      apply claim3, assumption },
+      { exact claim2 _ h },
+      { rcases h with ⟨Q,hQ,rfl⟩,
+        exact claim3 _ hQ } },
     intros P hP,
-    apply claim5.finite_inter_closure_insert,
-    assumption },
+    exact claim5.finite_inter_closure_insert _ hP },
   intros T hT,
-  suffices : ⋂₀ ι T ∈ C2,
-  { apply claim6,
-    assumption },
+  -- Suffices to show that the intersection of the T's is contained in C2.
+  suffices : ⋂₀ ι T ∈ C2, by exact claim6 _ this,
   apply claim4.finite_inter_mem,
   intros t ht,
-  apply finite_inter_closure.basic,
-  apply hT,
-  assumption,
+  exact finite_inter_closure.basic (@hT t ht),
 end
 
 lemma is_closed_cl {X : Compactum} (A : set X) : is_closed (cl A) :=
@@ -231,7 +209,6 @@ end
 lemma str_eq_of_le_nhds {X : Compactum} (F : ultrafilter X) (x : X) :
   F.1 ≤ nhds x → X.str F = x :=
 begin
-  --sorry,
   intro cond,
   have claim1 : ∀ (A : set X), is_closed A → A ∈ F.1 → x ∈ A,
   { intros A hA h,
@@ -346,14 +323,6 @@ begin
   apply le_nhds_of_str_eq,
   rw [←str_hom_commute, str_eq_of_le_nhds ⟨_,h1⟩ x h2],
 end
-
-/-
-def to_Top : Compactum ⥤ Top :=
-{ obj := λ X, Top.of X,
-  map := λ X Y f,
-  { to_fun := f,
-    continuous_to_fun := continuous_of_hom _ } }
--/
 
 noncomputable def of_Top (X : Type*) [topological_space X]
   [compact_space X] [t2_space X] : Compactum :=
@@ -471,7 +440,7 @@ def full : full Compactum_to_CompHaus :=
 
 def faithful : faithful Compactum_to_CompHaus := {}
 
-private theorem helper {X : Type*} [topological_space X] [compact_space X] [t2_space X]
+private lemma helper {X : Type*} [topological_space X] [compact_space X] [t2_space X]
   (U : set X) : is_open U ↔ (∀ F : ultrafilter X, F.Lim ∈ U → U ∈ F.1) :=
 begin
   rw is_open_iff_ultrafilter,

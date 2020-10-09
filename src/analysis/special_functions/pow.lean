@@ -454,12 +454,12 @@ begin
   cases lt_trichotomy 0 x,
   exact continuous_within_at.continuous_at
     (continuous_on_iff_continuous_restrict.2 continuous_rpow_aux1 _ h)
-    (mem_nhds_sets (by { convert is_open_prod (is_open_lt' (0:ℝ)) is_open_univ, ext, finish }) h),
+    (mem_nhds_sets (by { convert (is_open_lt' (0:ℝ)).prod is_open_univ, ext, finish }) h),
   cases h,
   { exact absurd h.symm hx },
   exact continuous_within_at.continuous_at
     (continuous_on_iff_continuous_restrict.2 continuous_rpow_aux2 _ h)
-    (mem_nhds_sets (by { convert is_open_prod (is_open_gt' (0:ℝ)) is_open_univ, ext, finish }) h)
+    (mem_nhds_sets (by { convert (is_open_gt' (0:ℝ)).prod is_open_univ, ext, finish }) h)
 end
 
 lemma continuous_rpow_aux3 : continuous (λ p : {p:ℝ×ℝ // 0 < p.2}, p.val.1 ^ p.val.2) :=
@@ -495,7 +495,7 @@ lemma continuous_at_rpow_of_pos (hy : 0 < y) (x : ℝ) :
   continuous_at (λp:ℝ×ℝ, p.1^p.2) (x, y) :=
 continuous_within_at.continuous_at
   (continuous_on_iff_continuous_restrict.2 continuous_rpow_aux3 _ hy)
-  (mem_nhds_sets (by { convert is_open_prod is_open_univ (is_open_lt' (0:ℝ)), ext, finish }) hy)
+  (mem_nhds_sets (by { convert is_open_univ.prod (is_open_lt' (0:ℝ)), ext, finish }) hy)
 
 lemma continuous_at_rpow {x y : ℝ} (h : x ≠ 0 ∨ 0 < y) :
   continuous_at (λp:ℝ×ℝ, p.1^p.2) (x, y) :=

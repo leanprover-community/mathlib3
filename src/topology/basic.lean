@@ -502,6 +502,10 @@ lemma mem_nhds_sets {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
   s ∈ 𝓝 a :=
 mem_nhds_sets_iff.2 ⟨s, subset.refl _, hs, ha⟩
 
+lemma is_open.eventually_mem {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
+  ∀ᶠ x in 𝓝 a, x ∈ s :=
+mem_nhds_sets hs ha
+
 /-- The open neighborhoods of `a` are a basis for the neighborhood filter. See `nhds_basis_opens`
 for a variant using open sets around `a` instead. -/
 lemma nhds_basis_opens' (a : α) : (𝓝 a).has_basis (λ s : set α, s ∈ 𝓝 a ∧ is_open s) (λ x, x) :=
@@ -686,6 +690,10 @@ calc is_open s ↔ s ⊆ interior s : subset_interior_iff_open.symm
 
 lemma is_open_iff_mem_nhds {s : set α} : is_open s ↔ ∀a∈s, s ∈ 𝓝 a :=
 is_open_iff_nhds.trans $ forall_congr $ λ _, imp_congr_right $ λ _, le_principal_iff
+
+theorem is_open_iff_ultrafilter {s : set α} :
+  is_open s ↔ (∀ (x ∈ s) (l : filter α), is_ultrafilter l → l ≤ 𝓝 x → s ∈ l) :=
+by simp_rw [is_open_iff_mem_nhds, @mem_iff_ultrafilter _ (𝓝 _)]
 
 lemma mem_closure_iff_frequently {s : set α} {a : α} : a ∈ closure s ↔ ∃ᶠ x in 𝓝 a, x ∈ s :=
 by rw [filter.frequently, filter.eventually, ← mem_interior_iff_mem_nhds,

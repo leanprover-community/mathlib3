@@ -15,7 +15,14 @@ open multiset
 
 /-! ### pi -/
 section pi
-variables {α : Type*} {δ : α → Type*} [decidable_eq α]
+variables {α : Type*}
+
+/-- The empty dependent product function, defined on the empty set. The assumption `a ∈ ∅` is never
+satisfied. -/
+def pi.empty (β : α → Sort*) (a : α) (h : a ∈ (∅ : finset α)) : β a :=
+multiset.pi.empty β a h
+
+variables {δ : α → Type*} [decidable_eq α]
 
 /-- Given a finset `s` of `α` and for all `a : α` a finset `t a` of `δ a`, then one can define the
 finset `s.pi t` of all functions defined on elements of `s` taking values in `t a` for `a ∈ s`.
@@ -29,11 +36,6 @@ def pi (s : finset α) (t : Πa, finset (δ a)) : finset (Πa∈s, δ a) :=
 @[simp] lemma mem_pi {s : finset α} {t : Πa, finset (δ a)} {f : Πa∈s, δ a} :
   f ∈ s.pi t ↔ (∀a (h : a ∈ s), f a h ∈ t a) :=
 mem_pi _ _ _
-
-/-- The empty dependent product function, defined on the emptyset. The assumption `a ∈ ∅` is never
-satisfied. -/
-def pi.empty (β : α → Sort*) (a : α) (h : a ∈ (∅ : finset α)) : β a :=
-multiset.pi.empty β a h
 
 /-- Given a function `f` defined on a finset `s`, define a new function on the finset `s ∪ {a}`,
 equal to `f` on `s` and sending `a` to a given value `b`. This function is denoted

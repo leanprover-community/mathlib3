@@ -329,8 +329,7 @@ begin
   change (p x 1) (snoc 0 y) = (p x 1) (cons y v),
   unfold_coes,
   congr' with i,
-  have : i = 0 := subsingleton.elim i 0,
-  rw this,
+  rw unique.eq_default i,
   refl
 end
 
@@ -1687,8 +1686,12 @@ series in `g ⁻¹' s`, whose `k`-th term is given by `p k (g v₁, ..., g vₖ)
 lemma has_ftaylor_series_up_to_on.comp_continuous_linear_map {n : with_top ℕ}
   (hf : has_ftaylor_series_up_to_on n f p s) (g : G →L[𝕜] E) :
   has_ftaylor_series_up_to_on n (f ∘ g)
-    (λ x k, (p (g x) k).comp_continuous_linear_map 𝕜 E g) (g ⁻¹' s) :=
+    (λ x k, (p (g x) k).comp_continuous_linear_map (λ _, g)) (g ⁻¹' s) :=
 begin
+  let A : Π m : ℕ, (E [×m]→L[𝕜] F) → (G [×m]→L[𝕜] F) :=
+    λ m h, h.comp_continuous_linear_map (λ _, g),
+  have hA : ∀ m, is_bounded_linear_map 𝕜 (A m) :=
+    λ m, is_bounded_linear_map_continuous_multilinear_map_comp_linear g,
   split,
   { assume x hx,
     simp only [(hf.zero_eq (g x) hx).symm, function.comp_app],
@@ -1696,19 +1699,13 @@ begin
     rw continuous_linear_map.map_zero,
     refl },
   { assume m hm x hx,
-    let A : (E [×m]→L[𝕜] F) → (G [×m]→L[𝕜] F) := λ h, h.comp_continuous_linear_map 𝕜 E g,
-    have hA : is_bounded_linear_map 𝕜 A :=
-      is_bounded_linear_map_continuous_multilinear_map_comp_linear g,
-    convert (hA.has_fderiv_at).comp_has_fderiv_within_at x
+    convert ((hA m).has_fderiv_at).comp_has_fderiv_within_at x
       ((hf.fderiv_within m hm (g x) hx).comp x (g.has_fderiv_within_at) (subset.refl _)),
     ext y v,
     change p (g x) (nat.succ m) (g ∘ (cons y v)) = p (g x) m.succ (cons (g y) (g ∘ v)),
     rw comp_cons },
   { assume m hm,
-    let A : (E [×m]→L[𝕜] F) → (G [×m]→L[𝕜] F) := λ h, h.comp_continuous_linear_map 𝕜 E g,
-    have hA : is_bounded_linear_map 𝕜 A :=
-      is_bounded_linear_map_continuous_multilinear_map_comp_linear g,
-    exact hA.continuous.comp_continuous_on
+    exact (hA m).continuous.comp_continuous_on
       ((hf.cont m hm).comp g.continuous.continuous_on (subset.refl _)) }
 end
 
@@ -2364,9 +2361,8 @@ begin
   -- `E →L[𝕜] E`
   let O₁ : (E →L[𝕜] E) → (F →L[𝕜] E) := λ f, f.comp (e.symm : (F →L[𝕜] E)),
   let O₂ : (E →L[𝕜] F) → (E →L[𝕜] E) := λ f, (e.symm : (F →L[𝕜] E)).comp f,
-  have : continuous_linear_map.inverse = O₁ ∘ ring.inverse ∘ O₂,
-  { funext f,
-    rw to_ring_inverse e},
+  have : continuous_linear_map.inverse = O₁ ∘ ring.inverse ∘ O₂ :=
+    funext (to_ring_inverse e),
   rw this,
   -- `O₁` and `O₂` are `times_cont_diff`, so we reduce to proving that `ring.inverse` is `times_cont_diff`
   have h₁ : times_cont_diff 𝕜 n O₁,
@@ -2377,9 +2373,8 @@ begin
   -- this works differently depending on whether or not `E` is `nontrivial` (the condition for
   -- `E →L[𝕜] E` to be a `normed_algebra`)
   cases subsingleton_or_nontrivial E with _i _i; resetI,
-  { convert @times_cont_diff_at_const _ _ _ _ _ _ _ _ _ _ (0 :  E →L[𝕜] E),
-    ext,
-    simp },
+  { rw [subsingleton.elim ring.inverse (λ _, (0 : E →L[𝕜] E))],
+    exact times_cont_diff_at_const },
   { convert times_cont_diff_at_ring_inverse 𝕜 (E →L[𝕜] E) 1,
     simp [O₂],
     refl },

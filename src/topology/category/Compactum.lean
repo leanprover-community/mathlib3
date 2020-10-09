@@ -25,7 +25,7 @@ open category_theory filter topological_space category_theory.limits has_finite_
 open_locale classical
 
 /-- The type `Compactum` of Compacta, defined as algebras for the ultrafilter monad. -/
-@[derive category]
+@[derive [category, inhabited]]
 def Compactum := monad.algebra (of_type_functor $ ultrafilter)
 
 namespace Compactum
@@ -33,11 +33,14 @@ namespace Compactum
 /-- The forgetful functor to Type* -/
 @[derive [creates_limits,faithful]]
 def forget : Compactum ⥤ Type* := monad.forget _
+
 /-- The "free" Compactum functor. -/
 def free : Type* ⥤ Compactum := monad.free _
+
 /-- The adjunction between `free` and `forget`. -/
 def adj : free ⊣ forget := monad.adj _
 
+-- Basic instances
 instance : concrete_category Compactum := { forget := forget }
 instance : has_coe_to_sort Compactum := ⟨Type*,forget.obj⟩
 instance {X Y : Compactum} : has_coe_to_fun (X ⟶ Y) := ⟨λ f, X → Y, λ f, f.f⟩
@@ -45,9 +48,11 @@ instance : has_limits Compactum := has_limits_of_has_limits_creates_limits forge
 
 /-- The structure map for a compactum, essentially sending an ultrafilter to its limit. -/
 def str (X : Compactum) : ultrafilter X → X := X.a
+
 /-- The monadic join. -/
 def join (X : Compactum) : ultrafilter (ultrafilter X) → ultrafilter X :=
   (μ_ $ of_type_functor ultrafilter).app _
+
 /-- The inclusion of `X` into `ultrafilter X`. -/
 def incl (X : Compactum) : X → ultrafilter X :=
   (η_ $ of_type_functor ultrafilter).app _
@@ -105,7 +110,7 @@ begin
   constructor,
   rw compact_iff_ultrafilter_le_nhds,
   intros F hF h,
-  refine ⟨X.str ⟨F,hF⟩,by tauto,_⟩,
+  refine ⟨X.str ⟨F,hF⟩, by tauto, _⟩,
   rw le_nhds_iff,
   intros S h1 h2,
   exact h2 ⟨F,hF⟩ h1,
@@ -120,13 +125,13 @@ private lemma basic_inter {X : Compactum} (A B : set X) : basic (A ∩ B) = basi
 begin
   ext G,
   split,
-  { intro hG, refine ⟨_,_⟩;
+  { intro hG,
+    refine ⟨_, _⟩;
     apply filter.sets_of_superset _ hG;
     intros x hx;
     finish },
   { rintros ⟨h1,h2⟩,
-    apply filter.inter_sets,
-    assumption' }
+    exact G.val.inter_sets h1 h2 }
 end
 
 private lemma subset_cl {X : Compactum} (A : set X) : A ⊆ cl A := λ a ha, ⟨X.incl a, ha,by simp⟩
@@ -167,27 +172,27 @@ begin
   -- Suffices to show that the intersection of any finite subcollection of C1 is nonempty.
   suffices : ∀ (T : fsu), ι T ⊆ C1 → (⋂₀ ι T).nonempty,
   { obtain ⟨G,h1,hG⟩ := exists_ultrafilter_of_finite_inter_nonempty _ this,
-    let GG : ultrafilter (ultrafilter X) := ⟨G,hG⟩,
+    let GG : ultrafilter (ultrafilter X) := ⟨G, hG⟩,
     use X.join GG,
     have : ultrafilter.map X.str GG = F,
     { suffices : (ultrafilter.map X.str GG).1 ≤ F.1,
       { ext1,
         exact is_ultrafilter.unique F.2 (ultrafilter.map X.str GG).2.1 this },
       intros S hS,
-      refine h1 (or.inr ⟨S,by simpa⟩) },
+      refine h1 (or.inr ⟨S, by simpa⟩) },
     rw [join_distrib, this],
-    exact ⟨h1 (or.inl rfl),rfl⟩ },
+    exact ⟨h1 (or.inl rfl), rfl⟩ },
   -- C2 is closed under finite intersections (by construction!).
   have claim4 := finite_inter_closure_has_finite_inter C1,
   -- C0 is closed under finite intersections by claim2.
-  have claim5 : has_finite_inter C0 := ⟨⟨set.univ, filter.univ_sets _,by simp⟩,claim1⟩,
+  have claim5 : has_finite_inter C0 := ⟨⟨set.univ, filter.univ_sets _, by simp⟩, claim1⟩,
   -- Everry element of C2 is nonempty.
   have claim6 : ∀ P ∈ C2, (P : set (ultrafilter X)).nonempty,
   { suffices : ∀ P ∈ C2, P ∈ C0 ∨ ∃ Q ∈ C0, P = AA ∩ Q,
     { intros P hP,
       cases this P hP,
       { exact claim2 _ h },
-      { rcases h with ⟨Q,hQ,rfl⟩,
+      { rcases h with ⟨Q, hQ, rfl⟩,
         exact claim3 _ hQ } },
     intros P hP,
     exact claim5.finite_inter_closure_insert _ hP },
@@ -204,7 +209,7 @@ lemma is_closed_cl {X : Compactum} (A : set X) : is_closed (cl A) :=
 begin
   rw is_closed_iff,
   intros F hF,
-  exact cl_cl _ ⟨F,hF,rfl⟩,
+  exact cl_cl _ ⟨F, hF, rfl⟩,
 end
 
 lemma str_eq_of_le_nhds {X : Compactum} (F : ultrafilter X) (x : X) :
@@ -233,17 +238,17 @@ begin
     exact claim1 (cl A) (is_closed_cl A) (F.val.sets_of_superset hA (subset_cl A)) },
   -- T0 is closed under intersections.
   have claim3 : ∀ (S1 S2 ∈ T0), S1 ∩ S2 ∈ T0,
-  { rintros S1 S2 ⟨S1,hS1,rfl⟩ ⟨S2,hS2,rfl⟩,
+  { rintros S1 S2 ⟨S1, hS1, rfl⟩ ⟨S2, hS2, rfl⟩,
     exact ⟨S1 ∩ S2, F.1.inter_sets hS1 hS2, by simp [basic_inter]⟩ },
   -- For every S ∈ T0, the intersection AA ∩ S is nonempty.
   have claim4 : ∀ (S ∈ T0), (AA ∩ S).nonempty,
-  { rintros S ⟨S,hS,rfl⟩,
-    rcases claim2 _ hS with ⟨G,hG,hG2⟩, -- claim2 used!
-    exact ⟨G,hG2,hG⟩ },
+  { rintros S ⟨S, hS, rfl⟩,
+    rcases claim2 _ hS with ⟨G, hG, hG2⟩,
+    exact ⟨G, hG2, hG⟩ },
   -- Every element of T0 is nonempty.
   have claim5 : ∀ (S ∈ T0), set.nonempty S,
-  { rintros S ⟨S,hS,rfl⟩,
-    exact ⟨F,hS⟩ },
+  { rintros S ⟨S, hS, rfl⟩,
+    exact ⟨F, hS⟩ },
   -- Every element of T2 is nonempty.
   have claim6 : ∀ (S ∈ T2), set.nonempty S,
   { suffices : ∀ S ∈ T2, S ∈ T0 ∨ ∃ Q ∈ T0, S = AA ∩ Q,
@@ -251,28 +256,28 @@ begin
       specialize this _ hS,
       cases this,
       { exact claim5 S this },
-      { rcases this with ⟨Q,hQ,rfl⟩,
+      { rcases this with ⟨Q, hQ, rfl⟩,
         exact claim4 Q hQ}},
     intros S hS,
     apply finite_inter_closure_insert,
     { split,
       { use set.univ,
-        refine ⟨filter.univ_sets _,_⟩,
+        refine ⟨filter.univ_sets _, _⟩,
         ext,
-        refine ⟨_,by tauto⟩,
+        refine ⟨_, by tauto⟩,
         { intro, apply filter.univ_sets, } },
       { exact claim3} },
     { exact hS} },
   -- It suffices to show that the intersection of any finite subset of T1 is nonempty.
   suffices : ∀ (F : fsu), ↑F ⊆ T1 → (⋂₀ ι F).nonempty,
   { obtain ⟨G,h1,hG⟩ := exists_ultrafilter_of_finite_inter_nonempty _ this,
-    let GG : ultrafilter (ultrafilter X) := ⟨G,hG⟩,
+    let GG : ultrafilter (ultrafilter X) := ⟨G, hG⟩,
     have c1 : X.join GG = F,
     { suffices : (X.join GG).1 ≤ F.1,
       { ext1,
         exact is_ultrafilter.unique F.2 (join X GG).2.1 this},
       intros P hP,
-      exact h1 (or.inr ⟨P,hP,rfl⟩) },
+      exact h1 (or.inr ⟨P, hP, rfl⟩) },
     have c2 : ultrafilter.map X.str GG = X.incl x,
     { suffices : (ultrafilter.map X.str GG).1 ≤ (X.incl x).1,
       { ext1,
@@ -281,7 +286,7 @@ begin
       apply filter.sets_of_superset _ (h1 (or.inl rfl)),
       rintros x ⟨rfl⟩,
       exact hP },
-    simp [←c1,join_distrib,c2] },
+    simp [←c1,c2] },
   -- Finish...
   intros T hT,
   refine claim6 _ (finite_inter_mem (finite_inter_closure_has_finite_inter _) _ _),
@@ -307,9 +312,9 @@ lemma continuous_of_hom {X Y : Compactum} (f : X ⟶ Y) : continuous f :=
 begin
   rw continuous_iff_ultrafilter,
   intros x _ h1 h2,
-  change (ultrafilter.map f ⟨_,h1⟩).1 ≤ _,
+  change (ultrafilter.map f ⟨_, h1⟩).1 ≤ _,
   apply le_nhds_of_str_eq,
-  rw [←str_hom_commute, str_eq_of_le_nhds ⟨_,h1⟩ x h2],
+  rw [←str_hom_commute, str_eq_of_le_nhds ⟨_, h1⟩ x h2],
 end
 
 /-- Given any compact Hausdorff space, we construct a Compactum. -/
@@ -341,6 +346,7 @@ noncomputable def of_topological_space (X : Type*) [topological_space X]
     exact c4,
   end }
 
+/-- Any continuous map between Compacta is a morphism of algebras for the ultrafilter monad. -/
 def hom_of_continuous {X Y : Compactum} (f : X → Y) (cont : continuous f) : X ⟶ Y :=
 { f := f,
   h' := begin
@@ -361,6 +367,8 @@ structure CompHaus :=
 
 namespace CompHaus
 
+instance : inhabited CompHaus := ⟨{to_Top := { α := pempty }}⟩
+
 instance : has_coe_to_sort CompHaus := ⟨Type*,λ X, X.to_Top⟩
 instance {X : CompHaus} : compact_space X := X.is_compact
 instance {X : CompHaus} : t2_space X := X.is_hausdorff
@@ -369,6 +377,7 @@ instance category : category CompHaus := induced_category.category to_Top
 
 end CompHaus
 
+/-- The functor functor from Compactum to CompHaus. -/
 def Compactum_to_CompHaus : Compactum ⥤ CompHaus :=
 { obj := λ X, { to_Top := { α := X } },
   map := λ X Y f,
@@ -377,25 +386,28 @@ def Compactum_to_CompHaus : Compactum ⥤ CompHaus :=
 
 namespace Compactum_to_CompHaus
 
+/-- The functor Compactum_to_CompHaus is full. -/
 def full : full Compactum_to_CompHaus :=
 { preimage := λ X Y f, Compactum.hom_of_continuous f.1 f.2 }
 
-def faithful : faithful Compactum_to_CompHaus := {}
+/-- The functor Compactum_to_CompHaus is faithful. -/
+lemma faithful : faithful Compactum_to_CompHaus := {}
 
 private lemma helper {X : Type*} [topological_space X] [compact_space X] [t2_space X]
   (U : set X) : is_open U ↔ (∀ F : ultrafilter X, F.Lim ∈ U → U ∈ F.1) :=
 begin
   rw is_open_iff_ultrafilter,
-  refine ⟨λ h F hF, h _ hF _ F.2 (is_ultrafilter.le_nhds_Lim _),_⟩,
+  refine ⟨λ h F hF, h _ hF _ F.2 (is_ultrafilter.le_nhds_Lim _), _⟩,
   intros cond x hx f hf h,
-  let F : ultrafilter X := ⟨f,hf⟩,
+  let F : ultrafilter X := ⟨f, hf⟩,
   change F.1 ≤ _ at h,
   rw ←is_ultrafilter.Lim_eq_iff_le_nhds at h,
   rw ←h at *,
   exact cond _ hx
 end
 
-noncomputable def iso_of_Top {D : CompHaus} :
+/-- This definition is used to prove essential surjectivity of Compactum_to_CompHaus. -/
+noncomputable def iso_of_topological_space {D : CompHaus} :
   Compactum_to_CompHaus.obj (Compactum.of_topological_space D) ≅ D :=
 { hom :=
   { to_fun := id,
@@ -404,10 +416,12 @@ noncomputable def iso_of_Top {D : CompHaus} :
   { to_fun := id,
     continuous_to_fun := λ _ h1, by {rw helper, intros _ h2, exact h1 _ h2} } }
 
+/-- The functor Compactum_to_CompHaus is essentially surjective. -/
 noncomputable def ess_surj : ess_surj Compactum_to_CompHaus :=
 { obj_preimage := λ X, Compactum.of_topological_space X,
-  iso' := λ _, iso_of_Top }
+  iso' := λ _, iso_of_topological_space }
 
+/-- The functor Compactum_to_CompHaus is an equivalence of categories. -/
 noncomputable def is_equivalence : is_equivalence Compactum_to_CompHaus :=
 begin
   apply equivalence.equivalence_of_fully_faithfully_ess_surj _,

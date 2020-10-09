@@ -111,6 +111,7 @@ lemma isometry.diam_range [metric_space α] [metric_space β] {f : α → β} (h
 by { rw ← image_univ, exact hf.diam_image univ }
 
 /-- `α` and `β` are isometric if there is an isometric bijection between them. -/
+@[nolint has_inhabited_instance] -- such a bijection need not exist
 structure isometric (α : Type*) (β : Type*) [emetric_space α] [emetric_space β]
   extends α ≃ β :=
 (isometry_to_fun  : isometry to_fun)

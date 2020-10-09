@@ -59,6 +59,7 @@ lemma ultrafilter_iff_compl_mem_iff_not_mem :
         have s ∩ sᶜ ∈ g, from inter_mem_sets hs (g_le this),
         by simp only [empty_in_sets_eq_bot, hg, inter_compl_self] at this; contradiction⟩⟩
 
+/-- A variant of `ultrafilter_iff_compl_mem_iff_not_mem`. -/
 lemma ultrafilter_iff_compl_mem_iff_not_mem' :
   is_ultrafilter f ↔ (∀ s, s ∈ f ↔ sᶜ ∉ f) :=
 begin
@@ -71,17 +72,12 @@ end
 lemma ne_empty_of_mem_ultrafilter (s : set α) : is_ultrafilter f → s ∈ f → s ≠ ∅ :=
 begin
   rintros h hs rfl,
-  have := f.univ_sets,
   replace h := ((ultrafilter_iff_compl_mem_iff_not_mem'.mp h) ∅).mp hs,
-  finish,
+  finish [f.univ_sets],
 end
 
 lemma nonempty_of_mem_ultrafilter (s : set α) : is_ultrafilter f → s ∈ f → s.nonempty :=
-begin
-  intros h1 h2,
-  rw ←ne_empty_iff_nonempty,
-  exact ne_empty_of_mem_ultrafilter _ h1 h2,
-end
+λ hf hs, ne_empty_iff_nonempty.mp (ne_empty_of_mem_ultrafilter _ hf hs)
 
 lemma mem_or_compl_mem_of_ultrafilter (hf : is_ultrafilter f) (s : set α) :
   s ∈ f ∨ sᶜ ∈ f :=

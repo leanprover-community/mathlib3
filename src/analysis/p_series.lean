@@ -10,9 +10,10 @@ import analysis.special_functions.pow
 
 In this file we prove that the series `∑' k in ℕ, 1 / k ^ p` converges if and only if `p > 1`.
 The proof is based on the
-[Cauchy condensation test](https://en.wikipedia.org/wiki/Cauchy_condensation_test). We prove this
-test in `nnreal.summable_condensed_iff` and `summable_condensed_iff_of_nonneg`, then use it to
-prove `summable_one_div_rpow`.
+[Cauchy condensation test](https://en.wikipedia.org/wiki/Cauchy_condensation_test): `∑ k, f k`
+converges if and only if so does `∑ k, 2 ^ k f (2 ^ k)`. We prove this test in
+`nnreal.summable_condensed_iff` and `summable_condensed_iff_of_nonneg`, then use it to prove
+`summable_one_div_rpow`. After this transformation, a `p`-series turns into a geometric series.
 
 ## TODO
 
@@ -26,6 +27,13 @@ p-series, Cauchy condensation test
 
 open filter
 open_locale big_operators ennreal nnreal topological_space
+
+/-!
+### Cauchy condensation test
+
+In this section we prove the Cauchy condensation test: for `f : ℕ → ℝ≥0` or `f : ℕ → ℝ`,
+`∑ k, f k` converges if and only if so does `∑ k, 2 ^ k f (2 ^ k)`.
+-/
 
 namespace finset
 

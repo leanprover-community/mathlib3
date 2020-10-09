@@ -294,6 +294,7 @@ end
 lemma le_nhds_of_str_eq {X : Compactum} (F : ultrafilter X) (x : X) :
   X.str F = x → F.1 ≤ nhds x := λ h, le_nhds_iff.mpr (λ s hx hs, hs _ $ by rwa h)
 
+-- All the hard work above boils down to this t2_instance.
 instance {X : Compactum} : t2_space X :=
 begin
   rw t2_iff_ultrafilter,
@@ -303,6 +304,7 @@ begin
   cc,
 end
 
+-- Any continuous morphism of compacta is a morphism of algebras for the ultrafilter monad.
 lemma continuous_of_hom {X Y : Compactum} (f : X ⟶ Y) : continuous f :=
 begin
   rw continuous_iff_ultrafilter,
@@ -312,89 +314,43 @@ begin
   rw [←str_hom_commute, str_eq_of_le_nhds ⟨_,h1⟩ x h2],
 end
 
-noncomputable def of_Top (X : Type*) [topological_space X]
+/-- Given any compact Hausdorff space, we construct a Compactum. -/
+noncomputable def of_topological_space (X : Type*) [topological_space X]
   [compact_space X] [t2_space X] : Compactum :=
 { A := X,
   a := ultrafilter.Lim,
-  unit' := begin
-    ext x,
-    letI : nonempty X := ⟨x⟩,
-    change Lim (pure x : ultrafilter X).1 = x,
-    letI := (pure x : ultrafilter X).2.1,
-    apply Lim_eq,
-    finish [le_nhds_iff],
-  end,
+  unit' := by {ext x, exact Lim_eq (by finish [le_nhds_iff]) },
   assoc' := begin
     ext FF,
     change ultrafilter (ultrafilter X) at FF,
-    simp at *,
-    change (mjoin FF).Lim = (ultrafilter.map ultrafilter.Lim FF).Lim,
-    set x := (ultrafilter.map ultrafilter.Lim FF).Lim,
-    have claim : ∀ (U : set X) (F : ultrafilter X), F.Lim ∈ U → is_open U → U ∈ F.1,
+    set x := (ultrafilter.map ultrafilter.Lim FF).Lim with c1,
+    have c2 : ∀ (U : set X) (F : ultrafilter X), F.Lim ∈ U → is_open U → U ∈ F.1,
     { intros U F h1 hU,
-      suffices : F.1 ≤ nhds (F.Lim),
-      { rw le_nhds_iff at this,
-        apply this,
-        assumption' },
-      have : is_compact (set.univ : set X),
-      { suffices : compact_space X,
-        { cases this,
-          assumption },
-        apply_instance },
-      have := compact_iff_ultrafilter_le_nhds.mp this,
-      specialize this F.1 F.2 _,
-      rcases this with ⟨a,ha,cond⟩,
-      apply le_nhds_Lim,
-      use a,
-      assumption,
-      intros U hU,
-      simp at hU,
-      rw hU,
-      apply filter.univ_sets },
-    have c1 : (ultrafilter.map ultrafilter.Lim FF).Lim = x, by refl,
-    have c2 : (ultrafilter.map ultrafilter.Lim FF).1 ≤ nhds x,
+      exact c1 ▸ is_open_iff_ultrafilter.mp hU _ h1 _ F.2 (is_ultrafilter.le_nhds_Lim _) },
+    have c3 : (ultrafilter.map ultrafilter.Lim FF).1 ≤ nhds x,
     { rw le_nhds_iff,
       intros U hx hU,
-      apply claim,
-      rwa c1,
-      assumption },
-    have c3 : ∀ (U : set X), x ∈ U → is_open U → { G : ultrafilter X | U ∈ G.1 } ∈ FF.1,
+      refine c2 _ _ (by rwa ← c1) hU },
+    have c4 : ∀ (U : set X), x ∈ U → is_open U → { G : ultrafilter X | U ∈ G.1 } ∈ FF.1,
     { intros U hx hU,
       suffices : ultrafilter.Lim ⁻¹' U ∈ FF.1,
       { apply filter.sets_of_superset _ this,
         intros P hP,
-        simp at hP,
-        simp,
-        apply claim,
-        assumption' },
-      apply c2,
-      apply mem_nhds_sets,
-      assumption' },
-    have : ∀ (U : set X), x ∈ U → is_open U → U ∈ (mjoin FF).1,
-    { apply c3 },
-    have : (mjoin FF).1 ≤ nhds x,
-    { rw le_nhds_iff,
-      apply this },
-    letI := (mjoin FF).2.1,
+        exact c2 U P hP hU},
+      exact @c3 U (mem_nhds_sets hU hx) },
     apply Lim_eq,
-    assumption,
+    rw le_nhds_iff,
+    exact c4,
   end }
-
-instance {X : Type*} [topological_space X] [compact_space X] [t2_space X] [nonempty X] :
-  nonempty (of_Top X) := by {obtain ⟨x⟩ := (show nonempty X, by apply_instance), use x}
 
 def hom_of_continuous {X Y : Compactum} (f : X → Y) (cont : continuous f) : X ⟶ Y :=
 { f := f,
   h' := begin
     rw continuous_iff_ultrafilter at cont,
     ext (F : ultrafilter X),
-    specialize cont (X.str F) F.1 F.2,
-    have := le_nhds_of_str_eq F (X.str F) rfl,
-    specialize cont this,
-    have cont' := str_eq_of_le_nhds (ultrafilter.map f F) _ cont,
-    simp only [types_comp_apply, of_type_functor_map],
-    erw ←cont',
-    refl,
+    specialize cont (X.str F) F.1 F.2 (le_nhds_of_str_eq F (X.str F) rfl),
+    have := str_eq_of_le_nhds (ultrafilter.map f F) _ cont,
+    simpa only [←this, types_comp_apply, of_type_functor_map],
   end }
 
 end Compactum
@@ -442,7 +398,7 @@ begin
 end
 
 noncomputable def iso_of_Top {D : CompHaus} :
-  Compactum_to_CompHaus.obj (Compactum.of_Top D) ≅ D :=
+  Compactum_to_CompHaus.obj (Compactum.of_topological_space D) ≅ D :=
 { hom :=
   { to_fun := id,
     continuous_to_fun := λ _ h, by {rw helper at h, exact h} },
@@ -451,7 +407,7 @@ noncomputable def iso_of_Top {D : CompHaus} :
     continuous_to_fun := λ _ h1, by {rw helper, intros _ h2, exact h1 _ h2} } }
 
 noncomputable def ess_surj : ess_surj Compactum_to_CompHaus :=
-{ obj_preimage := λ X, Compactum.of_Top X,
+{ obj_preimage := λ X, Compactum.of_topological_space X,
   iso' := λ _, iso_of_Top }
 
 noncomputable def is_equivalence : is_equivalence Compactum_to_CompHaus :=

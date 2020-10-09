@@ -264,13 +264,6 @@ instance ultrafilter.monad : monad ultrafilter := { map := @ultrafilter.map }
 
 instance ultrafilter.inhabited [inhabited α] : inhabited (ultrafilter α) := ⟨pure (default _)⟩
 
-lemma nonempty_of_nonempty_ultrafilter (h : nonempty (ultrafilter α)) : nonempty α :=
-begin
-  obtain ⟨_,hF⟩ := (show nonempty (ultrafilter α), by apply_instance),
-  obtain ⟨x⟩ := nonempty_of_mem_ultrafilter set.univ hF (filter.univ_sets _),
-  use x,
-end
-
 /-- The ultra-filter extending the cofinite filter. -/
 noncomputable def hyperfilter : filter α := ultrafilter_of cofinite
 

@@ -82,7 +82,7 @@ def limit_cone (F : J ⥤ Module R) : cone F :=
   π :=
   { app := limit_π_linear_map F,
     naturality' := λ j j' f,
-      linear_map.coe_inj ((types.limit_cone (F ⋙ forget _)).π.naturality f) } }
+      linear_map.coe_injective ((types.limit_cone (F ⋙ forget _)).π.naturality f) } }
 
 /--
 Witness that the limit cone in `Module R` is a limit cone.

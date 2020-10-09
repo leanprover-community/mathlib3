@@ -270,13 +270,13 @@ theorem inf_assoc : a ⊓ b ⊓ c = a ⊓ (b ⊓ c) :=
 instance inf_is_associative : is_associative α (⊓) := ⟨@inf_assoc _ _⟩
 
 @[simp] lemma inf_left_idem : a ⊓ (a ⊓ b) = a ⊓ b :=
-
+@sup_left_idem (order_dual α) _ a b
 
 @[simp] lemma inf_right_idem : (a ⊓ b) ⊓ b = a ⊓ b :=
-by rw [inf_assoc, inf_idem]
+@sup_right_idem (order_dual α) _ a b
 
 lemma inf_left_comm (a b c : α) : a ⊓ (b ⊓ c) = b ⊓ (a ⊓ c) :=
-by rw [← inf_assoc, ← inf_assoc, @inf_comm α _ a]
+@sup_left_comm (order_dual α) _ a b c
 
 lemma forall_le_or_exists_lt_inf (a : α) : (∀b, a ≤ b) ∨ (∃b, b < a) :=
 @forall_le_or_exists_lt_sup (order_dual α) _ a

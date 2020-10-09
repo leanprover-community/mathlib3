@@ -5,6 +5,19 @@ Authors: Jeremy Avigad, Mario Carneiro
 -/
 import data.set.basic
 
+/-!
+# Well-founded relations
+
+A relation is well-founded if it can be used for induction: for each `x`, `(∀ y, r y x → P y) → P x`
+implies `P x`. Well-founded relations can be used for induction and recursion, including
+construction of fixed points in the space of dependent functions `Π x : α , β x`.
+
+The predicate `well_founded` is defined in the core library. In this file we prove some extra lemmas
+and provide a few new definitions: `well_founded.min`, `well_founded.sup`, and `well_founded.succ`.
+-/
+
+variables {α : Type*}
+
 namespace well_founded
 /-- If `r` is a well-founded relation, then any nonempty set has a minimal element
 with respect to `r`. -/

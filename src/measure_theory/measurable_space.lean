@@ -128,7 +128,7 @@ end
 lemma set.finite.is_measurable_bUnion {f : β → set α} {s : set β} (hs : finite s)
   (h : ∀ b ∈ s, is_measurable (f b)) :
   is_measurable (⋃ b ∈ s, f b) :=
-is_measurable_bUnion hs.countable h
+is_measurable.bUnion hs.countable h
 
 lemma finset.is_measurable_bUnion {f : β → set α} (s : finset β)
   (h : ∀ b ∈ s, is_measurable (f b)) :
@@ -142,7 +142,7 @@ by { rw sUnion_eq_bUnion, exact is_measurable.bUnion hs h }
 lemma set.finite.is_measurable_sUnion {s : set (set α)} (hs : finite s)
   (h : ∀ t ∈ s, is_measurable t) :
   is_measurable (⋃₀ s) :=
-is_measurable_sUnion hs.countable h
+is_measurable.sUnion hs.countable h
 
 lemma is_measurable.Union_Prop {p : Prop} {f : p → set α} (hf : ∀b, is_measurable (f b)) :
   is_measurable (⋃b, f b) :=
@@ -160,7 +160,7 @@ by { rw compl_bInter, exact is_measurable.bUnion hs (λ b hb, (h b hb).compl) }
 
 lemma set.finite.is_measurable_bInter {f : β → set α} {s : set β} (hs : finite s)
   (h : ∀b∈s, is_measurable (f b)) : is_measurable (⋂b∈s, f b) :=
-is_measurable_bInter hs.countable h
+is_measurable.bInter hs.countable h
 
 lemma finset.is_measurable_bInter {f : β → set α} (s : finset β)
   (h : ∀b∈s, is_measurable (f b)) : is_measurable (⋂b∈s, f b) :=
@@ -173,7 +173,7 @@ by { rw sInter_eq_bInter, exact is_measurable.bInter hs h }
 lemma set.finite.is_measurable_sInter {s : set (set α)} (hs : finite s)
   (h : ∀t∈s, is_measurable t) :
   is_measurable (⋂₀ s) :=
-is_measurable_sInter hs.countable h
+is_measurable.sInter hs.countable h
 
 lemma is_measurable.Inter_Prop {p : Prop} {f : p → set α} (hf : ∀b, is_measurable (f b)) :
   is_measurable (⋂b, f b) :=
@@ -500,7 +500,7 @@ end
 
 @[simp] lemma measurable_const {α β} [measurable_space α] [measurable_space β] {a : α} :
   measurable (λb:β, a) :=
-assume s hs, is_measurable_const (a ∈ s)
+assume s hs, is_measurable.const (a ∈ s)
 
 lemma measurable.indicator [measurable_space α] [measurable_space β] [has_zero β]
   {s : set α} {f : α → β} (hf : measurable f) (hs : is_measurable s) :

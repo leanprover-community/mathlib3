@@ -3,7 +3,6 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import data.fintype.card
 import measure_theory.outer_measure
 import order.filter.countable_Inter
 import data.set.accumulate
@@ -268,15 +267,8 @@ lemma measure_bUnion {s : set β} {f : β → set α} (hs : countable s)
 begin
   haveI := hs.to_encodable,
   rw bUnion_eq_Union,
-  exact measure_Union (hd.on_injective subtype.val_injective $ λ x, x.2) (λ x, h x.1 x.2)
+  exact measure_Union (hd.on_injective subtype.coe_injective $ λ x, x.2) (λ x, h x x.2)
 end
-
-lemma measure_bUnion_finset {β} {s : finset β} {f : β → set α}
-  (hd : pairwise_on ↑s (disjoint on f)) (hm : ∀b∈s, is_measurable (f b)) :
-  μ (⋃b∈s, f b) = ∑ p in s, μ (f p) :=
-calc μ (⋃b∈s, f b) = ∑' p : (↑s : set β), μ (f p.1) : measure_bUnion s.countable_to_set hd hm
-... = ∑ p : (↑s : set β), μ (f p.1) : tsum_fintype _
-... = ∑ p in s, μ (f p) : s.sum_subtype_univ (λ x : β, μ (f x))
 
 lemma measure_sUnion {S : set (set α)} (hs : countable S)
   (hd : pairwise_on S disjoint) (h : ∀s∈S, is_measurable s) :
@@ -429,7 +421,7 @@ lemma tendsto_measure_Union {μ : measure α} {s : ℕ → set α}
   tendsto (μ ∘ s) at_top (𝓝 (μ (⋃n, s n))) :=
 begin
   rw measure_Union_eq_supr hs (directed_of_sup hm),
-  exact tendsto_at_top_supr_nat (μ ∘ s) (assume n m hnm, measure_mono $ hm hnm)
+  exact tendsto_at_top_supr (assume n m hnm, measure_mono $ hm hnm)
 end
 
 /-- Continuity from above: the measure of the intersection of a decreasing sequence of measurable
@@ -439,7 +431,7 @@ lemma tendsto_measure_Inter {μ : measure α} {s : ℕ → set α}
   tendsto (μ ∘ s) at_top (𝓝 (μ (⋂n, s n))) :=
 begin
   rw measure_Inter_eq_infi hs (directed_of_sup hm) hf,
-  exact tendsto_at_top_infi_nat (μ ∘ s) (assume n m hnm, measure_mono $ hm hnm),
+  exact tendsto_at_top_infi (assume n m hnm, measure_mono $ hm hnm),
 end
 
 /-- One direction of the Borel-Cantelli lemma: if (sᵢ) is a sequence of measurable sets such that

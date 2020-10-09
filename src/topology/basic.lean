@@ -691,6 +691,10 @@ calc is_open s ↔ s ⊆ interior s : subset_interior_iff_open.symm
 lemma is_open_iff_mem_nhds {s : set α} : is_open s ↔ ∀a∈s, s ∈ 𝓝 a :=
 is_open_iff_nhds.trans $ forall_congr $ λ _, imp_congr_right $ λ _, le_principal_iff
 
+theorem is_open_iff_ultrafilter {s : set α} :
+  is_open s ↔ (∀ (x ∈ s) (l : filter α), is_ultrafilter l → l ≤ 𝓝 x → s ∈ l) :=
+by simp_rw [is_open_iff_mem_nhds, @mem_iff_ultrafilter _ (𝓝 _)]
+
 lemma mem_closure_iff_frequently {s : set α} {a : α} : a ∈ closure s ↔ ∃ᶠ x in 𝓝 a, x ∈ s :=
 by rw [filter.frequently, filter.eventually, ← mem_interior_iff_mem_nhds,
   closure_eq_compl_interior_compl]; refl
@@ -824,16 +828,16 @@ Lim (f.map g)
 this lemma with a `[nonempty α]` argument of `Lim` derived from `h` to make it useful for types
 without a `[nonempty α]` instance. Because of the built-in proof irrelevance, Lean will unify
 this instance with any other instance. -/
-lemma Lim_spec {f : filter α} (h : ∃a, f ≤ 𝓝 a) : f ≤ 𝓝 (@Lim _ _ (nonempty_of_exists h) f) :=
+lemma le_nhds_Lim {f : filter α} (h : ∃a, f ≤ 𝓝 a) : f ≤ 𝓝 (@Lim _ _ (nonempty_of_exists h) f) :=
 epsilon_spec h
 
 /-- If `g` tends to some `𝓝 a` along `f`, then it tends to `𝓝 (lim f g)`. We formulate
 this lemma with a `[nonempty α]` argument of `lim` derived from `h` to make it useful for types
 without a `[nonempty α]` instance. Because of the built-in proof irrelevance, Lean will unify
 this instance with any other instance. -/
-lemma lim_spec {f : filter β} {g : β → α} (h : ∃ a, tendsto g f (𝓝 a)) :
+lemma tendsto_nhds_lim {f : filter β} {g : β → α} (h : ∃ a, tendsto g f (𝓝 a)) :
   tendsto g f (𝓝 $ @lim _ _ _ (nonempty_of_exists h) f g) :=
-Lim_spec h
+le_nhds_Lim h
 
 end lim
 

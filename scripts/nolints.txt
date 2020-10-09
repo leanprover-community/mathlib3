@@ -7,11 +7,6 @@ apply_nolint category_theory.Kleisli.comp_def unused_arguments
 apply_nolint category_theory.Kleisli.id_def unused_arguments
 apply_nolint category_theory.Kleisli.mk doc_blame has_inhabited_instance
 
--- computability/halting.lean
-apply_nolint computable_pred doc_blame
-apply_nolint nat.partrec'.vec doc_blame
-apply_nolint re_pred doc_blame
-
 -- computability/partrec.lean
 apply_nolint computable doc_blame
 apply_nolint computable₂ doc_blame
@@ -350,9 +345,6 @@ apply_nolint multiset.sum doc_blame
 -- data/multiset/functor.lean
 apply_nolint multiset.traverse doc_blame
 
--- data/multiset/pi.lean
-apply_nolint multiset.pi.empty unused_arguments
-
 -- data/num/basic.lean
 apply_nolint cast_pos_num unused_arguments
 apply_nolint num.gcd_aux doc_blame
@@ -424,14 +416,6 @@ apply_nolint option.lift_or_get doc_blame
 apply_nolint option.rel doc_blame
 apply_nolint option.to_list doc_blame
 apply_nolint option.traverse doc_blame
-
--- data/padics/padic_norm.lean
-apply_nolint padic_norm.neg unused_arguments
-
--- data/padics/padic_numbers.lean
-apply_nolint padic.lim_seq doc_blame
-apply_nolint padic_norm_e.rat_norm doc_blame
-apply_nolint padic_seq unused_arguments
 
 -- data/pequiv.lean
 apply_nolint equiv.to_pequiv doc_blame

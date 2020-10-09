@@ -117,35 +117,25 @@ instance : has_one (monoid_algebra k G) :=
 lemma one_def : (1 : monoid_algebra k G) = single 1 1 :=
 rfl
 
--- TODO: the simplifier unfolds 0 in the instance proof!
-protected lemma zero_mul (f : monoid_algebra k G) : 0 * f = 0 :=
-by simp only [mul_def, sum_zero_index]
-
-protected lemma mul_zero (f : monoid_algebra k G) : f * 0 = 0 :=
-by simp only [mul_def, sum_zero_index, sum_zero]
-
-private lemma left_distrib (a b c : monoid_algebra k G) : a * (b + c) = a * b + a * c :=
-by simp only [mul_def, sum_add_index, mul_add, mul_zero, single_zero, single_add,
-  eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add]
-
-private lemma right_distrib (a b c : monoid_algebra k G) : (a + b) * c = a * c + b * c :=
-by simp only [mul_def, sum_add_index, add_mul, mul_zero, zero_mul, single_zero,
-  single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero, sum_add]
-
 instance : semiring (monoid_algebra k G) :=
 { one       := 1,
   mul       := (*),
+  zero      := 0,
+  add       := (+),
   one_mul   := assume f, by simp only [mul_def, one_def, sum_single_index, zero_mul,
     single_zero, sum_zero, zero_add, one_mul, sum_single],
   mul_one   := assume f, by simp only [mul_def, one_def, sum_single_index, mul_zero,
     single_zero, sum_zero, add_zero, mul_one, sum_single],
-  zero_mul  := monoid_algebra.zero_mul,
-  mul_zero  := monoid_algebra.mul_zero,
+  zero_mul  := assume f, by simp only [mul_def, sum_zero_index],
+  mul_zero  := assume f, by simp only [mul_def, sum_zero_index, sum_zero],
   mul_assoc := assume f g h, by simp only [mul_def, sum_sum_index, sum_zero_index, sum_add_index,
     sum_single_index, single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff,
     add_mul, mul_add, add_assoc, mul_assoc, zero_mul, mul_zero, sum_zero, sum_add],
-  left_distrib  := left_distrib,
-  right_distrib := right_distrib,
+  left_distrib  := assume f g h, by simp only [mul_def, sum_add_index, mul_add, mul_zero,
+    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add],
+  right_distrib := assume f g h, by simp only [mul_def, sum_add_index, add_mul, mul_zero, zero_mul,
+    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
+    sum_add],
   .. finsupp.add_comm_monoid }
 
 @[simp] lemma single_mul_single {a₁ a₂ : G} {b₁ b₂ : k} :
@@ -502,35 +492,25 @@ instance : has_one (add_monoid_algebra k G) :=
 lemma one_def : (1 : add_monoid_algebra k G) = single 0 1 :=
 rfl
 
--- TODO: the simplifier unfolds 0 in the instance proof!
-protected lemma zero_mul (f : add_monoid_algebra k G) : 0 * f = 0 :=
-by simp only [mul_def, sum_zero_index]
-
-protected lemma mul_zero (f : add_monoid_algebra k G) : f * 0 = 0 :=
-by simp only [mul_def, sum_zero_index, sum_zero]
-
-private lemma left_distrib (a b c : add_monoid_algebra k G) : a * (b + c) = a * b + a * c :=
-by simp only [mul_def, sum_add_index, mul_add, mul_zero, single_zero, single_add,
-  eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add]
-
-private lemma right_distrib (a b c : add_monoid_algebra k G) : (a + b) * c = a * c + b * c :=
-by simp only [mul_def, sum_add_index, add_mul, mul_zero, zero_mul, single_zero,
-  single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero, sum_add]
-
 instance : semiring (add_monoid_algebra k G) :=
 { one       := 1,
   mul       := (*),
+  zero      := 0,
+  add       := (+),
   one_mul   := assume f, by simp only [mul_def, one_def, sum_single_index, zero_mul,
     single_zero, sum_zero, zero_add, one_mul, sum_single],
   mul_one   := assume f, by simp only [mul_def, one_def, sum_single_index, mul_zero,
     single_zero, sum_zero, add_zero, mul_one, sum_single],
-  zero_mul  := add_monoid_algebra.zero_mul,
-  mul_zero  := add_monoid_algebra.mul_zero,
+  zero_mul  := assume f, by simp only [mul_def, sum_zero_index],
+  mul_zero  := assume f, by simp only [mul_def, sum_zero_index, sum_zero],
   mul_assoc := assume f g h, by simp only [mul_def, sum_sum_index, sum_zero_index, sum_add_index,
     sum_single_index, single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff,
     add_mul, mul_add, add_assoc, mul_assoc, zero_mul, mul_zero, sum_zero, sum_add],
-  left_distrib  := left_distrib,
-  right_distrib := right_distrib,
+  left_distrib  := assume f g h, by simp only [mul_def, sum_add_index, mul_add, mul_zero,
+    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add],
+  right_distrib := assume f g h, by simp only [mul_def, sum_add_index, add_mul, mul_zero, zero_mul,
+    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
+    sum_add],
   .. finsupp.add_comm_monoid }
 
 lemma single_mul_single {a₁ a₂ : G} {b₁ b₂ : k} :

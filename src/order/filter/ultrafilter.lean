@@ -235,11 +235,18 @@ begin
   exact absurd this u'.1
 end
 
+lemma le_iff_ultrafilter {l₁ l₂ : filter α} :
+  l₁ ≤ l₂ ↔ ∀ g, is_ultrafilter g → g ≤ l₁ → g ≤ l₂ :=
+by { rw [sup_of_ultrafilters l₁] { occs := occurrences.pos [1] }, simp only [supr_le_iff] }
+
+lemma mem_iff_ultrafilter {l : filter α} {s : set α} :
+  s ∈ l ↔ ∀ g, is_ultrafilter g → g ≤ l → s ∈ g :=
+by simpa only [← le_principal_iff] using le_iff_ultrafilter
+
 /-- The `tendsto` relation can be checked on ultrafilters. -/
 lemma tendsto_iff_ultrafilter (f : α → β) (l₁ : filter α) (l₂ : filter β) :
   tendsto f l₁ l₂ ↔ ∀ g, is_ultrafilter g → g ≤ l₁ → g.map f ≤ l₂ :=
-⟨assume h g u gx, le_trans (map_mono gx) h,
- assume h, by rw [sup_of_ultrafilters l₁]; simpa only [tendsto, map_supr, supr_le_iff]⟩
+tendsto_iff_comap.trans $ le_iff_ultrafilter.trans $ by simp only [map_le_iff_le_comap]
 
 /-- The ultrafilter monad. The monad structure on ultrafilters is the
   restriction of the one on filters. -/
@@ -263,6 +270,8 @@ instance ultrafilter.functor : functor ultrafilter := { map := @ultrafilter.map 
 instance ultrafilter.monad : monad ultrafilter := { map := @ultrafilter.map }
 
 instance ultrafilter.inhabited [inhabited α] : inhabited (ultrafilter α) := ⟨pure (default _)⟩
+
+instance {F : ultrafilter α} : ne_bot F.1 := F.2.1
 
 /-- The ultra-filter extending the cofinite filter. -/
 noncomputable def hyperfilter : filter α := ultrafilter_of cofinite

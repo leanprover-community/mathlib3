@@ -245,7 +245,7 @@ protected def prod : abstract_completion (α × β) :=
   complete := by apply_instance,
   separation := by apply_instance,
   uniform_inducing := uniform_inducing.prod pkg.uniform_inducing pkg'.uniform_inducing,
-  dense := pkg.dense.prod pkg'.dense }
+  dense := pkg.dense.prod_map pkg'.dense }
 end prod
 
 

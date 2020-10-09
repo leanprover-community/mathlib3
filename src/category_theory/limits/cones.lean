@@ -589,6 +589,7 @@ def map_cocone_inv_map_cocone {F : J ⥤ D} (H : D ⥤ C) [is_equivalence H] (c 
 /--
 `map_cone` commutes with `postcompose`
 -/
+@[simps {rhs_md:=semireducible}]
 def map_cone_postcompose {α : F ⟶ G} {c} :
   H.map_cone ((cones.postcompose α).obj c) ≅
   (cones.postcompose (whisker_right α H : _)).obj (H.map_cone c) :=
@@ -597,6 +598,7 @@ cones.ext (iso.refl _) (by tidy)
 /--
 `map_cone` commutes with `postcompose_equivalence`
 -/
+@[simps {rhs_md:=semireducible}]
 def map_cone_postcompose_equivalence_functor {α : F ≅ G} {c} :
   H.map_cone ((cones.postcompose_equivalence α).functor.obj c) ≅
     (cones.postcompose_equivalence (iso_whisker_right α H : _)).functor.obj (H.map_cone c) :=
@@ -605,6 +607,7 @@ cones.ext (iso.refl _) (by tidy)
 /--
 `map_cocone` commutes with `precompose`
 -/
+@[simps {rhs_md:=semireducible}]
 def map_cocone_precompose {α : F ⟶ G} {c} :
   H.map_cocone ((cocones.precompose α).obj c) ≅
   (cocones.precompose (whisker_right α H : _)).obj (H.map_cocone c) :=
@@ -613,6 +616,7 @@ cocones.ext (iso.refl _) (by tidy)
 /--
 `map_cocone` commutes with `precompose_equivalence`
 -/
+@[simps {rhs_md:=semireducible}]
 def map_cocone_precompose_equivalence_functor {α : F ≅ G} {c} :
   H.map_cocone ((cocones.precompose_equivalence α).functor.obj c) ≅
     (cocones.precompose_equivalence (iso_whisker_right α H : _)).functor.obj (H.map_cocone c) :=

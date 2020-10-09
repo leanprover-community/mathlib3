@@ -236,10 +236,16 @@ by { rw [eq_bot_iff, adjoin_le_iff], refl, }
 by { rw adjoin_eq_bot_iff, exact set.singleton_subset_iff }
 
 @[simp] lemma adjoin_zero : F⟮(0 : E)⟯ = ⊥ :=
-adjoin_simple_eq_bot_iff.mpr (⊥ : intermediate_field F E).zero_mem
+adjoin_simple_eq_bot_iff.mpr (zero_mem ⊥)
 
 @[simp] lemma adjoin_one : F⟮(1 : E)⟯ = ⊥ :=
-adjoin_simple_eq_bot_iff.mpr (⊥ : intermediate_field F E).one_mem
+adjoin_simple_eq_bot_iff.mpr (one_mem ⊥)
+
+@[simp] lemma adjoin_int (n : ℤ) : F⟮(n : E)⟯ = ⊥ :=
+adjoin_simple_eq_bot_iff.mpr (coe_int_mem ⊥ n)
+
+@[simp] lemma adjoin_nat (n : ℕ) : F⟮(n : E)⟯ = ⊥ :=
+adjoin_simple_eq_bot_iff.mpr (coe_int_mem ⊥ n)
 
 section adjoin_dim
 open finite_dimensional vector_space

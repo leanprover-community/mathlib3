@@ -685,6 +685,12 @@ lemma forall_fin_succ {P : fin (n+1) → Prop} :
   (∀ i, P i) ↔ P 0 ∧ (∀ i:fin n, P i.succ) :=
 ⟨λ H, ⟨H 0, λ i, H _⟩, λ ⟨H0, H1⟩ i, fin.cases H0 H1 i⟩
 
+
+/--
+Define `C i` by induction on `i : fin (n + 1)` via induction on the underlying `nat` value.
+This function has two arguments: `h0` handles the base case on `C 0`,
+and `hs` defines the inductive step using `C i.cast_succ`.
+-/
 @[elab_as_eliminator] def induction_on (i : fin (n + 1))
   {C : fin (n + 1) → Sort*}
   (h0 : C 0)

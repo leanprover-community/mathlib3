@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.group.with_one
 import algebra.group.type_tags
+import algebra.order_functions
 import order.bounded_lattice
 
 set_option old_structure_cmd true
@@ -1550,6 +1551,18 @@ is an additive commutative monoid with a decidable linear order
 in which addition is cancellative and strictly monotone. -/
 @[protect_proj] class decidable_linear_ordered_cancel_add_comm_monoid (α : Type u)
   extends ordered_cancel_add_comm_monoid α, decidable_linear_order α
+
+/- Some lemmas about types that have an ordering and a binary operation, with no
+  rules relating them. -/
+@[to_additive]
+lemma fn_min_mul_fn_max {β} [decidable_linear_order α] [comm_semigroup β] (f : α → β) (n m : α) :
+  f (min n m) * f (max n m) = f n * f m :=
+by { cases le_total n m with h h; simp [h, mul_comm] }
+
+@[to_additive]
+lemma min_mul_max [decidable_linear_order α] [comm_semigroup α] (n m : α) :
+  min n m * max n m = n * m :=
+fn_min_mul_fn_max id n m
 
 section decidable_linear_ordered_cancel_add_comm_monoid
 variables [decidable_linear_ordered_cancel_add_comm_monoid α]

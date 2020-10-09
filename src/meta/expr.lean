@@ -180,6 +180,9 @@ inductive test : Type :=
 ```
 
 we cannot tell that the binder was, in fact, named.
+
+The function `name.is_likely_generated_binder_name` checks if
+a name is of the form `a`, `a_1`, etc.
 -/
 library_note "likely generated binder names"
 

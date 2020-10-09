@@ -607,21 +607,6 @@ lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
 attribute [to_additive finset.sum_range_one] prod_range_one
 
 open multiset
-lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
-  s.prod = ∏ m in s.to_finset, m ^ (s.count m) :=
-begin
-  apply s.induction_on, { rw [prod_zero, to_finset_zero, finset.prod_empty] },
-  intros a s ih, by_cases has : a ∈ s.to_finset,
-  { rw [prod_cons, to_finset_cons, finset.insert_eq_of_mem has, ih,
-      ← finset.insert_erase has, finset.prod_insert (finset.not_mem_erase _ _),
-      finset.prod_insert (finset.not_mem_erase _ _), ← mul_assoc, count_cons_self, pow_succ],
-    congr' 1, refine finset.prod_congr rfl (λ x hx, _),
-    rw [count_cons_of_ne (finset.ne_of_mem_erase hx)] },
-  rw [prod_cons, to_finset_cons, finset.prod_insert has, count_cons_self],
-  rw mem_to_finset at has, rw [count_eq_zero_of_not_mem has, pow_one], congr' 1,
-  rw ih, refine finset.prod_congr rfl (λ x hx, _), rw mem_to_finset at hx, rw count_cons_of_ne,
-  rintro rfl, exact has hx
-end
 
 lemma prod_multiset_map_count [decidable_eq α] (s : multiset α) {M : Type*} [comm_monoid M] (f : α → M) :
   (multiset.map f s).prod = ∏ m in s.to_finset, (f m) ^ (s.count m) :=
@@ -637,6 +622,14 @@ begin
   rw mem_to_finset at has, rw [count_eq_zero_of_not_mem has, pow_one], congr' 1,
   rw ih, refine finset.prod_congr rfl (λ x hx, _), rw mem_to_finset at hx, rw count_cons_of_ne,
   rintro rfl, exact has hx
+end
+
+lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
+  s.prod = ∏ m in s.to_finset, m ^ (s.count m) :=
+begin
+  have hmap := prod_multiset_map_count s (id : α → α),
+  simp only [map_id, id.def] at hmap,
+  exact hmap
 end
 
 /--

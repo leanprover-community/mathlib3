@@ -816,8 +816,8 @@ noncomputable def Lim [nonempty α] (f : filter α) : α := epsilon $ λa, f ≤
 
 def Lim' (f : filter α) [ne_bot f] : α := @Lim _ _ (nonempty_of_ne_bot f) f
 
--- after PR #4545 gets merged, the letI trick will not be necessary
-def filter.ultrafilter.Lim : ultrafilter α → α := λ F, by letI := F.2.1; exact Lim' F.1
+-- Note: `ultrafilter` is inside the `filter` namespace.
+def filter.ultrafilter.Lim : ultrafilter α → α := λ F, Lim' F.1
 
 /-- If `f` is a filter in `β` and `g : β → α` is a function, then `lim f` is a limit of `g` at `f`,
 if it exists. -/

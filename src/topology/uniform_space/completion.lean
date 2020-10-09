@@ -410,11 +410,11 @@ lemma dense_embedding_coe [separated_space α]: dense_embedding (coe : α → co
 
 lemma dense_range_coe₂ :
   dense_range (λx:α × β, ((x.1 : completion α), (x.2 : completion β))) :=
-dense_range_coe.prod dense_range_coe
+dense_range_coe.prod_map dense_range_coe
 
 lemma dense_range_coe₃ :
   dense_range (λx:α × (β × γ), ((x.1 : completion α), ((x.2.1 : completion β), (x.2.2 : completion γ)))) :=
-dense_range_coe.prod dense_range_coe₂
+dense_range_coe.prod_map dense_range_coe₂
 
 @[elab_as_eliminator]
 lemma induction_on {p : completion α → Prop}

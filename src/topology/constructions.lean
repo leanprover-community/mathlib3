@@ -147,7 +147,7 @@ lemma filter.eventually.prod_mk_nhds {pa : α → Prop} {a} (ha : ∀ᶠ x in �
 lemma continuous_swap : continuous (prod.swap : α × β → β × α) :=
 continuous.prod_mk continuous_snd continuous_fst
 
-lemma is_open_prod {s : set α} {t : set β} (hs : is_open s) (ht : is_open t) :
+lemma is_open.prod {s : set α} {t : set β} (hs : is_open s) (ht : is_open t) :
   is_open (set.prod s t) :=
 is_open_inter (continuous_fst s hs) (continuous_snd t ht)
 
@@ -197,7 +197,7 @@ lemma prod_generate_from_generate_from_eq {α : Type*} {β : Type*} {s : set (se
 let G := generate_from {g | ∃u∈s, ∃v∈t, g = set.prod u v} in
 le_antisymm
   (le_generate_from $ assume g ⟨u, hu, v, hv, g_eq⟩, g_eq.symm ▸
-    @is_open_prod _ _ (generate_from s) (generate_from t) _ _
+    @is_open.prod _ _ (generate_from s) (generate_from t) _ _
       (generate_open.basic _ hu) (generate_open.basic _ hv))
   (le_inf
     (coinduced_le_iff_le_induced.mp $ le_generate_from $ assume u hu,
@@ -221,7 +221,7 @@ lemma prod_eq_generate_from :
   prod.topological_space =
   generate_from {g | ∃(s:set α) (t:set β), is_open s ∧ is_open t ∧ g = set.prod s t} :=
 le_antisymm
-  (le_generate_from $ assume g ⟨s, t, hs, ht, g_eq⟩, g_eq.symm ▸ is_open_prod hs ht)
+  (le_generate_from $ assume g ⟨s, t, hs, ht, g_eq⟩, g_eq.symm ▸ hs.prod ht)
   (le_inf
     (ball_image_of_ball $ λt ht, generate_open.basic _ ⟨t, univ, by simpa [set.prod_eq] using ht⟩)
     (ball_image_of_ball $ λt ht, generate_open.basic _ ⟨univ, t, by simpa [set.prod_eq] using ht⟩))
@@ -305,7 +305,7 @@ begin
         exact is_open_map_snd _ H } },
     { assume H,
       simp [st.1.ne_empty, st.2.ne_empty] at H,
-      exact is_open_prod H.1 H.2 } }
+      exact H.1.prod H.2 } }
 end
 
 lemma closure_prod_eq {s : set α} {t : set β} :
@@ -323,7 +323,7 @@ have (a, b) ∈ closure (set.prod s t), by rw [closure_prod_eq]; from ⟨ha, hb�
 show (λp:α×β, f p.1 p.2) (a, b) ∈ closure u, from
   mem_closure hf this $ assume ⟨a, b⟩ ⟨ha, hb⟩, hu a b ha hb
 
-lemma is_closed_prod {s₁ : set α} {s₂ : set β} (h₁ : is_closed s₁) (h₂ : is_closed s₂) :
+lemma is_closed.prod {s₁ : set α} {s₂ : set β} (h₁ : is_closed s₁) (h₂ : is_closed s₂) :
   is_closed (set.prod s₁ s₂) :=
 closure_eq_iff_is_closed.mp $ by simp only [h₁.closure_eq, h₂.closure_eq, closure_prod_eq]
 

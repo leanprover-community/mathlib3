@@ -358,7 +358,7 @@ def to_Top : Compactum ⥤ Top :=
 noncomputable def of_Top (X : Type*) [topological_space X]
   [compact_space X] [t2_space X] : Compactum :=
 { A := X,
-  a := λ (F : ultrafilter X), @Lim _ _ (@nonempty_of_ne_bot _ F.1 F.2.1) F.1,
+  a := ultrafilter.Lim,
   unit' := begin
     ext x,
     letI : nonempty X := ⟨x⟩,
@@ -368,15 +368,14 @@ noncomputable def of_Top (X : Type*) [topological_space X]
     finish [le_nhds_iff],
   end,
   assoc' := begin
-    let Lim' : ultrafilter X → X := λ F, @Lim _ _ (@nonempty_of_ne_bot _ F.1 F.2.1) F.1,
     ext FF,
     change ultrafilter (ultrafilter X) at FF,
     simp at *,
-    change Lim' (mjoin FF) = Lim' (ultrafilter.map Lim' FF),
-    set x := Lim' (ultrafilter.map Lim' FF),
-    have claim : ∀ (U : set X) (F : ultrafilter X), Lim' F ∈ U → is_open U → U ∈ F.1,
+    change (mjoin FF).Lim = (ultrafilter.map ultrafilter.Lim FF).Lim,
+    set x := (ultrafilter.map ultrafilter.Lim FF).Lim,
+    have claim : ∀ (U : set X) (F : ultrafilter X), F.Lim ∈ U → is_open U → U ∈ F.1,
     { intros U F h1 hU,
-      suffices : F.1 ≤ nhds (Lim' F),
+      suffices : F.1 ≤ nhds (F.Lim),
       { rw le_nhds_iff at this,
         apply this,
         assumption' },
@@ -395,8 +394,8 @@ noncomputable def of_Top (X : Type*) [topological_space X]
       simp at hU,
       rw hU,
       apply filter.univ_sets },
-    have c1 : Lim' (ultrafilter.map Lim' FF) = x, by refl,
-    have c2 : (ultrafilter.map Lim' FF).1 ≤ nhds x,
+    have c1 : (ultrafilter.map ultrafilter.Lim FF).Lim = x, by refl,
+    have c2 : (ultrafilter.map ultrafilter.Lim FF).1 ≤ nhds x,
     { rw le_nhds_iff,
       intros U hx hU,
       apply claim,
@@ -404,7 +403,7 @@ noncomputable def of_Top (X : Type*) [topological_space X]
       assumption },
     have c3 : ∀ (U : set X), x ∈ U → is_open U → { G : ultrafilter X | U ∈ G.1 } ∈ FF.1,
     { intros U hx hU,
-      suffices : Lim' ⁻¹' U ∈ FF.1,
+      suffices : ultrafilter.Lim ⁻¹' U ∈ FF.1,
       { apply filter.sets_of_superset _ this,
         intros P hP,
         simp at hP,
@@ -506,7 +505,7 @@ end
 
 -- Should this be added to mathlib?
 lemma le_nhds_Lim {X : Type*} [topological_space X] [compact_space X]
-  (F : ultrafilter X) : F.1 ≤ nhds (@Lim _ _ (@nonempty_of_ne_bot _ F.1 F.2.1) F.1) :=
+  (F : ultrafilter X) : F.1 ≤ nhds F.Lim :=
 begin
   obtain ⟨cpt⟩ := (show compact_space X, by apply_instance),
   rw compact_iff_ultrafilter_le_nhds at cpt,
@@ -517,17 +516,14 @@ end
 
 -- Should this be added to mathlib?
 lemma Lim_eq_iff_le_nhds {X : Type*} [topological_space X] [compact_space X] [t2_space X]
-  (x : X) (F : ultrafilter X) :
-  @Lim _ _ (@nonempty_of_ne_bot _ F.1 F.2.1) F.1 = x ↔ F.1 ≤ nhds x :=
+  (x : X) (F : ultrafilter X) : F.Lim = x ↔ F.1 ≤ nhds x :=
   ⟨λ h, by {rw ←h, exact le_nhds_Lim F}, λ h, by {letI := F.2.1, exact Lim_eq h}⟩
 
 private theorem helper {X : Type*} [topological_space X] [compact_space X] [t2_space X]
-  (U : set X) : is_open U ↔
-  (∀ F : ultrafilter X, @Lim _ _ ((@nonempty_of_ne_bot _ F.1 F.2.1)) F.1 ∈ U → U ∈ F.1) :=
+  (U : set X) : is_open U ↔ (∀ F : ultrafilter X, F.Lim ∈ U → U ∈ F.1) :=
 begin
-  let Lim' : ultrafilter X → X := λ F, @Lim _ _ (@nonempty_of_ne_bot _ F.1 F.2.1) F.1,
   rw is_open_iff_ultrafilter,
-  refine ⟨λ hU F hF, hU F (Lim' F) (le_nhds_Lim _) hF, λ cond F x h hx, _⟩,
+  refine ⟨λ hU F hF, hU F F.Lim (le_nhds_Lim _) hF, λ cond F x h hx, _⟩,
   rw ←Lim_eq_iff_le_nhds at h,
   rw ←h at *,
   exact cond _ hx

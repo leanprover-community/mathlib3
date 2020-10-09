@@ -810,6 +810,9 @@ section lim
 /-- If `f` is a filter, then `Lim f` is a limit of the filter, if it exists. -/
 noncomputable def Lim [nonempty α] (f : filter α) : α := epsilon $ λa, f ≤ 𝓝 a
 
+def filter.ultrafilter.Lim : ultrafilter α → α :=
+λ F, @Lim _ _ (@nonempty_of_ne_bot _ F.1 F.2.1) F.1
+
 /-- If `f` is a filter in `β` and `g : β → α` is a function, then `lim f` is a limit of `g` at `f`,
 if it exists. -/
 noncomputable def lim [nonempty α] (f : filter β) (g : β → α) : α :=

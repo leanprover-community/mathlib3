@@ -368,7 +368,7 @@ by rw [← of_real_rat_cast, of_real_im]
 Note: This is not registered as an instance to avoid having multiple instances on ℝ and ℂ.
 -/
 lemma char_zero_R_or_C : char_zero K :=
-add_group.char_zero_of_inj_zero $ λ n h,
+char_zero_of_inj_zero $ λ n h,
 by rwa [← of_real_nat_cast, of_real_eq_zero, nat.cast_eq_zero] at h
 
 theorem re_eq_add_conj (z : K) : 𝓚 (re z) = (z + conj z) / 2 :=

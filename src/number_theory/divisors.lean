@@ -35,11 +35,11 @@ namespace nat
 variable (n : ℕ)
 
 /-- `divisors n` is the `finset` of divisors of `n`. As a special case, `divisors 0 = {0}`. -/
-def divisors : finset ℕ := finset.filter (λ x : ℕ, x ∣ n) (finset.range (n + 1))
+def divisors : finset ℕ := finset.filter (λ x : ℕ, x ∣ n) (finset.Ico 1 (n + 1))
 
 /-- `proper_divisors n` is the `finset` of divisors of `n`, other than `n`.
   As a special case, `proper_divisors 0 = ∅`. -/
-def proper_divisors : finset ℕ := finset.filter (λ x : ℕ, x ∣ n) (finset.range n)
+def proper_divisors : finset ℕ := finset.filter (λ x : ℕ, x ∣ n) (finset.Ico 1 n)
 
 /-- `divisors_antidiagonal n` is the `finset` of pairs `(x,y)` such that `x * y = n`.
   As a special case, `divisors_antidiagonal 0 = ∅`. -/
@@ -57,30 +57,43 @@ end
 @[simp]
 lemma mem_proper_divisors {m : ℕ} : n ∈ proper_divisors m ↔ n ∣ m ∧ n < m :=
 begin
-  rw [proper_divisors, and_comm],
-  simp,
+  rw [proper_divisors, finset.mem_filter, finset.Ico.mem, and_comm],
+  apply and_congr_right,
+  rw and_iff_right_iff_imp,
+  intros hdvd hlt,
+  apply nat.pos_of_ne_zero _,
+  rintro rfl,
+  rw zero_dvd_iff.1 hdvd at hlt,
+  apply lt_irrefl 0 hlt,
 end
 
-lemma divisors_eq_proper_divisors_insert_self :
+lemma divisors_eq_proper_divisors_insert_self_of_pos (h : 0 < n):
   divisors n = has_insert.insert n (proper_divisors n) :=
-by rw [divisors, proper_divisors, finset.range_succ, finset.filter_insert, if_pos (dvd_refl n)]
+by rw [divisors, proper_divisors, finset.Ico.succ_top h, finset.filter_insert, if_pos (dvd_refl n)]
 
 @[simp]
 lemma mem_divisors {m : ℕ} :
-  n ∈ divisors m ↔ if (m = 0) then n = 0 else n ∣ m :=
+  n ∈ divisors m ↔ (n ∣ m ∧ m ≠ 0) :=
 begin
   cases m,
   { simp [divisors] },
-  simp only [divisors, if_neg m.succ_ne_zero, lt_succ_iff, and_iff_right_iff_imp, finset.mem_filter,
-             finset.mem_range],
-  exact nat.le_of_dvd (nat.succ_pos m)
+  simp only [divisors, finset.Ico.mem, ne.def, finset.mem_filter, succ_ne_zero, and_true,
+             and_iff_right_iff_imp, not_false_iff],
+  intro hdvd,
+  split,
+  { apply nat.pos_of_ne_zero,
+    rintro rfl,
+    apply nat.succ_ne_zero,
+    rwa zero_dvd_iff at hdvd },
+  { rw nat.lt_succ_iff,
+    apply nat.le_of_dvd (nat.succ_pos m) hdvd }
 end
 
 lemma dvd_of_mem_divisors {m : ℕ} (h : n ∈ divisors m) : n ∣ m :=
 begin
   cases m,
   { apply dvd_zero },
-  { rwa [mem_divisors, if_neg (nat.succ_ne_zero _)] at h }
+  { simp [mem_divisors.1 h], }
 end
 
 @[simp]
@@ -92,13 +105,13 @@ begin
   apply and_congr_right,
   rintro rfl,
   split; intro h,
-  { rintro h0,
-    linarith },
-  { repeat {rw [nat.add_one_le_iff, nat.pos_iff_ne_zero, ne.def, nat.lt_add_one_iff] },
+  { contrapose! h, simp [h], },
+  { rw [nat.lt_add_one_iff, nat.lt_add_one_iff],
     rw [mul_eq_zero, decidable.not_or_iff_and_not] at h,
-    refine ⟨⟨h.1, _⟩, ⟨h.2, _⟩⟩,
-    exact nat.le_mul_of_pos_right (nat.pos_of_ne_zero h.2),
-    exact nat.le_mul_of_pos_left (nat.pos_of_ne_zero h.1), }
+    simp only [succ_le_of_lt (nat.pos_of_ne_zero h.1), succ_le_of_lt (nat.pos_of_ne_zero h.2),
+               true_and],
+    exact ⟨le_mul_of_pos_right (nat.pos_of_ne_zero h.2),
+      le_mul_of_pos_left (nat.pos_of_ne_zero h.1)⟩ }
 end
 
 variable {n}
@@ -108,14 +121,14 @@ n ∈ divisors m → n ≤ m :=
 begin
   cases m,
   { simp },
-  simp only [mem_divisors, if_neg (nat.succ_ne_zero m)],
+  simp only [mem_divisors, m.succ_ne_zero, and_true, ne.def, not_false_iff],
   exact nat.le_of_dvd (nat.succ_pos m),
 end
 
 variable (n)
 
 @[simp]
-lemma divisors_zero : divisors 0 = {0} := by { ext, simp }
+lemma divisors_zero : divisors 0 = ∅ := by { ext, simp }
 
 @[simp]
 lemma proper_divisors_zero : proper_divisors 0 = ∅ := by { ext, simp }
@@ -131,7 +144,7 @@ lemma swap_mem_divisors_antidiagonal {n : ℕ} {x : ℕ × ℕ} (h : x ∈ divis
   x.swap ∈ divisors_antidiagonal n :=
 begin
   rw [mem_divisors_antidiagonal, mul_comm] at h,
-  simpa,
+  simp [h.1, h.2],
 end
 
 lemma fst_mem_divisors_of_mem_antidiagonal {n : ℕ} {x : ℕ × ℕ} (h : x ∈ divisors_antidiagonal n) :
@@ -158,10 +171,11 @@ begin
              ne.def, prod.swap_prod_mk, prod.exists],
   split,
   { rintros ⟨x, y, ⟨⟨rfl, h⟩, rfl⟩⟩,
-    simp [h, mul_comm] },
+    simp [mul_comm, h], },
   { rintros ⟨rfl, h⟩,
     use [a.snd, a.fst],
-    simp [h, mul_comm] }
+    rw mul_comm,
+    simp [h] }
 end
 
 lemma sum_divisors_eq_sum_proper_divisors_add_self :
@@ -169,7 +183,7 @@ lemma sum_divisors_eq_sum_proper_divisors_add_self :
 begin
   cases n,
   { simp },
-  { rw [divisors_eq_proper_divisors_insert_self,
+  { rw [divisors_eq_proper_divisors_insert_self_of_pos (nat.succ_pos _),
         finset.sum_insert (proper_divisors.not_self_mem), add_comm] }
 end
 

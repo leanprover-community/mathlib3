@@ -12,6 +12,21 @@ on:
       - 'lean-3.*'
 
 jobs:
+  style_lint:
+    name: Lint style
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: install Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+
+      - name: lint
+        run: |
+          ./scripts/lint-copy-mod-doc.sh
+
   build:
     name: Build mathlib
     runs-on: ubuntu-latest
@@ -144,7 +159,3 @@ jobs:
           python scripts/yaml_check.py docs/100.yaml docs/overview.yaml docs/undergrad.yaml
           bash scripts/mk_all.sh
           lean --run scripts/yaml_check.lean
-
-      - name: check for copyright headers and module docstrings
-        run: |
-          ./scripts/lint-copy-mod-doc.sh

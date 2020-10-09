@@ -329,8 +329,7 @@ begin
   change (p x 1) (snoc 0 y) = (p x 1) (cons y v),
   unfold_coes,
   congr' with i,
-  have : i = 0 := subsingleton.elim i 0,
-  rw this,
+  rw unique.eq_default i,
   refl
 end
 
@@ -2362,9 +2361,8 @@ begin
   -- `E →L[𝕜] E`
   let O₁ : (E →L[𝕜] E) → (F →L[𝕜] E) := λ f, f.comp (e.symm : (F →L[𝕜] E)),
   let O₂ : (E →L[𝕜] F) → (E →L[𝕜] E) := λ f, (e.symm : (F →L[𝕜] E)).comp f,
-  have : continuous_linear_map.inverse = O₁ ∘ ring.inverse ∘ O₂,
-  { funext f,
-    rw to_ring_inverse e},
+  have : continuous_linear_map.inverse = O₁ ∘ ring.inverse ∘ O₂ :=
+    funext (to_ring_inverse e),
   rw this,
   -- `O₁` and `O₂` are `times_cont_diff`, so we reduce to proving that `ring.inverse` is `times_cont_diff`
   have h₁ : times_cont_diff 𝕜 n O₁,
@@ -2375,9 +2373,8 @@ begin
   -- this works differently depending on whether or not `E` is `nontrivial` (the condition for
   -- `E →L[𝕜] E` to be a `normed_algebra`)
   cases subsingleton_or_nontrivial E with _i _i; resetI,
-  { convert @times_cont_diff_at_const _ _ _ _ _ _ _ _ _ _ (0 :  E →L[𝕜] E),
-    ext,
-    simp },
+  { rw [subsingleton.elim ring.inverse (λ _, (0 : E →L[𝕜] E))],
+    exact times_cont_diff_at_const },
   { convert times_cont_diff_at_ring_inverse 𝕜 (E →L[𝕜] E) 1,
     simp [O₂],
     refl },

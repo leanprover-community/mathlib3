@@ -199,6 +199,13 @@ begin
 end
 ```
 
+```
+example {R : Type} [ordered_ring R] {a : R} (h : 0 < a) : (2 : ℕ) ∣ 4 :=
+begin
+  nontriviality R, -- there is now a `nontrivial R` hypothesis available.
+  dec_trivial
+end
+```
 -/
 meta def nontriviality (t : parse parser.pexpr?) : tactic unit :=
 do

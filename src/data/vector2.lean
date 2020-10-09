@@ -96,7 +96,7 @@ by simp only [←cons_head_tail, eq_iff_true_of_subsingleton]
 retrieved via `to_list`, is equal to the list of that single element. -/
 @[simp] lemma to_list_singleton (v : vector α 1) : v.to_list = [v.head] :=
 begin
-  rw ←cons_head_tail v,
+  rw ←v.cons_head_tail,
   simp only [to_list_cons, to_list_nil, cons_head, eq_self_iff_true,
              and_self, singleton_tail]
 end

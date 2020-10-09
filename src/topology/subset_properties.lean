@@ -596,7 +596,7 @@ end
 lemma is_ultrafilter.le_nhds_Lim [compact_space α] (F : ultrafilter α) :
   F.1 ≤ nhds (@Lim _ _ F.1.nonempty_of_ne_bot F.1) :=
 begin
-  rcases compact_iff_ultrafilter_le_nhds.mp compact_univ F.1 F.2 (by simp) with ⟨x,_,h⟩,
+  rcases compact_iff_ultrafilter_le_nhds.mp compact_univ F.1 F.2 (by simp) with ⟨x, -, h⟩,
   exact le_nhds_Lim ⟨x,h⟩,
 end
 

@@ -191,11 +191,11 @@ lemma Lim_eq {a : α} [ne_bot f] (h : f ≤ 𝓝 a) :
 tendsto_nhds_unique (le_nhds_Lim ⟨a, h⟩) h
 
 lemma Lim_eq_iff [ne_bot f] (h : ∃ (a : α), f ≤ nhds a) {a} : @Lim _ _ ⟨a⟩ f = a ↔ f ≤ 𝓝 a :=
-⟨ λ c, by {rw ←c, exact le_nhds_Lim h}, Lim_eq ⟩
+⟨λ c, c ▸ le_nhds_Lim h, Lim_eq⟩
 
 lemma is_ultrafilter.Lim_eq_iff_le_nhds [compact_space α] (x : α) (F : ultrafilter α) :
   @Lim _ _ ⟨x⟩ F.1 = x ↔ F.1 ≤ 𝓝 x :=
-⟨ λ h, by {rw ← h, exact is_ultrafilter.le_nhds_Lim _ } , Lim_eq ⟩
+⟨λ h, h ▸ is_ultrafilter.le_nhds_Lim _, Lim_eq⟩
 
 lemma filter.tendsto.lim_eq {a : α} {f : filter β} {g : β → α} (h : tendsto g f (𝓝 a))
   [ne_bot f] :
@@ -204,7 +204,7 @@ Lim_eq h
 
 lemma filter.lim_eq_iff {f : filter β} {g : β → α} (h : ∃ a, tendsto g f (𝓝 a))
   [ne_bot f] {a} : @lim _ _ _ ⟨a⟩ f g = a ↔ tendsto g f (𝓝 a) :=
-⟨ λ c, by {rw ← c, exact tendsto_nhds_lim h}, λ h, filter.tendsto.lim_eq h ⟩
+⟨λ c, c ▸ tendsto_nhds_lim h, filter.tendsto.lim_eq⟩
 
 lemma continuous.lim_eq [topological_space β] {f : β → α} (h : continuous f) (a : β) :
   @lim _ _ _ ⟨f a⟩ (𝓝 a) f = f a :=

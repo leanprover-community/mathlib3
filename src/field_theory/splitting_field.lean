@@ -327,6 +327,104 @@ begin
   exact splits_of_splits_id _ h
 end
 
+/--A monic polynomial `p` that has as much roots as its degree can be written `p = ∏(X - a)`, for `a` in `p.roots`-/
+lemma eq_prod_of_card_roots_monic {p : polynomial α}
+  (hmonic : p.monic) (hroots : p.nat_degree = p.roots.card) : p = (multiset.map (λ (a : α), X - C a) p.roots).prod :=
+begin
+  have hprodmonic : (multiset.map (λ (a : α), X - C a) p.roots).prod.monic,
+  { simp only [prod_multiset_root_eq_finset_root (ne_zero_of_monic hmonic), monic_prod_of_monic, monic_X_sub_C, monic_pow,
+ forall_true_iff],
+  },
+  have hdegree : (multiset.map (λ (a : α), X - C a) p.roots).prod.nat_degree = p.nat_degree,
+  { rw [hroots, nat_degree_multiset_prod],
+    simp only [eq_self_iff_true, mul_one, nat.cast_id, nsmul_eq_mul, multiset.sum_repeat, multiset.map_const, nat_degree_X_sub_C, function.comp, multiset.map_map],
+    intros x y,
+    simp only [multiset.mem_map] at y,
+    cases y with a ha,
+    rw ← ha.2,
+    exact X_sub_C_ne_zero a },
+  have Rzero : p %ₘ (multiset.map (λ (a : α), X - C a) p.roots).prod = 0 :=  (dvd_iff_mod_by_monic_eq_zero hprodmonic).2 prod_X_sub_C_pow_dvd,
+  have Qzero : p /ₘ (multiset.map (λ (a : α), X - C a) p.roots).prod ≠ 0,
+  { by_contra h,
+    push_neg at h,
+    replace h := (div_by_monic_eq_zero_iff hprodmonic (ne_zero_of_monic hprodmonic)).1 h,
+    rw [degree_eq_nat_degree (ne_zero_of_monic hprodmonic), degree_eq_nat_degree (ne_zero_of_monic hmonic)] at h,
+    norm_cast at h,
+    linarith },
+  have Qunit : is_unit (p /ₘ (multiset.map (λ (a : α), X - C a) p.roots).prod),
+  { apply is_unit_iff_degree_eq_zero.2,
+    rw degree_eq_nat_degree Qzero,
+    norm_cast,
+    simp only [hdegree, nat.sub_self, p.nat_degree_div_by_monic hprodmonic] },
+  unfold is_unit at Qunit,
+  cases Qunit with u hu,
+  have hprod := mod_by_monic_add_div p hprodmonic,
+  rw [Rzero, zero_add] at hprod,
+  have hassoc : associated (multiset.map (λ (a : α), X - C a) p.roots).prod p,
+  { rw associated,
+    use u,
+    rw [hu, hprod] },
+  symmetry,
+  exact eq_of_monic_of_associated hprodmonic hmonic hassoc
+end
+
+lemma roots_mul_C_eq_roots {p : polynomial α} {a : α} (hzero : a ≠ 0) : p.roots = (C a * p).roots :=
+begin
+  by_cases hpzero : p = 0,
+  { simp only [hpzero, mul_zero] },
+  rw multiset.ext,
+  intro b,
+  have prodzero : C a * p ≠ 0,
+  { simp only [hpzero, or_false, ne.def, mul_eq_zero],
+    intro h,
+    rw ← C_0 at h,
+    replace h := C_inj.1 h,
+    exact hzero h },
+  rw [count_roots hpzero, count_roots prodzero, root_multiplicity_mul prodzero],
+  have mulzero : root_multiplicity b (C a) = 0,
+  { simp only [hzero, root_multiplicity_eq_zero, eval_C, is_root.def, not_false_iff] },
+  simp only [mulzero, zero_add]
+end
+
+/--A polynomial `p` that has as much roots as its degree can be written `p = p.leading_coeff * ∏(X - a)`, for `a` in `p.roots`-/
+lemma eq_prod_of_card_roots {p : polynomial α} (hzero : p ≠ 0)
+  (hroots : p.nat_degree = p.roots.card) : p = (C p.leading_coeff) * (multiset.map (λ (a : α), X - C a) p.roots).prod :=
+begin
+  have hcoeff : p.leading_coeff ≠ 0,
+  { intro h,
+    replace h := leading_coeff_eq_zero.1 h,
+    exact hzero h },
+  have sameroots : p.roots = (normalize p).roots,
+  { rw [normalize_apply, mul_comm, coe_norm_unit hzero, ← roots_mul_C_eq_roots (inv_ne_zero hcoeff)] },
+  have hrootsnorm : (normalize p).nat_degree = (normalize p).roots.card,
+  { rw [← sameroots, normalize_apply, mul_comm, coe_norm_unit hzero],
+    have hCzero : C (p.leading_coeff)⁻¹ ≠ 0,
+    { intro h,
+      rw ← C_0 at h,
+      replace h := C_inj.1 h,
+      exact (inv_ne_zero hcoeff) h },
+    simp only [nat_degree_C, zero_add, nat_degree_mul hCzero hzero],
+    exact hroots },
+  have hprod := eq_prod_of_card_roots_monic (monic_normalize hzero) hrootsnorm,
+  rw [← sameroots, normalize_apply, coe_norm_unit hzero] at hprod,
+  symmetry,
+  calc
+  (C p.leading_coeff) * (multiset.map (λ (a : α), X - C a) p.roots).prod =
+  p * C ((p.leading_coeff)⁻¹ * p.leading_coeff) : by rw [← hprod, mul_comm, mul_assoc, ← C_mul]
+  ... = p * C 1 : by field_simp [hcoeff]
+  ... = p : by simp only [mul_one, ring_hom.map_one]
+end
+
+/--A polynomial that has as much roots as its degree splits-/
+lemma splits_of_card_roots {p : polynomial α} (hzero : p ≠ 0)
+  (hroots : p.nat_degree = p.roots.card) : splits (ring_hom.id α) p :=
+begin
+  apply (splits_iff_exists_multiset (ring_hom.id α)).2,
+  use p.roots,
+  simp only [ring_hom.id_apply, map_id],
+  exact eq_prod_of_card_roots hzero hroots,
+end
+
 end splits
 
 end polynomial

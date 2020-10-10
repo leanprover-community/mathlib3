@@ -69,18 +69,6 @@ begin
   simp [mem_cut, prod_equiv_bool_to, add_comm],
 end
 
-lemma pi_singleton {ι : Type*} (s : finset ι) (i : α) :
-  s.pi (λ _, ({i} : finset α)) = {λ _ _, i} :=
-begin
-  rw eq_singleton_iff_unique_mem,
-  split,
-    simp,
-  intros a ha,
-  rw [mem_pi] at ha,
-  ext,
-  simpa using ha x x_1,
-end
-
 /-- There is only one `cut` of 0. -/
 @[simp]
 lemma cut_zero {ι : Type*} (s : finset ι) :
@@ -88,8 +76,8 @@ lemma cut_zero {ι : Type*} (s : finset ι) :
 begin
   -- In general it's nice to prove things using `mem_cut` but in this case it's easier to just
   -- use the definition.
-  rw [cut, range_one, pi_singleton, map_singleton, function.embedding.coe_fn_mk, filter_singleton,
-      if_pos, singleton_inj],
+  rw [cut, range_one, pi_const_singleton, map_singleton, function.embedding.coe_fn_mk,
+      filter_singleton, if_pos, singleton_inj],
   { ext, split_ifs; refl },
   rw sum_eq_zero_iff,
   intros x hx,

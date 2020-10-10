@@ -184,7 +184,7 @@ begin
     exact ⟨h1 (or.inl rfl), rfl⟩ },
   -- C2 is closed under finite intersections (by construction!).
   have claim4 := finite_inter_closure_has_finite_inter C1,
-  -- C0 is closed under finite intersections by claim2.
+  -- C0 is closed under finite intersections by claim1.
   have claim5 : has_finite_inter C0 := ⟨⟨set.univ, filter.univ_sets _, by simp⟩, claim1⟩,
   -- Everry element of C2 is nonempty.
   have claim6 : ∀ P ∈ C2, (P : set (ultrafilter X)).nonempty,

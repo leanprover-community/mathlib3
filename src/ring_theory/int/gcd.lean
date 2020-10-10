@@ -1,14 +1,13 @@
 /-
-Copyright (c) 2018 Guy Leroy. All rights reserved.
+Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sangwoo Jo (aka Jason), Guy Leroy, Johannes Hölzl, Mario Carneiro, Aaron Anderson
+Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
 -/
 
 import data.nat.basic
 import data.int.gcd
 import ring_theory.multiplicity
 import ring_theory.principal_ideal_domain
-import ring_theory.unique_factorization_domain
 import ring_theory.euclidean_domain
 
 /-!
@@ -24,7 +23,6 @@ import ring_theory.euclidean_domain
 * ℤ is a `gcd_monoid`
 -/
 
-/-! ### Divisibility over ℤ -/
 namespace int
 
 section normalization_monoid
@@ -45,7 +43,8 @@ lemma normalize_of_nonneg {z : ℤ} (h : 0 ≤ z) : normalize z = z :=
 show z * ↑(ite _ _ _) = z, by rw [if_pos h, units.coe_one, mul_one]
 
 lemma normalize_of_neg {z : ℤ} (h : z < 0) : normalize z = -z :=
-show z * ↑(ite _ _ _) = -z, by rw [if_neg (not_le_of_gt h), units.coe_neg, units.coe_one, mul_neg_one]
+show z * ↑(ite _ _ _) = -z,
+by rw [if_neg (not_le_of_gt h), units.coe_neg, units.coe_one, mul_neg_one]
 
 lemma normalize_coe_nat (n : ℕ) : normalize (n : ℤ) = n :=
 normalize_of_nonneg (coe_nat_le_coe_nat_of_le $ nat.zero_le n)

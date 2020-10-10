@@ -52,7 +52,9 @@ begin
     is_multiplicative_sigma.map_mul_of_coprime
         (nat.prime_two.coprime_pow_of_not_dvd (odd_mersenne_succ _)),
     sigma_two_pow_eq_mersenne_succ],
-  simp [pr, nat.prime_two]
+  { simp [pr, nat.prime_two] },
+  { apply mul_pos (pow_pos _ k) (mersenne_pos (nat.succ_pos k)),
+    norm_num }
 end
 
 lemma ne_zero_of_mersenne_of_prime (k : ℕ) (pr : (mersenne (k + 1)).prime) :

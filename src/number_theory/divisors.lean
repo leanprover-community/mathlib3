@@ -17,7 +17,7 @@ Let `n : ℕ`. All of the following definitions are in the `nat` namespace:
  * `divisors n` is the `finset` of natural numbers that divide `n`.
  * `proper_divisors n` is the `finset` of natural numbers that divide `n`, other than `n`.
  * `divisors_antidiagonal n` is the `finset` of pairs `(x,y)` such that `x * y = n`.
- * `perfect n` is true when the sum of `proper_divisors n` is `n`.
+ * `perfect n` is true when `n` is positive and the sum of `proper_divisors n` is `n`.
 
 ## Implementation details
  * `divisors 0`, `proper_divisors 0`, and `divisors_antidiagonal 0` are defined to be `∅`.
@@ -186,16 +186,17 @@ begin
         finset.sum_insert (proper_divisors.not_self_mem), add_comm] }
 end
 
-/-- `n : ℕ` is perfect if and only the sum of the proper divisors of `n` is `n`. -/
-def perfect (n : ℕ) : Prop := ∑ i in proper_divisors n, i = n
+/-- `n : ℕ` is perfect if and only the sum of the proper divisors of `n` is `n` and `n`
+  is positive. -/
+def perfect (n : ℕ) : Prop := (∑ i in proper_divisors n, i = n) ∧ 0 < n
 
-theorem perfect_iff_sum_proper_divisors {n : ℕ} :
-  perfect n ↔ ∑ i in proper_divisors n, i = n := iff.rfl
+theorem perfect_iff_sum_proper_divisors {n : ℕ} (h : 0 < n) :
+  perfect n ↔ ∑ i in proper_divisors n, i = n := and_iff_left h
 
-theorem perfect_iff_sum_divisors_eq_two_mul {n : ℕ} :
+theorem perfect_iff_sum_divisors_eq_two_mul {n : ℕ} (h : 0 < n) :
   perfect n ↔ ∑ i in divisors n, i = 2 * n :=
 begin
-  rw [perfect, sum_divisors_eq_sum_proper_divisors_add_self, two_mul],
+  rw [perfect_iff_sum_proper_divisors h, sum_divisors_eq_sum_proper_divisors_add_self, two_mul],
   split; intro h,
   { rw h },
   { apply add_right_cancel h }

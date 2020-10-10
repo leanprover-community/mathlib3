@@ -604,7 +604,6 @@ apply_nolint free_abelian_group.of doc_blame
 apply_nolint sylow.fixed_points_mul_left_cosets_equiv_quotient doc_blame
 
 -- logic/embedding.lean
-apply_nolint function.embedding has_inhabited_instance
 apply_nolint function.embedding.Pi_congr_right doc_blame
 apply_nolint function.embedding.arrow_congr_left doc_blame
 apply_nolint function.embedding.arrow_congr_right doc_blame
@@ -1246,9 +1245,6 @@ apply_nolint continuous_map.compact_open.gen doc_blame
 apply_nolint continuous_map.ev doc_blame
 apply_nolint continuous_map.induced doc_blame
 
--- topology/homeomorph.lean
-apply_nolint homeomorph has_inhabited_instance
-
 -- topology/maps.lean
 apply_nolint inducing doc_blame
 apply_nolint is_closed_map doc_blame
@@ -1270,9 +1266,6 @@ apply_nolint Gromov_Hausdorff.aux_gluing_struct has_inhabited_instance
 -- topology/metric_space/gromov_hausdorff_realized.lean
 apply_nolint Gromov_Hausdorff.candidates_b_dist doc_blame
 apply_nolint Gromov_Hausdorff.optimal_GH_coupling has_inhabited_instance
-
--- topology/metric_space/isometry.lean
-apply_nolint isometric has_inhabited_instance
 
 -- topology/metric_space/premetric_space.lean
 apply_nolint premetric_space doc_blame

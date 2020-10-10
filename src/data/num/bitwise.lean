@@ -181,7 +181,7 @@ instance : inhabited nzsnum := ⟨1⟩
 instance : inhabited snum := ⟨0⟩
 
 /- The snum representation uses a bit string, essentially a list of 0 (ff) and 1 (tt) bits,
-   and the negation of the MSB is sign-extended to all higher bits. -/
+    and the negation of the MSB is sign-extended to all higher bits. -/
 namespace nzsnum
   notation a :: b := bit a b
 
@@ -251,7 +251,8 @@ end snum
 namespace nzsnum
   open snum
 
-  /-- A dependent induction principle for `nzsnum` with base cases for `0 : snum` and `(-1):snum`. -/
+  /-- A dependent induction principle for `nzsnum`, with base cases for
+      `0:snum` and `(-1):snum`. -/
   def drec' {C : snum → Sort*} (z : Π b, C (snum.zero b))
     (s : Π b p, C p → C (b :: p)) : Π p : nzsnum, C p
   | (msb b)  := by rw ←bit_one; exact s b (snum.zero (bnot b)) (z (bnot b))
@@ -342,5 +343,3 @@ cond b (bit0 IH + a) (bit0 IH)
 instance : has_mul snum := ⟨snum.mul⟩
 
 end snum
-
-#lint

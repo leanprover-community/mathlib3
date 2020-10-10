@@ -527,7 +527,8 @@ end znum
 
 namespace pos_num
 
-  private def divmod_aux (d : pos_num) (q r : num) : num × num :=
+  /-- Auxiliary definition for `pos_num.divmod`. -/
+  def divmod_aux (d : pos_num) (q r : num) : num × num :=
   match num.of_znum' (num.sub' r (num.pos d)) with
   | some r' := (num.bit1 q, r')
   | none    := (num.bit0 q, r)
@@ -553,6 +554,7 @@ namespace pos_num
   -/
   def mod' (n d : pos_num) : num := (divmod d n).2
 
+  /-
   private def sqrt_aux1 (b : pos_num) (r n : num) : num × num :=
   match num.of_znum' (n.sub' (r + num.pos b)) with
   | some n' := (r.div2 + num.pos b, n')
@@ -563,6 +565,7 @@ namespace pos_num
   | b@(bit0 b') r n := let (r', n') := sqrt_aux1 b r n in sqrt_aux b' r' n'
   | b@(bit1 b') r n := let (r', n') := sqrt_aux1 b r n in sqrt_aux b' r' n'
   | 1           r n := (sqrt_aux1 1 r n).1
+  -/
 /-
 
 def sqrt_aux : ℕ → ℕ → ℕ → ℕ
@@ -605,7 +608,8 @@ namespace num
   instance : has_div num := ⟨num.div⟩
   instance : has_mod num := ⟨num.mod⟩
 
-  private def gcd_aux : nat → num → num → num
+  /-- Auxiliary definition for `num.gcd`. -/
+  def gcd_aux : nat → num → num → num
   | 0            a b := b
   | (nat.succ n) 0 b := b
   | (nat.succ n) a b := gcd_aux n (b % a) a
@@ -668,5 +672,3 @@ section
 
   instance : has_repr znum := ⟨λ n, repr (n : ℤ)⟩
 end
-
-#lint

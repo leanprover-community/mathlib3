@@ -382,6 +382,8 @@ begin
     exact h U U_op ⟨_, x_in⟩ },
 end
 
+alias dense_iff_inter_open ↔ dense.inter_open_nonempty _
+
 @[mono]
 lemma dense_of_subset_dense {s₁ s₂ : set α} (h : s₁ ⊆ s₂) (hd : dense s₁) : dense s₂ :=
 λ x, closure_mono h (hd x)

@@ -358,8 +358,8 @@ begin
 end
 
 lemma prod_multiset_root_eq_finset_root {p : polynomial R} (hzero : p ≠ 0) :
-(multiset.map (λ (a : R), X - C a) p.roots).prod =
-∏ a in (multiset.to_finset p.roots), (λ (a : R), (X - C a) ^ (root_multiplicity a p)) a :=
+  (multiset.map (λ (a : R), X - C a) p.roots).prod =
+  ∏ a in (multiset.to_finset p.roots), (λ (a : R), (X - C a) ^ (root_multiplicity a p)) a :=
 begin
   simp only [count_roots hzero, finset.prod_multiset_map_count]
 end

@@ -131,7 +131,7 @@ lemma exists_nhds_split_inv [topological_group G] {s : set G} (hs : s ∈ 𝓝 (
   ∃ V ∈ 𝓝 (1 : G), ∀ (v ∈ V) (w ∈ V), v * w⁻¹ ∈ s :=
 have ((λp : G × G, p.1 * p.2⁻¹) ⁻¹' s) ∈ 𝓝 ((1, 1) : G × G),
   from continuous_at_fst.mul continuous_at_snd.inv (by simpa),
-by simpa only [nhds_prod_eq, mem_prod_self_iff, prod_subset_iff, mem_preimage] using this
+by simpa only [nhds_prod_eq, mem_prod_self_iff, prod_subset_iff, mem_preimage]
 
 
 section

@@ -133,7 +133,6 @@ have ((λp : G × G, p.1 * p.2⁻¹) ⁻¹' s) ∈ 𝓝 ((1, 1) : G × G),
   from continuous_at_fst.mul continuous_at_snd.inv (by simpa),
 by simpa only [nhds_prod_eq, mem_prod_self_iff, prod_subset_iff, mem_preimage]
 
-
 section
 variable (G)
 @[to_additive]

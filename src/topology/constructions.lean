@@ -245,9 +245,7 @@ begin
   rw [is_open_iff_nhds],
   simp_rw [le_principal_iff, prod.forall,
     ((nhds_basis_opens _).prod_nhds (nhds_basis_opens _)).mem_iff, prod.exists, exists_prop],
-  iterate 5 { apply_rules [forall_congr, exists_congr], try { intro } },
-  rw iff_eq_eq, -- `ac_refl` doesn't work on `iff`s
-  ac_refl
+  simp only [and_assoc, and.left_comm]
 end
 
 /-- Given a neighborhood `s` of `(x, x)`, then `(x, x)` has a square open neighborhood

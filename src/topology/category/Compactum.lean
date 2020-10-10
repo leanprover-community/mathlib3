@@ -186,7 +186,7 @@ begin
   have claim4 := finite_inter_closure_has_finite_inter C1,
   -- C0 is closed under finite intersections by claim1.
   have claim5 : has_finite_inter C0 := ⟨⟨set.univ, filter.univ_sets _, by simp⟩, claim1⟩,
-  -- Everry element of C2 is nonempty.
+  -- Every element of C2 is nonempty.
   have claim6 : ∀ P ∈ C2, (P : set (ultrafilter X)).nonempty,
   { suffices : ∀ P ∈ C2, P ∈ C0 ∨ ∃ Q ∈ C0, P = AA ∩ Q,
     { intros P hP,
@@ -297,7 +297,7 @@ end
 lemma le_nhds_of_str_eq {X : Compactum} (F : ultrafilter X) (x : X) :
   X.str F = x → F.1 ≤ nhds x := λ h, le_nhds_iff.mpr (λ s hx hs, hs _ $ by rwa h)
 
--- All the hard work above boils down to this t2_instance.
+-- All the hard work above boils down to this t2_space instance.
 instance {X : Compactum} : t2_space X :=
 begin
   rw t2_iff_ultrafilter,
@@ -362,14 +362,14 @@ end Compactum
 /-- The type of Compact Hausdorff topological spaces. -/
 structure CompHaus :=
 (to_Top : Top)
-[is_compact : compact_space to_Top . tactic.apply_instance]
-[is_hausdorff : t2_space to_Top . tactic.apply_instance]
+[is_compact : compact_space to_Top]
+[is_hausdorff : t2_space to_Top]
 
 namespace CompHaus
 
 instance : inhabited CompHaus := ⟨{to_Top := { α := pempty }}⟩
 
-instance : has_coe_to_sort CompHaus := ⟨Type*,λ X, X.to_Top⟩
+instance : has_coe_to_sort CompHaus := ⟨Type*, λ X, X.to_Top⟩
 instance {X : CompHaus} : compact_space X := X.is_compact
 instance {X : CompHaus} : t2_space X := X.is_hausdorff
 
@@ -393,8 +393,8 @@ def full : full Compactum_to_CompHaus :=
 /-- The functor Compactum_to_CompHaus is faithful. -/
 lemma faithful : faithful Compactum_to_CompHaus := {}
 
-private lemma helper {X : Type*} [topological_space X] [compact_space X] [t2_space X]
-  (U : set X) : is_open U ↔ (∀ F : ultrafilter X, F.Lim ∈ U → U ∈ F.1) :=
+private lemma is_open_iff_ultrafilter' {X : Type*} [topological_space X] [compact_space X]
+  [t2_space X] (U : set X) : is_open U ↔ (∀ F : ultrafilter X, F.Lim ∈ U → U ∈ F.1) :=
 begin
   rw is_open_iff_ultrafilter,
   refine ⟨λ h F hF, h _ hF _ F.2 (is_ultrafilter.le_nhds_Lim _), _⟩,
@@ -411,10 +411,10 @@ noncomputable def iso_of_topological_space {D : CompHaus} :
   Compactum_to_CompHaus.obj (Compactum.of_topological_space D) ≅ D :=
 { hom :=
   { to_fun := id,
-    continuous_to_fun := λ _ h, by {rw helper at h, exact h} },
+    continuous_to_fun := λ _ h, by {rw is_open_iff_ultrafilter' at h, exact h} },
   inv :=
   { to_fun := id,
-    continuous_to_fun := λ _ h1, by {rw helper, intros _ h2, exact h1 _ h2} } }
+    continuous_to_fun := λ _ h1, by {rw is_open_iff_ultrafilter', intros _ h2, exact h1 _ h2} } }
 
 /-- The functor Compactum_to_CompHaus is essentially surjective. -/
 noncomputable def ess_surj : ess_surj Compactum_to_CompHaus :=

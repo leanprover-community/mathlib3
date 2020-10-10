@@ -740,51 +740,31 @@ end differentiability
 section limits
 open real filter
 
-/-- The function `x^y` tends to `+∞` at `+∞` for any real number `1 ≤ y` -/
-lemma tendsto_rpow_at_top {y : ℝ} (hy : 1 ≤ y) : tendsto (λ (x:ℝ), (x^y)) at_top at_top :=
+/-- The function `x^y` tends to `+∞` at `+∞` for any positive real `y` -/
+lemma tendsto_rpow_at_top {y : ℝ} (hy : 0 < y) : tendsto (λ (x:ℝ), (x^y)) at_top at_top :=
 begin
   rw tendsto_at_top_at_top,
-  intro b, use max b 1, intros x hx,
-  exact le_trans (le_of_max_le_left (by rwa rpow_one x))
-          (rpow_le_rpow_of_exponent_le (le_of_max_le_right hx) hy),
+  intro b,
+  use (max b 0) ^ (1/y),
+  intros x hx,
+  have h := rpow_le_rpow (rpow_nonneg_of_nonneg (le_max_right b 0) (1/y)) hx (le_of_lt hy),
+  rw [← rpow_mul (le_max_right b 0), (eq_div_iff (ne_of_gt hy)).mp rfl, rpow_one] at h,
+  exact le_of_max_le_left h,
 end
 
-/-- The function `x^(-y)` tends to `0` at `+∞` for any real number `1 ≤ y` -/
-lemma tendsto_rpow_of_neg_at_top_zero {y : ℝ} (hy : 1 ≤ y) : tendsto (λ (x:ℝ), x^(-y)) at_top (𝓝 0) :=
+/-- The function `x^(-y)` tends to `0` at `+∞` for any positive real `y` -/
+lemma tendsto_rpow_neg_at_top {y : ℝ} (hy : 0 < y) : tendsto (λ (x:ℝ), x^(-y)) at_top (𝓝 0) :=
 tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) (λ x hx, (rpow_neg (le_of_lt hx) y).symm))
   (tendsto.inv_tendsto_at_top (tendsto_rpow_at_top hy))
 
-/-- The function `(b * exp(x) + c) / (x^n)` tends to `+∞` at `+∞`, for any natural number `1 ≤ n`
-and any real numbers `b` and `c` such that `b` is positive -/
-lemma tendsto_mul_exp_plus_div_pow_at_top (b c : ℝ) (n : ℕ) (hb : 0 < b) (hn : 1 ≤ (n:ℝ)) :
-  tendsto (λ (x:ℝ), (b * (exp x) + c) / (x^n)) at_top at_top :=
-begin
-  refine tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) _)
-    (tendsto_at_top_add_tendsto_right (tendsto_at_top_mul_left hb (tendsto_exp_div_pow_at_top n))
-      ((tendsto_rpow_of_neg_at_top_zero hn).mul (@tendsto_const_nhds _ _ _ c _))),
-  intros x hx,
-  simp only [rpow_neg (le_of_lt hx) n, rpow_nat_cast],
-  ring,
-end
-
-/-- The function `((x^n) / b * exp(x) + c) ` tends to `0` at `+∞`, for any natural number `1 ≤ n`
-and any real numbers `b` and `c` such that `b` is positive -/
-lemma tendsto_div_pow_mul_exp_plus_at_top_nhds_0 (b c : ℝ) (n : ℕ) (hb : 0 < b) (hn : 1 ≤ (n:ℝ)) :
-  tendsto (λ (x:ℝ), x^n / (b * (exp x) + c)) at_top (𝓝 0) :=
-begin
-  convert tendsto.inv_tendsto_at_top (tendsto_mul_exp_plus_div_pow_at_top b c n hb hn),
-  ext x,
-  simpa only [pi.inv_apply] using inv_div.symm,
-end
-
-/-- The function `x ^ (a / (b * x + c))` tends to `1` at `+∞`, for any real numbers `a`, `b`, and `c`
-such that `b` is positive. -/
-lemma tendsto_rpow_of_div_mul_add (a b c : ℝ) (hb : 0 < b) : tendsto (λ (x:ℝ), x ^ (a / (b*x+c))) at_top (𝓝 1) :=
+/-- The function `x ^ (a / (b * x + c))` tends to `1` at `+∞`, for any real numbers `a`, `b`, and
+`c` such that `b` is nonzero. -/
+lemma tendsto_rpow_div_mul_add (a b c : ℝ) (hb : 0 ≠ b) :
+  tendsto (λ x, x ^ (a / (b*x+c))) at_top (𝓝 1) :=
 begin
   refine tendsto.congr' _ ((tendsto_exp_nhds_0_nhds_1.comp
     (by simpa only [mul_zero, pow_one] using ((@tendsto_const_nhds _ _ _ a _).mul
-      (tendsto_div_pow_mul_exp_plus_at_top_nhds_0 b c 1 hb (by norm_num))))).comp
-        (tendsto_log_at_top)),
+      (tendsto_div_pow_mul_exp_add_at_top b c 1 hb (by norm_num))))).comp (tendsto_log_at_top)),
   apply eventually_eq_of_mem (Ioi_mem_at_top (0:ℝ)),
   intros x hx,
   simp only [set.mem_Ioi, function.comp_app] at hx ⊢,
@@ -792,13 +772,13 @@ begin
   field_simp,
 end
 
-/-- Special case of `tendsto_rpow_of_div_mul_add` with `a = 1`, `b = 1`, and `c = 0` -/
-lemma tendsto_rpow_of_div : tendsto (λ (x:ℝ), x ^ ((1:ℝ) / x)) at_top (𝓝 1) :=
-by { convert tendsto_rpow_of_div_mul_add (1:ℝ) _ (0:ℝ) zero_lt_one, ring }
+/-- Special case of `tendsto_rpow_div_mul_add` with `a = 1`, `b = 1`, and `c = 0` -/
+lemma tendsto_rpow_div : tendsto (λ x, x ^ ((1:ℝ) / x)) at_top (𝓝 1) :=
+by { convert tendsto_rpow_div_mul_add (1:ℝ) _ (0:ℝ) zero_ne_one, ring }
 
-/-- Special case of `tendsto_rpow_of_div_mul_add` with `a = -1`, `b = 1`, and `c = 0` -/
-lemma tendsto_rpow_of_neg_div : tendsto (λ (x:ℝ), x ^ (-(1:ℝ) / x)) at_top (𝓝 1) :=
-by { convert tendsto_rpow_of_div_mul_add (-(1:ℝ)) _ (0:ℝ) zero_lt_one, ring }
+/-- Special case of `tendsto_rpow_div_mul_add` with `a = -1`, `b = 1`, and `c = 0` -/
+lemma tendsto_rpow_neg_div : tendsto (λ x, x ^ (-(1:ℝ) / x)) at_top (𝓝 1) :=
+by { convert tendsto_rpow_div_mul_add (-(1:ℝ)) _ (0:ℝ) zero_ne_one, ring }
 
 end limits
 

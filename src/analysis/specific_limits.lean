@@ -62,6 +62,24 @@ lemma tendsto_pow_at_top_at_top_of_one_lt [linear_ordered_ring α] [archimedean 
   tendsto (λn:ℕ, r ^ n) at_top at_top :=
 sub_add_cancel r 1 ▸ tendsto_add_one_pow_at_top_at_top_of_pos (sub_pos.2 h)
 
+/-- The function `x^n` tends to `+∞` at `+∞` for any positive natural `n`.
+A version for positive real powers exists as `tendsto_rpow_at_top`. -/
+lemma tendsto_pow_at_top {n : ℕ} (h : 1 ≤ n) : tendsto (λ (x:ℝ), (x^n)) at_top at_top :=
+begin
+  rw tendsto_at_top_at_top,
+  intro b,
+  use max b 1,
+  intros x hx,
+  have hn : (1:ℤ) ≤ n := int.coe_nat_le.mpr h,
+  exact le_trans (le_of_max_le_left (by rwa fpow_one x)) (fpow_le_of_le (le_of_max_le_right hx) hn),
+end
+
+/-- The function `x^(-n)` tends to `0` at `+∞` for any positive natural `n`.
+A version for positive real powers exists as `tendsto_rpow_neg_at_top`. -/
+lemma tendsto_pow_neg_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ (x:ℝ), x^(-(n:ℤ))) at_top (𝓝 0) :=
+tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) (λ x hx, (fpow_neg x n).symm))
+  (tendsto.inv_tendsto_at_top (tendsto_pow_at_top hn))
+
 lemma nat.tendsto_pow_at_top_at_top_of_one_lt {m : ℕ} (h : 1 < m) :
   tendsto (λn:ℕ, m ^ n) at_top at_top :=
 nat.sub_add_cancel (le_of_lt h) ▸

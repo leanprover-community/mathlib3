@@ -464,6 +464,38 @@ lemma tendsto_pow_mul_exp_neg_at_top_nhds_0 (n : ℕ) : tendsto (λx, x^n * exp 
 (tendsto_inv_at_top_zero.comp (tendsto_exp_div_pow_at_top n)).congr $ λx,
   by rw [function.comp_app, inv_eq_one_div, div_div_eq_mul_div, one_mul, div_eq_mul_inv, exp_neg]
 
+/-- The function `(b * exp(x) + c) / (x^n)` tends to `+∞` at `+∞`, for any positive natural number
+`n` and any real numbers `b` and `c` such that `b` is positive. -/
+lemma tendsto_mul_exp_add_div_pow_at_top (b c : ℝ) (n : ℕ) (hb : 0 < b) (hn : 1 ≤ n) :
+  tendsto (λ x, (b * (exp x) + c) / (x^n)) at_top at_top :=
+begin
+  refine tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) _)
+    (tendsto_at_top_add_tendsto_right (tendsto_at_top_mul_left hb (tendsto_exp_div_pow_at_top n))
+      ((tendsto_pow_neg_at_top hn).mul (@tendsto_const_nhds _ _ _ c _))),
+  intros x hx,
+  simp only [fpow_neg x n],
+  ring,
+end
+
+/-- The function `(x^n) / (b * exp(x) + c)` tends to `0` at `+∞`, for any positive natural number
+`n` and any real numbers `b` and `c` such that `b` is nonzero. -/
+lemma tendsto_div_pow_mul_exp_add_at_top (b c : ℝ) (n : ℕ) (hb : 0 ≠ b) (hn : 1 ≤ n) :
+  tendsto (λ x, x^n / (b * (exp x) + c)) at_top (𝓝 0) :=
+begin
+  have H : ∀ d e, 0 < d → tendsto (λ (x:ℝ), x^n / (d * (exp x) + e)) at_top (𝓝 0),
+  { intros b' c' h,
+    convert tendsto.inv_tendsto_at_top (tendsto_mul_exp_add_div_pow_at_top b' c' n h hn),
+    ext x,
+    simpa only [pi.inv_apply] using inv_div.symm },
+  cases lt_or_gt_of_ne hb,
+  { exact H b c h },
+  { convert (H (-b) (-c) (neg_pos.mpr h)).neg,
+    { ext x,
+      field_simp,
+      rw [← neg_add (b * exp x) c, neg_div_neg_eq] },
+    { exact neg_zero.symm } },
+end
+
 /-- The real logarithm function tends to `+∞` at `+∞`. -/
 lemma tendsto_log_at_top : tendsto log at_top at_top :=
 begin

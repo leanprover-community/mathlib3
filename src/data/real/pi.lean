@@ -154,15 +154,15 @@ local notation `π` := real.pi
 /-- This lemma establishes Leibniz's series for `π`: The alternating sum of the reciprocals of the
   odd numbers is `π/4`. Note that this is a conditionally rather than absolutely convergent series.
   The main tool that this proof uses is the Mean Value Theorem. -/
-lemma leibniz : tendsto (λ k, ∑ i in finset.range k, ((-(1:ℝ))^i / (2*i+1))) at_top (𝓝 (π/4)) :=
+theorem leibniz : tendsto (λ k, ∑ i in finset.range k, ((-(1:ℝ))^i / (2*i+1))) at_top (𝓝 (π/4)) :=
 begin
   rw [tendsto_iff_norm_tendsto_zero, ← tendsto_zero_iff_norm_tendsto_zero],
   -- We introduce a useful sequence `u` of values in [0,1], then prove that another sequence
   -- constructed from `u` tends to `0` at `+∞`
   let u := λ (k:ℕ), (k:nnreal) ^ (-1 / (2 * (k:ℝ) + 1)),
   have H : tendsto (λ (k:ℕ), (1:ℝ) - (u k) + (u k) ^ (2 * (k:ℝ) + 1)) at_top (𝓝 0),
-    { convert (tendsto.const_add (1:ℝ) (((tendsto_rpow_of_div_mul_add (-1) 2 1 (by norm_num)).neg).add
-        tendsto_inv_at_top_zero)).comp tendsto_coe_nat_real_at_top_at_top,
+  { convert (tendsto.const_add (1:ℝ) (((tendsto_rpow_div_mul_add (-1) 2 1 (by norm_num)).neg).add
+      tendsto_inv_at_top_zero)).comp tendsto_coe_nat_real_at_top_at_top,
     { ext k,
       simp only [nnreal.coe_nat_cast, function.comp_app, nnreal.coe_rpow],
       rw [← rpow_mul (nat.cast_nonneg k) ((-1)/(2*(k:ℝ)+1)) (2*(k:ℝ)+1),
@@ -180,7 +180,7 @@ begin
   suffices f_bound : |f 1 - f 0| ≤ (1:ℝ) - U + U ^ (2 * (k:ℝ) + 1),
   { rw ← norm_neg,
     convert f_bound,
-    simp only [f], simp [b] }, -- SHOULD BE ABLE TO COMBINE?
+    simp only [f], simp [b] },
   -- We show that `U` is indeed in [0,1]
   have hU1 : (U:ℝ) ≤ 1,
   { by_cases hk : k = 0,
@@ -215,7 +215,7 @@ begin
   have f_deriv2 : ∀ x ∈ Icc 0 (U:ℝ), has_deriv_within_at f (f' x) (Icc 0 (U:ℝ)) x :=
     λ x hx, (has_deriv_at_f x).has_deriv_within_at,
   -- We prove a general bound for `f'` and then more precise bounds on each of two subintervals
-  have f'_bound : ∀ (x ∈ Icc (-1:ℝ) 1), |f' x| ≤ |x|^(2*k),
+  have f'_bound : ∀ x ∈ Icc (-1:ℝ) 1, |f' x| ≤ |x|^(2*k),
   { intros x hx,
     rw [abs_div, is_monoid_hom.map_pow abs (-x^2) k, abs_neg, is_monoid_hom.map_pow abs x 2,
         tactic.ring_exp.pow_e_pf_exp rfl rfl, @abs_of_pos _ _ (1+x^2) (by nlinarith)],

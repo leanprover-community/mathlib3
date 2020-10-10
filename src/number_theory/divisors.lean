@@ -233,8 +233,18 @@ begin
 end
 
 @[simp]
+lemma prod_divisors_prime {α : Type*} [comm_monoid α] {p : ℕ} {f : ℕ → α} (h : p.prime) :
+  ∏ x in p.divisors, f x = f p * f 1 :=
+@sum_divisors_prime (additive α) _ _ _ h
+
+@[simp]
 lemma sum_divisors_prime_pow {α : Type*} [add_comm_monoid α] {k p : ℕ} {f : ℕ → α} (h : p.prime) :
   ∑ x in (p ^ k).divisors, f x = ∑ x in range (k + 1), f (p ^ x) :=
 by simp [h, divisors_prime_pow]
+
+@[simp]
+lemma prod_divisors_prime_pow {α : Type*} [comm_monoid α] {k p : ℕ} {f : ℕ → α} (h : p.prime) :
+  ∏ x in (p ^ k).divisors, f x = ∏ x in range (k + 1), f (p ^ x) :=
+@sum_divisors_prime_pow (additive α) _ _ _ _ h
 
 end nat

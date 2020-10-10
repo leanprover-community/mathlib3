@@ -120,7 +120,7 @@ variables [topological_space γ]
   continuous extension, then `g` is the unique such extension. In general,
   `g` might not be continuous or even extend `f`. -/
 def extend (di : dense_inducing i) (f : α → γ) (b : β) : γ :=
-@@lim _ ⟨f (classical.choice $ di.dense.nonempty_iff.2 ⟨b⟩)⟩ (comap i (𝓝 b)) f
+@@lim _ ⟨f (di.dense.some b)⟩ (comap i (𝓝 b)) f
 
 lemma extend_eq_of_tendsto [t2_space γ] {b : β} {c : γ} {f : α → γ}
   (hf : tendsto f (comap i (𝓝 b)) (𝓝 c)) :

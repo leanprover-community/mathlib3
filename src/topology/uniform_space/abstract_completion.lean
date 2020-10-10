@@ -96,7 +96,7 @@ protected def extend (f : α → β) : hatα → β :=
 if uniform_continuous f then
   pkg.dense_inducing.extend f
 else
-  λ x, f (classical.choice $ pkg.dense.nonempty_iff.2 ⟨x⟩)
+  λ x, f (pkg.dense.some x)
 
 variables {f : α → β}
 

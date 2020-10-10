@@ -1143,9 +1143,9 @@ range_nonempty_iff_nonempty.symm.trans hf.nonempty_iff
 lemma dense_range.nonempty [h : nonempty β] (hf : dense_range f) : nonempty κ :=
 hf.nonempty_iff.mpr h
 
-/-- If `f : ι → β` has dense range and `β` contains some element, then `ι` must too. -/
-def dense_range.inhabited [nonempty β] (df : dense_range f) : inhabited κ :=
-inhabited_of_nonempty $ df.nonempty
+/-- Given a function `f : α → β` with dense range and `b : β`, returns some `a : α`. -/
+def dense_range.some (hf : dense_range f) (b : β) : κ :=
+classical.choice $ hf.nonempty_iff.mpr ⟨b⟩
 
 end dense_range
 

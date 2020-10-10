@@ -24,9 +24,11 @@ TODO: Add more details.
 open category_theory filter topological_space category_theory.limits has_finite_inter
 open_locale classical
 
+local notation `β` := of_type_functor ultrafilter
+
 /-- The type `Compactum` of Compacta, defined as algebras for the ultrafilter monad. -/
 @[derive [category, inhabited]]
-def Compactum := monad.algebra (of_type_functor $ ultrafilter)
+def Compactum := monad.algebra β
 
 namespace Compactum
 
@@ -50,16 +52,14 @@ instance : has_limits Compactum := has_limits_of_has_limits_creates_limits forge
 def str (X : Compactum) : ultrafilter X → X := X.a
 
 /-- The monadic join. -/
-def join (X : Compactum) : ultrafilter (ultrafilter X) → ultrafilter X :=
-  (μ_ $ of_type_functor ultrafilter).app _
+def join (X : Compactum) : ultrafilter (ultrafilter X) → ultrafilter X := (μ_ β).app _
 
 /-- The inclusion of `X` into `ultrafilter X`. -/
-def incl (X : Compactum) : X → ultrafilter X :=
-  (η_ $ of_type_functor ultrafilter).app _
+def incl (X : Compactum) : X → ultrafilter X := (η_ β).app _
 
 @[simp] lemma str_incl (X : Compactum) (x : X) : X.str (X.incl x) = x :=
 begin
-  change ((η_ (of_type_functor ultrafilter)).app _ ≫ X.a) _ = _,
+  change ((η_ β).app _ ≫ X.a) _ = _,
   rw monad.algebra.unit,
   refl,
 end
@@ -75,7 +75,7 @@ end
 @[simp] lemma join_distrib (X : Compactum) (uux : ultrafilter (ultrafilter X)) :
   X.str (X.join uux) = X.str (ultrafilter.map X.str uux) :=
 begin
-  change ((μ_ (of_type_functor ultrafilter)).app _ ≫ X.a) _ = _,
+  change ((μ_ β).app _ ≫ X.a) _ = _,
   rw monad.algebra.assoc,
   refl,
 end
@@ -307,7 +307,7 @@ begin
   cc,
 end
 
--- Any continuous morphism of compacta is a morphism of algebras for the ultrafilter monad.
+-- Any morphism of compacta is continuous.
 lemma continuous_of_hom {X Y : Compactum} (f : X ⟶ Y) : continuous f :=
 begin
   rw continuous_iff_ultrafilter,
@@ -346,7 +346,7 @@ noncomputable def of_topological_space (X : Type*) [topological_space X]
     exact c4,
   end }
 
-/-- Any continuous map between Compacta is a morphism of algebras for the ultrafilter monad. -/
+/-- Any continuous map between Compacta is a morphism of compacta. -/
 def hom_of_continuous {X Y : Compactum} (f : X → Y) (cont : continuous f) : X ⟶ Y :=
 { f := f,
   h' := begin

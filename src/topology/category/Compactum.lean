@@ -307,7 +307,7 @@ begin
   cc,
 end
 
--- Any morphism of compacta is continuous.
+/-- Any morphism of compacta is continuous. -/
 lemma continuous_of_hom {X Y : Compactum} (f : X ⟶ Y) : continuous f :=
 begin
   rw continuous_iff_ultrafilter,

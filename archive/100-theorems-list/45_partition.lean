@@ -28,17 +28,6 @@ finset.filter (λ f, s.sum f = n) ((s.pi (λ _, range (n+1))).map
   ⟨λ f i, if h : i ∈ s then f i h else 0,
    λ f g h, by { ext i hi, simpa [dif_pos hi] using congr_fun h i }⟩)
 
-def prod_equiv_bool_to {α : Type*} : (bool → α) ≃ α × α :=
-{ to_fun := λ f, (f ff, f tt),
-  inv_fun := λ x b, bool.cases_on b x.1 x.2,
-  left_inv := λ x,
-  begin
-    ext ⟨_ | _⟩,
-    refl,
-    refl,
-  end,
-  right_inv := λ ⟨x₁, x₂⟩, rfl }
-
 lemma mem_cut {ι : Type*} (s : finset ι) (n : ℕ) (f : ι → ℕ) :
   f ∈ cut s n ↔ s.sum f = n ∧ ∀ i ∉ s, f i = 0 :=
 begin
@@ -61,7 +50,7 @@ begin
 end
 
 lemma cut_equiv_antidiag (n : ℕ) :
-  equiv.finset_congr prod_equiv_bool_to (cut univ n) = nat.antidiagonal n :=
+  equiv.finset_congr bool_to_equiv_prod (cut univ n) = nat.antidiagonal n :=
 begin
   ext ⟨x₁, x₂⟩,
   simp_rw [equiv.finset_congr_apply, mem_map, equiv.to_embedding, function.embedding.coe_fn_mk,

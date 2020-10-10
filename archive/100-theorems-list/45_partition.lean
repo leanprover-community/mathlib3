@@ -60,28 +60,13 @@ begin
       { apply (hf _ q).symm } } }
 end
 
-def equiv.finset_congr {α β : Type*} (e : α ≃ β) : finset α ≃ finset β :=
-{ to_fun := λ s, s.image e,
-  inv_fun := λ s, s.image e.symm,
-  left_inv := λ s,
-  begin
-    dsimp,
-    rw finset.image_image,
-    simp only [equiv.symm_comp_self, image_id],
-  end,
-  right_inv := λ s,
-  begin
-    dsimp,
-    rw finset.image_image,
-    simp only [equiv.self_comp_symm, image_id],
-  end }
-
 lemma cut_equiv_antidiag (n : ℕ) :
   equiv.finset_congr prod_equiv_bool_to (cut univ n) = nat.antidiagonal n :=
 begin
   ext ⟨x₁, x₂⟩,
-  simp only [equiv.finset_congr, equiv.coe_fn_mk, mem_image, ← equiv.eq_symm_apply],
-  simp [prod_equiv_bool_to, mem_cut, add_comm],
+  simp_rw [equiv.finset_congr_apply, mem_map, equiv.to_embedding, function.embedding.coe_fn_mk,
+           ←equiv.eq_symm_apply],
+  simp [mem_cut, prod_equiv_bool_to, add_comm],
 end
 
 lemma pi_singleton {ι : Type*} (s : finset ι) (i : α) :

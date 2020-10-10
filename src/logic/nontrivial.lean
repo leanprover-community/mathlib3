@@ -70,6 +70,9 @@ lemma subsingleton_iff : subsingleton α ↔ ∀ (x y : α), x = y :=
 lemma not_nontrivial_iff_subsingleton : ¬(nontrivial α) ↔ subsingleton α :=
 by { rw [nontrivial_iff, subsingleton_iff], push_neg, refl }
 
+lemma not_subsingleton (α) [h : nontrivial α] : ¬subsingleton α :=
+let ⟨⟨x, y, hxy⟩⟩ := h in λ ⟨h'⟩, hxy $ h' x y
+
 /-- A type is either a subsingleton or nontrivial. -/
 lemma subsingleton_or_nontrivial (α : Type*) : subsingleton α ∨ nontrivial α :=
 by { rw [← not_nontrivial_iff_subsingleton, or_comm], exact classical.em _ }

@@ -368,24 +368,6 @@ begin
   exact eq_of_monic_of_associated hprodmonic hmonic hassoc
 end
 
-lemma roots_mul_C_eq_roots {p : polynomial α} {a : α} (hzero : a ≠ 0) : p.roots = (C a * p).roots :=
-begin
-  by_cases hpzero : p = 0,
-  { simp only [hpzero, mul_zero] },
-  rw multiset.ext,
-  intro b,
-  have prodzero : C a * p ≠ 0,
-  { simp only [hpzero, or_false, ne.def, mul_eq_zero],
-    intro h,
-    rw ← C_0 at h,
-    replace h := C_inj.1 h,
-    exact hzero h },
-  rw [count_roots hpzero, count_roots prodzero, root_multiplicity_mul prodzero],
-  have mulzero : root_multiplicity b (C a) = 0,
-  { simp only [hzero, root_multiplicity_eq_zero, eval_C, is_root.def, not_false_iff] },
-  simp only [mulzero, zero_add]
-end
-
 /--A polynomial `p` that has as much roots as its degree can be written `p = p.leading_coeff * ∏(X - a)`, for `a` in `p.roots`-/
 lemma eq_prod_of_card_roots {p : polynomial α} (hzero : p ≠ 0)
   (hroots : p.nat_degree = p.roots.card) : p = (C p.leading_coeff) * (multiset.map (λ (a : α), X - C a) p.roots).prod :=

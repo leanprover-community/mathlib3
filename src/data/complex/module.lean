@@ -5,6 +5,7 @@ Authors: Alexander Bentkamp, Sébastien Gouëzel
 -/
 import data.complex.basic
 import algebra.algebra.basic
+import linear_algebra.finite_dimensional
 
 /-!
 # Complex number as a vector space over `ℝ`
@@ -30,6 +31,23 @@ namespace complex
 
 instance algebra_over_reals : algebra ℝ ℂ := (complex.of_real).to_algebra
 
+lemma is_basis_one_I : is_basis ℝ (coe : ({1, I} : set ℂ) → ℂ) :=
+begin
+  refine ⟨linear_independent_pair one_ne_zero $ λ a, mt (congr_arg im) (by simp [algebra.smul_def]),
+    submodule.eq_top_iff'.2 $ λ z, _⟩,
+  simp only [subtype.range_coe_subtype, set.set_of_mem_eq, submodule.mem_span_insert,
+    exists_prop, submodule.mem_span_singleton],
+  refine ⟨z.re, _, ⟨z.im, rfl⟩, _⟩,
+  simp [algebra.smul_def]
+end
+
+instance : finite_dimensional ℝ ℂ :=
+finite_dimensional.of_finite_basis is_basis_one_I $ (set.finite_singleton _).insert _
+
+lemma dim_real_complex : vector_space.dim ℝ ℂ = 2 :=
+by rw [← is_basis_one_I.mk_eq_dim'', ← finset.coe_singleton, ← finset.coe_insert,
+  ← cardinal.finset_card, finset.card_insert]
+
 end complex
 
 /- Register as an instance (with low priority) the fact that a complex vector space is also a real
@@ -41,6 +59,8 @@ attribute [instance, priority 900] module.complex_to_real
 instance (E : Type*) [add_comm_group E] [module ℝ E]
   (F : Type*) [add_comm_group F] [module ℂ F] : module ℂ (E →ₗ[ℝ] F) :=
 linear_map.module_extend_scalars _ _ _ _
+
+instance finite_dimensional.complex_to_real (E : Type*) [add_comm_group E] [module 
 
 namespace complex
 

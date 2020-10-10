@@ -588,7 +588,7 @@ def pempty_sum (α : Sort*) : pempty ⊕ α ≃ α :=
 @[simp] lemma pempty_sum_apply_inr {α} (a) : pempty_sum α (sum.inr a) = a := rfl
 
 /-- `option α` is equivalent to `α ⊕ punit` -/
-def option_equiv_sum_punit (α : Sort*) : option α ≃ α ⊕ punit.{u+1} :=
+def option_equiv_sum_punit (α : Type*) : option α ≃ α ⊕ punit.{u+1} :=
 ⟨λ o, match o with none := inr punit.star | some a := inl a end,
  λ s, match s with inr _ := none | inl a := some a end,
  λ o, by cases o; refl,
@@ -597,6 +597,14 @@ def option_equiv_sum_punit (α : Sort*) : option α ≃ α ⊕ punit.{u+1} :=
 @[simp] lemma option_equiv_sum_punit_none {α} : option_equiv_sum_punit α none = sum.inr () := rfl
 @[simp] lemma option_equiv_sum_punit_some {α} (a) :
   option_equiv_sum_punit α (some a) = sum.inl a := rfl
+
+@[simp] lemma option_equiv_sum_punit_symm_inl {α} (a) :
+  (option_equiv_sum_punit α).symm (sum.inl a) = a :=
+rfl
+
+@[simp] lemma option_equiv_sum_punit_symm_inr {α} (a) :
+  (option_equiv_sum_punit α).symm (sum.inr a) = none :=
+rfl
 
 /-- The set of `x : option α` such that `is_some x` is equivalent to `α`. -/
 def option_is_some_equiv (α : Type*) : {x : option α // x.is_some} ≃ α :=

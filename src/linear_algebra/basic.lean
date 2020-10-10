@@ -601,6 +601,11 @@ theorem disjoint_def {p p' : submodule R M} :
   disjoint p p' ↔ ∀ x ∈ p, x ∈ p' → x = (0:M) :=
 show (∀ x, x ∈ p ∧ x ∈ p' → x ∈ ({0} : set M)) ↔ _, by simp
 
+theorem disjoint_def' {p p' : submodule R M} :
+  disjoint p p' ↔ ∀ (x ∈ p) (y ∈ p'), x = y → x = (0:M) :=
+disjoint_def.trans ⟨λ h x hx y hy hxy, h x hx $ hxy.symm ▸ hy,
+  λ h x hx hx', h _ hx x hx' rfl⟩
+
 theorem mem_right_iff_eq_zero_of_disjoint {p p' : submodule R M} (h : disjoint p p') {x : p} :
   (x:M) ∈ p' ↔ x = 0 :=
 ⟨λ hx, coe_eq_zero.1 $ disjoint_def.1 h x x.2 hx, λ h, h.symm ▸ p'.zero_mem⟩
@@ -897,6 +902,11 @@ begin
   rw [H hy, smul_zero]
 end
 
+lemma disjoint_span_singleton' {K E : Type*} [division_ring K] [add_comm_group E] [module K E]
+  {p : submodule K E} {x : E} (x0 : x ≠ 0) :
+  disjoint p (span K {x}) ↔ x ∉ p :=
+disjoint_span_singleton.trans ⟨λ h₁ h₂, x0 (h₁ h₂), λ h₁ h₂, (h₁ h₂).elim⟩
+
 lemma mem_span_insert {y} : x ∈ span R (insert y s) ↔ ∃ (a:R) (z ∈ span R s), x = a • y + z :=
 begin
   simp only [← union_singleton, span_union, mem_sup, mem_span_singleton, exists_prop,
@@ -1183,18 +1193,20 @@ lemma range_coprod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) :
   (f.coprod g).range = f.range ⊔ g.range :=
 submodule.ext $ λ x, by simp [mem_sup]
 
-lemma sup_range_inl_inr :
-  (inl R M M₂).range ⊔ (inr R M M₂).range = ⊤ :=
+lemma is_compl_range_inl_inr : is_compl (inl R M M₂).range (inr R M M₂).range :=
 begin
-  refine eq_top_iff'.2 (λ x, mem_sup.2 _),
-  rcases x with ⟨x₁, x₂⟩ ,
-  have h₁ : prod.mk x₁ (0 : M₂) ∈ (inl R M M₂).range,
-    by simp,
-  have h₂ : prod.mk (0 : M) x₂ ∈ (inr R M M₂).range,
-    by simp,
-  use [⟨x₁, 0⟩, h₁, ⟨0, x₂⟩, h₂],
-  simp
+  split,
+  { rintros ⟨_, _⟩ ⟨⟨x, -, hx⟩, ⟨y, -, hy⟩⟩,
+    simp only [prod.ext_iff, inl_apply, inr_apply, mem_bot] at hx hy ⊢,
+    exact ⟨hy.1.symm, hx.2.symm⟩ },
+  { rintros ⟨x, y⟩ -,
+    simp only [mem_sup, mem_range, exists_prop],
+    refine ⟨(x, 0), ⟨x, rfl⟩, (0, y), ⟨y, rfl⟩, _⟩,
+    simp }
 end
+
+lemma sup_range_inl_inr : (inl R M M₂).range ⊔ (inr R M M₂).range = ⊤ :=
+is_compl_range_inl_inr.sup_eq_top
 
 /-- Restrict the codomain of a linear map `f` to `f.range`. -/
 @[reducible] def range_restrict (f : M →ₗ[R] M₂) : M →ₗ[R] f.range :=

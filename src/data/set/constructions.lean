@@ -10,7 +10,16 @@ import data.finset.basic
 /-!
 # Constructions involving sets of sets.
 
-TODO
+## Finite Intersections
+
+We define a structure `has_finite_inter` which asserts that a set `S` of subsets of `α` is
+closed under finite intersections.
+
+We define `finite_inter_closure` which, given a set `S` of subsets of `α`, is the smallest
+set of subsets of `α` which is closed under finite intersections.
+
+`finite_inter_closure S` is endowed with a term of type `has_finite_inter` using
+`finite_inter_closure_has_finite_inter`.
 
 -/
 
@@ -25,7 +34,7 @@ namespace has_finite_inter
 
 -- Satisfying the inhabited linter...
 instance : inhabited (has_finite_inter ({set.univ} : set (set α))) :=
-⟨⟨by tauto,λ _ _ h1 h2, by finish⟩⟩
+⟨⟨by tauto, λ _ _ h1 h2, by finish⟩⟩
 
 /-- The smallest set of sets containing `S` which is closed under finite intersections. -/
 inductive finite_inter_closure : set (set α)
@@ -45,14 +54,14 @@ begin
   classical,
   refine finset.induction_on F (λ _, _) _,
   { suffices : set.univ ∈ S, by simpa,
-    apply cond.univ_mem },
+    exact cond.univ_mem },
   { intros a s h1 h2 h3,
     suffices : a ∩ ⋂₀ ↑s ∈ S, by simpa,
     apply cond.inter_mem,
     { apply h3, simp },
     { apply h2, intros x hx, apply h3,
       suffices : x = a ∨ x ∈ s, by simpa,
-      right, assumption } }
+      exact or.inr hx } }
 end
 
 lemma finite_inter_closure_insert {A : set α} (cond : has_finite_inter S)
@@ -63,11 +72,11 @@ begin
     { exact or.inr ⟨set.univ, cond.univ_mem, by simpa⟩ },
     { exact or.inl H_a } },
   { exact or.inl cond.univ_mem },
-  { rcases H_ih_a with (h | ⟨Q,hQ,rfl⟩); rcases H_ih_a_1 with (i | ⟨R,hR,rfl⟩),
+  { rcases H_ih_a with (h | ⟨Q,hQ,rfl⟩); rcases H_ih_a_1 with (i | ⟨R, hR, rfl⟩),
     { exact or.inl (cond.inter_mem h i) },
     { exact or.inr ⟨H_s ∩ R, cond.inter_mem h hR, by finish⟩ },
     { exact or.inr ⟨Q ∩ H_t, cond.inter_mem hQ i, by finish⟩ },
-    { refine or.inr ⟨Q ∩ R, cond.inter_mem hQ hR , by tidy⟩ } }
+    { exact or.inr ⟨Q ∩ R, cond.inter_mem hQ hR , by tidy⟩ } }
 end
 
 end has_finite_inter

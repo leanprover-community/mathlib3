@@ -357,23 +357,29 @@ begin
   rw [← C_inj, this, C_0],
 end
 
-lemma prod_multiset_root_eq_finset_root {p : polynomial R} (hzero : p ≠ 0) : (multiset.map (λ (a : R), X - C a) p.roots).prod = ∏ a in (multiset.to_finset p.roots), (λ (a : R), (X - C a) ^ (root_multiplicity a p)) a :=
+lemma prod_multiset_root_eq_finset_root {p : polynomial R} (hzero : p ≠ 0) :
+(multiset.map (λ (a : R), X - C a) p.roots).prod = ∏ a in (multiset.to_finset p.roots), (λ (a : R), (X - C a) ^ (root_multiplicity a p)) a :=
 begin
   simp only [count_roots hzero, finset.prod_multiset_map_count]
 end
 
 /--The product `∏ (X - a)` for `a` inside the multiset `p.roots` divides p-/
-lemma prod_X_sub_C_pow_dvd {p : polynomial R} : (multiset.map (λ (a : R), X - C a) p.roots).prod ∣ p :=
+lemma prod_X_sub_C_pow_dvd {p : polynomial R} :
+(multiset.map (λ (a : R), X - C a) p.roots).prod ∣ p :=
 begin
   by_cases hzero : p = 0,
-  { simp only [hzero, roots_zero, is_unit_one, multiset.prod_zero, multiset.map_zero, is_unit.dvd] },
+  { simp only [hzero, roots_zero, is_unit_one, multiset.prod_zero,
+  multiset.map_zero, is_unit.dvd] },
   rw prod_multiset_root_eq_finset_root hzero,
-  have hcoprime : pairwise (is_coprime on λ (a : R), polynomial.X - C (id a)) := pairwise_coprime_X_sub function.injective_id,
-  have hcoprimepow : pairwise (is_coprime on λ (a : R), (polynomial.X - C (id a)) ^ (root_multiplicity a p)),
+  have hcoprime : pairwise (is_coprime on λ (a : R),
+  polynomial.X - C (id a)) := pairwise_coprime_X_sub function.injective_id,
+  have hcoprimepow : pairwise (is_coprime on λ (a : R),
+  (polynomial.X - C (id a)) ^ (root_multiplicity a p)),
   { intros a b hdiff,
     apply is_coprime.pow,
     exact hcoprime a b hdiff },
-  apply finset.prod_dvd_of_coprime (pairwise.pairwise_on hcoprimepow (↑(multiset.to_finset p.roots) : set R)),
+  apply finset.prod_dvd_of_coprime (pairwise.pairwise_on hcoprimepow 
+  (↑(multiset.to_finset p.roots) : set R)),
   intros a h,
   rw multiset.mem_to_finset at h,
   exact pow_root_multiplicity_dvd p a

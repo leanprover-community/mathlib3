@@ -20,7 +20,7 @@ Let `n : ℕ`. All of the following definitions are in the `nat` namespace:
  * `perfect n` is true when the sum of `proper_divisors n` is `n`.
 
 ## Implementation details
- * `divisors 0` , `proper_divisors 0`, and `divisors_antidiagonal 0` are defined to be `∅`.
+ * `divisors 0`, `proper_divisors 0`, and `divisors_antidiagonal 0` are defined to be `∅`.
 
 ## Tags
 divisors, perfect numbers
@@ -202,11 +202,11 @@ begin
 end
 
 lemma mem_divisors_prime_pow {p : ℕ} (pp : p.prime) (k : ℕ) {x : ℕ} :
-  x ∈ divisors (p ^ k) ↔  ∃ (j : ℕ) (H : j ≤ k), x = p ^ j :=
+  x ∈ divisors (p ^ k) ↔ ∃ (j : ℕ) (H : j ≤ k), x = p ^ j :=
 by rw [mem_divisors, nat.dvd_prime_pow pp, and_iff_left (ne_of_gt (pow_pos pp.pos k))]
 
 lemma divisors_prime {p : ℕ} (pp : p.prime) :
-  divisors p = {1 , p} :=
+  divisors p = {1, p} :=
 begin
   ext,
   simp only [pp.ne_zero, and_true, ne.def, not_false_iff, finset.mem_insert,
@@ -221,6 +221,7 @@ lemma divisors_prime_pow {p : ℕ} (pp : p.prime) (k : ℕ) :
 by { ext, simp [mem_divisors_prime_pow, pp, nat.lt_succ_iff, @eq_comm _ a] }
 
 open finset
+
 @[simp]
 lemma sum_divisors_prime {α : Type*} [add_comm_monoid α] {p : ℕ} {f : ℕ → α} (h : p.prime) :
   ∑ x in p.divisors, f x = f p + f 1 :=

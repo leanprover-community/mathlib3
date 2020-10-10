@@ -6,6 +6,7 @@ Author: Aaron Anderson.
 
 import number_theory.arithmetic_function
 import number_theory.lucas_lehmer
+import algebra.geom_sum
 
 /-!
 # Perfect Numbers
@@ -28,33 +29,20 @@ https://en.wikipedia.org/wiki/Euclid%E2%80%93Euler_theorem
 @[simp]
 lemma succ_mersenne (k : ℕ) : mersenne k + 1 = 2 ^ k :=
 begin
-  rw [mersenne, ← nat.succ_eq_add_one, ← nat.pred_eq_sub_one, nat.succ_pred_eq_of_pos],
-  apply pow_pos,
-  dec_trivial,
+  rw [mersenne, nat.sub_add_cancel],
+  exact one_le_pow_of_one_le (by norm_num) k
 end
 
 lemma odd_mersenne_succ (k : ℕ) : ¬ 2 ∣ mersenne (k + 1) :=
-begin
-  rw [← even_iff_two_dvd, ← nat.even_succ, nat.succ_eq_add_one, succ_mersenne,
-    even_iff_two_dvd, pow_succ],
-  apply dvd.intro _ rfl,
-end
+by simp [← even_iff_two_dvd, ← nat.even_succ, nat.succ_eq_add_one] with parity_simps
 
 namespace nat
 open arithmetic_function finset
 open_locale arithmetic_function
 
 lemma sigma_two_pow_eq_mersenne_succ (k : ℕ) : σ 1 (2 ^ k) = mersenne (k + 1) :=
-begin
-  simp only [mersenne, prime_two, divisors_prime_pow, sum_map, function.embedding.coe_fn_mk,
-    pow_one, sigma_apply],
-  induction k,
-  { simp },
-  rw [pow_succ, sum_range_succ, two_mul, k_ih, nat.add_sub_assoc],
-  rw nat.succ_le_iff,
-  apply pow_pos,
-  dec_trivial,
-end
+by simpa [mersenne, prime_two, ← geom_sum_mul_add 1 (k+1)]
+
 
 /-- Euclid's theorem that Mersenne primes induce perfect numbers -/
 theorem perfect_two_pow_mul_mersenne_of_prime (k : ℕ) (pr : (mersenne (k + 1)).prime) :
@@ -67,15 +55,15 @@ begin
   simp [pr, nat.prime_two]
 end
 
+lemma ne_zero_of_mersenne_of_prime (k : ℕ) (pr : (mersenne (k + 1)).prime) :
+  k ≠ 0 :=
+begin
+  rintro rfl,
+  simpa [mersenne, not_prime_one] using pr,
+end
+
 theorem even_two_pow_mul_mersenne_of_prime (k : ℕ) (pr : (mersenne (k + 1)).prime) :
   even ((2 ^ k) * mersenne (k + 1)) :=
-begin
-  simp only [true_and, even_zero, not_true, ne.def, not_false_iff] with parity_simps,
-  left,
-  rintro rfl,
-  apply nat.not_prime_one,
-  revert pr,
-  simp [mersenne],
-end
+by simp [ne_zero_of_mersenne_of_prime k pr] with parity_simps
 
 end nat

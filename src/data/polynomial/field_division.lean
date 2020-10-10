@@ -16,6 +16,7 @@ This file starts looking like the ring theory of $ R[X] $
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
+open_locale classical big_operators
 
 namespace polynomial
 universes u v w y z
@@ -354,6 +355,46 @@ begin
   have : (X - C a) ∣ derivative f := key ▸ (dvd_add h (dvd_mul_right _ _)),
   rw [← dvd_iff_mod_by_monic_eq_zero (monic_X_sub_C _), mod_by_monic_X_sub_C_eq_C_eval] at this,
   rw [← C_inj, this, C_0],
+end
+
+lemma prod_multiset_root_eq_finset_root {p : polynomial R} (hzero : p ≠ 0) : (multiset.map (λ (a : R), X - C a) p.roots).prod = ∏ a in (multiset.to_finset p.roots), (λ (a : R), (X - C a) ^ (root_multiplicity a p)) a :=
+begin
+  simp only [count_roots hzero, finset.prod_multiset_map_count]
+end
+
+/--The product `∏ (X - a)` for `a` inside the multiset `p.roots` divides p-/
+lemma prod_X_sub_C_pow_dvd {p : polynomial R} : (multiset.map (λ (a : R), X - C a) p.roots).prod ∣ p :=
+begin
+  by_cases hzero : p = 0,
+  { simp only [hzero, roots_zero, is_unit_one, multiset.prod_zero, multiset.map_zero, is_unit.dvd] },
+  rw prod_multiset_root_eq_finset_root hzero,
+  have hcoprime : pairwise (is_coprime on λ (a : R), polynomial.X - C (id a)) := pairwise_coprime_X_sub function.injective_id,
+  have hcoprimepow : pairwise (is_coprime on λ (a : R), (polynomial.X - C (id a)) ^ (root_multiplicity a p)),
+  { intros a b hdiff,
+    apply is_coprime.pow,
+    exact hcoprime a b hdiff },
+  apply finset.prod_dvd_of_coprime (pairwise.pairwise_on hcoprimepow (↑(multiset.to_finset p.roots) : set R)),
+  intros a h,
+  rw multiset.mem_to_finset at h,
+  exact pow_root_multiplicity_dvd p a
+end
+
+lemma roots_mul_C_eq_roots {p : polynomial R} {a : R} (hzero : a ≠ 0) : p.roots = (C a * p).roots :=
+begin
+  by_cases hpzero : p = 0,
+  { simp only [hpzero, mul_zero] },
+  rw multiset.ext,
+  intro b,
+  have prodzero : C a * p ≠ 0,
+  { simp only [hpzero, or_false, ne.def, mul_eq_zero],
+    intro h,
+    rw ← C_0 at h,
+    replace h := C_inj.1 h,
+    exact hzero h },
+  rw [count_roots hpzero, count_roots prodzero, root_multiplicity_mul prodzero],
+  have mulzero : root_multiplicity b (C a) = 0,
+  { simp only [hzero, root_multiplicity_eq_zero, eval_C, is_root.def, not_false_iff] },
+  simp only [mulzero, zero_add]
 end
 
 end field

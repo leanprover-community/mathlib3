@@ -42,7 +42,7 @@ open finset finsupp
 universes u₁ u₂ u₃
 variables (k : Type u₁) (G : Type u₂)
 
-/-! ## Multiplicative monoids -/
+/-! ### Multiplicative monoids -/
 section
 variables [semiring k]
 
@@ -60,7 +60,7 @@ namespace monoid_algebra
 
 variables {k G}
 
-/-! ### Semiring structure -/
+/-! #### Semiring structure -/
 section semiring
 
 variables [semiring k] [monoid G]
@@ -105,7 +105,7 @@ instance : semiring (monoid_algebra k G) :=
 
 end semiring
 
-/-! ### Derived instances -/
+/-! #### Derived instances -/
 section derived_instances
 
 instance [comm_semiring k] [comm_monoid G] : comm_semiring (monoid_algebra k G) :=
@@ -233,7 +233,7 @@ f.single_mul_apply_aux $ λ a, by rw [one_mul]
 end misc_theorems
 
 
-/-! ### Algebra structure -/
+/-! #### Algebra structure -/
 section algebra
 
 local attribute [reducible] monoid_algebra
@@ -462,7 +462,7 @@ end
 
 end monoid_algebra
 
-/-! ## Additive monoids -/
+/-! ### Additive monoids -/
 section
 variables [semiring k]
 
@@ -480,7 +480,7 @@ namespace add_monoid_algebra
 
 variables {k G}
 
-/-! ### Semiring structure -/
+/-! #### Semiring structure -/
 section semiring
 
 variables [semiring k] [add_monoid G]
@@ -527,7 +527,7 @@ instance : semiring (add_monoid_algebra k G) :=
 
 end semiring
 
-/-! ### Derived instances -/
+/-! #### Derived instances -/
 section derived_instances
 
 instance [comm_semiring k] [add_comm_monoid G] : comm_semiring (add_monoid_algebra k G) :=
@@ -632,7 +632,7 @@ f.single_mul_apply_aux r _ _ _ $ λ a, by rw [zero_add]
 
 end misc_theorems
 
-/-! ### Algebra structure -/
+/-! #### Algebra structure -/
 section algebra
 
 variables {R : Type*}

@@ -5,7 +5,7 @@ Authors: Aaron Anderson
 -/
 
 import data.nat.associated
-import ring_theory.unique_factorization_domain
+import ring_theory.int.gcd
 
 /-#
 

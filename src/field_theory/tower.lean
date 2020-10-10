@@ -64,7 +64,7 @@ namespace finite_dimensional
 theorem trans [finite_dimensional F K] [finite_dimensional K A] : finite_dimensional F A :=
 let ⟨b, hb⟩ := exists_is_basis_finset F K in
 let ⟨c, hc⟩ := exists_is_basis_finset K A in
-of_finite_basis $ hb.smul hc
+of_fintype_basis $ hb.smul hc
 
 lemma right [hf : finite_dimensional F A] : finite_dimensional K A :=
 let ⟨b, hb⟩ := iff_fg.1 hf in

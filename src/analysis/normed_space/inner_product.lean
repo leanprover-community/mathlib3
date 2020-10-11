@@ -945,10 +945,9 @@ begin
     { intro h,
       rwa [is_R_or_C.abs_div, abs_of_real, _root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm,
           div_eq_one_iff_eq hxy0] at h } },
-  rw [h₁],
-  refine ⟨λ h, ((abs_inner_div_norm_mul_norm_eq_one_iff x y).mp h).2, _⟩,
-  intro h,
-  exact (abs_inner_div_norm_mul_norm_eq_one_iff x y).mpr ⟨hx0, h⟩,
+  rw [h₁, abs_inner_div_norm_mul_norm_eq_one_iff x y],
+  have : x ≠ 0 := λ h, (hx0' $ norm_eq_zero.mpr h),
+  simp [this]
 end
 
 /-- The inner product of two vectors, divided by the product of their

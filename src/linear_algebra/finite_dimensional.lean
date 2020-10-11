@@ -152,10 +152,16 @@ lemma of_fintype_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K
   finite_dimensional K V :=
 iff_fg.2 $ ⟨finset.univ.image b, by {convert h.2, simp} ⟩
 
-/-- If a vector space has a finite basis, then it is finite-dimensional, finset style. -/
-lemma of_finset_basis {b : finset V} (h : is_basis K (coe : (↑b : set V) -> V)) :
+/-- If a vector space has a basis indexed by elements of a finite set, then it is
+finite-dimensional. -/
+lemma of_finite_basis {ι} {s : set ι} {b : s → V} (h : is_basis K b) (hs : set.finite s) :
   finite_dimensional K V :=
-iff_fg.2 $ ⟨b, by {convert h.2, simp} ⟩
+by haveI := hs.fintype; exact of_fintype_basis h
+
+/-- If a vector space has a finite basis, then it is finite-dimensional, finset style. -/
+lemma of_finset_basis {ι} {s : finset ι} {b : (↑s : set ι) → V} (h : is_basis K b) :
+  finite_dimensional K V :=
+of_finite_basis h s.finite_to_set
 
 lemma of_finite_basis {s : set V} (h : is_basis K (coe : s → V)) (hs : set.finite s) :
   finite_dimensional K V :=

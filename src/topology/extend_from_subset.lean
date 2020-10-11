@@ -39,13 +39,13 @@ def extend_from (A : set X) (f : X → Y) : X → Y :=
 then `f` tends to `extend_from A f x` as `x` tends to `x₀`. -/
 lemma tendsto_extend_from {A : set X} {f : X → Y} {x : X}
   (h : ∃ y, tendsto f (nhds_within x A) (𝓝 y)) : tendsto f (nhds_within x A) (𝓝 $ extend_from A f x) :=
-lim_spec h
+tendsto_nhds_lim h
 
 lemma extend_from_eq [t2_space Y] {A : set X} {f : X → Y} {x : X} {y : Y} (hx : x ∈ closure A)
   (hf : tendsto f (nhds_within x A) (𝓝 y)) : extend_from A f x = y :=
 begin
   haveI := mem_closure_iff_nhds_within_ne_bot.mp hx,
-  exact tendsto_nhds_unique (lim_spec ⟨y, hf⟩) hf,
+  exact tendsto_nhds_unique (tendsto_nhds_lim ⟨y, hf⟩) hf,
 end
 
 lemma extend_from_extends [t2_space Y] {f : X → Y} {A : set X} (hf : continuous_on f A) :

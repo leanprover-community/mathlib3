@@ -82,7 +82,7 @@ class topological_add_group (G : Type u) [topological_space G] [add_group G]
 /-- A topological group is a group in which the multiplication and inversion operations are
 continuous. -/
 @[to_additive]
-class topological_group (G : Type u) [topological_space G] [group G]
+class topological_group (G : Type*) [topological_space G] [group G]
   extends has_continuous_mul G : Prop :=
 (continuous_inv : continuous (has_inv.inv : G → G))
 

@@ -272,15 +272,24 @@ by { rw ← log_one, exact log_lt_log_iff h (by norm_num) }
 
 lemma log_neg (h0 : 0 < x) (h1 : x < 1) : log x < 0 := (log_neg_iff h0).2 h1
 
-lemma log_nonneg : 1 ≤ x → 0 ≤ log x :=
-by { intro, rwa [← log_one, log_le_log], norm_num, linarith }
+lemma log_nonneg_iff (hx : 0 < x) : 0 ≤ log x ↔ 1 ≤ x :=
+by rw [← not_lt, log_neg_iff hx, not_lt]
+
+lemma log_nonneg (hx : 1 ≤ x) : 0 ≤ log x :=
+(log_nonneg_iff (zero_lt_one.trans_le hx)).2 hx
+
+lemma log_nonpos_iff (hx : 0 < x) : log x ≤ 0 ↔ x ≤ 1 :=
+by rw [← not_lt, log_pos_iff hx, not_lt]
+
+lemma log_nonpos_iff' (hx : 0 ≤ x) : log x ≤ 0 ↔ x ≤ 1 :=
+begin
+  rcases hx.eq_or_lt with (rfl|hx),
+  { simp [le_refl, zero_le_one] },
+  exact log_nonpos_iff hx
+end
 
 lemma log_nonpos (hx : 0 ≤ x) (h'x : x ≤ 1) : log x ≤ 0 :=
-begin
-  by_cases x_zero : x = 0,
-  { simp [x_zero] },
-  { rwa [← log_one, log_le_log (lt_of_le_of_ne hx (ne.symm x_zero))], norm_num }
-end
+(log_nonpos_iff' hx).2 h'x
 
 section prove_log_is_continuous
 

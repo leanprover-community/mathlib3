@@ -116,6 +116,11 @@ lemma exists_countable_closure_eq_univ [separable_space α] :
   ∃ s : set α, countable s ∧ closure s = univ :=
 separable_space.exists_countable_closure_eq_univ
 
+lemma exists_countable_dense [separable_space α] :
+  ∃ s : set α, countable s ∧ dense s :=
+let ⟨s, hsc, hsd⟩ := exists_countable_closure_eq_univ α
+  in ⟨s, hsc, dense_iff_closure_eq.2 hsd⟩
+
 lemma exists_dense_seq [separable_space α] [nonempty α] : ∃ u : ℕ → α, closure (range u) = univ :=
 begin
   obtain ⟨s : set α, hs, s_dense⟩ := @separable_space.exists_countable_closure_eq_univ α _ _,

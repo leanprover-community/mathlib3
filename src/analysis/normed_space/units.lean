@@ -44,22 +44,21 @@ def one_sub (t : R) (h : ∥t∥ < 1) : units R :=
 
 @[simp] lemma one_sub_coe (t : R) (h : ∥t∥ < 1) : ↑(one_sub t h) = 1 - t := rfl
 
+local attribute [nontriviality] zero_lt_one -- TODO: supply lemmas as an argument to `nontriviality`
+
 /-- In a complete normed ring, a perturbation of a unit `x` by an element `t` of distance less than
 `∥x⁻¹∥⁻¹` from `x` is a unit.  Here we construct its `units` structure. -/
 def add (x : units R) (t : R) (h : ∥t∥ < ∥(↑x⁻¹ : R)∥⁻¹) : units R :=
 x * (units.one_sub (-(↑x⁻¹ * t))
 begin
-  rcases subsingleton_or_nontrivial R with _i|_i; resetI,
-  { rw subsingleton.elim (↑x⁻¹ : R) 0,
-    have : (0:ℝ) < 1 := by norm_num,
-    simpa, },
-  { have hpos : 0 < ∥(↑x⁻¹ : R)∥ := units.norm_pos x⁻¹,
-    calc ∥-(↑x⁻¹ * t)∥
-        = ∥↑x⁻¹ * t∥                   : by { rw norm_neg }
-    ... ≤ ∥(↑x⁻¹ : R)∥ * ∥t∥            : norm_mul_le x.inv _
-    ... < ∥(↑x⁻¹ : R)∥ * ∥(↑x⁻¹ : R)∥⁻¹ : by nlinarith only [h, hpos]
-    ... = 1                           : mul_inv_cancel (ne_of_gt hpos) },
-end )
+  nontriviality R,
+  have hpos : 0 < ∥(↑x⁻¹ : R)∥ := units.norm_pos x⁻¹,
+  calc ∥-(↑x⁻¹ * t)∥
+      = ∥↑x⁻¹ * t∥                   : by { rw norm_neg }
+  ... ≤ ∥(↑x⁻¹ : R)∥ * ∥t∥            : norm_mul_le x.inv _
+  ... < ∥(↑x⁻¹ : R)∥ * ∥(↑x⁻¹ : R)∥⁻¹ : by nlinarith only [h, hpos]
+  ... = 1                           : mul_inv_cancel (ne_of_gt hpos)
+end)
 
 @[simp] lemma add_coe (x : units R) (t : R) (h : ∥t∥ < ∥(↑x⁻¹ : R)∥⁻¹) :
   ((x.add t h) : R) = x + t := by { unfold units.add, simp [mul_add] }
@@ -106,24 +105,22 @@ lemma inverse_add (x : units R) :
 begin
   nontriviality R,
   rw [eventually_iff, mem_nhds_iff],
-  casesI subsingleton_or_nontrivial R,
-  { use [1, by norm_num] },
-  { have hinv : 0 < ∥(↑x⁻¹ : R)∥⁻¹,
-    { cancel_denoms,
-      exact x⁻¹.norm_pos },
-    use [∥(↑x⁻¹ : R)∥⁻¹, hinv],
-    intros t ht,
-    simp only [mem_ball, dist_zero_right] at ht,
-    have ht' : ∥-↑x⁻¹ * t∥ < 1,
-    { refine lt_of_le_of_lt (norm_mul_le _ _) _,
-      rw norm_neg,
-      refine lt_of_lt_of_le (mul_lt_mul_of_pos_left ht x⁻¹.norm_pos) _,
-      cancel_denoms },
-    have hright := inverse_one_sub (-↑x⁻¹ * t) ht',
-    have hleft := inverse_unit (x.add t ht),
-    simp only [neg_mul_eq_neg_mul_symm, sub_neg_eq_add] at hright,
-    simp only [units.add_coe] at hleft,
-    simp [hleft, hright, units.add] }
+  have hinv : 0 < ∥(↑x⁻¹ : R)∥⁻¹,
+  { cancel_denoms,
+    exact x⁻¹.norm_pos },
+  use [∥(↑x⁻¹ : R)∥⁻¹, hinv],
+  intros t ht,
+  simp only [mem_ball, dist_zero_right] at ht,
+  have ht' : ∥-↑x⁻¹ * t∥ < 1,
+  { refine lt_of_le_of_lt (norm_mul_le _ _) _,
+    rw norm_neg,
+    refine lt_of_lt_of_le (mul_lt_mul_of_pos_left ht x⁻¹.norm_pos) _,
+    cancel_denoms },
+  have hright := inverse_one_sub (-↑x⁻¹ * t) ht',
+  have hleft := inverse_unit (x.add t ht),
+  simp only [neg_mul_eq_neg_mul_symm, sub_neg_eq_add] at hright,
+  simp only [units.add_coe] at hleft,
+  simp [hleft, hright, units.add]
 end
 
 lemma inverse_one_sub_nth_order (n : ℕ) :
@@ -191,22 +188,19 @@ end
 /-- The function `λ t, inverse (x + t)` is O(1) as `t → 0`. -/
 lemma inverse_add_norm (x : units R) : is_O (λ t, inverse (↑x + t)) (λ t, (1:ℝ)) (𝓝 (0:R)) :=
 begin
+  nontriviality R,
   simp only [is_O_iff, norm_one, mul_one],
-  cases subsingleton_or_nontrivial R; resetI,
-  { refine ⟨1, eventually_of_forall (λ t, _)⟩,
-    have : ∥inverse (↑x + t)∥ = 0 := by simp,
-    linarith },
-  { cases is_O_iff.mp (@inverse_one_sub_norm R _ _) with C hC,
-    use C * ∥((x⁻¹:units R):R)∥,
-    have hzero : tendsto (λ t, - (↑x⁻¹ : R) * t) (𝓝 0) (𝓝 0),
-    { convert ((mul_left_continuous (-↑x⁻¹ : R)).tendsto 0).comp tendsto_id,
-      simp },
-    refine (inverse_add x).mp ((hzero.eventually hC).mp (eventually_of_forall _)),
-    intros t bound iden,
-    rw iden,
-    simp at bound,
-    have hmul := norm_mul_le (inverse (1 + ↑x⁻¹ * t)) ↑x⁻¹,
-    nlinarith [norm_nonneg (↑x⁻¹ : R)] }
+  cases is_O_iff.mp (@inverse_one_sub_norm R _ _) with C hC,
+  use C * ∥((x⁻¹:units R):R)∥,
+  have hzero : tendsto (λ t, - (↑x⁻¹ : R) * t) (𝓝 0) (𝓝 0),
+  { convert ((mul_left_continuous (-↑x⁻¹ : R)).tendsto 0).comp tendsto_id,
+    simp },
+  refine (inverse_add x).mp ((hzero.eventually hC).mp (eventually_of_forall _)),
+  intros t bound iden,
+  rw iden,
+  simp at bound,
+  have hmul := norm_mul_le (inverse (1 + ↑x⁻¹ * t)) ↑x⁻¹,
+  nlinarith [norm_nonneg (↑x⁻¹ : R)]
 end
 
 /-- The function

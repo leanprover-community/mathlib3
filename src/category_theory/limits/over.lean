@@ -18,10 +18,16 @@ variable {X : C}
 
 namespace category_theory.functor
 
+/-- We can interpret a functor `F` into the category of arrows with codomain `X` as a cocone over
+    the diagram given by the domains of the arrows in the image of `F` such that the apex of the
+    cocone is `X`. -/
 @[simps] def to_cocone (F : J ⥤ over X) : cocone (F ⋙ over.forget X) :=
 { X := X,
   ι := { app := λ j, (F.obj j).hom } }
 
+/-- We can interpret a functor `F` into the category of arrows with domain `X` as a cone over the
+    diagram given by the codomains of the arrows in the image of `F` such that the apex of the cone
+    is `X`. -/
 @[simps] def to_cone (F : J ⥤ under X) : cone (F ⋙ under.forget X) :=
 { X := X,
   π := { app := λ j, (F.obj j).hom } }
@@ -30,6 +36,8 @@ end category_theory.functor
 
 namespace category_theory.over
 
+/-- A colimit of `F ⋙ over.forget` induces a cocone over `F`. This is an implementation detail,
+    use the `has_colimit` instance provided below. -/
 @[simps] def colimit (F : J ⥤ over X) [has_colimit (F ⋙ forget X)] : cocone F :=
 { X := mk $ colimit.desc (F ⋙ forget X) F.to_cocone,
   ι :=
@@ -41,6 +49,8 @@ namespace category_theory.over
       tidy
     end } }
 
+/-- The cocone constructed from the colimit of `F ⋙ forget X` is a colimit. This is an
+    implementation detail, use the `has_colimit` instance provided below.  -/
 def forget_colimit_is_colimit (F : J ⥤ over X) [has_colimit (F ⋙ forget X)] :
   is_colimit ((forget X).map_cocone (colimit F)) :=
 is_colimit.of_iso_colimit (colimit.is_colimit (F ⋙ forget X)) (cocones.ext (iso.refl _) (by tidy))
@@ -96,6 +106,8 @@ end category_theory.over
 
 namespace category_theory.under
 
+/-- A limit of `F ⋙ under.forget` induces a cone over `F`. This is an implementation detail,
+    use the `has_limit` instance provided below. -/
 @[simps] def limit (F : J ⥤ under X) [has_limit (F ⋙ forget X)] : cone F :=
 { X := mk $ limit.lift (F ⋙ forget X) F.to_cone,
   π :=
@@ -107,6 +119,8 @@ namespace category_theory.under
       tidy
     end } }
 
+/-- The cone constructed from the limit of `F ⋙ forget X` is a limit. This is an
+    implementation detail, use the `has_limit` instance provided below.  -/
 def forget_limit_is_limit (F : J ⥤ under X) [has_limit (F ⋙ forget X)] :
   is_limit ((forget X).map_cone (limit F)) :=
 is_limit.of_iso_limit (limit.is_limit (F ⋙ forget X)) (cones.ext (iso.refl _) (by tidy))

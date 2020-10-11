@@ -172,20 +172,14 @@ lemma join₂_comp_map (f : R →+* mv_polynomial σ S) :
   join₂.comp (map f) = bind₂ f :=
 by { ext1, simp [join₂, bind₂] }
 
-lemma aeval_rename (f : σ → mv_polynomial τ R) (p : mv_polynomial σ R) :
+lemma aeval_id_rename (f : σ → mv_polynomial τ R) (p : mv_polynomial σ R) :
   aeval id (rename f p) = aeval f p :=
-begin
-  apply p.induction_on,
-  { simp only [aeval_C, forall_const, eq_self_iff_true, rename_C] },
-  { intros p q hp hq, simp only [hp, hq, alg_hom.map_add, ring_hom.map_add] },
-  { intros p n hp,
-    simp only [hp, rename_X, ring_hom.id_apply, aeval_X, ring_hom.map_mul, alg_hom.map_mul, id] }
-end
+by rw [aeval_rename, function.comp.left_id]
 
 @[simp]
 lemma join₁_rename (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
   join₁ (rename f φ) = bind₁ f φ :=
-aeval_rename _ _
+aeval_id_rename _ _
 
 @[simp]
 lemma bind₁_id : bind₁ (@id (mv_polynomial σ R)) = join₁ := rfl

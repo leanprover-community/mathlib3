@@ -112,7 +112,7 @@ begin
     cases hx ⟨f.to_hom_units g, g, rfl⟩ with n hn,
     rwa [subtype.ext_iff, units.ext_iff, subtype.coe_mk, monoid_hom.coe_to_hom_units,
       is_submonoid.coe_pow, units.coe_pow, is_submonoid.coe_one, units.coe_one,
-      _root_.one_pow, eq_comm] at hn, },
+      one_pow, eq_comm] at hn, },
   replace hx1 : (x : R) - 1 ≠ 0,
     from λ h, hx1 (subtype.eq (units.ext (sub_eq_zero.1 h))),
   let c := (univ.filter (λ g, f.to_hom_units g = 1)).card,

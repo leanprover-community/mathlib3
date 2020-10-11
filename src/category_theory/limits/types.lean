@@ -108,19 +108,27 @@ end
 -- Can we generate these like with `@[reassoc]`?
 -- PROJECT: prove these for any concrete category where the forgetful functor preserves limits?
 
-@[simp] lemma limit_w_apply {F : J ⥤ Type u} {j j' : J} {x : limit F} (f : j ⟶ j') :
+@[simp]
+lemma limit.w_apply {F : J ⥤ Type u} {j j' : J} {x : limit F} (f : j ⟶ j') :
   F.map f (limit.π F j x) = limit.π F j' x :=
 congr_fun (limit.w F f) x
 
 @[simp]
-lemma lift_π_apply (F : J ⥤ Type u) (s : cone F) (j : J) (x : s.X) :
+lemma limit.lift_π_apply (F : J ⥤ Type u) (s : cone F) (j : J) (x : s.X) :
   limit.π F j (limit.lift F s x) = s.π.app j x :=
 congr_fun (limit.lift_π s j) x
 
 @[simp]
-lemma map_π_apply {F G : J ⥤ Type u} (α : F ⟶ G) (j : J) (x) :
+lemma limit.map_π_apply {F G : J ⥤ Type u} (α : F ⟶ G) (j : J) (x) :
   limit.π G j (lim.map α x) = α.app j (limit.π F j x) :=
 congr_fun (limit.map_π α j) x
+
+/--
+The relation defining the quotient type which implements the colimit of a functor `F : J ⥤ Type u`.
+See `category_theory.limits.types.quot`.
+-/
+def quot.rel (F : J ⥤ Type u) : (Σ j, F.obj j) → (Σ j, F.obj j) → Prop :=
+(λ p p', ∃ f : p.1 ⟶ p'.1, p'.2 = F.map f p.2)
 
 /--
 A quotient type implementing the colimit of a functor `F : J ⥤ Type u`,
@@ -129,7 +137,7 @@ as pairs `⟨j, x⟩` where `x : F.obj j`, modulo the equivalence relation gener
 -/
 @[nolint has_inhabited_instance]
 def quot (F : J ⥤ Type u) : Type u :=
-@quot (Σ j, F.obj j) (λ p p', ∃ f : p.1 ⟶ p'.1, p'.2 = F.map f p.2)
+@quot (Σ j, F.obj j) (quot.rel F)
 
 /--
 (internal implementation) the colimit cocone of a functor,
@@ -171,17 +179,26 @@ lemma colimit_equiv_quot_symm_apply (F : J ⥤ Type u) (j : J) (x : F.obj j) :
   (colimit_equiv_quot F).symm (quot.mk _ ⟨j, x⟩) = colimit.ι F j x :=
 rfl
 
-@[simp] lemma colimit_w_apply {F : J ⥤ Type u} {j j' : J} {x : F.obj j} (f : j ⟶ j') :
+@[simp]
+lemma colimit_equiv_quot_apply (F : J ⥤ Type u) (j : J) (x : F.obj j) :
+  (colimit_equiv_quot F) (colimit.ι F j x) = quot.mk _ ⟨j, x⟩ :=
+begin
+  apply (colimit_equiv_quot F).symm.injective,
+  simp,
+end
+
+@[simp]
+lemma colimit.w_apply {F : J ⥤ Type u} {j j' : J} {x : F.obj j} (f : j ⟶ j') :
   colimit.ι F j' (F.map f x) = colimit.ι F j x :=
 congr_fun (colimit.w F f) x
 
 @[simp]
-lemma ι_desc_apply (F : J ⥤ Type u) (s : cocone F) (j : J) (x : F.obj j) :
+lemma colimit.ι_desc_apply (F : J ⥤ Type u) (s : cocone F) (j : J) (x : F.obj j) :
   colimit.desc F s (colimit.ι F j x) = s.ι.app j x :=
 congr_fun (colimit.ι_desc s j) x
 
 @[simp]
-lemma ι_map_apply {F G : J ⥤ Type u} (α : F ⟶ G) (j : J) (x) :
+lemma colimit.ι_map_apply {F G : J ⥤ Type u} (α : F ⟶ G) (j : J) (x) :
   colim.map α (colimit.ι F j x) = colimit.ι G j (α.app j x) :=
 congr_fun (colimit.ι_map α j) x
 
@@ -200,6 +217,13 @@ lemma colimit_sound'
 begin
   rw [←colimit.w _ f, ←colimit.w _ f'],
   rw [types_comp_apply, types_comp_apply, w],
+end
+
+lemma colimit_eq {F : J ⥤ Type u } {j j' : J} {x : F.obj j} {x' : F.obj j'}
+  (w : colimit.ι F j x = colimit.ι F j' x') : eqv_gen (quot.rel F) ⟨j, x⟩ ⟨j', x'⟩ :=
+begin
+  apply quot.eq.1,
+  simpa using congr_arg (colimit_equiv_quot F) w,
 end
 
 lemma jointly_surjective (F : J ⥤ Type u) {t : cocone F} (h : is_colimit t)
@@ -313,7 +337,7 @@ lemma colimit_eq_iff_aux {i j : J} {xi : F.obj i} {xj : F.obj j} :
     ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f xi = F.map g xj :=
 begin
   change quot.mk _ _ = quot.mk _ _ ↔ _,
-  rw [quot.eq, ←filtered_colimit.r_eq],
+  rw [quot.eq, quot.rel, ←filtered_colimit.r_eq],
   refl
 end
 
@@ -325,7 +349,7 @@ let t' := colimit_cocone F,
     e' : t'.X ≅ t.X := (cocones.forget _).map_iso e in
 begin
   refine iff.trans _ (colimit_eq_iff_aux F),
-  convert equiv.apply_eq_iff_eq e'.to_equiv _ _; rw ←e.hom.w; refl
+  convert e'.to_equiv.apply_eq_iff_eq; rw ←e.hom.w; refl
 end
 
 lemma colimit_eq_iff {i j : J} {xi : F.obj i} {xj : F.obj j} :

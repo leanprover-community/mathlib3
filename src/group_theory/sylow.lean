@@ -54,11 +54,11 @@ begin
       exact card_quotient_dvd_card _ },
     rcases (nat.dvd_prime_pow hp).1 this with ⟨k, _, hk⟩,
     have hb' :¬ p ^ 1 ∣ p ^ k,
-    { rw [nat.pow_one, ← hk, ← nat.modeq.modeq_zero_iff, ← zmod.eq_iff_modeq_nat,
+    { rw [pow_one, ← hk, ← nat.modeq.modeq_zero_iff, ← zmod.eq_iff_modeq_nat,
         nat.cast_zero, ← ne.def],
       exact eq.mpr (by simp only [quotient.eq']; congr) hb },
-    have : k = 0 := nat.le_zero_iff.1 (nat.le_of_lt_succ (lt_of_not_ge (mt (nat.pow_dvd_pow p) hb'))),
-    refine ⟨⟨b, mem_fixed_points_iff_card_orbit_eq_one.2 $ by rw [hk, this, nat.pow_zero]⟩,
+    have : k = 0 := nat.le_zero_iff.1 (nat.le_of_lt_succ (lt_of_not_ge (mt (pow_dvd_pow p) hb'))),
+    refine ⟨⟨b, mem_fixed_points_iff_card_orbit_eq_one.2 $ by rw [hk, this, pow_zero]⟩,
       mem_univ _, _, rfl⟩,
     rw [nat.cast_one], exact one_ne_zero }
 end
@@ -141,12 +141,12 @@ have hcard : card (vectors_prod_eq_one G (n + 1)) = card G ^ (n : ℕ),
   by rw [set.ext mem_vectors_prod_eq_one_iff,
     set.card_range_of_injective (mk_vector_prod_eq_one_injective _), card_vector],
 have hzmod : fintype.card (multiplicative (zmod p)) = p ^ 1,
-  by { rw nat.pow_one p, exact zmod.card p },
+  by { rw pow_one p, exact zmod.card p },
 have hmodeq : _ = _ := @mul_action.card_modeq_card_fixed_points
   (multiplicative (zmod p)) (vectors_prod_eq_one G p) _ _ _ _ _ _ 1 hp hzmod,
 have hdvdcard : p ∣ fintype.card (vectors_prod_eq_one G (n + 1)) :=
-  calc p ∣ card G ^ 1 : by rwa nat.pow_one
-  ... ∣ card G ^ (n : ℕ) : nat.pow_dvd_pow _ n.2
+  calc p ∣ card G ^ 1 : by rwa pow_one
+  ... ∣ card G ^ (n : ℕ) : pow_dvd_pow _ n.2
   ... = card (vectors_prod_eq_one G (n + 1)) : hcard.symm,
 have hdvdcard₂ : p ∣ card (fixed_points (multiplicative (zmod p)) (vectors_prod_eq_one G p)),
   by { rw nat.dvd_iff_mod_eq_zero at hdvdcard ⊢, rwa [← hn, hmodeq] at hdvdcard },
@@ -199,13 +199,13 @@ lemma exists_subgroup_card_pow_prime [fintype G] (p : ℕ) : ∀ {n : ℕ} [hp :
 | 0 := λ _ _, ⟨(⊥ : subgroup G), by convert card_trivial⟩
 | (n+1) := λ hp hdvd,
 let ⟨H, hH2⟩ := @exists_subgroup_card_pow_prime _ hp
-  (dvd.trans (nat.pow_dvd_pow _ (nat.le_succ _)) hdvd) in
+  (dvd.trans (pow_dvd_pow _ (nat.le_succ _)) hdvd) in
 let ⟨s, hs⟩ := exists_eq_mul_left_of_dvd hdvd in
 have hcard : card (quotient H) = s * p :=
   (nat.mul_left_inj (show card H > 0, from fintype.card_pos_iff.2
       ⟨⟨1, H.one_mem⟩⟩)).1
     (by rwa [← card_eq_card_quotient_mul_card_subgroup, hH2, hs,
-      nat.pow_succ, mul_assoc, mul_comm p]),
+      pow_succ', mul_assoc, mul_comm p]),
 have hm : s * p % p =
   card (quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) % p :=
   card_congr (fixed_points_mul_left_cosets_equiv_quotient H) ▸ hcard ▸
@@ -231,7 +231,7 @@ begin
   { convert this },
   rw [set.card_image_of_injective
        (subgroup.comap (quotient_group.mk' _) (gpowers x) : set (H.normalizer)) subtype.val_injective,
-      nat.pow_succ, ← hH2, fintype.card_congr hequiv, ← hx, order_eq_card_gpowers,
+      pow_succ', ← hH2, fintype.card_congr hequiv, ← hx, order_eq_card_gpowers,
       ← fintype.card_prod],
   exact @fintype.card_congr _ _ (id _) (id _) (preimage_mk_equiv_subgroup_times_set _ _)
 end

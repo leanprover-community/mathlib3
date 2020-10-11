@@ -155,7 +155,7 @@ theorem adjoin_monic.is_integral (z : adjoin_monic k) : is_integral k z :=
 let ⟨p, hp⟩ := ideal.quotient.mk_surjective z in hp ▸
 mv_polynomial.induction_on p (λ x, is_integral_algebra_map) (λ p q, is_integral_add)
   (λ p f ih, @is_integral_mul _ _ _ _ _ _ (ideal.quotient.mk _ _) ih ⟨f, f.2.1,
-    by { erw [polynomial.aeval_def, adjoin_monic.algebra_map, ← hom_eval₂,
+    by { erw [adjoin_monic.algebra_map, ← hom_eval₂,
               ideal.quotient.eq_zero_iff_mem],
       exact le_max_ideal k (ideal.subset_span ⟨f, rfl⟩) }⟩)
 

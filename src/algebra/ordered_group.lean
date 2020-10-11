@@ -424,6 +424,12 @@ begin
     exact ⟨_, rfl, add_le_add_left h _⟩, }
 end
 
+/-- Coercion from `α` to `with_top α` as an `add_monoid_hom`. -/
+def coe_add_hom [add_monoid α] : α →+ with_top α :=
+⟨coe, rfl, λ _ _, rfl⟩
+
+@[simp] lemma coe_coe_add_hom [add_monoid α] : ⇑(coe_add_hom : α →+ with_top α) = coe := rfl
+
 @[simp] lemma zero_lt_top [ordered_add_comm_monoid α] : (0 : with_top α) < ⊤ :=
 coe_lt_top 0
 
@@ -1894,6 +1900,11 @@ instance [decidable_linear_ordered_add_comm_group α] :
 { add_le_add_left := λ a b h c, @add_le_add_left α _ b a h _,
   ..order_dual.decidable_linear_order α,
   ..show add_comm_group α, by apply_instance }
+
+instance [decidable_linear_ordered_cancel_add_comm_monoid α] :
+  decidable_linear_ordered_cancel_add_comm_monoid (order_dual α) :=
+{ .. order_dual.decidable_linear_order α,
+  .. order_dual.ordered_cancel_add_comm_monoid }
 
 end order_dual
 

@@ -154,6 +154,10 @@ begin
     { exact set.mem_insert_of_mem ⊤ ⟨map_mono hJ.1.1, hmax⟩ } },
 end
 
+lemma comap_jacobson {f : R →+* S} {K : ideal S} :
+  comap f (K.jacobson) = Inf (comap f '' {J : ideal S | K ≤ J ∧ J.is_maximal}) :=
+trans (comap_Inf' f _) (Inf_eq_infi).symm
+
 theorem comap_jacobson_of_surjective {f : R →+* S} (hf : function.surjective f) {K : ideal S} :
   comap f (K.jacobson) = (comap f K).jacobson :=
 begin

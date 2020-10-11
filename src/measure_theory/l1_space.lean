@@ -458,15 +458,17 @@ variables (α β μ)
 by simp [integrable, measurable_const]
 variables {α β μ}
 
+lemma integrable.add' [opens_measurable_space β] {f g : α → β} (hf : integrable f μ)
+  (hg : integrable g μ) :
+  has_finite_integral (f + g) μ :=
+calc ∫⁻ a, nnnorm (f a + g a) ∂μ ≤ ∫⁻ a, nnnorm (f a) + nnnorm (g a) ∂μ :
+  lintegral_mono (λ a, by exact_mod_cast nnnorm_add_le _ _)
+... = _ : lintegral_nnnorm_add hf.measurable hg.measurable
+... < ⊤ : add_lt_top.2 ⟨hf.has_finite_integral, hg.has_finite_integral⟩
+
 lemma integrable.add [borel_space β] [second_countable_topology β]
   {f g : α → β} (hf : integrable f μ) (hg : integrable g μ) : integrable (f + g) μ :=
-⟨hf.measurable.add hg.measurable, calc
-  ∫⁻ a, nnnorm (f a + g a) ∂μ ≤ ∫⁻ a, nnnorm (f a) + nnnorm (g a) ∂μ :
-    lintegral_mono
-      (assume a, by { simp only [← coe_add, coe_le_coe], exact nnnorm_add_le _ _ })
-  ... = _ :
-    lintegral_nnnorm_add hf.measurable hg.measurable
-  ... < ⊤ : add_lt_top.2 ⟨hf.has_finite_integral, hg.has_finite_integral⟩⟩
+⟨hf.measurable.add hg.measurable, hf.add' hg⟩
 
 lemma integrable_finset_sum {ι} [borel_space β] [second_countable_topology β] (s : finset ι)
   {f : ι → α → β} (hf : ∀ i, integrable (f i) μ) : integrable (λ a, ∑ i in s, f i a) μ :=
@@ -483,15 +485,17 @@ lemma integrable.neg [borel_space β] {f : α → β} (hf : integrable f μ) : i
 @[simp] lemma integrable_neg_iff [borel_space β] {f : α → β} : integrable (-f) μ ↔ integrable f μ :=
 ⟨λ h, neg_neg f ▸ h.neg, integrable.neg⟩
 
+lemma integrable.sub' [opens_measurable_space β] {f g : α → β}
+  (hf : integrable f μ) (hg : integrable g μ) : has_finite_integral (f - g) μ :=
+calc ∫⁻ a, nnnorm (f a - g a) ∂μ ≤ ∫⁻ a, nnnorm (f a) + nnnorm (-g a) ∂μ :
+  lintegral_mono (assume a, by exact_mod_cast nnnorm_add_le _ _ )
+... = _ :
+  by { simp only [nnnorm_neg], exact lintegral_nnnorm_add hf.measurable hg.measurable }
+... < ⊤ : add_lt_top.2 ⟨hf.has_finite_integral, hg.has_finite_integral⟩
+
 lemma integrable.sub [borel_space β] [second_countable_topology β] {f g : α → β}
   (hf : integrable f μ) (hg : integrable g μ) : integrable (f - g) μ :=
-⟨hf.measurable.sub hg.measurable,
-calc
-  ∫⁻ a, nnnorm (f a - g a) ∂μ ≤ ∫⁻ a, nnnorm (f a) + nnnorm (-g a) ∂μ :
-    lintegral_mono (assume a, by exact_mod_cast nnnorm_add_le _ _ )
-  ... = _ :
-    by { simp only [nnnorm_neg], exact lintegral_nnnorm_add hf.measurable hg.measurable }
-  ... < ⊤ : add_lt_top.2 ⟨hf.has_finite_integral, hg.has_finite_integral⟩⟩
+hf.add hg.neg
 
 lemma integrable.norm [opens_measurable_space β] {f : α → β} (hf : integrable f μ) :
   integrable (λa, ∥f a∥) μ :=
@@ -501,8 +505,16 @@ lemma integrable_norm_iff [opens_measurable_space β] {f : α → β} (hf : meas
   integrable (λa, ∥f a∥) μ ↔ integrable f μ :=
 by simp_rw [integrable, and_iff_right hf, and_iff_right hf.norm, has_finite_integral_norm_iff]
 
+lemma integrable.prod_mk [opens_measurable_space β] [opens_measurable_space γ] {f : α → β}
+  {g : α → γ} (hf : integrable f μ) (hg : integrable g μ) :
+  integrable (λ x, (f x, g x)) μ :=
+⟨hf.measurable.prod_mk hg.measurable,
+  (hf.norm.add' hg.norm).mono $ eventually_of_forall $ λ x,
+  calc max ∥f x∥ ∥g x∥ ≤ ∥f x∥ + ∥g x∥   : max_le_add_of_nonneg (norm_nonneg _) (norm_nonneg _)
+                 ... ≤ ∥(∥f x∥ + ∥g x∥)∥ : le_abs_self _⟩
+
 section pos_part
-/-! Lemmas used for defining the positive part of a `L¹` function -/
+/-! ### Lemmas used for defining the positive part of a `L¹` function -/
 
 lemma integrable.max_zero {f : α → ℝ} (hf : integrable f μ) : integrable (λa, max (f a) 0) μ :=
 ⟨hf.measurable.max measurable_const, hf.has_finite_integral.max_zero⟩
@@ -530,6 +542,23 @@ lemma integrable.mul_const {f : α → ℝ} (h : integrable f μ) (c : ℝ) : in
 by simp_rw [mul_comm, h.const_mul _]
 
 end normed_space
+
+section normed_space_over_complete_field
+variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜] [measurable_space 𝕜]
+variables [borel_space 𝕜]
+variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E] [borel_space E]
+
+lemma integrable_smul_const {f : α → 𝕜} {c : E} (hc : c ≠ 0) :
+  integrable (λ x, f x • c) μ ↔ integrable f μ :=
+begin
+  simp_rw [integrable, measurable_smul_const hc, and.congr_right_iff, has_finite_integral,
+    nnnorm_smul, ennreal.coe_mul],
+  intro hf, rw [lintegral_mul_const' _ _ ennreal.coe_ne_top, ennreal.mul_lt_top_iff],
+  have : ∀ x : ennreal, x = 0 → x < ⊤ := by simp,
+  simp [hc, or_iff_left_of_imp (this _)]
+end
+end normed_space_over_complete_field
+
 
 variables [second_countable_topology β]
 
@@ -784,6 +813,39 @@ variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
 lemma smul_to_fun (c : 𝕜) (f : α →₁[μ] β) : ⇑(c • f) =ᵐ[μ] c • f :=
 ae_eq_fun.coe_fn_smul _ _
+
+lemma norm_eq_lintegral (f : α →₁[μ] β) : ∥f∥ = (∫⁻ x, (nnnorm (f x) : ennreal) ∂μ).to_real :=
+by simp [l1.norm_eq, ae_eq_fun.edist_zero_eq_coe, ← edist_eq_coe_nnnorm]
+
+/-- Computing the norm of a difference between two L¹-functions. Note that this is not a
+  special case of `norm_eq_lintegral` since `(f - g) x` and `f x - g x` are not equal
+  (but only a.e.-equal). -/
+lemma norm_sub_eq_lintegral (f g : α →₁[μ] β) :
+  ∥f - g∥ = (∫⁻ x, (nnnorm (f x - g x) : ennreal) ∂μ).to_real :=
+begin
+  simp_rw [l1.norm_eq, ae_eq_fun.edist_zero_eq_coe, ← edist_eq_coe_nnnorm],
+  rw lintegral_congr_ae,
+  refine (ae_eq_fun.coe_fn_sub (f : α →ₘ[μ] β) g).mp _,
+  apply eventually_of_forall, intros x hx, simp [hx]
+end
+
+lemma of_real_norm_eq_lintegral (f : α →₁[μ] β) :
+  ennreal.of_real ∥f∥ = ∫⁻ x, (nnnorm (f x) : ennreal) ∂μ :=
+by { rw [norm_eq_lintegral, ennreal.of_real_to_real], rw [← ennreal.lt_top_iff_ne_top],
+  exact f.has_finite_integral }
+
+/-- Computing the norm of a difference between two L¹-functions. Note that this is not a
+  special case of `of_real_norm_eq_lintegral` since `(f - g) x` and `f x - g x` are not equal
+  (but only a.e.-equal). -/
+lemma of_real_norm_sub_eq_lintegral (f g : α →₁[μ] β) :
+  ennreal.of_real ∥f - g∥ = ∫⁻ x, (nnnorm (f x - g x) : ennreal) ∂μ :=
+begin
+  simp_rw [of_real_norm_eq_lintegral, ← edist_eq_coe_nnnorm],
+  apply lintegral_congr_ae,
+  refine (ae_eq_fun.coe_fn_sub (f : α →ₘ[μ] β) g).mp _,
+  apply eventually_of_forall, intros x hx, simp only [l1.coe_coe, pi.sub_apply] at hx,
+  simp_rw [← hx, ← l1.coe_sub, l1.coe_coe]
+end
 
 end to_fun
 

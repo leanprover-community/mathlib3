@@ -87,7 +87,7 @@ calc 2 * (∑ i in range (m + 1), choose (2 * m + 1) i) =
   by { rw [range_eq_Ico, sum_Ico_reflect], { congr, omega }, omega }
 ... = ∑ i in range (2 * m + 2), choose (2 * m + 1) i : sum_range_add_sum_Ico _ (by omega)
 ... = 2^(2 * m + 1) : sum_range_choose (2 * m + 1)
-... = 2 * 4^m : by { rw [nat.pow_succ, mul_comm, nat.pow_mul], refl }
+... = 2 * 4^m : by { rw [pow_succ, pow_mul], refl }
 
 lemma choose_middle_le_pow (n : ℕ) : choose (2 * n + 1) n ≤ 4 ^ n :=
 begin

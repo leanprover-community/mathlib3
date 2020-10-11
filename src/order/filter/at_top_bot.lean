@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad, Yury Kudryashov, Patrick Massot
 -/
 import order.filter.bases
+import data.finset.preimage
 
 /-!
 # `at_top` and `at_bot` filters on preorded sets, monoids and groups.
@@ -521,35 +522,6 @@ theorem tendsto_at_bot_principal [nonempty β] [semilattice_inf β] {f : β → 
 @tendsto_at_top_principal _ (order_dual β) _ _ _ _
 
 /-- A function `f` grows to `+∞` independent of an order-preserving embedding `e`. -/
-lemma tendsto_at_top_embedding [preorder β] [preorder γ]
-  {f : α → β} {e : β → γ} {l : filter α}
-  (hm : ∀b₁ b₂, e b₁ ≤ e b₂ ↔ b₁ ≤ b₂) (hu : ∀c, ∃b, c ≤ e b) :
-  tendsto (e ∘ f) l at_top ↔ tendsto f l at_top :=
-begin
-  rw [tendsto_at_top, tendsto_at_top],
-  split,
-  { assume hc b,
-    filter_upwards [hc (e b)] assume a, (hm b (f a)).1 },
-  { assume hb c,
-    rcases hu c with ⟨b, hc⟩,
-    filter_upwards [hb b] assume a ha, le_trans hc ((hm b (f a)).2 ha) }
-end
-
-/-- A function `f` goes to `-∞` independent of an order-preserving embedding `e`. -/
-lemma tendsto_at_bot_embedding [preorder β] [preorder γ]
-  {f : α → β} {e : β → γ} {l : filter α}
-  (hm : ∀b₁ b₂, e b₁ ≤ e b₂ ↔ b₁ ≤ b₂) (hu : ∀c, ∃b, e b ≤ c) :
-  tendsto (e ∘ f) l at_bot ↔ tendsto f l at_bot :=
-begin
-  rw [tendsto_at_bot, tendsto_at_bot],
-  split,
-  { assume hc b,
-    filter_upwards [hc (e b)] assume a, (hm (f a) b).1 },
-  { assume hb c,
-    rcases hu c with ⟨b, hc⟩,
-    filter_upwards [hb b] assume a ha, le_trans ((hm (f a) b).2 ha) hc }
-end
-
 lemma tendsto_at_top_at_top [nonempty α] [semilattice_sup α] [preorder β] (f : α → β) :
   tendsto f at_top at_top ↔ ∀ b : β, ∃ i : α, ∀ a : α, i ≤ a → b ≤ f a :=
 iff.trans tendsto_infi $ forall_congr $ assume b, tendsto_at_top_principal
@@ -594,6 +566,23 @@ alias tendsto_at_top_at_top_of_monotone ← monotone.tendsto_at_top_at_top
 alias tendsto_at_bot_at_bot_of_monotone ← monotone.tendsto_at_bot_at_bot
 alias tendsto_at_top_at_top_iff_of_monotone ← monotone.tendsto_at_top_at_top_iff
 alias tendsto_at_bot_at_bot_iff_of_monotone ← monotone.tendsto_at_bot_at_bot_iff
+
+lemma tendsto_at_top_embedding [preorder β] [preorder γ]
+  {f : α → β} {e : β → γ} {l : filter α}
+  (hm : ∀b₁ b₂, e b₁ ≤ e b₂ ↔ b₁ ≤ b₂) (hu : ∀c, ∃b, c ≤ e b) :
+  tendsto (e ∘ f) l at_top ↔ tendsto f l at_top :=
+begin
+  refine ⟨_, (tendsto_at_top_at_top_of_monotone (λ b₁ b₂, (hm b₁ b₂).2) hu).comp⟩,
+  rw [tendsto_at_top, tendsto_at_top],
+  exact λ hc b, (hc (e b)).mono (λ a, (hm b (f a)).1)
+end
+
+/-- A function `f` goes to `-∞` independent of an order-preserving embedding `e`. -/
+lemma tendsto_at_bot_embedding [preorder β] [preorder γ]
+  {f : α → β} {e : β → γ} {l : filter α}
+  (hm : ∀b₁ b₂, e b₁ ≤ e b₂ ↔ b₁ ≤ b₂) (hu : ∀c, ∃b, e b ≤ c) :
+  tendsto (e ∘ f) l at_bot ↔ tendsto f l at_bot :=
+@tendsto_at_top_embedding α (order_dual β) (order_dual γ) _ _ f e l (function.swap hm) hu
 
 lemma tendsto_finset_range : tendsto finset.range at_top at_top :=
 finset.range_mono.tendsto_at_top_at_top finset.exists_nat_subset_range
@@ -833,16 +822,14 @@ lemma tendsto_iff_seq_tendsto {f : α → β} {k : filter α} {l : filter β}
 suffices (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l,
   from ⟨by intros; apply tendsto.comp; assumption, by assumption⟩,
 begin
-  rcases hcb.exists_antimono_seq with ⟨g, gmon, gbasis⟩,
-  have gbasis : k.has_basis (λ _, true) (λ i, (g i)),
-  { subst gbasis,
-    exact has_basis_infi_principal (directed_of_sup gmon) },
+  rcases hcb.exists_antimono_basis with ⟨g, gbasis, gmon, -⟩,
   contrapose,
   simp only [not_forall, gbasis.tendsto_left_iff, exists_const, not_exists, not_imp],
   rintro ⟨B, hBl, hfBk⟩,
   choose x h using hfBk,
   use x, split,
-  { exact (at_top_basis.tendsto_iff gbasis).2 (λ i _, ⟨i, trivial, λ j hj, gmon hj (h j).1⟩) },
+  { exact (at_top_basis.tendsto_iff gbasis).2
+      (λ i _, ⟨i, trivial, λ j hj, gmon trivial trivial hj (h j).1⟩) },
   { simp only [tendsto_at_top', (∘), not_forall, not_exists],
     use [B, hBl],
     intro i, use [i, (le_refl _)],
@@ -859,7 +846,7 @@ lemma subseq_tendsto {f : filter α} (hf : is_countably_generated f)
   (hx : ne_bot (f ⊓ map u at_top)) :
   ∃ (θ : ℕ → ℕ), (strict_mono θ) ∧ (tendsto (u ∘ θ) at_top f) :=
 begin
-  rcases hf.has_antimono_basis with ⟨B, h⟩,
+  rcases hf.exists_antimono_basis with ⟨B, h⟩,
   have : ∀ N, ∃ n ≥ N, u n ∈ B N,
     from λ N, filter.inf_map_at_top_ne_bot_iff.mp hx _ (h.to_has_basis.mem_of_mem trivial) N,
   choose φ hφ using this,

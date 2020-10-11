@@ -28,8 +28,12 @@ variables {α : Type u} {β : Type v}
 section min_poly_def
 variables [comm_ring α] [ring β] [algebra α β]
 
-/-- Let B be an A-algebra, and x an element of B that is integral over A.
-The minimal polynomial of x is a monic polynomial of smallest degree that has x as its root. -/
+/-- Let `B` be an `A`-algebra, and `x` an element of `B` that is integral over `A`
+so we have some term `hx : is_integral A x`.
+The minimal polynomial `minimal_polynomial hx` of `x` is a monic polynomial of smallest degree
+that has `x` as its root.
+For instance, if `V` is a `K`-vector space for some field `K`, and `f : V →ₗ[K] V` then
+the minimal polynomial of `f` is `minimal_polynomial f.is_integral`. -/
 noncomputable def minimal_polynomial {x : β} (hx : is_integral α x) : polynomial α :=
 well_founded.min degree_lt_wf _ hx
 
@@ -106,6 +110,11 @@ begin
   { rw ← mod_by_monic_add_div p (monic hx) at hp,
     simpa using hp }
 end
+
+lemma dvd_map_of_is_scalar_tower {α γ : Type*} (β : Type*) [comm_ring α] [field β] [comm_ring γ]
+  [algebra α β] [algebra α γ] [algebra β γ] [is_scalar_tower α β γ] {x : γ} (hx : is_integral α x) :
+  minimal_polynomial (is_integral_of_is_scalar_tower x hx) ∣ (minimal_polynomial hx).map (algebra_map α β) :=
+by { apply minimal_polynomial.dvd, rw [← is_scalar_tower.aeval_apply, minimal_polynomial.aeval] }
 
 variables [nontrivial β]
 

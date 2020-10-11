@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import topology.opens
-import ring_theory.ideal.operations
+import ring_theory.ideal.prod
 import linear_algebra.finsupp
 import algebra.punit_instances
 
@@ -72,6 +72,26 @@ The prime spectrum of the zero ring is empty.
 -/
 lemma punit (x : prime_spectrum punit) : false :=
 x.1.ne_top_iff_one.1 x.2.1 $ subsingleton.elim (0 : punit) 1 ▸ x.1.zero_mem
+
+section
+variables (R) (S : Type v) [comm_ring S]
+
+/-- The prime spectrum of `R × S` is in bijection with the disjoint unions of the prime spectrum of
+    `R` and the prime spectrum of `S`. -/
+noncomputable def prime_spectrum_prod :
+  prime_spectrum (R × S) ≃ prime_spectrum R ⊕ prime_spectrum S :=
+ideal.prime_ideals_equiv R S
+
+variables {R S}
+
+@[simp] lemma prime_spectrum_prod_symm_inl_as_ideal (x : prime_spectrum R) :
+  ((prime_spectrum_prod R S).symm (sum.inl x)).as_ideal = ideal.prod x.as_ideal ⊤ :=
+by { cases x, refl }
+@[simp] lemma prime_spectrum_prod_symm_inr_as_ideal (x : prime_spectrum S) :
+  ((prime_spectrum_prod R S).symm (sum.inr x)).as_ideal = ideal.prod ⊤ x.as_ideal :=
+by { cases x, refl }
+
+end
 
 @[ext] lemma ext {x y : prime_spectrum R} :
   x = y ↔ x.as_ideal = y.as_ideal :=

@@ -146,7 +146,7 @@ lemma of_digits_append {b : ℕ} {l1 l2 : list ℕ} :
 begin
   induction l1 with hd tl IH,
   { simp [of_digits] },
-  { rw [of_digits, list.cons_append, of_digits, IH, list.length_cons, nat.pow_succ],
+  { rw [of_digits, list.cons_append, of_digits, IH, list.length_cons, pow_succ'],
     ring }
 end
 
@@ -323,7 +323,7 @@ lemma of_digits_lt_base_pow_length' {b : ℕ} {l : list ℕ} (hl : ∀ x ∈ l, 
 begin
   induction l with hd tl IH,
   { simp [of_digits], },
-  { rw [of_digits, list.length_cons, nat.pow_succ, mul_comm],
+  { rw [of_digits, list.length_cons, pow_succ],
     have : (of_digits (b + 2) tl + 1) * (b+2) ≤ (b + 2) ^ tl.length * (b+2) :=
       mul_le_mul (IH (λ x hx, hl _ (list.mem_cons_of_mem _ hx)))
                  (by refl) dec_trivial (nat.zero_le _),
@@ -390,7 +390,7 @@ lemma pow_length_le_mul_of_digits {b : ℕ} {l : list ℕ} (hl : l ≠ []) (hl2 
 begin
   rw [←list.init_append_last hl],
   simp only [list.length_append, list.length, zero_add, list.length_init, of_digits_append,
-    list.length_init, of_digits_singleton, add_comm (l.length - 1), nat.pow_add, nat.pow_one],
+    list.length_init, of_digits_singleton, add_comm (l.length - 1), pow_add, pow_one],
   apply nat.mul_le_mul_left,
   refine le_trans _ (nat.le_add_left _ _),
   have : 0 < l.last hl, { rwa [nat.pos_iff_ne_zero] },

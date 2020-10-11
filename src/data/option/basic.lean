@@ -8,6 +8,8 @@ import tactic.basic
 namespace option
 variables {α : Type*} {β : Type*} {γ : Type*}
 
+lemma coe_def : (coe : α → option α) = some := rfl
+
 lemma some_ne_none (x : α) : some x ≠ none := λ h, option.no_confusion h
 
 @[simp] theorem get_mem : ∀ {o : option α} (h : is_some o), option.get h ∈ o
@@ -141,11 +143,11 @@ by cases o; simp
 lemma ne_none_iff_is_some {o : option α} : o ≠ none ↔ o.is_some :=
 by cases o; simp
 
-lemma ne_none_iff_exists {o : option α} : o ≠ none ↔ ∃ (x : α), o = some x :=
+lemma ne_none_iff_exists {o : option α} : o ≠ none ↔ ∃ (x : α), some x = o :=
 by {cases o; simp}
 
-lemma ne_none_iff_exists' {o : option α} : o ≠ none ↔ ∃ (x : α), o = x :=
-ne_none_iff_exists
+lemma ne_none_iff_exists' {o : option α} : o ≠ none ↔ ∃ (x : α), o = some x :=
+ne_none_iff_exists.trans $ exists_congr $ λ _, eq_comm
 
 lemma bex_ne_none {p : option α → Prop} :
   (∃ x ≠ none, p x) ↔ ∃ x, p (some x) :=

@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Bases of topologies. Countability axioms.
 -/
-import topology.constructions
 import topology.continuous_on
 
 open set filter classical
@@ -113,6 +112,15 @@ variables (α)
 class separable_space : Prop :=
 (exists_countable_closure_eq_univ : ∃s:set α, countable s ∧ closure s = univ)
 
+lemma exists_countable_closure_eq_univ [separable_space α] :
+  ∃ s : set α, countable s ∧ closure s = univ :=
+separable_space.exists_countable_closure_eq_univ
+
+lemma exists_countable_dense [separable_space α] :
+  ∃ s : set α, countable s ∧ dense s :=
+let ⟨s, hsc, hsd⟩ := exists_countable_closure_eq_univ α
+  in ⟨s, hsc, dense_iff_closure_eq.2 hsd⟩
+
 lemma exists_dense_seq [separable_space α] [nonempty α] : ∃ u : ℕ → α, closure (range u) = univ :=
 begin
   obtain ⟨s : set α, hs, s_dense⟩ := @separable_space.exists_countable_closure_eq_univ α _ _,
@@ -125,8 +133,23 @@ end
 /-- A sequence dense in a non-empty separable topological space. -/
 def dense_seq [separable_space α] [nonempty α] : ℕ → α := classical.some (exists_dense_seq α)
 
-lemma dense_seq_dense [separable_space α] [nonempty α] :
+@[simp] lemma dense_seq_dense [separable_space α] [nonempty α] :
   closure (range $ dense_seq α) = univ := classical.some_spec (exists_dense_seq α)
+
+end topological_space
+
+open topological_space
+
+lemma dense_range.separable_space {α β : Type*} [topological_space α] [separable_space α]
+  [topological_space β] {f : α → β} (h : dense_range f) (h' : continuous f) : separable_space β :=
+let ⟨s, s_cnt, s_cl⟩ := exists_countable_closure_eq_univ α in
+⟨⟨f '' s, countable.image s_cnt f, h'.dense_image_of_dense_range h (dense_iff_closure_eq.mpr s_cl)⟩⟩
+
+namespace topological_space
+universe u
+variables (α : Type u) [t : topological_space α]
+include t
+
 
 /-- A first-countable space is one in which every point has a
   countable neighborhood basis. -/

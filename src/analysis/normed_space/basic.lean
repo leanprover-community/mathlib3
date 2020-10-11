@@ -17,7 +17,6 @@ variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 noncomputable theory
 open filter metric
 open_locale topological_space big_operators nnreal
-localized "notation f `→_{`:50 a `}`:0 b := filter.tendsto f (_root_.nhds a) (_root_.nhds b)" in filter
 
 /-- Auxiliary class, endowing a type `α` with a function `norm : α → ℝ`. This class is designed to
 be extended in more interesting classes specifying the properties of the norm. -/
@@ -235,7 +234,7 @@ lemma add_monoid_hom.continuous_of_bound (f :α →+ β) (C : ℝ) (h : ∀x, �
 section nnnorm
 
 /-- Version of the norm taking values in nonnegative reals. -/
-def nnnorm (a : α) : nnreal := ⟨norm a, norm_nonneg a⟩
+def nnnorm (a : α) : ℝ≥0 := ⟨norm a, norm_nonneg a⟩
 
 @[simp] lemma coe_nnnorm (a : α) : (nnnorm a : ℝ) = norm a := rfl
 
@@ -328,6 +327,9 @@ instance prod.normed_group : normed_group (α × β) :=
 
 lemma prod.norm_def (x : α × β) : ∥x∥ = (max ∥x.1∥ ∥x.2∥) := rfl
 
+lemma prod.nnnorm_def (x : α × β) : nnnorm x = max (nnnorm x.1) (nnnorm x.2) :=
+by { have := x.norm_def, simp only [← coe_nnnorm] at this, exact_mod_cast this }
+
 lemma norm_fst_le (x : α × β) : ∥x.1∥ ≤ ∥x∥ :=
 le_max_left _ _
 
@@ -343,7 +345,7 @@ instance pi.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (�
   normed_group (Πi, π i) :=
 { norm := λf, ((finset.sup finset.univ (λ b, nnnorm (f b)) : nnreal) : ℝ),
   dist_eq := assume x y,
-    congr_arg (coe : nnreal → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ assume a,
+    congr_arg (coe : ℝ≥0 → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ assume a,
     show nndist (x a) (y a) = nnnorm (x a - y a), from nndist_eq_nnnorm _ _ }
 
 /-- The norm of an element in a product space is `≤ r` if and only if the norm of each
@@ -385,10 +387,10 @@ lemma squeeze_zero_norm {f : γ → α} {g : γ → ℝ} {t₀ : filter γ}
   tendsto f t₀ (𝓝 0) :=
 squeeze_zero_norm' (eventually_of_forall h) h'
 
-lemma lim_norm (x : α) : (λg:α, ∥g - x∥) →_{x} 0 :=
+lemma lim_norm (x : α) : tendsto (λg : α, ∥g - x∥) (𝓝 x) (𝓝 0) :=
 tendsto_iff_norm_tendsto_zero.1 (continuous_iff_continuous_at.1 continuous_id x)
 
-lemma lim_norm_zero : (λg:α, ∥g∥) →_{0} 0 :=
+lemma lim_norm_zero : tendsto (λg : α, ∥g∥) (𝓝 0) (𝓝 0) :=
 by simpa using lim_norm (0:α)
 
 lemma continuous_norm : continuous (λg:α, ∥g∥) :=
@@ -449,42 +451,101 @@ class normed_ring (α : Type*) extends has_norm α, ring α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul : ∀ a b, norm (a * b) ≤ norm a * norm b)
 
+/-- A normed commutative ring is a commutative ring endowed with a norm which satisfies
+the inequality `∥x y∥ ≤ ∥x∥ ∥y∥`. -/
+class normed_comm_ring (α : Type*) extends normed_ring α :=
+(mul_comm : ∀ x y : α, x * y = y * x)
+
+/-- A mixin class with the axiom `∥1∥ = 1`. Many `normed_ring`s and all `normed_field`s satisfy this
+axiom. -/
+class norm_one_class (α : Type*) [has_norm α] [has_one α] : Prop :=
+(norm_one : ∥(1:α)∥ = 1)
+
+export norm_one_class (norm_one)
+
+attribute [simp] norm_one
+
+@[simp] lemma nnnorm_one [normed_group α] [has_one α] [norm_one_class α] : nnnorm (1:α) = 1 :=
+nnreal.eq norm_one
+
+@[priority 100]
+instance normed_comm_ring.to_comm_ring [β : normed_comm_ring α] : comm_ring α := { ..β }
+
 @[priority 100] -- see Note [lower instance priority]
 instance normed_ring.to_normed_group [β : normed_ring α] : normed_group α := { ..β }
 
-lemma norm_mul_le {α : Type*} [normed_ring α] (a b : α) : (∥a*b∥) ≤ (∥a∥) * (∥b∥) :=
+instance prod.norm_one_class [normed_group α] [has_one α] [norm_one_class α]
+  [normed_group β] [has_one β] [norm_one_class β] :
+  norm_one_class (α × β) :=
+⟨by simp [prod.norm_def]⟩
+
+variables [normed_ring α]
+
+lemma norm_mul_le (a b : α) : (∥a*b∥) ≤ (∥a∥) * (∥b∥) :=
 normed_ring.norm_mul _ _
 
-lemma norm_pow_le {α : Type*} [normed_ring α] (a : α) : ∀ {n : ℕ}, 0 < n → ∥a^n∥ ≤ ∥a∥^n
+lemma list.norm_prod_le' : ∀ {l : list α}, l ≠ [] → ∥l.prod∥ ≤ (l.map norm).prod
+| [] h := (h rfl).elim
+| [a] _ := by simp
+| (a :: b :: l) _ :=
+  begin
+    rw [list.map_cons, list.prod_cons, @list.prod_cons _ _ _ ∥a∥],
+    refine le_trans (norm_mul_le _ _) (mul_le_mul_of_nonneg_left _ (norm_nonneg _)),
+    exact list.norm_prod_le' (list.cons_ne_nil b l)
+  end
+
+lemma list.norm_prod_le [norm_one_class α] : ∀ l : list α, ∥l.prod∥ ≤ (l.map norm).prod
+| [] := by simp
+| (a::l) := list.norm_prod_le' (list.cons_ne_nil a l)
+
+lemma finset.norm_prod_le' {α : Type*} [normed_comm_ring α] (s : finset ι) (hs : s.nonempty)
+  (f : ι → α) :
+  ∥∏ i in s, f i∥ ≤ ∏ i in s, ∥f i∥ :=
+begin
+  rcases s with ⟨⟨l⟩, hl⟩,
+  have : l.map f ≠ [], by simpa using hs,
+  simpa using list.norm_prod_le' this
+end
+
+lemma finset.norm_prod_le {α : Type*} [normed_comm_ring α] [norm_one_class α] (s : finset ι)
+  (f : ι → α) :
+  ∥∏ i in s, f i∥ ≤ ∏ i in s, ∥f i∥ :=
+begin
+  rcases s with ⟨⟨l⟩, hl⟩,
+  simpa using (l.map f).norm_prod_le
+end
+
+/-- If `α` is a normed ring, then `∥a^n∥≤ ∥a∥^n` for `n > 0`. See also `norm_pow_le`. -/
+lemma norm_pow_le' (a : α) : ∀ {n : ℕ}, 0 < n → ∥a^n∥ ≤ ∥a∥^n
 | 1 h := by simp
 | (n+2) h :=
   le_trans (norm_mul_le a (a^(n+1)))
            (mul_le_mul (le_refl _)
-                       (norm_pow_le (nat.succ_pos _)) (norm_nonneg _) (norm_nonneg _))
+                       (norm_pow_le' (nat.succ_pos _)) (norm_nonneg _) (norm_nonneg _))
 
-lemma eventually_norm_pow_le {α : Type*} [normed_ring α] (a : α) :
-  ∀ᶠ (n:ℕ) in at_top, ∥a ^ n∥ ≤ ∥a∥ ^ n :=
-begin
-  refine eventually_at_top.mpr ⟨1, _⟩,
-  intros b h,
-  exact norm_pow_le a (nat.succ_le_iff.mp h),
-end
+/-- If `α` is a normed ring with `∥1∥=1`, then `∥a^n∥≤ ∥a∥^n`. See also `norm_pow_le'`. -/
+lemma norm_pow_le [norm_one_class α] (a : α) : ∀ (n : ℕ), ∥a^n∥ ≤ ∥a∥^n
+| 0 := by simp
+| (n+1) := norm_pow_le' a n.zero_lt_succ
 
-lemma units.norm_pos {α : Type*} [normed_ring α] [nontrivial α] (x : units α) : 0 < ∥(x:α)∥ :=
+lemma eventually_norm_pow_le (a : α) : ∀ᶠ (n:ℕ) in at_top, ∥a ^ n∥ ≤ ∥a∥ ^ n :=
+eventually_at_top.mpr ⟨1, λ b h, norm_pow_le' a (nat.succ_le_iff.mp h)⟩
+
+lemma units.norm_pos [nontrivial α] (x : units α) : 0 < ∥(x:α)∥ :=
 norm_pos_iff.mpr (units.ne_zero x)
 
 /-- In a normed ring, the left-multiplication `add_monoid_hom` is bounded. -/
-lemma mul_left_bound {α : Type*} [normed_ring α] (x : α) :
+lemma mul_left_bound (x : α) :
   ∀ (y:α), ∥add_monoid_hom.mul_left x y∥ ≤ ∥x∥ * ∥y∥ :=
 norm_mul_le x
 
 /-- In a normed ring, the right-multiplication `add_monoid_hom` is bounded. -/
-lemma mul_right_bound {α : Type*} [normed_ring α] (x : α) :
+lemma mul_right_bound (x : α) :
   ∀ (y:α), ∥add_monoid_hom.mul_right x y∥ ≤ ∥x∥ * ∥y∥ :=
 λ y, by {rw mul_comm, convert norm_mul_le y x}
 
 /-- Normed ring structure on the product of two normed rings, using the sup norm. -/
-instance prod.normed_ring [normed_ring α] [normed_ring β] : normed_ring (α × β) :=
+instance prod.normed_ring [normed_ring β] : normed_ring (α × β) :=
 { norm_mul := assume x y,
   calc
     ∥x * y∥ = ∥(x.1*y.1, x.2*y.2)∥ : rfl
@@ -547,97 +608,47 @@ by the powers of any element, and thus to relate algebra and topology. -/
 class nondiscrete_normed_field (α : Type*) extends normed_field α :=
 (non_trivial : ∃x:α, 1<∥x∥)
 
-@[priority 100] -- see Note [lower instance priority]
-instance normed_field.to_normed_ring [i : normed_field α] : normed_ring α :=
-{ norm_mul := by finish [i.norm_mul'], ..i }
-
 namespace normed_field
-@[simp] lemma norm_one {α : Type*} [normed_field α] : ∥(1 : α)∥ = 1 :=
-have  ∥(1 : α)∥ * ∥(1 : α)∥ = ∥(1 : α)∥ * 1, by calc
- ∥(1 : α)∥ * ∥(1 : α)∥ = ∥(1 : α) * (1 : α)∥ : by rw normed_field.norm_mul'
-                  ... = ∥(1 : α)∥ * 1 : by simp,
-mul_left_cancel' (ne_of_gt (norm_pos_iff.2 (by simp))) this
 
-@[simp] lemma norm_mul [normed_field α] (a b : α) : ∥a * b∥ = ∥a∥ * ∥b∥ :=
+section normed_field
+
+variables [normed_field α]
+
+@[simp] lemma norm_mul (a b : α) : ∥a * b∥ = ∥a∥ * ∥b∥ :=
 normed_field.norm_mul' a b
 
-@[simp] lemma nnnorm_one [normed_field α] : nnnorm (1:α) = 1 := nnreal.eq $ by simp
+@[priority 100] -- see Note [lower instance priority]
+instance to_normed_comm_ring : normed_comm_ring α :=
+{ norm_mul := λ a b, (norm_mul a b).le, ..‹normed_field α› }
 
-instance normed_field.is_monoid_hom_norm [normed_field α] : is_monoid_hom (norm : α → ℝ) :=
-{ map_one := norm_one, map_mul := norm_mul }
+@[priority 900]
+instance to_norm_one_class : norm_one_class α :=
+⟨mul_left_cancel' (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
+  by rw [← norm_mul, mul_one, mul_one]⟩
 
-@[simp] lemma norm_pow [normed_field α] (a : α) : ∀ (n : ℕ), ∥a^n∥ = ∥a∥^n :=
-is_monoid_hom.map_pow norm a
+/-- `norm` as a `monoid_hom`. -/
+@[simps] def norm_hom : α →* ℝ := ⟨norm, norm_one, norm_mul⟩
 
-@[simp] lemma norm_prod {β : Type*} [normed_field α] (s : finset β) (f : β → α) :
+@[simp] lemma norm_pow (a : α) : ∀ (n : ℕ), ∥a ^ n∥ = ∥a∥ ^ n :=
+norm_hom.map_pow a
+
+@[simp] lemma norm_prod (s : finset β) (f : β → α) :
   ∥∏ b in s, f b∥ = ∏ b in s, ∥f b∥ :=
-eq.symm (s.prod_hom norm)
+(norm_hom : α →* ℝ).map_prod f s
 
-@[simp] lemma norm_div {α : Type*} [normed_field α] (a b : α) : ∥a/b∥ = ∥a∥/∥b∥ :=
-begin
-  classical,
-  by_cases hb : b = 0, {simp [hb]},
-  apply eq_div_of_mul_eq,
-  { apply ne_of_gt, apply norm_pos_iff.mpr hb },
-  { rw [←normed_field.norm_mul, div_mul_cancel _ hb] }
-end
+@[simp] lemma norm_div (a b : α) : ∥a / b∥ = ∥a∥ / ∥b∥ :=
+(norm_hom : α →* ℝ).map_div norm_zero a b
 
-@[simp] lemma norm_inv {α : Type*} [normed_field α] (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ :=
-by simp only [inv_eq_one_div, norm_div, norm_one]
+@[simp] lemma norm_inv (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ :=
+(norm_hom : α →* ℝ).map_inv' norm_zero a
 
-@[simp] lemma nnnorm_inv {α : Type*} [normed_field α] (a : α) : nnnorm (a⁻¹) = (nnnorm a)⁻¹ :=
+@[simp] lemma nnnorm_inv (a : α) : nnnorm (a⁻¹) = (nnnorm a)⁻¹ :=
 nnreal.eq $ by simp
 
-@[simp] lemma norm_fpow {α : Type*} [normed_field α] (a : α) : ∀n : ℤ,
-  ∥a^n∥ = ∥a∥^n
-| (n : ℕ) := norm_pow a n
-| -[1+ n] := by simp [fpow_neg_succ_of_nat]
+@[simp] lemma norm_fpow : ∀ (a : α) (n : ℤ), ∥a^n∥ = ∥a∥^n :=
+(norm_hom : α →* ℝ).map_fpow norm_zero
 
-lemma exists_one_lt_norm (α : Type*) [i : nondiscrete_normed_field α] : ∃x : α, 1 < ∥x∥ :=
-i.non_trivial
-
-lemma exists_norm_lt_one (α : Type*) [nondiscrete_normed_field α] : ∃x : α, 0 < ∥x∥ ∧ ∥x∥ < 1 :=
-begin
-  rcases exists_one_lt_norm α with ⟨y, hy⟩,
-  refine ⟨y⁻¹, _, _⟩,
-  { simp only [inv_eq_zero, ne.def, norm_pos_iff],
-    assume h,
-    rw ← norm_eq_zero at h,
-    rw h at hy,
-    exact lt_irrefl _ (lt_trans zero_lt_one hy) },
-  { simp [inv_lt_one hy] }
-end
-
-lemma exists_lt_norm (α : Type*) [nondiscrete_normed_field α]
-  (r : ℝ) : ∃ x : α, r < ∥x∥ :=
-let ⟨w, hw⟩ := exists_one_lt_norm α in
-let ⟨n, hn⟩ := pow_unbounded_of_one_lt r hw in
-⟨w^n, by rwa norm_pow⟩
-
-lemma exists_norm_lt (α : Type*) [nondiscrete_normed_field α]
-  {r : ℝ} (hr : 0 < r) : ∃ x : α, 0 < ∥x∥ ∧ ∥x∥ < r :=
-let ⟨w, hw⟩ := exists_one_lt_norm α in
-let ⟨n, hle, hlt⟩ := exists_int_pow_near' hr hw in
-⟨w^n, by { rw norm_fpow; exact fpow_pos_of_pos (lt_trans zero_lt_one hw) _},
-by rwa norm_fpow⟩
-
-@[instance]
-lemma punctured_nhds_ne_bot {α : Type*} [nondiscrete_normed_field α] (x : α) :
-  ne_bot (𝓝[{x}ᶜ] x) :=
-begin
-  rw [← mem_closure_iff_nhds_within_ne_bot, metric.mem_closure_iff],
-  rintros ε ε0,
-  rcases normed_field.exists_norm_lt α ε0 with ⟨b, hb0, hbε⟩,
-  refine ⟨x + b, mt (set.mem_singleton_iff.trans add_right_eq_self).1 $ norm_pos_iff.1 hb0, _⟩,
-  rwa [dist_comm, dist_eq_norm, add_sub_cancel'],
-end
-
-@[instance]
-lemma nhds_within_is_unit_ne_bot {α : Type*} [nondiscrete_normed_field α] :
-  ne_bot (𝓝[{x : α | is_unit x}] 0) :=
-by simpa only [is_unit_iff_ne_zero] using punctured_nhds_ne_bot (0:α)
-
-lemma tendsto_inv [normed_field α] {r : α} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
+lemma tendsto_inv {r : α} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
 begin
   refine (nhds_basis_closed_ball.tendsto_iff nhds_basis_closed_ball).2 (λε εpos, _),
   let δ := min (ε/2 * ∥r∥^2) (∥r∥/2),
@@ -675,12 +686,56 @@ begin
   ... = ε : by { rw [mul_inv_cancel (ne.symm (ne_of_lt norm_r_pos))], simp }
 end
 
-lemma continuous_on_inv [normed_field α] : continuous_on (λ(x:α), x⁻¹) {x | x ≠ 0} :=
+lemma continuous_on_inv : continuous_on (λ(x:α), x⁻¹) {x | x ≠ 0} :=
 begin
   assume x hx,
   apply continuous_at.continuous_within_at,
   exact (tendsto_inv hx)
 end
+
+end normed_field
+
+variables (α) [nondiscrete_normed_field α]
+
+lemma exists_one_lt_norm : ∃x : α, 1 < ∥x∥ := ‹nondiscrete_normed_field α›.non_trivial
+
+lemma exists_norm_lt_one : ∃x : α, 0 < ∥x∥ ∧ ∥x∥ < 1 :=
+begin
+  rcases exists_one_lt_norm α with ⟨y, hy⟩,
+  refine ⟨y⁻¹, _, _⟩,
+  { simp only [inv_eq_zero, ne.def, norm_pos_iff],
+    rintro rfl,
+    rw norm_zero at hy,
+    exact lt_asymm zero_lt_one hy },
+  { simp [inv_lt_one hy] }
+end
+
+lemma exists_lt_norm (r : ℝ) : ∃ x : α, r < ∥x∥ :=
+let ⟨w, hw⟩ := exists_one_lt_norm α in
+let ⟨n, hn⟩ := pow_unbounded_of_one_lt r hw in
+⟨w^n, by rwa norm_pow⟩
+
+lemma exists_norm_lt {r : ℝ} (hr : 0 < r) : ∃ x : α, 0 < ∥x∥ ∧ ∥x∥ < r :=
+let ⟨w, hw⟩ := exists_one_lt_norm α in
+let ⟨n, hle, hlt⟩ := exists_int_pow_near' hr hw in
+⟨w^n, by { rw norm_fpow; exact fpow_pos_of_pos (lt_trans zero_lt_one hw) _},
+by rwa norm_fpow⟩
+
+variable {α}
+
+@[instance]
+lemma punctured_nhds_ne_bot (x : α) : ne_bot (𝓝[{x}ᶜ] x) :=
+begin
+  rw [← mem_closure_iff_nhds_within_ne_bot, metric.mem_closure_iff],
+  rintros ε ε0,
+  rcases normed_field.exists_norm_lt α ε0 with ⟨b, hb0, hbε⟩,
+  refine ⟨x + b, mt (set.mem_singleton_iff.trans add_right_eq_self).1 $ norm_pos_iff.1 hb0, _⟩,
+  rwa [dist_comm, dist_eq_norm, add_sub_cancel'],
+end
+
+@[instance]
+lemma nhds_within_is_unit_ne_bot : ne_bot (𝓝[{x : α | is_unit x}] 0) :=
+by simpa only [is_unit_iff_ne_zero] using punctured_nhds_ne_bot (0:α)
 
 end normed_field
 
@@ -720,11 +775,14 @@ namespace real
 
 lemma norm_eq_abs (r : ℝ) : ∥r∥ = abs r := rfl
 
+lemma norm_of_nonneg {x : ℝ} (hx : 0 ≤ x) : ∥x∥ = x :=
+abs_of_nonneg hx
+
 @[simp] lemma norm_coe_nat (n : ℕ) : ∥(n : ℝ)∥ = n := abs_of_nonneg n.cast_nonneg
 
 @[simp] lemma nnnorm_coe_nat (n : ℕ) : nnnorm (n : ℝ) = n := nnreal.eq $ by simp
 
-@[simp] lemma norm_two : ∥(2:ℝ)∥ = 2 := abs_of_pos (@two_pos ℝ _)
+@[simp] lemma norm_two : ∥(2:ℝ)∥ = 2 := abs_of_pos (@zero_lt_two ℝ _)
 
 @[simp] lemma nnnorm_two : nnnorm (2:ℝ) = 2 := nnreal.eq $ by simp
 
@@ -733,20 +791,33 @@ open_locale nnreal
 @[simp] lemma nnreal.norm_eq (x : ℝ≥0) : ∥(x : ℝ)∥ = x :=
 by rw [real.norm_eq_abs, x.abs_eq]
 
+lemma nnnorm_coe_eq_self {x : ℝ≥0} : nnnorm (x : ℝ) = x :=
+by { ext, exact norm_of_nonneg (zero_le x) }
+
+lemma nnnorm_of_nonneg {x : ℝ} (hx : 0 ≤ x) : nnnorm x = ⟨x, hx⟩ :=
+@nnnorm_coe_eq_self ⟨x, hx⟩
+
+lemma ennnorm_eq_of_real {x : ℝ} (hx : 0 ≤ x) : (nnnorm x : ennreal) = ennreal.of_real x :=
+by { rw [← of_real_norm_eq_coe_nnnorm, norm_of_nonneg hx] }
+
 end real
 
 @[simp] lemma norm_norm [normed_group α] (x : α) : ∥∥x∥∥ = ∥x∥ :=
-by rw [real.norm_eq_abs, abs_of_nonneg (norm_nonneg _)]
+by rw [real.norm_of_nonneg (norm_nonneg _)]
 
 @[simp] lemma nnnorm_norm [normed_group α] (a : α) : nnnorm ∥a∥ = nnnorm a :=
 by simp only [nnnorm, norm_norm]
 
-instance : normed_ring ℤ :=
+instance : normed_comm_ring ℤ :=
 { norm := λ n, ∥(n : ℝ)∥,
   norm_mul := λ m n, le_of_eq $ by simp only [norm, int.cast_mul, abs_mul],
-  dist_eq := λ m n, by simp only [int.dist_eq, norm, int.cast_sub] }
+  dist_eq := λ m n, by simp only [int.dist_eq, norm, int.cast_sub],
+  mul_comm := mul_comm }
 
 @[norm_cast] lemma int.norm_cast_real (m : ℤ) : ∥(m : ℝ)∥ = ∥m∥ := rfl
+
+instance : norm_one_class ℤ :=
+⟨by simp [← int.norm_cast_real]⟩
 
 instance : normed_field ℚ :=
 { norm := λ r, ∥(r : ℝ)∥,
@@ -795,6 +866,9 @@ begin
     rw [normed_field.norm_inv, ← mul_assoc, mul_inv_cancel, one_mul],
     rwa [ne.def, norm_eq_zero] }
 end
+
+@[simp] lemma abs_norm_eq_norm (z : β) : abs ∥z∥ = ∥z∥ :=
+  (abs_eq (norm_nonneg z)).mpr (or.inl rfl)
 
 lemma dist_smul [normed_space α β] (s : α) (x y : β) : dist (s • x) (s • y) = ∥s∥ * dist x y :=
 by simp only [dist_eq_norm, (norm_smul _ _).symm, smul_sub]
@@ -988,13 +1062,16 @@ include 𝕜
 @[simp] lemma normed_algebra.norm_one : ∥(1:𝕜')∥ = 1 :=
 by simpa using (norm_algebra_map_eq 𝕜' (1:𝕜))
 
+lemma normed_algebra.norm_one_class : norm_one_class 𝕜' :=
+⟨normed_algebra.norm_one 𝕜⟩
+
 lemma normed_algebra.zero_ne_one : (0:𝕜') ≠ 1 :=
 begin
   refine (norm_pos_iff.mp _).symm,
   rw @normed_algebra.norm_one 𝕜, norm_num,
 end
 
-lemma normed_algebra.to_nonzero : nontrivial 𝕜' :=
+lemma normed_algebra.nontrivial : nontrivial 𝕜' :=
 ⟨⟨0, 1, normed_algebra.zero_ne_one 𝕜⟩⟩
 
 end normed_algebra

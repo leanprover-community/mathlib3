@@ -12,7 +12,7 @@ import algebra.divisibility
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
-lemma is_unit_pow [monoid α] {a : α} (n : ℕ) : is_unit a → is_unit (a ^ n) :=
+lemma is_unit.pow [monoid α] {a : α} (n : ℕ) : is_unit a → is_unit (a ^ n) :=
 λ ⟨u, hu⟩, ⟨u ^ n, by simp *⟩
 
 theorem is_unit_iff_dvd_one [comm_monoid α] {x : α} : is_unit x ↔ x ∣ 1 :=
@@ -179,7 +179,7 @@ lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul [comm_cancel_monoid_with_zero α]
   p ^ k ∣ a → p ^ l ∣ b → p ^ ((k + l) + 1) ∣ a * b → p ^ (k + 1) ∣ a ∨ p ^ (l + 1) ∣ b :=
 λ ⟨x, hx⟩ ⟨y, hy⟩ ⟨z, hz⟩,
 have h : p ^ (k + l) * (x * y) = p ^ (k + l) * (p * z),
-  by simpa [mul_comm, _root_.pow_add, hx, hy, mul_assoc, mul_left_comm] using hz,
+  by simpa [mul_comm, pow_add, hx, hy, mul_assoc, mul_left_comm] using hz,
 have hp0: p ^ (k + l) ≠ 0, from pow_ne_zero _ hp.ne_zero,
 have hpd : p ∣ x * y, from ⟨z, by rwa [mul_right_inj' hp0] at h⟩,
 (hp.div_or_div hpd).elim
@@ -337,6 +337,21 @@ let ⟨u, hu⟩ := h in let ⟨v, hv⟩ := associated.symm h₁ in
 lemma associated_mul_right_cancel [comm_cancel_monoid_with_zero α] {a b c d : α} :
   a * b ~ᵤ c * d → b ~ᵤ d → b ≠ 0 → a ~ᵤ c :=
 by rw [mul_comm a, mul_comm c]; exact associated_mul_left_cancel
+
+section unique_units
+variables [monoid α] [unique (units α)]
+
+theorem associated_iff_eq {x y : α} : x ~ᵤ y ↔ x = y :=
+begin
+  split,
+  { rintro ⟨c, rfl⟩, simp [subsingleton.elim c 1] },
+  { rintro rfl, refl },
+end
+
+theorem associated_eq_eq : (associated : α → α → Prop) = eq :=
+by { ext, rw associated_iff_eq }
+
+end unique_units
 
 /-- The quotient of a monoid by the `associated` relation. Two elements `x` and `y`
   are associated iff there is a unit `u` such that `x * u = y`. There is a natural

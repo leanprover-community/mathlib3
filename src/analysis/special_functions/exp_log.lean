@@ -6,7 +6,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 import data.complex.exponential
 import analysis.complex.basic
 import analysis.calculus.mean_value
-
+import measure_theory.borel_space
 
 /-!
 # Complex and real exponential, real logarithm
@@ -27,7 +27,6 @@ instead `trigonometric.lean`.
 
 exp, log
 -/
-
 
 noncomputable theory
 
@@ -70,10 +69,15 @@ funext $ λ x, (has_deriv_at_exp x).deriv
 lemma continuous_exp : continuous exp :=
 differentiable_exp.continuous
 
+lemma measurable_exp : measurable exp := continuous_exp.measurable
+
 end complex
 
 section
 variables {f : ℂ → ℂ} {f' x : ℂ} {s : set ℂ}
+
+lemma measurable.cexp (hf : measurable f) : measurable (λ x, complex.exp (f x)) :=
+complex.measurable_exp.comp hf
 
 lemma has_deriv_at.cexp (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, complex.exp (f x)) (complex.exp (f x) * f') x :=
@@ -133,6 +137,8 @@ funext $ λ x, (has_deriv_at_exp x).deriv
 lemma continuous_exp : continuous exp :=
 differentiable_exp.continuous
 
+lemma measurable_exp : measurable exp := continuous_exp.measurable
+
 end real
 
 
@@ -144,6 +150,9 @@ section
 variables {f : ℝ → ℝ} {f' x : ℝ} {s : set ℝ}
 
 /-! `real.exp`-/
+
+lemma measurable.exp (hf : measurable f) : measurable (λ x, real.exp (f x)) :=
+real.measurable_exp.comp hf
 
 lemma has_deriv_at.exp (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, real.exp (f x)) (real.exp (f x) * f') x :=
@@ -263,15 +272,24 @@ by { rw ← log_one, exact log_lt_log_iff h (by norm_num) }
 
 lemma log_neg (h0 : 0 < x) (h1 : x < 1) : log x < 0 := (log_neg_iff h0).2 h1
 
-lemma log_nonneg : 1 ≤ x → 0 ≤ log x :=
-by { intro, rwa [← log_one, log_le_log], norm_num, linarith }
+lemma log_nonneg_iff (hx : 0 < x) : 0 ≤ log x ↔ 1 ≤ x :=
+by rw [← not_lt, log_neg_iff hx, not_lt]
+
+lemma log_nonneg (hx : 1 ≤ x) : 0 ≤ log x :=
+(log_nonneg_iff (zero_lt_one.trans_le hx)).2 hx
+
+lemma log_nonpos_iff (hx : 0 < x) : log x ≤ 0 ↔ x ≤ 1 :=
+by rw [← not_lt, log_pos_iff hx, not_lt]
+
+lemma log_nonpos_iff' (hx : 0 ≤ x) : log x ≤ 0 ↔ x ≤ 1 :=
+begin
+  rcases hx.eq_or_lt with (rfl|hx),
+  { simp [le_refl, zero_le_one] },
+  exact log_nonpos_iff hx
+end
 
 lemma log_nonpos (hx : 0 ≤ x) (h'x : x ≤ 1) : log x ≤ 0 :=
-begin
-  by_cases x_zero : x = 0,
-  { simp [x_zero] },
-  { rwa [← log_one, log_le_log (lt_of_le_of_ne hx (ne.symm x_zero))], norm_num }
-end
+(log_nonpos_iff' hx).2 h'x
 
 section prove_log_is_continuous
 
@@ -299,7 +317,7 @@ begin
       ... < ε : by { rw [neg_lt, ← exp_lt_exp, exp_log], assumption' } }
 end
 
-lemma continuous_log' : continuous (λx : {x:ℝ // 0 < x}, log x.val) :=
+lemma continuous_log' : continuous (λx : {x:ℝ // 0 < x}, log x) :=
 continuous_iff_continuous_at.2 $ λ x,
 begin
   rw continuous_at,
@@ -354,12 +372,20 @@ begin
   { field_simp [hx] }
 end
 
+lemma measurable_log : measurable log :=
+measurable_of_measurable_on_compl_singleton 0 $ continuous.measurable $
+  continuous_iff_continuous_at.2 $ λ x, (real.has_deriv_at_log x.2).continuous_at.comp
+    continuous_at_subtype_coe
+
 end real
 
 section log_differentiable
 open real
 
 variables {f : ℝ → ℝ} {x f' : ℝ} {s : set ℝ}
+
+lemma measurable.log (hf : measurable f) : measurable (λ x, log (f x)) :=
+measurable_log.comp hf
 
 lemma has_deriv_within_at.log (hf : has_deriv_within_at f f' s x) (hx : f x ≠ 0) :
   has_deriv_within_at (λ y, log (f y)) (f' / (f x)) s x :=

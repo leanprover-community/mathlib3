@@ -40,7 +40,7 @@ open function
 
 variables {α : Type*} {β : Type*} {s s₁ s₂ t t₁ t₂ u : set α} {a b : α} {x y : β}
 
-/-! Properties about 1 -/
+/-! ### Properties about 1 -/
 @[to_additive]
 instance [has_one α] : has_one (set α) := ⟨{1}⟩
 
@@ -62,7 +62,8 @@ theorem one_nonempty [has_one α] : (1 : set α).nonempty := ⟨1, rfl⟩
 @[simp, to_additive]
 theorem image_one [has_one α] {f : α → β} : f '' 1 = {f 1} := image_singleton
 
-/-! Properties about multiplication -/
+/-! ### Properties about multiplication -/
+
 @[to_additive]
 instance [has_mul α] : has_mul (set α) := ⟨image2 has_mul.mul⟩
 
@@ -189,7 +190,7 @@ def fintype_mul [has_mul α] [decidable_eq α] (s t : set α) [hs : fintype s] [
   fintype (s * t : set α) :=
 set.fintype_image2 _ s t
 
-/-! Properties about inversion -/
+/-! ### Properties about inversion -/
 @[to_additive set.has_neg'] -- todo: remove prime once name becomes available
 instance [has_inv α] : has_inv (set α) :=
 ⟨preimage has_inv.inv⟩
@@ -231,7 +232,7 @@ lemma inv_subset_inv [group α] {s t : set α} : s⁻¹ ⊆ t⁻¹ ↔ s ⊆ t :
 @[to_additive] lemma inv_subset [group α] {s t : set α} : s⁻¹ ⊆ t ↔ s ⊆ t⁻¹ :=
 by { rw [← inv_subset_inv, set.inv_inv] }
 
-/-! Properties about scalar multiplication -/
+/-! ### Properties about scalar multiplication -/
 
 /-- Scaling a set: multiplying every element by a scalar. -/
 instance has_scalar_set [has_scalar α β] : has_scalar α (set β) :=
@@ -279,7 +280,7 @@ image2_singleton_left
 
 section monoid
 
-/-! `set α` as a `(∪,*)`-semiring -/
+/-! ### `set α` as a `(∪,*)`-semiring -/
 
 /-- An alias for `set α`, which has a semiring structure given by `∪` as "addition" and pointwise
   multiplication `*` as "multiplication". -/
@@ -376,20 +377,28 @@ variables {α : Type*} [decidable_eq α]
 instance [has_mul α] : has_mul (finset α) :=
 ⟨λ s t, (s.product t).image (λ p : α × α, p.1 * p.2)⟩
 
+@[to_additive]
 lemma mul_def [has_mul α] {s t : finset α} :
   s * t = (s.product t).image (λ p : α × α, p.1 * p.2) := rfl
 
+@[to_additive]
 lemma mem_mul [has_mul α] {s t : finset α} {x : α} :
   x ∈ s * t ↔ ∃ y z, y ∈ s ∧ z ∈ t ∧ y * z = x :=
 by { simp only [finset.mul_def, and.assoc, mem_image, exists_prop, prod.exists, mem_product] }
 
+@[simp, norm_cast, to_additive]
 lemma coe_mul [has_mul α] {s t : finset α} : (↑(s * t) : set α) = ↑s * ↑t :=
 by { ext, simp only [mem_mul, set.mem_mul, mem_coe] }
 
+@[to_additive]
 lemma mul_mem_mul [has_mul α] {s t : finset α} {x y : α} (hx : x ∈ s) (hy : y ∈ t) :
   x * y ∈ s * t :=
 by { simp only [finset.mem_mul], exact ⟨x, y, hx, hy, rfl⟩ }
 
+lemma add_card_le [has_add α] {s t : finset α} : (s + t).card ≤ s.card * t.card :=
+by { convert finset.card_image_le, rw [finset.card_product, mul_comm] }
+
+@[to_additive]
 lemma mul_card_le [has_mul α] {s t : finset α} : (s * t).card ≤ s.card * t.card :=
 by { convert finset.card_image_le, rw [finset.card_product, mul_comm] }
 

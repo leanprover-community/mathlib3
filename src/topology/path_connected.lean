@@ -294,8 +294,10 @@ path on `[0, 1/2]` and the second one on `[1/2, 1]`. -/
   begin
     apply (continuous_if _ _ _).comp continuous_subtype_coe,
     { norm_num },
-    { continuity },
-    { continuity }
+    -- TODO: the following are provable by `continuity` but it is too slow
+    { exact ((path.continuous γ).comp continuous_proj_I).comp (continuous_const.mul continuous_id')},
+    { exact ((path.continuous γ').comp continuous_proj_I).comp
+      ((continuous_const.mul continuous_id').sub continuous_const) }
   end,
   source' := by norm_num,
   target' := by norm_num }
@@ -465,11 +467,15 @@ end
   mean the uncurried function which maps `(t₀, t₁, s)` to `γ.truncate t₀ t₁ s` is continuous. -/
 lemma truncate_continuous_family {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) : continuous (λ x, γ.truncate x.1 x.2.1 x.2.2 : ℝ × ℝ × I → X) :=
-begin
-  simp only [has_coe_to_fun.coe, coe_fn, path.truncate],
-  continuity,
-  exact continuous_subtype_coe
-end
+(γ.continuous.comp continuous_proj_I).comp
+  (((continuous_subtype_coe.comp (continuous_snd.comp continuous_snd)).max continuous_fst).min
+    (continuous_fst.comp continuous_snd))
+/- TODO : When `continuity` gets quicker, change the proof back to :
+    `begin`
+      `simp only [has_coe_to_fun.coe, coe_fn, path.truncate],`
+      `continuity,`
+      `exact continuous_subtype_coe`
+    `end` -/
 
 lemma truncate_const_continuous_family {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) (t : ℝ) : continuous ↿(γ.truncate t) :=

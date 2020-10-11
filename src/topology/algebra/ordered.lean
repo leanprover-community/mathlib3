@@ -120,9 +120,12 @@ section preorder
 variables [topological_space α] [preorder α] [t : order_closed_topology α]
 include t
 
+lemma is_closed_le_prod : is_closed {p : α × α | p.1 ≤ p.2} :=
+t.is_closed_le'
+
 lemma is_closed_le [topological_space β] {f g : β → α} (hf : continuous f) (hg : continuous g) :
   is_closed {b | f b ≤ g b} :=
-continuous_iff_is_closed.mp (hf.prod_mk hg) _ t.is_closed_le'
+continuous_iff_is_closed.mp (hf.prod_mk hg) _ is_closed_le_prod
 
 lemma is_closed_le' (a : α) : is_closed {b | b ≤ a} :=
 is_closed_le continuous_id continuous_const
@@ -248,6 +251,10 @@ end partial_order
 
 section linear_order
 variables [topological_space α] [linear_order α] [order_closed_topology α]
+
+lemma is_open_lt_prod : is_open {p : α × α | p.1 < p.2} :=
+by { simp_rw [← is_closed_compl_iff, compl_set_of, not_lt],
+     exact is_closed_le continuous_snd continuous_fst }
 
 lemma is_open_lt [topological_space β] {f g : β → α} (hf : continuous f) (hg : continuous g) :
   is_open {b | f b < g b} :=
@@ -931,10 +938,16 @@ begin
     apply mem_sets_of_superset (mem_nhds_sets is_open_Ioo ha) h }
 end
 
-/-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`. -/
+/-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`.
+-/
 lemma mem_nhds_iff_exists_Ioo_subset [no_top_order α] [no_bot_order α] {a : α} {s : set α} :
   s ∈ 𝓝 a ↔ ∃l u, a ∈ Ioo l u ∧ Ioo l u ⊆ s :=
 let ⟨l', hl'⟩ := no_bot a in let ⟨u', hu'⟩ := no_top a in mem_nhds_iff_exists_Ioo_subset' hl' hu'
+
+lemma filter.eventually.exists_Ioo_subset [no_top_order α] [no_bot_order α] {a : α} {p : α → Prop}
+  (hp : ∀ᶠ x in 𝓝 a, p x) :
+  ∃ l u, a ∈ Ioo l u ∧ Ioo l u ⊆ {x | p x} :=
+mem_nhds_iff_exists_Ioo_subset.1 hp
 
 lemma Iio_mem_nhds {a b : α} (h : a < b) : Iio b ∈ 𝓝 a :=
 mem_nhds_sets is_open_Iio h
@@ -1048,7 +1061,7 @@ begin
   rw mem_nhds_within_Ioi_iff_exists_Ioo_subset,
   split,
   { rintros ⟨u, au, as⟩,
-    rcases dense au with ⟨v, hv⟩,
+    rcases exists_between au with ⟨v, hv⟩,
     exact ⟨v, hv.1, λx hx, as ⟨hx.1, lt_of_le_of_lt hx.2 hv.2⟩⟩ },
   { rintros ⟨u, au, as⟩,
     exact ⟨u, au, subset.trans Ioo_subset_Ioc_self as⟩ }
@@ -1154,7 +1167,7 @@ begin
   rw mem_nhds_within_Ici_iff_exists_Ico_subset,
   split,
   { rintros ⟨u, au, as⟩,
-    rcases dense au with ⟨v, hv⟩,
+    rcases exists_between au with ⟨v, hv⟩,
     exact ⟨v, hv.1, λx hx, as ⟨hx.1, lt_of_le_of_lt hx.2 hv.2⟩⟩ },
   { rintros ⟨u, au, as⟩,
     exact ⟨u, au, subset.trans Ico_subset_Icc_self as⟩ }
@@ -1215,7 +1228,7 @@ begin
   rw mem_nhds_within_Ici_iff_exists_Ico_subset,
   split,
   { rintros ⟨u, au, as⟩,
-    rcases dense au with ⟨v, hv⟩,
+    rcases exists_between au with ⟨v, hv⟩,
     exact ⟨v, hv.1, λx hx, as ⟨hx.1, lt_of_le_of_lt hx.2 hv.2⟩⟩ },
   { rintros ⟨u, au, as⟩,
     exact ⟨u, au, subset.trans Ico_subset_Icc_self as⟩ }
@@ -1229,7 +1242,7 @@ begin
   rw mem_nhds_within_Iic_iff_exists_Ioc_subset,
   split,
   { rintros ⟨l, la, as⟩,
-    rcases dense la with ⟨v, hv⟩,
+    rcases exists_between la with ⟨v, hv⟩,
     refine ⟨v, hv.2, λx hx, as ⟨lt_of_lt_of_le hv.1 hx.1, hx.2⟩⟩, },
   { rintros ⟨l, la, as⟩,
     exact ⟨l, la, subset.trans Ioc_subset_Icc_self as⟩ }
@@ -1432,7 +1445,7 @@ begin
   intro b,
   refine (hf (b/(C/2))).mp ((hg.2 (C/2) (by linarith)).mp ((hf 1).mp (eventually_of_forall _))),
   intros x hx hltg hlef,
-  nlinarith [(div_le_iff_of_neg (div_neg_of_neg_of_pos hC two_pos)).mp hlef],
+  nlinarith [(div_le_iff_of_neg (div_neg_of_neg_of_pos hC zero_lt_two)).mp hlef],
 end
 
 end linear_ordered_field
@@ -1797,7 +1810,7 @@ begin
     simpa using hx z (le_of_lt hz.1) },
   { rintros ⟨t, ht, hts⟩,
     obtain ⟨x, hx, hxt⟩ : ∃ x ∈ Iio b, Ioo x b ⊆ t := (mem_nhds_within_Iio_iff_exists_Ioo_subset' h).mp ht,
-    obtain ⟨y, hay, hyb⟩ : ∃ y, max a x < y ∧ y < b := dense (max_lt_iff.mpr ⟨h, hx⟩),
+    obtain ⟨y, hay, hyb⟩ : ∃ y, max a x < y ∧ y < b := exists_between (max_lt_iff.mpr ⟨h, hx⟩),
     refine mem_at_top_sets.mpr ⟨⟨y, (max_lt_iff.mp hay).1, hyb⟩, _⟩,
     intros z hz,
     exact hts (hxt ⟨lt_of_lt_of_le (lt_of_le_of_lt (le_max_right a x) hay) hz, z.2.2⟩) }
@@ -1818,7 +1831,7 @@ begin
     simpa using hx z (le_of_lt hz.2) },
   { rintros ⟨t, ht, hts⟩,
     obtain ⟨x, hx, hxt⟩ : ∃ x ∈ Ioi a, Ioo a x ⊆ t := (mem_nhds_within_Ioi_iff_exists_Ioo_subset' h).mp ht,
-    obtain ⟨y, hay, hyb⟩ : ∃ y, a < y ∧ y < min b x := dense (lt_min_iff.mpr ⟨h, hx⟩),
+    obtain ⟨y, hay, hyb⟩ : ∃ y, a < y ∧ y < min b x := exists_between (lt_min_iff.mpr ⟨h, hx⟩),
     refine mem_at_bot_sets.mpr ⟨⟨y, hay, (lt_min_iff.mp hyb).1⟩, _⟩,
     intros z hz,
     exact hts (hxt ⟨z.2.1, lt_of_le_of_lt hz (lt_of_lt_of_le hyb (min_le_right b x))⟩) }
@@ -2670,25 +2683,10 @@ begin
   exact this hf hb
 end
 
-lemma continuous_within_at_Ioi_iff_Ici
-  {α β : Type*} [topological_space α] [linear_order α] [topological_space β] {a : α} {f : α → β} :
+lemma continuous_within_at_Ioi_iff_Ici {α β : Type*} [topological_space α] [partial_order α]
+  [topological_space β] {a : α} {f : α → β} :
   continuous_within_at f (Ioi a) a ↔ continuous_within_at f (Ici a) a :=
-begin
-  split,
-  { intros h s hs,
-    specialize h hs,
-    rw [mem_map, mem_nhds_within_iff_exists_mem_nhds_inter] at *,
-    rcases h with ⟨u, huna, hu⟩,
-    use [u, huna],
-    { intros x hx,
-      cases hx with hxu hx,
-      by_cases h : x = a,
-      { rw [h, mem_set_of_eq],
-        exact mem_of_nhds hs, },
-      exact hu ⟨hxu, lt_of_le_of_ne hx (ne_comm.2 h)⟩ } },
-  { intros h,
-    exact h.mono Ioi_subset_Ici_self }
-end
+by simp only [← Ici_diff_left, continuous_within_at_diff_self]
 
 lemma continuous_within_at_Iio_iff_Iic
   {α β : Type*} [topological_space α] [linear_order α] [topological_space β] {a : α} {f : α → β} :

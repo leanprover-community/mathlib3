@@ -125,7 +125,7 @@ variables (R σ)
 theorem algebra_map_eq : algebra_map R (mv_polynomial σ R) = C := rfl
 variables {R σ}
 
-/-- `X n` is the degree `1` monomial `1*n` -/
+/-- `X n` is the degree `1` monomial $X_n$. -/
 def X (n : σ) : mv_polynomial σ R := monomial (single n 1) 1
 
 @[simp] lemma C_0 : C 0 = (0 : mv_polynomial σ R) := by simp [C, monomial]; refl
@@ -142,13 +142,28 @@ by simp [C, monomial, single_mul_single]
 @[simp] lemma C_pow (a : R) (n : ℕ) : (C (a^n) : mv_polynomial σ R) = (C a)^n :=
 by induction n; simp [pow_succ, *]
 
-lemma C_injective (σ : Type*) (R : Type*) [comm_ring R] :
+lemma C_injective (σ : Type*) (R : Type*) [comm_semiring R] :
   function.injective (C : R → mv_polynomial σ R) :=
 finsupp.single_injective _
 
-@[simp] lemma C_inj {σ : Type*} (R : Type*) [comm_ring R] (r s : R) :
+@[simp] lemma C_inj {σ : Type*} (R : Type*) [comm_semiring R] (r s : R) :
   (C r : mv_polynomial σ R) = C s ↔ r = s :=
 (C_injective σ R).eq_iff
+
+instance infinite_of_infinite (σ : Type*) (R : Type*) [comm_semiring R] [infinite R] :
+  infinite (mv_polynomial σ R) :=
+infinite.of_injective C (C_injective _ _)
+
+instance infinite_of_nonempty (σ : Type*) (R : Type*) [nonempty σ] [comm_semiring R] [nontrivial R] :
+  infinite (mv_polynomial σ R) :=
+infinite.of_injective (λ i : ℕ, monomial (single (classical.arbitrary σ) i) 1)
+begin
+  intros m n h,
+  have := (single_eq_single_iff _ _ _ _).mp h,
+  simp only [and_true, eq_self_iff_true, or_false, one_ne_zero, and_self,
+             single_eq_single_iff, eq_self_iff_true, true_and] at this,
+  rcases this with (rfl|⟨rfl, rfl⟩); refl
+end
 
 lemma C_eq_coe_nat (n : ℕ) : (C ↑n : mv_polynomial σ R) = n :=
 by induction n; simp [nat.succ_eq_add_one, *]
@@ -365,37 +380,35 @@ lemma coeff_mul (p q : mv_polynomial σ R) (n : σ →₀ ℕ) :
   coeff n (p * q) = ∑ x in (antidiagonal n).support, coeff x.1 p * coeff x.2 q :=
 begin
   rw mul_def,
+  -- We need to manipulate both sides into a shape to which we can apply `finset.sum_bij_ne_zero`,
+  -- so we need to turn both sides into a sum over a sigma/product.
   have := @finset.sum_sigma (σ →₀ ℕ) R _ _ p.support (λ _, q.support)
     (λ x, if (x.1 + x.2 = n) then coeff x.1 p * coeff x.2 q else 0),
   convert this.symm using 1; clear this,
   { rw [coeff],
-    repeat {rw sum_apply, apply finset.sum_congr rfl, intros, dsimp only},
+    iterate 2 { rw sum_apply, apply finset.sum_congr rfl, intros, dsimp only },
     convert single_apply },
-  { have : (antidiagonal n).support.filter (λ x, x.1 ∈ p.support ∧ x.2 ∈ q.support) ⊆
-           (antidiagonal n).support := finset.filter_subset _,
-    rw [← finset.sum_sdiff this, finset.sum_eq_zero, zero_add], swap,
-    { intros x hx,
-      rw [finset.mem_sdiff, not_iff_not_of_iff (finset.mem_filter),
-          not_and, not_and, not_mem_support_iff] at hx,
-      by_cases H : x.1 ∈ p.support,
-      { rw [coeff, coeff, hx.2 hx.1 H, mul_zero] },
-      { rw not_mem_support_iff at H, rw [coeff, H, zero_mul] } },
-    symmetry,
-    rw [← finset.sum_sdiff (finset.filter_subset _), finset.sum_eq_zero, zero_add], swap,
-    { intros x hx,
-      rw [finset.mem_sdiff, not_iff_not_of_iff (finset.mem_filter), not_and] at hx,
-      simp only [if_neg (hx.2 hx.1)] },
-    { apply finset.sum_bij, swap 5,
-      { intros x hx, exact (x.1, x.2) },
-      { intros x hx, rw [finset.mem_filter, finset.mem_sigma] at hx,
-        simpa [finset.mem_filter, mem_antidiagonal_support] using hx.symm },
-      { intros x hx, rw finset.mem_filter at hx, simp only [if_pos hx.2], },
-      { rintros ⟨i,j⟩ ⟨k,l⟩ hij hkl, simpa using and.intro },
-      { rintros ⟨i,j⟩ hij, refine ⟨⟨i,j⟩, _, _⟩, { apply_instance },
-        { rw [finset.mem_filter, mem_antidiagonal_support] at hij,
-          simpa [finset.mem_filter, finset.mem_sigma] using hij.symm },
-        { refl } } },
-    all_goals { apply_instance } }
+  symmetry,
+  -- We are now ready to show that both sums are equal using `finset.sum_bij_ne_zero`.
+  apply finset.sum_bij_ne_zero (λ (x : Σ (a : σ →₀ ℕ), σ →₀ ℕ) _ _, (x.1, x.2)),
+  { intros x hx hx',
+    simp only [mem_antidiagonal_support, eq_self_iff_true, if_false, forall_true_iff],
+    contrapose! hx',
+    rw [if_neg hx'] },
+  { rintros ⟨i, j⟩ ⟨k, l⟩ hij hij' hkl hkl',
+    simpa only [and_imp, prod.mk.inj_iff, heq_iff_eq] using and.intro },
+  { rintros ⟨i, j⟩ hij hij',
+    refine ⟨⟨i, j⟩, _, _⟩,
+    { simp only [mem_support_iff, finset.mem_sigma],
+      contrapose! hij',
+      exact mul_eq_zero_of_ne_zero_imp_eq_zero hij' },
+    { rw [mem_antidiagonal_support] at hij,
+      simp only [exists_prop, and_true, eq_self_iff_true, ne.def, if_pos hij, hij', not_false_iff] } },
+  { intros x hx hx',
+    simp only [ne.def] at hx' ⊢,
+    split_ifs with H,
+    { refl },
+    { rw if_neg H at hx', contradiction } }
 end
 
 @[simp] lemma coeff_mul_X (m) (s : σ) (p : mv_polynomial σ R) :
@@ -442,6 +455,24 @@ lemma exists_coeff_ne_zero {p : mv_polynomial σ R} (h : p ≠ 0) :
   ∃ d, coeff d p ≠ 0 :=
 ne_zero_iff.mp h
 
+lemma C_dvd_iff_dvd_coeff (r : R) (φ : mv_polynomial σ R) :
+  C r ∣ φ ↔ ∀ i, r ∣ φ.coeff i :=
+begin
+  split,
+  { rintros ⟨φ, rfl⟩ c, rw coeff_C_mul, apply dvd_mul_right },
+  { intro h,
+    choose c hc using h,
+    classical,
+    let c' : (σ →₀ ℕ) → R := λ i, if i ∈ φ.support then c i else 0,
+    let ψ : mv_polynomial σ R := ∑ i in φ.support, monomial i (c' i),
+    use ψ,
+    apply mv_polynomial.ext, intro i,
+    simp only [coeff_C_mul, coeff_sum, coeff_monomial, finset.sum_ite_eq', c'],
+    split_ifs with hi hi,
+    { rw hc },
+    { rw finsupp.not_mem_support_iff at hi, rwa mul_zero } },
+end
+
 end coeff
 
 section constant_coeff
@@ -472,6 +503,16 @@ by simp [constant_coeff_eq]
 lemma constant_coeff_monomial (d : σ →₀ ℕ) (r : R) :
   constant_coeff (monomial d r) = if d = 0 then r else 0 :=
 by rw [constant_coeff_eq, coeff_monomial]
+
+variables (σ R)
+
+@[simp] lemma constant_coeff_comp_C :
+  constant_coeff.comp (C : R →+* mv_polynomial σ R) = ring_hom.id R :=
+by { ext, apply constant_coeff_C }
+
+@[simp] lemma constant_coeff_comp_algebra_map :
+  constant_coeff.comp (algebra_map R (mv_polynomial σ R)) = ring_hom.id R :=
+constant_coeff_comp_C _ _
 
 end constant_coeff
 
@@ -810,6 +851,25 @@ begin
   change (map f p).coeff x = 0 at hx,
   rw [coeff_map, ← f.map_zero] at hx,
   exact hf hx
+end
+
+lemma C_dvd_iff_map_hom_eq_zero
+  (q : R →+* S₁) (r : R) (hr : ∀ r' : R, q r' = 0 ↔ r ∣ r')
+  (φ : mv_polynomial σ R) :
+  C r ∣ φ ↔ map q φ = 0 :=
+begin
+  rw [C_dvd_iff_dvd_coeff, mv_polynomial.ext_iff],
+  simp only [coeff_map, ring_hom.coe_of, coeff_zero, hr],
+end
+
+lemma map_map_range_eq_iff (f : R →+* S₁) (g : S₁ → R) (hg : g 0 = 0) (φ : mv_polynomial σ S₁) :
+  map f (finsupp.map_range g hg φ) = φ ↔ ∀ d, f (g (coeff d φ)) = coeff d φ :=
+begin
+  rw mv_polynomial.ext_iff,
+  apply forall_congr, intro m,
+  rw [coeff_map],
+  apply eq_iff_eq_cancel_right.mpr,
+  refl
 end
 
 end map

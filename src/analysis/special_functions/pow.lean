@@ -7,10 +7,15 @@ import analysis.special_functions.trigonometric
 import analysis.calculus.extend_deriv
 
 /-!
-# Power function on `ℂ`, `ℝ` and `ℝ⁺`
+# Power function on `ℂ`, `ℝ`, `ℝ≥0`, and `ennreal`
 
-We construct the power functions `x ^ y` where `x` and `y` are complex numbers, or `x` and `y` are
-real numbers, or `x` is a nonnegative real and `y` is real, and prove their basic properties.
+We construct the power functions `x ^ y` where
+* `x` and `y` are complex numbers,
+* or `x` and `y` are real numbers,
+* or `x` is a nonnegative real number and `y` is a real number;
+* or `x` is a number from `[0, +∞]` (a.k.a. `ennreal`) and `y` is a real number.
+
+We also prove basic properties of these functions.
 -/
 
 noncomputable theory
@@ -135,6 +140,9 @@ by simp only [rpow_def, complex.cpow_def];
 
 lemma rpow_def_of_pos {x : ℝ} (hx : 0 < x) (y : ℝ) : x ^ y = exp (log x * y) :=
 by rw [rpow_def_of_nonneg (le_of_lt hx), if_neg (ne_of_gt hx)]
+
+lemma exp_mul (x y : ℝ) : exp (x * y) = (exp x) ^ y :=
+by rw [rpow_def_of_pos (exp_pos _), log_exp]
 
 lemma rpow_eq_zero_iff_of_nonneg {x y : ℝ} (hx : 0 ≤ x) : x ^ y = 0 ↔ x = 0 ∧ y ≠ 0 :=
 by { simp only [rpow_def_of_nonneg hx], split_ifs; simp [*, exp_ne_zero] }
@@ -383,13 +391,36 @@ by { rw ← one_rpow z, exact rpow_lt_rpow zero_le_one hx hz }
 lemma one_le_rpow {x z : ℝ} (hx : 1 ≤ x) (hz : 0 ≤ z) : 1 ≤ x^z :=
 by { rw ← one_rpow z, exact rpow_le_rpow zero_le_one hx hz }
 
-lemma one_lt_rpow_of_pos_of_lt_one_of_neg {x z : ℝ} (hx1 : 0 < x) (hx2 : x < 1) (hz : z < 0) :
+lemma one_lt_rpow_of_pos_of_lt_one_of_neg (hx1 : 0 < x) (hx2 : x < 1) (hz : z < 0) :
   1 < x^z :=
 by { convert rpow_lt_rpow_of_exponent_gt hx1 hx2 hz, exact (rpow_zero x).symm }
 
-lemma one_le_rpow_of_pos_of_le_one_of_nonpos {x z : ℝ} (hx1 : 0 < x) (hx2 : x ≤ 1) (hz : z ≤ 0) :
+lemma one_le_rpow_of_pos_of_le_one_of_nonpos (hx1 : 0 < x) (hx2 : x ≤ 1) (hz : z ≤ 0) :
   1 ≤ x^z :=
 by { convert rpow_le_rpow_of_exponent_ge hx1 hx2 hz, exact (rpow_zero x).symm }
+
+lemma rpow_lt_one_iff_of_pos (hx : 0 < x) : x ^ y < 1 ↔ 1 < x ∧ y < 0 ∨ x < 1 ∧ 0 < y :=
+by rw [rpow_def_of_pos hx, exp_lt_one_iff, mul_neg_iff, log_pos_iff hx, log_neg_iff hx]
+
+lemma rpow_lt_one_iff (hx : 0 ≤ x) : x ^ y < 1 ↔ x = 0 ∧ y ≠ 0 ∨ 1 < x ∧ y < 0 ∨ x < 1 ∧ 0 < y :=
+begin
+  rcases hx.eq_or_lt with (rfl|hx),
+  { rcases em (y = 0) with (rfl|hy); simp [*, lt_irrefl, zero_lt_one] },
+  { simp [rpow_lt_one_iff_of_pos hx, hx.ne.symm] }
+end
+
+lemma one_lt_rpow_iff_of_pos (hx : 0 < x) : 1 < x ^ y ↔ 1 < x ∧ 0 < y ∨ x < 1 ∧ y < 0 :=
+by rw [rpow_def_of_pos hx, one_lt_exp_iff, mul_pos_iff, log_pos_iff hx, log_neg_iff hx]
+
+lemma one_lt_rpow_iff (hx : 0 ≤ x) : 1 < x ^ y ↔ 1 < x ∧ 0 < y ∨ 0 < x ∧ x < 1 ∧ y < 0 :=
+begin
+  rcases hx.eq_or_lt with (rfl|hx),
+  { rcases em (y = 0) with (rfl|hy); simp [*, lt_irrefl, (@zero_lt_one ℝ _).not_lt] },
+  { simp [one_lt_rpow_iff_of_pos hx, hx] }
+end
+
+lemma rpow_le_one_iff_of_pos (hx : 0 < x) : x ^ y ≤ 1 ↔ 1 ≤ x ∧ y ≤ 0 ∨ x ≤ 1 ∧ 0 ≤ y :=
+by rw [rpow_def_of_pos hx, exp_le_one_iff, mul_nonpos_iff, log_nonneg_iff hx, log_nonpos_iff hx]
 
 lemma pow_nat_rpow_nat_inv {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : 0 < n) :
   (x ^ n) ^ (n⁻¹ : ℝ) = x :=
@@ -429,12 +460,12 @@ begin
   cases lt_trichotomy 0 x,
   exact continuous_within_at.continuous_at
     (continuous_on_iff_continuous_restrict.2 continuous_rpow_aux1 _ h)
-    (mem_nhds_sets (by { convert is_open_prod (is_open_lt' (0:ℝ)) is_open_univ, ext, finish }) h),
+    (mem_nhds_sets (by { convert (is_open_lt' (0:ℝ)).prod is_open_univ, ext, finish }) h),
   cases h,
   { exact absurd h.symm hx },
   exact continuous_within_at.continuous_at
     (continuous_on_iff_continuous_restrict.2 continuous_rpow_aux2 _ h)
-    (mem_nhds_sets (by { convert is_open_prod (is_open_gt' (0:ℝ)) is_open_univ, ext, finish }) h)
+    (mem_nhds_sets (by { convert (is_open_gt' (0:ℝ)).prod is_open_univ, ext, finish }) h)
 end
 
 lemma continuous_rpow_aux3 : continuous (λ p : {p:ℝ×ℝ // 0 < p.2}, p.val.1 ^ p.val.2) :=
@@ -470,7 +501,7 @@ lemma continuous_at_rpow_of_pos (hy : 0 < y) (x : ℝ) :
   continuous_at (λp:ℝ×ℝ, p.1^p.2) (x, y) :=
 continuous_within_at.continuous_at
   (continuous_on_iff_continuous_restrict.2 continuous_rpow_aux3 _ hy)
-  (mem_nhds_sets (by { convert is_open_prod is_open_univ (is_open_lt' (0:ℝ)), ext, finish }) hy)
+  (mem_nhds_sets (by { convert is_open_univ.prod (is_open_lt' (0:ℝ)), ext, finish }) hy)
 
 lemma continuous_at_rpow {x y : ℝ} (h : x ≠ 0 ∨ 0 < y) :
   continuous_at (λp:ℝ×ℝ, p.1^p.2) (x, y) :=
@@ -931,7 +962,22 @@ open filter
 lemma filter.tendsto.nnrpow {α : Type*} {f : filter α} {u : α → ℝ≥0} {v : α → ℝ} {x : ℝ≥0} {y : ℝ}
   (hx : tendsto u f (𝓝 x)) (hy : tendsto v f (𝓝 y)) (h : x ≠ 0 ∨ 0 < y) :
   tendsto (λ a, (u a) ^ (v a)) f (𝓝 (x ^ y)) :=
-tendsto.comp (nnreal.continuous_at_rpow h) (tendsto.prod_mk_nhds hx hy)
+tendsto.comp (nnreal.continuous_at_rpow h) (hx.prod_mk_nhds hy)
+
+namespace nnreal
+
+lemma continuous_at_rpow_const {x : ℝ≥0} {y : ℝ} (h : x ≠ 0 ∨ 0 ≤ y) :
+  continuous_at (λ z, z^y) x :=
+h.elim (λ h, tendsto_id.nnrpow tendsto_const_nhds (or.inl h)) $
+  λ h, h.eq_or_lt.elim
+    (λ h, h ▸ by simp only [rpow_zero, continuous_at_const])
+    (λ h, tendsto_id.nnrpow tendsto_const_nhds (or.inr h))
+
+lemma continuous_rpow_const {y : ℝ} (h : 0 ≤ y) :
+  continuous (λ x : ℝ≥0, x^y) :=
+continuous_iff_continuous_at.2 $ λ x, continuous_at_rpow_const (or.inr h)
+
+end nnreal
 
 namespace ennreal
 

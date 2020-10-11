@@ -76,13 +76,9 @@ by rw [C_mul_X_pow_eq_monomial, self_sub_monomial_nat_degree_leading_coeff]
 
 lemma erase_lead_ne_zero (f0 : 2 ≤ f.support.card) : erase_lead f ≠ 0 :=
 begin
-  have fn0 : f ≠ 0,
-  { rintro rfl, simpa only [card_empty, le_zero_iff_eq, support_zero, two_ne_zero] using f0 },
-  rw [ne.def, ← support_eq_empty, erase_lead_support],
-  apply @ne_empty_of_mem _ (nat_trailing_degree f),
-  apply mem_erase_of_ne_of_mem _ (nat_trailing_degree_mem_support_of_nonzero fn0),
-  rw [nat_degree_eq_support_max' fn0, nat_trailing_degree_eq_support_min' fn0],
-  exact ne_of_lt (finset.min'_lt_max'_of_card _ f0)
+  rw [ne.def, ← finsupp.card_support_eq_zero, erase_lead_support],
+  exact (zero_lt_one.trans_le $ (nat.sub_le_sub_right f0 1).trans
+    finset.pred_card_le_card_erase).ne.symm
 end
 
 @[simp] lemma nat_degree_not_mem_erase_lead_support : f.nat_degree ∉ (erase_lead f).support :=
@@ -91,21 +87,6 @@ by convert not_mem_erase _ _
 lemma ne_nat_degree_of_mem_erase_lead_support {a : ℕ} (h : a ∈ (erase_lead f).support) :
   a ≠ f.nat_degree :=
 by { rintro rfl, exact nat_degree_not_mem_erase_lead_support h }
-
-lemma erase_lead_nat_degree_lt (f0 : 2 ≤ f.support.card) :
-  (erase_lead f).nat_degree < f.nat_degree :=
-begin
-  rw nat_degree_eq_support_max' (erase_lead_ne_zero f0),
-  apply nat.lt_of_le_and_ne _
-    (ne_nat_degree_of_mem_erase_lead_support
-      ((erase_lead f).support.max'_mem (nonempty_support_iff.mpr _))),
-  apply max'_le,
-  intros i hi,
-  apply le_nat_degree_of_ne_zero,
-  rw ← mem_support_iff_coeff_ne_zero,
-  simp only [erase_lead_support] at hi,
-  exact erase_subset _ _ hi
-end
 
 lemma erase_lead_support_card_lt (h : f ≠ 0) : (erase_lead f).support.card < f.support.card :=
 begin
@@ -144,6 +125,11 @@ end
 
 lemma erase_lead_nat_degree_le : (erase_lead f).nat_degree ≤ f.nat_degree :=
 nat_degree_le_nat_degree erase_lead_degree_le
+
+lemma erase_lead_nat_degree_lt (f0 : 2 ≤ f.support.card) :
+  (erase_lead f).nat_degree < f.nat_degree :=
+lt_of_le_of_ne erase_lead_nat_degree_le $ ne_nat_degree_of_mem_erase_lead_support $
+  nat_degree_mem_support_of_nonzero $ erase_lead_ne_zero f0
 
 end erase_lead
 

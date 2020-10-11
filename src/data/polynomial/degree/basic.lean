@@ -544,6 +544,9 @@ begin
     exact @finsupp.single_eq_same _ _ _ n a }
 end
 
+@[simp] lemma leading_coeff_monomial' (a : R) (n : ℕ) : leading_coeff (monomial n a) = a :=
+by rw [← C_mul_X_pow_eq_monomial, leading_coeff_monomial]
+
 @[simp] lemma leading_coeff_C (a : R) : leading_coeff (C a) = a :=
 suffices leading_coeff (C a * X^0) = a, by rwa [pow_zero, mul_one] at this,
 leading_coeff_monomial a 0

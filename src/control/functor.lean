@@ -9,7 +9,7 @@ import tactic.lint
 /-!
 # Functors
 
-This module provides additional functor lemmas, definitions, and instances.
+This module provides additional lemmas, definitions, and instances for `functor`s.
 
 ## Main definitions
 

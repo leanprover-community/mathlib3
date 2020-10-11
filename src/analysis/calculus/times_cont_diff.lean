@@ -873,7 +873,7 @@ begin
   exact ⟨by rwa insert_eq_of_mem hx, λ x hx, by simp [ftaylor_series_within]⟩
 end
 
-@[simp] lemma times_cont_diff_within_at_zero (hx : x ∈ s) :
+lemma times_cont_diff_within_at_zero (hx : x ∈ s) :
   times_cont_diff_within_at 𝕜 0 f s x ↔ ∃ u ∈ 𝓝[s] x, continuous_on f (s ∩ u) :=
 begin
   split,
@@ -1331,7 +1331,7 @@ begin
   exact times_cont_diff_on_zero
 end
 
-@[simp] lemma times_cont_diff_at_zero :
+lemma times_cont_diff_at_zero :
   times_cont_diff_at 𝕜 0 f x ↔ ∃ u ∈ 𝓝 x, continuous_on f u :=
 by { rw ← times_cont_diff_within_at_univ, simp [nhds_within_univ] }
 
@@ -2501,8 +2501,8 @@ begin
   exact this.has_fderiv_at.fderiv
 end
 
-/-- If a function is `C^n` with `1 ≤ n` around a point, and its derivative of at that point is
-given to us as `f'`, then `f'` is also a strict derivative. -/
+/-- If a function is `C^n` with `1 ≤ n` around a point, and its derivative at that point is given to
+us as `f'`, then `f'` is also a strict derivative. -/
 lemma times_cont_diff_at.has_strict_fderiv_at'
   {f : E' → F'} {f' : E' →L[ℝ] F'} {x : E'}
   {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f x) (hf' : has_fderiv_at f f' x) (hn : 1 ≤ n) :

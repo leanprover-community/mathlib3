@@ -442,8 +442,55 @@ section graph_operations
 def two_pt_quo {β : Type*} (v w : β) := @quot β (λ i j, i = j ∨ (i = v ∧ j = w) ∨ (i = w ∧ j = v))
 
 def contract_edge (G : simple_graph) {v w : V G} (h : v ~g w) : simple_graph_on (two_pt_quo v w) :=
-{ adj := λ i j, sorry
+{ adj := λ i j, quot.out i ~g quot.out j,
+  symm' :=
+    begin
+      intros x y h,
+      apply symm,
+      exact h,
+    end,
+  loopless' :=
+    begin
+      intro x,
+      simp,
+    end,
 }
+
+def delete_edge (G : simple_graph) {v w : V G} (h : v ~g w) : simple_graph_on (G.V) :=
+{ adj := λ i j, (¬ ((i = v ∧ j = w) ∨ (i = w ∧ j = v)) ∧ i ~g j),
+  symm' :=
+    begin
+      intros x y h,
+      push_neg,
+      push_neg at h,
+      rcases h with ⟨⟨h1, h2⟩, h3⟩,
+      split,
+      split,
+      intro hvy,
+      simp,
+      by_contra,
+      specialize h2 a,
+      apply h2,
+      exact hvy,
+
+      intro hyw,
+      simp,
+      by_contra,
+      specialize h1 a,
+      apply h1,
+      exact hyw,
+
+      apply symm,
+      exact h3,
+    end,
+  loopless' :=
+    begin
+      intros x,
+      push_neg,
+      intro h1,
+
+      exact G.loopless x,
+    end }
 
 -- TODO
 

@@ -28,7 +28,12 @@ that all these points of view are equivalent, with the following lemmas
 (in the namespace `finite_dimensional`):
 
 - `exists_is_basis_finite` states that a finite-dimensional vector space has a finite basis
-- `of_fintype_basis` states that the existence of a basis indexed by a finite type implies finite-dimensionality
+- `of_fintype_basis` states that the existence of a basis indexed by a finite type implies
+  finite-dimensionality
+- `of_finset_basis` states that the existence of a basis indexed by a `finset` implies
+  finite-dimensionality
+- `of_finite_basis` states that the existence of a basis indexed by a finite set implies
+  finite-dimensionality
 - `iff_fg` states that the space is finite-dimensional if and only if it is finitely generated
 
 Also defined is `findim`, the dimension of a finite dimensional space, returning a `nat`,

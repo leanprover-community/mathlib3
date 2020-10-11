@@ -1022,11 +1022,24 @@ by rw [bit_val, nat.bit_val]; cases b; refl
 @[simp] lemma bodd_bit (b n) : bodd (bit b n) = b :=
 by rw bit_val; simp; cases b; cases bodd n; refl
 
+@[simp] lemma bodd_bit0 (n : ℤ) : bodd (bit0 n) = ff := bodd_bit ff n
+
+@[simp] lemma bodd_bit1 (n : ℤ) : bodd (bit1 n) = tt := bodd_bit tt n
+
 @[simp] lemma div2_bit (b n) : div2 (bit b n) = n :=
 begin
   rw [bit_val, div2_val, add_comm, int.add_mul_div_left, (_ : (_/2:ℤ) = 0), zero_add],
   cases b, all_goals {exact dec_trivial}
 end
+
+lemma bit0_ne_bit1 (m n : ℤ) : bit0 m ≠ bit1 n :=
+mt (congr_arg bodd) $ by simp
+
+lemma bit1_ne_bit0 (m n : ℤ) : bit1 m ≠ bit0 n :=
+(bit0_ne_bit1 _ _).symm
+
+lemma bit1_ne_zero (m : ℤ) : bit1 m ≠ 0 :=
+by simpa only [bit0_zero] using bit1_ne_bit0 m 0
 
 @[simp] lemma test_bit_zero (b) : ∀ n, test_bit (bit b n) 0 = b
 | (n : ℕ) := by rw [bit_coe_nat]; apply nat.test_bit_zero

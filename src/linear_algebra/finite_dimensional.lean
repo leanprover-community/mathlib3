@@ -975,8 +975,8 @@ begin
       have hx : (x : V) ∈ span K (set.range b) := x.property,
       conv at hx { congr, skip, rw h },
       simpa [mem_map] using hx },
-    have hi : disjoint (span K (set.range b')) f.ker, by simp,
-    convert (linear_independent_of_span_eq_top_of_card_eq_findim hs hc).image hi }
+    have hi : f.ker = ⊥ := ker_subtype _,
+    convert (linear_independent_of_span_eq_top_of_card_eq_findim hs hc).map' _ hi }
 end
 
 lemma is_basis_of_span_eq_top_of_card_eq_findim {ι : Type*} [fintype ι] {b : ι → V}
@@ -1044,27 +1044,9 @@ variables {F E : Type*} [field F] [field E] [algebra F E]
 
 lemma subalgebra.dim_eq_one_of_eq_bot {S : subalgebra F E} (h : S = ⊥) : dim F S = 1 :=
 begin
-  rw eq_bot_iff at h,
-  let b : set S := {1},
-  have : fintype b := unique.fintype,
-  have b_lin_ind : linear_independent F (coe : b → S) := linear_independent_singleton one_ne_zero,
-  have b_spans : span F b = ⊤,
-  { rw eq_top_iff,
-    rintros ⟨x, hx⟩ -,
-    rw submodule.mem_span_singleton,
-    specialize h hx,
-    simp only [mem_coe, subalgebra.mem_to_submodule, coe_coe, algebra.mem_bot] at h,
-    cases h with y hy,
-    use y,
-    ext,
-    change y • 1 = x,
-    simp only [algebra.smul_def, mul_one, *], },
-  have b_basis : is_basis F (coe : b → S),
-  { refine ⟨b_lin_ind, _⟩,
-    convert b_spans,
-    simp *, },
-  have b_card : fintype.card b = 1 := fintype.card_of_subsingleton _,
-  rw [dim_eq_card_basis b_basis, b_card, nat.cast_one],
+  rw [← S.to_submodule_equiv.dim_eq, h,
+    (linear_equiv.of_eq ↑(⊥ : subalgebra F E) _ algebra.to_submodule_bot).dim_eq, dim_span_set],
+  exacts [mk_singleton _, linear_independent_singleton one_ne_zero]
 end
 
 @[simp]

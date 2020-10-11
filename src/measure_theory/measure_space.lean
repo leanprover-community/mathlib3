@@ -274,10 +274,8 @@ lemma measure_bUnion {s : set β} {f : β → set α} (hs : countable s)
   μ (⋃b∈s, f b) = ∑'p:s, μ (f p) :=
 begin
   haveI := hs.to_encodable,
-  rw [← measure_Union, bUnion_eq_Union],
-  { rintro ⟨i, hi⟩ ⟨j, hj⟩ ij x ⟨h₁, h₂⟩,
-    exact hd i hi j hj (mt subtype.ext_val ij:_) ⟨h₁, h₂⟩ },
-  { simpa }
+  rw bUnion_eq_Union,
+  exact measure_Union (hd.on_injective subtype.coe_injective $ λ x, x.2) (λ x, h x x.2)
 end
 
 lemma measure_sUnion {S : set (set α)} (hs : countable S)
@@ -431,7 +429,7 @@ lemma tendsto_measure_Union {μ : measure α} {s : ℕ → set α}
   tendsto (μ ∘ s) at_top (𝓝 (μ (⋃ n, s n))) :=
 begin
   rw measure_Union_eq_supr hs (directed_of_sup hm),
-  exact tendsto_at_top_supr_nat (μ ∘ s) (assume n m hnm, measure_mono $ hm hnm)
+  exact tendsto_at_top_supr (assume n m hnm, measure_mono $ hm hnm)
 end
 
 /-- Continuity from above: the measure of the intersection of a decreasing sequence of measurable
@@ -441,7 +439,7 @@ lemma tendsto_measure_Inter {μ : measure α} {s : ℕ → set α}
   tendsto (μ ∘ s) at_top (𝓝 (μ (⋂ n, s n))) :=
 begin
   rw measure_Inter_eq_infi hs (directed_of_sup hm) hf,
-  exact tendsto_at_top_infi_nat (μ ∘ s) (assume n m hnm, measure_mono $ hm hnm),
+  exact tendsto_at_top_infi (assume n m hnm, measure_mono $ hm hnm),
 end
 
 /-- One direction of the Borel-Cantelli lemma: if (sᵢ) is a sequence of measurable sets such that
@@ -918,7 +916,7 @@ begin
   induction s using finset.induction_on with i s hi hs, { simp },
   simp only [finset.mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at htm ⊢,
   simp only [finset.bUnion_insert, ← hs htm.2],
-  exact restrict_union_congr htm.1 (is_measurable.bUnion s.countable_to_set htm.2)
+  exact restrict_union_congr htm.1 (s.is_measurable_bUnion htm.2)
 end
 
 lemma restrict_Union_congr [encodable ι] {s : ι → set α} (hm : ∀ i, is_measurable (s i)) :
@@ -928,7 +926,7 @@ begin
   refine ⟨λ h i, restrict_congr_mono (subset_Union _ _) (hm i) h, λ h, _⟩,
   ext1 t ht,
   have M : ∀ t : finset ι, is_measurable (⋃ i ∈ t, s i) :=
-    λ t, is_measurable.bUnion t.countable_to_set (λ i _, hm i),
+    λ t, t.is_measurable_bUnion (λ i _, hm i),
   have D : directed (⊆) (λ t : finset ι, ⋃ i ∈ t, s i) :=
     directed_of_sup (λ t₁ t₂ ht, bUnion_subset_bUnion_left ht),
   rw [Union_eq_Union_finset],

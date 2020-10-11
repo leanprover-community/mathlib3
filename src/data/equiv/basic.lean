@@ -137,7 +137,7 @@ protected theorem bijective (f : α ≃ β) : bijective f :=
 set.eq_univ_of_forall e.surjective
 
 protected theorem subsingleton (e : α ≃ β) [subsingleton β] : subsingleton α :=
-e.injective.comap_subsingleton
+e.injective.subsingleton
 
 /-- Transfer `decidable_eq` across an equivalence. -/
 protected def decidable_eq (e : α ≃ β) [decidable_eq β] : decidable_eq α :=
@@ -952,6 +952,20 @@ def bool_prod_equiv_sum (α : Type u) : bool × α ≃ α ⊕ α :=
 calc bool × α ≃ (unit ⊕ unit) × α       : prod_congr bool_equiv_punit_sum_punit (equiv.refl _)
       ...     ≃ (unit × α) ⊕ (unit × α) : sum_prod_distrib _ _ _
       ...     ≃ α ⊕ α                   : sum_congr (punit_prod _) (punit_prod _)
+
+/-- The function type `bool → α` is equivalent to `α × α`. -/
+def bool_to_equiv_prod (α : Type u) : (bool → α) ≃ α × α :=
+calc (bool → α) ≃ ((unit ⊕ unit) → α) : (arrow_congr bool_equiv_punit_sum_punit (equiv.refl α))
+     ...        ≃ (unit → α) × (unit → α) : sum_arrow_equiv_prod_arrow _ _ _
+     ...        ≃ α × α : prod_congr (punit_arrow_equiv _) (punit_arrow_equiv _)
+
+@[simp] lemma bool_to_equiv_prod_apply {α : Type u} (f : bool → α) :
+  bool_to_equiv_prod α f = (f ff, f tt) := rfl
+@[simp] lemma bool_to_equiv_prod_symm_apply_ff {α : Type u} (p : α × α) :
+  (bool_to_equiv_prod α).symm p ff = p.1 := rfl
+@[simp] lemma bool_to_equiv_prod_symm_apply_tt {α : Type u} (p : α × α) :
+  (bool_to_equiv_prod α).symm p tt = p.2 := rfl
+
 end
 
 section

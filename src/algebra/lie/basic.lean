@@ -297,7 +297,7 @@ open dfinsupp
 open_locale direct_sum
 
 variables {R : Type u} [comm_ring R]
-variables {ι : Type v} [decidable_eq ι] {L : ι → Type w}
+variables {ι : Type v} {L : ι → Type w}
 variables [Π i, lie_ring (L i)] [Π i, lie_algebra R (L i)]
 
 /-- The direct sum of Lie rings carries a natural Lie ring structure. -/
@@ -743,18 +743,18 @@ is compatible with the Lie algebra structures. -/
 def lie_equiv_matrix' : module.End R (n → R) ≃ₗ⁅R⁆ matrix n n R :=
 { map_lie := λ T S,
   begin
-    let f := @linear_map.to_matrixₗ n n _ _ R _ _,
+    let f := @linear_map.to_matrix' R _ n n _ _ _,
     change f (T.comp S - S.comp T) = (f T) * (f S) - (f S) * (f T),
-    have h : ∀ (T S : module.End R _), f (T.comp S) = (f T) ⬝ (f S) := matrix.comp_to_matrix_mul,
-    rw [linear_map.map_sub, h, h, matrix.mul_eq_mul, matrix.mul_eq_mul],
+    have h : ∀ (T S : module.End R _), f (T.comp S) = (f T) ⬝ (f S) := linear_map.to_matrix'_comp,
+    rw [linear_equiv.map_sub, h, h, matrix.mul_eq_mul, matrix.mul_eq_mul],
   end,
-  ..linear_equiv_matrix' }
+  ..linear_map.to_matrix' }
 
 @[simp] lemma lie_equiv_matrix'_apply (f : module.End R (n → R)) :
-  lie_equiv_matrix' f = f.to_matrix := rfl
+  lie_equiv_matrix' f = f.to_matrix' := rfl
 
 @[simp] lemma lie_equiv_matrix'_symm_apply (A : matrix n n R) :
-  (@lie_equiv_matrix' R _ n _ _).symm A = A.to_lin := rfl
+  (@lie_equiv_matrix' R _ n _ _).symm A = A.to_lin' := rfl
 
 /-- An invertible matrix induces a Lie algebra equivalence from the space of matrices to itself. -/
 noncomputable def matrix.lie_conj (P : matrix n n R) (h : is_unit P) :
@@ -763,11 +763,13 @@ noncomputable def matrix.lie_conj (P : matrix n n R) (h : is_unit P) :
 
 @[simp] lemma matrix.lie_conj_apply (P A : matrix n n R) (h : is_unit P) :
   P.lie_conj h A = P ⬝ A ⬝ P⁻¹ :=
-by simp [linear_equiv.conj_apply, matrix.lie_conj, matrix.comp_to_matrix_mul, to_lin_to_matrix]
+by simp [linear_equiv.conj_apply, matrix.lie_conj, linear_map.to_matrix'_comp,
+         linear_map.to_matrix'_to_lin']
 
 @[simp] lemma matrix.lie_conj_symm_apply (P A : matrix n n R) (h : is_unit P) :
   (P.lie_conj h).symm A = P⁻¹ ⬝ A ⬝ P :=
-by simp [linear_equiv.symm_conj_apply, matrix.lie_conj, matrix.comp_to_matrix_mul, to_lin_to_matrix]
+by simp [linear_equiv.symm_conj_apply, matrix.lie_conj, linear_map.to_matrix'_comp,
+         linear_map.to_matrix'_to_lin']
 
 /-- For square matrices, the natural map that reindexes a matrix's rows and columns with equivalent
 types is an equivalence of Lie algebras. -/

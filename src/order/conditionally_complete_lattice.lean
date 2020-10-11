@@ -70,9 +70,26 @@ class conditionally_complete_lattice (α : Type*) extends lattice α, has_Sup α
 (cInf_le : ∀s a, bdd_below s → a ∈ s → Inf s ≤ a)
 (le_cInf : ∀s a, set.nonempty s → a ∈ lower_bounds s → a ≤ Inf s)
 
+/-- A conditionally complete linear order is a linear order in which
+every nonempty subset which is bounded above has a supremum, and
+every nonempty subset which is bounded below has an infimum.
+Typical examples are real numbers or natural numbers.
+
+To differentiate the statements from the corresponding statements in (unconditional)
+complete linear orders, we prefix Inf and Sup by a c everywhere. The same statements should
+hold in both worlds, sometimes with additional assumptions of nonemptiness or
+boundedness.-/
 class conditionally_complete_linear_order (α : Type*)
   extends conditionally_complete_lattice α, decidable_linear_order α
 
+/-- A conditionally complete linear order with `bot` is a linear order with least element, in which
+every nonempty subset which is bounded above has a supremum, and every nonempty subset (necessarily
+bounded below) has an infimum.  A typical example is the natural numbers.
+
+To differentiate the statements from the corresponding statements in (unconditional)
+complete linear orders, we prefix Inf and Sup by a c everywhere. The same statements should
+hold in both worlds, sometimes with additional assumptions of nonemptiness or
+boundedness.-/
 class conditionally_complete_linear_order_bot (α : Type*)
   extends conditionally_complete_linear_order α, order_bot α :=
 (cSup_empty : Sup ∅ = ⊥)

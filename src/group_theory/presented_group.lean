@@ -58,4 +58,7 @@ theorem to_group.unique (g : presented_group rels →* β)
     (λ _, free_group.to_group.unique (g.comp (quotient_group.mk' _)) hg)
 
 end to_group
+
+instance (rels : set (free_group α)) : inhabited (presented_group rels) := ⟨1⟩
+
 end presented_group

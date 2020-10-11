@@ -488,7 +488,7 @@ end
 @[simp] lemma of_real_exp_of_real_re (x : ℝ) : ((exp x).re : ℂ) = exp x :=
 eq_conj_iff_re.1 $ by rw [← exp_conj, conj_of_real]
 
-@[simp] lemma of_real_exp (x : ℝ) : (real.exp x : ℂ) = exp x :=
+@[simp, norm_cast] lemma of_real_exp (x : ℝ) : (real.exp x : ℂ) = exp x :=
 of_real_exp_of_real_re _
 
 @[simp] lemma exp_of_real_im (x : ℝ) : (exp x).im = 0 :=
@@ -550,7 +550,7 @@ by rw [sinh, ← conj.map_neg, exp_conj, exp_conj, ← conj.map_sub, sinh, conj.
 @[simp] lemma of_real_sinh_of_real_re (x : ℝ) : ((sinh x).re : ℂ) = sinh x :=
 eq_conj_iff_re.1 $ by rw [← sinh_conj, conj_of_real]
 
-@[simp] lemma of_real_sinh (x : ℝ) : (real.sinh x : ℂ) = sinh x :=
+@[simp, norm_cast] lemma of_real_sinh (x : ℝ) : (real.sinh x : ℂ) = sinh x :=
 of_real_sinh_of_real_re _
 
 @[simp] lemma sinh_of_real_im (x : ℝ) : (sinh x).im = 0 :=
@@ -567,7 +567,7 @@ end
 @[simp] lemma of_real_cosh_of_real_re (x : ℝ) : ((cosh x).re : ℂ) = cosh x :=
 eq_conj_iff_re.1 $ by rw [← cosh_conj, conj_of_real]
 
-@[simp] lemma of_real_cosh (x : ℝ) : (real.cosh x : ℂ) = cosh x :=
+@[simp, norm_cast] lemma of_real_cosh (x : ℝ) : (real.cosh x : ℂ) = cosh x :=
 of_real_cosh_of_real_re _
 
 @[simp] lemma cosh_of_real_im (x : ℝ) : (cosh x).im = 0 :=
@@ -587,7 +587,7 @@ by rw [tanh, sinh_conj, cosh_conj, ← conj.map_div, tanh]
 @[simp] lemma of_real_tanh_of_real_re (x : ℝ) : ((tanh x).re : ℂ) = tanh x :=
 eq_conj_iff_re.1 $ by rw [← tanh_conj, conj_of_real]
 
-@[simp] lemma of_real_tanh (x : ℝ) : (real.tanh x : ℂ) = tanh x :=
+@[simp, norm_cast] lemma of_real_tanh (x : ℝ) : (real.tanh x : ℂ) = tanh x :=
 of_real_tanh_of_real_re _
 
 @[simp] lemma tanh_of_real_im (x : ℝ) : (tanh x).im = 0 :=
@@ -662,7 +662,7 @@ by rw [← mul_left_inj' I_ne_zero, ← sinh_mul_I,
 @[simp] lemma of_real_sin_of_real_re (x : ℝ) : ((sin x).re : ℂ) = sin x :=
 eq_conj_iff_re.1 $ by rw [← sin_conj, conj_of_real]
 
-@[simp] lemma of_real_sin (x : ℝ) : (real.sin x : ℂ) = sin x :=
+@[simp, norm_cast] lemma of_real_sin (x : ℝ) : (real.sin x : ℂ) = sin x :=
 of_real_sin_of_real_re _
 
 @[simp] lemma sin_of_real_im (x : ℝ) : (sin x).im = 0 :=
@@ -677,7 +677,7 @@ by rw [← cosh_mul_I, ← conj_neg_I, ← conj.map_mul, ← cosh_mul_I,
 @[simp] lemma of_real_cos_of_real_re (x : ℝ) : ((cos x).re : ℂ) = cos x :=
 eq_conj_iff_re.1 $ by rw [← cos_conj, conj_of_real]
 
-@[simp] lemma of_real_cos (x : ℝ) : (real.cos x : ℂ) = cos x :=
+@[simp, norm_cast] lemma of_real_cos (x : ℝ) : (real.cos x : ℂ) = cos x :=
 of_real_cos_of_real_re _
 
 @[simp] lemma cos_of_real_im (x : ℝ) : (cos x).im = 0 :=
@@ -697,7 +697,7 @@ by rw [tan, sin_conj, cos_conj, ← conj.map_div, tan]
 @[simp] lemma of_real_tan_of_real_re (x : ℝ) : ((tan x).re : ℂ) = tan x :=
 eq_conj_iff_re.1 $ by rw [← tan_conj, conj_of_real]
 
-@[simp] lemma of_real_tan (x : ℝ) : (real.tan x : ℂ) = tan x :=
+@[simp, norm_cast] lemma of_real_tan (x : ℝ) : (real.tan x : ℂ) = tan x :=
 of_real_tan_of_real_re _
 
 @[simp] lemma tan_of_real_im (x : ℝ) : (tan x).im = 0 :=
@@ -958,11 +958,17 @@ lemma exp_injective : function.injective exp := exp_strict_mono.injective
 @[simp] lemma exp_eq_one_iff : exp x = 1 ↔ x = 0 :=
 by rw [← exp_zero, exp_injective.eq_iff]
 
-lemma one_lt_exp_iff {x : ℝ} : 1 < exp x ↔ 0 < x :=
+@[simp] lemma one_lt_exp_iff {x : ℝ} : 1 < exp x ↔ 0 < x :=
 by rw [← exp_zero, exp_lt_exp]
 
-lemma exp_lt_one_iff {x : ℝ} : exp x < 1 ↔ x < 0 :=
+@[simp] lemma exp_lt_one_iff {x : ℝ} : exp x < 1 ↔ x < 0 :=
 by rw [← exp_zero, exp_lt_exp]
+
+@[simp] lemma exp_le_one_iff {x : ℝ} : exp x ≤ 1 ↔ x ≤ 0 :=
+exp_zero ▸ exp_le_exp
+
+@[simp] lemma one_le_exp_iff {x : ℝ} : 1 ≤ exp x ↔ 0 ≤ x :=
+exp_zero ▸ exp_le_exp
 
 /-- `real.cosh` is always positive -/
 lemma cosh_pos (x : ℝ) : 0 < real.cosh x :=

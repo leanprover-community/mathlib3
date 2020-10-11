@@ -178,7 +178,7 @@ begin
       simpa [h_source] using h } },
   rw [this, inter_comm],
   exact continuous_on.preimage_open_of_open e.continuous_to_fun e.open_source
-    (is_open_prod u_open is_open_univ)
+    (u_open.prod is_open_univ)
 end
 
 /-- The projection from a topological fiber bundle to its base is continuous. -/
@@ -314,9 +314,9 @@ def triv_change (i j : ι) : local_homeomorph (B × F) (B × F) :=
     { simp [hx] },
   end,
   open_source :=
-    is_open_prod (is_open_inter (Z.is_open_base_set i) (Z.is_open_base_set j)) is_open_univ,
+    (is_open_inter (Z.is_open_base_set i) (Z.is_open_base_set j)).prod is_open_univ,
   open_target :=
-    is_open_prod (is_open_inter (Z.is_open_base_set i) (Z.is_open_base_set j)) is_open_univ,
+    (is_open_inter (Z.is_open_base_set i) (Z.is_open_base_set j)).prod is_open_univ,
   continuous_to_fun  :=
     continuous_on.prod continuous_fst.continuous_on (Z.coord_change_continuous i j),
   continuous_inv_fun := by simpa [inter_comm]
@@ -396,13 +396,13 @@ lemma open_source' (i : ι) : is_open (Z.local_triv' i).source :=
 begin
   apply topological_space.generate_open.basic,
   simp only [exists_prop, mem_Union, mem_singleton_iff],
-  refine ⟨i, set.prod (Z.base_set i) univ, is_open_prod (Z.is_open_base_set i) (is_open_univ), _⟩,
+  refine ⟨i, set.prod (Z.base_set i) univ, (Z.is_open_base_set i).prod is_open_univ, _⟩,
   ext p,
   simp only with mfld_simps
 end
 
 lemma open_target' (i : ι) : is_open (Z.local_triv' i).target :=
-is_open_prod (Z.is_open_base_set i) (is_open_univ)
+(Z.is_open_base_set i).prod is_open_univ
 
 /-- Local trivialization of a topological bundle created from core, as a local homeomorphism. -/
 def local_triv (i : ι) : local_homeomorph Z.total_space (B × F) :=

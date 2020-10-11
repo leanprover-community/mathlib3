@@ -137,9 +137,8 @@ def coe.ring_hom : ℤ_[p] →+* ℚ_[p]  :=
 @[simp, norm_cast] lemma coe_sub : ∀ (z1 z2 : ℤ_[p]), (↑(z1 - z2) : ℚ_[p]) = ↑z1 - ↑z2 :=
 coe.ring_hom.map_sub
 
-@[simp, norm_cast] lemma cast_pow (x : ℤ_[p]) : ∀ (n : ℕ), (↑(x^n) : ℚ_[p]) = (↑x : ℚ_[p])^n
-| 0 := by simp
-| (k+1) := by simp [monoid.pow, pow]; congr; apply cast_pow
+@[simp, norm_cast] lemma coet_pow (x : ℤ_[p]) (n : ℕ) : (↑(x^n) : ℚ_[p]) = (↑x : ℚ_[p])^n :=
+coe.ring_hom.map_pow x n
 
 @[simp] lemma mk_coe : ∀ (k : ℤ_[p]), (⟨k, k.2⟩ : ℤ_[p]) = k
 | ⟨_, _⟩ := rfl
@@ -153,7 +152,6 @@ instance : char_zero ℤ_[p] :=
 { cast_injective :=
   λ m n h, cast_injective $
   show (m:ℚ_[p]) = n, by { rw subtype.ext_iff at h, norm_cast at h, exact h } }
-
 
 @[simp, norm_cast] lemma coe_int_eq (z1 z2 : ℤ) : (z1 : ℤ_[p]) = z2 ↔ z1 = z2 :=
 suffices (z1 : ℚ_[p]) = z2 ↔ z1 = z2, from iff.trans (by norm_cast) this,

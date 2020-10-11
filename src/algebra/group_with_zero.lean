@@ -323,6 +323,10 @@ lemma eq_of_zero_eq_one (h : (0 : M₀) = 1) (a b : M₀) : a = b :=
 @[simp] theorem not_is_unit_zero [nontrivial M₀] : ¬ is_unit (0 : M₀) :=
 mt is_unit_zero_iff.1 zero_ne_one
 
+lemma mul_eq_zero_of_ne_zero_imp_eq_zero {a b : M₀} (h : a ≠ 0 → b = 0) :
+  a * b = 0 :=
+if ha : a = 0 then by rw [ha, zero_mul] else by rw [h ha, mul_zero]
+
 variable (M₀)
 
 /-- In a monoid with zero, either zero and one are nonequal, or zero is the only element. -/
@@ -349,6 +353,12 @@ cancel_monoid_with_zero.mul_right_cancel_of_ne_zero hb h
 lemma mul_left_inj' (hc : c ≠ 0) : a * c = b * c ↔ a = b := ⟨mul_right_cancel' hc, λ h, h ▸ rfl⟩
 
 lemma mul_right_inj' (ha : a ≠ 0) : a * b = a * c ↔ b = c := ⟨mul_left_cancel' ha, λ h, h ▸ rfl⟩
+
+@[simp] lemma mul_eq_mul_right_iff : a * c = b * c ↔ a = b ∨ c = 0 :=
+by by_cases hc : c = 0; [simp [hc], simp [mul_left_inj', hc]]
+
+@[simp] lemma mul_eq_mul_left_iff : a * b = a * c ↔ b = c ∨ a = 0 :=
+by by_cases ha : a = 0; [simp [ha], simp [mul_right_inj', ha]]
 
 /-- Pullback a `monoid_with_zero` class along an injective function. -/
 protected def function.injective.cancel_monoid_with_zero [has_zero M₀'] [has_mul M₀'] [has_one M₀']
@@ -760,7 +770,7 @@ local attribute [simp] mul_assoc mul_comm mul_left_comm
 
 lemma div_mul_div (a b c d : G₀) :
       (a / b) * (c / d) = (a * c) / (b * d) :=
-by { simp [div_eq_mul_inv], rw [mul_inv_rev', mul_comm d⁻¹] }
+by simp [div_eq_mul_inv, mul_inv']
 
 lemma mul_div_mul_left (a b : G₀) {c : G₀} (hc : c ≠ 0) :
       (c * a) / (c * b) = a / b :=

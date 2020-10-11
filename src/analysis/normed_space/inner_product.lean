@@ -925,7 +925,7 @@ norms, has absolute value 1 if and only if they are nonzero and one is
 a multiple of the other. One form of equality case for Cauchy-Schwarz. -/
 lemma abs_real_inner_div_norm_mul_norm_eq_one_iff (x y : F) :
   absR (⟪x, y⟫_ℝ / (∥x∥ * ∥y∥)) = 1 ↔ (x ≠ 0 ∧ ∃ (r : ℝ), r ≠ 0 ∧ y = r • x) :=
-by { have h := @abs_inner_div_norm_mul_norm_eq_one_iff ℝ F _ _ x y, simpa using h }
+by { simpa using abs_inner_div_norm_mul_norm_eq_one_iff x y, assumption }
 
 /--
 If the inner product of two vectors is equal to the product of their norms, then the two vectors

@@ -142,9 +142,9 @@ end
 
 open real
 
-/-- Test for congergence of the `p`-series: the real-valued series `∑' n : ℕ, 1 / n ^ p` converges
+/-- Test for congergence of the `p`-series: the real-valued series `∑' n : ℕ, (n ^ p)⁻¹` converges
 if and only if `1 < p`. -/
-@[simp] lemma summable_nat_rpow_inv {p : ℝ} : summable (λ n, (n ^ p)⁻¹ : ℕ → ℝ) ↔ 1 < p :=
+@[simp] lemma real.summable_nat_rpow_inv {p : ℝ} : summable (λ n, (n ^ p)⁻¹ : ℕ → ℝ) ↔ 1 < p :=
 begin
   cases le_or_lt 0 p with hp hp,
   { rw ← summable_condensed_iff_of_nonneg,
@@ -173,5 +173,30 @@ begin
         hp.not_lt, hk₀] using hk₁ } }
 end
 
-@[simp] lemma nnreal.summable_one_div_rpow {p : ℝ} : summable (λ n, (n ^ p)⁻¹ : ℕ → ℝ≥0) ↔ 1 < p :=
+/-- Test for congergence of the `p`-series: the real-valued series `∑' n : ℕ, 1 / n ^ p` converges
+if and only if `1 < p`. -/
+lemma real.summable_one_div_nat_rpow {p : ℝ} : summable (λ n, 1 / n ^ p : ℕ → ℝ) ↔ 1 < p :=
+by simp
+
+/-- Test for congergence of the `p`-series: the real-valued series `∑' n : ℕ, (n ^ p)⁻¹` converges
+if and only if `1 < p`. -/
+@[simp] lemma real.summable_nat_pow_inv {p : ℕ} : summable (λ n, (n ^ p)⁻¹ : ℕ → ℝ) ↔ 1 < p :=
+by simp only [← rpow_nat_cast, real.summable_nat_rpow_inv, nat.one_lt_cast]
+
+/-- Test for congergence of the `p`-series: the real-valued series `∑' n : ℕ, 1 / n ^ p` converges
+if and only if `1 < p`. -/
+lemma real.summable_one_div_nat_pow {p : ℕ} : summable (λ n, 1 / n ^ p : ℕ → ℝ) ↔ 1 < p :=
+by simp
+
+lemma real.not_summable_nat_cast_inv : ¬summable (λ n, n⁻¹ : ℕ → ℝ) :=
+have ¬summable (λ n, (n^1)⁻¹ : ℕ → ℝ), from mt real.summable_nat_pow_inv.1 (lt_irrefl 1),
+by simpa
+
+lemma real.not_summable_one_div_nat_cast : ¬summable (λ n, 1 / n : ℕ → ℝ) :=
+by simpa only [inv_eq_one_div] using real.not_summable_nat_cast_inv
+
+@[simp] lemma nnreal.summable_one_rpow_inv {p : ℝ} : summable (λ n, (n ^ p)⁻¹ : ℕ → ℝ≥0) ↔ 1 < p :=
 by simp [← nnreal.summable_coe]
+
+lemma nnreal.summable_one_div_rpow {p : ℝ} : summable (λ n, 1 / n ^ p : ℕ → ℝ≥0) ↔ 1 < p :=
+by simp

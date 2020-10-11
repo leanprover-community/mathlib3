@@ -532,10 +532,12 @@ do e ← i_to_expr p,
     focus1 $ do (p, gs) ← rcases_hint_core depth h, set_goals gs, pure p
 
 /--
-* `rcases? e` is like `rcases e with ...`, except it generates `...` by matching on everything it
-can, and it outputs an `rcases` invocation that should have the same effect.
-* `rcases? e : n` can be used to control the depth of case splits (especially important for
-recursive types like `nat`, which can be cased as many times as you like). -/
+* `rcases? ⟨e1, e2, e3⟩` is like `rcases ⟨e1, e2, e3⟩ with ...`, except it
+  generates `...` by matching on everything it can, and it outputs an `rcases`
+  invocation that should have the same effect.
+* `rcases? ⟨e1, e2, e3⟩ : n` can be used to control the depth of case splits
+  (especially important for recursive types like `nat`, which can be cased as many
+  times as you like). -/
 meta def rcases_hint_many (ps : list pexpr) (depth : nat) : tactic (listΠ rcases_patt) :=
 do es ← ps.mmap (λ p, do
     e ← i_to_expr p,
@@ -614,6 +616,12 @@ do o ← (tk ":" *> small_nat)?, pure $ o.get_or_else 5
 
 precedence `?`:max
 
+/-- The arguments to `rcases`, which in fact dispatch to several other tactics.
+* `rcases? expr (: n)?` or `rcases? ⟨expr, ...⟩ (: n)?` calls `rcases_hint`
+* `rcases? ⟨expr, ...⟩ (: n)?` calls `rcases_hint_many`
+* `rcases (h :)? expr (with patt)?` calls `rcases`
+* `rcases ⟨expr, ...⟩ (with patt)?` calls `rcases_many`
+-/
 @[derive has_reflect]
 meta inductive rcases_args
 | hint (tgt : pexpr ⊕ list pexpr) (depth : nat)

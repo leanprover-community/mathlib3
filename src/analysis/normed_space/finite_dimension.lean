@@ -86,7 +86,7 @@ begin
     change ∥hξ.equiv_fun x∥ ≤ 0 * ∥x∥,
     rw this,
     simp [norm_nonneg] },
-  { haveI : finite_dimensional 𝕜 E := of_finite_basis hξ,
+  { haveI : finite_dimensional 𝕜 E := of_fintype_basis hξ,
     -- first step: thanks to the inductive assumption, any n-dimensional subspace is equivalent
     -- to a standard space of dimension n, hence it is complete and therefore closed.
     have H₁ : ∀s : submodule 𝕜 E, findim 𝕜 s = n → is_closed (s : set E),
@@ -182,7 +182,7 @@ variables {ι : Type*} [fintype ι]
 /-- Construct a continuous linear map given the value at a finite basis. -/
 def is_basis.constrL {v : ι → E} (hv : is_basis 𝕜 v) (f : ι → F) :
   E →L[𝕜] F :=
-by haveI : finite_dimensional 𝕜 E := finite_dimensional.of_finite_basis hv;
+by haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis hv;
   exact (hv.constr f).to_continuous_linear_map
 
 @[simp, norm_cast] lemma is_basis.coe_constrL {v : ι → E} (hv : is_basis 𝕜 v) (f : ι → F) :
@@ -192,7 +192,7 @@ by haveI : finite_dimensional 𝕜 E := finite_dimensional.of_finite_basis hv;
 functions from its basis indexing type to `𝕜`. -/
 def is_basis.equiv_funL {v : ι → E} (hv : is_basis 𝕜 v) : E ≃L[𝕜] (ι → 𝕜) :=
 { continuous_to_fun := begin
-    haveI : finite_dimensional 𝕜 E := finite_dimensional.of_finite_basis hv,
+    haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis hv,
     apply linear_map.continuous_of_finite_dimensional,
   end,
   continuous_inv_fun := begin

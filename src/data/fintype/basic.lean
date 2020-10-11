@@ -10,6 +10,7 @@ import data.finset.powerset
 import data.finset.lattice
 import data.finset.pi
 import data.array.lemmas
+import order.well_founded
 
 open_locale nat
 

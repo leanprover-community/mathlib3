@@ -366,7 +366,7 @@ begin
   { rintro ⟨F,h1,h2⟩,
     exact ⟨F,h1,le_nhds_of_str_eq _ _ h2⟩ },
   { rintro ⟨F,h1,h2⟩,
-    refine ⟨F,h1,str_eq_of_le_nhds _ _ h2⟩ }
+    exact ⟨F,h1,str_eq_of_le_nhds _ _ h2⟩ }
 end
 
 /-- Any morphism of compacta is continuous. -/

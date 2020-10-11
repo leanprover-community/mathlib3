@@ -107,17 +107,20 @@ end
 
 open topological_space
 
+/-- The range of `pure : α → ultrafilter α` is dense in `ultrafilter α`. -/
+lemma dense_range_pure : dense_range (pure : α → ultrafilter α) :=
+λ x, mem_closure_iff_ultrafilter.mpr
+       ⟨x.map ultrafilter.pure, range_mem_map, ultrafilter_converges_iff.mpr (bind_pure x).symm⟩
+
 /-- `pure : α → ultrafilter α` defines a dense inducing of `α` in `ultrafilter α`. -/
 lemma dense_inducing_pure : @dense_inducing _ _ ⊥ _ (pure : α → ultrafilter α) :=
 by letI : topological_space α := ⊥; exact
-dense_inducing.mk' pure continuous_bot
-  (assume x, mem_closure_iff_ultrafilter.mpr
-     ⟨x.map ultrafilter.pure, range_mem_map,
-      ultrafilter_converges_iff.mpr (bind_pure x).symm⟩)
+dense_inducing.mk' pure continuous_bot dense_range_pure
   (assume a s as,
      ⟨{u | s ∈ u.val},
       mem_nhds_sets (ultrafilter_is_open_basic s) (mem_of_nhds as : a ∈ s),
       assume b hb, mem_pure_sets.mp hb⟩)
+
 
 -- The following refined version will never be used
 
@@ -221,8 +224,7 @@ def stone_cech_unit (x : α) : stone_cech α := ⟦pure x⟧
 /-- The image of stone_cech_unit is dense. (But stone_cech_unit need
   not be an embedding, for example if α is not Hausdorff.) -/
 lemma dense_range_stone_cech_unit : dense_range (stone_cech_unit : α → stone_cech α) :=
--- With term mode proof Lean tries to use wrong instances
-by convert dense_inducing_pure.dense.quotient
+dense_range_pure.quotient
 
 section extension
 

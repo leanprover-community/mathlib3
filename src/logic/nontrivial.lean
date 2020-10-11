@@ -157,7 +157,7 @@ do
   alternative ← to_expr ``(subsingleton_or_nontrivial %%α),
   n ← get_unused_name "_inst",
   tactic.cases alternative [n, n],
-  `[{ resetI, simp only with nontriviality }] <|>
+  `[{ resetI, simp with nontriviality }] <|>
     fail format!"Could not prove goal assuming `subsingleton {α}`",
   reset_instance_cache
 

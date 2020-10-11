@@ -1333,7 +1333,7 @@ end
 
 lemma times_cont_diff_at_zero :
   times_cont_diff_at 𝕜 0 f x ↔ ∃ u ∈ 𝓝 x, continuous_on f u :=
-by { rw ← times_cont_diff_within_at_univ, simp [nhds_within_univ] }
+by { rw ← times_cont_diff_within_at_univ, simp [times_cont_diff_within_at_zero, nhds_within_univ] }
 
 lemma times_cont_diff.of_le {m n : with_top ℕ}
   (h : times_cont_diff 𝕜 n f) (hmn : m ≤ n) :

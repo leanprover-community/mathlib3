@@ -1921,7 +1921,7 @@ namespace continuous_linear_equiv
 
 In this section we establish that the set of continuous linear equivalences between two Banach
 spaces is an open subset of the space of linear maps between them.  These facts are placed here
-because the proof uses `is_bounded_bilinear_map_comp.continuous`, proved just above as a consequence
+because the proof uses `is_bounded_bilinear_map.continuous`, proved just above as a consequence
 of its differentiability.
 -/
 

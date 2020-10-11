@@ -5,6 +5,7 @@ Author: Wojciech Nawrocki, Bhavik Mehta
 -/
 
 import category_theory.adjunction
+import category_theory.monad.adjunction
 import category_theory.monad.basic
 
 /-! # Kleisli category on a monad
@@ -21,9 +22,16 @@ universes v u -- declare the `v`'s first; see `category_theory.category` for an 
 
 variables {C : Type u} [category.{v} C]
 
+/--
+The objects for the Kleisli category of the functor (usually monad) `T : C ⥤ C`, which are the same
+thing as objects of the base category `C`.
+-/
+@[nolint unused_arguments]
 def kleisli (T : C ⥤ C) := C
 
 namespace kleisli
+
+instance (T : C ⥤ C) [inhabited C] : inhabited (kleisli T) := ⟨(default C : _)⟩
 
 variables (T : C ⥤ C) [monad.{v} T]
 
@@ -42,6 +50,7 @@ instance kleisli.category : category (kleisli T) :=
 
 namespace adjunction
 
+/-- The left adjoint of the adjunction which induces the monad `T`. -/
 @[simps] def F_T : C ⥤ kleisli T :=
 { obj       := λ X, (X : kleisli T),
   map       := λ X Y f, (f ≫ (η_ T).app Y : _),
@@ -51,6 +60,7 @@ namespace adjunction
     simp [← (η_ T).naturality g],
   end }
 
+/-- The right adjoint of the adjunction which induces the monad `T`. -/
 @[simps] def U_T : kleisli T ⥤ C :=
 { obj       := λ X, T.obj X,
   map       := λ X Y f, T.map f ≫ (μ_ T).app Y,
@@ -65,7 +75,7 @@ namespace adjunction
     cf Lemma 5.2.11 of [Riehl][riehl2017]. -/
 def adj : F_T T ⊣ U_T T :=
 adjunction.mk_of_hom_equiv
-{ hom_equiv := λ X Y, equiv.refl _,
+{ hom_equiv := λ X Y, equiv.refl (X ⟶ T.obj Y),
   hom_equiv_naturality_left_symm' := λ X Y Z f g,
   begin
     unfold_projs,
@@ -75,6 +85,7 @@ adjunction.mk_of_hom_equiv
     simp [monad.left_unit],
   end }
 
+/-- The composition of the adjunction gives the original functor. -/
 def F_T_comp_U_T_iso_T : F_T T ⋙ U_T T ≅ T :=
 nat_iso.of_components (λ X, iso.refl _) (λ X Y f, by { dsimp, simp })
 

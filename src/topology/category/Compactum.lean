@@ -14,8 +14,17 @@ import data.set.constructions
 
 # Compact Hausdorff Spaces
 
-This file proves the equivalence between the category of compact Hausdorff topological spaces
-and the category of algebras for the ultrafilter monad.
+Recall that, given a monad `M` on `Type*`, an *algebra* for `M` consists of the following data:
+- A type `X : Type*`
+- A "structure" map `M X → X`.
+This data must also satisfy a distributivity and unit axiom, and algebras for `M` form a category
+in an evident way.
+
+See the file `category_theory.monad.algebra` for a general version, as well as the following link.
+https://ncatlab.org/nlab/show/monad
+
+This file proves the equivalence between the category of *compact Hausdorff topological spaces*
+and the category of algebras for the *ultrafilter monad*.
 
 ## Notation:
 
@@ -339,6 +348,24 @@ begin
   replace hx := str_eq_of_le_nhds ⟨_,hF⟩ _ hx,
   replace hy := str_eq_of_le_nhds ⟨_,hF⟩ _ hy,
   cc,
+end
+
+/-- The structure map of a compactum actually computes limits. -/
+lemma Lim_eq_str {X : Compactum} (F : ultrafilter X) : F.Lim = X.str F :=
+begin
+  erw [is_ultrafilter.Lim_eq_iff_le_nhds, le_nhds_iff],
+  tauto,
+end
+
+lemma cl_eq_closure {X : Compactum} (A : set X) : cl A = closure A :=
+begin
+  ext,
+  rw mem_closure_iff_ultrafilter,
+  split,
+  { rintro ⟨F,h1,h2⟩,
+    exact ⟨F,h1,le_nhds_of_str_eq _ _ h2⟩ },
+  { rintro ⟨F,h1,h2⟩,
+    refine ⟨F,h1,str_eq_of_le_nhds _ _ h2⟩ }
 end
 
 /-- Any morphism of compacta is continuous. -/

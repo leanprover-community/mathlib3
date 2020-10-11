@@ -53,29 +53,25 @@ lemma finite_inter_mem (cond : has_finite_inter S) (F : finset (set α)) :
 begin
   classical,
   refine finset.induction_on F (λ _, _) _,
-  { suffices : set.univ ∈ S, by simpa,
-    exact cond.univ_mem },
+  { simp [cond.univ_mem] },
   { intros a s h1 h2 h3,
     suffices : a ∩ ⋂₀ ↑s ∈ S, by simpa,
-    apply cond.inter_mem,
-    { apply h3, simp },
-    { apply h2, intros x hx, apply h3,
-      suffices : x = a ∨ x ∈ s, by simpa,
-      exact or.inr hx } }
+    exact cond.inter_mem (h3 (finset.mem_insert_self a s))
+                         (h2 $ λ x hx, h3 $ finset.mem_insert_of_mem hx) }
 end
 
 lemma finite_inter_closure_insert {A : set α} (cond : has_finite_inter S)
   (P ∈ finite_inter_closure (insert A S)) : P ∈ S ∨ ∃ Q ∈ S, P = A ∩ Q :=
 begin
-  induction H,
-  { cases H_a,
+  induction H with S h T1 T2 _ _ h1 h2,
+  { cases h,
     { exact or.inr ⟨set.univ, cond.univ_mem, by simpa⟩ },
-    { exact or.inl H_a } },
+    { exact or.inl h } },
   { exact or.inl cond.univ_mem },
-  { rcases H_ih_a with (h | ⟨Q,hQ,rfl⟩); rcases H_ih_a_1 with (i | ⟨R, hR, rfl⟩),
+  { rcases h1 with (h | ⟨Q, hQ, rfl⟩); rcases h2 with (i | ⟨R, hR, rfl⟩),
     { exact or.inl (cond.inter_mem h i) },
-    { exact or.inr ⟨H_s ∩ R, cond.inter_mem h hR, by finish⟩ },
-    { exact or.inr ⟨Q ∩ H_t, cond.inter_mem hQ i, by finish⟩ },
+    { exact or.inr ⟨T1 ∩ R, cond.inter_mem h hR, by finish⟩ },
+    { exact or.inr ⟨Q ∩ T2, cond.inter_mem hQ i, by finish⟩ },
     { exact or.inr ⟨Q ∩ R, cond.inter_mem hQ hR , by tidy⟩ } }
 end
 

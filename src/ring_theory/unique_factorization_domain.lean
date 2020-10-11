@@ -1082,6 +1082,8 @@ omit dec
 omit dec_irr
 omit dec'
 
+/-- This theorem is also true in a gcd_monoid (but then you need a normalization).
+See associated_pow_of_mul_eq_pow. -/
 theorem eq_pow_of_mul_eq_pow {a b c : associates α} (ha : a ≠ 0) (hb : b ≠ 0)
   (hab : ∀ d, d ∣ a → d ∣ b → ¬ prime d) {k : ℕ} (h : a * b = c ^ k) :
   ∃ (d : associates α), a = d ^ k :=

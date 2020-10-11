@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Defines the inf/sup (semi)-lattice with optionally top/bot type class hierarchy.
 -/
-import order.basic
+import order.rel_classes
 
 set_option old_structure_cmd true
 
@@ -213,8 +213,7 @@ theorem inf_le_right_of_le (h : b ≤ c) : a ⊓ b ≤ c :=
 le_trans inf_le_right h
 
 @[simp] theorem le_inf_iff : a ≤ b ⊓ c ↔ a ≤ b ∧ a ≤ c :=
-⟨assume h : a ≤ b ⊓ c, ⟨le_trans h inf_le_left, le_trans h inf_le_right⟩,
-  assume ⟨h₁, h₂⟩, le_inf h₁ h₂⟩
+@sup_le_iff (order_dual α) _ _ _ _
 
 @[simp] theorem inf_eq_left : a ⊓ b = a ↔ a ≤ b :=
 le_antisymm_iff.trans $ by simp [le_refl]
@@ -247,22 +246,21 @@ theorem le_of_inf_eq (h : a ⊓ b = a) : a ≤ b :=
 by { rw ← h, simp }
 
 lemma inf_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : p b) : p (a ⊓ b) :=
-(is_total.total a b).elim (λ h : a ≤ b, by rwa inf_eq_left.2 h) (λ h, by rwa inf_eq_right.2 h)
+@sup_ind (order_dual α) _ _ _ _ _ ha hb
 
 @[simp] lemma lt_inf_iff [is_total α (≤)] {a b c : α} : a < b ⊓ c ↔ a < b ∧ a < c :=
-⟨λ h, ⟨lt_of_lt_of_le h inf_le_left, lt_of_lt_of_le h inf_le_right⟩,
-  λ h, inf_ind b c h.1 h.2⟩
+@sup_lt_iff (order_dual α) _ _ _ _ _
 
 @[simp] lemma inf_le_iff [is_total α (≤)] {a b c : α} : b ⊓ c ≤ a ↔ b ≤ a ∨ c ≤ a :=
-by rw [← not_iff_not]; simp only [not_or_distrib, @lt_inf_iff α, @not_le (as_linear_order α)]
+@le_sup_iff (order_dual α) _ _ _ _ _
 
 @[simp] theorem inf_idem : a ⊓ a = a :=
-by apply le_antisymm; simp
+@sup_idem (order_dual α) _ _
 
 instance inf_is_idempotent : is_idempotent α (⊓) := ⟨@inf_idem _ _⟩
 
 theorem inf_comm : a ⊓ b = b ⊓ a :=
-by apply le_antisymm; simp
+@sup_comm (order_dual α) _ _ _
 
 instance inf_is_commutative : is_commutative α (⊓) := ⟨@inf_comm _ _⟩
 
@@ -272,13 +270,13 @@ theorem inf_assoc : a ⊓ b ⊓ c = a ⊓ (b ⊓ c) :=
 instance inf_is_associative : is_associative α (⊓) := ⟨@inf_assoc _ _⟩
 
 @[simp] lemma inf_left_idem : a ⊓ (a ⊓ b) = a ⊓ b :=
-by rw [← inf_assoc, inf_idem]
+@sup_left_idem (order_dual α) _ a b
 
 @[simp] lemma inf_right_idem : (a ⊓ b) ⊓ b = a ⊓ b :=
-by rw [inf_assoc, inf_idem]
+@sup_right_idem (order_dual α) _ a b
 
 lemma inf_left_comm (a b c : α) : a ⊓ (b ⊓ c) = b ⊓ (a ⊓ c) :=
-by rw [← inf_assoc, ← inf_assoc, @inf_comm α _ a]
+@sup_left_comm (order_dual α) _ a b c
 
 lemma forall_le_or_exists_lt_inf (a : α) : (∀b, a ≤ b) ∨ (∃b, b < a) :=
 @forall_le_or_exists_lt_sup (order_dual α) _ a
@@ -300,7 +298,7 @@ end
 
 end semilattice_inf
 
-/- Lattices -/
+/-! ### Lattices -/
 
 /-- A lattice is a join-semilattice which is also a meet-semilattice. -/
 class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
@@ -444,9 +442,7 @@ le_inf (h inf_le_left) (h inf_le_right)
 lemma map_inf [semilattice_inf α] [is_total α (≤)] [semilattice_inf β] {f : α → β}
   (hf : monotone f) (x y : α) :
   f (x ⊓ y) = f x ⊓ f y :=
-(is_total.total x y).elim
-  (λ h : x ≤ y, by simp only [h, hf h, inf_of_le_left])
-  (λ h, by simp only [h, hf h, inf_of_le_right])
+@monotone.map_sup (order_dual α) _ _ _ _ _ hf.order_dual x y
 
 end monotone
 

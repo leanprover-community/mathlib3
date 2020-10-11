@@ -523,8 +523,7 @@ lemma linear_independent_std_basis
 begin
   have hs' : ∀j : η, linear_independent R (λ i : ιs j, std_basis R Ms j (v j i)),
   { intro j,
-    apply linear_independent.image (hs j),
-    simp [ker_std_basis] },
+    exact (hs j).map' _ (ker_std_basis _ _ _) },
   apply linear_independent_Union_finite hs',
   { assume j J _ hiJ,
     simp [(set.Union.equations._eqn_1 _).symm, submodule.span_image, submodule.span_Union],

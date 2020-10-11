@@ -959,7 +959,7 @@ lemma units_inv_eq_self (u : units ℤ) : u⁻¹ = u :=
 
 @[simp] lemma bodd_zero : bodd 0 = ff := rfl
 @[simp] lemma bodd_one : bodd 1 = tt := rfl
-@[simp] lemma bodd_two : bodd 2 = ff := rfl
+lemma bodd_two : bodd 2 = ff := rfl
 
 @[simp, norm_cast] lemma bodd_coe (n : ℕ) : int.bodd n = nat.bodd n := rfl
 

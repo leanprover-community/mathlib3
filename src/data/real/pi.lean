@@ -237,8 +237,10 @@ begin
     rw ← abs_of_nonneg hU2 at hU1 hx_right,
     linarith [f'_bound x (mem_Icc.mpr (abs_le.mp (le_trans (le_of_lt hx_right) hU1)))] },
   -- Finally, we twice apply the Mean Value Theorem to obtain bounds on `f` from the bounds on `f'`
-  have mvt1 := norm_image_sub_le_of_norm_deriv_le_segment' f_deriv1 hbound1 _ (right_mem_Icc.mpr hU1),
-  have mvt2 := norm_image_sub_le_of_norm_deriv_le_segment' f_deriv2 hbound2 _ (right_mem_Icc.mpr hU2),
+  have mvt1 :=
+    norm_image_sub_le_of_norm_deriv_le_segment' f_deriv1 hbound1 _ (right_mem_Icc.mpr hU1),
+  have mvt2 :=
+    norm_image_sub_le_of_norm_deriv_le_segment' f_deriv2 hbound2 _ (right_mem_Icc.mpr hU2),
   -- The following algebra is enough to complete the proof
   calc |f 1 - f 0| = |(f 1 - f U) + (f U - f 0)| : by ring
                ... ≤ 1 * (1-U) + U^(2*k) * (U - 0) : le_trans (abs_add (f 1 - f U) (f U - f 0))

@@ -36,6 +36,7 @@ section erase_lead
 
 lemma erase_lead_support (f : polynomial R) :
   f.erase_lead.support = f.support.erase f.nat_degree :=
+-- `rfl` doesn't work, TODO: why?
 by convert rfl
 
 lemma erase_lead_coeff (i : ℕ) :

@@ -130,15 +130,19 @@ each line break is decided independently -/
 meta def soft_break : format :=
 group line
 
+/-- format a list as a comma separated list, without any brackets. -/
+meta def comma_separated {α : Type*} [has_to_format α] : list α → format
+| [] := nil
+| xs := group (nest 1 $ intercalate ("," ++ soft_break) $ xs.map to_fmt)
+
 end format
 
 section format
 open format
 
 /-- format a `list` by separating elements with `soft_break` instead of `line` -/
-meta def list.to_line_wrap_format {α : Type u} [has_to_format α] : list α → format
-| [] := to_fmt "[]"
-| xs := to_fmt "[" ++ group (nest 1 $ intercalate ("," ++ soft_break) $ xs.map to_fmt) ++ to_fmt "]"
+meta def list.to_line_wrap_format {α : Type u} [has_to_format α] (l : list α) : format :=
+bracket "[" "]" (comma_separated l)
 
 end format
 

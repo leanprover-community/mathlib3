@@ -162,7 +162,7 @@ begin
   let u := λ (k:ℕ), (k:nnreal) ^ (-1 / (2 * (k:ℝ) + 1)),
   have H : tendsto (λ (k:ℕ), (1:ℝ) - (u k) + (u k) ^ (2 * (k:ℝ) + 1)) at_top (𝓝 0),
   { convert (tendsto.const_add (1:ℝ) (((tendsto_rpow_div_mul_add (-1) 2 1 (by norm_num)).neg).add
-      tendsto_inv_at_top_zero)).comp tendsto_coe_nat_real_at_top_at_top,
+      tendsto_inv_at_top_zero)).comp tendsto_coe_nat_at_top_at_top,
     { ext k,
       simp only [nnreal.coe_nat_cast, function.comp_app, nnreal.coe_rpow],
       rw [← rpow_mul (nat.cast_nonneg k) ((-1)/(2*(k:ℝ)+1)) (2*(k:ℝ)+1),
@@ -217,7 +217,7 @@ begin
   -- We prove a general bound for `f'` and then more precise bounds on each of two subintervals
   have f'_bound : ∀ x ∈ Icc (-1:ℝ) 1, |f' x| ≤ |x|^(2*k),
   { intros x hx,
-    rw [abs_div, is_monoid_hom.map_pow abs (-x^2) k, abs_neg, is_monoid_hom.map_pow abs x 2,
+    rw [abs_div, is_absolute_value.abv_pow abs (-x^2) k, abs_neg, is_absolute_value.abv_pow abs x 2,
         tactic.ring_exp.pow_e_pf_exp rfl rfl, @abs_of_pos _ _ (1+x^2) (by nlinarith)],
     convert @div_le_div_of_le_left _ _ _ (1+x^2) 1 (pow_nonneg (abs_nonneg x) (2*k)) (by norm_num)
       (by nlinarith),

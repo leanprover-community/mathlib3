@@ -1217,16 +1217,4 @@ summable_of_norm_bounded _ hf (assume i, le_refl _)
 lemma summable_of_summable_nnnorm {f : ι → α} (hf : summable (λa, nnnorm (f a))) : summable f :=
 summable_of_nnnorm_bounded _ hf (assume i, le_refl _)
 
-lemma real.summable_abs_iff {f : ι → ℝ} : summable (λ x, abs (f x)) ↔ summable f :=
-have h1 : ∀ x : {x | 0 ≤ f x}, abs (f x) = f x := λ x, abs_of_nonneg x.2,
-have h2 : ∀ x : {x | 0 ≤ f x}ᶜ, abs (f x) = -f x := λ x, abs_of_neg (not_le.1 x.2),
-calc summable (λ x, abs (f x)) ↔
-  summable (λ x : {x | 0 ≤ f x}, abs (f x)) ∧ summable (λ x : {x | 0 ≤ f x}ᶜ, abs (f x)) :
-  summable_subtype_and_compl.symm
-... ↔ summable (λ x : {x | 0 ≤ f x}, f x) ∧ summable (λ x : {x | 0 ≤ f x}ᶜ, -f x) :
-  by simp only [h1, h2]
-... ↔ _ : by simp only [summable_neg_iff, summable_subtype_and_compl]
-
-alias real.summable_abs_iff ↔ summable.of_abs summable.abs
-
 end summable

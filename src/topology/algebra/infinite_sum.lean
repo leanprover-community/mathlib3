@@ -848,6 +848,20 @@ end
 
 end topological_group
 
+lemma summable_abs_iff [decidable_linear_ordered_add_comm_group β] [uniform_space β]
+  [uniform_add_group β] [complete_space β] {f : α → β} :
+  summable (λ x, abs (f x)) ↔ summable f :=
+have h1 : ∀ x : {x | 0 ≤ f x}, abs (f x) = f x := λ x, abs_of_nonneg x.2,
+have h2 : ∀ x : {x | 0 ≤ f x}ᶜ, abs (f x) = -f x := λ x, abs_of_neg (not_le.1 x.2),
+calc summable (λ x, abs (f x)) ↔
+  summable (λ x : {x | 0 ≤ f x}, abs (f x)) ∧ summable (λ x : {x | 0 ≤ f x}ᶜ, abs (f x)) :
+  summable_subtype_and_compl.symm
+... ↔ summable (λ x : {x | 0 ≤ f x}, f x) ∧ summable (λ x : {x | 0 ≤ f x}ᶜ, -f x) :
+  by simp only [h1, h2]
+... ↔ _ : by simp only [summable_neg_iff, summable_subtype_and_compl]
+
+alias summable_abs_iff ↔ summable.of_abs summable.abs
+
 section cauchy_seq
 open finset.Ico filter
 

@@ -29,41 +29,17 @@ a product of terms, shown in `alt_formula`, being equal to zero.
 
 def alt_formula (x : ℝ) : ℝ := cos x * (cos x ^ 2 - 1/2) * cos (3 * x)
 
-lemma cos3x_factorization {x : ℝ} : cos (3 * x) = 4 * (cos x) * (cos x ^ 2 - 3/4) :=
-by { rw cos_three_mul, linarith }
-
 lemma cos_sum_equiv {x : ℝ} :
 (cos x ^ 2 + cos (2 * x) ^ 2 + cos (3 * x) ^ 2 - 1) / 4 = alt_formula x :=
 begin
-  simp [real.cos_two_mul, cos_three_mul],
-  unfold alt_formula,
-  rw cos3x_factorization,
+  simp [real.cos_two_mul, cos_three_mul, alt_formula],
   ring
 end
 
 lemma alt_equiv {x : ℝ} : problem_equation x ↔ alt_formula x = 0 :=
 begin
-  unfold problem_equation,
-  rw ← cos_sum_equiv,
-  split,
-  { intro h1,
-    rw h1,
-    ring },
-  { intro h2,
-    simp at h2,
-    norm_num at h2,
-    exact sub_eq_zero.mp h2 }
-end
-
-/-
-Since alt_formula is a product, its zeros are the zeros of the multiplicands.
-The `cos x = 0` implies `cos (3 * x) = 0` so we can drop that case.
--/
-
-lemma cosx_0_imp_cos3x_0 {x : ℝ} (h : cos x = 0) : cos (3 * x) = 0 :=
-begin
-  rw [cos_three_mul, h],
-  ring
+  rw [ problem_equation, ← cos_sum_equiv, div_eq_zero_iff,  sub_eq_zero],
+  norm_num,
 end
 
 lemma finding_zeros {x : ℝ} :
@@ -75,7 +51,8 @@ begin
   { intro h1,
     cases h1 with h2 h3,
     { right,
-      exact cosx_0_imp_cos3x_0 h2 },
+      rw [cos_three_mul, h2],
+      ring },
     { exact h3 } },
   { exact or.inr }
 end
@@ -91,8 +68,7 @@ begin
   norm_num,
   rw cos_eq_zero_iff,
   split;
-  { intro h,
-    cases h with k h,
+  { rintro ⟨k, h⟩,
     use k,
     linarith },
 end
@@ -100,11 +76,9 @@ end
 lemma solve_cos3x_0 {x : ℝ} : cos (3 * x) = 0 ↔ ∃ k : ℤ, x = (2 * ↑k + 1) * π / 6 :=
 begin
   rw cos_eq_zero_iff,
-  split;
-  { intro h,
-    cases h with k h,
-    use k,
-    linarith },
+  apply exists_congr,
+  intro k,
+  split ; intro h ; linarith [h]
 end
 
 /-

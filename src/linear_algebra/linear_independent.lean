@@ -408,8 +408,7 @@ lemma linear_independent_Union_finite {η : Type*} {ιs : η → Type*}
       disjoint (span R (range (f i))) (⨆i∈t, span R (range (f i)))) :
   linear_independent R (λ ji : Σ j, ιs j, f ji.1 ji.2) :=
 begin
-  cases subsingleton_or_nontrivial R; resetI,
-  { apply linear_independent_of_subsingleton },
+  cases subsingleton_or_nontrivial R; resetI, { exact linear_independent_of_subsingleton },
   apply linear_independent.of_subtype_range,
   { rintros ⟨x₁, x₂⟩ ⟨y₁, y₂⟩ hxy,
     by_cases h_cases : x₁ = y₁,

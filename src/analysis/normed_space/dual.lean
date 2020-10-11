@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth, Frédéric Dupuis
 -/
 import analysis.normed_space.hahn_banach
+import analysis.normed_space.banach
 import analysis.normed_space.inner_product
+import analysis.normed_space.operator_norm
 
 /-!
 # The topological dual of a normed space
@@ -72,6 +74,8 @@ linear_map.mk_continuous
   1
   (λ x, by { convert double_dual_bound _ _ _, simp } )
 
+instance [complete_space 𝕜] : complete_space (dual 𝕜 E) := continuous_linear_map.complete_space
+
 end general
 
 section bidual_isometry
@@ -115,6 +119,7 @@ open is_R_or_C continuous_linear_map
 
 variables (𝕜 : Type*)
 variables {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
+variables {F : Type*} [inner_product_space ℝ F]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
 local postfix `†`:90 := @is_R_or_C.conj 𝕜 _
 
@@ -122,7 +127,7 @@ local postfix `†`:90 := @is_R_or_C.conj 𝕜 _
 Given some x in an inner product space, we can define its dual as the continuous linear map
 λ y, ⟪x, y⟫.
 -/
-def to_dual (x : E) : normed_space.dual 𝕜 E :=
+def to_dual_fn (x : E) : normed_space.dual 𝕜 E :=
 linear_map.mk_continuous
 { to_fun := λ y, ⟪x, y⟫,
   map_add' := λ _ _, inner_add_right,
@@ -130,19 +135,19 @@ linear_map.mk_continuous
 ∥x∥
 (λ y, by { rw [is_R_or_C.norm_eq_abs], exact abs_inner_le_norm _ _ })
 
-@[simp] lemma to_dual_def {x y : E} : to_dual 𝕜 x y = ⟪x, y⟫ := rfl
+@[simp] lemma to_dual_fn_def {x y : E} : to_dual_fn 𝕜 x y = ⟪x, y⟫ := rfl
 
 variables {𝕜}
 
-@[simp] lemma to_dual_zero : to_dual 𝕜 (0 : E) = 0 :=
-by { ext, simp [to_dual] }
+@[simp] lemma to_dual_fn_zero : to_dual_fn 𝕜 (0 : E) = 0 :=
+by { ext, simp [to_dual_fn] }
 
 /--
 Fréchet-Riesz representation: any ℓ in the dual of a Hilbert space E is of the form
 λ u, ⟪y, u⟫ for some y in E.
 -/
 lemma exists_elem_of_mem_dual [complete_space E] (ℓ : normed_space.dual 𝕜 E) :
-  ∃ y : E, ℓ = to_dual 𝕜 y :=
+  ∃ y : E, ℓ = to_dual_fn 𝕜 y :=
 begin
   set Y := ker ℓ with hY,
   by_cases htriv : Y = ⊤,
@@ -185,5 +190,131 @@ begin
               end,
     exact h₄.symm }
 end
+
+@[simp] lemma to_dual_fn_eq_iff_eq {x y : E} : to_dual_fn 𝕜 x = to_dual_fn 𝕜 y ↔ x = y :=
+begin
+  classical,
+  refine ⟨_, by {rintro rfl, refl}⟩,
+  intro h,
+  rw [continuous_linear_map.ext_iff] at h,
+  change ∀ z, ⟪x, z⟫ = ⟪y, z⟫ at h,
+  have h₁ : ∀ z, ⟪x - y, z⟫ = 0 := λ z, by { rw [inner_sub_left, h z], exact sub_self ⟪y, z⟫ },
+  by_contradiction,
+  exact (sub_ne_zero.mpr a) (inner_self_eq_zero.mp (h₁ (x - y)))
+end
+
+def to_primal [complete_space E] (x : normed_space.dual 𝕜 E) : E :=
+  classical.some (exists_elem_of_mem_dual x)
+
+lemma to_primal_eq_iff_eq [complete_space E] {x y : normed_space.dual 𝕜 E} :
+  to_primal x = to_primal y ↔ x = y :=
+begin
+  refine ⟨_, by { rintro rfl, refl }⟩,
+  intro h,
+  have hx := classical.some_spec (exists_elem_of_mem_dual x),
+  have hy := classical.some_spec (exists_elem_of_mem_dual y),
+  rw [hx, hy],
+  simpa [to_primal, function.right_inverse, function.left_inverse] using h,
+end
+
+lemma primal_dual [complete_space E] {x : E} : to_primal (to_dual_fn 𝕜 x) = x :=
+begin
+  have h := (classical.some_spec (exists_elem_of_mem_dual (to_dual_fn 𝕜 x))).symm,
+  rwa [to_dual_fn_eq_iff_eq] at h,
+end
+
+lemma dual_primal [complete_space E] {ℓ : normed_space.dual 𝕜 E} : to_dual_fn 𝕜 (to_primal ℓ) = ℓ :=
+begin
+  let x := classical.some (exists_elem_of_mem_dual ℓ),
+  have hx := classical.some_spec (exists_elem_of_mem_dual ℓ),
+  rw [hx],
+  apply to_dual_fn_eq_iff_eq.mpr,
+  exact primal_dual,
+end
+
+lemma dual_apply [complete_space E] {ℓ : normed_space.dual 𝕜 E} {x : E} : ℓ x = ⟪to_primal ℓ, x⟫ :=
+begin
+  obtain ⟨ℓ', hℓ⟩ := exists_elem_of_mem_dual ℓ,
+  rw [hℓ, primal_dual, to_dual_fn],
+  simp,
+end
+
+lemma dual_norm_eq_primal_norm [complete_space E] {ℓ : normed_space.dual 𝕜 E} : ∥ℓ∥ = ∥to_primal ℓ∥ :=
+begin
+  apply le_antisymm,
+  { refine cInf_le bounds_bdd_below ⟨norm_nonneg _, _⟩,
+    intro x,
+    simp [dual_apply, norm_eq_abs, abs_inner_le_norm] },
+  {
+    sorry,
+  }
+end
+
+lemma inner_eq_to_dual_apply {x y : E} : ⟪x, y⟫ = (to_dual_fn 𝕜 x) y := by simp only [to_dual_fn_def]
+
+instance [complete_space E] : has_inner 𝕜 (normed_space.dual 𝕜 E) :=
+{ inner := λ x y, ⟪to_primal x, to_primal y⟫ }
+
+instance [complete_space E] : inner_product_space 𝕜 (normed_space.dual 𝕜 E) :=
+{ norm_sq_eq_inner := begin
+  intro ℓ,
+  apply le_antisymm,
+  {
+    change (Inf {c | 0 ≤ c ∧ ∀ x, ∥ℓ x∥ ≤ c * ∥x∥})^2 ≤ re ⟪to_primal ℓ, to_primal ℓ⟫,
+    rw [←dual_apply],
+    sorry,
+  },
+  {
+    change (Inf {c | 0 ≤ c ∧ ∀ x, ∥ℓ x∥ ≤ c * ∥x∥})^2 ≥ re ⟪to_primal ℓ, to_primal ℓ⟫,
+    sorry,
+  }
+  --change (op_norm ℓ)^2= re ⟪to_primal ℓ, to_primal ℓ⟫,
+  --change (Inf {c | 0 ≤ c ∧ ∀ x, ∥ℓ x∥ ≤ c * ∥x∥})^2 = re ⟪to_primal ℓ, to_primal ℓ⟫,
+  --rw [inner_eq_to_dual_apply],
+end,
+  conj_sym := sorry,
+  nonneg_im := sorry,
+  add_left := sorry,
+  smul_left := sorry
+}
+
+--def to_dual_real [complete_space F] : F ≃L[ℝ] (normed_space.dual ℝ F) :=
+--linear_equiv.to_continuous_linear_equiv_of_continuous
+--({ to_fun := λ x, to_dual_fn ℝ x,
+--  map_add' := λ x y, by { ext z, simp [inner_add_left] },
+--  map_smul' := λ c x, by { ext z, simp [inner_smul_left] },
+--  inv_fun := λ ℓ, to_primal ℓ,
+--  left_inv := assume z,
+--  begin
+--    have h₁ := (classical.some_spec (exists_elem_of_mem_dual (to_dual_fn ℝ z))).symm,
+--    rwa [to_dual_fn_eq_iff_eq] at h₁
+--  end,
+--  right_inv := assume z,
+--  begin
+--    obtain ⟨y, hy⟩ := exists_elem_of_mem_dual z,
+--    conv_rhs { rw [hy] },
+--    have h := (classical.some_spec (exists_elem_of_mem_dual z)).symm,
+--    simpa [to_primal, function.right_inverse, function.left_inverse, h],
+--  end } : F ≃ₗ[ℝ] (normed_space.dual ℝ F) )
+--begin
+--  let f := ({ to_fun := λ x, to_dual_fn ℝ x,
+--    map_add' := λ x y, by { ext z, simp [inner_add_left] },
+--    map_smul' := λ c x, by { ext z, simp [inner_smul_left] },
+--    inv_fun := λ ℓ, to_primal ℓ,
+--    left_inv := assume z,
+--    begin
+--      have h₁ := (classical.some_spec (exists_elem_of_mem_dual (to_dual_fn ℝ z))).symm,
+--      rwa [to_dual_fn_eq_iff_eq] at h₁
+--    end,
+--    right_inv := assume z,
+--    begin
+--      obtain ⟨y, hy⟩ := exists_elem_of_mem_dual z,
+--      conv_rhs { rw [hy] },
+--      have h := (classical.some_spec (exists_elem_of_mem_dual z)).symm,
+--      simpa [to_primal, function.right_inverse, function.left_inverse, h],
+--    end } : F ≃ₗ[ℝ] (normed_space.dual ℝ F)),
+--
+--end
+
 
 end inner_product_space

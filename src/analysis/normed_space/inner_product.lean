@@ -118,6 +118,9 @@ scalar product. This is what we implement in this paragraph, starting from a str
 Our goal here is not to develop a whole theory with all the supporting API, as this will be done
 below for `inner_product_space`. Instead, we implement the bare minimum to go as directly as
 possible to the construction of the norm and the proof of the triangular inequality.
+
+Warning: Do not use this `core` structure if the space you are interested in already has a norm
+instance defined on it, otherwise this will create a second non-defeq norm instance!
 -/
 
 /-- A structure requiring that a scalar product is positive definite and symmetric, from which one
@@ -835,8 +838,8 @@ itself, divided by the product of their norms, has absolute value
 lemma abs_real_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul
   {x : F} {r : ℝ} (hx : x ≠ 0) (hr : r ≠ 0) : absR ⟪x, r • x⟫_ℝ / (∥x∥ * ∥r • x∥) = 1 :=
 begin
-  have h := @abs_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul ℝ F _ _ _ _ hx hr,
-  rwa [abs_to_real] at h,
+  rw ← abs_to_real,
+  exact abs_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul hx hr
 end
 
 /-- The inner product of a nonzero vector with a positive multiple of
@@ -899,12 +902,7 @@ begin
       have h2' := congr_arg (λ z, 𝓚 z) h2,
       simp_rw [inner_self_re_to_K, inner_add_add_self] at h2',
       exact h2' },
-    conv_rhs at h2 {
-      congr,
-      congr,
-      skip,
-      rw [inner_smul_left, ht0, mul_zero]
-    },
+    conv at h2 in ⟪r • x, t⟫ { rw [inner_smul_left, ht0, mul_zero] },
     symmetry' at h2,
     have h₁ : ⟪t, r • x⟫ = 0 := by { rw [inner_smul_right, ←inner_conj_sym, ht0], simp },
     rw [add_zero, h₁, add_left_eq_self, add_zero, inner_self_eq_zero] at h2,
@@ -922,7 +920,7 @@ norms, has absolute value 1 if and only if they are nonzero and one is
 a multiple of the other. One form of equality case for Cauchy-Schwarz. -/
 lemma abs_real_inner_div_norm_mul_norm_eq_one_iff (x y : F) :
   absR (⟪x, y⟫_ℝ / (∥x∥ * ∥y∥)) = 1 ↔ (x ≠ 0 ∧ ∃ (r : ℝ), r ≠ 0 ∧ y = r • x) :=
-by { have h := @abs_inner_div_norm_mul_norm_eq_one_iff ℝ F _ _ x y, simpa using h }
+by { simpa using abs_inner_div_norm_mul_norm_eq_one_iff x y, assumption }
 
 /--
 If the inner product of two vectors is equal to the product of their norms, then the two vectors
@@ -942,10 +940,9 @@ begin
     { intro h,
       rwa [is_R_or_C.abs_div, abs_of_real, _root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm,
           div_eq_one_iff_eq hxy0] at h } },
-  rw [h₁],
-  refine ⟨λ h, ((abs_inner_div_norm_mul_norm_eq_one_iff x y).mp h).2, _⟩,
-  intro h,
-  exact (abs_inner_div_norm_mul_norm_eq_one_iff x y).mpr ⟨hx0, h⟩,
+  rw [h₁, abs_inner_div_norm_mul_norm_eq_one_iff x y],
+  have : x ≠ 0 := λ h, (hx0' $ norm_eq_zero.mpr h),
+  simp [this]
 end
 
 /-- The inner product of two vectors, divided by the product of their
@@ -1663,12 +1660,8 @@ end
 
 @[simp] lemma submodule.bot_orthogonal_eq_top : (⊥ : submodule 𝕜 E).orthogonal = ⊤ :=
 begin
-  ext,
-  refine ⟨λ h, submodule.mem_top, λ h, _⟩,
-  rw [submodule.mem_orthogonal],
-  intros u hu,
-  rw [submodule.mem_bot] at hu,
-  simp [hu],
+  rw [← submodule.top_orthogonal_eq_bot, eq_top_iff],
+  exact submodule.le_orthogonal_orthogonal ⊤
 end
 
 lemma submodule.eq_top_iff_orthogonal_eq_bot {K : submodule 𝕜 E} (hK : is_complete (K : set E)) :

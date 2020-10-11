@@ -11,6 +11,24 @@ import topology.homeomorph
 
 /-!
 # Theory of topological groups
+
+This file defines the following typeclasses:
+
+* `topological_group`, `topological_add_group`: multiplicative and additive topological groups,
+  i.e., groups with continuous `(*)` and `(⁻¹)` / `(+)` and `(-)`;
+
+* `has_continuous_sub G` means that `G` has a continuous subtraction operation.
+
+There is an instance deducing `has_continuous_sub` from `topological_group` but we use a separate
+typeclass because, e.g., `ℕ` and `ℝ≥0` have continuous subtraction but are not additive groups.
+
+We also define `homeomorph` versions of several `equiv`s: `homeomorph.mul_left`,
+`homeomorph.mul_right`, `homeomorph.inv`, and prove a few facts about neighbourhood filters in
+groups.
+
+## Tags
+
+topological space, group, topological group
 -/
 
 open classical set filter topological_space

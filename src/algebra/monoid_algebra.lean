@@ -105,9 +105,6 @@ instance : semiring (monoid_algebra k G) :=
 
 end semiring
 
-/-! #### Derived instances -/
-section derived_instances
-
 instance [comm_semiring k] [comm_monoid G] : comm_semiring (monoid_algebra k G) :=
 { mul_comm := assume f g,
   begin
@@ -116,6 +113,9 @@ instance [comm_semiring k] [comm_monoid G] : comm_semiring (monoid_algebra k G) 
     simp only [mul_comm]
   end,
   .. monoid_algebra.semiring }
+
+/-! #### Derived instances -/
+section derived_instances
 
 instance [ring k] : add_group (monoid_algebra k G) :=
 finsupp.add_group
@@ -527,9 +527,6 @@ instance : semiring (add_monoid_algebra k G) :=
 
 end semiring
 
-/-! #### Derived instances -/
-section derived_instances
-
 instance [comm_semiring k] [add_comm_monoid G] : comm_semiring (add_monoid_algebra k G) :=
 { mul_comm := assume f g,
   begin
@@ -538,6 +535,9 @@ instance [comm_semiring k] [add_comm_monoid G] : comm_semiring (add_monoid_algeb
     simp only [add_comm]
   end,
   .. add_monoid_algebra.semiring }
+ 
+/-! #### Derived instances -/
+section derived_instances
 
 instance [ring k] : add_group (add_monoid_algebra k G) :=
 finsupp.add_group

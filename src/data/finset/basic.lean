@@ -1498,7 +1498,7 @@ protected def subtype {α} (p : α → Prop) [decidable_pred p] (s : finset α) 
 λ x y H, subtype.eq $ subtype.mk.inj H⟩
 
 @[simp] lemma mem_subtype {p : α → Prop} [decidable_pred p] {s : finset α} :
-  ∀{a : subtype p}, a ∈ s.subtype p ↔ ↑a ∈ s
+  ∀{a : subtype p}, a ∈ s.subtype p ↔ (a : α) ∈ s
 | ⟨a, ha⟩ := by simp [finset.subtype, ha]
 
 lemma subtype_eq_empty {p : α → Prop} [decidable_pred p] {s : finset α} :
@@ -1512,7 +1512,7 @@ by simp [ext_iff, subtype.forall, subtype.coe_mk]; refl
 begin
   ext x,
   rw mem_map,
-  change (∃ a : {x // p x}, ∃ H, ↑a = x) ↔ _,
+  change (∃ a : {x // p x}, ∃ H, (a : α) = x) ↔ _,
   split,
   { rintros ⟨y, hy, hyval⟩,
     rw [mem_subtype, hyval] at hy,

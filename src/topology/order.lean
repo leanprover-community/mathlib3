@@ -193,8 +193,8 @@ instance : complete_lattice (topological_space α) :=
 class discrete_topology (α : Type*) [t : topological_space α] : Prop :=
 (eq_bot [] : t = ⊥)
 
-@[simp] lemma is_open_discrete [topological_space α] [discrete_topology α] (s : set α) :
-  is_open s :=
+@[simp, nontriviality] lemma is_open_discrete [topological_space α] [discrete_topology α]
+  (s : set α) : is_open s :=
 (discrete_topology.eq_bot α).symm ▸ trivial
 
 @[simp] lemma is_closed_discrete [topological_space α] [discrete_topology α] (s : set α) :

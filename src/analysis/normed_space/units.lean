@@ -75,15 +75,14 @@ x.add ((y : R) - x) h
 /-- The group of units of a complete normed ring is an open subset of the ring. -/
 lemma is_open : is_open {x : R | is_unit x} :=
 begin
-  rcases subsingleton_or_nontrivial R with _i|_i; resetI,
-  { exact is_open_discrete is_unit },
-  { apply metric.is_open_iff.mpr,
-    rintros x' ⟨x, h⟩,
-    refine ⟨∥(↑x⁻¹ : R)∥⁻¹, inv_pos.mpr (units.norm_pos x⁻¹), _⟩,
-    intros y hy,
-    rw [metric.mem_ball, dist_eq_norm, ←h] at hy,
-    use x.unit_of_nearby y hy,
-    simp }
+  nontriviality R,
+  apply metric.is_open_iff.mpr,
+  rintros x' ⟨x, h⟩,
+  refine ⟨∥(↑x⁻¹ : R)∥⁻¹, inv_pos.mpr (units.norm_pos x⁻¹), _⟩,
+  intros y hy,
+  rw [metric.mem_ball, dist_eq_norm, ←h] at hy,
+  use x.unit_of_nearby y hy,
+  simp
 end
 
 lemma nhds (x : units R) : {x : R | is_unit x} ∈ 𝓝 (x : R) :=
@@ -105,6 +104,7 @@ end
 lemma inverse_add (x : units R) :
   ∀ᶠ t in (𝓝 0), inverse ((x : R) + t) = inverse (1 + ↑x⁻¹ * t) * ↑x⁻¹ :=
 begin
+  nontriviality R,
   rw [eventually_iff, mem_nhds_iff],
   casesI subsingleton_or_nontrivial R,
   { use [1, by norm_num] },

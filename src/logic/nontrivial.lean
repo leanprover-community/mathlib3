@@ -134,19 +134,27 @@ begin
   { exact ⟨x₂, h⟩ }
 end
 
+mk_simp_attribute nontriviality "Simp lemmas for `nontriviality` tactic"
+
+protected lemma subsingleton.le [preorder α] [subsingleton α] (x y : α) : x ≤ y :=
+le_of_eq (subsingleton.elim x y)
+
+attribute [nontriviality] eq_iff_true_of_subsingleton subsingleton.le
+
 namespace tactic
 
 /--
 Tries to generate a `nontrivial α` instance by performing case analysis on
 `subsingleton_or_nontrivial α`,
-attempting to discharge the subsingleton branch using `le_of_eq` and `subsingleton.elim`.
+attempting to discharge the subsingleton branch using lemmas with `@[nontriviality]` attribute,
+including `subsingleton.le` and `eq_iff_true_of_subsingleton`.
 -/
 meta def nontriviality_by_elim (α : expr) : tactic unit :=
 do
   alternative ← to_expr ``(subsingleton_or_nontrivial %%α),
   n ← get_unused_name "_inst",
   tactic.cases alternative [n, n],
-  `[{ resetI, try { apply le_of_eq }, apply subsingleton.elim, }] <|>
+  `[{ resetI, simp only with nontriviality }] <|>
     fail format!"Could not prove goal assuming `subsingleton {α}`",
   reset_instance_cache
 

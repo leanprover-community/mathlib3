@@ -125,7 +125,8 @@ begin
   simp only [finsupp.map_domain_apply hf],
 end
 
-lemma linear_independent_of_subsingleton [subsingleton R] : linear_independent R v :=
+@[nontriviality] lemma linear_independent_of_subsingleton [subsingleton R] :
+  linear_independent R v :=
 linear_independent_iff.2 (λ l hl, subsingleton.elim l 0)
 
 lemma linear_independent.unique (hv : linear_independent R v) {l₁ l₂ : ι →₀ R} :
@@ -166,9 +167,10 @@ linear_independent_equiv' (equiv.set.image_of_inj_on _ _ hf) rfl
 
 theorem linear_independent.image' {ι} {s : set ι} {f : ι → M}
   (hs : linear_independent R (λ x : s, f x)) : linear_independent R (λ x : f '' s, (x : M)) :=
-or.cases_on (subsingleton_or_nontrivial R)
-  (λ hr, by exactI linear_independent_of_subsingleton )
-  (λ hr, by exactI (linear_independent_image $ set.inj_on_iff_injective.2 hs.injective).1 hs)
+begin
+  nontriviality R,
+  exact (linear_independent_image $ set.inj_on_iff_injective.2 hs.injective).1 hs
+end
 
 lemma linear_independent_span (hs : linear_independent R v) :
   @linear_independent ι R (span R (range v))
@@ -257,8 +259,7 @@ by rw [finsupp.total_on, linear_map.ker, linear_map.comap_cod_restrict, map_bot,
 lemma linear_independent.to_subtype_range
   (hv : linear_independent R v) : linear_independent R (λ x, x : range v → M) :=
 begin
-  cases subsingleton_or_nontrivial R; resetI,
-  { apply linear_independent_of_subsingleton },
+  nontriviality R,
   rw linear_independent_subtype,
   intros l hl₁ hl₂,
   have h_bij : bij_on v (v ⁻¹' ↑l.support) ↑l.support,
@@ -428,7 +429,7 @@ lemma linear_independent_Union_finite {η : Type*} {ιs : η → Type*}
       disjoint (span R (range (f i))) (⨆i∈t, span R (range (f i)))) :
   linear_independent R (λ ji : Σ j, ιs j, f ji.1 ji.2) :=
 begin
-  cases subsingleton_or_nontrivial R; resetI, { exact linear_independent_of_subsingleton },
+  nontriviality R,
   apply linear_independent.of_subtype_range,
   { rintros ⟨x₁, x₂⟩ ⟨y₁, y₂⟩ hxy,
     by_cases h_cases : x₁ = y₁,
@@ -625,7 +626,7 @@ lemma linear_independent_inl_union_inr' {v : ι → M} {v' : ι' → M'}
   (hv : linear_independent R v) (hv' : linear_independent R v') :
   linear_independent R (sum.elim (inl R M M' ∘ v) (inr R M M' ∘ v')) :=
 begin
-  cases subsingleton_or_nontrivial R; resetI; [exact linear_independent_of_subsingleton, skip],
+  nontriviality R,
   have inj_v : injective v := (linear_independent.injective hv),
   have inj_v' : injective v' := (linear_independent.injective hv'),
   apply linear_independent.of_subtype_range,

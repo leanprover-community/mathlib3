@@ -29,7 +29,7 @@ In this section we prove a few statements about groups with continuous `(*)`.
 
 variables [topological_space G] [group G] [has_continuous_mul G]
 
-/-- Multiplication from the left in a topological group as a homeomorphism.-/
+/-- Multiplication from the left in a topological group as a homeomorphism. -/
 @[to_additive "Addition from the left in a topological additive group as a homeomorphism."]
 protected def homeomorph.mul_left (a : G) : G ≃ₜ G :=
 { continuous_to_fun  := continuous_const.mul continuous_id,
@@ -45,7 +45,7 @@ lemma is_open_map_mul_left (a : G) : is_open_map (λ x, a * x) :=
 lemma is_closed_map_mul_left (a : G) : is_closed_map (λ x, a * x) :=
 (homeomorph.mul_left a).is_closed_map
 
-/-- Multiplication from the right in a topological group as a homeomorphism.-/
+/-- Multiplication from the right in a topological group as a homeomorphism. -/
 @[to_additive "Addition from the right in a topological additive group as a homeomorphism."]
 protected def homeomorph.mul_right (a : G) :
   G ≃ₜ G :=
@@ -139,7 +139,7 @@ instance [topological_space H] [group H] [topological_group H] :
 
 variable (G)
 
-/-- Inversion in a topological group as a homeomorphism.-/
+/-- Inversion in a topological group as a homeomorphism. -/
 @[to_additive "Negation in a topological group as a homeomorphism."]
 protected def homeomorph.inv : G ≃ₜ G :=
 { continuous_to_fun  := continuous_inv,
@@ -225,7 +225,7 @@ attribute [instance] topological_add_group_quotient
 end quotient_topological_group
 
 /-- A typeclass saying that `λ p : G × G, p.1 - p.2` is a continuous function. This property
-automatically holds for topological additive groups but it also holds, e.g., for `ℝ≥0`-/
+automatically holds for topological additive groups but it also holds, e.g., for `ℝ≥0`. -/
 class has_continuous_sub (G : Type*) [topological_space G] [has_sub G] : Prop :=
 (continuous_sub : continuous (λ p : G × G, p.1 - p.2))
 

@@ -381,8 +381,9 @@ finite_dimensional.proper ℝ E
 
 attribute [instance, priority 900] finite_dimensional.proper_real
 
-/-- Due to the way we define `summable`, in a finite dimensional normed space over `ℝ`, a series
-`∑ x, f x` is summable if and only if `∑ x, ∥f x∥` is summable. -/
+/-- In a finite dimensional vector space over `ℝ`, the series `∑ x, ∥f x∥` is unconditionally
+summable if and only if the series `∑ x, f x` is uncoditionally summable. One implication holds in
+any complete normed space, while the other holds only in fintie dimensional spaces. -/
 lemma summable_norm_iff {α E : Type*} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
   {f : α → E} : summable (λ x, ∥f x∥) ↔ summable f :=
 begin

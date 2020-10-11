@@ -143,7 +143,7 @@ begin
 end
 
 lemma exists_ultrafilter_of_finite_inter_nonempty (S : set (set α)) (cond : ∀ T : finset (set α),
-  (↑T : set (set α)) ⊆ S → (⋂₀ (↑T : set (set α))).nonempty) : 
+  (↑T : set (set α)) ⊆ S → (⋂₀ (↑T : set (set α))).nonempty) :
   ∃ F : filter α, S ⊆ F.sets ∧ is_ultrafilter F :=
 begin
   suffices : ∃ F : filter α, ne_bot F ∧ S ⊆ F.sets,
@@ -246,6 +246,8 @@ instance ultrafilter.functor : functor ultrafilter := { map := @ultrafilter.map 
 instance ultrafilter.monad : monad ultrafilter := { map := @ultrafilter.map }
 
 instance ultrafilter.inhabited [inhabited α] : inhabited (ultrafilter α) := ⟨pure (default _)⟩
+
+instance {F : ultrafilter α} : ne_bot F.1 := F.2.1
 
 /-- The ultra-filter extending the cofinite filter. -/
 noncomputable def hyperfilter : filter α := ultrafilter_of cofinite

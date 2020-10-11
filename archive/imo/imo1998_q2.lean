@@ -13,7 +13,7 @@ import tactic.noncomm_ring
 # IMO 1998 Q2
 In a competition, there are `a` contestants and `b` judges, where `b ≥ 3` is an odd integer. Each
 judge rates each contestant as either "pass" or "fail". Suppose `k` is a number such that, for any
-two judges, their rating coincide for at most `k` contestants. Prove that `k / a ≥ (b - 1) / (2b)`.
+two judges, their ratings coincide for at most `k` contestants. Prove that `k / a ≥ (b - 1) / (2b)`.
 
 ## Solution
 The problem asks us to think about triples consisting of a contestant and two judges whose ratings
@@ -40,57 +40,92 @@ Rearranging gives the result.
 open_locale classical
 noncomputable theory
 
-local notation x `/` y := (x : ℚ) / y
+/-- An ordered pair of judges. -/
+abbreviation judge_pair (J : Type*) := J × J
+
+/-- A triple consisting of contestant together with an ordered pair of judges. -/
+abbreviation agreed_triple (C J : Type*) := C × (judge_pair J)
 
 variables {C J : Type*} (r : C → J → Prop)
 
+/-- The first judge from an ordered pair of judges. -/
+abbreviation judge_pair.judge₁ : judge_pair J → J := prod.fst
+
+/-- The second judge from an ordered pair of judges. -/
+abbreviation judge_pair.judge₂ : judge_pair J → J := prod.snd
+
+/-- The proposition that the judges in an ordered pair are distinct. -/
+abbreviation judge_pair.distinct (p : judge_pair J) := p.judge₁ ≠ p.judge₂
+
+/-- The proposition that the judges in an ordered pair agree about a contestant's rating. -/
+abbreviation judge_pair.agree (p : judge_pair J) (c : C) := r c p.judge₁ = r c p.judge₂
+
+/-- The contestant from the triple consisting of a contestant and an ordered pair of judges. -/
+abbreviation agreed_triple.contestant : agreed_triple C J → C := prod.fst
+
+/-- The ordered pair of judges from the triple consisting of a contestant and an ordered pair of
+judges. -/
+abbreviation agreed_triple.judge_pair : agreed_triple C J → judge_pair J := prod.snd
+
+@[simp] lemma judge_pair.agree_iff_same_rating (p : judge_pair J) (c : C) :
+  p.agree r c ↔ (r c p.judge₁ = r c p.judge₂) := iff.rfl
+
 /-- The set of contestants on which two judges agree. -/
-def same_rating [fintype C] (j₁ j₂ : J) : finset C := finset.univ.filter (λ c, r c j₁ = r c j₂)
+def agreed_contestants [fintype C] (p : judge_pair J) : finset C :=
+finset.univ.filter (λ c, p.agree r c)
 
 section
 
 variables [fintype J] [fintype C]
 
 /-- All incidences of agreement. -/
-def A : finset (C × J × J) :=
-finset.univ.filter (λ (a : C × J × J), r a.1 a.2.1 = r a.1 a.2.2 ∧ a.2.1 ≠ a.2.2)
+def A : finset (agreed_triple C J) := finset.univ.filter (λ (a : agreed_triple C J),
+  r a.contestant a.judge_pair.judge₁ = r a.contestant a.judge_pair.judge₂ ∧ a.judge_pair.distinct)
 
-lemma A_snd_mem (a : C × J × J) : a ∈ A r → a.2 ∈ finset.off_diag (@finset.univ J _) :=
+lemma A_snd_mem (a : agreed_triple C J) :
+  a ∈ A r → a.judge_pair ∈ finset.off_diag (@finset.univ J _) :=
 by simp [A, finset.mem_off_diag]
 
 lemma A_fst_fibre (c : C) :
-  finset.univ.filter (λ (x : J × J), r c x.1 = r c x.2 ∧ x.1 ≠ x.2) =
-  ((A r).filter (λ (x : C × J × J), x.1 = c)).image prod.snd :=
+  finset.univ.filter (λ (p : judge_pair J), p.agree r c ∧ p.distinct) =
+  ((A r).filter (λ (a : agreed_triple C J), a.contestant = c)).image prod.snd :=
 begin
-  ext x,
+  ext p,
   simp only [A, finset.mem_univ, finset.mem_filter, finset.mem_image, true_and, exists_prop],
   split,
-  { rintros ⟨h₁, h₂⟩, refine ⟨(c, x), _⟩, finish, },
+  { rintros ⟨h₁, h₂⟩, refine ⟨(c, p), _⟩, finish, },
   { intros h, finish, },
 end
 
 lemma A_fst_fibre_card (c : C) :
-  (finset.univ.filter (λ (x : J × J), r c x.1 = r c x.2 ∧ x.1 ≠ x.2)).card =
-  ((A r).filter (λ (x : C × J × J), x.1 = c)).card :=
+  (finset.univ.filter (λ (p : judge_pair J), p.agree r c ∧ p.distinct)).card =
+  ((A r).filter (λ (a : agreed_triple C J), a.contestant = c)).card :=
 by { rw A_fst_fibre r, apply finset.card_image_of_inj_on, tidy, }
 
-lemma A_snd_fibre {j₁ j₂ : J} (hj : j₁ ≠ j₂) :
-  same_rating r j₁ j₂ = ((A r).filter(λ (x : C × J × J), x.2 = (j₁, j₂))).image prod.fst :=
-by { dunfold A same_rating, ext, split; finish, }
+lemma A_snd_fibre {p : judge_pair J} (h : p.distinct) :
+  agreed_contestants r p =
+  ((A r).filter(λ (a : agreed_triple C J), a.judge_pair = p)).image agreed_triple.contestant :=
+begin
+  dunfold A agreed_contestants, ext c, split; intros h,
+  { rw finset.mem_image, refine ⟨⟨c, p⟩, _⟩, finish, },
+  { finish, },
+end
 
-lemma A_snd_fibre_card {j₁ j₂ : J} (hj : j₁ ≠ j₂) :
-  (same_rating r j₁ j₂).card = ((A r).filter(λ (x : C × J × J), x.2 = (j₁, j₂))).card :=
-by { rw A_snd_fibre r hj, apply finset.card_image_of_inj_on, tidy, }
+lemma A_snd_fibre_card {p : judge_pair J} (h : p.distinct) :
+  (agreed_contestants r p).card =
+  ((A r).filter(λ (a : agreed_triple C J), a.judge_pair = p)).card :=
+by { rw A_snd_fibre r h, apply finset.card_image_of_inj_on, tidy, }
 
-lemma agreement_upper_bound {k : ℕ} (hk : ∀ j₁ j₂, j₁ ≠ j₂ → (same_rating r j₁ j₂).card ≤ k) :
+lemma agreement_upper_bound
+  {k : ℕ} (hk : ∀ (p : judge_pair J), p.distinct → (agreed_contestants r p).card ≤ k) :
   (A r).card ≤ k * ((fintype.card J) * (fintype.card J) - (fintype.card J)) :=
 begin
   change _ ≤ k * ((finset.card _ ) * (finset.card _ ) - (finset.card _ )),
   rw ← finset.off_diag_card,
   apply finset.card_le_mul_card_image_of_maps_to (A_snd_mem r),
-  rintros ⟨j₁, j₂⟩ hj,
-  have hj' : j₁ ≠ j₂, { simp [finset.mem_off_diag] at hj, exact hj, },
-  rw ← A_snd_fibre_card r hj', apply hk, exact hj',
+  intros p hp,
+  have hp' : p.distinct, { simp [finset.mem_off_diag] at hp, exact hp, },
+  rw ← A_snd_fibre_card r hp', apply hk, exact hp',
 end
 
 end
@@ -115,11 +150,11 @@ section
 variables [fintype J]
 
 lemma agreement_lower_bound {z : ℕ} (hJ : fintype.card J = 2*z + 1) (c : C) :
-  2*z*z + 2*z + 1 ≤ (finset.univ.filter (λ (x : J × J), r c x.1 = r c x.2)).card :=
+  2*z*z + 2*z + 1 ≤ (finset.univ.filter (λ (p : judge_pair J), p.agree r c)).card :=
 begin
   let x := (finset.univ.filter (λ j, r c j)).card,
   let y := (finset.univ.filter (λ j, ¬ r c j)).card,
-  have h : (finset.univ.filter (λ (x : J × J), r c x.1 = r c x.2)).card = x*x + y*y,
+  have h : (finset.univ.filter (λ (p : judge_pair J), p.agree r c)).card = x*x + y*y,
   { simp [← finset.filter_product_card], },
   rw h, apply int.le_of_coe_nat_le_coe_nat, simp only [int.coe_nat_add, int.coe_nat_mul],
   apply norm_bound_of_odd_sum,
@@ -128,12 +163,15 @@ begin
 end
 
 lemma agreement_lower_bound' {z : ℕ} (hJ : fintype.card J = 2*z + 1) (c : C) :
-  2*z*z ≤ (finset.univ.filter (λ (x : J × J), r c x.1 = r c x.2 ∧ x.1 ≠ x.2)).card :=
+  2*z*z ≤ (finset.univ.filter (λ (p : judge_pair J), p.agree r c ∧ p.distinct)).card :=
 begin
-  let s := finset.univ.filter (λ (x : J × J), r c x.1 = r c x.2),
-  let t := finset.univ.filter (λ (x : J × J), x.1 ≠ x.2),
+  let s := finset.univ.filter (λ (p : judge_pair J), p.agree r c),
+  let t := finset.univ.filter (λ (p : judge_pair J), p.distinct),
   have hs : 2*z*z + 2*z + 1 ≤ s.card, { exact agreement_lower_bound r hJ c, },
-  have hst : s \ t = finset.univ.diag, { ext, split; intros; finish, },
+  have hst : s \ t = finset.univ.diag,
+  { ext p, split; intros,
+    { finish, },
+    { suffices : p.judge₁ = p.judge₂, { simp [this], }, finish, }, },
   have hst' : (s \ t).card = 2*z + 1, { rw [hst, finset.diag_card, ← hJ], refl, },
   rw [finset.filter_and, finset.inter_eq_sdiff_sdiff s t, finset.card_sdiff],
   { rw hst', rw add_assoc at hs, apply nat.le_sub_right_of_add_le hs, },
@@ -152,6 +190,8 @@ end
 
 end
 
+local notation x `/` y := (x : ℚ) / y
+
 lemma clear_denominators {a b k : ℕ} (ha : 0 < a) (hb : 0 < b) :
   (b - 1) / (2 * b) ≤ k / a ↔ (b - 1) * a ≤ k * (2 * b) :=
 begin
@@ -163,7 +203,7 @@ end
 
 theorem imo1998_q2 [fintype J] [fintype C]
   (a b k : ℕ) (hC : fintype.card C = a) (hJ : fintype.card J = b) (ha : 0 < a) (hb : odd b)
-  (hk : ∀ j₁ j₂, j₁ ≠ j₂ → (same_rating r j₁ j₂).card ≤ k) :
+  (hk : ∀ (p : judge_pair J), p.distinct → (agreed_contestants r p).card ≤ k) :
   (b - 1) / (2 * b) ≤ k / a :=
 begin
   rw clear_denominators ha (nat.odd_gt_zero hb),

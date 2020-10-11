@@ -222,10 +222,6 @@ by rw [is_basis.equiv_fun_apply, dual_basis_repr]
 lemma dual_basis_apply [fintype ι] (i : ι) (v : V) : h.dual_basis i v = h.equiv_fun v i :=
 h.to_dual_apply_right i v
 
-@[simp] lemma ite_instance {α} (p : Prop) {hp : decidable p} [decidable p] (a b : α) :
-  @ite p hp α a b = if p then a else b :=
-by split_ifs; refl
-
 @[simp] lemma to_dual_to_dual [fintype ι] :
   (h.dual_basis_is_basis.to_dual _).comp (h.to_dual B) = eval K V :=
 begin

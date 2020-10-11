@@ -1665,12 +1665,8 @@ end
 
 @[simp] lemma submodule.bot_orthogonal_eq_top : (⊥ : submodule 𝕜 E).orthogonal = ⊤ :=
 begin
-  ext,
-  refine ⟨λ h, submodule.mem_top, λ h, _⟩,
-  rw [submodule.mem_orthogonal],
-  intros u hu,
-  rw [submodule.mem_bot] at hu,
-  simp [hu],
+  rw [← submodule.top_orthogonal_eq_bot, eq_top_iff],
+  exact submodule.le_orthogonal_orthogonal ⊤
 end
 
 lemma submodule.eq_top_iff_orthogonal_eq_bot {K : submodule 𝕜 E} (hK : is_complete (K : set E)) :

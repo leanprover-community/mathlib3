@@ -229,6 +229,7 @@ automatically holds for topological additive groups but it also holds, e.g., for
 class has_continuous_sub (G : Type*) [topological_space G] [has_sub G] : Prop :=
 (continuous_sub : continuous (λ p : G × G, p.1 - p.2))
 
+@[priority 100] -- see Note [lower instance priority]
 instance topological_add_group.to_has_continuous_sub [topological_space G] [add_group G]
   [topological_add_group G] :
   has_continuous_sub G :=

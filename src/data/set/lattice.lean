@@ -104,6 +104,9 @@ theorem subset_Inter {t : set β} {s : ι → set β} (h : ∀ i, t ⊆ s i) : t
 -- TODO: should be simpler when sets' order is based on lattices
 @le_infi (set β) _ set.lattice_set _ _ h
 
+theorem subset_Inter_iff {t : set β} {s : ι → set β} : t ⊆ (⋂ i, s i) ↔ ∀ i, t ⊆ s i :=
+@le_infi_iff (set β) _ set.lattice_set _ _
+
 theorem subset_Union : ∀ (s : ι → set β) (i : ι), s i ⊆ (⋃ i, s i) := le_supr
 
 -- This rather trivial consequence is convenient with `apply`,

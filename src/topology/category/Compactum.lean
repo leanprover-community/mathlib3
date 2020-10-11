@@ -17,7 +17,41 @@ import data.set.constructions
 This file proves the equivalence between the category of compact Hausdorff topological spaces
 and the category of algebras for the ultrafilter monad.
 
-TODO: Add more details.
+## Notation:
+
+Here are the main objects introduced in this file.
+- `Compactum` is the type of compacta, which we define as algebras for the ultrafilter monad.
+- `CompHaus` is the full subcategory of `Top` consisting of compact Hausdorff spaces.
+- `Compactum_to_CompHaus` is the functor `Compactum ⥤ CompHaus`.
+- `Compactum_to_CompHaus.is_equivalence` is a term of type `is_equivalence Compactum_to_CompHaus`.
+
+Any `X : Compactum` is endowed with a coercion to `Type*`, as well as the following instances:
+- `topological_space X`.
+- `compact_space X`.
+- `t2_space X`.
+
+Any morphism `f : X ⟶ Y` of is endowed with a coercion to a function `X → Y`, which is shown to
+be continuous in `continuous_of_hom`.
+
+The function `Compactum.of_topological_space` can be used to construct a `Compactum` from a
+topological space which satisfies `compact_space` and `t2_space`.
+
+We also add wrappers around structures which already exist. Here are the main ones, all in the
+`Compactum` namespace:
+
+- `forget : Compactum ⥤ Type*` is the forgetful functor, which induces a `concrete_category`
+  instance for `Compactum`.
+- `free : Type* ⥤ Compactum` is the left adjoint to `forget`, and the adjunction is in `adj`.
+- `str : ultrafilter X → X` is the structure map for `X : Compactum`.
+  The notation `X.str` is preferred.
+- `join : ultrafilter (ultrafilter X) → ultrafilter X` is the monadic join for `X : Compactum`.
+  Again, the noation `X.join` is preferred.
+- `incl : X → ultrafilter X` is the unit for `X : Compactum`. The notation `X.incl` is preferred.
+
+## References
+
+- E. Manes, Algebraic Theories, Graduate Texts in Mathematics 26, Springer-Verlag, 1976.
+- https://ncatlab.org/nlab/show/ultrafilter
 
 -/
 

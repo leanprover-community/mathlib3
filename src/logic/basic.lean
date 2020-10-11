@@ -1184,4 +1184,9 @@ by { by_cases h : P; simp [h] }
   ite (¬ P) x y = ite P y x :=
 dite_not P (λ _, x) (λ _, y)
 
+lemma ite_and {α} {p q : Prop} [decidable p] [decidable q] {x y : α} :
+  ite (p ∧ q) x y = ite p (ite q x y) y :=
+by { by_cases hp : p; by_cases hq : q; simp [hp, hq] }
+
+
 end ite

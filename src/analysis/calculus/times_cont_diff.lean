@@ -2501,8 +2501,8 @@ begin
   exact this.has_fderiv_at.fderiv
 end
 
-/-- If a function is `C^n` with `1 ≤ n` around a point, and its derivative of `f` at that point is
-given to us as `f`, then `f'` is also a strict derivative. -/
+/-- If a function is `C^n` with `1 ≤ n` around a point, and its derivative of at that point is
+given to us as `f'`, then `f'` is also a strict derivative. -/
 lemma times_cont_diff_at.has_strict_fderiv_at'
   {f : E' → F'} {f' : E' →L[ℝ] F'} {x : E'}
   {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f x) (hf' : has_fderiv_at f f' x) (hn : 1 ≤ n) :

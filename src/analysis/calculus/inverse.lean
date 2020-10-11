@@ -35,7 +35,7 @@ In the one-dimensional case we reformulate these theorems in terms of `has_stric
 
 We also reformulate the theorems in terms of `times_cont_diff`, to give that `C^k` (respectively,
 smooth) inputs give `C^k` (smooth) inverses.  These versions require that continuous
-differentiability implying strict differentiability; this is false over a general field, true over
+differentiability implies strict differentiability; this is false over a general field, true over
 `ℝ` (the setting in which it is implemented here), and true but (TODO) not yet implemented over `ℂ`.
 
 Some related theorems, providing the derivative and higher regularity assuming that we already know

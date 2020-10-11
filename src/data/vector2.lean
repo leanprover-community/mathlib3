@@ -196,7 +196,7 @@ def mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
 at least one element.
 This function has two arguments: `h0` handles the base case on `C nil`,
 and `hs` defines the inductive step using `∀ x : α, C v → C (x :: v)`. -/
-@[elab_as_eliminator] def vector.induction_on
+@[elab_as_eliminator] def induction_on
   {α : Type*} {n : ℕ}
   {C : Π {n}, vector α n → Sort*}
   (v : vector α (n + 1))

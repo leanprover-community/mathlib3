@@ -14,7 +14,25 @@ open finset
 open_locale big_operators
 open_locale classical
 
+/--
+The partial product for the generating function for odd partitions.
+TODO: As `n` tends to infinity, this converges (in the `X`-adic topology).
+
+If `n` is sufficiently large, the `i`th coefficient gives the number of odd partitions of the
+natural number `i`: proved in `odd_gf_prop`.
+It is stated for an arbitrary field `α`, though it usually suffices to use `ℚ` or `ℝ`.
+-/
 def partial_odd_gf (n : ℕ) [field α] := ∏ i in range n, (1 - (X : power_series α)^(2*i+1))⁻¹
+
+/--
+The partial product for the generating function for distinct partitions.
+TODO: As `n` tends to infinity, this converges (in the `X`-adic topology).
+
+If `n` is sufficiently large, the `i`th coefficient gives the number of distinct partitions of the
+natural number `i`: proved in `distinct_gf_prop`.
+It is stated for an arbitrary commutuative semiring `α`, though it usually suffices to use `ℕ`, `ℚ`
+or `ℝ`.
+-/
 def partial_distinct_gf (n : ℕ) [comm_semiring α] := ∏ i in range n, (1 + (X : power_series α)^(i+1))
 
 /--
@@ -50,12 +68,12 @@ begin
 end
 
 lemma cut_equiv_antidiag (n : ℕ) :
-  equiv.finset_congr bool_to_equiv_prod (cut univ n) = nat.antidiagonal n :=
+  equiv.finset_congr (equiv.bool_to_equiv_prod _) (cut univ n) = nat.antidiagonal n :=
 begin
   ext ⟨x₁, x₂⟩,
   simp_rw [equiv.finset_congr_apply, mem_map, equiv.to_embedding, function.embedding.coe_fn_mk,
            ←equiv.eq_symm_apply],
-  simp [mem_cut, prod_equiv_bool_to, add_comm],
+  simp [mem_cut, add_comm],
 end
 
 /-- There is only one `cut` of 0. -/
@@ -159,6 +177,7 @@ begin
     refl }
 end
 
+/-- A convience constructor for the power series whose coefficients indicate a subset. -/
 def indicator_series (α : Type*) [semiring α] (f : set ℕ) : power_series α :=
 power_series.mk (λ n, if f n then 1 else 0)
 
@@ -173,7 +192,7 @@ lemma coeff_indicator_neg (f : set ℕ) [semiring α] (n : ℕ) (h : ¬f n):
 by rw [coeff_indicator, if_neg h]
 lemma constant_coeff_indicator (f : set ℕ) [semiring α] :
   constant_coeff α (indicator_series _ f) = if f 0 then 1 else 0 :=
-by rw [← coeff_zero_eq_constant_coeff_apply, coeff_indicator]
+rfl
 
 lemma two_series (i : ℕ) [semiring α] :
   (1 + (X : power_series α)^i.succ) = indicator_series α {0, i.succ} :=
@@ -235,10 +254,12 @@ lemma card_eq_of_bijection {β : Type*} {s : finset α} {t : finset β}
 s.card = t.card :=
 finset.card_congr (λ a _, f a) hf hinj hsurj
 
+-- TODO: MOVE ME
 lemma sum_multiset_count [decidable_eq α] [add_comm_monoid α] (s : multiset α) :
   s.sum = ∑ m in s.to_finset, s.count m •ℕ m :=
 @prod_multiset_count (multiplicative α) _ _ s
 
+-- TODO: name and move me
 lemma auxy (n : ℕ) (a_blocks : multiset ℕ) (s : finset ℕ)
   (a_blocks_sum : a_blocks.sum = n)
   (hp : ∀ (i : ℕ), i ∈ a_blocks → i ∈ s) :
@@ -261,6 +282,7 @@ end
 
 def mk_odd : ℕ ↪ ℕ := ⟨λ i, 2 * i + 1, λ x y h, by linarith⟩
 
+-- TODO: move me
 lemma mem_sum {β : Type*} {f : α → multiset β} (s : finset α) (b : β) :
   b ∈ ∑ x in s, f x ↔ ∃ a ∈ s, b ∈ f a :=
 begin
@@ -277,10 +299,12 @@ begin
       { exact or.inr ⟨_, ht, hb⟩, } } }
 end
 
+-- TODO: move me
 lemma sum_sum {β : Type*} [add_comm_monoid β] (f : α → multiset β) (s : finset α) :
   (s.sum f).sum = ∑ x in s, (f x).sum :=
 (sum_hom s multiset.sum).symm
 
+-- The main workhorse of the partition theorem proof.
 lemma partial_gf_prop (α : Type*) [comm_semiring α] (n : ℕ) (s : finset ℕ) (hs : ∀ i ∈ s, 0 < i) (c : ℕ → set ℕ) (hc : ∀ i ∉ s, 0 ∈ c i) :
   (finset.card ((univ : finset (partition n)).filter (λ p, (∀ j, p.parts.count j ∈ c j) ∧ ∀ j ∈ p.parts, j ∈ s)) : α) =
   (coeff α n) (∏ (i : ℕ) in s, indicator_series α ((* i) '' c i)) :=
@@ -456,6 +480,11 @@ begin
   apply p.parts_pos hi,
 end
 
+/--
+The key proof idea for the partition theorem, showing that the generating functions for both
+sequences are ultimately the same (since the factor converges to 0 as n tends to infinity).
+It's enough to not take the limit though, and just consider large enough `n`.
+-/
 lemma same_gf [field α] (n : ℕ) :
   partial_odd_gf n * (range n).prod (λ i, (1 - (X : power_series α)^(n+i+1))) = partial_distinct_gf n :=
 begin
@@ -482,13 +511,13 @@ begin
   simp [zero_pow],
 end
 
-lemma coeff_prod_one_add [comm_semiring α] (n : ℕ) (φ ψ : power_series α) (h : ↑n < ψ.order) :
+-- TODO: move me to power_series.lean
+lemma coeff_prod_one_add [comm_semiring α] {n : ℕ} {φ ψ : power_series α} (h : ↑n < ψ.order) :
   coeff α n (φ * ψ) = 0 :=
 begin
+  suffices : coeff α n (φ * ψ) = ∑ p in nat.antidiagonal n, 0,
+    rw [this, sum_const_zero],
   rw [coeff_mul],
-  have : ∑ p in nat.antidiagonal n, (0 : α) = 0,
-    rw [sum_const_zero],
-  rw ← this,
   apply sum_congr rfl _,
   intros pq hpq,
   apply mul_eq_zero_of_right,
@@ -496,15 +525,15 @@ begin
   apply lt_of_le_of_lt _ h,
   rw nat.mem_antidiagonal at hpq,
   norm_cast,
-  rw ← hpq,
-  apply le_add_left,
-  apply le_refl,
+  linarith,
 end
 
+-- TODO: move me to power_series.lean
 lemma coeff_prod_one_sub [comm_ring α] (n : ℕ) {φ ψ : power_series α} (h : ↑n < ψ.order) :
   coeff α n (φ * (1 - ψ)) = coeff α n φ :=
-by rw [mul_sub, mul_one, add_monoid_hom.map_sub, coeff_prod_one_add _ _ _ h, sub_zero]
+by rw [mul_sub, mul_one, add_monoid_hom.map_sub, coeff_prod_one_add h, sub_zero]
 
+-- TODO: move me to power_series.lean
 lemma coeff_big_prod_one_sub {ι : Type*} [comm_ring α] (k : ℕ) (s : finset ι) (φ : power_series α)
   (f : ι → power_series α) :
   (∀ i ∈ s, ↑k < (f i).order) → coeff α k (φ * ∏ i in s, (1 - f i)) = coeff α k φ :=

@@ -171,8 +171,7 @@ lemma is_measurable.sInter {s : set (set α)} (hs : countable s) (h : ∀t∈s, 
 by { rw sInter_eq_bInter, exact is_measurable.bInter hs h }
 
 lemma set.finite.is_measurable_sInter {s : set (set α)} (hs : finite s)
-  (h : ∀t∈s, is_measurable t) :
-  is_measurable (⋂₀ s) :=
+  (h : ∀t∈s, is_measurable t) : is_measurable (⋂₀ s) :=
 is_measurable.sInter hs.countable h
 
 lemma is_measurable.Inter_Prop {p : Prop} {f : p → set α} (hf : ∀b, is_measurable (f b)) :

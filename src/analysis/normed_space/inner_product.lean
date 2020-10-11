@@ -902,12 +902,7 @@ begin
       have h2' := congr_arg (λ z, 𝓚 z) h2,
       simp_rw [inner_self_re_to_K, inner_add_add_self] at h2',
       exact h2' },
-    conv_rhs at h2 {
-      congr,
-      congr,
-      skip,
-      rw [inner_smul_left, ht0, mul_zero]
-    },
+    conv at h2 in ⟪r • x, t⟫ { rw [inner_smul_left, ht0, mul_zero] },
     symmetry' at h2,
     have h₁ : ⟪t, r • x⟫ = 0 := by { rw [inner_smul_right, ←inner_conj_sym, ht0], simp },
     rw [add_zero, h₁, add_left_eq_self, add_zero, inner_self_eq_zero] at h2,

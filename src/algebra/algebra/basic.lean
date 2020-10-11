@@ -67,7 +67,7 @@ def ring_hom.to_algebra {R S} [comm_semiring R] [comm_semiring S] (i : R →+* S
   algebra R S :=
 i.to_algebra' $ λ _, mul_comm _
 
-@[simp] lemma ring_hom.algebra_map_to_algebra {R S} [comm_semiring R] [comm_semiring S]
+lemma ring_hom.algebra_map_to_algebra {R S} [comm_semiring R] [comm_semiring S]
   (i : R →+* S) :
   @algebra_map R S _ _ i.to_algebra = i :=
 rfl

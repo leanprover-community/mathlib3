@@ -7,11 +7,6 @@ apply_nolint category_theory.Kleisli.comp_def unused_arguments
 apply_nolint category_theory.Kleisli.id_def unused_arguments
 apply_nolint category_theory.Kleisli.mk doc_blame has_inhabited_instance
 
--- computability/halting.lean
-apply_nolint computable_pred doc_blame
-apply_nolint nat.partrec'.vec doc_blame
-apply_nolint re_pred doc_blame
-
 -- computability/partrec.lean
 apply_nolint computable doc_blame
 apply_nolint computable₂ doc_blame
@@ -350,9 +345,6 @@ apply_nolint multiset.sum doc_blame
 -- data/multiset/functor.lean
 apply_nolint multiset.traverse doc_blame
 
--- data/multiset/pi.lean
-apply_nolint multiset.pi.empty unused_arguments
-
 -- data/num/basic.lean
 apply_nolint cast_pos_num unused_arguments
 apply_nolint num.gcd_aux doc_blame
@@ -424,14 +416,6 @@ apply_nolint option.lift_or_get doc_blame
 apply_nolint option.rel doc_blame
 apply_nolint option.to_list doc_blame
 apply_nolint option.traverse doc_blame
-
--- data/padics/padic_norm.lean
-apply_nolint padic_norm.neg unused_arguments
-
--- data/padics/padic_numbers.lean
-apply_nolint padic.lim_seq doc_blame
-apply_nolint padic_norm_e.rat_norm doc_blame
-apply_nolint padic_seq unused_arguments
 
 -- data/pequiv.lean
 apply_nolint equiv.to_pequiv doc_blame
@@ -620,7 +604,6 @@ apply_nolint free_abelian_group.of doc_blame
 apply_nolint sylow.fixed_points_mul_left_cosets_equiv_quotient doc_blame
 
 -- logic/embedding.lean
-apply_nolint function.embedding has_inhabited_instance
 apply_nolint function.embedding.Pi_congr_right doc_blame
 apply_nolint function.embedding.arrow_congr_left doc_blame
 apply_nolint function.embedding.arrow_congr_right doc_blame
@@ -1262,9 +1245,6 @@ apply_nolint continuous_map.compact_open.gen doc_blame
 apply_nolint continuous_map.ev doc_blame
 apply_nolint continuous_map.induced doc_blame
 
--- topology/homeomorph.lean
-apply_nolint homeomorph has_inhabited_instance
-
 -- topology/maps.lean
 apply_nolint inducing doc_blame
 apply_nolint is_closed_map doc_blame
@@ -1286,9 +1266,6 @@ apply_nolint Gromov_Hausdorff.aux_gluing_struct has_inhabited_instance
 -- topology/metric_space/gromov_hausdorff_realized.lean
 apply_nolint Gromov_Hausdorff.candidates_b_dist doc_blame
 apply_nolint Gromov_Hausdorff.optimal_GH_coupling has_inhabited_instance
-
--- topology/metric_space/isometry.lean
-apply_nolint isometric has_inhabited_instance
 
 -- topology/metric_space/premetric_space.lean
 apply_nolint premetric_space doc_blame

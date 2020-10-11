@@ -80,13 +80,13 @@ variables [fintype J] [fintype C]
 
 /-- All incidences of agreement. -/
 def A : finset (agreed_triple C J) := finset.univ.filter (λ (a : agreed_triple C J),
-  r a.contestant a.judge_pair.judge₁ = r a.contestant a.judge_pair.judge₂ ∧ a.judge_pair.distinct)
+  a.judge_pair.agree r a.contestant ∧ a.judge_pair.distinct)
 
-lemma A_snd_mem (a : agreed_triple C J) :
+lemma A_maps_to_off_diag_judge_pair (a : agreed_triple C J) :
   a ∈ A r → a.judge_pair ∈ finset.off_diag (@finset.univ J _) :=
 by simp [A, finset.mem_off_diag]
 
-lemma A_fst_fibre (c : C) :
+lemma A_fibre_over_contestant (c : C) :
   finset.univ.filter (λ (p : judge_pair J), p.agree r c ∧ p.distinct) =
   ((A r).filter (λ (a : agreed_triple C J), a.contestant = c)).image prod.snd :=
 begin
@@ -97,12 +97,12 @@ begin
   { intros h, finish, },
 end
 
-lemma A_fst_fibre_card (c : C) :
+lemma A_fibre_over_contestant_card (c : C) :
   (finset.univ.filter (λ (p : judge_pair J), p.agree r c ∧ p.distinct)).card =
   ((A r).filter (λ (a : agreed_triple C J), a.contestant = c)).card :=
-by { rw A_fst_fibre r, apply finset.card_image_of_inj_on, tidy, }
+by { rw A_fibre_over_contestant r, apply finset.card_image_of_inj_on, tidy, }
 
-lemma A_snd_fibre {p : judge_pair J} (h : p.distinct) :
+lemma A_fibre_over_judge_pair {p : judge_pair J} (h : p.distinct) :
   agreed_contestants r p =
   ((A r).filter(λ (a : agreed_triple C J), a.judge_pair = p)).image agreed_triple.contestant :=
 begin
@@ -111,21 +111,21 @@ begin
   { finish, },
 end
 
-lemma A_snd_fibre_card {p : judge_pair J} (h : p.distinct) :
+lemma A_fibre_over_judge_pair_card {p : judge_pair J} (h : p.distinct) :
   (agreed_contestants r p).card =
   ((A r).filter(λ (a : agreed_triple C J), a.judge_pair = p)).card :=
-by { rw A_snd_fibre r h, apply finset.card_image_of_inj_on, tidy, }
+by { rw A_fibre_over_judge_pair r h, apply finset.card_image_of_inj_on, tidy, }
 
-lemma agreement_upper_bound
+lemma A_card_upper_bound
   {k : ℕ} (hk : ∀ (p : judge_pair J), p.distinct → (agreed_contestants r p).card ≤ k) :
   (A r).card ≤ k * ((fintype.card J) * (fintype.card J) - (fintype.card J)) :=
 begin
   change _ ≤ k * ((finset.card _ ) * (finset.card _ ) - (finset.card _ )),
   rw ← finset.off_diag_card,
-  apply finset.card_le_mul_card_image_of_maps_to (A_snd_mem r),
+  apply finset.card_le_mul_card_image_of_maps_to (A_maps_to_off_diag_judge_pair r),
   intros p hp,
   have hp' : p.distinct, { simp [finset.mem_off_diag] at hp, exact hp, },
-  rw ← A_snd_fibre_card r hp', apply hk, exact hp',
+  rw ← A_fibre_over_judge_pair_card r hp', apply hk, exact hp',
 end
 
 end
@@ -149,7 +149,7 @@ section
 
 variables [fintype J]
 
-lemma agreement_lower_bound {z : ℕ} (hJ : fintype.card J = 2*z + 1) (c : C) :
+lemma judge_pairs_card_lower_bound {z : ℕ} (hJ : fintype.card J = 2*z + 1) (c : C) :
   2*z*z + 2*z + 1 ≤ (finset.univ.filter (λ (p : judge_pair J), p.agree r c)).card :=
 begin
   let x := (finset.univ.filter (λ j, r c j)).card,
@@ -162,12 +162,12 @@ begin
   rw [finset.filter_card_add_filter_neg_card_eq_card, ← hJ], refl,
 end
 
-lemma agreement_lower_bound' {z : ℕ} (hJ : fintype.card J = 2*z + 1) (c : C) :
+lemma distinct_judge_pairs_card_lower_bound {z : ℕ} (hJ : fintype.card J = 2*z + 1) (c : C) :
   2*z*z ≤ (finset.univ.filter (λ (p : judge_pair J), p.agree r c ∧ p.distinct)).card :=
 begin
   let s := finset.univ.filter (λ (p : judge_pair J), p.agree r c),
   let t := finset.univ.filter (λ (p : judge_pair J), p.distinct),
-  have hs : 2*z*z + 2*z + 1 ≤ s.card, { exact agreement_lower_bound r hJ c, },
+  have hs : 2*z*z + 2*z + 1 ≤ s.card, { exact judge_pairs_card_lower_bound r hJ c, },
   have hst : s \ t = finset.univ.diag,
   { ext p, split; intros,
     { finish, },
@@ -178,14 +178,14 @@ begin
   { apply finset.sdiff_subset_self, },
 end
 
-lemma agreement_lower_bound'' [fintype C] {z : ℕ} (hJ : fintype.card J = 2*z + 1) :
+lemma A_card_lower_bound [fintype C] {z : ℕ} (hJ : fintype.card J = 2*z + 1) :
   2*z*z * (fintype.card C) ≤ (A r).card :=
 begin
-  have A_fst_mem : ∀ a, a ∈ A r → prod.fst a ∈ @finset.univ C _, { intros, apply finset.mem_univ, },
-  apply finset.mul_card_image_le_card_of_maps_to A_fst_mem,
+  have h : ∀ a, a ∈ A r → prod.fst a ∈ @finset.univ C _, { intros, apply finset.mem_univ, },
+  apply finset.mul_card_image_le_card_of_maps_to h,
   intros c hc,
-  rw ← A_fst_fibre_card,
-  apply agreement_lower_bound' r hJ,
+  rw ← A_fibre_over_contestant_card,
+  apply distinct_judge_pairs_card_lower_bound r hJ,
 end
 
 end
@@ -208,7 +208,7 @@ theorem imo1998_q2 [fintype J] [fintype C]
 begin
   rw clear_denominators ha (nat.odd_gt_zero hb),
   obtain ⟨z, hz⟩ := hb, rw hz at hJ, rw hz,
-  have h := le_trans (agreement_lower_bound'' r hJ) (agreement_upper_bound r hk),
+  have h := le_trans (A_card_lower_bound r hJ) (A_card_upper_bound r hk),
   rw [hC, hJ] at h,
   -- We are now essentially done; we just need to bash `h` into exactly the right shape.
   have hl : k * ((2 * z + 1) * (2 * z + 1) - (2 * z + 1)) = (k * (2 * (2 * z + 1))) * z,

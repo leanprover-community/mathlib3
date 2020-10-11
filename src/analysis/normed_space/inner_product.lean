@@ -118,6 +118,9 @@ scalar product. This is what we implement in this paragraph, starting from a str
 Our goal here is not to develop a whole theory with all the supporting API, as this will be done
 below for `inner_product_space`. Instead, we implement the bare minimum to go as directly as
 possible to the construction of the norm and the proof of the triangular inequality.
+
+Warning: Do not use this `core` structure if the space you are interested in already has a norm
+instance defined on it, otherwise this will create a second non-defeq norm instance!
 -/
 
 /-- A structure requiring that a scalar product is positive definite and symmetric, from which one

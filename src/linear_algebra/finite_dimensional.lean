@@ -163,10 +163,6 @@ lemma of_finset_basis {ι} {s : finset ι} {b : (↑s : set ι) → V} (h : is_b
   finite_dimensional K V :=
 of_finite_basis h s.finite_to_set
 
-lemma of_finite_basis {s : set V} (h : is_basis K (coe : s → V)) (hs : set.finite s) :
-  finite_dimensional K V :=
-by haveI := hs.fintype; exact of_fintype_basis h
-
 /-- A subspace of a finite-dimensional space is also finite-dimensional. -/
 instance finite_dimensional_submodule [finite_dimensional K V] (S : submodule K V) :
   finite_dimensional K S :=

@@ -876,7 +876,7 @@ end
 
 lemma measurable_sub : measurable (λ p : ennreal × ennreal, p.1 - p.2) :=
 by apply measurable_of_measurable_nnreal_nnreal;
-  simp [← ennreal.coe_sub, nnreal.measurable_sub.ennreal_coe]
+  simp [← ennreal.coe_sub, continuous_sub.measurable.ennreal_coe]
 
 end ennreal
 

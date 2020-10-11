@@ -838,8 +838,8 @@ itself, divided by the product of their norms, has absolute value
 lemma abs_real_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul
   {x : F} {r : ℝ} (hx : x ≠ 0) (hr : r ≠ 0) : absR ⟪x, r • x⟫_ℝ / (∥x∥ * ∥r • x∥) = 1 :=
 begin
-  have h := @abs_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul ℝ F _ _ _ _ hx hr,
-  rwa [abs_to_real] at h,
+  rw ← abs_to_real,
+  exact abs_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul hx hr
 end
 
 /-- The inner product of a nonzero vector with a positive multiple of

@@ -5,7 +5,7 @@ Authors: Chris Hughes
 -/
 import data.nat.choose.dvd
 import data.nat.modeq
-import ring_theory.int.gcd
+import ring_theory.int.basic
 import data.finset.intervals
 
 /-!

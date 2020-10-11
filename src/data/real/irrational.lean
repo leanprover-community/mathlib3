@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Yury K
 -/
 import data.real.basic
 import data.rat.sqrt
-import ring_theory.int.gcd
+import ring_theory.int.basic
 import data.polynomial.eval
 import data.polynomial.degree
 import tactic.interval_cases

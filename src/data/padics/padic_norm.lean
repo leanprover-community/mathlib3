@@ -3,7 +3,7 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-import ring_theory.int.gcd
+import ring_theory.int.basic
 import algebra.field_power
 import ring_theory.multiplicity
 import data.real.cau_seq

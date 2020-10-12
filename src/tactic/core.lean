@@ -130,7 +130,7 @@ each line break is decided independently -/
 meta def soft_break : format :=
 group line
 
-/-- format a list as a comma separated list, without any brackets. -/
+/-- Format a list as a comma separated list, without any brackets. -/
 meta def comma_separated {α : Type*} [has_to_format α] : list α → format
 | [] := nil
 | xs := group (nest 1 $ intercalate ("," ++ soft_break) $ xs.map to_fmt)

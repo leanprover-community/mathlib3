@@ -174,24 +174,33 @@ by split_ifs; simp [rpow_def, *]; exact rpow_def_of_neg (lt_of_le_of_ne hx h) _
 lemma rpow_pos_of_pos {x : ℝ} (hx : 0 < x) (y : ℝ) : 0 < x ^ y :=
 by rw rpow_def_of_pos hx; apply exp_pos
 
+@[simp] lemma rpow_zero (x : ℝ) : x ^ (0 : ℝ) = 1 := by simp [rpow_def]
+
+@[simp] lemma zero_rpow {x : ℝ} (h : x ≠ 0) : (0 : ℝ) ^ x = 0 :=
+by simp [rpow_def, *]
+
+@[simp] lemma rpow_one (x : ℝ) : x ^ (1 : ℝ) = x := by simp [rpow_def]
+
+@[simp] lemma one_rpow (x : ℝ) : (1 : ℝ) ^ x = 1 := by simp [rpow_def]
+
+lemma zero_rpow_le_one (x : ℝ) : (0 : ℝ) ^ x ≤ 1 :=
+by { by_cases h : x = 0; simp [h, zero_le_one] }
+
+lemma zero_rpow_nonneg (x : ℝ) : 0 ≤ (0 : ℝ) ^ x :=
+by { by_cases h : x = 0; simp [h, zero_le_one] }
+
+lemma rpow_nonneg_of_nonneg {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : 0 ≤ x ^ y :=
+by rw [rpow_def_of_nonneg hx];
+  split_ifs; simp only [zero_le_one, le_refl, le_of_lt (exp_pos _)]
+
 lemma abs_rpow_le_abs_rpow (x y : ℝ) : abs (x ^ y) ≤ abs (x) ^ y :=
-abs_le_of_le_of_neg_le
 begin
-  cases lt_trichotomy 0 x, { rw abs_of_pos h },
-  cases h, { simp [h.symm] },
-  rw [rpow_def_of_neg h, rpow_def_of_pos (abs_pos_of_neg h), log_abs],
-  calc exp (log x * y) * cos (y * π) ≤ exp (log x * y) * 1 :
-    mul_le_mul_of_nonneg_left (cos_le_one _) (le_of_lt $ exp_pos _)
-  ... = _ : mul_one _
-end
-begin
-  cases lt_trichotomy 0 x, { rw abs_of_pos h, have : 0 < x^y := rpow_pos_of_pos h _, linarith },
-  cases h, { simp only [h.symm, abs_zero, rpow_def_of_nonneg], split_ifs, repeat {norm_num} },
-  rw [rpow_def_of_neg h, rpow_def_of_pos (abs_pos_of_neg h), log_abs],
-  calc -(exp (log x * y) * cos (y * π)) = exp (log x * y) * (-cos (y * π)) : by ring
-    ... ≤ exp (log x * y) * 1 :
-      mul_le_mul_of_nonneg_left (neg_le.2 $ neg_one_le_cos _) (le_of_lt $ exp_pos _)
-    ... = exp (log x * y) : mul_one _
+  rcases lt_trichotomy 0 x with (hx|rfl|hx),
+  { rw [abs_of_pos hx, abs_of_pos (rpow_pos_of_pos hx _)] },
+  { rw [abs_zero, abs_of_nonneg (rpow_nonneg_of_nonneg le_rfl _)] },
+  { rw [abs_of_neg hx, rpow_def_of_neg hx, rpow_def_of_pos (neg_pos.2 hx), log_neg_eq_log,
+      abs_mul, abs_of_pos (exp_pos _)],
+    exact mul_le_of_le_one_right (exp_pos _).le (abs_cos_le_one _) }
 end
 
 end real
@@ -218,25 +227,6 @@ end complex
 namespace real
 
 variables {x y z : ℝ}
-
-@[simp] lemma rpow_zero (x : ℝ) : x ^ (0 : ℝ) = 1 := by simp [rpow_def]
-
-@[simp] lemma zero_rpow {x : ℝ} (h : x ≠ 0) : (0 : ℝ) ^ x = 0 :=
-by simp [rpow_def, *]
-
-@[simp] lemma rpow_one (x : ℝ) : x ^ (1 : ℝ) = x := by simp [rpow_def]
-
-@[simp] lemma one_rpow (x : ℝ) : (1 : ℝ) ^ x = 1 := by simp [rpow_def]
-
-lemma zero_rpow_le_one (x : ℝ) : (0 : ℝ) ^ x ≤ 1 :=
-by { by_cases h : x = 0; simp [h, zero_le_one] }
-
-lemma zero_rpow_nonneg (x : ℝ) : 0 ≤ (0 : ℝ) ^ x :=
-by { by_cases h : x = 0; simp [h, zero_le_one] }
-
-lemma rpow_nonneg_of_nonneg {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : 0 ≤ x ^ y :=
-by rw [rpow_def_of_nonneg hx];
-  split_ifs; simp only [zero_le_one, le_refl, le_of_lt (exp_pos _)]
 
 lemma rpow_add {x : ℝ} (hx : 0 < x) (y z : ℝ) : x ^ (y + z) = x ^ y * x ^ z :=
 by simp only [rpow_def_of_pos hx, mul_add, exp_add]

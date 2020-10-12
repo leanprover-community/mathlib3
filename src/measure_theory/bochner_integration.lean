@@ -1177,8 +1177,8 @@ begin
   simp only [mem_set_of_eq],
   assume a h₁ h₂,
   rw [h₁, h₂, real.norm_eq_abs, abs_of_nonneg],
-  rw [min_eq_neg_max_neg_neg, _root_.neg_neg, neg_zero],
-  exact le_max_right _ _
+  rw [neg_nonneg],
+  exact min_le_right _ _
 end,
 begin
   rw [eq₁, eq₂, integral, dif_pos],

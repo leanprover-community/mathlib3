@@ -195,4 +195,14 @@ def cases_on' : option α → β → (α → β) → β
 | none     n s := n
 | (some a) n s := s a
 
+@[simp] lemma cases_on'_none (x : β) (f : α → β) : cases_on' none x f = x := rfl
+
+@[simp] lemma cases_on'_some (x : β) (f : α → β) (a : α) : cases_on' (some a) x f = f a := rfl
+
+@[simp] lemma cases_on'_coe (x : β) (f : α → β) (a : α) : cases_on' (a : option α) x f = f a := rfl
+
+@[simp] lemma cases_on'_none_coe (f : option α → β) (o : option α) :
+  cases_on' o (f none) (f ∘ coe) = f o :=
+by cases o; refl
+
 end option

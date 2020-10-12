@@ -9,6 +9,8 @@ import data.list.of_fn
 import control.applicative
 /-!
 # Additional theorems about the `vector` type
+
+This file introduces the infix notation `::ᵥ` for `vector.cons`.
 -/
 universes u
 variables {n : ℕ}

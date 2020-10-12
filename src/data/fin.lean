@@ -714,6 +714,10 @@ rfl
   @fin.cases n C H0 Hs i.succ = Hs i :=
 by cases i; refl
 
+@[simp] theorem cases_succ' {n} {C : fin (succ n) → Sort*} {H0 Hs} {i : ℕ} (h : i + 1 < n + 1) :
+  @fin.cases n C H0 Hs ⟨i.succ, h⟩ = Hs ⟨i, lt_of_succ_lt_succ h⟩ :=
+by cases i; refl
+
 lemma forall_fin_succ {P : fin (n+1) → Prop} :
   (∀ i, P i) ↔ P 0 ∧ (∀ i:fin n, P i.succ) :=
 ⟨λ H, ⟨H 0, λ i, H _⟩, λ ⟨H0, H1⟩ i, fin.cases H0 H1 i⟩

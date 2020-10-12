@@ -67,7 +67,8 @@ begin
   refine congr rfl _,
   have h : (X * p).support = p.support.map ⟨nat.succ, nat.succ_injective⟩,
   { ext a,
-    simp only [exists_prop, finset.mem_map, function.embedding.coe_fn_mk, ne.def, mem_support_iff_coeff_ne_zero],
+    simp only [exists_prop, finset.mem_map, function.embedding.coe_fn_mk, ne.def,
+      mem_support_iff_coeff_ne_zero],
     cases a,
     { simp [coeff_X_mul_zero, nat.succ_ne_zero] },
     rw [mul_comm, coeff_mul_X],
@@ -147,7 +148,8 @@ lemma content_eq_gcd_leading_coeff_content_sub (p : polynomial R) :
 begin
   rw [content_eq_gcd_range_succ, finset.range_succ, finset.gcd_insert, leading_coeff, content],
   refine congr rfl _,
-  transitivity (finset.range p.nat_degree).gcd (p - C (p.coeff p.nat_degree) * X ^ p.nat_degree).coeff,
+  transitivity (finset.range p.nat_degree).gcd
+    (p - C (p.coeff p.nat_degree) * X ^ p.nat_degree).coeff,
   { apply finset.gcd_congr rfl,
     intros a ha,
     rw finset.mem_range at ha,
@@ -159,8 +161,8 @@ begin
     rw finset.gcd_eq_gcd_filter_ne_zero,
     refine congr (congr rfl _) rfl,
     ext,
-    simp only [coeff_C_mul, and_iff_right_iff_imp, mem_support_iff_coeff_ne_zero, ne.def, finset.mem_filter,
-      finset.mem_range, coeff_sub],
+    simp only [coeff_C_mul, and_iff_right_iff_imp, mem_support_iff_coeff_ne_zero, ne.def,
+      finset.mem_filter, finset.mem_range, coeff_sub],
     contrapose!,
     intro h,
     cases eq_or_lt_of_le h with heq hlt,
@@ -249,7 +251,8 @@ end
 @[simp]
 theorem content_mul {p q : polynomial R} : (p * q).content = p.content * q.content :=
 begin
-  have h : ∀ (n : ℕ) (p q : polynomial R), (p * q).nat_degree ≤ n → (p * q).content = p.content * q.content,
+  have h : ∀ (n : ℕ) (p q : polynomial R), (p * q).nat_degree ≤ n
+    → (p * q).content = p.content * q.content,
   { clear p q,
     intro n,
     induction n with n hi,

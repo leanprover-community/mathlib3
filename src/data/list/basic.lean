@@ -4035,6 +4035,7 @@ end choose
 
 section map₂_left'
 
+-- The equalities for the other cases have been made available by marking `map₂_left'` as `@[simp]`.
 @[simp] theorem map₂_left'_nil_right (f : α → option β → γ) (as) :
   map₂_left' f as [] = (as.map (λ a, f a none), []) :=
 by cases as; refl
@@ -4125,6 +4126,7 @@ section map₂_left
 
 variables (f : α → option β → γ) (as : list α)
 
+-- The equalities for the other cases have been made available by marking `map₂_left'` as `@[simp]`.
 @[simp] theorem map₂_left_nil_right :
   map₂_left f as [] = as.map (λ a, f a none) :=
 by cases as; refl

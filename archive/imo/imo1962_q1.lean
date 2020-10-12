@@ -30,10 +30,6 @@ def problem_predicate (n : ℕ) :=
 First, it's inconvenient to work with digits, so let's simplify them out of the problem.
 -/
 
-lemma digit_recursion (n : ℕ) (h1 : n > 0) :
-  (nat.digits 10 n) = (n % 10) :: (nat.digits 10 (n / 10)) :=
-by rw [nat.digits, nat.digits_aux_def _ _ _ h1]
-
 lemma without_digits (n : ℕ) (h1 : problem_predicate n) :
 ∃ c : ℕ, n = 10 * c + 6 ∧ 6 * 10 ^ (nat.digits 10 c).length + c = 4 * n :=
 begin
@@ -44,7 +40,7 @@ begin
   { have h4 : problem_predicate 0, from h3 ▸ h1,
     finish },
   unfold problem_predicate at h1,
-  rw digit_recursion at h1,
+  rw digits_def' at h1,
   simp at h1,
   split,
   { have h5 : (n % 10) + 10 * (n / 10) = n, from mod_add_div n 10,
@@ -52,7 +48,8 @@ begin
   { rw ← h1.right,
     simp [of_digits_append, of_digits_digits],
     ring },
-  exact nat.pos_of_ne_zero h3
+  { exact nat.le_of_sub_eq_zero rfl },
+  { exact nat.pos_of_ne_zero h3 }
 end
 
 /-
@@ -144,7 +141,7 @@ Now we combine these cases to show 153846 is the smallest solution.
 -/
 
 lemma satisfied_by_153846 : problem_predicate 153846 :=
-by norm_num [problem_predicate, digit_recursion, of_digits]
+by norm_num [problem_predicate, digits_def', of_digits]
 
 lemma no_smaller_solutions (n : ℕ) (h1 : problem_predicate n) : n ≥ 153846 :=
 begin

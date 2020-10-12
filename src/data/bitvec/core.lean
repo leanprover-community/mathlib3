@@ -22,6 +22,7 @@ namespace bitvec
 open nat
 open vector
 
+local infix `::` := vector.cons
 local infix `++ₜ`:65 := vector.append
 
 /-- Create a zero bitvector -/

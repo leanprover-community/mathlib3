@@ -1671,13 +1671,9 @@ begin
   { simp [abs_of_pos ha, ha, ha.ne.symm] }
 end
 
-@[simp] lemma abs_eq_zero : abs a = 0 ↔ a = 0 :=
-begin
-  rcases lt_trichotomy a 0 with (ha|rfl|ha),
-  { simp [abs_of_neg ha, ha.ne, ha] },
-  { simp },
-  { simp [abs_of_pos ha, ha, ha.ne.symm] }
-end
+lemma abs_pos_of_pos (h : 0 < a) : 0 < abs a := abs_pos.2 h.ne.symm
+
+lemma abs_pos_of_neg (h : a < 0) : 0 < abs a := abs_pos.2 h.ne
 
 lemma abs_sub (a b : α) : abs (a - b) = abs (b - a) :=
 by rw [← neg_sub, abs_neg]
@@ -1696,6 +1692,9 @@ lemma abs_nonneg (a : α) : 0 ≤ abs a :=
 
 @[simp] lemma abs_abs (a : α) : abs (abs a) = abs a :=
 abs_of_nonneg $ abs_nonneg a
+
+@[simp] lemma abs_eq_zero : abs a = 0 ↔ a = 0 :=
+not_iff_not.1 $ ne_comm.trans $ (abs_nonneg a).lt_iff_ne.symm.trans abs_pos
 
 @[simp] lemma abs_nonpos_iff {a : α} : abs a ≤ 0 ↔ a = 0 :=
 (abs_nonneg a).le_iff_eq.trans abs_eq_zero

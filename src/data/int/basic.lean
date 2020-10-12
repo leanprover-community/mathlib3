@@ -408,7 +408,7 @@ match a, b, eq_succ_of_zero_lt H with
 end
 
 theorem mod_lt (a : ℤ) {b : ℤ} (H : b ≠ 0) : a % b < abs b :=
-by rw [← mod_abs]; exact mod_lt_of_pos _ (abs_pos_of_ne_zero H)
+by rw [← mod_abs]; exact mod_lt_of_pos _ (abs_pos.2 H)
 
 theorem mod_add_div_aux (m n : ℕ) : (n - (m % n + 1) - (n * (m / n) + n) : ℤ) = -[1+ m] :=
 begin

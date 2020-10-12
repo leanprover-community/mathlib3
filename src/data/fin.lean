@@ -792,6 +792,14 @@ lemma comp_tail {α : Type*} {β : Type*} (g : α → β) (q : fin n.succ → α
   g ∘ (tail q) = tail (g ∘ q) :=
 by { ext j, simp [tail] }
 
+/-- `fin.append ho u v` appends two vectors of lengths `m` and `n` to produce
+one of length `o = m + n`.  `ho` provides control of definitional equality
+for the vector length. -/
+def append {α : Type*} {o : ℕ} (ho : o = m + n) (u : fin m → α) (v : fin n → α) : fin o → α :=
+λ i, if h : (i : ℕ) < m
+  then u ⟨i, h⟩
+  else v ⟨(i : ℕ) - m, (nat.sub_lt_left_iff_lt_add (le_of_not_lt h)).2 (ho ▸ i.property)⟩
+
 end tuple
 
 section tuple_right

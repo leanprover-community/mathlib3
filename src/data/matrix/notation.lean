@@ -139,24 +139,16 @@ of elements by virtue of the semantics of `bit0` and `bit1` and of
 addition on `fin n`).
 -/
 
-/-- `vec_join ho u v` joins two vectors of lengths `m` and `n` to produce
-one of length `o = m + n`.  `ho` provides control of definitional equality
-for the vector length. -/
-def vec_join (ho : o = m + n) (u : fin m → α) (v : fin n → α) : fin o → α :=
-λ i, if h : (i : ℕ) < m
-  then u ⟨i, h⟩
-  else v ⟨(i : ℕ) - m, (nat.sub_lt_left_iff_lt_add (le_of_not_lt h)).2 (ho ▸ i.property)⟩
+@[simp] lemma empty_append (v : fin n → α) : fin.append (zero_add _).symm ![] v = v :=
+by { ext, simp [fin.append] }
 
-@[simp] lemma empty_join (v : fin n → α) : vec_join (zero_add _).symm ![] v = v :=
-by { ext, simp [vec_join] }
-
-@[simp] lemma cons_join (ho : o + 1 = m + 1 + n) (x : α) (u : fin m → α) (v : fin n → α) :
-  vec_join ho (vec_cons x u) v =
-    vec_cons x (vec_join (by rwa [add_assoc, add_comm 1, ←add_assoc,
+@[simp] lemma cons_append (ho : o + 1 = m + 1 + n) (x : α) (u : fin m → α) (v : fin n → α) :
+  fin.append ho (vec_cons x u) v =
+    vec_cons x (fin.append (by rwa [add_assoc, add_comm 1, ←add_assoc,
                                   add_right_cancel_iff] at ho) u v) :=
 begin
   ext i,
-  simp_rw [vec_join],
+  simp_rw [fin.append],
   split_ifs with h,
   { rcases i with ⟨⟨⟩ | i, hi⟩,
     { simp },
@@ -178,10 +170,10 @@ only alternate elements (odd-numbered). -/
 def vec_alt1 (hm : m = n + n) (v : fin m → α) (k : fin n) : α :=
 v ⟨(k : ℕ) + k + 1, hm.symm ▸ nat.add_succ_lt_add k.property k.property⟩
 
-lemma vec_alt0_vec_join (v : fin n → α) : vec_alt0 rfl (vec_join rfl v v) = v ∘ bit0 :=
+lemma vec_alt0_append (v : fin n → α) : vec_alt0 rfl (fin.append rfl v v) = v ∘ bit0 :=
 begin
   ext i,
-  simp_rw [function.comp, bit0, vec_alt0, vec_join],
+  simp_rw [function.comp, bit0, vec_alt0, fin.append],
   split_ifs with h; congr,
   { rw fin.coe_mk at h,
     simp only [fin.ext_iff, fin.coe_add, fin.coe_mk],
@@ -193,10 +185,10 @@ begin
     exact add_lt_add i.property i.property }
 end
 
-lemma vec_alt1_vec_join (v : fin (n + 1) → α) : vec_alt1 rfl (vec_join rfl v v) = v ∘ bit1 :=
+lemma vec_alt1_append (v : fin (n + 1) → α) : vec_alt1 rfl (fin.append rfl v v) = v ∘ bit1 :=
 begin
   ext i,
-  simp_rw [function.comp, vec_alt1, vec_join],
+  simp_rw [function.comp, vec_alt1, fin.append],
   cases n,
   { simp, congr },
   { split_ifs with h; simp_rw [bit1, bit0]; congr,
@@ -213,12 +205,12 @@ begin
 end
 
 @[simp] lemma cons_vec_bit0_eq_alt0 (x : α) (u : fin n → α) (i : fin (n + 1)) :
-  vec_cons x u (bit0 i) = vec_alt0 rfl (vec_join rfl (vec_cons x u) (vec_cons x u)) i :=
-by rw vec_alt0_vec_join
+  vec_cons x u (bit0 i) = vec_alt0 rfl (fin.append rfl (vec_cons x u) (vec_cons x u)) i :=
+by rw vec_alt0_append
 
 @[simp] lemma cons_vec_bit1_eq_alt1 (x : α) (u : fin n → α) (i : fin (n + 1)) :
-  vec_cons x u (bit1 i) = vec_alt1 rfl (vec_join rfl (vec_cons x u) (vec_cons x u)) i :=
-by rw vec_alt1_vec_join
+  vec_cons x u (bit1 i) = vec_alt1 rfl (fin.append rfl (vec_cons x u) (vec_cons x u)) i :=
+by rw vec_alt1_append
 
 @[simp] lemma cons_vec_alt0 (h : m + 1 + 1 = (n + 1) + (n + 1)) (x y : α) (u : fin m → α) :
   vec_alt0 h (vec_cons x (vec_cons y u)) = vec_cons x (vec_alt0

@@ -603,19 +603,27 @@ end linear_ordered_field
 section discrete_linear_ordered_field
 variables [discrete_linear_ordered_field α]
 
+lemma min_div_div_right {c : α} (hc : 0 ≤ c) (a b : α) : min (a / c) (b / c) = (min a b) / c :=
+eq.symm $ monotone.map_min (λ x y, div_le_div_of_le hc)
+
+lemma max_div_div_right {c : α} (hc : 0 ≤ c) (a b : α) : max (a / c) (b / c) = (max a b) / c :=
+eq.symm $ monotone.map_max (λ x y, div_le_div_of_le hc)
+
+lemma min_div_div_right_of_nonpos {c : α} (hc : c ≤ 0) (a b : α) :
+  min (a / c) (b / c) = (max a b) / c :=
+eq.symm $ @monotone.map_max α (order_dual α) _ _ _ _ _ (λ x y, div_le_div_of_nonpos_of_le hc)
+
+lemma max_div_div_right_of_nonpos {c : α} (hc : c ≤ 0) (a b : α) :
+  max (a / c) (b / c) = (min a b) / c :=
+eq.symm $ @monotone.map_min α (order_dual α) _ _ _ _ _ (λ x y, div_le_div_of_nonpos_of_le hc)
+
 lemma abs_div (a b : α) : abs (a / b) = abs a / abs b :=
-decidable.by_cases
-  (assume h : b = 0, by rw [h, abs_zero, div_zero, div_zero, abs_zero])
-  (assume h : b ≠ 0,
-   have h₁ : abs b ≠ 0, from mt abs_eq_zero.1 h,
-   eq_div_of_mul_eq h₁ (show abs (a / b) * abs b = abs a, by rw [← abs_mul, div_mul_cancel _ h]))
+(abs_hom : α →* α).map_div abs_zero a b
 
 lemma abs_one_div (a : α) : abs (1 / a) = 1 / abs a :=
 by rw [abs_div, abs_of_nonneg (zero_le_one : 1 ≥ (0 : α))]
 
 lemma abs_inv (a : α) : abs a⁻¹ = (abs a)⁻¹ :=
-have h : abs (1 / a) = 1 / abs a,
-  by { rw [abs_div, abs_of_nonneg], exact zero_le_one },
-by simp * at *
+by rw [inv_eq_one_div, abs_one_div, inv_eq_one_div]
 
 end discrete_linear_ordered_field

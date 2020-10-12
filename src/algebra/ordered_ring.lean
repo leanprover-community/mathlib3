@@ -198,7 +198,7 @@ le_of_not_gt
    h2.not_le h)
 
 lemma pos_and_pos_or_neg_and_neg_of_mul_pos (hab : 0 < a * b) :
-    (0 < a ∧ 0 < b) ∨ (a < 0 ∧ b < 0) :=
+  (0 < a ∧ 0 < b) ∨ (a < 0 ∧ b < 0) :=
 begin
   rcases lt_trichotomy 0 a with (ha|rfl|ha),
   { refine or.inl ⟨ha, _⟩,

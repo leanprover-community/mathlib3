@@ -666,13 +666,43 @@ rfl
   @fin.succ_rec_on (succ n) i.succ C H0 Hs = Hs n i (fin.succ_rec_on i H0 Hs) :=
 by cases i; refl
 
+/--
+Define `C i` by induction on `i : fin (n + 1)` via induction on the underlying `nat` value.
+This function has two arguments: `h0` handles the base case on `C 0`,
+and `hs` defines the inductive step using `C i.cast_succ`.
+-/
+@[elab_as_eliminator] def induction
+  {C : fin (n + 1) → Sort*}
+  (h0 : C 0)
+  (hs : ∀ i : fin n, C i.cast_succ → C i.succ) :
+  Π (i : fin (n + 1)), C i :=
+begin
+  rintro ⟨i, hi⟩,
+  induction i with i IH,
+  { rwa [fin.mk_zero] },
+  { refine hs ⟨i, lt_of_succ_lt_succ hi⟩ _,
+    exact IH (lt_of_succ_lt hi) }
+end
+
+/--
+Define `C i` by induction on `i : fin (n + 1)` via induction on the underlying `nat` value.
+This function has two arguments: `h0` handles the base case on `C 0`,
+and `hs` defines the inductive step using `C i.cast_succ`.
+
+A version of `fin.induction` taking `i : fin (n + 1)` as the first argument.
+-/
+@[elab_as_eliminator] def induction_on (i : fin (n + 1))
+  {C : fin (n + 1) → Sort*}
+  (h0 : C 0)
+  (hs : ∀ i : fin n, C i.cast_succ → C i.succ) : C i :=
+induction h0 hs i
+
 /-- Define `f : Π i : fin n.succ, C i` by separately handling the cases `i = 0` and
 `i = j.succ`, `j : fin n`. -/
 @[elab_as_eliminator] def cases
   {C : fin (succ n) → Sort*} (H0 : C 0) (Hs : Π i : fin n, C (i.succ)) :
-  Π (i : fin (succ n)), C i
-| ⟨0, h⟩ := H0
-| ⟨succ i, h⟩ := Hs ⟨i, lt_of_succ_lt_succ h⟩
+  Π (i : fin (succ n)), C i :=
+induction H0 (λ i _, Hs i)
 
 @[simp] theorem cases_zero {n} {C : fin (succ n) → Sort*} {H0 Hs} : @fin.cases n C H0 Hs 0 = H0 :=
 rfl
@@ -684,24 +714,6 @@ by cases i; refl
 lemma forall_fin_succ {P : fin (n+1) → Prop} :
   (∀ i, P i) ↔ P 0 ∧ (∀ i:fin n, P i.succ) :=
 ⟨λ H, ⟨H 0, λ i, H _⟩, λ ⟨H0, H1⟩ i, fin.cases H0 H1 i⟩
-
-
-/--
-Define `C i` by induction on `i : fin (n + 1)` via induction on the underlying `nat` value.
-This function has two arguments: `h0` handles the base case on `C 0`,
-and `hs` defines the inductive step using `C i.cast_succ`.
--/
-@[elab_as_eliminator] def induction_on (i : fin (n + 1))
-  {C : fin (n + 1) → Sort*}
-  (h0 : C 0)
-  (hs : ∀ i : fin n, C i.cast_succ → C i.succ) : C i :=
-begin
-  obtain ⟨i, hi⟩ := i,
-  induction i with i IH,
-  { rwa [fin.mk_zero] },
-  { refine hs ⟨i, lt_of_succ_lt_succ hi⟩ _,
-    exact IH (lt_of_succ_lt hi) }
-end
 
 lemma exists_fin_succ {P : fin (n+1) → Prop} :
   (∃ i, P i) ↔ P 0 ∨ (∃i:fin n, P i.succ) :=

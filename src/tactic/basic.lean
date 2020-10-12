@@ -5,6 +5,7 @@ import tactic.converter.apply_congr
 import tactic.congr
 import tactic.dec_trivial
 import tactic.delta_instance
+import tactic.dependencies
 import tactic.elide
 import tactic.explode
 import tactic.find

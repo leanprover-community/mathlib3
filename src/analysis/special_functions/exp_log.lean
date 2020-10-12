@@ -526,7 +526,7 @@ begin
     calc abs (deriv F y) = abs (-(y^n) / (1 - y)) : by rw [A y this]
     ... ≤ (abs x)^n / (1 - abs x) :
       begin
-        have : abs y ≤ abs x := abs_le_of_le_of_neg_le hy.2 (by linarith [hy.1]),
+        have : abs y ≤ abs x := abs_le.2 hy,
         have : 0 < 1 - abs x, by linarith,
         have : 1 - abs x ≤ abs (1 - y) := le_trans (by linarith [hy.2]) (le_abs_self _),
         simp only [← pow_abs, abs_div, abs_neg],

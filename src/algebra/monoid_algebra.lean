@@ -259,6 +259,12 @@ instance {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] :
   commutes' := λ r f, by { ext, simp [single_one_mul_apply, mul_single_one_apply, algebra.commutes], },
   ..single_one_ring_hom.comp (algebra_map k A) }
 
+/-- `finsupp.single 1` as a `alg_hom` -/
+@[simps]
+def single_one_alg_hom {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] :
+  A →ₐ[k] monoid_algebra A G :=
+{ commutes' := λ r, by { ext, simp, refl, }, ..single_one_ring_hom}
+
 @[simp] lemma coe_algebra_map {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] :
   (algebra_map k (monoid_algebra A G) : k → monoid_algebra A G) = single 1 ∘ (algebra_map k A) :=
 rfl
@@ -644,6 +650,11 @@ instance [comm_semiring R] [semiring k] [algebra R k] [add_monoid G] :
 { smul_def' := λ r a, by { ext, simp [single_zero_mul_apply, algebra.smul_def''], },
   commutes' := λ r f, by { ext, simp [single_zero_mul_apply, mul_single_zero_apply, algebra.commutes], },
   ..single_zero_ring_hom.comp (algebra_map R k) }
+
+/-- `finsupp.single 0` as a `alg_hom` -/
+@[simps] def single_zero_alg_hom [comm_semiring R] [semiring k] [algebra R k] [add_monoid G] :
+  k →ₐ[R] add_monoid_algebra k G :=
+{ commutes' := λ r, by { ext, simp, refl, }, ..single_zero_ring_hom}
 
 @[simp] lemma coe_algebra_map [comm_semiring R] [semiring k] [algebra R k] [add_monoid G] :
   (algebra_map R (add_monoid_algebra k G) : R → add_monoid_algebra k G) = single 0 ∘ (algebra_map R k) :=

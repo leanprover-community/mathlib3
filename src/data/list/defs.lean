@@ -661,7 +661,8 @@ def mmap_filter {m : Type u → Type v} [monad m] {α β} (f : α → m (option 
 
 /-- Filters and maps elements of a list `alternative` operations to accept or
 reject elements of the list -/
-def mmap_filter' {m} [applicative m] [alternative m] {α β} (f : α → m β) : list.{u} α → m (list.{v} β)
+def mmap_filter' {m : Type u → Type v} [applicative m] [alternative m]
+  {α β} (f : α → m β) : list.{w} α → m (list.{u} β)
 | [] := pure []
 | (x :: xs) :=
   ((::) <$> f x <|> pure id) <*> mmap_filter' xs

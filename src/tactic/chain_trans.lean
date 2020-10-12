@@ -67,7 +67,8 @@ meta def graph := native.rb_lmap expr (expr × edge × expr)
 meta instance graph.has_to_format : has_to_tactic_format graph :=
 by delta graph; apply_instance
 
-private meta def dfs_trans' (g : graph) (r : ref expr_set) (v : expr) : expr → list (edge × expr) → tactic expr
+private meta def dfs_trans' (g : graph) (r : ref expr_set) (v : expr) :
+  expr → list (edge × expr) → tactic expr
 | x hs := do
   vs ← read_ref r,
   if vs.contains x then failed

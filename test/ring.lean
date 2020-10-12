@@ -40,3 +40,5 @@ begin
   field_simp [hx, hy],
   ring
 end
+
+example : (876544 : ℤ) * -1 + (1000000 - 123456) = 0 := by ring

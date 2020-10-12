@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 
 import data.rat.basic
+import order.well_founded
 import tactic.linarith
 import tactic.omega
 

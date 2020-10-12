@@ -137,7 +137,7 @@ protected theorem bijective (f : α ≃ β) : bijective f :=
 set.eq_univ_of_forall e.surjective
 
 protected theorem subsingleton (e : α ≃ β) [subsingleton β] : subsingleton α :=
-e.injective.comap_subsingleton
+e.injective.subsingleton
 
 /-- Transfer `decidable_eq` across an equivalence. -/
 protected def decidable_eq (e : α ≃ β) [decidable_eq β] : decidable_eq α :=
@@ -588,7 +588,7 @@ def pempty_sum (α : Sort*) : pempty ⊕ α ≃ α :=
 @[simp] lemma pempty_sum_apply_inr {α} (a) : pempty_sum α (sum.inr a) = a := rfl
 
 /-- `option α` is equivalent to `α ⊕ punit` -/
-def option_equiv_sum_punit (α : Sort*) : option α ≃ α ⊕ punit.{u+1} :=
+def option_equiv_sum_punit (α : Type*) : option α ≃ α ⊕ punit.{u+1} :=
 ⟨λ o, match o with none := inr punit.star | some a := inl a end,
  λ s, match s with inr _ := none | inl a := some a end,
  λ o, by cases o; refl,
@@ -597,6 +597,14 @@ def option_equiv_sum_punit (α : Sort*) : option α ≃ α ⊕ punit.{u+1} :=
 @[simp] lemma option_equiv_sum_punit_none {α} : option_equiv_sum_punit α none = sum.inr () := rfl
 @[simp] lemma option_equiv_sum_punit_some {α} (a) :
   option_equiv_sum_punit α (some a) = sum.inl a := rfl
+
+@[simp] lemma option_equiv_sum_punit_symm_inl {α} (a) :
+  (option_equiv_sum_punit α).symm (sum.inl a) = a :=
+rfl
+
+@[simp] lemma option_equiv_sum_punit_symm_inr {α} (a) :
+  (option_equiv_sum_punit α).symm (sum.inr a) = none :=
+rfl
 
 /-- The set of `x : option α` such that `is_some x` is equivalent to `α`. -/
 def option_is_some_equiv (α : Type*) : {x : option α // x.is_some} ≃ α :=
@@ -952,6 +960,20 @@ def bool_prod_equiv_sum (α : Type u) : bool × α ≃ α ⊕ α :=
 calc bool × α ≃ (unit ⊕ unit) × α       : prod_congr bool_equiv_punit_sum_punit (equiv.refl _)
       ...     ≃ (unit × α) ⊕ (unit × α) : sum_prod_distrib _ _ _
       ...     ≃ α ⊕ α                   : sum_congr (punit_prod _) (punit_prod _)
+
+/-- The function type `bool → α` is equivalent to `α × α`. -/
+def bool_to_equiv_prod (α : Type u) : (bool → α) ≃ α × α :=
+calc (bool → α) ≃ ((unit ⊕ unit) → α) : (arrow_congr bool_equiv_punit_sum_punit (equiv.refl α))
+     ...        ≃ (unit → α) × (unit → α) : sum_arrow_equiv_prod_arrow _ _ _
+     ...        ≃ α × α : prod_congr (punit_arrow_equiv _) (punit_arrow_equiv _)
+
+@[simp] lemma bool_to_equiv_prod_apply {α : Type u} (f : bool → α) :
+  bool_to_equiv_prod α f = (f ff, f tt) := rfl
+@[simp] lemma bool_to_equiv_prod_symm_apply_ff {α : Type u} (p : α × α) :
+  (bool_to_equiv_prod α).symm p ff = p.1 := rfl
+@[simp] lemma bool_to_equiv_prod_symm_apply_tt {α : Type u} (p : α × α) :
+  (bool_to_equiv_prod α).symm p tt = p.2 := rfl
+
 end
 
 section

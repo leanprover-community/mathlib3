@@ -225,6 +225,9 @@ a two-sided additive inverse. The actual definition says that `a` is equal to so
 `u : add_units M`, where `add_units M` is a bundled version of `is_add_unit`."]
 def is_unit [monoid M] (a : M) : Prop := ∃ u : units M, (u : M) = a
 
+lemma is_unit_of_subsingleton [monoid M] [subsingleton M] (a : M) : is_unit a :=
+⟨⟨a, a, subsingleton.elim _ _, subsingleton.elim _ _⟩, rfl⟩
+
 @[simp, to_additive is_add_unit_add_unit]
 lemma is_unit_unit [monoid M] (u : units M) : is_unit (u : M) := ⟨u, rfl⟩
 

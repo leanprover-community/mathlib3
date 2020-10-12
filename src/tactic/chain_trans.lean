@@ -44,7 +44,7 @@ namespace chain_trans
 /-- A label for the edges of a graph of assumptions to
 specify whether the assumption is a strict ordering
 (i.e. `<`) or non-strict ordering (i.e. `≤`). -/
-@[derive inhabited]
+@[derive [inhabited, decidable_eq]]
 inductive edge
 | lt | le
 
@@ -53,24 +53,6 @@ instance : has_to_string edge :=
       | edge.lt := "lt"
       | edge.le := "le"
       end ⟩
-
-/--
-
--/
-inductive edge.less_than_or_equal : edge → edge → Prop
-| bot {x} :  edge.less_than_or_equal edge.lt x
-| top {x} :  edge.less_than_or_equal x edge.le
-
-instance : decidable_linear_order edge :=
-{ le := edge.less_than_or_equal,
-  le_refl := by { intro x, cases x; constructor },
-  le_antisymm := by { introv h₀ h₁, cases h₀; cases h₁; refl },
-  le_trans := by { introv h₀ h₁, cases h₀, { constructor }, cases h₁, constructor },
-  le_total :=
-  by { intros x y, cases x; cases y; { left; constructor } <|> { right; constructor } },
-  decidable_le :=
-  by { intros x y, cases x; cases y; { left; intro h; cases h; done } <|> { right; constructor } }
- }
 
 meta instance edge.has_to_format : has_to_format edge :=
 ⟨ λ e, to_fmt $ to_string e ⟩

@@ -15,10 +15,12 @@ The type of compact Hausdorff spaces is denoted `CompHaus`, and it is endowed wi
 instance making it a full subcategory of `Top`.
 The fully faithful functor `CompHaus ⥤ Top` is denoted `CompHaus_to_Top`.
 
-Note: `topology.category.Compactum_to_CompHaus` is the functor from `Compactum` to `CompHaus`
-where `Compactum` is the category of algebras for the ultrafilter monad. This is proven to be
-an equivalence of categories in `topology.category.Compactum_to_CompHaus.is_equivalence`.
-See `topology/category/Compactum.lean` for a more detailed discussion.
+**Note:** The file `topology/category/Compactum.lean` provides the equivalence between `Compactum`,
+which is defined as the category of algebras for the ultrafilter monad, and `CompHaus`.
+`Compactum_to_CompHaus` is the functor from `Compactum` to `CompHaus` which is proven to be an
+equivalence of categories in `Compactum_to_CompHaus.is_equivalence`.
+See `topology/category/Compactum.lean` for a more detailed discussion where these definitions are
+introduced.
 
 -/
 

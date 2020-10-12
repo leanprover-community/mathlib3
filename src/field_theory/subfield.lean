@@ -198,16 +198,6 @@ instance to_field : field s :=
   exists_pair_ne := ⟨⟨0, s.zero_mem⟩, ⟨1, s.one_mem⟩, mt subtype.mk_eq_mk.mp zero_ne_one⟩,
   ..subring.subring.domain s.to_subring }
 
-instance to_algebra : algebra s K :=
-{ to_fun := coe,
-  map_zero' := rfl,
-  map_add' := λ x y, rfl,
-  map_one' := rfl,
-  map_mul' := λ x y, rfl,
-  commutes' := λ x y, mul_comm _ _,
-  smul := λ x y, ↑x * y,
-  smul_def' := λ x y, rfl }
-
 @[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : K) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_neg (x : s) : (↑(-x) : K) = -↑x := rfl
 @[simp, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : K) = ↑x * ↑y := rfl
@@ -219,6 +209,8 @@ instance to_algebra : algebra s K :=
 def subtype (s : subfield K) : s →+* K :=
 { to_fun := coe,
  .. s.to_submonoid.subtype, .. s.to_add_subgroup.subtype }
+
+instance to_algebra : algebra s K := ring_hom.to_algebra s.subtype
 
 @[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
 

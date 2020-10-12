@@ -379,4 +379,17 @@ begin
   simp [eq_one_of_dvd_one this]
 end
 
+lemma gcd_mul_gcd_of_coprime_of_mul_eq_mul {a b c d : ℕ} (cop : c.coprime d) (h : a * b = c * d) :
+  a.gcd c * b.gcd c = c :=
+begin
+  apply dvd_antisymm,
+  { apply nat.coprime.dvd_of_dvd_mul_right (nat.coprime.mul (cop.gcd_left _) (cop.gcd_left _)),
+    rw ← h,
+    apply mul_dvd_mul (gcd_dvd _ _).1 (gcd_dvd _ _).1 },
+  { rw [gcd_comm a _, gcd_comm b _],
+    transitivity c.gcd (a * b),
+    rw [h, gcd_mul_right_right d c],
+    apply gcd_mul_dvd_mul_gcd }
+end
+
 end nat

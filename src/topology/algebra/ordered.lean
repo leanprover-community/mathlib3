@@ -2464,25 +2464,6 @@ begin
         infi_le_of_le (a + r) $ infi_le _ (or.inr rfl)) } }
 end
 
-lemma tendsto_at_top_supr_nat [topological_space α] [complete_linear_order α] [order_topology α]
-  (f : ℕ → α) (hf : monotone f) : tendsto f at_top (𝓝 (⨆i, f i)) :=
-tendsto_order.2 $ and.intro
-  (assume a ha, let ⟨n, hn⟩ := lt_supr_iff.1 ha in
-    mem_at_top_sets.2 ⟨n, assume i hi, lt_of_lt_of_le hn (hf hi)⟩)
-  (assume a ha, univ_mem_sets' (assume n, lt_of_le_of_lt (le_supr _ n) ha))
-
-lemma tendsto_at_top_infi_nat [topological_space α] [complete_linear_order α] [order_topology α]
-  (f : ℕ → α) (hf : ∀{n m}, n ≤ m → f m ≤ f n) : tendsto f at_top (𝓝 (⨅i, f i)) :=
-@tendsto_at_top_supr_nat (order_dual α) _ _ _ _ @hf
-
-lemma supr_eq_of_tendsto {α} [topological_space α] [complete_linear_order α] [order_topology α]
-  {f : ℕ → α} {a : α} (hf : monotone f) : tendsto f at_top (𝓝 a) → supr f = a :=
-tendsto_nhds_unique (tendsto_at_top_supr_nat f hf)
-
-lemma infi_eq_of_tendsto {α} [topological_space α] [complete_linear_order α] [order_topology α]
-  {f : ℕ → α} {a : α} (hf : ∀n m, n ≤ m → f m ≤ f n) : tendsto f at_top (𝓝 a) → infi f = a :=
-tendsto_nhds_unique (tendsto_at_top_infi_nat f hf)
-
 /-- $\lim_{x\to+\infty}|x|=+\infty$ -/
 lemma tendsto_abs_at_top_at_top [decidable_linear_ordered_add_comm_group α] :
   tendsto (abs : α → α) at_top at_top :=
@@ -2549,16 +2530,37 @@ begin
   { exact tendsto_of_not_nonempty hi }
 end
 
+lemma tendsto_at_top_cinfi {ι α : Type*} [preorder ι] [topological_space α]
+  [conditionally_complete_linear_order α] [order_topology α]
+  {f : ι → α} (h_mono : ∀ ⦃i j⦄, i ≤ j → f j ≤ f i) (hbdd : bdd_below $ range f) :
+  tendsto f at_top (𝓝 (⨅i, f i)) :=
+@tendsto_at_top_csupr _ (order_dual α) _ _ _ _ _ @h_mono hbdd
+
 lemma tendsto_at_top_supr {ι α : Type*} [preorder ι] [topological_space α]
   [complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : monotone f) :
   tendsto f at_top (𝓝 (⨆i, f i)) :=
 tendsto_at_top_csupr h_mono (order_top.bdd_above _)
+
+lemma tendsto_at_top_infi {ι α : Type*} [preorder ι] [topological_space α]
+  [complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : ∀ ⦃i j⦄, i ≤ j → f j ≤ f i) :
+  tendsto f at_top (𝓝 (⨅i, f i)) :=
+tendsto_at_top_cinfi @h_mono (order_bot.bdd_below _)
 
 lemma tendsto_of_monotone {ι α : Type*} [preorder ι] [topological_space α]
   [conditionally_complete_linear_order α] [order_topology α] {f : ι → α} (h_mono : monotone f) :
   tendsto f at_top at_top ∨ (∃ l, tendsto f at_top (𝓝 l)) :=
 if H : bdd_above (range f) then or.inr ⟨_, tendsto_at_top_csupr h_mono H⟩
 else or.inl $ tendsto_at_top_at_top_of_monotone' h_mono H
+
+lemma supr_eq_of_tendsto {α β} [topological_space α] [complete_linear_order α] [order_topology α]
+  [nonempty β] [semilattice_sup β] {f : β → α} {a : α} (hf : monotone f) :
+  tendsto f at_top (𝓝 a) → supr f = a :=
+tendsto_nhds_unique (tendsto_at_top_supr hf)
+
+lemma infi_eq_of_tendsto {α} [topological_space α] [complete_linear_order α] [order_topology α]
+  [nonempty β] [semilattice_sup β] {f : β → α} {a : α} (hf : ∀n m, n ≤ m → f m ≤ f n) :
+  tendsto f at_top (𝓝 a) → infi f = a :=
+tendsto_nhds_unique (tendsto_at_top_infi hf)
 
 @[to_additive] lemma tendsto_inv_nhds_within_Ioi [ordered_comm_group α]
   [topological_space α] [topological_group α] {a : α} :

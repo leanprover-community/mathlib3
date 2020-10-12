@@ -36,12 +36,12 @@ section erase_lead
 
 lemma erase_lead_support (f : polynomial R) :
   f.erase_lead.support = f.support.erase f.nat_degree :=
--- `rfl` doesn't work because the LHS uses `nat.decidable_eq` whereas the RHS uses a classical instance.
+-- `rfl` fails because LHS uses `nat.decidable_eq` but RHS is classical.
 by convert rfl
 
 lemma erase_lead_coeff (i : ℕ) :
   f.erase_lead.coeff i = if i = f.nat_degree then 0 else f.coeff i :=
--- `rfl` doesn't work because the LHS uses `nat.decidable_eq` whereas the RHS uses a classical instance.
+-- `rfl` fails because LHS uses `nat.decidable_eq` but RHS is classical.
 by convert rfl
 
 @[simp] lemma erase_lead_coeff_nat_degree : f.erase_lead.coeff f.nat_degree = 0 :=

@@ -3,6 +3,7 @@ Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Scott Morrison, Adam Topaz.
 -/
+import algebra.algebra.subalgebra
 import algebra.monoid_algebra
 import linear_algebra
 
@@ -27,6 +28,7 @@ Given a commutative semiring `R`, and a type `X`, we construct the free `R`-alge
 4. `lift_comp_ι` is a combination of `ι_comp_lift` and `lift_unique`. It states that the lift
   of the composition of an algebra morphism with `ι` is the algebra morphism itself.
 5. `equiv_monoid_algebra_free_monoid : free_algebra R X ≃ₐ[R] monoid_algebra R (free_monoid X)`
+6. An inductive principle `induction`.
 
 ## Implementation details
 
@@ -294,13 +296,54 @@ begin
 end
 (by { ext, simp, })
 
+end free_algebra
+
+-- There is something weird in the above namespace that breaks the typeclass resolution of `has_coe_to_sort` below.
+-- Closing it and reopening it fixes it...
+namespace free_algebra
+
+/-- An induction principle for the free algebra.
+
+If `C` holds for the `algebra_map` of `r : R` into `free_algebra R X`, the `ι` of `x : X`, and is
+preserved under addition and muliplication, then it holds for all of `free_algebra R X`.
+-/
+@[elab_as_eliminator]
+lemma induction
+  {C : free_algebra R X → Prop}
+  (h_grade0 : ∀ r, C (algebra_map R (free_algebra R X) r))
+  (h_grade1 : ∀ x, C (ι R x))
+  (h_mul : ∀ a b, C a → C b → C (a * b))
+  (h_add : ∀ a b, C a → C b → C (a + b))
+  (a : free_algebra R X) :
+    C a :=
+begin
+  -- the arguments are enough to construct a subalgebra, and a mapping into it from X
+  let s : subalgebra R (free_algebra R X) := {
+    carrier := C,
+    one_mem' := h_grade0 1,
+    zero_mem' := h_grade0 0,
+    mul_mem' := h_mul,
+    add_mem' := h_add,
+    algebra_map_mem' := h_grade0, },
+  let of : X → s := subtype.coind (ι R) h_grade1,
+  -- the mapping through the subalgebra is the identity
+  have of_id : alg_hom.id R (free_algebra R X) = s.val.comp (lift R of),
+  { ext,
+    simp [of, subtype.coind], },
+  -- finding a proof is finding an element of the subalgebra
+  convert subtype.prop (lift R of a),
+  simp [alg_hom.ext_iff] at of_id,
+  exact of_id a,
+end
+
+variables {R X}
 
 open_locale big_operators
 
-def grade_aux : (free_algebra R X) →ₐ[R] add_monoid_algebra (free_algebra R X) ℕ :=
-{ to_fun := finsupp.single 1,
+-- def grade_aux : (free_algebra R X) →ₐ[R] add_monoid_algebra (free_algebra R X) ℕ :=
+-- { to_fun := finsupp.single 1,
 
-  }
+--   }
 
 /--
 Separate an element of the free algebra into its ℕ-graded components.
@@ -320,17 +363,80 @@ begin
   simp [grades, add_monoid_algebra.sum_id_apply, finsupp.sum_single_index],
 end
 
-/-- Apply grade selection to a single grade component gives either 0 or itself -/
-@[simp]
-lemma grade_idempotent (x : free_algebra R X) (i j : ℕ) :
-  grades (grades x i) j = if i = j then grades x i else 0 :=
-begin
-  simp [grades, lift_comp_ι, finsupp.single_apply],
-  split_ifs,
-  { rw ←h,
+/-- `algebra_map` produces elements with only grade 0 -/
+lemma grades.map_algebra_map (r : R) :
+  grades (algebra_map R (free_algebra R X) r) = finsupp.single 0 (algebra_map R _ r) :=
+by simp
 
-    },
-  {},
+/-- `ι R` produces elements with only grade 1 -/
+lemma grades.map_ι (x : X) :
+  grades (ι R x) = finsupp.single 1 (ι R x) :=
+by simp [grades]
+
+-- TODO: move
+def monoid_hom.map_finsupp_sum {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
+[has_zero β] [add_comm_monoid γ] [add_comm_monoid δ]
+(h : γ →+ δ) (f : α →₀ β) (g : α → β → γ) : h (f.sum g) = f.sum (λ a b, h (g a b)) :=
+h.map_sum _ _
+
+def alg_hom.map_finsupp_sum {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
+[has_zero β] [semiring γ] [semiring δ] [algebra R γ] [algebra R δ]
+(h : γ →ₐ[R] δ) (f : α →₀ β) (g : α → β → γ) : h (f.sum g) = f.sum (λ a b, h (g a b)) :=
+h.map_sum _ _
+
+-- TODO: docstring
+lemma single_idempotent {α : Type*} {β : Type*} [has_zero β] (i j : α) [decidable (j = i)] (v : β):
+  finsupp.single i ((finsupp.single j v) i) = if j = i then (finsupp.single j v) else 0 :=
+begin
+  ext,
+  split_ifs;
+  simp [←h, finsupp.single_apply],
+  finish,
+end
+
+/-- The grade-`i` part consists only of itself -/
+@[simp]
+lemma grades.map_grades (x : free_algebra R X) (i : ℕ) :
+  grades (grades x i) = finsupp.single i (grades x i) :=
+begin
+  induction x using free_algebra.induction generalizing i,
+  case h_grade0 : {
+    rw grades.map_algebra_map,
+    rw [single_idempotent, finsupp.single_apply, apply_ite grades],
+    rw [grades.map_algebra_map, grades.map_zero],
+    split_ifs; refl
+  },
+  case h_grade1 : {
+    rw grades.map_ι,
+    rw [single_idempotent, finsupp.single_apply, apply_ite grades],
+    rw [grades.map_ι, grades.map_zero],
+    split_ifs; refl
+  },
+  case h_add : x y hx hy {
+    rw [grades.map_add, finsupp.add_apply, grades.map_add, hx, hy, finsupp.single_add],
+  },
+  case h_mul : f g hx hy {
+    rw grades.map_mul,
+    rw add_monoid_algebra.mul_def,
+    simp_rw [finsupp.sum_apply],
+
+    -- pull the sums to the outside
+    have : finsupp.single i = finsupp.single_add_hom i := rfl,
+    rw this,
+    simp_rw alg_hom.map_finsupp_sum,
+    simp_rw monoid_hom.map_finsupp_sum,
+    simp_rw [finsupp.sum],
+    congr, ext1, ext1,
+    congr, ext1, ext1,
+    rw ←this,
+
+    -- this now looks the same as it did in the other cases
+    conv_lhs {rw [finsupp.single_apply]},
+    rw [single_idempotent, ←add_monoid_algebra.single_mul_single, apply_ite grades],
+    rw [grades.map_mul, grades.map_zero],
+    rw [hx, hy],
+    split_ifs; refl,
+  },
 end
 
 noncomputable
@@ -349,7 +455,8 @@ by {unfold grades, simp}
 lemma grades_algebra_map (r : R) :
   grades (algebra_map R (free_algebra R X) r) = finsupp.single 0 (algebra_map R (free_algebra R X) r) :=
 by {unfold grades, simp}
-
 end free_algebra
 
-#print tactic_state
+-- def finsupp.sum {α : Type} {β : Type} {γ : Type} {δ : Type}
+-- [has_zero β] [add_comm_monoid γ] [add_comm_monoid δ]
+-- (f : α →₀ β) (g : α → β → γ) (h : γ →+ δ) : h (f.sum g) = f.sum (λ a b, h (g a b)) := by library_search

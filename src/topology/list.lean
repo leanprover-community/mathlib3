@@ -2,12 +2,13 @@
 Copyright (c) 2019 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
-
-Topology on lists and vectors.
 -/
 import topology.constructions
 import topology.algebra.group
+/-!
+# Topology on lists and vectors
 
+-/
 open topological_space set filter
 open_locale topological_space filter
 
@@ -29,7 +30,8 @@ begin
     rcases (mem_traverse_sets_iff _ _).1 hs with ⟨u, hu, hus⟩, clear as hs,
     have : ∃v:list (set α), l.forall₂ (λa s, is_open s ∧ a ∈ s) v ∧ sequence v ⊆ s,
     { induction hu generalizing s,
-      case list.forall₂.nil : hs this { existsi [], simpa only [list.forall₂_nil_left_iff, exists_eq_left] },
+      case list.forall₂.nil : hs this
+        { existsi [], simpa only [list.forall₂_nil_left_iff, exists_eq_left] },
       case list.forall₂.cons : a s as ss ht h ih t hts {
         rcases mem_nhds_sets_iff.1 ht with ⟨u, hut, hu⟩,
         rcases ih (subset.refl _) with ⟨v, hv, hvss⟩,
@@ -167,7 +169,7 @@ instance (n : ℕ) : topological_space (vector α n) :=
 by unfold vector; apply_instance
 
 lemma tendsto_cons {n : ℕ} {a : α} {l : vector α n}:
-  tendsto (λp:α×vector α n, vector.cons p.1 p.2) (𝓝 a ×ᶠ 𝓝 l) (𝓝 (a :: l)) :=
+  tendsto (λp:α×vector α n, vector.cons p.1 p.2) (𝓝 a ×ᶠ 𝓝 l) (𝓝 (vector.cons a l)) :=
 by { simp [tendsto_subtype_rng, ←subtype.val_eq_coe, cons_val],
   exact tendsto_fst.cons (tendsto.comp continuous_at_subtype_coe tendsto_snd) }
 

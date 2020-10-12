@@ -308,6 +308,45 @@ If `C` holds for the `algebra_map` of `r : R` into `free_algebra R X`, the `ι` 
 preserved under addition and muliplication, then it holds for all of `free_algebra R X`.
 -/
 @[elab_as_eliminator]
+lemma induction {C : free_algebra R X → Prop}
+  (h_grade0 : ∀ r, C (algebra_map R (free_algebra R X) r))
+  (h_grade1 : ∀ x, C (ι R x))
+  (h_mul : ∀ a b, C a → C b → C (a * b))
+  (h_add : ∀ a b, C a → C b → C (a + b))
+  (a : free_algebra R X) :
+  C a :=
+begin
+  -- the arguments are enough to construct a subalgebra, and a mapping into it from X
+  let s : subalgebra R (free_algebra R X) := {
+    carrier := C,
+    one_mem' := h_grade0 1,
+    zero_mem' := h_grade0 0,
+    mul_mem' := h_mul,
+    add_mem' := h_add,
+    algebra_map_mem' := h_grade0, },
+  let of : X → s := subtype.coind (ι R) h_grade1,
+  -- the mapping through the subalgebra is the identity
+  have of_id : alg_hom.id R (free_algebra R X) = s.val.comp (lift R of),
+  { ext,
+    simp [of, subtype.coind], },
+  -- finding a proof is finding an element of the subalgebra
+  convert subtype.prop (lift R of a),
+  simp [alg_hom.ext_iff] at of_id,
+  exact of_id a,
+end
+
+end free_algebra
+
+-- There is something weird in the above namespace that breaks the typeclass resolution of `has_coe_to_sort` below.
+-- Closing it and reopening it fixes it...
+namespace free_algebra
+
+/-- An induction principle for the free algebra.
+
+If `C` holds for the `algebra_map` of `r : R` into `free_algebra R X`, the `ι` of `x : X`, and is
+preserved under addition and muliplication, then it holds for all of `free_algebra R X`.
+-/
+@[elab_as_eliminator]
 lemma induction
   {C : free_algebra R X → Prop}
   (h_grade0 : ∀ r, C (algebra_map R (free_algebra R X) r))

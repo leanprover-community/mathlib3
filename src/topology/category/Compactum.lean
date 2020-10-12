@@ -296,7 +296,6 @@ begin
   have claim6 : ∀ (S ∈ T2), set.nonempty S,
   { suffices : ∀ S ∈ T2, S ∈ T0 ∨ ∃ Q ∈ T0, S = AA ∩ Q,
     { intros S hS,
-      --specialize this _ hS,
       cases this _ hS with h h,
       { exact claim5 S h },
       { rcases h with ⟨Q, hQ, rfl⟩,

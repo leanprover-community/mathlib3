@@ -6,7 +6,7 @@ Authors: Floris van Doorn
 import algebra.big_operators.basic
 import data.nat.enat
 
-/-
+/-!
 # Big operators in `enat`
 
 A simple lemma about sums in `enat`.

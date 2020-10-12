@@ -750,7 +750,8 @@ instance module_extend_scalars : module 𝕜' (E →L[𝕜] (semimodule.restrict
   add_smul  := λ _ _ _, ext $ λ _, add_smul _ _ _,
   smul_add  := λ _ _ _, ext $ λ _, smul_add _ _ _ }
 
-instance normed_space_extend_scalars : normed_space 𝕜' (E →L[𝕜] (semimodule.restrict_scalars 𝕜 𝕜' F')) :=
+instance normed_space_extend_scalars :
+  normed_space 𝕜' (E →L[𝕜] (semimodule.restrict_scalars 𝕜 𝕜' F')) :=
 { norm_smul_le := λ c f,
     linear_map.mk_continuous_norm_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _ }
 

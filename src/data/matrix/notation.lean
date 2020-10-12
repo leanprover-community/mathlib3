@@ -115,7 +115,14 @@ by { ext, simp [vec_tail] }
 
 @[simp] lemma cons_head_tail (u : fin m.succ → α) :
  vec_cons (vec_head u) (vec_tail u) = u :=
-by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
+fin.cons_self_tail _
+
+@[simp] lemma range_cons (x : α) (u : fin n → α) :
+  set.range (vec_cons x u) = {x} ∪ set.range u :=
+set.ext $ λ y, by simp [fin.exists_fin_succ, eq_comm]
+
+@[simp] lemma range_empty (u : fin 0 → α) : set.range u = ∅ :=
+set.range_eq_empty.2 $ λ ⟨k⟩, k.elim0
 
 /-- `![a, b, ...] 1` is equal to `b`.
 

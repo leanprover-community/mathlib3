@@ -71,7 +71,7 @@ continuous_iff_continuous_at.mpr $ assume ⟨f, x⟩ n hn,
     f' x' ∈ f' '' s  : mem_image_of_mem f' (us hx')
     ...       ⊆ v            : hf'
     ...       ⊆ n            : vn,
-  have is_open w, from is_open_prod (is_open_gen sc vo) uo,
+  have is_open w, from (is_open_gen sc vo).prod uo,
   have (f, x) ∈ w, from ⟨image_subset_iff.mpr sv, xu⟩,
   mem_nhds_sets_iff.mpr ⟨w, by assumption, by assumption, by assumption⟩
 

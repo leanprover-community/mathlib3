@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker
 -/
 
-import data.real.pi
+import analysis.special_functions.trigonometric
 
 /-!
+# IMO 1962 Q4
+
 Solve the equation `cos x ^ 2 + cos (2 * x) ^ 2 + cos (3 * x) ^ 2 = 1`.
 
 Since Lean does not have a concept of "simplest form", we just express what is

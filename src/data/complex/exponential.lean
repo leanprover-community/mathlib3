@@ -611,13 +611,13 @@ by rw [sq_sub_sq, cosh_add_sinh, cosh_sub_sinh, ← exp_add, add_neg_self, exp_z
 
 lemma cosh_square : cosh x ^ 2 = sinh x ^ 2 + 1 :=
 begin
-  rw ← (cosh_sq_sub_sinh_sq x),
+  rw ← cosh_sq_sub_sinh_sq x,
   ring
 end
 
 lemma sinh_square : sinh x ^ 2 = cosh x ^ 2 - 1 :=
 begin
-  rw ← (cosh_sq_sub_sinh_sq x),
+  rw ← cosh_sq_sub_sinh_sq x,
   ring
 end
 

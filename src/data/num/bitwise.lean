@@ -265,7 +265,7 @@ namespace snum
 
 def bits : snum → Π n, vector bool n
 | p 0     := vector.nil
-| p (n+1) := vector.cons (head p) (bits (tail p) n)
+| p (n+1) := head p ::ᵥ bits (tail p) n
 
 def cadd : snum → snum → bool → snum :=
 rec' (λ a p c, czadd c a p) $ λa p IH,

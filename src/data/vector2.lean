@@ -263,7 +263,7 @@ variables {α β γ : Type u}
 
 @[simp] protected lemma traverse_def
   (f : α → F β) (x : α) : ∀ (xs : vector α n),
-  (cons x xs).traverse f = cons <$> f x <*> xs.traverse f :=
+  (x ::ᵥ xs).traverse f = cons <$> f x <*> xs.traverse f :=
 by rintro ⟨xs, rfl⟩; refl
 
 protected lemma id_traverse : ∀ (x : vector α n), x.traverse id.mk = x :=

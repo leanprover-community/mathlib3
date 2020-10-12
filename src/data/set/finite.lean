@@ -431,6 +431,19 @@ let ⟨I, Ifin, hI⟩ := finite_subset_Union tfin h in
         exact H }
     end⟩
 
+/-- An increasing union distributes over finite intersection. -/
+lemma Union_Inter_of_monotone {ι ι' α : Type*} [fintype ι] [decidable_linear_order ι']
+  [nonempty ι'] {s : ι → ι' → set α} (hs : ∀ i, monotone (s i)) :
+  (⋃ j : ι', ⋂ i : ι, s i j) = ⋂ i : ι, ⋃ j : ι', s i j :=
+begin
+  ext x, refine ⟨λ hx, Union_Inter_subset hx, λ hx, _⟩,
+  simp only [mem_Inter, mem_Union, mem_Inter] at hx ⊢, choose j hj using hx,
+  obtain ⟨j₀⟩ := show nonempty ι', by apply_instance,
+  refine ⟨finset.univ.fold max j₀ j, λ i, hs i _ (hj i)⟩,
+  rw [finset.fold_op_rel_iff_or (@le_max_iff _ _)],
+  exact or.inr ⟨i, finset.mem_univ i, le_rfl⟩
+end
+
 instance nat.fintype_Iio (n : ℕ) : fintype (Iio n) :=
 fintype.of_finset (finset.range n) $ by simp
 

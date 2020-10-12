@@ -7,12 +7,12 @@ Authors: Adam Topaz
 import category_theory.monad.types
 import category_theory.monad.limits
 import category_theory.equivalence
-import topology.category.Top
+import topology.category.CompHaus
 import data.set.constructions
 
 /-!
 
-# Compact Hausdorff Spaces
+# Compacta and Compact Hausdorff Spaces
 
 Recall that, given a monad `M` on `Type*`, an *algebra* for `M` consists of the following data:
 - A type `X : Type*`
@@ -30,8 +30,8 @@ and the category of algebras for the *ultrafilter monad*.
 
 Here are the main objects introduced in this file.
 - `Compactum` is the type of compacta, which we define as algebras for the ultrafilter monad.
-- `CompHaus` is the full subcategory of `Top` consisting of compact Hausdorff spaces.
-- `Compactum_to_CompHaus` is the functor `Compactum ⥤ CompHaus`.
+- `Compactum_to_CompHaus` is the functor `Compactum ⥤ CompHaus`. Here `CompHaus` is the usual
+  category of compact Hausdorff spaces.
 - `Compactum_to_CompHaus.is_equivalence` is a term of type `is_equivalence Compactum_to_CompHaus`.
 
 Any `X : Compactum` is endowed with a coercion to `Type*`, as well as the following instances:
@@ -420,24 +420,6 @@ def hom_of_continuous {X Y : Compactum} (f : X → Y) (cont : continuous f) : X 
   end }
 
 end Compactum
-
-/-- The type of Compact Hausdorff topological spaces. -/
-structure CompHaus :=
-(to_Top : Top)
-[is_compact : compact_space to_Top]
-[is_hausdorff : t2_space to_Top]
-
-namespace CompHaus
-
-instance : inhabited CompHaus := ⟨{to_Top := { α := pempty }}⟩
-
-instance : has_coe_to_sort CompHaus := ⟨Type*, λ X, X.to_Top⟩
-instance {X : CompHaus} : compact_space X := X.is_compact
-instance {X : CompHaus} : t2_space X := X.is_hausdorff
-
-instance category : category CompHaus := induced_category.category to_Top
-
-end CompHaus
 
 /-- The functor functor from Compactum to CompHaus. -/
 def Compactum_to_CompHaus : Compactum ⥤ CompHaus :=

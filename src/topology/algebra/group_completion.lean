@@ -60,31 +60,46 @@ instance : add_group (completion α) :=
 instance : uniform_add_group (completion α) :=
 ⟨(uniform_continuous_map₂ (+)).bicompl uniform_continuous_id uniform_continuous_map⟩
 
-instance is_add_group_hom_coe : is_add_group_hom (coe : α → completion α) :=
-{ map_add := coe_add }
+/-- Embedding of a uniform additive group into its completion as an `add_monoid_hom`. -/
+def coe_add_hom : α →+ completion α := add_monoid_hom.mk' coe coe_add
 
-variables {β : Type v} [uniform_space β] [add_group β] [uniform_add_group β]
+@[simp] lemma coe_coe_add_hom : ⇑(coe_add_hom : α →+ completion α) = coe := rfl
 
-lemma is_add_group_hom_extension  [complete_space β] [separated_space β]
-  {f : α → β} [is_add_group_hom f] (hf : continuous f) : is_add_group_hom (completion.extension f) :=
-have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
-{ map_add := assume a b, completion.induction_on₂ a b
-  (is_closed_eq
-    (continuous_extension.comp continuous_add)
-    ((continuous_extension.comp continuous_fst).add (continuous_extension.comp continuous_snd)))
-  (assume a b, by rw_mod_cast [extension_coe hf, extension_coe hf, extension_coe hf, is_add_hom.map_add f]) }
-
-lemma is_add_group_hom_map
-  {f : α → β} [is_add_group_hom f] (hf : continuous f) : is_add_group_hom (completion.map f) :=
-@is_add_group_hom_extension _ _ _ _ _ _ _ _ _ _ _ (is_add_group_hom.comp _ _)
-  ((continuous_coe _).comp hf)
-
-instance {α : Type u} [uniform_space α] [add_comm_group α] [uniform_add_group α] : add_comm_group (completion α) :=
+instance {α : Type u} [uniform_space α] [add_comm_group α] [uniform_add_group α] :
+  add_comm_group (completion α) :=
 { add_comm  := assume a b, completion.induction_on₂ a b
-    (is_closed_eq (continuous_map₂ continuous_fst continuous_snd) (continuous_map₂ continuous_snd continuous_fst))
+    (is_closed_eq (continuous_map₂ continuous_fst continuous_snd)
+      (continuous_map₂ continuous_snd continuous_fst))
     (assume x y, by { change ↑x + ↑y = ↑y + ↑x, rw [← coe_add, ← coe_add, add_comm]}),
   .. completion.add_group }
 end uniform_add_group
 
-
 end uniform_space.completion
+
+open uniform_space uniform_space.completion
+
+variables {G H : Type*} [uniform_space G] [add_group G] [uniform_add_group G]
+  [uniform_space H] [add_group H] [uniform_add_group H]
+
+/-- Extend an additive monoid homomorphism with a complete separated codimain to the
+completion of the codomain. -/
+def add_monoid_hom.uniform_extension [complete_space H] [separated_space H] (f : G →+ H)
+  (hf : continuous f) : completion G →+ H :=
+add_monoid_hom.mk' (completion.extension f) $
+have hf : uniform_continuous f, from f.uniform_continuous_of_continuous hf,
+assume a b, completion.induction_on₂ a b
+(is_closed_eq
+  (continuous_extension.comp continuous_add)
+  ((continuous_extension.comp continuous_fst).add (continuous_extension.comp continuous_snd)))
+(assume a b, by rw_mod_cast [extension_coe hf, extension_coe hf, extension_coe hf, f.map_add])
+
+@[simp] lemma add_monoid_hom.coe_uniform_extension [complete_space H] [separated_space H]
+  (f : G →+ H) (hf : continuous f) :
+  ⇑(f.uniform_extension hf) = completion.extension f :=
+rfl
+
+/-- A uniform continuous additive monoid homomorphism between uniform additive groups
+defined a uniform continuous additive monoid homomorphism between their completions. -/
+def add_monoid_hom.map_uniform_extension (f : G →+ H) (hf : continuous f) :
+  completion G →+ completion H :=
+(coe_add_hom.comp f).uniform_extension $ (continuous_coe _).comp hf

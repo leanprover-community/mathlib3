@@ -457,18 +457,18 @@ nonempty_subtype.2 (no_bot a)
 class densely_ordered (α : Type u) [preorder α] : Prop :=
 (dense : ∀a₁ a₂:α, a₁ < a₂ → ∃a, a₁ < a ∧ a < a₂)
 
-lemma dense [preorder α] [densely_ordered α] : ∀{a₁ a₂:α}, a₁ < a₂ → ∃a, a₁ < a ∧ a < a₂ :=
+lemma exists_between [preorder α] [densely_ordered α] : ∀{a₁ a₂:α}, a₁ < a₂ → ∃a, a₁ < a ∧ a < a₂ :=
 densely_ordered.dense
 
 instance order_dual.densely_ordered (α : Type u) [preorder α] [densely_ordered α] :
   densely_ordered (order_dual α) :=
-⟨λ a₁ a₂ ha, (@dense α _ _ _ _ ha).imp $ λ a, and.symm⟩
+⟨λ a₁ a₂ ha, (@exists_between α _ _ _ _ ha).imp $ λ a, and.symm⟩
 
 lemma le_of_forall_le_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}
   (h : ∀a₃>a₂, a₁ ≤ a₃) :
   a₁ ≤ a₂ :=
 le_of_not_gt $ assume ha,
-  let ⟨a, ha₁, ha₂⟩ := dense ha in
+  let ⟨a, ha₁, ha₂⟩ := exists_between ha in
   lt_irrefl a $ lt_of_lt_of_le ‹a < a₁› (h _ ‹a₂ < a›)
 
 lemma eq_of_le_of_forall_le_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}
@@ -479,7 +479,7 @@ lemma le_of_forall_ge_of_dense [linear_order α] [densely_ordered α] {a₁ a₂
   (h : ∀a₃<a₁, a₃ ≤ a₂) :
   a₁ ≤ a₂ :=
 le_of_not_gt $ assume ha,
-  let ⟨a, ha₁, ha₂⟩ := dense ha in
+  let ⟨a, ha₁, ha₂⟩ := exists_between ha in
   lt_irrefl a $ lt_of_le_of_lt (h _ ‹a < a₁›) ‹a₂ < a›
 
 lemma eq_of_le_of_forall_ge_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}

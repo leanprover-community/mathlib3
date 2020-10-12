@@ -12,6 +12,7 @@ a proof that every natural number is the sum of four square numbers.
 
 The proof used is close to Lagrange's original proof.
 -/
+import algebra.group_power.identities
 import data.zmod.basic
 import field_theory.finite.basic
 import data.int.parity
@@ -24,9 +25,9 @@ namespace int
 
 lemma sum_two_squares_of_two_mul_sum_two_squares {m x y : ℤ} (h : 2 * m =  x^2 + y^2) :
   m = ((x - y) / 2) ^ 2 + ((x + y) / 2) ^ 2 :=
-have (x^2 + y^2).even, by simp [h.symm, even_mul],
-have hxaddy : (x + y).even, by simpa [pow_two] with parity_simps,
-have hxsuby : (x - y).even, by simpa [pow_two] with parity_simps,
+have even (x^2 + y^2), by simp [h.symm, even_mul],
+have hxaddy : even (x + y), by simpa [pow_two] with parity_simps,
+have hxsuby : even (x - y), by simpa [pow_two] with parity_simps,
 have (x^2 + y^2) % 2 = 0, by simp [h.symm],
 (mul_right_inj' (show (2*2 : ℤ) ≠ 0, from dec_trivial)).1 $
 calc 2 * 2 * m = (x - y)^2 + (x + y)^2 : by rw [mul_assoc, h]; ring
@@ -201,14 +202,13 @@ have n / min_fac n < n := factors_lemma,
 let ⟨a, b, c, d, h₁⟩ := show ∃ a b c d : ℤ, a^2 + b^2 + c^2 + d^2 = min_fac n,
   by exactI prime_sum_four_squares (min_fac (k+2)) in
 let ⟨w, x, y, z, h₂⟩ := sum_four_squares (n / min_fac n) in
-⟨(a * x - b * w - c * z + d * y).nat_abs,
- (a * y + b * z - c * w - d * x).nat_abs,
- (a * z - b * y + c * x - d * w).nat_abs,
- (a * w + b * x + c * y + d * z).nat_abs,
+⟨(a * w - b * x - c * y - d * z).nat_abs,
+ (a * x + b * w + c * z - d * y).nat_abs,
+ (a * y - b * z + c * w + d * x).nat_abs,
+ (a * z + b * y - c * x + d * w).nat_abs,
   begin
     rw [← int.coe_nat_inj', ← nat.mul_div_cancel' (min_fac_dvd (k+2)), int.coe_nat_mul, ← h₁, ← h₂],
-    simp,
-    ring
+    simp [sum_four_sq_mul_sum_four_sq],
   end⟩
 
 end nat

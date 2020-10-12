@@ -2,14 +2,58 @@
 Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
-
-In the standard library we cannot assume the univalence axiom.
-We say two types are equivalent if they are isomorphic.
-
-Two equivalent types have the same cardinality.
 -/
 import data.set.function
 import algebra.group.basic
+
+/-!
+# Equivalence between types
+
+In this file we define two types:
+
+* `equiv α β` a.k.a. `α ≃ β`: a bijective map `α → β` bundled with its inverse map; we use this (and
+  not equality!) to express that various `Type`s or `Sort`s are equivalent.
+
+* `equiv.perm α`: the group of permutations `α ≃ α`.
+
+Then we define
+
+* canonical isomorphisms between various types: e.g.,
+
+  - `equiv.refl α` is the identity map interpreted as `α ≃ α`;
+
+  - `equiv.sum_equiv_sigma_bool` is the canonical equivalence between the sum of two types `α ⊕ β`
+    and the sigma-type `Σ b : bool, cond b α β`;
+
+  - `equiv.prod_sum_distrib : α × (β ⊕ γ) ≃ (α × β) ⊕ (α × γ)` shows that type product and type sum
+    satisfy the distributive law up to a canonical equivalence;
+
+* operations on equivalences: e.g.,
+
+  - `equiv.symm e : β ≃ α` is the inverse of `e : α ≃ β`;
+
+  - `equiv.trans e₁ e₂ : α ≃ γ` is the composition of `e₁ : α ≃ β` and `e₂ : β ≃ γ` (note the order
+    of the arguments!);
+
+  - `equiv.prod_congr ea eb : α₁ × β₁ ≃ α₂ × β₂`: combine two equivalences `ea : α₁ ≃ α₂` and
+    `eb : β₁ ≃ β₂` using `prod.map`.
+
+* definitions that transfer some instances along an equivalence. By convention, we transfer
+  instances from right to left.
+
+  - `equiv.inhabited` takes `e : α ≃ β` and `[inhabited β]` and returns `inhabited α`;
+  - `equiv.unique` takes `e : α ≃ β` and `[unique β]` and returns `unique α`;
+  - `equiv.decidable_eq` takes `e : α ≃ β` and `[decidable_eq β]` and returns `decidable_eq α`.
+
+  More definitions of this kind can be found in other files. E.g., `data/equiv/transfer_instance`
+  does it for many algebraic type classes like `group`, `module`, etc.
+
+* group structure on `equiv.perm α`. More lemmas about `equiv.perm` can be found in `data/equiv/perm`.
+
+## Tags
+
+equivalence, congruence, bijective map
+-/
 
 open function
 
@@ -64,6 +108,8 @@ ext_iff
 /-- Any type is equivalent to itself. -/
 @[refl] protected def refl (α : Sort*) : α ≃ α := ⟨id, id, λ x, rfl, λ x, rfl⟩
 
+instance inhabited' : inhabited (α ≃ α) := ⟨equiv.refl α⟩
+
 /-- Inverse of an equivalence `e : α ≃ β`. -/
 @[symm] protected def symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun, e.right_inv, e.left_inv⟩
 
@@ -91,7 +137,7 @@ protected theorem bijective (f : α ≃ β) : bijective f :=
 set.eq_univ_of_forall e.surjective
 
 protected theorem subsingleton (e : α ≃ β) [subsingleton β] : subsingleton α :=
-e.injective.comap_subsingleton
+e.injective.subsingleton
 
 /-- Transfer `decidable_eq` across an equivalence. -/
 protected def decidable_eq (e : α ≃ β) [decidable_eq β] : decidable_eq α :=
@@ -136,10 +182,10 @@ e.left_inv x
 @[simp] lemma symm_trans_apply (f : α ≃ β) (g : β ≃ γ) (a : γ) :
   (f.trans g).symm a = f.symm (g.symm a) := rfl
 
-@[simp] theorem apply_eq_iff_eq (f : α ≃ β) (x y : α) : f x = f y ↔ x = y :=
+@[simp] theorem apply_eq_iff_eq (f : α ≃ β) {x y : α} : f x = f y ↔ x = y :=
 f.injective.eq_iff
 
-theorem apply_eq_iff_eq_symm_apply {α β : Sort*} (f : α ≃ β) (x : α) (y : β) :
+theorem apply_eq_iff_eq_symm_apply {α β : Sort*} (f : α ≃ β) {x : α} {y : β} :
   f x = y ↔ x = f.symm y :=
 begin
   conv_lhs { rw ←apply_symm_apply f y, },
@@ -198,7 +244,9 @@ protected lemma image_compl {α β} (f : equiv α β) (s : set α) :
   f '' sᶜ = (f '' s)ᶜ :=
 set.image_compl_eq f.bijective
 
-/- The group of permutations (self-equivalences) of a type `α` -/
+/-!
+### The group of permutations (self-equivalences) of a type `α`
+-/
 
 namespace perm
 
@@ -540,7 +588,7 @@ def pempty_sum (α : Sort*) : pempty ⊕ α ≃ α :=
 @[simp] lemma pempty_sum_apply_inr {α} (a) : pempty_sum α (sum.inr a) = a := rfl
 
 /-- `option α` is equivalent to `α ⊕ punit` -/
-def option_equiv_sum_punit (α : Sort*) : option α ≃ α ⊕ punit.{u+1} :=
+def option_equiv_sum_punit (α : Type*) : option α ≃ α ⊕ punit.{u+1} :=
 ⟨λ o, match o with none := inr punit.star | some a := inl a end,
  λ s, match s with inr _ := none | inl a := some a end,
  λ o, by cases o; refl,
@@ -549,6 +597,14 @@ def option_equiv_sum_punit (α : Sort*) : option α ≃ α ⊕ punit.{u+1} :=
 @[simp] lemma option_equiv_sum_punit_none {α} : option_equiv_sum_punit α none = sum.inr () := rfl
 @[simp] lemma option_equiv_sum_punit_some {α} (a) :
   option_equiv_sum_punit α (some a) = sum.inl a := rfl
+
+@[simp] lemma option_equiv_sum_punit_symm_inl {α} (a) :
+  (option_equiv_sum_punit α).symm (sum.inl a) = a :=
+rfl
+
+@[simp] lemma option_equiv_sum_punit_symm_inr {α} (a) :
+  (option_equiv_sum_punit α).symm (sum.inr a) = none :=
+rfl
 
 /-- The set of `x : option α` such that `is_some x` is equivalent to `α`. -/
 def option_is_some_equiv (α : Type*) : {x : option α // x.is_some} ≃ α :=
@@ -904,6 +960,20 @@ def bool_prod_equiv_sum (α : Type u) : bool × α ≃ α ⊕ α :=
 calc bool × α ≃ (unit ⊕ unit) × α       : prod_congr bool_equiv_punit_sum_punit (equiv.refl _)
       ...     ≃ (unit × α) ⊕ (unit × α) : sum_prod_distrib _ _ _
       ...     ≃ α ⊕ α                   : sum_congr (punit_prod _) (punit_prod _)
+
+/-- The function type `bool → α` is equivalent to `α × α`. -/
+def bool_to_equiv_prod (α : Type u) : (bool → α) ≃ α × α :=
+calc (bool → α) ≃ ((unit ⊕ unit) → α) : (arrow_congr bool_equiv_punit_sum_punit (equiv.refl α))
+     ...        ≃ (unit → α) × (unit → α) : sum_arrow_equiv_prod_arrow _ _ _
+     ...        ≃ α × α : prod_congr (punit_arrow_equiv _) (punit_arrow_equiv _)
+
+@[simp] lemma bool_to_equiv_prod_apply {α : Type u} (f : bool → α) :
+  bool_to_equiv_prod α f = (f ff, f tt) := rfl
+@[simp] lemma bool_to_equiv_prod_symm_apply_ff {α : Type u} (p : α × α) :
+  (bool_to_equiv_prod α).symm p ff = p.1 := rfl
+@[simp] lemma bool_to_equiv_prod_symm_apply_tt {α : Type u} (p : α × α) :
+  (bool_to_equiv_prod α).symm p tt = p.2 := rfl
+
 end
 
 section
@@ -1344,6 +1414,10 @@ of_bijective (λ x, ⟨f x, set.mem_range_self x⟩) ⟨λ x y hxy, hf $ by inje
   of_injective f hf x = ⟨f x, set.mem_range_self x⟩ :=
 rfl
 
+/-- Subtype of the quotient is equivalent to the quotient of the subtype. Let `α` be a setoid with
+equivalence relation `~`. Let `p₂` be a predicate on the quotient type `α/~`, and `p₁` be the lift
+of this predicate to `α`: `p₁ a ↔ p₂ ⟦a⟧`. Let `~₂` be the restriction of `~` to `{x // p₁ x}`.
+Then `{x // p₂ x}` is equivalent to the quotient of `{x // p₁ x}` by `~₂`. -/
 def subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid α]
   [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ :  ∀ a, p₁ a ↔ p₂ ⟦a⟧)
   (h : ∀ x y : subtype p₁, @setoid.r _ s₂ x y ↔ (x : α) ≈ y) :

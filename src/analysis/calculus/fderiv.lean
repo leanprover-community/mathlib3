@@ -570,6 +570,13 @@ begin
   exact fderiv_within_inter (mem_nhds_sets hs hx) (unique_diff_on_univ _ (mem_univ _))
 end
 
+lemma fderiv_within_eq_fderiv (hs : unique_diff_within_at 𝕜 s x) (h : differentiable_at 𝕜 f x) :
+  fderiv_within 𝕜 f s x = fderiv 𝕜 f x :=
+begin
+  rw ← fderiv_within_univ,
+  exact fderiv_within_subset (subset_univ _) hs h.differentiable_within_at
+end
+
 end fderiv_properties
 
 section continuous
@@ -773,7 +780,7 @@ differentiable_id.differentiable_on
 lemma fderiv_id : fderiv 𝕜 id x = id 𝕜 E :=
 has_fderiv_at.fderiv (has_fderiv_at_id x)
 
-lemma fderiv_id' : fderiv 𝕜 (λ (x : E), x) x = continuous_linear_map.id 𝕜 E :=
+@[simp] lemma fderiv_id' : fderiv 𝕜 (λ (x : E), x) x = continuous_linear_map.id 𝕜 E :=
 fderiv_id
 
 lemma fderiv_within_id (hxs : unique_diff_within_at 𝕜 s x) :
@@ -817,7 +824,7 @@ differentiable_at.differentiable_within_at (differentiable_at_const _)
 lemma fderiv_const_apply (c : F) : fderiv 𝕜 (λy, c) x = 0 :=
 has_fderiv_at.fderiv (has_fderiv_at_const c x)
 
-lemma fderiv_const (c : F) : fderiv 𝕜 (λ (y : E), c) = 0 :=
+@[simp] lemma fderiv_const (c : F) : fderiv 𝕜 (λ (y : E), c) = 0 :=
 by { ext m, rw fderiv_const_apply, refl }
 
 lemma fderiv_within_const_apply (c : F) (hxs : unique_diff_within_at 𝕜 s x) :
@@ -1907,6 +1914,47 @@ h.continuous.comp (continuous_const.prod_mk continuous_id)
 
 end bilinear_map
 
+namespace continuous_linear_equiv
+
+/-!
+### The set of continuous linear equivalences between two Banach spaces is open
+
+In this section we establish that the set of continuous linear equivalences between two Banach
+spaces is an open subset of the space of linear maps between them.  These facts are placed here
+because the proof uses `is_bounded_bilinear_map.continuous`, proved just above as a consequence
+of its differentiability.
+-/
+
+protected lemma is_open [complete_space E] : is_open (range (coe : (E ≃L[𝕜] F) → (E →L[𝕜] F))) :=
+begin
+  rw [is_open_iff_mem_nhds, forall_range_iff],
+  refine λ e, mem_nhds_sets _ (mem_range_self _),
+  let O : (E →L[𝕜] F) → (E →L[𝕜] E) := λ f, (e.symm : F →L[𝕜] E).comp f,
+  cases subsingleton_or_nontrivial E with _i _i; resetI,
+  { exact is_open_discrete _ },
+  have h_O : continuous O,
+  { have h_e_symm : continuous (λ (x : E →L[𝕜] F), (e.symm : F →L[𝕜] E)) := continuous_const,
+    exact is_bounded_bilinear_map_comp.continuous.comp (continuous_id.prod_mk h_e_symm) },
+  convert units.is_open.preimage h_O using 1,
+  ext f',
+  split,
+  { rintros ⟨e', rfl⟩,
+    let w : units (E →L[𝕜] E) := continuous_linear_equiv.to_unit (e'.trans e.symm),
+    exact ⟨w, rfl⟩ },
+  { rintros ⟨w, hw⟩,
+    let e' : E ≃L[𝕜] E := continuous_linear_equiv.of_unit w,
+    use e'.trans e,
+    ext x,
+    have he'w : e' x = w x := rfl,
+    simp [hw, he'w] }
+end
+
+protected lemma nhds [complete_space E] (e : E ≃L[𝕜] F) :
+  (range (coe : (E ≃L[𝕜] F) → (E →L[𝕜] F))) ∈ 𝓝 (e : E →L[𝕜] F) :=
+mem_nhds_sets continuous_linear_equiv.is_open (by simp)
+
+end continuous_linear_equiv
+
 section smul
 /-! ### Derivative of the product of a scalar-valued function and a vector-valued function -/
 
@@ -2343,6 +2391,17 @@ begin
     rintros p hp,
     simp only [(∘), hp, hfg.self_of_nhds] }
 end
+
+
+/-- If `f` is a local homeomorphism defined on a neighbourhood of `f.symm a`, and `f` has an
+invertible derivative `f'` at `f.symm a`, then `f.symm` has the derivative `f'⁻¹` at `a`.
+
+This is one of the easy parts of the inverse function theorem: it assumes that we already have
+an inverse function. -/
+lemma has_fderiv_at.of_local_homeomorph {f : local_homeomorph E F} {f' : E ≃L[𝕜] F} {a : F}
+  (ha : a ∈ f.target) (htff' : has_fderiv_at f (f' : E →L[𝕜] F) (f.symm a)) :
+  has_fderiv_at f.symm (f'.symm : F →L[𝕜] E) a :=
+htff'.of_local_left_inverse (f.symm.continuous_at ha) (f.eventually_right_inverse ha)
 
 end
 

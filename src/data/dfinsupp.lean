@@ -219,7 +219,7 @@ rfl
 
 @[simp] lemma subtype_domain_apply [Π i, has_zero (β i)] {p : ι → Prop} [decidable_pred p]
   {i : subtype p} {v : Π₀ i, β i} :
-  (subtype_domain p v) i = v (i.val) :=
+  (subtype_domain p v) i = v i :=
 quotient.induction_on v $ λ x, rfl
 
 @[simp] lemma subtype_domain_add [Π i, add_monoid (β i)] {p : ι → Prop} [decidable_pred p]
@@ -580,15 +580,13 @@ by ext i; by_cases h1 : p i; by_cases h2 : f i ≠ 0;
 by ext i; by_cases h : p i; simp [h]
 
 lemma subtype_domain_def (f : Π₀ i, β i) :
-  f.subtype_domain p = mk (f.support.subtype p) (λ i, f i.1) :=
-by ext i; cases i with i hi;
-by_cases h1 : p i; by_cases h2 : f i ≠ 0;
-try {simp at h2}; dsimp; simp [h1, h2]
+  f.subtype_domain p = mk (f.support.subtype p) (λ i, f i) :=
+by ext i; by_cases h1 : p i; by_cases h2 : f i ≠ 0;
+try {simp at h2}; dsimp; simp [h1, h2, ← subtype.val_eq_coe]
 
 @[simp] lemma support_subtype_domain {f : Π₀ i, β i} :
   (subtype_domain p f).support = f.support.subtype p :=
-by ext i; cases i with i hi;
-by_cases h1 : p i; by_cases h2 : f i ≠ 0;
+by ext i; by_cases h1 : p i; by_cases h2 : f i ≠ 0;
 try {simp at h2}; dsimp; simp [h1, h2]
 
 end filter_and_subtype_domain
@@ -790,10 +788,9 @@ end
 lemma prod_subtype_domain_index [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [comm_monoid γ] {v : Π₀ i, β i} {p : ι → Prop} [decidable_pred p]
   {h : Π i, β i → γ} (hp : ∀ x ∈ v.support, p x) :
-  (v.subtype_domain p).prod (λi b, h i.1 b) = v.prod h :=
-finset.prod_bij (λp _, p.val)
-  (by { dsimp, simp })
-  (by simp)
+  (v.subtype_domain p).prod (λi b, h i b) = v.prod h :=
+finset.prod_bij (λp _, p)
+  (by simp) (by simp)
   (assume ⟨a₀, ha₀⟩ ⟨a₁, ha₁⟩, by simp)
   (λ i hi, ⟨⟨i, hp i hi⟩, by simpa using hi, rfl⟩)
 

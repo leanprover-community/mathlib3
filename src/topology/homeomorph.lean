@@ -10,6 +10,7 @@ open set
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 /-- Homeomorphism between `α` and `β`, also called topological isomorphism -/
+@[nolint has_inhabited_instance] -- not all spaces are homeomorphic to each other
 structure homeomorph (α : Type*) (β : Type*) [topological_space α] [topological_space β]
   extends α ≃ β :=
 (continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')

@@ -321,6 +321,12 @@ theorem le_add_one_iff {i j : ℕ} : i ≤ j + 1 ↔ (i ≤ j ∨ i = j + 1) :=
   end,
   or.rec (assume h, le_trans h $ nat.le_add_right _ _) le_of_eq⟩
 
+lemma add_succ_lt_add {a b c d : ℕ} (hab : a < b) (hcd : c < d) : a + c + 1 < b + d :=
+begin
+  rw add_assoc,
+  exact add_lt_add_of_lt_of_le hab (nat.succ_le_iff.2 hcd)
+end
+
 /-! ### `pred` -/
 
 @[simp]
@@ -1366,6 +1372,10 @@ by { convert bit1_lt_bit0_iff, refl, }
 @[simp] lemma bit_le_bit1_iff : ∀ {b : bool}, bit b k ≤ bit1 n ↔ k ≤ n
 | ff := bit0_le_bit1_iff
 | tt := bit1_le_bit1
+
+@[simp] lemma bit0_mod_two : bit0 n % 2 = 0 := by { rw nat.mod_two_of_bodd, simp }
+
+@[simp] lemma bit1_mod_two : bit1 n % 2 = 1 := by { rw nat.mod_two_of_bodd, simp }
 
 lemma pos_of_bit0_pos {n : ℕ} (h : 0 < bit0 n) : 0 < n :=
 by { cases n, cases h, apply succ_pos, }

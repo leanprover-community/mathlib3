@@ -34,10 +34,17 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 
 namespace finset
 
-/-- `∏ x in s, f x` is the product of `f x` as `x` ranges over the elements of the finite set `s`. -/
+/--
+`∏ x in s, f x` is the product of `f x`
+as `x` ranges over the elements of the finite set `s`.
+-/
 @[to_additive "`∑ x in s, f` is the sum of `f x` as `x` ranges over the elements
 of the finite set `s`."]
 protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1.map f).prod
+
+@[simp, to_additive] lemma prod_mk [comm_monoid β] (s : multiset α) (hs) (f : α → β) :
+  (⟨s, hs⟩ : finset α).prod f = (s.map f).prod :=
+rfl
 
 end finset
 
@@ -62,11 +69,15 @@ In practice, this means that parentheses should be placed as follows:
 (Example taken from page 490 of Knuth's *Concrete Mathematics*.)
 -/
 
-localized "notation `∑` binders `, ` r:(scoped:67 f, finset.sum finset.univ f) := r" in big_operators
-localized "notation `∏` binders `, ` r:(scoped:67 f, finset.prod finset.univ f) := r" in big_operators
+localized "notation `∑` binders `, ` r:(scoped:67 f, finset.sum finset.univ f) := r"
+  in big_operators
+localized "notation `∏` binders `, ` r:(scoped:67 f, finset.prod finset.univ f) := r"
+  in big_operators
 
-localized "notation `∑` binders ` in ` s `, ` r:(scoped:67 f, finset.sum s f) := r" in big_operators
-localized "notation `∏` binders ` in ` s `, ` r:(scoped:67 f, finset.prod s f) := r" in big_operators
+localized "notation `∑` binders ` in ` s `, ` r:(scoped:67 f, finset.sum s f) := r"
+  in big_operators
+localized "notation `∏` binders ` in ` s `, ` r:(scoped:67 f, finset.prod s f) := r"
+  in big_operators
 
 open_locale big_operators
 
@@ -77,7 +88,9 @@ variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
   ∏ x in s, f x = (s.1.map f).prod := rfl
 
 @[to_additive]
-theorem prod_eq_fold [comm_monoid β] (s : finset α) (f : α → β) : (∏ x in s, f x) = s.fold (*) 1 f := rfl
+theorem prod_eq_fold [comm_monoid β] (s : finset α) (f : α → β) :
+  (∏ x in s, f x) = s.fold (*) 1 f :=
+rfl
 
 end finset
 
@@ -109,8 +122,7 @@ lemma ring_hom.map_multiset_sum [semiring β] [semiring γ] (f : β →+* γ) (s
   f s.sum = (s.map f).sum :=
 f.to_add_monoid_hom.map_multiset_sum s
 
-lemma ring_hom.map_prod [comm_semiring β] [comm_semiring γ]
-  (g : β →+* γ) (f : α → β) (s : finset α) :
+lemma ring_hom.map_prod [comm_semiring β] [comm_semiring γ] (g : β →+* γ) (f : α → β) (s : finset α) :
   g (∏ x in s, f x) = ∏ x in s, g (f x) :=
 g.to_monoid_hom.map_prod f s
 
@@ -133,10 +145,11 @@ lemma prod_insert [decidable_eq α] :
   a ∉ s → (∏ x in (insert a s), f x) = f a * ∏ x in s, f x := fold_insert
 
 /--
-The product of `f` over `insert a s` is the same as the product over `s`, as long as `a` is in `s` or `f a = 1`.
+The product of `f` over `insert a s` is the same as
+the product over `s`, as long as `a` is in `s` or `f a = 1`.
 -/
-@[simp, to_additive "The sum of `f` over `insert a s` is the same as the sum over `s`, as long as `a` is in `s` or `f a = 0`.
-"]
+@[simp, to_additive "The sum of `f` over `insert a s` is the same as
+the sum over `s`, as long as `a` is in `s` or `f a = 0`."]
 lemma prod_insert_of_eq_one_if_not_mem [decidable_eq α] (h : a ∉ s → f a = 1) :
   ∏ x in insert a s, f x = ∏ x in s, f x :=
 begin
@@ -148,7 +161,8 @@ end
 /--
 The product of `f` over `insert a s` is the same as the product over `s`, as long as `f a = 1`.
 -/
-@[simp, to_additive "The sum of `f` over `insert a s` is the same as the sum over `s`, as long as `f a = 0`."]
+@[simp, to_additive "The sum of `f` over `insert a s` is the same as
+the sum over `s`, as long as `f a = 0`."]
 lemma prod_insert_one [decidable_eq α] (h : f a = 1) :
   ∏ x in insert a s, f x = ∏ x in s, f x :=
 prod_insert_of_eq_one_if_not_mem (λ _, h)
@@ -216,7 +230,8 @@ end
 
 @[to_additive]
 lemma prod_bind [decidable_eq α] {s : finset γ} {t : γ → finset α} :
-  (∀x∈s, ∀y∈s, x ≠ y → disjoint (t x) (t y)) → (∏ x in (s.bind t), f x) = ∏ x in s, ∏ i in t x, f i :=
+  (∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint (t x) (t y)) →
+  (∏ x in (s.bind t), f x) = ∏ x in s, ∏ i in t x, f i :=
 by haveI := classical.dec_eq γ; exact
 finset.induction_on s (λ _, by simp only [bind_empty, prod_empty])
   (assume x s hxs ih hd,
@@ -309,7 +324,8 @@ lemma prod_hom_rel [comm_monoid γ] {r : β → γ → Prop} {f : α → β} {g 
 by { delta finset.prod, apply multiset.prod_hom_rel; assumption }
 
 @[to_additive]
-lemma prod_subset (h : s₁ ⊆ s₂) (hf : ∀x∈s₂, x ∉ s₁ → f x = 1) : (∏ x in s₁, f x) = ∏ x in s₂, f x :=
+lemma prod_subset (h : s₁ ⊆ s₂) (hf : ∀ x ∈ s₂, x ∉ s₁ → f x = 1) :
+  (∏ x in s₁, f x) = ∏ x in s₂, f x :=
 by haveI := classical.dec_eq α; exact
 have ∏ x in s₂ \ s₁, f x = ∏ x in s₂ \ s₁, 1,
   from prod_congr rfl $ by simpa only [mem_sdiff, and_imp],
@@ -427,7 +443,8 @@ calc ∏ x in s, h (if hx : p x then f x hx else g x hx)
   {p : α → Prop} {hp : decidable_pred p} (f g : α → γ) (h : γ → β) :
   (∏ x in s, h (if p x then f x else g x)) =
   (∏ x in s.filter p, h (f x)) * (∏ x in s.filter (λ x, ¬ p x), h (g x)) :=
-trans (prod_apply_dite _ _ _) (congr_arg2 _ (@prod_attach _ _ _ _ (h ∘ f)) (@prod_attach _ _ _ _ (h ∘ g)))
+trans (prod_apply_dite _ _ _)
+  (congr_arg2 _ (@prod_attach _ _ _ _ (h ∘ f)) (@prod_attach _ _ _ _ (h ∘ g)))
 
 @[to_additive] lemma prod_dite {s : finset α} {p : α → Prop} {hp : decidable_pred p}
   (f : Π (x : α), p x → β) (g : Π (x : α), ¬p x → β) :
@@ -532,7 +549,8 @@ calc (∏ x in s, f x) = ∏ x in (s.filter $ λx, f x ≠ 1), f x : prod_filter
         ⟨hi₁ a h₁ h₂, λ hg, h₂ (hg ▸ h a h₁ h₂)⟩)
       (assume a ha, (mem_filter.mp ha).elim $ h a)
       (assume a₁ a₂ ha₁ ha₂,
-        (mem_filter.mp ha₁).elim $ λha₁₁ ha₁₂, (mem_filter.mp ha₂).elim $ λha₂₁ ha₂₂, hi₂ a₁ a₂ _ _ _ _)
+        (mem_filter.mp ha₁).elim $ λ ha₁₁ ha₁₂,
+          (mem_filter.mp ha₂).elim $ λ ha₂₁ ha₂₂, hi₂ a₁ a₂ _ _ _ _)
       (assume b hb, (mem_filter.mp hb).elim $ λh₁ h₂,
         let ⟨a, ha₁, ha₂, eq⟩ := hi₃ b h₁ h₂ in ⟨a, mem_filter.mpr ⟨ha₁, ha₂⟩, eq⟩)
   ... = (∏ x in t, g x) : prod_filter_ne_one
@@ -589,24 +607,35 @@ lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
 attribute [to_additive finset.sum_range_one] prod_range_one
 
 open multiset
-lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
-  s.prod = ∏ m in s.to_finset, m ^ (s.count m) :=
+
+lemma prod_multiset_map_count [decidable_eq α] (s : multiset α)
+  {M : Type*} [comm_monoid M] (f : α → M) :
+  (s.map f).prod = ∏ m in s.to_finset, (f m) ^ (s.count m) :=
 begin
-  apply s.induction_on, { rw [prod_zero, to_finset_zero, finset.prod_empty] },
-  intros a s ih, by_cases has : a ∈ s.to_finset,
-  { rw [prod_cons, to_finset_cons, finset.insert_eq_of_mem has, ih,
-      ← finset.insert_erase has, finset.prod_insert (finset.not_mem_erase _ _),
-      finset.prod_insert (finset.not_mem_erase _ _), ← mul_assoc, count_cons_self, pow_succ],
-    congr' 1, refine finset.prod_congr rfl (λ x hx, _), rw [count_cons_of_ne (finset.ne_of_mem_erase hx)] },
-  rw [prod_cons, to_finset_cons, finset.prod_insert has, count_cons_self],
-  rw mem_to_finset at has, rw [count_eq_zero_of_not_mem has, pow_one], congr' 1,
-  rw ih, refine finset.prod_congr rfl (λ x hx, _), rw mem_to_finset at hx, rw count_cons_of_ne,
+  apply s.induction_on, { simp only [prod_const_one, count_zero, prod_zero, pow_zero, map_zero] },
+  intros a s ih,
+  simp only [prod_cons, map_cons, to_finset_cons, ih],
+  by_cases has : a ∈ s.to_finset,
+  { rw [insert_eq_of_mem has, ← insert_erase has, prod_insert (not_mem_erase _ _),
+        prod_insert (not_mem_erase _ _), ← mul_assoc, count_cons_self, pow_succ],
+    congr' 1, refine prod_congr rfl (λ x hx, _),
+    rw [count_cons_of_ne (ne_of_mem_erase hx)] },
+  rw [prod_insert has, count_cons_self, count_eq_zero_of_not_mem (mt mem_to_finset.2 has), pow_one],
+  congr' 1, refine prod_congr rfl (λ x hx, _),
+  rw count_cons_of_ne,
   rintro rfl, exact has hx
 end
 
-/-- To prove a property of a product, it suffices to prove that the property is multiplicative and holds on factors.
+lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
+  s.prod = ∏ m in s.to_finset, m ^ (s.count m) :=
+by { convert prod_multiset_map_count s id, rw map_id }
+
+/--
+To prove a property of a product, it suffices to prove that
+the property is multiplicative and holds on factors.
 -/
-@[to_additive "To prove a property of a sum, it suffices to prove that the property is additive and holds on summands."]
+@[to_additive "To prove a property of a sum, it suffices to prove that
+the property is additive and holds on summands."]
 lemma prod_induction {M : Type*} [comm_monoid M] (f : α → M) (p : M → Prop)
 (p_mul : ∀ a b, p a → p b → p (a * b)) (p_one : p 1) (p_s : ∀ x ∈ s, p $ f x) :
 p $ ∏ x in s, f x :=
@@ -618,7 +647,8 @@ begin
   apply hs, intros a ha, apply p_s, simp [ha],
 end
 
-/-- For any product along `{0, ..., n-1}` of a commutative-monoid-valued function, we can verify that
+/--
+For any product along `{0, ..., n-1}` of a commutative-monoid-valued function, we can verify that
 it's equal to a different function just by checking ratios of adjacent terms.
 This is a multiplicative discrete analogue of the fundamental theorem of calculus. -/
 lemma prod_range_induction {M : Type*} [comm_monoid M]
@@ -630,9 +660,13 @@ begin
   { simp only [hk, finset.prod_range_succ, h, mul_comm] }
 end
 
-/-- For any sum along `{0, ..., n-1}` of a commutative-monoid-valued function, we can verify that it's equal
-to a different function just by checking differences of adjacent terms. This is a discrete analogue
-of the fundamental theorem of calculus. -/
+/--
+For any sum along `{0, ..., n-1}` of a commutative-monoid-valued function,
+we can verify that it's equal to a different function
+just by checking differences of adjacent terms.
+This is a discrete analogue
+of the fundamental theorem of calculus.
+-/
 lemma sum_range_induction {M : Type*} [add_comm_monoid M]
   (f s : ℕ → M) (h0 : s 0 = 0) (h : ∀ n, s (n + 1) = s n + f n) (n : ℕ) :
   ∑ k in finset.range n, f k = s n :=
@@ -660,8 +694,11 @@ lemma prod_range_div' {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
   ∏ i in range n, (f i * (f (i+1))⁻¹) = (f 0) * (f n)⁻¹ :=
 by apply @sum_range_sub' (additive M)
 
-/-- A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function reduces to the difference of
-the last and first terms when the function we are summing is monotone. -/
+/--
+A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function
+reduces to the difference of the last and first terms
+when the function we are summing is monotone.
+-/
 lemma sum_range_sub_of_monotone {f : ℕ → ℕ} (h : monotone f) (n : ℕ) :
   ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
 begin
@@ -769,7 +806,8 @@ by { convert s.prod_inter_mul_prod_diff {i} f, simp [h] }
 lemma prod_cancels_of_partition_cancels (R : setoid α) [decidable_rel R.r]
   (h : ∀ x ∈ s, (∏ a in s.filter (λy, y ≈ x), f a) = 1) : (∏ x in s, f x) = 1 :=
 begin
-  suffices : ∏ xbar in s.image quotient.mk, ∏ y in s.filter (λ y, ⟦y⟧ = xbar), f y = (∏ x in s, f x),
+  suffices : ∏ xbar in s.image quotient.mk, ∏ y in s.filter (λ y, ⟦y⟧ = xbar),
+    f y = (∏ x in s, f x),
   { rw [←this, ←finset.prod_eq_one],
     intros xbar xbar_in_s,
     rcases (mem_image).mp xbar_in_s with ⟨x, x_in_s, xbar_eq_x⟩,
@@ -1034,6 +1072,16 @@ end comm_group_with_zero
 
 end finset
 
+namespace list
+
+@[to_additive] lemma prod_to_finset {M : Type*} [decidable_eq α] [comm_monoid M]
+  (f : α → M) : ∀ {l : list α} (hl : l.nodup), l.to_finset.prod f = (l.map f).prod
+| [] _ := by simp
+| (a :: l) hl := let ⟨not_mem, hl⟩ := list.nodup_cons.mp hl in
+  by simp [finset.prod_insert (mt list.mem_to_finset.mp not_mem), prod_to_finset hl]
+
+end list
+
 namespace multiset
 variables [decidable_eq α]
 
@@ -1090,3 +1138,15 @@ begin
 end
 
 end multiset
+
+@[simp, norm_cast] lemma nat.coe_prod {R : Type*} [comm_semiring R]
+  (f : α → ℕ) (s : finset α) : (↑∏ i in s, f i : R) = ∏ i in s, f i :=
+(nat.cast_ring_hom R).map_prod _ _
+
+@[simp, norm_cast] lemma int.coe_prod {R : Type*} [comm_ring R]
+  (f : α → ℤ) (s : finset α) : (↑∏ i in s, f i : R) = ∏ i in s, f i :=
+(int.cast_ring_hom R).map_prod _ _
+
+@[simp, norm_cast] lemma units.coe_prod {M : Type*} [comm_monoid M]
+  (f : α → units M) (s : finset α) : (↑∏ i in s, f i : M) = ∏ i in s, f i :=
+(units.coe_hom M).map_prod _ _

@@ -10,14 +10,14 @@ import topology.uniform_space.abstract_completion
 
 The goal is to construct a left-adjoint to the inclusion of complete Hausdorff uniform spaces
 into all uniform spaces. Any uniform space `α` gets a completion `completion α` and a morphism
-(ie. uniformly continuous map) `completion : α → completion α` which solves the universal
+(ie. uniformly continuous map) `coe : α → completion α` which solves the universal
 mapping problem of factorizing morphisms from `α` to any complete Hausdorff uniform space `β`.
 It means any uniformly continuous `f : α → β` gives rise to a unique morphism
-`completion.extension f : completion α → β` such that `f = completion.extension f ∘ completion α`.
+`completion.extension f : completion α → β` such that `f = completion.extension f ∘ coe`.
 Actually `completion.extension f` is defined for all maps from `α` to `β` but it has the desired
 properties only if `f` is uniformly continuous.
 
-Beware that `completion α` is not injective if `α` is not Hausdorff. But its image is always
+Beware that `coe` is not injective if `α` is not Hausdorff. But its image is always
 dense. The adjoint functor acting on morphisms is then constructed by the usual abstract nonsense.
 For every uniform spaces `α` and `β`, it turns `f : α → β` into a morphism
   `completion.map f : completion α → completion β`
@@ -138,7 +138,7 @@ theorem mem_uniformity' {s : set (Cauchy α × Cauchy α)} :
   s ∈ 𝓤 (Cauchy α) ↔ ∃ t ∈ 𝓤 α, ∀ f g : Cauchy α, t ∈ f.1 ×ᶠ g.1 → (f, g) ∈ s :=
 mem_uniformity.trans $ bex_congr $ λ t h, prod.forall
 
-/-- Embedding of `α` into its completion -/
+/-- Embedding of `α` into its completion `Cauchy α` -/
 def pure_cauchy (a : α) : Cauchy α :=
 ⟨pure a, cauchy_pure⟩
 
@@ -172,7 +172,8 @@ have h_ex : ∀ s ∈ 𝓤 (Cauchy α), ∃y:α, (f, pure_cauchy y) ∈ s, from
         ht'₂ $ prod_mk_mem_comp_rel (@h (a, x) ⟨h₁, hx⟩) h₂⟩,
   ⟨x, ht''₂ $ by dsimp [gen]; exact this⟩,
 begin
-  simp [closure_eq_cluster_pts, cluster_pt, nhds_eq_uniformity, lift'_inf_principal_eq, set.inter_comm],
+  simp only [closure_eq_cluster_pts, cluster_pt, nhds_eq_uniformity, lift'_inf_principal_eq,
+    set.inter_comm _ (range pure_cauchy), mem_set_of_eq],
   exact (lift'_ne_bot_iff $ monotone_inter monotone_const monotone_preimage).mpr
     (assume s hs,
       let ⟨y, hy⟩ := h_ex s hs in
@@ -399,6 +400,11 @@ variable {α}
 lemma dense_inducing_coe : dense_inducing (coe : α → completion α) :=
 { dense := dense,
   ..(uniform_inducing_coe α).inducing }
+
+open topological_space
+
+instance separable_space_completion [separable_space α] : separable_space (completion α) :=
+completion.dense_inducing_coe.separable
 
 lemma dense_embedding_coe [separated_space α]: dense_embedding (coe : α → completion α) :=
 { inj := separated_pure_cauchy_injective,

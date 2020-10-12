@@ -30,7 +30,7 @@ variables [semiring R] {p q r : polynomial R}
 lemma monic.as_sum {p : polynomial R} (hp : p.monic) :
   p = X^(p.nat_degree) + (∑ i in finset.range p.nat_degree, C (p.coeff i) * X^i) :=
 begin
-  conv_lhs { rw [p.as_sum, finset.sum_range_succ] },
+  conv_lhs { rw [p.as_sum_range, finset.sum_range_succ] },
   suffices : C (p.coeff p.nat_degree) = 1,
   { rw [this, one_mul] },
   exact congr_arg C hp

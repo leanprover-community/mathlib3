@@ -389,6 +389,15 @@ lemma times_cont_mdiff.mdifferentiable (hf : times_cont_mdiff I I' n f) (hn : 1 
   mdifferentiable I I' f :=
 λ x, (hf x).mdifferentiable_at hn
 
+lemma smooth.mdifferentiable (hf : smooth I I' f) : mdifferentiable I I' f :=
+times_cont_mdiff.mdifferentiable hf le_top
+
+lemma smooth.mdifferentiable_at (hf : smooth I I' f) : mdifferentiable_at I I' f x :=
+hf.mdifferentiable x
+
+lemma smooth.mdifferentiable_within_at (hf : smooth I I' f) : mdifferentiable_within_at I I' f s x :=
+hf.mdifferentiable_at.mdifferentiable_within_at
+
 /-! ### `C^∞` smoothness -/
 
 lemma times_cont_mdiff_within_at_top :
@@ -1243,6 +1252,35 @@ lemma smooth_within_at_proj
     Z.to_topological_fiber_bundle_core.proj s p :=
 Z.times_cont_mdiff_within_at_proj
 
+/-- If an element of `E'` is invariant under all coordinate changes, then one can define a
+corresponding section of the fiber bundle, which is smooth. This applies in particular to the
+zero section of a vector bundle. Another example (not yet defined) would be the identity 
+section of the endomorphism bundle of a vector bundle. -/
+lemma smooth_const_section (v : E')
+  (h : ∀ (i j : atlas H M), ∀ x ∈ i.1.source ∩ j.1.source, Z.coord_change i j (i.1 x) v = v) :
+  smooth I ((I.prod (model_with_corners_self 𝕜 E')))
+    (show M → Z.to_topological_fiber_bundle_core.total_space, from λ x, ⟨x, v⟩) :=
+begin
+  assume x,
+  rw [times_cont_mdiff_at, times_cont_mdiff_within_at_iff],
+  split,
+  { apply continuous.continuous_within_at,
+    apply topological_fiber_bundle_core.continuous_const_section,
+    assume i j y hy,
+    exact h _ _ _ hy },
+  { have : times_cont_diff 𝕜 ⊤ (λ (y : E), (y, v)) := times_cont_diff_id.prod times_cont_diff_const,
+    apply this.times_cont_diff_within_at.congr,
+    { assume y hy,
+      simp only with mfld_simps at hy,
+      simp only [chart, hy, chart_at, prod.mk.inj_iff, to_topological_fiber_bundle_core]
+        with mfld_simps,
+      apply h,
+      simp only [hy] with mfld_simps },
+    { simp only [chart, chart_at, prod.mk.inj_iff, to_topological_fiber_bundle_core] with mfld_simps,
+      apply h,
+      simp only with mfld_simps } }
+end
+
 end basic_smooth_bundle_core
 
 /-! ### Smoothness of the tangent bundle projection -/
@@ -1286,6 +1324,65 @@ lemma smooth_within_at_proj
   smooth_within_at I.tangent I
     (proj I M) s p :=
 basic_smooth_bundle_core.smooth_within_at_proj _
+
+variables (I M)
+/-- The zero section of the tangent bundle -/
+def zero_section : M → tangent_bundle I M := λ x, ⟨x, 0⟩
+variables {I M}
+
+lemma smooth_zero_section : smooth I I.tangent (zero_section I M) :=
+begin
+  apply basic_smooth_bundle_core.smooth_const_section (tangent_bundle_core I M) 0,
+  assume i j x hx,
+  simp only [tangent_bundle_core, continuous_linear_map.map_zero] with mfld_simps
+end
+
+/-- The derivative of the zero section of the tangent bundle maps `⟨x, v⟩` to `⟨⟨x, 0⟩, ⟨v, 0⟩⟩`.
+
+Note that, as currently framed, this is a statement in coordinates, thus reliant on the choice 
+of the coordinate system we use on the tangent bundle.
+
+However, the result itself is coordinate-dependent only to the extent that the coordinates
+determine a splitting of the tangent bundle.  Moreover, there is a canonical splitting at each
+point of the zero section (since there is a canonical horizontal space there, the tangent space 
+to the zero section, in addition to the canonical vertical space which is the kernel of the 
+derivative of the projection), and this canonical splitting is also the one that comes from the
+coordinates on the tangent bundle in our definitions. So this statement is not as crazy as it
+may seem.
+
+TODO define splittings of vector bundles; state this result invariantly. -/
+lemma tangent_map_tangent_bundle_pure (p : tangent_bundle I M) :
+  tangent_map I I.tangent (tangent_bundle.zero_section I M) p = ⟨⟨p.1, 0⟩, ⟨p.2, 0⟩⟩ :=
+begin
+  rcases p with ⟨x, v⟩,
+  have N : I.symm ⁻¹' (chart_at H x).target ∈ 𝓝 (I ((chart_at H x) x)),
+  { apply mem_nhds_sets,
+    apply I.continuous_inv_fun _ (local_homeomorph.open_target _),
+    simp only with mfld_simps },
+  have A : mdifferentiable_at I I.tangent (λ (x : M), (⟨x, 0⟩ : tangent_bundle I M)) x :=
+    tangent_bundle.smooth_zero_section.mdifferentiable_at,
+  have B : fderiv_within 𝕜 (λ (x_1 : E), (x_1, (0 : E))) (set.range ⇑I) (I ((chart_at H x) x)) v
+    = (v, 0),
+  { rw [fderiv_within_eq_fderiv, differentiable_at.fderiv_prod],
+    { simp },
+    { exact differentiable_at_id' },
+    { exact differentiable_at_const _ },
+    { exact model_with_corners.unique_diff_at_image I },
+    { exact differentiable_at_id'.prod (differentiable_at_const _) } },
+  simp only [tangent_bundle.zero_section, tangent_map, mfderiv,
+    A, dif_pos, chart_at, basic_smooth_bundle_core.chart,
+    basic_smooth_bundle_core.to_topological_fiber_bundle_core, tangent_bundle_core,
+    function.comp, continuous_linear_map.map_zero] with mfld_simps,
+  rw ← fderiv_within_inter N (I.unique_diff (I ((chart_at H x) x)) (set.mem_range_self _)) at B,
+  rw [← fderiv_within_inter N (I.unique_diff (I ((chart_at H x) x)) (set.mem_range_self _)), ← B],
+  congr' 1,
+  apply fderiv_within_congr _ (λ y hy, _),
+  { simp only with mfld_simps, },
+  { apply unique_diff_within_at.inter (I.unique_diff _ _) N,
+    simp only with mfld_simps },
+  { simp only with mfld_simps at hy,
+    simp only [hy] with mfld_simps },
+end
 
 end tangent_bundle
 

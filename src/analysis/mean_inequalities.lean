@@ -145,7 +145,7 @@ theorem pow_arith_mean_le_arith_mean_pow (w z : ι → ℝ) (hw : ∀ i ∈ s, 0
 (convex_on_pow n).map_sum_le hw hw' hz
 
 theorem pow_arith_mean_le_arith_mean_pow_of_even (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
-  (hw' : ∑ i in s, w i = 1) {n : ℕ} (hn : n.even) :
+  (hw' : ∑ i in s, w i = 1) {n : ℕ} (hn : even n) :
   (∑ i in s, w i * z i) ^ n ≤ ∑ i in s, (w i * z i ^ n) :=
 (convex_on_pow_of_even hn).map_sum_le hw hw' (λ _ _, trivial)
 

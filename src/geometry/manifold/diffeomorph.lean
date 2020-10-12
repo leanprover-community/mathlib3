@@ -69,9 +69,10 @@ instance : has_coe_to_fun (M ≃ₘ^n⟮I, I'⟯ M') := ⟨λ _, M → M', λe, 
 
 instance : has_coe (M ≃ₘ^n⟮I, I'⟯ M') C^n⟮I, M; I', M'⟯ := ⟨λ Φ, ⟨Φ, Φ.times_cont_mdiff_to_fun⟩⟩
 
-protected lemma continuous (h : M ≃ₘ^n⟮I, I'⟯ M') : continuous h := h.times_cont_mdiff_to_fun.continuous
+protected lemma continuous (h : M ≃ₘ^n⟮I, I'⟯ M') : continuous h :=
+h.times_cont_mdiff_to_fun.continuous
 protected lemma times_cont_mdiff (h : M ≃ₘ^n⟮I, I'⟯ M') : times_cont_mdiff I I' n h :=
-  h.times_cont_mdiff_to_fun
+h.times_cont_mdiff_to_fun
 protected lemma smooth (h : M ≃ₘ⟮I, I'⟯ M') : smooth I I' h := h.times_cont_mdiff_to_fun
 
 

@@ -186,7 +186,7 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
     start from a set `s` which is ε-dense in α. Then the subsets of `s`
     are finitely many, and ε-dense for the Hausdorff distance. -/
   refine compact_of_totally_bounded_is_closed (emetric.totally_bounded_iff.2 (λε εpos, _)) is_closed_univ,
-  rcases dense εpos with ⟨δ, δpos, δlt⟩,
+  rcases exists_between εpos with ⟨δ, δpos, δlt⟩,
   rcases emetric.totally_bounded_iff.1 (compact_iff_totally_bounded_complete.1 (@compact_univ α _ _)).1 δ δpos
     with ⟨s, fs, hs⟩,
   -- s : set α,  fs : finite s,  hs : univ ⊆ ⋃ (y : α) (H : y ∈ s), eball y δ
@@ -318,7 +318,7 @@ begin
       apply subtype.val_injective.inj_on },
     { refine subset.antisymm (subset_univ _) (λt ht, mem_closure_iff.2 (λε εpos, _)),
       -- t is a compact nonempty set, that we have to approximate uniformly by a a set in `v`.
-      rcases dense εpos with ⟨δ, δpos, δlt⟩,
+      rcases exists_between εpos with ⟨δ, δpos, δlt⟩,
       -- construct a map F associating to a point in α an approximating point in s, up to δ/2.
       have Exy : ∀x, ∃y, y ∈ s ∧ edist x y < δ/2,
       { assume x,

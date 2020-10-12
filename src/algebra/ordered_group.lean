@@ -1557,16 +1557,32 @@ section decidable_linear_ordered_cancel_add_comm_monoid
 variables [decidable_linear_ordered_cancel_add_comm_monoid α]
 
 lemma min_add_add_left (a b c : α) : min (a + b) (a + c) = a + min b c :=
-((monotone_id.const_add a).map_min b c).symm
+eq.symm (eq_min
+  (show a + min b c ≤ a + b, from add_le_add_left (min_le_left _ _)  _)
+  (show a + min b c ≤ a + c, from add_le_add_left (min_le_right _ _)  _)
+  (assume d,
+    assume : d ≤ a + b,
+    assume : d ≤ a + c,
+    decidable.by_cases
+      (assume : b ≤ c, by rwa [min_eq_left this])
+      (assume : ¬ b ≤ c, by rwa [min_eq_right (le_of_lt (lt_of_not_ge this))])))
 
 lemma min_add_add_right (a b c : α) : min (a + c) (b + c) = min a b + c :=
-((monotone_id.add_const c).map_min a b).symm
+begin rw [add_comm a c, add_comm b c, add_comm _ c], apply min_add_add_left end
 
 lemma max_add_add_left (a b c : α) : max (a + b) (a + c) = a + max b c :=
-((monotone_id.const_add a).map_max b c).symm
+eq.symm (eq_max
+  (add_le_add_left (le_max_left _ _)  _)
+  (add_le_add_left (le_max_right _ _) _)
+  (assume d,
+    assume : a + b ≤ d,
+    assume : a + c ≤ d,
+    decidable.by_cases
+      (assume : b ≤ c, by rwa [max_eq_right this])
+      (assume : ¬ b ≤ c, by rwa [max_eq_left (le_of_lt (lt_of_not_ge this))])))
 
 lemma max_add_add_right (a b c : α) : max (a + c) (b + c) = max a b + c :=
-((monotone_id.add_const c).map_max a b).symm
+begin rw [add_comm a c, add_comm b c, add_comm _ c], apply max_add_add_left end
 
 end decidable_linear_ordered_cancel_add_comm_monoid
 
@@ -1598,7 +1614,15 @@ lemma decidable_linear_ordered_add_comm_group.add_lt_add_left
 ordered_add_comm_group.add_lt_add_left a b h c
 
 lemma max_neg_neg (a b : α) : max (-a) (-b) = - min a b  :=
-eq.symm $ @monotone.map_min α (order_dual α) _ _ has_neg.neg (λ x y, neg_le_neg) a b
+eq.symm (eq_max
+  (show -a ≤ -(min a b), from neg_le_neg $ min_le_left a b)
+  (show -b ≤ -(min a b), from neg_le_neg $ min_le_right a b)
+  (assume d,
+    assume H₁ : -a ≤ d,
+    assume H₂ : -b ≤ d,
+    have H : -d ≤ min a b,
+      from le_min (neg_le_of_neg_le  H₁) (neg_le_of_neg_le H₂),
+    show -(min a b) ≤ d, from neg_le_of_neg_le H))
 
 lemma min_eq_neg_max_neg_neg (a b : α) : min a b = - max (-a) (-b) :=
 by rw [max_neg_neg, neg_neg]
@@ -1608,18 +1632,6 @@ by rw [min_eq_neg_max_neg_neg, neg_neg, neg_neg]
 
 lemma max_eq_neg_min_neg_neg (a b : α) : max a b = - min (-a) (-b) :=
 by rw [min_neg_neg, neg_neg]
-
-lemma max_sub_sub_right (a b c : α) : max (a - c) (b - c) = max a b - c :=
-max_add_add_right _ _ _
-
-lemma min_sub_sub_right (a b c : α) : min (a - c) (b - c) = min a b - c :=
-min_add_add_right _ _ _
-
-lemma max_sub_sub_left (a b c : α) : max (a - b) (a - c) = a - min b c :=
-by simp only [sub_eq_add_neg, max_add_add_left, max_neg_neg]
-
-lemma min_sub_sub_left (a b c : α) : min (a - b) (a - c) = a - max b c :=
-by simp only [sub_eq_add_neg, min_add_add_left, min_neg_neg]
 
 /-- `abs a` is the absolute value of `a`. -/
 def abs (a : α) : α := max a (-a)

@@ -54,8 +54,6 @@ open function
 preorder, order, partial order, linear order, monotone, strictly monotone
 -/
 
-attribute [simp] max_eq_left max_eq_right min_eq_left min_eq_right
-
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
@@ -121,14 +119,6 @@ end
 lemma monotone.reflect_lt {α β} [linear_order α] [preorder β] {f : α → β} (hf : monotone f)
   {x x' : α} (h : f x < f x') : x < x' :=
 by { rw [← not_le], intro h', apply not_le_of_lt h, exact hf h' }
-
-lemma monotone.map_max {α β} [decidable_linear_order α] [decidable_linear_order β] {f : α → β}
-  (hf : monotone f) (a b : α) : f (max a b) = max (f a) (f b) :=
-by cases le_total a b; simp [h, hf h]
-
-lemma monotone.map_min {α β} [decidable_linear_order α] [decidable_linear_order β] {f : α → β}
-  (hf : monotone f) (a b : α) : f (min a b) = min (f a) (f b) :=
-by cases le_total a b; simp [h, hf h]
 
 end monotone
 

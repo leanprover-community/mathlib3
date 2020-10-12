@@ -20,6 +20,8 @@ min, max, abs
 universes u v
 variables {α : Type u} {β : Type v}
 
+attribute [simp] max_eq_left max_eq_right min_eq_left min_eq_right
+
 section
 variables [decidable_linear_order α] [decidable_linear_order β] {f : α → β} {a b c d : α}
 
@@ -85,6 +87,12 @@ left_comm max max_comm max_assoc a b c
 theorem max.right_comm (a b c : α) : max (max a b) c = max (max a c) b :=
 right_comm max max_comm max_assoc a b c
 
+lemma monotone.map_max (hf : monotone f) : f (max a b) = max (f a) (f b) :=
+by cases le_total a b; simp [h, hf h]
+
+lemma monotone.map_min (hf : monotone f) : f (min a b) = min (f a) (f b) :=
+by cases le_total a b; simp [h, hf h]
+
 theorem min_choice (a b : α) : min a b = a ∨ min a b = b :=
 by by_cases h : a ≤ b; simp [min, h]
 
@@ -98,6 +106,10 @@ lemma le_of_max_le_right {a b c : α} (h : max a b ≤ c) : b ≤ c :=
 le_trans (le_max_right _ _) h
 
 end
+
+lemma min_sub {α : Type u} [decidable_linear_ordered_add_comm_group α] (a b c : α) :
+      min a b - c = min (a - c) (b - c) :=
+by simp only [min_add_add_right, sub_eq_add_neg]
 
 /- Some lemmas about types that have an ordering and a binary operation, with no
   rules relating them. -/
@@ -212,16 +224,16 @@ section decidable_linear_ordered_semiring
 variables [decidable_linear_ordered_semiring α] {a b c d : α}
 
 lemma mul_max_of_nonneg (b c : α) (ha : 0 ≤ a) : a * max b c = max (a * b) (a * c) :=
-(monotone_mul_left_of_nonneg ha).map_max _ _
+(monotone_mul_left_of_nonneg ha).map_max
 
 lemma mul_min_of_nonneg (b c : α) (ha : 0 ≤ a) : a * min b c = min (a * b) (a * c) :=
-(monotone_mul_left_of_nonneg ha).map_min _ _
+(monotone_mul_left_of_nonneg ha).map_min
 
 lemma max_mul_of_nonneg (a b : α) (hc : 0 ≤ c) : max a b * c = max (a * c) (b * c) :=
-(monotone_mul_right_of_nonneg hc).map_max _ _
+(monotone_mul_right_of_nonneg hc).map_max
 
 lemma min_mul_of_nonneg (a b : α) (hc : 0 ≤ c) : min a b * c = min (a * c) (b * c) :=
-(monotone_mul_right_of_nonneg hc).map_min _ _
+(monotone_mul_right_of_nonneg hc).map_min
 
 end decidable_linear_ordered_semiring
 

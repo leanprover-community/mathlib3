@@ -374,7 +374,7 @@ complex.linear_map.im.convex_ge r
 include E
 
 lemma affine_subspace.convex (K : affine_subspace ℝ PE) : convex (↑K : set PE) :=
-λ x hx y hy a ha, K.smul_vsub_vadd_mem a y x x hy hx hx
+λ x hx y hy a ha, K.smul_vsub_vadd_mem a hy hx hx
 
 lemma submodule.convex (K : submodule ℝ E) : convex (↑K : set E) :=
 K.to_affine_subspace.convex

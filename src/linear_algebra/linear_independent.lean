@@ -741,7 +741,7 @@ lemma linear_independent.option (hv : linear_independent K v)
   linear_independent K (λ o, option.cases_on' o x v : option ι → V) :=
 linear_independent_option'.2 ⟨hv, hx⟩
 
-lemma linear_independent_option [nontrivial K] {v : option ι → V} :
+lemma linear_independent_option {v : option ι → V} :
   linear_independent K v ↔
     linear_independent K (v ∘ coe : ι → V) ∧ v none ∉ submodule.span K (range (v ∘ coe : ι → V)) :=
 by simp only [← linear_independent_option', option.cases_on'_none_coe]

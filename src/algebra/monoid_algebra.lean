@@ -42,6 +42,7 @@ open finset finsupp
 universes u₁ u₂ u₃
 variables (k : Type u₁) (G : Type u₂)
 
+/-! ### Multiplicative monoids -/
 section
 variables [semiring k]
 
@@ -58,9 +59,10 @@ end
 namespace monoid_algebra
 
 variables {k G}
-local attribute [reducible] monoid_algebra
 
-section
+/-! #### Semiring structure -/
+section semiring
+
 variables [semiring k] [monoid G]
 
 /-- The product of `f g : monoid_algebra k G` is the finitely supported function
@@ -72,43 +74,6 @@ instance : has_mul (monoid_algebra k G) :=
 lemma mul_def {f g : monoid_algebra k G} :
   f * g = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ * a₂) (b₁ * b₂)) :=
 rfl
-
-lemma mul_apply (f g : monoid_algebra k G) (x : G) :
-  (f * g) x = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, if a₁ * a₂ = x then b₁ * b₂ else 0) :=
-begin
-  rw [mul_def],
-  simp only [finsupp.sum_apply, single_apply],
-end
-
-lemma mul_apply_antidiagonal (f g : monoid_algebra k G) (x : G) (s : finset (G × G))
-  (hs : ∀ {p : G × G}, p ∈ s ↔ p.1 * p.2 = x) :
-  (f * g) x = ∑ p in s, (f p.1 * g p.2) :=
-let F : G × G → k := λ p, if p.1 * p.2 = x then f p.1 * g p.2 else 0 in
-calc (f * g) x = (∑ a₁ in f.support, ∑ a₂ in g.support, F (a₁, a₂)) :
-  mul_apply f g x
-... = ∑ p in f.support.product g.support, F p : finset.sum_product.symm
-... = ∑ p in (f.support.product g.support).filter (λ p : G × G, p.1 * p.2 = x), f p.1 * g p.2 :
-  (finset.sum_filter _ _).symm
-... = ∑ p in s.filter (λ p : G × G, p.1 ∈ f.support ∧ p.2 ∈ g.support), f p.1 * g p.2 :
-  sum_congr (by { ext, simp only [mem_filter, mem_product, hs, and_comm] }) (λ _ _, rfl)
-... = ∑ p in s, f p.1 * g p.2 : sum_subset (filter_subset _) $ λ p hps hp,
-  begin
-    simp only [mem_filter, mem_support_iff, not_and, not_not] at hp ⊢,
-    by_cases h1 : f p.1 = 0,
-    { rw [h1, zero_mul] },
-    { rw [hp hps h1, mul_zero] }
-  end
-
-end
-
-section
-variables [semiring k] [monoid G]
-
-lemma support_mul (a b : monoid_algebra k G) :
-  (a * b).support ⊆ a.support.bind (λa₁, b.support.bind $ λa₂, {a₁ * a₂}) :=
-subset.trans support_sum $ bind_mono $ assume a₁ _,
-  subset.trans support_sum $ bind_mono $ assume a₂ _, support_single_subset
-
 /-- The unit of the multiplication is `single 1 1`, i.e. the function
   that is `1` at `1` and zero elsewhere. -/
 instance : has_one (monoid_algebra k G) :=
@@ -137,6 +102,78 @@ instance : semiring (monoid_algebra k G) :=
     single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
     sum_add],
   .. finsupp.add_comm_monoid }
+
+end semiring
+
+instance [comm_semiring k] [comm_monoid G] : comm_semiring (monoid_algebra k G) :=
+{ mul_comm := assume f g,
+  begin
+    simp only [mul_def, finsupp.sum, mul_comm],
+    rw [finset.sum_comm],
+    simp only [mul_comm]
+  end,
+  .. monoid_algebra.semiring }
+
+/-! #### Derived instances -/
+section derived_instances
+
+instance [ring k] : add_group (monoid_algebra k G) :=
+finsupp.add_group
+
+instance [ring k] [monoid G] : ring (monoid_algebra k G) :=
+{ neg := has_neg.neg,
+  add_left_neg := add_left_neg,
+  .. monoid_algebra.semiring }
+
+instance [comm_ring k] [comm_monoid G] : comm_ring (monoid_algebra k G) :=
+{ mul_comm := mul_comm, .. monoid_algebra.ring}
+
+instance {R : Type*} [semiring R] [semiring k] [semimodule R k] : has_scalar R (monoid_algebra k G) :=
+finsupp.has_scalar
+
+instance {R : Type*} [semiring R] [semiring k] [semimodule R k] : semimodule R (monoid_algebra k G) :=
+finsupp.semimodule G k
+
+instance [group G] [semiring k] : distrib_mul_action G (monoid_algebra k G) :=
+finsupp.comap_distrib_mul_action_self
+
+end derived_instances
+
+section misc_theorems
+
+variables [semiring k] [monoid G]
+local attribute [reducible] monoid_algebra
+
+lemma mul_apply (f g : monoid_algebra k G) (x : G) :
+  (f * g) x = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, if a₁ * a₂ = x then b₁ * b₂ else 0) :=
+begin
+  rw [mul_def],
+  simp only [finsupp.sum_apply, single_apply],
+end
+
+lemma mul_apply_antidiagonal (f g : monoid_algebra k G) (x : G) (s : finset (G × G))
+  (hs : ∀ {p : G × G}, p ∈ s ↔ p.1 * p.2 = x) :
+  (f * g) x = ∑ p in s, (f p.1 * g p.2) :=
+let F : G × G → k := λ p, if p.1 * p.2 = x then f p.1 * g p.2 else 0 in
+calc (f * g) x = (∑ a₁ in f.support, ∑ a₂ in g.support, F (a₁, a₂)) :
+  mul_apply f g x
+... = ∑ p in f.support.product g.support, F p : finset.sum_product.symm
+... = ∑ p in (f.support.product g.support).filter (λ p : G × G, p.1 * p.2 = x), f p.1 * g p.2 :
+  (finset.sum_filter _ _).symm
+... = ∑ p in s.filter (λ p : G × G, p.1 ∈ f.support ∧ p.2 ∈ g.support), f p.1 * g p.2 :
+  sum_congr (by { ext, simp only [mem_filter, mem_product, hs, and_comm] }) (λ _ _, rfl)
+... = ∑ p in s, f p.1 * g p.2 : sum_subset (filter_subset _) $ λ p hps hp,
+  begin
+    simp only [mem_filter, mem_support_iff, not_and, not_not] at hp ⊢,
+    by_cases h1 : f p.1 = 0,
+    { rw [h1, zero_mul] },
+    { rw [hp hps h1, mul_zero] }
+  end
+
+lemma support_mul (a b : monoid_algebra k G) :
+  (a * b).support ⊆ a.support.bind (λa₁, b.support.bind $ λa₂, {a₁ * a₂}) :=
+subset.trans support_sum $ bind_mono $ assume a₁ _,
+  subset.trans support_sum $ bind_mono $ assume a₂ _, support_single_subset
 
 @[simp] lemma single_mul_single {a₁ a₂ : G} {b₁ b₂ : k} :
   (single a₁ b₁ : monoid_algebra k G) * single a₂ b₂ = single (a₁ * a₂) (b₁ * b₂) :=
@@ -193,33 +230,13 @@ lemma single_one_mul_apply (f : monoid_algebra k G) (r : k) (x : G) :
   (single 1 r * f) x = r * f x :=
 f.single_mul_apply_aux $ λ a, by rw [one_mul]
 
-end
+end misc_theorems
 
-instance [comm_semiring k] [comm_monoid G] : comm_semiring (monoid_algebra k G) :=
-{ mul_comm := assume f g,
-  begin
-    simp only [mul_def, finsupp.sum, mul_comm],
-    rw [finset.sum_comm],
-    simp only [mul_comm]
-  end,
-  .. monoid_algebra.semiring }
 
-instance [ring k] : has_neg (monoid_algebra k G) :=
-by apply_instance
+/-! #### Algebra structure -/
+section algebra
 
-instance [ring k] [monoid G] : ring (monoid_algebra k G) :=
-{ neg := has_neg.neg,
-  add_left_neg := add_left_neg,
-  .. monoid_algebra.semiring }
-
-instance [comm_ring k] [comm_monoid G] : comm_ring (monoid_algebra k G) :=
-{ mul_comm := mul_comm, .. monoid_algebra.ring}
-
-instance {R : Type*} [semiring R] [semiring k] [semimodule R k] : has_scalar R (monoid_algebra k G) :=
-finsupp.has_scalar
-
-instance {R : Type*} [semiring R] [semiring k] [semimodule R k] : semimodule R (monoid_algebra k G) :=
-finsupp.semimodule G k
+local attribute [reducible] monoid_algebra
 
 lemma single_one_comm [comm_semiring k] [monoid G] (r : k) (f : monoid_algebra k G) :
   single 1 r * f = f * single 1 r :=
@@ -264,13 +281,12 @@ lemma single_algebra_map_eq_algebra_map_mul_of {A : Type*} [comm_semiring k] [se
   single a (algebra_map k A b) = (algebra_map k (monoid_algebra A G) : k → monoid_algebra A G) b * of A G a :=
 by simp
 
-instance [group G] [semiring k] :
-  distrib_mul_action G (monoid_algebra k G) :=
-finsupp.comap_distrib_mul_action_self
+end algebra
 
 section lift
 
 variables (k G) [comm_semiring k] [monoid G] (A : Type u₃) [semiring A] [algebra k A]
+local attribute [reducible] monoid_algebra
 
 /-- Any monoid homomorphism `G →* A` can be lifted to an algebra homomorphism
 `monoid_algebra k G →ₐ[k] A`. -/
@@ -350,6 +366,7 @@ lemma alg_hom_ext ⦃φ₁ φ₂ : monoid_algebra k G →ₐ[k] A⦄
 end lift
 
 section
+local attribute [reducible] monoid_algebra
 
 variables (k)
 /-- When `V` is a `k[G]`-module, multiplication by a group element `g` is a `k`-linear map. -/
@@ -400,8 +417,10 @@ rfl
 end
 end
 
+section
 universe ui
 variable {ι : Type ui}
+local attribute [reducible] monoid_algebra
 
 lemma prod_single [comm_semiring k] [comm_monoid G]
   {s : finset ι} {a : ι → G} {b : ι → k} :
@@ -409,8 +428,11 @@ lemma prod_single [comm_semiring k] [comm_monoid G]
 finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
   single_mul_single, prod_insert has, prod_insert has]
 
+end
+
 section -- We now prove some additional statements that hold for group algebras.
 variables [semiring k] [group G]
+local attribute [reducible] monoid_algebra
 
 @[simp]
 lemma mul_single_apply (f : monoid_algebra k G) (r : k) (x y : G) :
@@ -440,6 +462,7 @@ end
 
 end monoid_algebra
 
+/-! ### Additive monoids -/
 section
 variables [semiring k]
 
@@ -456,9 +479,10 @@ end
 namespace add_monoid_algebra
 
 variables {k G}
-local attribute [reducible] add_monoid_algebra
 
-section
+/-! #### Semiring structure -/
+section semiring
+
 variables [semiring k] [add_monoid G]
 
 /-- The product of `f g : add_monoid_algebra k G` is the finitely supported function
@@ -471,18 +495,6 @@ instance : has_mul (add_monoid_algebra k G) :=
 lemma mul_def {f g : add_monoid_algebra k G} :
   f * g = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ + a₂) (b₁ * b₂)) :=
 rfl
-
-lemma mul_apply (f g : add_monoid_algebra k G) (x : G) :
-  (f * g) x = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, if a₁ + a₂ = x then b₁ * b₂ else 0) :=
-begin
-  rw [mul_def],
-  simp only [finsupp.sum_apply, single_apply],
-end
-
-lemma support_mul (a b : add_monoid_algebra k G) :
-  (a * b).support ⊆ a.support.bind (λa₁, b.support.bind $ λa₂, {a₁ + a₂}) :=
-subset.trans support_sum $ bind_mono $ assume a₁ _,
-  subset.trans support_sum $ bind_mono $ assume a₂ _, support_single_subset
 
 /-- The unit of the multiplication is `single 1 1`, i.e. the function
   that is `1` at `0` and zero elsewhere. -/
@@ -512,6 +524,61 @@ instance : semiring (add_monoid_algebra k G) :=
     single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
     sum_add],
   .. finsupp.add_comm_monoid }
+
+end semiring
+
+instance [comm_semiring k] [add_comm_monoid G] : comm_semiring (add_monoid_algebra k G) :=
+{ mul_comm := assume f g,
+  begin
+    simp only [mul_def, finsupp.sum, mul_comm],
+    rw [finset.sum_comm],
+    simp only [add_comm]
+  end,
+  .. add_monoid_algebra.semiring }
+ 
+/-! #### Derived instances -/
+section derived_instances
+
+instance [ring k] : add_group (add_monoid_algebra k G) :=
+finsupp.add_group
+
+instance [ring k] [add_monoid G] : ring (add_monoid_algebra k G) :=
+{ neg := has_neg.neg,
+  add_left_neg := add_left_neg,
+  .. add_monoid_algebra.semiring }
+
+instance [comm_ring k] [add_comm_monoid G] : comm_ring (add_monoid_algebra k G) :=
+{ mul_comm := mul_comm, .. add_monoid_algebra.ring}
+
+variables {R : Type*}
+
+instance [semiring R] [semiring k] [semimodule R k] : has_scalar R (add_monoid_algebra k G) :=
+finsupp.has_scalar
+
+instance [semiring R] [semiring k] [semimodule R k] : semimodule R (add_monoid_algebra k G) :=
+finsupp.semimodule G k
+
+/-! It is hard to state the equivalent of `distrib_mul_action G (add_monoid_algebra k G)`
+because we've never discussed actions of additive groups. -/
+
+end derived_instances
+
+section misc_theorems
+
+variables [semiring k] [add_monoid G]
+local attribute [reducible] add_monoid_algebra
+
+lemma mul_apply (f g : add_monoid_algebra k G) (x : G) :
+  (f * g) x = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, if a₁ + a₂ = x then b₁ * b₂ else 0) :=
+begin
+  rw [mul_def],
+  simp only [finsupp.sum_apply, single_apply],
+end
+
+lemma support_mul (a b : add_monoid_algebra k G) :
+  (a * b).support ⊆ a.support.bind (λa₁, b.support.bind $ λa₂, {a₁ + a₂}) :=
+subset.trans support_sum $ bind_mono $ assume a₁ _,
+  subset.trans support_sum $ bind_mono $ assume a₂ _, support_single_subset
 
 lemma single_mul_single {a₁ a₂ : G} {b₁ b₂ : k} :
   (single a₁ b₁ : add_monoid_algebra k G) * single a₂ b₂ = single (a₁ + a₂) (b₁ * b₂) :=
@@ -563,36 +630,13 @@ lemma single_zero_mul_apply (f : add_monoid_algebra k G) (r : k) (x : G) :
   (single 0 r * f) x = r * f x :=
 f.single_mul_apply_aux r _ _ _ $ λ a, by rw [zero_add]
 
+end misc_theorems
 
-end
-
-instance [comm_semiring k] [add_comm_monoid G] : comm_semiring (add_monoid_algebra k G) :=
-{ mul_comm := assume f g,
-  begin
-    simp only [mul_def, finsupp.sum, mul_comm],
-    rw [finset.sum_comm],
-    simp only [add_comm]
-  end,
-  .. add_monoid_algebra.semiring }
-
-instance [ring k] : has_neg (add_monoid_algebra k G) :=
-by apply_instance
-
-instance [ring k] [add_monoid G] : ring (add_monoid_algebra k G) :=
-{ neg := has_neg.neg,
-  add_left_neg := add_left_neg,
-  .. add_monoid_algebra.semiring }
-
-instance [comm_ring k] [add_comm_monoid G] : comm_ring (add_monoid_algebra k G) :=
-{ mul_comm := mul_comm, .. add_monoid_algebra.ring}
+/-! #### Algebra structure -/
+section algebra
 
 variables {R : Type*}
-
-instance [semiring R] [semiring k] [semimodule R k] : has_scalar R (add_monoid_algebra k G) :=
-finsupp.has_scalar
-
-instance [semiring R] [semiring k] [semimodule R k] : semimodule R (add_monoid_algebra k G) :=
-finsupp.semimodule G k
+local attribute [reducible] add_monoid_algebra
 
 /--
 As a preliminary to defining the `k`-algebra structure on `add_monoid_algebra k G`,
@@ -624,6 +668,10 @@ instance [comm_semiring R] [semiring k] [algebra R k] [add_monoid G] :
 @[simp] lemma coe_algebra_map [comm_semiring R] [semiring k] [algebra R k] [add_monoid G] :
   (algebra_map R (add_monoid_algebra k G) : R → add_monoid_algebra k G) = single 0 ∘ (algebra_map R k) :=
 rfl
+
+end algebra
+
+section lift
 
 /-- Any monoid homomorphism `multiplicative G →* A` can be lifted to an algebra homomorphism
 `add_monoid_algebra k G →ₐ[k] A`. -/
@@ -674,9 +722,6 @@ def lift [comm_semiring k] [add_monoid G] {A : Type u₃} [semiring A] [algebra 
       simp [← F.map_smul, finsupp.sum, ← F.map_sum]
     end }
 
--- It is hard to state the equivalent of `distrib_mul_action G (monoid_algebra k G)`
--- because we've never discussed actions of additive groups.
-
 lemma alg_hom_ext {A : Type u₃} [comm_semiring k] [add_monoid G]
   [semiring A] [algebra k A] ⦃φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] A⦄
   (h : ∀ x, φ₁ (finsupp.single x 1) = φ₂ (finsupp.single x 1)) : φ₁ = φ₂ :=
@@ -687,6 +732,12 @@ lemma alg_hom_ext_iff {A : Type u₃} [comm_semiring k] [add_monoid G]
   (∀ x, φ₁ (finsupp.single x 1) = φ₂ (finsupp.single x 1)) ↔ φ₁ = φ₂ :=
 ⟨λ h, alg_hom_ext h, by rintro rfl _; refl⟩
 
+
+end lift
+
+section
+local attribute [reducible] add_monoid_algebra
+
 universe ui
 variable {ι : Type ui}
 
@@ -695,5 +746,7 @@ lemma prod_single [comm_semiring k] [add_comm_monoid G]
   (∏ i in s, single (a i) (b i)) = single (∑ i in s, a i) (∏ i in s, b i) :=
 finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
   single_mul_single, sum_insert has, prod_insert has]
+
+end
 
 end add_monoid_algebra

@@ -100,6 +100,8 @@ theorem subset_def {s₁ s₂ : finset α} : s₁ ⊆ s₂ ↔ s₁.1 ⊆ s₂.1
 
 @[simp] theorem subset.refl (s : finset α) : s ⊆ s := subset.refl _
 
+theorem subset_of_eq {s t : finset α} (h : s = t) : s ⊆ t := h ▸ subset.refl _
+
 theorem subset.trans {s₁ s₂ s₃ : finset α} : s₁ ⊆ s₂ → s₂ ⊆ s₃ → s₁ ⊆ s₃ := subset.trans
 
 theorem superset.trans {s₁ s₂ s₃ : finset α} : s₁ ⊇ s₂ → s₂ ⊇ s₃ → s₁ ⊇ s₃ :=
@@ -1640,6 +1642,14 @@ theorem card_erase_lt_of_mem [decidable_eq α] {a : α} {s : finset α} :
 
 theorem card_erase_le [decidable_eq α] {a : α} {s : finset α} :
   card (erase s a) ≤ card s := card_erase_le
+
+theorem pred_card_le_card_erase [decidable_eq α] {a : α} {s : finset α} :
+  card s - 1 ≤ card (erase s a) :=
+begin
+  by_cases h : a ∈ s,
+  { rw [card_erase_of_mem h], refl },
+  { rw [erase_eq_of_not_mem h], apply nat.sub_le }
+end
 
 @[simp] theorem card_range (n : ℕ) : card (range n) = n := card_range n
 

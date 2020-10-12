@@ -137,18 +137,18 @@ begin
     exact finset.subset.refl {n}, },
 end
 
-lemma monomial_eq_X_pow (n) : X^n = monomial n (1:R) :=
+lemma X_pow_eq_monomial (n) : X ^ n = monomial n (1:R) :=
 begin
   induction n with n hn,
-    { refl, },
-    { conv_rhs {rw nat.succ_eq_add_one, congr, skip, rw ← mul_one (1:R)},
-      rw [← monomial_mul_monomial, ← hn, pow_succ, X_mul, X], },
+  { refl, },
+  { conv_rhs {rw nat.succ_eq_add_one, congr, skip, rw ← mul_one (1:R)},
+    rw [← monomial_mul_monomial, ← hn, pow_succ, X_mul, X], },
 end
 
 lemma support_X_pow (H : ¬ (1:R) = 0) (n : ℕ) : (X^n : polynomial R).support = singleton n :=
 begin
   convert support_monomial n 1 H,
-  exact monomial_eq_X_pow n,
+  exact X_pow_eq_monomial n,
 end
 
 lemma support_X_empty (H : (1:R)=0) : (X : polynomial R).support = ∅ :=

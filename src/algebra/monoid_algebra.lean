@@ -678,6 +678,11 @@ instance [comm_semiring R] [semiring k] [algebra R k] [add_monoid G] :
   commutes' := λ r f, by { ext, simp [single_zero_mul_apply, mul_single_zero_apply, algebra.commutes], },
   ..single_zero_ring_hom.comp (algebra_map R k) }
 
+/-- `finsupp.single 0` as a `alg_hom` -/
+@[simps] def single_zero_alg_hom [comm_semiring R] [semiring k] [algebra R k] [add_monoid G] : k →ₐ[R] add_monoid_algebra k G :=
+{ commutes' := λ r, by { ext, simp [single_zero_mul_apply, mul_single_zero_apply], refl, },
+  ..single_zero_ring_hom}
+
 @[simp] lemma coe_algebra_map [comm_semiring R] [semiring k] [algebra R k] [add_monoid G] :
   (algebra_map R (add_monoid_algebra k G) : R → add_monoid_algebra k G) = single 0 ∘ (algebra_map R k) :=
 rfl

@@ -285,7 +285,7 @@ noncomputable
 def equiv_monoid_algebra_free_monoid : free_algebra R X ≃ₐ[R] monoid_algebra R (free_monoid X) :=
 alg_equiv.of_alg_hom
   (lift R (λ x, (monoid_algebra.of R (free_monoid X)) (free_monoid.of x)))
-  ((monoid_algebra.lift R (free_monoid X) (free_algebra R X)) (free_monoid.lift (ι R)))
+  (monoid_algebra.lift (free_monoid.lift (ι R)))
 begin
   apply monoid_algebra.alg_hom_ext, intro x,
   apply free_monoid.rec_on x,
@@ -310,24 +310,27 @@ before and after the mapping.
 -/
 noncomputable
 def grades : (free_algebra R X) →ₐ[R] add_monoid_algebra (free_algebra R X) ℕ :=
-lift R $ λ x, finsupp.single 1 $ ι R x
+lift R $ finsupp.single 1 ∘ ι R
 
 /-- Recombining the grades recovers the original element-/
 lemma sum_id_grades :
   (add_monoid_algebra.sum_id R).comp grades = alg_hom.id R (free_algebra R X) :=
 begin
   ext,
-  unfold grades add_monoid_algebra.sum_id,
-  simp [finsupp.sum_single_index],
+  simp [grades, add_monoid_algebra.sum_id_apply, finsupp.sum_single_index],
 end
 
-lemma grade_idempotent (x : free_algebra R X) (i : ℕ) : grades x i = grades (grades x i) i :=
+/-- Apply grade selection to a single grade component gives either 0 or itself -/
+@[simp]
+lemma grade_idempotent (x : free_algebra R X) (i j : ℕ) :
+  grades (grades x i) j = if i = j then grades x i else 0 :=
 begin
-  unfold grades,
-  simp_rw [←function.comp_apply (finsupp.single 1)],
-  rw lift_comp_ι,
+  simp [grades, lift_comp_ι, finsupp.single_apply],
+  split_ifs,
+  { rw ←h,
 
-  simp,
+    },
+  {},
 end
 
 noncomputable
@@ -348,3 +351,5 @@ lemma grades_algebra_map (r : R) :
 by {unfold grades, simp}
 
 end free_algebra
+
+#print tactic_state

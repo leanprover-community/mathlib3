@@ -230,7 +230,7 @@ have vector_space.dim ℝ (V n) = (2^n : ℕ),
 by assumption_mod_cast
 
 instance : finite_dimensional ℝ (V n) :=
-finite_dimensional.of_finite_basis (dual_pair_e_ε _).is_basis
+finite_dimensional.of_fintype_basis (dual_pair_e_ε _).is_basis
 
 lemma findim_V : findim ℝ (V n) = 2^n :=
 have _ := @dim_V n,

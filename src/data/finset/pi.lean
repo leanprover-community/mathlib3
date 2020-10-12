@@ -15,7 +15,14 @@ open multiset
 
 /-! ### pi -/
 section pi
-variables {α : Type*} {δ : α → Type*} [decidable_eq α]
+variables {α : Type*}
+
+/-- The empty dependent product function, defined on the empty set. The assumption `a ∈ ∅` is never
+satisfied. -/
+def pi.empty (β : α → Sort*) (a : α) (h : a ∈ (∅ : finset α)) : β a :=
+multiset.pi.empty β a h
+
+variables {δ : α → Type*} [decidable_eq α]
 
 /-- Given a finset `s` of `α` and for all `a : α` a finset `t a` of `δ a`, then one can define the
 finset `s.pi t` of all functions defined on elements of `s` taking values in `t a` for `a ∈ s`.
@@ -29,11 +36,6 @@ def pi (s : finset α) (t : Πa, finset (δ a)) : finset (Πa∈s, δ a) :=
 @[simp] lemma mem_pi {s : finset α} {t : Πa, finset (δ a)} {f : Πa∈s, δ a} :
   f ∈ s.pi t ↔ (∀a (h : a ∈ s), f a h ∈ t a) :=
 mem_pi _ _ _
-
-/-- The empty dependent product function, defined on the emptyset. The assumption `a ∈ ∅` is never
-satisfied. -/
-def pi.empty (β : α → Sort*) (a : α) (h : a ∈ (∅ : finset α)) : β a :=
-multiset.pi.empty β a h
 
 /-- Given a function `f` defined on a finset `s`, define a new function on the finset `s ∪ {a}`,
 equal to `f` on `s` and sending `a` to a given value `b`. This function is denoted
@@ -81,6 +83,22 @@ begin
   rw multiset.erase_dup_eq_self.2,
   exact multiset.nodup_map (multiset.pi_cons_injective ha) (pi s t).2,
 end
+
+lemma pi_singletons {β : Type*} (s : finset α) (f : α → β) :
+  s.pi (λ a, ({f a} : finset β)) = {λ a _, f a} :=
+begin
+  rw eq_singleton_iff_unique_mem,
+  split,
+  { simp },
+  intros a ha,
+  ext i hi,
+  rw [mem_pi] at ha,
+  simpa using ha i hi,
+end
+
+lemma pi_const_singleton {β : Type*} (s : finset α) (i : β) :
+  s.pi (λ _, ({i} : finset β)) = {λ _ _, i} :=
+pi_singletons s (λ _, i)
 
 lemma pi_subset {s : finset α} (t₁ t₂ : Πa, finset (δ a)) (h : ∀ a ∈ s, t₁ a ⊆ t₂ a) :
   s.pi t₁ ⊆ s.pi t₂ :=

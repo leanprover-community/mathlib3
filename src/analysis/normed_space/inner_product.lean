@@ -118,6 +118,9 @@ scalar product. This is what we implement in this paragraph, starting from a str
 Our goal here is not to develop a whole theory with all the supporting API, as this will be done
 below for `inner_product_space`. Instead, we implement the bare minimum to go as directly as
 possible to the construction of the norm and the proof of the triangular inequality.
+
+Warning: Do not use this `core` structure if the space you are interested in already has a norm
+instance defined on it, otherwise this will create a second non-defeq norm instance!
 -/
 
 /-- A structure requiring that a scalar product is positive definite and symmetric, from which one
@@ -373,8 +376,6 @@ end
 
 variables [inner_product_space 𝕜 E] [inner_product_space ℝ F]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
-local notation `⟪`x`, `y`⟫_ℝ` := @inner ℝ _ _ x y
-local notation `⟪`x`, `y`⟫_ℂ` := @inner ℂ _ _ x y
 local notation `IK` := @is_R_or_C.I 𝕜 _
 local notation `absR` := _root_.abs
 local postfix `†`:90 := @is_R_or_C.conj 𝕜 _
@@ -752,6 +753,15 @@ begin
 end
 
 /-- Pythagorean theorem, vector inner product form. -/
+lemma norm_add_square_eq_norm_square_add_norm_square_of_inner_eq_zero (x y : E) (h : ⟪x, y⟫ = 0) :
+  ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
+begin
+  rw [norm_add_mul_self, add_right_cancel_iff, add_right_eq_self, mul_eq_zero],
+  apply or.inr,
+  simp only [h, zero_re'],
+end
+
+/-- Pythagorean theorem, vector inner product form. -/
 lemma norm_add_square_eq_norm_square_add_norm_square_real {x y : F} (h : ⟪x, y⟫_ℝ = 0) :
   ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
 (norm_add_square_eq_norm_square_add_norm_square_iff_real_inner_eq_zero x y).2 h
@@ -812,19 +822,24 @@ by rw [inner_smul_right, ←real_inner_self_eq_norm_square]
 /-- The inner product of a nonzero vector with a nonzero multiple of
 itself, divided by the product of their norms, has absolute value
 1. -/
+lemma abs_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul
+  {x : E} {r : 𝕜} (hx : x ≠ 0) (hr : r ≠ 0) : abs ⟪x, r • x⟫ / (∥x∥ * ∥r • x∥) = 1 :=
+begin
+  have hx' : ∥x∥ ≠ 0 := by simp [norm_eq_zero, hx],
+  have hr' : abs r ≠ 0 := by simp [is_R_or_C.abs_eq_zero, hr],
+  rw [inner_smul_right, is_R_or_C.abs_mul, ←inner_self_re_abs, inner_self_eq_norm_square, norm_smul],
+  rw [is_R_or_C.norm_eq_abs, ←mul_assoc, ←div_div_eq_div_mul, mul_div_cancel _ hx',
+     ←div_div_eq_div_mul, mul_comm, mul_div_cancel _ hr', div_self hx'],
+end
+
+/-- The inner product of a nonzero vector with a nonzero multiple of
+itself, divided by the product of their norms, has absolute value
+1. -/
 lemma abs_real_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul
   {x : F} {r : ℝ} (hx : x ≠ 0) (hr : r ≠ 0) : absR ⟪x, r • x⟫_ℝ / (∥x∥ * ∥r • x∥) = 1 :=
 begin
-  simp [real_inner_smul_self_right, norm_smul, _root_.abs_mul, norm_eq_abs],
-  conv_lhs { congr, rw [←mul_assoc, mul_comm] },
-  apply div_self,
-  intro h,
-  rcases (mul_eq_zero.mp h) with h₁|h₂,
-  { exact hx (norm_eq_zero.mp h₁) },
-  { rcases (mul_eq_zero.mp h₂) with h₂'|h₂'',
-    { rw [_root_.abs_eq_zero] at h₂',
-      exact hr h₂' },
-    { exact hx (norm_eq_zero.mp h₂'') } }
+  rw ← abs_to_real,
+  exact abs_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul hx hr
 end
 
 /-- The inner product of a nonzero vector with a positive multiple of
@@ -832,7 +847,7 @@ itself, divided by the product of their norms, has value 1. -/
 lemma real_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_pos_mul
   {x : F} {r : ℝ} (hx : x ≠ 0) (hr : 0 < r) : ⟪x, r • x⟫_ℝ / (∥x∥ * ∥r • x∥) = 1 :=
 begin
-  rw [real_inner_smul_self_right, norm_smul, norm_eq_abs, ←mul_assoc ∥x∥, mul_comm _ (absR r),
+  rw [real_inner_smul_self_right, norm_smul, real.norm_eq_abs, ←mul_assoc ∥x∥, mul_comm _ (absR r),
       mul_assoc, _root_.abs_of_nonneg (le_of_lt hr), div_self],
   exact mul_ne_zero (ne_of_gt hr)
     (λ h, hx (norm_eq_zero.1 (eq_zero_of_mul_self_eq_zero h)))
@@ -852,8 +867,8 @@ end
 /-- The inner product of two vectors, divided by the product of their
 norms, has absolute value 1 if and only if they are nonzero and one is
 a multiple of the other. One form of equality case for Cauchy-Schwarz. -/
-lemma abs_real_inner_div_norm_mul_norm_eq_one_iff (x y : F) :
-  absR (⟪x, y⟫_ℝ / (∥x∥ * ∥y∥)) = 1 ↔ (x ≠ 0 ∧ ∃ (r : ℝ), r ≠ 0 ∧ y = r • x) :=
+lemma abs_inner_div_norm_mul_norm_eq_one_iff (x y : E) :
+  abs (⟪x, y⟫ / 𝓚 (∥x∥ * ∥y∥)) = 1 ↔ (x ≠ 0 ∧ ∃ (r : 𝕜), r ≠ 0 ∧ y = r • x) :=
 begin
   split,
   { intro h,
@@ -863,17 +878,18 @@ begin
       norm_num at h,
       exact h },
     refine and.intro hx0 _,
-    set r := inner x y / (∥x∥ * ∥x∥) with hr,
+    set r := ⟪x, y⟫ / 𝓚 (∥x∥ * ∥x∥) with hr,
     use r,
     set t := y - r • x with ht,
-    have ht0 : ⟪x, t⟫_ℝ = 0,
-    { rw [ht, inner_sub_right, inner_smul_right, hr, ←real_inner_self_eq_norm_square,
+    have ht0 : ⟪x, t⟫ = 0,
+    { rw [ht, inner_sub_right, inner_smul_right, hr, ←inner_self_eq_norm_square, inner_self_re_to_K,
           div_mul_cancel _ (λ h, hx0 (inner_self_eq_zero.1 h)), sub_self] },
-    rw [←sub_add_cancel y (r • x), ←ht, inner_add_right, ht0, zero_add, inner_smul_right,
-        real_inner_self_eq_norm_square, ←mul_assoc, mul_comm,
-        mul_div_mul_left _ _ (λ h, hx0 (norm_eq_zero.1 h)), _root_.abs_div, _root_.abs_mul,
-        _root_.abs_of_nonneg (norm_nonneg _), _root_.abs_of_nonneg (norm_nonneg _), ←real.norm_eq_abs,
-        ←norm_smul] at h,
+    replace h : ∥r • x∥ / ∥t + r • x∥ = 1,
+    { rwa [←sub_add_cancel y (r • x), ←ht, inner_add_right, ht0, zero_add, inner_smul_right,
+        is_R_or_C.abs_div, is_R_or_C.abs_mul, ←inner_self_re_abs,
+        inner_self_eq_norm_square, of_real_mul, is_R_or_C.abs_mul, abs_of_real, abs_of_real,
+        abs_norm_eq_norm, abs_norm_eq_norm, ←mul_assoc, mul_comm,
+        mul_div_mul_left _ _ (λ h, hx0 (norm_eq_zero.1 h)), ←is_R_or_C.norm_eq_abs, ←norm_smul] at h },
     have hr0 : r ≠ 0,
     { intro hr0,
       rw [hr0, zero_smul, norm_zero, zero_div] at h,
@@ -881,24 +897,52 @@ begin
     refine and.intro hr0 _,
     have h2 : ∥r • x∥ ^ 2 = ∥t + r • x∥ ^ 2,
     { rw [eq_of_div_eq_one h] },
-    rw [pow_two, pow_two, ←real_inner_self_eq_norm_square, ←real_inner_self_eq_norm_square,
-        inner_add_add_self] at h2,
-    conv_rhs at h2 {
-      congr,
-      congr,
-      skip,
-      rw [real_inner_smul_left, ht0, mul_zero]
-    },
+    replace h2 : ⟪r • x, r • x⟫ = ⟪t, t⟫ + ⟪t, r • x⟫ + ⟪r • x, t⟫ + ⟪r • x, r • x⟫,
+    { rw [pow_two, pow_two, ←inner_self_eq_norm_square, ←inner_self_eq_norm_square ] at h2,
+      have h2' := congr_arg (λ z, 𝓚 z) h2,
+      simp_rw [inner_self_re_to_K, inner_add_add_self] at h2',
+      exact h2' },
+    conv at h2 in ⟪r • x, t⟫ { rw [inner_smul_left, ht0, mul_zero] },
     symmetry' at h2,
-    have h₁ : ⟪t, r • x⟫_ℝ = 0 := by rw [inner_smul_right, real_inner_comm, ht0, mul_zero],
+    have h₁ : ⟪t, r • x⟫ = 0 := by { rw [inner_smul_right, ←inner_conj_sym, ht0], simp },
     rw [add_zero, h₁, add_left_eq_self, add_zero, inner_self_eq_zero] at h2,
     rw h2 at ht,
     exact eq_of_sub_eq_zero ht.symm },
   { intro h,
     rcases h with ⟨hx, ⟨r, ⟨hr, hy⟩⟩⟩,
     rw hy,
-    rw [_root_.abs_div, _root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm],
-    exact abs_real_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul hx hr }
+    rw [is_R_or_C.abs_div, abs_of_real, _root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm],
+    exact abs_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul hx hr }
+end
+
+/-- The inner product of two vectors, divided by the product of their
+norms, has absolute value 1 if and only if they are nonzero and one is
+a multiple of the other. One form of equality case for Cauchy-Schwarz. -/
+lemma abs_real_inner_div_norm_mul_norm_eq_one_iff (x y : F) :
+  absR (⟪x, y⟫_ℝ / (∥x∥ * ∥y∥)) = 1 ↔ (x ≠ 0 ∧ ∃ (r : ℝ), r ≠ 0 ∧ y = r • x) :=
+by { simpa using abs_inner_div_norm_mul_norm_eq_one_iff x y, assumption }
+
+/--
+If the inner product of two vectors is equal to the product of their norms, then the two vectors
+are multiples of each other. One form of the equality case for Cauchy-Schwarz.
+-/
+lemma abs_inner_eq_norm_iff (x y : E) (hx0 : x ≠ 0) (hy0 : y ≠ 0):
+  abs ⟪x, y⟫ = ∥x∥ * ∥y∥ ↔ ∃ (r : 𝕜), r ≠ 0 ∧ y = r • x :=
+begin
+  have hx0' : ∥x∥ ≠ 0 := by simp [norm_eq_zero, hx0],
+  have hy0' : ∥y∥ ≠ 0 := by simp [norm_eq_zero, hy0],
+  have hxy0 : ∥x∥ * ∥y∥ ≠ 0 := by simp [hx0', hy0'],
+  have h₁ : abs ⟪x, y⟫ = ∥x∥ * ∥y∥ ↔ abs (⟪x, y⟫ / 𝓚 (∥x∥ * ∥y∥)) = 1,
+  { refine ⟨_ ,_⟩,
+    { intro h,
+      rw [is_R_or_C.abs_div, h, abs_of_real, _root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm],
+      exact div_self hxy0 },
+    { intro h,
+      rwa [is_R_or_C.abs_div, abs_of_real, _root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm,
+          div_eq_one_iff_eq hxy0] at h } },
+  rw [h₁, abs_inner_div_norm_mul_norm_eq_one_iff x y],
+  have : x ≠ 0 := λ h, (hx0' $ norm_eq_zero.mpr h),
+  simp [this]
 end
 
 /-- The inner product of two vectors, divided by the product of their
@@ -1029,11 +1073,10 @@ instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
   add_left := λ x y z, by simp [inner, add_mul],
   smul_left := λ x y z, by simp [inner, mul_assoc] }
 
-
 /-- The standard real/complex Euclidean space, functions on a finite type. For an `n`-dimensional space
 use `euclidean_space 𝕜 (fin n)`.  -/
 @[reducible, nolint unused_arguments]
-def euclidean_space (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜] [is_R_or_C 𝕜]
+def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 one_le_two (λ (i : n), 𝕜)
 
 section is_R_or_C_to_real
@@ -1604,9 +1647,31 @@ end
 
 /-- If `K` is complete, `K` and `K.orthogonal` are complements of each
 other. -/
-lemma submodule.is_compl_orthogonal_of_is_complete_real {K : submodule 𝕜 E}
+lemma submodule.is_compl_orthogonal_of_is_complete {K : submodule 𝕜 E}
     (h : is_complete (K : set E)) : is_compl K K.orthogonal :=
 ⟨K.orthogonal_disjoint, le_of_eq (submodule.sup_orthogonal_of_is_complete h).symm⟩
+
+@[simp] lemma submodule.top_orthogonal_eq_bot : (⊤ : submodule 𝕜 E).orthogonal = ⊥ :=
+begin
+  ext,
+  rw [submodule.mem_bot, submodule.mem_orthogonal],
+  exact ⟨λ h, inner_self_eq_zero.mp (h x submodule.mem_top), by { rintro rfl, simp }⟩
+end
+
+@[simp] lemma submodule.bot_orthogonal_eq_top : (⊥ : submodule 𝕜 E).orthogonal = ⊤ :=
+begin
+  rw [← submodule.top_orthogonal_eq_bot, eq_top_iff],
+  exact submodule.le_orthogonal_orthogonal ⊤
+end
+
+lemma submodule.eq_top_iff_orthogonal_eq_bot {K : submodule 𝕜 E} (hK : is_complete (K : set E)) :
+  K = ⊤ ↔ K.orthogonal = ⊥ :=
+begin
+  refine ⟨by { rintro rfl, exact submodule.top_orthogonal_eq_bot }, _⟩,
+  intro h,
+  have : K ⊔ K.orthogonal = ⊤ := submodule.sup_orthogonal_of_is_complete hK,
+  rwa [h, sup_comm, bot_sup_eq] at this,
+end
 
 open finite_dimensional
 

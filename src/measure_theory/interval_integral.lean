@@ -143,6 +143,11 @@ intervals is always empty, so this property is equivalent to `f` being integrabl
 def interval_integrable (f : α → E) (μ : measure α) (a b : α) :=
 integrable_on f (Ioc a b) μ ∧ integrable_on f (Ioc b a) μ
 
+lemma measure_theory.integrable.interval_integrable {f : α → E} {μ : measure α}
+  (hf : integrable f μ) {a b : α} :
+  interval_integrable f μ a b :=
+⟨hf.integrable_on, hf.integrable_on⟩
+
 namespace interval_integrable
 
 section
@@ -244,6 +249,9 @@ section
 
 variables {a b c d : α} {f g : α → E} {μ : measure α}
 
+@[simp] lemma integral_zero : ∫ x in a..b, (0 : E) ∂μ = 0 :=
+by simp [interval_integral]
+
 lemma integral_of_le (h : a ≤ b) : ∫ x in a..b, f x ∂μ = ∫ x in Ioc a b, f x ∂μ :=
 by simp [interval_integral, h]
 
@@ -260,6 +268,10 @@ lemma integral_cases (f : α → E) (a b) :
   ∫ x in a..b, f x ∂μ ∈ ({∫ x in Ioc (min a b) (max a b), f x ∂μ,
     -∫ x in Ioc (min a b) (max a b), f x ∂μ} : set E) :=
 (le_total a b).imp (λ h, by simp [h, integral_of_le]) (λ h, by simp [h, integral_of_ge])
+
+lemma integral_non_measurable {f : α → E} {a b} (hf : ¬measurable f) :
+  ∫ x in a..b, f x ∂μ = 0 :=
+by rw [interval_integral, integral_non_measurable hf, integral_non_measurable hf, sub_zero]
 
 lemma norm_integral_eq_norm_integral_Ioc :
   ∥∫ x in a..b, f x ∂μ∥ = ∥∫ x in Ioc (min a b) (max a b), f x ∂μ∥ :=
@@ -348,7 +360,8 @@ end
 ### Integral is an additive function of the interval
 
 In this section we prove that `∫ x in a..b, f x ∂μ + ∫ x in b..c, f x ∂μ = ∫ x in a..c, f x ∂μ`
-as well as a few other identities trivially equivalent to this one.
+as well as a few other identities trivially equivalent to this one. We also prove that
+`∫ x in a..b, f x ∂μ = ∫ x, f x ∂μ` provided that `support f ⊆ Ioc a b`.
 -/
 
 variables [topological_space α] [opens_measurable_space α]
@@ -419,9 +432,57 @@ begin
     simp only [integrable_on_const, measure_lt_top, or_true]
 end
 
+lemma integral_eq_integral_of_support_subset {f : α → E} {a b} (h : function.support f ⊆ Ioc a b) :
+  ∫ x in a..b, f x ∂μ = ∫ x, f x ∂μ :=
+begin
+  by_cases hfm : measurable f,
+  { cases le_total a b with hab hab,
+    { rw [integral_of_le hab, ← integral_indicator hfm is_measurable_Ioc,
+        indicator_of_support_subset h] },
+    { rw [Ioc_eq_empty hab, subset_empty_iff, function.support_eq_empty_iff] at h,
+      simp [h] } },
+  { rw [integral_non_measurable hfm, measure_theory.integral_non_measurable hfm] },
+end
+
 end order_closed_topology
 
 end
+
+lemma integral_eq_zero_iff_of_le_of_nonneg_ae {f : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b)
+  (hf : 0 ≤ᵐ[volume.restrict (Ioc a b)] f) (hfi : interval_integrable f volume a b) :
+  ∫ x in a..b, f x = 0 ↔ f =ᵐ[volume.restrict (Ioc a b)] 0 :=
+by rw [integral_of_le hab, integral_eq_zero_iff_of_nonneg_ae hf hfi.1]
+
+lemma integral_eq_zero_iff_of_nonneg_ae {f : ℝ → ℝ} {a b : ℝ}
+  (hf : 0 ≤ᵐ[volume.restrict (Ioc a b ∪ Ioc b a)] f) (hfi : interval_integrable f volume a b) :
+  ∫ x in a..b, f x = 0 ↔ f =ᵐ[volume.restrict (Ioc a b ∪ Ioc b a)] 0 :=
+begin
+  cases le_total a b with hab hab;
+    simp only [Ioc_eq_empty hab, empty_union, union_empty] at *,
+  { exact integral_eq_zero_iff_of_le_of_nonneg_ae hab hf hfi },
+  { rw [integral_symm, neg_eq_zero],
+    exact integral_eq_zero_iff_of_le_of_nonneg_ae hab hf hfi.symm }
+end
+
+lemma integral_pos_iff_support_of_nonneg_ae' {f : ℝ → ℝ} {a b : ℝ}
+  (hf : 0 ≤ᵐ[volume.restrict (Ioc a b ∪ Ioc b a)] f) (hfi : interval_integrable f volume a b) :
+  0 < ∫ x in a..b, f x ↔ a < b ∧ 0 < volume (function.support f ∩ Ioc a b) :=
+begin
+  cases le_total a b with hab hab,
+  { simp only [integral_of_le hab, Ioc_eq_empty hab, union_empty] at hf ⊢,
+    symmetry,
+    rw [set_integral_pos_iff_support_of_nonneg_ae hf hfi.1, and_iff_right_iff_imp],
+    contrapose!,
+    intro h,
+    simp [Ioc_eq_empty h] },
+  { rw [Ioc_eq_empty hab, empty_union] at hf,
+    simp [integral_of_ge hab, Ioc_eq_empty hab, integral_nonneg_of_ae hf] }
+end
+  
+lemma integral_pos_iff_support_of_nonneg_ae {f : ℝ → ℝ} {a b : ℝ}
+  (hf : 0 ≤ᵐ[volume] f) (hfi : interval_integrable f volume a b) :
+  0 < ∫ x in a..b, f x ↔ a < b ∧ 0 < volume (function.support f ∩ Ioc a b) :=
+integral_pos_iff_support_of_nonneg_ae' (ae_mono measure.restrict_le_self hf) hfi
 
 /-!
 ### Fundamental theorem of calculus, part 1, for any measure

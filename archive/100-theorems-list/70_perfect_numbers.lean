@@ -26,13 +26,6 @@ Euler proved the converse, that if `n` is even and perfect, then there exists `k
 https://en.wikipedia.org/wiki/Euclid%E2%80%93Euler_theorem
 -/
 
-@[simp]
-lemma succ_mersenne (k : ℕ) : mersenne k + 1 = 2 ^ k :=
-begin
-  rw [mersenne, nat.sub_add_cancel],
-  exact one_le_pow_of_one_le (by norm_num) k
-end
-
 lemma odd_mersenne_succ (k : ℕ) : ¬ 2 ∣ mersenne (k + 1) :=
 by simp [← even_iff_two_dvd, ← nat.even_succ, nat.succ_eq_add_one] with parity_simps
 
@@ -57,7 +50,7 @@ begin
     norm_num }
 end
 
-lemma ne_zero_of_mersenne_of_prime (k : ℕ) (pr : (mersenne (k + 1)).prime) :
+lemma ne_zero_of_prime_mersenne (k : ℕ) (pr : (mersenne (k + 1)).prime) :
   k ≠ 0 :=
 begin
   rintro rfl,
@@ -66,6 +59,6 @@ end
 
 theorem even_two_pow_mul_mersenne_of_prime (k : ℕ) (pr : (mersenne (k + 1)).prime) :
   even ((2 ^ k) * mersenne (k + 1)) :=
-by simp [ne_zero_of_mersenne_of_prime k pr] with parity_simps
+by simp [ne_zero_of_prime_mersenne k pr] with parity_simps
 
 end nat

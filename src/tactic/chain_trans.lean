@@ -54,6 +54,9 @@ instance : has_to_string edge :=
       | edge.le := "le"
       end ⟩
 
+/--
+
+-/
 inductive edge.less_than_or_equal : edge → edge → Prop
 | bot {x} :  edge.less_than_or_equal edge.lt x
 | top {x} :  edge.less_than_or_equal x edge.le
@@ -82,31 +85,37 @@ meta def graph := native.rb_lmap expr (expr × edge × expr)
 meta instance graph.has_to_format : has_to_tactic_format graph :=
 by delta graph; apply_instance
 
-private meta def dfs_trans' (g : graph) (v : expr) (goal : edge) :
-  expr_set → expr → list (edge × expr) → edge → tactic expr
-| vs x hs e := do
-  if vs.contains x then failed
-  else if v = x then
-    if e ≤ goal then do
-    (h :: hs) ← pure hs | mk_mapp ``le_refl [none, none, x],
-    prod.snd <$> hs.mfoldl (λ ⟨e',h'⟩ ⟨e, h⟩,
+private meta def dfs_trans' (g : graph) (r : ref expr_set) (v : expr) :
+  expr → list (edge × expr) → tactic (option expr)
+| x hs := do
+  vs ← read_ref r,
+  if vs.contains x then pure none
+  else if v = x then do
+    (h :: hs) ← pure hs | some <$> mk_mapp ``le_refl [none, none, x],
+    (some ∘ prod.snd) <$> hs.mfoldl (λ ⟨e',h'⟩ ⟨e, h⟩,
               match e, e' with
               | edge.lt, edge.lt := prod.mk edge.lt <$> mk_app ``lt_trans [h, h']
               | edge.lt, edge.le := prod.mk edge.lt <$> mk_app ``lt_of_lt_of_le [h, h']
               | edge.le, edge.lt := prod.mk edge.lt <$> mk_app ``lt_of_le_of_lt [h, h']
               | edge.le, edge.le := prod.mk edge.le <$> mk_app ``le_trans [h, h']
               end) h
-    else failed
   else do
-    let vs' := vs.insert x,
-    (g.find x).mfirst $ λ ⟨h',e',y⟩, dfs_trans' vs' y ((e', h') :: hs) (min e e')
+    vs ← write_ref r (vs.insert x),
+    option_t.run $ (g.find x).mfirst $ λ ⟨h',e',y⟩, option_t.mk $ dfs_trans' y ((e', h') :: hs)
 
 /--
 Depth first search in a graph of ordered relation. Finds a proof
 of `v ≤ v'` or `v < v'`, whichever is strongest and true.
 -/
-meta def dfs_trans (g : graph) (v v' : expr) (e : edge) : tactic expr :=
-dfs_trans' g v' e mk_expr_set v [] edge.le
+meta def dfs_trans (g : graph) (v v' : expr) : tactic expr :=
+using_new_ref mk_expr_set $ λ r, dfs_trans' g r v' v [] >>= option.to_monad
+
+/--
+Place `lt` edges first in edge list.
+-/
+meta def sort_edges (ls : list (expr × edge × expr)) : list (expr × edge × expr) :=
+let ⟨xs₀, xs₁⟩ := ls.partition (λ e : _ × _ × _, e.2.1 = edge.lt) in
+xs₀ ++ xs₁
 
 end chain_trans
 
@@ -128,27 +137,30 @@ end
 -/
 meta def chain_trans : tactic unit := do
 tgt ← target,
-(goal, x, y) ← prod.mk edge.le <$> match_le tgt <|>
-    prod.mk edge.lt <$> match_lt tgt,
+(x, y) ← match_le tgt <|> match_lt tgt,
 α ← infer_type x,
 ls ← local_context >>= list.mmap_filter'
   (λ h, do t ← infer_type h,
            do { (e, x, y) ← prod.mk edge.le <$> match_le t <|>
                     prod.mk edge.lt <$> match_lt t,
+                x ← whnf x, y ← whnf y,
                 infer_type x >>= is_def_eq α,
                 pure [(h, e, x, y)] } <|>
            do { (x, y) ← match_eq t,
                 infer_type x >>= is_def_eq α,
+                x ← whnf x, y ← whnf y,
                 h₀ ← mk_eq_symm h >>= mk_app ``le_of_eq ∘ list.ret,
                 h₁ ← mk_app ``le_of_eq [h],
                 pure [(h₀, edge.le, y, x), (h₁, edge.le, x, y)] }),
 let m := list.foldl  (λ (m : graph) (e : _ × _ × _ × _),
   let ⟨pr,e,x,y⟩ := e in
   m.insert x (pr,e,y)) (native.rb_lmap.mk expr (expr × edge × expr)) ls.join,
-pr ← dfs_trans m x y goal <|>
+let m := m.map sort_edges,
+pr ← dfs_trans m x y <|>
   fail!"no appropriate chain of inequalities can be found between `{x}` and `{y}`",
 tactic.apply pr <|>
-  mk_app ``le_of_lt [pr] >>= tactic.apply,
+  mk_app ``le_of_lt [pr] >>= tactic.apply <|>
+  fail!"`{tgt}` cannot be proved from `{infer_type pr}`",
 skip
 
 end interactive

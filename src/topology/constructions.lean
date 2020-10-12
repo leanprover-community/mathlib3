@@ -157,6 +157,9 @@ is_open_inter (continuous_fst s hs) (continuous_snd t ht)
 lemma nhds_prod_eq {a : α} {b : β} : 𝓝 (a, b) = 𝓝 a ×ᶠ 𝓝 b :=
 by rw [filter.prod, prod.topological_space, nhds_inf, nhds_induced, nhds_induced]
 
+lemma nhds_prod_eq' {p : α × β} : 𝓝 p = 𝓝 p.1 ×ᶠ 𝓝 p.2 :=
+by rw [← nhds_prod_eq, prod.mk.eta]
+
 lemma mem_nhds_prod_iff {a : α} {b : β} {s : set (α × β)} :
   s ∈ 𝓝 (a, b) ↔ ∃ (u ∈ 𝓝 a) (v ∈ 𝓝 b), set.prod u v ⊆ s :=
 by rw [nhds_prod_eq, mem_prod_iff]

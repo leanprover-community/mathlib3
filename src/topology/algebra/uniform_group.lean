@@ -118,23 +118,21 @@ begin
   simp [mem_closure_iff_nhds, inter_singleton_nonempty, sub_eq_add_neg, add_assoc]
 end
 
-lemma uniform_continuous_of_tendsto_zero [uniform_space β] [add_group β] [uniform_add_group β]
-  {f : α → β} [is_add_group_hom f] (h : tendsto f (𝓝 0) (𝓝 0)) :
+variables [uniform_space β] [add_group β] [uniform_add_group β]
+
+lemma add_monoid_hom.uniform_continuous_of_tendsto_zero (f : α →+ β) (h : tendsto f (𝓝 0) (𝓝 0)) :
   uniform_continuous f :=
 begin
   have : ((λx:β×β, x.2 - x.1) ∘ (λx:α×α, (f x.1, f x.2))) = (λx:α×α, f (x.2 - x.1)),
-  { simp only [is_add_group_hom.map_sub f] },
+  { simp only [f.map_sub] },
   rw [uniform_continuous, uniformity_eq_comap_nhds_zero α, uniformity_eq_comap_nhds_zero β,
     tendsto_comap_iff, this],
   exact tendsto.comp h tendsto_comap
 end
 
-lemma uniform_continuous_of_continuous [uniform_space β] [add_group β] [uniform_add_group β]
-  {f : α → β} [is_add_group_hom f] (h : continuous f) :
+lemma add_monoid_hom.uniform_continuous_of_continuous (f : α →+ β) (h : continuous f) :
   uniform_continuous f :=
-uniform_continuous_of_tendsto_zero $
-  suffices tendsto f (𝓝 0) (𝓝 (f 0)), by rwa [is_add_group_hom.map_zero f] at this,
-  h.tendsto 0
+f.uniform_continuous_of_tendsto_zero $ by { rw ← f.map_zero, exact h.tendsto 0 }
 
 end uniform_add_group
 

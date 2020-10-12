@@ -335,54 +335,7 @@ begin
   exact of_id a,
 end
 
-end free_algebra
-
--- There is something weird in the above namespace that breaks the typeclass resolution of `has_coe_to_sort` below.
--- Closing it and reopening it fixes it...
-namespace free_algebra
-
-/-- An induction principle for the free algebra.
-
-If `C` holds for the `algebra_map` of `r : R` into `free_algebra R X`, the `ι` of `x : X`, and is
-preserved under addition and muliplication, then it holds for all of `free_algebra R X`.
--/
-@[elab_as_eliminator]
-lemma induction
-  {C : free_algebra R X → Prop}
-  (h_grade0 : ∀ r, C (algebra_map R (free_algebra R X) r))
-  (h_grade1 : ∀ x, C (ι R x))
-  (h_mul : ∀ a b, C a → C b → C (a * b))
-  (h_add : ∀ a b, C a → C b → C (a + b))
-  (a : free_algebra R X) :
-    C a :=
-begin
-  -- the arguments are enough to construct a subalgebra, and a mapping into it from X
-  let s : subalgebra R (free_algebra R X) := {
-    carrier := C,
-    one_mem' := h_grade0 1,
-    zero_mem' := h_grade0 0,
-    mul_mem' := h_mul,
-    add_mem' := h_add,
-    algebra_map_mem' := h_grade0, },
-  let of : X → s := subtype.coind (ι R) h_grade1,
-  -- the mapping through the subalgebra is the identity
-  have of_id : alg_hom.id R (free_algebra R X) = s.val.comp (lift R of),
-  { ext,
-    simp [of, subtype.coind], },
-  -- finding a proof is finding an element of the subalgebra
-  convert subtype.prop (lift R of a),
-  simp [alg_hom.ext_iff] at of_id,
-  exact of_id a,
-end
-
 variables {R X}
-
-open_locale big_operators
-
--- def grade_aux : (free_algebra R X) →ₐ[R] add_monoid_algebra (free_algebra R X) ℕ :=
--- { to_fun := finsupp.single 1,
-
---   }
 
 /--
 Separate an element of the free algebra into its ℕ-graded components.
@@ -402,12 +355,21 @@ begin
   simp [grades, add_monoid_algebra.sum_id_apply, finsupp.sum_single_index],
 end
 
-/-- `algebra_map` produces elements with only grade 0 -/
+noncomputable
+instance : has_coe (add_monoid_algebra (free_algebra R X) ℕ) (free_algebra R X) := ⟨
+  (add_monoid_algebra.sum_id R : add_monoid_algebra (free_algebra R X) ℕ →ₐ[R] (free_algebra R X))
+⟩
+
+@[simp, norm_cast]
+lemma coe_def (x : add_monoid_algebra (free_algebra R X) ℕ) : (x : free_algebra R X) = add_monoid_algebra.sum_id R x := rfl
+
+
+/-- An element of `R` lifted with `algebra_map` has a single grade 0 element -/
 lemma grades.map_algebra_map (r : R) :
   grades (algebra_map R (free_algebra R X) r) = finsupp.single 0 (algebra_map R _ r) :=
 by simp
 
-/-- `ι R` produces elements with only grade 1 -/
+/-- An element of `X` lifted with the canonical `ι R` function has a single grade 1 element -/
 lemma grades.map_ι (x : X) :
   grades (ι R x) = finsupp.single 1 (ι R x) :=
 by simp [grades]
@@ -423,8 +385,8 @@ def alg_hom.map_finsupp_sum {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 (h : γ →ₐ[R] δ) (f : α →₀ β) (g : α → β → γ) : h (f.sum g) = f.sum (λ a b, h (g a b)) :=
 h.map_sum _ _
 
--- TODO: docstring
-lemma single_idempotent {α : Type*} {β : Type*} [has_zero β] (i j : α) [decidable (j = i)] (v : β):
+-- TODO: better name, move, docstring
+lemma finsupp.single_single_apply {α : Type*} {β : Type*} [has_zero β] (i j : α) [decidable (j = i)] (v : β):
   finsupp.single i ((finsupp.single j v) i) = if j = i then (finsupp.single j v) else 0 :=
 begin
   ext,
@@ -478,24 +440,4 @@ begin
   },
 end
 
-noncomputable
-instance : has_coe (add_monoid_algebra (free_algebra R X) ℕ) (free_algebra R X) := ⟨
-  (add_monoid_algebra.sum_id R : add_monoid_algebra (free_algebra R X) ℕ →ₐ[R] (free_algebra R X))
-⟩
-
-@[simp, norm_cast]
-lemma coe_def (x : add_monoid_algebra (free_algebra R X) ℕ) : (x : free_algebra R X) = add_monoid_algebra.sum_id R x := rfl
-
-/-- An element of `X` lifted with the canonical `ι` function has a single grade 1 element -/
-lemma grades_ι (x : X) : grades (ι R x) = finsupp.single 1 (ι R x) :=
-by {unfold grades, simp}
-
-/-- An element of `R` lifted with `algebra_map` has a single grade 0 element -/
-lemma grades_algebra_map (r : R) :
-  grades (algebra_map R (free_algebra R X) r) = finsupp.single 0 (algebra_map R (free_algebra R X) r) :=
-by {unfold grades, simp}
 end free_algebra
-
--- def finsupp.sum {α : Type} {β : Type} {γ : Type} {δ : Type}
--- [has_zero β] [add_comm_monoid γ] [add_comm_monoid δ]
--- (f : α →₀ β) (g : α → β → γ) (h : γ →+ δ) : h (f.sum g) = f.sum (λ a b, h (g a b)) := by library_search

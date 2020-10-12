@@ -59,10 +59,34 @@ meta instance edge.has_to_format : has_to_format edge :=
 
 open native
 
+/--
+Place `lt` edges first in edge list.
+-/
+meta def sort_edges (ls : list (expr × edge × expr)) : list (expr × edge × expr) :=
+let ⟨xs₀, xs₁⟩ := ls.partition (λ e : _ × _ × _, e.2.1 = edge.lt) in
+xs₀ ++ xs₁
+
 /-- A graph, represented as adjacency lists, where edges are
 expressions of type `α` and where an edge between `u` and `v` contains
-a proof that `u ≤ v` or `u < v`. -/
+a proof that `u ≤ v` or `u < v`.
+
+Each edge is stored as a triple (proof, label, target) in
+the list of edges of its source. The label is `lt` or `le` and
+the proof establishes the appropriate relation between the source
+and the target of the edge.
+
+The list of edges of each vertex is sorted so as to keep the
+edges labelled `lt` first in the list. This ensures that,
+when traversing the graph, paths that prove a stronger relation
+are going to be considered first. -/
 meta def graph := native.rb_lmap expr (expr × edge × expr)
+
+/--
+Construct a `graph` from a list of edges. Edges are represented as
+tuples `(proof, label, source, target)`.
+-/
+meta def graph.mk (es : list (expr × edge × expr × expr)) : graph :=
+rb_map.map sort_edges $ es.foldl (λ (g : graph) ⟨pr,e,x,y⟩, g.insert x (pr,e,y)) (rb_lmap.mk _ _)
 
 meta instance graph.has_to_format : has_to_tactic_format graph :=
 by delta graph; apply_instance
@@ -91,13 +115,6 @@ of `v ≤ v'` or `v < v'`, whichever is strongest and true.
 -/
 meta def dfs_trans (g : graph) (v v' : expr) : tactic expr :=
 using_new_ref mk_expr_set $ λ r, dfs_trans' g r v' v [] >>= option.to_monad
-
-/--
-Place `lt` edges first in edge list.
--/
-meta def sort_edges (ls : list (expr × edge × expr)) : list (expr × edge × expr) :=
-let ⟨xs₀, xs₁⟩ := ls.partition (λ e : _ × _ × _, e.2.1 = edge.lt) in
-xs₀ ++ xs₁
 
 end chain_trans
 
@@ -134,11 +151,8 @@ ls ← local_context >>= list.mmap_filter'
                 h₀ ← mk_eq_symm h >>= mk_app ``le_of_eq ∘ list.ret,
                 h₁ ← mk_app ``le_of_eq [h],
                 pure [(h₀, edge.le, y, x), (h₁, edge.le, x, y)] }),
-let m := list.foldl  (λ (m : graph) (e : _ × _ × _ × _),
-  let ⟨pr,e,x,y⟩ := e in
-  m.insert x (pr,e,y)) (native.rb_lmap.mk expr (expr × edge × expr)) ls.join,
-let m := m.map sort_edges,
-pr ← dfs_trans m x y <|>
+let g := graph.mk ls.join,
+pr ← dfs_trans g x y <|>
   fail!"no appropriate chain of inequalities can be found between `{x}` and `{y}`",
 tactic.apply pr <|>
   mk_app ``le_of_lt [pr] >>= tactic.apply <|>

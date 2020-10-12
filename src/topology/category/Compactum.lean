@@ -455,19 +455,6 @@ def full : full Compactum_to_CompHaus :=
 /-- The functor Compactum_to_CompHaus is faithful. -/
 lemma faithful : faithful Compactum_to_CompHaus := {}
 
-private lemma is_open_iff_ultrafilter' {X : Type*} [topological_space X] [compact_space X]
-  [t2_space X] (U : set X) : is_open U ↔ (∀ F : ultrafilter X, F.Lim ∈ U → U ∈ F.1) :=
-begin
-  rw is_open_iff_ultrafilter,
-  refine ⟨λ h F hF, h _ hF _ F.2 (is_ultrafilter.le_nhds_Lim _), _⟩,
-  intros cond x hx f hf h,
-  let F : ultrafilter X := ⟨f, hf⟩,
-  change F.1 ≤ _ at h,
-  rw ←is_ultrafilter.Lim_eq_iff_le_nhds at h,
-  rw ←h at *,
-  exact cond _ hx
-end
-
 /-- This definition is used to prove essential surjectivity of Compactum_to_CompHaus. -/
 noncomputable def iso_of_topological_space {D : CompHaus} :
   Compactum_to_CompHaus.obj (Compactum.of_topological_space D) ≅ D :=

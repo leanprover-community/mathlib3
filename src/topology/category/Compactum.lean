@@ -350,8 +350,8 @@ instance {X : Compactum} : t2_space X :=
 begin
   rw t2_iff_ultrafilter,
   intros _ _ _ hF hx hy,
-  replace hx := str_eq_of_le_nhds ⟨_,hF⟩ _ hx,
-  replace hy := str_eq_of_le_nhds ⟨_,hF⟩ _ hy,
+  replace hx := str_eq_of_le_nhds ⟨_, hF⟩ _ hx,
+  replace hy := str_eq_of_le_nhds ⟨_, hF⟩ _ hy,
   cc,
 end
 
@@ -367,10 +367,10 @@ begin
   ext,
   rw mem_closure_iff_ultrafilter,
   split,
-  { rintro ⟨F,h1,h2⟩,
-    exact ⟨F,h1,le_nhds_of_str_eq _ _ h2⟩ },
-  { rintro ⟨F,h1,h2⟩,
-    exact ⟨F,h1,str_eq_of_le_nhds _ _ h2⟩ }
+  { rintro ⟨F, h1, h2⟩,
+    exact ⟨F, h1, le_nhds_of_str_eq _ _ h2⟩ },
+  { rintro ⟨F, h1, h2⟩,
+    exact ⟨F, h1, str_eq_of_le_nhds _ _ h2⟩ }
 end
 
 /-- Any morphism of compacta is continuous. -/
@@ -380,7 +380,7 @@ begin
   intros x _ h1 h2,
   change (ultrafilter.map f ⟨_, h1⟩).1 ≤ _,
   apply le_nhds_of_str_eq,
-  rw [←str_hom_commute, str_eq_of_le_nhds ⟨_, h1⟩ x h2],
+  rw [← str_hom_commute, str_eq_of_le_nhds ⟨_, h1⟩ x h2],
 end
 
 /-- Given any compact Hausdorff space, we construct a Compactum. -/

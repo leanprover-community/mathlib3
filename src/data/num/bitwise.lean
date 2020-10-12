@@ -2,11 +2,19 @@
 Copyright (c) 2014 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
-
-Bitwise operations using binary representation of integers.
 -/
 import data.num.basic
 import data.bitvec.core
+
+/-!
+# Bitwise operations using binary representation of integers
+
+## Definitions
+
+* bitwise operations for `pos_num` and `num`,
+* `snum`, a type that represents integers as a bit string with a sign bit at the end,
+* arithmetic operations for `snum`.
+-/
 
 namespace pos_num
 
@@ -180,8 +188,10 @@ instance : has_one snum := ⟨snum.nz 1⟩
 instance : inhabited nzsnum := ⟨1⟩
 instance : inhabited snum := ⟨0⟩
 
-/- The snum representation uses a bit string, essentially a list of 0 (ff) and 1 (tt) bits,
-    and the negation of the MSB is sign-extended to all higher bits. -/
+/-!
+The `snum` representation uses a bit string, essentially a list of 0 (`ff`) and 1 (`tt`) bits,
+and the negation of the MSB is sign-extended to all higher bits.
+-/
 namespace nzsnum
   notation a :: b := bit a b
 
@@ -317,9 +327,8 @@ namespace snum
 /-- `a.bits n` is the vector of the `n` first bits of `a` (starting from the LSB). -/
 def bits : snum → Π n, vector bool n
 | p 0     := vector.nil
-| p (n+1) := head p :: bits (tail p) n
+| p (n+1) := head p ::ᵥ bits (tail p) n
 
-/-- Add two `snum` with a carry. -/
 def cadd : snum → snum → bool → snum :=
 rec' (λ a p c, czadd c a p) $ λa p IH,
 rec' (λb c, czadd c b (a :: p)) $ λb q _ c,

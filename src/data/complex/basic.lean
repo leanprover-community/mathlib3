@@ -125,7 +125,6 @@ ext_iff.2 $ by simp
 @[simp] lemma re_add_im (z : ℂ) : (z.re : ℂ) + z.im * I = z :=
 ext_iff.2 $ by simp
 
-
 /-! ### Commutative ring instance and lemmas -/
 
 instance : comm_ring ℂ :=
@@ -137,6 +136,12 @@ instance re.is_add_group_hom : is_add_group_hom complex.re :=
 
 instance im.is_add_group_hom : is_add_group_hom complex.im :=
 { map_add := complex.add_im }
+
+@[simp] lemma I_pow_bit0 (n : ℕ) : I ^ (bit0 n) = (-1) ^ n :=
+by rw [pow_bit0', I_mul_I]
+
+@[simp] lemma I_pow_bit1 (n : ℕ) : I ^ (bit1 n) = (-1) ^ n * I :=
+by rw [pow_bit1', I_mul_I]
 
 /-! ### Complex conjugation -/
 
@@ -278,6 +283,12 @@ noncomputable instance : field ℂ :=
   mul_inv_cancel := @complex.mul_inv_cancel,
   inv_zero := complex.inv_zero,
   ..complex.comm_ring }
+
+@[simp] lemma I_fpow_bit0 (n : ℤ) : I ^ (bit0 n) = (-1) ^ n :=
+by rw [fpow_bit0', I_mul_I]
+
+@[simp] lemma I_fpow_bit1 (n : ℤ) : I ^ (bit1 n) = (-1) ^ n * I :=
+by rw [fpow_bit1', I_mul_I]
 
 lemma div_re (z w : ℂ) : (z / w).re = z.re * w.re / norm_sq w + z.im * w.im / norm_sq w :=
 by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg]

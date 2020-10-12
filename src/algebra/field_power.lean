@@ -14,6 +14,14 @@ universe u
   ∀ (a : K) (n : ℤ), f (a ^ n) = f a ^ n :=
 f.to_monoid_hom.map_fpow f.map_zero
 
+@[simp] lemma neg_fpow_bit0 {K : Type*} [division_ring K] (x : K) (n : ℤ) :
+  (-x) ^ (bit0 n) = x ^ bit0 n :=
+by rw [fpow_bit0', fpow_bit0', neg_mul_neg]
+
+@[simp] lemma neg_fpow_bit1 {K : Type*} [division_ring K] (x : K) (n : ℤ) :
+  (-x) ^ (bit1 n) = - x ^ bit1 n :=
+by rw [fpow_bit1', fpow_bit1', neg_mul_neg, neg_mul_eq_mul_neg]
+
 section ordered_field_power
 open int
 

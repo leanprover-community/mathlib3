@@ -403,8 +403,8 @@ meta def transfer_rw : tactic unit :=
   repeat {rw add_to_nat <|> rw mul_to_nat <|> rw cast_one <|> rw cast_zero}]
 
 /--
-This tactic tries to prove (in)-equalities about `pos_num`s by transfering them to `nat` world and then
-trying to call `simp`.
+This tactic tries to prove (in)-equalities about `pos_num`s by transfering them to `nat` world and
+then trying to call `simp`.
 ```lean
 example (n : pos_num) (m : pos_num) : n ≤ n + m := by pos_num.transfer
 ```

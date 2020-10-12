@@ -1552,7 +1552,7 @@ in which addition is cancellative and strictly monotone. -/
 @[protect_proj] class decidable_linear_ordered_cancel_add_comm_monoid (α : Type u)
   extends ordered_cancel_add_comm_monoid α, decidable_linear_order α
 
-/- Some lemmas about types that have an ordering and a binary operation, with no
+/-! Some lemmas about types that have an ordering and a binary operation, with no
   rules relating them. -/
 @[to_additive]
 lemma fn_min_mul_fn_max {β} [decidable_linear_order α] [comm_semigroup β] (f : α → β) (n m : α) :

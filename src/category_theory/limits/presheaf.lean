@@ -24,7 +24,7 @@ namespace colimit_adj
 
 /--
 The functor taking `(E : ℰ) (c : Cᵒᵖ)` to the homset `(A.obj C ⟶ E)`. It is shown in `L_adjunction`
-that this functor has a left adjoint (provided E has colimits) given by taking colimits over
+that this functor has a left adjoint (provided `E` has colimits) given by taking colimits over
 categories of elements.
 -/
 @[simps {rhs_md := semireducible}]
@@ -76,7 +76,7 @@ end
 
 variables [has_colimits ℰ]
 
-/-- The left adjoint to the functor `R` which sends `R(E,C)  -/
+/-- The left adjoint to the functor `R` which sends `R(E,C)`  -/
 def L : (Cᵒᵖ ⥤ Type u₁) ⥤ ℰ :=
 adjunction.left_adjoint_of_equiv
   (λ P E, Le' A P E (colimit.is_colimit _))

@@ -10,6 +10,24 @@ import geometry.manifold.times_cont_mdiff_map
 # Diffeomorphisms
 This file implements diffeomorphisms.
 
+## Definitions
+
+* `times_diffeomorph I I' M M' n`:  `n`-times continuously differentiable diffeomorphism between
+                                    `M` and `M'` with respect to I and I'
+* `diffeomorph  I I' M M'` : smooth diffeomorphism between `M` and `M'` with respect to I and I'
+
+## Notations
+
+* `M ≃ₘ^n⟮I, I'⟯ M'`  := `times_diffeomorph I J M N n`
+* `M ≃ₘ⟮I, I'⟯ M'`    := `times_diffeomorph I J M N ⊤`
+
+## Implementation notes
+
+This notion of diffeomorphism is needed although there is already a notion of structomorphism
+because structomorphisms do not allow the model spaces `H` and `H'` of the two manifolds to be
+different, i.e. for a structomorphism one has to impose `H = H'` which is often not the case in
+practice.
+
 -/
 
 open_locale manifold
@@ -31,7 +49,9 @@ variables (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold
 (N : Type*) [topological_space N] [charted_space G N] [smooth_manifold_with_corners J N]
 (n : with_top ℕ)
 
-/-- M and M' are diffeomorph with respect to I and I' -/
+/--
+`n`-times continuously differentiable diffeomorphism between `M` and `M'` with respect to I and I'
+-/
 @[protect_proj, nolint has_inhabited_instance]
 structure times_diffeomorph extends M ≃ M' :=
 (times_cont_mdiff_to_fun  : times_cont_mdiff I I' n to_fun)
@@ -57,7 +77,7 @@ protected lemma smooth (h : M ≃ₘ⟮I, I'⟯ M') : smooth I I' h := h.times_c
 
 lemma coe_eq_to_equiv (h : M ≃ₘ^n⟮I, I'⟯ M') (x : M) : h x = h.to_equiv x := rfl
 
-/-- Identity map is a diffeomorphism. -/
+/-- Identity map as a diffeomorphism. -/
 protected def refl : M ≃ₘ^n⟮I, I⟯ M :=
 { times_cont_mdiff_to_fun := times_cont_mdiff_id,
   times_cont_mdiff_inv_fun := times_cont_mdiff_id,

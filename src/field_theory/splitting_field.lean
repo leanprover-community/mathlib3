@@ -396,14 +396,19 @@ begin
   ... = p : by simp only [mul_one, ring_hom.map_one]
 end
 
-/--A polynomial that has as much roots as its degree splits-/
-lemma splits_of_card_roots {p : polynomial α} (hzero : p ≠ 0)
-  (hroots : p.nat_degree = p.roots.card) : splits (ring_hom.id α) p :=
+/--A polynomial splits if and only if it has as much roots as its degree-/
+lemma splits_iff_card_roots {p : polynomial α} (hzero : p ≠ 0) :
+  p.nat_degree = p.roots.card ↔ splits (ring_hom.id α) p :=
 begin
-  apply (splits_iff_exists_multiset (ring_hom.id α)).2,
-  use p.roots,
-  simp only [ring_hom.id_apply, map_id],
-  exact eq_prod_of_card_roots hzero hroots,
+  split,
+  { intro hroots,
+    apply (splits_iff_exists_multiset (ring_hom.id α)).2,
+    use p.roots,
+    simp only [ring_hom.id_apply, map_id],
+    exact eq_prod_of_card_roots hzero hroots },
+  have degroot := @nat_degree_eq_card_roots _ _ _ _ p (ring_hom.id α),
+  simp only [map_id] at degroot,
+  exact degroot
 end
 
 end splits

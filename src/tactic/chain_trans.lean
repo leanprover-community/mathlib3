@@ -80,10 +80,9 @@ meta def graph := native.rb_lmap expr (expr × edge × expr)
 meta instance graph.has_to_format : has_to_tactic_format graph :=
 by delta graph; apply_instance
 
-private meta def dfs_trans' (g : graph) (r : ref expr_set) (v : expr) (goal : edge) :
-  expr → list (edge × expr) → edge → tactic expr
-| x hs e := do
-  vs ← read_ref r,
+private meta def dfs_trans' (g : graph) (v : expr) (goal : edge) :
+  expr_set → expr → list (edge × expr) → edge → tactic expr
+| vs x hs e := do
   if vs.contains x then failed
   else if v = x then
     if e ≤ goal then do
@@ -97,15 +96,15 @@ private meta def dfs_trans' (g : graph) (r : ref expr_set) (v : expr) (goal : ed
               end) h
     else failed
   else do
-    write_ref r $ vs.insert x,
-    (g.find x).mfirst $ λ ⟨h',e',y⟩, dfs_trans' y ((e', h') :: hs) (min e e')
+    let vs' := vs.insert x,
+    (g.find x).mfirst $ λ ⟨h',e',y⟩, dfs_trans' vs' y ((e', h') :: hs) (min e e')
 
 /--
 Depth first search in a graph of ordered relation. Finds a proof
 of `v ≤ v'` or `v < v'`, whichever is strongest and true.
 -/
 meta def dfs_trans (g : graph) (v v' : expr) (e : edge) : tactic expr :=
-using_new_ref mk_expr_set $ λ r, dfs_trans' g r v' e v [] edge.le
+dfs_trans' g v' e mk_expr_set v [] edge.le
 
 end chain_trans
 

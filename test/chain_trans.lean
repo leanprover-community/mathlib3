@@ -32,7 +32,7 @@ begin
   chain_trans,
 end
 
-example {w x y z : ℕ} {a b : ℤ} (h₀ : w ≤ x) (h₁ : x = y) (h₃ : y ≤ z) (h₂ : y < z) (h₃ : y ≤ z) : w < z :=
+example {w x y z : ℕ} {a b : ℤ} (h₀ : w ≤ x) (h₁ : y = z) (h₃ : x ≤ y) (h₂ : x < y) (h₃ : x ≤ y) : w < z :=
 begin
   chain_trans,
 end

@@ -68,8 +68,12 @@ lemma single_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
     ... = (C a * X^n) * X : by rw [single_eq_C_mul_X]
     ... = C a * X^(n+1) : by simp only [pow_add, mul_assoc, pow_one]
 
-lemma C_inj : C a = C b ↔ a = b :=
+@[simp] lemma C_inj : C a = C b ↔ a = b :=
 ⟨λ h, coeff_C_zero.symm.trans (h.symm ▸ coeff_C_zero), congr_arg C⟩
+
+@[simp] lemma C_eq_zero : C a = 0 ↔ a = 0 :=
+calc C a = 0 ↔ C a = C 0 : by rw C_0
+         ... ↔ a = 0 : C_inj
 
 instance [nontrivial R] : infinite (polynomial R) :=
 infinite.of_injective (λ i, monomial i 1)

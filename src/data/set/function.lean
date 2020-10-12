@@ -49,7 +49,7 @@ lemma restrict_eq (f : α → β) (s : set α) : s.restrict f = f ∘ coe := rfl
 @[simp] lemma restrict_apply (f : α → β) (s : set α) (x : s) : restrict f s x = f x := rfl
 
 @[simp] lemma range_restrict (f : α → β) (s : set α) : set.range (restrict f s) = f '' s :=
-range_comp.trans $ congr_arg (('') f) subtype.range_coe
+(range_comp _ _).trans $ congr_arg (('') f) subtype.range_coe
 
 /-- Restrict codomain of a function `f` to a set `s`. Same as `subtype.coind` but this version
 has codomain `↥s` instead of `subtype s`. -/

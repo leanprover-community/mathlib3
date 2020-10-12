@@ -360,7 +360,7 @@ by rw [integral_indicator measurable_const s_meas, ← set_integral_const]
 lemma set_integral_map {β} [measurable_space β] {g : α → β} {f : β → E} {s : set β}
   (hs : is_measurable s) (hf : measurable f) (hg : measurable g) :
   ∫ y in s, f y ∂(measure.map g μ) = ∫ x in g ⁻¹' s, f (g x) ∂μ :=
-by rw [measure.restrict_map hg hs, integral_map_measure hg hf]
+by rw [measure.restrict_map hg hs, integral_map hg hf]
 
 lemma norm_set_integral_le_of_norm_le_const_ae {C : ℝ} (hs : μ s < ⊤)
   (hC : ∀ᵐ x ∂μ.restrict s, ∥f x∥ ≤ C) :
@@ -633,6 +633,17 @@ lemma snd_integral {f : α → E × F} (hf : integrable f μ) :
 lemma integral_pair {f : α → E} {g : α → F} (hf : integrable f μ) (hg : integrable g μ) :
   ∫ x, (f x, g x) ∂μ = (∫ x, f x ∂μ, ∫ x, g x ∂μ) :=
 have _ := hf.prod_mk hg, prod.ext (fst_integral this) (snd_integral this)
+
+lemma integral_smul_const (f : α → ℝ) (c : E) :
+  ∫ x, f x • c ∂μ = (∫ x, f x ∂μ) • c :=
+begin
+  by_cases hf : integrable f μ,
+  { exact ((continuous_linear_map.id ℝ ℝ).smul_right c).integral_comp_comm hf },
+  { by_cases hc : c = 0,
+    { simp only [hc, integral_zero, smul_zero] },
+    rw [integral_undef hf, integral_undef, zero_smul],
+    simp_rw [integrable_smul_const hc, hf, not_false_iff] }
+end
 
 end
 

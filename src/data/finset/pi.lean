@@ -84,6 +84,22 @@ begin
   exact multiset.nodup_map (multiset.pi_cons_injective ha) (pi s t).2,
 end
 
+lemma pi_singletons {β : Type*} (s : finset α) (f : α → β) :
+  s.pi (λ a, ({f a} : finset β)) = {λ a _, f a} :=
+begin
+  rw eq_singleton_iff_unique_mem,
+  split,
+  { simp },
+  intros a ha,
+  ext i hi,
+  rw [mem_pi] at ha,
+  simpa using ha i hi,
+end
+
+lemma pi_const_singleton {β : Type*} (s : finset α) (i : β) :
+  s.pi (λ _, ({i} : finset β)) = {λ _ _, i} :=
+pi_singletons s (λ _, i)
+
 lemma pi_subset {s : finset α} (t₁ t₂ : Πa, finset (δ a)) (h : ∀ a ∈ s, t₁ a ⊆ t₂ a) :
   s.pi t₁ ⊆ s.pi t₂ :=
 λ g hg, mem_pi.2 $ λ a ha, h a ha (mem_pi.mp hg a ha)

@@ -958,11 +958,17 @@ lemma exp_injective : function.injective exp := exp_strict_mono.injective
 @[simp] lemma exp_eq_one_iff : exp x = 1 ↔ x = 0 :=
 by rw [← exp_zero, exp_injective.eq_iff]
 
-lemma one_lt_exp_iff {x : ℝ} : 1 < exp x ↔ 0 < x :=
+@[simp] lemma one_lt_exp_iff {x : ℝ} : 1 < exp x ↔ 0 < x :=
 by rw [← exp_zero, exp_lt_exp]
 
-lemma exp_lt_one_iff {x : ℝ} : exp x < 1 ↔ x < 0 :=
+@[simp] lemma exp_lt_one_iff {x : ℝ} : exp x < 1 ↔ x < 0 :=
 by rw [← exp_zero, exp_lt_exp]
+
+@[simp] lemma exp_le_one_iff {x : ℝ} : exp x ≤ 1 ↔ x ≤ 0 :=
+exp_zero ▸ exp_le_exp
+
+@[simp] lemma one_le_exp_iff {x : ℝ} : 1 ≤ exp x ↔ 0 ≤ x :=
+exp_zero ▸ exp_le_exp
 
 /-- `real.cosh` is always positive -/
 lemma cosh_pos (x : ℝ) : 0 < real.cosh x :=

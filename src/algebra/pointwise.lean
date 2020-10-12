@@ -44,7 +44,7 @@ variables {α : Type*} {β : Type*} {s s₁ s₂ t t₁ t₂ u : set α} {a b : 
 @[to_additive]
 instance [has_one α] : has_one (set α) := ⟨{1}⟩
 
-@[simp, to_additive]
+@[to_additive]
 lemma singleton_one [has_one α] : ({1} : set α) = 1 := rfl
 
 @[simp, to_additive]

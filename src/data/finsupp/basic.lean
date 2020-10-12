@@ -209,14 +209,15 @@ by simp only [single_apply]; ac_refl
 lemma unique_single [unique α] (x : α →₀ β) : x = single (default α) (x (default α)) :=
 by ext i; simp only [unique.eq_default i, single_eq_same]
 
+lemma unique_ext [unique α] {f g : α →₀ β} (h : f (default α) = g (default α)) : f = g :=
+ext $ λ a, by rwa [unique.eq_default a]
+
+lemma unique_ext_iff [unique α] {f g : α →₀ β} : f = g ↔  f (default α) = g (default α) :=
+⟨λ h, h ▸ rfl, unique_ext⟩
+
 @[simp] lemma unique_single_eq_iff [unique α] {b' : β} :
   single a b = single a' b' ↔ b = b' :=
-begin
-  rw [single_eq_single_iff],
-  split,
-  { rintros (⟨_, rfl⟩ | ⟨rfl, rfl⟩); refl },
-  { intro h, left, exact ⟨subsingleton.elim _ _, h⟩ }
-end
+by rw [unique_ext_iff, unique.eq_default a, unique.eq_default a', single_eq_same, single_eq_same]
 
 end single
 
@@ -309,14 +310,14 @@ begin
     { simp only [h, ne.def, ne_self_iff_false] } }
 end
 
-lemma support_emb_domain (f : α₁ ↪ α₂) (v : α₁ →₀ β) :
+@[simp] lemma support_emb_domain (f : α₁ ↪ α₂) (v : α₁ →₀ β) :
   (emb_domain f v).support = v.support.map f :=
 rfl
 
-lemma emb_domain_zero (f : α₁ ↪ α₂) : (emb_domain f 0 : α₂ →₀ β) = 0 :=
+@[simp] lemma emb_domain_zero (f : α₁ ↪ α₂) : (emb_domain f 0 : α₂ →₀ β) = 0 :=
 rfl
 
-lemma emb_domain_apply (f : α₁ ↪ α₂) (v : α₁ →₀ β) (a : α₁) :
+@[simp] lemma emb_domain_apply (f : α₁ ↪ α₂) (v : α₁ →₀ β) (a : α₁) :
   emb_domain f v (f a) = v a :=
 begin
   change dite _ _ _ = _,
@@ -334,10 +335,17 @@ begin
   exact set.mem_range_self a
 end
 
-lemma emb_domain_inj {f : α₁ ↪ α₂} {l₁ l₂ : α₁ →₀ β} :
+lemma emb_domain_injective (f : α₁ ↪ α₂) :
+  function.injective (emb_domain f : (α₁ →₀ β) → (α₂ →₀ β)) :=
+λ l₁ l₂ h, ext $ λ a, by simpa only [emb_domain_apply] using ext_iff.1 h (f a)
+
+@[simp] lemma emb_domain_inj {f : α₁ ↪ α₂} {l₁ l₂ : α₁ →₀ β} :
   emb_domain f l₁ = emb_domain f l₂ ↔ l₁ = l₂ :=
-⟨λ h, ext $ λ a, by simpa only [emb_domain_apply] using ext_iff.1 h (f a),
-  λ h, by rw h⟩
+(emb_domain_injective f).eq_iff
+
+@[simp] lemma emb_domain_eq_zero {f : α₁ ↪ α₂} {l : α₁ →₀ β} :
+  emb_domain f l = 0 ↔ l = 0 :=
+(emb_domain_injective f).eq_iff' $ emb_domain_zero f
 
 lemma emb_domain_map_range
   {β₁ β₂ : Type*} [has_zero β₁] [has_zero β₂]
@@ -1113,7 +1121,7 @@ variables [has_zero β] {v v' : α' →₀ β}
 /-- `subtype_domain p f` is the restriction of the finitely supported function
   `f` to the subtype `p`. -/
 def subtype_domain (p : α → Prop) (f : α →₀ β) : (subtype p →₀ β) :=
-⟨f.support.subtype p, f ∘ subtype.val, λ a, by simp only [mem_subtype, mem_support_iff]⟩
+⟨f.support.subtype p, f ∘ coe, λ a, by simp only [mem_subtype, mem_support_iff]⟩
 
 @[simp] lemma support_subtype_domain {f : α →₀ β} :
   (subtype_domain p f).support = f.support.subtype p :=
@@ -1126,10 +1134,19 @@ rfl
 @[simp] lemma subtype_domain_zero : subtype_domain p (0 : α →₀ β) = 0 :=
 rfl
 
+lemma subtype_domain_eq_zero_iff' {p : α → Prop} {f : α →₀ β} :
+  f.subtype_domain p = 0 ↔ ∀ x, p x → f x = 0 :=
+by simp_rw [← support_eq_empty, support_subtype_domain, subtype_eq_empty, not_mem_support_iff]
+
+lemma subtype_domain_eq_zero_iff {p : α → Prop} {f : α →₀ β} (hf : ∀ x ∈ f.support , p x) :
+  f.subtype_domain p = 0 ↔ f = 0 :=
+subtype_domain_eq_zero_iff'.trans ⟨λ H, ext $ λ x,
+  if hx : p x then H x hx else not_mem_support_iff.1 $ mt (hf x) hx, λ H x _, by simp [H]⟩
+
 @[to_additive]
 lemma prod_subtype_domain_index [comm_monoid γ] {v : α →₀ β}
   {h : α → β → γ} (hp : ∀x∈v.support, p x) :
-  (v.subtype_domain p).prod (λa b, h a.1 b) = v.prod h :=
+  (v.subtype_domain p).prod (λa b, h a b) = v.prod h :=
 prod_bij (λp _, p.val)
   (λ _, mem_subtype.1)
   (λ _ _, rfl)
@@ -1563,9 +1580,9 @@ lemma mul_sum (b : γ) (s : α →₀ β) {f : α → β → γ} :
   b * (s.sum f) = s.sum (λ a c, b * (f a c)) :=
 by simp only [finsupp.sum, finset.mul_sum]
 
-protected lemma eq_zero_of_zero_eq_one
-  (zero_eq_one : (0 : β) = 1) (l : α →₀ β) : l = 0 :=
-by ext i; simp only [eq_zero_of_zero_eq_one zero_eq_one (l i), finsupp.zero_apply]
+instance unique_of_right [subsingleton β] : unique (α →₀ β) :=
+{ uniq := λ l, ext $ λ i, subsingleton.elim _ _,
+  .. finsupp.inhabited }
 
 end
 

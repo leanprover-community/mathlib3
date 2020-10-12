@@ -172,7 +172,8 @@ have h_ex : ∀ s ∈ 𝓤 (Cauchy α), ∃y:α, (f, pure_cauchy y) ∈ s, from
         ht'₂ $ prod_mk_mem_comp_rel (@h (a, x) ⟨h₁, hx⟩) h₂⟩,
   ⟨x, ht''₂ $ by dsimp [gen]; exact this⟩,
 begin
-  simp [closure_eq_cluster_pts, cluster_pt, nhds_eq_uniformity, lift'_inf_principal_eq, set.inter_comm],
+  simp only [closure_eq_cluster_pts, cluster_pt, nhds_eq_uniformity, lift'_inf_principal_eq,
+    set.inter_comm _ (range pure_cauchy), mem_set_of_eq],
   exact (lift'_ne_bot_iff $ monotone_inter monotone_const monotone_preimage).mpr
     (assume s hs,
       let ⟨y, hy⟩ := h_ex s hs in

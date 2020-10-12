@@ -86,7 +86,7 @@ lemma norm_tendsto_at_top (p : polynomial R) (h : 0 < degree p) :
   tendsto (λ z, ∥p.eval z∥) (comap norm at_top) at_top :=
 p.abv_tendsto_at_top norm h
 
-lemma exists_forall_norm_le (p : polynomial R) :
+lemma exists_forall_norm_le [proper_space R] (p : polynomial R) :
   ∃ x, ∀ y, ∥p.eval x∥ ≤ ∥p.eval y∥ :=
 if hp0 : 0 < degree p
 then p.continuous.norm.exists_forall_le $ (p.norm_tendsto_at_top hp0).mono_left $

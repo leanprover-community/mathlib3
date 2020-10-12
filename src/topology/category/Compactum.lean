@@ -59,7 +59,7 @@ We also add wrappers around structures which already exist. Here are the main on
 - `str : ultrafilter X → X` is the structure map for `X : Compactum`.
   The notation `X.str` is preferred.
 - `join : ultrafilter (ultrafilter X) → ultrafilter X` is the monadic join for `X : Compactum`.
-  Again, the noation `X.join` is preferred.
+  Again, the notation `X.join` is preferred.
 - `incl : X → ultrafilter X` is the unit for `X : Compactum`. The notation `X.incl` is preferred.
 
 ## References

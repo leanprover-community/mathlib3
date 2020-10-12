@@ -34,7 +34,7 @@ def alt_formula (x : ℝ) : ℝ := cos x * (cos x ^ 2 - 1/2) * cos (3 * x)
 lemma cos_sum_equiv {x : ℝ} :
 (cos x ^ 2 + cos (2 * x) ^ 2 + cos (3 * x) ^ 2 - 1) / 4 = alt_formula x :=
 begin
-  simp [real.cos_two_mul, cos_three_mul, alt_formula],
+  simp only [real.cos_two_mul, cos_three_mul, alt_formula],
   ring
 end
 
@@ -47,8 +47,7 @@ end
 lemma finding_zeros {x : ℝ} :
 alt_formula x = 0 ↔ cos x ^ 2 = 1/2 ∨ cos (3 * x) = 0 :=
 begin
-  unfold alt_formula,
-  simp only [mul_assoc, mul_eq_zero, sub_eq_zero],
+  simp only [alt_formula, mul_assoc, mul_eq_zero, sub_eq_zero],
   split,
   { rintro (h1|h2),
     { right,
@@ -59,13 +58,13 @@ begin
 end
 
 /-
-Now we can solve for `x` using basic-ish trigonometry.
+Now we can solve for `x` using basic-ish trigonometry. simp only [add_right_eq_self, div_eq_zero_iff]
 -/
 
 lemma solve_cos2_half {x : ℝ} : cos x ^ 2 = 1/2 ↔ ∃ k : ℤ, x = (2 * ↑k + 1) * π / 4 :=
 begin
   rw cos_square,
-  simp,
+  simp only [add_right_eq_self, div_eq_zero_iff],
   norm_num,
   rw cos_eq_zero_iff,
   split;

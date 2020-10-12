@@ -78,7 +78,7 @@ namespace sylow
 /-- Given a vector `v` of length `n`, make a vector of length `n+1` whose product is `1`,
 by consing the the inverse of the product of `v`. -/
 def mk_vector_prod_eq_one (n : ℕ) (v : vector G n) : vector G (n+1) :=
-vector.cons v.to_list.prod⁻¹ v
+v.to_list.prod⁻¹ ::ᵥ v
 
 lemma mk_vector_prod_eq_one_injective (n : ℕ) : injective (@mk_vector_prod_eq_one G _ n) :=
 λ ⟨v, _⟩ ⟨w, _⟩ h, subtype.eq (show v = w, by injection h with h; injection h)

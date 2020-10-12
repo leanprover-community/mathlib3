@@ -16,6 +16,8 @@ variables {n : ℕ}
 namespace vector
 variables {α : Type*}
 
+infixr `::ᵥ`:67  := vector.cons
+
 attribute [simp] head_cons tail_cons
 
 instance [inhabited α] : inhabited (vector α n) :=

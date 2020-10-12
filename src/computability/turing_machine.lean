@@ -1395,8 +1395,8 @@ local notation `cfg'` := cfg bool Λ' σ
 def read_aux : ∀ n, (vector bool n → stmt') → stmt'
 | 0     f := f vector.nil
 | (i+1) f := stmt.branch (λ a s, a)
-    (stmt.move dir.right $ read_aux i (λ v, f (vector.cons tt v)))
-    (stmt.move dir.right $ read_aux i (λ v, f (vector.cons ff v)))
+    (stmt.move dir.right $ read_aux i (λ v, f (tt ::ᵥ v)))
+    (stmt.move dir.right $ read_aux i (λ v, f (ff ::ᵥ v)))
 
 parameters {n : ℕ} (enc : Γ → vector bool n) (dec : vector bool n → Γ)
 
@@ -1568,7 +1568,7 @@ begin
   clear f L a R, intros, subst i,
   induction l₂ with a l₂ IH generalizing l₁, {refl},
   transitivity step_aux
-    (read_aux l₂.length (λ v, f (vector.cons a v))) v
+    (read_aux l₂.length (λ v, f (a ::ᵥ v))) v
     (tape.mk' ((L'.append l₁).cons a) (R'.append l₂)),
   { dsimp [read_aux, step_aux], simp, cases a; refl },
   rw [← list_blank.append, IH], refl

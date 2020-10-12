@@ -169,7 +169,7 @@ instance (n : ℕ) : topological_space (vector α n) :=
 by unfold vector; apply_instance
 
 lemma tendsto_cons {n : ℕ} {a : α} {l : vector α n}:
-  tendsto (λp:α×vector α n, vector.cons p.1 p.2) (𝓝 a ×ᶠ 𝓝 l) (𝓝 (vector.cons a l)) :=
+  tendsto (λp:α×vector α n, p.1 ::ᵥ p.2) (𝓝 a ×ᶠ 𝓝 l) (𝓝 (a ::ᵥ l)) :=
 by { simp [tendsto_subtype_rng, ←subtype.val_eq_coe, cons_val],
   exact tendsto_fst.cons (tendsto.comp continuous_at_subtype_coe tendsto_snd) }
 

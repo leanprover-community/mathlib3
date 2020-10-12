@@ -34,7 +34,7 @@ subtype.val_injective
 | ⟨v, hv⟩ ⟨w, hw⟩ h := subtype.eq (list.ext_le (by rw [hv, hw])
   (λ m hm hn, h ⟨m, hv ▸ hm⟩))
 
-/-- The empty `vector` is a `subsingleton` -/
+/-- The empty `vector` is a `subsingleton`. -/
 instance zero_subsingleton : subsingleton (vector α 0) :=
 ⟨λ _ _, vector.ext (λ m, fin.elim0 m)⟩
 

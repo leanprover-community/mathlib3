@@ -54,6 +54,19 @@ instance : has_to_string edge :=
       | edge.le := "le"
       end ⟩
 
+inductive edge.less_than_or_equal : edge → edge → Prop
+| bot {x} :  edge.less_than_or_equal edge.lt x
+| top {x} :  edge.less_than_or_equal x edge.le
+
+instance : decidable_linear_order edge :=
+{ le := edge.less_than_or_equal,
+  le_refl := by { intro x, cases x; constructor },
+  le_antisymm := by { introv h₀ h₁, cases h₀; cases h₁; refl },
+  le_trans := by { introv h₀ h₁, cases h₀, { constructor }, cases h₁, constructor },
+  le_total := by { intros x y, cases x; cases y; { left; constructor } <|> { right; constructor } },
+  decidable_le := by { intros x y, cases x; cases y; { left; intro h; cases h; done } <|> { right; constructor } }
+ }
+
 meta instance edge.has_to_format : has_to_format edge :=
 ⟨ λ e, to_fmt $ to_string e ⟩
 
@@ -67,12 +80,13 @@ meta def graph := native.rb_lmap expr (expr × edge × expr)
 meta instance graph.has_to_format : has_to_tactic_format graph :=
 by delta graph; apply_instance
 
-private meta def dfs_trans' (g : graph) (r : ref expr_set) (v : expr) :
-  expr → list (edge × expr) → tactic expr
-| x hs := do
+private meta def dfs_trans' (g : graph) (r : ref expr_set) (v : expr) (goal : edge) :
+  expr → list (edge × expr) → edge → tactic expr
+| x hs e := do
   vs ← read_ref r,
   if vs.contains x then failed
-  else if v = x then do
+  else if v = x then
+    if e ≤ goal then do
     (h :: hs) ← pure hs | mk_mapp ``le_refl [none, none, x],
     prod.snd <$> hs.mfoldl (λ ⟨e',h'⟩ ⟨e, h⟩,
               match e, e' with
@@ -81,16 +95,17 @@ private meta def dfs_trans' (g : graph) (r : ref expr_set) (v : expr) :
               | edge.le, edge.lt := prod.mk edge.lt <$> mk_app ``lt_of_le_of_lt [h, h']
               | edge.le, edge.le := prod.mk edge.le <$> mk_app ``le_trans [h, h']
               end) h
+    else failed
   else do
     write_ref r $ vs.insert x,
-    (g.find x).mfirst $ λ ⟨h',e',y⟩, dfs_trans' y ((e', h') :: hs)
+    (g.find x).mfirst $ λ ⟨h',e',y⟩, dfs_trans' y ((e', h') :: hs) (min e e')
 
 /--
 Depth first search in a graph of ordered relation. Finds a proof
 of `v ≤ v'` or `v < v'`, whichever is strongest and true.
 -/
-meta def dfs_trans (g : graph) (v v' : expr) : tactic expr :=
-using_new_ref mk_expr_set $ λ r, dfs_trans' g r v' v []
+meta def dfs_trans (g : graph) (v v' : expr) (e : edge) : tactic expr :=
+using_new_ref mk_expr_set $ λ r, dfs_trans' g r v' e v [] edge.le
 
 end chain_trans
 
@@ -112,7 +127,8 @@ end
 -/
 meta def chain_trans : tactic unit := do
 tgt ← target,
-(x, y) ← match_le tgt <|> match_lt tgt,
+(goal, x, y) ← prod.mk edge.le <$> match_le tgt <|>
+    prod.mk edge.lt <$> match_lt tgt,
 α ← infer_type x,
 ls ← local_context >>= list.mmap_filter'
   (λ h, do t ← infer_type h,
@@ -128,10 +144,9 @@ ls ← local_context >>= list.mmap_filter'
 let m := list.foldl  (λ (m : graph) (e : _ × _ × _ × _),
   let ⟨pr,e,x,y⟩ := e in
   m.insert x (pr,e,y)) (native.rb_lmap.mk expr (expr × edge × expr)) ls.join,
-pr ← dfs_trans m x y <|> fail!"no chain of inequalities can be found between `{x}` and `{y}`",
+pr ← dfs_trans m x y goal <|> fail!"no appropriate chain of inequalities can be found between `{x}` and `{y}`",
 tactic.apply pr <|>
-  mk_app ``le_of_lt [pr] >>= tactic.apply <|>
-  fail!"`{tgt}` cannot be proved from `{infer_type pr}`",
+  mk_app ``le_of_lt [pr] >>= tactic.apply,
 skip
 
 end interactive

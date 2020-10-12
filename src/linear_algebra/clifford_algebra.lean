@@ -77,7 +77,7 @@ The canonical linear map `M →ₗ[R] clifford_algebra Q`.
 def ι : M →ₗ[R] clifford_algebra Q :=
 (ring_quot.mk_alg_hom R _).to_linear_map.comp (tensor_algebra.ι R)
 
-/-- As well as being linear, `ι m` squares to the quadratic form -/
+/-- As well as being linear, `ι Q` squares to the quadratic form -/
 @[simp]
 theorem ι_square_scalar (m : M) : ι Q m * ι Q m = algebra_map R _ (Q m) :=
 begin
@@ -113,7 +113,7 @@ by simp [lift, ι]
 
 @[simp]
 theorem lift_unique (f : M →ₗ[R] A) (cond : ∀ m : M, f m * f m = algebra_map _ _ (Q m))
-(g : clifford_algebra Q →ₐ[R] A) :
+  (g : clifford_algebra Q →ₐ[R] A) :
   g.to_linear_map.comp (ι Q) = f ↔ g = lift Q f cond :=
 begin
   refine ⟨_, λ hyp, by rw [hyp, ι_comp_lift]⟩,
@@ -133,7 +133,7 @@ by rw [←alg_hom.map_mul, ι_square_scalar, alg_hom.commutes]
 @[simp]
 theorem lift_comp_ι (g : clifford_algebra Q →ₐ[R] A) :
   lift Q (g.to_linear_map.comp (ι Q)) (comp_ι_square_scalar _) = g :=
-by {symmetry, rw ←lift_unique}
+by { symmetry, rw ←lift_unique }
 
 @[ext]
 theorem hom_ext {A : Type*} [semiring A] [algebra R A] {f g : clifford_algebra Q →ₐ[R] A} :

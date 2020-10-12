@@ -22,6 +22,9 @@ This file expands on the development in the core library.
   `0`-th element `C (n+1) 0` of an `(n+1)`-tuple, and `Hs n i` defines `(i+1)`-st element
   of `(n+1)`-tuple based on `n`, `i`, and `i`-th element of `n`-tuple.
 * `fin.succ_rec_on` : same as `fin.succ_rec` but `i : fin n` is the first argument;
+* `fin.induction` : Define `C i` by induction on `i : fin (n + 1)`, separating into the
+  `nat`-like base cases of `C 0` and `C (i.succ)`.
+* `fin.induction_on` : same as `fin.induction` but with `i : fin (n + 1)` as the first argument.
 
 ### Casts
 

@@ -34,6 +34,11 @@ Here are the main objects introduced in this file.
   category of compact Hausdorff spaces.
 - `Compactum_to_CompHaus.is_equivalence` is a term of type `is_equivalence Compactum_to_CompHaus`.
 
+The proof of this equivalence is a bit technical. But the idea is quite simply that the structure
+map `ultrafilter X → X` for an algebra `X` of the ultrafilter monad should be considered as the map
+sending an ultrafilter to its limit in `X`. The topology on `X` is then defined by mimicking the
+characterization of open sets in terms of ultrafilters.
+
 Any `X : Compactum` is endowed with a coercion to `Type*`, as well as the following instances:
 - `topological_space X`.
 - `compact_space X`.

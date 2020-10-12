@@ -5,6 +5,7 @@ Authors: Chris Hughes
 -/
 import linear_algebra.dimension
 import ring_theory.principal_ideal_domain
+import algebra.algebra.subalgebra
 
 /-!
 # Finite dimensional vector spaces
@@ -27,7 +28,12 @@ that all these points of view are equivalent, with the following lemmas
 (in the namespace `finite_dimensional`):
 
 - `exists_is_basis_finite` states that a finite-dimensional vector space has a finite basis
-- `of_finite_basis` states that the existence of a finite basis implies finite-dimensionality
+- `of_fintype_basis` states that the existence of a basis indexed by a finite type implies
+  finite-dimensionality
+- `of_finset_basis` states that the existence of a basis indexed by a `finset` implies
+  finite-dimensionality
+- `of_finite_basis` states that the existence of a basis indexed by a finite set implies
+  finite-dimensionality
 - `iff_fg` states that the space is finite-dimensional if and only if it is finitely generated
 
 Also defined is `findim`, the dimension of a finite dimensional space, returning a `nat`,
@@ -68,7 +74,7 @@ variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [vector_space K
 {V₂ : Type v'} [add_comm_group V₂] [vector_space K V₂]
 
 /-- `finite_dimensional` vector spaces are defined to be noetherian modules.
-Use `finite_dimensional.iff_fg` or `finite_dimensional.of_finite_basis` to prove finite dimension
+Use `finite_dimensional.iff_fg` or `finite_dimensional.of_fintype_basis` to prove finite dimension
 from a conventional definition. -/
 @[reducible] def finite_dimensional (K V : Type*) [field K]
   [add_comm_group V] [vector_space K V] := is_noetherian K V
@@ -147,14 +153,20 @@ begin
 end
 
 /-- If a vector space has a finite basis, then it is finite-dimensional. -/
-lemma of_finite_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K b) :
+lemma of_fintype_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K b) :
   finite_dimensional K V :=
 iff_fg.2 $ ⟨finset.univ.image b, by {convert h.2, simp} ⟩
 
-/-- If a vector space has a finite basis, then it is finite-dimensional, finset style. -/
-lemma of_finset_basis {b : finset V} (h : is_basis K (coe : (↑b : set V) -> V)) :
+/-- If a vector space has a basis indexed by elements of a finite set, then it is
+finite-dimensional. -/
+lemma of_finite_basis {ι} {s : set ι} {b : s → V} (h : is_basis K b) (hs : set.finite s) :
   finite_dimensional K V :=
-iff_fg.2 $ ⟨b, by {convert h.2, simp} ⟩
+by haveI := hs.fintype; exact of_fintype_basis h
+
+/-- If a vector space has a finite basis, then it is finite-dimensional, finset style. -/
+lemma of_finset_basis {ι} {s : finset ι} {b : (↑s : set ι) → V} (h : is_basis K b) :
+  finite_dimensional K V :=
+of_finite_basis h s.finite_to_set
 
 /-- A subspace of a finite-dimensional space is also finite-dimensional. -/
 instance finite_dimensional_submodule [finite_dimensional K V] (S : submodule K V) :
@@ -196,7 +208,7 @@ basis. -/
 lemma findim_eq_card_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K b) :
   findim K V = fintype.card ι :=
 begin
-  haveI : finite_dimensional K V := of_finite_basis h,
+  haveI : finite_dimensional K V := of_fintype_basis h,
   have := dim_eq_card_basis h,
   rw ← findim_eq_dim at this,
   exact_mod_cast this

@@ -140,6 +140,7 @@ Linear algebra:
     determinant: 'matrix.det'
     invertibility: 'matrix.nonsing_inv'
   Endomorphism polynomials:
+    minimal polynomial: 'minimal_polynomial'
     characteristic polynomial: 'char_poly'
     Cayley-Hamilton theorem: 'aeval_self_char_poly'
   Structure theory of endomorphisms:

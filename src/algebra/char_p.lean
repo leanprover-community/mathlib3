@@ -241,7 +241,7 @@ section
 variables (α : Type u) [ring α]
 
 lemma char_p_to_char_zero [char_p α 0] : char_zero α :=
-add_group.char_zero_of_inj_zero $
+char_zero_of_inj_zero $
   λ n h0, eq_zero_of_zero_dvd ((cast_eq_zero_iff α 0 n).mp h0)
 
 lemma cast_eq_mod (p : ℕ) [char_p α p] (k : ℕ) : (k : α) = (k % p : ℕ) :=

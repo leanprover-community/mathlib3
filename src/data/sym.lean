@@ -103,7 +103,7 @@ mem_cons.2 (or.inr h)
 @[simp] lemma mem_cons_self (a : α) (s : sym α n) : a ∈ a :: s :=
 mem_cons.2 (or.inl rfl)
 
-lemma cons_of_coe_eq (a : α) (v : vector α n) : a :: (↑v : sym α n) = ↑(a :: v) :=
+lemma cons_of_coe_eq (a : α) (v : vector α n) : a :: (↑v : sym α n) = ↑(vector.cons a v) :=
 by { unfold_coes, delta of_vector, delta cons, delta vector.cons, tidy }
 
 lemma sound {a b : vector α n} (h : a.val ~ b.val) : (↑a : sym α n) = ↑b :=

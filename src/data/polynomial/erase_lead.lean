@@ -41,6 +41,7 @@ by convert rfl
 
 lemma erase_lead_coeff (i : ℕ) :
   f.erase_lead.coeff i = if i = f.nat_degree then 0 else f.coeff i :=
+-- `rfl` doesn't work because the LHS uses `nat.decidable_eq` whereas the RHS uses a classical instance.
 by convert rfl
 
 @[simp] lemma erase_lead_coeff_nat_degree : f.erase_lead.coeff f.nat_degree = 0 :=

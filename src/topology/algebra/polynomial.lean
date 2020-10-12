@@ -5,44 +5,92 @@ Author: Robert Y. Lewis
 
 Analytic facts about polynomials.
 -/
-import topology.algebra.ring
+import data.polynomial.algebra_map
 import data.polynomial.div
-import data.real.cau_seq
+import topology.metric_space.cau_seq_filter
 
-open polynomial is_absolute_value
+open is_absolute_value filter
 
-lemma polynomial.tendsto_infinity {α β : Type*} [comm_ring α] [discrete_linear_ordered_field β]
-  (abv : α → β) [is_absolute_value abv] {p : polynomial α} (h : 0 < degree p) :
-  ∀ x : β, ∃ r > 0, ∀ z : α, r < abv z → x < abv (p.eval z) :=
-degree_pos_induction_on p h
-  (λ a ha x, ⟨max (x / abv a) 1, (lt_max_iff.2 (or.inr zero_lt_one)), λ z hz,
-    by simp [max_lt_iff, div_lt_iff' ((abv_pos abv).2 ha), abv_mul abv] at *; tauto⟩)
-  (λ p hp ih x, let ⟨r, hr0, hr⟩ := ih x in
-    ⟨max r 1, lt_max_iff.2 (or.inr zero_lt_one), λ z hz, by rw [eval_mul, eval_X, abv_mul abv];
-        calc x < abv (p.eval z) : hr _ (max_lt_iff.1 hz).1
-        ... ≤ abv (eval z p) * abv z : le_mul_of_one_le_right
-          (abv_nonneg _ _) (max_le_iff.1 (le_of_lt hz)).2⟩)
-  (λ p a hp ih x, let ⟨r, hr0, hr⟩ := ih (x + abv a) in
-    ⟨r, hr0, λ z hz, by rw [eval_add, eval_C, ← sub_neg_eq_add];
-      exact lt_of_lt_of_le (lt_sub_iff_add_lt.2
-        (by rw abv_neg abv; exact (hr z hz)))
-        (le_trans (le_abs_self _) (abs_abv_sub_le_abv_sub _ _ _))⟩)
+namespace polynomial
+
+section topological_semiring
+
+variables {R : Type*} [semiring R] [topological_space R] [topological_semiring R]
+  (p : polynomial R)
 
 @[continuity]
-lemma polynomial.continuous_eval {α} [comm_semiring α] [topological_space α]
-  [topological_semiring α] (p : polynomial α) : continuous (λ x, p.eval x) :=
+protected lemma continuous : continuous (λ x, p.eval x) :=
 begin
-  apply p.induction,
-  { convert continuous_const,
-    ext, exact eval_zero, },
-  { intros a b f haf hb hcts,
-    simp only [polynomial.eval_add],
-    refine continuous.add _ hcts,
-    have : ∀ x, finsupp.sum (finsupp.single a b) (λ (e : ℕ) (a : α), a * x ^ e) = b * x ^a,
-      from λ x, finsupp.sum_single_index (by simp),
-    convert continuous.mul _ _,
-    { ext, dsimp only [eval_eq_sum], apply this },
-    { apply_instance },
-    { apply continuous_const },
-    { apply continuous_pow }}
+  dsimp only [eval_eq_sum, finsupp.sum],
+  exact continuous_finset_sum _ (λ c hc, continuous_const.mul (continuous_pow _))
 end
+
+protected lemma continuous_at {a : R} : continuous_at (λ x, p.eval x) a :=
+p.continuous.continuous_at
+
+protected lemma continuous_within_at {s a} : continuous_within_at (λ x, p.eval x) s a :=
+p.continuous.continuous_within_at
+
+protected lemma continuous_on {s} : continuous_on (λ x, p.eval x) s :=
+p.continuous.continuous_on
+
+end topological_semiring
+
+section topological_algebra
+
+variables {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
+  [topological_space A] [topological_semiring A]
+  (p : polynomial R)
+
+@[continuity]
+protected lemma continuous_aeval : continuous (λ x : A, aeval x p) :=
+begin
+  dsimp only [aeval_def, eval₂_eq_sum, finsupp.sum],
+  exact continuous_finset_sum _ (λ c hc, continuous_const.mul (continuous_pow _))
+end
+
+protected lemma continuous_at_aeval {a : A} : continuous_at (λ x : A, aeval x p) a :=
+p.continuous_aeval.continuous_at
+
+protected lemma continuous_within_at_aeval {s a} : continuous_within_at (λ x : A, aeval x p) s a :=
+p.continuous_aeval.continuous_within_at
+
+protected lemma continuous_on_aeval {s} : continuous_on (λ x : A, aeval x p) s :=
+p.continuous_aeval.continuous_on
+
+end topological_algebra
+
+lemma abv_tendsto_at_top {R k : Type*} [comm_ring R] [discrete_linear_ordered_field k]
+  (abv : R → k) [is_absolute_value abv] (p : polynomial R) (h : 0 < degree p) :
+  tendsto (λ z, abv (p.eval z)) (comap abv at_top) at_top :=
+begin
+  have : tendsto abv (comap abv at_top) at_top := map_comap_le,
+  apply degree_pos_induction_on p h; clear h p,
+  { intros c hc,
+    simpa [abv_mul abv] using tendsto_at_top_mul_left' ((abv_pos abv).2 hc) this },
+  { intros p hpd ihp,
+    simpa [abv_mul abv] using tendsto_at_top_mul_at_top ihp this },
+  { intros p a hp ihp,
+    refine tendsto_at_top_of_add_const_right (abv (-a)) _,
+    refine tendsto_at_top_mono (λ _, abv_add abv _ _) _,
+    simpa }
+end
+
+-- Lean fails to unify `normed_comm_ring → comm_ring → ring` with
+--  `normed_comm_ring → normed_ring → ring`
+local attribute [instance, priority 200] comm_ring.to_ring normed_comm_ring.to_comm_ring
+
+variables {R : Type*} [normed_comm_ring R] [is_absolute_value (norm : R → ℝ)]
+
+lemma norm_tendsto_at_top (p : polynomial R) (h : 0 < degree p) :
+  tendsto (λ z, ∥p.eval z∥) (comap norm at_top) at_top :=
+p.abv_tendsto_at_top norm h
+
+lemma exists_forall_norm_le (p : polynomial R) :
+  ∃ x, ∀ y, ∥p.eval x∥ ≤ ∥p.eval y∥ :=
+if hp0 : 0 < degree p
+then p.continuous.norm.exists_forall_le $ (p.norm_tendsto_at_top hp0).mono_left $
+  tendsto_norm_cocompact_at_top.le_comap
+else ⟨p.coeff 0, by rw [eq_C_of_degree_le_zero (le_of_not_gt hp0)]; simp⟩
+
+end polynomial

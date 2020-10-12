@@ -311,6 +311,8 @@ lemma nonempty_iff_univ_nonempty : nonempty α ↔ (univ : set α).nonempty :=
 lemma nonempty.to_subtype (h : s.nonempty) : nonempty s :=
 nonempty_subtype.2 h
 
+@[simp] lemma nonempty_insert (a : α) (s : set α) : (insert a s).nonempty := ⟨a, or.inl rfl⟩
+
 /-! ### Lemmas about the empty set -/
 
 theorem empty_def : (∅ : set α) = {x | false} := rfl

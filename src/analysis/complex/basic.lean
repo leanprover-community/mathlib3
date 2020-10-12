@@ -56,6 +56,8 @@ instance normed_algebra_over_reals : normed_algebra ℝ ℂ :=
 
 @[simp] lemma norm_eq_abs (z : ℂ) : ∥z∥ = abs z := rfl
 
+lemma dist_eq (z w : ℂ) : dist z w = abs (z - w) := rfl
+
 @[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := abs_of_real _
 
 @[simp] lemma norm_rat (r : ℚ) : ∥(r : ℂ)∥ = _root_.abs (r : ℝ) :=

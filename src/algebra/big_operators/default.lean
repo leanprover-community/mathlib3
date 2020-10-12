@@ -4,3 +4,4 @@ import algebra.big_operators.order
 import algebra.big_operators.intervals
 import algebra.big_operators.ring
 import algebra.big_operators.nat_antidiagonal
+import algebra.big_operators.enat

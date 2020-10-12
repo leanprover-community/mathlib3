@@ -16,6 +16,12 @@ Find all pairs `(k, n)` of positive integers such that
   k! = (2 ^ n − 1)(2 ^ n − 2)(2 ^ n − 4)···(2 ^ n − 2 ^ (n − 1))
 ```
 We show in this file that this property holds iff `(k, n) = (1, 1) ∨ (k, n) = (3, 2)`.
+
+Proof sketch:
+The idea of the proof is to count the factors of 2 on both sides. The LHS has less than `k` factors
+of 2, and the RHS has exactly `n * (n - 1) / 2` factors of 2. So we know that `n * (n - 1) / 2 < k`.
+Now for `n ≥ 6` we have `RHS < 2 ^ (n ^ 2) < (n(n-1)/2)! < k!`. We then treat the cases `n < 6`
+individually.
 -/
 
 open_locale nat big_operators
@@ -49,9 +55,7 @@ begin
     norm_num },
   refine le_induction _ _ n hn, { norm_num },
   intros n' hn' ih,
-  have h5 : 1 ≤ 2 * n',
-  { apply succ_le_of_lt, apply mul_pos, norm_num,
-    exact (succ_pos _).trans_le hn' },
+  have h5 : 1 ≤ 2 * n', { linarith },
   have : 2 ^ (2 + 2) ≤ (n' * (n' - 1) / 2).succ,
   { change succ (6 * (6 - 1) / 2) ≤ _,
     apply succ_le_succ, apply nat.div_le_div_right,
@@ -83,9 +87,9 @@ begin
     exact h, rw [h], norm_num },
   all_goals { exfalso, norm_num [prod_range_succ] at h, norm_cast at h, },
   /- n = 3 -/
-  { refine ne_of_monotone_of_lt_of_lt monotone_factorial 5 _ _ _ h; norm_num },
+  { refine monotone_factorial.ne_of_lt_of_lt_nat 5 _ _ _ h; norm_num },
   /- n = 4 -/
-  { refine ne_of_monotone_of_lt_of_lt monotone_factorial 7 _ _ _ h; norm_num },
+  { refine monotone_factorial.ne_of_lt_of_lt_nat 7 _ _ _ h; norm_num },
   /- n = 5 -/
-  { refine ne_of_monotone_of_lt_of_lt monotone_factorial 10 _ _ _ h; norm_num },
+  { refine monotone_factorial.ne_of_lt_of_lt_nat 10 _ _ _ h; norm_num },
 end

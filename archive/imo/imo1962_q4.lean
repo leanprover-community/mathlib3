@@ -40,7 +40,7 @@ end
 
 lemma alt_equiv {x : ℝ} : problem_equation x ↔ alt_formula x = 0 :=
 begin
-  rw [ problem_equation, ← cos_sum_equiv, div_eq_zero_iff,  sub_eq_zero],
+  rw [ problem_equation, ← cos_sum_equiv, div_eq_zero_iff, sub_eq_zero],
   norm_num,
 end
 

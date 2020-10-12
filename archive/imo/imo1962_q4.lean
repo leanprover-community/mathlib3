@@ -50,12 +50,11 @@ begin
   unfold alt_formula,
   simp only [mul_assoc, mul_eq_zero, sub_eq_zero],
   split,
-  { intro h1,
-    cases h1 with h2 h3,
+  { rintro (h1|h2),
     { right,
-      rw [cos_three_mul, h2],
+      rw [cos_three_mul, h1],
       ring },
-    { exact h3 } },
+    { exact h2 } },
   { exact or.inr }
 end
 
@@ -80,7 +79,7 @@ begin
   rw cos_eq_zero_iff,
   apply exists_congr,
   intro k,
-  split ; intro h ; linarith [h]
+  split; intro; linarith
 end
 
 /-

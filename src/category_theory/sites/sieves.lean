@@ -33,7 +33,7 @@ For an object `X` of a category `C`, a `sieve X` is a set of morphisms to `X` wh
 left-composition.
 -/
 structure sieve {C : Type u} [category.{v} C] (X : C) :=
-(arrows : Π {Y}, set (Y ⟶ X))
+(arrows : Π ⦃Y⦄, set (Y ⟶ X))
 (downward_closed : ∀ {Y Z f} (hf : arrows f) (g : Z ⟶ Y), arrows (g ≫ f))
 attribute [simp, priority 100] sieve.downward_closed
 

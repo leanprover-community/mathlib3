@@ -796,8 +796,6 @@ lemma sum_id_apply {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [add
   sum_id k g = g.sum (λ _ gi, gi) :=
 by simp [sum_id, lift_aux]
 
-end lift
-
 section
 local attribute [reducible] add_monoid_algebra
 

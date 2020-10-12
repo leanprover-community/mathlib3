@@ -149,7 +149,7 @@ by simp [nth_zero]
 
 /-- Accessing the `nth` element of a vector made up
 of one element `x : α` is `x` itself. -/
-@[simp] lemma nth_cons_nil {ix}
+@[simp] lemma nth_cons_nil {ix : ℕ}
   (x : α) : nth (x ::ᵥ nil) ix = x :=
 by convert nth_cons_zero x nil
 
@@ -199,10 +199,10 @@ def mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
 /-- Define `C v` by induction on `v : vector α (n + 1)`, a vector of
 at least one element.
 This function has two arguments: `h0` handles the base case on `C nil`,
-and `hs` defines the inductive step using `∀ x : α, C v → C (x :: v)`. -/
+and `hs` defines the inductive step using `∀ x : α, C v → C (x ::ᵥ v)`. -/
 @[elab_as_eliminator] def induction_on
   {α : Type*} {n : ℕ}
-  {C : Π {n}, vector α n → Sort*}
+  {C : Π {n : ℕ}, vector α n → Sort*}
   (v : vector α (n + 1))
   (h0 : C nil)
   (hs : ∀ {n : ℕ} {x : α} {w : vector α n}, C w → C (x ::ᵥ w)) :

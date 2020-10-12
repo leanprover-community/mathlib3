@@ -720,14 +720,13 @@ map₂_left' prod.mk [1, 2] ['a'] = ([(1, some 'a'), (2, none)], [])
 map₂_left' prod.mk [1] ['a', 'b'] = ([(1, some 'a')], ['b'])
 ```
 -/
-def map₂_left' (f : α → option β → γ) : list α → list β → (list γ × list β)
+@[simp] def map₂_left' (f : α → option β → γ) : list α → list β → (list γ × list β)
 | [] bs := ([], bs)
 | (a :: as) [] :=
-  let ⟨cs, rest⟩ := map₂_left' as [] in
-  (f a none :: cs, rest)
+  ((a :: as).map (λ a, f a none), [])
 | (a :: as) (b :: bs) :=
-  let ⟨cs, rest⟩ := map₂_left' as bs in
-  (f a (some b) :: cs, rest)
+  let rec := map₂_left' as bs in
+  (f a (some b) :: rec.fst, rec.snd)
 
 /--
 Right-biased version of `list.map₂`. `map₂_right' f as bs` applies `f` to each
@@ -790,9 +789,9 @@ map₂_left prod.mk [1] ['a', 'b'] = [(1, some 'a')]
 map₂_left f as bs = (map₂_left' f as bs).fst
 ```
 -/
-def map₂_left (f : α → option β → γ) : list α → list β → list γ
+@[simp] def map₂_left (f : α → option β → γ) : list α → list β → list γ
 | [] _ := []
-| (a :: as) [] := f a none :: map₂_left as []
+| (a :: as) [] := (a :: as).map (λ a, f a none)
 | (a :: as) (b :: bs) := f a (some b) :: map₂_left as bs
 
 /--

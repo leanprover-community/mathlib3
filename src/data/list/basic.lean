@@ -4031,46 +4031,210 @@ lemma choose_property (hp : ∃ a, a ∈ l ∧ p a) : p (choose p l hp) := (choo
 
 end choose
 
-/-! ### map₂_left' and derived functions -/
+/-! ### map₂_left' -/
 
-section biased_map₂
+section map₂_left'
 
-theorem map₂_left_eq_map₂_left' (f : α → option β → γ) :
-  ∀ as bs, map₂_left f as bs = (map₂_left' f as bs).fst
+@[simp] theorem map₂_left'_nil_right (f : α → option β → γ) (as) :
+  map₂_left' f as [] = (as.map (λ a, f a none), []) :=
+by cases as; refl
+
+end map₂_left'
+
+/-! ### map₂_right' -/
+
+section map₂_right'
+
+variables (f : option α → β → γ) (a : α) (as : list α) (b : β) (bs : list β)
+
+@[simp] theorem map₂_right'_nil_right  :
+  map₂_right' f as [] = ([], as) :=
+rfl
+
+@[simp] theorem map₂_right'_nil_cons :
+  map₂_right' f [] (b :: bs) = (f none b :: bs.map (f none), []) :=
+rfl
+
+@[simp] theorem map₂_right'_cons_cons :
+  map₂_right' f (a :: as) (b :: bs) =
+    let rec := map₂_right' f as bs in
+    (f (some a) b :: rec.fst, rec.snd) :=
+rfl
+
+@[simp] theorem map₂_right'_nil_left :
+  map₂_right' f [] bs = (bs.map (f none), []) :=
+by cases bs; refl
+
+end map₂_right'
+
+/-! ### zip_left' -/
+
+section zip_left'
+
+variables (a : α) (as : list α) (b : β) (bs : list β)
+
+@[simp] theorem zip_left'_nil_left :
+  zip_left' ([] : list α) bs = ([], bs) :=
+rfl
+
+@[simp] theorem zip_left'_cons_nil :
+  zip_left' (a :: as) ([] : list β) = ((a, none) :: as.map (λ a, (a, none)), []) :=
+rfl
+
+@[simp] theorem zip_left'_cons_cons :
+  zip_left' (a :: as) (b :: bs) =
+    let rec := zip_left' as bs in
+    ((a, some b) :: rec.fst, rec.snd) :=
+rfl
+
+@[simp] theorem zip_left'_nil_right :
+  zip_left' as ([] : list β) = (as.map (λ a, (a, none)), []) :=
+by cases as; refl
+
+end zip_left'
+
+/-! ### zip_right' -/
+
+section zip_right'
+
+variables (a : α) (as : list α) (b : β) (bs : list β)
+
+@[simp] theorem zip_right'_nil_right :
+  zip_right' as ([] : list β) = ([], as) :=
+rfl
+
+@[simp] theorem zip_right'_nil_cons :
+  zip_right' ([] : list α) (b :: bs) = ((none, b) :: bs.map (λ b, (none, b)), []) :=
+rfl
+
+@[simp] theorem zip_right'_cons_cons :
+  zip_right' (a :: as) (b :: bs) =
+    let rec := zip_right' as bs in
+    ((some a, b) :: rec.fst, rec.snd) :=
+rfl
+
+@[simp] theorem zip_right'_nil_left :
+  zip_right' ([] : list α) bs = (bs.map (λ b, (none, b)), []) :=
+by cases bs; refl
+
+end zip_right'
+
+/-! ### map₂_left -/
+
+section map₂_left
+
+variables (f : α → option β → γ) (as : list α)
+
+@[simp] theorem map₂_left_nil_right :
+  map₂_left f as [] = as.map (λ a, f a none) :=
+by cases as; refl
+
+theorem map₂_left_eq_map₂_left' : ∀ as bs,
+  map₂_left f as bs = (map₂_left' f as bs).fst
 | [] bs := by simp!
-| (a :: as) [] := by { simp! only [*], cases (map₂_left' f as nil), simp!  }
-| (a :: as) (b :: bs) := by { simp! only [*], cases (map₂_left' f as bs), simp! }
+| (a :: as) [] := by simp!
+| (a :: as) (b :: bs) := by simp! [*]
 
-theorem map₂_right_eq_map₂_right' (f : option α → β → γ) (as bs) :
+theorem map₂_left_eq_map₂ : ∀ as bs,
+  length as ≤ length bs →
+  map₂_left f as bs = map₂ (λ a b, f a (some b)) as bs
+| [] [] h := by simp!
+| [] (b :: bs) h := by simp!
+| (a :: as) [] h := by { simp at h, contradiction }
+| (a :: as) (b :: bs) h := by { simp at h, simp! [*] }
+
+end map₂_left
+
+/-! ### map₂_right -/
+
+section map₂_right
+
+variables (f : option α → β → γ) (a : α) (as : list α) (b : β) (bs : list β)
+
+@[simp] theorem map₂_right_nil_right :
+  map₂_right f as [] = [] :=
+rfl
+
+@[simp] theorem map₂_right_nil_cons :
+  map₂_right f [] (b :: bs) = f none b :: bs.map (f none) :=
+rfl
+
+@[simp] theorem map₂_right_cons_cons :
+  map₂_right f (a :: as) (b :: bs) = f (some a) b :: map₂_right f as bs :=
+rfl
+
+@[simp] theorem map₂_right_nil_left :
+  map₂_right f [] bs = bs.map (f none) :=
+by cases bs; refl
+
+theorem map₂_right_eq_map₂_right' :
   map₂_right f as bs = (map₂_right' f as bs).fst :=
 by simp only [map₂_right, map₂_right', map₂_left_eq_map₂_left']
 
-theorem zip_left_eq_zip_left' (as : list α) (bs : list β) :
-  zip_left as bs = (zip_left' as bs).fst :=
-by simp only [zip_left, zip_left', map₂_left_eq_map₂_left']
-
-theorem zip_right_eq_zip_right' (as : list α) (bs : list β) :
-  zip_right as bs = (zip_right' as bs).fst :=
-by simp only [zip_right, zip_right', map₂_right_eq_map₂_right']
-
-theorem map₂_left_eq_map₂ (f : α → option β → γ) :
-  ∀ as bs,
-    length as ≤ length bs →
-    map₂_left f as bs = map₂ (λ a b, f a (some b)) as bs
-| [] [] h := by simp!
-| [] (b :: bs) h := by simp!
-| (a :: as) [] h := by { simp at h, contradiction  }
-| (a :: as) (b :: bs) h := by { simp at h, simp! [*] }
-
-theorem map₂_right_eq_map₂ (f : option α → β → γ) (as bs)
-  (h : length bs ≤ length as) :
+theorem map₂_right_eq_map₂ (h : length bs ≤ length as) :
   map₂_right f as bs = map₂ (λ a b, f (some a) b) as bs :=
 begin
-  have eq : (λ a b, flip f a (some b)) = (flip (λ a b, f (some a) b)) := rfl,
+  have : (λ a b, flip f a (some b)) = (flip (λ a b, f (some a) b)) := rfl,
   simp only [map₂_right, map₂_left_eq_map₂, map₂_flip, *]
 end
 
-end biased_map₂
+end map₂_right
+
+/-! ### zip_left -/
+
+section zip_left
+
+variables (a : α) (as : list α) (b : β) (bs : list β)
+
+@[simp] theorem zip_left_nil_left :
+  zip_left ([] : list α) bs = [] :=
+rfl
+
+@[simp] theorem zip_left_cons_nil :
+  zip_left (a :: as) ([] : list β) = (a, none) :: as.map (λ a, (a, none)) :=
+rfl
+
+@[simp] theorem zip_left_cons_cons :
+  zip_left (a :: as) (b :: bs) = (a, some b) :: zip_left as bs :=
+rfl
+
+@[simp] theorem zip_left_nil_right :
+  zip_left as ([] : list β) = as.map (λ a, (a, none)) :=
+by cases as; refl
+
+theorem zip_left_eq_zip_left' :
+  zip_left as bs = (zip_left' as bs).fst :=
+by simp only [zip_left, zip_left', map₂_left_eq_map₂_left']
+
+end zip_left
+
+/-! ### zip_right -/
+
+section zip_right
+
+variables (a : α) (as : list α) (b : β) (bs : list β)
+
+@[simp] theorem zip_right_nil_right :
+  zip_right as ([] : list β) = [] :=
+rfl
+
+@[simp] theorem zip_right_nil_cons :
+  zip_right ([] : list α) (b :: bs) = (none, b) :: bs.map (λ b, (none, b)) :=
+rfl
+
+@[simp] theorem zip_right_cons_cons :
+  zip_right (a :: as) (b :: bs) = (some a, b) :: zip_right as bs :=
+rfl
+
+@[simp] theorem zip_right_nil_left :
+  zip_right ([] : list α) bs = bs.map (λ b, (none, b)) :=
+by cases bs; refl
+
+theorem zip_right_eq_zip_right' :
+  zip_right as bs = (zip_right' as bs).fst :=
+by simp only [zip_right, zip_right', map₂_right_eq_map₂_right']
+
+end zip_right
 
 /-! ### Miscellaneous lemmas -/
 

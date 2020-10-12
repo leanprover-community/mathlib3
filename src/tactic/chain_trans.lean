@@ -63,8 +63,10 @@ instance : decidable_linear_order edge :=
   le_refl := by { intro x, cases x; constructor },
   le_antisymm := by { introv h₀ h₁, cases h₀; cases h₁; refl },
   le_trans := by { introv h₀ h₁, cases h₀, { constructor }, cases h₁, constructor },
-  le_total := by { intros x y, cases x; cases y; { left; constructor } <|> { right; constructor } },
-  decidable_le := by { intros x y, cases x; cases y; { left; intro h; cases h; done } <|> { right; constructor } }
+  le_total :=
+  by { intros x y, cases x; cases y; { left; constructor } <|> { right; constructor } },
+  decidable_le :=
+  by { intros x y, cases x; cases y; { left; intro h; cases h; done } <|> { right; constructor } }
  }
 
 meta instance edge.has_to_format : has_to_format edge :=
@@ -143,7 +145,8 @@ ls ← local_context >>= list.mmap_filter'
 let m := list.foldl  (λ (m : graph) (e : _ × _ × _ × _),
   let ⟨pr,e,x,y⟩ := e in
   m.insert x (pr,e,y)) (native.rb_lmap.mk expr (expr × edge × expr)) ls.join,
-pr ← dfs_trans m x y goal <|> fail!"no appropriate chain of inequalities can be found between `{x}` and `{y}`",
+pr ← dfs_trans m x y goal <|>
+  fail!"no appropriate chain of inequalities can be found between `{x}` and `{y}`",
 tactic.apply pr <|>
   mk_app ``le_of_lt [pr] >>= tactic.apply,
 skip

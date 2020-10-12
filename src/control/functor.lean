@@ -16,7 +16,7 @@ This module provides additional lemmas, definitions, and instances for `functor`
 * `const α` is the functor that sends all types to `α`.
 * `add_const α` is `const α` but for when `α` has an additive structure.
 * `comp F G` for functors `F` and `G` is the functor composition of `F` and `G`.
-* `liftp` and `liftr` respectively lift properties and relations on a type `α`
+* `liftp` and `liftr` respectively lift predicates and relations on a type `α`
   to `F α`.  Terms of `F α` are considered to, in some sense, contain values of type `α`.
 
 ## Tags

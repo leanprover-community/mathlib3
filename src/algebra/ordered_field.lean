@@ -607,7 +607,7 @@ lemma abs_div (a b : α) : abs (a / b) = abs a / abs b :=
 decidable.by_cases
   (assume h : b = 0, by rw [h, abs_zero, div_zero, div_zero, abs_zero])
   (assume h : b ≠ 0,
-   have h₁ : abs b ≠ 0, from mt eq_zero_of_abs_eq_zero h,
+   have h₁ : abs b ≠ 0, from mt abs_eq_zero.1 h,
    eq_div_of_mul_eq h₁ (show abs (a / b) * abs b = abs a, by rw [← abs_mul, div_mul_cancel _ h]))
 
 lemma abs_one_div (a : α) : abs (1 / a) = 1 / abs a :=

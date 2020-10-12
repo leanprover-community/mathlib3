@@ -25,9 +25,9 @@ namespace int
 
 lemma sum_two_squares_of_two_mul_sum_two_squares {m x y : ℤ} (h : 2 * m =  x^2 + y^2) :
   m = ((x - y) / 2) ^ 2 + ((x + y) / 2) ^ 2 :=
-have (x^2 + y^2).even, by simp [h.symm, even_mul],
-have hxaddy : (x + y).even, by simpa [pow_two] with parity_simps,
-have hxsuby : (x - y).even, by simpa [pow_two] with parity_simps,
+have even (x^2 + y^2), by simp [h.symm, even_mul],
+have hxaddy : even (x + y), by simpa [pow_two] with parity_simps,
+have hxsuby : even (x - y), by simpa [pow_two] with parity_simps,
 have (x^2 + y^2) % 2 = 0, by simp [h.symm],
 (mul_right_inj' (show (2*2 : ℤ) ≠ 0, from dec_trivial)).1 $
 calc 2 * 2 * m = (x - y)^2 + (x + y)^2 : by rw [mul_assoc, h]; ring
@@ -80,8 +80,10 @@ private lemma sum_four_squares_of_two_mul_sum_four_squares {m a b c d : ℤ}
 have ∀ f : fin 4 → zmod 2, (f 0)^2 + (f 1)^2 + (f 2)^2 + (f 3)^2 = 0 →
     ∃ i : (fin 4), (f i)^2 + f (swap i 0 1)^2 = 0 ∧ f (swap i 0 2)^2 + f (swap i 0 3)^2 = 0,
   from dec_trivial,
-let f : fin 4 → ℤ := vector.nth (a::b::c::d::vector.nil) in
-let ⟨i, hσ⟩ := this (coe ∘ f) (by rw [← @zero_mul (zmod 2) _ m, ← show ((2 : ℤ) : zmod 2) = 0, from rfl,
+let f : fin 4 → ℤ :=
+  vector.nth (a ::ᵥ b ::ᵥ c ::ᵥ d ::ᵥ vector.nil) in
+let ⟨i, hσ⟩ := this (coe ∘ f) (by rw [← @zero_mul (zmod 2) _ m,
+  ← show ((2 : ℤ) : zmod 2) = 0, from rfl,
   ← int.cast_mul, ← h]; simp only [int.cast_add, int.cast_pow]; refl) in
 let σ := swap i 0 in
 have h01 : 2 ∣ f (σ 0) ^ 2 + f (σ 1) ^ 2,
@@ -156,7 +158,8 @@ m.mod_two_eq_zero_or_one.elim
         have hwxyz0 : (w.nat_abs^2 + x.nat_abs^2 + y.nat_abs^2 + z.nat_abs^2 : ℕ) = 0,
           by { rw [← int.coe_nat_eq_zero, ← hnat_abs], rwa [hn0, mul_zero] at hn },
         have habcd0 : (m : ℤ) ∣ a ∧ (m : ℤ) ∣ b ∧ (m : ℤ) ∣ c ∧ (m : ℤ) ∣ d,
-          by simpa [@add_eq_zero_iff_eq_zero_of_nonneg ℤ _ _ _ (pow_two_nonneg _) (pow_two_nonneg _),
+          by simpa [@add_eq_zero_iff_eq_zero_of_nonneg ℤ _ _ _ (pow_two_nonneg _)
+              (pow_two_nonneg _),
             pow_two, w, x, y, z, (char_p.int_cast_eq_zero_iff _ m _), and.assoc] using hwxyz0,
         let ⟨ma, hma⟩ := habcd0.1,     ⟨mb, hmb⟩ := habcd0.2.1,
             ⟨mc, hmc⟩ := habcd0.2.2.1, ⟨md, hmd⟩ := habcd0.2.2.2 in

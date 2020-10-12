@@ -29,6 +29,7 @@ namespace multiplicity
 section comm_monoid
 variables [comm_monoid α]
 
+/-- `multiplicity.finite a b` indicates that the multiplicity of `a` in `b` is finite. -/
 @[reducible] def finite (a b : α) : Prop := ∃ n : ℕ, ¬a ^ (n + 1) ∣ b
 
 lemma finite_iff_dom [decidable_rel ((∣) : α → α → Prop)] {a b : α} :

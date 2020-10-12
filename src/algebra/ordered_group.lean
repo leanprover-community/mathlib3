@@ -424,6 +424,12 @@ begin
     exact ⟨_, rfl, add_le_add_left h _⟩, }
 end
 
+/-- Coercion from `α` to `with_top α` as an `add_monoid_hom`. -/
+def coe_add_hom [add_monoid α] : α →+ with_top α :=
+⟨coe, rfl, λ _ _, rfl⟩
+
+@[simp] lemma coe_coe_add_hom [add_monoid α] : ⇑(coe_add_hom : α →+ with_top α) = coe := rfl
+
 @[simp] lemma zero_lt_top [ordered_add_comm_monoid α] : (0 : with_top α) < ⊤ :=
 coe_lt_top 0
 
@@ -1202,8 +1208,8 @@ by rwa inv_mul_cancel_left at this
 lemma inv_mul_lt_iff_lt_mul_right : c⁻¹ * a < b ↔ a < b * c :=
 by rw [inv_mul_lt_iff_lt_mul, mul_comm]
 
-@[to_additive sub_le_sub_iff]
-lemma div_le_div_iff' (a b c d : α) : a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
+@[to_additive add_neg_le_add_neg_iff]
+lemma div_le_div_iff' : a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
 begin
   split ; intro h,
   have := mul_le_mul_right' (mul_le_mul_right' h b) d,
@@ -1432,6 +1438,8 @@ calc
   a - b = a + -b : rfl
     ... < a + 0  : add_lt_add_left (neg_neg_of_pos h) _
     ... = a      : by rw add_zero
+
+lemma sub_le_sub_iff : a - b ≤ c - d ↔ a + d ≤ c + b := add_neg_le_add_neg_iff
 
 @[simp]
 lemma sub_le_sub_iff_left (a : α) {b c : α} : a - b ≤ a - c ↔ c ≤ b :=

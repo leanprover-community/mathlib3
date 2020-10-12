@@ -201,6 +201,24 @@ by simp only [pow_succ, ihn, ← mul_assoc, (h.pow_left n).right_comm]
 theorem neg_pow [ring R] (a : R) (n : ℕ) : (- a) ^ n = (-1) ^ n * a ^ n :=
 (neg_one_mul a) ▸ (commute.neg_one_left a).mul_pow n
 
+theorem pow_bit0' (a : M) (n : ℕ) : a ^ bit0 n = (a * a) ^ n :=
+by rw [pow_bit0, (commute.refl a).mul_pow]
+
+theorem bit0_nsmul' (a : A) (n : ℕ) : bit0 n •ℕ a = n •ℕ (a + a) :=
+@pow_bit0' (multiplicative A) _ _ _
+
+theorem pow_bit1' (a : M) (n : ℕ) : a ^ bit1 n = (a * a) ^ n * a :=
+by rw [bit1, pow_succ', pow_bit0']
+
+theorem bit1_nsmul' : ∀ (a : A) (n : ℕ), bit1 n •ℕ a = n •ℕ (a + a) + a :=
+@pow_bit1' (multiplicative A) _
+
+@[simp] theorem neg_pow_bit0 [ring R] (a : R) (n : ℕ) : (- a) ^ (bit0 n) = a ^ (bit0 n) :=
+by rw [pow_bit0', neg_mul_neg, pow_bit0']
+
+@[simp] theorem neg_pow_bit1 [ring R] (a : R) (n : ℕ) : (- a) ^ (bit1 n) = - a ^ (bit1 n) :=
+by simp only [bit1, pow_succ, neg_pow_bit0, neg_mul_eq_neg_mul]
+
 end monoid
 
 /-!
@@ -466,6 +484,19 @@ begin
 end
 
 end cancel_add_monoid
+
+section comm_semiring
+
+variables [comm_semiring R]
+
+lemma min_pow_dvd_add {n m : ℕ} {a b c : R} (ha : c ^ n ∣ a) (hb : c ^ m ∣ b) : c ^ (min n m) ∣ a + b :=
+begin
+  replace ha := dvd.trans (pow_dvd_pow c (min_le_left n m)) ha,
+  replace hb := dvd.trans (pow_dvd_pow c (min_le_right n m)) hb,
+  exact dvd_add ha hb
+end
+
+end comm_semiring
 
 namespace canonically_ordered_semiring
 variable [canonically_ordered_comm_semiring R]

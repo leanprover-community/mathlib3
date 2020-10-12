@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import measure_theory.measure_space
-import analysis.normed_space.finite_dimension
+import analysis.complex.basic
 /-!
 # Borel (measurable) space
 

@@ -150,7 +150,7 @@ by simp [nth_zero]
 /-- Accessing the `nth` element of a vector made up
 of one element `x : α` is `x` itself. -/
 @[simp] lemma nth_cons_nil {ix}
-  (x : α) : nth (x :: nil) ix = x :=
+  (x : α) : nth (x ::ᵥ nil) ix = x :=
 by convert nth_cons_zero x nil
 
 @[simp] theorem nth_cons_succ
@@ -205,7 +205,7 @@ and `hs` defines the inductive step using `∀ x : α, C v → C (x :: v)`. -/
   {C : Π {n}, vector α n → Sort*}
   (v : vector α (n + 1))
   (h0 : C nil)
-  (hs : ∀ {n : ℕ} {x : α} {w : vector α n}, C w → C (x :: w)) :
+  (hs : ∀ {n : ℕ} {x : α} {w : vector α n}, C w → C (x ::ᵥ w)) :
     C v :=
 begin
   induction n with n hn,

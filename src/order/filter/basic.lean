@@ -886,7 +886,7 @@ protected lemma eventually.and {p q : α → Prop} {f : filter α} :
   f.eventually p → f.eventually q → ∀ᶠ x in f, p x ∧ q x :=
 inter_mem_sets
 
-@[simp, nontriviality]
+@[simp]
 lemma eventually_true (f : filter α) : ∀ᶠ x in f, true := univ_mem_sets
 
 lemma eventually_of_forall {p : α → Prop} {f : filter α} (hp : ∀ x, p x) :

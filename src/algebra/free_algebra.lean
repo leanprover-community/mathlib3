@@ -297,6 +297,11 @@ end
 
 open_locale big_operators
 
+def grade_aux : (free_algebra R X) →ₐ[R] add_monoid_algebra (free_algebra R X) ℕ :=
+{ to_fun := finsupp.single 1,
+
+  }
+
 /--
 Separate an element of the free algebra into its ℕ-graded components.
 
@@ -314,6 +319,15 @@ begin
   ext,
   unfold grades add_monoid_algebra.sum_id,
   simp [finsupp.sum_single_index],
+end
+
+lemma grade_idempotent (x : free_algebra R X) (i : ℕ) : grades x i = grades (grades x i) i :=
+begin
+  unfold grades,
+  simp_rw [←function.comp_apply (finsupp.single 1)],
+  rw lift_comp_ι,
+
+  simp,
 end
 
 noncomputable

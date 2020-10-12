@@ -242,6 +242,13 @@ lemma single_one_comm [comm_semiring k] [monoid G] (r : k) (f : monoid_algebra k
   single 1 r * f = f * single 1 r :=
 by { ext, rw [single_one_mul_apply, mul_single_one_apply, mul_comm] }
 
+def single_one_hom [semiring k] [monoid G] : k →+* monoid_algebra k G :=
+{ to_fun := single 1,
+  map_one' := rfl,
+  map_mul' := λ x y, by rw [single_mul_single, one_mul],
+  map_zero' := by rw single_zero,
+  map_add' := λ x y, by rw single_add, }
+
 /--
 As a preliminary to defining the `k`-algebra structure on `monoid_algebra k G`,
 we define the underlying ring homomorphism.
@@ -251,11 +258,7 @@ In fact, we do this in more generality, providing the ring homomorphism
 -/
 def algebra_map' {A : Type*} [semiring k] [semiring A] (f : k →+* A) [monoid G] :
   k →+* monoid_algebra A G :=
-{ to_fun := λ x, single 1 (f x),
-  map_one' := by { simp, refl },
-  map_mul' := λ x y, by rw [single_mul_single, one_mul, f.map_mul],
-  map_zero' := by rw [f.map_zero, single_zero],
-  map_add' := λ x y, by rw [f.map_add, single_add], }
+single_one_hom.comp f
 
 /--
 The instance `algebra k (monoid_algebra A G)` whenever we have `algebra k A`.
@@ -264,10 +267,10 @@ In particular this provides the instance `algebra k (monoid_algebra k G)`.
 -/
 instance {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] :
   algebra k (monoid_algebra A G) :=
-{ smul_def' := λ r a, by { ext x, dsimp [algebra_map'], rw single_one_mul_apply, rw algebra.smul_def'', },
+{ smul_def' := λ r a, by { ext x, dsimp [algebra_map', single_one_hom], rw single_one_mul_apply, rw algebra.smul_def'', },
   commutes' := λ r f, show single 1 (algebra_map k A r) * f = f * single 1 (algebra_map k A r),
     by { ext, rw [single_one_mul_apply, mul_single_one_apply, algebra.commutes], },
-  ..algebra_map' (algebra_map k A) }
+  ..single_one_hom.comp (algebra_map k A) }
 
 @[simp] lemma coe_algebra_map {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] :
   (algebra_map k (monoid_algebra A G) : k → monoid_algebra A G) = single 1 ∘ (algebra_map k A) :=
@@ -568,7 +571,7 @@ instance [comm_semiring k] [add_comm_monoid G] : comm_semiring (add_monoid_algeb
     simp only [add_comm]
   end,
   .. add_monoid_algebra.semiring }
- 
+
 /-! #### Derived instances -/
 section derived_instances
 

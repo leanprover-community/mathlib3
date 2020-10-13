@@ -26,6 +26,7 @@ explicit topologies: the discrete and trivial topologies.)
 ## Todo
 
 Define Grothendieck pretopologies, and show they generate topologies.
+Define the topology associated to a topological space.
 Define sheaves on a topology, and the topos of sheaves.
 
 ## Tags
@@ -180,6 +181,7 @@ begin
 end
 
 variable (C)
+/-- The trivial Grothendieck topology, in which only the maximal sieve is covering. -/
 def trivial : grothendieck_topology C :=
 { sieves := λ X, {⊤},
   top_mem' := λ X, rfl,
@@ -208,13 +210,16 @@ begin
   apply covering_of_eq_top _ hS,
 end
 
+variable (C)
+/-- The discrete Grothendieck topology, in which every sieve is covering. -/
 def discrete : grothendieck_topology C :=
 { sieves := λ X, set.univ,
   top_mem' := by simp,
   pullback_stable' := λ X Y f, by simp,
   transitive' := by simp }
+variable {C}
 
-lemma discrete_eq_top : discrete C = ⊤ := top_unique (λ S hS, set.mem_univ _)
+lemma discrete_eq_top : discrete C = ⊤ := top_unique (λ X S hS, set.mem_univ _)
 
 /-- The dense Grothendieck topology. -/
 def dense : grothendieck_topology C :=

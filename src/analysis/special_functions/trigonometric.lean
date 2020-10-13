@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
 import analysis.special_functions.exp_log
+import data.set.intervals.infinite
 
 /-!
 # Trigonometric functions
@@ -1753,6 +1754,24 @@ lemma continuous_tan : continuous (λ x : {x | cos x ≠ 0}, tan x) :=
 
 lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
 by { rw continuous_on_iff_continuous_restrict, convert continuous_tan }
+
+lemma range_cos_infinite : (set.range complex.cos).infinite :=
+begin
+  have : (set.range real.cos).infinite,
+  { rw real.range_cos,
+    apply Icc.infinite,
+    norm_num },
+  rw ← set.infinite_coe_iff at this ⊢,
+  delta real.cos at this,
+  apply @infinite.of_injective _ _ this,
+  swap,
+  { rintro ⟨x, hx⟩,
+    refine ⟨x, _⟩,
+    rcases hx with ⟨θ, rfl⟩,
+    simp only [complex.of_real_cos_of_real_re, set.mem_range_self] },
+  { rintro ⟨x, hx⟩ ⟨y, hy⟩ h,
+    simpa only [complex.of_real_inj, subtype.mk_eq_mk] using h }
+end
 
 end complex
 

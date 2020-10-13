@@ -387,7 +387,7 @@ instance : fintype punit := fintype.of_subsingleton punit.star
 
 @[simp] theorem fintype.card_punit : fintype.card punit = 1 := rfl
 
-instance : fintype bool := ⟨⟨tt::ₘff::ₘ0, by simp⟩, λ x, by cases x; simp⟩
+instance : fintype bool := ⟨⟨tt ::ₘ ff ::ₘ 0, by simp⟩, λ x, by cases x; simp⟩
 
 @[simp] theorem fintype.univ_bool : @univ bool _ = {tt, ff} := rfl
 
@@ -660,7 +660,7 @@ instance plift.fintype (p : Prop) [decidable p] : fintype (plift p) :=
 ⟨if h : p then {⟨h⟩} else ∅, λ ⟨h⟩, by simp [h]⟩
 
 instance Prop.fintype : fintype Prop :=
-⟨⟨true::ₘfalse::ₘ0, by simp [true_ne_false]⟩,
+⟨⟨true ::ₘ false ::ₘ 0, by simp [true_ne_false]⟩,
  classical.cases (by simp) (by simp)⟩
 
 instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fintype {x // p x} :=

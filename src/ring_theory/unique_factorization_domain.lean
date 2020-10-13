@@ -129,7 +129,7 @@ wf_dvd_monoid.induction_on_irreducible a
   (λ u hu _, ⟨0, ⟨by simp [hu], associated.symm (by simp [hu, associated_one_iff_is_unit])⟩⟩)
   (λ a i ha0 hii ih hia0,
     let ⟨s, hs⟩ := ih ha0 in
-    ⟨i::ₘs, ⟨by clear _let_match; finish,
+    ⟨i ::ₘ s, ⟨by clear _let_match; finish,
       by { rw multiset.prod_cons,
            exact associated_mul_mul (by refl) hs.2 }⟩⟩)
 

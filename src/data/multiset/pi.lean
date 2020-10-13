@@ -24,7 +24,7 @@ variables [decidable_eq α] {δ : α → Type*}
 /-- Given `δ : α → Type*`, a multiset `m` and a term `a`, as well as a term `b : δ a` and a
 function `f` such that `f a' : δ a'` for all `a'` in `m`, `pi.cons m a b f` is a function `g` such
 that `g a'' : δ a''` for all `a''` in `a ::ₘ m`. -/
-def pi.cons (m : multiset α) (a : α) (b : δ a) (f : Πa∈m, δ a) : Πa'∈a::ₘm, δ a' :=
+def pi.cons (m : multiset α) (a : α) (b : δ a) (f : Πa∈m, δ a) : Πa'∈a ::ₘ m, δ a' :=
 λa' ha', if h : a' = a then eq.rec b h.symm else f a' $ (mem_cons.1 ha').resolve_left h
 
 lemma pi.cons_same {m : multiset α} {a : α} {b : δ a} {f : Πa∈m, δ a} (h : a ∈ a ::ₘ m) :

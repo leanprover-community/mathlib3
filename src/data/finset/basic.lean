@@ -373,7 +373,7 @@ protected theorem induction {α : Type*} {p : finset α → Prop} [decidable_eq 
   (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : ∀ s, p s
 | ⟨s, nd⟩ := multiset.induction_on s (λ _, h₁) (λ a s IH nd, begin
     cases nodup_cons.1 nd with m nd',
-    rw [← (eq_of_veq _ : insert a (finset.mk s _) = ⟨a::ₘs, nd⟩)],
+    rw [← (eq_of_veq _ : insert a (finset.mk s _) = ⟨a ::ₘ s, nd⟩)],
     { exact h₂ (by exact m) (IH nd') },
     { rw [insert_val, ndinsert_of_not_mem m] }
   end) nd

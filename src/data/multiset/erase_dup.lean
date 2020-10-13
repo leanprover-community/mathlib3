@@ -29,11 +29,11 @@ quot.lift_on s (λ l, (l.erase_dup : multiset α))
 quot.induction_on s $ λ l, mem_erase_dup
 
 @[simp] theorem erase_dup_cons_of_mem {a : α} {s : multiset α} : a ∈ s →
-  erase_dup (a::ₘs) = erase_dup s :=
+  erase_dup (a ::ₘ s) = erase_dup s :=
 quot.induction_on s $ λ l m, @congr_arg _ _ _ _ coe $ erase_dup_cons_of_mem m
 
 @[simp] theorem erase_dup_cons_of_not_mem {a : α} {s : multiset α} : a ∉ s →
-  erase_dup (a::ₘs) = a ::ₘ erase_dup s :=
+  erase_dup (a ::ₘ s) = a ::ₘ erase_dup s :=
 quot.induction_on s $ λ l m, congr_arg coe $ erase_dup_cons_of_not_mem m
 
 theorem erase_dup_le (s : multiset α) : erase_dup s ≤ s :=

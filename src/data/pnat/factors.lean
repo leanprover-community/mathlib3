@@ -346,7 +346,7 @@ begin
   apply multiset.eq_repeat.mpr,
   split,
   { rw [multiset.card_smul, prime_multiset.card_of_prime, mul_one] },
-  { have : ∀ (m : ℕ), m •ℕ (p::ₘ0) = multiset.repeat p m :=
+  { have : ∀ (m : ℕ), m •ℕ (p ::ₘ 0) = multiset.repeat p m :=
     λ m, by {induction m with m ih, { refl },
              rw [succ_nsmul, multiset.repeat_succ, ih],
              rw[multiset.cons_add, zero_add] },

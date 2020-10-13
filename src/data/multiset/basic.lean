@@ -66,25 +66,25 @@ def cons (a : α) (s : multiset α) : multiset α :=
 quot.lift_on s (λ l, (a :: l : multiset α))
   (λ l₁ l₂ p, quot.sound (p.cons a))
 
-infixr `::ₘ`:67  := multiset.cons
+infixr ` ::ₘ `:67  := multiset.cons
 
 instance : has_insert α (multiset α) := ⟨cons⟩
 
 @[simp] theorem insert_eq_cons (a : α) (s : multiset α) :
-  insert a s = a::ₘs := rfl
+  insert a s = a ::ₘ s := rfl
 
 @[simp] theorem cons_coe (a : α) (l : list α) :
-  (a::ₘl : multiset α) = (a::l : list α) := rfl
+  (a ::ₘ l : multiset α) = (a::l : list α) := rfl
 
-theorem singleton_coe (a : α) : (a::ₘ0 : multiset α) = ([a] : list α) := rfl
+theorem singleton_coe (a : α) : (a ::ₘ 0 : multiset α) = ([a] : list α) := rfl
 
 @[simp] theorem cons_inj_left {a b : α} (s : multiset α) :
-  a::ₘs = b::ₘs ↔ a = b :=
+  a ::ₘ s = b ::ₘ s ↔ a = b :=
 ⟨quot.induction_on s $ λ l e,
   have [a] ++ l ~ [b] ++ l, from quotient.exact e,
   singleton_perm_singleton.1 $ (perm_append_right_iff _).1 this, congr_arg _⟩
 
-@[simp] theorem cons_inj_right (a : α) : ∀{s t : multiset α}, a::ₘs = a::ₘt ↔ s = t :=
+@[simp] theorem cons_inj_right (a : α) : ∀{s t : multiset α}, a ::ₘ s = a ::ₘ t ↔ s = t :=
 by rintros ⟨l₁⟩ ⟨l₂⟩; simp
 
 @[recursor 5] protected theorem induction {p : multiset α → Prop}
@@ -108,8 +108,8 @@ overflow in `whnf`.
 -/
 protected def rec
   (C_0 : C 0)
-  (C_cons : Πa m, C m → C (a::ₘm))
-  (C_cons_heq : ∀a a' m b, C_cons a (a'::ₘm) (C_cons a' m b) == C_cons a' (a::ₘm) (C_cons a m b))
+  (C_cons : Πa m, C m → C (a ::ₘ m))
+  (C_cons_heq : ∀a a' m b, C_cons a (a' ::ₘ m) (C_cons a' m b) == C_cons a' (a ::ₘ m) (C_cons a m b))
   (m : multiset α) : C m :=
 quotient.hrec_on m (@list.rec α (λl, C ⟦l⟧) C_0 (λa l b, C_cons a ⟦l⟧ b)) $
   assume l l' h,
@@ -120,13 +120,13 @@ quotient.hrec_on m (@list.rec α (λl, C ⟦l⟧) C_0 (λa l b, C_cons a ⟦l⟧
 @[elab_as_eliminator]
 protected def rec_on (m : multiset α)
   (C_0 : C 0)
-  (C_cons : Πa m, C m → C (a::ₘm))
-  (C_cons_heq : ∀a a' m b, C_cons a (a'::ₘm) (C_cons a' m b) == C_cons a' (a::ₘm) (C_cons a m b)) :
+  (C_cons : Πa m, C m → C (a ::ₘ m))
+  (C_cons_heq : ∀a a' m b, C_cons a (a' ::ₘ m) (C_cons a' m b) == C_cons a' (a ::ₘ m) (C_cons a m b)) :
   C m :=
 multiset.rec C_0 C_cons C_cons_heq m
 
-variables {C_0 : C 0} {C_cons : Πa m, C m → C (a::ₘm)}
-  {C_cons_heq : ∀a a' m b, C_cons a (a'::ₘm) (C_cons a' m b) == C_cons a' (a::ₘm) (C_cons a m b)}
+variables {C_0 : C 0} {C_cons : Πa m, C m → C (a ::ₘ m)}
+  {C_cons_heq : ∀a a' m b, C_cons a (a' ::ₘ m) (C_cons a' m b) == C_cons a' (a ::ₘ m) (C_cons a m b)}
 
 @[simp] lemma rec_on_0 : @multiset.rec_on α C (0:multiset α) C_0 C_cons C_cons_heq = C_0 :=
 rfl
@@ -340,7 +340,7 @@ quot.lift_on s length $ λ l₁ l₂, perm.length_eq
 @[simp] theorem card_cons (a : α) (s : multiset α) : card (a ::ₘ s) = card s + 1 :=
 quot.induction_on s $ λ l, rfl
 
-@[simp] theorem card_singleton (a : α) : card (a::ₘ0) = 1 := by simp
+@[simp] theorem card_singleton (a : α) : card (a ::ₘ 0) = 1 := by simp
 
 theorem card_le_of_le {s t : multiset α} (h : s ≤ t) : card s ≤ card t :=
 le_induction_on h $ λ l₁ l₂, length_le_of_sublist
@@ -384,26 +384,26 @@ multiset.induction_on s (λ _, h₀) $ λ a s _ ih, h₁ _ _ $
 λ t h, ih _ $ lt_of_le_of_lt h $ lt_cons_self _ _
 
 /- singleton -/
-instance : has_singleton α (multiset α) := ⟨λ a, a::ₘ0⟩
+instance : has_singleton α (multiset α) := ⟨λ a, a ::ₘ 0⟩
 
 instance : is_lawful_singleton α (multiset α) := ⟨λ a, rfl⟩
 
-@[simp] theorem singleton_eq_singleton (a : α) : singleton a = a::ₘ0 := rfl
+@[simp] theorem singleton_eq_singleton (a : α) : singleton a = a ::ₘ 0 := rfl
 
-@[simp] theorem mem_singleton {a b : α} : b ∈ a::ₘ0 ↔ b = a := by simp
+@[simp] theorem mem_singleton {a b : α} : b ∈ a ::ₘ 0 ↔ b = a := by simp
 
-theorem mem_singleton_self (a : α) : a ∈ (a::ₘ0 : multiset α) := mem_cons_self _ _
+theorem mem_singleton_self (a : α) : a ∈ (a ::ₘ 0 : multiset α) := mem_cons_self _ _
 
-theorem singleton_inj {a b : α} : a::ₘ0 = b::ₘ0 ↔ a = b := cons_inj_left _
+theorem singleton_inj {a b : α} : a ::ₘ 0 = b ::ₘ 0 ↔ a = b := cons_inj_left _
 
-@[simp] theorem singleton_ne_zero (a : α) : a::ₘ0 ≠ 0 :=
+@[simp] theorem singleton_ne_zero (a : α) : a ::ₘ 0 ≠ 0 :=
 ne_of_gt (lt_cons_self _ _)
 
-@[simp] theorem singleton_le {a : α} {s : multiset α} : a::ₘ0 ≤ s ↔ a ∈ s :=
+@[simp] theorem singleton_le {a : α} {s : multiset α} : a ::ₘ 0 ≤ s ↔ a ∈ s :=
 ⟨λ h, mem_of_le h (mem_singleton_self _),
  λ h, let ⟨t, e⟩ := exists_cons_of_mem h in e.symm ▸ cons_le_cons _ (zero_le _)⟩
 
-theorem card_eq_one {s : multiset α} : card s = 1 ↔ ∃ a, s = a::ₘ0 :=
+theorem card_eq_one {s : multiset α} : card s = 1 ↔ ∃ a, s = a ::ₘ 0 :=
 ⟨quot.induction_on s $ λ l h,
   (list.length_eq_one.1 h).imp $ λ a, congr_arg coe,
  λ ⟨a, e⟩, e.symm ▸ rfl⟩
@@ -427,7 +427,7 @@ quotient.induction_on₂ s t $ λ l₁ l₂, quot.sound perm_append_comm
 protected theorem zero_add (s : multiset α) : 0 + s = s :=
 quot.induction_on s $ λ l, rfl
 
-theorem singleton_add (a : α) (s : multiset α) : ↑[a] + s = a::ₘs := rfl
+theorem singleton_add (a : α) (s : multiset α) : ↑[a] + s = a ::ₘ s := rfl
 
 protected theorem add_le_add_left (s) {t u : multiset α} : s + t ≤ s + u ↔ t ≤ u :=
 quotient.induction_on₃ s t u $ λ l₁ l₂ l₃, subperm_append_left _
@@ -511,7 +511,7 @@ theorem eq_repeat {a : α} {n} {s : multiset α} : s = repeat a n ↔ card s = n
 ⟨λ h, h.symm ▸ ⟨card_repeat _ _, λ b, eq_of_mem_repeat⟩,
  λ ⟨e, al⟩, e ▸ eq_repeat_of_mem al⟩
 
-theorem repeat_subset_singleton : ∀ (a : α) n, repeat a n ⊆ a::ₘ0 := repeat_subset_singleton
+theorem repeat_subset_singleton : ∀ (a : α) n, repeat a n ⊆ a ::ₘ 0 := repeat_subset_singleton
 
 theorem repeat_le_coe {a : α} {n} {l : list α} : repeat a n ≤ l ↔ list.repeat a n <+ l :=
 ⟨λ ⟨l', p, s⟩, (perm_repeat.1 p) ▸ s, sublist.subperm⟩
@@ -535,7 +535,7 @@ quot.lift_on s (λ l, (l.erase a : multiset α))
 quot.induction_on s $ λ l, congr_arg coe $ erase_cons_head a l
 
 @[simp, priority 990]
-theorem erase_cons_tail {a b : α} (s : multiset α) (h : b ≠ a) : (b::ₘs).erase a = b ::ₘ s.erase a :=
+theorem erase_cons_tail {a b : α} (s : multiset α) (h : b ≠ a) : (b ::ₘ s).erase a = b ::ₘ s.erase a :=
 quot.induction_on s $ λ l, congr_arg coe $ erase_cons_tail l h
 
 @[simp, priority 980]
@@ -625,7 +625,7 @@ quotient.induction_on' s $ λ L, list.forall_mem_map_iff
 
 @[simp] theorem map_zero (f : α → β) : map f 0 = 0 := rfl
 
-@[simp] theorem map_cons (f : α → β) (a s) : map f (a::ₘs) = f a ::ₘ map f s :=
+@[simp] theorem map_cons (f : α → β) (a s) : map f (a ::ₘ s) = f a ::ₘ map f s :=
 quot.induction_on s $ λ l, rfl
 
 lemma map_singleton (f : α → β) (a : α) : ({a} : multiset α).map f = {f a} := rfl
@@ -929,7 +929,7 @@ by rw [list.bind, ← coe_join, list.map_map]; refl
 
 @[simp] theorem zero_bind (f : α → multiset β) : bind 0 f = 0 := rfl
 
-@[simp] theorem cons_bind (a s) (f : α → multiset β) : bind (a::ₘs) f = f a + bind s f :=
+@[simp] theorem cons_bind (a s) (f : α → multiset β) : bind (a ::ₘ s) f = f a + bind s f :=
 by simp [bind]
 
 @[simp] theorem add_bind (s t) (f : α → multiset β) : bind (s + t) f = bind s f + bind t f :=
@@ -1002,7 +1002,7 @@ by rw [product, list.product, ← coe_bind]; simp
   product (a ::ₘ s) t = map (prod.mk a) t + product s t :=
 by simp [product]
 
-@[simp] theorem product_singleton (a : α) (b : β) : product (a::ₘ0) (b::ₘ0) = (a,b)::ₘ0 := rfl
+@[simp] theorem product_singleton (a : α) (b : β) : product (a ::ₘ 0) (b ::ₘ 0) = (a,b) ::ₘ 0 := rfl
 
 @[simp] theorem add_product (s t : multiset α) (u : multiset β) :
   product (s + t) u = product s u + product t u :=
@@ -1039,7 +1039,7 @@ by rw [multiset.sigma, list.sigma, ← coe_bind]; simp
 by simp [multiset.sigma]
 
 @[simp] theorem sigma_singleton (a : α) (b : α → β) :
-  (a::ₘ0).sigma (λ a, b a::ₘ0) = ⟨a, b a⟩::ₘ0 := rfl
+  (a ::ₘ 0).sigma (λ a, b a ::ₘ 0) = ⟨a, b a⟩ ::ₘ 0 := rfl
 
 @[simp] theorem add_sigma (s t : multiset α) (u : Π a, multiset (σ a)) :
   (s + t).sigma u = s.sigma u + t.sigma u :=
@@ -1080,7 +1080,7 @@ this.trans $ quot.sound $ pp.pmap f
   pmap f 0 h = 0 := rfl
 
 @[simp] lemma pmap_cons {p : α → Prop} (f : Π a, p a → β) (a : α) (m : multiset α) :
-  ∀(h : ∀b∈a::ₘm, p b), pmap f (a ::ₘ m) h =
+  ∀(h : ∀b∈a ::ₘ m, p b), pmap f (a ::ₘ m) h =
     f a (h a (mem_cons_self a m)) ::ₘ pmap f m (λa ha, h a $ mem_cons_of_mem ha) :=
 quotient.induction_on m $ assume l h, rfl
 
@@ -1188,7 +1188,7 @@ by { rw diff_eq_foldl l₁ l₂, symmetry, exact foldl_hom _ _ _ _ _ (λ x y, rf
 @[simp] theorem sub_zero (s : multiset α) : s - 0 = s :=
 quot.induction_on s $ λ l, rfl
 
-@[simp] theorem sub_cons (a : α) (s t : multiset α) : s - a::ₘt = s.erase a - t :=
+@[simp] theorem sub_cons (a : α) (s t : multiset α) : s - a ::ₘ t = s.erase a - t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ diff_cons _ _ _
 
 theorem add_sub_of_le (h : s ≤ t) : s + (t - s) = t :=
@@ -1367,7 +1367,7 @@ theorem add_union_distrib (s t u : multiset α) : s + (t ∪ u) = (s + t) ∪ (s
 by rw [add_comm, union_add_distrib, add_comm s, add_comm s]
 
 theorem cons_union_distrib (a : α) (s t : multiset α) : a ::ₘ (s ∪ t) = (a ::ₘ s) ∪ (a ::ₘ t) :=
-by simpa using add_union_distrib (a::ₘ0) s t
+by simpa using add_union_distrib (a ::ₘ 0) s t
 
 theorem inter_add_distrib (s t u : multiset α) : (s ∩ t) + u = (s + u) ∩ (t + u) :=
 begin
@@ -1429,10 +1429,10 @@ quot.lift_on s (λ l, (filter p l : multiset α))
 
 @[simp] theorem filter_zero (p : α → Prop) [h : decidable_pred p] : filter p 0 = 0 := rfl
 
-@[simp] theorem filter_cons_of_pos {a : α} (s) : p a → filter p (a::ₘs) = a ::ₘ filter p s :=
+@[simp] theorem filter_cons_of_pos {a : α} (s) : p a → filter p (a ::ₘ s) = a ::ₘ filter p s :=
 quot.induction_on s $ λ l h, congr_arg coe $ filter_cons_of_pos l h
 
-@[simp] theorem filter_cons_of_neg {a : α} (s) : ¬ p a → filter p (a::ₘs) = filter p s :=
+@[simp] theorem filter_cons_of_neg {a : α} (s) : ¬ p a → filter p (a ::ₘ s) = filter p s :=
 quot.induction_on s $ λ l h, @congr_arg _ _ _ _ coe $ filter_cons_of_neg l h
 
 lemma filter_congr {p q : α → Prop} [decidable_pred p] [decidable_pred q]
@@ -1601,10 +1601,10 @@ quot.lift_on s (countp p) (λ l₁ l₂, perm.countp_eq p)
 
 @[simp] theorem countp_zero (p : α → Prop) [decidable_pred p] : countp p 0 = 0 := rfl
 
-@[simp] theorem countp_cons_of_pos {a : α} (s) : p a → countp p (a::ₘs) = countp p s + 1 :=
+@[simp] theorem countp_cons_of_pos {a : α} (s) : p a → countp p (a ::ₘ s) = countp p s + 1 :=
 quot.induction_on s countp_cons_of_pos
 
-@[simp] theorem countp_cons_of_neg {a : α} (s) : ¬ p a → countp p (a::ₘs) = countp p s :=
+@[simp] theorem countp_cons_of_neg {a : α} (s) : ¬ p a → countp p (a ::ₘ s) = countp p s :=
 quot.induction_on s countp_cons_of_neg
 
 theorem countp_eq_card_filter (s) : countp p s = card (filter p s) :=
@@ -1647,11 +1647,11 @@ def count (a : α) : multiset α → ℕ := countp (eq a)
 
 @[simp] theorem count_zero (a : α) : count a 0 = 0 := rfl
 
-@[simp] theorem count_cons_self (a : α) (s : multiset α) : count a (a::ₘs) = succ (count a s) :=
+@[simp] theorem count_cons_self (a : α) (s : multiset α) : count a (a ::ₘ s) = succ (count a s) :=
 countp_cons_of_pos _ rfl
 
 @[simp, priority 990]
-theorem count_cons_of_ne {a b : α} (h : a ≠ b) (s : multiset α) : count a (b::ₘs) = count a s :=
+theorem count_cons_of_ne {a b : α} (h : a ≠ b) (s : multiset α) : count a (b ::ₘ s) = count a s :=
 countp_cons_of_neg _ h
 
 theorem count_le_of_le (a : α) {s t} : s ≤ t → count a s ≤ count a t :=
@@ -1660,7 +1660,7 @@ countp_le_of_le
 theorem count_le_count_cons (a b : α) (s : multiset α) : count a s ≤ count a (b ::ₘ s) :=
 count_le_of_le _ (le_cons_self _ _)
 
-theorem count_singleton (a : α) : count a (a::ₘ0) = 1 :=
+theorem count_singleton (a : α) : count a (a ::ₘ 0) = 1 :=
 by simp
 
 @[simp] theorem count_add (a : α) : ∀ s t, count a (s + t) = count a s + count a t :=
@@ -1700,7 +1700,7 @@ end
 @[simp] theorem count_erase_self (a : α) (s : multiset α) : count a (erase s a) = pred (count a s) :=
 begin
   by_cases a ∈ s,
-  { rw [(by rw cons_erase h : count a s = count a (a::ₘerase s a)),
+  { rw [(by rw cons_erase h : count a s = count a (a ::ₘ erase s a)),
         count_cons_self]; refl },
   { rw [erase_of_not_mem h, count_eq_zero.2 h]; refl }
 end
@@ -1842,7 +1842,7 @@ begin
       rcases cons_eq_cons.1 hm with ⟨eq₁, eq₂⟩ | ⟨h, cs, eq₁, eq₂⟩,
       { subst eq₁, subst eq₂, exact ⟨b, bs, ha'b, h, rfl⟩ },
       { rcases ih eq₂.symm with ⟨b', bs', h₁, h₂, eq⟩,
-        exact ⟨b', b::ₘbs', h₁, eq₁.symm ▸ rel.cons ha'b h₂, eq.symm ▸ cons_swap _ _ _⟩  }
+        exact ⟨b', b ::ₘ bs', h₁, eq₁.symm ▸ rel.cons ha'b h₂, eq.symm ▸ cons_swap _ _ _⟩  }
     } },
   { exact assume ⟨b, bs', hab, h, eq⟩, eq.symm ▸ rel.cons hab h }
 end
@@ -1940,7 +1940,7 @@ rel.rec_on hst rfl $ assume a b s t hab hst ih, by simp [ih, quot.sound hab]
 theorem exists_multiset_eq_map_quot_mk {r : α → α → Prop} (s : multiset (quot r)) :
   ∃t:multiset α, s = t.map (quot.mk r) :=
 multiset.induction_on s ⟨0, rfl⟩ $
-  assume a s ⟨t, ht⟩, quot.induction_on a $ assume a, ht.symm ▸ ⟨a::ₘt, (map_cons _ _ _).symm⟩
+  assume a s ⟨t, ht⟩, quot.induction_on a $ assume a, ht.symm ▸ ⟨a ::ₘ t, (map_cons _ _ _).symm⟩
 
 theorem induction_on_multiset_quot
   {r : α → α → Prop} {p : multiset (quot r) → Prop} (s : multiset (quot r)) :
@@ -1986,11 +1986,11 @@ disjoint_of_subset_right (subset_of_le h)
 | a := (not_mem_nil a).elim
 
 @[simp, priority 1100]
-theorem singleton_disjoint {l : multiset α} {a : α} : disjoint (a::ₘ0) l ↔ a ∉ l :=
+theorem singleton_disjoint {l : multiset α} {a : α} : disjoint (a ::ₘ 0) l ↔ a ∉ l :=
 by simp [disjoint]; refl
 
 @[simp, priority 1100]
-theorem disjoint_singleton {l : multiset α} {a : α} : disjoint l (a::ₘ0) ↔ a ∉ l :=
+theorem disjoint_singleton {l : multiset α} {a : α} : disjoint l (a ::ₘ 0) ↔ a ∉ l :=
 by rw disjoint_comm; simp
 
 @[simp] theorem disjoint_add_left {s t u : multiset α} :
@@ -2002,11 +2002,11 @@ by simp [disjoint, or_imp_distrib, forall_and_distrib]
 by rw [disjoint_comm, disjoint_add_left]; tauto
 
 @[simp] theorem disjoint_cons_left {a : α} {s t : multiset α} :
-  disjoint (a::ₘs) t ↔ a ∉ t ∧ disjoint s t :=
-(@disjoint_add_left _ (a::ₘ0) s t).trans $ by simp
+  disjoint (a ::ₘ s) t ↔ a ∉ t ∧ disjoint s t :=
+(@disjoint_add_left _ (a ::ₘ 0) s t).trans $ by simp
 
 @[simp] theorem disjoint_cons_right {a : α} {s t : multiset α} :
-  disjoint s (a::ₘt) ↔ a ∉ s ∧ disjoint s t :=
+  disjoint s (a ::ₘ t) ↔ a ∉ s ∧ disjoint s t :=
 by rw [disjoint_comm, disjoint_cons_left]; tauto
 
 theorem inter_eq_zero_iff_disjoint [decidable_eq α] {s t : multiset α} : s ∩ t = 0 ↔ disjoint s t :=

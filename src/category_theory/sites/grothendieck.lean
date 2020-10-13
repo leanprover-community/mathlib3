@@ -25,7 +25,7 @@ explicit topologies: the discrete and trivial topologies.)
 
 ## Tags
 
--- sieve, pullback
+Grothendieck topology, coverage, pretopology, site
 -/
 
 universes v u

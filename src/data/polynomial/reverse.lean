@@ -30,7 +30,7 @@ namespace rev
 Essentially, this function is only used for `i ≤ N`.
 The advantage of `rev_at N i` over `N - i` is that `rev_at` is an involution.
 -/
-def rev_at (N : ℕ) : ℕ → ℕ := λ i : ℕ, ite (i ≤ N) (N-i) i
+def rev_at (N i : ℕ) : ℕ := ite (i ≤ N) (N-i) i
 
 @[simp] lemma rev_at_invol {N n : ℕ} : rev_at N (rev_at N n) = n :=
 begin

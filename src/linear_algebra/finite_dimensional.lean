@@ -195,13 +195,16 @@ begin
   exact (classical.some_spec (lt_omega.1 (dim_lt_omega K V))).symm
 end
 
+lemma findim_of_infinite_dimensional {K V : Type*} [field K] [add_comm_group V] [vector_space K V]
+  (h : ¬finite_dimensional K V) : findim K V = 0 :=
+dif_neg $ mt finite_dimensional_iff_dim_lt_omega.2 h
+
 /-- If a vector space has a finite basis, then its dimension (seen as a cardinal) is equal to the
 cardinality of the basis. -/
 lemma dim_eq_card_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K b) :
   dim K V = fintype.card ι :=
 by rw [←h.mk_range_eq_dim, cardinal.fintype_card,
        set.card_range_of_injective h.injective]
-
 
 /-- If a vector space has a finite basis, then its dimension is equal to the cardinality of the
 basis. -/

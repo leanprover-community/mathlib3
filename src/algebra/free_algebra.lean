@@ -29,6 +29,8 @@ Given a commutative semiring `R`, and a type `X`, we construct the free `R`-alge
   of the composition of an algebra morphism with `ι` is the algebra morphism itself.
 5. `equiv_monoid_algebra_free_monoid : free_algebra R X ≃ₐ[R] monoid_algebra R (free_monoid X)`
 6. An inductive principle `induction`.
+7. Statements about the natural grading of the free algebra `grades x i`: `grades.map_algebra_map`,
+  `grades.map_algebra_ι`, and `grades.map_grades`.
 
 ## Implementation details
 
@@ -374,12 +376,6 @@ lemma grades.map_ι (x : X) :
   grades (ι R x) = finsupp.single 1 (ι R x) :=
 by simp [grades]
 
-
-def alg_hom.map_finsupp_sum {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
-[has_zero β] [semiring γ] [semiring δ] [algebra R γ] [algebra R δ]
-(h : γ →ₐ[R] δ) (f : α →₀ β) (g : α → β → γ) : h (f.sum g) = f.sum (λ a b, h (g a b)) :=
-h.map_sum _ _
-
 -- TODO: better name, move, docstring
 lemma single_single_apply {α : Type*} {β : Type*} [has_zero β] (i j : α) [decidable (j = i)] (v : β):
   finsupp.single i ((finsupp.single j v) i) = if j = i then (finsupp.single j v) else 0 :=
@@ -420,7 +416,7 @@ begin
     have : finsupp.single i = finsupp.single_add_hom i := rfl,
     rw this,
     simp_rw alg_hom.map_finsupp_sum,
-    simp_rw add_monoid_hom.map_finsupp_sum,
+    simp_rw finsupp.single_add_hom.map_finsupp_sum,
     simp_rw finsupp.sum,
     congr, ext1, ext1,
     congr, ext1, ext1,

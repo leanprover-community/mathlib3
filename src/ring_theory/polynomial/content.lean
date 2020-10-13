@@ -5,6 +5,7 @@ Author: Aaron Anderson
 -/
 import data.finset.gcd
 import data.polynomial
+import data.polynomial.erase_lead
 
 /-!
 # Gauss's Lemma, and GCD structures on polynomials
@@ -143,32 +144,16 @@ lemma content_eq_gcd_range_succ (p : polynomial R) :
   p.content = (finset.range p.nat_degree.succ).gcd p.coeff :=
 content_eq_gcd_range_of_lt _ _ (nat.lt_succ_self _)
 
-lemma content_eq_gcd_leading_coeff_content_sub (p : polynomial R) :
-  p.content = gcd_monoid.gcd p.leading_coeff (p - C p.leading_coeff * X ^ p.nat_degree).content :=
+lemma content_eq_gcd_leading_coeff_content_erase_lead (p : polynomial R) :
+  p.content = gcd_monoid.gcd p.leading_coeff (erase_lead p).content :=
 begin
-  rw [content_eq_gcd_range_succ, finset.range_succ, finset.gcd_insert, leading_coeff, content],
-  refine congr rfl _,
-  transitivity (finset.range p.nat_degree).gcd
-    (p - C (p.coeff p.nat_degree) * X ^ p.nat_degree).coeff,
-  { apply finset.gcd_congr rfl,
-    intros a ha,
-    rw finset.mem_range at ha,
-    rw coeff_sub,
-    symmetry,
-    convert sub_zero (p.coeff a),
-    rw [coeff_C_mul_X, if_neg (ne_of_lt ha)] },
-  { classical,
-    rw finset.gcd_eq_gcd_filter_ne_zero,
-    refine congr (congr rfl _) rfl,
-    ext,
-    simp only [coeff_C_mul, and_iff_right_iff_imp, mem_support_iff_coeff_ne_zero, ne.def,
-      finset.mem_filter, finset.mem_range, coeff_sub],
-    contrapose!,
-    intro h,
-    cases eq_or_lt_of_le h with heq hlt,
-    { simp [← heq], },
-    rw [coeff_eq_zero_of_nat_degree_lt hlt, coeff_X_pow],
-    simp [ne_of_gt hlt] }
+  by_cases h : p = 0,
+  { simp [h] },
+  rw [← leading_coeff_eq_zero, leading_coeff, ← ne.def, ← mem_support_iff_coeff_ne_zero] at h,
+  rw [content, ← finset.insert_erase h, finset.gcd_insert, leading_coeff, content, erase_lead_support],
+  refine congr rfl (finset.gcd_congr rfl (λ i hi, _)),
+  rw finset.mem_erase at hi,
+  rw [erase_lead_coeff, if_neg hi.1],
 end
 
 lemma dvd_content_iff_C_dvd {p : polynomial R} {r : R} : r ∣ p.content ↔ C r ∣ p :=
@@ -248,6 +233,17 @@ begin
   rw [← coeff_sub, hw, coeff_C_mul]
 end
 
+lemma content_mul_aux {p q : polynomial R} :
+  gcd_monoid.gcd (p * q).erase_lead.content p.leading_coeff =
+  gcd_monoid.gcd (p.erase_lead * q).content p.leading_coeff :=
+begin
+  rw [gcd_comm (content _) _, gcd_comm (content _) _],
+  apply gcd_content_eq_of_dvd_sub,
+  rw [← self_sub_C_mul_X_pow, ← self_sub_C_mul_X_pow, sub_mul, sub_sub, add_comm, sub_add,
+    sub_sub_cancel, leading_coeff_mul, ring_hom.map_mul, mul_assoc, mul_assoc],
+  apply dvd_sub (dvd.intro _ rfl) (dvd.intro _ rfl),
+end
+
 @[simp]
 theorem content_mul {p q : polynomial R} : (p * q).content = p.content * q.content :=
 begin
@@ -283,35 +279,25 @@ begin
           simp },
         clear hdeg p1_deg q1_deg,
         rw [p1_prim.content_eq_one, q1_prim.content_eq_one, mul_one,
-            content_eq_gcd_leading_coeff_content_sub, leading_coeff_mul, ← normalize_gcd,
+            content_eq_gcd_leading_coeff_content_erase_lead, leading_coeff_mul, ← normalize_gcd,
             normalize_eq_one, is_unit_iff_dvd_one, gcd_comm],
         transitivity,
         apply gcd_mul_dvd_mul_gcd,
-        rw [← mul_one (1 : R), ← leading_coeff_mul], apply mul_dvd_mul,
-        { have h := hi (p1 - C p1.leading_coeff * X ^ p1.nat_degree) q1 (nat.le_of_lt_succ _),
-          { rw [q1_prim.content_eq_one, mul_one] at h,
-            rw [← p1_prim.content_eq_one, content_eq_gcd_leading_coeff_content_sub p1, ← h, sub_mul,
-                gcd_comm, gcd_content_eq_of_dvd_sub],
-            rw [sub_sub, add_comm, sub_add, sub_sub_cancel,
-                mul_assoc, leading_coeff_mul, ring_hom.map_mul, mul_assoc],
-            apply dvd_sub (dvd.intro _ rfl) (dvd.intro _ rfl) },
-          { by_cases h0 : (p1 - C p1.leading_coeff * X ^ p1.nat_degree) = 0,
-            { simp [h0], },
-            rw [← hdeg', nat_degree_mul h0 q1_prim.ne_zero],
-            apply add_lt_add_right,
-            apply nat_degree_sub_leading_coeff_mul_X_pow_lt (nat.pos_of_ne_zero hpdeg) } },
-        { have h := hi (q1 - C q1.leading_coeff * X ^ q1.nat_degree) p1 (nat.le_of_lt_succ _),
-          { rw [p1_prim.content_eq_one, mul_one] at h,
-            rw [← q1_prim.content_eq_one, content_eq_gcd_leading_coeff_content_sub q1, ← h, sub_mul,
-                gcd_comm, gcd_content_eq_of_dvd_sub],
-            rw [sub_sub, add_comm, sub_add, mul_comm,
-                sub_sub_cancel, mul_assoc, leading_coeff_mul, ring_hom.map_mul, mul_assoc],
-            apply dvd_sub (dvd.intro _ rfl) (dvd.intro _ rfl) },
-          { by_cases h0 : (q1 - C q1.leading_coeff * X ^ q1.nat_degree) = 0,
-            { simp [h0], },
-            rw [← hdeg', nat_degree_mul h0 p1_prim.ne_zero, add_comm],
-            apply add_lt_add_left,
-            apply nat_degree_sub_leading_coeff_mul_X_pow_lt (nat.pos_of_ne_zero hqdeg) } } },
+        rw [← mul_one (1 : R)], apply mul_dvd_mul,
+        { rw [content_mul_aux, hi, q1_prim.content_eq_one, mul_one, gcd_comm,
+            ← content_eq_gcd_leading_coeff_content_erase_lead, p1_prim.content_eq_one],
+          cases erase_lead_nat_degree_lt_or_erase_lead_eq_zero p1,
+          { apply le_trans nat_degree_mul_le,
+            rw [← nat.lt_succ_iff, ← hdeg'],
+            apply nat.add_lt_add_right h },
+          { simp [h] } },
+        { rw [mul_comm, content_mul_aux, hi, p1_prim.content_eq_one, mul_one, gcd_comm,
+            ← content_eq_gcd_leading_coeff_content_erase_lead, q1_prim.content_eq_one],
+          cases erase_lead_nat_degree_lt_or_erase_lead_eq_zero q1,
+          { apply le_trans nat_degree_mul_le,
+            rw [← nat.lt_succ_iff, ← hdeg', add_comm],
+            apply nat.add_lt_add_left h },
+          { simp [h] } } },
       { apply hi p q (nat.le_of_lt_succ (lt_of_le_of_ne hdeg hdeg')) } } },
   apply h (p * q).nat_degree _ _  (le_refl _),
 end

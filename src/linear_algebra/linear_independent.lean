@@ -8,11 +8,19 @@ import order.zorn
 import data.finset.order
 import data.equiv.fin
 
-/-! Linear independence
+/-!
+
+# Linear independence
 
 This file defines linear independence in a module or vector space.
 
 It is inspired by Isabelle/HOL's linear algebra, and hence indirectly by HOL Light.
+
+We define `linear_independent R v` as `ker (finsupp.total ι M R v) = ⊥`. Here `finsupp.total` is the
+linear map sending a function `f : ι →₀ R` with finite support to the linear combination of vectors
+from `v` with these coefficients. Then we prove that several other statements are equivalent to this
+one, including injectivity of `finsupp.total ι M R v` and some versions with explicitly written
+linear combinations.
 
 ## Main definitions
 
@@ -24,6 +32,17 @@ vector space and `ι : Type*` is an arbitrary indexing type.
 * `linear_independent.repr hv x` returns the linear combination representing `x : span R (range v)`
 on the linearly independent vectors `v`, given `hv : linear_independent R v`
 (using classical choice). `linear_independent.repr hv` is provided as a linear map.
+
+## Main statements
+
+### Special test for linear independence
+
+* `fintype.linear_independent_iff`: if `ι` is a finite type, then any function `f : ι → R` has
+  finite support, so we can reformulate the statement using `∑ i : ι, f i • v i` instead of a sum
+  over an auxiliary `s : finset ι`;
+* `linear_independent_empty_type`: a family indexed by an empty type is linearly independent;
+* `linear_independent_unique_iff`: if `ι` is a singleton, then `linear_independent K v` is
+  equivalent to `v (default ι) ≠ 0`;
 
 ## Implementation notes
 
@@ -97,7 +116,7 @@ linear_independent_iff'.trans ⟨λ H s g hg hv i, if his : i ∈ s then H s g h
   exact (if_pos hi).symm }⟩
 
 theorem linear_dependent_iff : ¬ linear_independent R v ↔
-  ∃ s : finset ι, ∃ g : ι → R, s.sum (λ i, g i • v i) = 0 ∧ (∃ i ∈ s, g i ≠ 0) :=
+  ∃ s : finset ι, ∃ g : ι → R, (∑ i in s, g i • v i) = 0 ∧ (∃ i ∈ s, g i ≠ 0) :=
 begin
   rw linear_independent_iff',
   simp only [exists_prop, not_forall],
@@ -130,6 +149,8 @@ lemma linear_independent.ne_zero [nontrivial R]
   {simp [h]}
 end
 
+/-- A subfamily of a linearly independent family (i.e., a composition with an injective map) is a
+linearly independent family. -/
 lemma linear_independent.comp
   (h : linear_independent R v) (f : ι' → ι) (hf : injective f) : linear_independent R (v ∘ f) :=
 begin
@@ -142,6 +163,9 @@ begin
   rw [finsupp.map_domain_apply hf]
 end
 
+/-- If `v` is a linearly independent family of vectors and the kernel of a linear map `f` is
+disjoint with the sumodule spaned by the vectors of `v`, then `f ∘ v` is a linearly independent
+family of vectors. See also `linear_independent.map'` for a special case assuming `ker f = ⊥`. -/
 lemma linear_independent.map (hv : linear_independent R v) {f : M →ₗ[R] M'}
   (hf_inj : disjoint (span R (range v)) f.ker) : linear_independent R (f ∘ v) :=
 begin
@@ -155,10 +179,14 @@ begin
   exact λ _, rfl,
 end
 
+/-- An injective linear map sends linearly independent families of vectors to linearly independent
+families of vectors. See also `linear_independent.map` for a more general statement. -/
 lemma linear_independent.map' (hv : linear_independent R v) (f : M →ₗ[R] M')
   (hf_inj : f.ker = ⊥) : linear_independent R (f ∘ v) :=
 hv.map $ by simp [hf_inj]
 
+/-- If the image of a family of vectors under a linear map is linearly independent, then so is
+the original family. -/
 lemma linear_independent.of_comp (f : M →ₗ[R] M') (hfv : linear_independent R (f ∘ v)) :
   linear_independent R v :=
 linear_independent_iff'.2 $ λ s g hg i his,
@@ -166,16 +194,14 @@ have ∑ (i : ι) in s, g i • f (v i) = 0,
   by simp_rw [← f.map_smul, ← f.map_sum, hg, f.map_zero],
 linear_independent_iff'.1 hfv s g this i his
 
+/-- If `f` is an injective linear map, then the family `f ∘ v` is linearly independent
+if and only if the family `v` is linearly independent. -/
 protected lemma linear_map.linear_independent_iff (f : M →ₗ[R] M') (hf_inj : f.ker = ⊥) :
   linear_independent R (f ∘ v) ↔ linear_independent R v :=
 ⟨λ h, h.of_comp f, λ h, h.map $ by simp only [hf_inj, disjoint_bot_right]⟩
 
 lemma linear_independent_of_subsingleton [subsingleton R] : linear_independent R v :=
 linear_independent_iff.2 (λ l hl, subsingleton.elim _ _)
-
-lemma linear_independent.unique (hv : linear_independent R v) {l₁ l₂ : ι →₀ R} :
-  finsupp.total ι M R v l₁ = finsupp.total ι M R v l₂ → l₁ = l₂ :=
-by apply linear_map.ker_eq_bot.1 hv
 
 lemma linear_independent.injective [nontrivial R] (hv : linear_independent R v) :
   injective v :=
@@ -717,8 +743,7 @@ begin
   exact one_ne_zero (finsupp.single_eq_zero.1 this)
 end
 
-lemma linear_independent_unique [unique ι] (hv : v (default ι) ≠ 0) : linear_independent K v :=
-linear_independent_unique_iff.2 (λ hv', (hv hv').elim)
+alias linear_independent_unique_iff ↔ _ linear_independent_unique
 
 lemma linear_independent_singleton {x : V} (hx : x ≠ 0) :
   linear_independent K (λ x, x : ({x} : set V) → V) :=

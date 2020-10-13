@@ -408,7 +408,7 @@ match a, b, eq_succ_of_zero_lt H with
 end
 
 theorem mod_lt (a : ℤ) {b : ℤ} (H : b ≠ 0) : a % b < abs b :=
-by rw [← mod_abs]; exact mod_lt_of_pos _ (abs_pos_of_ne_zero H)
+by rw [← mod_abs]; exact mod_lt_of_pos _ (abs_pos.2 H)
 
 theorem mod_add_div_aux (m n : ℕ) : (n - (m % n + 1) - (n * (m / n) + n) : ℤ) = -[1+ m] :=
 begin
@@ -708,7 +708,7 @@ theorem div_sign : ∀ a b, a / sign b = a * sign b
 
 protected theorem sign_eq_div_abs (a : ℤ) : sign a = a / (abs a) :=
 if az : a = 0 then by simp [az] else
-(int.div_eq_of_eq_mul_left (mt eq_zero_of_abs_eq_zero az)
+(int.div_eq_of_eq_mul_left (mt abs_eq_zero.1 az)
   (sign_mul_abs _).symm).symm
 
 theorem mul_sign : ∀ (i : ℤ), i * sign i = nat_abs i

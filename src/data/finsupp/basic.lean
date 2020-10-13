@@ -1662,6 +1662,32 @@ protected def dom_congr [add_comm_monoid β] (e : α₁ ≃ α₂) : (α₁ →�
   end,
   map_add' := λ a b, map_domain_add, }
 
+end finsupp
+
+@[to_additive]
+lemma mul_equiv.map_finsupp_prod {α β γ δ : Type*}
+  [has_zero β] [comm_monoid γ] [comm_monoid δ]
+  (h : γ ≃* δ) (f : α →₀ β) (g : α → β → γ) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+h.map_prod _ _
+
+@[to_additive]
+lemma monoid_hom.map_finsupp_prod {α β γ δ : Type*}
+  [has_zero β] [comm_monoid γ] [comm_monoid δ]
+  (h : γ →* δ) (f : α →₀ β) (g : α → β → γ) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+h.map_prod _ _
+
+lemma ring_hom.map_finsupp_sum {α β γ δ : Type*}
+  [has_zero β] [semiring γ] [semiring δ]
+  (h : γ →+* δ) (f : α →₀ β) (g : α → β → γ) : h (f.sum g) = f.sum (λ a b, h (g a b)) :=
+h.map_sum _ _
+
+lemma ring_hom.map_finsupp_prod {α β γ δ : Type*}
+  [has_zero β] [comm_semiring γ] [comm_semiring δ]
+  (h : γ →+* δ) (f : α →₀ β) (g : α → β → γ) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+h.map_prod _ _
+
+namespace finsupp
+
 /-! ### Declarations about sigma types -/
 
 section sigma

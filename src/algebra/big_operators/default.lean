@@ -3,4 +3,6 @@
 import algebra.big_operators.order
 import algebra.big_operators.intervals
 import algebra.big_operators.ring
+import algebra.big_operators.pi
+import algebra.big_operators.finsupp
 import algebra.big_operators.nat_antidiagonal

@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 Natural homomorphism from the natural numbers into a monoid with one.
 -/
 import data.nat.cast
+import data.fintype.basic
 import tactic.wlog
 
 /-- Typeclass for monoids with characteristic zero.
@@ -60,8 +61,11 @@ end
 
 end nat
 
-@[field_simps] lemma two_ne_zero' {R : Type*} [add_monoid R] [has_one R] [char_zero R] : (2:R) ≠ 0 :=
-have ((2:ℕ):R) ≠ 0, from nat.cast_ne_zero.2 dec_trivial,
+instance char_zero.infinite (α : Type*) [add_monoid α] [has_one α] [char_zero α] : infinite α :=
+infinite.of_injective coe nat.cast_injective
+
+@[field_simps] lemma two_ne_zero' {α : Type*} [add_monoid α] [has_one α] [char_zero α] : (2:α) ≠ 0 :=
+have ((2:ℕ):α) ≠ 0, from nat.cast_ne_zero.2 dec_trivial,
 by rwa [nat.cast_succ, nat.cast_one] at this
 
 section

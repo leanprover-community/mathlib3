@@ -330,7 +330,7 @@ end
 /--A monic polynomial `p` that has as much roots as its degree
 can be written `p = ∏(X - a)`, for `a` in `p.roots`-/
 lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq {p : polynomial α}
- (hmonic : p.monic) (hroots : p.roots.card = p.nat_degree) :
+  (hmonic : p.monic) (hroots : p.roots.card = p.nat_degree) :
   (multiset.map (λ (a : α), X - C a) p.roots).prod = p :=
 begin
   have hprodmonic : (multiset.map (λ (a : α), X - C a) p.roots).prod.monic,

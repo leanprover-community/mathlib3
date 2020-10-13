@@ -137,7 +137,7 @@ begin
   rw [← @subtype.range_coe _ s, ← image_univ, ← dense_seq_dense s] at hx,
   simp only [approx_on, coe_comp],
   refine tendsto_nearest_pt (closure_minimal _ is_closed_closure hx),
-  simp only [nat.range_cases_on, closure_union, @range_comp _ _ _ _ coe],
+  simp only [nat.range_cases_on, closure_union, range_comp coe],
   exact subset.trans (image_closure_subset_closure_image continuous_subtype_coe)
     (subset_union_right _ _)
 end

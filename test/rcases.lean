@@ -106,6 +106,25 @@ begin
   trivial
 end
 
+example (x y : α × β) : true :=
+begin
+  rcases ⟨x, y⟩ with ⟨⟨a, b⟩, c, d⟩,
+  { guard_hyp a : α,
+    guard_hyp b : β,
+    guard_hyp c : α,
+    guard_hyp d : β,
+    trivial }
+end
+
+example (x y : α ⊕ β) : true :=
+begin
+  obtain ⟨a|b, c|d⟩ := ⟨x, y⟩,
+  { guard_hyp a : α, guard_hyp c : α, trivial },
+  { guard_hyp a : α, guard_hyp d : β, trivial },
+  { guard_hyp b : β, guard_hyp c : α, trivial },
+  { guard_hyp b : β, guard_hyp d : β, trivial },
+end
+
 example {i j : ℕ} : (Σ' x, i ≤ x ∧ x ≤ j) → i ≤ j :=
 begin
   intro h,

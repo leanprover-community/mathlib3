@@ -462,8 +462,8 @@ lemma map_sum {ι : Type*} (f : ι → A) (s : finset ι) :
   φ (∑ x in s, f x) = ∑ x in s, φ (f x) :=
 φ.to_ring_hom.map_sum f s
 
-lemma map_finsupp_sum {ι : Type*} (f : ι →₀ B) (g : ι → B → A) :
-  φ (f.sum g) = f.sum (λ i b, φ (g i b)) :=
+lemma map_finsupp_sum {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α) (g : ι → α → A) :
+  φ (f.sum g) = f.sum (λ i a, φ (g i a)) :=
 φ.map_sum _ _
 
 @[simp] lemma map_nat_cast (n : ℕ) : φ n = n :=
@@ -532,8 +532,8 @@ lemma map_prod {ι : Type*} (f : ι → A) (s : finset ι) :
   φ (∏ x in s, f x) = ∏ x in s, φ (f x) :=
 φ.to_ring_hom.map_prod f s
 
-lemma map_finsupp_prod {ι : Type*} (f : ι →₀ B) (g : ι → B → A) :
-  φ (f.prod g) = f.prod (λ i b, φ (g i b)) :=
+lemma map_finsupp_prod {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α) (g : ι → α → A) :
+  φ (f.prod g) = f.prod (λ i a, φ (g i a)) :=
 φ.map_prod _ _
 
 end comm_semiring
@@ -652,7 +652,7 @@ lemma map_sum {ι : Type*} (f : ι → A₁) (s : finset ι) :
   e (∑ x in s, f x) = ∑ x in s, e (f x) :=
 e.to_add_equiv.map_sum f s
 
-lemma map_finsupp_sum {ι : Type*} (f : ι →₀ A₂) (g : ι → A₂ → A₁) :
+lemma map_finsupp_sum {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α) (g : ι → α → A₁) :
   e (f.sum g) = f.sum (λ i b, e (g i b)) :=
 e.map_sum _ _
 

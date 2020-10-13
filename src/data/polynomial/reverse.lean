@@ -22,9 +22,7 @@ namespace polynomial
 
 open polynomial finsupp finset
 
-
 variables {R : Type*} [semiring R] {f : polynomial R}
-
 
 namespace rev
 /-- rev_at is a function of two natural variables (N,i).  If i ≤ N, then rev_at N i returns N-i,

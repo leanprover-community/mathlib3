@@ -11,8 +11,8 @@ import data.polynomial.degree.trailing_degree
 /-!
 # Reverse of a univariate polynomial
 
-The main definition is `reverse`.  Applying `reverse` to a polynomial `f` produces the
-polynomial `X ^ f.nat_degree * f(1/X)`.
+The main definition is `reverse`.  Applying `reverse` to a polynomial `f : polynomial R` produces the
+polynomial with a reversed list of coefficients, equivalent to `X^f.nat_degree * f(1/X)`.
 
 The main result is that `reverse (f * g) = reverse (f) * reverse (g)`, provided the leading
 coefficients of `f` and `g` do not multiply to zero.
@@ -25,8 +25,11 @@ open polynomial finsupp finset
 variables {R : Type*} [semiring R] {f : polynomial R}
 
 namespace rev
-/-- rev_at is a function of two natural variables (N,i).  If i ≤ N, then rev_at N i returns N-i,
-otherwise it returns i.  Essentially, this function is only used for i ≤ N. -/
+/-- If `i ≤ N`, then `rev_at N i` returns `N - i`, otherwise it returns `i`.
+
+Essentially, this function is only used for `i ≤ N`.
+The advantage of `rev_at N i` over `N - i` is that `rev_at` is an involution.
+-/
 def rev_at (N i : ℕ) : ℕ := ite (i ≤ N) (N-i) i
 
 @[simp] lemma rev_at_invol {N i : ℕ} : rev_at N (rev_at N i) = i :=

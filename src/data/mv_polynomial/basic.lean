@@ -403,7 +403,7 @@ begin
       contrapose! hij',
       exact mul_eq_zero_of_ne_zero_imp_eq_zero hij' },
     { rw [mem_antidiagonal_support] at hij,
-     simp only [exists_prop, true_and, ne.def, if_pos hij, hij', not_false_iff] } },
+      simp only [exists_prop, true_and, ne.def, if_pos hij, hij', not_false_iff] } },
   { intros x hx hx',
     simp only [ne.def] at hx' ⊢,
     split_ifs with H,

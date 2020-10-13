@@ -844,6 +844,12 @@ quotient.sound ⟨equiv.bool_equiv_punit_sum_punit⟩
 @[simp] theorem mk_Prop : mk Prop = 2 :=
 (quotient.sound ⟨equiv.Prop_equiv_bool⟩ : mk Prop = mk bool).trans mk_bool
 
+@[simp] theorem mk_set {α : Type u} : mk (set α) = 2 ^ mk α :=
+begin
+  rw [← prop_eq_two, cardinal.power_def (ulift Prop) α, cardinal.eq],
+  exact ⟨equiv.arrow_congr (equiv.refl _) equiv.ulift.symm⟩,
+end
+
 @[simp] theorem mk_option {α : Type u} : mk (option α) = mk α + 1 :=
 quotient.sound ⟨equiv.option_equiv_sum_punit α⟩
 

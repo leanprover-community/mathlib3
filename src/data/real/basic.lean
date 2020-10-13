@@ -9,7 +9,6 @@ from Cauchy sequences.
 import order.conditionally_complete_lattice
 import data.real.cau_seq_completion
 import algebra.archimedean
-import data.fintype.basic
 
 /-- The type `ℝ` of real numbers constructed as equivalence classes of Cauchy sequences of rational
 numbers. -/

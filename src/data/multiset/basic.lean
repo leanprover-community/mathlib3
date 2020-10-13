@@ -10,6 +10,10 @@ import algebra.group_power
 # Multisets
 
 These are implemented as the quotient of a list by permutations.
+
+## Notation
+
+We define the global infix notation `::ₘ` for `multiset.cons`.
 -/
 
 open list subtype nat

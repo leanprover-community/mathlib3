@@ -140,7 +140,7 @@ begin
   by_cases f0 : f = 0,
   { ext1,
     rw [f0, leading_coeff_zero, C_0, zero_mul], },
-  { conv_lhs {rw ← erase_lead_add_C_mul_X_pow f},
+  { conv_lhs { rw ← erase_lead_add_C_mul_X_pow f },
     have fe0 : f.erase_lead = 0,
     { rw [← support_eq_empty, ← card_eq_zero],
       apply nat.eq_zero_of_le_zero (nat.lt_succ_iff.mp _),

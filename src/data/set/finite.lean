@@ -241,6 +241,10 @@ by haveI := classical.dec_eq β; exact ⟨by apply_instance⟩
 theorem finite.image {s : set α} (f : α → β) : finite s → finite (f '' s)
 | ⟨h⟩ := ⟨@set.fintype_image _ _ (classical.dec_eq β) _ _ h⟩
 
+theorem infinite_of_infinite_image (f : α → β) {s : set α} (hs : (f '' s).infinite) :
+  s.infinite :=
+mt (finite.image f) hs
+
 lemma finite.dependent_image {s : set α} (hs : finite s) {F : Π i ∈ s, β} {t : set β}
   (H : ∀ y ∈ t, ∃ x (hx : x ∈ s), y = F x hx) : set.finite t :=
 begin

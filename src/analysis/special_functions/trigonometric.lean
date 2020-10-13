@@ -848,6 +848,12 @@ begin
     exact ⟨y, hy⟩ }
 end
 
+lemma range_cos_infinite : (range real.cos).infinite :=
+by { rw real.range_cos, exact Icc.infinite (by norm_num) }
+
+lemma range_sin_infinite : (range real.sin).infinite :=
+by { rw real.range_sin, exact Icc.infinite (by norm_num) }
+
 lemma sin_lt {x : ℝ} (h : 0 < x) : sin x < x :=
 begin
   cases le_or_gt x 1 with h' h',
@@ -1755,19 +1761,23 @@ lemma continuous_tan : continuous (λ x : {x | cos x ≠ 0}, tan x) :=
 lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
 by { rw continuous_on_iff_continuous_restrict, convert continuous_tan }
 
-lemma range_cos_infinite : (set.range complex.cos).infinite :=
+lemma range_cos_infinite : (range complex.cos).infinite :=
 begin
-  have : (set.range real.cos).infinite,
-  { rw real.range_cos,
-    apply Icc.infinite,
-    norm_num },
-  delta real.cos at this,
-  rw [range_comp, range_comp] at this,
-  exact set.infinite_mono
-    (image_subset_range _ (range (coe : ℝ → ℂ))) (λ h, this (set.finite.image _ h)),
+  refine infinite_mono (image_subset_range _ (range (coe : ℝ → ℂ)))
+    (infinite_of_infinite_image re _),
+  rw [← range_comp, ← range_comp],
+  exact real.range_cos_infinite
 end
-end complex
 
+lemma range_sin_infinite : (range complex.sin).infinite :=
+begin
+  refine infinite_mono (image_subset_range _ (range (coe : ℝ → ℂ)))
+    (infinite_of_infinite_image re _),
+  rw [← range_comp, ← range_comp],
+  exact real.range_sin_infinite
+end
+
+end complex
 
 namespace real
 open_locale real

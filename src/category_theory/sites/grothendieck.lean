@@ -13,10 +13,6 @@ namespace category_theory
 
 open category_theory category sieve
 
--- /-- A set of sieves for every object in the category: a candidate to be a Grothendieck topology. -/
--- @[derive complete_lattice]
--- def sieve_set (C : Type u) [category.{v} C] := Π (X : C), set (sieve X)
-
 /-- The trivial sieve set, containing only the maximal sieve on each object. -/
 def sieve_set.trivial (C : Type u) [category.{v} C] : Π (X : C), set (sieve X) := λ X, {⊤}
 
@@ -104,7 +100,8 @@ begin
   rw [covers, (pullback_eq_top_iff_mem f).1 hf],
   apply max,
 end
-lemma arrow_stab (f : Y ⟶ X) (S : sieve X) (h : covers J S f) {Z : C} (g : Z ⟶ Y) : covers J S (g ≫ f) :=
+lemma arrow_stab (f : Y ⟶ X) (S : sieve X) (h : covers J S f) {Z : C} (g : Z ⟶ Y) :
+  covers J S (g ≫ f) :=
 begin
   rw [covers, pullback_comp],
   apply stab,
@@ -176,7 +173,8 @@ def right_ore_condition (C : Type u) [category.{v} C] : Prop :=
 /--
 The atomic sieveset is a Grothendieck topology when it satisfies the right ore condition.
 -/
-lemma atomic.grothendieck_topology (hro : right_ore_condition C) : grothendieck_topology (atomic C) :=
+lemma atomic.grothendieck_topology (hro : right_ore_condition C) :
+  grothendieck_topology (atomic C) :=
 { max := λ X, ⟨_, 𝟙 _, ⟨⟩⟩,
   stab :=
   begin

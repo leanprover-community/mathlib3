@@ -233,6 +233,4 @@ end
 
 end grothendieck_topology
 
-#lint
-
 end category_theory

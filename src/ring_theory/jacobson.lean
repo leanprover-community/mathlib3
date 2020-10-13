@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Devon Tuma
 -/
 import data.mv_polynomial
-import ring_theory.ideal.basic
-import ring_theory.ideal.operations
+import ring_theory.ideal.over
 import ring_theory.jacobson_ideal
 import ring_theory.localization
 
@@ -121,6 +120,25 @@ is_jacobson_of_surjective ⟨quotient.mk I, (by rintro ⟨x⟩; use x; refl)⟩
 lemma is_jacobson_iso (e : R ≃+* S) : is_jacobson R ↔ is_jacobson S :=
 ⟨λ h, @is_jacobson_of_surjective _ _ _ _ h ⟨(e : R →+* S), e.surjective⟩,
   λ h, @is_jacobson_of_surjective _ _ _ _ h ⟨(e.symm : S →+* R), e.symm.surjective⟩⟩
+
+lemma is_jacobson_of_is_integral [algebra R S] (hRS : algebra.is_integral R S)
+  (hR : is_jacobson R) : is_jacobson S :=
+begin
+  rw is_jacobson_iff_prime_eq,
+  introsI P hP,
+  by_cases hP_top : comap (algebra_map R S) P = ⊤,
+  { simp [comap_eq_top_iff.1 hP_top] },
+  { haveI : nontrivial (comap (algebra_map R S) P).quotient := quotient.nontrivial hP_top,
+    rw jacobson_eq_iff_jacobson_quotient_eq_bot,
+    refine eq_bot_of_comap_eq_bot (is_integral_quotient_of_is_integral hRS) _,
+    rw [eq_bot_iff, ← jacobson_eq_iff_jacobson_quotient_eq_bot.1 ((is_jacobson_iff_prime_eq.1 hR)
+      (comap (algebra_map R S) P) (comap_is_prime _ _)), comap_jacobson],
+    refine Inf_le_Inf (λ J hJ, _),
+    simp only [true_and, set.mem_image, bot_le, set.mem_set_of_eq],
+    haveI : J.is_maximal := by simpa using hJ,
+    exact exists_ideal_over_maximal_of_is_integral (is_integral_quotient_of_is_integral hRS) J
+      (comap_bot_le_of_injective _ algebra_map_quotient_injective) }
+end
 
 end is_jacobson
 

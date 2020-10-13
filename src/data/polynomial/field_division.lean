@@ -1,4 +1,3 @@
-
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
@@ -203,6 +202,32 @@ gcd.induction p q (λ x, by simp_rw [map_zero, euclidean_domain.gcd_zero_left]) 
 by rw [gcd_val, ← map_mod, ih, ← gcd_val]
 end
 
+lemma eval₂_gcd_eq_zero [comm_semiring k] {ϕ : R →+* k} {f g : polynomial R} {α : k}
+  (hf : f.eval₂ ϕ α = 0) (hg : g.eval₂ ϕ α = 0) : (euclidean_domain.gcd f g).eval₂ ϕ α = 0 :=
+by rw [euclidean_domain.gcd_eq_gcd_ab f g, polynomial.eval₂_add, polynomial.eval₂_mul,
+       polynomial.eval₂_mul, hf, hg, zero_mul, zero_mul, zero_add]
+
+lemma eval_gcd_eq_zero {f g : polynomial R} {α : R} (hf : f.eval α = 0) (hg : g.eval α = 0) :
+  (euclidean_domain.gcd f g).eval α = 0 := eval₂_gcd_eq_zero hf hg
+
+lemma root_left_of_root_gcd [comm_semiring k] {ϕ : R →+* k} {f g : polynomial R} {α : k}
+  (hα : (euclidean_domain.gcd f g).eval₂ ϕ α = 0) : f.eval₂ ϕ α = 0 :=
+by { cases euclidean_domain.gcd_dvd_left f g with p hp,
+     rw [hp, polynomial.eval₂_mul, hα, zero_mul] }
+
+lemma root_right_of_root_gcd [comm_semiring k] {ϕ : R →+* k} {f g : polynomial R} {α : k}
+  (hα : (euclidean_domain.gcd f g).eval₂ ϕ α = 0) : g.eval₂ ϕ α = 0 :=
+by { cases euclidean_domain.gcd_dvd_right f g with p hp,
+     rw [hp, polynomial.eval₂_mul, hα, zero_mul] }
+
+lemma root_gcd_iff_root_left_right [comm_semiring k] {ϕ : R →+* k} {f g : polynomial R} {α : k} :
+  (euclidean_domain.gcd f g).eval₂ ϕ α = 0 ↔ (f.eval₂ ϕ α = 0) ∧ (g.eval₂ ϕ α = 0) :=
+⟨λ h, ⟨root_left_of_root_gcd h, root_right_of_root_gcd h⟩, λ h, eval₂_gcd_eq_zero h.1 h.2⟩
+
+lemma is_root_gcd_iff_is_root_left_right {f g : polynomial R} {α : R} :
+  (euclidean_domain.gcd f g).is_root α ↔ f.is_root α ∧ g.is_root α :=
+root_gcd_iff_root_left_right
+
 theorem is_coprime_map [field k] (f : R →+* k) :
   is_coprime (p.map f) (q.map f) ↔ is_coprime p q :=
 by rw [← gcd_is_unit_iff, ← gcd_is_unit_iff, gcd_map, is_unit_map]
@@ -213,6 +238,14 @@ by simp [polynomial.ext_iff, f.map_eq_zero, coeff_map]
 
 lemma map_ne_zero [field k] {f : R →+* k} (hp : p ≠ 0) : p.map f ≠ 0 :=
 mt (map_eq_zero f).1 hp
+
+lemma mem_roots_map [field k] {f : R →+* k} {x : k} (hp : p ≠ 0) :
+  x ∈ (p.map f).roots ↔ p.eval₂ f x = 0 :=
+begin
+  rw mem_roots (show p.map f ≠ 0, by exact map_ne_zero hp),
+  dsimp only [is_root],
+  rw polynomial.eval_map,
+end
 
 lemma exists_root_of_degree_eq_one (h : degree p = 1) : ∃ x, is_root p x :=
 ⟨-(p.coeff 0 / p.coeff 1),

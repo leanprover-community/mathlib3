@@ -104,6 +104,9 @@ theorem subset_Inter {t : set β} {s : ι → set β} (h : ∀ i, t ⊆ s i) : t
 -- TODO: should be simpler when sets' order is based on lattices
 @le_infi (set β) _ set.lattice_set _ _ h
 
+theorem subset_Inter_iff {t : set β} {s : ι → set β} : t ⊆ (⋂ i, s i) ↔ ∀ i, t ⊆ s i :=
+@le_infi_iff (set β) _ set.lattice_set _ _
+
 theorem subset_Union : ∀ (s : ι → set β) (i : ι), s i ⊆ (⋃ i, s i) := le_supr
 
 -- This rather trivial consequence is convenient with `apply`,
@@ -207,6 +210,21 @@ assume a₁ b₁ fb₁ a₂ b₂ fb₂,
 let ⟨z, zb₁, zb₂⟩ := hd b₁ b₂,
     ⟨x, xf, xa₁, xa₂⟩ := h z a₁ (zb₁ fb₁) a₂ (zb₂ fb₂) in
 ⟨x, ⟨z, xf⟩, xa₁, xa₂⟩
+
+lemma Union_inter_subset {ι α} {s t : ι → set α} : (⋃ i, s i ∩ t i) ⊆ (⋃ i, s i) ∩ (⋃ i, t i) :=
+by { rintro x ⟨_, ⟨i, rfl⟩, ⟨xs, xt⟩⟩, exact ⟨⟨_, ⟨i, rfl⟩, xs⟩, ⟨_, ⟨i, rfl⟩, xt⟩⟩ }
+
+lemma Union_inter_of_monotone {ι α} [semilattice_sup ι] {s t : ι → set α}
+  (hs : monotone s) (ht : monotone t) : (⋃ i, s i ∩ t i) = (⋃ i, s i) ∩ (⋃ i, t i) :=
+begin
+  ext x, refine ⟨λ hx, Union_inter_subset hx, _⟩,
+  rintro ⟨⟨_, ⟨i, rfl⟩, xs⟩, ⟨_, ⟨j, rfl⟩, xt⟩⟩,
+  exact ⟨_, ⟨i ⊔ j, rfl⟩, ⟨hs le_sup_left xs, ht le_sup_right xt⟩⟩
+end
+
+/-- An equality version of this lemma is `Union_Inter_of_monotone` in `data.set.finite`. -/
+lemma Union_Inter_subset {ι ι' α} {s : ι → ι' → set α} : (⋃ j, ⋂ i, s i j) ⊆ ⋂ i, ⋃ j, s i j :=
+by { rintro x ⟨_, ⟨i, rfl⟩, hx⟩ _ ⟨j, rfl⟩, exact ⟨_, ⟨i, rfl⟩, hx _ ⟨j, rfl⟩⟩ }
 
 /- bounded unions and intersections -/
 
@@ -899,6 +917,23 @@ by simp
 
 end preimage
 
+section prod
+
+theorem monotone_prod [preorder α] {f : α → set β} {g : α → set γ}
+  (hf : monotone f) (hg : monotone g) : monotone (λx, (f x).prod (g x)) :=
+assume a b h, prod_mono (hf h) (hg h)
+
+alias monotone_prod ← monotone.set_prod
+
+lemma Union_prod_of_monotone [semilattice_sup α] {s : α → set β} {t : α → set γ}
+  (hs : monotone s) (ht : monotone t) : (⋃ x, (s x).prod (t x)) = (⋃ x, (s x)).prod (⋃ x, (t x)) :=
+begin
+  ext ⟨z, w⟩, simp only [mem_prod, mem_Union, exists_imp_distrib, and_imp, iff_def], split,
+  { intros x hz hw, exact ⟨⟨x, hz⟩, ⟨x, hw⟩⟩ },
+  { intros x hz x' hw, exact ⟨x ⊔ x', hs le_sup_left hz, ht le_sup_right hw⟩ }
+end
+
+end prod
 
 section seq
 
@@ -955,11 +990,10 @@ lemma prod_image_seq_comm (s : set α) (t : set β) :
   (prod.mk '' s).seq t = seq ((λb a, (a, b)) '' t) s :=
 by rw [← prod_eq_seq, ← image_swap_prod, prod_eq_seq, image_seq, ← image_comp, prod.swap]
 
-end seq
+lemma image2_eq_seq (f : α → β → γ) (s : set α) (t : set β) : image2 f s t = seq (f '' s) t :=
+by { ext, simp }
 
-theorem monotone_prod [preorder α] {f : α → set β} {g : α → set γ}
-  (hf : monotone f) (hg : monotone g) : monotone (λx, (f x).prod (g x)) :=
-assume a b h, prod_mono (hf h) (hg h)
+end seq
 
 instance : monad set :=
 { pure       := λ(α : Type u) a, {a},

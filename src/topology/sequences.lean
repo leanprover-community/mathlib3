@@ -154,7 +154,7 @@ instance : sequential_space α :=
   assume (p : α) (hp : p ∈ closure M),
   -- Since we are in a first-countable space, the neighborhood filter around `p` has a decreasing
   -- basis `U` indexed by `ℕ`.
-  let ⟨U, hU ⟩ := (nhds_generated_countable p).has_antimono_basis in
+  let ⟨U, hU⟩ := (nhds_generated_countable p).exists_antimono_basis in
   -- Since `p ∈ closure M`, there is an element in each `M ∩ U i`
   have hp : ∀ (i : ℕ), ∃ (y : α), y ∈ M ∧ y ∈ U i,
     by simpa using (mem_closure_iff_nhds_basis hU.1).mp hp,
@@ -303,7 +303,7 @@ begin
   intros x x_in φ,
   intros hφ huφ,
   obtain ⟨N, hN⟩ : ∃ N, ∀ p q, p ≥ N → q ≥ N → (u (φ p), u (φ q)) ∈ V,
-    from (cauchy_seq_of_tendsto_nhds _ huφ).mem_entourage V_in,
+    from huφ.cauchy_seq.mem_entourage V_in,
   specialize hN N (N+1) (le_refl N) (nat.le_succ N),
   specialize hu (φ $ N+1) (φ N) (hφ $ lt_add_one N),
   exact hu hN,

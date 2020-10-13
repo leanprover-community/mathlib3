@@ -693,6 +693,9 @@ by finish [ext_iff, or_comm]
 @[simp] theorem pair_eq_singleton (a : α) : ({a, a} : set α) = {a} :=
 by finish
 
+theorem pair_comm (a b : α) : ({a, b} : set α) = {b, a} :=
+ext $ λ x, or_comm _ _
+
 @[simp] theorem singleton_nonempty (a : α) : ({a} : set α).nonempty :=
 ⟨a, rfl⟩
 
@@ -725,6 +728,10 @@ instance unique_singleton (a : α) : unique ↥({a} : set α) :=
     apply subtype.ext,
     apply eq_of_mem_singleton (subtype.mem x),
   end}
+
+lemma eq_singleton_iff_unique_mem {s : set α} {a : α} :
+  s = {a} ↔ a ∈ s ∧ ∀ x ∈ s, x = a :=
+by simp [ext_iff, @iff_def (_ ∈ s), forall_and_distrib, and_comm]
 
 /-! ### Lemmas about sets defined as `{x ∈ s | p x}`. -/
 
@@ -1441,6 +1448,16 @@ s.eq_empty_or_nonempty.elim or.inl (λ ⟨x, hx⟩, or.inr ⟨x, hs.eq_singleton
 lemma subsingleton_univ [subsingleton α] : (univ : set α).subsingleton :=
 λ x hx y hy, subsingleton.elim x y
 
+/-- `s`, coerced to a type, is a subsingleton type if and only if `s`
+is a subsingleton set. -/
+@[simp, norm_cast] lemma subsingleton_coe (s : set α) : subsingleton s ↔ s.subsingleton :=
+begin
+  split,
+  { refine λ h, (λ a ha b hb, _),
+    exact set_coe.ext_iff.2 (@subsingleton.elim s h ⟨a, ha⟩ ⟨b, hb⟩) },
+  { exact λ h, subsingleton.intro (λ a b, set_coe.ext (h a.property b.property)) }
+end
+
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)
 
@@ -1472,13 +1489,19 @@ by simpa only [exists_prop] using exists_range_iff
 theorem range_iff_surjective : range f = univ ↔ surjective f :=
 eq_univ_iff_forall
 
+alias range_iff_surjective ↔ _ function.surjective.range_eq
+
 @[simp] theorem range_id : range (@id α) = univ := range_iff_surjective.2 surjective_id
 
+theorem is_compl_range_inl_range_inr : is_compl (range $ @sum.inl α β) (range sum.inr) :=
+⟨by { rintro y ⟨⟨x₁, rfl⟩, ⟨x₂, _⟩⟩, cc },
+  by { rintro (x|y) -; [left, right]; exact mem_range_self _ }⟩
+
 theorem range_inl_union_range_inr : range (@sum.inl α β) ∪ range sum.inr = univ :=
-by { ext x, cases x; simp }
+is_compl_range_inl_range_inr.sup_eq_top
 
 @[simp] theorem range_quot_mk (r : α → α → Prop) : range (quot.mk r) = univ :=
-range_iff_surjective.2 quot.exists_rep
+(surjective_quot_mk r).range_eq
 
 @[simp] theorem image_univ {ι : Type*} {f : ι → β} : f '' univ = range f :=
 by { ext, simp [image, range] }
@@ -1486,7 +1509,7 @@ by { ext, simp [image, range] }
 theorem image_subset_range {ι : Type*} (f : ι → β) (s : set ι) : f '' s ⊆ range f :=
 by rw ← image_univ; exact image_subset _ (subset_univ _)
 
-theorem range_comp {g : α → β} : range (g ∘ f) = g '' range f :=
+theorem range_comp (g : α → β) (f : ι → α) : range (g ∘ f) = g '' range f :=
 subset.antisymm
   (forall_range_iff.mpr $ assume i, mem_image_of_mem g (mem_range_self _))
   (ball_image_iff.mpr $ forall_range_iff.mpr mem_range_self)
@@ -1684,9 +1707,6 @@ by { intro s, use f ⁻¹' s, rw image_preimage_eq hf }
 
 lemma injective.image_injective (hf : injective f) : injective (image f) :=
 by { intros s t h, rw [←preimage_image_eq s hf, ←preimage_image_eq t hf, h] }
-
-lemma surjective.range_eq {f : ι → α} (hf : surjective f) : range f = univ :=
-range_iff_surjective.2 hf
 
 lemma surjective.preimage_subset_preimage_iff {s t : set β} (hf : surjective f) :
   f ⁻¹' s ⊆ f ⁻¹' t ↔ s ⊆ t :=

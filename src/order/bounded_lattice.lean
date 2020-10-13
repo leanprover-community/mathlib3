@@ -384,6 +384,18 @@ instance pi.bounded_lattice {ι : Type*} {α : ι → Type*} [Π i, bounded_latt
   bounded_lattice (Π i, α i) :=
 { .. pi.semilattice_sup_top, .. pi.semilattice_inf_bot }
 
+lemma eq_bot_of_bot_eq_top {α : Type*} [bounded_lattice α] (hα : (⊥ : α) = ⊤) (x : α) :
+  x = (⊥ : α) :=
+eq_bot_mono le_top (eq.symm hα)
+
+lemma eq_top_of_bot_eq_top {α : Type*} [bounded_lattice α] (hα : (⊥ : α) = ⊤) (x : α) :
+  x = (⊤ : α) :=
+eq_top_mono bot_le hα
+
+lemma subsingleton_of_bot_eq_top {α : Type*} [bounded_lattice α] (hα : (⊥ : α) = (⊤ : α)) :
+  subsingleton α :=
+⟨λ a b, by rw [eq_bot_of_bot_eq_top hα a, eq_bot_of_bot_eq_top hα b]⟩
+
 /-- Attach `⊥` to a type. -/
 def with_bot (α : Type*) := option α
 
@@ -571,13 +583,14 @@ instance densely_ordered [partial_order α] [densely_ordered α] [no_bot_order �
   match a, b with
   | a,      none   := assume h : a < ⊥, (not_lt_bot h).elim
   | none,   some b := assume h, let ⟨a, ha⟩ := no_bot b in ⟨a, bot_lt_coe a, coe_lt_coe.2 ha⟩
-  | some a, some b := assume h, let ⟨a, ha₁, ha₂⟩ := dense (coe_lt_coe.1 h) in
+  | some a, some b := assume h, let ⟨a, ha₁, ha₂⟩ := exists_between (coe_lt_coe.1 h) in
     ⟨a, coe_lt_coe.2 ha₁, coe_lt_coe.2 ha₂⟩
   end⟩
 
 end with_bot
 
 --TODO(Mario): Construct using order dual on with_bot
+/-- Attach `⊤` to a type. -/
 def with_top (α : Type*) := option α
 
 namespace with_top
@@ -784,14 +797,14 @@ instance densely_ordered [partial_order α] [densely_ordered α] [no_top_order �
   match a, b with
   | none,   a   := assume h : ⊤ < a, (not_top_lt h).elim
   | some a, none := assume h, let ⟨b, hb⟩ := no_top a in ⟨b, coe_lt_coe.2 hb, coe_lt_top b⟩
-  | some a, some b := assume h, let ⟨a, ha₁, ha₂⟩ := dense (coe_lt_coe.1 h) in
+  | some a, some b := assume h, let ⟨a, ha₁, ha₂⟩ := exists_between (coe_lt_coe.1 h) in
     ⟨a, coe_lt_coe.2 ha₁, coe_lt_coe.2 ha₂⟩
   end⟩
 
 lemma lt_iff_exists_coe_btwn [partial_order α] [densely_ordered α] [no_top_order α]
   {a b : with_top α} :
   (a < b) ↔ (∃ x : α, a < ↑x ∧ ↑x < b) :=
-⟨λ h, let ⟨y, hy⟩ := dense h, ⟨x, hx⟩ := (lt_iff_exists_coe _ _).1 hy.2 in ⟨x, hx.1 ▸ hy⟩,
+⟨λ h, let ⟨y, hy⟩ := exists_between h, ⟨x, hx⟩ := (lt_iff_exists_coe _ _).1 hy.2 in ⟨x, hx.1 ▸ hy⟩,
  λ ⟨x, hx⟩, lt_trans hx.1 hx.2⟩
 
 end with_top

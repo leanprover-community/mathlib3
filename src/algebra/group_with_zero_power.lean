@@ -124,6 +124,18 @@ begin
   { rw [fpow_sub_one ha, ← mul_assoc, ← ihn, ← fpow_sub_one ha, add_sub_assoc] }
 end
 
+lemma fpow_add' {a : G₀} {m n : ℤ} (h : a ≠ 0 ∨ m + n ≠ 0 ∨ m = 0 ∧ n = 0) :
+  a ^ (m + n) = a ^ m * a ^ n :=
+begin
+  by_cases hm : m = 0, { simp [hm] },
+  by_cases hn : n = 0, { simp [hn] },
+  by_cases ha : a = 0,
+  { subst a,
+    simp only [false_or, eq_self_iff_true, not_true, ne.def, hm, hn, false_and, or_false] at h,
+    rw [zero_fpow _ h, zero_fpow _ hm, zero_mul] },
+  { exact fpow_add ha m n }
+end
+
 theorem fpow_one_add {a : G₀} (h : a ≠ 0) (i : ℤ) : a ^ (1 + i) = a * a ^ i :=
 by rw [fpow_add h, fpow_one]
 
@@ -146,6 +158,21 @@ theorem commute.fpow_self (a : G₀) (n : ℤ) : commute (a^n) a := (commute.ref
 theorem commute.self_fpow (a : G₀) (n : ℤ) : commute a (a^n) := (commute.refl a).fpow_right n
 
 theorem commute.fpow_fpow_self (a : G₀) (m n : ℤ) : commute (a^m) (a^n) := (commute.refl a).fpow_fpow m n
+
+theorem fpow_bit0 (a : G₀) (n : ℤ) : a ^ bit0 n = a ^ n * a ^ n :=
+begin
+  apply fpow_add', right,
+  by_cases hn : n = 0,
+  { simp [hn] },
+  { simp [← two_mul, hn, two_ne_zero] }
+end
+
+theorem fpow_bit1 (a : G₀) (n : ℤ) : a ^ bit1 n = a ^ n * a ^ n * a :=
+begin
+  rw [← fpow_bit0, bit1, fpow_add', fpow_one],
+  right, left,
+  apply bit1_ne_zero
+end
 
 theorem fpow_mul (a : G₀) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
 | (m : ℕ) (n : ℕ) := pow_mul _ _ _
@@ -179,6 +206,12 @@ lemma commute.mul_fpow {a b : G₀} (h : commute a b) :
 lemma mul_fpow {G₀ : Type*} [comm_group_with_zero G₀] (a b : G₀) (m : ℤ):
   (a * b) ^ m = (a ^ m) * (b ^ m) :=
 (commute.all a b).mul_fpow m
+
+theorem fpow_bit0' (a : G₀) (n : ℤ) : a ^ bit0 n = (a * a) ^ n :=
+(fpow_bit0 a n).trans ((commute.refl a).mul_fpow n).symm
+
+theorem fpow_bit1' (a : G₀) (n : ℤ) : a ^ bit1 n = (a * a) ^ n * a :=
+by rw [fpow_bit1, (commute.refl a).mul_fpow]
 
 lemma fpow_eq_zero {x : G₀} {n : ℤ} (h : x ^ n = 0) : x = 0 :=
 classical.by_contradiction $ λ hx, fpow_ne_zero_of_ne_zero hx n h
@@ -218,3 +251,11 @@ lemma div_sq_cancel {a : G₀} (ha : a ≠ 0) (b : G₀) : a ^ 2 * b / a = a * b
 by rw [pow_two, mul_assoc, mul_div_cancel_left _ ha]
 
 end
+
+/-- If a monoid homomorphism `f` between two `group_with_zero`s maps `0` to `0`, then it maps `x^n`,
+`n : ℤ`, to `(f x)^n`. -/
+lemma monoid_hom.map_fpow {G₀ G₀' : Type*} [group_with_zero G₀] [group_with_zero G₀']
+  (f : G₀ →* G₀') (h0 : f 0 = 0) (x : G₀) :
+  ∀ n : ℤ, f (x ^ n) = f x ^ n
+| (n : ℕ) := f.map_pow x n
+| -[1+n] := (f.map_inv' h0 _).trans $ congr_arg _ $ f.map_pow x _

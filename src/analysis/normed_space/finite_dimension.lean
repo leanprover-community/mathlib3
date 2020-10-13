@@ -86,7 +86,7 @@ begin
     change ∥hξ.equiv_fun x∥ ≤ 0 * ∥x∥,
     rw this,
     simp [norm_nonneg] },
-  { haveI : finite_dimensional 𝕜 E := of_finite_basis hξ,
+  { haveI : finite_dimensional 𝕜 E := of_fintype_basis hξ,
     -- first step: thanks to the inductive assumption, any n-dimensional subspace is equivalent
     -- to a standard space of dimension n, hence it is complete and therefore closed.
     have H₁ : ∀s : submodule 𝕜 E, findim 𝕜 s = n → is_closed (s : set E),
@@ -183,7 +183,7 @@ variables {ι : Type*} [fintype ι]
 def is_basis.constrL {v : ι → E} (hv : is_basis 𝕜 v) (f : ι → F) :
   E →L[𝕜] F :=
 ⟨hv.constr f, begin
-  haveI : finite_dimensional 𝕜 E := finite_dimensional.of_finite_basis hv,
+  haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis hv,
   exact (hv.constr f).continuous_of_finite_dimensional,
 end⟩
 
@@ -194,7 +194,7 @@ end⟩
 functions from its basis indexing type to `𝕜`. -/
 def is_basis.equiv_funL {v : ι → E} (hv : is_basis 𝕜 v) : E ≃L[𝕜] (ι → 𝕜) :=
 { continuous_to_fun := begin
-    haveI : finite_dimensional 𝕜 E := finite_dimensional.of_finite_basis hv,
+    haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis hv,
     apply linear_map.continuous_of_finite_dimensional,
   end,
   continuous_inv_fun := begin
@@ -262,7 +262,7 @@ begin
   obtain ⟨v : fin d → E, hv : is_basis 𝕜 v⟩ := finite_dimensional.fin_basis 𝕜 E,
   obtain ⟨C : ℝ, C_pos : 0 < C,
           hC : ∀ {φ : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ∥φ (v i)∥ ≤ M) → ∥φ∥ ≤ C * M⟩ := hv.op_norm_le,
-  have h_2C : 0 < 2*C := mul_pos two_pos C_pos,
+  have h_2C : 0 < 2*C := mul_pos zero_lt_two C_pos,
   have hε2C : 0 < ε/(2*C) := div_pos ε_pos h_2C,
   have : ∀ φ : E →L[𝕜] F, ∃ n : fin d → ℕ, ∥φ - (hv.constrL $ u ∘ n)∥ ≤ ε/2,
   { intros φ,
@@ -325,6 +325,26 @@ lemma continuous_linear_map.exists_right_inverse_of_surjective [finite_dimension
   ∃ g : F →L[𝕜] E, f.comp g = continuous_linear_map.id 𝕜 F :=
 let ⟨g, hg⟩ := (f : E →ₗ[𝕜] F).exists_right_inverse_of_surjective hf in
 ⟨g.to_continuous_linear_map, continuous_linear_map.ext $ linear_map.ext_iff.1 hg⟩
+
+lemma closed_embedding_smul_left {c : E} (hc : c ≠ 0) : closed_embedding (λ x : 𝕜, x • c) :=
+begin
+  haveI : finite_dimensional 𝕜 (submodule.span 𝕜 {c}) :=
+    finite_dimensional.span_of_finite 𝕜 (finite_singleton c),
+  have m1 : closed_embedding (coe : submodule.span 𝕜 {c} → E) :=
+  (submodule.span 𝕜 {c}).closed_of_finite_dimensional.closed_embedding_subtype_coe,
+  have m2 : closed_embedding
+    (linear_equiv.to_span_nonzero_singleton 𝕜 E c hc : 𝕜 → submodule.span 𝕜 {c}) :=
+  (continuous_linear_equiv.to_span_nonzero_singleton 𝕜 c hc).to_homeomorph.closed_embedding,
+  exact m1.comp m2
+end
+
+/- `smul` is a closed map in the first argument. -/
+lemma is_closed_map_smul_left (c : E) : is_closed_map (λ x : 𝕜, x • c) :=
+begin
+  by_cases hc : c = 0,
+  { simp_rw [hc, smul_zero], exact is_closed_map_const },
+  { exact (closed_embedding_smul_left hc).is_closed_map }
+end
 
 end complete_field
 

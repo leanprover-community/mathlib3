@@ -5,6 +5,7 @@ Authors: Chris Hughes
 -/
 import linear_algebra.dimension
 import ring_theory.principal_ideal_domain
+import algebra.algebra.subalgebra
 
 /-!
 # Finite dimensional vector spaces
@@ -27,7 +28,12 @@ that all these points of view are equivalent, with the following lemmas
 (in the namespace `finite_dimensional`):
 
 - `exists_is_basis_finite` states that a finite-dimensional vector space has a finite basis
-- `of_finite_basis` states that the existence of a finite basis implies finite-dimensionality
+- `of_fintype_basis` states that the existence of a basis indexed by a finite type implies
+  finite-dimensionality
+- `of_finset_basis` states that the existence of a basis indexed by a `finset` implies
+  finite-dimensionality
+- `of_finite_basis` states that the existence of a basis indexed by a finite set implies
+  finite-dimensionality
 - `iff_fg` states that the space is finite-dimensional if and only if it is finitely generated
 
 Also defined is `findim`, the dimension of a finite dimensional space, returning a `nat`,
@@ -68,7 +74,7 @@ variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [vector_space K
 {V₂ : Type v'} [add_comm_group V₂] [vector_space K V₂]
 
 /-- `finite_dimensional` vector spaces are defined to be noetherian modules.
-Use `finite_dimensional.iff_fg` or `finite_dimensional.of_finite_basis` to prove finite dimension
+Use `finite_dimensional.iff_fg` or `finite_dimensional.of_fintype_basis` to prove finite dimension
 from a conventional definition. -/
 @[reducible] def finite_dimensional (K V : Type*) [field K]
   [add_comm_group V] [vector_space K V] := is_noetherian K V
@@ -125,6 +131,10 @@ begin
   exact s_basis,
 end
 
+/-- A finite dimensional vector space over a finite field is finite -/
+noncomputable def fintype_of_fintype [fintype K] [finite_dimensional K V] : fintype V :=
+module.fintype_of_fintype (classical.some_spec (finite_dimensional.exists_is_basis_finset K V) : _)
+
 variables {K V}
 
 /-- A vector space is finite-dimensional if and only if it is finitely generated. As the
@@ -143,14 +153,20 @@ begin
 end
 
 /-- If a vector space has a finite basis, then it is finite-dimensional. -/
-lemma of_finite_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K b) :
+lemma of_fintype_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K b) :
   finite_dimensional K V :=
 iff_fg.2 $ ⟨finset.univ.image b, by {convert h.2, simp} ⟩
 
-/-- If a vector space has a finite basis, then it is finite-dimensional, finset style. -/
-lemma of_finset_basis {b : finset V} (h : is_basis K (coe : (↑b : set V) -> V)) :
+/-- If a vector space has a basis indexed by elements of a finite set, then it is
+finite-dimensional. -/
+lemma of_finite_basis {ι} {s : set ι} {b : s → V} (h : is_basis K b) (hs : set.finite s) :
   finite_dimensional K V :=
-iff_fg.2 $ ⟨b, by {convert h.2, simp} ⟩
+by haveI := hs.fintype; exact of_fintype_basis h
+
+/-- If a vector space has a finite basis, then it is finite-dimensional, finset style. -/
+lemma of_finset_basis {ι} {s : finset ι} {b : (↑s : set ι) → V} (h : is_basis K b) :
+  finite_dimensional K V :=
+of_finite_basis h s.finite_to_set
 
 /-- A subspace of a finite-dimensional space is also finite-dimensional. -/
 instance finite_dimensional_submodule [finite_dimensional K V] (S : submodule K V) :
@@ -192,7 +208,7 @@ basis. -/
 lemma findim_eq_card_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K b) :
   findim K V = fintype.card ι :=
 begin
-  haveI : finite_dimensional K V := of_finite_basis h,
+  haveI : finite_dimensional K V := of_fintype_basis h,
   have := dim_eq_card_basis h,
   rw ← findim_eq_dim at this,
   exact_mod_cast this
@@ -481,6 +497,9 @@ open vector_space finite_dimensional
 lemma finite_dimensional_of_dim_eq_zero (h : vector_space.dim K V = 0) : finite_dimensional K V :=
 by rw [finite_dimensional_iff_dim_lt_omega, h]; exact cardinal.omega_pos
 
+lemma finite_dimensional_of_dim_eq_one (h : vector_space.dim K V = 1) : finite_dimensional K V :=
+by rw [finite_dimensional_iff_dim_lt_omega, h]; exact one_lt_omega
+
 lemma findim_eq_zero_of_dim_eq_zero [finite_dimensional K V] (h : vector_space.dim K V = 0) :
   findim K V = 0 :=
 begin
@@ -768,8 +787,8 @@ open vector_space finite_dimensional
 section top
 
 @[simp]
-theorem findim_top [finite_dimensional K V] : findim K (⊤ : submodule K V) = findim K V :=
-linear_equiv.findim_eq $ linear_equiv.of_top ⊤ rfl
+theorem findim_top : findim K (⊤ : submodule K V) = findim K V :=
+by { unfold findim, simp [dim_top] }
 
 end top
 
@@ -1023,6 +1042,118 @@ lemma set_is_basis_of_linear_independent_of_card_eq_findim
 is_basis_of_linear_independent_of_card_eq_findim lin_ind (trans s.to_finset_card.symm card_eq)
 
 end is_basis
+
+section subalgebra_dim
+open vector_space
+variables {F E : Type*} [field F] [field E] [algebra F E]
+
+lemma subalgebra.dim_eq_one_of_eq_bot {S : subalgebra F E} (h : S = ⊥) : dim F S = 1 :=
+begin
+  rw eq_bot_iff at h,
+  let b : set S := {1},
+  have : fintype b := unique.fintype,
+  have b_lin_ind : linear_independent F (coe : b → S) := linear_independent_singleton one_ne_zero,
+  have b_spans : span F b = ⊤,
+  { rw eq_top_iff,
+    rintros ⟨x, hx⟩ -,
+    rw submodule.mem_span_singleton,
+    specialize h hx,
+    simp only [mem_coe, subalgebra.mem_to_submodule, coe_coe, algebra.mem_bot] at h,
+    cases h with y hy,
+    use y,
+    ext,
+    change y • 1 = x,
+    simp only [algebra.smul_def, mul_one, *], },
+  have b_basis : is_basis F (coe : b → S),
+  { refine ⟨b_lin_ind, _⟩,
+    convert b_spans,
+    simp *, },
+  have b_card : fintype.card b = 1 := fintype.card_of_subsingleton _,
+  rw [dim_eq_card_basis b_basis, b_card, nat.cast_one],
+end
+
+@[simp]
+lemma subalgebra.dim_bot : dim F (⊥ : subalgebra F E) = 1 :=
+subalgebra.dim_eq_one_of_eq_bot rfl
+
+lemma subalgebra_top_dim_eq_submodule_top_dim :
+  dim F (⊤ : subalgebra F E) = dim F (⊤ : submodule F E) :=
+by { rw ← algebra.coe_top, refl }
+
+lemma subalgebra_top_findim_eq_submodule_top_findim :
+  findim F (⊤ : subalgebra F E) = findim F (⊤ : submodule F E) :=
+by { rw ← algebra.coe_top, refl }
+
+lemma subalgebra.dim_top : dim F (⊤ : subalgebra F E) = dim F E :=
+by { rw subalgebra_top_dim_eq_submodule_top_dim, exact dim_top }
+
+lemma subalgebra.finite_dimensional_bot : finite_dimensional F (⊥ : subalgebra F E) :=
+finite_dimensional_of_dim_eq_one subalgebra.dim_bot
+
+@[simp]
+lemma subalgebra.findim_bot : findim F (⊥ : subalgebra F E) = 1 :=
+begin
+  haveI : finite_dimensional F (⊥ : subalgebra F E) := subalgebra.finite_dimensional_bot,
+  have : dim F (⊥ : subalgebra F E) = 1 := subalgebra.dim_bot,
+  rw ← findim_eq_dim at this,
+  norm_cast at *,
+  simp *,
+end
+
+lemma subalgebra.findim_eq_one_of_eq_bot {S : subalgebra F E} (h : S = ⊥) : findim F S = 1 :=
+by { rw h, exact subalgebra.findim_bot }
+
+lemma subalgebra.eq_bot_of_findim_one {S : subalgebra F E} (h : findim F S = 1) : S = ⊥ :=
+begin
+  rw eq_bot_iff,
+  let b : set S := {1},
+  have : fintype b := unique.fintype,
+  have b_lin_ind : linear_independent F (coe : b → S) := linear_independent_singleton one_ne_zero,
+  have b_card : fintype.card b = 1 := fintype.card_of_subsingleton _,
+  obtain ⟨_, b_spans⟩ := set_is_basis_of_linear_independent_of_card_eq_findim
+    b_lin_ind (by simp only [*, set.to_finset_card]),
+  intros x hx,
+  rw [subalgebra.mem_coe, algebra.mem_bot],
+  have x_in_span_b : (⟨x, hx⟩ : S) ∈ submodule.span F b,
+  { rw subtype.range_coe at b_spans,
+    rw b_spans,
+    exact submodule.mem_top, },
+  obtain ⟨a, ha⟩ := submodule.mem_span_singleton.mp x_in_span_b,
+  replace ha : a • 1 = x := by injections with ha,
+  exact ⟨a, by rw [← ha, algebra.smul_def, mul_one]⟩,
+end
+
+lemma subalgebra.eq_bot_of_dim_one {S : subalgebra F E} (h : dim F S = 1) : S = ⊥ :=
+begin
+  haveI : finite_dimensional F S := finite_dimensional_of_dim_eq_one h,
+  rw ← findim_eq_dim at h,
+  norm_cast at h,
+  exact subalgebra.eq_bot_of_findim_one h,
+end
+
+@[simp]
+lemma subalgebra.bot_eq_top_of_dim_eq_one (h : dim F E = 1) : (⊥ : subalgebra F E) = ⊤ :=
+begin
+  rw [← dim_top, ← subalgebra_top_dim_eq_submodule_top_dim] at h,
+  exact eq.symm (subalgebra.eq_bot_of_dim_one h),
+end
+
+@[simp]
+lemma subalgebra.bot_eq_top_of_findim_eq_one (h : findim F E = 1) : (⊥ : subalgebra F E) = ⊤ :=
+begin
+  rw [← findim_top, ← subalgebra_top_findim_eq_submodule_top_findim] at h,
+  exact eq.symm (subalgebra.eq_bot_of_findim_one h),
+end
+
+@[simp]
+theorem subalgebra.dim_eq_one_iff {S : subalgebra F E} : dim F S = 1 ↔ S = ⊥ :=
+⟨subalgebra.eq_bot_of_dim_one, subalgebra.dim_eq_one_of_eq_bot⟩
+
+@[simp]
+theorem subalgebra.findim_eq_one_iff {S : subalgebra F E} : findim F S = 1 ↔ S = ⊥ :=
+⟨subalgebra.eq_bot_of_findim_one, subalgebra.findim_eq_one_of_eq_bot⟩
+
+end subalgebra_dim
 
 namespace module
 namespace End

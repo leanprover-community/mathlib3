@@ -139,15 +139,15 @@ by refine (units.map _).comp to_units.to_monoid_hom; exact
 lemma translate_inv_apply (x y : ℝ) : (translate $ multiplicative.of_add x)⁻¹ y = -x + y := rfl
 
 @[simp] lemma translate_gpow (x : ℝ) (n : ℤ) :
-  (translate (multiplicative.of_add x))^n = translate (multiplicative.of_add $ n * x) :=
+  (translate (multiplicative.of_add x))^n = translate (multiplicative.of_add $ ↑n * x) :=
 by simp only [← gsmul_eq_mul, of_add_gsmul, monoid_hom.map_gpow]
 
 @[simp] lemma translate_pow (x : ℝ) (n : ℕ) :
-  (translate (multiplicative.of_add x))^n = translate (multiplicative.of_add $ n * x) :=
+  (translate (multiplicative.of_add x))^n = translate (multiplicative.of_add $ ↑n * x) :=
 translate_gpow x n
 
 @[simp] lemma translate_iterate (x : ℝ) (n : ℕ) :
-  (translate (multiplicative.of_add x))^[n] = translate (multiplicative.of_add $ n * x) :=
+  (translate (multiplicative.of_add x))^[n] = translate (multiplicative.of_add $ ↑n * x) :=
 by rw [← units_coe, ← coe_pow, ← units.coe_pow, translate_pow, units_coe]
 
 /-!
@@ -407,7 +407,7 @@ lemma transnum_aux_seq_dist_lt (n : ℕ) :
 begin
   have : 0 < (2^(n+1):ℝ) := pow_pos zero_lt_two _,
   rw [div_div_eq_div_mul, ← pow_succ, ← abs_of_pos this],
-  replace := abs_pos_iff.2 (ne_of_gt this),
+  replace := abs_pos.2 (ne_of_gt this),
   convert (div_lt_div_right this).2 ((f^(2^n)).dist_map_map_zero_lt (f^(2^n))),
   simp_rw [transnum_aux_seq, real.dist_eq],
   rw [← abs_div, sub_div, pow_succ', pow_succ, ← two_mul,

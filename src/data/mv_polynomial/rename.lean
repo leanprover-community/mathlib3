@@ -210,6 +210,15 @@ lemma coeff_rename_ne_zero (f : σ → τ) (φ : mv_polynomial σ R) (d : τ →
   ∃ u : σ →₀ ℕ, u.map_domain f = d ∧ φ.coeff u ≠ 0 :=
 by { contrapose! h, apply coeff_rename_eq_zero _ _ _ h }
 
+@[simp] lemma constant_coeff_rename {τ : Type*} (f : σ → τ) (φ : mv_polynomial σ R) :
+  constant_coeff (rename f φ) = constant_coeff φ :=
+begin
+  apply φ.induction_on,
+  { intro a, simp only [constant_coeff_C, rename_C]},
+  { intros p q hp hq, simp only [hp, hq, ring_hom.map_add, alg_hom.map_add] },
+  { intros p n hp, simp only [hp, rename_X, constant_coeff_X, ring_hom.map_mul, alg_hom.map_mul] }
+end
+
 end coeff
 
 end mv_polynomial

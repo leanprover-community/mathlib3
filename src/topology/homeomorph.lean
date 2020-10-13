@@ -10,6 +10,7 @@ open set
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 /-- α and β are homeomorph, also called topological isomoph -/
+@[nolint has_inhabited_instance] -- not all spaces are homeomorphic to each other
 structure homeomorph (α : Type*) (β : Type*) [topological_space α] [topological_space β]
   extends α ≃ β :=
 (continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
@@ -122,6 +123,9 @@ begin
   rw ← h.preimage_symm,
   exact continuous_iff_is_closed.1 (h.symm.continuous) _
 end
+
+protected lemma closed_embedding (h : α ≃ₜ β) : closed_embedding h :=
+closed_embedding_of_embedding_closed h.embedding h.is_closed_map
 
 @[simp] lemma is_open_preimage (h : α ≃ₜ β) {s : set β} : is_open (h ⁻¹' s) ↔ is_open s :=
 begin

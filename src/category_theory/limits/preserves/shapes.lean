@@ -57,9 +57,9 @@ lemma preserves_products_iso_hom_π
   (preserves_products_iso G f).hom ≫ pi.π _ j = G.map (pi.π f j) :=
 begin
   dsimp [preserves_products_iso, preserves_limits_iso, has_limit.iso_of_nat_iso, cones.postcompose,
-    is_limit.unique_up_to_iso, is_limit.lift_cone_morphism],
+         is_limit.unique_up_to_iso, is_limit.lift_cone_morphism, is_limit.map],
   simp only [limit.lift_π, discrete.nat_iso_hom_app, limit.cone_π, limit.lift_π_assoc,
-    nat_trans.comp_app, category.assoc, functor.map_cone_π],
+             nat_trans.comp_app, category.assoc, functor.map_cone_π, is_limit.map_π],
   dsimp, simp, -- See note [dsimp, simp],
 end
 

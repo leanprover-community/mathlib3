@@ -144,8 +144,8 @@ protected lemma zero_lt_one : 0 < (1 : ennreal) :=
   canonically_ordered_semiring.zero_lt_one
 
 @[simp] lemma one_lt_two : (1:ennreal) < 2 := coe_one ▸ coe_two ▸ by exact_mod_cast one_lt_two
-@[simp] lemma two_pos : (0:ennreal) < 2 := lt_trans ennreal.zero_lt_one one_lt_two
-lemma two_ne_zero : (2:ennreal) ≠ 0 := ne_of_gt two_pos
+@[simp] lemma zero_lt_two : (0:ennreal) < 2 := lt_trans ennreal.zero_lt_one one_lt_two
+lemma two_ne_zero : (2:ennreal) ≠ 0 := (ne_of_lt zero_lt_two).symm
 lemma two_ne_top : (2:ennreal) ≠ ∞ := coe_two ▸ coe_ne_top
 
 @[simp] lemma add_top : a + ∞ = ∞ := with_top.add_top
@@ -219,6 +219,14 @@ by { rw [ennreal.lt_top_iff_ne_top] at h ⊢, exact ne_top_of_mul_ne_top_left h 
 
 lemma lt_top_of_mul_lt_top_right (h : a * b < ⊤) (ha : a ≠ 0) : b < ⊤ :=
 lt_top_of_mul_lt_top_left (by rwa [mul_comm]) ha
+
+lemma mul_lt_top_iff {a b : ennreal} : a * b < ⊤ ↔ (a < ⊤ ∧ b < ⊤) ∨ a = 0 ∨ b = 0 :=
+begin
+  split,
+  { intro h, rw [← or_assoc, or_iff_not_imp_right, or_iff_not_imp_right], intros hb ha,
+    exact ⟨lt_top_of_mul_lt_top_left h hb, lt_top_of_mul_lt_top_right h ha⟩ },
+  { rintro (⟨ha, hb⟩|rfl|rfl); [exact mul_lt_top ha hb, simp, simp] }
+end
 
 @[simp] lemma mul_pos : 0 < a * b ↔ 0 < a ∧ 0 < b :=
 by simp only [zero_lt_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
@@ -315,7 +323,7 @@ lemma lt_iff_exists_rat_btwn :
 ⟨λ h,
   begin
     rcases lt_iff_exists_coe.1 h with ⟨p, rfl, _⟩,
-    rcases dense h with ⟨c, pc, cb⟩,
+    rcases exists_between h with ⟨c, pc, cb⟩,
     rcases lt_iff_exists_coe.1 cb with ⟨r, rfl, _⟩,
     rcases (nnreal.lt_iff_exists_rat_btwn _ _).1 (coe_lt_coe.1 pc) with ⟨q, hq0, pq, qr⟩,
     exact ⟨q, hq0, coe_lt_coe.2 pq, lt_trans (coe_lt_coe.2 qr) cb⟩
@@ -370,10 +378,10 @@ end
 
 lemma add_lt_add (ac : a < c) (bd : b < d) : a + b < c + d :=
 begin
-  rcases dense ac with ⟨a', aa', a'c⟩,
+  rcases exists_between ac with ⟨a', aa', a'c⟩,
   rcases lt_iff_exists_coe.1 aa' with ⟨aR, rfl, _⟩,
   rcases lt_iff_exists_coe.1 a'c with ⟨a'R, rfl, _⟩,
-  rcases dense bd with ⟨b', bb', b'd⟩,
+  rcases exists_between bd with ⟨b', bb', b'd⟩,
   rcases lt_iff_exists_coe.1 bb' with ⟨bR, rfl, _⟩,
   rcases lt_iff_exists_coe.1 b'd with ⟨b'R, rfl, _⟩,
   have I : ↑aR + ↑bR < ↑a'R + ↑b'R :=
@@ -742,7 +750,7 @@ if hr : r = 0 then by simp only [hr, nnreal.inv_zero, inv_zero, coe_zero, zero_l
 else by simp only [coe_inv hr, le_refl]
 
 @[norm_cast] lemma coe_inv_two : ((2⁻¹:nnreal):ennreal) = 2⁻¹ :=
-by rw [coe_inv (ne_of_gt zero_lt_two), coe_two]
+by rw [coe_inv (ne_of_gt _root_.zero_lt_two), coe_two]
 
 @[simp, norm_cast] lemma coe_div (hr : r ≠ 0) : (↑(p / r) : ennreal) = p / r :=
 show ↑(p * r⁻¹) = ↑p * (↑r)⁻¹, by rw [coe_mul, coe_inv hr]
@@ -936,7 +944,7 @@ forall_ennreal.2 $ and.intro
       rw [(≠), coe_eq_zero],
       refine zero_lt_iff_ne_zero.1 _,
       show 0 < (1 / 2 : ℝ),
-      exact div_pos zero_lt_one _root_.two_pos
+      linarith,
     end,
     by rwa [mul_top, if_neg ne] at this)
 
@@ -1056,6 +1064,10 @@ lemma to_real_pos_iff : 0 < a.to_real ↔ (0 < a ∧ a ≠ ∞):=
 
 lemma of_real_le_of_real {p q : ℝ} (h : p ≤ q) : ennreal.of_real p ≤ ennreal.of_real q :=
 by simp [ennreal.of_real, nnreal.of_real_le_of_real h]
+
+lemma of_real_le_of_le_to_real {a : ℝ} {b : ennreal} (h : a ≤ ennreal.to_real b) :
+  ennreal.of_real a ≤ b :=
+(of_real_le_of_real h).trans of_real_to_real_le
 
 @[simp] lemma of_real_le_of_real_iff {p q : ℝ} (h : 0 ≤ q) :
   ennreal.of_real p ≤ ennreal.of_real q ↔ p ≤ q :=

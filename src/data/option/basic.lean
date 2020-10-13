@@ -8,6 +8,8 @@ import tactic.basic
 namespace option
 variables {α : Type*} {β : Type*} {γ : Type*}
 
+lemma coe_def : (coe : α → option α) = some := rfl
+
 lemma some_ne_none (x : α) : some x ≠ none := λ h, option.no_confusion h
 
 @[simp] theorem get_mem : ∀ {o : option α} (h : is_some o), option.get h ∈ o
@@ -141,11 +143,11 @@ by cases o; simp
 lemma ne_none_iff_is_some {o : option α} : o ≠ none ↔ o.is_some :=
 by cases o; simp
 
-lemma ne_none_iff_exists {o : option α} : o ≠ none ↔ ∃ (x : α), o = some x :=
+lemma ne_none_iff_exists {o : option α} : o ≠ none ↔ ∃ (x : α), some x = o :=
 by {cases o; simp}
 
-lemma ne_none_iff_exists' {o : option α} : o ≠ none ↔ ∃ (x : α), o = x :=
-ne_none_iff_exists
+lemma ne_none_iff_exists' {o : option α} : o ≠ none ↔ ∃ (x : α), o = some x :=
+ne_none_iff_exists.trans $ exists_congr $ λ _, eq_comm
 
 lemma bex_ne_none {p : option α → Prop} :
   (∃ x ≠ none, p x) ↔ ∃ x, p (some x) :=
@@ -192,5 +194,15 @@ function to `a` if it comes from `α`, and return `b` otherwise. -/
 def cases_on' : option α → β → (α → β) → β
 | none     n s := n
 | (some a) n s := s a
+
+@[simp] lemma cases_on'_none (x : β) (f : α → β) : cases_on' none x f = x := rfl
+
+@[simp] lemma cases_on'_some (x : β) (f : α → β) (a : α) : cases_on' (some a) x f = f a := rfl
+
+@[simp] lemma cases_on'_coe (x : β) (f : α → β) (a : α) : cases_on' (a : option α) x f = f a := rfl
+
+@[simp] lemma cases_on'_none_coe (f : option α → β) (o : option α) :
+  cases_on' o (f none) (f ∘ coe) = f o :=
+by cases o; refl
 
 end option

@@ -150,12 +150,22 @@ lemma filter.eventually.prod_mk_nhds {pa : α → Prop} {a} (ha : ∀ᶠ x in �
 lemma continuous_swap : continuous (prod.swap : α × β → β × α) :=
 continuous.prod_mk continuous_snd continuous_fst
 
-lemma is_open_prod {s : set α} {t : set β} (hs : is_open s) (ht : is_open t) :
+lemma is_open.prod {s : set α} {t : set β} (hs : is_open s) (ht : is_open t) :
   is_open (set.prod s t) :=
 is_open_inter (continuous_fst s hs) (continuous_snd t ht)
 
 lemma nhds_prod_eq {a : α} {b : β} : 𝓝 (a, b) = 𝓝 a ×ᶠ 𝓝 b :=
 by rw [filter.prod, prod.topological_space, nhds_inf, nhds_induced, nhds_induced]
+
+lemma mem_nhds_prod_iff {a : α} {b : β} {s : set (α × β)} :
+  s ∈ 𝓝 (a, b) ↔ ∃ (u ∈ 𝓝 a) (v ∈ 𝓝 b), set.prod u v ⊆ s :=
+by rw [nhds_prod_eq, mem_prod_iff]
+
+lemma filter.has_basis.prod_nhds {ιa ιb : Type*} {pa : ιa → Prop} {pb : ιb → Prop}
+  {sa : ιa → set α} {sb : ιb → set β} {a : α} {b : β} (ha : (𝓝 a).has_basis pa sa)
+  (hb : (𝓝 b).has_basis pb sb) :
+  (𝓝 (a, b)).has_basis (λ i : ιa × ιb, pa i.1 ∧ pb i.2) (λ i, (sa i.1).prod (sb i.2)) :=
+by { rw nhds_prod_eq, exact ha.prod hb }
 
 instance [discrete_topology α] [discrete_topology β] : discrete_topology (α × β) :=
 ⟨eq_of_nhds_eq_nhds $ assume ⟨a, b⟩,
@@ -200,7 +210,7 @@ lemma prod_generate_from_generate_from_eq {α : Type*} {β : Type*} {s : set (se
 let G := generate_from {g | ∃u∈s, ∃v∈t, g = set.prod u v} in
 le_antisymm
   (le_generate_from $ assume g ⟨u, hu, v, hv, g_eq⟩, g_eq.symm ▸
-    @is_open_prod _ _ (generate_from s) (generate_from t) _ _
+    @is_open.prod _ _ (generate_from s) (generate_from t) _ _
       (generate_open.basic _ hu) (generate_open.basic _ hv))
   (le_inf
     (coinduced_le_iff_le_induced.mp $ le_generate_from $ assume u hu,
@@ -224,7 +234,7 @@ lemma prod_eq_generate_from :
   prod.topological_space =
   generate_from {g | ∃(s:set α) (t:set β), is_open s ∧ is_open t ∧ g = set.prod s t} :=
 le_antisymm
-  (le_generate_from $ assume g ⟨s, t, hs, ht, g_eq⟩, g_eq.symm ▸ is_open_prod hs ht)
+  (le_generate_from $ assume g ⟨s, t, hs, ht, g_eq⟩, g_eq.symm ▸ hs.prod ht)
   (le_inf
     (ball_image_of_ball $ λt ht, generate_open.basic _ ⟨t, univ, by simpa [set.prod_eq] using ht⟩)
     (ball_image_of_ball $ λt ht, generate_open.basic _ ⟨univ, t, by simpa [set.prod_eq] using ht⟩))
@@ -233,40 +243,25 @@ lemma is_open_prod_iff {s : set (α×β)} : is_open s ↔
   (∀a b, (a, b) ∈ s → ∃u v, is_open u ∧ is_open v ∧ a ∈ u ∧ b ∈ v ∧ set.prod u v ⊆ s) :=
 begin
   rw [is_open_iff_nhds],
-  simp [nhds_prod_eq, mem_prod_iff],
-  simp [mem_nhds_sets_iff],
-  exact forall_congr (assume a, ball_congr $ assume b h,
-    ⟨assume ⟨u', ⟨u, us, uo, au⟩, v', ⟨v, vs, vo, bv⟩, h⟩,
-      ⟨u, uo, v, vo, au, bv, subset.trans (set.prod_mono us vs) h⟩,
-      assume ⟨u, uo, v, vo, au, bv, h⟩,
-      ⟨u, ⟨u, subset.refl u, uo, au⟩, v, ⟨v, subset.refl v, vo, bv⟩, h⟩⟩)
+  simp_rw [le_principal_iff, prod.forall,
+    ((nhds_basis_opens _).prod_nhds (nhds_basis_opens _)).mem_iff, prod.exists, exists_prop],
+  simp only [and_assoc, and.left_comm]
 end
 
-/-- Given an open neighborhood `s` of `(x, x)`, then `(x, x)` has a square open neighborhood
+/-- Given a neighborhood `s` of `(x, x)`, then `(x, x)` has a square open neighborhood
   that is a subset of `s`. -/
-lemma exists_nhds_square {s : set (α × α)} (hs : is_open s) {x : α} (hx : (x, x) ∈ s) :
+lemma exists_nhds_square {s : set (α × α)} {x : α} (hx : s ∈ 𝓝 (x, x)) :
   ∃U, is_open U ∧ x ∈ U ∧ set.prod U U ⊆ s :=
-begin
-  rcases is_open_prod_iff.mp hs x x hx with ⟨u, v, hu, hv, h1x, h2x, h2s⟩,
-  refine ⟨u ∩ v, is_open_inter hu hv, ⟨h1x, h2x⟩, subset.trans _ h2s⟩,
-  simp only [prod_subset_prod_iff, inter_subset_left, true_or, inter_subset_right, and_self],
-end
+by simpa [nhds_prod_eq, (nhds_basis_opens x).prod_self.mem_iff, and.assoc, and.left_comm] using hx
 
 /-- The first projection in a product of topological spaces sends open sets to open sets. -/
 lemma is_open_map_fst : is_open_map (@prod.fst α β) :=
 begin
-  assume s hs,
-  rw is_open_iff_forall_mem_open,
-  assume x xs,
-  rw mem_image_eq at xs,
-  rcases xs with ⟨⟨y₁, y₂⟩, ys, yx⟩,
-  rcases is_open_prod_iff.1 hs _ _ ys with ⟨o₁, o₂, o₁_open, o₂_open, yo₁, yo₂, ho⟩,
-  simp at yx,
-  rw yx at yo₁,
-  refine ⟨o₁, _, o₁_open, yo₁⟩,
-  assume z zs,
-  rw mem_image_eq,
-  exact ⟨(z, y₂), ho (by simp [zs, yo₂]), rfl⟩
+  rw is_open_map_iff_nhds_le,
+  rintro ⟨x, y⟩ s hs,
+  rcases mem_nhds_prod_iff.1 hs with ⟨tx, htx, ty, hty, ht⟩,
+  simp only [subset_def, prod.forall, mem_prod] at ht,
+  exact mem_sets_of_superset htx (λ x hx, ht x y ⟨hx, mem_of_nhds hty⟩)
 end
 
 /-- The second projection in a product of topological spaces sends open sets to open sets. -/
@@ -275,18 +270,11 @@ begin
   /- This lemma could be proved by composing the fact that the first projection is open, and
   exchanging coordinates is a homeomorphism, hence open. As the `prod_comm` homeomorphism is defined
   later, we rather go for the direct proof, copy-pasting the proof for the first projection. -/
-  assume s hs,
-  rw is_open_iff_forall_mem_open,
-  assume x xs,
-  rw mem_image_eq at xs,
-  rcases xs with ⟨⟨y₁, y₂⟩, ys, yx⟩,
-  rcases is_open_prod_iff.1 hs _ _ ys with ⟨o₁, o₂, o₁_open, o₂_open, yo₁, yo₂, ho⟩,
-  simp at yx,
-  rw yx at yo₂,
-  refine ⟨o₂, _, o₂_open, yo₂⟩,
-  assume z zs,
-  rw mem_image_eq,
-  exact ⟨(y₁, z), ho (by simp [zs, yo₁]), rfl⟩
+  rw is_open_map_iff_nhds_le,
+  rintro ⟨x, y⟩ s hs,
+  rcases mem_nhds_prod_iff.1 hs with ⟨tx, htx, ty, hty, ht⟩,
+  simp only [subset_def, prod.forall, mem_prod] at ht,
+  exact mem_sets_of_superset hty (λ y hy, ht x y ⟨mem_of_nhds htx, hy⟩)
 end
 
 /-- A product set is open in a product space if and only if each factor is open, or one of them is
@@ -307,8 +295,8 @@ begin
       { rw ← snd_image_prod st.1 t,
         exact is_open_map_snd _ H } },
     { assume H,
-      simp [st.1.ne_empty, st.2.ne_empty] at H,
-      exact is_open_prod H.1 H.2 } }
+      simp only [st.1.ne_empty, st.2.ne_empty, not_false_iff, or_false] at H,
+      exact H.1.prod H.2 } }
 end
 
 lemma closure_prod_eq {s : set α} {t : set β} :
@@ -326,9 +314,15 @@ have (a, b) ∈ closure (set.prod s t), by rw [closure_prod_eq]; from ⟨ha, hb�
 show (λp:α×β, f p.1 p.2) (a, b) ∈ closure u, from
   mem_closure hf this $ assume ⟨a, b⟩ ⟨ha, hb⟩, hu a b ha hb
 
-lemma is_closed_prod {s₁ : set α} {s₂ : set β} (h₁ : is_closed s₁) (h₂ : is_closed s₂) :
+lemma is_closed.prod {s₁ : set α} {s₂ : set β} (h₁ : is_closed s₁) (h₂ : is_closed s₂) :
   is_closed (set.prod s₁ s₂) :=
 closure_eq_iff_is_closed.mp $ by simp only [h₁.closure_eq, h₂.closure_eq, closure_prod_eq]
+
+lemma dense_range.prod {ι : Type*} {κ : Type*} {f : ι → β} {g : κ → γ}
+  (hf : dense_range f) (hg : dense_range g) : dense_range (λ p : ι × κ, (f p.1, g p.2)) :=
+have closure (range $ λ p : ι×κ, (f p.1, g p.2)) = set.prod (closure $ range f) (closure $ range g),
+    by rw [←closure_prod_eq, prod_range_range_eq],
+assume ⟨b, d⟩, this.symm ▸ mem_prod.2 ⟨hf _, hg _⟩
 
 lemma inducing.prod_mk {f : α → β} {g : γ → δ} (hf : inducing f) (hg : inducing g) :
   inducing (λx:α×γ, (f x.1, g x.2)) :=
@@ -600,6 +594,10 @@ lemma nhds_pi [t : ∀i, topological_space (π i)] {a : Πi, π i} :
   𝓝 a = (⨅i, comap (λx, x i) (𝓝 (a i))) :=
 calc 𝓝 a = (⨅i, @nhds _ (@topological_space.induced _ _ (λx:Πi, π i, x i) (t i)) a) : nhds_infi
   ... = (⨅i, comap (λx, x i) (𝓝 (a i))) : by simp [nhds_induced]
+
+lemma tendsto_pi [t : ∀i, topological_space (π i)] {f : α → Πi, π i} {g : Πi, π i} {u : filter α} :
+  tendsto f u (𝓝 g) ↔ ∀ x, tendsto (λ i, f i x) u (𝓝 (g x)) :=
+by simp [nhds_pi, filter.tendsto_comap_iff]
 
 lemma is_open_set_pi [∀a, topological_space (π a)] {i : set ι} {s : Πa, set (π a)}
   (hi : finite i) (hs : ∀a∈i, is_open (s a)) : is_open (pi i s) :=

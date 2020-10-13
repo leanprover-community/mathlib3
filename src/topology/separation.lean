@@ -84,6 +84,12 @@ mem_nhds_sets is_closed_singleton $ by rwa [mem_compl_eq, mem_singleton_iff]
   closure ({a} : set α) = {a} :=
 is_closed_singleton.closure_eq
 
+lemma is_closed_map_const {α β} [topological_space α] [topological_space β] [t1_space β] {y : β} :
+  is_closed_map (function.const α y) :=
+begin
+  apply is_closed_map.of_nonempty, intros s hs h2s, simp_rw [h2s.image_const, is_closed_singleton]
+end
+
 /-- A T₂ space, also known as a Hausdorff space, is one in which for every
   `x ≠ y` there exists disjoint open sets around `x` and `y`. This is
   the most widely used of the separation axioms. -/
@@ -182,12 +188,35 @@ are useful without a `nonempty α` instance.
 
 lemma Lim_eq {a : α} [ne_bot f] (h : f ≤ 𝓝 a) :
   @Lim _ _ ⟨a⟩ f = a :=
-tendsto_nhds_unique (Lim_spec ⟨a, h⟩) h
+tendsto_nhds_unique (le_nhds_Lim ⟨a, h⟩) h
 
-lemma filter.tendsto.lim_eq {a : α} {f : filter β} {g : β → α} (h : tendsto g f (𝓝 a))
-  [ne_bot f] :
+lemma Lim_eq_iff [ne_bot f] (h : ∃ (a : α), f ≤ nhds a) {a} : @Lim _ _ ⟨a⟩ f = a ↔ f ≤ 𝓝 a :=
+⟨λ c, c ▸ le_nhds_Lim h, Lim_eq⟩
+
+lemma is_ultrafilter.Lim_eq_iff_le_nhds [compact_space α] (x : α) (F : ultrafilter α) :
+  @Lim _ _ ⟨x⟩ F.1 = x ↔ F.1 ≤ 𝓝 x :=
+⟨λ h, h ▸ is_ultrafilter.le_nhds_Lim _, Lim_eq⟩
+
+lemma is_open_iff_ultrafilter' [compact_space α] (U : set α) :
+  is_open U ↔ (∀ F : ultrafilter α, F.Lim ∈ U → U ∈ F.1) :=
+begin
+  rw is_open_iff_ultrafilter,
+  refine ⟨λ h F hF, h _ hF _ F.2 (is_ultrafilter.le_nhds_Lim _), _⟩,
+  intros cond x hx f hf h,
+  let F : ultrafilter α := ⟨f, hf⟩,
+  change F.1 ≤ _ at h,
+  rw ←is_ultrafilter.Lim_eq_iff_le_nhds at h,
+  rw ←h at *,
+  exact cond _ hx
+end
+
+lemma filter.tendsto.lim_eq {a : α} {f : filter β} [ne_bot f] {g : β → α} (h : tendsto g f (𝓝 a)) :
   @lim _ _ _ ⟨a⟩ f g = a :=
 Lim_eq h
+
+lemma filter.lim_eq_iff {f : filter β} [ne_bot f] {g : β → α} (h : ∃ a, tendsto g f (𝓝 a)) {a} :
+  @lim _ _ _ ⟨a⟩ f g = a ↔ tendsto g f (𝓝 a) :=
+⟨λ c, c ▸ tendsto_nhds_lim h, filter.tendsto.lim_eq⟩
 
 lemma continuous.lim_eq [topological_space β] {f : β → α} (h : continuous f) (a : β) :
   @lim _ _ _ ⟨f a⟩ (𝓝 a) f = f a :=

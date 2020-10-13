@@ -57,6 +57,8 @@ funext $ λ x, (has_deriv_at_sin x).deriv
 lemma continuous_sin : continuous sin :=
 differentiable_sin.continuous
 
+lemma measurable_sin : measurable sin := continuous_sin.measurable
+
 /-- The complex cosine function is everywhere differentiable, with the derivative `-sin x`. -/
 lemma has_deriv_at_cos (x : ℂ) : has_deriv_at cos (-sin x) x :=
 begin
@@ -82,6 +84,8 @@ funext $ λ x, deriv_cos
 lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
 
+lemma measurable_cos : measurable cos := continuous_cos.measurable
+
 /-- The complex hyperbolic sine function is everywhere differentiable, with the derivative `cosh x`. -/
 lemma has_deriv_at_sinh (x : ℂ) : has_deriv_at sinh (cosh x) x :=
 begin
@@ -101,6 +105,8 @@ funext $ λ x, (has_deriv_at_sinh x).deriv
 
 lemma continuous_sinh : continuous sinh :=
 differentiable_sinh.continuous
+
+lemma measurable_sinh : measurable sinh := continuous_sinh.measurable
 
 /-- The complex hyperbolic cosine function is everywhere differentiable, with the derivative `sinh x`. -/
 lemma has_deriv_at_cosh (x : ℂ) : has_deriv_at cosh (sinh x) x :=
@@ -122,6 +128,8 @@ funext $ λ x, (has_deriv_at_cosh x).deriv
 lemma continuous_cosh : continuous cosh :=
 differentiable_cosh.continuous
 
+lemma measurable_cosh : measurable cosh := continuous_cosh.measurable
+
 end complex
 
 section
@@ -132,6 +140,9 @@ section
 variables {f : ℂ → ℂ} {f' x : ℂ} {s : set ℂ}
 
 /-! `complex.cos`-/
+
+lemma measurable.ccos (hf : measurable f) : measurable (λ x, complex.cos (f x)) :=
+complex.measurable_cos.comp hf
 
 lemma has_deriv_at.ccos (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, complex.cos (f x)) (- complex.sin (f x) * f') x :=
@@ -168,6 +179,9 @@ hc.has_deriv_at.ccos.deriv
 
 /-! `complex.sin`-/
 
+lemma measurable.csin (hf : measurable f) : measurable (λ x, complex.sin (f x)) :=
+complex.measurable_sin.comp hf
+
 lemma has_deriv_at.csin (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, complex.sin (f x)) (complex.cos (f x) * f') x :=
 (complex.has_deriv_at_sin (f x)).comp x hf
@@ -203,6 +217,9 @@ hc.has_deriv_at.csin.deriv
 
 /-! `complex.cosh`-/
 
+lemma measurable.ccosh (hf : measurable f) : measurable (λ x, complex.cosh (f x)) :=
+complex.measurable_cosh.comp hf
+
 lemma has_deriv_at.ccosh (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, complex.cosh (f x)) (complex.sinh (f x) * f') x :=
 (complex.has_deriv_at_cosh (f x)).comp x hf
@@ -237,6 +254,9 @@ hf.has_deriv_within_at.ccosh.deriv_within hxs
 hc.has_deriv_at.ccosh.deriv
 
 /-! `complex.sinh`-/
+
+lemma measurable.csinh (hf : measurable f) : measurable (λ x, complex.sinh (f x)) :=
+complex.measurable_sinh.comp hf
 
 lemma has_deriv_at.csinh (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, complex.sinh (f x)) (complex.cosh (f x) * f') x :=
@@ -292,6 +312,8 @@ funext $ λ x, (has_deriv_at_sin x).deriv
 lemma continuous_sin : continuous sin :=
 differentiable_sin.continuous
 
+lemma measurable_sin : measurable sin := continuous_sin.measurable
+
 lemma has_deriv_at_cos (x : ℝ) : has_deriv_at cos (-sin x) x :=
 (has_deriv_at_real_of_complex (complex.has_deriv_at_cos x) : _)
 
@@ -310,6 +332,8 @@ funext $ λ _, deriv_cos
 lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
 
+lemma measurable_cos : measurable cos := continuous_cos.measurable
+
 lemma has_deriv_at_sinh (x : ℝ) : has_deriv_at sinh (cosh x) x :=
 has_deriv_at_real_of_complex (complex.has_deriv_at_sinh x)
 
@@ -324,6 +348,8 @@ funext $ λ x, (has_deriv_at_sinh x).deriv
 
 lemma continuous_sinh : continuous sinh :=
 differentiable_sinh.continuous
+
+lemma measurable_sinh : measurable sinh := continuous_sinh.measurable
 
 lemma has_deriv_at_cosh (x : ℝ) : has_deriv_at cosh (sinh x) x :=
 has_deriv_at_real_of_complex (complex.has_deriv_at_cosh x)
@@ -340,6 +366,8 @@ funext $ λ x, (has_deriv_at_cosh x).deriv
 lemma continuous_cosh : continuous cosh :=
 differentiable_cosh.continuous
 
+lemma measurable_cosh : measurable cosh := continuous_cosh.measurable
+
 /-- `sinh` is strictly monotone. -/
 lemma sinh_strict_mono : strict_mono sinh :=
 strict_mono_of_deriv_pos differentiable_sinh (by { rw [real.deriv_sinh], exact cosh_pos })
@@ -355,6 +383,9 @@ variables {f : ℝ → ℝ} {f' x : ℝ} {s : set ℝ}
 
 
 /-! `real.cos`-/
+
+lemma measurable.cos (hf : measurable f) : measurable (λ x, real.cos (f x)) :=
+real.measurable_cos.comp hf
 
 lemma has_deriv_at.cos (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, real.cos (f x)) (- real.sin (f x) * f') x :=
@@ -391,6 +422,9 @@ hc.has_deriv_at.cos.deriv
 
 /-! `real.sin`-/
 
+lemma measurable.sin (hf : measurable f) : measurable (λ x, real.sin (f x)) :=
+real.measurable_sin.comp hf
+
 lemma has_deriv_at.sin (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, real.sin (f x)) (real.cos (f x) * f') x :=
 (real.has_deriv_at_sin (f x)).comp x hf
@@ -425,6 +459,9 @@ hf.has_deriv_within_at.sin.deriv_within hxs
 hc.has_deriv_at.sin.deriv
 
 /-! `real.cosh`-/
+
+lemma measurable.cosh (hf : measurable f) : measurable (λ x, real.cosh (f x)) :=
+real.measurable_cosh.comp hf
 
 lemma has_deriv_at.cosh (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, real.cosh (f x)) (real.sinh (f x) * f') x :=
@@ -461,6 +498,9 @@ hc.has_deriv_at.cosh.deriv
 
 /-! `real.sinh`-/
 
+lemma measurable.sinh (hf : measurable f) : measurable (λ x, real.sinh (f x)) :=
+real.measurable_sinh.comp hf
+
 lemma has_deriv_at.sinh (hf : has_deriv_at f f' x) :
   has_deriv_at (λ x, real.sinh (f x)) (real.cosh (f x) * f') x :=
 (real.has_deriv_at_sinh (f x)).comp x hf
@@ -495,7 +535,6 @@ hf.has_deriv_within_at.sinh.deriv_within hxs
 hc.has_deriv_at.sinh.deriv
 
 end
-
 
 namespace real
 
@@ -532,6 +571,9 @@ lemma pi_le_four : π ≤ 4 :=
 
 lemma pi_pos : 0 < π :=
 lt_of_lt_of_le (by norm_num) two_le_pi
+
+lemma pi_ne_zero : pi ≠ 0 :=
+ne_of_gt pi_pos
 
 lemma pi_div_two_pos : 0 < π / 2 :=
 half_pos pi_pos
@@ -833,7 +875,7 @@ begin
   rw [add_comm, sub_add, sub_neg_eq_add], apply sub_lt_sub_left,
   apply add_lt_of_lt_sub_left,
   rw (show x ^ 3 / 4 - x ^ 3 / 6 = x ^ 3 / 12,
-    by simp [div_eq_mul_inv, (mul_sub _ _ _).symm, -sub_eq_add_neg]; congr; norm_num),
+    by simp [div_eq_mul_inv, ← mul_sub]; norm_num),
   apply mul_lt_mul',
   { rw [pow_succ x 3], refine le_trans _ (le_of_eq (one_mul _)),
     rw mul_le_mul_right, exact h', apply pow_pos h },
@@ -867,7 +909,7 @@ lemma sqrt_two_add_series_lt_two : ∀(n : ℕ), sqrt_two_add_series 0 n < 2
 | 0     := by norm_num
 | (n+1) :=
   begin
-    refine lt_of_lt_of_le _ (le_of_eq $ sqrt_sqr $ le_of_lt two_pos),
+    refine lt_of_lt_of_le _ (le_of_eq $ sqrt_sqr $ le_of_lt zero_lt_two),
     rw [sqrt_two_add_series, sqrt_lt],
     apply add_lt_of_lt_sub_left,
     apply lt_of_lt_of_le (sqrt_two_add_series_lt_two n),
@@ -1315,8 +1357,6 @@ by simp [arctan, neg_div]
 
 end real
 
-
-
 namespace complex
 
 open_locale real
@@ -1567,6 +1607,9 @@ lemma log_neg_one : log (-1) = π * I := by simp [log]
 lemma log_I : log I = π / 2 * I := by simp [log]
 
 lemma log_neg_I : log (-I) = -(π / 2) * I := by simp [log]
+
+lemma two_pi_I_ne_zero : (2 * π * I : ℂ) ≠ 0 :=
+by norm_num [real.pi_ne_zero, I_ne_zero]
 
 lemma exp_eq_one_iff {x : ℂ} : exp x = 1 ↔ ∃ n : ℤ, x = n * ((2 * π) * I) :=
 have real.exp (x.re) * real.cos (x.im) = 1 → real.cos x.im ≠ -1,

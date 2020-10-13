@@ -78,7 +78,7 @@ begin
 end
 
 @[simp] lemma reflect_add (f g : polynomial R) (n : ℕ) :
- reflect n (f+g) = reflect n f + reflect n g :=
+ reflect n (f + g) = reflect n f + reflect n g :=
 begin
   ext1,
   refl,

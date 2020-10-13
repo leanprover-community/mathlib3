@@ -25,8 +25,11 @@ open polynomial finsupp finset
 variables {R : Type*} [semiring R] {f : polynomial R}
 
 namespace rev
-/-- rev_at is a function of two natural variables (N,i).  If i ≤ N, then rev_at N i returns N-i,
-otherwise it returns N.  Essentially, this function is only used for i ≤ N. -/
+/-- If `i ≤ N`, then `rev_at N i` returns `N - i`, otherwise it returns `i`.
+
+Essentially, this function is only used for `i ≤ N`.
+The advantage of `rev_at N i` over `N - i` is that `rev_at` is an involution.
+-/
 def rev_at (N : ℕ) : ℕ → ℕ := λ i : ℕ, ite (i ≤ N) (N-i) i
 
 @[simp] lemma rev_at_invol {N n : ℕ} : rev_at N (rev_at N n) = n :=

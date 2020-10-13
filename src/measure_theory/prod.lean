@@ -7,19 +7,22 @@ import measure_theory.giry_monad
 import measure_theory.set_integral
 
 /-!
-# The product measure space
+# The product measure
+
 In this file we define and prove properties about the binary product measure. If `α` and `β` have
-σ-finite measures `μ` resp. `ν`then `α × β` can be equipped with a σ-finite measure `μ.prod ν` that
-satisfies `μ.prod ν s = ∫⁻ x, ν (prod.mk x ⁻¹' s) ∂μ`.
-We also have `μ.prod ν (s.prod t) = μ s * ν t`, i.e. the measure of a rectangle is the product of
+σ-finite measures `μ` resp. `ν` then `α × β` can be equipped with a σ-finite measure `μ.prod ν` that
+satisfies `(μ.prod ν) s = ∫⁻ x, ν (prod.mk x ⁻¹' s) ∂μ`.
+We also have `(μ.prod ν) (s.prod t) = μ s * ν t`, i.e. the measure of a rectangle is the product of
 the measures of the sides.
 
 We also prove Tonelli's theorem and Fubini's theorem.
 
 ## Main definition
+
 * `measure_theory.measure.prod`: The product of two measures.
 
 ## Main results
+
 * `measure_theory.measure.prod_apply` states `μ.prod ν s = ∫⁻ x, ν (prod.mk x ⁻¹' s) ∂μ`
   for measurable `s`. `measure_theory.measure.prod_apply_symm` is the reversed version.
 * `measure_theory.measure.prod_prod` states `μ.prod ν (s.prod t) = μ s * ν t` for measurable sets
@@ -40,6 +43,7 @@ We also prove Tonelli's theorem and Fubini's theorem.
   inner integral of the right-hand side is integrable.
 
 ## Implementation Notes
+
 Many results are proven twice, once for functions in curried form (`α → β → γ`) and one for
 functions in uncurried form (`α × β → γ`). The former often has an assumption
 `measurable (uncurry f)`, which could be inconvenient to discharge, but for the latter it is more
@@ -49,6 +53,7 @@ Tonelli's theorem and Fubini's theorem have a different naming scheme, since the
 uncurried version is reversed.
 
 ## Tags
+
 product measure, Fubini's theorem, Tonelli's theorem, Fubini-Tonelli theorem
 -/
 

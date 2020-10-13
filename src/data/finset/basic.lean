@@ -1943,10 +1943,6 @@ theorem filter_product (p : α → Prop) (q : β → Prop) [decidable_pred p] [d
   (s.product t).filter (λ (x : α × β), p x.1 ∧ q x.2) = (s.filter p).product (t.filter q) :=
 by { ext ⟨a, b⟩, simp only [mem_filter, mem_product], finish, }
 
-instance (p : α → Prop) (q : β → Prop) [decidable_pred p] [decidable_pred q] :
-  decidable_pred (λ (x : α × β), p x.1 = q x.2) :=
-by { rintros ⟨a, b⟩, simp only [eq_iff_iff], apply_instance, }
-
 lemma filter_product_card (s : finset α) (t : finset β)
   (p : α → Prop) (q : β → Prop) [decidable_pred p] [decidable_pred q] :
   ((s.product t).filter (λ (x : α × β), p x.1 = q x.2)).card =

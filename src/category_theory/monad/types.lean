@@ -31,9 +31,10 @@ instance : monad (of_type_functor m) :=
   right_unit' := assume α, funext $ assume a, mjoin_map_pure a }
 
 /--
-The `Kleisli` category of a control.monad is equivalent to the `kleisli` category of its
+The `Kleisli` category of a `control.monad` is equivalent to the `kleisli` category of its
 category-theoretic version, provided the monad is lawful.
 -/
+@[simps]
 def eq : Kleisli m ≌ kleisli (of_type_functor m) :=
 { functor :=
   { obj := λ X, X,

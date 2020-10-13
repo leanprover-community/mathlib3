@@ -23,6 +23,11 @@ Two explicit examples of Grothendieck topologies are given:
 as well as the complete lattice structure on Grothendieck topologies (which gives two additional
 explicit topologies: the discrete and trivial topologies.)
 
+## Todo
+
+Define Grothendieck pretopologies, and show they generate topologies.
+Define sheaves on a topology, and the topos of sheaves.
+
 ## Tags
 
 Grothendieck topology, coverage, pretopology, site

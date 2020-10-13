@@ -46,10 +46,11 @@ end
 @[simp] lemma rev_at_small {N n : ℕ} (H : n ≤ N) : rev_at N n = N-n :=
 if_pos H
 
-/-- The function `reflect` of a natural number `N` and a polynomial `f`, applies the function
-`rev_at` to the exponents of the terms appearing in the expansion of `f`.  In practice, `reflect`
-is only used when `N` is at least as large as the degree of `f`.  Eventually, it will be used with
-`N` exactly equal to the degree of `f`.  -/
+/-- `reflect N f` is the polynomial such that `(reflect N f).coeff i = f.coeff (rev_at N i)`.
+In other words, the terms with exponent `[0, ..., N]` now have exponent `[N, ..., 0]`.
+
+ In practice, `reflect` is only used when `N` is at least as large as the degree of `f`.
+ Eventually, it will be used with `N` exactly equal to the degree of `f`.  -/
 def reflect : ℕ → polynomial R → polynomial R :=
  λ N : ℕ, λ f : polynomial R, ⟨ image (rev_at N)  (f.support), λ i : ℕ, f.coeff (rev_at N i),
  begin

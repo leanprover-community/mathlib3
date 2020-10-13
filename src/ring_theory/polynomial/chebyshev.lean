@@ -89,8 +89,8 @@ variables (R)
 section complex
 open complex
 
-/-- the `n`-th Chebyshev polynomial evaluates on `cos θ` to the value `n * cos θ` -/
-@[simp] lemma chebyshev₁_complex_cos (θ : ℂ) :
+/-- the `n`-th Chebyshev polynomial evaluates on `cos θ` to the value `cos (n * θ)`. -/
+lemma chebyshev₁_complex_cos (θ : ℂ) :
   ∀ n, (chebyshev₁ ℂ n).eval (cos θ) = cos (n * θ)
 | 0       := by simp only [chebyshev₁_zero, eval_one, nat.cast_zero, zero_mul, cos_zero]
 | 1       := by simp only [eval_X, one_mul, chebyshev₁_one, nat.cast_one]
@@ -103,6 +103,11 @@ begin
   simp only [nat.cast_add, nat.cast_one, add_mul, cos_add, one_mul, sin_add, mul_assoc, aux],
   ring,
 end
+
+/-- `cos (n * θ)` is equal to the `n`-th Chebyshev polynomial evaluated on `cos θ`. -/
+@[simp] lemma cos_nat_mul (n : ℕ) (θ : ℂ) :
+  cos (n * θ) = (chebyshev₁ ℂ n).eval (cos θ) :=
+(chebyshev₁_complex_cos θ n).symm
 
 end complex
 

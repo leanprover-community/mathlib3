@@ -370,7 +370,7 @@ eq_univ_iff_forall.symm
 lemma dense.closure_eq {s : set α} (h : dense s) : closure s = univ :=
 dense_iff_closure_eq.mp h
 
-/-- Closure of a set `s` is dense if and only if `s` is dense. -/
+/-- The closure of a set `s` is dense if and only if `s` is dense. -/
 @[simp] lemma dense_closure {s : set α} : dense (closure s) ↔ dense s :=
 by rw [dense, dense, closure_closure]
 

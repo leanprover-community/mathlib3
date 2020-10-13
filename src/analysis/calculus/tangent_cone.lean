@@ -50,7 +50,7 @@ To avoid pathologies in dimension 0, we also require that `x` belongs to the clo
 is automatic when `E` is not `0`-dimensional).
  -/
 def unique_diff_within_at (s : set E) (x : E) : Prop :=
-dense ((submodule.span 𝕜 (tangent_cone_at 𝕜 s x)) : set E)  ∧ x ∈ closure s
+dense ((submodule.span 𝕜 (tangent_cone_at 𝕜 s x)) : set E) ∧ x ∈ closure s
 
 /-- A property ensuring that the tangent cone to `s` at any of its points spans a dense subset of
 the whole space.  The main role of this property is to ensure that the differential along `s` is

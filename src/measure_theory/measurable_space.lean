@@ -125,9 +125,24 @@ begin
   exact is_measurable.Union (by simpa using h)
 end
 
+lemma set.finite.is_measurable_bUnion {f : β → set α} {s : set β} (hs : finite s)
+  (h : ∀ b ∈ s, is_measurable (f b)) :
+  is_measurable (⋃ b ∈ s, f b) :=
+is_measurable.bUnion hs.countable h
+
+lemma finset.is_measurable_bUnion {f : β → set α} (s : finset β)
+  (h : ∀ b ∈ s, is_measurable (f b)) :
+  is_measurable (⋃ b ∈ s, f b) :=
+s.finite_to_set.is_measurable_bUnion h
+
 lemma is_measurable.sUnion {s : set (set α)} (hs : countable s) (h : ∀t∈s, is_measurable t) :
   is_measurable (⋃₀ s) :=
 by { rw sUnion_eq_bUnion, exact is_measurable.bUnion hs h }
+
+lemma set.finite.is_measurable_sUnion {s : set (set α)} (hs : finite s)
+  (h : ∀ t ∈ s, is_measurable t) :
+  is_measurable (⋃₀ s) :=
+is_measurable.sUnion hs.countable h
 
 lemma is_measurable.Union_Prop {p : Prop} {f : p → set α} (hf : ∀b, is_measurable (f b)) :
   is_measurable (⋃b, f b) :=
@@ -143,9 +158,21 @@ lemma is_measurable.bInter {f : β → set α} {s : set β} (hs : countable s)
 is_measurable.compl_iff.1 $
 by { rw compl_bInter, exact is_measurable.bUnion hs (λ b hb, (h b hb).compl) }
 
+lemma set.finite.is_measurable_bInter {f : β → set α} {s : set β} (hs : finite s)
+  (h : ∀b∈s, is_measurable (f b)) : is_measurable (⋂b∈s, f b) :=
+is_measurable.bInter hs.countable h
+
+lemma finset.is_measurable_bInter {f : β → set α} (s : finset β)
+  (h : ∀b∈s, is_measurable (f b)) : is_measurable (⋂b∈s, f b) :=
+s.finite_to_set.is_measurable_bInter h
+
 lemma is_measurable.sInter {s : set (set α)} (hs : countable s) (h : ∀t∈s, is_measurable t) :
   is_measurable (⋂₀ s) :=
 by { rw sInter_eq_bInter, exact is_measurable.bInter hs h }
+
+lemma set.finite.is_measurable_sInter {s : set (set α)} (hs : finite s)
+  (h : ∀t∈s, is_measurable t) : is_measurable (⋂₀ s) :=
+is_measurable.sInter hs.countable h
 
 lemma is_measurable.Inter_Prop {p : Prop} {f : p → set α} (hf : ∀b, is_measurable (f b)) :
   is_measurable (⋂b, f b) :=
@@ -472,7 +499,7 @@ end
 
 @[simp] lemma measurable_const {α β} [measurable_space α] [measurable_space β] {a : α} :
   measurable (λb:β, a) :=
-by { intros s hs, by_cases a ∈ s; simp [*, preimage] }
+assume s hs, is_measurable.const (a ∈ s)
 
 lemma measurable.indicator [measurable_space α] [measurable_space β] [has_zero β]
   {s : set α} {f : α → β} (hf : measurable f) (hs : is_measurable s) :
@@ -507,8 +534,7 @@ begin
 end
 
 lemma measurable_unit [measurable_space α] (f : unit → α) : measurable f :=
-have f = (λu, f ()) := funext $ assume ⟨⟩, rfl,
-by { rw this, exact measurable_const }
+measurable_from_top
 
 section nat
 

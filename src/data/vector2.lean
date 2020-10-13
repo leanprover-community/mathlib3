@@ -2,19 +2,23 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-Additional theorems about the `vector` type.
 -/
 import data.vector
 import data.list.nodup
 import data.list.of_fn
 import control.applicative
+/-!
+# Additional theorems about the `vector` type
 
+This file introduces the infix notation `::ᵥ` for `vector.cons`.
+-/
 universes u
 variables {n : ℕ}
 
 namespace vector
 variables {α : Type*}
+
+infixr `::ᵥ`:67  := vector.cons
 
 attribute [simp] head_cons tail_cons
 
@@ -24,13 +28,13 @@ instance [inhabited α] : inhabited (vector α n) :=
 theorem to_list_injective : function.injective (@to_list α n) :=
 subtype.val_injective
 
-@[simp] theorem cons_val (a : α) : ∀ (v : vector α n), (a :: v).val = a :: v.val
+@[simp] theorem cons_val (a : α) : ∀ (v : vector α n), (a ::ᵥ v).val = a :: v.val
 | ⟨_, _⟩ := rfl
 
-@[simp] theorem cons_head (a : α) : ∀ (v : vector α n), (a :: v).head = a
+@[simp] theorem cons_head (a : α) : ∀ (v : vector α n), (a ::ᵥ v).head = a
 | ⟨_, _⟩ := rfl
 
-@[simp] theorem cons_tail (a : α) : ∀ (v : vector α n), (a :: v).tail = v
+@[simp] theorem cons_tail (a : α) : ∀ (v : vector α n), (a ::ᵥ v).tail = v
 | ⟨_, _⟩ := rfl
 
 @[simp] theorem to_list_of_fn : ∀ {n} (f : fin n → α), to_list (of_fn f) = list.of_fn f
@@ -110,16 +114,16 @@ def reverse (v : vector α n) : vector α n :=
 by rw [← nth_zero, nth_of_fn]
 
 @[simp] theorem nth_cons_zero
-  (a : α) (v : vector α n) : nth (a :: v) 0 = a :=
+  (a : α) (v : vector α n) : nth (a ::ᵥ v) 0 = a :=
 by simp [nth_zero]
 
 @[simp] theorem nth_cons_succ
-  (a : α) (v : vector α n) (i : fin n) : nth (a :: v) i.succ = nth v i :=
+  (a : α) (v : vector α n) (i : fin n) : nth (a ::ᵥ v) i.succ = nth v i :=
 by rw [← nth_tail, tail_cons]
 
 def m_of_fn {m} [monad m] {α : Type u} : ∀ {n}, (fin n → m α) → m (vector α n)
 | 0     f := pure nil
-| (n+1) f := do a ← f 0, v ← m_of_fn (λi, f i.succ), pure (a :: v)
+| (n+1) f := do a ← f 0, v ← m_of_fn (λi, f i.succ), pure (a ::ᵥ v)
 
 theorem m_of_fn_pure {m} [monad m] [is_lawful_monad m] {α} :
   ∀ {n} (f : fin n → α), @m_of_fn m _ _ _ (λ i, pure (f i)) = pure (of_fn f)
@@ -129,14 +133,14 @@ theorem m_of_fn_pure {m} [monad m] [is_lawful_monad m] {α} :
 def mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
   ∀ {n}, vector α n → m (vector β n)
 | _ ⟨[], rfl⟩   := pure nil
-| _ ⟨a::l, rfl⟩ := do h' ← f a, t' ← mmap ⟨l, rfl⟩, pure (h' :: t')
+| _ ⟨a::l, rfl⟩ := do h' ← f a, t' ← mmap ⟨l, rfl⟩, pure (h' ::ᵥ t')
 
 @[simp] theorem mmap_nil {m} [monad m] {α β} (f : α → m β) :
   mmap f nil = pure nil := rfl
 
 @[simp] theorem mmap_cons {m} [monad m] {α β} (f : α → m β) (a) :
-  ∀ {n} (v : vector α n), mmap f (a::v) =
-  do h' ← f a, t' ← mmap f v, pure (h' :: t')
+  ∀ {n} (v : vector α n), mmap f (a ::ᵥ v) =
+  do h' ← f a, t' ← mmap f v, pure (h' ::ᵥ t')
 | _ ⟨l, rfl⟩ := rfl
 
 @[ext] theorem ext : ∀ {v w : vector α n}
@@ -261,7 +265,7 @@ variables {α β γ : Type u}
 
 @[simp] protected lemma traverse_def
   (f : α → F β) (x : α) : ∀ (xs : vector α n),
-  (x :: xs).traverse f = cons <$> f x <*> xs.traverse f :=
+  (x ::ᵥ xs).traverse f = cons <$> f x <*> xs.traverse f :=
 by rintro ⟨xs, rfl⟩; refl
 
 protected lemma id_traverse : ∀ (x : vector α n), x.traverse id.mk = x :=

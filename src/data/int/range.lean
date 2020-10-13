@@ -8,7 +8,7 @@ import data.list.range
 
 namespace int
 
-local attribute [semireducible] int.le
+local attribute [semireducible] int.nonneg
 
 /-- List enumerating `[m, n)`. -/
 def range (m n : ℤ) : list ℤ :=

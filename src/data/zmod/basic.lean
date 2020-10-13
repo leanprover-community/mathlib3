@@ -428,7 +428,7 @@ begin
   apply int.modeq.mod_modeq,
 end
 
-local attribute [reducible] int.le
+local attribute [semireducible] int.nonneg
 
 @[simp] lemma coe_to_nat (p : ℕ) :
   ∀ {z : ℤ} (h : 0 ≤ z), (z.to_nat : zmod p) = z

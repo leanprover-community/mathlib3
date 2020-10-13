@@ -25,7 +25,7 @@ if (2 * (i % j)) < j
 then i % j
 else (i % j) - j
 
-local attribute [semireducible] int.le
+local attribute [semireducible] int.nonneg
 lemma symmod_add_one_self {i : int} :
   0 < i → symmod i (i+1) = -1 :=
 begin

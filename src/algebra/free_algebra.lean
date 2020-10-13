@@ -416,10 +416,10 @@ begin
     have : finsupp.single i = finsupp.single_add_hom i := rfl,
     rw this,
     simp_rw alg_hom.map_finsupp_sum,
-    simp_rw finsupp.single_add_hom.map_finsupp_sum,
+    simp_rw add_monoid_hom.map_finsupp_sum,
     simp_rw finsupp.sum,
-    congr, ext1, ext1,
-    congr, ext1, ext1,
+    congr, ext1 fi,
+    congr, ext1 gi,
     rw ←this,
 
     -- this now looks the same as it did in the other cases

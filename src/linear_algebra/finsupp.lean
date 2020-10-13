@@ -220,8 +220,10 @@ end
 `N` using `finsupp.sum`. We define this as an additive equivalence. For a commutative `R`, this
 equivalence can be upgraded to a linear equivalence. -/
 def lsum : (α → M →ₗ[R] N) ≃+ ((α →₀ M) →ₗ[R] N) :=
-{ to_fun := λ F, ⟨λ d, d.sum (λ i, F i), (lift_add_hom (λ x, (F x).to_add_monoid_hom)).map_add,
-    λ c f, by simp [sum_smul_index', smul_sum]⟩,
+{ to_fun := λ F, {
+    to_fun := λ d, d.sum (λ i, F i),
+    map_add' := lift_add_hom (λ x, (F x).to_add_monoid_hom)).map_add,
+    map_smul' := λ c f, by simp [sum_smul_index', smul_sum] },
   inv_fun := λ F x, F.comp (lsingle x),
   left_inv := λ F, by { ext x y, simp },
   right_inv := λ F, by { ext x y, simp },

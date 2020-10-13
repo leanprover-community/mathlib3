@@ -135,7 +135,7 @@ lt_of_le_of_ne erase_lead_nat_degree_le $ ne_nat_degree_of_mem_erase_lead_suppor
 
 
 lemma C_mul_X_pow_of_card_support_le_one (h : f.support.card ≤ 1) :
- f = C f.leading_coeff * X^f.nat_degree :=
+  f = C f.leading_coeff * X ^ f.nat_degree :=
 begin
   by_cases f0 : f = 0,
   { ext1,

@@ -688,7 +688,7 @@ lemma is_cycle_swap_mul {α : Type*} [decidable_eq α] {f : perm α} (hf : is_cy
 finset.ext $ λ a, by simp [swap_apply_def]; split_ifs; cc
 
 lemma card_support_swap {x y : α} (hxy : x ≠ y) : (swap x y).support.card = 2 :=
-show (swap x y).support.card = finset.card ⟨x::y::0, by simp [hxy]⟩,
+show (swap x y).support.card = finset.card ⟨x::ₘy::ₘ0, by simp [hxy]⟩,
 from congr_arg card $ by rw [support_swap hxy]; simp [*, finset.ext_iff]; cc
 
 lemma sign_cycle : ∀ {f : perm α} (hf : is_cycle f),

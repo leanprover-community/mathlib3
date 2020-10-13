@@ -129,7 +129,7 @@ wf_dvd_monoid.induction_on_irreducible a
   (λ u hu _, ⟨0, ⟨by simp [hu], associated.symm (by simp [hu, associated_one_iff_is_unit])⟩⟩)
   (λ a i ha0 hii ih hia0,
     let ⟨s, hs⟩ := ih ha0 in
-    ⟨i::s, ⟨by clear _let_match; finish,
+    ⟨i::ₘs, ⟨by clear _let_match; finish,
       by { rw multiset.prod_cons,
            exact associated_mul_mul (by refl) hs.2 }⟩⟩)
 
@@ -212,7 +212,7 @@ by haveI := classical.dec_eq α; exact
       (irreducible_iff_prime.1 (hf p (by simp)))
       (λ q hq, irreducible_iff_prime.1 (hg _ hq)) $
         (dvd_iff_dvd_of_rel_right hfg).1
-          (show p ∣ (p :: f).prod, by simp) in
+          (show p ∣ (p ::ₘ f).prod, by simp) in
     begin
       rw ← multiset.cons_erase hbg,
       exact multiset.rel.cons hb (ih (λ q hq, hf _ (by simp [hq]))
@@ -239,7 +239,7 @@ by haveI := classical.dec_eq α; exact
     let ⟨b, hbg, hb⟩ := exists_associated_mem_of_dvd_prod
       (hf p (by simp)) (λ q hq, hg _ hq) $
         (dvd_iff_dvd_of_rel_right hfg).1
-          (show p ∣ (p :: f).prod, by simp) in
+          (show p ∣ (p ::ₘ f).prod, by simp) in
     begin
       rw ← multiset.cons_erase hbg,
       exact multiset.rel.cons hb (ih (λ q hq, hf _ (by simp [hq]))
@@ -253,7 +253,7 @@ by haveI := classical.dec_eq α; exact
   then it is an associate of one of its prime factors. -/
 lemma prime_factors_irreducible [comm_cancel_monoid_with_zero α] {a : α} {f : multiset α}
   (ha : irreducible a) (pfa : (∀b ∈ f, prime b) ∧ f.prod ~ᵤ a) :
-  ∃ p, a ~ᵤ p ∧ f = p :: 0 :=
+  ∃ p, a ~ᵤ p ∧ f = p ::ₘ 0 :=
 begin
   haveI := classical.dec_eq α,
   refine multiset.induction_on f (λ h, (ha.1
@@ -357,11 +357,11 @@ theorem irreducible_iff_prime_of_exists_unique_irreducible_of_factor [comm_cance
           cases eif x hx0 with fx hfx,
           cases eif a ha0 with fa hfa,
           cases eif b hb0 with fb hfb,
-          have h : multiset.rel associated (p :: fx) (fa + fb),
+          have h : multiset.rel associated (p ::ₘ fx) (fa + fb),
           { apply uif,
             { exact λ i hi, (multiset.mem_cons.1 hi).elim (λ hip, hip.symm ▸ hpi) (hfx.1 _), },
             { exact λ i hi, (multiset.mem_add.1 hi).elim (hfa.1 _) (hfb.1 _), },
-            calc multiset.prod (p :: fx)
+            calc multiset.prod (p ::ₘ fx)
                   ~ᵤ a * b : by rw [hx, multiset.prod_cons];
                     exact associated_mul_mul (by refl) hfx.2
               ... ~ᵤ (fa).prod * (fb).prod :
@@ -429,7 +429,7 @@ begin
 end
 
 lemma factors_irreducible {a : α} (ha : irreducible a) :
-  factors a = normalize a :: 0 :=
+  factors a = normalize a ::ₘ 0 :=
 begin
   obtain ⟨p, a_assoc, hp⟩ := prime_factors_irreducible ha
     ⟨prime_of_factor, factors_prod ha.ne_zero⟩,
@@ -443,14 +443,14 @@ lemma exists_mem_factors_of_dvd {a p : α} (ha0 : a ≠ 0) (hp : irreducible p) 
   ∃ q ∈ factors a, p ~ᵤ q :=
 λ ⟨b, hb⟩,
 have hb0 : b ≠ 0, from λ hb0, by simp * at *,
-have multiset.rel associated (p :: factors b) (factors a),
+have multiset.rel associated (p ::ₘ factors b) (factors a),
   from factors_unique
     (λ x hx, (multiset.mem_cons.1 hx).elim (λ h, h.symm ▸ hp)
       (irreducible_of_factor _))
     irreducible_of_factor
     (associated.symm $ calc multiset.prod (factors a) ~ᵤ a : factors_prod ha0
       ... = p * b : hb
-      ... ~ᵤ multiset.prod (p :: factors b) :
+      ... ~ᵤ multiset.prod (p ::ₘ factors b) :
         by rw multiset.prod_cons; exact associated_mul_mul
           (associated.refl _)
           (associated.symm (factors_prod hb0))),

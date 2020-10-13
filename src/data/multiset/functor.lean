@@ -51,11 +51,11 @@ begin
 end
 
 instance : monad multiset :=
-{ pure := λ α x, x::0,
+{ pure := λ α x, x::ₘ0,
   bind := @bind,
   .. multiset.functor }
 
-@[simp] lemma pure_def {α} : (pure : α → multiset α) = (λ x, x::0) := rfl
+@[simp] lemma pure_def {α} : (pure : α → multiset α) = (λ x, x::ₘ0) := rfl
 @[simp] lemma bind_def {α β} : (>>=) = @bind α β := rfl
 
 instance : is_lawful_monad multiset :=

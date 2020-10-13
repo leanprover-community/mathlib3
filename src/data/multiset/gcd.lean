@@ -36,10 +36,10 @@ def lcm (s : multiset α) : α := s.fold gcd_monoid.lcm 1
 fold_zero _ _
 
 @[simp] lemma lcm_cons (a : α) (s : multiset α) :
-  (a :: s).lcm = gcd_monoid.lcm a s.lcm :=
+  (a ::ₘ s).lcm = gcd_monoid.lcm a s.lcm :=
 fold_cons_left _ _ _ _
 
-@[simp] lemma lcm_singleton {a : α} : (a::0).lcm = normalize a := by simp
+@[simp] lemma lcm_singleton {a : α} : (a::ₘ0).lcm = normalize a := by simp
 
 @[simp] lemma lcm_add (s₁ s₂ : multiset α) : (s₁ + s₂).lcm = gcd_monoid.lcm s₁.lcm s₂.lcm :=
 eq.trans (by simp [lcm]) (fold_add _ _ _ _ _)
@@ -91,10 +91,10 @@ def gcd (s : multiset α) : α := s.fold gcd_monoid.gcd 0
 fold_zero _ _
 
 @[simp] lemma gcd_cons (a : α) (s : multiset α) :
-  (a :: s).gcd = gcd_monoid.gcd a s.gcd :=
+  (a ::ₘ s).gcd = gcd_monoid.gcd a s.gcd :=
 fold_cons_left _ _ _ _
 
-@[simp] lemma gcd_singleton {a : α} : (a::0).gcd = normalize a := by simp
+@[simp] lemma gcd_singleton {a : α} : (a::ₘ0).gcd = normalize a := by simp
 
 @[simp] lemma gcd_add (s₁ s₂ : multiset α) : (s₁ + s₂).gcd = gcd_monoid.gcd s₁.gcd s₂.gcd :=
 eq.trans (by simp [gcd]) (fold_add _ _ _ _ _)

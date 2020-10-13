@@ -74,7 +74,7 @@ assume e₁ e₂ eq,
 begin
   apply eq_of_veq,
   rw ← multiset.erase_dup_eq_self.2 (pi (insert a s) t).2,
-  refine (λ s' (h : s' = a :: s.1), (_ : erase_dup (multiset.pi s' (λ a, (t a).1)) =
+  refine (λ s' (h : s' = a ::ₘ s.1), (_ : erase_dup (multiset.pi s' (λ a, (t a).1)) =
     erase_dup ((t a).1.bind $ λ b,
     erase_dup $ (multiset.pi s.1 (λ (a : α), (t a).val)).map $
       λ f a' h', multiset.pi.cons s.1 a b f a' (h ▸ h')))) _ (insert_val_of_not_mem ha),

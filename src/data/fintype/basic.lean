@@ -387,7 +387,7 @@ instance : fintype punit := fintype.of_subsingleton punit.star
 
 @[simp] theorem fintype.card_punit : fintype.card punit = 1 := rfl
 
-instance : fintype bool := ⟨⟨tt::ff::0, by simp⟩, λ x, by cases x; simp⟩
+instance : fintype bool := ⟨⟨tt::ₘff::ₘ0, by simp⟩, λ x, by cases x; simp⟩
 
 @[simp] theorem fintype.univ_bool : @univ bool _ = {tt, ff} := rfl
 
@@ -408,7 +408,7 @@ by classical; exact fintype.of_injective units.val units.ext
 /-- Given a finset on `α`, lift it to being a finset on `option α`
 using `option.some` and then insert `option.none`. -/
 def finset.insert_none (s : finset α) : finset (option α) :=
-⟨none :: s.1.map some, multiset.nodup_cons.2
+⟨none ::ₘ s.1.map some, multiset.nodup_cons.2
   ⟨by simp, multiset.nodup_map (λ a b, option.some.inj) s.2⟩⟩
 
 @[simp] theorem finset.mem_insert_none {s : finset α} : ∀ {o : option α},
@@ -660,7 +660,7 @@ instance plift.fintype (p : Prop) [decidable p] : fintype (plift p) :=
 ⟨if h : p then {⟨h⟩} else ∅, λ ⟨h⟩, by simp [h]⟩
 
 instance Prop.fintype : fintype Prop :=
-⟨⟨true::false::0, by simp [true_ne_false]⟩,
+⟨⟨true::ₘfalse::ₘ0, by simp [true_ne_false]⟩,
  classical.cases (by simp) (by simp)⟩
 
 instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fintype {x // p x} :=

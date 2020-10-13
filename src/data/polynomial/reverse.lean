@@ -11,8 +11,8 @@ import data.polynomial.degree.trailing_degree
 /-!
 # Reverse of a univariate polynomial
 
-The main definition is `reverse`.  Applying `reverse` to a polynomial `f(x)` produces the
-polynomial `x^f.nat_degree * f(1/x)`.
+The main definition is `reverse`.  Applying `reverse` to a polynomial `f` produces the
+polynomial `X ^ f.nat_degree * f(1/X)`.
 
 The main result is that `reverse (f * g) = reverse (f) * reverse (g)`, provided the leading
 coefficients of `f` and `g` do not multiply to zero.
@@ -20,57 +20,51 @@ coefficients of `f` and `g` do not multiply to zero.
 
 namespace polynomial
 
-open polynomial finsupp finset --erase_lead
-
+open polynomial finsupp finset
 
 variables {R : Type*} [semiring R] {f : polynomial R}
 
-
 namespace rev
 /-- rev_at is a function of two natural variables (N,i).  If i ≤ N, then rev_at N i returns N-i,
-otherwise it returns N.  Essentially, this function is only used for i ≤ N. -/
-def rev_at (N : ℕ) : ℕ → ℕ := λ i : ℕ, ite (i ≤ N) (N-i) i
+otherwise it returns i.  Essentially, this function is only used for i ≤ N. -/
+def rev_at (N i : ℕ) : ℕ := ite (i ≤ N) (N-i) i
 
-@[simp] lemma rev_at_invol {N n : ℕ} : rev_at N (rev_at N n) = n :=
+@[simp] lemma rev_at_invol {N i : ℕ} : rev_at N (rev_at N i) = i :=
 begin
   unfold rev_at,
   split_ifs with h j,
   { exact nat.sub_sub_self h, },
   { exfalso,
     apply j,
-    exact nat.sub_le N n, },
+    exact nat.sub_le N i, },
   { refl, },
 end
 
-@[simp] lemma rev_at_small {N n : ℕ} (H : n ≤ N) : rev_at N n = N-n :=
-begin
-  unfold rev_at,
-  split_ifs,
-  refl,
-end
+@[simp] lemma rev_at_le {N i : ℕ} (H : i ≤ N) : rev_at N i = N - i :=
+if_pos H
 
-/-- The function `reflect` of a natural number `N` and a polynomial `f`, applies the function
-`rev_at` to the exponents of the terms appearing in the expansion of `f`.  In practice, `reflect`
-is only used when `N` is at least as large as the degree of `f`.  Eventually, it will be used with
-`N` exactly equal to the degree of `f`.  -/
+/-- `reflect N f` is the polynomial such that `(reflect N f).coeff i = f.coeff (rev_at N i)`.
+In other words, the terms with exponent `[0, ..., N]` now have exponent `[N, ..., 0]`.
+ In practice, `reflect` is only used when `N` is at least as large as the degree of `f`.
+ Eventually, it will be used with `N` exactly equal to the degree of `f`.  -/
 def reflect : ℕ → polynomial R → polynomial R :=
- λ N : ℕ, λ f : polynomial R, ⟨ image (rev_at N)  (f.support), λ i : ℕ, f.coeff (rev_at N i),
- begin
-  intro,
-  rw mem_image,
-  split,
-  { intro h,
-    rcases h with ⟨ a, ha, rfl⟩,
-    rwa [rev_at_invol, ← mem_support_iff_coeff_ne_zero], },
-  { intro,
-    use (rev_at N a),
-    rwa [rev_at_invol, eq_self_iff_true, and_true, mem_support_iff_coeff_ne_zero], },
-end ⟩
+  λ N : ℕ, λ f : polynomial R, ⟨ image (rev_at N)  (f.support), λ i : ℕ, f.coeff (rev_at N i),
+  begin
+    intro,
+    rw mem_image,
+    split,
+    { intro h,
+      rcases h with ⟨ a, ha, rfl⟩,
+      rwa [rev_at_invol, ← mem_support_iff_coeff_ne_zero], },
+    { intro,
+      use (rev_at N a),
+      rwa [rev_at_invol, eq_self_iff_true, and_true, mem_support_iff_coeff_ne_zero], },
+  end ⟩
 
 @[simp] lemma reflect_zero {n : ℕ} : reflect n (0 : polynomial R) = 0 := rfl
 
-@[simp] lemma reflect_zero_iff {N : ℕ} (f : polynomial R) :
- reflect N (f : polynomial R) = 0 ↔ f=0 :=
+@[simp] lemma reflect_eq_zero_iff {N : ℕ} {f : polynomial R} :
+  reflect N (f : polynomial R) = 0 ↔ f = 0 :=
 begin
   split,
   { intros a,
@@ -80,59 +74,53 @@ begin
     rw [a, reflect_zero], },
 end
 
-@[simp] lemma reflect_add (f g : polynomial R) (n : ℕ) :
- reflect n (f+g) = reflect n f + reflect n g :=
+@[simp] lemma reflect_add (f g : polynomial R) (N : ℕ) :
+  reflect N (f + g) = reflect N f + reflect N g :=
 begin
   ext1,
   refl,
 end
 
-@[simp] lemma reflect_smul (f : polynomial R) (r : R) (N : ℕ) :
- reflect N (C r * f) = C r * (reflect N f) :=
+@[simp] lemma reflect_C_mul (f : polynomial R) (r : R) (N : ℕ) :
+  reflect N (C r * f) = C r * (reflect N f) :=
 begin
   ext1,
-  unfold reflect,
-  rw [coeff_mk, coeff_C_mul, coeff_C_mul, coeff_mk],
+  rw [reflect, coeff_mk, coeff_C_mul, coeff_C_mul, coeff_mk],
 end
 
 @[simp] lemma reflect_C_mul_X_pow (N n : ℕ) {c : R} :
- reflect N (C c * X ^ n) = C c * X ^ (rev_at N n) :=
+  reflect N (C c * X ^ n) = C c * X ^ (rev_at N n) :=
 begin
-  ext1 m,
-  unfold reflect,
-  rw coeff_mk,
-  by_cases h : rev_at N n = m,
-  { rw [h, coeff_C_mul, coeff_C_mul, coeff_X_pow_self, ← h, rev_at_invol, coeff_X_pow_self], },
-  { rw not_mem_support_iff_coeff_zero.mp,
-    { symmetry,
-      apply not_mem_support_iff_coeff_zero.mp,
-      intro,
-      apply h,
-      exact (mem_support_C_mul_X_pow a).symm, },
-    { intro,
-      apply h,
-      rw ← @rev_at_invol N m,
-      apply congr_arg _,
-      exact (mem_support_C_mul_X_pow a).symm, }, },
+  ext,
+  rw [reflect_C_mul, coeff_C_mul, coeff_C_mul, coeff_X_pow, reflect, coeff_mk],
+  split_ifs,
+  { rw [h, rev_at_invol, coeff_X_pow_self], },
+  { rw [not_mem_support_iff_coeff_zero.mp],
+    intro a,
+    rw [← one_mul (X ^ n), ← C_1] at a,
+    apply h,
+    rw [← (mem_support_C_mul_X_pow a), rev_at_invol], },
 end
 
 @[simp] lemma reflect_monomial (N n : ℕ) : reflect N ((X : polynomial R) ^ n) = X ^ (rev_at N n) :=
-by rw [← one_mul (X^n), ← one_mul (X^(rev_at N n)), ← C_1, reflect_C_mul_X_pow]
+by rw [← one_mul (X ^ n), ← one_mul (X ^ (rev_at N n)), ← C_1, reflect_C_mul_X_pow]
 
 /-- The reverse of a polynomial f is the polynomial obtained by "reading f backwards".
 Even though this is not the actual definition, reverse f = f (1/X) * X ^ f.nat_degree. -/
-def reverse : polynomial R → polynomial R := λ f, reflect f.nat_degree f
+def reverse (f : polynomial R) : polynomial R := reflect f.nat_degree f
+
+@[simp] lemma reverse_zero : reverse (0 : polynomial R) = 0 := rfl
 
 lemma pol_ind_Rhom_prod_on_card (cf cg : ℕ) {rp : ℕ → polynomial R → polynomial R}
  (rp_add  : ∀ f g : polynomial R, ∀ F : ℕ,
-  rp F (f+g) = rp F f + rp F g)
+  rp F (f + g) = rp F f + rp F g)
  (rp_smul : ∀ f : polynomial R, ∀ r : R, ∀ F : ℕ,
-  rp F ((C r)*f) = C r * rp F f)
+  rp F ((C r) * f) = C r * rp F f)
  (rp_mon : ∀ N n : ℕ, n ≤ N →
-  rp N (X^n) = X^(N-n)) :
+  rp N (X ^ n) = X ^ (N-n)) :
  ∀ N O : ℕ, ∀ f g : polynomial R,
  f.support.card ≤ cf.succ → g.support.card ≤ cg.succ → f.nat_degree ≤ N → g.nat_degree ≤ O →
- (rp (N + O) (f*g)) = (rp N f) * (rp O g) :=
+ (rp (N + O) (f * g)) = (rp N f) * (rp O g) :=
 begin
   have rp_zero : ∀ T : ℕ, rp T (0 : polynomial R) = 0,
   { intro,
@@ -152,7 +140,7 @@ begin
         rcases (nat.le.dest Nf) with ⟨ F, rfl ⟩,
         repeat {rw nat.add_sub_cancel_left},
         rw [add_comm _ F, add_comm G F, add_assoc, nat.add_sub_assoc, ← add_assoc],
-        rw [add_comm f.nat_degree _, add_comm (_+f.nat_degree) G, nat.add_sub_cancel],
+        rw [add_comm f.nat_degree _, add_comm (_ + f.nat_degree) G, nat.add_sub_cancel],
         rw add_comm,
         exact add_le_add_left Og f.nat_degree, },
       { rw add_comm N O,
@@ -179,14 +167,14 @@ end
 
 lemma pol_ind_Rhom_prod {rp : ℕ → polynomial R → polynomial R}
  (rp_add  : ∀ f g : polynomial R, ∀ F : ℕ,
-  rp F (f+g) = rp F f + rp F g)
+  rp F (f + g) = rp F f + rp F g)
  (rp_smul : ∀ f : polynomial R, ∀ r : R, ∀ F : ℕ,
-  rp F ((C r)*f) = C r * rp F f)
+  rp F ((C r) * f) = C r * rp F f)
  (rp_mon : ∀ N n : ℕ, n ≤ N →
-  rp N (X^n) = X^(N-n)) :
+  rp N (X ^ n) = X ^ (N-n)) :
  ∀ N O : ℕ, ∀ f g : polynomial R,
  f.nat_degree ≤ N → g.nat_degree ≤ O →
- (rp (N + O) (f*g)) = (rp N f) * (rp O g) :=
+ (rp (N + O) (f * g)) = (rp N f) * (rp O g) :=
 begin
   intros _ _ f g,
   apply pol_ind_Rhom_prod_on_card f.support.card g.support.card rp_add rp_smul rp_mon,
@@ -196,19 +184,32 @@ end
 
 @[simp] theorem reflect_mul
  {f g : polynomial R} {F G : ℕ} (Ff : f.nat_degree ≤ F) (Gg : g.nat_degree ≤ G) :
- reflect (F+G) (f*g) = reflect F f * reflect G g :=
+ reflect (F + G) (f * g) = reflect F f * reflect G g :=
 begin
-  apply pol_ind_Rhom_prod reflect_add reflect_smul _ F G f g Ff Gg,
+  apply pol_ind_Rhom_prod reflect_add reflect_C_mul _ F G f g Ff Gg,
   { intros N n Nn,
-    rw [reflect_monomial, rev_at_small Nn], },
+    rw [reflect_monomial, rev_at_le Nn], },
 end
 
-theorem reverse_mul (f g : polynomial R) {fg : f.leading_coeff*g.leading_coeff ≠ 0} :
- reverse (f*g) = reverse f * reverse g :=
+theorem reverse_mul {f g : polynomial R} (fg : f.leading_coeff * g.leading_coeff ≠ 0) :
+ reverse (f * g) = reverse f * reverse g :=
 begin
   unfold reverse,
   rw [nat_degree_mul' fg, reflect_mul (le_refl _) (le_refl _)],
 end
+
+@[simp] lemma reverse_mul_of_domain {R : Type*} [domain R] (f g : polynomial R) :
+  reverse (f * g) = reverse f * reverse g :=
+begin
+  by_cases f0 : f=0,
+  { rw [f0, zero_mul, reverse_zero, zero_mul], },
+  { by_cases g0 : g=0,
+    { rw [g0, mul_zero, reverse_zero, mul_zero], },
+    { apply reverse_mul,
+      apply mul_ne_zero;
+      { rwa [← leading_coeff_eq_zero] at * }, }, },
+end
+
 
 end rev
 end polynomial

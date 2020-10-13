@@ -133,21 +133,29 @@ lemma erase_lead_nat_degree_lt (f0 : 2 ≤ f.support.card) :
 lt_of_le_of_ne erase_lead_nat_degree_le $ ne_nat_degree_of_mem_erase_lead_support $
   nat_degree_mem_support_of_nonzero $ erase_lead_ne_zero f0
 
+lemma C_mul_X_pow_of_card_support_eq_one (h : f.support.card = 1) : f = C f.leading_coeff * X ^ f.nat_degree :=
+begin
+  conv_lhs { rw ← erase_lead_add_C_mul_X_pow f },
+  have fe0 : f.erase_lead = 0,
+  { rw [← support_eq_empty, ← card_eq_zero],
+    apply nat.eq_zero_of_le_zero (nat.lt_succ_iff.mp _),
+    convert erase_lead_support_card_lt _,
+    { exact h.symm, },
+    { intro f0,
+      rw [f0, support_zero, card_empty] at h,
+      exact nat.no_confusion h, }, },
+  rw [fe0, zero_add],
+end
 
 lemma C_mul_X_pow_of_card_support_le_one (h : f.support.card ≤ 1) :
- f = C f.leading_coeff * X^f.nat_degree :=
+ f = C f.leading_coeff * X ^ f.nat_degree :=
 begin
-  by_cases f0 : f = 0,
-  { ext1,
+  by_cases f0 : f.support.card = 0,
+  { rw [card_eq_zero, support_eq_empty] at f0,
+    ext1,
     rw [f0, leading_coeff_zero, C_0, zero_mul], },
-  { conv_lhs {rw ← erase_lead_add_C_mul_X_pow f},
-    have fe0 : f.erase_lead = 0,
-    { rw [← support_eq_empty, ← card_eq_zero],
-      apply nat.eq_zero_of_le_zero (nat.lt_succ_iff.mp _),
-      convert erase_lead_support_card_lt f0,
-      apply le_antisymm _ h,
-      exact card_le_of_subset (singleton_subset_iff.mpr (nat_degree_mem_support_of_nonzero f0)), },
-    rw [fe0, zero_add], },
+  { apply C_mul_X_pow_of_card_support_eq_one,
+    exact le_antisymm h (nat.one_le_of_lt (nat.pos_of_ne_zero f0)), },
 end
 
 end erase_lead

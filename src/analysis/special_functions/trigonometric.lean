@@ -1874,18 +1874,11 @@ begin
   { rw real.range_cos,
     apply Icc.infinite,
     norm_num },
-  rw ← set.infinite_coe_iff at this ⊢,
   delta real.cos at this,
-  apply @infinite.of_injective _ _ this,
-  swap,
-  { rintro ⟨x, hx⟩,
-    refine ⟨x, _⟩,
-    rcases hx with ⟨θ, rfl⟩,
-    simp only [complex.of_real_cos_of_real_re, set.mem_range_self] },
-  { rintro ⟨x, hx⟩ ⟨y, hy⟩ h,
-    simpa only [complex.of_real_inj, subtype.mk_eq_mk] using h }
+  rw [range_comp, range_comp] at this,
+  exact set.infinite_mono
+    (image_subset_range _ (range (coe : ℝ → ℂ))) (λ h, this (set.finite.image _ h)),
 end
-
 end complex
 
 

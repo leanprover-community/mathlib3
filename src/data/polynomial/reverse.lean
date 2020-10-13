@@ -43,7 +43,7 @@ begin
   { refl, },
 end
 
-@[simp] lemma rev_at_small {N n : ℕ} (H : n ≤ N) : rev_at N n = N-n :=
+@[simp] lemma rev_at_of_le {N n : ℕ} (H : n ≤ N) : rev_at N n = N - n :=
 if_pos H
 
 /-- `reflect N f` is the polynomial such that `(reflect N f).coeff i = f.coeff (rev_at N i)`.

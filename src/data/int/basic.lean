@@ -1223,4 +1223,4 @@ end classical
 
 end int
 
-attribute [irreducible] int.lt
+attribute [irreducible] int.le

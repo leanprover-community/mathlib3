@@ -8,6 +8,8 @@ import data.list.range
 
 namespace int
 
+local attribute [semireducible] int.le
+
 /-- List enumerating `[m, n)`. -/
 def range (m n : ℤ) : list ℤ :=
 (list.range (to_nat (n-m))).map $ λ r, m+r
@@ -31,8 +33,6 @@ decidable_of_iff (∀ r ∈ range m n, P r) $ by simp only [mem_range_iff, and_i
 instance decidable_le_le (P : int → Prop) [decidable_pred P] (m n : ℤ) :
   decidable (∀ r, m ≤ r → r ≤ n → P r) :=
 decidable_of_iff (∀ r ∈ range m (n+1), P r) $ by simp only [mem_range_iff, and_imp, lt_add_one_iff]
-
-local attribute [semireducible] int.lt
 
 instance decidable_lt_lt (P : int → Prop) [decidable_pred P] (m n : ℤ) :
   decidable (∀ r, m < r → r < n → P r) :=

@@ -288,7 +288,8 @@ then solve new goals using `solve_by_elim`.
 It returns a list of `application`s consisting of fields:
 * `state`, a tactic state resulting from the successful application of a declaration from
   the library,
-* `script`, a string of the form `refine ...` or `exact ...` which will reproduce that tactic state,
+* `script`, a string of the form `Try this: refine ...` or `Try this: exact ...` which will
+  reproduce that tactic state,
 * `decl`, an `option declaration` indicating the declaration that was applied
   (or none, if `solve_by_elim` succeeded),
 * `num_goals`, the number of remaining goals, and
@@ -313,8 +314,9 @@ do let results := suggest_core opt,
     (d₁.num_goals = d₂.num_goals ∧ d₁.hyps_used ≥ d₂.hyps_used))
 
 /--
-Returns a list of at most `limit` strings, of the form `exact ...` or `refine ...`, which make
-progress on the current goal using a declaration from the library.
+Returns a list of at most `limit` strings, of the form `Try this: exact ...` or
+`Try this: refine ...`, which make progress on the current goal using a declaration
+from the library.
 -/
 meta def suggest_scripts (limit : option ℕ := none) (opt : opt := { }) :
   tactic (list string) :=
@@ -322,7 +324,7 @@ do L ← suggest limit opt,
    return $ L.map application.script
 
 /--
-Returns a string of the form `exact ...`, which closes the current goal.
+Returns a string of the form `Try this: exact ...`, which closes the current goal.
 -/
 meta def library_search (opt : opt := { }) : tactic string :=
 (suggest_core opt).mfirst (λ a, do guard (a.num_goals = 0), write a.state, return a.script)
@@ -335,7 +337,7 @@ open interactive.types
 open solve_by_elim
 local postfix `?`:9001 := optional
 
-declare_trace silence_suggest -- Turn off `exact/refine ...` trace messages for `suggest`
+declare_trace silence_suggest -- Turn off `Try this: exact/refine ...` trace messages for `suggest`
 
 /--
 `suggest` tries to apply suitable theorems/defs from the library, and generates
@@ -356,7 +358,7 @@ using the same syntax as for `solve_by_elim`, e.g.
 ```
 example {a b c d: nat} (h₁ : a < c) (h₂ : b < d) : max (c + d) (a + b) = (c + d) :=
 begin
-  suggest [add_lt_add], -- Says: `exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
+  suggest [add_lt_add], -- Says: `Try this: exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
 end
 ```
 You can also use `suggest with attr` to include all lemmas with the attribute `attr`.
@@ -413,7 +415,8 @@ add_tactic_doc
   decl_names  := [`tactic.interactive.suggest],
   tags        := ["search", "Try this"] }
 
-declare_trace silence_library_search -- Turn off `exact ...` trace message for `library_search
+-- Turn off `Try this: exact ...` trace message for `library_search`
+declare_trace silence_library_search
 
 /--
 `library_search` attempts to apply every definition in the library whose head symbol
@@ -433,7 +436,7 @@ using the same syntax as for `solve_by_elim`, e.g.
 ```
 example {a b c d: nat} (h₁ : a < c) (h₂ : b < d) : max (c + d) (a + b) = (c + d) :=
 begin
-  library_search [add_lt_add], -- Says: `exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
+  library_search [add_lt_add], -- Says: `Try this: exact max_eq_left_of_lt (add_lt_add h₁ h₂)`
 end
 ```
 You can also use `library_search with attr` to include all lemmas with the attribute `attr`.
@@ -518,8 +521,10 @@ nat.one_pos
   descr := "Use `library_search` to complete the goal.",
   action := λ _, do
     script ← library_search,
-    -- Is there a better API for dropping the 'exact ' prefix on this string?
-    return [((script.mk_iterator.remove 6).to_string, "by library_search")] }
+    -- Is there a better API for dropping the 'Try this: exact ' prefix on this string?
+    let s := script.to_list,
+    return [(((s.get_rest "Try this: exact ".to_list).get_or_else s).as_string,
+            "by library_search")] }
 
 add_tactic_doc
 { name        := "library_search",

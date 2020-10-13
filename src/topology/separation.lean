@@ -197,6 +197,19 @@ lemma is_ultrafilter.Lim_eq_iff_le_nhds [compact_space α] (x : α) (F : ultrafi
   @Lim _ _ ⟨x⟩ F.1 = x ↔ F.1 ≤ 𝓝 x :=
 ⟨λ h, h ▸ is_ultrafilter.le_nhds_Lim _, Lim_eq⟩
 
+lemma is_open_iff_ultrafilter' [compact_space α] (U : set α) :
+  is_open U ↔ (∀ F : ultrafilter α, F.Lim ∈ U → U ∈ F.1) :=
+begin
+  rw is_open_iff_ultrafilter,
+  refine ⟨λ h F hF, h _ hF _ F.2 (is_ultrafilter.le_nhds_Lim _), _⟩,
+  intros cond x hx f hf h,
+  let F : ultrafilter α := ⟨f, hf⟩,
+  change F.1 ≤ _ at h,
+  rw ←is_ultrafilter.Lim_eq_iff_le_nhds at h,
+  rw ←h at *,
+  exact cond _ hx
+end
+
 lemma filter.tendsto.lim_eq {a : α} {f : filter β} [ne_bot f] {g : β → α} (h : tendsto g f (𝓝 a)) :
   @lim _ _ _ ⟨a⟩ f g = a :=
 Lim_eq h

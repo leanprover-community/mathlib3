@@ -47,6 +47,13 @@ begin
      ... ≤ 2^p - 1 : nat.pred_le_pred (nat.pow_le_pow_of_le_right (nat.succ_pos 1) h)
 end
 
+@[simp]
+lemma succ_mersenne (k : ℕ) : mersenne k + 1 = 2 ^ k :=
+begin
+  rw [mersenne, nat.sub_add_cancel],
+  exact one_le_pow_of_one_le (by norm_num) k
+end
+
 namespace lucas_lehmer
 
 open nat

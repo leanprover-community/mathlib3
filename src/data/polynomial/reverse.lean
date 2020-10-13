@@ -44,11 +44,7 @@ begin
 end
 
 @[simp] lemma rev_at_small {N n : ℕ} (H : n ≤ N) : rev_at N n = N-n :=
-begin
-  unfold rev_at,
-  split_ifs,
-  refl,
-end
+if_pos H
 
 /-- The function `reflect` of a natural number `N` and a polynomial `f`, applies the function
 `rev_at` to the exponents of the terms appearing in the expansion of `f`.  In practice, `reflect`

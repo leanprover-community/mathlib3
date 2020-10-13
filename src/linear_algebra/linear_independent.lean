@@ -167,7 +167,7 @@ have ∑ (i : ι) in s, g i • f (v i) = 0,
 linear_independent_iff'.1 hfv s g this i his
 
 protected lemma linear_map.linear_independent_iff (f : M →ₗ[R] M') (hf_inj : f.ker = ⊥) :
-  linear_independent R (f ∘ v) ↔  linear_independent R v :=
+  linear_independent R (f ∘ v) ↔ linear_independent R v :=
 ⟨λ h, h.of_comp f, λ h, h.map $ by simp only [hf_inj, disjoint_bot_right]⟩
 
 lemma linear_independent_of_subsingleton [subsingleton R] : linear_independent R v :=
@@ -717,7 +717,7 @@ begin
   exact one_ne_zero (finsupp.single_eq_zero.1 this)
 end
 
-lemma linear_independent_unique [unique ι] (hv : v (default ι) ≠ 0): linear_independent K v :=
+lemma linear_independent_unique [unique ι] (hv : v (default ι) ≠ 0) : linear_independent K v :=
 linear_independent_unique_iff.2 (λ hv', (hv hv').elim)
 
 lemma linear_independent_singleton {x : V} (hx : x ≠ 0) :

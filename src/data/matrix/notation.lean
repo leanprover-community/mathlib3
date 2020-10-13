@@ -88,7 +88,7 @@ by simp [vec_cons]
 
 @[simp] lemma cons_val_succ' {i : ℕ} (h : i.succ < m.succ) (x : α) (u : fin m → α) :
   vec_cons x u ⟨i.succ, h⟩ = u ⟨i, nat.lt_of_succ_lt_succ h⟩ :=
-by simp [vec_cons, fin.cons, fin.cases]
+by simp only [vec_cons, fin.cons, fin.cases_succ']
 
 @[simp] lemma head_cons (x : α) (u : fin m → α) :
   vec_head (vec_cons x u) = x :=

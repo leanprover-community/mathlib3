@@ -194,6 +194,7 @@ lemma pullback_comp {f : Y ⟶ X} {g : Z ⟶ Y} (S : sieve X) :
   S.pullback (g ≫ f) = (S.pullback f).pullback g :=
 by simp [sieve.ext_iff]
 
+@[simp]
 lemma pullback_inter {f : Y ⟶ X} (S R : sieve X) :
  (S ⊓ R).pullback f = S.pullback f ⊓ R.pullback f :=
 by simp [sieve.ext_iff]
@@ -205,6 +206,9 @@ lemma id_mem_iff_eq_top : S.arrows (𝟙 X) ↔ S = ⊤ :=
 
 lemma pullback_eq_top_iff_mem (f : Y ⟶ X) : S.arrows f ↔ S.pullback f = ⊤ :=
 by rw [← id_mem_iff_eq_top, mem_pullback, category.id_comp]
+
+lemma pullback_eq_top_of_mem (S : sieve X) {f : Y ⟶ X} : S.arrows f → S.pullback f = ⊤ :=
+(pullback_eq_top_iff_mem f).1
 
 /--
 Push a sieve `R` on `Y` forward along an arrow `f : Y ⟶ X`: `gf : Z ⟶ X`

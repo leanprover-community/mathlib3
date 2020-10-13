@@ -7,31 +7,33 @@ Authors: Bhavik Mehta, E. W. Ayers
 import category_theory.sites.sieves
 import category_theory.full_subcategory
 import category_theory.types
+import category_theory.limits.shapes.pullbacks
+
+/-!
+# Grothendieck topologies
+
+Definition and lemmas about Grothendieck topologies.
+A Grothendieck topology for a category `C` is a set of sieves on each object `X` satisfying
+certain closure conditions.
+
+Alternate versions of the axioms (in arrow form) are also described.
+Two explicit examples of Grothendieck topologies are given:
+* The dense topology
+* The atomic topology
+as well as the complete lattice structure on Grothendieck topologies (which gives two additional
+explicit topologies: the discrete and trivial topologies.)
+
+## Tags
+
+-- sieve, pullback
+-/
 
 universes v u
 namespace category_theory
 
-open category_theory category sieve
+open category_theory category
 
-/-- The trivial sieve set, containing only the maximal sieve on each object. -/
-def sieve_set.trivial (C : Type u) [category.{v} C] : Π (X : C), set (sieve X) := λ X, {⊤}
-
-/--
-A sieve on `X` is dense if for any arrow `f : Y ⟶ X`, there is a `g : Z ⟶ Y` with `g ≫ f ∈ S`.
--/
-def sieve_set.dense (C : Type u) [category.{v} C] : Π (X : C), set (sieve X) :=
-λ X, {S | ∀ {Y : C} (f : Y ⟶ X), ∃ Z (g : Z ⟶ Y), S.arrows (g ≫ f)}
-
-/-- The atomic sieve_set just contains all of the non-empty sieves. -/
-def sieve_set.atomic (C : Type u) [category.{v} C] : Π (X : C), set (sieve X) :=
-λ X, {S | ∃ {Y} (f : Y ⟶ X), S.arrows f}
-
-variables {C : Type u} [category.{v} C]
-
-@[simp]
-lemma mem_trivial {C : Type u} [category.{v} C] {X : C} (S : sieve X) :
-  S ∈ sieve_set.trivial C X ↔ S = ⊤ :=
-set.mem_singleton_iff
+variables (C : Type u) [category.{v} C]
 
 /--
 The definition of a Grothendieck topology: a set of sieves `J X` on each object `X` satisfying
@@ -43,124 +45,191 @@ three axioms:
 
 A sieve `S` on `X` is referred to as `J`-covering, (or just covering), if `S ∈ J X`.
 -/
-class grothendieck_topology (J : Π (X : C), set (sieve X)) : Prop :=
-(max : ∀ X, ⊤ ∈ J X)
-(stab : ∀ ⦃X Y : C⦄ ⦃S : sieve X⦄ (h₁ : S ∈ J X) (f : Y ⟶ X), S.pullback f ∈ J Y)
-(trans : ∀ ⦃X⦄ ⦃S : sieve X⦄ (hS : S ∈ J X) (R : sieve X),
-         (∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄, S.arrows f → R.pullback f ∈ J Y) → R ∈ J X)
-
-/-- A site is a category equipped with a Grothendieck topology. -/
-structure Site :=
-(C : Type u)
-[𝒞 : category.{v} C]
-(J : Π (X : C), set (sieve X))
-[g : grothendieck_topology J]
+@[ext]
+structure grothendieck_topology :=
+(sieves : Π (X : C), set (sieve X))
+(top_mem' : ∀ X, ⊤ ∈ sieves X)
+(pullback_stable' : ∀ ⦃X Y : C⦄ ⦃S : sieve X⦄ (f : Y ⟶ X), S ∈ sieves X → S.pullback f ∈ sieves Y)
+(transitive' : ∀ ⦃X⦄ ⦃S : sieve X⦄ (hS : S ∈ sieves X) (R : sieve X),
+              (∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄, S.arrows f → R.pullback f ∈ sieves Y) → R ∈ sieves X)
 
 namespace grothendieck_topology
-variables {X Y : C} {S R : sieve X}
-variables {J : Π (X : C), set (sieve X)} [grothendieck_topology J]
 
-@[simp] lemma top_covering : ⊤ ∈ J X := grothendieck_topology.max _
+instance : has_coe_to_fun (grothendieck_topology C) :=
+⟨_, λ J, J.sieves⟩
 
-lemma covering_of_max : S = ⊤ → S ∈ J X := λ h, h.symm ▸ grothendieck_topology.max X
+variables {C} {X Y : C} {S R : sieve X}
+variables (J : grothendieck_topology C)
+
+@[simp] lemma mem_sieves_iff_coe : S ∈ J.sieves X ↔ S ∈ J X := iff.rfl
+
+-- Also known as the maximality axiom.
+@[simp] lemma top_mem (X : C) : ⊤ ∈ J X := J.top_mem' X
+-- Also known as the stability axiom.
+@[simp] lemma pullback_stable (f : Y ⟶ X) (hS : S ∈ J X) : S.pullback f ∈ J Y :=
+J.pullback_stable' f hS
+lemma transitive (hS : S ∈ J X) (R : sieve X)
+  (h : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄, S.arrows f → R.pullback f ∈ J Y) :
+  R ∈ J X :=
+J.transitive' hS R h
+
+lemma covering_of_eq_top : S = ⊤ → S ∈ J X := λ h, h.symm ▸ J.top_mem X
 
 lemma superset_covering (Hss : S ≤ R) (sjx : S ∈ J X) : R ∈ J X :=
 begin
-  apply grothendieck_topology.trans sjx,
-  intros Y h hh,
-  rw pullback_eq_top_iff_mem at hh,
-  apply covering_of_max,
-  rw [← top_le_iff, ← hh],
-  apply pullback_monotone _ Hss,
+  apply J.transitive sjx R (λ Y f hf, _),
+  apply covering_of_eq_top,
+  rw [← top_le_iff, ← S.pullback_eq_top_of_mem hf],
+  apply sieve.pullback_monotone _ Hss,
 end
-
-/-- The sieve `S` on `X` `J`-covers an arrow `f` to `X` if `S.pullback f ∈ J Y`. -/
-def covers (J : Π (X : C), set (sieve X)) (S : sieve X) (f : Y ⟶ X) : Prop := S.pullback f ∈ J Y
-
-lemma covers_iff {J : Π (X : C), set (sieve X)} (S : sieve X) (f : Y ⟶ X) :
-  covers J S f ↔ S.pullback f ∈ J Y :=
-iff.rfl
-
-lemma covering_iff_covers_id {J : Π (X : C), set (sieve X)} (S : sieve X) :
-  S ∈ J X ↔ covers J S (𝟙 X) :=
-by simp [covers_iff]
 
 lemma intersection_covering (rj : R ∈ J X) (sj : S ∈ J X) : R ⊓ S ∈ J X :=
 begin
-  apply grothendieck_topology.trans rj,
-  intros Y f Hf,
-  have : S.pullback f ≤ (R ⊓ S).pullback f,
-    intros Z g hg,
-    exact ⟨downward_closed _ Hf _, hg⟩,
-  exact superset_covering this (stab sj f),
+  apply J.transitive rj _ (λ Y f Hf, _),
+  rw [sieve.pullback_inter, R.pullback_eq_top_of_mem Hf],
+  simp [sj],
 end
 
-lemma arrow_max (f : Y ⟶ X) (S : sieve X) (hf : S.arrows f) : covers J S f :=
+@[simp]
+lemma intersection_covering_iff : R ⊓ S ∈ J X ↔ R ∈ J X ∧ S ∈ J X :=
+⟨λ h, ⟨J.superset_covering inf_le_left h, J.superset_covering inf_le_right h⟩,
+ λ t, intersection_covering _ t.1 t.2⟩
+
+/--
+The sieve `S` on `X` `J`-covers an arrow `f` to `X` if `S.pullback f ∈ J Y`.
+This definition is an alternate way of presenting a Grothendieck topology.
+-/
+def covers (S : sieve X) (f : Y ⟶ X) : Prop := S.pullback f ∈ J Y
+
+lemma covers_iff (S : sieve X) (f : Y ⟶ X) : J.covers S f ↔ S.pullback f ∈ J Y :=
+iff.rfl
+
+lemma covering_iff_covers_id (S : sieve X) : S ∈ J X ↔ J.covers S (𝟙 X) :=
+by simp [covers_iff]
+
+/-- The maximality axiom in 'arrow' form: Any arrow `f` in `S` is covered by `S`. -/
+lemma arrow_max (f : Y ⟶ X) (S : sieve X) (hf : S.arrows f) : J.covers S f :=
 begin
-  rw [covers, (pullback_eq_top_iff_mem f).1 hf],
-  apply max,
+  rw [covers, (sieve.pullback_eq_top_iff_mem f).1 hf],
+  apply J.top_mem,
 end
-lemma arrow_stab (f : Y ⟶ X) (S : sieve X) (h : covers J S f) {Z : C} (g : Z ⟶ Y) :
-  covers J S (g ≫ f) :=
+
+/-- The stability axiom in 'arrow' form: If `S` covers `f` then `S` covers `g ≫ f` for any `g`. -/
+lemma arrow_stab (f : Y ⟶ X) (S : sieve X) (h : J.covers S f) {Z : C} (g : Z ⟶ Y) :
+  J.covers S (g ≫ f) :=
 begin
-  rw [covers, pullback_comp],
-  apply stab,
-  apply h,
+  rw covers_iff at h ⊢,
+  simp [h, sieve.pullback_comp],
 end
-lemma arrow_trans (f : Y ⟶ X) (S R : sieve X) (h : covers J S f) :
-  (∀ {Z : C} (g : Z ⟶ X), S.arrows g → covers J R g) → covers J R f :=
+
+/--
+The transitivity axiom in 'arrow' form: If `S` covers `f` and every arrow in `S` is covered by
+`R`, then `R` covers `f`.
+-/
+lemma arrow_trans (f : Y ⟶ X) (S R : sieve X) (h : J.covers S f) :
+  (∀ {Z : C} (g : Z ⟶ X), S.arrows g → J.covers R g) → J.covers R f :=
 begin
   intro k,
-  apply trans h,
+  apply J.transitive h,
   intros Z g hg,
-  rw ← pullback_comp,
+  rw ← sieve.pullback_comp,
   apply k (g ≫ f) hg,
 end
 
-lemma arrow_intersect (f : Y ⟶ X) (S R : sieve X) (hS : covers J S f) (hR : covers J R f) :
-  covers J (S ⊓ R) f :=
+lemma arrow_intersect (f : Y ⟶ X) (S R : sieve X) (hS : J.covers S f) (hR : J.covers R f) :
+  J.covers (S ⊓ R) f :=
+by simpa [covers_iff] using and.intro hS hR
+
+instance : partial_order (grothendieck_topology C) :=
+{ le := λ J₁ J₂, (J₁ : Π (X : C), set (sieve X)) ≤ (J₂ : Π (X : C), set (sieve X)),
+  le_refl := λ J₁, le_refl _,
+  le_trans := λ J₁ J₂ J₃ h₁₂ h₂₃, le_trans h₁₂ h₂₃,
+  le_antisymm := λ J₁ J₂ h₁₂ h₂₁, grothendieck_topology.ext _ _ (le_antisymm h₁₂ h₂₁) }
+
+instance : has_Inf (grothendieck_topology C) :=
+{ Inf := λ T,
+  { sieves := Inf (sieves '' T),
+    top_mem' :=
+    begin
+      rintro X S ⟨⟨_, J, hJ, rfl⟩, rfl⟩,
+      simp,
+    end,
+    pullback_stable' :=
+    begin
+      rintro X Y S hS f _ ⟨⟨_, J, hJ, rfl⟩, rfl⟩,
+      apply J.pullback_stable _ (f _ ⟨⟨_, _, hJ, rfl⟩, rfl⟩),
+    end,
+    transitive' :=
+    begin
+      rintro X S hS R h _ ⟨⟨_, J, hJ, rfl⟩, rfl⟩,
+      apply J.transitive (hS _ ⟨⟨_, _, hJ, rfl⟩, rfl⟩) _ (λ Y f hf, h hf _ ⟨⟨_, _, hJ, rfl⟩, rfl⟩),
+    end } }
+
+instance : complete_lattice (grothendieck_topology C) :=
+complete_lattice_of_Inf _
 begin
-  rw [covers, pullback_inter],
-  apply intersection_covering;
-  assumption
+  intro T,
+  refine @is_glb.of_image _ _ _ _ sieves _ _ _ _,
+  { intros, refl },
+  { exact is_glb_Inf _ },
 end
 
-open sieve_set
-
-/-- The trivial topology is always a Grothendieck topology. -/
-instance trivial.grothendieck_topology: grothendieck_topology (sieve_set.trivial C) :=
-{ max := λ X, set.mem_singleton _,
-  stab := λ X Y S HS h,
+variable (C)
+def trivial : grothendieck_topology C :=
+{ sieves := λ X, {⊤},
+  top_mem' := λ X, rfl,
+  pullback_stable' := λ X Y S f hf,
   begin
-    rw mem_trivial at *,
-    rw [HS, pullback_top],
+    rw set.mem_singleton_iff at ⊢ hf,
+    simp [hf],
   end,
-  trans := λ X S HS R HR,
+  transitive' := λ X S hS R hR,
   begin
-    rw [mem_trivial, ← id_mem_iff_eq_top, pullback_eq_top_iff_mem],
-    simp only [mem_trivial] at HR,
-    apply HR,
-    rwa [id_mem_iff_eq_top, ← mem_trivial],
+    rw [set.mem_singleton_iff, ← sieve.id_mem_iff_eq_top] at hS,
+    simpa using hR hS,
+  end }
+variable {C}
+
+lemma trivial_covering : S ∈ trivial C X ↔ S = ⊤ := set.mem_singleton_iff
+
+lemma trivial_covers (S : sieve X) (f : Y ⟶ X) : (trivial C).covers S f ↔ S.arrows f :=
+by rw [covers_iff, trivial_covering, ← sieve.pullback_eq_top_iff_mem]
+
+lemma trivial_eq_bot : trivial C = ⊥ :=
+begin
+  rw ← le_bot_iff,
+  intros X S hS,
+  rw trivial_covering at hS,
+  apply covering_of_eq_top _ hS,
+end
+
+def discrete : grothendieck_topology C :=
+{ sieves := λ X, set.univ,
+  top_mem' := by simp,
+  pullback_stable' := λ X Y f, by simp,
+  transitive' := by simp }
+
+lemma discrete_eq_top : discrete C = ⊤ := top_unique (λ S hS, set.mem_univ _)
+
+/-- The dense Grothendieck topology. -/
+def dense : grothendieck_topology C :=
+{ sieves := λ X S, ∀ {Y : C} (f : Y ⟶ X), ∃ Z (g : Z ⟶ Y), S.arrows (g ≫ f),
+  top_mem' := λ X Y f, ⟨Y, 𝟙 Y, ⟨⟩⟩,
+  pullback_stable' :=
+  begin
+    intros X Y S h H Z f,
+    rcases H (f ≫ h) with ⟨W, g, H'⟩,
+    exact ⟨W, g, by simpa⟩,
+  end,
+  transitive' :=
+  begin
+    intros X S H₁ R H₂ Y f,
+    rcases H₁ f with ⟨Z, g, H₃⟩,
+    rcases H₂ H₃ (𝟙 Z) with ⟨W, h, H₄⟩,
+    exact ⟨W, (h ≫ g), by simpa using H₄⟩,
   end }
 
-/-- The dense topology is always a Grothendieck topology. -/
-instance dense.grothendieck_topology: grothendieck_topology (dense C) :=
-{ max := λ X Y f, ⟨Y, 𝟙 Y, ⟨⟩⟩,
-  stab :=
-    begin
-      intros X Y S H h Z f,
-      rcases H (f ≫ h) with ⟨W, g, H⟩,
-      exact ⟨W, g, by simpa⟩,
-    end,
-  trans :=
-    begin
-      intros X S H₁ R H₂ Y f,
-      rcases H₁ f with ⟨Z, g, H₃⟩,
-      rcases H₂ H₃ (𝟙 Z) with ⟨W, h, H₄⟩,
-      exact ⟨W, (h ≫ g), by simpa using H₄⟩,
-    end }
-
-instance : inhabited Site := ⟨{ C := Type u, J := sieve_set.dense _ }⟩
+instance : inhabited (grothendieck_topology C) := ⟨dense⟩
 
 /--
 A category satisfies the right Ore condition if any span can be completed to a
@@ -170,64 +239,32 @@ NB. Any category with pullbacks obviously satisfies the right Ore condition.
 def right_ore_condition (C : Type u) [category.{v} C] : Prop :=
 ∀ {X Y Z : C} (yx : Y ⟶ X) (zx : Z ⟶ X), ∃ W (wy : W ⟶ Y) (wz : W ⟶ Z), wy ≫ yx = wz ≫ zx
 
+lemma right_ore_of_pullbacks [limits.has_pullbacks C] : right_ore_condition C :=
+λ X Y Z yx zx, ⟨_, _, _, limits.pullback.condition⟩
+
 /--
-The atomic sieveset is a Grothendieck topology when it satisfies the right ore condition.
+The atomic Grothendieck topology: a sieve is covering iff it is nonempty.
+For the pullback stability condition, we need the right Ore condition to hold.
 -/
-lemma atomic.grothendieck_topology (hro : right_ore_condition C) :
-  grothendieck_topology (atomic C) :=
-{ max := λ X, ⟨_, 𝟙 _, ⟨⟩⟩,
-  stab :=
+def atomic (hro : right_ore_condition C) : grothendieck_topology C :=
+{ sieves := λ X S, ∃ Y (f : Y ⟶ X), S.arrows f,
+  top_mem' := λ X, ⟨_, 𝟙 _, ⟨⟩⟩,
+  pullback_stable' :=
   begin
-    rintros X Y S ⟨Z, f, hf⟩ h,
+    rintros X Y S h ⟨Z, f, hf⟩,
     rcases hro h f with ⟨W, g, k, comm⟩,
     refine ⟨_, g, _⟩,
-    simp [mem_pullback, comm, hf],
+    simp [comm, hf],
   end,
-  trans :=
+  transitive' :=
   begin
     rintros X S ⟨Y, f, hf⟩ R h,
     rcases h hf with ⟨Z, g, hg⟩,
     exact ⟨_, _, hg⟩,
   end }
 
-open opposite
-
-instance : partial_order { J : Π (X : C), set (sieve X) // grothendieck_topology J } :=
-subtype.partial_order _
-
-lemma intersect (Js : set (Π (X : C), set (sieve X))) (hJs : Π J ∈ Js, grothendieck_topology J) :
-  grothendieck_topology (Inf Js) :=
-{ max :=
-  begin
-    rintro X S ⟨⟨J, hJ⟩, rfl⟩,
-    apply (hJs _ hJ).max,
-  end,
-  stab :=
-  begin
-    rintro X Y S hS f _ ⟨J, rfl⟩,
-    apply (hJs _ J.2).stab,
-    apply hS _ ⟨J, rfl⟩,
-  end,
-  trans :=
-  begin
-    rintro X S hS R t _ ⟨J, rfl⟩,
-    apply (hJs _ J.2).trans,
-    apply hS _ ⟨J, rfl⟩,
-    intros Y f hf,
-    apply t hf _ ⟨_, rfl⟩,
-  end }
-
-instance : has_Inf { J : Π (X : C), set (sieve X) // grothendieck_topology J } :=
-{ Inf := λ T, ⟨Inf (subtype.val '' T), intersect _ (by { rintro _ ⟨⟨_, q⟩, _, rfl⟩, apply q })⟩}
-
-instance : complete_lattice { J : Π (X : C), set (sieve X) // grothendieck_topology J } :=
-complete_lattice_of_Inf _
-begin
-  intro T,
-  refine @is_glb.of_image _ _ _ _ subtype.val _ _ _ _,
-  intros, refl,
-  exact is_glb_Inf (subtype.val '' T),
-end
+lemma dense_covering : S ∈ dense X ↔ ∀ {Y} (f : Y ⟶ X), ∃ Z (g : Z ⟶ Y), S.arrows (g ≫ f) :=
+iff.rfl
 
 end grothendieck_topology
 

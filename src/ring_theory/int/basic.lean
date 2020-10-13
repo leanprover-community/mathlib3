@@ -12,7 +12,7 @@ import ring_theory.principal_ideal_domain
 # Divisibility over ℕ and ℤ
 
 This file collects results for the integers and natural numbers that use abstract algebra in
-their proofs or cases of ℕ and ℤ being examples of structures in absract algebra.
+their proofs or cases of ℕ and ℤ being examples of structures in abstract algebra.
 
 ## Main statements
 

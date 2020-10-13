@@ -1945,7 +1945,7 @@ by { ext ⟨a, b⟩, simp only [mem_filter, mem_product], finish, }
 
 lemma filter_product_card (s : finset α) (t : finset β)
   (p : α → Prop) (q : β → Prop) [decidable_pred p] [decidable_pred q] :
-  ((s.product t).filter (λ (x : α × β), p x.1 = q x.2)).card =
+  ((s.product t).filter (λ (x : α × β), p x.1 ↔ q x.2)).card =
   (s.filter p).card * (t.filter q).card + (s.filter (not ∘ p)).card * (t.filter (not ∘ q)).card :=
 begin
   classical,

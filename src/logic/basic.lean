@@ -188,10 +188,7 @@ theorem iff_of_eq (e : a = b) : a ↔ b := e ▸ iff.rfl
 
 theorem iff_iff_eq : (a ↔ b) ↔ a = b := ⟨propext, iff_of_eq⟩
 
-@[simp] lemma eq_iff_iff : (a = b) ↔ (a ↔ b) := iff_iff_eq.symm
-
-instance eq_props.decidable [decidable a] [decidable b] : decidable (a = b) :=
-by { rw eq_iff_iff, apply_instance, }
+@[simp] lemma eq_iff_iff {p q : Prop} : (p = q) ↔ (p ↔ q) := iff_iff_eq.symm
 
 @[simp] theorem imp_self : (a → a) ↔ true := iff_true_intro id
 

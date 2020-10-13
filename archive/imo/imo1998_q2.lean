@@ -58,7 +58,7 @@ abbreviation judge_pair.judge₂ : judge_pair J → J := prod.snd
 abbreviation judge_pair.distinct (p : judge_pair J) := p.judge₁ ≠ p.judge₂
 
 /-- The proposition that the judges in an ordered pair agree about a contestant's rating. -/
-abbreviation judge_pair.agree (p : judge_pair J) (c : C) := r c p.judge₁ = r c p.judge₂
+abbreviation judge_pair.agree (p : judge_pair J) (c : C) := r c p.judge₁ ↔ r c p.judge₂
 
 /-- The contestant from the triple consisting of a contestant and an ordered pair of judges. -/
 abbreviation agreed_triple.contestant : agreed_triple C J → C := prod.fst
@@ -68,7 +68,7 @@ judges. -/
 abbreviation agreed_triple.judge_pair : agreed_triple C J → judge_pair J := prod.snd
 
 @[simp] lemma judge_pair.agree_iff_same_rating (p : judge_pair J) (c : C) :
-  p.agree r c ↔ (r c p.judge₁ = r c p.judge₂) := iff.rfl
+  p.agree r c ↔ (r c p.judge₁ ↔ r c p.judge₂) := iff.rfl
 
 /-- The set of contestants on which two judges agree. -/
 def agreed_contestants [fintype C] (p : judge_pair J) : finset C :=

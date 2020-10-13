@@ -35,7 +35,8 @@ on the linearly independent vectors `v`, given `hv : linear_independent R v`
 
 ## Main statements
 
-### Special test for linear independence
+We prove several specialized tests for linear independence of families of vectors and of sets of
+vectors.
 
 * `fintype.linear_independent_iff`: if `ι` is a finite type, then any function `f : ι → R` has
   finite support, so we can reformulate the statement using `∑ i : ι, f i • v i` instead of a sum
@@ -43,6 +44,19 @@ on the linearly independent vectors `v`, given `hv : linear_independent R v`
 * `linear_independent_empty_type`: a family indexed by an empty type is linearly independent;
 * `linear_independent_unique_iff`: if `ι` is a singleton, then `linear_independent K v` is
   equivalent to `v (default ι) ≠ 0`;
+* linear_independent_option`, `linear_independent_sum`, `linear_independent_fin_cons`,
+  `linear_independent_fin_succ`: type-specific tests for linear independence of families of vector
+  fields;
+* `linear_independent_insert`, `linear_independent_union`, `linear_independent_pair`,
+  `linear_independent_singleton`: linear independence tests for set operations.
+
+In many cases we additionally provide dot-style operations (e.g., `linear_independent.union`) to
+make the linear independence tests usable as `hv.insert ha` etc.
+
+We also prove that any family of vectors includes a linear independent subfamily spanning the same
+submodule.
+
+### 
 
 ## Implementation notes
 
@@ -780,36 +794,16 @@ begin
   rwa [disjoint_span_singleton' x0]
 end
 
-theorem linear_independent_insert (hxs : x ∉ s) :
-  linear_independent K (λ b : insert x s, (b : V)) ↔
-  linear_independent K (λ b : s, (b : V)) ∧ x ∉ submodule.span K s :=
-⟨λ h, ⟨h.mono $ set.subset_insert x s,
-have (λ (b : ↥(insert x s)), ↑b) '' (set.univ \ {⟨x, set.mem_insert x s⟩}) = s,
-from set.ext $ λ b, ⟨λ ⟨y, hy1, hy2⟩, hy2 ▸ y.2.resolve_left (λ H, hy1.2 $ subtype.eq H),
-  λ hb, ⟨⟨b, set.mem_insert_of_mem x hb⟩,
-    ⟨trivial, λ H, hxs $ (show b = x, from congr_arg subtype.val H) ▸ hb⟩, rfl⟩⟩,
-this ▸ linear_independent_iff_not_mem_span.1 h ⟨x, set.mem_insert x s⟩⟩,
-λ ⟨h1, h2⟩, h1.insert h2⟩
-
 theorem linear_independent_insert' {ι} {s : set ι} {a : ι} {f : ι → V} (has : a ∉ s) :
   linear_independent K (λ x : insert a s, f x) ↔
   linear_independent K (λ x : s, f x) ∧ f a ∉ submodule.span K (f '' s) :=
-begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { have hfas : f a ∉ f '' s := λ ⟨x, hxs, hfxa⟩, has (set.mem_of_eq_of_mem (congr_arg subtype.val $
-      (@id _ (h.injective) ⟨x, or.inr hxs⟩ ⟨a, or.inl rfl⟩ hfxa)).symm hxs),
-    have := h.image,
-    rwa [set.image_insert_eq, linear_independent_insert hfas, ← linear_independent_image] at this,
-    exact (set.inj_on_iff_injective.2 h.injective).mono (set.subset_insert _ _) },
-  { cases h with h1 h2,
-    have : set.inj_on f (insert a s) :=
-      (set.inj_on_insert has).2 ⟨set.inj_on_iff_injective.2 h1.injective,
-        λ h, h2 $ submodule.subset_span h⟩,
-    have hfas : f a ∉ f '' s := λ ⟨x, hxs, hfxa⟩, has (set.mem_of_eq_of_mem
-      (this (or.inr hxs) (or.inl rfl) hfxa).symm hxs),
-    rw [linear_independent_image this, set.image_insert_eq, linear_independent_insert hfas],
-    exact ⟨h1.image, h2⟩ }
-end
+by { rw [← linear_independent_equiv ((equiv.option_equiv_sum_punit _).trans
+  (equiv.set.insert has).symm), linear_independent_option], simp [(∘), range_comp f] }
+
+theorem linear_independent_insert (hxs : x ∉ s) :
+  linear_independent K (λ b : insert x s, (b : V)) ↔
+  linear_independent K (λ b : s, (b : V)) ∧ x ∉ submodule.span K s :=
+(@linear_independent_insert' _ _ _ _ _ _ _ _ id hxs).trans $ by simp
 
 lemma linear_independent_pair {x y : V} (hx : x ≠ 0) (hy : ∀ a : K, a • x ≠ y) :
   linear_independent K (coe : ({x, y} : set V) → V) :=

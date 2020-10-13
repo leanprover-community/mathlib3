@@ -200,8 +200,8 @@ begin
     rw [reflect_monomial, rev_at_small Nn], },
 end
 
-theorem reverse_mul (f g : polynomial R) {fg : f.leading_coeff*g.leading_coeff ≠ 0} :
- reverse (f*g) = reverse f * reverse g :=
+theorem reverse_mul {f g : polynomial R} (fg : f.leading_coeff * g.leading_coeff ≠ 0) :
+ reverse (f * g) = reverse f * reverse g :=
 begin
   unfold reverse,
   rw [nat_degree_mul' fg, reflect_mul (le_refl _) (le_refl _)],

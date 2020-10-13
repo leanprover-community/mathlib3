@@ -374,11 +374,6 @@ lemma grades.map_ι (x : X) :
   grades (ι R x) = finsupp.single 1 (ι R x) :=
 by simp [grades]
 
--- TODO: move
-def monoid_hom.map_finsupp_sum {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
-[has_zero β] [add_comm_monoid γ] [add_comm_monoid δ]
-(h : γ →+ δ) (f : α →₀ β) (g : α → β → γ) : h (f.sum g) = f.sum (λ a b, h (g a b)) :=
-h.map_sum _ _
 
 def alg_hom.map_finsupp_sum {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 [has_zero β] [semiring γ] [semiring δ] [algebra R γ] [algebra R δ]
@@ -386,7 +381,7 @@ def alg_hom.map_finsupp_sum {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 h.map_sum _ _
 
 -- TODO: better name, move, docstring
-lemma finsupp.single_single_apply {α : Type*} {β : Type*} [has_zero β] (i j : α) [decidable (j = i)] (v : β):
+lemma single_single_apply {α : Type*} {β : Type*} [has_zero β] (i j : α) [decidable (j = i)] (v : β):
   finsupp.single i ((finsupp.single j v) i) = if j = i then (finsupp.single j v) else 0 :=
 begin
   ext,
@@ -403,13 +398,13 @@ begin
   induction x using free_algebra.induction generalizing i,
   case h_grade0 : {
     rw grades.map_algebra_map,
-    rw [single_idempotent, finsupp.single_apply, apply_ite grades],
+    rw [single_single_apply, finsupp.single_apply, apply_ite grades],
     rw [grades.map_algebra_map, grades.map_zero],
     split_ifs; refl
   },
   case h_grade1 : {
     rw grades.map_ι,
-    rw [single_idempotent, finsupp.single_apply, apply_ite grades],
+    rw [single_single_apply, finsupp.single_apply, apply_ite grades],
     rw [grades.map_ι, grades.map_zero],
     split_ifs; refl
   },
@@ -425,18 +420,18 @@ begin
     have : finsupp.single i = finsupp.single_add_hom i := rfl,
     rw this,
     simp_rw alg_hom.map_finsupp_sum,
-    simp_rw monoid_hom.map_finsupp_sum,
-    simp_rw [finsupp.sum],
+    simp_rw add_monoid_hom.map_finsupp_sum,
+    simp_rw finsupp.sum,
     congr, ext1, ext1,
     congr, ext1, ext1,
     rw ←this,
 
     -- this now looks the same as it did in the other cases
     conv_lhs {rw [finsupp.single_apply]},
-    rw [single_idempotent, ←add_monoid_algebra.single_mul_single, apply_ite grades],
+    rw [single_single_apply, ←add_monoid_algebra.single_mul_single, apply_ite grades],
     rw [grades.map_mul, grades.map_zero],
     rw [hx, hy],
-    split_ifs; refl,
+    split_ifs; refl, -- refl fails due to different decidable instances
   },
 end
 

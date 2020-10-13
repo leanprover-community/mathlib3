@@ -20,7 +20,7 @@ coefficients of `f` and `g` do not multiply to zero.
 
 namespace polynomial
 
-open polynomial finsupp finset --erase_lead
+open polynomial finsupp finset
 
 
 variables {R : Type*} [semiring R] {f : polynomial R}

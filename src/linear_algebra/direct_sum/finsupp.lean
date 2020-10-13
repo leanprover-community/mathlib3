@@ -31,7 +31,7 @@ variables (R M) (ι : Type*) [decidable_eq ι]
 copies of M indexed by ι. -/
 def finsupp_lequiv_direct_sum : (ι →₀ M) ≃ₗ[R] direct_sum ι (λ i, M) :=
 linear_equiv.of_linear
-  (finsupp.lsum $ direct_sum.lof R ι (λ _, M))
+  (finsupp.lsum $ (show ι → M →ₗ[R] direct_sum ι (λ i, M), from direct_sum.lof R ι (λ _, M)))
   (direct_sum.to_module _ _ _ finsupp.lsingle)
   (linear_map.ext $ direct_sum.to_module.ext _ $ λ i,
     linear_map.ext $ λ x, by simp [finsupp.sum_single_index])

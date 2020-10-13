@@ -276,12 +276,8 @@ variables {μ ν} [sigma_finite ν]
 
 lemma prod_apply {s : set (α × β)} (hs : is_measurable s) :
   μ.prod ν s = ∫⁻ x, ν (prod.mk x ⁻¹' s) ∂μ :=
-begin
-  rw [measure.prod, bind_apply hs],
-  congr, ext x : 1, rw [map_apply _ hs],
-  apply measurable_prod_mk_left,
-  exact measurable.map_prod_mk_left
-end
+by simp_rw [measure.prod, bind_apply hs measurable.map_prod_mk_left,
+  map_apply measurable_prod_mk_left hs]
 
 @[simp] lemma prod_prod {s : set α} {t : set β}
   (hs : is_measurable s) (ht : is_measurable t) : μ.prod ν (s.prod t) = μ s * ν t :=
@@ -305,13 +301,13 @@ begin
 end
 
 /-- Note: the assumption `hs` cannot be dropped. For a counterexample, see
-  Walter Rudin *Real and Complex Analysis* (example (c) in section 8.9). -/
+  Walter Rudin *Real and Complex Analysis*, example (c) in section 8.9. -/
 lemma measure_prod_null {s : set (α × β)}
   (hs : is_measurable s) : μ.prod ν s = 0 ↔ (λ x, ν (prod.mk x ⁻¹' s)) =ᵐ[μ] 0 :=
 by simp_rw [prod_apply hs, lintegral_eq_zero_iff (measurable_measure_prod_mk_left hs)]
 
-/-- Note: the converse is not true. For a counterexample, see
-  Walter Rudin *Real and Complex Analysis* (example (c) in section 8.9). -/
+/-- Note: the converse is not true without assuming that `s` is measurable. For a counterexample,
+  see Walter Rudin *Real and Complex Analysis*, example (c) in section 8.9. -/
 lemma measure_ae_null_of_prod_null {s : set (α × β)}
   (h : μ.prod ν s = 0) : (λ x, ν (prod.mk x ⁻¹' s)) =ᵐ[μ] 0 :=
 begin
@@ -324,7 +320,7 @@ begin
 end
 
 /-- Note: the converse is not true. For a counterexample, see
-  Walter Rudin *Real and Complex Analysis* (example (c) in section 8.9). -/
+  Walter Rudin *Real and Complex Analysis*, example (c) in section 8.9. -/
 lemma ae_ae_of_ae_prod {p : α × β → Prop} (h : ∀ᵐ z ∂μ.prod ν, p z) :
   ∀ᵐ x ∂ μ, ∀ᵐ y ∂ ν, p (x, y) :=
 measure_ae_null_of_prod_null h
@@ -339,8 +335,9 @@ instance prod.sigma_finite : sigma_finite (μ.prod ν) :=
   by { simp_rw [Union_prod_of_monotone (monotone_spanning_sets μ) (monotone_spanning_sets ν),
     Union_spanning_sets, univ_prod_univ] }⟩⟩
 
-/- This proof would be shorter if `sigma_finite` was not `Prop`-valued, since we use that
+/- Note: This proof would be shorter if `sigma_finite` was not `Prop`-valued, since we use that
   the sets given in the instance of `sigma_finite` is a π-system. -/
+/-- Measures on a product space are equal if they are equal on rectangles. -/
 lemma prod_unique {μν₁ μν₂ : measure (α × β)}
   (h₁ : ∀ s t, is_measurable s → is_measurable t → μν₁ (s.prod t) = μ s * ν t)
   (h₂ : ∀ s t, is_measurable s → is_measurable t → μν₂ (s.prod t) = μ s * ν t) : μν₁ = μν₂ :=
@@ -372,7 +369,8 @@ lemma prod_apply_symm {s : set (α × β)} (hs : is_measurable s) :
 by { rw [← prod_swap, map_apply measurable_swap hs],
      simp only [prod_apply (measurable_swap hs)], refl }
 
-/-! ### The product of specific measures. -/
+/-! ### The product of specific measures -/
+
 lemma prod_restrict {s : set α} {t : set β} (hs : is_measurable s) (ht : is_measurable t) :
   (μ.restrict s).prod (ν.restrict t) = (μ.prod ν).restrict (s.prod t) :=
 begin
@@ -473,10 +471,8 @@ variables [opens_measurable_space E]
 
 lemma integrable.swap [sigma_finite μ] ⦃f : α × β → E⦄
   (hf : integrable f (μ.prod ν)) : integrable (f ∘ prod.swap) (ν.prod μ) :=
-begin
-  refine ⟨hf.measurable.comp measurable_swap, lt_of_le_of_lt (eq.le _) hf.has_finite_integral⟩,
-  convert lintegral_prod_swap _ hf.measurable.ennnorm; apply_instance
-end
+⟨hf.measurable.comp measurable_swap,
+  (lintegral_prod_swap _ hf.measurable.ennnorm : _).le.trans_lt hf.has_finite_integral⟩
 
 lemma integrable_swap_iff [sigma_finite μ] ⦃f : α × β → E⦄ :
   integrable (f ∘ prod.swap) (ν.prod μ) ↔ integrable f (μ.prod ν) :=
@@ -490,7 +486,7 @@ begin
   have : ∀ x, ∀ᵐ y ∂ν, 0 ≤ ∥f (x, y)∥ := λ x, eventually_of_forall (λ y, norm_nonneg _),
   simp_rw [integral_eq_lintegral_of_nonneg_ae (this _) (h1f.norm.comp measurable_prod_mk_left),
     ennnorm_eq_of_real to_real_nonneg, of_real_norm_eq_coe_nnnorm],
-  -- this fact looks to specialized to be its own lemma
+  -- this fact is probably too specialized to be its own lemma
   have : ∀ {p q r : Prop} (h1 : r → p), (p ∧ q ↔ r) ↔ (p → (q ↔ r)) :=
   λ p q r h1, by rw [← and.congr_right_iff, and_iff_right_of_imp h1],
   rw [this],

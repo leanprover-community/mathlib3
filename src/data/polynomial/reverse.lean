@@ -53,6 +53,7 @@ In other words, the terms with exponent `[0, ..., N]` now have exponent `[N, ...
 def reflect : ℕ → polynomial R → polynomial R :=
   λ N : ℕ, λ f : polynomial R, ⟨ image (rev_at N)  (f.support), λ i : ℕ, f.coeff (rev_at N i),
   begin
+
     intro,
     rw mem_image,
     split,

@@ -133,7 +133,8 @@ lemma erase_lead_nat_degree_lt (f0 : 2 ≤ f.support.card) :
 lt_of_le_of_ne erase_lead_nat_degree_le $ ne_nat_degree_of_mem_erase_lead_support $
   nat_degree_mem_support_of_nonzero $ erase_lead_ne_zero f0
 
-lemma C_mul_X_pow_of_card_support_eq_one (h : f.support.card = 1) : f = C f.leading_coeff * X ^ f.nat_degree :=
+lemma C_mul_X_pow_of_card_support_eq_one (h : f.support.card = 1) :
+  f = C f.leading_coeff * X ^ f.nat_degree :=
 begin
   conv_lhs { rw ← erase_lead_add_C_mul_X_pow f },
   have fe0 : f.erase_lead = 0,

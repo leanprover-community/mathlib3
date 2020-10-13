@@ -159,7 +159,7 @@ wf_dvd_monoid.induction_on_irreducible (f.map i)
   (λ f p hf0 hp ih hfs,
     have hpf0 : p * f ≠ 0, from mul_ne_zero hp.ne_zero hf0,
     let ⟨s, hs⟩ := ih (splits_of_splits_mul _ hpf0 hfs).2 in
-    ⟨-(p * norm_unit p).coeff 0 :: s,
+    ⟨-(p * norm_unit p).coeff 0 ::ₘ s,
       have hp1 : degree p = 1, from hfs.resolve_left hpf0 hp (by simp),
       begin
         rw [multiset.map_cons, multiset.prod_cons, leading_coeff_mul, C_mul, mul_assoc,

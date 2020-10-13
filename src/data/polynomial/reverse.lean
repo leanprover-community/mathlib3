@@ -193,7 +193,7 @@ end
 
 @[simp] theorem reflect_mul
  {f g : polynomial R} {F G : ℕ} (Ff : f.nat_degree ≤ F) (Gg : g.nat_degree ≤ G) :
- reflect (F+G) (f*g) = reflect F f * reflect G g :=
+ reflect (F + G) (f * g) = reflect F f * reflect G g :=
 begin
   apply pol_ind_Rhom_prod reflect_add reflect_smul _ F G f g Ff Gg,
   { intros N n Nn,

@@ -5,7 +5,8 @@ Author: Johannes Hölzl
 
 Linear structures on function with finite support `α →₀ M`.
 -/
-import algebra.monoid_algebra
+import data.finsupp.basic
+import linear_algebra.basic
 
 noncomputable theory
 
@@ -215,11 +216,16 @@ begin
   exact linear_map.is_linear _
 end
 
-/-- `finsupp.sum` as a linear map. -/
-def lsum (f : α → M →ₗ[R] N) : (α →₀ M) →ₗ[R] N :=
-⟨λ d, d.sum (λ i, f i),
-  assume d₁ d₂, by simp [sum_add_index],
-  assume a d, by simp [sum_smul_index', smul_sum]⟩
+/-- Lift a family of linear maps `M →ₗ[R] N` indexed by `x : α` to a linear map map from `α →₀ M` to
+`N` using `finsupp.sum`. We define this as an additive equivalence. For a commutative `R`, this
+equivalence can be upgraded to a linear equivalence. -/
+def lsum : (α → M →ₗ[R] N) ≃+ ((α →₀ M) →ₗ[R] N) :=
+{ to_fun := λ F, ⟨λ d, d.sum (λ i, F i), (lift_add_hom (λ x, (F x).to_add_monoid_hom)).map_add,
+    λ c f, by simp [sum_smul_index', smul_sum]⟩,
+  inv_fun := λ F x, F.comp (lsingle x),
+  left_inv := λ F, by { ext x y, simp },
+  right_inv := λ F, by { ext x y, simp },
+  map_add' := λ F G, by { ext x y, simp } }
 
 @[simp] lemma coe_lsum (f : α → M →ₗ[R] N) : (lsum f : (α →₀ M) → N) = λ d, d.sum (λ i, f i) := rfl
 
@@ -229,6 +235,8 @@ theorem lsum_apply (f : α → M →ₗ[R] N) (l : α →₀ M) :
 theorem lsum_single (f : α → M →ₗ[R] N) (i : α) (m : M) :
   finsupp.lsum f (finsupp.single i m) = f i m :=
 finsupp.sum_single_index (f i).map_zero
+
+theorem lsum_symm_apply (f : (α →₀ M) →ₗ[R] N) (x : α) : lsum.symm f x = f.comp (lsingle x) := rfl
 
 section lmap_domain
 variables {α' : Type*} {α'' : Type*} (M R)

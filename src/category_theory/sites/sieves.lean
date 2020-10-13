@@ -182,6 +182,11 @@ def pullback (h : Y ⟶ X) (S : sieve X) : sieve Y :=
 @[simp] lemma mem_pullback (h : Y ⟶ X) {f : Z ⟶ Y} :
   (S.pullback h).arrows f ↔ S.arrows (f ≫ h) := iff.rfl
 
+@[simp]
+lemma pullback_id : S.pullback (𝟙 _) = S :=
+by simp [sieve.ext_iff]
+
+@[simp]
 lemma pullback_top {f : Y ⟶ X} : (⊤ : sieve X).pullback f = ⊤ :=
 top_unique (λ _ g, id)
 

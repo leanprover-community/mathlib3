@@ -905,8 +905,8 @@ bounds in both directions. -/
 def linear_equiv.to_continuous_linear_equiv_of_bounds (e : E ≃ₗ[𝕜] F) (C_to C_inv : ℝ)
   (h_to : ∀ x, ∥e x∥ ≤ C_to * ∥x∥) (h_inv : ∀ x : F, ∥e.symm x∥ ≤ C_inv * ∥x∥) : E ≃L[𝕜] F :=
 { to_linear_equiv := e,
-  continuous_to_fun := linear_map.continuous_of_bound e.to_linear_map C_to h_to,
-  continuous_inv_fun := linear_map.continuous_of_bound e.symm.to_linear_map C_inv h_inv }
+  continuous_to_fun := e.to_linear_map.continuous_of_bound C_to h_to,
+  continuous_inv_fun := e.symm.to_linear_map.continuous_of_bound C_inv h_inv }
 
 namespace continuous_linear_map
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']

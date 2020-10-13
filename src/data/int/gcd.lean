@@ -242,7 +242,7 @@ begin
   exact int.nat_abs_dvd_abs_iff.mpr h
 end
 
-/- lcm -/
+/-! ### lcm -/
 
 theorem lcm_comm (i j : ℤ) : lcm i j = lcm j i :=
 by { rw [int.lcm, int.lcm], exact nat.lcm_comm _ _ }

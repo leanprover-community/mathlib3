@@ -6,6 +6,7 @@ Authors: Jujian Zhang
 
 import data.polynomial.derivative
 import logic.function.iterate
+import data.finset.intervals
 import tactic.ring
 import tactic.linarith
 

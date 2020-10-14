@@ -161,18 +161,19 @@ lemma sum_mem {ι : Type*} {t : finset ι} {f : ι → L} (h : ∀ c ∈ t, f c 
   ∑ i in t, f i ∈ S :=
 S.to_subfield.sum_mem h
 
-lemma pow_mem {x : L} (hx : x ∈ S) (n : ℕ) : x^n ∈ S := S.to_subfield.pow_mem hx n
+lemma pow_mem {x : L} (hx : x ∈ S) (n : ℤ) : x^n ∈ S :=
+begin
+  cases n,
+  { exact @is_submonoid.pow_mem L _ S.to_subfield.to_submonoid x _ hx n, },
+  { have h := @is_submonoid.pow_mem L _ S.to_subfield.to_submonoid x _ hx _,
+    exact subfield.inv_mem S.to_subfield h, },
+end
 
 lemma gsmul_mem {x : L} (hx : x ∈ S) (n : ℤ) :
   n •ℤ x ∈ S := S.to_subfield.gsmul_mem hx n
 
 lemma coe_int_mem (n : ℤ) : (n : L) ∈ S :=
 by simp only [← gsmul_one, gsmul_mem, one_mem]
-
-instance : inhabited (intermediate_field K L) :=
-⟨{ neg_mem' := λ x hx, (⊤ : subalgebra K L).neg_mem hx,
-   inv_mem' := λ x hx, algebra.mem_top,
-   ..(⊤ : subalgebra K L) }⟩
 
 end intermediate_field
 
@@ -268,5 +269,33 @@ lemma field_range_le : (algebra_map K L).field_range ≤ S.to_subfield :=
 λ x hx, S.to_subalgebra.range_subset (by rwa [set.mem_range, ← ring_hom.mem_field_range])
 
 variables {S}
+
+section tower
+
+/-- Lift an intermediate_field of an intermediate_field -/
+def lift1 {F : intermediate_field K L} (E : intermediate_field K F) : intermediate_field K L :=
+  map E (val F)
+
+/-- Lift an intermediate_field of an intermediate_field -/
+def lift2 {F : intermediate_field K L} (E : intermediate_field F L) : intermediate_field K L :=
+{ carrier := E.carrier,
+  zero_mem' := zero_mem E,
+  add_mem' := λ x y, add_mem E,
+  neg_mem' := λ x, neg_mem E,
+  one_mem' := one_mem E,
+  mul_mem' := λ x y, mul_mem E,
+  inv_mem' := λ x, inv_mem E,
+  algebra_map_mem' := λ x, algebra_map_mem E (algebra_map K F x) }
+
+instance has_lift1 {F : intermediate_field K L} :
+  has_lift_t (intermediate_field K F) (intermediate_field K L) := ⟨lift1⟩
+
+instance has_lift2 {F : intermediate_field K L} :
+  has_lift_t (intermediate_field F L) (intermediate_field K L) := ⟨lift2⟩
+
+@[simp] lemma mem_lift2 {F : intermediate_field K L} {E : intermediate_field F L} {x : L} :
+  x ∈ (↑E : intermediate_field K L) ↔ x ∈ E := iff.rfl
+
+end tower
 
 end intermediate_field

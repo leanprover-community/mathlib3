@@ -191,6 +191,9 @@ variables [semiring R] [semiring S] [semiring S']
 def to_ring_hom (e : R ≃+* S) : R →+* S :=
 { .. e.to_mul_equiv.to_monoid_hom, .. e.to_add_equiv.to_add_monoid_hom }
 
+lemma to_ring_hom_injective : function.injective (to_ring_hom : (R ≃+* S) → R →+* S) :=
+λ f g h, ring_equiv.ext (ring_hom.ext_iff.1 h)
+
 instance has_coe_to_ring_hom : has_coe (R ≃+* S) (R →+* S) := ⟨ring_equiv.to_ring_hom⟩
 
 @[norm_cast] lemma coe_ring_hom (f : R ≃+* S) (a : R) :

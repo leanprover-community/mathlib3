@@ -543,6 +543,23 @@ by simp_rw [mul_comm, h.const_mul _]
 
 end normed_space
 
+section normed_space_over_complete_field
+variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜] [measurable_space 𝕜]
+variables [borel_space 𝕜]
+variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E] [borel_space E]
+
+lemma integrable_smul_const {f : α → 𝕜} {c : E} (hc : c ≠ 0) :
+  integrable (λ x, f x • c) μ ↔ integrable f μ :=
+begin
+  simp_rw [integrable, measurable_smul_const hc, and.congr_right_iff, has_finite_integral,
+    nnnorm_smul, ennreal.coe_mul],
+  intro hf, rw [lintegral_mul_const' _ _ ennreal.coe_ne_top, ennreal.mul_lt_top_iff],
+  have : ∀ x : ennreal, x = 0 → x < ⊤ := by simp,
+  simp [hc, or_iff_left_of_imp (this _)]
+end
+end normed_space_over_complete_field
+
+
 variables [second_countable_topology β]
 
 /-! ### The predicate `integrable` on measurable functions modulo a.e.-equality -/
@@ -797,6 +814,39 @@ variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 lemma smul_to_fun (c : 𝕜) (f : α →₁[μ] β) : ⇑(c • f) =ᵐ[μ] c • f :=
 ae_eq_fun.coe_fn_smul _ _
 
+lemma norm_eq_lintegral (f : α →₁[μ] β) : ∥f∥ = (∫⁻ x, (nnnorm (f x) : ennreal) ∂μ).to_real :=
+by simp [l1.norm_eq, ae_eq_fun.edist_zero_eq_coe, ← edist_eq_coe_nnnorm]
+
+/-- Computing the norm of a difference between two L¹-functions. Note that this is not a
+  special case of `norm_eq_lintegral` since `(f - g) x` and `f x - g x` are not equal
+  (but only a.e.-equal). -/
+lemma norm_sub_eq_lintegral (f g : α →₁[μ] β) :
+  ∥f - g∥ = (∫⁻ x, (nnnorm (f x - g x) : ennreal) ∂μ).to_real :=
+begin
+  simp_rw [l1.norm_eq, ae_eq_fun.edist_zero_eq_coe, ← edist_eq_coe_nnnorm],
+  rw lintegral_congr_ae,
+  refine (ae_eq_fun.coe_fn_sub (f : α →ₘ[μ] β) g).mp _,
+  apply eventually_of_forall, intros x hx, simp [hx]
+end
+
+lemma of_real_norm_eq_lintegral (f : α →₁[μ] β) :
+  ennreal.of_real ∥f∥ = ∫⁻ x, (nnnorm (f x) : ennreal) ∂μ :=
+by { rw [norm_eq_lintegral, ennreal.of_real_to_real], rw [← ennreal.lt_top_iff_ne_top],
+  exact f.has_finite_integral }
+
+/-- Computing the norm of a difference between two L¹-functions. Note that this is not a
+  special case of `of_real_norm_eq_lintegral` since `(f - g) x` and `f x - g x` are not equal
+  (but only a.e.-equal). -/
+lemma of_real_norm_sub_eq_lintegral (f g : α →₁[μ] β) :
+  ennreal.of_real ∥f - g∥ = ∫⁻ x, (nnnorm (f x - g x) : ennreal) ∂μ :=
+begin
+  simp_rw [of_real_norm_eq_lintegral, ← edist_eq_coe_nnnorm],
+  apply lintegral_congr_ae,
+  refine (ae_eq_fun.coe_fn_sub (f : α →ₘ[μ] β) g).mp _,
+  apply eventually_of_forall, intros x hx, simp only [l1.coe_coe, pi.sub_apply] at hx,
+  simp_rw [← hx, ← l1.coe_sub, l1.coe_coe]
+end
+
 end to_fun
 
 section pos_part
@@ -830,7 +880,7 @@ end
 
 lemma neg_part_to_fun_eq_min (f : α →₁[μ] ℝ) : ∀ᵐ a ∂μ, neg_part f a = - min (f a) 0 :=
 (neg_part_to_fun_eq_max f).mono $ assume a h,
-by rw [h, min_eq_neg_max_neg_neg, _root_.neg_neg, neg_zero]
+by rw [h, ← max_neg_neg, neg_zero]
 
 lemma norm_le_norm_of_ae_le {f g : α →₁[μ] β} (h : ∀ᵐ a ∂μ, ∥f a∥ ≤ ∥g a∥) : ∥f∥ ≤ ∥g∥ :=
 begin

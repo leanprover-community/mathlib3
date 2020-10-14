@@ -384,7 +384,7 @@ begin
   ... = p : by simp only [mul_one, ring_hom.map_one]
 end
 
-/--A polynomial splits if and only if it has as much roots as its degree-/
+/-- A polynomial splits if and only if it has as much roots as its degree. -/
 lemma splits_iff_card_roots {p : polynomial α} (hzero : p ≠ 0) :
   splits (ring_hom.id α) p ↔ p.roots.card = p.nat_degree :=
 begin

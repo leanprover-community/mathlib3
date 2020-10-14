@@ -193,6 +193,27 @@ begin
     simp [hx, h'x] }
 end
 
+lemma sum_eq_sum_iff_of_subset_of_pos (hsub : s₁ ⊆ s₂) (hpos: ∀ x ∈ s₂, 0 < f x) :
+  ∑ x in s₁, f x = ∑ x in s₂, f x ↔ s₁ = s₂ :=
+begin
+  classical,
+  split,
+  { rw [← sum_sdiff hsub],
+    intros h,
+    apply subset.antisymm hsub,
+    rw [← sdiff_eq_empty_iff_subset],
+    contrapose h,
+    rw [← ne.def, ← nonempty_iff_ne_empty] at h,
+    apply ne_of_lt,
+    rw [← zero_add (∑ x in s₁, f x), ← add_assoc, add_zero],
+    apply add_lt_add_right,
+    have hlt := sum_lt_sum_of_nonempty h (λ x hx, hpos x ((sdiff_subset _ _) hx)),
+    simp only [sum_const_zero] at hlt,
+    apply hlt },
+  { rintro rfl,
+    refl }
+end
+
 end ordered_cancel_comm_monoid
 
 section decidable_linear_ordered_cancel_comm_monoid

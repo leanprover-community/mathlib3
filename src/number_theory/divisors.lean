@@ -3,7 +3,7 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import algebra.big_operators.basic
+import algebra.big_operators.order
 import tactic
 
 /-!
@@ -29,6 +29,7 @@ divisors, perfect numbers
 
 open_locale classical
 open_locale big_operators
+open finset
 
 namespace nat
 variable (n : ℕ)
@@ -124,13 +125,43 @@ begin
   exact nat.le_of_dvd (nat.succ_pos m),
 end
 
-variable (n)
-
 @[simp]
 lemma divisors_zero : divisors 0 = ∅ := by { ext, simp }
 
 @[simp]
 lemma proper_divisors_zero : proper_divisors 0 = ∅ := by { ext, simp }
+
+lemma proper_divisors_subset_divisors : proper_divisors n ⊆ divisors n :=
+begin
+  cases n,
+  { simp },
+  rw [divisors_eq_proper_divisors_insert_self_of_pos (nat.succ_pos _)],
+  apply subset_insert,
+end
+
+@[simp]
+lemma divisors_one : divisors 1 = {1} := by { ext, simp }
+
+@[simp]
+lemma proper_divisors_one : proper_divisors 1 = ∅ :=
+begin
+  ext,
+  simp only [finset.not_mem_empty, nat.dvd_one, not_and, not_lt, mem_proper_divisors, iff_false],
+  apply ge_of_eq,
+end
+
+lemma pos_of_mem_divisors {m : ℕ} (h : m ∈ n.divisors) : 0 < m :=
+begin
+  cases m,
+  { rw [mem_divisors, zero_dvd_iff] at h,
+    rcases h with ⟨rfl, h⟩,
+    exfalso,
+    apply h rfl },
+  apply nat.succ_pos,
+end
+
+lemma pos_of_mem_proper_divisors {m : ℕ} (h : m ∈ n.proper_divisors) : 0 < m :=
+pos_of_mem_divisors (proper_divisors_subset_divisors h)
 
 @[simp]
 lemma divisors_antidiagonal_zero : divisors_antidiagonal 0 = ∅ := by { ext, simp }
@@ -139,21 +170,21 @@ lemma divisors_antidiagonal_zero : divisors_antidiagonal 0 = ∅ := by { ext, si
 lemma divisors_antidiagonal_one : divisors_antidiagonal 1 = {(1,1)} :=
 by { ext, simp [nat.mul_eq_one_iff, prod.ext_iff], }
 
-lemma swap_mem_divisors_antidiagonal {n : ℕ} {x : ℕ × ℕ} (h : x ∈ divisors_antidiagonal n) :
+lemma swap_mem_divisors_antidiagonal {x : ℕ × ℕ} (h : x ∈ divisors_antidiagonal n) :
   x.swap ∈ divisors_antidiagonal n :=
 begin
   rw [mem_divisors_antidiagonal, mul_comm] at h,
   simp [h.1, h.2],
 end
 
-lemma fst_mem_divisors_of_mem_antidiagonal {n : ℕ} {x : ℕ × ℕ} (h : x ∈ divisors_antidiagonal n) :
+lemma fst_mem_divisors_of_mem_antidiagonal {x : ℕ × ℕ} (h : x ∈ divisors_antidiagonal n) :
   x.fst ∈ divisors n :=
 begin
   rw mem_divisors_antidiagonal at h,
   simp [dvd.intro _ h.1, h.2],
 end
 
-lemma snd_mem_divisors_of_mem_antidiagonal {n : ℕ} {x : ℕ × ℕ} (h : x ∈ divisors_antidiagonal n) :
+lemma snd_mem_divisors_of_mem_antidiagonal {x : ℕ × ℕ} (h : x ∈ divisors_antidiagonal n) :
   x.snd ∈ divisors n :=
 begin
   rw mem_divisors_antidiagonal at h,
@@ -161,7 +192,7 @@ begin
 end
 
 @[simp]
-lemma map_swap_divisors_antidiagonal {n : ℕ} :
+lemma map_swap_divisors_antidiagonal :
   (divisors_antidiagonal n).map ⟨prod.swap, prod.swap_right_inverse.injective⟩
   = divisors_antidiagonal n :=
 begin
@@ -190,10 +221,10 @@ end
   is positive. -/
 def perfect (n : ℕ) : Prop := (∑ i in proper_divisors n, i = n) ∧ 0 < n
 
-theorem perfect_iff_sum_proper_divisors {n : ℕ} (h : 0 < n) :
+theorem perfect_iff_sum_proper_divisors (h : 0 < n) :
   perfect n ↔ ∑ i in proper_divisors n, i = n := and_iff_left h
 
-theorem perfect_iff_sum_divisors_eq_two_mul {n : ℕ} (h : 0 < n) :
+theorem perfect_iff_sum_divisors_eq_two_mul (h : 0 < n) :
   perfect n ↔ ∑ i in divisors n, i = 2 * n :=
 begin
   rw [perfect_iff_sum_proper_divisors h, sum_divisors_eq_sum_proper_divisors_add_self, two_mul],
@@ -221,7 +252,30 @@ lemma divisors_prime_pow {p : ℕ} (pp : p.prime) (k : ℕ) :
   divisors (p ^ k) = (finset.range (k + 1)).map ⟨pow p, pow_right_injective pp.two_le⟩ :=
 by { ext, simp [mem_divisors_prime_pow, pp, nat.lt_succ_iff, @eq_comm _ a] }
 
-open finset
+lemma sum_proper_divisors_dvd (h : ∑ x in n.proper_divisors, x ∣ n) :
+  (∑ x in n.proper_divisors, x = 1) ∨ (∑ x in n.proper_divisors, x = n) :=
+begin
+  cases n,
+  { simp },
+  cases n,
+  { contrapose! h,
+    simp, },
+  rw or_iff_not_imp_right,
+  intro ne_n,
+  have hlt : ∑ x in n.succ.succ.proper_divisors, x < n.succ.succ :=
+    lt_of_le_of_ne (nat.le_of_dvd (nat.succ_pos _) h) ne_n,
+  have hsub : {∑ x in n.succ.succ.proper_divisors, x} ⊆ n.succ.succ.proper_divisors,
+  { intros y hy,
+    simp only [mem_singleton] at hy,
+    rw [hy, mem_proper_divisors],
+    exact ⟨h, hlt⟩ },
+  suffices h : {∑ x in n.succ.succ.proper_divisors, x} = n.succ.succ.proper_divisors,
+  { symmetry,
+    rw [← mem_singleton, h, mem_proper_divisors],
+    norm_num,
+    apply succ_lt_succ (nat.succ_pos _) },
+  rw [← sum_eq_sum_iff_of_subset_of_pos hsub (λ x, pos_of_mem_proper_divisors), sum_singleton],
+end
 
 @[simp]
 lemma sum_divisors_prime {α : Type*} [add_comm_monoid α] {p : ℕ} {f : ℕ → α} (h : p.prime) :
@@ -231,6 +285,51 @@ begin
   rw [sum_insert, sum_singleton, add_comm],
   rw mem_singleton,
   apply h.ne_one.symm,
+end
+
+lemma proper_divisors_eq_singleton_one_iff_prime :
+  n.proper_divisors = {1} ↔ n.prime :=
+begin
+  split,
+  { intro h,
+    have h1 := mem_singleton.2 rfl,
+    rw [← h, mem_proper_divisors] at h1,
+    refine ⟨h1.2, _⟩,
+    intros m hdvd,
+    rw [← mem_singleton, ← h, mem_proper_divisors],
+    cases lt_or_eq_of_le (nat.le_of_dvd (lt_trans (nat.succ_pos _) h1.2) hdvd),
+    { left,
+      exact ⟨hdvd, h_1⟩ },
+    { right,
+      exact h_1 } },
+  intro h,
+  ext x,
+  simp only [mem_proper_divisors, mem_singleton],
+  split,
+  { rintro ⟨hdvd, hlt⟩,
+    cases h.2 x hdvd,
+    { exact h_1},
+    { exfalso,
+      apply ne_of_lt hlt h_1 } },
+  { rintro rfl,
+    refine ⟨one_dvd n, h.1⟩ }
+end
+
+lemma sum_proper_divisors_eq_one_iff_prime :
+  ∑ x in n.proper_divisors, x = 1 ↔ n.prime :=
+begin
+  cases n,
+  { simp [nat.not_prime_zero] },
+  cases n,
+  { simp [nat.not_prime_one] },
+  rw [← proper_divisors_eq_singleton_one_iff_prime, @eq_comm ℕ _ _, @eq_comm (finset ℕ) _ _],
+  convert sum_eq_sum_iff_of_subset_of_pos _ _,
+  { rw sum_singleton },
+  { rw [singleton_subset_iff, mem_proper_divisors],
+    norm_num,
+    apply succ_lt_succ (nat.succ_pos _), },
+  { intros x hx,
+    apply pos_of_mem_proper_divisors hx, }
 end
 
 @[simp]

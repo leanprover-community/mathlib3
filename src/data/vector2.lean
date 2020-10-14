@@ -174,6 +174,58 @@ begin
   rw list.nth_le_reverse,
 end
 
+section scan
+
+variables {β : Type*}
+variables (f : β → α → β) (b : β)
+variables (v : vector α n)
+
+def scanl : vector β (n + 1) :=
+⟨list.scanl f b v.to_list, by rw [list.length_scanl, to_list_length]⟩
+
+@[simp] lemma scanl_nil : scanl f b nil = b ::ᵥ nil := rfl
+
+lemma scanl_cons (x : α) : scanl f b (x ::ᵥ v) = b ::ᵥ scanl f (f b x) v :=
+by simpa only [scanl, to_list_cons]
+
+lemma scanl_val : ∀ {v : vector α n}, (scanl f b v).val = list.scanl f b v.val
+| ⟨l, hl⟩ := rfl
+
+lemma to_list_scanl : (scanl f b v).to_list = list.scanl f b v.to_list := rfl
+
+lemma scanl_singleton (v : vector α 1) : scanl f b v = b ::ᵥ f b v.head ::ᵥ nil :=
+begin
+  rw [←cons_head_tail v],
+  simp only [scanl_cons, scanl_nil, cons_head, singleton_tail]
+end
+
+@[simp] lemma scanl_head : (scanl f b v).head = b :=
+begin
+  cases n,
+  { have : v = nil := by simp only [eq_iff_true_of_subsingleton],
+    simp only [this, scanl_nil, cons_head] },
+  { rw ←cons_head_tail v,
+    simp only [←nth_zero, nth_eq_nth_le, to_list_scanl,
+                to_list_cons, list.scanl, fin.val_zero', list.nth_le] }
+end
+
+lemma scanl_nth (i : fin n) :
+  (scanl f b v).nth i.succ = f ((scanl f b v).nth i.cast_succ) (v.nth i) :=
+begin
+  cases n,
+  { exact fin_zero_elim i },
+  induction n with n hn generalizing b,
+  { have i0 : i = 0 := by simp only [eq_iff_true_of_subsingleton],
+    simpa only [scanl_singleton, i0, nth_zero] },
+  { rw [←cons_head_tail v, scanl_cons, nth_cons_succ],
+    refine fin.cases _ _ i,
+    { simp only [nth_zero, scanl_head, fin.cast_succ_zero, cons_head] },
+    { intro i',
+      simp only [hn, fin.cast_succ_fin_succ, nth_cons_succ] } }
+end
+
+end scan
+
 def m_of_fn {m} [monad m] {α : Type u} : ∀ {n}, (fin n → m α) → m (vector α n)
 | 0     f := pure nil
 | (n+1) f := do a ← f 0, v ← m_of_fn (λi, f i.succ), pure (a ::ᵥ v)

@@ -475,25 +475,6 @@ begin
   rw [eval_sub, sub_eq_zero, ext],
 end
 
-lemma eq_zero_of_infinite_is_root {R : Type*} [integral_domain R]
-  (p : polynomial R) (h : set.infinite {x | is_root p x}) : p = 0 :=
-begin
-  classical,
-  by_contradiction hp,
-  apply h,
-  convert p.roots.to_finset.finite_to_set using 1,
-  ext1 r,
-  simp only [mem_roots hp, multiset.mem_to_finset, set.mem_set_of_eq, finset.mem_coe]
-end
-
-lemma eq_of_infinite_eval_eq {R : Type*} [integral_domain R]
-  (p q : polynomial R) (h : set.infinite {x | eval x p = eval x q}) : p = q :=
-begin
-  rw [← sub_eq_zero],
-  apply eq_zero_of_infinite_is_root,
-  simpa only [is_root, eval_sub, sub_eq_zero]
-end
-
 end roots
 
 theorem is_unit_iff {f : polynomial R} : is_unit f ↔ ∃ r : R, is_unit r ∧ C r = f :=

@@ -364,7 +364,7 @@ end
 theorem gcd_pow_left_dvd_pow_gcd {a b : α} {k : ℕ} : gcd (a ^ k) b ∣ (gcd a b) ^ k :=
 by { rw [gcd_comm, gcd_comm a b], exact gcd_pow_right_dvd_pow_gcd }
 
-private theorem dvd_pow_of_mul_eq_pow {a b c d₁ d₂ : α} (ha : a ≠ 0)
+theorem pow_dvd_of_mul_eq_pow {a b c d₁ d₂ : α} (ha : a ≠ 0)
   (hab : gcd a b = 1) {k : ℕ} (hk : k ≠ 0) (h : a * b = c ^ k) (hc : c = d₁ * d₂)
   (hd₁ : d₁ ∣ a) (hd₂ : d₂ ∣ b) : d₁ ^ k ≠ 0 ∧ d₁ ^ k ∣ a :=
 begin
@@ -374,7 +374,7 @@ begin
     transitivity (gcd d₁ b) ^ k,
     { exact gcd_pow_left_dvd_pow_gcd },
     { apply is_unit.dvd, apply is_unit.pow, apply is_unit_of_dvd_one,
-      rw ← hab, apply gcd_dvd_gcd hd₁ (dvd_refl b) }},
+      rw ← hab, apply gcd_dvd_gcd hd₁ (dvd_refl b) } },
   have h2 : d₁ ^ k ∣ a * b, { use d₂ ^ k, rw [h, hc], exact mul_pow d₁ d₂ k },
   rw mul_comm at h2,
   have h3 : d₁ ^ k ∣ a, { rw [← one_mul a, ← h1], apply dvd_gcd_mul_of_dvd_mul h2 },
@@ -383,7 +383,7 @@ begin
   tauto
 end
 
-theorem associated_pow_of_mul_eq_pow {a b c : α} (ha : a ≠ 0) (hb : b ≠ 0)
+theorem exists_associated_pow_of_mul_eq_pow {a b c : α} (ha : a ≠ 0) (hb : b ≠ 0)
   (hab : gcd a b = 1) {k : ℕ} (h : a * b = c ^ k) :
   ∃ (d : α), associated (d ^ k) a :=
 begin
@@ -400,8 +400,7 @@ begin
   have h' : a' * b' = 1,
   { apply (mul_right_inj' h0₁).mp, rw mul_one,
     apply (mul_right_inj' h0₂).mp, rw ← h,
-    rw [mul_assoc, mul_comm a', ← mul_assoc (d₁ ^ k), ← mul_assoc _ (d₁ ^ k), mul_comm b']
-  },
+    rw [mul_assoc, mul_comm a', ← mul_assoc (d₁ ^ k), ← mul_assoc _ (d₁ ^ k), mul_comm b'] },
   use units.mk_of_mul_eq_one _ _ h',
   rw [units.coe_mk_of_mul_eq_one, ha']
 end

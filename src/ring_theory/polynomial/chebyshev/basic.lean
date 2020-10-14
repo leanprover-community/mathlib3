@@ -4,25 +4,21 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import ring_theory.polynomial.basic
+import ring_theory.polynomial.chebyshev.defs
+import analysis.special_functions.trigonometric
 import ring_theory.localization
 import data.zmod.basic
-import analysis.special_functions.trigonometric
 import algebra.invertible
 
 /-!
 # Chebyshev polynomials
 
-The Chebyshev polynomials are two families of polynomials indexed by `ℕ`, with integral coefficients.
+The Chebyshev polynomials are two families of polynomials indexed by `ℕ`,
+with integral coefficients.
 In this file, we only consider Chebyshev polynomials of the first kind.
 
 ## Main declarations
 
-* `polynomial.chebyshev₁`: the Chebyshev polynomials of the first kind.
-* `polynomial.lambdashev`: a variant on the Chebyshev polynomials that define a Lambda structure
-  on `polynomial ℤ`.
-* `polynomial.chebyshev₁_complex_cos`: the `n`-th Chebyshev polynomial evaluates on `complex.cos θ`
-  to the value `n * complex.cos θ`.
 * `polynomial.chebyshev₁_mul`, the `(m * n)`-th Chebyshev polynomial is the composition
   of the `m`-th and `n`-th Chebyshev polynomials.
 * `polynomial.lambdashev_mul`, the `(m * n)`-th lambdashev polynomial is the composition
@@ -38,9 +34,6 @@ technically `ℤ` would suffice.
 The benefit of allowing arbitrary coefficient rings, is that the statements afterwards are clean,
 and do not have `map (int.cast_ring_hom R)` interfering all the time.
 
-## TODO
-
-Add Chebyshev polynomials of the second kind.
 
 -/
 
@@ -49,67 +42,6 @@ noncomputable theory
 namespace polynomial
 
 variables (R S : Type*) [comm_ring R] [comm_ring S]
-
-/-- `chebyshev₁ n` is the `n`-th Chebyshev polynomial of the first kind -/
-noncomputable def chebyshev₁ : ℕ → polynomial R
-| 0       := 1
-| 1       := X
-| (n + 2) := 2 * X * chebyshev₁ (n + 1) - chebyshev₁ n
-
-@[simp] lemma chebyshev₁_zero : chebyshev₁ R 0 = 1 := rfl
-@[simp] lemma chebyshev₁_one : chebyshev₁ R 1 = X := rfl
-lemma chebyshev₁_two : chebyshev₁ R 2 = 2 * X ^ 2 - 1 :=
-by simp only [chebyshev₁, sub_left_inj, pow_two, mul_assoc]
-@[simp] lemma chebyshev₁_add_two (n : ℕ) :
-  chebyshev₁ R (n + 2) = 2 * X * chebyshev₁ R (n + 1) - chebyshev₁ R n :=
-by rw chebyshev₁
-
-lemma chebyshev₁_two_le (n : ℕ) (h : 2 ≤ n) :
-  chebyshev₁ R n = 2 * X * chebyshev₁ R (n - 1) - chebyshev₁ R (n - 2) :=
-begin
-  obtain ⟨n, rfl⟩ := nat.exists_eq_add_of_le h,
-  rw add_comm,
-  exact chebyshev₁_add_two R n
-end
-
-variables {R S}
-
-lemma map_chebyshev₁ (f : R →+* S) :
-  ∀ (n : ℕ), map f (chebyshev₁ R n) = chebyshev₁ S n
-| 0       := by simp only [chebyshev₁_zero, map_one]
-| 1       := by simp only [chebyshev₁_one, map_X]
-| (n + 2) :=
-begin
-  simp only [chebyshev₁_add_two, map_mul, map_sub, map_X, bit0, map_add, map_one],
-  rw [map_chebyshev₁ (n + 1), map_chebyshev₁ n],
-end
-
-variables (R)
-
-section complex
-open complex
-
-/-- the `n`-th Chebyshev polynomial evaluates on `cos θ` to the value `cos (n * θ)`. -/
-lemma chebyshev₁_complex_cos (θ : ℂ) :
-  ∀ n, (chebyshev₁ ℂ n).eval (cos θ) = cos (n * θ)
-| 0       := by simp only [chebyshev₁_zero, eval_one, nat.cast_zero, zero_mul, cos_zero]
-| 1       := by simp only [eval_X, one_mul, chebyshev₁_one, nat.cast_one]
-| (n + 2) :=
-begin
-  simp only [eval_X, eval_one, chebyshev₁_add_two, eval_sub, eval_bit0, nat.cast_succ, eval_mul],
-  rw [chebyshev₁_complex_cos (n + 1), chebyshev₁_complex_cos n],
-  have aux : sin θ * sin θ = 1 - cos θ * cos θ,
-  { rw ← sin_sq_add_cos_sq θ, ring, },
-  simp only [nat.cast_add, nat.cast_one, add_mul, cos_add, one_mul, sin_add, mul_assoc, aux],
-  ring,
-end
-
-/-- `cos (n * θ)` is equal to the `n`-th Chebyshev polynomial evaluated on `cos θ`. -/
-@[simp] lemma cos_nat_mul (n : ℕ) (θ : ℂ) :
-  cos (n * θ) = (chebyshev₁ ℂ n).eval (cos θ) :=
-(chebyshev₁_complex_cos θ n).symm
-
-end complex
 
 /-- The `(m * n)`-th Chebyshev polynomial is the composition of the `m`-th and `n`-th -/
 lemma chebyshev₁_mul (m n : ℕ) :
@@ -137,41 +69,7 @@ There is exactly one other Lambda structure on `polynomial ℤ` in terms of bino
 
 -/
 
-/-- `lambdashev R n` is equal to `2 * (chebyshev₁ R n).comp (X / 2)`.
-It is a family of polynomials that satisfies
-`lambdashev (zmod p) p = X ^ p`, and therefore defines a Lambda structure on `polynomial ℤ`. -/
-noncomputable def lambdashev : ℕ → polynomial R
-| 0       := 2
-| 1       := X
-| (n + 2) := X * lambdashev (n + 1) - lambdashev n
-
-@[simp] lemma lambdashev_zero : lambdashev R 0 = 2 := rfl
-@[simp] lemma lambdashev_one : lambdashev R 1 = X := rfl
-lemma lambdashev_two : lambdashev R 2 = X ^ 2 - 2 :=
-by simp only [lambdashev, sub_left_inj, pow_two, mul_assoc]
-@[simp] lemma lambdashev_add_two (n : ℕ) :
-  lambdashev R (n + 2) = X * lambdashev R (n + 1) - lambdashev R n :=
-by rw lambdashev
-
-lemma lambdashev_two_le (n : ℕ) (h : 2 ≤ n) :
-  lambdashev R n = X * lambdashev R (n - 1) - lambdashev R (n - 2) :=
-begin
-  obtain ⟨n, rfl⟩ := nat.exists_eq_add_of_le h,
-  rw add_comm,
-  exact lambdashev_add_two R n
-end
-
-variables {R S}
-
-lemma map_lambdashev (f : R →+* S) :
-  ∀ (n : ℕ), map f (lambdashev R n) = lambdashev S n
-| 0       := by simp only [lambdashev_zero, bit0, map_add, map_one]
-| 1       := by simp only [lambdashev_one, map_X]
-| (n + 2) :=
-begin
-  simp only [lambdashev_add_two, map_mul, map_sub, map_X, bit0, map_add, map_one],
-  rw [map_lambdashev (n + 1), map_lambdashev n],
-end
+variables {R}
 
 lemma lambdashev_eval_add_inv (x y : R) (h : x * y = 1) :
   ∀ n, (lambdashev R n).eval (x + y) = x ^ n + y ^ n
@@ -189,11 +87,8 @@ variables (R)
 lemma lambdashev_eq_chebyshev₁ [invertible (2 : R)] :
   ∀ n, lambdashev R n = 2 * (chebyshev₁ R n).comp (C (⅟2) * X)
 | 0       := by simp only [chebyshev₁_zero, mul_one, one_comp, lambdashev_zero]
-| 1       :=
-begin
-  simp only [one_div, X_comp, lambdashev_one, chebyshev₁_one, ← C_bit0, ← C_1, ← C_mul, ← mul_assoc],
-  rw [mul_inv_of_self, C_1, one_mul],
-end
+| 1       := by rw [lambdashev_one, chebyshev₁_one, X_comp, ← mul_assoc, ← C_1, ← C_bit0, ← C_mul,
+                    mul_inv_of_self, C_1, one_mul]
 | (n + 2) :=
 begin
   simp only [lambdashev_add_two, chebyshev₁_add_two,
@@ -219,7 +114,8 @@ begin
   simp only [← map_lambdashev (int.cast_ring_hom R), ← map_comp],
   congr' 1,
   apply map_injective (int.cast_ring_hom ℚ) int.cast_injective,
-  simp only [map_lambdashev, map_comp, lambdashev_eq_chebyshev₁, chebyshev₁_mul, two_mul, ← add_comp],
+  simp only [map_lambdashev, map_comp, lambdashev_eq_chebyshev₁, chebyshev₁_mul, two_mul,
+    ← add_comp],
   simp only [← two_mul, ← comp_assoc],
   apply eval₂_congr rfl rfl,
   rw [comp_assoc],
@@ -242,7 +138,7 @@ begin
   obtain ⟨K, _, _, H⟩ : ∃ (K : Type) [field K], by exactI ∃ [char_p K p], infinite K,
   { let K := fraction_ring (polynomial (zmod p)),
     let f : zmod p →+* K := (fraction_ring.of _).to_map.comp C,
-    haveI : char_p K p := by { rw ← char_p.char_field_eq_char_field f, apply_instance },
+    haveI : char_p K p := by { rw ← f.char_p_iff_char_p, apply_instance },
     haveI : infinite K := by { apply infinite.of_injective _ (fraction_ring.of _).injective, apply_instance },
     refine ⟨K, _, _, _⟩; apply_instance },
   resetI,

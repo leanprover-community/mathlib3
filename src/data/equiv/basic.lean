@@ -594,9 +594,13 @@ def option_equiv_sum_punit (α : Type*) : option α ≃ α ⊕ punit.{u+1} :=
  λ o, by cases o; refl,
  λ s, by rcases s with _ | ⟨⟨⟩⟩; refl⟩
 
-@[simp] lemma option_equiv_sum_punit_none {α} : option_equiv_sum_punit α none = sum.inr () := rfl
+@[simp] lemma option_equiv_sum_punit_none {α} :
+  option_equiv_sum_punit α none = sum.inr punit.star := rfl
 @[simp] lemma option_equiv_sum_punit_some {α} (a) :
   option_equiv_sum_punit α (some a) = sum.inl a := rfl
+
+@[simp] lemma option_equiv_sum_punit_coe {α} (a : α) :
+  option_equiv_sum_punit α a = sum.inl a := rfl
 
 @[simp] lemma option_equiv_sum_punit_symm_inl {α} (a) :
   (option_equiv_sum_punit α).symm (sum.inl a) = a :=
@@ -1270,6 +1274,22 @@ protected def insert {α} {s : set.{u} α} [decidable_pred s] {a : α} (H : a �
 calc (insert a s : set α) ≃ ↥(s ∪ {a}) : equiv.set.of_eq (by simp)
 ... ≃ s ⊕ ({a} : set α) : equiv.set.union (by finish [set.subset_def])
 ... ≃ s ⊕ punit.{u+1} : sum_congr (equiv.refl _) (equiv.set.singleton _)
+
+@[simp] lemma insert_symm_apply_inl {α} {s : set.{u} α} [decidable_pred s] {a : α} (H : a ∉ s)
+  (b : s) : (equiv.set.insert H).symm (sum.inl b) = ⟨b, or.inr b.2⟩ :=
+rfl
+
+@[simp] lemma insert_symm_apply_inr {α} {s : set.{u} α} [decidable_pred s] {a : α} (H : a ∉ s)
+  (b : punit.{u+1}) : (equiv.set.insert H).symm (sum.inr b) = ⟨a, or.inl rfl⟩ :=
+rfl
+
+@[simp] lemma insert_apply_left {α} {s : set.{u} α} [decidable_pred s] {a : α} (H : a ∉ s) :
+  equiv.set.insert H ⟨a, or.inl rfl⟩ = sum.inr punit.star :=
+(equiv.set.insert H).apply_eq_iff_eq_symm_apply.2 rfl
+
+@[simp] lemma insert_apply_right {α} {s : set.{u} α} [decidable_pred s] {a : α} (H : a ∉ s)
+  (b : s) : equiv.set.insert H ⟨b, or.inr b.2⟩ = sum.inl b :=
+(equiv.set.insert H).apply_eq_iff_eq_symm_apply.2 rfl
 
 /-- If `s : set α` is a set with decidable membership, then `s ⊕ sᶜ` is equivalent to `α`. -/
 protected def sum_compl {α} (s : set α) [decidable_pred s] : s ⊕ (sᶜ : set α) ≃ α :=

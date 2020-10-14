@@ -237,7 +237,7 @@ then
   end,
   have hdiv0 : p /ₘ (X - C x) ≠ 0 := mt (div_by_monic_eq_zero_iff (monic_X_sub_C x)
     (ne_zero_of_monic (monic_X_sub_C x))).1 $ not_lt.2 hdeg,
-  ⟨x :: t, calc (card (x :: t) : with_bot ℕ) = t.card + 1 :
+  ⟨x ::ₘ t, calc (card (x ::ₘ t) : with_bot ℕ) = t.card + 1 :
       by exact_mod_cast card_cons _ _
     ... ≤ degree p :
       by rw [← degree_add_div_by_monic (monic_X_sub_C x) hdeg,
@@ -321,7 +321,7 @@ multiset.ext.mpr $ λ r,
     not_le_of_gt hp0 $ h.symm ▸ degree_C_le)).trans
   (by rw [is_root.def, eval_sub, eval_C, sub_eq_zero])
 
-@[simp] lemma roots_X_sub_C (r : R) : roots (X - C r) = r :: 0 :=
+@[simp] lemma roots_X_sub_C (r : R) : roots (X - C r) = r ::ₘ 0 :=
 begin
   ext s,
   rw [count_roots (X_sub_C_ne_zero r), root_multiplicity_X_sub_C],

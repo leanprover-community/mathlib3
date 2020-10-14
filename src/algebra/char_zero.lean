@@ -61,6 +61,7 @@ end
 
 end nat
 
+@[priority 100] -- see Note [lower instance priority]
 instance char_zero.infinite (α : Type*) [add_monoid α] [has_one α] [char_zero α] : infinite α :=
 infinite.of_injective coe nat.cast_injective
 

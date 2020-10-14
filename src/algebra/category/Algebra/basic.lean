@@ -71,6 +71,7 @@ variables {R} {M N U : Module.{v} R}
   ((f ≫ g) : M → U) = g ∘ f := rfl
 
 variables (R)
+/-- The "free algebra" functor, sending a type `S` to the free algebra on `S`. -/
 @[simps]
 def free : Type* ⥤ Algebra R :=
 { obj := λ S,
@@ -78,6 +79,7 @@ def free : Type* ⥤ Algebra R :=
     is_ring := algebra.semiring_to_ring R },
   map := λ S T f, free_algebra.lift _ $ (free_algebra.ι _) ∘ f }
 
+/-- The free/forget ajunction for `R`-algebras. -/
 def adj : free R ⊣ forget (Algebra R) :=
 { hom_equiv := λ X A,
   { to_fun := λ f, f ∘ (free_algebra.ι _),

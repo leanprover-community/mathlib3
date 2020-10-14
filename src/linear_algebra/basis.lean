@@ -104,7 +104,7 @@ lemma is_basis.total_comp_repr : (finsupp.total ι M R v).comp hv.repr = linear_
 linear_map.ext hv.total_repr
 
 lemma is_basis.ext {f g : M →ₗ[R] M'} (hv : is_basis R v) (h : ∀i, f (v i) = g (v i)) : f = g :=
-linear_map.ext_on hv.2 h
+linear_map.ext_on_range hv.2 h
 
 lemma is_basis.repr_ker : hv.repr.ker = ⊥ :=
 linear_map.ker_eq_bot.2 $ left_inverse.injective hv.total_repr

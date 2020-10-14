@@ -424,6 +424,18 @@ decidable.le_iff_le_iff_lt_iff_lt.2 $ mul_lt_mul_left h
 @[simp] lemma decidable.mul_le_mul_right (h : 0 < c) : a * c ≤ b * c ↔ a ≤ b :=
 decidable.le_iff_le_iff_lt_iff_lt.2 $ mul_lt_mul_right h
 
+lemma mul_max_of_nonneg (b c : α) (ha : 0 ≤ a) : a * max b c = max (a * b) (a * c) :=
+(monotone_mul_left_of_nonneg ha).map_max
+
+lemma mul_min_of_nonneg (b c : α) (ha : 0 ≤ a) : a * min b c = min (a * b) (a * c) :=
+(monotone_mul_left_of_nonneg ha).map_min
+
+lemma max_mul_of_nonneg (a b : α) (hc : 0 ≤ c) : max a b * c = max (a * c) (b * c) :=
+(monotone_mul_right_of_nonneg hc).map_max
+
+lemma min_mul_of_nonneg (a b : α) (hc : 0 ≤ c) : min a b * c = min (a * c) (b * c) :=
+(monotone_mul_right_of_nonneg hc).map_min
+
 end decidable_linear_ordered_semiring
 
 /-- An `ordered_ring α` is a ring `α` with a partial order such that
@@ -691,38 +703,30 @@ let s : linear_ordered_semiring α := @linear_ordered_ring.to_linear_ordered_sem
   ..d }
 
 section decidable_linear_ordered_comm_ring
-variables [decidable_linear_ordered_comm_ring α] {a b c : α}
+
+variables [decidable_linear_ordered_comm_ring α] {a b c d : α}
+
+@[simp] lemma abs_one : abs (1 : α) = 1 := abs_of_pos zero_lt_one
+
+lemma max_mul_mul_le_max_mul_max (b c : α) (ha : 0 ≤ a) (hd: 0 ≤ d) :
+  max (a * b) (d * c) ≤ max a c * max d b :=
+have ba : b * a ≤ max d b * max c a,
+  from mul_le_mul (le_max_right d b) (le_max_right c a) ha (le_trans hd (le_max_left d b)),
+have cd : c * d ≤ max a c * max b d,
+  from mul_le_mul (le_max_right a c) (le_max_right b d) hd (le_trans ha (le_max_left a c)),
+max_le
+  (by simpa [mul_comm, max_comm] using ba)
+  (by simpa [mul_comm, max_comm] using cd)
 
 lemma abs_mul (a b : α) : abs (a * b) = abs a * abs b :=
-or.elim (le_total 0 a)
- (assume h1 : 0 ≤ a,
-   or.elim (le_total 0 b)
-      (assume h2 : 0 ≤ b,
-        calc
-          abs (a * b) = a * b         : abs_of_nonneg (mul_nonneg h1 h2)
-                  ... = abs a * b     : by rw (abs_of_nonneg h1)
-                  ... = abs a * abs b : by rw (abs_of_nonneg h2))
-      (assume h2 : b ≤ 0,
-        calc
-          abs (a * b) = -(a * b)      : abs_of_nonpos (mul_nonpos_of_nonneg_of_nonpos h1 h2)
-                  ... = a * -b        : by rw neg_mul_eq_mul_neg
-                  ... = abs a * -b    : by rw (abs_of_nonneg h1)
-                  ... = abs a * abs b : by rw (abs_of_nonpos h2)))
-  (assume h1 : a ≤ 0,
-    or.elim (le_total 0 b)
-      (assume h2 : 0 ≤ b,
-        calc
-          abs (a * b) = -(a * b)      : abs_of_nonpos (mul_nonpos_of_nonpos_of_nonneg h1 h2)
-                  ... = -a * b        : by rw neg_mul_eq_neg_mul
-                  ... = abs a * b     : by rw (abs_of_nonpos h1)
-                  ... = abs a * abs b : by rw (abs_of_nonneg h2))
-      (assume h2 : b ≤ 0,
-        calc
-          abs (a * b) = a * b         : abs_of_nonneg (mul_nonneg_of_nonpos_of_nonpos h1 h2)
-                  ... = -a * -b       : by rw neg_mul_neg
-                  ... = abs a * -b    : by rw (abs_of_nonpos h1)
-                  ... = abs a * abs b : by rw (abs_of_nonpos h2)))
+begin
+  rw [abs_eq (mul_nonneg (abs_nonneg a) (abs_nonneg b))],
+  cases le_total a 0 with ha ha; cases le_total b 0 with hb hb;
+    simp [abs_of_nonpos, abs_of_nonneg, *]
+end
 
+/-- `abs` as a `monoid_hom`. -/
+def abs_hom : α →* α := ⟨abs, abs_one, abs_mul⟩
 
 lemma abs_mul_abs_self (a : α) : abs a * abs a = a * a :=
 abs_by_cases (λ x, x * x = a * a) rfl (neg_mul_neg a a)
@@ -753,7 +757,6 @@ else
   have habs' : b < c + a, from lt_add_of_sub_right_lt habs,
   sub_left_lt_of_lt_add habs'
 
-
 lemma sub_lt_of_abs_sub_lt_right (h : abs (a - b) < c) : a - c < b :=
 sub_lt_of_abs_sub_lt_left (abs_sub a b ▸ h)
 
@@ -768,20 +771,6 @@ have a * a ≤ (0 : α), from calc
   a * a ≤ a * a + b * b : le_add_of_nonneg_right (mul_self_nonneg b)
     ... = 0             : h,
 eq_zero_of_mul_self_eq_zero (le_antisymm this (mul_self_nonneg a))
-
-lemma abs_abs_sub_abs_le_abs_sub (a b : α) : abs (abs a - abs b) ≤ abs (a - b) :=
-begin
-  apply nonneg_le_nonneg_of_squares_le,
-  apply abs_nonneg,
-  iterate {rw abs_sub_square},
-  iterate {rw abs_mul_abs_self},
-  apply sub_le_sub_left,
-  iterate {rw mul_assoc},
-  apply mul_le_mul_of_nonneg_left,
-  { rw [← abs_mul],
-    apply le_abs_self },
-  { exact (add_pos (@zero_lt_one α _) zero_lt_one).le }
-end
 
 -- The proof doesn't need commutativity but we have no `decidable_linear_ordered_ring`
 @[simp] lemma abs_two : abs (2:α) = 2 :=
@@ -807,8 +796,10 @@ namespace nonneg_ring
 open nonneg_add_comm_group
 variable [nonneg_ring α]
 
-@[priority 100] -- see Note [lower instance priority]
-instance to_ordered_ring : ordered_ring α :=
+/-- Construct `ordered_ring` from `nonneg_ring`. This is not an instance
+because it is not used in `mathlib`. -/
+local attribute [instance]
+def to_ordered_ring : ordered_ring α :=
 { zero_lt_one := begin dsimp [(<), preorder.lt, partial_order.lt], convert one_pos, exact sub_zero _, end,
   mul_pos := λ a b, by simp [pos_def.symm]; exact mul_pos,
   ..‹nonneg_ring α›, ..(infer_instance : ordered_add_comm_group α) }
@@ -854,13 +845,17 @@ instance to_nonneg_ring : nonneg_ring α :=
       (ne_of_gt (pos_def.1 pb))⟩,
   ..‹linear_nonneg_ring α› }
 
-@[priority 100] -- see Note [lower instance priority]
-instance to_linear_order : linear_order α :=
+/-- Construct `linear_order` from `linear_nonneg_ring`. This is not an instance
+because we don't use it in `mathlib`. -/
+local attribute [instance]
+def to_linear_order : linear_order α :=
 { le_total := nonneg_total_iff.1 nonneg_total,
   ..‹linear_nonneg_ring α›, ..(infer_instance : ordered_add_comm_group α) }
 
-@[priority 100] -- see Note [lower instance priority]
-instance to_linear_ordered_ring : linear_ordered_ring α :=
+/-- Construct `linear_ordered_ring` from `linear_nonneg_ring`.
+This is not an instance because we don't use it in `mathlib`. -/
+local attribute [instance]
+def to_linear_ordered_ring : linear_ordered_ring α :=
 { mul_pos := by simp [pos_def.symm]; exact @nonneg_ring.mul_pos _ _,
   zero_lt_one := lt_of_not_ge $ λ (h : nonneg (0 - 1)), begin
     rw [zero_sub] at h,

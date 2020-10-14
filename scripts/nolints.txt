@@ -92,21 +92,6 @@ apply_nolint traversable.mfoldl doc_blame
 apply_nolint traversable.mfoldl.unop_of_free_monoid unused_arguments
 apply_nolint traversable.mfoldr doc_blame
 
--- control/functor.lean
-apply_nolint functor.add_const doc_blame has_inhabited_instance
-apply_nolint functor.add_const.mk doc_blame
-apply_nolint functor.add_const.run doc_blame
-apply_nolint functor.comp has_inhabited_instance
-apply_nolint functor.comp.map doc_blame
-apply_nolint functor.comp.mk doc_blame
-apply_nolint functor.comp.run doc_blame
-apply_nolint functor.comp.seq doc_blame
-apply_nolint functor.const has_inhabited_instance
-apply_nolint functor.const.mk doc_blame
-apply_nolint functor.const.mk' doc_blame
-apply_nolint functor.const.run doc_blame
-apply_nolint id.mk doc_blame
-
 -- control/monad/cont.lean
 apply_nolint cont doc_blame
 apply_nolint cont_t doc_blame has_inhabited_instance
@@ -269,9 +254,6 @@ apply_nolint fp.rmode doc_blame
 apply_nolint fp.to_rat doc_blame
 apply_nolint fp.valid_finite doc_blame
 apply_nolint int.shift2 doc_blame
-
--- data/hash_map.lean
-apply_nolint hash_map has_inhabited_instance
 
 -- data/holor.lean
 apply_nolint holor.assoc_left doc_blame

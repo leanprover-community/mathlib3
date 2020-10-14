@@ -880,7 +880,7 @@ end
 
 lemma neg_part_to_fun_eq_min (f : α →₁[μ] ℝ) : ∀ᵐ a ∂μ, neg_part f a = - min (f a) 0 :=
 (neg_part_to_fun_eq_max f).mono $ assume a h,
-by rw [h, min_eq_neg_max_neg_neg, _root_.neg_neg, neg_zero]
+by rw [h, ← max_neg_neg, neg_zero]
 
 lemma norm_le_norm_of_ae_le {f g : α →₁[μ] β} (h : ∀ᵐ a ∂μ, ∥f a∥ ≤ ∥g a∥) : ∥f∥ ≤ ∥g∥ :=
 begin

@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import algebra.algebra.basic
 import algebra.algebra.subalgebra
+import algebra.free_algebra
 import algebra.category.CommRing.basic
 import algebra.category.Module.basic
 
@@ -68,6 +69,25 @@ variables {R} {M N U : Module.{v} R}
 
 @[simp] lemma coe_comp (f : M ⟶ N) (g : N ⟶ U) :
   ((f ≫ g) : M → U) = g ∘ f := rfl
+
+variables (R)
+@[simps]
+def free : Type* ⥤ Algebra R :=
+{ obj := λ S,
+  { carrier := free_algebra R S,
+    is_ring := algebra.semiring_to_ring R },
+  map := λ S T f, free_algebra.lift _ $ (free_algebra.ι _) ∘ f }
+
+def adj : free R ⊣ forget (Algebra R) :=
+{ hom_equiv := λ X A,
+  { to_fun := λ f, f ∘ (free_algebra.ι _),
+    inv_fun := λ f, free_algebra.lift _ f,
+    left_inv := by tidy,
+    right_inv := by tidy },
+  unit := { app := λ S, free_algebra.ι _ },
+  counit :=
+  { app := λ S, free_algebra.lift _ $ id,
+    naturality' := by {intros, ext, simp} } } -- tidy times out :(
 
 end Algebra
 

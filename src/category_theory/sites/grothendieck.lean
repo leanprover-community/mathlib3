@@ -144,6 +144,30 @@ lemma arrow_intersect (f : Y ⟶ X) (S R : sieve X) (hS : J.covers S f) (hR : J.
   J.covers (S ⊓ R) f :=
 by simpa [covers_iff] using and.intro hS hR
 
+variable (C)
+/-- The trivial Grothendieck topology, in which only the maximal sieve is covering. -/
+def trivial : grothendieck_topology C :=
+{ sieves := λ X, {⊤},
+  top_mem' := λ X, rfl,
+  pullback_stable' := λ X Y S f hf,
+  begin
+    rw set.mem_singleton_iff at ⊢ hf,
+    simp [hf],
+  end,
+  transitive' := λ X S hS R hR,
+  begin
+    rw [set.mem_singleton_iff, ← sieve.id_mem_iff_eq_top] at hS,
+    simpa using hR hS,
+  end }
+
+/-- The discrete Grothendieck topology, in which every sieve is covering. -/
+def discrete : grothendieck_topology C :=
+{ sieves := λ X, set.univ,
+  top_mem' := by simp,
+  pullback_stable' := λ X Y f, by simp,
+  transitive' := by simp }
+variable {C}
+
 instance : partial_order (grothendieck_topology C) :=
 { le := λ J₁ J₂, (J₁ : Π (X : C), set (sieve X)) ≤ (J₂ : Π (X : C), set (sieve X)),
   le_refl := λ J₁, le_refl _,
@@ -169,51 +193,48 @@ instance : has_Inf (grothendieck_topology C) :=
       apply J.transitive (hS _ ⟨⟨_, _, hJ, rfl⟩, rfl⟩) _ (λ Y f hf, h hf _ ⟨⟨_, _, hJ, rfl⟩, rfl⟩),
     end } }
 
-instance : complete_lattice (grothendieck_topology C) :=
-complete_lattice_of_Inf _
+lemma is_glb_Inf (s : set (grothendieck_topology C)) : is_glb s (Inf s) :=
 begin
-  intro T,
   refine @is_glb.of_image _ _ _ _ sieves _ _ _ _,
   { intros, refl },
   { exact is_glb_Inf _ },
 end
 
-variable (C)
-/-- The trivial Grothendieck topology, in which only the maximal sieve is covering. -/
-def trivial : grothendieck_topology C :=
-{ sieves := λ X, {⊤},
-  top_mem' := λ X, rfl,
-  pullback_stable' := λ X Y S f hf,
-  begin
-    rw set.mem_singleton_iff at ⊢ hf,
-    simp [hf],
-  end,
-  transitive' := λ X S hS R hR,
-  begin
-    rw [set.mem_singleton_iff, ← sieve.id_mem_iff_eq_top] at hS,
-    simpa using hR hS,
-  end }
-
-/-- The discrete Grothendieck topology, in which every sieve is covering. -/
-def discrete : grothendieck_topology C :=
-{ sieves := λ X, set.univ,
-  top_mem' := by simp,
-  pullback_stable' := λ X Y f, by simp,
-  transitive' := by simp }
-variable {C}
-
 lemma trivial_covering : S ∈ trivial C X ↔ S = ⊤ := set.mem_singleton_iff
 
-lemma trivial_covers (S : sieve X) (f : Y ⟶ X) : (trivial C).covers S f ↔ S.arrows f :=
-by rw [covers_iff, trivial_covering, ← sieve.pullback_eq_top_iff_mem]
+instance : complete_lattice (grothendieck_topology C) :=
+complete_lattice.copy
+(complete_lattice_of_Inf _ is_glb_Inf)
+_ rfl
+(discrete C)
+(begin
+  apply le_antisymm,
+  { exact @complete_lattice.le_top _ (complete_lattice_of_Inf _ is_glb_Inf) (discrete C) },
+  { intros X S hS,
+    apply set.mem_univ },
+end)
+(trivial C)
+(begin
+  apply le_antisymm,
+  { intros X S hS,
+    rw trivial_covering at hS,
+    apply covering_of_eq_top _ hS },
+  { refine @complete_lattice.bot_le _ (complete_lattice_of_Inf _ is_glb_Inf) (trivial C) },
+end)
+_ rfl
+_ rfl
+_ rfl
+Inf rfl
 
-lemma trivial_eq_bot : trivial C = ⊥ :=
-begin
-  rw ← le_bot_iff,
-  intros X S hS,
-  rw trivial_covering at hS,
-  apply covering_of_eq_top _ hS,
-end
+@[simp] lemma bot_eq_trivial : trivial C = ⊥ := rfl
+
+@[simp] lemma discrete_eq_top : discrete C = ⊤ := rfl
+
+@[simp] lemma bot_covering : S ∈ (⊥ : grothendieck_topology C) X ↔ S = ⊤ := trivial_covering
+
+lemma bot_covers (S : sieve X) (f : Y ⟶ X) :
+  (⊥ : grothendieck_topology C).covers S f ↔ S.arrows f :=
+by rw [covers_iff, bot_covering, ← sieve.pullback_eq_top_iff_mem]
 
 lemma discrete_eq_top : discrete C = ⊤ := top_unique (λ X S hS, set.mem_univ _)
 

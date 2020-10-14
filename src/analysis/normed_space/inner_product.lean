@@ -419,7 +419,7 @@ by rw [←inner_conj_sym, inner_smul_left, ring_hom.map_mul, conj_conj, inner_co
 lemma real_inner_smul_right {x y : F} {r : ℝ} : ⟪x, r • y⟫_ℝ = r * ⟪x, y⟫_ℝ := inner_smul_right
 
 /-- The inner product as a sesquilinear form. -/
-def sesq_form_of_inner : sesq_form 𝕜 E conj_to_ring_equiv :=
+def sesq_form_of_inner : sesq_form 𝕜 E (conj_to_ring_equiv 𝕜) :=
 { sesq := λ x y, ⟪y, x⟫,    -- Note that sesquilinear forms are linear in the first argument
   sesq_add_left := λ x y z, inner_add_right,
   sesq_add_right := λ x y z, inner_add_left,

@@ -178,6 +178,7 @@ begin
   { rintros ⟨r, rfl⟩, apply conj_of_real }
 end
 
+variables (K)
 /-- Conjugation as a ring equivalence. This is used to convert the inner product into a
 sesquilinear product. -/
 def conj_to_ring_equiv : K ≃+* Kᵒᵖ :=
@@ -187,6 +188,10 @@ def conj_to_ring_equiv : K ≃+* Kᵒᵖ :=
   right_inv := λ x, by simp only [conj_conj, opposite.op_unop, function.comp_app],
   map_mul' := λ x y, by simp [mul_comm],
   map_add' := λ x y, by simp }
+
+variables {K}
+
+@[simp] lemma ring_equiv_apply {x : K} : (conj_to_ring_equiv K x).unop = x† := rfl
 
 lemma eq_conj_iff_re {z : K} : conj z = z ↔ 𝓚 (re z) = z :=
 eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩

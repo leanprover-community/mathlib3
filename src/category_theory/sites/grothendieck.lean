@@ -243,7 +243,7 @@ _ rfl
 _ rfl
 Inf rfl
 
-@[simp] lemma bot_eq_trivial : trivial C = ⊥ := rfl
+@[simp] lemma trivial_eq_bot : trivial C = ⊥ := rfl
 
 @[simp] lemma discrete_eq_top : discrete C = ⊤ := rfl
 

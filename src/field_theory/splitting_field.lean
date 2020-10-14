@@ -360,8 +360,8 @@ begin
   exact eq_of_monic_of_associated hprodmonic hmonic hassoc
 end
 
-/--A polynomial `p` that has as much roots as its degree
-can be written `p = p.leading_coeff * ∏(X - a)`, for `a` in `p.roots`-/
+/-- A polynomial `p` that has as much roots as its degree
+can be written `p = p.leading_coeff * ∏(X - a)`, for `a` in `p.roots`. -/
 lemma C_leading_coeff_mul_prod_multiset_X_sub_C {p : polynomial α} (hzero : p ≠ 0)
   (hroots : p.roots.card = p.nat_degree) :
   (C p.leading_coeff) * (multiset.map (λ (a : α), X - C a) p.roots).prod = p :=

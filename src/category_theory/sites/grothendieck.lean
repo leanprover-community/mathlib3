@@ -259,9 +259,9 @@ def dense : grothendieck_topology C :=
 instance : inhabited (grothendieck_topology C) := ⟨dense⟩
 
 /--
-A category satisfies the right Ore condition if any span can be completed to a
-commutative square.
-NB. Any category with pullbacks obviously satisfies the right Ore condition.
+A category satisfies the right Ore condition if any span can be completed to a commutative square.
+NB. Any category with pullbacks obviously satisfies the right Ore condition, see
+`right_ore_of_pullbacks`.
 -/
 def right_ore_condition (C : Type u) [category.{v} C] : Prop :=
 ∀ {X Y Z : C} (yx : Y ⟶ X) (zx : Z ⟶ X), ∃ W (wy : W ⟶ Y) (wz : W ⟶ Z), wy ≫ yx = wz ≫ zx

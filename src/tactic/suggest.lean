@@ -522,9 +522,7 @@ nat.one_pos
   action := λ _, do
     script ← library_search,
     -- Is there a better API for dropping the 'Try this: exact ' prefix on this string?
-    let s := script.to_list,
-    return [(((s.get_rest "Try this: exact ".to_list).get_or_else s).as_string,
-            "by library_search")] }
+    return [((script.get_rest "Try this: exact ").get_or_else script, "by library_search")] }
 
 add_tactic_doc
 { name        := "library_search",

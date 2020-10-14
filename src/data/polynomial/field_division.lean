@@ -361,7 +361,7 @@ lemma prod_multiset_root_eq_finset_root {p : polynomial R} (hzero : p ≠ 0) :
   ∏ a in (multiset.to_finset p.roots), (λ (a : R), (X - C a) ^ (root_multiplicity a p)) a :=
 by simp only [count_roots hzero, finset.prod_multiset_map_count]
 
-/--The product `∏ (X - a)` for `a` inside the multiset `p.roots` divides p-/
+/-- The product `∏ (X - a)` for `a` inside the multiset `p.roots` divides `p`. -/
 lemma prod_multiset_X_sub_C_dvd (p : polynomial R) :
   (multiset.map (λ (a : R), X - C a) p.roots).prod ∣ p :=
 begin

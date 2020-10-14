@@ -228,8 +228,11 @@ theorem not_mem_singleton {a b : α} : a ∉ ({b} : finset α) ↔ a ≠ b := no
 
 theorem mem_singleton_self (a : α) : a ∈ ({a} : finset α) := or.inl rfl
 
+theorem injective_singleton : function.injective (singleton : α → finset α) :=
+λ a b h, mem_singleton.1 (h ▸ mem_singleton_self _)
+
 theorem singleton_inj {a b : α} : ({a} : finset α) = {b} ↔ a = b :=
-⟨λ h, mem_singleton.1 (h ▸ mem_singleton_self _), congr_arg _⟩
+injective_singleton.eq_iff
 
 theorem singleton_nonempty (a : α) : ({a} : finset α).nonempty := ⟨a, mem_singleton_self a⟩
 
@@ -869,7 +872,7 @@ variables {δ : α → Sort*} (s : finset α) (f g : Πi, δ i)
   (insert j s).piecewise f g j = f j :=
 by simp [piecewise]
 
-@[simp] lemma piecewise_empty [∀i : α, decidable (i ∈ (∅ : finset α))] : piecewise ∅ f g = g :=
+@[simp] lemma piecewise_empty [Πi : α, decidable (i ∈ (∅ : finset α))] : piecewise ∅ f g = g :=
 by { ext i, simp [piecewise] }
 
 variable [∀j, decidable (j ∈ s)]
@@ -899,14 +902,14 @@ begin
   congr
 end
 
+@[simp] lemma piecewise_singleton [decidable_eq α] (i : α)
+  [Π j : α, decidable (j ∈ ({i} : finset α))] :
+  piecewise {i} f g = function.update g i (f i) :=
+by simp only [← insert_emptyc_eq, piecewise_insert, piecewise_empty]
+
 lemma update_eq_piecewise {β : Type*} [decidable_eq α] (f : α → β) (i : α) (v : β) :
   function.update f i v = piecewise (singleton i) (λj, v) f :=
-begin
-  ext j,
-  by_cases h : j = i,
-  { rw [h], simp },
-  { simp [h] }
-end
+(piecewise_singleton _ _ _).symm
 
 end piecewise
 
@@ -1610,7 +1613,7 @@ pos_iff_ne_zero.trans $ (not_congr card_eq_zero).trans nonempty_iff_ne_empty.sym
 theorem card_ne_zero_of_mem {s : finset α} {a : α} (h : a ∈ s) : card s ≠ 0 :=
 (not_congr card_eq_zero).2 (ne_empty_of_mem h)
 
-theorem card_eq_one {s : finset α} : s.card = 1 ↔ ∃ a, s = {a} :=
+@[simp] theorem card_eq_one {s : finset α} : s.card = 1 ↔ ∃ a, s = {a} :=
 by cases s; simp only [multiset.card_eq_one, finset.card, ← val_inj, singleton_val]
 
 @[simp] theorem card_insert_of_not_mem [decidable_eq α]

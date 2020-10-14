@@ -919,7 +919,7 @@ by { classical, simp_rw [← mul_prod_diff_singleton hi, ← h1, right_distrib],
 lemma sum_update_of_mem [add_comm_monoid β] [decidable_eq α] {s : finset α} {i : α}
   (h : i ∈ s) (f : α → β) (b : β) :
   (∑ x in s, function.update f i b x) = b + (∑ x in s \ (singleton i), f x) :=
-by { rw [update_eq_piecewise, sum_piecewise], simp [h] }
+@prod_update_of_mem _ (multiplicative β) _ _ s i h f b
 attribute [to_additive] prod_update_of_mem
 
 lemma sum_nsmul [add_comm_monoid β] (s : finset α) (n : ℕ) (f : α → β) :

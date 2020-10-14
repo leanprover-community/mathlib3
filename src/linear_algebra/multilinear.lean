@@ -7,6 +7,7 @@ import linear_algebra.basic
 import algebra.algebra.basic
 import tactic.omega
 import data.fintype.sort
+import tactic.interval_cases
 
 /-!
 # Multilinear maps
@@ -135,6 +136,10 @@ def to_linear_map (m : Πi, M₁ i) (i : ι) : M₁ i →ₗ[R] M₂ :=
   map_add'  := λx y, by simp,
   map_smul' := λc x, by simp }
 
+@[simp] lemma to_linear_map_apply (m : Πi, M₁ i) (i : ι) (x : M₁ i) :
+  f.to_linear_map m i x = f (update m i x) :=
+rfl
+
 /-- The cartesian product of two multilinear maps, as a multilinear map. -/
 def prod (f : multilinear_map R M₁ M₂) (g : multilinear_map R M₁ M₃) :
   multilinear_map R M₁ (M₂ × M₃) :=
@@ -251,6 +256,33 @@ writing `f (m + m')` as the sum  of `f (s.piecewise m m')` over all sets `s`. -/
 lemma map_add_univ [fintype ι] (m m' : Πi, M₁ i) :
   f (m + m') = ∑ s : finset ι, f (s.piecewise m m') :=
 by simpa using f.map_piecewise_add m m' finset.univ
+
+/-- Derivative of a multilinear map `f` at point `m` as a linear map. -/
+protected def fderiv [fintype ι] (m : Π i, M₁ i) : (Π i, M₁ i) →ₗ[R] M₂ :=
+∑ i, (f.to_linear_map m i).comp (linear_map.proj i)
+
+lemma fderiv_apply [fintype ι] (m m' : Π i, M₁ i) :
+  f.fderiv m m' = ∑ i, f (update m i (m' i)) :=
+by simp [multilinear_map.fderiv, linear_map.sum_apply]
+
+lemma map_add_univ_deg2 [fintype ι] (m m' : Π i, M₁ i) :
+  f (m + m') = f m + f.fderiv m m' +
+    ∑ s in (finset.univ : finset (finset ι)).filter (λ s, 2 ≤ s.card), f (s.piecewise m' m) :=
+begin
+  have H0 : ∑ s in ({∅} : finset (finset ι)), f (s.piecewise m' m) = f m, by simp,
+  have H1 : ∑ s in (finset.univ.map ⟨singleton,
+    finset.injective_singleton⟩), f (s.piecewise m' m) =
+    f.fderiv m m', by simp [fderiv_apply],
+  rw [add_comm, map_add_univ, ← H0, ← H1, ← finset.sum_union, ← finset.sum_union],
+  { refine finset.sum_congr _ (λ _ _, rfl),
+    rw [eq_comm, finset.eq_univ_iff_forall],
+    suffices : ∀ s : finset ι, s.card < 2 → (s = ∅ ∨ ∃ (a : ι), {a} = s),
+      by simpa [or_iff_not_imp_right],
+    intros s hs,
+    interval_cases s.card with hs'; [left, right]; simpa [eq_comm] using hs' },
+  { simp [finset.disjoint_left, le_refl] },
+  { simp [finset.singleton_disjoint] }
+end
 
 section apply_sum
 

@@ -127,6 +127,10 @@ linear map obtained by fixing all coordinates but `i` equal to those of `m`, and
 def to_continuous_linear_map (m : Πi, M₁ i) (i : ι) : M₁ i →L[R] M₂ :=
 { cont := f.cont.comp continuous_update, ..(f.to_multilinear_map.to_linear_map m i) }
 
+@[simp] lemma to_continuous_linear_map_apply (m : Π i, M₁ i) (i : ι) (y : M₁ i) :
+  f.to_continuous_linear_map m i y = f (function.update m i y) :=
+rfl
+
 /-- The cartesian product of two continuous multilinear maps, as a continuous multilinear map. -/
 def prod (f : continuous_multilinear_map R M₁ M₂) (g : continuous_multilinear_map R M₁ M₃) :
   continuous_multilinear_map R M₁ (M₂ × M₃) :=
@@ -198,6 +202,27 @@ lemma map_sum [∀ i, fintype (α i)] :
 f.to_multilinear_map.map_sum _
 
 end apply_sum
+
+section fderiv
+
+variables [has_continuous_add M₂] [fintype ι]
+
+protected def fderiv (m : Π i, M₁ i) : (Π i, M₁ i) →L[R] M₂ :=
+∑ i, (f.to_continuous_linear_map m i).comp (continuous_linear_map.proj i)
+
+lemma fderiv_apply (m m' : Π i, M₁ i) : f.fderiv m m' = ∑ i, f (function.update m i (m' i)) :=
+by simp [continuous_multilinear_map.fderiv, continuous_linear_map.sum_apply]
+
+@[simp] lemma coe_fderiv_to_multilinear_map (m : Π i, M₁ i) :
+  ⇑(f.to_multilinear_map.fderiv m) = f.fderiv m :=
+funext $ λ m', by simp [fderiv_apply, multilinear_map.fderiv_apply]
+
+lemma map_add_univ_deg2 (m m' : Π i, M₁ i) :
+  f (m + m') = f m + f.fderiv m m' +
+    ∑ s in (finset.univ : finset (finset ι)).filter (λ s, 2 ≤ s.card), f (s.piecewise m' m) :=
+by simpa using f.to_multilinear_map.map_add_univ_deg2 m m'
+
+end fderiv
 
 end semiring
 

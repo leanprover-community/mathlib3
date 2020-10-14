@@ -91,10 +91,9 @@ lemma lambdashev_eq_chebyshev₁ [invertible (2 : R)] :
                     mul_inv_of_self, C_1, one_mul]
 | (n + 2) :=
 begin
-  simp only [lambdashev_add_two, chebyshev₁_add_two,
-    lambdashev_eq_chebyshev₁ (n + 1), lambdashev_eq_chebyshev₁ n,
-    two_mul, sub_comp, mul_comp, add_comp, X_comp],
-  simp only [← two_mul, ← C_1, ← C_bit0, ← mul_assoc, ← C_mul, mul_inv_of_self],
+  simp only [lambdashev_add_two, chebyshev₁_add_two, lambdashev_eq_chebyshev₁ (n + 1),
+    lambdashev_eq_chebyshev₁ n, sub_comp, mul_comp, add_comp, X_comp, bit0_comp, one_comp],
+  simp only [← C_1, ← C_bit0, ← mul_assoc, ← C_mul, mul_inv_of_self],
   rw [C_1, one_mul],
   ring
 end
@@ -120,7 +119,8 @@ begin
   apply eval₂_congr rfl rfl,
   rw [comp_assoc],
   apply eval₂_congr rfl _ rfl,
-  rw [mul_comp, C_comp, X_comp, ← mul_assoc, ← C_1, ← C_bit0, ← C_mul, inv_of_mul_self, C_1, one_mul]
+  rw [mul_comp, C_comp, X_comp, ← mul_assoc, ← C_1, ← C_bit0, ← C_mul,
+      inv_of_mul_self, C_1, one_mul]
 end
 
 lemma lambdashev_comp_comm (m n : ℕ) :
@@ -139,7 +139,8 @@ begin
   { let K := fraction_ring (polynomial (zmod p)),
     let f : zmod p →+* K := (fraction_ring.of _).to_map.comp C,
     haveI : char_p K p := by { rw ← f.char_p_iff_char_p, apply_instance },
-    haveI : infinite K := by { apply infinite.of_injective _ (fraction_ring.of _).injective, apply_instance },
+    haveI : infinite K :=
+    by { apply infinite.of_injective _ (fraction_ring.of _).injective, apply_instance },
     refine ⟨K, _, _, _⟩; apply_instance },
   resetI,
   apply map_injective (zmod.cast_hom (dvd_refl p) K) (ring_hom.injective _),
@@ -155,7 +156,8 @@ begin
   { intro h,
     rw ← set.infinite_univ_iff at H,
     apply H,
-    -- To each `x` of the form `x = y + y⁻¹` we `bind` the set of `y` that solve the equation `x = y + y⁻¹`.
+    -- To each `x` of the form `x = y + y⁻¹`
+    -- we `bind` the set of `y` that solve the equation `x = y + y⁻¹`.
     -- For every `x`, that set is finite (since it is governed by a quadratic equation).
     -- For the moment, we claim that all these sets together cover `K`.
     suffices : (set.univ : set K) =

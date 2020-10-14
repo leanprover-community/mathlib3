@@ -6,6 +6,7 @@ Authors: Bhavik Mehta, E. W. Ayers
 
 import category_theory.sites.sieves
 import category_theory.limits.shapes.pullbacks
+import order.copy
 
 /-!
 # Grothendieck topologies
@@ -231,12 +232,14 @@ Inf rfl
 @[simp] lemma discrete_eq_top : discrete C = ⊤ := rfl
 
 @[simp] lemma bot_covering : S ∈ (⊥ : grothendieck_topology C) X ↔ S = ⊤ := trivial_covering
+@[simp] lemma top_covering : S ∈ (⊤ : grothendieck_topology C) X := ⟨⟩
 
 lemma bot_covers (S : sieve X) (f : Y ⟶ X) :
   (⊥ : grothendieck_topology C).covers S f ↔ S.arrows f :=
 by rw [covers_iff, bot_covering, ← sieve.pullback_eq_top_iff_mem]
 
-lemma discrete_eq_top : discrete C = ⊤ := top_unique (λ X S hS, set.mem_univ _)
+@[simp] lemma top_covers (S : sieve X) (f : Y ⟶ X) : (⊤ : grothendieck_topology C).covers S f :=
+by simp [covers_iff]
 
 /-- The dense Grothendieck topology. -/
 def dense : grothendieck_topology C :=

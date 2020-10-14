@@ -44,14 +44,12 @@ def one_sub (t : R) (h : ∥t∥ < 1) : units R :=
 
 @[simp] lemma one_sub_coe (t : R) (h : ∥t∥ < 1) : ↑(one_sub t h) = 1 - t := rfl
 
-local attribute [nontriviality] zero_lt_one -- TODO: supply lemmas as an argument to `nontriviality`
-
 /-- In a complete normed ring, a perturbation of a unit `x` by an element `t` of distance less than
 `∥x⁻¹∥⁻¹` from `x` is a unit.  Here we construct its `units` structure. -/
 def add (x : units R) (t : R) (h : ∥t∥ < ∥(↑x⁻¹ : R)∥⁻¹) : units R :=
 x * (units.one_sub (-(↑x⁻¹ * t))
 begin
-  nontriviality R,
+  nontriviality R [zero_lt_one],
   have hpos : 0 < ∥(↑x⁻¹ : R)∥ := units.norm_pos x⁻¹,
   calc ∥-(↑x⁻¹ * t)∥
       = ∥↑x⁻¹ * t∥                   : by { rw norm_neg }

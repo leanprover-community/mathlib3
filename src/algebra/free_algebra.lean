@@ -287,7 +287,7 @@ def bad_coe {α β : Type*} : has_coe (α → β) (α → β) := ⟨id⟩
 
 local attribute [instance] bad_coe
 
-instance : has_universal_property R X (free_algebra R X) ((→) X) := {
+instance : has_universal_property R X (free_algebra R X) (λ x _ _, X → x) := {
   -- homomorphisms are regular functions
   hom_comp := λ _ _ _ f g, (f ∘ g),
   hom_comp_eq := λ _ _ _ f g, rfl,

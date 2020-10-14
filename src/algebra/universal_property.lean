@@ -8,7 +8,8 @@ class has_universal_property
   [comm_semiring R] [semiring A] [algebra R A]
   -- the type of homomorphism to use, which must coerce to a suitable function
   -- note: what to do about universes here?
-  (hom_α : Type u₃ → Type*) [∀ (A₂ : Type u₃), has_coe (hom_α A₂) (α → A₂)] :=
+  (hom_α : Π (A₂ : Type u₃) [semiring A₂] [algebra R A₂], Type*)
+  [∀ (A₂ : Type u₃) [semiring A₂] [algebra R A₂], has_coe (hom_α A₂) (α → A₂)] :=
 (hom_comp {A₂ : Type*} [semiring A₂] [algebra R A₂] :
   (A →ₐ[R] A₂) → hom_α A → hom_α A₂)
 (hom_comp_eq {A₂ : Type*} [semiring A₂] [algebra R A₂] :
@@ -26,7 +27,8 @@ namespace has_universal_property
 
 variables (R : Type u₁) (α : Type u₂) (A : Type u₃)
   [comm_semiring R] [semiring A] [algebra R A]
-  (hom_α : Type u₃ → Type*) [∀ (A₂ : Type u₃), has_coe (hom_α A₂) (α → A₂)]
+  (hom_α : Π (A₂ : Type u₃) [semiring A₂], by exactI Π [algebra R A₂], Type*)
+  [∀ (A₂ : Type u₃) [semiring A₂], by exactI Π [algebra R A₂], by exactI has_coe (hom_α A₂) (α → A₂)]
 
 variables {A₂ : Type u₃} [semiring A₂] [algebra R A₂] (f : hom_α A₂) (g : A →ₐ[R] A₂)
 

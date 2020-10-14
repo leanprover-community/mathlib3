@@ -126,13 +126,13 @@ local attribute [instance] bad_coe
 
 instance : has_universal_property R M (tensor_algebra R M)
   -- this doesn't work, I need another way to generalize across Homs :(
-  (λ A {_ : add_comm_monoid A}, by exactI λ {_ : semimodule R A}, by exactI M →ₗ[R] A) :=
+  (λ A _ _, by exactI M →ₗ[R] A) :=
 {
   -- homomorphisms are regular functions
   hom_comp := λ _ _ _ f g, by exactI f.to_linear_map.comp g,
-  hom_comp_eq := λ _ _ _ f g, sorry,
-  hom_ext' := λ _ _ _ f g, sorry,
-  -- connect the boilerplate
+  hom_comp_eq := λ _ _ _ f g, rfl,
+  hom_ext' := λ _ _ _ f g, ⟨λ h, by {unfold_coes at h, ext, simp * at *, }, λ h, h ▸ rfl⟩ ,
+  -- connect the boilerplate ∀
   ι := ι R,
   lift := λ _ _ _ f, by exactI lift R f,
   lift_unique := λ _ _ _ f g, by exactI lift_unique f g }

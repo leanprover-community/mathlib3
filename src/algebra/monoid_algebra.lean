@@ -193,23 +193,19 @@ lemma map_domain_mul {α : Type*} {β : Type*} {α₂ : Type*} [semiring β] [mo
   (map_domain f (x * y : monoid_algebra β α) : monoid_algebra β α₂) =
     (map_domain f x * map_domain f y : monoid_algebra β α₂) :=
 begin
-  simp only [mul_def, map_domain_sum, map_domain_single],
-  -- I can't work out any way to avoid `conv` here
-  conv_rhs {
-    for (finsupp.sum _ _) [2] {
-      rw finsupp.sum_map_domain_index _ _,
-      skip,
-      exact λ a, by { simp, },
-      exact λ a b c, by { simp [mul_add], }
-    },
-    for (finsupp.sum _ _) [1] {
-      rw finsupp.sum_map_domain_index _ _,
-      skip,
-      exact λ a, by { simp, },
-      exact λ a b c, by { simp [add_mul], },
-    },
-  },
-  simp_rw f.map_mul,
+  simp_rw [mul_def, map_domain_sum, map_domain_single, f.map_mul],
+  transitivity, swap,
+  { rw finsupp.sum_map_domain_index,
+    { simp },
+    { simp [add_mul] } },
+  congr,
+  ext1,
+  ext1,
+  transitivity, swap,
+  { rw finsupp.sum_map_domain_index,
+    { simp },
+    { simp [mul_add] } },
+  refl,
 end
 
 /-- `map_domain_mul` for unbundled morphisms -/
@@ -624,23 +620,19 @@ lemma map_domain_mul {α : Type*} {β : Type*} {α₂ : Type*}
   (map_domain f (x * y : add_monoid_algebra β α) : add_monoid_algebra β α₂) =
     (map_domain f x * map_domain f y : add_monoid_algebra β α₂) :=
 begin
-  simp only [mul_def, map_domain_sum, map_domain_single],
-  -- I can't work out any way to avoid `conv` here
-  conv_rhs {
-    for (finsupp.sum _ _) [2] {
-      rw finsupp.sum_map_domain_index _ _,
-      skip,
-      exact λ a, by { simp, },
-      exact λ a b c, by { simp [mul_add], }
-    },
-    for (finsupp.sum _ _) [1] {
-      rw finsupp.sum_map_domain_index _ _,
-      skip,
-      exact λ a, by { simp, },
-      exact λ a b c, by { simp [add_mul], },
-    },
-  },
-  simp_rw f.map_add,
+  simp_rw [mul_def, map_domain_sum, map_domain_single, f.map_add],
+  transitivity, swap,
+  { rw finsupp.sum_map_domain_index,
+    { simp },
+    { simp [add_mul] } },
+  congr,
+  ext1,
+  ext1,
+  transitivity, swap,
+  { rw finsupp.sum_map_domain_index,
+    { simp },
+    { simp [mul_add] } },
+  refl,
 end
 
 /-- `map_domain_mul` for unbundled morphisms -/
@@ -718,7 +710,8 @@ protected def add_monoid_algebra.to_multiplicative [semiring k] [add_monoid G] :
     -- the fact there is no obvious `has_add (multiplicative G)`.
     simp only [←to_add_mul],
     refl, },
-  ..finsupp.dom_congr multiplicative.to_add }
+  ..finsupp.dom_congr multiplicative.of_add }
+
 
 /-- The equivalence between `monoid_algebra` and `add_monoid_algebra` in terms of `additive` -/
 protected def monoid_algebra.to_additive [semiring k] [monoid G] :
@@ -727,7 +720,7 @@ protected def monoid_algebra.to_additive [semiring k] [monoid G] :
     simp only [finsupp.dom_congr],
     apply monoid_algebra.map_domain_mul',
     intros p q,
-    -- At this point the pretty-printing of the goal is nonsense, containing `p + q` despite
+    -- At this point the pretty-printing of the goal is nonsense, containing `p * q` despite
     -- the fact there is no obvious `has_mul (additive G)`.
     simp only [of_mul_mul],
     refl, },

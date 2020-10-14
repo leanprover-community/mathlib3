@@ -180,25 +180,54 @@ variables {β : Type*}
 variables (f : β → α → β) (b : β)
 variables (v : vector α n)
 
+/--
+Construct a `vector β (n + 1)` from a `vector α n` by scanning `f : β → α → β`
+from the "left", that is, from 0 to `fin.last n`, using `b : β` as the starting value.
+-/
 def scanl : vector β (n + 1) :=
 ⟨list.scanl f b v.to_list, by rw [list.length_scanl, to_list_length]⟩
 
+/-- Providing an empty vector to `scanl` gives the starting value `b : β`. -/
 @[simp] lemma scanl_nil : scanl f b nil = b ::ᵥ nil := rfl
 
+/--
+The recursive step of `scanl` splits a vector `x ::ᵥ v : vector α (n + 1)`
+into the provided starting value `b : β` and the recursed `scanl`
+`f b x : β` as the starting value.
+
+This lemma is the `cons` version of `scanl_nth`.
+-/
 lemma scanl_cons (x : α) : scanl f b (x ::ᵥ v) = b ::ᵥ scanl f (f b x) v :=
 by simpa only [scanl, to_list_cons]
 
+/--
+The underlying `list` of a `vector` after a `scanl` is the `list.scanl`
+of the underlying `list` of the original `vector`.
+-/
 lemma scanl_val : ∀ {v : vector α n}, (scanl f b v).val = list.scanl f b v.val
 | ⟨l, hl⟩ := rfl
 
+/--
+The `to_list` of a `vector` after a `scanl` is the `list.scanl`
+of the `to_list` of the original `vector`.
+-/
 lemma to_list_scanl : (scanl f b v).to_list = list.scanl f b v.to_list := rfl
 
+/--
+The recursive step of `scanl` splits a vector made up of a single element
+`x ::ᵥ nil : vector α 1` into a `vector` of the provided starting value `b : β`
+and the mapped `f b x : β` as the last value.
+-/
 lemma scanl_singleton (v : vector α 1) : scanl f b v = b ::ᵥ f b v.head ::ᵥ nil :=
 begin
   rw [←cons_head_tail v],
   simp only [scanl_cons, scanl_nil, cons_head, singleton_tail]
 end
 
+/--
+The first element of `scanl` of a vector `v : vector α n`,
+retrieved via `head`, is the starting value `b : β`.
+-/
 @[simp] lemma scanl_head : (scanl f b v).head = b :=
 begin
   cases n,
@@ -209,6 +238,14 @@ begin
                 to_list_cons, list.scanl, fin.val_zero', list.nth_le] }
 end
 
+/--
+For an index `i : fin n`, the `nth` element of `scanl` of a
+vector `v : vector α n` at `i.succ`, is equal to the application
+function `f : β → α → β` of the `i.cast_succ` element of
+`scanl f b v` and `nth v i`.
+
+This lemma is the `nth` version of `scanl_cons`.
+-/
 lemma scanl_nth (i : fin n) :
   (scanl f b v).nth i.succ = f ((scanl f b v).nth i.cast_succ) (v.nth i) :=
 begin

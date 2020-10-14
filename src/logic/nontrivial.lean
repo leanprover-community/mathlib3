@@ -157,10 +157,10 @@ do
   alternative ← to_expr ``(subsingleton_or_nontrivial %%α),
   n ← get_unused_name "_inst",
   tactic.cases alternative [n, n],
-  focus1 $ do
+  (solve1 $ do
     reset_instance_cache,
-    interactive.simp none ff lems [`nontriviality] (interactive.loc.ns [none]),
-    done <|> fail format!"Could not prove goal assuming `subsingleton {α}`",
+    interactive.simp none ff lems [`nontriviality] (interactive.loc.ns [none])) <|>
+      fail format!"Could not prove goal assuming `subsingleton {α}`",
   reset_instance_cache
 
 /--

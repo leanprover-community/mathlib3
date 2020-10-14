@@ -152,13 +152,15 @@ Tries to generate a `nontrivial α` instance by performing case analysis on
 attempting to discharge the subsingleton branch using lemmas with `@[nontriviality]` attribute,
 including `subsingleton.le` and `eq_iff_true_of_subsingleton`.
 -/
-meta def nontriviality_by_elim (α : expr) : tactic unit :=
+meta def nontriviality_by_elim (α : expr) (lems : interactive.parse simp_arg_list) : tactic unit :=
 do
   alternative ← to_expr ``(subsingleton_or_nontrivial %%α),
   n ← get_unused_name "_inst",
   tactic.cases alternative [n, n],
-  `[{ resetI, simp with nontriviality }] <|>
-    fail format!"Could not prove goal assuming `subsingleton {α}`",
+  focus1 $ do
+    reset_instance_cache,
+    interactive.simp none ff lems [`nontriviality] (interactive.loc.ns [none]),
+    done <|> fail format!"Could not prove goal assuming `subsingleton {α}`",
   reset_instance_cache
 
 /--
@@ -191,8 +193,9 @@ Otherwise, the type needs to be specified in the tactic invocation, as `nontrivi
 The `nontriviality` tactic will first look for strict inequalities amongst the hypotheses,
 and use these to derive the `nontrivial` instance directly.
 
-Otherwise, it will perform a case split on `subsingleton α ∨ nontrivial α`,
-and attempt to discharge the `subsingleton` goal.
+Otherwise, it will perform a case split on `subsingleton α ∨ nontrivial α`, and attempt to discharge
+the `subsingleton` goal using `simp [lemmas] with nontriviality`, where `[lemmas]` is a list of
+additional `simp` lemmas that can be passed to `nontriviality` as the second optional argument.
 
 ```
 example {R : Type} [ordered_ring R] {a : R} (h : 0 < a) : 0 < a :=
@@ -217,8 +220,19 @@ begin
   dec_trivial
 end
 ```
+
+```
+def myeq {α : Type} (a b : α) : Prop := a = b
+
+example {α : Type} (a b : α) (h : a = b) : myeq a b :=
+begin
+  success_if_fail { nontriviality α }, -- Fails
+  nontriviality α [myeq], -- There is no `nontrivial α` hypothesis available
+  assumption
+end
+```
 -/
-meta def nontriviality (t : parse parser.pexpr?) : tactic unit :=
+meta def nontriviality (t : parse parser.pexpr?) (lems : parse simp_arg_list) : tactic unit :=
 do
   α ← match t with
   | some α := to_expr α
@@ -230,7 +244,7 @@ do
     fail "The goal is not an (in)equality, so you'll need to specify the desired `nontrivial α`
       instance by invoking `nontriviality α`."
   end,
-  nontriviality_by_assumption α <|> nontriviality_by_elim α
+  nontriviality_by_assumption α <|> nontriviality_by_elim α lems
 
 add_tactic_doc
 { name                     := "nontriviality",

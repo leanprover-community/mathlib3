@@ -31,6 +31,22 @@ Define sheaves on a topology, and the topos of sheaves.
 ## Tags
 
 Grothendieck topology, coverage, pretopology, site
+
+## References
+
+* [https://ncatlab.org/nlab/show/Grothendieck+topology][nlab]
+* [S. MacLane, I. Moerdijk, *Sheaves in Geometry and Logic*][MM91]
+
+## Implementation notes
+
+We use the definition of [nlab] and [MM91](Chapter III, Section 2), where Grothendieck topologies
+are saturated collections of morphisms, rather than the notions of the Stacks project (00VG) and
+the Elephant, in which topologies are allowed to be unsaturated, and are then completed.
+TODO (BM): Add the definition from Stacks, as a pretopology, and complete to a topology.
+
+This is so that we can produce a bijective correspondence between Grothendieck topologies on a
+small category and Lawvere-Tierney topologies on its presheaf topos, as well as the equivalence
+between Grothendieck topoi and left exact reflective subcategories of presheaf toposes.
 -/
 
 universes v u

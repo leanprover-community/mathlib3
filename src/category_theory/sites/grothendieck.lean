@@ -195,6 +195,13 @@ def trivial : grothendieck_topology C :=
     rw [set.mem_singleton_iff, ← sieve.id_mem_iff_eq_top] at hS,
     simpa using hR hS,
   end }
+
+/-- The discrete Grothendieck topology, in which every sieve is covering. -/
+def discrete : grothendieck_topology C :=
+{ sieves := λ X, set.univ,
+  top_mem' := by simp,
+  pullback_stable' := λ X Y f, by simp,
+  transitive' := by simp }
 variable {C}
 
 lemma trivial_covering : S ∈ trivial C X ↔ S = ⊤ := set.mem_singleton_iff
@@ -209,15 +216,6 @@ begin
   rw trivial_covering at hS,
   apply covering_of_eq_top _ hS,
 end
-
-variable (C)
-/-- The discrete Grothendieck topology, in which every sieve is covering. -/
-def discrete : grothendieck_topology C :=
-{ sieves := λ X, set.univ,
-  top_mem' := by simp,
-  pullback_stable' := λ X Y f, by simp,
-  transitive' := by simp }
-variable {C}
 
 lemma discrete_eq_top : discrete C = ⊤ := top_unique (λ X S hS, set.mem_univ _)
 

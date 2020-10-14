@@ -11,13 +11,26 @@ import data.complex.is_R_or_C
 /-!
 # Conjugate semimodules
 
+Given a `semimodule R E` with `R` a commutative semiring, we define its conjugate semimodule with
+respect to a ring involution `I : R ≃+* Rᵒᵖ`, in which the scalar product is defined as
+`r • (to_conj I x) = to_conj ((I r) • x)`. This is a generalization of the complex conjugate
+vector space, where the ring involution is the complex conjugation. Since this is an important
+special case, we define also `conj_semimodule 𝕜 E` with `[is_R_or_C 𝕜]` to avoid having to deal
+with the ring involution explicitly.
+
 ## Implementation notes
+
+The conjugate semimodule is defined as a copy of the original type, with conversions having to be
+done explicitly via `to_conj` and `from_conj`, as for the opposite type. Facts that are specific
+to normed spaces and inner product spaces are defined in `analysis/normed_space/conjugate.lean`.
 
 ## References
 
 * https://en.wikipedia.org/wiki/Complex_conjugate_vector_space
 
 ## Tags
+
+conjugate semimodule, conjugate vector space
 -/
 
 variables {R : Type*} [comm_semiring R]

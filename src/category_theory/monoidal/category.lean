@@ -133,7 +133,8 @@ notation `ρ_` := right_unitor
 
 /-- The tensor product of two isomorphisms is an isomorphism. -/
 @[simps]
-def tensor_iso {C : Type u} {X Y X' Y' : C} [category.{v} C] [monoidal_category.{v} C] (f : X ≅ Y) (g : X' ≅ Y') :
+def tensor_iso {C : Type u} {X Y X' Y' : C} [category.{v} C] [monoidal_category.{v} C]
+  (f : X ≅ Y) (g : X' ≅ Y') :
     X ⊗ X' ≅ Y ⊗ Y' :=
 { hom := f.hom ⊗ g.hom,
   inv := f.inv ⊗ g.inv,
@@ -148,7 +149,8 @@ section
 
 variables {C : Type u} [category.{v} C] [monoidal_category.{v} C]
 
-instance tensor_is_iso {W X Y Z : C} (f : W ⟶ X) [is_iso f] (g : Y ⟶ Z) [is_iso g] : is_iso (f ⊗ g) :=
+instance tensor_is_iso {W X Y Z : C} (f : W ⟶ X) [is_iso f] (g : Y ⟶ Z) [is_iso g] :
+  is_iso (f ⊗ g) :=
 { ..(as_iso f ⊗ as_iso g) }
 
 @[simp] lemma inv_tensor {W X Y Z : C} (f : W ⟶ X) [is_iso f] (g : Y ⟶ Z) [is_iso g] :
@@ -163,7 +165,8 @@ variables {U V W X Y Z : C}
 -- monoidal_category.pentagon monoidal_category.triangle
 
 -- tensor_comp_id tensor_id_comp comp_id_tensor_tensor_id
--- triangle_assoc_comp_left triangle_assoc_comp_right triangle_assoc_comp_left_inv triangle_assoc_comp_right_inv
+-- triangle_assoc_comp_left triangle_assoc_comp_right 
+-- triangle_assoc_comp_left_inv triangle_assoc_comp_right_inv
 -- left_unitor_tensor left_unitor_tensor_inv
 -- right_unitor_tensor right_unitor_tensor_inv
 -- pentagon_inv
@@ -204,11 +207,13 @@ begin
 end
 
 @[simp]
-lemma right_unitor_conjugation {X Y : C} (f : X ⟶ Y) : (ρ_ X).inv ≫ (f ⊗ (𝟙 (𝟙_ C))) ≫ (ρ_ Y).hom = f :=
+lemma right_unitor_conjugation {X Y : C} (f : X ⟶ Y) :
+  (ρ_ X).inv ≫ (f ⊗ (𝟙 (𝟙_ C))) ≫ (ρ_ Y).hom = f :=
 by rw [right_unitor_naturality, ←category.assoc, iso.inv_hom_id, category.id_comp]
 
 @[simp]
-lemma left_unitor_conjugation {X Y : C} (f : X ⟶ Y) : (λ_ X).inv ≫ ((𝟙 (𝟙_ C)) ⊗ f) ≫ (λ_ Y).hom = f :=
+lemma left_unitor_conjugation {X Y : C} (f : X ⟶ Y) :
+  (λ_ X).inv ≫ ((𝟙 (𝟙_ C)) ⊗ f) ≫ (λ_ Y).hom = f :=
 by rw [left_unitor_naturality, ←category.assoc, iso.inv_hom_id, category.id_comp]
 
 @[simp] lemma tensor_left_iff

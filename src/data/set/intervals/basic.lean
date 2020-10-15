@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov
 -/
-import algebra.order_functions
+import algebra.ordered_group
 import data.set.basic
 
 /-!
@@ -803,6 +803,20 @@ end lattice
 
 section decidable_linear_order
 variables {α : Type u} [decidable_linear_order α] {a a₁ a₂ b b₁ b₂ c d : α}
+
+lemma Ioc_inter_Ioo_of_left_lt (h : b₁ < b₂) : Ioc a₁ b₁ ∩ Ioo a₂ b₂ = Ioc (max a₁ a₂) b₁ :=
+ext $ λ x, by simp [and_assoc, @and.left_comm (x ≤ _),
+  and_iff_left_iff_imp.2 (λ h', lt_of_le_of_lt h' h)]
+
+lemma Ioc_inter_Ioo_of_right_le (h : b₂ ≤ b₁) : Ioc a₁ b₁ ∩ Ioo a₂ b₂ = Ioo (max a₁ a₂) b₂ :=
+ext $ λ x, by simp [and_assoc, @and.left_comm (x ≤ _),
+  and_iff_right_iff_imp.2 (λ h', (le_trans (le_of_lt h') h))]
+
+lemma Ioo_inter_Ioc_of_left_le (h : b₁ ≤ b₂) : Ioo a₁ b₁ ∩ Ioc a₂ b₂ = Ioo (max a₁ a₂) b₁ :=
+by rw [inter_comm, Ioc_inter_Ioo_of_right_le h, max_comm]
+
+lemma Ioo_inter_Ioc_of_right_lt (h : b₂ < b₁) : Ioo a₁ b₁ ∩ Ioc a₂ b₂ = Ioc (max a₁ a₂) b₂ :=
+by rw [inter_comm, Ioc_inter_Ioo_of_left_lt h, max_comm]
 
 @[simp] lemma Ico_diff_Iio : Ico a b \ Iio c = Ico (max a c) b :=
 ext $ by simp [Ico, Iio, iff_def, max_le_iff] {contextual:=tt}

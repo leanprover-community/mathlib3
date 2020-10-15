@@ -102,6 +102,9 @@ lemma ext_iff {f g : α →₀ β} : f = g ↔ (∀a:α, f a = g a) :=
 ⟨assume h, ext $ assume a, by_contradiction $ λ H, (finset.ext_iff.1 h a).1 $
   mem_support_iff.2 H, by rintro rfl; refl⟩
 
+lemma card_support_eq_zero {f : α →₀ β} : card f.support = 0 ↔ f = 0 :=
+by simp
+
 instance finsupp.decidable_eq [decidable_eq α] [decidable_eq β] : decidable_eq (α →₀ β) :=
 assume f g, decidable_of_iff (f.support = g.support ∧ (∀a∈f.support, f a = g a))
   ⟨assume ⟨h₁, h₂⟩, ext $ assume a,
@@ -174,6 +177,15 @@ assume b₁ b₂ eq,
 have (single a b₁ : α →₀ β) a = (single a b₂ : α →₀ β) a, by rw eq,
 by rwa [single_eq_same, single_eq_same] at this
 
+lemma eq_single_iff {f : α →₀ β} {a b} : f = single a b ↔ f.support ⊆ {a} ∧ f a = b :=
+begin
+  refine ⟨λ h, h.symm ▸ ⟨support_single_subset, single_eq_same⟩, _⟩,
+  rintro ⟨h, rfl⟩,
+  ext x,
+  by_cases hx : a = x; simp only [hx, single_eq_same, single_eq_of_ne, ne.def, not_false_iff],
+  exact not_mem_support_iff.1 (mt (λ hx, (mem_singleton.1 (h hx)).symm) hx)
+end
+
 lemma single_eq_single_iff (a₁ a₂ : α) (b₁ b₂ : β) :
   single a₁ b₁ = single a₂ b₂ ↔ ((a₁ = a₂ ∧ b₁ = b₂) ∨ (b₁ = 0 ∧ b₂ = 0)) :=
 begin
@@ -209,14 +221,31 @@ by simp only [single_apply]; ac_refl
 lemma unique_single [unique α] (x : α →₀ β) : x = single (default α) (x (default α)) :=
 by ext i; simp only [unique.eq_default i, single_eq_same]
 
+lemma unique_ext [unique α] {f g : α →₀ β} (h : f (default α) = g (default α)) : f = g :=
+ext $ λ a, by rwa [unique.eq_default a]
+
+lemma unique_ext_iff [unique α] {f g : α →₀ β} : f = g ↔  f (default α) = g (default α) :=
+⟨λ h, h ▸ rfl, unique_ext⟩
+
 @[simp] lemma unique_single_eq_iff [unique α] {b' : β} :
   single a b = single a' b' ↔ b = b' :=
-begin
-  rw [single_eq_single_iff],
-  split,
-  { rintros (⟨_, rfl⟩ | ⟨rfl, rfl⟩); refl },
-  { intro h, left, exact ⟨subsingleton.elim _ _, h⟩ }
-end
+by rw [unique_ext_iff, unique.eq_default a, unique.eq_default a', single_eq_same, single_eq_same]
+
+lemma support_eq_singleton {f : α →₀ β} {a : α} :
+  f.support = {a} ↔ f a ≠ 0 ∧ f = single a (f a) :=
+⟨λ h, ⟨mem_support_iff.1 $ h.symm ▸ finset.mem_singleton_self a,
+  eq_single_iff.2 ⟨subset_of_eq h, rfl⟩⟩, λ h, h.2.symm ▸ support_single_ne_zero h.1⟩
+
+lemma support_eq_singleton' {f : α →₀ β} {a : α} :
+  f.support = {a} ↔ ∃ b ≠ 0, f = single a b :=
+⟨λ h, let h := support_eq_singleton.1 h in ⟨_, h.1, h.2⟩,
+  λ ⟨b, hb, hf⟩, hf.symm ▸ support_single_ne_zero hb⟩
+
+lemma card_support_eq_one {f : α →₀ β} : card f.support = 1 ↔ ∃ a, f a ≠ 0 ∧ f = single a (f a) :=
+by simp only [card_eq_one, support_eq_singleton]
+
+lemma card_support_eq_one' {f : α →₀ β} : card f.support = 1 ↔ ∃ a (b ≠ 0), f = single a b :=
+by simp only [card_eq_one, support_eq_singleton']
 
 end single
 
@@ -309,14 +338,14 @@ begin
     { simp only [h, ne.def, ne_self_iff_false] } }
 end
 
-lemma support_emb_domain (f : α₁ ↪ α₂) (v : α₁ →₀ β) :
+@[simp] lemma support_emb_domain (f : α₁ ↪ α₂) (v : α₁ →₀ β) :
   (emb_domain f v).support = v.support.map f :=
 rfl
 
-lemma emb_domain_zero (f : α₁ ↪ α₂) : (emb_domain f 0 : α₂ →₀ β) = 0 :=
+@[simp] lemma emb_domain_zero (f : α₁ ↪ α₂) : (emb_domain f 0 : α₂ →₀ β) = 0 :=
 rfl
 
-lemma emb_domain_apply (f : α₁ ↪ α₂) (v : α₁ →₀ β) (a : α₁) :
+@[simp] lemma emb_domain_apply (f : α₁ ↪ α₂) (v : α₁ →₀ β) (a : α₁) :
   emb_domain f v (f a) = v a :=
 begin
   change dite _ _ _ = _,
@@ -334,10 +363,17 @@ begin
   exact set.mem_range_self a
 end
 
-lemma emb_domain_inj {f : α₁ ↪ α₂} {l₁ l₂ : α₁ →₀ β} :
+lemma emb_domain_injective (f : α₁ ↪ α₂) :
+  function.injective (emb_domain f : (α₁ →₀ β) → (α₂ →₀ β)) :=
+λ l₁ l₂ h, ext $ λ a, by simpa only [emb_domain_apply] using ext_iff.1 h (f a)
+
+@[simp] lemma emb_domain_inj {f : α₁ ↪ α₂} {l₁ l₂ : α₁ →₀ β} :
   emb_domain f l₁ = emb_domain f l₂ ↔ l₁ = l₂ :=
-⟨λ h, ext $ λ a, by simpa only [emb_domain_apply] using ext_iff.1 h (f a),
-  λ h, by rw h⟩
+(emb_domain_injective f).eq_iff
+
+@[simp] lemma emb_domain_eq_zero {f : α₁ ↪ α₂} {l : α₁ →₀ β} :
+  emb_domain f l = 0 ↔ l = 0 :=
+(emb_domain_injective f).eq_iff' $ emb_domain_zero f
 
 lemma emb_domain_map_range
   {β₁ β₂ : Type*} [has_zero β₁] [has_zero β₂]
@@ -433,6 +469,10 @@ begin
   { rw [hs, erase_same, single_eq_of_ne (h.symm)] },
   { rw [erase_ne hs] }
 end
+
+@[simp] lemma erase_zero [has_zero β] (a : α) :
+  erase a (0 : α →₀ β) = 0 :=
+by rw [← support_eq_empty, support_erase, support_zero, erase_empty]
 
 end erase
 
@@ -1113,7 +1153,7 @@ variables [has_zero β] {v v' : α' →₀ β}
 /-- `subtype_domain p f` is the restriction of the finitely supported function
   `f` to the subtype `p`. -/
 def subtype_domain (p : α → Prop) (f : α →₀ β) : (subtype p →₀ β) :=
-⟨f.support.subtype p, f ∘ subtype.val, λ a, by simp only [mem_subtype, mem_support_iff]⟩
+⟨f.support.subtype p, f ∘ coe, λ a, by simp only [mem_subtype, mem_support_iff]⟩
 
 @[simp] lemma support_subtype_domain {f : α →₀ β} :
   (subtype_domain p f).support = f.support.subtype p :=
@@ -1126,10 +1166,19 @@ rfl
 @[simp] lemma subtype_domain_zero : subtype_domain p (0 : α →₀ β) = 0 :=
 rfl
 
+lemma subtype_domain_eq_zero_iff' {p : α → Prop} {f : α →₀ β} :
+  f.subtype_domain p = 0 ↔ ∀ x, p x → f x = 0 :=
+by simp_rw [← support_eq_empty, support_subtype_domain, subtype_eq_empty, not_mem_support_iff]
+
+lemma subtype_domain_eq_zero_iff {p : α → Prop} {f : α →₀ β} (hf : ∀ x ∈ f.support , p x) :
+  f.subtype_domain p = 0 ↔ f = 0 :=
+subtype_domain_eq_zero_iff'.trans ⟨λ H, ext $ λ x,
+  if hx : p x then H x hx else not_mem_support_iff.1 $ mt (hf x) hx, λ H x _, by simp [H]⟩
+
 @[to_additive]
 lemma prod_subtype_domain_index [comm_monoid γ] {v : α →₀ β}
   {h : α → β → γ} (hp : ∀x∈v.support, p x) :
-  (v.subtype_domain p).prod (λa b, h a.1 b) = v.prod h :=
+  (v.subtype_domain p).prod (λa b, h a b) = v.prod h :=
 prod_bij (λp _, p.val)
   (λ _, mem_subtype.1)
   (λ _ _, rfl)
@@ -1271,8 +1320,8 @@ end
 calc f.to_multiset.count a = f.sum (λx n, (n •ℕ {x} : multiset α).count a) :
     (f.support.sum_hom $ multiset.count a).symm
   ... = f.sum (λx n, n * ({x} : multiset α).count a) : by simp only [multiset.count_smul]
-  ... = f.sum (λx n, n * (x :: 0 : multiset α).count a) : rfl
-  ... = f a * (a :: 0 : multiset α).count a : sum_eq_single _
+  ... = f.sum (λx n, n * (x ::ₘ 0 : multiset α).count a) : rfl
+  ... = f a * (a ::ₘ 0 : multiset α).count a : sum_eq_single _
     (λ a' _ H, by simp only [multiset.count_cons_of_ne (ne.symm H), multiset.count_zero, mul_zero])
     (λ H, by simp only [not_mem_support_iff.1 H, zero_mul])
   ... = f a : by simp only [multiset.count_singleton, mul_one]
@@ -1563,9 +1612,9 @@ lemma mul_sum (b : γ) (s : α →₀ β) {f : α → β → γ} :
   b * (s.sum f) = s.sum (λ a c, b * (f a c)) :=
 by simp only [finsupp.sum, finset.mul_sum]
 
-protected lemma eq_zero_of_zero_eq_one
-  (zero_eq_one : (0 : β) = 1) (l : α →₀ β) : l = 0 :=
-by ext i; simp only [eq_zero_of_zero_eq_one zero_eq_one (l i), finsupp.zero_apply]
+instance unique_of_right [subsingleton β] : unique (α →₀ β) :=
+{ uniq := λ l, ext $ λ i, subsingleton.elim _ _,
+  .. finsupp.inhabited }
 
 end
 
@@ -1612,6 +1661,32 @@ protected def dom_congr [add_comm_monoid β] (e : α₁ ≃ α₂) : (α₁ →�
     exact map_domain_id
   end,
   map_add' := λ a b, map_domain_add, }
+
+end finsupp
+
+@[to_additive]
+lemma mul_equiv.map_finsupp_prod {α β γ δ : Type*}
+  [has_zero β] [comm_monoid γ] [comm_monoid δ]
+  (h : γ ≃* δ) (f : α →₀ β) (g : α → β → γ) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+h.map_prod _ _
+
+@[to_additive]
+lemma monoid_hom.map_finsupp_prod {α β γ δ : Type*}
+  [has_zero β] [comm_monoid γ] [comm_monoid δ]
+  (h : γ →* δ) (f : α →₀ β) (g : α → β → γ) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+h.map_prod _ _
+
+lemma ring_hom.map_finsupp_sum {α β γ δ : Type*}
+  [has_zero β] [semiring γ] [semiring δ]
+  (h : γ →+* δ) (f : α →₀ β) (g : α → β → γ) : h (f.sum g) = f.sum (λ a b, h (g a b)) :=
+h.map_sum _ _
+
+lemma ring_hom.map_finsupp_prod {α β γ δ : Type*}
+  [has_zero β] [comm_semiring γ] [comm_semiring δ]
+  (h : γ →+* δ) (f : α →₀ β) (g : α → β → γ) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+h.map_prod _ _
+
+namespace finsupp
 
 /-! ### Declarations about sigma types -/
 

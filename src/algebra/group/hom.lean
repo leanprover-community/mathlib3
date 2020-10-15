@@ -485,7 +485,7 @@ rfl
 for the evaluation of any function at a point. -/
 @[to_additive "Evaluation of an `add_monoid_hom` at a point as an additive monoid homomorphism.
 See also `monoid_hom.apply` for the evaluation of any function at a point."]
-def eval [monoid M] [comm_monoid N] (x : M) : (M →* N) →* N := ⟨λ f, f x, rfl, λ f g, rfl⟩
+def eval [monoid M] [comm_monoid N] : M →* (M →* N) →* N := (monoid_hom.id (M →* N)).flip
 
 @[simp, to_additive]
 lemma eval_apply [monoid M] [comm_monoid N] (x : M) (f : M →* N) : eval x f = f x := rfl

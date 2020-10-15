@@ -161,6 +161,7 @@ by simp only [to_dual_def]
 lemma to_dual_smul {r : 𝕜} {x : E} : to_dual 𝕜 (r • x) = r† • (to_dual 𝕜 x) :=
 by { ext z, simp [inner_smul_left] }
 
+
 variables [complete_space E] [complete_space F]
 
 /--
@@ -334,12 +335,18 @@ instance : inner_product_space 𝕜 (normed_space.dual 𝕜 E) :=
     rw [to_primal_smul, inner_smul_right],
   end }
 
+lemma to_dual_continuous : continuous (@to_dual 𝕜 E _ _) :=
+add_monoid_hom.continuous_of_bound _ 1 (λ x, by rw [to_dual_norm_eq_primal_norm, one_mul])
+
+lemma to_primal_continuous : continuous (@to_primal 𝕜 E _ _ _) :=
+add_monoid_hom.continuous_of_bound _ 1 (λ x, by rw [←dual_norm_eq_primal_norm, one_mul])
+
 /-- If `F` is a real Hilbert space, the function that takes a vector to its dual is a
 continuous linear equivalence.  -/
-def to_dual_real : F ≃L[ℝ] (normed_space.dual ℝ F) :=
+def to_dual_real_equiv : F ≃L[ℝ] (normed_space.dual ℝ F) :=
 linear_equiv.to_continuous_linear_equiv_of_bounds
 ({ to_fun := λ x, to_dual ℝ x,
-  map_add' := λ x y, by { ext z, simp [inner_add_left] },
+  map_add' := (to_dual ℝ).map_add,
   map_smul' := λ c x, by { ext z, simp [inner_smul_left] },
   inv_fun := λ ℓ, to_primal ℓ,
   left_inv := assume z,
@@ -358,5 +365,6 @@ linear_equiv.to_continuous_linear_equiv_of_bounds
 (λ x, by simp [to_dual_norm_eq_primal_norm])
 (λ ℓ, by simp [←linear_equiv.inv_fun_apply, dual_norm_eq_primal_norm])
 
+lemma to_dual_eq_to_dual_real_equiv_apply {x : F} : to_dual ℝ x = to_dual_real_equiv x := rfl
 
 end inner_product_space

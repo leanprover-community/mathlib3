@@ -78,9 +78,7 @@ variables {R}
 @[simp]
 theorem ι_square_zero (m : M) : (ι R m) * (ι R m) = 0 :=
 begin
-  dsimp [ι],
-  rw [←alg_hom.map_mul, ←alg_hom.map_zero _],
-  exact ring_quot.mk_alg_hom_rel R (rel.of m),
+  erw [←alg_hom.map_mul, ring_quot.mk_alg_hom_rel R (rel.of m), alg_hom.map_zero _],
 end
 
 variables (R) {A : Type*} [semiring A] [algebra R A]
@@ -104,7 +102,7 @@ by { ext, simp [lift, ι] }
 @[simp]
 theorem lift_ι_apply (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = 0) (x) :
   lift R f cond (ι R x) = f x :=
-by { dsimp [lift, ι], rw tensor_algebra.lift_ι_apply }
+by simp [lift, ι]
 
 @[simp]
 theorem lift_unique (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = 0)

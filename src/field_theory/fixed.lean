@@ -219,7 +219,7 @@ have linear_independent A (linear_map.lto_fun R A A ∘ alg_hom.to_linear_map),
 from ((linear_independent_monoid_hom A A).comp
   (coe : (A →ₐ[R] A) → (A →* A))
   (λ f g hfg, alg_hom.ext $ monoid_hom.ext_iff.1 hfg) : _),
-linear_independent_of_comp _ this
+this.of_comp _
 
 lemma cardinal_mk_alg_hom (K : Type u) (V : Type v)
   [field K] [field V] [algebra K V] [finite_dimensional K V] :

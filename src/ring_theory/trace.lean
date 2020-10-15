@@ -609,12 +609,30 @@ begin
   { simp }
 end
 
+@[simp] lemma to_matrix_id' {ι' : Type*} [fintype ι'] [decidable_eq ι']
+  {b : ι → M} {b' : ι' → M} (hb : is_basis R b) (hb' : is_basis R b') :
+  to_matrix hb hb' id = hb'.to_matrix b :=
+by rw [to_matrix_basis_change hb hb' hb' hb', to_matrix_id, matrix.mul_one, hb'.to_matrix_self, matrix.one_mul]
+
+@[simp] lemma is_basis.to_matrix_mul_to_matrix {ι' ι'' : Type*}
+  [fintype ι'] [decidable_eq ι'] [fintype ι''] [decidable_eq ι'']
+  {b' : ι' → S} (hb' : is_basis R b') {b'' : ι'' → S} (hb'' : is_basis R b'') :
+  hb.to_matrix b' ⬝ hb'.to_matrix b'' = hb.to_matrix b'' :=
+begin
+  apply (matrix.to_lin hb'' hb).injective,
+  calc to_lin hb'' hb (hb.to_matrix b' ⬝ hb'.to_matrix b'')
+      = to_lin hb'' hb (hb.to_matrix b' ⬝ to_matrix hb' hb' id ⬝ hb'.to_matrix b'') : by simp
+  ... = to_lin hb'' hb (hb.to_matrix b'') : by rw [← to_matrix_basis_change hb'' hb' hb hb', to_matrix_id']
+end
+
 lemma char_poly_lmul_matrix_basis_invariant {ι' : Type*} [fintype ι'] [decidable_eq ι']
-  {b' : ι' → S} (hb' : is_basis R b') (x : S) :
+  (hb : is_basis A b) {b' : ι' → S} (hb' : is_basis A b') (x : S) :
   char_poly (lmul_matrix hb x) = char_poly (lmul_matrix hb' x) :=
 begin
-  change char_poly (to_matrix hb hb (lmul R S x)) = char_poly (to_matrix hb' hb' (lmul R S x)),
-  rw [to_matrix_basis_change hb hb' hb hb', is_basis.to_matrix_inv],
+  change char_poly (to_matrix hb hb (lmul A S x)) = char_poly (to_matrix hb' hb' (lmul A S x)),
+  rw [to_matrix_basis_change hb hb' hb hb', char_poly_conjugate_aux];
+    rw [is_basis.to_matrix_mul_to_matrix, is_basis.to_matrix_self];
+    assumption
 end
 
 lemma trace_eq_matrix_trace (x : S) :
@@ -750,6 +768,18 @@ instance finite_dimensional.tower_top {V : Type*} [add_comm_group V]
   [vector_space K V] [vector_space L V] [is_scalar_tower K L V]
   [finite_dimensional K V] : finite_dimensional L V := sorry
 
+set_option pp.proofs true
+
+lemma minimal_polynomial.eq_of_algebra_map_eq
+  [algebra K T] [algebra L T] [is_scalar_tower K L T] [nontrivial T]
+  {x : L} {y : T} (hx : is_integral K x) (hy : is_integral K y)
+  (h : y = algebra_map L T x) : minimal_polynomial hx = minimal_polynomial hy :=
+minimal_polynomial.unique hy (minimal_polynomial.monic hx)
+  (by rw [h, ← is_scalar_tower.algebra_map_aeval, minimal_polynomial.aeval hx, ring_hom.map_zero])
+  (λ q q_monic root_q, minimal_polynomial.min _ q_monic
+    (is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero_field
+      (h ▸ root_q : polynomial.aeval (algebra_map L T x) q = 0)))
+
 lemma char_poly_eq_minimal_polynomial_pow (x : L) [finite_dimensional K L]
   {b : ι → L} (hb : is_basis K b) :
   char_poly (lmul_matrix hb x) =
@@ -762,10 +792,14 @@ begin
   c)) := λ _ _, classical.prop_decidable _,
   rw findim_eq_card_basis hc,
   let h := has_power_basis_adjoin_simple K is_algebraic_of_finite x,
-  have : char_poly (lmul_matrix hb x) = char_poly (lmul_matrix (h.is_basis.smul hc) x) := sorry,
-  rw [this, char_poly_lmul_matrix_smul h hc],
+  rw char_poly_lmul_matrix_basis_invariant hb (h.is_basis.smul hc),
+  show char_poly (lmul_matrix (h.is_basis.smul hc) (algebra_map _ L h.gen)) =
+    minimal_polynomial _ ^ fintype.card (↑c : set _),
+  rw [char_poly_lmul_matrix_smul h hc, minimal_polynomial.eq_of_algebra_map_eq (gen_is_integral h) ((is_algebraic_iff_is_integral K).mp (is_algebraic_of_finite x))],
+  exact (algebra_map_gen K x).symm
 end
 
+/-
 lemma repr_primitive_element_pow_of_lt'
   [is_simple_extension K L] (alg : is_algebraic K L) (n : fin (simple_degree alg)) :
   (power_basis_is_basis alg).repr (primitive_element K L ^ (n : ℕ)) = finsupp.single n 1 :=
@@ -841,6 +875,7 @@ begin
   simp_rw linear_equiv_matrix_lmul_primitive_element_pow_of_lt,
   sorry
 end
+-/
 
 lemma sum_repr (x : S) : ∑ i, hb.repr x i • b i = x :=
 begin
@@ -856,7 +891,7 @@ by { ext, simp }
 lemma trace_form.nondegenerate [finite_dimensional K L] [is_separable K L] :
   (trace_form K L).nondegenerate :=
 begin
-  rw nondegenerate_iff_eq_zero,
+  rw bilin_form.nondegenerate_iff_eq_zero,
   intros x hxy,
   have alg : is_algebraic K L := is_algebraic_of_finite,
   have hb := power_basis_is_basis alg,

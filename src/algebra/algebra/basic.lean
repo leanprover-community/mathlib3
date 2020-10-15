@@ -210,7 +210,7 @@ variables (R A B)
 instance : algebra R (A × B) :=
 { commutes' := by { rintro r ⟨a, b⟩, dsimp, rw [commutes r a, commutes r b] },
   smul_def' := by { rintro r ⟨a, b⟩, dsimp, rw [smul_def r a, smul_def r b] },
-  .. (show semimodule R (A × B), by apply_instance),
+  .. prod.semimodule,
   .. ring_hom.prod (algebra_map R A) (algebra_map R B) }
 
 variables {R A B}

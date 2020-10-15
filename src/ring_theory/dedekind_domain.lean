@@ -228,16 +228,27 @@ begin
       subst hax,exact ha,
       rw hI, exact hM_inclMinv,
     },
-    have h_neqM : M ≠ I,--what Samuel does in his 2nd paragraph of Thm2 "mm'=m" is impossible
-    {
-      suffices h_invM_neqA : (1/↑ M) ≠ (1:fractional_ideal f),simp at ⊢,--what Samuel prives in his 3rd paragraph of Thm2
-      by_contradiction ha,
-      have h_invM_inclR : ∀ x ∈ (1/↑ M:fractional_ideal f), x ∈ (1:fractional_ideal f),
-      intros x hx,
-       {have h_xn : submodule.is_principal.span_singleton (x) * ↑M ≤ ↑ M,
+    have h_top : I= ⊤,
+      {by_contradiction h_abs,
+      have h_IM : M=I, apply is_maximal.eq_of_le hM h_abs h_Iincl,
+      have h_inveqR : 1/↑ M = (1:fractional_ideal f),
+        {change 1/↑ M≤ (1:fractional_ideal f) ∧ (1:fractional_ideal f) ≤ 1/↑ M,
+        },
 
-       },
     },
+    ----
+    ----everything from here...
+    ----
+    -- have h_neqM : M ≠ I,--what Samuel does in his 2nd paragraph of Thm2 "mm'=m" is impossible
+    -- {
+    --   suffices h_invM_neqA : (1/↑ M) ≠ (1:fractional_ideal f),simp at ⊢,--what Samuel prives in his 3rd paragraph of Thm2
+    --   by_contradiction ha,
+    --   have h_invM_inclR : ∀ x ∈ (1/↑ M:fractional_ideal f), x ∈ (1:fractional_ideal f),
+    --   intros x hx,
+    --    {have h_xn : submodule.is_principal.span_singleton (x) * ↑M ≤ ↑ M,
+
+    --    },
+    -- },
     have h_Iincl_str : M < I, apply lt_of_le_of_ne h_Iincl h_neqM,
     have h_Itop : I=⊤, apply hM.right I h_Iincl_str,
   -- have h_Iincl_ss : ↑ M ⊆  I, apply submodule.span_le,
@@ -265,6 +276,9 @@ begin
    },
   have h_Itop' : I=⊤, --this (and its proof) should be replaced by h_Itop once that is OK
   apply (ideal.eq_top_iff_one I).mpr, exact one_I,
+  ----
+  ----up to here, must disappear
+  ----
   have h_okfI : ↑I=(1 : fractional_ideal f), apply fractional_ideal.ext_iff.mp,
     intros x,split,
       {intro hx,

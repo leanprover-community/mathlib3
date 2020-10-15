@@ -125,13 +125,7 @@ end
 @[simp] lemma reflect_monomial (N n : ℕ) : reflect N ((X : polynomial R) ^ n) = X ^ (rev_at N n) :=
 by rw [← one_mul (X ^ n), ← one_mul (X ^ (rev_at N n)), ← C_1, reflect_C_mul_X_pow]
 
-/-- The reverse of a polynomial f is the polynomial obtained by "reading f backwards".
-Even though this is not the actual definition, reverse f = f (1/X) * X ^ f.nat_degree. -/
-noncomputable def reverse (f : polynomial R) : polynomial R := reflect f.nat_degree f
-
-@[simp] lemma reverse_zero : reverse (0 : polynomial R) = 0 := rfl
-
-lemma pol_ind_Rhom_prod_on_card (cf cg : ℕ) :
+lemma reflect_mul_induction (cf cg : ℕ) :
  ∀ N O : ℕ, ∀ f g : polynomial R,
  f.support.card ≤ cf.succ → g.support.card ≤ cg.succ → f.nat_degree ≤ N → g.nat_degree ≤ O →
  (reflect (N + O) (f * g)) = (reflect N f) * (reflect O g) :=
@@ -152,9 +146,8 @@ begin
         repeat {rw nat.add_sub_cancel_left},
         repeat {rw rev_at_le},
         { rw [← add_assoc, add_assoc _ F, add_comm F, ← add_assoc, add_assoc _ F],
-          rw add_comm f.nat_degree,
-          repeat {rw nat.add_sub_cancel_left},
-          rw add_comm, },
+          rw [add_comm f.nat_degree, add_comm F],
+          repeat {rw nat.add_sub_cancel_left}, },
         { exact le_add_right (le_refl _), },
         { exact le_add_right (le_refl _), },
         { rw ← add_assoc (_ + F),
@@ -182,15 +175,16 @@ begin
       { exact nat.lt_succ_iff.mp (gt_of_ge_of_gt Cf (erase_lead_support_card_lt f0)), }, }, },
 end
 
-lemma pol_ind_Rhom_prod (F G : ℕ) (f g : polynomial R) :
- f.nat_degree ≤ F → g.nat_degree ≤ G →
- (reflect (F + G) (f * g)) = (reflect F f) * (reflect G g) :=
-pol_ind_Rhom_prod_on_card _ _ F G f g f.support.card.le_succ g.support.card.le_succ
-
 @[simp] theorem reflect_mul
- {f g : polynomial R} {F G : ℕ} (Ff : f.nat_degree ≤ F) (Gg : g.nat_degree ≤ G) :
- reflect (F + G) (f * g) = reflect F f * reflect G g :=
-pol_ind_Rhom_prod F G f g Ff Gg
+  {f g : polynomial R} {F G : ℕ} (Ff : f.nat_degree ≤ F) (Gg : g.nat_degree ≤ G) :
+  reflect (F + G) (f * g) = reflect F f * reflect G g :=
+reflect_mul_induction _ _ F G f g f.support.card.le_succ g.support.card.le_succ Ff Gg
+
+/-- The reverse of a polynomial f is the polynomial obtained by "reading f backwards".
+Even though this is not the actual definition, reverse f = f (1/X) * X ^ f.nat_degree. -/
+noncomputable def reverse (f : polynomial R) : polynomial R := reflect f.nat_degree f
+
+@[simp] lemma reverse_zero : reverse (0 : polynomial R) = 0 := rfl
 
 theorem reverse_mul {f g : polynomial R} (fg : f.leading_coeff * g.leading_coeff ≠ 0) :
  reverse (f * g) = reverse f * reverse g :=

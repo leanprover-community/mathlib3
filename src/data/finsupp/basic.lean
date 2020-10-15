@@ -733,6 +733,9 @@ instance [add_group G] : add_group (α →₀ G) :=
   add_left_neg := assume ⟨s, f, _⟩, ext $ assume x, add_left_neg _,
   .. finsupp.add_monoid }
 
+instance [add_comm_group G] : add_comm_group (α →₀ G) :=
+{ add_comm := add_comm, ..finsupp.add_group }
+
 lemma single_multiset_sum [add_comm_monoid M] (s : multiset M) (a : α) :
   single a s.sum = (s.map (single a)).sum :=
 multiset.induction_on s single_zero $ λ a s ih,

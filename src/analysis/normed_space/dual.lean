@@ -210,6 +210,7 @@ end
 
 variables {𝕜}
 
+/-- Maps a dual vector to its corresponding primal vector. -/
 def to_primal [complete_space E] (x : normed_space.dual 𝕜 E) : E :=
   classical.some (exists_elem_of_mem_dual x)
 
@@ -265,6 +266,8 @@ lemma to_primal_add [complete_space E] {x y : normed_space.dual 𝕜 E} :
   to_primal (x + y) = to_primal x + to_primal y :=
 by rw [←to_dual_fn_eq_iff_eq 𝕜, to_dual_fn_add, dual_primal, dual_primal, dual_primal]
 
+/-- In a Hilbert space, the norm of a vector in the dual space is the norm of its corresponding
+primal vector. -/
 lemma dual_norm_eq_primal_norm [complete_space E] {ℓ : normed_space.dual 𝕜 E} : ∥ℓ∥ = ∥to_primal ℓ∥ :=
 begin
   have h₁ : ∀ x, ∥ℓ x∥ ≤ ∥to_primal ℓ∥ * ∥x∥,
@@ -291,11 +294,19 @@ begin
     exact (mul_le_mul_right hℓ0).mp hb' }
 end
 
+/-- In a Hilbert space, the norm of the dual of a vector x is `∥x∥` -/
+lemma to_dual_norm_eq_primal_norm [complete_space E] {x : E} : ∥to_dual_fn 𝕜 x∥ = ∥x∥ :=
+by rw [dual_norm_eq_primal_norm, primal_dual]
+
+/-- The inner product can be written as an application of the dual of the first argument. -/
 lemma inner_eq_to_dual_apply {x y : E} : ⟪x, y⟫ = (to_dual_fn 𝕜 x) y := by simp only [to_dual_fn_def]
 
+/-- The inner product on the dual of a Hilbert space is given by the inner product of the
+corresponding primal vectors. -/
 instance [complete_space E] : has_inner 𝕜 (normed_space.dual 𝕜 E) :=
 { inner := λ x y, ⟪to_primal y, to_primal x⟫ }
 
+/-- The dual of a Hilbert space is itself a Hilbert space. -/
 instance [complete_space E] : inner_product_space 𝕜 (normed_space.dual 𝕜 E) :=
 { norm_sq_eq_inner := assume ℓ,
   begin
@@ -316,30 +327,29 @@ instance [complete_space E] : inner_product_space 𝕜 (normed_space.dual 𝕜 E
     rw [to_primal_smul, inner_smul_right],
   end }
 
+/-- If `F` is a real Hilbert space, the function that takes a vector to its dual is a
+continuous linear equivalence.  -/
 def to_dual_real [complete_space F] : F ≃L[ℝ] (normed_space.dual ℝ F) :=
-{
-  to_linear_equiv :=
-  { to_fun := λ x, to_dual_fn ℝ x,
-    map_add' := λ x y, by { ext z, simp [inner_add_left] },
-    map_smul' := λ c x, by { ext z, simp [inner_smul_left] },
-    inv_fun := λ ℓ, to_primal ℓ,
-    left_inv := assume z,
-    begin
-      have h₁ := (classical.some_spec (exists_elem_of_mem_dual (to_dual_fn ℝ z))).symm,
-      rwa [to_dual_fn_eq_iff_eq] at h₁
-    end,
-    right_inv := assume z,
-    begin
-      obtain ⟨y, hy⟩ := exists_elem_of_mem_dual z,
-      conv_rhs { rw [hy] },
-      have h := (classical.some_spec (exists_elem_of_mem_dual z)).symm,
-      simpa [to_primal, function.right_inverse, function.left_inverse, h],
-    end },
-  continuous_to_fun := begin
-
+linear_equiv.to_continuous_linear_equiv_of_bounds
+({ to_fun := λ x, to_dual_fn ℝ x,
+  map_add' := λ x y, by { ext z, simp [inner_add_left] },
+  map_smul' := λ c x, by { ext z, simp [inner_smul_left] },
+  inv_fun := λ ℓ, to_primal ℓ,
+  left_inv := assume z,
+  begin
+    have h₁ := (classical.some_spec (exists_elem_of_mem_dual (to_dual_fn ℝ z))).symm,
+    rwa [to_dual_fn_eq_iff_eq] at h₁
   end,
-  continuous_inv_fun := sorry,
-}
+  right_inv := assume z,
+  begin
+    obtain ⟨y, hy⟩ := exists_elem_of_mem_dual z,
+    conv_rhs { rw [hy] },
+    have h := (classical.some_spec (exists_elem_of_mem_dual z)).symm,
+    simpa [to_primal, function.right_inverse, function.left_inverse, h],
+  end } : F ≃ₗ[ℝ] (normed_space.dual ℝ F) )
+1 1
+(λ x, by simp [to_dual_norm_eq_primal_norm])
+(λ ℓ, by simp [←linear_equiv.inv_fun_apply, dual_norm_eq_primal_norm])
 
 
 end inner_product_space

@@ -627,6 +627,7 @@ variables {K : Type v} [small_category K]
 /--
 `map_cone` commutes with `whisker`
 -/
+@[simps {rhs_md:=semireducible}]
 def map_cone_whisker {E : K ⥤ J} {c : cone F} :
   H.map_cone (c.whisker E) ≅ (H.map_cone c).whisker E :=
 cones.ext (iso.refl _) (by tidy)
@@ -634,6 +635,7 @@ cones.ext (iso.refl _) (by tidy)
 /--
 `map_cocone` commutes with `whisker`
 -/
+@[simps {rhs_md:=semireducible}]
 def map_cocone_whisker {E : K ⥤ J} {c : cocone F} :
   H.map_cocone (c.whisker E) ≅ (H.map_cocone c).whisker E :=
 cocones.ext (iso.refl _) (by tidy)

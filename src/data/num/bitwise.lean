@@ -40,7 +40,7 @@ namespace pos_num
   | (bit1 p) (bit0 q) := num.bit0 (land p q)
   | (bit1 p) (bit1 q) := num.bit1 (land p q)
 
-  /-- Bitwise `λ a b, a && !b` for `pos_num`. For example, `ldiff 5 9 = 4` :
+  /-- Bitwise `λ a b, a && !b` for `pos_num`. For example, `ldiff 5 9 = 4`:
 
      101
     1001
@@ -114,7 +114,7 @@ namespace num
   | p       0       := 0
   | (pos p) (pos q) := p.land q
 
-  /-- Bitwise `λ a b, a && !b` for `num`. For example, `ldiff 5 9 = 4` :
+  /-- Bitwise `λ a b, a && !b` for `num`. For example, `ldiff 5 9 = 4`:
 
      101
     1001
@@ -218,7 +218,7 @@ namespace nzsnum
   | (b :: p) := b
 
   /-- The `tail` of a `nzsnum` is the `snum` obtained by removing the LSB.
-      Edge cases : `tail 1 = 0` and `tail (-2) = -1`. -/
+      Edge cases: `tail 1 = 0` and `tail (-2) = -1`. -/
   def tail : nzsnum → snum
   | (msb b)  := snum.zero (bnot b)
   | (b :: p) := p
@@ -261,8 +261,8 @@ end snum
 namespace nzsnum
   open snum
 
-  /-- A dependent induction principle for `nzsnum`, with base cases for
-      `0:snum` and `(-1):snum`. -/
+  /-- A dependent induction principle for `nzsnum`, with base cases
+      `0 : snum` and `(-1) : snum`. -/
   def drec' {C : snum → Sort*} (z : Π b, C (snum.zero b))
     (s : Π b p, C p → C (b :: p)) : Π p : nzsnum, C p
   | (msb b)  := by rw ←bit_one; exact s b (snum.zero (bnot b)) (z (bnot b))
@@ -278,18 +278,18 @@ namespace snum
   | (nz p)   := p.head
 
   /-- The `tail` of a `snum` is obtained by removing the LSB.
-      Edge cases : `tail 1 = 0`, `tail (-2) = -1`, `tail 0 = 0` and `tail (-1) = -1`. -/
+      Edge cases: `tail 1 = 0`, `tail (-2) = -1`, `tail 0 = 0` and `tail (-1) = -1`. -/
   def tail : snum → snum
   | (zero z) := zero z
   | (nz p)   := p.tail
 
-  /-- A dependent induction principle for `snum` which avoids reliying on `nzsnum`. -/
+  /-- A dependent induction principle for `snum` which avoids relying on `nzsnum`. -/
   def drec' {C : snum → Sort*} (z : Π b, C (snum.zero b))
     (s : Π b p, C p → C (b :: p)) : Π p, C p
   | (zero b) := z b
   | (nz p)   := p.drec' z s
 
-  /-- An induction principle for `snum` which avoids reliying on `nzsnum`. -/
+  /-- An induction principle for `snum` which avoids relying on `nzsnum`. -/
   def rec' {α} (z : bool → α) (s : bool → snum → α → α) : snum → α :=
   drec' z s
 
@@ -334,17 +334,17 @@ rec' (λ a p c, czadd c a p) $ λa p IH,
 rec' (λb c, czadd c b (a :: p)) $ λb q _ c,
 bitvec.xor3 a b c :: IH q (bitvec.carry a b c)
 
-/-- Add two `snum`. -/
+/-- Add two `snum`s. -/
 protected def add (a b : snum) : snum := cadd a b ff
 
 instance : has_add snum := ⟨snum.add⟩
 
-/-- Substract two `snum`. -/
+/-- Substract two `snum`s. -/
 protected def sub (a b : snum) : snum := a + -b
 
 instance : has_sub snum := ⟨snum.sub⟩
 
-/-- Multiply two `snum`. -/
+/-- Multiply two `snum`s. -/
 protected def mul (a : snum) : snum → snum :=
 rec' (λ b, cond b (-a) 0) $ λb q IH,
 cond b (bit0 IH + a) (bit0 IH)

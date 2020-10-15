@@ -274,7 +274,7 @@ namespace num
 ⟨λ h, function.left_inverse.injective of_to_nat h, congr_arg _⟩
 
 /--
-This tactic tries to turn an (in)-equality about `num`s to one about `nat`s by rewriting.
+This tactic tries to turn an (in)equality about `num`s to one about `nat`s by rewriting.
 ```lean
 example (n : num) (m : num) : n ≤ n + m :=
 begin
@@ -288,8 +288,8 @@ meta def transfer_rw : tactic unit :=
   repeat {rw add_to_nat <|> rw mul_to_nat <|> rw cast_one <|> rw cast_zero}]
 
 /--
-This tactic tries to prove (in)-equalities about `num`s by transfering them to `nat` world and then
-trying to call `simp`.
+This tactic tries to prove (in)equalities about `num`s by transfering them to the `nat` world and
+then trying to call `simp`.
 ```lean
 example (n : num) (m : num) : n ≤ n + m := by num.transfer
 ```
@@ -389,7 +389,7 @@ theorem nat_size_pos (n) : 0 < nat_size n :=
 by cases n; apply nat.succ_pos
 
 /--
-This tactic tries to turn an (in)-equality about `pos_num`s to one about `nat`s by rewriting.
+This tactic tries to turn an (in)equality about `pos_num`s to one about `nat`s by rewriting.
 ```lean
 example (n : pos_num) (m : pos_num) : n ≤ n + m :=
 begin
@@ -403,8 +403,8 @@ meta def transfer_rw : tactic unit :=
   repeat {rw add_to_nat <|> rw mul_to_nat <|> rw cast_one <|> rw cast_zero}]
 
 /--
-This tactic tries to prove (in)-equalities about `pos_num`s by transfering them to `nat` world and
-then trying to call `simp`.
+This tactic tries to prove (in)equalities about `pos_num`s by transferring them to the `nat` world
+and then trying to call `simp`.
 ```lean
 example (n : pos_num) (m : pos_num) : n ≤ n + m := by pos_num.transfer
 ```
@@ -1029,7 +1029,7 @@ theorem cast_inj [linear_ordered_ring α] {m n : znum} : (m:α) = n ↔ m = n :=
 by rw [← cast_to_int m, ← cast_to_int n, int.cast_inj, to_int_inj]
 
 /--
-This tactic tries to turn an (in)-equality about `znum`s to one about `int`s by rewriting.
+This tactic tries to turn an (in)equality about `znum`s to one about `int`s by rewriting.
 ```lean
 example (n : znum) (m : znum) : n ≤ n + m * m :=
 begin
@@ -1043,8 +1043,8 @@ meta def transfer_rw : tactic unit :=
   repeat {rw cast_add <|> rw mul_to_int <|> rw cast_one <|> rw cast_zero}]
 
 /--
-This tactic tries to prove (in)-equalities about `znum`s by transfering them to `int` world and then
-trying to call `simp`.
+This tactic tries to prove (in)equalities about `znum`s by transfering them to the `int` world and
+then trying to call `simp`.
 ```lean
 example (n : znum) (m : znum) : n ≤ n + m * m :=
 begin

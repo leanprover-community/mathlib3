@@ -252,6 +252,27 @@ lemma divisors_prime_pow {p : ℕ} (pp : p.prime) (k : ℕ) :
   divisors (p ^ k) = (finset.range (k + 1)).map ⟨pow p, pow_right_injective pp.two_le⟩ :=
 by { ext, simp [mem_divisors_prime_pow, pp, nat.lt_succ_iff, @eq_comm _ a] }
 
+lemma eq_proper_divisors_of_subset_of_sum_eq_sum {s : finset ℕ} (hsub : s ⊆ n.proper_divisors) :
+  ∑ x in s, x = ∑ x in n.proper_divisors, x → s = n.proper_divisors :=
+begin
+  cases n,
+  { rw [proper_divisors_zero, subset_empty] at hsub,
+    simp [hsub] },
+  classical,
+  rw [← sum_sdiff hsub],
+  intros h,
+  apply subset.antisymm hsub,
+  rw [← sdiff_eq_empty_iff_subset],
+  contrapose h,
+  rw [← ne.def, ← nonempty_iff_ne_empty] at h,
+  apply ne_of_lt,
+  rw [← zero_add (∑ x in s, x), ← add_assoc, add_zero],
+  apply add_lt_add_right,
+  have hlt := sum_lt_sum_of_nonempty h (λ x hx, pos_of_mem_proper_divisors (sdiff_subset _ _ hx)),
+  simp only [sum_const_zero] at hlt,
+  apply hlt
+end
+
 lemma sum_proper_divisors_dvd (h : ∑ x in n.proper_divisors, x ∣ n) :
   (∑ x in n.proper_divisors, x = 1) ∨ (∑ x in n.proper_divisors, x = n) :=
 begin
@@ -264,17 +285,10 @@ begin
   intro ne_n,
   have hlt : ∑ x in n.succ.succ.proper_divisors, x < n.succ.succ :=
     lt_of_le_of_ne (nat.le_of_dvd (nat.succ_pos _) h) ne_n,
-  have hsub : {∑ x in n.succ.succ.proper_divisors, x} ⊆ n.succ.succ.proper_divisors,
-  { intros y hy,
-    simp only [mem_singleton] at hy,
-    rw [hy, mem_proper_divisors],
-    exact ⟨h, hlt⟩ },
-  suffices h : {∑ x in n.succ.succ.proper_divisors, x} = n.succ.succ.proper_divisors,
-  { symmetry,
-    rw [← mem_singleton, h, mem_proper_divisors],
-    norm_num,
-    apply succ_lt_succ (nat.succ_pos _) },
-  rw [← sum_eq_sum_iff_of_subset_of_pos hsub (λ x, pos_of_mem_proper_divisors), sum_singleton],
+  symmetry,
+  rw [← mem_singleton, eq_proper_divisors_of_subset_of_sum_eq_sum (singleton_subset_iff.2
+        (mem_proper_divisors.2 ⟨h, hlt⟩)) sum_singleton, mem_proper_divisors],
+  refine ⟨one_dvd _, nat.succ_lt_succ (nat.succ_pos _)⟩,
 end
 
 @[simp]
@@ -318,18 +332,21 @@ end
 lemma sum_proper_divisors_eq_one_iff_prime :
   ∑ x in n.proper_divisors, x = 1 ↔ n.prime :=
 begin
-  cases n,
-  { simp [nat.not_prime_zero] },
-  cases n,
-  { simp [nat.not_prime_one] },
-  rw [← proper_divisors_eq_singleton_one_iff_prime, @eq_comm ℕ _ _, @eq_comm (finset ℕ) _ _],
-  convert sum_eq_sum_iff_of_subset_of_pos _ _,
-  { rw sum_singleton },
-  { rw [singleton_subset_iff, mem_proper_divisors],
-    norm_num,
-    apply succ_lt_succ (nat.succ_pos _), },
-  { intros x hx,
-    apply pos_of_mem_proper_divisors hx, }
+  split,
+  { cases n,
+    { simp [nat.not_prime_zero] },
+    cases n,
+    { simp [nat.not_prime_one] },
+    rw [← proper_divisors_eq_singleton_one_iff_prime, @eq_comm (finset ℕ) _ _],
+    intro h,
+    apply eq_proper_divisors_of_subset_of_sum_eq_sum _ _,
+    { rw [singleton_subset_iff, mem_proper_divisors],
+      norm_num,
+      apply succ_lt_succ (nat.succ_pos _) },
+    { rw [h, sum_singleton] } },
+  { intro h,
+    apply add_left_cancel,
+    rw [add_comm, ← sum_divisors_eq_sum_proper_divisors_add_self, sum_divisors_prime h] }
 end
 
 @[simp]

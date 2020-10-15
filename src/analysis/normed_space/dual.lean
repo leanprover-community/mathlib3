@@ -20,7 +20,9 @@ satisfying the Hahn-Banach theorem.
 
 In the case of inner product spaces, we define `to_dual` which maps an element x of the space
 to `λ y, ⟪x, y⟫`. We also give the Fréchet-Riesz representation, which states that every element
-of the dual of a Hilbert space `E` has the form `λ u, ⟪x, u⟫` for some `x : E`.
+of the dual of a Hilbert space `E` has the form `λ u, ⟪x, u⟫` for some `x : E`, and define
+`to_primal` which gives the corresponding primal vector of an element of the dual. We also prove
+that the dual of a Hilbert space is itself a Hilbert space.
 
 ## References
 

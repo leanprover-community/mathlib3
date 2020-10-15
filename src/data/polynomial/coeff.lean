@@ -75,27 +75,14 @@ lemma coeff_C_mul_X (x : R) (k n : ℕ) :
 by rw [← single_eq_C_mul_X]; simp [monomial, single, eq_comm, coeff]; congr
 
 @[simp] lemma coeff_C_mul (p : polynomial R) : coeff (C a * p) n = a * coeff p n :=
-begin
-  conv in (a * _) { rw [← @sum_single _ _ _ p, coeff_sum] },
-  rw [add_monoid_algebra.mul_def, ←monomial_zero_left, monomial, sum_single_index],
-  { simp only [coeff_single, finsupp.mul_sum, coeff_sum],
-    apply sum_congr rfl,
-    assume i hi, by_cases i = n; simp [h] },
-  { simp [finsupp.sum] }
-end
+add_monoid_algebra.single_zero_mul_apply p a n
 
 lemma C_mul' (a : R) (f : polynomial R) : C a * f = a • f :=
 ext $ λ n, coeff_C_mul f
 
 @[simp] lemma coeff_mul_C (p : polynomial R) (n : ℕ) (a : R) :
   coeff (p * C a) n = coeff p n * a :=
-begin
-  conv_rhs { rw [← @finsupp.sum_single _ _ _ p, coeff_sum] },
-  rw [add_monoid_algebra.mul_def, ←monomial_zero_left], simp_rw [sum_single_index],
-  { simp only [coeff_single, finsupp.sum_mul, coeff_sum],
-    apply sum_congr rfl,
-    assume i hi, by_cases i = n; simp [h], },
-end
+add_monoid_algebra.mul_single_zero_apply p a n
 
 lemma coeff_X_pow (k n : ℕ) :
   coeff (X^k : polynomial R) n = if n = k then 1 else 0 :=

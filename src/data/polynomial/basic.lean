@@ -86,13 +86,6 @@ def coeff (p : polynomial R) : ℕ → R := @coe_fn (ℕ →₀ R) _ p
 lemma coeff_monomial : coeff (monomial n a) m = if n = m then a else 0 :=
 by { dsimp [monomial, coeff], rw finsupp.single_apply, congr }
 
-/--
-This lemma is needed for occasions when we break through the abstraction from
-`polynomial` to `finsupp`; ideally it wouldn't be necessary at all.
--/
-lemma coeff_single : coeff (single n a) m = if n = m then a else 0 :=
-coeff_monomial
-
 @[simp] lemma coeff_zero (n : ℕ) : coeff (0 : polynomial R) n = 0 := rfl
 
 @[simp] lemma coeff_one_zero : coeff (1 : polynomial R) 0 = 1 := coeff_monomial

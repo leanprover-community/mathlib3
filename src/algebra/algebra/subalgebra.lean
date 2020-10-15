@@ -384,6 +384,10 @@ variables (S : subalgebra R A)
 lemma range_val : S.val.range = S :=
 ext $ set.ext_iff.1 $ S.val.coe_range.trans subtype.range_val
 
+instance : subsingleton (subalgebra R R) :=
+subsingleton_of_top_le_bot $ λ r hr,
+by simp only [set.mem_range, algebra.coe_bot, algebra.id.map_eq_self, exists_apply_eq_apply]
+
 end subalgebra
 
 section nat

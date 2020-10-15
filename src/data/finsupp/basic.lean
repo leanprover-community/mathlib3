@@ -1355,7 +1355,8 @@ multiset.induction_on s false.elim
   end
 
 lemma mem_support_finset_sum [add_comm_monoid M]
-  {s : finset ι} {h : ι → α →₀ M} (a : α) (ha : a ∈ (∑ c in s, h c).support) : ∃c∈s, a ∈ (h c).support :=
+  {s : finset ι} {h : ι → α →₀ M} (a : α) (ha : a ∈ (∑ c in s, h c).support) :
+  ∃ c ∈ s, a ∈ (h c).support :=
 let ⟨f, hf, hfa⟩ := mem_support_multiset_sum a ha in
 let ⟨c, hc, eq⟩ := multiset.mem_map.1 hf in
 ⟨c, hc, eq.symm ▸ hfa⟩

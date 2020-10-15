@@ -709,6 +709,20 @@ by rw [← inv_of_unit_eq φ h, mul_inv_of_unit φ (units.mk0 _ h) rfl]
   φ⁻¹ * φ = 1 :=
 by rw [mul_comm, φ.mul_inv h]
 
+protected lemma eq_mul_inv_iff_mul_eq {φ₁ φ₂ φ₃ : mv_power_series σ k}
+  (h : constant_coeff σ k φ₃ ≠ 0) :
+  φ₁ = φ₂ * φ₃⁻¹ ↔ φ₁ * φ₃ = φ₂ :=
+⟨λ k, by simp [k, mul_assoc, mv_power_series.inv_mul _ h],
+ λ k, by simp [← k, mul_assoc, mv_power_series.mul_inv _ h]⟩
+
+protected lemma eq_inv_iff_mul_eq_one {φ ψ : mv_power_series σ k} (h : constant_coeff σ k ψ ≠ 0) :
+  φ = ψ⁻¹ ↔ φ * ψ = 1 :=
+by rw [← mv_power_series.eq_mul_inv_iff_mul_eq h, one_mul]
+
+protected lemma inv_eq_iff_mul_eq_one {φ ψ : mv_power_series σ k} (h : constant_coeff σ k ψ ≠ 0) :
+  ψ⁻¹ = φ ↔ φ * ψ = 1 :=
+by rw [eq_comm, mv_power_series.eq_inv_iff_mul_eq_one h]
+
 end field
 
 end mv_power_series
@@ -1246,6 +1260,18 @@ mv_power_series.mul_inv φ h
 @[simp] protected lemma inv_mul (φ : power_series k) (h : constant_coeff k φ ≠ 0) :
   φ⁻¹ * φ = 1 :=
 mv_power_series.inv_mul φ h
+
+lemma eq_mul_inv_iff_mul_eq {φ₁ φ₂ φ₃ : power_series k} (h : constant_coeff k φ₃ ≠ 0) :
+  φ₁ = φ₂ * φ₃⁻¹ ↔ φ₁ * φ₃ = φ₂ :=
+mv_power_series.eq_mul_inv_iff_mul_eq h
+
+lemma eq_inv_iff_mul_eq_one {φ ψ : power_series k} (h : constant_coeff k ψ ≠ 0) :
+  φ = ψ⁻¹ ↔ φ * ψ = 1 :=
+mv_power_series.eq_inv_iff_mul_eq_one h
+
+lemma inv_eq_iff_mul_eq_one {φ ψ : power_series k} (h : constant_coeff k ψ ≠ 0) :
+  ψ⁻¹ = φ ↔ φ * ψ = 1 :=
+mv_power_series.inv_eq_iff_mul_eq_one h
 
 end field
 

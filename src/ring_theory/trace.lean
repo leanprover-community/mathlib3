@@ -10,6 +10,7 @@ import field_theory.simple_extension
 import linear_algebra.bilinear_form
 import linear_algebra.char_poly.coeff
 import ring_theory.algebra_tower
+import ring_theory.localization
 
 /-!
 # Trace for (finite) ring extensions.
@@ -42,6 +43,7 @@ variables {K L : Type*} [field K] [field L] [algebra K L]
 variables {ι : Type w} [fintype ι] {b : ι → S} (hb : is_basis R b)
 
 open finite_dimensional
+open intermediate_field
 open linear_map
 open matrix
 
@@ -71,7 +73,7 @@ variables {x : L} (alg : is_algebraic K x)
 lemma exists_eq_aeval_gen (alg : is_algebraic K L) {y : L} (hy : y ∈ K⟮x⟯) :
   ∃ f : polynomial K, y = aeval x f :=
 begin
-  refine field.adjoin_induction _ hy _ _ _ _ _ _,
+  refine adjoin_induction _ hy _ _ _ _ _ _,
   { intros x hx,
     rcases set.mem_singleton_iff.mp hx with rfl,
     exact ⟨X, (aeval_X _).symm⟩ },
@@ -96,7 +98,7 @@ begin
     exact ⟨fx * fy, (ring_hom.map_mul _ _ _).symm⟩ },
 end
 
-/-- Bundle `power_basis` in a structure to generalize over `algebra.adjoin` and `field.adjoin`. -/
+/-- Bundle `power_basis` in a structure to generalize over `algebra.adjoin` and `adjoin`. -/
 structure has_power_basis (R S : Type*) [comm_ring R] [ring S] [algebra R S] :=
 (dim : ℕ)
 (gen : S)
@@ -203,7 +205,7 @@ noncomputable def has_power_basis_adjoin_simple
 let hx : is_integral K (adjoin_simple.gen K x) :=
     (is_algebraic_iff_is_integral _).mp (K⟮x⟯.is_algebraic (alg x)) in
 { dim := (minimal_polynomial hx).nat_degree,
-  gen := field.adjoin_simple.gen K x,
+  gen := adjoin_simple.gen K x,
   is_basis := ⟨linear_independent_power_basis _,
                _root_.eq_top_iff.mpr (λ y _, mem_span_power_basis alg _ _)⟩ }
 
@@ -440,7 +442,7 @@ end trace_form
 
 end algebra
 
-open field.adjoin_simple
+open intermediate_field.adjoin_simple
 open algebra
 
 variables [decidable_eq ι] [algebra S T] [is_scalar_tower R S T]
@@ -469,19 +471,35 @@ lemma ring_hom.map_matrix.map_mul {n : Type*} [fintype n] [decidable_eq n]
   f.map_matrix (M ⬝ N) = f.map_matrix M ⬝ f.map_matrix N :=
 by rw [← mul_eq_mul, ring_hom.map_mul, mul_eq_mul]
 
+@[simp] lemma perm_congr_apply {m n : Type*} [fintype m] [decidable_eq m]
+  [fintype n] [decidable_eq n] (e : m ≃ n) (p : equiv.perm m) (x) :
+  e.perm_congr p x = e (p (e.symm x)) := rfl
+
+@[simp] lemma sign_perm_congr {m n : Type*} [fintype m] [decidable_eq m]
+  [fintype n] [decidable_eq n] (e : m ≃ n) (p : equiv.perm m) :
+  (e.perm_congr p).sign = p.sign :=
+equiv.perm.sign_eq_sign_of_equiv _ _ e.symm (by simp)
+
 lemma det_reindex {m n : Type*} [fintype m] [decidable_eq m]
   [fintype n] [decidable_eq n] (e : m ≃ n) (A : matrix m m R) :
   det (reindex_linear_equiv e e A) = det A :=
 begin
   simp only [det, reindex_linear_equiv_apply],
   apply finset.sum_bij' (λ σ _, equiv.perm_congr e.symm σ) _ _ (λ σ _, equiv.perm_congr e σ),
-  { intros σ _, ext, simp [equiv.perm_congr, equiv.equiv_congr] },
-  { intros σ _, ext, simp [equiv.perm_congr, equiv.equiv_congr] },
+  { intros σ _, ext, simp only [equiv.symm_symm, perm_congr_apply, equiv.apply_symm_apply] },
+  { intros σ _, ext, simp only [equiv.symm_symm, perm_congr_apply, equiv.symm_apply_apply] },
   { intros σ _, apply finset.mem_univ },
   { intros σ _, apply finset.mem_univ },
 
   intros σ _,
-  squeeze_simp,
+  simp_rw [sign_perm_congr, perm_congr_apply, equiv.symm_symm],
+  congr,
+  apply finset.prod_bij' (λ i _, e.symm i) _ _ (λ i _, e i),
+  { intros, simp_rw equiv.apply_symm_apply },
+  { intros, simp_rw equiv.symm_apply_apply },
+  { intros, apply finset.mem_univ },
+  { intros, apply finset.mem_univ },
+  { intros, simp_rw equiv.apply_symm_apply },
 end
 
 @[simp] lemma reindex_refl_refl {m n : Type*} [fintype m] [decidable_eq m]
@@ -489,40 +507,73 @@ end
   (reindex_linear_equiv (equiv.refl _) (equiv.refl _) A) = A :=
 by { ext, simp only [reindex_linear_equiv_apply, equiv.refl_symm, equiv.refl_apply] }
 
+lemma matrix.card_le_card_of_left_inv' {m n : ℕ}
+  {M : matrix (fin m) (fin n) A} {M' : matrix (fin n) (fin m) A}
+  (hMM' : M ⬝ M' = 1) :
+  m ≤ n :=
+have function.left_inverse
+  ((M.map (algebra_map A (fraction_ring A))).mul_vec)
+  ((M'.map (algebra_map A (fraction_ring A))).mul_vec) :=
+λ x, by rw [mul_vec_mul_vec, ← matrix.map_mul, hMM', matrix.map_one, mul_vec_one],
+have function.injective ((M'.map (algebra_map A (fraction_ring A))).to_lin') :=
+function.left_inverse.injective this,
+calc m = findim (fraction_ring A) (fin m → fraction_ring A) : (findim_fin_fun _).symm
+   ... ≤ findim (fraction_ring A) (fin n → fraction_ring A) : findim_le_findim_of_injective this
+   ... = n : findim_fin_fun _
+
+lemma matrix.card_le_card_of_left_inv {m n : Type*}
+  [fintype m] [decidable_eq m] [fintype n] [decidable_eq n]
+  {M : matrix m n A} {M' : matrix n m A} (hMM' : M ⬝ M' = 1) :
+  fintype.card m ≤ fintype.card n :=
+let em := trunc.out (fintype.equiv_fin m), en := trunc.out (fintype.equiv_fin n) in
+matrix.card_le_card_of_left_inv' $
+calc reindex_linear_equiv em en M ⬝ reindex_linear_equiv en em M'
+    = reindex_linear_equiv em em (M ⬝ M') : reindex_mul em en em M M'
+... = reindex_linear_equiv em em 1 : by rw hMM'
+... = 1 : (reindex_alg_equiv em).map_one
+
+noncomputable def matrix.equiv_of_inv {m n : Type*}
+  [fintype m] [decidable_eq m] [fintype n] [decidable_eq n]
+   {M : matrix m n A} {M' : matrix n m A}
+  (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
+  m ≃ n :=
+classical.choice (fintype.card_eq.mp (le_antisymm
+  (matrix.card_le_card_of_left_inv hMM')
+  (matrix.card_le_card_of_left_inv hM'M)))
+
 /-- If `A'` is a two-sided inverse for `A` (indexed differently), `det (A ⬝ B ⬝ A') = det B`. -/
 lemma det_conjugate_aux {m n : Type*} [fintype m] [decidable_eq m]
-  [fintype n] [decidable_eq n] {A : matrix m n R} {A' : matrix n m R} {B : matrix n n R}
-  (hAA' : A ⬝ A' = 1) (hA'A : A' ⬝ A = 1) :
-  det (A ⬝ B ⬝ A') = det B :=
+  [fintype n] [decidable_eq n] {M : matrix m n A} {M' : matrix n m A} {N : matrix n n A}
+  (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
+  det (M ⬝ N ⬝ M') = det N :=
 begin
   -- Although `m` and `n` are different a priori, we will show they have the same cardinality.
   -- This turns the problem into one for square matrices, which is easy.
-  have e : m ≃ n,
-  { sorry },
-  have : det (reindex_linear_equiv e (equiv.refl _) A ⬝ B ⬝ reindex_linear_equiv (equiv.refl _) e A') = det B,
-  { rw [det_mul, det_mul, mul_comm, ← mul_assoc, ← det_mul, reindex_mul, reindex_refl_refl, hA'A, det_one, one_mul] },
+  let e : m ≃ n := matrix.equiv_of_inv hMM' hM'M,
+  have : det (reindex_linear_equiv e (equiv.refl _) M ⬝ N ⬝ reindex_linear_equiv (equiv.refl _) e M') = det N,
+  { rw [det_mul, det_mul, mul_comm, ← mul_assoc, ← det_mul, reindex_mul, reindex_refl_refl, hM'M, det_one, one_mul] },
   convert this,
-  rw [← det_reindex e (A ⬝ B ⬝ A'), ← reindex_mul e (equiv.refl n) e, ← reindex_mul e (equiv.refl n) (equiv.refl n), reindex_refl_refl],
+  rw [← det_reindex e (M ⬝ N ⬝ M'), ← reindex_mul e (equiv.refl n) e, ← reindex_mul e (equiv.refl n) (equiv.refl n), reindex_refl_refl],
 end
 
 /-- If `A'` is a two-sided inverse for `A`, `char_poly (A ⬝ B ⬝ A') = char_poly B`. -/
 lemma char_poly_conjugate_aux {m n : Type*} [fintype m] [decidable_eq m]
-  [fintype n] [decidable_eq n] {A : matrix m n R} {A' : matrix n m R} {B : matrix n n R}
-  (hAA' : A ⬝ A' = 1) (hA'A : A' ⬝ A = 1) :
-  char_poly (A ⬝ B ⬝ A') = char_poly B :=
-have hCACA' : A.map C ⬝ A'.map C = 1 := by rw [← matrix.map_mul, hAA', matrix.map_one],
-have hCA'CA : A'.map C ⬝ A.map C = 1 := by rw [← matrix.map_mul, hA'A, matrix.map_one],
-calc (X • 1 - C.map_matrix (A ⬝ B ⬝ A')).det
-    = (A.map C ⬝ (scalar n X - B.map C) ⬝ A'.map C).det :
+  [fintype n] [decidable_eq n] {M : matrix m n A} {M' : matrix n m A} {N : matrix n n A}
+  (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
+  char_poly (M ⬝ N ⬝ M') = char_poly N :=
+have hCACA' : M.map C ⬝ M'.map C = 1 := by rw [← matrix.map_mul, hMM', matrix.map_one],
+have hCA'CA : M'.map C ⬝ M.map C = 1 := by rw [← matrix.map_mul, hM'M, matrix.map_one],
+calc (X • 1 - C.map_matrix (M ⬝ N ⬝ M')).det
+    = (M.map C ⬝ (scalar n X - N.map C) ⬝ M'.map C).det :
     by rw [matrix.mul_sub, matrix.sub_mul, ring_hom.map_matrix_apply, matrix.map_mul,
            matrix.map_mul, coe_scalar, matrix.mul_smul, matrix.mul_one,
            matrix.smul_mul, hCACA']
-... = (X • 1 - C.map_matrix B).det : det_conjugate_aux hCACA' hCA'CA
+... = (X • 1 - C.map_matrix N).det : det_conjugate_aux hCACA' hCA'CA
 
-lemma char_poly_conjugate {n : Type*} [fintype n] [decidable_eq n] {A B : matrix n n R}
-  (hA : is_unit A.det) :
-  char_poly (A⁻¹ ⬝ B ⬝ A) = char_poly B :=
-char_poly_conjugate_aux (nonsing_inv_mul _ hA) (mul_nonsing_inv _ hA)
+lemma char_poly_conjugate {n : Type*} [fintype n] [decidable_eq n] {M B : matrix n n A}
+  (hM : is_unit M.det) :
+  char_poly (M⁻¹ ⬝ B ⬝ M) = char_poly B :=
+char_poly_conjugate_aux (nonsing_inv_mul _ hM) (mul_nonsing_inv _ hM)
 
 end
 
@@ -558,12 +609,30 @@ begin
   { simp }
 end
 
+@[simp] lemma to_matrix_id' {ι' : Type*} [fintype ι'] [decidable_eq ι']
+  {b : ι → M} {b' : ι' → M} (hb : is_basis R b) (hb' : is_basis R b') :
+  to_matrix hb hb' id = hb'.to_matrix b :=
+by rw [to_matrix_basis_change hb hb' hb' hb', to_matrix_id, matrix.mul_one, hb'.to_matrix_self, matrix.one_mul]
+
+@[simp] lemma is_basis.to_matrix_mul_to_matrix {ι' ι'' : Type*}
+  [fintype ι'] [decidable_eq ι'] [fintype ι''] [decidable_eq ι'']
+  {b' : ι' → S} (hb' : is_basis R b') {b'' : ι'' → S} (hb'' : is_basis R b'') :
+  hb.to_matrix b' ⬝ hb'.to_matrix b'' = hb.to_matrix b'' :=
+begin
+  apply (matrix.to_lin hb'' hb).injective,
+  calc to_lin hb'' hb (hb.to_matrix b' ⬝ hb'.to_matrix b'')
+      = to_lin hb'' hb (hb.to_matrix b' ⬝ to_matrix hb' hb' id ⬝ hb'.to_matrix b'') : by simp
+  ... = to_lin hb'' hb (hb.to_matrix b'') : by rw [← to_matrix_basis_change hb'' hb' hb hb', to_matrix_id']
+end
+
 lemma char_poly_lmul_matrix_basis_invariant {ι' : Type*} [fintype ι'] [decidable_eq ι']
-  {b' : ι' → S} (hb' : is_basis R b') (x : S) :
+  (hb : is_basis A b) {b' : ι' → S} (hb' : is_basis A b') (x : S) :
   char_poly (lmul_matrix hb x) = char_poly (lmul_matrix hb' x) :=
 begin
-  change char_poly (to_matrix hb hb (lmul R S x)) = char_poly (to_matrix hb' hb' (lmul R S x)),
-  rw [to_matrix_basis_change hb hb' hb hb', is_basis.to_matrix_inv],
+  change char_poly (to_matrix hb hb (lmul A S x)) = char_poly (to_matrix hb' hb' (lmul A S x)),
+  rw [to_matrix_basis_change hb hb' hb hb', char_poly_conjugate_aux];
+    rw [is_basis.to_matrix_mul_to_matrix, is_basis.to_matrix_self];
+    assumption
 end
 
 lemma trace_eq_matrix_trace (x : S) :
@@ -699,6 +768,18 @@ instance finite_dimensional.tower_top {V : Type*} [add_comm_group V]
   [vector_space K V] [vector_space L V] [is_scalar_tower K L V]
   [finite_dimensional K V] : finite_dimensional L V := sorry
 
+set_option pp.proofs true
+
+lemma minimal_polynomial.eq_of_algebra_map_eq
+  [algebra K T] [algebra L T] [is_scalar_tower K L T] [nontrivial T]
+  {x : L} {y : T} (hx : is_integral K x) (hy : is_integral K y)
+  (h : y = algebra_map L T x) : minimal_polynomial hx = minimal_polynomial hy :=
+minimal_polynomial.unique hy (minimal_polynomial.monic hx)
+  (by rw [h, ← is_scalar_tower.algebra_map_aeval, minimal_polynomial.aeval hx, ring_hom.map_zero])
+  (λ q q_monic root_q, minimal_polynomial.min _ q_monic
+    (is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero_field
+      (h ▸ root_q : polynomial.aeval (algebra_map L T x) q = 0)))
+
 lemma char_poly_eq_minimal_polynomial_pow (x : L) [finite_dimensional K L]
   {b : ι → L} (hb : is_basis K b) :
   char_poly (lmul_matrix hb x) =
@@ -711,10 +792,14 @@ begin
   c)) := λ _ _, classical.prop_decidable _,
   rw findim_eq_card_basis hc,
   let h := has_power_basis_adjoin_simple K is_algebraic_of_finite x,
-  have : char_poly (lmul_matrix hb x) = char_poly (lmul_matrix (h.is_basis.smul hc) x) := sorry,
-  rw [this, char_poly_lmul_matrix_smul h hc],
+  rw char_poly_lmul_matrix_basis_invariant hb (h.is_basis.smul hc),
+  show char_poly (lmul_matrix (h.is_basis.smul hc) (algebra_map _ L h.gen)) =
+    minimal_polynomial _ ^ fintype.card (↑c : set _),
+  rw [char_poly_lmul_matrix_smul h hc, minimal_polynomial.eq_of_algebra_map_eq (gen_is_integral h) ((is_algebraic_iff_is_integral K).mp (is_algebraic_of_finite x))],
+  exact (algebra_map_gen K x).symm
 end
 
+/-
 lemma repr_primitive_element_pow_of_lt'
   [is_simple_extension K L] (alg : is_algebraic K L) (n : fin (simple_degree alg)) :
   (power_basis_is_basis alg).repr (primitive_element K L ^ (n : ℕ)) = finsupp.single n 1 :=
@@ -790,6 +875,7 @@ begin
   simp_rw linear_equiv_matrix_lmul_primitive_element_pow_of_lt,
   sorry
 end
+-/
 
 lemma sum_repr (x : S) : ∑ i, hb.repr x i • b i = x :=
 begin
@@ -805,7 +891,7 @@ by { ext, simp }
 lemma trace_form.nondegenerate [finite_dimensional K L] [is_separable K L] :
   (trace_form K L).nondegenerate :=
 begin
-  rw nondegenerate_iff_eq_zero,
+  rw bilin_form.nondegenerate_iff_eq_zero,
   intros x hxy,
   have alg : is_algebraic K L := is_algebraic_of_finite,
   have hb := power_basis_is_basis alg,

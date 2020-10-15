@@ -90,6 +90,10 @@ lemma right_ne_zero_of_mul : a * b ≠ 0 → b ≠ 0 := mt (mul_eq_zero_of_right
 lemma ne_zero_and_ne_zero_of_mul (h : a * b ≠ 0) : a ≠ 0 ∧ b ≠ 0 :=
 ⟨left_ne_zero_of_mul h, right_ne_zero_of_mul h⟩
 
+lemma mul_eq_zero_of_ne_zero_imp_eq_zero {a b : M₀} (h : a ≠ 0 → b = 0) :
+  a * b = 0 :=
+if ha : a = 0 then by rw [ha, zero_mul] else by rw [h ha, mul_zero]
+
 end mul_zero_class
 
 /-- Predicate typeclass for expressing that `a * b = 0` implies `a = 0` or `b = 0`
@@ -309,16 +313,18 @@ All other elements will be provably equal to it, but not necessarily definitiona
 def unique_of_zero_eq_one (h : (0 : M₀) = 1) : unique M₀ :=
 { default := 0, uniq := eq_zero_of_zero_eq_one h }
 
-/-- In a monoid with zero, if zero equals one, then all elements of that semiring are equal. -/
-theorem subsingleton_of_zero_eq_one (h : (0 : M₀) = 1) : subsingleton M₀ :=
-@unique.subsingleton _ (unique_of_zero_eq_one h)
+/-- In a monoid with zero, zero equals one if and only if all elements of that semiring are equal. -/
+theorem subsingleton_iff_zero_eq_one : (0 : M₀) = 1 ↔ subsingleton M₀ :=
+⟨λ h, @unique.subsingleton _ (unique_of_zero_eq_one h), λ h, @subsingleton.elim _ h _ _⟩
+
+alias subsingleton_iff_zero_eq_one ↔ subsingleton_of_zero_eq_one _
 
 lemma eq_of_zero_eq_one (h : (0 : M₀) = 1) (a b : M₀) : a = b :=
 @subsingleton.elim _ (subsingleton_of_zero_eq_one h) a b
 
 @[simp] theorem is_unit_zero_iff : is_unit (0 : M₀) ↔ (0:M₀) = 1 :=
 ⟨λ ⟨⟨_, a, (a0 : 0 * a = 1), _⟩, rfl⟩, by rwa zero_mul at a0,
- λ h, ⟨⟨0, 0, eq_of_zero_eq_one h _ _, eq_of_zero_eq_one h _ _⟩, rfl⟩⟩
+ λ h, @is_unit_of_subsingleton _ _ (subsingleton_of_zero_eq_one h) 0⟩
 
 @[simp] theorem not_is_unit_zero [nontrivial M₀] : ¬ is_unit (0 : M₀) :=
 mt is_unit_zero_iff.1 zero_ne_one

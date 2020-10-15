@@ -21,10 +21,11 @@ variables [semiring R] [add_comm_monoid M] [semimodule R M] [add_comm_monoid N] 
 
 /-- Interpret `finsupp.single a` as a linear map. -/
 def lsingle (a : α) : M →ₗ[R] (α →₀ M) :=
-⟨single a, assume a b, single_add, assume c b, (smul_single _ _ _).symm⟩
+{ map_smul' := assume a b, (smul_single _ _ _).symm, ..finsupp.single_add_hom a }
 
 /-- Interpret `λ (f : α →₀ M), f a` as a linear map. -/
-def lapply (a : α) : (α →₀ M) →ₗ[R] M := ⟨λg, g a, assume a b, rfl, assume a b, rfl⟩
+def lapply (a : α) : (α →₀ M) →ₗ[R] M :=
+{ map_smul' := assume a b, rfl, ..finsupp.eval_add_hom a }
 
 section lsubtype_domain
 variables (s : set α)

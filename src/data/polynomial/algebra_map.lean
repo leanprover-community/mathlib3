@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 
+import algebra.algebra.subalgebra
 import data.polynomial.eval
 
 /-!
@@ -87,8 +88,6 @@ lemma eval_comp : (p.comp q).eval a = p.eval (q.eval a) := eval₂_comp _
 
 instance : is_semiring_hom (λ q : polynomial R, q.comp p) :=
 by unfold comp; apply_instance
-
-@[simp] lemma mul_comp : (p * q).comp r = p.comp r * q.comp r := eval₂_mul _ _
 
 end comp
 

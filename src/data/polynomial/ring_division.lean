@@ -185,6 +185,38 @@ begin
   exact root_multiplicity_eq_zero (mt root_X_sub_C.mp (ne.symm hxy))
 end
 
+/-- The multiplicity of `a` as root of `(X - a) ^ n` is `n`. -/
+lemma root_multiplicity_X_sub_C_pow (a : R) (n : ℕ) : root_multiplicity a ((X - C a) ^ n) = n :=
+begin
+  induction n with n hn,
+  { refine root_multiplicity_eq_zero _,
+    simp only [eval_one, is_root.def, not_false_iff, one_ne_zero, pow_zero] },
+  have hzero :=  (ne_zero_of_monic (monic_pow (monic_X_sub_C a) n.succ)),
+  rw pow_succ (X - C a) n at hzero ⊢,
+  simp only [root_multiplicity_mul hzero, root_multiplicity_X_sub_C_self, hn, nat.one_add]
+end
+
+/-- If `(X - a) ^ n` divides a polynomial `p` then the multiplicity of `a` as root of `p` is at
+least `n`. -/
+lemma root_multiplicity_of_dvd {p : polynomial R} {a : R} {n : ℕ}
+  (hzero : p ≠ 0) (h : (X - C a) ^ n ∣ p) : n ≤ root_multiplicity a p :=
+begin
+  obtain ⟨q, hq⟩ := exists_eq_mul_right_of_dvd h,
+  rw hq at hzero,
+  simp only [hq, root_multiplicity_mul hzero, root_multiplicity_X_sub_C_pow,
+             ge_iff_le, _root_.zero_le, le_add_iff_nonneg_right],
+end
+
+/-- The multiplicity of `p + q` is at least the minimum of the multiplicities. -/
+lemma root_multiplicity_add {p q : polynomial R} (a : R) (hzero : p + q ≠ 0) :
+  min (root_multiplicity a p) (root_multiplicity a q) ≤ root_multiplicity a (p + q) :=
+begin
+  refine root_multiplicity_of_dvd hzero _,
+  have hdivp : (X - C a) ^ root_multiplicity a p ∣ p := pow_root_multiplicity_dvd p a,
+  have hdivq : (X - C a) ^ root_multiplicity a q ∣ q := pow_root_multiplicity_dvd q a,
+  exact min_pow_dvd_add hdivp hdivq
+end
+
 lemma exists_multiset_roots : ∀ {p : polynomial R} (hp : p ≠ 0),
   ∃ s : multiset R, (s.card : with_bot ℕ) ≤ degree p ∧ ∀ a, s.count a = root_multiplicity a p
 | p := λ hp, by haveI := classical.prop_decidable (∃ x, is_root p x); exact
@@ -205,7 +237,7 @@ then
   end,
   have hdiv0 : p /ₘ (X - C x) ≠ 0 := mt (div_by_monic_eq_zero_iff (monic_X_sub_C x)
     (ne_zero_of_monic (monic_X_sub_C x))).1 $ not_lt.2 hdeg,
-  ⟨x :: t, calc (card (x :: t) : with_bot ℕ) = t.card + 1 :
+  ⟨x ::ₘ t, calc (card (x ::ₘ t) : with_bot ℕ) = t.card + 1 :
       by exact_mod_cast card_cons _ _
     ... ≤ degree p :
       by rw [← degree_add_div_by_monic (monic_X_sub_C x) hdeg,
@@ -289,7 +321,7 @@ multiset.ext.mpr $ λ r,
     not_le_of_gt hp0 $ h.symm ▸ degree_C_le)).trans
   (by rw [is_root.def, eval_sub, eval_C, sub_eq_zero])
 
-@[simp] lemma roots_X_sub_C (r : R) : roots (X - C r) = r :: 0 :=
+@[simp] lemma roots_X_sub_C (r : R) : roots (X - C r) = r ::ₘ 0 :=
 begin
   ext s,
   rw [count_roots (X_sub_C_ne_zero r), root_multiplicity_X_sub_C],

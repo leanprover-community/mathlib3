@@ -141,7 +141,7 @@ theorem gpow_bit0 (a : G) (n : ℤ) : a ^ bit0 n = a ^ n * a ^ n := gpow_add _ _
 theorem bit0_gsmul (a : A) (n : ℤ) : bit0 n •ℤ a = n •ℤ a + n •ℤ a := gpow_add _ _ _
 
 theorem gpow_bit1 (a : G) (n : ℤ) : a ^ bit1 n = a ^ n * a ^ n * a :=
-by rw [bit1, gpow_add]; simp [gpow_bit0]
+by rw [bit1, gpow_add, gpow_bit0, gpow_one]
 
 theorem bit1_gsmul : ∀ (a : A) (n : ℤ), bit1 n •ℤ a = n •ℤ a + n •ℤ a + a :=
 @gpow_bit1 (multiplicative A) _

@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
 import data.equiv.basic
 import deprecated.group
+import algebra.group.hom
 
 /-!
 # Multiplicative and additive equivs
@@ -37,19 +38,21 @@ variables {A : Type*} {B : Type*} {M : Type*} {N : Type*} {P : Type*} {G : Type*
 set_option old_structure_cmd true
 
 /-- add_equiv α β is the type of an equiv α ≃ β which preserves addition. -/
-structure add_equiv (A B : Type*) [has_add A] [has_add B] extends A ≃ B :=
-(map_add' : ∀ x y : A, to_fun (x + y) = to_fun x + to_fun y)
+structure add_equiv (A B : Type*) [has_add A] [has_add B] extends A ≃ B, add_hom A B
 
 /-- The `equiv` underlying an `add_equiv`. -/
 add_decl_doc add_equiv.to_equiv
+/-- The `add_hom` underlying a `add_equiv`. -/
+add_decl_doc add_equiv.to_add_hom
 
 /-- `mul_equiv α β` is the type of an equiv `α ≃ β` which preserves multiplication. -/
 @[to_additive]
-structure mul_equiv (M N : Type*) [has_mul M] [has_mul N] extends M ≃ N :=
-(map_mul' : ∀ x y : M, to_fun (x * y) = to_fun x * to_fun y)
+structure mul_equiv (M N : Type*) [has_mul M] [has_mul N] extends M ≃ N, mul_hom M N
 
 /-- The `equiv` underlying a `mul_equiv`. -/
 add_decl_doc mul_equiv.to_equiv
+/-- The `mul_hom` underlying a `mul_equiv`. -/
+add_decl_doc mul_equiv.to_mul_hom
 
 infix ` ≃* `:25 := mul_equiv
 infix ` ≃+ `:25 := add_equiv
@@ -228,6 +231,10 @@ begin
   { exact (funext h) },
   { exact congr_arg equiv.inv_fun h₁ }
 end
+
+@[to_additive] lemma to_monoid_hom_injective
+  {M N} [monoid M] [monoid N] : function.injective (to_monoid_hom : (M ≃* N) → M →* N) :=
+λ f g h, mul_equiv.ext (monoid_hom.ext_iff.1 h)
 
 attribute [ext] add_equiv.ext
 

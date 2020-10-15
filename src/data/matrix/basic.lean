@@ -15,6 +15,8 @@ universes u u' v w
 
 open_locale big_operators
 
+/-- `matrix m n` is the type of matrices whose rows are indexed by the fintype `m`
+    and whose columns are indexed by the fintype `n`. -/
 @[nolint unused_arguments]
 def matrix (m : Type u) (n : Type u') [fintype m] [fintype n] (α : Type v) : Type (max u u' v) :=
 m → n → α
@@ -35,21 +37,24 @@ ext_iff.mp
 
 end ext
 
-/-- Apply a function to each matrix entry. -/
+/-- `M.map f` is the matrix obtained by applying `f` to each entry of the matrix `M`. -/
 def map (M : matrix m n α) {β : Type w} (f : α → β) : matrix m n β := λ i j, f (M i j)
 
 @[simp]
 lemma map_apply {M : matrix m n α} {β : Type w} {f : α → β} {i : m} {j : n} :
   M.map f i j = f (M i j) := rfl
 
+/-- The transpose of a matrix. -/
 def transpose (M : matrix m n α) : matrix n m α
 | x y := M y x
 
 localized "postfix `ᵀ`:1500 := matrix.transpose" in matrix
 
+/-- `matrix.col u` is the column matrix whose entries are given by `u`. -/
 def col (w : m → α) : matrix m unit α
 | x y := w x
 
+/-- `matrix.row u` is the row matrix whose entries are given by `u`. -/
 def row (v : n → α) : matrix unit n α
 | x y := v y
 
@@ -258,6 +263,8 @@ by simp [dot_product, finset.mul_sum, mul_assoc, mul_comm, mul_left_comm]
 
 end dot_product
 
+/-- `M ⬝ N` is the usual product of matrices `M` and `N`, i.e. we have that
+    `(M ⬝ N) i k` is the dot product of the `i`-th row of `M` by the `k`-th column of `Ǹ`. -/
 protected def mul [has_mul α] [add_comm_monoid α] (M : matrix l m α) (N : matrix m n α) :
   matrix l n α :=
 λ i k, dot_product (λ j, M i j) (λ j, N j k)
@@ -408,11 +415,11 @@ by { ext, apply neg_dot_product }
   M ⬝ (-N) = -(M ⬝ N) :=
 by { ext, apply dot_product_neg }
 
-@[simp] theorem sub_mul (M M' : matrix m n α) (N : matrix n o α) :
+protected theorem sub_mul (M M' : matrix m n α) (N : matrix n o α) :
   (M - M') ⬝ N = M ⬝ N - M' ⬝ N :=
 by rw [sub_eq_add_neg, matrix.add_mul, neg_mul, sub_eq_add_neg]
 
-@[simp] theorem mul_sub (M : matrix m n α) (N N' : matrix n o α) :
+protected theorem mul_sub (M : matrix m n α) (N N' : matrix n o α) :
   M ⬝ (N - N') = M ⬝ N - M ⬝ N' :=
 by rw [sub_eq_add_neg, matrix.mul_add, mul_neg, sub_eq_add_neg]
 
@@ -507,12 +514,20 @@ end comm_semiring
 section semiring
 variables [semiring α]
 
+/-- For two vectors `w` and `v`, `vec_mul_vec w v i j` is defined to be `w i * v j`.
+    Put another way, `vec_mul_vec w v` is exactly `col w ⬝ row v`. -/
 def vec_mul_vec (w : m → α) (v : n → α) : matrix m n α
 | x y := w x * v y
 
+/-- `mul_vec M v` is the matrix-vector product of `M` and `v`, where `v` is seen as a column matrix.
+    Put another way, `mul_vec M v` is the vector whose entries
+    are those of `M ⬝ col v` (see `col_mul_vec`). -/
 def mul_vec (M : matrix m n α) (v : n → α) : m → α
 | i := dot_product (λ j, M i j) v
 
+/-- `vec_mul v M` is the vector-matrix product of `v` and `M`, where `v` is seen as a row matrix.
+    Put another way, `vec_mul v M` is the vector whose entries
+    are those of `row v ⬝ M` (see `row_vec_mul`). -/
 def vec_mul (v : m → α) (M : matrix m n α) : n → α
 | j := dot_product v (λ i, M i j)
 
@@ -706,40 +721,51 @@ by { ext, refl }
 
 end transpose
 
+/-- `M.minor row col` is the matrix obtained by reindexing the rows and the lines of
+    `M`, such that `M.minor row col i j = M (row i) (col j)`. Note that the total number
+    of row/colums doesn't have to be preserved. -/
 def minor (A : matrix m n α) (row : l → m) (col : o → n) : matrix l o α :=
 λ i j, A (row i) (col j)
 
+/-- The left `n × l` part of a `n × (l+r)` matrix. -/
 @[reducible]
 def sub_left {m l r : nat} (A : matrix (fin m) (fin (l + r)) α) : matrix (fin m) (fin l) α :=
 minor A id (fin.cast_add r)
 
+/-- The right `n × r` part of a `n × (l+r)` matrix. -/
 @[reducible]
 def sub_right {m l r : nat} (A : matrix (fin m) (fin (l + r)) α) : matrix (fin m) (fin r) α :=
 minor A id (fin.nat_add l)
 
+/-- The top `u × n` part of a `(u+d) × n` matrix. -/
 @[reducible]
 def sub_up {d u n : nat} (A : matrix (fin (u + d)) (fin n) α) : matrix (fin u) (fin n) α :=
 minor A (fin.cast_add d) id
 
+/-- The bottom `d × n` part of a `(u+d) × n` matrix. -/
 @[reducible]
 def sub_down {d u n : nat} (A : matrix (fin (u + d)) (fin n) α) : matrix (fin d) (fin n) α :=
 minor A (fin.nat_add u) id
 
+/-- The top-right `u × r` part of a `(u+d) × (l+r)` matrix. -/
 @[reducible]
 def sub_up_right {d u l r : nat} (A: matrix (fin (u + d)) (fin (l + r)) α) :
   matrix (fin u) (fin r) α :=
 sub_up (sub_right A)
 
+/-- The bottom-right `d × r` part of a `(u+d) × (l+r)` matrix. -/
 @[reducible]
 def sub_down_right {d u l r : nat} (A : matrix (fin (u + d)) (fin (l + r)) α) :
   matrix (fin d) (fin r) α :=
 sub_down (sub_right A)
 
+/-- The top-left `u × l` part of a `(u+d) × (l+r)` matrix. -/
 @[reducible]
 def sub_up_left {d u l r : nat} (A : matrix (fin (u + d)) (fin (l + r)) α) :
   matrix (fin u) (fin (l)) α :=
 sub_up (sub_left A)
 
+/-- The bottom-left `d × l` part of a `(u+d) × (l+r)` matrix. -/
 @[reducible]
 def sub_down_left {d u l r : nat} (A: matrix (fin (u + d)) (fin (l + r)) α) :
   matrix (fin d) (fin (l)) α :=

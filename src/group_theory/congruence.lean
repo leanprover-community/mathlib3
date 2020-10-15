@@ -65,6 +65,12 @@ structure add_con [has_add M] extends setoid M :=
 @[to_additive add_con] structure con [has_mul M] extends setoid M :=
 (mul' : ∀ {w x y z}, r w x → r y z → r (w * y) (x * z))
 
+/-- The equivalence relation underlying an additive congruence relation. -/
+add_decl_doc add_con.to_setoid
+
+/-- The equivalence relation underlying a multiplicative congruence relation. -/
+add_decl_doc con.to_setoid
+
 variables {M}
 
 /-- The inductively defined smallest additive congruence relation containing a given binary

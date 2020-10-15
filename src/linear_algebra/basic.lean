@@ -161,6 +161,15 @@ instance : inhabited (M →ₗ[R] M₂) := ⟨0⟩
 
 @[simp] lemma zero_apply (x : M) : (0 : M →ₗ[R] M₂) x = 0 := rfl
 
+@[simp] lemma default_def : default (M →ₗ[R] M₂) = 0 := rfl
+
+instance unique_of_left [subsingleton M] : unique (M →ₗ[R] M₂) :=
+{ uniq := λ f, ext $ λ x, by rw [subsingleton.elim x 0, map_zero, map_zero],
+  .. linear_map.inhabited }
+
+instance unique_of_right [subsingleton M₂] : unique (M →ₗ[R] M₂) :=
+coe_injective.unique
+
 /-- The sum of two linear maps is linear. -/
 instance : has_add (M →ₗ[R] M₂) :=
 ⟨λ f g, ⟨λ b, f b + g b, by simp [add_comm, add_left_comm], by simp [smul_add]⟩⟩
@@ -915,17 +924,6 @@ span_eq_bot.trans $ by simp
 span_eq_of_le _ (image_subset _ subset_span) $ map_le_iff_le_comap.2 $
 span_le.2 $ image_subset_iff.1 subset_span
 
-lemma linear_eq_on (s : set M) {f g : M →ₗ[R] M₂} (H : ∀x∈s, f x = g x) {x} (h : x ∈ span R s) :
-  f x = g x :=
-by apply span_induction h H; simp {contextual := tt}
-
-lemma linear_map.ext_on {v : ι → M} {f g : M →ₗ[R] M₂} (hv : span R (range v) = ⊤)
-  (h : ∀i, f (v i) = g (v i)) : f = g :=
-begin
-  apply linear_map.ext (λ x, linear_eq_on (range v) _ (eq_top_iff'.1 hv _)),
-  exact (λ y hy, exists.elim (set.mem_range.1 hy) (λ i hi, by rw ←hi; exact h i))
-end
-
 lemma supr_eq_span {ι : Sort w} (p : ι → submodule R M) :
   (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=
 le_antisymm
@@ -1130,6 +1128,33 @@ variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_mono
 variables [semimodule R M] [semimodule R M₂] [semimodule R M₃]
 include R
 open submodule
+
+/-- If two linear maps are equal on a set `s`, then they are equal on `submodule.span s`.
+
+See also `linear_map.eq_on_span'` for a version using `set.eq_on`. -/
+lemma eq_on_span {s : set M} {f g : M →ₗ[R] M₂} (H : set.eq_on f g s) ⦃x⦄ (h : x ∈ span R s) :
+  f x = g x :=
+by apply span_induction h H; simp {contextual := tt}
+
+/-- If two linear maps are equal on a set `s`, then they are equal on `submodule.span s`.
+
+This version uses `set.eq_on`, and the hidden argument will expand to `h : x ∈ (span R s : set M)`.
+See `linear_map.eq_on_span` for a version that takes `h : x ∈ span R s` as an argument. -/
+lemma eq_on_span' {s : set M} {f g : M →ₗ[R] M₂} (H : set.eq_on f g s) :
+  set.eq_on f g (span R s : set M) :=
+eq_on_span H
+
+/-- If `s` generates the whole semimodule and linear maps `f`, `g` are equal on `s`, then they are
+equal. -/
+lemma ext_on {s : set M} {f g : M →ₗ[R] M₂} (hv : span R s = ⊤) (h : set.eq_on f g s) :
+  f = g :=
+linear_map.ext (λ x, eq_on_span h (eq_top_iff'.1 hv _))
+
+/-- If the range of `v : ι → M` generates the whole semimodule and linear maps `f`, `g` are equal at
+each `v i`, then they are equal. -/
+lemma ext_on_range {v : ι → M} {f g : M →ₗ[R] M₂} (hv : span R (set.range v) = ⊤)
+  (h : ∀i, f (v i) = g (v i)) : f = g :=
+ext_on hv (set.forall_range_iff.2 h)
 
 @[simp] lemma finsupp_sum {γ} [has_zero γ]
   (f : M →ₗ[R] M₂) {t : ι →₀ γ} {g : ι → γ → M} :
@@ -1705,11 +1730,11 @@ set_option old_structure_cmd true
 @[nolint has_inhabited_instance]
 structure linear_equiv (R : Type u) (M : Type v) (M₂ : Type w)
   [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂]
-  extends M →ₗ[R] M₂, M ≃ M₂
+  extends M →ₗ[R] M₂, M ≃+ M₂
 end
 
 attribute [nolint doc_blame] linear_equiv.to_linear_map
-attribute [nolint doc_blame] linear_equiv.to_equiv
+attribute [nolint doc_blame] linear_equiv.to_add_equiv
 
 infix ` ≃ₗ ` := linear_equiv _
 notation M ` ≃ₗ[`:50 R `] ` M₂ := linear_equiv R M M₂
@@ -1731,6 +1756,10 @@ instance : has_coe_to_fun (M ≃ₗ[R] M₂) := ⟨_, λ f, f.to_fun⟩
 @[simp] lemma mk_apply {to_fun inv_fun map_add map_smul left_inv right_inv  a} :
   (⟨to_fun, map_add, map_smul, inv_fun, left_inv, right_inv⟩ : M ≃ₗ[R] M₂) a = to_fun a :=
 rfl
+
+-- This exists for compatibility, previously `≃ₗ[R]` extended `≃` instead of `≃+`.
+@[nolint doc_blame]
+def to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂ := λ f, f.to_add_equiv.to_equiv
 
 lemma to_equiv_injective : function.injective (to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂) :=
 λ ⟨_, _, _, _, _, _⟩ ⟨_, _, _, _, _, _⟩ h, linear_equiv.mk.inj_eq.mpr (equiv.mk.inj h)
@@ -1790,9 +1819,6 @@ variables {semimodule_M₃ : semimodule R M₃} (e₁ : M ≃ₗ[R] M₂) (e₂ 
 def trans : M ≃ₗ[R] M₃ :=
 { .. e₂.to_linear_map.comp e₁.to_linear_map,
   .. e₁.to_equiv.trans e₂.to_equiv }
-
-/-- A linear equivalence is an additive equivalence. -/
-def to_add_equiv : M ≃+ M₂ := { .. e }
 
 @[simp] lemma coe_to_add_equiv : ⇑(e.to_add_equiv) = e := rfl
 

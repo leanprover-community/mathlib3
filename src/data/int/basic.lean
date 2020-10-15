@@ -408,7 +408,7 @@ match a, b, eq_succ_of_zero_lt H with
 end
 
 theorem mod_lt (a : ℤ) {b : ℤ} (H : b ≠ 0) : a % b < abs b :=
-by rw [← mod_abs]; exact mod_lt_of_pos _ (abs_pos_of_ne_zero H)
+by rw [← mod_abs]; exact mod_lt_of_pos _ (abs_pos.2 H)
 
 theorem mod_add_div_aux (m n : ℕ) : (n - (m % n + 1) - (n * (m / n) + n) : ℤ) = -[1+ m] :=
 begin
@@ -708,7 +708,7 @@ theorem div_sign : ∀ a b, a / sign b = a * sign b
 
 protected theorem sign_eq_div_abs (a : ℤ) : sign a = a / (abs a) :=
 if az : a = 0 then by simp [az] else
-(int.div_eq_of_eq_mul_left (mt eq_zero_of_abs_eq_zero az)
+(int.div_eq_of_eq_mul_left (mt abs_eq_zero.1 az)
   (sign_mul_abs _).symm).symm
 
 theorem mul_sign : ∀ (i : ℤ), i * sign i = nat_abs i
@@ -959,7 +959,7 @@ lemma units_inv_eq_self (u : units ℤ) : u⁻¹ = u :=
 
 @[simp] lemma bodd_zero : bodd 0 = ff := rfl
 @[simp] lemma bodd_one : bodd 1 = tt := rfl
-@[simp] lemma bodd_two : bodd 2 = ff := rfl
+lemma bodd_two : bodd 2 = ff := rfl
 
 @[simp, norm_cast] lemma bodd_coe (n : ℕ) : int.bodd n = nat.bodd n := rfl
 
@@ -1022,11 +1022,24 @@ by rw [bit_val, nat.bit_val]; cases b; refl
 @[simp] lemma bodd_bit (b n) : bodd (bit b n) = b :=
 by rw bit_val; simp; cases b; cases bodd n; refl
 
+@[simp] lemma bodd_bit0 (n : ℤ) : bodd (bit0 n) = ff := bodd_bit ff n
+
+@[simp] lemma bodd_bit1 (n : ℤ) : bodd (bit1 n) = tt := bodd_bit tt n
+
 @[simp] lemma div2_bit (b n) : div2 (bit b n) = n :=
 begin
   rw [bit_val, div2_val, add_comm, int.add_mul_div_left, (_ : (_/2:ℤ) = 0), zero_add],
   cases b, all_goals {exact dec_trivial}
 end
+
+lemma bit0_ne_bit1 (m n : ℤ) : bit0 m ≠ bit1 n :=
+mt (congr_arg bodd) $ by simp
+
+lemma bit1_ne_bit0 (m n : ℤ) : bit1 m ≠ bit0 n :=
+(bit0_ne_bit1 _ _).symm
+
+lemma bit1_ne_zero (m : ℤ) : bit1 m ≠ 0 :=
+by simpa only [bit0_zero] using bit1_ne_bit0 m 0
 
 @[simp] lemma test_bit_zero (b) : ∀ n, test_bit (bit b n) 0 = b
 | (n : ℕ) := by rw [bit_coe_nat]; apply nat.test_bit_zero
@@ -1209,3 +1222,5 @@ let ⟨lb, Plb, al⟩ := exists_least_of_bdd Hbdd' Hinh' in
 end classical
 
 end int
+
+attribute [irreducible] int.lt

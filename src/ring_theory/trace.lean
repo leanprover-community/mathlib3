@@ -213,6 +213,10 @@ let hx : is_integral K (adjoin_simple.gen K x) :=
   (has_power_basis_adjoin_simple _ alg x).gen = adjoin_simple.gen K x :=
 rfl
 
+@[simp] lemma dim_adjoin_simple (alg : is_algebraic K L) (hx : is_integral K x) :
+  (has_power_basis_adjoin_simple _ alg x).dim = (minimal_polynomial hx).nat_degree :=
+_
+
 lemma findim_eq_dim (h : has_power_basis K L) :
   findim K L = h.dim :=
 trans (findim_eq_card_basis h.is_basis) (fintype.card_fin _)
@@ -381,6 +385,7 @@ include hb
 lemma trace_algebra_map_of_basis (x : R) :
   trace R S (algebra_map R S x) = fintype.card ι • x :=
 begin
+  classical,
   rw [trace_apply, trace_eq_matrix_trace R hb, trace_diag],
   convert finset.sum_const _,
   ext i,
@@ -461,6 +466,14 @@ noncomputable def lmul_matrix : S →ₐ[R] matrix ι ι R :=
 
 lemma lmul_matrix_apply (x : S) (i j) :
   lmul_matrix hb x i j = linear_map.to_matrix hb hb (lmul R S x) i j := rfl
+
+@[simp] lemma to_matrix_lmul_eq (x : S) : to_matrix hb hb (lmul R S x) = lmul_matrix hb x := rfl
+
+lemma trace_eq_trace_lmul_matrix (x : S) :
+  algebra.trace R S x = matrix.trace ι R R (lmul_matrix hb x) :=
+begin
+  rw [algebra.trace_apply, linear_map.trace_eq_matrix_trace R hb, to_matrix_lmul_eq],
+end
 
 section
 
@@ -635,10 +648,6 @@ begin
     assumption
 end
 
-lemma trace_eq_matrix_trace (x : S) :
-  algebra.trace R S x = matrix.trace _ R R (lmul_matrix hb x) :=
-by { rw [trace_apply, trace_eq_matrix_trace _ hb], congr }
-
 section
 
 def linear_map.restrict_base (R : Type*) {S M M' : Type*} [comm_semiring R] [semiring S] [algebra R S]
@@ -692,7 +701,7 @@ lemma trace_comp_of_basis [algebra S T] [is_scalar_tower R S T]
   (hb : is_basis R b) (hc : is_basis S c) (x : T) :
   algebra.trace R T x = trace R S (trace S T x) :=
 begin
-  rw [trace_eq_matrix_trace (hb.smul hc), trace_eq_matrix_trace hb, trace_eq_matrix_trace hc,
+  rw [trace_eq_trace_lmul_matrix (hb.smul hc), trace_eq_trace_lmul_matrix hb, trace_eq_trace_lmul_matrix hc,
       matrix.trace_apply, matrix.trace_apply, matrix.trace_apply,
       ← finset.univ_product_univ, finset.sum_product],
   refine finset.sum_congr rfl (λ i _, _),
@@ -764,12 +773,20 @@ begin
       char_matrix_lmul_matrix_smul, det_block_diagonal, finset.prod_const, finset.card_univ],
 end
 
-instance finite_dimensional.tower_top {V : Type*} [add_comm_group V]
-  [vector_space K V] [vector_space L V] [is_scalar_tower K L V]
+def finite_dimensional.tower_bot (K L V : Type*) [field K] [field L] [add_comm_group V]
+  [algebra K L] [vector_space K V] [vector_space L V] [is_scalar_tower K L V]
+  [finite_dimensional K V] : finite_dimensional K L := sorry
+
+def finite_dimensional.tower_top (K L V : Type*) [field K] [field L] [add_comm_group V]
+  [algebra K L] [vector_space K V] [vector_space L V] [is_scalar_tower K L V]
   [finite_dimensional K V] : finite_dimensional L V := sorry
 
 set_option pp.proofs true
 
+/-- If `y` is the image of `x` in an extension, their minimal polynomials coincide.
+
+We take `h : y = algebra_map L T x` as an argument because `rw h` typically fails.
+-/
 lemma minimal_polynomial.eq_of_algebra_map_eq
   [algebra K T] [algebra L T] [is_scalar_tower K L T] [nontrivial T]
   {x : L} {y : T} (hx : is_integral K x) (hy : is_integral K y)
@@ -785,18 +802,27 @@ lemma char_poly_eq_minimal_polynomial_pow (x : L) [finite_dimensional K L]
   char_poly (lmul_matrix hb x) =
     (minimal_polynomial ((is_algebraic_iff_is_integral K).mp (is_algebraic_of_finite x)))^(findim K⟮x⟯ L) :=
 begin
+  haveI := finite_dimensional.tower_top K K⟮x⟯ L,
   obtain ⟨c, hc⟩ := exists_is_basis_finset K⟮x⟯ L,
-  haveI : decidable_eq (@coe_sort.{(max (u_6+1) 1) (max 1 (u_6+1))+1} (set.{u_6} L) (@set.has_coe_to_sort.{u_6} L)
-  (@coe.{u_6+1 (max (u_6+1) 1)} (finset.{u_6} L) (set.{u_6} L)
-  (@lift_base.{u_6+1 (max (u_6+1) 1)} (finset.{u_6} L) (set.{u_6} L) (@finset.has_lift.{u_6} L))
-  c)) := λ _ _, classical.prop_decidable _,
   rw findim_eq_card_basis hc,
   let h := has_power_basis_adjoin_simple K is_algebraic_of_finite x,
+  haveI : decidable_eq ↥(↑c : set L) := λ _ _, classical.prop_decidable _,
   rw char_poly_lmul_matrix_basis_invariant hb (h.is_basis.smul hc),
   show char_poly (lmul_matrix (h.is_basis.smul hc) (algebra_map _ L h.gen)) =
     minimal_polynomial _ ^ fintype.card (↑c : set _),
   rw [char_poly_lmul_matrix_smul h hc, minimal_polynomial.eq_of_algebra_map_eq (gen_is_integral h) ((is_algebraic_iff_is_integral K).mp (is_algebraic_of_finite x))],
   exact (algebra_map_gen K x).symm
+end
+
+lemma trace_eq_sum_roots [finite_dimensional K L]
+  {x : L} (hx : is_integral K x) (h : polynomial.splits (algebra_map K L) (minimal_polynomial hx)) :
+  algebra.trace K K⟮x⟯ (has_power_basis_adjoin_simple _ is_algebraic_of_finite _).gen =
+    (minimal_polynomial hx).roots.sum :=
+begin
+  rw [trace_eq_trace_lmul_matrix (has_power_basis_adjoin_simple K is_algebraic_of_finite x).is_basis,
+      trace_eq_neg_char_poly_coeff (lmul_matrix _ (has_power_basis.gen _)),
+      char_poly_lmul_matrix_power_basis, minimal_polynomial.eq_of_algebra_map_eq (gen_is_integral (has_power_basis_adjoin_simple K is_algebraic_of_finite x)) hx,
+      polynomial.eq_prod_roots_of_splits (minimal_polynomial (gen_is_integral (has_power_basis_adjoin_simple K is_algebraic_of_finite x)))],
 end
 
 /-
@@ -893,6 +919,7 @@ lemma trace_form.nondegenerate [finite_dimensional K L] [is_separable K L] :
 begin
   rw bilin_form.nondegenerate_iff_eq_zero,
   intros x hxy,
+  simp_rw [trace_form_apply] at hxy,
   have alg : is_algebraic K L := is_algebraic_of_finite,
   have hb := power_basis_is_basis alg,
   haveI := classical.prop_decidable,

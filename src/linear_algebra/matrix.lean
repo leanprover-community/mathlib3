@@ -727,7 +727,7 @@ calc  matrix.trace ι R R (linear_map.to_matrix hb hb f)
 open_locale classical
 
 theorem trace_aux_range (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
-  {ι : Type w} [fintype ι] {b : ι → M} (hb : is_basis R b) :
+  {ι : Type w} [decidable_eq ι] [fintype ι] {b : ι → M} (hb : is_basis R b) :
   trace_aux R hb.range = trace_aux R hb :=
 linear_map.ext $ λ f, if H : 0 = 1 then eq_of_zero_eq_one H _ _ else
 begin
@@ -743,9 +743,9 @@ theorem trace_aux_eq (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] 
   {κ : Type*} [decidable_eq κ] [fintype κ] {c : κ → M} (hc : is_basis R c) :
   trace_aux R hb = trace_aux R hc :=
 calc  trace_aux R hb
-    = trace_aux R hb.range : by { rw trace_aux_range R hb, congr }
+    = trace_aux R hb.range : by { rw trace_aux_range R hb }
 ... = trace_aux R hc.range : trace_aux_eq' _ _ _
-... = trace_aux R hc : by { rw trace_aux_range R hc, congr }
+... = trace_aux R hc : by { rw trace_aux_range R hc }
 
 /-- Trace of an endomorphism independent of basis. -/
 def trace (R : Type u) [comm_ring R] (M : Type v) [add_comm_group M] [module R M] :
@@ -755,7 +755,7 @@ then trace_aux R (classical.some_spec H)
 else 0
 
 theorem trace_eq_matrix_trace (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
-  {ι : Type w} [fintype ι] {b : ι → M} (hb : is_basis R b) (f : M →ₗ[R] M) :
+  {ι : Type w} [fintype ι] [decidable_eq ι] {b : ι → M} (hb : is_basis R b) (f : M →ₗ[R] M) :
   trace R M f = matrix.trace ι R R (linear_map.to_matrix hb hb f) :=
 have ∃ s : finset M, is_basis R (λ x, x : (↑s : set M) → M),
 from ⟨finset.univ.image b,

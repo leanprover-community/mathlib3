@@ -641,7 +641,7 @@ def sigma_preimage_equiv {α β : Type*} (f : α → β) :
   ((sigma_preimage_equiv f).symm a).2.1 = a := rfl
 
 /-- A set `s` in `α × β` is equivalent to the sigma-type `Σ x, {y | (x, y) ∈ s}`. -/
-@[simps] def set_prod_equiv_sigma {α β : Type*} (s : set (α × β)) :
+def set_prod_equiv_sigma {α β : Type*} (s : set (α × β)) :
   s ≃ Σ x : α, {y | (x, y) ∈ s} :=
 { to_fun := λ x, ⟨x.1.1, x.1.2, by simp⟩,
   inv_fun := λ x, ⟨(x.1, x.2.1), x.2.2⟩,
@@ -1339,11 +1339,11 @@ lemma sum_compl_symm_apply_of_not_mem {α : Type u} {s : set α} [decidable_pred
 have ↑(⟨x, or.inr hx⟩ : (s ∪ sᶜ : set α)) ∈ sᶜ, from hx,
 by { rw [equiv.set.sum_compl], simpa using set.union_apply_right _ this }
 
-@[simp] lemma set.sum_compl_symm_apply {α : Type*} {s : set α} [decidable_pred s] {x : s} :
+@[simp] lemma sum_compl_symm_apply {α : Type*} {s : set α} [decidable_pred s] {x : s} :
   (equiv.set.sum_compl s).symm x = sum.inl x :=
 by cases x with x hx; exact set.sum_compl_symm_apply_of_mem hx
 
-@[simp] lemma set.sum_compl_symm_apply_compl {α : Type*} {s : set α}
+@[simp] lemma sum_compl_symm_apply_compl {α : Type*} {s : set α}
   [decidable_pred s] {x : sᶜ} : (equiv.set.sum_compl s).symm x = sum.inr x :=
 by cases x with x hx; exact set.sum_compl_symm_apply_of_not_mem hx
 

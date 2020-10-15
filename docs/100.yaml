@@ -312,7 +312,7 @@
   title  : Stirling’s Formula
 91:
   title  : The Triangle Inequality
-  decl   : inner_product_space.to_normed_group
+  decl   : norm_add_le
   author : Zhouhang Zhou
 92:
   title  : Pick’s Theorem

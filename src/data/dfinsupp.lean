@@ -367,11 +367,11 @@ begin
         { left, rw H3, exact H1 },
         { left, exact H3 } },
       right, exact H2 },
-    have H3 : (⟦{to_fun := f, pre_support := i :: s, zero := H}⟧ : Π₀ i, β i)
+    have H3 : (⟦{to_fun := f, pre_support := i ::ₘ s, zero := H}⟧ : Π₀ i, β i)
       = ⟦{to_fun := f, pre_support := s, zero := H2}⟧,
     { exact quotient.sound (λ i, rfl) },
     rw H3, apply ih },
-  have H2 : p (erase i ⟦{to_fun := f, pre_support := i :: s, zero := H}⟧),
+  have H2 : p (erase i ⟦{to_fun := f, pre_support := i ::ₘ s, zero := H}⟧),
   { dsimp only [erase, quotient.lift_on_beta],
     have H2 : ∀ j, j ∈ s ∨ ite (j = i) 0 (f j) = 0,
     { intro j, cases H j with H2 H2,
@@ -380,11 +380,11 @@ begin
         { left, exact H3 } },
       right, split_ifs; [refl, exact H2] },
     have H3 : (⟦{to_fun := λ (j : ι), ite (j = i) 0 (f j),
-         pre_support := i :: s, zero := _}⟧ : Π₀ i, β i)
+         pre_support := i ::ₘ s, zero := _}⟧ : Π₀ i, β i)
       = ⟦{to_fun := λ (j : ι), ite (j = i) 0 (f j), pre_support := s, zero := H2}⟧ :=
       quotient.sound (λ i, rfl),
     rw H3, apply ih },
-  have H3 : single i _ + _ = (⟦{to_fun := f, pre_support := i :: s, zero := H}⟧ : Π₀ i, β i) :=
+  have H3 : single i _ + _ = (⟦{to_fun := f, pre_support := i ::ₘ s, zero := H}⟧ : Π₀ i, β i) :=
     single_add_erase,
   rw ← H3,
   change p (single i (f i) + _),

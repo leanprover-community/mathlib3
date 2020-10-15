@@ -212,8 +212,8 @@ begin
     refine ⟨_, hg₂, _⟩, simp only [mul_assoc, hg₁, inv_mul_cancel_left] }
 end
 
-lemma is_left_invariant_index {K : set G} (hK : is_compact K) {V : set G}
-  (hV : (interior V).nonempty) (g : G) : index ((λ h, g * h) '' K) V = index K V :=
+lemma is_left_invariant_index {K : set G} (hK : is_compact K) (g : G) {V : set G}
+  (hV : (interior V).nonempty) : index ((λ h, g * h) '' K) V = index K V :=
 begin
   refine le_antisymm (mul_left_index_le hK hV g) _,
   convert mul_left_index_le (hK.image $ continuous_mul_left g) hV g⁻¹,
@@ -260,8 +260,8 @@ lemma prehaar_sup_eq {K₀ : positive_compacts G} {U : set G} {K₁ K₂ : compa
 by { simp only [prehaar], rw [div_add_div_same], congr', exact_mod_cast index_union_eq K₁ K₂ hU h }
 
 lemma is_left_invariant_prehaar {K₀ : positive_compacts G} {U : set G} (hU : (interior U).nonempty)
-  {K : compacts G} {g : G} : prehaar K₀.1 U (K.map _ $ continuous_mul_left g) = prehaar K₀.1 U K :=
-by simp only [prehaar, compacts.map_val, is_left_invariant_index K.2 hU]
+  (g : G) (K : compacts G) : prehaar K₀.1 U (K.map _ $ continuous_mul_left g) = prehaar K₀.1 U K :=
+by simp only [prehaar, compacts.map_val, is_left_invariant_index K.2 _ hU]
 
 /-!
 ### Lemmas about `haar_product`
@@ -391,7 +391,7 @@ begin
   { apply continuous_iff_is_closed.mp this, exact is_closed_singleton },
 end
 
-lemma is_left_invariant_chaar {K₀ : positive_compacts G} {K : compacts G} {g : G} :
+lemma is_left_invariant_chaar {K₀ : positive_compacts G} (g : G) (K : compacts G) :
   chaar K₀ (K.map _ $ continuous_mul_left g) = chaar K₀ K :=
 begin
   let eval : (compacts G → ℝ) → ℝ := λ f, f (K.map _ $ continuous_mul_left g) - f K,
@@ -410,6 +410,8 @@ end
 @[reducible] def echaar (K₀ : positive_compacts G) (K : compacts G) : ennreal :=
 show nnreal, from ⟨chaar K₀ K, chaar_nonneg _ _⟩
 
+/-! We only prove the properties for `echaar` that we use at least twice below. -/
+
 /-- The variant of `chaar_sup_le` for `echaar` -/
 lemma echaar_sup_le {K₀ : positive_compacts G} (K₁ K₂ : compacts G) :
   echaar K₀ (K₁ ⊔ K₂) ≤ echaar K₀ K₁ + echaar K₀ K₂ :=
@@ -423,6 +425,11 @@ by { norm_cast, simp only [←nnreal.coe_le_coe, subtype.coe_mk, chaar_mono, h] 
 /-- The variant of `chaar_self` for `echaar` -/
 lemma echaar_self {K₀ : positive_compacts G} : echaar K₀ ⟨K₀.1, K₀.2.1⟩ = 1 :=
 by { simp_rw [← ennreal.coe_one, echaar, ennreal.coe_eq_coe, chaar_self], refl }
+
+/-- The variant of `is_left_invariant_chaar` for `echaar` -/
+lemma is_left_invariant_echaar {K₀ : positive_compacts G} (g : G) (K : compacts G) :
+  echaar K₀ (K.map _ $ continuous_mul_left g) = echaar K₀ K :=
+by simpa only [ennreal.coe_eq_coe, ←nnreal.coe_eq] using is_left_invariant_chaar g K
 
 end haar
 open haar
@@ -480,11 +487,8 @@ end
 
 lemma haar_outer_measure_pos_of_is_open {K₀ : positive_compacts G}
   {U : set G} (hU : is_open U) (h2U : U.nonempty) : 0 < haar_outer_measure K₀ U :=
-begin
-  refine outer_measure.of_content_pos_of_is_open echaar_sup_le _ ⟨K₀.1, K₀.2.1⟩ _ hU h2U,
-  { intros g K, simpa only [ennreal.coe_eq_coe, ←nnreal.coe_eq] using is_left_invariant_chaar },
-  simp only [ennreal.coe_pos, ←nnreal.coe_pos, chaar_self, zero_lt_one, subtype.coe_mk]
-end
+outer_measure.of_content_pos_of_is_open echaar_sup_le is_left_invariant_echaar
+  ⟨K₀.1, K₀.2.1⟩ (by simp only [echaar_self, ennreal.zero_lt_one]) hU h2U
 
 lemma haar_outer_measure_self_pos {K₀ : positive_compacts G} :
   0 < haar_outer_measure K₀ K₀.1 :=
@@ -543,10 +547,9 @@ by { simp only [haar_measure, hs, ennreal.div_def, mul_comm, to_measure_apply,
 lemma is_left_invariant_haar_measure (K₀ : positive_compacts G) :
   is_left_invariant (haar_measure K₀) :=
 begin
-  intros g A hA, rw [haar_measure_apply hA, haar_measure_apply],
-  { congr' 1, refine outer_measure.is_left_invariant_of_content echaar_sup_le _ g A,
-    intros g K, simpa only [ennreal.coe_eq_coe, ←nnreal.coe_eq] using is_left_invariant_chaar },
-  { exact measurable_mul_left g hA }
+  intros g A hA, rw [haar_measure_apply hA, haar_measure_apply (measurable_mul_left g hA)],
+  congr' 1,
+  exact outer_measure.is_left_invariant_of_content echaar_sup_le is_left_invariant_echaar g A
 end
 
 lemma haar_measure_self [locally_compact_space G] {K₀ : positive_compacts G} :

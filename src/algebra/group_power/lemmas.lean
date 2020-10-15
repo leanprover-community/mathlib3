@@ -413,6 +413,24 @@ variables {M G A}
 @[simp] lemma powers_hom_symm_apply [monoid M] (f : multiplicative ℕ →* M) :
   (powers_hom M).symm f = f (multiplicative.of_add 1) := rfl
 
+@[simp] lemma gpowers_hom_apply [group G] (x : G) (n : multiplicative ℤ) :
+  gpowers_hom G x n = x ^ n.to_add := rfl
+
+@[simp] lemma gpowers_hom_symm_apply [group G] (f : multiplicative ℤ →* G) :
+  (gpowers_hom G).symm f = f (multiplicative.of_add 1) := rfl
+
+@[simp] lemma multiples_hom_apply [add_monoid A] (x : A) (n : ℕ) :
+  multiples_hom A x n = n •ℕ x := rfl
+
+@[simp] lemma multiples_hom_symm_apply [add_monoid A] (f : ℕ →+ A) :
+  (multiples_hom A).symm f = f 1 := rfl
+
+@[simp] lemma gmultiples_hom_apply [add_group A] (x : A) (n : ℤ) :
+  gmultiples_hom A x n = n •ℤ x := rfl
+
+@[simp] lemma gmultiples_hom_symm_apply [add_group A] (f : ℤ →+ A) :
+  (gmultiples_hom A).symm f = f 1 := rfl
+
 lemma mnat_monoid_hom_eq [monoid M] (f : multiplicative ℕ →* M) (n : multiplicative ℕ) :
   f n = (f (multiplicative.of_add 1)) ^ n.to_add :=
 by rw [← powers_hom_symm_apply, ← powers_hom_apply, equiv.apply_symm_apply]
@@ -420,6 +438,30 @@ by rw [← powers_hom_symm_apply, ← powers_hom_apply, equiv.apply_symm_apply]
 lemma mnat_monoid_hom_ext [monoid M] ⦃f g : multiplicative ℕ →* M⦄
   (h : f (multiplicative.of_add 1) = g (multiplicative.of_add 1)) : f = g :=
 monoid_hom.ext $ λ n, by rw [mnat_monoid_hom_eq f, mnat_monoid_hom_eq g, h]
+
+lemma mint_monoid_hom_eq [group M] (f : multiplicative ℤ →* M) (n : multiplicative ℤ) :
+  f n = (f (multiplicative.of_add 1)) ^ n.to_add :=
+by rw [← gpowers_hom_symm_apply, ← gpowers_hom_apply, equiv.apply_symm_apply]
+
+lemma mint_monoid_hom_ext [group M] ⦃f g : multiplicative ℤ →* M⦄
+  (h : f (multiplicative.of_add 1) = g (multiplicative.of_add 1)) : f = g :=
+monoid_hom.ext $ λ n, by rw [mint_monoid_hom_eq f, mint_monoid_hom_eq g, h]
+
+lemma nat_add_monoid_hom_eq [add_monoid M] (f : ℕ →+ M) (n : ℕ) :
+  f n = n •ℕ (f 1) :=
+by rw [← multiples_hom_symm_apply, ← multiples_hom_apply, equiv.apply_symm_apply]
+
+lemma nat_add_monoid_hom_ext [add_monoid M] ⦃f g : ℕ →+ M⦄
+  (h : f 1 = g 1) : f = g :=
+add_monoid_hom.ext $ λ n, by rw [nat_add_monoid_hom_eq f, nat_add_monoid_hom_eq g, h]
+
+lemma int_add_monoid_hom_eq [add_group M] (f : ℤ →+ M) (n : ℤ) :
+  f n = n •ℤ (f 1) :=
+by rw [← gmultiples_hom_symm_apply, ← gmultiples_hom_apply, equiv.apply_symm_apply]
+
+lemma int_add_monoid_hom_ext [add_group M] ⦃f g : ℤ →+ M⦄
+  (h : f 1 = g 1) : f = g :=
+add_monoid_hom.ext $ λ n, by rw [int_add_monoid_hom_eq f, int_add_monoid_hom_eq g, h]
 
 /-!
 ### Commutativity (again)

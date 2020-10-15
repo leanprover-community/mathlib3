@@ -29,7 +29,7 @@ noncomputable theory
 open_locale classical big_operators
 open function
 
-variables {α β γ : Type*}
+variables {α α' β γ : Type*}
 
 namespace set
 
@@ -48,6 +48,10 @@ lemma indicator_apply (s : set α) (f : α → β) (a : α) :
 @[simp] lemma indicator_of_mem (h : a ∈ s) (f : α → β) : indicator s f a = f a := if_pos h
 
 @[simp] lemma indicator_of_not_mem (h : a ∉ s) (f : α → β) : indicator s f a = 0 := if_neg h
+
+lemma indicator_eq_zero_or_self (s : set α) (f : α → β) (a : α) :
+  indicator s f a = 0 ∨ indicator s f a = f a :=
+if h : a ∈ s then or.inr (indicator_of_mem h f) else or.inl (indicator_of_not_mem h f)
 
 /-- If an indicator function is nonzero at a point, that
 point is in the set. -/
@@ -103,6 +107,10 @@ funext $ λx, by { simp only [indicator], split_ifs, repeat {simp * at * {contex
 lemma comp_indicator (h : β → γ) (f : α → β) {s : set α} {x : α} :
   h (s.indicator f x) = s.piecewise (h ∘ f) (const α (h 0)) x :=
 s.comp_piecewise h
+
+lemma indicator_comp_right {s : set α} (f : γ → α) {g : α → β} {x : γ} :
+  indicator (f ⁻¹' s) (g ∘ f) x = indicator s g (f x) :=
+by { simp only [indicator], split_ifs; refl }
 
 lemma indicator_comp_of_zero [has_zero γ] {g : β → γ} (hg : g 0 = 0) :
   indicator s (g ∘ f) = g ∘ (indicator s f) :=
@@ -280,6 +288,16 @@ lemma indicator_mul (s : set α) (f g : α → β) :
 by { funext, simp only [indicator], split_ifs, { refl }, rw mul_zero }
 
 end mul_zero_class
+
+section monoid_with_zero
+
+variables [monoid_with_zero β]
+
+lemma indicator_prod_one {s : set α} {t : set α'}
+  {x : α} {y : α'} : (s.prod t).indicator (1 : _ → β) (x, y) = s.indicator 1 x * t.indicator 1 y :=
+by simp [indicator, ← ite_and]
+
+end monoid_with_zero
 
 section order
 variables [has_zero β] [preorder β] {s t : set α} {f g : α → β} {a : α}

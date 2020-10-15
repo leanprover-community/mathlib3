@@ -63,15 +63,29 @@ lemma lt_iff_ne [partial_order α] {x y : α} (h : x ≤ y) : x < y ↔ x ≠ y 
 lemma le_iff_eq [partial_order α] {x y : α} (h : x ≤ y) : y ≤ x ↔ y = x :=
 ⟨λ h', h'.antisymm h, eq.le⟩
 
+lemma lt_or_le [linear_order α] {a b : α} (h : a ≤ b) (c : α) : a < c ∨ c ≤ b :=
+(lt_or_ge a c).imp id $ λ hc, le_trans hc h
+
+lemma le_or_lt [linear_order α] {a b : α} (h : a ≤ b) (c : α) : a ≤ c ∨ c < b :=
+(le_or_gt a c).imp id $ λ hc, lt_of_lt_of_le hc h
+
+lemma le_or_le [linear_order α] {a b : α} (h : a ≤ b) (c : α) : a ≤ c ∨ c ≤ b :=
+(h.le_or_lt c).elim or.inl (λ h, or.inr $ le_of_lt h)
+
 end has_le.le
 
-namespace has_lt
-namespace lt
+namespace has_lt.lt
+
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 protected lemma gt [has_lt α] {x y : α} (h : x < y) : y > x := h
 protected lemma false [preorder α] {x : α} : x < x → false := lt_irrefl x
-end lt
-end has_lt
+
+lemma ne' [preorder α] {x y : α} (h : x < y) : y ≠ x := h.ne.symm
+
+lemma lt_or_lt [linear_order α] {x y : α} (h : x < y) (z : α) : x < z ∨ z < y :=
+(lt_or_ge z y).elim or.inr (λ hz, or.inl $ h.trans_le hz)
+
+end has_lt.lt
 
 namespace ge
 @[nolint ge_or_gt] -- see Note [nolint_ge]
@@ -133,12 +147,6 @@ lemma le_or_lt [linear_order α] : ∀ a b : α, a ≤ b ∨ b < a := le_or_gt
 
 lemma ne.lt_or_lt [linear_order α] {a b : α} (h : a ≠ b) : a < b ∨ b < a :=
 lt_or_gt_of_ne h
-
-lemma has_le.le.lt_or_le [linear_order α] {a b : α} (h : a ≤ b) (c : α) : a < c ∨ c ≤ b :=
-(lt_or_le a c).imp id $ λ hc, hc.trans h
-
-lemma has_le.le.le_or_lt [linear_order α] {a b : α} (h : a ≤ b) (c : α) : a ≤ c ∨ c < b :=
-(le_or_lt a c).imp id $ λ hc, hc.trans_le h
 
 lemma not_lt_iff_eq_or_lt [linear_order α] {a b : α} : ¬ a < b ↔ a = b ∨ b < a :=
 not_lt.trans $ le_iff_eq_or_lt.trans $ or_congr eq_comm iff.rfl

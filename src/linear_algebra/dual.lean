@@ -48,7 +48,7 @@ instance : has_coe_to_fun (dual R M) := ⟨_, linear_map.to_fun⟩
 `vector_space.eval_equiv`. -/
 def eval : M →ₗ[R] (dual R (dual R M)) := linear_map.flip linear_map.id
 
-lemma eval_apply (v : M) (a : dual R M) : (eval R M v) a = a v :=
+@[simp] lemma eval_apply (v : M) (a : dual R M) : eval R M v a = a v :=
 begin
   dunfold eval,
   rw [linear_map.flip_apply, linear_map.id_apply]
@@ -78,7 +78,7 @@ variables [field K] [add_comm_group V] [vector_space K V]
 open vector_space module module.dual submodule linear_map cardinal function
 
 variables [de : decidable_eq ι]
-variables {B : ι → V} (h : is_basis K B)
+variables (B : ι → V) (h : is_basis K B)
 
 include de h
 
@@ -87,12 +87,14 @@ taking basis elements to corresponding dual basis elements. -/
 def to_dual : V →ₗ[K] module.dual K V :=
 h.constr $ λ v, h.constr $ λ w, if w = v then 1 else 0
 
+variable {B}
+
 lemma to_dual_apply (i j : ι) :
-  h.to_dual (B i) (B j) = if i = j then 1 else 0 :=
+  h.to_dual B (B i) (B j) = if i = j then 1 else 0 :=
 by { erw [constr_basis h, constr_basis h], ac_refl }
 
 @[simp] lemma to_dual_total_left (f : ι →₀ K) (i : ι) :
-  h.to_dual (finsupp.total ι V K B f) (B i) = f i :=
+  h.to_dual B (finsupp.total ι V K B f) (B i) = f i :=
 begin
   rw [finsupp.total_apply, finsupp.sum, linear_map.map_sum, linear_map.sum_apply],
   simp_rw [linear_map.map_smul, linear_map.smul_apply, to_dual_apply, smul_eq_mul,
@@ -103,7 +105,7 @@ begin
 end
 
 @[simp] lemma to_dual_total_right (f : ι →₀ K) (i : ι) :
-  h.to_dual (B i) (finsupp.total ι V K B f) = f i :=
+  h.to_dual B (B i) (finsupp.total ι V K B f) = f i :=
 begin
   rw [finsupp.total_apply, finsupp.sum, linear_map.map_sum],
   simp_rw [linear_map.map_smul, to_dual_apply, smul_eq_mul, mul_boole, finset.sum_ite_eq],
@@ -112,14 +114,18 @@ begin
   { rw finsupp.not_mem_support_iff.mp h }
 end
 
-lemma to_dual_apply_left (v : V) (i : ι) : h.to_dual v (B i) = h.repr v i :=
+lemma to_dual_apply_left (v : V) (i : ι) : h.to_dual B v (B i) = h.repr v i :=
 by rw [← h.to_dual_total_left, h.total_repr]
 
-lemma to_dual_apply_right (i : ι) (v : V) : h.to_dual (B i) v = h.repr v i :=
+lemma to_dual_apply_right (i : ι) (v : V) : h.to_dual B (B i) v = h.repr v i :=
 by rw [← h.to_dual_total_right, h.total_repr]
 
+variable (B)
+
 /-- `h.to_dual_flip v` is the linear map sending `w` to `h.to_dual w v`. -/
-def to_dual_flip (v : V) : (V →ₗ[K] K) := (linear_map.flip h.to_dual).to_fun v
+def to_dual_flip (v : V) : (V →ₗ[K] K) := (h.to_dual B).flip v
+
+variable {B}
 
 omit de h
 -- TODO: unify this with `finsupp.lapply`.
@@ -138,15 +144,15 @@ lemma coord_fun_eq_repr (v : V) (i : ι) : h.coord_fun i v = h.repr v i := rfl
 include de
 
 -- TODO: this lemma should be called something like `to_dual_flip_apply`
-lemma to_dual_swap_eq_to_dual (v w : V) : h.to_dual_flip v w = h.to_dual w v := rfl
+lemma to_dual_swap_eq_to_dual (v w : V) : h.to_dual_flip B v w = h.to_dual B w v := rfl
 
-lemma to_dual_eq_repr (v : V) (i : ι) : (h.to_dual v) (B i) = h.repr v i :=
+lemma to_dual_eq_repr (v : V) (i : ι) : h.to_dual B v (B i) = h.repr v i :=
 h.to_dual_apply_left v i
 
-lemma to_dual_eq_equiv_fun [fintype ι] (v : V) (i : ι) : (h.to_dual v) (B i) = h.equiv_fun v i :=
+lemma to_dual_eq_equiv_fun [fintype ι] (v : V) (i : ι) : h.to_dual B v (B i) = h.equiv_fun v i :=
 by rw [h.equiv_fun_apply, to_dual_eq_repr]
 
-lemma to_dual_inj (v : V) (a : h.to_dual v = 0) : v = 0 :=
+lemma to_dual_inj (v : V) (a : h.to_dual B v = 0) : v = 0 :=
 begin
   rw [← mem_bot K, ← h.repr_ker, mem_ker],
   apply finsupp.ext,
@@ -155,10 +161,10 @@ begin
   refl
 end
 
-theorem to_dual_ker : h.to_dual.ker = ⊥ :=
+theorem to_dual_ker : (h.to_dual B).ker = ⊥ :=
 ker_eq_bot'.mpr h.to_dual_inj
 
-theorem to_dual_range [fin : fintype ι] : h.to_dual.range = ⊤ :=
+theorem to_dual_range [fin : fintype ι] : (h.to_dual B).range = ⊤ :=
 begin
   rw eq_top_iff',
   intro f,
@@ -176,25 +182,25 @@ begin
 end
 
 /-- Maps a basis for `V` to a basis for the dual space. -/
-def dual_basis : ι → dual K V := λ i, h.to_dual (B i)
+def dual_basis : ι → dual K V := λ i, h.to_dual B (B i)
 
 theorem dual_lin_independent : linear_independent K h.dual_basis :=
-begin
-  apply linear_independent.image h.1,
-  rw to_dual_ker,
-  exact disjoint_bot_right
-end
+h.1.map' _ (to_dual_ker _)
 
 @[simp] lemma dual_basis_apply_self (i j : ι) :
   h.dual_basis i (B j) = if i = j then 1 else 0 :=
 h.to_dual_apply i j
 
+variable (B)
+
 /-- A vector space is linearly equivalent to its dual space. -/
 def to_dual_equiv [fintype ι] : V ≃ₗ[K] (dual K V) :=
-linear_equiv.of_bijective h.to_dual h.to_dual_ker h.to_dual_range
+linear_equiv.of_bijective (h.to_dual B) h.to_dual_ker h.to_dual_range
+
+variable {B}
 
 theorem dual_basis_is_basis [fintype ι] : is_basis K h.dual_basis :=
-h.to_dual_equiv.is_basis h
+(h.to_dual_equiv B).is_basis h
 
 @[simp] lemma total_dual_basis [fintype ι] (f : ι →₀ K) (i : ι) :
   finsupp.total ι (dual K V) K h.dual_basis f (B i) = f i :=
@@ -217,17 +223,12 @@ lemma dual_basis_apply [fintype ι] (i : ι) (v : V) : h.dual_basis i v = h.equi
 h.to_dual_apply_right i v
 
 @[simp] lemma to_dual_to_dual [fintype ι] :
-  (h.dual_basis_is_basis.to_dual).comp h.to_dual = eval K V :=
+  (h.dual_basis_is_basis.to_dual _).comp (h.to_dual B) = eval K V :=
 begin
   refine h.ext (λ i, h.dual_basis_is_basis.ext (λ j, _)),
-  dunfold eval,
-  rw [linear_map.flip_apply, linear_map.id_apply, linear_map.comp_apply],
-  apply eq.trans (to_dual_apply h.dual_basis_is_basis i j),
-  { dunfold dual_basis,
-    rw to_dual_apply,
-    by_cases h : i = j,
-    { rw [if_pos h, if_pos h.symm] },
-    { rw [if_neg h, if_neg (ne.symm h)] } }
+  suffices : @ite _ (classical.prop_decidable _) K 1 0 = @ite _ (de j i) K 1 0,
+    by simpa [h.dual_basis_is_basis.to_dual_apply_left, h.dual_basis_repr, h.to_dual_apply_right],
+  split_ifs; refl
 end
 
 omit de
@@ -236,7 +237,7 @@ theorem dual_dim_eq [fintype ι] :
   cardinal.lift.{v u} (dim K V) = dim K (dual K V) :=
 begin
   classical,
-  have :=  linear_equiv.dim_eq_lift  h.to_dual_equiv,
+  have := linear_equiv.dim_eq_lift (h.to_dual_equiv B),
   simp only [cardinal.lift_umax] at this,
   rw [this, ← cardinal.lift_umax],
   apply cardinal.lift_id,
@@ -284,7 +285,7 @@ begin
   rcases exists_subset_is_basis (linear_independent_singleton H) with ⟨b, hv, hb⟩,
   swap 4, assumption,
   have hv' : v = (coe : b → V) ⟨v, hv (set.mem_singleton v)⟩ := rfl,
-  let hx := h (hb.to_dual v),
+  let hx := h (hb.to_dual _ v),
   rw [eval_apply, hv', to_dual_apply, if_pos rfl, zero_apply] at hx,
   exact one_ne_zero hx
 end

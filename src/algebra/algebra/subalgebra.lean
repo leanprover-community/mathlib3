@@ -210,6 +210,11 @@ instance module_to_submodule : semimodule S (S : submodule R A) :=
   zero_smul := by simp,
   smul_zero := by simp }
 
+/-- Linear equivalence between `S : submodule R A` and `S`. Though these types are equal,
+we define it as a `linear_equiv` to avoid type equalities. -/
+def to_submodule_equiv (S : subalgebra R A) : (S : submodule R A) ≃ₗ[R] S :=
+linear_equiv.of_eq _ _ rfl
+
 instance : partial_order (subalgebra R A) :=
 { le := λ S T, (S : set A) ⊆ (T : set A),
   le_refl := λ S, set.subset.refl S,
@@ -323,6 +328,9 @@ theorem mem_bot {x : A} : x ∈ (⊥ : subalgebra R A) ↔ x ∈ set.range (alge
 suffices (of_id R A).range = (⊥ : subalgebra R A),
 by { rw [← this, ← subalgebra.mem_coe, alg_hom.coe_range], refl },
 le_bot_iff.mp (λ x hx, subalgebra.range_le _ ((of_id R A).coe_range ▸ hx))
+
+theorem to_submodule_bot : ((⊥ : subalgebra R A) : submodule R A) = submodule.span R {1} :=
+by { ext x, simp [mem_bot, -set.singleton_one, submodule.mem_span_singleton, algebra.smul_def] }
 
 @[simp] theorem mem_top {x : A} : x ∈ (⊤ : subalgebra R A) :=
 subsemiring.subset_closure $ or.inr trivial

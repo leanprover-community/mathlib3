@@ -23,13 +23,13 @@ where `U` becomes a smaller and smaller open neighborhood of `1`, and `K₀` is 
 with nonempty interior. This function is `chaar` in the formalization, and we define the limit
 formally using Tychonoff's theorem.
 
-This function `h` forms a content, which we can extend to an outer measure
+This function `h` forms a content, which we can extend to an outer measure `μ`
 (`haar_outer_measure`), and obtain the Haar measure from that (`haar_measure`).
 We normalize the Haar measure so that the measure of `K₀` is `1`.
 
-Note that `haar_outer_measure` need not coincide with `chaar` on compact sets, according to
-[halmos1950measure, ch. X, §53 p.233]. However, we know that `chaar K` lies between
-`haar_outer_measure (interior K)` and `haar_outer_measure K`.
+Note that `μ` need not coincide with `h` on compact sets, according to
+[halmos1950measure, ch. X, §53 p.233]. However, we know that `h(K)` lies between `μ(Kᵒ)` and `μ(K)`,
+where `ᵒ` denotes the interior.
 
 ## Main Declarations
 
@@ -420,6 +420,10 @@ lemma echaar_mono {K₀ : positive_compacts G} ⦃K₁ K₂ : compacts G⦄ (h :
   echaar K₀ K₁ ≤ echaar K₀ K₂ :=
 by { norm_cast, simp only [←nnreal.coe_le_coe, subtype.coe_mk, chaar_mono, h] }
 
+/-- The variant of `chaar_self` for `echaar` -/
+lemma echaar_self {K₀ : positive_compacts G} : echaar K₀ ⟨K₀.1, K₀.2.1⟩ = 1 :=
+by { simp_rw [← ennreal.coe_one, echaar, ennreal.coe_eq_coe, chaar_self], refl }
+
 end haar
 open haar
 
@@ -440,23 +444,17 @@ lemma haar_outer_measure_eq_infi (K₀ : positive_compacts G) (A : set G) :
     inner_content (echaar K₀) ⟨U, hU⟩ :=
 outer_measure.of_content_eq_infi echaar_sup_le A
 
-lemma chaar_le_haar_outer_measure {K₀ : positive_compacts G} (K : compacts G) :
+lemma echaar_le_haar_outer_measure {K₀ : positive_compacts G} (K : compacts G) :
    echaar K₀ K ≤ haar_outer_measure K₀ K.1 :=
 outer_measure.le_of_content_compacts echaar_sup_le K
 
 lemma haar_outer_measure_of_is_open {K₀ : positive_compacts G} (U : set G) (hU : is_open U) :
-  haar_outer_measure K₀ U =
-  inner_content (λ K, show ℝ≥0, from ⟨chaar K₀ K, chaar_nonneg K₀ K⟩) ⟨U, hU⟩ :=
+  haar_outer_measure K₀ U = inner_content (echaar K₀) ⟨U, hU⟩ :=
 outer_measure.of_content_opens echaar_sup_le ⟨U, hU⟩
 
-lemma haar_outer_measure_le_chaar {K₀ : positive_compacts G} {U : set G} (hU : is_open U)
-  (K : compacts G) (h : U ⊆ K.1) :
-  haar_outer_measure K₀ U ≤ show ℝ≥0, from ⟨chaar K₀ K, chaar_nonneg K₀ K⟩ :=
-begin
-  rw haar_outer_measure_of_is_open U hU,
-  refine inner_content_le _ _ K h, intros K₁ K₂ hK,
-  norm_cast, rw [← nnreal.coe_le_coe], exact chaar_mono hK
-end
+lemma haar_outer_measure_le_echaar {K₀ : positive_compacts G} {U : set G} (hU : is_open U)
+  (K : compacts G) (h : U ⊆ K.1) : haar_outer_measure K₀ U ≤ echaar K₀ K :=
+(outer_measure.of_content_le echaar_sup_le echaar_mono ⟨U, hU⟩ K h : _)
 
 lemma haar_outer_measure_exists_open {K₀ : positive_compacts G} {A : set G}
   (hA : haar_outer_measure K₀ A < ⊤) {ε : ℝ≥0} (hε : 0 < ε) :
@@ -477,9 +475,7 @@ lemma one_le_haar_outer_measure_self {K₀ : positive_compacts G} : 1 ≤ haar_o
 begin
   rw [haar_outer_measure_eq_infi],
   refine le_binfi _, intros U hU, refine le_infi _, intros h2U,
-  refine le_trans _ (le_supr _ ⟨K₀.1, K₀.2.1⟩), refine le_trans _ (le_supr _ h2U),
-  simp only [←nnreal.coe_le_coe, subtype.coe_mk, ennreal.one_le_coe_iff, nnreal.coe_one],
-  rw [chaar_self]
+  refine le_trans _ (le_bsupr ⟨K₀.1, K₀.2.1⟩ h2U), simp_rw [echaar_self, le_rfl]
 end
 
 lemma haar_outer_measure_pos_of_is_open {K₀ : positive_compacts G}
@@ -492,15 +488,15 @@ end
 
 lemma haar_outer_measure_self_pos {K₀ : positive_compacts G} :
   0 < haar_outer_measure K₀ K₀.1 :=
-lt_of_lt_of_le (haar_outer_measure_pos_of_is_open is_open_interior K₀.2.2)
-               ((haar_outer_measure K₀).mono interior_subset)
+(haar_outer_measure_pos_of_is_open is_open_interior K₀.2.2).trans_le
+  ((haar_outer_measure K₀).mono interior_subset)
 
 lemma haar_outer_measure_lt_top_of_is_compact [locally_compact_space G] {K₀ : positive_compacts G}
   {K : set G} (hK : is_compact K) : haar_outer_measure K₀ K < ⊤ :=
 begin
   rcases exists_compact_superset hK with ⟨F, h1F, h2F⟩,
-  refine lt_of_le_of_lt ((haar_outer_measure K₀).mono h2F) _,
-  refine lt_of_le_of_lt (haar_outer_measure_le_chaar is_open_interior ⟨F, h1F⟩ interior_subset)
+  refine ((haar_outer_measure K₀).mono h2F).trans_lt _,
+  refine (haar_outer_measure_le_echaar is_open_interior ⟨F, h1F⟩ interior_subset).trans_lt
     ennreal.coe_lt_top
 end
 
@@ -581,7 +577,7 @@ begin
   { intros U hU, rw [to_measure_apply _ _ hU.is_measurable, haar_outer_measure_of_is_open U hU],
     dsimp only [inner_content], refine bsupr_le (λ K hK, _),
     refine le_supr_of_le K.1 _, refine le_supr_of_le K.2 _, refine le_supr_of_le hK _,
-    rw [to_measure_apply _ _ K.2.is_measurable], apply chaar_le_haar_outer_measure },
+    rw [to_measure_apply _ _ K.2.is_measurable], apply echaar_le_haar_outer_measure },
   { rw ennreal.inv_lt_top, apply haar_outer_measure_self_pos }
 end
 

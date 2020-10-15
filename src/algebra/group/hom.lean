@@ -481,6 +481,15 @@ def flip {mM : monoid M} {mN : monoid N} {mP : comm_monoid P} (f : M →* N →*
   f.flip y x = f x y :=
 rfl
 
+/-- Evaluation of a `monoid_hom` at a point as a monoid homomorphism. See also `monoid_hom.apply`
+for the evaluation of any function at a point. -/
+@[to_additive "Evaluation of an `add_monoid_hom` at a point as an additive monoid homomorphism.
+See also `monoid_hom.apply` for the evaluation of any function at a point."]
+def eval [monoid M] [comm_monoid N] (x : M) : (M →* N) →* N := ⟨λ f, f x, rfl, λ f g, rfl⟩
+
+@[simp, to_additive]
+lemma eval_apply [monoid M] [comm_monoid N] (x : M) (f : M →* N) : eval x f = f x := rfl
+
 /-- If two homomorphism from a group to a monoid are equal at `x`, then they are equal at `x⁻¹`. -/
 @[to_additive "If two homomorphism from an additive group to an additive monoid are equal at `x`,
 then they are equal at `-x`." ]

@@ -21,20 +21,22 @@ coefficients of `f` and `g` do not multiply to zero.
 namespace polynomial
 
 open polynomial finsupp finset
+open_locale classical
 
 variables {R : Type*} [semiring R] {f : polynomial R}
 
 namespace rev
+/-
 /-- If `i ≤ N`, then `rev_at N i` returns `N - i`, otherwise it returns `i`.
 
 Essentially, this function is only used for `i ≤ N`.
 The advantage of `rev_at N i` over `N - i` is that `rev_at` is an involution.
 -/
-def rev_at (N i : ℕ) : ℕ := ite (i ≤ N) (N-i) i
+def rev_at_fun (N i : ℕ) : ℕ := ite (i ≤ N) (N-i) i
 
-@[simp] lemma rev_at_invol {N i : ℕ} : rev_at N (rev_at N i) = i :=
+@[simp] lemma rev_at_fun_invol {N i : ℕ} : rev_at_fun N (rev_at_fun N i) = i :=
 begin
-  unfold rev_at,
+  unfold rev_at_fun,
   split_ifs with h j,
   { exact nat.sub_sub_self h, },
   { exfalso,
@@ -43,29 +45,43 @@ begin
   { refl, },
 end
 
+lemma rev_at_fun_inj {N : ℕ} : function.injective (rev_at_fun N) :=
+begin
+  intros a b hab,
+  rw [← @rev_at_fun_invol N a, hab, rev_at_fun_invol],
+end
+
+def rev_at (N : ℕ) : function.embedding ℕ ℕ :=
+  { to_fun := λ i , (ite (i ≤ N) (N-i) i),
+    inj' := rev_at_fun_inj }
+
+@[simp] lemma rev_at_invol {N i : ℕ} : (rev_at N) (rev_at N i) = i :=
+begin
+  rw [rev_at, function.embedding.coe_fn_mk],
+  split_ifs with h j,
+  { exact nat.sub_sub_self h, },
+  { exact false.rec (N - i = i) (j (nat.sub_le N i)), },
+  { exact eq.refl i, },
+end
+
 @[simp] lemma rev_at_le {N i : ℕ} (H : i ≤ N) : rev_at N i = N - i :=
 if_pos H
+
 
 /-- `reflect N f` is the polynomial such that `(reflect N f).coeff i = f.coeff (rev_at N i)`.
 In other words, the terms with exponent `[0, ..., N]` now have exponent `[N, ..., 0]`.
  In practice, `reflect` is only used when `N` is at least as large as the degree of `f`.
  Eventually, it will be used with `N` exactly equal to the degree of `f`.  -/
-def reflect : ℕ → polynomial R → polynomial R :=
-  λ N : ℕ, λ f : polynomial R, ⟨ image (rev_at N)  (f.support), λ i : ℕ, f.coeff (rev_at N i),
-  begin
+noncomputable def reflect (N : ℕ) (f : polynomial R) : polynomial R :=
+  finsupp.emb_domain (rev_at N) f
 
-    intro,
-    rw mem_image,
-    split,
-    { intro h,
-      rcases h with ⟨ a, ha, rfl⟩,
-      rwa [rev_at_invol, ← mem_support_iff_coeff_ne_zero], },
-    { intro,
-      use (rev_at N a),
-      rwa [rev_at_invol, eq_self_iff_true, and_true, mem_support_iff_coeff_ne_zero], },
-  end ⟩
+lemma reflect_support (N : ℕ) (f : polynomial R) : (reflect N f).support = image (rev_at N) f.support :=
+begin
+  ext1,
+  rw [reflect, mem_image, support_emb_domain, mem_map],
+end
 
-@[simp] lemma reflect_zero {n : ℕ} : reflect n (0 : polynomial R) = 0 := rfl
+@[simp] lemma reflect_zero {N : ℕ} : reflect N (0 : polynomial R) = 0 := rfl
 
 @[simp] lemma reflect_eq_zero_iff {N : ℕ} {f : polynomial R} :
   reflect N (f : polynomial R) = 0 ↔ f = 0 :=
@@ -73,17 +89,79 @@ begin
   split,
   { intros a,
     injection a with f0 f1,
-    rwa [image_eq_empty, support_eq_empty] at f0, },
-  { intro a,
-    rw [a, reflect_zero], },
+    rwa [map_eq_empty, support_eq_empty] at f0, },
+  { rintro rfl,
+    exact reflect_zero, },
 end
 
 @[simp] lemma reflect_add (f g : polynomial R) (N : ℕ) :
   reflect N (f + g) = reflect N f + reflect N g :=
 begin
   ext1,
+  refl, --does not work
+end
+-/
+
+/- from here -/
+
+/-- If `i ≤ N`, then `rev_at N i` returns `N - i`, otherwise it returns `i`.
+Essentially, this function is only used for `i ≤ N`.
+The advantage of `rev_at N i` over `N - i` is that `rev_at` is an involution.
+-/
+def rev_at (N i : ℕ) : ℕ := ite (i ≤ N) (N-i) i
+
+@[simp] lemma rev_at_invol {N n : ℕ} : rev_at N (rev_at N n) = n :=
+begin
+  unfold rev_at,
+  split_ifs with h j,
+  { exact nat.sub_sub_self h, },
+  { exfalso,
+    apply j,
+    exact nat.sub_le N n, },
+  { refl, },
+end
+
+@[simp] lemma rev_at_le {N n : ℕ} (H : n ≤ N) : rev_at N n = N-n :=
+if_pos H
+
+/-- The function `reflect` of a natural number `N` and a polynomial `f`, applies the function
+`rev_at` to the exponents of the terms appearing in the expansion of `f`.  In practice, `reflect`
+is only used when `N` is at least as large as the degree of `f`.  Eventually, it will be used with
+`N` exactly equal to the degree of `f`.  -/
+def reflect : ℕ → polynomial R → polynomial R :=
+ λ N : ℕ, λ f : polynomial R, ⟨ image (rev_at N)  (f.support), λ i : ℕ, f.coeff (rev_at N i),
+ begin
+  intro,
+  rw mem_image,
+  split,
+  { intro h,
+    rcases h with ⟨ a, ha, rfl⟩,
+    rwa [rev_at_invol, ← mem_support_iff_coeff_ne_zero], },
+  { intro,
+    use (rev_at N a),
+    rwa [rev_at_invol, eq_self_iff_true, and_true, mem_support_iff_coeff_ne_zero], },
+end ⟩
+
+@[simp] lemma reflect_zero {n : ℕ} : reflect n (0 : polynomial R) = 0 := rfl
+
+@[simp] lemma reflect_zero_iff {N : ℕ} (f : polynomial R) :
+ reflect N (f : polynomial R) = 0 ↔ f=0 :=
+begin
+  split,
+  { intros a,
+    injection a with f0 f1,
+    rwa [image_eq_empty, support_eq_empty] at f0, },
+  { rintro rfl,
+    exact reflect_zero, },
+end
+
+@[simp] lemma reflect_add (f g : polynomial R) (n : ℕ) :
+ reflect n (f + g) = reflect n f + reflect n g :=
+begin
+  ext1,
   refl,
 end
+/-- up to here -/
 
 @[simp] lemma reflect_C_mul (f : polynomial R) (r : R) (N : ℕ) :
   reflect N (C r * f) = C r * (reflect N f) :=

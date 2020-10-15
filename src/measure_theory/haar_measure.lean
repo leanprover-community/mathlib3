@@ -27,6 +27,10 @@ This function `h` forms a content, which we can extend to an outer measure
 (`haar_outer_measure`), and obtain the Haar measure from that (`haar_measure`).
 We normalize the Haar measure so that the measure of `K₀` is `1`.
 
+Note that `haar_outer_measure` need not coincide with `chaar` on compact sets, according to
+[halmos1950measure, ch. X, §53 p.233]. However, we know that `chaar K` lies between
+`haar_outer_measure (interior K)` and `haar_outer_measure K`.
+
 ## Main Declarations
 
 * `haar_measure`: the Haar measure on a locally compact Hausdorff group. This is a left invariant
@@ -437,7 +441,7 @@ lemma haar_outer_measure_eq_infi (K₀ : positive_compacts G) (A : set G) :
 outer_measure.of_content_eq_infi echaar_sup_le A
 
 lemma chaar_le_haar_outer_measure {K₀ : positive_compacts G} (K : compacts G) :
-   (show ℝ≥0, from ⟨chaar K₀ K, chaar_nonneg K₀ K⟩ : ennreal) ≤ haar_outer_measure K₀ K.1 :=
+   echaar K₀ K ≤ haar_outer_measure K₀ K.1 :=
 outer_measure.le_of_content_compacts echaar_sup_le K
 
 lemma haar_outer_measure_of_is_open {K₀ : positive_compacts G} (U : set G) (hU : is_open U) :

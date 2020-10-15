@@ -841,14 +841,6 @@ namespace nonneg_ring
 open nonneg_add_comm_group
 variable [nonneg_ring α]
 
-/-- Construct `ordered_ring` from `nonneg_ring`. This is not an instance
-because it is not used in `mathlib`. -/
-local attribute [instance]
-def to_ordered_ring : ordered_ring α :=
-{ zero_le_one :=
-  begin dsimp [(≤), preorder.le, partial_order.le], convert one_nonneg, exact sub_zero _, end,
-  ..‹nonneg_ring α›, ..(infer_instance : ordered_add_comm_group α) }
-
 /-- `to_linear_nonneg_ring` shows that a `nonneg_ring` with a total order is a `domain`,
 hence a `linear_nonneg_ring`. -/
 def to_linear_nonneg_ring [nontrivial α]

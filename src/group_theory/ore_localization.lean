@@ -86,20 +86,19 @@ if it satisfies the following conditions:
 * Two elements of `X` become equal in `Y` if and only if
   they become equal when acted upon by some `s ∈ S`. -/
 @[nolint has_inhabited_instance]
-structure localization_map extends mul_action_hom M X Y :=
+structure localization_map extends X →[M] Y :=
 (acts_invertibly' : ∀ s ∈ S, function.bijective (λ (y : Y), s • y))
 (surj' : ∀ y, ∃ (s ∈ S) x, s • y = to_fun x)
 (eq_iff_exists' : ∀ x x', to_fun x = to_fun x' ↔ ∃ s ∈ S, s • x = s • x')
 
 -- TODO: to_additive?
 
--- TODO:
--- * Construct a localization of any `M`-module `X`,
---   as a quotient of `S × X` by a certain relation.
+variables {S X Y}
+
+abbreviation localization_map.to_map (f : localization_map S X Y) : X →[M] Y :=
+f.to_mul_action_hom
 
 section construction
-
-variables {S X}
 
 -- We'll build the localization of `X` at `S` as a quotient of `S × X`
 -- by a certain relation. We think of an element `(s, x) : S × X`
@@ -283,12 +282,6 @@ quot.lift_on p
      exact hf _ _ _ _ h,
    end)
 
-def quot_trunc_lift_on_beta₂ {α : Sort*} {β : α → Sort*} {γ : Sort*}
-  {r : α → α → Prop} (a : α) (w : Π a, β a) (f : Π (a : α), β a → γ)
-  (hr : reflexive r) (hf : ∀ a₁ a₂ b₁ b₂, r a₁ a₂ → f a₁ b₁ = f a₂ b₂) :
-  quot_trunc_lift_on₂ (quot.mk r a) (trunc.mk w) f hr hf = f a (w a) :=
-rfl
-
 instance : has_scalar M (localization S X) :=
 { smul := λ m f, 
   begin
@@ -421,11 +414,46 @@ end
 
 end construction
 
+section universal
+variables {Z : Type*} [mul_action M Z] (hZ : ∀ s ∈ S, function.bijective (λ (z : Z), s • z))
+
+/-
+lemma exists_lift (f : localization_map S X Y) (g : X →[M] Z) :
+  ∃ g' : Y →[M] Z, g'.comp f.to_map = g :=
+sorry
+-/
+
+end universal
+
 -- TODO:
--- * universal property of the localization
+-- * universal property of localizations
+-- * various sorts of functoriality? certainly in the module,
+--   and also whatever is needed to support the existing constructions for monoid localizations
 -- * (look at original localization for other properties)
--- * S⁻¹ M is a monoid
--- * S⁻¹ (X × Y) ≃ S⁻¹ X × S⁻¹ Y
+
+-- * module localizations are monoid localizations
+/-
+Plan:
+Let M be a monoid and S an Ore set, and suppose f : M → N is an M-module localization at S.
+
+First, suppose Y is an M-module on which S acts invertibly.
+We want to extend the M-action on Y to an N-action.
+N is not yet a monoid, so we'll start with just an M-module map N → End(Y).
+Here End(Y) refers to the set of *all* functions Y → Y,
+equipped with the pointwise M-module structure.
+The M-action on Y defines an M-module map M → End(Y) sending m to (λ y, m • y).
+Since S acts invertibly on Y, it also acts invertibly on End(Y).
+Then, by the universal property this extends to an M-module map N → End(Y).
+
+Now, we can take Y = N itself to obtain a map N → End(N) or N × N → N.
+Plan: Use this map to define multiplication on N and show that:
+* N becomes a monoid,
+* the original map f : M → N is a monoid homomorphism,
+* the above map N → End(Y) is a monoid homomorphism, so Y becomes an N-module,
+* f : M → N has a universal property among monoid homomorphisms which invert S.
+-/
+
+-- * S⁻¹ (X × Y) ≃ S⁻¹ X × S⁻¹ Y. Use this to show:
 -- * When `X` has extra structure (e.g., additive),
 --   this structure is inherited by the localization.
 

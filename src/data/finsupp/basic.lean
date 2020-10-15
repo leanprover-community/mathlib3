@@ -82,7 +82,7 @@ lemma not_mem_support_iff {f : α →₀ M} {a} : a ∉ f.support ↔ f a = 0 :=
 not_iff_comm.1 mem_support_iff.symm
 
 @[ext]
-lemma ext : ∀{f g : α →₀ β}, (∀a, f a = g a) → f = g
+lemma ext : ∀{f g : α →₀ M}, (∀a, f a = g a) → f = g
 | ⟨s, f, hf⟩ ⟨t, g, hg⟩ h :=
   begin
     have : f = g, { funext a, exact h a },
@@ -91,17 +91,17 @@ lemma ext : ∀{f g : α →₀ β}, (∀a, f a = g a) → f = g
     subst this
   end
 
-lemma ext_iff {f g : α →₀ β} : f = g ↔ (∀a:α, f a = g a) :=
+lemma ext_iff {f g : α →₀ M} : f = g ↔ (∀a:α, f a = g a) :=
 ⟨by rintros rfl a; refl, ext⟩
 
-@[simp] lemma support_eq_empty {f : α →₀ β} : f.support = ∅ ↔ f = 0 :=
+@[simp] lemma support_eq_empty {f : α →₀ M} : f.support = ∅ ↔ f = 0 :=
 ⟨assume h, ext $ assume a, by_contradiction $ λ H, (finset.ext_iff.1 h a).1 $
   mem_support_iff.2 H, by rintro rfl; refl⟩
 
 lemma card_support_eq_zero {f : α →₀ M} : card f.support = 0 ↔ f = 0 :=
 by simp
 
-instance finsupp.decidable_eq [decidable_eq α] [decidable_eq β] : decidable_eq (α →₀ β) :=
+instance finsupp.decidable_eq [decidable_eq α] [decidable_eq M] : decidable_eq (α →₀ M) :=
 assume f g, decidable_of_iff (f.support = g.support ∧ (∀a∈f.support, f a = g a))
   ⟨assume ⟨h₁, h₂⟩, ext $ assume a,
       if h : a ∈ f.support then h₂ a h else
@@ -631,10 +631,10 @@ begin
 end
 
 @[elab_as_eliminator]
-protected theorem induction {p : (α →₀ β) → Prop} (f : α →₀ β)
-  (h0 : p 0) (ha : ∀a b (f : α →₀ β), a ∉ f.support → b ≠ 0 → p f → p (single a b + f)) :
+protected theorem induction {p : (α →₀ M) → Prop} (f : α →₀ M)
+  (h0 : p 0) (ha : ∀a b (f : α →₀ M), a ∉ f.support → b ≠ 0 → p f → p (single a b + f)) :
   p f :=
-suffices ∀s (f : α →₀ β), f.support = s → p f, from this _ _ rfl,
+suffices ∀s (f : α →₀ M), f.support = s → p f, from this _ _ rfl,
 assume s, finset.induction_on s (λ f hf, by rwa [support_eq_empty.1 hf]) $
 assume a s has ih f hf,
 suffices p (single a (f a) + f.erase a), by rwa [single_add_erase] at this,
@@ -646,10 +646,10 @@ begin
     rw [support_erase, hf, finset.erase_insert has] }
 end
 
-lemma induction₂ {p : (α →₀ β) → Prop} (f : α →₀ β)
-  (h0 : p 0) (ha : ∀a b (f : α →₀ β), a ∉ f.support → b ≠ 0 → p f → p (f + single a b)) :
+lemma induction₂ {p : (α →₀ M) → Prop} (f : α →₀ M)
+  (h0 : p 0) (ha : ∀a b (f : α →₀ M), a ∉ f.support → b ≠ 0 → p f → p (f + single a b)) :
   p f :=
-suffices ∀s (f : α →₀ β), f.support = s → p f, from this _ _ rfl,
+suffices ∀s (f : α →₀ M), f.support = s → p f, from this _ _ rfl,
 assume s, finset.induction_on s (λ f hf, by rwa [support_eq_empty.1 hf]) $
 assume a s has ih f hf,
 suffices p (f.erase a + single a (f a)), by rwa [erase_add_single] at this,
@@ -663,7 +663,7 @@ end
 
 @[simp] lemma add_closure_Union_range_single :
   add_submonoid.closure (⋃ a : α, set.range (single a : M → α →₀ M)) = ⊤ :=
-top_unique $ λ x hx, finsupp.induction_on x (add_submonoid.zero_mem _) $
+top_unique $ λ x hx, finsupp.induction x (add_submonoid.zero_mem _) $
   λ a b f ha hb hf, add_submonoid.add_mem _
     (add_submonoid.subset_closure $ set.mem_Union.2 ⟨a, set.mem_range_self _⟩) hf
 
@@ -677,8 +677,8 @@ begin
   apply H
 end
 
-lemma map_range_add [add_monoid β₁] [add_monoid β₂]
-  {f : β₁ → β₂} {hf : f 0 = 0} (hf' : ∀ x y, f (x + y) = f x + f y) (v₁ v₂ : α →₀ β₁) :
+lemma map_range_add [add_monoid N]
+  {f : M → N} {hf : f 0 = 0} (hf' : ∀ x y, f (x + y) = f x + f y) (v₁ v₂ : α →₀ M) :
   map_range f hf (v₁ + v₂) = map_range f hf v₁ + map_range f hf v₂ :=
 ext $ λ a, by simp only [hf', add_apply, map_range_apply]
 
@@ -733,12 +733,12 @@ instance [add_group G] : add_group (α →₀ G) :=
   add_left_neg := assume ⟨s, f, _⟩, ext $ assume x, add_left_neg _,
   .. finsupp.add_monoid }
 
-lemma single_multiset_sum [add_comm_monoid β] (s : multiset β) (a : α) :
+lemma single_multiset_sum [add_comm_monoid M] (s : multiset M) (a : α) :
   single a s.sum = (s.map (single a)).sum :=
 multiset.induction_on s single_zero $ λ a s ih,
 by rw [multiset.sum_cons, single_add, ih, multiset.map_cons, multiset.sum_cons]
 
-lemma single_finset_sum [add_comm_monoid β] (s : finset γ) (f : γ → β) (a : α) :
+lemma single_finset_sum [add_comm_monoid M] (s : finset ι) (f : ι → M) (a : α) :
   single a (∑ b in s, f b) = ∑ b in s, single a (f b) :=
 begin
   transitivity,
@@ -893,8 +893,8 @@ variables
 /--
 Composition with a fixed additive homomorphism is itself an additive homomorphism on functions.
 -/
-def map_range.add_monoid_hom : (α →₀ β₁) →+ (α →₀ β₂) :=
-{ to_fun := (map_range f f.map_zero : (α →₀ β₁) → (α →₀ β₂)),
+def map_range.add_monoid_hom : (α →₀ M) →+ (α →₀ N) :=
+{ to_fun := (map_range f f.map_zero : (α →₀ M) → (α →₀ N)),
   map_zero' := map_range_zero,
   map_add' := λ a b, map_range_add f.map_add _ _ }
 

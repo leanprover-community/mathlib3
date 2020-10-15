@@ -40,7 +40,7 @@ instance : semimodule R (polynomial R) := add_monoid_algebra.semimodule
 
 instance [subsingleton R] : unique (polynomial R) := add_monoid_algebra.unique
 
-@[simp] lemma support_zero : (0 : polynomial R).support = ∅ := finsupp.support_zero
+@[simp] lemma support_zero : (0 : polynomial R).support = ∅ := rfl
 
 /-- `monomial s a` is the monomial `a * X^s` -/
 def monomial (n : ℕ) (a : R) : polynomial R := finsupp.single n a

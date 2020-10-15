@@ -1491,7 +1491,7 @@ section
 instance [semiring R] [add_comm_monoid M] [semimodule R M] : has_scalar R (α →₀ M) :=
 ⟨λa v, v.map_range ((•) a) (smul_zero _)⟩
 
-variables (α β)
+variables (α M)
 
 @[simp] lemma smul_apply' {_:semiring R} [add_comm_monoid M] [semimodule R M]
   {a : α} {b : R} {v : α →₀ M} : (b • v) a = b • (v a) :=

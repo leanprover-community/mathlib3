@@ -42,9 +42,8 @@ variable (R : Type*)
 /-- An arithmetic function is a function from `ℕ` that maps 0 to 0. In the literature, they are
   often instead defined as functions from `ℕ+`. Multiplication on `arithmetic_functions` is by
   Dirichlet convolution. -/
-structure arithmetic_function [has_zero R] :=
-(to_fun : ℕ → R)
-(map_zero' : to_fun 0 = 0)
+@[derive [has_coe_to_fun, has_zero, inhabited]]
+def arithmetic_function [has_zero R] := zero_hom ℕ R
 
 variable {R}
 
@@ -53,35 +52,24 @@ namespace arithmetic_function
 section has_zero
 variable [has_zero R]
 
-instance : has_coe_to_fun (arithmetic_function R) := ⟨λ _, ℕ → R, to_fun⟩
-
 @[simp] lemma to_fun_eq (f : arithmetic_function R) : f.to_fun = f := rfl
 
 @[simp]
-lemma map_zero {f : arithmetic_function R} : f 0 = 0 := f.map_zero'
+lemma map_zero {f : arithmetic_function R} : f 0 = 0 :=
+zero_hom.map_zero' f
 
 theorem coe_inj {f g : arithmetic_function R} : (f : ℕ → R) = g ↔ f = g :=
-begin
-  split; intro h,
-  { cases f,
-    cases g,
-    cases h,
-    refl },
-  { rw h }
-end
-
-instance : has_zero (arithmetic_function R) := ⟨⟨λ _, 0, rfl⟩⟩
+⟨λ h, zero_hom.coe_inj h, λ h, h ▸ rfl⟩
 
 @[simp]
-lemma zero_apply {x : ℕ} : (0 : arithmetic_function R) x = 0 := rfl
-
-instance : inhabited (arithmetic_function R) := ⟨0⟩
+lemma zero_apply {x : ℕ} : (0 : arithmetic_function R) x = 0 :=
+zero_hom.zero_apply x
 
 @[ext] theorem ext ⦃f g : arithmetic_function R⦄ (h : ∀ x, f x = g x) : f = g :=
-coe_inj.1 (funext h)
+zero_hom.ext h
 
 theorem ext_iff {f g : arithmetic_function R} : f = g ↔ ∀ x, f x = g x :=
-⟨λ h x, h ▸ rfl, λ h, ext h⟩
+zero_hom.ext_iff
 
 section has_one
 variable [has_one R]
@@ -129,7 +117,7 @@ instance : add_monoid (arithmetic_function R) :=
 { add_assoc := λ _ _ _, ext (λ _, add_assoc _ _ _),
   zero_add := λ _, ext (λ _, zero_add _),
   add_zero := λ _, ext (λ _, add_zero _),
-  .. arithmetic_function.has_zero,
+  .. arithmetic_function.has_zero R,
   .. arithmetic_function.has_add }
 
 end add_monoid
@@ -224,7 +212,7 @@ instance : semiring (arithmetic_function R) :=
   mul_zero := λ f, by { ext, simp, },
   left_distrib := λ a b c, by { ext, simp [← sum_add_distrib, mul_add] },
   right_distrib := λ a b c, by { ext, simp [← sum_add_distrib, add_mul] },
-  .. arithmetic_function.has_zero,
+  .. arithmetic_function.has_zero R,
   .. arithmetic_function.has_mul,
   .. arithmetic_function.has_add,
   .. arithmetic_function.add_comm_monoid,

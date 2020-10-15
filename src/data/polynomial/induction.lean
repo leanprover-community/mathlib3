@@ -59,6 +59,14 @@ and it holds for monomials.
 polynomial.induction_on p (h_monomial 0) h_add
 (λ n a h, begin rw ← single_eq_C_mul_X at ⊢, exact h_monomial _ _, end)
 
+@[elab_as_eliminator] protected lemma induction_on_degree
+  {M : polynomial R → Prop} (p : polynomial R)
+  (h_0 : M 0)
+  (h_degree : ∀ (p : polynomial R), p ≠ 0 → (∀ q : polynomial R, q.degree < p.degree → M q) → M p) :
+  M p :=
+begin
+  sorry
+end
 
 section coeff
 

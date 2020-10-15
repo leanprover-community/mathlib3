@@ -62,6 +62,10 @@ def pullback [has_pullbacks C] {A B : C} (f : A ⟶ B) : over B ⥤ over A :=
 
 end
 
+def bind_set_over {X : C} (S : set (over X)) (Ti : Π (f : over X), f ∈ S → set (over f.left)) :
+  set (over X) :=
+λ h, ∃ (f : over X) (H : f ∈ S), ∃ (g : over f.left), g ∈ Ti f H ∧ over.mk (g.hom ≫ f.hom) = h
+
 @[simps]
 def bind_family {X : C} (S : family_with_target X) (Ti : Π i, family_with_target (S.obj i)) :
   family_with_target X :=
@@ -102,7 +106,18 @@ structure pretopology :=
 (transitive : ∀ ⦃X : C⦄ (S : family_with_target X) (Ti : Π i, family_with_target (S.obj i)),
                S ∈ coverings X → (∀ i, Ti i ∈ coverings (S.obj i)) → bind_family S Ti ∈ coverings X)
 
-instance : has_coe_to_fun (pretopology C) :=
+structure pretopology' :=
+(coverings : Π (X : C), set (set (over X)))
+(has_isos : ∀ ⦃X Y⦄ (f : Y ⟶ X) [is_iso f], {over.mk f} ∈ coverings X)
+(pullbacks : ∀ ⦃X Y⦄ (f : Y ⟶ X) S, S ∈ coverings X → (pullback f).obj '' S ∈ coverings Y)
+(transitive : ∀ ⦃X : C⦄ (S : set (over X)) (Ti : Π (f : over X), f ∈ S → set (over f.left)),
+               S ∈ coverings X → (∀ f ∈ S, Ti f H ∈ coverings f.left) →
+               bind_set_over S Ti ∈ coverings X)
+
+instance pretop_to_fun : has_coe_to_fun (pretopology C) :=
+⟨_, λ J, J.coverings⟩
+
+instance pretop'_to_fun : has_coe_to_fun (pretopology' C) :=
 ⟨_, λ J, J.coverings⟩
 
 namespace pretopology
@@ -148,6 +163,56 @@ def of_grothendieck (J : grothendieck_topology C) : pretopology C :=
 
 end pretopology
 
+namespace pretopology'
+
+/--
+A pretopology `K` can be completed to a Grothendieck topology `J` by declaring a sieve to be
+`J`-covering if it contains a family in `K`.
+-/
+def to_grothendieck (K : pretopology' C) : grothendieck_topology C :=
+{ sieves := λ X S, ∃ R ∈ K X, R ≤ S.set_over,
+  top_mem' := λ X, ⟨{over.mk (𝟙 _)}, K.has_isos (𝟙 X), by simp⟩,
+  pullback_stable' := λ X Y S g ⟨R, hR, RS⟩,
+  begin
+    refine ⟨_, K.pullbacks g _ hR, _⟩,
+    rintro _ ⟨f, hf, rfl⟩,
+    change S.arrows (limits.pullback.snd ≫ g),
+    rw ← limits.pullback.condition,
+    exact S.downward_closed (RS hf) limits.pullback.fst,
+  end,
+  transitive' :=
+  begin
+    rintro X S ⟨R', hR', RS⟩ R t,
+    choose t₁ t₂ t₃ using t,
+    refine ⟨_, K.transitive _ _ hR' (λ f hf, t₂ (RS hf)), _⟩,
+    rintros _ ⟨f, hf, g, hg, rfl⟩,
+    apply t₃ _ hg,
+  end }
+
+-- /-- The largest pretopology generating the given Grothendieck topology. -/
+-- def of_grothendieck (J : grothendieck_topology C) : pretopology C :=
+-- { coverings := λ X R, J X (family_to_sieve R),
+--   has_isos := λ X Y f i,
+--   begin
+--     apply J.covering_of_eq_top,
+--     rw ← sieve.id_mem_iff_eq_top,
+--     exactI ⟨⟨⟩, inv f, by simp⟩,
+--   end,
+--   pullbacks := λ X Y f R hR,
+--   begin
+--     rw set.mem_def at hR ⊢,
+--     rw family_to_sieve_comm,
+--     apply J.pullback_stable _ hR,
+--   end,
+--   transitive := λ X S Ti hS hTi,
+--   begin
+--     apply J.transitive hS,
+--     rintros Y f ⟨i, g, rfl⟩,
+--     rw sieve.pullback_comp,
+--     exact J.pullback_stable g (J.superset_covering (family_to_sieve_bind S Ti i) (hTi i)),
+--   end }
+
+end pretopology'
 -- def tauto_eq (X : C) (U V : family_with_target X) : Prop :=
 -- ∃ (α : U.ι → V.ι) (β : V.ι → U.ι)
 --   (α' : ∀ i, ∃ (f : U.obj i ⟶ V.obj (α i)))

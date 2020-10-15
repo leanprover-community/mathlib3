@@ -48,9 +48,7 @@ by { rw [mem_support_to_fun, not_not], refl, }
 variable (R)
 /-- The nth coefficient, as a linear map. -/
 def lcoeff (n : ℕ) : polynomial R →ₗ[R] R :=
-{ to_fun := λ f, coeff f n,
-  map_add' := λ f g, coeff_add f g n,
-  map_smul' := λ r p, coeff_smul p r n }
+finsupp.leval n
 variable {R}
 
 @[simp] lemma lcoeff_apply (n : ℕ) (f : polynomial R) : lcoeff R n f = coeff f n := rfl
@@ -61,24 +59,7 @@ variable {R}
 
 lemma coeff_mul (p q : polynomial R) (n : ℕ) :
   coeff (p * q) n = ∑ x in nat.antidiagonal n, coeff p x.1 * coeff q x.2 :=
-have hite : ∀ a : ℕ × ℕ, ite (a.1 + a.2 = n) (coeff p (a.fst) * coeff q (a.snd)) 0 ≠ 0
-    → a.1 + a.2 = n, from λ a ha, by_contradiction
-  (λ h, absurd (eq.refl (0 : R)) (by rwa if_neg h at ha)),
-calc coeff (p * q) n = ∑ a in p.support, ∑ b in q.support,
-    ite (a + b = n) (coeff p a * coeff q b) 0 :
-  by { simp only [add_monoid_algebra.mul_def, coeff_sum, coeff_single], refl }
-... = ∑ v in p.support.product q.support, ite (v.1 + v.2 = n) (coeff p v.1 * coeff q v.2) 0 :
-  by rw sum_product
-... = ∑ x in nat.antidiagonal n, coeff p x.1 * coeff q x.2 :
-begin
-  refine sum_bij_ne_zero (λ x _ _, x)
-  (λ x _ hx, nat.mem_antidiagonal.2 (hite x hx)) (λ _ _ _ _ _ _ h, h)
-  (λ x h₁ h₂, ⟨x, _, _, rfl⟩) _,
-  { rw [mem_product, mem_support_iff, mem_support_iff],
-    exact ne_zero_and_ne_zero_of_mul h₂ },
-  { rw nat.mem_antidiagonal at h₁, rwa [if_pos h₁] },
-  { intros x h hx, rw [if_pos (hite x hx)] }
-end
+add_monoid_algebra.mul_apply_antidiagonal p q n _ (λ x, nat.mem_antidiagonal)
 
 @[simp] lemma mul_coeff_zero (p q : polynomial R) : coeff (p * q) 0 = coeff p 0 * coeff q 0 :=
 by simp [coeff_mul]

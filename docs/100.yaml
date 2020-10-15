@@ -224,6 +224,8 @@
   author : mathlib
 70:
   title  : The Perfect Number Theorem
+  decl   : even_and_perfect_iff
+  author : Aaron Anderson
 71:
   title  : Order of a Subgroup
   decl   : card_subgroup_dvd_card

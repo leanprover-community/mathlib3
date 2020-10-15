@@ -163,6 +163,10 @@ end
 lemma pos_of_mem_proper_divisors {m : ℕ} (h : m ∈ n.proper_divisors) : 0 < m :=
 pos_of_mem_divisors (proper_divisors_subset_divisors h)
 
+lemma one_mem_proper_divisors_iff_one_lt :
+  1 ∈ n.proper_divisors ↔ 1 < n :=
+by rw [mem_proper_divisors, and_iff_right (one_dvd _)]
+
 @[simp]
 lemma divisors_antidiagonal_zero : divisors_antidiagonal 0 = ∅ := by { ext, simp }
 
@@ -237,7 +241,7 @@ lemma mem_divisors_prime_pow {p : ℕ} (pp : p.prime) (k : ℕ) {x : ℕ} :
   x ∈ divisors (p ^ k) ↔ ∃ (j : ℕ) (H : j ≤ k), x = p ^ j :=
 by rw [mem_divisors, nat.dvd_prime_pow pp, and_iff_left (ne_of_gt (pow_pos pp.pos k))]
 
-lemma divisors_prime {p : ℕ} (pp : p.prime) :
+lemma prime.divisors {p : ℕ} (pp : p.prime) :
   divisors p = {1, p} :=
 begin
   ext,
@@ -247,6 +251,12 @@ begin
   rcases h; subst h,
   apply one_dvd,
 end
+
+lemma prime.proper_divisors {p : ℕ} (pp : p.prime) :
+  proper_divisors p = {1} :=
+by rw [← erase_insert (proper_divisors.not_self_mem),
+    ← divisors_eq_proper_divisors_insert_self_of_pos pp.pos,
+    pp.divisors, insert_singleton_comm, erase_insert (λ con, pp.ne_one (mem_singleton.1 con))]
 
 lemma divisors_prime_pow {p : ℕ} (pp : p.prime) (k : ℕ) :
   divisors (p ^ k) = (finset.range (k + 1)).map ⟨pow p, pow_right_injective pp.two_le⟩ :=
@@ -292,67 +302,50 @@ begin
 end
 
 @[simp]
-lemma sum_divisors_prime {α : Type*} [add_comm_monoid α] {p : ℕ} {f : ℕ → α} (h : p.prime) :
+lemma prime.sum_proper_divisors {α : Type*} [add_comm_monoid α] {p : ℕ} {f : ℕ → α} (h : p.prime) :
+  ∑ x in p.proper_divisors, f x = f 1 :=
+by simp [h.proper_divisors]
+
+@[simp]
+lemma prime.sum_divisors {α : Type*} [add_comm_monoid α] {p : ℕ} {f : ℕ → α} (h : p.prime) :
   ∑ x in p.divisors, f x = f p + f 1 :=
-begin
-  simp only [h, divisors_prime],
-  rw [sum_insert, sum_singleton, add_comm],
-  rw mem_singleton,
-  apply h.ne_one.symm,
-end
+by rw [divisors_eq_proper_divisors_insert_self_of_pos h.pos,
+       sum_insert proper_divisors.not_self_mem, h.sum_proper_divisors]
 
 lemma proper_divisors_eq_singleton_one_iff_prime :
   n.proper_divisors = {1} ↔ n.prime :=
-begin
-  split,
-  { intro h,
-    have h1 := mem_singleton.2 rfl,
-    rw [← h, mem_proper_divisors] at h1,
-    refine ⟨h1.2, _⟩,
-    intros m hdvd,
-    rw [← mem_singleton, ← h, mem_proper_divisors],
-    cases lt_or_eq_of_le (nat.le_of_dvd (lt_trans (nat.succ_pos _) h1.2) hdvd),
-    { left,
-      exact ⟨hdvd, h_1⟩ },
-    { right,
-      exact h_1 } },
-  intro h,
-  ext x,
-  simp only [mem_proper_divisors, mem_singleton],
-  split,
-  { rintro ⟨hdvd, hlt⟩,
-    cases h.2 x hdvd,
-    { exact h_1},
-    { exfalso,
-      apply ne_of_lt hlt h_1 } },
-  { rintro rfl,
-    refine ⟨one_dvd n, h.1⟩ }
-end
+⟨λ h, begin
+  have h1 := mem_singleton.2 rfl,
+  rw [← h, mem_proper_divisors] at h1,
+  refine ⟨h1.2, _⟩,
+  intros m hdvd,
+  rw [← mem_singleton, ← h, mem_proper_divisors],
+  cases lt_or_eq_of_le (nat.le_of_dvd (lt_trans (nat.succ_pos _) h1.2) hdvd),
+  { left,
+    exact ⟨hdvd, h_1⟩ },
+  { right,
+    exact h_1 }
+end, prime.proper_divisors⟩
 
 lemma sum_proper_divisors_eq_one_iff_prime :
   ∑ x in n.proper_divisors, x = 1 ↔ n.prime :=
 begin
-  split,
-  { cases n,
-    { simp [nat.not_prime_zero] },
-    cases n,
-    { simp [nat.not_prime_one] },
-    rw [← proper_divisors_eq_singleton_one_iff_prime, @eq_comm (finset ℕ) _ _],
-    intro h,
-    apply eq_proper_divisors_of_subset_of_sum_eq_sum _ _,
-    { rw [singleton_subset_iff, mem_proper_divisors],
-      norm_num,
-      apply succ_lt_succ (nat.succ_pos _) },
-    { rw [h, sum_singleton] } },
-  { intro h,
-    apply add_left_cancel,
-    rw [add_comm, ← sum_divisors_eq_sum_proper_divisors_add_self, sum_divisors_prime h] }
+  cases n,
+  { simp [nat.not_prime_zero] },
+  cases n,
+  { simp [nat.not_prime_one] },
+  rw [← proper_divisors_eq_singleton_one_iff_prime],
+  refine ⟨λ h, _, λ h, h.symm ▸ sum_singleton⟩,
+  rw [@eq_comm (finset ℕ) _ _],
+  apply eq_proper_divisors_of_subset_of_sum_eq_sum
+    (singleton_subset_iff.2 (one_mem_proper_divisors_iff_one_lt.2 (succ_lt_succ (nat.succ_pos _))))
+    (eq.trans sum_singleton h.symm)
 end
 
 @[simp]
 lemma prod_divisors_prime {α : Type*} [comm_monoid α] {p : ℕ} {f : ℕ → α} (h : p.prime) :
   ∏ x in p.divisors, f x = f p * f 1 :=
-@sum_divisors_prime (additive α) _ _ _ h
+@prime.sum_divisors (additive α) _ _ _ h
 
 @[simp]
 lemma sum_divisors_prime_pow {α : Type*} [add_comm_monoid α] {k p : ℕ} {f : ℕ → α} (h : p.prime) :

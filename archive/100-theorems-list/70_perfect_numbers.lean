@@ -115,7 +115,7 @@ begin
 end
 
 /-- The Euclid-Euler theorem characterizing even perfect numbers -/
-theorem even_perfect_iff {n : ℕ} :
+theorem even_and_perfect_iff {n : ℕ} :
   (even n ∧ perfect n) ↔ ∃ (k : ℕ), prime (mersenne (k + 1)) ∧ n = 2 ^ k * mersenne (k + 1) :=
 begin
   split,

@@ -468,7 +468,7 @@ nat_iso.of_components
 section
 variables {C}
 
-/-- Tensoring on the left with as fixed object, as a functor. -/
+/-- Tensoring on the left with a fixed object, as a functor. -/
 @[simps]
 def tensor_left (X : C) : C ⥤ C :=
 { obj := λ Y, X ⊗ Y,
@@ -490,7 +490,7 @@ rfl
   (tensor_left_tensor X Y).inv.app Z = (associator X Y Z).inv :=
 rfl
 
-/-- Tensoring on the right with as fixed object, as a functor. -/
+/-- Tensoring on the right with a fixed object, as a functor. -/
 @[simps]
 def tensor_right (X : C) : C ⥤ C :=
 { obj := λ Y, Y ⊗ X,

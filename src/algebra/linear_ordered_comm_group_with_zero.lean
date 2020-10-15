@@ -130,7 +130,7 @@ lemma div_le_div' (a b c d : α) (hb : b ≠ 0) (hd : d ≠ 0) :
 begin
   by_cases ha : a = 0, { simp [ha] },
   by_cases hc : c = 0, { simp [inv_ne_zero hb, hc, hd], },
-  exact (div_le_div_iff' (units.mk0 a ha) (units.mk0 b hb) (units.mk0 c hc) (units.mk0 d hd)),
+  exact @div_le_div_iff' _ _ (units.mk0 a ha) (units.mk0 b hb) (units.mk0 c hc) (units.mk0 d hd)
 end
 
 lemma ne_zero_of_lt (h : b < a) : a ≠ 0 :=

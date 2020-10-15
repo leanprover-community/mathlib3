@@ -37,6 +37,11 @@ p.sum (λ e a, f a * x ^ e)
 
 lemma eval₂_eq_sum {f : R →+* S} {x : S} : p.eval₂ f x = p.sum (λ e a, f a * x ^ e) := rfl
 
+lemma eval₂_congr {R S : Type*} [semiring R] [semiring S]
+  {f g : R →+* S} {s t : S} {φ ψ : polynomial R} :
+  f = g → s = t → φ = ψ → eval₂ f s φ = eval₂ g t ψ :=
+by rintro rfl rfl rfl; refl
+
 @[simp] lemma eval₂_zero : (0 : polynomial R).eval₂ f x = 0 :=
 finsupp.sum_zero_index
 
@@ -286,6 +291,22 @@ by rw [← C_1, C_comp]
 
 @[simp] lemma add_comp : (p + q).comp r = p.comp r + q.comp r := eval₂_add _ _
 
+@[simp] lemma mul_comp {R : Type*} [comm_semiring R] (p q r : polynomial R) :
+  (p * q).comp r = p.comp r * q.comp r := eval₂_mul _ _
+
+@[simp] lemma bit0_comp : comp (bit0 p : polynomial R) q = bit0 (p.comp q) :=
+by simp only [bit0, add_comp]
+
+@[simp] lemma bit1_comp : comp (bit1 p : polynomial R) q = bit1 (p.comp q) :=
+by simp only [bit1, add_comp, bit0_comp, one_comp]
+
+lemma comp_assoc {R : Type*} [comm_semiring R] (φ ψ χ : polynomial R) :
+  (φ.comp ψ).comp χ = φ.comp (ψ.comp χ) :=
+begin
+  apply polynomial.induction_on φ;
+  { intros, simp only [add_comp, mul_comp, C_comp, X_comp, pow_succ', ← mul_assoc, *] at * }
+end
+
 end comp
 
 section map
@@ -528,7 +549,7 @@ end map
 end comm_semiring
 
 section ring
-variables [ring R] {p q : polynomial R}
+variables [ring R] {p q r : polynomial R}
 
 -- @[simp]
 -- lemma C_eq_int_cast (n : ℤ) : C ↑n = (n : polynomial R) :=
@@ -569,6 +590,9 @@ eval₂_sub _
 lemma root_X_sub_C : is_root (X - C a) b ↔ a = b :=
 by rw [is_root.def, eval_sub, eval_X, eval_C, sub_eq_zero_iff_eq, eq_comm]
 
+@[simp] lemma neg_comp : (-p).comp q = -p.comp q := eval₂_neg _
+
+@[simp] lemma sub_comp : (p - q).comp r = p.comp r - q.comp r := eval₂_sub _
 
 end ring
 

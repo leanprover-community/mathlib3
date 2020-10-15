@@ -365,11 +365,20 @@ theorem mem_closure_iff {s : set α} {a : α} :
 def dense (s : set α) : Prop := ∀ x, x ∈ closure s
 
 lemma dense_iff_closure_eq {s : set α} : dense s ↔ closure s = univ :=
-by rw [dense, eq_univ_iff_forall]
+eq_univ_iff_forall.symm
 
 lemma dense.closure_eq {s : set α} (h : dense s) : closure s = univ :=
 dense_iff_closure_eq.mp h
 
+/-- The closure of a set `s` is dense if and only if `s` is dense. -/
+@[simp] lemma dense_closure {s : set α} : dense (closure s) ↔ dense s :=
+by rw [dense, dense, closure_closure]
+
+alias dense_closure ↔ dense.of_closure dense.closure
+
+@[simp] lemma dense_univ : dense (univ : set α) := λ x, subset_closure trivial
+
+/-- A set is dense if and only if it has a nonempty intersection with each nonempty open set. -/
 lemma dense_iff_inter_open {s : set α} :
   dense s ↔ ∀ U, is_open U → U.nonempty → (U ∩ s).nonempty :=
 begin
@@ -382,8 +391,18 @@ begin
     exact h U U_op ⟨_, x_in⟩ },
 end
 
+alias dense_iff_inter_open ↔ dense.inter_open_nonempty _
+
+lemma dense.nonempty_iff {s : set α} (hs : dense s) :
+  s.nonempty ↔ nonempty α :=
+⟨λ ⟨x, hx⟩, ⟨x⟩, λ ⟨x⟩,
+  let ⟨y, hy⟩ := hs.inter_open_nonempty _ is_open_univ ⟨x, trivial⟩ in ⟨y, hy.2⟩⟩
+
+lemma dense.nonempty [h : nonempty α] {s : set α} (hs : dense s) : s.nonempty :=
+hs.nonempty_iff.2 h
+
 @[mono]
-lemma dense_of_subset_dense {s₁ s₂ : set α} (h : s₁ ⊆ s₂) (hd : dense s₁) : dense s₂ :=
+lemma dense.mono {s₁ s₂ : set α} (h : s₁ ⊆ s₂) (hd : dense s₁) : dense s₂ :=
 λ x, closure_mono h (hd x)
 
 /-!
@@ -754,16 +773,16 @@ have cluster_pt a (𝓟 (s ∩ t)),
     ... ≠ ⊥ : by rw [closure_eq_cluster_pts] at ht; assumption,
 by rwa [closure_eq_cluster_pts]
 
-lemma dense_inter_of_open_left {s t : set α} (hs : closure s = univ) (ht : closure t = univ)
-  (hso : is_open s) :
-  closure (s ∩ t) = univ :=
-eq_univ_of_subset (closure_minimal (closure_inter_open hso) is_closed_closure) $
-  by simp only [*, inter_univ]
+/-- The intersection of an open dense set with a dense set is a dense set. -/
+lemma dense.inter_of_open_left {s t : set α} (hs : dense s) (ht : dense t) (hso : is_open s) :
+  dense (s ∩ t) :=
+λ x, (closure_minimal (closure_inter_open hso) is_closed_closure) $
+  by simp [hs.closure_eq, ht.closure_eq]
 
-lemma dense_inter_of_open_right {s t : set α} (hs : closure s = univ) (ht : closure t = univ)
-  (hto : is_open t) :
-  closure (s ∩ t) = univ :=
-inter_comm t s ▸ dense_inter_of_open_left ht hs hto
+/-- The intersection of a dense set with an open dense set is a dense set. -/
+lemma dense.inter_of_open_right {s t : set α} (hs : dense s) (ht : dense t) (hto : is_open t) :
+  dense (s ∩ t) :=
+inter_comm t s ▸ ht.inter_of_open_left hs hto
 
 lemma closure_diff {s t : set α} : closure s \ closure t ⊆ closure (s \ t) :=
 calc closure s \ closure t = (closure t)ᶜ ∩ closure s : by simp only [diff_eq, inter_comm]
@@ -814,6 +833,18 @@ section lim
 /-- If `f` is a filter, then `Lim f` is a limit of the filter, if it exists. -/
 noncomputable def Lim [nonempty α] (f : filter α) : α := epsilon $ λa, f ≤ 𝓝 a
 
+/--
+If `f` is a filter satisfying `ne_bot f`, then `Lim' f` is a limit of the filter, if it exists.
+-/
+def Lim' (f : filter α) [ne_bot f] : α := @Lim _ _ (nonempty_of_ne_bot f) f
+
+-- Note: `ultrafilter` is inside the `filter` namespace.
+/--
+If `F` is an ultrafilter, then `filter.ultrafilter.Lim F` is a limit of the filter, if it exists.
+Note that dot notation `F.Lim` can be used for `F : ultrafilter α`.
+-/
+def filter.ultrafilter.Lim : ultrafilter α → α := λ F, Lim' F.1
+
 /-- If `f` is a filter in `β` and `g : β → α` is a function, then `lim f` is a limit of `g` at `f`,
 if it exists. -/
 noncomputable def lim [nonempty α] (f : filter β) (g : β → α) : α :=
@@ -823,16 +854,16 @@ Lim (f.map g)
 this lemma with a `[nonempty α]` argument of `Lim` derived from `h` to make it useful for types
 without a `[nonempty α]` instance. Because of the built-in proof irrelevance, Lean will unify
 this instance with any other instance. -/
-lemma Lim_spec {f : filter α} (h : ∃a, f ≤ 𝓝 a) : f ≤ 𝓝 (@Lim _ _ (nonempty_of_exists h) f) :=
+lemma le_nhds_Lim {f : filter α} (h : ∃a, f ≤ 𝓝 a) : f ≤ 𝓝 (@Lim _ _ (nonempty_of_exists h) f) :=
 epsilon_spec h
 
 /-- If `g` tends to some `𝓝 a` along `f`, then it tends to `𝓝 (lim f g)`. We formulate
 this lemma with a `[nonempty α]` argument of `lim` derived from `h` to make it useful for types
 without a `[nonempty α]` instance. Because of the built-in proof irrelevance, Lean will unify
 this instance with any other instance. -/
-lemma lim_spec {f : filter β} {g : β → α} (h : ∃ a, tendsto g f (𝓝 a)) :
+lemma tendsto_nhds_lim {f : filter β} {g : β → α} (h : ∃ a, tendsto g f (𝓝 a)) :
   tendsto g f (𝓝 $ @lim _ _ _ (nonempty_of_exists h) f g) :=
-Lim_spec h
+le_nhds_Lim h
 
 end lim
 
@@ -1071,7 +1102,6 @@ lemma mem_closure {s : set α} {t : set β} {f : α → β} {a : α}
 subset.trans (image_closure_subset_closure_image hf) (closure_mono $ image_subset_iff.2 ht) $
   (mem_image_of_mem f ha)
 
-
 /-!
 ### Function with dense range
 -/
@@ -1084,44 +1114,50 @@ def dense_range := dense (range f)
 
 variables {f}
 
+/-- A surjective map has dense range. -/
+lemma function.surjective.dense_range (hf : function.surjective f) : dense_range f :=
+λ x, by simp [hf.range_eq]
+
 lemma dense_range_iff_closure_range : dense_range f ↔ closure (range f) = univ :=
-eq_univ_iff_forall.symm
+dense_iff_closure_eq
 
 lemma dense_range.closure_range (h : dense_range f) : closure (range f) = univ :=
-eq_univ_iff_forall.mpr h
+h.closure_eq
 
-lemma dense_range.comp (hg : dense_range g) (hf : dense_range f) (cg : continuous g) :
+lemma continuous.range_subset_closure_image_dense {f : α → β} (hf : continuous f)
+  {s : set α} (hs : dense s) :
+  range f ⊆ closure (f '' s) :=
+by { rw [← image_univ, ← hs.closure_eq], exact image_closure_subset_closure_image hf }
+
+/-- The image of a dense set under a continuous map with dense range is a dense set. -/
+lemma dense_range.dense_image {f : α → β} (hf' : dense_range f) (hf : continuous f)
+  {s : set α} (hs : dense s) :
+  dense (f '' s)  :=
+(hf'.mono $ hf.range_subset_closure_image_dense hs).of_closure
+
+/-- If a continuous map with dense range maps a dense set to a subset of `t`, then `t` is a dense
+set. -/
+lemma dense_range.dense_of_maps_to {f : α → β} (hf' : dense_range f) (hf : continuous f)
+  {s : set α} (hs : dense s) {t : set β} (ht : maps_to f s t) :
+  dense t :=
+(hf'.dense_image hf hs).mono ht.image_subset
+
+/-- Composition of a continuous map with dense range and a function with dense range has dense
+range. -/
+lemma dense_range.comp {g : β → γ} {f : κ → β} (hg : dense_range g) (hf : dense_range f)
+  (cg : continuous g) :
   dense_range (g ∘ f) :=
-begin
-  have : g '' (closure $ range f) ⊆ closure (g '' range f),
-    from image_closure_subset_closure_image cg,
-  have : closure (g '' closure (range f)) ⊆ closure (g '' range f),
-    by simpa [closure_closure] using (closure_mono this),
-  intro c,
-  rw range_comp,
-  apply this,
-  rw [hf.closure_range, image_univ],
-  exact hg c
-end
+by { rw [dense_range, range_comp], exact hg.dense_image cg hf }
 
-/-- If `f : ι → β` has dense range and `β` contains some element, then `ι` must too. -/
-def dense_range.inhabited (df : dense_range f) (b : β) : inhabited κ :=
-⟨classical.choice $
-  by simpa only [univ_inter, range_nonempty_iff_nonempty] using
-    mem_closure_iff.1 (df b) _ is_open_univ trivial⟩
+lemma dense_range.nonempty_iff (hf : dense_range f) : nonempty κ ↔ nonempty β :=
+range_nonempty_iff_nonempty.symm.trans hf.nonempty_iff
 
-lemma dense_range.nonempty (hf : dense_range f) : nonempty κ ↔ nonempty β :=
-⟨nonempty.map f, λ ⟨b⟩, @nonempty_of_inhabited _ (hf.inhabited b)⟩
+lemma dense_range.nonempty [h : nonempty β] (hf : dense_range f) : nonempty κ :=
+hf.nonempty_iff.mpr h
 
-lemma continuous.dense_image_of_dense_range {f : α → β}
-  (hf : continuous f) (hf' : dense_range f) {s : set α} (hs : dense s) :
-  closure (f '' s) = univ :=
-begin
-  have : f '' (closure s) ⊆ closure (f '' s) := image_closure_subset_closure_image hf,
-  have := closure_mono this,
-  rw [hs.closure_eq, image_univ, hf'.closure_eq, closure_closure] at this,
-  exact eq_univ_of_univ_subset this
-end
+/-- Given a function `f : α → β` with dense range and `b : β`, returns some `a : α`. -/
+def dense_range.some (hf : dense_range f) (b : β) : κ :=
+classical.choice $ hf.nonempty_iff.mpr ⟨b⟩
 
 end dense_range
 

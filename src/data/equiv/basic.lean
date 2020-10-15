@@ -588,15 +588,27 @@ def pempty_sum (α : Sort*) : pempty ⊕ α ≃ α :=
 @[simp] lemma pempty_sum_apply_inr {α} (a) : pempty_sum α (sum.inr a) = a := rfl
 
 /-- `option α` is equivalent to `α ⊕ punit` -/
-def option_equiv_sum_punit (α : Sort*) : option α ≃ α ⊕ punit.{u+1} :=
+def option_equiv_sum_punit (α : Type*) : option α ≃ α ⊕ punit.{u+1} :=
 ⟨λ o, match o with none := inr punit.star | some a := inl a end,
  λ s, match s with inr _ := none | inl a := some a end,
  λ o, by cases o; refl,
  λ s, by rcases s with _ | ⟨⟨⟩⟩; refl⟩
 
-@[simp] lemma option_equiv_sum_punit_none {α} : option_equiv_sum_punit α none = sum.inr () := rfl
+@[simp] lemma option_equiv_sum_punit_none {α} :
+  option_equiv_sum_punit α none = sum.inr punit.star := rfl
 @[simp] lemma option_equiv_sum_punit_some {α} (a) :
   option_equiv_sum_punit α (some a) = sum.inl a := rfl
+
+@[simp] lemma option_equiv_sum_punit_coe {α} (a : α) :
+  option_equiv_sum_punit α a = sum.inl a := rfl
+
+@[simp] lemma option_equiv_sum_punit_symm_inl {α} (a) :
+  (option_equiv_sum_punit α).symm (sum.inl a) = a :=
+rfl
+
+@[simp] lemma option_equiv_sum_punit_symm_inr {α} (a) :
+  (option_equiv_sum_punit α).symm (sum.inr a) = none :=
+rfl
 
 /-- The set of `x : option α` such that `is_some x` is equivalent to `α`. -/
 def option_is_some_equiv (α : Type*) : {x : option α // x.is_some} ≃ α :=
@@ -952,6 +964,20 @@ def bool_prod_equiv_sum (α : Type u) : bool × α ≃ α ⊕ α :=
 calc bool × α ≃ (unit ⊕ unit) × α       : prod_congr bool_equiv_punit_sum_punit (equiv.refl _)
       ...     ≃ (unit × α) ⊕ (unit × α) : sum_prod_distrib _ _ _
       ...     ≃ α ⊕ α                   : sum_congr (punit_prod _) (punit_prod _)
+
+/-- The function type `bool → α` is equivalent to `α × α`. -/
+def bool_to_equiv_prod (α : Type u) : (bool → α) ≃ α × α :=
+calc (bool → α) ≃ ((unit ⊕ unit) → α) : (arrow_congr bool_equiv_punit_sum_punit (equiv.refl α))
+     ...        ≃ (unit → α) × (unit → α) : sum_arrow_equiv_prod_arrow _ _ _
+     ...        ≃ α × α : prod_congr (punit_arrow_equiv _) (punit_arrow_equiv _)
+
+@[simp] lemma bool_to_equiv_prod_apply {α : Type u} (f : bool → α) :
+  bool_to_equiv_prod α f = (f ff, f tt) := rfl
+@[simp] lemma bool_to_equiv_prod_symm_apply_ff {α : Type u} (p : α × α) :
+  (bool_to_equiv_prod α).symm p ff = p.1 := rfl
+@[simp] lemma bool_to_equiv_prod_symm_apply_tt {α : Type u} (p : α × α) :
+  (bool_to_equiv_prod α).symm p tt = p.2 := rfl
+
 end
 
 section
@@ -1248,6 +1274,22 @@ protected def insert {α} {s : set.{u} α} [decidable_pred s] {a : α} (H : a �
 calc (insert a s : set α) ≃ ↥(s ∪ {a}) : equiv.set.of_eq (by simp)
 ... ≃ s ⊕ ({a} : set α) : equiv.set.union (by finish [set.subset_def])
 ... ≃ s ⊕ punit.{u+1} : sum_congr (equiv.refl _) (equiv.set.singleton _)
+
+@[simp] lemma insert_symm_apply_inl {α} {s : set.{u} α} [decidable_pred s] {a : α} (H : a ∉ s)
+  (b : s) : (equiv.set.insert H).symm (sum.inl b) = ⟨b, or.inr b.2⟩ :=
+rfl
+
+@[simp] lemma insert_symm_apply_inr {α} {s : set.{u} α} [decidable_pred s] {a : α} (H : a ∉ s)
+  (b : punit.{u+1}) : (equiv.set.insert H).symm (sum.inr b) = ⟨a, or.inl rfl⟩ :=
+rfl
+
+@[simp] lemma insert_apply_left {α} {s : set.{u} α} [decidable_pred s] {a : α} (H : a ∉ s) :
+  equiv.set.insert H ⟨a, or.inl rfl⟩ = sum.inr punit.star :=
+(equiv.set.insert H).apply_eq_iff_eq_symm_apply.2 rfl
+
+@[simp] lemma insert_apply_right {α} {s : set.{u} α} [decidable_pred s] {a : α} (H : a ∉ s)
+  (b : s) : equiv.set.insert H ⟨b, or.inr b.2⟩ = sum.inl b :=
+(equiv.set.insert H).apply_eq_iff_eq_symm_apply.2 rfl
 
 /-- If `s : set α` is a set with decidable membership, then `s ⊕ sᶜ` is equivalent to `α`. -/
 protected def sum_compl {α} (s : set α) [decidable_pred s] : s ⊕ (sᶜ : set α) ≃ α :=

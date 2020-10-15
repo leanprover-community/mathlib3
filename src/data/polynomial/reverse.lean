@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 
-import data.polynomial.degree.basic
+--import data.polynomial.degree.basic
 import data.polynomial.erase_lead
-import data.polynomial.degree.trailing_degree
+--import data.polynomial.degree.trailing_degree
 
 /-!
 # Reverse of a univariate polynomial
@@ -26,10 +26,10 @@ open_locale classical
 variables {R : Type*} [semiring R] {f : polynomial R}
 
 namespace rev
-/-- If `i ≤ N`, then `rev_at N i` returns `N - i`, otherwise it returns `i`.
+/-- If `i ≤ N`, then `rev_at_fun N i` returns `N - i`, otherwise it returns `i`.
 
 Essentially, this function is only used for `i ≤ N`.
-The advantage of `rev_at N i` over `N - i` is that `rev_at` is an involution.
+The advantage of `rev_at_fun N i` over `N - i` is that `rev_at_fun` is an involution.
 -/
 def rev_at_fun (N i : ℕ) : ℕ := ite (i ≤ N) (N-i) i
 
@@ -50,6 +50,7 @@ begin
   rw [← @rev_at_fun_invol N a, hab, rev_at_fun_invol],
 end
 
+/-- `rev_at N` is `rev_at_fun N` bundled as an embedding. -/
 def rev_at (N : ℕ) : function.embedding ℕ ℕ :=
   { to_fun := λ i , (ite (i ≤ N) (N-i) i),
     inj' := rev_at_fun_inj }
@@ -65,7 +66,6 @@ end
 
 @[simp] lemma rev_at_le {N i : ℕ} (H : i ≤ N) : rev_at N i = N - i :=
 if_pos H
-
 
 /-- `reflect N f` is the polynomial such that `(reflect N f).coeff i = f.coeff (rev_at N i)`.
 In other words, the terms with exponent `[0, ..., N]` now have exponent `[N, ..., 0]`.
@@ -204,7 +204,6 @@ begin
       apply mul_ne_zero;
       { rwa [← leading_coeff_eq_zero] at * }, }, },
 end
-
 
 end rev
 end polynomial

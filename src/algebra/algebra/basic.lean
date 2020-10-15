@@ -524,9 +524,7 @@ end semiring
 section comm_semiring
 
 variables [comm_semiring R] [comm_semiring A] [comm_semiring B]
-variables [algebra R A] [algebra R B]
-
-variables (φ : A →ₐ[R] B)
+variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
 
 lemma map_prod {ι : Type*} (f : ι → A) (s : finset ι) :
   φ (∏ x in s, f x) = ∏ x in s, φ (f x) :=
@@ -540,8 +538,8 @@ end comm_semiring
 
 section ring
 
-variables [comm_ring R] [ring A] [ring B] [ring C]
-variables [algebra R A] [algebra R B] [algebra R C] (φ : A →ₐ[R] B)
+variables [comm_ring R] [ring A] [ring B]
+variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
 
 @[simp] lemma map_neg (x) : φ (-x) = -φ x :=
 φ.to_ring_hom.map_neg x
@@ -588,6 +586,9 @@ notation A ` ≃ₐ[`:50 R `] ` A' := alg_equiv R A A'
 namespace alg_equiv
 
 variables {R : Type u} {A₁ : Type v} {A₂ : Type w} {A₃ : Type u₁}
+
+section semiring
+
 variables [comm_semiring R] [semiring A₁] [semiring A₂] [semiring A₃]
 variables [algebra R A₁] [algebra R A₂] [algebra R A₃]
 variables (e : A₁ ≃ₐ[R] A₂)
@@ -639,14 +640,6 @@ end
 
 @[simp] lemma commutes : ∀ (r : R), e (algebra_map R A₁ r) = algebra_map R A₂ r :=
   e.commutes'
-
-@[simp] lemma map_neg {A₁ : Type v} {A₂ : Type w}
-  [ring A₁] [ring A₂] [algebra R A₁] [algebra R A₂] (e : A₁ ≃ₐ[R] A₂) :
-  ∀ x, e (-x) = -(e x) := e.to_add_equiv.map_neg
-
-@[simp] lemma map_sub {A₁ : Type v} {A₂ : Type w}
-  [ring A₁] [ring A₂] [algebra R A₁] [algebra R A₂] (e : A₁ ≃ₐ[R] A₂) :
-  ∀ x y, e (x - y) = e x - e y := e.to_add_equiv.map_sub
 
 lemma map_sum {ι : Type*} (f : ι → A₁) (s : finset ι) :
   e (∑ x in s, f x) = ∑ x in s, e (f x) :=
@@ -767,6 +760,49 @@ ext $ λ x, show e₁.to_linear_map x = e₂.to_linear_map x, by rw H
 
 @[simp] lemma trans_to_linear_map (f : A₁ ≃ₐ[R] A₂) (g : A₂ ≃ₐ[R] A₃) :
   (f.trans g).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
+
+end semiring
+
+section comm_semiring
+
+variables [comm_semiring R] [comm_semiring A₁] [comm_semiring A₂]
+variables [algebra R A₁] [algebra R A₂] (e : A₁ ≃ₐ[R] A₂)
+
+lemma map_prod {ι : Type*} (f : ι → A₁) (s : finset ι) :
+  e (∏ x in s, f x) = ∏ x in s, e (f x) :=
+e.to_alg_hom.map_prod f s
+
+lemma map_finsupp_prod {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α) (g : ι → α → A₁) :
+  e (f.prod g) = f.prod (λ i a, e (g i a)) :=
+e.to_alg_hom.map_finsupp_prod f g
+
+end comm_semiring
+
+section ring
+
+variables [comm_ring R] [ring A₁] [ring A₂]
+variables [algebra R A₁] [algebra R A₂] (e : A₁ ≃ₐ[R] A₂)
+
+@[simp] lemma map_neg (x) : e (-x) = -e x :=
+e.to_alg_hom.map_neg x
+
+@[simp] lemma map_sub (x y) : e (x - y) = e x - e y :=
+e.to_alg_hom.map_sub x y
+
+end ring
+
+section division_ring
+
+variables [comm_ring R] [division_ring A₁] [division_ring A₂]
+variables [algebra R A₁] [algebra R A₂] (e : A₁ ≃ₐ[R] A₂)
+
+@[simp] lemma map_inv (x) : e (x⁻¹) = (e x)⁻¹ :=
+e.to_alg_hom.map_inv x
+
+@[simp] lemma map_div (x y) : e (x / y) = e x / e y :=
+e.to_alg_hom.map_div x y
+
+end division_ring
 
 end alg_equiv
 

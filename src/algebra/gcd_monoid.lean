@@ -365,8 +365,8 @@ theorem gcd_pow_left_dvd_pow_gcd {a b : α} {k : ℕ} : gcd (a ^ k) b ∣ (gcd a
 by { rw [gcd_comm, gcd_comm a b], exact gcd_pow_right_dvd_pow_gcd }
 
 theorem pow_dvd_of_mul_eq_pow {a b c d₁ d₂ : α} (ha : a ≠ 0)
-  (hab : gcd a b = 1) {k : ℕ} (hk : k ≠ 0) (h : a * b = c ^ k) (hc : c = d₁ * d₂)
-  (hd₁ : d₁ ∣ a) (hd₂ : d₂ ∣ b) : d₁ ^ k ≠ 0 ∧ d₁ ^ k ∣ a :=
+  (hab : gcd a b = 1) {k : ℕ} (h : a * b = c ^ k) (hc : c = d₁ * d₂)
+  (hd₁ : d₁ ∣ a) : d₁ ^ k ≠ 0 ∧ d₁ ^ k ∣ a :=
 begin
   have h1 : gcd (d₁ ^ k) b = 1,
   { rw ← normalize_gcd (d₁ ^ k) b, rw normalize_eq_one,
@@ -393,9 +393,9 @@ begin
   have hc : c ∣ a * b, { rw h, refine dvd_pow (dvd_refl c) hk },
   obtain ⟨d₁, hd₁, d₂, hd₂, hc⟩ := exists_dvd_and_dvd_of_dvd_mul hc,
   use d₁,
-  obtain ⟨h0₁, ⟨a', ha'⟩⟩ := pow_dvd_of_mul_eq_pow ha hab hk h hc hd₁ hd₂,
+  obtain ⟨h0₁, ⟨a', ha'⟩⟩ := pow_dvd_of_mul_eq_pow ha hab h hc hd₁,
   rw [mul_comm] at h hc, rw [gcd_comm] at hab,
-  obtain ⟨h0₂, ⟨b', hb'⟩⟩ := pow_dvd_of_mul_eq_pow hb hab hk h hc hd₂ hd₁,
+  obtain ⟨h0₂, ⟨b', hb'⟩⟩ := pow_dvd_of_mul_eq_pow hb hab h hc hd₂,
   rw [ha', hb', hc, mul_pow] at h,
   have h' : a' * b' = 1,
   { apply (mul_right_inj' h0₁).mp, rw mul_one,

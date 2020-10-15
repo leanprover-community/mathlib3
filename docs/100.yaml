@@ -224,7 +224,8 @@
   author : mathlib
 70:
   title  : The Perfect Number Theorem
-  decl   : nat.even_and_perfect_iff
+  links  :
+    mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/70_perfect_numbers.lean
   author : Aaron Anderson
 71:
   title  : Order of a Subgroup

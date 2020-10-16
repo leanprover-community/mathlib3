@@ -198,6 +198,12 @@ intro, induction n with n hn,
 intro x,
 end
 
+#check integrally_closed_iff_integral_implies_integer
+
+def gg: is_dedekind_domain R:=
+
+#check gg.4
+
 local attribute [instance] classical.prop_decidable
 
 lemma maximal_ideal_inv_of_dedekind
@@ -251,9 +257,10 @@ begin
         apply (has_le.le.le_iff_eq h_invR_dbl.right).mp (h_invR_dbl.left),
         split,
           {intros x hx,--the proof that 1/M ≤ 1
-          have h_MMinvI : (1 / ↑M : fractional_ideal f) * ↑M = ↑M),sorry,
-          have h_intx : f.is_integer x, apply if_inv_then_int, exact hnz_M, exact h_MMinvI, exact hx,
-          -- apply integrally_closed_iff_integral_implies_integer h.4,
+          have h_MMinvI : (1 / ↑M : fractional_ideal f) * ↑M = ↑M,sorry,
+          have h_intx : f.is_integer x,
+          apply if_inv_then_int _ _ hnz_M h_MMinvI hx,
+          apply (integrally_closed_iff_integral_implies_integer K).mp h.4,
           },
           {sorry,--the proof that 1≤ 1/M
 

@@ -419,7 +419,7 @@ begin
   exact or.cases_on (mul_eq_zero.1 H) id ih
 end
 
-@[simp] lemma pow_eq_zero_iff [monoid_with_zero R] [nontrivial R] [no_zero_divisors R]
+@[simp] lemma pow_eq_zero_iff [monoid_with_zero R] [no_zero_divisors R]
   {n : ℕ} (hn : 0 < n) {a : R} :
   a ^ n = 0 ↔ a = 0 :=
 begin

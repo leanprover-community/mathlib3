@@ -175,6 +175,7 @@ open finsupp polynomial
 
 -- lemma smul_mul (a₁ a₂ : α) (b : β) : b • (a₁ * a₂) = b * a₁ * a₂ :=
 -- by sorry,
+--may be, use smul_eq_mul of modules/basic.lean?
 
 lemma smul_mul (a₁ a₂ : f.codomain) (b : R) : b • (a₁ * a₂) = f.to_map b * a₁ * a₂ :=
 begin
@@ -183,10 +184,24 @@ end
 
 variables {M : ideal R} [is_maximal M]
 
+lemma if_inv_then_int {I : ideal R} (x : f.codomain) (h_I : I ≠ 0) (h : (1 / ↑I : fractional_ideal f) * ↑I = ↑I) :
+x ∈ (1/↑I : fractional_ideal f).val → f.is_integer x :=
+begin
+  -- sorry,
+have h_powx_M : ∀ (n : ℕ), (ring.fractional_ideal.span_singleton x^n ) • (↑I : fractional_ideal f) ≤ (↑I : fractional_ideal f),
+intro, induction n with n hn,
+  {have h_Id : ↑ I = ↑ I, triv,
+  simp, apply eq.le h_Id,
+  },
+  {intros a ha,sorry,
+  },
+intro x,
+end
+
 local attribute [instance] classical.prop_decidable
 
 lemma maximal_ideal_inv_of_dedekind
-  (h : is_dedekind_domain R) {M : ideal R} (hM : ideal.is_maximal M)
+  (h : is_dedekind_domain R) (hM : ideal.is_maximal M)
   (hnz_M : M ≠ 0) -- this is now superfluous as by def'n DD are not fields
   : is_unit (M : fractional_ideal f) :=
 begin
@@ -232,10 +247,20 @@ begin
       {by_contradiction h_abs,
       have h_IM : M=I, apply is_maximal.eq_of_le hM h_abs h_Iincl,
       have h_inveqR : 1/↑ M = (1:fractional_ideal f),
-        {change 1/↑ M≤ (1:fractional_ideal f) ∧ (1:fractional_ideal f) ≤ 1/↑ M,
-        },
+        {suffices h_invR_dbl : 1/↑ M≤ (1:fractional_ideal f) ∧ (1:fractional_ideal f) ≤ 1/↑ M,
+        apply (has_le.le.le_iff_eq h_invR_dbl.right).mp (h_invR_dbl.left),
+        split,
+          {intros x hx,--the proof that 1/M ≤ 1
+          have h_MMinvI : (1 / ↑M : fractional_ideal f) * ↑M = ↑M),sorry,
+          have h_intx : f.is_integer x, apply if_inv_then_int, exact hnz_M, exact h_MMinvI, exact hx,
+          -- apply integrally_closed_iff_integral_implies_integer h.4,
+          },
+          {sorry,--the proof that 1≤ 1/M
 
-    },
+          },
+        },--end of the proof of h_inveqR
+
+      },--end of the proof of h_top
     ----
     ----everything from here...
     ----

@@ -276,6 +276,18 @@ lemma is_closed_eq [t2_space α] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : is_closed {x:β | f x = g x} :=
 continuous_iff_is_closed.mp (hf.prod_mk hg) _ is_closed_diagonal
 
+/-- If two continuous maps are equal on `s`, then they are equal on the closure of `s`. -/
+lemma set.eq_on.closure [t2_space α] {s : set β} {f g : β → α} (h : eq_on f g s)
+  (hf : continuous f) (hg : continuous g) :
+  eq_on f g (closure s) :=
+closure_minimal h (is_closed_eq hf hg)
+
+/-- If two continuous functions are equal on a dense set, then they are equal. -/
+lemma continuous.ext_on [t2_space α] {s : set β} (hs : dense s) {f g : β → α}
+  (hf : continuous f) (hg : continuous g) (h : eq_on f g s) :
+  f = g :=
+funext $ λ x, h.closure hf hg (hs x)
+
 lemma diagonal_eq_range_diagonal_map {α : Type*} : {p:α×α | p.1 = p.2} = range (λx, (x,x)) :=
 ext $ assume p, iff.intro
   (assume h, ⟨p.1, prod.ext_iff.2 ⟨rfl, h⟩⟩)

@@ -63,10 +63,11 @@ variables [semiring R] [add_comm_monoid M] [semimodule R M] [add_comm_monoid N] 
 
 /-- Interpret `finsupp.single a` as a linear map. -/
 def lsingle (a : α) : M →ₗ[R] (α →₀ M) :=
-⟨single a, assume a b, single_add, assume c b, (smul_single _ _ _).symm⟩
+{ map_smul' := assume a b, (smul_single _ _ _).symm, ..finsupp.single_add_hom a }
 
 /-- Interpret `λ (f : α →₀ M), f a` as a linear map. -/
-def lapply (a : α) : (α →₀ M) →ₗ[R] M := ⟨λg, g a, assume a b, rfl, assume a b, rfl⟩
+def lapply (a : α) : (α →₀ M) →ₗ[R] M :=
+{ map_smul' := assume a b, rfl, ..finsupp.eval_add_hom a }
 
 section lsubtype_domain
 variables (s : set α)
@@ -241,10 +242,24 @@ by erw [set.union_eq_Union, supported_Union, supr_bool_eq]; refl
 
 theorem supported_Inter {ι : Type*} (s : ι → set α) :
   supported M R (⋂ i, s i) = ⨅ i, supported M R (s i) :=
+submodule.ext $ λ x, by simp [mem_supported, subset_Inter_iff]
+
+theorem supported_inter (s t : set α) :
+  supported M R (s ∩ t) = supported M R s ⊓ supported M R t :=
+by rw [set.inter_eq_Inter, supported_Inter, infi_bool_eq]; refl
+
+theorem disjoint_supported_supported {s t : set α} (h : disjoint s t) :
+  disjoint (supported M R s) (supported M R t) :=
+disjoint_iff.2 $ by rw [← supported_inter, disjoint_iff_inter_eq_empty.1 h, supported_empty]
+
+theorem disjoint_supported_supported_iff [nontrivial M] {s t : set α} :
+  disjoint (supported M R s) (supported M R t) ↔ disjoint s t :=
 begin
-  refine le_antisymm (le_infi $ λ i, supported_mono $ set.Inter_subset _ _) _,
-  simp [le_def, infi_coe, set.subset_def],
-  exact λ l, set.subset_Inter
+  refine ⟨λ h x hx, _, disjoint_supported_supported⟩,
+  rcases exists_ne (0 : M) with ⟨y, hy⟩,
+  have := h ⟨single_mem_supported R y hx.1, single_mem_supported R y hx.2⟩,
+  rw [mem_bot, single_eq_zero] at this,
+  exact hy this
 end
 
 /-- Interpret `finsupp.restrict_support_equiv` as a linear equivalence between
@@ -366,6 +381,10 @@ finset.sum_subset hs $ λ x _ hxg, show l x • v x = 0, by rw [not_mem_support_
 @[simp] theorem total_single (c : R) (a : α) :
   finsupp.total α M R v (single a c) = c • (v a) :=
 by simp [total_apply, sum_single_index]
+
+theorem total_unique [unique α] (l : α →₀ R) (v) :
+  finsupp.total α M R v l = l (default α) • v (default α) :=
+by rw [← total_single, ← unique_single l]
 
 theorem total_range (h : function.surjective v) : (finsupp.total α M R v).range = ⊤ :=
 begin

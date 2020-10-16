@@ -381,8 +381,8 @@ lemma coeff_mul (p q : mv_polynomial σ R) (n : σ →₀ ℕ) :
 begin
   rw mul_def,
   -- We need to manipulate both sides into a shape to which we can apply `finset.sum_bij_ne_zero`,
-  -- so we need to turn both sides into a sum over a sigma/product.
-  have := @finset.sum_sigma (σ →₀ ℕ) R _ _ p.support (λ _, q.support)
+  -- so we need to turn both sides into a sum over a product.
+  have := @finset.sum_product (σ →₀ ℕ) R _ _ p.support q.support
     (λ x, if (x.1 + x.2 = n) then coeff x.1 p * coeff x.2 q else 0),
   convert this.symm using 1; clear this,
   { rw [coeff],
@@ -390,7 +390,7 @@ begin
     convert single_apply },
   symmetry,
   -- We are now ready to show that both sums are equal using `finset.sum_bij_ne_zero`.
-  apply finset.sum_bij_ne_zero (λ (x : Σ (a : σ →₀ ℕ), σ →₀ ℕ) _ _, (x.1, x.2)),
+  apply finset.sum_bij_ne_zero (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)) _ _, (x.1, x.2)),
   { intros x hx hx',
     simp only [mem_antidiagonal_support, eq_self_iff_true, if_false, forall_true_iff],
     contrapose! hx',
@@ -399,11 +399,11 @@ begin
     simpa only [and_imp, prod.mk.inj_iff, heq_iff_eq] using and.intro },
   { rintros ⟨i, j⟩ hij hij',
     refine ⟨⟨i, j⟩, _, _⟩,
-    { simp only [mem_support_iff, finset.mem_sigma],
+    { simp only [mem_support_iff, finset.mem_product],
       contrapose! hij',
       exact mul_eq_zero_of_ne_zero_imp_eq_zero hij' },
     { rw [mem_antidiagonal_support] at hij,
-      simp only [exists_prop, and_true, eq_self_iff_true, ne.def, if_pos hij, hij', not_false_iff] } },
+      simp only [exists_prop, true_and, ne.def, if_pos hij, hij', not_false_iff] } },
   { intros x hx hx',
     simp only [ne.def] at hx' ⊢,
     split_ifs with H,

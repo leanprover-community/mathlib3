@@ -69,7 +69,7 @@ The unique element in `sym α 0`.
 Inserts an element into the term of `sym α n`, increasing the length by one.
 -/
 @[pattern] def cons : α → sym α n → sym α (nat.succ n)
-| a ⟨s, h⟩ := ⟨a :: s, by rw [multiset.card_cons, h]⟩
+| a ⟨s, h⟩ := ⟨a ::ₘ s, by rw [multiset.card_cons, h]⟩
 
 notation a :: b := cons a b
 
@@ -95,7 +95,7 @@ instance decidable_mem [decidable_eq α] (a : α) (s : sym α n) : decidable (a 
 by { cases s, change decidable (a ∈ s_val), apply_instance }
 
 @[simp] lemma mem_cons {a b : α} {s : sym α n} : a ∈ b :: s ↔ a = b ∨ a ∈ s :=
-begin cases s, change a ∈ b :: s_val ↔ a = b ∨ a ∈ s_val, simp, end
+begin cases s, change a ∈ b ::ₘ s_val ↔ a = b ∨ a ∈ s_val, simp, end
 
 lemma mem_cons_of_mem {a b : α} {s : sym α n} (h : a ∈ s) : a ∈ b :: s :=
 mem_cons.2 (or.inr h)

@@ -54,7 +54,7 @@ yoneda ⋙ (whiskering_left _ _ (Type u₁)).obj (functor.op A)
 The functor `restricted_yoneda` is isomorphic to the identity functor if evaluated at the
 yoneda embedding.
 -/
-def right_is_id : restricted_yoneda (yoneda : C ⥤ Cᵒᵖ ⥤ Type u₁) ≅ 𝟭 _ :=
+def restricted_yoneda_yoneda : restricted_yoneda (yoneda : C ⥤ Cᵒᵖ ⥤ Type u₁) ≅ 𝟭 _ :=
 nat_iso.of_components
 (λ P, nat_iso.of_components (λ X, yoneda_sections_small X.unop _)
   (λ X Y f, funext $ λ x,
@@ -132,13 +132,13 @@ def L_adjunction : L A ⊣ restricted_yoneda A := adjunction.adjunction_of_equiv
 The terminal object in the opposite of the category of elements for a representable functor.
 In `is_term` it is shown that this is terminal.
 -/
-def term_element (A : C) : (yoneda.obj A).elementsᵒᵖ :=
+def elements.terminal (A : C) : (yoneda.obj A).elementsᵒᵖ :=
 opposite.op ⟨opposite.op A, 𝟙 _⟩
 
 /--
 Show that `term_element A` is terminal in the category of elements for the `yoneda` functor.
 -/
-def is_term (A : C) : is_terminal (term_element A) :=
+def is_terminal (A : C) : is_terminal (term_element A) :=
 { lift := λ s,
   begin
     refine (has_hom.hom.op (_ : _ ⟶ opposite.unop s.X) : s.X ⟶ opposite.op ⟨opposite.op A, 𝟙 A⟩),

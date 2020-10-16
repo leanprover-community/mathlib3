@@ -596,6 +596,10 @@ begin
   }
 end
 
+/--The multiset `nth_roots ↑n (1 : R)` as a finset. -/
+def nth_roots_finset {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) : finset R :=
+  ⟨nth_roots n (1 : R) , nth_roots_nodup h⟩
+
 open_locale nat
 
 /-- If an integral domain has a primitive `k`-th root of unity, then it has `φ k` of them. -/
@@ -662,6 +666,7 @@ lemma nth_roots_one_eq_bind_primitive_roots {ζ : R} {n : ℕ+} (h : is_primitiv
   (⟨nth_roots n (1 : R) , nth_roots_nodup h⟩ : finset R) =
   finset.bind (nat.divisors ↑n) (λ (i : ℕ), (primitive_roots i R)) :=
 begin
+  rw nth_roots_finset,
   symmetry,
   apply finset.eq_of_subset_of_card_le,
   { intros x hx,

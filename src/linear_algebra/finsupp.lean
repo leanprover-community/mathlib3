@@ -26,7 +26,8 @@ interpreted as a submodule of `α →₀ M`. We also define `linear_map` version
 
 * `finsupp.lsum`: `finsupp.sum` or `finsupp.lift_add_hom` as a `linear_map`;
 
-* `finsupp.total α M R (v : ι → M)`: sends `l : ι → R` to the linear combination of `v i` with coefficients `l i`;
+* `finsupp.total α M R (v : ι → M)`: sends `l : ι → R` to the linear combination of `v i` with
+  coefficients `l i`;
 
 * `finsupp.total_on`: a restricted version of `finsupp.total` with domain `finsupp.supported R R s`
   and codomain `submodule.span R (v '' s)`;
@@ -222,7 +223,8 @@ theorem supported_Union {δ : Type*} (s : δ → set α) :
 begin
   refine le_antisymm _ (supr_le $ λ i, supported_mono $ set.subset_Union _ _),
   haveI := classical.dec_pred (λ x, x ∈ (⋃ i, s i)),
-  suffices : ((submodule.subtype _).comp (restrict_dom M R (⋃ i, s i))).range ≤ ⨆ i, supported M R (s i),
+  suffices : ((submodule.subtype _).comp (restrict_dom M R (⋃ i, s i))).range ≤
+    ⨆ i, supported M R (s i),
   { rwa [linear_map.range_comp, range_restrict_dom, map_top, range_subtype] at this },
   rw [range_le_iff_comap, eq_top_iff],
   rintro l ⟨⟩,
@@ -448,8 +450,9 @@ linear_map.cod_restrict _ ((finsupp.total _ _ _ v).comp (submodule.subtype (supp
 variables {α} {M} {v}
 
 theorem total_on_range (s : set α) : (finsupp.total_on α M R v s).range = ⊤ :=
-by rw [finsupp.total_on, linear_map.range, linear_map.map_cod_restrict, ← linear_map.range_le_iff_comap,
-  range_subtype, map_top, linear_map.range_comp, range_subtype]; exact le_of_eq (span_eq_map_total _ _)
+by rw [finsupp.total_on, linear_map.range, linear_map.map_cod_restrict,
+  ← linear_map.range_le_iff_comap, range_subtype, map_top, linear_map.range_comp, range_subtype];
+    exact le_of_eq (span_eq_map_total _ _)
 
 theorem total_comp (f : α' → α) :
   (finsupp.total α' M R (v ∘ f)) = (finsupp.total α M R v).comp (lmap_domain R R f) :=

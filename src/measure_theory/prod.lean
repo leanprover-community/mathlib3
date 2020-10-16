@@ -64,9 +64,25 @@ open measure_theory measurable_space measure_theory.measure
 open topological_space (hiding generate_from)
 open filter (hiding prod_eq map)
 
-variables {α β E : Type*} [measurable_space α] [measurable_space β]
-variables {μ : measure α} {ν : measure β}
+variables {α α' β β' γ E : Type*}
+variables [measurable_space α] [measurable_space α'] [measurable_space β] [measurable_space β']
+variables [measurable_space γ]
+variables {μ : measure α} {ν : measure β} {τ : measure γ}
 variables [normed_group E] [measurable_space E]
+
+namespace measurable_equiv
+/-- Products of measurable spaces are symmetric. -/
+def prod_assoc (α β γ) [measurable_space α] [measurable_space β] [measurable_space γ] :
+  measurable_equiv ((α × β) × γ) (α × (β × γ)) :=
+{ to_equiv := equiv.prod_assoc α β γ,
+  measurable_to_fun  := measurable_fst.fst.prod_mk $ measurable_fst.snd.prod_mk measurable_snd,
+  measurable_inv_fun := (measurable_fst.prod_mk measurable_snd.fst).prod_mk measurable_snd.snd }
+
+lemma measurable_coe {α β} [measurable_space α] [measurable_space β] (e : measurable_equiv α β) :
+  measurable e :=
+measurable_to_fun e
+
+end measurable_equiv
 
 /-! ### Measurability
 
@@ -362,6 +378,13 @@ begin
   refine (prod_eq _).symm,
   intros s t hs ht,
   simp_rw [map_apply measurable_swap (hs.prod ht), preimage_swap_prod, prod_prod ht hs, mul_comm]
+end
+
+lemma prod_assoc_prod [sigma_finite τ] :
+  map (measurable_equiv.prod_assoc α β γ) ((μ.prod ν).prod τ) = μ.prod (ν.prod τ) :=
+begin
+  refine (prod_eq (λ st u hst hu, _)).symm,
+  simp_rw [map_apply (measurable_equiv.measurable_to_fun _) (hst.prod hu)],
 end
 
 lemma prod_apply_symm {s : set (α × β)} (hs : is_measurable s) :

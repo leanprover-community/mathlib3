@@ -758,6 +758,7 @@ lemma nat_degree_pos_iff_degree_pos {p : polynomial R} :
 
 end semiring
 
+
 section nonzero_semiring
 variables [semiring R] [nontrivial R] {p q : polynomial R}
 

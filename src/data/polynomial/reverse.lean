@@ -28,7 +28,7 @@ This is the map used by the embedding `rev_at`.
 -/
 def rev_at_fun (N i : ℕ) : ℕ := ite (i ≤ N) (N-i) i
 
-@[simp] lemma rev_at_fun_invol {N i : ℕ} : rev_at_fun N (rev_at_fun N i) = i :=
+lemma rev_at_fun_invol {N i : ℕ} : rev_at_fun N (rev_at_fun N i) = i :=
 begin
   unfold rev_at_fun,
   split_ifs with h j,
@@ -195,11 +195,11 @@ end
 begin
   by_cases f0 : f=0,
   { rw [f0, zero_mul, reverse_zero, zero_mul], },
-  { by_cases g0 : g=0,
-    { rw [g0, mul_zero, reverse_zero, mul_zero], },
-    { apply reverse_mul,
-      apply mul_ne_zero;
-      { rwa [← leading_coeff_eq_zero] at * }, }, },
+  by_cases g0 : g=0,
+  { rw [g0, mul_zero, reverse_zero, mul_zero], },
+  apply reverse_mul,
+  apply mul_ne_zero;
+    rwa [← leading_coeff_eq_zero] at *
 end
 
 end rev

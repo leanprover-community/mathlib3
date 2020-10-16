@@ -405,7 +405,7 @@ lemma dirac_prod (x : α) : (dirac x).prod ν = map (prod.mk x) ν :=
 begin
   refine prod_eq (λ s t hs ht, _),
   simp_rw [map_apply measurable_prod_mk_left (hs.prod ht), mk_preimage_prod_right_eq_if, measure_if,
-    dirac_apply _ hs, ← indicator_mul_left _ _ (λ x, μ s), pi.one_apply, mul_one]
+    dirac_apply _ hs, ← indicator_mul_left _ _ (λ x, ν t), pi.one_apply, one_mul]
 end
 
 lemma dirac_prod_dirac {x : α} {y : β} : (dirac x).prod (dirac y) = dirac (x, y) :=

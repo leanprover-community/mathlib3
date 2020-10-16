@@ -75,7 +75,7 @@ structure grothendieck_topology :=
 (top_mem' : ∀ X, ⊤ ∈ sieves X)
 (pullback_stable' : ∀ ⦃X Y : C⦄ ⦃S : sieve X⦄ (f : Y ⟶ X), S ∈ sieves X → S.pullback f ∈ sieves Y)
 (transitive' : ∀ ⦃X⦄ ⦃S : sieve X⦄ (hS : S ∈ sieves X) (R : sieve X),
-              (∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄, S.arrows f → R.pullback f ∈ sieves Y) → R ∈ sieves X)
+              (∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄, S f → R.pullback f ∈ sieves Y) → R ∈ sieves X)
 
 namespace grothendieck_topology
 
@@ -93,7 +93,7 @@ variables (J : grothendieck_topology C)
 @[simp] lemma pullback_stable (f : Y ⟶ X) (hS : S ∈ J X) : S.pullback f ∈ J Y :=
 J.pullback_stable' f hS
 lemma transitive (hS : S ∈ J X) (R : sieve X)
-  (h : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄, S.arrows f → R.pullback f ∈ J Y) :
+  (h : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄, S f → R.pullback f ∈ J Y) :
   R ∈ J X :=
 J.transitive' hS R h
 
@@ -131,6 +131,11 @@ lemma intersection_covering_iff : R ⊓ S ∈ J X ↔ R ∈ J X ∧ S ∈ J X :=
 ⟨λ h, ⟨J.superset_covering inf_le_left h, J.superset_covering inf_le_right h⟩,
  λ t, intersection_covering _ t.1 t.2⟩
 
+lemma bind_covering {S : sieve X} {R : Π ⦃Y : C⦄ ⦃f : Y ⟶ X⦄, S f → sieve Y} (hS : S ∈ J X)
+  (hR : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (H : S f), R H ∈ J Y) :
+sieve.bind S R ∈ J X :=
+J.transitive hS _ (λ Y f hf, superset_covering J (sieve.le_pullback_bind S R f hf) (hR hf))
+
 /--
 The sieve `S` on `X` `J`-covers an arrow `f` to `X` if `S.pullback f ∈ J Y`.
 This definition is an alternate way of presenting a Grothendieck topology.
@@ -144,7 +149,7 @@ lemma covering_iff_covers_id (S : sieve X) : S ∈ J X ↔ J.covers S (𝟙 X) :
 by simp [covers_iff]
 
 /-- The maximality axiom in 'arrow' form: Any arrow `f` in `S` is covered by `S`. -/
-lemma arrow_max (f : Y ⟶ X) (S : sieve X) (hf : S.arrows f) : J.covers S f :=
+lemma arrow_max (f : Y ⟶ X) (S : sieve X) (hf : S f) : J.covers S f :=
 begin
   rw [covers, (sieve.pullback_eq_top_iff_mem f).1 hf],
   apply J.top_mem,
@@ -163,7 +168,7 @@ The transitivity axiom in 'arrow' form: If `S` covers `f` and every arrow in `S`
 `R`, then `R` covers `f`.
 -/
 lemma arrow_trans (f : Y ⟶ X) (S R : sieve X) (h : J.covers S f) :
-  (∀ {Z : C} (g : Z ⟶ X), S.arrows g → J.covers R g) → J.covers R f :=
+  (∀ {Z : C} (g : Z ⟶ X), S g → J.covers R g) → J.covers R f :=
 begin
   intro k,
   apply J.transitive h,
@@ -284,7 +289,7 @@ instance : inhabited (grothendieck_topology C) := ⟨⊤⟩
 @[simp] lemma top_covering : S ∈ (⊤ : grothendieck_topology C) X := ⟨⟩
 
 lemma bot_covers (S : sieve X) (f : Y ⟶ X) :
-  (⊥ : grothendieck_topology C).covers S f ↔ S.arrows f :=
+  (⊥ : grothendieck_topology C).covers S f ↔ S f :=
 by rw [covers_iff, bot_covering, ← sieve.pullback_eq_top_iff_mem]
 
 @[simp] lemma top_covers (S : sieve X) (f : Y ⟶ X) : (⊤ : grothendieck_topology C).covers S f :=
@@ -296,7 +301,7 @@ The dense Grothendieck topology.
 See https://ncatlab.org/nlab/show/dense+topology, or [MM92] Chapter III, Section 2, example (e).
 -/
 def dense : grothendieck_topology C :=
-{ sieves := λ X S, ∀ {Y : C} (f : Y ⟶ X), ∃ Z (g : Z ⟶ Y), S.arrows (g ≫ f),
+{ sieves := λ X S, ∀ {Y : C} (f : Y ⟶ X), ∃ Z (g : Z ⟶ Y), S (g ≫ f),
   top_mem' := λ X Y f, ⟨Y, 𝟙 Y, ⟨⟩⟩,
   pullback_stable' :=
   begin
@@ -312,7 +317,7 @@ def dense : grothendieck_topology C :=
     exact ⟨W, (h ≫ g), by simpa using H₄⟩,
   end }
 
-lemma dense_covering : S ∈ dense X ↔ ∀ {Y} (f : Y ⟶ X), ∃ Z (g : Z ⟶ Y), S.arrows (g ≫ f) :=
+lemma dense_covering : S ∈ dense X ↔ ∀ {Y} (f : Y ⟶ X), ∃ Z (g : Z ⟶ Y), S (g ≫ f) :=
 iff.rfl
 
 /--
@@ -333,7 +338,7 @@ For the pullback stability condition, we need the right Ore condition to hold.
 See https://ncatlab.org/nlab/show/atomic+site, or [MM92] Chapter III, Section 2, example (f).
 -/
 def atomic (hro : right_ore_condition C) : grothendieck_topology C :=
-{ sieves := λ X S, ∃ Y (f : Y ⟶ X), S.arrows f,
+{ sieves := λ X S, ∃ Y (f : Y ⟶ X), S f,
   top_mem' := λ X, ⟨_, 𝟙 _, ⟨⟩⟩,
   pullback_stable' :=
   begin

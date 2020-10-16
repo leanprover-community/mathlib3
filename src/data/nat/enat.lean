@@ -2,12 +2,49 @@
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
-
-Natural numbers with infinity, represented as roption ℕ.
 -/
 import data.pfun
 import tactic.norm_num
+import data.equiv.mul_add
 
+/-!
+# Natural numbers with infinity
+
+The natural numbers and an extra `top` element `⊤`.
+
+## Main definitions
+
+The following instances are defined:
+
+* `ordered_add_comm_monoid enat`
+* `canonically_ordered_add_monoid enat`
+
+There is no additive analogue of `monoid_with_zero`; if there were then `enat` could
+be an `add_monoid_with_top`.
+
+* `to_with_top` : the map from `enat` to `with_top ℕ`, with theorems that it plays well
+with `+` and `≤`.
+
+* `with_top_add_equiv : enat ≃+ with_top ℕ`
+* `with_top_order_iso : enat ≃o with_top ℕ`
+
+## Implementation details
+
+`enat` is defined to be `roption ℕ`.
+
+`+` and `≤` are defined on `enat`, but there is an issue with `*` because it's not
+clear what `0 * ⊤` should be. `mul` is hence left undefined. Similarly `⊤ - ⊤` is ambiguous
+so there is no `-` defined on `enat`.
+
+Before the `open_locale classical` line, various proofs are made with decidability assumptions.
+This can cause issues -- see for example the non-simp lemma `to_with_top_zero` proved by `rfl`,
+followed by `@[simp] lemma to_with_top_zero'` whose proof uses `convert`.
+
+
+## Tags
+
+enat, with_top ℕ
+-/
 open roption
 
 /-- Type of natural numbers with infinity -/
@@ -252,14 +289,17 @@ section with_top
 def to_with_top (x : enat) [decidable x.dom]: with_top ℕ := x.to_option
 
 lemma to_with_top_top : to_with_top ⊤ = ⊤ := rfl
+
 @[simp] lemma to_with_top_top' {h : decidable (⊤ : enat).dom} : to_with_top ⊤ = ⊤ :=
 by convert to_with_top_top
 
 lemma to_with_top_zero : to_with_top 0 = 0 := rfl
+
 @[simp] lemma to_with_top_zero' {h : decidable (0 : enat).dom}: to_with_top 0 = 0 :=
 by convert to_with_top_zero
 
 lemma to_with_top_coe (n : ℕ) : to_with_top n = n := rfl
+
 @[simp] lemma to_with_top_coe' (n : ℕ) {h : decidable (n : enat).dom} : to_with_top (n : enat) = n :=
 by convert to_with_top_coe n
 
@@ -274,9 +314,20 @@ by simp only [lt_iff_le_not_le, to_with_top_le]
 end with_top
 
 section with_top_equiv
+
 open_locale classical
 
-/-- Order isomorphism between `enat` and `with_top ℕ`. -/
+@[simp] lemma to_with_top_add {x y : enat} : to_with_top (x + y) = to_with_top x + to_with_top y :=
+begin
+  apply enat.cases_on y; apply enat.cases_on x,
+  { simp },
+  { simp },
+  { simp },
+  -- not sure why `simp` can't do this
+  { intros, rw [to_with_top_coe', to_with_top_coe'], norm_cast, exact to_with_top_coe' _ }
+end
+
+/-- `equiv` between `enat` and `with_top ℕ` (for the order isomorphism see `with_top_order_iso`). -/
 noncomputable def with_top_equiv : enat ≃ with_top ℕ :=
 { to_fun := λ x, to_with_top x,
   inv_fun := λ x, match x with (some n) := coe n | none := ⊤ end,
@@ -298,6 +349,11 @@ to_with_top_le
 @[simp] lemma with_top_equiv_lt {x y : enat} : with_top_equiv x < with_top_equiv y ↔ x < y :=
 to_with_top_lt
 
+/-- `to_with_top` induces an order isomorphism between `enat` and `with_top ℕ`. -/
+noncomputable def with_top_order_iso : enat ≃o with_top ℕ :=
+{ map_rel_iff' := λ _ _, with_top_equiv_le.symm,
+  ..with_top_equiv}
+
 @[simp] lemma with_top_equiv_symm_top : with_top_equiv.symm ⊤ = ⊤ :=
 rfl
 
@@ -314,6 +370,11 @@ by rw ← with_top_equiv_le; simp
 @[simp] lemma with_top_equiv_symm_lt {x y : with_top ℕ} :
   with_top_equiv.symm x < with_top_equiv.symm y ↔ x < y :=
 by rw ← with_top_equiv_lt; simp
+
+/-- `to_with_top` induces an additive monoid isomorphism between `enat` and `with_top ℕ`. -/
+noncomputable def with_top_add_equiv : enat ≃+ with_top ℕ :=
+{ map_add' := λ x y, by simp only [with_top_equiv]; convert to_with_top_add,
+  ..with_top_equiv}
 
 end with_top_equiv
 

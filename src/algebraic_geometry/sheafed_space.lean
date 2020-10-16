@@ -33,7 +33,7 @@ namespace algebraic_geometry
 
 /-- A `SheafedSpace C` is a topological space equipped with a sheaf of `C`s. -/
 structure SheafedSpace extends PresheafedSpace C :=
-(sheaf_condition : sheaf_condition presheaf)
+(sheaf_condition : presheaf.sheaf_condition)
 
 variables {C}
 
@@ -55,7 +55,7 @@ instance (X : SheafedSpace.{v} C) : topological_space X := X.carrier.str
 /-- The trivial `punit` valued sheaf on any topological space. -/
 noncomputable
 def punit (X : Top) : SheafedSpace (discrete punit) :=
-{ sheaf_condition := sheaf_condition_punit _,
+{ sheaf_condition := presheaf.sheaf_condition_punit _,
   ..@PresheafedSpace.const (discrete punit) _ X punit.star }
 
 noncomputable
@@ -72,7 +72,7 @@ induced_functor _
 variables {C}
 
 section
-local attribute [simp] id comp presheaf.pushforward
+local attribute [simp] id comp
 
 @[simp] lemma id_base (X : SheafedSpace C) :
   ((𝟙 X) : X ⟶ X).base = (𝟙 (X : Top.{v})) := rfl
@@ -101,6 +101,8 @@ def forget : SheafedSpace C ⥤ Top :=
 
 end
 
+open Top.presheaf
+
 /--
 The restriction of a sheafed space along an open embedding into the space.
 -/
@@ -109,7 +111,7 @@ def restrict {U : Top} (X : SheafedSpace C)
   (f : U ⟶ (X : Top.{v})) (h : open_embedding f) : SheafedSpace C :=
 { sheaf_condition := λ ι 𝒰, is_limit.of_iso_limit
     ((is_limit.postcompose_inv_equiv _ _).inv_fun (X.sheaf_condition _))
-    (sheaf_condition.fork.iso_of_open_embedding h 𝒰).symm,
+    (sheaf_condition_equalizer_products.fork.iso_of_open_embedding h 𝒰).symm,
   ..X.to_PresheafedSpace.restrict f h }
 
 /--

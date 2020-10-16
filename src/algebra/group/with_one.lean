@@ -33,21 +33,29 @@ instance : has_coe_t α (with_one α) := ⟨some⟩
 lemma some_eq_coe {a : α} : (some a : with_one α) = ↑a := rfl
 
 @[simp, to_additive]
-lemma one_ne_coe {a : α} : (1 : with_one α) ≠ a :=
-λ h, option.no_confusion h
+lemma coe_ne_one {a : α} : (a : with_one α) ≠ (1 : with_one α) :=
+option.some_ne_none a
 
 @[simp, to_additive]
-lemma coe_ne_one {a : α} : (a : with_one α) ≠ (1 : with_one α) :=
-λ h, option.no_confusion h
+lemma one_ne_coe {a : α} : (1 : with_one α) ≠ a :=
+coe_ne_one.symm
 
 @[to_additive]
-lemma ne_one_iff_exists : ∀ {x : with_one α}, x ≠ 1 ↔ ∃ (a : α), x = a
-| 1       := ⟨λ h, false.elim $ h rfl, by { rintros ⟨a,ha⟩ h, simpa using h }⟩
-| (a : α) := ⟨λ h, ⟨a, rfl⟩, λ h, with_one.coe_ne_one⟩
+lemma ne_one_iff_exists {x : with_one α} : x ≠ 1 ↔ ∃ (a : α), ↑a = x :=
+option.ne_none_iff_exists
 
-@[to_additive]
+-- `to_additive` fails to generate some meta info around eqn lemmas, so `lift` doesn't work
+-- unless we explicitly define this instance
+instance : can_lift (with_one α) α :=
+{ coe := coe,
+  cond := λ a, a ≠ 1,
+  prf := λ a, ne_one_iff_exists.1 }
+
+@[simp, to_additive]
 lemma coe_inj {a b : α} : (a : with_one α) = b ↔ a = b :=
 option.some_inj
+
+attribute [norm_cast] coe_inj with_zero.coe_inj
 
 @[elab_as_eliminator, to_additive]
 protected lemma cases_on {P : with_one α → Prop} :
@@ -127,10 +135,19 @@ end with_one
 
 namespace with_zero
 
+-- `to_additive` fails to generate some meta info around eqn lemmas, so `lift` doesn't work
+-- unless we explicitly define this instance
+instance : can_lift (with_zero α) α :=
+{ coe := coe,
+  cond := λ a, a ≠ 0,
+  prf := λ a, ne_zero_iff_exists.1 }
+
+attribute [to_additive] with_one.can_lift
+
 instance [one : has_one α] : has_one (with_zero α) :=
 { ..one }
 
-lemma coe_one [has_one α] : ((1 : α) : with_zero α) = 1 := rfl
+@[simp, norm_cast] lemma coe_one [has_one α] : ((1 : α) : with_zero α) = 1 := rfl
 
 instance [has_mul α] : mul_zero_class (with_zero α) :=
 { mul       := λ o₁ o₂, o₁.bind (λ a, option.map (λ b, a * b) o₂),
@@ -197,105 +214,23 @@ section group
 variables [group α]
 
 @[simp] lemma inv_one : (1 : with_zero α)⁻¹ = 1 :=
-show ((1⁻¹ : α) : with_zero α) = 1, by simp [coe_one]
-
-/-- A division operation on `with_zero α` when `α` has an inverse operation -/
-definition div (x y : with_zero α) : with_zero α :=
-x * y⁻¹
-
-instance : has_div (with_zero α) := ⟨with_zero.div⟩
-
-@[simp] lemma zero_div (a : with_zero α) : 0 / a = 0 := rfl
-@[simp] lemma div_zero (a : with_zero α) : a / 0 = 0 := by change a * _ = _; simp
-
-lemma div_coe (a b : α) : (a : with_zero α) / b = (a * b⁻¹ : α) := rfl
-
-lemma one_div (x : with_zero α) : 1 / x = x⁻¹ := one_mul _
-
-@[simp] lemma div_one : ∀ (x : with_zero α), x / 1 = x
-| 0       := rfl
-| (a : α) := show _ * _ = _, by simp
-
-@[simp] lemma mul_right_inv : ∀  (x : with_zero α) (h : x ≠ 0), x * x⁻¹ = 1
-| 0       h := false.elim $ h rfl
-| (a : α) h := by {norm_cast, simp [coe_one]}
-
-@[simp] lemma mul_left_inv : ∀  (x : with_zero α) (h : x ≠ 0), x⁻¹ * x = 1
-| 0       h := false.elim $ h rfl
-| (a : α) h := by {norm_cast, simp [coe_one]}
-
-@[simp] lemma mul_inv_rev : ∀ (x y : with_zero α), (x * y)⁻¹ = y⁻¹ * x⁻¹
-| 0       0       := rfl
-| 0       (b : α) := rfl
-| (a : α) 0       := rfl
-| (a : α) (b : α) := by {norm_cast, exact _root_.mul_inv_rev _ _}
-
-@[simp] lemma mul_div_cancel {a b : with_zero α} (hb : b ≠ 0) : a * b / b = a :=
-show _ * _ * _ = _, by simp [mul_assoc, hb]
-
-@[simp] lemma div_mul_cancel {a b : with_zero α} (hb : b ≠ 0) : a / b * b = a :=
-show _ * _ * _ = _, by simp [mul_assoc, hb]
-
-lemma div_eq_iff_mul_eq {a b c : with_zero α} (hb : b ≠ 0) : a / b = c ↔ c * b = a :=
-by split; intro h; simp [h.symm, hb]
-
-lemma mul_inv_cancel : ∀ (a : with_zero α), a ≠ 0 → a * a⁻¹ = 1 :=
-begin
-  rintro (_ | a) h,
-    {exact absurd rfl h },
-    { refine option.some_inj.2 (_root_.mul_right_inv _) }
-end
+show ((1⁻¹ : α) : with_zero α) = 1, by simp
 
 /-- if `G` is a group then `with_zero G` is a group with zero. -/
 instance : group_with_zero (with_zero α) :=
-{ inv_zero := with_zero.inv_zero,
-  mul_inv_cancel := with_zero.mul_inv_cancel,
-  ..with_zero.monoid_with_zero,
-  ..with_zero.has_inv,
-  ..with_zero.nontrivial }
+{ inv_zero := inv_zero,
+  mul_inv_cancel := by { intros a ha, lift a to α using ha, norm_cast, apply mul_right_inv },
+  .. with_zero.monoid_with_zero,
+  .. with_zero.has_inv,
+  .. with_zero.nontrivial }
+
+@[norm_cast]
+lemma div_coe (a b : α) : (a : with_zero α) / b = (a * b⁻¹ : α) := rfl
+
 end group
 
-section comm_group
-variables [comm_group α] {a b c d : with_zero α}
-
-lemma div_eq_div (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = b * c :=
-begin
-  rw ne_zero_iff_exists at hb hd,
-  rcases hb with ⟨b, rfl⟩,
-  rcases hd with ⟨d, rfl⟩,
-  induction a using with_zero.cases_on;
-  induction c using with_zero.cases_on,
-  { refl },
-  { simp [div_coe] },
-  { simp [div_coe] },
-  erw [with_zero.coe_inj, with_zero.coe_inj],
-  show a * b⁻¹ = c * d⁻¹ ↔ a * d = b * c,
-  split; intro H,
-  { rw mul_inv_eq_iff_eq_mul at H,
-    rw [H, mul_right_comm, inv_mul_cancel_right, mul_comm] },
-  { rw [mul_inv_eq_iff_eq_mul, mul_right_comm, mul_comm c, ← H, mul_inv_cancel_right] }
-end
-
-theorem mul_comm {α : Type u}
-  [comm_group α] :
-  ∀ (a b : with_zero α), a * b = b * a :=
-begin
-  rintro (_ | a) (_ | b),
-  { refl },
-  { refl },
-  { refl },
-  { apply option.some_inj.2,
-    apply mul_comm }
-end
-
-/-- if `G` is a `comm_group` then `with_zero G` is a `comm_group_with_zero`. -/
-instance : comm_group_with_zero (with_zero α) :=
-{ mul_comm := mul_comm,
-  ..with_zero.group_with_zero }
-
-end comm_group
-
-section semiring
+instance [comm_group α] : comm_group_with_zero (with_zero α) :=
+{ .. with_zero.group_with_zero, .. with_zero.comm_monoid_with_zero }
 
 instance [semiring α] : semiring (with_zero α) :=
 { left_distrib := λ a b c, begin
@@ -312,8 +247,6 @@ instance [semiring α] : semiring (with_zero α) :=
   ..with_zero.add_comm_monoid,
   ..with_zero.mul_zero_class,
   ..with_zero.monoid_with_zero }
-
-end semiring
 
 attribute [irreducible] with_zero
 

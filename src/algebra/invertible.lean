@@ -118,7 +118,7 @@ def invertible_neg [ring α] (a : α) [invertible a] : invertible (-a) :=
 inv_of_eq_right_inv (by simp)
 
 /-- `a` is the inverse of `⅟a`. -/
-def invertible_inv_of [has_one α] [has_mul α] {a : α} [invertible a] : invertible (⅟a) :=
+instance invertible_inv_of [has_one α] [has_mul α] {a : α} [invertible a] : invertible (⅟a) :=
 ⟨ a, mul_inv_of_self a, inv_of_mul_self a ⟩
 
 @[simp] lemma inv_of_inv_of [monoid α] {a : α} [invertible a] [invertible (⅟a)] :
@@ -133,6 +133,26 @@ def invertible_mul [monoid α] (a b : α) [invertible a] [invertible b] : invert
 lemma inv_of_mul [monoid α] (a b : α) [invertible a] [invertible b] [invertible (a * b)] :
   ⅟(a * b) = ⅟b * ⅟a :=
 inv_of_eq_right_inv (by simp [←mul_assoc])
+
+/--
+If `r` is invertible and `s = r`, then `s` is invertible.
+-/
+def invertible.copy [monoid α] {r : α} (hr : invertible r) (s : α) (hs : s = r) : invertible s :=
+{ inv_of := ⅟r,
+  inv_of_mul_self := by rw [hs, inv_of_mul_self],
+  mul_inv_of_self := by rw [hs, mul_inv_of_self] }
+
+
+lemma commute_inv_of {M : Type*} [has_one M] [has_mul M] (m : M) [invertible m] :
+  commute m (⅟m) :=
+calc m * ⅟m = 1       : mul_inv_of_self m
+        ... = ⅟ m * m : (inv_of_mul_self m).symm
+
+instance invertible_pow {M : Type*} [monoid M] (m : M) [invertible m] (n : ℕ) :
+  invertible (m ^ n) :=
+{ inv_of := ⅟ m ^ n,
+  inv_of_mul_self := by rw [← (commute_inv_of m).symm.mul_pow, inv_of_mul_self, one_pow],
+  mul_inv_of_self := by rw [← (commute_inv_of m).mul_pow, mul_inv_of_self, one_pow] }
 
 section group_with_zero
 

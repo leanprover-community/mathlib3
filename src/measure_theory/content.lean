@@ -182,6 +182,10 @@ lemma of_content_opens (U : opens G) : of_content μ h1 U = inner_content μ U :
 induced_outer_measure_eq' (λ _, is_open_Union) (inner_content_Union_nat h1 h2)
   inner_content_mono U.2
 
+lemma of_content_le (h : ∀ (K₁ K₂ : compacts G), K₁.1 ⊆ K₂.1 → μ K₁ ≤ μ K₂)
+  (U : opens G) (K : compacts G) (hUK : (U : set G) ⊆ K.1) : of_content μ h1 U ≤ μ K :=
+(of_content_opens h2 U).le.trans $ inner_content_le h U K hUK
+
 lemma le_of_content_compacts (K : compacts G) : μ K ≤ of_content μ h1 K.1 :=
 begin
   rw [of_content, induced_outer_measure_eq_infi],
@@ -228,7 +232,7 @@ lemma is_left_invariant_of_content [group G] [topological_group G]
 by convert of_content_preimage h2 (homeomorph.mul_left g) (λ K, h g) A
 
 lemma of_content_caratheodory (A : set G) :
-  (of_content μ h1).caratheodory.is_measurable A ↔ ∀ (U : opens G),
+  (of_content μ h1).caratheodory.is_measurable' A ↔ ∀ (U : opens G),
   of_content μ h1 (U ∩ A) + of_content μ h1 (U \ A) ≤ of_content μ h1 U :=
 begin
   dsimp [opens], rw subtype.forall,

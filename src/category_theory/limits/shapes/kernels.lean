@@ -177,8 +177,7 @@ def kernel.lift' {W : C} (k : W ⟶ X) (h : k ≫ f = 0) : {l : W ⟶ kernel f /
 ⟨kernel.lift f k h, kernel.lift_ι _ _ _⟩
 
 /-- Every kernel of the zero morphism is an isomorphism -/
-instance kernel.ι_zero_is_iso :
-  is_iso (kernel.ι (0 : X ⟶ Y)) :=
+instance kernel.ι_zero_is_iso : is_iso (kernel.ι (0 : X ⟶ Y)) :=
 equalizer.ι_of_self _
 
 lemma eq_zero_of_epi_kernel [epi (kernel.ι f)] : f = 0 :=
@@ -274,7 +273,7 @@ def kernel.zero_cone : cone (parallel_pair f 0) :=
 /-- The map from the zero object is a kernel of a monomorphism -/
 def kernel.is_limit_cone_zero_cone [mono f] : is_limit (kernel.zero_cone f) :=
 fork.is_limit.mk _ (λ s, 0)
-  (λ s, by { erw has_zero_morphisms.zero_comp,
+  (λ s, by { erw zero_comp,
     convert (zero_of_comp_mono f _).symm,
     exact kernel_fork.condition _ })
   (λ _ _ _, zero_of_to_zero _)
@@ -341,14 +340,14 @@ abbreviation cokernel_cofork := cofork f 0
 variables {f}
 
 @[simp, reassoc] lemma cokernel_cofork.condition (s : cokernel_cofork f) : f ≫ cofork.π s = 0 :=
-by rw [cofork.condition, has_zero_morphisms.zero_comp]
+by rw [cofork.condition, zero_comp]
 
 @[simp] lemma cokernel_cofork.app_zero (s : cokernel_cofork f) : s.ι.app zero = 0 :=
 by rw [←cofork.left_app_one, cokernel_cofork.condition]
 
 /-- A morphism `π` satisfying `f ≫ π = 0` determines a cokernel cofork on `f`. -/
 abbreviation cokernel_cofork.of_π {Z : C} (π : Y ⟶ Z) (w : f ≫ π = 0) : cokernel_cofork f :=
-cofork.of_π π $ by rw [w, has_zero_morphisms.zero_comp]
+cofork.of_π π $ by rw [w, zero_comp]
 
 @[simp] lemma cokernel_cofork.π_of_π {X Y P : C} (f : X ⟶ Y) (π : Y ⟶ P) (w : f ≫ π = 0) :
   cofork.π (cokernel_cofork.of_π π w) = π := rfl
@@ -533,7 +532,7 @@ def cokernel.zero_cocone : cocone (parallel_pair f 0) :=
 /-- The morphism to the zero object is a cokernel of an epimorphism -/
 def cokernel.is_colimit_cocone_zero_cocone [epi f] : is_colimit (cokernel.zero_cocone f) :=
 cofork.is_colimit.mk _ (λ s, 0)
-  (λ s, by { erw has_zero_morphisms.zero_comp,
+  (λ s, by { erw zero_comp,
     convert (zero_of_epi_comp f _).symm,
     exact cokernel_cofork.condition _ })
   (λ _ _ _, zero_of_from_zero _)

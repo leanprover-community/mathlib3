@@ -38,6 +38,7 @@ iff.intro nnreal.eq (congr_arg coe)
 lemma ne_iff {x y : ℝ≥0} : (x : ℝ) ≠ (y : ℝ) ↔ x ≠ y :=
 not_iff_not_of_iff $ nnreal.eq_iff
 
+/-- Reinterpret a real number `r` as a non-negative real number. Returns `0` if `r < 0`. -/
 protected def of_real (r : ℝ) : ℝ≥0 := ⟨max r 0, le_max_right _ _⟩
 
 lemma coe_of_real (r : ℝ) (hr : 0 ≤ r) : (nnreal.of_real r : ℝ) = r :=
@@ -209,7 +210,7 @@ instance : canonically_ordered_comm_semiring ℝ≥0 :=
   .. nnreal.comm_group_with_zero }
 
 instance : densely_ordered ℝ≥0 :=
-⟨assume a b (h : (a : ℝ) < b), let ⟨c, hac, hcb⟩ := dense h in
+⟨assume a b (h : (a : ℝ) < b), let ⟨c, hac, hcb⟩ := exists_between h in
   ⟨⟨c, le_trans a.property $ le_of_lt $ hac⟩, hac, hcb⟩⟩
 
 instance : no_top_order ℝ≥0 :=
@@ -389,8 +390,7 @@ lemma of_real_mul {p q : ℝ} (hp : 0 ≤ p) :
 begin
   cases le_total 0 q with hq hq,
   { apply nnreal.eq,
-    have := max_eq_left (mul_nonneg hp hq),
-    simpa [nnreal.of_real, hp, hq, max_eq_left] },
+    simp [nnreal.of_real, hp, hq, max_eq_left, mul_nonneg] },
   { have hpq := mul_nonpos_of_nonneg_of_nonpos hp hq,
     rw [of_real_eq_zero.2 hq, of_real_eq_zero.2 hpq, mul_zero] }
 end
@@ -459,6 +459,12 @@ begin
     have : r ≤ q := le_trans (le_add_left (le_refl _)) (le_of_lt H),
     rwa [← nnreal.coe_lt_coe, nnreal.coe_sub this, lt_sub_iff_add_lt, ← nnreal.coe_add] }
 end
+
+lemma sub_lt_iff_lt_add {a b c : nnreal} (h : b ≤ a) : a - b < c ↔ a < b + c :=
+by simp only [←nnreal.coe_lt_coe, nnreal.coe_sub h, nnreal.coe_add, sub_lt_iff_lt_add']
+
+lemma sub_eq_iff_eq_add {a b c : nnreal} (h : b ≤ a) : a - b = c ↔ a = c + b :=
+by rw [←nnreal.eq_iff, nnreal.coe_sub h, ←nnreal.eq_iff, nnreal.coe_add, sub_eq_iff_eq_add]
 
 end sub
 

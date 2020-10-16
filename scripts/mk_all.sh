@@ -8,7 +8,7 @@
 # Makes a mathlib/src/$directory/all.lean importing all files inside $directory.
 # If $directory is omitted, creates `mathlib/src/all.lean`.
 
-cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"/../src
+cd "$( dirname "${BASH_SOURCE[0]}" )"/../src
 if [[ $# = 1 ]]; then
   dir="$1"
 else

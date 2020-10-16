@@ -5,9 +5,9 @@ Authors: Kenny Lau
 -/
 
 import algebra.group_action_hom
+import deprecated.subfield
 import field_theory.normal
 import field_theory.separable
-import field_theory.subfield
 import field_theory.tower
 import linear_algebra.matrix
 import ring_theory.polynomial
@@ -64,7 +64,7 @@ polynomial.induction_on p
   (λ n x ih, by rw [smul_mul', polynomial.smul_C, smul, smul_pow, polynomial.smul_X])
 
 instance : algebra (fixed_points G F) F :=
-algebra.of_subring _
+algebra.of_is_subring _
 
 theorem coe_algebra_map :
   algebra_map (fixed_points G F) F = is_subring.subtype (fixed_points G F) :=
@@ -219,7 +219,7 @@ have linear_independent A (linear_map.lto_fun R A A ∘ alg_hom.to_linear_map),
 from ((linear_independent_monoid_hom A A).comp
   (coe : (A →ₐ[R] A) → (A →* A))
   (λ f g hfg, alg_hom.ext $ monoid_hom.ext_iff.1 hfg) : _),
-linear_independent_of_comp _ this
+this.of_comp _
 
 lemma cardinal_mk_alg_hom (K : Type u) (V : Type v)
   [field K] [field V] [algebra K V] [finite_dimensional K V] :
@@ -238,20 +238,13 @@ lemma findim_alg_hom (K : Type u) (V : Type v)
 fintype_card_le_findim_of_linear_independent $ linear_independent_to_linear_map K V
 
 namespace fixed_points
-
 /-- Embedding produced from a faithful action. -/
+@[simps to_fun {fully_applied := ff}]
 def to_alg_hom (G : Type u) (F : Type v) [group G] [field F]
   [faithful_mul_semiring_action G F] : G ↪ (F →ₐ[fixed_points G F] F) :=
 { to_fun := λ g, { commutes' := λ x, x.2 g,
     .. mul_semiring_action.to_semiring_hom G F g },
   inj' := λ g₁ g₂ hg, injective_to_semiring_hom G F $ ring_hom.ext $ λ x, alg_hom.ext_iff.1 hg x, }
-
-@[simp] lemma coe_to_alg_hom (G : Type u) (F : Type v) [group G] [field F]
-  [faithful_mul_semiring_action G F] :
-  (to_alg_hom G F : G → F →ₐ[fixed_points G F] F) =
-    λ g, { commutes' := λ x, x.2 g,
-      .. mul_semiring_action.to_semiring_hom G F g } :=
-rfl
 
 lemma to_alg_hom_apply {G : Type u} {F : Type v} [group G] [field F]
   [faithful_mul_semiring_action G F] (g : G) (x : F) :

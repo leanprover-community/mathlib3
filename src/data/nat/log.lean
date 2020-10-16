@@ -33,7 +33,7 @@ begin
   { have h'' : 0 < b := lt_of_le_of_lt (zero_le _) hb,
     cases h with h₀ h₁,
     rw [← nat.sub_le_right_iff_le_add,← ih (y / b),
-          le_div_iff_mul_le _ _ h'',← nat.pow_succ],
+          le_div_iff_mul_le _ _ h'',← pow_succ'],
     { cases x; simp [h₀,hy] },
     { apply div_lt_self; assumption },
     { rwa [le_div_iff_mul_le _ _ h'',one_mul], } },
@@ -44,13 +44,13 @@ begin
       change x < 1, rw [← pow_lt_iff_lt_right hb,pow_one],
       exact this },
     { replace h' := le_antisymm h' (zero_le _),
-      rw [h',nat.pow_zero], exact hy} },
+      rw [h',pow_zero], exact hy} },
 end
 
 lemma log_pow (b x : ℕ) (hb : 1 < b) : log b (b ^ x) = x :=
 eq_of_forall_le_iff $ λ z,
 by { rwa [← pow_le_iff_le_log _ _ hb,pow_le_iff_le_right],
-     rw ← nat.pow_zero b, apply pow_le_pow_of_le_right,
+     rw ← pow_zero b, apply pow_le_pow_of_le_right,
      apply lt_of_le_of_lt (zero_le _) hb, apply zero_le }
 
 lemma pow_succ_log_gt_self (b x : ℕ) (hb : 1 < b) (hy : 1 ≤ x) :

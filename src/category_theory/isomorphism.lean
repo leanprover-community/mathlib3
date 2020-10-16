@@ -186,19 +186,19 @@ is_iso.inv_hom_id'
   inv f ≫ f ≫ g = g :=
 (as_iso f).inv_hom_id_assoc g
 
-instance (X : C) : is_iso (𝟙 X) :=
+instance id (X : C) : is_iso (𝟙 X) :=
 { inv := 𝟙 X }
 
 instance of_iso (f : X ≅ Y) : is_iso f.hom :=
 { .. f }
 
-instance of_iso_inverse (f : X ≅ Y) : is_iso f.inv :=
+instance of_iso_inv (f : X ≅ Y) : is_iso f.inv :=
 is_iso.of_iso f.symm
 
 variables {f g : X ⟶ Y} {h : Y ⟶ Z}
 
 instance inv_is_iso [is_iso f] : is_iso (inv f) :=
-is_iso.of_iso_inverse (as_iso f)
+is_iso.of_iso_inv (as_iso f)
 
 instance comp_is_iso [is_iso f] [is_iso h] : is_iso (f ≫ h) :=
 is_iso.of_iso $ (as_iso f) ≪≫ (as_iso h)

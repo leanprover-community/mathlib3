@@ -230,7 +230,7 @@ have vector_space.dim ℝ (V n) = (2^n : ℕ),
 by assumption_mod_cast
 
 instance : finite_dimensional ℝ (V n) :=
-finite_dimensional.of_finite_basis (dual_pair_e_ε _).is_basis
+finite_dimensional.of_fintype_basis (dual_pair_e_ε _).is_basis
 
 lemma findim_V : findim ℝ (V n) = 2^n :=
 have _ := @dim_V n,
@@ -373,7 +373,7 @@ begin
   rw ← findim_eq_dim ℝ at ⊢ dim_le dim_add dimW,
   rw [← findim_eq_dim ℝ, ← findim_eq_dim ℝ] at dim_add,
   norm_cast at ⊢ dim_le dim_add dimW,
-  rw nat.pow_succ at dim_le,
+  rw pow_succ' at dim_le,
   rw set.to_finset_card at hH,
   linarith
 end
@@ -392,7 +392,7 @@ begin
   have H_q_pos : 0 < |ε q y|,
   { contrapose! y_ne,
     exact epsilon_total (λ p, abs_nonpos_iff.mp (le_trans (H_max p) y_ne)) },
-  refine ⟨q, (dual_pair_e_ε _).mem_of_mem_span y_mem_H q (abs_pos_iff.mp H_q_pos), _⟩,
+  refine ⟨q, (dual_pair_e_ε _).mem_of_mem_span y_mem_H q (abs_pos.mp H_q_pos), _⟩,
   let s := √(m+1),
   suffices : s * |ε q y| ≤ ↑(_) * |ε q y|,
     from (mul_le_mul_right H_q_pos).mp ‹_›,

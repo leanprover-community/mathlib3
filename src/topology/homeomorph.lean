@@ -10,6 +10,7 @@ open set
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 /-- α and β are homeomorph, also called topological isomoph -/
+@[nolint has_inhabited_instance] -- not all spaces are homeomorphic to each other
 structure homeomorph (α : Type*) (β : Type*) [topological_space α] [topological_space β]
   extends α ≃ β :=
 (continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
@@ -50,6 +51,17 @@ rfl
 
 @[continuity]
 protected lemma continuous (h : α ≃ₜ β) : continuous h := h.continuous_to_fun
+
+/-- Change the homeomorphism `f` to make the inverse function definitionally equal to `g`. -/
+def change_inv (f : α ≃ₜ β) (g : β → α) (hg : function.right_inverse g f) : α ≃ₜ β :=
+have g = f.symm, from funext (λ x, calc g x = f.symm (f (g x)) : (f.left_inv (g x)).symm
+                                        ... = f.symm x : by rw hg x),
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := by convert f.left_inv,
+  right_inv := by convert f.right_inv,
+  continuous_to_fun := f.continuous,
+  continuous_inv_fun := by convert f.symm.continuous }
 
 lemma symm_comp_self (h : α ≃ₜ β) : ⇑h.symm ∘ ⇑h = id :=
 funext $ assume a, h.to_equiv.left_inv a
@@ -111,6 +123,9 @@ begin
   rw ← h.preimage_symm,
   exact continuous_iff_is_closed.1 (h.symm.continuous) _
 end
+
+protected lemma closed_embedding (h : α ≃ₜ β) : closed_embedding h :=
+closed_embedding_of_embedding_closed h.embedding h.is_closed_map
 
 @[simp] lemma is_open_preimage (h : α ≃ₜ β) {s : set β} : is_open (h ⁻¹' s) ↔ is_open s :=
 begin

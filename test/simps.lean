@@ -497,8 +497,7 @@ run_cmd do e ← get_env, success_if_fail (simps_get_raw_projections e `faulty_m
 end failty_manual_coercion
 
 namespace manual_initialize
-/- defining a manual coercion. This should be made more easily. -/
-
+/- defining a manual coercion. -/
 variables {α β γ : Sort*}
 
 structure equiv (α : Sort*) (β : Sort*) :=
@@ -606,3 +605,24 @@ structure needs_prop_class (n : ℕ) [prop_class n] :=
 
 @[simps] def test_prop_class : needs_prop_class 1 :=
 { t := trivial }
+
+/- check that when the coercion is given in eta-expanded form, we can also find the coercion. -/
+structure alg_hom (R A B : Type*) :=
+(to_fun : A → B)
+
+instance (R A B : Type*) : has_coe_to_fun (alg_hom R A B) := ⟨_, λ f, f.to_fun⟩
+
+@[simps] def my_alg_hom : alg_hom unit bool bool :=
+{ to_fun := id }
+
+example (x : bool) : my_alg_hom x = id x := by simp only [my_alg_hom_to_fun]
+
+structure ring_hom (A B : Type*) :=
+(to_fun : A → B)
+
+instance (A B : Type*) : has_coe_to_fun (ring_hom A B) := ⟨_, λ f, f.to_fun⟩
+
+@[simps] def my_ring_hom : ring_hom bool bool :=
+{ to_fun := id }
+
+example (x : bool) : my_ring_hom x = id x := by simp only [my_ring_hom_to_fun]

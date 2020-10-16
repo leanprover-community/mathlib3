@@ -98,7 +98,7 @@ lt_of_le_of_lt (norm_nonneg _) hnorm
 private lemma deriv_sq_norm_ne_zero : ∥F.derivative.eval a∥^2 ≠ 0 := ne_of_gt deriv_sq_norm_pos
 
 private lemma deriv_norm_ne_zero : ∥F.derivative.eval a∥ ≠ 0 :=
-λ h, deriv_sq_norm_ne_zero (by simp [*, _root_.pow_two])
+λ h, deriv_sq_norm_ne_zero (by simp [*, pow_two])
 
 private lemma deriv_norm_pos : 0 < ∥F.derivative.eval a∥ :=
 lt_of_le_of_ne (norm_nonneg _) (ne.symm deriv_norm_ne_zero)
@@ -119,9 +119,9 @@ have T ^ n ≤ T ^ 1,
 from pow_le_pow_of_le_one (norm_nonneg _) (le_of_lt T_lt_one) (succ_le_of_lt hn),
 lt_of_le_of_lt (by simpa) T_lt_one
 
-private lemma T_pow' (n : ℕ) : T ^ (2 ^ n) < 1 := (T_pow (nat.pow_pos (by norm_num) _))
+private lemma T_pow' (n : ℕ) : T ^ (2 ^ n) < 1 := (T_pow (pow_pos (by norm_num) _))
 
-private lemma T_pow_nonneg (n : ℕ) : T ^ n ≥ 0 := pow_nonneg (norm_nonneg _) _
+private lemma T_pow_nonneg (n : ℕ) : 0 ≤ T ^ n := pow_nonneg (norm_nonneg _) _
 
 /-- We will construct a sequence of elements of ℤ_p satisfying successive values of `ih`. -/
 private def ih (n : ℕ) (z : ℤ_[p]) : Prop :=
@@ -152,7 +152,7 @@ calc
   (div_le_div_right deriv_norm_pos).2 hz.2
 ... = ∥F.derivative.eval a∥ * T^(2^n) : div_sq_cancel deriv_norm_ne_zero _
 ... < ∥F.derivative.eval a∥ :
-  (mul_lt_iff_lt_one_right deriv_norm_pos).2 (T_pow (nat.pow_pos (by norm_num) _))
+  (mul_lt_iff_lt_one_right deriv_norm_pos).2 (T_pow (pow_pos (by norm_num) _))
 
 private def calc_eval_z'  {z z' z1 : ℤ_[p]} (hz' : z' = z - z1) {n} (hz : ih n z)
   (h1 : ∥(↑(F.eval z) : ℚ_[p]) / ↑(F.derivative.eval z)∥ ≤ 1) (hzeq : z1 = ⟨_, h1⟩) :
@@ -183,9 +183,9 @@ calc ∥F.eval z'∥
   by simp [hzeq, hz.1, div_pow]
 ... ≤ (∥F.derivative.eval a∥^2 * T^(2^n))^2 / ∥F.derivative.eval a∥^2 :
   (div_le_div_right deriv_sq_norm_pos).2 (pow_le_pow_of_le_left (norm_nonneg _) hz.2 _)
-... = (∥F.derivative.eval a∥^2)^2 * (T^(2^n))^2 / ∥F.derivative.eval a∥^2 : by simp only [_root_.mul_pow]
+... = (∥F.derivative.eval a∥^2)^2 * (T^(2^n))^2 / ∥F.derivative.eval a∥^2 : by simp only [mul_pow]
 ... = ∥F.derivative.eval a∥^2 * (T^(2^n))^2 : div_sq_cancel deriv_sq_norm_ne_zero _
-... = ∥F.derivative.eval a∥^2 * T^(2^(n + 1)) : by rw [←pow_mul, nat.pow_succ]
+... = ∥F.derivative.eval a∥^2 * T^(2^(n + 1)) : by rw [←pow_mul, pow_succ' 2]
 
 set_option eqn_compiler.zeta true
 
@@ -260,14 +260,14 @@ calc ∥newton_seq (n+2) - newton_seq (n+1)∥
                                                            deriv_norm_pos
 ... = ∥F.eval a∥ / ∥F.derivative.eval a∥ :
   begin
-    rw [T, _root_.pow_two, _root_.pow_one, normed_field.norm_div, ←mul_div_assoc, padic_norm_e.mul],
+    rw [T, pow_two, pow_one, normed_field.norm_div, ←mul_div_assoc, padic_norm_e.mul],
     apply mul_div_mul_left,
     apply deriv_norm_ne_zero; assumption
   end
 
 private lemma newton_seq_dist_aux (n : ℕ) :
   ∀ k : ℕ, ∥newton_seq (n + k) - newton_seq n∥ ≤ ∥F.derivative.eval a∥ * T^(2^n)
-| 0 := begin simp, apply mul_nonneg, {apply norm_nonneg}, {apply T_pow_nonneg} end
+| 0 := by simp [T_pow_nonneg hnorm, mul_nonneg]
 | (k+1) :=
   have 2^n ≤ 2^(n+k),
     by {apply pow_le_pow, norm_num, apply nat.le_add_right},
@@ -322,7 +322,7 @@ end
 
 private lemma bound'_sq : tendsto (λ n : ℕ, ∥F.derivative.eval a∥^2 * T^(2^n)) at_top (𝓝 0) :=
 begin
-  rw [←mul_zero (∥F.derivative.eval a∥), _root_.pow_two],
+  rw [←mul_zero (∥F.derivative.eval a∥), pow_two],
   simp only [mul_assoc],
   apply tendsto.mul,
   { apply tendsto_const_nhds },
@@ -368,7 +368,7 @@ tendsto_nhds_unique newton_seq_dist_tendsto' newton_seq_dist_tendsto
 private lemma soln_dist_to_a_lt_deriv : ∥soln - a∥ < ∥F.derivative.eval a∥ :=
 begin
   rw [soln_dist_to_a, div_lt_iff],
-  { rwa _root_.pow_two at hnorm },
+  { rwa pow_two at hnorm },
   { apply deriv_norm_pos, assumption }
 end
 
@@ -386,7 +386,7 @@ let h := z - soln,
 have (F.derivative.eval soln + q * h) * h = 0, from eq.symm (calc
   0 = F.eval (soln + h) : by simp [hev, h]
 ... = F.derivative.eval soln * h + q * h^2 : by rw [hq, eval_soln, zero_add]
-... = (F.derivative.eval soln + q * h) * h : by rw [_root_.pow_two, right_distrib, mul_assoc]),
+... = (F.derivative.eval soln + q * h) * h : by rw [pow_two, right_distrib, mul_assoc]),
 have h = 0, from by_contradiction $ λ hne,
   have F.derivative.eval soln + q * h = 0, from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_right hne,
   have F.derivative.eval soln = (-q) * h, by simpa using eq_neg_of_add_eq_zero this,
@@ -408,7 +408,7 @@ let h := z' - a,
 have (F.derivative.eval a + q * h) * h = 0, from eq.symm (calc
   0 = F.eval (a + h) : show 0 = F.eval (a + (z' - a)), by rw add_comm; simp [hz']
 ... = F.derivative.eval a * h + q * h^2 : by rw [hq, ha, zero_add]
-... = (F.derivative.eval a + q * h) * h : by rw [_root_.pow_two, right_distrib, mul_assoc]),
+... = (F.derivative.eval a + q * h) * h : by rw [pow_two, right_distrib, mul_assoc]),
 have h = 0, from by_contradiction $ λ hne,
   have F.derivative.eval a + q * h = 0, from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_right hne,
   have F.derivative.eval a = (-q) * h, by simpa using eq_neg_of_add_eq_zero this,

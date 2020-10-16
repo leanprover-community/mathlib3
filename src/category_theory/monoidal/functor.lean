@@ -5,6 +5,36 @@ Authors: Michael Jendrusch, Scott Morrison
 -/
 import category_theory.monoidal.category
 
+/-!
+# (Lax) monoidal functors
+
+A lax monoidal functor `F` between monoidal categories `C` and `D`
+is a functor between the underlying categories equipped with morphisms
+* `ε : 𝟙_ D ⟶ F.obj (𝟙_ C)` (called the unit morphism)
+* `μ X Y : (F.obj X) ⊗ (F.obj Y) ⟶ F.obj (X ⊗ Y)` (called the tensorator, or strength).
+satisfying various axioms.
+
+A monoidal functor is a lax monoidal functor for which `ε` and `μ` are isomorphisms.
+
+We show that the composition of (lax) monoidal functors gives a (lax) monoidal functor.
+
+See also `category_theory.monoidal.functorial` for a typeclass decorating an object-level
+function with the additional data of a monoidal functor.
+This is useful when stating that a pre-existing functor is monoidal.
+
+See `category_theory.monoidal.natural_transformation` for monoidal natural transformations.
+
+We show in `category_theory.monoidal.Mon_` that lax monoidal functors take monoid objects
+to monoid objects.
+
+## Future work
+* Oplax monoidal functors.
+
+## References
+
+See https://stacks.math.columbia.edu/tag/0FFL.
+-/
+
 open category_theory
 
 universes v₁ v₂ v₃ u₁ u₂ u₃
@@ -68,16 +98,22 @@ See https://stacks.math.columbia.edu/tag/0FFL.
 -/
 structure monoidal_functor
 extends lax_monoidal_functor.{v₁ v₂} C D :=
-(ε_is_iso            : is_iso ε . obviously)
-(μ_is_iso            : Π X Y : C, is_iso (μ X Y) . obviously)
+(ε_is_iso            : is_iso ε . tactic.apply_instance)
+(μ_is_iso            : Π X Y : C, is_iso (μ X Y) . tactic.apply_instance)
 
 attribute [instance] monoidal_functor.ε_is_iso monoidal_functor.μ_is_iso
 
 variables {C D}
 
+/--
+The unit morphism of a (strong) monoidal functor as an isomorphism.
+-/
 def monoidal_functor.ε_iso (F : monoidal_functor.{v₁ v₂} C D) :
   tensor_unit D ≅ F.obj (tensor_unit C) :=
 as_iso F.ε
+/--
+The tensorator of a (strong) monoidal functor as an isomorphism.
+-/
 def monoidal_functor.μ_iso (F : monoidal_functor.{v₁ v₂} C D) (X Y : C) :
   (F.obj X) ⊗ (F.obj Y) ≅ F.obj (X ⊗ Y) :=
 as_iso (F.μ X Y)
@@ -85,6 +121,20 @@ as_iso (F.μ X Y)
 end
 
 open monoidal_category
+
+namespace lax_monoidal_functor
+
+variables (C : Type u₁) [category.{v₁} C] [monoidal_category.{v₁} C]
+
+/-- The identity lax monoidal functor. -/
+@[simps] def id : lax_monoidal_functor.{v₁ v₁} C C :=
+{ ε := 𝟙 _,
+  μ := λ X Y, 𝟙 _,
+  .. 𝟭 C }
+
+instance : inhabited (lax_monoidal_functor C C) := ⟨id C⟩
+
+end lax_monoidal_functor
 
 namespace monoidal_functor
 
@@ -128,6 +178,8 @@ variables (C : Type u₁) [category.{v₁} C] [monoidal_category.{v₁} C]
 { ε := 𝟙 _,
   μ := λ X Y, 𝟙 _,
   .. 𝟭 C }
+
+instance : inhabited (monoidal_functor C C) := ⟨id C⟩
 
 end
 
@@ -181,6 +233,8 @@ variables (F : lax_monoidal_functor.{v₁ v₂} C D) (G : lax_monoidal_functor.{
   end,
   .. (F.to_functor) ⋙ (G.to_functor) }.
 
+infixr ` ⊗⋙ `:80 := comp
+
 end lax_monoidal_functor
 
 namespace monoidal_functor
@@ -193,6 +247,8 @@ def comp : monoidal_functor.{v₁ v₃} C E :=
 { ε_is_iso := by { dsimp, apply_instance },
   μ_is_iso := by { dsimp, apply_instance },
   .. (F.to_lax_monoidal_functor).comp (G.to_lax_monoidal_functor) }.
+
+infixr ` ⊗⋙ `:80 := comp -- We overload notation; potentially dangerous, but it seems to work.
 
 end monoidal_functor
 

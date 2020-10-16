@@ -44,9 +44,14 @@ class has_zero_morphisms :=
 
 attribute [instance] has_zero_morphisms.has_zero
 restate_axiom has_zero_morphisms.comp_zero'
-attribute [simp] has_zero_morphisms.comp_zero
 restate_axiom has_zero_morphisms.zero_comp'
-attribute [simp, reassoc] has_zero_morphisms.zero_comp
+
+variables {C}
+
+@[simp] lemma comp_zero [has_zero_morphisms C] {X Y : C} {f : X ⟶ Y} {Z : C} :
+  f ≫ (0 : Y ⟶ Z) = (0 : X ⟶ Z) := has_zero_morphisms.comp_zero f Z
+@[simp] lemma zero_comp [has_zero_morphisms C] {X : C} {Y Z : C} {f : Y ⟶ Z} :
+  (0 : X ⟶ Y) ≫ f = (0 : X ⟶ Z) := has_zero_morphisms.zero_comp X f
 
 instance has_zero_morphisms_pempty : has_zero_morphisms (discrete pempty) :=
 { has_zero := by tidy }
@@ -95,10 +100,10 @@ section
 variables {C} [has_zero_morphisms C]
 
 lemma zero_of_comp_mono {X Y Z : C} {f : X ⟶ Y} (g : Y ⟶ Z) [mono g] (h : f ≫ g = 0) : f = 0 :=
-by { rw [←zero_comp X g, cancel_mono] at h, exact h }
+by { rw [←zero_comp, cancel_mono] at h, exact h }
 
 lemma zero_of_epi_comp {X Y Z : C} (f : X ⟶ Y) {g : Y ⟶ Z} [epi f] (h : f ≫ g = 0) : g = 0 :=
-by { rw [←comp_zero f Z, cancel_epi] at h, exact h }
+by { rw [←comp_zero, cancel_epi] at h, exact h }
 
 lemma eq_zero_of_image_eq_zero {X Y : C} {f : X ⟶ Y} [has_image f] (w : image.ι f = 0) : f = 0 :=
 by rw [←image.fac f, w, has_zero_morphisms.comp_zero]
@@ -129,6 +134,8 @@ end
 by rw [←functor.as_equivalence_functor F, equivalence_preserves_zero_morphisms]
 
 end
+
+variables (C)
 
 /-- A category "has a zero object" if it has an object which is both initial and terminal. -/
 class has_zero_object :=
@@ -328,7 +335,7 @@ instance has_zero_object_of_has_terminal_object
   calc
     f = 𝟙 _ ≫ f : (category.id_comp _).symm
     ... = 0 ≫ f : by congr
-    ... = 0     : has_zero_morphisms.zero_comp _ _
+    ... = 0     : zero_comp
   ⟩ }
 
 
@@ -350,24 +357,23 @@ def mono_factorisation_zero (X Y : C) : mono_factorisation (0 : X ⟶ Y) :=
 { I := 0, m := 0, e := 0, }
 
 /--
-Any zero morphism has an image.
-We don't set this as an instance, as it is only intended for use inside the following proofs.
+The factorisation through the zero object is an image factorisation.
 -/
-def has_image.zero (X Y : C) : has_image (0 : X ⟶ Y) :=
+def image_factorisation_zero (X Y : C) : image_factorisation (0 : X ⟶ Y) :=
 { F := mono_factorisation_zero X Y,
-  is_image :=
-  { lift := λ F', 0 }}
+  is_image := { lift := λ F', 0 } }
+
+
+instance has_image_zero {X Y : C} : has_image (0 : X ⟶ Y) :=
+has_image.mk $ image_factorisation_zero _ _
 
 /-- The image of a zero morphism is the zero object. -/
-def image_zero {X Y : C} [has_image (0 : X ⟶ Y)] : image (0 : X ⟶ Y) ≅ 0 :=
-is_image.iso_ext (image.is_image (0 : X ⟶ Y)) (has_image.zero X Y).is_image
+def image_zero {X Y : C} : image (0 : X ⟶ Y) ≅ 0 :=
+is_image.iso_ext (image.is_image (0 : X ⟶ Y)) (image_factorisation_zero X Y).is_image
 
 /-- The image of a morphism which is equal to zero is the zero object. -/
 def image_zero' {X Y : C} {f : X ⟶ Y} (h : f = 0) [has_image f] : image f ≅ 0 :=
-begin
-  haveI := has_image.zero X Y,
-  exact image.eq_to_iso h ≪≫ image_zero,
-end
+image.eq_to_iso h ≪≫ image_zero
 
 @[simp]
 lemma image.ι_zero {X Y : C} [has_image (0 : X ⟶ Y)] : image.ι (0 : X ⟶ Y) = 0 :=
@@ -384,11 +390,7 @@ because `f = g` only implies `image f ≅ image g`.
 @[simp]
 lemma image.ι_zero' [has_equalizers C] {X Y : C} {f : X ⟶ Y} (h : f = 0) [has_image f] :
   image.ι f = 0 :=
-begin
-  haveI := has_image.zero X Y,
-  rw image.eq_fac h,
-  simp,
-end
+by { rw image.eq_fac h, simp }
 
 end image
 

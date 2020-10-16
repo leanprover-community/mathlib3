@@ -6,6 +6,7 @@ Author: Simon Hudon
 import data.pfun
 import order.preorder_hom
 import tactic.wlog
+import tactic.monotonicity
 
 /-!
 # Omega Complete Partial Orders
@@ -60,16 +61,13 @@ namespace preorder_hom
 variables (α : Type*) (β : Type*) {γ : Type*} {φ : Type*}
 variables [preorder α] [preorder β] [preorder γ] [preorder φ]
 
-instance : preorder (α →ₘ β) :=
-preorder.lift preorder_hom.to_fun
-
 variables {β γ}
 
 /-- The constant function, as a monotone function. -/
 @[simps]
 def const (f : β) : α →ₘ β :=
 { to_fun := function.const _ f,
-  monotone := assume x y h, le_refl _}
+  monotone' := assume x y h, le_refl _}
 
 variables {α} {α' : Type*} {β' : Type*} [preorder α'] [preorder β']
 
@@ -77,25 +75,25 @@ variables {α} {α' : Type*} {β' : Type*} [preorder α'] [preorder β']
 @[simps]
 def prod.diag : α →ₘ (α × α) :=
 { to_fun := λ x, (x,x),
-  monotone := λ x y h, ⟨h,h⟩ }
+  monotone' := λ x y h, ⟨h,h⟩ }
 
 /-- The `prod.map` function, as a monotone function. -/
 @[simps]
 def prod.map (f : α →ₘ β) (f' : α' →ₘ β') : (α × α') →ₘ (β × β') :=
 { to_fun := prod.map f f',
-  monotone := λ ⟨x,x'⟩ ⟨y,y'⟩ ⟨h,h'⟩, ⟨f.monotone h,f'.monotone h'⟩ }
+  monotone' := λ ⟨x,x'⟩ ⟨y,y'⟩ ⟨h,h'⟩, ⟨f.monotone h,f'.monotone h'⟩ }
 
 /-- The `prod.fst` projection, as a monotone function. -/
 @[simps]
 def prod.fst : (α × β) →ₘ α :=
 { to_fun := prod.fst,
-  monotone := λ ⟨x,x'⟩ ⟨y,y'⟩ ⟨h,h'⟩, h }
+  monotone' := λ ⟨x,x'⟩ ⟨y,y'⟩ ⟨h,h'⟩, h }
 
 /-- The `prod.snd` projection, as a monotone function. -/
 @[simps]
 def prod.snd : (α × β) →ₘ β :=
 { to_fun := prod.snd,
-  monotone := λ ⟨x,x'⟩ ⟨y,y'⟩ ⟨h,h'⟩, h' }
+  monotone' := λ ⟨x,x'⟩ ⟨y,y'⟩ ⟨h,h'⟩, h' }
 
 /-- The `prod` constructor, as a monotone function. -/
 @[simps {rhs_md := semireducible}]
@@ -106,7 +104,7 @@ def prod.zip (f : α →ₘ β) (g : α →ₘ γ) : α →ₘ (β × γ) :=
 @[simps]
 def bind {β γ} (f : α →ₘ roption β) (g : α →ₘ β → roption γ) : α →ₘ roption γ :=
 { to_fun := λ x, f x >>= g x,
-  monotone :=
+  monotone' :=
   begin
     intros x y h a,
     simp only [and_imp, exists_prop, roption.bind_eq_bind, roption.mem_bind_iff, exists_imp_distrib],
@@ -166,6 +164,7 @@ preorder_hom.comp_id _
 
 lemma map_comp : (c.map f).map g = c.map (g.comp f) := rfl
 
+@[mono]
 lemma map_le_map {g : α →ₘ β} (h : f ≤ g) : c.map f ≤ c.map g :=
 λ i, by simp [mem_map_iff]; intros; existsi i; apply h
 
@@ -225,6 +224,7 @@ classical.by_cases
     have x ≤ c i, from (h i).resolve_left hx,
     or.inr $ le_ωSup_of_le _ this)
 
+@[mono]
 lemma ωSup_le_ωSup_of_le {c₀ c₁ : chain α} (h : c₀ ≤ c₁) : ωSup c₀ ≤ ωSup c₁ :=
 ωSup_le _ _ $
 λ i, Exists.rec_on (h i) $
@@ -237,6 +237,17 @@ begin
     apply le_ωSup _ _, exact a },
   apply ωSup_le _ _ a,
 end
+
+/-- A subset `p : α → Prop` of the type closed under `ωSup` induces an
+`omega_complete_partial_order` on the subtype `{a : α // p a}`. -/
+def subtype {α : Type*} [omega_complete_partial_order α] (p : α → Prop)
+  (hp : ∀ (c : chain α), (∀ i ∈ c, p i) → p (ωSup c)) :
+  omega_complete_partial_order (subtype p) :=
+omega_complete_partial_order.lift
+  (preorder_hom.subtype.val p)
+  (λ c, ⟨ωSup _, hp (c.map (preorder_hom.subtype.val p)) (λ i ⟨n, q⟩, q.symm ▸ (c n).2)⟩)
+  (λ x y h, h)
+  (λ c, rfl)
 
 section continuity
 open chain
@@ -366,11 +377,9 @@ variables {α : Type*} {β : α → Type*} {γ : Type*}
 @[simps]
 def monotone_apply [∀a, partial_order (β a)] (a : α) : (Πa, β a) →ₘ β a :=
 { to_fun := (λf:Πa, β a, f a),
-  monotone := assume f g hfg, hfg a }
+  monotone' := assume f g hfg, hfg a }
 
 open omega_complete_partial_order omega_complete_partial_order.chain
-
-set_option trace.simps.verbose true
 
 instance [∀a, omega_complete_partial_order (β a)] : omega_complete_partial_order (Πa, β a) :=
 { ωSup    := λc a, ωSup (c.map (monotone_apply a)),
@@ -421,15 +430,102 @@ instance : omega_complete_partial_order (α × β) :=
 end prod
 
 namespace complete_lattice
-variables (α : Type u) [complete_lattice α]
+variables (α : Type u)
 
 /-- Any complete lattice has an `ω`-CPO structure where the countable supremum is a special case
 of arbitrary suprema. -/
+
 @[priority 100] -- see Note [lower instance priority]
-instance : omega_complete_partial_order α :=
+instance [complete_lattice α] : omega_complete_partial_order α :=
 { ωSup    := λc, ⨆ i, c i,
   ωSup_le := assume ⟨c, _⟩ s hs, by simp only [supr_le_iff, preorder_hom.coe_fun_mk] at ⊢ hs; intros i; apply hs i,
   le_ωSup := assume ⟨c, _⟩ i, by simp only [preorder_hom.coe_fun_mk]; apply le_supr_of_le i; refl }
+
+variables {α} {β : Type v} [omega_complete_partial_order α] [complete_lattice β]
+open omega_complete_partial_order
+
+lemma inf_continuous [is_total β (≤)] (f g : α →ₘ β) (hf : continuous f) (hg : continuous g) :
+  continuous (f ⊓ g) :=
+begin
+  intro c,
+  apply eq_of_forall_ge_iff, intro z,
+  simp only [inf_le_iff, hf c, hg c, ωSup_le_iff, ←forall_or_distrib_left, ←forall_or_distrib_right, chain.map_to_fun,
+             function.comp_app, preorder_hom.has_inf_inf_to_fun],
+  split,
+  { introv h, apply h },
+  { intros h i j,
+    apply or.imp _ _ (h (max i j)); apply le_trans; mono*,
+    { apply le_max_left },
+    { apply le_max_right }, },
+end
+
+lemma Sup_continuous (s : set $ α →ₘ β) (hs : ∀ f ∈ s, continuous f) :
+  continuous (Sup s) :=
+begin
+  intro c, apply eq_of_forall_ge_iff, intro z,
+  simp only [ωSup_le_iff, and_imp, preorder_hom.complete_lattice_Sup, set.mem_image, chain.map_to_fun, function.comp_app,
+             Sup_le_iff, preorder_hom.has_Sup_Sup_to_fun, exists_imp_distrib],
+  split; introv h hx hb; subst b,
+  { apply le_trans _ _ _ _ (h _ _ hx rfl),
+    mono, apply le_ωSup },
+  { rw [hs _ hx c, ωSup_le_iff], intro,
+    apply h i _ x hx rfl, }
+end
+
+theorem Sup_continuous' :
+  ∀s : set (α → β), (∀t∈s, omega_complete_partial_order.continuous' t) →
+  omega_complete_partial_order.continuous' (Sup s) :=
+begin
+  introv ht, dsimp [continuous'],
+  have : monotone (Sup s),
+  { intros x y h,
+    apply Sup_le_Sup_of_forall_exists_le, intro,
+    simp only [and_imp, exists_prop, set.mem_range, set_coe.exists, subtype.coe_mk, exists_imp_distrib],
+    intros f hfs hfx,
+    subst hfx,
+    refine ⟨f y, ⟨f, hfs, rfl⟩, _⟩,
+    cases ht _ hfs with hf,
+    apply hf h },
+  existsi this,
+  let s' : set (α →ₘ β) := { f | ⇑f ∈ s },
+  suffices : omega_complete_partial_order.continuous (Sup s'),
+  { convert this, ext,
+    simp only [supr, has_Sup.Sup, Sup, set.image, set.mem_set_of_eq],
+    congr, ext,
+    simp only [exists_prop, set.mem_range, set_coe.exists, set.mem_set_of_eq, subtype.coe_mk],
+    split,
+    { rintro ⟨y,hy,hy'⟩,
+      cases ht _ hy,
+      refine ⟨⟨_, w⟩, hy, hy'⟩ },
+    tauto },
+  apply complete_lattice.Sup_continuous,
+  intros f hf,
+  specialize ht f hf, cases ht, exact ht_h,
+end
+
+lemma sup_continuous {f g : α →ₘ β} (hf : continuous f) (hg : continuous g) :
+  continuous (f ⊔ g) :=
+begin
+  rw ← Sup_pair, apply Sup_continuous,
+  simp only [or_imp_distrib, forall_and_distrib, set.mem_insert_iff, set.mem_singleton_iff, forall_eq],
+  split; assumption,
+end
+
+lemma top_continuous :
+  continuous (⊤ : α →ₘ β) :=
+begin
+  intro c, apply eq_of_forall_ge_iff, intro z,
+  simp only [ωSup_le_iff, forall_const, chain.map_to_fun, function.comp_app,
+             preorder_hom.has_top_top_to_fun],
+end
+
+lemma bot_continuous :
+  continuous (⊥ : α →ₘ β) :=
+begin
+  intro c, apply eq_of_forall_ge_iff, intro z,
+  simp only [ωSup_le_iff, forall_const, chain.map_to_fun, function.comp_app,
+             preorder_hom.has_bot_bot_to_fun],
+end
 
 end complete_lattice
 
@@ -443,28 +539,24 @@ variables [omega_complete_partial_order α'] [omega_complete_partial_order β']
 
 namespace preorder_hom
 
-/-- The partial order structure of `α →ₘ β` is pointwise inequality: `f ≤ g ↔ ∀ a, f a ≤ g a`. -/
-instance : partial_order (α →ₘ β) :=
-partial_order.lift preorder_hom.to_fun $ by rintro ⟨⟩ ⟨⟩ h; congr; exact h
-
 /-- Function application `λ f, f a` (for fixed `a`) is a monotone function from the
 monotone function space `α →ₘ β` to `β`. -/
 @[simps]
 def monotone_apply (a : α) : (α →ₘ β) →ₘ β :=
 { to_fun := (λf : α →ₘ β, f a),
-  monotone := assume f g hfg, hfg a }
+  monotone' := assume f g hfg, hfg a }
 
 /-- The "forgetful functor" from `α →ₘ β` to `α → β` that takes the underlying function,
 is monotone. -/
 def to_fun_hom : (α →ₘ β) →ₘ (α → β) :=
 { to_fun := λ f, f.to_fun,
-  monotone := λ x y h, h }
+  monotone' := λ x y h, h }
 
 /-- The `ωSup` operator for monotone functions. -/
 @[simps]
 protected def ωSup (c : chain (α →ₘ β)) : α →ₘ β :=
 { to_fun := λ a, ωSup (c.map (monotone_apply a)),
-  monotone := λ x y h, ωSup_le_ωSup_of_le (chain.map_le_map _ $ λ a, a.monotone h) }
+  monotone' := λ x y h, ωSup_le_ωSup_of_le (chain.map_le_map _ $ λ a, a.monotone h) }
 
 @[simps ωSup_to_fun {rhs_md := semireducible, simp_rhs := tt}]
 instance : omega_complete_partial_order (α →ₘ β) :=
@@ -481,7 +573,7 @@ variables (α β)
 if for every chain `c : chain α`, `f (⊔ i, c i) = ⊔ i, f (c i)`.
 This is just the bundled version of `preorder_hom.continuous`. -/
 structure continuous_hom extends preorder_hom α β :=
-(cont : continuous (preorder_hom.mk to_fun monotone))
+(cont : continuous (preorder_hom.mk to_fun monotone'))
 
 attribute [nolint doc_blame] continuous_hom.to_preorder_hom
 
@@ -500,6 +592,16 @@ partial_order.lift continuous_hom.to_fun $ by rintro ⟨⟩ ⟨⟩ h; congr; exa
 end old_struct
 
 namespace continuous_hom
+
+theorem congr_fun {f g : α →𝒄 β} (h : f = g) (x : α) : f x = g x :=
+congr_arg (λ h : α →𝒄 β, h x) h
+
+theorem congr_arg (f : α →𝒄 β) {x y : α} (h : x = y) : f x = f y :=
+congr_arg (λ x : α, f x) h
+
+@[mono]
+lemma monotone (f : α →𝒄 β) : monotone f :=
+continuous_hom.monotone' f
 
 lemma ite_continuous' {p : Prop} [hp : decidable p] (f g : α → β)
   (hf : continuous' f) (hg : continuous' g) : continuous' (λ x, if p then f x else g x) :=
@@ -565,7 +667,7 @@ by refine {to_fun := f, ..}; subst h; cases g; assumption
 @[simps, reducible]
 def of_mono (f : α →ₘ β) (h : ∀ c : chain α, f (ωSup c) = ωSup (c.map f)) : α →𝒄 β :=
 { to_fun := f,
-  monotone := f.monotone,
+  monotone' := f.monotone,
   cont := h }
 
 /-- The identity as a continuous function. -/
@@ -585,7 +687,7 @@ protected lemma ext (f g : α →𝒄 β) (h : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; congr; ext; apply h
 
 protected lemma coe_inj (f g : α →𝒄 β) (h : (f : α → β) = g) : f = g :=
-continuous_hom.ext _ _ $ congr_fun h
+continuous_hom.ext _ _ $ _root_.congr_fun h
 
 @[simp]
 lemma comp_id (f : β →𝒄 γ) : f.comp id = f := by ext; refl
@@ -625,7 +727,7 @@ of a continuous function before we do.) -/
 @[simps]
 def apply : (α →𝒄 β) × α →ₘ β :=
 { to_fun := λ f, f.1 f.2,
-  monotone := λ x y h, by dsimp; transitivity y.fst x.snd; [apply h.1, apply y.1.monotone h.2] }
+  monotone' := λ x y h, by dsimp; transitivity y.fst x.snd; [apply h.1, apply y.1.monotone h.2] }
 
 end prod
 
@@ -633,7 +735,7 @@ end prod
 @[simps]
 def to_mono : (α →𝒄 β) →ₘ (α →ₘ β) :=
 { to_fun := λ f, f,
-  monotone := λ x y h, h }
+  monotone' := λ x y h, h }
 
 /-- When proving that a chain of applications is below a bound `z`, it suffices to consider the
 functions and values being selected from the same index in the chains.
@@ -692,7 +794,7 @@ end
 @[simps]
 def flip {α : Type*} (f : α → β →𝒄 γ) : β →𝒄 α → γ :=
 { to_fun := λ x y, f y x,
-  monotone := λ x y h a, (f a).monotone h,
+  monotone' := λ x y h a, (f a).monotone h,
   cont := by intro; ext; change f x _ = _; rw [(f x).continuous ]; refl, }
 
 /-- `roption.bind` as a continuous function. -/

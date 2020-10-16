@@ -29,7 +29,7 @@ noncomputable theory
 open_locale classical big_operators
 open function
 
-variables {α β γ : Type*}
+variables {α α' β γ : Type*}
 
 namespace set
 
@@ -49,6 +49,10 @@ lemma indicator_apply (s : set α) (f : α → β) (a : α) :
 
 @[simp] lemma indicator_of_not_mem (h : a ∉ s) (f : α → β) : indicator s f a = 0 := if_neg h
 
+lemma indicator_eq_zero_or_self (s : set α) (f : α → β) (a : α) :
+  indicator s f a = 0 ∨ indicator s f a = f a :=
+if h : a ∈ s then or.inr (indicator_of_mem h f) else or.inl (indicator_of_not_mem h f)
+
 /-- If an indicator function is nonzero at a point, that
 point is in the set. -/
 lemma mem_of_indicator_ne_zero (h : indicator s f a ≠ 0) : a ∈ s :=
@@ -58,6 +62,21 @@ lemma eq_on_indicator : eq_on (indicator s f) f s := λ x hx, indicator_of_mem h
 
 lemma support_indicator : function.support (s.indicator f) ⊆ s :=
 λ x hx, hx.imp_symm (λ h, indicator_of_not_mem h f)
+
+lemma indicator_of_support_subset (h : support f ⊆ s) : s.indicator f = f :=
+begin
+  ext x,
+  by_cases hx : f x = 0,
+  { rw hx,
+    by_contradiction H,
+    have := mem_of_indicator_ne_zero H,
+    rw [indicator_of_mem this f, hx] at H,
+    exact H rfl },
+  { exact indicator_of_mem (h hx) f }
+end
+
+@[simp] lemma indicator_support : (support f).indicator f = f :=
+indicator_of_support_subset $ subset.refl _
 
 @[simp] lemma indicator_range_comp {ι : Sort*} (f : ι → α) (g : α → β) :
   indicator (range f) g ∘ f = g ∘ f :=
@@ -88,6 +107,10 @@ funext $ λx, by { simp only [indicator], split_ifs, repeat {simp * at * {contex
 lemma comp_indicator (h : β → γ) (f : α → β) {s : set α} {x : α} :
   h (s.indicator f x) = s.piecewise (h ∘ f) (const α (h 0)) x :=
 s.comp_piecewise h
+
+lemma indicator_comp_right {s : set α} (f : γ → α) {g : α → β} {x : γ} :
+  indicator (f ⁻¹' s) (g ∘ f) x = indicator s g (f x) :=
+by { simp only [indicator], split_ifs; refl }
 
 lemma indicator_comp_of_zero [has_zero γ] {g : β → γ} (hg : g 0 = 0) :
   indicator s (g ∘ f) = g ∘ (indicator s f) :=
@@ -266,6 +289,16 @@ by { funext, simp only [indicator], split_ifs, { refl }, rw mul_zero }
 
 end mul_zero_class
 
+section monoid_with_zero
+
+variables [monoid_with_zero β]
+
+lemma indicator_prod_one {s : set α} {t : set α'}
+  {x : α} {y : α'} : (s.prod t).indicator (1 : _ → β) (x, y) = s.indicator 1 x * t.indicator 1 y :=
+by simp [indicator, ← ite_and]
+
+end monoid_with_zero
+
 section order
 variables [has_zero β] [preorder β] {s t : set α} {f g : α → β} {a : α}
 
@@ -310,6 +343,21 @@ lemma indicator_le {β} [canonically_ordered_add_monoid β] {s : set α}
   {f g : α → β} (hfg : ∀ a ∈ s, f a ≤ g a) :
   indicator s f ≤ g :=
 indicator_le' hfg $ λ _ _, zero_le _
+
+lemma indicator_Union_apply {ι β} [complete_lattice β] [has_zero β] (h0 : (⊥:β) = 0)
+  (s : ι → set α) (f : α → β) (x : α) :
+  indicator (⋃ i, s i) f x = ⨆ i, indicator (s i) f x :=
+begin
+  by_cases hx : x ∈ ⋃ i, s i,
+  { rw [indicator_of_mem hx],
+    rw [mem_Union] at hx,
+    refine le_antisymm _ (supr_le $ λ i, indicator_le_self' (λ x hx, h0 ▸ bot_le) x),
+    rcases hx with ⟨i, hi⟩,
+    exact le_supr_of_le i (ge_of_eq $ indicator_of_mem hi _) },
+  { rw [indicator_of_not_mem hx],
+    simp only [mem_Union, not_exists] at hx,
+    simp [hx, ← h0] }
+end
 
 end order
 

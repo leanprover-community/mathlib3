@@ -100,7 +100,7 @@ by rw [← int.coe_nat_zero, coe_nat_inj']
 theorem coe_nat_ne_zero {n : ℕ} : (n : ℤ) ≠ 0 ↔ n ≠ 0 :=
 not_congr coe_nat_eq_zero
 
-lemma coe_nat_nonneg (n : ℕ) : 0 ≤ (n : ℤ) := coe_nat_le.2 (nat.zero_le _)
+@[simp] lemma coe_nat_nonneg (n : ℕ) : 0 ≤ (n : ℤ) := coe_nat_le.2 (nat.zero_le _)
 
 lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
 ⟨λ h, nat.pos_of_ne_zero (coe_nat_ne_zero.1 h),
@@ -176,6 +176,8 @@ begin
     exact this (i + 1) }
 end
 
+/-- Inductively define a function on `ℤ` by defining it at `b`, for the `succ` of a number greater
+  than `b`, and the `pred` of a number less than `b`. -/
 protected def induction_on' {C : ℤ → Sort*} (z : ℤ) (b : ℤ) :
   C b → (∀ k, b ≤ k → C k → C (k + 1)) → (∀ k ≤ b, C k → C (k - 1)) → C z :=
 λ H0 Hs Hp,
@@ -406,7 +408,7 @@ match a, b, eq_succ_of_zero_lt H with
 end
 
 theorem mod_lt (a : ℤ) {b : ℤ} (H : b ≠ 0) : a % b < abs b :=
-by rw [← mod_abs]; exact mod_lt_of_pos _ (abs_pos_of_ne_zero H)
+by rw [← mod_abs]; exact mod_lt_of_pos _ (abs_pos.2 H)
 
 theorem mod_add_div_aux (m n : ℕ) : (n - (m % n + 1) - (n * (m / n) + n) : ℤ) = -[1+ m] :=
 begin
@@ -655,6 +657,10 @@ protected theorem div_eq_of_eq_mul_right {a b c : ℤ} (H1 : b ≠ 0) (H2 : a = 
   a / b = c :=
 by rw [H2, int.mul_div_cancel_left _ H1]
 
+protected theorem eq_div_of_mul_eq_right {a b c : ℤ} (H1 : a ≠ 0) (H2 : a * b = c) :
+  b = c / a :=
+eq.symm $ int.div_eq_of_eq_mul_right H1 H2.symm
+
 protected theorem div_eq_iff_eq_mul_right {a b c : ℤ} (H : b ≠ 0) (H' : b ∣ a) :
   a / b = c ↔ a = b * c :=
 ⟨int.eq_mul_of_div_eq_right H', int.div_eq_of_eq_mul_right H⟩
@@ -702,7 +708,7 @@ theorem div_sign : ∀ a b, a / sign b = a * sign b
 
 protected theorem sign_eq_div_abs (a : ℤ) : sign a = a / (abs a) :=
 if az : a = 0 then by simp [az] else
-(int.div_eq_of_eq_mul_left (mt eq_zero_of_abs_eq_zero az)
+(int.div_eq_of_eq_mul_left (mt abs_eq_zero.1 az)
   (sign_mul_abs _).symm).symm
 
 theorem mul_sign : ∀ (i : ℤ), i * sign i = nat_abs i
@@ -763,7 +769,7 @@ begin
 end
 
 lemma dvd_of_pow_dvd {p k : ℕ} {m : ℤ} (hk : 1 ≤ k) (hpk : ↑(p^k) ∣ m) : ↑p ∣ m :=
-by rw ←nat.pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
+by rw ←pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
 
 /- / and ordering -/
 
@@ -922,6 +928,8 @@ end
 lemma to_nat_add_one {a : ℤ} (h : 0 ≤ a) : (a + 1).to_nat = a.to_nat + 1 :=
 to_nat_add h (zero_le_one)
 
+/-- If `n : ℕ`, then `int.to_nat' n = some n`, if `n : ℤ` is negative, then `int.to_nat' n = none`.
+-/
 def to_nat' : ℤ → option ℕ
 | (n : ℕ) := some n
 | -[1+ n] := none
@@ -951,7 +959,7 @@ lemma units_inv_eq_self (u : units ℤ) : u⁻¹ = u :=
 
 @[simp] lemma bodd_zero : bodd 0 = ff := rfl
 @[simp] lemma bodd_one : bodd 1 = tt := rfl
-@[simp] lemma bodd_two : bodd 2 = ff := rfl
+lemma bodd_two : bodd 2 = ff := rfl
 
 @[simp, norm_cast] lemma bodd_coe (n : ℕ) : int.bodd n = nat.bodd n := rfl
 
@@ -998,6 +1006,8 @@ by { cases b, apply (bit0_val n).trans (add_zero _).symm, apply bit1_val }
 lemma bit_decomp (n : ℤ) : bit (bodd n) (div2 n) = n :=
 (bit_val _ _).trans $ (add_comm _ _).trans $ bodd_add_div2 _
 
+/-- Defines a function from `ℤ` conditionally, if it is defined for odd and even integers separately
+  using `bit`. -/
 def {u} bit_cases_on {C : ℤ → Sort u} (n) (h : ∀ b n, C (bit b n)) : C n :=
 by rw [← bit_decomp n]; apply h
 
@@ -1012,11 +1022,24 @@ by rw [bit_val, nat.bit_val]; cases b; refl
 @[simp] lemma bodd_bit (b n) : bodd (bit b n) = b :=
 by rw bit_val; simp; cases b; cases bodd n; refl
 
+@[simp] lemma bodd_bit0 (n : ℤ) : bodd (bit0 n) = ff := bodd_bit ff n
+
+@[simp] lemma bodd_bit1 (n : ℤ) : bodd (bit1 n) = tt := bodd_bit tt n
+
 @[simp] lemma div2_bit (b n) : div2 (bit b n) = n :=
 begin
   rw [bit_val, div2_val, add_comm, int.add_mul_div_left, (_ : (_/2:ℤ) = 0), zero_add],
   cases b, all_goals {exact dec_trivial}
 end
+
+lemma bit0_ne_bit1 (m n : ℤ) : bit0 m ≠ bit1 n :=
+mt (congr_arg bodd) $ by simp
+
+lemma bit1_ne_bit0 (m n : ℤ) : bit1 m ≠ bit0 n :=
+(bit0_ne_bit1 _ _).symm
+
+lemma bit1_ne_zero (m : ℤ) : bit1 m ≠ 0 :=
+by simpa only [bit0_zero] using bit1_ne_bit0 m 0
 
 @[simp] lemma test_bit_zero (b) : ∀ n, test_bit (bit b n) 0 = b
 | (n : ℕ) := by rw [bit_coe_nat]; apply nat.test_bit_zero
@@ -1154,7 +1177,7 @@ lemma shiftr_eq_div_pow : ∀ (m : ℤ) (n : ℕ), shiftr m n = m / ↑(2 ^ n)
 | (m : ℕ) n := by rw shiftr_coe_nat; exact congr_arg coe (nat.shiftr_eq_div_pow _ _)
 | -[1+ m] n := begin
   rw [shiftr_neg_succ, neg_succ_of_nat_div, nat.shiftr_eq_div_pow], refl,
-  exact coe_nat_lt_coe_nat_of_lt (nat.pos_pow_of_pos _ dec_trivial)
+  exact coe_nat_lt_coe_nat_of_lt (pow_pos dec_trivial _)
 end
 
 lemma one_shiftl (n : ℕ) : shiftl 1 n = (2 ^ n : ℕ) :=
@@ -1199,3 +1222,5 @@ let ⟨lb, Plb, al⟩ := exists_least_of_bdd Hbdd' Hinh' in
 end classical
 
 end int
+
+attribute [irreducible] int.lt

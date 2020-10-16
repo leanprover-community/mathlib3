@@ -44,19 +44,15 @@ lemma tendsto_of_real {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m 
   tendsto (λa, nnreal.of_real (m a)) f (𝓝 (nnreal.of_real x)) :=
 tendsto.comp (continuous_iff_continuous_at.1 continuous_of_real _) h
 
+instance : has_continuous_sub ℝ≥0 :=
+⟨continuous_subtype_mk _ $
+  ((continuous_coe.comp continuous_fst).sub
+   (continuous_coe.comp continuous_snd)).max continuous_const⟩
+
 lemma tendsto.sub {f : filter α} {m n : α → ℝ≥0} {r p : ℝ≥0}
   (hm : tendsto m f (𝓝 r)) (hn : tendsto n f (𝓝 p)) :
   tendsto (λa, m a - n a) f (𝓝 (r - p)) :=
 tendsto_of_real $ (tendsto_coe.2 hm).sub (tendsto_coe.2 hn)
-
-lemma continuous_sub : continuous (λp:ℝ≥0×ℝ≥0, p.1 - p.2) :=
-continuous_subtype_mk _ $
-  ((continuous.comp continuous_coe continuous_fst).sub
-   (continuous.comp continuous_coe continuous_snd)).max continuous_const
-
-lemma continuous.sub [topological_space α] {f g : α → ℝ≥0}
-  (hf : continuous f) (hg : continuous g) : continuous (λ a, f a - g a) :=
-continuous_sub.comp (hf.prod_mk hg)
 
 @[norm_cast] lemma has_sum_coe {f : α → ℝ≥0} {r : ℝ≥0} :
   has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=

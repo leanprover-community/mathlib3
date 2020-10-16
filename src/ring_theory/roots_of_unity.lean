@@ -636,13 +636,13 @@ end
 
 /-If in `R` there is a `n`-th primitive root of unity and `b` divides `n`,
 then there is in `R` a `b`-th primitive root of unity. -/
-lemma prim_of_pow_prim {ζ : R} {n : ℕ+} {a b : ℕ} (h : is_primitive_root ζ n) (hprod : ↑n = a * b)
+lemma prim_of_pow_prim {ζ : R} {n : ℕ} {a b : ℕ} (hn: 0 < n) (h : is_primitive_root ζ n) (hprod : n = a * b)
   : is_primitive_root (ζ ^ a) b :=
 begin
   apply (iff_def (ζ ^ a) b).2,
   split,
   { calc (ζ ^ a) ^ b
-       = ζ ^ (n : ℕ) : by rw [← pow_mul', mul_comm, hprod]
+       = ζ ^ n : by rw [← pow_mul', mul_comm, hprod]
    ... = 1 : by rw ((iff_def ζ n).1 h).1 },
   { intros l hl,
     rw [← pow_mul', mul_comm] at hl,
@@ -651,8 +651,8 @@ begin
     have hzeroa : a ≠ 0,
     { by_contra hz,
       simp only [not_not] at hz,
-      simp [hz] at hprod,
-      exact hprod },
+      simp only [hz, zero_mul] at hprod,
+      exact ne.symm (ne_of_lt hn) hprod },
     exact (mul_dvd_mul_iff_left hzeroa).1 hdiv }
 end
 
@@ -693,7 +693,7 @@ begin
       simp,
       obtain ⟨d, hd⟩ := hx.2,
       rw mul_comm at hd,
-      exact card_primitive_roots (prim_of_pow_prim h hd) (pnat.pos_of_div_pos hx.2) },
+      exact card_primitive_roots (prim_of_pow_prim (pnat.pos n) h hd) (pnat.pos_of_div_pos hx.2) },
     },
     { intros i hi j hj hdiff,
       simp only [nat.mem_divisors, and_true, ne.def, pnat.ne_zero, not_false_iff] at hi hj,

@@ -50,8 +50,8 @@ instance kleisli.category : category (kleisli T) :=
 
 namespace adjunction
 
-/-- The left adjoint of the adjunction which induces the monad `T`. -/
-@[simps] def F_T : C ⥤ kleisli T :=
+/-- The left adjoint of the adjunction which induces the monad `(T, η_ T, μ_ T)`. -/
+@[simps] def to_kleisli : C ⥤ kleisli T :=
 { obj       := λ X, (X : kleisli T),
   map       := λ X Y f, (f ≫ (η_ T).app Y : _),
   map_comp' := λ X Y Z f g,
@@ -60,8 +60,8 @@ namespace adjunction
     simp [← (η_ T).naturality g],
   end }
 
-/-- The right adjoint of the adjunction which induces the monad `T`. -/
-@[simps] def U_T : kleisli T ⥤ C :=
+/-- The right adjoint of the adjunction which induces the monad `(T, η_ T, μ_ T)`. -/
+@[simps] def from_kleisli : kleisli T ⥤ C :=
 { obj       := λ X, T.obj X,
   map       := λ X Y f, T.map f ≫ (μ_ T).app Y,
   map_id'   := λ X, monad.right_unit _,
@@ -73,7 +73,7 @@ namespace adjunction
 
 /-- The Kleisli adjunction which gives rise to the monad `(T, η_ T, μ_ T)`.
     cf Lemma 5.2.11 of [Riehl][riehl2017]. -/
-def adj : F_T T ⊣ U_T T :=
+def adj : to_kleisli T ⊣ from_kleisli T :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y, equiv.refl (X ⟶ T.obj Y),
   hom_equiv_naturality_left_symm' := λ X Y Z f g,
@@ -86,7 +86,7 @@ adjunction.mk_of_hom_equiv
   end }
 
 /-- The composition of the adjunction gives the original functor. -/
-def F_T_comp_U_T_iso_T : F_T T ⋙ U_T T ≅ T :=
+def to_kleisli_comp_from_kleisli_iso_self : to_kleisli T ⋙ from_kleisli T ≅ T :=
 nat_iso.of_components (λ X, iso.refl _) (λ X Y f, by { dsimp, simp })
 
 end adjunction

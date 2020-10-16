@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl
+Authors: Johannes Hölzl, Bhavik Mehta
 -/
 import category_theory.monad.basic
 import category_theory.monad.kleisli
@@ -54,7 +54,6 @@ def eq : Kleisli m ≌ kleisli (of_type_functor m) :=
     begin
       unfold_projs,
       ext,
-      dsimp,
       simp [mjoin, seq_bind_eq],
     end },
   unit_iso :=

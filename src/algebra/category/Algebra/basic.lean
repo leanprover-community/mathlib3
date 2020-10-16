@@ -75,8 +75,9 @@ variables (R)
 
 section cheating_with_semireducible
 
-/-- The "free algebra" on a module, i.e. the tensor algebra. -/
 local attribute [semireducible] tensor_algebra -- WHY?!
+
+/-- The "free algebra" on a module, i.e. the tensor algebra. -/
 @[simps]
 def free_of_module : Module R ⥤ Algebra R :=
 { obj := λ M,

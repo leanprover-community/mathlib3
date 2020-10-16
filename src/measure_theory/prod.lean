@@ -11,7 +11,7 @@ import measure_theory.set_integral
 
 In this file we define and prove properties about the binary product measure. If `α` and `β` have
 σ-finite measures `μ` resp. `ν` then `α × β` can be equipped with a σ-finite measure `μ.prod ν` that
-satisfies `(μ.prod ν) s = ∫⁻ x, ν (prod.mk x ⁻¹' s) ∂μ`.
+satisfies `(μ.prod ν) s = ∫⁻ x, ν {y | (x, y) ∈ s} ∂μ`.
 We also have `(μ.prod ν) (s.prod t) = μ s * ν t`, i.e. the measure of a rectangle is the product of
 the measures of the sides.
 
@@ -23,7 +23,7 @@ We also prove Tonelli's theorem and Fubini's theorem.
 
 ## Main results
 
-* `measure_theory.measure.prod_apply` states `μ.prod ν s = ∫⁻ x, ν (prod.mk x ⁻¹' s) ∂μ`
+* `measure_theory.measure.prod_apply` states `μ.prod ν s = ∫⁻ x, ν {y | (x, y) ∈ s} ∂μ`
   for measurable `s`. `measure_theory.measure.prod_apply_symm` is the reversed version.
 * `measure_theory.measure.prod_prod` states `μ.prod ν (s.prod t) = μ s * ν t` for measurable sets
   `s` and `t`.
@@ -56,6 +56,21 @@ uncurried version is reversed.
 
 product measure, Fubini's theorem, Tonelli's theorem, Fubini-Tonelli theorem
 -/
+
+section mul_zero_class
+open set
+variables {α β : Type*} [mul_zero_class β] {s t : set α} {f g : α → β} {a : α}
+
+lemma indicator_mul_left (s : set α) (f g : α → β) :
+  indicator s (λa, f a * g a) a = indicator s f a * g a :=
+by { simp only [indicator], split_ifs, { refl }, rw [zero_mul] }
+
+lemma indicator_mul_right (s : set α) (f g : α → β) :
+  indicator s (λa, f a * g a) a = f a * indicator s g a :=
+by { simp only [indicator], split_ifs, { refl }, rw [mul_zero] }
+
+end mul_zero_class
+
 
 noncomputable theory
 open_locale classical topological_space
@@ -376,14 +391,25 @@ lemma prod_restrict {s : set α} {t : set β} (hs : is_measurable s) (ht : is_me
 begin
   refine prod_eq (λ s' t' hs' ht', _),
   simp_rw [restrict_apply (hs'.prod ht'), prod_inter_prod, prod_prod (hs'.inter hs) (ht'.inter ht),
-    restrict_apply hs', restrict_apply ht'],
+    restrict_apply hs', restrict_apply ht']
 end
 
-lemma prod_dirac {x : α} {y : β} : (dirac x).prod (dirac y) = dirac (x, y) :=
+lemma prod_dirac (y : β) : μ.prod (dirac y) = map (λ x, (x, y)) μ :=
 begin
   refine prod_eq (λ s t hs ht, _),
-  simp_rw [dirac_apply _ (hs.prod ht), dirac_apply _ hs, dirac_apply _ ht, indicator_prod_one],
+  simp_rw [map_apply measurable_prod_mk_right (hs.prod ht), mk_preimage_prod_left_eq_if, measure_if,
+    dirac_apply _ ht, ← indicator_mul_right _ (λ x, μ s), pi.one_apply, mul_one]
 end
+
+lemma dirac_prod (x : α) : (dirac x).prod ν = map (prod.mk x) ν :=
+begin
+  refine prod_eq (λ s t hs ht, _),
+  simp_rw [map_apply measurable_prod_mk_left (hs.prod ht), mk_preimage_prod_right_eq_if, measure_if,
+    dirac_apply _ hs, ← indicator_mul_left _ _ (λ x, μ s), pi.one_apply, mul_one]
+end
+
+lemma dirac_prod_dirac {x : α} {y : β} : (dirac x).prod (dirac y) = dirac (x, y) :=
+by rw [prod_dirac, map_dirac measurable_prod_mk_right]
 
 lemma prod_sum {ι : Type*} [fintype ι] (ν : ι → measure β) [∀ i, sigma_finite (ν i)] :
   μ.prod (sum ν) = sum (λ i, μ.prod (ν i)) :=
@@ -556,6 +582,8 @@ variables {E' : Type*} [measurable_space E'] [normed_group E'] [borel_space E'] 
 
 /-! Some rules about the sum/difference of double integrals. They follow from `integral_add`, but
   we separate them out as separate lemmas, because they involve quite some steps. -/
+
+/-- Integrals commute with addition inside another integral. `F` can be any measurable function. -/
 lemma integral_fn_integral_add ⦃f g : α × β → E⦄
   {F : E → E'} (hF : measurable F)
   (hf : integrable f (μ.prod ν))
@@ -565,10 +593,12 @@ begin
   refine integral_congr_ae
     (hF.comp (hf.add hg).measurable.integral_prod_right')
     (hF.comp (hf.measurable.integral_prod_right'.add hg.measurable.integral_prod_right')) _,
-  refine hg.prod_right_ae.mp _, refine hf.prod_right_ae.mp _,
-  apply eventually_of_forall, intros x h2f h2g, simp [integral_add h2f h2g]
+  filter_upwards [hf.prod_right_ae, hg.prod_right_ae], dsimp only [mem_set_of_eq],
+  intros x h2f h2g, simp [integral_add h2f h2g],
 end
 
+/-- Integrals commute with subtraction inside another integral.
+  `F` can be any measurable function. -/
 lemma integral_fn_integral_sub ⦃f g : α × β → E⦄
   {F : E → E'} (hF : measurable F)
   (hf : integrable f (μ.prod ν))
@@ -578,41 +608,51 @@ begin
   refine integral_congr_ae
     (hF.comp (hf.sub hg).measurable.integral_prod_right')
     (hF.comp (hf.measurable.integral_prod_right'.sub hg.measurable.integral_prod_right')) _,
-  refine hg.prod_right_ae.mp _, refine hf.prod_right_ae.mp _,
-  apply eventually_of_forall, intros x h2f h2g, simp [integral_sub h2f h2g]
+  filter_upwards [hf.prod_right_ae, hg.prod_right_ae], dsimp only [mem_set_of_eq],
+  intros x h2f h2g, simp [integral_sub h2f h2g]
 end
 
+/-- Integrals commute with subtraction inside a lower Lebesgue integral.
+  `F` can be any function. -/
 lemma lintegral_fn_integral_sub ⦃f g : α × β → E⦄
   (F : E → ennreal) (hf : integrable f (μ.prod ν)) (hg : integrable g (μ.prod ν)) :
   ∫⁻ x, F (∫ y, f (x, y) - g (x, y) ∂ν) ∂μ = ∫⁻ x, F (∫ y, f (x, y) ∂ν - ∫ y, g (x, y) ∂ν) ∂μ :=
 begin
   refine lintegral_congr_ae _,
-  refine hg.prod_right_ae.mp _, refine hf.prod_right_ae.mp _,
-  apply eventually_of_forall, intros x h2f h2g, simp [integral_sub h2f h2g]
+  filter_upwards [hf.prod_right_ae, hg.prod_right_ae], dsimp only [mem_set_of_eq],
+  intros x h2f h2g, simp [integral_sub h2f h2g]
 end
 
+/-- Double integrals commute with addition. -/
 lemma integral_integral_add ⦃f g : α × β → E⦄
   (hf : integrable f (μ.prod ν))
   (hg : integrable g (μ.prod ν)) :
-  ∫ x, ∫ y, f (x, y) + g (x, y) ∂ν ∂μ = ∫ x, ∫ y, f (x, y) ∂ν + ∫ y, g (x, y) ∂ν ∂μ :=
-integral_fn_integral_add measurable_id hf hg
+  ∫ x, ∫ y, f (x, y) + g (x, y) ∂ν ∂μ = ∫ x, ∫ y, f (x, y) ∂ν ∂μ + ∫ x, ∫ y, g (x, y) ∂ν ∂μ :=
+(integral_fn_integral_add measurable_id hf hg).trans $
+  integral_add hf.integral_prod_left hg.integral_prod_left
 
+/-- Double integrals commute with addition. This is the version with `(f + g) (x, y)`
+  (instead of `f (x, y) + g (x, y)`) in the LHS. -/
 lemma integral_integral_add' ⦃f g : α × β → E⦄
   (hf : integrable f (μ.prod ν))
   (hg : integrable g (μ.prod ν)) :
-  ∫ x, ∫ y, (f + g) (x, y) ∂ν ∂μ = ∫ x, ∫ y, f (x, y) ∂ν + ∫ y, g (x, y) ∂ν ∂μ :=
+  ∫ x, ∫ y, (f + g) (x, y) ∂ν ∂μ = ∫ x, ∫ y, f (x, y) ∂ν ∂μ + ∫ x, ∫ y, g (x, y) ∂ν ∂μ :=
 integral_integral_add hf hg
 
+/-- Double integrals commute with subtraction. -/
 lemma integral_integral_sub ⦃f g : α × β → E⦄
   (hf : integrable f (μ.prod ν))
   (hg : integrable g (μ.prod ν)) :
-  ∫ x, ∫ y, f (x, y) - g (x, y) ∂ν ∂μ = ∫ x, ∫ y, f (x, y) ∂ν - ∫ y, g (x, y) ∂ν ∂μ :=
-integral_fn_integral_sub measurable_id hf hg
+  ∫ x, ∫ y, f (x, y) - g (x, y) ∂ν ∂μ = ∫ x, ∫ y, f (x, y) ∂ν ∂μ - ∫ x, ∫ y, g (x, y) ∂ν ∂μ :=
+(integral_fn_integral_sub measurable_id hf hg).trans $
+  integral_sub hf.integral_prod_left hg.integral_prod_left
 
+/-- Double integrals commute with subtraction. This is the version with `(f - g) (x, y)`
+  (instead of `f (x, y) - g (x, y)`) in the LHS. -/
 lemma integral_integral_sub' ⦃f g : α × β → E⦄
   (hf : integrable f (μ.prod ν))
   (hg : integrable g (μ.prod ν)) :
-  ∫ x, ∫ y, (f - g) (x, y) ∂ν ∂μ = ∫ x, ∫ y, f (x, y) ∂ν - ∫ y, g (x, y) ∂ν ∂μ :=
+  ∫ x, ∫ y, (f - g) (x, y) ∂ν ∂μ = ∫ x, ∫ y, f (x, y) ∂ν ∂μ - ∫ x, ∫ y, g (x, y) ∂ν ∂μ :=
 integral_integral_sub hf hg
 
 /-- The map that sends an L¹-function `f : α × β → E` to `∫∫f` is continuous. -/
@@ -651,9 +691,7 @@ begin
       integral_to_real (measurable_measure_prod_mk_left hs) (ae_measure_lt_top hs h2s),
       prod_apply hs] },
   { intros f g hfg i_f i_g hf hg,
-    simp_rw [integral_add' i_f i_g, hf, hg,
-      ← integral_add i_f.integral_prod_left i_g.integral_prod_left,
-      integral_integral_add' i_f i_g] },
+    simp_rw [integral_add' i_f i_g, integral_integral_add' i_f i_g, hf, hg] },
   { exact is_closed_eq continuous_integral continuous_integral_integral },
   { intros f g hfg i_f m_g hf, convert hf using 1,
     { exact integral_congr_ae m_g i_f.measurable hfg.symm },

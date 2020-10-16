@@ -30,6 +30,7 @@ namespace category_theory
 
 variables {C : Type u} [category.{v} C]
 
+/-- A set of arrows  -/
 @[derive complete_lattice]
 def arrows_with_codomain (X : C) := Π ⦃Y⦄, set (Y ⟶ X)
 
@@ -136,48 +137,36 @@ iff.rfl
 @[simp]
 lemma mem_top (f : Y ⟶ X) : (⊤ : sieve X).arrows f := trivial
 
-/-- Take the downward-closure of a set of morphisms to `X`. -/
-inductive generate_sets (𝒢 : arrows_with_codomain X) : Π (Y : C), set (Y ⟶ X)
-| basic : Π {Y : C} {f : Y ⟶ X}, 𝒢 f → generate_sets _ f
-| close : Π {Y Z} {f : Y ⟶ X} (g : Z ⟶ Y), generate_sets _ f → generate_sets _ (g ≫ f)
-
 /-- Generate the smallest sieve containing the given set of arrows. -/
-def generate (𝒢 : arrows_with_codomain X) : sieve X :=
-{ arrows := generate_sets 𝒢,
-  downward_closed := λ _ _ _ h _, generate_sets.close _ h }
+def generate (R : arrows_with_codomain X) : sieve X :=
+{ arrows := λ Z f, ∃ Y (h : Z ⟶ Y) (g : Y ⟶ X), R g ∧ h ≫ g = f,
+  downward_closed :=
+  begin
+    rintro Y Z _ ⟨W, g, f, hf, rfl⟩ h,
+    exact ⟨_, h ≫ g, _, hf, by simp⟩,
+  end }
 
-lemma mem_generate (𝒢 : arrows_with_codomain X) (f : Y ⟶ X) :
-  (generate 𝒢).arrows f ↔ ∃ (Z : C) (g : Z ⟶ X) (h : Y ⟶ Z), 𝒢 g ∧ h ≫ g = f :=
-begin
-  split,
-  { intro hf,
-    induction hf,
-    case basic : X g hg { exact ⟨_, g, 𝟙 _, hg, category.id_comp _⟩ },
-    case close : Y₁ Z f g hf₁ hf₂
-    { rcases hf₂ with ⟨W, h, k, h𝒢, rfl⟩, exact ⟨_, _, _, h𝒢, category.assoc _ _ _⟩ } },
-  { rintro ⟨_, _, _, hg, rfl⟩,
-    apply sieve.downward_closed,
-    apply generate_sets.basic hg }
-end
+lemma mem_generate (R : arrows_with_codomain X) (f : Z ⟶ X) :
+  (generate R).arrows f ↔ ∃ (Y : C) (h : Z ⟶ Y) (g : Y ⟶ X), R g ∧ h ≫ g = f :=
+iff.rfl
 
 open order lattice
 
-lemma sets_iff_generate (S : arrows_with_codomain X) (S' : sieve X) :
-  generate S ≤ S' ↔ S ≤ S'.arrows :=
-⟨λ H Y g hg, H Y g (generate_sets.basic hg),
-λ ss Y f hf,
-begin
-  induction hf,
-  case basic : Z g hg { exact ss _ hg },
-  case close : Y Z f g hf₁ hf₂ { exact S'.downward_closed hf₂ _ },
-end⟩
+lemma sets_iff_generate (R : arrows_with_codomain X) (S : sieve X) :
+  generate R ≤ S ↔ R ≤ S.arrows :=
+⟨λ H Y g hg, H _ _ ⟨_, 𝟙 _, _, hg, category.id_comp _⟩,
+ λ ss Y f,
+  begin
+    rintro ⟨Z, f, g, hg, rfl⟩,
+    exact S.downward_closed (ss Z hg) f,
+  end⟩
 
 /-- Show that there is a galois insertion (generate, set_over). -/
 def gi_generate : galois_insertion (generate : arrows_with_codomain X → sieve X) arrows :=
 { gc := sets_iff_generate,
   choice := λ 𝒢 _, generate 𝒢,
   choice_eq := λ _ _, rfl,
-  le_l_u := λ S Y f hf, generate_sets.basic hf }
+  le_l_u := λ S Y f hf, ⟨_, 𝟙 _, _, hf, category.id_comp _⟩ }
 
 /-- Given a morphism `h : Y ⟶ X`, send a sieve S on X to a sieve on Y
     as the inverse image of S with `_ ≫ h`.

@@ -675,11 +675,11 @@ begin
       simp only [le_zero_iff_eq, not_lt] at h,
       simp only [h, zero_mul, pnat.ne_zero] at hd,
       exact hd },
-      calc  x ^ ↑n
-          = x ^ (a * d)  : by rw hd
-      ... = (x ^ a) ^ d  : pow_mul x a d
-      ... = 1 ^ d        : by rw ((mem_primitive_roots hazero).1 ha.2).1
-      ... = 1            : one_pow d },
+    calc  x ^ ↑n
+        = x ^ (a * d)  : by rw hd
+    ... = (x ^ a) ^ d  : pow_mul x a d
+    ... = 1 ^ d        : by rw ((mem_primitive_roots hazero).1 ha.2).1
+    ... = 1            : one_pow d },
   { simp only [card_mk],
     rw card_nth_roots h,
     apply le_of_eq,

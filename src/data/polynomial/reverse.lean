@@ -53,13 +53,7 @@ def rev_at (N : ℕ) : function.embedding ℕ ℕ :=
     inj' := rev_at_fun_inj }
 
 @[simp] lemma rev_at_invol {N i : ℕ} : (rev_at N) (rev_at N i) = i :=
-begin
-  rw [rev_at, function.embedding.coe_fn_mk],
-  split_ifs with h j,
-  { exact nat.sub_sub_self h, },
-  { exact false.rec (N - i = i) (j (nat.sub_le N i)), },
-  { exact eq.refl i, },
-end
+rev_at_fun_invol
 
 @[simp] lemma rev_at_le {N i : ℕ} (H : i ≤ N) : rev_at N i = N - i :=
 if_pos H

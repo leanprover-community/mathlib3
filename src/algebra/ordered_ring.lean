@@ -796,6 +796,8 @@ namespace nonneg_ring
 open nonneg_add_comm_group
 variable [nonneg_ring α]
 
+/-- Construct `ordered_ring` from `nonneg_ring`. This is not an instance
+because it is not used in `mathlib`. -/
 local attribute [instance]
 def to_ordered_ring : ordered_ring α :=
 { zero_lt_one := begin dsimp [(<), preorder.lt, partial_order.lt], convert one_pos, exact sub_zero _, end,
@@ -843,11 +845,15 @@ instance to_nonneg_ring : nonneg_ring α :=
       (ne_of_gt (pos_def.1 pb))⟩,
   ..‹linear_nonneg_ring α› }
 
+/-- Construct `linear_order` from `linear_nonneg_ring`. This is not an instance
+because we don't use it in `mathlib`. -/
 local attribute [instance]
 def to_linear_order : linear_order α :=
 { le_total := nonneg_total_iff.1 nonneg_total,
   ..‹linear_nonneg_ring α›, ..(infer_instance : ordered_add_comm_group α) }
 
+/-- Construct `linear_ordered_ring` from `linear_nonneg_ring`.
+This is not an instance because we don't use it in `mathlib`. -/
 local attribute [instance]
 def to_linear_ordered_ring : linear_ordered_ring α :=
 { mul_pos := by simp [pos_def.symm]; exact @nonneg_ring.mul_pos _ _,

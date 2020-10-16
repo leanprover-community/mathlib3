@@ -65,6 +65,9 @@ three axioms:
    `f : Y ⟶ X` in `S` is in `J Y`, we have that `R` itself is in `J X`.
 
 A sieve `S` on `X` is referred to as `J`-covering, (or just covering), if `S ∈ J X`.
+
+See https://stacks.math.columbia.edu/tag/00Z4, or [nlab], or [MM92] Chapter III, Section 2,
+Definition 1.
 -/
 @[ext]
 structure grothendieck_topology :=
@@ -96,6 +99,12 @@ J.transitive' hS R h
 
 lemma covering_of_eq_top : S = ⊤ → S ∈ J X := λ h, h.symm ▸ J.top_mem X
 
+/--
+If `S` is a subset of `R`, and `S` is covering, then `R` is covering as well.
+
+See https://stacks.math.columbia.edu/tag/00Z5 (2), or discussion after [MM92] Chapter III,
+Section 2, Definition 1.
+-/
 lemma superset_covering (Hss : S ≤ R) (sjx : S ∈ J X) : R ∈ J X :=
 begin
   apply J.transitive sjx R (λ Y f hf, _),
@@ -104,6 +113,12 @@ begin
   apply sieve.pullback_monotone _ Hss,
 end
 
+/--
+The intersection of two covering sieves is covering.
+
+See https://stacks.math.columbia.edu/tag/00Z5 (1), or [MM92] Chapter III,
+Section 2, Definition 1 (iv).
+-/
 lemma intersection_covering (rj : R ∈ J X) (sj : S ∈ J X) : R ⊓ S ∈ J X :=
 begin
   apply J.transitive rj _ (λ Y f Hf, _),
@@ -136,7 +151,7 @@ begin
 end
 
 /-- The stability axiom in 'arrow' form: If `S` covers `f` then `S` covers `g ≫ f` for any `g`. -/
-lemma arrow_stab (f : Y ⟶ X) (S : sieve X) (h : J.covers S f) {Z : C} (g : Z ⟶ Y) :
+lemma arrow_stable (f : Y ⟶ X) (S : sieve X) (h : J.covers S f) {Z : C} (g : Z ⟶ Y) :
   J.covers S (g ≫ f) :=
 begin
   rw covers_iff at h ⊢,
@@ -162,7 +177,13 @@ lemma arrow_intersect (f : Y ⟶ X) (S R : sieve X) (hS : J.covers S f) (hR : J.
 by simpa [covers_iff] using and.intro hS hR
 
 variable (C)
-/-- The trivial Grothendieck topology, in which only the maximal sieve is covering. -/
+/--
+The trivial Grothendieck topology, in which only the maximal sieve is covering. This topology is
+also known as the indiscrete, coarse, or chaotic topology.
+
+See [MM92] Chapter III, Section 2, example (a), or
+https://en.wikipedia.org/wiki/Grothendieck_topology#The_discrete_and_indiscrete_topologies
+-/
 def trivial : grothendieck_topology C :=
 { sieves := λ X, {⊤},
   top_mem' := λ X, rfl,
@@ -177,7 +198,11 @@ def trivial : grothendieck_topology C :=
     simpa using hR hS,
   end }
 
-/-- The discrete Grothendieck topology, in which every sieve is covering. -/
+/--
+The discrete Grothendieck topology, in which every sieve is covering.
+
+See https://en.wikipedia.org/wiki/Grothendieck_topology#The_discrete_and_indiscrete_topologies.
+-/
 def discrete : grothendieck_topology C :=
 { sieves := λ X, set.univ,
   top_mem' := by simp,
@@ -185,12 +210,16 @@ def discrete : grothendieck_topology C :=
   transitive' := by simp }
 variable {C}
 
+lemma trivial_covering : S ∈ trivial C X ↔ S = ⊤ := set.mem_singleton_iff
+
+/-- See https://stacks.math.columbia.edu/tag/00Z6 -/
 instance : partial_order (grothendieck_topology C) :=
 { le := λ J₁ J₂, (J₁ : Π (X : C), set (sieve X)) ≤ (J₂ : Π (X : C), set (sieve X)),
   le_refl := λ J₁, le_refl _,
   le_trans := λ J₁ J₂ J₃ h₁₂ h₂₃, le_trans h₁₂ h₂₃,
   le_antisymm := λ J₁ J₂ h₁₂ h₂₁, grothendieck_topology.ext _ _ (le_antisymm h₁₂ h₂₁) }
 
+/-- See https://stacks.math.columbia.edu/tag/00Z7 -/
 instance : has_Inf (grothendieck_topology C) :=
 { Inf := λ T,
   { sieves := Inf (sieves '' T),
@@ -210,6 +239,7 @@ instance : has_Inf (grothendieck_topology C) :=
       apply J.transitive (hS _ ⟨⟨_, _, hJ, rfl⟩, rfl⟩) _ (λ Y f hf, h hf _ ⟨⟨_, _, hJ, rfl⟩, rfl⟩),
     end } }
 
+/-- See https://stacks.math.columbia.edu/tag/00Z7 -/
 lemma is_glb_Inf (s : set (grothendieck_topology C)) : is_glb s (Inf s) :=
 begin
   refine @is_glb.of_image _ _ _ _ sieves _ _ _ _,
@@ -217,8 +247,10 @@ begin
   { exact is_glb_Inf _ },
 end
 
-lemma trivial_covering : S ∈ trivial C X ↔ S = ⊤ := set.mem_singleton_iff
-
+/--
+Construct a complete lattice from the `Inf`, but make the trivial and discrete topologies
+definitionally equal to the bottom and top respectively.
+-/
 instance : complete_lattice (grothendieck_topology C) :=
 complete_lattice.copy
 (complete_lattice_of_Inf _ is_glb_Inf)
@@ -243,8 +275,9 @@ _ rfl
 _ rfl
 Inf rfl
 
-@[simp] lemma trivial_eq_bot : trivial C = ⊥ := rfl
+instance : inhabited (grothendieck_topology C) := ⟨⊤⟩
 
+@[simp] lemma trivial_eq_bot : trivial C = ⊥ := rfl
 @[simp] lemma discrete_eq_top : discrete C = ⊤ := rfl
 
 @[simp] lemma bot_covering : S ∈ (⊥ : grothendieck_topology C) X ↔ S = ⊤ := trivial_covering
@@ -257,7 +290,11 @@ by rw [covers_iff, bot_covering, ← sieve.pullback_eq_top_iff_mem]
 @[simp] lemma top_covers (S : sieve X) (f : Y ⟶ X) : (⊤ : grothendieck_topology C).covers S f :=
 by simp [covers_iff]
 
-/-- The dense Grothendieck topology. -/
+/--
+The dense Grothendieck topology.
+
+See https://ncatlab.org/nlab/show/dense+topology, or [MM92] Chapter III, Section 2, example (e).
+-/
 def dense : grothendieck_topology C :=
 { sieves := λ X S, ∀ {Y : C} (f : Y ⟶ X), ∃ Z (g : Z ⟶ Y), S.arrows (g ≫ f),
   top_mem' := λ X Y f, ⟨Y, 𝟙 Y, ⟨⟩⟩,
@@ -275,7 +312,8 @@ def dense : grothendieck_topology C :=
     exact ⟨W, (h ≫ g), by simpa using H₄⟩,
   end }
 
-instance : inhabited (grothendieck_topology C) := ⟨dense⟩
+lemma dense_covering : S ∈ dense X ↔ ∀ {Y} (f : Y ⟶ X), ∃ Z (g : Z ⟶ Y), S.arrows (g ≫ f) :=
+iff.rfl
 
 /--
 A category satisfies the right Ore condition if any span can be completed to a commutative square.
@@ -291,6 +329,8 @@ lemma right_ore_of_pullbacks [limits.has_pullbacks C] : right_ore_condition C :=
 /--
 The atomic Grothendieck topology: a sieve is covering iff it is nonempty.
 For the pullback stability condition, we need the right Ore condition to hold.
+
+See https://ncatlab.org/nlab/show/atomic+site, or [MM92] Chapter III, Section 2, example (f).
 -/
 def atomic (hro : right_ore_condition C) : grothendieck_topology C :=
 { sieves := λ X S, ∃ Y (f : Y ⟶ X), S.arrows f,
@@ -308,9 +348,6 @@ def atomic (hro : right_ore_condition C) : grothendieck_topology C :=
     rcases h hf with ⟨Z, g, hg⟩,
     exact ⟨_, _, hg⟩,
   end }
-
-lemma dense_covering : S ∈ dense X ↔ ∀ {Y} (f : Y ⟶ X), ∃ Z (g : Z ⟶ Y), S.arrows (g ≫ f) :=
-iff.rfl
 
 end grothendieck_topology
 

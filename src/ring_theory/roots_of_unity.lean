@@ -619,7 +619,7 @@ begin
 end
 
 /-The sets `primitive_roots k R` are pairwise disjoint. -/
-lemma prim_roots_disjoint {k l : ℕ} (hk : 0 < k) (hl : 0 < l) (h : k ≠ l) :
+lemma primitive_roots_disjoint {k l : ℕ} (hk : 0 < k) (hl : 0 < l) (h : k ≠ l) :
   disjoint (primitive_roots k R) (primitive_roots l R) :=
 begin
   intros z hz,

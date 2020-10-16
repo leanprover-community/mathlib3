@@ -1126,7 +1126,8 @@ structure affine_map (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Ty
 instance (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Type*)
     [ring k]
     [add_comm_group V1] [module k V1] [affine_space V1 P1]
-    [add_comm_group V2] [module k V2] [affine_space V2 P2]: has_coe_to_fun (affine_map k P1 P2) := ⟨_, affine_map.to_fun⟩
+    [add_comm_group V2] [module k V2] [affine_space V2 P2]:
+    has_coe_to_fun (affine_map k P1 P2) := ⟨_, affine_map.to_fun⟩
 
 namespace linear_map
 
@@ -1343,6 +1344,8 @@ instance : monoid (affine_map k P1 P1) :=
 @[simp] lemma coe_mul (f g : affine_map k P1 P1) : ⇑(f * g) = f ∘ g := rfl
 @[simp] lemma coe_one : ⇑(1 : affine_map k P1 P1) = _root_.id := rfl
 
+/-! ### Definition of `affine_map.line_map` and lemmas about it -/
+
 /-- The affine map from `k` to `P1` sending `0` to `p₀` and `1` to `p₁`. -/
 def line_map (p₀ p₁ : P1) : affine_map k k P1 :=
 ((linear_map.id : k →ₗ[k] k).smul_right (p₁ -ᵥ p₀)).to_affine_map +ᵥ const k k p₀
@@ -1350,6 +1353,10 @@ def line_map (p₀ p₁ : P1) : affine_map k k P1 :=
 lemma coe_line_map (p₀ p₁ : P1) : (line_map p₀ p₁ : k → P1) = λ c, c • (p₁ -ᵥ p₀) +ᵥ p₀ := rfl
 
 lemma line_map_apply (p₀ p₁ : P1) (c : k) : line_map p₀ p₁ c = c • (p₁ -ᵥ p₀) +ᵥ p₀ := rfl
+
+lemma line_map_vadd_apply (p : P1) (v : V1) (c : k) :
+  line_map p (v +ᵥ p) c = c • v +ᵥ p :=
+by rw [line_map_apply, vadd_vsub]
 
 @[simp] lemma line_map_linear (p₀ p₁ : P1) :
   (line_map p₀ p₁ : affine_map k k P1).linear = linear_map.id.smul_right (p₁ -ᵥ p₀) :=

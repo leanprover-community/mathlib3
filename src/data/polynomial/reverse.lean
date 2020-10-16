@@ -29,7 +29,7 @@ This is the map used by the embedding `rev_at`.
 -/
 def rev_at_fun (N i : ℕ) : ℕ := ite (i ≤ N) (N-i) i
 
-@[simp] lemma rev_at_fun_invol {N i : ℕ} : rev_at_fun N (rev_at_fun N i) = i :=
+lemma rev_at_fun_invol {N i : ℕ} : rev_at_fun N (rev_at_fun N i) = i :=
 begin
   unfold rev_at_fun,
   split_ifs with h j,

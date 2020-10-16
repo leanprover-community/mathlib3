@@ -1834,8 +1834,8 @@ Compare with ennreal.has_sub.
 Specifically, note that if you have α = {1,2}, and  a {1} = 2, a {2} = 0, and 
 b {2} = 2, b {1} = 0, then (a - b) {1, 2} = 2. However, if a ≤ b, and
 b set.univ ≠ ⊤, then (a - b) + b = a. -/
-noncomputable instance has_sub {α:Type*}
-  [measurable_space α]:has_sub (measure_theory.measure α) := ⟨λa b, Inf {d | a ≤ d + b}⟩
+noncomputable instance has_sub {α : Type*} [measurable_space α] : has_sub (measure α) := 
+⟨λ μ ν, Inf {τ | μ ≤ τ + ν}⟩
 
 section measure_sub
 variables {α:Type*} [M:measurable_space α] {μ ν ν₁ ν₂:measure_theory.measure α}

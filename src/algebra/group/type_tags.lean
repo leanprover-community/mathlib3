@@ -36,9 +36,9 @@ def of_mul : α ≃ additive α := ⟨λ x, x, λ x, x, λ x, rfl, λ x, rfl⟩
 /-- Reinterpret `x : additive α` as an element of `α`. -/
 def to_mul : additive α ≃ α := of_mul.symm
 
-@[simp] def of_mul_symm_eq : (@of_mul α).symm = to_mul := rfl
+@[simp] lemma of_mul_symm_eq : (@of_mul α).symm = to_mul := rfl
 
-@[simp] def to_mul_symm_eq : (@to_mul α).symm = of_mul := rfl
+@[simp] lemma to_mul_symm_eq : (@to_mul α).symm = of_mul := rfl
 
 end additive
 
@@ -50,9 +50,9 @@ def of_add : α ≃ multiplicative α := ⟨λ x, x, λ x, x, λ x, rfl, λ x, r
 /-- Reinterpret `x : multiplicative α` as an element of `α`. -/
 def to_add : multiplicative α ≃ α := of_add.symm
 
-@[simp] def of_add_symm_eq : (@of_add α).symm = to_add := rfl
+@[simp] lemma of_add_symm_eq : (@of_add α).symm = to_add := rfl
 
-@[simp] def to_add_symm_eq : (@to_add α).symm = of_add := rfl
+@[simp] lemma to_add_symm_eq : (@to_add α).symm = of_add := rfl
 
 end multiplicative
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors : Anne Baanen
 -/
 
-import ring_theory.subring
+import algebra.algebra.basic
 
 /-!
 # Subfields
@@ -209,6 +209,8 @@ instance to_field : field s :=
 def subtype (s : subfield K) : s →+* K :=
 { to_fun := coe,
  .. s.to_submonoid.subtype, .. s.to_add_subgroup.subtype }
+
+instance to_algebra : algebra s K := ring_hom.to_algebra s.subtype
 
 @[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
 

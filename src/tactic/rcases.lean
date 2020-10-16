@@ -397,6 +397,30 @@ meta def rcases (h : option name) (p : pexpr) (pat : rcases_patt) : tactic unit 
     h ← tactic.intro1,
     focus1 (rcases_core pat h >>= clear_goals)
 
+/-- `rcases_many es pats` performs case distinction on the `es` using `pat` to
+name the arising new variables and assumptions.
+See the module comment for the syntax of `pat`. -/
+meta def rcases_many (ps : listΠ pexpr) (pat : rcases_patt) : tactic unit := do
+  let (_, pats) := rcases.process_constructor ps.length pat.as_tuple,
+  pes ← (ps.zip pats).mmap (λ ⟨p, pat⟩, do
+    let p := match pat with
+    | rcases_patt.typed _ ty := ``(%%p : %%ty)
+    | _ := p
+    end,
+    e ← i_to_expr p,
+    if e.is_local_constant then
+      pure (pat, e)
+    else do
+      x ← pat.name.elim mk_fresh_name pure,
+      n ← revert_kdependencies e semireducible,
+      tactic.generalize e x <|> (do
+        t ← infer_type e,
+        tactic.assertv x t e,
+        get_local x >>= tactic.revert,
+        pure ()),
+      prod.mk pat <$> tactic.intro1),
+  focus1 (rcases.continue pes >>= clear_goals)
+
 /-- `rintro pat₁ pat₂ ... patₙ` introduces `n` arguments, then pattern matches on the `patᵢ` using
 the same syntax as `rcases`. -/
 meta def rintro (ids : listΠ rcases_patt) : tactic unit :=
@@ -508,6 +532,31 @@ do e ← i_to_expr p,
     focus1 $ do (p, gs) ← rcases_hint_core depth h, set_goals gs, pure p
 
 /--
+* `rcases? ⟨e1, e2, e3⟩` is like `rcases ⟨e1, e2, e3⟩ with ...`, except it
+  generates `...` by matching on everything it can, and it outputs an `rcases`
+  invocation that should have the same effect.
+* `rcases? ⟨e1, e2, e3⟩ : n` can be used to control the depth of case splits
+  (especially important for recursive types like `nat`, which can be cased as many
+  times as you like). -/
+meta def rcases_hint_many (ps : list pexpr) (depth : nat) : tactic (listΠ rcases_patt) :=
+do es ← ps.mmap (λ p, do
+    e ← i_to_expr p,
+    if e.is_local_constant then pure e
+    else do
+      x ← mk_fresh_name,
+      n ← revert_kdependencies e semireducible,
+      tactic.generalize e x <|> (do
+        t ← infer_type e,
+        tactic.assertv x t e,
+        get_local x >>= tactic.revert,
+        pure ()),
+      tactic.intro1),
+  focus1 $ do
+    (ps, gs) ← rcases_hint.continue depth es,
+    set_goals gs,
+    pure ps
+
+/--
 * `rintro?` is like `rintro ...`, except it generates `...` by introducing and matching on
 everything it can, and it outputs an `rintro` invocation that should have the same effect.
 * `rintro? : n` can be used to control the depth of case splits (especially important for
@@ -567,21 +616,42 @@ do o ← (tk ":" *> small_nat)?, pure $ o.get_or_else 5
 
 precedence `?`:max
 
+/-- The arguments to `rcases`, which in fact dispatch to several other tactics.
+* `rcases? expr (: n)?` or `rcases? ⟨expr, ...⟩ (: n)?` calls `rcases_hint`
+* `rcases? ⟨expr, ...⟩ (: n)?` calls `rcases_hint_many`
+* `rcases (h :)? expr (with patt)?` calls `rcases`
+* `rcases ⟨expr, ...⟩ (with patt)?` calls `rcases_many`
+-/
+@[derive has_reflect]
+meta inductive rcases_args
+| hint (tgt : pexpr ⊕ list pexpr) (depth : nat)
+| rcases (name : option name) (tgt : pexpr) (pat : rcases_patt)
+| rcases_many (tgt : listΠ pexpr) (pat : rcases_patt)
+
 /-- Syntax for a `rcases` pattern:
 * `rcases? expr (: n)?`
 * `rcases (h :)? expr (with patt_list (: expr)?)?`. -/
-meta def rcases_parse : parser (pexpr × ((option name × rcases_patt) ⊕ nat)) :=
+meta def rcases_parse : parser rcases_args :=
 with_desc "('?' expr (: n)?) | ((h :)? expr (with patt)?)" $ do
   hint ← (tk "?")?,
-  p ← texpr,
+  p ← (sum.inr <$> brackets "⟨" "⟩" (sep_by (tk ",") (parser.pexpr 0))) <|>
+      (sum.inl <$> texpr),
   match hint with
   | none := do
-    (h, p) ←
-    (do expr.local_const h _ _ _ ← pure p, tk ":" *> prod.mk (some h) <$> texpr) <|>
-      pure (none, p),
+    p ← (do
+      sum.inl (expr.local_const h _ _ _) ← pure p,
+      tk ":" *> (@sum.inl _ (pexpr ⊕ list pexpr) ∘ prod.mk h) <$> texpr) <|>
+      pure (sum.inr p),
     ids ← (tk "with" *> rcases_patt_parse ff)?,
-    pure (p, sum.inl (h, ids.get_or_else (rcases_patt.tuple [])))
-  | some _ := do depth ← rcases_parse_depth, pure (p, sum.inr depth)
+    let ids := ids.get_or_else (rcases_patt.tuple []),
+    pure $ match p with
+    | sum.inl (name, tgt) := rcases_args.rcases (some name) tgt ids
+    | sum.inr (sum.inl tgt) := rcases_args.rcases none tgt ids
+    | sum.inr (sum.inr tgts) := rcases_args.rcases_many tgts ids
+    end
+  | some _ := do
+    depth ← rcases_parse_depth,
+    pure $ rcases_args.hint p depth
   end
 
 /-- Syntax for a `rintro` pattern: `('?' (: n)?) | patt*`. -/
@@ -640,10 +710,16 @@ pattern that would produce this case splitting. The default maximum depth is 5,
 but this can be modified with `rcases? e : n`.
 -/
 meta def rcases : parse rcases_parse → tactic unit
-| (p, sum.inl (h, ids)) := tactic.rcases h p ids
-| (p, sum.inr depth) := do
-  patt ← tactic.rcases_hint p depth,
-  pe ← pp p,
+| (rcases_args.rcases h p ids) := tactic.rcases h p ids
+| (rcases_args.rcases_many ps ids) := tactic.rcases_many ps ids
+| (rcases_args.hint p depth) := do
+  (pe, patt) ← match p with
+  | sum.inl p := prod.mk <$> pp p <*> rcases_hint p depth
+  | sum.inr ps := do
+    patts ← rcases_hint_many ps depth,
+    pes ← ps.mmap pp,
+    pure (format.bracket "⟨" "⟩" (format.comma_separated pes), rcases_patt.tuple patts)
+  end,
   ppat ← pp patt,
   trace $ ↑"Try this: rcases " ++ pe ++ " with " ++ ppat
 
@@ -689,15 +765,24 @@ add_tactic_doc
 
 setup_tactic_parser
 
-/-- Parses `patt? (: expr)?`. (This is almost the same as `-/
-meta def obtain_parse : parser (option rcases_patt × option pexpr) :=
-with_desc "patt? (: expr)?" $
-  (do pat ← rcases_patt_parse ff,
-    pure $ match pat with
-    | rcases_patt.typed pat tp := (some pat, some tp)
-    | _ := (some pat, none)
-    end) <|>
-  prod.mk none <$> (tk ":" >> texpr)?
+/-- Parses `patt? (: expr)? (:= expr)?`, the arguments for `obtain`.
+ (This is almost the same as `rcases_patt_parse ff`,
+but it allows the pattern part to be empty.) -/
+meta def obtain_parse :
+  parser ((option rcases_patt × option pexpr) × option (pexpr ⊕ list pexpr)) :=
+with_desc "patt? (: expr)? (:= expr)?" $ do
+  (pat, tp) ←
+    (do pat ← rcases_patt_parse ff,
+      pure $ match pat with
+      | rcases_patt.typed pat tp := (some pat, some tp)
+      | _ := (some pat, none)
+      end) <|>
+    prod.mk none <$> (tk ":" >> texpr)?,
+  prod.mk (pat, tp) <$> (do
+    tk ":=",
+    (guard tp.is_none >>
+      sum.inr <$> brackets "⟨" "⟩" (sep_by (tk ",") (parser.pexpr 0))) <|>
+    (sum.inl <$> texpr))?
 
 /--
 The `obtain` tactic is a combination of `have` and `rcases`. See `rcases` for
@@ -720,10 +805,14 @@ If `⟨patt⟩` is omitted, `rcases` will try to infer the pattern.
 
 If `type` is omitted, `:= proof` is required.
 -/
-meta def obtain : parse obtain_parse → parse (tk ":=" >> texpr)? → tactic unit
-| (pat, none) (some val) := tactic.rcases none val (pat.get_or_else (default _))
-| (pat, some tp) (some val) := tactic.rcases none val $ (pat.get_or_else (default _)).typed tp
-| (pat, some tp) none := do
+meta def obtain : parse obtain_parse → tactic unit
+| ((pat, _), some (sum.inr val)) :=
+  tactic.rcases_many val (pat.get_or_else (default _))
+| ((pat, none), some (sum.inl val)) :=
+  tactic.rcases none val (pat.get_or_else (default _))
+| ((pat, some tp), some (sum.inl val)) :=
+  tactic.rcases none val $ (pat.get_or_else (default _)).typed tp
+| ((pat, some tp), none) := do
   nm ← mk_fresh_name,
   e ← to_expr tp >>= assert nm,
   (g :: gs) ← get_goals,
@@ -731,7 +820,7 @@ meta def obtain : parse obtain_parse → parse (tk ":=" >> texpr)? → tactic un
   tactic.rcases none ``(%%e) (pat.get_or_else (rcases_patt.one `this)),
   gs ← get_goals,
   set_goals (g::gs)
-| (pat, none) none :=
+| ((pat, none), none) :=
   fail $ "`obtain` requires either an expected type or a value.\n" ++
          "usage: `obtain ⟨patt⟩? : type (:= val)?` or `obtain ⟨patt⟩? (: type)? := val`"
 

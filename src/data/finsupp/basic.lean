@@ -102,6 +102,9 @@ lemma ext_iff {f g : α →₀ β} : f = g ↔ (∀a:α, f a = g a) :=
 ⟨assume h, ext $ assume a, by_contradiction $ λ H, (finset.ext_iff.1 h a).1 $
   mem_support_iff.2 H, by rintro rfl; refl⟩
 
+lemma card_support_eq_zero {f : α →₀ β} : card f.support = 0 ↔ f = 0 :=
+by simp
+
 instance finsupp.decidable_eq [decidable_eq α] [decidable_eq β] : decidable_eq (α →₀ β) :=
 assume f g, decidable_of_iff (f.support = g.support ∧ (∀a∈f.support, f a = g a))
   ⟨assume ⟨h₁, h₂⟩, ext $ assume a,
@@ -174,6 +177,15 @@ assume b₁ b₂ eq,
 have (single a b₁ : α →₀ β) a = (single a b₂ : α →₀ β) a, by rw eq,
 by rwa [single_eq_same, single_eq_same] at this
 
+lemma eq_single_iff {f : α →₀ β} {a b} : f = single a b ↔ f.support ⊆ {a} ∧ f a = b :=
+begin
+  refine ⟨λ h, h.symm ▸ ⟨support_single_subset, single_eq_same⟩, _⟩,
+  rintro ⟨h, rfl⟩,
+  ext x,
+  by_cases hx : a = x; simp only [hx, single_eq_same, single_eq_of_ne, ne.def, not_false_iff],
+  exact not_mem_support_iff.1 (mt (λ hx, (mem_singleton.1 (h hx)).symm) hx)
+end
+
 lemma single_eq_single_iff (a₁ a₂ : α) (b₁ b₂ : β) :
   single a₁ b₁ = single a₂ b₂ ↔ ((a₁ = a₂ ∧ b₁ = b₂) ∨ (b₁ = 0 ∧ b₂ = 0)) :=
 begin
@@ -218,6 +230,22 @@ lemma unique_ext_iff [unique α] {f g : α →₀ β} : f = g ↔  f (default α
 @[simp] lemma unique_single_eq_iff [unique α] {b' : β} :
   single a b = single a' b' ↔ b = b' :=
 by rw [unique_ext_iff, unique.eq_default a, unique.eq_default a', single_eq_same, single_eq_same]
+
+lemma support_eq_singleton {f : α →₀ β} {a : α} :
+  f.support = {a} ↔ f a ≠ 0 ∧ f = single a (f a) :=
+⟨λ h, ⟨mem_support_iff.1 $ h.symm ▸ finset.mem_singleton_self a,
+  eq_single_iff.2 ⟨subset_of_eq h, rfl⟩⟩, λ h, h.2.symm ▸ support_single_ne_zero h.1⟩
+
+lemma support_eq_singleton' {f : α →₀ β} {a : α} :
+  f.support = {a} ↔ ∃ b ≠ 0, f = single a b :=
+⟨λ h, let h := support_eq_singleton.1 h in ⟨_, h.1, h.2⟩,
+  λ ⟨b, hb, hf⟩, hf.symm ▸ support_single_ne_zero hb⟩
+
+lemma card_support_eq_one {f : α →₀ β} : card f.support = 1 ↔ ∃ a, f a ≠ 0 ∧ f = single a (f a) :=
+by simp only [card_eq_one, support_eq_singleton]
+
+lemma card_support_eq_one' {f : α →₀ β} : card f.support = 1 ↔ ∃ a (b ≠ 0), f = single a b :=
+by simp only [card_eq_one, support_eq_singleton']
 
 end single
 
@@ -441,6 +469,10 @@ begin
   { rw [hs, erase_same, single_eq_of_ne (h.symm)] },
   { rw [erase_ne hs] }
 end
+
+@[simp] lemma erase_zero [has_zero β] (a : α) :
+  erase a (0 : α →₀ β) = 0 :=
+by rw [← support_eq_empty, support_erase, support_zero, erase_empty]
 
 end erase
 

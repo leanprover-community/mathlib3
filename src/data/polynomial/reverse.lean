@@ -24,9 +24,7 @@ variables {R : Type*} [semiring R] {f : polynomial R}
 
 namespace rev
 /-- If `i ≤ N`, then `rev_at_fun N i` returns `N - i`, otherwise it returns `i`.
-
-Essentially, this function is only used for `i ≤ N`.
-The advantage of `rev_at_fun N i` over `N - i` is that `rev_at_fun` is an involution.
+This is the map used by the embedding `rev_at`.
 -/
 def rev_at_fun (N i : ℕ) : ℕ := ite (i ≤ N) (N-i) i
 
@@ -47,29 +45,31 @@ begin
   rw [← @rev_at_fun_invol N a, hab, rev_at_fun_invol],
 end
 
-/-- `rev_at N` is `rev_at_fun N` bundled as an embedding. -/
+/-- If `i ≤ N`, then `rev_at N i` returns `N - i`, otherwise it returns `i`.
+Essentially, this embedding is only used for `i ≤ N`.
+The advantage of `rev_at N i` over `N - i` is that `rev_at` is an involution.
+-/
 def rev_at (N : ℕ) : function.embedding ℕ ℕ :=
-  { to_fun := λ i , (ite (i ≤ N) (N-i) i),
-    inj' := rev_at_fun_inj }
+{ to_fun := λ i , (ite (i ≤ N) (N-i) i),
+  inj' := rev_at_fun_inj }
+
+/-- We prefer to use the bundled `rev_at` over unbundled `rev_at_fun`. -/
+@[simp] lemma rev_at_fun_eq (N i : ℕ) : rev_at_fun N i = rev_at N i := rfl
 
 @[simp] lemma rev_at_invol {N i : ℕ} : (rev_at N) (rev_at N i) = i :=
-begin
-  rw [rev_at, function.embedding.coe_fn_mk],
-  split_ifs with h j,
-  { exact nat.sub_sub_self h, },
-  { exact false.rec (N - i = i) (j (nat.sub_le N i)), },
-  { exact eq.refl i, },
-end
+rev_at_fun_invol
 
 @[simp] lemma rev_at_le {N i : ℕ} (H : i ≤ N) : rev_at N i = N - i :=
 if_pos H
 
 /-- `reflect N f` is the polynomial such that `(reflect N f).coeff i = f.coeff (rev_at N i)`.
 In other words, the terms with exponent `[0, ..., N]` now have exponent `[N, ..., 0]`.
- In practice, `reflect` is only used when `N` is at least as large as the degree of `f`.
- Eventually, it will be used with `N` exactly equal to the degree of `f`.  -/
+
+In practice, `reflect` is only used when `N` is at least as large as the degree of `f`.
+
+Eventually, it will be used with `N` exactly equal to the degree of `f`.  -/
 noncomputable def reflect (N : ℕ) (f : polynomial R) : polynomial R :=
-  finsupp.emb_domain (rev_at N) f
+finsupp.emb_domain (rev_at N) f
 
 lemma reflect_support (N : ℕ) (f : polynomial R) :
   (reflect N f).support = image (rev_at N) f.support :=
@@ -128,6 +128,7 @@ lemma reflect_mul_induction (cf cg : ℕ) :
  (reflect (N + O) (f * g)) = (reflect N f) * (reflect O g) :=
 begin
   induction cf with cf hcf,
+  refine (polynomial.div.rec_on_horner f) _ _ _,
   --first induction: base case
   { induction cg with cg hcg,
     -- second induction: base case
@@ -185,21 +186,18 @@ noncomputable def reverse (f : polynomial R) : polynomial R := reflect f.nat_deg
 
 theorem reverse_mul {f g : polynomial R} (fg : f.leading_coeff * g.leading_coeff ≠ 0) :
  reverse (f * g) = reverse f * reverse g :=
-begin
-  unfold reverse,
-  rw [nat_degree_mul' fg, reflect_mul (le_refl _) (le_refl _)],
-end
+by rw [reverse, reverse, reverse, nat_degree_mul' fg, reflect_mul (le_refl _) (le_refl _)]
 
 @[simp] lemma reverse_mul_of_domain {R : Type*} [domain R] (f g : polynomial R) :
   reverse (f * g) = reverse f * reverse g :=
 begin
   by_cases f0 : f=0,
   { rw [f0, zero_mul, reverse_zero, zero_mul], },
-  { by_cases g0 : g=0,
-    { rw [g0, mul_zero, reverse_zero, mul_zero], },
-    { apply reverse_mul,
-      apply mul_ne_zero;
-      { rwa [← leading_coeff_eq_zero] at * }, }, },
+  by_cases g0 : g=0,
+  { rw [g0, mul_zero, reverse_zero, mul_zero], },
+  apply reverse_mul,
+  apply mul_ne_zero;
+    rwa [← leading_coeff_eq_zero] at *,
 end
 
 end rev

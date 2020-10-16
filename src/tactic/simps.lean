@@ -14,9 +14,9 @@ reducing a definition when projections are applied to it.
 
 There are three attributes being defined here
 * `@[simps]` is the attribute for objects of a structure or instances of a class. It will
-  automatically generate simplication lemmas for each projection of the object/instance that contains
-  data. See the doc strings for `simps_attr` and `simps_cfg` for more details and configuration
-  options
+  automatically generate simplication lemmas for each projection of the object/instance that
+  contains data. See the doc strings for `simps_attr` and `simps_cfg` for more details and
+  configuration options.
 * `@[_simps_str]` is automatically added to structures that have been used in `@[simps]` at least
   once. They contain the data of the projections used for this structure by all following
   invocations of `@[simps]`.
@@ -112,7 +112,8 @@ meta def simps_get_raw_projections (e : environment) (str : name) :
     when_tracing `simps.verbose trace!"[simps] > found projection information for structure {str}",
     simps_str_attr.get_param str
   else do
-    when_tracing `simps.verbose trace!"[simps] > generating projection information for structure {str}:",
+    when_tracing `simps.verbose trace!
+      "[simps] > generating projection information for structure {str}:",
     d_str ← e.get str,
     projs ← e.structure_fields_full str,
     let raw_univs := d_str.univ_params,
@@ -123,10 +124,21 @@ meta def simps_get_raw_projections (e : environment) (str : name) :
       custom_proj ← (do
         decl ← e.get (str ++ `simps ++ proj.last),
         let custom_proj := decl.value.instantiate_univ_params $ decl.univ_params.zip raw_levels,
-        when_tracing `simps.verbose trace!"[simps] > found custom projection for {proj}:\n        > {custom_proj}",
+        when_tracing `simps.verbose trace!
+          "[simps] > found custom projection for {proj}:\n        > {custom_proj}",
         return custom_proj) <|> return raw_expr,
       is_def_eq custom_proj raw_expr <|>
-        fail!"Invalid custom projection:\n {custom_proj}\nExpression is not definitionally equal to {raw_expr}.",
+        -- if the type of the expression is different, we show a different error message, because
+        -- that is more likely going to be helpful.
+        do {
+          custom_proj_type ← infer_type custom_proj,
+          raw_expr_type ← infer_type raw_expr,
+          b ← succeeds (is_def_eq custom_proj_type raw_expr_type),
+          if b then fail!"Invalid custom projection:\n  {custom_proj}
+Expression is not definitionally equal to {raw_expr}."
+          else fail!"Invalid custom projection:\n  {custom_proj}
+Expression has different type than {raw_expr}. Given type:\n  {custom_proj_type}
+Expected type:\n  {raw_expr_type}" },
       return custom_proj),
     /- Check for other coercions and type-class arguments to use as projections instead. -/
     (args, _) ← open_pis d_str.type,
@@ -143,7 +155,8 @@ meta def simps_get_raw_projections (e : environment) (str : name) :
         (hyp, e_inst) ← try_for 1000 (mk_conditional_instance e_str e_inst_type),
         raw_expr ← mk_mapp proj_nm [args.head, e_inst],
         clear hyp,
-        raw_expr_lambda ← lambdas [hyp] raw_expr, -- `expr.bind_lambda` doesn't give the correct type
+        -- Note: `expr.bind_lambda` doesn't give the correct type
+        raw_expr_lambda ← lambdas [hyp] raw_expr,
         return (raw_expr, raw_expr_lambda.lambdas args))
       else (do
         e_inst_type ← to_expr ((expr.const class_nm []).app (pexpr.of_expr e_str)),
@@ -156,9 +169,11 @@ meta def simps_get_raw_projections (e : environment) (str : name) :
         not been overrriden by the user. -/
       guard (projs.any (= relevant_proj) ∧ ¬ e.contains (str ++ `simps ++ relevant_proj.last)),
       let pos := projs.find_index (= relevant_proj),
-      when_tracing `simps.verbose trace!"        > using function {proj_nm} instead of the default projection {relevant_proj.last}.",
+      when_tracing `simps.verbose trace!
+        "        > using {proj_nm} instead of the default projection {relevant_proj.last}.",
       return $ raw_exprs.update_nth pos lambda_raw_expr) <|> return raw_exprs) raw_exprs,
-    when_tracing `simps.verbose trace!"[simps] > generated projections for {str}:\n        > {raw_exprs}",
+    when_tracing `simps.verbose trace!
+      "[simps] > generated projections for {str}:\n        > {raw_exprs}",
     simps_str_attr.set str (raw_univs, raw_exprs) tt,
     return (raw_univs, raw_exprs)
 
@@ -222,7 +237,8 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
     projections are applied in a lemma. When this is `ff` (default) all projection names will be
     appended to the definition name to form the lemma name, and when this is `tt`, only the
     last projection name will be appended.
-  * if `simp_rhs` is `tt` then the right-hand-side of the generated lemmas will be put simp-normal form
+  * if `simp_rhs` is `tt` then the right-hand-side of the generated lemmas will be put simp-normal
+    form.
   * `type_md` specifies how aggressively definitions are unfolded in the type of expressions
     for the purposes of finding out whether the type is a function type.
     Default: `instances`. This will unfold coercion instances (so that a coercion to a function type
@@ -256,7 +272,8 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
   let decl_type := eq_ap.pis args,
   let decl_value := prf.lambdas args,
   let decl := declaration.thm decl_name univs decl_type (pure decl_value),
-  when_tracing `simps.verbose trace!"[simps] > adding projection\n        > {decl_name} : {decl_type}",
+  when_tracing `simps.verbose trace!
+    "[simps] > adding projection\n        > {decl_name} : {decl_type}",
   decorate_error ("failed to add projection lemma " ++ decl_name.to_string ++ ". Nested error:") $
     add_decl decl,
   b ← succeeds $ is_def_eq lhs rhs,
@@ -332,9 +349,12 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
               ff cfg new_todo
     else do
       when must_be_str $
-        fail!"Invalid `simps` attribute. The body is not a constructor application:\n{rhs_ap}\nPossible solution: add option {{rhs_md := semireducible}.",
+        fail!"Invalid `simps` attribute. The body is not a constructor application:\n{rhs_ap}
+Possible solution: add option {{rhs_md := semireducible}.",
       when (todo_next ≠ []) $
-        fail!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo_next.head}. The given definition is not a constructor application:\n{rhs_ap}\nPossible solution: add option {{rhs_md := semireducible}.",
+        fail!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo_next.head}.
+The given definition is not a constructor application:\n  {rhs_ap}
+Possible solution: add option {{rhs_md := semireducible}.",
       if cfg.fully_applied then
         simps_add_projection new_nm tgt lhs_ap rhs_ap new_args univs cfg else
         simps_add_projection new_nm type lhs rhs args univs cfg
@@ -342,7 +362,8 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
     when must_be_str $
       fail "Invalid `simps` attribute. Target is not a structure",
     when (todo_next ≠ [] ∧ str ∉ [`prod, `pprod]) $
-        fail!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo_next.head}. Projection {(todo_next.head.split_on '_').tail.head} doesn't exist, because target is not a structure.",
+        fail!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo_next.head}.
+Projection {(todo_next.head.split_on '_').tail.head} doesn't exist, because target is not a structure.",
     if cfg.fully_applied then
       simps_add_projection new_nm tgt lhs_ap rhs_ap new_args univs cfg else
       simps_add_projection new_nm type lhs rhs args univs cfg

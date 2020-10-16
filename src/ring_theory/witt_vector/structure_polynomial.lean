@@ -68,7 +68,7 @@ dvd_sub_pow_of_dvd_sub {R : Type*} [comm_ring R] {p : ℕ} {a b : R} :
 * `map_witt_structure_int`: the proof that the integral polynomials `with_structure_int Φ`
   are equal to `witt_structure_rat Φ` when mapped to polynomials with rational coefficients.
 * `witt_structure_int_prop`: the proof that `witt_structure_int` indeed satisfies the property.
-* Five families of polynomials that will be used to define the rings structure
+* Five families of polynomials that will be used to define the ring structure
   on the ring of Witt vectors:
   - `witt_vector.witt_zero`
   - `witt_vector.witt_one`
@@ -429,7 +429,8 @@ begin
   revert hn, apply nat.strong_induction_on n, clear n,
   intros n IH hn,
   rw X_in_terms_of_W_eq,
-  simp only [alg_hom.map_mul, alg_hom.map_sub, alg_hom.map_sum, alg_hom.map_pow, bind₁_X_right, bind₁_C_right],
+  simp only [alg_hom.map_mul, alg_hom.map_sub, alg_hom.map_sum, alg_hom.map_pow,
+    bind₁_X_right, bind₁_C_right],
   rw [sub_mul, one_mul],
   rw [finset.sum_eq_single 0],
   { simp only [inv_of_eq_inv, one_mul, inv_pow', nat.sub_zero, ring_hom.map_one, pow_zero],
@@ -462,7 +463,6 @@ begin
   simp only [witt_mul, witt_structure_rat, rename_X, X_in_terms_of_W_zero, map_X,
     witt_polynomial_zero, ring_hom.map_mul,
     bind₁_X_right, alg_hom.map_mul, map_witt_structure_int]
-
 end
 
 @[simp] lemma witt_neg_zero : witt_neg p 0 = - X (0,0) :=

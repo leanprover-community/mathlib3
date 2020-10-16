@@ -8,6 +8,7 @@ import data.nat.parity
 import data.polynomial.ring_division
 import group_theory.order_of_element
 import ring_theory.integral_domain
+import number_theory.divisors
 import data.zmod.basic
 import tactic.zify
 
@@ -559,6 +560,42 @@ begin
   exact h.card_roots_of_unity'
 end
 
+/--The cardinality of the multiset `nth_roots ↑n (1 : R)` is `n`
+if there is a primitive root of unity in `R`. -/
+lemma card_nthroots {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) : (nth_roots ↑n (1 : R)).card = n :=
+begin
+  rw eq_iff_le_not_lt,
+  split,
+  { exact card_nth_roots n 1 },
+  { rw [not_lt],
+    have hcard : fintype.card {x // x ∈ nth_roots n (1 : R)}
+    ≤ (nth_roots n (1 : R)).attach.card := multiset.card_le_of_le (multiset.erase_dup_le _),
+    rw multiset.card_attach at hcard,
+    rw [← fintype.card_congr (roots_of_unity_equiv_nth_roots R n), card_roots_of_unity h] at hcard,
+    exact hcard }
+end
+
+/--The multiset `nth_roots ↑n (1 : R)` has no repeated elements
+if there is a primitive root of unity in `R`. -/
+lemma nroots_nodup {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) : (nth_roots ↑n (1 : R)).nodup :=
+begin
+  apply (@multiset.erase_dup_eq_self R _ _).1,
+  rw eq_iff_le_not_lt,
+  split,
+  { exact multiset.erase_dup_le (nth_roots ↑n (1 : R)) },
+  { by_contra ha,
+    replace ha := multiset.card_lt_of_lt ha,
+    rw card_nthroots h at ha,
+    have hrw : (nth_roots ↑n (1 : R)).erase_dup.card = fintype.card {x // x ∈ (nth_roots ↑n (1 : R))},
+    { set fs := (⟨(nth_roots ↑n (1 : R)).erase_dup, multiset.nodup_erase_dup _⟩ : finset R),
+      rw [← finset.card_mk, ← fintype.card_of_subtype fs _],
+      intro x,
+      simp only [multiset.mem_erase_dup, finset.mem_mk] },
+    rw [hrw, ← fintype.card_congr (roots_of_unity_equiv_nth_roots R n), card_roots_of_unity h] at ha,
+    exact nat.lt_asymm ha ha
+  }
+end
+
 open_locale nat
 
 /-- If an integral domain has a primitive `k`-th root of unity, then it has `φ k` of them. -/
@@ -579,6 +616,88 @@ begin
     rw [mem_primitive_roots h0, h.is_primitive_root_iff h0] at hξ,
     rcases hξ with ⟨i, hin, hi, H⟩,
     exact ⟨i, ⟨hin, hi.symm⟩, H⟩ }
+end
+
+/-The sets `primitive_roots k R` are pairwise disjoint. -/
+lemma prim_roots_disjoint {k l : ℕ} (hk : 0 < k) (hl : 0 < l) (h : k ≠ l) :
+  disjoint (primitive_roots k R) (primitive_roots l R) :=
+begin
+  intros z hz,
+  simp only [finset.inf_eq_inter, finset.mem_inter] at hz,
+  have hkl : k = l,
+  { apply nat.dvd_antisymm,
+    { have hpowk := ((is_primitive_root.iff_def z l).1 ((mem_primitive_roots hl).1 hz.2)).1,
+      exact ((is_primitive_root.iff_def z k).1 ((mem_primitive_roots hk).1 hz.1)).2 l hpowk },
+    { have hpowl := ((is_primitive_root.iff_def z k).1 ((mem_primitive_roots hk).1 hz.1)).1,
+      exact ((is_primitive_root.iff_def z l).1 ((mem_primitive_roots hl).1 hz.2)).2 k hpowl } },
+  exfalso,
+  exact h hkl
+end
+
+/-If in `R` there is a `n`-th primitive root of unity and `b` divides `n`,
+then there is in `R` a `b`-th primitive root of unity. -/
+lemma prim_of_pow_prim {ζ : R} {n : ℕ+} {a b : ℕ} (h : is_primitive_root ζ n) (hprod : ↑n = a * b)
+  : is_primitive_root (ζ ^ a) b :=
+begin
+  apply (iff_def (ζ ^ a) b).2,
+  split,
+  { calc (ζ ^ a) ^ b
+       = ζ ^ (n : ℕ) : by rw [← pow_mul', mul_comm, hprod]
+   ... = 1 : by rw ((iff_def ζ n).1 h).1 },
+  { intros l hl,
+    rw [← pow_mul', mul_comm] at hl,
+    have hdiv := ((iff_def ζ n).1 h).2 (a * l) hl,
+    rw hprod at hdiv,
+    have hzeroa : a ≠ 0,
+    { by_contra hz,
+      simp only [not_not] at hz,
+      simp [hz] at hprod,
+      exact hprod },
+    exact (mul_dvd_mul_iff_left hzeroa).1 hdiv }
+end
+
+/-`nth_roots n` as a finset is equal to the uniun of `primitive_roots i R` for `i ∣ n`
+if there is a primitive root of unity in `R`. -/
+lemma root_of_unity_eq_uniun_prim {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) :
+  (⟨nth_roots n (1 : R) , nroots_nodup h⟩ : finset R) =
+  finset.bind (nat.divisors ↑n) (λ (i : ℕ), (primitive_roots i R)) :=
+begin
+  symmetry,
+  apply finset.eq_of_subset_of_card_le,
+  { intros x hx,
+    simp only [exists_prop, finset.mem_bind, finset.mem_filter, finset.mem_range] at hx,
+    cases hx with a ha,
+    simp only [mem_nth_roots, pnat.pos, finset.mem_mk],
+    simp only [nat.mem_divisors, and_true, ne.def, pnat.ne_zero, not_false_iff] at ha,
+    obtain ⟨d, hd⟩ := ha.1,
+    have hazero : 0 < a,
+    { by_contra h,
+      simp only [le_zero_iff_eq, not_lt] at h,
+      simp only [h, zero_mul, pnat.ne_zero] at hd,
+      exact hd },
+      calc  x ^ ↑n
+          = x ^ (a * d)  : by rw hd
+      ... = (x ^ a) ^ d  : pow_mul x a d
+      ... = 1 ^ d        : by rw ((mem_primitive_roots hazero).1 ha.2).1
+      ... = 1            : one_pow d },
+  { simp only [card_mk],
+    rw card_nthroots h,
+    apply le_of_eq,
+    rw finset.card_bind,
+    { rw @finset.sum_congr _ _ (nat.divisors ↑n) (finset.filter (λ (x : ℕ), x ∣ n)
+    (finset.range (n : ℕ).succ))  (λ i, (primitive_roots i R).card)
+    (λ i, nat.totient i) _ (nat.finset_div_eq_filter n) _,
+    { symmetry; exact nat.sum_totient n },
+    { intros x hx,
+      simp only [finset.mem_filter, finset.mem_range] at hx,
+      simp,
+      obtain ⟨d, hd⟩ := hx.2,
+      rw mul_comm at hd,
+      exact card_primitive_roots (prim_of_pow_prim h hd) (pnat.pos_of_div_pos hx.2) },
+    },
+    { intros i hi j hj hdiff,
+      simp only [nat.mem_divisors, and_true, ne.def, pnat.ne_zero, not_false_iff] at hi hj,
+      exact prim_roots_disjoint (pnat.pos_of_div_pos hi) (pnat.pos_of_div_pos hj) hdiff } }
 end
 
 end integral_domain

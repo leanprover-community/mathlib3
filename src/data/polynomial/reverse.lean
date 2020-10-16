@@ -128,7 +128,6 @@ lemma reflect_mul_induction (cf cg : ℕ) :
  (reflect (N + O) (f * g)) = (reflect N f) * (reflect O g) :=
 begin
   induction cf with cf hcf,
-  refine (polynomial.div.rec_on_horner f) _ _ _,
   --first induction: base case
   { induction cg with cg hcg,
     -- second induction: base case

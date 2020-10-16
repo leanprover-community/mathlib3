@@ -5,6 +5,7 @@ Author: Aaron Anderson
 -/
 import data.finset.gcd
 import data.polynomial
+import data.polynomial.degree.induction
 import data.polynomial.erase_lead
 
 /-!
@@ -272,18 +273,20 @@ begin
     apply gcd_mul_dvd_mul_gcd,
     rw [content_mul_aux, ih _ _ _ _ rfl, q1_prim.content_eq_one, mul_one, gcd_comm,
       ← content_eq_gcd_leading_coeff_content_erase_lead, r1_prim.content_eq_one, one_mul,
-      mul_comm r1, content_mul_aux,  ih _ _ _ _ rfl, r1_prim.content_eq_one, mul_one, gcd_comm,
+      mul_comm r1, content_mul_aux, ih _ _ _ _ rfl, r1_prim.content_eq_one, mul_one, gcd_comm,
       ← content_eq_gcd_leading_coeff_content_erase_lead, q1_prim.content_eq_one],
     { rw [degree_mul, degree_mul, degree_mul, degree_mul, degree_C cq0, degree_C cr0,
         zero_add, zero_add],
-      rw with_bot.add_lt_add_iff_right,
-      sorry,
-    },
-    { rw [degree_mul, degree_mul, degree_mul, degree_mul, degree_C cq0, degree_C cr0,
+      rw with_bot.add_lt_add_iff_right _,
+      { apply degree_erase_lt q1_prim.ne_zero },
+      rw degree_eq_nat_degree r1_prim.ne_zero,
+      apply with_bot.bot_lt_coe, },
+    { rw [mul_comm, degree_mul, degree_mul, degree_mul, degree_mul, degree_C cq0, degree_C cr0,
         zero_add, zero_add],
-      rw with_bot.add_lt_add_iff_right,
-      sorry,
-    } }
+      rw with_bot.add_lt_add_iff_left _,
+      { apply degree_erase_lt r1_prim.ne_zero },
+      rw degree_eq_nat_degree q1_prim.ne_zero,
+      apply with_bot.bot_lt_coe } }
 end
 
 end gcd_monoid

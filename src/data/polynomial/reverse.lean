@@ -55,6 +55,9 @@ def rev_at (N : ℕ) : function.embedding ℕ ℕ :=
   { to_fun := λ i , (ite (i ≤ N) (N-i) i),
     inj' := rev_at_fun_inj }
 
+/-- We prefer to use the bundled `rev_at` over unbundled `rev_at_fun`. -/
+@[simp] lemma rev_at_fun_eq (N i : ℕ) : rev_at_fun N i = rev_at N i := rfl
+
 @[simp] lemma rev_at_invol {N i : ℕ} : (rev_at N) (rev_at N i) = i :=
 rev_at_fun_invol
 

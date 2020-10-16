@@ -195,11 +195,11 @@ end
 begin
   by_cases f0 : f=0,
   { rw [f0, zero_mul, reverse_zero, zero_mul], },
-  { by_cases g0 : g=0,
-    { rw [g0, mul_zero, reverse_zero, mul_zero], },
-    { apply reverse_mul,
-      apply mul_ne_zero;
-      { rwa [← leading_coeff_eq_zero] at * }, }, },
+  by_cases g0 : g=0,
+  { rw [g0, mul_zero, reverse_zero, mul_zero], },
+  apply reverse_mul,
+  apply mul_ne_zero;
+    rwa [← leading_coeff_eq_zero] at *
 end
 
 end rev

@@ -1861,7 +1861,7 @@ end
 /-- `le_of_add_le_add_left` is normally applicable to `ordered_cancel_add_comm_monoid`,
 but you can't cancel infinity, so μ must be finite. -/
 lemma le_of_add_le_add_left [finite_measure μ] (A2:μ + ν₁ ≤ μ + ν₂) : ν₁ ≤ ν₂ :=
-  λ S B1, ennreal.le_of_add_le_add_left (measure_theory.measure_lt_top μ S) (A2 S B1)
+λ S B1, ennreal.le_of_add_le_add_left (measure_theory.measure_lt_top μ S) (A2 S B1)
 
 /-- This application lemma only works in special circumstances. Given knowledge of
 when μ ≤ ν and ν ≤ μ, a more general application lemma can be written. -/

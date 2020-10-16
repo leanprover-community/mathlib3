@@ -1058,6 +1058,101 @@ theorem is_o_iff_tendsto {f g : α → 𝕜} {l : filter α}
   is_o f g l ↔ tendsto (λ x, f x / (g x)) l (𝓝 0) :=
 iff.intro is_o.tendsto_0 (is_o_of_tendsto hgf)
 
+/-!
+### Eventually (u / v) * v = u
+
+If `u` and `v` are linked by an `is_O_with` relation, then we
+eventually have `(u / v) * v = u`, even if `v` vanishes.
+-/
+
+section eventually_mul_div_cancel
+
+variables {u v : α → 𝕜}
+
+lemma is_O_with.eventually_mul_div_cancel (h : is_O_with c u v l) :
+  ∀ᶠ x in l, (u x / v x) * v x = u x :=
+begin
+  rw is_O_with at h,
+  rw eventually_iff_exists_mem at *,
+  rcases h with ⟨s, hsl, hs⟩,
+  use [s, hsl],
+  intros y hy,
+  specialize hs y hy,
+  by_cases hvy : v y = 0,
+  { rw hvy at *,
+    rw [norm_zero, mul_zero] at hs,
+    have hs' := le_antisymm hs (norm_nonneg _),
+    rw norm_eq_zero at hs',
+    rw hs',
+    norm_num },
+  { rw div_mul_cancel _ hvy }
+end
+
+lemma is_O.eventually_mul_div_cancel (h : is_O u v l) : ∀ᶠ x in l, (u x / v x) * v x = u x :=
+let ⟨c, hc⟩ := h in hc.eventually_mul_div_cancel
+
+lemma is_o.eventually_mul_div_cancel (h : is_o u v l) : ∀ᶠ x in l, (u x / v x) * v x = u x :=
+(h zero_lt_one).eventually_mul_div_cancel
+
+end eventually_mul_div_cancel
+
+/-! ### Equivalent definitions of the form `∃ φ, u =ᶠ[l] φ * v` in a `normed_field`. -/
+
+section exists_mul_eq
+
+variables {u v : α → 𝕜}
+
+lemma is_O_with_of_eq_mul (φ : α → 𝕜) (hφ : ∀ᶠ x in l, ∥φ x∥ ≤ c) (h : u =ᶠ[l] φ * v) :
+  is_O_with c u v l :=
+begin
+  apply h.symm.rw (λ x a, ∥a∥ ≤ c * ∥v x∥) (hφ.mp (eventually_of_forall $ λ x hx, _)),
+  simp only [normed_field.norm_mul, pi.mul_apply],
+  exact mul_le_mul_of_nonneg_right hx (norm_nonneg _)
+end
+
+lemma is_O_with_iff_exists_eq_mul (hc : 0 ≤ c) :
+  is_O_with c u v l ↔ ∃ (φ : α → 𝕜) (hφ : ∀ᶠ x in l, ∥φ x∥ ≤ c), u =ᶠ[l] φ * v :=
+begin
+  split,
+  { intro h,
+    use (λ x, u x / v x),
+    split,
+    { rw is_O_with at h,
+      rw eventually_iff_exists_mem at *,
+      rcases h with ⟨s, hsl, hs⟩,
+      use [s, hsl],
+      intros y hy,
+      have := div_le_iff_of_nonneg_of_le (norm_nonneg _) hc (hs y hy),
+      simpa },
+    { exact eventually_eq.symm h.eventually_mul_div_cancel } },
+  { rintros ⟨φ, hφ, h⟩,
+    exact is_O_with_of_eq_mul φ hφ h }
+end
+
+lemma is_O_iff_exists_eq_mul :
+  is_O u v l ↔ ∃ (φ : α → 𝕜) (hφ : ∃ c, ∀ᶠ x in l, ∥φ x∥ ≤ c), u =ᶠ[l] φ * v :=
+begin
+  split,
+  { rintros h,
+    rcases h.exists_nonneg with ⟨c, hnnc, hc⟩,
+    rcases (is_O_with_iff_exists_eq_mul hnnc).mp hc with ⟨φ, hφ, huvφ⟩,
+    exact ⟨φ, ⟨c, hφ⟩, huvφ⟩ },
+  { exact λ ⟨φ, ⟨c, hφ⟩, huvφ⟩, ⟨c, is_O_with_of_eq_mul φ hφ huvφ⟩ }
+end
+
+lemma is_o_iff_exists_eq_mul :
+  is_o u v l ↔ ∃ (φ : α → 𝕜) (hφ : tendsto φ l (𝓝 0)), u =ᶠ[l] φ * v :=
+begin
+  split,
+  { exact λ h, ⟨λ x, u x / v x, h.tendsto_0, eventually_eq.symm h.eventually_mul_div_cancel⟩ },
+  { rw is_o,
+    rintros ⟨φ, hφ, huvφ⟩ c hpos,
+    simp_rw [metric.tendsto_nhds, dist_zero_right] at hφ,
+    exact is_O_with_of_eq_mul _ ((hφ c hpos).mp (eventually_of_forall $ λ x, le_of_lt)) huvφ }
+end
+
+end exists_mul_eq
+
 /-! ### Miscellanous lemmas -/
 
 theorem is_o_pow_pow {m n : ℕ} (h : m < n) :

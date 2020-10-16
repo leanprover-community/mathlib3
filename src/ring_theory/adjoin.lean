@@ -83,7 +83,7 @@ le_antisymm (adjoin_le $ set.image_subset _ subset_adjoin) $
 subalgebra.map_le.2 $ adjoin_le $ set.image_subset_iff.1 subset_adjoin
 
 @[simp] lemma adjoin_insert_adjoin (x : A) :
-  adjoin R (insert x (adjoin R s : set A)) = adjoin R (insert x s) :=
+  adjoin R (insert x ↑(adjoin R s : submodule R A)) = adjoin R (insert x s) :=
 le_antisymm
   (adjoin_le (set.insert_subset.mpr
     ⟨subset_adjoin (set.mem_insert _ _), adjoin_mono (set.subset_insert _ _)⟩))
@@ -270,7 +270,7 @@ begin
   { simpa using base },
   intros x t hxt h,
   convert ih _ x h using 1,
-  rw [finset.coe_insert, algebra.adjoin_insert_adjoin]
+  rw [finset.coe_insert, coe_coe, algebra.adjoin_insert_adjoin]
 end
 
 end subalgebra

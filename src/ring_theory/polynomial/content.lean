@@ -286,13 +286,8 @@ end
 
 @[simp]
 theorem content_mul {p q : polynomial R} : (p * q).content = p.content * q.content :=
-content_mul_induction (p * q).nat_degree.succ p q begin
-  by_cases h0 : p * q = 0,
-  { rw [h0, nat_degree_zero, degree_zero],
-    apply with_bot.bot_lt_coe },
-  rw [degree_eq_nat_degree h0, with_bot.coe_lt_coe],
-  apply nat.lt_succ_self
-end
+content_mul_induction (p * q).nat_degree.succ p q
+  (lt_of_le_of_lt degree_le_nat_degree (with_bot.coe_lt_coe.2 (nat.lt_succ_self _)))
 
 end gcd_monoid
 end polynomial

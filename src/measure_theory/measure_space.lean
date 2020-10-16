@@ -1829,11 +1829,12 @@ namespace measure_theory
 
 namespace measure
 
-/-- This is the equivalent of (a-b) ⊔ 0, if a and b were signed measures.
-Compare with ennreal.has_sub. 
-Specifically, note that if you have α = {1,2}, and  a {1} = 2, a {2} = 0, and 
-b {2} = 2, b {1} = 0, then (a - b) {1, 2} = 2. However, if a ≤ b, and
-b set.univ ≠ ⊤, then (a - b) + b = a. -/
+/-- The measure `μ - ν` is defined to be the least measure `τ` such that `μ ≤ τ + ν`.
+It is the equivalent of `(μ - ν) ⊔ 0` if `μ` and `ν` were signed measures.
+Compare with `ennreal.has_sub`. 
+Specifically, note that if you have `α = {1,2}`, and  `μ {1} = 2`, `μ {2} = 0`, and 
+`ν {2} = 2`, `ν {1} = 0`, then `(μ - ν) {1, 2} = 2`. However, if `μ ≤ ν`, and
+`ν univ ≠ ⊤`, then `(μ - ν) + ν = μ`. -/
 noncomputable instance has_sub {α : Type*} [measurable_space α] : has_sub (measure α) := 
 ⟨λ μ ν, Inf {τ | μ ≤ τ + ν}⟩
 

@@ -52,8 +52,8 @@ Essentially, this embedding is only used for `i ≤ N`.
 The advantage of `rev_at N i` over `N - i` is that `rev_at` is an involution.
 -/
 def rev_at (N : ℕ) : function.embedding ℕ ℕ :=
-  { to_fun := λ i , (ite (i ≤ N) (N-i) i),
-    inj' := rev_at_fun_inj }
+{ to_fun := λ i , (ite (i ≤ N) (N-i) i),
+  inj' := rev_at_fun_inj }
 
 /-- We prefer to use the bundled `rev_at` over unbundled `rev_at_fun`. -/
 @[simp] lemma rev_at_fun_eq (N i : ℕ) : rev_at_fun N i = rev_at N i := rfl

@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import algebra.algebra.basic
 import algebra.algebra.subalgebra
 import algebra.free_algebra
+import linear_algebra.tensor_algebra
 import algebra.category.CommRing.basic
 import algebra.category.Module.basic
 
@@ -71,6 +72,46 @@ variables {R} {M N U : Module.{v} R}
   ((f ≫ g) : M → U) = g ∘ f := rfl
 
 variables (R)
+
+section cheating_with_semireducible
+
+/-- The "free algebra" on a module, i.e. the tensor algebra. -/
+local attribute [semireducible] tensor_algebra -- WHY?!
+@[simps]
+def free_of_module : Module R ⥤ Algebra R :=
+{ obj := λ M,
+  { carrier := tensor_algebra R M,
+    is_ring := algebra.semiring_to_ring R },
+  map := λ M N f, tensor_algebra.lift _ ((tensor_algebra.ι _).comp f) }
+
+/-- The adjunction between `R`-modules and `R`-algebras. -/
+@[simps]
+def adj_of_module : free_of_module R ⊣ forget₂ _ _ :=
+{ hom_equiv := λ M A,
+  { to_fun := λ f, f.to_linear_map.comp (tensor_algebra.ι _),
+    inv_fun := λ f, tensor_algebra.lift _ f,
+    left_inv := by {intros x, dsimp at *, simp at *},
+    right_inv := by {intros x, dsimp at *, simp at *} },
+  unit :=
+  { app := λ S, tensor_algebra.ι _,
+    naturality' := begin -- tidy times out again :(
+      intros,
+      ext,
+      simp only [functor.id_map, functor.comp_map, free_of_module_map],
+      erw tensor_algebra.lift_ι_apply,
+      refl,
+    end },
+  counit :=
+  { app := λ A, tensor_algebra.lift _ (𝟙 $ Module.of R A),
+    naturality' := begin -- tidy times out again :(
+      intros,
+      ext,
+      simp,
+      refl,
+    end } }
+
+end cheating_with_semireducible
+
 /-- The "free algebra" functor, sending a type `S` to the free algebra on `S`. -/
 @[simps]
 def free : Type* ⥤ Algebra R :=

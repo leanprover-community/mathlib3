@@ -794,7 +794,7 @@ variable [measurable_space α]
 
 lemma measurable.sub_nnreal {f g : α → ℝ≥0} :
   measurable f → measurable g → measurable (λ a, f a - g a) :=
-nnreal.continuous_sub.measurable2
+continuous_sub.measurable2
 
 lemma measurable.nnreal_of_real {f : α → ℝ} (hf : measurable f) :
   measurable (λ x, nnreal.of_real (f x)) :=
@@ -876,7 +876,7 @@ end
 
 lemma measurable_sub : measurable (λ p : ennreal × ennreal, p.1 - p.2) :=
 by apply measurable_of_measurable_nnreal_nnreal;
-  simp [← ennreal.coe_sub, nnreal.continuous_sub.measurable.ennreal_coe]
+  simp [← ennreal.coe_sub, continuous_sub.measurable.ennreal_coe]
 
 end ennreal
 

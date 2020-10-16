@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Paul van Wamelen.
 -/
 import algebra.field
-import algebra.gcd_monoid
+import ring_theory.int.basic
 import algebra.group_with_zero_power
 import tactic.ring
 import tactic.ring_exp

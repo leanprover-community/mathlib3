@@ -62,9 +62,48 @@ def pullback [has_pullbacks C] {A B : C} (f : A ⟶ B) : over B ⥤ over A :=
 
 end
 
-def bind_set_over {X : C} (S : set (over X)) (Ti : Π (f : over X), f ∈ S → set (over f.left)) :
-  set (over X) :=
-λ h, ∃ (f : over X) (H : f ∈ S), ∃ (g : over f.left), g ∈ Ti f H ∧ over.mk (g.hom ≫ f.hom) = h
+def bind_set_over {X : C} (S : Π ⦃Y⦄, set (Y ⟶ X)) (Ti : Π ⦃Y⦄ (f : Y ⟶ X), S f → Π ⦃Z⦄, set (Z ⟶ Y)) :
+  Π ⦃Z⦄, set (Z ⟶ X) :=
+λ Z f, ∃ Y g (h : Z ⟶ Y) H, Ti g H h ∧ h ≫ g = f
+
+def single_set_over {X Y : C} (f : Y ⟶ X) : Π ⦃Z⦄, set (Z ⟶ X) :=
+λ Z g, ∃ (H : Z = Y), eq_to_hom H ≫ f = g
+
+@[simp] lemma single_set_over_self {X Y : C} (f : Y ⟶ X) : single_set_over f f := ⟨rfl, id_comp _⟩
+
+def test {ι : Type*} (a : ι → Type*) : (Π i, a i → Prop) ≃ ((Σ i, a i) → Prop) :=
+{ to_fun := λ f ik, f ik.1 ik.2,
+  inv_fun := λ f i k, f ⟨i, k⟩,
+  left_inv := λ f, rfl,
+  right_inv := λ f,
+  begin
+    ext ⟨i, k⟩,
+    refl
+  end }
+
+def test' {ι : Type*} (X : C) : (over X → ι) ≃ (Π ⦃Y⦄, (Y ⟶ X) → ι) :=
+{ to_fun := λ p Y g, p (over.mk g),
+  inv_fun := λ p f, p f.hom,
+  left_inv := λ p, funext (λ ⟨_, ⟨⟩, _⟩, rfl),
+  right_inv := λ p, rfl }
+
+def pullback_arrows [limits.has_pullbacks C] {X Y : C} (f : Y ⟶ X) (S : Π ⦃Z⦄, set (Z ⟶ X)) :
+  Π ⦃Z⦄, set (Z ⟶ Y) :=
+λ Z g, ∃ Z' (h : Z' ⟶ X), S h ∧ ∃ (H : limits.pullback h f = Z), eq_to_hom H.symm ≫ limits.pullback.snd = g
+
+lemma pullback_arrows_comm [limits.has_pullbacks C] {X Y : C} (f : Y ⟶ X)
+  (R : Π ⦃Z : C⦄, set (Z ⟶ X)) :
+  sieve.generate (pullback_arrows f R) = sieve.pullback f (sieve.generate R) :=
+begin
+  ext Z g,
+  rw [sieve.mem_generate, sieve.mem_pullback, sieve.mem_generate],
+  split,
+    rintro ⟨W, k, l, ⟨T, g, hg, rfl, rfl⟩, rfl⟩,
+    refine ⟨_, g, l ≫ limits.pullback.fst, hg, _⟩,
+    rw [assoc, limits.pullback.condition, eq_to_hom_refl, id_comp, assoc],
+  rintro ⟨W, h, k, hh, comm⟩,
+  exact ⟨_, _, limits.pullback.lift _ _ comm, ⟨_, h, hh, rfl, rfl⟩, by simp⟩,
+end
 
 @[simps]
 def bind_family {X : C} (S : family_with_target X) (Ti : Π i, family_with_target (S.obj i)) :
@@ -89,6 +128,20 @@ begin
     exact ⟨limits.pullback.lift k g hk, by simp⟩ }
 end
 
+-- lemma pullback_comm [limits.has_pullbacks C] {X Y : C}
+--   (f : Y ⟶ X) (R : set (over X)) :
+-- sieve.generate ((pullback f).obj '' R) = (sieve.generate R).pullback f :=
+-- begin
+--   ext Z g,
+--   rw [sieve.mem_pullback, sieve.mem_generate', sieve.mem_generate'],
+--   split,
+--   { rintro ⟨W, h, ⟨g, hg, rfl⟩, rfl⟩,
+--     refine ⟨_, h ≫ limits.pullback.fst, hg, _⟩,
+--     rw [assoc, limits.pullback.condition, assoc], refl },
+--   { rintro ⟨l, k, hl, comm⟩,
+--     exact ⟨_, _, ⟨l, hl, rfl⟩, limits.pullback.lift_snd _ _ comm⟩ }
+-- end
+
 lemma family_to_sieve_bind {X : C} (S : family_with_target X)
   (Ti : Π (i : S.ι), family_with_target (S.obj i)) (i : S.ι) :
   family_to_sieve (Ti i) ≤ sieve.pullback (S.hom i) (family_to_sieve (bind_family S Ti)) :=
@@ -106,12 +159,13 @@ structure pretopology :=
 (transitive : ∀ ⦃X : C⦄ (S : family_with_target X) (Ti : Π i, family_with_target (S.obj i)),
                S ∈ coverings X → (∀ i, Ti i ∈ coverings (S.obj i)) → bind_family S Ti ∈ coverings X)
 
+@[ext]
 structure pretopology' :=
-(coverings : Π (X : C), set (set (over X)))
-(has_isos : ∀ ⦃X Y⦄ (f : Y ⟶ X) [is_iso f], {over.mk f} ∈ coverings X)
-(pullbacks : ∀ ⦃X Y⦄ (f : Y ⟶ X) S, S ∈ coverings X → (pullback f).obj '' S ∈ coverings Y)
-(transitive : ∀ ⦃X : C⦄ (S : set (over X)) (Ti : Π (f : over X), f ∈ S → set (over f.left)),
-               S ∈ coverings X → (∀ f ∈ S, Ti f H ∈ coverings f.left) →
+(coverings : Π (X : C), set (arrows_with_codomain X))
+(has_isos : ∀ ⦃X Y⦄ (f : Y ⟶ X) [is_iso f], single_set_over f ∈ coverings X)
+(pullbacks : ∀ ⦃X Y⦄ (f : Y ⟶ X) S, S ∈ coverings X → pullback_arrows f S ∈ coverings Y)
+(transitive : ∀ ⦃X : C⦄ (S : arrows_with_codomain X) (Ti : Π ⦃Y⦄ (f : Y ⟶ X), S f → arrows_with_codomain Y),
+               S ∈ coverings X → (∀ ⦃Y⦄ f (H : S f), Ti f H ∈ coverings Y) →
                bind_set_over S Ti ∈ coverings X)
 
 instance pretop_to_fun : has_coe_to_fun (pretopology C) :=
@@ -119,6 +173,12 @@ instance pretop_to_fun : has_coe_to_fun (pretopology C) :=
 
 instance pretop'_to_fun : has_coe_to_fun (pretopology' C) :=
 ⟨_, λ J, J.coverings⟩
+
+instance : partial_order (pretopology' C) :=
+{ le := λ K₁ K₂, (K₁ : Π (X : C), set _) ≤ K₂,
+  le_refl := λ K, le_refl _,
+  le_trans := λ K₁ K₂ K₃ h₁₂ h₂₃, le_trans h₁₂ h₂₃,
+  le_antisymm := λ K₁ K₂ h₁₂ h₂₁, pretopology'.ext _ _ (le_antisymm h₁₂ h₂₁) }
 
 namespace pretopology
 
@@ -170,53 +230,67 @@ A pretopology `K` can be completed to a Grothendieck topology `J` by declaring a
 `J`-covering if it contains a family in `K`.
 -/
 def to_grothendieck (K : pretopology' C) : grothendieck_topology C :=
-{ sieves := λ X S, ∃ R ∈ K X, R ≤ S.set_over,
-  top_mem' := λ X, ⟨{over.mk (𝟙 _)}, K.has_isos (𝟙 X), by simp⟩,
-  pullback_stable' := λ X Y S g ⟨R, hR, RS⟩,
+{ sieves := λ X S, ∃ R ∈ K X, R ≤ S.arrows,
+  top_mem' := λ X, ⟨single_set_over (𝟙 _), K.has_isos _, λ _ _ _, ⟨⟩⟩,
+  pullback_stable' := λ X Y S g,
   begin
+    rintro ⟨R, hR, RS⟩,
     refine ⟨_, K.pullbacks g _ hR, _⟩,
-    rintro _ ⟨f, hf, rfl⟩,
-    change S.arrows (limits.pullback.snd ≫ g),
+    rintro _ f ⟨Z, h, hh, rfl, rfl⟩,
+    rw [eq_to_hom_refl, id_comp],
+    change S.arrows _,
     rw ← limits.pullback.condition,
-    exact S.downward_closed (RS hf) limits.pullback.fst,
+    apply S.downward_closed (RS _ hh),
   end,
   transitive' :=
   begin
     rintro X S ⟨R', hR', RS⟩ R t,
     choose t₁ t₂ t₃ using t,
-    refine ⟨_, K.transitive _ _ hR' (λ f hf, t₂ (RS hf)), _⟩,
-    rintros _ ⟨f, hf, g, hg, rfl⟩,
-    apply t₃ _ hg,
+    refine ⟨_, K.transitive _ _ hR' (λ _ f hf, t₂ (RS _ hf)), _⟩,
+    rintro Y _ ⟨Z, g, f, hg, hf, rfl⟩,
+    apply t₃ (RS _ hg) _ hf,
   end }
 
--- /-- The largest pretopology generating the given Grothendieck topology. -/
--- def of_grothendieck (J : grothendieck_topology C) : pretopology C :=
--- { coverings := λ X R, J X (family_to_sieve R),
---   has_isos := λ X Y f i,
---   begin
---     apply J.covering_of_eq_top,
---     rw ← sieve.id_mem_iff_eq_top,
---     exactI ⟨⟨⟩, inv f, by simp⟩,
---   end,
---   pullbacks := λ X Y f R hR,
---   begin
---     rw set.mem_def at hR ⊢,
---     rw family_to_sieve_comm,
---     apply J.pullback_stable _ hR,
---   end,
---   transitive := λ X S Ti hS hTi,
---   begin
---     apply J.transitive hS,
---     rintros Y f ⟨i, g, rfl⟩,
---     rw sieve.pullback_comp,
---     exact J.pullback_stable g (J.superset_covering (family_to_sieve_bind S Ti i) (hTi i)),
---   end }
+/-- The largest pretopology generating the given Grothendieck topology. -/
+def of_grothendieck (J : grothendieck_topology C) : pretopology' C :=
+{ coverings := λ X R, J X (sieve.generate R),
+  has_isos := λ X Y f i,
+  begin
+    apply J.covering_of_eq_top,
+    rw ← sieve.id_mem_iff_eq_top,
+    rw sieve.mem_generate,
+    exactI ⟨_, f, inv f, by simp⟩,
+  end,
+  pullbacks := λ X Y f R hR,
+  begin
+    rw set.mem_def at hR,
+    rw set.mem_def,
+    convert J.pullback_stable f hR,
+    ext Z g,
+    rw [sieve.mem_generate, sieve.mem_pullback, sieve.mem_generate],
+    split,
+      rintro ⟨W, k, l, ⟨T, g, hg, rfl, rfl⟩, rfl⟩,
+      refine ⟨_, g, l ≫ limits.pullback.fst, hg, _⟩,
+      rw [assoc, limits.pullback.condition, eq_to_hom_refl, id_comp, assoc],
+    rintro ⟨W, h, k, hh, comm⟩,
+    exact ⟨_, _, limits.pullback.lift _ _ comm, ⟨_, h, hh, rfl, rfl⟩, by simp⟩,
+  end,
+  transitive := λ X S Ti hS hTi,
+  begin
+    apply J.transitive hS,
+    intros Y f,
+    rw sieve.mem_generate,
+    rintros ⟨Z, f, g, hf, rfl⟩,
+    rw sieve.pullback_comp,
+    apply J.pullback_stable g,
+    apply J.superset_covering _ (hTi _ hf),
+    clear' Y g,
+    rintro Y g,
+    rw [sieve.mem_pullback, sieve.mem_generate, sieve.mem_generate],
+    rintro ⟨W, g, h, hg, rfl⟩,
+    exact ⟨_, _, h, ⟨_, _, _, hf, hg, rfl⟩, by simp⟩,
+  end }
 
 end pretopology'
--- def tauto_eq (X : C) (U V : family_with_target X) : Prop :=
--- ∃ (α : U.ι → V.ι) (β : V.ι → U.ι)
---   (α' : ∀ i, ∃ (f : U.obj i ⟶ V.obj (α i)))
-  -- (β' : ∀ j, nonempty (V.obj j ≅ U.obj (β j)))
-
 
 end category_theory

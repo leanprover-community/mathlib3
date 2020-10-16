@@ -595,8 +595,8 @@ protected lemma tsum_apply {ι α : Type*} {f : ι → α → ennreal} {x : α} 
   (∑' i, f i) x = ∑' i, f i x :=
 tsum_apply $ pi.summable.mpr $ λ _, ennreal.summable
 
-lemma tsum_sub {f:ℕ → ennreal} {g:ℕ → ennreal}
-(h₁ : (∑' i, g i) < ∞) (h₂ : g ≤ f) : (∑' i, (f i - g i)) = (∑' i, f i) - (∑' i, g i) :=
+lemma tsum_sub {f : ℕ → ennreal} {g : ℕ → ennreal} (h₁ : (∑' i, g i) < ∞) (h₂ : g ≤ f) : 
+  (∑' i, (f i - g i)) = (∑' i, f i) - (∑' i, g i) :=
 begin
   have h₃:(∑' i, (f i - g i)) = (∑' i, (f i - g i) + (g i))-(∑' i, g i),
   { rw [ennreal.tsum_add, add_sub_self h₁]},   

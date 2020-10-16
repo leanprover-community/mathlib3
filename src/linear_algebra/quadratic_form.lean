@@ -434,12 +434,12 @@ variables [decidable_eq n] [invertible (2 : R₁)]
 /-- A matrix representation of the quadratic form. -/
 def quadratic_form.to_matrix (Q : quadratic_form R₁ (n → R₁)) :
   matrix n n R₁ :=
-Q.associated.to_matrix
+Q.associated.to_matrix'
 
 open quadratic_form
 lemma quadratic_form.to_matrix_smul (a : R₁) (Q : quadratic_form R₁ (n → R₁)) :
   (a • Q).to_matrix = a • Q.to_matrix :=
-by simp only [to_matrix, bilin_form.to_matrix_smul, linear_map.map_smul]
+by simp only [to_matrix, bilin_form.to_matrix'_smul, linear_map.map_smul]
 
 end
 
@@ -453,7 +453,7 @@ open_locale matrix
 @[simp]
 lemma to_matrix_comp (Q : quadratic_form R₁ (m → R₁)) (f : (n → R₁) →ₗ[R₁] (m → R₁)) :
   (Q.comp f).to_matrix = f.to_matrix'ᵀ ⬝ Q.to_matrix ⬝ f.to_matrix' :=
-by { ext, simp [to_matrix, bilin_form.to_matrix_comp] }
+by { ext, simp [to_matrix, bilin_form.to_matrix'_comp] }
 
 section discriminant
 variables {Q : quadratic_form R₁ (n → R₁)}

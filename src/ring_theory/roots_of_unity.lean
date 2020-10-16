@@ -562,7 +562,7 @@ end
 
 /--The cardinality of the multiset `nth_roots ↑n (1 : R)` is `n`
 if there is a primitive root of unity in `R`. -/
-lemma card_nthroots {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) : (nth_roots ↑n (1 : R)).card = n :=
+lemma card_nth_roots {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) : (nth_roots ↑n (1 : R)).card = n :=
 begin
   rw eq_iff_le_not_lt,
   split,

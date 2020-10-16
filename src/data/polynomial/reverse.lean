@@ -62,6 +62,18 @@ rev_at_fun_invol
 @[simp] lemma rev_at_le {N i : ℕ} (H : i ≤ N) : rev_at N i = N - i :=
 if_pos H
 
+lemma rev_at_add {N O n o : ℕ} (hn : n ≤ N) (ho : o ≤ O) :
+  rev_at (N + O) (n + o) = rev_at N n + rev_at O o :=
+begin
+  rcases nat.le.dest hn with ⟨n', rfl⟩,
+  rcases nat.le.dest ho with ⟨o', rfl⟩,
+  repeat { rw rev_at_le },
+  { rw [add_assoc, add_left_comm n' o, ← add_assoc], simp },
+  { exact le_add_right (le_refl _), },
+  { exact le_add_right (le_refl _), },
+  { exact add_le_add hn ho }
+end
+
 /-- `reflect N f` is the polynomial such that `(reflect N f).coeff i = f.coeff (rev_at N i)`.
 In other words, the terms with exponent `[0, ..., N]` now have exponent `[N, ..., 0]`.
 
@@ -133,43 +145,30 @@ begin
     -- second induction: base case
     { intros N O f g Cf Cg Nf Og,
       rw [C_mul_X_pow_of_card_support_le_one Cf, C_mul_X_pow_of_card_support_le_one Cg],
-      rw [mul_assoc, X_pow_mul, mul_assoc, ← pow_add X],
-      repeat {rw reflect_C_mul},
-      repeat {rw reflect_monomial},
-      { rw [mul_assoc, X_pow_mul, mul_assoc, ← pow_add X],
-        congr,
-        rcases (nat.le.dest Og) with ⟨ G, rfl ⟩,
-        rcases (nat.le.dest Nf) with ⟨ F, rfl ⟩,
-        repeat {rw nat.add_sub_cancel_left},
-        repeat {rw rev_at_le},
-        { rw [← add_assoc, add_assoc _ F, add_comm F, ← add_assoc, add_assoc _ F],
-          rw [add_comm f.nat_degree, add_comm F],
-          repeat {rw nat.add_sub_cancel_left}, },
-        { exact le_add_right (le_refl _), },
-        { exact le_add_right (le_refl _), },
-        { rw ← add_assoc (_ + F),
-          rw add_comm _ g.nat_degree,
-          rw ← add_assoc,
-          rw add_assoc,
-          exact nat.le_add_right _ _, }, }, },
+      simp only [mul_assoc, X_pow_mul, ← pow_add X, reflect_C_mul, reflect_monomial,
+                 add_comm, rev_at_add Nf Og] },
     -- second induction: induction step
     { intros N O f g Cf Cg Nf Og,
       by_cases g0 : g = 0,
-      { rw [g0, mul_zero, reflect_zero, reflect_zero, mul_zero], },
-      { rw [← erase_lead_add_C_mul_X_pow g, mul_add, reflect_add, reflect_add, mul_add],
-        rw hcg N O f _ Cf _ Nf (le_trans erase_lead_nat_degree_le Og),
-        rw hcg N O f _ Cf (le_add_left card_support_C_mul_X_pow_le_one) Nf _,
-        { exact (le_trans (nat_degree_C_mul_X_pow_le g.leading_coeff g.nat_degree) Og), },
-        { exact nat.lt_succ_iff.mp (gt_of_ge_of_gt Cg (erase_lead_support_card_lt g0)), }, }, }, },
+      { rw [g0, reflect_zero, mul_zero, mul_zero, reflect_zero], },
+
+      rw [← erase_lead_add_C_mul_X_pow g, mul_add, reflect_add, reflect_add, mul_add, hcg, hcg];
+        try { assumption },
+      { exact le_add_left card_support_C_mul_X_pow_le_one },
+      { exact (le_trans (nat_degree_C_mul_X_pow_le g.leading_coeff g.nat_degree) Og) },
+      { exact nat.lt_succ_iff.mp (gt_of_ge_of_gt Cg (erase_lead_support_card_lt g0)) },
+      { exact le_trans erase_lead_nat_degree_le Og } } },
   --first induction: induction step
   { intros N O f g Cf Cg Nf Og,
-    by_cases f0 : f=0,
-    { rw [f0, zero_mul, reflect_zero, reflect_zero, zero_mul], },
-    { rw [← erase_lead_add_C_mul_X_pow f, add_mul, reflect_add, reflect_add, add_mul],
-      rw hcf N O _ g _ Cg (le_trans erase_lead_nat_degree_le Nf) Og,
-      rw hcf N O _ g (le_add_left card_support_C_mul_X_pow_le_one) Cg _ Og,
-      { exact (le_trans (nat_degree_C_mul_X_pow_le f.leading_coeff f.nat_degree) Nf), },
-      { exact nat.lt_succ_iff.mp (gt_of_ge_of_gt Cf (erase_lead_support_card_lt f0)), }, }, },
+    by_cases f0 : f = 0,
+    { rw [f0, reflect_zero, zero_mul, zero_mul, reflect_zero], },
+
+    rw [← erase_lead_add_C_mul_X_pow f, add_mul, reflect_add, reflect_add, add_mul, hcf, hcf];
+       try { assumption },
+    { exact le_add_left card_support_C_mul_X_pow_le_one },
+    { exact (le_trans (nat_degree_C_mul_X_pow_le f.leading_coeff f.nat_degree) Nf) },
+    { exact nat.lt_succ_iff.mp (gt_of_ge_of_gt Cf (erase_lead_support_card_lt f0)) },
+    { exact (le_trans erase_lead_nat_degree_le Nf) } },
 end
 
 @[simp] theorem reflect_mul

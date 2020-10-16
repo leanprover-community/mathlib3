@@ -1245,8 +1245,8 @@ lemma supr_coe_nat : (⨆n:ℕ, (n : ennreal)) = ⊤ :=
 
 end supr
 
-/-- le_of_add_le_add_left is normally applicable to `ordered_cancel_add_comm_monoid`,
-but you can't cancel infinity, so a must be finite. -/
+/-- `le_of_add_le_add_left` is normally applicable to `ordered_cancel_add_comm_monoid`,
+but it holds in `ennreal` with the additional assumption that `a < ∞`. -/
 lemma le_of_add_le_add_left {a b c:ennreal} : a < ∞ →
     a + b ≤ a + c → b ≤ c :=
 begin

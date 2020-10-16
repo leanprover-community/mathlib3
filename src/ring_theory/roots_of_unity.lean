@@ -577,7 +577,7 @@ end
 
 /--The multiset `nth_roots ↑n (1 : R)` has no repeated elements
 if there is a primitive root of unity in `R`. -/
-lemma nroots_nodup {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) : (nth_roots ↑n (1 : R)).nodup :=
+lemma nth_roots_nodup {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) : (nth_roots ↑n (1 : R)).nodup :=
 begin
   apply (@multiset.erase_dup_eq_self R _ _).1,
   rw eq_iff_le_not_lt,

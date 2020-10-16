@@ -1247,7 +1247,7 @@ end supr
 
 /-- `le_of_add_le_add_left` is normally applicable to `ordered_cancel_add_comm_monoid`,
 but it holds in `ennreal` with the additional assumption that `a < ∞`. -/
-lemma le_of_add_le_add_left {a b c:ennreal} : a < ∞ →
+lemma le_of_add_le_add_left {a b c : ennreal} : a < ∞ →
     a + b ≤ a + c → b ≤ c :=
 begin
   cases a; cases b; cases c; simp [← ennreal.coe_add, ennreal.coe_le_coe],

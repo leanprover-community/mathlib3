@@ -623,7 +623,7 @@ begin
 end
 
 /-The sets `primitive_roots k R` are pairwise disjoint. -/
-lemma primitive_roots_disjoint {k l : ℕ} (hk : 0 < k) (hl : 0 < l) (h : k ≠ l) :
+lemma disjoint {k l : ℕ} (hk : 0 < k) (hl : 0 < l) (h : k ≠ l) :
   disjoint (primitive_roots k R) (primitive_roots l R) :=
 begin
   intros z hz,
@@ -701,7 +701,7 @@ begin
     },
     { intros i hi j hj hdiff,
       simp only [nat.mem_divisors, and_true, ne.def, pnat.ne_zero, not_false_iff] at hi hj,
-      exact primitive_roots_disjoint (pnat.pos_of_div_pos hi) (pnat.pos_of_div_pos hj) hdiff } }
+      exact disjoint (pnat.pos_of_div_pos hi) (pnat.pos_of_div_pos hj) hdiff } }
 end
 
 end integral_domain

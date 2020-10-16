@@ -1788,7 +1788,7 @@ theorem sin_eq_zero_iff {θ : ℂ} : sin θ = 0 ↔ ∃ k : ℤ, θ = k * π :=
 begin
   rw [← complex.cos_sub_pi_div_two, cos_eq_zero_iff],
   split,
-  { rintros ⟨k, hk⟩ := h,
+  { rintros ⟨k, hk⟩,
     use k + 1,
     field_simp [eq_add_of_sub_eq hk],
     ring },

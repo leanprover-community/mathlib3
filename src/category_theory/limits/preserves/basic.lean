@@ -34,6 +34,8 @@ with the above definition of "preserves limits".
 
 open category_theory
 
+noncomputable theory
+
 namespace category_theory.limits
 
 universes v u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -43,27 +45,48 @@ variables {D : Type u₂} [category.{v} D]
 
 variables {J : Type v} [small_category J] {K : J ⥤ C}
 
+/--
+A functor `F` preserves limits of `K` (written as `preserves_limit K F`)
+if `F` maps any limit cone over `K` to a limit cone.
+-/
 class preserves_limit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves : Π {c : cone K}, is_limit c → is_limit (F.map_cone c))
+/--
+A functor `F` preserves colimits of `K` (written as `preserves_colimit K F`)
+if `F` maps any colimit cocone over `K` to a colimit cocone.
+-/
 class preserves_colimit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves : Π {c : cocone K}, is_colimit c → is_colimit (F.map_cocone c))
 
-/-- A functor which preserves limits preserves chosen limits up to isomorphism. -/
+/--
+A functor which preserves limits preserves
+the arbitrary choice of limit provided by `has_limit`, up to isomorphism.
+-/
 def preserves_limit_iso (K : J ⥤ C) [has_limit K] (F : C ⥤ D) [has_limit (K ⋙ F)] [preserves_limit K F] :
   F.obj (limit K) ≅ limit (K ⋙ F) :=
 is_limit.cone_point_unique_up_to_iso (preserves_limit.preserves (limit.is_limit K)) (limit.is_limit (K ⋙ F))
-/-- A functor which preserves colimits preserves chosen colimits up to isomorphism. -/
+/--
+A functor which preserves colimits preserves
+the arbitrary choice of colimit provided by `has_colimit` up to isomorphism.
+-/
 def preserves_colimit_iso (K : J ⥤ C) [has_colimit K] (F : C ⥤ D) [has_colimit (K ⋙ F)] [preserves_colimit K F] :
   F.obj (colimit K) ≅ colimit (K ⋙ F) :=
 is_colimit.cocone_point_unique_up_to_iso (preserves_colimit.preserves (colimit.is_colimit K)) (colimit.is_colimit (K ⋙ F))
 
+/-- We say that `F` preserves limits of shape `J` if `F` preserves limits for every diagram
+    `K : J ⥤ C`, i.e., `F` maps limit cones over `K` to limit cones. -/
 class preserves_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves_limit : Π {K : J ⥤ C}, preserves_limit K F)
+/-- We say that `F` preserves colimits of shape `J` if `F` preserves colimits for every diagram
+    `K : J ⥤ C`, i.e., `F` maps colimit cocones over `K` to colimit cocones. -/
 class preserves_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves_colimit : Π {K : J ⥤ C}, preserves_colimit K F)
 
+/-- We say that `F` preserves limits if it sends limit cones over any diagram to limit cones. -/
 class preserves_limits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 (preserves_limits_of_shape : Π {J : Type v} [𝒥 : small_category J], by exactI preserves_limits_of_shape J F)
+/-- We say that `F` preserves colimits if it sends colimit cocones over any diagram to colimit
+    cocones.-/
 class preserves_colimits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 (preserves_colimits_of_shape : Π {J : Type v} [𝒥 : small_category J], by exactI preserves_colimits_of_shape J F)
 
@@ -162,25 +185,54 @@ def preserves_colimit_of_iso {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K
     simp,
   end }
 
-/-
-A functor F : C → D reflects limits if whenever the image of a cone
-under F is a limit cone in D, the cone was already a limit cone in C.
-Note that again we do not assume a priori that D actually has any
-limits.
+/--
+A functor `F : C ⥤ D` reflects limits for `K : J ⥤ C` if
+whenever the image of a cone over `K` under `F` is a limit cone in `D`,
+the cone was already a limit cone in `C`.
+Note that we do not assume a priori that `D` actually has any limits.
 -/
-
 class reflects_limit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (reflects : Π {c : cone K}, is_limit (F.map_cone c) → is_limit c)
+/--
+A functor `F : C ⥤ D` reflects colimits for `K : J ⥤ C` if
+whenever the image of a cocone over `K` under `F` is a colimit cocone in `D`,
+the cocone was already a colimit cocone in `C`.
+Note that we do not assume a priori that `D` actually has any colimits.
+-/
 class reflects_colimit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (reflects : Π {c : cocone K}, is_colimit (F.map_cocone c) → is_colimit c)
 
+/--
+A functor `F : C ⥤ D` reflects limits of shape `J` if
+whenever the image of a cone over some `K : J ⥤ C` under `F` is a limit cone in `D`,
+the cone was already a limit cone in `C`.
+Note that we do not assume a priori that `D` actually has any limits.
+-/
 class reflects_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (reflects_limit : Π {K : J ⥤ C}, reflects_limit K F)
+/--
+A functor `F : C ⥤ D` reflects colimits of shape `J` if
+whenever the image of a cocone over some `K : J ⥤ C` under `F` is a colimit cocone in `D`,
+the cocone was already a colimit cocone in `C`.
+Note that we do not assume a priori that `D` actually has any colimits.
+-/
 class reflects_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (reflects_colimit : Π {K : J ⥤ C}, reflects_colimit K F)
 
+/--
+A functor `F : C ⥤ D` reflects limits if
+whenever the image of a cone over some `K : J ⥤ C` under `F` is a limit cone in `D`,
+the cone was already a limit cone in `C`.
+Note that we do not assume a priori that `D` actually has any limits.
+-/
 class reflects_limits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 (reflects_limits_of_shape : Π {J : Type v} {𝒥 : small_category J}, by exactI reflects_limits_of_shape J F)
+/--
+A functor `F : C ⥤ D` reflects colimits if
+whenever the image of a cocone over some `K : J ⥤ C` under `F` is a colimit cocone in `D`,
+the cocone was already a colimit cocone in `C`.
+Note that we do not assume a priori that `D` actually has any colimits.
+-/
 class reflects_colimits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 (reflects_colimits_of_shape : Π {J : Type v} {𝒥 : small_category J}, by exactI reflects_colimits_of_shape J F)
 
@@ -244,6 +296,29 @@ instance comp_reflects_limit [reflects_limit K F] [reflects_limit (K ⋙ F) G] :
 instance comp_reflects_colimit [reflects_colimit K F] [reflects_colimit (K ⋙ F) G] :
   reflects_colimit K (F ⋙ G) :=
 ⟨λ c h, reflects_colimit.reflects (reflects_colimit.reflects h)⟩
+
+/-- If `F ⋙ G` preserves limits for `K`, and `G` reflects limits for `K ⋙ F`,
+then `F` preserves limits for `K`. -/
+def preserves_limit_of_reflects_of_preserves [preserves_limit K (F ⋙ G)]
+  [reflects_limit (K ⋙ F) G] : preserves_limit K F :=
+⟨λ c h,
+ begin
+  apply @reflects_limit.reflects _ _ _ _ _ _ _ G,
+  change limits.is_limit ((F ⋙ G).map_cone c),
+  exact preserves_limit.preserves h
+ end⟩
+
+/-- If `F ⋙ G` preserves colimits for `K`, and `G` reflects colimits for `K ⋙ F`,
+then `F` preserves colimits for `K`. -/
+def preserves_colimit_of_reflects_of_preserves [preserves_colimit K (F ⋙ G)]
+  [reflects_colimit (K ⋙ F) G] : preserves_colimit K F :=
+⟨λ c h,
+ begin
+  apply @reflects_colimit.reflects _ _ _ _ _ _ _ G,
+  change limits.is_colimit ((F ⋙ G).map_cocone c),
+  exact preserves_colimit.preserves h
+ end⟩
+
 
 end
 

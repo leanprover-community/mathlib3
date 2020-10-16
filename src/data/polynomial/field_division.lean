@@ -1,4 +1,3 @@
-
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
@@ -16,7 +15,7 @@ This file starts looking like the ring theory of $ R[X] $
 -/
 
 noncomputable theory
-local attribute [instance, priority 100] classical.prop_decidable
+open_locale classical big_operators
 
 namespace polynomial
 universes u v w y z
@@ -203,6 +202,32 @@ gcd.induction p q (λ x, by simp_rw [map_zero, euclidean_domain.gcd_zero_left]) 
 by rw [gcd_val, ← map_mod, ih, ← gcd_val]
 end
 
+lemma eval₂_gcd_eq_zero [comm_semiring k] {ϕ : R →+* k} {f g : polynomial R} {α : k}
+  (hf : f.eval₂ ϕ α = 0) (hg : g.eval₂ ϕ α = 0) : (euclidean_domain.gcd f g).eval₂ ϕ α = 0 :=
+by rw [euclidean_domain.gcd_eq_gcd_ab f g, polynomial.eval₂_add, polynomial.eval₂_mul,
+       polynomial.eval₂_mul, hf, hg, zero_mul, zero_mul, zero_add]
+
+lemma eval_gcd_eq_zero {f g : polynomial R} {α : R} (hf : f.eval α = 0) (hg : g.eval α = 0) :
+  (euclidean_domain.gcd f g).eval α = 0 := eval₂_gcd_eq_zero hf hg
+
+lemma root_left_of_root_gcd [comm_semiring k] {ϕ : R →+* k} {f g : polynomial R} {α : k}
+  (hα : (euclidean_domain.gcd f g).eval₂ ϕ α = 0) : f.eval₂ ϕ α = 0 :=
+by { cases euclidean_domain.gcd_dvd_left f g with p hp,
+     rw [hp, polynomial.eval₂_mul, hα, zero_mul] }
+
+lemma root_right_of_root_gcd [comm_semiring k] {ϕ : R →+* k} {f g : polynomial R} {α : k}
+  (hα : (euclidean_domain.gcd f g).eval₂ ϕ α = 0) : g.eval₂ ϕ α = 0 :=
+by { cases euclidean_domain.gcd_dvd_right f g with p hp,
+     rw [hp, polynomial.eval₂_mul, hα, zero_mul] }
+
+lemma root_gcd_iff_root_left_right [comm_semiring k] {ϕ : R →+* k} {f g : polynomial R} {α : k} :
+  (euclidean_domain.gcd f g).eval₂ ϕ α = 0 ↔ (f.eval₂ ϕ α = 0) ∧ (g.eval₂ ϕ α = 0) :=
+⟨λ h, ⟨root_left_of_root_gcd h, root_right_of_root_gcd h⟩, λ h, eval₂_gcd_eq_zero h.1 h.2⟩
+
+lemma is_root_gcd_iff_is_root_left_right {f g : polynomial R} {α : R} :
+  (euclidean_domain.gcd f g).is_root α ↔ f.is_root α ∧ g.is_root α :=
+root_gcd_iff_root_left_right
+
 theorem is_coprime_map [field k] (f : R →+* k) :
   is_coprime (p.map f) (q.map f) ↔ is_coprime p q :=
 by rw [← gcd_is_unit_iff, ← gcd_is_unit_iff, gcd_map, is_unit_map]
@@ -213,6 +238,14 @@ by simp [polynomial.ext_iff, f.map_eq_zero, coeff_map]
 
 lemma map_ne_zero [field k] {f : R →+* k} (hp : p ≠ 0) : p.map f ≠ 0 :=
 mt (map_eq_zero f).1 hp
+
+lemma mem_roots_map [field k] {f : R →+* k} {x : k} (hp : p ≠ 0) :
+  x ∈ (p.map f).roots ↔ p.eval₂ f x = 0 :=
+begin
+  rw mem_roots (show p.map f ≠ 0, by exact map_ne_zero hp),
+  dsimp only [is_root],
+  rw polynomial.eval_map,
+end
 
 lemma exists_root_of_degree_eq_one (h : degree p = 1) : ∃ x, is_root p x :=
 ⟨-(p.coeff 0 / p.coeff 1),
@@ -321,6 +354,42 @@ begin
   have : (X - C a) ∣ derivative f := key ▸ (dvd_add h (dvd_mul_right _ _)),
   rw [← dvd_iff_mod_by_monic_eq_zero (monic_X_sub_C _), mod_by_monic_X_sub_C_eq_C_eval] at this,
   rw [← C_inj, this, C_0],
+end
+
+lemma prod_multiset_root_eq_finset_root {p : polynomial R} (hzero : p ≠ 0) :
+  (multiset.map (λ (a : R), X - C a) p.roots).prod =
+  ∏ a in (multiset.to_finset p.roots), (λ (a : R), (X - C a) ^ (root_multiplicity a p)) a :=
+by simp only [count_roots hzero, finset.prod_multiset_map_count]
+
+/-- The product `∏ (X - a)` for `a` inside the multiset `p.roots` divides `p`. -/
+lemma prod_multiset_X_sub_C_dvd (p : polynomial R) :
+  (multiset.map (λ (a : R), X - C a) p.roots).prod ∣ p :=
+begin
+  by_cases hp0 : p = 0,
+  { simp only [hp0, roots_zero, is_unit_one, multiset.prod_zero, multiset.map_zero, is_unit.dvd] },
+  rw prod_multiset_root_eq_finset_root hp0,
+  have hcoprime : pairwise (is_coprime on λ (a : R), polynomial.X - C (id a)) :=
+    pairwise_coprime_X_sub function.injective_id,
+  have H : pairwise (is_coprime on λ (a : R), (polynomial.X - C (id a)) ^ (root_multiplicity a p)),
+  { intros a b hdiff, exact (hcoprime a b hdiff).pow },
+  apply finset.prod_dvd_of_coprime (pairwise.pairwise_on H (↑(multiset.to_finset p.roots) : set R)),
+  intros a h,
+  rw multiset.mem_to_finset at h,
+  exact pow_root_multiplicity_dvd p a
+end
+
+lemma roots_C_mul (p : polynomial R) {a : R} (hzero : a ≠ 0) : (C a * p).roots = p.roots :=
+begin
+  by_cases hpzero : p = 0,
+  { simp only [hpzero, mul_zero] },
+  rw multiset.ext,
+  intro b,
+  have prodzero : C a * p ≠ 0,
+  { simp only [hpzero, or_false, ne.def, mul_eq_zero, C_eq_zero, hzero, not_false_iff] },
+  rw [count_roots hpzero, count_roots prodzero, root_multiplicity_mul prodzero],
+  have mulzero : root_multiplicity b (C a) = 0,
+  { simp only [hzero, root_multiplicity_eq_zero, eval_C, is_root.def, not_false_iff] },
+  simp only [mulzero, zero_add]
 end
 
 end field

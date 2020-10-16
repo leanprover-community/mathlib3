@@ -158,7 +158,7 @@ example : (50 : α) / 5 = 10 := by norm_num
 example : (1056 : α) / 1 = 1056 := by norm_num
 example : (6 : α) / 4 = 3/2 := by norm_num
 example : (0 : α) / 3 = 0 := by norm_num
-example : (3 : α) / 0 = 0 := by norm_num -- this should fail
+example : (3 : α) / 0 = 0 := by norm_num
 example : (9 * 9 * 9) * (12 : α) / 27 = 81 * (2 + 2) := by norm_num
 example : (-2 : α) * 4 / 3 = -8 / 3 := by norm_num
 example : - (-4 / 3) = 1 / (3 / (4 : α)) := by norm_num

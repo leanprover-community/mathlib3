@@ -10,6 +10,8 @@ import order.conditionally_complete_lattice
 import data.real.cau_seq_completion
 import algebra.archimedean
 
+/-- The type `ℝ` of real numbers constructed as equivalence classes of Cauchy sequences of rational
+numbers. -/
 def real := @cau_seq.completion.Cauchy ℚ _ _ _ abs _
 notation `ℝ` := real
 
@@ -446,10 +448,10 @@ end,
     rw [add_mul_self_eq, add_assoc, ← le_sub_iff_add_le', ← add_mul,
       ← le_div_iff (div_pos h _30), div_div_cancel' (ne_of_gt h)],
     apply add_le_add,
-    { simpa using (mul_le_mul_left (@two_pos ℝ _)).2 (Sup_le_ub _ ⟨_, lb⟩ ub) },
+    { simpa using (mul_le_mul_left (@zero_lt_two ℝ _)).2 (Sup_le_ub _ ⟨_, lb⟩ ub) },
     { rw [div_le_one _30],
       refine le_trans (sub_le_self _ (mul_self_nonneg _)) (le_trans x1 _),
-      exact (le_add_iff_nonneg_left _).2 (le_of_lt two_pos) } }
+      exact (le_add_iff_nonneg_left _).2 (le_of_lt zero_lt_two) } }
 end
 
 def sqrt_aux (f : cau_seq ℚ abs) : ℕ → ℚ

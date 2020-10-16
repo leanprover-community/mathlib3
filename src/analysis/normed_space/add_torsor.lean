@@ -19,8 +19,6 @@ spaces.
 
 universes u v
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A `normed_add_torsor V P` is a torsor of an additive normed group
 action by a `normed_group V` on points `P`. We bundle the metric space
 structure and require the distance to be the same as results from the
@@ -31,7 +29,6 @@ class normed_add_torsor (V : out_param $ Type u) (P : Type v)
   [out_param $ normed_group V] [metric_space P]
   extends add_torsor V P :=
 (dist_eq_norm' : ∀ (x y : P), dist x y = ∥(x -ᵥ y : V)∥)
-end prio
 
 variables (V : Type u) {P : Type v} [normed_group V] [metric_space P] [normed_add_torsor V P]
 include V

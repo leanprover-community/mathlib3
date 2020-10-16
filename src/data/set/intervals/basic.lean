@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov
 -/
-import algebra.order_functions
+import algebra.ordered_group
 import data.set.basic
 
 /-!
@@ -121,11 +121,39 @@ set.ext $ λ x, and_comm _ _
 @[simp] lemma nonempty_Iic : (Iic a).nonempty := ⟨a, right_mem_Iic⟩
 
 @[simp] lemma nonempty_Ioo [densely_ordered α] : (Ioo a b).nonempty ↔ a < b :=
-⟨λ ⟨x, ha, hb⟩, lt_trans ha hb, dense⟩
+⟨λ ⟨x, ha, hb⟩, lt_trans ha hb, exists_between⟩
 
 @[simp] lemma nonempty_Ioi [no_top_order α] : (Ioi a).nonempty := no_top a
 
 @[simp] lemma nonempty_Iio [no_bot_order α] : (Iio a).nonempty := no_bot a
+
+lemma nonempty_Icc_subtype (h : a ≤ b) : nonempty (Icc a b) :=
+nonempty.to_subtype (nonempty_Icc.mpr h)
+
+lemma nonempty_Ico_subtype (h : a < b) : nonempty (Ico a b) :=
+nonempty.to_subtype (nonempty_Ico.mpr h)
+
+lemma nonempty_Ioc_subtype (h : a < b) : nonempty (Ioc a b) :=
+nonempty.to_subtype (nonempty_Ioc.mpr h)
+
+/-- An interval `Ici a` is nonempty. -/
+instance nonempty_Ici_subtype : nonempty (Ici a) :=
+nonempty.to_subtype nonempty_Ici
+
+/-- An interval `Iic a` is nonempty. -/
+instance nonempty_Iic_subtype : nonempty (Iic a) :=
+nonempty.to_subtype nonempty_Iic
+
+lemma nonempty_Ioo_subtype [densely_ordered α] (h : a < b) : nonempty (Ioo a b) :=
+nonempty.to_subtype (nonempty_Ioo.mpr h)
+
+/-- In a `no_top_order`, the intervals `Ioi` are nonempty. -/
+instance nonempty_Ioi_subtype [no_top_order α] : nonempty (Ioi a) :=
+nonempty.to_subtype nonempty_Ioi
+
+/-- In a `no_bot_order`, the intervals `Iio` are nonempty. -/
+instance nonempty_Iio_subtype [no_bot_order α] : nonempty (Iio a) :=
+nonempty.to_subtype nonempty_Iio
 
 @[simp] lemma Ioo_eq_empty (h : b ≤ a) : Ioo a b = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, not_le_of_lt (lt_trans h₁ h₂) h
@@ -408,7 +436,24 @@ begin
   exact this hmem
 end
 
+lemma Ici_singleton_of_top {a : α} (h_top : ∀ x, x ≤ a) : Ici a = {a} :=
+begin
+  ext,
+  exact ⟨λ h, le_antisymm (h_top _) h, λ h, le_of_eq h.symm⟩,
+end
+
+lemma Iic_singleton_of_bot {a : α} (h_bot : ∀ x, a ≤ x) : Iic a = {a} :=
+@Ici_singleton_of_top (order_dual α) _ a h_bot
+
 end partial_order
+
+section order_top_or_bot
+variables {α : Type u}
+
+@[simp] lemma Ici_top [order_top α] : Ici (⊤ : α) = {⊤} := Ici_singleton_of_top (λ _, le_top)
+@[simp] lemma Ici_bot [order_bot α] : Iic (⊥ : α) = {⊥} := Iic_singleton_of_bot (λ _, bot_le)
+
+end order_top_or_bot
 
 section linear_order
 variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ : α}
@@ -444,7 +489,7 @@ by rw [diff_eq, compl_Iio, inter_comm, Ici_inter_Iio]
 
 lemma Ioo_eq_empty_iff [densely_ordered α] : Ioo a b = ∅ ↔ b ≤ a :=
 ⟨λ eq, le_of_not_lt $ λ h,
-  let ⟨x, h₁, h₂⟩ := dense h in
+  let ⟨x, h₁, h₂⟩ := exists_between h in
   eq_empty_iff_forall_not_mem.1 eq x ⟨h₁, h₂⟩,
 Ioo_eq_empty⟩
 
@@ -465,7 +510,7 @@ lemma Ico_subset_Ico_iff (h₁ : a₁ < b₁) :
 lemma Ioo_subset_Ioo_iff [densely_ordered α] (h₁ : a₁ < b₁) :
   Ioo a₁ b₁ ⊆ Ioo a₂ b₂ ↔ a₂ ≤ a₁ ∧ b₁ ≤ b₂ :=
 ⟨λ h, begin
-  rcases dense h₁ with ⟨x, xa, xb⟩,
+  rcases exists_between h₁ with ⟨x, xa, xb⟩,
   split; refine le_of_not_lt (λ h', _),
   { have ab := lt_trans (h ⟨xa, xb⟩).1 xb,
     exact lt_irrefl _ (h ⟨h', ab⟩).1 },
@@ -495,7 +540,7 @@ end
 begin
   refine ⟨λh, _, λh, Ioi_subset_Ici h⟩,
   by_contradiction ba,
-  obtain ⟨c, bc, ca⟩ : ∃c, b < c ∧ c < a := dense (not_le.mp ba),
+  obtain ⟨c, bc, ca⟩ : ∃c, b < c ∧ c < a := exists_between (not_le.mp ba),
   exact lt_irrefl _ (lt_of_lt_of_le ca (h bc))
 end
 
@@ -758,6 +803,20 @@ end lattice
 
 section decidable_linear_order
 variables {α : Type u} [decidable_linear_order α] {a a₁ a₂ b b₁ b₂ c d : α}
+
+lemma Ioc_inter_Ioo_of_left_lt (h : b₁ < b₂) : Ioc a₁ b₁ ∩ Ioo a₂ b₂ = Ioc (max a₁ a₂) b₁ :=
+ext $ λ x, by simp [and_assoc, @and.left_comm (x ≤ _),
+  and_iff_left_iff_imp.2 (λ h', lt_of_le_of_lt h' h)]
+
+lemma Ioc_inter_Ioo_of_right_le (h : b₂ ≤ b₁) : Ioc a₁ b₁ ∩ Ioo a₂ b₂ = Ioo (max a₁ a₂) b₂ :=
+ext $ λ x, by simp [and_assoc, @and.left_comm (x ≤ _),
+  and_iff_right_iff_imp.2 (λ h', (le_trans (le_of_lt h') h))]
+
+lemma Ioo_inter_Ioc_of_left_le (h : b₁ ≤ b₂) : Ioo a₁ b₁ ∩ Ioc a₂ b₂ = Ioo (max a₁ a₂) b₁ :=
+by rw [inter_comm, Ioc_inter_Ioo_of_right_le h, max_comm]
+
+lemma Ioo_inter_Ioc_of_right_lt (h : b₂ < b₁) : Ioo a₁ b₁ ∩ Ioc a₂ b₂ = Ioc (max a₁ a₂) b₂ :=
+by rw [inter_comm, Ioc_inter_Ioo_of_left_lt h, max_comm]
 
 @[simp] lemma Ico_diff_Iio : Ico a b \ Iio c = Ico (max a c) b :=
 ext $ by simp [Ico, Iio, iff_def, max_le_iff] {contextual:=tt}

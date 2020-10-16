@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import data.equiv.local_equiv
-import topology.homeomorph
 import topology.opens
 
 /-!
@@ -497,8 +496,8 @@ section prod
 
 /-- The product of two local homeomorphisms, as a local homeomorphism on the product space. -/
 def prod (e : local_homeomorph α β) (e' : local_homeomorph γ δ) : local_homeomorph (α × γ) (β × δ) :=
-{ open_source := is_open_prod e.open_source e'.open_source,
-  open_target := is_open_prod e.open_target e'.open_target,
+{ open_source := e.open_source.prod e'.open_source,
+  open_target := e.open_target.prod e'.open_target,
   continuous_to_fun := continuous_on.prod
     (e.continuous_to_fun.comp continuous_fst.continuous_on (prod_subset_preimage_fst _ _))
     (e'.continuous_to_fun.comp continuous_snd.continuous_on (prod_subset_preimage_snd _ _)),

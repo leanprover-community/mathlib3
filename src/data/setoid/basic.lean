@@ -166,8 +166,7 @@ end
 lemma Sup_def {s : set (setoid α)} : Sup s = eqv_gen.setoid (Sup (rel '' s)) :=
 begin
   rw [Sup_eq_eqv_gen, Sup_image],
-  congr,
-  ext x y,
+  congr' with x y,
   simp only [supr_apply, supr_Prop_eq, exists_prop]
 end
 
@@ -317,8 +316,7 @@ open quotient
 
 /-- Given an equivalence relation r on α, the order-preserving bijection between the set of
     equivalence relations containing r and the equivalence relations on the quotient of α by r. -/
-def correspondence (r : setoid α) : ((≤) : {s // r ≤ s} → {s // r ≤ s} → Prop) ≃r
-  ((≤) : setoid (quotient r) → setoid (quotient r) → Prop) :=
+def correspondence (r : setoid α) : {s // r ≤ s} ≃o setoid (quotient r) :=
 { to_fun := λ s, map_of_surjective s.1 quotient.mk ((ker_mk_eq r).symm ▸ s.2) exists_rep,
   inv_fun := λ s, ⟨comap quotient.mk s, λ x y h, show s.rel ⟦x⟧ ⟦y⟧, by rw eq_rel.2 h⟩,
   left_inv := λ s, subtype.ext_iff_val.2 $ ext' $ λ _ _,

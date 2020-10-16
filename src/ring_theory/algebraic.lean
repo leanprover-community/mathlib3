@@ -6,7 +6,6 @@ Authors: Johan Commelin
 
 import linear_algebra.finite_dimensional
 import ring_theory.integral_closure
-import data.polynomial.field_division
 import data.polynomial.integral_normalization
 
 /-!
@@ -84,7 +83,7 @@ begin
   refine ⟨_, is_integral.is_algebraic K⟩,
   rintro ⟨p, hp, hpx⟩,
   refine ⟨_, monic_mul_leading_coeff_inv hp, _⟩,
-  rw [alg_hom.map_mul, hpx, zero_mul],
+  rw [← aeval_def, alg_hom.map_mul, hpx, zero_mul],
 end
 
 end field
@@ -105,7 +104,7 @@ end
 
 /-- A field extension is algebraic if it is finite. -/
 lemma is_algebraic_of_finite [finite : finite_dimensional K L] : is_algebraic K L :=
-λ x, (is_algebraic_iff_is_integral _).mpr (is_integral_of_noetherian ⊤
+λ x, (is_algebraic_iff_is_integral _).mpr (is_integral_of_submodule_noetherian ⊤
   (is_noetherian_of_submodule_of_noetherian _ _ _ finite) x algebra.mem_top)
 
 end algebra

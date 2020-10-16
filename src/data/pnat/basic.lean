@@ -14,6 +14,9 @@ notation `ℕ+` := pnat
 instance coe_pnat_nat : has_coe ℕ+ ℕ := ⟨subtype.val⟩
 instance : has_repr ℕ+ := ⟨λ n, repr n.1⟩
 
+/-- Predecessor of a `ℕ+`, as a `ℕ`. -/
+def pnat.nat_pred (i : ℕ+) : ℕ := i - 1
+
 namespace nat
 
 /-- Convert a natural number to a positive natural number. The
@@ -174,7 +177,7 @@ lemma coe_eq_one_iff {m : ℕ+} :
 
 @[simp] theorem pow_coe (m : ℕ+) (n : ℕ) : ((m ^ n : ℕ+) : ℕ) = (m : ℕ) ^ n :=
 by induction n with n ih;
- [refl, rw [nat.pow_succ, pow_succ, mul_coe, mul_comm, ih]]
+ [refl, rw [pow_succ', pow_succ, mul_coe, mul_comm, ih]]
 
 instance : left_cancel_semigroup ℕ+ :=
 { mul_left_cancel := λ a b c h, by {
@@ -219,14 +222,13 @@ theorem add_sub_of_lt {a b : ℕ+} : a < b → a + (b - a) = b :=
  λ h, eq $ by { rw [add_coe, sub_coe, if_pos h],
                 exact nat.add_sub_of_le (le_of_lt h) }
 
-/-- We define m % k and m / k in the same way as for nat
-  except that when m = n * k we take m % k = k and
-  m / k = n - 1.  This ensures that m % k is always positive
-  and m = (m % k) + k * (m / k) in all cases.  Later we
-  define a function div_exact which gives the usual m / k
-  in the case where k divides m.
+/-- We define `m % k` and `m / k` in the same way as for `ℕ`
+  except that when `m = n * k` we take `m % k = k` and
+  `m / k = n - 1`.  This ensures that `m % k` is always positive
+  and `m = (m % k) + k * (m / k)` in all cases.  Later we
+  define a function `div_exact` which gives the usual `m / k`
+  in the case where `k` divides `m`.
 -/
-
 def mod_div_aux : ℕ+ → ℕ → ℕ → ℕ+ × ℕ
 | k 0 q := ⟨k, q.pred⟩
 | k (r + 1) q := ⟨⟨r + 1, nat.succ_pos r⟩, q⟩
@@ -239,9 +241,25 @@ lemma mod_div_aux_spec : ∀ (k : ℕ+) (r q : ℕ) (h : ¬ (r = 0 ∧ q = 0)),
   rw [nat.pred_succ, nat.mul_succ, zero_add, add_comm]}
 | k (r + 1) q h := rfl
 
+/-- `mod_div m k = (m % k, m / k)`.
+  We define `m % k` and `m / k` in the same way as for `ℕ`
+  except that when `m = n * k` we take `m % k = k` and
+  `m / k = n - 1`.  This ensures that `m % k` is always positive
+  and `m = (m % k) + k * (m / k)` in all cases.  Later we
+  define a function `div_exact` which gives the usual `m / k`
+  in the case where `k` divides `m`.
+-/
 def mod_div (m k : ℕ+) : ℕ+ × ℕ := mod_div_aux k ((m : ℕ) % (k : ℕ)) ((m : ℕ) / (k : ℕ))
 
+/-- We define `m % k` in the same way as for `ℕ`
+  except that when `m = n * k` we take `m % k = k` This ensures that `m % k` is always positive.
+-/
 def mod (m k : ℕ+) : ℕ+ := (mod_div m k).1
+
+/-- We define `m / k` in the same way as for `ℕ` except that when `m = n * k` we take
+  `m / k = n - 1`. This ensures that `m = (m % k) + k * (m / k)` in all cases. Later we
+  define a function `div_exact` which gives the usual `m / k` in the case where `k` divides `m`.
+-/
 def div (m k : ℕ+) : ℕ  := (mod_div m k).2
 
 theorem mod_add_div (m k : ℕ+) : (m : ℕ) = (mod m k) + k * (div m k) :=
@@ -308,10 +326,11 @@ end
 lemma le_of_dvd {m n : ℕ+} : m ∣ n → m ≤ n :=
 by { rw dvd_iff', intro h, rw ← h, apply (mod_le n m).left }
 
-def div_exact {m k : ℕ+} (h : k ∣ m) : ℕ+ :=
+/-- If `h : k | m`, then `k * (div_exact m k) = m`. Note that this is not equal to `m / k`. -/
+def div_exact (m k : ℕ+) : ℕ+ :=
  ⟨(div m k).succ, nat.succ_pos _⟩
 
-theorem mul_div_exact {m k : ℕ+} (h : k ∣ m) : k * (div_exact h) = m :=
+theorem mul_div_exact {m k : ℕ+} (h : k ∣ m) : k * (div_exact m k) = m :=
 begin
  apply eq, rw [mul_coe],
  change (k : ℕ) * (div m k).succ = m,
@@ -324,9 +343,13 @@ theorem dvd_antisymm {m n : ℕ+} : m ∣ n → n ∣ m → m = n :=
 theorem dvd_one_iff (n : ℕ+) : n ∣ 1 ↔ n = 1 :=
  ⟨λ h, dvd_antisymm h (one_dvd n), λ h, h.symm ▸ (dvd_refl 1)⟩
 
+/-- The greatest common divisor (gcd) of two positive natural numbers,
+  viewed as positive natural number. -/
 def gcd (n m : ℕ+) : ℕ+ :=
  ⟨nat.gcd (n : ℕ) (m : ℕ), nat.gcd_pos_of_pos_left (m : ℕ) n.pos⟩
 
+/-- The least common multiple (lcm) of two positive natural numbers,
+  viewed as positive natural number. -/
 def lcm (n m : ℕ+) : ℕ+ :=
  ⟨nat.lcm (n : ℕ) (m : ℕ),
   by { let h := mul_pos n.pos m.pos,
@@ -364,6 +387,7 @@ end
 section prime
 /-! ### Prime numbers -/
 
+/-- Primality predicate for `ℕ+`, defined in terms of `nat.prime`. -/
 def prime (p : ℕ+) : Prop := (p : ℕ).prime
 
 lemma prime.one_lt {p : ℕ+} : p.prime → 1 < p := nat.prime.one_lt

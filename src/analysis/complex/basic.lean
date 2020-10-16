@@ -17,15 +17,12 @@ This file registers `ℂ` as a normed field, expresses basic properties of the n
 tools on the real vector space structure of `ℂ`. Notably, in the namespace `complex`,
 it defines functions:
 
-* `linear_map.re`
 * `continuous_linear_map.re`
-* `linear_map.im`
 * `continuous_linear_map.im`
-* `linear_map.of_real`
 * `continuous_linear_map.of_real`
 
 They are bundled versions of the real part, the imaginary part, and the embedding of `ℝ` in `ℂ`,
-as `ℝ`-linear maps.
+as continuous `ℝ`-linear maps.
 
 `has_deriv_at_real_of_complex` expresses that, if a function on `ℂ` is differentiable (over `ℂ`),
 then its restriction to `ℝ` is differentiable over `ℝ`, with derivative the real part of the
@@ -86,14 +83,6 @@ instance continuous_linear_map.real_smul_complex (E : Type*) [normed_group E] [n
   normed_space ℂ (E →L[ℝ] F) :=
 continuous_linear_map.normed_space_extend_scalars
 
-/-- Linear map version of the real part function, from `ℂ` to `ℝ`. -/
-def linear_map.re : ℂ →ₗ[ℝ] ℝ :=
-{ to_fun := λx, x.re,
-  map_add' := by simp,
-  map_smul' := λc x, by { change ((c : ℂ) * x).re = c * x.re, simp } }
-
-@[simp] lemma linear_map.re_apply (z : ℂ) : linear_map.re z = z.re := rfl
-
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/
 def continuous_linear_map.re : ℂ →L[ℝ] ℝ :=
 linear_map.re.mk_continuous 1 $ λx, begin
@@ -115,14 +104,6 @@ begin
   calc 1 = ∥continuous_linear_map.re (1 : ℂ)∥ : by simp
     ... ≤ ∥continuous_linear_map.re∥ : by { apply continuous_linear_map.unit_le_op_norm, simp }
 end
-
-/-- Linear map version of the imaginary part function, from `ℂ` to `ℝ`. -/
-def linear_map.im : ℂ →ₗ[ℝ] ℝ :=
-{ to_fun := λx, x.im,
-  map_add' := by simp,
-  map_smul' := λc x, by { change ((c : ℂ) * x).im = c * x.im, simp } }
-
-@[simp] lemma linear_map.im_apply (z : ℂ) : linear_map.im z = z.im := rfl
 
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/
 def continuous_linear_map.im : ℂ →L[ℝ] ℝ :=
@@ -146,14 +127,6 @@ begin
     ... ≤ ∥continuous_linear_map.im∥ :
       by { apply continuous_linear_map.unit_le_op_norm, rw ← abs_I, exact le_refl _ }
 end
-
-/-- Linear map version of the canonical embedding of `ℝ` in `ℂ`. -/
-def linear_map.of_real : ℝ →ₗ[ℝ] ℂ :=
-{ to_fun := λx, of_real x,
-  map_add' := by simp,
-  map_smul' := λc x, by { simp, refl } }
-
-@[simp] lemma linear_map.of_real_apply (x : ℝ) : linear_map.of_real x = x := rfl
 
 /-- Continuous linear map version of the canonical embedding of `ℝ` in `ℂ`. -/
 def continuous_linear_map.of_real : ℝ →L[ℝ] ℂ :=

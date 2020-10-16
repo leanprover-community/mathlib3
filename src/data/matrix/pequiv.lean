@@ -36,7 +36,7 @@ open matrix
 
 universes u v
 
-variables {k l m n : Type u}
+variables {k l m n : Type*}
 variables [fintype k] [fintype l] [fintype m] [fintype n]
 variables {α : Type v}
 

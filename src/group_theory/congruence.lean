@@ -65,6 +65,12 @@ structure add_con [has_add M] extends setoid M :=
 @[to_additive add_con] structure con [has_mul M] extends setoid M :=
 (mul' : ∀ {w x y z}, r w x → r y z → r (w * y) (x * z))
 
+/-- The equivalence relation underlying an additive congruence relation. -/
+add_decl_doc add_con.to_setoid
+
+/-- The equivalence relation underlying a multiplicative congruence relation. -/
+add_decl_doc con.to_setoid
+
 variables {M}
 
 /-- The inductively defined smallest additive congruence relation containing a given binary
@@ -447,8 +453,7 @@ underlying binary relation."]
 lemma Sup_def {S : set (con M)} : Sup S = con_gen (Sup (r '' S)) :=
 begin
   rw [Sup_eq_con_gen, Sup_image],
-  congr,
-  ext x y,
+  congr' with x y,
   simp only [Sup_image, supr_apply, supr_Prop_eq, exists_prop, rel_eq_coe]
 end
 
@@ -516,8 +521,7 @@ open quotient
 @[to_additive "Given an additive congruence relation `c` on a type `M` with an addition,
 the order-preserving bijection between the set of additive congruence relations containing `c` and
 the additive congruence relations on the quotient of `M` by `c`."]
-def correspondence : ((≤) : {d // c ≤ d} → {d // c ≤ d} → Prop) ≃r
-  ((≤) : con c.quotient → con c.quotient → Prop) :=
+def correspondence : {d // c ≤ d} ≃o (con c.quotient) :=
 { to_fun := λ d, d.1.map_of_surjective coe _
     (by rw mul_ker_mk_eq; exact d.2) $ @exists_rep _ c.to_setoid,
   inv_fun := λ d, ⟨comap (coe : M → c.quotient) (λ x y, rfl) d, λ _ _ h,

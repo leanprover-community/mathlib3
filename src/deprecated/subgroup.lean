@@ -14,8 +14,6 @@ variables {G : Type*} {H : Type*} {A : Type*} {a a₁ a₂ b c: G}
 section group
 variables [group G] [add_group A]
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- `s` is an additive subgroup: a set containing 0 and closed under addition and negation. -/
 class is_add_subgroup (s : set A) extends is_add_submonoid s : Prop :=
 (neg_mem {a} : a ∈ s → -a ∈ s)
@@ -24,7 +22,6 @@ class is_add_subgroup (s : set A) extends is_add_submonoid s : Prop :=
 @[to_additive]
 class is_subgroup (s : set G) extends is_submonoid s : Prop :=
 (inv_mem {a} : a ∈ s → a⁻¹ ∈ s)
-end prio
 
 lemma additive.is_add_subgroup
   (s : set G) [is_subgroup s] : @is_add_subgroup (additive G) _ s :=
@@ -163,15 +160,12 @@ theorem is_add_subgroup.sub_mem {A} [add_group A] (s : set A) [is_add_subgroup s
   (ha : a ∈ s) (hb : b ∈ s) : a - b ∈ s :=
 is_add_submonoid.add_mem ha (is_add_subgroup.neg_mem hb)
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 class normal_add_subgroup [add_group A] (s : set A) extends is_add_subgroup s : Prop :=
 (normal : ∀ n ∈ s, ∀ g : A, g + n - g ∈ s)
 
 @[to_additive]
 class normal_subgroup [group G] (s : set G) extends is_subgroup s : Prop :=
 (normal : ∀ n ∈ s, ∀ g : G, g * n * g⁻¹ ∈ s)
-end prio
 
 @[to_additive]
 lemma normal_subgroup_of_comm_group [comm_group G] (s : set G) [hs : is_subgroup s] :

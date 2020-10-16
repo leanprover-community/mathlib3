@@ -47,7 +47,7 @@ end semiring
 lemma sum_div [division_ring β] {s : finset α} {f : α → β} {b : β} :
   (∑ x in s, f x) / b = ∑ x in s, f x / b :=
 calc (∑ x in s, f x) / b = ∑ x in s, f x * (1 / b) : by rw [div_eq_mul_one_div, sum_mul]
-                     ... = ∑ x in s, f x / b : by { congr, ext, rw ← div_eq_mul_one_div (f x) b }
+                     ... = ∑ x in s, f x / b : by { congr' with x, rw ← div_eq_mul_one_div (f x) b }
 
 section comm_semiring
 variables [comm_semiring β]
@@ -78,7 +78,7 @@ begin
     refine sum_congr rfl (λ g _, _),
     rw [attach_insert, prod_insert, prod_image],
     { simp only [pi.cons_same],
-      congr', ext ⟨v, hv⟩, congr',
+      congr' with ⟨v, hv⟩, congr',
       exact (pi.cons_ne (by rintro rfl; exact ha hv)).symm },
     { exact λ _ _ _ _, subtype.eq ∘ subtype.mk.inj },
     { simp only [mem_image], rintro ⟨⟨_, hm⟩, _, rfl⟩, exact ha hm } }

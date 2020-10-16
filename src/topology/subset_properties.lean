@@ -593,6 +593,13 @@ begin
   rwa [← mem_interior_iff_mem_nhds, hU.interior_eq]
 end
 
+lemma is_ultrafilter.le_nhds_Lim [compact_space α] (F : ultrafilter α) :
+  F.1 ≤ nhds (@Lim _ _ F.1.nonempty_of_ne_bot F.1) :=
+begin
+  rcases compact_iff_ultrafilter_le_nhds.mp compact_univ F.1 F.2 (by simp) with ⟨x, -, h⟩,
+  exact le_nhds_Lim ⟨x,h⟩,
+end
+
 end compact
 
 section clopen
@@ -708,13 +715,10 @@ closure_eq_iff_is_closed.1 $ eq_irreducible_component
 class preirreducible_space (α : Type u) [topological_space α] : Prop :=
 (is_preirreducible_univ [] : is_preirreducible (univ : set α))
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- An irreducible space is one that is nonempty
 and where there is no non-trivial pair of disjoint opens. -/
 class irreducible_space (α : Type u) [topological_space α] extends preirreducible_space α : Prop :=
 (to_nonempty [] : nonempty α)
-end prio
 
 attribute [instance, priority 50] irreducible_space.to_nonempty -- see Note [lower instance priority]
 
@@ -1050,12 +1054,9 @@ class preconnected_space (α : Type u) [topological_space α] : Prop :=
 
 export preconnected_space (is_preconnected_univ)
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A connected space is a nonempty one where there is no non-trivial open partition. -/
 class connected_space (α : Type u) [topological_space α] extends preconnected_space α : Prop :=
 (to_nonempty : nonempty α)
-end prio
 
 attribute [instance, priority 50] connected_space.to_nonempty -- see Note [lower instance priority]
 

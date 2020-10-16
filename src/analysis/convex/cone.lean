@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury Kudryashov All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury Kudryashov
+Authors: Yury Kudryashov, Frédéric Dupuis
 -/
 import linear_algebra.linear_pmap
 import analysis.convex.basic
@@ -14,6 +14,9 @@ In a vector space `E` over `ℝ`, we define a convex cone as a subset `s` such t
 `a • x + b • y ∈ s` whenever `x, y ∈ s` and `a, b > 0`. We prove that convex cones form
 a `complete_lattice`, and define their images (`convex_cone.map`) and preimages
 (`convex_cone.comap`) under linear maps.
+
+We define pointed, blunt, flat and salient cones, and prove the correspondence between
+convex cones and ordered semimodules.
 
 We also define `convex.to_cone` to be the minimal cone that includes a given convex set.
 
@@ -38,10 +41,11 @@ We prove two extension theorems:
 
 While `convex` is a predicate on sets, `convex_cone` is a bundled convex cone.
 
-## TODO
+## References
 
-* Define predicates `blunt`, `pointed`, `flat`, `sailent`, see
-  [Wikipedia](https://en.wikipedia.org/wiki/Convex_cone#Blunt,_pointed,_flat,_salient,_and_proper_cones)
+* https://en.wikipedia.org/wiki/Convex_cone
+
+## TODO
 
 * Define the dual cone.
 -/
@@ -184,6 +188,153 @@ ext' $ preimage_comp.symm
 
 @[simp] lemma mem_comap {f : E →ₗ[ℝ] F} {S : convex_cone F} {x : E} :
   x ∈ S.comap f ↔ f x ∈ S := iff.rfl
+
+/--
+Constructs an ordered semimodule given an `ordered_add_comm_group`, a cone, and a proof that
+the order relation is the one defined by the cone.
+-/
+def to_ordered_semimodule {M : Type*} [ordered_add_comm_group M] [semimodule ℝ M]
+  (S : convex_cone M) (h : ∀ x y : M, x ≤ y ↔ y - x ∈ S) : ordered_semimodule ℝ M :=
+{ smul_lt_smul_of_pos :=
+    begin
+      intros x y z xy hz,
+      refine lt_of_le_of_ne _ _,
+      { rw [h (z • x) (z • y), ←smul_sub z y x],
+        exact smul_mem S hz ((h x y).mp (le_of_lt xy)) },
+      { intro H,
+        have H' := congr_arg (λ r, (1/z) • r) H,
+        refine (ne_of_lt xy) _,
+        field_simp [smul_smul, div_self ((ne_of_lt hz).symm)] at H',
+        exact H' },
+    end,
+  lt_of_smul_lt_smul_of_nonneg :=
+    begin
+      intros x y z hxy hz,
+      refine lt_of_le_of_ne _ _,
+      { rw [h x y],
+        have hz' : 0 < z,
+        { refine lt_of_le_of_ne hz _,
+          rintro rfl,
+          rw [zero_smul, zero_smul] at hxy,
+          exact lt_irrefl 0 hxy },
+        have hz'' : 0 < 1/z := div_pos (by linarith) hz',
+        have hxy' := (h (z • x) (z • y)).mp (le_of_lt hxy),
+        rw [←smul_sub z y x] at hxy',
+        have hxy'' := smul_mem S hz'' hxy',
+        field_simp [smul_smul, div_self ((ne_of_lt hz').symm)] at hxy'',
+        exact hxy'' },
+      { rintro rfl,
+        exact lt_irrefl (z • x) hxy }
+    end,
+}
+
+/-! ### Convex cones with extra properties -/
+
+/-- A convex cone is pointed if it includes 0. -/
+def pointed (S : convex_cone E) : Prop := (0 : E) ∈ S
+
+/-- A convex cone is blunt if it doesn't include 0. -/
+def blunt (S : convex_cone E) : Prop := (0 : E) ∉ S
+
+/-- A convex cone is flat if it contains some nonzero vector `x` and its opposite `-x`. -/
+def flat (S : convex_cone E) : Prop := ∃ x ∈ S, x ≠ (0 : E) ∧ -x ∈ S
+
+/-- A convex cone is salient if it doesn't include `x` and `-x` for any nonzero `x`. -/
+def salient (S : convex_cone E) : Prop := ∀ x ∈ S, x ≠ (0 : E) → -x ∉ S
+
+lemma pointed_iff_not_blunt (S : convex_cone E) : pointed S ↔ ¬blunt S :=
+⟨λ h₁ h₂, h₂ h₁, λ h, not_not.mp h⟩
+
+lemma salient_iff_not_flat (S : convex_cone E) : salient S ↔ ¬flat S :=
+begin
+  split,
+  { rintros h₁ ⟨x, xs, H₁, H₂⟩,
+    exact h₁ x xs H₁ H₂ },
+  { intro h,
+    unfold flat at h,
+    push_neg at h,
+    exact h }
+end
+
+/-- A blunt cone (one not containing 0) is always salient. -/
+lemma salient_of_blunt (S : convex_cone E) : blunt S → salient S :=
+begin
+  intro h₁,
+  rw [salient_iff_not_flat],
+  intro h₂,
+  obtain ⟨x, xs, H₁, H₂⟩ := h₂,
+  have hkey : (0 : E) ∈ S := by rw [(show 0 = x + (-x), by simp)]; exact add_mem S xs H₂,
+  exact h₁ hkey,
+end
+
+/-- A pointed convex cone defines a preorder. -/
+def to_preorder (S : convex_cone E) (h₁ : pointed S) : preorder E :=
+{ le := λ x y, y - x ∈ S,
+  le_refl := λ x, by change x - x ∈ S; rw [sub_self x]; exact h₁,
+  le_trans := λ x y z xy zy, by simp [(show z - x = z - y + (y - x), by abel), add_mem S zy xy] }
+
+/-- A pointed and salient cone defines a partial order. -/
+def to_partial_order (S : convex_cone E) (h₁ : pointed S) (h₂ : salient S) : partial_order E :=
+{ le_antisymm :=
+    begin
+      intros a b ab ba,
+      by_contradiction h,
+      have h' : b - a ≠ 0 := λ h'', h (eq_of_sub_eq_zero h'').symm,
+      have H := h₂ (b-a) ab h',
+      rw [neg_sub b a] at H,
+      exact H ba,
+    end,
+  ..to_preorder S h₁ }
+
+/-- A pointed and salient cone defines an `ordered_add_comm_group`. -/
+def to_ordered_add_comm_group (S : convex_cone E) (h₁ : pointed S) (h₂ : salient S) :
+  ordered_add_comm_group E :=
+{ add_le_add_left :=
+    begin
+      intros a b hab c,
+      change c + b - (c + a) ∈ S,
+      rw [add_sub_add_left_eq_sub],
+      exact hab,
+    end,
+  ..to_partial_order S h₁ h₂,
+  ..show add_comm_group E, by apply_instance }
+
+/-! ### Positive cone of an ordered semimodule -/
+section positive_cone
+
+variables (M : Type*) [ordered_add_comm_group M] [ordered_semimodule ℝ M]
+
+/--
+The positive cone is the convex cone formed by the set of nonnegative elements in an ordered
+semimodule.
+-/
+def positive_cone : convex_cone M :=
+{ carrier := {x | 0 ≤ x},
+  smul_mem' :=
+    begin
+      intros c hc x hx,
+      have := smul_le_smul_of_nonneg (show 0 ≤ x, by exact hx) (le_of_lt hc),
+      have h' : c • (0 : M) = 0,
+      { simp only [smul_zero] },
+      rwa [h'] at this
+    end,
+  add_mem' := λ x hx y hy, add_nonneg (show 0 ≤ x, by exact hx) (show 0 ≤ y, by exact hy) }
+
+/-- The positive cone of an ordered semimodule is always salient. -/
+lemma salient_of_positive_cone : salient (positive_cone M) :=
+begin
+  intros x xs hx hx',
+  have := calc
+    0   < x         : lt_of_le_of_ne xs hx.symm
+    ... ≤ x + (-x)  : (le_add_iff_nonneg_right x).mpr hx'
+    ... = 0         : by rw [tactic.ring.add_neg_eq_sub x x]; exact sub_self x,
+  exact lt_irrefl 0 this,
+end
+
+/-- The positive cone of an ordered semimodule is always pointed. -/
+lemma pointed_of_positive_cone : pointed (positive_cone M) := le_refl 0
+
+end positive_cone
 
 end convex_cone
 

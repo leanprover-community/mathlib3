@@ -3,8 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Scott Morrison
 -/
-import data.monoid_algebra
-import ring_theory.algebra
+import algebra.monoid_algebra
 import algebra.invertible
 import algebra.char_p
 import linear_algebra.basis
@@ -53,7 +52,7 @@ just as a `k`-linear map.
 
 We now construct a retraction of the inclusion as a `k[G]`-linear map,
 by the formula
-$$ \frac{1}{|G|} \sum_{g \mem G} g⁻¹ • π(g • -). $$
+$$ \frac{1}{|G|} \sum_{g \in G} g⁻¹ • π(g • -). $$
 -/
 
 variables (π : (restrict_scalars k (monoid_algebra k G) W) →ₗ[k]
@@ -118,7 +117,7 @@ section
 local attribute [instance] linear_map_algebra_module
 /--
 We construct our `k[G]`-linear retraction of `i` as
-$$ \frac{1}{|G|} \sum_{g \mem G} g⁻¹ • π(g • -). $$
+$$ \frac{1}{|G|} \sum_{g \in G} g⁻¹ • π(g • -). $$
 -/
 def equivariant_projection :
   W →ₗ[monoid_algebra k G] V :=

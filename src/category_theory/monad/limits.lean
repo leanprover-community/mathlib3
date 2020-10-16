@@ -104,7 +104,7 @@ instance forget_creates_limits : creates_limits (forget T) :=
       makes_limit := forget_creates_limits.lifted_cone_is_limit _ _ _ } ) } }
 
 /-- `D ⋙ forget T` has a limit, then `D` has a limit. -/
-def has_limit_of_comp_forget_has_limit (D : J ⥤ algebra T) [has_limit (D ⋙ forget T)] : has_limit D :=
+lemma has_limit_of_comp_forget_has_limit (D : J ⥤ algebra T) [has_limit (D ⋙ forget T)] : has_limit D :=
 has_limit_of_created D (forget T)
 
 namespace forget_creates_colimits
@@ -237,7 +237,7 @@ instance forget_creates_colimits [preserves_colimits_of_shape J T] : creates_col
 For `D : J ⥤ algebra T`, `D ⋙ forget T` has a colimit, then `D` has a colimit provided colimits
 of shape `J` are preserved by `T`.
 -/
-def forget_creates_colimits_of_monad_preserves
+lemma forget_creates_colimits_of_monad_preserves
   [preserves_colimits_of_shape J T] (D : J ⥤ algebra T) [has_colimit (D ⋙ forget T)] :
 has_colimit D :=
 has_colimit_of_created D (forget T)
@@ -259,23 +259,16 @@ instance comp_comparison_has_limit
 monad.has_limit_of_comp_forget_has_limit (F ⋙ monad.comparison R)
 
 /-- Any monadic functor creates limits. -/
-def monadic_creates_limits (F : J ⥤ D) (R : D ⥤ C) [monadic_right_adjoint R] [has_limit (F ⋙ R)] :
+lemma monadic_creates_limits (F : J ⥤ D) (R : D ⥤ C) [monadic_right_adjoint R] [has_limit (F ⋙ R)] :
   has_limit F :=
 adjunction.has_limit_of_comp_equivalence _ (monad.comparison R)
 
 section
 
 /-- If C has limits then any reflective subcategory has limits -/
-def has_limits_of_reflective (R : D ⥤ C) [has_limits C] [reflective R] : has_limits D :=
+lemma has_limits_of_reflective (R : D ⥤ C) [has_limits C] [reflective R] : has_limits D :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, monadic_creates_limits F R } }
-
-local attribute [instance] has_limits_of_reflective
-
--- We verify that, even jumping through these monadic hoops,
--- the limit is actually calculated in the obvious way:
-example (R : D ⥤ C) [reflective R] [has_limits C] (F : J ⥤ D) :
-limit F = (left_adjoint R).obj (limit (F ⋙ R)) := rfl
 
 end
 end category_theory

@@ -91,8 +91,6 @@ lemma inv {α β} [has_mul α] [comm_group β] (f : α → β) [is_mul_hom f] :
 
 end is_mul_hom
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- Predicate for add_monoid homomorphisms (deprecated -- use the bundled `monoid_hom` version). -/
 class is_add_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) extends is_add_hom f : Prop :=
 (map_zero [] : f 0 = 0)
@@ -101,7 +99,6 @@ class is_add_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) extends 
 @[to_additive]
 class is_monoid_hom [monoid α] [monoid β] (f : α → β) extends is_mul_hom f : Prop :=
 (map_one [] : f 1 = 1)
-end prio
 
 namespace monoid_hom
 variables {M : Type*} {N : Type*} {P : Type*} [mM : monoid M] [mN : monoid N] {mP : monoid P}
@@ -172,15 +169,12 @@ instance is_add_monoid_hom_mul_right {γ : Type*} [semiring γ] (x : γ) :
 
 end is_add_monoid_hom
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- Predicate for additive group homomorphism (deprecated -- use bundled `monoid_hom`). -/
 class is_add_group_hom [add_group α] [add_group β] (f : α → β) extends is_add_hom f : Prop
 
 /-- Predicate for group homomorphisms (deprecated -- use bundled `monoid_hom`). -/
 @[to_additive]
 class is_group_hom [group α] [group β] (f : α → β) extends is_mul_hom f : Prop
-end prio
 
 @[to_additive]
 instance monoid_hom.is_group_hom {G H : Type*} {_ : group G} {_ : group H} (f : G →* H) :

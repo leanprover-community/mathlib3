@@ -31,7 +31,7 @@ uniform_space.of_core {
   refl       := le_infi $ assume ε, le_infi $
     by simp [set.subset_def, id_rel, dist_self, (>)] {contextual := tt},
   comp       := le_infi $ assume ε, le_infi $ assume h, lift'_le
-    (mem_infi_sets (ε / 2) $ mem_infi_sets (div_pos h two_pos) (subset.refl _)) $
+    (mem_infi_sets (ε / 2) $ mem_infi_sets (div_pos h zero_lt_two) (subset.refl _)) $
     have ∀ (a b c : α), dist a c < ε / 2 → dist c b < ε / 2 → dist a b < ε,
       from assume a b c hac hcb,
       calc dist a b ≤ dist a c + dist c b : dist_triangle _ _ _
@@ -46,9 +46,6 @@ uniform_space.of_core {
 class has_dist (α : Type*) := (dist : α → α → ℝ)
 
 export has_dist (dist)
-
-section prio
-set_option default_priority 100 -- see Note [default priority]
 
 -- the uniform structure and the emetric space structure are embedded in the metric space structure
 -- to avoid instance diamond issues. See Note [forgetful inheritance].
@@ -70,7 +67,6 @@ class metric_space (α : Type u) extends has_dist α : Type u :=
 (edist_dist : ∀ x y : α, edist x y = ennreal.of_real (dist x y) . control_laws_tac)
 (to_uniform_space : uniform_space α := uniform_space_of_dist dist dist_self dist_comm dist_triangle)
 (uniformity_dist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
-end prio
 
 variables [metric_space α]
 
@@ -166,7 +162,7 @@ theorem dist_nonneg {x y : α} : 0 ≤ dist x y :=
 have 2 * dist x y ≥ 0,
   from calc 2 * dist x y = dist x y + dist y x : by rw [dist_comm x y, two_mul]
     ... ≥ 0 : by rw ← dist_self x; apply dist_triangle,
-nonneg_of_mul_nonneg_left this two_pos
+nonneg_of_mul_nonneg_left this zero_lt_two
 
 @[simp] theorem dist_le_zero {x y : α} : dist x y ≤ 0 ↔ x = y :=
 by simpa [le_antisymm_iff, dist_nonneg] using @dist_eq_zero _ _ x y
@@ -316,7 +312,7 @@ not_lt_of_le (dist_triangle_left x y z)
   (lt_of_lt_of_le (add_lt_add h₁ h₂) h)
 
 theorem ball_disjoint_same (h : ε ≤ dist x y / 2) : ball x ε ∩ ball y ε = ∅ :=
-ball_disjoint $ by rwa [← two_mul, ← le_div_iff' (@two_pos ℝ _)]
+ball_disjoint $ by rwa [← two_mul, ← le_div_iff' (@zero_lt_two ℝ _)]
 
 theorem ball_subset (h : dist x y ≤ ε₂ - ε₁) : ball x ε₁ ⊆ ball y ε₂ :=
 λ z zx, by rw ← add_sub_cancel'_right ε₁ ε₂; exact
@@ -394,7 +390,7 @@ begin
   refine ⟨λ s, uniformity_basis_dist.mem_iff.trans _⟩,
   split,
   { rintros ⟨ε, ε₀, hε⟩,
-    rcases dense ε₀ with ⟨ε', hε'⟩,
+    rcases exists_between ε₀ with ⟨ε', hε'⟩,
     rcases hf ε' hε'.1 with ⟨i, hi, H⟩,
     exact ⟨i, hi, λ x (hx : _ ≤ _), hε $ lt_of_le_of_lt (le_trans hx H) hε'.2⟩ },
   { exact λ ⟨i, hi, H⟩, ⟨f i, hf₀ i hi, λ x (hx : _ < _), H (le_of_lt hx)⟩ }
@@ -1277,35 +1273,27 @@ dense in the whole space. -/
 instance second_countable_of_proper [proper_space α] :
   second_countable_topology α :=
 begin
+  /- It suffices to show that `α` admits a countable dense subset. -/
+  suffices : separable_space α,
+  { resetI, apply emetric.second_countable_of_separable },
+  constructor,
   /- We show that the space admits a countable dense subset. The case where the space is empty
   is special, and trivial. -/
-  have A : (univ : set α) = ∅ → ∃(s : set α), countable s ∧ closure s = (univ : set α) :=
-    assume H, ⟨∅, ⟨by simp, by simp; exact H.symm⟩⟩,
-  have B : (univ : set α).nonempty → ∃(s : set α), countable s ∧ closure s = (univ : set α) :=
-  begin
-    /- When the space is not empty, we take a point `x` in the space, and then a countable set
+  rcases _root_.em (nonempty α) with (⟨⟨x⟩⟩|hα), swap,
+  { exact ⟨∅, countable_empty, λ x, (hα ⟨x⟩).elim⟩ },
+  /- When the space is not empty, we take a point `x` in the space, and then a countable set
     `T r` which is dense in the closed ball `closed_ball x r` for each `r`. Then the set
     `t = ⋃ T n` (where the union is over all integers `n`) is countable, as a countable union
     of countable sets, and dense in the space by construction. -/
-    rintros ⟨x, x_univ⟩,
-    choose T a using show ∀ (r:ℝ), ∃ t ⊆ closed_ball x r, (countable (t : set α) ∧ closed_ball x r = closure t),
+  choose T T_sub T_count T_closure using
+    show ∀ (r:ℝ), ∃ t ⊆ closed_ball x r, (countable (t : set α) ∧ closed_ball x r = closure t),
       from assume r, emetric.countable_closure_of_compact (proper_space.compact_ball _ _),
-    let t := (⋃n:ℕ, T (n : ℝ)),
-    have T₁ : countable t := by finish [countable_Union],
-    have T₂ : closure t ⊆ univ := by simp,
-    have T₃ : univ ⊆ closure t :=
-    begin
-      intros y y_univ,
-      rcases exists_nat_gt (dist y x) with ⟨n, n_large⟩,
-      have h : y ∈ closed_ball x (n : ℝ) := by simp; apply le_of_lt n_large,
-      have h' : closed_ball x (n : ℝ) = closure (T (n : ℝ)) := by finish,
-      have : y ∈ closure (T (n : ℝ)) := by rwa h' at h,
-      show y ∈ closure t, from mem_of_mem_of_subset this (by apply closure_mono; apply subset_Union (λ(n:ℕ), T (n:ℝ))),
-    end,
-    exact ⟨t, ⟨T₁, subset.antisymm T₂ T₃⟩⟩
-  end,
-  haveI : separable_space α := ⟨(eq_empty_or_nonempty univ).elim A B⟩,
-  apply emetric.second_countable_of_separable,
+  use [⋃n:ℕ, T (n : ℝ), countable_Union (λ n, T_count n)],
+  intro y,
+  rcases exists_nat_gt (dist y x) with ⟨n, n_large⟩,
+  have h : y ∈ closed_ball x (n : ℝ) := n_large.le,
+  rw [T_closure] at h,
+  exact closure_mono (subset_Union _ _) h
 end
 
 /-- A finite product of proper spaces is proper. -/
@@ -1336,22 +1324,22 @@ begin
   have I : ∀n:ℕ, (n+1 : ℝ)⁻¹ > 0 := λn, inv_pos.2 (I1 n),
   let t := ⋃n:ℕ, T (n+1)⁻¹ (I n),
   have count_t : countable t := by finish [countable_Union],
-  have clos_t : closure t = univ,
-  { refine subset.antisymm (subset_univ _) (λx xuniv, mem_closure_iff.2 (λε εpos, _)),
+  have dense_t : dense t,
+  { refine (λx, mem_closure_iff.2 (λε εpos, _)),
     rcases exists_nat_gt ε⁻¹ with ⟨n, hn⟩,
     have : ε⁻¹ < n + 1 := lt_of_lt_of_le hn (le_add_of_nonneg_right zero_le_one),
     have nε : ((n:ℝ)+1)⁻¹ < ε := (inv_lt (I1 n) εpos).2 this,
     rcases (T_dense (n+1)⁻¹ (I n)).2 x with ⟨y, yT, Dxy⟩,
     have : y ∈ t := mem_of_mem_of_subset yT (by apply subset_Union (λ (n:ℕ), T (n+1)⁻¹ (I n))),
     exact ⟨y, this, lt_of_le_of_lt Dxy nε⟩ },
-  haveI : separable_space α := ⟨⟨t, ⟨count_t, clos_t⟩⟩⟩,
+  haveI : separable_space α := ⟨⟨t, ⟨count_t, dense_t⟩⟩⟩,
   exact emetric.second_countable_of_separable α
 end
 
 /-- A metric space space is second countable if one can reconstruct up to any `ε>0` any element of
 the space from countably many data. -/
 lemma second_countable_of_countable_discretization {α : Type u} [metric_space α]
-  (H : ∀ε > (0 : ℝ), ∃ (β : Type u) [encodable β] (F : α → β), ∀x y, F x = F y → dist x y ≤ ε) :
+  (H : ∀ε > (0 : ℝ), ∃ (β : Type*) [encodable β] (F : α → β), ∀x y, F x = F y → dist x y ≤ ε) :
   second_countable_topology α :=
 begin
   cases (univ : set α).eq_empty_or_nonempty with hs hs,
@@ -1659,7 +1647,7 @@ end
 
 /-- The diameter of a closed ball of radius `r` is at most `2 r`. -/
 lemma diam_closed_ball {r : ℝ} (h : 0 ≤ r) : diam (closed_ball x r) ≤ 2 * r :=
-diam_le_of_forall_dist_le (mul_nonneg (le_of_lt two_pos) h) $ λa ha b hb, calc
+diam_le_of_forall_dist_le (mul_nonneg (le_of_lt zero_lt_two) h) $ λa ha b hb, calc
   dist a b ≤ dist a x + dist b x : dist_triangle_right _ _ _
   ... ≤ r + r : add_le_add ha hb
   ... = 2 * r : by simp [mul_two, mul_comm]

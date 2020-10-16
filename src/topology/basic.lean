@@ -5,7 +5,8 @@ Authors: Johannes Hölzl, Mario Carneiro, Jeremy Avigad
 -/
 import order.filter.ultrafilter
 import order.filter.partial
-import order.filter.bases
+
+noncomputable theory
 
 /-!
 # Basic theory of topological spaces.
@@ -360,21 +361,49 @@ theorem mem_closure_iff {s : set α} {a : α} :
 λ H c ⟨h₁, h₂⟩, classical.by_contradiction $ λ nc,
   let ⟨x, hc, hs⟩ := (H _ h₁ nc) in hc (h₂ hs)⟩
 
+/-- A set is dense in a topological space if every point belongs to its closure. -/
+def dense (s : set α) : Prop := ∀ x, x ∈ closure s
+
+lemma dense_iff_closure_eq {s : set α} : dense s ↔ closure s = univ :=
+eq_univ_iff_forall.symm
+
+lemma dense.closure_eq {s : set α} (h : dense s) : closure s = univ :=
+dense_iff_closure_eq.mp h
+
+/-- The closure of a set `s` is dense if and only if `s` is dense. -/
+@[simp] lemma dense_closure {s : set α} : dense (closure s) ↔ dense s :=
+by rw [dense, dense, closure_closure]
+
+alias dense_closure ↔ dense.of_closure dense.closure
+
+@[simp] lemma dense_univ : dense (univ : set α) := λ x, subset_closure trivial
+
+/-- A set is dense if and only if it has a nonempty intersection with each nonempty open set. -/
 lemma dense_iff_inter_open {s : set α} :
-  closure s = univ ↔ ∀ U, is_open U → U.nonempty → (U ∩ s).nonempty :=
+  dense s ↔ ∀ U, is_open U → U.nonempty → (U ∩ s).nonempty :=
 begin
   split ; intro h,
   { rintros U U_op ⟨x, x_in⟩,
-    exact mem_closure_iff.1 (by simp only [h]) U U_op x_in },
-  { apply eq_univ_of_forall, intro x,
+    exact mem_closure_iff.1 (by simp only [h.closure_eq]) U U_op x_in },
+  { intro x,
     rw mem_closure_iff,
     intros U U_op x_in,
     exact h U U_op ⟨_, x_in⟩ },
 end
 
-lemma dense_of_subset_dense {s₁ s₂ : set α} (h : s₁ ⊆ s₂) (hd : closure s₁ = univ) :
-  closure s₂ = univ :=
-by { rw [← univ_subset_iff, ← hd], exact closure_mono h }
+alias dense_iff_inter_open ↔ dense.inter_open_nonempty _
+
+lemma dense.nonempty_iff {s : set α} (hs : dense s) :
+  s.nonempty ↔ nonempty α :=
+⟨λ ⟨x, hx⟩, ⟨x⟩, λ ⟨x⟩,
+  let ⟨y, hy⟩ := hs.inter_open_nonempty _ is_open_univ ⟨x, trivial⟩ in ⟨y, hy.2⟩⟩
+
+lemma dense.nonempty [h : nonempty α] {s : set α} (hs : dense s) : s.nonempty :=
+hs.nonempty_iff.2 h
+
+@[mono]
+lemma dense.mono {s₁ s₂ : set α} (h : s₁ ⊆ s₂) (hd : dense s₁) : dense s₂ :=
+λ x, closure_mono h (hd x)
 
 /-!
 ### Frontier of a set
@@ -492,6 +521,10 @@ lemma mem_nhds_sets {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
   s ∈ 𝓝 a :=
 mem_nhds_sets_iff.2 ⟨s, subset.refl _, hs, ha⟩
 
+lemma is_open.eventually_mem {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
+  ∀ᶠ x in 𝓝 a, x ∈ s :=
+mem_nhds_sets hs ha
+
 /-- The open neighborhoods of `a` are a basis for the neighborhood filter. See `nhds_basis_opens`
 for a variant using open sets around `a` instead. -/
 lemma nhds_basis_opens' (a : α) : (𝓝 a).has_basis (λ s : set α, s ∈ 𝓝 a ∧ is_open s) (λ x, x) :=
@@ -578,11 +611,11 @@ assume a s hs, mem_pure_sets.2 $ mem_of_nhds hs
 
 lemma tendsto_pure_nhds {α : Type*} [topological_space β] (f : α → β) (a : α) :
   tendsto f (pure a) (𝓝 (f a)) :=
-tendsto_le_right (pure_le_nhds _) (tendsto_pure_pure f a)
+(tendsto_pure_pure f a).mono_right (pure_le_nhds _)
 
-lemma order_top.tendsto_at_top {α : Type*} [order_top α] [topological_space β] (f : α → β) :
+lemma order_top.tendsto_at_top_nhds {α : Type*} [order_top α] [topological_space β] (f : α → β) :
   tendsto f at_top (𝓝 $ f ⊤) :=
-tendsto_le_right (pure_le_nhds _) $ tendsto_at_top_pure f
+(tendsto_at_top_pure f).mono_right (pure_le_nhds _)
 
 @[simp] instance nhds_ne_bot {a : α} : ne_bot (𝓝 a) :=
 ne_bot_of_le (pure_le_nhds a)
@@ -609,6 +642,10 @@ set. -/
 lemma cluster_pt_principal_iff {x : α} {s : set α} :
   cluster_pt x (𝓟 s) ↔ ∀ U ∈ 𝓝 x, (U ∩ s).nonempty :=
 inf_principal_ne_bot_iff
+
+lemma cluster_pt_principal_iff_frequently {x : α} {s : set α} :
+  cluster_pt x (𝓟 s) ↔ ∃ᶠ y in 𝓝 x, y ∈ s :=
+by simp only [cluster_pt_principal_iff, frequently_iff, set.nonempty, exists_prop, mem_inter_iff]
 
 lemma cluster_pt.of_le_nhds {x : α} {f : filter α} (H : f ≤ 𝓝 x) [ne_bot f] : cluster_pt x f :=
 by rwa [cluster_pt, inf_eq_right.mpr H]
@@ -673,14 +710,21 @@ calc is_open s ↔ s ⊆ interior s : subset_interior_iff_open.symm
 lemma is_open_iff_mem_nhds {s : set α} : is_open s ↔ ∀a∈s, s ∈ 𝓝 a :=
 is_open_iff_nhds.trans $ forall_congr $ λ _, imp_congr_right $ λ _, le_principal_iff
 
-lemma closure_eq_cluster_pts {s : set α} : closure s = {a | cluster_pt a (𝓟 s)} :=
-calc closure s = (interior sᶜ)ᶜ : closure_eq_compl_interior_compl
-  ... = {a | ¬ 𝓝 a ≤ 𝓟 sᶜ} : by rw [interior_eq_nhds]; refl
-  ... = {a | cluster_pt a (𝓟 s)} : set.ext $ assume a, not_congr
-    (is_compl_principal s).inf_left_eq_bot_iff.symm
+theorem is_open_iff_ultrafilter {s : set α} :
+  is_open s ↔ (∀ (x ∈ s) (l : filter α), is_ultrafilter l → l ≤ 𝓝 x → s ∈ l) :=
+by simp_rw [is_open_iff_mem_nhds, @mem_iff_ultrafilter _ (𝓝 _)]
+
+lemma mem_closure_iff_frequently {s : set α} {a : α} : a ∈ closure s ↔ ∃ᶠ x in 𝓝 a, x ∈ s :=
+by rw [filter.frequently, filter.eventually, ← mem_interior_iff_mem_nhds,
+  closure_eq_compl_interior_compl]; refl
+
+alias mem_closure_iff_frequently ↔ _ filter.frequently.mem_closure
 
 theorem mem_closure_iff_cluster_pt {s : set α} {a : α} : a ∈ closure s ↔ cluster_pt a (𝓟 s) :=
-by simp only [closure_eq_cluster_pts, mem_set_of_eq]
+mem_closure_iff_frequently.trans cluster_pt_principal_iff_frequently.symm
+
+lemma closure_eq_cluster_pts {s : set α} : closure s = {a | cluster_pt a (𝓟 s)} :=
+set.ext $ λ x, mem_closure_iff_cluster_pt
 
 theorem mem_closure_iff_nhds {s : set α} {a : α} :
   a ∈ closure s ↔ ∀ t ∈ 𝓝 a, (t ∩ s).nonempty :=
@@ -729,16 +773,16 @@ have cluster_pt a (𝓟 (s ∩ t)),
     ... ≠ ⊥ : by rw [closure_eq_cluster_pts] at ht; assumption,
 by rwa [closure_eq_cluster_pts]
 
-lemma dense_inter_of_open_left {s t : set α} (hs : closure s = univ) (ht : closure t = univ)
-  (hso : is_open s) :
-  closure (s ∩ t) = univ :=
-eq_univ_of_subset (closure_minimal (closure_inter_open hso) is_closed_closure) $
-  by simp only [*, inter_univ]
+/-- The intersection of an open dense set with a dense set is a dense set. -/
+lemma dense.inter_of_open_left {s t : set α} (hs : dense s) (ht : dense t) (hso : is_open s) :
+  dense (s ∩ t) :=
+λ x, (closure_minimal (closure_inter_open hso) is_closed_closure) $
+  by simp [hs.closure_eq, ht.closure_eq]
 
-lemma dense_inter_of_open_right {s t : set α} (hs : closure s = univ) (ht : closure t = univ)
-  (hto : is_open t) :
-  closure (s ∩ t) = univ :=
-inter_comm t s ▸ dense_inter_of_open_left ht hs hto
+/-- The intersection of a dense set with an open dense set is a dense set. -/
+lemma dense.inter_of_open_right {s t : set α} (hs : dense s) (ht : dense t) (hto : is_open t) :
+  dense (s ∩ t) :=
+inter_comm t s ▸ ht.inter_of_open_left hs hto
 
 lemma closure_diff {s t : set α} : closure s \ closure t ⊆ closure (s \ t) :=
 calc closure s \ closure t = (closure t)ᶜ ∩ closure s : by simp only [diff_eq, inter_comm]
@@ -746,22 +790,24 @@ calc closure s \ closure t = (closure t)ᶜ ∩ closure s : by simp only [diff_e
   ... = closure (s \ closure t) : by simp only [diff_eq, inter_comm]
   ... ⊆ closure (s \ t) : closure_mono $ diff_subset_diff (subset.refl s) subset_closure
 
-lemma mem_of_closed_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
-  [ne_bot b] (hf : tendsto f b (𝓝 a)) (hs : is_closed s) (h : f ⁻¹' s ∈ b) : a ∈ s :=
-is_closed_iff_cluster_pt.mp hs a $ ne_bot_of_le $ le_inf hf (le_principal_iff.mpr h)
+lemma filter.frequently.mem_of_closed {a : α} {s : set α} (h : ∃ᶠ x in 𝓝 a, x ∈ s)
+  (hs : is_closed s) : a ∈ s :=
+hs.closure_subset h.mem_closure
 
-lemma mem_of_closed_of_tendsto' {f : β → α} {x : filter β} {a : α} {s : set α}
-  (hf : tendsto f x (𝓝 a)) (hs : is_closed s) [ne_bot (x ⊓ 𝓟 (f ⁻¹' s))] : a ∈ s :=
-have tendsto f (x ⊓ 𝓟 (f ⁻¹' s)) (𝓝 a) := tendsto_inf_left hf,
-mem_of_closed_of_tendsto this hs $ mem_inf_sets_of_right $ mem_principal_self _
+lemma is_closed.mem_of_frequently_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
+  (hs : is_closed s) (h : ∃ᶠ x in b, f x ∈ s) (hf : tendsto f b (𝓝 a)) : a ∈ s :=
+(hf.frequently $ show ∃ᶠ x in b, (λ y, y ∈ s) (f x), from h).mem_of_closed hs
+
+lemma is_closed.mem_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
+  [ne_bot b] (hs : is_closed s) (hf : tendsto f b (𝓝 a)) (h : ∀ᶠ x in b, f x ∈ s) : a ∈ s :=
+hs.mem_of_frequently_of_tendsto h.frequently hf
 
 lemma mem_closure_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
   [ne_bot b] (hf : tendsto f b (𝓝 a)) (h : ∀ᶠ x in b, f x ∈ s) : a ∈ closure s :=
-mem_of_closed_of_tendsto hf is_closed_closure $
-  filter.mem_sets_of_superset h (preimage_mono subset_closure)
+is_closed_closure.mem_of_tendsto hf $ h.mono (preimage_mono subset_closure)
 
 /-- Suppose that `f` sends the complement to `s` to a single point `a`, and `l` is some filter.
-Then `f` tends to `a` along `l` restricted to `s` if and only it tends to `a` along `l`. -/
+Then `f` tends to `a` along `l` restricted to `s` if and only if it tends to `a` along `l`. -/
 lemma tendsto_inf_principal_nhds_iff_of_forall_eq {f : β → α} {l : filter β} {s : set β}
   {a : α} (h : ∀ x ∉ s, f x = a) :
   tendsto f (l ⊓ 𝓟 s) (𝓝 a) ↔ tendsto f l (𝓝 a) :=
@@ -787,6 +833,18 @@ section lim
 /-- If `f` is a filter, then `Lim f` is a limit of the filter, if it exists. -/
 noncomputable def Lim [nonempty α] (f : filter α) : α := epsilon $ λa, f ≤ 𝓝 a
 
+/--
+If `f` is a filter satisfying `ne_bot f`, then `Lim' f` is a limit of the filter, if it exists.
+-/
+def Lim' (f : filter α) [ne_bot f] : α := @Lim _ _ (nonempty_of_ne_bot f) f
+
+-- Note: `ultrafilter` is inside the `filter` namespace.
+/--
+If `F` is an ultrafilter, then `filter.ultrafilter.Lim F` is a limit of the filter, if it exists.
+Note that dot notation `F.Lim` can be used for `F : ultrafilter α`.
+-/
+def filter.ultrafilter.Lim : ultrafilter α → α := λ F, Lim' F.1
+
 /-- If `f` is a filter in `β` and `g : β → α` is a function, then `lim f` is a limit of `g` at `f`,
 if it exists. -/
 noncomputable def lim [nonempty α] (f : filter β) (g : β → α) : α :=
@@ -796,16 +854,16 @@ Lim (f.map g)
 this lemma with a `[nonempty α]` argument of `Lim` derived from `h` to make it useful for types
 without a `[nonempty α]` instance. Because of the built-in proof irrelevance, Lean will unify
 this instance with any other instance. -/
-lemma Lim_spec {f : filter α} (h : ∃a, f ≤ 𝓝 a) : f ≤ 𝓝 (@Lim _ _ (nonempty_of_exists h) f) :=
+lemma le_nhds_Lim {f : filter α} (h : ∃a, f ≤ 𝓝 a) : f ≤ 𝓝 (@Lim _ _ (nonempty_of_exists h) f) :=
 epsilon_spec h
 
 /-- If `g` tends to some `𝓝 a` along `f`, then it tends to `𝓝 (lim f g)`. We formulate
 this lemma with a `[nonempty α]` argument of `lim` derived from `h` to make it useful for types
 without a `[nonempty α]` instance. Because of the built-in proof irrelevance, Lean will unify
 this instance with any other instance. -/
-lemma lim_spec {f : filter β} {g : β → α} (h : ∃ a, tendsto g f (𝓝 a)) :
+lemma tendsto_nhds_lim {f : filter β} {g : β → α} (h : ∃ a, tendsto g f (𝓝 a)) :
   tendsto g f (𝓝 $ @lim _ _ _ (nonempty_of_exists h) f g) :=
-Lim_spec h
+le_nhds_Lim h
 
 end lim
 
@@ -1043,5 +1101,64 @@ lemma mem_closure {s : set α} {t : set β} {f : α → β} {a : α}
   (hf : continuous f) (ha : a ∈ closure s) (ht : ∀a∈s, f a ∈ t) : f a ∈ closure t :=
 subset.trans (image_closure_subset_closure_image hf) (closure_mono $ image_subset_iff.2 ht) $
   (mem_image_of_mem f ha)
+
+/-!
+### Function with dense range
+-/
+
+section dense_range
+variables {κ ι : Type*} (f : κ → β) (g : β → γ)
+
+/-- `f : ι → β` has dense range if its range (image) is a dense subset of β. -/
+def dense_range := dense (range f)
+
+variables {f}
+
+/-- A surjective map has dense range. -/
+lemma function.surjective.dense_range (hf : function.surjective f) : dense_range f :=
+λ x, by simp [hf.range_eq]
+
+lemma dense_range_iff_closure_range : dense_range f ↔ closure (range f) = univ :=
+dense_iff_closure_eq
+
+lemma dense_range.closure_range (h : dense_range f) : closure (range f) = univ :=
+h.closure_eq
+
+lemma continuous.range_subset_closure_image_dense {f : α → β} (hf : continuous f)
+  {s : set α} (hs : dense s) :
+  range f ⊆ closure (f '' s) :=
+by { rw [← image_univ, ← hs.closure_eq], exact image_closure_subset_closure_image hf }
+
+/-- The image of a dense set under a continuous map with dense range is a dense set. -/
+lemma dense_range.dense_image {f : α → β} (hf' : dense_range f) (hf : continuous f)
+  {s : set α} (hs : dense s) :
+  dense (f '' s)  :=
+(hf'.mono $ hf.range_subset_closure_image_dense hs).of_closure
+
+/-- If a continuous map with dense range maps a dense set to a subset of `t`, then `t` is a dense
+set. -/
+lemma dense_range.dense_of_maps_to {f : α → β} (hf' : dense_range f) (hf : continuous f)
+  {s : set α} (hs : dense s) {t : set β} (ht : maps_to f s t) :
+  dense t :=
+(hf'.dense_image hf hs).mono ht.image_subset
+
+/-- Composition of a continuous map with dense range and a function with dense range has dense
+range. -/
+lemma dense_range.comp {g : β → γ} {f : κ → β} (hg : dense_range g) (hf : dense_range f)
+  (cg : continuous g) :
+  dense_range (g ∘ f) :=
+by { rw [dense_range, range_comp], exact hg.dense_image cg hf }
+
+lemma dense_range.nonempty_iff (hf : dense_range f) : nonempty κ ↔ nonempty β :=
+range_nonempty_iff_nonempty.symm.trans hf.nonempty_iff
+
+lemma dense_range.nonempty [h : nonempty β] (hf : dense_range f) : nonempty κ :=
+hf.nonempty_iff.mpr h
+
+/-- Given a function `f : α → β` with dense range and `b : β`, returns some `a : α`. -/
+def dense_range.some (hf : dense_range f) (b : β) : κ :=
+classical.choice $ hf.nonempty_iff.mpr ⟨b⟩
+
+end dense_range
 
 end continuous

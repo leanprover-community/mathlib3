@@ -87,6 +87,7 @@ namespace lax_monoidal_functor
 Construct a bundled `lax_monoidal_functor` from the object level function
 and `functorial` and `lax_monoidal` typeclasses.
 -/
+@[simps]
 def of (F : C → D) [I₁ : functorial.{v₁ v₂} F] [I₂ : lax_monoidal.{v₁ v₂} F] :
   lax_monoidal_functor.{v₁ v₂} C D :=
 { obj := F,

@@ -79,6 +79,19 @@ instance ordered_comm_group [∀ i, ordered_comm_group $ f i] :
   ..pi.comm_group,
   ..pi.partial_order }
 
+section instance_lemmas
+open function
+
+variables {α β γ : Type*}
+
+@[simp, to_additive] lemma const_one [has_one β] : const α (1 : β) = 1 := rfl
+
+@[simp, to_additive] lemma comp_one [has_one β] {f : β → γ} : f ∘ 1 = const α (f 1) := rfl
+
+@[simp, to_additive] lemma one_comp [has_one γ] {f : α → β} : (1 : β → γ) ∘ f = 1 := rfl
+
+end instance_lemmas
+
 variables [decidable_eq I]
 variables [Π i, has_zero (f i)]
 

@@ -255,7 +255,7 @@ instance [finite_dimensional K V] : finite_dimensional K (dual K V) :=
 begin
   obtain ⟨s, hs⟩ := finite_dimensional.exists_is_basis_finset K V,
   haveI : decidable_eq (↑s : set V) := classical.dec_eq _,
-  exact (to_dual_equiv hs).finite_dimensional
+  exact (to_dual_equiv _ hs).finite_dimensional
 end
 
 theorem findim_dual_eq [finite_dimensional K V] :
@@ -263,7 +263,7 @@ finite_dimensional.findim K (dual K V) = finite_dimensional.findim K V :=
 begin
   obtain ⟨s, hs⟩ := finite_dimensional.exists_is_basis_finset K V,
   haveI : decidable_eq (↑s : set V) := classical.dec_eq _,
-  exact (to_dual_equiv hs).findim_eq.symm
+  exact (to_dual_equiv _ hs).findim_eq.symm
 end
 
 end module.dual

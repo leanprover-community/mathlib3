@@ -163,8 +163,8 @@ instance principal_ideal_ring.to_dedekind_domain [is_principal_ideal_ring A]
   is_dedekind_domain A :=
 (is_dedekind_domain_iff A K f).mpr
 ⟨not_field, principal_ideal_ring.is_noetherian_ring, dimension_le_one.principal_ideal_ring _,
-  @unique_factorization_domain.integrally_closed A _ _
-    (principal_ideal_ring.to_unique_factorization_domain) _ _⟩
+  @unique_factorization_monoid.integrally_closed A _ _
+    (principal_ideal_ring.to_unique_factorization_monoid) _ _⟩
 
 namespace dedekind_domain
 
@@ -311,7 +311,7 @@ def closure_in_field_extension [algebra f.codomain L] [algebra R L] [is_scalar_t
 ⟨sorry,
  is_noetherian_ring_of_is_noetherian_coe_submodule _ _
    (is_noetherian_of_submodule_of_noetherian _ _ _ sorry),
- h.dimension_le_one.integral_closure,
+ h.dimension_le_one.integral_closure _ _,
  integral_closure_idem⟩
 
 end dedekind_domain

@@ -1,3 +1,4 @@
+import group_theory.quotient_group
 import ring_theory.fractional_ideal
 import ring_theory.principal_ideal_domain
 
@@ -16,8 +17,8 @@ def to_principal_ideal : units g.codomain →* units (fractional_ideal g) :=
     span_singleton x⁻¹,
     by simp only [span_singleton_one, units.mul_inv', span_singleton_mul_span_singleton],
     by simp only [span_singleton_one, units.inv_mul', span_singleton_mul_span_singleton]⟩,
-  map_mul' := λ x y, ext (by simp only [coe_mk, units.coe_mul, span_singleton_mul_span_singleton]),
-  map_one' := ext (by simp only [span_singleton_one, coe_mk, units.coe_one]) }
+  map_mul' := λ x y, ext (by simp only [units.coe_mk, units.coe_mul, span_singleton_mul_span_singleton]),
+  map_one' := ext (by simp only [span_singleton_one, units.coe_mk, units.coe_one]) }
 
 local attribute [semireducible] to_principal_ideal
 
@@ -43,16 +44,25 @@ def picard_group_WRT := quotient_group.quotient (to_principal_ideal g).range
 
 /-- The Picard group is the group of invertible fractional ideals in the fraction field modulo the principal ideals. -/
 @[derive(comm_group)]
-def picard_group (R : Type*) [integral_domain R] := picard_group_WRT (of R)
+def picard_group (R : Type*) [integral_domain R] := picard_group_WRT (fraction_ring.of R)
 
 variables {K' : Type*} [field K'] (g) (g' : fraction_map R K')
 
 local attribute [semireducible] picard_group picard_group_WRT
 
+def quotient_group.map_equiv {G G' : Type*} [group G] [group G']
+  (N : subgroup G) [N.normal] (N' : subgroup G') [N'.normal]
+  (e : G ≃* G') (h : N = N'.comap e.to_monoid_hom) :
+  quotient_group.quotient N ≃* quotient_group.quotient N' :=
+{ inv_fun := quotient_group.map _ _ e.symm.to_monoid_hom (le_of_eq sorry),
+  left_inv := sorry,
+  right_inv := sorry,
+  .. quotient_group.map _ _ e.to_monoid_hom (le_of_eq h) }
+
 def map_units_equiv (e : units (fractional_ideal g) ≃* units (fractional_ideal g'))
   (he : ∀ I, I ∈ (to_principal_ideal g).range ↔ e I ∈ (to_principal_ideal g').range) :
   picard_group_WRT g ≃* picard_group_WRT g' :=
-quotient_group.map_equiv _ e (subgroup.ext he)
+quotient_group.map_equiv _ _ e (subgroup.ext he)
 end
 
 def map_equiv {K' : Type*} [field K'] {g : fraction_map R K} (g' : fraction_map R K')
@@ -98,6 +108,11 @@ namespace principal_ideal_domain
 
 local attribute [semireducible] picard_group_WRT
 
+instance subgroup.normal_top {G : Type*} [group G] : (⊤ : subgroup G).normal := sorry
+
+def quotient_group.quotient_top (G : Type*) [group G] :
+  quotient_group.quotient (⊤ : subgroup G) ≃* unit := sorry
+
 def picard_group_WRT_trivial {R} [integral_domain R] [is_principal_ideal_ring R]
   (g : fraction_map R K) : picard_group_WRT g ≃* unit :=
 show quotient_group.quotient (to_principal_ideal g).range ≃* unit,
@@ -109,13 +124,13 @@ by { convert quotient_group.quotient_top (units (fractional_ideal g)); assumptio
 
 noncomputable def picard_group_trivial (R) [integral_domain R] [is_principal_ideal_ring R] :
   picard_group R ≃* unit :=
-picard_group_WRT_trivial (of R)
+picard_group_WRT_trivial (fraction_ring.of R)
 
 noncomputable example : picard_group ℤ ≃* unit := principal_ideal_domain.picard_group_trivial ℤ
 
 /-- Condition (DD3) of being a Dedekind domain: all nonzero fractional ideals are invertible. -/
 def DD3 (R) [integral_domain R] : Prop :=
-∀ {I : fractional_ideal (of R)}, I ≠ 0 → I * I⁻¹ = 1
+∀ {I : fractional_ideal (fraction_ring.of R)}, I ≠ 0 → I * I⁻¹ = 1
 
 lemma DD3_of_principal_ideal_domain {R} [integral_domain R] [is_principal_ideal_ring R] : DD3 R :=
 λ I hI, fractional_ideal.invertible_of_principal I hI

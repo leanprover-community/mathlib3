@@ -46,7 +46,11 @@ begin
   rw [← @rev_at_fun_invol N a, hab, rev_at_fun_invol],
 end
 
-/-- `rev_at N` is `rev_at_fun N` bundled as an embedding. -/
+/-- If `i ≤ N`, then `rev_at N i` returns `N - i`, otherwise it returns `i`.
+
+Essentially, this embedding is only used for `i ≤ N`.
+The advantage of `rev_at N i` over `N - i` is that `rev_at` is an involution.
+-/
 def rev_at (N : ℕ) : function.embedding ℕ ℕ :=
   { to_fun := λ i , (ite (i ≤ N) (N-i) i),
     inj' := rev_at_fun_inj }

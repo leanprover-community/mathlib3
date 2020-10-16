@@ -178,11 +178,25 @@ end
 lemma algebra_adjoin_le_adjoin : algebra.adjoin F S ≤ (adjoin F S).to_subalgebra :=
 algebra.adjoin_le (subset_adjoin _ _)
 
-lemma adjoin_le_algebra_adjoin (inv_mem : ∀ x ∈ algebra.adjoin F S, x⁻¹ ∈ algebra.adjoin F S) :
-  (adjoin F S).to_subalgebra ≤ algebra.adjoin F S :=
-show adjoin F S ≤
-  { neg_mem' := λ x, (algebra.adjoin F S).neg_mem, inv_mem' := inv_mem, .. algebra.adjoin F S},
-from adjoin_le_iff.mpr (algebra.subset_adjoin)
+lemma adjoin_eq_algebra_adjoin (inv_mem : ∀ x ∈ algebra.adjoin F S, x⁻¹ ∈ algebra.adjoin F S) :
+  (adjoin F S).to_subalgebra = algebra.adjoin F S :=
+le_antisymm
+  (show adjoin F S ≤
+      { neg_mem' := λ x, (algebra.adjoin F S).neg_mem, inv_mem' := inv_mem, .. algebra.adjoin F S},
+    from adjoin_le_iff.mpr (algebra.subset_adjoin))
+  (algebra_adjoin_le_adjoin _ _)
+
+lemma eq_adjoin_of_eq_algebra_adjoin (K : intermediate_field F E)
+  (h : K.to_subalgebra = algebra.adjoin F S) : K = adjoin F S :=
+begin
+  apply to_subalgebra_injective,
+  rw h,
+  refine (adjoin_eq_algebra_adjoin _ _ _).symm,
+  intros x,
+  convert K.inv_mem,
+  rw ← h,
+  refl
+end
 
 @[elab_as_eliminator]
 lemma adjoin_induction {s : set E} {p : E → Prop} {x} (h : x ∈ adjoin F s)
@@ -328,20 +342,16 @@ section induction
 
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 
+lemma fg_of_to_subalgebra_fg (S : intermediate_field F E)
+  (h : S.to_subalgebra.fg) : ∃ (t : finset E), S = adjoin F ↑t :=
+begin
+  cases h with t ht,
+  exact ⟨t, eq_adjoin_of_eq_algebra_adjoin _ _ _ ht.symm⟩
+end
+
 lemma fg_of_noetherian (S : intermediate_field F E)
   [is_noetherian F E] : ∃ (t : finset E), S = adjoin F ↑t :=
-begin
-  obtain ⟨t, ht⟩ := subalgebra.fg_of_noetherian S.to_subalgebra,
-  use t,
-  apply le_antisymm,
-  { show S.to_subalgebra ≤ (adjoin F ↑t).to_subalgebra,
-    rw ← ht,
-    apply algebra_adjoin_le_adjoin },
-  rw adjoin_le_iff,
-  show (↑t : set E) ⊆ S.to_subalgebra,
-  rw ← ht,
-  exact algebra.subset_adjoin
-end
+fg_of_to_subalgebra_fg S S.to_subalgebra.fg_of_noetherian
 
 lemma induction_on_adjoin [fd : finite_dimensional F E] (P : intermediate_field F E → Prop)
   (base : P ⊥) (ih : ∀ (K : intermediate_field F E) (x : E), P K → P ↑K⟮x⟯)

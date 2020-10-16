@@ -428,13 +428,13 @@ iff.intro (simple_func.eq') (congr_arg _)
 
 /-- L1 simple functions forms a `emetric_space`, with the emetric being inherited from L1 space,
   i.e., `edist f g = ∫⁻ a, edist (f a) (g a)`.
-  Not declared as an instance as `α →₁ₛ[μ] β` will only be useful in the construction of the bochner
+  Not declared as an instance as `α →₁ₛ[μ] β` will only be useful in the construction of the Bochner
   integral. -/
 protected def emetric_space  : emetric_space (α →₁ₛ[μ] E) := subtype.emetric_space
 
 /-- L1 simple functions forms a `metric_space`, with the metric being inherited from L1 space,
   i.e., `dist f g = ennreal.to_real (∫⁻ a, edist (f a) (g a)`).
-  Not declared as an instance as `α →₁ₛ[μ] β` will only be useful in the construction of the bochner
+  Not declared as an instance as `α →₁ₛ[μ] β` will only be useful in the construction of the Bochner
   integral. -/
 protected def metric_space : metric_space (α →₁ₛ[μ] E) := subtype.metric_space
 
@@ -459,7 +459,7 @@ lemma coe_sub (f g : α →₁ₛ[μ] E) : ((f - g : α →₁ₛ[μ] E) : α �
 @[simp] lemma dist_eq (f g : α →₁ₛ[μ] E) : dist f g = dist (f : α →₁[μ] E) (g : α →₁[μ] E) := rfl
 
 /-- The norm on `α →₁ₛ[μ] E` is inherited from L1 space. That is, `∥f∥ = ∫⁻ a, edist (f a) 0`.
-  Not declared as an instance as `α →₁ₛ[μ] E` will only be useful in the construction of the bochner
+  Not declared as an instance as `α →₁ₛ[μ] E` will only be useful in the construction of the Bochner
   integral. -/
 protected def has_norm : has_norm (α →₁ₛ[μ] E) := ⟨λf, ∥(f : α →₁[μ] E)∥⟩
 
@@ -477,7 +477,7 @@ normed_group.of_add_dist (λ x, rfl) $ by
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
 
 /-- Not declared as an instance as `α →₁ₛ[μ] E` will only be useful in the construction of the
-bochner integral. -/
+Bochner integral. -/
 protected def has_scalar : has_scalar 𝕜 (α →₁ₛ[μ] E) := ⟨λk f, ⟨k • f,
 begin
   rcases f with ⟨f, ⟨s, hs⟩⟩,
@@ -491,7 +491,7 @@ local attribute [instance, priority 10000] simple_func.has_scalar
   ((c • f : α →₁ₛ[μ] E) : α →₁[μ] E) = c • (f : α →₁[μ] E) := rfl
 
 /-- Not declared as an instance as `α →₁ₛ[μ] E` will only be useful in the construction of the
-  bochner integral. -/
+  Bochner integral. -/
 protected def semimodule : semimodule 𝕜 (α →₁ₛ[μ] E) :=
 { one_smul  := λf, simple_func.eq (by { simp only [coe_smul], exact one_smul _ _ }),
   mul_smul  := λx y f, simple_func.eq (by { simp only [coe_smul], exact mul_smul _ _ _ }),
@@ -503,7 +503,7 @@ protected def semimodule : semimodule 𝕜 (α →₁ₛ[μ] E) :=
 local attribute [instance] simple_func.normed_group simple_func.semimodule
 
 /-- Not declared as an instance as `α →₁ₛ[μ] E` will only be useful in the construction of the
-bochner integral. -/
+Bochner integral. -/
 protected def normed_space : normed_space 𝕜 (α →₁ₛ[μ] E) :=
 ⟨ λc f, by { rw [norm_eq, norm_eq, coe_smul, norm_smul] } ⟩
 

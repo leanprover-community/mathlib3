@@ -662,8 +662,8 @@ to_Set_of_Set _ _
 
 @[simp] theorem subset_hom (x y : Set.{u}) : (x : Class.{u}) ⊆ y ↔ x ⊆ y := iff.rfl
 
-@[simp] theorem sep_hom (p : Set.{u} → Prop) (x : Set.{u}) : (↑{y ∈ x | p y} :
-  Class.{u}) = {y ∈ x | p y} :=
+@[simp] theorem sep_hom (p : Set.{u} → Prop) (x : Set.{u}) :
+  (↑{y ∈ x | p y} : Class.{u}) = {y ∈ x | p y} :=
 set.ext $ λy, Set.mem_sep
 
 @[simp] theorem empty_hom : ↑(∅ : Set.{u}) = (∅ : Class.{u}) :=
@@ -714,8 +714,8 @@ end Class
 
 namespace Set
 
-@[simp]
-theorem map_fval {f : Set.{u} → Set.{u}} [H : pSet.definable 1 f] {x y : Set.{u}} (h : y ∈ x) :
+@[simp] theorem map_fval {f : Set.{u} → Set.{u}} [H : pSet.definable 1 f]
+  {x y : Set.{u}} (h : y ∈ x) :
   (Set.map f x ′ y : Class.{u}) = f y :=
 Class.iota_val _ _ (λz, by simp; exact
   ⟨λ⟨w, wz, pr⟩, let ⟨wy, fw⟩ := Set.pair_inj pr in by rw[←fw, wy],
@@ -734,7 +734,7 @@ by rwa ←((eq_empty y).2 $ λz zx, n ⟨z, zx⟩)
 
 theorem choice_is_func : is_func x (Union x) (choice x) :=
 (@map_is_func _ (classical.all_definable _) _ _).2 $
-λy yx, by simp; exact ⟨y, yx, choice_mem_aux x h y yx⟩
+  λy yx, by simp; exact ⟨y, yx, choice_mem_aux x h y yx⟩
 
 theorem choice_mem (y : Set.{u}) (yx : y ∈ x) : (choice x ′ y : Class.{u}) ∈ (y : Class.{u}) :=
 by delta choice; rw map_fval yx; simp [choice_mem_aux x h y yx]

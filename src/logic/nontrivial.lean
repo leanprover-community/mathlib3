@@ -195,7 +195,8 @@ and use these to derive the `nontrivial` instance directly.
 
 Otherwise, it will perform a case split on `subsingleton α ∨ nontrivial α`, and attempt to discharge
 the `subsingleton` goal using `simp [lemmas] with nontriviality`, where `[lemmas]` is a list of
-additional `simp` lemmas that can be passed to `nontriviality` as the second optional argument.
+additional `simp` lemmas that can be passed to `nontriviality` using the syntax
+`nontriviality α using [lemmas]`.
 
 ```
 example {R : Type} [ordered_ring R] {a : R} (h : 0 < a) : 0 < a :=
@@ -227,12 +228,14 @@ def myeq {α : Type} (a b : α) : Prop := a = b
 example {α : Type} (a b : α) (h : a = b) : myeq a b :=
 begin
   success_if_fail { nontriviality α }, -- Fails
-  nontriviality α [myeq], -- There is no `nontrivial α` hypothesis available
+  nontriviality α using [myeq], -- There is now a `nontrivial α` hypothesis available
   assumption
 end
 ```
 -/
-meta def nontriviality (t : parse parser.pexpr?) (lems : parse simp_arg_list) : tactic unit :=
+meta def nontriviality (t : parse parser.pexpr?)
+  (lems : parse (tk "using" *> simp_arg_list <|> pure [])) :
+  tactic unit :=
 do
   α ← match t with
   | some α := to_expr α

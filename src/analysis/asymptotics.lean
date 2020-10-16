@@ -1129,16 +1129,24 @@ begin
     exact is_O_with_of_eq_mul φ hφ h }
 end
 
+lemma is_O_with.exists_eq_mul (h : is_O_with c u v l) (hc : 0 ≤ c) :
+  ∃ (φ : α → 𝕜) (hφ : ∀ᶠ x in l, ∥φ x∥ ≤ c), u =ᶠ[l] φ * v :=
+(is_O_with_iff_exists_eq_mul hc).mp h
+
 lemma is_O_iff_exists_eq_mul :
   is_O u v l ↔ ∃ (φ : α → 𝕜) (hφ : ∃ c, ∀ᶠ x in l, ∥φ x∥ ≤ c), u =ᶠ[l] φ * v :=
 begin
   split,
   { rintros h,
     rcases h.exists_nonneg with ⟨c, hnnc, hc⟩,
-    rcases (is_O_with_iff_exists_eq_mul hnnc).mp hc with ⟨φ, hφ, huvφ⟩,
+    rcases hc.exists_eq_mul hnnc with ⟨φ, hφ, huvφ⟩,
     exact ⟨φ, ⟨c, hφ⟩, huvφ⟩ },
   { exact λ ⟨φ, ⟨c, hφ⟩, huvφ⟩, ⟨c, is_O_with_of_eq_mul φ hφ huvφ⟩ }
 end
+
+lemma is_O.exists_eq_mul (h : is_O u v l) :
+  ∃ (φ : α → 𝕜) (hφ : ∃ c, ∀ᶠ x in l, ∥φ x∥ ≤ c), u =ᶠ[l] φ * v :=
+is_O_iff_exists_eq_mul.mp h
 
 lemma is_o_iff_exists_eq_mul :
   is_o u v l ↔ ∃ (φ : α → 𝕜) (hφ : tendsto φ l (𝓝 0)), u =ᶠ[l] φ * v :=
@@ -1150,6 +1158,10 @@ begin
     simp_rw [metric.tendsto_nhds, dist_zero_right] at hφ,
     exact is_O_with_of_eq_mul _ ((hφ c hpos).mp (eventually_of_forall $ λ x, le_of_lt)) huvφ }
 end
+
+lemma is_o.exists_eq_mum (h : is_o u v l) :
+  ∃ (φ : α → 𝕜) (hφ : tendsto φ l (𝓝 0)), u =ᶠ[l] φ * v :=
+is_o_iff_exists_eq_mul.mp h
 
 end exists_mul_eq
 

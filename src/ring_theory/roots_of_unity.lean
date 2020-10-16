@@ -656,7 +656,7 @@ begin
     exact (mul_dvd_mul_iff_left hzeroa).1 hdiv }
 end
 
-/-`nth_roots n` as a finset is equal to the uniun of `primitive_roots i R` for `i ∣ n`
+/-`nth_roots n` as a finset is equal to the union of `primitive_roots i R` for `i ∣ n`
 if there is a primitive root of unity in `R`. -/
 lemma root_of_unity_eq_uniun_prim {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) :
   (⟨nth_roots n (1 : R) , nroots_nodup h⟩ : finset R) =

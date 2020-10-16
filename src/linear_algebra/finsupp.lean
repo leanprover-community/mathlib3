@@ -2,11 +2,53 @@
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl
-
-Linear structures on function with finite support `α →₀ M`.
 -/
 import data.finsupp.basic
 import linear_algebra.basic
+
+/-!
+# Properties of the semimodule `α →₀ M`
+
+Given an `R`-semimodule `M`, the `R`-semimodule structure on `α →₀ M` is defined in
+`data.finsupp.basic`.
+
+In this file we define `finsupp.supported s` to be the set `{f : α →₀ M | f.support ⊆ s}`
+interpreted as a submodule of `α →₀ M`. We also define `linear_map` versions of various maps:
+
+* `finsupp.lsingle a : M →ₗ[R] ι →₀ M`: `finsupp.single a` as a linear map;
+
+* `finsupp.lapply a : (ι →₀ M) →ₗ[R] M`: the map `λ f, f a` as a linear map;
+
+* `finsupp.lsubtype_domain (s : set α) : (α →₀ M) →ₗ[R] (s →₀ M)`: restriction to a subtype as a
+  linear map;
+
+* `finsupp.restrict_dom`: `finsupp.filter` as a linear map to `finsupp.supported s`;
+
+* `finsupp.lsum`: `finsupp.sum` or `finsupp.lift_add_hom` as a `linear_map`;
+
+* `finsupp.total α M R (v : ι → M)`: sends `l : ι → R` to the linear combination of `v i` with
+  coefficients `l i`;
+
+* `finsupp.total_on`: a restricted version of `finsupp.total` with domain `finsupp.supported R R s`
+  and codomain `submodule.span R (v '' s)`;
+
+* `finsupp.supported_equiv_finsupp`: a linear equivalence between the functions `α →₀ M` supported
+  on `s` and the functions `s →₀ M`;
+
+* `finsupp.lmap_domain`: a linear map version of `finsupp.map_domain`;
+
+* `finsupp.dom_lcongr`: a `linear_equiv` version of `finsupp.dom_congr`;
+
+* `finsupp.congr`: if the sets `s` and `t` are equivalent, then `supported M R s` is equivalent to
+  `supported M R t`; 
+
+* `finsupp.lcongr`: a `linear_equiv`alence between `α →₀ M` and `β →₀ N` constructed using `e : α ≃
+  β` and `e' : M ≃ₗ[R] N`.
+
+## Tags
+
+function with finite support, semimodule, linear algebra
+-/
 
 noncomputable theory
 
@@ -182,7 +224,8 @@ theorem supported_Union {δ : Type*} (s : δ → set α) :
 begin
   refine le_antisymm _ (supr_le $ λ i, supported_mono $ set.subset_Union _ _),
   haveI := classical.dec_pred (λ x, x ∈ (⋃ i, s i)),
-  suffices : ((submodule.subtype _).comp (restrict_dom M R (⋃ i, s i))).range ≤ ⨆ i, supported M R (s i),
+  suffices : ((submodule.subtype _).comp (restrict_dom M R (⋃ i, s i))).range ≤
+    ⨆ i, supported M R (s i),
   { rwa [linear_map.range_comp, range_restrict_dom, map_top, range_subtype] at this },
   rw [range_le_iff_comap, eq_top_iff],
   rintro l ⟨⟩,
@@ -426,8 +469,9 @@ linear_map.cod_restrict _ ((finsupp.total _ _ _ v).comp (submodule.subtype (supp
 variables {α} {M} {v}
 
 theorem total_on_range (s : set α) : (finsupp.total_on α M R v s).range = ⊤ :=
-by rw [finsupp.total_on, linear_map.range, linear_map.map_cod_restrict, ← linear_map.range_le_iff_comap,
-  range_subtype, map_top, linear_map.range_comp, range_subtype]; exact le_of_eq (span_eq_map_total _ _)
+by rw [finsupp.total_on, linear_map.range, linear_map.map_cod_restrict,
+  ← linear_map.range_le_iff_comap, range_subtype, map_top, linear_map.range_comp, range_subtype];
+    exact le_of_eq (span_eq_map_total _ _)
 
 theorem total_comp (f : α' → α) :
   (finsupp.total α' M R (v ∘ f)) = (finsupp.total α M R v).comp (lmap_domain R R f) :=

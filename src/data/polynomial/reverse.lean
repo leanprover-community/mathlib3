@@ -25,8 +25,7 @@ variables {R : Type*} [semiring R] {f : polynomial R}
 namespace rev
 /-- If `i ≤ N`, then `rev_at_fun N i` returns `N - i`, otherwise it returns `i`.
 
-Essentially, this function is only used for `i ≤ N`.
-The advantage of `rev_at_fun N i` over `N - i` is that `rev_at_fun` is an involution.
+This is the map used by the embedding `rev_at`.
 -/
 def rev_at_fun (N i : ℕ) : ℕ := ite (i ≤ N) (N-i) i
 

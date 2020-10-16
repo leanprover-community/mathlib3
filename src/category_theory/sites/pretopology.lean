@@ -49,7 +49,8 @@ in `pullback_arrows_comm`.
 -/
 def pullback_arrows [limits.has_pullbacks C] {X Y : C} (f : Y ⟶ X) (S : arrows_with_codomain X) :
   arrows_with_codomain Y :=
-λ Z g, ∃ Z' (h : Z' ⟶ X), S h ∧ ∃ (H : limits.pullback h f = Z), eq_to_hom H.symm ≫ limits.pullback.snd = g
+λ Z g, ∃ Z' (h : Z' ⟶ X), S h ∧ ∃ (H : limits.pullback h f = Z),
+  eq_to_hom H.symm ≫ limits.pullback.snd = g
 
 lemma pullback_arrows_comm [limits.has_pullbacks C] {X Y : C} (f : Y ⟶ X)
   (R : arrows_with_codomain X) :
@@ -88,8 +89,8 @@ structure pretopology :=
 (has_isos : ∀ ⦃X Y⦄ (f : Y ⟶ X) [is_iso f], arrows_with_codomain.singleton_arrow f ∈ coverings X)
 (pullbacks : ∀ ⦃X Y⦄ (f : Y ⟶ X) S, S ∈ coverings X → pullback_arrows f S ∈ coverings Y)
 (transitive : ∀ ⦃X : C⦄ (S : arrows_with_codomain X)
-               (Ti : Π ⦃Y⦄ (f : Y ⟶ X), S f → arrows_with_codomain Y),
-               S ∈ coverings X → (∀ ⦃Y⦄ f (H : S f), Ti f H ∈ coverings Y) → S.bind Ti ∈ coverings X)
+               (Ti : Π ⦃Y⦄ (f : Y ⟶ X), S f → arrows_with_codomain Y), S ∈ coverings X →
+               (∀ ⦃Y⦄ f (H : S f), Ti f H ∈ coverings Y) → S.bind Ti ∈ coverings X)
 
 namespace pretopology
 

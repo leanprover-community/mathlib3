@@ -285,8 +285,8 @@ lemma pushforward_union {f : Y ⟶ X} (S R : sieve Y) :
   (S ⊔ R).pushforward f = S.pushforward f ⊔ R.pushforward f :=
 (galois_connection f).l_sup
 
-lemma pushforward_le_bind_of_mem (S : arrows_with_codomain X) (R : Π ⦃Y : C⦄ ⦃f : Y ⟶ X⦄, S f → sieve Y)
-  (f : Y ⟶ X) (h : S f) :
+lemma pushforward_le_bind_of_mem (S : arrows_with_codomain X)
+  (R : Π ⦃Y : C⦄ ⦃f : Y ⟶ X⦄, S f → sieve Y) (f : Y ⟶ X) (h : S f) :
   (R h).pushforward f ≤ bind S R :=
 begin
   rintro Z _ ⟨g, rfl, hg⟩,

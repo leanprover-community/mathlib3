@@ -383,8 +383,8 @@ end
 lemma prod_assoc_prod [sigma_finite τ] :
   map (measurable_equiv.prod_assoc α β γ) ((μ.prod ν).prod τ) = μ.prod (ν.prod τ) :=
 begin
-  refine (prod_eq (λ st u hst hu, _)).symm,
-  simp_rw [map_apply (measurable_equiv.measurable_to_fun _) (hst.prod hu)],
+  refine (prod_eq (λ s tu hs htu, _)).symm,
+  simp_rw [map_apply (measurable_equiv.measurable_coe _) (hs.prod htu)],
 end
 
 lemma prod_apply_symm {s : set (α × β)} (hs : is_measurable s) :

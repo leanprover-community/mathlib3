@@ -29,7 +29,7 @@ giving three equivalent definitions (TODO: and shows that they are equivalent).
    Noetherian, and the localization at every nonzero prime ideal is a discrete valuation ring.
  - `is_dedekind_domain_inv` alternatively defines a Dedekind domain as an integral domain that is not a field,
    and every nonzero fractional ideal is invertible.
- - `is_dedekind_domain_inv_iff` shows that this does note depend on the choice of field of fractions.
+ - `is_dedekind_domain_inv_iff` shows that this does not depend on the choice of field of fractions.
 
 ## Implementation notes
 
@@ -40,6 +40,7 @@ but are independent of that choice. The `..._iff` lemmas express this independen
 
 * [D. Marcus, *Number Fields*][marcus1977number]
 * [J.W.S. Cassels, A. Frölich, *Algebraic Number Theory*][cassels1967algebraic]
+* [P. Samuel, *Algebraic Theory of Numbers*][samuel1970algebraic]
 
 ## Tags
 
@@ -182,9 +183,12 @@ end
 
 variables {M : ideal R} [is_maximal M]
 
+local attribute [instance] classical.prop_decidable
+
 lemma maximal_ideal_inv_of_dedekind
-  (h : is_dedekind_domain R) {M : ideal R}
-  (hM : ideal.is_maximal M) (hnz_M : M ≠ 0): is_unit (M : fractional_ideal f) :=
+  (h : is_dedekind_domain R) {M : ideal R} (hM : ideal.is_maximal M)
+  (hnz_M : M ≠ 0) -- this is now superfluous as by def'n DD are not fields
+  : is_unit (M : fractional_ideal f) :=
 begin
    have hnz_Mf : (↑ M : fractional_ideal f) ≠ (0 : fractional_ideal f),
     apply fractional_ideal.coe_nonzero_of_nonzero.mp hnz_M,
@@ -224,7 +228,36 @@ begin
       subst hax,exact ha,
       rw hI, exact hM_inclMinv,
     },
-  -- have h_Iincl_ss : ↑ M ⊆  I,apply submodule.span_le,
+    have h_top : I= ⊤,
+      {by_contradiction h_abs,
+      have h_IM : M=I, apply is_maximal.eq_of_le hM h_abs h_Iincl,
+      have h_inveqR : 1/↑ M = (1:fractional_ideal f),
+        {change 1/↑ M≤ (1:fractional_ideal f) ∧ (1:fractional_ideal f) ≤ 1/↑ M,
+        },
+
+    },
+    ----
+    ----everything from here...
+    ----
+    -- have h_neqM : M ≠ I,--what Samuel does in his 2nd paragraph of Thm2 "mm'=m" is impossible
+    -- {
+    --   suffices h_invM_neqA : (1/↑ M) ≠ (1:fractional_ideal f),simp at ⊢,--what Samuel prives in his 3rd paragraph of Thm2
+    --   by_contradiction ha,
+    --   have h_invM_inclR : ∀ x ∈ (1/↑ M:fractional_ideal f), x ∈ (1:fractional_ideal f),
+    --   intros x hx,
+    --    {have h_xn : submodule.is_principal.span_singleton (x) * ↑M ≤ ↑ M,
+
+    --    },
+    -- },
+    have h_Iincl_str : M < I, apply lt_of_le_of_ne h_Iincl h_neqM,
+    have h_Itop : I=⊤, apply hM.right I h_Iincl_str,
+  -- have h_Iincl_ss : ↑ M ⊆  I, apply submodule.span_le,
+  --
+  -- the following steps are
+  -- 1) one_fI: 1 ∈ ↑I
+  -- 2) one_I: 1 ∈ I
+  -- 3) h_Itop: from 2)I=R
+  --
   have one_fI : (1 : K) ∈ (↑I:fractional_ideal f),
     {have ex_nzM : ∃ y ∈ M, y ≠ (0 : R),sorry,
     rcases ex_nzM with ⟨ y , h_My , h_nzy ⟩,
@@ -238,11 +271,15 @@ begin
     apply (fractional_ideal.mem_coe ).mp one_fI,
     rcases u1_I with ⟨v,hv,hfv⟩,
     have h_v1 : v=1,
-    suffices h_v1f : f.to_map v=f.to_map 1,apply fraction_map.injective f h_v1f,rw hfv,
-    apply (ring_hom.map_one f.to_ring_hom).symm,
-   }
-  have h_Itop : I=⊤,apply (ideal.eq_top_iff_one I).mpr,exact one_I,
-  have h_okI : ↑I=(1 : fractional_ideal f),apply fractional_ideal.ext_iff.mp,
+    suffices h_v1f : f.to_map v=f.to_map 1, apply fraction_map.injective f h_v1f, rw hfv,
+    apply (ring_hom.map_one f.to_ring_hom).symm,rw h_v1 at hv,exact hv,
+   },
+  have h_Itop' : I=⊤, --this (and its proof) should be replaced by h_Itop once that is OK
+  apply (ideal.eq_top_iff_one I).mpr, exact one_I,
+  ----
+  ----up to here, must disappear...
+  ----
+  have h_okfI : ↑I=(1 : fractional_ideal f), apply fractional_ideal.ext_iff.mp,
     intros x,split,
       {intro hx,
       have h_x' : ∃ (x' ∈  (I : ideal R)), f.to_map x' = x,
@@ -252,11 +289,11 @@ begin
       {intro hx,
       have h_x' : ∃ x' ∈ (1:ideal R),  f.to_map x' = x,
       apply fractional_ideal.mem_coe.mp hx,
-      rw h_Itop,simp,
+      rw h_Itop',simp,
       rcases h_x' with ⟨a, ⟨ha,hfa⟩ ⟩,
             use a,exact hfa,
       },
-    rw ← hI,exact h_okI,
+    rw ← hI,exact h_okfI,
 end
 
 

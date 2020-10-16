@@ -58,7 +58,7 @@ open_locale classical
 
 namespace preorder_hom
 
-variables (α : Type*) (β : Type*) {γ : Type*} {φ : Type*}
+variables (α : Type u) (β : Type*) {γ : Type*} {φ : Type*}
 variables [preorder α] [preorder β] [preorder γ] [preorder φ]
 
 variables {β γ}
@@ -94,6 +94,17 @@ def prod.fst : (α × β) →ₘ α :=
 def prod.snd : (α × β) →ₘ β :=
 { to_fun := prod.snd,
   monotone' := λ ⟨x,x'⟩ ⟨y,y'⟩ ⟨h,h'⟩, h' }
+
+@[simp]
+lemma prod.diag_fst :
+  preorder_hom.comp preorder_hom.prod.fst.{u u} prod.diag = @preorder_hom.id α _ :=
+by ext; simp
+
+@[simp]
+lemma prod.diag_snd :
+  preorder_hom.comp preorder_hom.prod.snd.{u u} prod.diag = @preorder_hom.id α _ :=
+by ext; simp
+
 
 /-- The `prod` constructor, as a monotone function. -/
 @[simps {rhs_md := semireducible}]
@@ -168,10 +179,23 @@ lemma map_comp : (c.map f).map g = c.map (g.comp f) := rfl
 lemma map_le_map {g : α →ₘ β} (h : f ≤ g) : c.map f ≤ c.map g :=
 λ i, by simp [mem_map_iff]; intros; existsi i; apply h
 
+/-- A chain containing only one value. -/
+def const (x : α) : chain α := ⟨λ _, x, λ a b h, le_refl _⟩
+
 /-- `chain.zip` pairs up the elements of two chains that have the same index -/
 @[simps {rhs_md := semireducible}]
 def zip (c₀ : chain α) (c₁ : chain β) : chain (α × β) :=
 preorder_hom.prod.zip c₀ c₁
+
+@[simp]
+lemma zip_map_fst (c₀ : chain α) (c₁ : chain β) :
+  (c₀.zip c₁).map preorder_hom.prod.fst = c₀ :=
+by ext; refl
+
+@[simp]
+lemma zip_map_snd (c₀ : chain α) (c₁ : chain β) :
+  (c₀.zip c₁).map preorder_hom.prod.snd = c₁ :=
+by ext; refl
 
 end chain
 
@@ -238,6 +262,14 @@ begin
   apply ωSup_le _ _ a,
 end
 
+lemma ωSup_const (x : α) : ωSup (chain.const x) = x :=
+begin
+  apply eq_of_forall_ge_iff, intro z,
+  rw ωSup_le_iff, split,
+  { intros h, apply h 0 },
+  { intros h i, exact h }
+end
+
 section continuity
 open chain
 
@@ -285,6 +317,11 @@ begin
   intro c, apply eq_of_forall_ge_iff, intro z,
   simp [ωSup_le_iff,function.const],
 end
+
+lemma comp_continuous' {f : α → β} (g : β → γ) (hfc : continuous' f) (hgc : continuous' g) : continuous' (g ∘ f):=
+continuous.of_bundled'
+  (preorder_hom.comp ⟨g, continuous.to_monotone hgc⟩ ⟨f, continuous.to_monotone hfc⟩)
+  (continuous_comp _ _ (continuous.to_bundled _ _) (continuous.to_bundled _ _))
 
 lemma const_continuous' (x: β) : continuous' (function.const α x) :=
 continuous.of_bundled _ (λ a b h, le_refl _)
@@ -640,6 +677,12 @@ by simp only [seq_eq_bind_map];
 lemma continuous (F : α →𝒄 β) (C : chain α) : F (ωSup C) = ωSup (C.map F) :=
 continuous_hom.cont _ _
 
+@[simp]
+lemma coe_fn_mk {f : α → β} (h h') (x) : continuous_hom.mk f h h' x = f x := rfl
+
+@[simp]
+lemma to_preorder_hom_eq_coe (F : α →𝒄 β) : F.to_preorder_hom = F := rfl
+
 /-- Construct a continuous function from a bare function, a continuous function, and a proof that
 they are equal. -/
 @[simps, reducible]
@@ -684,6 +727,14 @@ lemma comp_assoc (f : γ →𝒄 φ) (g : β →𝒄 γ) (h : α →𝒄 β) : f
 @[simp]
 lemma coe_apply (a : α) (f : α →𝒄 β) : (f : α →ₘ β) a = f a := rfl
 
+lemma ωSup_const (x : β) : ωSup (preorder_hom.const ℕ x) = x :=
+begin
+  apply le_antisymm,
+  { apply ωSup_le, simp only [preorder_hom.const_to_fun, chain.map_to_fun, function.comp_app],
+    intros, refl },
+  { apply le_ωSup_of_le 0, refl },
+end
+
 /-- `function.const` is a continuous function. -/
 def const (f : β) : α →𝒄 β :=
 of_mono (preorder_hom.const _ f)
@@ -694,6 +745,40 @@ of_mono (preorder_hom.const _ f)
       { apply ωSup_le, simp only [preorder_hom.const_to_fun, chain.map_to_fun, function.comp_app],
         intros, refl },
     end
+
+/-- `prod.fst` is a continuous function. -/
+@[simps {rhs_md := semireducible}]
+def prod.fst : α × β →𝒄 α :=
+of_mono (preorder_hom.prod.fst)
+(by intro c; refl)
+
+/-- `prod.snd` is a continuous function. -/
+@[simps {rhs_md := semireducible}]
+def prod.snd : α × β →𝒄 β :=
+of_mono (preorder_hom.prod.snd)
+(by intro c; refl)
+
+/-- `prod.diag` is a continuous function. -/
+@[simps {rhs_md := semireducible}]
+def prod.diag : α →𝒄 α × α :=
+of_mono preorder_hom.prod.diag
+(λ c, by simp [ωSup, prod.ωSup, chain.map_comp])
+
+/-- `prod.map` is a continuous function. -/
+@[simps {rhs_md := semireducible}]
+def prod.map (f : α →𝒄 β) (g : α' →𝒄 β') : α × α' →𝒄 β × β' :=
+of_mono (preorder_hom.prod.map f.to_preorder_hom g.to_preorder_hom)
+(by intros; dsimp [ωSup]; erw [f.continuous, g.continuous]; refl)
+
+@[simp]
+lemma prod.map_fst (f : α →𝒄 β) (g : α' →𝒄 β') :
+  continuous_hom.prod.fst.comp (prod.map f g) = f.comp continuous_hom.prod.fst :=
+by ext ⟨ ⟩; refl
+
+@[simp]
+lemma prod.map_snd (f : α →𝒄 β) (g : α' →𝒄 β') :
+  continuous_hom.prod.snd.comp (prod.map f g) = g.comp continuous_hom.prod.snd :=
+by ext ⟨ ⟩; refl
 
 @[simp] theorem const_apply (f : β) (a : α) : const f a = f := rfl
 
@@ -771,6 +856,14 @@ begin
     chain.zip_to_fun, preorder_hom.prod.map_to_fun, preorder_hom.prod.diag_to_fun, prod.map_mk,
     preorder_hom.monotone_apply_to_fun, function.comp_app, prod.apply_to_fun,
     preorder_hom.comp_to_fun, ωSup_to_fun],
+end
+
+lemma ωSup_apply (c : chain $ (α →𝒄 β) × α) :
+  continuous_hom.prod.apply (ωSup c) = ωSup (c.map continuous_hom.prod.apply) :=
+begin
+  have h : c = (c.map preorder_hom.prod.fst).zip (c.map preorder_hom.prod.snd),
+  { ext; refl },
+  rw [chain.map, h, ← ωSup_ωSup], refl,
 end
 
 /-- A family of continuous functions yields a continuous family of functions. -/

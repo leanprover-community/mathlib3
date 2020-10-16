@@ -695,6 +695,38 @@ by simp [sub_eq_add_neg, sin_add, sin_neg, cos_neg]
 lemma cos_sub : cos (x - y) = cos x * cos y + sin x * sin y :=
 by simp [sub_eq_add_neg, cos_add, sin_neg, cos_neg]
 
+theorem sin_sub_sin : sin x - sin y = 2 * sin((x - y)/2) * cos((x + y)/2) :=
+begin
+  have s1 := sin_add ((x + y) / 2) ((x - y) / 2),
+  have s2 := sin_sub ((x + y) / 2) ((x - y) / 2),
+  rw [div_add_div_same, add_sub, add_right_comm, add_sub_cancel, half_add_self] at s1,
+  rw [div_sub_div_same, ←sub_add, add_sub_cancel', half_add_self] at s2,
+  rw [s1, s2],
+  ring
+end
+
+theorem cos_sub_cos : cos x - cos y = -2 * sin((x + y)/2) * sin((x - y)/2) :=
+begin
+  have s1 := cos_add ((x + y) / 2) ((x - y) / 2),
+  have s2 := cos_sub ((x + y) / 2) ((x - y) / 2),
+  rw [div_add_div_same, add_sub, add_right_comm, add_sub_cancel, half_add_self] at s1,
+  rw [div_sub_div_same, ←sub_add, add_sub_cancel', half_add_self] at s2,
+  rw [s1, s2],
+  ring,
+end
+
+lemma cos_add_cos : cos x + cos y = 2 * cos ((x + y) / 2)  * cos ((x - y) / 2) :=
+begin
+  have h2 : (2:ℂ) ≠ 0 := by norm_num,
+  calc cos x + cos y = cos ((x + y) / 2 + (x - y) / 2) + cos ((x + y) / 2 - (x - y) / 2) : _
+  ... = (cos ((x + y) / 2) * cos ((x - y) / 2) - sin ((x + y) / 2) * sin ((x - y) / 2))
+          + (cos ((x + y) / 2) * cos ((x - y) / 2) + sin ((x + y) / 2) * sin ((x - y) / 2)) : _
+  ... = 2 * cos ((x + y) / 2) * cos ((x - y) / 2) : _,
+  { congr; field_simp [h2]; ring },
+  { rw [cos_add, cos_sub] },
+  ring,
+end
+
 lemma sin_conj : sin (conj x) = conj (sin x) :=
 by rw [← mul_left_inj' I_ne_zero, ← sinh_mul_I,
        ← conj_neg_I, ← conj.map_mul, ← conj.map_mul, sinh_conj,
@@ -872,6 +904,33 @@ by simp [sub_eq_add_neg, sin_add, sin_neg, cos_neg]
 
 lemma cos_sub : cos (x - y) = cos x * cos y + sin x * sin y :=
 by simp [sub_eq_add_neg, cos_add, sin_neg, cos_neg]
+
+lemma sin_sub_sin : sin x - sin y = 2 * sin((x - y)/2) * cos((x + y)/2) :=
+begin
+  rw ← of_real_inj,
+  simp only [sin, cos, of_real_sin_of_real_re, of_real_sub, of_real_add, of_real_div, of_real_mul,
+    of_real_one, of_real_bit0],
+  convert sin_sub_sin _ _;
+  norm_cast
+end
+
+theorem cos_sub_cos : cos x - cos y = -2 * sin((x + y)/2) * sin((x - y)/2) :=
+begin
+  rw ← of_real_inj,
+  simp only [cos, neg_mul_eq_neg_mul_symm, of_real_sin, of_real_sub, of_real_add,
+    of_real_cos_of_real_re, of_real_div, of_real_mul, of_real_one, of_real_neg, of_real_bit0],
+  convert cos_sub_cos _ _,
+  ring,
+end
+
+lemma cos_add_cos : cos x + cos y = 2 * cos ((x + y) / 2)  * cos ((x - y) / 2) :=
+begin
+  rw ← of_real_inj,
+  simp only [cos, of_real_sub, of_real_add, of_real_cos_of_real_re, of_real_div, of_real_mul,
+    of_real_one, of_real_bit0],
+  convert cos_add_cos _ _;
+  norm_cast,
+end
 
 lemma tan_eq_sin_div_cos : tan x = sin x / cos x :=
 if h : complex.cos x = 0 then by simp [sin, cos, tan, *, complex.tan, div_eq_mul_inv] at *

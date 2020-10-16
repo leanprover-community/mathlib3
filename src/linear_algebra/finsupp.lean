@@ -274,7 +274,7 @@ begin
   exact linear_map.is_linear _
 end
 
-/-- Lift a family of linear maps `M →ₗ[R] N` indexed by `x : α` to a linear map map from `α →₀ M` to
+/-- Lift a family of linear maps `M →ₗ[R] N` indexed by `x : α` to a linear map from `α →₀ M` to
 `N` using `finsupp.sum`. This is an upgraded version of `finsupp.lift_add_hom`.
 We define this as an additive equivalence. For a commutative `R`, this equivalence can be
 upgraded further to a linear equivalence. -/

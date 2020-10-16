@@ -745,15 +745,11 @@ lemma cos_eq_one_iff_of_lt_of_lt {x : ℝ} (hx₁ : -(2 * π) < x) (hx₂ : x < 
 lemma cos_lt_cos_of_nonneg_of_le_pi_div_two {x y : ℝ} (hx₁ : 0 ≤ x) (hy₂ : y ≤ π / 2) (hxy : x < y) :
   cos y < cos x :=
 begin
-  suffices : cos y - cos x < 0,
-  { linarith },
-  rw cos_sub_cos,
+  rw [← sub_lt_zero, cos_sub_cos],
   have : 0 < sin ((y + x) / 2),
-  { refine sin_pos_of_pos_of_lt_pi _ _;
-    linarith },
+  { refine sin_pos_of_pos_of_lt_pi _ _; linarith },
   have : 0 < sin ((y - x) / 2),
-  { refine sin_pos_of_pos_of_lt_pi _ _;
-    linarith },
+  { refine sin_pos_of_pos_of_lt_pi _ _; linarith },
   nlinarith,
 end
 
@@ -1792,15 +1788,13 @@ theorem sin_eq_zero_iff {θ : ℂ} : sin θ = 0 ↔ ∃ k : ℤ, θ = k * π :=
 begin
   rw [← complex.cos_sub_pi_div_two, cos_eq_zero_iff],
   split,
-  { intros h,
-    obtain ⟨k, hk⟩ := h,
+  { rintros ⟨k, hk⟩ := h,
     use k + 1,
     field_simp [eq_add_of_sub_eq hk],
     ring },
-  { intros h,
-    obtain ⟨k, hk⟩ := h,
+  { rintros ⟨k, rfl⟩,
     use k - 1,
-    field_simp [hk],
+    field_simp,
     ring }
 end
 

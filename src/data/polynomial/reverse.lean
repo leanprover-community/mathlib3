@@ -69,7 +69,7 @@ In other words, the terms with exponent `[0, ..., N]` now have exponent `[N, ...
  In practice, `reflect` is only used when `N` is at least as large as the degree of `f`.
  Eventually, it will be used with `N` exactly equal to the degree of `f`.  -/
 noncomputable def reflect (N : ℕ) (f : polynomial R) : polynomial R :=
-  finsupp.emb_domain (rev_at N) f
+finsupp.emb_domain (rev_at N) f
 
 lemma reflect_support (N : ℕ) (f : polynomial R) :
   (reflect N f).support = image (rev_at N) f.support :=

@@ -2,11 +2,52 @@
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl
-
-Linear structures on function with finite support `α →₀ M`.
 -/
 import data.finsupp.basic
 import linear_algebra.basic
+
+/-!
+# Properties of the semimodule `α →₀ M`
+
+Given an `R`-semimodule `M`, the `R`-semimodule structure on `α →₀ M` is defined in
+`data.finsupp.basic`.
+
+In this file we define `finsupp.supported s` to be the set `{f : α →₀ M | f.support ⊆ s}`
+interpreted as a submodule of `α →₀ M`. We also define `linear_map` versions of various maps:
+
+* `finsupp.lsingle a : M →ₗ[R] ι →₀ M`: `finsupp.single a` as a linear map;
+
+* `finsupp.lapply a : (ι →₀ M) →ₗ[R] M`: the map `λ f, f a` as a linear map;
+
+* `finsupp.lsubtype_domain (s : set α) : (α →₀ M) →ₗ[R] (s →₀ M)`: restriction to a subtype as a
+  linear map;
+
+* `finsupp.restrict_dom`: `finsupp.filter` as a linear map to `finsupp.supported s`;
+
+* `finsupp.lsum`: `finsupp.sum` or `finsupp.lift_add_hom` as a `linear_map`;
+
+* `finsupp.total α M R (v : ι → M)`: sends `l : ι → R` to the linear combination of `v i` with coefficients `l i`;
+
+* `finsupp.total_on`: a restricted version of `finsupp.total` with domain `finsupp.supported R R s`
+  and codomain `submodule.span R (v '' s)`;
+
+* `finsupp.supported_equiv_finsupp`: a linear equivalence between the functions `α →₀ M` supported
+  on `s` and the functions `s →₀ M`;
+
+* `finsupp.lmap_domain`: a linear map version of `finsupp.map_domain`;
+
+* `finsupp.dom_lcongr`: a `linear_equiv` version of `finsupp.dom_congr`;
+
+* `finsupp.congr`: if the sets `s` and `t` are equivalent, then `supported M R s` is equivalent to
+  `supported M R t`; 
+
+* `finsupp.lcongr`: a `linear_equiv`alence between `α →₀ M` and `β →₀ N` constructed using `e : α ≃
+  β` and `e' : M ≃ₗ[R] N`.
+
+## Tags
+
+function with finite support, semimodule, linear algebra
+-/
 
 noncomputable theory
 
@@ -439,8 +480,7 @@ end
 end total
 
 /-- An equivalence of domains induces a linear equivalence of finitely supported functions. -/
-protected def dom_lcongr
-  {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) :
+protected def dom_lcongr {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) :
   (α₁ →₀ M) ≃ₗ[R] (α₂ →₀ M) :=
 (@finsupp.dom_congr M _ _ _ e).to_linear_equiv (lmap_domain M R e).map_smul
 

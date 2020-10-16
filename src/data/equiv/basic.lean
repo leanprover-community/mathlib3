@@ -367,7 +367,7 @@ A version of `equiv.arrow_congr` in `Type`, rather than `Sort`.
 The `equiv_rw` tactic is not able to use the default `Sort` level `equiv.arrow_congr`,
 because Lean's universe rules will not unify `?l_1` with `imax (1 ?m_1)`.
 -/
-@[congr, simps to_fun {rhs_md := semireducible}]
+@[congr, simps to_fun {rhs_md := semireducible, simp_rhs := tt}]
 def arrow_congr' {α₁ β₁ α₂ β₂ : Type*} (hα : α₁ ≃ α₂) (hβ : β₁ ≃ β₂) : (α₁ → β₁) ≃ (α₂ → β₂) :=
 equiv.arrow_congr hα hβ
 
@@ -384,7 +384,8 @@ rfl
 rfl
 
 /-- Conjugate a map `f : α → α` by an equivalence `α ≃ β`. -/
-@[simps to_fun {rhs_md := semireducible}] def conj (e : α ≃ β) : (α → α) ≃ (β → β) := arrow_congr e e
+@[simps to_fun {rhs_md := semireducible, simp_rhs := tt}]
+def conj (e : α ≃ β) : (α → α) ≃ (β → β) := arrow_congr e e
 
 @[simp] lemma conj_refl : conj (equiv.refl α) = equiv.refl (α → α) := rfl
 

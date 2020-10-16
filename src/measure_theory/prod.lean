@@ -57,21 +57,6 @@ uncurried version is reversed.
 product measure, Fubini's theorem, Tonelli's theorem, Fubini-Tonelli theorem
 -/
 
-section mul_zero_class
-open set
-variables {α β : Type*} [mul_zero_class β] {s t : set α} {f g : α → β} {a : α}
-
-lemma indicator_mul_left (s : set α) (f g : α → β) :
-  indicator s (λa, f a * g a) a = indicator s f a * g a :=
-by { simp only [indicator], split_ifs, { refl }, rw [zero_mul] }
-
-lemma indicator_mul_right (s : set α) (f g : α → β) :
-  indicator s (λa, f a * g a) a = f a * indicator s g a :=
-by { simp only [indicator], split_ifs, { refl }, rw [mul_zero] }
-
-end mul_zero_class
-
-
 noncomputable theory
 open_locale classical topological_space
 open set function real ennreal

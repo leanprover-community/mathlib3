@@ -658,7 +658,7 @@ end
 
 /-`nth_roots n` as a finset is equal to the union of `primitive_roots i R` for `i ∣ n`
 if there is a primitive root of unity in `R`. -/
-lemma root_of_unity_eq_uniun_prim {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) :
+lemma root_of_unity_eq_union_prim {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) :
   (⟨nth_roots n (1 : R) , nth_roots_nodup h⟩ : finset R) =
   finset.bind (nat.divisors ↑n) (λ (i : ℕ), (primitive_roots i R)) :=
 begin

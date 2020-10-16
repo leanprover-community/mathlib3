@@ -277,7 +277,7 @@ begin
   have h_Itop' : I=⊤, --this (and its proof) should be replaced by h_Itop once that is OK
   apply (ideal.eq_top_iff_one I).mpr, exact one_I,
   ----
-  ----up to here, must disappear
+  ----up to here, must disappear...
   ----
   have h_okfI : ↑I=(1 : fractional_ideal f), apply fractional_ideal.ext_iff.mp,
     intros x,split,

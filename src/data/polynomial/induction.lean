@@ -59,6 +59,7 @@ and it holds for monomials.
 polynomial.induction_on p (h_monomial 0) h_add
 (λ n a h, begin rw ← single_eq_C_mul_X at ⊢, exact h_monomial _ _, end)
 
+
 section coeff
 
 theorem coeff_mul_monomial (p : polynomial R) (n d : ℕ) (r : R) :

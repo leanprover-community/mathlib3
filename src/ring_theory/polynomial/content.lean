@@ -51,16 +51,10 @@ begin
 end
 
 @[simp] lemma content_zero : content (0 : polynomial R) = 0 :=
-begin
-  rw [← C_0, content_C],
-  simp,
-end
+by rw [← C_0, content_C, normalize_zero]
 
 @[simp] lemma content_one : content (1 : polynomial R) = 1 :=
-begin
-  rw [← C_1, content_C],
-  simp,
-end
+by rw [← C_1, content_C, normalize_one]
 
 lemma content_X_mul {p : polynomial R} : content (X * p) = content p :=
 begin

@@ -758,30 +758,6 @@ lemma nat_degree_pos_iff_degree_pos {p : polynomial R} :
 
 end semiring
 
-lemma nat_degree_sub_leading_coeff_mul_X_pow_lt [comm_ring R] {p : polynomial R} (h : 0 < p.nat_degree) :
-  (p - C p.leading_coeff * X ^ p.nat_degree).nat_degree < p.nat_degree :=
-begin
-  have hp : p ≠ 0,
-  { rintro rfl,
-    rw nat_degree_zero at h,
-    apply lt_irrefl _ h },
-  by_cases hp' : p - C p.leading_coeff * X ^ p.nat_degree = 0,
-  { rw [hp', nat_degree_zero],
-    apply h },
-  rw [← with_bot.coe_lt_coe, ← degree_eq_nat_degree hp,
-      ← degree_eq_nat_degree hp'],
-  convert degree_erase_lt hp,
-  apply polynomial.ext,
-  intro a,
-  by_cases ha : a = p.nat_degree,
-  { simp only [ha, leading_coeff, coeff_X_pow_self, mul_one, coeff_C_mul, coeff_sub, sub_self],
-    symmetry,
-    apply finsupp.erase_same, },
-  { rw [coeff_sub, coeff_C_mul, coeff_X_pow, if_neg ha, mul_zero, sub_zero],
-    symmetry,
-    apply finsupp.erase_ne ha, }
-end
-
 section nonzero_semiring
 variables [semiring R] [nontrivial R] {p q : polynomial R}
 

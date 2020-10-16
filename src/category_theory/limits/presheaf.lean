@@ -9,6 +9,22 @@ import category_theory.limits.functor_category
 import category_theory.limits.shapes
 import category_theory.limits.types
 
+/-!
+# Colimit of representables
+
+This file constructs an adjunction between `(Cᵒᵖ ⥤ Type u)` and `ℰ` given a functor `A : C ⥤ ℰ`,
+where the right adjoint sends `(E : ℰ)` to `c ↦ (A.obj c ⟶ E)` (provided `ℰ` has colimits).
+
+This adjunction is used to show that every presheaf is a colimit of representables.
+
+Further, the left adjoint `colimit_adj.L : (Cᵒᵖ ⥤ Type u) ⥤ ℰ` satisfies `yoneda ⋙ L ≅ A`, that
+is, an extension of `A : C ⥤ ℰ` to `(Cᵒᵖ ⥤ Type u) ⥤ ℰ` through `yoneda : C ⥤ Cᵒᵖ ⥤ Type u`.
+TODO: Show `colimit_adj.L` is unique amongst cocontinuous functors with this property.
+
+## Tags
+colimit, representable, presheaf
+-/
+
 namespace category_theory
 
 noncomputable theory
@@ -26,18 +42,37 @@ namespace colimit_adj
 The functor taking `(E : ℰ) (c : Cᵒᵖ)` to the homset `(A.obj C ⟶ E)`. It is shown in `L_adjunction`
 that this functor has a left adjoint (provided `E` has colimits) given by taking colimits over
 categories of elements.
+In the case where `ℰ = Cᵒᵖ ⥤ Type u` and `A = yoneda`, this functor is isomorphic to the identity.
+
+Defined as in [MM92], Chapter I, Section 5, Theorem 2.
 -/
 @[simps {rhs_md := semireducible}]
-def R : ℰ ⥤ (Cᵒᵖ ⥤ Type u₁) :=
+def restricted_yoneda : ℰ ⥤ (Cᵒᵖ ⥤ Type u₁) :=
 yoneda ⋙ (whiskering_left _ _ (Type u₁)).obj (functor.op A)
 
 /--
+The functor `restricted_yoneda` is isomorphic to the identity functor if evaluated at the
+yoneda embedding.
+-/
+def right_is_id : restricted_yoneda (yoneda : C ⥤ Cᵒᵖ ⥤ Type u₁) ≅ 𝟭 _ :=
+nat_iso.of_components
+(λ P, nat_iso.of_components (λ X, yoneda_sections_small X.unop _)
+  (λ X Y f, funext $ λ x,
+  begin
+    dsimp [ulift_trivial, yoneda_lemma],
+    rw ← functor_to_types.naturality _ _ x f (𝟙 _),
+    dsimp,
+    simp,
+  end))
+(λ _ _ _, rfl)
+
+/--
 (Implementation). The equivalence of homsets which helps construct the left adjoint to
-`colimit_adj.R`.
+`colimit_adj.restricted_yoneda`.
 It is shown in `Le'_natural` that this is a natural bijection.
 -/
 def Le' (P : Cᵒᵖ ⥤ Type u₁) (E : ℰ) {c : cocone ((category_of_elements.π P).left_op ⋙ A)}
-  (t : is_colimit c) : (c.X ⟶ E) ≃ (P ⟶ (R A).obj E) :=
+  (t : is_colimit c) : (c.X ⟶ E) ≃ (P ⟶ (restricted_yoneda A).obj E) :=
 (t.hom_iso' E).to_equiv.trans
 { to_fun := λ k,
   { app := λ c p, k.1 (opposite.op ⟨_, p⟩),
@@ -68,7 +103,7 @@ def Le' (P : Cᵒᵖ ⥤ Type u₁) (E : ℰ) {c : cocone ((category_of_elements
 /-- (Implementation). Show that the bijection in `Le'` is natural (on the right). -/
 lemma Le'_natural (P : Cᵒᵖ ⥤ Type u₁) (E₁ E₂ : ℰ) (g : E₁ ⟶ E₂)
   {c : cocone _} (t : is_colimit c) (k : c.X ⟶ E₁) :
-Le' A P E₂ t (k ≫ g) = Le' A P E₁ t k ≫ (R A).map g :=
+Le' A P E₂ t (k ≫ g) = Le' A P E₁ t k ≫ (restricted_yoneda A).map g :=
 begin
   ext _ X p,
   apply (assoc _ _ _).symm,
@@ -76,7 +111,7 @@ end
 
 variables [has_colimits ℰ]
 
-/-- The left adjoint to the functor `R` which sends `R(E,C)`  -/
+/-- The left adjoint to the functor `restricted_yoneda`. -/
 def L : (Cᵒᵖ ⥤ Type u₁) ⥤ ℰ :=
 adjunction.left_adjoint_of_equiv
   (λ P E, Le' A P E (colimit.is_colimit _))
@@ -86,11 +121,15 @@ adjunction.left_adjoint_of_equiv
 lemma L_obj (P : Cᵒᵖ ⥤ Type u₁) : (L A).obj P =
 colimit ((category_of_elements.π P).left_op ⋙ A) := rfl
 
-/-- Show `L` is left adjoint to `R`. -/
-def L_adjunction : L A ⊣ R A := adjunction.adjunction_of_equiv_left _ _
+/--
+Show `L` is left adjoint to `restricted_yoneda`.
+
+The construction of [MM92], Chapter I, Section 5, Theorem 2.
+-/
+def L_adjunction : L A ⊣ restricted_yoneda A := adjunction.adjunction_of_equiv_left _ _
 
 /--
-The terminal object in the category of elements for a representable functor.
+The terminal object in the opposite of the category of elements for a representable functor.
 In `is_term` it is shown that this is terminal.
 -/
 def term_element (A : C) : (yoneda.obj A).elementsᵒᵖ :=
@@ -115,6 +154,8 @@ def is_term (A : C) : is_terminal (term_element A) :=
 /--
 On the full subcategory of representables, `L A` is an extension of `A`.
 TODO: Among functors preserving colimits, `L` is unique with this property up to isomorphism.
+
+The first part of [MM92], Chapter I, Section 5, Corollary 4.
 -/
 def extend : (yoneda : C ⥤ Cᵒᵖ ⥤ Type u₁) ⋙ L A ≅ A :=
 nat_iso.of_components
@@ -136,29 +177,20 @@ end colimit_adj
 
 open colimit_adj
 
-/-- The functor `R` is isomorphic to the identity functor if evaluated at the yoneda embedding. -/
-def right_is_id : R (yoneda : C ⥤ _) ≅ 𝟭 _ :=
-nat_iso.of_components
-(λ P, nat_iso.of_components (λ X, yoneda_sections_small X.unop _)
-  (λ X Y f, funext $ λ x,
-  begin
-    apply eq.trans _ (congr_fun (x.naturality f) (𝟙 _)),
-    dsimp [ulift_trivial, yoneda_lemma],
-    simp only [id_comp, comp_id],
-  end))
-(λ _ _ _, rfl)
 
 /--
 Since `L A` is adjoint to `R A`, if we use `A = yoneda` then `R A` is isomorphic to the
 identity, and so `L A` is as well.
 -/
 def left_is_id : L (yoneda : C ⥤ _) ≅ 𝟭 _ :=
-adjunction.left_adjoint_uniq (L_adjunction _) (adjunction.id.of_nat_iso_right right_is_id.symm)
+adjunction.nat_iso_of_right_adjoint_nat_iso (L_adjunction _) adjunction.id right_is_id
 
 /--
 This is a cocone with point `P`, for which the diagram consists solely of representables.
 It is shown in `is_a_limit P` that this cocone is a colimit: that is, we have exhibited an
 arbitrary presheaf `P` as a colimit of representables.
+
+The construction of [MM92], Chapter I, Section 5, Corollary 3.
 -/
 def the_cocone (P : Cᵒᵖ ⥤ Type u₁) :
   cocone ((category_of_elements.π P).left_op ⋙ yoneda) :=
@@ -170,6 +202,8 @@ lemma the_cocone_X (P : Cᵒᵖ ⥤ Type u₁) : (the_cocone P).X = P := rfl
 /--
 The cocone with point `P` given by `the_cocone` is a colimit: that is, we have exhibited an
 arbitrary presheaf `P` as a colimit of representables.
+
+The result of [MM92], Chapter I, Section 5, Corollary 3.
 -/
 def is_a_limit (P : Cᵒᵖ ⥤ Type u₁) : is_colimit (the_cocone P) :=
 begin

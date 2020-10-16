@@ -1823,3 +1823,11 @@ lemma metric.bounded.finite_measure {α : Type*} [metric_space α] [proper_space
   μ s < ⊤ :=
 (measure_mono subset_closure).trans_lt (metric.compact_iff_closed_bounded.2
   ⟨is_closed_closure, metric.bounded_closure_of_bounded hs⟩).finite_measure
+
+/-- This is the equivalent of (a-b) ⊔ 0, if a and b were signed measures.
+Compare with ennreal.has_sub. 
+Specifically, note that if you have α = {1,2}, and  a {1} = 2, a {2} = 0, and 
+b {2} = 2, b {1} = 0, then (a - b) {1, 2} = 2. However, if a ≤ b, and
+a set.univ ≠ ⊤, then (a - b) + b = a. -/
+noncomputable instance measure_theory.measure.has_sub {α:Type*}
+  [measurable_space α]:has_sub (measure_theory.measure α) := ⟨λa b, Inf {d | a ≤ d + b}⟩

@@ -1126,7 +1126,8 @@ structure affine_map (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Ty
 instance (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Type*)
     [ring k]
     [add_comm_group V1] [module k V1] [affine_space V1 P1]
-    [add_comm_group V2] [module k V2] [affine_space V2 P2]: has_coe_to_fun (affine_map k P1 P2) := ⟨_, affine_map.to_fun⟩
+    [add_comm_group V2] [module k V2] [affine_space V2 P2]:
+    has_coe_to_fun (affine_map k P1 P2) := ⟨_, affine_map.to_fun⟩
 
 namespace linear_map
 

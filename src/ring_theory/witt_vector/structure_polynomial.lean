@@ -339,26 +339,16 @@ end
 @[simp]
 lemma constant_coeff_witt_structure_rat_zero (Φ : mv_polynomial idx ℚ) :
   constant_coeff (witt_structure_rat p Φ 0) = constant_coeff Φ :=
-begin
-  rw witt_structure_rat,
-  simp only [bind₁, map_aeval, X_in_terms_of_W_zero, aeval_X, constant_coeff_witt_polynomial,
-    constant_coeff_rename, constant_coeff_comp_algebra_map],
-  exact @aeval_zero' _ _ _ _ _ (algebra.id _) Φ
-end
+by simp only [witt_structure_rat, bind₁, map_aeval, X_in_terms_of_W_zero, constant_coeff_rename,
+  constant_coeff_witt_polynomial, aeval_X, constant_coeff_comp_algebra_map,
+  eval₂_hom_zero', ring_hom.id_apply]
 
 lemma constant_coeff_witt_structure_rat (Φ : mv_polynomial idx ℚ)
   (h : constant_coeff Φ = 0) (n : ℕ) :
   constant_coeff (witt_structure_rat p Φ n) = 0 :=
-begin
-  rw witt_structure_rat,
-  -- we need `eval₂_hom_zero` but it doesn't exist
-  have : (eval₂_hom (ring_hom.id ℚ) (λ (_x : idx), 0)) Φ = constant_coeff Φ :=
-    @aeval_zero' _ _ _ _ _ (algebra.id _) Φ,
-  simp only [this, h, bind₁, map_aeval, constant_coeff_witt_polynomial, constant_coeff_rename,
-    constant_coeff_comp_algebra_map],
-  conv_rhs { rw ← constant_coeff_X_in_terms_of_W p ℚ n },
-  exact @aeval_zero' _ _ _ _ _ (algebra.id _) _
-end
+by simp only [witt_structure_rat, eval₂_hom_zero', h, bind₁, map_aeval, constant_coeff_rename,
+  constant_coeff_witt_polynomial, constant_coeff_comp_algebra_map, ring_hom.id_apply,
+  constant_coeff_X_in_terms_of_W]
 
 @[simp]
 lemma constant_coeff_witt_structure_int_zero (Φ : mv_polynomial idx ℤ) :

@@ -95,7 +95,7 @@ begin
   rw [← ennreal.sub_le_iff_le_add], exact le_of_lt h2U
 end
 
-/-- The inner content of a surpremum of opens is at most the sum of the individual inner
+/-- The inner content of a supremum of opens is at most the sum of the individual inner
 contents. -/
 lemma inner_content_Sup_nat [t2_space G] {μ : compacts G → ennreal}
   (h1 : μ ⊥ = 0)

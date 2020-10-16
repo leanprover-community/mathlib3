@@ -469,7 +469,7 @@ lemma norm_eq (f : α →₁ₛ[μ] E) : ∥f∥ = ∥(f : α →₁[μ] E)∥ :
 lemma norm_eq' (f : α →₁ₛ[μ] E) : ∥f∥ = ennreal.to_real (edist (f : α →ₘ[μ] E) 0) := rfl
 
 /-- Not declared as an instance as `α →₁ₛ[μ] E` will only be useful in the construction of the
-bochner integral. -/
+Bochner integral. -/
 protected def normed_group : normed_group (α →₁ₛ[μ] E) :=
 normed_group.of_add_dist (λ x, rfl) $ by
   { intros, simp only [dist_eq, coe_add, l1.dist_eq, l1.coe_add], rw edist_add_right }

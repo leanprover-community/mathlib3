@@ -116,7 +116,7 @@ begin
   { transitivity, assumption, exact hf _ }
 end
 
-lemma reflect_lt {α β} [linear_order α] [preorder β] {f : α → β} (hf : monotone f)
+lemma monotone.reflect_lt {α β} [linear_order α] [preorder β] {f : α → β} (hf : monotone f)
   {x x' : α} (h : f x < f x') : x < x' :=
 by { rw [← not_le], intro h', apply not_le_of_lt h, exact hf h' }
 

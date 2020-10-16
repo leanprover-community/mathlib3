@@ -454,8 +454,8 @@ by rw [approx_apply _ hf, approx_apply _ (hf.comp hg)]
 
 end
 
-lemma supr_approx_apply [topological_space β] [complete_lattice β] [order_closed_topology β] [has_zero β]
-  [measurable_space β] [opens_measurable_space β]
+lemma supr_approx_apply [topological_space β] [complete_lattice β] [order_closed_topology β]
+  [has_zero β] [measurable_space β] [opens_measurable_space β]
   (i : ℕ → β) (f : α → β) (a : α) (hf : measurable f) (h_zero : (0 : β) = ⊥) :
   (⨆n, (approx i f n : α →ₛ β) a) = (⨆k (h : i k ≤ f a), i k) :=
 begin

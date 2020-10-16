@@ -1319,21 +1319,21 @@ protected def compl {α β : Type*} {s : set α} {t : set β} [decidable_pred s]
       (calc α ≃ s ⊕ (sᶜ : set α) : (set.sum_compl s).symm
           ... ≃ t ⊕ (tᶜ : set β) : e₀.sum_congr e₁
           ... ≃ β : set.sum_compl t)
-      (λ x, by simp only [sum.map_inl, trans_apply, sum_congr_apply,
+      (λ x, by simp only [sum.map_inl, trans_apply, sum_congr_to_fun,
         set.sum_compl_apply_inl, set.sum_compl_symm_apply]),
   left_inv := λ e,
     begin
       ext x,
       by_cases hx : x ∈ s,
       { simp only [set.sum_compl_symm_apply_of_mem hx, ←e.prop ⟨x, hx⟩,
-          sum.map_inl, sum_congr_apply, trans_apply,
+          sum.map_inl, sum_congr_to_fun, trans_apply,
           subtype.coe_mk, set.sum_compl_apply_inl] },
       { simp only [set.sum_compl_symm_apply_of_not_mem hx, sum.map_inr,
           subtype_congr_apply, set.sum_compl_apply_inr, trans_apply,
-          sum_congr_apply, subtype.coe_mk] },
+          sum_congr_to_fun, subtype.coe_mk] },
     end,
   right_inv := λ e, equiv.ext $ λ x, by simp only [sum.map_inr, subtype_congr_apply,
-    set.sum_compl_apply_inr, function.comp_app, sum_congr_apply, equiv.coe_trans,
+    set.sum_compl_apply_inr, function.comp_app, sum_congr_to_fun, equiv.coe_trans,
     subtype.coe_eta, subtype.coe_mk, set.sum_compl_symm_apply_compl] }
 
 /-- The set product of two sets is equivalent to the type product of their coercions to types. -/

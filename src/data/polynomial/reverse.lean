@@ -185,18 +185,21 @@ noncomputable def reverse (f : polynomial R) : polynomial R := reflect f.nat_deg
 
 theorem reverse_mul {f g : polynomial R} (fg : f.leading_coeff * g.leading_coeff ≠ 0) :
  reverse (f * g) = reverse f * reverse g :=
-by rw [reverse, reverse, reverse, nat_degree_mul' fg, reflect_mul (le_refl _) (le_refl _)]
+begin
+  unfold reverse,
+  rw [nat_degree_mul' fg, reflect_mul (le_refl _) (le_refl _)],
+end
 
 @[simp] lemma reverse_mul_of_domain {R : Type*} [domain R] (f g : polynomial R) :
   reverse (f * g) = reverse f * reverse g :=
 begin
   by_cases f0 : f=0,
   { rw [f0, zero_mul, reverse_zero, zero_mul], },
-  by_cases g0 : g=0,
-  { rw [g0, mul_zero, reverse_zero, mul_zero], },
-  apply reverse_mul,
-  apply mul_ne_zero;
-    rwa [← leading_coeff_eq_zero] at *,
+  { by_cases g0 : g=0,
+    { rw [g0, mul_zero, reverse_zero, mul_zero], },
+    { apply reverse_mul,
+      apply mul_ne_zero;
+      { rwa [← leading_coeff_eq_zero] at * }, }, },
 end
 
 end rev

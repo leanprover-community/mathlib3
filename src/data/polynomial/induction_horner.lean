@@ -25,6 +25,58 @@ variables {R : Type*} [semiring R] {f : polynomial R}
 
 namespace rev
 
+
+
+
+lemma reflect_mul_induction2 :
+ ∀ N O : ℕ, ∀ f g : polynomial R,
+ f.nat_degree ≤ N → g.nat_degree ≤ O →
+ (reflect (N + O) (f * g)) = (reflect N f) * (reflect O g) :=
+begin
+  intros N O f g,
+  revert g,
+  refine f.rec_on_horner _ _ _,
+  { simp only [forall_const, reflect_zero, zero_mul, eq_self_iff_true, forall_true_iff], },
+  { intros g r hg hr hor q Og Oq,
+    rw [reflect_add, add_mul, add_mul, reflect_add, hor q _ Oq],
+    congr,
+    revert q r hg hr hor,
+    refine g.rec_on_horner _ _ _,
+
+    { simp * at *,sorry, },
+--    simp only [reflect_zero, mul_zero], },
+    intros p s p0 s0 hi q r hp hr hor Np de,
+    rw [mul_add, reflect_add, hi, reflect_add, mul_add, reflect_C_mul, reflect_C_mul],
+    rw [← mul_one (C r), ← pow_zero X, reflect_C_mul, pow_zero, mul_one, mul_assoc, mul_assoc],
+    congr,
+
+    simp only [reflect_C_mul, reflect_add],
+    rw [mul_add, mul_add],
+    rw [← mul_one df, cg0 ],
+--    rw [← mul_one df, ← pow_zero X, ← reflect_C_mul_X_pow (N + O) 0 ],
+--    rw [reflect_C_mul df dg (N + O)],
+
+    rw reflect_mul hg ec0, },
+  { intros p p0 hh pX g0,
+    rw reflect_mul pX g0, },
+end
+
+end rev
+end polynomial
+
+#exit
+
+begin
+  intros N O f g,
+  refine f.rec_on_horner _ _ _,
+  simp only [reflect_zero, zero_mul, eq_self_iff_true, forall_true_iff],
+  intros p a hp ha cp cp0 cg cg0 hg,
+  simp only [*, reflect_mul] at *,
+  intros p a hp ha cp cp0 cg,
+  simp only [*, reflect_mul],
+end
+
+
 lemma nat_degree_add_le (f g : polynomial R) :
   (f + g).nat_degree ≤ max f.nat_degree g.nat_degree :=
 begin
@@ -59,52 +111,4 @@ begin
   cases fg,
   { rw [max_eq_right (le_of_lt fg), nat_degree_lt_add_eq_max f g fg], },
   { rw [max_eq_left (le_of_lt fg), add_comm, nat_degree_lt_add_eq_max g f fg], },
-end
-
-lemma reflect_mul_n (N O : ℕ) (f g : polynomial R) (hg : g.nat_degree ≤ O) :
-  f.nat_degree ≤ N → (reflect (N + O) (f * g)) = (reflect N f) * (reflect O g) :=
-begin
---  intros N O f g cf cg,
-  refine f.rec_on_horner _ _ _,
-  { simp only [reflect_zero, zero_mul, eq_self_iff_true, forall_true_iff], },
-  { intros p r p0 hr h0 hp,
-    rw [add_mul, reflect_add, reflect_add, add_mul, h0, reflect_mul _ hg],
-    { rw [nat_degree_C],
-      exact zero_le N, },
-    { by_cases Cp : p.nat_degree = 0,
-      { rw Cp, exact zero_le _, },
-
-      sorry, }, },
---    simp only [*, reflect_mul, zero_le, nat_degree_C], },
-  { intros p p0 hh pX,
-    rw reflect_mul pX hg, },
-end
-
-lemma reflect_mul_induction2 (cf cg : ℕ) :
- ∀ N O : ℕ, ∀ f g : polynomial R,
- f.support.card ≤ cf.succ → g.support.card ≤ cg.succ → f.nat_degree ≤ N → g.nat_degree ≤ O →
- (reflect (N + O) (f * g)) = (reflect N f) * (reflect O g) :=
-begin
-  intros N O f g cf cg,
-  refine f.rec_on_horner _ _ _,
-  { simp only [reflect_zero, zero_mul, eq_self_iff_true, forall_true_iff], },
-  { intros df dg cp0 cg cg0 hg ec0,
-    rw reflect_mul hg ec0, },
-  { intros p p0 hh pX g0,
-    rw reflect_mul pX g0, },
-end
-
-end rev
-end polynomial
-
-#exit
-
-begin
-  intros N O f g,
-  refine f.rec_on_horner _ _ _,
-  simp only [reflect_zero, zero_mul, eq_self_iff_true, forall_true_iff],
-  intros p a hp ha cp cp0 cg cg0 hg,
-  simp only [*, reflect_mul] at *,
-  intros p a hp ha cp cp0 cg,
-  simp only [*, reflect_mul],
 end

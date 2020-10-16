@@ -227,11 +227,11 @@ by simp [biproduct.ι_π, h]
 /-- Given a collection of maps into the summands, we obtain a map into the biproduct. -/
 abbreviation biproduct.lift
   {f : J → C} [has_biproduct f] {P : C} (p : Π b, P ⟶ f b) : P ⟶ ⨁ f :=
-(biproduct.is_limit f).lift (fan.mk p)
+(biproduct.is_limit f).lift (fan.mk P p)
 /-- Given a collection of maps out of the summands, we obtain a map out of the biproduct. -/
 abbreviation biproduct.desc
   {f : J → C} [has_biproduct f] {P : C} (p : Π b, f b ⟶ P) : ⨁ f ⟶ P :=
-(biproduct.is_colimit f).desc (cofan.mk p)
+(biproduct.is_colimit f).desc (cofan.mk P p)
 
 @[simp, reassoc]
 lemma biproduct.lift_π {f : J → C} [has_biproduct f] {P : C} (p : Π b, P ⟶ f b) (j : J) :
@@ -822,7 +822,7 @@ has_biproduct_of_total
   ι_π := λ j j', by simp, }
 begin
   ext,
-  simp only [comp_sum, limits.cofan.mk_π_app, limits.colimit.ι_desc_assoc, eq_self_iff_true,
+  simp only [comp_sum, limits.colimit.ι_desc_assoc, eq_self_iff_true,
     limits.colimit.ι_desc, category.comp_id],
   dsimp,
   simp only [dite_comp, finset.sum_dite_eq, finset.mem_univ, if_true, category.id_comp,

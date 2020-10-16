@@ -248,4 +248,23 @@ lemma prod_divisors_prime_pow {α : Type*} [comm_monoid α] {k p : ℕ} {f : ℕ
   ∏ x in (p ^ k).divisors, f x = ∏ x in range (k + 1), f (p ^ x) :=
 @sum_divisors_prime_pow (additive α) _ _ _ _ h
 
+lemma finset_div_eq_filter (n : ℕ+) : (n : ℕ).divisors = finset.filter (λ (x : ℕ), x ∣ ↑n) (finset.range (n : ℕ).succ) :=
+begin
+  rw finset.subset.antisymm_iff,
+  split,
+  { intros x hx,
+    simp only [finset.mem_filter, finset.mem_range],
+    split,
+    { apply (nat.lt_of_succ_le),
+      apply (nat.add_le_add_iff_le_right 1 x ↑n).2,
+      exact nat.divisor_le hx },
+    { simp only [nat.mem_divisors, and_true, ne.def, pnat.ne_zero, not_false_iff] at hx,
+      exact hx } },
+  {
+    intros x hx,
+    simp only [finset.mem_filter, finset.mem_range] at hx,
+    simp only [nat.mem_divisors, and_true, ne.def, pnat.ne_zero, not_false_iff],
+    exact hx.2 }
+end
+
 end nat

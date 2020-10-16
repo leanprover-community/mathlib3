@@ -5,7 +5,6 @@ Author: Aaron Anderson
 -/
 import data.finset.gcd
 import data.polynomial
-import data.polynomial.degree.induction
 import data.polynomial.erase_lead
 
 /-!
@@ -246,47 +245,53 @@ begin
   apply dvd_sub (dvd.intro _ rfl) (dvd.intro _ rfl),
 end
 
-@[simp]
-theorem content_mul {p : polynomial R} :
-  ∀ (q r : polynomial R), q * r = p → p.content = q.content * r.content :=
+theorem content_mul_induction (n : ℕ) :
+  ∀ (p q : polynomial R), ((p * q).degree < n) → (p * q).content = p.content * q.content :=
 begin
-  apply p.induction_on_degree,
-  { intros q r h0,
-    rcases (mul_eq_zero.1 h0) with rfl | rfl;
+  induction n with n ih,
+  { intros p q hpq,
+    rw [with_bot.coe_zero, nat.with_bot.lt_zero_iff, degree_eq_bot, mul_eq_zero] at hpq,
+    rcases hpq with rfl | rfl;
     simp },
-  { rintros _ p0 ih q r rfl,
-    rcases q.eq_C_mul_primitive with ⟨cq, q1, rfl, q1_prim, q1_deg⟩,
-    rw [mul_assoc, content_C_mul, content_C_mul],
-    rcases r.eq_C_mul_primitive with ⟨cr, r1, rfl, r1_prim, r1_deg⟩,
-    suffices h : (r1 * q1).content = 1,
-    { rw [mul_comm q1, mul_assoc, content_C_mul, content_C_mul,
-      q1_prim.content_eq_one, r1_prim.content_eq_one, mul_one, mul_one, h, mul_one] },
-    have cq0 : cq ≠ 0,
-    { contrapose! p0,
-      simp [p0] },
-    have cr0 : cr ≠ 0,
-    { contrapose! p0,
-      simp [p0] },
-    rw [← normalize_content, normalize_eq_one, is_unit_iff_dvd_one,
+  intros p q hpq,
+  by_cases p0 : p = 0, { simp [p0] },
+  by_cases q0 : q = 0, { simp [q0] },
+  rw [degree_eq_nat_degree (mul_ne_zero p0 q0), with_bot.coe_lt_coe, nat.lt_succ_iff_lt_or_eq,
+    ← with_bot.coe_lt_coe, ← degree_eq_nat_degree (mul_ne_zero p0 q0), nat_degree_mul p0 q0] at hpq,
+  rcases hpq with hlt | heq,
+  { apply ih _ _ hlt },
+  rcases p.eq_C_mul_primitive with ⟨cp, p1, rfl, p1_prim, p1_deg⟩,
+  rcases q.eq_C_mul_primitive with ⟨cq, q1, rfl, q1_prim, q1_deg⟩,
+  suffices h : (q1 * p1).content = 1,
+  { rw [mul_assoc, content_C_mul, content_C_mul, mul_comm p1, mul_assoc, content_C_mul,
+    content_C_mul, h, mul_one, q1_prim.content_eq_one, p1_prim.content_eq_one, mul_one, mul_one] },
+  rw [p1_deg, q1_deg, ← with_bot.coe_eq_coe, with_bot.coe_add,
+    ← degree_eq_nat_degree p1_prim.ne_zero, ← degree_eq_nat_degree q1_prim.ne_zero] at heq,
+  rw [← normalize_content, normalize_eq_one, is_unit_iff_dvd_one,
       content_eq_gcd_leading_coeff_content_erase_lead, leading_coeff_mul, gcd_comm],
-    transitivity,
-    apply gcd_mul_dvd_mul_gcd,
-    rw [content_mul_aux, ih _ _ _ _ rfl, q1_prim.content_eq_one, mul_one, gcd_comm,
-      ← content_eq_gcd_leading_coeff_content_erase_lead, r1_prim.content_eq_one, one_mul,
-      mul_comm r1, content_mul_aux, ih _ _ _ _ rfl, r1_prim.content_eq_one, mul_one, gcd_comm,
-      ← content_eq_gcd_leading_coeff_content_erase_lead, q1_prim.content_eq_one],
-    { rw [degree_mul, degree_mul, degree_mul, degree_mul, degree_C cq0, degree_C cr0,
-        zero_add, zero_add],
-      rw with_bot.add_lt_add_iff_right _,
-      { apply degree_erase_lt q1_prim.ne_zero },
-      rw degree_eq_nat_degree r1_prim.ne_zero,
-      apply with_bot.bot_lt_coe, },
-    { rw [mul_comm, degree_mul, degree_mul, degree_mul, degree_mul, degree_C cq0, degree_C cr0,
-        zero_add, zero_add],
-      rw with_bot.add_lt_add_iff_left _,
-      { apply degree_erase_lt r1_prim.ne_zero },
-      rw degree_eq_nat_degree q1_prim.ne_zero,
-      apply with_bot.bot_lt_coe } }
+  apply dvd_trans (gcd_mul_dvd_mul_gcd _ _ _),
+  rw [content_mul_aux, ih, p1_prim.content_eq_one, mul_one, gcd_comm,
+      ← content_eq_gcd_leading_coeff_content_erase_lead, q1_prim.content_eq_one, one_mul,
+      mul_comm q1, content_mul_aux, ih, q1_prim.content_eq_one, mul_one, gcd_comm,
+      ← content_eq_gcd_leading_coeff_content_erase_lead, p1_prim.content_eq_one],
+  { rw [← heq, degree_mul, with_bot.add_lt_add_iff_right],
+    { apply degree_erase_lt p1_prim.ne_zero },
+    { rw [bot_lt_iff_ne_bot, ne.def, degree_eq_bot],
+      apply q1_prim.ne_zero } },
+  { rw [mul_comm, ← heq, degree_mul, with_bot.add_lt_add_iff_left],
+    { apply degree_erase_lt q1_prim.ne_zero },
+    { rw [bot_lt_iff_ne_bot, ne.def, degree_eq_bot],
+      apply p1_prim.ne_zero } }
+end
+
+@[simp]
+theorem content_mul {p q : polynomial R} : (p * q).content = p.content * q.content :=
+content_mul_induction (p * q).nat_degree.succ p q begin
+  by_cases h0 : p * q = 0,
+  { rw [h0, nat_degree_zero, degree_zero],
+    apply with_bot.bot_lt_coe },
+  rw [degree_eq_nat_degree h0, with_bot.coe_lt_coe],
+  apply nat.lt_succ_self
 end
 
 end gcd_monoid

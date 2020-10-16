@@ -585,7 +585,7 @@ begin
   { exact multiset.erase_dup_le (nth_roots ↑n (1 : R)) },
   { by_contra ha,
     replace ha := multiset.card_lt_of_lt ha,
-    rw card_nthroots h at ha,
+    rw card_nth_roots h at ha,
     have hrw : (nth_roots ↑n (1 : R)).erase_dup.card = fintype.card {x // x ∈ (nth_roots ↑n (1 : R))},
     { set fs := (⟨(nth_roots ↑n (1 : R)).erase_dup, multiset.nodup_erase_dup _⟩ : finset R),
       rw [← finset.card_mk, ← fintype.card_of_subtype fs _],
@@ -659,7 +659,7 @@ end
 /-`nth_roots n` as a finset is equal to the union of `primitive_roots i R` for `i ∣ n`
 if there is a primitive root of unity in `R`. -/
 lemma root_of_unity_eq_uniun_prim {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) :
-  (⟨nth_roots n (1 : R) , nroots_nodup h⟩ : finset R) =
+  (⟨nth_roots n (1 : R) , nth_roots_nodup h⟩ : finset R) =
   finset.bind (nat.divisors ↑n) (λ (i : ℕ), (primitive_roots i R)) :=
 begin
   symmetry,
@@ -681,7 +681,7 @@ begin
       ... = 1 ^ d        : by rw ((mem_primitive_roots hazero).1 ha.2).1
       ... = 1            : one_pow d },
   { simp only [card_mk],
-    rw card_nthroots h,
+    rw card_nth_roots h,
     apply le_of_eq,
     rw finset.card_bind,
     { rw @finset.sum_congr _ _ (nat.divisors ↑n) (finset.filter (λ (x : ℕ), x ∣ n)
@@ -697,7 +697,7 @@ begin
     },
     { intros i hi j hj hdiff,
       simp only [nat.mem_divisors, and_true, ne.def, pnat.ne_zero, not_false_iff] at hi hj,
-      exact prim_roots_disjoint (pnat.pos_of_div_pos hi) (pnat.pos_of_div_pos hj) hdiff } }
+      exact primitive_roots_disjoint (pnat.pos_of_div_pos hi) (pnat.pos_of_div_pos hj) hdiff } }
 end
 
 end integral_domain

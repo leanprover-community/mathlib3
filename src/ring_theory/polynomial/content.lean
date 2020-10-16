@@ -245,21 +245,24 @@ begin
   apply dvd_sub (dvd.intro _ rfl) (dvd.intro _ rfl),
 end
 
-theorem content_mul_induction (n : ℕ) :
-  ∀ (p q : polynomial R), ((p * q).degree < n) → (p * q).content = p.content * q.content :=
+@[simp]
+theorem content_mul {p q : polynomial R} : (p * q).content = p.content * q.content :=
 begin
+  suffices h : ∀ (n : ℕ) (p q : polynomial R), ((p * q).degree < n) →
+    (p * q).content = p.content * q.content,
+  { apply h,
+    apply (lt_of_le_of_lt degree_le_nat_degree (with_bot.coe_lt_coe.2 (nat.lt_succ_self _))) },
+  intro n,
   induction n with n ih,
   { intros p q hpq,
     rw [with_bot.coe_zero, nat.with_bot.lt_zero_iff, degree_eq_bot, mul_eq_zero] at hpq,
-    rcases hpq with rfl | rfl;
-    simp },
+    rcases hpq with rfl | rfl; simp },
   intros p q hpq,
   by_cases p0 : p = 0, { simp [p0] },
   by_cases q0 : q = 0, { simp [q0] },
   rw [degree_eq_nat_degree (mul_ne_zero p0 q0), with_bot.coe_lt_coe, nat.lt_succ_iff_lt_or_eq,
     ← with_bot.coe_lt_coe, ← degree_eq_nat_degree (mul_ne_zero p0 q0), nat_degree_mul p0 q0] at hpq,
-  rcases hpq with hlt | heq,
-  { apply ih _ _ hlt },
+  rcases hpq with hlt | heq, { apply ih _ _ hlt },
   rcases p.eq_C_mul_primitive with ⟨cp, p1, rfl, p1_prim, p1_deg⟩,
   rcases q.eq_C_mul_primitive with ⟨cq, q1, rfl, q1_prim, q1_deg⟩,
   suffices h : (q1 * p1).content = 1,
@@ -283,11 +286,6 @@ begin
     { rw [bot_lt_iff_ne_bot, ne.def, degree_eq_bot],
       apply p1_prim.ne_zero } }
 end
-
-@[simp]
-theorem content_mul {p q : polynomial R} : (p * q).content = p.content * q.content :=
-content_mul_induction (p * q).nat_degree.succ p q
-  (lt_of_le_of_lt degree_le_nat_degree (with_bot.coe_lt_coe.2 (nat.lt_succ_self _)))
 
 end gcd_monoid
 end polynomial

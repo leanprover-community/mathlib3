@@ -6,6 +6,7 @@ Authors: Thomas Browning and Patrick Lutz
 
 import field_theory.tower
 import field_theory.intermediate_field
+import field_theory.splitting_field
 
 /-!
 # Adjoining Elements to Fields
@@ -247,6 +248,37 @@ adjoin_adjoin_left _ _ _
 
 lemma adjoin_simple_comm (β : E) : ↑F⟮α⟯⟮β⟯ = (↑F⟮β⟯⟮α⟯ : intermediate_field F E) :=
 adjoin_adjoin_comm _ _ _
+
+lemma adjoin_simple_to_subalgebra_of_integral (hα : is_integral F α) :
+  (F⟮α⟯).to_subalgebra = algebra.adjoin F {α} :=
+begin
+  apply le_antisymm,
+  { apply adjoin_le_algebra_adjoin,
+    intros x hx,
+    by_cases x = 0,
+    { rw h,
+      rw inv_zero,
+      exact subalgebra.zero_mem (algebra.adjoin F {α}) },
+    let ϕ := alg_equiv.adjoin_singleton_equiv_adjoin_root_minimal_polynomial F α hα,
+    let inv := (@adjoin_root.field F _ _ (minimal_polynomial.irreducible hα)).inv,
+    suffices key : ↑(ϕ.symm (inv (ϕ (⟨x, hx⟩)))) = x⁻¹,
+    { rw ←key,
+      exact subtype.mem (ϕ.symm (inv (ϕ ⟨x, hx⟩))) },
+    suffices : ϕ ⟨x, hx⟩ * inv (ϕ ⟨x, hx⟩) = 1,
+    { apply eq_inv_of_mul_right_eq_one,
+      apply_fun ϕ.symm at this,
+      rw [alg_equiv.map_one, alg_equiv.map_mul, alg_equiv.symm_apply_apply] at this,
+      rw [←subsemiring.coe_one, ←this, subsemiring.coe_mul, subtype.coe_mk] },
+    rw field.mul_inv_cancel,
+    intro key,
+    rw ← alg_equiv.map_zero ϕ at key,
+    replace key := ϕ.injective key,
+    apply h,
+    change ↑(⟨x, hx⟩ : algebra.adjoin F {α}) = _,
+    rw key,
+    refl, },
+  { exact algebra_adjoin_le_adjoin F {α} },
+end
 
 end adjoin_simple
 end adjoin_def

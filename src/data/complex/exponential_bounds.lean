@@ -5,7 +5,9 @@ Authors: Mario Carneiro, Joseph Myers
 -/
 
 import data.complex.exponential
-
+/-!
+# Bounds on specific values of the exponential
+-/
 namespace real
 
 local notation `abs'` := _root_.abs

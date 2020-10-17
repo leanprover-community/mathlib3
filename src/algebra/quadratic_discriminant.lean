@@ -111,21 +111,6 @@ end field
 section linear_ordered_field
 variables {K : Type*} [linear_ordered_field K] {a b c : K}
 
--- move this
-lemma exists_lt_mul_self (a : K) : ∃ x : K, a < x * x :=
-begin
-  rcases (exists_le_mul_self a) with ⟨x, hx⟩,
-  cases le_total 0 x with hx' hx',
-  { use (x + 1),
-    have : (x+1)*(x+1) = x*x + 2*x + 1, {ring},
-    exact lt_of_le_of_lt hx (by rw this; linarith) },
-  { use (x - 1),
-    have : (x-1)*(x-1) = x*x - 2*x + 1, {ring},
-    exact lt_of_le_of_lt hx (by rw this; linarith) }
-end
-
-end lemmas
-
 /-- If a polynomial of degree 2 is always nonnegative, then its discriminant is nonpositive -/
 lemma discrim_le_zero (h : ∀ x : K, 0 ≤ a * x * x + b * x + c) : discrim a b c ≤ 0 :=
 have hc : 0 ≤ c, by { have := h 0, linarith },

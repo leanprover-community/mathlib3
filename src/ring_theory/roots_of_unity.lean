@@ -597,8 +597,8 @@ begin
 end
 
 /--The multiset `nth_roots ↑n (1 : R)` as a finset. -/
-def nth_roots_finset {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) : finset R :=
-  ⟨nth_roots n (1 : R) , nth_roots_nodup h⟩
+def nth_roots_finset (n : ℕ+) (R : Type*) [integral_domain R] : finset R :=
+  multiset.to_finset (nth_roots n (1 : R))
 
 open_locale nat
 
@@ -663,9 +663,9 @@ end
 /-`nth_roots n` as a finset is equal to the union of `primitive_roots i R` for `i ∣ n`
 if there is a primitive root of unity in `R`. -/
 lemma nth_roots_one_eq_bind_primitive_roots {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) :
-  nth_roots_finset h = finset.bind (nat.divisors ↑n) (λ (i : ℕ), (primitive_roots i R)) :=
+  nth_roots_finset n R = finset.bind (nat.divisors ↑n) (λ (i : ℕ), (primitive_roots i R)) :=
 begin
-  rw nth_roots_finset,
+  rw [nth_roots_finset, ← multiset.to_finset_eq (nth_roots_nodup h)],
   symmetry,
   apply finset.eq_of_subset_of_card_le,
   { intros x hx,

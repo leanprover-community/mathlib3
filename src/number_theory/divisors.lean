@@ -261,8 +261,7 @@ begin
       exact nat.divisor_le hx },
     { simp only [nat.mem_divisors, and_true, ne.def, pnat.ne_zero, not_false_iff] at hx,
       exact hx } },
-  {
-    intros x hx,
+  { intros x hx,
     simp only [finset.mem_filter, finset.mem_range] at hx,
     simp only [nat.mem_divisors, and_true, ne.def, pnat.ne_zero, not_false_iff],
     exact hx.2 }

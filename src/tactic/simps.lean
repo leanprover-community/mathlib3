@@ -392,7 +392,13 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
           let x := (todo.find $ λ x, projs.all $ λ proj, ¬ ("_" ++ proj.last).is_prefix_of x).iget,
             simp_lemma := nm.append_suffix $ suffix ++ x,
             needed_proj := (x.split_on '_').tail.head in
-          fail!"Invalid simp-lemma {simp_lemma}. Projection {needed_proj} doesn't exist.",
+          fail!
+"Invalid simp-lemma {simp_lemma}. Structure {str} does not have projection {needed_proj}.
+The known projections are:
+  {projs}
+You can also see this information by running
+  `initialize_simps_projections {str}`.
+Note: the projection names used by @[simps] might not correspond to the projection names in the structure.",
         tuples.mmap' $ λ ⟨proj_expr, proj, _, new_rhs⟩, do
           new_type ← infer_type new_rhs,
           let new_todo := todo.filter_map $ λ x, string.get_rest x $ "_" ++ proj.last,

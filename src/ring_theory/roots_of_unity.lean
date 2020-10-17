@@ -640,7 +640,7 @@ end
 
 /-- If there is a `n`-th primitive root of unity in `R` and `b` divides `n`,
 then there is a `b`-th primitive root of unity in `R`. -/
-lemma prim_of_pow_prim {ζ : R} {n : ℕ} {a b : ℕ} 
+lemma pow {ζ : R} {n : ℕ} {a b : ℕ} 
   (hn: 0 < n) (h : is_primitive_root ζ n) (hprod : n = a * b) :
   is_primitive_root (ζ ^ a) b :=
 begin
@@ -698,7 +698,7 @@ begin
       simp,
       obtain ⟨d, hd⟩ := hx.2,
       rw mul_comm at hd,
-      exact card_primitive_roots (prim_of_pow_prim (pnat.pos n) h hd) (pnat.pos_of_div_pos hx.2) },
+      exact card_primitive_roots (pow (pnat.pos n) h hd) (pnat.pos_of_div_pos hx.2) },
     },
     { intros i hi j hj hdiff,
       simp only [nat.mem_divisors, and_true, ne.def, pnat.ne_zero, not_false_iff] at hi hj,

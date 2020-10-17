@@ -226,7 +226,7 @@ library_note "custom simps projection"
 
 /-- Specify simps projections, see Note [custom simps projection].
   You can specify custom names by writing e.g.
-  `initialize_simps_projections equiv (to_fun → apply, inv_fun → symm)`.
+  `initialize_simps_projections equiv (to_fun → apply, inv_fun → symm_apply)`.
   Set `trace.simps.verbose` to true to see the generated projections.
   If the projections were already specified before, you can call `initialize_simps_projections`
   again to see the generated projections. -/
@@ -485,7 +485,7 @@ derives two simp-lemmas:
 
 * You can specify custom projection names, by specifying the new projection names using
   `initialize_simps_projections`.
-  Example: `initialize_simps_projections equiv (to_fun → apply, inv_fun → symm)`.
+  Example: `initialize_simps_projections equiv (to_fun → apply, inv_fun → symm_apply)`.
 
 * If one of the fields itself is a structure, this command will recursively create
   simp-lemmas for all fields in that structure.

@@ -46,7 +46,7 @@ begin
   suffices : (∏ i in range n, 2 ^ n : ℤ) < ↑k!,
   { apply lt_of_le_of_lt _ this, apply prod_le_prod,
     { intros, rw [sub_nonneg], apply pow_le_pow, norm_num, apply le_of_lt, rwa [← mem_range] },
-    { intros, apply sub_le_self, apply pow_nonneg, norm_num }},
+    { intros, apply sub_le_self, apply pow_nonneg, norm_num } },
   suffices : 2 ^ (n * n) < (n * (n - 1) / 2)!,
   { rw [prod_const, card_range, ← pow_mul], rw [← int.coe_nat_lt_coe_nat_iff] at this,
     convert this.trans _, norm_cast, rwa [int.coe_nat_lt_coe_nat_iff, factorial_lt],

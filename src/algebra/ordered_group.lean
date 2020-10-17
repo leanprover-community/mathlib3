@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.group.with_one
 import algebra.group.type_tags
+import algebra.group.prod
 import algebra.order_functions
 import order.bounded_lattice
 
@@ -1903,6 +1904,25 @@ instance [decidable_linear_ordered_cancel_add_comm_monoid α] :
   .. order_dual.ordered_cancel_add_comm_monoid }
 
 end order_dual
+
+namespace prod
+
+variables {M N G H : Type*}
+
+@[to_additive]
+instance [ordered_cancel_comm_monoid M] [ordered_cancel_comm_monoid N] :
+  ordered_cancel_comm_monoid (M × N) :=
+{ mul_le_mul_left := λ a b h c, ⟨mul_le_mul_left' h.1 _, mul_le_mul_left' h.2 _⟩,
+  le_of_mul_le_mul_left := λ a b c h, ⟨le_of_mul_le_mul_left' h.1, le_of_mul_le_mul_left' h.2⟩,
+ .. prod.comm_monoid, .. prod.left_cancel_semigroup, .. prod.right_cancel_semigroup,
+ .. prod.partial_order M N }
+
+@[to_additive]
+instance [ordered_comm_group M] [ordered_comm_group N] :
+  ordered_comm_group (M × N) :=
+{ .. prod.comm_group, .. prod.partial_order M N, .. prod.ordered_cancel_comm_monoid }
+
+end prod
 
 section type_tags
 

@@ -32,7 +32,9 @@ open_locale big_operators ennreal nnreal topological_space
 ### Cauchy condensation test
 
 In this section we prove the Cauchy condensation test: for `f : ℕ → ℝ≥0` or `f : ℕ → ℝ`,
-`∑ k, f k` converges if and only if so does `∑ k, 2 ^ k f (2 ^ k)`.
+`∑ k, f k` converges if and only if so does `∑ k, 2 ^ k f (2 ^ k)`. Instead of giving a monolithic
+proof, we split it into a series of lemmas with explicit estimates of partial sums of each series in
+terms of the partial sums of the other series.
 -/
 
 namespace finset
@@ -199,4 +201,5 @@ by simpa only [inv_eq_one_div] using real.not_summable_nat_cast_inv
 by simp [← nnreal.summable_coe]
 
 lemma nnreal.summable_one_div_rpow {p : ℝ} : summable (λ n, 1 / n ^ p : ℕ → ℝ≥0) ↔ 1 < p :=
+
 by simp

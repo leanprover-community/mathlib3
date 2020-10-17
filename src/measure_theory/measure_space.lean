@@ -669,7 +669,7 @@ protected lemma zero_le (μ : measure α) : 0 ≤ μ := bot_le
 
 lemma le_zero_iff_eq' : μ ≤ 0 ↔ μ = 0 :=
 begin
-  split;intros A1,
+  split; intros A1,
   { apply le_antisymm A1, apply measure.zero_le },
   { rw A1, apply le_refl _ },
 end
@@ -1639,19 +1639,19 @@ noncomputable instance has_sub {α : Type*} [measurable_space α] : has_sub (mea
 section measure_sub
 variables {ν ν₁ ν₂:measure_theory.measure α}
 
-lemma sub_def : (μ - ν) = Inf { d | μ ≤ d + ν } := rfl
+lemma sub_def : μ - ν = Inf {d | μ ≤ d + ν} := rfl
 
 lemma sub_eq_zero_of_le (h : μ ≤ ν) : μ - ν = 0 :=
 begin
   rw [← le_zero_iff_eq', measure.sub_def],
-  apply @Inf_le (measure_theory.measure α) _ _,
+  apply @Inf_le (measure α) _ _,
   simp [h],
 end
 
 /-- This application lemma only works in special circumstances. Given knowledge of
 when `μ ≤ ν` and `ν ≤ μ`, a more general application lemma can be written. -/
 lemma sub_apply {s : set α} [finite_measure ν] (h₁ : is_measurable s) (h₂ : ν ≤ μ) :
-(μ - ν) s = μ s - ν s :=
+  (μ - ν) s = μ s - ν s :=
 begin
   -- We begin by defining `measure_sub`, which will be equal to `(μ - ν)`.
   let measure_sub : measure α := @measure_theory.measure.of_measurable α _ 

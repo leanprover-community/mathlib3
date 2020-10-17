@@ -139,6 +139,7 @@ end normalization_monoid
 namespace comm_group_with_zero
 variables [decidable_eq α] [comm_group_with_zero α]
 
+@[priority 100] -- see Note [lower instance priority]
 instance : normalization_monoid α :=
 { norm_unit := λ x, if h : x = 0 then 1 else (units.mk0 x h)⁻¹,
   norm_unit_zero := dif_pos rfl,

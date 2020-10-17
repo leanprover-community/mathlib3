@@ -307,8 +307,7 @@ end
 lemma coe_norm_unit_of_ne_zero (hp : p ≠ 0) : (norm_unit p : polynomial R) = C p.leading_coeff⁻¹ :=
 by simp [hp]
 
-@[simp]
-lemma normalize_monic (h : monic p) : normalize p = p := by simp [h.leading_coeff]
+lemma normalize_monic (h : monic p) : normalize p = p := by simp [h]
 
 theorem map_dvd_map' [field k] (f : R →+* k) {x y : polynomial R} : x.map f ∣ y.map f ↔ x ∣ y :=
 if H : x = 0 then by rw [H, map_zero, zero_dvd_iff, zero_dvd_iff, map_eq_zero]

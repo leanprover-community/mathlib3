@@ -60,12 +60,12 @@ run_cmd do
     "Invalid `simps` attribute. Target is not a structure",
   success_if_fail_with_msg (simps_tac `foo.bar2)
     "Invalid `simps` attribute. The body is not a constructor application:
-prod.map (λ (x : ℕ), x + 2) (λ (y : ℤ), y - 3) (3, 4)
+  prod.map (λ (x : ℕ), x + 2) (λ (y : ℤ), y - 3) (3, 4)
 Possible solution: add option {rhs_md := semireducible}.
 The option {simp_rhs := tt} might also be useful to simplify the right-hand side.",
   success_if_fail_with_msg (simps_tac `foo.bar3)
     "Invalid `simps` attribute. The body is not a constructor application:
-classical.choice bar3._proof_1
+  classical.choice bar3._proof_1
 Possible solution: add option {rhs_md := semireducible}.
 The option {simp_rhs := tt} might also be useful to simplify the right-hand side.",
   e ← get_env,

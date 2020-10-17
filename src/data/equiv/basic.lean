@@ -319,12 +319,12 @@ def prop_equiv_punit {p : Prop} (h : p) : p ≃ punit :=
 def true_equiv_punit : true ≃ punit := prop_equiv_punit trivial
 
 /-- `ulift α` is equivalent to `α`. -/
-@[simps to_fun inv_fun {fully_applied := ff}]
+@[simps apply symm {fully_applied := ff}]
 protected def ulift {α : Type v} : ulift.{u} α ≃ α :=
 ⟨ulift.down, ulift.up, ulift.up_down, λ a, rfl⟩
 
 /-- `plift α` is equivalent to `α`. -/
-@[simps to_fun inv_fun {fully_applied := ff}]
+@[simps apply symm {fully_applied := ff}]
 protected def plift : plift α ≃ α :=
 ⟨plift.down, plift.up, plift.up_down, plift.down_up⟩
 
@@ -337,7 +337,7 @@ def of_iff {P Q : Prop} (h : P ↔ Q) : P ≃ Q :=
 
 /-- If `α₁` is equivalent to `α₂` and `β₁` is equivalent to `β₂`, then the type of maps `α₁ → β₁`
 is equivalent to the type of maps `α₂ → β₂`. -/
-@[congr, simps to_fun] def arrow_congr {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) :
+@[congr, simps apply] def arrow_congr {α₁ β₁ α₂ β₂ : Sort*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) :
   (α₁ → β₁) ≃ (α₂ → β₂) :=
 { to_fun := λ f, e₂ ∘ f ∘ e₁.symm,
   inv_fun := λ f, e₂.symm ∘ f ∘ e₁,
@@ -367,7 +367,7 @@ A version of `equiv.arrow_congr` in `Type`, rather than `Sort`.
 The `equiv_rw` tactic is not able to use the default `Sort` level `equiv.arrow_congr`,
 because Lean's universe rules will not unify `?l_1` with `imax (1 ?m_1)`.
 -/
-@[congr, simps to_fun {rhs_md := semireducible, simp_rhs := tt}]
+@[congr, simps apply {rhs_md := semireducible, simp_rhs := tt}]
 def arrow_congr' {α₁ β₁ α₂ β₂ : Type*} (hα : α₁ ≃ α₂) (hβ : β₁ ≃ β₂) : (α₁ → β₁) ≃ (α₂ → β₂) :=
 equiv.arrow_congr hα hβ
 
@@ -384,7 +384,7 @@ rfl
 rfl
 
 /-- Conjugate a map `f : α → α` by an equivalence `α ≃ β`. -/
-@[simps to_fun {rhs_md := semireducible, simp_rhs := tt}]
+@[simps apply {rhs_md := semireducible, simp_rhs := tt}]
 def conj (e : α ≃ β) : (α → α) ≃ (β → β) := arrow_congr e e
 
 @[simp] lemma conj_refl : conj (equiv.refl α) = equiv.refl (α → α) := rfl
@@ -432,7 +432,7 @@ calc (false → α) ≃ (empty → α) : arrow_congr false_equiv_empty (equiv.re
 end
 
 /-- Product of two equivalences. If `α₁ ≃ α₂` and `β₁ ≃ β₂`, then `α₁ × β₁ ≃ α₂ × β₂`. -/
-@[congr, simps to_fun]
+@[congr, simps apply]
 def prod_congr {α₁ β₁ α₂ β₂ : Type*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) : α₁ × β₁ ≃ α₂ × β₂ :=
 ⟨prod.map e₁ e₂, prod.map e₁.symm e₂.symm, λ ⟨a, b⟩, by simp, λ ⟨a, b⟩, by simp⟩
 
@@ -441,7 +441,7 @@ def prod_congr {α₁ β₁ α₂ β₂ : Type*} (e₁ : α₁ ≃ α₂) (e₂ 
 rfl
 
 /-- Type product is commutative up to an equivalence: `α × β ≃ β × α`. -/
-@[simps to_fun] def prod_comm (α β : Type*) : α × β ≃ β × α :=
+@[simps apply] def prod_comm (α β : Type*) : α × β ≃ β × α :=
 ⟨prod.swap, prod.swap, λ⟨a, b⟩, rfl, λ⟨a, b⟩, rfl⟩
 
 @[simp] lemma prod_comm_symm (α β) : (prod_comm α β).symm = prod_comm β α := rfl
@@ -452,11 +452,11 @@ rfl
 
 section
 /-- `punit` is a right identity for type product up to an equivalence. -/
-@[simps to_fun] def prod_punit (α : Type*) : α × punit.{u+1} ≃ α :=
+@[simps apply] def prod_punit (α : Type*) : α × punit.{u+1} ≃ α :=
 ⟨λ p, p.1, λ a, (a, punit.star), λ ⟨_, punit.star⟩, rfl, λ a, rfl⟩
 
 /-- `punit` is a left identity for type product up to an equivalence. -/
-@[simps to_fun {rhs_md := semireducible, simp_rhs := tt}]
+@[simps apply {rhs_md := semireducible, simp_rhs := tt}]
 def punit_prod (α : Type*) : punit.{u+1} × α ≃ α :=
 calc punit × α ≃ α × punit : prod_comm _ _
            ... ≃ α         : prod_punit _
@@ -488,7 +488,7 @@ def psum_equiv_sum (α β : Type*) : psum α β ≃ α ⊕ β :=
  λ s, by cases s; refl⟩
 
 /-- If `α ≃ α'` and `β ≃ β'`, then `α ⊕ β ≃ α' ⊕ β'`. -/
-@[simps to_fun]
+@[simps apply]
 def sum_congr {α₁ β₁ α₂ β₂ : Type*} (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) : α₁ ⊕ β₁ ≃ α₂ ⊕ β₂ :=
 ⟨sum.map ea eb, sum.map ea.symm eb.symm, λ x, by simp, λ x, by simp⟩
 
@@ -509,7 +509,7 @@ noncomputable def Prop_equiv_bool : Prop ≃ bool :=
  λ b, b, λ p, by simp, λ b, by simp⟩
 
 /-- Sum of types is commutative up to an equivalence. -/
-@[simps to_fun]
+@[simps apply]
 def sum_comm (α β : Sort*) : α ⊕ β ≃ β ⊕ α :=
 ⟨sum.swap, sum.swap, sum.swap_swap, sum.swap_swap⟩
 
@@ -702,19 +702,19 @@ end
 
 section
 /-- A `psigma`-type is equivalent to the corresponding `sigma`-type. -/
-@[simps to_fun inv_fun] def psigma_equiv_sigma {α} (β : α → Sort*) : (Σ' i, β i) ≃ Σ i, β i :=
+@[simps apply symm] def psigma_equiv_sigma {α} (β : α → Sort*) : (Σ' i, β i) ≃ Σ i, β i :=
 ⟨λ a, ⟨a.1, a.2⟩, λ a, ⟨a.1, a.2⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
 
 /-- A family of equivalences `Π a, β₁ a ≃ β₂ a` generates an equivalence between `Σ a, β₁ a` and
 `Σ a, β₂ a`. -/
-@[simps to_fun inv_fun]
+@[simps apply symm]
 def sigma_congr_right {α} {β₁ β₂ : α → Sort*} (F : Π a, β₁ a ≃ β₂ a) : (Σ a, β₁ a) ≃ Σ a, β₂ a :=
 ⟨λ a, ⟨a.1, F a.1 a.2⟩, λ a, ⟨a.1, (F a.1).symm a.2⟩,
  λ ⟨a, b⟩, congr_arg (sigma.mk a) $ symm_apply_apply (F a) b,
  λ ⟨a, b⟩, congr_arg (sigma.mk a) $ apply_symm_apply (F a) b⟩
 
 /-- An equivalence `f : α₁ ≃ α₂` generates an equivalence between `Σ a, β (f a)` and `Σ a, β a`. -/
-@[simps to_fun]
+@[simps apply]
 def sigma_congr_left {α₁ α₂} {β : α₂ → Sort*} (e : α₁ ≃ α₂) : (Σ a:α₁, β (e a)) ≃ (Σ a:α₂, β a) :=
 ⟨λ a, ⟨e a.1, a.2⟩, λ a, ⟨e.symm a.1, @@eq.rec β a.2 (e.right_inv a.1).symm⟩,
  λ ⟨a, b⟩, match e.symm (e a), e.left_inv a : ∀ a' (h : a' = a),
@@ -736,7 +736,7 @@ def sigma_congr {α₁ α₂} {β₁ : α₁ → Sort*} {β₂ : α₂ → Sort*
 (sigma_congr_right F).trans (sigma_congr_left f)
 
 /-- `sigma` type with a constant fiber is equivalent to the product. -/
-@[simps to_fun inv_fun] def sigma_equiv_prod (α β : Type*) : (Σ_:α, β) ≃ α × β :=
+@[simps apply symm] def sigma_equiv_prod (α β : Type*) : (Σ_:α, β) ≃ α × β :=
 ⟨λ a, ⟨a.1, a.2⟩, λ a, ⟨a.1, a.2⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
 
 /-- If each fiber of a `sigma` type is equivalent to a fixed type, then the sigma type
@@ -990,7 +990,7 @@ def subtype_congr_prop {α : Type*} {p q : α → Prop} (h : p = q) : subtype p 
 subtype_congr (equiv.refl α) (assume a, h ▸ iff.rfl)
 
 /-- The subtypes corresponding to equal sets are equivalent. -/
-@[simps to_fun {rhs_md := semireducible, simp_rhs := tt}]
+@[simps apply {rhs_md := semireducible, simp_rhs := tt}]
 def set_congr {α : Type*} {s t : set α} (h : s = t) : s ≃ t :=
 subtype_congr_prop h
 
@@ -1135,7 +1135,7 @@ namespace set
 open set
 
 /-- `univ α` is equivalent to `α`. -/
-@[simps to_fun inv_fun]
+@[simps apply symm]
 protected def univ (α) : @univ α ≃ α :=
 ⟨coe, λ a, ⟨a, trivial⟩, λ ⟨a, _⟩, rfl, λ a, rfl⟩
 
@@ -1196,7 +1196,7 @@ protected def singleton {α} (a : α) : ({a} : set α) ≃ punit.{u} :=
  λ ⟨⟩, rfl⟩
 
 /-- Equal sets are equivalent. -/
-@[simps to_fun inv_fun]
+@[simps apply symm]
 protected def of_eq {α : Type u} {s t : set α} (h : s = t) : s ≃ t :=
 { to_fun := λ x, ⟨x, h ▸ x.2⟩,
   inv_fun := λ x, ⟨x, h.symm ▸ x.2⟩,
@@ -1351,7 +1351,7 @@ protected noncomputable def image_of_inj_on {α β} (f : α → β) (s : set α)
  λ ⟨y, h⟩, subtype.eq (classical.some_spec h).2⟩
 
 /-- If `f` is an injective function, then `s` is equivalent to `f '' s`. -/
-@[simps to_fun {rhs_md := semireducible}]
+@[simps apply {rhs_md := semireducible}]
 protected noncomputable def image {α β} (f : α → β) (s : set α) (H : injective f) : s ≃ (f '' s) :=
 equiv.set.image_of_inj_on f s (H.inj_on s)
 
@@ -1364,7 +1364,7 @@ begin
 end
 
 /-- If `f : α → β` is an injective function, then `α` is equivalent to the range of `f`. -/
-@[simps to_fun]
+@[simps apply]
 protected noncomputable def range {α β} (f : α → β) (H : injective f) :
   α ≃ range f :=
 { to_fun := λ x, ⟨f x, mem_range_self _⟩,
@@ -1391,12 +1391,12 @@ protected def sep {α : Type u} (s : set α) (t : α → Prop) :
 end set
 
 /-- If `f` is a bijective function, then its domain is equivalent to its codomain. -/
-@[simps to_fun {rhs_md := semireducible, simp_rhs := tt}]
+@[simps apply {rhs_md := semireducible, simp_rhs := tt}]
 noncomputable def of_bijective {α β} (f : α → β) (hf : bijective f) : α ≃ β :=
 (equiv.set.range f hf.1).trans $ (set_congr hf.2.range_eq).trans $ equiv.set.univ β
 
 /-- If `f` is an injective function, then its domain is equivalent to its range. -/
-@[simps to_fun {rhs_md := semireducible, simp_rhs := tt}]
+@[simps apply {rhs_md := semireducible, simp_rhs := tt}]
 noncomputable def of_injective {α β} (f : α → β) (hf : injective f) : α ≃ _root_.set.range f :=
 of_bijective (λ x, ⟨f x, set.mem_range_self x⟩)
   ⟨λ x y hxy, hf $ by injections, λ ⟨_, x, rfl⟩, ⟨x, rfl⟩⟩

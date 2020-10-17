@@ -5,13 +5,37 @@ open finset
 
 namespace polynomial
 
-
-@[simp] lemma trailing_coeff_one {R : Type*} [semiring R] : (1 : polynomial R).trailing_coeff = 1 :=
-by rw [trailing_coeff, nat_trailing_degree_one, coeff_one_zero]
-
-namespace rev
+section to_trailing_degree
 
 variables {R : Type*} [semiring R] {f : polynomial R}
+
+@[simp] lemma trailing_coeff_one : (1 : polynomial R).trailing_coeff = 1 :=
+by rw [trailing_coeff, nat_trailing_degree_one, coeff_one_zero]
+
+lemma nat_trailing_degree_le_nat_degree : f.nat_trailing_degree ≤ f.nat_degree :=
+begin
+  by_cases f0 : f = 0,
+  { rw [f0, nat_degree_zero, nat_trailing_degree_zero], },
+  rw [nat_degree_eq_support_max' f0, nat_trailing_degree_eq_support_min' f0],
+  exact f.support.min'_le (f.support.max' _) (f.support.max'_mem _),
+end
+
+@[simp] lemma nat_trailing_degree_eq_zero (h : f.coeff 0 ≠ 0) : f.nat_trailing_degree = 0 :=
+begin
+  rw nat_trailing_degree_eq_support_min',
+  { exact nat.eq_zero_of_le_zero (min'_le _ _ (mem_support_iff_coeff_ne_zero.mpr h)),
+    intro f0,
+    apply h,
+    rw [f0, coeff_zero], },
+end
+
+end to_trailing_degree
+
+section to_reverse
+
+variables {R : Type*} [semiring R] {f : polynomial R}
+
+namespace rev
 
 lemma reflect_ne_zero_iff {N : ℕ} {f : polynomial R} :
   reflect N (f : polynomial R) ≠ 0 ↔ f ≠ 0 :=
@@ -97,20 +121,33 @@ begin
   { exact le_trans (le_max' _ _ (min'_mem s hs)) sm, },
 end
 
+lemma nat_degree_reflect_eq_nat_trailing_degree {N : ℕ} (f0 : f ≠ 0) (H : f.nat_degree ≤ N) :
+  (reflect N f).nat_degree = rev_at N f.nat_trailing_degree :=
+begin
+  rw nat_degree_eq_support_max' (reflect_ne_zero_iff.mpr f0),
+  rw nat_trailing_degree_eq_support_min' f0,
+  simp_rw [reflect, finsupp.support_emb_domain, map_eq_image],
+  refine rev_at_small_min_max (by rwa ← nat_degree_eq_support_max' f0),
+end
+
+@[simp] lemma reverse_invol (h : f.coeff 0 ≠ 0) : reverse (reverse f) = f :=
+begin
+  rw [reverse, reverse, nat_degree_reflect_eq_nat_trailing_degree _ rfl.le],
+  { rw [rev_at_le nat_trailing_degree_le_nat_degree, nat_trailing_degree_eq_zero h, nat.sub_zero,
+      reflect_invol], },
+  { intro f0, apply h, rw [f0, coeff_zero], },
+end
+
 lemma nat_degree_reflect_le {N : ℕ} : (reflect N f).nat_degree ≤ max N f.nat_degree :=
 begin
   by_cases f0 : f=0,
   { rw [f0, reflect_zero, nat_degree_zero], exact zero_le (max N 0), },
   by_cases dsm : f.nat_degree ≤ N,
-  { rw [max_eq_left dsm, nat_degree_eq_support_max' (reflect_ne_zero_iff.mpr f0)],
-    apply max'_le,
-    intros y hy,
-    rw [reflect_support, mem_image] at hy,
-    rcases hy with ⟨ y , hy , rfl⟩,
-    rw rev_at_le (le_trans (le_nat_degree_of_mem_supp y hy) dsm),
-    exact nat.sub_le N y, },
+  { rw [nat_degree_reflect_eq_nat_trailing_degree f0 dsm, max_eq_left dsm],
+    rw rev_at_le (le_trans nat_trailing_degree_le_nat_degree dsm),
+    exact (nat.sub_le N f.nat_trailing_degree), },
   { rw not_le at dsm,
-    rw [max_eq_right  (le_of_lt dsm), nat_degree_eq_support_max', nat_degree_eq_support_max' f0],
+    rw [max_eq_right (le_of_lt dsm), nat_degree_eq_support_max', nat_degree_eq_support_max' f0],
     { apply max'_le,
       rw ← nat_degree_eq_support_max',
       intros y hy,
@@ -145,16 +182,6 @@ begin
   rwa max_eq_left,
 end
 
-lemma nat_degree_reflect_eq_nat_trailing_degree {N : ℕ} (f0 : f ≠ 0) (H : f.nat_degree ≤ N) :
-  (reflect N f).nat_degree = rev_at N f.nat_trailing_degree :=
-begin
-  rw nat_degree_eq_support_max' (reflect_ne_zero_iff.mpr f0),
-  rw nat_trailing_degree_eq_support_min' f0,
-  unfold reflect,
-  simp only [finsupp.support_emb_domain, map_eq_image],
-  refine rev_at_small_min_max (by rwa ← nat_degree_eq_support_max' f0),
-end
-
 lemma nat_trailing_degree_reflect_eq_nat_degree {N : ℕ} (f0 : f ≠ 0) (H : f.nat_degree ≤ N) :
   (reflect N f).nat_trailing_degree = rev_at N f.nat_degree :=
 begin
@@ -171,6 +198,8 @@ lemma trailing_reverse_eq_lead (f : polynomial R) : trailing_coeff (reverse f) =
 trailing_reflect_eq_lead _ rfl.le
 
 end rev
+
+end to_reverse
 
 section integral_domain
 variables {R : Type*} [integral_domain R] {p q : polynomial R}

@@ -1669,6 +1669,21 @@ lemma log_I : log I = π / 2 * I := by simp [log]
 
 lemma log_neg_I : log (-I) = -(π / 2) * I := by simp [log]
 
+lemma exists_pow_nat_eq (x : ℂ) {n : ℕ} (hn : 0 < n) : ∃ z, z ^ n = x :=
+begin
+  by_cases hx : x = 0,
+  { use 0, simp only [hx, zero_pow_eq_zero, hn] },
+  { use exp (log x / n),
+    rw [← exp_nat_mul, mul_div_cancel', exp_log hx],
+    exact_mod_cast (nat.pos_iff_ne_zero.mp hn) }
+end
+
+lemma exists_eq_mul_self (x : ℂ) : ∃ z, x = z * z :=
+begin
+  obtain ⟨z, rfl⟩ := exists_pow_nat_eq x zero_lt_two,
+  exact ⟨z, pow_two z⟩
+end
+
 lemma two_pi_I_ne_zero : (2 * π * I : ℂ) ≠ 0 :=
 by norm_num [real.pi_ne_zero, I_ne_zero]
 
@@ -1873,23 +1888,11 @@ lemma continuous_tan : continuous (λ x : {x | cos x ≠ 0}, tan x) :=
 lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
 by { rw continuous_on_iff_continuous_restrict, convert continuous_tan }
 
--- move this
-lemma exists_pow_two_eq (x : ℂ) : ∃ z, z ^ 2 = x :=
-begin
-  by_cases hx : x = 0,
-  { use 0, simp only [hx, nat.succ_pos', zero_pow_eq_zero] },
-  { use exp (log x / 2),
-    rw [← exp_nat_mul, nat.cast_bit0, nat.cast_one, mul_div_cancel', exp_log hx],
-    exact two_ne_zero' }
-end
-
 lemma cos_surjective : function.surjective cos :=
 begin
   intro x,
   obtain ⟨w, hw⟩ : ∃ w, 1 * w * w + (-2 * x) * w + 1 = 0,
-  { refine exist_quadratic_eq_zero one_ne_zero _,
-    simp_rw [eq_comm, ← pow_two],
-    exact exists_pow_two_eq _ },
+  { exact exists_quadratic_eq_zero one_ne_zero (exists_eq_mul_self _) },
   have hw' : exp (log w / I * I) = w,
   { rw [div_mul_cancel _ I_ne_zero, exp_log],
     rintro rfl,
@@ -1910,9 +1913,7 @@ lemma sin_surjective : function.surjective sin :=
 begin
   intro x,
   obtain ⟨w, hw⟩ : ∃ w, 1 * w * w + (-2 * I * x) * w - 1 = 0,
-  { refine exist_quadratic_eq_zero one_ne_zero _,
-    simp_rw [eq_comm, ← pow_two],
-    exact exists_pow_two_eq _ },
+  { exact exists_quadratic_eq_zero one_ne_zero (exists_eq_mul_self _) },
   have hw' : exp (log w / I * I) = w,
   { rw [div_mul_cancel _ I_ne_zero, exp_log],
     rintro rfl,

@@ -45,8 +45,11 @@ used by the `@[simps]` attribute.
 - To change the default value, see Note [custom simps projection].
 - You are strongly discouraged to add this attribute manually.
 - The first argument is the list of names of the universe variables used in the structure
-- The second argument is the expressions that correspond to the projections of the structure
-  (these can contain the universe parameters specified in the first argument).
+- The second argument is a list that consists of
+  - a custom name for each projection of the structure
+  - an expressions for each projections of the structure (definitionally equal to the
+    corresponding projection). These expressions can contain the universe parameters specified
+    in the first argument).
 -/
 @[user_attribute] meta def simps_str_attr : user_attribute unit (list name × list (name × expr)) :=
 { name := `_simps_str,
@@ -77,6 +80,11 @@ attribute [notation_class* coe_fn] has_coe_to_fun
   Get the projections used by `simps` associated to a given structure `str`. The second component is
   the list of projections, and the first component the (shared) list of universe levels used by the
   projections.
+
+  The returned information is also stored in a parameter of the attribute `@[_simps_str]`, which
+  is given to `str`. If `str` already has this attribute, the information is read from this
+  attribute instead.
+
   The returned universe levels are the universe levels of the structure. For the projections there
   are three cases
   * If the declaration `{structure_name}.simps.{projection_name}` has been declared, then the value
@@ -102,6 +110,15 @@ attribute [notation_class* coe_fn] has_coe_to_fun
     ```
       def equiv.simps.inv_fun {α β} (e : α ≃ β) : β → α := e.symm
     ```
+
+  Optionally, this command accepts two optional arguments
+  * If `trace_if_exists` the command will always generate a trace message when the structure already
+    has the attribute `@[_simps_str]`.
+  * The `name_changes` argument accepts a list of pairs `(old_name, new_name)`. This is used to
+    change the projection name `old_name` to the custom projection name `new_name`. Example:
+    for the structure `equiv` the projection `to_fun` could be renamed `apply`. This name will be
+    used for parsing and generating projection names. This argument is ignored if the structure
+    already has an existing attribute.
 -/
 -- if performance becomes a problem, possible heuristic: use the names of the projections to
 -- skip all classes that don't have the corresponding field.
@@ -209,8 +226,10 @@ library_note "custom simps projection"
 
 /-- Specify simps projections, see Note [custom simps projection].
   You can specify custom names by writing e.g.
-  `initialize_simps_projections equiv (to_fun → apply, inv_fun → symm)`
-  Set `trace.simps.verbose` to true to see the generated projections. -/
+  `initialize_simps_projections equiv (to_fun → apply, inv_fun → symm)`.
+  Set `trace.simps.verbose` to true to see the generated projections.
+  If the projections were already specified before, you can call `initialize_simps_projections`
+  again to see the generated projections. -/
 @[user_command] meta def initialize_simps_projections_cmd
   (_ : parse $ tk "initialize_simps_projections") : parser unit := do
   env ← get_env,
@@ -418,7 +437,7 @@ meta def simps_tac (nm : name) (cfg : simps_cfg := {}) (todo : list string := []
 
 /-- The parser for the `@[simps]` attribute. -/
 meta def simps_parser : parser (list string × simps_cfg) := do
-/- note: we currently don't check whether the user has written a nonsense namespace as arguments. -/
+/- note: we don't check whether the user has written a nonsense namespace in an argument. -/
 prod.mk <$> many (name.last <$> ident) <*>
   (do some e ← parser.pexpr? | return {}, eval_pexpr simps_cfg e)
 
@@ -458,10 +477,14 @@ derives two simp-lemmas:
     ⇑((e₁.trans e₂).symm) a = (⇑(e₁.symm) ∘ ⇑(e₂.symm)) a
   ```
 
+* You can specify custom projection names, by specifying the new projection names using
+  `initialize_simps_projections`.
+  Example: `initialize_simps_projections equiv (to_fun → apply, inv_fun → symm)`.
+
 * If one of the fields itself is a structure, this command will recursively create
   simp-lemmas for all fields in that structure.
   * Exception: by default it will not recursively create simp-lemmas for fields in the structures
-    `prod` and `pprod`. Give explicit projection names to override this.
+    `prod` and `pprod`. Give explicit projection names to override this behavior.
 
   Example:
   ```lean
@@ -470,7 +493,7 @@ derives two simp-lemmas:
   ```
   generates
   ```lean
-  @[simp] lemma  foo_fst : foo.fst = (1, 2)
+  @[simp] lemma foo_fst : foo.fst = (1, 2)
   @[simp] lemma foo_snd_fst : foo.snd.fst = 3
   @[simp] lemma foo_snd_snd : foo.snd.snd = 4
   ```

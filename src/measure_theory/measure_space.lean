@@ -1626,7 +1626,6 @@ lemma finite_at_nhds_within [topological_space α] (μ : measure α) [locally_fi
 @[simp] lemma finite_at_principal {s : set α} : μ.finite_at_filter (𝓟 s) ↔ μ s < ⊤ :=
 ⟨λ ⟨t, ht, hμ⟩, (measure_mono ht).trans_lt hμ, λ h, ⟨s, mem_principal_self s, h⟩⟩
 
-
 /-! ### Subtraction of measures -/
 
 /-- The measure `μ - ν` is defined to be the least measure `τ` such that `μ ≤ τ + ν`.

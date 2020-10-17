@@ -31,7 +31,7 @@ namespace category_theory
 variables {C : Type u} [category.{v} C]
 variables {X Y Z : C} (f : Y ⟶ X)
 
-/-- A set of arrows  -/
+/-- A set of arrows all with codomain `X`. -/
 @[derive complete_lattice]
 def arrows_with_codomain (X : C) := Π ⦃Y⦄, set (Y ⟶ X)
 

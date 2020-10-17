@@ -28,7 +28,7 @@ coverage, pretopology, site
 ## References
 
 * [https://ncatlab.org/nlab/show/Grothendieck+pretopology][nlab]
-* [S. MacLane, I. Moerdijk, *Sheaves in Geometry and Logic*][MM91]
+* [S. MacLane, I. Moerdijk, *Sheaves in Geometry and Logic*][MM92]
 * [https://stacks.math.columbia.edu/tag/00VG][Stacks]
 -/
 
@@ -37,9 +37,9 @@ noncomputable theory
 
 namespace category_theory
 
-open category_theory category
+open category_theory category limits arrows_with_codomain
 
-variables {C : Type u} [category.{v} C]
+variables {C : Type u} [category.{v} C] [has_pullbacks C]
 
 /--
 Pullback a set of arrows with given codomain along a fixed map, by taking the pullback in the
@@ -47,25 +47,41 @@ category.
 This is not the same as the arrow set of `sieve.pullback`, but there is a relation between them
 in `pullback_arrows_comm`.
 -/
-def pullback_arrows [limits.has_pullbacks C] {X Y : C} (f : Y ⟶ X) (S : arrows_with_codomain X) :
+def pullback_arrows {X Y : C} (f : Y ⟶ X) (S : arrows_with_codomain X) :
   arrows_with_codomain Y :=
-λ Z g, ∃ Z' (h : Z' ⟶ X), S h ∧ ∃ (H : limits.pullback h f = Z),
-  eq_to_hom H.symm ≫ limits.pullback.snd = g
+λ Z g, ∃ Z' (h : Z' ⟶ X), S h ∧ ∃ (H : Z = pullback h f),
+  eq_to_hom H ≫ pullback.snd = g
 
-lemma pullback_arrows_comm [limits.has_pullbacks C] {X Y : C} (f : Y ⟶ X)
+lemma pullback_arrows_comm {X Y : C} (f : Y ⟶ X)
   (R : arrows_with_codomain X) :
-  sieve.generate (pullback_arrows f R) = sieve.pullback f (sieve.generate R) :=
+  sieve.generate (pullback_arrows f R) = (sieve.generate R).pullback f :=
 begin
   ext Z g,
   split,
   { rintro ⟨W, k, l, ⟨T, g, hg, rfl, rfl⟩, rfl⟩,
-    refine ⟨_, k ≫ limits.pullback.fst, g, hg, _⟩,
-    rw [assoc, limits.pullback.condition, eq_to_hom_refl, id_comp, assoc] },
+    refine ⟨_, k ≫ pullback.fst, g, hg, _⟩,
+    rw [assoc, pullback.condition, eq_to_hom_refl, id_comp, assoc] },
   { rintro ⟨W, k, h, hh, comm⟩,
-    exact ⟨_, limits.pullback.lift _ _ comm, _, ⟨_, h, hh, rfl, rfl⟩, by simp⟩ },
+    exact ⟨_, pullback.lift _ _ comm, _, ⟨_, h, hh, rfl, rfl⟩, by simp⟩ },
 end
 
-variables (C) [limits.has_pullbacks C]
+set_option pp.proofs true
+set_option pp.implicit false
+
+lemma pullback_singleton {X Y Z : C} (f : Y ⟶ X) (g : Z ⟶ X) :
+ ∃ (W : C) (k : W ⟶ Y), pullback_arrows f (singleton_arrow g) = singleton_arrow k :=
+begin
+  refine ⟨pullback (eq_to_hom (eq.refl _) ≫ g) f, pullback.snd, _⟩,
+  ext W k,
+  split,
+  { rintro ⟨W, k, ⟨rfl, rfl⟩, rfl, rfl⟩,
+    rw [eq_to_hom_refl (pullback (eq_to_hom (eq.refl W) ≫ g) f) (eq.refl _), id_comp],
+    apply singleton_arrow_self },
+  { rintro ⟨rfl, rfl⟩,
+    exact ⟨_, _, by simp, _, rfl⟩ }
+end
+
+variables (C)
 
 /--
 A (Grothendieck) pretopology on `C` is a collection of morphisms with fixed target for each object,
@@ -108,13 +124,13 @@ A pretopology `K` can be completed to a Grothendieck topology `J` by declaring a
 `J`-covering if it contains a family in `K`.
 -/
 def to_grothendieck (K : pretopology C) : grothendieck_topology C :=
-{ sieves := λ X S, ∃ R ∈ K X, R ≤ S.arrows,
+{ sieves := λ X S, ∃ R ∈ K X, R ≤ (S : arrows_with_codomain _),
   top_mem' := λ X, ⟨arrows_with_codomain.singleton_arrow (𝟙 _), K.has_isos _, λ _ _ _, ⟨⟩⟩,
   pullback_stable' := λ X Y S g,
   begin
     rintro ⟨R, hR, RS⟩,
     refine ⟨_, K.pullbacks g _ hR, _⟩,
-    rw [← sieve.gi_generate.gc, pullback_arrows_comm],
+    rw [← sieve.sets_iff_generate, pullback_arrows_comm],
     apply sieve.pullback_monotone,
     rwa sieve.gi_generate.gc,
   end,
@@ -129,7 +145,7 @@ def to_grothendieck (K : pretopology C) : grothendieck_topology C :=
 
 /-- The largest pretopology generating the given Grothendieck topology. -/
 def of_grothendieck (J : grothendieck_topology C) : pretopology C :=
-{ coverings := λ X R, J X (sieve.generate R),
+{ coverings := λ X R, sieve.generate R ∈ J X,
   has_isos := λ X Y f i,
   begin
     apply J.covering_of_eq_top,
@@ -152,6 +168,39 @@ def of_grothendieck (J : grothendieck_topology C) : pretopology C :=
     rintro Y g ⟨W, h, g, hg, rfl⟩,
     exact ⟨_, h, _, ⟨_, _, _, hf, hg, rfl⟩, by simp⟩,
   end }
+
+lemma insert : galois_insertion (to_grothendieck C) (of_grothendieck C) :=
+{ gc :=
+  λ K J,
+  begin
+    split,
+    { intros h X R hR,
+      apply h,
+      refine ⟨_, hR, _⟩,
+      apply sieve.gi_generate.gc.le_u_l },
+    { rintro h X S ⟨R, hR, RS⟩,
+      apply J.superset_covering _ (h _ hR),
+      rwa sieve.gi_generate.gc }
+  end,
+  le_l_u := λ J X S hS, ⟨S, J.superset_covering (sieve.gi_generate.gc.le_u_l _) hS, le_refl _⟩,
+  choice := λ x hx, to_grothendieck C x,
+  choice_eq := λ _ _, rfl }
+
+-- galois_insertion.monotone_intro _ _ _ _
+
+-- def discrete : pretopology C :=
+-- { coverings := λ X S, ∃ Y (f : Y ⟶ X) (h : is_iso f), S = arrows_with_codomain.singleton_arrow f,
+--   has_isos := λ X Y f i, ⟨_, _, i, rfl⟩,
+--   pullbacks := λ X Y f S,
+--   begin
+--     rintro ⟨Z, g, i, rfl⟩,
+--     rw set.mem_def,
+--     obtain ⟨W, k, hk⟩ := pullback_singleton f g,
+
+--     refine ⟨_, _, _, _⟩,
+--   end
+
+-- }
 
 end pretopology
 

@@ -5,6 +5,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin
 -/
 import analysis.special_functions.exp_log
 import data.set.intervals.infinite
+import algebra.quadratic_discriminant
 
 /-!
 # Trigonometric functions
@@ -1877,15 +1878,33 @@ continuous_on_sin.div continuous_on_cos $ λ x, id
 lemma continuous_tan : continuous (λ x : {x | cos x ≠ 0}, tan x) :=
 continuous_on_iff_continuous_restrict.1 continuous_on_tan
 
+-- move this
+lemma exists_pow_two_eq (x : ℂ) : ∃ z, z ^ 2 = x :=
+begin
+  by_cases hx : x = 0,
+  { use 0, simp only [hx, nat.succ_pos', zero_pow_eq_zero] },
+  { use exp (log x / 2),
+    rw [← exp_nat_mul, nat.cast_bit0, nat.cast_one, mul_div_cancel', exp_log hx],
+    exact two_ne_zero' }
+end
+
 lemma cos_surjective : function.surjective cos :=
 begin
   intro x,
+  obtain ⟨w, hw⟩ : ∃ w, 1 * w * w + (-2 * x) * w + 1 = 0,
+  { refine exist_quadratic_eq_zero one_ne_zero _,
+    simp_rw [eq_comm, ← pow_two],
+    exact exists_pow_two_eq _ },
+  have hw' : exp (log w / I * I) = w,
+  { rw [div_mul_cancel _ I_ne_zero, exp_log],
+    rintro rfl,
+    simpa only [zero_add, one_ne_zero, mul_zero] using hw },
   obtain ⟨z, hz⟩ : ∃ z : ℂ, (exp (z * I)) ^ 2 - 2 * x * exp (z * I) + 1 = 0,
-  { sorry },
+  { use log w / I, rw [hw', ← hw], ring },
   use z,
   delta cos,
-  rw [sub_add_eq_add_sub, sub_eq_zero, pow_two, ← exp_add, mul_comm _ x, mul_right_comm] at hz,
   rw ← mul_left_inj' (exp_ne_zero (z * I)),
+  rw [sub_add_eq_add_sub, sub_eq_zero, pow_two, ← exp_add, mul_comm _ x, mul_right_comm] at hz,
   field_simp [add_mul, ← exp_add, hz]
 end
 
@@ -1895,28 +1914,32 @@ cos_surjective.range_eq
 lemma sin_surjective : function.surjective sin :=
 begin
   intro x,
+  obtain ⟨w, hw⟩ : ∃ w, 1 * w * w + (-2 * I * x) * w - 1 = 0,
+  { refine exist_quadratic_eq_zero one_ne_zero _,
+    simp_rw [eq_comm, ← pow_two],
+    exact exists_pow_two_eq _ },
+  have hw' : exp (log w / I * I) = w,
+  { rw [div_mul_cancel _ I_ne_zero, exp_log],
+    rintro rfl,
+    simpa only [zero_add, sub_eq_zero, zero_ne_one, mul_zero] using hw },
+  obtain ⟨z, hz⟩ : ∃ z : ℂ, (exp (z * I)) ^ 2 - 2 * x * I * exp (z * I) - 1 = 0,
+  { use log w / I, rw [hw', ← hw], ring },
+  use z,
   delta sin,
-
+  rw [← mul_left_inj' (exp_ne_zero (z * I))],
+  rw [sub_sub, sub_eq_zero] at hz,
+  suffices :
+    exp (-(z * I)) * exp (z * I) * I - (2 * x * exp (z * I) * I + 1) * I = x * exp (z * I) * 2,
+  { field_simp [sub_mul, mul_right_comm _ I, ← pow_two, hz], exact this },
+  calc exp (-(z * I)) * exp (z * I) * I - (2 * x * exp (z * I) * I + 1) * I
+      = I - (-(2 * (x * exp (z * I))) + I) :
+        by simp only [←exp_add, add_mul, one_mul, mul_assoc, exp_zero, mul_one,
+                      mul_neg_eq_neg_mul_symm, I_mul_I, add_left_neg]
+  ... = x * exp (z * I) * 2 : by ring
 end
 
 @[simp] lemma range_sin : range sin = set.univ :=
 sin_surjective.range_eq
-
-lemma range_cos_infinite : (range complex.cos).infinite :=
-begin
-  refine infinite_mono (image_subset_range _ (range (coe : ℝ → ℂ)))
-    (infinite_of_infinite_image re _),
-  rw [← range_comp, ← range_comp],
-  exact real.range_cos_infinite
-end
-
-lemma range_sin_infinite : (range complex.sin).infinite :=
-begin
-  refine infinite_mono (image_subset_range _ (range (coe : ℝ → ℂ)))
-    (infinite_of_infinite_image re _),
-  rw [← range_comp, ← range_comp],
-  exact real.range_sin_infinite
-end
 
 end complex
 

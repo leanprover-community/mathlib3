@@ -79,27 +79,30 @@ calc 0 < c • a ↔ c • 0 < c • a : by rw smul_zero
 end ordered_semimodule
 
 /-- If `R` is a linear ordered semifield, then it suffices to verify only the first axiom of
-`ordered_semimodule`. We have no semifields in `mathlib`, so we use the assumption
-`∀ c ≠ 0, is_unit c` instead. -/
+`ordered_semimodule`. Moreover, it suffices to verify that `a < b` and `0 < c` imply
+`c • a ≤ c • b`. We have no semifields in `mathlib`, so we use the assumption `∀ c ≠ 0, is_unit c`
+instead. -/
 def ordered_semimodule.mk'' {R M : Type*} [linear_ordered_semiring R] [ordered_add_comm_monoid M]
   [semimodule R M] (hR : ∀ {c : R}, c ≠ 0 → is_unit c)
-  (hlt : ∀ ⦃a b : M⦄ ⦃c : R⦄, a < b → 0 < c → c • a < c • b) :
+  (hlt : ∀ ⦃a b : M⦄ ⦃c : R⦄, a < b → 0 < c → c • a ≤ c • b) :
   ordered_semimodule R M :=
-{ smul_lt_smul_of_pos := hlt,
-  lt_of_smul_lt_smul_of_pos :=
-    begin
-      intros a b c h hc,
-      rcases (hR hc.ne') with ⟨c, rfl⟩,
-      rw [← c.inv_smul_smul a, ← c.inv_smul_smul b],
-      refine hlt h (pos_of_mul_pos_left _ hc.le),
-      simp only [c.mul_inv, zero_lt_one]
-    end,
-  to_semimodule := ‹_› }
+begin
+  have hlt' : ∀ ⦃a b : M⦄ ⦃c : R⦄, a < b → 0 < c → c • a < c • b,
+  { refine λ a b c hab hc, (hlt hab hc).lt_of_ne _,
+    rw [ne.def, (hR hc.ne').smul_left_cancel],
+    exact hab.ne },
+  refine { smul_lt_smul_of_pos := hlt', to_semimodule := ‹_›, .. },
+  intros a b c h hc,
+  rcases (hR hc.ne') with ⟨c, rfl⟩,
+  rw [← c.inv_smul_smul a, ← c.inv_smul_smul b],
+  refine hlt' h (pos_of_mul_pos_left _ hc.le),
+  simp only [c.mul_inv, zero_lt_one]
+end
 
 /-- If `R` is a linear ordered field, then it suffices to verify only the first axiom of
 `ordered_semimodule`. -/
 def ordered_semimodule.mk' {k M : Type*} [linear_ordered_field k] [ordered_add_comm_monoid M]
-  [semimodule k M] (hlt : ∀ ⦃a b : M⦄ ⦃c : k⦄, a < b → 0 < c → c • a < c • b) :
+  [semimodule k M] (hlt : ∀ ⦃a b : M⦄ ⦃c : k⦄, a < b → 0 < c → c • a ≤ c • b) :
   ordered_semimodule k M :=
 ordered_semimodule.mk'' (λ c hc, is_unit.mk0 _ hc) hlt
 

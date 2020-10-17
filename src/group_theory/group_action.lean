@@ -44,6 +44,24 @@ by rw [smul_smul, u.inv_mul, one_smul]
   (u:α) • (↑u⁻¹:α) • x = x :=
 by rw [smul_smul, u.mul_inv, one_smul]
 
+/-- If a monoid `α` acts on `β`, then each `u : units α` defines a permutation of `β`. -/
+def units.smul_perm_hom : units α →* equiv.perm β :=
+{ to_fun := λ u, ⟨λ x, (u:α) • x, λ x, (↑u⁻¹:α) • x, u.inv_smul_smul, u.smul_inv_smul⟩,
+  map_one' := equiv.ext $ one_smul α,
+  map_mul' := λ u₁ u₂, equiv.ext $ mul_smul (u₁:α) u₂ }
+
+@[simp] lemma units.smul_left_cancel (u : units α) {x y : β} :
+  (u:α) • x = (u:α) • y ↔ x = y :=
+u.smul_perm_hom.apply_eq_iff_eq
+
+@[simp] lemma units.smul_eq_iff_eq_inv_smul (u : units α) {x y : β} :
+  (u:α) • x = y ↔ x = (↑u⁻¹:α) • y :=
+u.smul_perm_hom.apply_eq_iff_eq_symm_apply
+
+lemma is_unit.smul_left_cancel {a : α} (ha : is_unit a) {x y : β} :
+  a • x = a • y ↔ x = y :=
+let ⟨u, hu⟩ := ha in hu ▸ u.smul_left_cancel
+
 /-- Pullback a multiplicative action along an injective map respecting `•`. -/
 protected def function.injective.mul_action [has_scalar α γ] (f : γ → β)
   (hf : injective f) (smul : ∀ (c : α) x, f (c • x) = c • f x) :
@@ -246,16 +264,10 @@ def stabilizer (b : β) : subgroup α :=
 variable (β)
 
 /-- Given an action of a group `α` on a set `β`, each `g : α` defines a permutation of `β`. -/
-def to_perm (g : α) : equiv.perm β :=
-{ to_fun := (•) g,
-  inv_fun := (•) g⁻¹,
-  left_inv := inv_smul_smul g,
-  right_inv := smul_inv_smul g }
+def to_perm : α →* equiv.perm β :=
+units.smul_perm_hom.comp to_units.to_monoid_hom
 
 variables {α} {β}
-
-instance : is_group_hom (to_perm α β) :=
-{ map_mul := λ x y, equiv.ext (λ a, mul_action.mul_smul x y a) }
 
 protected lemma bijective (g : α) : bijective (λ b : β, g • b) :=
 (to_perm α β g).bijective

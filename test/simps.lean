@@ -585,6 +585,48 @@ initialize_simps_projections equiv
 
 end manual_universes
 
+namespace manual_projection_names
+
+structure equiv (α : Sort*) (β : Sort*) :=
+(to_fun    : α → β)
+(inv_fun   : β → α)
+
+local infix ` ≃ `:25 := manual_projection_names.equiv
+
+variables {α β γ : Sort*}
+
+instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
+
+def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
+
+/-- See Note [custom simps projection] -/
+def equiv.simps.inv_fun (e : α ≃ β) : β → α := e.symm
+
+initialize_simps_projections equiv (to_fun → apply, inv_fun → symm)
+
+run_cmd do
+  e ← get_env,
+  data ← simps_get_raw_projections e `manual_projection_names.equiv,
+  guard $ data.2.map prod.fst = [`apply, `symm]
+
+@[simps {simp_rhs := tt}] protected def equiv.trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
+⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
+
+example (e₁ : α ≃ β) (e₂ : β ≃ γ) (x : α) : (e₁.trans e₂) x = e₂ (e₁ x) :=
+by simp only [equiv.trans_apply]
+
+example (e₁ : α ≃ β) (e₂ : β ≃ γ) (x : γ) : (e₁.trans e₂).symm x = e₁.symm (e₂.symm x) :=
+by simp only [equiv.trans_symm]
+
+-- the new projection names are parsed correctly (the old projection names won't work anymore)
+@[simps apply symm] protected def equiv.trans2 (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
+⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
+
+-- initialize_simps_projections equiv
+
+end manual_projection_names
+
+
 -- test transparency setting
 structure set_plus (α : Type) :=
 (s : set α)

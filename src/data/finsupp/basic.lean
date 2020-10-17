@@ -859,7 +859,7 @@ lemma sum_sub_index [add_comm_group β] [add_comm_group γ] {f g : α →₀ β}
 
 @[to_additive]
 lemma prod_emb_domain [has_zero M] [comm_monoid N] {v : α →₀ M} {f : α ↪ β} {g : β → M → N} :
-  (v.emb_domain f).prod g = v.prod (λa b, g (f a) b) :=
+  (v.emb_domain f).prod g = v.prod (λ a b, g (f a) b) :=
 begin
   rw [prod, prod, support_emb_domain, finset.prod_map],
   simp_rw emb_domain_apply,
@@ -1540,7 +1540,7 @@ def leval [semiring R] (a : α) : (α →₀ R) →ₗ[R] R := leval' R a
 
 @[simp] lemma coe_leval [semiring R] (a : α) (g : α →₀ R) : leval a g = g a := rfl
 
-lemma support_smul {_:semiring R} [add_comm_monoid M] [semimodule R M] {b : R} {g : α →₀ M} :
+lemma support_smul {_ : semiring R} [add_comm_monoid M] [semimodule R M] {b : R} {g : α →₀ M} :
   (b • g).support ⊆ g.support :=
 λ a, by simp only [smul_apply', mem_support_iff, ne.def]; exact mt (λ h, h.symm ▸ smul_zero _)
 

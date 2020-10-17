@@ -560,7 +560,7 @@ begin
   exact h.card_roots_of_unity'
 end
 
-/--The cardinality of the multiset `nth_roots ↑n (1 : R)` is `n`
+/-- The cardinality of the multiset `nth_roots ↑n (1 : R)` is `n`
 if there is a primitive root of unity in `R`. -/
 lemma card_nth_roots {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) : (nth_roots ↑n (1 : R)).card = n :=
 begin

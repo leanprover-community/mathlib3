@@ -346,10 +346,10 @@ lt_of_not_ge (λ hb, absurd h (mul_nonpos_of_nonpos_of_nonneg ha hb).not_lt)
 lemma exists_lt_mul_self (a : α) : ∃ x : α, a < x * x :=
 begin
   by_cases ha : 0 ≤ a,
-   { use (a + 1),
-     calc a = a * 1 : by rw mul_one
-     ... < (a + 1) * (a + 1) : mul_lt_mul (lt_add_one _) (le_add_of_nonneg_left ha)
-                                          zero_lt_one (add_nonneg ha zero_le_one) },
+  { use (a + 1),
+    calc a = a * 1 : by rw mul_one
+    ... < (a + 1) * (a + 1) : mul_lt_mul (lt_add_one _) (le_add_of_nonneg_left ha)
+                                         zero_lt_one (add_nonneg ha zero_le_one) },
   { rw not_le at ha,
     use 1,
     calc a < 0     : ha

@@ -239,9 +239,19 @@ run_cmd do
     "Invalid simp-lemma specify.specify1_fst_fst.
 Projection fst doesn't exist, because target is not a structure.",
   success_if_fail_with_msg (simps_tac `specify.specify1 {} ["foo_fst"])
-    "Invalid simp-lemma specify.specify1_foo_fst. Projection foo doesn't exist.",
+    "Invalid simp-lemma specify.specify1_foo_fst. Structure prod does not have projection foo.
+The known projections are:
+  [fst, snd]
+You can also see this information by running
+  `initialize_simps_projections prod`.
+Note: the projection names used by @[simps] might not correspond to the projection names in the structure.",
   success_if_fail_with_msg (simps_tac `specify.specify1 {} ["snd_bar"])
-    "Invalid simp-lemma specify.specify1_snd_bar. Projection bar doesn't exist.",
+    "Invalid simp-lemma specify.specify1_snd_bar. Structure prod does not have projection bar.
+The known projections are:
+  [fst, snd]
+You can also see this information by running
+  `initialize_simps_projections prod`.
+Note: the projection names used by @[simps] might not correspond to the projection names in the structure.",
   success_if_fail_with_msg (simps_tac `specify.specify5 {} ["snd_snd"])
     "Invalid simp-lemma specify.specify5_snd_snd. The given definition is not a constructor application:
   prod.map (λ (x : ℕ), x) (λ (y : ℕ), y) (2, 3)

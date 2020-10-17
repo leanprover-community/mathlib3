@@ -221,7 +221,7 @@ in terms of a limit diagram over `U i` and `U i ⊓ U j`.
 -/
 def sheaf_condition_opens_le_cover_equiv_sheaf_condition_pairwise_intersections (F : presheaf C X) :
   F.sheaf_condition_opens_le_cover ≃ F.sheaf_condition_pairwise_intersections :=
-equiv.Pi_congr_right (λ ι, equiv.Pi_congr_right (λ U,
+equiv.Pi_congr_right $ λ ι, equiv.Pi_congr_right $ λ U,
 calc is_limit (F.map_cone (opens_le_cover_cocone U).op)
     ≃ is_limit ((F.map_cone (opens_le_cover_cocone U).op).whisker (pairwise_to_opens_le_cover U).op)
         : (cofinal.is_limit_whisker_equiv (pairwise_to_opens_le_cover U) _).symm
@@ -236,7 +236,6 @@ calc is_limit (F.map_cone (opens_le_cover_cocone U).op)
 ... ≃ is_limit (F.map_cone (pairwise.cocone U).op)
         : is_limit.equiv_iso_limit
             ((cones.functoriality _ _).map_iso (pairwise_cocone_iso U : _).symm)
-))
 
 variables [has_products C]
 

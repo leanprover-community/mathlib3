@@ -1857,7 +1857,7 @@ meta def success_if_fail_with_msg {α : Type u} (t : tactic α) (msg : string) :
 end
 
 /--
-Construct a `refine ...` or `exact ...` string which would construct `g`.
+Construct a `Try this: refine ...` or `Try this: exact ...` string which would construct `g`.
 -/
 meta def tactic_statement (g : expr) : tactic string :=
 do g ← instantiate_mvars g,

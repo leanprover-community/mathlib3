@@ -94,7 +94,7 @@ instance finite.inhabited : inhabited {s : set α // finite s} := ⟨⟨∅, fin
 
 /-- A `fintype` structure on `insert a s`. -/
 def fintype_insert' {a : α} (s : set α) [fintype s] (h : a ∉ s) : fintype (insert a s : set α) :=
-fintype.of_finset ⟨a :: s.to_finset.1,
+fintype.of_finset ⟨a ::ₘ s.to_finset.1,
   multiset.nodup_cons_of_nodup (by simp [h]) s.to_finset.2⟩ $ by simp
 
 theorem card_fintype_insert' {a : α} (s : set α) [fintype s] (h : a ∉ s) :

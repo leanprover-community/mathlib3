@@ -111,16 +111,6 @@ end field
 section linear_ordered_field
 variables {K : Type*} [linear_ordered_field K] {a b c : K}
 
-section lemmas
-
--- move this
-lemma exists_le_mul_self (a : K) : ∃ x : K, a ≤ x * x :=
-begin
-  cases le_total 1 a with ha ha,
-  { use a, exact le_mul_of_one_le_left (by linarith) ha },
-  { use 1, linarith }
-end
-
 -- move this
 lemma exists_lt_mul_self (a : K) : ∃ x : K, a < x * x :=
 begin
@@ -141,39 +131,38 @@ lemma discrim_le_zero (h : ∀ x : K, 0 ≤ a * x * x + b * x + c) : discrim a b
 have hc : 0 ≤ c, by { have := h 0, linarith },
 begin
   rw [discrim, pow_two],
-  cases lt_trichotomy a 0 with ha ha,
+  obtain ha|rfl|ha : a < 0 ∨ a = 0 ∨ 0 < a := lt_trichotomy a 0,
   -- if a < 0
-  by_cases hb : b = 0,
-  { rw hb at *,
-    rcases exists_lt_mul_self (-c/a) with ⟨x, hx⟩,
-    have := mul_lt_mul_of_neg_left hx ha,
-    rw [mul_div_cancel' _ (ne_of_lt ha), ← mul_assoc] at this,
-    have h₂ := h x, linarith },
-  { by_cases hc' : c = 0,
-    { rw hc' at *,
-      have : -(a*-b*-b + b*-b + 0) = (1-a)*(b*b), {ring},
-      have h := h (-b), rw [← neg_nonpos, this] at h,
-      have : b * b ≤ 0 := nonpos_of_mul_nonpos_left h (by linarith),
-      linarith },
-    { have h := h (-c/b),
-      have : a*(-c/b)*(-c/b) + b*(-c/b) + c = a*((c/b)*(c/b)),
-      { rw mul_div_cancel' _ hb, ring },
-      rw this at h,
-      have : 0 ≤ a := nonneg_of_mul_nonneg_right h (mul_self_pos $ div_ne_zero hc' hb),
-      linarith [ha] } },
-  cases ha with ha ha,
+  { by_cases hb : b = 0,
+    { rw hb at *,
+      rcases exists_lt_mul_self (-c / a) with ⟨x, hx⟩,
+      have := mul_lt_mul_of_neg_left hx ha,
+      rw [mul_div_cancel' _ (ne_of_lt ha), ← mul_assoc] at this,
+      have h₂ := h x, linarith },
+    { by_cases hc' : c = 0,
+      { rw hc' at *,
+        have : -(a * -b * -b + b * -b + 0) = (1 - a) * (b * b), {ring},
+        have h := h (-b), rw [← neg_nonpos, this] at h,
+        have : b * b ≤ 0 := nonpos_of_mul_nonpos_left h (by linarith),
+        linarith },
+      { have h := h (-c / b),
+        have : a * (-c / b) * (-c / b) + b * (-c / b) + c = a * ((c / b) * (c / b)),
+        { rw mul_div_cancel' _ hb, ring },
+        rw this at h,
+        have : 0 ≤ a := nonneg_of_mul_nonneg_right h (mul_self_pos $ div_ne_zero hc' hb),
+        linarith [ha] } } },
   -- if a = 0
-  by_cases hb : b = 0,
-    { rw [ha, hb], linarith },
-    { have := h ((-c-1)/b), rw [ha, mul_div_cancel' _ hb] at this, linarith },
+  { by_cases hb : b = 0,
+    { rw [hb], linarith },
+    { have := h ((-c - 1) / b), rw [mul_div_cancel' _ hb] at this, linarith } },
   -- if a > 0
-  have := calc
-    4*a* (a*(-(b/a)*(1/2))*(-(b/a)*(1/2)) + b*(-(b/a)*(1/2)) + c)
-      = (a*(b/a)) * (a*(b/a)) - 2*(a*(b/a))*b + 4*a*c : by ring
-    ... = -(b*b - 4*a*c) : by { simp only [mul_div_cancel' b (ne_of_gt ha)], ring },
-  have ha' : 0 ≤ 4*a, {linarith},
-  have h := (mul_nonneg ha' (h (-(b/a) * (1/2)))),
-  rw this at h, rwa ← neg_nonneg
+  { have := calc
+      4 * a * (a * (-(b / a) * (1 / 2)) * (-(b / a) * (1 / 2)) + b * (-(b / a) * (1 / 2)) + c)
+          = (a * (b / a)) * (a * (b / a)) - 2 * (a * (b / a)) * b + 4 * a * c : by ring
+      ... = -(b * b - 4 * a * c) : by { simp only [mul_div_cancel' b (ne_of_gt ha)], ring },
+    have ha' : 0 ≤ 4 * a, by linarith,
+    have h := (mul_nonneg ha' (h (-(b / a) * (1 / 2)))),
+    rw this at h, rwa ← neg_nonneg }
 end
 
 /--

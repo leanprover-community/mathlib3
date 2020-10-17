@@ -62,6 +62,10 @@ by { ext, refl }
 @[simp] lemma id_comp (f : preorder_hom α β) : id.comp f = f :=
 by { ext, refl }
 
+/-- `subtype.val` as a bundled monotone function.  -/
+def subtype.val (p : α → Prop) : subtype p →ₘ α :=
+⟨subtype.val, λ x y h, h⟩
+
 /-- The preorder structure of `α →ₘ β` is pointwise inequality: `f ≤ g ↔ ∀ a, f a ≤ g a`. -/
 instance : preorder (α →ₘ β) :=
 preorder.lift preorder_hom.to_fun

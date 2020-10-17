@@ -191,7 +191,9 @@ notation M ` ≃L[`:50 R `] ` M₂ := continuous_linear_equiv R M M₂
 namespace continuous_linear_map
 
 section semiring
-/- Properties that hold for non-necessarily commutative semirings. -/
+/-!
+### Properties that hold for non-necessarily commutative semirings.
+-/
 
 variables
 {R : Type*} [semiring R]

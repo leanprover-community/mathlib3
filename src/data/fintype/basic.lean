@@ -1131,8 +1131,13 @@ lemma exists_not_mem_finset [infinite α] (s : finset α) : ∃ x, x ∉ s :=
 not_forall.1 $ λ h, not_fintype ⟨s, h⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance nonempty (α : Type*) [infinite α] : nonempty α :=
-nonempty_of_exists (exists_not_mem_finset (∅ : finset α))
+instance (α : Type*) [H : infinite α] : nontrivial α :=
+⟨let ⟨x, hx⟩ := exists_not_mem_finset (∅ : finset α) in
+let ⟨y, hy⟩ := exists_not_mem_finset ({x} : finset α) in
+⟨y, x, by simpa only [mem_singleton] using hy⟩⟩
+
+lemma nonempty (α : Type*) [infinite α] : nonempty α :=
+by apply_instance
 
 lemma of_injective [infinite β] (f : β → α) (hf : injective f) : infinite α :=
 ⟨λ I, by exactI not_fintype (fintype.of_injective f hf)⟩

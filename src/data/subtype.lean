@@ -15,6 +15,8 @@ variables {α : Sort*} {β : Sort*} {γ : Sort*} {p : α → Prop}
 /-- See Note [custom simps projection] -/
 def simps.val (x : subtype p) : α := x
 
+initialize_simps_projections subtype (val → coe)
+
 /-- A version of `x.property` or `x.2` where `p` is syntactically applied to the coercion of `x`
   instead of `x.1`. A similar result is `subtype.mem` in `data.set.basic`. -/
 lemma prop (x : subtype p) : p x := x.2

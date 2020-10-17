@@ -1064,7 +1064,7 @@ begin
   -- a trivial instance is needed after the rewrite, handle it right now.
   rotate, { apply_instance },
   simp only [chart_at, basic_smooth_bundle_core.chart, subtype.coe_mk, tangent_bundle_core, h,
-    basic_smooth_bundle_core.to_topological_fiber_bundle_core, equiv.sigma_equiv_prod_to_fun]
+    basic_smooth_bundle_core.to_topological_fiber_bundle_core, equiv.sigma_equiv_prod_apply]
     with mfld_simps,
 end
 

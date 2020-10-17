@@ -116,6 +116,8 @@ instance inhabited' : inhabited (α ≃ α) := ⟨equiv.refl α⟩
 /-- See Note [custom simps projection] -/
 def simps.inv_fun (e : α ≃ β) : β → α := e.symm
 
+initialize_simps_projections equiv (to_fun → apply, inv_fun → symm_apply)
+
 /-- Composition of equivalences `e₁ : α ≃ β` and `e₂ : β ≃ γ`. -/
 @[trans] protected def trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
 ⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm,
@@ -319,12 +321,12 @@ def prop_equiv_punit {p : Prop} (h : p) : p ≃ punit :=
 def true_equiv_punit : true ≃ punit := prop_equiv_punit trivial
 
 /-- `ulift α` is equivalent to `α`. -/
-@[simps apply symm {fully_applied := ff}]
+@[simps apply symm_apply {fully_applied := ff}]
 protected def ulift {α : Type v} : ulift.{u} α ≃ α :=
 ⟨ulift.down, ulift.up, ulift.up_down, λ a, rfl⟩
 
 /-- `plift α` is equivalent to `α`. -/
-@[simps apply symm {fully_applied := ff}]
+@[simps apply symm_apply {fully_applied := ff}]
 protected def plift : plift α ≃ α :=
 ⟨plift.down, plift.up, plift.up_down, plift.down_up⟩
 
@@ -347,7 +349,7 @@ is equivalent to the type of maps `α₂ → β₂`. -/
 lemma arrow_congr_comp {α₁ β₁ γ₁ α₂ β₂ γ₂ : Sort*}
   (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) (ec : γ₁ ≃ γ₂) (f : α₁ → β₁) (g : β₁ → γ₁) :
   arrow_congr ea ec (g ∘ f) = (arrow_congr eb ec g) ∘ (arrow_congr ea eb f) :=
-by { ext, simp only [comp, arrow_congr_to_fun, eb.symm_apply_apply] }
+by { ext, simp only [comp, arrow_congr_apply, eb.symm_apply_apply] }
 
 @[simp] lemma arrow_congr_refl {α β : Sort*} :
   arrow_congr (equiv.refl α) (equiv.refl β) = equiv.refl (α → β) := rfl
@@ -702,12 +704,12 @@ end
 
 section
 /-- A `psigma`-type is equivalent to the corresponding `sigma`-type. -/
-@[simps apply symm] def psigma_equiv_sigma {α} (β : α → Sort*) : (Σ' i, β i) ≃ Σ i, β i :=
+@[simps apply symm_apply] def psigma_equiv_sigma {α} (β : α → Sort*) : (Σ' i, β i) ≃ Σ i, β i :=
 ⟨λ a, ⟨a.1, a.2⟩, λ a, ⟨a.1, a.2⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
 
 /-- A family of equivalences `Π a, β₁ a ≃ β₂ a` generates an equivalence between `Σ a, β₁ a` and
 `Σ a, β₂ a`. -/
-@[simps apply symm]
+@[simps apply symm_apply]
 def sigma_congr_right {α} {β₁ β₂ : α → Sort*} (F : Π a, β₁ a ≃ β₂ a) : (Σ a, β₁ a) ≃ Σ a, β₂ a :=
 ⟨λ a, ⟨a.1, F a.1 a.2⟩, λ a, ⟨a.1, (F a.1).symm a.2⟩,
  λ ⟨a, b⟩, congr_arg (sigma.mk a) $ symm_apply_apply (F a) b,
@@ -736,7 +738,7 @@ def sigma_congr {α₁ α₂} {β₁ : α₁ → Sort*} {β₂ : α₂ → Sort*
 (sigma_congr_right F).trans (sigma_congr_left f)
 
 /-- `sigma` type with a constant fiber is equivalent to the product. -/
-@[simps apply symm] def sigma_equiv_prod (α β : Type*) : (Σ_:α, β) ≃ α × β :=
+@[simps apply symm_apply] def sigma_equiv_prod (α β : Type*) : (Σ_:α, β) ≃ α × β :=
 ⟨λ a, ⟨a.1, a.2⟩, λ a, ⟨a.1, a.2⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
 
 /-- If each fiber of a `sigma` type is equivalent to a fixed type, then the sigma type
@@ -1135,7 +1137,7 @@ namespace set
 open set
 
 /-- `univ α` is equivalent to `α`. -/
-@[simps apply symm]
+@[simps apply symm_apply]
 protected def univ (α) : @univ α ≃ α :=
 ⟨coe, λ a, ⟨a, trivial⟩, λ ⟨a, _⟩, rfl, λ a, rfl⟩
 
@@ -1196,7 +1198,7 @@ protected def singleton {α} (a : α) : ({a} : set α) ≃ punit.{u} :=
  λ ⟨⟩, rfl⟩
 
 /-- Equal sets are equivalent. -/
-@[simps apply symm]
+@[simps apply symm_apply]
 protected def of_eq {α : Type u} {s t : set α} (h : s = t) : s ≃ t :=
 { to_fun := λ x, ⟨x, h ▸ x.2⟩,
   inv_fun := λ x, ⟨x, h.symm ▸ x.2⟩,
@@ -1319,21 +1321,21 @@ protected def compl {α β : Type*} {s : set α} {t : set β} [decidable_pred s]
       (calc α ≃ s ⊕ (sᶜ : set α) : (set.sum_compl s).symm
           ... ≃ t ⊕ (tᶜ : set β) : e₀.sum_congr e₁
           ... ≃ β : set.sum_compl t)
-      (λ x, by simp only [sum.map_inl, trans_apply, sum_congr_to_fun,
+      (λ x, by simp only [sum.map_inl, trans_apply, sum_congr_apply,
         set.sum_compl_apply_inl, set.sum_compl_symm_apply]),
   left_inv := λ e,
     begin
       ext x,
       by_cases hx : x ∈ s,
       { simp only [set.sum_compl_symm_apply_of_mem hx, ←e.prop ⟨x, hx⟩,
-          sum.map_inl, sum_congr_to_fun, trans_apply,
+          sum.map_inl, sum_congr_apply, trans_apply,
           subtype.coe_mk, set.sum_compl_apply_inl] },
       { simp only [set.sum_compl_symm_apply_of_not_mem hx, sum.map_inr,
           subtype_congr_apply, set.sum_compl_apply_inr, trans_apply,
-          sum_congr_to_fun, subtype.coe_mk] },
+          sum_congr_apply, subtype.coe_mk] },
     end,
   right_inv := λ e, equiv.ext $ λ x, by simp only [sum.map_inr, subtype_congr_apply,
-    set.sum_compl_apply_inr, function.comp_app, sum_congr_to_fun, equiv.coe_trans,
+    set.sum_compl_apply_inr, function.comp_app, sum_congr_apply, equiv.coe_trans,
     subtype.coe_eta, subtype.coe_mk, set.sum_compl_symm_apply_compl] }
 
 /-- The set product of two sets is equivalent to the type product of their coercions to types. -/

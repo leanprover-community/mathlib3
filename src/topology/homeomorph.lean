@@ -9,7 +9,7 @@ open set
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
-/-- α and β are homeomorph, also called topological isomoph -/
+/-- Homeomorphism between `α` and `β`, also called topological isomorphism -/
 @[nolint has_inhabited_instance] -- not all spaces are homeomorphic to each other
 structure homeomorph (α : Type*) (β : Type*) [topological_space α] [topological_space β]
   extends α ≃ β :=
@@ -29,7 +29,7 @@ rfl
 
 lemma coe_eq_to_equiv (h : α ≃ₜ β) (a : α) : h a = h.to_equiv a := rfl
 
-/-- Identity map is a homeomorphism. -/
+/-- Identity map as a homeomorphism. -/
 protected def refl (α : Type*) [topological_space α] : α ≃ₜ α :=
 { continuous_to_fun := continuous_id, continuous_inv_fun := continuous_id, .. equiv.refl α }
 

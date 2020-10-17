@@ -170,7 +170,7 @@ begin
 end
 
 @[simp] theorem reflect_mul
-  {f g : polynomial R} {F G : ℕ} (Ff : f.nat_degree ≤ F) (Gg : g.nat_degree ≤ G) :
+  (f g : polynomial R) {F G : ℕ} (Ff : f.nat_degree ≤ F) (Gg : g.nat_degree ≤ G) :
   reflect (F + G) (f * g) = reflect F f * reflect G g :=
 reflect_mul_induction _ _ F G f g f.support.card.le_succ g.support.card.le_succ Ff Gg
 
@@ -184,7 +184,7 @@ theorem reverse_mul {f g : polynomial R} (fg : f.leading_coeff * g.leading_coeff
  reverse (f * g) = reverse f * reverse g :=
 begin
   unfold reverse,
-  rw [nat_degree_mul' fg, reflect_mul rfl.le rfl.le],
+  rw [nat_degree_mul' fg, reflect_mul  f g rfl.le rfl.le],
 end
 
 @[simp] lemma reverse_mul_of_domain {R : Type*} [domain R] (f g : polynomial R) :

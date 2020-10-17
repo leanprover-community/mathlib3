@@ -22,7 +22,7 @@ because we don't need to do any case bashing
 or equivalently whether we're looking at the first or second object in an equalizer diagram).
 
 ## References
-* This is the definition Lurie uses in "Spectral Algebraic Geometry".
+* This is the definition Lurie uses in [Spectral Algebraic Geometry][LurieSAG].
 -/
 
 universes v u

@@ -661,7 +661,7 @@ begin
     exact (mul_dvd_mul_iff_left hzeroa).1 hdiv }
 end
 
-/-`nth_roots n` as a finset is equal to the union of `primitive_roots i R` for `i ∣ n`
+/-- `nth_roots n` as a `finset` is equal to the union of `primitive_roots i R` for `i ∣ n`
 if there is a primitive root of unity in `R`. -/
 lemma nth_roots_one_eq_bind_primitive_roots {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) :
   nth_roots_finset n R = finset.bind (nat.divisors ↑n) (λ (i : ℕ), (primitive_roots i R)) :=

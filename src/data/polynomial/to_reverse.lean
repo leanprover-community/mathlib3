@@ -13,7 +13,7 @@ namespace rev
 
 variables {R : Type*} [semiring R] {f : polynomial R}
 
-@[simp] lemma reflect_ne_zero_iff {N : ℕ} {f : polynomial R} :
+lemma reflect_ne_zero_iff {N : ℕ} {f : polynomial R} :
   reflect N (f : polynomial R) ≠ 0 ↔ f ≠ 0 :=
 not_congr reflect_eq_zero_iff
 
@@ -33,7 +33,8 @@ begin
 end
 
 /-- `mon` is the property of being monotone non-increasing. -/
-def mon {α β : Type*} [linear_order α] [linear_order β] (f : α → β) := ∀ ⦃x y : α⦄, x ≤ y → f y ≤ f x
+def mon {α β : Type*} [linear_order α] [linear_order β] (f : α → β) :=
+  ∀ ⦃x y : α⦄, x ≤ y → f y ≤ f x
 
 lemma monotone_max'_min' {α β : Type*} [decidable_linear_order α] [decidable_linear_order β]
   {s : finset α} (hs : s.nonempty) {f : α → β} (mf : mon f) :
@@ -58,14 +59,14 @@ begin
   rw [monotone_rev_at, nat.sub_le_iff],
   by_cases xle : x ≤ N,
   { rwa nat.sub_sub_self xle, },
-  { rw not_le at xle,
-    apply le_of_lt,
-    convert gt_of_ge_of_gt hxy xle,
-    convert nat.sub_zero N,
-    exact nat.sub_eq_zero_iff_le.mpr (le_of_lt xle), },
+  rw not_le at xle,
+  apply le_of_lt,
+  convert gt_of_ge_of_gt hxy xle,
+  convert nat.sub_zero N,
+  exact nat.sub_eq_zero_iff_le.mpr (le_of_lt xle),
 end
 
-lemma monotone_rev_at_max'_min' {N : ℕ} {s : finset ℕ} {hs : s.nonempty} (H : s.max' hs ≤ N) :
+lemma monotone_rev_at_max'_min' {N : ℕ} {s : finset ℕ} {hs : s.nonempty} :
   max' (image (monotone_rev_at N) s) (nonempty.image hs (monotone_rev_at N)) =
   monotone_rev_at N (min' s hs) :=
 monotone_max'_min' hs (monotone_rev_at_monotone N)
@@ -79,14 +80,13 @@ begin
 end
 
 lemma rev_at_small_min_max {N : ℕ} {s : finset ℕ} {hs : s.nonempty} (sm : s.max' hs ≤ N) :
-  max' (image (rev_at N) s) ((nonempty.image hs (rev_at N))) = rev_at N (min' s hs) :=
+  max' (image (rev_at N) s) (nonempty.image hs (rev_at N)) = rev_at N (min' s hs) :=
 begin
-  rwa [monotone_rev_at_eq_rev_at_small, ← monotone_rev_at_max'_min' sm],
+  rwa [monotone_rev_at_eq_rev_at_small, ← monotone_rev_at_max'_min'],
   have im : (image (rev_at N) s) = (image (monotone_rev_at N) s) →
-    (image (rev_at N) s).max' ((nonempty.image hs (rev_at N))) =
-    (image (monotone_rev_at N) s).max' ((nonempty.image hs (monotone_rev_at N))),
-  { intro a,
-    simp only [a], },
+    (image (rev_at N) s).max' (nonempty.image hs (rev_at N)) =
+    (image (monotone_rev_at N) s).max' (nonempty.image hs (monotone_rev_at N)),
+  { intro a, congr, assumption, },
   apply im,
   ext1 a,
   repeat { rw mem_image },
@@ -128,10 +128,8 @@ lemma lead_reflect_eq_trailing (N : ℕ) (H : f.nat_degree ≤ N) :
 begin
   by_cases f0 : f = 0,
   { rw [f0, reflect_zero, leading_coeff, trailing_coeff, coeff_zero, coeff_zero], },
-  have c : (reflect N f).leading_coeff = (reflect N f).coeff (reflect N f).nat_degree, by congr,
-  have d : f.trailing_coeff = f.coeff f.nat_trailing_degree, by congr,
-  have rfn0 : reflect N f ≠ 0 := reflect_ne_zero_iff.mpr f0,
-  rw [c, d, nat_trailing_degree_eq_support_min' f0, nat_degree_eq_support_max' rfn0],
+  rw [leading_coeff, trailing_coeff, nat_trailing_degree_eq_support_min' f0],
+  rw nat_degree_eq_support_max' (reflect_ne_zero_iff.mpr f0),
   simp_rw [coeff_reflect, reflect_support],
   rw [rev_at_small_min_max, rev_at_invol],
   convert H,

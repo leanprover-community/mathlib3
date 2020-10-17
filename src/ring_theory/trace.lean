@@ -215,7 +215,7 @@ rfl
 
 @[simp] lemma dim_adjoin_simple (alg : is_algebraic K L) (hx : is_integral K x) :
   (has_power_basis_adjoin_simple _ alg x).dim = (minimal_polynomial hx).nat_degree :=
-_
+sorry
 
 lemma findim_eq_dim (h : has_power_basis K L) :
   findim K L = h.dim :=

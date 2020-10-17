@@ -592,8 +592,7 @@ begin
       intro x,
       simp only [multiset.mem_erase_dup, finset.mem_mk] },
     rw [hrw, ← fintype.card_congr (roots_of_unity_equiv_nth_roots R n), card_roots_of_unity h] at ha,
-    exact nat.lt_asymm ha ha
-  }
+    exact nat.lt_asymm ha ha }
 end
 
 /-- The multiset `nth_roots ↑n (1 : R)` as a finset. -/

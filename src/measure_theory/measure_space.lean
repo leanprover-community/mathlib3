@@ -184,7 +184,8 @@ lemma to_outer_measure_eq_induced_outer_measure :
 
 lemma measure_eq_extend (hs : is_measurable s) :
   μ s = extend (λ t (ht : is_measurable t), μ t) s :=
-by { rw [measure_eq_induced_outer_measure, induced_outer_measure_eq_extend _ _ hs], exact μ.m_Union }
+by { rw [measure_eq_induced_outer_measure, induced_outer_measure_eq_extend _ _ hs],
+  exact μ.m_Union }
 
 @[simp] lemma measure_empty : μ ∅ = 0 := μ.empty
 
@@ -716,7 +717,8 @@ def comap (f : α → β) : measure β →ₗ[ennreal] measure α :=
 if hf : injective f ∧ ∀ s, is_measurable s → is_measurable (f '' s) then
   lift_linear (outer_measure.comap f) $ λ μ s hs t,
   begin
-    simp only [coe_to_outer_measure, outer_measure.comap_apply, ← image_inter hf.1, image_diff hf.1],
+    simp only [coe_to_outer_measure, outer_measure.comap_apply, ← image_inter hf.1,
+      image_diff hf.1],
     apply le_to_outer_measure_caratheodory,
     exact hf.2 s hs
   end

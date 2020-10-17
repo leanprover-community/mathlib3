@@ -1644,7 +1644,7 @@ lemma sub_def : (μ - ν) = Inf { d | μ ≤ d + ν } := rfl
 lemma sub_eq_zero_of_le (h : μ ≤ ν) : μ - ν = 0 :=
 begin
   rw [← le_zero_iff_eq', measure.sub_def],
-  apply @Inf_le (measure_theory.measure α) _ _,
+  apply @Inf_le (measure α) _ _,
   simp [h],
 end
 

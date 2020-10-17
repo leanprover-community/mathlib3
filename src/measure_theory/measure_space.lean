@@ -669,11 +669,7 @@ end Inf
 protected lemma zero_le (μ : measure α) : 0 ≤ μ := bot_le
 
 lemma le_zero_iff_eq' : μ ≤ 0 ↔ μ = 0 :=
-begin
-  split; intros A1,
-  { apply le_antisymm A1, apply measure.zero_le },
-  { rw A1, apply le_refl _ },
-end
+μ.zero_le.le_iff_eq
 
 @[simp] lemma measure_univ_eq_zero {μ : measure α} : μ univ = 0 ↔ μ = 0 :=
 ⟨λ h, bot_unique $ λ s hs, trans_rel_left (≤) (measure_mono (subset_univ s)) h, λ h, h.symm ▸ rfl⟩

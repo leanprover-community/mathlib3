@@ -38,8 +38,7 @@ instance : normalization_monoid (polynomial R) :=
       dsimp,
       rcases polynomial.is_unit_iff.1 ⟨u, rfl⟩ with ⟨_, ⟨w, rfl⟩, h2⟩,
       rw [← h2, leading_coeff_C, norm_unit_coe_units, ← C_mul, units.mul_inv, C_1],
-    end, }
-
+    end }
 
 @[simp]
 lemma coe_norm_unit {p : polynomial R} :

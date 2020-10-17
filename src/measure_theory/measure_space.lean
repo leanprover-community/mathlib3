@@ -1384,7 +1384,7 @@ lemma measure_ne_top (μ : measure α) [finite_measure μ] (s : set α) : μ s �
 ne_of_lt (measure_lt_top μ s)
 
 /-- `le_of_add_le_add_left` is normally applicable to `ordered_cancel_add_comm_monoid`,
-but you can't cancel infinity, so μ must be finite. -/
+but it holds for measures with the additional assumption that μ is finite. -/
 lemma measure.le_of_add_le_add_left {μ ν₁ ν₂ : measure α} [finite_measure μ] (A2 : μ + ν₁ ≤ μ + ν₂) : ν₁ ≤ ν₂ :=
 λ S B1, ennreal.le_of_add_le_add_left (measure_theory.measure_lt_top μ S) (A2 S B1)
 

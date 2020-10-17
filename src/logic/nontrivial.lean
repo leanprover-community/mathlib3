@@ -233,7 +233,7 @@ begin
 end
 ```
 -/
-meta def nontriviality (t : parse parser.pexpr?)
+meta def nontriviality (t : parse texpr?)
   (lems : parse (tk "using" *> simp_arg_list <|> pure [])) :
   tactic unit :=
 do

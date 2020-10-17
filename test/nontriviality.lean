@@ -90,3 +90,12 @@ begin
   rw [set.empty_union] at hs,
   exact or.inr hs
 end
+
+/-! Test with nonatomic type argument -/
+
+example (α : ℕ → Type) (a b : α 0) (h : a = b) : a = b :=
+begin
+  nontriviality α 0 using [nat.zero_lt_one],
+  guard_hyp _inst : nontrivial (α 0),
+  exact h
+end

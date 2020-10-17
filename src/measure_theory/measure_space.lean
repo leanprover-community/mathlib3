@@ -667,11 +667,11 @@ end Inf
 
 protected lemma zero_le (μ : measure α) : 0 ≤ μ := bot_le
 
-lemma le_zero_iff_eq':μ ≤ 0 ↔ μ = 0 :=
+lemma le_zero_iff_eq' : μ ≤ 0 ↔ μ = 0 :=
 begin
   split;intros A1,
-  {apply le_antisymm A1, apply measure.zero_le},
-  {rw A1, apply le_refl _},
+  { apply le_antisymm A1, apply measure.zero_le },
+  { rw A1, apply le_refl _ },
 end
 
 @[simp] lemma measure_univ_eq_zero {μ : measure α} : μ univ = 0 ↔ μ = 0 :=
@@ -1385,7 +1385,7 @@ ne_of_lt (measure_lt_top μ s)
 
 /-- `le_of_add_le_add_left` is normally applicable to `ordered_cancel_add_comm_monoid`,
 but you can't cancel infinity, so μ must be finite. -/
-lemma measure.le_of_add_le_add_left {μ ν₁ ν₂ :measure α} [finite_measure μ] (A2:μ + ν₁ ≤ μ + ν₂) : ν₁ ≤ ν₂ :=
+lemma measure.le_of_add_le_add_left {μ ν₁ ν₂ : measure α} [finite_measure μ] (A2 : μ + ν₁ ≤ μ + ν₂) : ν₁ ≤ ν₂ :=
 λ S B1, ennreal.le_of_add_le_add_left (measure_theory.measure_lt_top μ S) (A2 S B1)
 
 @[priority 100]
@@ -1624,6 +1624,7 @@ lemma finite_at_nhds_within [topological_space α] (μ : measure α) [locally_fi
 @[simp] lemma finite_at_principal {s : set α} : μ.finite_at_filter (𝓟 s) ↔ μ s < ⊤ :=
 ⟨λ ⟨t, ht, hμ⟩, (measure_mono ht).trans_lt hμ, λ h, ⟨s, mem_principal_self s, h⟩⟩
 
+
 /-! ### Subtraction of measures -/
 
 /-- The measure `μ - ν` is defined to be the least measure `τ` such that `μ ≤ τ + ν`.
@@ -1633,14 +1634,14 @@ Specifically, note that if you have `α = {1,2}`, and  `μ {1} = 2`, `μ {2} = 0
 `ν {2} = 2`, `ν {1} = 0`, then `(μ - ν) {1, 2} = 2`. However, if `μ ≤ ν`, and
 `ν univ ≠ ⊤`, then `(μ - ν) + ν = μ`. -/
 noncomputable instance has_sub {α : Type*} [measurable_space α] : has_sub (measure α) := 
-⟨λ μ ν, Inf {τ | μ ≤ τ + ν}⟩
+⟨λ μ ν, Inf  { τ | μ ≤ τ + ν } ⟩
 
 section measure_sub
 variables {ν ν₁ ν₂:measure_theory.measure α}
 
-lemma sub_def : (μ - ν) = Inf {d | μ ≤ d + ν} := rfl
+lemma sub_def : (μ - ν) = Inf { d | μ ≤ d + ν } := rfl
 
-lemma sub_eq_zero_of_le (h:μ ≤ ν) : μ - ν = 0 :=
+lemma sub_eq_zero_of_le (h : μ ≤ ν) : μ - ν = 0 :=
 begin
   rw [← le_zero_iff_eq', measure.sub_def],
   apply @Inf_le (measure_theory.measure α) _ _,
@@ -1648,33 +1649,34 @@ begin
 end
 
 /-- This application lemma only works in special circumstances. Given knowledge of
-when μ ≤ ν and ν ≤ μ, a more general application lemma can be written. -/
-lemma sub_apply {s:set α} [finite_measure ν] (h₁:is_measurable s) (h₂:ν ≤ μ) : (μ - ν) s = μ s - ν s :=
+when `μ ≤ ν` and `ν ≤ μ`, a more general application lemma can be written. -/
+lemma sub_apply {s : set α} [finite_measure ν] (h₁ : is_measurable s) (h₂ : ν ≤ μ) :
+(μ - ν) s = μ s - ν s :=
 begin
-  -- We begin by defining measure_sub, which will be equal to (μ - ν).
-  let measure_sub:measure α := @measure_theory.measure.of_measurable α _ 
-    (λ (t:set α) (h_t_is_measurable:is_measurable t), (μ t - ν t))
+  -- We begin by defining `measure_sub`, which will be equal to `(μ - ν)`.
+  let measure_sub : measure α := @measure_theory.measure.of_measurable α _ 
+    (λ (t : set α) (h_t_is_measurable : is_measurable t), (μ t - ν t))
     begin
      simp,
     end
     begin
       intros g h_meas h_disj, simp only, rw ennreal.tsum_sub, 
-      repeat {rw ← measure_theory.measure_Union h_disj h_meas},
+      repeat { rw ← measure_theory.measure_Union h_disj h_meas },
       apply measure_theory.measure_lt_top, intro i, apply h₂, apply h_meas
     end,
-  -- Now, we demonstrate μ - ν = measure_sub, and apply it.
+  -- Now, we demonstrate `μ - ν = measure_sub`, and apply it.
   begin
     have h_measure_sub_add : (ν + measure_sub = μ),
-    {ext t h_t_is_measurable,
+    { ext t h_t_is_measurable,
      simp only [pi.add_apply, coe_add],
      rw [measure_theory.measure.of_measurable_apply _ h_t_is_measurable, add_comm, 
-         ennreal.sub_add_cancel_of_le (h₂ t h_t_is_measurable)]},
+         ennreal.sub_add_cancel_of_le (h₂ t h_t_is_measurable)] },
     have h_measure_sub_eq : (μ - ν) = measure_sub,
-    {rw measure_theory.measure.sub_def, apply le_antisymm,
-    {apply @Inf_le (measure α) (measure.complete_lattice),simp [le_refl, add_comm, h_measure_sub_add]},
+    { rw measure_theory.measure.sub_def, apply le_antisymm,
+    { apply @Inf_le (measure α) (measure.complete_lattice),simp [le_refl, add_comm, h_measure_sub_add] },
     apply @le_Inf (measure α) (measure.complete_lattice),
-    intros d h_d, rw [← h_measure_sub_add, mem_set_of_eq, add_comm d] at h_d, 
-    apply measure.le_of_add_le_add_left h_d},
+    intros d h_d, rw [← h_measure_sub_add, mem_set_of_eq, add_comm d] at h_d,
+    apply measure.le_of_add_le_add_left h_d },
     rw h_measure_sub_eq,
     apply measure.of_measurable_apply _ h₁,
   end

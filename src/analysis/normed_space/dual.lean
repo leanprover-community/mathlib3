@@ -77,8 +77,6 @@ linear_map.mk_continuous
   1
   (λ x, by { convert double_dual_bound _ _ _, simp } )
 
-instance [complete_space 𝕜] : complete_space (dual 𝕜 E) := continuous_linear_map.complete_space
-
 end general
 
 section bidual_isometry

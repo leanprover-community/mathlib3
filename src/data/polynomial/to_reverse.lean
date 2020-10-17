@@ -149,34 +149,67 @@ lead_reflect_eq_trailing rfl.le
 lemma trailing_reverse_eq_lead (f : polynomial R) : trailing_coeff (reverse f) = leading_coeff f :=
 trailing_reflect_eq_lead rfl.le
 
-lemma trailing_degree_add_le (p q : polynomial R) : min (nat_trailing_degree p) (nat_trailing_degree q) ≤ nat_trailing_degree (p + q) :=
-begin
-  rw @nat_trailing_degree_eq_support_min' R _ (p+q) _,
-  rw @nat_trailing_degree_eq_support_min' R _ p _,
-  rw @nat_trailing_degree_eq_support_min' R _ q _,
-  let N : ℕ := (max p.nat_degree q.nat_degree),
-  conv_lhs { congr,
-    congr,
-    congr,
-    rw ← @reflect_invol R _ p N,
-    congr,
-    skip,
-    skip,
-    congr,
-    congr,
-    rw ← @reflect_invol R _ q N },
-  simp_rw reflect_support,
-  simp_rw ← rev_at_le_min_max,
-  simp_rw (@lead_reflect_eq_trailing R _ (reflect N p) N),
+end rev
 
-  rw ← @reflect_invol R _ q N,
-  sorry,
---calc trailing_degree (p + q) = ((p + q).support).inf some : rfl
---  ... ≤ (p.support ∪ q.support).inf some : by convert sup_mono support_add
---  ... = p.support.inf some ⊔ q.support.inf some : by convert sup_union
---  ... = _ : with_top.sup_eq_max _ _
+section integral_domain
+variables {R : Type*} [integral_domain R] {p q : polynomial R}
+
+/-
+@[simp] lemma degree_mul : degree (p * q) = degree p + degree q :=
+if hp0 : p = 0 then by simp only [hp0, degree_zero, zero_mul, with_bot.bot_add]
+else if hq0 : q = 0 then  by simp only [hq0, degree_zero, mul_zero, with_bot.add_bot]
+else degree_mul' $ mul_ne_zero (mt leading_coeff_eq_zero.1 hp0)
+    (mt leading_coeff_eq_zero.1 hq0)
+
+@[simp] lemma degree_pow (p : polynomial R) (n : ℕ) :
+  degree (p ^ n) = n •ℕ (degree p) :=
+by induction n; [simp only [pow_zero, degree_one, zero_nsmul],
+simp only [*, pow_succ, succ_nsmul, degree_mul]]
+-/
+
+@[simp] lemma trailing_coeff_mul (p q : polynomial R) : trailing_coeff (p * q) =
+  trailing_coeff p * trailing_coeff q :=
+begin
+  by_cases hp : p = 0,
+  { simp * at *,
+    simp only [hp, zero_mul, trailing_coeff_zero] },
+  { by_cases hq : q = 0,
+    { simp only [hq, mul_zero, leading_coeff_zero] },
+    { rw [leading_coeff_mul'],
+      exact mul_ne_zero (mt leading_coeff_eq_zero.1 hp) (mt leading_coeff_eq_zero.1 hq) } }
 end
 
-end rev
+/-
+@[simp] lemma leading_coeff_X_add_C (a b : R) (ha : a ≠ 0):
+  leading_coeff (C a * X + C b) = a :=
+begin
+  rw [add_comm, leading_coeff_add_of_degree_lt],
+  { simp },
+  { simpa [degree_C ha] using lt_of_le_of_lt degree_C_le (with_bot.coe_lt_coe.2 zero_lt_one)}
+end
+-/
+
+/-- `polynomial.leading_coeff` bundled as a `monoid_hom` when `R` is an `integral_domain`, and thus
+  `leading_coeff` is multiplicative -/
+noncomputable def trailing_coeff_hom : polynomial R →* R :=
+{ to_fun := trailing_coeff,
+  map_one' := begin
+    sorry,
+  end,
+  map_mul' := trailing_coeff_mul }
+
+@[simp] lemma leading_coeff_hom_apply (p : polynomial R) :
+  leading_coeff_hom p = leading_coeff p := rfl
+
+@[simp] lemma leading_coeff_pow (p : polynomial R) (n : ℕ) :
+  leading_coeff (p ^ n) = leading_coeff p ^ n :=
+leading_coeff_hom.map_pow p n
+
+end integral_domain
+
+
+
+
+
 
 end polynomial

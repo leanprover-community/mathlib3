@@ -612,12 +612,12 @@ def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
 /-- See Note [custom simps projection] -/
 def equiv.simps.inv_fun (e : α ≃ β) : β → α := e.symm
 
-initialize_simps_projections equiv (to_fun → apply, inv_fun → symm)
+initialize_simps_projections equiv (to_fun → apply, inv_fun → symm_apply)
 
 run_cmd do
   e ← get_env,
   data ← simps_get_raw_projections e `manual_projection_names.equiv,
-  guard $ data.2.map prod.fst = [`apply, `symm]
+  guard $ data.2.map prod.fst = [`apply, `symm_apply]
 
 @[simps {simp_rhs := tt}] protected def equiv.trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
 ⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
@@ -626,10 +626,10 @@ example (e₁ : α ≃ β) (e₂ : β ≃ γ) (x : α) : (e₁.trans e₂) x = e
 by simp only [equiv.trans_apply]
 
 example (e₁ : α ≃ β) (e₂ : β ≃ γ) (x : γ) : (e₁.trans e₂).symm x = e₁.symm (e₂.symm x) :=
-by simp only [equiv.trans_symm]
+by simp only [equiv.trans_symm_apply]
 
 -- the new projection names are parsed correctly (the old projection names won't work anymore)
-@[simps apply symm] protected def equiv.trans2 (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
+@[simps apply symm_apply] protected def equiv.trans2 (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
 ⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
 
 -- initialize_simps_projections equiv

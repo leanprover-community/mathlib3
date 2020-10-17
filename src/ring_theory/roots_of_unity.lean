@@ -638,10 +638,11 @@ begin
   exact h hkl
 end
 
-/-If in `R` there is a `n`-th primitive root of unity and `b` divides `n`,
-then there is in `R` a `b`-th primitive root of unity. -/
-lemma prim_of_pow_prim {ζ : R} {n : ℕ} {a b : ℕ} (hn: 0 < n) (h : is_primitive_root ζ n) (hprod : n = a * b)
-  : is_primitive_root (ζ ^ a) b :=
+/-- If there is a `n`-th primitive root of unity in `R` and `b` divides `n`,
+then there is a `b`-th primitive root of unity in `R`. -/
+lemma prim_of_pow_prim {ζ : R} {n : ℕ} {a b : ℕ} 
+  (hn: 0 < n) (h : is_primitive_root ζ n) (hprod : n = a * b) :
+  is_primitive_root (ζ ^ a) b :=
 begin
   apply (iff_def (ζ ^ a) b).2,
   split,

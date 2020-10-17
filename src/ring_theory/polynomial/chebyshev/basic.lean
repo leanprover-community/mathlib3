@@ -40,7 +40,7 @@ and do not have `map (int.cast_ring_hom R)` interfering all the time.
 noncomputable theory
 
 namespace polynomial
-
+open complex
 variables (R S : Type*) [comm_ring R] [comm_ring S]
 
 /-- The `(m * n)`-th Chebyshev polynomial is the composition of the `m`-th and `n`-th -/
@@ -51,10 +51,10 @@ begin
   congr' 1,
   apply map_injective (int.cast_ring_hom ℂ) int.cast_injective,
   simp only [map_comp, map_chebyshev₁],
-  apply eq_of_infinite_eval_eq,
-  apply set.infinite_mono _ complex.range_cos_infinite,
-  rintro _ ⟨θ, rfl⟩,
-  simp only [chebyshev₁_complex_cos, nat.cast_mul, set.mem_set_of_eq, eval_comp, mul_assoc]
+  apply polynomial.funext,
+  intro z,
+  obtain ⟨θ, rfl⟩ := cos_surjective z,
+  simp only [chebyshev₁_complex_cos, nat.cast_mul, eval_comp, mul_assoc],
 end
 
 section lambdashev

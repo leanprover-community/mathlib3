@@ -596,9 +596,9 @@ begin
   }
 end
 
-/--The multiset `nth_roots ↑n (1 : R)` as a finset. -/
+/-- The multiset `nth_roots ↑n (1 : R)` as a finset. -/
 def nth_roots_finset (n : ℕ+) (R : Type*) [integral_domain R] : finset R :=
-  multiset.to_finset (nth_roots n (1 : R))
+multiset.to_finset (nth_roots n (1 : R))
 
 open_locale nat
 

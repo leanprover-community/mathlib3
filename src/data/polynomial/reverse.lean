@@ -67,11 +67,9 @@ lemma rev_at_add {N O n o : ℕ} (hn : n ≤ N) (ho : o ≤ O) :
 begin
   rcases nat.le.dest hn with ⟨n', rfl⟩,
   rcases nat.le.dest ho with ⟨o', rfl⟩,
-  repeat { rw rev_at_le },
-  { rw [add_assoc, add_left_comm n' o, ← add_assoc], simp },
-  { exact le_add_right (le_refl _), },
-  { exact le_add_right (le_refl _), },
-  { exact add_le_add hn ho }
+  repeat { rw rev_at_le (le_add_right rfl.le) },
+  rw [add_assoc, add_left_comm n' o, ← add_assoc, rev_at_le (le_add_right rfl.le)],
+  repeat {rw nat.add_sub_cancel_left},
 end
 
 /-- `reflect N f` is the polynomial such that `(reflect N f).coeff i = f.coeff (rev_at N i)`.
@@ -106,7 +104,7 @@ begin
     injection a with f0 f1,
     rwa [map_eq_empty, support_eq_empty] at f0, },
   { rintro rfl,
-    exact reflect_zero, },
+    refl, },
 end
 
 @[simp] lemma reflect_add (f g : polynomial R) (N : ℕ) :
@@ -135,19 +133,19 @@ end
 by rw [← one_mul (X ^ n), ← one_mul (X ^ (rev_at N n)), ← C_1, reflect_C_mul_X_pow]
 
 lemma reflect_mul_induction (cf cg : ℕ) :
- ∀ N O : ℕ, ∀ f g : polynomial R,
- f.support.card ≤ cf.succ → g.support.card ≤ cg.succ → f.nat_degree ≤ N → g.nat_degree ≤ O →
- (reflect (N + O) (f * g)) = (reflect N f) * (reflect O g) :=
+  ∀ N O : ℕ, ∀ f g : polynomial R,
+  f.support.card ≤ cf.succ → g.support.card ≤ cg.succ → f.nat_degree ≤ N → g.nat_degree ≤ O →
+  (reflect (N + O) (f * g)) = (reflect N f) * (reflect O g) :=
 begin
   induction cf with cf hcf,
-  --first induction: base case
+  --first induction (left): base case
   { induction cg with cg hcg,
-    -- second induction: base case
+    -- second induction (right): base case
     { intros N O f g Cf Cg Nf Og,
       rw [C_mul_X_pow_of_card_support_le_one Cf, C_mul_X_pow_of_card_support_le_one Cg],
       simp only [mul_assoc, X_pow_mul, ← pow_add X, reflect_C_mul, reflect_monomial,
                  add_comm, rev_at_add Nf Og] },
-    -- second induction: induction step
+    -- second induction (right): induction step
     { intros N O f g Cf Cg Nf Og,
       by_cases g0 : g = 0,
       { rw [g0, reflect_zero, mul_zero, mul_zero, reflect_zero], },
@@ -158,7 +156,7 @@ begin
       { exact (le_trans (nat_degree_C_mul_X_pow_le g.leading_coeff g.nat_degree) Og) },
       { exact nat.lt_succ_iff.mp (gt_of_ge_of_gt Cg (erase_lead_support_card_lt g0)) },
       { exact le_trans erase_lead_nat_degree_le Og } } },
-  --first induction: induction step
+  --first induction (left): induction step
   { intros N O f g Cf Cg Nf Og,
     by_cases f0 : f = 0,
     { rw [f0, reflect_zero, zero_mul, zero_mul, reflect_zero], },
@@ -186,7 +184,7 @@ theorem reverse_mul {f g : polynomial R} (fg : f.leading_coeff * g.leading_coeff
  reverse (f * g) = reverse f * reverse g :=
 begin
   unfold reverse,
-  rw [nat_degree_mul' fg, reflect_mul (le_refl _) (le_refl _)],
+  rw [nat_degree_mul' fg, reflect_mul rfl.le rfl.le],
 end
 
 @[simp] lemma reverse_mul_of_domain {R : Type*} [domain R] (f g : polynomial R) :

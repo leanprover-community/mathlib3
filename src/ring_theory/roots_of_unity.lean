@@ -575,7 +575,7 @@ begin
     exact hcard }
 end
 
-/--The multiset `nth_roots ↑n (1 : R)` has no repeated elements
+/-- The multiset `nth_roots ↑n (1 : R)` has no repeated elements
 if there is a primitive root of unity in `R`. -/
 lemma nth_roots_nodup {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) : (nth_roots ↑n (1 : R)).nodup :=
 begin

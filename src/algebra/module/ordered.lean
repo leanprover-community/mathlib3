@@ -131,15 +131,8 @@ calc c • a ≤ b ↔ c • a ≤ c • c⁻¹ • b : by rw [smul_inv_smul' hc
 ... ↔ a ≤ c⁻¹ • b : smul_le_smul_iff_of_pos hc
 
 instance prod.ordered_semimodule : ordered_semimodule k (M × N) :=
-ordered_semimodule.mk' $
-begin
-  intros v u c h hc,
-  rw [lt_iff_le_and_ne, ne.def, prod.ext_iff, not_and_distrib] at h ⊢,
-  use ⟨smul_le_smul_of_nonneg h.1.1 hc.le, smul_le_smul_of_nonneg h.1.2 hc.le⟩,
-  cases h.2 with hne hne; [left, right];
-    refine λ H, hne (eq_of_smul_eq_smul_of_pos_of_le H hc _),
-  exacts [h.1.1, h.1.2]
-end
+ordered_semimodule.mk' $ λ v u c h hc,
+  ⟨smul_le_smul_of_nonneg h.1.1 hc.le, smul_le_smul_of_nonneg h.1.2 hc.le⟩
 
 end field
 

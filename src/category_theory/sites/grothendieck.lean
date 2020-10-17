@@ -69,7 +69,6 @@ A sieve `S` on `X` is referred to as `J`-covering, (or just covering), if `S ∈
 See https://stacks.math.columbia.edu/tag/00Z4, or [nlab], or [MM92] Chapter III, Section 2,
 Definition 1.
 -/
-@[ext]
 structure grothendieck_topology :=
 (sieves : Π (X : C), set (sieve X))
 (top_mem' : ∀ X, ⊤ ∈ sieves X)
@@ -84,6 +83,15 @@ instance : has_coe_to_fun (grothendieck_topology C) :=
 
 variables {C} {X Y : C} {S R : sieve X}
 variables (J : grothendieck_topology C)
+
+/--
+An extensionality lemma in terms of the coercion to a pi-type.
+We prove this explicitly rather than deriving it so that it is in terms of the coercion rather than
+the projection `.sieves`.
+-/
+@[ext]
+lemma ext {J₁ J₂ : grothendieck_topology C} (h : (J₁ : Π (X : C), set (sieve X)) = J₂) : J₁ = J₂ :=
+by { cases J₁, cases J₂, congr, apply h }
 
 @[simp] lemma mem_sieves_iff_coe : S ∈ J.sieves X ↔ S ∈ J X := iff.rfl
 
@@ -222,7 +230,7 @@ instance : partial_order (grothendieck_topology C) :=
 { le := λ J₁ J₂, (J₁ : Π (X : C), set (sieve X)) ≤ (J₂ : Π (X : C), set (sieve X)),
   le_refl := λ J₁, le_refl _,
   le_trans := λ J₁ J₂ J₃ h₁₂ h₂₃, le_trans h₁₂ h₂₃,
-  le_antisymm := λ J₁ J₂ h₁₂ h₂₁, grothendieck_topology.ext _ _ (le_antisymm h₁₂ h₂₁) }
+  le_antisymm := λ J₁ J₂ h₁₂ h₂₁, grothendieck_topology.ext (le_antisymm h₁₂ h₂₁) }
 
 /-- See https://stacks.math.columbia.edu/tag/00Z7 -/
 instance : has_Inf (grothendieck_topology C) :=

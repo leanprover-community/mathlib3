@@ -116,9 +116,20 @@ instance : partial_order (pretopology C) :=
   le_trans := λ K₁ K₂ K₃ h₁₂ h₂₃, le_trans h₁₂ h₂₃,
   le_antisymm := λ K₁ K₂ h₁₂ h₂₁, pretopology.ext _ _ (le_antisymm h₁₂ h₂₁) }
 
+instance : order_top (pretopology C) :=
+{ top :=
+  { coverings := λ _, set.univ,
+    has_isos := λ _ _ _ _, set.mem_univ _,
+    pullbacks := λ _ _ _ _ _, set.mem_univ _,
+    transitive := λ _ _ _ _ _, set.mem_univ _ },
+  le_top := λ K X S hS, set.mem_univ _,
+  ..pretopology.partial_order C }
+
 /--
 A pretopology `K` can be completed to a Grothendieck topology `J` by declaring a sieve to be
 `J`-covering if it contains a family in `K`.
+
+See https://stacks.math.columbia.edu/tag/00ZC, or [MM92] Chapter III, Section 2, Equation (2).
 -/
 def to_grothendieck (K : pretopology C) : grothendieck_topology C :=
 { sieves := λ X S, ∃ R ∈ K X, R ≤ (S : arrows_with_codomain _),
@@ -140,7 +151,15 @@ def to_grothendieck (K : pretopology C) : grothendieck_topology C :=
     apply t₃ (RS _ hg) _ hf,
   end }
 
-/-- The largest pretopology generating the given Grothendieck topology. -/
+lemma mem_to_grothendieck (K : pretopology C) (X S) :
+  S ∈ to_grothendieck C K X ↔ ∃ R ∈ K X, R ≤ (S : arrows_with_codomain X) :=
+iff.rfl
+
+/--
+The largest pretopology generating the given Grothendieck topology.
+
+See [MM92] Chapter III, Section 2, Equations (3,4).
+-/
 def of_grothendieck (J : grothendieck_topology C) : pretopology C :=
 { coverings := λ X R, sieve.generate R ∈ J X,
   has_isos := λ X Y f i,
@@ -166,7 +185,7 @@ def of_grothendieck (J : grothendieck_topology C) : pretopology C :=
     exact ⟨_, h, _, ⟨_, _, _, hf, hg, rfl⟩, by simp⟩,
   end }
 
-/-- We have a galois insertion from pretopologies to Grothendieck topologies.  -/
+/-- We have a galois insertion from pretopologies to Grothendieck topologies. -/
 def insert : galois_insertion (to_grothendieck C) (of_grothendieck C) :=
 { gc :=
   λ K J,
@@ -184,7 +203,13 @@ def insert : galois_insertion (to_grothendieck C) (of_grothendieck C) :=
   choice := λ x hx, to_grothendieck C x,
   choice_eq := λ _ _, rfl }
 
-def discrete : pretopology C :=
+/--
+The trivial pretopology, in which the coverings are exactly singleton isomorphisms. This topology is
+also known as the indiscrete, coarse, or chaotic topology.
+
+See https://stacks.math.columbia.edu/tag/07GE
+-/
+def trivial : pretopology C :=
 { coverings := λ X S, ∃ Y (f : Y ⟶ X) (h : is_iso f), S = arrows_with_codomain.singleton_arrow f,
   has_isos := λ X Y f i, ⟨_, _, i, rfl⟩,
   pullbacks := λ X Y f S,
@@ -228,6 +253,19 @@ def discrete : pretopology C :=
       rw hTi,
       apply singleton_arrow_self }
   end }
+
+instance : order_bot (pretopology C) :=
+{ bot := trivial C,
+  bot_le := λ K X R,
+  begin
+    rintro ⟨Y, f, hf, rfl⟩,
+    exactI K.has_isos f,
+  end,
+  ..pretopology.partial_order C }
+
+/-- The trivial pretopology induces the trivial grothendieck topology. -/
+lemma trivial_induces_trivial : to_grothendieck C ⊥ = ⊥ :=
+(insert C).gc.l_bot
 
 end pretopology
 

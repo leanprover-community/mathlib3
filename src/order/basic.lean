@@ -120,6 +120,18 @@ lemma monotone.reflect_lt {α β} [linear_order α] [preorder β] {f : α → β
   {x x' : α} (h : f x < f x') : x < x' :=
 by { rw [← not_le], intro h', apply not_le_of_lt h, exact hf h' }
 
+/-- If `f` is a monotone function from `ℕ` to a preorder such that `y` lies between `f x` and
+  `f (x + 1)`, then `y` doesn't lie in the range of `f`. -/
+lemma monotone.ne_of_lt_of_lt_nat {α} [preorder α] {f : ℕ → α} (hf : monotone f)
+  (x x' : ℕ) {y : α} (h1 : f x < y) (h2 : y < f (x + 1)) : f x' ≠ y :=
+by { rintro rfl, apply (hf.reflect_lt h1).not_le, exact nat.le_of_lt_succ (hf.reflect_lt h2) }
+
+/-- If `f` is a monotone function from `ℤ` to a preorder such that `y` lies between `f x` and
+  `f (x + 1)`, then `y` doesn't lie in the range of `f`. -/
+lemma monotone.ne_of_lt_of_lt_int {α} [preorder α] {f : ℤ → α} (hf : monotone f)
+  (x x' : ℤ) {y : α} (h1 : f x < y) (h2 : y < f (x + 1)) : f x' ≠ y :=
+by { rintro rfl, apply (hf.reflect_lt h1).not_le, exact int.le_of_lt_add_one (hf.reflect_lt h2) }
+
 end monotone
 
 /-- A function `f` is strictly monotone if `a < b` implies `f a < f b`. -/

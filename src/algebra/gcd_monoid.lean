@@ -136,6 +136,22 @@ units.mul_right_dvd
 
 end normalization_monoid
 
+namespace comm_group_with_zero
+variables [decidable_eq α] [comm_group_with_zero α]
+
+@[priority 100] -- see Note [lower instance priority]
+instance : normalization_monoid α :=
+{ norm_unit := λ x, if h : x = 0 then 1 else (units.mk0 x h)⁻¹,
+  norm_unit_zero := dif_pos rfl,
+  norm_unit_mul := λ x y x0 y0, units.eq_iff.1 (by simp [x0, y0, mul_inv']),
+  norm_unit_coe_units := λ u, by { rw [dif_neg (units.ne_zero _), units.mk0_coe], apply_instance } }
+
+@[simp]
+lemma coe_norm_unit {a : α} (h0 : a ≠ 0) : (↑(norm_unit a) : α) = a⁻¹ :=
+by simp [norm_unit, h0]
+
+end comm_group_with_zero
+
 namespace associates
 variables [comm_cancel_monoid_with_zero α] [nontrivial α] [normalization_monoid α]
 

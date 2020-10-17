@@ -420,7 +420,7 @@ begin
 end
 
 @[simp] lemma pow_eq_zero_iff [monoid_with_zero R] [no_zero_divisors R]
-  {n : ℕ} (hn : 0 < n) {a : R} :
+  {a : R} {n : ℕ} (hn : 0 < n) :
   a ^ n = 0 ↔ a = 0 :=
 begin
   refine ⟨pow_eq_zero, _⟩,

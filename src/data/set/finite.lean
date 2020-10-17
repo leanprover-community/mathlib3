@@ -282,6 +282,10 @@ theorem finite_image_iff {s : set α} {f : α → β} (hi : inj_on f s) :
   finite (f '' s) ↔ finite s :=
 ⟨finite_of_finite_image hi, finite.image _⟩
 
+theorem infinite_image_iff {s : set α} {f : α → β} (hi : inj_on f s) :
+  infinite (f '' s) ↔ infinite s :=
+not_congr $ finite_image_iff hi
+
 theorem finite.preimage {s : set β} {f : α → β}
   (I : set.inj_on f (f⁻¹' s)) (h : finite s) : finite (f ⁻¹' s) :=
 finite_of_finite_image I (h.subset (image_preimage_subset f s))

@@ -42,9 +42,14 @@ by exact_mod_cast lt_of_lt_of_le h le_nat_abs
 Should this be in src? Probably, with assumptions 1 < a.nat_abs and 1 < b.nat_abs.
 -/
 
-lemma int_not_prime {a b : ℤ} {c : ℕ} (h1 : 1 < a) (h2 : 1 < b) (h3 : a*b = (c : ℤ)) : ¬ prime c :=
-have h4 : a.nat_abs * b.nat_abs = c, by rw [←nat_abs_mul, h3, nat_abs_of_nat],
-norm_num.not_prime_helper a.nat_abs b.nat_abs c h4 (int_large h1) (int_large h2)
+lemma int_not_prime' {a b : ℤ} {c : ℕ}
+  (ha : 1 < a.nat_abs) (hb : 1 < b.nat_abs) (hc : a*b = (c : ℤ)) : ¬ prime c :=
+have h4 : a.nat_abs * b.nat_abs = c, by rw [←nat_abs_mul, hc, nat_abs_of_nat],
+norm_num.not_prime_helper a.nat_abs b.nat_abs c h4 ha hb
+
+lemma int_not_prime {a b : ℤ} {c : ℕ}
+  (ha : 1 < a) (hb : 1 < b) (hc : a*b = (c : ℤ)) : ¬ prime c :=
+int_not_prime' (int_large ha) (int_large hb) hc
 
 lemma polynomial_not_prime {m : ℕ} (h1 : 1 < m) (n : ℕ) : ¬ prime (n^4 + 4*m^4) :=
 have h2 : 1 < (m : ℤ), from coe_nat_lt.mpr h1,
@@ -94,8 +99,8 @@ end
 /-- We conclude by using `a` to get a contradiction with the assumption that `good_nats` is
 a `fintype`, since the elements of a `fintype` must have a maximal element. -/
 theorem imo1969_q1 : set.infinite good_nats :=
-⟨begin
+begin
   intro h,
-  obtain ⟨m, hm1, hm2⟩ := h.elems.exists_maximal ⟨a 0, by apply h.complete⟩,
-  exact hm2 (a m) (by apply h.complete) (lt_a m)
-end⟩
+  -- obtain ⟨m, hm1, hm2⟩ := h.elems.exists_maximal ⟨a 0, by apply h.complete⟩,
+  -- exact hm2 (a m) (by apply h.complete) (lt_a m)
+end

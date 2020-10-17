@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import data.polynomial.degree.basic
+import data.polynomial.to_reverse
 
 /-!
 # Trailing degree of univariate polynomials
@@ -274,7 +275,7 @@ by simp only [←C_eq_int_cast, nat_trailing_degree_C]
 end ring
 
 section semiring
-variables [semiring R]
+variables [semiring R] {p q : polynomial R} {ι : Type*}
 
 /-- The second-lowest coefficient, or 0 for constants -/
 def next_coeff_up (p : polynomial R) : R :=
@@ -287,12 +288,6 @@ lemma next_coeff_up_C_eq_zero (c : R) :
 lemma next_coeff_up_of_pos_nat_trailing_degree (p : polynomial R) (hp : 0 < p.nat_trailing_degree) :
   next_coeff_up p = p.coeff (p.nat_trailing_degree + 1) :=
 by { rw [next_coeff_up, if_neg], contrapose! hp, simpa }
-
-end semiring
-
-section semiring
-variables [semiring R] {p q : polynomial R} {ι : Type*}
-
 
 lemma coeff_nat_trailing_degree_eq_zero_of_trailing_degree_lt (h : trailing_degree p < trailing_degree q) :
   coeff q (nat_trailing_degree p) = 0 :=
@@ -312,6 +307,26 @@ begin
   rw (trailing_degree_eq_top.mpr p0) at h,
   revert h,
   exact dec_trivial,
+end
+
+@[simp] lemma trailing_coeff_one : (1 : polynomial R).trailing_coeff = 1 :=
+by rw [trailing_coeff, nat_trailing_degree_one, coeff_one_zero]
+
+lemma nat_trailing_degree_le_nat_degree : p.nat_trailing_degree ≤ p.nat_degree :=
+begin
+  by_cases p0 : p = 0,
+  { rw [p0, nat_degree_zero, nat_trailing_degree_zero], },
+  rw [nat_degree_eq_support_max' p0, nat_trailing_degree_eq_support_min' p0],
+  exact p.support.min'_le (p.support.max' _) (p.support.max'_mem _),
+end
+
+@[simp] lemma nat_trailing_degree_eq_zero (h : p.coeff 0 ≠ 0) : p.nat_trailing_degree = 0 :=
+begin
+  rw nat_trailing_degree_eq_support_min',
+  { exact nat.eq_zero_of_le_zero (min'_le _ _ (mem_support_iff_coeff_ne_zero.mpr h)),
+    intro p0,
+    apply h,
+    rw [p0, coeff_zero], },
 end
 
 end semiring

@@ -1582,6 +1582,9 @@ by rw [log, exp_add_mul_I, ← of_real_sin, sin_arg, ← of_real_cos, cos_arg hx
   mul_div_cancel' _ (of_real_ne_zero.2 (mt abs_eq_zero.1 hx)), ← mul_assoc,
   mul_div_cancel' _ (of_real_ne_zero.2 (mt abs_eq_zero.1 hx)), re_add_im]
 
+lemma range_exp : range exp = {x | x ≠ 0} :=
+set.ext $ λ x, ⟨by { rintro ⟨x, rfl⟩, exact exp_ne_zero x }, λ hx, ⟨log x, exp_log hx⟩⟩
+
 lemma exp_inj_of_neg_pi_lt_of_le_pi {x y : ℂ} (hx₁ : -π < x.im) (hx₂ : x.im ≤ π)
   (hy₁ : - π < y.im) (hy₂ : y.im ≤ π) (hxy : exp x = exp y) : x = y :=
 by rw [exp_eq_exp_re_mul_sin_add_cos, exp_eq_exp_re_mul_sin_add_cos y] at hxy;
@@ -1760,6 +1763,31 @@ lemma continuous_tan : continuous (λ x : {x | cos x ≠ 0}, tan x) :=
 
 lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
 by { rw continuous_on_iff_continuous_restrict, convert continuous_tan }
+
+lemma cos_surjective : function.surjective cos :=
+begin
+  intro x,
+  obtain ⟨z, hz⟩ : ∃ z : ℂ, (exp (z * I)) ^ 2 - 2 * x * exp (z * I) + 1 = 0,
+  { sorry },
+  use z,
+  delta cos,
+  rw [sub_add_eq_add_sub, sub_eq_zero, pow_two, ← exp_add, mul_comm _ x, mul_right_comm] at hz,
+  rw ← mul_left_inj' (exp_ne_zero (z * I)),
+  field_simp [add_mul, ← exp_add, hz]
+end
+
+@[simp] lemma range_cos : range cos = set.univ :=
+cos_surjective.range_eq
+
+lemma sin_surjective : function.surjective sin :=
+begin
+  intro x,
+  delta sin,
+
+end
+
+@[simp] lemma range_sin : range sin = set.univ :=
+sin_surjective.range_eq
 
 lemma range_cos_infinite : (range complex.cos).infinite :=
 begin

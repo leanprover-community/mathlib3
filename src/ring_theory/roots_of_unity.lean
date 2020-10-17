@@ -697,8 +697,7 @@ begin
       simp,
       obtain ⟨d, hd⟩ := hx.2,
       rw mul_comm at hd,
-      exact card_primitive_roots (pow (pnat.pos n) h hd) (pnat.pos_of_div_pos hx.2) },
-    },
+      exact card_primitive_roots (pow (pnat.pos n) h hd) (pnat.pos_of_div_pos hx.2) } },
     { intros i hi j hj hdiff,
       simp only [nat.mem_divisors, and_true, ne.def, pnat.ne_zero, not_false_iff] at hi hj,
       exact disjoint (pnat.pos_of_div_pos hi) (pnat.pos_of_div_pos hj) hdiff } }

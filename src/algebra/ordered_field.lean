@@ -593,25 +593,6 @@ lemma mul_self_inj_of_nonneg (a0 : 0 ≤ a) (b0 : 0 ≤ b) : a * a = b * b ↔ a
 mul_self_eq_mul_self_iff.trans $ or_iff_left_of_imp $
   λ h, by { subst a, have : b = 0 := le_antisymm (neg_nonneg.1 a0) b0, rw [this, neg_zero] }
 
-lemma exists_lt_mul_self (a : α) : ∃ x : α, a < x * x :=
-begin
-  by_cases ha : 0 ≤ a,
-   { use (a + 1),
-     calc a = a * 1 : by rw mul_one
-     ... < (a + 1) * (a + 1) : mul_lt_mul (lt_add_one _) (le_add_of_nonneg_left ha)
-                                          zero_lt_one (add_nonneg ha zero_le_one) },
-  { rw not_le at ha,
-    use 1,
-    calc a < 0     : ha
-       ... < 1 * 1 : by simpa only [mul_one] using zero_lt_one }
-end
-
-lemma exists_le_mul_self (a : α) : ∃ x : α, a ≤ x * x :=
-begin
-  obtain ⟨x, hx⟩ := exists_lt_mul_self a,
-  exact ⟨x, le_of_lt hx⟩
-end
-
 end linear_ordered_field
 
 /-- A discrete linear ordered field is a field with a decidable linear order respecting the

@@ -104,7 +104,7 @@ lemma is_basis.total_comp_repr : (finsupp.total ι M R v).comp hv.repr = linear_
 linear_map.ext hv.total_repr
 
 lemma is_basis.ext {f g : M →ₗ[R] M'} (hv : is_basis R v) (h : ∀i, f (v i) = g (v i)) : f = g :=
-linear_map.ext_on hv.2 h
+linear_map.ext_on_range hv.2 h
 
 lemma is_basis.repr_ker : hv.repr.ker = ⊥ :=
 linear_map.ker_eq_bot.2 $ left_inverse.injective hv.total_repr
@@ -313,10 +313,9 @@ lemma is_basis_singleton_one (R : Type*) [unique ι] [ring R] :
   is_basis R (λ (_ : ι), (1 : R)) :=
 begin
   split,
-  { refine linear_independent_iff.2 (λ l, _),
-    rw [finsupp.unique_single l, finsupp.total_single, smul_eq_mul, mul_one],
-    intro hi,
-    simp [hi] },
+  { refine linear_independent_iff.2 (λ l hl, _),
+    rw [finsupp.total_unique, smul_eq_mul, mul_one] at hl,
+    exact finsupp.unique_ext hl },
   { refine top_unique (λ _ _, _),
     simp only [mem_span_singleton, range_const, mul_one, exists_eq, smul_eq_mul] }
 end
@@ -325,13 +324,8 @@ protected lemma linear_equiv.is_basis (hs : is_basis R v)
   (f : M ≃ₗ[R] M') : is_basis R (f ∘ v) :=
 begin
   split,
-  { apply @linear_independent.image _ _ _ _ _ _ _ _ _ _ hs.1 (f : M →ₗ[R] M'),
-    simp [linear_equiv.ker f] },
-  { rw set.range_comp,
-    have : span R ((f : M →ₗ[R] M') '' range v) = ⊤,
-    { rw [span_image (f : M →ₗ[R] M'), hs.2],
-      simp },
-    exact this }
+  { simpa only using hs.1.map' (f : M →ₗ[R] M') f.ker },
+  { rw [set.range_comp, ← linear_equiv.coe_coe, span_image, hs.2, map_top, f.range] }
 end
 
 lemma is_basis_span (hs : linear_independent R v) :
@@ -529,8 +523,7 @@ lemma linear_independent_std_basis
 begin
   have hs' : ∀j : η, linear_independent R (λ i : ιs j, std_basis R Ms j (v j i)),
   { intro j,
-    apply linear_independent.image (hs j),
-    simp [ker_std_basis] },
+    exact (hs j).map' _ (ker_std_basis _ _ _) },
   apply linear_independent_Union_finite hs',
   { assume j J _ hiJ,
     simp [(set.Union.equations._eqn_1 _).symm, submodule.span_image, submodule.span_Union],

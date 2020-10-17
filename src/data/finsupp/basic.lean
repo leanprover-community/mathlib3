@@ -841,6 +841,11 @@ rfl
   lift_add_hom.symm F x = F.comp (single_add_hom x) :=
 rfl
 
+lemma lift_add_hom_symm_apply_apply [add_comm_monoid β] [add_comm_monoid γ]
+  (F : (α →₀ β) →+ γ) (x : α) (y : β) :
+  lift_add_hom.symm F x y = F (single x y) :=
+rfl
+
 @[simp] lemma lift_add_hom_single_add_hom [add_comm_monoid β] :
   lift_add_hom (single_add_hom : α → β →+ α →₀ β) = add_monoid_hom.id _ :=
 lift_add_hom.to_equiv.apply_eq_iff_eq_symm_apply.2 rfl
@@ -1320,8 +1325,8 @@ end
 calc f.to_multiset.count a = f.sum (λx n, (n •ℕ {x} : multiset α).count a) :
     (f.support.sum_hom $ multiset.count a).symm
   ... = f.sum (λx n, n * ({x} : multiset α).count a) : by simp only [multiset.count_smul]
-  ... = f.sum (λx n, n * (x :: 0 : multiset α).count a) : rfl
-  ... = f a * (a :: 0 : multiset α).count a : sum_eq_single _
+  ... = f.sum (λx n, n * (x ::ₘ 0 : multiset α).count a) : rfl
+  ... = f a * (a ::ₘ 0 : multiset α).count a : sum_eq_single _
     (λ a' _ H, by simp only [multiset.count_cons_of_ne (ne.symm H), multiset.count_zero, mul_zero])
     (λ H, by simp only [not_mem_support_iff.1 H, zero_mul])
   ... = f a : by simp only [multiset.count_singleton, mul_one]
@@ -1580,11 +1585,16 @@ smul_single _ _ _
 lemma smul_single_one [semiring β] (a : α) (b : β) : b • single a 1 = single a b :=
 by rw [smul_single, smul_eq_mul, mul_one]
 
+@[ext] lemma lhom_ext' [semiring β] [add_comm_monoid γ] [semimodule β γ] [add_comm_monoid δ]
+  [semimodule β δ] ⦃φ ψ : (α →₀ γ) →ₗ[β] δ⦄ (h : ∀ a b, φ (single a b) = ψ (single a b)) :
+  φ = ψ :=
+linear_map.to_add_monoid_hom_injective $ add_hom_ext h
+
 /-- Two `R`-linear maps from `finsupp X R` which agree on `single x 1` agree everywhere. -/
-@[ext] lemma hom_ext [semiring β] [add_comm_monoid γ] [semimodule β γ] ⦃φ ψ : (α →₀ β) →ₗ[β] γ⦄
+@[ext] lemma lhom_ext [semiring β] [add_comm_monoid γ] [semimodule β γ] ⦃φ ψ : (α →₀ β) →ₗ[β] γ⦄
   (h : ∀ a : α, φ (single a 1) = ψ (single a 1)) : φ = ψ :=
-linear_map.to_add_monoid_hom_injective $ add_hom_ext $ λ x y,
-  by simp only [← smul_single_one x y, linear_map.to_add_monoid_hom_coe, linear_map.map_smul, h]
+lhom_ext' $ λ x y, by simp only [← smul_single_one x y, linear_map.to_add_monoid_hom_coe,
+  linear_map.map_smul, h]
 
 end
 
@@ -1661,6 +1671,32 @@ protected def dom_congr [add_comm_monoid β] (e : α₁ ≃ α₂) : (α₁ →�
     exact map_domain_id
   end,
   map_add' := λ a b, map_domain_add, }
+
+end finsupp
+
+@[to_additive]
+lemma mul_equiv.map_finsupp_prod {α β γ δ : Type*}
+  [has_zero β] [comm_monoid γ] [comm_monoid δ]
+  (h : γ ≃* δ) (f : α →₀ β) (g : α → β → γ) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+h.map_prod _ _
+
+@[to_additive]
+lemma monoid_hom.map_finsupp_prod {α β γ δ : Type*}
+  [has_zero β] [comm_monoid γ] [comm_monoid δ]
+  (h : γ →* δ) (f : α →₀ β) (g : α → β → γ) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+h.map_prod _ _
+
+lemma ring_hom.map_finsupp_sum {α β γ δ : Type*}
+  [has_zero β] [semiring γ] [semiring δ]
+  (h : γ →+* δ) (f : α →₀ β) (g : α → β → γ) : h (f.sum g) = f.sum (λ a b, h (g a b)) :=
+h.map_sum _ _
+
+lemma ring_hom.map_finsupp_prod {α β γ δ : Type*}
+  [has_zero β] [comm_semiring γ] [comm_semiring δ]
+  (h : γ →+* δ) (f : α →₀ β) (g : α → β → γ) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+h.map_prod _ _
+
+namespace finsupp
 
 /-! ### Declarations about sigma types -/
 

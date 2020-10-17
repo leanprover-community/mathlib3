@@ -5,8 +5,7 @@ Authors: Chris Hughes
 -/
 import data.nat.bitwise
 import data.nat.parity
-import ring_theory.multiplicity
-import algebra.gcd_monoid
+import ring_theory.int.basic
 import algebra.big_operators.intervals
 
 /-!

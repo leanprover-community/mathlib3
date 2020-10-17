@@ -109,16 +109,23 @@ begin
       apply (cardinal.mk_range_eq_of_injective hv.injective).symm, }, }
 end
 
+theorem mk_eq_mk_of_basis' {ι' : Type w} {v : ι → V} {v' : ι' → V} (hv : is_basis K v)
+  (hv' : is_basis K v') :
+  cardinal.mk ι = cardinal.mk ι' :=
+cardinal.lift_inj.1 $ mk_eq_mk_of_basis hv hv'
+
+theorem is_basis.mk_eq_dim'' {ι : Type v} {v : ι → V} (h : is_basis K v) :
+  cardinal.mk ι = dim K V :=
+begin
+  obtain ⟨v', e : dim K V = _⟩ := cardinal.min_eq _ _,
+  rw e,
+  rw ← cardinal.mk_range_eq _ h.injective,
+  exact mk_eq_mk_of_basis' h.range v'.2
+end
+
 theorem is_basis.mk_range_eq_dim {v : ι → V} (h : is_basis K v) :
   cardinal.mk (range v) = dim K V :=
-begin
-  have := show ∃ v', dim K V = _, from cardinal.min_eq _ _,
-  rcases this with ⟨v', e⟩,
-  rw e,
-  apply cardinal.lift_inj.1,
-  rw cardinal.mk_range_eq_of_injective h.injective,
-  convert @mk_eq_mk_of_basis _ _ _ _ _ _ _ _ _ h v'.property
-end
+h.range.mk_eq_dim''
 
 theorem is_basis.mk_eq_dim {v : ι → V} (h : is_basis K v) :
   cardinal.lift.{w v} (cardinal.mk ι) = cardinal.lift.{v w} (dim K V) :=
@@ -127,10 +134,6 @@ by rw [←h.mk_range_eq_dim, cardinal.mk_range_eq_of_injective h.injective]
 theorem {m} is_basis.mk_eq_dim' {v : ι → V} (h : is_basis K v) :
   cardinal.lift.{w (max v m)} (cardinal.mk ι) = cardinal.lift.{v (max w m)} (dim K V) :=
 by simpa using h.mk_eq_dim
-
-theorem is_basis.mk_eq_dim'' {b : set V} (hb : is_basis K (λ x : b, (x : V))) :
-  cardinal.mk b = dim K V :=
-(dim K V).lift_id ▸ hb.mk_eq_dim ▸ (cardinal.mk b).lift_id.symm
 
 theorem dim_le {n : ℕ}
   (H : ∀ s : finset V, linear_independent K (λ i : (↑s : set V), (i : V)) → s.card ≤ n) :

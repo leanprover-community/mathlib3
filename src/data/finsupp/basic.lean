@@ -1526,7 +1526,7 @@ def leval [semiring R] (a : α) : (α →₀ R) →ₗ[R] R := leval' R a
 
 @[simp] lemma coe_leval [semiring R] (a : α) (g : α →₀ R) : leval a g = g a := rfl
 
-lemma support_smul {_:semiring R} [add_comm_monoid M] [semimodule R M] {b : R} {g : α →₀ M} :
+lemma support_smul {_ : semiring R} [add_comm_monoid M] [semimodule R M] {b : R} {g : α →₀ M} :
   (b • g).support ⊆ g.support :=
 λ a, by simp only [smul_apply', mem_support_iff, ne.def]; exact mt (λ h, h.symm ▸ smul_zero _)
 

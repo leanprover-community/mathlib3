@@ -46,7 +46,7 @@ def bind (S : arrows_with_codomain X) (R : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄, S f →
 λ Z h, ∃ (Y : C) (g : Z ⟶ Y) (f : Y ⟶ X) (H : S f), R H g ∧ g ≫ f = h
 
 @[simp]
-lemma mem_bind_of_comp {S : arrows_with_codomain X}
+lemma bind_comp {S : arrows_with_codomain X}
   {R : Π ⦃Y : C⦄ ⦃f : Y ⟶ X⦄, S f → arrows_with_codomain Y} {g : Z ⟶ Y} (h₁ : S f) (h₂ : R h₁ g) :
 bind S R (g ≫ f) :=
 ⟨_, _, _, h₁, h₂, rfl⟩
@@ -58,6 +58,16 @@ def singleton_arrow : arrows_with_codomain X :=
 @[simp]
 lemma singleton_arrow_self : singleton_arrow f f :=
 ⟨rfl, category.id_comp _⟩
+
+@[simp] lemma singleton_arrow_eq_iff_domain (f g : Y ⟶ X) : singleton_arrow f g ↔ f = g :=
+begin
+  split,
+  { rintro ⟨_, rfl⟩,
+    symmetry,
+    apply category.id_comp },
+  { rintro rfl,
+    simp },
+end
 
 end arrows_with_codomain
 

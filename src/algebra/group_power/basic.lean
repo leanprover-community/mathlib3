@@ -419,6 +419,15 @@ begin
   exact or.cases_on (mul_eq_zero.1 H) id ih
 end
 
+@[simp] lemma pow_eq_zero_iff [monoid_with_zero R] [no_zero_divisors R]
+  {a : R} {n : ℕ} (hn : 0 < n) :
+  a ^ n = 0 ↔ a = 0 :=
+begin
+  refine ⟨pow_eq_zero, _⟩,
+  rintros rfl,
+  exact zero_pow hn,
+end
+
 @[field_simps] theorem pow_ne_zero [monoid_with_zero R] [no_zero_divisors R]
   {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero h

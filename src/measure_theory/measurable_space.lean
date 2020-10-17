@@ -283,8 +283,8 @@ iff.intro
   (assume h u hu, h _ $ is_measurable_generate_from hu)
   (assume h, generate_from_le h)
 
-/-- If `g` is a collection of subsets of `α` such that the `σ`-algebra generated from `g` contains the
-  same sets as `g`, then `g` was already a `σ`-algebra. -/
+/-- If `g` is a collection of subsets of `α` such that the `σ`-algebra generated from `g` contains
+the same sets as `g`, then `g` was already a `σ`-algebra. -/
 protected def mk_of_closure (g : set (set α)) (hg : {t | (generate_from g).is_measurable' t} = g) :
   measurable_space α :=
 { is_measurable'      := λs, s ∈ g,
@@ -324,7 +324,7 @@ let b : measurable_space α :=
       or.inl $ eq_empty_of_subset_empty $ Union_subset $ assume i,
         (hf i).elim (by simp {contextual := tt}) (assume hi, false.elim $ h ⟨i, hi⟩)) } in
 have b = ⊥, from bot_unique $ assume s hs,
-  hs.elim (assume s, s.symm ▸ @is_measurable_empty _ ⊥) (assume s, s.symm ▸ @is_measurable.univ _ ⊥),
+  hs.elim (λ s, s.symm ▸ @is_measurable_empty _ ⊥) (λ s, s.symm ▸ @is_measurable.univ _ ⊥),
 this ▸ iff.rfl
 
 @[simp] theorem is_measurable_top {s : set α} : @is_measurable _ ⊤ s := trivial
@@ -347,11 +347,13 @@ theorem is_measurable_sup {m₁ m₂ : measurable_space α} {s : set α} :
 iff.refl _
 
 theorem is_measurable_Sup {ms : set (measurable_space α)} {s : set α} :
-  @is_measurable _ (Sup ms) s ↔ generate_measurable (⋃₀ (measurable_space.is_measurable' '' ms)) s :=
+  @is_measurable _ (Sup ms) s ↔
+    generate_measurable (⋃₀ (measurable_space.is_measurable' '' ms)) s :=
 begin
   change @is_measurable' _ (generate_from _) _ ↔ _,
   dsimp [generate_from],
-  rw (show (⨆ (b : measurable_space α) (H : b ∈ ms), set_of (@is_measurable _ b)) = (⋃₀ (is_measurable' '' ms)),
+  rw (show (⨆ (b : measurable_space α) (H : b ∈ ms), set_of (@is_measurable _ b)) =
+    (⋃₀ (is_measurable' '' ms)),
   { ext,
     simp only [exists_prop, mem_Union, sUnion_image, mem_set_of_eq],
     refl, })
@@ -823,8 +825,8 @@ protected lemma measurable {α β} [measurable_space α] [measurable_space β]
   (e : measurable_equiv α β) : measurable (e : α → β) :=
 e.measurable_to_fun
 
-protected lemma measurable_coe_iff {α β γ} [measurable_space α] [measurable_space β] [measurable_space γ]
-  {f : β → γ} (e : measurable_equiv α β) : measurable (f ∘ e) ↔ measurable f :=
+protected lemma measurable_coe_iff {α β γ} [measurable_space α] [measurable_space β]
+  [measurable_space γ] {f : β → γ} (e : measurable_equiv α β) : measurable (f ∘ e) ↔ measurable f :=
 iff.intro
   (assume hfe,
     have measurable (f ∘ (e.symm.trans e).to_equiv) := hfe.comp e.symm.measurable,
@@ -846,8 +848,10 @@ def prod_congr [measurable_space α] [measurable_space β] [measurable_space γ]
 /-- Products of measurable spaces are symmetric. -/
 def prod_comm [measurable_space α] [measurable_space β] : measurable_equiv (α × β) (β × α) :=
 { to_equiv := equiv.prod_comm α β,
-  measurable_to_fun  := measurable.prod_mk (measurable.snd measurable_id) (measurable.fst measurable_id),
-  measurable_inv_fun := measurable.prod_mk (measurable.snd measurable_id) (measurable.fst measurable_id) }
+  measurable_to_fun  := measurable.prod_mk (measurable.snd measurable_id)
+    (measurable.fst measurable_id),
+  measurable_inv_fun := measurable.prod_mk (measurable.snd measurable_id)
+    (measurable.fst measurable_id) }
 
 /-- Sums of measurable spaces are symmetric. -/
 def sum_congr [measurable_space α] [measurable_space β] [measurable_space γ] [measurable_space δ]
@@ -976,8 +980,8 @@ def sum_prod_distrib (α β γ) [measurable_space α] [measurable_space β] [mea
   end,
   measurable_inv_fun :=
     measurable_sum
-      ((measurable_inl.comp (measurable.fst measurable_id)).prod_mk (measurable.snd measurable_id))
-      ((measurable_inr.comp (measurable.fst measurable_id)).prod_mk (measurable.snd measurable_id)) }
+      ((measurable_inl.comp measurable_fst).prod_mk measurable_snd)
+      ((measurable_inr.comp measurable_fst).prod_mk measurable_snd) }
 
 /-- Products distribute over sums (on the left) as measurable spaces. -/
 def prod_sum_distrib (α β γ) [measurable_space α] [measurable_space β] [measurable_space γ] :
@@ -1018,7 +1022,8 @@ structure dynkin_system (α : Type*) :=
 namespace dynkin_system
 
 @[ext] lemma ext : ∀{d₁ d₂ : dynkin_system α}, (∀s:set α, d₁.has s ↔ d₂.has s) → d₁ = d₂
-| ⟨s₁, _, _, _⟩ ⟨s₂, _, _, _⟩ h := have s₁ = s₂, from funext $ assume x, propext $ h x, by subst this
+| ⟨s₁, _, _, _⟩ ⟨s₂, _, _, _⟩ h := have s₁ = s₂, from funext $ assume x, propext $ h x,
+  by subst this
 
 variable (d : dynkin_system α)
 

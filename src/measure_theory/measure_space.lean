@@ -1634,10 +1634,10 @@ Specifically, note that if you have `α = {1,2}`, and  `μ {1} = 2`, `μ {2} = 0
 `ν {2} = 2`, `ν {1} = 0`, then `(μ - ν) {1, 2} = 2`. However, if `μ ≤ ν`, and
 `ν univ ≠ ⊤`, then `(μ - ν) + ν = μ`. -/
 noncomputable instance has_sub {α : Type*} [measurable_space α] : has_sub (measure α) := 
-⟨λ μ ν, Inf  { τ | μ ≤ τ + ν } ⟩
+⟨λ μ ν, Inf {τ | μ ≤ τ + ν} ⟩
 
 section measure_sub
-variables {ν ν₁ ν₂:measure_theory.measure α}
+variables {ν : measure_theory.measure α}
 
 lemma sub_def : μ - ν = Inf {d | μ ≤ d + ν} := rfl
 
@@ -1657,7 +1657,7 @@ begin
   let measure_sub : measure α := @measure_theory.measure.of_measurable α _ 
     (λ (t : set α) (h_t_is_measurable : is_measurable t), (μ t - ν t))
     begin
-     simp,
+      simp
     end
     begin
       intros g h_meas h_disj, simp only, rw ennreal.tsum_sub, 
@@ -1668,15 +1668,15 @@ begin
   begin
     have h_measure_sub_add : (ν + measure_sub = μ),
     { ext t h_t_is_measurable,
-     simp only [pi.add_apply, coe_add],
-     rw [measure_theory.measure.of_measurable_apply _ h_t_is_measurable, add_comm, 
-         ennreal.sub_add_cancel_of_le (h₂ t h_t_is_measurable)] },
+      simp only [pi.add_apply, coe_add],
+      rw [measure_theory.measure.of_measurable_apply _ h_t_is_measurable, add_comm, 
+        ennreal.sub_add_cancel_of_le (h₂ t h_t_is_measurable)] },
     have h_measure_sub_eq : (μ - ν) = measure_sub,
     { rw measure_theory.measure.sub_def, apply le_antisymm,
-    { apply @Inf_le (measure α) (measure.complete_lattice),simp [le_refl, add_comm, h_measure_sub_add] },
-    apply @le_Inf (measure α) (measure.complete_lattice),
-    intros d h_d, rw [← h_measure_sub_add, mem_set_of_eq, add_comm d] at h_d,
-    apply measure.le_of_add_le_add_left h_d },
+      { apply @Inf_le (measure α) (measure.complete_lattice), simp [le_refl, add_comm, h_measure_sub_add] },
+      apply @le_Inf (measure α) (measure.complete_lattice),
+      intros d h_d, rw [← h_measure_sub_add, mem_set_of_eq, add_comm d] at h_d,
+      apply measure.le_of_add_le_add_left h_d },
     rw h_measure_sub_eq,
     apply measure.of_measurable_apply _ h₁,
   end

@@ -855,8 +855,8 @@ section pos_part
 def pos_part (f : α →₁[μ] ℝ) : α →₁[μ] ℝ :=
 ⟨ae_eq_fun.pos_part f,
   begin
-    rw [← ae_eq_fun.integrable_coe_fn,
-      integrable_congr (ae_eq_fun.measurable _) (f.measurable.max measurable_const) (coe_fn_pos_part _)],
+    rw [← ae_eq_fun.integrable_coe_fn, integrable_congr (ae_eq_fun.measurable _)
+      (f.measurable.max measurable_const) (coe_fn_pos_part _)],
     exact f.integrable.max_zero
   end ⟩
 

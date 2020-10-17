@@ -89,7 +89,7 @@ begin
 end
 
 /-- A quadratic has roots if its discriminant has square roots -/
-lemma exist_quadratic_eq_zero (ha : a ≠ 0) (h : ∃ s, discrim a b c = s * s) :
+lemma exists_quadratic_eq_zero (ha : a ≠ 0) (h : ∃ s, discrim a b c = s * s) :
   ∃ x, a * x * x + b * x + c = 0 :=
 begin
   rcases h with ⟨s, hs⟩,

@@ -65,9 +65,6 @@ begin
     exact ⟨_, pullback.lift _ _ comm, _, ⟨_, h, hh, rfl, rfl⟩, by simp⟩ },
 end
 
-set_option pp.proofs true
-set_option pp.implicit false
-
 lemma pullback_singleton {X Y Z : C} (f : Y ⟶ X) (g : Z ⟶ X) :
  ∃ (W : C) (k : W ⟶ Y), pullback_arrows f (singleton_arrow g) = singleton_arrow k :=
 begin
@@ -169,7 +166,8 @@ def of_grothendieck (J : grothendieck_topology C) : pretopology C :=
     exact ⟨_, h, _, ⟨_, _, _, hf, hg, rfl⟩, by simp⟩,
   end }
 
-lemma insert : galois_insertion (to_grothendieck C) (of_grothendieck C) :=
+/-- We have a galois insertion from pretopologies to Grothendieck topologies.  -/
+def insert : galois_insertion (to_grothendieck C) (of_grothendieck C) :=
 { gc :=
   λ K J,
   begin
@@ -186,21 +184,50 @@ lemma insert : galois_insertion (to_grothendieck C) (of_grothendieck C) :=
   choice := λ x hx, to_grothendieck C x,
   choice_eq := λ _ _, rfl }
 
--- galois_insertion.monotone_intro _ _ _ _
-
--- def discrete : pretopology C :=
--- { coverings := λ X S, ∃ Y (f : Y ⟶ X) (h : is_iso f), S = arrows_with_codomain.singleton_arrow f,
---   has_isos := λ X Y f i, ⟨_, _, i, rfl⟩,
---   pullbacks := λ X Y f S,
---   begin
---     rintro ⟨Z, g, i, rfl⟩,
---     rw set.mem_def,
---     obtain ⟨W, k, hk⟩ := pullback_singleton f g,
-
---     refine ⟨_, _, _, _⟩,
---   end
-
--- }
+def discrete : pretopology C :=
+{ coverings := λ X S, ∃ Y (f : Y ⟶ X) (h : is_iso f), S = arrows_with_codomain.singleton_arrow f,
+  has_isos := λ X Y f i, ⟨_, _, i, rfl⟩,
+  pullbacks := λ X Y f S,
+  begin
+    rintro ⟨Z, g, i, rfl⟩,
+    resetI,
+    refine ⟨pullback (eq_to_hom (eq.refl _) ≫ g) f, pullback.snd, _, _⟩,
+    { refine ⟨pullback.lift (f ≫ inv g) (𝟙 _) (by simp), _, _⟩,
+      { apply pullback.hom_ext,
+        { rw [assoc, pullback.lift_fst],
+          rw ← pullback.condition_assoc,
+          simp },
+        { simp } },
+      { simp } },
+    clear i,
+    ext W k,
+    split,
+    { rintro ⟨W, k, ⟨rfl, rfl⟩, rfl, rfl⟩,
+      rw [eq_to_hom_refl (pullback (eq_to_hom (eq.refl W) ≫ g) f) (eq.refl _), id_comp],
+      apply singleton_arrow_self },
+    { rintro ⟨rfl, rfl⟩,
+      exact ⟨_, _, by simp, _, rfl⟩ },
+  end,
+  transitive :=
+  begin
+    rintro X S Ti ⟨Z, g, i, rfl⟩ hS,
+    rcases hS g (singleton_arrow_self g) with ⟨Y, f, i, hTi⟩,
+    refine ⟨_, f ≫ g, _, _⟩,
+    { resetI,
+      apply_instance },
+    ext W k,
+    split,
+    { rintro ⟨V, h, k, ⟨rfl, rfl⟩, hh, rfl⟩,
+      simp only [id_comp, eq_to_hom_refl] at hh,
+      rw hTi at hh,
+      rcases hh with ⟨rfl, rfl⟩,
+      simp only [id_comp, eq_to_hom_refl],
+      apply singleton_arrow_self (f ≫ g) },
+    { rintro ⟨rfl, rfl⟩,
+      refine ⟨_, f, g, singleton_arrow_self _, _, by simp⟩,
+      rw hTi,
+      apply singleton_arrow_self }
+  end }
 
 end pretopology
 

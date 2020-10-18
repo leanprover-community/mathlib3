@@ -1922,12 +1922,11 @@ begin
   ext f',
   split,
   { rintros ⟨e', rfl⟩,
-    exact ⟨continuous_linear_equiv.to_unit (e'.trans e.symm), rfl⟩ },
+    exact ⟨(e'.trans e.symm).to_unit, rfl⟩ },
   { rintros ⟨w, hw⟩,
-    use (continuous_linear_equiv.of_unit w).trans e,
+    use (units_equiv 𝕜 E w).trans e,
     ext x,
-    have hw' : (continuous_linear_equiv.of_unit w) x = w x := rfl,
-    simp [hw, hw'] }
+    simp [hw] }
 end
 
 protected lemma nhds [complete_space E] (e : E ≃L[𝕜] F) :

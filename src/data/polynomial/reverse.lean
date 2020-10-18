@@ -86,10 +86,7 @@ finsupp.emb_domain (rev_at N) f
 
 lemma reflect_support (N : ℕ) (f : polynomial R) :
   (reflect N f).support = image (rev_at N) f.support :=
-begin
-  ext1,
-  rw [reflect, mem_image, support_emb_domain, mem_map],
-end
+by refine finset.ext (λ (a : ℕ), (by rw [reflect, mem_image, support_emb_domain, mem_map]))
 
 @[simp] lemma coeff_reflect (N : ℕ) (f : polynomial R) (i : ℕ) :
   coeff (reflect N f) i = f.coeff (rev_at N i) :=
@@ -101,14 +98,7 @@ calc finsupp.emb_domain (rev_at N) f i
 
 @[simp] lemma reflect_eq_zero_iff {N : ℕ} {f : polynomial R} :
   reflect N (f : polynomial R) = 0 ↔ f = 0 :=
-begin
-  split,
-  { intros a,
-    injection a with f0 f1,
-    rwa [map_eq_empty, support_eq_empty] at f0, },
-  { rintro rfl,
-    refl, },
-end
+by refine ⟨(λ a,by rwa [reflect, emb_domain_eq_zero] at a), by { rintro rfl, refl }⟩
 
 @[simp] lemma reflect_add (f g : polynomial R) (N : ℕ) :
   reflect N (f + g) = reflect N f + reflect N g :=
@@ -116,7 +106,7 @@ by { ext1, rw [coeff_add, coeff_reflect, coeff_reflect, coeff_reflect, coeff_add
 
 @[simp] lemma reflect_C_mul (f : polynomial R) (r : R) (N : ℕ) :
   reflect N (C r * f) = C r * (reflect N f) :=
-by { ext1, rw [coeff_reflect, coeff_C_mul, coeff_C_mul, coeff_reflect], }
+by refine ext (λ (n : ℕ), by rw [coeff_reflect, coeff_C_mul, coeff_C_mul, coeff_reflect])
 
 @[simp] lemma reflect_C_mul_X_pow (N n : ℕ) {c : R} :
   reflect N (C c * X ^ n) = C c * X ^ (rev_at N n) :=
@@ -185,15 +175,12 @@ noncomputable def reverse (f : polynomial R) : polynomial R := reflect f.nat_deg
 
 theorem reverse_mul {f g : polynomial R} (fg : f.leading_coeff * g.leading_coeff ≠ 0) :
  reverse (f * g) = reverse f * reverse g :=
-begin
-  unfold reverse,
-  rw [nat_degree_mul' fg, reflect_mul  f g rfl.le rfl.le],
-end
+by rw [reverse, reverse, reverse, nat_degree_mul' fg, reflect_mul  f g rfl.le rfl.le]
 
 @[simp] lemma reverse_mul_of_domain {R : Type*} [domain R] (f g : polynomial R) :
   reverse (f * g) = reverse f * reverse g :=
 begin
-  by_cases f0 : f=0,
+  show_term{by_cases f0 : f=0},
   { rw [f0, zero_mul, reverse_zero, zero_mul], },
   by_cases g0 : g=0,
   { rw [g0, mul_zero, reverse_zero, mul_zero], },
@@ -216,11 +203,7 @@ begin
 end
 
 @[simp] lemma reflect_invol (N : ℕ) : reflect N (reflect N f) = f :=
-begin
-  ext,
-  rw [coeff_reflect, coeff_reflect, rev_at_invol],
-end
-
+by refine ext (λ (n : ℕ), by rw [coeff_reflect, coeff_reflect, rev_at_invol])
 
 /-- `monotone_rev_at N _` coincides with `rev_at N _` in the range [0,..,N].  I use
 `monotone_rev_at` just to show that `rev_at` exchanges `min`s and `max`s.  With an alternative
@@ -258,16 +241,14 @@ lemma rev_at_small_min_max {N : ℕ} {s : finset ℕ} {hs : s.nonempty} (sm : s.
 begin
   rwa [monotone_rev_at_eq_rev_at_small, ← monotone_rev_at_max'_min'],
   have im : (image (rev_at N) s) = (image (monotone_rev_at N) s) →
-    (image (rev_at N) s).max' (nonempty.image hs (rev_at N)) =
-    (image (monotone_rev_at N) s).max' (nonempty.image hs (monotone_rev_at N)),
-  { intro a, congr, assumption, },
+    (image (rev_at N) s).max' (nonempty.image hs (rev_at N)) = (image (monotone_rev_at N) s).max'
+    (nonempty.image hs (monotone_rev_at N)) := λ a, (by {congr, exact a}),
   apply im,
   ext1 a,
   repeat { rw mem_image },
   split;
   { rintro ⟨ a, ha, rfl⟩ ,
-    use a,
-    refine ⟨ ha , by rw (monotone_rev_at_eq_rev_at_small (le_trans (le_max' _ _ ha) sm)) ⟩, },
+    refine ⟨ a, ha , by rw (monotone_rev_at_eq_rev_at_small (le_trans (le_max' _ _ ha) sm)) ⟩, },
   { exact le_trans (le_max' _ _ (min'_mem s hs)) sm, },
 end
 
@@ -370,8 +351,7 @@ begin
   { rw [p0, zero_mul], convert (zero_mul q.trailing_coeff).symm, },
   by_cases q0 : q = 0,
   { rw [q0, mul_zero], convert (mul_zero p.trailing_coeff).symm, },
-  rw ← @reflect_invol R _ (p * q) (p.nat_degree + q.nat_degree),
-  rw trailing_reflect_eq_lead,
+  rw [← @reflect_invol R _ (p * q) (p.nat_degree + q.nat_degree), trailing_reflect_eq_lead],
   { rw [reflect_mul p q rfl.le rfl.le, leading_coeff_mul],
     rw [← trailing_reflect_eq_lead p.nat_degree, reflect_invol],
     { rw [← trailing_reflect_eq_lead q.nat_degree, reflect_invol],

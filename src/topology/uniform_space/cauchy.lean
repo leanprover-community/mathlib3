@@ -507,7 +507,7 @@ le_nhds_of_cauchy_adhp_aux
 begin
   assume s hs,
   rcases U_le s hs with ⟨m, hm⟩,
-  rcases (tendsto_at_top' _ _).1 ha _ (mem_nhds_left a (U_mem m)) with ⟨n, hn⟩,
+  rcases tendsto_at_top'.1 ha _ (mem_nhds_left a (U_mem m)) with ⟨n, hn⟩,
   refine ⟨set_seq hf U_mem (max m n), set_seq_mem hf U_mem _, _,
           seq hf U_mem (max m n), _, seq_mem hf U_mem _⟩,
   { have := le_max_left m n,

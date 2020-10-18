@@ -54,8 +54,8 @@ See `l1_space.lean` for `L¹` space.
 ## Implementation notes
 
 * `f.to_fun`     : To find a representative of `f : α →ₘ β`, use `f.to_fun`.
-                 For each operation `op` in `L⁰`, there is a lemma called `op_to_fun`, characterizing,
-                 say, `(f op g).to_fun`.
+                 For each operation `op` in `L⁰`, there is a lemma called `op_to_fun`,
+                 characterizing, say, `(f op g).to_fun`.
 * `ae_eq_fun.mk` : To constructs an `L⁰` function `α →ₘ β` from a measurable function `f : α → β`,
                  use `ae_eq_fun.mk`
 * `comp`         : Use `comp g f` to get `[g ∘ f]` from `g : β → γ` and `[f] : α →ₘ γ`

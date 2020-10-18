@@ -18,7 +18,7 @@ the direct sum of copies of `M` indexed by `ι`.
 universes u v w
 
 noncomputable theory
-open_locale classical
+open_locale classical direct_sum
 
 open set linear_map submodule
 variables {R : Type u} {M : Type v} {N : Type w} [ring R] [add_comm_group M] [module R M] [add_comm_group N] [module R N]
@@ -29,9 +29,9 @@ variables (R M) (ι : Type*) [decidable_eq ι]
 
 /-- The finitely supported functions ι →₀ M are in linear equivalence with the direct sum of
 copies of M indexed by ι. -/
-def finsupp_lequiv_direct_sum : (ι →₀ M) ≃ₗ[R] direct_sum ι (λ i, M) :=
+def finsupp_lequiv_direct_sum : (ι →₀ M) ≃ₗ[R] ⨁ i : ι, M :=
 linear_equiv.of_linear
-  (finsupp.lsum $ direct_sum.lof R ι (λ _, M))
+  (finsupp.lsum (show ι → (M →ₗ[R] ⨁ i, M), from direct_sum.lof R ι _))
   (direct_sum.to_module _ _ _ finsupp.lsingle)
   (linear_map.ext $ direct_sum.to_module.ext _ $ λ i,
     linear_map.ext $ λ x, by simp [finsupp.sum_single_index])

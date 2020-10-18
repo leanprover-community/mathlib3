@@ -240,36 +240,22 @@ begin
   rwa [this, zero_add] at L3
 end
 
+/-- If `f'` and `f₁'` are two derivatives of `f` within `s` at `x`, then they are equal on the
+tangent cone to `s` at `x` -/
+theorem has_fderiv_within_at.unique_on (hf : has_fderiv_within_at f f' s x)
+  (hg : has_fderiv_within_at f f₁' s x) :
+  eq_on f' f₁' (tangent_cone_at 𝕜 s x) :=
+λ y ⟨c, d, dtop, clim, cdlim⟩,
+  tendsto_nhds_unique (hf.lim at_top dtop clim cdlim) (hg.lim at_top dtop clim cdlim)
+
 /-- `unique_diff_within_at` achieves its goal: it implies the uniqueness of the derivative. -/
 theorem unique_diff_within_at.eq (H : unique_diff_within_at 𝕜 s x)
-  (h : has_fderiv_within_at f f' s x) (h₁ : has_fderiv_within_at f f₁' s x) : f' = f₁' :=
-begin
-  have A : ∀y ∈ tangent_cone_at 𝕜 s x, f' y = f₁' y,
-  { rintros y ⟨c, d, dtop, clim, cdlim⟩,
-    exact tendsto_nhds_unique (h.lim at_top dtop clim cdlim) (h₁.lim at_top dtop clim cdlim) },
-  have B : ∀y ∈ submodule.span 𝕜 (tangent_cone_at 𝕜 s x), f' y = f₁' y,
-  { assume y hy,
-    apply submodule.span_induction hy,
-    { exact λy hy, A y hy },
-    { simp only [continuous_linear_map.map_zero] },
-    { simp {contextual := tt} },
-    { simp {contextual := tt} } },
-  have C : ∀y ∈ closure ((submodule.span 𝕜 (tangent_cone_at 𝕜 s x)) : set E), f' y = f₁' y,
-  { assume y hy,
-    let K := {y | f' y = f₁' y},
-    have : (submodule.span 𝕜 (tangent_cone_at 𝕜 s x) : set E) ⊆ K := B,
-    have : closure (submodule.span 𝕜 (tangent_cone_at 𝕜 s x) : set E) ⊆ closure K :=
-      closure_mono this,
-    have : y ∈ closure K := this hy,
-    rwa (is_closed_eq f'.continuous f₁'.continuous).closure_eq at this },
-  rw H.1 at C,
-  ext y,
-  exact C y (mem_univ _)
-end
+  (hf : has_fderiv_within_at f f' s x) (hg : has_fderiv_within_at f f₁' s x) : f' = f₁' :=
+continuous_linear_map.ext_on H.1 (hf.unique_on hg)
 
 theorem unique_diff_on.eq (H : unique_diff_on 𝕜 s) (hx : x ∈ s)
   (h : has_fderiv_within_at f f' s x) (h₁ : has_fderiv_within_at f f₁' s x) : f' = f₁' :=
-unique_diff_within_at.eq (H x hx) h h₁
+(H x hx).eq h h₁
 
 end derivative_uniqueness
 
@@ -2453,44 +2439,22 @@ end
 under a map with onto derivative has also the unique differentiability property at the image point.
 -/
 lemma has_fderiv_within_at.unique_diff_within_at {x : E} (h : has_fderiv_within_at f f' s x)
-  (hs : unique_diff_within_at 𝕜 s x) (h' : closure (range f') = univ) :
+  (hs : unique_diff_within_at 𝕜 s x) (h' : dense_range f') :
   unique_diff_within_at 𝕜 (f '' s) (f x) :=
 begin
-  have B : ∀v ∈ (submodule.span 𝕜 (tangent_cone_at 𝕜 s x) : set E),
-    f' v ∈ (submodule.span 𝕜 (tangent_cone_at 𝕜 (f '' s) (f x)) : set F),
-  { assume v hv,
-    apply submodule.span_induction hv,
-    { exact λ w hw, submodule.subset_span (h.maps_to_tangent_cone hw) },
-    { simp },
-    { assume w₁ w₂ hw₁ hw₂,
-      rw continuous_linear_map.map_add,
-      exact submodule.add_mem (submodule.span 𝕜 (tangent_cone_at 𝕜 (f '' s) (f x))) hw₁ hw₂ },
-    { assume a w hw,
-      rw continuous_linear_map.map_smul,
-      exact submodule.smul_mem (submodule.span 𝕜 (tangent_cone_at 𝕜 (f '' s) (f x))) _ hw } },
-  rw [unique_diff_within_at, ← univ_subset_iff],
-  split,
-  show f x ∈ closure (f '' s), from h.continuous_within_at.mem_closure_image hs.2,
-  show univ ⊆ closure ↑(submodule.span 𝕜 (tangent_cone_at 𝕜 (f '' s) (f x))), from calc
-    univ ⊆ closure (range f') : univ_subset_iff.2 h'
-    ... = closure (f' '' univ) : by rw image_univ
-    ... = closure (f' '' (closure (submodule.span 𝕜 (tangent_cone_at 𝕜 s x) : set E))) : by rw hs.1
-    ... ⊆ closure (closure (f' '' (submodule.span 𝕜 (tangent_cone_at 𝕜 s x) : set E))) :
-      closure_mono (image_closure_subset_closure_image f'.cont)
-    ... = closure (f' '' (submodule.span 𝕜 (tangent_cone_at 𝕜 s x) : set E)) : closure_closure
-    ... ⊆ closure (submodule.span 𝕜 (tangent_cone_at 𝕜 (f '' s) (f x)) : set F) :
-      closure_mono (image_subset_iff.mpr B)
+  refine ⟨h'.dense_of_maps_to f'.continuous hs.1 _,
+    h.continuous_within_at.mem_closure_image hs.2⟩,
+  show submodule.span 𝕜 (tangent_cone_at 𝕜 s x) ≤
+    (submodule.span 𝕜 (tangent_cone_at 𝕜 (f '' s) (f x))).comap f',
+  rw [submodule.span_le],
+  exact h.maps_to_tangent_cone.mono (subset.refl _) submodule.subset_span
 end
 
 lemma has_fderiv_within_at.unique_diff_within_at_of_continuous_linear_equiv
   {x : E} (e' : E ≃L[𝕜] F) (h : has_fderiv_within_at f (e' : E →L[𝕜] F) s x)
   (hs : unique_diff_within_at 𝕜 s x) :
   unique_diff_within_at 𝕜 (f '' s) (f x) :=
-begin
-  apply h.unique_diff_within_at hs,
-  have : set.range (e' : E →L[𝕜] F) = univ := e'.to_linear_equiv.to_equiv.range_eq_univ,
-  rw [this, closure_univ]
-end
+h.unique_diff_within_at hs e'.surjective.dense_range
 
 lemma continuous_linear_equiv.unique_diff_on_preimage_iff (e : F ≃L[𝕜] E) :
   unique_diff_on 𝕜 (e ⁻¹' s) ↔ unique_diff_on 𝕜 s :=

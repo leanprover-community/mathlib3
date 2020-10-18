@@ -66,9 +66,9 @@ begin
   by_contradiction H_cont,
   push_neg at H_cont,
   rcases H_cont with ⟨x, ⟨x_in_s, fx_lt_fa⟩⟩,
-  let g : affine_map ℝ ℝ E := affine_map.line_map a (x - a),
-  have hg0 : g 0 = a := affine_map.line_map_apply_zero a (x - a),
-  have hg1 : g 1 = x := by simp [affine_map.line_map_apply, one_smul],
+  let g : affine_map ℝ ℝ E := affine_map.line_map a x,
+  have hg0 : g 0 = a := affine_map.line_map_apply_zero a x,
+  have hg1 : g 1 = x := affine_map.line_map_apply_one a x,
   have fg_local_min_on : is_local_min_on (f ∘ g) (g ⁻¹' s) 0,
   { rw ←hg0 at h_localmin,
     refine is_local_min_on.comp_continuous_on h_localmin subset.rfl

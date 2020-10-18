@@ -51,7 +51,7 @@ local attribute [nontriviality] zero_lt_one -- TODO: supply lemmas as an argumen
 def add (x : units R) (t : R) (h : ∥t∥ < ∥(↑x⁻¹ : R)∥⁻¹) : units R :=
 x * (units.one_sub (-(↑x⁻¹ * t))
 begin
-  nontriviality R,
+  nontriviality R using [zero_lt_one],
   have hpos : 0 < ∥(↑x⁻¹ : R)∥ := units.norm_pos x⁻¹,
   calc ∥-(↑x⁻¹ * t)∥
       = ∥↑x⁻¹ * t∥                   : by { rw norm_neg }

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard
 -/
 import group_theory.submonoid.basic
-import algebra.big_operators
+import algebra.big_operators.basic
 
 /-!
 # Submonoids

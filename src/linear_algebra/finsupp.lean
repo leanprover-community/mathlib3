@@ -2,10 +2,53 @@
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl
-
-Linear structures on function with finite support `α →₀ M`.
 -/
-import algebra.monoid_algebra
+import data.finsupp.basic
+import linear_algebra.basic
+
+/-!
+# Properties of the semimodule `α →₀ M`
+
+Given an `R`-semimodule `M`, the `R`-semimodule structure on `α →₀ M` is defined in
+`data.finsupp.basic`.
+
+In this file we define `finsupp.supported s` to be the set `{f : α →₀ M | f.support ⊆ s}`
+interpreted as a submodule of `α →₀ M`. We also define `linear_map` versions of various maps:
+
+* `finsupp.lsingle a : M →ₗ[R] ι →₀ M`: `finsupp.single a` as a linear map;
+
+* `finsupp.lapply a : (ι →₀ M) →ₗ[R] M`: the map `λ f, f a` as a linear map;
+
+* `finsupp.lsubtype_domain (s : set α) : (α →₀ M) →ₗ[R] (s →₀ M)`: restriction to a subtype as a
+  linear map;
+
+* `finsupp.restrict_dom`: `finsupp.filter` as a linear map to `finsupp.supported s`;
+
+* `finsupp.lsum`: `finsupp.sum` or `finsupp.lift_add_hom` as a `linear_map`;
+
+* `finsupp.total α M R (v : ι → M)`: sends `l : ι → R` to the linear combination of `v i` with
+  coefficients `l i`;
+
+* `finsupp.total_on`: a restricted version of `finsupp.total` with domain `finsupp.supported R R s`
+  and codomain `submodule.span R (v '' s)`;
+
+* `finsupp.supported_equiv_finsupp`: a linear equivalence between the functions `α →₀ M` supported
+  on `s` and the functions `s →₀ M`;
+
+* `finsupp.lmap_domain`: a linear map version of `finsupp.map_domain`;
+
+* `finsupp.dom_lcongr`: a `linear_equiv` version of `finsupp.dom_congr`;
+
+* `finsupp.congr`: if the sets `s` and `t` are equivalent, then `supported M R s` is equivalent to
+  `supported M R t`; 
+
+* `finsupp.lcongr`: a `linear_equiv`alence between `α →₀ M` and `β →₀ N` constructed using `e : α ≃
+  β` and `e' : M ≃ₗ[R] N`.
+
+## Tags
+
+function with finite support, semimodule, linear algebra
+-/
 
 noncomputable theory
 
@@ -20,10 +63,11 @@ variables [semiring R] [add_comm_monoid M] [semimodule R M] [add_comm_monoid N] 
 
 /-- Interpret `finsupp.single a` as a linear map. -/
 def lsingle (a : α) : M →ₗ[R] (α →₀ M) :=
-⟨single a, assume a b, single_add, assume c b, (smul_single _ _ _).symm⟩
+{ map_smul' := assume a b, (smul_single _ _ _).symm, ..finsupp.single_add_hom a }
 
 /-- Interpret `λ (f : α →₀ M), f a` as a linear map. -/
-def lapply (a : α) : (α →₀ M) →ₗ[R] M := ⟨λg, g a, assume a b, rfl, assume a b, rfl⟩
+def lapply (a : α) : (α →₀ M) →ₗ[R] M :=
+{ map_smul' := assume a b, rfl, ..finsupp.eval_add_hom a }
 
 section lsubtype_domain
 variables (s : set α)
@@ -180,7 +224,8 @@ theorem supported_Union {δ : Type*} (s : δ → set α) :
 begin
   refine le_antisymm _ (supr_le $ λ i, supported_mono $ set.subset_Union _ _),
   haveI := classical.dec_pred (λ x, x ∈ (⋃ i, s i)),
-  suffices : ((submodule.subtype _).comp (restrict_dom M R (⋃ i, s i))).range ≤ ⨆ i, supported M R (s i),
+  suffices : ((submodule.subtype _).comp (restrict_dom M R (⋃ i, s i))).range ≤
+    ⨆ i, supported M R (s i),
   { rwa [linear_map.range_comp, range_restrict_dom, map_top, range_subtype] at this },
   rw [range_le_iff_comap, eq_top_iff],
   rintro l ⟨⟩,
@@ -197,10 +242,24 @@ by erw [set.union_eq_Union, supported_Union, supr_bool_eq]; refl
 
 theorem supported_Inter {ι : Type*} (s : ι → set α) :
   supported M R (⋂ i, s i) = ⨅ i, supported M R (s i) :=
+submodule.ext $ λ x, by simp [mem_supported, subset_Inter_iff]
+
+theorem supported_inter (s t : set α) :
+  supported M R (s ∩ t) = supported M R s ⊓ supported M R t :=
+by rw [set.inter_eq_Inter, supported_Inter, infi_bool_eq]; refl
+
+theorem disjoint_supported_supported {s t : set α} (h : disjoint s t) :
+  disjoint (supported M R s) (supported M R t) :=
+disjoint_iff.2 $ by rw [← supported_inter, disjoint_iff_inter_eq_empty.1 h, supported_empty]
+
+theorem disjoint_supported_supported_iff [nontrivial M] {s t : set α} :
+  disjoint (supported M R s) (supported M R t) ↔ disjoint s t :=
 begin
-  refine le_antisymm (le_infi $ λ i, supported_mono $ set.Inter_subset _ _) _,
-  simp [le_def, infi_coe, set.subset_def],
-  exact λ l, set.subset_Inter
+  refine ⟨λ h x hx, _, disjoint_supported_supported⟩,
+  rcases exists_ne (0 : M) with ⟨y, hy⟩,
+  have := h ⟨single_mem_supported R y hx.1, single_mem_supported R y hx.2⟩,
+  rw [mem_bot, single_eq_zero] at this,
+  exact hy this
 end
 
 /-- Interpret `finsupp.restrict_support_equiv` as a linear equivalence between
@@ -215,11 +274,19 @@ begin
   exact linear_map.is_linear _
 end
 
-/-- `finsupp.sum` as a linear map. -/
-def lsum (f : α → M →ₗ[R] N) : (α →₀ M) →ₗ[R] N :=
-⟨λ d, d.sum (λ i, f i),
-  assume d₁ d₂, by simp [sum_add_index],
-  assume a d, by simp [sum_smul_index', smul_sum]⟩
+/-- Lift a family of linear maps `M →ₗ[R] N` indexed by `x : α` to a linear map from `α →₀ M` to
+`N` using `finsupp.sum`. This is an upgraded version of `finsupp.lift_add_hom`.
+We define this as an additive equivalence. For a commutative `R`, this equivalence can be
+upgraded further to a linear equivalence. -/
+def lsum : (α → M →ₗ[R] N) ≃+ ((α →₀ M) →ₗ[R] N) :=
+{ to_fun := λ F, {
+    to_fun := λ d, d.sum (λ i, F i),
+    map_add' := (lift_add_hom (λ x, (F x).to_add_monoid_hom)).map_add,
+    map_smul' := λ c f, by simp [sum_smul_index', smul_sum] },
+  inv_fun := λ F x, F.comp (lsingle x),
+  left_inv := λ F, by { ext x y, simp },
+  right_inv := λ F, by { ext x y, simp },
+  map_add' := λ F G, by { ext x y, simp } }
 
 @[simp] lemma coe_lsum (f : α → M →ₗ[R] N) : (lsum f : (α →₀ M) → N) = λ d, d.sum (λ i, f i) := rfl
 
@@ -229,6 +296,8 @@ theorem lsum_apply (f : α → M →ₗ[R] N) (l : α →₀ M) :
 theorem lsum_single (f : α → M →ₗ[R] N) (i : α) (m : M) :
   finsupp.lsum f (finsupp.single i m) = f i m :=
 finsupp.sum_single_index (f i).map_zero
+
+theorem lsum_symm_apply (f : (α →₀ M) →ₗ[R] N) (x : α) : lsum.symm f x = f.comp (lsingle x) := rfl
 
 section lmap_domain
 variables {α' : Type*} {α'' : Type*} (M R)
@@ -313,6 +382,10 @@ finset.sum_subset hs $ λ x _ hxg, show l x • v x = 0, by rw [not_mem_support_
   finsupp.total α M R v (single a c) = c • (v a) :=
 by simp [total_apply, sum_single_index]
 
+theorem total_unique [unique α] (l : α →₀ R) (v) :
+  finsupp.total α M R v l = l (default α) • v (default α) :=
+by rw [← total_single, ← unique_single l]
+
 theorem total_range (h : function.surjective v) : (finsupp.total α M R v).range = ⊤ :=
 begin
   apply range_eq_top.2,
@@ -396,8 +469,9 @@ linear_map.cod_restrict _ ((finsupp.total _ _ _ v).comp (submodule.subtype (supp
 variables {α} {M} {v}
 
 theorem total_on_range (s : set α) : (finsupp.total_on α M R v s).range = ⊤ :=
-by rw [finsupp.total_on, linear_map.range, linear_map.map_cod_restrict, ← linear_map.range_le_iff_comap,
-  range_subtype, map_top, linear_map.range_comp, range_subtype]; exact le_of_eq (span_eq_map_total _ _)
+by rw [finsupp.total_on, linear_map.range, linear_map.map_cod_restrict,
+  ← linear_map.range_le_iff_comap, range_subtype, map_top, linear_map.range_comp, range_subtype];
+    exact le_of_eq (span_eq_map_total _ _)
 
 theorem total_comp (f : α' → α) :
   (finsupp.total α' M R (v ∘ f)) = (finsupp.total α M R v).comp (lmap_domain R R f) :=
@@ -428,10 +502,9 @@ end
 end total
 
 /-- An equivalence of domains induces a linear equivalence of finitely supported functions. -/
-protected def dom_lcongr
-  {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) :
+protected def dom_lcongr {α₁ α₂ : Type*} (e : α₁ ≃ α₂) :
   (α₁ →₀ M) ≃ₗ[R] (α₂ →₀ M) :=
-(@finsupp.dom_congr M _ _ _ e).to_linear_equiv (lmap_domain M R e).map_smul
+(finsupp.dom_congr e : (α₁ →₀ M) ≃+ (α₂ →₀ M)).to_linear_equiv (lmap_domain M R e).map_smul
 
 @[simp] theorem dom_lcongr_single {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) (i : α₁) (m : M) :
   (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (finsupp.single i m) = finsupp.single (e i) m :=

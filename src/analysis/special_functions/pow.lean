@@ -772,19 +772,19 @@ section limits
 open real filter
 
 /-- The function `x^y` tends to `+∞` at `+∞` for any positive real `y` -/
-lemma tendsto_rpow_at_top {y : ℝ} (hy : 0 < y) : tendsto (λ (x:ℝ), (x^y)) at_top at_top :=
+lemma tendsto_rpow_at_top {y : ℝ} (hy : 0 < y) : tendsto (λ x : ℝ, x ^ y) at_top at_top :=
 begin
   rw tendsto_at_top_at_top,
   intro b,
   use (max b 0) ^ (1/y),
   intros x hx,
-  have h := rpow_le_rpow (rpow_nonneg_of_nonneg (le_max_right b 0) (1/y)) hx (le_of_lt hy),
-  rw [← rpow_mul (le_max_right b 0), (eq_div_iff (ne_of_gt hy)).mp rfl, rpow_one] at h,
-  exact le_of_max_le_left h,
+  exact le_of_max_le_left
+    (by { convert rpow_le_rpow (rpow_nonneg_of_nonneg (le_max_right b 0) (1/y)) hx (le_of_lt hy),
+      rw [← rpow_mul (le_max_right b 0), (eq_div_iff (ne_of_gt hy)).mp rfl, rpow_one] }),
 end
 
 /-- The function `x^(-y)` tends to `0` at `+∞` for any positive real `y` -/
-lemma tendsto_rpow_neg_at_top {y : ℝ} (hy : 0 < y) : tendsto (λ (x:ℝ), x^(-y)) at_top (𝓝 0) :=
+lemma tendsto_rpow_neg_at_top {y : ℝ} (hy : 0 < y) : tendsto (λ x : ℝ, x ^ (-y)) at_top (𝓝 0) :=
 tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) (λ x hx, (rpow_neg (le_of_lt hx) y).symm))
   (tendsto.inv_tendsto_at_top (tendsto_rpow_at_top hy))
 

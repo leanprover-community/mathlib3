@@ -85,7 +85,7 @@
   author : Mario Carneiro
 26:
   title  : Leibniz’s Series for Pi
-  decl   : real.leibniz
+  decl   : real.tendsto_sum_pi_div_four
   author : Benjamin Davidson
 27:
   title  : Sum of the Angles of a Triangle

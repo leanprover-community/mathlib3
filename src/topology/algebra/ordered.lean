@@ -1353,7 +1353,7 @@ variables [decidable_linear_ordered_semiring α]
 
 /-- The function `x^n` tends to `+∞` at `+∞` for any positive natural `n`.
 A version for positive real powers exists as `tendsto_rpow_at_top`. -/
-lemma tendsto_pow_at_top {n : ℕ} (hn : (1:ℕ) ≤ n) : tendsto (λ x : α, x ^ n) at_top at_top :=
+lemma tendsto_pow_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ n) at_top at_top :=
 begin
   rw tendsto_at_top_at_top,
   intro b,

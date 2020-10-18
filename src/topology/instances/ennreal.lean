@@ -155,7 +155,7 @@ lemma tendsto_nat_nhds_top : tendsto (λ n : ℕ, ↑n) at_top (𝓝 ∞) :=
 tendsto_nhds_top $ λ n, mem_at_top_sets.2
   ⟨n+1, λ m hm, ennreal.coe_nat_lt_coe_nat.2 $ nat.lt_of_succ_le hm⟩
 
-lemma coe_tendsto_nhds_top {f : α → ℝ≥0} {l : filter α} :
+@[simp, norm_cast] lemma tendsto_coe_nhds_top {f : α → ℝ≥0} {l : filter α} :
   tendsto (λ x, (f x : ennreal)) l (𝓝 ∞) ↔ tendsto f l at_top :=
 by rw [tendsto_nhds_top_iff_nnreal, at_top_basis_Ioi.tendsto_right_iff];
   [simp, apply_instance, apply_instance]
@@ -708,7 +708,7 @@ begin
   exact exists_congr (λ hr, nnreal.has_sum_iff_tendsto_nat)
 end
 
-lemma not_summable_iff_tendsto_nat_at_top {f : ℕ → ℝ} (hf : ∀ n, 0 ≤ f n) :
+lemma not_summable_iff_tendsto_nat_at_top_of_nonneg {f : ℕ → ℝ} (hf : ∀ n, 0 ≤ f n) :
   ¬ summable f ↔ tendsto (λ n : ℕ, ∑ i in finset.range n, f i) at_top at_top :=
 begin
   lift f to ℕ → ℝ≥0 using hf,

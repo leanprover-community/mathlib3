@@ -758,14 +758,44 @@ lemma filter.tendsto.inv' [normed_field α] {l : filter β} {f : β → α} {y :
   tendsto (λx, (f x)⁻¹) l (𝓝 y⁻¹) :=
 (normed_field.tendsto_inv hy).comp h
 
+lemma continuous_at.inv' [topological_space α] [normed_field β] {f : α → β} {x : α}
+  (hf : continuous_at f x) (hx : f x ≠ 0) :
+  continuous_at (λ x, (f x)⁻¹) x :=
+hf.inv' hx
+
+lemma continuous_within_at.inv' [topological_space α] [normed_field β] {f : α → β} {x : α}
+  {s : set α} (hf : continuous_within_at f s x) (hx : f x ≠ 0) :
+  continuous_within_at (λ x, (f x)⁻¹) s x :=
+hf.inv' hx
+
+lemma continuous.inv' [topological_space α] [normed_field β] {f : α → β} (hf : continuous f)
+  (h0 : ∀ x, f x ≠ 0) : continuous (λ x, (f x)⁻¹) :=
+continuous_iff_continuous_at.2 $ λ x, (hf.tendsto x).inv' (h0 x)
+
+lemma continuous_on.inv' [topological_space α] [normed_field β] {f : α → β} {s : set α}
+  (hf : continuous_on f s) (h0 : ∀ x ∈ s, f x ≠ 0) :
+  continuous_on (λ x, (f x)⁻¹) s :=
+λ x hx, (hf x hx).inv' (h0 x hx)
+
+lemma filter.tendsto.div_const [normed_field α] {l : filter β} {f : β → α} {x y : α}
+  (hf : tendsto f l (𝓝 x)) : tendsto (λa, f a / y) l (𝓝 (x / y)) :=
+hf.mul tendsto_const_nhds
+
 lemma filter.tendsto.div [normed_field α] {l : filter β} {f g : β → α} {x y : α}
   (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) (hy : y ≠ 0) :
   tendsto (λa, f a / g a) l (𝓝 (x / y)) :=
 hf.mul (hg.inv' hy)
 
-lemma filter.tendsto.div_const [normed_field α] {l : filter β} {f : β → α} {x y : α}
-  (hf : tendsto f l (𝓝 x)) : tendsto (λa, f a / y) l (𝓝 (x / y)) :=
-by { simp only [div_eq_inv_mul], exact tendsto_const_nhds.mul hf }
+lemma continuous_within_at.div [topological_space α] [normed_field β] {f : α → β} {g : α → β}
+  {s : set α} {x : α} (hf : continuous_within_at f s x) (hg : continuous_within_at g s x)
+  (hnz : g x ≠ 0) :
+  continuous_within_at (λ x, f x / g x) s x :=
+hf.div hg hnz
+
+lemma continuous_on.div [topological_space α] [normed_field β] {f : α → β} {g : α → β}
+  {s : set α} (hf : continuous_on f s) (hg : continuous_on g s) (hnz : ∀ x ∈ s, g x ≠ 0) :
+  continuous_on (λ x, f x / g x) s :=
+λ x hx, (hf x hx).div (hg x hx) (hnz x hx)
 
 /-- Continuity at a point of the result of dividing two functions
 continuous at that point, where the denominator is nonzero. -/
@@ -773,6 +803,11 @@ lemma continuous_at.div [topological_space α] [normed_field β] {f : α → β}
     (hf : continuous_at f x) (hg : continuous_at g x) (hnz : g x ≠ 0) :
   continuous_at (λ x, f x / g x) x :=
 hf.div hg hnz
+
+lemma continuous.div [topological_space α] [normed_field β] {f : α → β} {g : α → β}
+  (hf : continuous f) (hg : continuous g) (h0 : ∀ x, g x ≠ 0) :
+  continuous (λ x, f x / g x) :=
+continuous_iff_continuous_at.2 $ λ x, (hf.tendsto x).div (hg.tendsto x) (h0 x)
 
 namespace real
 

@@ -221,7 +221,7 @@ lemma convex.combo_to_vadd {a b : ℝ} {x y : E} (h : a + b = 1) :
 Applying an affine map to an affine combination of two points yields
 an affine combination of the images.
  -/
-lemma convex.combo_affine_apply {a b : ℝ} {x y : E} {f : E →ₐ[ℝ] F} (h : a + b = 1) :
+lemma convex.combo_affine_apply {a b : ℝ} {x y : E} {f : E →ᵃ[ℝ] F} (h : a + b = 1) :
   f (a • x + b • y) = a • f x + b • f y :=
 begin
   simp only [convex.combo_to_vadd h, ← vsub_eq_sub],
@@ -229,7 +229,7 @@ begin
 end
 
 /-- The preimage of a convex set under an affine map is convex. -/
-lemma convex.affine_preimage (f : E →ₐ[ℝ] F) {s : set F} (hs : convex s) :
+lemma convex.affine_preimage (f : E →ᵃ[ℝ] F) {s : set F} (hs : convex s) :
   convex (f ⁻¹' s) :=
 begin
   intros x y xs ys a b ha hb hab,
@@ -238,7 +238,7 @@ begin
 end
 
 /-- The image of a convex set under an affine map is convex. -/
-lemma convex.affine_image (f : E →ₐ[ℝ] F) {s : set E} (hs : convex s) :
+lemma convex.affine_image (f : E →ᵃ[ℝ] F) {s : set E} (hs : convex s) :
   convex (f '' s) :=
 begin
   rintros x y ⟨x', ⟨hx', hx'f⟩⟩ ⟨y', ⟨hy', hy'f⟩⟩ a b ha hb hab,
@@ -830,7 +830,7 @@ lemma concave_on_iff_convex_hypograph {γ : Type*} [ordered_add_comm_group γ] [
 @convex_on_iff_convex_epigraph _ _ _ _ (order_dual γ) _ _ f
 
 /-- If a function is convex on s, it remains convex when precomposed by an affine map -/
-lemma convex_on.comp_affine_map {f : F → β} (g : E →ₐ[ℝ] F) {s : set F}
+lemma convex_on.comp_affine_map {f : F → β} (g : E →ᵃ[ℝ] F) {s : set F}
   (hf : convex_on s f) : convex_on (g ⁻¹' s) (f ∘ g) :=
 begin
   refine ⟨hf.1.affine_preimage  _,_⟩,
@@ -843,7 +843,7 @@ begin
 end
 
 /-- If a function is concave on s, it remains concave when precomposed by an affine map -/
-lemma concave_on.comp_affine_map {f : F → β} (g : E →ₐ[ℝ] F) {s : set F}
+lemma concave_on.comp_affine_map {f : F → β} (g : E →ᵃ[ℝ] F) {s : set F}
   (hf : concave_on s f) : concave_on (g ⁻¹' s) (f ∘ g) :=
 @convex_on.comp_affine_map _ _ _ _ _ _ (order_dual β) _ _ f g s hf
 

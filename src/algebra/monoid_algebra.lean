@@ -114,8 +114,18 @@ instance [comm_semiring k] [comm_monoid G] : comm_semiring (monoid_algebra k G) 
   end,
   .. monoid_algebra.semiring }
 
+instance [semiring k] [nontrivial k] [monoid G] : nontrivial (monoid_algebra k G) :=
+begin
+  refine nontrivial_of_ne 0 1 _, intro h,
+  have : (0 : G →₀ k) 1 = 0 := rfl,
+  simpa [h, one_def] using this,
+end
+
 /-! #### Derived instances -/
 section derived_instances
+
+instance [semiring k] [subsingleton k] : unique (monoid_algebra k G) :=
+finsupp.unique_of_right
 
 instance [ring k] : add_group (monoid_algebra k G) :=
 finsupp.add_group
@@ -532,8 +542,18 @@ instance [comm_semiring k] [add_comm_monoid G] : comm_semiring (add_monoid_algeb
   end,
   .. add_monoid_algebra.semiring }
 
+instance [semiring k] [nontrivial k] [add_monoid G] : nontrivial (add_monoid_algebra k G) :=
+begin
+  refine nontrivial_of_ne 0 1 _, intro h,
+  have : (0 : G →₀ k) 0 = 0 := rfl,
+  simpa [h, one_def] using this,
+end
+
 /-! #### Derived instances -/
 section derived_instances
+
+instance [semiring k] [subsingleton k] : unique (add_monoid_algebra k G) :=
+finsupp.unique_of_right
 
 instance [ring k] : add_group (add_monoid_algebra k G) :=
 finsupp.add_group
@@ -570,6 +590,25 @@ begin
   rw [mul_def],
   simp only [finsupp.sum_apply, single_apply],
 end
+
+lemma mul_apply_antidiagonal (f g : add_monoid_algebra k G) (x : G) (s : finset (G × G))
+  (hs : ∀ {p : G × G}, p ∈ s ↔ p.1 + p.2 = x) :
+  (f * g) x = ∑ p in s, (f p.1 * g p.2) :=
+let F : G × G → k := λ p, if p.1 + p.2 = x then f p.1 * g p.2 else 0 in
+calc (f * g) x = (∑ a₁ in f.support, ∑ a₂ in g.support, F (a₁, a₂)) :
+  mul_apply f g x
+... = ∑ p in f.support.product g.support, F p : finset.sum_product.symm
+... = ∑ p in (f.support.product g.support).filter (λ p : G × G, p.1 + p.2 = x), f p.1 * g p.2 :
+  (finset.sum_filter _ _).symm
+... = ∑ p in s.filter (λ p : G × G, p.1 ∈ f.support ∧ p.2 ∈ g.support), f p.1 * g p.2 :
+  sum_congr (by { ext, simp only [mem_filter, mem_product, hs, and_comm] }) (λ _ _, rfl)
+... = ∑ p in s, f p.1 * g p.2 : sum_subset (filter_subset _) $ λ p hps hp,
+  begin
+    simp only [mem_filter, mem_support_iff, not_and, not_not] at hp ⊢,
+    by_cases h1 : f p.1 = 0,
+    { rw [h1, zero_mul] },
+    { rw [hp hps h1, mul_zero] }
+  end
 
 lemma support_mul (a b : add_monoid_algebra k G) :
   (a * b).support ⊆ a.support.bind (λa₁, b.support.bind $ λa₂, {a₁ + a₂}) :=

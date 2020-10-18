@@ -14,10 +14,26 @@ We define sheaves on a topological space, with values in an arbitrary category w
 The sheaf condition for a `F : presheaf C X` requires that the morphism
 `F.obj U ⟶ ∏ F.obj (U i)` (where `U` is some open set which is the union of the `U i`)
 is the equalizer of the two morphisms
-`∏ F.obj (U i) ⟶ ∏ F.obj (U i) ⊓ (U j)`.
+`∏ F.obj (U i) ⟶ ∏ F.obj (U i ⊓ U j)`.
 
 We provide the instance `category (sheaf C X)` as the full subcategory of presheaves,
 and the fully faithful functor `sheaf.forget : sheaf C X ⥤ presheaf C X`.
+
+## Equivalent conditions
+
+While the "official" definition is in terms of an equalizer diagram,
+in `src/topology/sheaves/sheaf_condition/pairwise_intersections.lean`
+and in `src/topology/sheaves/sheaf_condition/open_le_cover.lean`
+we provide two equivalent conditions (and prove they are equivalent).
+
+The first is that `F.obj U` is the limit point of the diagram consisting of all the `F.obj (U i)`
+and `F.obj (U i ⊓ U j)`.
+(That is, we explode the equalizer of two products out into its component pieces.)
+
+The second is that `F.obj U` is the limit point of the diagram constisting of all the `F.obj V`,
+for those `V : opens X` such that `V ≤ U i` for some `i`.
+(This condition is particularly easy to state, and perhaps should become the "official" definition.)
+
 -/
 
 universes v u

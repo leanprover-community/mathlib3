@@ -136,6 +136,22 @@ units.mul_right_dvd
 
 end normalization_monoid
 
+namespace comm_group_with_zero
+variables [decidable_eq α] [comm_group_with_zero α]
+
+@[priority 100] -- see Note [lower instance priority]
+instance : normalization_monoid α :=
+{ norm_unit := λ x, if h : x = 0 then 1 else (units.mk0 x h)⁻¹,
+  norm_unit_zero := dif_pos rfl,
+  norm_unit_mul := λ x y x0 y0, units.eq_iff.1 (by simp [x0, y0, mul_inv']),
+  norm_unit_coe_units := λ u, by { rw [dif_neg (units.ne_zero _), units.mk0_coe], apply_instance } }
+
+@[simp]
+lemma coe_norm_unit {a : α} (h0 : a ≠ 0) : (↑(norm_unit a) : α) = a⁻¹ :=
+by simp [norm_unit, h0]
+
+end comm_group_with_zero
+
 namespace associates
 variables [comm_cancel_monoid_with_zero α] [nontrivial α] [normalization_monoid α]
 
@@ -298,6 +314,19 @@ dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _)
   (gcd_dvd_gcd (dvd_refl _) (dvd_of_associated h))
   (gcd_dvd_gcd (dvd_refl _) (dvd_of_associated h.symm))
 
+lemma dvd_gcd_mul_of_dvd_mul {m n k : α} (H : k ∣ m * n) : k ∣ (gcd k m) * n :=
+begin
+  transitivity gcd k m * normalize n,
+  { rw ← gcd_mul_right,
+    exact dvd_gcd (dvd_mul_right _ _) H },
+  { apply dvd.intro ↑(norm_unit n)⁻¹,
+    rw [normalize_apply, mul_assoc, mul_assoc, ← units.coe_mul],
+    simp }
+end
+
+lemma dvd_mul_gcd_of_dvd_mul {m n k : α} (H : k ∣ m * n) : k ∣ m * gcd k n :=
+by { rw mul_comm at H ⊢, exact dvd_gcd_mul_of_dvd_mul H }
+
 /-- Represent a divisor of `m * n` as a product of a divisor of `m` and a divisor of `n`.
 
  Note: In general, this representation is highly non-unique. -/
@@ -317,12 +346,7 @@ begin
       rw mul_assoc at hb,
       apply mul_left_cancel' h0 hb },
     rw ← ha,
-    transitivity gcd k m * normalize n,
-    { rw ← gcd_mul_right,
-      exact dvd_gcd (dvd_mul_right _ _) H },
-    { apply dvd.intro ↑(norm_unit n)⁻¹,
-      rw [normalize_apply, mul_assoc, mul_assoc, ← units.coe_mul],
-      simp } }
+    exact dvd_gcd_mul_of_dvd_mul H }
 end
 
 theorem gcd_mul_dvd_mul_gcd (k m n : α) : gcd k (m * n) ∣ gcd k m * gcd k n :=
@@ -336,6 +360,63 @@ begin
     exact dvd_gcd hm'k hm' },
   { have hn'k : n' ∣ k := dvd_trans (dvd_mul_left n' m') hm'n',
     exact dvd_gcd hn'k hn' }
+end
+
+theorem gcd_pow_right_dvd_pow_gcd {a b : α} {k : ℕ} : gcd a (b ^ k) ∣ (gcd a b) ^ k :=
+begin
+  by_cases hg : gcd a b = 0,
+  { rw gcd_eq_zero_iff at hg,
+    rcases hg with ⟨rfl, rfl⟩,
+    simp },
+  { induction k with k hk, simp,
+    rw [pow_succ, pow_succ],
+    transitivity gcd a b * gcd a (b ^ k),
+    apply gcd_mul_dvd_mul_gcd a b (b ^ k),
+    refine (mul_dvd_mul_iff_left hg).mpr hk }
+end
+
+theorem gcd_pow_left_dvd_pow_gcd {a b : α} {k : ℕ} : gcd (a ^ k) b ∣ (gcd a b) ^ k :=
+by { rw [gcd_comm, gcd_comm a b], exact gcd_pow_right_dvd_pow_gcd }
+
+theorem pow_dvd_of_mul_eq_pow {a b c d₁ d₂ : α} (ha : a ≠ 0)
+  (hab : gcd a b = 1) {k : ℕ} (h : a * b = c ^ k) (hc : c = d₁ * d₂)
+  (hd₁ : d₁ ∣ a) : d₁ ^ k ≠ 0 ∧ d₁ ^ k ∣ a :=
+begin
+  have h1 : gcd (d₁ ^ k) b = 1,
+  { rw ← normalize_gcd (d₁ ^ k) b, rw normalize_eq_one,
+    apply is_unit_of_dvd_one,
+    transitivity (gcd d₁ b) ^ k,
+    { exact gcd_pow_left_dvd_pow_gcd },
+    { apply is_unit.dvd, apply is_unit.pow, apply is_unit_of_dvd_one,
+      rw ← hab, apply gcd_dvd_gcd hd₁ (dvd_refl b) } },
+  have h2 : d₁ ^ k ∣ a * b, { use d₂ ^ k, rw [h, hc], exact mul_pow d₁ d₂ k },
+  rw mul_comm at h2,
+  have h3 : d₁ ^ k ∣ a, { rw [← one_mul a, ← h1], apply dvd_gcd_mul_of_dvd_mul h2 },
+  have h4 : d₁ ^ k ≠ 0,
+  { intro hdk, rw hdk at h3, apply absurd (zero_dvd_iff.mp h3) ha },
+  tauto
+end
+
+theorem exists_associated_pow_of_mul_eq_pow {a b c : α} (ha : a ≠ 0) (hb : b ≠ 0)
+  (hab : gcd a b = 1) {k : ℕ} (h : a * b = c ^ k) :
+  ∃ (d : α), associated (d ^ k) a :=
+begin
+  by_cases hk : k = 0,
+  { use 1, rw [hk, pow_zero] at h ⊢, use units.mk_of_mul_eq_one _ _ h,
+    rw [units.coe_mk_of_mul_eq_one, one_mul] },
+  have hc : c ∣ a * b, { rw h, refine dvd_pow (dvd_refl c) hk },
+  obtain ⟨d₁, hd₁, d₂, hd₂, hc⟩ := exists_dvd_and_dvd_of_dvd_mul hc,
+  use d₁,
+  obtain ⟨h0₁, ⟨a', ha'⟩⟩ := pow_dvd_of_mul_eq_pow ha hab h hc hd₁,
+  rw [mul_comm] at h hc, rw [gcd_comm] at hab,
+  obtain ⟨h0₂, ⟨b', hb'⟩⟩ := pow_dvd_of_mul_eq_pow hb hab h hc hd₂,
+  rw [ha', hb', hc, mul_pow] at h,
+  have h' : a' * b' = 1,
+  { apply (mul_right_inj' h0₁).mp, rw mul_one,
+    apply (mul_right_inj' h0₂).mp, rw ← h,
+    rw [mul_assoc, mul_comm a', ← mul_assoc (d₁ ^ k), ← mul_assoc _ (d₁ ^ k), mul_comm b'] },
+  use units.mk_of_mul_eq_one _ _ h',
+  rw [units.coe_mk_of_mul_eq_one, ha']
 end
 
 end gcd

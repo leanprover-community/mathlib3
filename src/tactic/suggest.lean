@@ -366,9 +366,9 @@ You can also use `suggest with attr` to include all lemmas with the attribute `a
 meta def suggest (n : parse (with_desc "n" small_nat)?)
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list) (opt : opt := { }) :
   tactic unit :=
-do asms ← mk_assumption_set ff hs attr_names,
+do (lemma_thunks, ctx_thunk) ← mk_assumption_set ff hs attr_names,
    L ← tactic.suggest_scripts (n.get_or_else 50)
-     { lemma_thunks := return asms, ..opt },
+     { lemma_thunks := some lemma_thunks, ctx_thunk := ctx_thunk, ..opt },
   if is_trace_enabled_for `silence_suggest then
     skip
   else
@@ -444,10 +444,11 @@ You can also use `library_search with attr` to include all lemmas with the attri
 meta def library_search (semireducible : parse $ optional (tk "!"))
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
   (opt : opt := { }) : tactic unit :=
-do asms ← mk_assumption_set ff hs attr_names,
+do (lemma_thunks, ctx_thunk) ← mk_assumption_set ff hs attr_names,
    (tactic.library_search
      { backtrack_all_goals := tt,
-       lemma_thunks := return asms,
+       lemma_thunks := some lemma_thunks,
+       ctx_thunk := ctx_thunk,
        md := if semireducible.is_some then
          tactic.transparency.semireducible else tactic.transparency.reducible,
        ..opt } >>=

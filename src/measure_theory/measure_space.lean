@@ -84,7 +84,7 @@ measure, almost everywhere, measure space, completion, null set, null measurable
 
 noncomputable theory
 
-open classical set filter function
+open classical set filter function measurable_space
 open_locale classical topological_space big_operators filter
 
 universes u v w x
@@ -982,7 +982,6 @@ ext_iff_of_bUnion_eq_univ hc hm $ by rwa ← sUnion_eq_bUnion
 
 alias ext_iff_of_sUnion_eq_univ ↔ _ measure_theory.measure.ext_of_sUnion_eq_univ
 
-open measurable_space
 lemma ext_of_generate_from_of_cover {S T : set (set α)}
   (h_gen : ‹_› = generate_from S) (hc : countable T)
   (h_inter : is_pi_system S)
@@ -1026,7 +1025,8 @@ end
 
 /-- Two measures are equal if they are equal on the π-system generating the σ-algebra,
   and they are both finite on a increasing spanning sequence of sets in the π-system.
-  This lemma is formulated using `Union`. -/
+  This lemma is formulated using `Union`.
+  `finite_spanning_sets_in.ext` is a reformulation of this lemma. -/
 lemma ext_of_generate_from_of_Union (C : set (set α)) (B : ℕ → set α)
   (hA : ‹_› = generate_from C) (hC : is_pi_system C) (h1B : (⋃ i, B i) = univ)
   (h2B : ∀ i, B i ∈ C) (hμB : ∀ i, μ (B i) < ⊤) (h_eq : ∀ s ∈ C, μ s = ν s) : μ = ν :=
@@ -1034,17 +1034,6 @@ begin
   refine ext_of_generate_from_of_cover_subset hA hC _ (countable_range B) h1B _ h_eq,
   { rintro _ ⟨i, rfl⟩, apply h2B },
   { rintro _ ⟨i, rfl⟩, apply hμB }
-end
-
-/-- Two measures are equal if they are equal on the countably spanning π-system generating the
-  σ-algebra. This is less general than `ext_of_generate_from_of_Union`. -/
-lemma ext_of_generate_from_of_is_countably_spanning {S : set (set α)}
-  (h_gen : ‹_› = generate_from S) (h_inter : is_pi_system S) (h_spanning : is_countably_spanning S)
-  (htop : ∀ s ∈ S, μ s < ⊤) (h_eq : ∀ s ∈ S, μ s = ν s) :
-  μ = ν :=
-begin
-  rcases h_spanning with ⟨s, h1s, h2s⟩,
-  exact ext_of_generate_from_of_Union _ _ h_gen h_inter h2s h1s (λ n, htop _ $ h1s n) h_eq
 end
 
 /-- The dirac measure. -/
@@ -1149,8 +1138,6 @@ end
 calc count s < ⊤ ↔ count s ≠ ⊤ : lt_top_iff_ne_top
              ... ↔ ¬s.infinite : not_congr count_apply_eq_top
              ... ↔ s.finite    : not_not
-
-open measurable_space
 
 /-! ### The almost everywhere filter -/
 
@@ -1456,38 +1443,49 @@ Ioo_ae_eq_Ico.symm.trans Ioo_ae_eq_Ioc
 
 end no_atoms
 
+namespace measure
+
 /-- A measure is called finite at filter `f` if it is finite at some set `s ∈ f`.
 Equivalently, it is eventually finite at `s` in `f.lift' powerset`. -/
-def measure.finite_at_filter (μ : measure α) (f : filter α) : Prop := ∃ s ∈ f, μ s < ⊤
+def finite_at_filter (μ : measure α) (f : filter α) : Prop := ∃ s ∈ f, μ s < ⊤
 
 lemma finite_at_filter_of_finite (μ : measure α) [finite_measure μ] (f : filter α) :
   μ.finite_at_filter f :=
 ⟨univ, univ_mem_sets, measure_lt_top μ univ⟩
 
-lemma measure.finite_at_bot (μ : measure α) : μ.finite_at_filter ⊥ :=
+lemma finite_at_bot (μ : measure α) : μ.finite_at_filter ⊥ :=
 ⟨∅, mem_bot_sets, by simp only [measure_empty, with_top.zero_lt_top]⟩
+
+/-- `μ` has finite spanning sets in `C` if there is a countable sequence of sets in `C` that have
+  finite measures. This structure is a type, which is useful if we want to record extra properties
+  about the sets, such as that they are monotone.
+  `sigma_finite` is defined in terms of this: `μ` is σ-finite if there exists a sequence of
+  finite spanning sets in the collection of all measurable sets. -/
+@[protect_proj]
+structure finite_spanning_sets_in (μ : measure α) (C : set (set α)) :=
+(set : ℕ → set α)
+(set_mem : ∀ i, set i ∈ C)
+(finite : ∀ i, μ (set i) < ⊤)
+(spanning : (⋃ i, set i) = univ)
+
+end measure
+open measure
 
 /-- A measure `μ` is called σ-finite if there is a countable collection of sets
   `{ A i | i ∈ ℕ }` such that `μ (A i) < ⊤` and `⋃ i, A i = s`. -/
-class sigma_finite (μ : measure α) : Prop :=
-(exists_finite_spanning_sets :
-  ∃ s : ℕ → set α,
-  (∀ i, is_measurable (s i)) ∧
-  (∀ i, μ (s i) < ⊤) ∧
-  (⋃ i, s i) = univ)
+@[class] def sigma_finite (μ : measure α) : Prop :=
+nonempty (μ.finite_spanning_sets_in {s | is_measurable s})
 
-lemma exists_finite_spanning_sets (μ : measure α) [sigma_finite μ] :
-  ∃ s : ℕ → set α,
-  (∀ i, is_measurable (s i)) ∧
-  (∀ i, μ (s i) < ⊤) ∧
-  (⋃ i, s i) = univ :=
-sigma_finite.exists_finite_spanning_sets
+/-- If `μ` is σ-finite it has finite spanning sets in the collection of all measurable sets. -/
+def measure.to_finite_spanning_sets_in (μ : measure α) [h : sigma_finite μ] :
+  μ.finite_spanning_sets_in {s | is_measurable s} :=
+classical.choice h
 
 /-- A noncomputable way to get a monotone collection of sets that span `univ` and have finite
   measure using `classical.some`. This definition satisfies monotonicity in addition to all other
   properties in `sigma_finite`. -/
 def spanning_sets (μ : measure α) [sigma_finite μ] (i : ℕ) : set α :=
-accumulate (classical.some $ exists_finite_spanning_sets μ) i
+accumulate μ.to_finite_spanning_sets_in.set i
 
 lemma monotone_spanning_sets (μ : measure α) [sigma_finite μ] :
   monotone (spanning_sets μ) :=
@@ -1496,17 +1494,15 @@ monotone_accumulate
 lemma is_measurable_spanning_sets (μ : measure α) [sigma_finite μ] (i : ℕ) :
   is_measurable (spanning_sets μ i) :=
 is_measurable.Union $ λ j, is_measurable.Union_Prop $
-  λ hij, (classical.some_spec $ exists_finite_spanning_sets μ).1 j
+  λ hij, μ.to_finite_spanning_sets_in.set_mem j
 
 lemma measure_spanning_sets_lt_top (μ : measure α) [sigma_finite μ] (i : ℕ) :
   μ (spanning_sets μ i) < ⊤ :=
-measure_bUnion_lt_top (finite_le_nat i) $
-  λ j _, (classical.some_spec $ exists_finite_spanning_sets μ).2.1 j
+measure_bUnion_lt_top (finite_le_nat i) $ λ j _, μ.to_finite_spanning_sets_in.finite j
 
 lemma Union_spanning_sets (μ : measure α) [sigma_finite μ] :
   (⋃ i : ℕ, spanning_sets μ i) = univ :=
-by simp_rw [spanning_sets, Union_accumulate,
-  (classical.some_spec $ exists_finite_spanning_sets μ).2.2]
+by simp_rw [spanning_sets, Union_accumulate, μ.to_finite_spanning_sets_in.spanning]
 
 lemma is_countably_spanning_spanning_sets (μ : measure α) [sigma_finite μ] :
   is_countably_spanning (range (spanning_sets μ)) :=
@@ -1515,13 +1511,37 @@ lemma is_countably_spanning_spanning_sets (μ : measure α) [sigma_finite μ] :
 namespace measure
 
 lemma supr_restrict_spanning_sets {μ : measure α} [sigma_finite μ] {s : set α}
-  (hs : is_measurable s) :
-  (⨆ i, μ.restrict (spanning_sets μ i) s) = μ s :=
+  (hs : is_measurable s) : (⨆ i, μ.restrict (spanning_sets μ i) s) = μ s :=
 begin
   convert (restrict_Union_apply_eq_supr (is_measurable_spanning_sets μ) _ hs).symm,
   { simp [Union_spanning_sets] },
   { exact directed_of_sup (monotone_spanning_sets μ) }
 end
+
+namespace finite_spanning_sets_in
+
+variables {C D : set (set α)}
+
+/-- If `μ` has finite spanning sets in `C` and `C ⊆ D` then `μ` has finite spanning sets in `D`. -/
+protected def mono (h : μ.finite_spanning_sets_in C) (hC : C ⊆ D) : μ.finite_spanning_sets_in D :=
+⟨h.set, λ i, hC (h.set_mem i), h.finite, h.spanning⟩
+
+/-- If `μ` has finite spanning sets in the collection of measurable sets `C`, then `μ` is σ-finite.
+-/
+protected lemma sigma_finite (h : μ.finite_spanning_sets_in C) (hC : ∀ s ∈ C, is_measurable s) :
+  sigma_finite μ :=
+⟨h.mono hC⟩
+
+/-- An extensionality for measures. It is `ext_of_generate_from_of_Union` formulated in terms of
+`finite_spanning_sets_in`. -/
+protected lemma ext {ν : measure α} {C : set (set α)} (hA : ‹_› = generate_from C)
+  (hC : is_pi_system C) (h : μ.finite_spanning_sets_in C) (h_eq : ∀ s ∈ C, μ s = ν s) : μ = ν :=
+ext_of_generate_from_of_Union C _ hA hC h.spanning h.set_mem h.finite h_eq
+
+protected lemma is_countably_spanning (h : μ.finite_spanning_sets_in C) : is_countably_spanning C :=
+⟨_, h.set_mem, h.spanning⟩
+
+end finite_spanning_sets_in
 end measure
 
 /-- Every finite measure is σ-finite. -/
@@ -1569,8 +1589,6 @@ lemma measure.finite_at_nhds [topological_space α] (μ : measure α)
   [locally_finite_measure μ] (x : α) :
   μ.finite_at_filter (𝓝 x) :=
 locally_finite_measure.finite_at_nhds x
-
-open measurable_space
 
 /-- Two finite measures are equal if they are equal on the π-system generating the σ-algebra
   (and `univ`). -/

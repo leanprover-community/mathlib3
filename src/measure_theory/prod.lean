@@ -96,6 +96,10 @@ begin
   { rintro ⟨⟨n, hn⟩, m, hm⟩, use n.mkpair m, simp [hn, hm] }
 end
 
+lemma assoc_preimage_prod {s : set α} {t : set β} {u : set γ} :
+  equiv.prod_assoc α β γ ⁻¹' s.prod (t.prod u) = (s.prod t).prod u :=
+by { ext, simp [and_assoc] }
+
 end set open set
 
 variables [measurable_space α] [measurable_space α'] [measurable_space β] [measurable_space β']
@@ -174,10 +178,10 @@ begin
   rw [Union_unpair_prod, h2s, h2t, univ_prod_univ]
 end
 
-/-- Rectangles are (trivially) countably spanning. -/
-lemma is_countably_spanning_prod : is_countably_spanning
-  (image2 set.prod { s : set α | is_measurable s } { t : set β | is_measurable t }) :=
-is_countably_spanning_is_measurable.prod is_countably_spanning_is_measurable
+-- /-- Measurable rectangles are (trivially) countably spanning. -/
+-- lemma is_countably_spanning_prod : is_countably_spanning
+--   (image2 set.prod { s : set α | is_measurable s } { t : set β | is_measurable t }) :=
+-- is_countably_spanning_is_measurable.prod is_countably_spanning_is_measurable
 
 /-- If `ν` is a finite measure, and `s ⊆ α × β` is measurable, then `x ↦ ν { y | (x, y) ∈ s }` is
   a measurable function. `measurable_measure_prod_mk_left` is strictly more general. -/
@@ -409,37 +413,52 @@ lemma ae_ae_of_ae_prod {p : α × β → Prop} (h : ∀ᵐ z ∂μ.prod ν, p z)
   ∀ᵐ x ∂ μ, ∀ᵐ y ∂ ν, p (x, y) :=
 measure_ae_null_of_prod_null h
 
+/-- `μ.prod ν` has finite spanning sets in rectangles of finite spanning sets. -/
+def finite_spanning_sets_in.prod {ν : measure β} {C : set (set α)} {D : set (set β)}
+  (hμ : μ.finite_spanning_sets_in C) (hν : ν.finite_spanning_sets_in D)
+  (hC : ∀ s ∈ C, is_measurable s) (hD : ∀ t ∈ D, is_measurable t) :
+  (μ.prod ν).finite_spanning_sets_in (image2 set.prod C D) :=
+begin
+  haveI := hν.sigma_finite hD,
+  refine ⟨λ n, (hμ.set n.unpair.1).prod (hν.set n.unpair.2),
+    λ n, mem_image2_of_mem (hμ.set_mem _) (hν.set_mem _), λ n, _, _⟩,
+  { simp_rw [prod_prod (hC _ (hμ.set_mem _)) (hD _ (hν.set_mem _))],
+    exact mul_lt_top (hμ.finite _) (hν.finite _) },
+  { simp_rw [Union_unpair_prod, hμ.spanning, hν.spanning, univ_prod_univ] }
+end
+
 variables [sigma_finite μ]
 
 instance prod.sigma_finite : sigma_finite (μ.prod ν) :=
-⟨⟨λ n, (spanning_sets μ n).prod (spanning_sets ν n),
-  λ n, (is_measurable_spanning_sets μ n).prod (is_measurable_spanning_sets ν n),
-  λ n, by { simp_rw [prod_prod (is_measurable_spanning_sets μ n) (is_measurable_spanning_sets ν n)],
-    exact mul_lt_top (measure_spanning_sets_lt_top μ n) (measure_spanning_sets_lt_top ν n) },
-  by { simp_rw [Union_prod_of_monotone (monotone_spanning_sets μ) (monotone_spanning_sets ν),
-    Union_spanning_sets, univ_prod_univ] }⟩⟩
+⟨(μ.to_finite_spanning_sets_in.prod ν.to_finite_spanning_sets_in (λ _, id) (λ _, id)).mono $
+ by { rintro _ ⟨s, t, hs, ht, rfl⟩, exact hs.prod ht }⟩
 
-/- Note: This proof would be shorter if `sigma_finite` was not `Prop`-valued, since we use that
-  the sets given in the instance of `sigma_finite` is a π-system. -/
-/-- Measures on a product space are equal if they are equal on rectangles. -/
-lemma prod_unique {μν₁ μν₂ : measure (α × β)}
-  (h₁ : ∀ s t, is_measurable s → is_measurable t → μν₁ (s.prod t) = μ s * ν t)
-  (h₂ : ∀ s t, is_measurable s → is_measurable t → μν₂ (s.prod t) = μ s * ν t) : μν₁ = μν₂ :=
+/-- Measures on a product space are equal the product measure if they are equal on rectangles
+  with as sides sets that generate the corresponding σ-algebras. -/
+lemma prod_eq_generate_from {μ : measure α} {ν : measure β} {C : set (set α)}
+  {D : set (set β)} (hC : generate_from C = ‹_›)
+  (hD : generate_from D = ‹_›) (h2C : is_pi_system C) (h2D : is_pi_system D)
+  (h3C : μ.finite_spanning_sets_in C) (h3D : ν.finite_spanning_sets_in D)
+  {μν : measure (α × β)}
+  (h₁ : ∀ (s ∈ C) (t ∈ D), μν (set.prod s t) = μ s * ν t) : μ.prod ν = μν :=
 begin
-  refine ext_of_generate_from_of_Union _
-    (λ i, (spanning_sets μ i).prod (spanning_sets ν i))
-    generate_from_prod.symm is_pi_system_prod _ _ _ _,
-  { rw [Union_prod_of_monotone (monotone_spanning_sets μ) (monotone_spanning_sets ν)],
-    simp_rw [Union_spanning_sets, univ_prod_univ] },
-  { intro i, apply mem_image2_of_mem; apply is_measurable_spanning_sets },
-  { intro i, rw [h₁], apply mul_lt_top; apply measure_spanning_sets_lt_top,
-    all_goals { apply is_measurable_spanning_sets } },
-  { rintro _ ⟨s, t, hs, ht, rfl⟩, simp * at * }
+  have h4C : ∀ (s : set α), s ∈ C → is_measurable s,
+  { intros s hs, rw [← hC], exact is_measurable_generate_from hs },
+  have h4D : ∀ (t : set β), t ∈ D → is_measurable t,
+  { intros t ht, rw [← hD], exact is_measurable_generate_from ht },
+  refine (h3C.prod h3D h4C h4D).ext
+    (generate_from_eq_prod hC hD h3C.is_countably_spanning h3D.is_countably_spanning).symm
+    (h2C.prod h2D) _,
+  { rintro _ ⟨s, t, hs, ht, rfl⟩, haveI := h3D.sigma_finite h4D,
+    simp_rw [h₁ s hs t ht, prod_prod (h4C s hs) (h4D t ht)] }
 end
 
+/-- Measures on a product space are equal to the product measure if they are equal on rectangles. -/
 lemma prod_eq {μν : measure (α × β)}
   (h : ∀ s t, is_measurable s → is_measurable t → μν (s.prod t) = μ s * ν t) : μ.prod ν = μν :=
-prod_unique (λ s t hs ht, prod_prod hs ht) h
+prod_eq_generate_from generate_from_is_measurable generate_from_is_measurable
+  is_pi_system_is_measurable is_pi_system_is_measurable
+  μ.to_finite_spanning_sets_in ν.to_finite_spanning_sets_in (λ s hs t ht, h s t hs ht)
 
 lemma prod_swap : map prod.swap (μ.prod ν) = ν.prod μ :=
 begin
@@ -448,17 +467,22 @@ begin
   simp_rw [map_apply measurable_swap (hs.prod ht), preimage_swap_prod, prod_prod ht hs, mul_comm]
 end
 
-lemma prod_assoc_prod [sigma_finite τ] :
-  map (measurable_equiv.prod_assoc α β γ) ((μ.prod ν).prod τ) = μ.prod (ν.prod τ) :=
-begin
-  refine (prod_eq (λ s tu hs htu, _)).symm,
-  simp_rw [map_apply (measurable_equiv.measurable_coe _) (hs.prod htu)],
-end
-
 lemma prod_apply_symm {s : set (α × β)} (hs : is_measurable s) :
   μ.prod ν s = ∫⁻ y, μ ((λ x, (x, y)) ⁻¹' s) ∂ν :=
 by { rw [← prod_swap, map_apply measurable_swap hs],
      simp only [prod_apply (measurable_swap hs)], refl }
+
+lemma prod_assoc_prod [sigma_finite τ] :
+  map (measurable_equiv.prod_assoc α β γ) ((μ.prod ν).prod τ) = μ.prod (ν.prod τ) :=
+begin
+  refine (prod_eq_generate_from generate_from_is_measurable generate_from_prod
+    is_pi_system_is_measurable is_pi_system_prod μ.to_finite_spanning_sets_in
+    (ν.to_finite_spanning_sets_in.prod τ.to_finite_spanning_sets_in (λ _, id) (λ _, id)) _).symm,
+  rintro s hs _ ⟨t, u, ht, hu, rfl⟩, rw [mem_set_of_eq] at hs ht hu,
+  simp_rw [map_apply (measurable_equiv.measurable_coe _) (hs.prod (ht.prod hu)), prod_prod ht hu,
+    measurable_equiv.prod_assoc, measurable_equiv.coe_eq, assoc_preimage_prod,
+    prod_prod (hs.prod ht) hu, prod_prod hs ht, mul_assoc]
+end
 
 /-! ### The product of specific measures -/
 

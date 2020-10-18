@@ -165,7 +165,7 @@ wf_dvd_monoid.induction_on_irreducible (f.map i)
         rw [multiset.map_cons, multiset.prod_cons, leading_coeff_mul, C_mul, mul_assoc,
           mul_left_comm (C f.leading_coeff), ← hs, ← mul_assoc, mul_left_inj' hf0],
         conv_lhs {rw eq_X_add_C_of_degree_eq_one hp1},
-        simp only [mul_add, coe_norm_unit hp.ne_zero, mul_comm p, coeff_neg,
+        simp only [mul_add, coe_norm_unit_of_ne_zero hp.ne_zero, mul_comm p, coeff_neg,
           C_neg, sub_eq_add_neg, neg_neg, coeff_C_mul, (mul_assoc _ _ _).symm, C_mul.symm,
           mul_inv_cancel (show p.leading_coeff ≠ 0, from mt leading_coeff_eq_zero.1
             hp.ne_zero), one_mul],
@@ -369,15 +369,16 @@ begin
   have hcoeff : p.leading_coeff ≠ 0,
   { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
   have sameroots : p.roots = (normalize p).roots,
-  { rw [normalize_apply, mul_comm, coe_norm_unit hzero, roots_C_mul _ (inv_ne_zero hcoeff)] },
+  { rw [normalize_apply, mul_comm, coe_norm_unit_of_ne_zero hzero,
+        roots_C_mul _ (inv_ne_zero hcoeff)] },
   have hrootsnorm : (normalize p).roots.card = (normalize p).nat_degree,
-  { rw [← sameroots, normalize_apply, mul_comm, coe_norm_unit hzero],
+  { rw [← sameroots, normalize_apply, mul_comm, coe_norm_unit_of_ne_zero hzero],
     have hCzero : C (p.leading_coeff)⁻¹ ≠ 0,
     { rw [ne.def, C_eq_zero], exact (inv_ne_zero hcoeff) },
     simp only [nat_degree_C, zero_add, nat_degree_mul hCzero hzero],
     exact hroots },
   have hprod := prod_multiset_X_sub_C_of_monic_of_roots_card_eq (monic_normalize hzero) hrootsnorm,
-  rw [← sameroots, normalize_apply, coe_norm_unit hzero] at hprod,
+  rw [← sameroots, normalize_apply, coe_norm_unit_of_ne_zero hzero] at hprod,
   calc (C p.leading_coeff) * (multiset.map (λ (a : α), X - C a) p.roots).prod
       = p * C ((p.leading_coeff)⁻¹ * p.leading_coeff) : by rw [hprod, mul_comm, mul_assoc, ← C_mul]
   ... = p * C 1 : by field_simp [hcoeff]

@@ -21,6 +21,35 @@ namespace polynomial
 universes u v w y z
 variables {R : Type u} {S : Type v} {k : Type y} {A : Type z} {a b : R} {n : ℕ}
 
+section integral_domain
+variables [integral_domain R] [normalization_monoid R]
+instance : normalization_monoid (polynomial R) :=
+{ norm_unit := λ p, ⟨C ↑(norm_unit (p.leading_coeff)), C ↑(norm_unit (p.leading_coeff))⁻¹,
+    by rw [← ring_hom.map_mul, units.mul_inv, C_1], by rw [← ring_hom.map_mul, units.inv_mul, C_1]⟩,
+  norm_unit_zero := units.ext (by simp),
+  norm_unit_mul := λ p q hp0 hq0, units.ext (begin
+      dsimp,
+      rw [ne.def, ← leading_coeff_eq_zero] at *,
+      rw [leading_coeff_mul, norm_unit_mul hp0 hq0, units.coe_mul, C_mul],
+    end),
+  norm_unit_coe_units := λ u,
+    units.ext begin
+      rw [← mul_one u⁻¹, units.coe_mul, units.eq_inv_mul_iff_mul_eq],
+      dsimp,
+      rcases polynomial.is_unit_iff.1 ⟨u, rfl⟩ with ⟨_, ⟨w, rfl⟩, h2⟩,
+      rw [← h2, leading_coeff_C, norm_unit_coe_units, ← C_mul, units.mul_inv, C_1],
+    end }
+
+@[simp]
+lemma coe_norm_unit {p : polynomial R} :
+  (norm_unit p : polynomial R) = C ↑(norm_unit p.leading_coeff) :=
+by simp [norm_unit]
+
+lemma leading_coeff_normalize (p : polynomial R) :
+  leading_coeff (normalize p) = normalize (leading_coeff p) := by simp
+
+end integral_domain
+
 section field
 variables [field R] {p q : polynomial R}
 
@@ -267,44 +296,23 @@ begin
   { simp }
 end
 
-instance : normalization_monoid (polynomial R) :=
-{ norm_unit := λ p, if hp0 : p = 0 then 1
-    else ⟨C p.leading_coeff⁻¹, C p.leading_coeff,
-      by rw [← C_mul, inv_mul_cancel, C_1];
-       exact mt leading_coeff_eq_zero.1 hp0,
-      by rw [← C_mul, mul_inv_cancel, C_1];
-       exact mt leading_coeff_eq_zero.1 hp0,⟩,
-  norm_unit_zero := dif_pos rfl,
-  norm_unit_mul := λ p q hp0 hq0, begin
-      rw [dif_neg hp0, dif_neg hq0, dif_neg (mul_ne_zero hp0 hq0)],
-      apply units.ext,
-      show C (leading_coeff (p * q))⁻¹ = C (leading_coeff p)⁻¹ * C (leading_coeff q)⁻¹,
-      rw [leading_coeff_mul, mul_inv', C_mul, mul_comm]
-    end,
-  norm_unit_coe_units := λ u,
-    have hu : degree ↑u⁻¹ = 0, from degree_eq_zero_of_is_unit ⟨u⁻¹, rfl⟩,
-    begin
-      apply units.ext,
-      rw [dif_neg (units.ne_zero u)],
-      conv_rhs {rw eq_C_of_degree_eq_zero hu},
-      refine C_inj.2 _,
-      rw [← nat_degree_eq_of_degree_eq_some hu, leading_coeff,
-        coeff_inv_units],
-      simp
-    end, }
-
 lemma monic_normalize (hp0 : p ≠ 0) : monic (normalize p) :=
-show leading_coeff (p * ↑(dite _ _ _)) = 1,
-by rw dif_neg hp0; exact monic_mul_leading_coeff_inv hp0
+begin
+  rw [ne.def, ← leading_coeff_eq_zero, ← ne.def, ← is_unit_iff_ne_zero] at hp0,
+  rw [monic, leading_coeff_normalize, normalize_eq_one],
+  apply hp0,
+end
 
-lemma coe_norm_unit (hp : p ≠ 0) : (norm_unit p : polynomial R) = C p.leading_coeff⁻¹ :=
-show ↑(dite _ _ _) = C p.leading_coeff⁻¹, by rw dif_neg hp; refl
+lemma coe_norm_unit_of_ne_zero (hp : p ≠ 0) : (norm_unit p : polynomial R) = C p.leading_coeff⁻¹ :=
+by simp [hp]
+
+lemma normalize_monic (h : monic p) : normalize p = p := by simp [h]
 
 theorem map_dvd_map' [field k] (f : R →+* k) {x y : polynomial R} : x.map f ∣ y.map f ↔ x ∣ y :=
 if H : x = 0 then by rw [H, map_zero, zero_dvd_iff, zero_dvd_iff, map_eq_zero]
 else by rw [← normalize_dvd_iff, ← @normalize_dvd_iff (polynomial R),
     normalize_apply, normalize_apply,
-    coe_norm_unit H, coe_norm_unit (mt (map_eq_zero _).1 H),
+    coe_norm_unit_of_ne_zero H, coe_norm_unit_of_ne_zero (mt (map_eq_zero _).1 H),
     leading_coeff_map, ← f.map_inv, ← map_C, ← map_mul,
     map_dvd_map _ f.injective (monic_mul_leading_coeff_inv H)]
 

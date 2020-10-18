@@ -174,6 +174,7 @@ meta def filter_upwards
 do
   s.reverse.mmap (λ e, eapplyc `filter.mp_sets >> eapply e),
   eapplyc `filter.univ_mem_sets',
+  `[dsimp only [set.mem_set_of_eq]],
   match e' with
   | some e := interactive.exact e
   | none := skip

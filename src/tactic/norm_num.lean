@@ -301,6 +301,354 @@ else do
   (c, p) ← c.mk_app ``clear_denom_div [a, b, b', r, d, p₀, p₁, p₂],
   return (c, r, p)
 
+/-- Given `a` a rational numeral, returns `⊢ a ≠ 0`. -/
+meta def prove_ne_zero (ic : instance_cache) : expr → ℚ → tactic (instance_cache × expr)
+| a na := do
+  (ic, z) ← ic.mk_app ``has_zero.zero [],
+  prove_ne ic a z na 0
+
+/-- Given `a` nonnegative rational and `d` a natural number, returns `(b, ⊢ a * d = b)`.
+(`d` should be a multiple of the denominator of `a`, so that `b` is a natural number.) -/
+meta def prove_clear_denom : instance_cache → expr → expr → ℚ → ℕ →
+  tactic (instance_cache × expr × expr) := prove_clear_denom' prove_ne_zero
+
+theorem clear_denom_add {α} [division_ring α] (a a' b b' c c' d : α)
+  (h₀ : d ≠ 0) (ha : a * d = a') (hb : b * d = b') (hc : c * d = c')
+  (h : a' + b' = c') : a + b = c :=
+mul_right_cancel' h₀ $ by rwa [add_mul, ha, hb, hc]
+
+/-- Given `a`,`b`,`c` nonnegative rational numerals, returns `⊢ a + b = c`. -/
+meta def prove_add_nonneg_rat (ic : instance_cache) (a b c : expr) (na nb nc : ℚ) :
+  tactic (instance_cache × expr) :=
+if na.denom = 1 ∧ nb.denom = 1 then
+  prove_add_nat ic a b c
+else do
+  let nd := na.denom.lcm nb.denom,
+  (ic, d) ← ic.of_nat nd,
+  (ic, p₀) ← prove_ne_zero ic d (rat.of_int nd),
+  (ic, a', pa) ← prove_clear_denom ic a d na nd,
+  (ic, b', pb) ← prove_clear_denom ic b d nb nd,
+  (ic, c', pc) ← prove_clear_denom ic c d nc nd,
+  (ic, p) ← prove_add_nat ic a' b' c',
+  ic.mk_app ``clear_denom_add [a, a', b, b', c, c', d, p₀, pa, pb, pc, p]
+
+theorem add_pos_neg_pos {α} [add_group α] (a b c : α) (h : c + b = a) : a + -b = c :=
+h ▸ by simp
+theorem add_pos_neg_neg {α} [add_group α] (a b c : α) (h : c + a = b) : a + -b = -c :=
+h ▸ by simp
+theorem add_neg_pos_pos {α} [add_group α] (a b c : α) (h : a + c = b) : -a + b = c :=
+h ▸ by simp
+theorem add_neg_pos_neg {α} [add_group α] (a b c : α) (h : b + c = a) : -a + b = -c :=
+h ▸ by simp
+theorem add_neg_neg {α} [add_group α] (a b c : α) (h : b + a = c) : -a + -b = -c :=
+h ▸ by simp
+
+/-- Given `a`,`b`,`c` rational numerals, returns `⊢ a + b = c`. -/
+meta def prove_add_rat (ic : instance_cache) (ea eb ec : expr) (a b c : ℚ) : tactic (instance_cache × expr) :=
+match match_neg ea, match_neg eb, match_neg ec with
+| some ea, some eb, some ec := do
+  (ic, p) ← prove_add_nonneg_rat ic eb ea ec (-b) (-a) (-c),
+  ic.mk_app ``add_neg_neg [ea, eb, ec, p]
+| some ea, none, some ec := do
+  (ic, p) ← prove_add_nonneg_rat ic eb ec ea b (-c) (-a),
+  ic.mk_app ``add_neg_pos_neg [ea, eb, ec, p]
+| some ea, none, none := do
+  (ic, p) ← prove_add_nonneg_rat ic ea ec eb (-a) c b,
+  ic.mk_app ``add_neg_pos_pos [ea, eb, ec, p]
+| none, some eb, some ec := do
+  (ic, p) ← prove_add_nonneg_rat ic ec ea eb (-c) a (-b),
+  ic.mk_app ``add_pos_neg_neg [ea, eb, ec, p]
+| none, some eb, none := do
+  (ic, p) ← prove_add_nonneg_rat ic ec eb ea c (-b) a,
+  ic.mk_app ``add_pos_neg_pos [ea, eb, ec, p]
+| _, _, _ := prove_add_nonneg_rat ic ea eb ec a b c
+end
+
+/-- Given `a`,`b` rational numerals, returns `(c, ⊢ a + b = c)`. -/
+meta def prove_add_rat' (ic : instance_cache) (a b : expr) : tactic (instance_cache × expr × expr) := do
+  na ← a.to_rat,
+  nb ← b.to_rat,
+  let nc := na + nb,
+  (ic, c) ← ic.of_rat nc,
+  (ic, p) ← prove_add_rat ic a b c na nb nc,
+  return (ic, c, p)
+
+theorem clear_denom_simple_nat {α} [division_ring α] (a : α) :
+  (1:α) ≠ 0 ∧ a * 1 = a := ⟨one_ne_zero, mul_one _⟩
+theorem clear_denom_simple_div {α} [division_ring α] (a b : α) (h : b ≠ 0) :
+  b ≠ 0 ∧ a / b * b = a := ⟨h, div_mul_cancel _ h⟩
+
+/-- Given `a` a nonnegative rational numeral, returns `(b, c, ⊢ a * b = c)`
+where `b` and `c` are natural numerals. (`b` will be the denominator of `a`.) -/
+meta def prove_clear_denom_simple (c : instance_cache) (a : expr) (na : ℚ) : tactic (instance_cache × expr × expr × expr) :=
+if na.denom = 1 then do
+  (c, d) ← c.mk_app ``has_one.one [],
+  (c, p) ← c.mk_app ``clear_denom_simple_nat [a],
+  return (c, d, a, p)
+else do
+  [α, _, a, b] ← return a.get_app_args,
+  (c, p₀) ← prove_ne_zero c b (rat.of_int na.denom),
+  (c, p) ← c.mk_app ``clear_denom_simple_div [a, b, p₀],
+  return (c, b, a, p)
+
+theorem clear_denom_mul {α} [field α] (a a' b b' c c' d₁ d₂ d : α)
+  (ha : d₁ ≠ 0 ∧ a * d₁ = a') (hb : d₂ ≠ 0 ∧ b * d₂ = b')
+  (hc : c * d = c') (hd : d₁ * d₂ = d)
+  (h : a' * b' = c') : a * b = c :=
+mul_right_cancel' ha.1 $ mul_right_cancel' hb.1 $
+by rw [mul_assoc c, hd, hc, ← h, ← ha.2, ← hb.2, ← mul_assoc, mul_right_comm a]
+
+/-- Given `a`,`b` nonnegative rational numerals, returns `(c, ⊢ a * b = c)`. -/
+meta def prove_mul_nonneg_rat (ic : instance_cache) (a b : expr) (na nb : ℚ) : tactic (instance_cache × expr × expr) :=
+if na.denom = 1 ∧ nb.denom = 1 then
+  prove_mul_nat ic a b
+else do
+  let nc := na * nb, (ic, c) ← ic.of_rat nc,
+  (ic, d₁, a', pa) ← prove_clear_denom_simple ic a na,
+  (ic, d₂, b', pb) ← prove_clear_denom_simple ic b nb,
+  (ic, d, pd) ← prove_mul_nat ic d₁ d₂, nd ← d.to_nat,
+  (ic, c', pc) ← prove_clear_denom ic c d nc nd,
+  (ic, _, p) ← prove_mul_nat ic a' b',
+  (ic, p) ← ic.mk_app ``clear_denom_mul [a, a', b, b', c, c', d₁, d₂, d, pa, pb, pc, pd, p],
+  return (ic, c, p)
+
+theorem mul_neg_pos {α} [ring α] (a b c : α) (h : a * b = c) : -a * b = -c := h ▸ by simp
+theorem mul_pos_neg {α} [ring α] (a b c : α) (h : a * b = c) : a * -b = -c := h ▸ by simp
+theorem mul_neg_neg {α} [ring α] (a b c : α) (h : a * b = c) : -a * -b = c := h ▸ by simp
+
+/-- Given `a`,`b` rational numerals, returns `(c, ⊢ a * b = c)`. -/
+meta def prove_mul_rat (ic : instance_cache) (a b : expr) (na nb : ℚ) : tactic (instance_cache × expr × expr) :=
+match match_sign a, match_sign b with
+| sum.inl a, sum.inl b := do
+  (ic, c, p) ← prove_mul_nonneg_rat ic a b (-na) (-nb),
+  (ic, p) ← ic.mk_app ``mul_neg_neg [a, b, c, p],
+  return (ic, c, p)
+| sum.inr ff, _ := do
+  (ic, z) ← ic.mk_app ``has_zero.zero [],
+  (ic, p) ← ic.mk_app ``zero_mul [b],
+  return (ic, z, p)
+| _, sum.inr ff := do
+  (ic, z) ← ic.mk_app ``has_zero.zero [],
+  (ic, p) ← ic.mk_app ``mul_zero [a],
+  return (ic, z, p)
+| sum.inl a, sum.inr tt := do
+  (ic, c, p) ← prove_mul_nonneg_rat ic a b (-na) nb,
+  (ic, p) ← ic.mk_app ``mul_neg_pos [a, b, c, p],
+  (ic, c') ← ic.mk_app ``has_neg.neg [c],
+  return (ic, c', p)
+| sum.inr tt, sum.inl b := do
+  (ic, c, p) ← prove_mul_nonneg_rat ic a b na (-nb),
+  (ic, p) ← ic.mk_app ``mul_pos_neg [a, b, c, p],
+  (ic, c') ← ic.mk_app ``has_neg.neg [c],
+  return (ic, c', p)
+| sum.inr tt, sum.inr tt := prove_mul_nonneg_rat ic a b na nb
+end
+
+theorem inv_neg {α} [division_ring α] (a b : α) (h : a⁻¹ = b) : (-a)⁻¹ = -b :=
+h ▸ by simp only [inv_eq_one_div, one_div_neg_eq_neg_one_div]
+
+theorem inv_one {α} [division_ring α] : (1 : α)⁻¹ = 1 := inv_one
+theorem inv_one_div {α} [division_ring α] (a : α) : (1 / a)⁻¹ = a :=
+by rw [one_div, inv_inv']
+theorem inv_div_one {α} [division_ring α] (a : α) : a⁻¹ = 1 / a :=
+inv_eq_one_div _
+theorem inv_div {α} [division_ring α] (a b : α) : (a / b)⁻¹ = b / a :=
+by simp only [inv_eq_one_div, one_div_div]
+
+/-- Given `a` a rational numeral, returns `(b, ⊢ a⁻¹ = b)`. -/
+meta def prove_inv : instance_cache → expr → ℚ → tactic (instance_cache × expr × expr)
+| ic e n :=
+  match match_sign e with
+  | sum.inl e := do
+    (ic, e', p) ← prove_inv ic e (-n),
+    (ic, r) ← ic.mk_app ``has_neg.neg [e'],
+    (ic, p) ← ic.mk_app ``inv_neg [e, e', p],
+    return (ic, r, p)
+  | sum.inr ff := do
+    (ic, p) ← ic.mk_app ``inv_zero [],
+    return (ic, e, p)
+  | sum.inr tt :=
+    if n.num = 1 then
+      if n.denom = 1 then do
+        (ic, p) ← ic.mk_app ``inv_one [],
+        return (ic, e, p)
+      else do
+        let e := e.app_arg,
+        (ic, p) ← ic.mk_app ``inv_one_div [e],
+        return (ic, e, p)
+    else if n.denom = 1 then do
+      (ic, p) ← ic.mk_app ``inv_div_one [e],
+      e ← infer_type p,
+      return (ic, e.app_arg, p)
+    else do
+      [_, _, a, b] ← return e.get_app_args,
+      (ic, e') ← ic.mk_app ``has_div.div [b, a],
+      (ic, p) ← ic.mk_app ``inv_div [a, b],
+      return (ic, e', p)
+  end
+
+theorem div_eq {α} [division_ring α] (a b b' c : α)
+  (hb : b⁻¹ = b') (h : a * b' = c) : a / b = c := by rwa ← hb at h
+
+/-- Given `a`,`b` rational numerals, returns `(c, ⊢ a / b = c)`. -/
+meta def prove_div (ic : instance_cache) (a b : expr) (na nb : ℚ) : tactic (instance_cache × expr × expr) :=
+do (ic, b', pb) ← prove_inv ic b nb,
+  (ic, c, p) ← prove_mul_rat ic a b' na nb⁻¹,
+  (ic, p) ← ic.mk_app ``div_eq [a, b, b', c, pb, p],
+  return (ic, c, p)
+
+/-- Given `a` a rational numeral, returns `(b, ⊢ -a = b)`. -/
+meta def prove_neg (ic : instance_cache) (a : expr) : tactic (instance_cache × expr × expr) :=
+match match_sign a with
+| sum.inl a := do
+  (ic, p) ← ic.mk_app ``neg_neg [a],
+  return (ic, a, p)
+| sum.inr ff := do
+  (ic, p) ← ic.mk_app ``neg_zero [],
+  return (ic, a, p)
+| sum.inr tt := do
+  (ic, a') ← ic.mk_app ``has_neg.neg [a],
+  p ← mk_eq_refl a',
+  return (ic, a', p)
+end
+
+theorem sub_pos {α} [add_group α] (a b b' c : α) (hb : -b = b') (h : a + b' = c) : a - b = c :=
+by rwa ← hb at h
+theorem sub_neg {α} [add_group α] (a b c : α) (h : a + b = c) : a - -b = c :=
+by rwa sub_neg_eq_add
+
+/-- Given `a`,`b` rational numerals, returns `(c, ⊢ a - b = c)`. -/
+meta def prove_sub (ic : instance_cache) (a b : expr) : tactic (instance_cache × expr × expr) :=
+match match_sign b with
+| sum.inl b := do
+  (ic, c, p) ← prove_add_rat' ic a b,
+  (ic, p) ← ic.mk_app ``sub_neg [a, b, c, p],
+  return (ic, c, p)
+| sum.inr ff := do
+  (ic, p) ← ic.mk_app ``sub_zero [a],
+  return (ic, a, p)
+| sum.inr tt := do
+  (ic, b', pb) ← prove_neg ic b,
+  (ic, c, p) ← prove_add_rat' ic a b',
+  (ic, p) ← ic.mk_app ``sub_pos [a, b, b', c, pb, p],
+  return (ic, c, p)
+end
+
+theorem sub_nat_pos (a b c : ℕ) (h : b + c = a) : a - b = c :=
+h ▸ nat.add_sub_cancel_left _ _
+theorem sub_nat_neg (a b c : ℕ) (h : a + c = b) : a - b = 0 :=
+nat.sub_eq_zero_of_le $ h ▸ nat.le_add_right _ _
+
+/-- Given `a : nat`,`b : nat` natural numerals, returns `(c, ⊢ a - b = c)`. -/
+meta def prove_sub_nat (ic : instance_cache) (a b : expr) : tactic (expr × expr) :=
+do na ← a.to_nat, nb ← b.to_nat,
+  if nb ≤ na then do
+    (ic, c) ← ic.of_nat (na - nb),
+    (ic, p) ← prove_add_nat ic b c a,
+    return (c, `(sub_nat_pos).mk_app [a, b, c, p])
+  else do
+    (ic, c) ← ic.of_nat (nb - na),
+    (ic, p) ← prove_add_nat ic a c b,
+    return (`(0 : ℕ), `(sub_nat_neg).mk_app [a, b, c, p])
+
+/-- This is needed because when `a` and `b` are numerals lean is more likely to unfold them
+than unfold the instances in order to prove that `add_group_has_sub = int.has_sub`. -/
+theorem int_sub_hack (a b c : ℤ) (h : @has_sub.sub ℤ add_group_has_sub a b = c) : a - b = c := h
+
+/-- Given `a : ℤ`, `b : ℤ` integral numerals, returns `(c, ⊢ a - b = c)`. -/
+meta def prove_sub_int (ic : instance_cache) (a b : expr) : tactic (expr × expr) :=
+do (_, c, p) ← prove_sub ic a b,
+  return (c, `(int_sub_hack).mk_app [a, b, c, p])
+
+/-- Evaluates the basic field operations `+`,`neg`,`-`,`*`,`inv`,`/` on numerals.
+Also handles nat subtraction. Does not do recursive simplification; that is,
+`1 + 1 + 1` will not simplify but `2 + 1` will. This is handled by the top level
+`simp` call in `norm_num.derive`. -/
+meta def eval_field : expr → tactic (expr × expr)
+| `(%%e₁ + %%e₂) := do
+  n₁ ← e₁.to_rat, n₂ ← e₂.to_rat,
+  c ← infer_type e₁ >>= mk_instance_cache,
+  let n₃ := n₁ + n₂,
+  (c, e₃) ← c.of_rat n₃,
+  (_, p) ← prove_add_rat c e₁ e₂ e₃ n₁ n₂ n₃,
+  return (e₃, p)
+| `(%%e₁ * %%e₂) := do
+  n₁ ← e₁.to_rat, n₂ ← e₂.to_rat,
+  c ← infer_type e₁ >>= mk_instance_cache,
+  prod.snd <$> prove_mul_rat c e₁ e₂ n₁ n₂
+| `(- %%e) := do
+  c ← infer_type e >>= mk_instance_cache,
+  prod.snd <$> prove_neg c e
+| `(@has_sub.sub %%α %%inst %%a %%b) := do
+  c ← mk_instance_cache α,
+  if α = `(nat) then prove_sub_nat c a b
+  else if inst = `(int.has_sub) then prove_sub_int c a b
+  else prod.snd <$> prove_sub c a b
+| `(has_inv.inv %%e) := do
+  n ← e.to_rat,
+  c ← infer_type e >>= mk_instance_cache,
+  prod.snd <$> prove_inv c e n
+| `(%%e₁ / %%e₂) := do
+  n₁ ← e₁.to_rat, n₂ ← e₂.to_rat,
+  c ← infer_type e₁ >>= mk_instance_cache,
+  prod.snd <$> prove_div c e₁ e₂ n₁ n₂
+| _ := failed
+
+lemma pow_bit0 [monoid α] (a c' c : α) (b : ℕ)
+  (h : a ^ b = c') (h₂ : c' * c' = c) : a ^ bit0 b = c :=
+h₂ ▸ by simp [pow_bit0, h]
+
+lemma pow_bit1 [monoid α] (a c₁ c₂ c : α) (b : ℕ)
+  (h : a ^ b = c₁) (h₂ : c₁ * c₁ = c₂) (h₃ : c₂ * a = c) : a ^ bit1 b = c :=
+by rw [← h₃, ← h₂]; simp [pow_bit1, h]
+
+section
+open match_numeral_result
+
+/-- Given `a` a rational numeral and `b : nat`, returns `(c, ⊢ a ^ b = c)`. -/
+meta def prove_pow (a : expr) (na : ℚ) : instance_cache → expr → tactic (instance_cache × expr × expr)
+| ic b :=
+  match match_numeral b with
+  | zero := do
+    (ic, p) ← ic.mk_app ``pow_zero [a],
+    (ic, o) ← ic.mk_app ``has_one.one [],
+    return (ic, o, p)
+  | one := do
+    (ic, p) ← ic.mk_app ``pow_one [a],
+    return (ic, a, p)
+  | bit0 b := do
+    (ic, c', p) ← prove_pow ic b,
+    nc' ← expr.to_rat c',
+    (ic, c, p₂) ← prove_mul_rat ic c' c' nc' nc',
+    (ic, p) ← ic.mk_app ``pow_bit0 [a, c', c, b, p, p₂],
+    return (ic, c, p)
+  | bit1 b := do
+    (ic, c₁, p) ← prove_pow ic b,
+    nc₁ ← expr.to_rat c₁,
+    (ic, c₂, p₂) ← prove_mul_rat ic c₁ c₁ nc₁ nc₁,
+    (ic, c, p₃) ← prove_mul_rat ic c₂ a (nc₁ * nc₁) na,
+    (ic, p) ← ic.mk_app ``pow_bit1 [a, c₁, c₂, c, b, p, p₂, p₃],
+    return (ic, c, p)
+  | _ := failed
+  end
+
+end
+
+/-- Evaluates expressions of the form `a ^ b`, `monoid.pow a b` or `nat.pow a b`. -/
+meta def eval_pow : expr → tactic (expr × expr)
+| `(@has_pow.pow %%α _ %%m %%e₁ %%e₂) := do
+  n₁ ← e₁.to_rat,
+  c ← infer_type e₁ >>= mk_instance_cache,
+  match m with
+  | `(@monoid.has_pow %%_ %%_) := prod.snd <$> prove_pow e₁ n₁ c e₂
+  | _ := failed
+  end
+| `(monoid.pow %%e₁ %%e₂) := do
+  n₁ ← e₁.to_rat,
+  c ← infer_type e₁ >>= mk_instance_cache,
+  prod.snd <$> prove_pow e₁ n₁ c e₂
+| _ := failed
+
 theorem nonneg_pos {α} [ordered_cancel_add_comm_monoid α] (a : α) : 0 < a → 0 ≤ a := le_of_lt
 
 theorem lt_one_bit0 {α} [linear_ordered_semiring α] (a : α) (h : 1 ≤ a) : 1 < bit0 a :=
@@ -684,354 +1032,6 @@ meta def prove_ne : instance_cache → expr → expr → ℚ → ℚ → tactic 
     (ic, qc, b', pb) ← prove_rat_uncast ic qc cz_inst b nb,
     (qc, p) ← prove_ne_rat qc a' b' na nb,
     ic.mk_app ``rat_cast_ne [cz_inst, a', b', a, b, pa, pb, p]
-
-/-- Given `a` a rational numeral, returns `⊢ a ≠ 0`. -/
-meta def prove_ne_zero (ic : instance_cache) : expr → ℚ → tactic (instance_cache × expr)
-| a na := do
-  (ic, z) ← ic.mk_app ``has_zero.zero [],
-  prove_ne ic a z na 0
-
-/-- Given `a` nonnegative rational and `d` a natural number, returns `(b, ⊢ a * d = b)`.
-(`d` should be a multiple of the denominator of `a`, so that `b` is a natural number.) -/
-meta def prove_clear_denom : instance_cache → expr → expr → ℚ → ℕ →
-  tactic (instance_cache × expr × expr) := prove_clear_denom' prove_ne_zero
-
-theorem clear_denom_add {α} [division_ring α] (a a' b b' c c' d : α)
-  (h₀ : d ≠ 0) (ha : a * d = a') (hb : b * d = b') (hc : c * d = c')
-  (h : a' + b' = c') : a + b = c :=
-mul_right_cancel' h₀ $ by rwa [add_mul, ha, hb, hc]
-
-/-- Given `a`,`b`,`c` nonnegative rational numerals, returns `⊢ a + b = c`. -/
-meta def prove_add_nonneg_rat (ic : instance_cache) (a b c : expr) (na nb nc : ℚ) :
-  tactic (instance_cache × expr) :=
-if na.denom = 1 ∧ nb.denom = 1 then
-  prove_add_nat ic a b c
-else do
-  let nd := na.denom.lcm nb.denom,
-  (ic, d) ← ic.of_nat nd,
-  (ic, p₀) ← prove_ne_zero ic d (rat.of_int nd),
-  (ic, a', pa) ← prove_clear_denom ic a d na nd,
-  (ic, b', pb) ← prove_clear_denom ic b d nb nd,
-  (ic, c', pc) ← prove_clear_denom ic c d nc nd,
-  (ic, p) ← prove_add_nat ic a' b' c',
-  ic.mk_app ``clear_denom_add [a, a', b, b', c, c', d, p₀, pa, pb, pc, p]
-
-theorem add_pos_neg_pos {α} [add_group α] (a b c : α) (h : c + b = a) : a + -b = c :=
-h ▸ by simp
-theorem add_pos_neg_neg {α} [add_group α] (a b c : α) (h : c + a = b) : a + -b = -c :=
-h ▸ by simp
-theorem add_neg_pos_pos {α} [add_group α] (a b c : α) (h : a + c = b) : -a + b = c :=
-h ▸ by simp
-theorem add_neg_pos_neg {α} [add_group α] (a b c : α) (h : b + c = a) : -a + b = -c :=
-h ▸ by simp
-theorem add_neg_neg {α} [add_group α] (a b c : α) (h : b + a = c) : -a + -b = -c :=
-h ▸ by simp
-
-/-- Given `a`,`b`,`c` rational numerals, returns `⊢ a + b = c`. -/
-meta def prove_add_rat (ic : instance_cache) (ea eb ec : expr) (a b c : ℚ) : tactic (instance_cache × expr) :=
-match match_neg ea, match_neg eb, match_neg ec with
-| some ea, some eb, some ec := do
-  (ic, p) ← prove_add_nonneg_rat ic eb ea ec (-b) (-a) (-c),
-  ic.mk_app ``add_neg_neg [ea, eb, ec, p]
-| some ea, none, some ec := do
-  (ic, p) ← prove_add_nonneg_rat ic eb ec ea b (-c) (-a),
-  ic.mk_app ``add_neg_pos_neg [ea, eb, ec, p]
-| some ea, none, none := do
-  (ic, p) ← prove_add_nonneg_rat ic ea ec eb (-a) c b,
-  ic.mk_app ``add_neg_pos_pos [ea, eb, ec, p]
-| none, some eb, some ec := do
-  (ic, p) ← prove_add_nonneg_rat ic ec ea eb (-c) a (-b),
-  ic.mk_app ``add_pos_neg_neg [ea, eb, ec, p]
-| none, some eb, none := do
-  (ic, p) ← prove_add_nonneg_rat ic ec eb ea c (-b) a,
-  ic.mk_app ``add_pos_neg_pos [ea, eb, ec, p]
-| _, _, _ := prove_add_nonneg_rat ic ea eb ec a b c
-end
-
-/-- Given `a`,`b` rational numerals, returns `(c, ⊢ a + b = c)`. -/
-meta def prove_add_rat' (ic : instance_cache) (a b : expr) : tactic (instance_cache × expr × expr) := do
-  na ← a.to_rat,
-  nb ← b.to_rat,
-  let nc := na + nb,
-  (ic, c) ← ic.of_rat nc,
-  (ic, p) ← prove_add_rat ic a b c na nb nc,
-  return (ic, c, p)
-
-theorem clear_denom_simple_nat {α} [division_ring α] (a : α) :
-  (1:α) ≠ 0 ∧ a * 1 = a := ⟨one_ne_zero, mul_one _⟩
-theorem clear_denom_simple_div {α} [division_ring α] (a b : α) (h : b ≠ 0) :
-  b ≠ 0 ∧ a / b * b = a := ⟨h, div_mul_cancel _ h⟩
-
-/-- Given `a` a nonnegative rational numeral, returns `(b, c, ⊢ a * b = c)`
-where `b` and `c` are natural numerals. (`b` will be the denominator of `a`.) -/
-meta def prove_clear_denom_simple (c : instance_cache) (a : expr) (na : ℚ) : tactic (instance_cache × expr × expr × expr) :=
-if na.denom = 1 then do
-  (c, d) ← c.mk_app ``has_one.one [],
-  (c, p) ← c.mk_app ``clear_denom_simple_nat [a],
-  return (c, d, a, p)
-else do
-  [α, _, a, b] ← return a.get_app_args,
-  (c, p₀) ← prove_ne_zero c b (rat.of_int na.denom),
-  (c, p) ← c.mk_app ``clear_denom_simple_div [a, b, p₀],
-  return (c, b, a, p)
-
-theorem clear_denom_mul {α} [field α] (a a' b b' c c' d₁ d₂ d : α)
-  (ha : d₁ ≠ 0 ∧ a * d₁ = a') (hb : d₂ ≠ 0 ∧ b * d₂ = b')
-  (hc : c * d = c') (hd : d₁ * d₂ = d)
-  (h : a' * b' = c') : a * b = c :=
-mul_right_cancel' ha.1 $ mul_right_cancel' hb.1 $
-by rw [mul_assoc c, hd, hc, ← h, ← ha.2, ← hb.2, ← mul_assoc, mul_right_comm a]
-
-/-- Given `a`,`b` nonnegative rational numerals, returns `(c, ⊢ a * b = c)`. -/
-meta def prove_mul_nonneg_rat (ic : instance_cache) (a b : expr) (na nb : ℚ) : tactic (instance_cache × expr × expr) :=
-if na.denom = 1 ∧ nb.denom = 1 then
-  prove_mul_nat ic a b
-else do
-  let nc := na * nb, (ic, c) ← ic.of_rat nc,
-  (ic, d₁, a', pa) ← prove_clear_denom_simple ic a na,
-  (ic, d₂, b', pb) ← prove_clear_denom_simple ic b nb,
-  (ic, d, pd) ← prove_mul_nat ic d₁ d₂, nd ← d.to_nat,
-  (ic, c', pc) ← prove_clear_denom ic c d nc nd,
-  (ic, _, p) ← prove_mul_nat ic a' b',
-  (ic, p) ← ic.mk_app ``clear_denom_mul [a, a', b, b', c, c', d₁, d₂, d, pa, pb, pc, pd, p],
-  return (ic, c, p)
-
-theorem mul_neg_pos {α} [ring α] (a b c : α) (h : a * b = c) : -a * b = -c := h ▸ by simp
-theorem mul_pos_neg {α} [ring α] (a b c : α) (h : a * b = c) : a * -b = -c := h ▸ by simp
-theorem mul_neg_neg {α} [ring α] (a b c : α) (h : a * b = c) : -a * -b = c := h ▸ by simp
-
-/-- Given `a`,`b` rational numerals, returns `(c, ⊢ a * b = c)`. -/
-meta def prove_mul_rat (ic : instance_cache) (a b : expr) (na nb : ℚ) : tactic (instance_cache × expr × expr) :=
-match match_sign a, match_sign b with
-| sum.inl a, sum.inl b := do
-  (ic, c, p) ← prove_mul_nonneg_rat ic a b (-na) (-nb),
-  (ic, p) ← ic.mk_app ``mul_neg_neg [a, b, c, p],
-  return (ic, c, p)
-| sum.inr ff, _ := do
-  (ic, z) ← ic.mk_app ``has_zero.zero [],
-  (ic, p) ← ic.mk_app ``zero_mul [b],
-  return (ic, z, p)
-| _, sum.inr ff := do
-  (ic, z) ← ic.mk_app ``has_zero.zero [],
-  (ic, p) ← ic.mk_app ``mul_zero [a],
-  return (ic, z, p)
-| sum.inl a, sum.inr tt := do
-  (ic, c, p) ← prove_mul_nonneg_rat ic a b (-na) nb,
-  (ic, p) ← ic.mk_app ``mul_neg_pos [a, b, c, p],
-  (ic, c') ← ic.mk_app ``has_neg.neg [c],
-  return (ic, c', p)
-| sum.inr tt, sum.inl b := do
-  (ic, c, p) ← prove_mul_nonneg_rat ic a b na (-nb),
-  (ic, p) ← ic.mk_app ``mul_pos_neg [a, b, c, p],
-  (ic, c') ← ic.mk_app ``has_neg.neg [c],
-  return (ic, c', p)
-| sum.inr tt, sum.inr tt := prove_mul_nonneg_rat ic a b na nb
-end
-
-theorem inv_neg {α} [division_ring α] (a b : α) (h : a⁻¹ = b) : (-a)⁻¹ = -b :=
-h ▸ by simp only [inv_eq_one_div, one_div_neg_eq_neg_one_div]
-
-theorem inv_one {α} [division_ring α] : (1 : α)⁻¹ = 1 := inv_one
-theorem inv_one_div {α} [division_ring α] (a : α) : (1 / a)⁻¹ = a :=
-by rw [one_div, inv_inv']
-theorem inv_div_one {α} [division_ring α] (a : α) : a⁻¹ = 1 / a :=
-inv_eq_one_div _
-theorem inv_div {α} [division_ring α] (a b : α) : (a / b)⁻¹ = b / a :=
-by simp only [inv_eq_one_div, one_div_div]
-
-/-- Given `a` a rational numeral, returns `(b, ⊢ a⁻¹ = b)`. -/
-meta def prove_inv : instance_cache → expr → ℚ → tactic (instance_cache × expr × expr)
-| ic e n :=
-  match match_sign e with
-  | sum.inl e := do
-    (ic, e', p) ← prove_inv ic e (-n),
-    (ic, r) ← ic.mk_app ``has_neg.neg [e'],
-    (ic, p) ← ic.mk_app ``inv_neg [e, e', p],
-    return (ic, r, p)
-  | sum.inr ff := do
-    (ic, p) ← ic.mk_app ``inv_zero [],
-    return (ic, e, p)
-  | sum.inr tt :=
-    if n.num = 1 then
-      if n.denom = 1 then do
-        (ic, p) ← ic.mk_app ``inv_one [],
-        return (ic, e, p)
-      else do
-        let e := e.app_arg,
-        (ic, p) ← ic.mk_app ``inv_one_div [e],
-        return (ic, e, p)
-    else if n.denom = 1 then do
-      (ic, p) ← ic.mk_app ``inv_div_one [e],
-      e ← infer_type p,
-      return (ic, e.app_arg, p)
-    else do
-      [_, _, a, b] ← return e.get_app_args,
-      (ic, e') ← ic.mk_app ``has_div.div [b, a],
-      (ic, p) ← ic.mk_app ``inv_div [a, b],
-      return (ic, e', p)
-  end
-
-theorem div_eq {α} [division_ring α] (a b b' c : α)
-  (hb : b⁻¹ = b') (h : a * b' = c) : a / b = c := by rwa ← hb at h
-
-/-- Given `a`,`b` rational numerals, returns `(c, ⊢ a / b = c)`. -/
-meta def prove_div (ic : instance_cache) (a b : expr) (na nb : ℚ) : tactic (instance_cache × expr × expr) :=
-do (ic, b', pb) ← prove_inv ic b nb,
-  (ic, c, p) ← prove_mul_rat ic a b' na nb⁻¹,
-  (ic, p) ← ic.mk_app ``div_eq [a, b, b', c, pb, p],
-  return (ic, c, p)
-
-/-- Given `a` a rational numeral, returns `(b, ⊢ -a = b)`. -/
-meta def prove_neg (ic : instance_cache) (a : expr) : tactic (instance_cache × expr × expr) :=
-match match_sign a with
-| sum.inl a := do
-  (ic, p) ← ic.mk_app ``neg_neg [a],
-  return (ic, a, p)
-| sum.inr ff := do
-  (ic, p) ← ic.mk_app ``neg_zero [],
-  return (ic, a, p)
-| sum.inr tt := do
-  (ic, a') ← ic.mk_app ``has_neg.neg [a],
-  p ← mk_eq_refl a',
-  return (ic, a', p)
-end
-
-theorem sub_pos {α} [add_group α] (a b b' c : α) (hb : -b = b') (h : a + b' = c) : a - b = c :=
-by rwa ← hb at h
-theorem sub_neg {α} [add_group α] (a b c : α) (h : a + b = c) : a - -b = c :=
-by rwa sub_neg_eq_add
-
-/-- Given `a`,`b` rational numerals, returns `(c, ⊢ a - b = c)`. -/
-meta def prove_sub (ic : instance_cache) (a b : expr) : tactic (instance_cache × expr × expr) :=
-match match_sign b with
-| sum.inl b := do
-  (ic, c, p) ← prove_add_rat' ic a b,
-  (ic, p) ← ic.mk_app ``sub_neg [a, b, c, p],
-  return (ic, c, p)
-| sum.inr ff := do
-  (ic, p) ← ic.mk_app ``sub_zero [a],
-  return (ic, a, p)
-| sum.inr tt := do
-  (ic, b', pb) ← prove_neg ic b,
-  (ic, c, p) ← prove_add_rat' ic a b',
-  (ic, p) ← ic.mk_app ``sub_pos [a, b, b', c, pb, p],
-  return (ic, c, p)
-end
-
-theorem sub_nat_pos (a b c : ℕ) (h : b + c = a) : a - b = c :=
-h ▸ nat.add_sub_cancel_left _ _
-theorem sub_nat_neg (a b c : ℕ) (h : a + c = b) : a - b = 0 :=
-nat.sub_eq_zero_of_le $ h ▸ nat.le_add_right _ _
-
-/-- Given `a : nat`,`b : nat` natural numerals, returns `(c, ⊢ a - b = c)`. -/
-meta def prove_sub_nat (ic : instance_cache) (a b : expr) : tactic (expr × expr) :=
-do na ← a.to_nat, nb ← b.to_nat,
-  if nb ≤ na then do
-    (ic, c) ← ic.of_nat (na - nb),
-    (ic, p) ← prove_add_nat ic b c a,
-    return (c, `(sub_nat_pos).mk_app [a, b, c, p])
-  else do
-    (ic, c) ← ic.of_nat (nb - na),
-    (ic, p) ← prove_add_nat ic a c b,
-    return (`(0 : ℕ), `(sub_nat_neg).mk_app [a, b, c, p])
-
-/-- This is needed because when `a` and `b` are numerals lean is more likely to unfold them
-than unfold the instances in order to prove that `add_group_has_sub = int.has_sub`. -/
-theorem int_sub_hack (a b c : ℤ) (h : @has_sub.sub ℤ add_group_has_sub a b = c) : a - b = c := h
-
-/-- Given `a : ℤ`, `b : ℤ` integral numerals, returns `(c, ⊢ a - b = c)`. -/
-meta def prove_sub_int (ic : instance_cache) (a b : expr) : tactic (expr × expr) :=
-do (_, c, p) ← prove_sub ic a b,
-  return (c, `(int_sub_hack).mk_app [a, b, c, p])
-
-/-- Evaluates the basic field operations `+`,`neg`,`-`,`*`,`inv`,`/` on numerals.
-Also handles nat subtraction. Does not do recursive simplification; that is,
-`1 + 1 + 1` will not simplify but `2 + 1` will. This is handled by the top level
-`simp` call in `norm_num.derive`. -/
-meta def eval_field : expr → tactic (expr × expr)
-| `(%%e₁ + %%e₂) := do
-  n₁ ← e₁.to_rat, n₂ ← e₂.to_rat,
-  c ← infer_type e₁ >>= mk_instance_cache,
-  let n₃ := n₁ + n₂,
-  (c, e₃) ← c.of_rat n₃,
-  (_, p) ← prove_add_rat c e₁ e₂ e₃ n₁ n₂ n₃,
-  return (e₃, p)
-| `(%%e₁ * %%e₂) := do
-  n₁ ← e₁.to_rat, n₂ ← e₂.to_rat,
-  c ← infer_type e₁ >>= mk_instance_cache,
-  prod.snd <$> prove_mul_rat c e₁ e₂ n₁ n₂
-| `(- %%e) := do
-  c ← infer_type e >>= mk_instance_cache,
-  prod.snd <$> prove_neg c e
-| `(@has_sub.sub %%α %%inst %%a %%b) := do
-  c ← mk_instance_cache α,
-  if α = `(nat) then prove_sub_nat c a b
-  else if inst = `(int.has_sub) then prove_sub_int c a b
-  else prod.snd <$> prove_sub c a b
-| `(has_inv.inv %%e) := do
-  n ← e.to_rat,
-  c ← infer_type e >>= mk_instance_cache,
-  prod.snd <$> prove_inv c e n
-| `(%%e₁ / %%e₂) := do
-  n₁ ← e₁.to_rat, n₂ ← e₂.to_rat,
-  c ← infer_type e₁ >>= mk_instance_cache,
-  prod.snd <$> prove_div c e₁ e₂ n₁ n₂
-| _ := failed
-
-lemma pow_bit0 [monoid α] (a c' c : α) (b : ℕ)
-  (h : a ^ b = c') (h₂ : c' * c' = c) : a ^ bit0 b = c :=
-h₂ ▸ by simp [pow_bit0, h]
-
-lemma pow_bit1 [monoid α] (a c₁ c₂ c : α) (b : ℕ)
-  (h : a ^ b = c₁) (h₂ : c₁ * c₁ = c₂) (h₃ : c₂ * a = c) : a ^ bit1 b = c :=
-by rw [← h₃, ← h₂]; simp [pow_bit1, h]
-
-section
-open match_numeral_result
-
-/-- Given `a` a rational numeral and `b : nat`, returns `(c, ⊢ a ^ b = c)`. -/
-meta def prove_pow (a : expr) (na : ℚ) : instance_cache → expr → tactic (instance_cache × expr × expr)
-| ic b :=
-  match match_numeral b with
-  | zero := do
-    (ic, p) ← ic.mk_app ``pow_zero [a],
-    (ic, o) ← ic.mk_app ``has_one.one [],
-    return (ic, o, p)
-  | one := do
-    (ic, p) ← ic.mk_app ``pow_one [a],
-    return (ic, a, p)
-  | bit0 b := do
-    (ic, c', p) ← prove_pow ic b,
-    nc' ← expr.to_rat c',
-    (ic, c, p₂) ← prove_mul_rat ic c' c' nc' nc',
-    (ic, p) ← ic.mk_app ``pow_bit0 [a, c', c, b, p, p₂],
-    return (ic, c, p)
-  | bit1 b := do
-    (ic, c₁, p) ← prove_pow ic b,
-    nc₁ ← expr.to_rat c₁,
-    (ic, c₂, p₂) ← prove_mul_rat ic c₁ c₁ nc₁ nc₁,
-    (ic, c, p₃) ← prove_mul_rat ic c₂ a (nc₁ * nc₁) na,
-    (ic, p) ← ic.mk_app ``pow_bit1 [a, c₁, c₂, c, b, p, p₂, p₃],
-    return (ic, c, p)
-  | _ := failed
-  end
-
-end
-
-/-- Evaluates expressions of the form `a ^ b`, `monoid.pow a b` or `nat.pow a b`. -/
-meta def eval_pow : expr → tactic (expr × expr)
-| `(@has_pow.pow %%α _ %%m %%e₁ %%e₂) := do
-  n₁ ← e₁.to_rat,
-  c ← infer_type e₁ >>= mk_instance_cache,
-  match m with
-  | `(@monoid.has_pow %%_ %%_) := prod.snd <$> prove_pow e₁ n₁ c e₂
-  | _ := failed
-  end
-| `(monoid.pow %%e₁ %%e₂) := do
-  n₁ ← e₁.to_rat,
-  c ← infer_type e₁ >>= mk_instance_cache,
-  prod.snd <$> prove_pow e₁ n₁ c e₂
-| _ := failed
 
 /-- Given `⊢ p`, returns `(true, ⊢ p = true)`. -/
 meta def true_intro (p : expr) : tactic (expr × expr) :=

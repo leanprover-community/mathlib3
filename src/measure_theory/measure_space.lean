@@ -87,8 +87,6 @@ noncomputable theory
 open classical set filter function measurable_space
 open_locale classical topological_space big_operators filter
 
-universes u v w x
-
 namespace measure_theory
 
 /-- A measure is defined to be an outer measure that is countably additive on
@@ -1461,7 +1459,7 @@ lemma finite_at_bot (μ : measure α) : μ.finite_at_filter ⊥ :=
   about the sets, such as that they are monotone.
   `sigma_finite` is defined in terms of this: `μ` is σ-finite if there exists a sequence of
   finite spanning sets in the collection of all measurable sets. -/
-@[protect_proj]
+@[protect_proj, nolint has_inhabited_instance]
 structure finite_spanning_sets_in (μ : measure α) (C : set (set α)) :=
 (set : ℕ → set α)
 (set_mem : ∀ i, set i ∈ C)
@@ -1661,10 +1659,10 @@ lemma finite_at_nhds_within [topological_space α] (μ : measure α) [locally_fi
 /-- The measure `μ - ν` is defined to be the least measure `τ` such that `μ ≤ τ + ν`.
 It is the equivalent of `(μ - ν) ⊔ 0` if `μ` and `ν` were signed measures.
 Compare with `ennreal.has_sub`.
-Specifically, note that if you have `α = {1,2}`, and  `μ {1} = 2`, `μ {2} = 0`, and 
+Specifically, note that if you have `α = {1,2}`, and  `μ {1} = 2`, `μ {2} = 0`, and
 `ν {2} = 2`, `ν {1} = 0`, then `(μ - ν) {1, 2} = 2`. However, if `μ ≤ ν`, and
 `ν univ ≠ ⊤`, then `(μ - ν) + ν = μ`. -/
-noncomputable instance has_sub {α : Type*} [measurable_space α] : has_sub (measure α) := 
+noncomputable instance has_sub {α : Type*} [measurable_space α] : has_sub (measure α) :=
 ⟨λ μ ν, Inf {τ | μ ≤ τ + ν} ⟩
 
 section measure_sub
@@ -1685,13 +1683,13 @@ lemma sub_apply {s : set α} [finite_measure ν] (h₁ : is_measurable s) (h₂ 
   (μ - ν) s = μ s - ν s :=
 begin
   -- We begin by defining `measure_sub`, which will be equal to `(μ - ν)`.
-  let measure_sub : measure α := @measure_theory.measure.of_measurable α _ 
+  let measure_sub : measure α := @measure_theory.measure.of_measurable α _
     (λ (t : set α) (h_t_is_measurable : is_measurable t), (μ t - ν t))
     begin
       simp
     end
     begin
-      intros g h_meas h_disj, simp only, rw ennreal.tsum_sub, 
+      intros g h_meas h_disj, simp only, rw ennreal.tsum_sub,
       repeat { rw ← measure_theory.measure_Union h_disj h_meas },
       apply measure_theory.measure_lt_top, intro i, apply h₂, apply h_meas
     end,
@@ -1700,7 +1698,7 @@ begin
     have h_measure_sub_add : (ν + measure_sub = μ),
     { ext t h_t_is_measurable,
       simp only [pi.add_apply, coe_add],
-      rw [measure_theory.measure.of_measurable_apply _ h_t_is_measurable, add_comm, 
+      rw [measure_theory.measure.of_measurable_apply _ h_t_is_measurable, add_comm,
         ennreal.sub_add_cancel_of_le (h₂ t h_t_is_measurable)] },
     have h_measure_sub_eq : (μ - ν) = measure_sub,
     { rw measure_theory.measure.sub_def, apply le_antisymm,
@@ -1842,7 +1840,7 @@ begin
 end
 
 /-- The measurable space of all null measurable sets. -/
-def null_measurable {α : Type u} [measurable_space α]
+def null_measurable {α : Type*} [measurable_space α]
   (μ : measure α) : measurable_space α :=
 { is_measurable' := is_null_measurable μ,
   is_measurable_empty := is_measurable.empty.is_null_measurable _,
@@ -1850,7 +1848,7 @@ def null_measurable {α : Type u} [measurable_space α]
   is_measurable_Union := λ f, is_null_measurable.Union_nat }
 
 /-- Given a measure we can complete it to a (complete) measure on all null measurable sets. -/
-def completion {α : Type u} [measurable_space α] (μ : measure α) :
+def completion {α : Type*} [measurable_space α] (μ : measure α) :
   @measure_theory.measure α (null_measurable μ) :=
 { to_outer_measure := μ.to_outer_measure,
   m_Union := λ s hs hd, show μ (Union s) = ∑' i, μ (s i), begin
@@ -1878,7 +1876,7 @@ def completion {α : Type u} [measurable_space α] (μ : measure α) :
       infi_le_infi2 $ λ ht, ⟨ht.is_null_measurable _, le_refl _⟩)
   end }
 
-instance completion.is_complete {α : Type u} [measurable_space α] (μ : measure α) :
+instance completion.is_complete {α : Type*} [measurable_space α] (μ : measure α) :
   (completion μ).is_complete :=
 λ z hz, null_is_null_measurable hz
 

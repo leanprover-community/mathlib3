@@ -178,11 +178,6 @@ begin
   rw [Union_unpair_prod, h2s, h2t, univ_prod_univ]
 end
 
--- /-- Measurable rectangles are (trivially) countably spanning. -/
--- lemma is_countably_spanning_prod : is_countably_spanning
---   (image2 set.prod { s : set α | is_measurable s } { t : set β | is_measurable t }) :=
--- is_countably_spanning_is_measurable.prod is_countably_spanning_is_measurable
-
 /-- If `ν` is a finite measure, and `s ⊆ α × β` is measurable, then `x ↦ ν { y | (x, y) ∈ s }` is
   a measurable function. `measurable_measure_prod_mk_left` is strictly more general. -/
 lemma measurable_measure_prod_mk_left_finite [finite_measure ν] {s : set (α × β)}

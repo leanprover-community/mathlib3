@@ -982,6 +982,34 @@ ext_iff_of_bUnion_eq_univ hc hm $ by rwa ← sUnion_eq_bUnion
 
 alias ext_iff_of_sUnion_eq_univ ↔ _ measure_theory.measure.ext_of_sUnion_eq_univ
 
+/--This lemma shows that `restrict` and `to_outer_measure` commute. Note that the LHS has a 
+restrict on measures and the RHS has a restrict on outer measures. -/
+lemma restrict_to_outer_measure_eq_to_outer_measure_restrict  {s : set α} (h : is_measurable s) :
+    (μ.restrict s).to_outer_measure = outer_measure.restrict s (μ.to_outer_measure) :=
+begin
+  ext1 t,
+  rw [outer_measure.restrict_apply, restrict, restrictₗ, coe_to_outer_measure, lift_linear,
+    linear_map.coe_mk, ← outer_measure.measure_of_eq_coe, ← coe_to_outer_measure, 
+    to_measure_to_outer_measure, outer_measure.restrict_trimmed_of_trimmed h, 
+    outer_measure.measure_of_eq_coe, outer_measure.restrict_apply, coe_to_outer_measure],
+  rw [μ.trimmed],
+end
+
+/--This lemma shows that `Inf` and `restrict` commute for measures. -/
+lemma restrict_Inf_eq_Inf_restrict {m : set (measure α)} {t : set α} 
+  (h_nonempty : m.nonempty) (h_meas_t : is_measurable t) :
+  (Inf m).restrict t = Inf ((λ μ : measure α, μ.restrict t) '' m) := 
+begin
+  ext1 s h_meas_s,
+  have h_image_comm : (λ (x : measure α), (x.restrict t).to_outer_measure) =
+    (λ (x : measure α), (outer_measure.restrict t) x.to_outer_measure),
+  { ext1 x, rw restrict_to_outer_measure_eq_to_outer_measure_restrict h_meas_t },
+  rw [Inf_apply h_meas_s, restrict_apply h_meas_s, Inf_apply (is_measurable.inter h_meas_s h_meas_t), 
+    set.image_image, h_image_comm, ← set.image_image _ to_outer_measure,
+    ← outer_measure.restrict_Inf_eq_Inf_restrict _, outer_measure.restrict_apply],
+  apply set.nonempty_image_iff.mpr h_nonempty,
+end
+
 open measurable_space
 lemma ext_of_generate_from_of_cover {S T : set (set α)}
   (h_gen : ‹_› = generate_from S) (hc : countable T)

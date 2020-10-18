@@ -1533,6 +1533,21 @@ lemma times_cont_diff_within_at_const {n : with_top ℕ} {c : F} :
   times_cont_diff_within_at 𝕜 n (λx : E, c) s x :=
 times_cont_diff_at_const.times_cont_diff_within_at
 
+@[nontriviality] lemma times_cont_diff_of_subsingleton [subsingleton F] {n : with_top ℕ} :
+  times_cont_diff 𝕜 n f :=
+by { rw [subsingleton.elim f (λ _, 0)], exact times_cont_diff_const }
+
+@[nontriviality] lemma times_cont_diff_at_of_subsingleton [subsingleton F] {n : with_top ℕ} :
+  times_cont_diff_at 𝕜 n f x :=
+by { rw [subsingleton.elim f (λ _, 0)], exact times_cont_diff_at_const }
+
+@[nontriviality] lemma times_cont_diff_within_at_of_subsingleton [subsingleton F] {n : with_top ℕ} :
+  times_cont_diff_within_at 𝕜 n f s x :=
+by { rw [subsingleton.elim f (λ _, 0)], exact times_cont_diff_within_at_const }
+
+@[nontriviality] lemma times_cont_diff_on_of_subsingleton [subsingleton F] {n : with_top ℕ} :
+  times_cont_diff_on 𝕜 n f s :=
+by { rw [subsingleton.elim f (λ _, 0)], exact times_cont_diff_on_const }
 
 /-! ### Linear functions -/
 
@@ -2377,6 +2392,7 @@ inversion is `C^n`, for all `n`. -/
 lemma times_cont_diff_at_map_inverse [complete_space E] {n : with_top ℕ} (e : E ≃L[𝕜] F) :
   times_cont_diff_at 𝕜 n inverse (e : E →L[𝕜] F) :=
 begin
+  nontriviality E,
   -- first, we use the lemma `to_ring_inverse` to rewrite in terms of `ring.inverse` in the ring
   -- `E →L[𝕜] E`
   let O₁ : (E →L[𝕜] E) → (F →L[𝕜] E) := λ f, f.comp (e.symm : (F →L[𝕜] E)),
@@ -2390,14 +2406,9 @@ begin
   have h₂ : times_cont_diff 𝕜 n O₂,
   { exact is_bounded_bilinear_map_comp.times_cont_diff.comp (times_cont_diff_id.prod times_cont_diff_const) },
   refine h₁.times_cont_diff_at.comp _ (times_cont_diff_at.comp _ _ h₂.times_cont_diff_at),
-  -- this works differently depending on whether or not `E` is `nontrivial` (the condition for
-  -- `E →L[𝕜] E` to be a `normed_algebra`)
-  cases subsingleton_or_nontrivial E with _i _i; resetI,
-  { rw [subsingleton.elim ring.inverse (λ _, (0 : E →L[𝕜] E))],
-    exact times_cont_diff_at_const },
-  { convert times_cont_diff_at_ring_inverse 𝕜 (E →L[𝕜] E) 1,
-    simp [O₂],
-    refl },
+  convert times_cont_diff_at_ring_inverse 𝕜 (E →L[𝕜] E) 1,
+  simp [O₂],
+  refl
 end
 
 end map_inverse

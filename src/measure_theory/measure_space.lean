@@ -1354,7 +1354,8 @@ le_antisymm (restrict_mono_ae H.le) (restrict_mono_ae H.symm.le)
 /-- A measure `μ` is called a probability measure if `μ univ = 1`. -/
 class probability_measure (μ : measure α) : Prop := (measure_univ : μ univ = 1)
 
-instance {x : α} : probability_measure (dirac x) := ⟨dirac_apply_of_mem $ mem_univ x⟩
+instance measure.dirac.probability_measure {x : α} : probability_measure (dirac x) :=
+⟨dirac_apply_of_mem $ mem_univ x⟩
 
 /-- A measure `μ` is called finite if `μ univ < ⊤`. -/
 class finite_measure (μ : measure α) : Prop := (measure_univ_lt_top : μ univ < ⊤)

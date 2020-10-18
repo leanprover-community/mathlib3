@@ -180,6 +180,12 @@ do
   | none := skip
   end
 
+add_tactic_doc
+{ name := "filter_upwards",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.filter_upwards],
+  tags := ["goal management", "lemma application"] }
+
 end tactic.interactive
 
 namespace filter

@@ -9,12 +9,11 @@ import topology.instances.nnreal
 -/
 
 noncomputable theory
-open classical set filter metric
-open_locale classical
-open_locale topological_space
-variables {α : Type*} {β : Type*} {γ : Type*}
 
-open_locale ennreal big_operators filter
+open classical set filter metric
+open_locale classical topological_space ennreal nnreal big_operators filter
+
+variables {α : Type*} {β : Type*} {γ : Type*}
 
 namespace ennreal
 variables {a b c d : ennreal} {r p q : nnreal}
@@ -121,41 +120,48 @@ lemma tendsto_to_real {a : ennreal} : a ≠ ⊤ → tendsto (ennreal.to_real) (�
 λ ha, tendsto.comp ((@nnreal.tendsto_coe _ (𝓝 a.to_nnreal) id (a.to_nnreal)).2 tendsto_id)
   (tendsto_to_nnreal ha)
 
-lemma tendsto_nhds_top {m : α → ennreal} {f : filter α}
-  (h : ∀ n : ℕ, ∀ᶠ a in f, ↑n < m a) : tendsto m f (𝓝 ⊤) :=
-tendsto_nhds_generate_from $ assume s hs,
-match s, hs with
-| _, ⟨none,   or.inl rfl⟩, hr := (lt_irrefl ⊤ hr).elim
-| _, ⟨some r, or.inl rfl⟩, hr :=
-  let ⟨n, hrn⟩ := exists_nat_gt r in
-  mem_sets_of_superset (h n) $ assume a hnma, show ↑r < m a, from
-    lt_trans (show (r : ennreal) < n, from (coe_nat n) ▸ coe_lt_coe.2 hrn) hnma
-| _, ⟨a,      or.inr rfl⟩, hr := (not_top_lt $ show ⊤ < a, from hr).elim
-end
-
-lemma tendsto_nat_nhds_top : tendsto (λ n : ℕ, ↑n) at_top (𝓝 ∞) :=
-tendsto_nhds_top $ λ n, mem_at_top_sets.2
-  ⟨n+1, λ m hm, ennreal.coe_nat_lt_coe_nat.2 $ nat.lt_of_succ_le hm⟩
-
-lemma nhds_top : 𝓝 ∞ = ⨅a ≠ ∞, 𝓟 (Ioi a) :=
-nhds_top_order.trans $ by simp [lt_top_iff_ne_top, Ioi]
-
-lemma nhds_zero : 𝓝 (0 : ennreal) = ⨅a ≠ 0, 𝓟 (Iio a) :=
-nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot, Iio]
-
 /-- The set of finite `ennreal` numbers is homeomorphic to `nnreal`. -/
 def ne_top_homeomorph_nnreal : {a | a ≠ ∞} ≃ₜ nnreal :=
-{ to_fun := λ x, ennreal.to_nnreal x,
-  inv_fun := λ x, ⟨x, coe_ne_top⟩,
-  left_inv := λ ⟨x, hx⟩, subtype.eq $ coe_to_nnreal hx,
-  right_inv := λ x, to_nnreal_coe,
-  continuous_to_fun := continuous_on_iff_continuous_restrict.1 continuous_on_to_nnreal,
-  continuous_inv_fun := continuous_subtype_mk _ continuous_coe }
+{ continuous_to_fun := continuous_on_iff_continuous_restrict.1 continuous_on_to_nnreal,
+  continuous_inv_fun := continuous_subtype_mk _ continuous_coe,
+  .. ne_top_equiv_nnreal }
 
 /-- The set of finite `ennreal` numbers is homeomorphic to `nnreal`. -/
 def lt_top_homeomorph_nnreal : {a | a < ∞} ≃ₜ nnreal :=
 by refine (homeomorph.set_congr $ set.ext $ λ x, _).trans ne_top_homeomorph_nnreal;
   simp only [mem_set_of_eq, lt_top_iff_ne_top]
+
+lemma nhds_top : 𝓝 ∞ = ⨅a ≠ ∞, 𝓟 (Ioi a) :=
+nhds_top_order.trans $ by simp [lt_top_iff_ne_top, Ioi]
+
+lemma nhds_top' : 𝓝 ∞ = ⨅ r : ℝ≥0, 𝓟 (Ioi r) :=
+nhds_top.trans $ infi_ne_top _
+
+lemma tendsto_nhds_top_iff_nnreal {m : α → ennreal} {f : filter α} :
+  tendsto m f (𝓝 ⊤) ↔ ∀ x : ℝ≥0, ∀ᶠ a in f, ↑x < m a :=
+by simp only [nhds_top', tendsto_infi, tendsto_principal, mem_Ioi]
+
+lemma tendsto_nhds_top_iff_nat {m : α → ennreal} {f : filter α} :
+  tendsto m f (𝓝 ⊤) ↔ ∀ n : ℕ, ∀ᶠ a in f, ↑n < m a :=
+tendsto_nhds_top_iff_nnreal.trans ⟨λ h n, by simpa only [ennreal.coe_nat] using h n,
+  λ h x, let ⟨n, hn⟩ := exists_nat_gt x in
+    (h n).mono (λ y, lt_trans $ by rwa [← ennreal.coe_nat, coe_lt_coe])⟩
+
+lemma tendsto_nhds_top {m : α → ennreal} {f : filter α}
+  (h : ∀ n : ℕ, ∀ᶠ a in f, ↑n < m a) : tendsto m f (𝓝 ⊤) :=
+tendsto_nhds_top_iff_nat.2 h
+
+lemma tendsto_nat_nhds_top : tendsto (λ n : ℕ, ↑n) at_top (𝓝 ∞) :=
+tendsto_nhds_top $ λ n, mem_at_top_sets.2
+  ⟨n+1, λ m hm, ennreal.coe_nat_lt_coe_nat.2 $ nat.lt_of_succ_le hm⟩
+
+@[simp, norm_cast] lemma tendsto_coe_nhds_top {f : α → ℝ≥0} {l : filter α} :
+  tendsto (λ x, (f x : ennreal)) l (𝓝 ∞) ↔ tendsto f l at_top :=
+by rw [tendsto_nhds_top_iff_nnreal, at_top_basis_Ioi.tendsto_right_iff];
+  [simp, apply_instance, apply_instance]
+
+lemma nhds_zero : 𝓝 (0 : ennreal) = ⨅a ≠ 0, 𝓟 (Iio a) :=
+nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot, Iio]
 
 -- using Icc because
 -- • don't have 'Ioo (x - ε) (x + ε) ∈ 𝓝 x' unless x > 0
@@ -205,17 +211,6 @@ by simp only [nhds_of_ne_top ha, tendsto_infi, tendsto_principal, mem_Icc]
 protected lemma tendsto_at_top [nonempty β] [semilattice_sup β] {f : β → ennreal} {a : ennreal}
   (ha : a ≠ ⊤) : tendsto f at_top (𝓝 a) ↔ ∀ε>0, ∃N, ∀n≥N, (f n) ∈ Icc (a - ε) (a + ε) :=
 by simp only [ennreal.tendsto_nhds ha, mem_at_top_sets, mem_set_of_eq, filter.eventually]
-
-lemma tendsto_coe_nnreal_nhds_top {α} {l : filter α} {f : α → nnreal} (h : tendsto f l at_top) :
-  tendsto (λa, (f a : ennreal)) l (𝓝 ∞) :=
-tendsto_nhds_top $ assume n,
-have ∀ᶠ a in l, ↑(n+1) ≤ f a := h $ mem_at_top _,
-mem_sets_of_superset this $ assume a (ha : ↑(n+1) ≤ f a),
-begin
-  rw [← coe_nat],
-  dsimp,
-  exact coe_lt_coe.2 (lt_of_lt_of_le (nat.cast_lt.2 (nat.lt_succ_self _)) ha)
-end
 
 instance : has_continuous_add ennreal :=
 ⟨ continuous_iff_continuous_at.2 $
@@ -456,7 +451,7 @@ section tsum
 
 variables {f g : α → ennreal}
 
-@[norm_cast] protected lemma has_sum_coe {f : α → nnreal} {r : nnreal} :
+@[norm_cast] protected lemma has_sum_coe {f : α → ℝ≥0} {r : nnreal} :
   has_sum (λa, (f a : ennreal)) ↑r ↔ has_sum f r :=
 have (λs:finset α, ∑ a in s, ↑(f a)) = (coe : nnreal → ennreal) ∘ (λs:finset α, ∑ a in s, f a),
   from funext $ assume s, ennreal.coe_finset_sum.symm,
@@ -481,7 +476,7 @@ tendsto_order.2
 
 @[simp] protected lemma summable : summable f := ⟨_, ennreal.has_sum⟩
 
-lemma tsum_coe_ne_top_iff_summable {f : β → nnreal} :
+lemma tsum_coe_ne_top_iff_summable {f : β → ℝ≥0} :
   (∑' b, (f b:ennreal)) ≠ ∞ ↔ summable f :=
 begin
   refine ⟨λ h, _, λ h, ennreal.coe_tsum h ▸ ennreal.coe_ne_top⟩,
@@ -630,12 +625,23 @@ lemma summable_of_le {f g : β → ℝ≥0} (hgf : ∀b, g b ≤ f b) : summable
 
 /-- A series of non-negative real numbers converges to `r` in the sense of `has_sum` if and only if
 the sequence of partial sum converges to `r`. -/
-lemma has_sum_iff_tendsto_nat {f : ℕ → ℝ≥0} (r : ℝ≥0) :
+lemma has_sum_iff_tendsto_nat {f : ℕ → ℝ≥0} {r : ℝ≥0} :
   has_sum f r ↔ tendsto (λn:ℕ, ∑ i in finset.range n, f i) at_top (𝓝 r) :=
 begin
   rw [← ennreal.has_sum_coe, ennreal.has_sum_iff_tendsto_nat],
   simp only [ennreal.coe_finset_sum.symm],
   exact ennreal.tendsto_coe
+end
+
+lemma not_summable_iff_tendsto_nat_at_top {f : ℕ → ℝ≥0} :
+  ¬ summable f ↔ tendsto (λ n : ℕ, ∑ i in finset.range n, f i) at_top at_top :=
+begin
+  split,
+  { intros h,
+    refine ((tendsto_of_monotone _).resolve_right h).comp _,
+    exacts [finset.sum_mono_set _, tendsto_finset_range] },
+  { rintros hnat ⟨r, hr⟩,
+    exact not_tendsto_nhds_of_tendsto_at_top hnat _ (has_sum_iff_tendsto_nat.1 hr) }
 end
 
 lemma tsum_comp_le_tsum_of_inj {β : Type*} {f : α → ℝ≥0} (hf : summable f)
@@ -696,24 +702,18 @@ show summable (λb, g' b : β → ℝ), from nnreal.summable_coe.2 this
 the sequence of partial sum converges to `r`. -/
 lemma has_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} (hf : ∀i, 0 ≤ f i) (r : ℝ) :
   has_sum f r ↔ tendsto (λn:ℕ, ∑ i in finset.range n, f i) at_top (𝓝 r) :=
-⟨has_sum.tendsto_sum_nat,
-  assume hfr,
-  have 0 ≤ r := ge_of_tendsto hfr $ univ_mem_sets' $ assume i,
-    show 0 ≤ ∑ j in finset.range i, f j, from finset.sum_nonneg $ assume i _, hf i,
-  let f' (n : ℕ) : nnreal := ⟨f n, hf n⟩, r' : nnreal := ⟨r, this⟩ in
-  have f_eq : f = (λi:ℕ, (f' i : ℝ)) := rfl,
-  have r_eq : r = r' := rfl,
-  begin
-    rw [f_eq, r_eq, nnreal.has_sum_coe, nnreal.has_sum_iff_tendsto_nat, ← nnreal.tendsto_coe],
-    simp only [nnreal.coe_sum],
-    exact hfr
-  end⟩
+begin
+  lift f to ℕ → ℝ≥0 using hf,
+  simp only [has_sum, ← nnreal.coe_sum, nnreal.tendsto_coe'],
+  exact exists_congr (λ hr, nnreal.has_sum_iff_tendsto_nat)
+end
 
-lemma infi_real_pos_eq_infi_nnreal_pos {α : Type*} [complete_lattice α] {f : ℝ → α} :
-  (⨅(n:ℝ) (h : 0 < n), f n) = (⨅(n:nnreal) (h : 0 < n), f n) :=
-le_antisymm
-  (le_infi $ assume n, le_infi $ assume hn, infi_le_of_le n $ infi_le _ (nnreal.coe_pos.2 hn))
-  (le_infi $ assume r, le_infi $ assume hr, infi_le_of_le ⟨r, le_of_lt hr⟩ $ infi_le _ hr)
+lemma not_summable_iff_tendsto_nat_at_top_of_nonneg {f : ℕ → ℝ} (hf : ∀ n, 0 ≤ f n) :
+  ¬ summable f ↔ tendsto (λ n : ℕ, ∑ i in finset.range n, f i) at_top at_top :=
+begin
+  lift f to ℕ → ℝ≥0 using hf,
+  exact_mod_cast nnreal.not_summable_iff_tendsto_nat_at_top
+end
 
 section
 variables [emetric_space β]

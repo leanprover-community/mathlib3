@@ -357,10 +357,7 @@ begin
 end
 
 lemma exists_le_mul_self (a : α) : ∃ x : α, a ≤ x * x :=
-begin
-  obtain ⟨x, hx⟩ := exists_lt_mul_self a,
-  exact ⟨x, le_of_lt hx⟩
-end
+let ⟨x, hx⟩ := exists_lt_mul_self a in ⟨x, le_of_lt hx⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_semiring.to_nontrivial {α : Type*} [linear_ordered_semiring α] :

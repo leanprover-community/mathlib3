@@ -40,6 +40,7 @@ end
 /-- The line map is continuous. -/
 lemma line_map_continuous [topological_space R] [topological_semimodule R F] {p v : F} :
   continuous ⇑(line_map p v : affine_map R R F) :=
-continuous_iff.mpr $ continuous_id.smul continuous_const
+continuous_iff.mpr $ (continuous_id.smul continuous_const).add $
+  @continuous_const _ _ _ _ (0 : F)
 
 end affine_map

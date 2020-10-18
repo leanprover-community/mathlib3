@@ -224,8 +224,8 @@ an affine combination of the images.
 lemma convex.combo_affine_apply {a b : ℝ} {x y : E} {f : affine_map ℝ E F} (h : a + b = 1) :
   f (a • x + b • y) = a • f x + b • f y :=
 begin
-  simp only [convex.combo_to_vadd h, ← vsub_eq_sub, ← f.linear_map_vsub],
-  exact affine_map.affine_apply_line_map f x (y - x) b,
+  simp only [convex.combo_to_vadd h, ← vsub_eq_sub],
+  exact f.apply_line_map _ _ _,
 end
 
 /-- The preimage of a convex set under an affine map is convex. -/

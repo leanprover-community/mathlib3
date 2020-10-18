@@ -668,6 +668,9 @@ end Inf
 
 protected lemma zero_le (μ : measure α) : 0 ≤ μ := bot_le
 
+lemma le_zero_iff_eq' : μ ≤ 0 ↔ μ = 0 :=
+μ.zero_le.le_iff_eq
+
 @[simp] lemma measure_univ_eq_zero {μ : measure α} : μ univ = 0 ↔ μ = 0 :=
 ⟨λ h, bot_unique $ λ s hs, trans_rel_left (≤) (measure_mono (subset_univ s)) h, λ h, h.symm ▸ rfl⟩
 
@@ -1351,7 +1354,8 @@ le_antisymm (restrict_mono_ae H.le) (restrict_mono_ae H.symm.le)
 /-- A measure `μ` is called a probability measure if `μ univ = 1`. -/
 class probability_measure (μ : measure α) : Prop := (measure_univ : μ univ = 1)
 
-instance {x : α} : probability_measure (dirac x) := ⟨dirac_apply_of_mem $ mem_univ x⟩
+instance measure.dirac.probability_measure {x : α} : probability_measure (dirac x) :=
+⟨dirac_apply_of_mem $ mem_univ x⟩
 
 /-- A measure `μ` is called finite if `μ univ < ⊤`. -/
 class finite_measure (μ : measure α) : Prop := (measure_univ_lt_top : μ univ < ⊤)
@@ -1377,6 +1381,11 @@ lemma measure_lt_top (μ : measure α) [finite_measure μ] (s : set α) : μ s <
 
 lemma measure_ne_top (μ : measure α) [finite_measure μ] (s : set α) : μ s ≠ ⊤ :=
 ne_of_lt (measure_lt_top μ s)
+
+/-- `le_of_add_le_add_left` is normally applicable to `ordered_cancel_add_comm_monoid`,
+but it holds for measures with the additional assumption that μ is finite. -/
+lemma measure.le_of_add_le_add_left {μ ν₁ ν₂ : measure α} [finite_measure μ] (A2 : μ + ν₁ ≤ μ + ν₂) : ν₁ ≤ ν₂ :=
+λ S B1, ennreal.le_of_add_le_add_left (measure_theory.measure_lt_top μ S) (A2 S B1)
 
 @[priority 100]
 instance probability_measure.to_finite_measure (μ : measure α) [probability_measure μ] :
@@ -1613,6 +1622,71 @@ lemma finite_at_nhds_within [topological_space α] (μ : measure α) [locally_fi
 
 @[simp] lemma finite_at_principal {s : set α} : μ.finite_at_filter (𝓟 s) ↔ μ s < ⊤ :=
 ⟨λ ⟨t, ht, hμ⟩, (measure_mono ht).trans_lt hμ, λ h, ⟨s, mem_principal_self s, h⟩⟩
+
+/-! ### Subtraction of measures -/
+
+/-- The measure `μ - ν` is defined to be the least measure `τ` such that `μ ≤ τ + ν`.
+It is the equivalent of `(μ - ν) ⊔ 0` if `μ` and `ν` were signed measures.
+Compare with `ennreal.has_sub`.
+Specifically, note that if you have `α = {1,2}`, and  `μ {1} = 2`, `μ {2} = 0`, and 
+`ν {2} = 2`, `ν {1} = 0`, then `(μ - ν) {1, 2} = 2`. However, if `μ ≤ ν`, and
+`ν univ ≠ ⊤`, then `(μ - ν) + ν = μ`. -/
+noncomputable instance has_sub {α : Type*} [measurable_space α] : has_sub (measure α) := 
+⟨λ μ ν, Inf {τ | μ ≤ τ + ν} ⟩
+
+section measure_sub
+variables {ν : measure_theory.measure α}
+
+lemma sub_def : μ - ν = Inf {d | μ ≤ d + ν} := rfl
+
+lemma sub_eq_zero_of_le (h : μ ≤ ν) : μ - ν = 0 :=
+begin
+  rw [← le_zero_iff_eq', measure.sub_def],
+  apply @Inf_le (measure α) _ _,
+  simp [h],
+end
+
+/-- This application lemma only works in special circumstances. Given knowledge of
+when `μ ≤ ν` and `ν ≤ μ`, a more general application lemma can be written. -/
+lemma sub_apply {s : set α} [finite_measure ν] (h₁ : is_measurable s) (h₂ : ν ≤ μ) :
+  (μ - ν) s = μ s - ν s :=
+begin
+  -- We begin by defining `measure_sub`, which will be equal to `(μ - ν)`.
+  let measure_sub : measure α := @measure_theory.measure.of_measurable α _ 
+    (λ (t : set α) (h_t_is_measurable : is_measurable t), (μ t - ν t))
+    begin
+      simp
+    end
+    begin
+      intros g h_meas h_disj, simp only, rw ennreal.tsum_sub, 
+      repeat { rw ← measure_theory.measure_Union h_disj h_meas },
+      apply measure_theory.measure_lt_top, intro i, apply h₂, apply h_meas
+    end,
+  -- Now, we demonstrate `μ - ν = measure_sub`, and apply it.
+  begin
+    have h_measure_sub_add : (ν + measure_sub = μ),
+    { ext t h_t_is_measurable,
+      simp only [pi.add_apply, coe_add],
+      rw [measure_theory.measure.of_measurable_apply _ h_t_is_measurable, add_comm, 
+        ennreal.sub_add_cancel_of_le (h₂ t h_t_is_measurable)] },
+    have h_measure_sub_eq : (μ - ν) = measure_sub,
+    { rw measure_theory.measure.sub_def, apply le_antisymm,
+      { apply @Inf_le (measure α) (measure.complete_lattice), simp [le_refl, add_comm, h_measure_sub_add] },
+      apply @le_Inf (measure α) (measure.complete_lattice),
+      intros d h_d, rw [← h_measure_sub_add, mem_set_of_eq, add_comm d] at h_d,
+      apply measure.le_of_add_le_add_left h_d },
+    rw h_measure_sub_eq,
+    apply measure.of_measurable_apply _ h₁,
+  end
+end
+
+lemma sub_add_cancel_of_le [finite_measure ν] (h₁ : ν ≤ μ) : μ - ν + ν = μ :=
+begin
+  ext s h_s_meas,
+  rw [add_apply, sub_apply h_s_meas h₁, ennreal.sub_add_cancel_of_le (h₁ s h_s_meas)],
+end
+
+end measure_sub
 
 end measure
 

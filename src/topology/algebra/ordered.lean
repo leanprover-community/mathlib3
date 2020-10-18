@@ -2271,6 +2271,15 @@ lemma is_compact.exists_Inf_image_eq {α : Type u} [topological_space α]
 let ⟨x, hxs, hx⟩ := (hs.image_of_continuous_on hf).Inf_mem (ne_s.image f)
 in ⟨x, hxs, hx.symm⟩
 
+lemma is_compact.exists_Sup_image_eq {α : Type u} [topological_space α]:
+  ∀ {s : set α}, is_compact s → s.nonempty → ∀ {f : α → β}, continuous_on f s →
+  ∃ x ∈ s,  Sup (f '' s) = f x :=
+@is_compact.exists_Inf_image_eq (order_dual β) _ _ _ _ _
+
+lemma eq_Icc_of_connected_compact {s : set α} (h₁ : is_connected s) (h₂ : is_compact s) :
+  s = Icc (Inf s) (Sup s) :=
+eq_Icc_cInf_cSup_of_connected_bdd_closed h₁ h₂.bdd_below h₂.bdd_above h₂.is_closed
+
 /-- The extreme value theorem: a continuous function realizes its minimum on a compact set -/
 lemma is_compact.exists_forall_le {α : Type u} [topological_space α]
   {s : set α} (hs : is_compact s) (ne_s : s.nonempty) {f : α → β} (hf : continuous_on f s) :
@@ -2288,15 +2297,28 @@ lemma is_compact.exists_forall_ge {α : Type u} [topological_space α]:
   ∃x∈s, ∀y∈s, f y ≤ f x :=
 @is_compact.exists_forall_le (order_dual β) _ _ _ _ _
 
-lemma is_compact.exists_Sup_image_eq {α : Type u} [topological_space α]:
-  ∀ {s : set α}, is_compact s → s.nonempty → ∀ {f : α → β}, continuous_on f s →
-  ∃ x ∈ s,  Sup (f '' s) = f x :=
-@is_compact.exists_Inf_image_eq (order_dual β) _ _ _ _ _
+/-- The extreme value theorem: if a continuous function `f` tends to infinity away from compact
+sets, then it has a global minimum. -/
+lemma continuous.exists_forall_le {α : Type*} [topological_space α] [nonempty α] {f : α → β}
+  (hf : continuous f) (hlim : tendsto f (cocompact α) at_top) :
+  ∃ x, ∀ y, f x ≤ f y :=
+begin
+  inhabit α,
+  obtain ⟨s : set α, hsc : is_compact s, hsf : ∀ x ∉ s, f (default α) ≤ f x⟩ :=
+    (has_basis_cocompact.tendsto_iff at_top_basis).1 hlim (f $ default α) trivial,
+  obtain ⟨x, -, hx⟩ :=
+    (hsc.insert (default α)).exists_forall_le (nonempty_insert _ _) hf.continuous_on,
+  refine ⟨x, λ y, _⟩,
+  by_cases hy : y ∈ s,
+  exacts [hx y (or.inr hy), (hx _ (or.inl rfl)).trans (hsf y hy)]
+end
 
-lemma eq_Icc_of_connected_compact {s : set α} (h₁ : is_connected s) (h₂ : is_compact s) :
-  s = Icc (Inf s) (Sup s) :=
-eq_Icc_cInf_cSup_of_connected_bdd_closed h₁ h₂.bdd_below h₂.bdd_above
-  h₂.is_closed
+/-- The extreme value theorem: if a continuous function `f` tends to negative infinity away from
+compactx sets, then it has a global maximum. -/
+lemma continuous.exists_forall_ge {α : Type*} [topological_space α] [nonempty α] {f : α → β}
+  (hf : continuous f) (hlim : tendsto f (cocompact α) at_bot) :
+  ∃ x, ∀ y, f y ≤ f x :=
+@continuous.exists_forall_le (order_dual β) _ _ _ _ _ _ _ hf hlim
 
 end conditionally_complete_linear_order
 

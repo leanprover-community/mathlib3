@@ -240,7 +240,7 @@ lemma extraction_of_eventually_at_top {P : ℕ → Prop} (h : ∀ᶠ n in at_top
 extraction_of_frequently_at_top h.frequently
 
 lemma exists_le_of_tendsto_at_top [semilattice_sup α] [preorder β] {u : α → β}
-  (h : tendsto u at_top at_top) (a b) : ∃ a' ≥ a, b ≤ u a' :=
+  (h : tendsto u at_top at_top) (a : α) (b : β) : ∃ a' ≥ a, b ≤ u a' :=
 begin
   have : ∀ᶠ x in at_top, a ≤ x ∧ b ≤ u x :=
     (eventually_ge_at_top a).and (h.eventually $ eventually_ge_at_top b),
@@ -255,7 +255,7 @@ lemma exists_le_of_tendsto_at_bot [semilattice_sup α] [preorder β] {u : α →
 @exists_le_of_tendsto_at_top _ (order_dual β) _ _ _ h
 
 lemma exists_lt_of_tendsto_at_top [semilattice_sup α] [preorder β] [no_top_order β]
-  {u : α → β} (h : tendsto u at_top at_top) (a b) : ∃ a' ≥ a, b < u a' :=
+  {u : α → β} (h : tendsto u at_top at_top) (a : α) (b : β) : ∃ a' ≥ a, b < u a' :=
 begin
   cases no_top b with b' hb',
   rcases exists_le_of_tendsto_at_top h a b' with ⟨a', ha', ha''⟩,

@@ -253,6 +253,6 @@ add_tactic_doc
 { name                     := "nontriviality",
   category                 := doc_category.tactic,
   decl_names               := [`tactic.interactive.nontriviality],
-  tags                     := ["logic", "typeclass"] }
+  tags                     := ["logic", "type class"] }
 
 end tactic.interactive

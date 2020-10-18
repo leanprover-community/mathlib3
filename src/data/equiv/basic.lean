@@ -48,7 +48,8 @@ Then we define
   More definitions of this kind can be found in other files. E.g., `data/equiv/transfer_instance`
   does it for many algebraic type classes like `group`, `module`, etc.
 
-* group structure on `equiv.perm α`. More lemmas about `equiv.perm` can be found in `data/equiv/perm`.
+* group structure on `equiv.perm α`. More lemmas about `equiv.perm` can be found in
+  `data/equiv/perm`.
 
 ## Tags
 
@@ -788,7 +789,8 @@ def sigma_congr_left {α₁ α₂} {β : α₂ → Sort*} (e : α₁ ≃ α₂) 
  λ ⟨a, b⟩, match e.symm (e a), e.left_inv a : ∀ a' (h : a' = a),
      @sigma.mk _ (β ∘ e) _ (@@eq.rec β b (congr_arg e h.symm)) = ⟨a, b⟩ with
    | _, rfl := rfl end,
- λ ⟨a, b⟩, match e (e.symm a), _ : ∀ a' (h : a' = a), sigma.mk a' (@@eq.rec β b h.symm) = ⟨a, b⟩ with
+ λ ⟨a, b⟩, match e (e.symm a), _ : ∀ a' (h : a' = a),
+     sigma.mk a' (@@eq.rec β b h.symm) = ⟨a, b⟩ with
    | _, rfl := rfl end⟩
 
 @[simp] lemma sigma_congr_left_apply {α₁ α₂} {β : α₂ → Sort*} (e : α₁ ≃ α₂) (x : Σ a, β (e a)) :
@@ -1351,7 +1353,8 @@ by cases x with x hx; exact set.sum_compl_symm_apply_of_not_mem hx
 `s ⊕ (t \ s)` and `t`, where `s` and `t` are two sets. -/
 protected def sum_diff_subset {α} {s t : set α} (h : s ⊆ t) [decidable_pred s] :
   s ⊕ (t \ s : set α) ≃ t :=
-calc s ⊕ (t \ s : set α) ≃ (s ∪ (t \ s) : set α) : (equiv.set.union (by simp [inter_diff_self])).symm
+calc s ⊕ (t \ s : set α) ≃ (s ∪ (t \ s) : set α) :
+  (equiv.set.union (by simp [inter_diff_self])).symm
 ... ≃ t : equiv.set.of_eq (by { simp [union_diff_self, union_eq_self_of_subset_left h] })
 
 @[simp] lemma sum_diff_subset_apply_inl
@@ -1494,7 +1497,8 @@ noncomputable def of_bijective {α β} (f : α → β) (hf : bijective f) : α �
 
 /-- If `f` is an injective function, then its domain is equivalent to its range. -/
 noncomputable def of_injective {α β} (f : α → β) (hf : injective f) : α ≃ _root_.set.range f :=
-of_bijective (λ x, ⟨f x, set.mem_range_self x⟩) ⟨λ x y hxy, hf $ by injections, λ ⟨_, x, rfl⟩, ⟨x, rfl⟩⟩
+of_bijective (λ x, ⟨f x, set.mem_range_self x⟩)
+  ⟨λ x y hxy, hf $ by injections, λ ⟨_, x, rfl⟩, ⟨x, rfl⟩⟩
 
 @[simp] lemma of_injective_apply {α β} (f : α → β) (hf : injective f) (x : α) :
   of_injective f hf x = ⟨f x, set.mem_range_self x⟩ :=

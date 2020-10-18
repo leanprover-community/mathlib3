@@ -731,7 +731,7 @@ lemma cauchy_seq_finset_iff_vanishing :
 begin
   simp only [cauchy_seq, cauchy_map_iff, and_iff_right at_top_ne_bot,
     prod_at_top_at_top_eq, uniformity_eq_comap_nhds_zero α, tendsto_comap_iff, (∘)],
-  rw [tendsto_at_top' (_ : finset β × finset β → α)],
+  rw [tendsto_at_top'],
   split,
   { assume h e he,
     rcases h e he with ⟨⟨s₁, s₂⟩, h⟩,

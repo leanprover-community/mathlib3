@@ -1348,8 +1348,8 @@ end
 
 end linear_ordered_ring
 
-section decidable_linear_ordered_semiring
-variables [decidable_linear_ordered_semiring α] [archimedean α]
+section linear_ordered_semiring
+variables [linear_ordered_semiring α] [archimedean α]
 variables {l : filter β} {f : β → α}
 
 /-- If a function tends to infinity along a filter, then this function multiplied by a positive
@@ -1359,10 +1359,11 @@ given in `tendsto_at_top_mul_left'`). -/
 lemma tendsto_at_top_mul_left  {r : α} (hr : 0 < r) (hf : tendsto f l at_top) :
   tendsto (λx, r * f x) l at_top :=
 begin
-  apply (tendsto_at_top _ _).2 (λb, _),
+  letI := classical.DLO α,
+  apply tendsto_at_top.2 (λb, _),
   obtain ⟨n : ℕ, hn : 1 ≤ n •ℕ r⟩ := archimedean.arch 1 hr,
   have hn' : 1 ≤ r * n, by rwa nsmul_eq_mul' at hn,
-  filter_upwards [(tendsto_at_top _ _).1 hf (n * max b 0)],
+  filter_upwards [tendsto_at_top.1 hf (n * max b 0)],
   assume x hx,
   calc b ≤ 1 * max b 0 : by { rw [one_mul], exact le_max_left _ _ }
   ... ≤ (r * n) * max b 0 : mul_le_mul_of_nonneg_right hn' (le_max_right _ _)
@@ -1377,10 +1378,11 @@ given in `tendsto_at_top_mul_right'`). -/
 lemma tendsto_at_top_mul_right {r : α} (hr : 0 < r) (hf : tendsto f l at_top) :
   tendsto (λx, f x * r) l at_top :=
 begin
-  apply (tendsto_at_top _ _).2 (λb, _),
+  letI := classical.DLO α,
+  apply tendsto_at_top.2 (λb, _),
   obtain ⟨n : ℕ, hn : 1 ≤ n •ℕ r⟩ := archimedean.arch 1 hr,
   have hn' : 1 ≤ (n : α) * r, by rwa nsmul_eq_mul at hn,
-  filter_upwards [(tendsto_at_top _ _).1 hf (max b 0 * n)],
+  filter_upwards [tendsto_at_top.1 hf (max b 0 * n)],
   assume x hx,
   calc b ≤ max b 0 * 1 : by { rw [mul_one], exact le_max_left _ _ }
   ... ≤ max b 0 * (n * r) : mul_le_mul_of_nonneg_left hn' (le_max_right _ _)
@@ -1388,7 +1390,7 @@ begin
   ... ≤ f x * r : mul_le_mul_of_nonneg_right hx (le_of_lt hr)
 end
 
-end decidable_linear_ordered_semiring
+end linear_ordered_semiring
 
 section linear_ordered_field
 variables [linear_ordered_field α]
@@ -1400,8 +1402,8 @@ constant (on the left) also tends to infinity. For a version working in `ℕ` or
 lemma tendsto_at_top_mul_left' {r : α} (hr : 0 < r) (hf : tendsto f l at_top) :
   tendsto (λx, r * f x) l at_top :=
 begin
-  apply (tendsto_at_top _ _).2 (λb, _),
-  filter_upwards [(tendsto_at_top _ _).1 hf (b/r)],
+  apply tendsto_at_top.2 (λb, _),
+  filter_upwards [tendsto_at_top.1 hf (b/r)],
   assume x hx,
   simpa [div_le_iff' hr] using hx
 end
@@ -1426,12 +1428,10 @@ a positive constant `C` then `f * g` tends to `at_top`. -/
 lemma tendsto_mul_at_top {C : α} (hC : 0 < C) (hf : tendsto f l at_top) (hg : tendsto g l (𝓝 C)) :
   tendsto (λ x, (f x * g x)) l at_top :=
 begin
-  rw tendsto_at_top at hf ⊢,
-  rw tendsto_order at hg,
-  intro b,
-  refine (hf (b/(C/2))).mp ((hg.1 (C/2) (half_lt_self hC)).mp ((hf 1).mp (eventually_of_forall _))),
-  intros x hx hltg hlef,
-  nlinarith [(div_le_iff' (half_pos hC)).mp hlef],
+  refine tendsto_at_top_mono' _ _ (tendsto_at_top_mul_right' (half_pos hC) hf),
+  filter_upwards [hg (lt_mem_nhds (half_lt_self hC)), hf (eventually_ge_at_top 0)],
+  dsimp,
+  exact λ x hg hf, mul_le_mul_of_nonneg_left hg.le hf
 end
 
 /-- In a linearly ordered field with the order topology, if `f` tends to `at_top` and `g` tends to
@@ -1456,7 +1456,7 @@ variables [discrete_linear_ordered_field α] [topological_space α] [order_topol
 /-- The function `x ↦ x⁻¹` tends to `+∞` on the right of `0`. -/
 lemma tendsto_inv_zero_at_top : tendsto (λx:α, x⁻¹) (𝓝[set.Ioi (0:α)] 0) at_top :=
 begin
-  apply (tendsto_at_top _ _).2 (λb, _),
+  apply tendsto_at_top.2 (λb, _),
   refine mem_nhds_within_Ioi_iff_exists_Ioo_subset.2 ⟨(max b 1)⁻¹, by simp [zero_lt_one], λx hx, _⟩,
   calc b ≤ max b 1 : le_max_left _ _
   ... ≤ x⁻¹ : begin
@@ -2208,10 +2208,10 @@ lemma surjective_of_continuous {f : α → β} (hf : continuous f) (h_top : tend
 begin
   intros p,
   obtain ⟨b, hb⟩ : ∃ b, p ≤ f b,
-    { rcases ((tendsto_at_top_at_top _).mp h_top) p with ⟨b, hb⟩,
+    { rcases (tendsto_at_top_at_top.mp h_top) p with ⟨b, hb⟩,
       exact ⟨b, hb b rfl.ge⟩ },
   obtain ⟨a, hab, ha⟩ : ∃ a, a ≤ b ∧ f a ≤ p,
-  { rcases ((tendsto_at_bot_at_bot _).mp h_bot) p with ⟨x, hx⟩,
+  { rcases (tendsto_at_bot_at_bot.mp h_bot) p with ⟨x, hx⟩,
     exact ⟨min x b, min_le_right x b, hx (min x b) (min_le_left x b)⟩ },
   rcases intermediate_value_Icc hab hf.continuous_on ⟨ha, hb⟩ with ⟨x, _, hx⟩,
   exact ⟨x, hx⟩

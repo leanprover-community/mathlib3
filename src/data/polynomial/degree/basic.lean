@@ -50,6 +50,9 @@ def leading_coeff (p : polynomial R) : R := coeff p (nat_degree p)
 /-- a polynomial is `monic` if its leading coefficient is 1 -/
 def monic (p : polynomial R) := leading_coeff p = (1 : R)
 
+@[nontriviality] lemma monic_of_subsingleton [subsingleton R] (p : polynomial R) : monic p :=
+subsingleton.elim _ _
+
 lemma monic.def : monic p ↔ leading_coeff p = 1 := iff.rfl
 
 instance monic.decidable [decidable_eq R] : decidable (monic p) :=

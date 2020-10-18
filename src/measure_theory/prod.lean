@@ -65,8 +65,6 @@ open topological_space (hiding generate_from)
 open filter (hiding prod_eq map)
 
 variables {α α' β β' γ E : Type*}
-
-
 variables [measurable_space α] [measurable_space α'] [measurable_space β] [measurable_space β']
 variables [measurable_space γ]
 variables {μ : measure α} {ν : measure β} {τ : measure γ}

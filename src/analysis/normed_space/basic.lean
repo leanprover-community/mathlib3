@@ -82,6 +82,10 @@ normed_group.dist_eq _ _
 @[simp] lemma dist_zero_right (g : α) : dist g 0 = ∥g∥ :=
 by rw [dist_eq_norm, sub_zero]
 
+lemma tendsto_norm_cocompact_at_top [proper_space α] :
+  tendsto norm (cocompact α) at_top :=
+by simpa only [dist_zero_right] using tendsto_dist_right_cocompact_at_top (0:α)
+
 lemma norm_sub_rev (g h : α) : ∥g - h∥ = ∥h - g∥ :=
 by simpa only [dist_eq_norm] using dist_comm g h
 
@@ -408,6 +412,10 @@ lemma filter.tendsto.norm {β : Type*} {l : filter β} {f : β → α} {a : α} 
   tendsto (λ x, ∥f x∥) l (𝓝 ∥a∥) :=
 tendsto.comp continuous_norm.continuous_at h
 
+lemma continuous.norm [topological_space γ] {f : γ → α} (hf : continuous f) :
+  continuous (λ x, ∥f x∥) :=
+continuous_norm.comp hf
+
 lemma continuous_nnnorm : continuous (nnnorm : α → nnreal) :=
 continuous_subtype_mk _ continuous_norm
 
@@ -471,7 +479,7 @@ attribute [simp] norm_one
 @[simp] lemma nnnorm_one [normed_group α] [has_one α] [norm_one_class α] : nnnorm (1:α) = 1 :=
 nnreal.eq norm_one
 
-@[priority 100]
+@[priority 100] -- see Note [lower instance priority]
 instance normed_comm_ring.to_comm_ring [β : normed_comm_ring α] : comm_ring α := { ..β }
 
 @[priority 100] -- see Note [lower instance priority]

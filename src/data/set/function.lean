@@ -155,6 +155,10 @@ theorem maps_to.union (h₁ : maps_to f s₁ t) (h₂ : maps_to f s₂ t) :
   maps_to f (s₁ ∪ s₂) t :=
 union_self t ▸ h₁.union_union h₂
 
+@[simp] theorem maps_to_union : maps_to f (s₁ ∪ s₂) t ↔ maps_to f s₁ t ∧ maps_to f s₂ t :=
+⟨λ h, ⟨h.mono (subset_union_left s₁ s₂) (subset.refl t),
+  h.mono (subset_union_right s₁ s₂) (subset.refl t)⟩, λ h, h.1.union h.2⟩
+
 theorem maps_to.inter (h₁ : maps_to f s t₁) (h₂ : maps_to f s t₂) :
   maps_to f s (t₁ ∩ t₂) :=
 λ x hx, ⟨h₁ hx, h₂ hx⟩
@@ -162,6 +166,10 @@ theorem maps_to.inter (h₁ : maps_to f s t₁) (h₂ : maps_to f s t₂) :
 theorem maps_to.inter_inter (h₁ : maps_to f s₁ t₁) (h₂ : maps_to f s₂ t₂) :
   maps_to f (s₁ ∩ s₂) (t₁ ∩ t₂) :=
 λ x hx, ⟨h₁ hx.1, h₂ hx.2⟩
+
+@[simp] theorem maps_to_inter : maps_to f s (t₁ ∩ t₂) ↔ maps_to f s t₁ ∧ maps_to f s t₂ :=
+⟨λ h, ⟨h.mono (subset.refl s) (inter_subset_left t₁ t₂),
+  h.mono (subset.refl s) (inter_subset_right t₁ t₂)⟩, λ h, h.1.inter h.2⟩
 
 theorem maps_to_univ (f : α → β) (s : set α) : maps_to f s univ := λ x h, trivial
 

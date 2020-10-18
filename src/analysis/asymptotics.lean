@@ -147,6 +147,14 @@ theorem is_O.exists_nonneg (h : is_O f g' l) :
   ∃ c (H : 0 ≤ c), is_O_with c f g' l :=
 let ⟨c, hc⟩ := h in hc.exists_nonneg
 
+/-! ### Subsingleton -/
+
+@[nontriviality] lemma is_o_of_subsingleton [subsingleton E'] : is_o f' g' l :=
+λ c hc, is_O_with.of_bound $ by simp [subsingleton.elim (f' _) 0, mul_nonneg hc.le]
+
+@[nontriviality] lemma is_O_of_subsingleton [subsingleton E'] : is_O f' g' l :=
+is_o_of_subsingleton.is_O
+
 /-! ### Congruence -/
 
 theorem is_O_with_congr {c₁ c₂} {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}

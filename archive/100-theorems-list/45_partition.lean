@@ -254,11 +254,6 @@ lemma card_eq_of_bijection {β : Type*} {s : finset α} {t : finset β}
 s.card = t.card :=
 finset.card_congr (λ a _, f a) hf hinj hsurj
 
--- TODO: MOVE ME
-lemma sum_multiset_count [decidable_eq α] [add_comm_monoid α] (s : multiset α) :
-  s.sum = ∑ m in s.to_finset, s.count m •ℕ m :=
-@prod_multiset_count (multiplicative α) _ _ s
-
 -- TODO: name and move me
 lemma auxy (n : ℕ) (a_blocks : multiset ℕ) (s : finset ℕ)
   (a_blocks_sum : a_blocks.sum = n)
@@ -283,25 +278,8 @@ end
 def mk_odd : ℕ ↪ ℕ := ⟨λ i, 2 * i + 1, λ x y h, by linarith⟩
 
 -- TODO: move me
-lemma mem_sum {β : Type*} {f : α → multiset β} (s : finset α) (b : β) :
-  b ∈ ∑ x in s, f x ↔ ∃ a ∈ s, b ∈ f a :=
-begin
-  apply finset.induction_on s,
-  { simp },
-  { intros a t hi ih,
-    simp only [sum_insert ‹a ∉ t›, ih, multiset.mem_add, exists_prop, mem_insert],
-    split,
-    { rintro (hb | ⟨i, hi, hb⟩),
-      { exact ⟨a, or.inl rfl, hb⟩ },
-      { exact ⟨i, or.inr hi, hb⟩ } },
-    { rintro ⟨i, (rfl | ht), hb⟩,
-      { exact or.inl hb },
-      { exact or.inr ⟨_, ht, hb⟩, } } }
-end
-
--- TODO: move me
 lemma sum_sum {β : Type*} [add_comm_monoid β] (f : α → multiset β) (s : finset α) :
-  (s.sum f).sum = ∑ x in s, (f x).sum :=
+  (∑ x in s, f x).sum = ∑ x in s, (f x).sum :=
 (sum_hom s multiset.sum).symm
 
 -- The main workhorse of the partition theorem proof.

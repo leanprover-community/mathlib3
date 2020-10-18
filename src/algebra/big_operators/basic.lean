@@ -630,6 +630,12 @@ lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
   s.prod = ∏ m in s.to_finset, m ^ (s.count m) :=
 by { convert prod_multiset_map_count s id, rw map_id }
 
+lemma sum_multiset_count [decidable_eq α] [add_comm_monoid α] (s : multiset α) :
+  s.sum = ∑ m in s.to_finset, s.count m •ℕ m :=
+@prod_multiset_count (multiplicative α) _ _ s
+
+attribute [to_additive] prod_multiset_count
+
 /--
 To prove a property of a product, it suffices to prove that
 the property is multiplicative and holds on factors.
@@ -1014,6 +1020,23 @@ lemma gsmul_sum [add_comm_group β] {f : α → β} {s : finset α} (z : ℤ) :
 @[simp] lemma sum_sub_distrib [add_comm_group β] :
   ∑ x in s, (f x - g x) = (∑ x in s, f x) - (∑ x in s, g x) :=
 sum_add_distrib.trans $ congr_arg _ sum_neg_distrib
+
+lemma mem_sum {f : α → multiset β} (s : finset α) (b : β) :
+  b ∈ ∑ x in s, f x ↔ ∃ a ∈ s, b ∈ f a :=
+begin
+  classical,
+  apply finset.induction_on s,
+  { simp },
+  { intros a t hi ih,
+    simp only [sum_insert ‹a ∉ t›, ih, multiset.mem_add, exists_prop, mem_insert],
+    split,
+    { rintro (hb | ⟨i, hi, hb⟩),
+      { exact ⟨a, or.inl rfl, hb⟩ },
+      { exact ⟨i, or.inr hi, hb⟩ } },
+    { rintro ⟨i, (rfl | ht), hb⟩,
+      { exact or.inl hb },
+      { exact or.inr ⟨_, ht, hb⟩, } } }
+end
 
 section prod_eq_zero
 variables [comm_monoid_with_zero β]

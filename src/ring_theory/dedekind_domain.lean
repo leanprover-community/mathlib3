@@ -187,6 +187,26 @@ end
 
 variables {M : ideal R} [is_maximal M]
 
+theorem is_integral_of_noetherian' (A : Type*) [comm_ring A] [algebra R A] (H : is_noetherian R A) (x : A) :
+  is_integral R x :=
+  sorry,
+
+#check is_integral_of_noetherian'
+
+lemma if_inv_then_int {I : ideal R} (x : f.codomain) (h_I : I ≠ 0) (h_prod : ↑I * (1 / ↑I : fractional_ideal f) = ↑I) :
+x ∈ (1/↑I : fractional_ideal f).val → (f.to_map).is_integral_elem x :=
+begin
+let h_RalgK := ring_hom.to_algebra f.to_map,
+let φ := @aeval R f.codomain _ _ h_RalgK x,
+let A := @alg_hom.range R (polynomial R) f.codomain _ _ _  _ h_RalgK φ,
+have hx :  x ∈ A,--may be it is better to have hxn : ∀ (n : ℕ ), x^n ∈ A, (which is not much harder to prove)
+  suffices hp : ∃ (p : polynomial R), φ p = x, simpa,
+  use X, apply aeval_X,--if done only for x^n rather than x, use aeval_X_pow rather than aeval_X
+have h_fracA : is_fractional f A, sorry,
+have h_A : is_noetherian R A, sorry,
+apply is_integral_of_noetherian h_A hx,sorry,--can't work because x does not have type A
+end
+/-
 lemma if_inv_then_int {I : ideal R} (x : f.codomain) (h_I : I ≠ 0) (h : ↑I * (1 / ↑I : fractional_ideal f) = ↑I) :
 x ∈ (1/↑I : fractional_ideal f).val → (f.to_map).is_integral_elem x :=
 begin
@@ -199,6 +219,8 @@ intro, induction n with n hn,
   },
 intro x,sorry,
 end
+-/
+
 
 local attribute [instance] classical.prop_decidable
 

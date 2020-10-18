@@ -190,16 +190,26 @@ if and only if `1 < p`. -/
 lemma real.summable_one_div_nat_pow {p : ℕ} : summable (λ n, 1 / n ^ p : ℕ → ℝ) ↔ 1 < p :=
 by simp
 
+/-- Harmonic series is not unconditionally summable. -/
 lemma real.not_summable_nat_cast_inv : ¬summable (λ n, n⁻¹ : ℕ → ℝ) :=
 have ¬summable (λ n, (n^1)⁻¹ : ℕ → ℝ), from mt real.summable_nat_pow_inv.1 (lt_irrefl 1),
 by simpa
 
+/-- Harmonic series is not unconditionally summable. -/
 lemma real.not_summable_one_div_nat_cast : ¬summable (λ n, 1 / n : ℕ → ℝ) :=
 by simpa only [inv_eq_one_div] using real.not_summable_nat_cast_inv
+
+/-- Harmonic series diverges. -/
+lemma real.tendsto_sum_range_one_div_nat_succ_at_top :
+  tendsto (λ n, ∑ i in finset.range n, (1 / (i + 1) : ℝ)) at_top at_top :=
+begin
+  rw ← not_summable_iff_tendsto_nat_at_top_of_nonneg,
+  { exact_mod_cast mt (summable_nat_add_iff 1).1 real.not_summable_one_div_nat_cast },
+  { exact λ i, div_nonneg zero_le_one i.cast_add_one_pos.le }
+end
 
 @[simp] lemma nnreal.summable_one_rpow_inv {p : ℝ} : summable (λ n, (n ^ p)⁻¹ : ℕ → ℝ≥0) ↔ 1 < p :=
 by simp [← nnreal.summable_coe]
 
 lemma nnreal.summable_one_div_rpow {p : ℝ} : summable (λ n, 1 / n ^ p : ℕ → ℝ≥0) ↔ 1 < p :=
-
 by simp

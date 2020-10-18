@@ -1917,26 +1917,8 @@ cos_surjective.range_eq
 lemma sin_surjective : function.surjective sin :=
 begin
   intro x,
-  obtain ⟨w, hw⟩ : ∃ w, 1 * w * w + (-2 * I * x) * w - 1 = 0,
-  { exact exists_quadratic_eq_zero one_ne_zero (exists_eq_mul_self _) },
-  have hw' : exp (log w / I * I) = w,
-  { rw [div_mul_cancel _ I_ne_zero, exp_log],
-    rintro rfl,
-    simpa only [zero_add, sub_eq_zero, zero_ne_one, mul_zero] using hw },
-  obtain ⟨z, hz⟩ : ∃ z : ℂ, (exp (z * I)) ^ 2 - 2 * x * I * exp (z * I) - 1 = 0,
-  { use log w / I, rw [hw', ← hw], ring },
-  use z,
-  delta sin,
-  rw [← mul_left_inj' (exp_ne_zero (z * I))],
-  rw [sub_sub, sub_eq_zero] at hz,
-  suffices :
-    exp (-(z * I)) * exp (z * I) * I - (2 * x * exp (z * I) * I + 1) * I = x * exp (z * I) * 2,
-  { field_simp [sub_mul, mul_right_comm _ I, ← pow_two, hz], exact this },
-  calc exp (-(z * I)) * exp (z * I) * I - (2 * x * exp (z * I) * I + 1) * I
-      = I - (-(2 * (x * exp (z * I))) + I) :
-        by simp only [←exp_add, add_mul, one_mul, mul_assoc, exp_zero, mul_one,
-                      mul_neg_eq_neg_mul_symm, I_mul_I, add_left_neg]
-  ... = x * exp (z * I) * 2 : by ring
+  rcases cos_surjective x with ⟨z, rfl⟩,
+  exact ⟨z+π/2, sin_add_pi_div_two z⟩
 end
 
 @[simp] lemma range_sin : range sin = set.univ :=

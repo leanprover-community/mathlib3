@@ -436,7 +436,7 @@ lemma infinite_neg_add_not_infinite {x y : ℝ*} :
 
 theorem infinite_pos_of_tendsto_top {f : ℕ → ℝ} (hf : tendsto f at_top at_top) :
   infinite_pos (of_seq f) :=
-λ r, have hf' : _ := (tendsto_at_top_at_top _).mp hf,
+λ r, have hf' : _ := tendsto_at_top_at_top.mp hf,
 Exists.cases_on (hf' (r + 1)) $ λ i hi,
   have hi' : ∀ (a : ℕ), f a < (r + 1) → a < i :=
     λ a, by rw [←not_le, ←not_le]; exact not_imp_not.mpr (hi a),
@@ -448,7 +448,7 @@ Exists.cases_on (hf' (r + 1)) $ λ i hi,
 
 theorem infinite_neg_of_tendsto_bot {f : ℕ → ℝ} (hf : tendsto f at_top at_bot) :
   infinite_neg (of_seq f) :=
-λ r, have hf' : _ := (tendsto_at_top_at_bot _).mp hf,
+λ r, have hf' : _ := tendsto_at_top_at_bot.mp hf,
 Exists.cases_on (hf' (r - 1)) $ λ i hi,
   have hi' : ∀ (a : ℕ), r - 1 < f a → a < i :=
     λ a, by rw [←not_le, ←not_le]; exact not_imp_not.mpr (hi a),

@@ -2,11 +2,71 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl, Yury Kudryashov
-
-Extended non-negative reals
 -/
 import data.real.nnreal
 import data.set.intervals
+
+/-!
+# Extended non-negative reals
+
+We define `ennreal := with_no ℝ≥0` to be the type of extended nonnegative real numbers, i.e., the
+interval `[0, +∞]`. This type is used as the codomain of a `measure_theory.measure`, and of the
+extended distance `edist` in a `emetric_space`. In this file we define some algebraic operations and
+a linear order on `ennreal` and prove basic properties of these operations, order, and conversions
+to/from `ℝ`, `ℝ≥0`, and `ℕ`.
+
+## Main definitions
+
+* `ennreal`: the extended nonnegative real numbers `[0, ∞]`; defined as `with_top ℝ≥0`; it is
+  equipped with the following structures:
+
+  - coercion from `ℝ≥0` defined in the natural way;
+
+  - the natural structure of a complete dense linear order: `↑p ≤ ↑q ↔ p ≤ q` and `∀ a, a ≤ ∞`;
+
+  - `a + b` is defined so that `↑p + ↑q = ↑(p + q)` for `(p q : ℝ≥0)` and `a + ∞ = ∞ + a = ∞`;
+
+  - `a * b` is defined so that `↑p * ↑q = ↑(p * q)` for `(p q : ℝ≥0)`, `0 * ∞ = ∞ * 0 = 0`, and `a *
+    ∞ = ∞ * a = ∞` for `a ≠ 0`;
+
+  - `a - b` is defined as the minimal `d` such that `a ≤ d + b`; this way we have
+    `↑p - ↑q = ↑(p - q)`, `∞ - ↑p = ∞`, `↑p - ∞ = ∞ - ∞ = 0`; note that there is no negation, only
+    subtraction;
+
+  - `a⁻¹` is defined as `Inf {b | 1 ≤ a * b}`. This way we have `(↑p)⁻¹ = ↑(p⁻¹)` for
+    `p : ℝ≥0`, `p ≠ 0`, `0⁻¹ = ∞`, and `∞⁻¹ = 0`.
+
+  - `a / b` is defined as `a * b⁻¹`.
+
+  The addition and multiplication defined this way together with `0 = ↑0` and `1 = ↑1` turn
+  `ennreal` into a canonically ordered commutative semiring of characteristic zero.
+
+* Coercions to/from other types:
+
+  - coercion `ℝ≥0 → ennreal` is defined as `has_coe`, so one can use `(p : ℝ≥0)` in a context that
+    expects `a : ennreal`, and Lean will apply `coe` automatically;
+
+  - `ennreal.to_nnreal` sends `↑p` to `p` and `∞` to `0`;
+
+  - `ennreal.to_real := coe ∘ ennreal.to_nnreal` sends `↑p`, `p : ℝ≥0` to `(↑p : ℝ)` and `∞` to `0`;
+
+  - `ennreal.of_real := coe ∘ nnreal.of_real` sends `x : ℝ` to `↑⟨max x 0, _⟩`
+
+  - `ennreal.ne_top_equiv_nnreal` is an equivalence between `{a : ennreal // a ≠ 0}` and `ℝ≥0`.
+
+## Implementation notes
+
+We define a `can_lift ennreal ℝ≥0` instance, so one of the ways to prove theorems about an `ennreal`
+number `a` is to consider the cases `a = ∞` and `a ≠ ∞`, and use the tactic `lift a to ℝ≥0 using ha`
+in the second case. This instance is even more useful if one already has `ha : a ≠ ∞` in the
+context, or if we have `(f : α → ennreal) (hf : ∀ x, f x ≠ ⊤)`.
+
+## Notations
+
+* `ℝ≥0`: type of nonnegative real numbers `[0, ∞)`; defined in `data.real.nnreal`;
+* `∞`: a localized notation in `ennreal` for `⊤ : ennreal`.
+
+-/
 noncomputable theory
 open classical set
 

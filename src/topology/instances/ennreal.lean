@@ -42,7 +42,8 @@ instance : second_countable_topology ennreal :=
       [ rw show s = ⋃q∈{q:ℚ | 0 ≤ q ∧ a < nnreal.of_real q}, {b | ↑(nnreal.of_real q) < b},
            from set.ext (assume b, by simp [hs, @ennreal.lt_iff_exists_rat_btwn a b, and_assoc]),
         rw show s = ⋃q∈{q:ℚ | 0 ≤ q ∧ ↑(nnreal.of_real q) < a}, {b | b < ↑(nnreal.of_real q)},
-           from set.ext (assume b, by simp [hs, @ennreal.lt_iff_exists_rat_btwn b a, and_comm, and_assoc])];
+           from set.ext (assume b,
+             by simp [hs, @ennreal.lt_iff_exists_rat_btwn b a, and_comm, and_assoc])];
       { apply is_open_Union, intro q,
         apply is_open_Union, intro hq,
         exact generate_open.basic _ (mem_bUnion hq.1 $ by simp) }
@@ -219,7 +220,7 @@ instance : has_continuous_add ennreal :=
     have set.prod {a | ↑n < a } univ ∈ 𝓝 ((⊤:ennreal), a), from
       prod_mem_nhds_sets (lt_mem_nhds $ coe_nat n ▸ coe_lt_top) univ_mem_sets,
     show {a : ennreal × ennreal | ↑n < a.fst + a.snd} ∈ 𝓝 (⊤, a),
-    begin filter_upwards [this] assume ⟨a₁, a₂⟩ ⟨h₁, h₂⟩, lt_of_lt_of_le h₁ (le_add_right $ le_refl _) end,
+    begin filter_upwards [this] λ ⟨a₁, a₂⟩ ⟨h₁, h₂⟩, h₁.trans_le (le_add_right $ le_refl _) end,
   begin
     rintro ⟨a₁, a₂⟩,
     cases a₁, { simp [continuous_at, none_eq_top, hl a₂], },
@@ -238,7 +239,7 @@ begin
   rcases ennreal.lt_iff_exists_coe.1 hεb' with ⟨ε, rfl, h⟩,
   rcases exists_nat_gt (↑n / ε) with ⟨m, hm⟩,
   have hε : ε > 0, from coe_lt_coe.1 hε',
-  refine mem_sets_of_superset (prod_mem_nhds_sets (lt_mem_nhds $ @coe_lt_top m) (lt_mem_nhds $ h)) _,
+  filter_upwards [prod_mem_nhds_sets (lt_mem_nhds $ @coe_lt_top m) (lt_mem_nhds $ h)],
   rintros ⟨a₁, a₂⟩ ⟨h₁, h₂⟩,
   dsimp at h₁ h₂ ⊢,
   calc (n:ennreal) = ↑(((n:nnreal) / ε) * ε) :
@@ -255,7 +256,8 @@ begin
   cases a, {simp [none_eq_top] at hb, simp [none_eq_top, ht b hb, top_mul, hb] },
   cases b, {
     simp [none_eq_top] at ha,
-    simp [*, nhds_swap (a : ennreal) ⊤, none_eq_top, some_eq_coe, top_mul, tendsto_map'_iff, (∘), mul_comm] },
+    simp [*, nhds_swap (a : ennreal) ⊤, none_eq_top, some_eq_coe, top_mul, tendsto_map'_iff, (∘),
+      mul_comm] },
   simp [some_eq_coe, nhds_coe_coe, tendsto_map'_iff, (∘)],
   simp only [coe_mul.symm, tendsto_coe, tendsto_mul]
 end
@@ -370,7 +372,7 @@ begin
     simpa [add_supr, supr_add] using
       λ i j:ι, show f i + g j ≤ ⨆ a, f a + g a, from
       let ⟨k, hk⟩ := h i j in le_supr_of_le k hk },
-  { have : ∀f:ι → ennreal, (⨆i, f i) = 0 := assume f, bot_unique (supr_le $ assume i, (hι ⟨i⟩).elim),
+  { have : ∀f:ι → ennreal, (⨆i, f i) = 0 := λ f, bot_unique (supr_le $ assume i, (hι ⟨i⟩).elim),
     rw [this, this, this, zero_add] }
 end
 
@@ -671,7 +673,8 @@ lemma tendsto_sum_nat_add (f : ℕ → ennreal) (hf : (∑' i, f i) ≠ ∞) :
 begin
   have : ∀ i, (∑' k, (((ennreal.to_nnreal ∘ f) (k + i) : nnreal) : ennreal)) =
     (∑' k, (ennreal.to_nnreal ∘ f) (k + i) : nnreal) :=
-    λ i, (ennreal.coe_tsum (nnreal.summable_nat_add _ (summable_to_nnreal_of_tsum_ne_top hf) _)).symm,
+    λ i, (ennreal.coe_tsum
+      (nnreal.summable_nat_add _ (summable_to_nnreal_of_tsum_ne_top hf) _)).symm,
   simp only [λ x, (to_nnreal_apply_of_tsum_ne_top hf x).symm, ←ennreal.coe_zero,
     this, ennreal.tendsto_coe] { single_pass := tt },
   exact nnreal.tendsto_sum_nat_add _ (summable_to_nnreal_of_tsum_ne_top hf)
@@ -807,7 +810,7 @@ begin
       { simp [C_zero, ‹0 < ε›] },
       { calc C * (C⁻¹ * (ε/2)) = (C * C⁻¹) * (ε/2) : by simp [mul_assoc]
         ... = ε/2 : by simp [ennreal.mul_inv_cancel C_zero hC]
-        ... < ε : ennreal.half_lt_self (bot_lt_iff_ne_bot.1 ‹0 < ε›) (lt_top_iff_ne_top.1 ‹ε < ⊤›) }},
+        ... < ε : ennreal.half_lt_self (‹0 < ε›.ne') (‹ε < ⊤›.ne) }},
     have : ball x (C⁻¹ * (ε/2)) ⊆ {y : α | e < f y},
     { rintros y hy,
       by_cases htop : f y = ⊤,
@@ -835,7 +838,7 @@ begin
       simp [C_zero, ‹0 < ε›],
       calc C * (C⁻¹ * (ε/2)) = (C * C⁻¹) * (ε/2) : by simp [mul_assoc]
         ... = ε/2 : by simp [ennreal.mul_inv_cancel C_zero hC]
-        ... < ε : ennreal.half_lt_self (bot_lt_iff_ne_bot.1 ‹0 < ε›) (lt_top_iff_ne_top.1 ‹ε < ⊤›) },
+        ... < ε : ennreal.half_lt_self (‹0 < ε›.ne') (‹ε < ⊤›.ne) },
     have : ball x (C⁻¹ * (ε/2)) ⊆ {y : α | f y < e},
     { rintros y hy,
       have htop : f x ≠ ⊤ := ne_top_of_lt he,

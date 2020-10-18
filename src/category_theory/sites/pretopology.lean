@@ -125,6 +125,8 @@ instance : order_top (pretopology C) :=
   le_top := λ K X S hS, set.mem_univ _,
   ..pretopology.partial_order C }
 
+instance : inhabited (pretopology C) := ⟨⊤⟩
+
 /--
 A pretopology `K` can be completed to a Grothendieck topology `J` by declaring a sieve to be
 `J`-covering if it contains a family in `K`.

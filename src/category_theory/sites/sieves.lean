@@ -35,6 +35,8 @@ variables {X Y Z : C} (f : Y ⟶ X)
 @[derive complete_lattice]
 def arrows_with_codomain (X : C) := Π ⦃Y⦄, set (Y ⟶ X)
 
+instance : inhabited (arrows_with_codomain X) := ⟨⊤⟩
+
 namespace arrows_with_codomain
 /--
 Given a set of arrows `S` all with codomain `X`, and a set of arrows with codomain `Y` for each
@@ -55,19 +57,16 @@ bind S R (g ≫ f) :=
 def singleton_arrow : arrows_with_codomain X :=
 λ Z g, ∃ (H : Z = Y), eq_to_hom H ≫ f = g
 
-@[simp]
-lemma singleton_arrow_self : singleton_arrow f f :=
-⟨rfl, category.id_comp _⟩
-
 @[simp] lemma singleton_arrow_eq_iff_domain (f g : Y ⟶ X) : singleton_arrow f g ↔ f = g :=
 begin
   split,
   { rintro ⟨_, rfl⟩,
-    symmetry,
-    apply category.id_comp },
+    apply (category.id_comp _).symm },
   { rintro rfl,
-    simp },
+    exact ⟨rfl, category.id_comp _⟩ },
 end
+
+lemma singleton_arrow_self : singleton_arrow f f := (singleton_arrow_eq_iff_domain _ _).2 rfl
 
 end arrows_with_codomain
 

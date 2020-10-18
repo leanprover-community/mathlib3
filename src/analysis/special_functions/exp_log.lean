@@ -435,10 +435,8 @@ lemma tendsto_exp_at_top : tendsto exp at_top at_top :=
 begin
   have A : tendsto (λx:ℝ, x + 1) at_top at_top :=
     tendsto_at_top_add_const_right at_top 1 tendsto_id,
-  have B : ∀ᶠ x in at_top, x + 1 ≤ exp x,
-  { have : ∀ᶠ (x : ℝ) in at_top, 0 ≤ x := mem_at_top 0,
-    filter_upwards [this],
-    exact λx hx, add_one_le_exp_of_nonneg hx },
+  have B : ∀ᶠ x in at_top, x + 1 ≤ exp x :=
+    eventually_at_top.2 ⟨0, λx hx, add_one_le_exp_of_nonneg hx⟩,
   exact tendsto_at_top_mono' at_top B A
 end
 

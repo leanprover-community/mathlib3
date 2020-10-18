@@ -122,6 +122,9 @@ lemma smul_le_smul_iff_of_pos (hc : 0 < c) : c • a ≤ c • b ↔ a ≤ b :=
   smul_le_smul_of_nonneg h (inv_nonneg.2 hc.le),
   λ h, smul_le_smul_of_nonneg h hc.le⟩
 
+lemma smul_le_smul_iff_of_neg (hc : c < 0) : c • a ≤ c • b ↔ b ≤ a :=
+by rw [← neg_neg c, neg_smul, neg_smul (-c), neg_le_neg_iff, smul_le_smul_iff_of_pos (neg_pos.2 hc)]
+
 lemma smul_lt_iff_of_pos (hc : 0 < c) : c • a < b ↔ a < c⁻¹ • b :=
 calc c • a < b ↔ c • a < c • c⁻¹ • b : by rw [smul_inv_smul' hc.ne']
 ... ↔ a < c⁻¹ • b : smul_lt_smul_iff_of_pos hc
@@ -129,6 +132,10 @@ calc c • a < b ↔ c • a < c • c⁻¹ • b : by rw [smul_inv_smul' hc.ne'
 lemma smul_le_iff_of_pos (hc : 0 < c) : c • a ≤ b ↔ a ≤ c⁻¹ • b :=
 calc c • a ≤ b ↔ c • a ≤ c • c⁻¹ • b : by rw [smul_inv_smul' hc.ne']
 ... ↔ a ≤ c⁻¹ • b : smul_le_smul_iff_of_pos hc
+
+lemma le_smul_iff_of_pos (hc : 0 < c) : a ≤ c • b ↔ c⁻¹ • a ≤ b :=
+calc a ≤ c • b ↔ c • c⁻¹ • a ≤ c • b : by rw [smul_inv_smul' hc.ne']
+... ↔ c⁻¹ • a ≤ b : smul_le_smul_iff_of_pos hc
 
 instance prod.ordered_semimodule : ordered_semimodule k (M × N) :=
 ordered_semimodule.mk' $ λ v u c h hc,

@@ -569,7 +569,7 @@ begin
   { exact card_nth_roots n 1 },
   { rw [not_lt],
     have hcard : fintype.card {x // x ∈ nth_roots n (1 : R)}
-    ≤ (nth_roots n (1 : R)).attach.card := multiset.card_le_of_le (multiset.erase_dup_le _),
+      ≤ (nth_roots n (1 : R)).attach.card := multiset.card_le_of_le (multiset.erase_dup_le _),
     rw multiset.card_attach at hcard,
     rw [← fintype.card_congr (roots_of_unity_equiv_nth_roots R n), card_roots_of_unity h] at hcard,
     exact hcard }

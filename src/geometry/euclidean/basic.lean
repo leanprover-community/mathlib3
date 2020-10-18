@@ -602,7 +602,7 @@ subspace being projected onto. For most purposes,
 `is_complete` hypotheses and is the identity map when either of those
 hypotheses fails, should be used instead. -/
 def orthogonal_projection_of_nonempty_of_complete {s : affine_subspace ℝ P}
-  (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) : affine_map ℝ P P :=
+  (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) : P →ₐ[ℝ] P :=
 { to_fun := orthogonal_projection_fn hn hc,
   linear := orthogonal_projection s.direction,
   map_vadd' := λ p v, begin
@@ -633,7 +633,7 @@ of two points whose difference is that vector) is the
 direction of the affine subspace being projected onto.  If the
 subspace is empty or not complete, this uses the identity map
 instead. -/
-def orthogonal_projection (s : affine_subspace ℝ P) : affine_map ℝ P P :=
+def orthogonal_projection (s : affine_subspace ℝ P) : P →ₐ[ℝ] P :=
 if h : (s : set P).nonempty ∧ is_complete (s.direction : set V) then
   orthogonal_projection_of_nonempty_of_complete h.1 h.2 else affine_map.id ℝ P
 

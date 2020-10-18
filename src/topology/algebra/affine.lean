@@ -25,7 +25,7 @@ TODO: Deal with the case where the point spaces are different from the vector sp
 -/
 
 /-- An affine map is continuous iff its underlying linear map is continuous. -/
-lemma continuous_iff {f : affine_map R E F} :
+lemma continuous_iff {f : E →ₐ[R] F} :
   continuous f ↔ continuous f.linear :=
 begin
   split,
@@ -39,7 +39,7 @@ end
 
 /-- The line map is continuous. -/
 lemma line_map_continuous [topological_space R] [topological_semimodule R F] {p v : F} :
-  continuous ⇑(line_map p v : affine_map R R F) :=
+  continuous ⇑(line_map p v : R →ₐ[R] F) :=
 continuous_iff.mpr $ (continuous_id.smul continuous_const).add $
   @continuous_const _ _ _ _ (0 : F)
 

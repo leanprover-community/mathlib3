@@ -1027,13 +1027,24 @@ end
 /-- Two measures are equal if they are equal on the π-system generating the σ-algebra,
   and they are both finite on a increasing spanning sequence of sets in the π-system.
   This lemma is formulated using `Union`. -/
-lemma ext_of_generate_from_of_Union (C : set (set α))  (B : ℕ → set α)
+lemma ext_of_generate_from_of_Union (C : set (set α)) (B : ℕ → set α)
   (hA : ‹_› = generate_from C) (hC : is_pi_system C) (h1B : (⋃ i, B i) = univ)
   (h2B : ∀ i, B i ∈ C) (hμB : ∀ i, μ (B i) < ⊤) (h_eq : ∀ s ∈ C, μ s = ν s) : μ = ν :=
 begin
   refine ext_of_generate_from_of_cover_subset hA hC _ (countable_range B) h1B _ h_eq,
   { rintro _ ⟨i, rfl⟩, apply h2B },
   { rintro _ ⟨i, rfl⟩, apply hμB }
+end
+
+/-- Two measures are equal if they are equal on the countably spanning π-system generating the
+  σ-algebra. This is less general than `ext_of_generate_from_of_Union`. -/
+lemma ext_of_generate_from_of_is_countably_spanning {S : set (set α)}
+  (h_gen : ‹_› = generate_from S) (h_inter : is_pi_system S) (h_spanning : is_countably_spanning S)
+  (htop : ∀ s ∈ S, μ s < ⊤) (h_eq : ∀ s ∈ S, μ s = ν s) :
+  μ = ν :=
+begin
+  rcases h_spanning with ⟨s, h1s, h2s⟩,
+  exact ext_of_generate_from_of_Union _ _ h_gen h_inter h2s h1s (λ n, htop _ $ h1s n) h_eq
 end
 
 /-- The dirac measure. -/
@@ -1496,6 +1507,10 @@ lemma Union_spanning_sets (μ : measure α) [sigma_finite μ] :
   (⋃ i : ℕ, spanning_sets μ i) = univ :=
 by simp_rw [spanning_sets, Union_accumulate,
   (classical.some_spec $ exists_finite_spanning_sets μ).2.2]
+
+lemma is_countably_spanning_spanning_sets (μ : measure α) [sigma_finite μ] :
+  is_countably_spanning (range (spanning_sets μ)) :=
+⟨spanning_sets μ, mem_range_self, Union_spanning_sets μ⟩
 
 namespace measure
 

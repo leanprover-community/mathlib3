@@ -283,6 +283,10 @@ iff.intro
   (assume h u hu, h _ $ is_measurable_generate_from hu)
   (assume h, generate_from_le h)
 
+@[simp] lemma generate_from_is_measurable [measurable_space α] :
+  generate_from {s : set α | is_measurable s} = ‹_› :=
+le_antisymm (generate_from_le $ λ _, id) $ λ s, is_measurable_generate_from
+
 /-- If `g` is a collection of subsets of `α` such that the `σ`-algebra generated from `g` contains
 the same sets as `g`, then `g` was already a `σ`-algebra. -/
 protected def mk_of_closure (g : set (set α)) (hg : {t | (generate_from g).is_measurable' t} = g) :
@@ -776,7 +780,6 @@ structure measurable_equiv (α β : Type*) [measurable_space α] [measurable_spa
 (measurable_to_fun : measurable to_fun)
 (measurable_inv_fun : measurable inv_fun)
 
-
 namespace measurable_equiv
 
 instance (α β) [measurable_space α] [measurable_space β] : has_coe_to_fun (measurable_equiv α β) :=
@@ -784,6 +787,10 @@ instance (α β) [measurable_space α] [measurable_space β] : has_coe_to_fun (m
 
 lemma coe_eq {α β} [measurable_space α] [measurable_space β] (e : measurable_equiv α β) :
   (e : α → β) = e.to_equiv := rfl
+
+lemma measurable_coe {α β} [measurable_space α] [measurable_space β] (e : measurable_equiv α β) :
+  measurable e :=
+measurable_to_fun e
 
 /-- Any measurable space is equivalent to itself. -/
 def refl (α : Type*) [measurable_space α] : measurable_equiv α α :=
@@ -852,6 +859,13 @@ def prod_comm [measurable_space α] [measurable_space β] : measurable_equiv (α
     (measurable.fst measurable_id),
   measurable_inv_fun := measurable.prod_mk (measurable.snd measurable_id)
     (measurable.fst measurable_id) }
+
+/-- Products of measurable spaces are associative. -/
+def prod_assoc (α β γ) [measurable_space α] [measurable_space β] [measurable_space γ] :
+  measurable_equiv ((α × β) × γ) (α × (β × γ)) :=
+{ to_equiv := equiv.prod_assoc α β γ,
+  measurable_to_fun  := measurable_fst.fst.prod_mk $ measurable_fst.snd.prod_mk measurable_snd,
+  measurable_inv_fun := (measurable_fst.prod_mk measurable_snd.fst).prod_mk measurable_snd.snd }
 
 /-- Sums of measurable spaces are symmetric. -/
 def sum_congr [measurable_space α] [measurable_space β] [measurable_space γ] [measurable_space δ]
@@ -1003,6 +1017,10 @@ def is_pi_system {α} (C : set (set α)) : Prop :=
 ∀ s t ∈ C, (s ∩ t : set α).nonempty → s ∩ t ∈ C
 
 namespace measurable_space
+
+lemma is_pi_system_is_measurable [measurable_space α] :
+  is_pi_system {s : set α | is_measurable s} :=
+λ s t hs ht _, hs.inter ht
 
 /-- A Dynkin system is a collection of subsets of a type `α` that contains the empty set,
   is closed under complementation and under countable union of pairwise disjoint sets.
@@ -1244,3 +1262,11 @@ begin
 end
 
 end filter
+
+/-- We say that a collection of sets is countably spanning if a countable subset spans the
+  whole type. This is a useful condition in various parts of measure theory. -/
+def is_countably_spanning (C : set (set α)) : Prop :=
+∃ (s : ℕ → set α), (∀ n, s n ∈ C) ∧ (⋃ n, s n) = univ
+
+lemma is_countably_spanning_is_measurable : is_countably_spanning {s : set α | is_measurable s} :=
+⟨λ _, univ, λ _, is_measurable.univ, Union_const _⟩

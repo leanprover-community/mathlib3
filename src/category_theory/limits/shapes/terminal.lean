@@ -134,6 +134,22 @@ is_terminal.mono_from terminal_is_terminal _
 instance initial.epi_to {Y : C} [has_initial C] (f : Y ⟶ ⊥_ C) : epi f :=
 is_initial.epi_to initial_is_initial _
 
+def terminal_op_of_initial {X : C} (t : is_initial X) : is_terminal (opposite.op X) :=
+{ lift := λ s, (t.to s.X.unop).op,
+  uniq' := λ s m w, has_hom.hom.unop_inj (t.hom_ext _ _) }
+
+def terminal_unop_of_initial {X : Cᵒᵖ} (t : is_initial X) : is_terminal X.unop :=
+{ lift := λ s, (t.to (opposite.op s.X)).unop,
+  uniq' := λ s m w, has_hom.hom.op_inj (t.hom_ext _ _) }
+
+def initial_op_of_terminal {X : C} (t : is_terminal X) : is_initial (opposite.op X) :=
+{ desc := λ s, (t.from s.X.unop).op,
+  uniq' := λ s m w, has_hom.hom.unop_inj (t.hom_ext _ _) }
+
+def initial_unop_of_terminal {X : Cᵒᵖ} (t : is_terminal X) : is_initial X.unop :=
+{ desc := λ s, (t.from (opposite.op s.X)).unop,
+  uniq' := λ s m w, has_hom.hom.op_inj (t.hom_ext _ _) }
+
 /-- From a functor `F : J ⥤ C`, given an initial object of `J`, construct a cone for `J`.
 In `limit_of_diagram_initial` we show it is a limit cone. -/
 @[simps]

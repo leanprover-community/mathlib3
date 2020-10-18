@@ -502,9 +502,9 @@ end
 end total
 
 /-- An equivalence of domains induces a linear equivalence of finitely supported functions. -/
-protected def dom_lcongr {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) :
+protected def dom_lcongr {α₁ α₂ : Type*} (e : α₁ ≃ α₂) :
   (α₁ →₀ M) ≃ₗ[R] (α₂ →₀ M) :=
-(@finsupp.dom_congr M _ _ _ e).to_linear_equiv (lmap_domain M R e).map_smul
+(finsupp.dom_congr e : (α₁ →₀ M) ≃+ (α₂ →₀ M)).to_linear_equiv (lmap_domain M R e).map_smul
 
 @[simp] theorem dom_lcongr_single {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) (i : α₁) (m : M) :
   (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (finsupp.single i m) = finsupp.single (e i) m :=

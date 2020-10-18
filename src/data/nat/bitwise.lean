@@ -35,6 +35,9 @@ namespace nat
 @[simp] lemma bit_ff : bit ff = bit0 := rfl
 @[simp] lemma bit_tt : bit tt = bit1 := rfl
 
+@[simp] lemma bit_eq_zero {n : ℕ} {b : bool} : n.bit b = 0 ↔ n = 0 ∧ b = ff :=
+by { cases b; norm_num [bit0_eq_zero, nat.bit1_ne_zero] }
+
 lemma zero_of_test_bit_eq_ff {n : ℕ} (h : ∀ i, test_bit n i = ff) : n = 0 :=
 begin
   induction n using nat.binary_rec with b n hn,

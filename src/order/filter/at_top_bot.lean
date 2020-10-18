@@ -97,6 +97,19 @@ lemma eventually_ge_at_top [preorder α] (a : α) : ∀ᶠ x in at_top, a ≤ x 
 
 lemma eventually_le_at_bot [preorder α] (a : α) : ∀ᶠ x in at_bot, x ≤ a := mem_at_bot a
 
+lemma eventually_gt_at_top [preorder α] [no_top_order α] (a : α) :
+  ∀ᶠ x in at_top, a < x :=
+Ioi_mem_at_top a
+
+lemma eventually_lt_at_bot [preorder α] [no_bot_order α] (a : α) :
+  ∀ᶠ x in at_bot, x < a :=
+Iio_mem_at_bot a
+
+lemma at_top_basis_Ioi [nonempty α] [semilattice_sup α] [no_top_order α] :
+  (@at_top α _).has_basis (λ _, true) Ioi :=
+at_top_basis.to_has_basis (λ a ha, ⟨a, ha, Ioi_subset_Ici_self⟩) $
+  λ a ha, (no_top a).imp $ λ b hb, ⟨ha, Ici_subset_Ioi.2 hb⟩
+
 lemma at_top_countable_basis [nonempty α] [semilattice_sup α] [encodable α] :
   has_countable_basis (at_top : filter α) (λ _, true) Ici :=
 { countable := countable_encodable _,
@@ -140,7 +153,7 @@ eventually_at_bot.mp h
 
 lemma frequently_at_top [semilattice_sup α] [nonempty α] {p : α → Prop} :
   (∃ᶠ x in at_top, p x) ↔ (∀ a, ∃ b ≥ a, p b) :=
-by simp only [filter.frequently, eventually_at_top, not_exists, not_forall, not_not]
+by simp [at_top_basis.frequently_iff]
 
 lemma frequently_at_bot [semilattice_inf α] [nonempty α] {p : α → Prop} :
   (∃ᶠ x in at_bot, p x) ↔ (∀ a, ∃ b ≤ a, p b) :=
@@ -148,15 +161,7 @@ lemma frequently_at_bot [semilattice_inf α] [nonempty α] {p : α → Prop} :
 
 lemma frequently_at_top' [semilattice_sup α] [nonempty α] [no_top_order α] {p : α → Prop} :
   (∃ᶠ x in at_top, p x) ↔ (∀ a, ∃ b > a, p b) :=
-begin
-  rw frequently_at_top,
-  split ; intros h a,
-  { cases no_top a with a' ha',
-    rcases h a' with ⟨b, hb, hb'⟩,
-    exact ⟨b, lt_of_lt_of_le ha' hb, hb'⟩ },
-  { rcases h a with ⟨b, hb, hb'⟩,
-    exact ⟨b, le_of_lt hb, hb'⟩ },
-end
+by simp [at_top_basis_Ioi.frequently_iff]
 
 lemma frequently_at_bot' [semilattice_inf α] [nonempty α] [no_bot_order α] {p : α → Prop} :
   (∃ᶠ x in at_bot, p x) ↔ (∀ a, ∃ b < a, p b) :=
@@ -235,9 +240,8 @@ lemma extraction_of_eventually_at_top {P : ℕ → Prop} (h : ∀ᶠ n in at_top
 extraction_of_frequently_at_top h.frequently
 
 lemma exists_le_of_tendsto_at_top [semilattice_sup α] [preorder β] {u : α → β}
-  (h : tendsto u at_top at_top) : ∀ a b, ∃ a' ≥ a, b ≤ u a' :=
+  (h : tendsto u at_top at_top) (a : α) (b : β) : ∃ a' ≥ a, b ≤ u a' :=
 begin
-  intros a b,
   have : ∀ᶠ x in at_top, a ≤ x ∧ b ≤ u x :=
     (eventually_ge_at_top a).and (h.eventually $ eventually_ge_at_top b),
   haveI : nonempty α := ⟨a⟩,
@@ -251,9 +255,8 @@ lemma exists_le_of_tendsto_at_bot [semilattice_sup α] [preorder β] {u : α →
 @exists_le_of_tendsto_at_top _ (order_dual β) _ _ _ h
 
 lemma exists_lt_of_tendsto_at_top [semilattice_sup α] [preorder β] [no_top_order β]
-  {u : α → β} (h : tendsto u at_top at_top) : ∀ a b, ∃ a' ≥ a, b < u a' :=
+  {u : α → β} (h : tendsto u at_top at_top) (a : α) (b : β) : ∃ a' ≥ a, b < u a' :=
 begin
-  intros a b,
   cases no_top b with b' hb',
   rcases exists_le_of_tendsto_at_top h a b' with ⟨a', ha', ha''⟩,
   exact ⟨a', ha', lt_of_lt_of_le hb' ha''⟩

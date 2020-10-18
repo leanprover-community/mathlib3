@@ -5,6 +5,7 @@ Author: Joseph Myers.
 -/
 import algebra.add_torsor
 import linear_algebra.tensor_product
+import data.set.intervals.unordered_interval
 
 noncomputable theory
 open_locale big_operators
@@ -199,6 +200,17 @@ structure affine_subspace (k : Type*) {V : Type*} (P : Type*) [ring k] [add_comm
 (carrier : set P)
 (smul_vsub_vadd_mem : ∀ (c : k) {p1 p2 p3 : P}, p1 ∈ carrier → p2 ∈ carrier → p3 ∈ carrier →
   c • (p1 -ᵥ p2 : V) +ᵥ p3 ∈ carrier)
+
+namespace submodule
+
+variables {k V : Type*} [ring k] [add_comm_group V] [module k V]
+
+/-- Reinterpret `p : submodule k V` as an `affine_subspace k V`. -/
+def to_affine_subspace (p : submodule k V) : affine_subspace k V :=
+{ carrier := p,
+  smul_vsub_vadd_mem := λ c p₁ p₂ p₃ h₁ h₂ h₃, p.add_mem (p.smul_mem _ (p.sub_mem h₁ h₂)) h₃ }
+
+end submodule
 
 namespace affine_subspace
 
@@ -1111,6 +1123,29 @@ structure affine_map (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Ty
 (linear : linear_map k V1 V2)
 (map_vadd' : ∀ (p : P1) (v : V1), to_fun (v +ᵥ p) =  linear v +ᵥ to_fun p)
 
+instance (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Type*)
+    [ring k]
+    [add_comm_group V1] [module k V1] [affine_space V1 P1]
+    [add_comm_group V2] [module k V2] [affine_space V2 P2]:
+    has_coe_to_fun (affine_map k P1 P2) := ⟨_, affine_map.to_fun⟩
+
+namespace linear_map
+
+variables {k : Type*} {V₁ : Type*} {V₂ : Type*} [ring k] [add_comm_group V₁] [module k V₁]
+  [add_comm_group V₂] [module k V₂] (f : V₁ →ₗ[k] V₂)
+
+/-- Reinterpret a linear map as an affine map. -/
+def to_affine_map : affine_map k V₁ V₂ :=
+{ to_fun := f,
+  linear := f,
+  map_vadd' := λ p v, f.map_add v p }
+
+@[simp] lemma coe_to_affine_map : ⇑f.to_affine_map = f := rfl
+
+@[simp] lemma to_affine_map_linear : f.to_affine_map.linear = f := rfl
+
+end linear_map
+
 namespace affine_map
 
 variables {k : Type*} {V1 : Type*} {P1 : Type*} {V2 : Type*} {P2 : Type*}
@@ -1120,8 +1155,6 @@ variables {k : Type*} {V1 : Type*} {P1 : Type*} {V2 : Type*} {P2 : Type*}
     [add_comm_group V3] [module k V3] [affine_space V3 P3]
     [add_comm_group V4] [module k V4] [affine_space V4 P4]
 include V1 V2
-
-instance: has_coe_to_fun (affine_map k P1 P2) := ⟨_, to_fun⟩
 
 /-- Constructing an affine map and coercing back to a function
 produces the same map. -/
@@ -1206,8 +1239,8 @@ instance : add_comm_group (affine_map k P1 V2) :=
 @[simp]
 lemma add_linear (f g : affine_map k P1 V2) : (f + g).linear = f.linear + g.linear := rfl
 
-/-- The space of affine maps from `P1` to `P2` is an affine space over the space of affine spaces
-from `P1` to the vector `V2` corresponding to `P2`. -/
+/-- The space of affine maps from `P1` to `P2` is an affine space over the space of affine maps
+from `P1` to the vector space `V2` corresponding to `P2`. -/
 instance : affine_space (affine_map k P1 V2) (affine_map k P1 P2) :=
 { vadd := λ f g, ⟨λ p, f p +ᵥ g p, f.linear + g.linear, λ p v,
     by simp [vadd_assoc, add_right_comm]⟩,
@@ -1225,6 +1258,24 @@ rfl
 @[simp] lemma vsub_apply (f g : affine_map k P1 P2) (p : P1) :
   (f -ᵥ g : affine_map k P1 V2) p = f p -ᵥ g p :=
 rfl
+
+/-- `prod.fst` as an `affine_map`. -/
+def fst : affine_map k (P1 × P2) P1 :=
+{ to_fun := prod.fst,
+  linear := linear_map.fst k V1 V2,
+  map_vadd' := λ _ _, rfl }
+
+@[simp] lemma coe_fst : ⇑(fst : affine_map k (P1 × P2) P1) = prod.fst := rfl
+@[simp] lemma fst_linear : (fst : affine_map k (P1 × P2) P1).linear = linear_map.fst k V1 V2 := rfl
+
+/-- `prod.snd` as an `affine_map`. -/
+def snd : affine_map k (P1 × P2) P2 :=
+{ to_fun := prod.snd,
+  linear := linear_map.snd k V1 V2,
+  map_vadd' := λ _ _, rfl }
+
+@[simp] lemma coe_snd : ⇑(snd : affine_map k (P1 × P2) P2) = prod.snd := rfl
+@[simp] lemma snd_linear : (snd : affine_map k (P1 × P2) P2).linear = linear_map.snd k V1 V2 := rfl
 
 variables (k P1)
 omit V2
@@ -1293,39 +1344,48 @@ instance : monoid (affine_map k P1 P1) :=
 @[simp] lemma coe_mul (f g : affine_map k P1 P1) : ⇑(f * g) = f ∘ g := rfl
 @[simp] lemma coe_one : ⇑(1 : affine_map k P1 P1) = _root_.id := rfl
 
-/-- The affine map from `k` to `P1` sending `0` to `p` and `1` to `v +ᵥ p`. -/
-def line_map (p : P1) (v : V1) : affine_map k k P1 :=
-{ to_fun := λ c, c • v +ᵥ p,
-  linear := linear_map.id.smul_right v,
-  map_vadd' := λ a b, by simp [add_smul, vadd_assoc] }
+/-! ### Definition of `affine_map.line_map` and lemmas about it -/
 
-lemma line_map_apply (p : P1) (v : V1) (c : k) : line_map p v c = c • v +ᵥ p := rfl
+/-- The affine map from `k` to `P1` sending `0` to `p₀` and `1` to `p₁`. -/
+def line_map (p₀ p₁ : P1) : affine_map k k P1 :=
+((linear_map.id : k →ₗ[k] k).smul_right (p₁ -ᵥ p₀)).to_affine_map +ᵥ const k k p₀
 
-@[simp] lemma line_map_linear (p : P1) (v : V1) :
-  (line_map p v : affine_map k k P1).linear = linear_map.id.smul_right v :=
-rfl
+lemma coe_line_map (p₀ p₁ : P1) : (line_map p₀ p₁ : k → P1) = λ c, c • (p₁ -ᵥ p₀) +ᵥ p₀ := rfl
 
-@[simp] lemma line_map_zero (p : P1) : line_map p (0:V1) = const k k p :=
+lemma line_map_apply (p₀ p₁ : P1) (c : k) : line_map p₀ p₁ c = c • (p₁ -ᵥ p₀) +ᵥ p₀ := rfl
+
+lemma line_map_vadd_apply (p : P1) (v : V1) (c : k) :
+  line_map p (v +ᵥ p) c = c • v +ᵥ p :=
+by rw [line_map_apply, vadd_vsub]
+
+@[simp] lemma line_map_linear (p₀ p₁ : P1) :
+  (line_map p₀ p₁ : affine_map k k P1).linear = linear_map.id.smul_right (p₁ -ᵥ p₀) :=
+add_zero _
+
+@[simp] lemma line_map_same (p : P1) : line_map p p = const k k p :=
 by { ext c, simp [line_map_apply] }
 
-@[simp] lemma line_map_apply_zero (p : P1) (v : V1) : line_map p v (0:k) = p :=
+@[simp] lemma line_map_apply_zero (p₀ p₁ : P1) : line_map p₀ p₁ (0:k) = p₀ :=
+by simp [line_map_apply]
+
+@[simp] lemma line_map_apply_one (p₀ p₁ : P1) : line_map p₀ p₁ (1:k) = p₁ :=
 by simp [line_map_apply]
 
 include V2
 
-@[simp] lemma affine_apply_line_map (f : affine_map k P1 P2) (p : P1) (v : V1) (c : k) :
-  f (line_map p v c) = line_map (f p) (f.linear v) c :=
+@[simp] lemma apply_line_map (f : affine_map k P1 P2) (p₀ p₁ : P1) (c : k) :
+  f (line_map p₀ p₁ c) = line_map (f p₀) (f p₁) c :=
 by simp [line_map_apply]
 
-@[simp] lemma affine_comp_line_map (f : affine_map k P1 P2) (p : P1) (v : V1) :
-  f.comp (line_map p v) = line_map (f p) (f.linear v) :=
-ext $ f.affine_apply_line_map p v
+@[simp] lemma comp_line_map (f : affine_map k P1 P2) (p₀ p₁ : P1) :
+  f.comp (line_map p₀ p₁) = line_map (f p₀) (f p₁) :=
+ext $ f.apply_line_map p₀ p₁
 
 omit V2
 
-lemma line_map_vadd_neg (p : P1) (v : V1) :
-  line_map (v +ᵥ p) (-v) = (line_map p v).comp (line_map (1:k) (-1:k)) :=
-by { rw [affine_comp_line_map], simp [line_map_apply] }
+lemma line_map_symm (p₀ p₁ : P1) :
+  line_map p₀ p₁ = (line_map p₁ p₀).comp (line_map (1:k) (0:k)) :=
+by { rw [comp_line_map], simp }
 
 /-- Decomposition of an affine map in the special case when the point space and vector space
 are the same. -/
@@ -1341,6 +1401,21 @@ end
 are the same. -/
 lemma decomp' (f : affine_map k V1 V2) : (f.linear : V1 → V2) = f - (λ z, f 0) :=
 by rw decomp ; simp only [linear_map.map_zero, pi.add_apply, add_sub_cancel, zero_add]
+
+omit V1
+
+lemma image_interval {k : Type*} [discrete_linear_ordered_field k] (f : affine_map k k k)
+  (a b : k) :
+  f '' set.interval a b = set.interval (f a) (f b) :=
+begin
+  have : ⇑f = (λ x, x + f 0) ∘ λ x, x * (f 1 - f 0),
+  { ext x,
+    change f x = x • (f 1 -ᵥ f 0) +ᵥ f 0,
+    rw [← f.linear_map_vsub, ← f.linear.map_smul, ← f.map_vadd],
+    simp only [vsub_eq_sub, add_zero, mul_one, vadd_eq_add, sub_zero, smul_eq_mul] },
+  rw [this, set.image_comp],
+  simp only [set.image_add_const_interval, set.image_mul_const_interval]
+end
 
 end affine_map
 
@@ -1403,20 +1478,3 @@ def homothety_affine (c : P1) : affine_map k k (affine_map k P1 P1) :=
 rfl
 
 end affine_map
-
-namespace linear_map
-
-variables {k : Type*} {V₁ : Type*} {V₂ : Type*} [ring k] [add_comm_group V₁] [module k V₁]
-  [add_comm_group V₂] [module k V₂] (f : V₁ →ₗ[k] V₂)
-
-/-- Reinterpret a linear map as an affine map. -/
-def to_affine_map : affine_map k V₁ V₂ :=
-{ to_fun := f,
-  linear := f,
-  map_vadd' := λ p v, f.map_add v p }
-
-@[simp] lemma coe_to_affine_map : ⇑f.to_affine_map = f := rfl
-
-@[simp] lemma to_affine_map_linear : f.to_affine_map.linear = f := rfl
-
-end linear_map

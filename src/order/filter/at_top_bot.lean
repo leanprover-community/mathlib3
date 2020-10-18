@@ -520,11 +520,11 @@ end linear_ordered_semiring
 
 open_locale filter
 
-lemma tendsto_at_top' [nonempty α] [semilattice_sup α] (f : α → β) (l : filter β) :
+lemma tendsto_at_top' [nonempty α] [semilattice_sup α] {f : α → β} {l : filter β} :
   tendsto f at_top l ↔ (∀s ∈ l, ∃a, ∀b≥a, f b ∈ s) :=
 by simp only [tendsto_def, mem_at_top_sets]; refl
 
-lemma tendsto_at_bot' [nonempty α] [semilattice_inf α] (f : α → β) (l : filter β) :
+lemma tendsto_at_bot' [nonempty α] [semilattice_inf α] {f : α → β} {l : filter β} :
   tendsto f at_bot l ↔ (∀s ∈ l, ∃a, ∀b≤a, f b ∈ s) :=
 @tendsto_at_top' (order_dual α) _ _ _ _ _
 

@@ -66,41 +66,6 @@ open filter (hiding prod_eq map)
 
 variables {α α' β β' γ E : Type*}
 
-namespace set
-lemma prod_Union {ι} {s : set α} {t : ι → set β} : s.prod (⋃ i, t i) = ⋃ i, s.prod (t i) :=
-by { ext, simp }
-
-lemma prod_bUnion {ι} {u : set ι} {s : set α} {t : ι → set β} :
-  s.prod (⋃ i ∈ u, t i) = ⋃ i ∈ u, s.prod (t i) :=
-by simp_rw [prod_Union]
-
-lemma prod_sUnion {s : set α} {C : set (set β)} : s.prod (⋃₀ C) = ⋃₀ ((λ t, s.prod t) '' C) :=
-by { simp only [sUnion_eq_bUnion, prod_bUnion, bUnion_image] }
-
-lemma Union_prod {ι} {s : ι → set α} {t : set β} : (⋃ i, s i).prod t = ⋃ i, (s i).prod t :=
-by { ext, simp }
-
-lemma bUnion_prod {ι} {u : set ι} {s : ι → set α} {t : set β} :
-  (⋃ i ∈ u, s i).prod t = ⋃ i ∈ u, (s i).prod t :=
-by simp_rw [Union_prod]
-
-lemma sUnion_prod {C : set (set α)} {t : set β} :
-  (⋃₀ C).prod t = ⋃₀ ((λ s : set α, s.prod t) '' C) :=
-by { simp only [sUnion_eq_bUnion, bUnion_prod, bUnion_image] }
-
-lemma Union_unpair_prod {s : ℕ → set α} {t : ℕ → set β} :
-  (⋃ n : ℕ, (s n.unpair.fst).prod (t n.unpair.snd)) = (⋃ n, s n).prod (⋃ n, t n) :=
-begin
-  ext, simp only [mem_Union, mem_prod], split,
-  { rintro ⟨n, h1n, h2n⟩, exact ⟨⟨_, h1n⟩, _, h2n⟩ },
-  { rintro ⟨⟨n, hn⟩, m, hm⟩, use n.mkpair m, simp [hn, hm] }
-end
-
-lemma assoc_preimage_prod {s : set α} {t : set β} {u : set γ} :
-  equiv.prod_assoc α β γ ⁻¹' s.prod (t.prod u) = (s.prod t).prod u :=
-by { ext, simp [and_assoc] }
-
-end set open set
 
 variables [measurable_space α] [measurable_space α'] [measurable_space β] [measurable_space β']
 variables [measurable_space γ]

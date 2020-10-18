@@ -41,7 +41,7 @@ continuous_subtype_val
 | ⟨r, hr⟩ := by rw [nhds_subtype_eq_comap, tendsto_comap_iff]; refl
 
 lemma tendsto_coe' {f : filter α} [ne_bot f] {m : α → ℝ≥0} {x : ℝ} :
-  tendsto (λ a, m a : α → ℝ)f (𝓝 x) ↔ ∃ hx : 0 ≤ x, tendsto m f (𝓝 ⟨x, hx⟩) :=
+  tendsto (λ a, m a : α → ℝ) f (𝓝 x) ↔ ∃ hx : 0 ≤ x, tendsto m f (𝓝 ⟨x, hx⟩) :=
 ⟨λ h, ⟨ge_of_tendsto' h (λ c, (m c).2), tendsto_coe.1 h⟩, λ ⟨hx, hm⟩, tendsto_coe.2 hm⟩
 
 @[simp] lemma map_coe_at_top : map (coe : ℝ≥0 → ℝ) at_top = at_top :=

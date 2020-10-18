@@ -35,9 +35,10 @@ variables {X Y Z : C} (f : Y ⟶ X)
 @[derive complete_lattice]
 def arrows_with_codomain (X : C) := Π ⦃Y⦄, set (Y ⟶ X)
 
+namespace arrows_with_codomain
+
 instance : inhabited (arrows_with_codomain X) := ⟨⊤⟩
 
-namespace arrows_with_codomain
 /--
 Given a set of arrows `S` all with codomain `X`, and a set of arrows with codomain `Y` for each
 `f : Y ⟶ X` in `S`, produce a set of arrows with codomain `X`:

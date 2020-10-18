@@ -1232,7 +1232,7 @@ eq_univ_of_forall $ by { simpa [image] }
 @[simp] theorem image_singleton {f : α → β} {a : α} : f '' {a} = {f a} :=
 by { ext, simp [image, eq_comm] }
 
-theorem nonempty.image_const {s : set α} (hs : s.nonempty) (a : β) : (λ _, a) '' s = {a} :=
+@[simp] theorem nonempty.image_const {s : set α} (hs : s.nonempty) (a : β) : (λ _, a) '' s = {a} :=
 ext $ λ x, ⟨λ ⟨y, _, h⟩, h ▸ mem_singleton _,
   λ h, (eq_of_mem_singleton h).symm ▸ hs.imp (λ y hy, ⟨hy, rfl⟩)⟩
 

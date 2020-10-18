@@ -145,16 +145,15 @@ lemma pi_lt_3141593 : pi < 3.141593 := by pi_upper_bound [
 
 /-! ### Leibniz's Series for Pi -/
 
-noncomputable theory
-open real filter set
-open_locale classical big_operators topological_space
+open filter set
+open_locale real classical big_operators topological_space
 local notation `|`x`|` := abs x
-local notation `π` := real.pi
 
 /-- This lemma establishes Leibniz's series for `π`: The alternating sum of the reciprocals of the
   odd numbers is `π/4`. Note that this is a conditionally rather than absolutely convergent series.
   The main tool that this proof uses is the Mean Value Theorem. -/
-theorem leibniz : tendsto (λ k, ∑ i in finset.range k, ((-(1:ℝ))^i / (2*i+1))) at_top (𝓝 (π/4)) :=
+theorem tendsto_sum_pi_div_four :
+  tendsto (λ k, ∑ i in finset.range k, ((-(1:ℝ))^i / (2*i+1))) at_top (𝓝 (π/4)) :=
 begin
   rw [tendsto_iff_norm_tendsto_zero, ← tendsto_zero_iff_norm_tendsto_zero],
   -- We introduce a useful sequence `u` of values in [0,1], then prove that another sequence

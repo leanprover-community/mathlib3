@@ -138,7 +138,7 @@ lemma norm_bound_of_odd_sum {x y z : ℤ} (h : x + y = 2*z + 1) :
   2*z*z + 2*z + 1 ≤ x*x + y*y :=
 begin
   suffices : 4*z*z + 4*z + 1 + 1 ≤ 2*x*x + 2*y*y,
-  { rw ← mul_le_mul_left zero_lt_two, convert this; ring, },
+  { rw ← mul_le_mul_left (@zero_lt_two _ _ int.nontrivial), convert this; ring, },
   have h' : (x + y) * (x + y) = 4*z*z + 4*z + 1, { rw h, ring, },
   rw [← add_sq_add_sq_sub, h', add_le_add_iff_left],
   suffices : 0 < (x - y) * (x - y), { apply int.add_one_le_of_lt this, },

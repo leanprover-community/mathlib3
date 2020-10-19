@@ -130,7 +130,7 @@ by rw [← lambdashev_mul, mul_comm, lambdashev_mul]
 lemma lambdashev_zmod_p (p : ℕ) [fact p.prime] :
   lambdashev (zmod p) p = X ^ p :=
 begin
-  -- Recall that `lambdashev_eval_add_inv` characterise `lambdashev R p`
+  -- Recall that `lambdashev_eval_add_inv` characterises `lambdashev R p`
   -- as a polynomial that maps `x + x⁻¹` to `x ^ p + (x⁻¹) ^ p`.
   -- Since `X ^ p` also satisfies this property in characteristic `p`,
   -- we can use a variant on `polynomial.funext` to conclude that these polynomials are equal.

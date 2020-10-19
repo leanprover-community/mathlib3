@@ -53,7 +53,7 @@ by simp only [chebyshev₁, sub_left_inj, pow_two, mul_assoc]
   chebyshev₁ R (n + 2) = 2 * X * chebyshev₁ R (n + 1) - chebyshev₁ R n :=
 by rw chebyshev₁
 
-lemma chebyshev₁_two_le (n : ℕ) (h : 2 ≤ n) :
+lemma chebyshev₁_of_two_le (n : ℕ) (h : 2 ≤ n) :
   chebyshev₁ R n = 2 * X * chebyshev₁ R (n - 1) - chebyshev₁ R (n - 2) :=
 begin
   obtain ⟨n, rfl⟩ := nat.exists_eq_add_of_le h,
@@ -91,7 +91,7 @@ by simp only [lambdashev, sub_left_inj, pow_two, mul_assoc]
   lambdashev R (n + 2) = X * lambdashev R (n + 1) - lambdashev R n :=
 by rw lambdashev
 
-lemma lambdashev_two_le (n : ℕ) (h : 2 ≤ n) :
+lemma lambdashev_eq_two_le (n : ℕ) (h : 2 ≤ n) :
   lambdashev R n = X * lambdashev R (n - 1) - lambdashev R (n - 2) :=
 begin
   obtain ⟨n, rfl⟩ := nat.exists_eq_add_of_le h,

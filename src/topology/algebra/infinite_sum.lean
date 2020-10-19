@@ -173,12 +173,17 @@ lemma equiv.summable_iff_of_support {g : γ → α} (e : support f ≃ support g
 exists_congr $ λ _, e.has_sum_iff_of_support he
 
 protected lemma has_sum.map [add_comm_monoid γ] [topological_space γ] (hf : has_sum f a)
-  (g : α →+ γ) (h₃ : continuous g) :
+  (g : α →+ γ) (hg : continuous g) :
   has_sum (g ∘ f) (g a) :=
 have g ∘ (λs:finset β, ∑ b in s, f b) = (λs:finset β, ∑ b in s, g (f b)),
   from funext $ g.map_sum _,
 show tendsto (λs:finset β, ∑ b in s, g (f b)) at_top (𝓝 (g a)),
-  from this ▸ (h₃.tendsto a).comp hf
+  from this ▸ (hg.tendsto a).comp hf
+
+protected lemma summable.map [add_comm_monoid γ] [topological_space γ] (hf : summable f)
+  (g : α →+ γ) (hg : continuous g) :
+  summable (g ∘ f) :=
+(hf.has_sum.map g hg).summable
 
 /-- If `f : ℕ → α` has sum `a`, then the partial sums `∑_{i=0}^{n-1} f i` converge to `a`. -/
 lemma has_sum.tendsto_sum_nat {f : ℕ → α} (h : has_sum f a) :
@@ -463,6 +468,12 @@ by simpa only using h.map (-add_monoid_hom.id α) continuous_neg
 lemma summable.neg (hf : summable f) : summable (λb, - f b) :=
 hf.has_sum.neg.summable
 
+lemma summable.of_neg (hf : summable (λb, - f b)) : summable f :=
+by simpa only [neg_neg] using hf.neg
+
+lemma summable_neg_iff : summable (λ b, - f b) ↔ summable f :=
+⟨summable.of_neg, summable.neg⟩
+
 lemma has_sum.sub (hf : has_sum f a₁) (hg : has_sum g a₂) : has_sum (λb, f b - g b) (a₁ - a₂) :=
 by { simp [sub_eq_add_neg], exact hf.add hg.neg }
 
@@ -720,7 +731,7 @@ lemma cauchy_seq_finset_iff_vanishing :
 begin
   simp only [cauchy_seq, cauchy_map_iff, and_iff_right at_top_ne_bot,
     prod_at_top_at_top_eq, uniformity_eq_comap_nhds_zero α, tendsto_comap_iff, (∘)],
-  rw [tendsto_at_top' (_ : finset β × finset β → α)],
+  rw [tendsto_at_top'],
   split,
   { assume h e he,
     rcases h e he with ⟨⟨s₁, s₂⟩, h⟩,
@@ -767,9 +778,7 @@ summable_iff_vanishing.2 $
 
 protected lemma summable.indicator (hf : summable f) (s : set β) :
   summable (s.indicator f) :=
-hf.summable_of_eq_zero_or_self $ λ b,
-  if hb : b ∈ s then or.inr (set.indicator_of_mem hb _)
-  else or.inl (set.indicator_of_not_mem hb _)
+hf.summable_of_eq_zero_or_self $ set.indicator_eq_zero_or_self _ _
 
 lemma summable.comp_injective {i : γ → β} (hf : summable f) (hi : injective i) :
   summable (f ∘ i) :=
@@ -781,6 +790,10 @@ end
 
 lemma summable.subtype (hf : summable f) (s : set β) : summable (f ∘ coe : s → α) :=
 hf.comp_injective subtype.coe_injective
+
+lemma summable_subtype_and_compl {s : set β} :
+  summable (λ x : s, f x) ∧ summable (λ x : sᶜ, f x) ↔ summable f :=
+⟨and_imp.2 summable.add_compl, λ h, ⟨h.subtype s, h.subtype sᶜ⟩⟩
 
 lemma summable.sigma_factor {γ : β → Type*} {f : (Σb:β, γ b) → α}
   (ha : summable f) (b : β) : summable (λc, f ⟨b, c⟩) :=
@@ -834,6 +847,20 @@ begin
 end
 
 end topological_group
+
+lemma summable_abs_iff [decidable_linear_ordered_add_comm_group β] [uniform_space β]
+  [uniform_add_group β] [complete_space β] {f : α → β} :
+  summable (λ x, abs (f x)) ↔ summable f :=
+have h1 : ∀ x : {x | 0 ≤ f x}, abs (f x) = f x := λ x, abs_of_nonneg x.2,
+have h2 : ∀ x : {x | 0 ≤ f x}ᶜ, abs (f x) = -f x := λ x, abs_of_neg (not_le.1 x.2),
+calc summable (λ x, abs (f x)) ↔
+  summable (λ x : {x | 0 ≤ f x}, abs (f x)) ∧ summable (λ x : {x | 0 ≤ f x}ᶜ, abs (f x)) :
+  summable_subtype_and_compl.symm
+... ↔ summable (λ x : {x | 0 ≤ f x}, f x) ∧ summable (λ x : {x | 0 ≤ f x}ᶜ, -f x) :
+  by simp only [h1, h2]
+... ↔ _ : by simp only [summable_neg_iff, summable_subtype_and_compl]
+
+alias summable_abs_iff ↔ summable.of_abs summable.abs
 
 section cauchy_seq
 open finset.Ico filter

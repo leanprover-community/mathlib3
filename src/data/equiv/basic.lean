@@ -588,15 +588,27 @@ def pempty_sum (α : Sort*) : pempty ⊕ α ≃ α :=
 @[simp] lemma pempty_sum_apply_inr {α} (a) : pempty_sum α (sum.inr a) = a := rfl
 
 /-- `option α` is equivalent to `α ⊕ punit` -/
-def option_equiv_sum_punit (α : Sort*) : option α ≃ α ⊕ punit.{u+1} :=
+def option_equiv_sum_punit (α : Type*) : option α ≃ α ⊕ punit.{u+1} :=
 ⟨λ o, match o with none := inr punit.star | some a := inl a end,
  λ s, match s with inr _ := none | inl a := some a end,
  λ o, by cases o; refl,
  λ s, by rcases s with _ | ⟨⟨⟩⟩; refl⟩
 
-@[simp] lemma option_equiv_sum_punit_none {α} : option_equiv_sum_punit α none = sum.inr () := rfl
+@[simp] lemma option_equiv_sum_punit_none {α} :
+  option_equiv_sum_punit α none = sum.inr punit.star := rfl
 @[simp] lemma option_equiv_sum_punit_some {α} (a) :
   option_equiv_sum_punit α (some a) = sum.inl a := rfl
+
+@[simp] lemma option_equiv_sum_punit_coe {α} (a : α) :
+  option_equiv_sum_punit α a = sum.inl a := rfl
+
+@[simp] lemma option_equiv_sum_punit_symm_inl {α} (a) :
+  (option_equiv_sum_punit α).symm (sum.inl a) = a :=
+rfl
+
+@[simp] lemma option_equiv_sum_punit_symm_inr {α} (a) :
+  (option_equiv_sum_punit α).symm (sum.inr a) = none :=
+rfl
 
 /-- The set of `x : option α` such that `is_some x` is equivalent to `α`. -/
 def option_is_some_equiv (α : Type*) : {x : option α // x.is_some} ≃ α :=
@@ -627,6 +639,14 @@ def sigma_preimage_equiv {α β : Type*} (f : α → β) :
 
 @[simp] lemma sigma_preimage_equiv_symm_apply_snd_fst {α β : Type*} (f : α → β) (a : α) :
   ((sigma_preimage_equiv f).symm a).2.1 = a := rfl
+
+/-- A set `s` in `α × β` is equivalent to the sigma-type `Σ x, {y | (x, y) ∈ s}`. -/
+def set_prod_equiv_sigma {α β : Type*} (s : set (α × β)) :
+  s ≃ Σ x : α, {y | (x, y) ∈ s} :=
+{ to_fun := λ x, ⟨x.1.1, x.1.2, by simp⟩,
+  inv_fun := λ x, ⟨(x.1, x.2.1), x.2.2⟩,
+  left_inv := λ ⟨⟨x, y⟩, h⟩, rfl,
+  right_inv := λ ⟨x, y, h⟩, rfl }
 
 end
 
@@ -952,6 +972,20 @@ def bool_prod_equiv_sum (α : Type u) : bool × α ≃ α ⊕ α :=
 calc bool × α ≃ (unit ⊕ unit) × α       : prod_congr bool_equiv_punit_sum_punit (equiv.refl _)
       ...     ≃ (unit × α) ⊕ (unit × α) : sum_prod_distrib _ _ _
       ...     ≃ α ⊕ α                   : sum_congr (punit_prod _) (punit_prod _)
+
+/-- The function type `bool → α` is equivalent to `α × α`. -/
+def bool_to_equiv_prod (α : Type u) : (bool → α) ≃ α × α :=
+calc (bool → α) ≃ ((unit ⊕ unit) → α) : (arrow_congr bool_equiv_punit_sum_punit (equiv.refl α))
+     ...        ≃ (unit → α) × (unit → α) : sum_arrow_equiv_prod_arrow _ _ _
+     ...        ≃ α × α : prod_congr (punit_arrow_equiv _) (punit_arrow_equiv _)
+
+@[simp] lemma bool_to_equiv_prod_apply {α : Type u} (f : bool → α) :
+  bool_to_equiv_prod α f = (f ff, f tt) := rfl
+@[simp] lemma bool_to_equiv_prod_symm_apply_ff {α : Type u} (p : α × α) :
+  (bool_to_equiv_prod α).symm p ff = p.1 := rfl
+@[simp] lemma bool_to_equiv_prod_symm_apply_tt {α : Type u} (p : α × α) :
+  (bool_to_equiv_prod α).symm p tt = p.2 := rfl
+
 end
 
 section
@@ -1002,6 +1036,16 @@ def subtype_congr {p : α → Prop} {q : β → Prop}
  λ y, ⟨e.symm y.1, (h _).2 (by { simp, exact y.2 })⟩,
  λ ⟨x, h⟩, subtype.ext_val $ by simp,
  λ ⟨y, h⟩, subtype.ext_val $ by simp⟩
+
+@[simp] lemma subtype_congr_apply {p : α → Prop} {q : β → Prop} (e : α ≃ β)
+  (h : ∀ (a : α), p a ↔ q (e a)) (x : {x // p x}) :
+  e.subtype_congr h x = ⟨e x, (h _).1 x.2⟩ :=
+rfl
+
+@[simp] lemma subtype_congr_symm_apply {p : α → Prop} {q : β → Prop} (e : α ≃ β)
+  (h : ∀ (a : α), p a ↔ q (e a)) (y : {y // q y}) :
+  (e.subtype_congr h).symm y = ⟨e.symm y, (h _).2 $ (e.apply_symm_apply y).symm ▸ y.2⟩ :=
+rfl
 
 /-- If two predicates `p` and `q` are pointwise equivalent, then `{x // p x}` is equivalent to
 `{x // q x}`. -/
@@ -1222,6 +1266,14 @@ lemma union_apply_right {α} {s t : set α} [decidable_pred (λ x, x ∈ s)] (H 
   {a : (s ∪ t : set α)} (ha : ↑a ∈ t) : equiv.set.union H a = sum.inr ⟨a, ha⟩ :=
 dif_neg $ λ h, H ⟨h, ha⟩
 
+@[simp] lemma union_symm_apply_left {α} {s t : set α} [decidable_pred (λ x, x ∈ s)] (H : s ∩ t ⊆ ∅)
+  (a : s) : (equiv.set.union H).symm (sum.inl a) = ⟨a, subset_union_left _ _ a.2⟩ :=
+rfl
+
+@[simp] lemma union_symm_apply_right {α} {s t : set α} [decidable_pred (λ x, x ∈ s)] (H : s ∩ t ⊆ ∅)
+  (a : t) : (equiv.set.union H).symm (sum.inr a) = ⟨a, subset_union_right _ _ a.2⟩ :=
+rfl
+
 -- TODO: Any reason to use the same universe?
 /-- A singleton set is equivalent to a `punit` type. -/
 protected def singleton {α} (a : α) : ({a} : set α) ≃ punit.{u} :=
@@ -1249,6 +1301,22 @@ calc (insert a s : set α) ≃ ↥(s ∪ {a}) : equiv.set.of_eq (by simp)
 ... ≃ s ⊕ ({a} : set α) : equiv.set.union (by finish [set.subset_def])
 ... ≃ s ⊕ punit.{u+1} : sum_congr (equiv.refl _) (equiv.set.singleton _)
 
+@[simp] lemma insert_symm_apply_inl {α} {s : set.{u} α} [decidable_pred s] {a : α} (H : a ∉ s)
+  (b : s) : (equiv.set.insert H).symm (sum.inl b) = ⟨b, or.inr b.2⟩ :=
+rfl
+
+@[simp] lemma insert_symm_apply_inr {α} {s : set.{u} α} [decidable_pred s] {a : α} (H : a ∉ s)
+  (b : punit.{u+1}) : (equiv.set.insert H).symm (sum.inr b) = ⟨a, or.inl rfl⟩ :=
+rfl
+
+@[simp] lemma insert_apply_left {α} {s : set.{u} α} [decidable_pred s] {a : α} (H : a ∉ s) :
+  equiv.set.insert H ⟨a, or.inl rfl⟩ = sum.inr punit.star :=
+(equiv.set.insert H).apply_eq_iff_eq_symm_apply.2 rfl
+
+@[simp] lemma insert_apply_right {α} {s : set.{u} α} [decidable_pred s] {a : α} (H : a ∉ s)
+  (b : s) : equiv.set.insert H ⟨b, or.inr b.2⟩ = sum.inl b :=
+(equiv.set.insert H).apply_eq_iff_eq_symm_apply.2 rfl
+
 /-- If `s : set α` is a set with decidable membership, then `s ⊕ sᶜ` is equivalent to `α`. -/
 protected def sum_compl {α} (s : set α) [decidable_pred s] : s ⊕ (sᶜ : set α) ≃ α :=
 calc s ⊕ (sᶜ : set α) ≃ ↥(s ∪ sᶜ) : (equiv.set.union (by simp [set.ext_iff])).symm
@@ -1270,6 +1338,14 @@ lemma sum_compl_symm_apply_of_not_mem {α : Type u} {s : set α} [decidable_pred
   (hx : x ∉ s) : (equiv.set.sum_compl s).symm x = sum.inr ⟨x, hx⟩ :=
 have ↑(⟨x, or.inr hx⟩ : (s ∪ sᶜ : set α)) ∈ sᶜ, from hx,
 by { rw [equiv.set.sum_compl], simpa using set.union_apply_right _ this }
+
+@[simp] lemma sum_compl_symm_apply {α : Type*} {s : set α} [decidable_pred s] {x : s} :
+  (equiv.set.sum_compl s).symm x = sum.inl x :=
+by cases x with x hx; exact set.sum_compl_symm_apply_of_mem hx
+
+@[simp] lemma sum_compl_symm_apply_compl {α : Type*} {s : set α}
+  [decidable_pred s] {x : sᶜ} : (equiv.set.sum_compl s).symm x = sum.inr x :=
+by cases x with x hx; exact set.sum_compl_symm_apply_of_not_mem hx
 
 /-- `sum_diff_subset s t` is the natural equivalence between
 `s ⊕ (t \ s)` and `t`, where `s` and `t` are two sets. -/
@@ -1319,6 +1395,38 @@ calc  (s ∪ t : set α) ⊕ (s ∩ t : set α)
   end
 ... ≃ s ⊕ t : by { rw (_ : t \ s ∪ s ∩ t = t), rw [union_comm, inter_comm, inter_union_diff] }
 
+/-- Given an equivalence `e₀` between sets `s : set α` and `t : set β`, the set of equivalences
+`e : α ≃ β` such that `e ↑x = ↑(e₀ x)` for each `x : s` is equivalent to the set of equivalences
+between `sᶜ` and `tᶜ`. -/
+protected def compl {α β : Type*} {s : set α} {t : set β} [decidable_pred s] [decidable_pred t]
+  (e₀ : s ≃ t) : {e : α ≃ β // ∀ x : s, e x = e₀ x} ≃ ((sᶜ : set α) ≃ (tᶜ : set β)) :=
+{ to_fun := λ e, subtype_congr e
+    (λ a, not_congr $ iff.symm $ maps_to.mem_iff
+      (maps_to_iff_exists_map_subtype.2 ⟨e₀, e.2⟩)
+      (surj_on.maps_to_compl (surj_on_iff_exists_map_subtype.2
+        ⟨t, e₀, subset.refl t, e₀.surjective, e.2⟩) e.1.injective)),
+  inv_fun := λ e₁,
+    subtype.mk
+      (calc α ≃ s ⊕ (sᶜ : set α) : (set.sum_compl s).symm
+          ... ≃ t ⊕ (tᶜ : set β) : e₀.sum_congr e₁
+          ... ≃ β : set.sum_compl t)
+      (λ x, by simp only [sum.map_inl, trans_apply, sum_congr_apply,
+        set.sum_compl_apply_inl, set.sum_compl_symm_apply]),
+  left_inv := λ e,
+    begin
+      ext x,
+      by_cases hx : x ∈ s,
+      { simp only [set.sum_compl_symm_apply_of_mem hx, ←e.prop ⟨x, hx⟩,
+          sum.map_inl, sum_congr_apply, trans_apply,
+          subtype.coe_mk, set.sum_compl_apply_inl] },
+      { simp only [set.sum_compl_symm_apply_of_not_mem hx, sum.map_inr,
+          subtype_congr_apply, set.sum_compl_apply_inr, trans_apply,
+          sum_congr_apply, subtype.coe_mk] },
+    end,
+  right_inv := λ e, equiv.ext $ λ x, by simp only [sum.map_inr, subtype_congr_apply,
+    set.sum_compl_apply_inr, function.comp_app, sum_congr_apply, equiv.coe_trans,
+    subtype.coe_eta, subtype.coe_mk, set.sum_compl_symm_apply_compl] }
+
 /-- The set product of two sets is equivalent to the type product of their coercions to types. -/
 protected def prod {α β} (s : set α) (t : set β) :
   s.prod t ≃ s × t :=
@@ -1335,7 +1443,7 @@ protected noncomputable def image_of_inj_on {α β} (f : α → β) (s : set α)
 
 /-- If `f` is an injective function, then `s` is equivalent to `f '' s`. -/
 protected noncomputable def image {α β} (f : α → β) (s : set α) (H : injective f) : s ≃ (f '' s) :=
-equiv.set.image_of_inj_on f s (λ x y hx hy hxy, H hxy)
+equiv.set.image_of_inj_on f s (H.inj_on s)
 
 @[simp] theorem image_apply {α β} (f : α → β) (s : set α) (H : injective f) (a h) :
   set.image f s H ⟨a, h⟩ = ⟨f a, mem_image_of_mem _ h⟩ := rfl

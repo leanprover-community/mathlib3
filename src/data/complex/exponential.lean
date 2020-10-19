@@ -10,7 +10,7 @@ import data.complex.basic
 # Exponential, trigonometric and hyperbolic trigonometric functions
 
 This file contains the definitions of the real and complex exponential, sine, cosine, tangent,
-hyperbolic sine, hypebolic cosine, and hyperbolic tangent functions.
+hyperbolic sine, hyperbolic cosine, and hyperbolic tangent functions.
 
 -/
 local notation `abs'` := _root_.abs
@@ -609,6 +609,47 @@ by rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), mul_sub,
 lemma cosh_sq_sub_sinh_sq : cosh x ^ 2 - sinh x ^ 2 = 1 :=
 by rw [sq_sub_sq, cosh_add_sinh, cosh_sub_sinh, ← exp_add, add_neg_self, exp_zero]
 
+lemma cosh_square : cosh x ^ 2 = sinh x ^ 2 + 1 :=
+begin
+  rw ← cosh_sq_sub_sinh_sq x,
+  ring
+end
+
+lemma sinh_square : sinh x ^ 2 = cosh x ^ 2 - 1 :=
+begin
+  rw ← cosh_sq_sub_sinh_sq x,
+  ring
+end
+
+lemma cosh_two_mul : cosh (2 * x) = cosh x ^ 2 + sinh x ^ 2 :=
+by rw [two_mul, cosh_add, pow_two, pow_two]
+
+lemma sinh_two_mul : sinh (2 * x) = 2 * sinh x * cosh x :=
+begin
+  rw [two_mul, sinh_add],
+  ring
+end
+
+lemma cosh_three_mul : cosh (3 * x) = 4 * cosh x ^ 3 - 3 * cosh x :=
+begin
+  have h1 : x + 2 * x = 3 * x, by ring,
+  rw [← h1, cosh_add x (2 * x)],
+  simp only [cosh_two_mul, sinh_two_mul],
+  have h2 : sinh x * (2 * sinh x * cosh x) = 2 * cosh x * sinh x ^ 2, by ring,
+  rw [h2, sinh_square],
+  ring
+end
+
+lemma sinh_three_mul : sinh (3 * x) = 4 * sinh x ^ 3 + 3 * sinh x :=
+begin
+  have h1 : x + 2 * x = 3 * x, by ring,
+  rw [← h1, sinh_add x (2 * x)],
+  simp only [cosh_two_mul, sinh_two_mul],
+  have h2 : cosh x * (2 * sinh x * cosh x) = 2 * sinh x * cosh x ^ 2, by ring,
+  rw [h2, cosh_square],
+  ring,
+end
+
 @[simp] lemma sin_zero : sin 0 = 0 := by simp [sin]
 
 @[simp] lemma sin_neg : sin (-x) = -sin x :=
@@ -653,6 +694,38 @@ by simp [sub_eq_add_neg, sin_add, sin_neg, cos_neg]
 
 lemma cos_sub : cos (x - y) = cos x * cos y + sin x * sin y :=
 by simp [sub_eq_add_neg, cos_add, sin_neg, cos_neg]
+
+theorem sin_sub_sin : sin x - sin y = 2 * sin((x - y)/2) * cos((x + y)/2) :=
+begin
+  have s1 := sin_add ((x + y) / 2) ((x - y) / 2),
+  have s2 := sin_sub ((x + y) / 2) ((x - y) / 2),
+  rw [div_add_div_same, add_sub, add_right_comm, add_sub_cancel, half_add_self] at s1,
+  rw [div_sub_div_same, ←sub_add, add_sub_cancel', half_add_self] at s2,
+  rw [s1, s2],
+  ring
+end
+
+theorem cos_sub_cos : cos x - cos y = -2 * sin((x + y)/2) * sin((x - y)/2) :=
+begin
+  have s1 := cos_add ((x + y) / 2) ((x - y) / 2),
+  have s2 := cos_sub ((x + y) / 2) ((x - y) / 2),
+  rw [div_add_div_same, add_sub, add_right_comm, add_sub_cancel, half_add_self] at s1,
+  rw [div_sub_div_same, ←sub_add, add_sub_cancel', half_add_self] at s2,
+  rw [s1, s2],
+  ring,
+end
+
+lemma cos_add_cos : cos x + cos y = 2 * cos ((x + y) / 2)  * cos ((x - y) / 2) :=
+begin
+  have h2 : (2:ℂ) ≠ 0 := by norm_num,
+  calc cos x + cos y = cos ((x + y) / 2 + (x - y) / 2) + cos ((x + y) / 2 - (x - y) / 2) : _
+  ... = (cos ((x + y) / 2) * cos ((x - y) / 2) - sin ((x + y) / 2) * sin ((x - y) / 2))
+          + (cos ((x + y) / 2) * cos ((x - y) / 2) + sin ((x + y) / 2) * sin ((x - y) / 2)) : _
+  ... = 2 * cos ((x + y) / 2) * cos ((x - y) / 2) : _,
+  { congr; field_simp [h2]; ring },
+  { rw [cos_add, cos_sub] },
+  ring,
+end
 
 lemma sin_conj : sin (conj x) = conj (sin x) :=
 by rw [← mul_left_inj' I_ne_zero, ← sinh_mul_I,
@@ -729,8 +802,31 @@ by rw [two_mul, sin_add, two_mul, add_mul, mul_comm]
 lemma cos_square : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
 by simp [cos_two_mul, div_add_div_same, mul_div_cancel_left, two_ne_zero', -one_div]
 
+lemma cos_square' : cos x ^ 2 = 1 - sin x ^ 2 :=
+by { rw [←sin_sq_add_cos_sq x], simp }
+
 lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
 by { rw [←sin_sq_add_cos_sq x], simp }
+
+lemma cos_three_mul : cos (3 * x) = 4 * cos x ^ 3 - 3 * cos x :=
+begin
+  have h1 : x + 2 * x = 3 * x, by ring,
+  rw [← h1, cos_add x (2 * x)],
+  simp only [cos_two_mul, sin_two_mul, mul_add, mul_sub, mul_one, pow_two],
+  have h2 : 4 * cos x ^ 3 = 2 * cos x * cos x * cos x + 2 * cos x * cos x ^ 2, by ring,
+  rw [h2, cos_square'],
+  ring
+end
+
+lemma sin_three_mul : sin (3 * x) = 3 * sin x - 4 * sin x ^ 3 :=
+begin
+  have h1 : x + 2 * x = 3 * x, by ring,
+  rw [← h1, sin_add x (2 * x)],
+  simp only [cos_two_mul, sin_two_mul, cos_square'],
+  have h2 : cos x * (2 * sin x * cos x) = 2 * sin x * cos x ^ 2, by ring,
+  rw [h2, cos_square'],
+  ring
+end
 
 lemma exp_mul_I : exp (x * I) = cos x + sin x * I :=
 (cos_add_sin_I _).symm
@@ -809,6 +905,33 @@ by simp [sub_eq_add_neg, sin_add, sin_neg, cos_neg]
 lemma cos_sub : cos (x - y) = cos x * cos y + sin x * sin y :=
 by simp [sub_eq_add_neg, cos_add, sin_neg, cos_neg]
 
+lemma sin_sub_sin : sin x - sin y = 2 * sin((x - y)/2) * cos((x + y)/2) :=
+begin
+  rw ← of_real_inj,
+  simp only [sin, cos, of_real_sin_of_real_re, of_real_sub, of_real_add, of_real_div, of_real_mul,
+    of_real_one, of_real_bit0],
+  convert sin_sub_sin _ _;
+  norm_cast
+end
+
+theorem cos_sub_cos : cos x - cos y = -2 * sin((x + y)/2) * sin((x - y)/2) :=
+begin
+  rw ← of_real_inj,
+  simp only [cos, neg_mul_eq_neg_mul_symm, of_real_sin, of_real_sub, of_real_add,
+    of_real_cos_of_real_re, of_real_div, of_real_mul, of_real_one, of_real_neg, of_real_bit0],
+  convert cos_sub_cos _ _,
+  ring,
+end
+
+lemma cos_add_cos : cos x + cos y = 2 * cos ((x + y) / 2)  * cos ((x - y) / 2) :=
+begin
+  rw ← of_real_inj,
+  simp only [cos, of_real_sub, of_real_add, of_real_cos_of_real_re, of_real_div, of_real_mul,
+    of_real_one, of_real_bit0],
+  convert cos_add_cos _ _;
+  norm_cast,
+end
+
 lemma tan_eq_sin_div_cos : tan x = sin x / cos x :=
 if h : complex.cos x = 0 then by simp [sin, cos, tan, *, complex.tan, div_eq_mul_inv] at *
 else
@@ -853,14 +976,26 @@ lemma neg_one_le_cos : -1 ≤ cos x :=
 lemma cos_two_mul : cos (2 * x) = 2 * cos x ^ 2 - 1 :=
 by rw ← of_real_inj; simp [cos_two_mul]
 
+lemma cos_two_mul' : cos (2 * x) = cos x ^ 2 - sin x ^ 2 :=
+by rw ← of_real_inj; simp [cos_two_mul']
+
 lemma sin_two_mul : sin (2 * x) = 2 * sin x * cos x :=
 by rw ← of_real_inj; simp [sin_two_mul]
 
 lemma cos_square : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
 of_real_inj.1 $ by simpa using cos_square x
 
+lemma cos_square' : cos x ^ 2 = 1 - sin x ^ 2 :=
+by { rw [←sin_sq_add_cos_sq x], simp }
+
 lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
 eq_sub_iff_add_eq.2 $ sin_sq_add_cos_sq _
+
+lemma cos_three_mul : cos (3 * x) = 4 * cos x ^ 3 - 3 * cos x :=
+by rw ← of_real_inj; simp [cos_three_mul]
+
+lemma sin_three_mul : sin (3 * x) = 3 * sin x - 4 * sin x ^ 3 :=
+by rw ← of_real_inj; simp [sin_three_mul]
 
 /-- The definition of `sinh` in terms of `exp`. -/
 lemma sinh_eq (x : ℝ) : sinh x = (exp x - exp (-x)) / 2 :=
@@ -894,22 +1029,39 @@ by simp [sub_eq_add_neg, sinh_add, sinh_neg, cosh_neg]
 lemma cosh_sub : cosh (x - y) = cosh x * cosh y - sinh x * sinh y :=
 by simp [sub_eq_add_neg, cosh_add, sinh_neg, cosh_neg]
 
-lemma cosh_sq_sub_sinh_sq (x : ℝ) : cosh x ^ 2 - sinh x ^ 2 = 1 :=
-begin
-  rw [sinh, cosh],
-  have := congr_arg complex.re (complex.cosh_sq_sub_sinh_sq x),
-  rw [pow_two, pow_two] at this,
-  change (⟨_, _⟩ : ℂ).re - (⟨_, _⟩ : ℂ).re = 1 at this,
-  rw [complex.cosh_of_real_im x, complex.sinh_of_real_im x, mul_zero, sub_zero, sub_zero] at this,
-  rwa [pow_two, pow_two],
-end
-
 lemma tanh_eq_sinh_div_cosh : tanh x = sinh x / cosh x :=
 of_real_inj.1 $ by simp [tanh_eq_sinh_div_cosh]
 
 @[simp] lemma tanh_zero : tanh 0 = 0 := by simp [tanh]
 
 @[simp] lemma tanh_neg : tanh (-x) = -tanh x := by simp [tanh, neg_div]
+
+lemma cosh_add_sinh : cosh x + sinh x = exp x :=
+by rw ← of_real_inj; simp [cosh_add_sinh]
+
+lemma sinh_add_cosh : sinh x + cosh x = exp x :=
+by rw ← of_real_inj; simp [sinh_add_cosh]
+
+lemma cosh_sq_sub_sinh_sq (x : ℝ) : cosh x ^ 2 - sinh x ^ 2 = 1 :=
+by rw ← of_real_inj; simp [cosh_sq_sub_sinh_sq]
+
+lemma cosh_square : cosh x ^ 2 = sinh x ^ 2 + 1 :=
+by rw ← of_real_inj; simp [cosh_square]
+
+lemma sinh_square : sinh x ^ 2 = cosh x ^ 2 - 1 :=
+by rw ← of_real_inj; simp [sinh_square]
+
+lemma cosh_two_mul : cosh (2 * x) = cosh x ^ 2 + sinh x ^ 2 :=
+by rw ← of_real_inj; simp [cosh_two_mul]
+
+lemma sinh_two_mul : sinh (2 * x) = 2 * sinh x * cosh x :=
+by rw ← of_real_inj; simp [sinh_two_mul]
+
+lemma cosh_three_mul : cosh (3 * x) = 4 * cosh x ^ 3 - 3 * cosh x :=
+by rw ← of_real_inj; simp [cosh_three_mul]
+
+lemma sinh_three_mul : sinh (3 * x) = 4 * sinh x ^ 3 + 3 * sinh x :=
+by rw ← of_real_inj; simp [sinh_three_mul]
 
 open is_absolute_value
 
@@ -958,11 +1110,17 @@ lemma exp_injective : function.injective exp := exp_strict_mono.injective
 @[simp] lemma exp_eq_one_iff : exp x = 1 ↔ x = 0 :=
 by rw [← exp_zero, exp_injective.eq_iff]
 
-lemma one_lt_exp_iff {x : ℝ} : 1 < exp x ↔ 0 < x :=
+@[simp] lemma one_lt_exp_iff {x : ℝ} : 1 < exp x ↔ 0 < x :=
 by rw [← exp_zero, exp_lt_exp]
 
-lemma exp_lt_one_iff {x : ℝ} : exp x < 1 ↔ x < 0 :=
+@[simp] lemma exp_lt_one_iff {x : ℝ} : exp x < 1 ↔ x < 0 :=
 by rw [← exp_zero, exp_lt_exp]
+
+@[simp] lemma exp_le_one_iff {x : ℝ} : exp x ≤ 1 ↔ x ≤ 0 :=
+exp_zero ▸ exp_le_exp
+
+@[simp] lemma one_le_exp_iff {x : ℝ} : 1 ≤ exp x ↔ 0 ≤ x :=
+exp_zero ▸ exp_le_exp
 
 /-- `real.cosh` is always positive -/
 lemma cosh_pos (x : ℝ) : 0 < real.cosh x :=

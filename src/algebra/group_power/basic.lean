@@ -3,7 +3,7 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
-import algebra.order_functions
+import algebra.ordered_ring
 import deprecated.group
 
 /-!
@@ -200,6 +200,24 @@ by simp only [pow_succ, ihn, ← mul_assoc, (h.pow_left n).right_comm]
 
 theorem neg_pow [ring R] (a : R) (n : ℕ) : (- a) ^ n = (-1) ^ n * a ^ n :=
 (neg_one_mul a) ▸ (commute.neg_one_left a).mul_pow n
+
+theorem pow_bit0' (a : M) (n : ℕ) : a ^ bit0 n = (a * a) ^ n :=
+by rw [pow_bit0, (commute.refl a).mul_pow]
+
+theorem bit0_nsmul' (a : A) (n : ℕ) : bit0 n •ℕ a = n •ℕ (a + a) :=
+@pow_bit0' (multiplicative A) _ _ _
+
+theorem pow_bit1' (a : M) (n : ℕ) : a ^ bit1 n = (a * a) ^ n * a :=
+by rw [bit1, pow_succ', pow_bit0']
+
+theorem bit1_nsmul' : ∀ (a : A) (n : ℕ), bit1 n •ℕ a = n •ℕ (a + a) + a :=
+@pow_bit1' (multiplicative A) _
+
+@[simp] theorem neg_pow_bit0 [ring R] (a : R) (n : ℕ) : (- a) ^ (bit0 n) = a ^ (bit0 n) :=
+by rw [pow_bit0', neg_mul_neg, pow_bit0']
+
+@[simp] theorem neg_pow_bit1 [ring R] (a : R) (n : ℕ) : (- a) ^ (bit1 n) = - a ^ (bit1 n) :=
+by simp only [bit1, pow_succ, neg_pow_bit0, neg_mul_eq_neg_mul]
 
 end monoid
 
@@ -399,6 +417,15 @@ begin
   { rw pow_zero at H,
     rw [← mul_one x, H, mul_zero] },
   exact or.cases_on (mul_eq_zero.1 H) id ih
+end
+
+@[simp] lemma pow_eq_zero_iff [monoid_with_zero R] [no_zero_divisors R]
+  {a : R} {n : ℕ} (hn : 0 < n) :
+  a ^ n = 0 ↔ a = 0 :=
+begin
+  refine ⟨pow_eq_zero, _⟩,
+  rintros rfl,
+  exact zero_pow hn,
 end
 
 @[field_simps] theorem pow_ne_zero [monoid_with_zero R] [no_zero_divisors R]

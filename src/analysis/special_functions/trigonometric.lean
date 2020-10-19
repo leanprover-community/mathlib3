@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
 import analysis.special_functions.exp_log
+import data.set.intervals.infinite
+import algebra.quadratic_discriminant
 
 /-!
 # Trigonometric functions
@@ -56,6 +58,8 @@ funext $ λ x, (has_deriv_at_sin x).deriv
 lemma continuous_sin : continuous sin :=
 differentiable_sin.continuous
 
+lemma continuous_on_sin {s : set ℂ} : continuous_on sin s := continuous_sin.continuous_on
+
 lemma measurable_sin : measurable sin := continuous_sin.measurable
 
 /-- The complex cosine function is everywhere differentiable, with the derivative `-sin x`. -/
@@ -82,6 +86,8 @@ funext $ λ x, deriv_cos
 
 lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
+
+lemma continuous_on_cos {s : set ℂ} : continuous_on cos s := continuous_cos.continuous_on
 
 lemma measurable_cos : measurable cos := continuous_cos.measurable
 
@@ -331,6 +337,8 @@ funext $ λ _, deriv_cos
 lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
 
+lemma continuous_on_cos {s} : continuous_on cos s := continuous_cos.continuous_on
+
 lemma measurable_cos : measurable cos := continuous_cos.measurable
 
 lemma has_deriv_at_sinh (x : ℝ) : has_deriv_at sinh (cosh x) x :=
@@ -538,7 +546,7 @@ end
 namespace real
 
 lemma exists_cos_eq_zero : 0 ∈ cos '' Icc (1:ℝ) 2 :=
-intermediate_value_Icc' (by norm_num) continuous_cos.continuous_on
+intermediate_value_Icc' (by norm_num) continuous_on_cos
   ⟨le_of_lt cos_two_neg, le_of_lt cos_one_pos⟩
 
 /-- The number π = 3.14159265... Defined here using choice as twice a zero of cos in [1,2], from
@@ -719,15 +727,6 @@ by rw [← mul_self_eq_one_iff, ← sin_sq_add_cos_sq x,
     pow_two, pow_two, ← sub_eq_iff_eq_add, sub_self];
   exact ⟨λ h, by rw [h, mul_zero], eq_zero_of_mul_self_eq_zero ∘ eq.symm⟩
 
-theorem sin_sub_sin (θ ψ : ℝ) : sin θ - sin ψ = 2 * sin((θ - ψ)/2) * cos((θ + ψ)/2) :=
-begin
-  have s1 := sin_add ((θ + ψ) / 2) ((θ - ψ) / 2),
-  have s2 := sin_sub ((θ + ψ) / 2) ((θ - ψ) / 2),
-  rw [div_add_div_same, add_sub, add_right_comm, add_sub_cancel, add_self_div_two] at s1,
-  rw [div_sub_div_same, ←sub_add, add_sub_cancel', add_self_div_two] at s2,
-  rw [s1, s2, ←sub_add, add_sub_cancel', ← two_mul, ← mul_assoc, mul_right_comm]
-end
-
 lemma cos_eq_one_iff (x : ℝ) : cos x = 1 ↔ ∃ n : ℤ, (n : ℝ) * (2 * π) = x :=
 ⟨λ h, let ⟨n, hn⟩ := sin_eq_zero_iff.1 (sin_eq_zero_iff_cos_eq.2 (or.inl h)) in
     ⟨n / 2, (int.mod_two_eq_zero_or_one n).elim
@@ -751,25 +750,16 @@ lemma cos_eq_one_iff_of_lt_of_lt {x : ℝ} (hx₁ : -(2 * π) < x) (hx₂ : x < 
     end,
   λ h, by simp [h]⟩
 
-theorem cos_sub_cos (θ ψ : ℝ) : cos θ - cos ψ = -2 * sin((θ + ψ)/2) * sin((θ - ψ)/2) :=
-by rw [← sin_pi_div_two_sub, ← sin_pi_div_two_sub, sin_sub_sin, sub_sub_sub_cancel_left,
-    add_sub, sub_add_eq_add_sub, add_halves, sub_sub, sub_div π, cos_pi_div_two_sub,
-    ← neg_sub, neg_div, sin_neg, ← neg_mul_eq_mul_neg, neg_mul_eq_neg_mul, mul_right_comm]
-
 lemma cos_lt_cos_of_nonneg_of_le_pi_div_two {x y : ℝ} (hx₁ : 0 ≤ x) (hy₂ : y ≤ π / 2) (hxy : x < y) :
   cos y < cos x :=
-calc cos y = cos x * cos (y - x) - sin x * sin (y - x) :
-  by rw [← cos_add, add_sub_cancel'_right]
-... < (cos x * 1) - sin x * sin (y - x) :
-  sub_lt_sub_right ((mul_lt_mul_left
-    (cos_pos_of_mem_Ioo (lt_of_lt_of_le (neg_neg_of_pos pi_div_two_pos) hx₁)
-      (lt_of_lt_of_le hxy hy₂))).2
-        (lt_of_le_of_ne (cos_le_one _) (mt (cos_eq_one_iff_of_lt_of_lt
-          (show -(2 * π) < y - x, by linarith) (show y - x < 2 * π, by linarith)).1
-            (sub_ne_zero.2 (ne_of_lt hxy).symm)))) _
-... ≤ _ : by rw mul_one;
-  exact sub_le_self _ (mul_nonneg (sin_nonneg_of_nonneg_of_le_pi hx₁ (by linarith))
-    (sin_nonneg_of_nonneg_of_le_pi (by linarith) (by linarith)))
+begin
+  rw [← sub_lt_zero, cos_sub_cos],
+  have : 0 < sin ((y + x) / 2),
+  { refine sin_pos_of_pos_of_lt_pi _ _; linarith },
+  have : 0 < sin ((y - x) / 2),
+  { refine sin_pos_of_pos_of_lt_pi _ _; linarith },
+  nlinarith,
+end
 
 lemma cos_lt_cos_of_nonneg_of_le_pi {x y : ℝ} (hx₁ : 0 ≤ x) (hy₂ : y ≤ π) (hxy : x < y) :
   cos y < cos x :=
@@ -824,7 +814,7 @@ by convert intermediate_value_Icc
   continuous_sin.continuous_on; simp only [sin_neg, sin_pi_div_two]
 
 lemma exists_cos_eq : (Icc (-1) 1 : set ℝ) ⊆ cos '' Icc 0 π :=
-by convert intermediate_value_Icc' real.pi_pos.le real.continuous_cos.continuous_on;
+by convert intermediate_value_Icc' real.pi_pos.le real.continuous_on_cos;
   simp only [real.cos_pi, real.cos_zero]
 
 lemma range_cos : range cos = (Icc (-1) 1 : set ℝ) :=
@@ -846,6 +836,12 @@ begin
     rcases real.exists_sin_eq h with ⟨y, -, hy⟩,
     exact ⟨y, hy⟩ }
 end
+
+lemma range_cos_infinite : (range real.cos).infinite :=
+by { rw real.range_cos, exact Icc.infinite (by norm_num) }
+
+lemma range_sin_infinite : (range real.sin).infinite :=
+by { rw real.range_sin, exact Icc.infinite (by norm_num) }
 
 lemma sin_lt {x : ℝ} (h : 0 < x) : sin x < x :=
 begin
@@ -998,6 +994,75 @@ by { transitivity cos (pi / 2 ^ 5), congr, norm_num, simp }
 
 lemma sin_pi_div_thirty_two : sin (pi / 32) = sqrt (2 - sqrt (2 + sqrt (2 + sqrt 2))) / 2 :=
 by { transitivity sin (pi / 2 ^ 5), congr, norm_num, simp }
+
+-- This section is also a convenient location for other explicit values of `sin` and `cos`.
+
+/-- The cosine of `π / 3` is `1 / 2`. -/
+lemma cos_pi_div_three : cos (π / 3) = 1 / 2 :=
+begin
+  have h₁ : (2 * cos (π / 3) - 1) ^ 2 * (2 * cos (π / 3) + 2) = 0,
+  { have : cos (3 * (π / 3)) = cos π := by { congr' 1, ring },
+    linarith [cos_pi, cos_three_mul (π / 3)] },
+  cases mul_eq_zero.mp h₁ with h h,
+  { linarith [pow_eq_zero h] },
+  { have : cos π < cos (π / 3),
+    { refine cos_lt_cos_of_nonneg_of_le_pi _ rfl.ge _;
+      linarith [pi_pos] },
+    linarith [cos_pi] }
+end
+
+/-- The square of the cosine of `π / 6` is `3 / 4` (this is sometimes more convenient than the
+result for cosine itself). -/
+lemma square_cos_pi_div_six : cos (π / 6) ^ 2 = 3 / 4 :=
+begin
+  have h1 : cos (π / 6) ^ 2 = 1 / 2 + 1 / 2 / 2,
+  { convert cos_square (π / 6),
+    have h2 : 2 * (π / 6) = π / 3 := by cancel_denoms,
+    rw [h2, cos_pi_div_three] },
+  rw ← sub_eq_zero at h1 ⊢,
+  convert h1 using 1,
+  ring
+end
+
+/-- The cosine of `π / 6` is `√3 / 2`. -/
+lemma cos_pi_div_six : cos (π / 6) = (sqrt 3) / 2 :=
+begin
+  suffices : sqrt 3 = cos (π / 6) * 2,
+  { field_simp [(by norm_num : 0 ≠ 2)], exact this.symm },
+  rw sqrt_eq_iff_sqr_eq,
+  { have h1 := (mul_right_inj' (by norm_num : (4:ℝ) ≠ 0)).mpr square_cos_pi_div_six,
+    rw ← sub_eq_zero at h1 ⊢,
+    convert h1 using 1,
+    ring },
+  { norm_num },
+  { have : 0 < cos (π / 6) := by { apply cos_pos_of_mem_Ioo; linarith [pi_pos] },
+    linarith },
+end
+
+/-- The sine of `π / 6` is `1 / 2`. -/
+lemma sin_pi_div_six : sin (π / 6) = 1 / 2 :=
+begin
+  rw [← cos_pi_div_two_sub, ← cos_pi_div_three],
+  congr,
+  ring
+end
+
+/-- The square of the sine of `π / 3` is `3 / 4` (this is sometimes more convenient than the
+result for cosine itself). -/
+lemma square_sin_pi_div_three : sin (π / 3) ^ 2 = 3 / 4 :=
+begin
+  rw [← cos_pi_div_two_sub, ← square_cos_pi_div_six],
+  congr,
+  ring
+end
+
+/-- The sine of `π / 3` is `√3 / 2`. -/
+lemma sin_pi_div_three : sin (π / 3) = (sqrt 3) / 2 :=
+begin
+  rw [← cos_pi_div_two_sub, ← cos_pi_div_six],
+  congr,
+  ring
+end
 
 end cos_div_pow_two
 
@@ -1576,6 +1641,9 @@ by rw [log, exp_add_mul_I, ← of_real_sin, sin_arg, ← of_real_cos, cos_arg hx
   mul_div_cancel' _ (of_real_ne_zero.2 (mt abs_eq_zero.1 hx)), ← mul_assoc,
   mul_div_cancel' _ (of_real_ne_zero.2 (mt abs_eq_zero.1 hx)), re_add_im]
 
+lemma range_exp : range exp = {x | x ≠ 0} :=
+set.ext $ λ x, ⟨by { rintro ⟨x, rfl⟩, exact exp_ne_zero x }, λ hx, ⟨log x, exp_log hx⟩⟩
+
 lemma exp_inj_of_neg_pi_lt_of_le_pi {x y : ℂ} (hx₁ : -π < x.im) (hx₂ : x.im ≤ π)
   (hy₁ : - π < y.im) (hy₂ : y.im ≤ π) (hxy : exp x = exp y) : x = y :=
 by rw [exp_eq_exp_re_mul_sin_add_cos, exp_eq_exp_re_mul_sin_add_cos y] at hxy;
@@ -1607,6 +1675,21 @@ lemma log_neg_one : log (-1) = π * I := by simp [log]
 lemma log_I : log I = π / 2 * I := by simp [log]
 
 lemma log_neg_I : log (-I) = -(π / 2) * I := by simp [log]
+
+lemma exists_pow_nat_eq (x : ℂ) {n : ℕ} (hn : 0 < n) : ∃ z, z ^ n = x :=
+begin
+  by_cases hx : x = 0,
+  { use 0, simp only [hx, zero_pow_eq_zero, hn] },
+  { use exp (log x / n),
+    rw [← exp_nat_mul, mul_div_cancel', exp_log hx],
+    exact_mod_cast (nat.pos_iff_ne_zero.mp hn) }
+end
+
+lemma exists_eq_mul_self (x : ℂ) : ∃ z, x = z * z :=
+begin
+  obtain ⟨z, rfl⟩ := exists_pow_nat_eq x zero_lt_two,
+  exact ⟨z, pow_two z⟩
+end
 
 lemma two_pi_I_ne_zero : (2 * π * I : ℂ) ≠ 0 :=
 by norm_num [real.pi_ne_zero, I_ne_zero]
@@ -1660,40 +1743,40 @@ by simp [two_mul, sin_add]
 @[simp] lemma cos_two_pi : cos (2 * π) = 1 :=
 by simp [two_mul, cos_add]
 
-lemma sin_add_pi (x : ℝ) : sin (x + π) = -sin x :=
+lemma sin_add_pi (x : ℂ) : sin (x + π) = -sin x :=
 by simp [sin_add]
 
-lemma sin_add_two_pi (x : ℝ) : sin (x + 2 * π) = sin x :=
+lemma sin_add_two_pi (x : ℂ) : sin (x + 2 * π) = sin x :=
 by simp [sin_add_pi, sin_add, sin_two_pi, cos_two_pi]
 
-lemma cos_add_two_pi (x : ℝ) : cos (x + 2 * π) = cos x :=
+lemma cos_add_two_pi (x : ℂ) : cos (x + 2 * π) = cos x :=
 by simp [cos_add, cos_two_pi, sin_two_pi]
 
-lemma sin_pi_sub (x : ℝ) : sin (π - x) = sin x :=
+lemma sin_pi_sub (x : ℂ) : sin (π - x) = sin x :=
 by simp [sub_eq_add_neg, sin_add]
 
-lemma cos_add_pi (x : ℝ) : cos (x + π) = -cos x :=
+lemma cos_add_pi (x : ℂ) : cos (x + π) = -cos x :=
 by simp [cos_add]
 
-lemma cos_pi_sub (x : ℝ) : cos (π - x) = -cos x :=
+lemma cos_pi_sub (x : ℂ) : cos (π - x) = -cos x :=
 by simp [sub_eq_add_neg, cos_add]
 
-lemma sin_add_pi_div_two (x : ℝ) : sin (x + π / 2) = cos x :=
+lemma sin_add_pi_div_two (x : ℂ) : sin (x + π / 2) = cos x :=
 by simp [sin_add]
 
-lemma sin_sub_pi_div_two (x : ℝ) : sin (x - π / 2) = -cos x :=
+lemma sin_sub_pi_div_two (x : ℂ) : sin (x - π / 2) = -cos x :=
 by simp [sub_eq_add_neg, sin_add]
 
-lemma sin_pi_div_two_sub (x : ℝ) : sin (π / 2 - x) = cos x :=
+lemma sin_pi_div_two_sub (x : ℂ) : sin (π / 2 - x) = cos x :=
 by simp [sub_eq_add_neg, sin_add]
 
-lemma cos_add_pi_div_two (x : ℝ) : cos (x + π / 2) = -sin x :=
+lemma cos_add_pi_div_two (x : ℂ) : cos (x + π / 2) = -sin x :=
 by simp [cos_add]
 
-lemma cos_sub_pi_div_two (x : ℝ) : cos (x - π / 2) = sin x :=
+lemma cos_sub_pi_div_two (x : ℂ) : cos (x - π / 2) = sin x :=
 by simp [sub_eq_add_neg, cos_add]
 
-lemma cos_pi_div_two_sub (x : ℝ) : cos (π / 2 - x) = sin x :=
+lemma cos_pi_div_two_sub (x : ℂ) : cos (π / 2 - x) = sin x :=
 by rw [← cos_neg, neg_sub, cos_sub_pi_div_two]
 
 lemma sin_nat_mul_pi (n : ℕ) : sin (n * π) = 0 :=
@@ -1734,6 +1817,63 @@ end
 theorem cos_ne_zero_iff {θ : ℂ} : cos θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ (2 * k + 1) * π / 2 :=
 by rw [← not_exists, not_iff_not, cos_eq_zero_iff]
 
+theorem sin_eq_zero_iff {θ : ℂ} : sin θ = 0 ↔ ∃ k : ℤ, θ = k * π :=
+begin
+  rw [← complex.cos_sub_pi_div_two, cos_eq_zero_iff],
+  split,
+  { rintros ⟨k, hk⟩,
+    use k + 1,
+    field_simp [eq_add_of_sub_eq hk],
+    ring },
+  { rintros ⟨k, rfl⟩,
+    use k - 1,
+    field_simp,
+    ring }
+end
+
+theorem sin_ne_zero_iff {θ : ℂ} : sin θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ k * π :=
+by rw [← not_exists, not_iff_not, sin_eq_zero_iff]
+
+lemma cos_eq_cos_iff {x y : ℂ} :
+  cos x = cos y ↔ ∃ k : ℤ, y = 2 * k * π + x ∨ y = 2 * k * π - x :=
+calc cos x = cos y ↔ cos x - cos y = 0 : sub_eq_zero.symm
+... ↔ -2 * sin((x + y)/2) * sin((x - y)/2) = 0 : by rw cos_sub_cos
+... ↔ sin((x + y)/2) = 0 ∨ sin((x - y)/2) = 0 : by { field_simp [(by norm_num : -(2:ℂ) ≠ 0)] }
+... ↔ sin((x - y)/2) = 0 ∨ sin((x + y)/2) = 0 : or.comm
+... ↔ (∃ k : ℤ, y = 2 * k * π + x) ∨ (∃ k :ℤ, y = 2 * k * π - x) :
+begin
+  apply or_congr;
+  rw sin_eq_zero_iff;
+  field_simp [(by norm_num : -(2:ℂ) ≠ 0)],
+  work_on_goal 0 -- material specific to the left of the `or`, when x ≅ y mod 2π
+  { split,
+    all_goals
+    { rintros ⟨k, hk⟩,
+      refine ⟨-k, eq.symm _⟩ } },
+  work_on_goal 2 -- material specific to the right of the `or`, when x ≅ -y mod 2π
+  { refine exists_congr (λ k, ⟨λ hk, _, λ hk, _⟩) },
+  all_goals -- joint material for showing two equations differ by a constant
+  { rw ← sub_eq_zero at hk ⊢,
+    convert hk using 1,
+    try { push_cast },
+    ring }
+end
+... ↔ ∃ k : ℤ, y = 2 * k * π + x ∨ y = 2 * k * π - x : exists_or_distrib.symm
+
+lemma sin_eq_sin_iff {x y : ℂ} :
+  sin x = sin y ↔ ∃ k : ℤ, y = 2 * k * π + x ∨ y = (2 * k + 1) * π - x :=
+begin
+  rw [←complex.cos_sub_pi_div_two, ←complex.cos_sub_pi_div_two, cos_eq_cos_iff],
+  simp only [exists_or_distrib],
+  apply or_congr;
+  refine exists_congr (λ k, ⟨_, _⟩);
+  { intros h,
+    rw ← sub_eq_zero at ⊢ h,
+    convert h using 1,
+    field_simp,
+    ring },
+end
+
 lemma has_deriv_at_tan {x : ℂ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) :
   has_deriv_at tan (1 / (cos x)^2) x :=
 begin
@@ -1748,15 +1888,44 @@ lemma differentiable_at_tan {x : ℂ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π /
 @[simp] lemma deriv_tan {x : ℂ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) : deriv tan x = 1 / (cos x)^2 :=
 (has_deriv_at_tan h).deriv
 
-lemma continuous_tan : continuous (λ x : {x | cos x ≠ 0}, tan x) :=
-(continuous_sin.comp continuous_subtype_val).mul
-  (continuous.inv subtype.property (continuous_cos.comp continuous_subtype_val))
-
 lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
-by { rw continuous_on_iff_continuous_restrict, convert continuous_tan }
+continuous_on_sin.div continuous_on_cos $ λ x, id
+
+lemma continuous_tan : continuous (λ x : {x | cos x ≠ 0}, tan x) :=
+continuous_on_iff_continuous_restrict.1 continuous_on_tan
+
+lemma cos_surjective : function.surjective cos :=
+begin
+  intro x,
+  obtain ⟨w, hw⟩ : ∃ w, 1 * w * w + (-2 * x) * w + 1 = 0,
+  { exact exists_quadratic_eq_zero one_ne_zero (exists_eq_mul_self _) },
+  have hw' : exp (log w / I * I) = w,
+  { rw [div_mul_cancel _ I_ne_zero, exp_log],
+    rintro rfl,
+    simpa only [zero_add, one_ne_zero, mul_zero] using hw },
+  obtain ⟨z, hz⟩ : ∃ z : ℂ, (exp (z * I)) ^ 2 - 2 * x * exp (z * I) + 1 = 0,
+  { use log w / I, rw [hw', ← hw], ring },
+  use z,
+  delta cos,
+  rw ← mul_left_inj' (exp_ne_zero (z * I)),
+  rw [sub_add_eq_add_sub, sub_eq_zero, pow_two, ← exp_add, mul_comm _ x, mul_right_comm] at hz,
+  field_simp [add_mul, ← exp_add, hz]
+end
+
+@[simp] lemma range_cos : range cos = set.univ :=
+cos_surjective.range_eq
+
+lemma sin_surjective : function.surjective sin :=
+begin
+  intro x,
+  rcases cos_surjective x with ⟨z, rfl⟩,
+  exact ⟨z+π/2, sin_add_pi_div_two z⟩
+end
+
+@[simp] lemma range_sin : range sin = set.univ :=
+sin_surjective.range_eq
 
 end complex
-
 
 namespace real
 open_locale real
@@ -1770,6 +1939,24 @@ end
 
 theorem cos_ne_zero_iff {θ : ℝ} : cos θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ (2 * k + 1) * π / 2 :=
 by rw [← not_exists, not_iff_not, cos_eq_zero_iff]
+
+lemma cos_eq_cos_iff {x y : ℝ} :
+  cos x = cos y ↔ ∃ k : ℤ, y = 2 * k * π + x ∨ y = 2 * k * π - x :=
+begin
+  have := @complex.cos_eq_cos_iff x y,
+  rw [← complex.of_real_cos, ← complex.of_real_cos] at this,
+  norm_cast at this,
+  simp [this],
+end
+
+lemma sin_eq_sin_iff {x y : ℝ} :
+  sin x = sin y ↔ ∃ k : ℤ, y = 2 * k * π + x ∨ y = (2 * k + 1) * π - x :=
+begin
+  have := @complex.sin_eq_sin_iff x y,
+  rw [← complex.of_real_sin, ← complex.of_real_sin] at this,
+  norm_cast at this,
+  simp [this],
+end
 
 lemma has_deriv_at_tan {x : ℝ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) :
   has_deriv_at tan (1 / (cos x)^2) x :=

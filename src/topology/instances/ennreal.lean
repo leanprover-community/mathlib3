@@ -132,7 +132,7 @@ def lt_top_homeomorph_nnreal : {a | a < ∞} ≃ₜ nnreal :=
 by refine (homeomorph.set_congr $ set.ext $ λ x, _).trans ne_top_homeomorph_nnreal;
   simp only [mem_set_of_eq, lt_top_iff_ne_top]
 
-lemma nhds_top : 𝓝 ∞ = ⨅a ≠ ∞, 𝓟 (Ioi a) :=
+lemma nhds_top : 𝓝 ∞ = ⨅ a ≠ ∞, 𝓟 (Ioi a) :=
 nhds_top_order.trans $ by simp [lt_top_iff_ne_top, Ioi]
 
 lemma nhds_top' : 𝓝 ∞ = ⨅ r : ℝ≥0, 𝓟 (Ioi r) :=
@@ -698,7 +698,7 @@ show summable (λb, g' b : β → ℝ), from nnreal.summable_coe.2 this
 /-- A series of non-negative real numbers converges to `r` in the sense of `has_sum` if and only if
 the sequence of partial sum converges to `r`. -/
 lemma has_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} (hf : ∀i, 0 ≤ f i) (r : ℝ) :
-  has_sum f r ↔ tendsto (λn:ℕ, ∑ i in finset.range n, f i) at_top (𝓝 r) :=
+  has_sum f r ↔ tendsto (λ n : ℕ, ∑ i in finset.range n, f i) at_top (𝓝 r) :=
 begin
   lift f to ℕ → ℝ≥0 using hf,
   simp only [has_sum, ← nnreal.coe_sum, nnreal.tendsto_coe'],

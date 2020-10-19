@@ -236,13 +236,13 @@ lemma supr_ne_top [complete_lattice α] (f : ennreal → α) : (⨆ x ≠ ∞, f
 @infi_ne_top (order_dual α) _ _
 
 lemma infi_ennreal {α : Type*} [complete_lattice α] {f : ennreal → α} :
-  (⨅n, f n) = (⨅n:ℝ≥0, f n) ⊓ f ⊤ :=
+  (⨅ n, f n) = (⨅ n : ℝ≥0, f n) ⊓ f ⊤ :=
 le_antisymm
   (le_inf (le_infi $ assume i, infi_le _ _) (infi_le _ _))
   (le_infi $ forall_ennreal.2 ⟨assume r, inf_le_left_of_le $ infi_le _ _, inf_le_right⟩)
 
 lemma supr_ennreal {α : Type*} [complete_lattice α] {f : ennreal → α} :
-  (⨆n, f n) = (⨆n:ℝ≥0, f n) ⊔ f ⊤ :=
+  (⨆ n, f n) = (⨆ n : ℝ≥0, f n) ⊔ f ⊤ :=
 @infi_ennreal (order_dual α) _ _
 
 @[simp] lemma add_top : a + ∞ = ∞ := with_top.add_top

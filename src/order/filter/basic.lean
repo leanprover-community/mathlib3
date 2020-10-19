@@ -174,10 +174,17 @@ meta def filter_upwards
 do
   s.reverse.mmap (λ e, eapplyc `filter.mp_sets >> eapply e),
   eapplyc `filter.univ_mem_sets',
+  `[dsimp only [set.mem_set_of_eq]],
   match e' with
   | some e := interactive.exact e
   | none := skip
   end
+
+add_tactic_doc
+{ name := "filter_upwards",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.filter_upwards],
+  tags := ["goal management", "lemma application"] }
 
 end tactic.interactive
 
@@ -950,7 +957,7 @@ lemma eventually_bot {p : α → Prop} : ∀ᶠ x in ⊥, p x := ⟨⟩
 lemma eventually_top {p : α → Prop} : (∀ᶠ x in ⊤, p x) ↔ (∀ x, p x) :=
 iff.rfl
 
-lemma eventually_sup {p : α → Prop} {f g : filter α} :
+@[simp] lemma eventually_sup {p : α → Prop} {f g : filter α} :
   (∀ᶠ x in f ⊔ g, p x) ↔ (∀ᶠ x in f, p x) ∧ (∀ᶠ x in g, p x) :=
 iff.rfl
 
@@ -1292,6 +1299,10 @@ h₂.mp $ h₁.mono $ λ x, le_antisymm
 lemma eventually_le_antisymm_iff [partial_order β] {l : filter α} {f g : α → β} :
   f =ᶠ[l] g ↔ f ≤ᶠ[l] g ∧ g ≤ᶠ[l] f :=
 by simp only [eventually_eq, eventually_le, le_antisymm_iff, eventually_and]
+
+lemma eventually_le.le_iff_eq [partial_order β] {l : filter α} {f g : α → β} (h : f ≤ᶠ[l] g) :
+  g ≤ᶠ[l] f ↔ g =ᶠ[l] f :=
+⟨λ h', h'.antisymm h, eventually_eq.le⟩
 
 lemma join_le {f : filter (filter α)} {l : filter α} (h : ∀ᶠ m in f, m ≤ l) : join f ≤ l :=
 λ s hs, h.mono $ λ m hm, hm hs
@@ -2035,6 +2046,7 @@ lemma tendsto.frequently {f : α → β} {l₁ : filter α} {l₂ : filter β} {
 mt hf.eventually h
 
 @[simp] lemma tendsto_bot {f : α → β} {l : filter β} : tendsto f ⊥ l := by simp [tendsto]
+@[simp] lemma tendsto_top {f : α → β} {l : filter α} : tendsto f l ⊤ := le_top
 
 lemma tendsto_of_not_nonempty {f : α → β} {la : filter α} {lb : filter β} (h : ¬nonempty α) :
   tendsto f la lb :=

@@ -47,6 +47,13 @@ begin
      ... ≤ 2^p - 1 : nat.pred_le_pred (nat.pow_le_pow_of_le_right (nat.succ_pos 1) h)
 end
 
+@[simp]
+lemma succ_mersenne (k : ℕ) : mersenne k + 1 = 2 ^ k :=
+begin
+  rw [mersenne, nat.sub_add_cancel],
+  exact one_le_pow_of_one_le (by norm_num) k
+end
+
 namespace lucas_lehmer
 
 open nat
@@ -86,7 +93,7 @@ end
 lemma s_mod_nonneg (p : ℕ) (w : 0 < p) (i : ℕ) : 0 ≤ s_mod p i :=
 begin
   cases i; dsimp [s_mod],
-  { trivial, },
+  { exact sup_eq_left.mp rfl },
   { apply int.mod_nonneg, exact mersenne_int_ne_zero p w },
 end
 
@@ -355,7 +362,7 @@ end
 /-- `q` is the minimum factor of `mersenne p`, so `M p = 0` in `X q`. -/
 theorem mersenne_coe_X (p : ℕ) : (mersenne p : X (q p)) = 0 :=
 begin
-  ext; simp [mersenne, q, zmod.nat_coe_zmod_eq_zero_iff_dvd],
+  ext; simp [mersenne, q, zmod.nat_coe_zmod_eq_zero_iff_dvd, -pow_pos],
   apply nat.min_fac_dvd,
 end
 

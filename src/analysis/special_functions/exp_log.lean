@@ -208,19 +208,28 @@ to `log |x|` for `x < 0`, and to `0` for `0`. We use this unconventional extensi
 `(-∞, 0]` as it gives the formula `log (x * y) = log x + log y` for all nonzero `x` and `y`, and
 the derivative of `log` is `1/x` away from `0`. -/
 @[pp_nodot] noncomputable def log (x : ℝ) : ℝ :=
-if hx : x ≠ 0 then classical.some (exists_exp_eq_of_pos (abs_pos_iff.mpr hx)) else 0
+if hx : x ≠ 0 then classical.some (exists_exp_eq_of_pos (abs_pos.mpr hx)) else 0
 
 lemma exp_log_eq_abs (hx : x ≠ 0) : exp (log x) = abs x :=
-by { rw [log, dif_pos hx], exact classical.some_spec (exists_exp_eq_of_pos ((abs_pos_iff.mpr hx))) }
+by { rw [log, dif_pos hx], exact classical.some_spec (exists_exp_eq_of_pos ((abs_pos.mpr hx))) }
 
 lemma exp_log (hx : 0 < x) : exp (log x) = x :=
 by { rw exp_log_eq_abs (ne_of_gt hx), exact abs_of_pos hx }
+
+lemma range_exp : set.range exp = {x | 0 < x} :=
+set.ext $ λ x, ⟨by { rintro ⟨x, rfl⟩, exact exp_pos x }, λ hx, ⟨log x, exp_log hx⟩⟩
 
 lemma exp_log_of_neg (hx : x < 0) : exp (log x) = -x :=
 by { rw exp_log_eq_abs (ne_of_lt hx), exact abs_of_neg hx }
 
 @[simp] lemma log_exp (x : ℝ) : log (exp x) = x :=
 exp_injective $ exp_log (exp_pos x)
+
+lemma log_surjective : function.surjective log :=
+λ x, ⟨exp x, log_exp x⟩
+
+@[simp] lemma range_log : set.range log = set.univ :=
+log_surjective.range_eq
 
 @[simp] lemma log_zero : log 0 = 0 :=
 by simp [log]
@@ -272,15 +281,24 @@ by { rw ← log_one, exact log_lt_log_iff h (by norm_num) }
 
 lemma log_neg (h0 : 0 < x) (h1 : x < 1) : log x < 0 := (log_neg_iff h0).2 h1
 
-lemma log_nonneg : 1 ≤ x → 0 ≤ log x :=
-by { intro, rwa [← log_one, log_le_log], norm_num, linarith }
+lemma log_nonneg_iff (hx : 0 < x) : 0 ≤ log x ↔ 1 ≤ x :=
+by rw [← not_lt, log_neg_iff hx, not_lt]
+
+lemma log_nonneg (hx : 1 ≤ x) : 0 ≤ log x :=
+(log_nonneg_iff (zero_lt_one.trans_le hx)).2 hx
+
+lemma log_nonpos_iff (hx : 0 < x) : log x ≤ 0 ↔ x ≤ 1 :=
+by rw [← not_lt, log_pos_iff hx, not_lt]
+
+lemma log_nonpos_iff' (hx : 0 ≤ x) : log x ≤ 0 ↔ x ≤ 1 :=
+begin
+  rcases hx.eq_or_lt with (rfl|hx),
+  { simp [le_refl, zero_le_one] },
+  exact log_nonpos_iff hx
+end
 
 lemma log_nonpos (hx : 0 ≤ x) (h'x : x ≤ 1) : log x ≤ 0 :=
-begin
-  by_cases x_zero : x = 0,
-  { simp [x_zero] },
-  { rwa [← log_one, log_le_log (lt_of_le_of_ne hx (ne.symm x_zero))], norm_num }
-end
+(log_nonpos_iff' hx).2 h'x
 
 section prove_log_is_continuous
 
@@ -426,10 +444,8 @@ lemma tendsto_exp_at_top : tendsto exp at_top at_top :=
 begin
   have A : tendsto (λx:ℝ, x + 1) at_top at_top :=
     tendsto_at_top_add_const_right at_top 1 tendsto_id,
-  have B : ∀ᶠ x in at_top, x + 1 ≤ exp x,
-  { have : ∀ᶠ (x : ℝ) in at_top, 0 ≤ x := mem_at_top 0,
-    filter_upwards [this],
-    exact λx hx, add_one_le_exp_of_nonneg hx },
+  have B : ∀ᶠ x in at_top, x + 1 ≤ exp x :=
+    eventually_at_top.2 ⟨0, λx hx, add_one_le_exp_of_nonneg hx⟩,
   exact tendsto_at_top_mono' at_top B A
 end
 
@@ -517,7 +533,7 @@ begin
     calc abs (deriv F y) = abs (-(y^n) / (1 - y)) : by rw [A y this]
     ... ≤ (abs x)^n / (1 - abs x) :
       begin
-        have : abs y ≤ abs x := abs_le_of_le_of_neg_le hy.2 (by linarith [hy.1]),
+        have : abs y ≤ abs x := abs_le.2 hy,
         have : 0 < 1 - abs x, by linarith,
         have : 1 - abs x ≤ abs (1 - y) := le_trans (by linarith [hy.2]) (le_abs_self _),
         simp only [← pow_abs, abs_div, abs_neg],

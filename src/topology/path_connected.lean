@@ -294,8 +294,10 @@ path on `[0, 1/2]` and the second one on `[1/2, 1]`. -/
   begin
     apply (continuous_if _ _ _).comp continuous_subtype_coe,
     { norm_num },
-    { continuity },
-    { continuity }
+    -- TODO: the following are provable by `continuity` but it is too slow
+    { exact ((path.continuous γ).comp continuous_proj_I).comp (continuous_const.mul continuous_id')},
+    { exact ((path.continuous γ').comp continuous_proj_I).comp
+      ((continuous_const.mul continuous_id').sub continuous_const) }
   end,
   source' := by norm_num,
   target' := by norm_num }
@@ -337,7 +339,7 @@ begin
     { by_cases h : t = 0,
       { use ⟨1/2, ⟨by linarith, by linarith⟩⟩,
         unfold_coes,
-        simp only [h, comp_app, if_true, le_refl, mul_one_div_cancel (@two_ne_zero ℝ _)],
+        simp only [h, comp_app, if_true, le_refl, mul_one_div_cancel (@two_ne_zero ℝ _ _)],
         rw γ₁.extend_one,
         rwa [← γ₂.extend_extends, h, γ₂.extend_zero] at hxt },
       { use ⟨(t+1)/2, ⟨by linarith, by linarith⟩⟩,
@@ -406,7 +408,7 @@ begin
     have := frontier_le_subset_eq (continuous_subtype_coe.comp continuous_snd)
       continuous_const hst,
     simp only [mem_set_of_eq, comp_app] at this,
-    simp [this, mul_inv_cancel (@two_ne_zero ℝ _)] },
+    simp [this, mul_inv_cancel (@two_ne_zero ℝ _ _)] },
   { change continuous ((λ p : ι × ℝ, (γ₁ p.1).extend p.2) ∘ (prod.map id (λ x, 2*x : I → ℝ))),
     exact h₁'.comp (continuous_id.prod_map $ continuous_const.mul continuous_subtype_coe) },
   { change continuous ((λ p : ι × ℝ, (γ₂ p.1).extend p.2) ∘ (prod.map id (λ x, 2*x - 1 : I → ℝ))),

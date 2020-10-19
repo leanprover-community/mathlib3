@@ -16,7 +16,7 @@ We prove results about big operators over intervals (mostly the `ℕ`-valued `Ic
 
 universes u v w
 
-open_locale big_operators
+open_locale big_operators nat
 
 namespace finset
 
@@ -113,10 +113,14 @@ lemma sum_range_reflect {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (n : 
   ∑ j in range n, f (n - 1 - j) = ∑ j in range n, f j :=
 @prod_range_reflect (multiplicative δ) _ f n
 
-@[simp] lemma prod_Ico_id_eq_fact : ∀ n : ℕ, ∏ x in Ico 1 (n + 1), x = nat.fact n
+@[simp] lemma prod_Ico_id_eq_factorial : ∀ n : ℕ, ∏ x in Ico 1 (n + 1), x = n!
 | 0 := rfl
 | (n+1) := by rw [prod_Ico_succ_top $ nat.succ_le_succ $ zero_le n,
-  nat.fact_succ, prod_Ico_id_eq_fact n, nat.succ_eq_add_one, mul_comm]
+  nat.factorial_succ, prod_Ico_id_eq_factorial n, nat.succ_eq_add_one, mul_comm]
+
+@[simp] lemma prod_range_add_one_eq_factorial : ∀ n : ℕ, ∏ x in range n, (x+1) = n!
+| 0 := rfl
+| (n+1) := by simp [finset.range_succ, prod_range_add_one_eq_factorial n]
 
 section gauss_sum
 

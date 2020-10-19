@@ -15,7 +15,8 @@ variables {α : Type*} {β : Type*}
 
 /-- The extended nonnegative real numbers. This is usually denoted [0, ∞],
   and is relevant as the codomain of a measure. -/
-@[derive canonically_ordered_comm_semiring, derive complete_linear_order, derive densely_ordered]
+@[derive canonically_ordered_comm_semiring, derive complete_linear_order, derive densely_ordered,
+  derive nontrivial]
 def ennreal := with_top nnreal
 
 localized "notation `∞` := (⊤ : ennreal)" in ennreal
@@ -143,7 +144,8 @@ lemma coe_two : ((2:nnreal) : ennreal) = 2 := by norm_cast
 protected lemma zero_lt_one : 0 < (1 : ennreal) :=
   canonically_ordered_semiring.zero_lt_one
 
-@[simp] lemma one_lt_two : (1:ennreal) < 2 := coe_one ▸ coe_two ▸ by exact_mod_cast one_lt_two
+@[simp] lemma one_lt_two : (1 : ennreal) < 2 :=
+coe_one ▸ coe_two ▸ by exact_mod_cast (@one_lt_two ℕ _ _)
 @[simp] lemma zero_lt_two : (0:ennreal) < 2 := lt_trans ennreal.zero_lt_one one_lt_two
 lemma two_ne_zero : (2:ennreal) ≠ 0 := (ne_of_lt zero_lt_two).symm
 lemma two_ne_top : (2:ennreal) ≠ ∞ := coe_two ▸ coe_ne_top
@@ -323,7 +325,7 @@ lemma lt_iff_exists_rat_btwn :
 ⟨λ h,
   begin
     rcases lt_iff_exists_coe.1 h with ⟨p, rfl, _⟩,
-    rcases dense h with ⟨c, pc, cb⟩,
+    rcases exists_between h with ⟨c, pc, cb⟩,
     rcases lt_iff_exists_coe.1 cb with ⟨r, rfl, _⟩,
     rcases (nnreal.lt_iff_exists_rat_btwn _ _).1 (coe_lt_coe.1 pc) with ⟨q, hq0, pq, qr⟩,
     exact ⟨q, hq0, coe_lt_coe.2 pq, lt_trans (coe_lt_coe.2 qr) cb⟩
@@ -378,10 +380,10 @@ end
 
 lemma add_lt_add (ac : a < c) (bd : b < d) : a + b < c + d :=
 begin
-  rcases dense ac with ⟨a', aa', a'c⟩,
+  rcases exists_between ac with ⟨a', aa', a'c⟩,
   rcases lt_iff_exists_coe.1 aa' with ⟨aR, rfl, _⟩,
   rcases lt_iff_exists_coe.1 a'c with ⟨a'R, rfl, _⟩,
-  rcases dense bd with ⟨b', bb', b'd⟩,
+  rcases exists_between bd with ⟨b', bb', b'd⟩,
   rcases lt_iff_exists_coe.1 bb' with ⟨bR, rfl, _⟩,
   rcases lt_iff_exists_coe.1 b'd with ⟨b'R, rfl, _⟩,
   have I : ↑aR + ↑bR < ↑a'R + ↑b'R :=
@@ -1244,5 +1246,12 @@ lemma supr_coe_nat : (⨆n:ℕ, (n : ennreal)) = ⊤ :=
 (supr_eq_top _).2 $ assume b hb, ennreal.exists_nat_gt (lt_top_iff_ne_top.1 hb)
 
 end supr
+
+/-- `le_of_add_le_add_left` is normally applicable to `ordered_cancel_add_comm_monoid`,
+but it holds in `ennreal` with the additional assumption that `a < ∞`. -/
+lemma le_of_add_le_add_left {a b c : ennreal} : a < ∞ →
+  a + b ≤ a + c → b ≤ c :=
+by cases a; cases b; cases c; simp [← ennreal.coe_add, ennreal.coe_le_coe]
+
 
 end ennreal

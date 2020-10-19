@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Chris Hughes
 -/
 import algebra.associated
-import data.int.gcd
 import algebra.big_operators.basic
 import data.nat.enat
 
@@ -29,6 +28,7 @@ namespace multiplicity
 section comm_monoid
 variables [comm_monoid α]
 
+/-- `multiplicity.finite a b` indicates that the multiplicity of `a` in `b` is finite. -/
 @[reducible] def finite (a b : α) : Prop := ∃ n : ℕ, ¬a ^ (n + 1) ∣ b
 
 lemma finite_iff_dom [decidable_rel ((∣) : α → α → Prop)] {a b : α} :
@@ -52,7 +52,7 @@ lemma not_finite_iff_forall {a b : α} : (¬ finite a b) ↔ ∀ n : ℕ, a ^ n 
   by simp [finite, multiplicity, not_not]; tauto⟩
 
 lemma not_unit_of_finite {a b : α} (h : finite a b) : ¬is_unit a :=
-let ⟨n, hn⟩ := h in mt (is_unit_iff_forall_dvd.1 ∘ is_unit_pow (n + 1)) $
+let ⟨n, hn⟩ := h in mt (is_unit_iff_forall_dvd.1 ∘ is_unit.pow (n + 1)) $
 λ h, hn (h b)
 
 lemma finite_of_finite_mul_left {a b c : α} : finite a (b * c) → finite a c :=
@@ -123,7 +123,7 @@ get_eq_iff_eq_some.2 (eq_some_iff.2 ⟨dvd_refl _,
   by simpa [is_unit_iff_dvd_one.symm] using not_unit_of_finite ha⟩)
 
 @[simp] lemma multiplicity_unit {a : α} (b : α) (ha : is_unit a) : multiplicity a b = ⊤ :=
-eq_top_iff.2 (λ _, is_unit_iff_forall_dvd.1 (is_unit_pow _ ha) _)
+eq_top_iff.2 (λ _, is_unit_iff_forall_dvd.1 (ha.pow _) _)
 
 @[simp] lemma one_left (b : α) : multiplicity 1 b = ⊤ := by simp [eq_top_iff]
 
@@ -167,27 +167,6 @@ begin
           (lt_pow_self ha_gt_one b))),
     λ h, by cases h; simp *⟩
 end
-
-lemma finite_int_iff_nat_abs_finite {a b : ℤ} : finite a b ↔ finite a.nat_abs b.nat_abs :=
-begin
-  rw [finite_def, finite_def],
-  conv in (a ^ _ ∣ b)
-    { rw [← int.nat_abs_dvd_abs_iff, int.nat_abs_pow] }
-end
-
-lemma finite_int_iff {a b : ℤ} : finite a b ↔ (a.nat_abs ≠ 1 ∧ b ≠ 0) :=
-begin
-  have := int.nat_abs_eq a,
-  have := @int.nat_abs_ne_zero_of_ne_zero b,
-  rw [finite_int_iff_nat_abs_finite, finite_nat_iff, nat.pos_iff_ne_zero],
-  split; finish
-end
-
-instance decidable_nat : decidable_rel (λ a b : ℕ, (multiplicity a b).dom) :=
-λ a b, decidable_of_iff _ finite_nat_iff.symm
-
-instance decidable_int : decidable_rel (λ a b : ℤ, (multiplicity a b).dom) :=
-λ a b, decidable_of_iff _ finite_int_iff.symm
 
 end comm_monoid
 

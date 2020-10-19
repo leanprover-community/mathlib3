@@ -1210,6 +1210,15 @@ open metric
 class proper_space (α : Type u) [metric_space α] : Prop :=
 (compact_ball : ∀x:α, ∀r, is_compact (closed_ball x r))
 
+lemma tendsto_dist_right_cocompact_at_top [proper_space α] (x : α) :
+  tendsto (λ y, dist y x) (cocompact α) at_top :=
+(has_basis_cocompact.tendsto_iff at_top_basis).2 $ λ r hr,
+  ⟨closed_ball x r, proper_space.compact_ball x r, λ y hy, (not_le.1 $ mt mem_closed_ball.2 hy).le⟩
+
+lemma tendsto_dist_left_cocompact_at_top [proper_space α] (x : α) :
+  tendsto (dist x) (cocompact α) at_top :=
+by simpa only [dist_comm] using tendsto_dist_right_cocompact_at_top x
+
 /-- If all closed balls of large enough radius are compact, then the space is proper. Especially
 useful when the lower bound for the radius is 0. -/
 lemma proper_space_of_compact_closed_ball_of_le
@@ -1230,7 +1239,7 @@ end⟩
 /- A compact metric space is proper -/
 @[priority 100] -- see Note [lower instance priority]
 instance proper_of_compact [compact_space α] : proper_space α :=
-⟨assume x r, compact_of_is_closed_subset compact_univ is_closed_ball (subset_univ _)⟩
+⟨assume x r, is_closed_ball.compact⟩
 
 /-- A proper space is locally compact -/
 @[priority 100] -- see Note [lower instance priority]

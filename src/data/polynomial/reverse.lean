@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import data.polynomial.erase_lead
+import data.polynomial.degree
 import data.polynomial.degree.trailing_degree
+import data.polynomial.to_finset
 
 /-!
 # Reverse of a univariate polynomial
@@ -131,7 +133,7 @@ begin
   { induction cg with cg hcg,
     -- second induction (right): base case
     { intros N O f g Cf Cg Nf Og,
-      rw [C_mul_X_pow_of_card_support_le_one Cf, C_mul_X_pow_of_card_support_le_one Cg],
+      rw [← C_mul_X_pow_eq_self Cf, ← C_mul_X_pow_eq_self Cg],
       simp only [mul_assoc, X_pow_mul, ← pow_add X, reflect_C_mul, reflect_monomial,
                  add_comm, rev_at_add Nf Og] },
     -- second induction (right): induction step

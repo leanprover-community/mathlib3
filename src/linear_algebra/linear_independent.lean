@@ -56,8 +56,6 @@ make the linear independence tests usable as `hv.insert ha` etc.
 We also prove that any family of vectors includes a linear independent subfamily spanning the same
 submodule.
 
-### 
-
 ## Implementation notes
 
 We use families instead of sets because it allows us to say that two identical vectors are linearly
@@ -214,6 +212,7 @@ protected lemma linear_map.linear_independent_iff (f : M →ₗ[R] M') (hf_inj :
   linear_independent R (f ∘ v) ↔ linear_independent R v :=
 ⟨λ h, h.of_comp f, λ h, h.map $ by simp only [hf_inj, disjoint_bot_right]⟩
 
+@[nontriviality]
 lemma linear_independent_of_subsingleton [subsingleton R] : linear_independent R v :=
 linear_independent_iff.2 (λ l hl, subsingleton.elim _ _)
 
@@ -249,8 +248,8 @@ alias linear_independent_subtype_range ↔ linear_independent.of_subtype_range _
 theorem linear_independent.to_subtype_range {ι} {f : ι → M} (hf : linear_independent R f) :
   linear_independent R (coe : range f → M) :=
 begin
-  cases subsingleton_or_nontrivial R; resetI,
-  exacts [linear_independent_of_subsingleton, (linear_independent_subtype_range hf.injective).2 hf]
+  nontriviality R,
+  exact (linear_independent_subtype_range hf.injective).2 hf
 end
 
 theorem linear_independent.to_subtype_range' {ι} {f : ι → M} (hf : linear_independent R f)
@@ -448,7 +447,7 @@ lemma linear_independent_Union_finite {η : Type*} {ιs : η → Type*}
       disjoint (span R (range (f i))) (⨆i∈t, span R (range (f i)))) :
   linear_independent R (λ ji : Σ j, ιs j, f ji.1 ji.2) :=
 begin
-  cases subsingleton_or_nontrivial R; resetI, { exact linear_independent_of_subsingleton },
+  nontriviality R,
   apply linear_independent.of_subtype_range,
   { rintros ⟨x₁, x₂⟩ ⟨y₁, y₂⟩ hxy,
     by_cases h_cases : x₁ = y₁,

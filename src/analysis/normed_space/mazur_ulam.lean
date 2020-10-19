@@ -18,7 +18,7 @@ We formalize it in two definitions:
   returns `E ≃L[ℝ] F` with the same `to_fun` and `inv_fun`;
 * `isometric.to_real_linear_equiv` : given `f : E ≃ᵢ F`,
   returns `g : E ≃L[ℝ] F` with `g x = f x - f 0`.
-* `isometric.to_affine_map` : given `PE ≃ᵢ PF`, returns `g : affine_map ℝ E PE F PF` with the same
+* `isometric.to_affine_map` : given `PE ≃ᵢ PF`, returns `g : PE →ᵃ[ℝ] PF` with the same
   `to_fun`.
 
 The formalization is based on [Jussi Väisälä, *A Proof of the Mazur-Ulam Theorem*][Vaisala_2003].
@@ -78,7 +78,7 @@ begin
   have : c ≤ c / 2,
   { apply csupr_le,
     rintros ⟨e, he⟩,
-    simp only [coe_fn_coe_base, subtype.coe_mk, le_div_iff' (@zero_lt_two ℝ _), ← hf_dist],
+    simp only [coe_fn_coe_base, subtype.coe_mk, le_div_iff' (@zero_lt_two ℝ _ _), ← hf_dist],
     exact le_csupr h_bdd ⟨f e, hf_maps_to he⟩ },
   replace : c ≤ 0, { linarith },
   refine λ e hx hy, dist_le_zero.1 (le_trans _ this),
@@ -134,7 +134,7 @@ variables {E F} {PE : Type*} {PF : Type*} [metric_space PE] [normed_add_torsor E
 include E F
 
 /-- Convert an isometric equivalence between two affine spaces to an `affine_map`. -/
-def to_affine_map (f : PE ≃ᵢ PF) : affine_map ℝ PE PF :=
+def to_affine_map (f : PE ≃ᵢ PF) : PE →ᵃ[ℝ] PF :=
 affine_map.mk' f
  ((vadd_const (classical.choice $ add_torsor.nonempty : PE)).trans $ f.trans
    (vadd_const (f $ classical.choice $ add_torsor.nonempty : PF)).symm).to_real_linear_equiv

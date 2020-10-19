@@ -33,13 +33,12 @@ variables {R : Type u} {a : R} {m n : ℕ}
 section semiring
 variables [semiring R] {p q : polynomial R}
 
-instance : inhabited (polynomial R) := finsupp.inhabited
+instance : inhabited (polynomial R) := add_monoid_algebra.inhabited _ _
 instance : semiring (polynomial R) := add_monoid_algebra.semiring
 instance : has_scalar R (polynomial R) := add_monoid_algebra.has_scalar
 instance : semimodule R (polynomial R) := add_monoid_algebra.semimodule
 
-instance subsingleton [subsingleton R] : subsingleton (polynomial R) :=
-⟨λ _ _, ext (λ _, subsingleton.elim _ _)⟩
+instance [subsingleton R] : unique (polynomial R) := add_monoid_algebra.unique
 
 @[simp] lemma support_zero : (0 : polynomial R).support = ∅ := rfl
 
@@ -48,15 +47,15 @@ def monomial (n : ℕ) (a : R) : polynomial R := finsupp.single n a
 
 @[simp] lemma monomial_zero_right (n : ℕ) :
   monomial n (0 : R) = 0 :=
-by simp [monomial]
+finsupp.single_zero
 
 lemma monomial_add (n : ℕ) (r s : R) :
   monomial n (r + s) = monomial n r + monomial n s :=
-by simp [monomial]
+finsupp.single_add
 
 lemma monomial_mul_monomial (n m : ℕ) (r s : R) :
   monomial n r * monomial m s = monomial (n + m) (r * s) :=
-by simp only [monomial, single_mul_single]
+add_monoid_algebra.single_mul_single
 
 
 /-- `X` is the polynomial variable (aka indeterminant). -/
@@ -80,19 +79,12 @@ by rw [mul_assoc, X_pow_mul, ←mul_assoc]
 lemma commute_X (p : polynomial R) : commute X p := X_mul
 
 /-- coeff p n is the coefficient of X^n in p -/
-def coeff (p : polynomial R) := p.to_fun
+def coeff (p : polynomial R) : ℕ → R := @coe_fn (ℕ →₀ R) _ p
 
 @[simp] lemma coeff_mk (s) (f) (h) : coeff (finsupp.mk s f h : polynomial R) = f := rfl
 
 lemma coeff_monomial : coeff (monomial n a) m = if n = m then a else 0 :=
-by { dsimp [monomial, single, finsupp.single], congr, }
-
-/--
-This lemma is needed for occasions when we break through the abstraction from
-`polynomial` to `finsupp`; ideally it wouldn't be necessary at all.
--/
-lemma coeff_single : coeff (single n a) m = if n = m then a else 0 :=
-coeff_monomial
+by { dsimp [monomial, coeff], rw finsupp.single_apply, congr }
 
 @[simp] lemma coeff_zero (n : ℕ) : coeff (0 : polynomial R) n = 0 := rfl
 
@@ -105,37 +97,20 @@ coeff_monomial
 lemma coeff_X : coeff (X : polynomial R) n = if 1 = n then 1 else 0 := coeff_monomial
 
 theorem ext_iff {p q : polynomial R} : p = q ↔ ∀ n, coeff p n = coeff q n :=
-⟨λ h n, h ▸ rfl, finsupp.ext⟩
+finsupp.ext_iff
 
 @[ext] lemma ext {p q : polynomial R} : (∀ n, coeff p n = coeff q n) → p = q :=
-(@ext_iff _ _ p q).2
+finsupp.ext
 
 -- this has the same content as the subsingleton
 lemma eq_zero_of_eq_zero (h : (0 : R) = (1 : R)) (p : polynomial R) : p = 0 :=
 by rw [←one_smul R p, ←h, zero_smul]
 
 lemma support_monomial (n) (a : R) (H : a ≠ 0) : (monomial n a).support = singleton n :=
-begin
-  ext,
-  have m3 : a_1 ∈ (monomial n a).support ↔ coeff (monomial n a) a_1 ≠ 0 := (monomial n a).mem_support_to_fun a_1,
-  rw [finset.mem_singleton, m3, coeff_monomial],
-  split_ifs,
-    { rwa [h, eq_self_iff_true, iff_true], },
-    { rw [← @not_not (a_1=n)],
-      apply not_congr,
-      rw [eq_self_iff_true, true_iff, ← ne.def],
-      symmetry,
-      assumption, },
-end
+finsupp.support_single_ne_zero H
 
 lemma support_monomial' (n) (a : R) : (monomial n a).support ⊆ singleton n :=
-begin
-  by_cases h : a = 0,
-  { rw [h, monomial_zero_right, support_zero],
-    exact finset.empty_subset {n}, },
-  { rw support_monomial n a h,
-    exact finset.subset.refl {n}, },
-end
+finsupp.support_single_subset
 
 lemma X_pow_eq_monomial (n) : X ^ n = monomial n (1:R) :=
 begin
@@ -167,7 +142,6 @@ section comm_semiring
 variables [comm_semiring R]
 
 instance : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
-instance : comm_monoid (polynomial R) := comm_semiring.to_comm_monoid (polynomial R)
 
 end comm_semiring
 
@@ -188,11 +162,7 @@ instance [comm_ring R] : comm_ring (polynomial R) := add_monoid_algebra.comm_rin
 section nonzero_semiring
 
 variables [semiring R] [nontrivial R]
-instance : nontrivial (polynomial R) :=
-begin
-  refine nontrivial_of_ne 0 1 _, intro h,
-  have := coeff_zero 0, revert this, rw h, simp,
-end
+instance : nontrivial (polynomial R) := add_monoid_algebra.nontrivial
 
 lemma X_ne_zero : (X : polynomial R) ≠ 0 :=
 mt (congr_arg (λ p, coeff p 1)) (by simp)

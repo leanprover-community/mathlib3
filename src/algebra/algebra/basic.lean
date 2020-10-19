@@ -74,7 +74,7 @@ rfl
 
 namespace algebra
 
-variables {R : Type u} {S : Type v} {A : Type w}
+variables {R : Type u} {S : Type v} {A : Type w} {B : Type*}
 
 /-- Let `R` be a commutative semiring, let `A` be a semiring with a `semimodule R` structure.
 If `(r • 1) * x = x * (r • 1) = r • x` for all `r : R` and `x : A`, then `A` is an `algebra`
@@ -100,7 +100,8 @@ of_semimodule' (λ r x, by rw [h₁, one_mul]) (λ r x, by rw [h₂, mul_one])
 
 section semiring
 
-variables [comm_semiring R] [comm_semiring S] [semiring A] [algebra R A]
+variables [comm_semiring R] [comm_semiring S]
+variables [semiring A] [algebra R A] [semiring B] [algebra R B]
 
 lemma smul_def'' (r : R) (x : A) : r • x = algebra_map R A r * x :=
 algebra.smul_def' r x
@@ -161,7 +162,7 @@ by rw [smul_def, smul_def, left_comm]
 by rw [smul_def, smul_def, mul_assoc]
 
 section
-variables (r : R) (a : A)
+variables {r : R} {a : A}
 
 @[simp] lemma bit0_smul_one : bit0 r • (1 : A) = r • 2 :=
 by simp [bit0, add_smul, smul_add]
@@ -202,6 +203,22 @@ namespace id
 @[simp] lemma smul_eq_mul (x y : R) : x • y = x * y := rfl
 
 end id
+
+section prod
+variables (R A B)
+
+instance : algebra R (A × B) :=
+{ commutes' := by { rintro r ⟨a, b⟩, dsimp, rw [commutes r a, commutes r b] },
+  smul_def' := by { rintro r ⟨a, b⟩, dsimp, rw [smul_def r a, smul_def r b] },
+  .. prod.semimodule,
+  .. ring_hom.prod (algebra_map R A) (algebra_map R B) }
+
+variables {R A B}
+
+@[simp] lemma algebra_map_prod_apply (r : R) :
+  algebra_map R (A × B) r = (algebra_map R A r, algebra_map R B r) := rfl
+
+end prod
 
 /-- Algebra over a subsemiring. -/
 instance of_subsemiring (S : subsemiring R) : algebra S A :=
@@ -462,6 +479,10 @@ lemma map_sum {ι : Type*} (f : ι → A) (s : finset ι) :
   φ (∑ x in s, f x) = ∑ x in s, φ (f x) :=
 φ.to_ring_hom.map_sum f s
 
+lemma map_finsupp_sum {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α) (g : ι → α → A) :
+  φ (f.sum g) = f.sum (λ i a, φ (g i a)) :=
+φ.map_sum _ _
+
 @[simp] lemma map_nat_cast (n : ℕ) : φ n = n :=
 φ.to_ring_hom.map_nat_cast n
 
@@ -520,20 +541,22 @@ end semiring
 section comm_semiring
 
 variables [comm_semiring R] [comm_semiring A] [comm_semiring B]
-variables [algebra R A] [algebra R B]
-
-variables (φ : A →ₐ[R] B)
+variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
 
 lemma map_prod {ι : Type*} (f : ι → A) (s : finset ι) :
   φ (∏ x in s, f x) = ∏ x in s, φ (f x) :=
 φ.to_ring_hom.map_prod f s
 
+lemma map_finsupp_prod {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α) (g : ι → α → A) :
+  φ (f.prod g) = f.prod (λ i a, φ (g i a)) :=
+φ.map_prod _ _
+
 end comm_semiring
 
 section ring
 
-variables [comm_ring R] [ring A] [ring B] [ring C]
-variables [algebra R A] [algebra R B] [algebra R C] (φ : A →ₐ[R] B)
+variables [comm_ring R] [ring A] [ring B]
+variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
 
 @[simp] lemma map_neg (x) : φ (-x) = -φ x :=
 φ.to_ring_hom.map_neg x
@@ -580,6 +603,9 @@ notation A ` ≃ₐ[`:50 R `] ` A' := alg_equiv R A A'
 namespace alg_equiv
 
 variables {R : Type u} {A₁ : Type v} {A₂ : Type w} {A₃ : Type u₁}
+
+section semiring
+
 variables [comm_semiring R] [semiring A₁] [semiring A₂] [semiring A₃]
 variables [algebra R A₁] [algebra R A₂] [algebra R A₃]
 variables (e : A₁ ≃ₐ[R] A₂)
@@ -632,17 +658,13 @@ end
 @[simp] lemma commutes : ∀ (r : R), e (algebra_map R A₁ r) = algebra_map R A₂ r :=
   e.commutes'
 
-@[simp] lemma map_neg {A₁ : Type v} {A₂ : Type w}
-  [ring A₁] [ring A₂] [algebra R A₁] [algebra R A₂] (e : A₁ ≃ₐ[R] A₂) :
-  ∀ x, e (-x) = -(e x) := e.to_add_equiv.map_neg
-
-@[simp] lemma map_sub {A₁ : Type v} {A₂ : Type w}
-  [ring A₁] [ring A₂] [algebra R A₁] [algebra R A₂] (e : A₁ ≃ₐ[R] A₂) :
-  ∀ x y, e (x - y) = e x - e y := e.to_add_equiv.map_sub
-
 lemma map_sum {ι : Type*} (f : ι → A₁) (s : finset ι) :
   e (∑ x in s, f x) = ∑ x in s, e (f x) :=
 e.to_add_equiv.map_sum f s
+
+lemma map_finsupp_sum {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α) (g : ι → α → A₁) :
+  e (f.sum g) = f.sum (λ i b, e (g i b)) :=
+e.map_sum _ _
 
 /-- Interpret an algebra equivalence as an algebra homomorphism.
 
@@ -755,6 +777,49 @@ ext $ λ x, show e₁.to_linear_map x = e₂.to_linear_map x, by rw H
 
 @[simp] lemma trans_to_linear_map (f : A₁ ≃ₐ[R] A₂) (g : A₂ ≃ₐ[R] A₃) :
   (f.trans g).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
+
+end semiring
+
+section comm_semiring
+
+variables [comm_semiring R] [comm_semiring A₁] [comm_semiring A₂]
+variables [algebra R A₁] [algebra R A₂] (e : A₁ ≃ₐ[R] A₂)
+
+lemma map_prod {ι : Type*} (f : ι → A₁) (s : finset ι) :
+  e (∏ x in s, f x) = ∏ x in s, e (f x) :=
+e.to_alg_hom.map_prod f s
+
+lemma map_finsupp_prod {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α) (g : ι → α → A₁) :
+  e (f.prod g) = f.prod (λ i a, e (g i a)) :=
+e.to_alg_hom.map_finsupp_prod f g
+
+end comm_semiring
+
+section ring
+
+variables [comm_ring R] [ring A₁] [ring A₂]
+variables [algebra R A₁] [algebra R A₂] (e : A₁ ≃ₐ[R] A₂)
+
+@[simp] lemma map_neg (x) : e (-x) = -e x :=
+e.to_alg_hom.map_neg x
+
+@[simp] lemma map_sub (x y) : e (x - y) = e x - e y :=
+e.to_alg_hom.map_sub x y
+
+end ring
+
+section division_ring
+
+variables [comm_ring R] [division_ring A₁] [division_ring A₂]
+variables [algebra R A₁] [algebra R A₂] (e : A₁ ≃ₐ[R] A₂)
+
+@[simp] lemma map_inv (x) : e (x⁻¹) = (e x)⁻¹ :=
+e.to_alg_hom.map_inv x
+
+@[simp] lemma map_div (x y) : e (x / y) = e x / e y :=
+e.to_alg_hom.map_div x y
+
+end division_ring
 
 end alg_equiv
 

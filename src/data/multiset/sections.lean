@@ -19,14 +19,14 @@ The sections of a multiset of multisets `s` consists of all those multisets
 which can be put in bijection with `s`, so each element is an member of the corresponding multiset.
 -/
 def sections (s : multiset (multiset α)) : multiset (multiset α) :=
-multiset.rec_on s {0} (λs _ c, s.bind $ λa, c.map ((::) a))
+multiset.rec_on s {0} (λs _ c, s.bind $ λa, c.map (multiset.cons a))
   (assume a₀ a₁ s pi, by simp [map_bind, bind_bind a₀ a₁, cons_swap])
 
-@[simp] lemma sections_zero : sections (0 : multiset (multiset α)) = 0::0 :=
+@[simp] lemma sections_zero : sections (0 : multiset (multiset α)) = 0 ::ₘ 0 :=
 rfl
 
 @[simp] lemma sections_cons (s : multiset (multiset α)) (m : multiset α) :
-  sections (m :: s) = m.bind (λa, (sections s).map ((::) a)) :=
+  sections (m ::ₘ s) = m.bind (λa, (sections s).map (multiset.cons a)) :=
 rec_on_cons m s
 
 lemma coe_sections : ∀(l : list (list α)),

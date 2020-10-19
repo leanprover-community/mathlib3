@@ -6,12 +6,21 @@ Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp, Anne Baanen
 import linear_algebra.finsupp
 import order.zorn
 import data.finset.order
+import data.equiv.fin
 
-/-! Linear independence
+/-!
+
+# Linear independence
 
 This file defines linear independence in a module or vector space.
 
 It is inspired by Isabelle/HOL's linear algebra, and hence indirectly by HOL Light.
+
+We define `linear_independent R v` as `ker (finsupp.total ι M R v) = ⊥`. Here `finsupp.total` is the
+linear map sending a function `f : ι →₀ R` with finite support to the linear combination of vectors
+from `v` with these coefficients. Then we prove that several other statements are equivalent to this
+one, including injectivity of `finsupp.total ι M R v` and some versions with explicitly written
+linear combinations.
 
 ## Main definitions
 
@@ -23,6 +32,29 @@ vector space and `ι : Type*` is an arbitrary indexing type.
 * `linear_independent.repr hv x` returns the linear combination representing `x : span R (range v)`
 on the linearly independent vectors `v`, given `hv : linear_independent R v`
 (using classical choice). `linear_independent.repr hv` is provided as a linear map.
+
+## Main statements
+
+We prove several specialized tests for linear independence of families of vectors and of sets of
+vectors.
+
+* `fintype.linear_independent_iff`: if `ι` is a finite type, then any function `f : ι → R` has
+  finite support, so we can reformulate the statement using `∑ i : ι, f i • v i` instead of a sum
+  over an auxiliary `s : finset ι`;
+* `linear_independent_empty_type`: a family indexed by an empty type is linearly independent;
+* `linear_independent_unique_iff`: if `ι` is a singleton, then `linear_independent K v` is
+  equivalent to `v (default ι) ≠ 0`;
+* linear_independent_option`, `linear_independent_sum`, `linear_independent_fin_cons`,
+  `linear_independent_fin_succ`: type-specific tests for linear independence of families of vector
+  fields;
+* `linear_independent_insert`, `linear_independent_union`, `linear_independent_pair`,
+  `linear_independent_singleton`: linear independence tests for set operations.
+
+In many cases we additionally provide dot-style operations (e.g., `linear_independent.union`) to
+make the linear independence tests usable as `hv.insert ha` etc.
+
+We also prove that any family of vectors includes a linear independent subfamily spanning the same
+submodule.
 
 ## Implementation notes
 
@@ -65,6 +97,12 @@ theorem linear_independent_iff : linear_independent R v ↔
   ∀l, finsupp.total ι M R v l = 0 → l = 0 :=
 by simp [linear_independent, linear_map.ker_eq_bot']
 
+theorem linear_independent_iff_injective_total : linear_independent R v ↔
+  function.injective (finsupp.total ι M R v) :=
+linear_independent_iff.trans (finsupp.total ι M R v).to_add_monoid_hom.injective_iff.symm
+
+alias linear_independent_iff_injective_total ↔ linear_independent.injective_total _
+
 theorem linear_independent_iff' : linear_independent R v ↔
   ∀ s : finset ι, ∀ g : ι → R, ∑ i in s, g i • v i = 0 → ∀ i ∈ s, g i = 0 :=
 linear_independent_iff.trans
@@ -90,10 +128,20 @@ linear_independent_iff'.trans ⟨λ H s g hg hv i, if his : i ∈ s then H s g h
   exact (if_pos hi).symm }⟩
 
 theorem linear_dependent_iff : ¬ linear_independent R v ↔
-  ∃ s : finset ι, ∃ g : ι → R, s.sum (λ i, g i • v i) = 0 ∧ (∃ i ∈ s, g i ≠ 0) :=
+  ∃ s : finset ι, ∃ g : ι → R, (∑ i in s, g i • v i) = 0 ∧ (∃ i ∈ s, g i ≠ 0) :=
 begin
   rw linear_independent_iff',
   simp only [exists_prop, not_forall],
+end
+
+theorem fintype.linear_independent_iff [fintype ι] :
+  linear_independent R v ↔ ∀ g : ι → R, ∑ i, g i • v i = 0 → ∀ i, g i = 0 :=
+begin
+  refine ⟨λ H g, by simpa using linear_independent_iff'.1 H finset.univ g,
+    λ H, linear_independent_iff''.2 $ λ s g hg hs i, H _ _ _⟩,
+  rw ← hs,
+  refine (finset.sum_subset (finset.subset_univ _) (λ i _ hi, _)).symm,
+  rw [hg i hi, zero_smul]
 end
 
 lemma linear_independent_empty_type (h : ¬ nonempty ι) : linear_independent R v :=
@@ -101,7 +149,7 @@ begin
  rw [linear_independent_iff],
  intros,
  ext i,
- exact false.elim (not_nonempty_iff_imp_false.1 h i)
+ exact false.elim (h ⟨i⟩)
 end
 
 lemma linear_independent.ne_zero [nontrivial R]
@@ -113,6 +161,8 @@ lemma linear_independent.ne_zero [nontrivial R]
   {simp [h]}
 end
 
+/-- A subfamily of a linearly independent family (i.e., a composition with an injective map) is a
+linearly independent family. -/
 lemma linear_independent.comp
   (h : linear_independent R v) (f : ι' → ι) (hf : injective f) : linear_independent R (v ∘ f) :=
 begin
@@ -120,17 +170,51 @@ begin
   intros l hl,
   have h_map_domain : ∀ x, (finsupp.map_domain f l) (f x) = 0,
     by rw linear_independent_iff.1 h (finsupp.map_domain f l) hl; simp,
-  ext,
-  convert h_map_domain a,
-  simp only [finsupp.map_domain_apply hf],
+  ext x,
+  convert h_map_domain x,
+  rw [finsupp.map_domain_apply hf]
 end
 
-lemma linear_independent_of_subsingleton [subsingleton R] : linear_independent R v :=
-linear_independent_iff.2 (λ l hl, subsingleton.elim l 0)
+/-- If `v` is a linearly independent family of vectors and the kernel of a linear map `f` is
+disjoint with the sumodule spaned by the vectors of `v`, then `f ∘ v` is a linearly independent
+family of vectors. See also `linear_independent.map'` for a special case assuming `ker f = ⊥`. -/
+lemma linear_independent.map (hv : linear_independent R v) {f : M →ₗ[R] M'}
+  (hf_inj : disjoint (span R (range v)) f.ker) : linear_independent R (f ∘ v) :=
+begin
+  rw [disjoint, ← set.image_univ, finsupp.span_eq_map_total, map_inf_eq_map_inf_comap,
+    map_le_iff_le_comap, comap_bot, finsupp.supported_univ, top_inf_eq] at hf_inj,
+  unfold linear_independent at hv ⊢,
+  rw [hv, le_bot_iff] at hf_inj,
+  haveI : inhabited M := ⟨0⟩,
+  rw [finsupp.total_comp, @finsupp.lmap_domain_total _ _ R _ _ _ _ _ _ _ _ _ _ f,
+    linear_map.ker_comp, hf_inj],
+  exact λ _, rfl,
+end
 
-lemma linear_independent.unique (hv : linear_independent R v) {l₁ l₂ : ι →₀ R} :
-  finsupp.total ι M R v l₁ = finsupp.total ι M R v l₂ → l₁ = l₂ :=
-by apply linear_map.ker_eq_bot.1 hv
+/-- An injective linear map sends linearly independent families of vectors to linearly independent
+families of vectors. See also `linear_independent.map` for a more general statement. -/
+lemma linear_independent.map' (hv : linear_independent R v) (f : M →ₗ[R] M')
+  (hf_inj : f.ker = ⊥) : linear_independent R (f ∘ v) :=
+hv.map $ by simp [hf_inj]
+
+/-- If the image of a family of vectors under a linear map is linearly independent, then so is
+the original family. -/
+lemma linear_independent.of_comp (f : M →ₗ[R] M') (hfv : linear_independent R (f ∘ v)) :
+  linear_independent R v :=
+linear_independent_iff'.2 $ λ s g hg i his,
+have ∑ (i : ι) in s, g i • f (v i) = 0,
+  by simp_rw [← f.map_smul, ← f.map_sum, hg, f.map_zero],
+linear_independent_iff'.1 hfv s g this i his
+
+/-- If `f` is an injective linear map, then the family `f ∘ v` is linearly independent
+if and only if the family `v` is linearly independent. -/
+protected lemma linear_map.linear_independent_iff (f : M →ₗ[R] M') (hf_inj : f.ker = ⊥) :
+  linear_independent R (f ∘ v) ↔ linear_independent R v :=
+⟨λ h, h.of_comp f, λ h, h.map $ by simp only [hf_inj, disjoint_bot_right]⟩
+
+@[nontriviality]
+lemma linear_independent_of_subsingleton [subsingleton R] : linear_independent R v :=
+linear_independent_iff.2 (λ l hl, subsingleton.elim _ _)
 
 lemma linear_independent.injective [nontrivial R] (hv : linear_independent R v) :
   injective v :=
@@ -138,17 +222,12 @@ begin
   intros i j hij,
   let l : ι →₀ R := finsupp.single i (1 : R) - finsupp.single j 1,
   have h_total : finsupp.total ι M R v l = 0,
-  { rw finsupp.total_apply,
-    rw finsupp.sum_sub_index,
-    { simp [finsupp.sum_single_index, hij] },
-    { intros, apply sub_smul } },
+  { simp_rw [linear_map.map_sub, finsupp.total_apply],
+    simp [hij] },
   have h_single_eq : finsupp.single i (1 : R) = finsupp.single j 1,
   { rw linear_independent_iff at hv,
     simp [eq_add_of_sub_eq' (hv l h_total)] },
-  show i = j,
-  { apply or.elim ((finsupp.single_eq_single_iff _ _ _ _).1 h_single_eq),
-    simp,
-    exact λ h, false.elim (zero_ne_one.symm h.1) }
+  simpa [finsupp.single_eq_single_iff] using h_single_eq
 end
 
 theorem linear_independent_equiv (e : ι ≃ ι') {f : ι' → M} :
@@ -160,37 +239,37 @@ theorem linear_independent_equiv' (e : ι ≃ ι') {f : ι' → M} {g : ι → M
   linear_independent R g ↔ linear_independent R f :=
 h ▸ linear_independent_equiv e
 
+theorem linear_independent_subtype_range {ι} {f : ι → M} (hf : injective f) :
+  linear_independent R (coe : range f → M) ↔ linear_independent R f :=
+iff.symm $ linear_independent_equiv' (equiv.set.range f hf) rfl
+
+alias linear_independent_subtype_range ↔ linear_independent.of_subtype_range _
+
+theorem linear_independent.to_subtype_range {ι} {f : ι → M} (hf : linear_independent R f) :
+  linear_independent R (coe : range f → M) :=
+begin
+  nontriviality R,
+  exact (linear_independent_subtype_range hf.injective).2 hf
+end
+
+theorem linear_independent.to_subtype_range' {ι} {f : ι → M} (hf : linear_independent R f)
+  {t} (ht : range f = t) :
+  linear_independent R (coe : t → M) :=
+ht ▸ hf.to_subtype_range
+
 theorem linear_independent_image {ι} {s : set ι} {f : ι → M} (hf : set.inj_on f s) :
   linear_independent R (λ x : s, f x) ↔ linear_independent R (λ x : f '' s, (x : M)) :=
 linear_independent_equiv' (equiv.set.image_of_inj_on _ _ hf) rfl
 
-theorem linear_independent.image' {ι} {s : set ι} {f : ι → M}
+theorem linear_independent.image {ι} {s : set ι} {f : ι → M}
   (hs : linear_independent R (λ x : s, f x)) : linear_independent R (λ x : f '' s, (x : M)) :=
-or.cases_on (subsingleton_or_nontrivial R)
-  (λ hr, by exactI linear_independent_of_subsingleton )
-  (λ hr, by exactI (linear_independent_image $ set.inj_on_iff_injective.2 hs.injective).1 hs)
+(linear_independent_equiv' (equiv.set.of_eq $ by rw [range_comp, subtype.range_coe]) rfl).1
+  hs.to_subtype_range
 
 lemma linear_independent_span (hs : linear_independent R v) :
   @linear_independent ι R (span R (range v))
       (λ i : ι, ⟨v i, subset_span (mem_range_self i)⟩) _ _ _ :=
-begin
-  rw linear_independent_iff at *,
-  intros l hl,
-  apply hs l,
-  have := congr_arg (submodule.subtype (span R (range v))) hl,
-  convert this,
-  rw [finsupp.total_apply, finsupp.total_apply],
-  unfold finsupp.sum,
-  rw linear_map.map_sum (submodule.subtype (span R (range v))),
-  simp
-end
-
-lemma linear_independent_of_comp (f : M →ₗ[R] M') (hfv : linear_independent R (f ∘ v)) :
-  linear_independent R v :=
-linear_independent_iff'.2 $ λ s g hg i his,
-have ∑ (i : ι) in s, g i • f (v i) = 0,
-  by simp_rw [← f.map_smul, ← f.map_sum, hg, f.map_zero],
-linear_independent_iff'.1 hfv s g this i his
+linear_independent.of_comp (span R (range v)).subtype hs
 
 section subtype
 /-! The following lemmas use the subtype defined by a set in `M` as the index set `ι`. -/
@@ -199,38 +278,18 @@ theorem linear_independent_comp_subtype {s : set ι} :
   linear_independent R (v ∘ coe : s → M) ↔
   ∀ l ∈ (finsupp.supported R R s), (finsupp.total ι M R v) l = 0 → l = 0 :=
 begin
-  rw [linear_independent_iff, finsupp.total_comp],
-  simp only [linear_map.comp_apply],
+  simp only [linear_independent_iff, (∘), finsupp.mem_supported, finsupp.total_apply,
+    set.subset_def, finset.mem_coe],
   split,
   { intros h l hl₁ hl₂,
-    have h_bij : bij_on coe (coe ⁻¹' ↑l.support : set s) ↑l.support,
-    { apply bij_on.mk,
-      { apply maps_to_preimage },
-      { apply subtype.coe_injective.inj_on },
-      intros i hi,
-      rw [image_preimage_eq_inter_range, subtype.range_coe],
-      exact ⟨hi, (finsupp.mem_supported _ _).1 hl₁ hi⟩ },
-    show l = 0,
-    { apply finsupp.eq_zero_of_comap_domain_eq_zero (coe : s → ι) _ h_bij,
-      apply h,
-      convert hl₂,
-      rw [finsupp.lmap_domain_apply, finsupp.map_domain_comap_domain],
-      exact subtype.coe_injective,
-      rw subtype.range_coe,
-      exact (finsupp.mem_supported _ _).1 hl₁ } },
+    have := h (l.subtype_domain s) ((finsupp.sum_subtype_domain_index hl₁).trans hl₂),
+    exact (finsupp.subtype_domain_eq_zero_iff hl₁).1 this },
   { intros h l hl,
-    have hl' : finsupp.total ι M R v (finsupp.emb_domain ⟨coe, subtype.coe_injective⟩ l) = 0,
-    { rw finsupp.emb_domain_eq_map_domain ⟨coe, subtype.coe_injective⟩ l,
-      apply hl },
-    apply finsupp.emb_domain_inj.1,
-    rw [h (finsupp.emb_domain ⟨coe, subtype.coe_injective⟩ l) _ hl',
-        finsupp.emb_domain_zero],
-    rw [finsupp.mem_supported, finsupp.support_emb_domain],
-    intros x hx,
-    rw [finset.mem_coe, finset.mem_map] at hx,
-    rcases hx with ⟨i, x', hx'⟩,
-    rw ←hx',
-    simp }
+    refine finsupp.emb_domain_eq_zero.1 (h (l.emb_domain $ function.embedding.subtype s) _ _),
+    { suffices : ∀ i hi, ¬l ⟨i, hi⟩ = 0 → i ∈ s, by simpa,
+      intros, assumption },
+    { rwa [finsupp.emb_domain_eq_map_domain, finsupp.sum_map_domain_index],
+      exacts [λ _, zero_smul _ _, λ _ _ _, add_smul _ _ _] } }
 end
 
 theorem linear_independent_subtype {s : set M} :
@@ -254,66 +313,10 @@ by rw [finsupp.total_on, linear_map.ker, linear_map.comap_cod_restrict, map_bot,
   linear_map.ker_comp, linear_independent_subtype_disjoint, disjoint, ← map_comap_subtype,
   map_le_iff_le_comap, comap_bot, ker_subtype, le_bot_iff]
 
-lemma linear_independent.to_subtype_range
-  (hv : linear_independent R v) : linear_independent R (λ x, x : range v → M) :=
-begin
-  cases subsingleton_or_nontrivial R; resetI,
-  { apply linear_independent_of_subsingleton },
-  rw linear_independent_subtype,
-  intros l hl₁ hl₂,
-  have h_bij : bij_on v (v ⁻¹' ↑l.support) ↑l.support,
-  { apply bij_on.mk,
-    { apply maps_to_preimage },
-    { apply (linear_independent.injective hv).inj_on },
-    intros x hx,
-    rcases mem_range.1 (((finsupp.mem_supported _ _).1 hl₁ : ↑(l.support) ⊆ range v) hx)
-      with ⟨i, hi⟩,
-    rw mem_image,
-    use i,
-    rw [mem_preimage, hi],
-    exact ⟨hx, rfl⟩ },
-  apply finsupp.eq_zero_of_comap_domain_eq_zero v l h_bij,
-  apply linear_independent_iff.1 hv,
-  rw [finsupp.total_comap_domain, finset.sum_preimage_of_bij v l.support h_bij
-    (λ (x : M), l x • x)],
-  rwa [finsupp.total_apply, finsupp.sum] at hl₂
-end
-
-lemma linear_independent.of_subtype_range (hv : injective v)
-  (h : linear_independent R (λ x, x : range v → M)) : linear_independent R v :=
-begin
-  rw linear_independent_iff,
-  intros l hl,
-  apply finsupp.map_domain_injective hv,
-  apply linear_independent_subtype.1 h (l.map_domain v),
-  { rw finsupp.mem_supported,
-    intros x hx,
-    have := finset.mem_coe.2 (finsupp.map_domain_support hx),
-    rw finset.coe_image at this,
-    apply set.image_subset_range _ _ this, },
-  { rwa [finsupp.total_map_domain _ _ hv, left_id] }
-end
-
 lemma linear_independent.restrict_of_comp_subtype {s : set ι}
   (hs : linear_independent R (v ∘ coe : s → M)) :
   linear_independent R (s.restrict v) :=
-begin
-  have h_restrict : restrict v s = v ∘ coe := rfl,
-  rw [linear_independent_iff, h_restrict, finsupp.total_comp],
-  intros l hl,
-  have h_map_domain_subtype_eq_0 : l.map_domain coe = 0,
-  { rw linear_independent_comp_subtype at hs,
-    apply hs (finsupp.lmap_domain R R coe l) _ hl,
-    rw finsupp.mem_supported,
-    simp,
-    intros x hx,
-    have := finset.mem_coe.2 (finsupp.map_domain_support (finset.mem_coe.1 hx)),
-    rw finset.coe_image at this,
-    exact subtype.coe_image_subset _ _ this },
-  apply @finsupp.map_domain_injective _ (subtype s) ι,
-  { apply subtype.coe_injective },
-  { simpa },
-end
+hs
 
 variables (R M)
 lemma linear_independent_empty : linear_independent R (λ x, x : (∅ : set M) → M) :=
@@ -327,39 +330,55 @@ begin
  exact (disjoint.mono_left (finsupp.supported_mono h))
 end
 
+lemma linear_independent.disjoint_span_image (hv : linear_independent R v) {s t : set ι}
+  (hs : disjoint s t) :
+  disjoint (submodule.span R $ v '' s) (submodule.span R $ v '' t) :=
+begin
+  simp only [disjoint_def, finsupp.mem_span_iff_total],
+  rintros _ ⟨l₁, hl₁, rfl⟩ ⟨l₂, hl₂, H⟩,
+  rw [hv.injective_total.eq_iff] at H, subst l₂,
+  have : l₁ = 0 := finsupp.disjoint_supported_supported hs (submodule.mem_inf.2 ⟨hl₁, hl₂⟩),
+  simp [this]
+end
+
+lemma linear_independent_sum {v : ι ⊕ ι' → M} :
+  linear_independent R v ↔ linear_independent R (v ∘ sum.inl) ∧
+    linear_independent R (v ∘ sum.inr) ∧
+      disjoint (submodule.span R (range (v ∘ sum.inl))) (submodule.span R (range (v ∘ sum.inr))) :=
+begin
+  rw [range_comp v, range_comp v],
+  refine ⟨λ h, ⟨h.comp _ sum.injective_inl, h.comp _ sum.injective_inr,
+    h.disjoint_span_image is_compl_range_inl_range_inr.1⟩, _⟩,
+  rintro ⟨hl, hr, hlr⟩,
+  rw [linear_independent_iff'] at *,
+  intros s g hg i hi,
+  have : ∑ i in s.preimage sum.inl (sum.injective_inl.inj_on _), (λ x, g x • v x) (sum.inl i) +
+    ∑ i in s.preimage sum.inr (sum.injective_inr.inj_on _), (λ x, g x • v x) (sum.inr i) = 0,
+  { rw [finset.sum_preimage', finset.sum_preimage', ← finset.sum_union, ← finset.filter_or],
+    { simpa only [← mem_union, range_inl_union_range_inr, mem_univ, finset.filter_true] },
+    { exact finset.disjoint_filter.2 (λ x hx, disjoint_left.1 is_compl_range_inl_range_inr.1) } },
+  { rw ← eq_neg_iff_add_eq_zero at this,
+    rw [disjoint_def'] at hlr,
+    have A := hlr _ (sum_mem _ $ λ i hi, _) _ (neg_mem _ $ sum_mem _ $ λ i hi, _) this,
+    { cases i with i i,
+      { exact hl _ _ A i (finset.mem_preimage.2 hi) },
+      { rw [this, neg_eq_zero] at A,
+        exact hr _ _ A i (finset.mem_preimage.2 hi) } },
+    { exact smul_mem _ _ (subset_span ⟨sum.inl i, mem_range_self _, rfl⟩) },
+    { exact smul_mem _ _ (subset_span ⟨sum.inr i, mem_range_self _, rfl⟩) } }
+end
+
+lemma linear_independent.sum_type {v' : ι' → M} (hv : linear_independent R v)
+  (hv' : linear_independent R v')
+  (h : disjoint (submodule.span R (range v)) (submodule.span R (range v'))) :
+  linear_independent R (sum.elim v v') :=
+linear_independent_sum.2 ⟨hv, hv', h⟩
+
 lemma linear_independent.union {s t : set M}
   (hs : linear_independent R (λ x, x : s → M)) (ht : linear_independent R (λ x, x : t → M))
   (hst : disjoint (span R s) (span R t)) :
   linear_independent R (λ x, x : (s ∪ t) → M) :=
-begin
-  rw [linear_independent_subtype_disjoint, disjoint_def, finsupp.supported_union],
-  intros l h₁ h₂, rw mem_sup at h₁,
-  rcases h₁ with ⟨ls, hls, lt, hlt, rfl⟩,
-  have h_ls_mem_t : finsupp.total M M R id ls ∈ span R t,
-  { rw [← image_id t, finsupp.span_eq_map_total],
-    apply (add_mem_iff_left (map _ _) (mem_image_of_mem _ hlt)).1,
-    rw [← linear_map.map_add, linear_map.mem_ker.1 h₂],
-    apply zero_mem },
-  have h_lt_mem_s : finsupp.total M M R id lt ∈ span R s,
-  { rw [← image_id s, finsupp.span_eq_map_total],
-    apply (add_mem_iff_left (map _ _) (mem_image_of_mem _ hls)).1,
-    rw [← linear_map.map_add, add_comm, linear_map.mem_ker.1 h₂],
-    apply zero_mem },
-  have h_ls_mem_s : (finsupp.total M M R id) ls ∈ span R s,
-  { rw ← image_id s,
-    apply (finsupp.mem_span_iff_total _).2 ⟨ls, hls, rfl⟩ },
-  have h_lt_mem_t : (finsupp.total M M R id) lt ∈ span R t,
-  { rw ← image_id t,
-    apply (finsupp.mem_span_iff_total _).2 ⟨lt, hlt, rfl⟩ },
-  have h_ls_0 : ls = 0 :=
-    disjoint_def.1 (linear_independent_subtype_disjoint.1 hs) _ hls
-    (linear_map.mem_ker.2 $ disjoint_def.1 hst (finsupp.total M M R id ls) h_ls_mem_s h_ls_mem_t),
-  have h_lt_0 : lt = 0 :=
-    disjoint_def.1 (linear_independent_subtype_disjoint.1 ht) _ hlt
-    (linear_map.mem_ker.2 $ disjoint_def.1 hst (finsupp.total M M R id lt) h_lt_mem_s h_lt_mem_t),
-  show ls + lt = 0,
-    by simp [h_ls_0, h_lt_0],
-end
+(hs.sum_type ht $ by simpa).to_subtype_range' $ by simp
 
 lemma linear_independent_of_finite (s : set M)
   (H : ∀ t ⊆ s, finite t → linear_independent R (λ x, x : t → M)) :
@@ -428,7 +447,7 @@ lemma linear_independent_Union_finite {η : Type*} {ιs : η → Type*}
       disjoint (span R (range (f i))) (⨆i∈t, span R (range (f i)))) :
   linear_independent R (λ ji : Σ j, ιs j, f ji.1 ji.2) :=
 begin
-  cases subsingleton_or_nontrivial R; resetI, { exact linear_independent_of_subsingleton },
+  nontriviality R,
   apply linear_independent.of_subtype_range,
   { rintros ⟨x₁, x₂⟩ ⟨y₁, y₂⟩ hxy,
     by_cases h_cases : x₁ = y₁,
@@ -582,33 +601,13 @@ end
 
 open linear_map
 
-lemma linear_independent.image (hv : linear_independent R v) {f : M →ₗ M'}
-  (hf_inj : disjoint (span R (range v)) f.ker) : linear_independent R (f ∘ v) :=
-begin
-  rw [disjoint, ← set.image_univ, finsupp.span_eq_map_total, map_inf_eq_map_inf_comap,
-    map_le_iff_le_comap, comap_bot, finsupp.supported_univ, top_inf_eq] at hf_inj,
-  unfold linear_independent at hv,
-  rw hv at hf_inj,
-  haveI : inhabited M := ⟨0⟩,
-  rw [linear_independent, finsupp.total_comp],
-  rw [@finsupp.lmap_domain_total _ _ R _ _ _ _ _ _ _ _ _ _ f, ker_comp, eq_bot_iff],
-  apply hf_inj,
-  exact λ _, rfl,
-end
-
 lemma linear_independent.image_subtype {s : set M} {f : M →ₗ M'}
   (hs : linear_independent R (λ x, x : s → M))
   (hf_inj : disjoint (span R s) f.ker) : linear_independent R (λ x, x : f '' s → M') :=
 begin
-  rw [disjoint, ← set.image_id s, finsupp.span_eq_map_total, map_inf_eq_map_inf_comap,
-    map_le_iff_le_comap, comap_bot] at hf_inj,
-  haveI : inhabited M := ⟨0⟩,
-  rw [linear_independent_subtype_disjoint, disjoint, ← finsupp.lmap_domain_supported _ _ f, map_inf_eq_map_inf_comap,
-      map_le_iff_le_comap, ← ker_comp],
-  rw [@finsupp.lmap_domain_total _ _ R _ _ _, ker_comp],
-  { exact le_trans (le_inf inf_le_left hf_inj)
-    (le_trans (linear_independent_subtype_disjoint.1 hs) bot_le) },
-  { simp }
+  rw [← @subtype.range_coe _ s] at hf_inj,
+  refine (hs.map hf_inj).to_subtype_range' _,
+  simp [set.range_comp f]
 end
 
 lemma linear_independent.inl_union_inr {s : set M} {t : set M'}
@@ -624,20 +623,10 @@ end
 lemma linear_independent_inl_union_inr' {v : ι → M} {v' : ι' → M'}
   (hv : linear_independent R v) (hv' : linear_independent R v') :
   linear_independent R (sum.elim (inl R M M' ∘ v) (inr R M M' ∘ v')) :=
+(hv.map' (inl R M M') ker_inl).sum_type (hv'.map' (inr R M M') ker_inr) $
 begin
-  cases subsingleton_or_nontrivial R; resetI; [exact linear_independent_of_subsingleton, skip],
-  have inj_v : injective v := (linear_independent.injective hv),
-  have inj_v' : injective v' := (linear_independent.injective hv'),
-  apply linear_independent.of_subtype_range,
-  { apply sum.elim_injective,
-    { exact inl_injective.comp inj_v },
-    { exact inr_injective.comp inj_v' },
-    { intros, simp [hv.ne_zero] } },
-  { rw sum.elim_range,
-    refine (hv.image _).to_subtype_range.union (hv'.image _).to_subtype_range _;
-      [simp, simp, skip],
-    apply disjoint_inl_inr.mono _ _;
-      simp only [set.range_comp, span_image, linear_map.map_le_range] }
+  refine is_compl_range_inl_inr.disjoint.mono _ _;
+    simp only [span_le, range_coe, range_comp_subset_range],
 end
 
 /-- Dedekind's linear independence of characters -/
@@ -758,36 +747,42 @@ begin
     exact false.elim (h _ ((smul_mem_iff _ ha').1 ha)) }
 end
 
-lemma linear_independent_unique [unique ι] (h : v (default ι) ≠ 0): linear_independent K v :=
+lemma linear_independent_unique_iff [unique ι] :
+  linear_independent K v ↔ v (default ι) ≠ 0 :=
 begin
-  rw linear_independent_iff,
-  intros l hl,
-  ext i,
-  rw [unique.eq_default i, finsupp.zero_apply],
-  by_contra hc,
-  have := smul_smul (l (default ι))⁻¹ (l (default ι)) (v (default ι)),
-  rw [finsupp.unique_single l, finsupp.total_single] at hl,
-  rw [hl, inv_mul_cancel hc, smul_zero, one_smul] at this,
-  exact h this.symm
+  simp only [linear_independent_iff, finsupp.total_unique, smul_eq_zero],
+  refine ⟨λ h hv, _, λ hv l hl, finsupp.unique_ext $ hl.resolve_right hv⟩,
+  have := h (finsupp.single (default ι) 1) (or.inr hv),
+  exact one_ne_zero (finsupp.single_eq_zero.1 this)
 end
+
+alias linear_independent_unique_iff ↔ _ linear_independent_unique
 
 lemma linear_independent_singleton {x : V} (hx : x ≠ 0) :
   linear_independent K (λ x, x : ({x} : set V) → V) :=
+@linear_independent_unique _ _ _ _ _ _ _ (set.unique_singleton _) ‹_›
+
+lemma linear_independent_option' :
+  linear_independent K (λ o, option.cases_on' o x v : option ι → V) ↔
+    linear_independent K v ∧ (x ∉ submodule.span K (range v)) :=
 begin
-  apply @linear_independent_unique _ _ _ _ _ _ _ _ _,
-  apply set.unique_singleton,
-  apply hx,
+  rw [← linear_independent_equiv (equiv.option_equiv_sum_punit ι).symm, linear_independent_sum,
+    @range_unique _ punit, @linear_independent_unique_iff punit, disjoint_span_singleton],
+  dsimp [(∘)],
+  refine ⟨λ h, ⟨h.1, λ hx, h.2.1 $ h.2.2 hx⟩, λ h, ⟨h.1, _, λ hx, (h.2 hx).elim⟩⟩,
+  rintro rfl,
+  exact h.2 (zero_mem _)
 end
 
-lemma disjoint_span_singleton {p : submodule K V} {x : V} (x0 : x ≠ 0) :
-  disjoint p (span K {x}) ↔ x ∉ p :=
-⟨λ H xp, x0 (disjoint_def.1 H _ xp (singleton_subset_iff.1 subset_span:_)),
-begin
-  simp [disjoint_def, mem_span_singleton],
-  rintro xp y yp a rfl,
-  by_cases a0 : a = 0, {simp [a0]},
-  exact xp.elim ((smul_mem_iff p a0).1 yp),
-end⟩
+lemma linear_independent.option (hv : linear_independent K v)
+  (hx : x ∉ submodule.span K (range v)) :
+  linear_independent K (λ o, option.cases_on' o x v : option ι → V) :=
+linear_independent_option'.2 ⟨hv, hx⟩
+
+lemma linear_independent_option {v : option ι → V} :
+  linear_independent K v ↔
+    linear_independent K (v ∘ coe : ι → V) ∧ v none ∉ submodule.span K (range (v ∘ coe : ι → V)) :=
+by simp only [← linear_independent_option', option.cases_on'_none_coe]
 
 lemma linear_independent.insert (hs : linear_independent K (λ b, b : s → V)) (hx : x ∉ span K s) :
   linear_independent K (λ b, b : insert x s → V) :=
@@ -795,39 +790,47 @@ begin
   rw ← union_singleton,
   have x0 : x ≠ 0 := mt (by rintro rfl; apply zero_mem _) hx,
   apply hs.union (linear_independent_singleton x0),
-  rwa [disjoint_span_singleton x0]
+  rwa [disjoint_span_singleton' x0]
 end
-
-theorem linear_independent_insert (hxs : x ∉ s) :
-  linear_independent K (λ b : insert x s, (b : V)) ↔
-  linear_independent K (λ b : s, (b : V)) ∧ x ∉ submodule.span K s :=
-⟨λ h, ⟨h.mono $ set.subset_insert x s,
-have (λ (b : ↥(insert x s)), ↑b) '' (set.univ \ {⟨x, set.mem_insert x s⟩}) = s,
-from set.ext $ λ b, ⟨λ ⟨y, hy1, hy2⟩, hy2 ▸ y.2.resolve_left (λ H, hy1.2 $ subtype.eq H),
-  λ hb, ⟨⟨b, set.mem_insert_of_mem x hb⟩,
-    ⟨trivial, λ H, hxs $ (show b = x, from congr_arg subtype.val H) ▸ hb⟩, rfl⟩⟩,
-this ▸ linear_independent_iff_not_mem_span.1 h ⟨x, set.mem_insert x s⟩⟩,
-λ ⟨h1, h2⟩, h1.insert h2⟩
 
 theorem linear_independent_insert' {ι} {s : set ι} {a : ι} {f : ι → V} (has : a ∉ s) :
   linear_independent K (λ x : insert a s, f x) ↔
   linear_independent K (λ x : s, f x) ∧ f a ∉ submodule.span K (f '' s) :=
+by { rw [← linear_independent_equiv ((equiv.option_equiv_sum_punit _).trans
+  (equiv.set.insert has).symm), linear_independent_option], simp [(∘), range_comp f] }
+
+theorem linear_independent_insert (hxs : x ∉ s) :
+  linear_independent K (λ b : insert x s, (b : V)) ↔
+  linear_independent K (λ b : s, (b : V)) ∧ x ∉ submodule.span K s :=
+(@linear_independent_insert' _ _ _ _ _ _ _ _ id hxs).trans $ by simp
+
+lemma linear_independent_pair {x y : V} (hx : x ≠ 0) (hy : ∀ a : K, a • x ≠ y) :
+  linear_independent K (coe : ({x, y} : set V) → V) :=
+pair_comm y x ▸ (linear_independent_singleton hx).insert $ mt mem_span_singleton.1
+  (not_exists.2 hy)
+
+lemma linear_independent_fin_cons {n} {v : fin n → V} :
+  linear_independent K (fin.cons x v : fin (n + 1) → V) ↔
+    linear_independent K v ∧ x ∉ submodule.span K (range v) :=
 begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { have hfas : f a ∉ f '' s := λ ⟨x, hxs, hfxa⟩, has (set.mem_of_eq_of_mem (congr_arg subtype.val $
-      (@id _ (h.injective) ⟨x, or.inr hxs⟩ ⟨a, or.inl rfl⟩ hfxa)).symm hxs),
-    have := h.image',
-    rwa [set.image_insert_eq, linear_independent_insert hfas, ← linear_independent_image] at this,
-    exact (set.inj_on_iff_injective.2 h.injective).mono (set.subset_insert _ _) },
-  { cases h with h1 h2,
-    have : set.inj_on f (insert a s) :=
-      (set.inj_on_insert has).2 ⟨set.inj_on_iff_injective.2 h1.injective,
-        λ h, h2 $ submodule.subset_span h⟩,
-    have hfas : f a ∉ f '' s := λ ⟨x, hxs, hfxa⟩, has (set.mem_of_eq_of_mem
-      (this (or.inr hxs) (or.inl rfl) hfxa).symm hxs),
-    rw [linear_independent_image this, set.image_insert_eq, linear_independent_insert hfas],
-    exact ⟨h1.image', h2⟩ }
+  rw [← linear_independent_equiv (fin_succ_equiv n).symm, linear_independent_option],
+  simp [(∘), fin_succ_equiv, option.coe_def, fin.cons_succ, *]
 end
+
+lemma linear_independent.fin_cons {n} {v : fin n → V} (hv : linear_independent K v)
+  (hx : x ∉ submodule.span K (range v)) :
+  linear_independent K (fin.cons x v : fin (n + 1) → V) :=
+linear_independent_fin_cons.2 ⟨hv, hx⟩
+
+lemma linear_independent_fin_succ {n} {v : fin (n + 1) → V} :
+  linear_independent K v ↔
+    linear_independent K (fin.tail v) ∧ v 0 ∉ submodule.span K (range $ fin.tail v) :=
+by rw [← linear_independent_fin_cons, fin.cons_self_tail]
+
+lemma linear_independent_fin2 {f : fin 2 → V} :
+  linear_independent K f ↔ f 1 ≠ 0 ∧ ∀ a : K, a • f 1 ≠ f 0 :=
+by rw [linear_independent_fin_succ, linear_independent_unique_iff, range_unique,
+  mem_span_singleton, not_exists]; refl
 
 lemma exists_linear_independent (hs : linear_independent K (λ x, x : s → V)) (hst : s ⊆ t) :
   ∃b⊆t, s ⊆ b ∧ t ⊆ span K b ∧ linear_independent K (λ x, x : b → V) :=

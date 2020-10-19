@@ -73,8 +73,8 @@ by simp
     (prod.snd ≫ prod.snd) }
 
 /-- The product functor can be decomposed. -/
-def prod_functor_left_comp (X Y : C) :
-  prod_functor.obj (X ⨯ Y) ≅ prod_functor.obj Y ⋙ prod_functor.obj X :=
+def prod.functor_left_comp (X Y : C) :
+  prod.functor.obj (X ⨯ Y) ≅ prod.functor.obj Y ⋙ prod.functor.obj X :=
 nat_iso.of_components (prod.associator _ _) (by tidy)
 
 @[reassoc]
@@ -89,8 +89,6 @@ lemma prod.associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X�
   prod.map (prod.map f₁ f₂) f₃ ≫ (prod.associator Y₁ Y₂ Y₃).hom =
     (prod.associator X₁ X₂ X₃).hom ≫ prod.map f₁ (prod.map f₂ f₃) :=
 by tidy
-
-
 
 variables [has_terminal C]
 
@@ -107,24 +105,24 @@ variables [has_terminal C]
   inv := prod.lift (𝟙 _) (terminal.from P) }
 
 @[reassoc]
-lemma prod_left_unitor_hom_naturality (f : X ⟶ Y):
+lemma prod.left_unitor_hom_naturality (f : X ⟶ Y):
   prod.map (𝟙 _) f ≫ (prod.left_unitor Y).hom = (prod.left_unitor X).hom ≫ f :=
 prod.map_snd _ _
 
 @[reassoc]
-lemma prod_left_unitor_inv_naturality (f : X ⟶ Y):
+lemma prod.left_unitor_inv_naturality (f : X ⟶ Y):
   (prod.left_unitor X).inv ≫ prod.map (𝟙 _) f = f ≫ (prod.left_unitor Y).inv :=
-by rw [iso.inv_comp_eq, ← category.assoc, iso.eq_comp_inv, prod_left_unitor_hom_naturality]
+by rw [iso.inv_comp_eq, ← category.assoc, iso.eq_comp_inv, prod.left_unitor_hom_naturality]
 
 @[reassoc]
-lemma prod_right_unitor_hom_naturality (f : X ⟶ Y):
+lemma prod.right_unitor_hom_naturality (f : X ⟶ Y):
   prod.map f (𝟙 _) ≫ (prod.right_unitor Y).hom = (prod.right_unitor X).hom ≫ f :=
 prod.map_fst _ _
 
 @[reassoc]
 lemma prod_right_unitor_inv_naturality (f : X ⟶ Y):
   (prod.right_unitor X).inv ≫ prod.map f (𝟙 _) = f ≫ (prod.right_unitor Y).inv :=
-by rw [iso.inv_comp_eq, ← category.assoc, iso.eq_comp_inv, prod_right_unitor_hom_naturality]
+by rw [iso.inv_comp_eq, ← category.assoc, iso.eq_comp_inv, prod.right_unitor_hom_naturality]
 
 lemma prod.triangle (X Y : C) :
   (prod.associator X (⊤_ C) Y).hom ≫ prod.map (𝟙 X) ((prod.left_unitor Y).hom) =

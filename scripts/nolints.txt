@@ -92,21 +92,6 @@ apply_nolint traversable.mfoldl doc_blame
 apply_nolint traversable.mfoldl.unop_of_free_monoid unused_arguments
 apply_nolint traversable.mfoldr doc_blame
 
--- control/functor.lean
-apply_nolint functor.add_const doc_blame has_inhabited_instance
-apply_nolint functor.add_const.mk doc_blame
-apply_nolint functor.add_const.run doc_blame
-apply_nolint functor.comp has_inhabited_instance
-apply_nolint functor.comp.map doc_blame
-apply_nolint functor.comp.mk doc_blame
-apply_nolint functor.comp.run doc_blame
-apply_nolint functor.comp.seq doc_blame
-apply_nolint functor.const has_inhabited_instance
-apply_nolint functor.const.mk doc_blame
-apply_nolint functor.const.mk' doc_blame
-apply_nolint functor.const.run doc_blame
-apply_nolint id.mk doc_blame
-
 -- control/monad/cont.lean
 apply_nolint cont doc_blame
 apply_nolint cont_t doc_blame has_inhabited_instance
@@ -270,9 +255,6 @@ apply_nolint fp.to_rat doc_blame
 apply_nolint fp.valid_finite doc_blame
 apply_nolint int.shift2 doc_blame
 
--- data/hash_map.lean
-apply_nolint hash_map has_inhabited_instance
-
 -- data/holor.lean
 apply_nolint holor.assoc_left doc_blame
 apply_nolint holor.assoc_right doc_blame
@@ -345,65 +327,8 @@ apply_nolint multiset.sum doc_blame
 -- data/multiset/functor.lean
 apply_nolint multiset.traverse doc_blame
 
--- data/num/basic.lean
-apply_nolint cast_pos_num unused_arguments
-apply_nolint num.gcd_aux doc_blame
-apply_nolint pos_num.divmod_aux doc_blame
-apply_nolint pos_num.sqrt_aux doc_blame
-apply_nolint pos_num.sqrt_aux1 doc_blame
-
 -- data/num/bitwise.lean
-apply_nolint num.land doc_blame
-apply_nolint num.ldiff doc_blame
-apply_nolint num.lor doc_blame
-apply_nolint num.lxor doc_blame
-apply_nolint num.one_bits doc_blame
-apply_nolint num.shiftl doc_blame
-apply_nolint num.shiftr doc_blame
-apply_nolint num.test_bit doc_blame
-apply_nolint nzsnum.bit0 doc_blame
-apply_nolint nzsnum.bit1 doc_blame
-apply_nolint nzsnum.drec' doc_blame
-apply_nolint nzsnum.head doc_blame
-apply_nolint nzsnum.not doc_blame
-apply_nolint nzsnum.sign doc_blame
-apply_nolint nzsnum.tail doc_blame
-apply_nolint pos_num.land doc_blame
-apply_nolint pos_num.ldiff doc_blame
-apply_nolint pos_num.lor doc_blame
-apply_nolint pos_num.lxor doc_blame
-apply_nolint pos_num.one_bits doc_blame
-apply_nolint pos_num.shiftl doc_blame
-apply_nolint pos_num.shiftr doc_blame
-apply_nolint pos_num.test_bit doc_blame
-apply_nolint snum.add doc_blame
-apply_nolint snum.bit doc_blame
-apply_nolint snum.bit0 doc_blame
-apply_nolint snum.bit1 doc_blame
-apply_nolint snum.bits doc_blame
 apply_nolint snum.cadd doc_blame
-apply_nolint snum.czadd doc_blame
-apply_nolint snum.drec' doc_blame
-apply_nolint snum.head doc_blame
-apply_nolint snum.mul doc_blame
-apply_nolint snum.neg doc_blame
-apply_nolint snum.not doc_blame
-apply_nolint snum.pred doc_blame
-apply_nolint snum.rec' doc_blame
-apply_nolint snum.sign doc_blame
-apply_nolint snum.sub doc_blame
-apply_nolint snum.succ doc_blame
-apply_nolint snum.tail doc_blame
-apply_nolint snum.test_bit doc_blame
-
--- data/num/lemmas.lean
-apply_nolint int.of_snum doc_blame
-apply_nolint num.transfer doc_blame
-apply_nolint num.transfer_rw doc_blame
-apply_nolint pos_num.transfer doc_blame
-apply_nolint pos_num.transfer_rw doc_blame
-apply_nolint znum.transfer doc_blame
-apply_nolint znum.transfer_rw doc_blame
 
 -- data/opposite.lean
 apply_nolint opposite.op_induction doc_blame

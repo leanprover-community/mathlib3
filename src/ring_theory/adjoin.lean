@@ -121,6 +121,17 @@ le_antisymm
       polynomial.aeval_def _ polynomial.X, polynomial.eval₂_X],
       exact is_submonoid.mul_mem ih (subset_adjoin rfl) }))
 
+lemma adjoin_singleton_one : adjoin R ({1} : set A) = ⊥ :=
+begin
+  rw [eq_bot_iff, adjoin_singleton_eq_range],
+  intro a,
+  simp only [alg_hom.coe_range, set.mem_range, coe_bot, exists_imp_distrib],
+  rintro φ rfl,
+  refine ⟨polynomial.aeval 1 φ, _⟩,
+  simp only [polynomial.aeval_def, polynomial.eval₂_eq_sum, finsupp.sum, ring_hom.map_sum,
+    one_pow, mul_one, id.map_eq_self]
+end
+
 theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t) : submodule R A) =
   (adjoin R s) * (adjoin R t) :=
 begin

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Sébastien Gouëzel
 -/
 import data.complex.basic
-import algebra.algebra.basic
+import algebra.algebra.ordered
 
 /-!
 # Complex number as a vector space over `ℝ`

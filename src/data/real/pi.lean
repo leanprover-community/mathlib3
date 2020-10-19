@@ -206,7 +206,7 @@ begin
     { simpa only [U, hk] using zero_rpow_le_one _ },
     { exact rpow_le_one_of_one_le_of_nonpos (by { norm_cast, exact nat.succ_le_iff.mpr
         (nat.pos_of_ne_zero hk) }) (le_of_lt (@div_neg_of_neg_of_pos _ _ (-(1:ℝ)) (2*k+1)
-          (by norm_num) (by { norm_cast, linarith } ))) } },
+          (by norm_num) (by { norm_cast, linarith }))) } },
   have hU2 := nnreal.coe_nonneg U,
   -- (4) We compute the derivative of `f`, denoted by `f'`
   let f' := λ (x:ℝ), (-x^2) ^ k / (1 + x^2),

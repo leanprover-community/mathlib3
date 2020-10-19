@@ -25,7 +25,6 @@ section semiring
 
 variables {R : Type*} [semiring R] {f : polynomial R}
 
---namespace rev
 /-- If `i ≤ N`, then `rev_at_fun N i` returns `N - i`, otherwise it returns `i`.
 This is the map used by the embedding `rev_at`.
 -/
@@ -43,10 +42,7 @@ begin
 end
 
 lemma rev_at_fun_inj {N : ℕ} : function.injective (rev_at_fun N) :=
-begin
-  intros a b hab,
-  rw [← @rev_at_fun_invol N a, hab, rev_at_fun_invol],
-end
+λ a b hab, by rw [← @rev_at_fun_invol N a, hab, rev_at_fun_invol]
 
 /-- If `i ≤ N`, then `rev_at N i` returns `N - i`, otherwise it returns `i`.
 Essentially, this embedding is only used for `i ≤ N`.
@@ -70,9 +66,9 @@ lemma rev_at_add {N O n o : ℕ} (hn : n ≤ N) (ho : o ≤ O) :
 begin
   rcases nat.le.dest hn with ⟨n', rfl⟩,
   rcases nat.le.dest ho with ⟨o', rfl⟩,
-  repeat { rw rev_at_le (le_add_right rfl.le) },
+  repeat { rw rev_at_le (le_add_right rfl.le), },
   rw [add_assoc, add_left_comm n' o, ← add_assoc, rev_at_le (le_add_right rfl.le)],
-  repeat {rw nat.add_sub_cancel_left},
+  repeat { rw nat.add_sub_cancel_left },
 end
 
 /-- `reflect N f` is the polynomial such that `(reflect N f).coeff i = f.coeff (rev_at N i)`.
@@ -98,7 +94,7 @@ calc finsupp.emb_domain (rev_at N) f i
 
 @[simp] lemma reflect_eq_zero_iff {N : ℕ} {f : polynomial R} :
   reflect N (f : polynomial R) = 0 ↔ f = 0 :=
-by refine ⟨(λ a,by rwa [reflect, emb_domain_eq_zero] at a), by { rintro rfl, refl }⟩
+by refine ⟨(λ a, by rwa [reflect, emb_domain_eq_zero] at a), by { rintro rfl, refl }⟩
 
 @[simp] lemma reflect_add (f g : polynomial R) (N : ℕ) :
   reflect N (f + g) = reflect N f + reflect N g :=
@@ -115,7 +111,7 @@ begin
   rw [reflect_C_mul, coeff_C_mul, coeff_C_mul, coeff_X_pow, coeff_reflect],
   split_ifs,
   { rw [h, rev_at_invol, coeff_X_pow_self], },
-  { rw [not_mem_support_iff_coeff_zero.mp],
+  { rw not_mem_support_iff_coeff_zero.mp,
     intro a,
     rw [← one_mul (X ^ n), ← C_1] at a,
     apply h,
@@ -186,7 +182,7 @@ begin
   { rw [g0, mul_zero, reverse_zero, mul_zero], },
   apply reverse_mul,
   apply mul_ne_zero;
-    rwa [← leading_coeff_eq_zero] at *
+  { rwa [← leading_coeff_eq_zero] at *, },
 end
 
 lemma reflect_ne_zero_iff {N : ℕ} {f : polynomial R} :
@@ -241,10 +237,6 @@ begin
   { rintro ⟨a, ha, rfl⟩ ,
     refine ⟨a, ha, by rw (monotone_rev_at_eq_rev_at_small (le_trans (le_max' _ _ ha) sm)) ⟩, },
 end
-
---end rev
-
---open rev
 
 lemma nat_degree_reflect_eq_nat_trailing_degree {N : ℕ} (f0 : f ≠ 0) (H : f.nat_degree ≤ N) :
   (reflect N f).nat_degree = rev_at N f.nat_trailing_degree :=

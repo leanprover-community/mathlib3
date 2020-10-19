@@ -1841,6 +1841,10 @@ lemma forall_prod_set {p : α × β → Prop} :
   (∀ x ∈ s.prod t, p x) ↔ ∀ (x ∈ s) (y ∈ t), p (x, y) :=
 prod_subset_iff
 
+lemma exists_prod_set {p : α × β → Prop} :
+  (∃ x ∈ s.prod t, p x) ↔ ∃ (x ∈ s) (y ∈ t), p (x, y) :=
+by simp [and_assoc]
+
 @[simp] theorem prod_empty : s.prod ∅ = (∅ : set (α × β)) :=
 by { ext, simp }
 
@@ -2200,6 +2204,14 @@ lemma mem_image2_iff (hf : injective2 f) : f a b ∈ image2 f s t ↔ a ∈ s �
 lemma image2_subset (hs : s ⊆ s') (ht : t ⊆ t') : image2 f s t ⊆ image2 f s' t' :=
 by { rintro _ ⟨a, b, ha, hb, rfl⟩, exact mem_image2_of_mem (hs ha) (ht hb) }
 
+lemma forall_image2_iff {p : γ → Prop} :
+  (∀ z ∈ image2 f s t, p z) ↔ ∀ (x ∈ s) (y ∈ t), p (f x y) :=
+⟨λ h x hx y hy, h _ ⟨x, y, hx, hy, rfl⟩, λ h z ⟨x, y, hx, hy, hz⟩, hz ▸ h x hx y hy⟩
+
+lemma image2_subset_iff {u : set γ} :
+  image2 f s t ⊆ u ↔ ∀ (x ∈ s) (y ∈ t), f x y ∈ u :=
+forall_image2_iff
+
 lemma image2_union_left : image2 f (s ∪ s') t = image2 f s t ∪ image2 f s' t :=
 begin
   ext c, split,
@@ -2226,10 +2238,10 @@ by { rintro _ ⟨a, b, ha, ⟨h1b, h2b⟩, rfl⟩, split; exact ⟨_, _, ‹_›
 @[simp] lemma image2_singleton : image2 f {a} {b} = {f a b} :=
 ext $ λ x, by simp [eq_comm]
 
-lemma image2_singleton_left : image2 f {a} t = f a '' t :=
+@[simp] lemma image2_singleton_left : image2 f {a} t = f a '' t :=
 ext $ λ x, by simp
 
-lemma image2_singleton_right : image2 f s {b} = (λ a, f a b) '' s :=
+@[simp] lemma image2_singleton_right : image2 f s {b} = (λ a, f a b) '' s :=
 ext $ λ x, by simp
 
 @[congr] lemma image2_congr (h : ∀ (a ∈ s) (b ∈ t), f a b = f' a b) :
@@ -2274,6 +2286,11 @@ begin
   { rintro ⟨a, _, ha, ⟨b, c, hb, hc, rfl⟩, rfl⟩, refine ⟨a, b, c, ha, hb, hc, rfl⟩ },
   { rintro ⟨a, b, c, ha, hb, hc, rfl⟩, refine ⟨a, _, ha, ⟨b, c, hb, hc, rfl⟩, rfl⟩ }
 end
+
+lemma image2_assoc {ε'} {f : δ → γ → ε} {g : α → β → δ} {f' : α → ε' → ε} {g' : β → γ → ε'}
+  (h_assoc : ∀ a b c, f (g a b) c = f' a (g' b c)) :
+  image2 f (image2 g s t) u = image2 f' s (image2 g' t u) :=
+by simp only [image2_image2_left, image2_image2_right, h_assoc]
 
 lemma image_image2 (f : α → β → γ) (g : γ → δ) :
   g '' image2 f s t = image2 (λ a b, g (f a b)) s t :=

@@ -96,7 +96,7 @@ noncomputable def teichmuller : R →* 𝕎 R :=
   begin
     ext ⟨⟩,
     { rw one_coeff_zero, refl },
-    { rw one_coeff_eq_of_pos _ _ (nat.succ_pos n), refl }
+    { rw one_coeff_eq_of_pos _ _ _ (nat.succ_pos n), refl }
   end,
   map_mul' :=
   begin

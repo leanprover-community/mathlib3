@@ -122,7 +122,8 @@ do
     inj_name ← resolve_constant $ constructor_left ++ "inj_arrow",
     pure (lhs, rhs, constructor_left, constructor_right, inj_name)
   } <|> fail
-    "injection tactic failed, argument must be an equality proof where lhs and rhs are of the form (c ...), where c is a constructor",
+    ("injection tactic failed, argument must be an equality proof where lhs and rhs " ++
+    "are of the form (c ...), where c is a constructor"),
   if constructor_left = constructor_right then do
     -- C.inj_arrow, for a given constructor C of datatype D, has type
     --
@@ -230,7 +231,8 @@ meta def contradict_n_eq_n_plus_m (md : transparency) (equ lhs rhs : expr) :
   ⟨lhs_n, lhs_e⟩ ← match_n_plus_m md 0 lhs,
   ⟨rhs_n, rhs_e⟩ ← match_n_plus_m md 0 rhs,
   is_def_eq lhs_e rhs_e md <|> fail
-    "contradict_n_eq_n_plus_m:\nexpected {lhs_e} and {rhs_e} to be definitionally equal at transparency {md}.",
+    ("contradict_n_eq_n_plus_m:\nexpected {lhs_e} and {rhs_e} to be definitionally " ++
+    "equal at transparency {md}."),
   let common := lhs_e,
   guard (lhs_n ≠ rhs_n) <|> fail
     "contradict_n_eq_n_plus_m:\nexpected {lhs_n} and {rhs_n} to be different.",

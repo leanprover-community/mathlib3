@@ -28,7 +28,6 @@ variables (p : ℕ) {R S : Type*} [hp : fact p.prime] [comm_ring R] [comm_ring S
 local notation `𝕎` := witt_vector p -- type as `\bbW`
 
 local attribute [semireducible] witt_vector
-local attribute [instance] mv_polynomial.invertible_rat_coe_nat
 
 /--
 The underlying function of the monoid hom `witt_vector.teichmuller`.
@@ -97,7 +96,7 @@ noncomputable def teichmuller : R →* 𝕎 R :=
   begin
     ext ⟨⟩,
     { rw one_coeff_zero, refl },
-    { rw one_coeff_pos _ _ (nat.succ_pos n), refl }
+    { rw one_coeff_eq_of_pos _ _ (nat.succ_pos n), refl }
   end,
   map_mul' :=
   begin

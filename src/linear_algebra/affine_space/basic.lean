@@ -1186,17 +1186,26 @@ by conv_rhs { rw [←vsub_vadd p1 p2, map_vadd, vadd_vsub] }
 /-- Two affine maps are equal if they coerce to the same function. -/
 @[ext] lemma ext {f g : P1 →ᵃ[k] P2} (h : ∀ p, f p = g p) : f = g :=
 begin
-  rcases f with ⟨f, f_linear, f_add⟩,
-  rcases g with ⟨g, g_linear, g_add⟩,
-  have : f = g := funext h,
-  subst g,
-  congr' with v,
-  cases (add_torsor.nonempty : nonempty P1) with p,
-  apply vadd_right_cancel (f p),
-  erw [← f_add, ← g_add]
+  have : f.linear = g.linear,
+  { ext1 v,
+    inhabit P1,
+    rw [← vadd_right_cancel_iff (f $ default P1)],
+    rw [← f.map_vadd, h, g.map_vadd, h] },
+  rcases ⟨f, g⟩ with ⟨⟨f, f_linear, hf⟩, ⟨g, g_linear, hg⟩⟩,
+  congr,
+  exacts [funext h, this]
 end
 
 lemma ext_iff {f g : P1 →ᵃ[k] P2} : f = g ↔ ∀ p, f p = g p := ⟨λ h p, h ▸ rfl, ext⟩
+
+lemma injective_coe_fn : function.injective (λ (f : P1 →ᵃ[k] P2) (x : P1), f x) :=
+λ f g H, ext $ congr_fun H
+
+protected lemma congr_arg (f : P1 →ᵃ[k] P2) {x y : P1} (h : x = y) : f x = f y :=
+congr_arg _ h
+
+protected lemma congr_fun {f g : P1 →ᵃ[k] P2} (h : f = g) (x : P1) : f x = g x :=
+h ▸ rfl
 
 variables (k P1)
 

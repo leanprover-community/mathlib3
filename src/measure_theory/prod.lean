@@ -431,14 +431,14 @@ by { rw [← prod_swap, map_apply measurable_swap hs],
      simp only [prod_apply (measurable_swap hs)], refl }
 
 lemma prod_assoc_prod [sigma_finite τ] :
-  map (measurable_equiv.prod_assoc α β γ) ((μ.prod ν).prod τ) = μ.prod (ν.prod τ) :=
+  map measurable_equiv.prod_assoc ((μ.prod ν).prod τ) = μ.prod (ν.prod τ) :=
 begin
   refine (prod_eq_generate_from generate_from_is_measurable generate_from_prod
     is_pi_system_is_measurable is_pi_system_prod μ.to_finite_spanning_sets_in
     (ν.to_finite_spanning_sets_in.prod τ.to_finite_spanning_sets_in (λ _, id) (λ _, id)) _).symm,
   rintro s hs _ ⟨t, u, ht, hu, rfl⟩, rw [mem_set_of_eq] at hs ht hu,
-  simp_rw [map_apply (measurable_equiv.measurable_coe _) (hs.prod (ht.prod hu)), prod_prod ht hu,
-    measurable_equiv.prod_assoc, measurable_equiv.coe_eq, assoc_preimage_prod,
+  simp_rw [map_apply (measurable_equiv.measurable _) (hs.prod (ht.prod hu)), prod_prod ht hu,
+    measurable_equiv.prod_assoc, measurable_equiv.coe_eq, equiv.assoc_preimage_prod,
     prod_prod (hs.prod ht) hu, prod_prod hs ht, mul_assoc]
 end
 

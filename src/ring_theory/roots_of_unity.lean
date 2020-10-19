@@ -694,7 +694,6 @@ begin
       { symmetry; exact nat.sum_totient n },
       { intros x hx,
         simp only [finset.mem_filter, finset.mem_range] at hx,
-        simp,
         obtain ⟨d, hd⟩ := hx.2,
         rw mul_comm at hd,
       exact card_primitive_roots (pow (pnat.pos n) h hd) (pnat.pos_of_div_pos hx.2) } },

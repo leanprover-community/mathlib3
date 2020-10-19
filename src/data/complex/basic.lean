@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Mario Carneiro
 -/
 import data.real.basic
-import algebra.star.algebra
 
 open_locale big_operators
 
@@ -593,8 +592,10 @@ instance : ordered_comm_ring ℂ :=
 
 /--
 With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is a star ordered ring.
-(That is, an ordered ring in which every element of the form `star z * z` is nonnegative.
-In fact, `ℂ` is a C*-algebra, and so the nonnegative elements are precisely those of this form.)
+(That is, an ordered ring in which every element of the form `star z * z` is nonnegative.)
+
+In fact, `ℂ` is a C*-algebra, and so the nonnegative elements are precisely those of this form,
+but we don't yet have C*-algebras in mathlib.
 -/
 instance : star_ordered_ring ℂ :=
 { star_mul_self_nonneg := λ z,

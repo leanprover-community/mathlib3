@@ -47,6 +47,7 @@ variables {R M N}
 lemma finite_def : finite R M ↔ (⊤ : submodule R M).fg := iff.rfl
 variables (R M N)
 
+@[priority 100] -- see Note [lower instance priority]
 instance is_noetherian.finite [is_noetherian R M] : finite R M :=
 is_noetherian.noetherian ⊤
 
@@ -87,6 +88,7 @@ let ⟨s, hs⟩ := hRA, ⟨t, ht⟩ := hAB in submodule.fg_def.2
 set.finite.image2 _ s.finite_to_set t.finite_to_set,
 by rw [set.image2_smul, submodule.span_smul hs (↑t : set B), ht, submodule.restrict_scalars'_top]⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance finite_type [hRA : finite R A] : algebra.finite_type R A :=
 subalgebra.fg_of_submodule_fg hRA
 

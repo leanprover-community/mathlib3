@@ -33,7 +33,7 @@ class ordered_algebra (R A : Type*)
 (smul_lt_smul_of_pos : ∀ {a b : A}, ∀ {r : R}, a < b → 0 < r → r • a < r • b)
 (lt_of_smul_lt_smul_of_nonneg : ∀ {a b : A}, ∀ {r : R}, r • a < r • b → 0 ≤ r → a < b)
 
-section ordered_algebra
+namespace ordered_algebra
 
 variables {R A : Type*} {a b : A} {r : R}
 

@@ -34,17 +34,21 @@ variables [add_comm_group N] [module R N]
 /-- A module over a commutative ring is `finite` if it is finitely generated as a module. -/
 def finite : Prop := (⊤ : submodule R M).fg
 
+variables {R M N}
+lemma finite_def : finite R M ↔ (⊤ : submodule R M).fg := iff.rfl
+variables (R M N)
+
 namespace finite
 
 variables {R M N}
 
 lemma of_surjective (hM : finite R M) (f : M →ₗ[R] N) (hf : surjective f) :
   finite R N :=
-begin
-  rw [← linear_map.range_eq_top, ← submodule.map_top] at hf,
-  rw [finite, ← hf],
-  exact submodule.fg_map hM
-end
+by { rw [finite, ← linear_map.range_eq_top.2 hf, ← submodule.map_top], exact submodule.fg_map hM }
+
+lemma of_injective [is_noetherian R N] (hM : finite R N) (f : M →ₗ[R] N)
+  (hf : function.injective f) : finite R M :=
+fg_of_injective f $ linear_map.ker_eq_bot.2 hf
 
 variables (R)
 
@@ -106,28 +110,10 @@ hRA.of_surjective e e.surjective
 
 lemma trans [algebra A B] [is_scalar_tower R A B] (hRA : finite R A) (hAB : finite A B) :
   finite R B :=
-begin
-  classical,
-  obtain ⟨⟨s, hs⟩, ⟨t, ht⟩⟩ := ⟨hRA, hAB⟩,
-  refine ⟨s.bind (λ a, t.bind (λ b, {a • b})), _⟩,
-  rw submodule.eq_top_iff',
-  intro b,
-  obtain ⟨f, rfl⟩ : ∃ (f : B → A), ∑ i in t, f i • i = b,
-  { rw [← mem_span_finset, ht], trivial },
-  refine submodule.sum_mem _ _,
-  intros b hb,
-  obtain ⟨g, hg⟩ : ∃ g : A → R, ∑ i in s, g i • i = f b,
-  { rw [← mem_span_finset, hs], trivial },
-  rw [← hg, finset.sum_smul],
-  refine submodule.sum_mem _ _,
-  intros a ha,
-  rw smul_assoc,
-  apply submodule.smul_mem _ _ _,
-  apply submodule.subset_span,
-  simp only [finset.bUnion_coe, exists_prop, set.mem_Union, finset.coe_bind,
-    set.mem_singleton_iff, finset.coe_singleton],
-  exact ⟨a, ha, b, hb, rfl⟩
-end
+let ⟨s, hs⟩ := hRA, ⟨t, ht⟩ := hAB in submodule.fg_def.2
+⟨set.image2 (•) (↑s : set A) (↑t : set B),
+set.finite.image2 _ s.finite_to_set t.finite_to_set,
+by rw [set.image2_smul, submodule.span_smul hs (↑t : set B), ht, submodule.restrict_scalars'_top]⟩
 
 lemma finite_type (hRA : finite R A) : finite_type R A :=
 subalgebra.fg_of_submodule_fg hRA
@@ -137,6 +123,21 @@ end finite
 namespace finite_type
 
 lemma self : finite_type R R := ⟨{1}, subsingleton.elim _ _⟩
+
+section
+open_locale classical
+attribute [elab_as_eliminator] mv_polynomial.induction_on'
+protected lemma mv_polynomial (ι : Type*) [fintype ι] : finite_type R (mv_polynomial ι R) :=
+⟨finset.univ.image mv_polynomial.X, begin
+  rw eq_top_iff, refine λ p, mv_polynomial.induction_on' p
+    (λ u x, finsupp.induction u (subalgebra.algebra_map_mem _ x)
+      (λ i n f hif hn ih, _))
+    (λ p q ihp ihq, subalgebra.add_mem _ ihp ihq),
+  rw [add_comm, mv_polynomial.monomial_add_single],
+  exact subalgebra.mul_mem _ ih
+    (subalgebra.pow_mem _ (subset_adjoin $ finset.mem_image_of_mem _ $ finset.mem_univ _) _)
+end⟩
+end
 
 variables {R A B}
 

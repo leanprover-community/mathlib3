@@ -346,6 +346,8 @@ section induction
 
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 
+/-- An intermediate field `S` is finitely generated if there exists `t : finset E` such that
+`intermediate_field.adjoin F t = S`. -/
 def fg (S : intermediate_field F E) : Prop := ∃ (t : finset E), adjoin F ↑t = S
 
 lemma fg_adjoin_finset (t : finset E) : (adjoin F (↑t : set E)).fg :=

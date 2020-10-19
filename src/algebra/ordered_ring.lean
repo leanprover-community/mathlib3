@@ -754,19 +754,8 @@ class linear_ordered_comm_ring (α : Type u) extends linear_ordered_ring α, com
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_comm_ring.to_ordered_comm_ring [d : linear_ordered_comm_ring α] : ordered_comm_ring α :=
-let s : linear_ordered_semiring α := @linear_ordered_ring.to_linear_ordered_semiring α _ in
-{ zero_mul                   := @linear_ordered_semiring.zero_mul α s,
-  mul_zero                   := @linear_ordered_semiring.mul_zero α s,
-  add_left_cancel            := @linear_ordered_semiring.add_left_cancel α s,
-  add_right_cancel           := @linear_ordered_semiring.add_right_cancel α s,
-  le_of_add_le_add_left      := @linear_ordered_semiring.le_of_add_le_add_left α s,
-  mul_lt_mul_of_pos_left     := @linear_ordered_semiring.mul_lt_mul_of_pos_left α s,
-  mul_lt_mul_of_pos_right    := @linear_ordered_semiring.mul_lt_mul_of_pos_right α s,
+{ ..linear_ordered_ring.to_linear_ordered_semiring,
   ..d }
-
-instance linear_ordered_comm_ring.to_comm_ring [s : linear_ordered_comm_ring α] :
-  comm_ring α :=
-{ ..s }
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_comm_ring.to_integral_domain [s : linear_ordered_comm_ring α] :
@@ -782,14 +771,7 @@ addition are monotone. -/
 @[priority 100] -- see Note [lower instance priority]
 instance decidable_linear_ordered_comm_ring.to_decidable_linear_ordered_semiring [d : decidable_linear_ordered_comm_ring α] :
    decidable_linear_ordered_semiring α :=
-let s : linear_ordered_semiring α := @linear_ordered_ring.to_linear_ordered_semiring α _ in
-{ zero_mul                   := @linear_ordered_semiring.zero_mul α s,
-  mul_zero                   := @linear_ordered_semiring.mul_zero α s,
-  add_left_cancel            := @linear_ordered_semiring.add_left_cancel α s,
-  add_right_cancel           := @linear_ordered_semiring.add_right_cancel α s,
-  le_of_add_le_add_left      := @linear_ordered_semiring.le_of_add_le_add_left α s,
-  mul_lt_mul_of_pos_left     := @linear_ordered_semiring.mul_lt_mul_of_pos_left α s,
-  mul_lt_mul_of_pos_right    := @linear_ordered_semiring.mul_lt_mul_of_pos_right α s,
+{ ..linear_ordered_ring.to_linear_ordered_semiring,
   ..d }
 
 section decidable_linear_ordered_comm_ring

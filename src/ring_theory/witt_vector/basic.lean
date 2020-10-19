@@ -240,10 +240,10 @@ setup_tactic_parser
 open tactic
 
 /-- An auxiliary tactic for proving that `ghost_component_fun` respects the ring operations. -/
-meta def tactic.interactive.ghost_component (poly fn : parse parser.pexpr) : tactic unit :=
+meta def tactic.interactive.ghost_component (φ fn : parse parser.pexpr) : tactic unit :=
 do fn ← to_expr ```(%%fn : fin _ → ℕ → R),
   `(fin %%k → _ → _) ← infer_type fn,
-  to_expr ```(witt_structure_int_prop p (%%poly : mv_polynomial (fin %%k) ℤ) n) >>= note `aux none >>=
+  to_expr ```(witt_structure_int_prop p (%%φ : mv_polynomial (fin %%k) ℤ) n) >>= note `aux none >>=
      apply_fun_to_hyp ```(aeval (function.uncurry %%fn)) none,
 `[simp only [aeval_bind₁] at aux,
   simp only [ghost_component_fun_apply],
@@ -380,7 +380,8 @@ include hp
 private def comm_ring_aux₁ : comm_ring (𝕎 (mv_polynomial R ℚ)) :=
 function.injective.comm_ring (ghost_map_fun)
   (ghost_map_fun.bijective_of_invertible p (mv_polynomial R ℚ)).1
-  (ghost_map_fun.zero _) (ghost_map_fun.one _) (ghost_map_fun.add) (ghost_map_fun.mul) (ghost_map_fun.neg)
+  (ghost_map_fun.zero _) (ghost_map_fun.one _)
+  (ghost_map_fun.add) (ghost_map_fun.mul) (ghost_map_fun.neg)
 
 local attribute [instance] comm_ring_aux₁
 

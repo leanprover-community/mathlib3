@@ -6,6 +6,7 @@ Authors: Joseph Myers, Yury Kudryashov.
 import algebra.group.prod
 import algebra.group.type_tags
 import algebra.group.pi
+import algebra.pointwise
 import data.equiv.basic
 import data.set.finite
 
@@ -229,29 +230,66 @@ element. -/
 lemma eq_vadd_iff_vsub_eq (p1 : P) (g : G) (p2 : P) : p1 = g +ᵥ p2 ↔ p1 -ᵥ p2 = g :=
 ⟨λ h, h.symm ▸ vadd_vsub _ _, λ h, h ▸ (vsub_vadd _ _).symm⟩
 
-/-- The pairwise differences of a set of points. -/
-def vsub_set (s : set P) : set G := set.image2 (-ᵥ) s s
+namespace set
 
-/-- `vsub_set` of an empty set. -/
-@[simp] lemma vsub_set_empty : vsub_set (∅ : set P) = ∅ :=
-set.image2_empty_left
+instance has_vsub : has_vsub (set G) (set P) := ⟨set.image2 (-ᵥ)⟩
 
-/-- `vsub_set` of a single point. -/
-@[simp] lemma vsub_set_singleton (p : P) : vsub_set ({p} : set P) = {(0:G)} :=
-by simp [vsub_set]
+section vsub
 
-/-- `vsub_set` of a finite set is finite. -/
-lemma vsub_set_finite_of_finite {s : set P} (h : set.finite s) : set.finite (vsub_set s) :=
-h.image2 _ h
+variables (s t : set P)
 
-/-- Each pairwise difference is in the `vsub_set`. -/
-lemma vsub_mem_vsub_set {p1 p2 : P} {s : set P} (hp1 : p1 ∈ s) (hp2 : p2 ∈ s) :
-  (p1 -ᵥ p2) ∈ vsub_set s :=
-set.mem_image2_of_mem hp1 hp2
+@[simp] lemma vsub_empty : s -ᵥ ∅ = ∅ := set.image2_empty_right
 
-/-- `vsub_set` is contained in `vsub_set` of a larger set. -/
-lemma vsub_set_mono {s1 s2 : set P} (h : s1 ⊆ s2) : vsub_set s1 ⊆ vsub_set s2 :=
-set.image2_subset h h
+@[simp] lemma empty_vsub : ∅ -ᵥ s = ∅ := set.image2_empty_left
+
+@[simp] lemma singleton_vsub (p : P) : {p} -ᵥ s = ((-ᵥ) p) '' s :=
+image2_singleton_left
+
+@[simp] lemma vsub_singleton (p : P) : s -ᵥ {p} = (-ᵥ p) '' s :=
+image2_singleton_right
+
+@[simp] lemma singleton_vsub_self (p : P) : ({p} : set P) -ᵥ {p} = {(0:G)} :=
+by simp
+
+variables {s t}
+
+/-- `vsub` of a finite set is finite. -/
+lemma finite.vsub (hs : finite s) (ht : finite t) : finite (s -ᵥ t) :=
+hs.image2 _ ht
+
+/-- Each pairwise difference is in the `vsub` set. -/
+lemma vsub_mem_vsub {ps pt : P} (hs : ps ∈ s) (ht : pt ∈ t) :
+  (ps -ᵥ pt) ∈ s -ᵥ t :=
+mem_image2_of_mem hs ht
+
+/-- `s -ᵥ t` is monotone in both arguments. -/
+@[mono] lemma vsub_subset_vsub {s' t' : set P} (hs : s ⊆ s') (ht : t ⊆ t') :
+  s -ᵥ t ⊆ s' -ᵥ t' :=
+image2_subset hs ht
+
+lemma vsub_subset_iff {u : set G} : s -ᵥ t ⊆ u ↔ ∀ (x ∈ s) (y ∈ t), x -ᵥ y ∈ u :=
+image2_subset_iff
+
+end vsub
+
+instance add_action : add_action (set G) (set P) :=
+{ vadd := set.image2 (+ᵥ),
+  zero_vadd' := λ s, by simp [← singleton_zero],
+  vadd_assoc' := λ s t p, by { symmetry, apply image2_assoc, intros, symmetry, apply vadd_assoc } }
+
+variables {s s' : set G} {t t' : set P}
+
+@[mono] lemma vadd_subset_vadd (hs : s ⊆ s') (ht : t ⊆ t') : s +ᵥ t ⊆ s' +ᵥ t' :=
+image2_subset hs ht
+
+@[simp] lemma vadd_singleton (s : set G) (p : P) : s +ᵥ {p} = (+ᵥ p) '' s := image2_singleton_right
+
+@[simp] lemma singleton_vadd (v : G) (s : set P) : ({v} : set G) +ᵥ s = ((+ᵥ) v) '' s :=
+image2_singleton_left
+
+lemma finite.vadd (hs : finite s) (ht : finite t) : finite (s +ᵥ t) := hs.image2 _ ht
+
+end set
 
 @[simp] lemma vadd_vsub_vadd_cancel_right (v₁ v₂ : G) (p : P) :
   (v₁ +ᵥ p) -ᵥ (v₂ +ᵥ p) = v₁ - v₂ :=

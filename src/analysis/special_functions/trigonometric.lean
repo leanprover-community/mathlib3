@@ -6,6 +6,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin
 import analysis.special_functions.exp_log
 import data.set.intervals.infinite
 import algebra.quadratic_discriminant
+import ring_theory.polynomial.chebyshev.defs
 
 /-!
 # Trigonometric functions
@@ -23,6 +24,9 @@ Many basic inequalities on trigonometric functions are established.
 
 The continuity and differentiability of the usual trigonometric functions are proved, and their
 derivatives are computed.
+
+* `polynomial.chebyshev₁_complex_cos`: the `n`-th Chebyshev polynomial evaluates on `complex.cos θ`
+  to the value `n * complex.cos θ`.
 
 ## Tags
 
@@ -1925,6 +1929,32 @@ end
 sin_surjective.range_eq
 
 end complex
+
+section chebyshev₁
+
+open polynomial complex
+
+/-- the `n`-th Chebyshev polynomial evaluates on `cos θ` to the value `cos (n * θ)`. -/
+lemma chebyshev₁_complex_cos (θ : ℂ) :
+  ∀ n, (chebyshev₁ ℂ n).eval (cos θ) = cos (n * θ)
+| 0       := by simp only [chebyshev₁_zero, eval_one, nat.cast_zero, zero_mul, cos_zero]
+| 1       := by simp only [eval_X, one_mul, chebyshev₁_one, nat.cast_one]
+| (n + 2) :=
+begin
+  simp only [eval_X, eval_one, chebyshev₁_add_two, eval_sub, eval_bit0, nat.cast_succ, eval_mul],
+  rw [chebyshev₁_complex_cos (n + 1), chebyshev₁_complex_cos n],
+  have aux : sin θ * sin θ = 1 - cos θ * cos θ,
+  { rw ← sin_sq_add_cos_sq θ, ring, },
+  simp only [nat.cast_add, nat.cast_one, add_mul, cos_add, one_mul, sin_add, mul_assoc, aux],
+  ring,
+end
+
+/-- `cos (n * θ)` is equal to the `n`-th Chebyshev polynomial evaluated on `cos θ`. -/
+lemma cos_nat_mul (n : ℕ) (θ : ℂ) :
+  cos (n * θ) = (chebyshev₁ ℂ n).eval (cos θ) :=
+(chebyshev₁_complex_cos θ n).symm
+
+end chebyshev₁
 
 namespace real
 open_locale real

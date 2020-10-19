@@ -316,7 +316,7 @@ begin
   simp
 end
 
-@[simp] lemma to_lin_to_matrix (hv : is_basis R v) :
+@[simp] lemma to_lin_to_matrix [decidable_eq ι'] (hv : is_basis R v) :
   matrix.to_lin hv he (he.to_matrix v) = id :=
 hv.ext (λ i, by rw [to_lin_self, id_apply, he.sum_to_matrix_smul_self])
 
@@ -357,12 +357,12 @@ variables {b : ι → M} {b' : ι' → M} {c : ι → N} {c' : ι' → N}
 variables (hb : is_basis R b) (hb' : is_basis R b') (hc : is_basis R c) (hc' : is_basis R c')
 variables (f : M →ₗ[R] N)
 
-@[simp] lemma is_basis_to_matrix_mul_linear_map_to_matrix :
+@[simp] lemma is_basis_to_matrix_mul_linear_map_to_matrix [decidable_eq ι'] :
   hc.to_matrix c' ⬝ linear_map.to_matrix hb' hc' f = linear_map.to_matrix hb' hc f :=
 (matrix.to_lin hb' hc).injective
   (by rw [to_lin_to_matrix, to_lin_mul hb' hc' hc, to_lin_to_matrix, hc.to_lin_to_matrix, id_comp])
 
-@[simp] lemma linear_map_to_matrix_mul_is_basis_to_matrix :
+@[simp] lemma linear_map_to_matrix_mul_is_basis_to_matrix [decidable_eq ι] [decidable_eq ι'] :
   linear_map.to_matrix hb' hc' f ⬝ hb'.to_matrix b = linear_map.to_matrix hb hc' f :=
 (matrix.to_lin hb hc').injective
   (by rw [to_lin_to_matrix, to_lin_mul hb hb' hc', to_lin_to_matrix, hb'.to_lin_to_matrix, comp_id])

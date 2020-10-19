@@ -46,7 +46,7 @@ lemma of_surjective (hM : finite R M) (f : M →ₗ[R] N) (hf : surjective f) :
   finite R N :=
 by { rw [finite, ← linear_map.range_eq_top.2 hf, ← submodule.map_top], exact submodule.fg_map hM }
 
-lemma of_injective [is_noetherian R N] (hM : finite R N) (f : M →ₗ[R] N)
+lemma of_injective [is_noetherian R N] (f : M →ₗ[R] N)
   (hf : function.injective f) : finite R M :=
 fg_of_injective f $ linear_map.ker_eq_bot.2 hf
 

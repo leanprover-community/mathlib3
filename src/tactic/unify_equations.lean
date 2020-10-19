@@ -230,10 +230,10 @@ meta def contradict_n_eq_n_plus_m (md : transparency) (equ lhs rhs : expr) :
   ⟨lhs_n, lhs_e⟩ ← match_n_plus_m md 0 lhs,
   ⟨rhs_n, rhs_e⟩ ← match_n_plus_m md 0 rhs,
   is_def_eq lhs_e rhs_e md <|> fail
-    "internal error in contradict_n_eq_n_plus_m:\nexpected {lhs_e} and {rhs_e} to be definitionally equal at transparency {md}.",
+    "contradict_n_eq_n_plus_m:\nexpected {lhs_e} and {rhs_e} to be definitionally equal at transparency {md}.",
   let common := lhs_e,
   guard (lhs_n ≠ rhs_n) <|> fail
-    "internal error in contradict_n_eq_n_plus_m:\nexpected {lhs_n} and {rhs_n} to be different.",
+    "contradict_n_eq_n_plus_m:\nexpected {lhs_n} and {rhs_n} to be different.",
   -- Ensure that lhs_n is bigger than rhs_n. Swap lhs and rhs if that's not
   -- already the case.
   ⟨equ, lhs_n, rhs_n⟩ ←

@@ -572,7 +572,7 @@ meta def prove_rat_uncast_nat (ic qc : instance_cache) (cz_inst : expr) : ∀ (a
   match match_numeral a' with
   | match_numeral_result.zero := do
     (qc, e) ← qc.mk_app ``has_zero.zero [],
-    (ic, p) ← ic.mk_app ``rat.cast_zero [cz_inst],
+    (ic, p) ← ic.mk_app ``rat.cast_zero [],
     return (ic, qc, e, p)
   | match_numeral_result.one := do
     (qc, e) ← qc.mk_app ``has_one.one [],

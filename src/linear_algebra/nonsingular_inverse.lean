@@ -100,21 +100,21 @@ begin
   { apply (cramer_map_is_linear A i).2 }
 end
 
-/-- The linear map of vectors associated to Cramer's rule.
+/--
+  `cramer A b i` is the determinant of the matrix `A` with column `i` replaced with `b`,
+  and thus `cramer A b` is the vector output by Cramer's rule on `A` and `b`.
 
-  To help the elaborator, we need to make the type `α` an explicit argument to
-  `cramer`. Otherwise, the coercion `⇑(cramer A) : (n → α) → (n → α)` gives an
-  error because it fails to infer the type (even though `α` can be inferred from
-  `A : matrix n n α`).
--/
-def cramer (α : Type v) [comm_ring α] (A : matrix n n α) : (n → α) →ₗ[α] (n → α) :=
+  If `A ⬝ x = b` has a unique solution in `x`, `cramer` sends a square matrix `A`
+  and vector `b` to the vector `x` such that `A ⬝ x = b`.
+  Otherwise, the outcome of `cramer` is well-defined but not necessarily useful. -/
+def cramer {α : Type v} [comm_ring α] (A : matrix n n α) : (n → α) →ₗ[α] (n → α) :=
 is_linear_map.mk' (cramer_map A) (cramer_is_linear A)
 
-lemma cramer_apply (i : n) : cramer α A b i = (A.update_row i b).det := rfl
+lemma cramer_apply (i : n) : cramer A b i = (A.update_row i b).det := rfl
 
 /-- Applying Cramer's rule to a column of the matrix gives a scaled basis vector. -/
 lemma cramer_column_self (i : n) :
-cramer α A (A i) = (λ j, if i = j then A.det else 0) :=
+cramer A (A i) = (λ j, if i = j then A.det else 0) :=
 begin
   ext j,
   rw cramer_apply,
@@ -132,15 +132,15 @@ end
 
 /-- Use linearity of `cramer` to take it out of a summation. -/
 lemma sum_cramer {β} (s : finset β) (f : β → n → α) :
-  ∑ x in s, cramer α A (f x) = cramer α A (∑ x in s, f x) :=
-(linear_map.map_sum (cramer α A)).symm
+  ∑ x in s, cramer A (f x) = cramer A (∑ x in s, f x) :=
+(linear_map.map_sum (cramer A)).symm
 
-/-- Use linearity of `cramer` and vector evaluation to take `cramer α A _ i` out of a summation. -/
+/-- Use linearity of `cramer` and vector evaluation to take `cramer A _ i` out of a summation. -/
 lemma sum_cramer_apply {β} (s : finset β) (f : n → β → α) (i : n) :
-∑ x in s, cramer α A (λ j, f j x) i = cramer α A (λ (j : n), ∑ x in s, f j x) i :=
-calc ∑ x in s, cramer α A (λ j, f j x) i
-    = (∑ x in s, cramer α A (λ j, f j x)) i : (finset.sum_apply i s _).symm
-... = cramer α A (λ (j : n), ∑ x in s, f j x) i :
+∑ x in s, cramer A (λ j, f j x) i = cramer A (λ (j : n), ∑ x in s, f j x) i :=
+calc ∑ x in s, cramer A (λ j, f j x) i
+    = (∑ x in s, cramer A (λ j, f j x)) i : (finset.sum_apply i s _).symm
+... = cramer A (λ (j : n), ∑ x in s, f j x) i :
   by { rw [sum_cramer, cramer_apply], congr' with j, apply finset.sum_apply }
 
 end cramer
@@ -162,10 +162,10 @@ while the `inv` section is specifically for invertible matrices.
   minor as replacing a column with a basis vector, since it allows us to use
   facts about the `cramer` map.
 -/
-def adjugate (A : matrix n n α) : matrix n n α := λ i, cramer α A (λ j, if i = j then 1 else 0)
+def adjugate (A : matrix n n α) : matrix n n α := λ i, cramer A (λ j, if i = j then 1 else 0)
 
 lemma adjugate_def (A : matrix n n α) :
-  adjugate A = λ i, cramer α A (λ j, if i = j then 1 else 0) := rfl
+  adjugate A = λ i, cramer A (λ j, if i = j then 1 else 0) := rfl
 
 lemma adjugate_apply (A : matrix n n α) (i j : n) :
   adjugate A i j = (A.update_row j (λ j, if i = j then 1 else 0)).det := rfl
@@ -198,7 +198,7 @@ begin
 end
 
 lemma cramer_transpose_eq_adjugate_mul_vec (A : matrix n n α) (b : n → α) :
-  cramer α Aᵀ b = A.adjugate.mul_vec b :=
+  cramer Aᵀ b = A.adjugate.mul_vec b :=
 begin
   nth_rewrite 1 ← A.transpose_transpose,
   rw [← adjugate_transpose, adjugate_def],
@@ -208,7 +208,7 @@ begin
 end
 
 lemma mul_adjugate_apply (A : matrix n n α) (i j k) :
-  A i k * adjugate A k j = cramer α A (λ j, if k = j then A i k else 0) j :=
+  A i k * adjugate A k j = cramer A (λ j, if k = j then A i k else 0) j :=
 begin
   erw [←smul_eq_mul, ←pi.smul_apply, ←linear_map.map_smul],
   congr' with l,
@@ -221,11 +221,11 @@ begin
   rw [mul_apply, smul_apply, one_apply, mul_boole],
   calc
     ∑ k : n, A i k * adjugate A k j
-        = ∑ k : n, cramer α A (λ j, if k = j then A i k else 0) j
+        = ∑ k : n, cramer A (λ j, if k = j then A i k else 0) j
       : by { congr' with k, apply mul_adjugate_apply A i j k }
-    ... = cramer α A (λ j, ∑ k : n, if k = j then A i k else 0) j
+    ... = cramer A (λ j, ∑ k : n, if k = j then A i k else 0) j
       : sum_cramer_apply A univ (λ (j k : n), if k = j then A i k else 0) j
-    ... = cramer α A (A i) j : by { rw [cramer_apply], congr' with k,
+    ... = cramer A (A i) j : by { rw [cramer_apply], congr' with k,
       rw [sum_ite_eq' univ k (A i), if_pos (mem_univ _)] }
     ... = if i = j then det A else 0 : by rw [cramer_column_self]
 end
@@ -415,7 +415,7 @@ B.nonsing_inv_left_right A h
 end inv
 
 lemma cramers_rule (A : matrix n n α) (b : n → α) (h : is_unit A.det) :
-  A.mul_vec ((↑h.unit⁻¹ : α) • (cramer α Aᵀ b)) = b :=
+  A.mul_vec ((↑h.unit⁻¹ : α) • (cramer Aᵀ b)) = b :=
 by rw [cramer_transpose_eq_adjugate_mul_vec, ← smul_mul_vec_assoc, ← nonsing_inv_apply,
        mul_vec_mul_vec, A.mul_nonsing_inv h, mul_vec_one]
 

@@ -6,7 +6,6 @@ Authors: Johan Commelin, Robert Y. Lewis
 
 import ring_theory.witt_vector.basic
 import ring_theory.witt_vector.is_poly
-import ring_theory.witt_vector.witt_vector_preps
 
 /-!
 

@@ -17,7 +17,6 @@ variables {p : ℕ} {R S : Type*} [hp : fact p.prime] [comm_ring R] [comm_ring S
 local notation `𝕎` := witt_vector p -- type as `\bbW`
 
 local attribute [semireducible] witt_vector
-local attribute [instance] mv_polynomial.invertible_rat_coe_nat
 
 noncomputable theory
 

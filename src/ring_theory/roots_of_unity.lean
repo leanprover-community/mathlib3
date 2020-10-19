@@ -689,14 +689,14 @@ begin
     apply le_of_eq,
     rw finset.card_bind,
     { rw @finset.sum_congr _ _ (nat.divisors ↑n) (finset.filter (λ (x : ℕ), x ∣ n)
-    (finset.range (n : ℕ).succ))  (λ i, (primitive_roots i R).card)
-    (λ i, nat.totient i) _ (nat.finset_div_eq_filter n) _,
-    { symmetry; exact nat.sum_totient n },
-    { intros x hx,
-      simp only [finset.mem_filter, finset.mem_range] at hx,
-      simp,
-      obtain ⟨d, hd⟩ := hx.2,
-      rw mul_comm at hd,
+        (finset.range (n : ℕ).succ))  (λ i, (primitive_roots i R).card)
+        (λ i, nat.totient i) _ (nat.finset_div_eq_filter n) _,
+      { symmetry; exact nat.sum_totient n },
+      { intros x hx,
+        simp only [finset.mem_filter, finset.mem_range] at hx,
+        simp,
+        obtain ⟨d, hd⟩ := hx.2,
+        rw mul_comm at hd,
       exact card_primitive_roots (pow (pnat.pos n) h hd) (pnat.pos_of_div_pos hx.2) } },
     { intros i hi j hj hdiff,
       simp only [nat.mem_divisors, and_true, ne.def, pnat.ne_zero, not_false_iff] at hi hj,

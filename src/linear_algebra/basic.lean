@@ -1776,6 +1776,9 @@ def to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂ := λ f, f.to_add_equiv.to_equi
 lemma to_equiv_injective : function.injective (to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂) :=
 λ ⟨_, _, _, _, _, _⟩ ⟨_, _, _, _, _, _⟩ h, linear_equiv.mk.inj_eq.mpr (equiv.mk.inj h)
 
+lemma to_linear_map_injective : function.injective (to_linear_map : (M ≃ₗ[R] M₂) → (M →ₗ[R] M₂)) :=
+λ e₁ e₂ H, to_equiv_injective $ equiv.ext $ linear_map.congr_fun H
+
 end
 
 section

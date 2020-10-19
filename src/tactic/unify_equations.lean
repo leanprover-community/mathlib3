@@ -37,7 +37,7 @@ The result of a unification step:
   contradiction from the given equation).
 - `not_simplified` means that the step failed to simplify the equation.
 -/
-meta inductive unification_step_result
+meta inductive unification_step_result : Type
 | simplified (next_equations : list name)
 | not_simplified
 | goal_solved
@@ -57,8 +57,8 @@ returns a `unification_step_result`. The inputs are:
 
 So `equ : @eq.{u} lhs_type lhs rhs` or `equ : @heq.{u} lhs_type lhs rhs_type rhs`.
 -/
-@[reducible] meta def unification_step :=
-  ∀ (equ lhs_type rhs_type lhs rhs lhs_whnf rhs_whnf : expr) (u : level),
+@[reducible] meta def unification_step : Type :=
+∀ (equ lhs_type rhs_type lhs rhs lhs_whnf rhs_whnf : expr) (u : level),
   tactic unification_step_result
 
 /--

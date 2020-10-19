@@ -821,8 +821,8 @@ lemma trace_eq_sum_roots [finite_dimensional K L]
 begin
   rw [trace_eq_trace_lmul_matrix (has_power_basis_adjoin_simple K is_algebraic_of_finite x).is_basis,
       trace_eq_neg_char_poly_coeff (lmul_matrix _ (has_power_basis.gen _)),
-      char_poly_lmul_matrix_power_basis, minimal_polynomial.eq_of_algebra_map_eq (gen_is_integral (has_power_basis_adjoin_simple K is_algebraic_of_finite x)) hx,
-      polynomial.eq_prod_roots_of_splits (minimal_polynomial (gen_is_integral (has_power_basis_adjoin_simple K is_algebraic_of_finite x)))],
+      char_poly_lmul_matrix_power_basis, minimal_polynomial.eq_of_algebra_map_eq (gen_is_integral (has_power_basis_adjoin_simple K is_algebraic_of_finite x)) hx];
+   sorry
 end
 
 /-
@@ -921,20 +921,14 @@ begin
   intros x hxy,
   simp_rw [trace_form_apply] at hxy,
   have alg : is_algebraic K L := is_algebraic_of_finite,
-  have hb := power_basis_is_basis alg,
+  have hb := has_power_basis_of_is_simple_extension K alg,
   haveI := classical.prop_decidable,
   by_contra hx,
-  have trace_eq_zero : ∀ (z : L), trace K L z = 0,
+  have trace_eq_zero : ∀ (z : L), algebra.trace K L z = 0,
   { intro z,
     convert hxy (x⁻¹ * z),
     rw [←mul_assoc, mul_inv_cancel hx, one_mul] },
-  have trace_primitive_element : ∀ i < simple_degree alg,
-    trace K L (primitive_element K L ^ (i : ℕ)) = (minimal_polynomial alg).coeff (simple_degree alg - i),
-  { intro i,
-    induction i with i ih,
-    { sorry },
-    { intro hi,
-      rw pow_succ } },
+  sorry,
 
 /-
   use x⁻¹ * is_simple_extension.primitive_element K L,

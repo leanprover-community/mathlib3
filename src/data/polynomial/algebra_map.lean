@@ -239,7 +239,7 @@ begin
     congr, apply_congr, skip,
     rw [coeff_mul_X_sub_C, sub_mul, mul_assoc, ←pow_succ],
   },
-  simp [sum_range_sub', coeff_single],
+  simp [sum_range_sub', coeff_monomial],
 end
 
 theorem not_is_unit_X_sub_C [nontrivial R] {r : R} : ¬ is_unit (X - C r) :=

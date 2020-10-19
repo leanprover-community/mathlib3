@@ -9,7 +9,7 @@ import data.rat.meta_defs
 /-!
 # `norm_num`
 
-Evaluating arithmetic expressions including *, +, -, ^, ≤
+Evaluating arithmetic expressions including `*`, `+`, `-`, `^`, `≤`.
 -/
 
 universes u v w

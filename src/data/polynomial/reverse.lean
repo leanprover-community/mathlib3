@@ -23,7 +23,6 @@ open_locale classical
 
 variables {R : Type*} [semiring R] {f : polynomial R}
 
-namespace rev
 /-- If `i ≤ N`, then `rev_at_fun N i` returns `N - i`, otherwise it returns `i`.
 This is the map used by the embedding `rev_at`.
 -/
@@ -200,5 +199,4 @@ begin
     rwa [← leading_coeff_eq_zero] at *
 end
 
-end rev
 end polynomial

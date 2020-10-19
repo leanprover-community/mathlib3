@@ -293,7 +293,7 @@ end
 lemma trailing_reflect_eq_lead (N : ℕ) (H : f.nat_degree ≤ N) :
   trailing_coeff (reflect N f) = leading_coeff f :=
 begin
-  conv_rhs { rw ← @reflect_invol R _ f N },
+  rw [← @reflect_invol R _ f N] {occs := occurrences.pos [2]},
   rw lead_reflect_eq_trailing,
   convert @nat_degree_reflect_le R _ f N,
   rwa max_eq_left,
@@ -302,7 +302,7 @@ end
 lemma nat_trailing_degree_reflect_eq_nat_degree {N : ℕ} (f0 : f ≠ 0) (H : f.nat_degree ≤ N) :
   (reflect N f).nat_trailing_degree = rev_at N f.nat_degree :=
 begin
-  conv_rhs { rw ← @reflect_invol R _ f N },
+  rw [← @reflect_invol R _ f N] {occs := occurrences.pos [2]},
   rw [nat_degree_reflect_eq_nat_trailing_degree (reflect_ne_zero_iff.mpr f0), rev_at_invol],
   apply le_trans nat_degree_reflect_le _,
   rw max_eq_left H,
@@ -323,10 +323,6 @@ variables {R : Type*} [integral_domain R] {p q : polynomial R}
 @[simp] lemma trailing_coeff_mul (p q : polynomial R)  : trailing_coeff (p * q) =
   trailing_coeff p * trailing_coeff q :=
 begin
-  by_cases p0 : p = 0,
-  { rw [p0, zero_mul], convert (zero_mul q.trailing_coeff).symm, },
-  by_cases q0 : q = 0,
-  { rw [q0, mul_zero], convert (mul_zero p.trailing_coeff).symm, },
   rw [← @reflect_invol R _ (p * q) (p.nat_degree + q.nat_degree), trailing_reflect_eq_lead],
   { rw [reflect_mul p q rfl.le rfl.le, leading_coeff_mul],
     rw [← trailing_reflect_eq_lead p.nat_degree, reflect_invol],

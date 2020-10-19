@@ -1,4 +1,3 @@
-import data.finset.basic
 import data.finsupp.basic
 
 open finset

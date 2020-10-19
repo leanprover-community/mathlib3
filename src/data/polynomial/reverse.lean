@@ -5,7 +5,7 @@ Authors: Damiano Testa
 -/
 import data.polynomial.erase_lead
 import data.polynomial.degree.trailing_degree
-import data.polynomial.to_finset
+import data.polynomial.to_finset_lattice_max_min
 
 /-!
 # Reverse of a univariate polynomial

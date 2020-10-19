@@ -1,10 +1,14 @@
+/-
+Copyright (c) 2020 Johan Commelin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johan Commelin, Robert Y. Lewis
+-/
+
 import algebra.ring.ulift
 import ring_theory.witt_vector.basic
-import ring_theory.witt_vector.witt_vector_preps
 import data.mv_polynomial.funext
 
 /-!
-
 # The `is_poly` predicate
 
 `witt_vector.is_poly` is a (type-valued) predicate on functions `f : Π R, 𝕎 R → 𝕎 R`.
@@ -50,7 +54,8 @@ Ideally, there should be a predicate `is_polyₙ` for functions of higher arity,
 together with `is_polyₙ.comp` that shows how such functions compose.
 Since mathlib does not have a library on composition of higher arity functions,
 we have only implemented the unary and binary variants so far.
-Nullary functions (a.k.a. constants) are treated as constant functions and fall under the unary case.
+Nullary functions (a.k.a. constants) are treated
+as constant functions and fall under the unary case.
 
 ## Tactics
 
@@ -90,6 +95,7 @@ mk_simp_attribute ghost_simps
 namespace tactic
 namespace interactive
 setup_tactic_parser
+
 /-- A macro for a common simplification when rewriting with ghost component equations. -/
 meta def ghost_simp (lems : parse simp_arg_list) : tactic unit :=
 do tactic.try tactic.intro1,
@@ -139,7 +145,6 @@ do ids ← ids'.mmap $ λ n, get_local n <|> tactic.intro n,
    introsI $ [nm, nm<.>"_inst"] ++ ids',
    skip
 
-
 end interactive
 
 end tactic
@@ -152,7 +157,6 @@ variables {p : ℕ} {R S : Type u} {σ idx : Type*} [hp : fact p.prime] [comm_ri
 local notation `𝕎` := witt_vector p -- type as `\bbW`
 
 local attribute [semireducible] witt_vector
-local attribute [instance] mv_polynomial.invertible_rat_coe_nat
 
 open mv_polynomial
 open function (uncurry)
@@ -327,7 +331,6 @@ begin
   simp only [matrix.head_cons, aeval_X, matrix.cons_val_zero, matrix.cons_val_one],
 end
 
-
 namespace tactic
 open tactic
 
@@ -342,14 +345,16 @@ do c ← mk_const n,
    `(is_poly %%p _) ← return tp,
    let appd := vars.foldl expr.app c,
 
-   tgt_bod ← to_expr ``(λ f [hf : is_poly %%p f], is_poly.comp %%appd hf) >>= replace_univ_metas_with_univ_params,
+   tgt_bod ← to_expr ``(λ f [hf : is_poly %%p f], is_poly.comp %%appd hf) >>=
+     replace_univ_metas_with_univ_params,
    tgt_bod ← lambdas vars tgt_bod,
    tgt_tp ← infer_type tgt_bod,
    let nm := n <.> "comp_i",
    add_decl $ mk_definition nm tgt_tp.collect_univ_params tgt_tp tgt_bod,
    set_attribute `instance nm,
 
-   tgt_bod ← to_expr ``(λ f [hf : is_poly₂ %%p f], is_poly.comp₂ %%appd hf) >>= replace_univ_metas_with_univ_params,
+   tgt_bod ← to_expr ``(λ f [hf : is_poly₂ %%p f], is_poly.comp₂ %%appd hf) >>=
+     replace_univ_metas_with_univ_params,
    tgt_bod ← lambdas vars tgt_bod,
    tgt_tp ← infer_type tgt_bod,
    let nm := n <.> "comp₂_i",
@@ -367,14 +372,16 @@ do c ← mk_const n,
    `(is_poly₂ %%p _) ← return tp,
    let appd := vars.foldl expr.app c,
 
-   tgt_bod ← to_expr ``(λ {f g} [hf : is_poly %%p f] [hg : is_poly %%p g], is_poly₂.comp %%appd hf hg) >>= replace_univ_metas_with_univ_params,
+   tgt_bod ← to_expr ``(λ {f g} [hf : is_poly %%p f] [hg : is_poly %%p g],
+     is_poly₂.comp %%appd hf hg) >>= replace_univ_metas_with_univ_params,
    tgt_bod ← lambdas vars tgt_bod,
    tgt_tp ← infer_type tgt_bod >>= simp_lemmas.mk.dsimplify,
    let nm := n <.> "comp₂_i",
    add_decl $ mk_definition nm tgt_tp.collect_univ_params tgt_tp tgt_bod,
    set_attribute `instance nm,
 
-   tgt_bod ← to_expr ``(λ {f g} [hf : is_poly %%p f] [hg : is_poly %%p g], (is_poly₂.comp %%appd hf hg).diag) >>= replace_univ_metas_with_univ_params,
+   tgt_bod ← to_expr ``(λ {f g} [hf : is_poly %%p f] [hg : is_poly %%p g],
+     (is_poly₂.comp %%appd hf hg).diag) >>= replace_univ_metas_with_univ_params,
    tgt_bod ← lambdas vars tgt_bod,
    tgt_tp ← infer_type tgt_bod >>= simp_lemmas.mk.dsimplify,
    let nm := n <.> "comp_diag",
@@ -476,7 +483,8 @@ instance one_is_poly : is_poly p (λ _ _ _, by exactI 1) :=
 begin
   introsI, funext n, cases n,
   { simp only [one_poly, if_true, eq_self_iff_true, one_coeff_zero, alg_hom.map_one], },
-  { simp only [one_poly, nat.succ_pos', one_coeff_pos, if_neg n.succ_ne_zero, alg_hom.map_zero] }
+  { simp only [one_poly, nat.succ_pos', one_coeff_eq_of_pos,
+      if_neg n.succ_ne_zero, alg_hom.map_zero] }
 end⟩
 
 end zero_one
@@ -491,7 +499,6 @@ omit hp
 /-- Multiplication of Witt vectors is a polynomial function. -/
 @[is_poly] lemma mul_is_poly₂ [fact p.prime] : is_poly₂ p (λ _ _, by exactI (*)) :=
 ⟨witt_mul p, by { introsI, refl }⟩
-
 
 include hp
 
@@ -509,12 +516,9 @@ begin
   simp only [map_coeff]
 end
 
--- end is_poly
-
 namespace is_poly₂
 omit hp
-instance [fact p.prime] : inhabited (is_poly₂ p _) :=
-⟨add_is_poly₂⟩
+instance [fact p.prime] : inhabited (is_poly₂ p _) := ⟨add_is_poly₂⟩
 
 variables {p}
 
@@ -581,20 +585,6 @@ end
 
 end is_poly₂
 
--- attribute [ghost_simps]
---       witt_structure_int_prop witt_add witt_mul witt_neg witt_sub
---       alg_hom.map_zero alg_hom.map_one alg_hom.map_add alg_hom.map_mul
---       alg_hom.map_sub alg_hom.map_neg alg_hom.id_apply alg_hom.map_nat_cast
---       ring_hom.map_zero ring_hom.map_one ring_hom.map_mul alg_hom.map_mul
---       ring_hom.map_sub ring_hom.map_neg ring_hom.id_apply ring_hom.map_nat_cast
---       mul_add add_mul add_zero zero_add mul_one one_mul mul_zero zero_mul
---       bind₁_zero_witt_polynomial bind₁_one_poly_witt_polynomial
---       bind₁_X_right bind₁_X_left bind₁_rename rename_rename
---       function.comp function.uncurry
---       matrix.head_cons matrix.cons_val_one matrix.cons_val_zero
---       nat.succ_ne_zero nat.add_sub_cancel nat.succ_eq_add_one
---       if_true eq_self_iff_true if_false
-
 attribute [ghost_simps]
       alg_hom.map_zero alg_hom.map_one alg_hom.map_add alg_hom.map_mul
       alg_hom.map_sub alg_hom.map_neg alg_hom.id_apply alg_hom.map_nat_cast
@@ -603,6 +593,5 @@ attribute [ghost_simps]
       mul_add add_mul add_zero zero_add mul_one one_mul mul_zero zero_mul
       nat.succ_ne_zero nat.add_sub_cancel nat.succ_eq_add_one
       if_true eq_self_iff_true if_false forall_true_iff forall_2_true_iff forall_3_true_iff
-
 
 end witt_vector

@@ -123,11 +123,14 @@ theorem adc_one_bit1 {α} [semiring α] (a b : α) (h : a + 1 = b) : 1 + bit1 a 
 h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
 theorem adc_bit0_bit0 {α} [semiring α] (a b c : α) (h : a + b = c) : bit0 a + bit0 b + 1 = bit1 c :=
 h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
-theorem adc_bit1_bit0 {α} [semiring α] (a b c : α) (h : a + b + 1 = c) : bit1 a + bit0 b + 1 = bit0 c :=
+theorem adc_bit1_bit0 {α} [semiring α] (a b c : α) (h : a + b + 1 = c) :
+  bit1 a + bit0 b + 1 = bit0 c :=
 h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
-theorem adc_bit0_bit1 {α} [semiring α] (a b c : α) (h : a + b + 1 = c) : bit0 a + bit1 b + 1 = bit0 c :=
+theorem adc_bit0_bit1 {α} [semiring α] (a b c : α) (h : a + b + 1 = c) :
+  bit0 a + bit1 b + 1 = bit0 c :=
 h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
-theorem adc_bit1_bit1 {α} [semiring α] (a b c : α) (h : a + b + 1 = c) : bit1 a + bit1 b + 1 = bit1 c :=
+theorem adc_bit1_bit1 {α} [semiring α] (a b c : α) (h : a + b + 1 = c) :
+  bit1 a + bit1 b + 1 = bit1 c :=
 h ▸ by simp [bit1, bit0, add_left_comm, add_assoc]
 
 section
@@ -141,10 +144,14 @@ with prove_add_nat : instance_cache → expr → expr → expr → tactic (insta
   | _, zero := c.mk_app ``add_zero [a]
   | _, one := prove_succ c a r
   | one, _ := do (c, p) ← prove_succ c b r, c.mk_app ``one_add [b, r, p]
-  | bit0 a, bit0 b := do let r := r.app_arg, (c, p) ← prove_add_nat c a b r, c.mk_app ``add_bit0_bit0 [a, b, r, p]
-  | bit0 a, bit1 b := do let r := r.app_arg, (c, p) ← prove_add_nat c a b r, c.mk_app ``add_bit0_bit1 [a, b, r, p]
-  | bit1 a, bit0 b := do let r := r.app_arg, (c, p) ← prove_add_nat c a b r, c.mk_app ``add_bit1_bit0 [a, b, r, p]
-  | bit1 a, bit1 b := do let r := r.app_arg, (c, p) ← prove_adc_nat c a b r, c.mk_app ``add_bit1_bit1 [a, b, r, p]
+  | bit0 a, bit0 b := do let r := r.app_arg,
+    (c, p) ← prove_add_nat c a b r, c.mk_app ``add_bit0_bit0 [a, b, r, p]
+  | bit0 a, bit1 b := do let r := r.app_arg,
+    (c, p) ← prove_add_nat c a b r, c.mk_app ``add_bit0_bit1 [a, b, r, p]
+  | bit1 a, bit0 b := do let r := r.app_arg,
+    (c, p) ← prove_add_nat c a b r, c.mk_app ``add_bit1_bit0 [a, b, r, p]
+  | bit1 a, bit1 b := do let r := r.app_arg,
+    (c, p) ← prove_adc_nat c a b r, c.mk_app ``add_bit1_bit1 [a, b, r, p]
   | _, _ := failed
   end
 with prove_adc_nat : instance_cache → expr → expr → expr → tactic (instance_cache × expr)
@@ -153,14 +160,22 @@ with prove_adc_nat : instance_cache → expr → expr → expr → tactic (insta
   | zero, _ := do (c, p) ← prove_succ c b r, c.mk_app ``zero_adc [b, r, p]
   | _, zero := do (c, p) ← prove_succ c b r, c.mk_app ``adc_zero [b, r, p]
   | one, one := c.mk_app ``adc_one_one []
-  | bit0 a, one := do let r := r.app_arg, (c, p) ← prove_succ c a r, c.mk_app ``adc_bit0_one [a, r, p]
-  | one, bit0 b := do let r := r.app_arg, (c, p) ← prove_succ c b r, c.mk_app ``adc_one_bit0 [b, r, p]
-  | bit1 a, one := do let r := r.app_arg, (c, p) ← prove_succ c a r, c.mk_app ``adc_bit1_one [a, r, p]
-  | one, bit1 b := do let r := r.app_arg, (c, p) ← prove_succ c b r, c.mk_app ``adc_one_bit1 [b, r, p]
-  | bit0 a, bit0 b := do let r := r.app_arg, (c, p) ← prove_add_nat c a b r, c.mk_app ``adc_bit0_bit0 [a, b, r, p]
-  | bit0 a, bit1 b := do let r := r.app_arg, (c, p) ← prove_adc_nat c a b r, c.mk_app ``adc_bit0_bit1 [a, b, r, p]
-  | bit1 a, bit0 b := do let r := r.app_arg, (c, p) ← prove_adc_nat c a b r, c.mk_app ``adc_bit1_bit0 [a, b, r, p]
-  | bit1 a, bit1 b := do let r := r.app_arg, (c, p) ← prove_adc_nat c a b r, c.mk_app ``adc_bit1_bit1 [a, b, r, p]
+  | bit0 a, one := do let r := r.app_arg,
+    (c, p) ← prove_succ c a r, c.mk_app ``adc_bit0_one [a, r, p]
+  | one, bit0 b := do let r := r.app_arg,
+    (c, p) ← prove_succ c b r, c.mk_app ``adc_one_bit0 [b, r, p]
+  | bit1 a, one := do let r := r.app_arg,
+    (c, p) ← prove_succ c a r, c.mk_app ``adc_bit1_one [a, r, p]
+  | one, bit1 b := do let r := r.app_arg, (
+      c, p) ← prove_succ c b r, c.mk_app ``adc_one_bit1 [b, r, p]
+  | bit0 a, bit0 b := do let r := r.app_arg,
+    (c, p) ← prove_add_nat c a b r, c.mk_app ``adc_bit0_bit0 [a, b, r, p]
+  | bit0 a, bit1 b := do let r := r.app_arg,
+    (c, p) ← prove_adc_nat c a b r, c.mk_app ``adc_bit0_bit1 [a, b, r, p]
+  | bit1 a, bit0 b := do let r := r.app_arg,
+    (c, p) ← prove_adc_nat c a b r, c.mk_app ``adc_bit1_bit0 [a, b, r, p]
+  | bit1 a, bit1 b := do let r := r.app_arg,
+    (c, p) ← prove_adc_nat c a b r, c.mk_app ``adc_bit1_bit1 [a, b, r, p]
   | _, _ := failed
   end
 
@@ -170,8 +185,8 @@ add_decl_doc prove_add_nat
 add_decl_doc prove_adc_nat
 
 /-- Given `a`,`b` natural numerals, returns `(r, ⊢ a + b = r)`. -/
-meta def prove_add_nat' (c : instance_cache) (a b : expr) : tactic (instance_cache × expr × expr) := do
-  na ← a.to_nat,
+meta def prove_add_nat' (c : instance_cache) (a b : expr) : tactic (instance_cache × expr × expr) :=
+do na ← a.to_nat,
   nb ← b.to_nat,
   (c, r) ← c.of_nat (na + nb),
   (c, p) ← prove_add_nat c a b r,
@@ -307,32 +322,42 @@ theorem lt_one_bit0 {α} [linear_ordered_semiring α] (a : α) (h : 1 ≤ a) : 1
 lt_of_lt_of_le one_lt_two (bit0_le_bit0.2 h)
 theorem lt_one_bit1 {α} [linear_ordered_semiring α] (a : α) (h : 0 < a) : 1 < bit1 a :=
 one_lt_bit1.2 h
-theorem lt_bit0_bit0 {α} [linear_ordered_semiring α] (a b : α) : a < b → bit0 a < bit0 b := bit0_lt_bit0.2
+theorem lt_bit0_bit0 {α} [linear_ordered_semiring α] (a b : α) : a < b → bit0 a < bit0 b :=
+bit0_lt_bit0.2
 theorem lt_bit0_bit1 {α} [linear_ordered_semiring α] (a b : α) (h : a ≤ b) : bit0 a < bit1 b :=
 lt_of_le_of_lt (bit0_le_bit0.2 h) (lt_add_one _)
 theorem lt_bit1_bit0 {α} [linear_ordered_semiring α] (a b : α) (h : a + 1 ≤ b) : bit1 a < bit0 b :=
 lt_of_lt_of_le (by simp [bit0, bit1, zero_lt_one, add_assoc]) (bit0_le_bit0.2 h)
-theorem lt_bit1_bit1 {α} [linear_ordered_semiring α] (a b : α) : a < b → bit1 a < bit1 b := bit1_lt_bit1.2
+theorem lt_bit1_bit1 {α} [linear_ordered_semiring α] (a b : α) : a < b → bit1 a < bit1 b :=
+bit1_lt_bit1.2
 
 theorem le_one_bit0 {α} [linear_ordered_semiring α] (a : α) (h : 1 ≤ a) : 1 ≤ bit0 a :=
 le_of_lt (lt_one_bit0 _ h)
 -- deliberately strong hypothesis because bit1 0 is not a numeral
 theorem le_one_bit1 {α} [linear_ordered_semiring α] (a : α) (h : 0 < a) : 1 ≤ bit1 a :=
 le_of_lt (lt_one_bit1 _ h)
-theorem le_bit0_bit0 {α} [linear_ordered_semiring α] (a b : α) : a ≤ b → bit0 a ≤ bit0 b := bit0_le_bit0.2
+theorem le_bit0_bit0 {α} [linear_ordered_semiring α] (a b : α) : a ≤ b → bit0 a ≤ bit0 b :=
+bit0_le_bit0.2
 theorem le_bit0_bit1 {α} [linear_ordered_semiring α] (a b : α) (h : a ≤ b) : bit0 a ≤ bit1 b :=
 le_of_lt (lt_bit0_bit1 _ _ h)
 theorem le_bit1_bit0 {α} [linear_ordered_semiring α] (a b : α) (h : a + 1 ≤ b) : bit1 a ≤ bit0 b :=
 le_of_lt (lt_bit1_bit0 _ _ h)
-theorem le_bit1_bit1 {α} [linear_ordered_semiring α] (a b : α) : a ≤ b → bit1 a ≤ bit1 b := bit1_le_bit1.2
+theorem le_bit1_bit1 {α} [linear_ordered_semiring α] (a b : α) : a ≤ b → bit1 a ≤ bit1 b :=
+bit1_le_bit1.2
 
-theorem sle_one_bit0 {α} [linear_ordered_semiring α] (a : α) : 1 ≤ a → 1 + 1 ≤ bit0 a := bit0_le_bit0.2
-theorem sle_one_bit1 {α} [linear_ordered_semiring α] (a : α) : 1 ≤ a → 1 + 1 ≤ bit1 a := le_bit0_bit1 _ _
-theorem sle_bit0_bit0 {α} [linear_ordered_semiring α] (a b : α) : a + 1 ≤ b → bit0 a + 1 ≤ bit0 b := le_bit1_bit0 _ _
-theorem sle_bit0_bit1 {α} [linear_ordered_semiring α] (a b : α) (h : a ≤ b) : bit0 a + 1 ≤ bit1 b := bit1_le_bit1.2 h
-theorem sle_bit1_bit0 {α} [linear_ordered_semiring α] (a b : α) (h : a + 1 ≤ b) : bit1 a + 1 ≤ bit0 b :=
+theorem sle_one_bit0 {α} [linear_ordered_semiring α] (a : α) : 1 ≤ a → 1 + 1 ≤ bit0 a :=
+bit0_le_bit0.2
+theorem sle_one_bit1 {α} [linear_ordered_semiring α] (a : α) : 1 ≤ a → 1 + 1 ≤ bit1 a :=
+le_bit0_bit1 _ _
+theorem sle_bit0_bit0 {α} [linear_ordered_semiring α] (a b : α) : a + 1 ≤ b → bit0 a + 1 ≤ bit0 b :=
+le_bit1_bit0 _ _
+theorem sle_bit0_bit1 {α} [linear_ordered_semiring α] (a b : α) (h : a ≤ b) : bit0 a + 1 ≤ bit1 b :=
+bit1_le_bit1.2 h
+theorem sle_bit1_bit0 {α} [linear_ordered_semiring α] (a b : α) (h : a + 1 ≤ b) :
+  bit1 a + 1 ≤ bit0 b :=
 (bit1_succ a _ rfl).symm ▸ bit0_le_bit0.2 h
-theorem sle_bit1_bit1 {α} [linear_ordered_semiring α] (a b : α) (h : a + 1 ≤ b) : bit1 a + 1 ≤ bit1 b :=
+theorem sle_bit1_bit1 {α} [linear_ordered_semiring α] (a b : α) (h : a + 1 ≤ b) :
+  bit1 a + 1 ≤ bit1 b :=
 (bit1_succ a _ rfl).symm ▸ le_bit0_bit1 _ _ h
 
 /-- Given `a` a rational numeral, returns `⊢ 0 ≤ a`. -/
@@ -411,7 +436,8 @@ theorem clear_denom_lt {α} [linear_ordered_semiring α] (a a' b b' d : α)
 lt_of_mul_lt_mul_right (by rwa [ha, hb]) (le_of_lt h₀)
 
 /-- Given `a`,`b` nonnegative rational numerals, proves `⊢ a < b`. -/
-meta def prove_lt_nonneg_rat (ic : instance_cache) (a b : expr) (na nb : ℚ) : tactic (instance_cache × expr) :=
+meta def prove_lt_nonneg_rat (ic : instance_cache) (a b : expr) (na nb : ℚ) :
+  tactic (instance_cache × expr) :=
 if na.denom = 1 ∧ nb.denom = 1 then
   prove_lt_nat ic a b
 else do
@@ -427,7 +453,8 @@ lemma lt_neg_pos {α} [ordered_add_comm_group α] (a b : α) (ha : 0 < a) (hb : 
 lt_trans (neg_neg_of_pos ha) hb
 
 /-- Given `a`,`b` rational numerals, proves `⊢ a < b`. -/
-meta def prove_lt_rat (ic : instance_cache) (a b : expr) (na nb : ℚ) : tactic (instance_cache × expr) :=
+meta def prove_lt_rat (ic : instance_cache) (a b : expr) (na nb : ℚ) :
+  tactic (instance_cache × expr) :=
 match match_sign a, match_sign b with
 | sum.inl a, sum.inl b := do
   (ic, p) ← prove_lt_nonneg_rat ic a b (-na) (-nb),
@@ -505,9 +532,11 @@ theorem int_cast_bit0 {α} [ring α] (a : ℤ) (a' : α) (h : ↑a = a') : ↑(b
 h ▸ int.cast_bit0 _
 theorem int_cast_bit1 {α} [ring α] (a : ℤ) (a' : α) (h : ↑a = a') : ↑(bit1 a) = bit1 a' :=
 h ▸ int.cast_bit1 _
-theorem rat_cast_bit0 {α} [division_ring α] [char_zero α] (a : ℚ) (a' : α) (h : ↑a = a') : ↑(bit0 a) = bit0 a' :=
+theorem rat_cast_bit0 {α} [division_ring α] [char_zero α] (a : ℚ) (a' : α) (h : ↑a = a') :
+  ↑(bit0 a) = bit0 a' :=
 h ▸ rat.cast_bit0 _
-theorem rat_cast_bit1 {α} [division_ring α] [char_zero α] (a : ℚ) (a' : α) (h : ↑a = a') : ↑(bit1 a) = bit1 a' :=
+theorem rat_cast_bit1 {α} [division_ring α] [char_zero α] (a : ℚ) (a' : α) (h : ↑a = a') :
+  ↑(bit1 a) = bit1 a' :=
 h ▸ rat.cast_bit1 _
 
 /-- Given `a' : α` a natural numeral, returns `(a : ℕ, ⊢ ↑a = a')`.
@@ -728,7 +757,8 @@ theorem add_neg_neg {α} [add_group α] (a b c : α) (h : b + a = c) : -a + -b =
 h ▸ by simp
 
 /-- Given `a`,`b`,`c` rational numerals, returns `⊢ a + b = c`. -/
-meta def prove_add_rat (ic : instance_cache) (ea eb ec : expr) (a b c : ℚ) : tactic (instance_cache × expr) :=
+meta def prove_add_rat (ic : instance_cache) (ea eb ec : expr) (a b c : ℚ) :
+  tactic (instance_cache × expr) :=
 match match_neg ea, match_neg eb, match_neg ec with
 | some ea, some eb, some ec := do
   (ic, p) ← prove_add_nonneg_rat ic eb ea ec (-b) (-a) (-c),
@@ -749,8 +779,9 @@ match match_neg ea, match_neg eb, match_neg ec with
 end
 
 /-- Given `a`,`b` rational numerals, returns `(c, ⊢ a + b = c)`. -/
-meta def prove_add_rat' (ic : instance_cache) (a b : expr) : tactic (instance_cache × expr × expr) := do
-  na ← a.to_rat,
+meta def prove_add_rat' (ic : instance_cache) (a b : expr) :
+  tactic (instance_cache × expr × expr) :=
+do na ← a.to_rat,
   nb ← b.to_rat,
   let nc := na + nb,
   (ic, c) ← ic.of_rat nc,
@@ -764,7 +795,8 @@ theorem clear_denom_simple_div {α} [division_ring α] (a b : α) (h : b ≠ 0) 
 
 /-- Given `a` a nonnegative rational numeral, returns `(b, c, ⊢ a * b = c)`
 where `b` and `c` are natural numerals. (`b` will be the denominator of `a`.) -/
-meta def prove_clear_denom_simple (c : instance_cache) (a : expr) (na : ℚ) : tactic (instance_cache × expr × expr × expr) :=
+meta def prove_clear_denom_simple (c : instance_cache) (a : expr) (na : ℚ) :
+  tactic (instance_cache × expr × expr × expr) :=
 if na.denom = 1 then do
   (c, d) ← c.mk_app ``has_one.one [],
   (c, p) ← c.mk_app ``clear_denom_simple_nat [a],
@@ -783,7 +815,8 @@ mul_right_cancel' ha.1 $ mul_right_cancel' hb.1 $
 by rw [mul_assoc c, hd, hc, ← h, ← ha.2, ← hb.2, ← mul_assoc, mul_right_comm a]
 
 /-- Given `a`,`b` nonnegative rational numerals, returns `(c, ⊢ a * b = c)`. -/
-meta def prove_mul_nonneg_rat (ic : instance_cache) (a b : expr) (na nb : ℚ) : tactic (instance_cache × expr × expr) :=
+meta def prove_mul_nonneg_rat (ic : instance_cache) (a b : expr) (na nb : ℚ) :
+  tactic (instance_cache × expr × expr) :=
 if na.denom = 1 ∧ nb.denom = 1 then
   prove_mul_nat ic a b
 else do
@@ -801,7 +834,8 @@ theorem mul_pos_neg {α} [ring α] (a b c : α) (h : a * b = c) : a * -b = -c :=
 theorem mul_neg_neg {α} [ring α] (a b c : α) (h : a * b = c) : -a * -b = c := h ▸ by simp
 
 /-- Given `a`,`b` rational numerals, returns `(c, ⊢ a * b = c)`. -/
-meta def prove_mul_rat (ic : instance_cache) (a b : expr) (na nb : ℚ) : tactic (instance_cache × expr × expr) :=
+meta def prove_mul_rat (ic : instance_cache) (a b : expr) (na nb : ℚ) :
+  tactic (instance_cache × expr × expr) :=
 match match_sign a, match_sign b with
 | sum.inl a, sum.inl b := do
   (ic, c, p) ← prove_mul_nonneg_rat ic a b (-na) (-nb),
@@ -875,7 +909,8 @@ theorem div_eq {α} [division_ring α] (a b b' c : α)
   (hb : b⁻¹ = b') (h : a * b' = c) : a / b = c := by rwa ← hb at h
 
 /-- Given `a`,`b` rational numerals, returns `(c, ⊢ a / b = c)`. -/
-meta def prove_div (ic : instance_cache) (a b : expr) (na nb : ℚ) : tactic (instance_cache × expr × expr) :=
+meta def prove_div (ic : instance_cache) (a b : expr) (na nb : ℚ) :
+  tactic (instance_cache × expr × expr) :=
 do (ic, b', pb) ← prove_inv ic b nb,
   (ic, c, p) ← prove_mul_rat ic a b' na nb⁻¹,
   (ic, p) ← ic.mk_app ``div_eq [a, b, b', c, pb, p],
@@ -990,7 +1025,8 @@ section
 open match_numeral_result
 
 /-- Given `a` a rational numeral and `b : nat`, returns `(c, ⊢ a ^ b = c)`. -/
-meta def prove_pow (a : expr) (na : ℚ) : instance_cache → expr → tactic (instance_cache × expr × expr)
+meta def prove_pow (a : expr) (na : ℚ) :
+  instance_cache → expr → tactic (instance_cache × expr × expr)
 | ic b :=
   match match_numeral b with
   | zero := do
@@ -1106,14 +1142,16 @@ lemma nat_div (a b q r m : ℕ) (hm : q * b = m) (h : r + m = a) (h₂ : r < b) 
 by rw [← h, ← hm, nat.add_mul_div_right _ _ (lt_of_le_of_lt (nat.zero_le _) h₂),
        nat.div_eq_of_lt h₂, zero_add]
 
-lemma int_div (a b q r m : ℤ) (hm : q * b = m) (h : r + m = a) (h₁ : 0 ≤ r) (h₂ : r < b) : a / b = q :=
+lemma int_div (a b q r m : ℤ) (hm : q * b = m) (h : r + m = a) (h₁ : 0 ≤ r) (h₂ : r < b) :
+  a / b = q :=
 by rw [← h, ← hm, int.add_mul_div_right _ _ (ne_of_gt (lt_of_le_of_lt h₁ h₂)),
        int.div_eq_zero_of_lt h₁ h₂, zero_add]
 
 lemma nat_mod (a b q r m : ℕ) (hm : q * b = m) (h : r + m = a) (h₂ : r < b) : a % b = r :=
 by rw [← h, ← hm, nat.add_mul_mod_self_right, nat.mod_eq_of_lt h₂]
 
-lemma int_mod (a b q r m : ℤ) (hm : q * b = m) (h : r + m = a) (h₁ : 0 ≤ r) (h₂ : r < b) : a % b = r :=
+lemma int_mod (a b q r m : ℤ) (hm : q * b = m) (h : r + m = a) (h₁ : 0 ≤ r) (h₂ : r < b) :
+  a % b = r :=
 by rw [← h, ← hm, int.add_mul_mod_self, int.mod_eq_of_lt h₁ h₂]
 
 lemma int_div_neg (a b c' c : ℤ) (h : a / b = c') (h₂ : -c' = c) : a / -b = c :=
@@ -1126,7 +1164,8 @@ lemma int_mod_neg (a b c : ℤ) (h : a % b = c) : a % -b = c :=
   * `prove_div_mod ic a b ff` returns `(c, ⊢ a / b = c)`
   * `prove_div_mod ic a b tt` returns `(c, ⊢ a % b = c)`
 -/
-meta def prove_div_mod (ic : instance_cache) : expr → expr → bool → tactic (instance_cache × expr × expr)
+meta def prove_div_mod (ic : instance_cache) :
+  expr → expr → bool → tactic (instance_cache × expr × expr)
 | a b mod :=
   match match_neg b with
   | some b := do

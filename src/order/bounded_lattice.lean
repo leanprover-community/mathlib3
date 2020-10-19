@@ -392,9 +392,13 @@ lemma eq_top_of_bot_eq_top {α : Type*} [bounded_lattice α] (hα : (⊥ : α) =
   x = (⊤ : α) :=
 eq_top_mono bot_le hα
 
+lemma subsingleton_of_top_le_bot {α : Type*} [bounded_lattice α] (h : (⊤ : α) ≤ (⊥ : α)) :
+  subsingleton α :=
+⟨λ a b, le_antisymm (le_trans le_top $ le_trans h bot_le) (le_trans le_top $ le_trans h bot_le)⟩
+
 lemma subsingleton_of_bot_eq_top {α : Type*} [bounded_lattice α] (hα : (⊥ : α) = (⊤ : α)) :
   subsingleton α :=
-⟨λ a b, by rw [eq_bot_of_bot_eq_top hα a, eq_bot_of_bot_eq_top hα b]⟩
+subsingleton_of_top_le_bot (ge_of_eq hα)
 
 /-- Attach `⊥` to a type. -/
 def with_bot (α : Type*) := option α

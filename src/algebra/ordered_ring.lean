@@ -1107,7 +1107,8 @@ begin
   simp [some_eq_coe, coe_mul.symm, mul_assoc]
 end
 
--- FIXME is `nontrivial` really needed here?
+-- `nontrivial α` is needed here as otherwise
+-- we have `1 * ⊤ = ⊤` but also `= 0 * ⊤ = 0`.
 private lemma one_mul' [nontrivial α] : ∀a : with_top α, 1 * a = a
 | none     := show ((1:α) : with_top α) * ⊤ = ⊤, by simp [-with_top.coe_one]
 | (some a) := show ((1:α) : with_top α) * a = a, by simp [coe_mul.symm, -with_top.coe_one]

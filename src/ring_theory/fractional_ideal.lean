@@ -5,6 +5,7 @@ Authors: Anne Baanen
 -/
 import ring_theory.localization
 import ring_theory.principal_ideal_domain
+import ring_theory.noetherian
 
 /-!
 # Fractional ideals
@@ -82,6 +83,7 @@ def is_fractional (I : submodule R f.codomain) :=
 -/
 def fractional_ideal :=
 {I : submodule R f.codomain // is_fractional f I}
+#check fractional_ideal
 
 end defs
 
@@ -595,6 +597,13 @@ end
 @[simp] lemma map_eq_zero_iff [nontrivial R] : I.map h = 0 ↔ I = 0 :=
 ⟨imp_of_not_imp_not _ _ (map_ne_zero _),
  λ hI, hI.symm ▸ map_zero h⟩
+
+lemma fg_of_noetherian (hR : is_noetherian_ring R) ( I : submodule R f.codomain) :
+(is_fractional f I ) → (is_noetherian R I) :=
+begin
+  sorry,
+end
+
 
 end fraction_map
 

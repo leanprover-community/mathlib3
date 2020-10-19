@@ -191,7 +191,7 @@ theorem is_integral_of_noetherian' (B : Type*) [comm_ring B] [algebra R B] (A : 
 sorry,
   end
 
-lemma if_inv_then_int {I : ideal R} (x : f.codomain) (h_I : I ≠ 0) (h_prod : ↑I * (1 / ↑I : fractional_ideal f) = ↑I) :
+lemma if_inv_then_int {I : ideal R} (h : is_dedekind_domain R) (x : f.codomain) (h_I : I ≠ 0) (h_prod : ↑I * (1 / ↑I : fractional_ideal f) = ↑I) :
 x ∈ (1/↑I : fractional_ideal f).val → (f.to_map).is_integral_elem x :=
 begin
 let h_RalgK := (ring_hom.to_algebra f.to_map),
@@ -201,10 +201,12 @@ have h_xA :  x ∈ A,--may be it is better to have hxn : ∀ (n : ℕ ), x^n ∈
   suffices hp : ∃ (p : polynomial R), φ p = x, simpa,
   use X, apply aeval_X,--if done for x^n rather than x, use aeval_X_pow rather than aeval_X
 have h_fracA : is_fractional f A, sorry,
-have h_A : is_noetherian R A, sorry,
+-- let IA := fractional_ideal f ↑ A,-- : (fractional_ideal f R),-- := (↥ A , h_fracA),
+have h_A : is_noetherian R A, apply fractional_ideal.fg_of_noetherian h.2 ↥A h_fracA,
 obtain ⟨ _ , h_int_x ⟩ : is_integral R x,
 apply @is_integral_of_noetherian' R _ K _ h_RalgK A h_A x h_xA,
-cases h_int_x with px zero_px, intro h_xI,
+cases h_int_x with px zero_px, intro h_xI, use w, split,
+exact px, exact zero_px,
 end
 /-
 lemma if_inv_then_int {I : ideal R} (x : f.codomain) (h_I : I ≠ 0) (h : ↑I * (1 / ↑I : fractional_ideal f) = ↑I) :

@@ -706,7 +706,7 @@ variables (P)
 
 /-- The direction of `⊥` is the submodule `⊥`. -/
 @[simp] lemma direction_bot : (⊥ : affine_subspace k P).direction = ⊥ :=
-by rw [direction_eq_vector_span, bot_coe, vector_span_def, vsub_set_empty, submodule.span_empty]
+by rw [direction_eq_vector_span, bot_coe, vector_span_def, vsub_empty, submodule.span_empty]
 
 variables {k V P}
 
@@ -1075,8 +1075,8 @@ begin
     rw [direction_eq_vector_span, vector_span_def],
     exact Inf_le_Inf (λ p hp, set.subset.trans
       (set.singleton_subset_iff.2
-        (vsub_mem_vsub_set (mem_span_points k p2 _ (set.mem_union_right _ hp2))
-                           (mem_span_points k p1 _ (set.mem_union_left _ hp1))))
+        (vsub_mem_vsub (mem_span_points k p2 _ (set.mem_union_right _ hp2))
+                       (mem_span_points k p1 _ (set.mem_union_left _ hp1))))
       hp) }
 end
 

@@ -265,7 +265,7 @@ end to_matrix
 
 section is_basis_to_matrix
 
-variables {ι ι' : Type*} [fintype ι] [decidable_eq ι] [fintype ι'] [decidable_eq ι']
+variables {ι ι' : Type*} [fintype ι] [fintype ι']
 variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
 
 open function matrix
@@ -282,18 +282,18 @@ namespace is_basis
 lemma to_matrix_apply : he.to_matrix v i j = he.equiv_fun (v j) i :=
 rfl
 
-lemma to_matrix_eq_to_matrix_constr (v : ι → M) :
+lemma to_matrix_eq_to_matrix_constr [decidable_eq ι] (v : ι → M) :
   he.to_matrix v = linear_map.to_matrix he he (he.constr v) :=
 by { ext, simp [is_basis.to_matrix_apply, linear_map.to_matrix_apply] }
 
-@[simp] lemma to_matrix_self : he.to_matrix e = 1 :=
+@[simp] lemma to_matrix_self [decidable_eq ι] : he.to_matrix e = 1 :=
 begin
   rw is_basis.to_matrix,
   ext i j,
   simp [is_basis.equiv_fun, matrix.one_apply, finsupp.single, eq_comm]
 end
 
-lemma to_matrix_update (x : M) :
+lemma to_matrix_update [decidable_eq ι'] (x : M) :
   he.to_matrix (function.update v j x) = matrix.update_column (he.to_matrix v) j (he.repr x) :=
 begin
   ext i' k,
@@ -743,9 +743,9 @@ theorem trace_aux_eq (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] 
   {κ : Type*} [decidable_eq κ] [fintype κ] {c : κ → M} (hc : is_basis R c) :
   trace_aux R hb = trace_aux R hc :=
 calc  trace_aux R hb
-    = trace_aux R hb.range : by { rw trace_aux_range R hb }
+    = trace_aux R hb.range : by rw trace_aux_range R hb
 ... = trace_aux R hc.range : trace_aux_eq' _ _ _
-... = trace_aux R hc : by { rw trace_aux_range R hc }
+... = trace_aux R hc : by rw trace_aux_range R hc
 
 /-- Trace of an endomorphism independent of basis. -/
 def trace (R : Type u) [comm_ring R] (M : Type v) [add_comm_group M] [module R M] :

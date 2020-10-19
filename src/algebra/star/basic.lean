@@ -8,9 +8,10 @@ import algebra.ordered_ring
 import algebra.big_operators.basic
 
 /-!
-# star_monoid, star_ring, star_algebra
+# star_monoid, star_ring
 
-We introduce the basic algebraic notions of star monoids, star rings, and star algebras.
+We introduce the basic algebraic notions of star monoids, and star rings.
+Star algebras are introduced in `algebra.algebra.star`.
 
 These are implemented as "mixin" typeclasses, so to summon a star ring (for example)
 one needs to write `(R : Type) [ring R] [star_ring R]`.

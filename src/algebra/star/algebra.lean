@@ -6,6 +6,12 @@ Authors: Scott Morrison.
 import algebra.algebra.ordered
 import algebra.star.basic
 
+/-!
+# star_algebra
+
+Introduces the notion of a star algebra over a star ring.
+-/
+
 universes u v
 
 /--
@@ -22,6 +28,7 @@ class star_algebra (R : Type u) (A : Type v)
 variables {A : Type v}
 
 @[simp] lemma star_smul (R : Type u) (A : Type v)
-  [comm_semiring R] [star_ring R] [semiring A] [star_ring A] [algebra R A] [star_algebra R A] (r : R) (a : A) :
+  [comm_semiring R] [star_ring R] [semiring A] [star_ring A] [algebra R A] [star_algebra R A]
+  (r : R) (a : A) :
   star (r • a) = star r • star a :=
 star_algebra.star_smul r a

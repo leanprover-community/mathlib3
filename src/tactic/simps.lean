@@ -14,7 +14,7 @@ reducing a definition when projections are applied to it.
 
 There are three attributes being defined here
 * `@[simps]` is the attribute for objects of a structure or instances of a class. It will
-  automatically generate simplication lemmas for each projection of the object/instance that
+  automatically generate simplification lemmas for each projection of the object/instance that
   contains data. See the doc strings for `simps_attr` and `simps_cfg` for more details and
   configuration options.
 * `@[_simps_str]` is automatically added to structures that have been used in `@[simps]` at least
@@ -237,7 +237,7 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
     projections are applied in a lemma. When this is `ff` (default) all projection names will be
     appended to the definition name to form the lemma name, and when this is `tt`, only the
     last projection name will be appended.
-  * if `simp_rhs` is `tt` then the right-hand-side of the generated lemmas will be put simp-normal
+  * if `simp_rhs` is `tt` then the right-hand-side of the generated lemmas will be put in simp-normal
     form.
   * `type_md` specifies how aggressively definitions are unfolded in the type of expressions
     for the purposes of finding out whether the type is a function type.

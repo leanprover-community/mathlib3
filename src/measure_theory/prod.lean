@@ -578,7 +578,7 @@ begin
   refine integral_congr_ae
     (hF.comp (hf.add hg).measurable.integral_prod_right')
     (hF.comp (hf.measurable.integral_prod_right'.add hg.measurable.integral_prod_right')) _,
-  filter_upwards [hf.prod_right_ae, hg.prod_right_ae], dsimp only [mem_set_of_eq],
+  filter_upwards [hf.prod_right_ae, hg.prod_right_ae],
   intros x h2f h2g, simp [integral_add h2f h2g],
 end
 
@@ -593,7 +593,7 @@ begin
   refine integral_congr_ae
     (hF.comp (hf.sub hg).measurable.integral_prod_right')
     (hF.comp (hf.measurable.integral_prod_right'.sub hg.measurable.integral_prod_right')) _,
-  filter_upwards [hf.prod_right_ae, hg.prod_right_ae], dsimp only [mem_set_of_eq],
+  filter_upwards [hf.prod_right_ae, hg.prod_right_ae],
   intros x h2f h2g, simp [integral_sub h2f h2g]
 end
 
@@ -604,7 +604,7 @@ lemma lintegral_fn_integral_sub ⦃f g : α × β → E⦄
   ∫⁻ x, F (∫ y, f (x, y) - g (x, y) ∂ν) ∂μ = ∫⁻ x, F (∫ y, f (x, y) ∂ν - ∫ y, g (x, y) ∂ν) ∂μ :=
 begin
   refine lintegral_congr_ae _,
-  filter_upwards [hf.prod_right_ae, hg.prod_right_ae], dsimp only [mem_set_of_eq],
+  filter_upwards [hf.prod_right_ae, hg.prod_right_ae],
   intros x h2f h2g, simp [integral_sub h2f h2g]
 end
 

@@ -34,12 +34,9 @@ def rev_at_fun (N i : ℕ) : ℕ := ite (i ≤ N) (N-i) i
 lemma rev_at_fun_invol {N i : ℕ} : rev_at_fun N (rev_at_fun N i) = i :=
 begin
   unfold rev_at_fun,
-  split_ifs with h j,
-  { exact nat.sub_sub_self h, },
-  { exfalso,
-    apply j,
-    exact nat.sub_le N i, },
-  { refl, },
+  by_cases Ni : i ≤ N,
+  { rwa [if_pos Ni, if_pos (nat.sub_le_self N i), nat.sub_sub_self], },
+  { repeat { rw if_neg Ni, }, },
 end
 
 lemma rev_at_fun_inj {N : ℕ} : function.injective (rev_at_fun N) :=
@@ -108,15 +105,15 @@ by refine ext (λ (n : ℕ), by rw [coeff_reflect, coeff_C_mul, coeff_C_mul, coe
 @[simp] lemma reflect_C_mul_X_pow (N n : ℕ) {c : R} :
   reflect N (C c * X ^ n) = C c * X ^ (rev_at N n) :=
 begin
-  ext,
+  ext a,
   rw [reflect_C_mul, coeff_C_mul, coeff_C_mul, coeff_X_pow, coeff_reflect],
   split_ifs,
   { rw [h, rev_at_invol, coeff_X_pow_self], },
   { rw not_mem_support_iff_coeff_zero.mp,
-    intro a,
-    rw [← one_mul (X ^ n), ← C_1] at a,
+    intro rs,
+    rw [← one_mul (X ^ n), ← C_1] at rs,
     apply h,
-    rw [← (mem_support_C_mul_X_pow a), rev_at_invol], },
+    rw [← (mem_support_C_mul_X_pow rs), rev_at_invol], },
 end
 
 @[simp] lemma reflect_monomial (N n : ℕ) : reflect N ((X : polynomial R) ^ n) = X ^ (rev_at N n) :=
@@ -172,7 +169,7 @@ noncomputable def reverse (f : polynomial R) : polynomial R := reflect f.nat_deg
 
 theorem reverse_mul {f g : polynomial R} (fg : f.leading_coeff * g.leading_coeff ≠ 0) :
   reverse (f * g) = reverse f * reverse g :=
-by rw [reverse, reverse, reverse, nat_degree_mul' fg, reflect_mul  f g rfl.le rfl.le]
+by simp only [reverse, nat_degree_mul' fg, reflect_mul]
 
 @[simp] lemma reverse_mul_of_domain {R : Type*} [domain R] (f g : polynomial R) :
   reverse (f * g) = reverse f * reverse g :=

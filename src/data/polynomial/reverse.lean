@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import data.polynomial.erase_lead
-import data.polynomial.degree
 import data.polynomial.degree.trailing_degree
 import data.polynomial.to_finset
 

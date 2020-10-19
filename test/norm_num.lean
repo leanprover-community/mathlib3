@@ -42,6 +42,7 @@ example {α} [semiring α] [char_zero α] : (1:α) ≠ 2 := by norm_num
 example {α} [ring α] [char_zero α] : (-1:α) ≠ 2 := by norm_num
 example {α} [division_ring α] [char_zero α] : (-1:α) ≠ 2 := by norm_num
 example {α} [division_ring α] [char_zero α] : (1:α) / 3 ≠ 2 / 7 := by norm_num
+example {α} [division_ring α] [char_zero α] : (1:α) / 3 ≠ 0 := by norm_num
 
 example : (5 / 2:ℕ) = 2 := by norm_num
 example : (5 / -2:ℤ) < -1 := by norm_num

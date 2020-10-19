@@ -18,9 +18,6 @@ unification steps. Each such step may output other (simpler) equations which are
 unified recursively until no unification step applies any more. See
 `tactic.interactive.unify_equations` for an example and an explanation of the
 different steps.
-
-[^qnify]: Conor McBride. Inverting inductively defined relations in LEGO.
-In E. Giménez and C. Paulin-Mohring (eds.), Types for Proofs and Programs 1996.
 -/
 
 open expr

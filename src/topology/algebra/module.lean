@@ -995,7 +995,7 @@ def units_equiv : units (M →L[R] M) ≃* (M ≃L[R] M) :=
   map_mul'  := λ x y, by {ext, refl} }
 
 @[simp] lemma units_equiv_apply (f : units (M →L[R] M)) (x : M) :
-  (units_equiv R M f) x = f x := rfl
+  units_equiv R M f x = f x := rfl
 
 end
 

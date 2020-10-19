@@ -33,7 +33,7 @@ For an object `X` of a category `C`, a `sieve X` is a set of morphisms to `X` wh
 left-composition.
 -/
 structure sieve {C : Type u} [category.{v} C] (X : C) :=
-(arrows : Π {Y}, set (Y ⟶ X))
+(arrows : Π ⦃Y⦄, set (Y ⟶ X))
 (downward_closed : ∀ {Y Z f} (hf : arrows f) (g : Z ⟶ Y), arrows (g ≫ f))
 attribute [simp, priority 100] sieve.downward_closed
 
@@ -182,6 +182,11 @@ def pullback (h : Y ⟶ X) (S : sieve X) : sieve Y :=
 @[simp] lemma mem_pullback (h : Y ⟶ X) {f : Z ⟶ Y} :
   (S.pullback h).arrows f ↔ S.arrows (f ≫ h) := iff.rfl
 
+@[simp]
+lemma pullback_id : S.pullback (𝟙 _) = S :=
+by simp [sieve.ext_iff]
+
+@[simp]
 lemma pullback_top {f : Y ⟶ X} : (⊤ : sieve X).pullback f = ⊤ :=
 top_unique (λ _ g, id)
 
@@ -189,6 +194,7 @@ lemma pullback_comp {f : Y ⟶ X} {g : Z ⟶ Y} (S : sieve X) :
   S.pullback (g ≫ f) = (S.pullback f).pullback g :=
 by simp [sieve.ext_iff]
 
+@[simp]
 lemma pullback_inter {f : Y ⟶ X} (S R : sieve X) :
  (S ⊓ R).pullback f = S.pullback f ⊓ R.pullback f :=
 by simp [sieve.ext_iff]
@@ -200,6 +206,9 @@ lemma id_mem_iff_eq_top : S.arrows (𝟙 X) ↔ S = ⊤ :=
 
 lemma pullback_eq_top_iff_mem (f : Y ⟶ X) : S.arrows f ↔ S.pullback f = ⊤ :=
 by rw [← id_mem_iff_eq_top, mem_pullback, category.id_comp]
+
+lemma pullback_eq_top_of_mem (S : sieve X) {f : Y ⟶ X} : S.arrows f → S.pullback f = ⊤ :=
+(pullback_eq_top_iff_mem f).1
 
 /--
 Push a sieve `R` on `Y` forward along an arrow `f : Y ⟶ X`: `gf : Z ⟶ X`

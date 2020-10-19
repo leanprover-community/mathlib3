@@ -144,14 +144,14 @@ with prove_add_nat : instance_cache → expr → expr → expr → tactic (insta
   | _, zero := c.mk_app ``add_zero [a]
   | _, one := prove_succ c a r
   | one, _ := do (c, p) ← prove_succ c b r, c.mk_app ``one_add [b, r, p]
-  | bit0 a, bit0 b := do let r := r.app_arg,
-    (c, p) ← prove_add_nat c a b r, c.mk_app ``add_bit0_bit0 [a, b, r, p]
-  | bit0 a, bit1 b := do let r := r.app_arg,
-    (c, p) ← prove_add_nat c a b r, c.mk_app ``add_bit0_bit1 [a, b, r, p]
-  | bit1 a, bit0 b := do let r := r.app_arg,
-    (c, p) ← prove_add_nat c a b r, c.mk_app ``add_bit1_bit0 [a, b, r, p]
-  | bit1 a, bit1 b := do let r := r.app_arg,
-    (c, p) ← prove_adc_nat c a b r, c.mk_app ``add_bit1_bit1 [a, b, r, p]
+  | bit0 a, bit0 b :=
+    do let r := r.app_arg, (c, p) ← prove_add_nat c a b r, c.mk_app ``add_bit0_bit0 [a, b, r, p]
+  | bit0 a, bit1 b :=
+    do let r := r.app_arg, (c, p) ← prove_add_nat c a b r, c.mk_app ``add_bit0_bit1 [a, b, r, p]
+  | bit1 a, bit0 b :=
+    do let r := r.app_arg, (c, p) ← prove_add_nat c a b r, c.mk_app ``add_bit1_bit0 [a, b, r, p]
+  | bit1 a, bit1 b :=
+    do let r := r.app_arg, (c, p) ← prove_adc_nat c a b r, c.mk_app ``add_bit1_bit1 [a, b, r, p]
   | _, _ := failed
   end
 with prove_adc_nat : instance_cache → expr → expr → expr → tactic (instance_cache × expr)
@@ -160,22 +160,22 @@ with prove_adc_nat : instance_cache → expr → expr → expr → tactic (insta
   | zero, _ := do (c, p) ← prove_succ c b r, c.mk_app ``zero_adc [b, r, p]
   | _, zero := do (c, p) ← prove_succ c b r, c.mk_app ``adc_zero [b, r, p]
   | one, one := c.mk_app ``adc_one_one []
-  | bit0 a, one := do let r := r.app_arg,
-    (c, p) ← prove_succ c a r, c.mk_app ``adc_bit0_one [a, r, p]
-  | one, bit0 b := do let r := r.app_arg,
-    (c, p) ← prove_succ c b r, c.mk_app ``adc_one_bit0 [b, r, p]
-  | bit1 a, one := do let r := r.app_arg,
-    (c, p) ← prove_succ c a r, c.mk_app ``adc_bit1_one [a, r, p]
-  | one, bit1 b := do let r := r.app_arg,
-    (c, p) ← prove_succ c b r, c.mk_app ``adc_one_bit1 [b, r, p]
-  | bit0 a, bit0 b := do let r := r.app_arg,
-    (c, p) ← prove_add_nat c a b r, c.mk_app ``adc_bit0_bit0 [a, b, r, p]
-  | bit0 a, bit1 b := do let r := r.app_arg,
-    (c, p) ← prove_adc_nat c a b r, c.mk_app ``adc_bit0_bit1 [a, b, r, p]
-  | bit1 a, bit0 b := do let r := r.app_arg,
-    (c, p) ← prove_adc_nat c a b r, c.mk_app ``adc_bit1_bit0 [a, b, r, p]
-  | bit1 a, bit1 b := do let r := r.app_arg,
-    (c, p) ← prove_adc_nat c a b r, c.mk_app ``adc_bit1_bit1 [a, b, r, p]
+  | bit0 a, one :=
+    do let r := r.app_arg, (c, p) ← prove_succ c a r, c.mk_app ``adc_bit0_one [a, r, p]
+  | one, bit0 b :=
+    do let r := r.app_arg, (c, p) ← prove_succ c b r, c.mk_app ``adc_one_bit0 [b, r, p]
+  | bit1 a, one :=
+    do let r := r.app_arg, (c, p) ← prove_succ c a r, c.mk_app ``adc_bit1_one [a, r, p]
+  | one, bit1 b :=
+    do let r := r.app_arg, (c, p) ← prove_succ c b r, c.mk_app ``adc_one_bit1 [b, r, p]
+  | bit0 a, bit0 b :=
+    do let r := r.app_arg, (c, p) ← prove_add_nat c a b r, c.mk_app ``adc_bit0_bit0 [a, b, r, p]
+  | bit0 a, bit1 b :=
+    do let r := r.app_arg, (c, p) ← prove_adc_nat c a b r, c.mk_app ``adc_bit0_bit1 [a, b, r, p]
+  | bit1 a, bit0 b :=
+    do let r := r.app_arg, (c, p) ← prove_adc_nat c a b r, c.mk_app ``adc_bit1_bit0 [a, b, r, p]
+  | bit1 a, bit1 b :=
+    do let r := r.app_arg, (c, p) ← prove_adc_nat c a b r, c.mk_app ``adc_bit1_bit1 [a, b, r, p]
   | _, _ := failed
   end
 

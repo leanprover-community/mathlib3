@@ -191,6 +191,15 @@ calc a * b ≤ b : mul_le_of_le_one_left hb0 ha
 
 end ordered_semiring
 
+section ordered_comm_semiring
+
+/-- An `ordered_comm_semiring α` is a commutative semiring `α` with a partial order such that
+multiplication with a positive number and addition are monotone. -/
+@[protect_proj]
+class ordered_comm_semiring (α : Type u) extends ordered_semiring α, comm_semiring α
+
+end ordered_comm_semiring
+
 /--
 A `linear_ordered_semiring α` is a nontrivial semiring `α` with a linear order
 such that multiplication with a positive number and addition are monotone.
@@ -587,6 +596,15 @@ by rwa zero_mul at this
 
 end ordered_ring
 
+section ordered_comm_ring
+
+/-- An `ordered_comm_ring α` is a commutative ring `α` with a partial order such that
+multiplication with a positive number and addition are monotone. -/
+@[protect_proj]
+class ordered_comm_ring (α : Type u) extends ordered_ring α, ordered_comm_semiring α, comm_ring α
+
+end ordered_comm_ring
+
 /-- A `linear_ordered_ring α` is a ring `α` with a linear order such that
 multiplication with a positive number and addition are monotone. -/
 @[protect_proj] class linear_ordered_ring (α : Type u) extends ordered_ring α, linear_order α, nontrivial α
@@ -735,9 +753,9 @@ such that multiplication with a positive number and addition are monotone. -/
 class linear_ordered_comm_ring (α : Type u) extends linear_ordered_ring α, comm_monoid α
 
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_comm_ring.to_comm_ring [s : linear_ordered_comm_ring α] :
-  comm_ring α :=
-{ ..s }
+instance linear_ordered_comm_ring.to_ordered_comm_ring [d : linear_ordered_comm_ring α] : ordered_comm_ring α :=
+{ ..linear_ordered_ring.to_linear_ordered_semiring,
+  ..d }
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_comm_ring.to_integral_domain [s : linear_ordered_comm_ring α] :
@@ -753,14 +771,7 @@ addition are monotone. -/
 @[priority 100] -- see Note [lower instance priority]
 instance decidable_linear_ordered_comm_ring.to_decidable_linear_ordered_semiring [d : decidable_linear_ordered_comm_ring α] :
    decidable_linear_ordered_semiring α :=
-let s : linear_ordered_semiring α := @linear_ordered_ring.to_linear_ordered_semiring α _ in
-{ zero_mul                   := @linear_ordered_semiring.zero_mul α s,
-  mul_zero                   := @linear_ordered_semiring.mul_zero α s,
-  add_left_cancel            := @linear_ordered_semiring.add_left_cancel α s,
-  add_right_cancel           := @linear_ordered_semiring.add_right_cancel α s,
-  le_of_add_le_add_left      := @linear_ordered_semiring.le_of_add_le_add_left α s,
-  mul_lt_mul_of_pos_left     := @linear_ordered_semiring.mul_lt_mul_of_pos_left α s,
-  mul_lt_mul_of_pos_right    := @linear_ordered_semiring.mul_lt_mul_of_pos_right α s,
+{ ..linear_ordered_ring.to_linear_ordered_semiring,
   ..d }
 
 section decidable_linear_ordered_comm_ring
@@ -930,7 +941,7 @@ def to_decidable_linear_ordered_comm_ring
 { decidable_le := by apply_instance,
   decidable_lt := by apply_instance,
   mul_comm := is_commutative.comm,
-  ..@linear_nonneg_ring.to_linear_ordered_ring _ _ }
+  ..@linear_nonneg_ring.to_linear_ordered_ring α _ }
 
 end linear_nonneg_ring
 

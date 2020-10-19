@@ -25,24 +25,36 @@ In this file we define several notions of finiteness that are common in commutat
 open function (surjective)
 open_locale big_operators
 
-namespace module
+section module_and_algebra
 
-variables (R M N : Type*) [comm_ring R]
+variables (R A B M N : Type*) [comm_ring R]
+variables [comm_ring A] [algebra R A] [comm_ring B] [algebra R B]
 variables [add_comm_group M] [module R M]
 variables [add_comm_group N] [module R N]
 
 /-- A module over a commutative ring is `finite` if it is finitely generated as a module. -/
-def finite : Prop := (⊤ : submodule R M).fg
+@[class]
+def module.finite : Prop := (⊤ : submodule R M).fg
+
+/-- An algebra over a commutative ring is of `finite_type` if it is finitely generated
+over the base ring as algebra. -/
+@[class]
+def algebra.finite_type : Prop := (⊤ : subalgebra R A).fg
+
+namespace module
 
 variables {R M N}
 lemma finite_def : finite R M ↔ (⊤ : submodule R M).fg := iff.rfl
 variables (R M N)
 
+instance is_noetherian.finite [is_noetherian R M] : finite R M :=
+is_noetherian.noetherian ⊤
+
 namespace finite
 
 variables {R M N}
 
-lemma of_surjective (hM : finite R M) (f : M →ₗ[R] N) (hf : surjective f) :
+lemma of_surjective [hM : finite R M] (f : M →ₗ[R] N) (hf : surjective f) :
   finite R N :=
 by { rw [finite, ← linear_map.range_eq_top.2 hf, ← submodule.map_top], exact submodule.fg_map hM }
 
@@ -52,73 +64,39 @@ fg_of_injective f $ linear_map.ker_eq_bot.2 hf
 
 variables (R)
 
-lemma self : finite R R :=
+instance self : finite R R :=
 ⟨{1}, by simpa only [finset.coe_singleton] using ideal.span_singleton_one⟩
 
 variables {R}
 
-lemma prod (hM : finite R M) (hN : finite R N) : finite R (M × N) :=
+instance prod [hM : finite R M] [hN : finite R N] : finite R (M × N) :=
 begin
   rw [finite, ← submodule.prod_top],
   exact submodule.fg_prod hM hN
 end
 
-lemma equiv (hM : finite R M) (e : M ≃ₗ[R] N) : finite R N :=
-hM.of_surjective e e.surjective
+lemma equiv [hM : finite R M] (e : M ≃ₗ[R] N) : finite R N :=
+of_surjective (e : M →ₗ[R] N) e.surjective
 
-end finite
+section algebra
 
-end module
-
-namespace algebra
-variables (R A B : Type*) [comm_ring R] [comm_ring A] [algebra R A] [comm_ring B] [algebra R B]
-
-/-- An algebra over a commutative ring is `finite`
-if it is finitely generated as module over the base ring. -/
-def finite : Prop := module.finite R A
-
-/-- An algebra over a commutative ring is of `finite_type` if it is finitely generated
-over the base ring as algebra. -/
-def finite_type : Prop := (⊤ : subalgebra R A).fg
-
-namespace finite
-
-variables {R A B}
-
-lemma of_surjective (hM : finite R A) (f : A →ₐ[R] B) (hf : surjective f) :
-  finite R B :=
-hM.of_surjective f.to_linear_map hf
-
-variables (R)
-
-lemma self : finite R R := module.finite.self R
-
-variables {R}
-
--- move this
-instance : algebra R (A × B) :=
-{ commutes' := by { rintro r ⟨a, b⟩, dsimp, rw [commutes r a, commutes r b] },
-  smul_def' := by { rintro r ⟨a, b⟩, dsimp, rw [smul_def r a, smul_def r b] },
-  .. (show module R (A × B), by apply_instance),
-  .. ring_hom.prod (algebra_map R A) (algebra_map R B) }
-
-lemma prod (hRA : finite R A) (hRB : finite R B) : finite R (A × B) :=
-module.finite.prod hRA hRB
-
-lemma equiv (hRA : finite R A) (e : A ≃ₐ[R] B) : finite R B :=
-hRA.of_surjective e e.surjective
-
-lemma trans [algebra A B] [is_scalar_tower R A B] (hRA : finite R A) (hAB : finite A B) :
+lemma trans [algebra A B] [is_scalar_tower R A B] [hRA : finite R A] [hAB : finite A B] :
   finite R B :=
 let ⟨s, hs⟩ := hRA, ⟨t, ht⟩ := hAB in submodule.fg_def.2
 ⟨set.image2 (•) (↑s : set A) (↑t : set B),
 set.finite.image2 _ s.finite_to_set t.finite_to_set,
 by rw [set.image2_smul, submodule.span_smul hs (↑t : set B), ht, submodule.restrict_scalars'_top]⟩
 
-lemma finite_type (hRA : finite R A) : finite_type R A :=
+instance finite_type [hRA : finite R A] : algebra.finite_type R A :=
 subalgebra.fg_of_submodule_fg hRA
 
+end algebra
+
 end finite
+
+end module
+
+namespace algebra
 
 namespace finite_type
 
@@ -160,11 +138,14 @@ end finite_type
 
 end algebra
 
+end module_and_algebra
+
 namespace ring_hom
 variables {A B C : Type*} [comm_ring A] [comm_ring B] [comm_ring C]
 
 /-- A ring morphism `A →+* B` is `finite` if `B` is finitely generated as `A`-module. -/
-def finite (f : A →+* B) : Prop := @algebra.finite A B _ _ f.to_algebra
+def finite (f : A →+* B) : Prop :=
+by letI : algebra A B := f.to_algebra; exact module.finite A B
 
 /-- A ring morphism `A →+* B` is of `finite_type` if `B` is finitely generated as `A`-algebra. -/
 def finite_type (f : A →+* B) : Prop := @algebra.finite_type A B _ _ f.to_algebra
@@ -173,20 +154,20 @@ namespace finite
 
 variables (A)
 
-lemma id : finite (ring_hom.id A) := algebra.finite.self A
+lemma id : finite (ring_hom.id A) := module.finite.self A
 
 variables {A}
 
-lemma comp_surjective {f : A →+* B} {g : B →+* C} (hf : f.finite) (hg : surjective g) :
-  (g.comp f).finite :=
-@algebra.finite.of_surjective A B C _ _ f.to_algebra _ (g.comp f).to_algebra hf
-{ to_fun := g, commutes' := λ a, rfl, .. g } hg
-
 lemma of_surjective (f : A →+* B) (hf : surjective f) : f.finite :=
-by { rw ← f.comp_id, exact (id A).comp_surjective hf }
+begin
+  letI := f.to_algebra,
+  show module.finite A B,
+  let f' : A →ₐ[A] B := { to_fun := f, commutes' := λ a, rfl, .. f },
+  exact module.finite.of_surjective f'.to_linear_map hf
+end
 
 lemma comp {g : B →+* C} {f : A →+* B} (hg : g.finite) (hf : f.finite) : (g.comp f).finite :=
-@algebra.finite.trans A B C _ _ f.to_algebra _ (g.comp f).to_algebra g.to_algebra
+@module.finite.trans A B C _ _ f.to_algebra _ (g.comp f).to_algebra g.to_algebra
 begin
   fconstructor,
   intros a b c,
@@ -196,7 +177,7 @@ end
 hf hg
 
 lemma finite_type {f : A →+* B} (hf : f.finite) : finite_type f :=
-@algebra.finite.finite_type _ _ _ _ f.to_algebra hf
+@module.finite.finite_type _ _ _ _ f.to_algebra hf
 
 end finite
 
@@ -255,10 +236,6 @@ variables {R A}
 
 lemma comp {g : B →ₐ[R] C} {f : A →ₐ[R] B} (hg : g.finite) (hf : f.finite) : (g.comp f).finite :=
 ring_hom.finite.comp hg hf
-
-lemma comp_surjective {f : A →ₐ[R] B} {g : B →ₐ[R] C} (hf : f.finite) (hg : surjective g) :
-  (g.comp f).finite :=
-ring_hom.finite.comp_surjective hf hg
 
 lemma of_surjective (f : A →ₐ[R] B) (hf : surjective f) : f.finite :=
 ring_hom.finite.of_surjective f hf

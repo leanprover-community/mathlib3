@@ -293,7 +293,7 @@ lemma line_map_le_map_iff_slope_le_slope_right (h : 0 < (1 - r) * (b - a)) :
   line_map (f a) (f b) r ≤ f c ↔ slope f c b ≤ slope f a b :=
 @map_le_line_map_iff_slope_le_slope_right k (order_dual E) _ _ _ f a b r h
 
-/-- Given `c = line_map a b r`, `c < b`, the point `(c, f c)` is trictly below the
+/-- Given `c = line_map a b r`, `c < b`, the point `(c, f c)` is strictly below the
 segment `[(a, f a), (b, f b)]` if and only if `slope f a b < slope f c b`. -/
 lemma map_lt_line_map_iff_slope_lt_slope_right (h : 0 < (1 - r) * (b - a)) :
   f c < line_map (f a) (f b) r ↔ slope f a b < slope f c b :=

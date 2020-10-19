@@ -1915,24 +1915,6 @@ begin
   field_simp [add_mul, ← exp_add, hz]
 end
 
-lemma cos_surjective : function.surjective cos :=
-begin
-  intro x,
-  obtain ⟨w, hw⟩ : ∃ w, 1 * w * w + (-2 * x) * w + 1 = 0,
-  { exact exists_quadratic_eq_zero one_ne_zero (exists_eq_mul_self _) },
-  have hw' : exp (log w / I * I) = w,
-  { rw [div_mul_cancel _ I_ne_zero, exp_log],
-    rintro rfl,
-    simpa only [zero_add, one_ne_zero, mul_zero] using hw },
-  obtain ⟨z, hz⟩ : ∃ z : ℂ, (exp (z * I)) ^ 2 - 2 * x * exp (z * I) + 1 = 0,
-  { use log w / I, rw [hw', ← hw], ring },
-  use z,
-  delta cos,
-  rw ← mul_left_inj' (exp_ne_zero (z * I)),
-  rw [sub_add_eq_add_sub, sub_eq_zero, pow_two, ← exp_add, mul_comm _ x, mul_right_comm] at hz,
-  field_simp [add_mul, ← exp_add, hz]
-end
-
 @[simp] lemma range_cos : range cos = set.univ :=
 cos_surjective.range_eq
 
@@ -1968,7 +1950,7 @@ begin
 end
 
 /-- `cos (n * θ)` is equal to the `n`-th Chebyshev polynomial evaluated on `cos θ`. -/
-@[simp] lemma cos_nat_mul (n : ℕ) (θ : ℂ) :
+lemma cos_nat_mul (n : ℕ) (θ : ℂ) :
   cos (n * θ) = (chebyshev₁ ℂ n).eval (cos θ) :=
 (chebyshev₁_complex_cos θ n).symm
 

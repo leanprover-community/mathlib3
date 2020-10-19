@@ -113,7 +113,7 @@ by { ext, simp only [coeff_add, coeff_reflect], }
 
 @[simp] lemma reflect_C_mul (f : polynomial R) (r : R) (N : ℕ) :
   reflect N (C r * f) = C r * (reflect N f) :=
-by { ext1, rw [coeff_reflect, coeff_C_mul, coeff_C_mul, coeff_reflect], }
+by { ext, simp only [coeff_reflect, coeff_C_mul], }
 
 @[simp] lemma reflect_C_mul_X_pow (N n : ℕ) {c : R} :
   reflect N (C c * X ^ n) = C c * X ^ (rev_at N n) :=

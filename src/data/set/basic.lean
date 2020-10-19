@@ -311,6 +311,8 @@ lemma nonempty_iff_univ_nonempty : nonempty α ↔ (univ : set α).nonempty :=
 lemma nonempty.to_subtype (h : s.nonempty) : nonempty s :=
 nonempty_subtype.2 h
 
+@[simp] lemma nonempty_insert (a : α) (s : set α) : (insert a s).nonempty := ⟨a, or.inl rfl⟩
+
 /-! ### Lemmas about the empty set -/
 
 theorem empty_def : (∅ : set α) = {x | false} := rfl
@@ -1230,7 +1232,7 @@ eq_univ_of_forall $ by { simpa [image] }
 @[simp] theorem image_singleton {f : α → β} {a : α} : f '' {a} = {f a} :=
 by { ext, simp [image, eq_comm] }
 
-theorem nonempty.image_const {s : set α} (hs : s.nonempty) (a : β) : (λ _, a) '' s = {a} :=
+@[simp] theorem nonempty.image_const {s : set α} (hs : s.nonempty) (a : β) : (λ _, a) '' s = {a} :=
 ext $ λ x, ⟨λ ⟨y, _, h⟩, h ▸ mem_singleton _,
   λ h, (eq_of_mem_singleton h).symm ▸ hs.imp (λ y hy, ⟨hy, rfl⟩)⟩
 

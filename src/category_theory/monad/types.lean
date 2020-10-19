@@ -1,9 +1,11 @@
 /-
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl
+Authors: Johannes Hölzl, Bhavik Mehta
 -/
 import category_theory.monad.basic
+import category_theory.monad.kleisli
+import category_theory.category.Kleisli
 import category_theory.types
 
 /-!
@@ -27,6 +29,40 @@ instance : monad (of_type_functor m) :=
   assoc'      := assume α, funext $ assume a, mjoin_map_mjoin a,
   left_unit'  := assume α, funext $ assume a, mjoin_pure a,
   right_unit' := assume α, funext $ assume a, mjoin_map_pure a }
+
+/--
+The `Kleisli` category of a `control.monad` is equivalent to the `kleisli` category of its
+category-theoretic version, provided the monad is lawful.
+-/
+@[simps]
+def eq : Kleisli m ≌ kleisli (of_type_functor m) :=
+{ functor :=
+  { obj := λ X, X,
+    map := λ X Y f, f,
+    map_id' := λ X, rfl,
+    map_comp' := λ X Y Z f g,
+    begin
+      unfold_projs,
+      ext,
+      simp [mjoin, seq_bind_eq],
+    end },
+  inverse :=
+  { obj := λ X, X,
+    map := λ X Y f, f,
+    map_id' := λ X, rfl,
+    map_comp' := λ X Y Z f g,
+    begin
+      unfold_projs,
+      ext,
+      simp [mjoin, seq_bind_eq],
+    end },
+  unit_iso :=
+  begin
+    refine nat_iso.of_components (λ X, iso.refl X) (λ X Y f, _),
+    change f >=> pure = pure >=> f,
+    simp with functor_norm,
+  end,
+  counit_iso := nat_iso.of_components (λ X, iso.refl X) (λ X Y f, by tidy) }
 
 end
 

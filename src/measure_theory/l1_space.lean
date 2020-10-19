@@ -855,8 +855,8 @@ section pos_part
 def pos_part (f : α →₁[μ] ℝ) : α →₁[μ] ℝ :=
 ⟨ae_eq_fun.pos_part f,
   begin
-    rw [← ae_eq_fun.integrable_coe_fn,
-      integrable_congr (ae_eq_fun.measurable _) (f.measurable.max measurable_const) (coe_fn_pos_part _)],
+    rw [← ae_eq_fun.integrable_coe_fn, integrable_congr (ae_eq_fun.measurable _)
+      (f.measurable.max measurable_const) (coe_fn_pos_part _)],
     exact f.integrable.max_zero
   end ⟩
 
@@ -873,14 +873,13 @@ lemma neg_part_to_fun_eq_max (f : α →₁[μ] ℝ) : ∀ᵐ a ∂μ, neg_part 
 begin
   rw neg_part,
   filter_upwards [pos_part_to_fun (-f), neg_to_fun f],
-  simp only [mem_set_of_eq],
   assume a h₁ h₂,
   rw [h₁, h₂, pi.neg_apply]
 end
 
 lemma neg_part_to_fun_eq_min (f : α →₁[μ] ℝ) : ∀ᵐ a ∂μ, neg_part f a = - min (f a) 0 :=
 (neg_part_to_fun_eq_max f).mono $ assume a h,
-by rw [h, min_eq_neg_max_neg_neg, _root_.neg_neg, neg_zero]
+by rw [h, ← max_neg_neg, neg_zero]
 
 lemma norm_le_norm_of_ae_le {f g : α →₁[μ] β} (h : ∀ᵐ a ∂μ, ∥f a∥ ≤ ∥g a∥) : ∥f∥ ≤ ∥g∥ :=
 begin
@@ -902,7 +901,6 @@ begin
   refine lt_of_le_of_lt (norm_le_norm_of_ae_le _) hfg,
   filter_upwards [l1.sub_to_fun f g, l1.sub_to_fun (pos_part f) (pos_part g),
     pos_part_to_fun f, pos_part_to_fun g],
-  simp only [mem_set_of_eq],
   assume a h₁ h₂ h₃ h₄,
   simp only [real.norm_eq_abs, h₁, h₂, h₃, h₄, pi.sub_apply],
   exact abs_max_sub_max_le_abs _ _ _

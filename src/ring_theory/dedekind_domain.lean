@@ -8,9 +8,7 @@ import order.zorn
 import ring_theory.discrete_valuation_ring
 import ring_theory.fractional_ideal
 import ring_theory.ideal.over
-import ring_theory.fractional_ideal
 import ring_theory.polynomial.rational_root
-import ring_theory.ideal.over
 import set_theory.cardinal
 import tactic
 
@@ -187,24 +185,26 @@ end
 
 variables {M : ideal R} [is_maximal M]
 
-theorem is_integral_of_noetherian' (A : Type*) [comm_ring A] [algebra R A] (H : is_noetherian R A) (x : A) :
-  is_integral R x :=
-  sorry,
-
-#check is_integral_of_noetherian'
+theorem is_integral_of_noetherian' (B : Type*) [comm_ring B] [algebra R B] (A : subalgebra R B) (H : is_noetherian R A) (x : B) :
+  (x ∈ A) → is_integral R x :=
+  begin
+sorry,
+  end
 
 lemma if_inv_then_int {I : ideal R} (x : f.codomain) (h_I : I ≠ 0) (h_prod : ↑I * (1 / ↑I : fractional_ideal f) = ↑I) :
 x ∈ (1/↑I : fractional_ideal f).val → (f.to_map).is_integral_elem x :=
 begin
-let h_RalgK := ring_hom.to_algebra f.to_map,
-let φ := @aeval R f.codomain _ _ h_RalgK x,
+let h_RalgK := (ring_hom.to_algebra f.to_map),
+let φ := @aeval R K _ _ h_RalgK x,
 let A := @alg_hom.range R (polynomial R) f.codomain _ _ _  _ h_RalgK φ,
-have hx :  x ∈ A,--may be it is better to have hxn : ∀ (n : ℕ ), x^n ∈ A, (which is not much harder to prove)
+have h_xA :  x ∈ A,--may be it is better to have hxn : ∀ (n : ℕ ), x^n ∈ A, (which is not much harder to prove)
   suffices hp : ∃ (p : polynomial R), φ p = x, simpa,
-  use X, apply aeval_X,--if done only for x^n rather than x, use aeval_X_pow rather than aeval_X
+  use X, apply aeval_X,--if done for x^n rather than x, use aeval_X_pow rather than aeval_X
 have h_fracA : is_fractional f A, sorry,
 have h_A : is_noetherian R A, sorry,
-apply is_integral_of_noetherian h_A hx,sorry,--can't work because x does not have type A
+obtain ⟨ _ , h_int_x ⟩ : is_integral R x,
+apply @is_integral_of_noetherian' R _ K _ h_RalgK A h_A x h_xA,
+cases h_int_x with px zero_px, intro h_xI,
 end
 /-
 lemma if_inv_then_int {I : ideal R} (x : f.codomain) (h_I : I ≠ 0) (h : ↑I * (1 / ↑I : fractional_ideal f) = ↑I) :

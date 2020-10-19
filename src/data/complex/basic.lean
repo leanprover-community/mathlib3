@@ -184,6 +184,13 @@ lemma eq_conj_iff_real {z : ℂ} : conj z = z ↔ ∃ r : ℝ, z = r :=
 lemma eq_conj_iff_re {z : ℂ} : conj z = z ↔ (z.re : ℂ) = z :=
 eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩
 
+instance : star_ring ℂ :=
+{ star := λ z, conj z,
+  star_star := by simp,
+  star_mul := λ r s, by { ext; simp [mul_comm], },
+  star_zero := by simp,
+  star_add := by simp, }
+
 /-! ### Norm squared -/
 
 /-- The norm squared function. -/
@@ -582,6 +589,22 @@ instance : ordered_comm_ring ℂ :=
   add_right_cancel := λ z₁ z₂ z₃, add_right_cancel,
   ..(by apply_instance : partial_order ℂ),
   ..(by apply_instance : comm_ring ℂ), }
+
+/--
+With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is a star ordered ring.
+(That is, an ordered ring in which every element of the form `star z * z` is nonnegative.)
+
+In fact, `ℂ` is a C*-algebra, and so the nonnegative elements are precisely those of this form,
+but we don't yet have C*-algebras in mathlib.
+-/
+instance : star_ordered_ring ℂ :=
+{ star_mul_self_nonneg := λ z,
+  begin
+    refine ⟨z.abs^2, pow_nonneg (abs_nonneg z) 2, _⟩,
+    simp only [has_star.star, of_real_pow, zero_add],
+    norm_cast,
+    rw [←norm_sq_eq_abs, norm_sq_eq_conj_mul_self],
+  end, }
 
 /-! ### Cauchy sequences -/
 

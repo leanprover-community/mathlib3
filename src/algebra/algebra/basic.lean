@@ -162,7 +162,7 @@ by rw [smul_def, smul_def, left_comm]
 by rw [smul_def, smul_def, mul_assoc]
 
 section
-variables (r : R) (a : A)
+variables {r : R} {a : A}
 
 @[simp] lemma bit0_smul_one : bit0 r • (1 : A) = r • 2 :=
 by simp [bit0, add_smul, smul_add]

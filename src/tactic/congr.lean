@@ -59,7 +59,7 @@ the depth of recursive applications.
   and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`.
 * If, at any point, a subgoal matches a hypothesis then the subgoal will be closed.
 -/
-meta def congr' : option ℕ → opt_param ℕ 1000 → tactic unit
+meta def congr' : option ℕ → opt_param ℕ 100 → tactic unit
 | (some 0) t := failed
 | o        t := focus1 (assumption <|> (congr_core' >>
   all_goals' (try_for t reflexivity <|> `[apply proof_irrel_heq] <|>

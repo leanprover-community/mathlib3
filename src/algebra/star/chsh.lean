@@ -8,14 +8,14 @@ import algebra.algebra.ordered
 import analysis.special_functions.pow
 
 /-!
-# The Clauser-Horne-Shimony-Holt inequality.
+# The Clauser-Horne-Shimony-Holt inequality and Tsirelson's inequality.
 
 We establish a version of the Clauser-Horne-Shimony-Holt (CHSH) inequality
 (which is a generalization of Bell's inequality).
 This is a foundational result which implies that
 quantum mechanics is not a local hidden variable theory.
 
-As usually stated the CHSH ienquality requires substantial language from physics and probability,
+As usually stated the CHSH inequality requires substantial language from physics and probability,
 but it is possible to give a statement that is purely about ordered *-algebras.
 We do that here, to avoid as many practical and logical dependencies as possible.
 Since the algebra of observables of any quantum system is an ordered *-algebra
@@ -28,9 +28,9 @@ A CHSH tuple in `R` consists of
 * each `Aᵢ` and `Bⱼ` is a self-adjoint involution, and
 * the `Aᵢ` commute with the `Bⱼ`.
 
-(The physical interpretation is that the four elements are observables (hence self-adjoint)
+The physical interpretation is that the four elements are observables (hence self-adjoint)
 that take values ±1 (hence involutions), and that the `Aᵢ` are spacelike separated from the `Bⱼ`
-(and hence commute).)
+(and hence commute).
 
 The CHSH inequality says that when `R` is an ordered *-ring
 (that is, a *-ring which is ordered, and for every `r : R`, `0 ≤ star r * r`),

@@ -22,7 +22,8 @@ If `S` is an `R`-algebra and `A` is an `S`-algebra then `algebra.comap.algebra R
 to provide `A` with a structure of an `R`-algebra. Other than that, `algebra.comap` is now
 deprecated and replaced with `is_scalar_tower`.
 
-For the category of `R`-algebras, see the file `algebra/category/Algebra/basic.lean`.
+For the category of `R`-algebras, denoted `Algebra R`, see the file
+`algebra/category/Algebra/basic.lean`.
 
 ## Notations
 

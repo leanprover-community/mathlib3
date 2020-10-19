@@ -548,7 +548,8 @@ instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
 def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
 
 /-- See Note [custom simps projection] -/
--- test: intentionally using different unvierse levels for equiv.symm than for equiv
+-- test: intentionally using different names for the universe variables for equiv.symm than for
+-- equiv
 def equiv.simps.inv_fun {α : Type u} {β : Type v} (e : α ≃ β) : β → α := e.symm
 
 run_cmd do e ← get_env,

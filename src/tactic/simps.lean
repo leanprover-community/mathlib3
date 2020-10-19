@@ -18,7 +18,7 @@ There are three attributes being defined here
   contains data. See the doc strings for `simps_attr` and `simps_cfg` for more details and
   configuration options.
 * `@[_simps_str]` is automatically added to structures that have been used in `@[simps]` at least
-  once. They contain the data of the projections used for this structure by all following
+  once. This attribute contains the data of the projections used for this structure by all following
   invocations of `@[simps]`.
 * `@[notation_class]` should be added to all classes that define notation, like `has_mul` and
   `has_zero`. This specifies that the projections that `@[simps]` used are the projections from

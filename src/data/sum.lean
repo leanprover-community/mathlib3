@@ -48,6 +48,12 @@ end⟩
 
 namespace sum
 
+lemma injective_inl : function.injective (sum.inl : α → α ⊕ β) :=
+λ x y, sum.inl.inj
+
+lemma injective_inr : function.injective (sum.inr : β → α ⊕ β) :=
+λ x y, sum.inr.inj
+
 /-- Map `α ⊕ β` to `α' ⊕ β'` sending `α` to `α'` and `β` to `β'`. -/
 protected def map (f : α → α') (g : β → β')  : α ⊕ β → α' ⊕ β'
 | (sum.inl x) := sum.inl (f x)

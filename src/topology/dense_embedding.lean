@@ -80,11 +80,12 @@ protected lemma prod [topological_space γ] [topological_space δ]
   {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_inducing e₁) (de₂ : dense_inducing e₂) :
   dense_inducing (λ(p : α × γ), (e₁ p.1, e₂ p.2)) :=
 { induced := (de₁.to_inducing.prod_mk de₂.to_inducing).induced,
-  dense := de₁.dense.prod de₂.dense }
+  dense := de₁.dense.prod_map de₂.dense }
 
 open topological_space
 
-lemma separable [separable_space α] : separable_space β :=
+/-- If the domain of a `dense_inducing` map is a separable space, then so is the codomain. -/
+protected lemma separable_space [separable_space α] : separable_space β :=
 di.dense.separable_space di.continuous
 
 variables [topological_space δ] {f : γ → α} {g : γ → δ} {h : δ → β}
@@ -119,7 +120,7 @@ variables [topological_space γ]
   continuous extension, then `g` is the unique such extension. In general,
   `g` might not be continuous or even extend `f`. -/
 def extend (di : dense_inducing i) (f : α → γ) (b : β) : γ :=
-@@lim _ ⟨f (di.dense.inhabited b).default⟩ (comap i (𝓝 b)) f
+@@lim _ ⟨f (di.dense.some b)⟩ (comap i (𝓝 b)) f
 
 lemma extend_eq_of_tendsto [t2_space γ] {b : β} {c : γ} {f : α → γ}
   (hf : tendsto f (comap i (𝓝 b)) (𝓝 c)) :
@@ -203,7 +204,7 @@ structure dense_embedding [topological_space α] [topological_space β] (e : α 
 theorem dense_embedding.mk'
   [topological_space α] [topological_space β] (e : α → β)
   (c     : continuous e)
-  (dense : ∀x, x ∈ closure (range e))
+  (dense : dense_range e)
   (inj   : function.injective e)
   (H     : ∀ (a:α) s ∈ 𝓝 a,
     ∃t ∈ 𝓝 (e a), ∀ b, e b ∈ t → b ∈ s) :
@@ -222,7 +223,9 @@ lemma to_embedding : embedding e :=
 { induced := de.induced,
   inj := de.inj }
 
-lemma separable [separable_space α] : separable_space β := de.to_dense_inducing.separable
+/-- If the domain of a `dense_embedding` is a separable space, then so is its codomain. -/
+protected lemma separable_space [separable_space α] : separable_space β :=
+de.to_dense_inducing.separable_space
 
 /-- The product of two dense embeddings is a dense embedding -/
 protected lemma prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_embedding e₁) (de₂ : dense_embedding e₂) :
@@ -266,14 +269,14 @@ lemma is_closed_property2 [topological_space β] {e : α → β} {p : β → β 
   (he : dense_range e) (hp : is_closed {q:β×β | p q.1 q.2}) (h : ∀a₁ a₂, p (e a₁) (e a₂)) :
   ∀b₁ b₂, p b₁ b₂ :=
 have ∀q:β×β, p q.1 q.2,
-  from is_closed_property (he.prod he) hp $ λ _, h _ _,
+  from is_closed_property (he.prod_map he) hp $ λ _, h _ _,
 assume b₁ b₂, this ⟨b₁, b₂⟩
 
 lemma is_closed_property3 [topological_space β] {e : α → β} {p : β → β → β → Prop}
   (he : dense_range e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2}) (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃)) :
   ∀b₁ b₂ b₃, p b₁ b₂ b₃ :=
 have ∀q:β×β×β, p q.1 q.2.1 q.2.2,
-  from is_closed_property (he.prod $ he.prod he) hp $ λ _, h _ _ _,
+  from is_closed_property (he.prod_map $ he.prod_map he) hp $ λ _, h _ _ _,
 assume b₁ b₂ b₃, this ⟨b₁, b₂, b₃⟩
 
 @[elab_as_eliminator]

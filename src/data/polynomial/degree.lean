@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.eval
+import tactic.interval_cases
 
 /-!
 # Theory of degrees of polynomials
@@ -147,6 +148,25 @@ begin
 end
 
 end injective
+
+section
+variable {f : polynomial R}
+
+lemma monomial_nat_degree_leading_coeff_eq_self (h : f.support.card ≤ 1) :
+  monomial f.nat_degree f.leading_coeff = f :=
+begin
+  interval_cases f.support.card with H,
+  { have : f = 0 := finsupp.card_support_eq_zero.1 H,
+    simp [this] },
+  { obtain ⟨n, x, hx, rfl : f = monomial n x⟩ := finsupp.card_support_eq_one'.1 H,
+    simp [hx] }
+end
+
+lemma C_mul_X_pow_eq_self (h : f.support.card ≤ 1) :
+  C f.leading_coeff * X^f.nat_degree = f :=
+by rw [C_mul_X_pow_eq_monomial, monomial_nat_degree_leading_coeff_eq_self h]
+
+end
 
 end degree
 end semiring

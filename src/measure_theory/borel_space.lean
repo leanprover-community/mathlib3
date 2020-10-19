@@ -174,7 +174,7 @@ opens_measurable_space.borel_le _ $ generate_measurable.basic _ h
 lemma is_measurable_interior : is_measurable (interior s) := is_open_interior.is_measurable
 
 lemma is_closed.is_measurable (h : is_closed s) : is_measurable s :=
-is_measurable.compl_iff.1 $ h.is_measurable
+h.is_measurable.of_compl
 
 lemma is_compact.is_measurable [t2_space α] (h : is_compact s) : is_measurable s :=
 h.is_closed.is_measurable
@@ -794,7 +794,7 @@ variable [measurable_space α]
 
 lemma measurable.sub_nnreal {f g : α → ℝ≥0} :
   measurable f → measurable g → measurable (λ a, f a - g a) :=
-nnreal.continuous_sub.measurable2
+continuous_sub.measurable2
 
 lemma measurable.nnreal_of_real {f : α → ℝ} (hf : measurable f) :
   measurable (λ x, nnreal.of_real (f x)) :=
@@ -876,7 +876,7 @@ end
 
 lemma measurable_sub : measurable (λ p : ennreal × ennreal, p.1 - p.2) :=
 by apply measurable_of_measurable_nnreal_nnreal;
-  simp [← ennreal.coe_sub, nnreal.continuous_sub.measurable.ennreal_coe]
+  simp [← ennreal.coe_sub, continuous_sub.measurable.ennreal_coe]
 
 end ennreal
 

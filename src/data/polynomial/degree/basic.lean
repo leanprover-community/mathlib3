@@ -50,6 +50,9 @@ def leading_coeff (p : polynomial R) : R := coeff p (nat_degree p)
 /-- a polynomial is `monic` if its leading coefficient is 1 -/
 def monic (p : polynomial R) := leading_coeff p = (1 : R)
 
+@[nontriviality] lemma monic_of_subsingleton [subsingleton R] (p : polynomial R) : monic p :=
+subsingleton.elim _ _
+
 lemma monic.def : monic p ↔ leading_coeff p = 1 := iff.rfl
 
 instance monic.decidable [decidable_eq R] : decidable (monic p) :=
@@ -172,6 +175,10 @@ if h : a = 0 then by rw [h, C_0, zero_mul]; exact bot_le else le_of_eq (degree_m
 
 @[simp] lemma nat_degree_C_mul_X_pow (n : ℕ) (a : R) (ha : a ≠ 0) : nat_degree (C a * X ^ n) = n :=
 nat_degree_eq_of_degree_eq_some (degree_monomial n ha)
+
+@[simp] lemma nat_degree_monomial (i : ℕ) (r : R) (hr : r ≠ 0) :
+  nat_degree (monomial i r) = i :=
+by rw [← C_mul_X_pow_eq_monomial, nat_degree_C_mul_X_pow i r hr]
 
 lemma coeff_eq_zero_of_degree_lt (h : degree p < n) : coeff p n = 0 :=
 not_not.1 (mt le_degree_of_ne_zero (not_le_of_gt h))
@@ -540,6 +547,9 @@ begin
     exact @finsupp.single_eq_same _ _ _ n a }
 end
 
+@[simp] lemma leading_coeff_monomial' (a : R) (n : ℕ) : leading_coeff (monomial n a) = a :=
+by rw [← C_mul_X_pow_eq_monomial, leading_coeff_monomial]
+
 @[simp] lemma leading_coeff_C (a : R) : leading_coeff (C a) = a :=
 suffices leading_coeff (C a * X^0) = a, by rwa [pow_zero, mul_one] at this,
 leading_coeff_monomial a 0
@@ -779,9 +789,9 @@ lemma degree_sub_lt (hd : degree p = degree q)
   (hp0 : p ≠ 0) (hlc : leading_coeff p = leading_coeff q) :
   degree (p - q) < degree p :=
 have hp : single (nat_degree p) (leading_coeff p) + p.erase (nat_degree p) = p :=
-  finsupp.single_add_erase,
+  finsupp.single_add_erase _ _,
 have hq : single (nat_degree q) (leading_coeff q) + q.erase (nat_degree q) = q :=
-  finsupp.single_add_erase,
+  finsupp.single_add_erase _ _,
 have hd' : nat_degree p = nat_degree q := by unfold nat_degree; rw hd,
 have hq0 : q ≠ 0 := mt degree_eq_bot.2 (hd ▸ mt degree_eq_bot.1 hp0),
 calc degree (p - q) = degree (erase (nat_degree q) p + -erase (nat_degree q) q) :

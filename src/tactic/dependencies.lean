@@ -5,8 +5,6 @@ Authors: Jannis Limperg
 -/
 import tactic.core
 
-open native
-
 /-!
 # Tactics About Dependencies
 
@@ -55,6 +53,8 @@ module also provides tactics to find the *direct* dependencies of a hypothesis.
 These are the hypotheses that syntactically appear in the hypothesis's type (or
 value, if the hypothesis is a local definition).
 -/
+
+open native
 
 namespace tactic
 

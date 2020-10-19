@@ -86,7 +86,7 @@ structure is_CHSH_tuple {R} [monoid R] [star_monoid R] (A₀ A₁ B₀ B₁ : R)
 
 variables {R : Type u}
 
-
+-- set_option pp.all true
 /--
 Given a CHSH tuple (A₀, A₁, B₀, B₁) in a *commutative* ordered *-algebra over ℝ,
 `A₀ * B₀ + A₀ * B₁ + A₁ * B₀ - A₁ * B₁ ≤ 2`.

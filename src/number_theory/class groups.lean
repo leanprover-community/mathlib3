@@ -56,48 +56,10 @@ theorem integral_domain_of_number_ring (K : Type*) [number_field K] : integral_d
 
 example (K : Type*) [field K] (x : K) (h : x ≠ 0): x * (field.inv x) = 1 := field.mul_inv_cancel h
 
-/-- A predicate to express that a ring is a field.
-
-This is mainly useful because such a predicate does not contain data,
-and can therefore be easily transported along ring isomorphisms. -/
-structure is_field' (R : Type*) [ring R] : Prop :=
-    (exists_pair_ne : ∃ (x y : R), x ≠ y)
-    (mul_comm : ∀ (x y : R), x * y = y * x)
-    (mul_inv_cancel' : ∀ {a : R}, a ≠ 0 → ∃ b, a * b = 1)
-
-/-- Every field satisfies the predicate for integral domains. -/
-lemma field.to_is_field' (R : Type*) [field R] : is_field' R :=
-    {mul_inv_cancel' := λ a ha, ⟨a⁻¹, field.mul_inv_cancel ha⟩,
-   .. (‹_› : field R) }
-
-noncomputable def is_field'.to_field (R : Type*) [ring R] (h : is_field' R) : field R :=
-    {inv := (λ a, if ha : a = 0 then 0 else classical.some (is_field'.mul_inv_cancel' h ha)),
-    inv_zero := (dif_pos rfl),
-    mul_inv_cancel := (λ a ha, begin
-        convert classical.some_spec (is_field'.mul_inv_cancel' h ha),
-        exact dif_neg ha
-    end),
-    .._inst_1, ..h}
-
-/-- There is a unique inverse in a field.
--/
-lemma uniq_inv_of_is_field' (R : Type*) [comm_ring R] [is_field' R]: ∀ (x : R), x ≠ 0 → ∃! (y : R), x * y = 1 := begin
-    intros x hx,
-    apply exists_unique_of_exists_of_unique,
-        {exact _inst_2.mul_inv_cancel' hx},
-    intros y z hxy hxz,
-    calc y = y * 1 : eq.symm (mul_one y)
-    ... = y * (x * z) : by rw hxz
-    ... = (y * x) * z : eq.symm (mul_assoc y x z)
-    ... = (x * y) * z : by rw mul_comm y x
-    ... = 1 * z : by rw hxy
-    ... = z : one_mul z
-end
-
 /-- If the quotient of a `comm_ring` by an ideal is a field, then the ideal is maximal
 -/
 lemma maximal_ideal_of_is_field_quotient (R : Type*) [comm_ring R] (I : ideal R)
-[@is_field' I.quotient (comm_ring.to_ring (ideal.quotient I))] : I.is_maximal := begin
+[@is_field I.quotient (comm_ring.to_ring (ideal.quotient I))] : I.is_maximal := begin
     apply ideal.is_maximal_iff.2,
     split, {intro h,
         rcases (_inst_2.exists_pair_ne) with ⟨⟨x⟩, ⟨y⟩, hxy⟩,
@@ -109,7 +71,7 @@ lemma maximal_ideal_of_is_field_quotient (R : Type*) [comm_ring R] (I : ideal R)
     {intros J x hIJ hxnI hxJ,
         have hxn0 : (ideal.quotient.mk I x) ≠ 0,
         {exact @mt ((ideal.quotient.mk I x) = 0) (x ∈ I) ideal.quotient.eq_zero_iff_mem.1 hxnI},
-        have hinvx : ∃ (y : I.quotient), (ideal.quotient.mk I x) * y = 1, {exact _inst_2.mul_inv_cancel' hxn0},
+        have hinvx : ∃ (y : I.quotient), (ideal.quotient.mk I x) * y = 1, {exact _inst_2.mul_inv_cancel hxn0},
         rcases hinvx with ⟨⟨y⟩, hy⟩,
         change (ideal.quotient.mk I x) * (ideal.quotient.mk I y) = 1 at hy,
         rw ←((ideal.quotient.mk I).map_mul x y) at hy,
@@ -125,10 +87,10 @@ end
 /-- The quotient of a ring by an ideal is a field iff the ideal is maximal.
 -/
 theorem maximal_ideal_iff_is_field_quotient (R : Type*) [comm_ring R] (I : ideal R) :
-I.is_maximal ↔ (@is_field' I.quotient (comm_ring.to_ring (ideal.quotient I))) := begin
+I.is_maximal ↔ (@is_field I.quotient (comm_ring.to_ring (ideal.quotient I))) := begin
     split,
     {intro h,
-        exact @field.to_is_field' I.quotient (@ideal.quotient.field _ _ I h)},
+        exact @field.to_is_field I.quotient (@ideal.quotient.field _ _ I h)},
     {intro h,
         exact @maximal_ideal_of_is_field_quotient R _ I h,}
 end
@@ -140,7 +102,7 @@ instance dedekind_domain_of_number_ring (K : Type*) [number_field K] : dedekind_
     intros P hP hPp,
     have hid : integral_domain P.quotient, exact @ideal.quotient.integral_domain _ _ P hPp,
     have hfin : fintype P.quotient, {sorry},
-    have hf : is_field' (P.quotient), {sorry},
+    have hf : is_field (P.quotient), {sorry},
     exact @maximal_ideal_of_is_field_quotient (number_ring K) _ P hf,
   end)}
 
@@ -353,7 +315,7 @@ def class_number := fintype.card (class_group K g)
 
 def gal_ext (F L : Type*) [field F] [field L] [algebra F L] := (is_separable F L) ∧ (normal F L)
 
-def gal_grp (F L : Type*) [field F] [field L] [algebra F L] : (Type : Type 1) := {σ : ring_aut L | ∀ x : F, σ (x • (1:L)) = (x • (1:L)) }
+def gal_grp (F L : Type*) [field F] [field L] [algebra F L] : Type := {σ : ring_aut L | ∀ x : F, σ (x • (1:L)) = (x • (1:L)) }
 
 class zp_ext (L : Type*) [field L] (p : ℕ) [fact p.prime] ( h : ℕ → set L ) :=
 ( blah2 : ∀ i : ℕ, number_field (h i) )

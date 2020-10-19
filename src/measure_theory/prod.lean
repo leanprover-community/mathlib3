@@ -65,6 +65,26 @@ open topological_space (hiding generate_from)
 open filter (hiding prod_eq map)
 
 variables {α α' β β' γ E : Type*}
+
+/-- Rectangles formed by π-systems form a π-system. -/
+lemma is_pi_system.prod {C : set (set α)} {D : set (set β)} (hC : is_pi_system C)
+  (hD : is_pi_system D) : is_pi_system (image2 set.prod C D) :=
+begin
+  rintro _ _ ⟨s₁, t₁, hs₁, ht₁, rfl⟩ ⟨s₂, t₂, hs₂, ht₂, rfl⟩ hst,
+  rw [prod_inter_prod] at hst ⊢, rw [prod_nonempty_iff] at hst,
+  exact mem_image2_of_mem (hC _ _ hs₁ hs₂ hst.1) (hD _ _ ht₁ ht₂ hst.2)
+end
+
+/-- Rectangles of countably spanning sets are countably spanning. -/
+lemma is_countably_spanning.prod {C : set (set α)} {D : set (set β)}
+  (hC : is_countably_spanning C) (hD : is_countably_spanning D) :
+  is_countably_spanning (image2 set.prod C D) :=
+begin
+  rcases ⟨hC, hD⟩ with ⟨⟨s, h1s, h2s⟩, t, h1t, h2t⟩,
+  refine ⟨λ n, (s n.unpair.1).prod (t n.unpair.2), λ n, mem_image2_of_mem (h1s _) (h1t _), _⟩,
+  rw [Union_unpair_prod, h2s, h2t, univ_prod_univ]
+end
+
 variables [measurable_space α] [measurable_space α'] [measurable_space β] [measurable_space β']
 variables [measurable_space γ]
 variables {μ : measure α} {ν : measure β} {τ : measure γ}
@@ -118,28 +138,10 @@ lemma generate_from_prod :
 generate_from_eq_prod generate_from_is_measurable generate_from_is_measurable
   is_countably_spanning_is_measurable is_countably_spanning_is_measurable
 
-/-- Rectangles formed by π-systems form a π-system. -/
-lemma is_pi_system.prod {C : set (set α)} {D : set (set β)} (hC : is_pi_system C)
-  (hD : is_pi_system D) : is_pi_system (image2 set.prod C D) :=
-begin
-  rintro _ _ ⟨s₁, t₁, hs₁, ht₁, rfl⟩ ⟨s₂, t₂, hs₂, ht₂, rfl⟩ hst,
-  rw [prod_inter_prod] at hst ⊢, rw [prod_nonempty_iff] at hst,
-  exact mem_image2_of_mem (hC _ _ hs₁ hs₂ hst.1) (hD _ _ ht₁ ht₂ hst.2)
-end
-
 /-- Rectangles form a π-system. -/
 lemma is_pi_system_prod :
   is_pi_system (image2 set.prod { s : set α | is_measurable s } { t : set β | is_measurable t }) :=
 is_pi_system_is_measurable.prod is_pi_system_is_measurable
-
-/-- Rectangles of countably spanning sets are countably spanning. -/
-lemma is_countably_spanning.prod {C : set (set α)} {D : set (set β)} (hC : is_countably_spanning C)
-  (hD : is_countably_spanning D) : is_countably_spanning (image2 set.prod C D) :=
-begin
-  rcases ⟨hC, hD⟩ with ⟨⟨s, h1s, h2s⟩, t, h1t, h2t⟩,
-  refine ⟨λ n, (s n.unpair.1).prod (t n.unpair.2), λ n, mem_image2_of_mem (h1s _) (h1t _), _⟩,
-  rw [Union_unpair_prod, h2s, h2t, univ_prod_univ]
-end
 
 /-- If `ν` is a finite measure, and `s ⊆ α × β` is measurable, then `x ↦ ν { y | (x, y) ∈ s }` is
   a measurable function. `measurable_measure_prod_mk_left` is strictly more general. -/

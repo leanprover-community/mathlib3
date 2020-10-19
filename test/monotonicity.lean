@@ -21,7 +21,10 @@ example
   (h : 3 ≤ (4 : ℤ))
   (h' : 5 ≤ (6 : ℤ))
 : (1 + 3 + 2) - 6 ≤ (4 + 2 + 1 : ℤ) - 5 :=
-by ac_mono
+begin
+  ac_mono,
+  mono,
+end
 
 example
   (h : 3 ≤ (4 : ℤ))

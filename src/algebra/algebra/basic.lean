@@ -74,7 +74,7 @@ rfl
 
 namespace algebra
 
-variables {R : Type u} {S : Type v} {A : Type w}
+variables {R : Type u} {S : Type v} {A : Type w} {B : Type*}
 
 /-- Let `R` be a commutative semiring, let `A` be a semiring with a `semimodule R` structure.
 If `(r • 1) * x = x * (r • 1) = r • x` for all `r : R` and `x : A`, then `A` is an `algebra`
@@ -100,7 +100,8 @@ of_semimodule' (λ r x, by rw [h₁, one_mul]) (λ r x, by rw [h₂, mul_one])
 
 section semiring
 
-variables [comm_semiring R] [comm_semiring S] [semiring A] [algebra R A]
+variables [comm_semiring R] [comm_semiring S]
+variables [semiring A] [algebra R A] [semiring B] [algebra R B]
 
 lemma smul_def'' (r : R) (x : A) : r • x = algebra_map R A r * x :=
 algebra.smul_def' r x
@@ -202,6 +203,22 @@ namespace id
 @[simp] lemma smul_eq_mul (x y : R) : x • y = x * y := rfl
 
 end id
+
+section prod
+variables (R A B)
+
+instance : algebra R (A × B) :=
+{ commutes' := by { rintro r ⟨a, b⟩, dsimp, rw [commutes r a, commutes r b] },
+  smul_def' := by { rintro r ⟨a, b⟩, dsimp, rw [smul_def r a, smul_def r b] },
+  .. prod.semimodule,
+  .. ring_hom.prod (algebra_map R A) (algebra_map R B) }
+
+variables {R A B}
+
+@[simp] lemma algebra_map_prod_apply (r : R) :
+  algebra_map R (A × B) r = (algebra_map R A r, algebra_map R B r) := rfl
+
+end prod
 
 /-- Algebra over a subsemiring. -/
 instance of_subsemiring (S : subsemiring R) : algebra S A :=

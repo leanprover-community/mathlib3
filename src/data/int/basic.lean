@@ -35,7 +35,7 @@ instance : comm_ring int :=
   right_distrib  := int.distrib_right,
   mul_comm       := int.mul_comm }
 
-/- Extra instances to short-circuit type class resolution -/
+/-! ### Extra instances to short-circuit type class resolution -/
 -- instance : has_sub int            := by apply_instance -- This is in core
 instance : add_comm_monoid int    := by apply_instance
 instance : add_monoid int         := by apply_instance
@@ -111,7 +111,7 @@ lemma coe_nat_succ_pos (n : ℕ) : 0 < (n.succ : ℤ) := int.coe_nat_pos.2 (succ
 @[simp, norm_cast] theorem coe_nat_abs (n : ℕ) : abs (n : ℤ) = n :=
 abs_of_nonneg (coe_nat_nonneg n)
 
-/- succ and pred -/
+/-! ### succ and pred -/
 
 /-- Immediate successor of an integer: `succ n = n + 1` -/
 def succ (a : ℤ) := a + 1
@@ -194,7 +194,7 @@ begin
       exact Hp _ (le_of_lt (add_lt_of_neg_of_le (neg_succ_lt_zero _) (le_refl _))) ih } }
 end
 
-/- nat abs -/
+/-! ### nat abs -/
 
 attribute [simp] nat_abs nat_abs_of_nat nat_abs_zero nat_abs_one
 
@@ -240,7 +240,7 @@ begin
   simpa using w₂,
 end
 
-/- /  -/
+/-! ### `/`  -/
 
 @[simp] theorem of_nat_div (m n : ℕ) : of_nat (m / n) = (of_nat m) / (of_nat n) := rfl
 
@@ -358,7 +358,7 @@ by rw [mul_comm, int.mul_div_cancel _ H]
 @[simp] protected theorem div_self {a : ℤ} (H : a ≠ 0) : a / a = 1 :=
 by have := int.mul_div_cancel 1 H; rwa one_mul at this
 
-/- mod -/
+/-! ### mod -/
 
 theorem of_nat_mod (m n : nat) : (m % n : ℤ) = of_nat (m % n) := rfl
 
@@ -513,7 +513,7 @@ begin
   rw [sub_add_cancel, ← add_mod_mod, sub_add_cancel, mod_mod]
 end
 
-/- properties of / and % -/
+/-! ### properties of `/` and `%` -/
 
 @[simp] theorem mul_div_mul_of_pos {a : ℤ} (b c : ℤ) (H : 0 < a) : a * b / (a * c) = b / c :=
 suffices ∀ (m k : ℕ) (b : ℤ), (m.succ * b / (m.succ * k) : ℤ) = b / k, from
@@ -584,7 +584,7 @@ match (n % 2), h, h₁ with
 | -[1+ a] := λ _ h₁, absurd h₁ dec_trivial
 end
 
-/- dvd -/
+/-! ### dvd -/
 
 @[norm_cast] theorem coe_nat_dvd {m n : ℕ} : (↑m : ℤ) ∣ ↑n ↔ m ∣ n :=
 ⟨λ ⟨a, ae⟩, m.eq_zero_or_pos.elim
@@ -771,7 +771,22 @@ end
 lemma dvd_of_pow_dvd {p k : ℕ} {m : ℤ} (hk : 1 ≤ k) (hpk : ↑(p^k) ∣ m) : ↑p ∣ m :=
 by rw ←pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
 
-/- / and ordering -/
+/-- If `n > 0` then `m` is not divisible by `n` iff it is between `n * k` and `n * (k + 1)`
+  for some `k`. -/
+lemma exists_lt_and_lt_iff_not_dvd (m : ℤ) {n : ℤ} (hn : 0 < n) :
+  (∃ k, n * k < m ∧ m < n * (k + 1)) ↔ ¬ n ∣ m :=
+begin
+  split,
+  { rintro ⟨k, h1k, h2k⟩ ⟨l, rfl⟩, rw [mul_lt_mul_left hn] at h1k h2k,
+    rw [lt_add_one_iff, ← not_lt] at h2k, exact h2k h1k },
+  { intro h, rw [dvd_iff_mod_eq_zero, ← ne.def] at h,
+    have := (mod_nonneg m hn.ne.symm).lt_of_ne h.symm,
+    simp only [← mod_add_div m n] {single_pass := tt},
+    refine ⟨m / n, lt_add_of_pos_left _ this, _⟩,
+    rw [add_comm _ (1 : ℤ), left_distrib, mul_one], exact add_lt_add_right (mod_lt_of_pos _ hn) _ }
+end
+
+/-! ### `/` and ordering -/
 
 protected theorem div_mul_le (a : ℤ) {b : ℤ} (H : b ≠ 0) : a / b * b ≤ a :=
 le_of_sub_nonneg $ by rw [mul_comm, ← mod_def]; apply mod_nonneg _ H
@@ -877,7 +892,7 @@ end
 
 @[simp] theorem neg_add_neg (m n : ℕ) : -[1+m] + -[1+n] = -[1+nat.succ(m+n)] := rfl
 
-/- to_nat -/
+/-! ### to_nat -/
 
 theorem to_nat_eq_max : ∀ (a : ℤ), (to_nat a : ℤ) = max a 0
 | (n : ℕ) := (max_eq_left (coe_zero_le n)).symm
@@ -942,7 +957,7 @@ lemma to_nat_zero_of_neg : ∀ {z : ℤ}, z < 0 → z.to_nat = 0
 | (-[1+n]) _ := rfl
 | (int.of_nat n) h := (not_le_of_gt h $ int.of_nat_nonneg n).elim
 
-/- units -/
+/-! ### units -/
 
 @[simp] theorem units_nat_abs (u : units ℤ) : nat_abs u = 1 :=
 units.ext_iff.1 $ nat.units_eq_one ⟨nat_abs u, nat_abs ↑u⁻¹,
@@ -955,7 +970,7 @@ by simpa only [units.ext_iff, units_nat_abs] using nat_abs_eq u
 lemma units_inv_eq_self (u : units ℤ) : u⁻¹ = u :=
 (units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
 
-/- bitwise ops -/
+/-! ### bitwise ops -/
 
 @[simp] lemma bodd_zero : bodd 0 = ff := rfl
 @[simp] lemma bodd_one : bodd 1 = tt := rfl
@@ -1189,7 +1204,7 @@ congr_arg coe (nat.one_shiftl _)
 
 @[simp] lemma zero_shiftr (n) : shiftr 0 n = 0 := zero_shiftl _
 
-/- Least upper bound property for integers -/
+/-! ### Least upper bound property for integers -/
 
 section classical
 open_locale classical

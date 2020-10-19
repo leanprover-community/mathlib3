@@ -1089,11 +1089,11 @@ variables [decidable_eq α]
   (∑ a in s.to_finset, s.count a) = s.card :=
 multiset.induction_on s rfl
   (assume a s ih,
-    calc (∑ x in to_finset (a :: s), count x (a :: s)) =
-      ∑ x in to_finset (a :: s), ((if x = a then 1 else 0) + count x s) :
+    calc (∑ x in to_finset (a ::ₘ s), count x (a ::ₘ s)) =
+      ∑ x in to_finset (a ::ₘ s), ((if x = a then 1 else 0) + count x s) :
         finset.sum_congr rfl $ λ _ _, by split_ifs;
         [simp only [h, count_cons_self, nat.one_add], simp only [count_cons_of_ne h, zero_add]]
-      ... = card (a :: s) :
+      ... = card (a ::ₘ s) :
       begin
         by_cases a ∈ s.to_finset,
         { have : ∑ x in s.to_finset, ite (x = a) 1 0 = ∑ x in {a}, ite (x = a) 1 0,
@@ -1112,11 +1112,11 @@ lemma count_sum' {s : finset β} {a : α} {f : β → multiset α} :
 by { dunfold finset.sum, rw count_sum }
 
 lemma to_finset_sum_count_smul_eq (s : multiset α) :
-  (∑ a in s.to_finset, s.count a •ℕ (a :: 0)) = s :=
+  (∑ a in s.to_finset, s.count a •ℕ (a ::ₘ 0)) = s :=
 begin
   apply ext', intro b,
   rw count_sum',
-  have h : count b s = count b (count b s •ℕ (b :: 0)),
+  have h : count b s = count b (count b s •ℕ (b ::ₘ 0)),
   { rw [singleton_coe, count_smul, ← singleton_coe, count_singleton, mul_one] },
   rw h, clear h,
   apply finset.sum_eq_single b,
@@ -1128,9 +1128,9 @@ end
 theorem exists_smul_of_dvd_count (s : multiset α) {k : ℕ} (h : ∀ (a : α), k ∣ multiset.count a s) :
   ∃ (u : multiset α), s = k •ℕ u :=
 begin
-  use ∑ a in s.to_finset, (s.count a / k) •ℕ (a :: 0),
-  have h₂ : ∑ (x : α) in s.to_finset, k •ℕ (count x s / k •ℕ (x :: 0)) =
-    ∑ (x : α) in s.to_finset, count x s •ℕ (x :: 0),
+  use ∑ a in s.to_finset, (s.count a / k) •ℕ (a ::ₘ 0),
+  have h₂ : ∑ (x : α) in s.to_finset, k •ℕ (count x s / k •ℕ (x ::ₘ 0)) =
+    ∑ (x : α) in s.to_finset, count x s •ℕ (x ::ₘ 0),
   { refine congr_arg s.to_finset.sum _,
     apply funext, intro x,
     rw [← mul_nsmul, nat.mul_div_cancel' (h x)] },

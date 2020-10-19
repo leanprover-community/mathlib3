@@ -601,6 +601,11 @@ theorem disjoint_def {p p' : submodule R M} :
   disjoint p p' ↔ ∀ x ∈ p, x ∈ p' → x = (0:M) :=
 show (∀ x, x ∈ p ∧ x ∈ p' → x ∈ ({0} : set M)) ↔ _, by simp
 
+theorem disjoint_def' {p p' : submodule R M} :
+  disjoint p p' ↔ ∀ (x ∈ p) (y ∈ p'), x = y → x = (0:M) :=
+disjoint_def.trans ⟨λ h x hx y hy hxy, h x hx $ hxy.symm ▸ hy,
+  λ h x hx hx', h _ hx x hx' rfl⟩
+
 theorem mem_right_iff_eq_zero_of_disjoint {p p' : submodule R M} (h : disjoint p p') {x : p} :
   (x:M) ∈ p' ↔ x = 0 :=
 ⟨λ hx, coe_eq_zero.1 $ disjoint_def.1 h x x.2 hx, λ h, h.symm ▸ p'.zero_mem⟩
@@ -897,6 +902,11 @@ begin
   rw [H hy, smul_zero]
 end
 
+lemma disjoint_span_singleton' {K E : Type*} [division_ring K] [add_comm_group E] [module K E]
+  {p : submodule K E} {x : E} (x0 : x ≠ 0) :
+  disjoint p (span K {x}) ↔ x ∉ p :=
+disjoint_span_singleton.trans ⟨λ h₁ h₂, x0 (h₁ h₂), λ h₁ h₂, (h₁ h₂).elim⟩
+
 lemma mem_span_insert {y} : x ∈ span R (insert y s) ↔ ∃ (a:R) (z ∈ span R s), x = a • y + z :=
 begin
   simp only [← union_singleton, span_union, mem_sup, mem_span_singleton, exists_prop,
@@ -923,17 +933,6 @@ span_eq_bot.trans $ by simp
 @[simp] lemma span_image (f : M →ₗ[R] M₂) : span R (f '' s) = map f (span R s) :=
 span_eq_of_le _ (image_subset _ subset_span) $ map_le_iff_le_comap.2 $
 span_le.2 $ image_subset_iff.1 subset_span
-
-lemma linear_eq_on (s : set M) {f g : M →ₗ[R] M₂} (H : ∀x∈s, f x = g x) {x} (h : x ∈ span R s) :
-  f x = g x :=
-by apply span_induction h H; simp {contextual := tt}
-
-lemma linear_map.ext_on {v : ι → M} {f g : M →ₗ[R] M₂} (hv : span R (range v) = ⊤)
-  (h : ∀i, f (v i) = g (v i)) : f = g :=
-begin
-  apply linear_map.ext (λ x, linear_eq_on (range v) _ (eq_top_iff'.1 hv _)),
-  exact (λ y hy, exists.elim (set.mem_range.1 hy) (λ i hi, by rw ←hi; exact h i))
-end
 
 lemma supr_eq_span {ι : Sort w} (p : ι → submodule R M) :
   (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=
@@ -1140,6 +1139,33 @@ variables [semimodule R M] [semimodule R M₂] [semimodule R M₃]
 include R
 open submodule
 
+/-- If two linear maps are equal on a set `s`, then they are equal on `submodule.span s`.
+
+See also `linear_map.eq_on_span'` for a version using `set.eq_on`. -/
+lemma eq_on_span {s : set M} {f g : M →ₗ[R] M₂} (H : set.eq_on f g s) ⦃x⦄ (h : x ∈ span R s) :
+  f x = g x :=
+by apply span_induction h H; simp {contextual := tt}
+
+/-- If two linear maps are equal on a set `s`, then they are equal on `submodule.span s`.
+
+This version uses `set.eq_on`, and the hidden argument will expand to `h : x ∈ (span R s : set M)`.
+See `linear_map.eq_on_span` for a version that takes `h : x ∈ span R s` as an argument. -/
+lemma eq_on_span' {s : set M} {f g : M →ₗ[R] M₂} (H : set.eq_on f g s) :
+  set.eq_on f g (span R s : set M) :=
+eq_on_span H
+
+/-- If `s` generates the whole semimodule and linear maps `f`, `g` are equal on `s`, then they are
+equal. -/
+lemma ext_on {s : set M} {f g : M →ₗ[R] M₂} (hv : span R s = ⊤) (h : set.eq_on f g s) :
+  f = g :=
+linear_map.ext (λ x, eq_on_span h (eq_top_iff'.1 hv _))
+
+/-- If the range of `v : ι → M` generates the whole semimodule and linear maps `f`, `g` are equal at
+each `v i`, then they are equal. -/
+lemma ext_on_range {v : ι → M} {f g : M →ₗ[R] M₂} (hv : span R (set.range v) = ⊤)
+  (h : ∀i, f (v i) = g (v i)) : f = g :=
+ext_on hv (set.forall_range_iff.2 h)
+
 @[simp] lemma finsupp_sum {γ} [has_zero γ]
   (f : M →ₗ[R] M₂) {t : ι →₀ γ} {g : ι → γ → M} :
   f (t.sum g) = t.sum (λi d, f (g i d)) := f.map_sum
@@ -1183,18 +1209,20 @@ lemma range_coprod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) :
   (f.coprod g).range = f.range ⊔ g.range :=
 submodule.ext $ λ x, by simp [mem_sup]
 
-lemma sup_range_inl_inr :
-  (inl R M M₂).range ⊔ (inr R M M₂).range = ⊤ :=
+lemma is_compl_range_inl_inr : is_compl (inl R M M₂).range (inr R M M₂).range :=
 begin
-  refine eq_top_iff'.2 (λ x, mem_sup.2 _),
-  rcases x with ⟨x₁, x₂⟩ ,
-  have h₁ : prod.mk x₁ (0 : M₂) ∈ (inl R M M₂).range,
-    by simp,
-  have h₂ : prod.mk (0 : M) x₂ ∈ (inr R M M₂).range,
-    by simp,
-  use [⟨x₁, 0⟩, h₁, ⟨0, x₂⟩, h₂],
-  simp
+  split,
+  { rintros ⟨_, _⟩ ⟨⟨x, -, hx⟩, ⟨y, -, hy⟩⟩,
+    simp only [prod.ext_iff, inl_apply, inr_apply, mem_bot] at hx hy ⊢,
+    exact ⟨hy.1.symm, hx.2.symm⟩ },
+  { rintros ⟨x, y⟩ -,
+    simp only [mem_sup, mem_range, exists_prop],
+    refine ⟨(x, 0), ⟨x, rfl⟩, (0, y), ⟨y, rfl⟩, _⟩,
+    simp }
 end
+
+lemma sup_range_inl_inr : (inl R M M₂).range ⊔ (inr R M M₂).range = ⊤ :=
+is_compl_range_inl_inr.sup_eq_top
 
 /-- Restrict the codomain of a linear map `f` to `f.range`. -/
 @[reducible] def range_restrict (f : M →ₗ[R] M₂) : M →ₗ[R] f.range :=

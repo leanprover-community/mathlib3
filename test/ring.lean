@@ -10,6 +10,7 @@ example (x y : ℚ) : (x + y) ^ 3 = x ^ 3 + y ^ 3 + 3 * (x * y ^ 2 + x ^ 2 * y) 
 example (x y : ℝ) : (x + y) ^ 3 = x ^ 3 + y ^ 3 + 3 * (x * y ^ 2 + x ^ 2 * y) := by ring
 example {α} [comm_semiring α] (x : α) : (x + 1) ^ 6 = (1 + x) ^ 6 := by try_for 15000 {ring}
 example (n : ℕ) : (n / 2) + (n / 2) = 2 * (n / 2) := by ring
+example {α} [field α] [char_zero α] (a : α) : a / 2 = a / 2 := by ring
 example {α} [linear_ordered_field α] (a b c : α) :
   a * (-c / b) * (-c / b) + -c + c = a * (c / b * (c / b)) := by ring
 example {α} [linear_ordered_field α] (a b c : α) :

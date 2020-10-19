@@ -7,6 +7,7 @@ import algebra.group_power.identities
 import tactic.linarith
 import tactic.norm_cast
 import data.set.finite
+-- import algebra.ordered_group
 
 open int
 open nat
@@ -95,6 +96,14 @@ begin
   simp only [←subtype.coe_lt_coe, subtype.coe_mk, a],
   nlinarith [show (b : ℕ) ≤ b^2, { rw [pow_two], exact le_mul_self _ }],
 end
+
+lemma strict_mono.pow {f : ℕ → ℕ} (n : ℕ) (h : strict_mono f) : strict_mono (λ m, (f m)^ n) :=
+strict_mono.nat (λ m, begin
+
+end)
+
+lemma a_strict_mono : strict_mono a :=
+strict_mono.const_mul (strict_mono.pow 4 (strict_mono.const_add strict_mono_id 2)) dec_trivial
 
 /-- We conclude by using `a` to get a contradiction with the assumption that `good_nats` is
 a `fintype`, since the elements of a `fintype` must have a maximal element. -/

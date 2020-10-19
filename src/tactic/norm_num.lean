@@ -166,8 +166,8 @@ with prove_adc_nat : instance_cache → expr → expr → expr → tactic (insta
     (c, p) ← prove_succ c b r, c.mk_app ``adc_one_bit0 [b, r, p]
   | bit1 a, one := do let r := r.app_arg,
     (c, p) ← prove_succ c a r, c.mk_app ``adc_bit1_one [a, r, p]
-  | one, bit1 b := do let r := r.app_arg, (
-      c, p) ← prove_succ c b r, c.mk_app ``adc_one_bit1 [b, r, p]
+  | one, bit1 b := do let r := r.app_arg,
+    (c, p) ← prove_succ c b r, c.mk_app ``adc_one_bit1 [b, r, p]
   | bit0 a, bit0 b := do let r := r.app_arg,
     (c, p) ← prove_add_nat c a b r, c.mk_app ``adc_bit0_bit0 [a, b, r, p]
   | bit0 a, bit1 b := do let r := r.app_arg,

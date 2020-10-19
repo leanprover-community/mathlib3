@@ -646,8 +646,8 @@ begin
   apply (iff_def (ζ ^ a) b).2,
   split,
   { calc (ζ ^ a) ^ b
-       = ζ ^ n : by rw [← pow_mul', mul_comm, hprod]
-   ... = 1 : by rw ((iff_def ζ n).1 h).1 },
+        = ζ ^ n : by rw [← pow_mul', mul_comm, hprod]
+    ... = 1 : by rw ((iff_def ζ n).1 h).1 },
   { intros l hl,
     rw [← pow_mul', mul_comm] at hl,
     have hdiv := ((iff_def ζ n).1 h).2 (a * l) hl,

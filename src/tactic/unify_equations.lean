@@ -274,11 +274,11 @@ do {
 pure not_simplified
 
 /--
-Sequence two unification steps. First run step `s`. If this was successful
-(i.e. it simplified or solved the goal), stop and return the result of `s`.
-Otherwise run `t` and return its result.
+`orelse_step s t` first runs the unification step `s`. If this was successful
+(i.e. `s` simplified or solved the goal), it returns the result of `s`.
+Otherwise, it runs `t` and returns its result.
 -/
-meta def sequence_simplifiers (s t : unification_step) : unification_step :=
+meta def orelse_step (s t : unification_step) : unification_step :=
 λ equ lhs_type rhs_type lhs rhs lhs_whnf rhs_whnf u,
 do
   r ← s equ lhs_type rhs_type lhs rhs lhs_whnf rhs_whnf u,
@@ -294,7 +294,7 @@ For `equ : t = u`, try the following methods in order: `unify_defeq`,
 successful, stop and return its result. If none is successful, fail.
 -/
 meta def unify_homogeneous : unification_step :=
-list.foldl sequence_simplifiers (λ _ _ _ _ _ _ _ _, pure not_simplified)
+list.foldl orelse_step (λ _ _ _ _ _ _ _ _, pure not_simplified)
   [unify_defeq, unify_var, unify_constructor_headed, unify_cyclic]
 
 end unify_equations

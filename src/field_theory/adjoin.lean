@@ -123,6 +123,10 @@ lemma subset_adjoin_of_subset_left {F : subfield E} {T : set E} (HT : T ⊆ F) :
 lemma subset_adjoin_of_subset_right {T : set E} (H : T ⊆ S) : T ⊆ adjoin F S :=
 λ x hx, subset_adjoin F S (H hx)
 
+@[simp] lemma adjoin_empty (F E : Type*) [field F] [field E] [algebra F E] :
+  adjoin F (∅ : set E) = ⊥ :=
+eq_bot_iff.mpr (adjoin_le_iff.mpr (set.empty_subset _))
+
 /-- If `K` is a field with `F ⊆ K` and `S ⊆ K` then `adjoin F S ≤ K`. -/
 lemma adjoin_le_subfield {K : subfield E} (HF : set.range (algebra_map F E) ⊆ K)
   (HS : S ⊆ K) : (adjoin F S).to_subfield ≤ K :=
@@ -342,16 +346,28 @@ section induction
 
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 
-lemma fg_of_to_subalgebra_fg (S : intermediate_field F E)
-  (h : S.to_subalgebra.fg) : ∃ (t : finset E), S = adjoin F ↑t :=
+def fg (S : intermediate_field F E) : Prop := ∃ (t : finset E), adjoin F ↑t = S
+
+lemma fg_adjoin_finset (t : finset E) : (adjoin F (↑t : set E)).fg :=
+⟨t, rfl⟩
+
+theorem fg_def {S : intermediate_field F E} : S.fg ↔ ∃ t : set E, set.finite t ∧ adjoin F t = S :=
+⟨λ ⟨t, ht⟩, ⟨↑t, set.finite_mem_finset t, ht⟩,
+ λ ⟨t, ht1, ht2⟩, ⟨ht1.to_finset, by rwa set.finite.coe_to_finset⟩⟩
+
+theorem fg_bot : (⊥ : intermediate_field F E).fg :=
+⟨∅, adjoin_empty F E⟩
+
+lemma fg_of_fg_to_subalgebra (S : intermediate_field F E)
+  (h : S.to_subalgebra.fg) : S.fg :=
 begin
   cases h with t ht,
-  exact ⟨t, eq_adjoin_of_eq_algebra_adjoin _ _ _ ht.symm⟩
+  exact ⟨t, (eq_adjoin_of_eq_algebra_adjoin _ _ _ ht.symm).symm⟩
 end
 
 lemma fg_of_noetherian (S : intermediate_field F E)
-  [is_noetherian F E] : ∃ (t : finset E), S = adjoin F ↑t :=
-fg_of_to_subalgebra_fg S S.to_subalgebra.fg_of_noetherian
+  [is_noetherian F E] : S.fg :=
+S.fg_of_fg_to_subalgebra S.to_subalgebra.fg_of_noetherian
 
 lemma induction_on_adjoin [fd : finite_dimensional F E] (P : intermediate_field F E → Prop)
   (base : P ⊥) (ih : ∀ (K : intermediate_field F E) (x : E), P K → P ↑K⟮x⟯)

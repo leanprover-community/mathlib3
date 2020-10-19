@@ -761,7 +761,7 @@ end differentiability
 section limits
 open real filter
 
-/-- The function `x^y` tends to `+∞` at `+∞` for any positive real `y` -/
+/-- The function `x ^ y` tends to `+∞` at `+∞` for any positive real `y`. -/
 lemma tendsto_rpow_at_top {y : ℝ} (hy : 0 < y) : tendsto (λ x : ℝ, x ^ y) at_top at_top :=
 begin
   rw tendsto_at_top_at_top,
@@ -773,7 +773,7 @@ begin
       rw [← rpow_mul (le_max_right b 0), (eq_div_iff (ne_of_gt hy)).mp rfl, rpow_one] }),
 end
 
-/-- The function `x^(-y)` tends to `0` at `+∞` for any positive real `y` -/
+/-- The function `x ^ (-y)` tends to `0` at `+∞` for any positive real `y`. -/
 lemma tendsto_rpow_neg_at_top {y : ℝ} (hy : 0 < y) : tendsto (λ x : ℝ, x ^ (-y)) at_top (𝓝 0) :=
 tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) (λ x hx, (rpow_neg (le_of_lt hx) y).symm))
   (tendsto.inv_tendsto_at_top (tendsto_rpow_at_top hy))
@@ -793,11 +793,11 @@ begin
   field_simp,
 end
 
-/-- Special case of `tendsto_rpow_div_mul_add` with `a = 1`, `b = 1`, and `c = 0` -/
+/-- The function `x ^ (1 / x)` tends to `1` at `+∞`. -/
 lemma tendsto_rpow_div : tendsto (λ x, x ^ ((1:ℝ) / x)) at_top (𝓝 1) :=
 by { convert tendsto_rpow_div_mul_add (1:ℝ) _ (0:ℝ) zero_ne_one, ring }
 
-/-- Special case of `tendsto_rpow_div_mul_add` with `a = -1`, `b = 1`, and `c = 0` -/
+/-- The function `x ^ (-1 / x)` tends to `1` at `+∞`. -/
 lemma tendsto_rpow_neg_div : tendsto (λ x, x ^ (-(1:ℝ) / x)) at_top (𝓝 1) :=
 by { convert tendsto_rpow_div_mul_add (-(1:ℝ)) _ (0:ℝ) zero_ne_one, ring }
 

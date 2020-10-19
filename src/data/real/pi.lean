@@ -4,6 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Benjamin Davidson
 -/
 import analysis.special_functions.pow
+/-!
+# Pi
+
+This file contains lemmas which establish bounds on or approximations of `real.pi`. Notably, these
+include `pi_gt_sqrt_two_add_series` and `pi_lt_sqrt_two_add_series`, which bound `pi` using series;
+numerical bounds on `pi` such as `pi_gt_314`and `pi_lt_315` (more precise versions are given, too);
+and `tendsto_sum_pi_div_four`, Leibniz's series for `pi`.
+-/
 
 namespace real
 
@@ -157,7 +165,7 @@ local notation `|`x`|` := abs x
   Intuitively, the theorem holds because Leibniz's series is the Taylor series of `arctan x`
   centered about `0` and evaluated at the value `x = 1`. Therefore, much of this proof consists of
   reasoning about a function
-    `f := arctan x - ∑ i in finset.range k, ((-(1:ℝ))^i * x^(2*i+1) / (2*i+1)`,
+    `f := arctan x - ∑ i in finset.range k, (-(1:ℝ))^i * x^(2*i+1) / (2*i+1)`,
   the difference between `arctan` and the `k`-th partial sum of its Taylor series. Some ingenuity is
   required due to the fact that the Taylor series is not absolutely convergent at `x = 1`.
 
@@ -209,8 +217,8 @@ begin
           (by norm_num) (by { norm_cast, linarith }))) } },
   have hU2 := nnreal.coe_nonneg U,
   -- (4) We compute the derivative of `f`, denoted by `f'`
-  let f' := λ (x:ℝ), (-x^2) ^ k / (1 + x^2),
-  have has_deriv_at_f : ∀ (x:ℝ), has_deriv_at f (f' x) x,
+  let f' := λ x : ℝ, (-x^2) ^ k / (1 + x^2),
+  have has_deriv_at_f : ∀ x, has_deriv_at f (f' x) x,
   { intro x,
     have has_deriv_at_b : ∀ i ∈ finset.range k, (has_deriv_at (b i) ((-x^2)^i) x),
     { intros i hi,
@@ -229,9 +237,9 @@ begin
     simp only [geom_series, f'] at g_sum ⊢,
     rw [g_sum, ← neg_add' (x^2) 1, add_comm (x^2) 1, sub_eq_add_neg, neg_div', neg_div_neg_eq],
     ring },
-  have f_deriv1 : ∀ x ∈ Icc (U:ℝ) 1, has_deriv_within_at f (f' x) (Icc (U:ℝ) 1) x :=
+  have hderiv1 : ∀ x ∈ Icc (U:ℝ) 1, has_deriv_within_at f (f' x) (Icc (U:ℝ) 1) x :=
     λ x hx, (has_deriv_at_f x).has_deriv_within_at,
-  have f_deriv2 : ∀ x ∈ Icc 0 (U:ℝ), has_deriv_within_at f (f' x) (Icc 0 (U:ℝ)) x :=
+  have hderiv2 : ∀ x ∈ Icc 0 (U:ℝ), has_deriv_within_at f (f' x) (Icc 0 (U:ℝ)) x :=
     λ x hx, (has_deriv_at_f x).has_deriv_within_at,
   -- (5) We prove a general bound for `f'` and then more precise bounds on each of two subintervals
   have f'_bound : ∀ x ∈ Icc (-1:ℝ) 1, |f' x| ≤ |x|^(2*k),
@@ -242,24 +250,22 @@ begin
       (by nlinarith),
     simp },
   have hbound1 : ∀ x ∈ Ico (U:ℝ) 1, |f' x| ≤ 1,
-  { intros x hx,
-    cases hx,
+  { rintros x ⟨hx_left, hx_right⟩,
     have hincr := pow_le_pow_of_le_left (le_trans hU2 hx_left) (le_of_lt hx_right) (2*k),
     rw [one_pow (2*k), ← abs_of_nonneg (le_trans hU2 hx_left)] at hincr,
     rw ← abs_of_nonneg (le_trans hU2 hx_left) at hx_right,
     linarith [f'_bound x (mem_Icc.mpr (abs_le.mp (le_of_lt hx_right)))] },
   have hbound2 : ∀ x ∈ Ico 0 (U:ℝ), |f' x| ≤ U ^ (2*k),
-  { intros x hx,
-    cases hx,
+  { rintros x ⟨hx_left, hx_right⟩,
     have hincr := pow_le_pow_of_le_left hx_left (le_of_lt hx_right) (2*k),
     rw ← abs_of_nonneg hx_left at hincr hx_right,
     rw ← abs_of_nonneg hU2 at hU1 hx_right,
     linarith [f'_bound x (mem_Icc.mpr (abs_le.mp (le_trans (le_of_lt hx_right) hU1)))] },
   -- (6) We twice apply the Mean Value Theorem to obtain bounds on `f` from the bounds on `f'`
   have mvt1 :=
-    norm_image_sub_le_of_norm_deriv_le_segment' f_deriv1 hbound1 _ (right_mem_Icc.mpr hU1),
+    norm_image_sub_le_of_norm_deriv_le_segment' hderiv1 hbound1 _ (right_mem_Icc.mpr hU1),
   have mvt2 :=
-    norm_image_sub_le_of_norm_deriv_le_segment' f_deriv2 hbound2 _ (right_mem_Icc.mpr hU2),
+    norm_image_sub_le_of_norm_deriv_le_segment' hderiv2 hbound2 _ (right_mem_Icc.mpr hU2),
   -- The following algebra is enough to complete the proof
   calc |f 1 - f 0| = |(f 1 - f U) + (f U - f 0)| : by ring
                ... ≤ 1 * (1-U) + U^(2*k) * (U - 0) : le_trans (abs_add (f 1 - f U) (f U - f 0))

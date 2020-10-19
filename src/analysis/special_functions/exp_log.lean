@@ -454,7 +454,7 @@ at `+∞` -/
 lemma tendsto_exp_neg_at_top_nhds_0 : tendsto (λx, exp (-x)) at_top (𝓝 0) :=
 (tendsto_inv_at_top_zero.comp (tendsto_exp_at_top)).congr (λx, (exp_neg x).symm)
 
-/-- The real exponential function tends to `1` at `0` -/
+/-- The real exponential function tends to `1` at `0`. -/
 lemma tendsto_exp_nhds_0_nhds_1 : tendsto exp (𝓝 0) (𝓝 1) :=
 by { convert continuous_exp.tendsto 0, simp }
 
@@ -497,7 +497,7 @@ lemma tendsto_pow_mul_exp_neg_at_top_nhds_0 (n : ℕ) : tendsto (λx, x^n * exp 
 (tendsto_inv_at_top_zero.comp (tendsto_exp_div_pow_at_top n)).congr $ λx,
   by rw [function.comp_app, inv_eq_one_div, div_div_eq_mul_div, one_mul, div_eq_mul_inv, exp_neg]
 
-/-- The function `(b * exp(x) + c) / (x^n)` tends to `+∞` at `+∞`, for any positive natural number
+/-- The function `(b * exp x + c) / (x ^ n)` tends to `+∞` at `+∞`, for any positive natural number
 `n` and any real numbers `b` and `c` such that `b` is positive. -/
 lemma tendsto_mul_exp_add_div_pow_at_top (b c : ℝ) (n : ℕ) (hb : 0 < b) (hn : 1 ≤ n) :
   tendsto (λ x, (b * (exp x) + c) / (x^n)) at_top at_top :=
@@ -510,7 +510,7 @@ begin
   ring,
 end
 
-/-- The function `(x^n) / (b * exp(x) + c)` tends to `0` at `+∞`, for any positive natural number
+/-- The function `(x ^ n) / (b * exp x + c)` tends to `0` at `+∞`, for any positive natural number
 `n` and any real numbers `b` and `c` such that `b` is nonzero. -/
 lemma tendsto_div_pow_mul_exp_add_at_top (b c : ℝ) (n : ℕ) (hb : 0 ≠ b) (hn : 1 ≤ n) :
   tendsto (λ x, x^n / (b * (exp x) + c)) at_top (𝓝 0) :=

@@ -492,33 +492,26 @@ end
 lemma geom_series_mul_neg (x : R) (h : ∥x∥ < 1) :
   (∑' (i:ℕ), x ^ i) * (1 - x) = 1 :=
 begin
-  have := has_sum_of_bounded_monoid_hom_of_summable
-    (normed_ring.summable_geometric_of_norm_lt_1 x h) (∥1 - x∥)
-    (mul_right_bound (1 - x)),
+  have := ((normed_ring.summable_geometric_of_norm_lt_1 x h).has_sum.mul_right (1 - x)),
   refine tendsto_nhds_unique this.tendsto_sum_nat _,
-  have : tendsto (λ (n : ℕ), 1 - x ^ n) at_top (nhds 1),
-  { simpa using tendsto_const_nhds.sub
-      (tendsto_pow_at_top_nhds_0_of_norm_lt_1 h) },
+  have : tendsto (λ (n : ℕ), 1 - x ^ n) at_top (𝓝 1),
+  { simpa using tendsto_const_nhds.sub (tendsto_pow_at_top_nhds_0_of_norm_lt_1 h) },
   convert ← this,
   ext n,
   rw [←geom_sum_mul_neg, geom_series_def, finset.sum_mul],
-  simp,
 end
 
 lemma mul_neg_geom_series (x : R) (h : ∥x∥ < 1) :
   (1 - x) * (∑' (i:ℕ), x ^ i) = 1 :=
 begin
-  have := has_sum_of_bounded_monoid_hom_of_summable
-    (normed_ring.summable_geometric_of_norm_lt_1 x h) (∥1 - x∥)
-    (mul_left_bound (1 - x)),
+  have := (normed_ring.summable_geometric_of_norm_lt_1 x h).has_sum.mul_left (1 - x),
   refine tendsto_nhds_unique this.tendsto_sum_nat _,
   have : tendsto (λ (n : ℕ), 1 - x ^ n) at_top (nhds 1),
   { simpa using tendsto_const_nhds.sub
       (tendsto_pow_at_top_nhds_0_of_norm_lt_1 h) },
   convert ← this,
   ext n,
-  rw [←mul_neg_geom_sum, geom_series_def, finset.mul_sum],
-  simp,
+  rw [←mul_neg_geom_sum, geom_series_def, finset.mul_sum]
 end
 
 end normed_ring_geometric

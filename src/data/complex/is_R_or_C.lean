@@ -368,7 +368,7 @@ by rw [← of_real_rat_cast, of_real_im]
 Note: This is not registered as an instance to avoid having multiple instances on ℝ and ℂ.
 -/
 lemma char_zero_R_or_C : char_zero K :=
-add_group.char_zero_of_inj_zero $ λ n h,
+char_zero_of_inj_zero $ λ n h,
 by rwa [← of_real_nat_cast, of_real_eq_zero, nat.cast_eq_zero] at h
 
 theorem re_eq_add_conj (z : K) : 𝓚 (re z) = (z + conj z) / 2 :=
@@ -385,6 +385,8 @@ local notation `absK` := @abs K _
 
 @[simp] lemma abs_of_real (r : ℝ) : absK (𝓚 r) = abs' r :=
 by simp [abs, norm_sq, norm_sq_of_real, real.sqrt_mul_self_eq_abs]
+
+lemma norm_eq_abs (z : K) : ∥z∥ = absK z := by simp [abs, norm_sq_eq_def']
 
 lemma abs_of_nonneg {r : ℝ} (h : 0 ≤ r) : absK (𝓚 r) = r :=
 (abs_of_real _).trans (abs_of_nonneg h)
@@ -439,7 +441,7 @@ lemma abs_add (z w : K) : abs (z + w) ≤ abs z + abs w :=
 begin
   rw [mul_self_abs, add_mul_self_eq, mul_self_abs, mul_self_abs,
       add_right_comm, norm_sq_add, add_le_add_iff_left,
-      mul_assoc, mul_le_mul_left (@zero_lt_two ℝ _)],
+      mul_assoc, mul_le_mul_left (@zero_lt_two ℝ _ _)],
   simpa [-mul_re] using re_le_abs (z * conj w)
 end
 

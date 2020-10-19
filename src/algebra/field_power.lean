@@ -14,6 +14,14 @@ universe u
   ∀ (a : K) (n : ℤ), f (a ^ n) = f a ^ n :=
 f.to_monoid_hom.map_fpow f.map_zero
 
+@[simp] lemma neg_fpow_bit0 {K : Type*} [division_ring K] (x : K) (n : ℤ) :
+  (-x) ^ (bit0 n) = x ^ bit0 n :=
+by rw [fpow_bit0', fpow_bit0', neg_mul_neg]
+
+@[simp] lemma neg_fpow_bit1 {K : Type*} [division_ring K] (x : K) (n : ℤ) :
+  (-x) ^ (bit1 n) = - x ^ bit1 n :=
+by rw [fpow_bit1', fpow_bit1', neg_mul_neg, neg_mul_eq_mul_neg]
+
 section ordered_field_power
 open int
 
@@ -82,7 +90,7 @@ lemma one_lt_pow {K} [linear_ordered_semiring K] {p : K} (hp : 1 < p) : ∀ {n :
   end
 
 section
-local attribute [semireducible] int.lt
+local attribute [semireducible] int.nonneg
 lemma one_lt_fpow {K}  [discrete_linear_ordered_field K] {p : K} (hp : 1 < p) :
   ∀ z : ℤ, 0 < z → 1 < p ^ z
 | (int.of_nat n) h := one_lt_pow hp (nat.succ_le_of_lt (int.lt_of_coe_nat_lt_coe_nat h))

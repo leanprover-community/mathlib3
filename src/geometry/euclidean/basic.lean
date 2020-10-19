@@ -474,6 +474,8 @@ lemma eq_of_dist_eq_of_dist_eq_of_mem_of_findim_eq_two {s : affine_subspace ℝ 
 begin
   have ho : ⟪c₂ -ᵥ c₁, p₂ -ᵥ p₁⟫ = 0 :=
     inner_vsub_vsub_of_dist_eq_of_dist_eq (by cc) (by cc),
+  have hop : ⟪c₂ -ᵥ c₁, p -ᵥ p₁⟫ = 0 :=
+    inner_vsub_vsub_of_dist_eq_of_dist_eq (by cc) (by cc),
   let b : fin 2 → V := ![c₂ -ᵥ c₁, p₂ -ᵥ p₁],
   have hb : linear_independent ℝ b,
   { refine linear_independent_of_ne_zero_of_inner_eq_zero _ _,
@@ -504,8 +506,6 @@ begin
     rcases hv' with ⟨t₂, rfl⟩,
     exact ⟨t₁, t₂, hv⟩ },
   rcases hv (p -ᵥ p₁) (vsub_mem_direction hps hp₁s) with ⟨t₁, t₂, hpt⟩,
-  have hop : ⟪c₂ -ᵥ c₁, p -ᵥ p₁⟫ = 0 :=
-    inner_vsub_vsub_of_dist_eq_of_dist_eq (by cc) (by cc),
   simp only [hpt, inner_add_right, inner_smul_right, ho, mul_zero, add_zero, mul_eq_zero,
              inner_self_eq_zero, vsub_eq_zero_iff_eq, hc.symm, or_false] at hop,
   rw [hop, zero_smul, zero_add, ←eq_vadd_iff_vsub_eq] at hpt,
@@ -546,7 +546,7 @@ def orthogonal_projection_fn {s : affine_subspace ℝ P} (hn : (s : set P).nonem
 classical.some $ inter_eq_singleton_of_nonempty_of_is_compl
   hn
   (mk'_nonempty p s.direction.orthogonal)
-  ((direction_mk' p s.direction.orthogonal).symm ▸ submodule.is_compl_orthogonal_of_is_complete_real hc)
+  ((direction_mk' p s.direction.orthogonal).symm ▸ submodule.is_compl_orthogonal_of_is_complete hc)
 
 /-- The intersection of the subspace and the orthogonal subspace
 through the given point is the `orthogonal_projection_fn` of that
@@ -559,7 +559,7 @@ lemma inter_eq_singleton_orthogonal_projection_fn {s : affine_subspace ℝ P}
 classical.some_spec $ inter_eq_singleton_of_nonempty_of_is_compl
   hn
   (mk'_nonempty p s.direction.orthogonal)
-  ((direction_mk' p s.direction.orthogonal).symm ▸ submodule.is_compl_orthogonal_of_is_complete_real hc)
+  ((direction_mk' p s.direction.orthogonal).symm ▸ submodule.is_compl_orthogonal_of_is_complete hc)
 
 /-- The `orthogonal_projection_fn` lies in the given subspace.  This
 lemma is only intended for use in setting up the bundled version and
@@ -602,7 +602,7 @@ subspace being projected onto. For most purposes,
 `is_complete` hypotheses and is the identity map when either of those
 hypotheses fails, should be used instead. -/
 def orthogonal_projection_of_nonempty_of_complete {s : affine_subspace ℝ P}
-  (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) : affine_map ℝ P P :=
+  (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) : P →ᵃ[ℝ] P :=
 { to_fun := orthogonal_projection_fn hn hc,
   linear := orthogonal_projection s.direction,
   map_vadd' := λ p v, begin
@@ -633,7 +633,7 @@ of two points whose difference is that vector) is the
 direction of the affine subspace being projected onto.  If the
 subspace is empty or not complete, this uses the identity map
 instead. -/
-def orthogonal_projection (s : affine_subspace ℝ P) : affine_map ℝ P P :=
+def orthogonal_projection (s : affine_subspace ℝ P) : P →ᵃ[ℝ] P :=
 if h : (s : set P).nonempty ∧ is_complete (s.direction : set V) then
   orthogonal_projection_of_nonempty_of_complete h.1 h.2 else affine_map.id ℝ P
 

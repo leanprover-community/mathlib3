@@ -436,7 +436,7 @@ lemma infinite_neg_add_not_infinite {x y : ℝ*} :
 
 theorem infinite_pos_of_tendsto_top {f : ℕ → ℝ} (hf : tendsto f at_top at_top) :
   infinite_pos (of_seq f) :=
-λ r, have hf' : _ := (tendsto_at_top_at_top _).mp hf,
+λ r, have hf' : _ := tendsto_at_top_at_top.mp hf,
 Exists.cases_on (hf' (r + 1)) $ λ i hi,
   have hi' : ∀ (a : ℕ), f a < (r + 1) → a < i :=
     λ a, by rw [←not_le, ←not_le]; exact not_imp_not.mpr (hi a),
@@ -448,7 +448,7 @@ Exists.cases_on (hf' (r + 1)) $ λ i hi,
 
 theorem infinite_neg_of_tendsto_bot {f : ℕ → ℝ} (hf : tendsto f at_top at_bot) :
   infinite_neg (of_seq f) :=
-λ r, have hf' : _ := (tendsto_at_top_at_bot _).mp hf,
+λ r, have hf' : _ := tendsto_at_top_at_bot.mp hf,
 Exists.cases_on (hf' (r - 1)) $ λ i hi,
   have hi' : ∀ (a : ℕ), r - 1 < f a → a < i :=
     λ a, by rw [←not_le, ←not_le]; exact not_imp_not.mpr (hi a),
@@ -504,7 +504,7 @@ is_st_iff_abs_sub_lt_delta.mpr $ λ d hd,
         (mul_le_mul_of_nonneg_left (le_of_lt $ hys' _ $ half_pos $ div_pos hd $
           coe_pos.1 $ lt_of_le_of_lt (abs_nonneg x) ht) $ abs_nonneg _)
         (mul_le_mul_of_nonneg_right (le_of_lt $ hxr' _ $ half_pos $ div_pos hd $
-          abs_pos_of_ne_zero hs) $ abs_nonneg _)
+          abs_pos.2 hs) $ abs_nonneg _)
   ... = (d / 2 * (abs x / t) + d / 2 : ℝ*) : by
       { push_cast,
         have : (abs s : ℝ*) ≠ 0, by simpa,
@@ -582,7 +582,7 @@ exact (neg_neg ↑r).symm
 theorem abs_lt_real_iff_infinitesimal {x : ℝ*} :
   infinitesimal x ↔ ∀ r : ℝ, r ≠ 0 → abs x < abs r :=
 ⟨ λ hi r hr, abs_lt.mpr (by rw ←coe_abs;
-  exact infinitesimal_def.mp hi (abs r) (abs_pos_of_ne_zero hr)),
+  exact infinitesimal_def.mp hi (abs r) (abs_pos.2 hr)),
   λ hR, infinitesimal_def.mpr $ λ r hr, abs_lt.mp $
   (abs_of_pos $ coe_pos.2 hr) ▸ hR r $ ne_of_gt hr ⟩
 
@@ -634,8 +634,8 @@ lemma infinite_pos_iff_infinitesimal_inv_pos {x : ℝ*} :
   inv_pos.2 $ hip 0 ⟩,
   λ ⟨hi, hp⟩ r, @classical.by_cases (r = 0) (↑r < x) (λ h, eq.substr h (inv_pos.mp hp)) $
   λ h, lt_of_le_of_lt (coe_le_coe.2 (le_abs_self r))
-  ((inv_lt_inv (inv_pos.mp hp) (coe_lt_coe.2 (abs_pos_of_ne_zero h))).mp
-  ((infinitesimal_def.mp hi) ((abs r)⁻¹) (inv_pos.2 (abs_pos_of_ne_zero h))).2) ⟩
+  ((inv_lt_inv (inv_pos.mp hp) (coe_lt_coe.2 (abs_pos.2 h))).mp
+  ((infinitesimal_def.mp hi) ((abs r)⁻¹) (inv_pos.2 (abs_pos.2 h))).2) ⟩
 
 lemma infinite_neg_iff_infinitesimal_inv_neg {x : ℝ*} :
   infinite_neg x ↔ (infinitesimal x⁻¹ ∧ x⁻¹ < 0) :=

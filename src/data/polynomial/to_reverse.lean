@@ -15,6 +15,6 @@ begin
   refine (image f s).max'_le (nonempty.image hs f) (f (min' s hs)) _,
   intros x hx,
   rw mem_image at hx,
-  rcases hx with ⟨ b , bs , rfl⟩,
-  exact mf (min'_le _ _ bs),
+  rcases hx with ⟨a, as, rfl⟩,
+  exact mf (min'_le _ _ as),
 end

@@ -25,7 +25,7 @@ section semiring
 
 variables {R : Type*} [semiring R] {f : polynomial R}
 
-namespace rev
+--namespace rev
 /-- If `i ≤ N`, then `rev_at_fun N i` returns `N - i`, otherwise it returns `i`.
 This is the map used by the embedding `rev_at`.
 -/
@@ -174,13 +174,13 @@ noncomputable def reverse (f : polynomial R) : polynomial R := reflect f.nat_deg
 @[simp] lemma reverse_zero : reverse (0 : polynomial R) = 0 := rfl
 
 theorem reverse_mul {f g : polynomial R} (fg : f.leading_coeff * g.leading_coeff ≠ 0) :
- reverse (f * g) = reverse f * reverse g :=
+  reverse (f * g) = reverse f * reverse g :=
 by rw [reverse, reverse, reverse, nat_degree_mul' fg, reflect_mul  f g rfl.le rfl.le]
 
 @[simp] lemma reverse_mul_of_domain {R : Type*} [domain R] (f g : polynomial R) :
   reverse (f * g) = reverse f * reverse g :=
 begin
-  show_term{by_cases f0 : f=0},
+  by_cases f0 : f=0,
   { rw [f0, zero_mul, reverse_zero, zero_mul], },
   by_cases g0 : g=0,
   { rw [g0, mul_zero, reverse_zero, mul_zero], },
@@ -194,13 +194,7 @@ lemma reflect_ne_zero_iff {N : ℕ} {f : polynomial R} :
 not_congr reflect_eq_zero_iff
 
 @[simp] lemma rev_at_gt {N n : ℕ} (H : N < n) : rev_at N n = n :=
-begin
-  rw [rev_at, function.embedding.coe_fn_mk],
-  split_ifs,
-    { exfalso,
-      exact nat.lt_le_antisymm H h, },
-  { refl, },
-end
+if_neg (not_le.mpr H)
 
 @[simp] lemma reflect_invol (N : ℕ) : reflect N (reflect N f) = f :=
 by refine ext (λ (n : ℕ), by rw [coeff_reflect, coeff_reflect, rev_at_invol])
@@ -230,38 +224,34 @@ monotone_max'_min' hs (monotone_rev_at_monotone N)
 
 @[simp] lemma monotone_rev_at_eq_rev_at_small {N n : ℕ} :
   (n ≤ N) → rev_at N n = monotone_rev_at N n :=
-begin
-  intro H,
-  rw rev_at_le H,
-  refl,
-end
+λ H, by convert (@rev_at_le N n H)
 
 lemma rev_at_small_min_max {N : ℕ} {s : finset ℕ} {hs : s.nonempty} (sm : s.max' hs ≤ N) :
   max' (image (rev_at N) s) (nonempty.image hs (rev_at N)) = rev_at N (min' s hs) :=
 begin
-  rwa [monotone_rev_at_eq_rev_at_small, ← monotone_rev_at_max'_min'],
+  rwa [monotone_rev_at_eq_rev_at_small (le_trans (le_max' _ _ (min'_mem s hs)) sm),
+    ← monotone_rev_at_max'_min'],
   have im : (image (rev_at N) s) = (image (monotone_rev_at N) s) →
     (image (rev_at N) s).max' (nonempty.image hs (rev_at N)) = (image (monotone_rev_at N) s).max'
     (nonempty.image hs (monotone_rev_at N)) := λ a, (by {congr, exact a}),
   apply im,
   ext1 a,
   repeat { rw mem_image },
-  split;
-  { rintro ⟨ a, ha, rfl⟩ ,
-    refine ⟨ a, ha , by rw (monotone_rev_at_eq_rev_at_small (le_trans (le_max' _ _ ha) sm)) ⟩, },
-  { exact le_trans (le_max' _ _ (min'_mem s hs)) sm, },
+  refine ⟨_ , _⟩;
+  { rintro ⟨a, ha, rfl⟩ ,
+    refine ⟨a, ha, by rw (monotone_rev_at_eq_rev_at_small (le_trans (le_max' _ _ ha) sm)) ⟩, },
 end
 
-end rev
+--end rev
 
-open rev
+--open rev
 
 lemma nat_degree_reflect_eq_nat_trailing_degree {N : ℕ} (f0 : f ≠ 0) (H : f.nat_degree ≤ N) :
   (reflect N f).nat_degree = rev_at N f.nat_trailing_degree :=
 begin
   rw nat_degree_eq_support_max' (reflect_ne_zero_iff.mpr f0),
-  rw nat_trailing_degree_eq_support_min' f0,
-  simp_rw [rev.reflect, finsupp.support_emb_domain, map_eq_image],
+  rw [nat_trailing_degree_eq_support_min' f0],
+  simp_rw [reflect, finsupp.support_emb_domain, map_eq_image],
   refine rev_at_small_min_max (by rwa ← nat_degree_eq_support_max' f0),
 end
 
@@ -275,15 +265,15 @@ begin
   { rw [nat_degree_reflect_eq_nat_trailing_degree f0 dsm, max_eq_left dsm],
     rw rev_at_le (le_trans nat_trailing_degree_le_nat_degree dsm),
     exact (nat.sub_le N f.nat_trailing_degree), },
-  { rw not_le at dsm,
-    rw [max_eq_right (le_of_lt dsm), nat_degree_eq_support_max', nat_degree_eq_support_max' f0],
+  { rw [not_le, lt_iff_le_and_ne] at dsm,
+    rw [max_eq_right (dsm.1), nat_degree_eq_support_max', nat_degree_eq_support_max' f0],
     { apply max'_le,
-      rw ← nat_degree_eq_support_max',
       intros y hy,
       rw [reflect_support, mem_image] at hy,
       rcases hy with ⟨ y , hy , rfl ⟩,
+      rw ← nat_degree_eq_support_max',
       by_cases ys : y ≤ N,
-      { rw rev_at_le ys, exact le_of_lt (gt_of_gt_of_ge dsm (nat.sub_le N y)), },
+      { rw rev_at_le ys, exact (le_trans (nat.sub_le N y) dsm.1), },
       { rw rev_at_gt (not_le.mp ys), exact le_nat_degree_of_mem_supp _ hy, }, },
     { rwa [ne.def, (@reflect_eq_zero_iff R _ N f)], }, },
 end

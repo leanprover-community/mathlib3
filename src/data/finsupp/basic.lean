@@ -841,6 +841,11 @@ rfl
   lift_add_hom.symm F x = F.comp (single_add_hom x) :=
 rfl
 
+lemma lift_add_hom_symm_apply_apply [add_comm_monoid β] [add_comm_monoid γ]
+  (F : (α →₀ β) →+ γ) (x : α) (y : β) :
+  lift_add_hom.symm F x y = F (single x y) :=
+rfl
+
 @[simp] lemma lift_add_hom_single_add_hom [add_comm_monoid β] :
   lift_add_hom (single_add_hom : α → β →+ α →₀ β) = add_monoid_hom.id _ :=
 lift_add_hom.to_equiv.apply_eq_iff_eq_symm_apply.2 rfl
@@ -1580,11 +1585,16 @@ smul_single _ _ _
 lemma smul_single_one [semiring β] (a : α) (b : β) : b • single a 1 = single a b :=
 by rw [smul_single, smul_eq_mul, mul_one]
 
+@[ext] lemma lhom_ext' [semiring β] [add_comm_monoid γ] [semimodule β γ] [add_comm_monoid δ]
+  [semimodule β δ] ⦃φ ψ : (α →₀ γ) →ₗ[β] δ⦄ (h : ∀ a b, φ (single a b) = ψ (single a b)) :
+  φ = ψ :=
+linear_map.to_add_monoid_hom_injective $ add_hom_ext h
+
 /-- Two `R`-linear maps from `finsupp X R` which agree on `single x 1` agree everywhere. -/
-@[ext] lemma hom_ext [semiring β] [add_comm_monoid γ] [semimodule β γ] ⦃φ ψ : (α →₀ β) →ₗ[β] γ⦄
+@[ext] lemma lhom_ext [semiring β] [add_comm_monoid γ] [semimodule β γ] ⦃φ ψ : (α →₀ β) →ₗ[β] γ⦄
   (h : ∀ a : α, φ (single a 1) = ψ (single a 1)) : φ = ψ :=
-linear_map.to_add_monoid_hom_injective $ add_hom_ext $ λ x y,
-  by simp only [← smul_single_one x y, linear_map.to_add_monoid_hom_coe, linear_map.map_smul, h]
+lhom_ext' $ λ x y, by simp only [← smul_single_one x y, linear_map.to_add_monoid_hom_coe,
+  linear_map.map_smul, h]
 
 end
 

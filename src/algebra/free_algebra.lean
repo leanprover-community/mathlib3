@@ -376,15 +376,11 @@ lemma grades.map_ι (x : X) :
   grades (ι R x) = finsupp.single 1 (ι R x) :=
 by simp [grades]
 
--- TODO: better name, move, docstring
-lemma single_single_apply {α : Type*} {β : Type*} [has_zero β] (i j : α) [decidable (j = i)] (v : β):
-  finsupp.single i ((finsupp.single j v) i) = if j = i then (finsupp.single j v) else 0 :=
-begin
-  ext,
-  split_ifs;
-  simp [←h, finsupp.single_apply],
-  finish,
-end
+-- note this is true for any `zero_hom`, not just `grades`. Of course, then we need to repeat this
+-- for `add_monoid_hom`, `add_equiv`, `linear_map`, `ring_hom`, `ring_equiv`, `alg_hom`, ...
+private lemma map_single_apply (x : free_algebra R X) (i j : ℕ) :
+  grades (finsupp.single i x j) = finsupp.single i (grades x) j :=
+by rw [finsupp.single_apply, finsupp.single_apply, apply_ite grades, grades.map_zero]
 
 /-- The grade-`i` part consists only of itself -/
 @[simp]
@@ -393,19 +389,15 @@ lemma grades.map_grades (x : free_algebra R X) (i : ℕ) :
 begin
   induction x using free_algebra.induction generalizing i,
   case h_grade0 : {
-    rw grades.map_algebra_map,
-    rw [single_single_apply, finsupp.single_apply, apply_ite grades],
-    rw [grades.map_algebra_map, grades.map_zero],
-    split_ifs; refl
+    rw [grades.map_algebra_map, map_single_apply, grades.map_algebra_map,
+      finsupp.single_of_single_apply],
   },
   case h_grade1 : {
-    rw grades.map_ι,
-    rw [single_single_apply, finsupp.single_apply, apply_ite grades],
-    rw [grades.map_ι, grades.map_zero],
-    split_ifs; refl
+    rw [grades.map_ι, map_single_apply, grades.map_ι,
+      finsupp.single_of_single_apply],
   },
   case h_add : x y hx hy {
-    rw [grades.map_add, finsupp.add_apply, grades.map_add, hx, hy, finsupp.single_add],
+    rw [grades.map_add, finsupp.add_apply, grades.map_add, finsupp.single_add, hx, hy],
   },
   case h_mul : f g hx hy {
     rw grades.map_mul,
@@ -422,12 +414,10 @@ begin
     congr, ext1 gi,
     rw ←this,
 
-    -- this now looks the same as it did in the other cases
-    conv_lhs {rw [finsupp.single_apply]},
-    rw [single_single_apply, ←add_monoid_algebra.single_mul_single, apply_ite grades],
-    rw [grades.map_mul, grades.map_zero],
-    rw [hx, hy],
-    split_ifs; refl, -- refl fails due to different decidable instances
+    -- this proof now resembles the other three
+    rw [map_single_apply, grades.map_mul,
+      finsupp.single_of_single_apply],
+    rw [hx, hy, add_monoid_algebra.single_mul_single],
   },
 end
 

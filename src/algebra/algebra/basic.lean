@@ -10,9 +10,9 @@ import ring_theory.subring
 import deprecated.subring
 
 /-!
-# Algebra over Commutative Semiring (under category)
+# Algebra over Commutative Semiring
 
-In this file we define algebra over commutative (semi)rings, algebra homomorphisms `alg_hom`,
+In this file we define `algebra`s over commutative (semi)rings, algebra homomorphisms `alg_hom`,
 algebra equivalences `alg_equiv`. We also define usual operations on `alg_hom`s
 (`id`, `comp`).
 
@@ -21,6 +21,8 @@ algebra equivalences `alg_equiv`. We also define usual operations on `alg_hom`s
 If `S` is an `R`-algebra and `A` is an `S`-algebra then `algebra.comap.algebra R S A` can be used
 to provide `A` with a structure of an `R`-algebra. Other than that, `algebra.comap` is now
 deprecated and replcaed with `is_scalar_tower`.
+
+For the category of `R`-algebras, see the file `algebra/category/Algebra/basic.lean`.
 
 ## Notations
 
@@ -37,11 +39,16 @@ section prio
 set_option extends_priority 200 /- control priority of
 `instance [algebra R A] : has_scalar R A` -/
 
-/-- The category of R-algebras where R is a commutative
-ring is the under category R ↓ CRing. In the categorical
-setting we have a forgetful functor R-Alg ⥤ R-Mod.
-However here it extends module in order to preserve
-definitional equality in certain cases. -/
+/--
+Given a commutative (semi)ring `R`, an `R`-algebra is a (possibly noncommutative)
+(semi)ring `A` endowed with a morphism of rings `R →+* A` which lands in the
+center of `A`.
+
+For convenience, this typeclass extends `has_scalar R A` where the scalar action must
+agree with left multiplication by the image of the structure morphism.
+
+Given an `algebra R A` instance, the structure morphism `R →+* A` is denoted `algebra_map R A`.
+-/
 @[nolint has_inhabited_instance]
 class algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
   extends has_scalar R A, R →+* A :=

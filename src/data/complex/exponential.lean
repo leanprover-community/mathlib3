@@ -1229,6 +1229,70 @@ namespace real
 
 open complex finset
 
+lemma exp_bound {x : ℝ} (hx : abs' x ≤ 1) {n : ℕ} (hn : 0 < n) :
+  abs' (exp x - ∑ m in range n, x ^ m / m!) ≤ abs' x ^ n * (n.succ / (n! * n)) :=
+begin
+  have hxc : complex.abs x ≤ 1, by exact_mod_cast hx,
+  convert exp_bound hxc hn; norm_cast
+end
+
+/-- A finite initial segment of the exponential series, followed by an arbitrary tail.
+For fixed `n` this is just a linear map wrt `r`, and each map is a simple linear function
+of the previous (see `exp_near_succ`), with `exp_near n x r ⟶ exp x` as `n ⟶ ∞`,
+for any `r`. -/
+def exp_near (n : ℕ) (x r : ℝ) : ℝ := ∑ m in range n, x ^ m / m! + x ^ n / n! * r
+
+@[simp] theorem exp_near_zero (x r) : exp_near 0 x r = r := by simp [exp_near]
+
+@[simp] theorem exp_near_succ (n x r) : exp_near (n + 1) x r = exp_near n x (1 + x / (n+1) * r) :=
+by { simp [exp_near, range_succ, mul_add, add_left_comm, add_assoc, pow_succ],
+     field_simp [mul_assoc, mul_left_comm] }
+
+theorem exp_near_sub (n x r₁ r₂) : exp_near n x r₁ - exp_near n x r₂ = x ^ n / n! * (r₁ - r₂) :=
+by simp [exp_near, mul_sub]
+
+lemma exp_approx_end (n m : ℕ) (x : ℝ)
+  (e₁ : n + 1 = m) (h : abs' x ≤ 1) :
+  abs' (exp x - exp_near m x 0) ≤ abs' x ^ m / m! * ((m+1)/m) :=
+by { simp [exp_near], convert exp_bound h _ using 1, field_simp [mul_comm], linarith }
+
+lemma exp_approx_succ {n} {x a₁ b₁ : ℝ} (m : ℕ)
+  (e₁ : n + 1 = m) (a₂ b₂ : ℝ)
+  (e : abs' (1 + x / m * a₂ - a₁) ≤ b₁ - abs' x / m * b₂)
+  (h : abs' (exp x - exp_near m x a₂) ≤ abs' x ^ m / m! * b₂) :
+  abs' (exp x - exp_near n x a₁) ≤ abs' x ^ n / n! * b₁ :=
+begin
+  refine le_trans (_root_.abs_sub_le _ _ _)
+    (le_trans (add_le_add_right h _) _),
+  subst e₁, rw [exp_near_succ, exp_near_sub, _root_.abs_mul],
+  convert mul_le_mul_of_nonneg_left (le_sub_iff_add_le'.1 e) _,
+  { simp [mul_add, pow_succ', _root_.abs_div, ← pow_abs],
+    field_simp [mul_assoc] },
+  { simp [_root_.div_nonneg, _root_.abs_nonneg] }
+end
+
+lemma exp_approx_end' {n} {x a b : ℝ} (m : ℕ)
+  (e₁ : n + 1 = m) (rm : ℝ) (er : ↑m = rm) (h : abs' x ≤ 1)
+  (e : abs' (1 - a) ≤ b - abs' x / rm * ((rm+1)/rm)) :
+  abs' (exp x - exp_near n x a) ≤ abs' x ^ n / n! * b :=
+by subst er; exact
+exp_approx_succ _ e₁ _ _ (by simpa using e) (exp_approx_end _ _ _ e₁ h)
+
+lemma exp_1_approx_succ_eq {n} {a₁ b₁ : ℝ} {m : ℕ}
+  (en : n + 1 = m) {rm : ℝ} (er : ↑m = rm)
+  (h : abs' (exp 1 - exp_near m 1 ((a₁ - 1) * rm)) ≤ abs' 1 ^ m / m! * (b₁ * rm)) :
+  abs' (exp 1 - exp_near n 1 a₁) ≤ abs' 1 ^ n / n! * b₁ :=
+begin
+  subst er,
+  refine exp_approx_succ _ en _ _ _ h,
+  field_simp [show (m : ℝ) ≠ 0, by norm_cast; linarith],
+end
+
+lemma exp_approx_start (x a b : ℝ)
+  (h : abs' (exp x - exp_near 0 x a) ≤ abs' x ^ 0 / 0! * b) :
+  abs' (exp x - a) ≤ b :=
+by simpa using h
+
 lemma cos_bound {x : ℝ} (hx : abs' x ≤ 1) :
   abs' (cos x - (1 - x ^ 2 / 2)) ≤ abs' x ^ 4 * (5 / 96) :=
 calc abs' (cos x - (1 - x ^ 2 / 2)) = abs (complex.cos x - (1 - x ^ 2 / 2)) :
@@ -1250,8 +1314,8 @@ calc abs' (cos x - (1 - x ^ 2 / 2)) = abs (complex.cos x - (1 - x ^ 2 / 2)) :
   by simp [complex.abs_div]
 ... ≤ ((complex.abs (x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2 +
     (complex.abs (-x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2)  :
-  add_le_add ((div_le_div_right (by norm_num)).2 (exp_bound (by simpa) dec_trivial))
-             ((div_le_div_right (by norm_num)).2 (exp_bound (by simpa) dec_trivial))
+  add_le_add ((div_le_div_right (by norm_num)).2 (complex.exp_bound (by simpa) dec_trivial))
+             ((div_le_div_right (by norm_num)).2 (complex.exp_bound (by simpa) dec_trivial))
 ... ≤ abs' x ^ 4 * (5 / 96) : by norm_num; simp [mul_assoc, mul_comm, mul_left_comm, mul_div_assoc]
 
 lemma sin_bound {x : ℝ} (hx : abs' x ≤ 1) :
@@ -1276,8 +1340,8 @@ calc abs' (sin x - (x - x ^ 3 / 6)) = abs (complex.sin x - (x - x ^ 3 / 6)) :
   by simp [add_comm, complex.abs_div, complex.abs_mul]
 ... ≤ ((complex.abs (x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2 +
     (complex.abs (-x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2) :
-  add_le_add ((div_le_div_right (by norm_num)).2 (exp_bound (by simpa) dec_trivial))
-             ((div_le_div_right (by norm_num)).2 (exp_bound (by simpa) dec_trivial))
+  add_le_add ((div_le_div_right (by norm_num)).2 (complex.exp_bound (by simpa) dec_trivial))
+             ((div_le_div_right (by norm_num)).2 (complex.exp_bound (by simpa) dec_trivial))
 ... ≤ abs' x ^ 4 * (5 / 96) : by norm_num; simp [mul_assoc, mul_comm, mul_left_comm, mul_div_assoc]
 
 lemma cos_pos_of_le_one {x : ℝ} (hx : abs' x ≤ 1) : 0 < cos x :=

@@ -119,8 +119,8 @@ by { ext, simp only [coeff_reflect, coeff_C_mul], }
   reflect N (C c * X ^ n) = C c * X ^ (rev_at N n) :=
 begin
   ext,
-  simp only [reflect_C_mul, coeff_C_mul, coeff_X_pow, coeff_reflect],
-  split_ifs,
+  rw [reflect_C_mul, coeff_C_mul, coeff_C_mul, coeff_X_pow, coeff_reflect],
+  split_ifs with h j,
   { rw [h, rev_at_invol, coeff_X_pow_self], },
   { rw [not_mem_support_iff_coeff_zero.mp],
     intro a,

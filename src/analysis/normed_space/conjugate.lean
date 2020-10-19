@@ -31,24 +31,24 @@ instance [e : normed_group E] : normed_group (conj_semimodule 𝕜 E) := e
 instance [normed_group E] [e : normed_space 𝕜 E]: normed_space 𝕜 (conj_semimodule 𝕜 E) :=
 { norm_smul_le := λ r x,
   begin
-    change ∥from_conj 𝕜 (r • x)∥ ≤ ∥r∥ * ∥x∥,
-    rw [smul_def', norm_smul, norm_conj],
+    change ∥(conj_equiv 𝕜).symm (r • x)∥ ≤ ∥r∥ * ∥x∥,
     apply le_of_eq,
+    rw [smul_def', norm_smul, norm_conj],
     refl,
   end }
 
 instance [normed_group E] [normed_space 𝕜 E] [has_inner 𝕜 E] : has_inner 𝕜 (conj_semimodule 𝕜 E) :=
-{ inner := λ x y, ⟪from_conj 𝕜 y, from_conj 𝕜 x⟫ }
+{ inner := λ x y, ⟪(conj_equiv 𝕜).symm y, (conj_equiv 𝕜).symm x⟫ }
 
 instance [inner_product_space 𝕜 E] : inner_product_space 𝕜 (conj_semimodule 𝕜 E) :=
 {
-  norm_sq_eq_inner := λ x, by { change ∥from_conj 𝕜 x∥^2 = re ⟪x, x⟫, exact norm_sq_eq_inner x },
+  norm_sq_eq_inner := λ x, by { change ∥(conj_equiv 𝕜).symm x∥^2 = re ⟪x, x⟫, exact norm_sq_eq_inner x },
   conj_sym := λ x y, inner_conj_sym _ _,
   nonneg_im := λ x, inner_self_nonneg_im,
   add_left := λ x y z,
   begin
-    change ⟪from_conj 𝕜 z, from_conj 𝕜 (x + y)⟫ = ⟪from_conj 𝕜 z, from_conj 𝕜 x⟫ + ⟪from_conj 𝕜 z, from_conj 𝕜 y⟫,
-    simp [from_conj_add, inner_add_right],
+    change ⟪(conj_equiv 𝕜).symm z, (conj_equiv 𝕜).symm (x + y)⟫ = ⟪(conj_equiv 𝕜).symm z, (conj_equiv 𝕜).symm x⟫ + ⟪(conj_equiv 𝕜).symm z, (conj_equiv 𝕜).symm y⟫,
+    simp [inner_add_right],
   end,
   smul_left := λ x y r, by simp [has_inner.inner, smul_def', inner_smul_right] }
 

@@ -659,6 +659,13 @@ by { ext, apply neg_dot_product }
 lemma mul_vec_neg (v : n → α) (A : matrix m n α) : mul_vec A (-v) = - mul_vec A v :=
 by { ext, apply dot_product_neg }
 
+lemma smul_mul_vec_assoc (A : matrix n n α) (b : n → α) (a : α) :
+  (a • A).mul_vec b = a • (A.mul_vec b) :=
+begin
+  ext i, change dot_product ((a • A) i) b = _,
+  simp only [mul_vec, smul_eq_mul, pi.smul_apply, smul_dot_product],
+end
+
 end ring
 
 section transpose

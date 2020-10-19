@@ -13,10 +13,7 @@ import tactic.ring_exp
 
 In this file, we define an inverse for square matrices of invertible
 determinant. For matrices that are not square or not of full rank, there is a
-more general notion of pseudoinverses. Unfortunately, the definition of
-pseudoinverses is typically in terms of inverses of nonsingular matrices, so we
-need to define those first. The file also doesn't define a `has_inv` instance
-for `matrix` so that can be used for the pseudoinverse instead.
+more general notion of pseudoinverses which we do not consider here.
 
 The definition of inverse used in this file is the adjugate divided by the determinant.
 The adjugate is calculated with Cramer's rule, which we introduce first.
@@ -45,7 +42,7 @@ matrix inverse, cramer, cramer's rule, adjugate
 
 namespace matrix
 universes u v
-variables {n : Type u} [decidable_eq n] [fintype n] {α : Type v}
+variables {n : Type u} [decidable_eq n] [fintype n] {α : Type v} [comm_ring α]
 open_locale matrix big_operators
 open equiv equiv.perm finset
 
@@ -57,7 +54,7 @@ section cramer
   After defining `cramer_map` and showing it is linear,
   we will restrict our proofs to using `cramer`.
 -/
-variables [comm_ring α] (A : matrix n n α) (b : n → α)
+variables (A : matrix n n α) (b : n → α)
 
 /--
   `cramer_map A b i` is the determinant of the matrix `A` with column `i` replaced with `b`,
@@ -138,7 +135,7 @@ lemma sum_cramer {β} (s : finset β) (f : β → n → α) :
   ∑ x in s, cramer α A (f x) = cramer α A (∑ x in s, f x) :=
 (linear_map.map_sum (cramer α A)).symm
 
-/-- Use linearity of `cramer` and vector evaluation to take `cramer A _ i` out of a summation. -/
+/-- Use linearity of `cramer` and vector evaluation to take `cramer α A _ i` out of a summation. -/
 lemma sum_cramer_apply {β} (s : finset β) (f : n → β → α) (i : n) :
 ∑ x in s, cramer α A (λ j, f j x) i = cramer α A (λ (j : n), ∑ x in s, f j x) i :=
 calc ∑ x in s, cramer α A (λ j, f j x) i
@@ -157,7 +154,6 @@ These will hold for any matrix over a commutative ring,
 while the `inv` section is specifically for invertible matrices.
 -/
 
-variable [comm_ring α]
 /-- The adjugate matrix is the transpose of the cofactor matrix.
 
   Typically, the cofactor matrix is defined by taking the determinant of minors,
@@ -199,6 +195,16 @@ begin
     apply if_neg,
     intro h',
     exact h ((symm_apply_eq σ).mp h'.symm) }
+end
+
+lemma cramer_transpose_eq_adjugate_mul_vec (A : matrix n n α) (b : n → α) :
+  cramer α Aᵀ b = A.adjugate.mul_vec b :=
+begin
+  nth_rewrite 1 ← A.transpose_transpose,
+  rw [← adjugate_transpose, adjugate_def],
+  have : b = ∑ i, (b i) • (λ j, if i = j then 1 else 0), { ext i, simp, },
+  rw this, ext k,
+  simp [mul_vec, dot_product, mul_comm],
 end
 
 lemma mul_adjugate_apply (A : matrix n n α) (i j k) :
@@ -309,7 +315,6 @@ Defines the matrix `nonsing_inv A` and proves it is the inverse matrix
 of a square matrix `A` as long as `det A` has a multiplicative inverse.
 -/
 
-variables [comm_ring α]
 variables (A : matrix n n α)
 
 open_locale classical
@@ -408,4 +413,10 @@ lemma nonsing_inv_right_left (B : matrix n n α) (h : B ⬝ A = 1) : A ⬝ B = 1
 B.nonsing_inv_left_right A h
 
 end inv
+
+lemma cramers_rule (A : matrix n n α) (b : n → α) (h : is_unit A.det) :
+  A.mul_vec ((↑h.unit⁻¹ : α) • (cramer α Aᵀ b)) = b :=
+by rw [cramer_transpose_eq_adjugate_mul_vec, ← smul_mul_vec_assoc, ← nonsing_inv_apply,
+       mul_vec_mul_vec, A.mul_nonsing_inv h, mul_vec_one]
+
 end matrix

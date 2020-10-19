@@ -34,6 +34,7 @@ and inverse maps are affine.
 
 We define it using an `equiv` for the map and a `linear_equiv` for the linear part in order
 to allow affine equivalences with good definitional equalities. -/
+@[nolint has_inhabited_instance]
 structure affine_equiv (k P₁ P₂ : Type*) {V₁ V₂ : Type*} [ring k]
   [add_comm_group V₁] [semimodule k V₁] [add_torsor V₁ P₁]
   [add_comm_group V₂] [semimodule k V₂] [add_torsor V₂ P₂] extends P₁ ≃ P₂ :=
@@ -158,6 +159,7 @@ e.to_equiv.apply_eq_iff_eq
 
 include V₃
 
+/-- Composition of two `affine_equiv`alences, applied left to right. -/
 @[trans] def trans (e : P₁ ≃ᵃ[k] P₂) (e' : P₂ ≃ᵃ[k] P₃) : P₁ ≃ᵃ[k] P₃ :=
 { to_equiv := e.to_equiv.trans e'.to_equiv,
   linear := e.linear.trans e'.linear,

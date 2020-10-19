@@ -109,7 +109,7 @@ end
 
 @[simp] lemma reflect_add (f g : polynomial R) (N : ℕ) :
   reflect N (f + g) = reflect N f + reflect N g :=
-by { ext1, rw [coeff_add, coeff_reflect, coeff_reflect, coeff_reflect, coeff_add], }
+by { ext, simp only [coeff_add, coeff_reflect], }
 
 @[simp] lemma reflect_C_mul (f : polynomial R) (r : R) (N : ℕ) :
   reflect N (C r * f) = C r * (reflect N f) :=

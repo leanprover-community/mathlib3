@@ -248,8 +248,6 @@ begin
   refine rev_at_small_min_max (by rwa ← nat_degree_eq_support_max' f0),
 end
 
-namespace rev
-
 lemma nat_degree_reflect_le {N : ℕ} : (reflect N f).nat_degree ≤ max N f.nat_degree :=
 begin
   by_cases f0 : f=0,
@@ -278,7 +276,6 @@ begin
       reflect_invol], },
   { intro f0, apply h, rw [f0, coeff_zero], },
 end
-
 
 lemma lead_reflect_eq_trailing (N : ℕ) (H : f.nat_degree ≤ N) :
   leading_coeff (reflect N f) = trailing_coeff f :=
@@ -317,13 +314,9 @@ lead_reflect_eq_trailing _ rfl.le
 lemma trailing_reverse_eq_lead (f : polynomial R) : trailing_coeff (reverse f) = leading_coeff f :=
 trailing_reflect_eq_lead _ rfl.le
 
-end rev
-
 end semiring
 
 section integral_domain
-
-open rev
 
 variables {R : Type*} [integral_domain R] {p q : polynomial R}
 

@@ -6,14 +6,15 @@ Authors: Bhavik Mehta
 import category_theory.adjunction
 import category_theory.elements
 import category_theory.limits.functor_category
-import category_theory.limits.shapes
+import category_theory.limits.shapes.terminal
 import category_theory.limits.types
 
 /-!
 # Colimit of representables
 
-This file constructs an adjunction between `(Cᵒᵖ ⥤ Type u)` and `ℰ` given a functor `A : C ⥤ ℰ`,
-where the right adjoint sends `(E : ℰ)` to `c ↦ (A.obj c ⟶ E)` (provided `ℰ` has colimits).
+This file constructs an adjunction `colimit_adj` between `(Cᵒᵖ ⥤ Type u)` and `ℰ` given a functor
+`A : C ⥤ ℰ`, where the right adjoint sends `(E : ℰ)` to `c ↦ (A.obj c ⟶ E)` (provided `ℰ` has
+colimits).
 
 This adjunction is used to show that every presheaf is a colimit of representables.
 
@@ -23,6 +24,9 @@ TODO: Show `colimit_adj.L` is unique amongst cocontinuous functors with this pro
 
 ## Tags
 colimit, representable, presheaf
+
+## References
+* [S. MacLane, I. Moerdijk, *Sheaves in Geometry and Logic*][MM92]
 -/
 
 namespace category_theory
@@ -191,14 +195,24 @@ adjunction.nat_iso_of_right_adjoint_nat_iso
   restricted_yoneda_yoneda
 
 /--
-This is a cocone with point `P`, for which the diagram consists solely of representables.
-It is shown in `colimit_of_representable P` that this cocone is a colimit: that is, we have
-exhibited an arbitrary presheaf `P` as a colimit of representables.
+A functor to the presheaf category in which everything in the image is representable (witnessed
+by the fact that it factors through the yoneda embedding).
+`cocone_of_representable` gives a cocone for this functor which is a colimit and has point `P`.
+-/
+-- Maybe this should be reducible or an abbreviation?
+def functor_to_representables (P : Cᵒᵖ ⥤ Type u₁) :
+  (P.elements)ᵒᵖ ⥤ Cᵒᵖ ⥤ Type u₁ :=
+(category_of_elements.π P).left_op ⋙ yoneda
+
+/--
+This is a cocone with point `P` for the functor `functor_to_representables P`. It is shown in
+`colimit_of_representable P` that this cocone is a colimit: that is, we have exhibited an arbitrary
+presheaf `P` as a colimit of representables.
 
 The construction of [MM92], Chapter I, Section 5, Corollary 3.
 -/
 def cocone_of_representable (P : Cᵒᵖ ⥤ Type u₁) :
-  cocone ((category_of_elements.π P).left_op ⋙ yoneda) :=
+  cocone (functor_to_representables P) :=
 cocone.extend (colimit.cocone _) (extend_along_yoneda_yoneda.hom.app P)
 
 @[simp] lemma cocone_of_representable_X (P : Cᵒᵖ ⥤ Type u₁) : (cocone_of_representable P).X = P := rfl
@@ -211,7 +225,7 @@ The result of [MM92], Chapter I, Section 5, Corollary 3.
 -/
 def colimit_of_representable (P : Cᵒᵖ ⥤ Type u₁) : is_colimit (cocone_of_representable P) :=
 begin
-  apply is_colimit.of_point_iso (colimit.is_colimit ((category_of_elements.π P).left_op ⋙ yoneda)),
+  apply is_colimit.of_point_iso (colimit.is_colimit (functor_to_representables P)),
   change is_iso (colimit.desc _ (cocone.extend _ _)),
   rw [colimit.desc_extend, colimit.desc_cocone],
   apply_instance,

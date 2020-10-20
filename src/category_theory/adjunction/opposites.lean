@@ -94,7 +94,7 @@ adjoints.
 -/
 def nat_iso_of_left_adjoint_nat_iso {F F' : C ⥤ D} {G G' : D ⥤ C}
   (adj1 : F ⊣ G) (adj2 : F' ⊣ G') (l : F ≅ F') :
-G ≅ G' :=
+  G ≅ G' :=
 right_adjoint_uniq adj1 (adj2.of_nat_iso_left l.symm)
 
 /--
@@ -103,7 +103,7 @@ adjoints.
 -/
 def nat_iso_of_right_adjoint_nat_iso {F F' : C ⥤ D} {G G' : D ⥤ C}
   (adj1 : F ⊣ G) (adj2 : F' ⊣ G') (r : G ≅ G') :
-F ≅ F' :=
+  F ≅ F' :=
 left_adjoint_uniq adj1 (adj2.of_nat_iso_right r.symm)
 
 end adjunction

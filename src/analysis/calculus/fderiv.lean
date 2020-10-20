@@ -1907,32 +1907,26 @@ namespace continuous_linear_equiv
 
 In this section we establish that the set of continuous linear equivalences between two Banach
 spaces is an open subset of the space of linear maps between them.  These facts are placed here
-because the proof uses `is_bounded_bilinear_map.continuous`, proved just above as a consequence
+because the proof uses `is_bounded_bilinear_map.continuous_left`, proved just above as a consequence
 of its differentiability.
 -/
 
 protected lemma is_open [complete_space E] : is_open (range (coe : (E ≃L[𝕜] F) → (E →L[𝕜] F))) :=
 begin
+  nontriviality E,
   rw [is_open_iff_mem_nhds, forall_range_iff],
   refine λ e, mem_nhds_sets _ (mem_range_self _),
   let O : (E →L[𝕜] F) → (E →L[𝕜] E) := λ f, (e.symm : F →L[𝕜] E).comp f,
-  cases subsingleton_or_nontrivial E with _i _i; resetI,
-  { exact is_open_discrete _ },
-  have h_O : continuous O,
-  { have h_e_symm : continuous (λ (x : E →L[𝕜] F), (e.symm : F →L[𝕜] E)) := continuous_const,
-    exact is_bounded_bilinear_map_comp.continuous.comp (continuous_id.prod_mk h_e_symm) },
+  have h_O : continuous O := is_bounded_bilinear_map_comp.continuous_left,
   convert units.is_open.preimage h_O using 1,
   ext f',
   split,
   { rintros ⟨e', rfl⟩,
-    let w : units (E →L[𝕜] E) := continuous_linear_equiv.to_unit (e'.trans e.symm),
-    exact ⟨w, rfl⟩ },
+    exact ⟨(e'.trans e.symm).to_unit, rfl⟩ },
   { rintros ⟨w, hw⟩,
-    let e' : E ≃L[𝕜] E := continuous_linear_equiv.of_unit w,
-    use e'.trans e,
+    use (units_equiv 𝕜 E w).trans e,
     ext x,
-    have he'w : e' x = w x := rfl,
-    simp [hw, he'w] }
+    simp [hw] }
 end
 
 protected lemma nhds [complete_space E] (e : E ≃L[𝕜] F) :

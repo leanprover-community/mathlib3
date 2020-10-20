@@ -238,6 +238,17 @@ begin
   apply ωSup_le _ _ a,
 end
 
+/-- A subset `p : α → Prop` of the type closed under `ωSup` induces an
+`omega_complete_partial_order` on the subtype `{a : α // p a}`. -/
+def subtype {α : Type*} [omega_complete_partial_order α] (p : α → Prop)
+  (hp : ∀ (c : chain α), (∀ i ∈ c, p i) → p (ωSup c)) :
+  omega_complete_partial_order (subtype p) :=
+omega_complete_partial_order.lift
+  (preorder_hom.subtype.val p)
+  (λ c, ⟨ωSup _, hp (c.map (preorder_hom.subtype.val p)) (λ i ⟨n, q⟩, q.symm ▸ (c n).2)⟩)
+  (λ x y h, h)
+  (λ c, rfl)
+
 section continuity
 open chain
 
@@ -582,6 +593,12 @@ end old_struct
 
 namespace continuous_hom
 
+theorem congr_fun {f g : α →𝒄 β} (h : f = g) (x : α) : f x = g x :=
+congr_arg (λ h : α →𝒄 β, h x) h
+
+theorem congr_arg (f : α →𝒄 β) {x y : α} (h : x = y) : f x = f y :=
+congr_arg (λ x : α, f x) h
+
 @[mono]
 lemma monotone (f : α →𝒄 β) : monotone f :=
 continuous_hom.monotone' f
@@ -670,7 +687,7 @@ protected lemma ext (f g : α →𝒄 β) (h : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; congr; ext; apply h
 
 protected lemma coe_inj (f g : α →𝒄 β) (h : (f : α → β) = g) : f = g :=
-continuous_hom.ext _ _ $ congr_fun h
+continuous_hom.ext _ _ $ _root_.congr_fun h
 
 @[simp]
 lemma comp_id (f : β →𝒄 γ) : f.comp id = f := by ext; refl

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Minchao Wu
 -/
 import tactic.explode tactic.interactive_expr
-open widget tactic tactic.explode
 /-!
 # `#explode_widget` command
 
@@ -12,6 +11,7 @@ Render a widget that displays an `#explode` proof, providing more
 interactivity such as jumping to definitions and exploding constants 
 occuring in a proof term subsequently.
 -/
+open widget tactic tactic.explode
 
 namespace tactic
 namespace explode_widget

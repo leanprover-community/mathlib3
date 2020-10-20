@@ -2208,7 +2208,7 @@ lemma forall_image2_iff {p : γ → Prop} :
   (∀ z ∈ image2 f s t, p z) ↔ ∀ (x ∈ s) (y ∈ t), p (f x y) :=
 ⟨λ h x hx y hy, h _ ⟨x, y, hx, hy, rfl⟩, λ h z ⟨x, y, hx, hy, hz⟩, hz ▸ h x hx y hy⟩
 
-lemma image2_subset_iff {u : set γ} :
+@[simp] lemma image2_subset_iff {u : set γ} :
   image2 f s t ⊆ u ↔ ∀ (x ∈ s) (y ∈ t), f x y ∈ u :=
 forall_image2_iff
 
@@ -2235,14 +2235,13 @@ by { rintro _ ⟨a, b, ⟨h1a, h2a⟩, hb, rfl⟩, split; exact ⟨_, _, ‹_›
 lemma image2_inter_subset_right : image2 f s (t ∩ t') ⊆ image2 f s t ∩ image2 f s t' :=
 by { rintro _ ⟨a, b, ha, ⟨h1b, h2b⟩, rfl⟩, split; exact ⟨_, _, ‹_›, ‹_›, rfl⟩ }
 
-@[simp] lemma image2_singleton : image2 f {a} {b} = {f a b} :=
-ext $ λ x, by simp [eq_comm]
-
 @[simp] lemma image2_singleton_left : image2 f {a} t = f a '' t :=
 ext $ λ x, by simp
 
 @[simp] lemma image2_singleton_right : image2 f s {b} = (λ a, f a b) '' s :=
 ext $ λ x, by simp
+
+lemma image2_singleton : image2 f {a} {b} = {f a b} := by simp
 
 @[congr] lemma image2_congr (h : ∀ (a ∈ s) (b ∈ t), f a b = f' a b) :
   image2 f s t = image2 f' s t :=

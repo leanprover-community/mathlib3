@@ -483,7 +483,7 @@ begin
   simp only [pow_zero],
   refine le_trans (norm_add_le _ _) _,
   have : ∥(∑' (b : ℕ), (λ n, x ^ (n + 1)) b)∥ ≤ (1 - ∥x∥)⁻¹ - 1,
-  { refine tsum_of_norm_bounded _ (λ b, norm_pow_le _ (nat.succ_pos b)),
+  { refine tsum_of_norm_bounded _ (λ b, norm_pow_le' _ (nat.succ_pos b)),
     convert (has_sum_nat_add_iff' 1).mpr (has_sum_geometric_of_lt_1 (norm_nonneg x) h),
     simp },
   linarith
@@ -492,33 +492,26 @@ end
 lemma geom_series_mul_neg (x : R) (h : ∥x∥ < 1) :
   (∑' (i:ℕ), x ^ i) * (1 - x) = 1 :=
 begin
-  have := has_sum_of_bounded_monoid_hom_of_summable
-    (normed_ring.summable_geometric_of_norm_lt_1 x h) (∥1 - x∥)
-    (mul_right_bound (1 - x)),
+  have := ((normed_ring.summable_geometric_of_norm_lt_1 x h).has_sum.mul_right (1 - x)),
   refine tendsto_nhds_unique this.tendsto_sum_nat _,
-  have : tendsto (λ (n : ℕ), 1 - x ^ n) at_top (nhds 1),
-  { simpa using tendsto_const_nhds.sub
-      (tendsto_pow_at_top_nhds_0_of_norm_lt_1 h) },
+  have : tendsto (λ (n : ℕ), 1 - x ^ n) at_top (𝓝 1),
+  { simpa using tendsto_const_nhds.sub (tendsto_pow_at_top_nhds_0_of_norm_lt_1 h) },
   convert ← this,
   ext n,
   rw [←geom_sum_mul_neg, geom_series_def, finset.sum_mul],
-  simp,
 end
 
 lemma mul_neg_geom_series (x : R) (h : ∥x∥ < 1) :
   (1 - x) * (∑' (i:ℕ), x ^ i) = 1 :=
 begin
-  have := has_sum_of_bounded_monoid_hom_of_summable
-    (normed_ring.summable_geometric_of_norm_lt_1 x h) (∥1 - x∥)
-    (mul_left_bound (1 - x)),
+  have := (normed_ring.summable_geometric_of_norm_lt_1 x h).has_sum.mul_left (1 - x),
   refine tendsto_nhds_unique this.tendsto_sum_nat _,
   have : tendsto (λ (n : ℕ), 1 - x ^ n) at_top (nhds 1),
   { simpa using tendsto_const_nhds.sub
       (tendsto_pow_at_top_nhds_0_of_norm_lt_1 h) },
   convert ← this,
   ext n,
-  rw [←mul_neg_geom_sum, geom_series_def, finset.mul_sum],
-  simp,
+  rw [←mul_neg_geom_sum, geom_series_def, finset.mul_sum]
 end
 
 end normed_ring_geometric
@@ -543,7 +536,7 @@ namespace nnreal
 
 theorem exists_pos_sum_of_encodable {ε : nnreal} (hε : 0 < ε) (ι) [encodable ι] :
   ∃ ε' : ι → nnreal, (∀ i, 0 < ε' i) ∧ ∃c, has_sum ε' c ∧ c < ε :=
-let ⟨a, a0, aε⟩ := dense hε in
+let ⟨a, a0, aε⟩ := exists_between hε in
 let ⟨ε', hε', c, hc, hcε⟩ := pos_sum_of_encodable a0 ι in
 ⟨ λi, ⟨ε' i, le_of_lt $ hε' i⟩, assume i, nnreal.coe_lt_coe.2 $ hε' i,
   ⟨c, has_sum_le (assume i, le_of_lt $ hε' i) has_sum_zero hc ⟩, nnreal.has_sum_coe.1 hc,
@@ -556,7 +549,7 @@ namespace ennreal
 theorem exists_pos_sum_of_encodable {ε : ennreal} (hε : 0 < ε) (ι) [encodable ι] :
   ∃ ε' : ι → nnreal, (∀ i, 0 < ε' i) ∧ (∑' i, (ε' i : ennreal)) < ε :=
 begin
-  rcases dense hε with ⟨r, h0r, hrε⟩,
+  rcases exists_between hε with ⟨r, h0r, hrε⟩,
   rcases lt_iff_exists_coe.1 hrε with ⟨x, rfl, hx⟩,
   rcases nnreal.exists_pos_sum_of_encodable (coe_lt_coe.1 h0r) ι with ⟨ε', hp, c, hc, hcr⟩,
   exact ⟨ε', hp, (ennreal.tsum_coe_eq hc).symm ▸ lt_trans (coe_lt_coe.2 hcr) hrε⟩

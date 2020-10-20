@@ -16,6 +16,8 @@ variables {α : Type u} {β : Type v}
 
 namespace equiv.perm
 
+/-- If the permutation `f` fixes the subtype `{x // p x}`, then this returns the permutation
+  on `{x // p x}` induced by `f`. -/
 def subtype_perm (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x)) : perm {x // p x} :=
 ⟨λ x, ⟨f x, (h _).1 x.2⟩, λ x, ⟨f⁻¹ x, (h (f⁻¹ x)).2 $ by simpa using x.2⟩,
   λ _, by simp only [perm.inv_apply_self, subtype.coe_eta, subtype.coe_mk],
@@ -24,6 +26,8 @@ def subtype_perm (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x)) : 
 @[simp] lemma subtype_perm_one (p : α → Prop) (h : ∀ x, p x ↔ p ((1 : perm α) x)) : @subtype_perm α 1 p h = 1 :=
 equiv.ext $ λ ⟨_, _⟩, rfl
 
+/-- The inclusion map of permutations on a subtype of `α` into permutations of `α`,
+  fixing the other points. -/
 def of_subtype {p : α → Prop} [decidable_pred p] : perm (subtype p) →* perm α :=
 { to_fun := λ f,
   ⟨λ x, if h : p x then f ⟨x, h⟩ else x, λ x, if h : p x then f⁻¹ ⟨x, h⟩ else x,
@@ -141,11 +145,13 @@ lemma gpow_apply_eq_of_apply_apply_eq_self {f : perm α} {x : α} (hffx : f (f x
 
 variable [decidable_eq α]
 
+/-- The `finset` of nonfixed points of a permutation. -/
 def support [fintype α] (f : perm α) := univ.filter (λ x, f x ≠ x)
 
 @[simp] lemma mem_support [fintype α] {f : perm α} {x : α} : x ∈ f.support ↔ f x ≠ x :=
 by simp only [support, true_and, mem_filter, mem_univ]
 
+/-- `f.is_swap` indicates that the permutation `f` is a transposition of two elements.  -/
 def is_swap (f : perm α) := ∃ x y, x ≠ y ∧ f = swap x y
 
 lemma swap_mul_eq_mul_swap (f : perm α) (x y : α) : swap x y * f = f * swap (f⁻¹ x) (f⁻¹ y) :=
@@ -209,6 +215,8 @@ finset.card_lt_card
   ⟨λ z hz, mem_support.2 (ne_and_ne_of_swap_mul_apply_ne_self (mem_support.1 hz)).1,
     λ h, absurd (h (mem_support.2 hx)) (mt mem_support.1 (by simp))⟩
 
+/-- Given a list `l : list α` and a permutation `f : perm α` such that the nonfixed points of `f`
+  are in `l`, recursively factors `f` as a product of transpositions. -/
 def swap_factors_aux : Π (l : list α) (f : perm α), (∀ {x}, f x ≠ x → x ∈ l) →
   {l : list (perm α) // l.prod = f ∧ ∀ g ∈ l, is_swap g}
 | []       := λ f h, ⟨[], equiv.ext $ λ x, by rw [list.prod_nil];
@@ -232,6 +240,8 @@ def swap_factors [fintype α] [decidable_linear_order α] (f : perm α) :
   {l : list (perm α) // l.prod = f ∧ ∀ g ∈ l, is_swap g} :=
 swap_factors_aux ((@univ α _).sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
 
+/-- This computably represents the fact that any permutation can be represented as the product of
+  a list of transpositions. -/
 def trunc_swap_factors [fintype α] (f : perm α) :
   trunc {l : list (perm α) // l.prod = f ∧ ∀ g ∈ l, is_swap g} :=
 quotient.rec_on_subsingleton (@univ α _).1
@@ -294,6 +304,8 @@ lemma mem_fin_pairs_lt {n : ℕ} {a : Σ a : fin n, fin n} :
   a ∈ fin_pairs_lt n ↔ a.2 < a.1 :=
 by simp only [fin_pairs_lt, fin.lt_iff_coe_lt_coe, true_and, mem_attach_fin, mem_range, mem_univ, mem_sigma]
 
+/-- `sign_aux σ` is the sign of a permutation on `fin n`, defined as the parity of the number of
+  pairs `(x₁, x₂)` such that `x₂ < x₁` but `σ x₁ ≤ σ x₂` -/
 def sign_aux {n : ℕ} (a : perm (fin n)) : units ℤ :=
 ∏ x in fin_pairs_lt n, if a x.1 ≤ a x.2 then -1 else 1
 
@@ -306,6 +318,7 @@ begin
     (not_le_of_gt (mem_fin_pairs_lt.1 ha)))
 end
 
+/-- `sign_bij_aux f ⟨a, b⟩` returns the pair consisting of `f a` and `f b` in decreasing order. -/
 def sign_bij_aux {n : ℕ} (f : perm (fin n)) (a : Σ a : fin n, fin n) :
   Σ a : fin n, fin n :=
 if hxa : f a.2 < f a.1 then ⟨f a.1, f a.2⟩ else ⟨f a.2, f a.1⟩
@@ -415,6 +428,8 @@ have h2n : 2 ≤ n + 2 := dec_trivial,
 by rw [← is_conj_iff_eq, ← sign_aux_swap_zero_one h2n];
   exact (monoid_hom.mk' sign_aux sign_aux_mul).map_is_conj (is_conj_swap hxy dec_trivial)
 
+/-- When the list `l : list α` contains all nonfixed points of the permutation `f : perm α`,
+  `sign_aux2 l f` recursively calculates the sign of `f`. -/
 def sign_aux2 : list α → perm α → units ℤ
 | []     f := 1
 | (x::l) f := if x = f x then sign_aux2 l f else -sign_aux2 l (swap x (f x) * f)
@@ -442,6 +457,8 @@ by rw [this, one_def, equiv.trans_refl, equiv.symm_trans, ← one_def,
     simp only [units.neg_neg, one_mul, units.neg_mul]}
 end
 
+/-- When the multiset `s : multiset α` contains all nonfixed points of the permutation `f : perm α`,
+  `sign_aux2 f _` recursively calculates the sign of `f`. -/
 def sign_aux3 [fintype α] (f : perm α) {s : multiset α} : (∀ x, x ∈ s) → units ℤ :=
 quotient.hrec_on s (λ l h, sign_aux2 l f)
   (trunc.induction_on (equiv_fin α)
@@ -595,6 +612,8 @@ calc sign f = sign (@subtype_perm _ f (λ x, f x ≠ x) (by simp)) :
       (λ ⟨x, _⟩, subtype.eq (h x _ _))
 ... = sign g : sign_subtype_perm _ _ (λ _, id)
 
+/-- A permutation is a cycle when any two nonfixed points of the permutation are related by repeated
+  application of the permutation. -/
 def is_cycle (f : perm β) := ∃ x, f x ≠ x ∧ ∀ y, f y ≠ y → ∃ i : ℤ, (f ^ i) x = y
 
 lemma is_cycle_swap {α : Type*} [decidable_eq α] {x y : α} (hxy : x ≠ y) : is_cycle (swap x y) :=
@@ -690,7 +709,7 @@ lemma is_cycle_swap_mul {α : Type*} [decidable_eq α] {f : perm α} (hf : is_cy
 finset.ext $ λ a, by simp [swap_apply_def]; split_ifs; cc
 
 lemma card_support_swap {x y : α} (hxy : x ≠ y) : (swap x y).support.card = 2 :=
-show (swap x y).support.card = finset.card ⟨x::y::0, by simp [hxy]⟩,
+show (swap x y).support.card = finset.card ⟨x ::ₘ y ::ₘ 0, by simp [hxy]⟩,
 from congr_arg card $ by rw [support_swap hxy]; simp [*, finset.ext_iff]; cc
 
 lemma sign_cycle : ∀ {f : perm α} (hf : is_cycle f),

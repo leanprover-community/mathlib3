@@ -58,6 +58,18 @@ inv_eq_one_div a ▸ inv_nonneg
 lemma one_div_nonpos : 1 / a ≤ 0 ↔ a ≤ 0 :=
 inv_eq_one_div a ▸ inv_nonpos
 
+lemma div_pos_iff : 0 < a / b ↔ 0 < a ∧ 0 < b ∨ a < 0 ∧ b < 0 :=
+by simp [division_def, mul_pos_iff]
+
+lemma div_neg_iff : a / b < 0 ↔ 0 < a ∧ b < 0 ∨ a < 0 ∧ 0 < b :=
+by simp [division_def, mul_neg_iff]
+
+lemma div_nonneg_iff : 0 ≤ a / b ↔ 0 ≤ a ∧ 0 ≤ b ∨ a ≤ 0 ∧ b ≤ 0 :=
+by simp [division_def, mul_nonneg_iff]
+
+lemma div_nonpos_iff : a / b ≤ 0 ↔ 0 ≤ a ∧ b ≤ 0 ∨ a ≤ 0 ∧ 0 ≤ b :=
+by simp [division_def, mul_nonpos_iff]
+
 lemma div_pos (ha : 0 < a) (hb : 0 < b) : 0 < a / b :=
 mul_pos ha (inv_pos.2 hb)
 
@@ -229,16 +241,39 @@ lemma lt_inv_of_neg (ha : a < 0) (hb : b < 0) : a < b⁻¹ ↔ b < a⁻¹ :=
 lt_iff_lt_of_le_iff_le (inv_le_of_neg hb ha)
 
 lemma inv_lt_one (ha : 1 < a) : a⁻¹ < 1 :=
-by rwa [inv_lt ((@zero_lt_one α _).trans ha) zero_lt_one, inv_one]
+by rwa [inv_lt ((@zero_lt_one α _ _).trans ha) zero_lt_one, inv_one]
 
 lemma one_lt_inv (h₁ : 0 < a) (h₂ : a < 1) : 1 < a⁻¹ :=
-by rwa [lt_inv (@zero_lt_one α _) h₁, inv_one]
+by rwa [lt_inv (@zero_lt_one α _ _) h₁, inv_one]
 
 lemma inv_le_one (ha : 1 ≤ a) : a⁻¹ ≤ 1 :=
-by rwa [inv_le ((@zero_lt_one α _).trans_le ha) zero_lt_one, inv_one]
+by rwa [inv_le ((@zero_lt_one α _ _).trans_le ha) zero_lt_one, inv_one]
 
 lemma one_le_inv (h₁ : 0 < a) (h₂ : a ≤ 1) : 1 ≤ a⁻¹ :=
-by rwa [le_inv (@zero_lt_one α _) h₁, inv_one]
+by rwa [le_inv (@zero_lt_one α _ _) h₁, inv_one]
+
+lemma inv_lt_one_iff_of_pos (h₀ : 0 < a) : a⁻¹ < 1 ↔ 1 < a :=
+⟨λ h₁, inv_inv' a ▸ one_lt_inv (inv_pos.2 h₀) h₁, inv_lt_one⟩
+
+lemma inv_lt_one_iff : a⁻¹ < 1 ↔ a ≤ 0 ∨ 1 < a :=
+begin
+  cases le_or_lt a 0 with ha ha,
+  { simp [ha, (inv_nonpos.2 ha).trans_lt zero_lt_one] },
+  { simp only [ha.not_le, false_or, inv_lt_one_iff_of_pos ha] }
+end
+
+lemma one_lt_inv_iff : 1 < a⁻¹ ↔ 0 < a ∧ a < 1 :=
+⟨λ h, ⟨inv_pos.1 (zero_lt_one.trans h), inv_inv' a ▸ inv_lt_one h⟩, and_imp.2 one_lt_inv⟩
+
+lemma inv_le_one_iff : a⁻¹ ≤ 1 ↔ a ≤ 0 ∨ 1 ≤ a :=
+begin
+  rcases em (a = 1) with (rfl|ha),
+  { simp [le_rfl] },
+  { simp only [ne.le_iff_lt (ne.symm ha), ne.le_iff_lt (mt inv_eq_one'.1 ha), inv_lt_one_iff] }
+end
+
+lemma one_le_inv_iff : 1 ≤ a⁻¹ ↔ 0 < a ∧ a ≤ 1 :=
+⟨λ h, ⟨inv_pos.1 (zero_lt_one.trans_le h), inv_inv' a ▸ inv_le_one h⟩, and_imp.2 one_le_inv⟩
 
 /-!
 ### Relating two divisions.
@@ -368,6 +403,38 @@ by simpa using le_inv_of_neg ha hb
 lemma lt_one_div_of_neg (ha : a < 0) (hb : b < 0) : a < 1 / b ↔ b < 1 / a :=
 by simpa using lt_inv_of_neg ha hb
 
+lemma one_lt_div_iff : 1 < a / b ↔ 0 < b ∧ b < a ∨ b < 0 ∧ a < b :=
+begin
+  rcases lt_trichotomy b 0 with (hb|rfl|hb),
+  { simp [hb, hb.not_lt, one_lt_div_of_neg] },
+  { simp [lt_irrefl, zero_le_one] },
+  { simp [hb, hb.not_lt, one_lt_div] }
+end
+
+lemma one_le_div_iff : 1 ≤ a / b ↔ 0 < b ∧ b ≤ a ∨ b < 0 ∧ a ≤ b :=
+begin
+  rcases lt_trichotomy b 0 with (hb|rfl|hb),
+  { simp [hb, hb.not_lt, one_le_div_of_neg] },
+  { simp [lt_irrefl, zero_lt_one.not_le, zero_lt_one] },
+  { simp [hb, hb.not_lt, one_le_div] }
+end
+
+lemma div_lt_one_iff : a / b < 1 ↔ 0 < b ∧ a < b ∨ b = 0 ∨ b < 0 ∧ b < a :=
+begin
+  rcases lt_trichotomy b 0 with (hb|rfl|hb),
+  { simp [hb, hb.not_lt, hb.ne, div_lt_one_of_neg] },
+  { simp [zero_lt_one], },
+  { simp [hb, hb.not_lt, div_lt_one, hb.ne.symm] }
+end
+
+lemma div_le_one_iff : a / b ≤ 1 ↔ 0 < b ∧ a ≤ b ∨ b = 0 ∨ b < 0 ∧ b ≤ a :=
+begin
+  rcases lt_trichotomy b 0 with (hb|rfl|hb),
+  { simp [hb, hb.not_lt, hb.ne, div_le_one_of_neg] },
+  { simp [zero_le_one], },
+  { simp [hb, hb.not_lt, div_le_one, hb.ne.symm] }
+end
+
 /-!
 ### Relating two divisions, involving `1`
 -/
@@ -416,10 +483,10 @@ lemma one_div_lt_one_div_of_neg (ha : a < 0) (hb : b < 0) : 1 / a < 1 / b ↔ b 
 lt_iff_lt_of_le_iff_le (one_div_le_one_div_of_neg hb ha)
 
 lemma one_lt_one_div (h1 : 0 < a) (h2 : a < 1) : 1 < 1 / a :=
-by rwa [lt_one_div (@zero_lt_one α _) h1, one_div_one]
+by rwa [lt_one_div (@zero_lt_one α _ _) h1, one_div_one]
 
 lemma one_le_one_div (h1 : 0 < a) (h2 : a ≤ 1) : 1 ≤ 1 / a :=
-by rwa [le_one_div (@zero_lt_one α _) h1, one_div_one]
+by rwa [le_one_div (@zero_lt_one α _ _) h1, one_div_one]
 
 lemma one_div_lt_neg_one (h1 : a < 0) (h2 : -1 < a) : 1 / a < -1 :=
 suffices 1 / a < 1 / -1, by rwa one_div_neg_one_eq_neg_one at this,
@@ -452,7 +519,7 @@ lemma half_pos (h : 0 < a) : 0 < a / 2 := div_pos h zero_lt_two
 lemma one_half_pos : (0:α) < 1 / 2 := half_pos zero_lt_one
 
 lemma div_two_lt_of_pos (h : 0 < a) : a / 2 < a :=
-by { rw [div_lt_iff (@zero_lt_two α _)], exact lt_mul_of_one_lt_right h one_lt_two }
+by { rw [div_lt_iff (@zero_lt_two α _ _)], exact lt_mul_of_one_lt_right h one_lt_two }
 
 lemma half_lt_self : 0 < a → a / 2 < a := div_two_lt_of_pos
 
@@ -461,7 +528,7 @@ lemma one_half_lt_one : (1 / 2 : α) < 1 := half_lt_self zero_lt_one
 lemma add_sub_div_two_lt (h : a < b) : a + (b - a) / 2 < b :=
 begin
   rwa [← div_sub_div_same, sub_eq_add_neg, add_comm (b/2), ← add_assoc, ← sub_eq_add_neg,
-    ← lt_sub_iff_add_lt, sub_self_div_two, sub_self_div_two, div_lt_div_right (@zero_lt_two α _)]
+    ← lt_sub_iff_add_lt, sub_self_div_two, sub_self_div_two, div_lt_div_right (@zero_lt_two α _ _)]
 end
 
 
@@ -536,19 +603,27 @@ end linear_ordered_field
 section discrete_linear_ordered_field
 variables [discrete_linear_ordered_field α]
 
+lemma min_div_div_right {c : α} (hc : 0 ≤ c) (a b : α) : min (a / c) (b / c) = (min a b) / c :=
+eq.symm $ monotone.map_min (λ x y, div_le_div_of_le hc)
+
+lemma max_div_div_right {c : α} (hc : 0 ≤ c) (a b : α) : max (a / c) (b / c) = (max a b) / c :=
+eq.symm $ monotone.map_max (λ x y, div_le_div_of_le hc)
+
+lemma min_div_div_right_of_nonpos {c : α} (hc : c ≤ 0) (a b : α) :
+  min (a / c) (b / c) = (max a b) / c :=
+eq.symm $ @monotone.map_max α (order_dual α) _ _ _ _ _ (λ x y, div_le_div_of_nonpos_of_le hc)
+
+lemma max_div_div_right_of_nonpos {c : α} (hc : c ≤ 0) (a b : α) :
+  max (a / c) (b / c) = (min a b) / c :=
+eq.symm $ @monotone.map_min α (order_dual α) _ _ _ _ _ (λ x y, div_le_div_of_nonpos_of_le hc)
+
 lemma abs_div (a b : α) : abs (a / b) = abs a / abs b :=
-decidable.by_cases
-  (assume h : b = 0, by rw [h, abs_zero, div_zero, div_zero, abs_zero])
-  (assume h : b ≠ 0,
-   have h₁ : abs b ≠ 0, from mt eq_zero_of_abs_eq_zero h,
-   eq_div_of_mul_eq h₁ (show abs (a / b) * abs b = abs a, by rw [← abs_mul, div_mul_cancel _ h]))
+(abs_hom : α →* α).map_div abs_zero a b
 
 lemma abs_one_div (a : α) : abs (1 / a) = 1 / abs a :=
 by rw [abs_div, abs_of_nonneg (zero_le_one : 1 ≥ (0 : α))]
 
 lemma abs_inv (a : α) : abs a⁻¹ = (abs a)⁻¹ :=
-have h : abs (1 / a) = 1 / abs a,
-  by { rw [abs_div, abs_of_nonneg], exact zero_le_one },
-by simp * at *
+by rw [inv_eq_one_div, abs_one_div, inv_eq_one_div]
 
 end discrete_linear_ordered_field

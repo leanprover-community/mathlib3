@@ -3,7 +3,7 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
-import algebra.order_functions
+import algebra.ordered_ring
 import deprecated.group
 
 /-!
@@ -48,11 +48,13 @@ def monoid.pow [has_mul M] [has_one M] (a : M) : ℕ → M
 /-- The scalar multiplication in an additive monoid.
 `n •ℕ a = a+a+...+a` n times. -/
 def nsmul [has_add A] [has_zero A] (n : ℕ) (a : A) : A :=
-@monoid.pow (multiplicative A) _ { one := (0 : A) } a n
+@monoid.pow (multiplicative A) _ _ a n
 
 infix ` •ℕ `:70 := nsmul
 
-@[priority 5] instance monoid.has_pow [monoid M] : has_pow M ℕ := ⟨monoid.pow⟩
+instance monoid.has_pow [monoid M] : has_pow M ℕ := ⟨monoid.pow⟩
+
+@[simp] lemma monoid.pow_eq_has_pow [monoid M] (a : M) (n : ℕ) : monoid.pow a n = a^n := rfl
 
 /-!
 ### Commutativity
@@ -199,6 +201,24 @@ by simp only [pow_succ, ihn, ← mul_assoc, (h.pow_left n).right_comm]
 theorem neg_pow [ring R] (a : R) (n : ℕ) : (- a) ^ n = (-1) ^ n * a ^ n :=
 (neg_one_mul a) ▸ (commute.neg_one_left a).mul_pow n
 
+theorem pow_bit0' (a : M) (n : ℕ) : a ^ bit0 n = (a * a) ^ n :=
+by rw [pow_bit0, (commute.refl a).mul_pow]
+
+theorem bit0_nsmul' (a : A) (n : ℕ) : bit0 n •ℕ a = n •ℕ (a + a) :=
+@pow_bit0' (multiplicative A) _ _ _
+
+theorem pow_bit1' (a : M) (n : ℕ) : a ^ bit1 n = (a * a) ^ n * a :=
+by rw [bit1, pow_succ', pow_bit0']
+
+theorem bit1_nsmul' : ∀ (a : A) (n : ℕ), bit1 n •ℕ a = n •ℕ (a + a) + a :=
+@pow_bit1' (multiplicative A) _
+
+@[simp] theorem neg_pow_bit0 [ring R] (a : R) (n : ℕ) : (- a) ^ (bit0 n) = a ^ (bit0 n) :=
+by rw [pow_bit0', neg_mul_neg, pow_bit0']
+
+@[simp] theorem neg_pow_bit1 [ring R] (a : R) (n : ℕ) : (- a) ^ (bit1 n) = - a ^ (bit1 n) :=
+by simp only [bit1, pow_succ, neg_pow_bit0, neg_mul_eq_neg_mul]
+
 end monoid
 
 /-!
@@ -248,9 +268,11 @@ with the definition `(-n) •ℤ a = -(n •ℕ a)`.
 def gsmul (n : ℤ) (a : A) : A :=
 @gpow (multiplicative A) _ a n
 
-@[priority 10] instance group.has_pow : has_pow G ℤ := ⟨gpow⟩
+instance group.has_pow : has_pow G ℤ := ⟨gpow⟩
 
 infix ` •ℤ `:70 := gsmul
+
+@[simp] lemma group.gpow_eq_has_pow (a : G) (n : ℤ) : gpow a n = a ^ n := rfl
 
 section nat
 
@@ -397,13 +419,18 @@ begin
   exact or.cases_on (mul_eq_zero.1 H) id ih
 end
 
+@[simp] lemma pow_eq_zero_iff [monoid_with_zero R] [no_zero_divisors R]
+  {a : R} {n : ℕ} (hn : 0 < n) :
+  a ^ n = 0 ↔ a = 0 :=
+begin
+  refine ⟨pow_eq_zero, _⟩,
+  rintros rfl,
+  exact zero_pow hn,
+end
+
 @[field_simps] theorem pow_ne_zero [monoid_with_zero R] [no_zero_divisors R]
   {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero h
-
-theorem nsmul_nonneg [ordered_add_comm_monoid R] {a : R} (H : 0 ≤ a) : ∀ n : ℕ, 0 ≤ n •ℕ a
-| 0     := le_refl _
-| (n+1) := add_nonneg H (nsmul_nonneg n)
 
 lemma pow_abs [decidable_linear_ordered_comm_ring R] (a : R) (n : ℕ) : (abs a)^n = abs (a^n) :=
 by induction n with n ih; [exact (abs_one).symm,
@@ -414,6 +441,19 @@ by rw [←pow_abs, abs_neg, abs_one, one_pow]
 
 section add_monoid
 variable [ordered_add_comm_monoid A]
+
+theorem nsmul_nonneg {a : A} (H : 0 ≤ a) : ∀ n : ℕ, 0 ≤ n •ℕ a
+| 0     := le_refl _
+| (n+1) := add_nonneg H (nsmul_nonneg n)
+
+lemma nsmul_pos {a : A} (ha : 0 < a) {k : ℕ} (hk : 0 < k) : 0 < k •ℕ a :=
+begin
+  rcases nat.exists_eq_succ_of_ne_zero (ne_of_gt hk) with ⟨l, rfl⟩,
+  clear hk,
+  induction l with l IH,
+  { simpa using ha },
+  { exact add_pos ha IH }
+end
 
 theorem nsmul_le_nsmul {a : A} {n m : ℕ} (ha : 0 ≤ a) (h : n ≤ m) : n •ℕ a ≤ m •ℕ a :=
 let ⟨k, hk⟩ := nat.le.dest h in
@@ -427,11 +467,51 @@ lemma nsmul_le_nsmul_of_le_right {a b : A} (hab : a ≤ b) : ∀ i : ℕ, i •�
 
 end add_monoid
 
+section add_group
+variable [ordered_add_comm_group A]
+
+theorem gsmul_nonneg {a : A} (H : 0 ≤ a) {n : ℤ} (hn : 0 ≤ n) :
+  0 ≤ n •ℤ a :=
+begin
+  lift n to ℕ using hn,
+  apply nsmul_nonneg H
+end
+
+end add_group
+
+section cancel_add_monoid
+variable [ordered_cancel_add_comm_monoid A]
+
+theorem nsmul_lt_nsmul {a : A} {n m : ℕ} (ha : 0 < a) (h : n < m) :
+  n •ℕ a < m •ℕ a :=
+let ⟨k, hk⟩ := nat.le.dest h in
+begin
+  have succ_swap : n.succ + k = n + k.succ := nat.succ_add n k,
+  calc n •ℕ a = (n •ℕ a : A) + (0 : A) : (add_zero _).symm
+    ... < n •ℕ a + (k.succ •ℕ a : A) : add_lt_add_left (nsmul_pos ha (nat.succ_pos k)) _
+    ... = m •ℕ a : by rw [← hk, succ_swap, add_nsmul]
+end
+
+end cancel_add_monoid
+
+section comm_semiring
+
+variables [comm_semiring R]
+
+lemma min_pow_dvd_add {n m : ℕ} {a b c : R} (ha : c ^ n ∣ a) (hb : c ^ m ∣ b) : c ^ (min n m) ∣ a + b :=
+begin
+  replace ha := dvd.trans (pow_dvd_pow c (min_le_left n m)) ha,
+  replace hb := dvd.trans (pow_dvd_pow c (min_le_right n m)) hb,
+  exact dvd_add ha hb
+end
+
+end comm_semiring
+
 namespace canonically_ordered_semiring
 variable [canonically_ordered_comm_semiring R]
 
 theorem pow_pos {a : R} (H : 0 < a) : ∀ n : ℕ, 0 < a ^ n
-| 0     := canonically_ordered_semiring.zero_lt_one
+| 0     := by { nontriviality, exact canonically_ordered_semiring.zero_lt_one }
 | (n+1) := canonically_ordered_semiring.mul_pos.2 ⟨H, pow_pos n⟩
 
 lemma pow_le_pow_of_le_left {a b : R} (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
@@ -449,11 +529,11 @@ end canonically_ordered_semiring
 section linear_ordered_semiring
 variable [linear_ordered_semiring R]
 
-theorem pow_pos {a : R} (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
-| 0     := zero_lt_one
+@[simp] theorem pow_pos {a : R} (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
+| 0     := by { nontriviality, exact zero_lt_one }
 | (n+1) := mul_pos H (pow_pos _)
 
-theorem pow_nonneg {a : R} (H : 0 ≤ a) : ∀ (n : ℕ), 0 ≤ a ^ n
+@[simp] theorem pow_nonneg {a : R} (H : 0 ≤ a) : ∀ (n : ℕ), 0 ≤ a ^ n
 | 0     := zero_le_one
 | (n+1) := mul_nonneg H (pow_nonneg _)
 
@@ -492,6 +572,7 @@ calc a ^ n = a ^ n * 1 : (mul_one _).symm
 
 lemma pow_lt_pow {a : R} {n m : ℕ} (h : 1 < a) (h2 : n < m) : a ^ n < a ^ m :=
 begin
+  nontriviality,
   have h' : 1 ≤ a := le_of_lt h,
   have h'' : 0 < a := lt_trans zero_lt_one h,
   cases m, cases h2, rw [pow_succ, ←one_mul (a ^ n)],
@@ -511,7 +592,10 @@ theorem pow_two_nonneg [linear_ordered_ring R] (a : R) : 0 ≤ a ^ 2 :=
 by { rw pow_two, exact mul_self_nonneg _ }
 
 theorem pow_two_pos_of_ne_zero [linear_ordered_ring R] (a : R) (h : a ≠ 0) : 0 < a ^ 2 :=
-lt_of_le_of_ne (pow_two_nonneg a) (pow_ne_zero 2 h).symm
+begin
+  nontriviality,
+  exact lt_of_le_of_ne (pow_two_nonneg a) (pow_ne_zero 2 h).symm
+end
 
 @[simp] lemma neg_square {α} [ring α] (z : α) : (-z)^2 = z^2 :=
 by simp [pow, monoid.pow]

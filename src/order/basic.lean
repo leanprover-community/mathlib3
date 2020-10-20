@@ -116,9 +116,21 @@ begin
   { transitivity, assumption, exact hf _ }
 end
 
-lemma reflect_lt {α β} [linear_order α] [preorder β] {f : α → β} (hf : monotone f)
+lemma monotone.reflect_lt {α β} [linear_order α] [preorder β] {f : α → β} (hf : monotone f)
   {x x' : α} (h : f x < f x') : x < x' :=
 by { rw [← not_le], intro h', apply not_le_of_lt h, exact hf h' }
+
+/-- If `f` is a monotone function from `ℕ` to a preorder such that `y` lies between `f x` and
+  `f (x + 1)`, then `y` doesn't lie in the range of `f`. -/
+lemma monotone.ne_of_lt_of_lt_nat {α} [preorder α] {f : ℕ → α} (hf : monotone f)
+  (x x' : ℕ) {y : α} (h1 : f x < y) (h2 : y < f (x + 1)) : f x' ≠ y :=
+by { rintro rfl, apply (hf.reflect_lt h1).not_le, exact nat.le_of_lt_succ (hf.reflect_lt h2) }
+
+/-- If `f` is a monotone function from `ℤ` to a preorder such that `y` lies between `f x` and
+  `f (x + 1)`, then `y` doesn't lie in the range of `f`. -/
+lemma monotone.ne_of_lt_of_lt_int {α} [preorder α] {f : ℤ → α} (hf : monotone f)
+  (x x' : ℤ) {y : α} (h1 : f x < y) (h2 : y < f (x + 1)) : f x' ≠ y :=
+by { rintro rfl, apply (hf.reflect_lt h1).not_le, exact int.le_of_lt_add_one (hf.reflect_lt h2) }
 
 end monotone
 
@@ -457,18 +469,18 @@ nonempty_subtype.2 (no_bot a)
 class densely_ordered (α : Type u) [preorder α] : Prop :=
 (dense : ∀a₁ a₂:α, a₁ < a₂ → ∃a, a₁ < a ∧ a < a₂)
 
-lemma dense [preorder α] [densely_ordered α] : ∀{a₁ a₂:α}, a₁ < a₂ → ∃a, a₁ < a ∧ a < a₂ :=
+lemma exists_between [preorder α] [densely_ordered α] : ∀{a₁ a₂:α}, a₁ < a₂ → ∃a, a₁ < a ∧ a < a₂ :=
 densely_ordered.dense
 
 instance order_dual.densely_ordered (α : Type u) [preorder α] [densely_ordered α] :
   densely_ordered (order_dual α) :=
-⟨λ a₁ a₂ ha, (@dense α _ _ _ _ ha).imp $ λ a, and.symm⟩
+⟨λ a₁ a₂ ha, (@exists_between α _ _ _ _ ha).imp $ λ a, and.symm⟩
 
 lemma le_of_forall_le_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}
   (h : ∀a₃>a₂, a₁ ≤ a₃) :
   a₁ ≤ a₂ :=
 le_of_not_gt $ assume ha,
-  let ⟨a, ha₁, ha₂⟩ := dense ha in
+  let ⟨a, ha₁, ha₂⟩ := exists_between ha in
   lt_irrefl a $ lt_of_lt_of_le ‹a < a₁› (h _ ‹a₂ < a›)
 
 lemma eq_of_le_of_forall_le_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}
@@ -479,7 +491,7 @@ lemma le_of_forall_ge_of_dense [linear_order α] [densely_ordered α] {a₁ a₂
   (h : ∀a₃<a₁, a₃ ≤ a₂) :
   a₁ ≤ a₂ :=
 le_of_not_gt $ assume ha,
-  let ⟨a, ha₁, ha₂⟩ := dense ha in
+  let ⟨a, ha₁, ha₂⟩ := exists_between ha in
   lt_irrefl a $ lt_of_le_of_lt (h _ ‹a < a₁›) ‹a₂ < a›
 
 lemma eq_of_le_of_forall_ge_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}

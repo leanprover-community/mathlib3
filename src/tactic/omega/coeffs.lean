@@ -1,9 +1,14 @@
-/- Copyright (c) 2019 Seul Baek. All rights reserved.
+/-
+Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
+-/
 
+/-
 Non-constant terms of linear constraints are represented
-by storing their coefficients in integer lists. -/
+by storing their coefficients in integer lists.
+-/
+
 import data.list.func
 import tactic.ring
 import tactic.omega.misc
@@ -110,6 +115,7 @@ begin
   apply val_between_set, apply zero_le,
   apply lt_of_lt_of_le (lt_add_one _),
   simp only [length_set, zero_add, le_max_right],
+  apply_instance,
 end
 
 lemma val_between_neg {as : list int} {l : nat} :

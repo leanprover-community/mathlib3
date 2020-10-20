@@ -513,7 +513,7 @@ Measures and integral Calculus:
     $\mathrm{L}^p$ spaces where $1 ≤ p ≤ ∞$:
     Completeness of $\mathrm{L}^p$ spaces:
     Holder's inequality:
-    Fubini's theorem:
+    Fubini's theorem: 'measure_theory.integral_prod'
     change of variables for multiple integrals:
     integration by parts:
     convolution:
@@ -563,7 +563,7 @@ Probability Theory:
   Convergence of series of random variables:
     convergence in probability:
     $\mathrm{L}^p$ convergence:
-    almost surely convergence:
+    almost surely convergence: 'measure_theory.measure.ae'
     Markov inequality:
     Tchebychev inequality:
     Levy's theorem:

@@ -241,16 +241,16 @@ lemma lt_inv_of_neg (ha : a < 0) (hb : b < 0) : a < b⁻¹ ↔ b < a⁻¹ :=
 lt_iff_lt_of_le_iff_le (inv_le_of_neg hb ha)
 
 lemma inv_lt_one (ha : 1 < a) : a⁻¹ < 1 :=
-by rwa [inv_lt ((@zero_lt_one α _).trans ha) zero_lt_one, inv_one]
+by rwa [inv_lt ((@zero_lt_one α _ _).trans ha) zero_lt_one, inv_one]
 
 lemma one_lt_inv (h₁ : 0 < a) (h₂ : a < 1) : 1 < a⁻¹ :=
-by rwa [lt_inv (@zero_lt_one α _) h₁, inv_one]
+by rwa [lt_inv (@zero_lt_one α _ _) h₁, inv_one]
 
 lemma inv_le_one (ha : 1 ≤ a) : a⁻¹ ≤ 1 :=
-by rwa [inv_le ((@zero_lt_one α _).trans_le ha) zero_lt_one, inv_one]
+by rwa [inv_le ((@zero_lt_one α _ _).trans_le ha) zero_lt_one, inv_one]
 
 lemma one_le_inv (h₁ : 0 < a) (h₂ : a ≤ 1) : 1 ≤ a⁻¹ :=
-by rwa [le_inv (@zero_lt_one α _) h₁, inv_one]
+by rwa [le_inv (@zero_lt_one α _ _) h₁, inv_one]
 
 lemma inv_lt_one_iff_of_pos (h₀ : 0 < a) : a⁻¹ < 1 ↔ 1 < a :=
 ⟨λ h₁, inv_inv' a ▸ one_lt_inv (inv_pos.2 h₀) h₁, inv_lt_one⟩
@@ -483,10 +483,10 @@ lemma one_div_lt_one_div_of_neg (ha : a < 0) (hb : b < 0) : 1 / a < 1 / b ↔ b 
 lt_iff_lt_of_le_iff_le (one_div_le_one_div_of_neg hb ha)
 
 lemma one_lt_one_div (h1 : 0 < a) (h2 : a < 1) : 1 < 1 / a :=
-by rwa [lt_one_div (@zero_lt_one α _) h1, one_div_one]
+by rwa [lt_one_div (@zero_lt_one α _ _) h1, one_div_one]
 
 lemma one_le_one_div (h1 : 0 < a) (h2 : a ≤ 1) : 1 ≤ 1 / a :=
-by rwa [le_one_div (@zero_lt_one α _) h1, one_div_one]
+by rwa [le_one_div (@zero_lt_one α _ _) h1, one_div_one]
 
 lemma one_div_lt_neg_one (h1 : a < 0) (h2 : -1 < a) : 1 / a < -1 :=
 suffices 1 / a < 1 / -1, by rwa one_div_neg_one_eq_neg_one at this,
@@ -519,7 +519,7 @@ lemma half_pos (h : 0 < a) : 0 < a / 2 := div_pos h zero_lt_two
 lemma one_half_pos : (0:α) < 1 / 2 := half_pos zero_lt_one
 
 lemma div_two_lt_of_pos (h : 0 < a) : a / 2 < a :=
-by { rw [div_lt_iff (@zero_lt_two α _)], exact lt_mul_of_one_lt_right h one_lt_two }
+by { rw [div_lt_iff (@zero_lt_two α _ _)], exact lt_mul_of_one_lt_right h one_lt_two }
 
 lemma half_lt_self : 0 < a → a / 2 < a := div_two_lt_of_pos
 
@@ -528,7 +528,7 @@ lemma one_half_lt_one : (1 / 2 : α) < 1 := half_lt_self zero_lt_one
 lemma add_sub_div_two_lt (h : a < b) : a + (b - a) / 2 < b :=
 begin
   rwa [← div_sub_div_same, sub_eq_add_neg, add_comm (b/2), ← add_assoc, ← sub_eq_add_neg,
-    ← lt_sub_iff_add_lt, sub_self_div_two, sub_self_div_two, div_lt_div_right (@zero_lt_two α _)]
+    ← lt_sub_iff_add_lt, sub_self_div_two, sub_self_div_two, div_lt_div_right (@zero_lt_two α _ _)]
 end
 
 

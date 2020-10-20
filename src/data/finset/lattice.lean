@@ -358,7 +358,7 @@ begin
   refine ⟨max'_mem _ _, λ t Ht, le_antisymm (le_max' s t Ht) (le_trans a (min'_le s t Ht))⟩,
 end
 
-lemma monotone_max'_min' [decidable_linear_order α] {s : finset α} (hs : s.nonempty) :
+lemma max'_eq_dual_min' {s : finset α} (hs : s.nonempty) :
   max' s hs = of_dual (min' (image to_dual s) (nonempty.image hs to_dual)) :=
 begin
   apply le_antisymm,
@@ -377,6 +377,18 @@ begin
     rcases H with ⟨x, H, rfl⟩,
     exact H }
 end
+
+@[simp] lemma of_dual_max_eq_min_of_dual {a b : α} :
+  of_dual (max a b) = min (of_dual a) (of_dual b) := rfl
+
+@[simp] lemma of_dual_min_eq_max_of_dual {a b : α} :
+  of_dual (min a b) = max (of_dual a) (of_dual b) := rfl
+
+@[simp] lemma to_dual_max_eq_min_to_dual {a b : order_dual α} :
+  to_dual ((max a b) : order_dual α) = (min (to_dual a) (to_dual b) : order_dual α) := sorry
+
+@[simp] lemma to_dual_min_eq_max_to_dual {a b : order_dual α} :
+  to_dual ((min a b) : order_dual α) = (max (to_dual a) (to_dual b) : order_dual α) := sorry
 
 end max_min
 

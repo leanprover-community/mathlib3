@@ -248,23 +248,14 @@ lemma prod_divisors_prime_pow {α : Type*} [comm_monoid α] {k p : ℕ} {f : ℕ
   ∏ x in (p ^ k).divisors, f x = ∏ x in range (k + 1), f (p ^ x) :=
 @sum_divisors_prime_pow (additive α) _ _ _ _ h
 
+@[simp]
 lemma finset_div_eq_filter (n : ℕ+) :
-  (n : ℕ).divisors = finset.filter (λ (x : ℕ), x ∣ ↑n) (finset.range (n : ℕ).succ) :=
+  finset.filter (λ (x : ℕ), x ∣ ↑n) (finset.range (n : ℕ).succ) = (n : ℕ).divisors :=
 begin
-  rw finset.subset.antisymm_iff,
-  split,
-  { intros x hx,
-    simp only [finset.mem_filter, finset.mem_range],
-    split,
-    { apply (nat.lt_of_succ_le),
-      apply (nat.add_le_add_iff_le_right 1 x ↑n).2,
-      exact nat.divisor_le hx },
-    { simp only [nat.mem_divisors, and_true, ne.def, pnat.ne_zero, not_false_iff] at hx,
-      exact hx } },
-  { intros x hx,
-    simp only [finset.mem_filter, finset.mem_range] at hx,
-    simp only [nat.mem_divisors, and_true, ne.def, pnat.ne_zero, not_false_iff],
-    exact hx.2 }
+  apply finset.ext,
+  simp only [mem_divisors, mem_filter, mem_range, and_true, and_iff_right_iff_imp, ne.def, pnat.ne_zero, not_false_iff],
+  intros a ha,
+  exact nat.lt_succ_of_le (nat.divisor_le (nat.mem_divisors.2 (and.intro ha (pnat.ne_zero n))))
 end
 
 end nat

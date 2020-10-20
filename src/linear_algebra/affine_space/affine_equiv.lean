@@ -104,7 +104,7 @@ rfl
 lemma injective_to_affine_map : injective (to_affine_map : (P₁ ≃ᵃ[k] P₂) → (P₁ →ᵃ[k] P₂)) :=
 begin
   rintros ⟨e, el, h⟩ ⟨e', el', h'⟩ H,
-  simp only [to_affine_map_mk, equiv.coe_eq_coe, linear_equiv.to_linear_map_inj] at H,
+  simp only [to_affine_map_mk, equiv.coe_inj, linear_equiv.to_linear_map_inj] at H,
   congr,
   exacts [H.1, H.2]
 end

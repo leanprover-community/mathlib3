@@ -7,6 +7,7 @@ import analysis.normed_space.hahn_banach
 import analysis.normed_space.banach
 import analysis.normed_space.inner_product
 import analysis.normed_space.operator_norm
+import analysis.normed_space.conjugate
 
 /-!
 # The topological dual of a normed space
@@ -116,7 +117,7 @@ end bidual_isometry
 end normed_space
 
 namespace inner_product_space
-open is_R_or_C continuous_linear_map
+open is_R_or_C continuous_linear_map conj_semimodule
 
 variables (𝕜 : Type*)
 variables {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
@@ -341,9 +342,35 @@ add_monoid_hom.continuous_of_bound _ 1 (λ x, by rw [to_dual_norm_eq_primal_norm
 lemma to_primal_continuous : continuous (@to_primal 𝕜 E _ _ _) :=
 add_monoid_hom.continuous_of_bound _ 1 (λ x, by rw [←dual_norm_eq_primal_norm, one_mul])
 
+/-- If `E` is a Hilbert space, the function that takes a vector in the conjugate
+vector space of `E` to its dual is a continuous linear equivalence.  -/
+def dual_equiv : conj_semimodule 𝕜 E ≃L[𝕜] (normed_space.dual 𝕜 E) :=
+linear_equiv.to_continuous_linear_equiv_of_bounds
+({ to_fun := λ x, to_dual 𝕜 $ (conj_equiv 𝕜).symm x,
+  map_add' := (to_dual 𝕜).map_add,
+  map_smul' := λ c x, by { ext z, simp [smul_def', inner_smul_left] },
+  inv_fun := λ ℓ, conj_equiv 𝕜 $ to_primal ℓ,
+  left_inv := assume z,
+  begin
+    have h₁ := (classical.some_spec (exists_elem_of_mem_dual
+      (to_dual 𝕜 $ (conj_equiv 𝕜).symm z))).symm,
+    rwa [to_dual_eq_iff_eq] at h₁,
+  end,
+  right_inv := assume z,
+  begin
+    obtain ⟨y, hy⟩ := exists_elem_of_mem_dual z,
+    conv_rhs { rw [hy] },
+    have h := (classical.some_spec (exists_elem_of_mem_dual z)).symm,
+    simpa [to_primal, function.right_inverse, function.left_inverse, h],
+  end } : conj_semimodule 𝕜 E ≃ₗ[𝕜] (normed_space.dual 𝕜 E) )
+1 1
+(λ x, by simp [to_dual_norm_eq_primal_norm, conj_equiv, conjugate_semimodule.conj_equiv])
+(λ ℓ, by simp [←linear_equiv.inv_fun_apply, dual_norm_eq_primal_norm,
+          conj_equiv, conjugate_semimodule.conj_equiv])
+
 /-- If `F` is a real Hilbert space, the function that takes a vector to its dual is a
 continuous linear equivalence.  -/
-def to_dual_real_equiv : F ≃L[ℝ] (normed_space.dual ℝ F) :=
+def dual_equiv_real: F ≃L[ℝ] (normed_space.dual ℝ F) :=
 linear_equiv.to_continuous_linear_equiv_of_bounds
 ({ to_fun := λ x, to_dual ℝ x,
   map_add' := (to_dual ℝ).map_add,
@@ -365,6 +392,6 @@ linear_equiv.to_continuous_linear_equiv_of_bounds
 (λ x, by simp [to_dual_norm_eq_primal_norm])
 (λ ℓ, by simp [←linear_equiv.inv_fun_apply, dual_norm_eq_primal_norm])
 
-lemma to_dual_eq_to_dual_real_equiv_apply {x : F} : to_dual ℝ x = to_dual_real_equiv x := rfl
+lemma to_dual_eq_dual_equiv_real_apply {x : F} : to_dual ℝ x = dual_equiv_real x := rfl
 
 end inner_product_space

@@ -9,14 +9,16 @@ import analysis.normed_space.inner_product
 
 /-!
 # Conjugate normed spaces and inner product spaces
-
-## Implementation notes
+This file defines normed space and inner product space instances for conjugate semimodules
+(i.e. complex conjugate vector spaces). See `algebra/module/conjugate` for the definition of
+conjugate semimodules
 
 ## References
 
 * https://en.wikipedia.org/wiki/Complex_conjugate_vector_space
 
 ## Tags
+conjugate semimodule, conjugate vector space
 -/
 
 

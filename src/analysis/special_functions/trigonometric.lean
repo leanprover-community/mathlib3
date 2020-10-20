@@ -6,6 +6,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin
 import analysis.special_functions.exp_log
 import data.set.intervals.infinite
 import algebra.quadratic_discriminant
+import ring_theory.polynomial.chebyshev.defs
 
 /-!
 # Trigonometric functions
@@ -23,6 +24,9 @@ Many basic inequalities on trigonometric functions are established.
 
 The continuity and differentiability of the usual trigonometric functions are proved, and their
 derivatives are computed.
+
+* `polynomial.chebyshev₁_complex_cos`: the `n`-th Chebyshev polynomial evaluates on `complex.cos θ`
+  to the value `n * complex.cos θ`.
 
 ## Tags
 
@@ -589,11 +593,11 @@ lemma two_pi_pos : 0 < 2 * π :=
 by linarith [pi_pos]
 
 @[simp] lemma sin_pi : sin π = 0 :=
-by rw [← mul_div_cancel_left pi (@two_ne_zero ℝ _), two_mul, add_div,
+by rw [← mul_div_cancel_left pi (@two_ne_zero ℝ _ _), two_mul, add_div,
     sin_add, cos_pi_div_two]; simp
 
 @[simp] lemma cos_pi : cos π = -1 :=
-by rw [← mul_div_cancel_left pi (@two_ne_zero ℝ _), mul_div_assoc,
+by rw [← mul_div_cancel_left pi (@two_ne_zero ℝ _ _), mul_div_assoc,
     cos_two_mul, cos_pi_div_two];
   simp [bit0, pow_add]
 
@@ -1106,19 +1110,20 @@ begin
         false_or, sin_eq_zero_iff, sin_eq_zero_iff] at Hcos,
     rcases Hcos with ⟨n, hn⟩ | ⟨n, hn⟩,
     { right,
-      rw [eq_div_iff_mul_eq (@two_ne_zero ℝ _), ← sub_eq_iff_eq_add] at hn,
+      rw [eq_div_iff_mul_eq (@two_ne_zero ℝ _ _), ← sub_eq_iff_eq_add] at hn,
       rw [← hn, coe_sub, eq_neg_iff_add_eq_zero, sub_add_cancel, mul_assoc,
           coe_int_mul_eq_gsmul, mul_comm, coe_two_pi, gsmul_zero] },
     { left,
-      rw [eq_div_iff_mul_eq (@two_ne_zero ℝ _), eq_sub_iff_add_eq] at hn,
+      rw [eq_div_iff_mul_eq (@two_ne_zero ℝ _ _), eq_sub_iff_add_eq] at hn,
       rw [← hn, coe_add, mul_assoc,
-          coe_int_mul_eq_gsmul, mul_comm, coe_two_pi, gsmul_zero, zero_add] } },
+          coe_int_mul_eq_gsmul, mul_comm, coe_two_pi, gsmul_zero, zero_add] },
+    apply_instance, },
   { rw [angle_eq_iff_two_pi_dvd_sub, ← coe_neg, angle_eq_iff_two_pi_dvd_sub],
     rintro (⟨k, H⟩ | ⟨k, H⟩),
-    rw [← sub_eq_zero_iff_eq, cos_sub_cos, H, mul_assoc 2 π k, mul_div_cancel_left _ (@two_ne_zero ℝ _),
+    rw [← sub_eq_zero_iff_eq, cos_sub_cos, H, mul_assoc 2 π k, mul_div_cancel_left _ (@two_ne_zero ℝ _ _),
       mul_comm π _, sin_int_mul_pi, mul_zero],
     rw [←sub_eq_zero_iff_eq, cos_sub_cos, ← sub_neg_eq_add, H, mul_assoc 2 π k,
-      mul_div_cancel_left _ (@two_ne_zero ℝ _), mul_comm π _, sin_int_mul_pi, mul_zero, zero_mul] }
+      mul_div_cancel_left _ (@two_ne_zero ℝ _ _), mul_comm π _, sin_int_mul_pi, mul_zero, zero_mul] }
 end
 
 theorem sin_eq_iff_eq_or_add_eq_pi {θ ψ : ℝ} : sin θ = sin ψ ↔ (θ : angle) = ψ ∨ (θ : angle) + ψ = π :=
@@ -1132,11 +1137,11 @@ begin
     exact h.symm },
   { rw [angle_eq_iff_two_pi_dvd_sub, ←eq_sub_iff_add_eq, ←coe_sub, angle_eq_iff_two_pi_dvd_sub],
     rintro (⟨k, H⟩ | ⟨k, H⟩),
-    rw [← sub_eq_zero_iff_eq, sin_sub_sin, H, mul_assoc 2 π k, mul_div_cancel_left _ (@two_ne_zero ℝ _),
+    rw [← sub_eq_zero_iff_eq, sin_sub_sin, H, mul_assoc 2 π k, mul_div_cancel_left _ (@two_ne_zero ℝ _ _),
       mul_comm π _, sin_int_mul_pi, mul_zero, zero_mul],
     have H' : θ + ψ = (2 * k) * π + π := by rwa [←sub_add, sub_add_eq_add_sub, sub_eq_iff_eq_add,
       mul_assoc, mul_comm π _, ←mul_assoc] at H,
-    rw [← sub_eq_zero_iff_eq, sin_sub_sin, H', add_div, mul_assoc 2 _ π, mul_div_cancel_left _ (@two_ne_zero ℝ _),
+    rw [← sub_eq_zero_iff_eq, sin_sub_sin, H', add_div, mul_assoc 2 _ π, mul_div_cancel_left _ (@two_ne_zero ℝ _ _),
       cos_add_pi_div_two, sin_int_mul_pi, neg_zero, mul_zero] }
 end
 
@@ -1481,7 +1486,7 @@ by simp [arg, le_refl]
 by simp [arg, zero_le_one]
 
 @[simp] lemma arg_neg_one : arg (-1) = π :=
-by simp [arg, le_refl, not_le.2 (@zero_lt_one ℝ _)]
+by simp [arg, le_refl, not_le.2 (@zero_lt_one ℝ _ _)]
 
 @[simp] lemma arg_I : arg I = π / 2 :=
 by simp [arg, le_refl]
@@ -1925,6 +1930,32 @@ end
 sin_surjective.range_eq
 
 end complex
+
+section chebyshev₁
+
+open polynomial complex
+
+/-- the `n`-th Chebyshev polynomial evaluates on `cos θ` to the value `cos (n * θ)`. -/
+lemma chebyshev₁_complex_cos (θ : ℂ) :
+  ∀ n, (chebyshev₁ ℂ n).eval (cos θ) = cos (n * θ)
+| 0       := by simp only [chebyshev₁_zero, eval_one, nat.cast_zero, zero_mul, cos_zero]
+| 1       := by simp only [eval_X, one_mul, chebyshev₁_one, nat.cast_one]
+| (n + 2) :=
+begin
+  simp only [eval_X, eval_one, chebyshev₁_add_two, eval_sub, eval_bit0, nat.cast_succ, eval_mul],
+  rw [chebyshev₁_complex_cos (n + 1), chebyshev₁_complex_cos n],
+  have aux : sin θ * sin θ = 1 - cos θ * cos θ,
+  { rw ← sin_sq_add_cos_sq θ, ring, },
+  simp only [nat.cast_add, nat.cast_one, add_mul, cos_add, one_mul, sin_add, mul_assoc, aux],
+  ring,
+end
+
+/-- `cos (n * θ)` is equal to the `n`-th Chebyshev polynomial evaluated on `cos θ`. -/
+lemma cos_nat_mul (n : ℕ) (θ : ℂ) :
+  cos (n * θ) = (chebyshev₁ ℂ n).eval (cos θ) :=
+(chebyshev₁_complex_cos θ n).symm
+
+end chebyshev₁
 
 namespace real
 open_locale real

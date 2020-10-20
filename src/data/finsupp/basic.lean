@@ -98,11 +98,15 @@ namespace finsupp
 section basic
 variable [has_zero M]
 
-instance : has_coe_to_fun (α →₀ M) := ⟨λ_, α → M, to_fun⟩
+instance : has_coe_to_fun (α →₀ M) := ⟨λ _, α → M, to_fun⟩
 
-instance : has_zero (α →₀ M) := ⟨⟨∅, (λ_, 0), λ _, ⟨false.elim, λ H, H rfl⟩⟩⟩
+@[simp] lemma coe_mk (f : α → M) (s : finset α) (h : ∀ a, a ∈ s ↔ f a ≠ 0) :
+  ⇑(⟨s, f, h⟩ : α →₀ M) = f := rfl
 
-@[simp] lemma zero_apply {a : α} : (0 : α →₀ M) a = 0 := rfl
+instance : has_zero (α →₀ M) := ⟨⟨∅, (λ _, 0), λ _, ⟨false.elim, λ H, H rfl⟩⟩⟩
+
+@[simp] lemma coe_zero : ⇑(0 : α →₀ M) = (λ _, (0:M)) := rfl
+lemma zero_apply {a : α} : (0 : α →₀ M) a = 0 := rfl
 @[simp] lemma support_zero : (0 : α →₀ M).support = ∅ := rfl
 
 instance : inhabited (α →₀ M) := ⟨0⟩
@@ -113,18 +117,25 @@ f.mem_support_to_fun
 lemma not_mem_support_iff {f : α →₀ M} {a} : a ∉ f.support ↔ f a = 0 :=
 not_iff_comm.1 mem_support_iff.symm
 
-@[ext]
-lemma ext : ∀{f g : α →₀ M}, (∀a, f a = g a) → f = g
+lemma injective_coe_fn : function.injective (show (α →₀ M) → α → M, from coe_fn)
 | ⟨s, f, hf⟩ ⟨t, g, hg⟩ h :=
   begin
-    have : f = g, { funext a, exact h a },
-    subst this,
+    change f = g at h, subst h,
     have : s = t, { ext a, exact (hf a).trans (hg a).symm },
     subst this
   end
 
+@[ext] lemma ext {f g : α →₀ M} (h : ∀a, f a = g a) : f = g := injective_coe_fn (funext h)
+
 lemma ext_iff {f g : α →₀ M} : f = g ↔ (∀a:α, f a = g a) :=
 ⟨by rintros rfl a; refl, ext⟩
+
+lemma ext_iff' {f g : α →₀ M} : f = g ↔ f.support = g.support ∧ ∀ x ∈ f.support, f x = g x :=
+⟨λ h, h ▸ ⟨rfl, λ _ _, rfl⟩, λ ⟨h₁, h₂⟩, ext $ λ a,
+  if h : a ∈ f.support then h₂ a h else
+    have hf : f a = 0, from not_mem_support_iff.1 h,
+    have hg : g a = 0, by rwa [h₁, not_mem_support_iff] at h,
+    by rw [hf, hg]⟩
 
 @[simp] lemma support_eq_empty {f : α →₀ M} : f.support = ∅ ↔ f = 0 :=
 ⟨assume h, ext $ assume a, by_contradiction $ λ H, (finset.ext_iff.1 h a).1 $
@@ -134,13 +145,7 @@ lemma card_support_eq_zero {f : α →₀ M} : card f.support = 0 ↔ f = 0 :=
 by simp
 
 instance finsupp.decidable_eq [decidable_eq α] [decidable_eq M] : decidable_eq (α →₀ M) :=
-assume f g, decidable_of_iff (f.support = g.support ∧ (∀a∈f.support, f a = g a))
-  ⟨assume ⟨h₁, h₂⟩, ext $ assume a,
-      if h : a ∈ f.support then h₂ a h else
-        have hf : f a = 0, by rwa [mem_support_iff, not_not] at h,
-        have hg : g a = 0, by rwa [h₁, mem_support_iff, not_not] at h,
-        by rw [hf, hg],
-    by rintro rfl; exact ⟨rfl, λ _ _, rfl⟩⟩
+assume f g, decidable_of_iff (f.support = g.support ∧ (∀a∈f.support, f a = g a)) ext_iff'.symm
 
 lemma finite_supp (f : α →₀ M) : set.finite {a | f a ≠ 0} :=
 ⟨fintype.of_finset f.support (λ _, mem_support_iff)⟩
@@ -302,10 +307,7 @@ variables [has_zero M]
   The function needs to be `0` outside of `s`. Use this when the set needs to be filtered anyways,
   otherwise a better set representation is often available. -/
 def on_finset (s : finset α) (f : α → M) (hf : ∀a, f a ≠ 0 → a ∈ s) : α →₀ M :=
-⟨s.filter (λa, f a ≠ 0), f,
-  assume a, classical.by_cases
-    (assume h : f a = 0, by rw mem_filter; exact ⟨and.right, λ H, (H h).elim⟩)
-    (assume h : f a ≠ 0, by rw mem_filter; simp only [iff_true_intro h, hf a h, true_and])⟩
+⟨s.filter (λa, f a ≠ 0), f, by simpa⟩
 
 @[simp] lemma on_finset_apply {s : finset α} {f : α → M} {hf a} :
   (on_finset s f hf : α →₀ M) a = f a :=
@@ -315,20 +317,15 @@ rfl
   (on_finset s f hf).support ⊆ s :=
 filter_subset _
 
-lemma mem_support_on_finset
+@[simp] lemma mem_support_on_finset
   {s : finset α} {f : α → M} (hf : ∀ (a : α), f a ≠ 0 → a ∈ s) {a : α} :
   a ∈ (finsupp.on_finset s f hf).support ↔ f a ≠ 0 :=
-by simp [finsupp.mem_support_iff, finsupp.on_finset_apply]
+by rw [finsupp.mem_support_iff, finsupp.on_finset_apply]
 
 lemma support_on_finset
   {s : finset α} {f : α → M} (hf : ∀ (a : α), f a ≠ 0 → a ∈ s) :
   (finsupp.on_finset s f hf).support = s.filter (λ a, f a ≠ 0) :=
-begin
-  ext a,
-  rw [mem_support_on_finset, finset.mem_filter],
-  specialize hf a,
-  finish
-end
+rfl
 
 end on_finset
 
@@ -589,18 +586,16 @@ by { dsimp [finsupp.prod], rw f.support.prod_ite_eq', }
   f.prod (λ a b, g a ^ b) = ∏ a, g a ^ (f a) :=
 f.prod_fintype _ $ λ a, pow_zero _
 
-/-- If `g` maps a second argument of 0 to 0, summing it over the
-result of `on_finset` is the same as summing it over the original
+/-- If `g` maps a second argument of 0 to 1, then multiplying it over the
+result of `on_finset` is the same as multiplying it over the original
 `finset`. -/
-lemma on_finset_sum [add_comm_monoid P] {s : finset α} {f : α → M} {g : α → M → P}
-    (hf : ∀a, f a ≠ 0 → a ∈ s) (hg : ∀ a, g a 0 = 0) :
-  (on_finset s f hf).sum g = ∑ a in s, g a (f a) :=
-begin
-  refine finset.sum_subset support_on_finset_subset _,
-  intros x hx hxs,
-  rw not_mem_support_iff.1 hxs,
-  exact hg _
-end
+@[to_additive "If `g` maps a second argument of 0 to 0, summing it over the
+result of `on_finset` is the same as summing it over the original
+`finset`."]
+lemma on_finset_prod {s : finset α} {f : α → M} {g : α → M → N}
+    (hf : ∀a, f a ≠ 0 → a ∈ s) (hg : ∀ a, g a 0 = 1) :
+  (on_finset s f hf).prod g = ∏ a in s, g a (f a) :=
+finset.prod_subset support_on_finset_subset $ by simp [*] { contextual := tt }
 
 end sum_prod
 

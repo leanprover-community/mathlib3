@@ -476,6 +476,10 @@ def prod_assoc (α β γ : Sort*) : (α × β) × γ ≃ α × (β × γ) :=
 @[simp] theorem prod_assoc_sym_apply {α β γ : Sort*} (p : α × (β × γ)) :
   (prod_assoc α β γ).symm p = ⟨⟨p.1, p.2.1⟩, p.2.2⟩ := rfl
 
+lemma prod_assoc_preimage {α β γ} {s : set α} {t : set β} {u : set γ} :
+  equiv.prod_assoc α β γ ⁻¹' s.prod (t.prod u) = (s.prod t).prod u :=
+by { ext, simp [and_assoc] }
+
 section
 /-- `punit` is a right identity for type product up to an equivalence. -/
 def prod_punit (α : Type*) : α × punit.{u+1} ≃ α :=

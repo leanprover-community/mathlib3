@@ -360,7 +360,7 @@ theorem injective_to_equiv : injective (to_equiv : (r ≃r s) → α ≃ β)
 
 /-- The map `coe_fn : (r ≃r s) → (α → β)` is injective. Lean fails to parse
 `function.injective (λ e : r ≃r s, (e : α → β))`, so we use a trick to say the same. -/
-theorem injective_coe_fn : fuction.injective (λ (e : r ≃r s) (x : α), e x) :=
+theorem injective_coe_fn : function.injective (λ (e : r ≃r s) (x : α), e x) :=
 injective_to_equiv $ equiv.injective_coe_fn h
 
 @[ext] theorem ext ⦃f g : r ≃r s⦄ (h : ∀ x, f x = g x) : f = g :=

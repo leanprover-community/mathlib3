@@ -106,7 +106,7 @@ end
   If `A ⬝ x = b` has a unique solution in `x`, `cramer` sends a square matrix `A`
   and vector `b` to the vector `x` such that `A ⬝ x = b`.
   Otherwise, the outcome of `cramer` is well-defined but not necessarily useful. -/
-def cramer {α : Type v} [comm_ring α] (A : matrix n n α) : (n → α) →ₗ[α] (n → α) :=
+def cramer (A : matrix n n α) : (n → α) →ₗ[α] (n → α) :=
 is_linear_map.mk' (cramer_map A) (cramer_is_linear A)
 
 lemma cramer_apply (i : n) : cramer A b i = (A.update_row i b).det := rfl

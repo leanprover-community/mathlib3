@@ -1373,6 +1373,22 @@ end
 
 end linear_ordered_ring
 
+section decidable_linear_ordered_semiring
+variables [decidable_linear_ordered_semiring α]
+
+/-- The function `x^n` tends to `+∞` at `+∞` for any positive natural `n`.
+A version for positive real powers exists as `tendsto_rpow_at_top`. -/
+lemma tendsto_pow_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ n) at_top at_top :=
+begin
+  rw tendsto_at_top_at_top,
+  intro b,
+  use max b 1,
+  intros x hx,
+  exact le_trans (le_of_max_le_left (by rwa pow_one x)) (pow_le_pow (le_of_max_le_right hx) hn),
+end
+
+end decidable_linear_ordered_semiring
+
 section linear_ordered_semiring
 variables [linear_ordered_semiring α] [archimedean α]
 variables {l : filter β} {f : β → α}
@@ -1512,6 +1528,12 @@ tendsto_inv_at_top_zero.comp h
 
 lemma tendsto.inv_tendsto_zero (h : tendsto f l (𝓝[set.Ioi 0] 0)) : tendsto (f⁻¹) l at_top :=
 tendsto_inv_zero_at_top.comp h
+
+/-- The function `x^(-n)` tends to `0` at `+∞` for any positive natural `n`.
+A version for positive real powers exists as `tendsto_rpow_neg_at_top`. -/
+lemma tendsto_pow_neg_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ (-(n:ℤ))) at_top (𝓝 0) :=
+tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) (λ x hx, (fpow_neg x n).symm))
+  (tendsto.inv_tendsto_at_top (tendsto_pow_at_top hn))
 
 end discrete_linear_ordered_field
 

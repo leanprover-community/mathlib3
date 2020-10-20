@@ -579,18 +579,16 @@ by { dsimp [finsupp.prod], rw f.support.prod_ite_eq', }
   f.prod (λ a b, g a ^ b) = ∏ a, g a ^ (f a) :=
 f.prod_fintype _ $ λ a, pow_zero _
 
-/-- If `g` maps a second argument of 0 to 0, summing it over the
-result of `on_finset` is the same as summing it over the original
+/-- If `g` maps a second argument of 0 to 1, then multiplying it over the
+result of `on_finset` is the same as multiplying it over the original
 `finset`. -/
-lemma on_finset_sum [add_comm_monoid P] {s : finset α} {f : α → M} {g : α → M → P}
-    (hf : ∀a, f a ≠ 0 → a ∈ s) (hg : ∀ a, g a 0 = 0) :
-  (on_finset s f hf).sum g = ∑ a in s, g a (f a) :=
-begin
-  refine finset.sum_subset support_on_finset_subset _,
-  intros x hx hxs,
-  rw not_mem_support_iff.1 hxs,
-  exact hg _
-end
+@[to_additive "If `g` maps a second argument of 0 to 0, summing it over the
+result of `on_finset` is the same as summing it over the original
+`finset`."]
+lemma on_finset_prod {s : finset α} {f : α → M} {g : α → M → N}
+    (hf : ∀a, f a ≠ 0 → a ∈ s) (hg : ∀ a, g a 0 = 1) :
+  (on_finset s f hf).prod g = ∏ a in s, g a (f a) :=
+finset.prod_subset support_on_finset_subset $ by simp [*] { contextual := tt }
 
 end sum_prod
 

@@ -1715,7 +1715,7 @@ begin
   have C := mem_sup_sets.2 ⟨A, B⟩,
   rw [← nhds_within_union, diff_union_self, nhds_within_union, mem_sup_sets] at C,
   filter_upwards [C.1],
-  simp only [mem_set_of_eq, norm_smul, mem_Iio, normed_field.norm_inv],
+  simp only [norm_smul, mem_Iio, normed_field.norm_inv],
   exact λ _, id
 end
 

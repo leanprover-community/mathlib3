@@ -873,7 +873,6 @@ lemma neg_part_to_fun_eq_max (f : α →₁[μ] ℝ) : ∀ᵐ a ∂μ, neg_part 
 begin
   rw neg_part,
   filter_upwards [pos_part_to_fun (-f), neg_to_fun f],
-  simp only [mem_set_of_eq],
   assume a h₁ h₂,
   rw [h₁, h₂, pi.neg_apply]
 end
@@ -902,7 +901,6 @@ begin
   refine lt_of_le_of_lt (norm_le_norm_of_ae_le _) hfg,
   filter_upwards [l1.sub_to_fun f g, l1.sub_to_fun (pos_part f) (pos_part g),
     pos_part_to_fun f, pos_part_to_fun g],
-  simp only [mem_set_of_eq],
   assume a h₁ h₂ h₃ h₄,
   simp only [real.norm_eq_abs, h₁, h₂, h₃, h₄, pi.sub_apply],
   exact abs_max_sub_max_le_abs _ _ _

@@ -384,12 +384,6 @@ end
 @[simp] lemma of_dual_min_eq_max_of_dual {a b : α} :
   of_dual (min a b) = max (of_dual a) (of_dual b) := rfl
 
-@[simp] lemma to_dual_max_eq_min_to_dual {a b : order_dual α} :
-  to_dual ((max a b) : order_dual α) = (min (to_dual a) (to_dual b) : order_dual α) := sorry
-
-@[simp] lemma to_dual_min_eq_max_to_dual {a b : order_dual α} :
-  to_dual ((min a b) : order_dual α) = (max (to_dual a) (to_dual b) : order_dual α) := sorry
-
 end max_min
 
 section exists_max_min

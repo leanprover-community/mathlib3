@@ -743,7 +743,7 @@ begin
   have B' : ∀ᶠ t in lt, interval_integrable f μ b (ub t) :=
     hb_lim.eventually_interval_integrable_ae hab.measurable (FTC_filter.finite_at_inner lb)
       (tendsto_const_pure.mono_right FTC_filter.pure_le) hub,
-  filter_upwards [A, A', B, B'], simp only [mem_set_of_eq],
+  filter_upwards [A, A', B, B'],
   intros t ua_va a_ua ub_vb b_ub,
   rw [← integral_interval_sub_interval_comm'],
   { dsimp only [], abel },

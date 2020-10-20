@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
 import analysis.special_functions.exp_log
+import data.set.intervals.infinite
+import algebra.quadratic_discriminant
 
 /-!
 # Trigonometric functions
@@ -835,6 +837,12 @@ begin
     exact ⟨y, hy⟩ }
 end
 
+lemma range_cos_infinite : (range real.cos).infinite :=
+by { rw real.range_cos, exact Icc.infinite (by norm_num) }
+
+lemma range_sin_infinite : (range real.sin).infinite :=
+by { rw real.range_sin, exact Icc.infinite (by norm_num) }
+
 lemma sin_lt {x : ℝ} (h : 0 < x) : sin x < x :=
 begin
   cases le_or_gt x 1 with h' h',
@@ -1632,6 +1640,9 @@ by rw [log, exp_add_mul_I, ← of_real_sin, sin_arg, ← of_real_cos, cos_arg hx
   mul_div_cancel' _ (of_real_ne_zero.2 (mt abs_eq_zero.1 hx)), ← mul_assoc,
   mul_div_cancel' _ (of_real_ne_zero.2 (mt abs_eq_zero.1 hx)), re_add_im]
 
+lemma range_exp : range exp = {x | x ≠ 0} :=
+set.ext $ λ x, ⟨by { rintro ⟨x, rfl⟩, exact exp_ne_zero x }, λ hx, ⟨log x, exp_log hx⟩⟩
+
 lemma exp_inj_of_neg_pi_lt_of_le_pi {x y : ℂ} (hx₁ : -π < x.im) (hx₂ : x.im ≤ π)
   (hy₁ : - π < y.im) (hy₂ : y.im ≤ π) (hxy : exp x = exp y) : x = y :=
 by rw [exp_eq_exp_re_mul_sin_add_cos, exp_eq_exp_re_mul_sin_add_cos y] at hxy;
@@ -1663,6 +1674,21 @@ lemma log_neg_one : log (-1) = π * I := by simp [log]
 lemma log_I : log I = π / 2 * I := by simp [log]
 
 lemma log_neg_I : log (-I) = -(π / 2) * I := by simp [log]
+
+lemma exists_pow_nat_eq (x : ℂ) {n : ℕ} (hn : 0 < n) : ∃ z, z ^ n = x :=
+begin
+  by_cases hx : x = 0,
+  { use 0, simp only [hx, zero_pow_eq_zero, hn] },
+  { use exp (log x / n),
+    rw [← exp_nat_mul, mul_div_cancel', exp_log hx],
+    exact_mod_cast (nat.pos_iff_ne_zero.mp hn) }
+end
+
+lemma exists_eq_mul_self (x : ℂ) : ∃ z, x = z * z :=
+begin
+  obtain ⟨z, rfl⟩ := exists_pow_nat_eq x zero_lt_two,
+  exact ⟨z, pow_two z⟩
+end
 
 lemma two_pi_I_ne_zero : (2 * π * I : ℂ) ≠ 0 :=
 by norm_num [real.pi_ne_zero, I_ne_zero]
@@ -1867,8 +1893,38 @@ continuous_on_sin.div continuous_on_cos $ λ x, id
 lemma continuous_tan : continuous (λ x : {x | cos x ≠ 0}, tan x) :=
 continuous_on_iff_continuous_restrict.1 continuous_on_tan
 
-end complex
+lemma cos_surjective : function.surjective cos :=
+begin
+  intro x,
+  obtain ⟨w, hw⟩ : ∃ w, 1 * w * w + (-2 * x) * w + 1 = 0,
+  { exact exists_quadratic_eq_zero one_ne_zero (exists_eq_mul_self _) },
+  have hw' : exp (log w / I * I) = w,
+  { rw [div_mul_cancel _ I_ne_zero, exp_log],
+    rintro rfl,
+    simpa only [zero_add, one_ne_zero, mul_zero] using hw },
+  obtain ⟨z, hz⟩ : ∃ z : ℂ, (exp (z * I)) ^ 2 - 2 * x * exp (z * I) + 1 = 0,
+  { use log w / I, rw [hw', ← hw], ring },
+  use z,
+  delta cos,
+  rw ← mul_left_inj' (exp_ne_zero (z * I)),
+  rw [sub_add_eq_add_sub, sub_eq_zero, pow_two, ← exp_add, mul_comm _ x, mul_right_comm] at hz,
+  field_simp [add_mul, ← exp_add, hz]
+end
 
+@[simp] lemma range_cos : range cos = set.univ :=
+cos_surjective.range_eq
+
+lemma sin_surjective : function.surjective sin :=
+begin
+  intro x,
+  rcases cos_surjective x with ⟨z, rfl⟩,
+  exact ⟨z+π/2, sin_add_pi_div_two z⟩
+end
+
+@[simp] lemma range_sin : range sin = set.univ :=
+sin_surjective.range_eq
+
+end complex
 
 namespace real
 open_locale real

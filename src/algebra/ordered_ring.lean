@@ -14,18 +14,25 @@ variable {α : Type u}
 multiplication with a positive number and addition are monotone. -/
 @[protect_proj]
 class ordered_semiring (α : Type u) extends semiring α, ordered_cancel_add_comm_monoid α :=
-(zero_lt_one : 0 < (1 : α))
+(zero_le_one : 0 ≤ (1 : α))
 (mul_lt_mul_of_pos_left :  ∀ a b c : α, a < b → 0 < c → c * a < c * b)
 (mul_lt_mul_of_pos_right : ∀ a b c : α, a < b → 0 < c → a * c < b * c)
 
 section ordered_semiring
 variables [ordered_semiring α] {a b c d : α}
 
-lemma zero_lt_one : 0 < (1:α) :=
-ordered_semiring.zero_lt_one
-
 lemma zero_le_one : 0 ≤ (1:α) :=
-zero_lt_one.le
+ordered_semiring.zero_le_one
+
+lemma zero_le_two : 0 ≤ (2:α) :=
+add_nonneg zero_le_one zero_le_one
+
+section nontrivial
+
+variables [nontrivial α]
+
+lemma zero_lt_one : 0 < (1 : α) :=
+lt_of_le_of_ne zero_le_one zero_ne_one
 
 lemma zero_lt_two : 0 < (2:α) := add_pos zero_lt_one zero_lt_one
 
@@ -40,6 +47,8 @@ calc (2:α) = 1+1 : one_add_one_eq_two
 lemma one_le_two : 1 ≤ (2:α) := one_lt_two.le
 
 lemma zero_lt_four : 0 < (4:α) := add_pos zero_lt_two zero_lt_two
+
+end nontrivial
 
 lemma mul_lt_mul_of_pos_left (h₁ : a < b) (h₂ : 0 < c) : c * a < c * b :=
 ordered_semiring.mul_lt_mul_of_pos_left a b c h₁ h₂
@@ -121,11 +130,11 @@ lemma le_mul_of_one_le_left (hb : 0 ≤ b) (h : 1 ≤ a) : b ≤ a * b :=
 suffices 1 * b ≤ a * b, by rwa one_mul at this,
 mul_le_mul_of_nonneg_right h hb
 
+section
+variable [nontrivial α]
+
 lemma bit1_pos (h : 0 ≤ a) : 0 < bit1 a :=
 lt_add_of_le_of_pos (add_nonneg h h) zero_lt_one
-
-lemma bit1_pos' (h : 0 < a) : 0 < bit1 a :=
-bit1_pos h.le
 
 lemma lt_add_one (a : α) : a < a + 1 :=
 lt_add_of_le_of_pos le_rfl zero_lt_one
@@ -133,19 +142,36 @@ lt_add_of_le_of_pos le_rfl zero_lt_one
 lemma lt_one_add (a : α) : a < 1 + a :=
 by { rw [add_comm], apply lt_add_one }
 
+end
+
+lemma bit1_pos' (h : 0 < a) : 0 < bit1 a :=
+begin
+  nontriviality,
+  exact bit1_pos h.le,
+end
+
 lemma one_lt_mul (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
-(one_mul (1 : α)) ▸ mul_lt_mul' ha hb zero_le_one (zero_lt_one.trans_le ha)
+begin
+  nontriviality,
+  exact (one_mul (1 : α)) ▸ mul_lt_mul' ha hb zero_le_one (zero_lt_one.trans_le ha)
+end
 
 lemma mul_le_one (ha : a ≤ 1) (hb' : 0 ≤ b) (hb : b ≤ 1) : a * b ≤ 1 :=
 begin rw ← one_mul (1 : α), apply mul_le_mul; {assumption <|> apply zero_le_one} end
 
 lemma one_lt_mul_of_le_of_lt (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
-calc 1 = 1 * 1 : by rw one_mul
-... < a * b : mul_lt_mul' ha hb zero_le_one (zero_lt_one.trans_le ha)
+begin
+  nontriviality,
+  calc 1 = 1 * 1 : by rw one_mul
+     ... < a * b : mul_lt_mul' ha hb zero_le_one (zero_lt_one.trans_le ha)
+end
 
 lemma one_lt_mul_of_lt_of_le (ha : 1 < a) (hb : 1 ≤ b) : 1 < a * b :=
-calc 1 = 1 * 1 : by rw one_mul
-... < a * b : mul_lt_mul ha hb zero_lt_one $ zero_le_one.trans ha.le
+begin
+  nontriviality,
+  calc 1 = 1 * 1 : by rw one_mul
+    ... < a * b : mul_lt_mul ha hb zero_lt_one $ zero_le_one.trans ha.le
+end
 
 lemma mul_le_of_le_one_right (ha : 0 ≤ a) (hb1 : b ≤ 1) : a * b ≤ a :=
 calc a * b ≤ a * 1 : mul_le_mul_of_nonneg_left hb1 ha
@@ -165,13 +191,26 @@ calc a * b ≤ b : mul_le_of_le_one_left hb0 ha
 
 end ordered_semiring
 
-/-- A `linear_ordered_semiring α` is a semiring `α` with a linear order
-such that multiplication with a positive number and addition are monotone. -/
+/--
+A `linear_ordered_semiring α` is a nontrivial semiring `α` with a linear order
+such that multiplication with a positive number and addition are monotone.
+-/
+-- It's not entirely clear we should assume `nontrivial` at this point;
+-- it would be reasonable to explore changing this,
+-- but be warned that the instances involving `domain` may cause
+-- typeclass search loops.
 @[protect_proj]
-class linear_ordered_semiring (α : Type u) extends ordered_semiring α, linear_order α
+class linear_ordered_semiring (α : Type u) extends ordered_semiring α, linear_order α, nontrivial α
 
 section linear_ordered_semiring
 variables [linear_ordered_semiring α] {a b c d : α}
+
+-- `norm_num` expects the lemma stating `0 < 1` to have a single typeclass argument
+-- (see `norm_num.prove_pos_nat`).
+-- Rather than working out how to relax that assumption,
+-- we provide a synonym for `zero_lt_one` (which needs both `ordered_semiring α` and `nontrivial α`)
+-- with only a `linear_ordered_semiring` typeclass argument.
+lemma zero_lt_one' : 0 < (1 : α) := zero_lt_one
 
 lemma lt_of_mul_lt_mul_left (h : c * a < c * b) (hc : 0 ≤ c) : a < b :=
 lt_of_not_ge
@@ -269,11 +308,14 @@ by { convert mul_lt_mul_left h, simp }
 @[simp] lemma zero_lt_mul_right (h : 0 < c) : 0 < b * c ↔ 0 < b :=
 by { convert mul_lt_mul_right h, simp }
 
+section
+variables [nontrivial α]
+
 @[simp] lemma bit0_le_bit0 : bit0 a ≤ bit0 b ↔ a ≤ b :=
-by rw [bit0, bit0, ← two_mul, ← two_mul, mul_le_mul_left zero_lt_two]
+by rw [bit0, bit0, ← two_mul, ← two_mul, mul_le_mul_left (zero_lt_two : 0 < (2:α))]
 
 @[simp] lemma bit0_lt_bit0 : bit0 a < bit0 b ↔ a < b :=
-by rw [bit0, bit0, ← two_mul, ← two_mul, mul_lt_mul_left zero_lt_two]
+by rw [bit0, bit0, ← two_mul, ← two_mul, mul_lt_mul_left (zero_lt_two : 0 < (2:α))]
 
 @[simp] lemma bit1_le_bit1 : bit1 a ≤ bit1 b ↔ a ≤ b :=
 (add_le_add_iff_right 1).trans bit0_le_bit0
@@ -282,16 +324,18 @@ by rw [bit0, bit0, ← two_mul, ← two_mul, mul_lt_mul_left zero_lt_two]
 (add_lt_add_iff_right 1).trans bit0_lt_bit0
 
 @[simp] lemma one_le_bit1 : (1 : α) ≤ bit1 a ↔ 0 ≤ a :=
-by rw [bit1, le_add_iff_nonneg_left, bit0, ← two_mul, zero_le_mul_left zero_lt_two]
+by rw [bit1, le_add_iff_nonneg_left, bit0, ← two_mul, zero_le_mul_left (zero_lt_two : 0 < (2:α))]
 
 @[simp] lemma one_lt_bit1 : (1 : α) < bit1 a ↔ 0 < a :=
-by rw [bit1, lt_add_iff_pos_left, bit0, ← two_mul, zero_lt_mul_left zero_lt_two]
+by rw [bit1, lt_add_iff_pos_left, bit0, ← two_mul, zero_lt_mul_left (zero_lt_two : 0 < (2:α))]
 
 @[simp] lemma zero_le_bit0 : (0 : α) ≤ bit0 a ↔ 0 ≤ a :=
-by rw [bit0, ← two_mul, zero_le_mul_left zero_lt_two]
+by rw [bit0, ← two_mul, zero_le_mul_left (zero_lt_two : 0 < (2:α))]
 
 @[simp] lemma zero_lt_bit0 : (0 : α) < bit0 a ↔ 0 < a :=
-by rw [bit0, ← two_mul, zero_lt_mul_left zero_lt_two]
+by rw [bit0, ← two_mul, zero_lt_mul_left (zero_lt_two : 0 < (2:α))]
+
+end
 
 lemma le_mul_iff_one_le_left (hb : 0 < b) : b ≤ a * b ↔ 1 ≤ a :=
 suffices 1 * b ≤ a * b ↔ 1 ≤ a, by rwa one_mul at this,
@@ -353,19 +397,11 @@ begin
   { rw not_le at ha,
     use 1,
     calc a < 0     : ha
-       ... < 1 * 1 : by simpa only [mul_one] using zero_lt_one }
+       ... < 1 * 1 : by simpa only [mul_one] using zero_lt_one' }
 end
 
 lemma exists_le_mul_self (a : α) : ∃ x : α, a ≤ x * x :=
-begin
-  obtain ⟨x, hx⟩ := exists_lt_mul_self a,
-  exact ⟨x, le_of_lt hx⟩
-end
-
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_semiring.to_nontrivial {α : Type*} [linear_ordered_semiring α] :
-  nontrivial α :=
-{ exists_pair_ne := ⟨0, 1, ne_of_lt zero_lt_one⟩ }
+let ⟨x, hx⟩ := exists_lt_mul_self a in ⟨x, le_of_lt hx⟩
 
 /- TODO This theorem ought to be written in the context of `nontrivial` linearly ordered (additive)
 commutative monoids rather than linearly ordered rings; however, the former concept does not
@@ -460,8 +496,8 @@ end decidable_linear_ordered_semiring
 /-- An `ordered_ring α` is a ring `α` with a partial order such that
 multiplication with a positive number and addition are monotone. -/
 @[protect_proj]
-class ordered_ring (α : Type u) extends ring α, ordered_add_comm_group α, nontrivial α :=
-(zero_lt_one : zero < one)
+class ordered_ring (α : Type u) extends ring α, ordered_add_comm_group α :=
+(zero_le_one : 0 ≤ (1 : α))
 (mul_pos     : ∀ a b : α, 0 < a → 0 < b → 0 < a * b)
 
 section ordered_ring
@@ -553,7 +589,7 @@ end ordered_ring
 
 /-- A `linear_ordered_ring α` is a ring `α` with a linear order such that
 multiplication with a positive number and addition are monotone. -/
-@[protect_proj] class linear_ordered_ring (α : Type u) extends ordered_ring α, linear_order α
+@[protect_proj] class linear_ordered_ring (α : Type u) extends ordered_ring α, linear_order α, nontrivial α
 
 section linear_ordered_ring
 variables [linear_ordered_ring α] {a b c : α}
@@ -612,11 +648,12 @@ lt_of_mul_lt_mul_left h3 nhc
 
 lemma neg_one_lt_zero : -1 < (0:α) :=
 begin
-  have this := neg_lt_neg (@zero_lt_one α _),
+  have this := neg_lt_neg (@zero_lt_one α _ _),
   rwa neg_zero at this
 end
 
-lemma le_of_mul_le_of_one_le {a b c : α} (h : a * c ≤ b) (hb : 0 ≤ b) (hc : 1 ≤ c) : a ≤ b :=
+lemma le_of_mul_le_of_one_le {a b c : α} (h : a * c ≤ b) (hb : 0 ≤ b) (hc : 1 ≤ c) :
+  a ≤ b :=
 have h' : a * c ≤ b * c, from calc
      a * c ≤ b : h
        ... = b * 1 : by rewrite mul_one
@@ -698,9 +735,14 @@ such that multiplication with a positive number and addition are monotone. -/
 class linear_ordered_comm_ring (α : Type u) extends linear_ordered_ring α, comm_monoid α
 
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_comm_ring.to_integral_domain [s: linear_ordered_comm_ring α] :
+instance linear_ordered_comm_ring.to_comm_ring [s : linear_ordered_comm_ring α] :
+  comm_ring α :=
+{ ..s }
+
+@[priority 100] -- see Note [lower instance priority]
+instance linear_ordered_comm_ring.to_integral_domain [s : linear_ordered_comm_ring α] :
   integral_domain α :=
-{ ..s, .. linear_ordered_ring.to_domain }
+{ ..linear_ordered_ring.to_domain, ..s }
 
 /-- A `decidable_linear_ordered_comm_ring α` is a commutative ring `α` with a
 decidable linear order such that multiplication with a positive number and
@@ -782,13 +824,13 @@ sub_lt_of_abs_sub_lt_left (abs_sub a b ▸ h)
 lemma abs_sub_square (a b : α) : abs (a - b) * abs (a - b) = a * a + b * b - (1 + 1) * a * b :=
 begin
   rw abs_mul_abs_self,
-  simp [left_distrib, right_distrib, add_assoc, add_comm, add_left_comm, mul_comm, sub_eq_add_neg]
+  simp [left_distrib, right_distrib, add_assoc, add_comm, add_left_comm, mul_comm, sub_eq_add_neg],
 end
 
 lemma eq_zero_of_mul_self_add_mul_self_eq_zero (h : a * a + b * b = 0) : a = 0 :=
 have a * a ≤ (0 : α), from calc
-  a * a ≤ a * a + b * b : le_add_of_nonneg_right (mul_self_nonneg b)
-    ... = 0             : h,
+     a * a ≤ a * a + b * b : le_add_of_nonneg_right (mul_self_nonneg b)
+       ... = 0             : h,
 eq_zero_of_mul_self_eq_zero (le_antisymm this (mul_self_nonneg a))
 
 -- The proof doesn't need commutativity but we have no `decidable_linear_ordered_ring`
@@ -799,8 +841,8 @@ end decidable_linear_ordered_comm_ring
 
 /-- Extend `nonneg_add_comm_group` to support ordered rings
   specified by their nonnegative elements -/
-class nonneg_ring (α : Type*) extends ring α, nonneg_add_comm_group α, nontrivial α :=
-(one_pos : pos 1)
+class nonneg_ring (α : Type*) extends ring α, nonneg_add_comm_group α :=
+(one_nonneg : nonneg 1)
 (mul_nonneg : ∀ {a b}, nonneg a → nonneg b → nonneg (a * b))
 (mul_pos : ∀ {a b}, pos a → pos b → pos (a * b))
 
@@ -815,20 +857,13 @@ namespace nonneg_ring
 open nonneg_add_comm_group
 variable [nonneg_ring α]
 
-/-- Construct `ordered_ring` from `nonneg_ring`. This is not an instance
-because it is not used in `mathlib`. -/
-local attribute [instance]
-def to_ordered_ring : ordered_ring α :=
-{ zero_lt_one := begin dsimp [(<), preorder.lt, partial_order.lt], convert one_pos, exact sub_zero _, end,
-  mul_pos := λ a b, by simp [pos_def.symm]; exact mul_pos,
-  ..‹nonneg_ring α›, ..(infer_instance : ordered_add_comm_group α) }
-
 /-- `to_linear_nonneg_ring` shows that a `nonneg_ring` with a total order is a `domain`,
 hence a `linear_nonneg_ring`. -/
-def to_linear_nonneg_ring
+def to_linear_nonneg_ring [nontrivial α]
   (nonneg_total : ∀ a : α, nonneg a ∨ nonneg (-a))
   : linear_nonneg_ring α :=
-{ nonneg_total := nonneg_total,
+{ one_pos := (pos_iff 1).mpr ⟨one_nonneg, λ h, zero_ne_one (nonneg_antisymm one_nonneg h).symm⟩,
+  nonneg_total := nonneg_total,
   eq_zero_or_eq_zero_of_mul_eq_zero :=
     suffices ∀ {a} b : α, nonneg a → a * b = 0 → a = 0 ∨ b = 0,
     from λ a b, (nonneg_total a).elim (this b)
@@ -843,6 +878,7 @@ def to_linear_nonneg_ring
         (λ pb, absurd z $ ne_of_gt $ pos_def.1 $ mul_pos
           ((pos_iff _).2 ⟨na, pa⟩)
           ((pos_iff _).2 ⟨nb, pb⟩))),
+  ..‹nontrivial α›,
   ..‹nonneg_ring α› }
 
 end nonneg_ring
@@ -853,7 +889,8 @@ variable [linear_nonneg_ring α]
 
 @[priority 100] -- see Note [lower instance priority]
 instance to_nonneg_ring : nonneg_ring α :=
-{ mul_pos := λ a b pa pb,
+{ one_nonneg := ((pos_iff _).mp one_pos).1,
+  mul_pos := λ a b pa pb,
   let ⟨a1, a2⟩ := (pos_iff a).1 pa,
       ⟨b1, b2⟩ := (pos_iff b).1 pb in
   have ab : nonneg (a * b), from mul_nonneg a1 b1,
@@ -876,7 +913,7 @@ This is not an instance because we don't use it in `mathlib`. -/
 local attribute [instance]
 def to_linear_ordered_ring : linear_ordered_ring α :=
 { mul_pos := by simp [pos_def.symm]; exact @nonneg_ring.mul_pos _ _,
-  zero_lt_one := lt_of_not_ge $ λ (h : nonneg (0 - 1)), begin
+  zero_le_one := le_of_lt $ lt_of_not_ge $ λ (h : nonneg (0 - 1)), begin
     rw [zero_sub] at h,
     have := mul_nonneg h h, simp at this,
     exact zero_ne_one (nonneg_antisymm this h).symm
@@ -901,7 +938,7 @@ end linear_nonneg_ring
 in which `a ≤ b` iff there exists `c` with `b = a + c`. This is satisfied by the
 natural numbers, for example, but not the integers or other ordered groups. -/
 class canonically_ordered_comm_semiring (α : Type*) extends
-  canonically_ordered_add_monoid α, comm_semiring α, nontrivial α :=
+  canonically_ordered_add_monoid α, comm_semiring α :=
 (eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
 
 namespace canonically_ordered_semiring
@@ -929,7 +966,7 @@ lemma mul_le_mul_right' {b c : α} (h : b ≤ c) (a : α) : b * a ≤ c * a :=
 mul_le_mul h (le_refl a)
 
 /-- A version of `zero_lt_one : 0 < 1` for a `canonically_ordered_comm_semiring`. -/
-lemma zero_lt_one : (0:α) < 1 := (zero_le 1).lt_of_ne zero_ne_one
+lemma zero_lt_one [nontrivial α] : (0:α) < 1 := (zero_le 1).lt_of_ne zero_ne_one
 
 lemma mul_pos : 0 < a * b ↔ (0 < a) ∧ (0 < b) :=
 by simp only [zero_lt_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
@@ -1038,11 +1075,13 @@ begin
   simp [some_eq_coe, coe_mul.symm, mul_assoc]
 end
 
-private lemma one_mul' : ∀a : with_top α, 1 * a = a
+-- `nontrivial α` is needed here as otherwise
+-- we have `1 * ⊤ = ⊤` but also `= 0 * ⊤ = 0`.
+private lemma one_mul' [nontrivial α] : ∀a : with_top α, 1 * a = a
 | none     := show ((1:α) : with_top α) * ⊤ = ⊤, by simp [-with_top.coe_one]
 | (some a) := show ((1:α) : with_top α) * a = a, by simp [coe_mul.symm, -with_top.coe_one]
 
-instance : canonically_ordered_comm_semiring (with_top α) :=
+instance [nontrivial α] : canonically_ordered_comm_semiring (with_top α) :=
 { one             := (1 : α),
   right_distrib   := distrib',
   left_distrib    := assume a b c, by rw [comm, distrib', comm b, comm c]; refl,

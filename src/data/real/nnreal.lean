@@ -19,8 +19,8 @@ a.k.a. the interval `[0, ∞)`. We also define the following operations and stru
 
 * `a + b` and `a * b` are the restrictions of addition and multiplication of real numbers to `ℝ≥0`;
   these operations together with `0 = ⟨0, _⟩` and `1 = ⟨1, _⟩` turn `ℝ≥0` into a linear ordered
-  archimedean commutative semifield; we have no this typeclass in `mathlib` yet, so we define the
-  following instances instead:
+  archimedean commutative semifield; we have no typeclass for this in `mathlib` yet, so we define
+  the following instances instead:
 
   - `linear_ordered_semiring ℝ≥0`;
   - `comm_semiring ℝ≥0`;
@@ -224,10 +224,11 @@ instance : linear_ordered_semiring ℝ≥0 :=
   le_of_add_le_add_left      := assume a b c, @le_of_add_le_add_left ℝ _ a b c,
   mul_lt_mul_of_pos_left     := assume a b c, @mul_lt_mul_of_pos_left ℝ _ a b c,
   mul_lt_mul_of_pos_right    := assume a b c, @mul_lt_mul_of_pos_right ℝ _ a b c,
-  zero_lt_one                := @zero_lt_one ℝ _,
+  zero_le_one                := @zero_le_one ℝ _,
+  exists_pair_ne             := ⟨0, 1, ne_of_lt (@zero_lt_one ℝ _ _)⟩,
   .. nnreal.decidable_linear_order,
   .. nnreal.canonically_ordered_add_monoid,
-  .. nnreal.comm_semiring }
+  .. nnreal.comm_semiring, }
 
 instance : linear_ordered_comm_group_with_zero ℝ≥0 :=
 { mul_le_mul_left := assume a b h c, mul_le_mul (le_refl c) h (zero_le a) (zero_le c),

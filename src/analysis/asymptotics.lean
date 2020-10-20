@@ -165,7 +165,6 @@ begin
   apply filter.congr_sets,
   filter_upwards [hf, hg],
   assume x e₁ e₂,
-  dsimp at e₁ e₂ ⊢,
   rw [e₁, e₂]
 end
 
@@ -492,11 +491,7 @@ end
 
 lemma is_O_with.prod_left_same (hf : is_O_with c f' k' l) (hg : is_O_with c g' k' l) :
   is_O_with c (λ x, (f' x, g' x)) k' l :=
-begin
-  filter_upwards [hf, hg],
-  simp only [mem_set_of_eq],
-  exact λ x, max_le
-end
+by filter_upwards [hf, hg] λ x, max_le
 
 lemma is_O_with.prod_left (hf : is_O_with c f' k' l) (hg : is_O_with c' g' k' l) :
   is_O_with (max c c') (λ x, (f' x, g' x)) k' l :=
@@ -883,7 +878,7 @@ theorem is_O_with.mul {f₁ f₂ : α → R} {g₁ g₂ : α → 𝕜} {c₁ c�
   (h₁ : is_O_with c₁ f₁ g₁ l) (h₂ : is_O_with c₂ f₂ g₂ l) :
   is_O_with (c₁ * c₂) (λ x, f₁ x * f₂ x) (λ x, g₁ x * g₂ x) l :=
 begin
-  filter_upwards [h₁, h₂], simp only [mem_set_of_eq],
+  filter_upwards [h₁, h₂],
   intros x hx₁ hx₂,
   apply le_trans (norm_mul_le _ _),
   convert mul_le_mul hx₁ hx₂ (norm_nonneg _) (le_trans (norm_nonneg _) hx₁) using 1,

@@ -214,21 +214,15 @@ protected lemma tendsto_at_top [nonempty β] [semilattice_sup β] {f : β → en
 by simp only [ennreal.tendsto_nhds ha, mem_at_top_sets, mem_set_of_eq, filter.eventually]
 
 instance : has_continuous_add ennreal :=
-⟨ continuous_iff_continuous_at.2 $
-  have hl : ∀a:ennreal, tendsto (λ (p : ennreal × ennreal), p.fst + p.snd) (𝓝 (⊤, a)) (𝓝 ⊤), from
-    assume a, tendsto_nhds_top $ assume n,
-    have set.prod {a | ↑n < a } univ ∈ 𝓝 ((⊤:ennreal), a), from
-      prod_mem_nhds_sets (lt_mem_nhds $ coe_nat n ▸ coe_lt_top) univ_mem_sets,
-    show {a : ennreal × ennreal | ↑n < a.fst + a.snd} ∈ 𝓝 (⊤, a),
-    begin filter_upwards [this] λ ⟨a₁, a₂⟩ ⟨h₁, h₂⟩, h₁.trans_le (le_add_right $ le_refl _) end,
-  begin
-    rintro ⟨a₁, a₂⟩,
-    cases a₁, { simp [continuous_at, none_eq_top, hl a₂], },
-    cases a₂, { simp [continuous_at, none_eq_top, some_eq_coe, nhds_swap (a₁ : ennreal) ⊤,
-                      tendsto_map'_iff, (∘)], convert hl a₁, simp [add_comm] },
-    simp [continuous_at, some_eq_coe, nhds_coe_coe, tendsto_map'_iff, (∘)],
-    simp only [coe_add.symm, tendsto_coe, tendsto_add]
-  end ⟩
+begin
+  refine ⟨continuous_iff_continuous_at.2 _⟩,
+  rintro ⟨(_|a), b⟩,
+  { exact tendsto_nhds_top_mono' continuous_at_fst (λ p, le_add_right le_rfl) },
+  rcases b with (_|b),
+  { exact tendsto_nhds_top_mono' continuous_at_snd (λ p, le_add_left le_rfl) },
+  simp only [continuous_at, some_eq_coe, nhds_coe_coe, ← coe_add, tendsto_map'_iff, (∘),
+    tendsto_coe, tendsto_add]
+end
 
 protected lemma tendsto_mul (ha : a ≠ 0 ∨ b ≠ ⊤) (hb : b ≠ 0 ∨ a ≠ ⊤) :
   tendsto (λp:ennreal×ennreal, p.1 * p.2) (𝓝 (a, b)) (𝓝 (a * b)) :=

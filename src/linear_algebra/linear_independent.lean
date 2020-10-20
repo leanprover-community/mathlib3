@@ -625,7 +625,7 @@ lemma linear_independent_inl_union_inr' {v : ι → M} {v' : ι' → M'}
   linear_independent R (sum.elim (inl R M M' ∘ v) (inr R M M' ∘ v')) :=
 (hv.map' (inl R M M') ker_inl).sum_type (hv'.map' (inr R M M') ker_inr) $
 begin
- refine is_compl_range_inl_inr.disjoint.mono _ _;
+  refine is_compl_range_inl_inr.disjoint.mono _ _;
     simp only [span_le, range_coe, range_comp_subset_range],
 end
 

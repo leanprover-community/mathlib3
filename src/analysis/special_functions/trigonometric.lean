@@ -56,6 +56,8 @@ funext $ λ x, (has_deriv_at_sin x).deriv
 lemma continuous_sin : continuous sin :=
 differentiable_sin.continuous
 
+lemma continuous_on_sin {s : set ℂ} : continuous_on sin s := continuous_sin.continuous_on
+
 lemma measurable_sin : measurable sin := continuous_sin.measurable
 
 /-- The complex cosine function is everywhere differentiable, with the derivative `-sin x`. -/
@@ -82,6 +84,8 @@ funext $ λ x, deriv_cos
 
 lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
+
+lemma continuous_on_cos {s : set ℂ} : continuous_on cos s := continuous_cos.continuous_on
 
 lemma measurable_cos : measurable cos := continuous_cos.measurable
 
@@ -331,6 +335,8 @@ funext $ λ _, deriv_cos
 lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
 
+lemma continuous_on_cos {s} : continuous_on cos s := continuous_cos.continuous_on
+
 lemma measurable_cos : measurable cos := continuous_cos.measurable
 
 lemma has_deriv_at_sinh (x : ℝ) : has_deriv_at sinh (cosh x) x :=
@@ -538,7 +544,7 @@ end
 namespace real
 
 lemma exists_cos_eq_zero : 0 ∈ cos '' Icc (1:ℝ) 2 :=
-intermediate_value_Icc' (by norm_num) continuous_cos.continuous_on
+intermediate_value_Icc' (by norm_num) continuous_on_cos
   ⟨le_of_lt cos_two_neg, le_of_lt cos_one_pos⟩
 
 /-- The number π = 3.14159265... Defined here using choice as twice a zero of cos in [1,2], from
@@ -806,7 +812,7 @@ by convert intermediate_value_Icc
   continuous_sin.continuous_on; simp only [sin_neg, sin_pi_div_two]
 
 lemma exists_cos_eq : (Icc (-1) 1 : set ℝ) ⊆ cos '' Icc 0 π :=
-by convert intermediate_value_Icc' real.pi_pos.le real.continuous_cos.continuous_on;
+by convert intermediate_value_Icc' real.pi_pos.le real.continuous_on_cos;
   simp only [real.cos_pi, real.cos_zero]
 
 lemma range_cos : range cos = (Icc (-1) 1 : set ℝ) :=
@@ -1855,12 +1861,11 @@ lemma differentiable_at_tan {x : ℂ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π /
 @[simp] lemma deriv_tan {x : ℂ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) : deriv tan x = 1 / (cos x)^2 :=
 (has_deriv_at_tan h).deriv
 
-lemma continuous_tan : continuous (λ x : {x | cos x ≠ 0}, tan x) :=
-(continuous_sin.comp continuous_subtype_val).mul
-  (continuous.inv subtype.property (continuous_cos.comp continuous_subtype_val))
-
 lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
-by { rw continuous_on_iff_continuous_restrict, convert continuous_tan }
+continuous_on_sin.div continuous_on_cos $ λ x, id
+
+lemma continuous_tan : continuous (λ x : {x | cos x ≠ 0}, tan x) :=
+continuous_on_iff_continuous_restrict.1 continuous_on_tan
 
 end complex
 

@@ -283,6 +283,10 @@ lemma has_basis.eventually_iff (hl : l.has_basis p s) {q : α → Prop} :
   (∀ᶠ x in l, q x) ↔ ∃ i, p i ∧ ∀ ⦃x⦄, x ∈ s i → q x :=
 by simpa using hl.mem_iff
 
+lemma has_basis.frequently_iff (hl : l.has_basis p s) {q : α → Prop} :
+  (∃ᶠ x in l, q x) ↔ ∀ i, p i → ∃ x ∈ s i, q x :=
+by simp [filter.frequently, hl.eventually_iff]
+
 lemma has_basis.forall_nonempty_iff_ne_bot (hl : l.has_basis p s) :
   (∀ {i}, p i → (s i).nonempty) ↔ ne_bot l :=
 ⟨λ H, forall_sets_nonempty_iff_ne_bot.1 $

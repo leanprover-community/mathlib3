@@ -60,8 +60,7 @@ variables (A : matrix n n α) (b : n → α)
   `cramer_map A b i` is the determinant of the matrix `A` with column `i` replaced with `b`,
   and thus `cramer_map A b` is the vector output by Cramer's rule on `A` and `b`.
 
-  If `A ⬝ x = b` has a unique solution in `x`, `cramer_map` sends a square matrix `A`
-  and vector `b` to the vector `x` such that `A ⬝ x = b`.
+  If `A ⬝ x = b` has a unique solution in `x`, `cramer_map Aᵀ` sends the vector `b` to `A.det • x`.
   Otherwise, the outcome of `cramer_map` is well-defined but not necessarily useful.
 -/
 def cramer_map (i : n) : α := (A.update_row i b).det
@@ -415,8 +414,11 @@ B.nonsing_inv_left_right A h
 end inv
 
 lemma cramers_rule (A : matrix n n α) (b : n → α) (h : is_unit A.det) :
-  A.mul_vec ((↑h.unit⁻¹ : α) • (cramer Aᵀ b)) = b :=
-by rw [cramer_transpose_eq_adjugate_mul_vec, ← smul_mul_vec_assoc, ← nonsing_inv_apply,
-       mul_vec_mul_vec, A.mul_nonsing_inv h, mul_vec_one]
+  cramer Aᵀ b = A.det • A⁻¹.mul_vec b :=
+begin
+  rw [cramer_transpose_eq_adjugate_mul_vec, A.nonsing_inv_apply h, ← smul_mul_vec_assoc],
+  conv_rhs { congr, congr, rw ← h.unit_spec, },
+  rw units.smul_inv_smul,
+end
 
 end matrix

@@ -1,6 +1,23 @@
+/-
+Copyright (c) 2020 Damiano Testa. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Damiano Testa
+-/
 import data.finsupp.basic
 
+/-!
+# Dealing with monotone non-increasing maps.
+
+It is my intention to move the contents of this file to `data.finset.lattice`, section `max_min`.
+
+If you think that there is a better alternative, please let me know!
+-/
+
+namespace finset
+
 open finset
+
+section max_min
 
 /-- `mon` is the property of being monotone non-increasing. -/
 def mon {α β : Type*} [linear_order α] [linear_order β] (f : α → β) :=
@@ -17,3 +34,7 @@ begin
   rcases hx with ⟨a, as, rfl⟩,
   exact mf (min'_le _ _ as),
 end
+
+end max_min
+
+end finset

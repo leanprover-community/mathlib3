@@ -13,8 +13,13 @@ import data.polynomial.to_finset_lattice_max_min
 The main definition is `reverse`.  Applying `reverse` to a polynomial `f : polynomial R` produces
 the polynomial with a reversed list of coefficients, equivalent to `X^f.nat_degree * f(1/X)`.
 
-The main result is that `reverse (f * g) = reverse (f) * reverse (g)`, provided the leading
-coefficients of `f` and `g` do not multiply to zero.
+The main results are:
+
+1. `reverse (f * g) = reverse (f) * reverse (g)`, provided the leading
+coefficients of `f` and `g` do not multiply to zero;
+
+2. if the coefficient ring R is an integral domain, then the function
+`trailing_coeff_hom : polynomial R →* R` is a multiplicative monoid homomorphism.
 -/
 
 namespace polynomial

@@ -90,7 +90,7 @@ lemma segment_eq_image (x y : PE) : segment x y = (λ θ, θ • (y -ᵥ x) +ᵥ
 
 include F
 
-lemma affine_map.image_segment (f : affine_map ℝ PE PF) (x y : PE) :
+lemma affine_map.image_segment (f : PE →ᵃ[ℝ] PF) (x y : PE) :
   f '' [x, y] = [f x, f y] :=
 by rw [segment, segment, ← image_comp, ← coe_comp, comp_line_map]
 
@@ -188,7 +188,7 @@ lemma convex.prod {s : set PE} {t : set PF} (hs : convex s) (ht : convex t) :
 λ x hx y hy a ha, ⟨hs hx.1 hy.1 ha, ht hx.2 hy.2 ha⟩
 
 /-- The preimage of a convex set under an affine map is convex. -/
-lemma convex.affine_preimage (f : affine_map ℝ PE PF) {s : set PF} (hs : convex s) :
+lemma convex.affine_preimage (f : PE →ᵃ[ℝ] PF) {s : set PF} (hs : convex s) :
   convex (f ⁻¹' s) :=
 begin
   intros x hx y hy a ha,
@@ -197,7 +197,7 @@ begin
 end
 
 /-- The image of a convex set under an affine map is convex. -/
-lemma convex.affine_image (f : affine_map ℝ PE PF) (hs : convex s) :
+lemma convex.affine_image (f : PE →ᵃ[ℝ] PF) (hs : convex s) :
   convex (f '' s) :=
 begin
   rintros _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩,
@@ -264,7 +264,7 @@ begin
   rw ← image_prod,
   -- This instance fails defeq for `affine_space ? (E × PE)`. Why?
   letI : affine_space (E × E) (E × PE) := prod.add_torsor,
-  exact (hs.prod ht).affine_image ((affine_map.fst : affine_map ℝ (E × PE) E) +ᵥ snd)
+  exact (hs.prod ht).affine_image ((affine_map.fst : (E × PE) →ᵃ[ℝ] E) +ᵥ snd)
 end
 
 lemma convex.add {s t : set E} (hs : convex s) (ht : convex t) : convex (s + t) :=
@@ -275,7 +275,7 @@ begin
   rw ← image_prod,
   -- This instance fails defeq for `affine_space ? (PE × PE)`. Why?
   letI : affine_space (E × E) (PE × PE) := prod.add_torsor,
-  exact (hs.prod ht).affine_image ((affine_map.fst : affine_map ℝ (PE × PE) PE) -ᵥ snd)
+  exact (hs.prod ht).affine_image ((affine_map.fst : (PE × PE) →ᵃ[ℝ] PE) -ᵥ snd)
 end
 
 lemma convex.sub {s t : set E} (hs : convex s) (ht : convex t) :
@@ -303,23 +303,23 @@ include E
 
 lemma convex_segment (a b : PE) : convex [a, b] := (convex_Icc 0 1).affine_image _
 
-lemma affine_map.convex_lt (f : affine_map ℝ PE ℝ) (r : ℝ) :
+lemma affine_map.convex_lt (f : PE →ᵃ[ℝ] ℝ) (r : ℝ) :
   convex {w | f w < r} :=
 (convex_Iio r).affine_preimage f
 
-lemma affine_map.convex_le (f : affine_map ℝ PE ℝ) (r : ℝ) :
+lemma affine_map.convex_le (f : PE →ᵃ[ℝ] ℝ) (r : ℝ) :
   convex {w | f w ≤ r} :=
 (convex_Iic r).affine_preimage f
 
-lemma affine_map.convex_gt (f : affine_map ℝ PE ℝ) (r : ℝ) :
+lemma affine_map.convex_gt (f : PE →ᵃ[ℝ] ℝ) (r : ℝ) :
   convex {w | r < f w} :=
 (convex_Ioi r).affine_preimage f
 
-lemma affine_map.convex_ge (f : affine_map ℝ E ℝ) (r : ℝ) :
+lemma affine_map.convex_ge (f : E →ᵃ[ℝ] ℝ) (r : ℝ) :
   convex {w | r ≤ f w} :=
 (convex_Ici r).affine_preimage f
 
-lemma affine_map.convex_eq (f : affine_map ℝ E ℝ) (r : ℝ) :
+lemma affine_map.convex_eq (f : E →ᵃ[ℝ] ℝ) (r : ℝ) :
   convex {w | f w = r} :=
 (convex_singleton r).affine_preimage f
 
@@ -412,7 +412,7 @@ lemma convex_hull_singleton {x : PE} : convex_hull ({x} : set PE) = {x} :=
 
 include F
 
-lemma affine_map.image_convex_hull (f : affine_map ℝ PE PF) (s : set PE) :
+lemma affine_map.image_convex_hull (f : PE →ᵃ[ℝ] PF) (s : set PE) :
   f '' (convex_hull s) = convex_hull (f '' s) :=
 begin
   refine set.subset.antisymm _ _,

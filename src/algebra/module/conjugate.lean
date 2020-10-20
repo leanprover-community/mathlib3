@@ -50,7 +50,7 @@ namespace conjugate_semimodule
 variables {E : Type*}  [add_comm_monoid E]
 
 /-- The equivalence between `E` and its conjugate semimodule. -/
-def conj_equiv (I : R ≃+* Rᵒᵖ) : E ≃+ conjugate_semimodule I E :=
+@[nolint unused_arguments] def conj_equiv (I : R ≃+* Rᵒᵖ) : E ≃+ conjugate_semimodule I E :=
 { to_fun := id,
   inv_fun := id,
   left_inv := λ x, rfl,
@@ -101,7 +101,7 @@ local notation `I` := conj_to_ring_equiv 𝕜
 
 variables (𝕜)
 /-- The equivalence between `E` and its conjugate space -/
-def conj_equiv : E ≃+ conj_semimodule 𝕜 E := conjugate_semimodule.conj_equiv I
+@[nolint unused_arguments] def conj_equiv : E ≃+ conj_semimodule 𝕜 E := conjugate_semimodule.conj_equiv I
 
 variables {𝕜}
 

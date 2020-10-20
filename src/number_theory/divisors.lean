@@ -253,7 +253,8 @@ lemma finset_div_eq_filter (n : ℕ+) :
   finset.filter (λ (x : ℕ), x ∣ ↑n) (finset.range (n : ℕ).succ) = (n : ℕ).divisors :=
 begin
   apply finset.ext,
-  simp only [mem_divisors, mem_filter, mem_range, and_true, and_iff_right_iff_imp, ne.def, pnat.ne_zero, not_false_iff],
+  simp only [mem_divisors, mem_filter, mem_range, and_true,
+  and_iff_right_iff_imp, ne.def, pnat.ne_zero, not_false_iff],
   intros a ha,
   exact nat.lt_succ_of_le (nat.divisor_le (nat.mem_divisors.2 (and.intro ha (pnat.ne_zero n))))
 end

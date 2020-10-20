@@ -42,12 +42,15 @@ instance [normed_group E] [normed_space 𝕜 E] [has_inner 𝕜 E] : has_inner �
 
 instance [inner_product_space 𝕜 E] : inner_product_space 𝕜 (conj_semimodule 𝕜 E) :=
 {
-  norm_sq_eq_inner := λ x, by { change ∥(conj_equiv 𝕜).symm x∥^2 = re ⟪x, x⟫, exact norm_sq_eq_inner x },
+  norm_sq_eq_inner := λ x,
+    by { change ∥(conj_equiv 𝕜).symm x∥^2 = re ⟪x, x⟫, exact norm_sq_eq_inner x },
   conj_sym := λ x y, inner_conj_sym _ _,
   nonneg_im := λ x, inner_self_nonneg_im,
   add_left := λ x y z,
   begin
-    change ⟪(conj_equiv 𝕜).symm z, (conj_equiv 𝕜).symm (x + y)⟫ = ⟪(conj_equiv 𝕜).symm z, (conj_equiv 𝕜).symm x⟫ + ⟪(conj_equiv 𝕜).symm z, (conj_equiv 𝕜).symm y⟫,
+    change ⟪(conj_equiv 𝕜).symm z, (conj_equiv 𝕜).symm (x + y)⟫
+      = ⟪(conj_equiv 𝕜).symm z, (conj_equiv 𝕜).symm x⟫
+      + ⟪(conj_equiv 𝕜).symm z, (conj_equiv 𝕜).symm y⟫,
     simp [inner_add_right],
   end,
   smul_left := λ x y r, by simp [has_inner.inner, smul_def', inner_smul_right] }

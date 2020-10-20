@@ -2,14 +2,17 @@
 Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
-
-Definitions and properties of gcd, lcm, and coprime.
 -/
 import data.nat.basic
 
+/-!
+# Definitions and properties of `gcd`, `lcm`, and `coprime`
+
+-/
+
 namespace nat
 
-/- gcd -/
+/-! ### `gcd` -/
 
 theorem gcd_dvd (m n : ℕ) : (gcd m n ∣ m) ∧ (gcd m n ∣ n) :=
 gcd.induction m n
@@ -133,7 +136,7 @@ by rw [gcd_comm, gcd_gcd_self_right_right]
 @[simp] lemma gcd_gcd_self_left_left (m n : ℕ) : gcd (gcd m n) m = gcd m n :=
 by rw [gcd_comm m n, gcd_gcd_self_left_right]
 
-/- lcm -/
+/-! ### `lcm` -/
 
 theorem lcm_comm (m n : ℕ) : lcm m n = lcm n m :=
 by delta lcm; rw [mul_comm, gcd_comm]
@@ -178,23 +181,17 @@ dvd_antisymm
     (dvd.trans (dvd_lcm_left m n) (dvd_lcm_left (lcm m n) k))
     (lcm_dvd (dvd.trans (dvd_lcm_right m n) (dvd_lcm_left (lcm m n) k)) (dvd_lcm_right (lcm m n) k)))
 
-/- coprime -/
+/-!
+### `coprime`
+
+See also `nat.coprime_of_dvd` and `nat.coprime_of_dvd'` to prove `nat.coprime m n`.
+-/
 
 instance (m n : ℕ) : decidable (coprime m n) := by unfold coprime; apply_instance
 
 theorem coprime.gcd_eq_one {m n : ℕ} : coprime m n → gcd m n = 1 := id
 
 theorem coprime.symm {m n : ℕ} : coprime n m → coprime m n := (gcd_comm m n).trans
-
-theorem coprime_of_dvd {m n : ℕ} (H : ∀ k, 1 < k → k ∣ m → ¬ k ∣ n) : coprime m n :=
-or.elim (eq_zero_or_pos (gcd m n))
-  (λg0, by rw [eq_zero_of_gcd_eq_zero_left g0, eq_zero_of_gcd_eq_zero_right g0] at H; exact false.elim
-    (H 2 dec_trivial (dvd_zero _) (dvd_zero _)))
-  (λ(g1 : 1 ≤ _), eq.symm $ (lt_or_eq_of_le g1).resolve_left $ λg2,
-    H _ g2 (gcd_dvd_left _ _) (gcd_dvd_right _ _))
-
-theorem coprime_of_dvd' {m n : ℕ} (H : ∀ k, k ∣ m → k ∣ n → k ∣ 1) : coprime m n :=
-coprime_of_dvd $ λk kl km kn, not_le_of_gt kl $ le_of_dvd zero_lt_one (H k km kn)
 
 theorem coprime.dvd_of_dvd_mul_right {m n k : ℕ} (H1 : coprime k n) (H2 : k ∣ m * n) : k ∣ m :=
 let t := dvd_gcd (dvd_mul_left k m) H2 in
@@ -376,10 +373,23 @@ begin
   { simp [eq_zero_of_gcd_eq_zero_right g0] },
   rcases exists_coprime' g0 with ⟨g, a', b', g0', co, rfl, rfl⟩,
   rw [mul_pow, mul_pow] at h,
-  replace h := dvd_of_mul_dvd_mul_right (pos_pow_of_pos _ g0') h,
+  replace h := dvd_of_mul_dvd_mul_right (pow_pos g0' _) h,
   have := pow_dvd_pow a' n0,
   rw [pow_one, (co.pow n n).eq_one_of_dvd h] at this,
   simp [eq_one_of_dvd_one this]
+end
+
+lemma gcd_mul_gcd_of_coprime_of_mul_eq_mul {a b c d : ℕ} (cop : c.coprime d) (h : a * b = c * d) :
+  a.gcd c * b.gcd c = c :=
+begin
+  apply dvd_antisymm,
+  { apply nat.coprime.dvd_of_dvd_mul_right (nat.coprime.mul (cop.gcd_left _) (cop.gcd_left _)),
+    rw ← h,
+    apply mul_dvd_mul (gcd_dvd _ _).1 (gcd_dvd _ _).1 },
+  { rw [gcd_comm a _, gcd_comm b _],
+    transitivity c.gcd (a * b),
+    rw [h, gcd_mul_right_right d c],
+    apply gcd_mul_dvd_mul_gcd }
 end
 
 end nat

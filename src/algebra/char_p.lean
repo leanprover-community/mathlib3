@@ -9,6 +9,8 @@ import data.nat.choose
 import data.int.modeq
 import algebra.module.basic
 import algebra.iterate_hom
+import group_theory.order_of_element
+import algebra.group.type_tags
 
 /-!
 # Characteristic of semirings
@@ -22,6 +24,13 @@ class char_p (α : Type u) [semiring α] (p : ℕ) : Prop :=
 
 theorem char_p.cast_eq_zero (α : Type u) [semiring α] (p : ℕ) [char_p α p] : (p:α) = 0 :=
 (char_p.cast_eq_zero_iff α p p).2 (dvd_refl p)
+
+@[simp] lemma char_p.cast_card_eq_zero (R : Type*) [ring R] [fintype R] : (fintype.card R : R) = 0 :=
+begin
+  have : fintype.card R •ℕ (1 : R) = 0 :=
+    @pow_card_eq_one (multiplicative R) _ _ (multiplicative.of_add 1),
+  simpa only [mul_one, nsmul_eq_mul]
+end
 
 lemma char_p.int_cast_eq_zero_iff (R : Type u) [ring R] (p : ℕ) [char_p R p] (a : ℤ) :
   (a : R) = 0 ↔ (p:ℤ) ∣ a :=
@@ -98,7 +107,7 @@ theorem add_pow_char_pow_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prim
   (x + y) ^ (p ^ n) = x ^ (p ^ n) + y ^ (p ^ n) :=
 begin
   induction n, { simp, },
-  rw [nat.pow_succ, pow_mul, pow_mul, pow_mul, n_ih],
+  rw [pow_succ', pow_mul, pow_mul, pow_mul, n_ih],
   apply add_pow_char_of_commute, apply commute.pow_pow h,
 end
 
@@ -115,7 +124,7 @@ theorem sub_pow_char_pow_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prim
   (x - y) ^ (p ^ n) = x ^ (p ^ n) - y ^ (p ^ n) :=
 begin
   induction n, { simp, },
-  rw [nat.pow_succ, pow_mul, pow_mul, pow_mul, n_ih],
+  rw [pow_succ', pow_mul, pow_mul, pow_mul, n_ih],
   apply sub_pow_char_of_commute, apply commute.pow_pow h,
 end
 
@@ -154,6 +163,14 @@ begin
   rw fact at *, linarith,
 end
 
+lemma ring_hom.char_p_iff_char_p {K L : Type*} [field K] [field L] (f : K →+* L) (p : ℕ) :
+  char_p K p ↔ char_p L p :=
+begin
+  split;
+  { introI _c, constructor, intro n,
+    rw [← @char_p.cast_eq_zero_iff _ _ p _c n, ← f.injective.eq_iff, f.map_nat_cast, f.map_zero] }
+end
+
 section frobenius
 
 variables (R : Type u) [comm_ring R] {S : Type v} [comm_ring S] (f : R →* S) (g : R →+* S)
@@ -174,7 +191,7 @@ theorem frobenius_def : frobenius R p x = x ^ p := rfl
 theorem iterate_frobenius (n : ℕ) : (frobenius R p)^[n] x = x ^ p ^ n :=
 begin
   induction n, {simp},
-  rw [function.iterate_succ', nat.pow_succ, pow_mul, function.comp_apply, frobenius_def, n_ih]
+  rw [function.iterate_succ', pow_succ', pow_mul, function.comp_apply, frobenius_def, n_ih]
 end
 
 theorem frobenius_mul : frobenius R p (x * y) = frobenius R p x * frobenius R p y :=
@@ -232,7 +249,7 @@ section
 variables (α : Type u) [ring α]
 
 lemma char_p_to_char_zero [char_p α 0] : char_zero α :=
-add_group.char_zero_of_inj_zero $
+char_zero_of_inj_zero $
   λ n h0, eq_zero_of_zero_dvd ((cast_eq_zero_iff α 0 n).mp h0)
 
 lemma cast_eq_mod (p : ℕ) [char_p α p] (k : ℕ) : (k : α) = (k % p : ℕ) :=
@@ -304,12 +321,51 @@ calc r = 1 * r       : by rw one_mul
    ... = 0 * r       : by rw char_p.cast_eq_zero
    ... = 0           : by rw zero_mul
 
-lemma false_of_nonzero_of_char_one [semiring R] [nontrivial R] [char_p R 1] : false :=
-zero_ne_one $ show (0:R) = 1, from subsingleton.elim 0 1
+lemma false_of_nontrivial_of_char_one [semiring R] [nontrivial R] [char_p R 1] : false :=
+false_of_nontrivial_of_subsingleton R
 
 lemma ring_char_ne_one [semiring R] [nontrivial R] : ring_char R ≠ 1 :=
 by { intros h, apply @zero_ne_one R, symmetry, rw [←nat.cast_one, ring_char.spec, h], }
 
+lemma nontrivial_of_char_ne_one {v : ℕ} (hv : v ≠ 1) {R : Type*} [semiring R] [hr : char_p R v] :
+  nontrivial R :=
+⟨⟨(1 : ℕ), 0, λ h, hv $ by rwa [char_p.cast_eq_zero_iff _ v, nat.dvd_one] at h; assumption ⟩⟩
+
 end char_one
 
 end char_p
+
+section
+
+variables (n : ℕ) (R : Type*) [comm_ring R] [fintype R]
+
+lemma char_p_of_ne_zero (hn : fintype.card R = n) (hR : ∀ i < n, (i : R) = 0 → i = 0) :
+  char_p R n :=
+{ cast_eq_zero_iff :=
+  begin
+    have H : (n : R) = 0, by { rw [← hn, char_p.cast_card_eq_zero] },
+    intro k,
+    split,
+    { intro h,
+      rw [← nat.mod_add_div k n, nat.cast_add, nat.cast_mul, H, zero_mul, add_zero] at h,
+      rw nat.dvd_iff_mod_eq_zero,
+      apply hR _ (nat.mod_lt _ _) h,
+      rw [← hn, gt, fintype.card_pos_iff],
+      exact ⟨0⟩, },
+    { rintro ⟨k, rfl⟩, rw [nat.cast_mul, H, zero_mul] }
+  end }
+
+lemma char_p_of_prime_pow_injective (p : ℕ) [hp : fact p.prime] (n : ℕ) (hn : fintype.card R = p ^ n)
+  (hR : ∀ i ≤ n, (p ^ i : R) = 0 → i = n) :
+  char_p R (p ^ n) :=
+begin
+  obtain ⟨c, hc⟩ := char_p.exists R, resetI,
+  have hcpn : c ∣ p ^ n,
+  { rw [← char_p.cast_eq_zero_iff R c, ← hn, char_p.cast_card_eq_zero], },
+  obtain ⟨i, hi, hc⟩ : ∃ i ≤ n, c = p ^ i, by rwa nat.dvd_prime_pow hp at hcpn,
+  obtain rfl : i = n,
+  { apply hR i hi, rw [← nat.cast_pow, ← hc, char_p.cast_eq_zero] },
+  rwa ← hc
+end
+
+end

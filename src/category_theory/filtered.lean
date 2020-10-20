@@ -63,6 +63,8 @@ A category `is_filtered` if
 2. for every pair of parallel morphisms there exists a morphism to the right so the compositions
    are equal, and
 3. there exists some object.
+
+See https://stacks.math.columbia.edu/tag/002V. (They also define a diagram being filtered.)
 -/
 class is_filtered extends is_filtered_or_empty C : Prop :=
 [nonempty : nonempty C]
@@ -147,16 +149,15 @@ begin
     { exact ⟨(w' (by finish)).some ≫ right_to_max _ _⟩, }, }
 end
 
-/--
-An alternative formulation of `sup_exists`, using a single `finset` of morphisms,
-rather than a family indexed by the sources and targets.
+variables (O : finset C) (H : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y))
 
+/--
 Given any `finset` of objects `{X, ...}` and
 indexed collection of `finset`s of morphisms `{f, ...}` in `C`,
-there is an object `S`, with a morphism `T X : X ⟶ S` from each `X`,
+there exists an object `S`, with a morphism `T X : X ⟶ S` from each `X`,
 such that the triangles commute: `f ≫ T X = T Y`, for `f : X ⟶ Y` in the `finset`.
 -/
-lemma sup_exists' (O : finset C) (H : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y)) :
+lemma sup_exists :
   ∃ (S : C) (T : Π {X : C}, X ∈ O → (X ⟶ S)), ∀ {X Y : C} (mX : X ∈ O) (mY : Y ∈ O) {f : X ⟶ Y},
     (⟨X, Y, mX, mY, f⟩ : (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y)) ∈ H → f ≫ T mY = T mX :=
 begin
@@ -179,49 +180,27 @@ begin
 end
 
 /--
-Given any `finset` of objects `{X, ...}` and
-indexed collection of `finset`s of morphisms `{f, ...}` in `C`,
-there is an object `S`, with a morphism `T X : X ⟶ S` from each `X`,
-such that the triangles commute: `f ≫ T X = T Y`, for `f : X ⟶ Y` in the `finset`.
--/
-lemma sup_exists (O : finset C) (H : Π X Y, X ∈ O → Y ∈ O → finset (X ⟶ Y)) :
-  ∃ (S : C) (T : Π {X : C}, X ∈ O → (X ⟶ S)), ∀ {X Y : C} (mX : X ∈ O) (mY : Y ∈ O) {f : X ⟶ Y},
-    f ∈ H _ _ mX mY → f ≫ T mY = T mX :=
-begin
-  classical,
-  let H' : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y) :=
-    O.attach.bind (λ X : { X // X ∈ O }, O.attach.bind (λ Y : { Y // Y ∈ O },
-      (H X.1 Y.1 X.2 Y.2).image (λ f, ⟨X.1, Y.1, X.2, Y.2, f⟩))),
-  obtain ⟨S, T, w⟩ := sup_exists' O H',
-  refine ⟨S, @T, _⟩,
-  intros X Y mX mY f mf,
-  apply w,
-  simp only [finset.mem_attach, exists_prop, finset.mem_bind, exists_prop_of_true, finset.mem_image,
-    subtype.exists, subtype.coe_mk, subtype.val_eq_coe],
-  refine ⟨X, mX, Y, mY, f, mf, rfl, (by simp)⟩,
-end
-
-/--
 An arbitrary choice of object "to the right" of a finite collection of objects `O` and morphisms `H`,
 making all the triangles commute.
 -/
 noncomputable
-def sup (O : finset C) (H : Π X Y, X ∈ O → Y ∈ O → finset (X ⟶ Y)) : C :=
+def sup : C :=
 (sup_exists O H).some
 
 /--
 The morphisms to `sup O H`.
 -/
 noncomputable
-def to_sup (O : finset C) (H : Π X Y, X ∈ O → Y ∈ O → finset (X ⟶ Y)) {X : C} (m : X ∈ O) :
+def to_sup {X : C} (m : X ∈ O) :
   X ⟶ sup O H :=
 (sup_exists O H).some_spec.some m
 
 /--
 The triangles of consisting of a morphism in `H` and the maps to `sup O H` commute.
 -/
-lemma to_sup_commutes (O : finset C) (H : Π X Y, X ∈ O → Y ∈ O → finset (X ⟶ Y))
-  {X Y : C} (mX : X ∈ O) (mY : Y ∈ O) {f : X ⟶ Y} (mf : f ∈ H _ _ mX mY) :
+lemma to_sup_commutes
+  {X Y : C} (mX : X ∈ O) (mY : Y ∈ O) {f : X ⟶ Y}
+  (mf : (⟨X, Y, mX, mY, f⟩ : Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y) ∈ H) :
   f ≫ to_sup O H mY = to_sup O H mX :=
 (sup_exists O H).some_spec.some_spec mX mY mf
 
@@ -238,7 +217,7 @@ begin
   let H : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y) :=
     finset.univ.bind (λ X : J, finset.univ.bind (λ Y : J, finset.univ.image (λ f : X ⟶ Y,
       ⟨F.obj X, F.obj Y, by simp, by simp, F.map f⟩))),
-  obtain ⟨Z, f, w⟩ := sup_exists' O H,
+  obtain ⟨Z, f, w⟩ := sup_exists O H,
   refine ⟨⟨Z, ⟨λ X, f (by simp), _⟩⟩⟩,
   intros j j' g,
   dsimp,
@@ -250,7 +229,7 @@ begin
 end
 
 /--
-An arbitrarily chosen cocone over `F : J ⥤ C`, for `fin_category J` and `is_filtered C`.
+An arbitrary choice of cocone over `F : J ⥤ C`, for `fin_category J` and `is_filtered C`.
 -/
 noncomputable def cocone (F : J ⥤ C) : cocone F :=
 (cocone_nonempty F).some

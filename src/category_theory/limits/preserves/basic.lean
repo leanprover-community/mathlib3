@@ -34,6 +34,8 @@ with the above definition of "preserves limits".
 
 open category_theory
 
+noncomputable theory
+
 namespace category_theory.limits
 
 universes v u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -44,13 +46,13 @@ variables {D : Type u₂} [category.{v} D]
 variables {J : Type v} [small_category J] {K : J ⥤ C}
 
 /--
-A functor `F` preserves limits of shape `K` (written as `preserves_limit K F`)
+A functor `F` preserves limits of `K` (written as `preserves_limit K F`)
 if `F` maps any limit cone over `K` to a limit cone.
 -/
 class preserves_limit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves : Π {c : cone K}, is_limit c → is_limit (F.map_cone c))
 /--
-A functor `F` preserves colimits of shape `K` (written as `preserves_colimit K F`)
+A functor `F` preserves colimits of `K` (written as `preserves_colimit K F`)
 if `F` maps any colimit cocone over `K` to a colimit cocone.
 -/
 class preserves_colimit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
@@ -123,13 +125,20 @@ abbreviation preserves_colimit_iso'
   F.obj (colimit K) ≅ colimit (K ⋙ F) :=
 preserves_colimit_iso (colimit.is_colimit K) (colimit.is_colimit (K ⋙ F))
 
+/-- We say that `F` preserves limits of shape `J` if `F` preserves limits for every diagram
+    `K : J ⥤ C`, i.e., `F` maps limit cones over `K` to limit cones. -/
 class preserves_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves_limit : Π {K : J ⥤ C}, preserves_limit K F)
+/-- We say that `F` preserves colimits of shape `J` if `F` preserves colimits for every diagram
+    `K : J ⥤ C`, i.e., `F` maps colimit cocones over `K` to colimit cocones. -/
 class preserves_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves_colimit : Π {K : J ⥤ C}, preserves_colimit K F)
 
+/-- We say that `F` preserves limits if it sends limit cones over any diagram to limit cones. -/
 class preserves_limits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
-(preserves_limits_of_shape : Π {J : Type v} [small_category J], preserves_limits_of_shape J F)
+(preserves_limits_of_shape : Π {J : Type v} [𝒥 : small_category J], by exactI preserves_limits_of_shape J F)
+/-- We say that `F` preserves colimits if it sends colimit cocones over any diagram to colimit
+    cocones.-/
 class preserves_colimits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 (preserves_colimits_of_shape : Π {J : Type v} [small_category J], preserves_colimits_of_shape J F)
 

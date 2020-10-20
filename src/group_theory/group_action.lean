@@ -64,9 +64,11 @@ section gwz
 
 variables {G : Type*} [group_with_zero G] [mul_action G β]
 
+@[simp]
 lemma inv_smul_smul' {c : G} (hc : c ≠ 0) (x : β) : c⁻¹ • c • x = x :=
 (units.mk0 c hc).inv_smul_smul x
 
+@[simp]
 lemma smul_inv_smul' {c : G} (hc : c ≠ 0) (x : β) : c • c⁻¹ • x = x :=
 (units.mk0 c hc).smul_inv_smul x
 
@@ -192,6 +194,17 @@ def stabilizer.submonoid (b : β) : submonoid α :=
   one_mem' := one_smul _ b,
   mul_mem' := λ a a' (ha : a • b = b) (hb : a' • b = b),
     by rw [mem_stabilizer_iff, ←smul_smul, hb, ha] }
+
+variables (α β)
+
+/-- Embedding induced by action. -/
+def to_fun : β ↪ (α → β) :=
+⟨λ y x, x • y, λ y₁ y₂ H, one_smul α y₁ ▸ one_smul α y₂ ▸ by convert congr_fun H 1⟩
+
+variables {α β}
+
+@[simp] lemma to_fun_apply (x : α) (y : β) : mul_action.to_fun α β y x = x • y :=
+rfl
 
 end mul_action
 

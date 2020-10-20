@@ -11,6 +11,7 @@ noncomputable theory
 open_locale big_operators
 open_locale classical
 open_locale real
+open_locale real_inner_product_space
 
 /-!
 # Circumcenter and circumradius
@@ -36,7 +37,7 @@ namespace euclidean_geometry
 
 open inner_product_geometry
 
-variables {V : Type*} {P : Type*} [inner_product_space V] [metric_space P]
+variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
 include V
 
@@ -265,7 +266,7 @@ namespace simplex
 
 open finset affine_subspace euclidean_geometry
 
-variables {V : Type*} {P : Type*} [inner_product_space V] [metric_space P]
+variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
 include V
 
@@ -378,6 +379,33 @@ begin
           (λ i, hr i (set.mem_univ _))).symm
 end
 
+/-- If there exists a distance that a point has from all vertices of a
+simplex, the orthogonal projection of that point onto the subspace
+spanned by that simplex is its circumcenter.  -/
+lemma orthogonal_projection_eq_circumcenter_of_exists_dist_eq {n : ℕ} (s : simplex ℝ P n)
+  {p : P} (hr : ∃ r, ∀ i, dist (s.points i) p = r) :
+  orthogonal_projection (affine_span ℝ (set.range s.points)) p = s.circumcenter :=
+begin
+  change ∃ r : ℝ, ∀ i, (λ x, dist x p = r) (s.points i) at hr,
+  conv at hr { congr, funext, rw ←set.forall_range_iff },
+  rw exists_dist_eq_iff_exists_dist_orthogonal_projection_eq (subset_affine_span ℝ _) p at hr,
+  cases hr with r hr,
+  rw set.forall_range_iff at hr,
+  exact s.eq_circumcenter_of_dist_eq
+    (orthogonal_projection_mem
+      ((affine_span_nonempty ℝ _).2 (set.range_nonempty _))
+      (submodule.complete_of_finite_dimensional _)
+      p) hr
+end
+
+/-- If a point has the same distance from all vertices of a simplex,
+the orthogonal projection of that point onto the subspace spanned by
+that simplex is its circumcenter.  -/
+lemma orthogonal_projection_eq_circumcenter_of_dist_eq {n : ℕ} (s : simplex ℝ P n) {p : P}
+  {r : ℝ} (hr : ∀ i, dist (s.points i) p = r) :
+  orthogonal_projection (affine_span ℝ (set.range s.points)) p = s.circumcenter :=
+s.orthogonal_projection_eq_circumcenter_of_exists_dist_eq ⟨r, hr⟩
+
 /-- The orthogonal projection of the circumcenter onto a face is the
 circumcenter of that face. -/
 lemma orthogonal_projection_circumcenter {n : ℕ} (s : simplex ℝ P n) {fs : finset (fin (n + 1))}
@@ -385,24 +413,25 @@ lemma orthogonal_projection_circumcenter {n : ℕ} (s : simplex ℝ P n) {fs : f
   orthogonal_projection (affine_span ℝ (s.points '' ↑fs)) s.circumcenter =
     (s.face h).circumcenter :=
 begin
-  have hr : ∃ r, ∀ p ∈ set.range (s.face h).points, dist p s.circumcenter = r,
+  have hr : ∃ r, ∀ i, dist ((s.face h).points i) s.circumcenter = r,
   { use s.circumradius,
-    intros p hp,
-    rcases set.mem_range.1 hp with ⟨i, rfl⟩,
     simp [face_points] },
-  have hs : set.range (s.face h).points ⊆ affine_span ℝ (s.points '' ↑fs),
-  { rw s.range_face_points h,
-    exact subset_span_points ℝ _ },
-  rw exists_dist_eq_iff_exists_dist_orthogonal_projection_eq hs s.circumcenter at hr,
-  cases hr with r hr,
-  have ho : orthogonal_projection (affine_span ℝ (s.points '' ↑fs)) s.circumcenter ∈
-    affine_span ℝ (set.range (s.face h).points),
-  { rw s.range_face_points h,
-    have hn : (affine_span ℝ (s.points '' ↑fs) : set P).nonempty,
-    { simp [←finset.card_pos, h] },
-    exact orthogonal_projection_mem hn (submodule.complete_of_finite_dimensional _) _ },
-  rw set.forall_range_iff at hr,
-  exact (s.face h).eq_circumcenter_of_dist_eq ho hr
+  rw [←range_face_points, orthogonal_projection_eq_circumcenter_of_exists_dist_eq _ hr]
+end
+
+/-- Two simplices with the same points have the same circumcenter. -/
+lemma circumcenter_eq_of_range_eq {n : ℕ} {s₁ s₂ : simplex ℝ P n}
+  (h : set.range s₁.points = set.range s₂.points) : s₁.circumcenter = s₂.circumcenter :=
+begin
+  have hs : s₁.circumcenter ∈ affine_span ℝ (set.range s₂.points) :=
+    h ▸ s₁.circumcenter_mem_affine_span,
+  have hr : ∀ i, dist (s₂.points i) s₁.circumcenter = s₁.circumradius,
+  { intro i,
+    have hi : s₂.points i ∈ set.range s₂.points := set.mem_range_self _,
+    rw [←h, set.mem_range] at hi,
+    rcases hi with ⟨j, hj⟩,
+    rw [←hj, s₁.dist_circumcenter_eq_circumradius j] },
+  exact s₂.eq_circumcenter_of_dist_eq hs hr
 end
 
 omit V
@@ -580,6 +609,256 @@ begin
   rintros ⟨i⟩ hi hn ; tauto
 end
 
+omit V
+
+/-- The weights for the reflection of the circumcenter in an edge of a
+simplex.  This definition is only valid with `i₁ ≠ i₂`. -/
+def reflection_circumcenter_weights_with_circumcenter {n : ℕ} (i₁ i₂ : fin (n + 1)) :
+  points_with_circumcenter_index n → ℝ
+| (point_index i) := if i = i₁ ∨ i = i₂ then 1 else 0
+| circumcenter_index := -1
+
+/-- `reflection_circumcenter_weights_with_circumcenter` sums to 1. -/
+@[simp] lemma sum_reflection_circumcenter_weights_with_circumcenter {n : ℕ} {i₁ i₂ : fin (n + 1)}
+  (h : i₁ ≠ i₂) : ∑ i, reflection_circumcenter_weights_with_circumcenter i₁ i₂ i = 1 :=
+begin
+  simp_rw [sum_points_with_circumcenter, reflection_circumcenter_weights_with_circumcenter,
+           sum_ite, sum_const, filter_or, filter_eq'],
+  rw card_union_eq,
+  { simp },
+  { simp [h.symm] }
+end
+
+include V
+
+/-- The reflection of the circumcenter of a simplex in an edge, in
+terms of `points_with_circumcenter`. -/
+lemma reflection_circumcenter_eq_affine_combination_of_points_with_circumcenter {n : ℕ}
+  (s : simplex ℝ P n) {i₁ i₂ : fin (n + 1)} (h : i₁ ≠ i₂) :
+  reflection (affine_span ℝ (s.points '' {i₁, i₂})) s.circumcenter =
+    (univ : finset (points_with_circumcenter_index n)).affine_combination
+      s.points_with_circumcenter (reflection_circumcenter_weights_with_circumcenter i₁ i₂) :=
+begin
+  have hc : card ({i₁, i₂} : finset (fin (n + 1))) = 2,
+  { simp [h] },
+  rw [reflection_apply, ←coe_singleton, ←coe_insert, s.orthogonal_projection_circumcenter hc,
+      circumcenter_eq_centroid, s.face_centroid_eq_centroid hc,
+      centroid_eq_affine_combination_of_points_with_circumcenter,
+      circumcenter_eq_affine_combination_of_points_with_circumcenter, ←@vsub_eq_zero_iff_eq V,
+      affine_combination_vsub, weighted_vsub_vadd_affine_combination, affine_combination_vsub,
+      weighted_vsub_apply, sum_points_with_circumcenter],
+  simp_rw [pi.sub_apply, pi.add_apply, pi.sub_apply, sub_smul, add_smul, sub_smul,
+           centroid_weights_with_circumcenter, circumcenter_weights_with_circumcenter,
+           reflection_circumcenter_weights_with_circumcenter, ite_smul, zero_smul, sub_zero,
+           apply_ite2 (+), add_zero, ←add_smul, hc, zero_sub, neg_smul, sub_self, add_zero],
+  convert sum_const_zero,
+  norm_num
+end
+
 end simplex
 
 end affine
+
+namespace euclidean_geometry
+
+open affine affine_subspace finite_dimensional
+
+variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
+    [normed_add_torsor V P]
+include V
+
+/-- Given a nonempty affine subspace, whose direction is complete,
+that contains a set of points, those points are cospherical if and
+only if they are equidistant from some point in that subspace. -/
+lemma cospherical_iff_exists_mem_of_complete {s : affine_subspace ℝ P} {ps : set P} (h : ps ⊆ s)
+  (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) :
+  cospherical ps ↔ ∃ (center ∈ s) (radius : ℝ), ∀ p ∈ ps, dist p center = radius :=
+begin
+  split,
+  { rintro ⟨c, hcr⟩,
+    rw exists_dist_eq_iff_exists_dist_orthogonal_projection_eq h c at hcr,
+    exact ⟨orthogonal_projection s c, orthogonal_projection_mem hn hc _, hcr⟩ },
+  { exact λ ⟨c, hc, hd⟩, ⟨c, hd⟩ }
+end
+
+/-- Given a nonempty affine subspace, whose direction is
+finite-dimensional, that contains a set of points, those points are
+cospherical if and only if they are equidistant from some point in
+that subspace. -/
+lemma cospherical_iff_exists_mem_of_finite_dimensional {s : affine_subspace ℝ P} {ps : set P}
+  (h : ps ⊆ s) (hn : (s : set P).nonempty) [finite_dimensional ℝ s.direction] :
+  cospherical ps ↔ ∃ (center ∈ s) (radius : ℝ), ∀ p ∈ ps, dist p center = radius :=
+cospherical_iff_exists_mem_of_complete h hn (submodule.complete_of_finite_dimensional _)
+
+/-- All n-simplices among cospherical points in an n-dimensional
+subspace have the same circumradius. -/
+lemma exists_circumradius_eq_of_cospherical_subset {s : affine_subspace ℝ P} {ps : set P}
+  (h : ps ⊆ s) (hn : (s : set P).nonempty) {n : ℕ} [finite_dimensional ℝ s.direction]
+  (hd : findim ℝ s.direction = n) (hc : cospherical ps) :
+  ∃ r : ℝ, ∀ sx : simplex ℝ P n, set.range sx.points ⊆ ps → sx.circumradius = r :=
+begin
+  rw cospherical_iff_exists_mem_of_finite_dimensional h hn at hc,
+  rcases hc with ⟨c, hc, r, hcr⟩,
+  use r,
+  intros sx hsxps,
+  have hsx : affine_span ℝ (set.range sx.points) = s,
+  { refine affine_span_eq_of_le_of_affine_independent_of_card_eq_findim_add_one sx.independent
+      (span_points_subset_coe_of_subset_coe (set.subset.trans hsxps h)) _,
+    simp [hd] },
+  have hc : c ∈ affine_span ℝ (set.range sx.points) := hsx.symm ▸ hc,
+  exact (sx.eq_circumradius_of_dist_eq
+    hc
+    (λ i, hcr (sx.points i) (hsxps (set.mem_range_self i)))).symm
+end
+
+/-- Two n-simplices among cospherical points in an n-dimensional
+subspace have the same circumradius. -/
+lemma circumradius_eq_of_cospherical_subset {s : affine_subspace ℝ P} {ps : set P}
+  (h : ps ⊆ s) (hn : (s : set P).nonempty) {n : ℕ} [finite_dimensional ℝ s.direction]
+  (hd : findim ℝ s.direction = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
+  (hsx₁ : set.range sx₁.points ⊆ ps) (hsx₂ : set.range sx₂.points ⊆ ps) :
+  sx₁.circumradius = sx₂.circumradius :=
+begin
+  rcases exists_circumradius_eq_of_cospherical_subset h hn hd hc with ⟨r, hr⟩,
+  rw [hr sx₁ hsx₁, hr sx₂ hsx₂]
+end
+
+/-- All n-simplices among cospherical points in n-space have the same
+circumradius. -/
+lemma exists_circumradius_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimensional ℝ V]
+  (hd : findim ℝ V = n) (hc : cospherical ps) :
+  ∃ r : ℝ, ∀ sx : simplex ℝ P n, set.range sx.points ⊆ ps → sx.circumradius = r :=
+begin
+  rw [←findim_top, ←direction_top ℝ V P] at hd,
+  refine exists_circumradius_eq_of_cospherical_subset _
+    ⟨add_torsor.nonempty.some, mem_top _ _ _⟩ hd hc,
+  exact set.subset_univ _
+end
+
+/-- Two n-simplices among cospherical points in n-space have the same
+circumradius. -/
+lemma circumradius_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimensional ℝ V]
+  (hd : findim ℝ V = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
+  (hsx₁ : set.range sx₁.points ⊆ ps) (hsx₂ : set.range sx₂.points ⊆ ps) :
+  sx₁.circumradius = sx₂.circumradius :=
+begin
+  rcases exists_circumradius_eq_of_cospherical hd hc with ⟨r, hr⟩,
+  rw [hr sx₁ hsx₁, hr sx₂ hsx₂]
+end
+
+/-- All n-simplices among cospherical points in an n-dimensional
+subspace have the same circumcenter. -/
+lemma exists_circumcenter_eq_of_cospherical_subset {s : affine_subspace ℝ P} {ps : set P}
+  (h : ps ⊆ s) (hn : (s : set P).nonempty) {n : ℕ} [finite_dimensional ℝ s.direction]
+  (hd : findim ℝ s.direction = n) (hc : cospherical ps) :
+  ∃ c : P, ∀ sx : simplex ℝ P n, set.range sx.points ⊆ ps → sx.circumcenter = c :=
+begin
+  rw cospherical_iff_exists_mem_of_finite_dimensional h hn at hc,
+  rcases hc with ⟨c, hc, r, hcr⟩,
+  use c,
+  intros sx hsxps,
+  have hsx : affine_span ℝ (set.range sx.points) = s,
+  { refine affine_span_eq_of_le_of_affine_independent_of_card_eq_findim_add_one sx.independent
+      (span_points_subset_coe_of_subset_coe (set.subset.trans hsxps h)) _,
+    simp [hd] },
+  have hc : c ∈ affine_span ℝ (set.range sx.points) := hsx.symm ▸ hc,
+  exact (sx.eq_circumcenter_of_dist_eq
+    hc
+    (λ i, hcr (sx.points i) (hsxps (set.mem_range_self i)))).symm
+end
+
+/-- Two n-simplices among cospherical points in an n-dimensional
+subspace have the same circumcenter. -/
+lemma circumcenter_eq_of_cospherical_subset {s : affine_subspace ℝ P} {ps : set P}
+  (h : ps ⊆ s) (hn : (s : set P).nonempty) {n : ℕ} [finite_dimensional ℝ s.direction]
+  (hd : findim ℝ s.direction = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
+  (hsx₁ : set.range sx₁.points ⊆ ps) (hsx₂ : set.range sx₂.points ⊆ ps) :
+  sx₁.circumcenter = sx₂.circumcenter :=
+begin
+  rcases exists_circumcenter_eq_of_cospherical_subset h hn hd hc with ⟨r, hr⟩,
+  rw [hr sx₁ hsx₁, hr sx₂ hsx₂]
+end
+
+/-- All n-simplices among cospherical points in n-space have the same
+circumcenter. -/
+lemma exists_circumcenter_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimensional ℝ V]
+  (hd : findim ℝ V = n) (hc : cospherical ps) :
+  ∃ c : P, ∀ sx : simplex ℝ P n, set.range sx.points ⊆ ps → sx.circumcenter = c :=
+begin
+  rw [←findim_top, ←direction_top ℝ V P] at hd,
+  refine exists_circumcenter_eq_of_cospherical_subset _
+    ⟨add_torsor.nonempty.some, mem_top _ _ _⟩ hd hc,
+  exact set.subset_univ _
+end
+
+/-- Two n-simplices among cospherical points in n-space have the same
+circumcenter. -/
+lemma circumcenter_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimensional ℝ V]
+  (hd : findim ℝ V = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
+  (hsx₁ : set.range sx₁.points ⊆ ps) (hsx₂ : set.range sx₂.points ⊆ ps) :
+  sx₁.circumcenter = sx₂.circumcenter :=
+begin
+  rcases exists_circumcenter_eq_of_cospherical hd hc with ⟨r, hr⟩,
+  rw [hr sx₁ hsx₁, hr sx₂ hsx₂]
+end
+
+/-- Suppose all distances from `p₁` and `p₂` to the points of a
+simplex are equal, and that `p₁` and `p₂` lie in the affine span of
+`p` with the vertices of that simplex.  Then `p₁` and `p₂` are equal
+or reflections of each other in the affine span of the vertices of the
+simplex. -/
+lemma eq_or_eq_reflection_of_dist_eq {n : ℕ} {s : simplex ℝ P n} {p p₁ p₂ : P} {r : ℝ}
+    (hp₁ : p₁ ∈ affine_span ℝ (insert p (set.range s.points)))
+    (hp₂ : p₂ ∈ affine_span ℝ (insert p (set.range s.points)))
+    (h₁ : ∀ i, dist (s.points i) p₁ = r) (h₂ : ∀ i, dist (s.points i) p₂ = r) :
+  p₁ = p₂ ∨ p₁ = reflection (affine_span ℝ (set.range s.points)) p₂ :=
+begin
+  let span_s := affine_span ℝ (set.range s.points),
+  have h₁' := s.orthogonal_projection_eq_circumcenter_of_dist_eq h₁,
+  have h₂' := s.orthogonal_projection_eq_circumcenter_of_dist_eq h₂,
+  have hn : (span_s : set P).nonempty := (affine_span_nonempty ℝ _).2 (set.range_nonempty _),
+  have hc : is_complete (span_s.direction : set V) := submodule.complete_of_finite_dimensional _,
+  rw [←affine_span_insert_affine_span,
+      mem_affine_span_insert_iff (orthogonal_projection_mem hn hc p)] at hp₁ hp₂,
+  obtain ⟨r₁, p₁o, hp₁o, hp₁⟩ := hp₁,
+  obtain ⟨r₂, p₂o, hp₂o, hp₂⟩ := hp₂,
+  obtain rfl : orthogonal_projection span_s p₁ = p₁o,
+  { rw hp₁,
+    exact orthogonal_projection_vadd_smul_vsub_orthogonal_projection hc _ _ hp₁o },
+  rw h₁' at hp₁,
+  obtain rfl : orthogonal_projection span_s p₂ = p₂o,
+  { rw hp₂,
+    exact orthogonal_projection_vadd_smul_vsub_orthogonal_projection hc _ _ hp₂o },
+  rw h₂' at hp₂,
+  have h : s.points 0 ∈ span_s := mem_affine_span ℝ (set.mem_range_self _),
+  have hd₁ : dist p₁ s.circumcenter * dist p₁ s.circumcenter =
+    r * r - s.circumradius * s.circumradius,
+  { rw [dist_comm, ←h₁ 0,
+        dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square p₁ h],
+    simp [h₁', dist_comm p₁] },
+  have hd₂ : dist p₂ s.circumcenter * dist p₂ s.circumcenter =
+    r * r - s.circumradius * s.circumradius,
+  { rw [dist_comm, ←h₂ 0,
+        dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square p₂ h],
+    simp [h₂', dist_comm p₂] },
+  rw [←hd₂, hp₁, hp₂, dist_eq_norm_vsub V _ s.circumcenter,
+      dist_eq_norm_vsub V _ s.circumcenter, vadd_vsub, vadd_vsub, ←real_inner_self_eq_norm_square,
+      ←real_inner_self_eq_norm_square, real_inner_smul_left, real_inner_smul_left, real_inner_smul_right,
+      real_inner_smul_right, ←mul_assoc, ←mul_assoc] at hd₁,
+  by_cases hp : p = orthogonal_projection span_s p,
+  { rw [hp₁, hp₂, ←hp],
+    simp },
+  { have hz : ⟪p -ᵥ orthogonal_projection span_s p, p -ᵥ orthogonal_projection span_s p⟫ ≠ 0,
+    { simpa using hp },
+    rw [mul_left_inj' hz, mul_self_eq_mul_self_iff] at hd₁,
+    rw [hp₁, hp₂],
+    cases hd₁,
+    { left,
+      rw hd₁ },
+    { right,
+      rw [hd₁,
+          reflection_vadd_smul_vsub_orthogonal_projection hc p r₂ s.circumcenter_mem_affine_span,
+          neg_smul] } }
+end
+
+end euclidean_geometry

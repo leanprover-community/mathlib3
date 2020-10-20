@@ -15,6 +15,7 @@ universes u v w x
 namespace function
 
 /-- `α ↪ β` is a bundled injective function. -/
+@[nolint has_inhabited_instance] -- depending on cardinalities, an injective function may not exist
 structure embedding (α : Sort*) (β : Sort*) :=
 (to_fun : α → β)
 (inj'   : injective to_fun)
@@ -26,11 +27,9 @@ instance {α : Sort u} {β : Sort v} : has_coe_to_fun (α ↪ β) := ⟨_, embed
 end function
 
 /-- Convert an `α ≃ β` to `α ↪ β`. -/
+@[simps]
 protected def equiv.to_embedding {α : Sort u} {β : Sort v} (f : α ≃ β) : α ↪ β :=
 ⟨f, f.injective⟩
-
-@[simp] theorem equiv.to_embedding_coe_fn {α : Sort u} {β : Sort v} (f : α ≃ β) :
-  (f.to_embedding : α → β) = f := rfl
 
 namespace function
 namespace embedding
@@ -48,25 +47,22 @@ lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g :=
 
 theorem injective {α β} (f : α ↪ β) : injective f := f.inj'
 
-@[refl] protected def refl (α : Sort*) : α ↪ α :=
+@[refl, simps {simp_rhs := tt}]
+protected def refl (α : Sort*) : α ↪ α :=
 ⟨id, injective_id⟩
 
-@[trans] protected def trans {α β γ} (f : α ↪ β) (g : β ↪ γ) : α ↪ γ :=
+@[trans, simps {simp_rhs := tt}]
+protected def trans {α β γ} (f : α ↪ β) (g : β ↪ γ) : α ↪ γ :=
 ⟨g ∘ f, g.injective.comp f.injective⟩
-
-@[simp] theorem refl_apply {α} (x : α) : embedding.refl α x = x := rfl
-
-@[simp] theorem trans_apply {α β γ} (f : α ↪ β) (g : β ↪ γ) (a : α) :
-  (f.trans g) a = g (f a) := rfl
 
 @[simp]
 lemma equiv_to_embedding_trans_symm_to_embedding {α β : Sort*} (e : α ≃ β) :
-  function.embedding.trans (e.to_embedding) (e.symm.to_embedding) = function.embedding.refl _ :=
+  e.to_embedding.trans e.symm.to_embedding = embedding.refl _ :=
 by { ext, simp, }
 
 @[simp]
 lemma equiv_symm_to_embedding_trans_to_embedding {α β : Sort*} (e : α ≃ β) :
-  function.embedding.trans (e.symm.to_embedding) (e.to_embedding) = function.embedding.refl _ :=
+  e.symm.to_embedding.trans e.to_embedding = embedding.refl _ :=
 by { ext, simp, }
 
 protected def congr {α : Sort u} {β : Sort v} {γ : Sort w} {δ : Sort x}
@@ -168,21 +164,14 @@ section sigma
 variables {α α' : Type*} {β : α → Type*} {β' : α' → Type*}
 
 /-- `sigma.mk` as an `function.embedding`. -/
-def sigma_mk (a : α) : β a ↪ Σ x, β x :=
+@[simps to_fun] def sigma_mk (a : α) : β a ↪ Σ x, β x :=
 ⟨sigma.mk a, sigma_mk_injective⟩
-
-
-@[simp] lemma coe_sigma_mk (a : α) : (sigma_mk a : β a → Σ x, β x) = sigma.mk a := rfl
 
 /-- If `f : α ↪ α'` is an embedding and `g : Π a, β α ↪ β' (f α)` is a family
 of embeddings, then `sigma.map f g` is an embedding. -/
-def sigma_map (f : α ↪ α') (g : Π a, β a ↪ β' (f a)) :
+@[simps to_fun] def sigma_map (f : α ↪ α') (g : Π a, β a ↪ β' (f a)) :
   (Σ a, β a) ↪ Σ a', β' a' :=
 ⟨sigma.map f (λ a, g a), f.injective.sigma_map (λ a, (g a).injective)⟩
-
-@[simp] lemma coe_sigma_map (f : α ↪ α') (g : Π a, β a ↪ β' (f a)) :
-  ⇑(f.sigma_map g) = sigma.map f (λ a, g a) :=
-rfl
 
 end sigma
 
@@ -210,10 +199,8 @@ protected def subtype_map {α β} {p : α → Prop} {q : β → Prop} (f : α �
 open set
 
 /-- `set.image` as an embedding `set α ↪ set β`. -/
-protected def image {α β} (f : α ↪ β) : set α ↪ set β :=
+@[simps to_fun] protected def image {α β} (f : α ↪ β) : set α ↪ set β :=
 ⟨image f, f.2.image_injective⟩
-
-@[simp] lemma coe_image {α β} (f : α ↪ β) : ⇑f.image = image f := rfl
 
 end embedding
 end function
@@ -221,8 +208,7 @@ end function
 namespace equiv
 
 @[simp]
-lemma refl_to_embedding {α : Type*} :
-  (equiv.refl α).to_embedding = function.embedding.refl α := rfl
+lemma refl_to_embedding {α : Type*} : (equiv.refl α).to_embedding = function.embedding.refl α := rfl
 
 @[simp]
 lemma trans_to_embedding {α β γ : Type*} (e : α ≃ β) (f : β ≃ γ) :
@@ -233,14 +219,8 @@ end equiv
 namespace set
 
 /-- The injection map is an embedding between subsets. -/
-def embedding_of_subset {α} (s t : set α) (h : s ⊆ t) : s ↪ t :=
-⟨λ x, ⟨x.1, h x.2⟩, λ ⟨x, hx⟩ ⟨y, hy⟩ h, by congr; injection h⟩
-
-@[simp] lemma embedding_of_subset_apply_mk {α} {s t : set α} (h : s ⊆ t) (x : α) (hx : x ∈ s) :
-  embedding_of_subset s t h ⟨x, hx⟩ = ⟨x, h hx⟩ := rfl
-
-@[simp] lemma coe_embedding_of_subset_apply {α} {s t : set α} (h : s ⊆ t) (x : s) :
-  (embedding_of_subset s t h x : α) = x := rfl
+@[simps to_fun] def embedding_of_subset {α} (s t : set α) (h : s ⊆ t) : s ↪ t :=
+⟨λ x, ⟨x.1, h x.2⟩, λ ⟨x, hx⟩ ⟨y, hy⟩ h, by { congr, injection h }⟩
 
 end set
 
@@ -255,11 +235,6 @@ def mul_left_embedding {G : Type u} [left_cancel_semigroup G] (g : G) : G ↪ G 
 { to_fun := λ h, g * h,
   inj' := λ h h', (mul_right_inj g).mp, }
 
-@[simp]
-lemma mul_left_embedding_apply {G : Type u} [left_cancel_semigroup G] (g h : G) :
-  mul_left_embedding g h = g * h :=
-rfl
-
 /--
 The embedding of a right cancellative semigroup into itself
 by right multiplication by a fixed element.
@@ -271,7 +246,4 @@ def mul_right_embedding {G : Type u} [right_cancel_semigroup G] (g : G) : G ↪ 
 { to_fun := λ h, h * g,
   inj' := λ h h', (mul_left_inj g).mp, }
 
-@[simp]
-lemma mul_right_embedding_apply {G : Type u} [right_cancel_semigroup G] (g h : G) :
-  mul_right_embedding g h = h * g :=
-rfl
+attribute [simps] mul_left_embedding add_left_embedding mul_right_embedding add_right_embedding

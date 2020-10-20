@@ -55,7 +55,12 @@ def tensoring_right_monoidal : monoidal_functor C (C ⥤ C) :=
   μ_natural' := λ X Y X' Y' f g, by { ext Z, dsimp, simp [associator_naturality], },
   associativity' := λ X Y Z, by { ext W, dsimp, simp [pentagon], },
   left_unitality' := λ X, by { ext Y, dsimp, rw [category.id_comp, triangle, ←tensor_comp], simp, },
-  right_unitality' := λ X, by { ext Y, dsimp, simp, },
+  right_unitality' := λ X,
+  begin
+    ext Y, dsimp,
+    rw [tensor_id, category.comp_id, right_unitor_tensor_inv, category.assoc, iso.inv_hom_id_assoc,
+      ←id_tensor_comp, iso.inv_hom_id, tensor_id],
+  end,
   ε_is_iso := by apply_instance,
   μ_is_iso := λ X Y,
   { inv :=

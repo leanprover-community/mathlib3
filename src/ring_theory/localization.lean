@@ -1111,6 +1111,49 @@ integral_domain_localization (le_non_zero_divisors_of_domain (by simpa only [] u
 
 end localization_map
 
+section at_prime
+namespace localization
+
+local attribute [instance] classical.prop_decidable
+
+/-- The image of `P` in the localization at `P.prime_compl` is a maximal ideal, and in particular
+it is the unique maximal ideal given by the local ring structure `at_prime.local_ring` -/
+lemma at_prime.map_eq_maximal_ideal {P : ideal R} [hP : ideal.is_prime P] :
+  ideal.map (localization.of P.prime_compl).to_map P =
+    (local_ring.maximal_ideal (localization P.prime_compl)) :=
+begin
+  let f := localization.of P.prime_compl,
+  ext x,
+  split; simp only [local_ring.mem_maximal_ideal, mem_nonunits_iff]; intro hx,
+  { exact λ h, (localization_map.is_prime_of_is_prime_disjoint f P hP
+      (set.disjoint_compl_left P.carrier)).1 (ideal.eq_top_of_is_unit_mem _ hx h) },
+  { obtain ⟨⟨a, b⟩, hab⟩ := localization_map.surj f x,
+    contrapose! hx,
+    rw is_unit_iff_exists_inv,
+    rw localization_map.mem_map_to_map_iff at hx,
+    obtain ⟨a', ha'⟩ := is_unit_iff_exists_inv.1
+      (localization_map.map_units f ⟨a, λ ha, hx ⟨⟨⟨a, ha⟩, b⟩, hab⟩⟩),
+    exact ⟨f.to_map b * a', by rwa [← mul_assoc, hab]⟩ }
+end
+
+/-- The unique maximal ideal of the localization at `P.prime_compl` lies over the ideal `P`. -/
+lemma at_prime.comap_maximal_ideal {P : ideal R} [ideal.is_prime P] :
+  ideal.comap (localization.of P.prime_compl).to_map (local_ring.maximal_ideal (localization P.prime_compl)) = P :=
+begin
+  let Pₚ := local_ring.maximal_ideal (localization P.prime_compl),
+  refine le_antisymm (λ x hx, _)
+    (le_trans ideal.le_comap_map (ideal.comap_mono (le_of_eq at_prime.map_eq_maximal_ideal))),
+  by_cases h0 : x = 0,
+  { exact h0.symm ▸ P.zero_mem },
+  { have : Pₚ.is_prime := ideal.is_maximal.is_prime (local_ring.maximal_ideal.is_maximal _),
+    rw localization_map.is_prime_iff_is_prime_disjoint (localization.of P.prime_compl) at this,
+    contrapose! h0 with hx',
+    simpa using this.2 ⟨hx', hx⟩ }
+end
+
+end localization
+end at_prime
+
 variables (R) {A : Type*} [integral_domain A]
 variables (K : Type*)
 
@@ -1273,7 +1316,7 @@ end
 
 section num_denom
 
-variables [unique_factorization_domain A] (φ : fraction_map A K)
+variables [unique_factorization_monoid A] (φ : fraction_map A K)
 
 lemma exists_reduced_fraction (x : φ.codomain) :
   ∃ (a : A) (b : non_zero_divisors A),
@@ -1281,7 +1324,7 @@ lemma exists_reduced_fraction (x : φ.codomain) :
 begin
   obtain ⟨⟨b, b_nonzero⟩, a, hab⟩ := φ.exists_integer_multiple x,
   obtain ⟨a', b', c', no_factor, rfl, rfl⟩ :=
-    unique_factorization_domain.exists_reduced_factors' a b
+    unique_factorization_monoid.exists_reduced_factors' a b
       (mem_non_zero_divisors_iff_ne_zero.mp b_nonzero),
   obtain ⟨c'_nonzero, b'_nonzero⟩ := mul_mem_non_zero_divisors.mp b_nonzero,
   refine ⟨a', ⟨b', b'_nonzero⟩, @no_factor, _⟩,
@@ -1359,13 +1402,32 @@ noncomputable def localization_algebra (M : submonoid R) (f : localization_map M
 variables (f : localization_map M Rₘ)
 variables (g : localization_map (algebra.algebra_map_submonoid S M) Sₘ)
 
+lemma algebra_map_mk' (r : R) (m : M) :
+  (@algebra_map Rₘ Sₘ _ _ (localization_algebra M f g)) (f.mk' r m) =
+    g.mk' (algebra_map R S r) ⟨algebra_map R S m, algebra.mem_algebra_map_submonoid_of_mem m⟩ :=
+localization_map.map_mk' f _ r m
+
+/-- Injectivity of the underlying `algebra_map` descends to the algebra induced by localization -/
+lemma localization_algebra_injective (hRS : function.injective (algebra_map R S))
+  (hM : algebra.algebra_map_submonoid S M ≤ non_zero_divisors S) :
+  function.injective (@algebra_map Rₘ Sₘ _ _ (localization_algebra M f g)) :=
+begin
+  rintros x y hxy,
+  obtain ⟨a, b, rfl⟩ := localization_map.mk'_surjective f x,
+  obtain ⟨c, d, rfl⟩ := localization_map.mk'_surjective f y,
+  rw [algebra_map_mk' f g a b, algebra_map_mk' f g c d, localization_map.mk'_eq_iff_eq] at hxy,
+  refine (localization_map.mk'_eq_iff_eq f).2 (congr_arg f.to_map (hRS _)),
+  convert g.injective hM hxy; simp,
+end
+
 open polynomial
 
 /-- Given a particular witness to an element being algebraic over an algebra `R → S`,
-We can localize to a submonoid containing the leading coefficient to make it integral -/
+We can localize to a submonoid containing the leading coefficient to make it integral.
+Explicitly, the map between the localizations will be an integral ring morphism -/
 theorem is_integral_localization_at_leading_coeff {x : S} (p : polynomial R)
   (hp : aeval x p = 0) (hM' : p.leading_coeff ∈ M) :
-  @is_integral Rₘ _ _ _ (localization_algebra M f g) (g.to_map x) :=
+  (f.map (@algebra.mem_algebra_map_submonoid_of_mem R S _ _ _ _) g).is_integral_elem (g.to_map x) :=
 begin
   by_cases triv : (1 : Rₘ) = 0,
   { exact ⟨0, ⟨trans leading_coeff_zero triv.symm, eval₂_zero _ _⟩⟩ },
@@ -1385,9 +1447,10 @@ end
 `Rₘ` is the localization of `R` at `M`,
 and `Sₘ` is the localization of `S` at the image of `M` under the extension map,
 then the induced map `Rₘ → Sₘ` is also an integral extension -/
-theorem is_integral_localization (H : ∀ x : S, is_integral R x)
-  (x : Sₘ) : @is_integral Rₘ _ _ _ (localization_algebra M f g) x :=
+theorem is_integral_localization (H : algebra.is_integral R S) :
+  (f.map (@algebra.mem_algebra_map_submonoid_of_mem R S _ _ _ _) g).is_integral :=
 begin
+  intro x,
   by_cases triv : (1 : R) = 0,
   { have : (1 : Rₘ) = 0 := by convert congr_arg f.to_map triv; simp,
     exact ⟨0, ⟨trans leading_coeff_zero this.symm, eval₂_zero _ _⟩⟩ },

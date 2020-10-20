@@ -19,8 +19,6 @@ and it seems we can use it straightforwardly:
 example (C : chain_complex V) : C.X 5 ⟶ C.X 6 := C.d 5
 ```
 
-We define the forgetful functor to `ℤ`-graded objects, and show that
-`chain_complex V` is concrete when `V` is, and `V` has coproducts.
 -/
 
 universes v u

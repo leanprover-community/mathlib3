@@ -185,18 +185,12 @@ end comm_semiring
 
 section domain
 variables [integral_domain R]
--- TODO: golf this, dunno how i broke it so bad
+
 lemma mem_support_derivative [char_zero R] (p : polynomial R) (n : ℕ) :
   n ∈ (derivative p).support ↔ n + 1 ∈ p.support :=
-begin
-rw finsupp.mem_support_iff, split; intro h,
-suffices h1 : p.coeff (n+1) ≠ 0, simp; tauto, contrapose! h,
-convert coeff_derivative _ _, simp [h],
-contrapose! h, simp,
-suffices : p.to_fun (n + 1) * (n + 1) = 0, simp only [mul_eq_zero] at this, cases this,
-{ exact this }, { norm_cast at this },
-erw ← h, symmetry, convert coeff_derivative _ _,
-end
+suffices (¬(coeff p (n + 1) = 0 ∨ ((n + 1:ℕ) : R) = 0)) ↔ coeff p (n + 1) ≠ 0,
+  by simpa only [mem_support_iff_coeff_ne_zero, coeff_derivative, ne.def, mul_eq_zero],
+by { rw [nat.cast_eq_zero], simp only [nat.succ_ne_zero, or_false] }
 
 @[simp] lemma degree_derivative_eq [char_zero R] (p : polynomial R) (hp : 0 < nat_degree p) :
   degree (derivative p) = (nat_degree p - 1 : ℕ) :=
@@ -217,6 +211,26 @@ le_antisymm
       exact lt_irrefl 0 (lt_of_le_of_lt (zero_le _) hp), },
     exact hp
   end
+
+theorem nat_degree_eq_zero_of_derivative_eq_zero [char_zero R] {f : polynomial R} (h : f.derivative = 0) :
+  f.nat_degree = 0 :=
+begin
+  by_cases hf : f = 0,
+  { exact (congr_arg polynomial.nat_degree hf).trans rfl },
+  { rw nat_degree_eq_zero_iff_degree_le_zero,
+    by_contra absurd,
+    have f_nat_degree_pos : 0 < f.nat_degree,
+    { rwa [not_le, ←nat_degree_pos_iff_degree_pos] at absurd },
+    let m := f.nat_degree - 1,
+    have hm : m + 1 = f.nat_degree := nat.sub_add_cancel f_nat_degree_pos,
+    have h2 := coeff_derivative f m,
+    rw polynomial.ext_iff at h,
+    rw [h m, coeff_zero, zero_eq_mul] at h2,
+    cases h2,
+    { rw [hm, ←leading_coeff, leading_coeff_eq_zero] at h2,
+      exact hf h2, },
+    { norm_cast at h2 } }
+end
 
 end domain
 

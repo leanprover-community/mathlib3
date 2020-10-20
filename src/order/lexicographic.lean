@@ -10,6 +10,7 @@ import tactic.basic
 
 universes u v
 
+/-- The cartesian product, equipped with the lexicographic order. -/
 def lex (α : Type u) (β : Type v) := α × β
 
 variables {α : Type u} {β : Type v}

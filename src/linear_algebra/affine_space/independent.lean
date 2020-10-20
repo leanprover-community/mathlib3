@@ -548,5 +548,16 @@ begin
   exact s.centroid_eq_iff h₁ h₂
 end
 
+/-- Two simplices with the same points have the same centroid. -/
+lemma centroid_eq_of_range_eq {n : ℕ} {s₁ s₂ : simplex k P n}
+  (h : set.range s₁.points = set.range s₂.points) :
+  finset.univ.centroid k s₁.points = finset.univ.centroid k s₂.points :=
+begin
+  rw [←set.image_univ, ←set.image_univ, ←finset.coe_univ] at h,
+  exact finset.univ.centroid_eq_of_inj_on_of_image_eq k _
+    (λ _ _ _ _ he, injective_of_affine_independent s₁.independent he)
+    (λ _ _ _ _ he, injective_of_affine_independent s₂.independent he) h
+end
+
 end simplex
 end affine

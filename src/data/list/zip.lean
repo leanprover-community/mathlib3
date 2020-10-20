@@ -138,4 +138,51 @@ by rw [← zip_unzip.{u u} (revzip l).reverse, unzip_eq_map]; simp; simp [revzip
 theorem revzip_swap (l : list α) : (revzip l).map prod.swap = revzip l.reverse :=
 by simp [revzip]
 
+lemma nth_zip_with {α β γ} (f : α → β → γ) (l₁ : list α) (l₂ : list β) (i : ℕ) :
+  (zip_with f l₁ l₂).nth i = f <$> l₁.nth i <*> l₂.nth i :=
+begin
+  induction l₁ generalizing l₂ i,
+  { simp [zip_with, (<*>)] },
+  { cases l₂; simp only [zip_with, has_seq.seq, functor.map, nth, option.map_none'],
+    { cases ((l₁_hd :: l₁_tl).nth i); refl },
+    { cases i; simp only [option.map_some', nth, option.some_bind', *],
+      refl } },
+end
+
+lemma nth_zip_with_eq_some {α β γ} (f : α → β → γ) (l₁ : list α) (l₂ : list β) (z : γ) (i : ℕ) :
+  (zip_with f l₁ l₂).nth i = some z ↔ ∃ x y, l₁.nth i = some x ∧ l₂.nth i = some y ∧ f x y = z :=
+begin
+  induction l₁ generalizing l₂ i,
+  { simp [zip_with] },
+  { cases l₂; simp only [zip_with, nth, exists_false, and_false, false_and],
+    cases i; simp *, },
+end
+
+lemma nth_zip_eq_some (l₁ : list α) (l₂ : list β) (z : α × β) (i : ℕ) :
+  (zip l₁ l₂).nth i = some z ↔ l₁.nth i = some z.1 ∧ l₂.nth i = some z.2 :=
+begin
+  cases z,
+  rw [zip, nth_zip_with_eq_some], split,
+  { rintro ⟨x, y, h₀, h₁, h₂⟩, cc },
+  { rintro ⟨h₀, h₁⟩, exact ⟨_,_,h₀,h₁,rfl⟩ }
+end
+
+lemma mem_zip_inits_tails {l : list α} {init tail : list α} :
+  (init, tail) ∈ zip l.inits l.tails ↔ init ++ tail = l :=
+begin
+  induction l generalizing init tail;
+    simp_rw [tails, inits, zip_cons_cons],
+  { simp },
+  { split; rw [mem_cons_iff, zip_map_left, mem_map, prod.exists],
+    { rintros (⟨rfl, rfl⟩ | ⟨_, _, h, rfl, rfl⟩),
+      { simp },
+      { simp [l_ih.mp h], }, },
+    { cases init,
+      { simp },
+      { intro h,
+        right,
+        use [init_tl, tail],
+        simp * at *, }, }, },
+end
+
 end list

@@ -103,7 +103,7 @@ theorem mul : primrec (unpaired (*)) :=
 
 theorem pow : primrec (unpaired (^)) :=
 (prec (const 1) (mul.comp (pair (right.comp right) left))).of_eq $
-λ p, by simp; induction p.unpair.2; simp [*, nat.pow_succ]
+λ p, by simp; induction p.unpair.2; simp [*, pow_succ']
 
 end primrec
 
@@ -1188,7 +1188,7 @@ inductive primrec' : ∀ {n}, (vector ℕ n → ℕ) → Prop
   primrec' (λ a, f (of_fn (λ i, g i a)))
 | prec {n f g} : @primrec' n f → @primrec' (n+2) g →
   primrec' (λ v : vector ℕ (n+1),
-    v.head.elim (f v.tail) (λ y IH, g (y :: IH :: v.tail)))
+    v.head.elim (f v.tail) (λ y IH, g (y ::ᵥ IH ::ᵥ v.tail)))
 
 end nat
 
@@ -1234,7 +1234,7 @@ protected theorem nil {n} : @vec n 0 (λ _, nil) := λ i, i.elim0
 
 protected theorem cons {n m f g}
   (hf : @primrec' n f) (hg : @vec n m g) :
-  vec (λ v, f v :: g v) :=
+  vec (λ v, (f v ::ᵥ g v)) :=
 λ i, fin.cases (by simp *) (λ i, by simp [hg i]) i
 
 theorem idv {n} : @vec n n id := nth
@@ -1257,7 +1257,7 @@ by simpa using hf.comp' (hg.cons $ hh.cons primrec'.nil)
 theorem prec' {n f g h}
   (hf : @primrec' n f) (hg : @primrec' n g) (hh : @primrec' (n+2) h) :
   @primrec' n (λ v, (f v).elim (g v)
-    (λ (y IH : ℕ), h (y :: IH :: v))) :=
+    (λ (y IH : ℕ), h (y ::ᵥ IH ::ᵥ v))) :=
 by simpa using comp' (prec hg hh) (hf.cons idv)
 
 theorem pred : @primrec' 1 (λ v, v.head.pred) :=

@@ -37,6 +37,8 @@ variables g : α → F β
 variables h : β → G γ
 variables f : β → γ
 
+/-- The natural applicative transformation from the identity functor
+to `F`, defined by `pure : Π {α}, α → F α`. -/
 def pure_transformation : applicative_transformation id F :=
 { app := @pure F _,
   preserves_pure' := λ α x, rfl,

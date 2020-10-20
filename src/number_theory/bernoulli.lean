@@ -38,7 +38,7 @@ well_founded.fix_eq _ _ _
 
 lemma bernoulli_def (n : ℕ) :
   bernoulli n = 1 - ∑ k in finset.range n, (n.choose k) * (bernoulli k) / (n + 1 - k) :=
-by { rw [bernoulli_def', finset.sum_range_eq_sum_fin], refl }
+by { rw [bernoulli_def', ← fin.sum_univ_eq_sum_range], refl }
 
 @[simp] lemma bernoulli_zero  : bernoulli 0 = 1   := rfl
 @[simp] lemma bernoulli_one   : bernoulli 1 = 1/2 :=

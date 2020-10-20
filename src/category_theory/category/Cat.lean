@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import category_theory.concrete_category
+import category_theory.discrete_category
 import category_theory.eq_to_hom
 
 /-!
@@ -62,5 +63,28 @@ def equiv_of_iso {C D : Cat} (γ : C ≅ D) : C ≌ D :=
   counit_iso := eq_to_iso γ.inv_hom_id }
 
 end Cat
+
+/--
+Embedding `Type` into `Cat` as discrete categories.
+
+This ought to be modelled as a 2-functor!
+-/
+@[simps]
+def Type_to_Cat : Type u ⥤ Cat :=
+{ obj := λ X, Cat.of (discrete X),
+  map := λ X Y f, discrete.functor f,
+  map_id' := λ X, begin apply functor.ext, tidy, end,
+  map_comp' := λ X Y Z f g, begin apply functor.ext, tidy, end }
+
+instance : faithful Type_to_Cat := {}
+instance : full Type_to_Cat :=
+{ preimage := λ X Y F, F.obj,
+  witness' :=
+  begin
+    intros X Y F,
+    apply functor.ext,
+    { intros x y f, dsimp, ext, },
+    { intros x, refl, }
+  end }
 
 end category_theory

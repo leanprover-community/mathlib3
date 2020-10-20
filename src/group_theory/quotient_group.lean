@@ -63,22 +63,22 @@ instance {G : Type*} [comm_group G] (N : subgroup G) : comm_group (quotient N) :
 
 include nN
 
+local notation ` Q ` := quotient N
+
 @[simp, to_additive quotient_add_group.coe_zero]
-lemma coe_one : ((1 : G) : quotient N) = 1 := rfl
+lemma coe_one : ((1 : G) : Q) = 1 := rfl
 
 @[simp, to_additive quotient_add_group.coe_add]
-lemma coe_mul (a b : G) : ((a * b : G) : quotient N) = a * b := rfl
+lemma coe_mul (a b : G) : ((a * b : G) : Q) = a * b := rfl
 
 @[simp, to_additive quotient_add_group.coe_neg]
-lemma coe_inv (a : G) : ((a⁻¹ : G) : quotient N) = a⁻¹ := rfl
+lemma coe_inv (a : G) : ((a⁻¹ : G) : Q) = a⁻¹ := rfl
 
-@[simp] lemma coe_pow (a : G) (n : ℕ) : ((a ^ n : G) : quotient N) = a ^ n :=
+@[simp] lemma coe_pow (a : G) (n : ℕ) : ((a ^ n : G) : Q) = a ^ n :=
 (mk' N).map_pow a n
 
-@[simp] lemma coe_gpow (a : G) (n : ℤ) : ((a ^ n : G) : quotient N) = a ^ n :=
+@[simp] lemma coe_gpow (a : G) (n : ℤ) : ((a ^ n : G) : Q) = a ^ n :=
 (mk' N).map_gpow a n
-
-local notation ` Q ` := quotient N
 
 /-- A group homomorphism `φ : G →* H` with `N ⊆ ker(φ)` descends (i.e. `lift`s) to a
 group homomorphism `G/N →* H`. -/
@@ -100,6 +100,10 @@ lemma lift_mk {φ : G →* H} (HN : ∀x∈N, φ x = 1) (g : G) :
 @[simp, to_additive quotient_add_group.lift_mk']
 lemma lift_mk' {φ : G →* H} (HN : ∀x∈N, φ x = 1) (g : G) :
   lift N φ HN (mk g : Q) = φ g := rfl
+
+@[simp, to_additive quotient_add_group.lift_quot_mk]
+lemma lift_quot_mk {φ : G →* H} (HN : ∀x∈N, φ x = 1) (g : G) :
+  lift N φ HN (quot.mk _ g : Q) = φ g := rfl
 
 /-- A group homomorphism `f : G →* H` induces a map `G/N →* H/M` if `N ⊆ f⁻¹(M)`. -/
 @[to_additive quotient_add_group.map "An `add_group` homomorphism `f : G →+ H` induces a map

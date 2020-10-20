@@ -18,6 +18,8 @@ open category_theory.limits
 
 universes u v
 
+noncomputable theory
+
 namespace Module
 
 variables {R : Type u} [ring R]
@@ -80,7 +82,7 @@ def limit_cone (F : J ⥤ Module R) : cone F :=
   π :=
   { app := limit_π_linear_map F,
     naturality' := λ j j' f,
-      linear_map.coe_inj ((types.limit_cone (F ⋙ forget _)).π.naturality f) } }
+      linear_map.coe_injective ((types.limit_cone (F ⋙ forget _)).π.naturality f) } }
 
 /--
 Witness that the limit cone in `Module R` is a limit cone.
@@ -101,7 +103,7 @@ open has_limits
 @[irreducible]
 instance has_limits : has_limits (Module.{v} R) :=
 { has_limits_of_shape := λ J 𝒥, by exactI
-  { has_limit := λ F,
+  { has_limit := λ F, has_limit.mk
     { cone     := limit_cone F,
       is_limit := limit_cone_is_limit F } } }
 

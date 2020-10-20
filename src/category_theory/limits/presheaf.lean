@@ -217,7 +217,9 @@ def cocone_of_representable (P : Cᵒᵖ ⥤ Type u₁) :
   cocone (functor_to_representables P) :=
 cocone.extend (colimit.cocone _) (extend_along_yoneda_yoneda.hom.app P)
 
-@[simp] lemma cocone_of_representable_X (P : Cᵒᵖ ⥤ Type u₁) : (cocone_of_representable P).X = P := rfl
+@[simp] lemma cocone_of_representable_X (P : Cᵒᵖ ⥤ Type u₁) :
+  (cocone_of_representable P).X = P :=
+rfl
 
 /--
 The cocone with point `P` given by `the_cocone` is a colimit: that is, we have exhibited an

@@ -43,6 +43,7 @@ variables [ordered_comm_semiring R] [ordered_semiring A] [ordered_algebra R A]
 /--
 The underlying ordered module of an ordered algebra.
 -/
+@[priority 100]
 instance to_ordered_semimodule : ordered_semimodule R A :=
 { ..‹ordered_algebra R A› }
 

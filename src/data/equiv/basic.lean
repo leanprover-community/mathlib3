@@ -86,16 +86,18 @@ instance : has_coe_to_fun (α ≃ β) :=
 @[simp] theorem coe_fn_mk (f : α → β) (g l r) : (equiv.mk f g l r : α → β) = f :=
 rfl
 
-/-- The map `coe_fn : (r ≃ s) → (r → s)` is injective. We can't use `function.injective`
-here but mimic its signature by using `⦃e₁ e₂⦄`. -/
-theorem coe_fn_injective : ∀ ⦃e₁ e₂ : equiv α β⦄, (e₁ : α → β) = e₂ → e₁ = e₂
+/-- The map `coe_fn : (r ≃ s) → (r → s)` is injective. -/
+theorem injective_coe_fn : function.injective (λ (e : α ≃ β) (x : α), e x)
 | ⟨f₁, g₁, l₁, r₁⟩ ⟨f₂, g₂, l₂, r₂⟩ h :=
   have f₁ = f₂, from h,
   have g₁ = g₂, from l₁.eq_right_inverse (this.symm ▸ r₂),
   by simp *
 
+@[simp, norm_cast] protected lemma coe_inj {e₁ e₂ : α ≃ β} : ⇑e₁ = e₂ ↔ e₁ = e₂ :=
+injective_coe_fn.eq_iff
+
 @[ext] lemma ext {f g : equiv α β} (H : ∀ x, f x = g x) : f = g :=
-coe_fn_injective (funext H)
+injective_coe_fn (funext H)
 
 @[ext] lemma perm.ext {σ τ : equiv.perm α} (H : ∀ x, σ x = τ x) : σ = τ :=
 equiv.ext H
@@ -475,6 +477,10 @@ def prod_assoc (α β γ : Sort*) : (α × β) × γ ≃ α × (β × γ) :=
 
 @[simp] theorem prod_assoc_sym_apply {α β γ : Sort*} (p : α × (β × γ)) :
   (prod_assoc α β γ).symm p = ⟨⟨p.1, p.2.1⟩, p.2.2⟩ := rfl
+
+lemma prod_assoc_preimage {α β γ} {s : set α} {t : set β} {u : set γ} :
+  equiv.prod_assoc α β γ ⁻¹' s.prod (t.prod u) = (s.prod t).prod u :=
+by { ext, simp [and_assoc] }
 
 section
 /-- `punit` is a right identity for type product up to an equivalence. -/

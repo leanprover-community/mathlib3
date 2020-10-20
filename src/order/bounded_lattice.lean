@@ -290,8 +290,9 @@ instance bounded_distrib_lattice_Prop : bounded_distrib_lattice Prop :=
   bot          := false,
   bot_le       := @false.elim }
 
-instance Prop.linear_order : linear_order Prop :=
+noncomputable instance Prop.linear_order : linear_order Prop :=
 { le_total := by intros p q; change (p → q) ∨ (q → p); tauto!,
+  decidable_le := classical.dec_rel _,
   .. (_ : partial_order Prop) }
 
 @[simp]
@@ -469,12 +470,12 @@ instance order_bot [partial_order α] : order_bot (with_bot α) :=
 { bot_le := λ a a' h, option.no_confusion h,
   ..with_bot.partial_order, ..with_bot.has_bot }
 
-@[simp, norm_cast] theorem coe_le_coe [partial_order α] {a b : α} :
+@[simp, norm_cast] theorem coe_le_coe [preorder α] {a b : α} :
   (a : with_bot α) ≤ b ↔ a ≤ b :=
 ⟨λ h, by rcases h a rfl with ⟨_, ⟨⟩, h⟩; exact h,
  λ h a' e, option.some_inj.1 e ▸ ⟨b, rfl, h⟩⟩
 
-@[simp] theorem some_le_some [partial_order α] {a b : α} :
+@[simp] theorem some_le_some [preorder α] {a b : α} :
   @has_le.le (with_bot α) _ (some a) (some b) ↔ a ≤ b := coe_le_coe
 
 theorem coe_le [partial_order α] {a b : α} :
@@ -488,13 +489,13 @@ lemma le_coe_get_or_else [preorder α] : ∀ (a : with_bot α) (b : α), a ≤ a
 | (some a) b := le_refl a
 | none     b := λ _ h, option.no_confusion h
 
-instance linear_order [linear_order α] : linear_order (with_bot α) :=
-{ le_total := λ o₁ o₂, begin
-    cases o₁ with a, {exact or.inl bot_le},
-    cases o₂ with b, {exact or.inr bot_le},
-    simp [le_total]
-  end,
-  ..with_bot.partial_order }
+instance decidable_le [preorder α] [@decidable_rel α (≤)] : @decidable_rel (with_bot α) (≤)
+| none x := is_true $ λ a h, option.no_confusion h
+| (some x) (some y) :=
+  if h : x ≤ y
+  then is_true (some_le_some.2 h)
+  else is_false $ by simp *
+| (some x) none := is_false $ λ h, by rcases h x rfl with ⟨y, ⟨_⟩, _⟩
 
 instance decidable_lt [has_lt α] [@decidable_rel α (<)] : @decidable_rel (with_bot α) (<)
 | none (some x) := is_true $ by existsi [x,rfl]; rintros _ ⟨⟩
@@ -505,14 +506,13 @@ instance decidable_lt [has_lt α] [@decidable_rel α (<)] : @decidable_rel (with
 | x none := is_false $ by rintro ⟨a,⟨⟨⟩⟩⟩
 
 instance linear_order [linear_order α] : linear_order (with_bot α) :=
-{ decidable_le := λ a b, begin
-    cases a with a,
-    { exact is_true bot_le },
-    cases b with b,
-    { exact is_false (mt (le_antisymm bot_le) (by simp)) },
-    { exact decidable_of_iff _ some_le_some }
+{ le_total := λ o₁ o₂, begin
+    cases o₁ with a, {exact or.inl bot_le},
+    cases o₂ with b, {exact or.inr bot_le},
+    simp [le_total]
   end,
-  ..with_bot.linear_order }
+  decidable_le := with_bot.decidable_le,
+  ..with_bot.partial_order }
 
 instance semilattice_sup [semilattice_sup α] : semilattice_sup_bot (with_bot α) :=
 { sup          := option.lift_or_get (⊔),
@@ -707,23 +707,22 @@ lemma coe_lt_top [partial_order α] (a : α) : (a : with_top α) < ⊤ := some_l
 lemma not_top_le_coe [partial_order α] (a : α) : ¬ (⊤:with_top α) ≤ ↑a :=
 assume h, (lt_irrefl ⊤ (lt_of_le_of_lt h (coe_lt_top a))).elim
 
+instance decidable_le [preorder α] [@decidable_rel α (≤)] : @decidable_rel (with_top α) (≤)
+| none (some x) := is_false $ λ h, by { rcases h x rfl with ⟨y, ⟨_⟩, _⟩ }
+| (some x) (some y) :=
+  if h : x ≤ y
+  then is_true (some_le_some.2 h)
+  else is_false $ by simp *
+| x none := is_true $ λ a h, option.no_confusion h
+
 instance linear_order [linear_order α] : linear_order (with_top α) :=
 { le_total := λ o₁ o₂, begin
     cases o₁ with a, {exact or.inr le_top},
     cases o₂ with b, {exact or.inl le_top},
     simp [le_total]
   end,
+  decidable_le := with_top.decidable_le,
   ..with_top.partial_order }
-
-instance linear_order [linear_order α] : linear_order (with_top α) :=
-{ decidable_le := λ a b, begin
-    cases b with b,
-    { exact is_true le_top },
-    cases a with a,
-    { exact is_false (mt (le_antisymm le_top) (by simp)) },
-    { exact decidable_of_iff _ some_le_some }
-  end,
-  ..with_top.linear_order }
 
 instance semilattice_inf [semilattice_inf α] : semilattice_inf_top (with_top α) :=
 { inf          := option.lift_or_get (⊓),

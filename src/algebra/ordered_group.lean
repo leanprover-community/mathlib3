@@ -224,10 +224,6 @@ partial_order.lift coe units.ext
 instance [monoid α] [linear_order α] : linear_order (units α) :=
 linear_order.lift coe units.ext
 
-@[to_additive]
-instance [monoid α] [linear_order α] : linear_order (units α) :=
-linear_order.lift coe units.ext
-
 @[simp, to_additive, norm_cast]
 theorem max_coe [monoid α] [linear_order α] {a b : units α} :
   (↑(max a b) : α) = max a b :=
@@ -263,9 +259,6 @@ with_bot.coe_le_coe
 instance [lattice α] : lattice (with_zero α) := with_bot.lattice
 
 instance [linear_order α] : linear_order (with_zero α) := with_bot.linear_order
-
-instance [linear_order α] :
- linear_order (with_zero α) := with_bot.linear_order
 
 lemma mul_le_mul_left {α : Type u}
   [ordered_comm_monoid α] :
@@ -1930,8 +1923,6 @@ instance : Π [preorder α], preorder (multiplicative α) := id
 instance : Π [preorder α], preorder (additive α) := id
 instance : Π [partial_order α], partial_order (multiplicative α) := id
 instance : Π [partial_order α], partial_order (additive α) := id
-instance : Π [linear_order α], linear_order (multiplicative α) := id
-instance : Π [linear_order α], linear_order (additive α) := id
 instance : Π [linear_order α], linear_order (multiplicative α) := id
 instance : Π [linear_order α], linear_order (additive α) := id
 

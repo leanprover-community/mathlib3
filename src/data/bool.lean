@@ -149,12 +149,14 @@ lemma bnot_inj : ∀ {a b : bool}, !a = !b → a = b := dec_trivial
 end bool
 
 instance : linear_order bool :=
-begin
-  constructor,
-  show bool → bool → Prop,
-  { exact λ a b, a = ff ∨ b = tt },
-  all_goals {apply_instance <|> exact dec_trivial}
-end
+{ le := λ a b, a = ff ∨ b = tt,
+  le_refl := dec_trivial,
+  le_trans := dec_trivial,
+  le_antisymm := dec_trivial,
+  le_total := dec_trivial,
+  decidable_le := infer_instance,
+  decidable_eq := infer_instance,
+  decidable_lt := infer_instance }
 
 namespace bool
 

@@ -465,11 +465,6 @@ lemma strict_mono.mul (hf : strict_mono f) (hg : strict_mono g) (hf0 : ∀ x, 0 
 
 end mono
 
-/-- A `linear_ordered_semiring α` is a semiring `α` with a decidable linear order
-such that multiplication with a positive number and addition are monotone. -/
-@[protect_proj] class linear_ordered_semiring (α : Type u)
-  extends linear_ordered_semiring α, linear_order α
-
 section linear_ordered_semiring
 variables [linear_ordered_semiring α] {a b c : α}
 
@@ -743,12 +738,6 @@ instance linear_ordered_comm_ring.to_comm_ring [s : linear_ordered_comm_ring α]
 instance linear_ordered_comm_ring.to_integral_domain [s : linear_ordered_comm_ring α] :
   integral_domain α :=
 { ..linear_ordered_ring.to_domain, ..s }
-
-/-- A `linear_ordered_comm_ring α` is a commutative ring `α` with a
-decidable linear order such that multiplication with a positive number and
-addition are monotone. -/
-@[protect_proj] class linear_ordered_comm_ring (α : Type u) extends linear_ordered_comm_ring α,
-    linear_ordered_add_comm_group α
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_comm_ring.to_linear_ordered_semiring [d : linear_ordered_comm_ring α] :

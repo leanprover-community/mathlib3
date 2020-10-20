@@ -105,7 +105,9 @@ def restrict_yoneda_hom_equiv (P : Cᵒᵖ ⥤ Type u₁) (E : ℰ)
     refl,
   end }
 
-/-- (Implementation). Show that the bijection in `Le'` is natural (on the right). -/
+/--
+(Implementation). Show that the bijection in `restrict_yoneda_hom_equiv` is natural (on the right).
+-/
 lemma restrict_yoneda_hom_equiv_natural (P : Cᵒᵖ ⥤ Type u₁) (E₁ E₂ : ℰ) (g : E₁ ⟶ E₂)
   {c : cocone _} (t : is_colimit c) (k : c.X ⟶ E₁) :
 restrict_yoneda_hom_equiv A P E₂ t (k ≫ g) =
@@ -139,7 +141,7 @@ adjunction.adjunction_of_equiv_left _ _
 
 /--
 The initial object in the category of elements for a representable functor. In `is_initial` it is
-shown that this is terminal.
+shown that this is initial.
 -/
 def elements.initial (A : C) : (yoneda.obj A).elements :=
 ⟨opposite.op A, 𝟙 _⟩

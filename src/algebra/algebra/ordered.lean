@@ -16,6 +16,7 @@ for which scalar multiplication is "compatible" with the two orders.
 The prototypical example is 2x2 matrices over the reals or complexes (or indeed any C^* algebra)
 where the ordering the one determined by the positive cone of positive operators,
 i.e. `A ≤ B` iff `B - A = star R * R` for some `R`.
+(We don't yet have this example in mathlib.)
 
 ## Implementation
 
@@ -32,7 +33,6 @@ section ordered_algebra
 
 variables {R A : Type*} {a b : A} {r : R}
 
-section
 variables [ordered_comm_ring R] [ordered_ring A] [algebra R A] [ordered_semimodule R A]
 
 lemma algebra_map_monotone : monotone (algebra_map R A) :=
@@ -44,16 +44,14 @@ begin
   { exact smul_le_smul_of_nonneg zero_le_one (sub_nonneg.mpr h) }
 end
 
-end
-
-section ordered_algebra
+end ordered_algebra
 
 section instances
 
 variables {R : Type*} [linear_ordered_comm_ring R]
 
 instance linear_ordered_comm_ring.to_ordered_semimodule : ordered_semimodule R R :=
-{ smul_lt_smul_of_pos      := ordered_semiring.mul_lt_mul_of_pos_left,
-  lt_of_smul_lt_smul_of_nonneg  := λ _ _ _, lt_of_mul_lt_mul_left }
+{ smul_lt_smul_of_pos       := ordered_semiring.mul_lt_mul_of_pos_left,
+  lt_of_smul_lt_smul_of_pos := λ a b c w₁ w₂, (mul_lt_mul_left w₂).mp w₁ }
 
 end instances

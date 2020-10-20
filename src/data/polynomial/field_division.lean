@@ -312,7 +312,7 @@ theorem map_dvd_map' [field k] (f : R →+* k) {x y : polynomial R} : x.map f �
 if H : x = 0 then by rw [H, map_zero, zero_dvd_iff, zero_dvd_iff, map_eq_zero]
 else by rw [← normalize_dvd_iff, ← @normalize_dvd_iff (polynomial R),
     normalize_apply, normalize_apply,
-    coe_norm_unit_of_ne_zero H, coe_norm_unit_of_ne_zero (mt (map_eq_zero _).1 H),
+    coe_norm_unit_of_ne_zero H, coe_norm_unit_of_ne_zero (mt (map_eq_zero f).1 H),
     leading_coeff_map, ← f.map_inv, ← map_C, ← map_mul,
     map_dvd_map _ f.injective (monic_mul_leading_coeff_inv H)]
 

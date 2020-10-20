@@ -196,8 +196,7 @@ the order relation is the one defined by the cone.
 -/
 def to_ordered_semimodule {M : Type*} [ordered_add_comm_group M] [semimodule ℝ M]
   (S : convex_cone M) (h : ∀ x y : M, x ≤ y ↔ y - x ∈ S) : ordered_semimodule ℝ M :=
-{ to_semimodule := ‹_›,
-  .. (show ordered_semimodule ℝ M, from ordered_semimodule.mk'
+{ .. (show ordered_semimodule ℝ M, from ordered_semimodule.mk'
     begin
       intros x y z xy hz,
       rw [h (z • x) (z • y), ←smul_sub z y x],
@@ -278,7 +277,7 @@ def to_ordered_add_comm_group (S : convex_cone E) (h₁ : pointed S) (h₂ : sal
 /-! ### Positive cone of an ordered semimodule -/
 section positive_cone
 
-variables (M : Type*) [ordered_add_comm_group M] [ordered_semimodule ℝ M]
+variables (M : Type*) [ordered_add_comm_group M] [semimodule ℝ M] [ordered_semimodule ℝ M]
 
 /--
 The positive cone is the convex cone formed by the set of nonnegative elements in an ordered

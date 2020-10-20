@@ -18,7 +18,7 @@ This file defines the discriminant of a quadratic and gives the solution to a qu
 ## Main statements
 
 - `quadratic_eq_zero_iff`: roots of a quadratic can be written as
-  `(-b + s) / (2 * a)` or `(-b - s) / (2 * a)`, where `s` is the square root of the discriminant.
+  `(-b + s) / (2 * a)` or `(-b - s) / (2 * a)`, where `s` is a square root of the discriminant.
 - `quadratic_ne_zero_of_discrim_ne_square`: if the discriminant has no square root,
   then the corresponding quadratic has no root.
 - `discrim_le_zero`: if a quadratic is always non-negative, then its discriminant is non-positive.

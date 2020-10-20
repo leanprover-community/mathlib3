@@ -239,7 +239,7 @@ begin
   lift f to α → ℕ using hf,
     guard_target ((0:ℤ) ≤ 2 * (λ i : α, (f i : ℤ)) a),
     guard_hyp hf' : ∀ a, ((λ i : α, (f i:ℤ)) a) < 1,
-  trivial
+  exact int.coe_nat_nonneg _
 end
 
 instance can_lift_unit : can_lift unit unit :=

@@ -28,6 +28,9 @@ by rw [even_iff, mod_two_ne_zero]
 @[simp] lemma odd_iff_not_even {n : ℕ} : odd n ↔ ¬ even n :=
 by rw [not_even_iff, odd_iff]
 
+lemma odd_gt_zero {n : ℕ} (h : odd n) : 0 < n :=
+by { obtain ⟨k, hk⟩ := h, rw hk, exact succ_pos', }
+
 instance : decidable_pred (even : ℕ → Prop) :=
 λ n, decidable_of_decidable_of_iff (by apply_instance) even_iff.symm
 

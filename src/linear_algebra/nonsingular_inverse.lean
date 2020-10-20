@@ -19,12 +19,12 @@ The definition of inverse used in this file is the adjugate divided by the deter
 The adjugate is calculated with Cramer's rule, which we introduce first.
 The vectors returned by Cramer's rule are given by the linear map `cramer`,
 which sends a matrix `A` and vector `b` to the vector consisting of the
-determinant of replacing the `i`th column of `A` with `b` at index `i`
-(written as `(A.update_column i b).det`).
+determinant of replacing the `i`th row of `A` with `b` at index `i`
+(written as `(A.update_row i b).det`).
 Using Cramer's rule, we can compute for each matrix `A` the matrix `adjugate A`.
 The entries of the adjugate are the determinants of each minor of `A`.
-Instead of defining a minor to be `A` with column `i` and row `j` deleted, we
-replace the `i`th column of `A` with the `j`th basis vector; this has the same
+Instead of defining a minor to be `A` with row `i` and column `j` deleted, we
+replace the `i`th row of `A` with the `j`th basis vector; this has the same
 determinant as the minor but more importantly equals Cramer's rule applied
 to `A` and the `j`th basis vector, simplifying the subsequent proofs.
 We prove the adjugate behaves like `det A • A⁻¹`. Finally, we show that dividing
@@ -57,7 +57,7 @@ section cramer
 variables (A : matrix n n α) (b : n → α)
 
 /--
-  `cramer_map A b i` is the determinant of the matrix `A` with column `i` replaced with `b`,
+  `cramer_map A b i` is the determinant of the matrix `A` with row `i` replaced with `b`,
   and thus `cramer_map A b` is the vector output by Cramer's rule on `A` and `b`.
 
   If `A ⬝ x = b` has a unique solution in `x`, `cramer_map Aᵀ` sends the vector `b` to `A.det • x`.
@@ -100,7 +100,7 @@ begin
 end
 
 /--
-  `cramer A b i` is the determinant of the matrix `A` with column `i` replaced with `b`,
+  `cramer A b i` is the determinant of the matrix `A` with row `i` replaced with `b`,
   and thus `cramer A b` is the vector output by Cramer's rule on `A` and `b`.
 
   If `A ⬝ x = b` has a unique solution in `x`, `cramer Aᵀ` sends the vector `b` to `A.det • x`.
@@ -111,7 +111,7 @@ is_linear_map.mk' (cramer_map A) (cramer_is_linear A)
 
 lemma cramer_apply (i : n) : cramer A b i = (A.update_row i b).det := rfl
 
-/-- Applying Cramer's rule to a column of the matrix gives a scaled basis vector. -/
+/-- Applying Cramer's rule to a row of the matrix gives a scaled basis vector. -/
 lemma cramer_column_self (i : n) :
 cramer A (A i) = (λ j, if i = j then A.det else 0) :=
 begin
@@ -158,7 +158,7 @@ while the `inv` section is specifically for invertible matrices.
   Typically, the cofactor matrix is defined by taking the determinant of minors,
   i.e. the matrix with a row and column removed.
   However, the proof of `mul_adjugate` becomes a lot easier if we define the
-  minor as replacing a column with a basis vector, since it allows us to use
+  minor as replacing a row with a basis vector, since it allows us to use
   facts about the `cramer` map.
 -/
 def adjugate (A : matrix n n α) : matrix n n α := λ i, cramer A (λ j, if i = j then 1 else 0)

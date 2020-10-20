@@ -65,6 +65,15 @@ namespace exterior_algebra
 
 variables {M}
 
+instance ring {S : Type*} [comm_ring S] [semimodule S M] : ring (exterior_algebra S M) :=
+begin
+  let ret := ring_quot.ring (exterior_algebra.rel S M),
+  -- For some reason, lean can't unify the above with our return type, due to mistmatching
+  -- instance arguments. We have to prove the arguments are equal.
+  rw tensor_algebra.semiring_eq_ring at ret,
+  exact ret,
+end
+
 /--
 The canonical linear map `M →ₗ[R] exterior_algebra R M`.
 -/
@@ -116,6 +125,10 @@ begin
 end
 
 attribute [irreducible] exterior_algebra ι lift
+
+-- just to check that our weird ring instance above after making things irreducible
+example {S : Type*} [comm_ring S] [semimodule S M] :
+  (1 : exterior_algebra S M) - (1 : exterior_algebra S M) = 0 := by rw sub_self
 
 variables {R M}
 

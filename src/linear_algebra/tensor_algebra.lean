@@ -63,6 +63,11 @@ namespace tensor_algebra
 instance {S : Type*} [comm_ring S] [semimodule S M] : ring (tensor_algebra S M) :=
 ring_quot.ring _
 
+/-- Once we mark tensor_algebra irreducible, we can't prove this any more -/
+@[simp]
+lemma semiring_eq_ring {S : Type*} [comm_ring S] [semimodule S M] :
+  ring.to_semiring = tensor_algebra.semiring S M := rfl
+
 variables {M}
 /--
 The canonical linear map `M →ₗ[R] tensor_algebra R M`.

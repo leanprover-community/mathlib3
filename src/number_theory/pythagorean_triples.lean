@@ -534,6 +534,60 @@ begin
     { split, { ring }, rw int.gcd_comm, exact coprime_pow_two_sub_mul co pp } }
 end
 
+private lemma parity_eq_neg_parity (i : ℤ) : (-i) % 2 = i % 2 :=
+begin
+  apply int.mod_eq_mod_iff_mod_sub_eq_zero.mpr,
+  convert int.mul_mod_right 2 (-i), ring
+end
+
+/-- by assuming `x` is odd and `z` is positive we get a slightly more precise classification of
+the pythagorean triple `x ^ 2 + y ^ 2 = z ^ 2`-/
+theorem coprime_classification' {x y z : ℤ} (h : pythagorean_triple x y z)
+  (h_coprime : int.gcd x y = 1) (h_parity : x % 2 = 1) (h_pos : 0 < z) :
+  ∃ m n,  x = m ^ 2 - n ^ 2
+        ∧ y = 2 * m * n
+        ∧ z = m ^ 2 + n ^ 2
+        ∧ int.gcd m n = 1
+        ∧ ((m % 2 = 0 ∧ n % 2 = 1) ∨ (m % 2 = 1 ∧ n % 2 = 0))
+        ∧ 0 ≤ m :=
+begin
+  obtain ⟨m, n, ht1, ht2, ht3, ht4⟩ :=
+    pythagorean_triple.coprime_classification.mp (and.intro h h_coprime),
+  by_cases hm_sign : 0 ≤ m,
+  { use [m, n],
+    cases ht1 with h_odd h_even,
+    { apply and.intro h_odd.1,
+      apply and.intro h_odd.2,
+      cases ht2 with h_pos h_neg,
+      { apply and.intro h_pos (and.intro ht3 (and.intro ht4 hm_sign)) },
+      { exfalso, revert h_pos, rw h_neg,
+        exact imp_false.mpr (not_lt.mpr (neg_nonpos.mpr (add_nonneg (pow_two_nonneg m)
+          (pow_two_nonneg n)))) } },
+    exfalso,
+    replace h_even : 2 ∣ x, { apply dvd.intro (m * n), rw [h_even.1, mul_assoc] },
+    replace h_even : x % 2 = 0, { exact int.mod_eq_zero_of_dvd h_even },
+    rw h_parity at h_even, revert h_even, norm_num },
+  { use [-m, -n],
+    cases ht1 with h_odd h_even,
+    { rw [neg_square m],
+      rw [neg_square n],
+      apply and.intro h_odd.1,
+      split, { rw h_odd.2, ring },
+      cases ht2 with h_pos h_neg,
+      { apply and.intro h_pos,
+        split,
+        { delta int.gcd, rw [int.nat_abs_neg, int.nat_abs_neg], exact ht3 },
+        { rw [parity_eq_neg_parity, parity_eq_neg_parity],
+          apply and.intro ht4, linarith } },
+      { exfalso, revert h_pos, rw h_neg,
+        exact imp_false.mpr (not_lt.mpr (neg_nonpos.mpr (add_nonneg (pow_two_nonneg m)
+          (pow_two_nonneg n)))) } },
+    exfalso,
+    replace h_even : 2 ∣ x, { apply dvd.intro (m * n), rw [h_even.1, mul_assoc] },
+    replace h_even : x % 2 = 0, { exact int.mod_eq_zero_of_dvd h_even },
+    rw h_parity at h_even, revert h_even, norm_num }
+end
+
 theorem classification :
   pythagorean_triple x y z ↔
   ∃ k m n, ((x = k * (m ^ 2 - n ^ 2) ∧ y = k * (2 * m * n)) ∨

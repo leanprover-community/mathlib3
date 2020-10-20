@@ -371,6 +371,12 @@ by conv {to_lhs, rw ← nat.mod_add_div n 2}; rw [pow_add, pow_mul, units_pow_tw
 @[simp] lemma nat_abs_pow_two (x : ℤ) : (x.nat_abs ^ 2 : ℤ) = x ^ 2 :=
 by rw [pow_two, int.nat_abs_mul_self', pow_two]
 
+lemma abs_le_mul_self (a : ℤ) : (int.nat_abs a : ℤ) ≤ a ^ 2 :=
+by { rw [← int.nat_abs_pow_two a, pow_two], norm_cast, apply nat.le_mul_self }
+
+lemma pos_le_mul_self (b : ℤ) (h2 : 0 ≤ b) : b ≤ b ^ 2 :=
+by { rw pow_two, lift b to ℕ using h2, norm_cast, apply nat.le_mul_self }
+
 end int
 
 variables (M G A)

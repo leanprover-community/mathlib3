@@ -691,7 +691,7 @@ begin
     {
       rw ← @finset.sum_congr _ _ (finset.filter (λ (x : ℕ), x ∣ n)
         (finset.range (n : ℕ).succ)) (nat.divisors ↑n)
-        (λ i, nat.totient i) (λ i, (primitive_roots i R).card) _ (nat.finset_div_eq_filter n) _,
+        (λ i, nat.totient i) (λ i, (primitive_roots i R).card) _ (nat.filter_dvd_eq_divisors n) _,
       { symmetry; exact nat.sum_totient n },
       { intros x hx,
         simp only [finset.mem_filter, finset.mem_range],

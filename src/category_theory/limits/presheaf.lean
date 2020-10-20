@@ -12,21 +12,25 @@ import category_theory.limits.types
 /-!
 # Colimit of representables
 
-This file constructs an adjunction `colimit_adj` between `(Cᵒᵖ ⥤ Type u)` and `ℰ` given a functor
-`A : C ⥤ ℰ`, where the right adjoint sends `(E : ℰ)` to `c ↦ (A.obj c ⟶ E)` (provided `ℰ` has
-colimits).
+This file constructs an adjunction `yoneda_adjunction` between `(Cᵒᵖ ⥤ Type u)` and `ℰ` given a
+functor `A : C ⥤ ℰ`, where the right adjoint sends `(E : ℰ)` to `c ↦ (A.obj c ⟶ E)` (provided `ℰ`
+has colimits).
 
 This adjunction is used to show that every presheaf is a colimit of representables.
 
-Further, the left adjoint `colimit_adj.L : (Cᵒᵖ ⥤ Type u) ⥤ ℰ` satisfies `yoneda ⋙ L ≅ A`, that
-is, an extension of `A : C ⥤ ℰ` to `(Cᵒᵖ ⥤ Type u) ⥤ ℰ` through `yoneda : C ⥤ Cᵒᵖ ⥤ Type u`.
-TODO: Show `colimit_adj.L` is unique amongst cocontinuous functors with this property.
+Further, the left adjoint `colimit_adj.extend_along_yoneda : (Cᵒᵖ ⥤ Type u) ⥤ ℰ` satisfies
+`yoneda ⋙ L ≅ A`, that is, an extension of `A : C ⥤ ℰ` to `(Cᵒᵖ ⥤ Type u) ⥤ ℰ` through
+`yoneda : C ⥤ Cᵒᵖ ⥤ Type u`. It is the left Kan extension of `A` along the yoneda embedding,
+sometimes known as the Yoneda extension.
+TODO: Show `colimit_adj.extend_along_yoneda` is unique amongst cocontinuous functors with this
+property.
 
 ## Tags
 colimit, representable, presheaf
 
 ## References
 * [S. MacLane, I. Moerdijk, *Sheaves in Geometry and Logic*][MM92]
+* https://ncatlab.org/nlab/show/Yoneda+extension
 -/
 
 namespace category_theory
@@ -121,7 +125,9 @@ variables [has_colimits ℰ]
 
 /--
 The left adjoint to the functor `restricted_yoneda` (shown in `yoneda_adjunction`). It is also an
-extension of `A` along the yoneda embedding (shown in `is_extension_along_yoneda`). -/
+extension of `A` along the yoneda embedding (shown in `is_extension_along_yoneda`), in particular
+it is the left Kan extension of `A` through the yoneda embedding.
+-/
 def extend_along_yoneda : (Cᵒᵖ ⥤ Type u₁) ⥤ ℰ :=
 adjunction.left_adjoint_of_equiv
   (λ P E, restrict_yoneda_hom_equiv A P E (colimit.is_colimit _))
@@ -164,6 +170,7 @@ TODO: Among functors preserving colimits, `extend_along_yoneda` is unique with t
 isomorphism).
 
 The first part of [MM92], Chapter I, Section 5, Corollary 4.
+See Property 1 of https://ncatlab.org/nlab/show/Yoneda+extension#properties.
 -/
 def is_extension_along_yoneda : (yoneda : C ⥤ Cᵒᵖ ⥤ Type u₁) ⋙ extend_along_yoneda A ≅ A :=
 nat_iso.of_components
@@ -181,6 +188,9 @@ begin
   rw ← A.map_comp,
   congr' 1,
 end
+
+instance : preserves_colimits (extend_along_yoneda A) :=
+(yoneda_adjunction A).left_adjoint_preserves_colimits
 
 end colimit_adj
 

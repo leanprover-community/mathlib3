@@ -132,6 +132,7 @@ begin
   constructor, apply h5.left,
   rw list.forall_mem_append,
   apply and.intro (holds_nonneg_consts _) h5.right,
+  assume x,
   apply int.coe_nat_nonneg
 end
 

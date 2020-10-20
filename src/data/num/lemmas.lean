@@ -321,12 +321,13 @@ instance : ordered_cancel_add_comm_monoid num :=
 
 instance : decidable_linear_ordered_semiring num :=
 { le_total                   := by {intros a b, transfer_rw, apply le_total},
-  zero_lt_one                := dec_trivial,
+  zero_le_one                := dec_trivial,
   mul_lt_mul_of_pos_left     := by {intros a b c, transfer_rw, apply mul_lt_mul_of_pos_left},
   mul_lt_mul_of_pos_right    := by {intros a b c, transfer_rw, apply mul_lt_mul_of_pos_right},
   decidable_lt               := num.decidable_lt,
   decidable_le               := num.decidable_le,
   decidable_eq               := num.decidable_eq,
+  exists_pair_ne             := ⟨0, 1, dec_trivial⟩,
   ..num.comm_semiring, ..num.ordered_cancel_add_comm_monoid }
 
 @[norm_cast]
@@ -1090,7 +1091,7 @@ instance : decidable_linear_ordered_comm_ring znum :=
   exists_pair_ne   := ⟨0, 1, dec_trivial⟩,
   add_le_add_left  := by {intros a b h c, revert h, transfer_rw, exact λ h, add_le_add_left h c},
   mul_pos          := λ a b, show 0 < a → 0 < b → 0 < a * b, by {transfer_rw, apply mul_pos},
-  zero_lt_one      := dec_trivial,
+  zero_le_one      := dec_trivial,
   ..znum.decidable_linear_order, ..znum.add_comm_group }
 
 @[simp, norm_cast] theorem dvd_to_int (m n : znum) : (m : ℤ) ∣ n ↔ m ∣ n :=

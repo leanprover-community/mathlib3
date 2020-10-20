@@ -11,7 +11,11 @@ import algebra.module.ordered
 
 In this file we define the slope of a function `f : k → PE` taking values in an affine space over
 `k` and prove some theorems about `slope` and `line_map` in the case when `PE` is an ordered
-semimodule over `k`.
+semimodule over `k`. The `slope` function naturally appears in the Mean Value Theorem, and in the
+proof of the fact that a function with nonnegative second derivative on an interval is convex on
+this interval. In the third part of this file we prove inequalities that will be used in
+`analysis.convex.basic` to link convexity of a function on an interval to monotonicity of the slope,
+see section docstring below for details.
 
 ## Implementation notes
 
@@ -43,8 +47,21 @@ include E
 `[a, b]`. Note that `slope f a a = 0`, not the derivative of `f` at `a`. -/
 def slope (f : k → PE) (a b : k) : E := (b - a)⁻¹ • (f b -ᵥ f a)
 
+omit E
+
+lemma slope_def_field (f : k → k) (a b : k) : slope f a b = (f b - f a) / (b - a) :=
+div_eq_inv_mul.symm
+
 @[simp] lemma slope_same (f : k → PE) (a : k) : (slope f a a : E) = 0 :=
 by rw [slope, sub_self, inv_zero, zero_smul]
+
+include E
+
+lemma eq_of_slope_eq_zero {f : k → PE} {a b : k} (h : slope f a b = (0:E)) : f a = f b :=
+begin
+  rw [slope, smul_eq_zero, inv_eq_zero, sub_eq_zero, vsub_eq_zero_iff_eq] at h,
+  exact h.elim (λ h, h ▸ rfl) eq.symm
+end
 
 lemma slope_comm (f : k → PE) (a b : k) : slope f a b = slope f b a :=
 by rw [slope, slope, ← neg_vsub_eq_vsub_rev, smul_neg, ← neg_smul, neg_inv, neg_sub]
@@ -196,14 +213,27 @@ end
 /-!
 ### Convexity and slope
 
-In this section we prove inequality that relate `f (line_map a b r) ≤ line_map (f a) (f b) r` and
-`f (line_map a b r) < line_map (f a) (f b) r` to inequalities on slopes of `f`. For each inequality
-we provide 3 lemmas:
+Given an interval `[a, b]` and a point `c ∈ (a, b)`, `c = line_map a b r`, there are a few ways to
+say that the point `(c, f c)` is above/below the segment `[(a, f a), (b, f b)]`:
 
-* `*_left` relates it to an inequality on `slope f a (line_map a b r)` and `slope f a b`;
-* `*_right` relates it to an inequality on `slope f a b` and `slope f (line_map a b r) b`;
-* no-suffix version relates it to an inequality on `slope f a (line_map a b r)` and
-  `slope f (line_map a b r) b`.
+* compare `f c` to `line_map (f a) (f b) r`;
+* compare `slope f a c` to `slope `f a b`;
+* compare `slope f c b` to `slope f a b`;
+* compare `slope f a c` to `slope f c b`.
+
+In this section we prove equivalence of these four approaches. In order to make the statements more
+readable, we introduce local notation `c = line_map a b r`. Then we prove lemmas like
+
+```
+lemma map_le_line_map_iff_slope_le_slope_left (h : 0 < r * (b - a)) :
+  f c ≤ line_map (f a) (f b) r ↔ slope f a c ≤ slope f a b :=
+```
+
+For each inequality between `f c` and `line_map (f a) (f b) r` we provide 3 lemmas:
+
+* `*_left` relates it to an inequality on `slope f a c` and `slope f a b`;
+* `*_right` relates it to an inequality on `slope f a b` and `slope f c b`;
+* no-suffix version relates it to an inequality on `slope f a c` and `slope f c b`.
 
 Later these inequalities will be used in to restate `convex_on` in terms of monotonicity of the
 slope.
@@ -211,68 +241,95 @@ slope.
 
 variables {f : k → E} {a b r : k}
 
+local notation `c` := line_map a b r
+
+/-- Given `c = line_map a b r`, `a < c`, the point `(c, f c)` is non-strictly below the
+segment `[(a, f a), (b, f b)]` if and only if `slope f a c ≤ slope f a b`. -/
 lemma map_le_line_map_iff_slope_le_slope_left (h : 0 < r * (b - a)) :
-  f (line_map a b r) ≤ line_map (f a) (f b) r ↔ slope f a (line_map a b r) ≤ slope f a b :=
+  f c ≤ line_map (f a) (f b) r ↔ slope f a c ≤ slope f a b :=
 by simp_rw [line_map_apply, slope, vsub_eq_sub, vadd_eq_add, smul_eq_mul, add_sub_cancel, smul_sub,
   sub_le_iff_le_add, mul_inv_rev', mul_smul, ← smul_sub, ← smul_add, smul_smul, ← mul_inv_rev',
   smul_le_iff_of_pos (inv_pos.2 h), inv_inv', smul_smul,
   mul_inv_cancel_right' (right_ne_zero_of_mul h.ne'), smul_add,
   smul_inv_smul' (left_ne_zero_of_mul h.ne')]
 
+/-- Given `c = line_map a b r`, `a < c`, the point `(c, f c)` is non-strictly above the
+segment `[(a, f a), (b, f b)]` if and only if `slope f a b ≤ slope f a c`. -/
 lemma line_map_le_map_iff_slope_le_slope_left (h : 0 < r * (b - a)) :
-  line_map (f a) (f b) r ≤ f (line_map a b r) ↔ slope f a b ≤ slope f a (line_map a b r) :=
+  line_map (f a) (f b) r ≤ f c ↔ slope f a b ≤ slope f a c :=
 @map_le_line_map_iff_slope_le_slope_left k (order_dual E) _ _ _ f a b r h
 
+/-- Given `c = line_map a b r`, `a < c`, the point `(c, f c)` is strictly below the
+segment `[(a, f a), (b, f b)]` if and only if `slope f a c < slope f a b`. -/
 lemma map_lt_line_map_iff_slope_lt_slope_left (h : 0 < r * (b - a)) :
-  f (line_map a b r) < line_map (f a) (f b) r ↔ slope f a (line_map a b r) < slope f a b :=
+  f c < line_map (f a) (f b) r ↔ slope f a c < slope f a b :=
 lt_iff_lt_of_le_iff_le' (line_map_le_map_iff_slope_le_slope_left h)
   (map_le_line_map_iff_slope_le_slope_left h)
 
+/-- Given `c = line_map a b r`, `a < c`, the point `(c, f c)` is strictly above the
+segment `[(a, f a), (b, f b)]` if and only if `slope f a b < slope f a c`. -/
 lemma line_map_lt_map_iff_slope_lt_slope_left (h : 0 < r * (b - a)) :
-  line_map (f a) (f b) r < f (line_map a b r) ↔ slope f a b < slope f a (line_map a b r) :=
+  line_map (f a) (f b) r < f c ↔ slope f a b < slope f a c :=
 @map_lt_line_map_iff_slope_lt_slope_left k (order_dual E) _ _ _ f a b r h
 
-lemma map_le_line_map_iff_slope_le_slope_right (h : (1 - r) * (b - a) < 0) :
-  f (line_map a b r) ≤ line_map (f a) (f b) r ↔ slope f (line_map a b r) b ≤ slope f a b :=
+/-- Given `c = line_map a b r`, `c < b`, the point `(c, f c)` is non-strictly below the
+segment `[(a, f a), (b, f b)]` if and only if `slope f a b ≤ slope f c b`. -/
+lemma map_le_line_map_iff_slope_le_slope_right (h : 0 < (1 - r) * (b - a)) :
+  f c ≤ line_map (f a) (f b) r ↔ slope f a b ≤ slope f c b :=
 begin
-  rw [← neg_pos, neg_mul_eq_mul_neg, neg_sub] at h,
-  rw [← line_map_apply_one_sub b, ← line_map_apply_one_sub (f b),
-    map_le_line_map_iff_slope_le_slope_left h, slope_comm _ _ b, slope_comm _ _ b]
+  rw [← line_map_apply_one_sub, ← line_map_apply_one_sub _ _ r],
+  revert h, generalize : 1 - r = r', clear r, intro h,
+  simp_rw [line_map_apply, slope, vsub_eq_sub, vadd_eq_add, smul_eq_mul],
+  rw [sub_add_eq_sub_sub_swap, sub_self, zero_sub, le_smul_iff_of_pos, inv_inv', smul_smul,
+    neg_mul_eq_mul_neg, neg_sub, mul_inv_cancel_right', le_sub, ← neg_sub (f b), smul_neg,
+    neg_add_eq_sub],
+  { exact right_ne_zero_of_mul h.ne' },
+  { simpa [mul_sub] using h }
 end
 
-lemma line_map_le_map_iff_slope_le_slope_right (h : (1 - r) * (b - a) < 0) :
-  line_map (f a) (f b) r ≤ f (line_map a b r) ↔ slope f a b ≤ slope f (line_map a b r) b :=
+/-- Given `c = line_map a b r`, `c < b`, the point `(c, f c)` is non-strictly above the
+segment `[(a, f a), (b, f b)]` if and only if `slope f c b ≤ slope f a b`. -/
+lemma line_map_le_map_iff_slope_le_slope_right (h : 0 < (1 - r) * (b - a)) :
+  line_map (f a) (f b) r ≤ f c ↔ slope f c b ≤ slope f a b :=
 @map_le_line_map_iff_slope_le_slope_right k (order_dual E) _ _ _ f a b r h
 
-lemma map_lt_line_map_iff_slope_lt_slope_right (h : (1 - r) * (b - a) < 0) :
-  f (line_map a b r) < line_map (f a) (f b) r ↔ slope f (line_map a b r) b < slope f a b :=
+/-- Given `c = line_map a b r`, `c < b`, the point `(c, f c)` is strictly below the
+segment `[(a, f a), (b, f b)]` if and only if `slope f a b < slope f c b`. -/
+lemma map_lt_line_map_iff_slope_lt_slope_right (h : 0 < (1 - r) * (b - a)) :
+  f c < line_map (f a) (f b) r ↔ slope f a b < slope f c b :=
 lt_iff_lt_of_le_iff_le' (line_map_le_map_iff_slope_le_slope_right h)
   (map_le_line_map_iff_slope_le_slope_right h)
 
-lemma line_map_lt_map_iff_slope_lt_slope_right (h : (1 - r) * (b - a) < 0) :
-  line_map (f a) (f b) r < f (line_map a b r) ↔ slope f a b < slope f (line_map a b r) b :=
+/-- Given `c = line_map a b r`, `c < b`, the point `(c, f c)` is strictly above the
+segment `[(a, f a), (b, f b)]` if and only if `slope f c b < slope f a b`. -/
+lemma line_map_lt_map_iff_slope_lt_slope_right (h : 0 < (1 - r) * (b - a)) :
+  line_map (f a) (f b) r < f c ↔ slope f c b < slope f a b :=
 @map_lt_line_map_iff_slope_lt_slope_right k (order_dual E) _ _ _ f a b r h
 
+/-- Given `c = line_map a b r`, `a < c < b`, the point `(c, f c)` is non-strictly below the
+segment `[(a, f a), (b, f b)]` if and only if `slope f a c ≤ slope f c b`. -/
 lemma map_le_line_map_iff_slope_le_slope (hab : a < b) (h₀ : 0 < r) (h₁ : r < 1) :
-  f (line_map a b r) ≤ line_map (f a) (f b) r ↔
-    slope f a (line_map a b r) ≤ slope f (line_map a b r) b :=
+  f c ≤ line_map (f a) (f b) r ↔ slope f a c ≤ slope f c b :=
 by rw [map_le_line_map_iff_slope_le_slope_left (mul_pos h₀ (sub_pos.2 hab)),
   ← line_map_slope_line_map_slope_line_map f a b r, right_le_line_map_iff_le h₁]
 
+/-- Given `c = line_map a b r`, `a < c < b`, the point `(c, f c)` is non-strictly above the
+segment `[(a, f a), (b, f b)]` if and only if `slope f c b ≤ slope f a c`. -/
 lemma line_map_le_map_iff_slope_le_slope (hab : a < b) (h₀ : 0 < r) (h₁ : r < 1) :
-  line_map (f a) (f b) r ≤ f (line_map a b r) ↔
-    slope f (line_map a b r) b ≤ slope f a (line_map a b r) :=
+  line_map (f a) (f b) r ≤ f c ↔ slope f c b ≤ slope f a c :=
 @map_le_line_map_iff_slope_le_slope k (order_dual E) _ _ _ _ _ _ _ hab h₀ h₁
 
+/-- Given `c = line_map a b r`, `a < c < b`, the point `(c, f c)` is strictly below the
+segment `[(a, f a), (b, f b)]` if and only if `slope f a c < slope f c b`. -/
 lemma map_lt_line_map_iff_slope_lt_slope (hab : a < b) (h₀ : 0 < r) (h₁ : r < 1) :
-  f (line_map a b r) < line_map (f a) (f b) r ↔
-    slope f a (line_map a b r) < slope f (line_map a b r) b :=
+  f c < line_map (f a) (f b) r ↔ slope f a c < slope f c b :=
 lt_iff_lt_of_le_iff_le' (line_map_le_map_iff_slope_le_slope hab h₀ h₁)
   (map_le_line_map_iff_slope_le_slope hab h₀ h₁)
 
+/-- Given `c = line_map a b r`, `a < c < b`, the point `(c, f c)` is strictly above the
+segment `[(a, f a), (b, f b)]` if and only if `slope f c b < slope f a c`. -/
 lemma line_map_lt_map_iff_slope_lt_slope (hab : a < b) (h₀ : 0 < r) (h₁ : r < 1) :
-  line_map (f a) (f b) r < f (line_map a b r) ↔
-    slope f (line_map a b r) b < slope f a (line_map a b r) :=
+  line_map (f a) (f b) r < f c ↔ slope f c b < slope f a c :=
 @map_lt_line_map_iff_slope_lt_slope k (order_dual E) _ _ _ _ _ _ _ hab h₀ h₁
 
 end linear_ordered_field

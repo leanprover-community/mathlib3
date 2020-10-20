@@ -54,7 +54,7 @@ def units.smul_perm_hom : units α →* equiv.perm β :=
   (u:α) • x = (u:α) • y ↔ x = y :=
 u.smul_perm_hom.apply_eq_iff_eq
 
-@[simp] lemma units.smul_eq_iff_eq_inv_smul (u : units α) {x y : β} :
+lemma units.smul_eq_iff_eq_inv_smul (u : units α) {x y : β} :
   (u:α) • x = y ↔ x = (↑u⁻¹:α) • y :=
 u.smul_perm_hom.apply_eq_iff_eq_symm_apply
 

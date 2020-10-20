@@ -598,11 +598,6 @@ begin
     exact nat.lt_asymm ha ha }
 end
 
--- TODO: move this to just after the definition of `nth_roots`
-/-- The multiset `nth_roots ↑n (1 : R)` as a finset. -/
-def nth_roots_finset (n : ℕ+) (R : Type*) [integral_domain R] : finset R :=
-multiset.to_finset (nth_roots n (1 : R))
-
 @[simp] lemma card_nth_roots_finset {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) :
   (nth_roots_finset n R).card = n :=
 by rw [nth_roots_finset, ← multiset.to_finset_eq (nth_roots_nodup h), card_mk, h.card_nth_roots]

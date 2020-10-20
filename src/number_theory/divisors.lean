@@ -249,7 +249,7 @@ lemma prod_divisors_prime_pow {α : Type*} [comm_monoid α] {k p : ℕ} {f : ℕ
 @sum_divisors_prime_pow (additive α) _ _ _ _ h
 
 @[simp]
-lemma finset_div_eq_filter (n : ℕ+) :
+lemma filter_dvd_eq_divisors (n : ℕ+) :
   finset.filter (λ (x : ℕ), x ∣ ↑n) (finset.range (n : ℕ).succ) = (n : ℕ).divisors :=
 begin
   apply finset.ext,

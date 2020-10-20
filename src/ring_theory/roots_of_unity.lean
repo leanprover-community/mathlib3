@@ -688,8 +688,7 @@ begin
     rw card_nth_roots h,
     apply le_of_eq,
     rw finset.card_bind,
-    {
-      rw ← @finset.sum_congr _ _ (finset.filter (λ (x : ℕ), x ∣ n)
+    { rw ← @finset.sum_congr _ _ (finset.filter (λ (x : ℕ), x ∣ n)
         (finset.range (n : ℕ).succ)) (nat.divisors ↑n)
         (λ i, nat.totient i) (λ i, (primitive_roots i R).card) _ (nat.filter_dvd_eq_divisors n) _,
       { symmetry; exact nat.sum_totient n },

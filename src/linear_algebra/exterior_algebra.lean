@@ -6,6 +6,7 @@ Authors: Zhangir Azerbayev, Adam Topaz, Eric Wieser.
 
 import algebra.ring_quot
 import linear_algebra.tensor_algebra
+import linear_algebra.multilinear
 import group_theory.perm.sign
 
 /-!
@@ -183,33 +184,18 @@ variables (R M)
 The canonical multilinear map from `fin q → M` into `exterior_algebra R M`.
 -/
 def wedge : multilinear_map R (λ i : fin q, M) (exterior_algebra R M) :=
-{ to_fun := λ ν : fin q → M , exterior_algebra.quot R M (tensor_algebra.mk R M ν),
-  map_add' := λ _ _ _ _, by simp,
-  map_smul' := λ _ _ _ _, by simp }
+(multilinear_map.mk_pi_algebra_fin R q (exterior_algebra R M)).comp_linear_map (λ i, (ι R))
 
 variables {R M}
 
-
-section
-
--- TODO: we should not be relying on these definitions
-local attribute [semireducible] exterior_algebra ι
-
 lemma wedge_split (ν : fin q.succ → M) :
-wedge R M ν = ι R (ν 0) * wedge R M (λ i : fin q, ν i.succ) :=
-begin
-  change exterior_algebra.quot R M _ = _,
-  rw tensor_algebra.mk_split,
-  simp only [exterior_algebra.quot, alg_hom.map_mul],
-  refl,
-end
-
-end
+  wedge R M ν = ι R (ν 0) * wedge R M (λ i : fin q, ν i.succ) :=
+by simp [wedge]
 
 /--
 Auxiliary lemma used to prove `wedge_self_adj`.
 -/
-lemma wedge_self_adj_aux (ν : fin q.succ → M) {j : fin q.succ} (hj : j.val = 1) (hv : ν 0 = ν j):
+lemma wedge_self_adj_aux (ν : fin q.succ → M) {j : fin q.succ} (hj : ↑j = 1) (hv : ν 0 = ν j):
 ι R (ν 0) * wedge R M (λ i : fin q, ν i.succ) = 0 :=
 begin
   induction q with q hq,
@@ -252,13 +238,13 @@ end
 
 
 
-lemma wedge_add_swap_adj (ν : fin q → M) {i j : fin q} (hij : i.val + 1 = j.val) :
+lemma wedge_add_swap_adj (ν : fin q → M) {i j : fin q} (hij : ↑i + 1 = ↑j) :
 wedge R M ν + wedge R M (ν ∘ equiv.swap i j) = 0 :=
 begin
   have hij1 : i ≠ j :=
   begin
     intro h,
-    rw h at hij, exact nat.succ_ne_self j.val hij,
+    rw h at hij, exact nat.succ_ne_self ↑j hij,
   end,
   have key : wedge R M (function.update (function.update ν i (ν i + ν j)) j (ν i + ν j)) = 0 :=
     by rw wedge_self_adj (function.update (function.update ν i (ν i + ν j)) j (ν i + ν j)) i j hij
@@ -303,7 +289,7 @@ end
 
 
 
-lemma wedge_swap_adj (ν : fin q → N) {i j : fin q} (hij : i.val + 1 = j.val) :
+lemma wedge_swap_adj (ν : fin q → N) {i j : fin q} (hij : ↑i + 1 = ↑j) :
 wedge S N (ν ∘ equiv.swap i j) = - wedge S N ν  :=
 begin
   apply eq_neg_of_add_eq_zero,
@@ -322,7 +308,7 @@ begin
   intros f x y hxy hI,
   have hxy1 : x ≠ y :=
   begin
-    intro h, rw h at hxy, exact (nat.succ_ne_self y.val) hxy,
+    intro h, rw h at hxy, exact (nat.succ_ne_self ↑y) hxy,
   end,
   have assoc : ν ∘ (f * equiv.swap x y : equiv.perm (fin q)) = (ν ∘ f ∘ equiv.swap x y) := rfl,
   rw [assoc, wedge_swap_adj (ν ∘ f) hxy, ←neg_one_smul ℤ (wedge S N (ν ∘ f))],

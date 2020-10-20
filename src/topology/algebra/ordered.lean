@@ -513,10 +513,10 @@ section decidable_linear_order
 variables [topological_space α] [decidable_linear_order α] [order_closed_topology α] {f g : β → α}
 
 section
-variables [topological_space β] (hf : continuous f) (hg : continuous g)
-include hf hg
+variables [topological_space β]
 
-lemma frontier_le_subset_eq : frontier {b | f b ≤ g b} ⊆ {b | f b = g b} :=
+lemma frontier_le_subset_eq (hf : continuous f) (hg : continuous g) :
+  frontier {b | f b ≤ g b} ⊆ {b | f b = g b} :=
 begin
   rw [frontier_eq_closure_inter_closure, closure_le_eq hf hg],
   rintros b ⟨hb₁, hb₂⟩,
@@ -524,38 +524,33 @@ begin
   convert hb₂ using 2, simp only [not_le.symm], refl
 end
 
-lemma frontier_lt_subset_eq : frontier {b | f b < g b} ⊆ {b | f b = g b} :=
+lemma frontier_lt_subset_eq (hf : continuous f) (hg : continuous g) :
+  frontier {b | f b < g b} ⊆ {b | f b = g b} :=
 by rw ← frontier_compl;
    convert frontier_le_subset_eq hg hf; simp [ext_iff, eq_comm]
 
-@[continuity] lemma continuous.min : continuous (λb, min (f b) (g b)) :=
+@[continuity] lemma continuous.min (hf : continuous f) (hg : continuous g) :
+  continuous (λb, min (f b) (g b)) :=
 have ∀b∈frontier {b | f b ≤ g b}, f b = g b, from assume b hb, frontier_le_subset_eq hf hg hb,
 continuous_if this hf hg
 
-@[continuity] lemma continuous.max : continuous (λb, max (f b) (g b)) :=
+@[continuity] lemma continuous.max (hf : continuous f) (hg : continuous g) :
+  continuous (λb, max (f b) (g b)) :=
 @continuous.min (order_dual α) _ _ _ _ _ _ _ hf hg
 
 end
 
+lemma continuous_min : continuous (λ p : α × α, min p.1 p.2) := continuous_fst.min continuous_snd
+
+lemma continuous_max : continuous (λ p : α × α, max p.1 p.2) := continuous_fst.max continuous_snd
+
 lemma tendsto.max {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) :
   tendsto (λb, max (f b) (g b)) b (𝓝 (max a₁ a₂)) :=
-show tendsto ((λp:α×α, max p.1 p.2) ∘ (λb, (f b, g b))) b (𝓝 (max a₁ a₂)),
-  from tendsto.comp
-    begin
-      rw [←nhds_prod_eq],
-      from continuous_iff_continuous_at.mp (continuous_fst.max continuous_snd) _
-    end
-    (hf.prod_mk hg)
+(continuous_max.tendsto (a₁, a₂)).comp (hf.prod_mk_nhds hg)
 
 lemma tendsto.min {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) :
   tendsto (λb, min (f b) (g b)) b (𝓝 (min a₁ a₂)) :=
-show tendsto ((λp:α×α, min p.1 p.2) ∘ (λb, (f b, g b))) b (𝓝 (min a₁ a₂)),
-  from tendsto.comp
-    begin
-      rw [←nhds_prod_eq],
-      from continuous_iff_continuous_at.mp (continuous_fst.min continuous_snd) _
-    end
-    (hf.prod_mk hg)
+(continuous_min.tendsto (a₁, a₂)).comp (hf.prod_mk_nhds hg)
 
 end decidable_linear_order
 
@@ -788,6 +783,31 @@ by simp [nhds_eq_order (⊤:α)]
 lemma nhds_bot_order [topological_space α] [order_bot α] [order_topology α] :
   𝓝 (⊥:α) = (⨅l (h₂ : ⊥ < l), 𝓟 (Iio l)) :=
 by simp [nhds_eq_order (⊥:α)]
+
+lemma tendsto_nhds_top_mono [topological_space β] [order_top β] [order_topology β] {l : filter α}
+  {f g : α → β} (hf : tendsto f l (𝓝 ⊤)) (hg : f ≤ᶠ[l] g) :
+  tendsto g l (𝓝 ⊤) :=
+begin
+  simp only [nhds_top_order, tendsto_infi, tendsto_principal] at hf ⊢,
+  intros x hx,
+  filter_upwards [hf x hx, hg],
+  exact λ x, lt_of_lt_of_le
+end
+
+lemma tendsto_nhds_bot_mono [topological_space β] [order_bot β] [order_topology β] {l : filter α}
+  {f g : α → β} (hf : tendsto f l (𝓝 ⊥)) (hg : g ≤ᶠ[l] f) :
+  tendsto g l (𝓝 ⊥) :=
+@tendsto_nhds_top_mono α (order_dual β) _ _ _ _ _ _ hf hg
+
+lemma tendsto_nhds_top_mono' [topological_space β] [order_top β] [order_topology β] {l : filter α}
+  {f g : α → β} (hf : tendsto f l (𝓝 ⊤)) (hg : f ≤ g) :
+  tendsto g l (𝓝 ⊤) :=
+tendsto_nhds_top_mono hf (eventually_of_forall hg)
+
+lemma tendsto_nhds_bot_mono' [topological_space β] [order_bot β] [order_topology β] {l : filter α}
+  {f g : α → β} (hf : tendsto f l (𝓝 ⊥)) (hg : g ≤ f) :
+  tendsto g l (𝓝 ⊥) :=
+tendsto_nhds_bot_mono hf (eventually_of_forall hg)
 
 section linear_order
 
@@ -1348,6 +1368,22 @@ end
 
 end linear_ordered_ring
 
+section decidable_linear_ordered_semiring
+variables [decidable_linear_ordered_semiring α]
+
+/-- The function `x^n` tends to `+∞` at `+∞` for any positive natural `n`.
+A version for positive real powers exists as `tendsto_rpow_at_top`. -/
+lemma tendsto_pow_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ n) at_top at_top :=
+begin
+  rw tendsto_at_top_at_top,
+  intro b,
+  use max b 1,
+  intros x hx,
+  exact le_trans (le_of_max_le_left (by rwa pow_one x)) (pow_le_pow (le_of_max_le_right hx) hn),
+end
+
+end decidable_linear_ordered_semiring
+
 section linear_ordered_semiring
 variables [linear_ordered_semiring α] [archimedean α]
 variables {l : filter β} {f : β → α}
@@ -1487,6 +1523,12 @@ tendsto_inv_at_top_zero.comp h
 
 lemma tendsto.inv_tendsto_zero (h : tendsto f l (𝓝[set.Ioi 0] 0)) : tendsto (f⁻¹) l at_top :=
 tendsto_inv_zero_at_top.comp h
+
+/-- The function `x^(-n)` tends to `0` at `+∞` for any positive natural `n`.
+A version for positive real powers exists as `tendsto_rpow_neg_at_top`. -/
+lemma tendsto_pow_neg_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ (-(n:ℤ))) at_top (𝓝 0) :=
+tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) (λ x hx, (fpow_neg x n).symm))
+  (tendsto.inv_tendsto_at_top (tendsto_pow_at_top hn))
 
 end discrete_linear_ordered_field
 

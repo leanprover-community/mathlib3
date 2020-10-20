@@ -1203,6 +1203,15 @@ end
 
 lemma ext_iff {f g : P1 →ᵃ[k] P2} : f = g ↔ ∀ p, f p = g p := ⟨λ h p, h ▸ rfl, ext⟩
 
+lemma injective_coe_fn : function.injective (λ (f : P1 →ᵃ[k] P2) (x : P1), f x) :=
+λ f g H, ext $ congr_fun H
+
+protected lemma congr_arg (f : P1 →ᵃ[k] P2) {x y : P1} (h : x = y) : f x = f y :=
+congr_arg _ h
+
+protected lemma congr_fun {f g : P1 →ᵃ[k] P2} (h : f = g) (x : P1) : f x = g x :=
+h ▸ rfl
+
 variables (k P1)
 
 /-- Constant function as an `affine_map`. -/
@@ -1365,6 +1374,21 @@ lemma coe_line_map (p₀ p₁ : P1) : (line_map p₀ p₁ : k → P1) = λ c, c 
 
 lemma line_map_apply (p₀ p₁ : P1) (c : k) : line_map p₀ p₁ c = c • (p₁ -ᵥ p₀) +ᵥ p₀ := rfl
 
+lemma line_map_apply_module' (p₀ p₁ : V1) (c : k) : line_map p₀ p₁ c = c • (p₁ - p₀) + p₀ := rfl
+
+lemma line_map_apply_module (p₀ p₁ : V1) (c : k) : line_map p₀ p₁ c = (1 - c) • p₀ + c • p₁ :=
+by simp [line_map_apply_module', smul_sub, sub_smul]; abel
+
+omit V1
+
+lemma line_map_apply_ring' (a b c : k) : line_map a b c = c * (b - a) + a :=
+rfl
+
+lemma line_map_apply_ring (a b c : k) : line_map a b c = (1 - c) * a + c * b :=
+line_map_apply_module a b c
+
+include V1
+
 lemma line_map_vadd_apply (p : P1) (v : V1) (c : k) :
   line_map p (v +ᵥ p) c = c • v +ᵥ p :=
 by rw [line_map_apply, vadd_vsub]
@@ -1373,8 +1397,10 @@ by rw [line_map_apply, vadd_vsub]
   (line_map p₀ p₁ : k →ᵃ[k] P1).linear = linear_map.id.smul_right (p₁ -ᵥ p₀) :=
 add_zero _
 
+lemma line_map_same_apply (p : P1) (c : k) : line_map p p c = p := by simp [line_map_apply]
+
 @[simp] lemma line_map_same (p : P1) : line_map p p = const k k p :=
-by { ext c, simp [line_map_apply] }
+ext $ line_map_same_apply p
 
 @[simp] lemma line_map_apply_zero (p₀ p₁ : P1) : line_map p₀ p₁ (0:k) = p₀ :=
 by simp [line_map_apply]
@@ -1392,11 +1418,23 @@ by simp [line_map_apply]
   f.comp (line_map p₀ p₁) = line_map (f p₀) (f p₁) :=
 ext $ f.apply_line_map p₀ p₁
 
+@[simp] lemma fst_line_map (p₀ p₁ : P1 × P2) (c : k) :
+  (line_map p₀ p₁ c).1 = line_map p₀.1 p₁.1 c :=
+fst.apply_line_map p₀ p₁ c
+
+@[simp] lemma snd_line_map (p₀ p₁ : P1 × P2) (c : k) :
+  (line_map p₀ p₁ c).2 = line_map p₀.2 p₁.2 c :=
+snd.apply_line_map p₀ p₁ c
+
 omit V2
 
 lemma line_map_symm (p₀ p₁ : P1) :
   line_map p₀ p₁ = (line_map p₁ p₀).comp (line_map (1:k) (0:k)) :=
 by { rw [comp_line_map], simp }
+
+lemma line_map_apply_one_sub (p₀ p₁ : P1) (c : k) :
+  line_map p₀ p₁ (1 - c) = line_map p₁ p₀ c :=
+by { rw [line_map_symm p₀, comp_apply], congr, simp [line_map_apply] }
 
 /-- Decomposition of an affine map in the special case when the point space and vector space
 are the same. -/

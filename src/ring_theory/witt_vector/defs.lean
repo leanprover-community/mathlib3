@@ -60,7 +60,7 @@ def mk (x : ℕ → R) : witt_vector p R := x
 instance [inhabited R] : inhabited (𝕎 R) := ⟨mk p $ λ _, default R⟩
 
 /--
-`x.coeff n` is the `n`th coefficient of the Witt vector `n`.
+`x.coeff n` is the `n`th coefficient of the Witt vector `x`.
 
 This concept does not have a standard name in the literature.
 -/

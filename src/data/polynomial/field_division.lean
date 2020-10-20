@@ -261,11 +261,11 @@ theorem is_coprime_map [field k] (f : R →+* k) :
   is_coprime (p.map f) (q.map f) ↔ is_coprime p q :=
 by rw [← gcd_is_unit_iff, ← gcd_is_unit_iff, gcd_map, is_unit_map]
 
-@[simp] lemma map_eq_zero [field k] (f : R →+* k) :
+@[simp] lemma map_eq_zero [semiring S] [nontrivial S] (f : R →+* S) :
   p.map f = 0 ↔ p = 0 :=
-by simp [polynomial.ext_iff, f.map_eq_zero, coeff_map]
+by simp only [polynomial.ext_iff, f.map_eq_zero, coeff_map, coeff_zero]
 
-lemma map_ne_zero [field k] {f : R →+* k} (hp : p ≠ 0) : p.map f ≠ 0 :=
+lemma map_ne_zero [semiring S] [nontrivial S] {f : R →+* S} (hp : p ≠ 0) : p.map f ≠ 0 :=
 mt (map_eq_zero f).1 hp
 
 lemma mem_roots_map [field k] {f : R →+* k} {x : k} (hp : p ≠ 0) :

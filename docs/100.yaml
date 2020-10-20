@@ -84,7 +84,9 @@
   decl   : function.embedding.schroeder_bernstein
   author : Mario Carneiro
 26:
-  title  : Leibnitz’s Series for Pi
+  title  : Leibniz’s Series for Pi
+  decl   : real.tendsto_sum_pi_div_four
+  author : Benjamin Davidson
 27:
   title  : Sum of the Angles of a Triangle
   decl   : euclidean_geometry.angle_add_angle_add_angle_eq_pi

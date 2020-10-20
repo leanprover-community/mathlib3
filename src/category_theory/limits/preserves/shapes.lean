@@ -18,7 +18,14 @@ variables (G : C ⥤ D)
 
 section
 variables {J : Type v} [small_category J]
-variables (F : J ⥤ C) [has_limit F] [has_limit (F ⋙ G)] [preserves_limit F G]
+variables (F : J ⥤ C) [preserves_limit F G]
+
+@[simp]
+lemma preserves_lift_map_cone (c₁ c₂ : cone F) (t : is_limit c₁) :
+  (preserves_limit.preserves t).lift (G.map_cone _) = G.map (t.lift c₂) :=
+((preserves_limit.preserves t).uniq (G.map_cone _) _ (by simp [← G.map_comp])).symm
+
+variables [has_limit F] [has_limit (F ⋙ G)]
 /--
 If `G` preserves limits, we have an isomorphism from the image of the limit of a functor `F`
 to the limit of the functor `F ⋙ G`.
@@ -35,11 +42,6 @@ is_limit.cone_point_unique_up_to_iso_hom_comp _ _ j
 lemma preserves_limits_iso_inv_π (j) :
   (preserves_limit_iso G F).inv ≫ G.map (limit.π F j) = limit.π _ j :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ j
-
-@[simp]
-lemma preserves_lift_map_cone (c₁ c₂ : cone F) (t : is_limit c₁) :
-  (preserves_limit.preserves t).lift (G.map_cone _) = G.map (t.lift c₂) :=
-((preserves_limit.preserves t).uniq (G.map_cone _) _ (by simp [← G.map_comp])).symm
 
 @[simp, reassoc]
 lemma lift_comp_preserves_limits_iso_hom (t : cone F) :
@@ -97,13 +99,14 @@ begin
 end
 
 /-- The property of reflecting products expressed in terms of fans. -/
-def reflects_is_product [reflects_limits_of_shape (discrete J) G] {P : C} (g : Π j, P ⟶ f j)
-  (t : is_limit (fan.mk _ (λ j, G.map (g j)) : fan (λ j, G.obj (f j)))) : is_limit (fan.mk P g) :=
+def is_limit_of_reflects_of_is_limit [reflects_limits_of_shape (discrete J) G]
+  {P : C} (g : Π j, P ⟶ f j) (t : is_limit (fan.mk _ (λ j, G.map (g j)) : fan (λ j, G.obj (f j)))) :
+  is_limit (fan.mk P g) :=
 reflects_limit.reflects ((fan_map_cone_limit _ _ _).symm t)
 
 /-- The property of preserving products expressed in terms of fans. -/
-def preserves_is_product [preserves_limits_of_shape (discrete J) G] {P : C} (g : Π j, P ⟶ f j)
-  (t : is_limit (fan.mk _ g)) :
+def map_is_limit_of_preserves_of_is_limit [preserves_limits_of_shape (discrete J) G]
+  {P : C} (g : Π j, P ⟶ f j) (t : is_limit (fan.mk _ g)) :
   is_limit (fan.mk _ (λ j, G.map (g j)) : fan (λ j, G.obj (f j))) :=
 fan_map_cone_limit _ _ _ (preserves_limit.preserves t)
 
@@ -111,33 +114,31 @@ variables [has_products_of_shape J C] [preserves_limits_of_shape (discrete J) G]
 
 def preserves_the_product :
   is_limit (fan.mk _ (λ (j : J), G.map (pi.π f j)) : fan (λ j, G.obj (f j))) :=
-preserves_is_product G f _ (product_is_product _)
+map_is_limit_of_preserves_of_is_limit G f _ (product_is_product _)
 
-variables [has_products_of_shape J D]
+variables [has_product (λ (j : J), G.obj (f j))]
 
 /--
 If `G` preserves limits, we have an isomorphism from the image of a product to the product of the
 images.
 -/
 -- TODO perhaps weaken the assumptions here, to just require the relevant limits?
-def preserves_products_iso :
-  G.obj (∏ f) ≅ ∏ (λ j, G.obj (f j)) :=
-preserves_limit_iso G (discrete.functor f) ≪≫
-  has_limit.iso_of_nat_iso (discrete.nat_iso (λ j, iso.refl _))
+def preserves_products_iso : G.obj (∏ f) ≅ ∏ (λ j, G.obj (f j)) :=
+is_limit.cone_point_unique_up_to_iso (preserves_the_product G f) (limit.is_limit _)
 
 @[simp, reassoc]
 lemma preserves_products_iso_hom_π (j) :
   (preserves_products_iso G f).hom ≫ pi.π _ j = G.map (pi.π f j) :=
-by simp [preserves_products_iso]
+is_limit.cone_point_unique_up_to_iso_hom_comp _ _ _
 
 @[simp, reassoc]
 lemma map_lift_comp_preserves_products_iso_hom (P : C) (g : Π j, P ⟶ f j) :
   G.map (pi.lift g) ≫ (preserves_products_iso G f).hom = pi.lift (λ j, G.map (g j)) :=
-by { ext, simp [preserves_products_iso] }
+by { ext, simp [← G.map_comp] }
 
 end preserve_products
 
-section preserve_equalizers
+namespace fork
 
 open category_theory.limits.walking_parallel_pair
 
@@ -149,7 +150,8 @@ is a limit.
 This essentially lets us commute `fork.of_ι` with `functor.map_cone`.
 -/
 def equalizer_map_cone_limit (w : h ≫ f = h ≫ g) :
-  is_limit (G.map_cone (fork.of_ι h w)) ≃ is_limit (fork.of_ι (G.map h) (begin simp only [←G.map_comp, w] end) : fork (G.map f) (G.map g)) :=
+  is_limit (G.map_cone (fork.of_ι h w)) ≃
+  is_limit (fork.of_ι (G.map h) (by simp only [←G.map_comp, w]) : fork (G.map f) (G.map g)) :=
 (is_limit.postcompose_hom_equiv (diagram_iso_parallel_pair _) _).symm.trans
   (is_limit.equiv_iso_limit (fork.ext (iso.refl _) (by simp [fork.ι_eq_app_zero])))
 
@@ -166,9 +168,14 @@ def is_limit_of_reflects_of_map_is_limit [reflects_limit (parallel_pair f g) G] 
 reflects_limit.reflects ((equalizer_map_cone_limit G w).symm l)
 
 variables (f g)
+
+def preserves_the_equalizer [has_equalizer f g] [preserves_limit (parallel_pair f g) G] :
+  is_limit (fork.of_ι (G.map (equalizer.ι f g)) (by simp only [←G.map_comp, equalizer.condition])) :=
+map_is_limit_of_preserves_of_is_limit G _ (equalizer_is_equalizer f g)
+
 def equalizer_comparison [has_equalizer f g] [has_equalizer (G.map f) (G.map g)] :
   G.obj (equalizer f g) ⟶ equalizer (G.map f) (G.map g) :=
-equalizer.lift (G.map (equalizer.ι _ _)) (by rw [← G.map_comp, equalizer.condition, G.map_comp])
+equalizer.lift (G.map (equalizer.ι _ _)) (by simp only [←G.map_comp, equalizer.condition])
 
 def preserves_equalizer [has_equalizer f g] [has_equalizer (G.map f) (G.map g)]
   [i : is_iso (equalizer_comparison G f g)] : preserves_limit (parallel_pair f g) G :=
@@ -179,12 +186,11 @@ begin
   apply i,
 end
 
-def equalizer_comparison_inv [has_equalizer f g] [has_equalizer (G.map f) (G.map g)]
+def preserves_equalizers_iso [has_equalizer f g] [has_equalizer (G.map f) (G.map g)]
   [preserves_limit (parallel_pair f g) G] :
-  is_iso (equalizer_comparison G f g) :=
-begin
-  let i : G.obj _ ≅ equalizer _ _ := is_limit.cone_point_unique_up_to_iso (map_is_limit_of_preserves_of_is_limit G _ (equalizer_is_equalizer f g)) (limit.is_limit (parallel_pair (G.map f) (G.map g))),
-  apply is_iso.of_iso i,
-end
+  G.obj (equalizer f g) ≅ equalizer (G.map f) (G.map g) :=
+is_limit.cone_point_unique_up_to_iso (preserves_the_equalizer G f g) (limit.is_limit _)
 
-end preserve_equalizers
+#lint
+
+end fork

@@ -61,7 +61,7 @@ def built_is_limit (t₁ : is_limit c₁) (t₂ : is_limit c₂) (hi : is_limit 
 { lift := λ q,
   begin
     refine hi.lift (fork.of_ι _ _),
-    refine t₁.lift (limits.fan.mk (λ j, _)),
+    refine t₁.lift (fan.mk _ (λ j, _)),
     apply q.π.app j,
     apply t₂.hom_ext,
     simp [hs, ht],
@@ -140,9 +140,8 @@ def preserves_limit_of_preserves_equalizers_and_product :
     apply preserves_limit_of_preserves_limit_cone
       (built_is_limit s t (by simp) (by simp) (limit.is_limit _) (limit.is_limit _) (limit.is_limit _)),
     refine is_limit.of_iso_limit (built_is_limit _ _ _ _ _ _ _) _,
-    { exact fan.mk (λ j, G.map (pi.π _ j)) },
-    { refine @fan.mk _ D _ (λ f, _) (G.obj Q) (λ f, _),
-      exact G.map (pi.π _ f) },
+    { exact fan.mk _ (λ j, G.map (pi.π _ j)) },
+    { exact fan.mk (G.obj Q) (λ f, G.map (pi.π _ f)) },
     { apply G.map s },
     { apply G.map t },
     { intro f,

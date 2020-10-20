@@ -1,7 +1,0 @@
-PR
-
-feat(data/polynomial/reverse): show trailing_coeff is a multiplicative homomorphism
-
-use the `reflect` function.  prove lemmas on `trailing_degree`.  add a lemma on monotone non-increasing to show that `trailing_coeff` and `leading_coeff` are exchanged under `reflect`
-
-feel free to suggest a better home for `mon` and `monotone_max'_min'`.

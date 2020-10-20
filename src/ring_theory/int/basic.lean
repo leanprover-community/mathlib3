@@ -144,8 +144,7 @@ lemma nat_abs_lcm (i j : ℤ) : nat_abs (gcd_monoid.lcm i j) = int.lcm i j := rf
 
 end gcd_monoid
 
-lemma sqr_of_coprime [decidable_eq (associates ℤ)] [Π (p : associates ℤ), decidable (irreducible p)]
-  {a b c : ℤ} (hc : c ≠ 0) (h : int.gcd a b = 1) (heq : a * b = c ^ 2) :
+lemma sqr_of_coprime {a b c : ℤ} (hc : c ≠ 0) (h : int.gcd a b = 1) (heq : a * b = c ^ 2) :
   ∃ (a0 : ℤ), a0 ≠ 0 ∧ (a = a0 ^ 2 ∨ a = - (a0 ^ 2)) :=
 begin
   have hc2 : a * b ≠ 0, { rw heq, exact pow_ne_zero 2 hc },

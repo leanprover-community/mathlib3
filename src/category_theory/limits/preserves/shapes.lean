@@ -89,7 +89,7 @@ is a limit.
 This essentially lets us commute `fan.mk` with `functor.map_cone`.
 -/
 def fan_map_cone_limit {P : C} (g : Π j, P ⟶ f j) :
-  is_limit (G.map_cone (fan.mk g)) ≃ is_limit (fan.mk (λ j, G.map (g j)) : fan (λ j, G.obj (f j))) :=
+  is_limit (G.map_cone (fan.mk P g)) ≃ is_limit (fan.mk _ (λ j, G.map (g j)) : fan (λ j, G.obj (f j))) :=
 begin
   refine (is_limit.postcompose_hom_equiv _ _).symm.trans (is_limit.equiv_iso_limit _),
   refine discrete.nat_iso (λ j, iso.refl (G.obj (f j))),
@@ -98,19 +98,19 @@ end
 
 /-- The property of reflecting products expressed in terms of fans. -/
 def reflects_is_product [reflects_limits_of_shape (discrete J) G] {P : C} (g : Π j, P ⟶ f j)
-  (t : is_limit (fan.mk (λ j, G.map (g j)) : fan (λ j, G.obj (f j)))) : is_limit (fan.mk g) :=
+  (t : is_limit (fan.mk _ (λ j, G.map (g j)) : fan (λ j, G.obj (f j)))) : is_limit (fan.mk P g) :=
 reflects_limit.reflects ((fan_map_cone_limit _ _ _).symm t)
 
 /-- The property of preserving products expressed in terms of fans. -/
 def preserves_is_product [preserves_limits_of_shape (discrete J) G] {P : C} (g : Π j, P ⟶ f j)
-  (t : is_limit (fan.mk g)) :
-  is_limit (fan.mk (λ j, G.map (g j)) : fan (λ j, G.obj (f j))) :=
+  (t : is_limit (fan.mk _ g)) :
+  is_limit (fan.mk _ (λ j, G.map (g j)) : fan (λ j, G.obj (f j))) :=
 fan_map_cone_limit _ _ _ (preserves_limit.preserves t)
 
 variables [has_products_of_shape J C] [preserves_limits_of_shape (discrete J) G]
 
 def preserves_the_product :
-  is_limit (fan.mk (λ (j : J), G.map (pi.π f j)) : fan (λ j, G.obj (f j))) :=
+  is_limit (fan.mk _ (λ (j : J), G.map (pi.π f j)) : fan (λ j, G.obj (f j))) :=
 preserves_is_product G f _ (product_is_product _)
 
 variables [has_products_of_shape J D]
@@ -148,8 +148,8 @@ variables {X Y Z : C} {f g : X ⟶ Y} {h : Z ⟶ X}
 is a limit.
 This essentially lets us commute `fork.of_ι` with `functor.map_cone`.
 -/
-def equalizer_map_cone_limit (w : h ≫ f = h ≫ g) (hw : G.map h ≫ G.map f = G.map h ≫ G.map g) :
-  is_limit (G.map_cone (fork.of_ι h w)) ≃ is_limit (fork.of_ι (G.map h) hw) :=
+def equalizer_map_cone_limit (w : h ≫ f = h ≫ g) :
+  is_limit (G.map_cone (fork.of_ι h w)) ≃ is_limit (fork.of_ι (G.map h) (begin simp only [←G.map_comp, w] end) : fork (G.map f) (G.map g)) :=
 (is_limit.postcompose_hom_equiv (diagram_iso_parallel_pair _) _).symm.trans
   (is_limit.equiv_iso_limit (fork.ext (iso.refl _) (by simp [fork.ι_eq_app_zero])))
 
@@ -157,12 +157,34 @@ def equalizer_map_cone_limit (w : h ≫ f = h ≫ g) (hw : G.map h ≫ G.map f =
 def map_is_limit_of_preserves_of_is_limit [preserves_limit (parallel_pair f g) G] (w : h ≫ f = h ≫ g)
   (l : is_limit (fork.of_ι h w)) :
   is_limit (fork.of_ι (G.map h) (by simp only [←G.map_comp, w]) : fork (G.map f) (G.map g)) :=
-equalizer_map_cone_limit G w _ (preserves_limit.preserves l)
+equalizer_map_cone_limit G w (preserves_limit.preserves l)
 
 /-- The property of reflecting equalizers expressed in terms of forks. -/
 def is_limit_of_reflects_of_map_is_limit [reflects_limit (parallel_pair f g) G] (w : h ≫ f = h ≫ g)
   (l : is_limit (fork.of_ι (G.map h) (by simp only [←G.map_comp, w]) : fork (G.map f) (G.map g))) :
   is_limit (fork.of_ι h w) :=
-reflects_limit.reflects ((equalizer_map_cone_limit G w _).symm l)
+reflects_limit.reflects ((equalizer_map_cone_limit G w).symm l)
+
+variables (f g)
+def equalizer_comparison [has_equalizer f g] [has_equalizer (G.map f) (G.map g)] :
+  G.obj (equalizer f g) ⟶ equalizer (G.map f) (G.map g) :=
+equalizer.lift (G.map (equalizer.ι _ _)) (by rw [← G.map_comp, equalizer.condition, G.map_comp])
+
+def preserves_equalizer [has_equalizer f g] [has_equalizer (G.map f) (G.map g)]
+  [i : is_iso (equalizer_comparison G f g)] : preserves_limit (parallel_pair f g) G :=
+begin
+  apply preserves_limit_of_preserves_limit_cone (equalizer_is_equalizer f g),
+  apply (equalizer_map_cone_limit _ _).symm _,
+  apply is_limit.of_point_iso (limit.is_limit (parallel_pair (G.map f) (G.map g))),
+  apply i,
+end
+
+def equalizer_comparison_inv [has_equalizer f g] [has_equalizer (G.map f) (G.map g)]
+  [preserves_limit (parallel_pair f g) G] :
+  is_iso (equalizer_comparison G f g) :=
+begin
+  let i : G.obj _ ≅ equalizer _ _ := is_limit.cone_point_unique_up_to_iso (map_is_limit_of_preserves_of_is_limit G _ (equalizer_is_equalizer f g)) (limit.is_limit (parallel_pair (G.map f) (G.map g))),
+  apply is_iso.of_iso i,
+end
 
 end preserve_equalizers

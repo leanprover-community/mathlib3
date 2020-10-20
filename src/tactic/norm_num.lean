@@ -1381,7 +1381,7 @@ where `A` and `B` are numerical expressions.
 It also has a relatively simple primality prover. -/
 meta def norm_num (hs : parse simp_arg_list) (l : parse location) : tactic unit :=
 repeat1 $ orelse' (norm_num1 l) $
-simp_core {} (norm_num1 (loc.ns [none])) ff hs [] l
+simp_core {} (norm_num1 (loc.ns [none])) ff (simp_arg_type.except ``one_div :: hs) [] l
 
 add_hint_tactic "norm_num"
 
@@ -1448,6 +1448,7 @@ where `A` and `B` are numerical expressions.
 It also has a relatively simple primality prover. -/
 meta def norm_num (hs : parse simp_arg_list) : conv unit :=
 repeat1 $ orelse' norm_num1 $
-conv.interactive.simp ff hs [] { discharger := tactic.interactive.norm_num1 (loc.ns [none]) }
+conv.interactive.simp ff (simp_arg_type.except ``one_div :: hs) []
+  { discharger := tactic.interactive.norm_num1 (loc.ns [none]) }
 
 end conv.interactive

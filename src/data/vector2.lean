@@ -149,7 +149,7 @@ by simp [nth_zero]
 
 /-- Accessing the `nth` element of a vector made up
 of one element `x : α` is `x` itself. -/
-@[simp] lemma nth_cons_nil {ix : ℕ}
+@[simp] lemma nth_cons_nil {ix : fin 1}
   (x : α) : nth (x ::ᵥ nil) ix = x :=
 by convert nth_cons_zero x nil
 

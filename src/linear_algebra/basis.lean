@@ -394,9 +394,7 @@ begin
   dsimp [finsupp.equiv_fun_on_fintype, finsupp.sum],
   rw finset.sum_filter,
   refine finset.sum_congr rfl (λi hi, _),
-  by_cases H : x i = 0,
-  { simp [H] },
-  { simp [H], refl }
+  by_cases H : x i = 0; simp [H]
 end
 
 lemma is_basis.equiv_fun_apply (u : M) : h.equiv_fun u = h.repr u := rfl

@@ -343,6 +343,25 @@ lt_of_not_ge (λ ha, absurd h (mul_nonpos_of_nonneg_of_nonpos ha hb).not_lt)
 lemma neg_of_mul_pos_right (h : 0 < a * b) (ha : a ≤ 0) : b < 0 :=
 lt_of_not_ge (λ hb, absurd h (mul_nonpos_of_nonpos_of_nonneg ha hb).not_lt)
 
+lemma exists_lt_mul_self (a : α) : ∃ x : α, a < x * x :=
+begin
+  by_cases ha : 0 ≤ a,
+  { use (a + 1),
+    calc a = a * 1 : by rw mul_one
+    ... < (a + 1) * (a + 1) : mul_lt_mul (lt_add_one _) (le_add_of_nonneg_left ha)
+                                         zero_lt_one (add_nonneg ha zero_le_one) },
+  { rw not_le at ha,
+    use 1,
+    calc a < 0     : ha
+       ... < 1 * 1 : by simpa only [mul_one] using zero_lt_one }
+end
+
+lemma exists_le_mul_self (a : α) : ∃ x : α, a ≤ x * x :=
+begin
+  obtain ⟨x, hx⟩ := exists_lt_mul_self a,
+  exact ⟨x, le_of_lt hx⟩
+end
+
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_semiring.to_nontrivial {α : Type*} [linear_ordered_semiring α] :
   nontrivial α :=

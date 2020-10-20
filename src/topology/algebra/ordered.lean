@@ -513,10 +513,10 @@ section decidable_linear_order
 variables [topological_space α] [decidable_linear_order α] [order_closed_topology α] {f g : β → α}
 
 section
-variables [topological_space β] (hf : continuous f) (hg : continuous g)
-include hf hg
+variables [topological_space β]
 
-lemma frontier_le_subset_eq : frontier {b | f b ≤ g b} ⊆ {b | f b = g b} :=
+lemma frontier_le_subset_eq (hf : continuous f) (hg : continuous g) :
+  frontier {b | f b ≤ g b} ⊆ {b | f b = g b} :=
 begin
   rw [frontier_eq_closure_inter_closure, closure_le_eq hf hg],
   rintros b ⟨hb₁, hb₂⟩,
@@ -524,38 +524,33 @@ begin
   convert hb₂ using 2, simp only [not_le.symm], refl
 end
 
-lemma frontier_lt_subset_eq : frontier {b | f b < g b} ⊆ {b | f b = g b} :=
+lemma frontier_lt_subset_eq (hf : continuous f) (hg : continuous g) :
+  frontier {b | f b < g b} ⊆ {b | f b = g b} :=
 by rw ← frontier_compl;
    convert frontier_le_subset_eq hg hf; simp [ext_iff, eq_comm]
 
-@[continuity] lemma continuous.min : continuous (λb, min (f b) (g b)) :=
+@[continuity] lemma continuous.min (hf : continuous f) (hg : continuous g) :
+  continuous (λb, min (f b) (g b)) :=
 have ∀b∈frontier {b | f b ≤ g b}, f b = g b, from assume b hb, frontier_le_subset_eq hf hg hb,
 continuous_if this hf hg
 
-@[continuity] lemma continuous.max : continuous (λb, max (f b) (g b)) :=
+@[continuity] lemma continuous.max (hf : continuous f) (hg : continuous g) :
+  continuous (λb, max (f b) (g b)) :=
 @continuous.min (order_dual α) _ _ _ _ _ _ _ hf hg
 
 end
 
+lemma continuous_min : continuous (λ p : α × α, min p.1 p.2) := continuous_fst.min continuous_snd
+
+lemma continuous_max : continuous (λ p : α × α, max p.1 p.2) := continuous_fst.max continuous_snd
+
 lemma tendsto.max {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) :
   tendsto (λb, max (f b) (g b)) b (𝓝 (max a₁ a₂)) :=
-show tendsto ((λp:α×α, max p.1 p.2) ∘ (λb, (f b, g b))) b (𝓝 (max a₁ a₂)),
-  from tendsto.comp
-    begin
-      rw [←nhds_prod_eq],
-      from continuous_iff_continuous_at.mp (continuous_fst.max continuous_snd) _
-    end
-    (hf.prod_mk hg)
+(continuous_max.tendsto (a₁, a₂)).comp (hf.prod_mk_nhds hg)
 
 lemma tendsto.min {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) :
   tendsto (λb, min (f b) (g b)) b (𝓝 (min a₁ a₂)) :=
-show tendsto ((λp:α×α, min p.1 p.2) ∘ (λb, (f b, g b))) b (𝓝 (min a₁ a₂)),
-  from tendsto.comp
-    begin
-      rw [←nhds_prod_eq],
-      from continuous_iff_continuous_at.mp (continuous_fst.min continuous_snd) _
-    end
-    (hf.prod_mk hg)
+(continuous_min.tendsto (a₁, a₂)).comp (hf.prod_mk_nhds hg)
 
 end decidable_linear_order
 

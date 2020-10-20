@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Paul van Wamelen.
 -/
 import number_theory.pythagorean_triples
--- import ring_theory.principal_ideal_domain
--- import ring_theory.unique_factorization_domain
 
 /-!
 # Fermat's Last Theorem for the case n = 4
@@ -103,7 +101,7 @@ begin
   refine nat.sqrt_lt.mp _, rw [← one_mul 1, nat.sqrt_eq], exact nat.prime.one_lt hp
 end
 
-/-- We can swap `a` and `b` int a minimal solution to `a ^ 4 + b ^ 4 = c ^ 2`. -/
+/-- We can swap `a` and `b` in a minimal solution to `a ^ 4 + b ^ 4 = c ^ 2`. -/
 lemma minimal_fermat_42_comm {a b c : ℤ} :
  (minimal_fermat_42 a b c) → (minimal_fermat_42 b a c) :=
 begin
@@ -180,7 +178,7 @@ begin
   exact coprime_of_sqr_sum h h2
 end
 
--- Show that if we have a solution to a ^ 4 + b ^ 4 = c ^ 2, we can construct a smaller one. This
+-- If we have a solution to a ^ 4 + b ^ 4 = c ^ 2, we can construct a smaller one. This
 -- implies there can't be a smallest solution.
 lemma not_minimal_fermat_42 {a b c : ℤ}
   (h : minimal_fermat_42 a b c) (ha2 : a % 2 = 1) (hc : 0 < c) : false :=
@@ -201,7 +199,7 @@ begin
     apply nat.coprime.mul;
     { rw [pow_two, int.nat_abs_mul], apply nat.coprime.mul_right;
       apply (coprime_of_minimal_fermat_42 h) } },
-  -- in order to reduce the possibilities we get from the classification from pythagorean triples
+  -- in order to reduce the possibilities we get from the classification of pythagorean triples
   -- it helps if we know the parity of a ^ 2 (and the sign of c):
   have ha22 : a ^ 2 % 2 = 1, { rw [pow_two, int.mul_mod, ha2], norm_num },
   obtain ⟨m, n, ht1, ht2, ht3, ht4, ht5, ht6⟩ :=

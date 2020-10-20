@@ -47,7 +47,7 @@ variables {𝕜 : Type*} {V : Type*} [normed_field 𝕜] [add_comm_group V] [vec
 
 instance : has_coe_to_fun (enorm 𝕜 V) := ⟨_, enorm.to_fun⟩
 
-lemma injective_coe_fn function.injective (λ (e : enorm 𝕜 V) (x : V), e x) :=
+lemma injective_coe_fn : function.injective (λ (e : enorm 𝕜 V) (x : V), e x) :=
 λ e₁ e₂ h, by cases e₁; cases e₂; congr; exact h
 
 @[ext] lemma ext {e₁ e₂ : enorm 𝕜 V} (h : ∀ x, e₁ x = e₂ x) : e₁ = e₂ :=

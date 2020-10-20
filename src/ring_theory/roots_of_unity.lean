@@ -639,7 +639,7 @@ end
 
 /-- If there is a `n`-th primitive root of unity in `R` and `b` divides `n`,
 then there is a `b`-th primitive root of unity in `R`. -/
-lemma pow {ζ : R} {n : ℕ} {a b : ℕ} 
+lemma pow {ζ : R} {n : ℕ} {a b : ℕ}
   (hn: 0 < n) (h : is_primitive_root ζ n) (hprod : n = a * b) :
   is_primitive_root (ζ ^ a) b :=
 begin
@@ -688,15 +688,16 @@ begin
     rw card_nth_roots h,
     apply le_of_eq,
     rw finset.card_bind,
-    { rw @finset.sum_congr _ _ (nat.divisors ↑n) (finset.filter (λ (x : ℕ), x ∣ n)
-        (finset.range (n : ℕ).succ))  (λ i, (primitive_roots i R).card)
-        (λ i, nat.totient i) _ (nat.finset_div_eq_filter n) _,
+    {
+      rw ← @finset.sum_congr _ _ (finset.filter (λ (x : ℕ), x ∣ n)
+        (finset.range (n : ℕ).succ)) (nat.divisors ↑n)
+        (λ i, nat.totient i) (λ i, (primitive_roots i R).card) _ (nat.finset_div_eq_filter n) _,
       { symmetry; exact nat.sum_totient n },
       { intros x hx,
-        simp only [finset.mem_filter, finset.mem_range] at hx,
-        obtain ⟨d, hd⟩ := hx.2,
+        simp only [finset.mem_filter, finset.mem_range],
+        obtain ⟨d, hd⟩ := (nat.mem_divisors.1 hx).1,
         rw mul_comm at hd,
-      exact card_primitive_roots (pow (pnat.pos n) h hd) (pnat.pos_of_div_pos hx.2) } },
+      rw ← card_primitive_roots (pow (pnat.pos n) h hd) (pnat.pos_of_div_pos (nat.mem_divisors.1 hx).1) } },
     { intros i hi j hj hdiff,
       simp only [nat.mem_divisors, and_true, ne.def, pnat.ne_zero, not_false_iff] at hi hj,
       exact disjoint (pnat.pos_of_div_pos hi) (pnat.pos_of_div_pos hj) hdiff } }

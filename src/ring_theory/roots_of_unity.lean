@@ -637,7 +637,7 @@ end
 /-- If there is a `n`-th primitive root of unity in `R` and `b` divides `n`,
 then there is a `b`-th primitive root of unity in `R`. -/
 lemma pow {ζ : R} {n : ℕ} {a b : ℕ}
-  (hn: 0 < n) (h : is_primitive_root ζ n) (hprod : n = a * b) :
+  (hn : 0 < n) (h : is_primitive_root ζ n) (hprod : n = a * b) :
   is_primitive_root (ζ ^ a) b :=
 begin
   subst n,

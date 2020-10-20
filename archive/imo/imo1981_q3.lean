@@ -90,52 +90,54 @@ It will be convenient to have the lemmas above in their natural number form.
 
 def nat_predicate (m n : ℕ) : Prop := problem_predicate N ↑m ↑n
 
-lemma np_m_le_n {m n : ℕ} (h1 : nat_predicate N m n) : m ≤ n :=
+namespace nat_predicate
+
+lemma m_le_n {m n : ℕ} (h1 : nat_predicate N m n) : m ≤ n :=
 begin
   have h2 : ↑m ≤ ↑n, from pp_m_le_n N h1,
   norm_cast at h2,
   exact h2
 end
 
-lemma np_eq_imp_1 {n : ℕ} (h1 : nat_predicate N n n) : n = 1 :=
+lemma eq_imp_1 {n : ℕ} (h1 : nat_predicate N n n) : n = 1 :=
 begin
   have h2 : ↑n = (1:ℤ), from pp_eq_imp_1 N h1,
   norm_cast at h2,
   exact h2
 end
 
-lemma np_reduction {m n : ℕ} (h1 : nat_predicate N m n) (h2 : 1 < n) :
+lemma reduction {m n : ℕ} (h1 : nat_predicate N m n) (h2 : 1 < n) :
   nat_predicate N (n - m) m :=
 begin
   have h3 : (1:ℤ) < ↑ n, by {norm_cast, exact h2},
   unfold nat_predicate,
-  have h4 : m ≤ n, from np_m_le_n N h1,
+  have h4 : m ≤ n, from m_le_n N h1,
   have h5 : ↑(n - m) = ↑n - ↑m, from int.coe_nat_sub h4,
   rw h5,
   exact (pp_reduction N h1 h3)
 end
 
-lemma np_n_pos {m n : ℕ} (h1 : nat_predicate N m n) : 0 < n :=
+lemma n_pos {m n : ℕ} (h1 : nat_predicate N m n) : 0 < n :=
 begin
   have h2 : (0:ℤ) < ↑n, from h1.right.left.left,
   norm_cast at h2,
   exact h2
 end
 
-lemma np_m_pos {m n : ℕ} (h1 : nat_predicate N m n) : 0 < m :=
+lemma m_pos {m n : ℕ} (h1 : nat_predicate N m n) : 0 < m :=
 by exact_mod_cast h1.1.1
 
-lemma np_n_le_N {m n : ℕ} (h1 : nat_predicate N m n) : n ≤ N :=
+lemma n_le_N {m n : ℕ} (h1 : nat_predicate N m n) : n ≤ N :=
 by exact_mod_cast h1.2.1.2
 
-lemma np_imp_fib {n : ℕ} : ∀ m : ℕ, nat_predicate N m n →
+lemma imp_fib {n : ℕ} : ∀ m : ℕ, nat_predicate N m n →
   ∃ k : ℕ, m = k.fib ∧ n = (k + 1).fib :=
 begin
   apply nat.strong_induction_on n _,
   intros n h1 m h2,
-  have h3 : 0 < n, from np_n_pos N h2,
-  have h4 : 0 < m, from np_m_pos N h2,
-  have h5 : m ≤ n, from np_m_le_n N h2,
+  have h3 : 0 < n, from n_pos N h2,
+  have h4 : 0 < m, from m_pos N h2,
+  have h5 : m ≤ n, from m_le_n N h2,
   obtain (h6|h6) : 1 = n ∨ 1 < n, from eq_or_lt_of_le (nat.succ_le_iff.mpr h3),
   { have h7 : 1 ≤ m, from nat.succ_le_iff.mpr h4,
     rw ← h6 at h5,
@@ -143,10 +145,10 @@ begin
     use 1,
     simp only [nat.fib_one, nat.fib_two],
     exact and.intro h8 h6.symm },
-  { have h9 : nat_predicate N (n - m) m, from np_reduction N h2 h6,
+  { have h9 : nat_predicate N (n - m) m, from reduction N h2 h6,
     obtain (h10|h10) : m = n ∨ m < n, from eq_or_lt_of_le h5,
     { rw h10 at h2,
-      exact absurd (np_eq_imp_1 N h2) (ne_of_gt h6) },
+      exact absurd (eq_imp_1 N h2) (ne_of_gt h6) },
     { obtain ⟨k, h11⟩ : ∃ k : ℕ, (n - m) = k.fib ∧ m = (k+1).fib, from h1 m h10 (n - m) h9,
       use k + 1,
       split,
@@ -156,15 +158,9 @@ begin
         exact (nat.sub_eq_iff_eq_add h5).mp rfl } } }
 end
 
-lemma nat_abs_coe (n : ℤ) (h1 : 0 < n) : n = ↑(n.nat_abs) :=
-begin
-  obtain (h2|h2) : n = ↑(n.nat_abs) ∨ n = -↑(n.nat_abs), from int.nat_abs_eq n,
-  { exact h2 },
-  have h3 : 0 ≤ ↑(n.nat_abs), from zero_le ↑(int.nat_abs n),
-  linarith
-end
+end nat_predicate
 
-lemma coe_sq_le {m n: ℤ} (h1 : m.nat_abs ≤ n.nat_abs) : m ^ 2 ≤ n ^ 2 :=
+lemma coe_sq_le {m n : ℤ} (h1 : m.nat_abs ≤ n.nat_abs) : m ^ 2 ≤ n ^ 2 :=
 begin
   rw [pow_two, pow_two],
   have h2 : m.nat_abs * m.nat_abs ≤ n.nat_abs * n.nat_abs, from nat.mul_le_mul h1 h1,
@@ -183,7 +179,7 @@ include HK
 
 lemma m_n_bounds {m n : ℕ} (h1 : nat_predicate N m n) : m ≤ K.fib ∧ n ≤ (K+1).fib :=
 begin
-  obtain ⟨k, h2⟩ : ∃ k : ℕ, m = k.fib ∧ n = (k + 1).fib, from np_imp_fib N m h1,
+  obtain ⟨k, h2⟩ : ∃ k : ℕ, m = k.fib ∧ n = (k + 1).fib, from nat_predicate.imp_fib N m h1,
   obtain (h3|h3) : k < K+1 ∨ ¬ k < K+1, from em(k < K+1),
   { have h4 : k ≤ K, from nat.lt_succ_iff.mp h3,
     have h5 : k.fib ≤ nat.fib K, from nat.fib_mono h4,
@@ -197,7 +193,7 @@ begin
     have h10 : (K+2).fib ≤ (k + 1).fib , from nat.fib_mono h9,
     norm_num [nat.fib_succ_succ] at h10,
     rw ← h2.right at h10,
-    have h11 : n ≤ N, from np_n_le_N N h1,
+    have h11 : n ≤ N, from nat_predicate.n_le_N N h1,
     exact absurd (gt_of_ge_of_gt h10 HK) (not_lt.mpr h11) }
 end
 
@@ -206,9 +202,9 @@ include HM
 
 lemma k_bound {m n : ℤ} (h2 : problem_predicate N m n) : m ^ 2 + n ^ 2 ≤ M :=
 begin
-  have h3 : 0 < m, from h2.left.left,
-  have h4 : 0 < n, from h2.right.left.left,
-  rw [nat_abs_coe m h3, nat_abs_coe n h4] at h2,
+  have h3 : 0 ≤ m, from le_of_lt h2.left.left,
+  have h4 : 0 ≤ n, from le_of_lt h2.right.left.left,
+  rw [← int.nat_abs_of_nonneg h3, ← int.nat_abs_of_nonneg h4] at h2,
   have h7 : m.nat_abs ≤ K.fib ∧ n.nat_abs ≤ (K+1).fib, from m_n_bounds HK h2,
   have h8 : m ^ 2 ≤ K.fib ^ 2, from coe_sq_le h7.left,
   have h9 : n ^ 2 ≤ (K+1).fib ^ 2, from coe_sq_le h7.right,

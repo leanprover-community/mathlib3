@@ -137,4 +137,134 @@ begin
       simp only [alg_equiv.to_alg_hom_eq_coe, map_map_symm, map_one] }
 end
 
+lemma coe_ne_bot (I :ideal A) : I ≠ ⊥ ↔ (I : fractional_ideal (fraction_ring.of A)) ≠ ⊥ :=
+begin
+  split,
+  {
+    rw ring.fractional_ideal.bot_eq_zero,
+    contrapose,
+    simp only [not_not],
+    rw eq_zero_iff,
+    rintros h,
+    apply ideal.ext,
+    rintros x,
+    rw ideal.mem_bot,
+    simp at h,
+    let y:= (localization_map.to_map (fraction_ring.of A)) x,
+    specialize h y x,
+    split,
+    {
+      rintros hx,
+      have f := h hx,
+      simp at f,
+      rw localization_map.to_map_eq_zero_iff at f,
+      exact f,
+      unfold has_le.le,
+      simp,
+    },
+    {
+      rintros f,
+      rw f,
+      simp,
+    },
+  },
+  contrapose, simp, rintros h,
+  rw h,
+  finish,
+end
+
+lemma max_ideal_ne_bot (M : ideal A) (max : M.is_maximal) (not_field : ¬ is_field A) : M ≠ ⊥ :=
+begin
+  rintros h,
+  rw h at max,
+  cases max with h1 h2,
+  rw not_is_field_iff_exists_ideal_bot_lt_and_lt_top at not_field,
+  rcases not_field with ⟨I, hIbot, hItop⟩,
+  specialize h2 I hIbot,
+  rw h2 at hItop,
+  simp at hItop,
+  assumption,
+end
+
+lemma frac_ideal_le_ideal (I J : ideal A) (h : ∃ x : A, x ∈ I ∧ x ∉ J) (B : fractional_ideal (fraction_ring.of A) ) (g : (I : fractional_ideal (fraction_ring.of A)) * B = (J : fractional_ideal (fraction_ring.of A))) : B ≤ (J : fractional_ideal (fraction_ring.of A)) :=
+begin
+  rcases h with ⟨x, h1, h2⟩,
+  rw le_iff,
+  rintros y hy,
+
+  sorry,
+end
+
+set_option class.instance_max_depth 5000
+
+theorem tp : is_dedekind_domain_inv A <-> is_dedekind_domain A :=
+begin
+  split,
+  {
+    rintros h,
+    rcases h with ⟨h1, h2⟩,
+    split,
+    {
+      apply h1,
+    },
+    {
+      unfold is_noetherian_ring,
+      fconstructor,
+      change ∀ (I : ideal A), I.fg,
+      rintros I,
+   --   fconstructor,
+      sorry,
+    },
+    {
+      unfold dimension_le_one,
+      rintros p nz hp,
+      have hpinv := h2 p,
+      have hpmax := exists_le_maximal p hp.1,
+      rcases hpmax with ⟨M, hM1, hM2⟩,
+      specialize h2 M,
+      specialize hpinv ((coe_ne_bot A p).1 nz),
+      specialize h2 ( (coe_ne_bot A M).1 (max_ideal_ne_bot A M hM1 h1)),
+      let I := (M : fractional_ideal (fraction_ring.of A))⁻¹ * (p : fractional_ideal (fraction_ring.of A)),
+      have f : (M : fractional_ideal (fraction_ring.of A)) * I = (p : fractional_ideal (fraction_ring.of A)),
+      {
+        change ↑M * ((↑M)⁻¹ * ↑p) = ↑p,
+        assoc_rw h2,
+        simp,
+      },
+      by_cases p = M,
+      {
+        rw h,
+        assumption,
+      },
+      exfalso,
+      have g : I ≤ (p : fractional_ideal (fraction_ring.of A)),
+      {
+        apply frac_ideal_le_ideal A M,
+        {
+          sorry,
+        },
+        assumption,
+      },
+      rw <-subtype.coe_le_coe at g,
+--      change ((↑M)⁻¹ * ↑p) ≤ ↑p at g,
+      have g' := submodule.mul_le_mul_left g (↑M).coe,
+    sorry,
+    },
+    {
+      sorry,
+    },
+  },
+  {
+    rintros h,
+    split,
+    {
+      apply h.1,
+    },
+    {
+      rintros I hI,
+      sorry,
+    },
+  },
+end
+
 end

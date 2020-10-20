@@ -376,6 +376,7 @@ bot_equiv_of_injective (ring_hom.injective _)
 end algebra
 
 namespace subalgebra
+open algebra
 
 variables {R : Type u} {A : Type v}
 variables [comm_semiring R] [semiring A] [algebra R A]
@@ -383,6 +384,15 @@ variables (S : subalgebra R A)
 
 lemma range_val : S.val.range = S :=
 ext $ set.ext_iff.1 $ S.val.coe_range.trans subtype.range_val
+
+instance : unique (subalgebra R R) :=
+{ uniq :=
+  begin
+    intro S,
+    refine le_antisymm (λ r hr, _) bot_le,
+    simp only [set.mem_range, coe_bot, id.map_eq_self, exists_apply_eq_apply, default],
+  end
+  .. algebra.inhabited }
 
 end subalgebra
 

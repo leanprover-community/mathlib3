@@ -860,6 +860,14 @@ lemma sum_sub_index [add_comm_group β] [add_comm_group γ] {f g : α →₀ β}
 (lift_add_hom (λ a, add_monoid_hom.of_map_sub (h a) (h_sub a))).map_sub f g
 
 @[to_additive]
+lemma prod_emb_domain [has_zero β] [comm_monoid β₁] {v : α →₀ β} {f : α ↪ α₂} {g : α₂ → β → β₁} :
+  (v.emb_domain f).prod g = v.prod (λa b, g (f a) b) :=
+begin
+  rw [prod, prod, support_emb_domain, finset.prod_map],
+  simp_rw emb_domain_apply,
+end
+
+@[to_additive]
 lemma prod_finset_sum_index [add_comm_monoid β] [comm_monoid γ]
   {s : finset ι} {g : ι → α →₀ β}
   {h : α → β → γ} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
@@ -999,6 +1007,12 @@ begin
     rw [map_domain_apply f.injective, emb_domain_apply] },
   { rw [map_domain_notin_range, emb_domain_notin_range]; assumption }
 end
+
+@[to_additive]
+lemma prod_map_domain_index_inj [comm_monoid γ] {f : α → α₂} {s : α →₀ β}
+  {h : α₂ → β → γ} (hf : function.injective f) :
+  (s.map_domain f).prod h = s.prod (λa b, h (f a) b) :=
+by rw [←function.embedding.coe_fn_mk f hf, ←emb_domain_eq_map_domain, prod_emb_domain]
 
 lemma map_domain_injective {f : α₁ → α₂} (hf : function.injective f) :
   function.injective (map_domain f : (α₁ →₀ β) → (α₂ →₀ β)) :=

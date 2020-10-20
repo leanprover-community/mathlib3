@@ -3,7 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Scott Morrison, Minchao Wu
 
-Lexicographic preorder / partial_order / linear_order / decidable_linear_order,
+Lexicographic preorder / partial_order / linear_order / linear_order,
 for pairs and dependent pairs.
 -/
 import tactic.basic
@@ -95,13 +95,13 @@ instance lex_linear_order [linear_order α] [linear_order β] : linear_order (le
   end
   .. lex_partial_order }.
 
-/-- Dictionary / lexicographic decidable_linear_order for pairs. -/
-instance lex_decidable_linear_order [decidable_linear_order α] [decidable_linear_order β] :
-  decidable_linear_order (lex α β) :=
+/-- Dictionary / lexicographic linear_order for pairs. -/
+instance lex_linear_order [linear_order α] [linear_order β] :
+  linear_order (lex α β) :=
 { decidable_le :=
   begin
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
-    rcases decidable_linear_order.decidable_le a₁ a₂ with a_lt | a_le,
+    rcases linear_order.decidable_le a₁ a₂ with a_lt | a_le,
     { -- a₂ < a₁
       left, rw not_le at a_lt, rintro ⟨l, r⟩,
       { apply lt_irrefl a₂, apply lt_trans, repeat { assumption } },
@@ -109,7 +109,7 @@ instance lex_decidable_linear_order [decidable_linear_order α] [decidable_linea
     { -- a₁ ≤ a₂
       by_cases h : a₁ = a₂,
       { rw h,
-        rcases decidable_linear_order.decidable_le b₁ b₂ with b_lt | b_le,
+        rcases linear_order.decidable_le b₁ b₂ with b_lt | b_le,
         { -- b₂ < b₁
           left, rw not_le at b_lt, rintro ⟨l, r⟩,
           { apply lt_irrefl a₂, assumption },
@@ -202,13 +202,13 @@ instance dlex_linear_order [linear_order α] [∀ a, linear_order (Z a)] : linea
   end
   .. dlex_partial_order }.
 
-/-- Dictionary / lexicographic decidable_linear_order for dependent pairs. -/
-instance dlex_decidable_linear_order [decidable_linear_order α] [∀ a, decidable_linear_order (Z a)] :
-  decidable_linear_order (Σ' a, Z a) :=
+/-- Dictionary / lexicographic linear_order for dependent pairs. -/
+instance dlex_linear_order [linear_order α] [∀ a, linear_order (Z a)] :
+  linear_order (Σ' a, Z a) :=
 { decidable_le :=
   begin
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
-    rcases decidable_linear_order.decidable_le a₁ a₂ with a_lt | a_le,
+    rcases linear_order.decidable_le a₁ a₂ with a_lt | a_le,
     { -- a₂ < a₁
       left, rw not_le at a_lt, rintro ⟨l, r⟩,
       { apply lt_irrefl a₂, apply lt_trans, repeat { assumption } },
@@ -216,7 +216,7 @@ instance dlex_decidable_linear_order [decidable_linear_order α] [∀ a, decidab
     { -- a₁ ≤ a₂
       by_cases h : a₁ = a₂,
       { subst h,
-        rcases decidable_linear_order.decidable_le b₁ b₂ with b_lt | b_le,
+        rcases linear_order.decidable_le b₁ b₂ with b_lt | b_le,
         { -- b₂ < b₁
           left, rw not_le at b_lt, rintro ⟨l, r⟩,
           { apply lt_irrefl a₁, assumption },

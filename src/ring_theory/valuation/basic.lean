@@ -320,7 +320,7 @@ begin
        ... ≤ v (a + s)      : aux (a + s) (-s) (by rwa ←ideal.neg_mem_iff at h)
 end
 
--- This causes a loop between `decidable_linear_order` and `linear_order`.
+-- This causes a loop between `linear_order` and `linear_order`.
 -- see https://leanprover.zulipchat.com/#narrow/stream/144837-PR-reviews/topic/.233733.20algebraic.20closure
 local attribute [-instance] classical.DLO
 

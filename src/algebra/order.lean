@@ -225,12 +225,12 @@ calc  c
 namespace decidable
 
 -- See Note [decidable namespace]
-lemma le_imp_le_iff_lt_imp_lt {β} [linear_order α] [decidable_linear_order β]
+lemma le_imp_le_iff_lt_imp_lt {β} [linear_order α] [linear_order β]
   {a b : α} {c d : β} : (a ≤ b → c ≤ d) ↔ (d < c → b < a) :=
 ⟨lt_imp_lt_of_le_imp_le, le_imp_le_of_lt_imp_lt⟩
 
 -- See Note [decidable namespace]
-lemma le_iff_le_iff_lt_iff_lt {β} [decidable_linear_order α] [decidable_linear_order β]
+lemma le_iff_le_iff_lt_iff_lt {β} [linear_order α] [linear_order β]
   {a b : α} {c d : β} : (a ≤ b ↔ c ≤ d) ↔ (b < a ↔ d < c) :=
 ⟨lt_iff_lt_of_le_iff_le, λ H, not_lt.symm.trans $ (not_congr H).trans $ not_lt⟩
 
@@ -292,7 +292,7 @@ by cases o₁; cases o₂; exact dec_trivial
 
 end ordering
 
-theorem cmp_compares [decidable_linear_order α] (a b : α) : (cmp a b).compares a b :=
+theorem cmp_compares [linear_order α] (a b : α) : (cmp a b).compares a b :=
 begin
   unfold cmp cmp_using,
   by_cases a < b; simp [h],

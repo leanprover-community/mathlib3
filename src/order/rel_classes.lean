@@ -136,8 +136,8 @@ def linear_order_of_STO' (r) [is_strict_total_order' α r] : linear_order α :=
   ..partial_order_of_SO r }
 
 /-- Construct a decidable linear order from a `is_strict_total_order'` relation -/
-def decidable_linear_order_of_STO' (r) [is_strict_total_order' α r] [decidable_rel r] :
-  decidable_linear_order α :=
+def linear_order_of_STO' (r) [is_strict_total_order' α r] [decidable_rel r] :
+  linear_order α :=
 by letI LO := linear_order_of_STO' r; exact
 { decidable_le := λ x y, decidable_of_iff (¬ r y x) (@not_lt _ _ y x),
   ..LO }
@@ -220,8 +220,8 @@ instance is_well_order.is_asymm {α} (r : α → α → Prop) [is_well_order α 
   is_asymm α r := by apply_instance
 
 /-- Construct a decidable linear order from a well-founded linear order. -/
-noncomputable def is_well_order.decidable_linear_order (r : α → α → Prop) [is_well_order α r] :
-  decidable_linear_order α :=
+noncomputable def is_well_order.linear_order (r : α → α → Prop) [is_well_order α r] :
+  linear_order α :=
 by { haveI := linear_order_of_STO' r, exact classical.DLO α }
 
 instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty_relation :=

@@ -148,7 +148,7 @@ lemma bnot_inj : ∀ {a b : bool}, !a = !b → a = b := dec_trivial
 
 end bool
 
-instance : decidable_linear_order bool :=
+instance : linear_order bool :=
 begin
   constructor,
   show bool → bool → Prop,

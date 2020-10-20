@@ -137,14 +137,14 @@ noncomputable instance : discrete_linear_ordered_field ℝ :=
 /- Extra instances to short-circuit type class resolution -/
 
 noncomputable instance : linear_ordered_field ℝ    := by apply_instance
-noncomputable instance : decidable_linear_ordered_comm_ring ℝ := by apply_instance
-noncomputable instance : decidable_linear_ordered_semiring ℝ := by apply_instance
-noncomputable instance : decidable_linear_ordered_add_comm_group ℝ := by apply_instance
+noncomputable instance : linear_ordered_comm_ring ℝ := by apply_instance
+noncomputable instance : linear_ordered_semiring ℝ := by apply_instance
+noncomputable instance : linear_ordered_add_comm_group ℝ := by apply_instance
 noncomputable instance field : field ℝ := by apply_instance
 noncomputable instance : division_ring ℝ           := by apply_instance
 noncomputable instance : integral_domain ℝ         := by apply_instance
 instance : nontrivial ℝ                            := by apply_instance
-noncomputable instance : decidable_linear_order ℝ  := by apply_instance
+noncomputable instance : linear_order ℝ  := by apply_instance
 noncomputable instance : distrib_lattice ℝ := by apply_instance
 noncomputable instance : lattice ℝ         := by apply_instance
 noncomputable instance : semilattice_inf ℝ := by apply_instance

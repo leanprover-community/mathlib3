@@ -100,7 +100,7 @@ instance : linear_order cardinal.{u} :=
   le_antisymm := by rintros ⟨α⟩ ⟨β⟩ ⟨e₁⟩ ⟨e₂⟩; exact quotient.sound (e₁.antisymm e₂),
   le_total    := by rintros ⟨α⟩ ⟨β⟩; exact embedding.total }
 
-noncomputable instance : decidable_linear_order cardinal.{u} := classical.DLO _
+noncomputable instance : linear_order cardinal.{u} := classical.DLO _
 
 noncomputable instance : distrib_lattice cardinal.{u} := by apply_instance -- short-circuit type class inference
 

@@ -184,8 +184,8 @@ calc n •ℤ a = n •ℤ a + 0 : (add_zero _).symm
 
 end ordered_add_comm_group
 
-section decidable_linear_ordered_add_comm_group
-variable [decidable_linear_ordered_add_comm_group A]
+section linear_ordered_add_comm_group
+variable [linear_ordered_add_comm_group A]
 
 theorem gsmul_le_gsmul_iff {a : A} {n m : ℤ} (ha : 0 < a) : n •ℤ a ≤ m •ℤ a ↔ n ≤ m :=
 begin
@@ -215,7 +215,7 @@ begin
   exact lt_irrefl _ (lt_of_le_of_lt (nsmul_le_nsmul (le_of_lt ha) $ not_lt.mp H) h)
 end
 
-end decidable_linear_ordered_add_comm_group
+end linear_ordered_add_comm_group
 
 @[simp] lemma with_bot.coe_nsmul [add_monoid A] (a : A) (n : ℕ) :
   ((nsmul n a : A) : with_bot A) = nsmul n a :=

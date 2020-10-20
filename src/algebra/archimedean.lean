@@ -15,8 +15,8 @@ such that `0 < y` there exists a natural number `n` such that `x ≤ n •ℕ y`
 class archimedean (α) [ordered_add_comm_monoid α] : Prop :=
 (arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n •ℕ y)
 
-namespace decidable_linear_ordered_add_comm_group
-variables [decidable_linear_ordered_add_comm_group α] [archimedean α]
+namespace linear_ordered_add_comm_group
+variables [linear_ordered_add_comm_group α] [archimedean α]
 
 /-- An archimedean decidable linearly ordered `add_comm_group` has a version of the floor: for `a > 0`,
 any `g` in the group lies between some two consecutive multiples of `a`. -/
@@ -44,7 +44,7 @@ begin
   simpa [sub_lt_iff_lt_add']
 end
 
-end decidable_linear_ordered_add_comm_group
+end linear_ordered_add_comm_group
 
 theorem exists_nat_gt [linear_ordered_semiring α] [archimedean α]
   (x : α) : ∃ n : ℕ, x < n :=

@@ -25,7 +25,7 @@ open function
 
 - `order.preimage`, `preorder.lift`: transfer a (pre)order on `β` to an order on `α`
   using a function `f : α → β`.
-- `partial_order.lift`, `linear_order.lift`, `decidable_linear_order.lift`:
+- `partial_order.lift`, `linear_order.lift`, `linear_order.lift`:
   transfer a partial (resp., linear, decidable linear) order on `β` to a partial
   (resp., linear, decidable linear) order on `α` using an injective function `f`.
 
@@ -184,7 +184,7 @@ instance (α : Type*) [partial_order α] : partial_order (order_dual α) :=
 instance (α : Type*) [linear_order α] : linear_order (order_dual α) :=
 { le_total := assume a b:α, le_total b a, .. order_dual.partial_order α }
 
-instance (α : Type*) [decidable_linear_order α] : decidable_linear_order (order_dual α) :=
+instance (α : Type*) [linear_order α] : linear_order (order_dual α) :=
 { decidable_le := show decidable_rel (λa b:α, b ≤ a), by apply_instance,
   decidable_lt := show decidable_rel (λa b:α, b < a), by apply_instance,
   .. order_dual.linear_order α }
@@ -372,10 +372,10 @@ def linear_order.lift {α β} [linear_order β] (f : α → β) (inj : injective
   linear_order α :=
 { le_total := λx y, le_total (f x) (f y), .. partial_order.lift f inj }
 
-/-- Transfer a `decidable_linear_order` on `β` to a `decidable_linear_order` on `α` using
+/-- Transfer a `linear_order` on `β` to a `linear_order` on `α` using
 an injective function `f : α → β`. -/
-def decidable_linear_order.lift {α β} [decidable_linear_order β] (f : α → β) (inj : injective f) :
-  decidable_linear_order α :=
+def linear_order.lift {α β} [linear_order β] (f : α → β) (inj : injective f) :
+  linear_order α :=
 { decidable_le := λ x y, show decidable (f x ≤ f y), by apply_instance,
   decidable_lt := λ x y, show decidable (f x < f y), by apply_instance,
   decidable_eq := λ x y, decidable_of_iff _ ⟨@inj x y, congr_arg f⟩,
@@ -407,9 +407,9 @@ partial_order.lift subtype.val subtype.val_injective
 instance subtype.linear_order {α} [linear_order α] (p : α → Prop) : linear_order (subtype p) :=
 linear_order.lift subtype.val subtype.val_injective
 
-instance subtype.decidable_linear_order {α} [decidable_linear_order α] (p : α → Prop) :
-  decidable_linear_order (subtype p) :=
-decidable_linear_order.lift subtype.val subtype.val_injective
+instance subtype.linear_order {α} [linear_order α] (p : α → Prop) :
+  linear_order (subtype p) :=
+linear_order.lift subtype.val subtype.val_injective
 
 lemma strict_mono_coe [preorder α] (t : set α) : strict_mono (coe : (subtype t) → α) := λ x y, id
 
@@ -506,9 +506,9 @@ or_iff_not_imp_left.2 $ assume h,
 
 variables {s : β → β → Prop} {t : γ → γ → Prop}
 
-/-- Any `linear_order` is a noncomputable `decidable_linear_order`. This is not marked
+/-- Any `linear_order` is a noncomputable `linear_order`. This is not marked
 as an instance to avoid a loop. -/
-noncomputable def classical.DLO (α) [LO : linear_order α] : decidable_linear_order α :=
+noncomputable def classical.DLO (α) [LO : linear_order α] : linear_order α :=
 { decidable_le := classical.dec_rel _, ..LO }
 
 /-- Type synonym to create an instance of `linear_order` from a

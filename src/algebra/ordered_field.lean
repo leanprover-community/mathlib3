@@ -598,7 +598,7 @@ end linear_ordered_field
 /-- A discrete linear ordered field is a field with a decidable linear order respecting the
   operations. -/
 @[protect_proj] class discrete_linear_ordered_field (α : Type*)
-  extends linear_ordered_field α, decidable_linear_ordered_comm_ring α
+  extends linear_ordered_field α, linear_ordered_comm_ring α
 
 section discrete_linear_ordered_field
 variables [discrete_linear_ordered_field α]

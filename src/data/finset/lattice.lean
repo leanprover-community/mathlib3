@@ -194,7 +194,7 @@ lemma inf_eq_infi [complete_lattice β] (s : finset α) (f : α → β) : s.inf 
 
 /-! ### max and min of finite sets -/
 section max_min
-variables [decidable_linear_order α]
+variables [linear_order α]
 
 /-- Let `s` be a finset in a linear order. Then `s.max` is the maximum of `s` if `s` is not empty,
 and `none` otherwise. It belongs to `option α`. If you want to get an element of `α`, see

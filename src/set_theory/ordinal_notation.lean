@@ -851,7 +851,7 @@ instance : linear_order nonote :=
 instance decidable_lt : @decidable_rel nonote (<)
 | a b := decidable_of_iff _ (cmp_compares a b).eq_lt
 
-instance : decidable_linear_order nonote :=
+instance : linear_order nonote :=
 { decidable_le := λ a b, decidable_of_iff _ not_lt,
   decidable_lt := nonote.decidable_lt,
   ..nonote.linear_order }

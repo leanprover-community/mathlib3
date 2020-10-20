@@ -504,7 +504,7 @@ instance decidable_lt [has_lt α] [@decidable_rel α (<)] : @decidable_rel (with
   else is_false $ by simp *
 | x none := is_false $ by rintro ⟨a,⟨⟨⟩⟩⟩
 
-instance decidable_linear_order [decidable_linear_order α] : decidable_linear_order (with_bot α) :=
+instance linear_order [linear_order α] : linear_order (with_bot α) :=
 { decidable_le := λ a b, begin
     cases a with a,
     { exact is_true bot_le },
@@ -551,14 +551,14 @@ instance semilattice_inf [semilattice_inf α] : semilattice_inf_bot (with_bot α
 instance lattice [lattice α] : lattice (with_bot α) :=
 { ..with_bot.semilattice_sup, ..with_bot.semilattice_inf }
 
-theorem lattice_eq_DLO [decidable_linear_order α] :
-  lattice_of_decidable_linear_order = @with_bot.lattice α _ :=
+theorem lattice_eq_DLO [linear_order α] :
+  lattice_of_linear_order = @with_bot.lattice α _ :=
 lattice.ext $ λ x y, iff.rfl
 
-theorem sup_eq_max [decidable_linear_order α] (x y : with_bot α) : x ⊔ y = max x y :=
+theorem sup_eq_max [linear_order α] (x y : with_bot α) : x ⊔ y = max x y :=
 by rw [← sup_eq_max, lattice_eq_DLO]
 
-theorem inf_eq_min [decidable_linear_order α] (x y : with_bot α) : x ⊓ y = min x y :=
+theorem inf_eq_min [linear_order α] (x y : with_bot α) : x ⊓ y = min x y :=
 by rw [← inf_eq_min, lattice_eq_DLO]
 
 instance order_top [order_top α] : order_top (with_bot α) :=
@@ -715,7 +715,7 @@ instance linear_order [linear_order α] : linear_order (with_top α) :=
   end,
   ..with_top.partial_order }
 
-instance decidable_linear_order [decidable_linear_order α] : decidable_linear_order (with_top α) :=
+instance linear_order [linear_order α] : linear_order (with_top α) :=
 { decidable_le := λ a b, begin
     cases b with b,
     { exact is_true le_top },
@@ -766,14 +766,14 @@ lemma coe_sup [semilattice_sup α] (a b : α) : ((a ⊔ b : α) : with_top α) =
 instance lattice [lattice α] : lattice (with_top α) :=
 { ..with_top.semilattice_sup, ..with_top.semilattice_inf }
 
-theorem lattice_eq_DLO [decidable_linear_order α] :
-  lattice_of_decidable_linear_order = @with_top.lattice α _ :=
+theorem lattice_eq_DLO [linear_order α] :
+  lattice_of_linear_order = @with_top.lattice α _ :=
 lattice.ext $ λ x y, iff.rfl
 
-theorem sup_eq_max [decidable_linear_order α] (x y : with_top α) : x ⊔ y = max x y :=
+theorem sup_eq_max [linear_order α] (x y : with_top α) : x ⊔ y = max x y :=
 by rw [← sup_eq_max, lattice_eq_DLO]
 
-theorem inf_eq_min [decidable_linear_order α] (x y : with_top α) : x ⊓ y = min x y :=
+theorem inf_eq_min [linear_order α] (x y : with_top α) : x ⊓ y = min x y :=
 by rw [← inf_eq_min, lattice_eq_DLO]
 
 instance order_bot [order_bot α] : order_bot (with_top α) :=

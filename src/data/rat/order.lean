@@ -106,7 +106,7 @@ protected theorem le_trans {a b c : ℚ} (hab : a ≤ b) (hbc : b ≤ c) : a ≤
 have rat.nonneg (b - a + (c - b)), from rat.nonneg_add hab hbc,
 by simpa [sub_eq_add_neg, add_comm, add_left_comm]
 
-instance : decidable_linear_order ℚ :=
+instance : linear_order ℚ :=
 { le              := rat.le,
   le_refl         := rat.le_refl,
   le_trans        := @rat.le_trans,
@@ -163,19 +163,19 @@ instance : discrete_linear_ordered_field ℚ :=
     (rat.mul_nonneg (le_of_lt ha) (le_of_lt hb))
     (mul_ne_zero (ne_of_lt ha).symm (ne_of_lt hb).symm).symm,
   ..rat.field,
-  ..rat.decidable_linear_order,
+  ..rat.linear_order,
   ..rat.semiring }
 
 /- Extra instances to short-circuit type class resolution -/
 instance : linear_ordered_field ℚ                := by apply_instance
-instance : decidable_linear_ordered_comm_ring ℚ  := by apply_instance
+instance : linear_ordered_comm_ring ℚ  := by apply_instance
 instance : linear_ordered_comm_ring ℚ            := by apply_instance
 instance : linear_ordered_ring ℚ                 := by apply_instance
 instance : ordered_ring ℚ                        := by apply_instance
-instance : decidable_linear_ordered_semiring ℚ   := by apply_instance
+instance : linear_ordered_semiring ℚ   := by apply_instance
 instance : linear_ordered_semiring ℚ             := by apply_instance
 instance : ordered_semiring ℚ                    := by apply_instance
-instance : decidable_linear_ordered_add_comm_group ℚ := by apply_instance
+instance : linear_ordered_add_comm_group ℚ := by apply_instance
 instance : ordered_add_comm_group ℚ              := by apply_instance
 instance : ordered_cancel_add_comm_monoid ℚ      := by apply_instance
 instance : ordered_add_comm_monoid ℚ             := by apply_instance

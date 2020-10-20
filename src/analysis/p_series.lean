@@ -144,11 +144,22 @@ end
 
 open real
 
+/-!
+### Convergence of the `p`-series
+
+In this section we prove that for a real number `p`, the series `∑' n : ℕ, 1 / (n ^ p)` converges if
+and only if `1 < p`. There are many different proofs of this fact. The proof in this file uses the
+Cauchy condensation test we formalized above. This test implies that `∑ n, 1 / (n ^ p)` converges if
+and only if `∑ n, 2 ^ n / ((2 ^ n) ^ p)` converges, and the latter series is a geometric series with
+common ratio `2 ^ {1 - p}`. -/
+
 /-- Test for congergence of the `p`-series: the real-valued series `∑' n : ℕ, (n ^ p)⁻¹` converges
 if and only if `1 < p`. -/
 @[simp] lemma real.summable_nat_rpow_inv {p : ℝ} : summable (λ n, (n ^ p)⁻¹ : ℕ → ℝ) ↔ 1 < p :=
 begin
   cases le_or_lt 0 p with hp hp,
+  /-- Caucy condensation test applies only to monotonically decreasing sequences, so we consider the
+  cases `0 ≤ p` and `p < 0` separately. -/
   { rw ← summable_condensed_iff_of_nonneg,
     { simp_rw [nat.cast_pow, nat.cast_two, ← rpow_nat_cast, ← rpow_mul zero_lt_two.le, mul_comm _ p,
         rpow_mul zero_lt_two.le, rpow_nat_cast, ← inv_pow', ← mul_pow,
@@ -162,6 +173,7 @@ begin
     { intros m n hm hmn,
       exact inv_le_inv_of_le (rpow_pos_of_pos (nat.cast_pos.2 hm) _)
          (rpow_le_rpow m.cast_nonneg (nat.cast_le.2 hmn) hp) } },
+  /-- If `p < 0`, then `1 / n ^ p` tends to infinity, thus the series diverges. -/
   { suffices : ¬summable (λ n, (n ^ p)⁻¹ : ℕ → ℝ),
     { have : ¬(1 < p) := λ hp₁, hp.not_le (zero_le_one.trans hp₁.le),
       simpa [this, -one_div] },

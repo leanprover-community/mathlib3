@@ -748,6 +748,8 @@ the `G` part. Multiplication between `H a` and `F g` must be commutative.
 -/
 def lift_aux (F : multiplicative G →* B) (H : A →ₐ[k] B) (FH_comm : ∀ a g, H a * F g = F g * H a) : add_monoid_algebra A G →ₐ[k] B :=
 { to_fun := λ f, f.sum (λ g a, H a * F g),
+  -- The proofs here are almost identical to `monoid_algebra.lift_aux`, but use `erw` instead of `rw`
+  -- to unfold `multiplicative`
   map_one' := by {
     rw [one_def, sum_single_index],
     { erw [F.map_one, H.map_one, one_mul], },

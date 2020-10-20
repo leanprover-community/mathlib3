@@ -343,8 +343,7 @@ begin
       calc read (loc x map) ζ₂
           = read (loc x map) (write t ν₁ η) : by { apply hζ₂, apply ht' }
       ... = read (loc x map) η              : by { simp, apply if_neg (ne_of_lt (ht _)) }
-      ... = ξ x                             : by apply hmap
-    },
+      ... = ξ x                             : by apply hmap },
 
     have hζ₃ : ζ₃ ≃[t + 1] {ac := ν₂, ..(write t ν₁ η)},
     calc ζ₃

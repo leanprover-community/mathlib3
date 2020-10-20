@@ -3,7 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.preserves.basic
+import category_theory.limits.preserves.shapes
 
 open category_theory category_theory.category
 
@@ -155,7 +155,7 @@ then the evaluation of that limit at `k` is the limit of the evaluations of `F.o
 -/
 def limit_obj_iso_limit_comp_evaluation [has_limits_of_shape J C] (F : J ⥤ K ⥤ C) (k : K) :
   (limit F).obj k ≅ limit (F ⋙ ((evaluation K C).obj k)) :=
-preserves_limit_iso F ((evaluation K C).obj k)
+preserves_limit_iso ((evaluation K C).obj k) F
 
 @[simp, reassoc]
 lemma limit_obj_iso_limit_comp_evaluation_hom_π
@@ -163,7 +163,7 @@ lemma limit_obj_iso_limit_comp_evaluation_hom_π
   (limit_obj_iso_limit_comp_evaluation F k).hom ≫ limit.π (F ⋙ ((evaluation K C).obj k)) j =
     (limit.π F j).app k :=
 begin
-  dsimp [limit_obj_iso_limit_comp_evaluation, limits.preserves_limit_iso],
+  dsimp [limit_obj_iso_limit_comp_evaluation],
   simp,
 end
 
@@ -173,7 +173,7 @@ lemma limit_obj_iso_limit_comp_evaluation_inv_π_app
   (limit_obj_iso_limit_comp_evaluation F k).inv ≫ (limit.π F j).app k =
     limit.π (F ⋙ ((evaluation K C).obj k)) j :=
 begin
-  dsimp [limit_obj_iso_limit_comp_evaluation, limits.preserves_limit_iso],
+  dsimp [limit_obj_iso_limit_comp_evaluation],
   rw iso.inv_comp_eq,
   simp,
 end
@@ -201,7 +201,7 @@ then the evaluation of that colimit at `k` is the colimit of the evaluations of 
 -/
 def colimit_obj_iso_colimit_comp_evaluation [has_colimits_of_shape J C] (F : J ⥤ K ⥤ C) (k : K) :
   (colimit F).obj k ≅ colimit (F ⋙ ((evaluation K C).obj k)) :=
-preserves_colimit_iso F ((evaluation K C).obj k)
+preserves_colimit_iso ((evaluation K C).obj k) F
 
 @[simp, reassoc]
 lemma colimit_obj_iso_colimit_comp_evaluation_ι_inv
@@ -209,7 +209,7 @@ lemma colimit_obj_iso_colimit_comp_evaluation_ι_inv
   colimit.ι (F ⋙ ((evaluation K C).obj k)) j ≫ (colimit_obj_iso_colimit_comp_evaluation F k).inv =
     (colimit.ι F j).app k :=
 begin
-  dsimp [colimit_obj_iso_colimit_comp_evaluation, limits.preserves_colimit_iso],
+  dsimp [colimit_obj_iso_colimit_comp_evaluation],
   simp,
 end
 
@@ -219,7 +219,7 @@ lemma colimit_obj_iso_colimit_comp_evaluation_ι_app_hom
   (colimit.ι F j).app k ≫ (colimit_obj_iso_colimit_comp_evaluation F k).hom =
      colimit.ι (F ⋙ ((evaluation K C).obj k)) j :=
 begin
-  dsimp [colimit_obj_iso_colimit_comp_evaluation, limits.preserves_colimit_iso],
+  dsimp [colimit_obj_iso_colimit_comp_evaluation],
   rw ←iso.eq_comp_inv,
   simp,
 end

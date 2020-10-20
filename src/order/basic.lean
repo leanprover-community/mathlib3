@@ -191,6 +191,49 @@ instance (α : Type*) [decidable_linear_order α] : decidable_linear_order (orde
 
 instance : Π [inhabited α], inhabited (order_dual α) := id
 
+def to_dual : α → order_dual α := id
+
+def of_dual : order_dual α → α := id
+
+@[simp] lemma to_dual_of_dual (a : order_dual α) : to_dual (of_dual a) = a := rfl
+@[simp] lemma of_dual_to_dual (a : α) : of_dual (to_dual a) = a := rfl
+
+lemma to_dual_injective : function.injective (to_dual : α → order_dual α) :=
+function.injective_id
+
+@[simp] lemma to_dual_inj {a b : α} :
+  to_dual a = to_dual b ↔ a = b := iff.rfl
+
+@[simp] lemma to_dual_le_to_dual [has_le α] {a b : α} :
+  to_dual a ≤ to_dual b ↔ b ≤ a := iff.rfl
+
+@[simp] lemma to_dual_lt_to_dual [has_lt α] {a b : α} :
+  to_dual a < to_dual b ↔ b < a := iff.rfl
+
+lemma of_dual_injective : function.injective (of_dual : order_dual α → α) :=
+function.injective_id
+
+@[simp] lemma of_dual_inj {a b : order_dual α} :
+  of_dual a = of_dual b ↔ a = b := iff.rfl
+
+@[simp] lemma of_dual_le_of_dual [has_le α] {a b : order_dual α} :
+  of_dual a ≤ of_dual b ↔ b ≤ a := iff.rfl
+
+@[simp] lemma of_dual_lt_of_dual [has_lt α] {a b : order_dual α} :
+  of_dual a < of_dual b ↔ b < a := iff.rfl
+
+lemma le_to_dual [has_le α] {a : order_dual α} {b : α} :
+  a ≤ to_dual b ↔ b ≤ of_dual a := iff.rfl
+
+lemma lt_to_dual [has_lt α] {a : order_dual α} {b : α} :
+  a < to_dual b ↔ b < of_dual a := iff.rfl
+
+lemma to_dual_le [has_le α] {a : α} {b : order_dual α} :
+  to_dual a ≤ b ↔ of_dual b ≤ a := iff.rfl
+
+lemma to_dual_lt [has_lt α] {a : α} {b : order_dual α} :
+  to_dual a < b ↔ of_dual b < a := iff.rfl
+
 end order_dual
 
 namespace strict_mono_incr_on

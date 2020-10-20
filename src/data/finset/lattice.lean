@@ -5,6 +5,7 @@ Author: Mario Carneiro
 -/
 import data.finset.fold
 import data.multiset.lattice
+import order.basic
 
 /-!
 # Lattice operations on finsets
@@ -13,7 +14,7 @@ import data.multiset.lattice
 variables {α β γ : Type*}
 
 namespace finset
-open multiset
+open multiset order_dual
 
 /-! ### sup -/
 section sup
@@ -355,6 +356,26 @@ begin
   use (max' s (finset.card_pos.mp $ lt_trans zero_lt_one h₂)),
   rw eq_singleton_iff_unique_mem,
   refine ⟨max'_mem _ _, λ t Ht, le_antisymm (le_max' s t Ht) (le_trans a (min'_le s t Ht))⟩,
+end
+
+lemma monotone_max'_min' [decidable_linear_order α] {s : finset α} (hs : s.nonempty) :
+  max' s hs = of_dual (min' (image to_dual s) (nonempty.image hs to_dual)) :=
+begin
+  apply le_antisymm,
+  { apply max'_le,
+    intros,
+    rw [← le_to_dual],
+    apply min'_le,
+    rw [mem_image],
+    refine ⟨_, H, rfl⟩ },
+  { rw [← to_dual_le],
+    apply le_min',
+    intros,
+    rw [to_dual_le],
+    apply le_max',
+    rw mem_image at H,
+    rcases H with ⟨x, H, rfl⟩,
+    exact H }
 end
 
 end max_min

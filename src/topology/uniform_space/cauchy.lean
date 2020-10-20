@@ -70,6 +70,11 @@ lemma cauchy_nhds {a : α} : cauchy (𝓝 a) :=
 lemma cauchy_pure {a : α} : cauchy (pure a) :=
 cauchy_nhds.mono (pure_le_nhds a)
 
+lemma filter.tendsto.cauchy_map {l : filter β} [ne_bot l] {f : β → α} {a : α}
+  (h : tendsto f l (𝓝 a)) :
+  cauchy (map f l) :=
+cauchy_nhds.mono h
+
 /-- The common part of the proofs of `le_nhds_of_cauchy_adhp` and
 `sequentially_complete.le_nhds_of_seq_tendsto_nhds`: if for any entourage `s`
 one can choose a set `t ∈ f` of diameter `s` such that it contains a point `y`
@@ -144,10 +149,10 @@ begin
   exact H (i, j) ⟨le_of_max_le_left  hi, le_of_max_le_right hj⟩,
 end
 
-lemma cauchy_seq_of_tendsto_nhds [semilattice_sup β] [nonempty β] (f : β → α) {x}
+lemma filter.tendsto.cauchy_seq [semilattice_sup β] [nonempty β] {f : β → α} {x}
   (hx : tendsto f at_top (𝓝 x)) :
   cauchy_seq f :=
-cauchy_nhds.mono hx
+hx.cauchy_map
 
 lemma cauchy_seq_iff_tendsto [nonempty β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ tendsto (prod.map u u) at_top (𝓤 α) :=
@@ -261,7 +266,7 @@ h₁ _ h₃ $ le_principal_iff.2 $ mem_map_sets_iff.2 ⟨univ, univ_mem_sets,
 
 theorem cauchy.le_nhds_Lim [complete_space α] [nonempty α] {f : filter α} (hf : cauchy f) :
   f ≤ 𝓝 (Lim f) :=
-Lim_spec (complete_space.complete hf)
+le_nhds_Lim (complete_space.complete hf)
 
 theorem cauchy_seq.tendsto_lim [semilattice_sup β] [complete_space α] [nonempty α] {u : β → α}
   (h : cauchy_seq u) :
@@ -502,7 +507,7 @@ le_nhds_of_cauchy_adhp_aux
 begin
   assume s hs,
   rcases U_le s hs with ⟨m, hm⟩,
-  rcases (tendsto_at_top' _ _).1 ha _ (mem_nhds_left a (U_mem m)) with ⟨n, hn⟩,
+  rcases tendsto_at_top'.1 ha _ (mem_nhds_left a (U_mem m)) with ⟨n, hn⟩,
   refine ⟨set_seq hf U_mem (max m n), set_seq_mem hf U_mem _, _,
           seq hf U_mem (max m n), _, seq_mem hf U_mem _⟩,
   { have := le_max_left m n,
@@ -548,4 +553,33 @@ complete_of_convergent_controlled_sequences H U' (λ n, hU'.2 ⟨n, subset.refl 
 protected lemma first_countable_topology : first_countable_topology α :=
 ⟨λ a, by { rw nhds_eq_comap_uniformity, exact H.comap (prod.mk a) }⟩
 
+/-- A separable uniform space with countably generated uniformity filter is second countable:
+one obtains a countable basis by taking the balls centered at points in a dense subset,
+and with rational "radii" from a countable open symmetric antimono basis of `𝓤 α`. We do not
+register this as an instance, as there is already an instance going in the other direction
+from second countable spaces to separable spaces, and we want to avoid loops. -/
+lemma second_countable_of_separable [separable_space α] : second_countable_topology α :=
+begin
+  rcases exists_countable_dense α with ⟨s, hsc, hsd⟩,
+  obtain ⟨t : ℕ → set (α × α),
+    hto : ∀ (i : ℕ), t i ∈ (𝓤 α).sets ∧ is_open (t i) ∧ symmetric_rel (t i),
+    h_basis : (𝓤 α).has_antimono_basis (λ _, true) t⟩ :=
+    H.exists_antimono_subbasis uniformity_has_basis_open_symmetric,
+  refine ⟨⟨⋃ (x ∈ s), range (λ k, ball x (t k)), hsc.bUnion (λ x hx, countable_range _), _⟩⟩,
+  refine (is_topological_basis_of_open_of_nhds _ _).2.2,
+  { simp only [mem_bUnion_iff, mem_range],
+    rintros _ ⟨x, hxs, k, rfl⟩,
+    exact is_open_ball x (hto k).2.1 },
+  { intros x V hxV hVo,
+    simp only [mem_bUnion_iff, mem_range, exists_prop],
+    rcases uniform_space.mem_nhds_iff.1 (mem_nhds_sets hVo hxV) with ⟨U, hU, hUV⟩,
+    rcases comp_symm_of_uniformity hU with ⟨U', hU', hsymm, hUU'⟩,
+    rcases h_basis.to_has_basis.mem_iff.1 hU' with ⟨k, -, hk⟩,
+    rcases hsd.inter_open_nonempty (ball x $ t k) (uniform_space.is_open_ball x (hto k).2.1)
+      ⟨x, uniform_space.mem_ball_self _ (hto k).1⟩ with ⟨y, hxy, hys⟩,
+    refine ⟨_, ⟨y, hys, k, rfl⟩, (hto k).2.2.subset hxy, λ z hz, _⟩,
+    exact hUV (ball_subset_of_comp_subset (hk hxy) hUU' (hk hz)) }
+end
+
 end uniform_space
+

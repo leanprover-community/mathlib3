@@ -20,19 +20,22 @@ variables {C : Type u} [category.{v} C]
 -- We don't need an analogue of `pair` (for binary products), `parallel_pair` (for equalizers),
 -- or `(co)span`, since we already have `discrete.functor`.
 
+/-- A fan over `f : β → C` consists of a collection of maps from an object `P` to every `f b`. -/
 abbreviation fan (f : β → C) := cone (discrete.functor f)
+/-- A cofan over `f : β → C` consists of a collection of maps from every `f b` to an object `P`. -/
 abbreviation cofan (f : β → C) := cocone (discrete.functor f)
 
-def fan.mk {f : β → C} {P : C} (p : Π b, P ⟶ f b) : fan f :=
+/-- A fan over `f : β → C` consists of a collection of maps from an object `P` to every `f b`. -/
+@[simps]
+def fan.mk {f : β → C} (P : C) (p : Π b, P ⟶ f b) : fan f :=
 { X := P,
   π := { app := p } }
 
-def cofan.mk {f : β → C} {P : C} (p : Π b, f b ⟶ P) : cofan f :=
+/-- A cofan over `f : β → C` consists of a collection of maps from every `f b` to an object `P`. -/
+@[simps]
+def cofan.mk {f : β → C} (P : C) (p : Π b, f b ⟶ P) : cofan f :=
 { X := P,
   ι := { app := p } }
-
-@[simp] lemma fan.mk_π_app {f : β → C} {P : C} (p : Π b, P ⟶ f b) (b : β) : (fan.mk p).π.app b = p b := rfl
-@[simp] lemma cofan.mk_π_app {f : β → C} {P : C} (p : Π b, f b ⟶ P) (b : β) : (cofan.mk p).ι.app b = p b := rfl
 
 /-- An abbreviation for `has_limit (discrete.functor f)`. -/
 abbreviation has_product (f : β → C) := has_limit (discrete.functor f)
@@ -61,15 +64,19 @@ abbreviation sigma_obj (f : β → C) [has_coproduct f] := colimit (discrete.fun
 notation `∏ ` f:20 := pi_obj f
 notation `∐ ` f:20 := sigma_obj f
 
+/-- The `b`-th projection from the pi object over `f` has the form `∏ f ⟶ f b`. -/
 abbreviation pi.π (f : β → C) [has_product f] (b : β) : ∏ f ⟶ f b :=
 limit.π (discrete.functor f) b
+/-- The `b`-th inclusion into the sigma object over `f` has the form `f b ⟶ ∐ f`. -/
 abbreviation sigma.ι (f : β → C) [has_coproduct f] (b : β) : f b ⟶ ∐ f :=
 colimit.ι (discrete.functor f) b
 
+/-- A collection of morphisms `P ⟶ f b` induces a morphism `P ⟶ ∏ f`. -/
 abbreviation pi.lift {f : β → C} [has_product f] {P : C} (p : Π b, P ⟶ f b) : P ⟶ ∏ f :=
-limit.lift _ (fan.mk p)
+limit.lift _ (fan.mk P p)
+/-- A collection of morphisms `f b ⟶ P` induces a morphism `∐ f ⟶ P`. -/
 abbreviation sigma.desc {f : β → C} [has_coproduct f] {P : C} (p : Π b, f b ⟶ P) : ∐ f ⟶ P :=
-colimit.desc _ (cofan.mk p)
+colimit.desc _ (cofan.mk P p)
 
 /--
 Construct a morphism between categorical products (indexed by the same type)

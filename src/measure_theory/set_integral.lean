@@ -268,9 +268,9 @@ begin
   refine ⟨λ hfg, _, λ h, h.1.add h.2⟩,
   rw [← indicator_add_eq_left h],
   conv { congr, skip, rw [← indicator_add_eq_right h] },
-  rw [integrable_indicator_iff _ (hf (is_measurable_singleton 0)).compl],
-  rw [integrable_indicator_iff _ (hg (is_measurable_singleton 0)).compl],
-  exact ⟨hfg.integrable_on, hfg.integrable_on⟩, exact hf.add hg, exact hf.add hg
+  rw [integrable_indicator_iff (hf.add' hg) (hf (is_measurable_singleton 0)).compl],
+  rw [integrable_indicator_iff (hf.add' hg) (hg (is_measurable_singleton 0)).compl],
+  exact ⟨hfg.integrable_on, hfg.integrable_on⟩
 end
 
 /-- To prove something for an arbitrary measurable + integrable function in a second countable
@@ -360,7 +360,7 @@ by rw [integral_indicator measurable_const s_meas, ← set_integral_const]
 lemma set_integral_map {β} [measurable_space β] {g : α → β} {f : β → E} {s : set β}
   (hs : is_measurable s) (hf : measurable f) (hg : measurable g) :
   ∫ y in s, f y ∂(measure.map g μ) = ∫ x in g ⁻¹' s, f (g x) ∂μ :=
-by rw [measure.restrict_map hg hs, integral_map_measure hg hf]
+by rw [measure.restrict_map hg hs, integral_map hg hf]
 
 lemma norm_set_integral_le_of_norm_le_const_ae {C : ℝ} (hs : μ s < ⊤)
   (hC : ∀ᵐ x ∂μ.restrict s, ∥f x∥ ≤ C) :
@@ -390,6 +390,17 @@ lemma norm_set_integral_le_of_norm_le_const' {C : ℝ} (hs : μ s < ⊤) (hsm : 
   (hC : ∀ x ∈ s, ∥f x∥ ≤ C) :
   ∥∫ x in s, f x ∂μ∥ ≤ C * (μ s).to_real :=
 norm_set_integral_le_of_norm_le_const_ae'' hs hsm $ eventually_of_forall hC
+
+lemma set_integral_eq_zero_iff_of_nonneg_ae {f : α → ℝ} (hf : 0 ≤ᵐ[μ.restrict s] f)
+  (hfi : integrable_on f s μ) :
+  ∫ x in s, f x ∂μ = 0 ↔ f =ᵐ[μ.restrict s] 0 :=
+integral_eq_zero_iff_of_nonneg_ae hf hfi
+
+lemma set_integral_pos_iff_support_of_nonneg_ae {f : α → ℝ} (hf : 0 ≤ᵐ[μ.restrict s] f)
+  (hfi : integrable_on f s μ) :
+  0 < ∫ x in s, f x ∂μ ↔ 0 < μ (support f ∩ s) :=
+by { rw [integral_pos_iff_support_of_nonneg_ae hf hfi, measure.restrict_apply],
+  exact hfi.1 (is_measurable_singleton 0).compl }
 
 end normed_group
 
@@ -451,6 +462,18 @@ lemma continuous.integrable_on_compact
   (hs : is_compact s) {f : α → E} (hf : continuous f) :
   integrable_on f s μ :=
 hf.continuous_on.integrable_on_compact hs hf.measurable
+
+/-- A continuous function with compact closure of the support is integrable on the whole space. -/
+lemma continuous.integrable_of_compact_closure_support
+  [topological_space α] [opens_measurable_space α] [t2_space α] [borel_space E]
+  {μ : measure α} [locally_finite_measure μ] {f : α → E} (hf : continuous f)
+  (hfc : is_compact (closure $ support f)) :
+  integrable f μ :=
+begin
+  rw [← indicator_of_support_subset (@subset_closure _ _ (support f)),
+    integrable_indicator_iff hf.measurable is_closed_closure.is_measurable],
+  exact hf.integrable_on_compact hfc
+end
 
 /-- Fundamental theorem of calculus for set integrals, `nhds` version: if `μ` is a locally finite
 measure that and `f` is a measurable function that is continuous at a point `a`,
@@ -596,6 +619,32 @@ L.integral_comp_comm φ.integrable
 
 end continuous_linear_map
 
+variables [borel_space E] [second_countable_topology E] [complete_space E]
+  [measurable_space F] [borel_space F] [second_countable_topology F] [complete_space F]
+
+lemma fst_integral {f : α → E × F} (hf : integrable f μ) :
+  (∫ x, f x ∂μ).1 = ∫ x, (f x).1 ∂μ :=
+((continuous_linear_map.fst ℝ E F).integral_comp_comm hf).symm
+
+lemma snd_integral {f : α → E × F} (hf : integrable f μ) :
+  (∫ x, f x ∂μ).2 = ∫ x, (f x).2 ∂μ :=
+((continuous_linear_map.snd ℝ E F).integral_comp_comm hf).symm
+
+lemma integral_pair {f : α → E} {g : α → F} (hf : integrable f μ) (hg : integrable g μ) :
+  ∫ x, (f x, g x) ∂μ = (∫ x, f x ∂μ, ∫ x, g x ∂μ) :=
+have _ := hf.prod_mk hg, prod.ext (fst_integral this) (snd_integral this)
+
+lemma integral_smul_const (f : α → ℝ) (c : E) :
+  ∫ x, f x • c ∂μ = (∫ x, f x ∂μ) • c :=
+begin
+  by_cases hf : integrable f μ,
+  { exact ((continuous_linear_map.id ℝ ℝ).smul_right c).integral_comp_comm hf },
+  { by_cases hc : c = 0,
+    { simp only [hc, integral_zero, smul_zero] },
+    rw [integral_undef hf, integral_undef, zero_smul],
+    simp_rw [integrable_smul_const hc, hf, not_false_iff] }
+end
+
 end
 
 /-
@@ -624,16 +673,18 @@ lemma integral_on_congr_of_set (hsm : measurable_on s f) (htm : measurable_on t 
   (h : ∀ᵐ a, a ∈ s ↔ a ∈ t) : (∫ a in s, f a) = (∫ a in t, f a) :=
 integral_congr_ae hsm htm $ indicator_congr_of_set h
 
-lemma integral_on_add {s : set α} (hfm : measurable_on s f) (hfi : integrable_on s f) (hgm : measurable_on s g)
-  (hgi : integrable_on s g) : (∫ a in s, f a + g a) = (∫ a in s, f a) + (∫ a in s, g a) :=
+lemma integral_on_add {s : set α} (hfm : measurable_on s f) (hfi : integrable_on s f)
+  (hgm : measurable_on s g) (hgi : integrable_on s g) :
+  (∫ a in s, f a + g a) = (∫ a in s, f a) + (∫ a in s, g a) :=
 by { simp only [indicator_add], exact integral_add hfm hfi hgm hgi }
 
 lemma integral_on_sub (hfm : measurable_on s f) (hfi : integrable_on s f) (hgm : measurable_on s g)
   (hgi : integrable_on s g) : (∫ a in s, f a - g a) = (∫ a in s, f a) - (∫ a in s, g a) :=
 by { simp only [indicator_sub], exact integral_sub hfm hfi hgm hgi }
 
-lemma integral_on_le_integral_on_ae {f g : α → ℝ} (hfm : measurable_on s f) (hfi : integrable_on s f)
-  (hgm : measurable_on s g) (hgi : integrable_on s g) (h : ∀ᵐ a, a ∈ s → f a ≤ g a) :
+lemma integral_on_le_integral_on_ae {f g : α → ℝ} (hfm : measurable_on s f)
+  (hfi : integrable_on s f) (hgm : measurable_on s g) (hgi : integrable_on s g)
+  (h : ∀ᵐ a, a ∈ s → f a ≤ g a) :
   (∫ a in s, f a) ≤ (∫ a in s, g a) :=
 begin
   apply integral_le_integral_ae hfm hfi hgm hgi,
@@ -652,7 +703,8 @@ lemma integral_on_union (hsm : measurable_on s f) (hsi : integrable_on s f)
 by { rw [indicator_union_of_disjoint h, integral_add hsm hsi htm hti] }
 
 lemma integral_on_union_ae (hs : is_measurable s) (ht : is_measurable t) (hsm : measurable_on s f)
-  (hsi : integrable_on s f) (htm : measurable_on t f) (hti : integrable_on t f) (h : ∀ᵐ a, a ∉ s ∩ t) :
+  (hsi : integrable_on s f) (htm : measurable_on t f) (hti : integrable_on t f)
+  (h : ∀ᵐ a, a ∉ s ∩ t) :
   (∫ a in (s ∪ t), f a) = (∫ a in s, f a) + (∫ a in t, f a) :=
 begin
   have := integral_congr_ae _ _ (indicator_union_ae h f),
@@ -708,7 +760,8 @@ end
 -- TODO : prove this for an encodable type
 -- by proving an encodable version of `filter.is_countably_generated_at_top_finset_nat `
 lemma integral_on_Union (s : ℕ → set α) (f : α → β) (hm : ∀i, is_measurable (s i))
-  (hd : ∀ i j, i ≠ j → s i ∩ s j = ∅) (hfm : measurable_on (Union s) f) (hfi : integrable_on (Union s) f) :
+  (hd : ∀ i j, i ≠ j → s i ∩ s j = ∅) (hfm : measurable_on (Union s) f)
+  (hfi : integrable_on (Union s) f) :
   (∫ a in (Union s), f a) = ∑'i, ∫ a in s i, f a :=
 suffices h : tendsto (λn:finset ℕ, ∑ i in n, ∫ a in s i, f a) at_top (𝓝 $ (∫ a in (Union s), f a)),
   by { rwa has_sum.tsum_eq },

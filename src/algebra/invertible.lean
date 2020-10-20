@@ -63,6 +63,14 @@ lemma mul_inv_of_self [has_mul α] [has_one α] (a : α) [invertible a] : a * �
 invertible.mul_inv_of_self
 
 @[simp]
+lemma inv_of_mul_self_assoc [monoid α] (a b : α) [invertible a] : ⅟a * (a * b) = b :=
+by rw [←mul_assoc, inv_of_mul_self, one_mul]
+
+@[simp]
+lemma mul_inv_of_self_assoc [monoid α] (a b : α) [invertible a] : a * (⅟a * b) = b :=
+by rw [←mul_assoc, mul_inv_of_self, one_mul]
+
+@[simp]
 lemma mul_inv_of_mul_self_cancel [monoid α] (a b : α) [invertible b] : a * ⅟b * b = a :=
 by simp [mul_assoc]
 
@@ -133,6 +141,15 @@ def invertible_mul [monoid α] (a b : α) [invertible a] [invertible b] : invert
 lemma inv_of_mul [monoid α] (a b : α) [invertible a] [invertible b] [invertible (a * b)] :
   ⅟(a * b) = ⅟b * ⅟a :=
 inv_of_eq_right_inv (by simp [←mul_assoc])
+
+/--
+If `r` is invertible and `s = r`, then `s` is invertible.
+-/
+def invertible.copy [monoid α] {r : α} (hr : invertible r) (s : α) (hs : s = r) : invertible s :=
+{ inv_of := ⅟r,
+  inv_of_mul_self := by rw [hs, inv_of_mul_self],
+  mul_inv_of_self := by rw [hs, mul_inv_of_self] }
+
 
 lemma commute_inv_of {M : Type*} [has_one M] [has_mul M] (m : M) [invertible m] :
   commute m (⅟m) :=

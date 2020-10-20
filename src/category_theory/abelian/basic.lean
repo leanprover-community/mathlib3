@@ -155,6 +155,32 @@ local attribute [instance] non_preadditive_abelian
 
 variables {P Q : C} (f : P ⟶ Q)
 
+section
+
+lemma mono_of_zero_kernel (R : C)
+  (l : is_limit (kernel_fork.of_ι (0 : R ⟶ P) (show 0 ≫ f = 0, by simp))) : mono f :=
+non_preadditive_abelian.mono_of_zero_kernel _ _ l
+
+lemma mono_of_kernel_ι_eq_zero (h : kernel.ι f = 0) : mono f :=
+begin
+  apply mono_of_zero_kernel _ (kernel f),
+  simp_rw ←h,
+  exact is_limit.of_iso_limit (limit.is_limit (parallel_pair f 0)) (iso_of_ι _)
+end
+
+lemma epi_of_zero_cokernel (R : C)
+  (l : is_colimit (cokernel_cofork.of_π (0 : Q ⟶ R) (show f ≫ 0 = 0, by simp))) : epi f :=
+non_preadditive_abelian.epi_of_zero_cokernel _ _ l
+
+lemma epi_of_cokernel_π_eq_zero (h : cokernel.π f = 0) : epi f :=
+begin
+  apply epi_of_zero_cokernel _ (cokernel f),
+  simp_rw ←h,
+  exact is_colimit.of_iso_colimit (colimit.is_colimit (parallel_pair f 0)) (iso_of_π _)
+end
+
+end
+
 namespace images
 
 /-- The kernel of the cokernel of `f` is called the image of `f`. -/

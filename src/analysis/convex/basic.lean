@@ -221,15 +221,15 @@ lemma convex.combo_to_vadd {a b : ℝ} {x y : E} (h : a + b = 1) :
 Applying an affine map to an affine combination of two points yields
 an affine combination of the images.
  -/
-lemma convex.combo_affine_apply {a b : ℝ} {x y : E} {f : affine_map ℝ E F} (h : a + b = 1) :
+lemma convex.combo_affine_apply {a b : ℝ} {x y : E} {f : E →ᵃ[ℝ] F} (h : a + b = 1) :
   f (a • x + b • y) = a • f x + b • f y :=
 begin
-  simp only [convex.combo_to_vadd h, ← vsub_eq_sub, ← f.linear_map_vsub],
-  exact affine_map.affine_apply_line_map f x (y - x) b,
+  simp only [convex.combo_to_vadd h, ← vsub_eq_sub],
+  exact f.apply_line_map _ _ _,
 end
 
 /-- The preimage of a convex set under an affine map is convex. -/
-lemma convex.affine_preimage (f : affine_map ℝ E F) {s : set F} (hs : convex s) :
+lemma convex.affine_preimage (f : E →ᵃ[ℝ] F) {s : set F} (hs : convex s) :
   convex (f ⁻¹' s) :=
 begin
   intros x y xs ys a b ha hb hab,
@@ -238,7 +238,7 @@ begin
 end
 
 /-- The image of a convex set under an affine map is convex. -/
-lemma convex.affine_image (f : affine_map ℝ E F) {s : set E} (hs : convex s) :
+lemma convex.affine_image (f : E →ᵃ[ℝ] F) {s : set E} (hs : convex s) :
   convex (f '' s) :=
 begin
   rintros x y ⟨x', ⟨hx', hx'f⟩⟩ ⟨y', ⟨hy', hy'f⟩⟩ a b ha hb hab,
@@ -599,6 +599,43 @@ begin
   convert this; symmetry; simp only [div_eq_iff (ne_of_gt B), y]; ring
 end
 
+/-- For a function `f` defined on a subset `D` of `ℝ`, if `f` is convex on `D`, then for any three
+points `x<y<z`, the slope of the secant line of `f` on `[x, y]` is less than or equal to the slope
+of the secant line of `f` on `[x, z]`. -/
+lemma convex_on.slope_mono_adjacent {s : set ℝ} {f : ℝ → ℝ} (hf : convex_on s f)
+  {x y z : ℝ} (hx : x ∈ s) (hz : z ∈ s) (hxy : x < y) (hyz : y < z) :
+  (f y - f x) / (y - x) ≤ (f z - f y) / (z - y) :=
+begin
+  have h₁ : 0 < y - x := by linarith,
+  have h₂ : 0 < z - y := by linarith,
+  have h₃ : 0 < z - x := by linarith,
+  suffices : f y / (y - x) + f y / (z - y) ≤ f x / (y - x) + f z / (z - y),
+    by { ring at this ⊢, linarith },
+  set a := (z - y) / (z - x),
+  set b := (y - x) / (z - x),
+  have heqz : a • x + b • z = y, by { field_simp, rw div_eq_iff; [ring, linarith], },
+  have key, from
+    hf.2 hx hz
+      (show 0 ≤ a, by apply div_nonneg; linarith)
+      (show 0 ≤ b, by apply div_nonneg; linarith)
+      (show a + b = 1, by { field_simp, rw div_eq_iff; [ring, linarith], }),
+  rw heqz at key,
+  replace key := mul_le_mul_of_nonneg_left key (le_of_lt h₃),
+  field_simp [ne_of_gt h₁, ne_of_gt h₂, ne_of_gt h₃, mul_comm (z - x) _] at key ⊢,
+  rw div_le_div_right,
+  { linarith, },
+  { nlinarith, },
+end
+
+/-- For a function `f` defined on a convex subset `D` of `ℝ`, `f` is convex on `D` iff for any three
+points `x<y<z` the slope of the secant line of `f` on `[x, y]` is less than or equal to the slope
+of the secant line of `f` on `[x, z]`. -/
+lemma convex_on_real_iff_slope_mono_adjacent {s : set ℝ} (hs : convex s) {f : ℝ → ℝ} :
+  convex_on s f ↔
+  (∀ {x y z : ℝ}, x ∈ s → z ∈ s → x < y → y < z →
+    (f y - f x) / (y - x) ≤ (f z - f y) / (z - y)) :=
+⟨convex_on.slope_mono_adjacent, convex_on_real_of_slope_mono_adjacent hs⟩
+
 /-- For a function `f` defined on a convex subset `D` of `ℝ`, if for any three points `x<y<z`
 the slope of the secant line of `f` on `[x, y]` is greater than or equal to the slope
 of the secant line of `f` on `[x, z]`, then `f` is concave on `D`. -/
@@ -612,6 +649,29 @@ begin
   rw [←neg_le_neg_iff, ←neg_div, ←neg_div, neg_sub, neg_sub],
   simp only [hf xs zs xy yz, neg_sub_neg, pi.neg_apply],
 end
+
+/-- For a function `f` defined on a subset `D` of `ℝ`, if `f` is concave on `D`, then for any three
+points `x<y<z`, the slope of the secant line of `f` on `[x, y]` is greater than or equal to the
+slope of the secant line of `f` on `[x, z]`. -/
+lemma concave_on.slope_mono_adjacent {s : set ℝ} {f : ℝ → ℝ} (hf : concave_on s f)
+  {x y z : ℝ} (hx : x ∈ s) (hz : z ∈ s) (hxy : x < y) (hyz : y < z) :
+  (f z - f y) / (z - y) ≤ (f y - f x) / (y - x) :=
+begin
+  rw [←neg_le_neg_iff, ←neg_div, ←neg_div, neg_sub, neg_sub],
+  rw [←neg_sub_neg (f y), ←neg_sub_neg (f z)],
+  simp_rw [←pi.neg_apply],
+  rw [←neg_convex_on_iff] at hf,
+  apply convex_on.slope_mono_adjacent hf; assumption,
+end
+
+/-- For a function `f` defined on a convex subset `D` of `ℝ`, `f` is concave on `D` iff for any
+three points `x<y<z` the slope of the secant line of `f` on `[x, y]` is greater than or equal to
+the slope of the secant line of `f` on `[x, z]`. -/
+lemma concave_on_real_iff_slope_mono_adjacent {s : set ℝ} (hs : convex s) {f : ℝ → ℝ} :
+  concave_on s f ↔
+  (∀ {x y z : ℝ}, x ∈ s → z ∈ s → x < y → y < z →
+    (f z - f y) / (z - y) ≤ (f y - f x) / (y - x)) :=
+⟨concave_on.slope_mono_adjacent, concave_on_real_of_slope_mono_adjacent hs⟩
 
 lemma convex_on.subset {f : E → β} (h_convex_on : convex_on t f)
   (h_subset : s ⊆ t) (h_convex : convex s) : convex_on s f :=
@@ -770,7 +830,7 @@ lemma concave_on_iff_convex_hypograph {γ : Type*} [ordered_add_comm_group γ] [
 @convex_on_iff_convex_epigraph _ _ _ _ (order_dual γ) _ _ f
 
 /-- If a function is convex on s, it remains convex when precomposed by an affine map -/
-lemma convex_on.comp_affine_map {f : F → β} (g : affine_map ℝ E F) {s : set F}
+lemma convex_on.comp_affine_map {f : F → β} (g : E →ᵃ[ℝ] F) {s : set F}
   (hf : convex_on s f) : convex_on (g ⁻¹' s) (f ∘ g) :=
 begin
   refine ⟨hf.1.affine_preimage  _,_⟩,
@@ -783,7 +843,7 @@ begin
 end
 
 /-- If a function is concave on s, it remains concave when precomposed by an affine map -/
-lemma concave_on.comp_affine_map {f : F → β} (g : affine_map ℝ E F) {s : set F}
+lemma concave_on.comp_affine_map {f : F → β} (g : E →ᵃ[ℝ] F) {s : set F}
   (hf : concave_on s f) : concave_on (g ⁻¹' s) (f ∘ g) :=
 @convex_on.comp_affine_map _ _ _ _ _ _ (order_dual β) _ _ f g s hf
 

@@ -362,6 +362,9 @@ cast_nat_cast (dvd_refl _) k
 lemma cast_int_cast' (k : ℤ) : ((k : zmod n) : R) = k :=
 cast_int_cast (dvd_refl _) k
 
+instance (R : Type*) [comm_ring R] [char_p R n] : algebra (zmod n) R :=
+(zmod.cast_hom (dvd_refl n) R).to_algebra
+
 variables (R)
 
 lemma cast_hom_injective : function.injective (zmod.cast_hom (dvd_refl n) R) :=
@@ -424,6 +427,8 @@ begin
   rw zmod.int_coe_eq_int_coe_iff,
   apply int.modeq.mod_modeq,
 end
+
+local attribute [semireducible] int.nonneg
 
 @[simp] lemma coe_to_nat (p : ℕ) :
   ∀ {z : ℤ} (h : 0 ≤ z), (z.to_nat : zmod p) = z

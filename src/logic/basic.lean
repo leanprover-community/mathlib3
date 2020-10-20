@@ -254,8 +254,8 @@ library_note "decidable namespace"
 protected theorem decidable.not_not [decidable a] : ¬¬a ↔ a :=
 iff.intro decidable.by_contradiction not_not_intro
 
-/-- The Double Negation Theorem: `¬ ¬ P` is equivalent to `P`. 
-The left-to-right direction, double negation elimination (DNE), 
+/-- The Double Negation Theorem: `¬ ¬ P` is equivalent to `P`.
+The left-to-right direction, double negation elimination (DNE),
 is classically true but not constructively. -/
 @[simp] theorem not_not : ¬¬a ↔ a := decidable.not_not
 
@@ -737,6 +737,10 @@ by simp [and_comm]
 @[simp] theorem forall_eq' {a' : α} : (∀a, a' = a → p a) ↔ p a' :=
 by simp [@eq_comm _ a']
 
+-- this lemma is needed to simplify the output of `list.mem_cons_iff`
+@[simp] theorem forall_eq_or_imp {a' : α} : (∀ a, a = a' ∨ q a → p a) ↔ p a' ∧ ∀ a, q a → p a :=
+by simp only [or_imp_distrib, forall_and_distrib, forall_eq]
+
 @[simp] theorem exists_eq {a' : α} : ∃ a, a = a' := ⟨_, rfl⟩
 
 @[simp] theorem exists_eq' {a' : α} : ∃ a, a' = a := ⟨_, rfl⟩
@@ -1179,5 +1183,10 @@ by { by_cases h : P; simp [h] }
 @[simp] lemma ite_not {α : Sort*} (P : Prop) [decidable P] (x y : α) :
   ite (¬ P) x y = ite P y x :=
 dite_not P (λ _, x) (λ _, y)
+
+lemma ite_and {α} {p q : Prop} [decidable p] [decidable q] {x y : α} :
+  ite (p ∧ q) x y = ite p (ite q x y) y :=
+by { by_cases hp : p; by_cases hq : q; simp [hp, hq] }
+
 
 end ite

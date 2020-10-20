@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Nicolò Cavalleri.
 -/
 
-import algebra.lie_algebra
+import algebra.lie.basic
 import ring_theory.algebra_tower
 
 /-!
@@ -58,7 +58,7 @@ lemma coe_fn_coe (f : derivation R A M) :
   ⇑(f : A →ₗ[R] M) = f := rfl
 
 lemma coe_injective (H : ⇑D1 = D2) : D1 = D2 :=
-by { cases D1, cases D2, congr', exact linear_map.coe_inj H }
+by { cases D1, cases D2, congr', exact linear_map.coe_injective H }
 
 @[ext] theorem ext (H : ∀ a, D1 a = D2 a) : D1 = D2 :=
 coe_injective $ funext H

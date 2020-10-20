@@ -198,7 +198,7 @@ noncomputable def X_in_terms_of_W [invertible (p : R)] :
 lemma X_in_terms_of_W_eq [invertible (p : R)] {n : ℕ} :
   X_in_terms_of_W p R n =
     (X n - (∑ i in range n, C (p^i : R) * X_in_terms_of_W p R i ^ p ^ (n - i))) * C (⅟p ^ n : R) :=
-by { rw [X_in_terms_of_W, ← fin.sum_univ_eq_sum_range], refl }
+by { rw [X_in_terms_of_W, ← fin.sum_univ_eq_sum_range] }
 
 @[simp] lemma constant_coeff_X_in_terms_of_W [hp : fact p.prime] [invertible (p : R)] (n : ℕ) :
   constant_coeff (X_in_terms_of_W p R n) = 0 :=

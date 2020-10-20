@@ -235,6 +235,10 @@ lemma is_closed.mem_of_nhds_within_ne_bot {s : set α} (hs : is_closed s)
   {x : α} (hx : ne_bot $ 𝓝[s] x) : x ∈ s :=
 by simpa only [hs.closure_eq] using mem_closure_iff_nhds_within_ne_bot.2 hx
 
+lemma dense_range.nhds_within_ne_bot {ι : Type*} {f : ι → α} (h : dense_range f) (x : α) :
+  ne_bot (𝓝[range f] x) :=
+mem_closure_iff_cluster_pt.1 (h x)
+
 lemma eventually_eq_nhds_within_iff {f g : α → β} {s : set α} {a : α} :
   (f =ᶠ[𝓝[s] a] g) ↔ ∀ᶠ x in 𝓝 a, x ∈ s → f x = g x :=
 mem_inf_principal
@@ -269,8 +273,8 @@ lemma eventually_nhds_within_of_eventually_nhds {α : Type*} [topological_space 
   ∀ᶠ x in 𝓝[s] a, p x :=
 mem_nhds_within_of_mem_nhds h
 
-/-
-nhds_within and subtypes
+/-!
+### `nhds_within` and subtypes
 -/
 
 theorem mem_nhds_within_subtype {s : set α} {a : {x // x ∈ s}} {t u : set {x // x ∈ s}} :
@@ -432,6 +436,19 @@ begin
   rintros _ ⟨x, hx, rfl⟩,
   exact (hf x hx).mem_closure_image hx
 end
+
+lemma continuous_within_at_singleton {f : α → β} {x : α} : continuous_within_at f {x} x :=
+by simp [continuous_within_at, nhds_within, inf_eq_right.2 (pure_le_nhds x), tendsto_pure_nhds]
+
+lemma continuous_within_at.diff_iff {f : α → β} {s t : set α} {x : α}
+  (ht : continuous_within_at f t x) :
+  continuous_within_at f (s \ t) x ↔ continuous_within_at f s x :=
+⟨λ h, (h.union ht).mono $ by simp only [diff_union_self, subset_union_left],
+  λ h, h.mono (diff_subset _ _)⟩
+
+@[simp] lemma continuous_within_at_diff_self {f : α → β} {s : set α} {x : α} :
+  continuous_within_at f (s \ {x}) x ↔ continuous_within_at f s x :=
+continuous_within_at_singleton.diff_iff
 
 theorem is_open_map.continuous_on_image_of_left_inv_on {f : α → β} {s : set α}
   (h : is_open_map (s.restrict f)) {finv : β → α} (hleft : left_inv_on finv f s) :

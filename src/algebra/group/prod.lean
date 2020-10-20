@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot, Yury Kudryashov
 -/
 import algebra.group.hom
+import data.equiv.mul_add
 import data.prod
 
 /-!
@@ -89,6 +90,20 @@ instance [group G] [group H] : group (G × H) :=
 @[to_additive]
 instance [comm_semigroup G] [comm_semigroup H] : comm_semigroup (G × H) :=
 { mul_comm := assume a b, mk.inj_iff.mpr ⟨mul_comm _ _, mul_comm _ _⟩,
+  .. prod.semigroup }
+
+@[to_additive]
+instance [left_cancel_semigroup G] [left_cancel_semigroup H] :
+  left_cancel_semigroup (G × H) :=
+{ mul_left_cancel := λ a b c h, prod.ext (mul_left_cancel (prod.ext_iff.1 h).1)
+    (mul_left_cancel (prod.ext_iff.1 h).2),
+  .. prod.semigroup }
+
+@[to_additive]
+instance [right_cancel_semigroup G] [right_cancel_semigroup H] :
+  right_cancel_semigroup (G × H) :=
+{ mul_right_cancel := λ a b c h, prod.ext (mul_right_cancel (prod.ext_iff.1 h).1)
+    (mul_right_cancel (prod.ext_iff.1 h).2),
   .. prod.semigroup }
 
 @[to_additive]
@@ -229,3 +244,18 @@ ext $ λ x, by simp
 end coprod
 
 end monoid_hom
+
+namespace mul_equiv
+variables (M N) [monoid M] [monoid N]
+
+/-- The equivalence between `M × N` and `N × M` given by swapping the components is multiplicative. -/
+@[to_additive prod_comm "The equivalence between `M × N` and `N × M` given by swapping the components is
+additive."]
+def prod_comm : M × N ≃* N × M :=
+{ map_mul' := λ ⟨x₁, y₁⟩ ⟨x₂, y₂⟩, rfl, ..equiv.prod_comm M N }
+
+@[simp, to_additive coe_prod_comm] lemma coe_prod_comm : ⇑(prod_comm M N) = prod.swap := rfl
+@[simp, to_additive coe_prod_comm_symm] lemma coe_prod_comm_symm :
+  ⇑((prod_comm M N).symm) = prod.swap := rfl
+
+end mul_equiv

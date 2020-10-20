@@ -109,6 +109,9 @@ roption.ext' (iff_of_true trivial h) (λ _ _, rfl)
 lemma dom_of_le_some {x : enat} {y : ℕ} : x ≤ y → x.dom :=
 λ ⟨h, _⟩, h trivial
 
+/-- The coercion `ℕ → enat` preserves `0` and addition. -/
+def coe_hom : ℕ →+ enat := ⟨coe, enat.coe_zero, enat.coe_add⟩
+
 instance : partial_order enat :=
 { le          := (≤),
   le_refl     := λ x, ⟨id, λ _, le_refl _⟩,
@@ -126,6 +129,9 @@ by rw [lt_iff_le_not_le, lt_iff_le_not_le, coe_le_coe, coe_le_coe]
 lemma get_le_get {x y : enat} {hx : x.dom} {hy : y.dom} :
   x.get hx ≤ y.get hy ↔ x ≤ y :=
 by conv { to_lhs, rw [← coe_le_coe, coe_get, coe_get]}
+
+protected lemma zero_lt_one : (0 : enat) < 1 :=
+by { norm_cast, norm_num }
 
 instance semilattice_sup_bot : semilattice_sup_bot enat :=
 { sup := (⊔),

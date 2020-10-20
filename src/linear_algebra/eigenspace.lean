@@ -171,7 +171,7 @@ begin
   { rw [is_unit.mem_submonoid_iff, linear_map.is_unit_iff, linear_map.ker_eq_bot'],
     intro h,
     apply hv (h v _),
-    rw [h_eval_p, linear_map.zero_apply] },
+    rw [aeval_def, h_eval_p, linear_map.zero_apply] },
   -- Hence, there must be a factor `q` of `p` such that `q(f)` is not invertible.
   obtain ⟨q, hq_factor, hq_nonunit⟩ : ∃ q, q ∈ factors p ∧ ¬ is_unit (aeval f q),
   { simp only [←not_imp, (is_unit.mem_submonoid_iff _).symm],
@@ -493,3 +493,7 @@ end
 
 end End
 end module
+variables {K V : Type*} [field K] [add_comm_group V] [vector_space K V] [finite_dimensional K V]
+
+protected lemma linear_map.is_integral (f : V →ₗ[K] V) : is_integral K f :=
+module.End.is_integral f

@@ -10,6 +10,8 @@ import order.conditionally_complete_lattice
 import data.real.cau_seq_completion
 import algebra.archimedean
 
+/-- The type `ℝ` of real numbers constructed as equivalence classes of Cauchy sequences of rational
+numbers. -/
 def real := @cau_seq.completion.Cauchy ℚ _ _ _ abs _
 notation `ℝ` := real
 
@@ -106,7 +108,7 @@ instance : linear_ordered_comm_ring ℝ :=
     (le_iff_le_iff_lt_iff_lt.2 $ real.add_lt_add_iff_left c).2 h,
   exists_pair_ne  := ⟨0, 1, ne_of_lt real.zero_lt_one⟩,
   mul_pos     := @real.mul_pos,
-  zero_lt_one := real.zero_lt_one,
+  zero_le_one := le_of_lt real.zero_lt_one,
   .. real.comm_ring, .. real.linear_order, .. real.semiring }
 
 /- Extra instances to short-circuit type class resolution -/
@@ -446,10 +448,11 @@ end,
     rw [add_mul_self_eq, add_assoc, ← le_sub_iff_add_le', ← add_mul,
       ← le_div_iff (div_pos h _30), div_div_cancel' (ne_of_gt h)],
     apply add_le_add,
-    { simpa using (mul_le_mul_left (@two_pos ℝ _)).2 (Sup_le_ub _ ⟨_, lb⟩ ub) },
+    { simpa using (mul_le_mul_left (@zero_lt_two ℝ _ _)).2 (Sup_le_ub _ ⟨_, lb⟩ ub) },
     { rw [div_le_one _30],
       refine le_trans (sub_le_self _ (mul_self_nonneg _)) (le_trans x1 _),
-      exact (le_add_iff_nonneg_left _).2 (le_of_lt two_pos) } }
+      exact (le_add_iff_nonneg_left _).2 (le_of_lt zero_lt_two) },
+    apply_instance, }
 end
 
 def sqrt_aux (f : cau_seq ℚ abs) : ℕ → ℚ

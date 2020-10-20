@@ -80,6 +80,14 @@ lemma splits_of_splits_of_dvd {f g : polynomial α} (hf0 : f ≠ 0) (hf : splits
   splits i g :=
 by { obtain ⟨f, rfl⟩ := hgf, exact (splits_of_splits_mul i hf0 hf).1 }
 
+lemma splits_of_splits_gcd_left {f g : polynomial α} (hf0 : f ≠ 0) (hf : splits i f) :
+  splits i (euclidean_domain.gcd f g) :=
+polynomial.splits_of_splits_of_dvd i hf0 hf (euclidean_domain.gcd_dvd_left f g)
+
+lemma splits_of_splits_gcd_right {f g : polynomial α} (hg0 : g ≠ 0) (hg : splits i g) :
+  splits i (euclidean_domain.gcd f g) :=
+polynomial.splits_of_splits_of_dvd i hg0 hg (euclidean_domain.gcd_dvd_right f g)
+
 lemma splits_map_iff (j : β →+* γ) {f : polynomial α} :
   splits j (f.map i) ↔ splits (j.comp i) f :=
 by simp [splits, polynomial.map_map]
@@ -151,13 +159,13 @@ wf_dvd_monoid.induction_on_irreducible (f.map i)
   (λ f p hf0 hp ih hfs,
     have hpf0 : p * f ≠ 0, from mul_ne_zero hp.ne_zero hf0,
     let ⟨s, hs⟩ := ih (splits_of_splits_mul _ hpf0 hfs).2 in
-    ⟨-(p * norm_unit p).coeff 0 :: s,
+    ⟨-(p * norm_unit p).coeff 0 ::ₘ s,
       have hp1 : degree p = 1, from hfs.resolve_left hpf0 hp (by simp),
       begin
         rw [multiset.map_cons, multiset.prod_cons, leading_coeff_mul, C_mul, mul_assoc,
           mul_left_comm (C f.leading_coeff), ← hs, ← mul_assoc, mul_left_inj' hf0],
         conv_lhs {rw eq_X_add_C_of_degree_eq_one hp1},
-        simp only [mul_add, coe_norm_unit hp.ne_zero, mul_comm p, coeff_neg,
+        simp only [mul_add, coe_norm_unit_of_ne_zero hp.ne_zero, mul_comm p, coeff_neg,
           C_neg, sub_eq_add_neg, neg_neg, coeff_C_mul, (mul_assoc _ _ _).symm, C_mul.symm,
           mul_inv_cancel (show p.leading_coeff ≠ 0, from mt leading_coeff_eq_zero.1
             hp.ne_zero), one_mul],
@@ -216,6 +224,14 @@ begin
   rw [hs, roots_mul prod_ne_zero, roots_C, zero_add,
       roots_multiset_prod _ ne_zero_of_mem,
       map_bind_roots_eq]
+end
+
+lemma eq_X_sub_C_of_splits_of_single_root {x : α} {h : polynomial α} (h_splits : splits i h)
+  (h_roots : (h.map i).roots = {i x}) : h = (C (leading_coeff h)) * (X - C x) :=
+begin
+  apply polynomial.map_injective _ i.injective,
+  rw [eq_prod_roots_of_splits h_splits, h_roots],
+  simp,
 end
 
 lemma nat_degree_multiset_prod {R : Type*} [integral_domain R] {s : multiset (polynomial R)}
@@ -309,6 +325,77 @@ begin
   rw [← splits_map_iff],
   rw [← splits_map_iff i] at h,
   exact splits_of_splits_id _ h
+end
+
+/-- A monic polynomial `p` that has as much roots as its degree
+can be written `p = ∏(X - a)`, for `a` in `p.roots`. -/
+lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq {p : polynomial α}
+  (hmonic : p.monic) (hroots : p.roots.card = p.nat_degree) :
+  (multiset.map (λ (a : α), X - C a) p.roots).prod = p :=
+begin
+  have hprodmonic : (multiset.map (λ (a : α), X - C a) p.roots).prod.monic,
+  { simp only [prod_multiset_root_eq_finset_root (ne_zero_of_monic hmonic),
+      monic_prod_of_monic, monic_X_sub_C, monic_pow, forall_true_iff] },
+  have hdegree : (multiset.map (λ (a : α), X - C a) p.roots).prod.nat_degree = p.nat_degree,
+  { rw [← hroots, nat_degree_multiset_prod],
+    simp only [eq_self_iff_true, mul_one, nat.cast_id, nsmul_eq_mul, multiset.sum_repeat,
+      multiset.map_const,nat_degree_X_sub_C, function.comp, multiset.map_map],
+    intros x y,
+    simp only [multiset.mem_map] at y,
+    rcases y with ⟨a, ha, rfl⟩,
+    exact X_sub_C_ne_zero a },
+  obtain ⟨q, hq⟩ := prod_multiset_X_sub_C_dvd p,
+  have qzero : q ≠ 0,
+  { rintro rfl, apply hmonic.ne_zero, simpa only [mul_zero] using hq },
+  have degp :
+    p.nat_degree = (multiset.map (λ (a : α), X - C a) p.roots).prod.nat_degree + q.nat_degree,
+  { nth_rewrite 0 [hq],
+    simp only [nat_degree_mul (ne_zero_of_monic hprodmonic) qzero] },
+  have degq : q.nat_degree = 0,
+  { rw hdegree at degp,
+    exact (add_right_inj p.nat_degree).mp (tactic.ring_exp.add_pf_sum_z degp rfl).symm },
+  obtain ⟨u, hu⟩ := is_unit_iff_degree_eq_zero.2 ((degree_eq_iff_nat_degree_eq qzero).2 degq),
+  have hassoc : associated (multiset.map (λ (a : α), X - C a) p.roots).prod p,
+  { rw associated, use u, rw [hu, ← hq] },
+  exact eq_of_monic_of_associated hprodmonic hmonic hassoc
+end
+
+/-- A polynomial `p` that has as much roots as its degree
+can be written `p = p.leading_coeff * ∏(X - a)`, for `a` in `p.roots`. -/
+lemma C_leading_coeff_mul_prod_multiset_X_sub_C {p : polynomial α} (hzero : p ≠ 0)
+  (hroots : p.roots.card = p.nat_degree) :
+  (C p.leading_coeff) * (multiset.map (λ (a : α), X - C a) p.roots).prod = p :=
+begin
+  have hcoeff : p.leading_coeff ≠ 0,
+  { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
+  have sameroots : p.roots = (normalize p).roots,
+  { rw [normalize_apply, mul_comm, coe_norm_unit_of_ne_zero hzero,
+        roots_C_mul _ (inv_ne_zero hcoeff)] },
+  have hrootsnorm : (normalize p).roots.card = (normalize p).nat_degree,
+  { rw [← sameroots, normalize_apply, mul_comm, coe_norm_unit_of_ne_zero hzero],
+    have hCzero : C (p.leading_coeff)⁻¹ ≠ 0,
+    { rw [ne.def, C_eq_zero], exact (inv_ne_zero hcoeff) },
+    simp only [nat_degree_C, zero_add, nat_degree_mul hCzero hzero],
+    exact hroots },
+  have hprod := prod_multiset_X_sub_C_of_monic_of_roots_card_eq (monic_normalize hzero) hrootsnorm,
+  rw [← sameroots, normalize_apply, coe_norm_unit_of_ne_zero hzero] at hprod,
+  calc (C p.leading_coeff) * (multiset.map (λ (a : α), X - C a) p.roots).prod
+      = p * C ((p.leading_coeff)⁻¹ * p.leading_coeff) : by rw [hprod, mul_comm, mul_assoc, ← C_mul]
+  ... = p * C 1 : by field_simp [hcoeff]
+  ... = p : by simp only [mul_one, ring_hom.map_one]
+end
+
+/-- A polynomial splits if and only if it has as much roots as its degree. -/
+lemma splits_iff_card_roots {p : polynomial α} (hzero : p ≠ 0) :
+  splits (ring_hom.id α) p ↔ p.roots.card = p.nat_degree :=
+begin
+  split,
+  { intro H, rw [nat_degree_eq_card_roots H, map_id] },
+  { intro hroots,
+    apply (splits_iff_exists_multiset (ring_hom.id α)).2,
+    use p.roots,
+    simp only [ring_hom.id_apply, map_id],
+    exact (C_leading_coeff_mul_prod_multiset_X_sub_C hzero hroots).symm },
 end
 
 end splits
@@ -585,7 +672,7 @@ theorem splits_iff (f : polynomial α) [is_splitting_field α β f] :
     let ⟨x, hxs, hxy⟩ := finset.mem_image.1 (by rwa multiset.to_finset_map at hy) in
     hxy ▸ subalgebra.algebra_map_mem _ _),
  λ h, @ring_equiv.to_ring_hom_refl α _ ▸
-  ring_equiv.trans_symm (ring_equiv.of_bijective _ $ algebra.bijective_algbera_map_iff.2 h) ▸
+  ring_equiv.trans_symm (ring_equiv.of_bijective _ $ algebra.bijective_algebra_map_iff.2 h) ▸
   by { rw ring_equiv.to_ring_hom_trans, exact splits_comp_of_splits _ _ (splits β f) }⟩
 
 theorem mul (f g : polynomial α) (hf : f ≠ 0) (hg : g ≠ 0) [is_splitting_field α β f]

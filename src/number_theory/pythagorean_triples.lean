@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Paul van Wamelen.
 -/
 import algebra.field
-import algebra.gcd_monoid
+import ring_theory.int.basic
 import algebra.group_with_zero_power
 import tactic.ring
 import tactic.ring_exp
@@ -189,7 +189,7 @@ end
 
 lemma ne_zero_of_coprime (hc : int.gcd x y = 1) : z ≠ 0 :=
 begin
-  suffices : 0 < z * z, { rintro rfl, simpa only [] },
+  suffices : 0 < z * z, { rintro rfl, norm_num at this },
   rw [← h.eq, ← pow_two, ← pow_two],
   have hc' : int.gcd x y ≠ 0, { rw hc, exact one_ne_zero },
   cases int.ne_zero_of_gcd hc' with hxz hyz,
@@ -312,7 +312,7 @@ begin
   cases int.prime.dvd_mul hp hp2 with hp2m hpn,
   { rw int.nat_abs_mul at hp2m,
     cases (nat.prime.dvd_mul hp).mp hp2m with hp2 hpm,
-    { have hp2' : p = 2, { exact le_antisymm (nat.le_of_dvd two_pos hp2) (nat.prime.two_le hp) },
+    { have hp2' : p = 2, { exact le_antisymm (nat.le_of_dvd zero_lt_two hp2) (nat.prime.two_le hp) },
       revert hp1, rw hp2',
       apply mt int.mod_eq_zero_of_dvd,
       norm_num [pow_two, int.sub_mod, int.mul_mod, hm, hn],

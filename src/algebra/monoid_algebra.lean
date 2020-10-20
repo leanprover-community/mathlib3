@@ -204,18 +204,14 @@ lemma map_domain_mul {α : Type*} {β : Type*} {α₂ : Type*} [semiring β] [mo
     (map_domain f x * map_domain f y : monoid_algebra β α₂) :=
 begin
   simp_rw [mul_def, map_domain_sum, map_domain_single, f.map_mul],
-  transitivity, swap,
-  { rw finsupp.sum_map_domain_index,
-    { simp },
-    { simp [add_mul] } },
-  congr,
-  ext1,
-  ext1,
-  transitivity, swap,
-  { rw finsupp.sum_map_domain_index,
+  rw finsupp.sum_map_domain_index,
+  { congr,
+    ext a b,
+    rw finsupp.sum_map_domain_index,
     { simp },
     { simp [mul_add] } },
-  refl,
+  { simp },
+  { simp [add_mul] }
 end
 
 /-- `map_domain_mul` for unbundled morphisms -/
@@ -656,18 +652,14 @@ lemma map_domain_mul {α : Type*} {β : Type*} {α₂ : Type*}
     (map_domain f x * map_domain f y : add_monoid_algebra β α₂) :=
 begin
   simp_rw [mul_def, map_domain_sum, map_domain_single, f.map_add],
-  transitivity, swap,
-  { rw finsupp.sum_map_domain_index,
-    { simp },
-    { simp [add_mul] } },
-  congr,
-  ext1,
-  ext1,
-  transitivity, swap,
-  { rw finsupp.sum_map_domain_index,
+  rw finsupp.sum_map_domain_index,
+  { congr,
+    ext a b,
+    rw finsupp.sum_map_domain_index,
     { simp },
     { simp [mul_add] } },
-  refl,
+  { simp },
+  { simp [add_mul] }
 end
 
 /-- `map_domain_mul` for unbundled morphisms -/

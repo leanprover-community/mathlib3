@@ -57,7 +57,7 @@ This creates a little bit of friction, but lemmas like `is_primitive_root.is_uni
 
 -/
 
-open_locale classical
+open_locale classical big_operators
 noncomputable theory
 
 open polynomial
@@ -562,7 +562,8 @@ end
 
 /-- The cardinality of the multiset `nth_roots ↑n (1 : R)` is `n`
 if there is a primitive root of unity in `R`. -/
-lemma card_nth_roots {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) : (nth_roots ↑n (1 : R)).card = n :=
+lemma card_nth_roots {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) :
+  (nth_roots ↑n (1 : R)).card = n :=
 begin
   rw eq_iff_le_not_lt,
   split,
@@ -586,18 +587,25 @@ begin
   { by_contra ha,
     replace ha := multiset.card_lt_of_lt ha,
     rw card_nth_roots h at ha,
-    have hrw : (nth_roots ↑n (1 : R)).erase_dup.card = fintype.card {x // x ∈ (nth_roots ↑n (1 : R))},
+    have hrw : (nth_roots ↑n (1 : R)).erase_dup.card =
+      fintype.card {x // x ∈ (nth_roots ↑n (1 : R))},
     { set fs := (⟨(nth_roots ↑n (1 : R)).erase_dup, multiset.nodup_erase_dup _⟩ : finset R),
       rw [← finset.card_mk, ← fintype.card_of_subtype fs _],
       intro x,
       simp only [multiset.mem_erase_dup, finset.mem_mk] },
-    rw [hrw, ← fintype.card_congr (roots_of_unity_equiv_nth_roots R n), card_roots_of_unity h] at ha,
+    rw [hrw, ← fintype.card_congr (roots_of_unity_equiv_nth_roots R n),
+        card_roots_of_unity h] at ha,
     exact nat.lt_asymm ha ha }
 end
 
+-- TODO: move this to just after the definition of `nth_roots`
 /-- The multiset `nth_roots ↑n (1 : R)` as a finset. -/
 def nth_roots_finset (n : ℕ+) (R : Type*) [integral_domain R] : finset R :=
 multiset.to_finset (nth_roots n (1 : R))
+
+@[simp] lemma card_nth_roots_finset {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) :
+  (nth_roots_finset n R).card = n :=
+by rw [nth_roots_finset, ← multiset.to_finset_eq (nth_roots_nodup h), card_mk, h.card_nth_roots]
 
 open_locale nat
 
@@ -625,16 +633,10 @@ end
 lemma disjoint {k l : ℕ} (hk : 0 < k) (hl : 0 < l) (h : k ≠ l) :
   disjoint (primitive_roots k R) (primitive_roots l R) :=
 begin
-  intros z hz,
-  simp only [finset.inf_eq_inter, finset.mem_inter] at hz,
-  have hkl : k = l,
-  { apply nat.dvd_antisymm,
-    { have hpowk := ((is_primitive_root.iff_def z l).1 ((mem_primitive_roots hl).1 hz.2)).1,
-      exact ((is_primitive_root.iff_def z k).1 ((mem_primitive_roots hk).1 hz.1)).2 l hpowk },
-    { have hpowl := ((is_primitive_root.iff_def z k).1 ((mem_primitive_roots hk).1 hz.1)).1,
-      exact ((is_primitive_root.iff_def z l).1 ((mem_primitive_roots hl).1 hz.2)).2 k hpowl } },
-  exfalso,
-  exact h hkl
+  intro z,
+  simp only [finset.inf_eq_inter, finset.mem_inter, mem_primitive_roots, hk, hl, iff_def],
+  rintro ⟨⟨hzk, Hzk⟩, ⟨hzl, Hzl⟩⟩,
+  apply_rules [h, nat.dvd_antisymm, Hzk, Hzl, hzk, hzl]
 end
 
 /-- If there is a `n`-th primitive root of unity in `R` and `b` divides `n`,
@@ -643,60 +645,42 @@ lemma pow {ζ : R} {n : ℕ} {a b : ℕ}
   (hn: 0 < n) (h : is_primitive_root ζ n) (hprod : n = a * b) :
   is_primitive_root (ζ ^ a) b :=
 begin
-  apply (iff_def (ζ ^ a) b).2,
-  split,
-  { calc (ζ ^ a) ^ b
-        = ζ ^ n : by rw [← pow_mul', mul_comm, hprod]
-    ... = 1 : by rw ((iff_def ζ n).1 h).1 },
-  { intros l hl,
-    rw [← pow_mul', mul_comm] at hl,
-    have hdiv := ((iff_def ζ n).1 h).2 (a * l) hl,
-    rw hprod at hdiv,
-    have hzeroa : a ≠ 0,
-    { by_contra hz,
-      simp only [not_not] at hz,
-      simp only [hz, zero_mul] at hprod,
-      exact ne.symm (ne_of_lt hn) hprod },
-    exact (mul_dvd_mul_iff_left hzeroa).1 hdiv }
+  subst n,
+  simp only [iff_def, ← pow_mul, h.pow_eq_one, eq_self_iff_true, true_and],
+  intros l hl,
+  have ha0 : a ≠ 0, { rintro rfl, simpa only [nat.not_lt_zero, zero_mul] using hn },
+  rwa ← mul_dvd_mul_iff_left ha0,
+  exact h.dvd_of_pow_eq_one _ hl
 end
 
 /-- `nth_roots n` as a `finset` is equal to the union of `primitive_roots i R` for `i ∣ n`
 if there is a primitive root of unity in `R`. -/
 lemma nth_roots_one_eq_bind_primitive_roots {ζ : R} {n : ℕ+} (h : is_primitive_root ζ n) :
-  nth_roots_finset n R = finset.bind (nat.divisors ↑n) (λ (i : ℕ), (primitive_roots i R)) :=
+  nth_roots_finset n R = (nat.divisors ↑n).bind (λ i, (primitive_roots i R)) :=
 begin
-  rw [nth_roots_finset, ← multiset.to_finset_eq (nth_roots_nodup h)],
   symmetry,
   apply finset.eq_of_subset_of_card_le,
-  { intros x hx,
-    simp only [exists_prop, finset.mem_bind, finset.mem_filter, finset.mem_range] at hx,
-    cases hx with a ha,
-    simp only [mem_nth_roots, pnat.pos, finset.mem_mk],
-    simp only [nat.mem_divisors, and_true, ne.def, pnat.ne_zero, not_false_iff] at ha,
-    obtain ⟨d, hd⟩ := ha.1,
+  { intros x,
+    simp only [nth_roots_finset, ← multiset.to_finset_eq (nth_roots_nodup h),
+      exists_prop, finset.mem_bind, finset.mem_filter, finset.mem_range, mem_nth_roots,
+      finset.mem_mk, nat.mem_divisors, and_true, ne.def, pnat.ne_zero, pnat.pos, not_false_iff],
+    rintro ⟨a, ⟨d, hd⟩, ha⟩,
     have hazero : 0 < a,
-    { by_contra h,
-      simp only [le_zero_iff_eq, not_lt] at h,
-      simp only [h, zero_mul, pnat.ne_zero] at hd,
-      exact hd },
-    calc  x ^ ↑n
-        = x ^ (a * d)  : by rw hd
-    ... = (x ^ a) ^ d  : pow_mul x a d
-    ... = 1 ^ d        : by rw ((mem_primitive_roots hazero).1 ha.2).1
-    ... = 1            : one_pow d },
-  { simp only [card_mk],
-    rw card_nth_roots h,
-    apply le_of_eq,
-    rw finset.card_bind,
-    { rw ← @finset.sum_congr _ _ (finset.filter (λ (x : ℕ), x ∣ n)
-        (finset.range (n : ℕ).succ)) (nat.divisors ↑n)
-        (λ i, nat.totient i) (λ i, (primitive_roots i R).card) _ (nat.filter_dvd_eq_divisors n) _,
-      { symmetry; exact nat.sum_totient n },
-      { intros x hx,
-        simp only [finset.mem_filter, finset.mem_range],
-        obtain ⟨d, hd⟩ := (nat.mem_divisors.1 hx).1,
-        rw mul_comm at hd,
-      rw ← card_primitive_roots (pow (pnat.pos n) h hd) (pnat.pos_of_div_pos (nat.mem_divisors.1 hx).1) } },
+    { contrapose! hd with ha0,
+      simp only [le_zero_iff_eq, zero_mul, *] at *,
+      exact n.ne_zero },
+    rw mem_primitive_roots hazero at ha,
+    rw [hd, pow_mul, ha.pow_eq_one, one_pow] },
+  { apply le_of_eq,
+    rw [h.card_nth_roots_finset, finset.card_bind],
+    { rw [← nat.sum_totient n, nat.filter_dvd_eq_divisors n, sum_congr rfl]
+        { occs := occurrences.pos [1] },
+      simp only [finset.mem_filter, finset.mem_range, nat.mem_divisors],
+      rintro k ⟨H, hk⟩,
+      have hdvd := H,
+      rcases H with ⟨d, hd⟩,
+      rw mul_comm at hd,
+      rw (h.pow n.pos hd).card_primitive_roots (pnat.pos_of_div_pos hdvd) },
     { intros i hi j hj hdiff,
       simp only [nat.mem_divisors, and_true, ne.def, pnat.ne_zero, not_false_iff] at hi hj,
       exact disjoint (pnat.pos_of_div_pos hi) (pnat.pos_of_div_pos hj) hdiff } }

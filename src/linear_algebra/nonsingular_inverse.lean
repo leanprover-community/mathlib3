@@ -103,9 +103,9 @@ end
   `cramer A b i` is the determinant of the matrix `A` with column `i` replaced with `b`,
   and thus `cramer A b` is the vector output by Cramer's rule on `A` and `b`.
 
-  If `A ⬝ x = b` has a unique solution in `x`, `cramer` sends a square matrix `A`
-  and vector `b` to the vector `x` such that `A ⬝ x = b`.
-  Otherwise, the outcome of `cramer` is well-defined but not necessarily useful. -/
+  If `A ⬝ x = b` has a unique solution in `x`, `cramer Aᵀ` sends the vector `b` to `A.det • x`.
+  Otherwise, the outcome of `cramer` is well-defined but not necessarily useful.
+ -/
 def cramer (A : matrix n n α) : (n → α) →ₗ[α] (n → α) :=
 is_linear_map.mk' (cramer_map A) (cramer_is_linear A)
 

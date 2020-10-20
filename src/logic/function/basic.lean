@@ -389,6 +389,14 @@ end extend
 lemma uncurry_def {α β γ} (f : α → β → γ) : uncurry f = (λp, f p.1 p.2) :=
 rfl
 
+@[simp] lemma uncurry_apply_pair {α β γ} (f : α → β → γ) (x : α) (y : β) :
+  uncurry f (x, y) = f x y :=
+rfl
+
+@[simp] lemma curry_apply {α β γ} (f : α × β → γ) (x : α) (y : β) :
+  curry f x y = f (x, y) :=
+rfl
+
 section bicomp
 variables {α β γ δ ε : Type*}
 

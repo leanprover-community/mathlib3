@@ -188,12 +188,35 @@ are useful without a `nonempty α` instance.
 
 lemma Lim_eq {a : α} [ne_bot f] (h : f ≤ 𝓝 a) :
   @Lim _ _ ⟨a⟩ f = a :=
-tendsto_nhds_unique (Lim_spec ⟨a, h⟩) h
+tendsto_nhds_unique (le_nhds_Lim ⟨a, h⟩) h
 
-lemma filter.tendsto.lim_eq {a : α} {f : filter β} {g : β → α} (h : tendsto g f (𝓝 a))
-  [ne_bot f] :
+lemma Lim_eq_iff [ne_bot f] (h : ∃ (a : α), f ≤ nhds a) {a} : @Lim _ _ ⟨a⟩ f = a ↔ f ≤ 𝓝 a :=
+⟨λ c, c ▸ le_nhds_Lim h, Lim_eq⟩
+
+lemma is_ultrafilter.Lim_eq_iff_le_nhds [compact_space α] (x : α) (F : ultrafilter α) :
+  @Lim _ _ ⟨x⟩ F.1 = x ↔ F.1 ≤ 𝓝 x :=
+⟨λ h, h ▸ is_ultrafilter.le_nhds_Lim _, Lim_eq⟩
+
+lemma is_open_iff_ultrafilter' [compact_space α] (U : set α) :
+  is_open U ↔ (∀ F : ultrafilter α, F.Lim ∈ U → U ∈ F.1) :=
+begin
+  rw is_open_iff_ultrafilter,
+  refine ⟨λ h F hF, h _ hF _ F.2 (is_ultrafilter.le_nhds_Lim _), _⟩,
+  intros cond x hx f hf h,
+  let F : ultrafilter α := ⟨f, hf⟩,
+  change F.1 ≤ _ at h,
+  rw ←is_ultrafilter.Lim_eq_iff_le_nhds at h,
+  rw ←h at *,
+  exact cond _ hx
+end
+
+lemma filter.tendsto.lim_eq {a : α} {f : filter β} [ne_bot f] {g : β → α} (h : tendsto g f (𝓝 a)) :
   @lim _ _ _ ⟨a⟩ f g = a :=
 Lim_eq h
+
+lemma filter.lim_eq_iff {f : filter β} [ne_bot f] {g : β → α} (h : ∃ a, tendsto g f (𝓝 a)) {a} :
+  @lim _ _ _ ⟨a⟩ f g = a ↔ tendsto g f (𝓝 a) :=
+⟨λ c, c ▸ tendsto_nhds_lim h, filter.tendsto.lim_eq⟩
 
 lemma continuous.lim_eq [topological_space β] {f : β → α} (h : continuous f) (a : β) :
   @lim _ _ _ ⟨f a⟩ (𝓝 a) f = f a :=
@@ -253,6 +276,18 @@ lemma is_closed_eq [t2_space α] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : is_closed {x:β | f x = g x} :=
 continuous_iff_is_closed.mp (hf.prod_mk hg) _ is_closed_diagonal
 
+/-- If two continuous maps are equal on `s`, then they are equal on the closure of `s`. -/
+lemma set.eq_on.closure [t2_space α] {s : set β} {f g : β → α} (h : eq_on f g s)
+  (hf : continuous f) (hg : continuous g) :
+  eq_on f g (closure s) :=
+closure_minimal h (is_closed_eq hf hg)
+
+/-- If two continuous functions are equal on a dense set, then they are equal. -/
+lemma continuous.ext_on [t2_space α] {s : set β} (hs : dense s) {f g : β → α}
+  (hf : continuous f) (hg : continuous g) (h : eq_on f g s) :
+  f = g :=
+funext $ λ x, h.closure hf hg (hs x)
+
 lemma diagonal_eq_range_diagonal_map {α : Type*} : {p:α×α | p.1 = p.2} = range (λx, (x,x)) :=
 ext $ assume p, iff.intro
   (assume h, ⟨p.1, prod.ext_iff.2 ⟨rfl, h⟩⟩)
@@ -269,6 +304,7 @@ lemma compact_compact_separated [t2_space α] {s t : set α}
 by simp only [prod_subset_compl_diagonal_iff_disjoint.symm] at ⊢ hst;
    exact generalized_tube_lemma hs ht is_closed_diagonal hst
 
+/-- In a `t2_space`, every compact set is closed. -/
 lemma is_compact.is_closed [t2_space α] {s : set α} (hs : is_compact s) : is_closed s :=
 is_open_compl_iff.mpr $ is_open_iff_forall_mem_open.mpr $ assume x hx,
   let ⟨u, v, uo, vo, su, xv, uv⟩ :=

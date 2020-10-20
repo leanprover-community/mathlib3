@@ -149,6 +149,9 @@ lemma ring_sep_quot (α) [r : comm_ring α] [uniform_space α] [uniform_add_grou
   quotient (separation_setoid α) = (⊥ : ideal α).closure.quotient :=
 by rw [@ring_sep_rel α r]; refl
 
+/-- Given a topological ring `α` equipped with a uniform structure that makes subtraction uniformly
+continuous, get an equivalence between the separated quotient of `α` and the quotient ring
+corresponding to the closure of zero. -/
 def sep_quot_equiv_ring_quot (α)
   [r : comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
   quotient (separation_setoid α) ≃ (⊥ : ideal α).closure.quotient :=

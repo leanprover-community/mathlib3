@@ -5,6 +5,7 @@ Authors: Chris Hughes
 -/
 import linear_algebra.dimension
 import ring_theory.principal_ideal_domain
+import algebra.algebra.subalgebra
 
 /-!
 # Finite dimensional vector spaces
@@ -27,7 +28,12 @@ that all these points of view are equivalent, with the following lemmas
 (in the namespace `finite_dimensional`):
 
 - `exists_is_basis_finite` states that a finite-dimensional vector space has a finite basis
-- `of_finite_basis` states that the existence of a finite basis implies finite-dimensionality
+- `of_fintype_basis` states that the existence of a basis indexed by a finite type implies
+  finite-dimensionality
+- `of_finset_basis` states that the existence of a basis indexed by a `finset` implies
+  finite-dimensionality
+- `of_finite_basis` states that the existence of a basis indexed by a finite set implies
+  finite-dimensionality
 - `iff_fg` states that the space is finite-dimensional if and only if it is finitely generated
 
 Also defined is `findim`, the dimension of a finite dimensional space, returning a `nat`,
@@ -68,7 +74,7 @@ variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [vector_space K
 {V₂ : Type v'} [add_comm_group V₂] [vector_space K V₂]
 
 /-- `finite_dimensional` vector spaces are defined to be noetherian modules.
-Use `finite_dimensional.iff_fg` or `finite_dimensional.of_finite_basis` to prove finite dimension
+Use `finite_dimensional.iff_fg` or `finite_dimensional.of_fintype_basis` to prove finite dimension
 from a conventional definition. -/
 @[reducible] def finite_dimensional (K V : Type*) [field K]
   [add_comm_group V] [vector_space K V] := is_noetherian K V
@@ -147,14 +153,20 @@ begin
 end
 
 /-- If a vector space has a finite basis, then it is finite-dimensional. -/
-lemma of_finite_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K b) :
+lemma of_fintype_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K b) :
   finite_dimensional K V :=
 iff_fg.2 $ ⟨finset.univ.image b, by {convert h.2, simp} ⟩
 
-/-- If a vector space has a finite basis, then it is finite-dimensional, finset style. -/
-lemma of_finset_basis {b : finset V} (h : is_basis K (coe : (↑b : set V) -> V)) :
+/-- If a vector space has a basis indexed by elements of a finite set, then it is
+finite-dimensional. -/
+lemma of_finite_basis {ι} {s : set ι} {b : s → V} (h : is_basis K b) (hs : set.finite s) :
   finite_dimensional K V :=
-iff_fg.2 $ ⟨b, by {convert h.2, simp} ⟩
+by haveI := hs.fintype; exact of_fintype_basis h
+
+/-- If a vector space has a finite basis, then it is finite-dimensional, finset style. -/
+lemma of_finset_basis {ι} {s : finset ι} {b : (↑s : set ι) → V} (h : is_basis K b) :
+  finite_dimensional K V :=
+of_finite_basis h s.finite_to_set
 
 /-- A subspace of a finite-dimensional space is also finite-dimensional. -/
 instance finite_dimensional_submodule [finite_dimensional K V] (S : submodule K V) :
@@ -183,6 +195,10 @@ begin
   exact (classical.some_spec (lt_omega.1 (dim_lt_omega K V))).symm
 end
 
+lemma findim_of_infinite_dimensional {K V : Type*} [field K] [add_comm_group V] [vector_space K V]
+  (h : ¬finite_dimensional K V) : findim K V = 0 :=
+dif_neg $ mt finite_dimensional_iff_dim_lt_omega.2 h
+
 /-- If a vector space has a finite basis, then its dimension (seen as a cardinal) is equal to the
 cardinality of the basis. -/
 lemma dim_eq_card_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K b) :
@@ -190,13 +206,12 @@ lemma dim_eq_card_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis 
 by rw [←h.mk_range_eq_dim, cardinal.fintype_card,
        set.card_range_of_injective h.injective]
 
-
 /-- If a vector space has a finite basis, then its dimension is equal to the cardinality of the
 basis. -/
 lemma findim_eq_card_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K b) :
   findim K V = fintype.card ι :=
 begin
-  haveI : finite_dimensional K V := of_finite_basis h,
+  haveI : finite_dimensional K V := of_fintype_basis h,
   have := dim_eq_card_basis h,
   rw ← findim_eq_dim at this,
   exact_mod_cast this
@@ -968,8 +983,8 @@ begin
       have hx : (x : V) ∈ span K (set.range b) := x.property,
       conv at hx { congr, skip, rw h },
       simpa [mem_map] using hx },
-    have hi : disjoint (span K (set.range b')) f.ker, by simp,
-    convert (linear_independent_of_span_eq_top_of_card_eq_findim hs hc).image hi }
+    have hi : f.ker = ⊥ := ker_subtype _,
+    convert (linear_independent_of_span_eq_top_of_card_eq_findim hs hc).map' _ hi }
 end
 
 lemma is_basis_of_span_eq_top_of_card_eq_findim {ι : Type*} [fintype ι] {b : ι → V}
@@ -1037,27 +1052,9 @@ variables {F E : Type*} [field F] [field E] [algebra F E]
 
 lemma subalgebra.dim_eq_one_of_eq_bot {S : subalgebra F E} (h : S = ⊥) : dim F S = 1 :=
 begin
-  rw eq_bot_iff at h,
-  let b : set S := {1},
-  have : fintype b := unique.fintype,
-  have b_lin_ind : linear_independent F (coe : b → S) := linear_independent_singleton one_ne_zero,
-  have b_spans : span F b = ⊤,
-  { rw eq_top_iff,
-    rintros ⟨x, hx⟩ -,
-    rw submodule.mem_span_singleton,
-    specialize h hx,
-    simp only [mem_coe, subalgebra.mem_to_submodule, coe_coe, algebra.mem_bot] at h,
-    cases h with y hy,
-    use y,
-    ext,
-    change y • 1 = x,
-    simp only [algebra.smul_def, mul_one, *], },
-  have b_basis : is_basis F (coe : b → S),
-  { refine ⟨b_lin_ind, _⟩,
-    convert b_spans,
-    simp *, },
-  have b_card : fintype.card b = 1 := fintype.card_of_subsingleton _,
-  rw [dim_eq_card_basis b_basis, b_card, nat.cast_one],
+  rw [← S.to_submodule_equiv.dim_eq, h,
+    (linear_equiv.of_eq ↑(⊥ : subalgebra F E) _ algebra.to_submodule_bot).dim_eq, dim_span_set],
+  exacts [mk_singleton _, linear_independent_singleton one_ne_zero]
 end
 
 @[simp]

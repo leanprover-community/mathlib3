@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import linear_algebra.basic
+import algebra.algebra.basic
 import tactic.omega
 import data.fintype.sort
 
@@ -184,18 +185,31 @@ lemma snoc_smul (f : multilinear_map R M M₂)
   f (snoc m (c • x)) = c • f (snoc m x) :=
 by rw [← update_snoc_last x m (c • x), f.map_smul, update_snoc_last]
 
-/- If `R` and `M₂` are implicit in the next definition, Lean is never able to infer them, even
-given `g` and `f`. Therefore, we make them explicit. -/
-variables (R M₂)
+section
 
-/-- If `g` is multilinear and `f` is linear, then `g (f m₁, ..., f mₙ)` is again a multilinear
-function, that we call `g.comp_linear_map f`. -/
-def comp_linear_map (g : multilinear_map R (λ (i : ι), M₂) M₃) (f : M' →ₗ[R] M₂) :
-  multilinear_map R (λ (i : ι), M') M₃ :=
-{ to_fun    := λ m, g (f ∘ m),
-  map_add'  := λ m i x y, by simp [comp_update],
-  map_smul' := λ m i c x, by simp [comp_update] }
-variables {R M₂}
+variables {M₁' : ι → Type*} [Π i, add_comm_monoid (M₁' i)] [Π i, semimodule R (M₁' i)]
+
+/-- If `g` is a multilinear map and `f` is a collection of linear maps,
+then `g (f₁ m₁, ..., fₙ mₙ)` is again a multilinear map, that we call
+`g.comp_linear_map f`. -/
+def comp_linear_map (g : multilinear_map R M₁' M₂) (f : Π i, M₁ i →ₗ[R] M₁' i) :
+  multilinear_map R M₁ M₂ :=
+{ to_fun := λ m, g $ λ i, f i (m i),
+  map_add' := λ m i x y,
+    have ∀ j z, f j (update m i z j) = update (λ k, f k (m k)) i (f i z) j :=
+      λ j z, function.apply_update (λ k, f k) _ _ _ _,
+    by simp [this],
+  map_smul' := λ m i c x,
+    have ∀ j z, f j (update m i z j) = update (λ k, f k (m k)) i (f i z) j :=
+      λ j z, function.apply_update (λ k, f k) _ _ _ _,
+    by simp [this] }
+
+@[simp] lemma comp_linear_map_apply (g : multilinear_map R M₁' M₂) (f : Π i, M₁ i →ₗ[R] M₁' i)
+  (m : Π i, M₁ i) :
+  g.comp_linear_map f m = g (λ i, f i (m i)) :=
+rfl
+
+end
 
 /-- If one adds to a vector `m'` another vector `m`, but only for coordinates in a finset `t`, then
 the image under a multilinear map `f` is the sum of `f (s.piecewise m m')` along all subsets `s` of
@@ -401,6 +415,29 @@ end apply_sum
 
 end semiring
 
+end multilinear_map
+
+namespace linear_map
+variables [semiring R] [Πi, add_comm_monoid (M₁ i)] [add_comm_monoid M₂] [add_comm_monoid M₃]
+[∀i, semimodule R (M₁ i)] [semimodule R M₂] [semimodule R M₃]
+
+/-- Composing a multilinear map with a linear map gives again a multilinear map. -/
+def comp_multilinear_map (g : M₂ →ₗ[R] M₃) (f : multilinear_map R M₁ M₂) :
+  multilinear_map R M₁ M₃ :=
+{ to_fun    := g ∘ f,
+  map_add'  := λ m i x y, by simp,
+  map_smul' := λ m i c x, by simp }
+
+@[simp] lemma coe_comp_multilinear_map (g : M₂ →ₗ[R] M₃) (f : multilinear_map R M₁ M₂) :
+  ⇑(g.comp_multilinear_map f) = g ∘ f := rfl
+
+lemma comp_multilinear_map_apply (g : M₂ →ₗ[R] M₃) (f : multilinear_map R M₁ M₂) (m : Π i, M₁ i) :
+  g.comp_multilinear_map f m = g (f m) := rfl
+
+end linear_map
+
+namespace multilinear_map
+
 section comm_semiring
 
 variables [comm_semiring R] [∀i, add_comm_monoid (M₁ i)] [∀i, add_comm_monoid (M i)] [add_comm_monoid M₂]
@@ -437,15 +474,83 @@ instance : has_scalar R (multilinear_map R M₁ M₂) := ⟨λ c f,
 
 @[simp] lemma smul_apply (c : R) (m : Πi, M₁ i) : (c • f) m = c • f m := rfl
 
+section
+
+variables (R ι) (A : Type*) [comm_semiring A] [algebra R A] [fintype ι]
+
+/-- Given an `R`-algebra `A`, `mk_pi_algebra` is the multilinear map on `A^ι` associating
+to `m` the product of all the `m i`.
+
+See also `multilinear_map.mk_pi_algebra_fin` for a version that works with a non-commutative
+algebra `A` but requires `ι = fin n`. -/
+protected def mk_pi_algebra : multilinear_map R (λ i : ι, A) A :=
+{ to_fun := λ m, ∏ i, m i,
+  map_add' := λ m i x y, by simp [finset.prod_update_of_mem, add_mul],
+  map_smul' := λ m i c x, by simp [finset.prod_update_of_mem] }
+
+variables {R A ι}
+
+@[simp] lemma mk_pi_algebra_apply (m : ι → A) :
+  multilinear_map.mk_pi_algebra R ι A m = ∏ i, m i :=
+rfl
+
+end
+
+section
+
+variables (R n) (A : Type*) [semiring A] [algebra R A]
+
+/-- Given an `R`-algebra `A`, `mk_pi_algebra_fin` is the multilinear map on `A^n` associating
+to `m` the product of all the `m i`.
+
+See also `multilinear_map.mk_pi_algebra` for a version that assumes `[comm_semiring A]` but works
+for `A^ι` with any finite type `ι`. -/
+protected def mk_pi_algebra_fin : multilinear_map R (λ i : fin n, A) A :=
+{ to_fun := λ m, (list.of_fn m).prod,
+  map_add' :=
+    begin
+      intros m i x y,
+      have : (list.fin_range n).index_of i < n,
+        by simpa using list.index_of_lt_length.2 (list.mem_fin_range i),
+      simp [list.of_fn_eq_map, (list.nodup_fin_range n).map_update, list.prod_update_nth, add_mul,
+        this, mul_add, add_mul]
+    end,
+  map_smul' :=
+    begin
+      intros m i c x,
+      have : (list.fin_range n).index_of i < n,
+        by simpa using list.index_of_lt_length.2 (list.mem_fin_range i),
+      simp [list.of_fn_eq_map, (list.nodup_fin_range n).map_update, list.prod_update_nth, this]
+    end }
+
+variables {R A n}
+
+@[simp] lemma mk_pi_algebra_fin_apply (m : fin n → A) :
+  multilinear_map.mk_pi_algebra_fin R n A m = (list.of_fn m).prod :=
+rfl
+
+lemma mk_pi_algebra_fin_apply_const (a : A) :
+  multilinear_map.mk_pi_algebra_fin R n A (λ _, a) = a ^ n :=
+by simp
+
+end
+
+/-- Given an `R`-multilinear map `f` taking values in `R`, `f.smul_right z` is the map
+sending `m` to `f m • z`. -/
+def smul_right (f : multilinear_map R M₁ R) (z : M₂) : multilinear_map R M₁ M₂ :=
+(linear_map.smul_right linear_map.id z).comp_multilinear_map f
+
+@[simp] lemma smul_right_apply (f : multilinear_map R M₁ R) (z : M₂) (m : Π i, M₁ i) :
+  f.smul_right z m = f m • z :=
+rfl
+
 variables (R ι)
 
 /-- The canonical multilinear map on `R^ι` when `ι` is finite, associating to `m` the product of
-all the `m i` (multiplied by a fixed reference element `z` in the target module) -/
+all the `m i` (multiplied by a fixed reference element `z` in the target module). See also
+`mk_pi_algebra` for a more general version. -/
 protected def mk_pi_ring [fintype ι] (z : M₂) : multilinear_map R (λ(i : ι), R) M₂ :=
-{ to_fun := λm, (∏ i, m i) • z,
-  map_add'  := λ m i x y, by simp [finset.prod_update_of_mem, add_mul, add_smul],
-  map_smul' := λ m i c x, by { rw [smul_eq_mul],
-    simp [finset.prod_update_of_mem, smul_smul, mul_assoc] } }
+(multilinear_map.mk_pi_algebra R ι R).smul_right z
 
 variables {R ι}
 
@@ -515,18 +620,6 @@ protected def pi_ring_equiv [fintype ι]  : M₂ ≃ₗ[R] (multilinear_map R (�
 end comm_ring
 
 end multilinear_map
-
-namespace linear_map
-variables [ring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂] [add_comm_group M₃]
-[∀i, module R (M₁ i)] [module R M₂] [module R M₃]
-
-/-- Composing a multilinear map with a linear map gives again a multilinear map. -/
-def comp_multilinear_map (g : M₂ →ₗ[R] M₃) (f : multilinear_map R M₁ M₂) : multilinear_map R M₁ M₃ :=
-{ to_fun    := λ m, g (f m),
-  map_add'  := λ m i x y, by simp,
-  map_smul' := λ m i c x, by simp }
-
-end linear_map
 
 section currying
 /-!

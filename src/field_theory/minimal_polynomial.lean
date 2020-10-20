@@ -28,8 +28,12 @@ variables {α : Type u} {β : Type v}
 section min_poly_def
 variables [comm_ring α] [ring β] [algebra α β]
 
-/-- Let B be an A-algebra, and x an element of B that is integral over A.
-The minimal polynomial of x is a monic polynomial of smallest degree that has x as its root. -/
+/-- Let `B` be an `A`-algebra, and `x` an element of `B` that is integral over `A`
+so we have some term `hx : is_integral A x`.
+The minimal polynomial `minimal_polynomial hx` of `x` is a monic polynomial of smallest degree
+that has `x` as its root.
+For instance, if `V` is a `K`-vector space for some field `K`, and `f : V →ₗ[K] V` then
+the minimal polynomial of `f` is `minimal_polynomial f.is_integral`. -/
 noncomputable def minimal_polynomial {x : β} (hx : is_integral α x) : polynomial α :=
 well_founded.min degree_lt_wf _ hx
 

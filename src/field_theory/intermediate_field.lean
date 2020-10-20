@@ -250,6 +250,12 @@ S.to_subalgebra.range_subset
 lemma field_range_le : (algebra_map K L).field_range ≤ S.to_subfield :=
 λ x hx, S.to_subalgebra.range_subset (by rwa [set.mem_range, ← ring_hom.mem_field_range])
 
+@[simp] lemma to_subalgebra_le_to_subalgebra {S S' : intermediate_field K L} :
+  S.to_subalgebra ≤ S'.to_subalgebra ↔ S ≤ S' := iff.rfl
+
+@[simp] lemma to_subalgebra_lt_to_subalgebra {S S' : intermediate_field K L} :
+  S.to_subalgebra < S'.to_subalgebra ↔ S < S' := iff.rfl
+
 variables {S}
 
 section tower

@@ -6,6 +6,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 import data.multiset.finset_ops
 import tactic.monotonicity
 import tactic.apply
+import tactic.nth_rewrite
 
 /-!
 # Finite sets
@@ -1953,6 +1954,22 @@ ext $ λ ⟨x, y⟩, by simp only [mem_product, mem_bind, mem_image, exists_prop
 @[simp] theorem card_product (s : finset α) (t : finset β) : card (s.product t) = card s * card t :=
 multiset.card_product _ _
 
+theorem filter_product (p : α → Prop) (q : β → Prop) [decidable_pred p] [decidable_pred q] :
+  (s.product t).filter (λ (x : α × β), p x.1 ∧ q x.2) = (s.filter p).product (t.filter q) :=
+by { ext ⟨a, b⟩, simp only [mem_filter, mem_product], finish, }
+
+lemma filter_product_card (s : finset α) (t : finset β)
+  (p : α → Prop) (q : β → Prop) [decidable_pred p] [decidable_pred q] :
+  ((s.product t).filter (λ (x : α × β), p x.1 ↔ q x.2)).card =
+  (s.filter p).card * (t.filter q).card + (s.filter (not ∘ p)).card * (t.filter (not ∘ q)).card :=
+begin
+  classical,
+  rw [← card_product, ← card_product, ← filter_product, ← filter_product, ← card_union_eq],
+  { apply congr_arg, ext ⟨a, b⟩, simp only [filter_union_right, mem_filter, mem_product],
+    split; intros; finish, },
+  { rw disjoint_iff, change _ ∩ _ = ∅, ext ⟨a, b⟩, rw mem_inter, finish, },
+end
+
 end prod
 
 /-! ### sigma -/
@@ -2086,7 +2103,45 @@ lemma disjoint_iff_disjoint_coe {α : Type*} {a b : finset α} [decidable_eq α]
   disjoint a b ↔ disjoint (↑a : set α) (↑b : set α) :=
 by { rw [finset.disjoint_left, set.disjoint_left], refl }
 
+lemma filter_card_add_filter_neg_card_eq_card {α : Type*} {s : finset α} (p : α → Prop)
+  [decidable_pred p] :
+  (s.filter p).card + (s.filter (not ∘ p)).card = s.card :=
+by { classical, simp [← card_union_eq, filter_union_filter_neg_eq, disjoint_filter], }
+
 end disjoint
+
+section self_prod
+variables (s : finset α) [decidable_eq α]
+
+/-- Given a finite set `s`, the diagonal, `s.diag` is the set of pairs of the form `(a, a)` for
+`a ∈ s`. -/
+def diag := (s.product s).filter (λ (a : α × α), a.fst = a.snd)
+
+/-- Given a finite set `s`, the off-diagonal, `s.off_diag` is the set of pairs `(a, b)` with `a ≠ b`
+for `a, b ∈ s`. -/
+def off_diag := (s.product s).filter (λ (a : α × α), a.fst ≠ a.snd)
+
+@[simp] lemma mem_diag (x : α × α) : x ∈ s.diag ↔ x.1 ∈ s ∧ x.1 = x.2 :=
+by { simp only [diag, mem_filter, mem_product], split; intros; finish, }
+
+@[simp] lemma mem_off_diag (x : α × α) : x ∈ s.off_diag ↔ x.1 ∈ s ∧ x.2 ∈ s ∧ x.1 ≠ x.2 :=
+by { simp only [off_diag, mem_filter, mem_product], split; intros; finish, }
+
+@[simp] lemma diag_card : (diag s).card = s.card :=
+begin
+  suffices : diag s = s.image (λ a, (a, a)), { rw this, apply card_image_of_inj_on, finish, },
+  ext ⟨a₁, a₂⟩, rw mem_diag, split; intros; finish,
+end
+
+@[simp] lemma off_diag_card : (off_diag s).card = s.card * s.card - s.card :=
+begin
+  suffices : (diag s).card + (off_diag s).card = s.card * s.card,
+  { nth_rewrite 2 ← s.diag_card, finish, },
+  rw ← card_product,
+  apply filter_card_add_filter_neg_card_eq_card,
+end
+
+end self_prod
 
 /--
 Given a set A and a set B inside it, we can shrink A to any appropriate size, and keep B

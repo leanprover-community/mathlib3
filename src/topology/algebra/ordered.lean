@@ -789,6 +789,31 @@ lemma nhds_bot_order [topological_space α] [order_bot α] [order_topology α] :
   𝓝 (⊥:α) = (⨅l (h₂ : ⊥ < l), 𝓟 (Iio l)) :=
 by simp [nhds_eq_order (⊥:α)]
 
+lemma tendsto_nhds_top_mono [topological_space β] [order_top β] [order_topology β] {l : filter α}
+  {f g : α → β} (hf : tendsto f l (𝓝 ⊤)) (hg : f ≤ᶠ[l] g) :
+  tendsto g l (𝓝 ⊤) :=
+begin
+  simp only [nhds_top_order, tendsto_infi, tendsto_principal] at hf ⊢,
+  intros x hx,
+  filter_upwards [hf x hx, hg],
+  exact λ x, lt_of_lt_of_le
+end
+
+lemma tendsto_nhds_bot_mono [topological_space β] [order_bot β] [order_topology β] {l : filter α}
+  {f g : α → β} (hf : tendsto f l (𝓝 ⊥)) (hg : g ≤ᶠ[l] f) :
+  tendsto g l (𝓝 ⊥) :=
+@tendsto_nhds_top_mono α (order_dual β) _ _ _ _ _ _ hf hg
+
+lemma tendsto_nhds_top_mono' [topological_space β] [order_top β] [order_topology β] {l : filter α}
+  {f g : α → β} (hf : tendsto f l (𝓝 ⊤)) (hg : f ≤ g) :
+  tendsto g l (𝓝 ⊤) :=
+tendsto_nhds_top_mono hf (eventually_of_forall hg)
+
+lemma tendsto_nhds_bot_mono' [topological_space β] [order_bot β] [order_topology β] {l : filter α}
+  {f g : α → β} (hf : tendsto f l (𝓝 ⊥)) (hg : g ≤ f) :
+  tendsto g l (𝓝 ⊥) :=
+tendsto_nhds_bot_mono hf (eventually_of_forall hg)
+
 section linear_order
 
 variables [topological_space α] [linear_order α] [order_topology α]

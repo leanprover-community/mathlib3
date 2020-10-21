@@ -827,7 +827,7 @@ coeff_map f φ 0
 
 lemma constant_coeff_comp_map (f : R →+* S₁) :
   (constant_coeff : mv_polynomial σ S₁ →+* S₁).comp (mv_polynomial.map f) = f.comp (constant_coeff) :=
-by { ext, apply constant_coeff_map }
+by { ext; simp }
 
 lemma support_map_subset (p : mv_polynomial σ R) : (map f p).support ⊆ p.support :=
 begin

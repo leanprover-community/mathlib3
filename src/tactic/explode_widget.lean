@@ -3,13 +3,14 @@ Copyright (c) 2020 Minchao Wu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Minchao Wu
 -/
-import tactic.explode tactic.interactive_expr
+import tactic.explode
+import tactic.interactive_expr
 /-!
 # `#explode_widget` command
 
 Render a widget that displays an `#explode` proof, providing more 
 interactivity such as jumping to definitions and exploding constants 
-occuring in a proof term subsequently.
+occurring in a proof term subsequently.
 -/
 open widget tactic tactic.explode
 
@@ -42,11 +43,15 @@ meta def insert_explode {γ} : expr → tactic (list (html (action γ)))
   ) <|> pure []
 | e := pure []
 
-meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address : option expr.address) (select_address : option expr.address) :
+meta def view {γ} (tooltip_component : tc subexpr (action γ)) 
+  (click_address : option expr.address) 
+  (select_address : option expr.address) :
   subexpr → sf → tactic (list (html (action γ)))
 | ⟨ce, current_address⟩ (sf.tag_expr ea e m) := do
   let new_address := current_address ++ ea,
-  let select_attrs : list (attr (action γ)) := if some new_address = select_address then [className "highlight"] else [],
+  let select_attrs : list (attr (action γ)) := 
+    if some new_address = select_address then 
+       [className "highlight"] else [],
   click_attrs  : list (attr (action γ)) ←
     if some new_address = click_address then do
       content ← tc.to_html tooltip_component (e, new_address),
@@ -55,14 +60,19 @@ meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address :
       epld_btn ← insert_explode e,
       pure [tooltip $ h "div" [] [
           h "div" [cn "fr"] (gd_btn ++ epld_btn ++ [
-            h "button" [cn "pointer ba br3 mr1", on_click (λ _, action.effect $ widget.effect.copy_text efmt), attr.val "title" "copy expression to clipboard"] ["📋"],
-            h "button" [cn "pointer ba br3", on_click (λ _, action.on_close_tooltip), attr.val "title" "close"] ["×"]
+            h "button" [cn "pointer ba br3 mr1", on_click 
+                       (λ _, action.effect $ widget.effect.copy_text efmt), 
+                       attr.val "title" "copy expression to clipboard"] ["📋"],
+            h "button" [cn "pointer ba br3", on_click 
+                       (λ _, action.on_close_tooltip), 
+                       attr.val "title" "close"] ["×"]
           ]),
           content
       ]]
     else pure [],
   (m, block_attrs) ← get_block_attrs m,
-  let as := [className "expr-boundary", key (ea)] ++ select_attrs ++ click_attrs ++ block_attrs,
+  let as := [className "expr-boundary", key (ea)] ++ select_attrs ++ 
+            click_attrs ++ block_attrs,
   inner ← view (e,new_address) m,
   pure [h "span" as inner]
 | ca (sf.compose x y) := pure (++) <*> view ca x <*> view ca y
@@ -83,7 +93,8 @@ meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address :
 
 meta def mk {γ} (tooltip : tc subexpr γ) : tc expr γ :=
 let tooltip_comp :=
-   component.with_should_update (λ (x y : tactic_state × expr × expr.address), x.2.2 ≠ y.2.2)
+   component.with_should_update 
+   (λ (x y : tactic_state × expr × expr.address), x.2.2 ≠ y.2.2)
    $ component.map_action (action.on_tooltip_action) tooltip in
 component.filter_map_action
   (λ _ (a : γ ⊕ widget.effect), sum.cases_on a some (λ _, none))
@@ -101,7 +112,9 @@ $ tc.mk_simple
     match act with
     | (action.on_mouse_enter ⟨e, ea⟩) := ((ca, some (e, ea)), none)
     | (action.on_mouse_leave_all)     := ((ca, none), none)
-    | (action.on_click ⟨e, ea⟩)       := if some (e,ea) = ca then ((none, sa), none) else ((some (e, ea), sa), none)
+    | (action.on_click ⟨e, ea⟩)       := if some (e,ea) = ca then 
+                                         ((none, sa), none) else 
+                                         ((some (e, ea), sa), none)
     | (action.on_tooltip_action g)    := ((none, sa), some $ sum.inl g)
     | (action.on_close_tooltip)       := ((none, sa), none)
     | (action.effect e)               := ((ca,sa), some $ sum.inr $ e)
@@ -111,7 +124,7 @@ $ tc.mk_simple
     m ← sf.of_eformat <$> tactic.pp_tagged e,
     let m := m.elim_part_apps,
     let m := m.flatten,
-    let m := m.tag_expr [] e, -- [hack] in pp.cpp I forgot to add an expr-boundary for the root expression.
+    let m := m.tag_expr [] e,
     v ← view tooltip_comp (prod.snd <$> ca) (prod.snd <$> sa) ⟨e, []⟩ m,
     pure $
     [ h "span" [

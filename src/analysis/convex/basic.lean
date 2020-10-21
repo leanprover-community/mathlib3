@@ -467,7 +467,7 @@ end sets
 
 section functions
 
-variables {β : Type*} [ordered_add_comm_monoid β] [semimodule ℝ β] [ordered_semimodule ℝ β]
+variables {β : Type*} [ordered_add_comm_monoid β] [semimodule ℝ β]
 
 local notation `[`x `, ` y `]` := segment x y
 
@@ -484,6 +484,8 @@ def concave_on (s : set E) (f : E → β) : Prop :=
   convex s ∧
   ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : ℝ⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
     a • f x + b • f y ≤ f (a • x + b • y)
+
+variables [ordered_semimodule ℝ β]
 
 /-- A function f is concave iff -f is convex -/
 @[simp] lemma neg_convex_on_iff {γ : Type*} [ordered_add_comm_group γ]

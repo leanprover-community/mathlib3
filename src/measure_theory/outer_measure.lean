@@ -351,7 +351,6 @@ theorem le_of_function {μ : outer_measure α} :
   le_trans (μ.mono hs) $ le_trans (μ.Union f) $
   ennreal.tsum_le_tsum $ λ i, H _⟩
 
-
 end of_function
 
 section caratheodory_measurable

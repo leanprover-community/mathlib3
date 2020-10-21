@@ -129,20 +129,14 @@ theorem fixing_subgroup_of_fixed_field [finite_dimensional F E] :
 begin
   have H_le : H ≤ (fixing_subgroup (fixed_field H)) :=
     λ ϕ ϕh x, (mul_action.mem_fixed_points E).mp (subtype.mem x) ⟨ϕ, ϕh⟩,
-  suffices : function.bijective (set.inclusion H_le),
-  { symmetry,
-    apply le_antisymm H_le,
-    intros ϕ hϕ,
-    cases this.2 ⟨ϕ, hϕ⟩ with ψ,
-    cases ψ with ψ hψ,
-    rw [←subtype.coe_mk ϕ hϕ, ←h],
-    exact hψ },
-  suffices : (fixing_subgroup (fixed_field H)) ≃ H,
-  { exact (fintype.bijective_iff_injective_and_card (set.inclusion H_le)).mpr
-    ⟨set.inclusion_injective H_le, (fintype.card_congr this).symm⟩ },
-  apply equiv.trans (fixing_subgroup_equiv (fixed_field H)),
-  symmetry,
-  apply equiv.trans (fixed_points.to_alg_hom_equiv H E),
+  suffices : fintype.card H = fintype.card (fixing_subgroup (fixed_field H)),
+  { exact subgroup.ext' (set.eq_of_inclusion_surjective ((fintype.bijective_iff_injective_and_card
+    (set.inclusion H_le)).mpr ⟨set.inclusion_injective H_le, this⟩).2).symm },
+  haveI := fintype.of_equiv _ ((fixed_points.to_alg_hom_equiv H E)),
+  haveI := fintype.of_equiv _ (fixing_subgroup_equiv (fixed_field H)),
+  rw fintype.card_congr (fixing_subgroup_equiv (fixed_field H)),
+  rw fintype.card_congr ((fixed_points.to_alg_hom_equiv H E)),
+  apply fintype.card_congr,
   exact
   { to_fun := λ ϕ, alg_equiv.of_bijective
       (alg_hom.mk ϕ ϕ.map_one ϕ.map_mul ϕ.map_zero ϕ.map_add ϕ.commutes)

@@ -90,6 +90,29 @@ begin
   rw prod_eq_one, intros, apply h, assumption,
 end
 
+/--If we have a finite set of polynomial, with coefficients in a semiring `S`, and each of them comes from a polynomial with coefficients in `R`, then the same is true for their product. -/
+lemma lifts_of_prod_lifts {R : Type u} {S : Type v} [comm_semiring R] [comm_semiring S] (f : R →+* S) {ι : Type u_1} (g : ι → polynomial S) (s : finset ι) : (∀ x ∈ s, ∃ P : (polynomial R), map f P = g x) →  ∃ Q : (polynomial R), map f Q = ∏ x in s, g x :=
+begin
+  apply finset.induction_on s,
+  { intros x,
+    use (1 : polynomial R),
+    simp only [map_one, finset.prod_empty]},
+  intros a t ha h₁ h₂,
+  simp only [ha, finset.prod_insert, not_false_iff],
+  have hprod : ∃ (Q : polynomial R), map f Q = t.prod g,
+  { apply h₁,
+    intros y hy,
+    apply h₂ y,
+    simp only [hy, or_true, finset.mem_insert] },
+  have ha : ∃ (Q : polynomial R), map f Q = g a,
+  { apply h₂ a,
+    simp only [true_or, eq_self_iff_true, finset.mem_insert] },
+  obtain ⟨Qprod, hQprod ⟩ := hprod,
+  obtain ⟨Qa, hQa ⟩ := ha,
+  use Qa * Qprod,
+  simp only [hQprod, hQa, map_mul]
+end
+
 end comm_semiring
 
 section comm_ring

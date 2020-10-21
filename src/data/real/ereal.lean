@@ -31,7 +31,6 @@ In Isabelle they define + - * and / (making junk choices for things like -∞ + 
 and then prove whatever bits of the ordered ring/field axioms still hold. They
 also do some limits stuff (liminf/limsup etc).
 See https://isabelle.in.tum.de/dist/library/HOL/HOL-Library/Extended_Real.html
-
 -/
 
 /-- ereal : The type `[-∞, ∞]` -/
@@ -48,7 +47,10 @@ by { unfold_coes, norm_num }
 @[simp, norm_cast] protected lemma coe_real_inj' {x y : ℝ} : (x : ereal) = (y : ereal) ↔ x = y :=
 by { unfold_coes, simp [option.some_inj] }
 
-/- neg -/
+instance : has_zero ereal := ⟨(0 : ℝ)⟩
+instance : inhabited ereal := ⟨0⟩
+
+/-! ### Negation -/
 
 /-- negation on ereal -/
 protected def neg : ereal → ereal

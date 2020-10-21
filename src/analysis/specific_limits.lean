@@ -2,121 +2,26 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
-
-A collection of specific limit computations.
 -/
 import analysis.normed_space.basic
 import algebra.geom_sum
+import order.filter.archimedean
 import topology.instances.ennreal
 import tactic.ring_exp
 
-noncomputable theory
-open_locale classical topological_space
+/-!
+# A collection of specific limit computations
+-/
 
+noncomputable theory
 open classical function filter finset metric
 
-open_locale big_operators
+open_locale classical topological_space nat big_operators
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 
 lemma tendsto_norm_at_top_at_top : tendsto (norm : ℝ → ℝ) at_top at_top :=
 tendsto_abs_at_top_at_top
-
-/-- If a function tends to infinity along a filter, then this function multiplied by a positive
-constant (on the left) also tends to infinity. The archimedean assumption is convenient to get a
-statement that works on `ℕ`, `ℤ` and `ℝ`, although not necessary (a version in ordered fields is
-given in `tendsto_at_top_mul_left'`). -/
-lemma tendsto_at_top_mul_left [decidable_linear_ordered_semiring α] [archimedean α]
-  {l : filter β} {r : α} (hr : 0 < r) {f : β → α} (hf : tendsto f l at_top) :
-  tendsto (λx, r * f x) l at_top :=
-begin
-  apply (tendsto_at_top _ _).2 (λb, _),
-  obtain ⟨n : ℕ, hn : 1 ≤ n •ℕ r⟩ := archimedean.arch 1 hr,
-  have hn' : 1 ≤ r * n, by rwa nsmul_eq_mul' at hn,
-  filter_upwards [(tendsto_at_top _ _).1 hf (n * max b 0)],
-  assume x hx,
-  calc b ≤ 1 * max b 0 : by { rw [one_mul], exact le_max_left _ _ }
-  ... ≤ (r * n) * max b 0 : mul_le_mul_of_nonneg_right hn' (le_max_right _ _)
-  ... = r * (n * max b 0) : by rw [mul_assoc]
-  ... ≤ r * f x : mul_le_mul_of_nonneg_left hx (le_of_lt hr)
-end
-
-/-- If a function tends to infinity along a filter, then this function multiplied by a positive
-constant (on the right) also tends to infinity. The archimedean assumption is convenient to get a
-statement that works on `ℕ`, `ℤ` and `ℝ`, although not necessary (a version in ordered fields is
-given in `tendsto_at_top_mul_right'`). -/
-lemma tendsto_at_top_mul_right [decidable_linear_ordered_semiring α] [archimedean α]
-  {l : filter β} {r : α} (hr : 0 < r) {f : β → α} (hf : tendsto f l at_top) :
-  tendsto (λx, f x * r) l at_top :=
-begin
-  apply (tendsto_at_top _ _).2 (λb, _),
-  obtain ⟨n : ℕ, hn : 1 ≤ n •ℕ r⟩ := archimedean.arch 1 hr,
-  have hn' : 1 ≤ (n : α) * r, by rwa nsmul_eq_mul at hn,
-  filter_upwards [(tendsto_at_top _ _).1 hf (max b 0 * n)],
-  assume x hx,
-  calc b ≤ max b 0 * 1 : by { rw [mul_one], exact le_max_left _ _ }
-  ... ≤ max b 0 * (n * r) : mul_le_mul_of_nonneg_left hn' (le_max_right _ _)
-  ... = (max b 0 * n) * r : by rw [mul_assoc]
-  ... ≤ f x * r : mul_le_mul_of_nonneg_right hx (le_of_lt hr)
-end
-
-/-- If a function tends to infinity along a filter, then this function multiplied by a positive
-constant (on the left) also tends to infinity. For a version working in `ℕ` or `ℤ`, use
-`tendsto_at_top_mul_left` instead. -/
-lemma tendsto_at_top_mul_left' [linear_ordered_field α]
-  {l : filter β} {r : α} (hr : 0 < r) {f : β → α} (hf : tendsto f l at_top) :
-  tendsto (λx, r * f x) l at_top :=
-begin
-  apply (tendsto_at_top _ _).2 (λb, _),
-  filter_upwards [(tendsto_at_top _ _).1 hf (b/r)],
-  assume x hx,
-  simpa [div_le_iff' hr] using hx
-end
-
-/-- If a function tends to infinity along a filter, then this function multiplied by a positive
-constant (on the right) also tends to infinity. For a version working in `ℕ` or `ℤ`, use
-`tendsto_at_top_mul_right` instead. -/
-lemma tendsto_at_top_mul_right' [linear_ordered_field α]
-  {l : filter β} {r : α} (hr : 0 < r) {f : β → α} (hf : tendsto f l at_top) :
-  tendsto (λx, f x * r) l at_top :=
-by simpa [mul_comm] using tendsto_at_top_mul_left' hr hf
-
-/-- If a function tends to infinity along a filter, then this function divided by a positive
-constant also tends to infinity. -/
-lemma tendsto_at_top_div [linear_ordered_field α]
-  {l : filter β} {r : α} (hr : 0 < r) {f : β → α} (hf : tendsto f l at_top) :
-  tendsto (λx, f x / r) l at_top :=
-tendsto_at_top_mul_right' (inv_pos.2 hr) hf
-
-/-- The function `x ↦ x⁻¹` tends to `+∞` on the right of `0`. -/
-lemma tendsto_inv_zero_at_top [discrete_linear_ordered_field α] [topological_space α]
-  [order_topology α] : tendsto (λx:α, x⁻¹) (𝓝[set.Ioi (0:α)] 0) at_top :=
-begin
-  apply (tendsto_at_top _ _).2 (λb, _),
-  refine mem_nhds_within_Ioi_iff_exists_Ioo_subset.2 ⟨(max b 1)⁻¹, by simp [zero_lt_one], λx hx, _⟩,
-  calc b ≤ max b 1 : le_max_left _ _
-  ... ≤ x⁻¹ : begin
-    apply (le_inv _ hx.1).2 (le_of_lt hx.2),
-    exact lt_of_lt_of_le zero_lt_one (le_max_right _ _)
-  end
-end
-
-/-- The function `r ↦ r⁻¹` tends to `0` on the right as `r → +∞`. -/
-lemma tendsto_inv_at_top_zero' [discrete_linear_ordered_field α] [topological_space α]
-  [order_topology α] : tendsto (λr:α, r⁻¹) at_top (𝓝[set.Ioi (0:α)] 0) :=
-begin
-  assume s hs,
-  rw mem_nhds_within_Ioi_iff_exists_Ioc_subset at hs,
-  rcases hs with ⟨C, C0, hC⟩,
-  change 0 < C at C0,
-  refine filter.mem_map.2 (mem_sets_of_superset (mem_at_top C⁻¹) (λ x hx, hC _)),
-  have : 0 < x, from lt_of_lt_of_le (inv_pos.2 C0) hx,
-  exact ⟨inv_pos.2 this, (inv_le C0 this).1 hx⟩
-end
-
-lemma tendsto_inv_at_top_zero [discrete_linear_ordered_field α] [topological_space α]
-  [order_topology α] : tendsto (λr:α, r⁻¹) at_top (𝓝 0) :=
-tendsto_inv_at_top_zero'.mono_right inf_le_left
 
 lemma summable_of_absolute_convergence_real {f : ℕ → ℝ} :
   (∃r, tendsto (λn, (∑ i in range n, abs (f i))) at_top (𝓝 r)) → summable f
@@ -128,7 +33,7 @@ lemma summable_of_absolute_convergence_real {f : ℕ → ℝ} :
   end
 
 lemma tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ)⁻¹) at_top (𝓝 0) :=
-tendsto_inv_at_top_zero.comp (tendsto_coe_nat_real_at_top_iff.2 tendsto_id)
+tendsto_inv_at_top_zero.comp tendsto_coe_nat_at_top_at_top
 
 lemma tendsto_const_div_at_top_nhds_0_nat (C : ℝ) : tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
 by simpa only [mul_zero] using tendsto_const_nhds.mul tendsto_inverse_at_top_nhds_0_nat
@@ -160,11 +65,8 @@ sub_add_cancel r 1 ▸ tendsto_add_one_pow_at_top_at_top_of_pos (sub_pos.2 h)
 
 lemma nat.tendsto_pow_at_top_at_top_of_one_lt {m : ℕ} (h : 1 < m) :
   tendsto (λn:ℕ, m ^ n) at_top at_top :=
-begin
-  simp only [← nat.pow_eq_pow],
-  exact nat.sub_add_cancel (le_of_lt h) ▸
-    tendsto_add_one_pow_at_top_at_top_of_pos (nat.sub_pos_of_lt h)
-end
+nat.sub_add_cancel (le_of_lt h) ▸
+  tendsto_add_one_pow_at_top_at_top_of_pos (nat.sub_pos_of_lt h)
 
 lemma lim_norm_zero' {𝕜 : Type*} [normed_group 𝕜] :
   tendsto (norm : 𝕜 → ℝ) (𝓝[{x | x ≠ 0}] 0) (𝓝[set.Ioi 0] 0) :=
@@ -353,6 +255,18 @@ summable_geometric_of_norm_lt_1 h
 
 lemma tsum_geometric_of_abs_lt_1 {r : ℝ} (h : abs r < 1) : (∑'n:ℕ, r ^ n) = (1 - r)⁻¹ :=
 tsum_geometric_of_norm_lt_1 h
+
+/-- A geometric series in a normed field is summable iff the norm of the common ratio is less than
+one. -/
+@[simp] lemma summable_geometric_iff_norm_lt_1 : summable (λ n : ℕ, ξ ^ n) ↔ ∥ξ∥ < 1 :=
+begin
+  refine ⟨λ h, _, summable_geometric_of_norm_lt_1⟩,
+  obtain ⟨k : ℕ, hk : dist (ξ ^ k) 0 < 1⟩ :=
+    (h.tendsto_cofinite_zero.eventually (ball_mem_nhds _ zero_lt_one)).exists,
+  simp only [normed_field.norm_pow, dist_zero_right] at hk,
+  rw [← one_pow k] at hk,
+  exact lt_of_pow_lt_pow _ zero_le_one hk
+end
 
 end geometric
 
@@ -569,7 +483,7 @@ begin
   simp only [pow_zero],
   refine le_trans (norm_add_le _ _) _,
   have : ∥(∑' (b : ℕ), (λ n, x ^ (n + 1)) b)∥ ≤ (1 - ∥x∥)⁻¹ - 1,
-  { refine tsum_of_norm_bounded _ (λ b, norm_pow_le _ (nat.succ_pos b)),
+  { refine tsum_of_norm_bounded _ (λ b, norm_pow_le' _ (nat.succ_pos b)),
     convert (has_sum_nat_add_iff' 1).mpr (has_sum_geometric_of_lt_1 (norm_nonneg x) h),
     simp },
   linarith
@@ -578,33 +492,26 @@ end
 lemma geom_series_mul_neg (x : R) (h : ∥x∥ < 1) :
   (∑' (i:ℕ), x ^ i) * (1 - x) = 1 :=
 begin
-  have := has_sum_of_bounded_monoid_hom_of_summable
-    (normed_ring.summable_geometric_of_norm_lt_1 x h) (∥1 - x∥)
-    (mul_right_bound (1 - x)),
+  have := ((normed_ring.summable_geometric_of_norm_lt_1 x h).has_sum.mul_right (1 - x)),
   refine tendsto_nhds_unique this.tendsto_sum_nat _,
-  have : tendsto (λ (n : ℕ), 1 - x ^ n) at_top (nhds 1),
-  { simpa using tendsto_const_nhds.sub
-      (tendsto_pow_at_top_nhds_0_of_norm_lt_1 h) },
+  have : tendsto (λ (n : ℕ), 1 - x ^ n) at_top (𝓝 1),
+  { simpa using tendsto_const_nhds.sub (tendsto_pow_at_top_nhds_0_of_norm_lt_1 h) },
   convert ← this,
   ext n,
   rw [←geom_sum_mul_neg, geom_series_def, finset.sum_mul],
-  simp,
 end
 
 lemma mul_neg_geom_series (x : R) (h : ∥x∥ < 1) :
   (1 - x) * (∑' (i:ℕ), x ^ i) = 1 :=
 begin
-  have := has_sum_of_bounded_monoid_hom_of_summable
-    (normed_ring.summable_geometric_of_norm_lt_1 x h) (∥1 - x∥)
-    (mul_left_bound (1 - x)),
+  have := (normed_ring.summable_geometric_of_norm_lt_1 x h).has_sum.mul_left (1 - x),
   refine tendsto_nhds_unique this.tendsto_sum_nat _,
   have : tendsto (λ (n : ℕ), 1 - x ^ n) at_top (nhds 1),
   { simpa using tendsto_const_nhds.sub
       (tendsto_pow_at_top_nhds_0_of_norm_lt_1 h) },
   convert ← this,
   ext n,
-  rw [←mul_neg_geom_sum, geom_series_def, finset.mul_sum],
-  simp,
+  rw [←mul_neg_geom_sum, geom_series_def, finset.mul_sum]
 end
 
 end normed_ring_geometric
@@ -617,7 +524,7 @@ def pos_sum_of_encodable {ε : ℝ} (hε : 0 < ε)
 begin
   let f := λ n, (ε / 2) / 2 ^ n,
   have hf : has_sum f ε := has_sum_geometric_two' _,
-  have f0 : ∀ n, 0 < f n := λ n, div_pos (half_pos hε) (pow_pos two_pos _),
+  have f0 : ∀ n, 0 < f n := λ n, div_pos (half_pos hε) (pow_pos zero_lt_two _),
   refine ⟨f ∘ encodable.encode, λ i, f0 _, _⟩,
   rcases hf.summable.comp_injective (@encodable.encode_injective ι _) with ⟨c, hg⟩,
   refine ⟨c, hg, has_sum_le_inj _ (@encodable.encode_injective ι _) _ _ hg hf⟩,
@@ -629,7 +536,7 @@ namespace nnreal
 
 theorem exists_pos_sum_of_encodable {ε : nnreal} (hε : 0 < ε) (ι) [encodable ι] :
   ∃ ε' : ι → nnreal, (∀ i, 0 < ε' i) ∧ ∃c, has_sum ε' c ∧ c < ε :=
-let ⟨a, a0, aε⟩ := dense hε in
+let ⟨a, a0, aε⟩ := exists_between hε in
 let ⟨ε', hε', c, hc, hcε⟩ := pos_sum_of_encodable a0 ι in
 ⟨ λi, ⟨ε' i, le_of_lt $ hε' i⟩, assume i, nnreal.coe_lt_coe.2 $ hε' i,
   ⟨c, has_sum_le (assume i, le_of_lt $ hε' i) has_sum_zero hc ⟩, nnreal.has_sum_coe.1 hc,
@@ -642,13 +549,41 @@ namespace ennreal
 theorem exists_pos_sum_of_encodable {ε : ennreal} (hε : 0 < ε) (ι) [encodable ι] :
   ∃ ε' : ι → nnreal, (∀ i, 0 < ε' i) ∧ (∑' i, (ε' i : ennreal)) < ε :=
 begin
-  rcases dense hε with ⟨r, h0r, hrε⟩,
+  rcases exists_between hε with ⟨r, h0r, hrε⟩,
   rcases lt_iff_exists_coe.1 hrε with ⟨x, rfl, hx⟩,
   rcases nnreal.exists_pos_sum_of_encodable (coe_lt_coe.1 h0r) ι with ⟨ε', hp, c, hc, hcr⟩,
   exact ⟨ε', hp, (ennreal.tsum_coe_eq hc).symm ▸ lt_trans (coe_lt_coe.2 hcr) hrε⟩
 end
 
 end ennreal
+
+/-!
+### Factorial
+-/
+
+lemma factorial_tendsto_at_top : tendsto nat.factorial at_top at_top :=
+tendsto_at_top_at_top_of_monotone nat.monotone_factorial (λ n, ⟨n, n.self_le_factorial⟩)
+
+lemma tendsto_factorial_div_pow_self_at_top : tendsto (λ n, n! / n^n : ℕ → ℝ) at_top (𝓝 0) :=
+tendsto_of_tendsto_of_tendsto_of_le_of_le'
+  tendsto_const_nhds
+  (tendsto_const_div_at_top_nhds_0_nat 1)
+  (eventually_of_forall $ λ n, div_nonneg (by exact_mod_cast n.factorial_pos.le)
+    (pow_nonneg (by exact_mod_cast n.zero_le) _))
+  begin
+    rw eventually_iff_exists_mem,
+    use [set.Ioi 0, Ioi_mem_at_top 0],
+    rintros n (hn : 0 < n),
+    rcases nat.exists_eq_succ_of_ne_zero hn.ne.symm with ⟨k, rfl⟩,
+    rw [← prod_range_add_one_eq_factorial, pow_eq_prod_const, div_eq_mul_inv, ← inv_eq_one_div, prod_nat_cast,
+        nat.cast_succ, ← prod_inv_distrib', ← prod_mul_distrib, finset.prod_range_succ'],
+    simp only [prod_range_succ', one_mul, nat.cast_add, zero_add, nat.cast_one],
+    refine mul_le_of_le_one_left (inv_nonneg.mpr $ by exact_mod_cast hn.le) (prod_le_one _ _);
+    intros x hx;
+    rw finset.mem_range at hx,
+    { refine mul_nonneg _ (inv_nonneg.mpr _); norm_cast; linarith },
+    { refine (div_le_one $ by exact_mod_cast hn).mpr _, norm_cast, linarith }
+  end
 
 /-!
 ### Harmonic series
@@ -698,10 +633,10 @@ begin
   induction n with n hn,
   unfold harmonic_series,
   simp only [one_div, nat.cast_zero, zero_div, nat.cast_succ, sum_singleton,
-    inv_one, zero_add, nat.pow_zero, range_one, zero_le_one],
+    inv_one, zero_add, pow_zero, range_one, zero_le_one],
   have : harmonic_series (2^n) + 1 / 2 ≤ harmonic_series (2^(n+1)),
-  { have := half_le_harmonic_double_sub_harmonic (2^n) (by {apply nat.pow_pos, linarith}),
-    rw [nat.mul_comm, ← nat.pow_succ] at this,
+  { have := half_le_harmonic_double_sub_harmonic (2^n) (by {apply pow_pos, linarith}),
+    rw [nat.mul_comm, ← pow_succ'] at this,
     linarith },
   apply le_trans _ this,
   rw (show (n.succ / 2 : ℝ) = (n/2 : ℝ) + (1/2), by field_simp),
@@ -716,5 +651,5 @@ begin
   apply tendsto_at_top_mono self_div_two_le_harmonic_two_pow,
   apply tendsto_at_top_div,
   norm_num,
-  exact tendsto_coe_nat_real_at_top_at_top
+  exact tendsto_coe_nat_at_top_at_top
 end

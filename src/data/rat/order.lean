@@ -59,8 +59,7 @@ num_denom_cases_on' b $ λ n₂ d₂ h₂,
 begin
   have d₁0 : 0 < (d₁:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₁),
   have d₂0 : 0 < (d₂:ℤ) := int.coe_nat_pos.2 (nat.pos_of_ne_zero h₂),
-  simp [d₁0, d₂0, h₁, h₂, mul_pos d₁0 d₂0],
-  exact mul_nonneg
+  simp [d₁0, d₂0, h₁, h₂, mul_pos d₁0 d₂0, mul_nonneg] { contextual := tt }
 end
 
 protected lemma nonneg_antisymm {a} : rat.nonneg a → rat.nonneg (-a) → a = 0 :=
@@ -158,7 +157,7 @@ protected theorem mul_nonneg {a b : ℚ} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a
 by rw ← nonneg_iff_zero_le at ha hb ⊢; exact rat.nonneg_mul ha hb
 
 instance : discrete_linear_ordered_field ℚ :=
-{ zero_lt_one     := dec_trivial,
+{ zero_le_one     := dec_trivial,
   add_le_add_left := assume a b ab c, rat.add_le_add_left.2 ab,
   mul_pos         := assume a b ha hb, lt_of_le_of_ne
     (rat.mul_nonneg (le_of_lt ha) (le_of_lt hb))

@@ -55,7 +55,7 @@ def is_iso_equiv_nonzero {X Y : C} [simple.{v} X] [simple.{v} Y] {f : X ⟶ Y} :
   begin
     introI h,
     apply id_nonzero X,
-    simp only [←is_iso.hom_inv_id f, h, has_zero_morphisms.zero_comp],
+    simp only [←is_iso.hom_inv_id f, h, zero_comp],
   end,
   inv_fun := λ w, is_iso_of_hom_simple w,
   left_inv := λ I, subsingleton.elim _ _,

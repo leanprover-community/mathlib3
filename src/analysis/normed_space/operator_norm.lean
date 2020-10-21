@@ -73,6 +73,11 @@ follow automatically in `linear_map.mk_continuous_norm_le`. -/
 def linear_map.mk_continuous_of_exists_bound (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) : E →L[𝕜] F :=
 ⟨f, let ⟨C, hC⟩ := h in linear_map.continuous_of_bound f C hC⟩
 
+lemma continuous_of_linear_of_bound {f : E → F} (h_add : ∀ x y, f (x + y) = f x + f y)
+  (h_smul : ∀ (c : 𝕜) x, f (c • x) = c • f x) {C : ℝ} (h_bound : ∀ x, ∥f x∥ ≤ C*∥x∥) :
+  continuous f :=
+let φ : E →ₗ[𝕜] F := ⟨f, h_add, h_smul⟩ in φ.continuous_of_bound C h_bound
+
 @[simp, norm_cast] lemma linear_map.mk_continuous_coe (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   ((f.mk_continuous C h) : E →ₗ[𝕜] F) = f := rfl
 
@@ -279,6 +284,31 @@ theorem op_norm_le_of_lipschitz {f : E →L[𝕜] F} {K : nnreal} (hf : lipschit
   ∥f∥ ≤ K :=
 f.op_norm_le_bound K.2 $ λ x, by simpa only [dist_zero_right, f.map_zero] using hf.dist_le_mul x 0
 
+lemma op_norm_le_of_ball {f : E →L[𝕜] F} {ε : ℝ} {C : ℝ} (ε_pos : 0 < ε) (hC : 0 ≤ C)
+  (hf : ∀ x ∈ ball (0 : E) ε, ∥f x∥ ≤ C * ∥x∥) : ∥f∥ ≤ C :=
+begin
+  apply f.op_norm_le_bound hC,
+  intros x,
+  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+  by_cases hx : x = 0, { simp [hx] },
+  rcases rescale_to_shell hc (half_pos ε_pos) hx with ⟨δ, hδ, δxle, leδx, δinv⟩,
+  have δx_in : δ • x ∈ ball (0 : E) ε,
+  { rw [mem_ball, dist_eq_norm, sub_zero],
+    linarith },
+  calc ∥f x∥ = ∥f ((1/δ) • δ • x)∥ : by simp [hδ, smul_smul]
+  ... = ∥1/δ∥ * ∥f (δ • x)∥ : by simp [norm_smul]
+  ... ≤ ∥1/δ∥ * (C*∥δ • x∥) : mul_le_mul_of_nonneg_left _ (norm_nonneg _)
+  ... = C * ∥x∥ : by { rw norm_smul, field_simp [hδ], ring },
+  exact hf _ δx_in
+end
+
+lemma op_norm_eq_of_bounds {φ : E →L[𝕜] F} {M : ℝ} (M_nonneg : 0 ≤ M)
+  (h_above : ∀ x, ∥φ x∥ ≤ M*∥x∥) (h_below : ∀ N ≥ 0, (∀ x, ∥φ x∥ ≤ N*∥x∥) → M ≤ N) :
+  ∥φ∥ = M :=
+le_antisymm (φ.op_norm_le_bound M_nonneg h_above)
+  ((le_cInf_iff continuous_linear_map.bounds_bdd_below ⟨M, M_nonneg, h_above⟩).mpr $
+   λ N ⟨N_nonneg, hN⟩, h_below N N_nonneg hN)
+
 /-- The operator norm satisfies the triangle inequality. -/
 theorem op_norm_add_le : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
 show ∥f + g∥ ≤ (coe : nnreal → ℝ) (⟨_, f.op_norm_nonneg⟩ + ⟨_, g.op_norm_nonneg⟩),
@@ -365,24 +395,26 @@ begin
     rw [dist_eq_norm, dist_eq_norm, ← f.map_sub, H] }
 end
 
-lemma homothety_norm (hE : 0 < vector_space.dim 𝕜 E) (f : E →L[𝕜] F) {a : ℝ} (ha : 0 ≤ a) (hf : ∀x, ∥f x∥ = a * ∥x∥) :
+lemma homothety_norm [nontrivial E] (f : E →L[𝕜] F) {a : ℝ} (hf : ∀x, ∥f x∥ = a * ∥x∥) :
   ∥f∥ = a :=
 begin
+  obtain ⟨x, hx⟩ : ∃ (x : E), x ≠ 0 := exists_ne 0,
+  have ha : 0 ≤ a,
+  { apply nonneg_of_mul_nonneg_right,
+    rw ← hf x,
+    apply norm_nonneg,
+    exact norm_pos_iff.mpr hx },
   refine le_antisymm_iff.mpr ⟨_, _⟩,
   { exact continuous_linear_map.op_norm_le_bound f ha (λ y, le_of_eq (hf y)) },
   { rw continuous_linear_map.norm_def,
     apply real.lb_le_Inf _ continuous_linear_map.bounds_nonempty,
-    cases dim_pos_iff_exists_ne_zero.mp hE with x hx,
     intros c h, rw mem_set_of_eq at h,
     apply (mul_le_mul_right (norm_pos_iff.mpr hx)).mp,
     rw ← hf x, exact h.2 x }
 end
 
 lemma to_span_singleton_norm (x : E) : ∥to_span_singleton 𝕜 x∥ = ∥x∥ :=
-begin
-  refine homothety_norm _ _ (norm_nonneg x) (to_span_singleton_homothety 𝕜 x),
-  rw dim_of_field, exact cardinal.zero_lt_one,
-end
+homothety_norm _ (to_span_singleton_homothety 𝕜 x)
 
 variable (f)
 
@@ -534,7 +566,7 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
 }
 
 lemma extend_unique (g : G →L[𝕜] F) (H : g.comp e = f) : extend f e h_dense h_e = g :=
-continuous_linear_map.coe_inj $
+continuous_linear_map.injective_coe_fn $
   uniformly_extend_unique h_e h_dense (continuous_linear_map.ext_iff.1 H) g.continuous
 
 @[simp] lemma extend_zero : extend (0 : E →L[𝕜] F) e h_dense h_e = 0 :=
@@ -591,7 +623,7 @@ namespace continuous_linear_map
 
 /-- The norm of the tensor product of a scalar linear map and of an element of a normed space
 is the product of the norms. -/
-@[simp] lemma smul_right_norm {c : E →L[𝕜] 𝕜} {f : F} :
+@[simp] lemma norm_smul_right_apply (c : E →L[𝕜] 𝕜) (f : F) :
   ∥smul_right c f∥ = ∥c∥ * ∥f∥ :=
 begin
   refine le_antisymm _ _,
@@ -611,6 +643,41 @@ begin
       ... = ∥((smul_right c f) : E → F) x∥ : rfl
       ... ≤ ∥smul_right c f∥ * ∥x∥ : le_op_norm _ _ } },
 end
+
+/-- Given `c : c : E →L[𝕜] 𝕜`, `c.smul_rightL` is the continuous linear map from `F` to `E →L[𝕜] F`
+sending `f` to `λ e, c e • f`. -/
+def smul_rightL (c : E →L[𝕜] 𝕜) : F →L[𝕜] (E →L[𝕜] F) :=
+(c.smul_rightₗ : F →ₗ[𝕜] (E →L[𝕜] F)).mk_continuous _ (λ f, le_of_eq $ c.norm_smul_right_apply f)
+
+@[simp] lemma norm_smul_rightL_apply (c : E →L[𝕜] 𝕜) (f : F) :
+  ∥c.smul_rightL f∥ = ∥c∥ * ∥f∥ :=
+by simp [continuous_linear_map.smul_rightL, continuous_linear_map.smul_rightₗ]
+
+@[simp] lemma norm_smul_rightL (c : E →L[𝕜] 𝕜) [nontrivial F] :
+  ∥(c.smul_rightL : F →L[𝕜] (E →L[𝕜] F))∥ = ∥c∥ :=
+continuous_linear_map.homothety_norm _ c.norm_smul_right_apply
+
+variables (𝕜 F)
+
+/-- The linear map obtained by applying a continuous linear map at a given vector. -/
+def applyₗ (v : E) : (E →L[𝕜] F) →ₗ[𝕜] F :=
+{ to_fun := λ f, f v,
+  map_add' := λ f g, f.add_apply g v,
+  map_smul' := λ x f, f.smul_apply x v }
+
+lemma continuous_applyₗ (v : E) : continuous (continuous_linear_map.applyₗ 𝕜 F v) :=
+begin
+  apply (continuous_linear_map.applyₗ 𝕜 F v).continuous_of_bound,
+  intro f,
+  rw mul_comm,
+  exact f.le_op_norm v,
+end
+
+/-- The continuous linear map obtained by applying a continuous linear map at a given vector. -/
+def apply (v : E) : (E →L[𝕜] F) →L[𝕜] F :=
+⟨continuous_linear_map.applyₗ 𝕜 F v, continuous_linear_map.continuous_applyₗ _ _ _⟩
+
+variables {𝕜 F}
 
 section multiplication_linear
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
@@ -700,26 +767,43 @@ def smul_algebra_right (f : E →L[𝕜] 𝕜') (x : semimodule.restrict_scalars
 
 end extend_scalars
 
+end continuous_linear_map
+
 section has_sum
 
-variables {ι : Type*}
+-- Results in this section hold for continuous additive monoid homomorphisms or equivalences but we
+-- don't have bundled continuous additive homomorphisms.
+
+variables {ι R M M₂ : Type*} [semiring R] [add_comm_monoid M] [semimodule R M]
+  [add_comm_monoid M₂] [semimodule R M₂] [topological_space M] [topological_space M₂]
+
+omit 𝕜
 
 /-- Applying a continuous linear map commutes with taking an (infinite) sum. -/
-protected lemma has_sum {f : ι → E} (φ : E →L[𝕜] F) {x : E} (hf : has_sum f x) :
+protected lemma continuous_linear_map.has_sum {f : ι → M} (φ : M →L[R] M₂) {x : M}
+  (hf : has_sum f x) :
   has_sum (λ (b:ι), φ (f b)) (φ x) :=
-begin
-  unfold has_sum,
-  convert φ.continuous.continuous_at.tendsto.comp hf,
-  ext s, rw [function.comp_app, finset.sum_hom s φ],
-end
+by simpa only using hf.map φ.to_linear_map.to_add_monoid_hom φ.continuous
 
-lemma has_sum_of_summable {f : ι → E} (φ : E →L[𝕜] F) (hf : summable f) :
-  has_sum (λ (b:ι), φ (f b)) (φ (∑'b, f b)) :=
-φ.has_sum hf.has_sum
+alias continuous_linear_map.has_sum ← has_sum.mapL
+
+protected lemma continuous_linear_map.summable {f : ι → M} (φ : M →L[R] M₂) (hf : summable f) :
+  summable (λ b:ι, φ (f b)) :=
+(hf.has_sum.mapL φ).summable
+
+alias continuous_linear_map.summable ← summable.mapL
+
+/-- Applying a continuous linear map commutes with taking an (infinite) sum. -/
+protected lemma continuous_linear_equiv.has_sum {f : ι → M} (e : M ≃L[R] M₂) {y : M₂} :
+  has_sum (λ (b:ι), e (f b)) y ↔ has_sum f (e.symm y) :=
+⟨λ h, by simpa only [e.symm.coe_coe, e.symm_apply_apply] using h.mapL (e.symm : M₂ →L[R] M),
+  λ h, by simpa only [e.coe_coe, e.apply_symm_apply] using (e : M →L[R] M₂).has_sum h⟩
+
+protected lemma continuous_linear_equiv.summable {f : ι → M} (e : M ≃L[R] M₂) :
+  summable (λ b:ι, e (f b)) ↔ summable f :=
+⟨λ hf, (e.has_sum.1 hf.has_sum).summable, (e : M →L[R] M₂).summable⟩
 
 end has_sum
-
-end continuous_linear_map
 
 namespace continuous_linear_equiv
 
@@ -815,69 +899,14 @@ abbreviation coord (x : E) (h : x ≠ 0) : (submodule.span 𝕜 ({x} : set E)) �
 lemma coord_norm (x : E) (h : x ≠ 0) : ∥coord 𝕜 x h∥ = ∥x∥⁻¹ :=
 begin
   have hx : 0 < ∥x∥ := (norm_pos_iff.mpr h),
-  refine continuous_linear_map.homothety_norm _ _ (le_of_lt (inv_pos.mpr hx)) _,
-  { rw ← finite_dimensional.findim_eq_dim,
-    rw ← linear_equiv.findim_eq (linear_equiv.to_span_nonzero_singleton 𝕜 E x h),
-    rw finite_dimensional.findim_of_field,
-    have : 0 = ((0:nat) : cardinal) := rfl,
-    rw this, apply cardinal.nat_cast_lt.mpr, norm_num },
-  { intros y,
-    have : (coord 𝕜 x h) y = (to_span_nonzero_singleton 𝕜 x h).symm y := rfl,
-    rw this, apply homothety_inverse, exact hx, exact to_span_nonzero_singleton_homothety 𝕜 x h, }
+  haveI : nontrivial (submodule.span 𝕜 ({x} : set E)) := submodule.nontrivial_span_singleton h,
+  exact continuous_linear_map.homothety_norm _
+        (λ y, homothety_inverse _ hx _ (to_span_nonzero_singleton_homothety 𝕜 x h) _)
 end
 
 lemma coord_self (x : E) (h : x ≠ 0) :
   (coord 𝕜 x h) (⟨x, submodule.mem_span_singleton_self x⟩ : submodule.span 𝕜 ({x} : set E)) = 1 :=
 linear_equiv.coord_self 𝕜 E x h
-
-variable (E)
-
-/-- The continuous linear equivalences from `E` to itself form a group under composition. -/
-instance automorphism_group : group (E ≃L[𝕜] E) :=
-{ mul          := λ f g, g.trans f,
-  one          := continuous_linear_equiv.refl 𝕜 E,
-  inv          := λ f, f.symm,
-  mul_assoc    := λ f g h, by {ext, refl},
-  mul_one      := λ f, by {ext, refl},
-  one_mul      := λ f, by {ext, refl},
-  mul_left_inv := λ f, by {ext, exact f.left_inv x} }
-
-variables {𝕜 E}
-
-/-- An invertible continuous linear map `f` determines a continuous equivalence from `E` to itself.
--/
-def of_unit (f : units (E →L[𝕜] E)) : (E ≃L[𝕜] E) :=
-{ to_linear_equiv :=
-  { to_fun    := f.val,
-    map_add'  := by simp,
-    map_smul' := by simp,
-    inv_fun   := f.inv,
-    left_inv  := λ x, show (f.inv * f.val) x = x, by {rw f.inv_val, simp},
-    right_inv := λ x, show (f.val * f.inv) x = x, by {rw f.val_inv, simp}, },
-  continuous_to_fun  := f.val.continuous,
-  continuous_inv_fun := f.inv.continuous }
-
-/-- A continuous equivalence from `E` to itself determines an invertible continuous linear map. -/
-def to_unit (f : (E ≃L[𝕜] E)) : units (E →L[𝕜] E) :=
-{ val     := f,
-  inv     := f.symm,
-  val_inv := by {ext, simp},
-  inv_val := by {ext, simp} }
-
-variables (𝕜 E)
-
-/-- The units of the algebra of continuous `𝕜`-linear endomorphisms of `E` is multiplicatively
-equivalent to the type of continuous linear equivalences between `E` and itself. -/
-def units_equiv : units (E →L[𝕜] E) ≃* (E ≃L[𝕜] E) :=
-{ to_fun    := of_unit,
-  inv_fun   := to_unit,
-  left_inv  := λ f, by {ext, refl},
-  right_inv := λ f, by {ext, refl},
-  map_mul'  := λ x y, by {ext, refl} }
-
-@[simp] lemma units_equiv_to_continuous_linear_map
-  (f : units (E →L[𝕜] E)) :
-  (units_equiv 𝕜 E f : E →L[𝕜] E) = f := by {ext, refl}
 
 end continuous_linear_equiv
 
@@ -887,6 +916,14 @@ continuous_linear_equiv.uniform_embedding
 { continuous_to_fun := h₁,
   continuous_inv_fun := h₂,
   .. e }
+
+/-- Construct a continuous linear equivalence from a linear equivalence together with
+bounds in both directions. -/
+def linear_equiv.to_continuous_linear_equiv_of_bounds (e : E ≃ₗ[𝕜] F) (C_to C_inv : ℝ)
+  (h_to : ∀ x, ∥e x∥ ≤ C_to * ∥x∥) (h_inv : ∀ x : F, ∥e.symm x∥ ≤ C_inv * ∥x∥) : E ≃L[𝕜] F :=
+{ to_linear_equiv := e,
+  continuous_to_fun := e.to_linear_map.continuous_of_bound C_to h_to,
+  continuous_inv_fun := e.symm.to_linear_map.continuous_of_bound C_inv h_inv }
 
 namespace continuous_linear_map
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']

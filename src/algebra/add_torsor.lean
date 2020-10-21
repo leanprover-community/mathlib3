@@ -49,8 +49,7 @@ class has_vsub (G : out_param Type*) (P : Type*) :=
 infix ` +ᵥ `:65 := has_vadd.vadd
 infix ` -ᵥ `:65 := has_vsub.vsub
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
+section old_structure_cmd
 set_option old_structure_cmd true
 /-- Type class for additive monoid actions. -/
 class add_action (G : Type*) (P : Type*) [add_monoid G] extends has_vadd G P :=
@@ -70,7 +69,7 @@ class add_torsor (G : out_param Type*) (P : Type*) [out_param $ add_group G]
 
 attribute [instance, priority 100, nolint dangerous_instance] add_torsor.nonempty
 
-end prio
+end old_structure_cmd
 
 /-- An `add_group G` is a torsor for itself. -/
 @[nolint instance_priority]
@@ -366,9 +365,9 @@ end pi
 
 namespace equiv
 
-variables (G : Type*) {P : Type*} [add_group G] [add_torsor G P]
+variables {G : Type*} {P : Type*} [add_group G] [add_torsor G P]
 
-open add_action add_torsor
+include G
 
 /-- `v ↦ v +ᵥ p` as an equivalence. -/
 def vadd_const (p : P) : G ≃ P :=
@@ -377,11 +376,11 @@ def vadd_const (p : P) : G ≃ P :=
   left_inv := λ v, vadd_vsub _ _,
   right_inv := λ p', vsub_vadd _ _ }
 
-@[simp] lemma coe_vadd_const (p : P) : ⇑(vadd_const G p) = λ v, v+ᵥ p := rfl
+@[simp] lemma coe_vadd_const (p : P) : ⇑(vadd_const p) = λ v, v+ᵥ p := rfl
 
-@[simp] lemma coe_vadd_const_symm (p : P) : ⇑(vadd_const G p).symm = λ p', p' -ᵥ p := rfl
+@[simp] lemma coe_vadd_const_symm (p : P) : ⇑(vadd_const p).symm = λ p', p' -ᵥ p := rfl
 
-variables {G} (P)
+variables (P)
 
 /-- The permutation given by `p ↦ v +ᵥ p`. -/
 def const_vadd (v : G) : equiv.perm P :=

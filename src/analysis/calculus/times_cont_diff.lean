@@ -329,8 +329,7 @@ begin
   change (p x 1) (snoc 0 y) = (p x 1) (cons y v),
   unfold_coes,
   congr' with i,
-  have : i = 0 := subsingleton.elim i 0,
-  rw this,
+  rw unique.eq_default i,
   refl
 end
 
@@ -874,6 +873,22 @@ begin
   exact ⟨by rwa insert_eq_of_mem hx, λ x hx, by simp [ftaylor_series_within]⟩
 end
 
+lemma times_cont_diff_within_at_zero (hx : x ∈ s) :
+  times_cont_diff_within_at 𝕜 0 f s x ↔ ∃ u ∈ 𝓝[s] x, continuous_on f (s ∩ u) :=
+begin
+  split,
+  { intros h,
+    obtain ⟨u, H, p, hp⟩ := h 0 (by norm_num),
+    refine ⟨u, _, _⟩,
+    { simpa [hx] using H },
+    { simp only [with_top.coe_zero, has_ftaylor_series_up_to_on_zero_iff] at hp,
+      exact hp.1.mono (inter_subset_right s u) } },
+  { rintros ⟨u, H, hu⟩,
+    rw ← times_cont_diff_within_at_inter' H,
+    have h' : x ∈ s ∩ u := ⟨hx, mem_of_mem_nhds_within hx H⟩,
+    exact (times_cont_diff_on_zero.mpr hu).times_cont_diff_within_at h' }
+end
+
 /-- On a set with unique differentiability, any choice of iterated differential has to coincide
 with the one we have chosen in `iterated_fderiv_within 𝕜 m f s`. -/
 theorem has_ftaylor_series_up_to_on.eq_ftaylor_series_of_unique_diff_on {n : with_top ℕ}
@@ -1054,8 +1069,8 @@ begin
     exact with_top.coe_le_coe.2 (nat.le_succ n) }
 end
 
-/-- A function is `C^∞` on a domain with unique derivatives if and only if it is differentiable
-there, and its derivative (expressed with `fderiv`) is `C^∞`. -/
+/-- A function is `C^∞` on an open domain if and only if it is differentiable there, and its
+derivative (expressed with `fderiv`) is `C^∞`. -/
 theorem times_cont_diff_on_top_iff_fderiv_of_open (hs : is_open s) :
   times_cont_diff_on 𝕜 ∞ f s ↔
   differentiable_on 𝕜 f s ∧ times_cont_diff_on 𝕜 ∞ (λ y, fderiv 𝕜 f y) s :=
@@ -1316,6 +1331,10 @@ begin
   exact times_cont_diff_on_zero
 end
 
+lemma times_cont_diff_at_zero :
+  times_cont_diff_at 𝕜 0 f x ↔ ∃ u ∈ 𝓝 x, continuous_on f u :=
+by { rw ← times_cont_diff_within_at_univ, simp [times_cont_diff_within_at_zero, nhds_within_univ] }
+
 lemma times_cont_diff.of_le {m n : with_top ℕ}
   (h : times_cont_diff 𝕜 n f) (hmn : m ≤ n) :
   times_cont_diff 𝕜 m f :=
@@ -1514,6 +1533,21 @@ lemma times_cont_diff_within_at_const {n : with_top ℕ} {c : F} :
   times_cont_diff_within_at 𝕜 n (λx : E, c) s x :=
 times_cont_diff_at_const.times_cont_diff_within_at
 
+@[nontriviality] lemma times_cont_diff_of_subsingleton [subsingleton F] {n : with_top ℕ} :
+  times_cont_diff 𝕜 n f :=
+by { rw [subsingleton.elim f (λ _, 0)], exact times_cont_diff_const }
+
+@[nontriviality] lemma times_cont_diff_at_of_subsingleton [subsingleton F] {n : with_top ℕ} :
+  times_cont_diff_at 𝕜 n f x :=
+by { rw [subsingleton.elim f (λ _, 0)], exact times_cont_diff_at_const }
+
+@[nontriviality] lemma times_cont_diff_within_at_of_subsingleton [subsingleton F] {n : with_top ℕ} :
+  times_cont_diff_within_at 𝕜 n f s x :=
+by { rw [subsingleton.elim f (λ _, 0)], exact times_cont_diff_within_at_const }
+
+@[nontriviality] lemma times_cont_diff_on_of_subsingleton [subsingleton F] {n : with_top ℕ} :
+  times_cont_diff_on 𝕜 n f s :=
+by { rw [subsingleton.elim f (λ _, 0)], exact times_cont_diff_on_const }
 
 /-! ### Linear functions -/
 
@@ -1687,8 +1721,12 @@ series in `g ⁻¹' s`, whose `k`-th term is given by `p k (g v₁, ..., g vₖ)
 lemma has_ftaylor_series_up_to_on.comp_continuous_linear_map {n : with_top ℕ}
   (hf : has_ftaylor_series_up_to_on n f p s) (g : G →L[𝕜] E) :
   has_ftaylor_series_up_to_on n (f ∘ g)
-    (λ x k, (p (g x) k).comp_continuous_linear_map 𝕜 E g) (g ⁻¹' s) :=
+    (λ x k, (p (g x) k).comp_continuous_linear_map (λ _, g)) (g ⁻¹' s) :=
 begin
+  let A : Π m : ℕ, (E [×m]→L[𝕜] F) → (G [×m]→L[𝕜] F) :=
+    λ m h, h.comp_continuous_linear_map (λ _, g),
+  have hA : ∀ m, is_bounded_linear_map 𝕜 (A m) :=
+    λ m, is_bounded_linear_map_continuous_multilinear_map_comp_linear g,
   split,
   { assume x hx,
     simp only [(hf.zero_eq (g x) hx).symm, function.comp_app],
@@ -1696,19 +1734,13 @@ begin
     rw continuous_linear_map.map_zero,
     refl },
   { assume m hm x hx,
-    let A : (E [×m]→L[𝕜] F) → (G [×m]→L[𝕜] F) := λ h, h.comp_continuous_linear_map 𝕜 E g,
-    have hA : is_bounded_linear_map 𝕜 A :=
-      is_bounded_linear_map_continuous_multilinear_map_comp_linear g,
-    convert (hA.has_fderiv_at).comp_has_fderiv_within_at x
+    convert ((hA m).has_fderiv_at).comp_has_fderiv_within_at x
       ((hf.fderiv_within m hm (g x) hx).comp x (g.has_fderiv_within_at) (subset.refl _)),
     ext y v,
     change p (g x) (nat.succ m) (g ∘ (cons y v)) = p (g x) m.succ (cons (g y) (g ∘ v)),
     rw comp_cons },
   { assume m hm,
-    let A : (E [×m]→L[𝕜] F) → (G [×m]→L[𝕜] F) := λ h, h.comp_continuous_linear_map 𝕜 E g,
-    have hA : is_bounded_linear_map 𝕜 A :=
-      is_bounded_linear_map_continuous_multilinear_map_comp_linear g,
-    exact hA.continuous.comp_continuous_on
+    exact (hA m).continuous.comp_continuous_on
       ((hf.cont m hm).comp g.continuous.continuous_on (subset.refl _)) }
 end
 
@@ -1811,6 +1843,13 @@ lemma times_cont_diff_on.prod {n : with_top ℕ} {s : set E} {f : E → F} {g : 
   (hf : times_cont_diff_on 𝕜 n f s) (hg : times_cont_diff_on 𝕜 n g s) :
   times_cont_diff_on 𝕜 n (λx:E, (f x, g x)) s :=
 λ x hx, (hf x hx).prod (hg x hx)
+
+/-- The cartesian product of `C^n` functions at a point is `C^n`. -/
+lemma times_cont_diff_at.prod {n : with_top ℕ} {f : E → F} {g : E → G}
+  (hf : times_cont_diff_at 𝕜 n f x) (hg : times_cont_diff_at 𝕜 n g x) :
+  times_cont_diff_at 𝕜 n (λx:E, (f x, g x)) x :=
+times_cont_diff_within_at_univ.1 $ times_cont_diff_within_at.prod (times_cont_diff_within_at_univ.2 hf)
+  (times_cont_diff_within_at_univ.2 hg)
 
 /--
 The cartesian product of `C^n` functions is `C^n`.
@@ -2061,36 +2100,28 @@ end
 
 /-! ### Sum of two functions -/
 
+/- The sum is smooth. -/
+lemma times_cont_diff_add {n : with_top ℕ} :
+  times_cont_diff 𝕜 n (λp : F × F, p.1 + p.2) :=
+(is_bounded_linear_map.fst.add is_bounded_linear_map.snd).times_cont_diff
+
 /-- The sum of two `C^n` functions within a set at a point is `C^n` within this set
 at this point. -/
 lemma times_cont_diff_within_at.add {n : with_top ℕ} {s : set E} {f g : E → F}
   (hf : times_cont_diff_within_at 𝕜 n f s x) (hg : times_cont_diff_within_at 𝕜 n g s x) :
   times_cont_diff_within_at 𝕜 n (λx, f x + g x) s x :=
-begin
-  have A : times_cont_diff 𝕜 n (λp : F × F, p.1 + p.2),
-  { apply is_bounded_linear_map.times_cont_diff,
-    exact is_bounded_linear_map.add is_bounded_linear_map.fst is_bounded_linear_map.snd },
-  exact A.times_cont_diff_within_at.comp x (hf.prod hg) subset_preimage_univ,
-end
+times_cont_diff_add.times_cont_diff_within_at.comp x (hf.prod hg) subset_preimage_univ
 
 /-- The sum of two `C^n` functions at a point is `C^n` at this point. -/
 lemma times_cont_diff_at.add {n : with_top ℕ} {f g : E → F}
   (hf : times_cont_diff_at 𝕜 n f x) (hg : times_cont_diff_at 𝕜 n g x) :
   times_cont_diff_at 𝕜 n (λx, f x + g x) x :=
-begin
-  rw [← times_cont_diff_within_at_univ] at *,
-  exact hf.add hg
-end
-
-lemma times_cont_diff_add {n : with_top ℕ} : times_cont_diff 𝕜 n (λp : F × F, p.1 + p.2) :=
-begin
-  apply is_bounded_linear_map.times_cont_diff,
-  exact is_bounded_linear_map.add is_bounded_linear_map.fst is_bounded_linear_map.snd,
-end
+by rw [← times_cont_diff_within_at_univ] at *; exact hf.add hg
 
 /-- The sum of two `C^n`functions is `C^n`. -/
 lemma times_cont_diff.add {n : with_top ℕ} {f g : E → F}
-  (hf : times_cont_diff 𝕜 n f) (hg : times_cont_diff 𝕜 n g) : times_cont_diff 𝕜 n (λx, f x + g x) :=
+  (hf : times_cont_diff 𝕜 n f) (hg : times_cont_diff 𝕜 n g) :
+  times_cont_diff 𝕜 n (λx, f x + g x) :=
 times_cont_diff_add.comp (hf.prod hg)
 
 /-- The sum of two `C^n` functions on a domain is `C^n`. -/
@@ -2101,30 +2132,21 @@ lemma times_cont_diff_on.add {n : with_top ℕ} {s : set E} {f g : E → F}
 
 /-! ### Negative -/
 
+/- The negative is smooth. -/
+lemma times_cont_diff_neg {n : with_top ℕ} :
+  times_cont_diff 𝕜 n (λp : F, -p) :=
+is_bounded_linear_map.id.neg.times_cont_diff
+
 /-- The negative of a `C^n` function within a domain at a point is `C^n` within this domain at
 this point. -/
 lemma times_cont_diff_within_at.neg {n : with_top ℕ} {s : set E} {f : E → F}
   (hf : times_cont_diff_within_at 𝕜 n f s x) : times_cont_diff_within_at 𝕜 n (λx, -f x) s x :=
-begin
-  have : times_cont_diff 𝕜 n (λp : F, -p),
-  { apply is_bounded_linear_map.times_cont_diff,
-    exact is_bounded_linear_map.neg is_bounded_linear_map.id },
-  exact this.times_cont_diff_within_at.comp x hf subset_preimage_univ
-end
+times_cont_diff_neg.times_cont_diff_within_at.comp x hf subset_preimage_univ
 
 /-- The negative of a `C^n` function at a point is `C^n` at this point. -/
 lemma times_cont_diff_at.neg {n : with_top ℕ} {f : E → F}
   (hf : times_cont_diff_at 𝕜 n f x) : times_cont_diff_at 𝕜 n (λx, -f x) x :=
-begin
-  rw ← times_cont_diff_within_at_univ at *,
-  exact hf.neg
-end
-
-lemma times_cont_diff_neg {n : with_top ℕ} : times_cont_diff 𝕜 n (λp : F, -p) :=
-begin
-  apply is_bounded_linear_map.times_cont_diff,
-  exact is_bounded_linear_map.neg is_bounded_linear_map.id
-end
+by rw ← times_cont_diff_within_at_univ at *; exact hf.neg
 
 /-- The negative of a `C^n`function is `C^n`. -/
 lemma times_cont_diff.neg {n : with_top ℕ} {f : E → F} (hf : times_cont_diff 𝕜 n f) :
@@ -2180,10 +2202,7 @@ lemma times_cont_diff_at.sum
   {ι : Type*} {f : ι → E → F} {s : finset ι} {n : with_top ℕ} {x : E}
   (h : ∀ i ∈ s, times_cont_diff_at 𝕜 n (λ x, f i x) x) :
   times_cont_diff_at 𝕜 n (λ x, (∑ i in s, f i x)) x :=
-begin
-  rw [← times_cont_diff_within_at_univ] at *,
-  exact times_cont_diff_within_at.sum h
-end
+by rw [← times_cont_diff_within_at_univ] at *; exact times_cont_diff_within_at.sum h
 
 lemma times_cont_diff_on.sum
   {ι : Type*} {f : ι → E → F} {s : finset ι} {n : with_top ℕ} {t : set E}
@@ -2195,10 +2214,71 @@ lemma times_cont_diff.sum
   {ι : Type*} {f : ι → E → F} {s : finset ι} {n : with_top ℕ}
   (h : ∀ i ∈ s, times_cont_diff 𝕜 n (λ x, f i x)) :
   times_cont_diff 𝕜 n (λ x, (∑ i in s, f i x)) :=
-begin
-  simp [← times_cont_diff_on_univ] at *,
-  exact times_cont_diff_on.sum h
-end
+by simp [← times_cont_diff_on_univ] at *; exact times_cont_diff_on.sum h
+
+/-! ### Product of two functions -/
+
+/- The product is smooth. -/
+lemma times_cont_diff_mul {n : with_top ℕ} :
+  times_cont_diff 𝕜 n (λ p : 𝕜 × 𝕜, p.1 * p.2) :=
+is_bounded_bilinear_map_mul.times_cont_diff
+
+/-- The product of two `C^n` functions within a set at a point is `C^n` within this set
+at this point. -/
+lemma times_cont_diff_within_at.mul {n : with_top ℕ} {s : set E} {f g : E → 𝕜}
+  (hf : times_cont_diff_within_at 𝕜 n f s x) (hg : times_cont_diff_within_at 𝕜 n g s x) :
+  times_cont_diff_within_at 𝕜 n (λ x, f x * g x) s x :=
+times_cont_diff_mul.times_cont_diff_within_at.comp x (hf.prod hg) subset_preimage_univ
+
+/-- The product of two `C^n` functions at a point is `C^n` at this point. -/
+lemma times_cont_diff_at.mul {n : with_top ℕ} {f g : E → 𝕜}
+  (hf : times_cont_diff_at 𝕜 n f x) (hg : times_cont_diff_at 𝕜 n g x) :
+  times_cont_diff_at 𝕜 n (λ x, f x * g x) x :=
+by rw [← times_cont_diff_within_at_univ] at *; exact hf.mul hg
+
+/-- The product of two `C^n`functions is `C^n`. -/
+lemma times_cont_diff.mul {n : with_top ℕ} {f g : E → 𝕜}
+  (hf : times_cont_diff 𝕜 n f) (hg : times_cont_diff 𝕜 n g) :
+  times_cont_diff 𝕜 n (λ x, f x * g x) :=
+times_cont_diff_mul.comp (hf.prod hg)
+
+/-- The product of two `C^n` functions on a domain is `C^n`. -/
+lemma times_cont_diff_on.mul {n : with_top ℕ} {s : set E} {f g : E → 𝕜}
+  (hf : times_cont_diff_on 𝕜 n f s) (hg : times_cont_diff_on 𝕜 n g s) :
+  times_cont_diff_on 𝕜 n (λ x, f x * g x) s :=
+λ x hx, (hf x hx).mul (hg x hx)
+
+/-! ### Scalar multiplication -/
+
+/- The scalar multiplication is smooth. -/
+lemma times_cont_diff_smul {n : with_top ℕ} :
+  times_cont_diff 𝕜 n (λ p : 𝕜 × F, p.1 • p.2) :=
+is_bounded_bilinear_map_smul.times_cont_diff
+
+/-- The scalar multiplication of two `C^n` functions within a set at a point is `C^n` within this
+set at this point. -/
+lemma times_cont_diff_within_at.smul {n : with_top ℕ} {s : set E} {f : E → 𝕜} {g : E → F}
+  (hf : times_cont_diff_within_at 𝕜 n f s x) (hg : times_cont_diff_within_at 𝕜 n g s x) :
+  times_cont_diff_within_at 𝕜 n (λ x, f x • g x) s x :=
+times_cont_diff_smul.times_cont_diff_within_at.comp x (hf.prod hg) subset_preimage_univ
+
+/-- The scalar multiplication of two `C^n` functions at a point is `C^n` at this point. -/
+lemma times_cont_diff_at.smul {n : with_top ℕ} {f : E → 𝕜} {g : E → F}
+  (hf : times_cont_diff_at 𝕜 n f x) (hg : times_cont_diff_at 𝕜 n g x) :
+  times_cont_diff_at 𝕜 n (λ x, f x • g x) x :=
+by rw [← times_cont_diff_within_at_univ] at *; exact hf.smul hg
+
+/-- The scalar multiplication of two `C^n` functions is `C^n`. -/
+lemma times_cont_diff.smul {n : with_top ℕ} {f : E → 𝕜} {g : E → F}
+  (hf : times_cont_diff 𝕜 n f) (hg : times_cont_diff 𝕜 n g) :
+  times_cont_diff 𝕜 n (λ x, f x • g x) :=
+times_cont_diff_smul.comp (hf.prod hg)
+
+/-- The scalar multiplication of two `C^n` functions on a domain is `C^n`. -/
+lemma times_cont_diff_on.smul {n : with_top ℕ} {s : set E} {f : E → 𝕜} {g : E → F}
+  (hf : times_cont_diff_on 𝕜 n f s) (hg : times_cont_diff_on 𝕜 n g s) :
+  times_cont_diff_on 𝕜 n (λ x, f x • g x) s :=
+λ x hx, (hf x hx).smul (hg x hx)
 
 /-! ### Cartesian product of two functions-/
 
@@ -2273,8 +2353,8 @@ open normed_ring continuous_linear_map ring
 /-- In a complete normed algebra, the operation of inversion is `C^n`, for all `n`, at each
 invertible element.  The proof is by induction, bootstrapping using an identity expressing the
 derivative of inversion as a bilinear map of inversion itself. -/
-lemma times_cont_diff_at_inverse [complete_space R] {n : with_top ℕ} (x : units R) :
-  times_cont_diff_at 𝕜 n inverse (x : R) :=
+lemma times_cont_diff_at_ring_inverse [complete_space R] {n : with_top ℕ} (x : units R) :
+  times_cont_diff_at 𝕜 n ring.inverse (x : R) :=
 begin
   induction n using with_top.nat_induction with n IH Itop,
   { intros m hm,
@@ -2294,13 +2374,104 @@ begin
       intros y hy,
       cases mem_set_of_eq.mp hy with y' hy',
       rw [← hy', inverse_unit],
-      exact @has_fderiv_at_inverse 𝕜 _ _ _ _ _ y' },
+      exact @has_fderiv_at_ring_inverse 𝕜 _ _ _ _ _ y' },
     { exact (lmul_left_right_is_bounded_bilinear 𝕜 R).times_cont_diff.neg.comp_times_cont_diff_at
         (x : R) (IH.prod IH) } },
   { exact times_cont_diff_at_top.mpr Itop }
 end
 
 end algebra_inverse
+
+/-! ### Inversion of continuous linear maps between Banach spaces -/
+
+section map_inverse
+open continuous_linear_map
+
+/-- At a continuous linear equivalence `e : E ≃L[𝕜] F` between Banach spaces, the operation of
+inversion is `C^n`, for all `n`. -/
+lemma times_cont_diff_at_map_inverse [complete_space E] {n : with_top ℕ} (e : E ≃L[𝕜] F) :
+  times_cont_diff_at 𝕜 n inverse (e : E →L[𝕜] F) :=
+begin
+  nontriviality E,
+  -- first, we use the lemma `to_ring_inverse` to rewrite in terms of `ring.inverse` in the ring
+  -- `E →L[𝕜] E`
+  let O₁ : (E →L[𝕜] E) → (F →L[𝕜] E) := λ f, f.comp (e.symm : (F →L[𝕜] E)),
+  let O₂ : (E →L[𝕜] F) → (E →L[𝕜] E) := λ f, (e.symm : (F →L[𝕜] E)).comp f,
+  have : continuous_linear_map.inverse = O₁ ∘ ring.inverse ∘ O₂ :=
+    funext (to_ring_inverse e),
+  rw this,
+  -- `O₁` and `O₂` are `times_cont_diff`, so we reduce to proving that `ring.inverse` is `times_cont_diff`
+  have h₁ : times_cont_diff 𝕜 n O₁,
+  { exact is_bounded_bilinear_map_comp.times_cont_diff.comp (times_cont_diff_const.prod times_cont_diff_id) },
+  have h₂ : times_cont_diff 𝕜 n O₂,
+  { exact is_bounded_bilinear_map_comp.times_cont_diff.comp (times_cont_diff_id.prod times_cont_diff_const) },
+  refine h₁.times_cont_diff_at.comp _ (times_cont_diff_at.comp _ _ h₂.times_cont_diff_at),
+  convert times_cont_diff_at_ring_inverse 𝕜 (E →L[𝕜] E) 1,
+  simp [O₂],
+  refl
+end
+
+end map_inverse
+
+section function_inverse
+open continuous_linear_map
+
+/-- If `f` is a local homeomorphism and the point `a` is in its target, and if `f` is `n` times
+continuously differentiable at `f.symm a`, and if the derivative at `f.symm a` is a continuous linear
+equivalence, then `f.symm` is `n` times continuously differentiable at the point `a`.
+
+This is one of the easy parts of the inverse function theorem: it assumes that we already have
+an inverse function. -/
+theorem times_cont_diff_at.of_local_homeomorph [complete_space E] {n : with_top ℕ}
+  {f : local_homeomorph E F} {f₀' : E ≃L[𝕜] F} {a : F} (ha : a ∈ f.target)
+  (hf₀' : has_fderiv_at f (f₀' : E →L[𝕜] F) (f.symm a)) (hf : times_cont_diff_at 𝕜 n f (f.symm a)) :
+  times_cont_diff_at 𝕜 n f.symm a :=
+begin
+  -- We prove this by induction on `n`
+  induction n using with_top.nat_induction with n IH Itop,
+  { rw times_cont_diff_at_zero,
+    exact ⟨f.target, mem_nhds_sets f.open_target ha, f.continuous_inv_fun⟩ },
+  { obtain ⟨f', ⟨u, hu, hff'⟩, hf'⟩ := times_cont_diff_at_succ_iff_has_fderiv_at.mp hf,
+    apply times_cont_diff_at_succ_iff_has_fderiv_at.mpr,
+    -- For showing `n.succ` times continuous differentiability (the main inductive step), it
+    -- suffices to produce the derivative and show that it is `n` times continuously differentiable
+    have eq_f₀' : f' (f.symm a) = f₀',
+    { exact has_fderiv_at_unique (hff' (f.symm a) (mem_of_nhds hu)) hf₀' },
+    -- This follows by a bootstrapping formula expressing the derivative as a function of `f` itself
+    refine ⟨inverse ∘ f' ∘ f.symm, _, _⟩,
+    { -- We first check that the derivative of `f` is that formula
+      have h_nhds : {y : E | ∃ (e : E ≃L[𝕜] F), ↑e = f' y} ∈ 𝓝 ((f.symm) a),
+      { have hf₀' := f₀'.nhds,
+        rw ← eq_f₀' at hf₀',
+        exact hf'.continuous_at.preimage_mem_nhds hf₀' },
+      obtain ⟨t, htu, ht, htf⟩ := mem_nhds_sets_iff.mp (filter.inter_mem_sets hu h_nhds),
+      use f.target ∩ (f.symm) ⁻¹' t,
+      refine ⟨mem_nhds_sets _ _, _⟩,
+      { exact f.preimage_open_of_open_symm ht },
+      { exact mem_inter ha (mem_preimage.mpr htf) },
+      intros x hx,
+      obtain ⟨hxu, e, he⟩ := htu hx.2,
+      have h_deriv : has_fderiv_at f ↑e ((f.symm) x),
+      { rw he,
+        exact hff' (f.symm x) hxu },
+      convert h_deriv.of_local_homeomorph hx.1,
+      simp [← he] },
+    { -- Then we check that the formula, being a composition of `times_cont_diff` pieces, is
+      -- itself `times_cont_diff`
+      have h_deriv₁ : times_cont_diff_at 𝕜 n inverse (f' (f.symm a)),
+      { rw eq_f₀',
+        exact times_cont_diff_at_map_inverse _ },
+      have h_deriv₂ : times_cont_diff_at 𝕜 n f.symm a,
+      { refine IH (hf.of_le _),
+        norm_cast,
+        exact nat.le_succ n },
+      exact (h_deriv₁.comp _ hf').comp _ h_deriv₂ } },
+  { refine times_cont_diff_at_top.mpr _,
+    intros n,
+    exact Itop n (times_cont_diff_at_top.mp hf n) }
+end
+
+end function_inverse
 
 section real
 /-!
@@ -2340,6 +2511,14 @@ begin
   convert this,
   exact this.has_fderiv_at.fderiv
 end
+
+/-- If a function is `C^n` with `1 ≤ n` around a point, and its derivative at that point is given to
+us as `f'`, then `f'` is also a strict derivative. -/
+lemma times_cont_diff_at.has_strict_fderiv_at'
+  {f : E' → F'} {f' : E' →L[ℝ] F'} {x : E'}
+  {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f x) (hf' : has_fderiv_at f f' x) (hn : 1 ≤ n) :
+  has_strict_fderiv_at f f' x :=
+by simpa only [hf'.fderiv] using hf.has_strict_fderiv_at hn
 
 /-- If a function is `C^n` with `1 ≤ n`, then the derivative of `f` is also a strict derivative. -/
 lemma times_cont_diff.has_strict_fderiv_at

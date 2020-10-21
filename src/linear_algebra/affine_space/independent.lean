@@ -47,10 +47,33 @@ nontrivial weighted subtractions (where the sum of weights is 0) are
 def affine_independent (p : ι → P) : Prop :=
 ∀ (s : finset ι) (w : ι → k), ∑ i in s, w i = 0 → s.weighted_vsub p w = (0:V) → ∀ i ∈ s, w i = 0
 
+/-- The definition of `affine_independent`. -/
+lemma affine_independent_def (p : ι → P) :
+  affine_independent k p ↔
+    ∀ (s : finset ι) (w : ι → k),
+      ∑ i in s, w i = 0 → s.weighted_vsub p w = (0 : V) → ∀ i ∈ s, w i = 0 :=
+iff.rfl
+
 /-- A family with at most one point is affinely independent. -/
 lemma affine_independent_of_subsingleton [subsingleton ι] (p : ι → P) :
   affine_independent k p :=
 λ s w h hs i hi, fintype.eq_of_subsingleton_of_sum_eq h i hi
+
+/-- A family indexed by a `fintype` is affinely independent if and
+only if no nontrivial weighted subtractions over `finset.univ` (where
+the sum of the weights is 0) are 0. -/
+lemma affine_independent_iff_of_fintype [fintype ι] (p : ι → P) :
+  affine_independent k p ↔
+    ∀ w : ι → k, ∑ i, w i = 0 → finset.univ.weighted_vsub p w = (0 : V) → ∀ i, w i = 0 :=
+begin
+  split,
+  { exact λ h w hw hs i, h finset.univ w hw hs i (finset.mem_univ _) },
+  { intros h s w hw hs i hi,
+    rw finset.weighted_vsub_indicator_subset _ _ (finset.subset_univ s) at hs,
+    rw set.sum_indicator_subset _ (finset.subset_univ s) at hw,
+    replace h := h ((↑s : set ι).indicator w) hw hs i,
+    simpa [hi] using h }
+end
 
 /-- A family is affinely independent if and only if the differences
 from a base point in that family are linearly independent. -/
@@ -244,6 +267,20 @@ begin
   ext,
   simp [hf]
 end
+
+/-- If a set of points is affinely independent, so is any subset. -/
+lemma affine_independent_of_subset_affine_independent {s t : set P}
+  (ha : affine_independent k (λ x, x : t → P)) (hs : s ⊆ t) :
+  affine_independent k (λ x, x : s → P) :=
+affine_independent_embedding_of_affine_independent (set.embedding_of_subset s t hs) ha
+
+/-- If the range of an injective indexed family of points is affinely
+independent, so is that family. -/
+lemma affine_independent_of_affine_independent_set_of_injective {p : ι → P}
+  (ha : affine_independent k (λ x, x : set.range p → P)) (hi : function.injective p) :
+  affine_independent k p :=
+affine_independent_embedding_of_affine_independent
+  (⟨λ i, ⟨p i, set.mem_range_self _⟩, λ x y h, hi (subtype.mk_eq_mk.1 h)⟩ : ι ↪ set.range p) ha
 
 /-- If a family is affinely independent, and the spans of points
 indexed by two subsets of the index type have a point in common, those
@@ -509,6 +546,17 @@ lemma face_centroid_eq_iff [char_zero k] {n : ℕ} (s : simplex k P n)
 begin
   rw [face_centroid_eq_centroid, face_centroid_eq_centroid],
   exact s.centroid_eq_iff h₁ h₂
+end
+
+/-- Two simplices with the same points have the same centroid. -/
+lemma centroid_eq_of_range_eq {n : ℕ} {s₁ s₂ : simplex k P n}
+  (h : set.range s₁.points = set.range s₂.points) :
+  finset.univ.centroid k s₁.points = finset.univ.centroid k s₂.points :=
+begin
+  rw [←set.image_univ, ←set.image_univ, ←finset.coe_univ] at h,
+  exact finset.univ.centroid_eq_of_inj_on_of_image_eq k _
+    (λ _ _ _ _ he, injective_of_affine_independent s₁.independent he)
+    (λ _ _ _ _ he, injective_of_affine_independent s₂.independent he) h
 end
 
 end simplex

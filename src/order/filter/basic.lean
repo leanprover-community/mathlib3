@@ -174,10 +174,17 @@ meta def filter_upwards
 do
   s.reverse.mmap (λ e, eapplyc `filter.mp_sets >> eapply e),
   eapplyc `filter.univ_mem_sets',
+  `[dsimp only [set.mem_set_of_eq]],
   match e' with
   | some e := interactive.exact e
   | none := skip
   end
+
+add_tactic_doc
+{ name := "filter_upwards",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.filter_upwards],
+  tags := ["goal management", "lemma application"] }
 
 end tactic.interactive
 
@@ -792,6 +799,15 @@ begin
   refl
 end
 
+lemma diff_mem_inf_principal_compl {f : filter α} {s : set α} (hs : s ∈ f) (t : set α) :
+  s \ t ∈ f ⊓ 𝓟 tᶜ :=
+begin
+  rw mem_inf_principal,
+  filter_upwards [hs],
+  intros a has hat,
+  exact ⟨has, hat⟩
+end
+
 lemma mem_iff_inf_principal_compl {f : filter α} {V : set α} :
   V ∈ f ↔ f ⊓ 𝓟 Vᶜ = ⊥ :=
 begin
@@ -941,7 +957,7 @@ lemma eventually_bot {p : α → Prop} : ∀ᶠ x in ⊥, p x := ⟨⟩
 lemma eventually_top {p : α → Prop} : (∀ᶠ x in ⊤, p x) ↔ (∀ x, p x) :=
 iff.rfl
 
-lemma eventually_sup {p : α → Prop} {f g : filter α} :
+@[simp] lemma eventually_sup {p : α → Prop} {f g : filter α} :
   (∀ᶠ x in f ⊔ g, p x) ↔ (∀ᶠ x in f, p x) ∧ (∀ᶠ x in g, p x) :=
 iff.rfl
 
@@ -1207,6 +1223,26 @@ lemma eventually_eq.sub [add_group β] {f f' g g' : α → β} {l : filter α} (
   ((λ x, f x - f' x) =ᶠ[l] (λ x, g x - g' x)) :=
 h.add h'.neg
 
+lemma eventually_eq.inter {s t s' t' : set α} {l : filter α} (h : s =ᶠ[l] t) (h' : s' =ᶠ[l] t') :
+  (s ∩ s' : set α) =ᶠ[l] (t ∩ t' : set α) :=
+h.comp₂ (∧) h'
+
+lemma eventually_eq.union {s t s' t' : set α} {l : filter α} (h : s =ᶠ[l] t) (h' : s' =ᶠ[l] t') :
+  (s ∪ s' : set α) =ᶠ[l] (t ∪ t' : set α) :=
+h.comp₂ (∨) h'
+
+lemma eventually_eq.compl {s t : set α} {l : filter α} (h : s =ᶠ[l] t) :
+  (sᶜ : set α) =ᶠ[l] (tᶜ : set α) :=
+h.fun_comp not
+
+lemma eventually_eq.diff {s t s' t' : set α} {l : filter α} (h : s =ᶠ[l] t) (h' : s' =ᶠ[l] t') :
+  (s \ s' : set α) =ᶠ[l] (t \ t' : set α) :=
+h.inter h'.compl
+
+lemma eventually_eq_empty {s : set α} {l : filter α} :
+  s =ᶠ[l] (∅ : set α) ↔ ∀ᶠ x in l, x ∉ s :=
+eventually_eq_set.trans $ by simp
+
 @[simp] lemma eventually_eq_principal {s : set α} {f g : α → β} :
   f =ᶠ[𝓟 s] g ↔ eq_on f g s :=
 iff.rfl
@@ -1259,6 +1295,14 @@ lemma eventually_le.antisymm [partial_order β] {l : filter α} {f g : α → β
   (h₁ : f ≤ᶠ[l] g) (h₂ : g ≤ᶠ[l] f) :
   f =ᶠ[l] g :=
 h₂.mp $ h₁.mono $ λ x, le_antisymm
+
+lemma eventually_le_antisymm_iff [partial_order β] {l : filter α} {f g : α → β} :
+  f =ᶠ[l] g ↔ f ≤ᶠ[l] g ∧ g ≤ᶠ[l] f :=
+by simp only [eventually_eq, eventually_le, le_antisymm_iff, eventually_and]
+
+lemma eventually_le.le_iff_eq [partial_order β] {l : filter α} {f g : α → β} (h : f ≤ᶠ[l] g) :
+  g ≤ᶠ[l] f ↔ g =ᶠ[l] f :=
+⟨λ h', h'.antisymm h, eventually_eq.le⟩
 
 lemma join_le {f : filter (filter α)} {l : filter α} (h : ∀ᶠ m in f, m ≤ l) : join f ≤ l :=
 λ s hs, h.mono $ λ m hm, hm hs
@@ -1543,7 +1587,7 @@ lemma image_coe_mem_sets {f : filter α} {U : set α} (h : U ∈ f) {W : set U}
   (W_in : W ∈ comap (coe : U → α) f) : coe '' W ∈ f :=
 image_mem_sets (by simp [h]) W_in
 
-lemma comap_map {f : filter α} {m : α → β} (h : ∀ x y, m x = m y → x = y) :
+lemma comap_map {f : filter α} {m : α → β} (h : function.injective m) :
   comap m (map m f) = f :=
 have ∀s, preimage m (image m s) = s,
   from assume s, preimage_image_eq s h,
@@ -2002,6 +2046,7 @@ lemma tendsto.frequently {f : α → β} {l₁ : filter α} {l₂ : filter β} {
 mt hf.eventually h
 
 @[simp] lemma tendsto_bot {f : α → β} {l : filter β} : tendsto f ⊥ l := by simp [tendsto]
+@[simp] lemma tendsto_top {f : α → β} {l : filter α} : tendsto f l ⊤ := le_top
 
 lemma tendsto_of_not_nonempty {f : α → β} {la : filter α} {lb : filter β} (h : ¬nonempty α) :
   tendsto f la lb :=

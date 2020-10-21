@@ -58,7 +58,8 @@ theorem of_exists_root (H : ∀ p : polynomial k, p.monic → irreducible p → 
   is_alg_closed k :=
 ⟨λ p, or.inr $ λ q hq hqp,
  have irreducible (q * C (leading_coeff q)⁻¹),
-   by { rw ← coe_norm_unit hq.ne_zero, exact irreducible_of_associated associated_normalize hq },
+   by { rw ← coe_norm_unit_of_ne_zero hq.ne_zero,
+        exact irreducible_of_associated associated_normalize hq },
  let ⟨x, hx⟩ := H (q * C (leading_coeff q)⁻¹) (monic_mul_leading_coeff_inv hq.ne_zero) this in
  degree_mul_leading_coeff_inv q hq.ne_zero ▸ degree_eq_one_of_irreducible_of_root this hx⟩
 
@@ -155,7 +156,7 @@ theorem adjoin_monic.is_integral (z : adjoin_monic k) : is_integral k z :=
 let ⟨p, hp⟩ := ideal.quotient.mk_surjective z in hp ▸
 mv_polynomial.induction_on p (λ x, is_integral_algebra_map) (λ p q, is_integral_add)
   (λ p f ih, @is_integral_mul _ _ _ _ _ _ (ideal.quotient.mk _ _) ih ⟨f, f.2.1,
-    by { erw [polynomial.aeval_def, adjoin_monic.algebra_map, ← hom_eval₂,
+    by { erw [adjoin_monic.algebra_map, ← hom_eval₂,
               ideal.quotient.eq_zero_iff_mem],
       exact le_max_ideal k (ideal.subset_span ⟨f, rfl⟩) }⟩)
 

@@ -2,14 +2,14 @@
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
-
-More operations on modules and ideals.
 -/
-import data.nat.choose
+import data.nat.choose.sum
 import data.equiv.ring
-import ring_theory.algebra_operations
+import algebra.algebra.operations
 import ring_theory.ideal.basic
-
+/-!
+# More operations on modules and ideals
+-/
 universes u v w x
 
 open_locale big_operators
@@ -22,9 +22,11 @@ variables [comm_ring R] [add_comm_group M] [module R M]
 instance has_scalar' : has_scalar (ideal R) (submodule R M) :=
 ⟨λ I N, ⨆ r : I, N.map (r.1 • linear_map.id)⟩
 
+/-- `N.annihilator` is the ideal of all elements `r : R` such that `r • N = 0`. -/
 def annihilator (N : submodule R M) : ideal R :=
 (linear_map.lsmul R N).ker
 
+/-- `N.colon P` is the ideal of all elements `r : R` such that `r • P ⊆ N`. -/
 def colon (N P : submodule R M) : ideal R :=
 annihilator (P.map N.mkq)
 
@@ -216,6 +218,8 @@ begin
   rw [ring_hom.map_mul, hφ1, mul_one]
 end
 
+/-- The homomorphism from `R/(⋂ i, f i)` to `∏ i, (R / f i)` featured in the Chinese
+  Remainder Theorem. It is bijective if the ideals `f i` are comaximal. -/
 def quotient_inf_to_pi_quotient (f : ι → ideal R) :
   (⨅ i, f i).quotient →+* Π i, (f i).quotient :=
 begin
@@ -291,6 +295,12 @@ theorem span_mul_span (S T : set R) : span S * span T =
   span ⋃ (s ∈ S) (t ∈ T), {s * t} :=
 submodule.span_smul_span S T
 variables {I J K}
+
+lemma span_mul_span' (S T : set R) : span S * span T = span (S*T) :=
+by { unfold span, rw submodule.span_mul_span,}
+
+lemma span_singleton_mul_span_singleton (r s : R) : span {r} * span {s} = (span {r * s} : ideal R) :=
+by { unfold span, rw [submodule.span_mul_span, set.singleton_mul_singleton],}
 
 theorem mul_le_inf : I * J ≤ I ⊓ J :=
 mul_le.2 $ λ r hri s hsj, ⟨I.mul_mem_right hri, J.mul_mem_left hsj⟩
@@ -452,6 +462,8 @@ variables {R : Type u} {S : Type v} [comm_ring R] [comm_ring S]
 variables (f : R →+* S)
 variables {I J : ideal R} {K L : ideal S}
 
+/-- `I.map f` is the span of the image of the ideal `I` under `f`, which may be bigger than
+  the image itself. -/
 def map (I : ideal R) : ideal S :=
 span (f '' I)
 
@@ -824,6 +836,9 @@ by rw [submodule.ext'_iff, ker_eq]; exact is_add_group_hom.trivial_ker_iff_eq_ze
 lemma not_one_mem_ker [nontrivial S] (f : R →+* S) : (1:R) ∉ ker f :=
 by { rw [mem_ker, f.map_one], exact one_ne_zero }
 
+@[simp] lemma ker_coe_equiv (f : R ≃+* S) : ker (f : R →+* S) = ⊥ :=
+by simpa only [←injective_iff_ker_eq_bot] using f.injective
+
 end comm_ring
 
 /-- The kernel of a homomorphism to an integral domain is a prime ideal.-/
@@ -887,6 +902,10 @@ begin
     exact (H.right this).imp (λ h, ha ▸ mem_map_of_mem h) (λ h, hb ▸ mem_map_of_mem h) }
 end
 
+theorem map_is_prime_of_equiv (f : R ≃+* S) {I : ideal R} [is_prime I] :
+  is_prime (map (f : R →+* S) I) :=
+map_is_prime_of_surjective f.surjective $ by simp
+
 theorem map_radical_of_surjective {f : R →+* S} (hf : function.surjective f) {I : ideal R}
   (h : ring_hom.ker f ≤ I) : map f (I.radical) = (map f I).radical :=
 begin
@@ -902,6 +921,31 @@ begin
     haveI : J.is_prime := hJ.right,
     refine ⟨hJ' ▸ map_mono hJ.left, hJ' ▸ map_is_prime_of_surjective hf (le_trans h hJ.left)⟩ },
 end
+
+section quotient_algebra
+
+/-- The ring hom `R/f⁻¹(I) →+* S/I` induced by a ring hom `f : R →+* S` -/
+def quotient_map {I : ideal R} (J : ideal S) (f : R →+* S) (hIJ : I ≤ J.comap f) :
+  I.quotient →+* J.quotient :=
+(quotient.lift I ((quotient.mk J).comp f) (λ _ ha,
+  by simpa [function.comp_app, ring_hom.coe_comp, quotient.eq_zero_iff_mem] using hIJ ha))
+
+variables {I : ideal R} {J: ideal S} [algebra R S]
+
+@[priority 100]
+instance quotient_algebra : algebra (J.comap (algebra_map R S)).quotient J.quotient :=
+(quotient_map J (algebra_map R S) (le_of_eq rfl)).to_algebra
+
+lemma algebra_map_quotient_injective :
+  function.injective (algebra_map (J.comap (algebra_map R S)).quotient J.quotient) :=
+begin
+  rintros ⟨a⟩ ⟨b⟩ hab,
+  replace hab := quotient.eq.mp hab,
+  rw ← ring_hom.map_sub at hab,
+  exact quotient.eq.mpr hab
+end
+
+end quotient_algebra
 
 end ideal
 

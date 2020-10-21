@@ -612,11 +612,7 @@ rel.core_inter _ s t
 
 lemma mem_core_res (f : α → β) (s : set α) (t : set β) (x : α) :
   x ∈ core (res f s) t ↔ (x ∈ s → f x ∈ t) :=
-begin
-  simp [mem_core, mem_res], split,
-  { intros h h', apply h _ h', reflexivity },
-  intros h y xs fxeq, rw ←fxeq, exact h xs
-end
+by simp [mem_core, mem_res]
 
 section
 open_locale classical

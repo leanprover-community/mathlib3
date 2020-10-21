@@ -6,6 +6,7 @@ Author: Mario Carneiro
 import data.num.bitwise
 import data.int.char_zero
 import data.nat.gcd
+import data.nat.psub
 
 /-!
 # Properties of the binary representation of integers
@@ -16,12 +17,12 @@ local attribute [simp] add_assoc
 namespace pos_num
 variables {α : Type*}
 
-@[simp, norm_cast] theorem cast_one [has_zero α] [has_one α] [has_add α] :
+@[simp, norm_cast] theorem cast_one [has_one α] [has_add α] :
   ((1 : pos_num) : α) = 1 := rfl
-@[simp] theorem cast_one' [has_zero α] [has_one α] [has_add α] : (pos_num.one : α) = 1 := rfl
-@[simp, norm_cast] theorem cast_bit0 [has_zero α] [has_one α] [has_add α] (n : pos_num) :
+@[simp] theorem cast_one' [has_one α] [has_add α] : (pos_num.one : α) = 1 := rfl
+@[simp, norm_cast] theorem cast_bit0 [has_one α] [has_add α] (n : pos_num) :
   (n.bit0 : α) = _root_.bit0 n := rfl
-@[simp, norm_cast] theorem cast_bit1 [has_zero α] [has_one α] [has_add α] (n : pos_num) :
+@[simp, norm_cast] theorem cast_bit1 [has_one α] [has_add α] (n : pos_num) :
   (n.bit1 : α) = _root_.bit1 n := rfl
 
 @[simp, norm_cast] theorem cast_to_nat [add_monoid α] [has_one α] :
@@ -272,10 +273,27 @@ namespace num
 @[norm_cast] theorem to_nat_inj {m n : num} : (m : ℕ) = n ↔ m = n :=
 ⟨λ h, function.left_inverse.injective of_to_nat h, congr_arg _⟩
 
+/--
+This tactic tries to turn an (in)equality about `num`s to one about `nat`s by rewriting.
+```lean
+example (n : num) (m : num) : n ≤ n + m :=
+begin
+  num.transfer_rw,
+  exact nat.le_add_right _ _
+end
+```
+-/
 meta def transfer_rw : tactic unit :=
 `[repeat {rw ← to_nat_inj <|> rw ← lt_to_nat <|> rw ← le_to_nat},
   repeat {rw add_to_nat <|> rw mul_to_nat <|> rw cast_one <|> rw cast_zero}]
 
+/--
+This tactic tries to prove (in)equalities about `num`s by transfering them to the `nat` world and
+then trying to call `simp`.
+```lean
+example (n : num) (m : num) : n ≤ n + m := by num.transfer
+```
+-/
 meta def transfer : tactic unit := `[intros, transfer_rw, try {simp}]
 
 instance : comm_semiring num :=
@@ -303,12 +321,13 @@ instance : ordered_cancel_add_comm_monoid num :=
 
 instance : decidable_linear_ordered_semiring num :=
 { le_total                   := by {intros a b, transfer_rw, apply le_total},
-  zero_lt_one                := dec_trivial,
+  zero_le_one                := dec_trivial,
   mul_lt_mul_of_pos_left     := by {intros a b c, transfer_rw, apply mul_lt_mul_of_pos_left},
   mul_lt_mul_of_pos_right    := by {intros a b c, transfer_rw, apply mul_lt_mul_of_pos_right},
   decidable_lt               := num.decidable_lt,
   decidable_le               := num.decidable_le,
   decidable_eq               := num.decidable_eq,
+  exists_pair_ne             := ⟨0, 1, dec_trivial⟩,
   ..num.comm_semiring, ..num.ordered_cancel_add_comm_monoid }
 
 @[norm_cast]
@@ -370,10 +389,27 @@ by rw [← size_eq_nat_size, size_to_nat]
 theorem nat_size_pos (n) : 0 < nat_size n :=
 by cases n; apply nat.succ_pos
 
+/--
+This tactic tries to turn an (in)equality about `pos_num`s to one about `nat`s by rewriting.
+```lean
+example (n : pos_num) (m : pos_num) : n ≤ n + m :=
+begin
+  pos_num.transfer_rw,
+  exact nat.le_add_right _ _
+end
+```
+-/
 meta def transfer_rw : tactic unit :=
 `[repeat {rw ← to_nat_inj <|> rw ← lt_to_nat <|> rw ← le_to_nat},
   repeat {rw add_to_nat <|> rw mul_to_nat <|> rw cast_one <|> rw cast_zero}]
 
+/--
+This tactic tries to prove (in)equalities about `pos_num`s by transferring them to the `nat` world
+and then trying to call `simp`.
+```lean
+example (n : pos_num) (m : pos_num) : n ≤ n + m := by pos_num.transfer
+```
+-/
 meta def transfer : tactic unit :=
 `[intros, transfer_rw, try {simp [add_comm, add_left_comm, mul_comm, mul_left_comm]}]
 
@@ -993,10 +1029,31 @@ by rw ← not_lt; exact not_congr cast_lt
 theorem cast_inj [linear_ordered_ring α] {m n : znum} : (m:α) = n ↔ m = n :=
 by rw [← cast_to_int m, ← cast_to_int n, int.cast_inj, to_int_inj]
 
+/--
+This tactic tries to turn an (in)equality about `znum`s to one about `int`s by rewriting.
+```lean
+example (n : znum) (m : znum) : n ≤ n + m * m :=
+begin
+  znum.transfer_rw,
+  exact le_add_of_nonneg_right (mul_self_nonneg _)
+end
+```
+-/
 meta def transfer_rw : tactic unit :=
 `[repeat {rw ← to_int_inj <|> rw ← lt_to_int <|> rw ← le_to_int},
   repeat {rw cast_add <|> rw mul_to_int <|> rw cast_one <|> rw cast_zero}]
 
+/--
+This tactic tries to prove (in)equalities about `znum`s by transfering them to the `int` world and
+then trying to call `simp`.
+```lean
+example (n : znum) (m : znum) : n ≤ n + m * m :=
+begin
+  znum.transfer,
+  exact mul_self_nonneg _
+end
+```
+-/
 meta def transfer : tactic unit :=
 `[intros, transfer_rw, try {simp [add_comm, add_left_comm, mul_comm, mul_left_comm]}]
 
@@ -1034,7 +1091,7 @@ instance : decidable_linear_ordered_comm_ring znum :=
   exists_pair_ne   := ⟨0, 1, dec_trivial⟩,
   add_le_add_left  := by {intros a b h c, revert h, transfer_rw, exact λ h, add_le_add_left h c},
   mul_pos          := λ a b, show 0 < a → 0 < b → 0 < a * b, by {transfer_rw, apply mul_pos},
-  zero_lt_one      := dec_trivial,
+  zero_le_one      := dec_trivial,
   ..znum.decidable_linear_order, ..znum.add_comm_group }
 
 @[simp, norm_cast] theorem dvd_to_int (m n : znum) : (m : ℤ) ∣ n ↔ m ∣ n :=
@@ -1135,7 +1192,7 @@ theorem gcd_to_nat_aux : ∀ {n} {a b : num},
     exact le_of_lt (nat.mod_lt _ (pos_num.cast_pos _)) },
   rw [nat_size_to_nat, mul_to_nat, nat.size_le] at h ⊢,
   rw [mod_to_nat, mul_comm],
-  rw [nat.pow_succ, ← nat.mod_add_div b (pos a)] at h,
+  rw [pow_succ', ← nat.mod_add_div b (pos a)] at h,
   refine lt_of_mul_lt_mul_right (lt_of_le_of_lt _ h) (nat.zero_le 2),
   rw [mul_two, mul_add],
   refine add_le_add_left (nat.mul_le_mul_left _
@@ -1150,7 +1207,7 @@ have ∀ a b : num, (a * b).nat_size ≤ a.nat_size + b.nat_size,
 begin
   intros,
   simp [nat_size_to_nat],
-  rw [nat.size_le, nat.pow_add],
+  rw [nat.size_le, pow_add],
   exact mul_lt_mul'' (nat.lt_size_self _)
     (nat.lt_size_self _) (nat.zero_le _) (nat.zero_le _)
 end,
@@ -1223,6 +1280,8 @@ instance : decidable_rel ((∣) : znum → znum → Prop)
 end znum
 
 namespace int
+
+/-- Cast a `snum` to the corresponding integer. -/
 def of_snum : snum → ℤ :=
 snum.rec' (λ a, cond a (-1) 0) (λa p IH, cond a (bit1 IH) (bit0 IH))
 

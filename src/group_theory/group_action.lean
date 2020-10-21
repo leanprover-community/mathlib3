@@ -16,13 +16,10 @@ class has_scalar (α : Type u) (γ : Type v) := (smul : α → γ → γ)
 
 infixr ` • `:73 := has_scalar.smul
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- Typeclass for multiplicative actions by monoids. This generalizes group actions. -/
 @[protect_proj] class mul_action (α : Type u) (β : Type v) [monoid α] extends has_scalar α β :=
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
-end prio
 
 section
 variables [monoid α] [mul_action α β]
@@ -47,6 +44,24 @@ by rw [smul_smul, u.inv_mul, one_smul]
   (u:α) • (↑u⁻¹:α) • x = x :=
 by rw [smul_smul, u.mul_inv, one_smul]
 
+/-- If a monoid `α` acts on `β`, then each `u : units α` defines a permutation of `β`. -/
+def units.smul_perm_hom : units α →* equiv.perm β :=
+{ to_fun := λ u, ⟨λ x, (u:α) • x, λ x, (↑u⁻¹:α) • x, u.inv_smul_smul, u.smul_inv_smul⟩,
+  map_one' := equiv.ext $ one_smul α,
+  map_mul' := λ u₁ u₂, equiv.ext $ mul_smul (u₁:α) u₂ }
+
+@[simp] lemma units.smul_left_cancel (u : units α) {x y : β} :
+  (u:α) • x = (u:α) • y ↔ x = y :=
+u.smul_perm_hom.apply_eq_iff_eq
+
+lemma units.smul_eq_iff_eq_inv_smul (u : units α) {x y : β} :
+  (u:α) • x = y ↔ x = (↑u⁻¹:α) • y :=
+u.smul_perm_hom.apply_eq_iff_eq_symm_apply
+
+lemma is_unit.smul_left_cancel {a : α} (ha : is_unit a) {x y : β} :
+  a • x = a • y ↔ x = y :=
+let ⟨u, hu⟩ := ha in hu ▸ u.smul_left_cancel
+
 /-- Pullback a multiplicative action along an injective map respecting `•`. -/
 protected def function.injective.mul_action [has_scalar α γ] (f : γ → β)
   (hf : injective f) (smul : ∀ (c : α) x, f (c • x) = c • f x) :
@@ -67,9 +82,11 @@ section gwz
 
 variables {G : Type*} [group_with_zero G] [mul_action G β]
 
+@[simp]
 lemma inv_smul_smul' {c : G} (hc : c ≠ 0) (x : β) : c⁻¹ • c • x = x :=
 (units.mk0 c hc).inv_smul_smul x
 
+@[simp]
 lemma smul_inv_smul' {c : G} (hc : c ≠ 0) (x : β) : c • c⁻¹ • x = x :=
 (units.mk0 c hc).smul_inv_smul x
 
@@ -196,6 +213,17 @@ def stabilizer.submonoid (b : β) : submonoid α :=
   mul_mem' := λ a a' (ha : a • b = b) (hb : a' • b = b),
     by rw [mem_stabilizer_iff, ←smul_smul, hb, ha] }
 
+variables (α β)
+
+/-- Embedding induced by action. -/
+def to_fun : β ↪ (α → β) :=
+⟨λ y x, x • y, λ y₁ y₂ H, one_smul α y₁ ▸ one_smul α y₂ ▸ by convert congr_fun H 1⟩
+
+variables {α β}
+
+@[simp] lemma to_fun_apply (x : α) (y : β) : mul_action.to_fun α β y x = x • y :=
+rfl
+
 end mul_action
 
 namespace mul_action
@@ -238,16 +266,10 @@ def stabilizer (b : β) : subgroup α :=
 variable (β)
 
 /-- Given an action of a group `α` on a set `β`, each `g : α` defines a permutation of `β`. -/
-def to_perm (g : α) : equiv.perm β :=
-{ to_fun := (•) g,
-  inv_fun := (•) g⁻¹,
-  left_inv := inv_smul_smul g,
-  right_inv := smul_inv_smul g }
+def to_perm : α →* equiv.perm β :=
+units.smul_perm_hom.comp to_units.to_monoid_hom
 
 variables {α} {β}
-
-instance : is_group_hom (to_perm α β) :=
-{ map_mul := λ x y, equiv.ext (λ a, mul_action.mul_smul x y a) }
 
 protected lemma bijective (g : α) : bijective (λ b : β, g • b) :=
 (to_perm α β g).bijective
@@ -347,13 +369,10 @@ end
 
 end mul_action
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- Typeclass for multiplicative actions on additive structures. This generalizes group modules. -/
 class distrib_mul_action (α : Type u) (β : Type v) [monoid α] [add_monoid β] extends mul_action α β :=
 (smul_add : ∀(r : α) (x y : β), r • (x + y) = r • x + r • y)
 (smul_zero : ∀(r : α), r • (0 : β) = 0)
-end prio
 
 section
 variables [monoid α] [add_monoid β] [distrib_mul_action α β]

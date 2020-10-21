@@ -112,7 +112,7 @@ lemma cells_10_13 :
       (α_ (𝟙_ C) ((𝟙_ C) ⊗ (𝟙_ C)) (𝟙_ C)).inv =
     ((𝟙 (𝟙_ C)) ⊗ (ρ_ (𝟙_ C)).inv) ⊗ (𝟙 (𝟙_ C)) :=
 begin
- slice_lhs 1 2 { simp, },
+ slice_lhs 1 2 { rw triangle_assoc_comp_right_inv, },
  slice_lhs 1 2 { rw [←tensor_id, associator_naturality], },
  slice_lhs 2 3 { rw [←id_tensor_comp], simp, },
  slice_lhs 1 2 { rw ←associator_naturality, },

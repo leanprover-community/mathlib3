@@ -38,8 +38,6 @@ universes w v v' u
 
 namespace category_theory
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /--
 A concrete category is a category `C` with a fixed faithful functor `forget : C ⥤ Type`.
 
@@ -52,7 +50,6 @@ They are specified that order, to avoid unnecessary universe annotations.
 class concrete_category (C : Type u) [category.{v} C] :=
 (forget [] : C ⥤ Type w)
 [forget_faithful : faithful forget]
-end prio
 
 attribute [instance] concrete_category.forget_faithful
 

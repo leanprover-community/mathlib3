@@ -307,6 +307,8 @@ nat_iso.of_components
   (λ U, iso.refl _)
   (by tidy)
 
+open Top.presheaf
+
 /--
 The structure sheaf on $Spec R$, valued in `CommRing`.
 

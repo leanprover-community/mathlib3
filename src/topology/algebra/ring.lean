@@ -15,21 +15,15 @@ section topological_ring
 universes u v w
 variables (α : Type u) [topological_space α]
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A topological semiring is a semiring where addition and multiplication are continuous. -/
 class topological_semiring [semiring α]
   extends has_continuous_add α, has_continuous_mul α : Prop
-end prio
 
 variables [ring α]
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A topological ring is a ring where the ring operations are continuous. -/
 class topological_ring extends has_continuous_add α, has_continuous_mul α : Prop :=
 (continuous_neg : continuous (λa:α, -a))
-end prio
 
 variables [t : topological_ring α]
 @[priority 100] -- see Note [lower instance priority]
@@ -53,6 +47,7 @@ end topological_ring
 section topological_comm_ring
 variables {α : Type*} [topological_space α] [comm_ring α] [topological_ring α]
 
+/-- The closure of an ideal in a topological ring as an ideal. -/
 def ideal.closure (S : ideal α) : ideal α :=
 { carrier := closure S,
   zero_mem' := subset_closure S.zero_mem,

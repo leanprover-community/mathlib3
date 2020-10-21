@@ -16,12 +16,15 @@ inductive fin2 : ℕ → Type
 
 namespace fin2
 
+/-- Define a dependent function on `fin2 (succ n)` by giving its value at
+zero (`H1`) and by giving a dependent function on the rest (`H2`). -/
 @[elab_as_eliminator]
 protected def cases' {n} {C : fin2 (succ n) → Sort u} (H1 : C fz) (H2 : Π n, C (fs n)) :
   Π (i : fin2 (succ n)), C i
 | fz     := H1
 | (fs n) := H2 n
 
+/-- Ex falso. The dependent eliminator for the empty `fin2 0` type. -/
 def elim0 {C : fin2 0 → Sort u} : Π (i : fin2 0), C i.
 
 /-- convert a `fin2` into a `nat` -/
@@ -78,5 +81,7 @@ def of_nat' : Π {n} m [is_lt m n], fin2 n
 | (succ n) (succ m) ⟨h⟩ := fs (@of_nat' n m ⟨lt_of_succ_lt_succ h⟩)
 
 local prefix `&`:max := of_nat'
+
+instance : inhabited (fin2 1) := ⟨fz⟩
 
 end fin2

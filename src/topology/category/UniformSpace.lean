@@ -167,7 +167,7 @@ noncomputable instance : reflective (forget₂ CpltSepUniformSpace UniformSpace)
 open category_theory.limits
 
 -- TODO Once someone defines `has_limits UniformSpace`, turn this into an instance.
-noncomputable example [has_limits.{u} UniformSpace.{u}] : has_limits.{u} CpltSepUniformSpace.{u} :=
+example [has_limits.{u} UniformSpace.{u}] : has_limits.{u} CpltSepUniformSpace.{u} :=
 has_limits_of_reflective $ forget₂ CpltSepUniformSpace UniformSpace
 
 end UniformSpace

@@ -110,11 +110,11 @@ lemma union_null (m : outer_measure α) {s₁ s₂ : set α}
   (h₁ : m s₁ = 0) (h₂ : m s₂ = 0) : m (s₁ ∪ s₂) = 0 :=
 by simpa [h₁, h₂] using m.union s₁ s₂
 
-lemma coe_fn_injective ⦃μ₁ μ₂ : outer_measure α⦄ (h : ⇑μ₁ = μ₂) : μ₁ = μ₂ :=
-by { cases μ₁, cases μ₂, congr, exact h }
+lemma injective_coe_fn : injective (λ (μ : outer_measure α) (s : set α), μ s) :=
+λ μ₁ μ₂ h, by { cases μ₁, cases μ₂, congr, exact h }
 
 @[ext] lemma ext {μ₁ μ₂ : outer_measure α} (h : ∀ s, μ₁ s = μ₂ s) : μ₁ = μ₂ :=
-coe_fn_injective $ funext h
+injective_coe_fn $ funext h
 
 instance : has_zero (outer_measure α) :=
 ⟨{ measure_of := λ_, 0,
@@ -145,7 +145,7 @@ instance add_comm_monoid : add_comm_monoid (outer_measure α) :=
 { zero      := 0,
   add       := (+),
   .. injective.add_comm_monoid (show outer_measure α → set α → ennreal, from coe_fn)
-    coe_fn_injective rfl (λ _ _, rfl) }
+    injective_coe_fn rfl (λ _ _, rfl) }
 
 instance : has_scalar ennreal (outer_measure α) :=
 ⟨λ c m,
@@ -161,7 +161,7 @@ lemma smul_apply (c : ennreal) (m : outer_measure α) (s : set α) : (c • m) s
 instance : semimodule ennreal (outer_measure α) :=
 { smul := (•),
   .. injective.semimodule ennreal ⟨show outer_measure α → set α → ennreal, from coe_fn, coe_zero,
-    coe_add⟩ coe_fn_injective coe_smul }
+    coe_add⟩ injective_coe_fn coe_smul }
 
 instance : has_bot (outer_measure α) := ⟨0⟩
 
@@ -215,8 +215,8 @@ def map {β} (f : α → β) : outer_measure α →ₗ[ennreal] outer_measure β
       mono := λ s t h, m.mono (preimage_mono h),
       Union_nat := λ s, by rw [preimage_Union]; exact
         m.Union_nat (λ i, f ⁻¹' s i) },
-  map_add' := λ m₁ m₂, coe_fn_injective rfl,
-  map_smul' := λ c m, coe_fn_injective rfl }
+  map_add' := λ m₁ m₂, injective_coe_fn rfl,
+  map_smul' := λ c m, injective_coe_fn rfl }
 
 @[simp] theorem map_apply {β} (f : α → β)
   (m : outer_measure α) (s : set β) : map f m s = m (f ⁻¹' s) := rfl
@@ -450,15 +450,15 @@ protected def caratheodory : measurable_space α :=
 caratheodory_dynkin.to_measurable_space $ assume s₁ s₂, is_caratheodory_inter
 
 lemma is_caratheodory_iff {s : set α} :
-  caratheodory.is_measurable s ↔ ∀t, m t = m (t ∩ s) + m (t \ s) :=
+  caratheodory.is_measurable' s ↔ ∀t, m t = m (t ∩ s) + m (t \ s) :=
 iff.rfl
 
 lemma is_caratheodory_iff_le {s : set α} :
-  caratheodory.is_measurable s ↔ ∀t, m (t ∩ s) + m (t \ s) ≤ m t :=
+  caratheodory.is_measurable' s ↔ ∀t, m (t ∩ s) + m (t \ s) ≤ m t :=
 is_caratheodory_iff_le'
 
 protected lemma Union_eq_of_caratheodory {s : ℕ → set α}
-  (h : ∀i, caratheodory.is_measurable (s i)) (hd : pairwise (disjoint on s)) :
+  (h : ∀i, caratheodory.is_measurable' (s i)) (hd : pairwise (disjoint on s)) :
   m (⋃i, s i) = ∑'i, m (s i) :=
 f_Union h hd
 
@@ -468,7 +468,7 @@ variables {α : Type*}
 
 lemma of_function_caratheodory {m : set α → ennreal} {s : set α}
   {h₀ : m ∅ = 0} (hs : ∀t, m (t ∩ s) + m (t \ s) ≤ m t) :
-  (outer_measure.of_function m h₀).caratheodory.is_measurable s :=
+  (outer_measure.of_function m h₀).caratheodory.is_measurable' s :=
 begin
   apply (is_caratheodory_iff_le _).mpr,
   refine λ t, le_infi (λ f, le_infi $ λ hf, _),
@@ -698,7 +698,7 @@ end
   of `s`.
 -/
 lemma induced_outer_measure_caratheodory (s : set α) :
-  (induced_outer_measure m P0 m0).caratheodory.is_measurable s ↔ ∀ (t : set α), P t →
+  (induced_outer_measure m P0 m0).caratheodory.is_measurable' s ↔ ∀ (t : set α), P t →
   induced_outer_measure m P0 m0 (t ∩ s) + induced_outer_measure m P0 m0 (t \ s) ≤
     induced_outer_measure m P0 m0 t :=
 begin

@@ -34,7 +34,8 @@ begin
 end
 
 lemma card_modeq_card_fixed_points [fintype α] [fintype G] [fintype (fixed_points G α)]
-  (p : ℕ) {n : ℕ} [hp : fact p.prime] (h : card G = p ^ n) : card α ≡ card (fixed_points G α) [MOD p] :=
+  (p : ℕ) {n : ℕ} [hp : fact p.prime] (h : card G = p ^ n) :
+  card α ≡ card (fixed_points G α) [MOD p] :=
 calc card α = card (Σ y : quotient (orbit_rel G α), {x // quotient.mk' x = y}) :
   card_congr (sigma_preimage_equiv (@quotient.mk' _ (orbit_rel G α))).symm
 ... = ∑ a : quotient (orbit_rel G α), card {x // quotient.mk' x = a} : card_sigma _
@@ -54,11 +55,11 @@ begin
       exact card_quotient_dvd_card _ },
     rcases (nat.dvd_prime_pow hp).1 this with ⟨k, _, hk⟩,
     have hb' :¬ p ^ 1 ∣ p ^ k,
-    { rw [nat.pow_one, ← hk, ← nat.modeq.modeq_zero_iff, ← zmod.eq_iff_modeq_nat,
+    { rw [pow_one, ← hk, ← nat.modeq.modeq_zero_iff, ← zmod.eq_iff_modeq_nat,
         nat.cast_zero, ← ne.def],
       exact eq.mpr (by simp only [quotient.eq']; congr) hb },
-    have : k = 0 := nat.le_zero_iff.1 (nat.le_of_lt_succ (lt_of_not_ge (mt (nat.pow_dvd_pow p) hb'))),
-    refine ⟨⟨b, mem_fixed_points_iff_card_orbit_eq_one.2 $ by rw [hk, this, nat.pow_zero]⟩,
+    have : k = 0 := nat.le_zero_iff.1 (nat.le_of_lt_succ (lt_of_not_ge (mt (pow_dvd_pow p) hb'))),
+    refine ⟨⟨b, mem_fixed_points_iff_card_orbit_eq_one.2 $ by rw [hk, this, pow_zero]⟩,
       mem_univ _, _, rfl⟩,
     rw [nat.cast_one], exact one_ne_zero }
 end
@@ -77,7 +78,7 @@ namespace sylow
 /-- Given a vector `v` of length `n`, make a vector of length `n+1` whose product is `1`,
 by consing the the inverse of the product of `v`. -/
 def mk_vector_prod_eq_one (n : ℕ) (v : vector G n) : vector G (n+1) :=
-v.to_list.prod⁻¹ :: v
+v.to_list.prod⁻¹ ::ᵥ v
 
 lemma mk_vector_prod_eq_one_injective (n : ℕ) : injective (@mk_vector_prod_eq_one G _ n) :=
 λ ⟨v, _⟩ ⟨w, _⟩ h, subtype.eq (show v = w, by injection h with h; injection h)
@@ -141,12 +142,12 @@ have hcard : card (vectors_prod_eq_one G (n + 1)) = card G ^ (n : ℕ),
   by rw [set.ext mem_vectors_prod_eq_one_iff,
     set.card_range_of_injective (mk_vector_prod_eq_one_injective _), card_vector],
 have hzmod : fintype.card (multiplicative (zmod p)) = p ^ 1,
-  by { rw nat.pow_one p, exact zmod.card p },
+  by { rw pow_one p, exact zmod.card p },
 have hmodeq : _ = _ := @mul_action.card_modeq_card_fixed_points
   (multiplicative (zmod p)) (vectors_prod_eq_one G p) _ _ _ _ _ _ 1 hp hzmod,
 have hdvdcard : p ∣ fintype.card (vectors_prod_eq_one G (n + 1)) :=
-  calc p ∣ card G ^ 1 : by rwa nat.pow_one
-  ... ∣ card G ^ (n : ℕ) : nat.pow_dvd_pow _ n.2
+  calc p ∣ card G ^ 1 : by rwa pow_one
+  ... ∣ card G ^ (n : ℕ) : pow_dvd_pow _ n.2
   ... = card (vectors_prod_eq_one G (n + 1)) : hcard.symm,
 have hdvdcard₂ : p ∣ card (fixed_points (multiplicative (zmod p)) (vectors_prod_eq_one G p)),
   by { rw nat.dvd_iff_mod_eq_zero at hdvdcard ⊢, rwa [← hn, hmodeq] at hdvdcard },
@@ -172,8 +173,9 @@ let ⟨a, ha⟩ := this in
 
 open subgroup submonoid is_group_hom mul_action
 
-lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : subgroup G} [fintype ((H : set G) : Type u)]
-  {x : G} : (x : quotient H) ∈ fixed_points H (quotient H) ↔ x ∈ normalizer H :=
+lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : subgroup G}
+  [fintype ((H : set G) : Type u)] {x : G} :
+  (x : quotient H) ∈ fixed_points H (quotient H) ↔ x ∈ normalizer H :=
 ⟨λ hx, have ha : ∀ {y : quotient H}, y ∈ orbit H (x : quotient H) → y = x,
   from λ _, ((mem_fixed_points' _).1 hx _),
   (inv_mem_iff _).1 (@mem_normalizer_fintype _ _ _ _inst_2 _ (λ n (hn : n ∈ H),
@@ -192,20 +194,21 @@ def fixed_points_mul_left_cosets_equiv_quotient (H : subgroup G) [fintype (H : s
   fixed_points H (quotient H) ≃
   quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H) :=
 @subtype_quotient_equiv_quotient_subtype G (normalizer H : set G) (id _) (id _) (fixed_points _ _)
-  (λ a, (@mem_fixed_points_mul_left_cosets_iff_mem_normalizer _ _ _ _inst_2 _).symm) (by intros; refl)
+  (λ a, (@mem_fixed_points_mul_left_cosets_iff_mem_normalizer _ _ _ _inst_2 _).symm)
+  (by intros; refl)
 
 lemma exists_subgroup_card_pow_prime [fintype G] (p : ℕ) : ∀ {n : ℕ} [hp : fact p.prime]
   (hdvd : p ^ n ∣ card G), ∃ H : subgroup G, fintype.card H = p ^ n
 | 0 := λ _ _, ⟨(⊥ : subgroup G), by convert card_trivial⟩
 | (n+1) := λ hp hdvd,
 let ⟨H, hH2⟩ := @exists_subgroup_card_pow_prime _ hp
-  (dvd.trans (nat.pow_dvd_pow _ (nat.le_succ _)) hdvd) in
+  (dvd.trans (pow_dvd_pow _ (nat.le_succ _)) hdvd) in
 let ⟨s, hs⟩ := exists_eq_mul_left_of_dvd hdvd in
 have hcard : card (quotient H) = s * p :=
   (nat.mul_left_inj (show card H > 0, from fintype.card_pos_iff.2
       ⟨⟨1, H.one_mem⟩⟩)).1
     (by rwa [← card_eq_card_quotient_mul_card_subgroup, hH2, hs,
-      nat.pow_succ, mul_assoc, mul_comm p]),
+      pow_succ', mul_assoc, mul_comm p]),
 have hm : s * p % p =
   card (quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) % p :=
   card_congr (fixed_points_mul_left_cosets_equiv_quotient H) ▸ hcard ▸
@@ -224,17 +227,16 @@ have hequiv : H ≃ (subgroup.comap ((normalizer H).subtype : normalizer H →* 
 -- begin proof of ∃ H : subgroup G, fintype.card H = p ^ n
 ⟨subgroup.map ((normalizer H).subtype) (subgroup.comap (quotient_group.mk' _) (gpowers x)),
 begin
-  show card ↥(map H.normalizer.subtype (comap (mk' (comap H.normalizer.subtype H)) (subgroup.gpowers x))) =
-    p ^ (n + 1),
+  show card ↥(map H.normalizer.subtype
+    (comap (mk' (comap H.normalizer.subtype H)) (subgroup.gpowers x))) = p ^ (n + 1),
   suffices : card ↥(subtype.val '' ((subgroup.comap (mk' (comap H.normalizer.subtype H))
     (gpowers x)) : set (↥(H.normalizer)))) = p^(n+1),
   { convert this },
   rw [set.card_image_of_injective
-       (subgroup.comap (quotient_group.mk' _) (gpowers x) : set (H.normalizer)) subtype.val_injective,
-      nat.pow_succ, ← hH2, fintype.card_congr hequiv, ← hx, order_eq_card_gpowers,
+       (subgroup.comap (mk' _) (gpowers x) : set (H.normalizer)) subtype.val_injective,
+      pow_succ', ← hH2, fintype.card_congr hequiv, ← hx, order_eq_card_gpowers,
       ← fintype.card_prod],
   exact @fintype.card_congr _ _ (id _) (id _) (preimage_mk_equiv_subgroup_times_set _ _)
-end
-⟩
+end⟩
 
 end sylow

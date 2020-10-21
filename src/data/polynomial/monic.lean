@@ -222,6 +222,9 @@ variables [ring R] {p : polynomial R}
 theorem monic_X_sub_C (x : R) : monic (X - C x) :=
 by simpa only [C_neg] using monic_X_add_C (-x)
 
+theorem monic_X_pow_sub {n : ℕ} (H : degree p ≤ n) : monic (X ^ (n+1) - p) :=
+monic_X_pow_add ((degree_neg p).symm ▸ H)
+
 /-`X ^ n - a` is monic. -/
 lemma monic_X_pow_sub_C {R : Type u} [ring R] (a : R) {n : ℕ} : n ≠ 0 → (X ^ n - C a).monic :=
 begin
@@ -233,9 +236,6 @@ begin
   norm_cast at hleq,
   exact hleq
 end
-
-theorem monic_X_pow_sub {n : ℕ} (H : degree p ≤ n) : monic (X ^ (n+1) - p) :=
-monic_X_pow_add ((degree_neg p).symm ▸ H)
 
 section injective
 open function
@@ -268,6 +268,86 @@ by simpa only [monic, leading_coeff_zero] using (zero_ne_one : (0 : R) ≠ 1)
 
 lemma ne_zero_of_monic (h : monic p) : p ≠ 0 :=
 λ h₁, @not_monic_zero R _ _ (h₁ ▸ h)
+
+/-If we have a morphism of semiring `f : R →+* S` and a polynomial `P : polynomial S` that comes via `f` from a polynomial `Q : polynomial R`, then it comes from a polynomial of the same degree. -/
+lemma lifts_of_same_degree {R : Type u} {S : Type v} [comm_semiring R] [comm_semiring S] [nontrivial R] [nontrivial S] (f : R →+* S) (P : polynomial S) : (∃ (Q : polynomial R), map f Q = P) → (∃ (Q₁ : polynomial R), map f Q₁ = P ∧ Q₁.degree = P.degree) :=
+begin
+  intro hexist,
+  obtain ⟨Q, hQ⟩ := hexist,
+  by_cases hzero : P = 0,
+  {
+    use 0,
+    simp only [hzero, degree_zero, eq_self_iff_true, and_self, map_zero] },
+  have hcoeff : ∀ n ∈ finset.range (P.nat_degree + 1), f (Q.coeff n) = P.coeff n,
+  { intros n hn,
+    rw [← hQ, coeff_map] },
+  use (∑ (i : ℕ) in finset.range (P.nat_degree + 1), (C (Q.coeff i)) * polynomial.X ^ i),
+  split,
+  { simp only [map_sum, map_C, map_pow, map_X, map_mul],
+    conv_lhs { apply_congr,
+               skip,
+               simp only [hcoeff, H] },
+    nth_rewrite 1 as_sum_range P },
+  rw finset.range_succ,
+  simp only [finset.not_mem_range_self, finset.sum_insert, not_false_iff],
+  have deglt : (∑ (n : ℕ) in finset.range P.nat_degree, C (Q.coeff n) * X ^ n).degree < P.nat_degree,
+  { refine lt_of_le_of_lt (degree_sum_le (finset.range P.nat_degree) (λ i, C (Q.coeff i) * X ^ i)) _,
+    simp only [with_bot.bot_lt_coe P.nat_degree, finset.mem_range, finset.sup_lt_iff],
+    intros b hb,
+    refine lt_of_le_of_lt (degree_mul_le (C (Q.coeff b)) (X ^ b) ) _,
+    by_cases coef_zero : Q.coeff b = 0,
+    { simp only [coef_zero, with_bot.bot_lt_coe P.nat_degree, degree_zero, with_bot.bot_add, ring_hom.map_zero] },
+    simp only [coef_zero, degree_C, degree_X_pow, ne.def, zero_add, not_false_iff],
+    norm_cast,
+    exact hb },
+  have leadcoef : Q.coeff P.nat_degree ≠ 0,
+  { by_contra habs,
+    rw [not_not] at habs,
+    replace hcoeff := hcoeff P.nat_degree (finset.self_mem_range_succ P.nat_degree),
+    simp only [habs, ring_hom.map_zero] at hcoeff,
+    exact coeff_ne_zero_of_eq_degree (degree_eq_nat_degree hzero) (eq.symm hcoeff) },
+  rw add_comm,
+  simp only [degree_add_eq_of_degree_lt, leadcoef, deglt, degree_eq_nat_degree hzero, ne.def, not_false_iff, degree_monomial]
+end
+
+/-If we have a morphism of semiring `f : R →+* S` and a monic polynomial `P : polynomial S` that comes via `f` from polynomial `Q : polynomial R`, then it comes from a monic polynomial of the same degree. -/
+lemma monic_lifts_of_same_degree {R : Type u} {S : Type v} [comm_semiring R] [comm_semiring S] [nontrivial R] [nontrivial S] {f : R →+* S} {P : polynomial S} (hmonic : P.monic) : (∃ (Q : polynomial R), map f Q = P) → (∃ (Q₁ : polynomial R), map f Q₁ = P ∧ Q₁.degree = P.degree ∧ Q₁.monic) :=
+begin
+  intro hexist,
+  obtain ⟨Q, hQ⟩ := hexist,
+  have hcoeff : ∀ n ∈ finset.range P.nat_degree, f (Q.coeff n) = P.coeff n,
+  { intros n hn,
+    rw [← hQ, coeff_map] },
+  use (X ^ P.nat_degree + ∑ (i : ℕ) in finset.range P.nat_degree, (C (Q.coeff i)) * polynomial.X ^ i),
+  have deglt : (∑ (n : ℕ) in finset.range P.nat_degree, C (Q.coeff n) * X ^ n).degree < P.nat_degree,
+  { refine lt_of_le_of_lt (degree_sum_le (finset.range P.nat_degree) (λ i, C (Q.coeff i) * X ^ i)) _,
+    simp only [with_bot.bot_lt_coe P.nat_degree, finset.mem_range, finset.sup_lt_iff],
+    intros b hb,
+    refine lt_of_le_of_lt (degree_mul_le (C (Q.coeff b)) (X ^ b) ) _,
+    by_cases coef_zero : Q.coeff b = 0,
+    { simp only [coef_zero, with_bot.bot_lt_coe P.nat_degree, degree_zero, with_bot.bot_add, ring_hom.map_zero] },
+    simp [coef_zero, degree_C, degree_X_pow, ne.def, zero_add, not_false_iff],
+    norm_cast,
+    exact hb },
+  have degreeres : (X ^ P.nat_degree + ∑ (i : ℕ) in finset.range P.nat_degree, C (Q.coeff i) * X ^ i).degree = P.degree,
+  { rw add_comm,
+    simp only [degree_add_eq_of_degree_lt, deglt, degree_eq_nat_degree hmonic.ne_zero, degree_X_pow] },
+  repeat {split},
+  { simp only [map_sum,map_add, map_pow, map_X],
+    have rwpartial : ∑ (i : ℕ) in finset.range P.nat_degree, map f (C (Q.coeff i) * X ^ i) = (∑ (i : ℕ) in finset.range P.nat_degree, C (P.coeff i) * X ^ i),
+    { conv_lhs { apply_congr,
+                 skip,
+                 simp [hcoeff, H] } },
+    nth_rewrite 2 monic.as_sum hmonic,
+    rw [rwpartial] },
+  { exact degreeres },
+  { rw monic,
+    nth_rewrite 0 ← degree_eq_nat_degree hmonic.ne_zero at deglt,
+    rw [add_comm, polynomial.leading_coeff_add_of_degree_lt _],
+    { simp only [leading_coeff_X_pow] },
+    apply lt_of_lt_of_le deglt _,
+    simp only [degree_X_pow, degree_le_nat_degree]},
+end
 
 end nonzero_semiring
 

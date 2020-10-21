@@ -6,7 +6,7 @@ Author: Yury Kudryashov
 import analysis.normed_space.point_reflection
 import topology.instances.real_vector_space
 import analysis.normed_space.add_torsor
-import linear_algebra.affine_space.basic
+import linear_algebra.affine_space.affine_equiv
 
 /-!
 # Mazur-Ulam Theorem
@@ -32,25 +32,28 @@ Once we have affine equivalences, upgrade `isometric.to_affine_map` to `isometri
 isometry, affine map, linear map
 -/
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E]
-  {F : Type*} [normed_group F] [normed_space ℝ F]
+variables
+  {E PE : Type*} [normed_group E] [normed_space ℝ E] [metric_space PE] [normed_add_torsor E PE]
+  {F PF : Type*} [normed_group F] [normed_space ℝ F] [metric_space PF] [normed_add_torsor F PF]
 
-open set
+open set affine_map
 
 noncomputable theory
 
 namespace isometric
 
+include E
+
 /-- If an isometric self-homeomorphism of a normed vector space over `ℝ` fixes `x` and `y`,
 then it fixes the midpoint of `[x, y]`. This is a lemma for a more general Mazur-Ulam theorem,
 see below. -/
-lemma midpoint_fixed {x y : E} :
-  ∀ e : E ≃ᵢ E, e x = x → e y = y → e (midpoint ℝ x y) = midpoint ℝ x y :=
+lemma midpoint_fixed {x y : PE} :
+  ∀ e : PE ≃ᵢ PE, e x = x → e y = y → e (line_map x y (1/2:ℝ)) = line_map x y (1/2:ℝ) :=
 begin
-  set z := midpoint ℝ x y,
+  set z := line_map x y (1/2:ℝ),
   -- Consider the set of `e : E ≃ᵢ E` such that `e x = x` and `e y = y`
-  set s := { e : E ≃ᵢ E | e x = x ∧ e y = y },
-  haveI : nonempty s := ⟨⟨isometric.refl E, rfl, rfl⟩⟩,
+  set s := { e : PE ≃ᵢ PE | e x = x ∧ e y = y },
+  haveI : nonempty s := ⟨⟨isometric.refl PE, rfl, rfl⟩⟩,
   -- On the one hand, `e` cannot send the midpoint `z` of `[x, y]` too far
   have h_bdd : bdd_above (range $ λ e : s, dist (e z) z),
   { refine ⟨dist x z + dist x z, forall_range_iff.2 $ subtype.forall.2 _⟩,
@@ -61,7 +64,7 @@ begin
   -- On the other hand, consider the map `f : (E ≃ᵢ E) → (E ≃ᵢ E)`
   -- sending each `e` to `R ∘ e⁻¹ ∘ R ∘ e`, where `R` is the point reflection in the
   -- midpoint `z` of `[x, y]`.
-  set R : E ≃ᵢ E := point_reflection z,
+  set R : E ≃ᵢ E := homothety z (-1:ℝ),
   set f : (E ≃ᵢ E) → (E ≃ᵢ E) := λ e, ((e.trans R).trans e.symm).trans R,
   -- Note that `f` doubles the value of ``dist (e z) z`
   have hf_dist : ∀ e, dist (f e z) z = 2 * dist (e z) z,
@@ -134,12 +137,12 @@ variables {E F} {PE : Type*} {PF : Type*} [metric_space PE] [normed_add_torsor E
 include E F
 
 /-- Convert an isometric equivalence between two affine spaces to an `affine_map`. -/
-def to_affine_map (f : PE ≃ᵢ PF) : PE →ᵃ[ℝ] PF :=
-affine_map.mk' f
- ((vadd_const (classical.choice $ add_torsor.nonempty : PE)).trans $ f.trans
-   (vadd_const (f $ classical.choice $ add_torsor.nonempty : PF)).symm).to_real_linear_equiv
- (classical.choice $ add_torsor.nonempty) $ λ p',
- by simp
+def to_affine_map (f : PE ≃ᵢ PF) : PE ≃ᵃ[ℝ] PF :=
+{ to_equiv := f.to_equiv,
+  linear := (↑((vadd_const (classical.choice $ add_torsor.nonempty : PE)).trans $ f.trans
+    (vadd_const (f $ classical.choice $ add_torsor.nonempty : PF)).symm).to_real_linear_equiv :
+      E ≃ₗ[ℝ] F),
+  map_vadd' := _ }
 
 @[simp] lemma coe_to_affine_map (f : PE ≃ᵢ PF) : ⇑f.to_affine_map = f := rfl
 

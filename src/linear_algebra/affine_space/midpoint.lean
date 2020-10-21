@@ -3,8 +3,8 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Yury Kudryashov
 -/
-import algebra.module.basic
 import algebra.invertible
+import linear_algebra.affine_space.affine_equiv
 
 /-!
 # Midpoint of a segment
@@ -31,19 +31,33 @@ We do not mark most lemmas as `@[simp]` because it is hard to tell which side is
 midpoint, add_monoid_hom
 -/
 
-variables (R : Type*) {E : Type*}
+variables (R : Type*) {V V' P P' : Type*} [ring R] [invertible (2:R)]
+  [add_comm_group V] [semimodule R V] [add_torsor V P]
+  [add_comm_group V'] [semimodule R V'] [add_torsor V' P']
+
+open affine_map affine_equiv
 
 section monoid
 
-variables [semiring R] [invertible (2:R)] [add_comm_monoid E] [semimodule R E]
+include V
 
 /-- `midpoint x y` is the midpoint of the segment `[x, y]`. -/
-def midpoint (x y : E) : E := (⅟2:R) • (x + y)
+def midpoint (x y : P) : P := line_map x y (⅟2:R)
 
-lemma midpoint_eq_iff {x y z : E} : midpoint R x y = z ↔ x + y = z + z :=
-⟨λ h, h ▸ calc x + y = (2 * ⅟2:R) • (x + y) : by rw [mul_inv_of_self, one_smul]
- ... = midpoint R x y + midpoint R x y : by rw [two_mul, add_smul, midpoint],
- λ h, by rw [midpoint, h, ← two_smul R z, smul_smul, inv_of_mul_self, one_smul]⟩
+variables {R} {x y z : P}
+include V'
+
+@[simp] lemma affine_map.map_midpoint (f : P →ᵃ[R] P') (a b : P) :
+  f (midpoint R a b) = midpoint R (f a) (f b) :=
+f.apply_line_map a b _
+
+@[simp] lemma affine_equiv.map_midpoint (f : P ≃ᵃ[R] P') (a b : P) :
+  f (midpoint R a b) = midpoint R (f a) (f b) :=
+f.apply_line_map a b _
+
+lemma point_reflection_midpoint_left (x y : V) :
+  point_reflection R (midpoint R x y) x = y :=
+by rw [midpoint]
 
 @[simp] lemma midpoint_add_self (x y : E) : midpoint R x y + midpoint R x y = x + y :=
 ((midpoint_eq_iff R).1 rfl).symm

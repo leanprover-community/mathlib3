@@ -1431,6 +1431,22 @@ lemma line_map_apply_one_sub (p₀ p₁ : P1) (c : k) :
   line_map p₀ p₁ (1 - c) = line_map p₁ p₀ c :=
 by { rw [line_map_symm p₀, comp_apply], congr, simp [line_map_apply] }
 
+@[simp] lemma line_map_vsub_left (p₀ p₁ : P1) (c : k) :
+  line_map p₀ p₁ c -ᵥ p₀ = c • (p₁ -ᵥ p₀) :=
+vadd_vsub _ _
+
+@[simp] lemma left_vsub_line_map (p₀ p₁ : P1) (c : k) :
+  p₀ -ᵥ line_map p₀ p₁ c = c • (p₀ -ᵥ p₁) :=
+by rw [← neg_vsub_eq_vsub_rev, line_map_vsub_left, ← smul_neg, neg_vsub_eq_vsub_rev]
+
+@[simp] lemma line_map_vsub_right (p₀ p₁ : P1) (c : k) :
+  line_map p₀ p₁ c -ᵥ p₁ = (1 - c) • (p₀ -ᵥ p₁) :=
+by rw [← line_map_apply_one_sub, line_map_vsub_left]
+
+@[simp] lemma right_vsub_line_map (p₀ p₁ : P1) (c : k) :
+  p₁ -ᵥ line_map p₀ p₁ c = (1 - c) • (p₁ -ᵥ p₀) :=
+by rw [← line_map_apply_one_sub, left_vsub_line_map]
+
 /-- Decomposition of an affine map in the special case when the point space and vector space
 are the same. -/
 lemma decomp (f : V1 →ᵃ[k] V2) : (f : V1 → V2) = f.linear + (λ z, f 0) :=

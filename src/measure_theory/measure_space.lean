@@ -626,7 +626,7 @@ begin
   assume μ hμ u htu hu,
   have hm : ∀{s t}, s ⊆ t → outer_measure.Inf_gen (to_outer_measure '' m) s ≤ μ t,
   { assume s t hst,
-    rw [outer_measure.Inf_gen_nonempty2 _ _ (mem_image_of_mem _ hμ)],
+    rw [outer_measure.Inf_gen_nonempty2 _ ⟨_, mem_image_of_mem _ hμ⟩],
     refine infi_le_of_le (μ.to_outer_measure) (infi_le_of_le (mem_image_of_mem _ hμ) _),
     rw [to_outer_measure_apply],
     refine measure_mono hst },
@@ -641,11 +641,11 @@ lemma Inf_apply {m : set (measure α)} {s : set α} (hs : is_measurable s) :
   Inf m s = Inf (to_outer_measure '' m) s :=
 to_measure_apply _ _ hs
 
-private lemma Inf_le (h : μ ∈ m) : Inf m ≤ μ :=
+private lemma measure_Inf_le (h : μ ∈ m) : Inf m ≤ μ :=
 have Inf (to_outer_measure '' m) ≤ μ.to_outer_measure := Inf_le (mem_image_of_mem _ h),
 assume s hs, by rw [Inf_apply hs, ← to_outer_measure_apply]; exact this s
 
-private lemma le_Inf (h : ∀μ' ∈ m, μ ≤ μ') : μ ≤ Inf m :=
+private lemma measure_le_Inf (h : ∀μ' ∈ m, μ ≤ μ') : μ ≤ Inf m :=
 have μ.to_outer_measure ≤ Inf (to_outer_measure '' m) :=
   le_Inf $ ball_image_of_ball $ assume μ hμ, to_outer_measure_le.2 $ h _ hμ,
 assume s hs, by rw [Inf_apply hs, ← to_outer_measure_apply]; exact this s
@@ -660,7 +660,7 @@ instance : complete_lattice (measure α) :=
     by cases s.eq_empty_or_nonempty with h  h;
       simp [h, to_measure_apply ⊤ _ hs, outer_measure.top_apply],
 -/
-  .. complete_lattice_of_Inf (measure α) (λ ms, ⟨λ _, Inf_le, λ _, le_Inf⟩) }
+  .. complete_lattice_of_Inf (measure α) (λ ms, ⟨λ _, measure_Inf_le, λ _, measure_le_Inf⟩) }
 
 end Inf
 
@@ -951,6 +951,25 @@ lemma restrict_sUnion_congr {S : set (set α)} (hc : countable S) (hm : ∀ s �
   μ.restrict (⋃₀ S) = ν.restrict (⋃₀ S) ↔ ∀ s ∈ S, μ.restrict s = ν.restrict s :=
 by rw [sUnion_eq_bUnion, restrict_bUnion_congr hc hm]
 
+/-- This lemma shows that `restrict` and `to_outer_measure` commute. Note that the LHS has a
+restrict on measures and the RHS has a restrict on outer measures. -/
+lemma restrict_to_outer_measure_eq_to_outer_measure_restrict {s : set α} (h : is_measurable s) :
+    (μ.restrict s).to_outer_measure = outer_measure.restrict s μ.to_outer_measure :=
+by simp_rw [restrict, restrictₗ, lift_linear, linear_map.coe_mk, to_measure_to_outer_measure,
+  outer_measure.restrict_trim_of_trimmed h μ.trimmed]
+
+/-- This lemma shows that `Inf` and `restrict` commute for measures. -/
+lemma restrict_Inf_eq_Inf_restrict {m : set (measure α)} {t : set α}
+  (h_nonempty : m.nonempty) (ht : is_measurable t) :
+  (Inf m).restrict t = Inf ((λ μ : measure α, μ.restrict t) '' m) :=
+begin
+  ext1 s hs,
+  simp_rw [Inf_apply hs, restrict_apply hs, Inf_apply (is_measurable.inter hs ht), set.image_image,
+    restrict_to_outer_measure_eq_to_outer_measure_restrict ht, ← set.image_image _ to_outer_measure,
+    ← outer_measure.restrict_Inf_eq_Inf_restrict _ (h_nonempty.image _),
+    outer_measure.restrict_apply]
+end
+
 /-! ### Extensionality results -/
 
 /-- Two measures are equal if they have equal restrictions on a spanning collection of sets
@@ -979,34 +998,6 @@ lemma ext_iff_of_sUnion_eq_univ {S : set (set α)} (hc : countable S)
 ext_iff_of_bUnion_eq_univ hc hm $ by rwa ← sUnion_eq_bUnion
 
 alias ext_iff_of_sUnion_eq_univ ↔ _ measure_theory.measure.ext_of_sUnion_eq_univ
-
-/--This lemma shows that `restrict` and `to_outer_measure` commute. Note that the LHS has a
-restrict on measures and the RHS has a restrict on outer measures. -/
-lemma restrict_to_outer_measure_eq_to_outer_measure_restrict  {s : set α} (h : is_measurable s) :
-    (μ.restrict s).to_outer_measure = outer_measure.restrict s (μ.to_outer_measure) :=
-begin
-  ext1 t,
-  rw [outer_measure.restrict_apply, restrict, restrictₗ, coe_to_outer_measure, lift_linear,
-    linear_map.coe_mk, ← outer_measure.measure_of_eq_coe, ← coe_to_outer_measure,
-    to_measure_to_outer_measure, outer_measure.restrict_trimmed_of_trimmed h,
-    outer_measure.measure_of_eq_coe, outer_measure.restrict_apply, coe_to_outer_measure],
-  rw [μ.trimmed],
-end
-
-/--This lemma shows that `Inf` and `restrict` commute for measures. -/
-lemma restrict_Inf_eq_Inf_restrict {m : set (measure α)} {t : set α}
-  (h_nonempty : m.nonempty) (h_meas_t : is_measurable t) :
-  (Inf m).restrict t = Inf ((λ μ : measure α, μ.restrict t) '' m) :=
-begin
-  ext1 s h_meas_s,
-  have h_image_comm : (λ (x : measure α), (x.restrict t).to_outer_measure) =
-    (λ (x : measure α), (outer_measure.restrict t) x.to_outer_measure),
-  { ext1 x, rw restrict_to_outer_measure_eq_to_outer_measure_restrict h_meas_t },
-  rw [Inf_apply h_meas_s, restrict_apply h_meas_s, Inf_apply (is_measurable.inter h_meas_s h_meas_t),
-    set.image_image, h_image_comm, ← set.image_image _ to_outer_measure,
-    ← outer_measure.restrict_Inf_eq_Inf_restrict _, outer_measure.restrict_apply],
-  apply set.nonempty_image_iff.mpr h_nonempty,
-end
 
 lemma ext_of_generate_from_of_cover {S T : set (set α)}
   (h_gen : ‹_› = generate_from S) (hc : countable T)
@@ -1408,7 +1399,8 @@ ne_of_lt (measure_lt_top μ s)
 
 /-- `le_of_add_le_add_left` is normally applicable to `ordered_cancel_add_comm_monoid`,
 but it holds for measures with the additional assumption that μ is finite. -/
-lemma measure.le_of_add_le_add_left {μ ν₁ ν₂ : measure α} [finite_measure μ] (A2 : μ + ν₁ ≤ μ + ν₂) : ν₁ ≤ ν₂ :=
+lemma measure.le_of_add_le_add_left {μ ν₁ ν₂ : measure α} [finite_measure μ]
+  (A2 : μ + ν₁ ≤ μ + ν₂) : ν₁ ≤ ν₂ :=
 λ S B1, ennreal.le_of_add_le_add_left (measure_theory.measure_lt_top μ S) (A2 S B1)
 
 @[priority 100]

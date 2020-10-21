@@ -811,7 +811,7 @@ section update
 def update_row [decidable_eq n] (M : matrix n m α) (i : n) (b : m → α) : matrix n m α :=
 function.update M i b
 
-/-- Update, i.e. replace the `i`th column of matrix `A` with the values in `b`. -/
+/-- Update, i.e. replace the `j`th column of matrix `A` with the values in `b`. -/
 def update_column [decidable_eq m] (M : matrix n m α) (j : m) (b : n → α) : matrix n m α :=
 λ i, function.update (M i) j (b i)
 

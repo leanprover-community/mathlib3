@@ -2,6 +2,9 @@ import field_theory.normal
 import field_theory.primitive_element
 import field_theory.fixed
 
+noncomputable theory
+open_locale classical
+
 section
 
 variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
@@ -16,7 +19,6 @@ instance is_galois_of_fixed_field (G : Type*) [group G] [fintype G] [mul_semirin
 lemma lem1 [finite_dimensional F E] (h : is_galois F E) :
   ∃ p : polynomial F, p.separable ∧ p.is_splitting_field F E :=
 begin
-  haveI : decidable_eq E := classical.dec_eq E,
   cases field.exists_primitive_element h.1 with α h1,
   cases h.1 α with h2 h3,
   cases h.2 α with _ h4,
@@ -81,7 +83,7 @@ def fixing_subgroup : subgroup (E ≃ₐ[F] E) := {
   inv_mem' := λ _ hx _, (equiv.symm_apply_eq (alg_equiv.to_equiv _)).mpr (hx _).symm,
 }
 
-noncomputable def fixing_subgroup_equiv : fixing_subgroup K ≃ (E ≃ₐ[K] E) := {
+def fixing_subgroup_equiv : fixing_subgroup K ≃ (E ≃ₐ[K] E) := {
   to_fun := λ ϕ, alg_equiv.of_bijective (alg_hom.mk ϕ (alg_equiv.map_one ϕ) (alg_equiv.map_mul ϕ)
     (alg_equiv.map_zero ϕ) (alg_equiv.map_add ϕ) (ϕ.mem)) (alg_equiv.bijective ϕ),
   inv_fun := λ ϕ, ⟨alg_equiv.of_bijective (alg_hom.mk ϕ (alg_equiv.map_one ϕ) (alg_equiv.map_mul ϕ)
@@ -91,7 +93,7 @@ noncomputable def fixing_subgroup_equiv : fixing_subgroup K ≃ (E ≃ₐ[K] E) 
   right_inv := λ _, by {ext, refl},
 }
 
-lemma finite_dimensional.bijective {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
+lemma key_lemma {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
   [finite_dimensional F E] (ϕ : E →ₐ[F] E) : function.bijective ϕ :=
 begin
   have inj : function.injective ϕ.to_linear_map := ϕ.to_ring_hom.injective,
@@ -109,35 +111,31 @@ theorem fixing_subgroup_of_fixed_field [finite_dimensional F E] :
 begin
   have H_le : H ≤ (fixing_subgroup (fixed_field H)) :=
     λ ϕ ϕh x, (mul_action.mem_fixed_points E).mp (subtype.mem x) ⟨ϕ, ϕh⟩,
-  have key1 := fixing_subgroup_equiv (fixed_field H),
-  have key2 := fixed_points.to_alg_hom_equiv H E,
-  have key3 : (E ≃ₐ[fixed_field H] E) ≃ (E →ₐ[mul_action.fixed_points H E] E) := {
-    to_fun := λ ϕ, alg_hom.mk ϕ ϕ.map_one ϕ.map_mul ϕ.map_zero ϕ.map_add ϕ.commutes,
-    inv_fun := λ ϕ, alg_equiv.of_bijective
-      (alg_hom.mk ϕ ϕ.map_one ϕ.map_mul ϕ.map_zero ϕ.map_add ϕ.commutes) begin
-        have inj : function.injective ϕ.to_linear_map := ϕ.to_ring_hom.injective,
-        have rank_nullity := linear_map.findim_range_add_findim_ker (ϕ.to_linear_map),
-        rw [linear_map.ker_eq_bot_of_injective inj, findim_bot, add_zero] at rank_nullity,
-        have key : finite_dimensional.findim (mul_action.fixed_points H E)
-          (ϕ.to_linear_map.range) =
-          finite_dimensional.findim (mul_action.fixed_points H E)
-          (⊤ : submodule (mul_action.fixed_points H E) E),
-          { rw rank_nullity,
-            library_search,},
-        have tada := finite_dimensional.eq_of_le_of_findim_eq,
-      sorry,
-    end,
+  suffices : function.bijective (set.inclusion H_le),
+  { symmetry,
+    apply le_antisymm H_le,
+    intros ϕ hϕ,
+    cases this.2 ⟨ϕ, hϕ⟩ with ψ,
+    cases ψ with ψ hψ,
+    rw [←subtype.coe_mk ϕ hϕ, ←h],
+    exact hψ },
+  suffices : (fixing_subgroup (fixed_field H)) ≃ H,
+  { exact (fintype.bijective_iff_injective_and_card (set.inclusion H_le)).mpr
+    ⟨set.inclusion_injective H_le, (fintype.card_congr this).symm⟩ },
+  apply equiv.trans (fixing_subgroup_equiv (fixed_field H)),
+  symmetry,
+  apply equiv.trans (fixed_points.to_alg_hom_equiv H E),
+  exact
+  { to_fun := λ ϕ, alg_equiv.of_bijective
+      (alg_hom.mk ϕ ϕ.map_one ϕ.map_mul ϕ.map_zero ϕ.map_add ϕ.commutes)
+      (by { have key := key_lemma ϕ, exact key }),
+    inv_fun := λ ϕ, alg_hom.mk ϕ ϕ.map_one ϕ.map_mul ϕ.map_zero ϕ.map_add ϕ.commutes,
     left_inv := λ _, by {ext, refl},
-    right_inv := λ _, by {ext, refl},
-  },
-  have key4 : (fixing_subgroup (fixed_field H)) ≃ H := equiv.trans (equiv.trans key1 key3) key2.trans,
-  have key5 := (fintype.bijective_iff_injective_and_card (set.inclusion H_le)).mpr,
-  sorry,
+    right_inv := λ _, by {ext, refl} },
 end
 
-/-lemma findim_fixed_field_eq_card [finite_dimensional F E] :
+lemma findim_fixed_field_eq_card [finite_dimensional F E] :
   finite_dimensional.findim (fixed_field H) E = fintype.card H :=
-fixed_points.findim_eq_card H E-/
-
+fixed_points.findim_eq_card H E
 
 end galois_correspondence

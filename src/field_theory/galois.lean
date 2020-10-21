@@ -113,10 +113,6 @@ begin
   cases h with p hp,
   haveI := hp.2,
   haveI := polynomial.is_splitting_field.finite_dimensional E p,
-  haveI := alg_hom.fintype F E,
-  haveI := fintype.of_injective (@alg_equiv.to_alg_hom F E E _ _ _ _ _)
-    (λ _ _ h, alg_equiv.ext (alg_hom.ext_iff.mp h)),
-  haveI := fixed_points.finite_dimensional (E ≃ₐ[F] E) E,
   have key := aut_fixed_field_findim_eq_card F E,
 end
 

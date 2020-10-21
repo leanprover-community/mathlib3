@@ -163,9 +163,7 @@ variables {A}
 lemma of_surjective (f : A →+* B) (hf : surjective f) : f.finite :=
 begin
   letI := f.to_algebra,
-  show module.finite A B,
-  let f' : A →ₐ[A] B := { to_fun := f, commutes' := λ a, rfl, .. f },
-  exact module.finite.of_surjective f'.to_linear_map hf
+  exact module.finite.of_surjective (algebra.of_id A B).to_linear_map hf
 end
 
 lemma comp {g : B →+* C} {f : A →+* B} (hg : g.finite) (hf : f.finite) : (g.comp f).finite :=

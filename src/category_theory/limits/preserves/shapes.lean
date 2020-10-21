@@ -149,6 +149,11 @@ def preserves_equalizers_iso [has_equalizer f g] [has_equalizer (G.map f) (G.map
   G.obj (equalizer f g) ≅ equalizer (G.map f) (G.map g) :=
 is_limit.cone_point_unique_up_to_iso (preserves_the_equalizer G f g) (limit.is_limit _)
 
+lemma preserves_equalizers_iso_hom [has_equalizer f g] [has_equalizer (G.map f) (G.map g)]
+  [preserves_limit (parallel_pair f g) G] :
+  (preserves_equalizers_iso G f g).hom = equalizer_comparison G f g :=
+rfl
+
 end fork
 
 namespace terminal

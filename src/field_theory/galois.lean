@@ -16,7 +16,7 @@ instance is_galois_of_fixed_field (G : Type*) [group G] [fintype G] [mul_semirin
   is_galois (mul_action.fixed_points G E) E :=
 ⟨fixed_points.separable G E, fixed_points.normal G E⟩
 
-lemma lem1 [finite_dimensional F E] (h : is_galois F E) :
+lemma is_separable_splitting_field_of_is_galois [finite_dimensional F E] (h : is_galois F E) :
   ∃ p : polynomial F, p.separable ∧ p.is_splitting_field F E :=
 begin
   cases field.exists_primitive_element h.1 with α h1,

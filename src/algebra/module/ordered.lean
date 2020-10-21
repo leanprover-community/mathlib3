@@ -84,7 +84,7 @@ end ordered_semimodule
 `ordered_semimodule`. Moreover, it suffices to verify that `a < b` and `0 < c` imply
 `c • a ≤ c • b`. We have no semifields in `mathlib`, so we use the assumption `∀ c ≠ 0, is_unit c`
 instead. -/
-def ordered_semimodule.mk'' {R M : Type*} [linear_ordered_semiring R] [ordered_add_comm_monoid M]
+lemma ordered_semimodule.mk'' {R M : Type*} [linear_ordered_semiring R] [ordered_add_comm_monoid M]
   [semimodule R M] (hR : ∀ {c : R}, c ≠ 0 → is_unit c)
   (hlt : ∀ ⦃a b : M⦄ ⦃c : R⦄, a < b → 0 < c → c • a ≤ c • b) :
   ordered_semimodule R M :=
@@ -103,7 +103,7 @@ end
 
 /-- If `R` is a linear ordered field, then it suffices to verify only the first axiom of
 `ordered_semimodule`. -/
-def ordered_semimodule.mk' {k M : Type*} [linear_ordered_field k] [ordered_add_comm_monoid M]
+lemma ordered_semimodule.mk' {k M : Type*} [linear_ordered_field k] [ordered_add_comm_monoid M]
   [semimodule k M] (hlt : ∀ ⦃a b : M⦄ ⦃c : k⦄, a < b → 0 < c → c • a ≤ c • b) :
   ordered_semimodule k M :=
 ordered_semimodule.mk'' (λ c hc, is_unit.mk0 _ hc) hlt

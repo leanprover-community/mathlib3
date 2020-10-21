@@ -5,6 +5,8 @@ import field_theory.fixed
 noncomputable theory
 open_locale classical
 
+open finite_dimensional
+
 section
 
 variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
@@ -16,27 +18,6 @@ instance is_galois_of_fixed_field (G : Type*) [group G] [fintype G] [mul_semirin
   is_galois (mul_action.fixed_points G E) E :=
 ⟨fixed_points.separable G E, fixed_points.normal G E⟩
 
-lemma is_separable_splitting_field_of_is_galois [finite_dimensional F E] [h : is_galois F E] :
-  ∃ p : polynomial F, p.separable ∧ p.is_splitting_field F E :=
-begin
-  cases field.exists_primitive_element h.1 with α h1,
-  cases h.1 α with h2 h3,
-  cases h.2 α with _ h4,
-  use minimal_polynomial h2,
-  split,
-  { exact h3 },
-  { split,
-    { exact h4 },
-    { rw [eq_top_iff, ←intermediate_field.top_to_subalgebra, ←h1],
-      rw intermediate_field.adjoin_simple_to_subalgebra_of_integral F α h2,
-      apply algebra.adjoin_mono,
-      rw [set.singleton_subset_iff, finset.mem_coe, multiset.mem_to_finset, polynomial.mem_roots],
-      { dsimp only [polynomial.is_root],
-        rw [polynomial.eval_map, ←polynomial.aeval_def],
-        exact minimal_polynomial.aeval h2 },
-      { exact polynomial.map_ne_zero (minimal_polynomial.ne_zero h2) } } }
-end
-
 instance aut : group (E ≃ₐ[F] E) := {
     mul := λ ϕ ψ, ψ.trans ϕ,
     mul_assoc := λ ϕ ψ χ, rfl,
@@ -46,6 +27,13 @@ instance aut : group (E ≃ₐ[F] E) := {
     inv := alg_equiv.symm,
     mul_left_inv := λ ϕ, by {ext, exact alg_equiv.symm_apply_apply ϕ a},
 }
+
+lemma is_galois_implies_card_aut_eq_findim [finite_dimensional F E] [h : is_galois F E] :
+  fintype.card (E ≃ₐ[F] E) = findim F E :=
+begin
+  cases field.exists_primitive_element h.1 with α hα,
+  sorry,
+end
 
 end
 
@@ -91,7 +79,7 @@ def fixed_field : intermediate_field F E := {
 }
 
 lemma findim_fixed_field_eq_card [finite_dimensional F E] :
-  finite_dimensional.findim (fixed_field H) E = fintype.card H :=
+  findim (fixed_field H) E = fintype.card H :=
 fixed_points.findim_eq_card H E
 
 def fixing_subgroup : subgroup (E ≃ₐ[F] E) := {
@@ -120,7 +108,7 @@ begin
   rw ← @findim_top F E _ _ _ at rank_nullity,
   split,
   { exact inj },
-  { exact linear_map.range_eq_top.mp (finite_dimensional.eq_of_le_of_findim_eq
+  { exact linear_map.range_eq_top.mp (eq_of_le_of_findim_eq
     (@le_top (submodule F E) _ ϕ.to_linear_map.range) rank_nullity) },
 end
 
@@ -146,19 +134,77 @@ begin
     right_inv := λ _, by {ext, refl} },
 end
 
+instance alg_instance : algebra K (fixed_field (fixing_subgroup K)) := {
+  smul := λ x y, ⟨x*y, begin
+    intros ϕ,
+    have hx : ϕ • ↑x = ↑x := subtype.mem ϕ x,
+    have hy : ϕ • ↑y = ↑y := subtype.mem y ϕ,
+    rw [smul_mul', hx, hy],
+  end⟩,
+  to_fun := λ x, ⟨x, λ ϕ, subtype.mem ϕ x⟩,
+  map_zero' := rfl,
+  map_add' := λ _ _, rfl,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl,
+  commutes' := λ _ _, mul_comm _ _,
+  smul_def' := λ _ _, rfl,
+}
+
+instance tower_instance : is_scalar_tower K (fixed_field (fixing_subgroup K)) E := {
+  smul_assoc := λ _ _ _, mul_assoc _ _ _,
+}
+
 theorem fixed_field_of_fixing_subgroup [finite_dimensional F E] [h : is_galois F E] :
   fixed_field (fixing_subgroup K) = K :=
 begin
   have le_K : K ≤ fixed_field (fixing_subgroup K) :=
     λ x hx ϕ, subtype.mem ϕ (⟨x, hx⟩ : K),
-
-
-  replace h := galois_of_tower_top K,
-  haveI : finite_dimensional K E := sorry,
-  cases field.exists_primitive_element h.1 with α hα,
-  cases h.2 α with hi hs,
-  /-roadmap : prove that the number of F-automorphisms of F⟮α⟯ equals
-    the number of roots of the minimal polynomial -/
+  haveI : finite_dimensional K E := sorry,/- These three sorries should be proved with general fact
+                                               about intermediate_fields -/
+  haveI : finite_dimensional K (fixed_field (fixing_subgroup K)) := sorry,
+  haveI : finite_dimensional (fixed_field (fixing_subgroup K)) E := sorry,
+  suffices : findim K E = findim (fixed_field (fixing_subgroup K)) E,
+  { rw ← findim_mul_findim K (fixed_field (fixing_subgroup K)) E at this,
+    have key := (nat.mul_left_eq_self_iff findim_pos).mp this,
+    have key' := subalgebra.findim_eq_one_iff.mp,
+    sorry,
+    sorry,
+    sorry,
+    sorry,
+    sorry,
+    sorry,
+    sorry, },
+  rw findim_fixed_field_eq_card,
+  haveI := galois_of_tower_top K,
+  rw fintype.card_congr (fixing_subgroup_equiv K),
+  exact (is_galois_implies_card_aut_eq_findim K E).symm,
 end
 
 end galois_correspondence
+
+section galois_equivalent_definitions
+
+variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
+
+lemma is_separable_splitting_field_of_is_galois [finite_dimensional F E] [h : is_galois F E] :
+  ∃ p : polynomial F, p.separable ∧ p.is_splitting_field F E :=
+begin
+  cases field.exists_primitive_element h.1 with α h1,
+  cases h.1 α with h2 h3,
+  cases h.2 α with _ h4,
+  use minimal_polynomial h2,
+  split,
+  { exact h3 },
+  { split,
+    { exact h4 },
+    { rw [eq_top_iff, ←intermediate_field.top_to_subalgebra, ←h1],
+      rw intermediate_field.adjoin_simple_to_subalgebra_of_integral F α h2,
+      apply algebra.adjoin_mono,
+      rw [set.singleton_subset_iff, finset.mem_coe, multiset.mem_to_finset, polynomial.mem_roots],
+      { dsimp only [polynomial.is_root],
+        rw [polynomial.eval_map, ←polynomial.aeval_def],
+        exact minimal_polynomial.aeval h2 },
+      { exact polynomial.map_ne_zero (minimal_polynomial.ne_zero h2) } } }
+end
+
+end galois_equivalent_definitions

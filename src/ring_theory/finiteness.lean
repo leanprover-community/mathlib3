@@ -106,7 +106,7 @@ lemma self : finite_type R R := ⟨{1}, subsingleton.elim _ _⟩
 
 section
 open_locale classical
-attribute [elab_as_eliminator] mv_polynomial.induction_on'
+
 protected lemma mv_polynomial (ι : Type*) [fintype ι] : finite_type R (mv_polynomial ι R) :=
 ⟨finset.univ.image mv_polynomial.X, begin
   rw eq_top_iff, refine λ p, mv_polynomial.induction_on' p

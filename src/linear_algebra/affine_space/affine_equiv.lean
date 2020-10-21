@@ -80,6 +80,14 @@ include V₁
   linear := linear_equiv.refl k V₁,
   map_vadd' := λ _ _, rfl }
 
+@[simp] lemma coe_refl : ⇑(refl k P₁) = id := rfl
+
+lemma refl_apply (x : P₁) : refl k P₁ x = x := rfl
+
+@[simp] lemma to_equiv_refl : (refl k P₁).to_equiv = equiv.refl P₁ := rfl
+
+@[simp] lemma linear_refl : (refl k P₁).linear = linear_equiv.refl k V₁ := rfl
+
 variables {k P₁}
 
 include V₂
@@ -158,7 +166,11 @@ e.to_equiv.apply_eq_iff_eq_symm_apply
 @[simp] lemma apply_eq_iff_eq (e : P₁ ≃ᵃ[k] P₂) {p₁ p₂ : P₁} : e p₁ = e p₂ ↔ p₁ = p₂ :=
 e.to_equiv.apply_eq_iff_eq
 
-include V₃
+omit V₂
+
+@[simp] lemma symm_refl : (refl k P₁).symm = refl k P₁ := rfl
+
+include V₂ V₃
 
 /-- Composition of two `affine_equiv`alences, applied left to right. -/
 @[trans] def trans (e : P₁ ≃ᵃ[k] P₂) (e' : P₂ ≃ᵃ[k] P₃) : P₁ ≃ᵃ[k] P₃ :=
@@ -209,6 +221,8 @@ lemma one_def : (1 : P₁ ≃ᵃ[k] P₁) = refl k P₁ := rfl
 lemma mul_def (e e' : P₁ ≃ᵃ[k] P₁) : e * e' = e'.trans e := rfl
 
 @[simp] lemma coe_mul (e e' : P₁ ≃ᵃ[k] P₁) : ⇑(e * e') = e ∘ e' := rfl
+
+lemma inv_def (e : P₁ ≃ᵃ[k] P₁) : e⁻¹ = e.symm := rfl
 
 variable (k)
 

@@ -267,6 +267,12 @@ mem_image2_of_mem hs ht
   s -ᵥ t ⊆ s' -ᵥ t' :=
 image2_subset hs ht
 
+lemma image_vsub_const_subset_vsub {x : P} (hx : x ∈ t) : (-ᵥ x) '' s ⊆ s -ᵥ t :=
+image_subset_image2_right hx
+
+lemma image_const_vsub_subset_vsub {x : P} (hx : x ∈ s) : ((-ᵥ) x) '' t ⊆ s -ᵥ t :=
+image_subset_image2_left hx
+
 lemma vsub_self_mono (h : s ⊆ t) : s -ᵥ s ⊆ t -ᵥ t := vsub_subset_vsub h h
 
 lemma vsub_subset_iff {u : set G} : s -ᵥ t ⊆ u ↔ ∀ (x ∈ s) (y ∈ t), x -ᵥ y ∈ u :=

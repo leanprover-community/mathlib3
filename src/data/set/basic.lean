@@ -2200,9 +2200,18 @@ lemma mem_image2_iff (hf : injective2 f) : f a b ∈ image2 f s t ↔ a ∈ s �
 ⟨ by { rintro ⟨a', b', ha', hb', h⟩, rcases hf h with ⟨rfl, rfl⟩, exact ⟨ha', hb'⟩ },
   λ ⟨ha, hb⟩, mem_image2_of_mem ha hb⟩
 
+lemma mem_image2_iff' : c ∈ image2 f s t ↔ ∃ (x ∈ s) (y ∈ t), f x y = c :=
+by simp [and_assoc]
+
 /-- image2 is monotone with respect to `⊆`. -/
 lemma image2_subset (hs : s ⊆ s') (ht : t ⊆ t') : image2 f s t ⊆ image2 f s' t' :=
-by { rintro _ ⟨a, b, ha, hb, rfl⟩, exact mem_image2_of_mem (hs ha) (ht hb) }
+λ z ⟨x, y, hx, hy, hz⟩, ⟨x, y, hs hx, ht hy, hz⟩
+
+lemma image_subset_image2_left {x} (hx : x ∈ s) : (f x) '' t ⊆ image2 f s t :=
+λ z ⟨y, hy, hz⟩, ⟨x, y, hx, hy, hz⟩
+
+lemma image_subset_image2_right {y} (hy : y ∈ t) : (λ x, f x y) '' s ⊆ image2 f s t :=
+λ z ⟨x, hx, hz⟩, ⟨x, y, hx, hy, hz⟩
 
 lemma forall_image2_iff {p : γ → Prop} :
   (∀ z ∈ image2 f s t, p z) ↔ ∀ (x ∈ s) (y ∈ t), p (f x y) :=

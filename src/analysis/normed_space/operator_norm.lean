@@ -680,7 +680,7 @@ def apply (v : E) : (E →L[𝕜] F) →L[𝕜] F :=
 variables {𝕜 F}
 
 section multiplication_linear
-variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
+variables (𝕜) {𝕜' : Type*} [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
 /-- Left-multiplication in a normed algebra, considered as a continuous linear map. -/
 def lmul_left : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
@@ -695,12 +695,12 @@ def lmul_right : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
 /-- Simultaneous left- and right-multiplication in a normed algebra, considered as a continuous
 linear map. -/
 def lmul_left_right (vw : 𝕜' × 𝕜') : 𝕜' →L[𝕜] 𝕜' :=
-(lmul_right 𝕜 𝕜' vw.2).comp (lmul_left 𝕜 𝕜' vw.1)
+(lmul_right 𝕜 vw.2).comp (lmul_left 𝕜 vw.1)
 
-@[simp] lemma lmul_left_apply (x y : 𝕜') : lmul_left 𝕜 𝕜' x y = x * y := rfl
-@[simp] lemma lmul_right_apply (x y : 𝕜') : lmul_right 𝕜 𝕜' x y = y * x := rfl
+@[simp] lemma lmul_left_apply (x y : 𝕜') : lmul_left 𝕜 x y = x * y := rfl
+@[simp] lemma lmul_right_apply (x y : 𝕜') : lmul_right 𝕜 x y = y * x := rfl
 @[simp] lemma lmul_left_right_apply (vw : 𝕜' × 𝕜') (x : 𝕜') :
-  lmul_left_right 𝕜 𝕜' vw x = vw.1 * x * vw.2 := rfl
+  lmul_left_right 𝕜 vw x = vw.1 * x * vw.2 := rfl
 
 end multiplication_linear
 
@@ -903,22 +903,21 @@ continuous_linear_equiv.uniform_embedding
 namespace continuous_linear_map
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
-@[simp] lemma lmul_left_norm (v : 𝕜') : ∥lmul_left 𝕜 𝕜' v∥ = ∥v∥ :=
+@[simp] lemma lmul_left_norm (v : 𝕜') : ∥lmul_left 𝕜 v∥ = ∥v∥ :=
 begin
   refine le_antisymm _ _,
   { exact linear_map.mk_continuous_norm_le _ (norm_nonneg v) _ },
-  { simpa [@normed_algebra.norm_one 𝕜 _ 𝕜' _ _] using le_op_norm (lmul_left 𝕜 𝕜' v) (1:𝕜') }
+  { simpa [@normed_algebra.norm_one 𝕜 _ 𝕜' _ _] using le_op_norm (lmul_left 𝕜 v) (1:𝕜') }
 end
 
-@[simp] lemma lmul_right_norm (v : 𝕜') : ∥lmul_right 𝕜 𝕜' v∥ = ∥v∥ :=
+@[simp] lemma lmul_right_norm (v : 𝕜') : ∥lmul_right 𝕜 v∥ = ∥v∥ :=
 begin
   refine le_antisymm _ _,
   { exact linear_map.mk_continuous_norm_le _ (norm_nonneg v) _ },
-  { simpa [@normed_algebra.norm_one 𝕜 _ 𝕜' _ _] using le_op_norm (lmul_right 𝕜 𝕜' v) (1:𝕜') }
+  { simpa [@normed_algebra.norm_one 𝕜 _ 𝕜' _ _] using le_op_norm (lmul_right 𝕜 v) (1:𝕜') }
 end
 
-lemma lmul_left_right_norm_le (vw : 𝕜' × 𝕜') :
-  ∥lmul_left_right 𝕜 𝕜' vw∥ ≤ ∥vw.1∥ * ∥vw.2∥ :=
-by simpa [mul_comm] using op_norm_comp_le (lmul_right 𝕜 𝕜' vw.2) (lmul_left 𝕜 𝕜' vw.1)
+lemma lmul_left_right_norm_le (vw : 𝕜' × 𝕜') : ∥lmul_left_right 𝕜 vw∥ ≤ ∥vw.1∥ * ∥vw.2∥ :=
+by simpa [mul_comm] using op_norm_comp_le (lmul_right 𝕜 vw.2) (lmul_left 𝕜 vw.1)
 
 end continuous_linear_map

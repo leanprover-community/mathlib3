@@ -182,3 +182,7 @@ begin
     (do lc ← tactic.local_context, guard lc.empty),
     trivial },
 end
+
+example : bool → false → true
+| ff := by rintro ⟨⟩
+| tt := by rintro ⟨⟩

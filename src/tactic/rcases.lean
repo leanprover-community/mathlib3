@@ -655,32 +655,38 @@ with_desc "('?' expr (: n)?) | ((h :)? expr (with patt)?)" $ do
   end
 
 /--
-`rintro_patt_parse` is like `rcases_patt_parse`, but is used for parsing top level
-`rintro` patterns, which allow sequences like `(x y : t)` in addition to simple `rcases` patterns.
+`rintro_patt_parse_hi` and `rintro_patt_parse` are like `rcases_patt_parse`, but is used for
+parsing top level `rintro` patterns, which allow sequences like `(x y : t)` in addition to simple
+`rcases` patterns.
 
-* `rintro_patt_parse tt` will parse a high precedence `rcases` pattern, `patt_hi`.
+* `rintro_patt_parse_hi` will parse a high precedence `rcases` pattern, `rintro_patt_hi` below.
   This means only tuples and identifiers are allowed; alternations and type ascriptions
   require `(...)` instead, which switches to `patt`.
-* `rintro_patt_parse ff` will parse a low precedence `rcases` pattern, `patt`. This consists of
-  either a sequence of patterns `p1 p2 p3` or an alternation list `p1 | p2 | p3` treated as a
-  single pattern, optionally followed by a `: ty` type ascription, which applies to every pattern
-  in the list.
+* `rintro_patt_parse tt` will parse a low precedence `rcases` pattern, `rintro_patt` below.
+  This consists of either a sequence of patterns `p1 p2 p3` or an alternation list `p1 | p2 | p3`
+  treated as a single pattern, optionally followed by a `: ty` type ascription, which applies to
+  every pattern in the list.
+* `rintro_patt_parse ff` parses `rintro_patt_low`, which is the same as `rintro_patt_parse tt` but
+  it does not permit an unparenthesized alternation list, it must have the form `p1 p2 p3 (: ty)?`.
 
 ```lean
 rintro_patt ::= (rintro_patt_hi+ | patt_med) (":" expr)?
+rintro_patt_low ::= rintro_patt_hi* (":" expr)?
 rintro_patt_hi ::= patt_hi | "(" rintro_patt ")"
 ```
 -/
-meta def rintro_patt_parse : bool → parser (listΠ rcases_patt)
-| tt := with_desc "rintro_patt_hi" $
-  brackets "(" ")" (rintro_patt_parse ff) <|>
-  (do p ← rcases_patt_parse tt, pure [p])
-| ff := with_desc "rintro_patt" $ do
-  ll ← (rintro_patt_parse tt)*,
-  pats ← match ll.join with
-  | [] := failure
-  | [pat] := do l ← rcases_patt_parse_list_rest pat, pure [rcases_patt.alts' l]
-  | pats := pure pats
+meta mutual def rintro_patt_parse_hi, rintro_patt_parse
+with rintro_patt_parse_hi : parser (listΠ rcases_patt)
+| x := (with_desc "rintro_patt_hi" $
+  brackets "(" ")" (rintro_patt_parse tt) <|>
+  (do p ← rcases_patt_parse tt, pure [p])) x
+with rintro_patt_parse : bool → parser (listΠ rcases_patt)
+| med := with_desc "rintro_patt" $ do
+  ll ← rintro_patt_parse_hi*,
+  pats ← match med, ll.join with
+  | tt, [] := failure
+  | tt, [pat] := do l ← rcases_patt_parse_list_rest pat, pure [rcases_patt.alts' l]
+  | _, pats := pure pats
   end,
   (do tk ":", e ← texpr, pure (pats.map (λ p, rcases_patt.typed p e))) <|>
   pure pats

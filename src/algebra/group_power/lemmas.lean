@@ -375,8 +375,12 @@ by rw [pow_two, int.nat_abs_mul_self', pow_two]
 lemma abs_le_mul_self (a : ℤ) : (int.nat_abs a : ℤ) ≤ a ^ 2 :=
 by { rw [← int.nat_abs_pow_two a, pow_two], norm_cast, apply nat.le_mul_self }
 
-lemma pos_le_mul_self (b : ℤ) (h2 : 0 ≤ b) : b ≤ b ^ 2 :=
-by { rw pow_two, lift b to ℕ using h2, norm_cast, apply nat.le_mul_self }
+lemma le_mul_self (b : ℤ) : b ≤ b ^ 2 :=
+begin
+  by_cases h : 0 ≤ b,
+  { rw pow_two, lift b to ℕ using h, norm_cast, apply nat.le_mul_self },
+  { exact le_trans (le_of_lt (not_le.mp h)) (pow_two_nonneg b) }
+end
 
 end int
 

@@ -289,7 +289,7 @@ begin
   { apply int.coe_nat_lt.mp, rw ← (int.eq_nat_abs_of_zero_le (le_of_lt hc)),
     apply gt_of_gt_of_ge _ (int.abs_le_mul_self i),
     rw [← hi, ht3],
-    apply gt_of_gt_of_ge _ (int.pos_le_mul_self m ht6),
+    apply gt_of_gt_of_ge _ (int.le_mul_self m),
     exact lt_add_of_pos_right (m ^ 2) (pow_two_pos_of_ne_zero n hn) },
   have hic' : int.nat_abs c ≤ int.nat_abs i,
   { apply (h.2 j k i),

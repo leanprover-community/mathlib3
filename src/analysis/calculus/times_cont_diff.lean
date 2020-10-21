@@ -2335,7 +2335,7 @@ begin
         exact (inverse_continuous_at x').continuous_within_at },
       { simp [ftaylor_series_within] } } },
   { apply times_cont_diff_at_succ_iff_has_fderiv_at.mpr,
-    refine ⟨λ (x : R), - lmul_left_right 𝕜 R (inverse x, inverse x), _, _⟩,
+    refine ⟨λ (x : R), - lmul_left_right 𝕜 (inverse x, inverse x), _, _⟩,
     { refine ⟨{y : R | is_unit y}, x.nhds, _⟩,
       intros y hy,
       cases mem_set_of_eq.mp hy with y' hy',

@@ -96,8 +96,8 @@ let tooltip_comp :=
    component.with_should_update 
    (λ (x y : tactic_state × expr × expr.address), x.2.2 ≠ y.2.2)
    $ component.map_action (action.on_tooltip_action) tooltip in
-component.filter_map_action
-  (λ _ (a : γ ⊕ widget.effect), sum.cases_on a some (λ _, none))
+   component.filter_map_action
+   (λ _ (a : γ ⊕ widget.effect), sum.cases_on a some (λ _, none))
 $ component.with_effects (λ _ (a : γ ⊕ widget.effect),
   match a with
   | (sum.inl g) := []
@@ -186,10 +186,10 @@ return $ [h "td" [cn "ba bg-dark-green tc"] "ID",
 
 meta def rule_row : thm →  tactic (list (html empty))
 | (thm.expr e) := do t ← explode_widget.show_constant_component e,
-return $ [h "td" [cn "ba bg-dark-green tc"] "Rule", 
-          h "td" [cn "ba tc"] t]
+                     return $ [h "td" [cn "ba bg-dark-green tc"] "Rule", 
+                               h "td" [cn "ba tc"] t]
 | t := return $ [h "td" [cn "ba bg-dark-green tc"] "Rule", 
-          h "td" [cn "ba tc"] t.to_string]
+                 h "td" [cn "ba tc"] t.to_string]
 
 meta def proof_row {γ} (args : list (html γ)): list (html γ) := 
 [h "td" [cn "ba bg-dark-green tc"] "Proofs", h "td" [cn "ba tc"] 
@@ -255,6 +255,5 @@ do ⟨li,co⟩ ← cur_pos,
     trace "successfully rendered widget",
     skip
     .
-
 
 end tactic

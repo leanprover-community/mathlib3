@@ -257,6 +257,13 @@ lemma single_eq_zero : single a b = 0 ↔ b = 0 :=
 lemma single_swap (a₁ a₂ : α) (b : M) : single a₁ b a₂ = single a₂ b a₁ :=
 by simp only [single_apply]; ac_refl
 
+instance [nonempty α] [nontrivial M] : nontrivial (α →₀ M) :=
+begin
+  inhabit α,
+  rcases exists_ne (0 : M) with ⟨x, hx⟩,
+  exact nontrivial_of_ne (single (default α) x) 0 (mt single_eq_zero.1 hx)
+end
+
 lemma unique_single [unique α] (x : α →₀ M) : x = single (default α) (x (default α)) :=
 ext $ unique.forall_iff.2 single_eq_same.symm
 
@@ -844,6 +851,18 @@ have hfg : (f + g).prod h = ∏ a in f.support ∪ g.support, h a ((f + g) a),
   from (f + g).prod_of_support_subset support_add _ $ λ a ha, h_zero a,
 by simp only [*, add_apply, prod_mul_distrib]
 
+@[simp]
+lemma sum_add_index' [add_comm_monoid M] [add_comm_monoid N] {f g : α →₀ M} (h : α → M →+ N) :
+  (f + g).sum (λ x, h x) = f.sum (λ x, h x) + g.sum (λ x, h x) :=
+sum_add_index (λ a, (h a).map_zero) (λ a, (h a).map_add)
+
+@[simp]
+lemma prod_add_index' [add_comm_monoid M] [comm_monoid N] {f g : α →₀ M}
+  (h : α → multiplicative M →* N) :
+  (f + g).prod (λ a b, h a (multiplicative.of_add b)) =
+    f.prod (λ a b, h a (multiplicative.of_add b)) * g.prod (λ a b, h a (multiplicative.of_add b)) :=
+prod_add_index (λ a, (h a).map_one) (λ a, (h a).map_mul)
+
 /-- The canonical isomorphism between families of additive monoid homomorphisms `α → (M →+ N)`
 and monoid homomorphisms `(α →₀ M) →+ N`. -/
 def lift_add_hom [add_comm_monoid M] [add_comm_monoid N] : (α → M →+ N) ≃+ ((α →₀ M) →+ N) :=
@@ -879,6 +898,22 @@ lift_add_hom.to_equiv.apply_eq_iff_eq_symm_apply.2 rfl
   f.sum single = f :=
 add_monoid_hom.congr_fun lift_add_hom_single_add_hom f
 
+@[simp] lemma lift_add_hom_apply_single [add_comm_monoid M] [add_comm_monoid N]
+  (f : α → M →+ N) (a : α) (b : M) :
+  lift_add_hom f (single a b) = f a b :=
+sum_single_index (f a).map_zero
+
+@[simp] lemma lift_add_hom_comp_single [add_comm_monoid M] [add_comm_monoid N] (f : α → M →+ N)
+  (a : α) :
+  (lift_add_hom f).comp (single_add_hom a) = f a :=
+add_monoid_hom.ext $ λ b, lift_add_hom_apply_single f a b
+
+lemma comp_lift_add_hom [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
+  (g : N →+ P) (f : α → M →+ N) :
+  g.comp (lift_add_hom f) = lift_add_hom (λ a, g.comp (f a)) :=
+lift_add_hom.symm_apply_eq.1 $ funext $ λ a,
+  by rw [lift_add_hom_symm_apply, add_monoid_hom.comp_assoc, lift_add_hom_comp_single]
+
 lemma sum_sub_index [add_comm_group β] [add_comm_group γ] {f g : α →₀ β}
   {h : α → β → γ} (h_sub : ∀a b₁ b₂, h a (b₁ - b₂) = h a b₁ - h a b₂) :
   (f - g).sum h = f.sum h - g.sum h :=
@@ -907,6 +942,11 @@ lemma prod_sum_index
   {h : β → N → P} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (f.sum g).prod h = f.prod (λa b, (g a b).prod h) :=
 (prod_finset_sum_index h_zero h_add).symm
+
+@[simp] lemma sum_sum_index' [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
+  {f : α →₀ M} {g : α → M → β →₀ N} (h : β → N →+ P) :
+  (f.sum g).sum (λ x, h x) = f.sum (λ a b, (g a b).sum (λ x, h x)) :=
+sum_sum_index (λ a, (h a).map_zero) (λ a, (h a).map_add)
 
 lemma multiset_sum_sum_index
   [add_comm_monoid M] [add_comm_monoid N]

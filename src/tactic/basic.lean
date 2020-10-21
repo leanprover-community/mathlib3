@@ -34,4 +34,5 @@ import tactic.squeeze
 import tactic.suggest
 import tactic.tauto
 import tactic.trunc_cases
+import tactic.unify_equations
 import tactic.where

@@ -123,6 +123,10 @@ lemma subset_adjoin_of_subset_left {F : subfield E} {T : set E} (HT : T ⊆ F) :
 lemma subset_adjoin_of_subset_right {T : set E} (H : T ⊆ S) : T ⊆ adjoin F S :=
 λ x hx, subset_adjoin F S (H hx)
 
+@[simp] lemma adjoin_empty (F E : Type*) [field F] [field E] [algebra F E] :
+  adjoin F (∅ : set E) = ⊥ :=
+eq_bot_iff.mpr (adjoin_le_iff.mpr (set.empty_subset _))
+
 /-- If `K` is a field with `F ⊆ K` and `S ⊆ K` then `adjoin F S ≤ K`. -/
 lemma adjoin_le_subfield {K : subfield E} (HF : set.range (algebra_map F E) ⊆ K)
   (HS : S ⊆ K) : (adjoin F S).to_subfield ≤ K :=
@@ -152,6 +156,13 @@ begin
             (subset_adjoin _ _) },
 end
 
+@[simp] lemma adjoin_insert_adjoin (x : E) :
+  adjoin F (insert x (adjoin F S : set E)) = adjoin F (insert x S) :=
+le_antisymm
+  (adjoin_le_iff.mpr (set.insert_subset.mpr ⟨subset_adjoin _ _ (set.mem_insert _ _),
+   adjoin_le_iff.mpr (subset_adjoin_of_subset_right _ _ (set.subset_insert _ _))⟩))
+  (adjoin.mono _ _ _ (set.insert_subset_insert (subset_adjoin _ _)))
+
 /-- `F[S][T] = F[T][S]` -/
 lemma adjoin_adjoin_comm (T : set E) :
   ↑(adjoin (adjoin F S) T) = (↑(adjoin (adjoin F T) S) : (intermediate_field F E)) :=
@@ -171,11 +182,25 @@ end
 lemma algebra_adjoin_le_adjoin : algebra.adjoin F S ≤ (adjoin F S).to_subalgebra :=
 algebra.adjoin_le (subset_adjoin _ _)
 
-lemma adjoin_le_algebra_adjoin (inv_mem : ∀ x ∈ algebra.adjoin F S, x⁻¹ ∈ algebra.adjoin F S) :
-  (adjoin F S).to_subalgebra ≤ algebra.adjoin F S :=
-show adjoin F S ≤
-  { neg_mem' := λ x, (algebra.adjoin F S).neg_mem, inv_mem' := inv_mem, .. algebra.adjoin F S},
-from adjoin_le_iff.mpr (algebra.subset_adjoin)
+lemma adjoin_eq_algebra_adjoin (inv_mem : ∀ x ∈ algebra.adjoin F S, x⁻¹ ∈ algebra.adjoin F S) :
+  (adjoin F S).to_subalgebra = algebra.adjoin F S :=
+le_antisymm
+  (show adjoin F S ≤
+      { neg_mem' := λ x, (algebra.adjoin F S).neg_mem, inv_mem' := inv_mem, .. algebra.adjoin F S},
+    from adjoin_le_iff.mpr (algebra.subset_adjoin))
+  (algebra_adjoin_le_adjoin _ _)
+
+lemma eq_adjoin_of_eq_algebra_adjoin (K : intermediate_field F E)
+  (h : K.to_subalgebra = algebra.adjoin F S) : K = adjoin F S :=
+begin
+  apply to_subalgebra_injective,
+  rw h,
+  refine (adjoin_eq_algebra_adjoin _ _ _).symm,
+  intros x,
+  convert K.inv_mem,
+  rw ← h,
+  refl
+end
 
 @[elab_as_eliminator]
 lemma adjoin_induction {s : set E} {p : E → Prop} {x} (h : x ∈ adjoin F s)
@@ -321,42 +346,41 @@ section induction
 
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 
+/-- An intermediate field `S` is finitely generated if there exists `t : finset E` such that
+`intermediate_field.adjoin F t = S`. -/
+def fg (S : intermediate_field F E) : Prop := ∃ (t : finset E), adjoin F ↑t = S
+
+lemma fg_adjoin_finset (t : finset E) : (adjoin F (↑t : set E)).fg :=
+⟨t, rfl⟩
+
+theorem fg_def {S : intermediate_field F E} : S.fg ↔ ∃ t : set E, set.finite t ∧ adjoin F t = S :=
+⟨λ ⟨t, ht⟩, ⟨↑t, set.finite_mem_finset t, ht⟩,
+ λ ⟨t, ht1, ht2⟩, ⟨ht1.to_finset, by rwa set.finite.coe_to_finset⟩⟩
+
+theorem fg_bot : (⊥ : intermediate_field F E).fg :=
+⟨∅, adjoin_empty F E⟩
+
+lemma fg_of_fg_to_subalgebra (S : intermediate_field F E)
+  (h : S.to_subalgebra.fg) : S.fg :=
+begin
+  cases h with t ht,
+  exact ⟨t, (eq_adjoin_of_eq_algebra_adjoin _ _ _ ht.symm).symm⟩
+end
+
+lemma fg_of_noetherian (S : intermediate_field F E)
+  [is_noetherian F E] : S.fg :=
+S.fg_of_fg_to_subalgebra S.to_subalgebra.fg_of_noetherian
+
 lemma induction_on_adjoin [fd : finite_dimensional F E] (P : intermediate_field F E → Prop)
   (base : P ⊥) (ih : ∀ (K : intermediate_field F E) (x : E), P K → P ↑K⟮x⟯)
   (K : intermediate_field F E) : P K :=
 begin
   haveI := classical.prop_decidable,
-  have induction : ∀ (s : finset E), P (adjoin F ↑s),
-  { intro s,
-    apply @finset.induction_on E (λ s, P (adjoin F ↑s)) _ s base,
-    intros a t _ h,
-    rw [finset.coe_insert, ←set.union_singleton, ←adjoin_adjoin_left],
-    exact ih (adjoin F ↑t) a h },
-  cases finite_dimensional.iff_fg.mp (intermediate_field.finite_dimensional K) with s hs,
-  suffices : adjoin F ↑(finset.image coe s) = K,
-  { rw ←this, exact induction (s.image coe) },
-  apply le_antisymm,
-  { rw adjoin_le_iff,
-    intros x hx,
-    rcases finset.mem_image.mp (finset.mem_coe.mp hx) with ⟨y, _, hy⟩,
-    rw ←hy,
-    exact subtype.mem y, },
-  { change K.to_subalgebra.to_submodule ≤ (adjoin F _).to_subalgebra.to_submodule,
-    suffices step : submodule.span F _ = K.to_subalgebra.to_submodule,
-    { rw ← step,
-      exact submodule.span_le.mpr (subset_adjoin F ↑(finset.image coe s)) },
-    have swap : coe = (⇑((val K).to_linear_map : K →ₗ[F] E) : K → E) := rfl,
-    rw [finset.coe_image, swap, submodule.span_image, hs, submodule.map_top],
-    ext,
-    split,
-    { intro hx,
-      rw linear_map.mem_range at hx,
-      cases hx with y hy,
-      rw [←hy, alg_hom.to_linear_map_apply],
-      exact subtype.mem y },
-    { intro hx,
-      rw linear_map.mem_range,
-      exact ⟨⟨x, hx⟩, rfl⟩ } }
+  obtain ⟨s, rfl⟩ := fg_of_noetherian K,
+  apply @finset.induction_on E (λ s, P (adjoin F ↑s)) _ s base,
+  intros a t _ h,
+  rw [finset.coe_insert, ←set.union_singleton, ←adjoin_adjoin_left],
+  exact ih (adjoin F ↑t) a h
 end
 
 end induction

@@ -275,7 +275,7 @@ def equiv_of_is_basis' {v : ι → M} {v' : ι' → M'} (f : M → M') (g : M' �
   (equiv_of_is_basis hv hv' e).trans (equiv_of_is_basis hv' hv'' f) =
   equiv_of_is_basis hv hv'' (e.trans f) :=
 begin
-  apply linear_equiv.eq_of_linear_map_eq,
+  apply linear_equiv.injective_to_linear_map,
   apply hv.ext,
   intros i,
   simp [equiv_of_is_basis]
@@ -284,7 +284,7 @@ end
 @[simp] lemma equiv_of_is_basis_refl :
   equiv_of_is_basis hv hv (equiv.refl ι) = linear_equiv.refl R M :=
 begin
-  apply linear_equiv.eq_of_linear_map_eq,
+  apply linear_equiv.injective_to_linear_map,
   apply hv.ext,
   intros i,
   simp [equiv_of_is_basis]
@@ -397,9 +397,7 @@ begin
   dsimp [finsupp.equiv_fun_on_fintype, finsupp.sum],
   rw finset.sum_filter,
   refine finset.sum_congr rfl (λi hi, _),
-  by_cases H : x i = 0,
-  { simp [H] },
-  { simp [H], refl }
+  by_cases H : x i = 0; simp [H]
 end
 
 lemma is_basis.equiv_fun_apply (u : M) : h.equiv_fun u = h.repr u := rfl

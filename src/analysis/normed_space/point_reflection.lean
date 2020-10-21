@@ -26,7 +26,7 @@ variables (R : Type*) {E : Type*}
 lemma equiv.point_reflection_fixed_iff_of_module [ring R] [invertible (2:R)]
   [add_comm_group E] [module R E] {x y : E} :
   (equiv.point_reflection x : E → E) y = y ↔ y = x :=
-equiv.point_reflection_fixed_iff_of_bit0_inj $ λ x y h,
+equiv.point_reflection_fixed_iff_of_bit0_injective $ λ x y h,
 by rw [← one_smul R x, ← one_smul R y, ← inv_of_mul_self (2:R), mul_smul, mul_smul, two_smul,
   two_smul, ← bit0, ← bit0, h]
 

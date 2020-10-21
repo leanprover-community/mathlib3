@@ -15,10 +15,6 @@ We introduce the bundled categories:
 * `CommGroup`
 * `AddCommGroup`
 along with the relevant forgetful functors between them, and to the bundled monoid categories.
-
-## Implementation notes
-
-See the note [locally reducible category instances].
 -/
 
 universes u v
@@ -37,19 +33,18 @@ namespace Group
 @[to_additive]
 instance : bundled_hom.parent_projection group.to_monoid := ⟨⟩
 
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] Group AddGroup
+
 /-- Construct a bundled `Group` from the underlying type and typeclass. -/
 @[to_additive] def of (X : Type u) [group X] : Group := bundled.of X
 
 /-- Construct a bundled `AddGroup` from the underlying type and typeclass. -/
 add_decl_doc AddGroup.of
 
-local attribute [reducible] Group
-
 @[to_additive]
-instance : has_coe_to_sort Group := infer_instance -- short-circuit type class inference
-
-@[to_additive add_group]
 instance (G : Group) : group G := G.str
+
+@[simp, to_additive] lemma coe_of (R : Type u) [group R] : (Group.of R : Type u) = R := rfl
 
 @[to_additive]
 instance : has_one Group := ⟨Group.of punit⟩
@@ -58,20 +53,14 @@ instance : has_one Group := ⟨Group.of punit⟩
 instance : inhabited Group := ⟨1⟩
 
 @[to_additive]
-instance : unique (1 : Group.{u}) :=
+instance : unique (1 : Group) :=
 { default := 1,
   uniq := λ a, begin cases a, refl, end }
 
 @[simp, to_additive]
 lemma one_apply (G H : Group) (g : G) : (1 : G ⟶ H) g = 1 := rfl
 
-@[to_additive]
-instance : category Group := infer_instance -- short-circuit type class inference
-
-@[to_additive]
-instance : concrete_category Group := infer_instance -- short-circuit type class inference
-
-@[to_additive,ext]
+@[to_additive, ext]
 lemma ext (G H : Group) (f₁ f₂ : G ⟶ H) (w : ∀ x, f₁ x = f₂ x) : f₁ = f₂ :=
 by { ext1, apply w }
 
@@ -97,34 +86,30 @@ namespace CommGroup
 @[to_additive]
 instance : bundled_hom.parent_projection comm_group.to_group := ⟨⟩
 
-/-- Construct a bundled CommGroup from the underlying type and typeclass. -/
+attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommGroup AddCommGroup
+
+/-- Construct a bundled `CommGroup` from the underlying type and typeclass. -/
 @[to_additive] def of (G : Type u) [comm_group G] : CommGroup := bundled.of G
 
-local attribute [reducible] CommGroup
+/-- Construct a bundled `AddCommGroup` from the underlying type and typeclass. -/
+add_decl_doc AddCommGroup.of
 
 @[to_additive]
-instance : has_coe_to_sort CommGroup := infer_instance -- short-circuit type class inference
-
-@[to_additive add_comm_group_instance]
 instance comm_group_instance (G : CommGroup) : comm_group G := G.str
+
+@[simp, to_additive] lemma coe_of (R : Type u) [comm_group R] : (CommGroup.of R : Type u) = R := rfl
 
 @[to_additive] instance : has_one CommGroup := ⟨CommGroup.of punit⟩
 
 @[to_additive] instance : inhabited CommGroup := ⟨1⟩
 
 @[to_additive]
-instance : unique (1 : CommGroup.{u}) :=
+instance : unique (1 : CommGroup) :=
 { default := 1,
   uniq := λ a, begin cases a, refl, end }
 
 @[simp, to_additive]
 lemma one_apply (G H : CommGroup) (g : G) : (1 : G ⟶ H) g = 1 := rfl
-
-@[to_additive]
-instance : category CommGroup := infer_instance -- short-circuit type class inference
-
-@[to_additive]
-instance : concrete_category CommGroup := infer_instance -- short-circuit type class inference
 
 @[to_additive,ext]
 lemma ext (G H : CommGroup) (f₁ f₂ : G ⟶ H) (w : ∀ x, f₁ x = f₂ x) : f₁ = f₂ :=
@@ -153,8 +138,9 @@ namespace AddCommGroup
 
 /-- Any element of an abelian group gives a unique morphism from `ℤ` sending
 `1` to that element. -/
--- TODO allow other universe levels
--- this will require writing a `ulift_instances.lean` file
+-- Note that because `ℤ : Type 0`, this forces `G : AddCommGroup.{0}`,
+-- so we write this explicitly to be clear.
+-- TODO generalize this, requiring a `ulift_instances.lean` file
 def as_hom {G : AddCommGroup.{0}} (g : G) : (AddCommGroup.of ℤ) ⟶ G :=
 gmultiples_hom G g
 
@@ -216,26 +202,18 @@ namespace category_theory.iso
 /-- Build a `mul_equiv` from an isomorphism in the category `Group`. -/
 @[to_additive AddGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category
 `AddGroup`."]
-def Group_iso_to_mul_equiv {X Y : Group.{u}} (i : X ≅ Y) : X ≃* Y :=
-{ to_fun    := i.hom,
-  inv_fun   := i.inv,
-  left_inv  := by tidy,
-  right_inv := by tidy,
-  map_mul'  := by tidy }.
+def Group_iso_to_mul_equiv {X Y : Group} (i : X ≅ Y) : X ≃* Y :=
+i.hom.to_mul_equiv i.inv i.hom_inv_id i.inv_hom_id
 
-attribute [simps] Group_iso_to_mul_equiv AddGroup_iso_to_add_equiv
+attribute [simps {rhs_md := semireducible}] Group_iso_to_mul_equiv AddGroup_iso_to_add_equiv
 
 /-- Build a `mul_equiv` from an isomorphism in the category `CommGroup`. -/
 @[to_additive AddCommGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism
 in the category `AddCommGroup`."]
-def CommGroup_iso_to_mul_equiv {X Y : CommGroup.{u}} (i : X ≅ Y) : X ≃* Y :=
-{ to_fun    := i.hom,
-  inv_fun   := i.inv,
-  left_inv  := by tidy,
-  right_inv := by tidy,
-  map_mul'  := by tidy }.
+def CommGroup_iso_to_mul_equiv {X Y : CommGroup} (i : X ≅ Y) : X ≃* Y :=
+i.hom.to_mul_equiv i.inv i.hom_inv_id i.inv_hom_id
 
-attribute [simps] CommGroup_iso_to_mul_equiv AddCommGroup_iso_to_add_equiv
+attribute [simps {rhs_md := semireducible}] CommGroup_iso_to_mul_equiv AddCommGroup_iso_to_add_equiv
 
 end category_theory.iso
 
@@ -271,3 +249,23 @@ def mul_equiv_perm {α : Type u} : Aut α ≃* equiv.perm α :=
 iso_perm.Group_iso_to_mul_equiv
 
 end category_theory.Aut
+
+@[to_additive]
+instance Group.forget_reflects_isos : reflects_isomorphisms (forget Group.{u}) :=
+{ reflects := λ X Y f _,
+  begin
+    resetI,
+    let i := as_iso ((forget Group).map f),
+    let e : X ≃* Y := { ..f, ..i.to_equiv },
+    exact { ..e.to_Group_iso },
+  end }
+
+@[to_additive]
+instance CommGroup.forget_reflects_isos : reflects_isomorphisms (forget CommGroup.{u}) :=
+{ reflects := λ X Y f _,
+  begin
+    resetI,
+    let i := as_iso ((forget CommGroup).map f),
+    let e : X ≃* Y := { ..f, ..i.to_equiv },
+    exact { ..e.to_CommGroup_iso },
+  end }

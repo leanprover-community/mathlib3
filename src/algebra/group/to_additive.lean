@@ -29,22 +29,33 @@ Usage information is contained in the doc string of `to_additive.attr`.
 namespace to_additive
 open tactic exceptional
 
+section performance_hack -- see Note [user attribute parameters]
+
+local attribute [semireducible] reflected
+
+local attribute [instance, priority 9000]
+private meta def hacky_name_reflect : has_reflect name :=
+λ n, `(id %%(expr.const n []) : name)
+
 /-- An auxiliary attribute used to store the names of the additive versions of declarations
 that have been processed by `to_additive`. -/
 @[user_attribute]
-meta def aux_attr : user_attribute (name_map name) name :=
+private meta def aux_attr : user_attribute (name_map name) name :=
 { name      := `to_additive_aux,
   descr     := "Auxiliary attribute for `to_additive`. DON'T USE IT",
   cache_cfg := ⟨λ ns,
                 ns.mfoldl
-                  (λ dict n',
+                  (λ dict n', do
                    let n := match n' with
                             | name.mk_string s pre := if s = "_to_additive" then pre else n'
                             | _ := n'
-                            end
-                   in dict.insert n <$> aux_attr.get_param n')
+                            end,
+                    param ← aux_attr.get_param_untyped n',
+                    pure $ dict.insert n param.app_arg.const_name)
                   mk_name_map, []⟩,
   parser    := lean.parser.ident }
+
+end performance_hack
 
 /-- A command that can be used to have future uses of `to_additive` change the `src` namespace
 to the `tgt` namespace.
@@ -69,25 +80,38 @@ optional doc string. -/
 @[derive has_reflect, derive inhabited]
 structure value_type : Type := (tgt : name) (doc : option string)
 
+/-- `add_comm_prefix x s` returns `"comm_" ++ s` if `x = tt` and `s` otherwise. -/
+meta def add_comm_prefix : bool → string → string
+| tt s := ("comm_" ++ s)
+| ff s := s
+
 /-- Dictionary used by `to_additive.guess_name` to autogenerate names. -/
-meta def tr : list string → list string
-| ("one" :: "le" :: s) := "nonneg" :: tr s
-| ("one" :: "lt" :: s) := "pos"    :: tr s
-| ("le" :: "one" :: s) := "nonpos" :: tr s
-| ("lt" :: "one" :: s) := "neg"    :: tr s
-| ("mul" :: s)         := "add"    :: tr s
-| ("inv" :: s)         := "neg"    :: tr s
-| ("div" :: s)         := "sub"    :: tr s
-| ("one" :: s)         := "zero"   :: tr s
-| ("prod" :: s)        := "sum"    :: tr s
-| (x :: s)             := (x :: tr s)
-| []                   := []
+meta def tr : bool → list string → list string
+| is_comm ("one" :: "le" :: s) := add_comm_prefix is_comm "nonneg" :: tr ff s
+| is_comm ("one" :: "lt" :: s) := add_comm_prefix is_comm "pos"    :: tr ff s
+| is_comm ("le" :: "one" :: s) := add_comm_prefix is_comm "nonpos" :: tr ff s
+| is_comm ("lt" :: "one" :: s) := add_comm_prefix is_comm "neg"    :: tr ff s
+| is_comm ("mul" :: s)         := add_comm_prefix is_comm "add"    :: tr ff s
+| is_comm ("inv" :: s)         := add_comm_prefix is_comm "neg"    :: tr ff s
+| is_comm ("div" :: s)         := add_comm_prefix is_comm "sub"    :: tr ff s
+| is_comm ("one" :: s)         := add_comm_prefix is_comm "zero"   :: tr ff s
+| is_comm ("prod" :: s)        := add_comm_prefix is_comm "sum"    :: tr ff s
+| is_comm ("monoid" :: s)      := ("add_" ++ add_comm_prefix is_comm "monoid")    :: tr ff s
+| is_comm ("submonoid" :: s)   := ("add_" ++ add_comm_prefix is_comm "submonoid") :: tr ff s
+| is_comm ("group" :: s)       := ("add_" ++ add_comm_prefix is_comm "group")     :: tr ff s
+| is_comm ("subgroup" :: s)    := ("add_" ++ add_comm_prefix is_comm "subgroup")  :: tr ff s
+| is_comm ("semigroup" :: s)   := ("add_" ++ add_comm_prefix is_comm "semigroup") :: tr ff s
+| is_comm ("magma" :: s)       := ("add_" ++ add_comm_prefix is_comm "magma") :: tr ff s
+| is_comm ("comm" :: s)        := tr tt s
+| is_comm (x :: s)             := (add_comm_prefix is_comm x :: tr ff s)
+| tt []                   := ["comm"]
+| ff []                   := []
 
 /-- Autogenerate target name for `to_additive`. -/
 meta def guess_name : string → string :=
 string.map_tokens ''' $
 λ s, string.intercalate (string.singleton '_') $
-tr (s.split_on '_')
+tr ff (s.split_on '_')
 
 /-- Return the provided target name or autogenerate one if one was not provided. -/
 meta def target_name (src tgt : name) (dict : name_map name) : tactic name :=
@@ -137,8 +161,7 @@ meta def proceed_fields (env : environment) (src tgt : name) (prio : ℕ) : comm
 let aux := proceed_fields_aux src tgt prio in
 do
 aux (λ n, pure $ list.map name.to_string $ (env.structure_fields n).get_or_else []) >>
-aux (λ n, (list.map (λ (x : name), "to_" ++ x.to_string) <$>
-                            (ancestor_attr.get_param n <|> pure []))) >>
+aux (λ n, (list.map (λ (x : name), "to_" ++ x.to_string) <$> get_tagged_ancestors n)) >>
 aux (λ n, (env.constructors_of n).mmap $
           λ cs, match cs with
                 | (name.mk_string s pre) :=
@@ -172,6 +195,13 @@ theorem foo := sorry
 The transport tries to do the right thing in most cases using several
 heuristics described below.  However, in some cases it fails, and
 requires manual intervention.
+
+If the declaration to be transported has attributes which need to be
+copied to the additive version, then `to_additive` should come last:
+
+```
+@[simp, to_additive] lemma mul_one' {G : Type*} [group G] (x : G) : x * 1 = x := mul_one x
+```
 
 ## Implementation notes
 

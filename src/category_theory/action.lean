@@ -13,7 +13,7 @@ From a multiplicative action M ↻ X, we can construct a functor from M to the c
 types, mapping the single object of M to X and an element `m : M` to map `X → X` given by
 multiplication by `m`.
   This functor induces a category structure on X -- a special case of the category of elements.
-A morphism `x → y` in this category is simply a scalar `m : M` such that `m • x = y`. In the case
+A morphism `x ⟶ y` in this category is simply a scalar `m : M` such that `m • x = y`. In the case
 where M is a group, this category is a groupoid -- the `action groupoid'.
 -/
 
@@ -22,8 +22,7 @@ namespace category_theory
 
 universes u
 
-variables (M : Type*) [monoid M] (X : Type u) [𝒜 : mul_action M X]
-include 𝒜
+variables (M : Type*) [monoid M] (X : Type u) [mul_action M X]
 
 /-- A multiplicative action M ↻ X viewed as a functor mapping the single object of M to X
   and an element `m : M` to the map `X → X` given by multiplication by `m`. -/
@@ -42,10 +41,8 @@ def action_category := (action_as_functor M X).elements
 
 namespace action_category
 
-omit 𝒜
 instance (G : Type*) [group G] [mul_action G X] : groupoid (action_category G X) :=
 category_theory.groupoid_of_elements _
-include 𝒜
 
 /-- The projection from the action category to the monoid, mapping a morphism to its
   label. -/
@@ -75,11 +72,11 @@ instance [inhabited X] : inhabited (action_category M X) :=
 variables {X} (x : X)
 /-- The stabilizer of a point is isomorphic to the endomorphism monoid at the
   corresponding point. In fact they are definitionally equivalent. -/
-def stabilizer_iso_End : stabilizer M x ≃* End (obj_equiv M X x) :=
+def stabilizer_iso_End : stabilizer.submonoid M x ≃* End (obj_equiv M X x) :=
 mul_equiv.refl _
 
 @[simp]
-lemma stabilizer_iso_End_apply (f : stabilizer M x) :
+lemma stabilizer_iso_End_apply (f : stabilizer.submonoid M x) :
   (stabilizer_iso_End M x).to_fun f = f := rfl
 
 @[simp]

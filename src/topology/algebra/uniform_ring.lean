@@ -27,7 +27,7 @@ variables {α} [topological_ring α]
 
 @[norm_cast]
 lemma coe_mul (a b : α) : ((a * b : α) : completion α) = a * b :=
-((dense_inducing_coe.prod dense_inducing_coe).extend_eq_of_cont
+((dense_inducing_coe.prod dense_inducing_coe).extend_eq
   ((continuous_coe α).comp continuous_mul) (a, b)).symm
 
 variables [uniform_add_group α]
@@ -97,7 +97,7 @@ variables {β : Type u} [uniform_space β] [ring β] [uniform_add_group β] [top
           (f : α →+* β) (hf : continuous f)
 
 /-- The completion extension as a ring morphism. -/
-def extension_hom [complete_space β] [separated β] :
+def extension_hom [complete_space β] [separated_space β] :
   completion α →+* β :=
 have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
 { to_fun := completion.extension f,
@@ -149,6 +149,9 @@ lemma ring_sep_quot (α) [r : comm_ring α] [uniform_space α] [uniform_add_grou
   quotient (separation_setoid α) = (⊥ : ideal α).closure.quotient :=
 by rw [@ring_sep_rel α r]; refl
 
+/-- Given a topological ring `α` equipped with a uniform structure that makes subtraction uniformly
+continuous, get an equivalence between the separated quotient of `α` and the quotient ring
+corresponding to the closure of zero. -/
 def sep_quot_equiv_ring_quot (α)
   [r : comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
   quotient (separation_setoid α) ≃ (⊥ : ideal α).closure.quotient :=

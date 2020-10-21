@@ -47,14 +47,17 @@ variables {𝕜 : Type*} {V : Type*} [normed_field 𝕜] [add_comm_group V] [vec
 
 instance : has_coe_to_fun (enorm 𝕜 V) := ⟨_, enorm.to_fun⟩
 
-lemma coe_fn_injective ⦃e₁ e₂ : enorm 𝕜 V⦄ (h : ⇑e₁ = e₂) : e₁ = e₂ :=
-by cases e₁; cases e₂; congr; exact h
+lemma injective_coe_fn : function.injective (λ (e : enorm 𝕜 V) (x : V), e x) :=
+λ e₁ e₂ h, by cases e₁; cases e₂; congr; exact h
 
 @[ext] lemma ext {e₁ e₂ : enorm 𝕜 V} (h : ∀ x, e₁ x = e₂ x) : e₁ = e₂ :=
-coe_fn_injective $ funext h
+injective_coe_fn $ funext h
 
 lemma ext_iff {e₁ e₂ : enorm 𝕜 V} : e₁ = e₂ ↔ ∀ x, e₁ x = e₂ x :=
 ⟨λ h x, h ▸ rfl, ext⟩
+
+@[simp, norm_cast] lemma coe_inj {e₁ e₂ : enorm 𝕜 V} : ⇑e₁ = e₂ ↔ e₁ = e₂ :=
+injective_coe_fn.eq_iff
 
 @[simp] lemma map_smul (c : 𝕜) (x : V) : e (c • x) = nnnorm c * e x :=
 le_antisymm (e.map_smul_le' c x) $
@@ -125,8 +128,8 @@ noncomputable instance : semilattice_sup_top (enorm 𝕜 V) :=
   { to_fun := λ x, max (e₁ x) (e₂ x),
     eq_zero' := λ x h, e₁.eq_zero_iff.1 (ennreal.max_eq_zero_iff.1 h).1,
     map_add_le' := λ x y, max_le
-      (le_trans (e₁.map_add_le _ _) $ add_le_add' (le_max_left _ _) (le_max_left _ _))
-      (le_trans (e₂.map_add_le _ _) $ add_le_add' (le_max_right _ _) (le_max_right _ _)),
+      (le_trans (e₁.map_add_le _ _) $ add_le_add (le_max_left _ _) (le_max_left _ _))
+      (le_trans (e₂.map_add_le _ _) $ add_le_add (le_max_right _ _) (le_max_right _ _)),
     map_smul_le' := λ c x, le_of_eq $ by simp only [map_smul, ennreal.mul_max] },
   le_sup_left := λ e₁ e₂ x, le_max_left _ _,
   le_sup_right := λ e₁ e₂ x, le_max_right _ _,

@@ -6,7 +6,7 @@ Authors: Patrick Massot, Johannes Hölzl
 Theory of topological rings.
 -/
 import topology.algebra.group
-import ring_theory.ideals
+import ring_theory.ideal.basic
 
 open classical set filter topological_space
 open_locale classical
@@ -15,21 +15,15 @@ section topological_ring
 universes u v w
 variables (α : Type u) [topological_space α]
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A topological semiring is a semiring where addition and multiplication are continuous. -/
 class topological_semiring [semiring α]
-  extends topological_add_monoid α, topological_monoid α : Prop
-end prio
+  extends has_continuous_add α, has_continuous_mul α : Prop
 
 variables [ring α]
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A topological ring is a ring where the ring operations are continuous. -/
-class topological_ring extends topological_add_monoid α, topological_monoid α : Prop :=
+class topological_ring extends has_continuous_add α, has_continuous_mul α : Prop :=
 (continuous_neg : continuous (λa:α, -a))
-end prio
 
 variables [t : topological_ring α]
 @[priority 100] -- see Note [lower instance priority]
@@ -38,11 +32,22 @@ instance topological_ring.to_topological_semiring : topological_semiring α := {
 @[priority 100] -- see Note [lower instance priority]
 instance topological_ring.to_topological_add_group : topological_add_group α := {..t}
 
+variables {α} [topological_ring α]
+
+/-- In a topological ring, the left-multiplication `add_monoid_hom` is continuous. -/
+lemma mul_left_continuous (x : α) : continuous (add_monoid_hom.mul_left x) :=
+continuous_const.mul continuous_id
+
+/-- In a topological ring, the right-multiplication `add_monoid_hom` is continuous. -/
+lemma mul_right_continuous (x : α) : continuous (add_monoid_hom.mul_right x) :=
+continuous_id.mul continuous_const
+
 end topological_ring
 
 section topological_comm_ring
 variables {α : Type*} [topological_space α] [comm_ring α] [topological_ring α]
 
+/-- The closure of an ideal in a topological ring as an ideal. -/
 def ideal.closure (S : ideal α) : ideal α :=
 { carrier := closure S,
   zero_mem' := subset_closure S.zero_mem,

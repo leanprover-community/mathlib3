@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lucas Allen, Scott Morrison
 -/
 
-import algebra.big_operators
-import data.finsupp
+import algebra.big_operators.basic
+import data.finsupp.basic
 import tactic.converter.apply_congr
 import tactic.interactive
 

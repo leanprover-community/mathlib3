@@ -42,7 +42,7 @@ open map, closed map, embedding, quotient map, identification map
 -/
 
 open set filter
-open_locale topological_space
+open_locale topological_space filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
@@ -271,6 +271,14 @@ assume s hs,
 have f' ⁻¹' s = f '' s, by ext x; simp [mem_image_iff_of_inverse r_inv l_inv],
 this ▸ continuous_iff_is_closed.mp h s hs
 
+lemma of_nonempty {f : α → β} (h : ∀ s, is_closed s → s.nonempty → is_closed (f '' s)) :
+  is_closed_map f :=
+begin
+  intros s hs, cases eq_empty_or_nonempty s with h2s h2s,
+  { simp_rw [h2s, image_empty, is_closed_empty] },
+  { exact h s hs h2s }
+end
+
 end is_closed_map
 
 section open_embedding
@@ -369,7 +377,7 @@ begin
   intro s',
   change is_open _ ≤ is_open _,
   rw [←is_closed_compl_iff, ←is_closed_compl_iff],
-  generalize : -s' = s,
+  generalize : s'ᶜ = s,
   rw is_closed_induced_iff,
   refine λ hs, ⟨f '' s, h₃ s hs, _⟩,
   rw preimage_image_eq _ h₂

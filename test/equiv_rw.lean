@@ -29,9 +29,9 @@ example {α β : Type} (e : α ≃ β) (Z : α → Type) (f : Π a, Z a → ℕ)
   (i : α) (x : Z i) : f i x = 0 :=
 begin
   equiv_rw e at i,
-  guard_hyp i := β,
+  guard_hyp i : β,
   guard_target f (e.symm i) x = 0,
-  guard_hyp x := Z ((e.symm) i),
+  guard_hyp x : Z ((e.symm) i),
   exact h i x,
 end
 
@@ -298,18 +298,18 @@ begin
   refine_struct { .. },
   { have mul := S.mul, equiv_rw e at mul, exact mul, },
   { try { unfold_projs },
-    simp only [] with transport_simps,
+    simp only with transport_simps,
     have mul_assoc := S.mul_assoc,
     equiv_rw e at mul_assoc,
     solve_by_elim, },
   { have one := S.one, equiv_rw e at one, exact one, },
   { try { unfold_projs },
-    simp only [] with transport_simps,
+    simp only with transport_simps,
     have one_mul := S.one_mul,
     equiv_rw e at one_mul,
     solve_by_elim, },
   { try { unfold_projs },
-    simp only [] with transport_simps,
+    simp only with transport_simps,
     have mul_one := S.mul_one,
     equiv_rw e at mul_one,
     solve_by_elim, },
@@ -333,3 +333,24 @@ begin
   exact (1 : β) = e (1 : α)
 end :=
 rfl
+
+example
+  {α : Type} {β : Type}
+  (m : α → α → α)
+  (e : α ≃ β) :
+  β → β → β :=
+begin
+  equiv_rw e at m,
+  exact m,
+end
+
+-- This used to fail because metavariables were getting stuck!
+example
+  {α : Type} {β : Type 2}
+  (m : α → α → α)
+  (e : α ≃ β) :
+  β → β → β :=
+begin
+  equiv_rw e at m,
+  exact m,
+end

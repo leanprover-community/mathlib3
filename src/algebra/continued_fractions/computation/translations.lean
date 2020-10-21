@@ -95,7 +95,7 @@ begin
     replace nth_fr_ne_zero : ∀ ifp, int_fract_pair.stream v n = some ifp → ifp.fr ≠ 0, by
       simpa using nth_fr_ne_zero,
     obtain ⟨ifp_n, stream_nth_eq⟩ : ∃ ifp_n, int_fract_pair.stream v n = some ifp_n, from
-      with_one.ne_one_iff_exists.elim_left stream_nth_ne_none,
+      option.ne_none_iff_exists'.mp stream_nth_ne_none,
     existsi ifp_n,
     have ifp_n_fr_ne_zero : ifp_n.fr ≠ 0, from nth_fr_ne_zero ifp_n stream_nth_eq,
     cases ifp_n with _ ifp_n_fr,
@@ -106,7 +106,7 @@ begin
   { rintro ⟨⟨_⟩, ifp_n_props⟩, finish [int_fract_pair.stream, ifp_n_props] }
 end
 
-lemma obtain_succ_nth_stream_of_fr_zero {ifp_succ_n : int_fract_pair K}
+lemma exists_succ_nth_stream_of_fr_zero {ifp_succ_n : int_fract_pair K}
   (stream_succ_nth_eq : int_fract_pair.stream v (n + 1) = some ifp_succ_n)
   (succ_nth_fr_eq_zero : ifp_succ_n.fr = 0) :
   ∃ (ifp_n : int_fract_pair K), int_fract_pair.stream v n = some ifp_n ∧ ifp_n.fr⁻¹ = ⌊ifp_n.fr⁻¹⌋ :=
@@ -198,7 +198,7 @@ section values
 Now let's show how the values of the sequences correspond to one another.
 -/
 
-lemma int_fract_pair.obtain_succ_nth_stream_of_gcf_of_nth_eq_some {gp_n : gcf.pair K}
+lemma int_fract_pair.exists_succ_nth_stream_of_gcf_of_nth_eq_some {gp_n : gcf.pair K}
   (s_nth_eq : (gcf.of v).s.nth n = some gp_n) :
   ∃ (ifp : int_fract_pair K), int_fract_pair.stream v (n + 1) = some ifp ∧ (ifp.b : K) = gp_n.b :=
 begin

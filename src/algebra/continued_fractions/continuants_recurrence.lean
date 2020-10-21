@@ -51,10 +51,10 @@ lemma numerators_recurrence {gp : gcf.pair K} {ppredA predA : K}
   g.numerators (n + 2) = gp.b * predA + gp.a * ppredA :=
 begin
   obtain ⟨ppredConts, nth_conts_eq, ⟨rfl⟩⟩ : ∃ conts, g.continuants n = conts ∧ conts.a = ppredA,
-    from obtain_conts_a_of_num nth_num_eq,
+    from exists_conts_a_of_num nth_num_eq,
   obtain ⟨predConts, succ_nth_conts_eq, ⟨rfl⟩⟩ :
     ∃ conts, g.continuants (n + 1) = conts ∧ conts.a = predA, from
-      obtain_conts_a_of_num succ_nth_num_eq,
+      exists_conts_a_of_num succ_nth_num_eq,
   rw [num_eq_conts_a, (continuants_recurrence succ_nth_s_eq nth_conts_eq succ_nth_conts_eq)]
 end
 
@@ -66,10 +66,10 @@ lemma denominators_recurrence {gp : gcf.pair K} {ppredB predB : K}
   g.denominators (n + 2) = gp.b * predB + gp.a * ppredB :=
 begin
   obtain ⟨ppredConts, nth_conts_eq, ⟨rfl⟩⟩ : ∃ conts, g.continuants n = conts ∧ conts.b = ppredB,
-    from obtain_conts_b_of_denom nth_denom_eq,
+    from exists_conts_b_of_denom nth_denom_eq,
   obtain ⟨predConts, succ_nth_conts_eq, ⟨rfl⟩⟩ :
     ∃ conts, g.continuants (n + 1) = conts ∧ conts.b = predB, from
-      obtain_conts_b_of_denom succ_nth_denom_eq,
+      exists_conts_b_of_denom succ_nth_denom_eq,
   rw [denom_eq_conts_b, (continuants_recurrence succ_nth_s_eq nth_conts_eq succ_nth_conts_eq)]
 end
 

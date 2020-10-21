@@ -5,12 +5,14 @@ Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monad.basic
 import category_theory.adjunction.basic
-import category_theory.reflect_isomorphisms
+import category_theory.reflects_isomorphisms
 
 /-!
 # Eilenberg-Moore (co)algebras for a (co)monad
 
-This file defines Eilenberg-Moore (co)algebras for a (co)monad, and provides the category instance for them.
+This file defines Eilenberg-Moore (co)algebras for a (co)monad,
+and provides the category instance for them.
+
 Further it defines the adjoint pair of free and forgetful functors, respectively
 from and to the original category, as well as the adjoint pair of forgetful and
 cofree functors, respectively from and to the original category.
@@ -30,7 +32,7 @@ namespace monad
 
 /-- An Eilenberg-Moore algebra for a monad `T`.
     cf Definition 5.2.3 in [Riehl][riehl2017]. -/
-structure algebra (T : C ⥤ C) [monad.{v₁} T] : Type (max u₁ v₁) :=
+structure algebra (T : C ⥤ C) [monad T] : Type (max u₁ v₁) :=
 (A : C)
 (a : T.obj A ⟶ A)
 (unit' : (η_ T).app A ≫ a = 𝟙 A . obviously)
@@ -40,7 +42,7 @@ restate_axiom algebra.unit'
 restate_axiom algebra.assoc'
 
 namespace algebra
-variables {T : C ⥤ C} [monad.{v₁} T]
+variables {T : C ⥤ C} [monad T]
 
 /-- A morphism of Eilenberg–Moore algebras for the monad `T`. -/
 @[ext] structure hom (A B : algebra T) :=
@@ -55,6 +57,8 @@ namespace hom
 /-- The identity homomorphism for an Eilenberg–Moore algebra. -/
 @[simps] def id (A : algebra T) : hom A A :=
 { f := 𝟙 A.A }
+
+instance (A : algebra T) : inhabited (hom A A) := ⟨{ f := 𝟙 _ }⟩
 
 /-- Composition of Eilenberg–Moore algebra homomorphisms. -/
 @[simps] def comp {P Q R : algebra T} (f : hom P Q) (g : hom Q R) : hom P R :=
@@ -72,7 +76,7 @@ end hom
 
 end algebra
 
-variables (T : C ⥤ C) [monad.{v₁} T]
+variables (T : C ⥤ C) [monad T]
 
 /-- The forgetful functor from the Eilenberg-Moore category, forgetting the algebraic structure. -/
 @[simps] def forget : algebra T ⥤ C :=
@@ -89,6 +93,9 @@ variables (T : C ⥤ C) [monad.{v₁} T]
   { f := T.map f,
     h' := by erw (μ_ T).naturality } }
 
+instance [inhabited C] : inhabited (algebra T) :=
+⟨(free T).obj (default C)⟩
+
 /-- The adjunction between the free and forgetful constructions for Eilenberg-Moore algebras for a monad.
     cf Lemma 5.2.8 of [Riehl][riehl2017]. -/
 def adj : free T ⊣ forget T :=
@@ -99,13 +106,13 @@ adjunction.mk_of_hom_equiv
     { f := T.map f ≫ Y.a,
       h' :=
       begin
-        dsimp, simp,
+        simp,
         conv { to_rhs, rw [←category.assoc, ←(μ_ T).naturality, category.assoc], erw algebra.assoc },
         refl,
       end },
     left_inv := λ f,
     begin
-      ext1, dsimp,
+      ext1,
       simp only [free_obj_a, functor.map_comp, algebra.hom.h, category.assoc],
       erw [←category.assoc, monad.right_unit, id_comp],
     end,
@@ -131,13 +138,15 @@ def algebra_iso_of_iso {A B : algebra T} (f : A ⟶ B) [i : is_iso f.f] : is_iso
 instance forget_reflects_iso : reflects_isomorphisms (forget T) :=
 { reflects := λ A B, algebra_iso_of_iso T }
 
+instance forget_faithful : faithful (forget T) := {}
+
 end monad
 
 namespace comonad
 
 /-- An Eilenberg-Moore coalgebra for a comonad `T`. -/
 @[nolint has_inhabited_instance]
-structure coalgebra (G : C ⥤ C) [comonad.{v₁} G] : Type (max u₁ v₁) :=
+structure coalgebra (G : C ⥤ C) [comonad G] : Type (max u₁ v₁) :=
 (A : C)
 (a : A ⟶ G.obj A)
 (counit' : a ≫ (ε_ G).app A = 𝟙 A . obviously)
@@ -147,7 +156,7 @@ restate_axiom coalgebra.counit'
 restate_axiom coalgebra.coassoc'
 
 namespace coalgebra
-variables {G : C ⥤ C} [comonad.{v₁} G]
+variables {G : C ⥤ C} [comonad G]
 
 /-- A morphism of Eilenberg-Moore coalgebras for the comonad `G`. -/
 @[ext, nolint has_inhabited_instance] structure hom (A B : coalgebra G) :=
@@ -178,7 +187,7 @@ end hom
 
 end coalgebra
 
-variables (G : C ⥤ C) [comonad.{v₁} G]
+variables (G : C ⥤ C) [comonad G]
 
 /-- The forgetful functor from the Eilenberg-Moore category, forgetting the coalgebraic structure. -/
 @[simps] def forget : coalgebra G ⥤ C :=
@@ -217,9 +226,12 @@ adjunction.mk_of_hom_equiv
       ext1, dsimp,
       rw [functor.map_comp, ← category.assoc, coalgebra.hom.h, assoc,
           cofree_obj_a, comonad.right_counit],
+      -- See note [dsimp, simp].
       dsimp, simp
     end
     }}
+
+instance forget_faithful : faithful (forget G) := {}
 
 end comonad
 

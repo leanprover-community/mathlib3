@@ -40,7 +40,7 @@ theorem zip_append : ∀ {l₁ l₂ r₁ r₂ : list α} (h : length l₁ = leng
    zip (l₁ ++ r₁) (l₂ ++ r₂) = zip l₁ l₂ ++ zip r₁ r₂
 | []      l₂      r₁ r₂ h := by simp only [eq_nil_of_length_eq_zero h.symm]; refl
 | l₁      []      r₁ r₂ h := by simp only [eq_nil_of_length_eq_zero h]; refl
-| (a::l₁) (b::l₂) r₁ r₂ h := by simp only [cons_append, zip_cons_cons, zip_append (succ_inj h)];
+| (a::l₁) (b::l₂) r₁ r₂ h := by simp only [cons_append, zip_cons_cons, zip_append (succ.inj h)];
     split; refl
 
 theorem zip_map (f : α → γ) (g : β → δ) : ∀ (l₁ : list α) (l₂ : list β),
@@ -66,6 +66,20 @@ theorem mem_zip {a b} : ∀ {l₁ : list α} {l₂ : list β},
    (a, b) ∈ zip l₁ l₂ → a ∈ l₁ ∧ b ∈ l₂
 | (_::l₁) (_::l₂) (or.inl rfl) := ⟨or.inl rfl, or.inl rfl⟩
 | (a'::l₁) (b'::l₂) (or.inr h) := by split; simp only [mem_cons_iff, or_true, mem_zip h]
+
+theorem map_fst_zip : ∀ (l₁ : list α) (l₂ : list β),
+  l₁.length ≤ l₂.length →
+  map prod.fst (zip l₁ l₂) = l₁
+| [] bs _ := rfl
+| (a :: as) (b :: bs) h := by { simp at h, simp! * }
+| (a :: as) [] h := by { simp at h, contradiction }
+
+theorem map_snd_zip : ∀ (l₁ : list α) (l₂ : list β),
+  l₂.length ≤ l₁.length →
+  map prod.snd (zip l₁ l₂) = l₂
+| _ [] _ := by { rw zip_nil_right, refl }
+| [] (b :: bs) h := by { simp at h, contradiction }
+| (a :: as) (b :: bs) h := by { simp at h, simp! * }
 
 @[simp] theorem unzip_nil : unzip (@nil (α × β)) = ([], []) := rfl
 
@@ -123,5 +137,52 @@ by rw [← zip_unzip.{u u} (revzip l).reverse, unzip_eq_map]; simp; simp [revzip
 
 theorem revzip_swap (l : list α) : (revzip l).map prod.swap = revzip l.reverse :=
 by simp [revzip]
+
+lemma nth_zip_with {α β γ} (f : α → β → γ) (l₁ : list α) (l₂ : list β) (i : ℕ) :
+  (zip_with f l₁ l₂).nth i = f <$> l₁.nth i <*> l₂.nth i :=
+begin
+  induction l₁ generalizing l₂ i,
+  { simp [zip_with, (<*>)] },
+  { cases l₂; simp only [zip_with, has_seq.seq, functor.map, nth, option.map_none'],
+    { cases ((l₁_hd :: l₁_tl).nth i); refl },
+    { cases i; simp only [option.map_some', nth, option.some_bind', *],
+      refl } },
+end
+
+lemma nth_zip_with_eq_some {α β γ} (f : α → β → γ) (l₁ : list α) (l₂ : list β) (z : γ) (i : ℕ) :
+  (zip_with f l₁ l₂).nth i = some z ↔ ∃ x y, l₁.nth i = some x ∧ l₂.nth i = some y ∧ f x y = z :=
+begin
+  induction l₁ generalizing l₂ i,
+  { simp [zip_with] },
+  { cases l₂; simp only [zip_with, nth, exists_false, and_false, false_and],
+    cases i; simp *, },
+end
+
+lemma nth_zip_eq_some (l₁ : list α) (l₂ : list β) (z : α × β) (i : ℕ) :
+  (zip l₁ l₂).nth i = some z ↔ l₁.nth i = some z.1 ∧ l₂.nth i = some z.2 :=
+begin
+  cases z,
+  rw [zip, nth_zip_with_eq_some], split,
+  { rintro ⟨x, y, h₀, h₁, h₂⟩, cc },
+  { rintro ⟨h₀, h₁⟩, exact ⟨_,_,h₀,h₁,rfl⟩ }
+end
+
+lemma mem_zip_inits_tails {l : list α} {init tail : list α} :
+  (init, tail) ∈ zip l.inits l.tails ↔ init ++ tail = l :=
+begin
+  induction l generalizing init tail;
+    simp_rw [tails, inits, zip_cons_cons],
+  { simp },
+  { split; rw [mem_cons_iff, zip_map_left, mem_map, prod.exists],
+    { rintros (⟨rfl, rfl⟩ | ⟨_, _, h, rfl, rfl⟩),
+      { simp },
+      { simp [l_ih.mp h], }, },
+    { cases init,
+      { simp },
+      { intro h,
+        right,
+        use [init_tl, tail],
+        simp * at *, }, }, },
+end
 
 end list

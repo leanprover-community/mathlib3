@@ -128,7 +128,7 @@ ext_iff
 `multiplicative ℝ` to `units circle_deg1_lift`, so the translation by `x` is
 `translation (multiplicative.of_add x)`. -/
 def translate : multiplicative ℝ →* units circle_deg1_lift :=
-by refine (units.map _).comp (to_units $ multiplicative ℝ).to_monoid_hom; exact
+by refine (units.map _).comp to_units.to_monoid_hom; exact
 { to_fun := λ x, ⟨λ y, x.to_add + y, λ y₁ y₂ h, add_le_add_left h _, λ y, (add_assoc _ _ _).symm⟩,
   map_one' := ext $ zero_add,
   map_mul' := λ x y, ext $ add_assoc _ _ }
@@ -139,15 +139,15 @@ by refine (units.map _).comp (to_units $ multiplicative ℝ).to_monoid_hom; exac
 lemma translate_inv_apply (x y : ℝ) : (translate $ multiplicative.of_add x)⁻¹ y = -x + y := rfl
 
 @[simp] lemma translate_gpow (x : ℝ) (n : ℤ) :
-  (translate (multiplicative.of_add x))^n = translate (multiplicative.of_add $ n * x) :=
+  (translate (multiplicative.of_add x))^n = translate (multiplicative.of_add $ ↑n * x) :=
 by simp only [← gsmul_eq_mul, of_add_gsmul, monoid_hom.map_gpow]
 
 @[simp] lemma translate_pow (x : ℝ) (n : ℕ) :
-  (translate (multiplicative.of_add x))^n = translate (multiplicative.of_add $ n * x) :=
+  (translate (multiplicative.of_add x))^n = translate (multiplicative.of_add $ ↑n * x) :=
 translate_gpow x n
 
 @[simp] lemma translate_iterate (x : ℝ) (n : ℕ) :
-  (translate (multiplicative.of_add x))^[n] = translate (multiplicative.of_add $ n * x) :=
+  (translate (multiplicative.of_add x))^[n] = translate (multiplicative.of_add $ ↑n * x) :=
 by rw [← units_coe, ← coe_pow, ← units.coe_pow, translate_pow, units_coe]
 
 /-!
@@ -386,7 +386,7 @@ lemma transnum_aux_seq_def : f.transnum_aux_seq = λ n : ℕ, (f^(2^n)) 0 / 2^n 
 lemma translation_number_eq_of_tendsto_aux {τ' : ℝ}
   (h : tendsto f.transnum_aux_seq at_top (𝓝 τ')) :
   τ f = τ' :=
-h.lim_eq at_top_ne_bot
+h.lim_eq
 
 lemma translation_number_eq_of_tendsto₀ {τ' : ℝ}
   (h : tendsto (λ n:ℕ, f^[n] 0 / n) at_top (𝓝 τ')) :
@@ -407,11 +407,12 @@ lemma transnum_aux_seq_dist_lt (n : ℕ) :
 begin
   have : 0 < (2^(n+1):ℝ) := pow_pos zero_lt_two _,
   rw [div_div_eq_div_mul, ← pow_succ, ← abs_of_pos this],
-  replace := abs_pos_iff.2 (ne_of_gt this),
+  replace := abs_pos.2 (ne_of_gt this),
   convert (div_lt_div_right this).2 ((f^(2^n)).dist_map_map_zero_lt (f^(2^n))),
   simp_rw [transnum_aux_seq, real.dist_eq],
-  rw [← abs_div, sub_div, pow_succ, ← two_mul, mul_div_mul_left _ _ (@two_ne_zero ℝ _),
-    nat.pow_succ, pow_mul, pow_two, mul_apply]
+  rw [← abs_div, sub_div, pow_succ', pow_succ, ← two_mul,
+    mul_div_mul_left _ _ (@two_ne_zero ℝ _ _),
+    pow_mul, pow_two, mul_apply]
 end
 
 lemma tendsto_translation_number_aux : tendsto f.transnum_aux_seq at_top (𝓝 $ τ f) :=
@@ -460,7 +461,7 @@ begin
   have : tendsto (λ n : ℕ, ((λ k, (f^k) 0 + (g^k) 0) (2^n)) / (2^n)) at_top (𝓝 $ τ f + τ g) :=
     ((f.tendsto_translation_number_aux.add g.tendsto_translation_number_aux).congr $
       λ n, (add_div ((f^(2^n)) 0) ((g^(2^n)) 0) ((2:ℝ)^n)).symm),
-  refine tendsto_nhds_unique at_top_ne_bot
+  refine tendsto_nhds_unique
     ((f * g).tendsto_translation_number_of_dist_bounded_aux _ 1 (λ n, _))
     this,
   rw [h.mul_pow, dist_comm],
@@ -517,7 +518,7 @@ lemma tendsto_translation_number' (x : ℝ) :
 (tendsto_add_at_top_iff_nat 1).2 (f.tendsto_translation_number x)
 
 lemma translation_number_mono : monotone τ :=
-λ f g h, le_of_tendsto_of_tendsto' at_top_ne_bot f.tendsto_translation_number₀
+λ f g h, le_of_tendsto_of_tendsto' f.tendsto_translation_number₀
   g.tendsto_translation_number₀ $ λ n, div_le_div_of_le_of_nonneg (pow_mono h n 0) n.cast_nonneg
 
 lemma translation_number_translate (x : ℝ) :
@@ -534,16 +535,16 @@ translation_number_translate z ▸ translation_number_mono
   (λ x, trans_rel_right _ (add_comm _ _) (hz x))
 
 lemma translation_number_le_of_le_add_int {x : ℝ} {m : ℤ} (h : f x ≤ x + m) : τ f ≤ m :=
-le_of_tendsto' at_top_ne_bot (f.tendsto_translation_number' x) $ λ n,
-div_le_of_le_mul n.cast_add_one_pos $ sub_le_iff_le_add'.2 $
+le_of_tendsto' (f.tendsto_translation_number' x) $ λ n,
+(div_le_iff' (n.cast_add_one_pos : (0 : ℝ) < _)).mpr $ sub_le_iff_le_add'.2 $
 (coe_pow f (n + 1)).symm ▸ f.iterate_le_of_map_le_add_int h (n + 1)
 
 lemma translation_number_le_of_le_add_nat {x : ℝ} {m : ℕ} (h : f x ≤ x + m) : τ f ≤ m :=
 @translation_number_le_of_le_add_int f x m h
 
 lemma le_translation_number_of_add_int_le {x : ℝ} {m : ℤ} (h : x + m ≤ f x) : ↑m ≤ τ f :=
-ge_of_tendsto' at_top_ne_bot (f.tendsto_translation_number' x) $ λ n,
-le_div_of_mul_le n.cast_add_one_pos $ le_sub_iff_add_le'.2 $
+ge_of_tendsto' (f.tendsto_translation_number' x) $ λ n,
+(le_div_iff (n.cast_add_one_pos : (0 : ℝ) < _)).mpr $ le_sub_iff_add_le'.2 $
 by simp only [coe_pow, mul_comm (m:ℝ), ← nat.cast_add_one, f.le_iterate_of_add_int_le_map h]
 
 lemma le_translation_number_of_add_nat_le {x : ℝ} {m : ℕ} (h : x + m ≤ f x) : ↑m ≤ τ f :=

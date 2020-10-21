@@ -6,6 +6,7 @@ Author: Andreas Swerdlow
 
 import linear_algebra.matrix
 import linear_algebra.tensor_product
+import linear_algebra.nonsingular_inverse
 
 /-!
 # Bilinear form
@@ -79,7 +80,7 @@ lemma zero_left (x : M) :
 B 0 x = 0 := by {rw [←@zero_smul R _ _ _ _ (0 : M), smul_left, zero_mul]}
 
 lemma zero_right (x : M) :
-B x 0 = 0 := by rw [←@zero_smul _ _ _ _ _ (0 : M), smul_right, ring.zero_mul]
+B x 0 = 0 := by rw [←@zero_smul _ _ _ _ _ (0 : M), smul_right, zero_mul]
 
 lemma neg_left (x y : M) :
 B (-x) y = -(B x y) := by rw [←@neg_one_smul R _ _, smul_left, neg_one_mul]
@@ -210,6 +211,20 @@ B.comp linear_map.id f
 @[simp] lemma comp_right_apply (B : bilin_form R M) (f : M →ₗ[R] M) (v w) :
   B.comp_right f v w = B v (f w) := rfl
 
+lemma comp_injective (B₁ B₂ : bilin_form R N) (l r : M →ₗ[R] N)
+  (hₗ : function.surjective l) (hᵣ : function.surjective r) :
+  B₁.comp l r = B₂.comp l r ↔ B₁ = B₂ :=
+begin
+  split; intros h,
+  { -- B₁.comp l r = B₂.comp l r → B₁ = B₂
+    ext,
+    cases hₗ x with x' hx, subst hx,
+    cases hᵣ y with y' hy, subst hy,
+    rw [←comp_apply, ←comp_apply, h], },
+  { -- B₁ = B₂ → B₁.comp l r = B₂.comp l r
+    subst h, },
+end
+
 end comp
 
 section lin_mul_lin
@@ -258,7 +273,7 @@ theorem ortho_smul_left {x y : M} {a : R₃} (ha : a ≠ 0) :
 begin
   dunfold is_ortho,
   split; intro H,
-  { rw [smul_left, H, ring.mul_zero] },
+  { rw [smul_left, H, mul_zero] },
   { rw [smul_left, mul_eq_zero] at H,
     cases H,
     { trivial },
@@ -270,7 +285,7 @@ theorem ortho_smul_right {x y : M} {a : R₃} (ha : a ≠ 0) :
 begin
   dunfold is_ortho,
   split; intro H,
-  { rw [smul_right, H, ring.mul_zero] },
+  { rw [smul_right, H, mul_zero] },
   { rw [smul_right, mul_eq_zero] at H,
     cases H,
     { trivial },
@@ -283,7 +298,7 @@ end bilin_form
 
 section matrix
 variables {R : Type u} [comm_ring R]
-variables {n o : Type w} [fintype n] [fintype o]
+variables {n o : Type*} [fintype n] [fintype o]
 
 open bilin_form finset matrix
 open_locale matrix
@@ -296,8 +311,8 @@ def matrix.to_bilin_formₗ : matrix n n R →ₗ[R] bilin_form R (n → R) :=
     bilin_smul_left := λ a x y, by simp,
     bilin_add_right := λ x y z, by simp [matrix.mul_add],
     bilin_smul_right := λ a x y, by simp },
-  map_add' := λ f g, by { ext, simp [add_apply, matrix.mul_add, matrix.add_mul] },
-  map_smul' := λ f g, by { ext, simp [smul_apply] } }
+  map_add' := λ f g, by { ext, simp [bilin_form.add_apply, matrix.mul_add, matrix.add_mul] },
+  map_smul' := λ f g, by { ext, simp [bilin_form.smul_apply] } }
 
 /-- The map from `matrix n n R` to bilinear forms on `n → R`. -/
 def matrix.to_bilin_form : matrix n n R → bilin_form R (n → R) :=
@@ -327,39 +342,40 @@ by { ext, refl }
 
 open bilin_form
 lemma bilin_form.to_matrix_comp (B : bilin_form R (n → R)) (l r : (o → R) →ₗ[R] (n → R)) :
-  (B.comp l r).to_matrix = l.to_matrixᵀ ⬝ B.to_matrix ⬝ r.to_matrix :=
+  (B.comp l r).to_matrix = l.to_matrix'ᵀ ⬝ B.to_matrix ⬝ r.to_matrix' :=
 begin
   ext i j,
-  simp only [to_matrix_apply, comp_apply, mul_val, sum_mul],
+  simp only [to_matrix_apply, transpose_apply, comp_apply, mul_apply, sum_mul],
   have sum_smul_eq : Π (f : (o → R) →ₗ[R] (n → R)) (i : o),
-    f (λ n, ite (n = i) 1 0) = ∑ k, f.to_matrix k i • λ n, ite (n = k) (1 : R) 0,
+    f (λ n, ite (n = i) 1 0) = ∑ k, linear_map.to_matrix' f k i • λ n, ite (n = k) (1 : R) 0,
   { intros f i,
     ext j,
-    change f (λ n, ite (n = i) 1 0) j = (∑ k, λ n, f.to_matrix k i * ite (n = k) (1 : R) 0) j,
-    simp [linear_map.to_matrix, linear_map.to_matrixₗ, eq_comm] },
-  simp_rw [sum_smul_eq, map_sum_right, map_sum_left, smul_right, mul_comm, smul_left],
-  refl
+    change f (λ n, ite (n = i) 1 0) j =
+      (∑ k, λ n, linear_map.to_matrix' f k i * ite (n = k) (1 : R) 0) j,
+      simp_rw [finset.sum_apply, mul_boole, finset.sum_ite_eq],
+      rw [if_pos (finset.mem_univ j), linear_map.to_matrix'_apply] },
+  simp_rw [sum_smul_eq, map_sum_right, map_sum_left, smul_right, smul_left, mul_comm]
 end
 
 lemma bilin_form.to_matrix_comp_left (B : bilin_form R (n → R)) (f : (n → R) →ₗ[R] (n → R)) :
-  (B.comp_left f).to_matrix = f.to_matrixᵀ ⬝ B.to_matrix :=
+  (B.comp_left f).to_matrix = f.to_matrix'ᵀ ⬝ B.to_matrix :=
 by simp [comp_left, bilin_form.to_matrix_comp]
 
 lemma bilin_form.to_matrix_comp_right (B : bilin_form R (n → R)) (f : (n → R) →ₗ[R] (n → R)) :
-  (B.comp_right f).to_matrix = B.to_matrix ⬝ f.to_matrix :=
+  (B.comp_right f).to_matrix = B.to_matrix ⬝ f.to_matrix' :=
 by simp [comp_right, bilin_form.to_matrix_comp]
 
 lemma bilin_form.mul_to_matrix_mul (B : bilin_form R (n → R)) (M : matrix o n R) (N : matrix n o R) :
-  M ⬝ B.to_matrix ⬝ N = (B.comp (Mᵀ.to_lin) (N.to_lin)).to_matrix :=
-by { ext, simp [B.to_matrix_comp (Mᵀ.to_lin) (N.to_lin), to_lin_to_matrix] }
+  M ⬝ B.to_matrix ⬝ N = (B.comp Mᵀ.to_lin' N.to_lin').to_matrix :=
+by { ext, simp [B.to_matrix_comp Mᵀ.to_lin' N.to_lin', to_lin_to_matrix] }
 
 lemma bilin_form.mul_to_matrix (B : bilin_form R (n → R)) (M : matrix n n R) :
-  M ⬝ B.to_matrix = (B.comp_left (Mᵀ.to_lin)).to_matrix :=
-by { ext, simp [B.to_matrix_comp_left (Mᵀ.to_lin), to_lin_to_matrix] }
+  M ⬝ B.to_matrix = (B.comp_left Mᵀ.to_lin').to_matrix :=
+by { ext, simp [B.to_matrix_comp_left Mᵀ.to_lin', to_lin_to_matrix] }
 
 lemma bilin_form.to_matrix_mul (B : bilin_form R (n → R)) (M : matrix n n R) :
-  B.to_matrix ⬝ M = (B.comp_right (M.to_lin)).to_matrix :=
-by { ext, simp [B.to_matrix_comp_right (M.to_lin), to_lin_to_matrix] }
+  B.to_matrix ⬝ M = (B.comp_right M.to_lin').to_matrix :=
+by { ext, simp [B.to_matrix_comp_right M.to_lin', to_lin_to_matrix] }
 
 @[simp] lemma to_matrix_to_bilin_form (B : bilin_form R (n → R)) :
   B.to_matrix.to_bilin_form = B :=
@@ -372,7 +388,7 @@ end
 
 @[simp] lemma to_bilin_form_to_matrix (M : matrix n n R) :
   M.to_bilin_form.to_matrix = M :=
-by { ext, simp [bilin_form.to_matrix_apply, matrix.to_bilin_form_apply, mul_val], }
+by { ext, simp [bilin_form.to_matrix_apply, matrix.to_bilin_form_apply, mul_apply], }
 
 /-- Bilinear forms are linearly equivalent to matrices. -/
 def bilin_form_equiv_matrix : bilin_form R (n → R) ≃ₗ[R] matrix n n R :=
@@ -380,6 +396,15 @@ def bilin_form_equiv_matrix : bilin_form R (n → R) ≃ₗ[R] matrix n n R :=
   left_inv  := to_matrix_to_bilin_form,
   right_inv := to_bilin_form_to_matrix,
   ..bilin_form.to_matrixₗ }
+
+lemma matrix.to_bilin_form_comp {n o : Type w} [fintype n] [fintype o] [decidable_eq o]
+  (M : matrix n n R) (P Q : matrix n o R) :
+  M.to_bilin_form.comp P.to_lin' Q.to_lin' = (Pᵀ ⬝ M ⬝ Q).to_bilin_form :=
+by { haveI : decidable_eq n := λ _ _, classical.prop_decidable _,
+  rw [←to_matrix_to_bilin_form (Pᵀ ⬝ M ⬝ Q).to_bilin_form,
+       ←to_matrix_to_bilin_form (M.to_bilin_form.comp P.to_lin' Q.to_lin'),
+       bilin_form.to_matrix_comp, to_bilin_form_to_matrix, to_bilin_form_to_matrix,
+       linear_map.to_matrix'_to_lin', linear_map.to_matrix'_to_lin'] }
 
 end matrix
 
@@ -454,7 +479,7 @@ section linear_adjoints
 
 variables {R : Type u} [comm_ring R]
 variables {M : Type v} [add_comm_group M] [module R M]
-variables {M₂ : Type v} [add_comm_group M₂] [module R M₂]
+variables {M₂ : Type w} [add_comm_group M₂] [module R M₂]
 variables (B B' : bilin_form R M) (B₂ : bilin_form R M₂)
 variables (f f' : M →ₗ[R] M₂) (g g' : M₂ →ₗ[R] M)
 
@@ -518,6 +543,24 @@ def is_pair_self_adjoint_submodule : submodule R (module.End R M) :=
   add_mem'  := λ f g hf hg, hf.add hg,
   smul_mem' := λ c f h, h.smul c, }
 
+@[simp] lemma mem_is_pair_self_adjoint_submodule (f : module.End R M) :
+  f ∈ is_pair_self_adjoint_submodule B B' ↔ is_pair_self_adjoint B B' f :=
+by refl
+
+lemma is_pair_self_adjoint_equiv (e : M₂ ≃ₗ[R] M) (f : module.End R M) :
+  is_pair_self_adjoint B B' f ↔
+  is_pair_self_adjoint (B.comp ↑e ↑e) (B'.comp ↑e ↑e) (e.symm.conj f) :=
+begin
+  have hₗ : (B'.comp ↑e ↑e).comp_left (e.symm.conj f) = (B'.comp_left f).comp ↑e ↑e :=
+    by { ext, simp [linear_equiv.symm_conj_apply], },
+  have hᵣ : (B.comp ↑e ↑e).comp_right (e.symm.conj f) = (B.comp_right f).comp ↑e ↑e :=
+    by { ext, simp [linear_equiv.conj_apply], },
+  have he : function.surjective (⇑(↑e : M₂ →ₗ[R] M) : M₂ → M) := e.surjective,
+  show bilin_form.is_adjoint_pair _ _ _ _  ↔ bilin_form.is_adjoint_pair _ _ _ _,
+  rw [is_adjoint_pair_iff_comp_left_eq_comp_right, is_adjoint_pair_iff_comp_left_eq_comp_right,
+      hᵣ, hₗ, comp_injective _ _ ↑e ↑e he he],
+end
+
 /-- An endomorphism of a module is self-adjoint with respect to a bilinear form if it serves as an
 adjoint for itself. -/
 def is_self_adjoint (f : module.End R M) := is_adjoint_pair B B f f
@@ -569,50 +612,57 @@ def matrix.is_self_adjoint := matrix.is_adjoint_pair J J A A
 `J`. -/
 def matrix.is_skew_adjoint := matrix.is_adjoint_pair J J A (-A)
 
-lemma matrix_is_adjoint_pair_bilin_form :
-  matrix.is_adjoint_pair J J₂ A B ↔
-  bilin_form.is_adjoint_pair J.to_bilin_form J₂.to_bilin_form A.to_lin B.to_lin :=
+@[simp] lemma matrix_is_adjoint_pair_bilin_form [decidable_eq n] :
+  bilin_form.is_adjoint_pair J.to_bilin_form J₂.to_bilin_form A.to_lin' B.to_lin' ↔
+  matrix.is_adjoint_pair J J₂ A B:=
 begin
-  classical,
   rw bilin_form.is_adjoint_pair_iff_comp_left_eq_comp_right,
   have h : ∀ (B B' : bilin_form R (n → R)), B = B' ↔ B.to_matrix = B'.to_matrix := λ B B', by {
     split; intros h, { rw h, }, { rw [←to_matrix_to_bilin_form B, h, to_matrix_to_bilin_form B'], }, },
-  rw [h, J₂.to_bilin_form.to_matrix_comp_left A.to_lin, J.to_bilin_form.to_matrix_comp_right B.to_lin,
-      to_lin_to_matrix, to_lin_to_matrix, to_bilin_form_to_matrix, to_bilin_form_to_matrix],
+  rw [h,
+      J₂.to_bilin_form.to_matrix_comp_left A.to_lin', J.to_bilin_form.to_matrix_comp_right B.to_lin',
+      linear_map.to_matrix'_to_lin', linear_map.to_matrix'_to_lin',
+      to_bilin_form_to_matrix, to_bilin_form_to_matrix],
   refl,
+end
+
+lemma matrix.is_adjoint_pair_equiv [decidable_eq n] (P : matrix n n R) (h : is_unit P) :
+  (Pᵀ ⬝ J ⬝ P).is_adjoint_pair (Pᵀ ⬝ J ⬝ P) A B ↔ J.is_adjoint_pair J (P ⬝ A ⬝ P⁻¹) (P ⬝ B ⬝ P⁻¹) :=
+have h' : is_unit P.det := P.is_unit_iff_is_unit_det.mp h,
+begin
+  let u := P.nonsing_inv_unit h',
+  let v := Pᵀ.nonsing_inv_unit (P.is_unit_det_transpose h'),
+  let x := Aᵀ * Pᵀ * J,
+  let y := J * P * B,
+  suffices : x * ↑u = ↑v * y ↔ ↑v⁻¹ * x = y * ↑u⁻¹,
+  { dunfold matrix.is_adjoint_pair,
+    repeat { rw matrix.transpose_mul, },
+    simp only [←matrix.mul_eq_mul, ←mul_assoc, P.transpose_nonsing_inv h'],
+    conv_lhs { to_rhs, rw [mul_assoc, mul_assoc], congr, skip, rw ←mul_assoc, },
+    conv_rhs { rw [mul_assoc, mul_assoc], conv { to_lhs, congr, skip, rw ←mul_assoc }, },
+    exact this, },
+  rw units.eq_mul_inv_iff_mul_eq, conv_rhs { rw mul_assoc, }, rw v.inv_mul_eq_iff_eq_mul,
 end
 
 variables [decidable_eq n]
 
-/-- Given a pair of square matrices `J`, `J₂` defining bilinear forms on the free module, there
-is a natural embedding from the corresponding submodule of pair-self-adjoint endomorphisms into the
-module of matrices. -/
-def pair_self_adjoint_matrices_linear_embedding :
-  bilin_form.is_pair_self_adjoint_submodule J.to_bilin_form J₂.to_bilin_form →ₗ[R] matrix n n R :=
-linear_equiv_matrix'.to_linear_map.comp
-  (bilin_form.is_pair_self_adjoint_submodule J.to_bilin_form J₂.to_bilin_form).subtype
-
-lemma pair_self_adjoint_matrices_linear_embedding_apply
-  (f : bilin_form.is_pair_self_adjoint_submodule J.to_bilin_form J₂.to_bilin_form) :
-  (pair_self_adjoint_matrices_linear_embedding J J₂ : _ →ₗ _) f = (f : module.End R (n → R)).to_matrix := rfl
-
-lemma pair_self_adjoint_matrices_linear_embedding_injective :
-  function.injective (pair_self_adjoint_matrices_linear_embedding J J₂) :=
-λ f g h, by { apply set_coe.ext, exact linear_equiv_matrix'.injective h, }
-
 /-- The submodule of pair-self-adjoint matrices with respect to bilinear forms corresponding to
 given matrices `J`, `J₂`. -/
 def pair_self_adjoint_matrices_submodule : submodule R (matrix n n R) :=
-  (pair_self_adjoint_matrices_linear_embedding J J₂).range
+(bilin_form.is_pair_self_adjoint_submodule J.to_bilin_form J₂.to_bilin_form).map
+  (linear_map.to_matrix' : ((n → R) →ₗ[R] n → R) ≃ₗ[R] matrix n n R)
 
 @[simp] lemma mem_pair_self_adjoint_matrices_submodule :
   A ∈ (pair_self_adjoint_matrices_submodule J J₂) ↔ matrix.is_adjoint_pair J J₂ A A :=
 begin
-  change A ∈ (pair_self_adjoint_matrices_linear_embedding J J₂).range ↔ matrix.is_adjoint_pair J J₂ A A,
-  rw [matrix_is_adjoint_pair_bilin_form, linear_map.mem_range],
-  simp only [pair_self_adjoint_matrices_linear_embedding_apply], split,
-  { rintros ⟨⟨A', hA'⟩, h⟩, rw ←h, rw to_matrix_to_lin, exact hA', },
-  { intros h, exact ⟨⟨A.to_lin, h⟩, to_lin_to_matrix⟩, },
+  simp only [pair_self_adjoint_matrices_submodule, linear_equiv.coe_coe, linear_map.to_matrix'_apply,
+    submodule.mem_map, bilin_form.mem_is_pair_self_adjoint_submodule],
+  split,
+  { rintros ⟨f, hf, hA⟩,
+    have hf' : f = A.to_lin' := by rw [←hA, matrix.to_lin'_to_matrix'], rw hf' at hf,
+    rw ←matrix_is_adjoint_pair_bilin_form, exact hf, },
+  { intros h, refine ⟨A.to_lin', _, linear_map.to_matrix'_to_lin' _⟩,
+    exact (matrix_is_adjoint_pair_bilin_form _ _ _ _).mpr h, },
 end
 
 /-- The submodule of self-adjoint matrices with respect to the bilinear form corresponding to
@@ -620,9 +670,20 @@ the matrix `J`. -/
 def self_adjoint_matrices_submodule : submodule R (matrix n n R) :=
   pair_self_adjoint_matrices_submodule J J
 
+@[simp] lemma mem_self_adjoint_matrices_submodule :
+  A ∈ self_adjoint_matrices_submodule J ↔ J.is_self_adjoint A :=
+by { erw mem_pair_self_adjoint_matrices_submodule, refl, }
+
 /-- The submodule of skew-adjoint matrices with respect to the bilinear form corresponding to
 the matrix `J`. -/
 def skew_adjoint_matrices_submodule : submodule R (matrix n n R) :=
   pair_self_adjoint_matrices_submodule (-J) J
+
+@[simp] lemma mem_skew_adjoint_matrices_submodule :
+  A ∈ skew_adjoint_matrices_submodule J ↔ J.is_skew_adjoint A :=
+begin
+  erw mem_pair_self_adjoint_matrices_submodule,
+  simp [matrix.is_skew_adjoint, matrix.is_adjoint_pair],
+end
 
 end matrix_adjoints

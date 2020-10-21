@@ -8,6 +8,8 @@ import tactic.basic
 namespace option
 variables {α : Type*} {β : Type*} {γ : Type*}
 
+lemma coe_def : (coe : α → option α) = some := rfl
+
 lemma some_ne_none (x : α) : some x ≠ none := λ h, option.no_confusion h
 
 @[simp] theorem get_mem : ∀ {o : option α} (h : is_some o), option.get h ∈ o
@@ -32,11 +34,11 @@ by cases x; [contradiction, rw get_or_else_some]
 theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
 option.some.inj $ ha.symm.trans hb
 
-theorem injective_some (α : Type*) : function.injective (@some α) :=
+theorem some_injective (α : Type*) : function.injective (@some α) :=
 λ _ _, some_inj.mp
 
 /-- `option.map f` is injective if `f` is injective. -/
-theorem injective_map {f : α → β} (Hf : function.injective f) : function.injective (option.map f)
+theorem map_injective {f : α → β} (Hf : function.injective f) : function.injective (option.map f)
 | none      none      H := rfl
 | (some a₁) (some a₂) H := by rw Hf (option.some.inj H)
 
@@ -141,6 +143,12 @@ by cases o; simp
 lemma ne_none_iff_is_some {o : option α} : o ≠ none ↔ o.is_some :=
 by cases o; simp
 
+lemma ne_none_iff_exists {o : option α} : o ≠ none ↔ ∃ (x : α), some x = o :=
+by {cases o; simp}
+
+lemma ne_none_iff_exists' {o : option α} : o ≠ none ↔ ∃ (x : α), o = some x :=
+ne_none_iff_exists.trans $ exists_congr $ λ _, eq_comm
+
 lemma bex_ne_none {p : option α → Prop} :
   (∃ x ≠ none, p x) ↔ ∃ x, p (some x) :=
 ⟨λ ⟨x, hx, hp⟩, ⟨get $ ne_none_iff_is_some.1 hx, by rwa [some_get]⟩,
@@ -186,5 +194,15 @@ function to `a` if it comes from `α`, and return `b` otherwise. -/
 def cases_on' : option α → β → (α → β) → β
 | none     n s := n
 | (some a) n s := s a
+
+@[simp] lemma cases_on'_none (x : β) (f : α → β) : cases_on' none x f = x := rfl
+
+@[simp] lemma cases_on'_some (x : β) (f : α → β) (a : α) : cases_on' (some a) x f = f a := rfl
+
+@[simp] lemma cases_on'_coe (x : β) (f : α → β) (a : α) : cases_on' (a : option α) x f = f a := rfl
+
+@[simp] lemma cases_on'_none_coe (f : option α → β) (o : option α) :
+  cases_on' o (f none) (f ∘ coe) = f o :=
+by cases o; refl
 
 end option

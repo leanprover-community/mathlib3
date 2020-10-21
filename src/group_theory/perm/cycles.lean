@@ -10,6 +10,7 @@ namespace equiv.perm
 open equiv function finset
 variables {α : Type*} {β : Type*} [decidable_eq α]
 
+/-- The equivalence relation indicating that two points are in the same cycle of a permutation. -/
 def same_cycle (f : perm β) (x y : β) := ∃ i : ℤ, (f ^ i) x = y
 
 @[refl] lemma same_cycle.refl (f : perm β) (x : β) : same_cycle f x x := ⟨0, rfl⟩
@@ -60,6 +61,7 @@ lemma same_cycle_inv (f : perm β) {x y : β} : same_cycle f⁻¹ x y ↔ same_c
 lemma same_cycle_inv_apply {f : perm β} {x y : β} : same_cycle f x (f⁻¹ y) ↔ same_cycle f x y :=
 by rw [← same_cycle_inv, same_cycle_apply, same_cycle_inv]
 
+/-- `f.cycle_of x` is the cycle of the permutation `f` to which `x` belongs. -/
 def cycle_of [fintype α] (f : perm α) (x : α) : perm α :=
 of_subtype (@subtype_perm _ f (same_cycle f x) (λ _, same_cycle_apply.symm))
 
@@ -102,7 +104,7 @@ equiv.ext $ λ y,
   else by rw [cycle_of_apply_of_not_same_cycle h, not_not.1 (mt ((same_cycle_cycle hx).1 hf).2 h)]
 
 lemma cycle_of_one [fintype α] (x : α) : cycle_of 1 x = 1 :=
-by rw [cycle_of, subtype_perm_one (same_cycle 1 x), of_subtype_one]
+by rw [cycle_of, subtype_perm_one (same_cycle 1 x), of_subtype.map_one]
 
 lemma is_cycle_cycle_of [fintype α] (f : perm α) {x : α} (hx : f x ≠ x) : is_cycle (cycle_of f x) :=
 have cycle_of f x x ≠ x, by rwa [cycle_of_apply_of_same_cycle (same_cycle.refl _ _)],
@@ -113,6 +115,8 @@ have cycle_of f x x ≠ x, by rwa [cycle_of_apply_of_same_cycle (same_cycle.refl
   ⟨i, by rw [cycle_of_gpow_apply_self, hi]⟩
   else by rw [cycle_of_apply_of_not_same_cycle hxy] at h; exact (h rfl).elim⟩
 
+/-- Given a list `l : list α` and a permutation `f : perm α` whose nonfixed points are all in `l`,
+  recursively factors `f` into cycles.  -/
 def cycle_factors_aux [fintype α] : Π (l : list α) (f : perm α), (∀ {x}, f x ≠ x → x ∈ l) →
   {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint}
 | []     f h := ⟨[], by simp [*, imp_false, list.pairwise.nil] at *; ext; simp *⟩
@@ -140,8 +144,32 @@ else let ⟨m, hm₁, hm₂, hm₃⟩ := cycle_factors_aux l ((cycle_of f x)⁻�
                 inv_apply_self, inv_eq_iff_eq, eq_comm]),
         hm₃⟩⟩
 
+/-- Factors a permutation `f` into a list of disjoint cyclic permutations that multiply to `f`. -/
 def cycle_factors [fintype α] [decidable_linear_order α] (f : perm α) :
   {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint} :=
 cycle_factors_aux (univ.sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
+
+section fixed_points
+
+lemma one_lt_nonfixed_point_card_of_ne_one [fintype α] {σ : perm α} (h : σ ≠ 1) :
+1 < (filter (λ x, σ x ≠ x) univ).card :=
+begin
+  rw one_lt_card_iff,
+  contrapose! h, ext, dsimp,
+  have := h (σ x) x, contrapose! this, simpa,
+end
+
+lemma fixed_point_card_lt_of_ne_one [fintype α] {σ : perm α} (h : σ ≠ 1) :
+(filter (λ x, σ x = x) univ).card < fintype.card α - 1 :=
+begin
+  rw nat.lt_sub_left_iff_add_lt, apply nat.add_lt_of_lt_sub_right,
+  convert one_lt_nonfixed_point_card_of_ne_one h,
+  rw [nat.sub_eq_iff_eq_add, add_comm], swap, { apply card_le_of_subset, simp },
+  rw ← card_disjoint_union, swap, { rw [disjoint_iff_inter_eq_empty, filter_inter_filter_neg_eq] },
+  rw filter_union_filter_neg_eq, refl
+end
+
+end fixed_points
+
 
 end equiv.perm

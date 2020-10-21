@@ -7,9 +7,9 @@ example : ∀ n m : ℕ, n + m = m + n :=
 begin
   apply' nat.rec,
   -- refine nat.rec _ _,
+  { intro m, ring },
   { intros n h m,
     ring, },
-  { intro m, ring }
 end
 
 instance : partial_order unit :=
@@ -22,21 +22,34 @@ instance : partial_order unit :=
 
 example : unit.star ≤ unit.star :=
 begin
+  have u : unit := unit.star,
   apply' le_trans,
   -- refine le_trans _ _,
   -- exact unit.star,
-  refl', refl'
+  do { gs ← tactic.get_goals, guard (gs.length = 3) },
+  change () ≤ u,
+  all_goals { cases u, refl', } ,
   -- refine le_refl _, refine le_refl _,
 end
 
 example {α β : Type*} [partial_order β] (x y z : α → β) (h₀ : x ≤ y) (h₁ : y ≤ z) : x ≤ z :=
 begin
-  transitivity'; assumption
+  transitivity',
+  do { gs ← tactic.get_goals, guard (gs.length = 2) },
+  exact h₀, exact h₁,
 end
 example : continuous (λ (x : ℝ), x + x) :=
 begin
   apply' continuous.add,
   guard_target' continuous (λ (x : ℝ), x), apply @continuous_id ℝ _,
   guard_target' continuous (λ (x : ℝ), x), apply @continuous_id ℝ _,
-  -- guard_target' topological_add_monoid ℝ, admit,
+  -- guard_target' has_continuous_add ℝ, admit,
+end
+
+example (y : ℝ) : continuous (λ (x : ℝ), x + y) :=
+begin
+  apply' continuous.add,
+  guard_target' continuous (λ (x : ℝ), x), apply @continuous_id ℝ _,
+  guard_target' continuous (λ (x : ℝ), y), apply @continuous_const ℝ _ _,
+  -- guard_target' has_continuous_add ℝ, admit,
 end

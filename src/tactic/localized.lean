@@ -82,7 +82,7 @@ namespace.
 
 * Declare notation which is localized to a namespace using:
   ```lean
-  localized \"infix ` ⊹ `:60 := my_add\" in my.add
+  localized "infix ` ⊹ `:60 := my_add" in my.add
   ```
 
 * After this command it will be available in the same section/namespace/file, just as if you wrote
@@ -101,7 +101,7 @@ namespace.
 
 * You can also declare other localized commands, like local attributes
   ```lean
-  localized \"attribute [simp] le_refl\" in le
+  localized "attribute [simp] le_refl" in le
   ```
 
 * To see all localized commands in a given namespace, run:

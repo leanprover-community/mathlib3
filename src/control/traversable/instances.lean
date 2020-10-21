@@ -7,7 +7,7 @@ Instances of `traversable` for types from the core library
 -/
 import data.list.forall2
 import data.set.lattice
-import control.applicative
+import control.traversable.lemmas
 
 universes u v
 
@@ -22,6 +22,7 @@ variables [is_lawful_applicative F] [is_lawful_applicative G]
 lemma option.id_traverse {α} (x : option α) : option.traverse id.mk x = x :=
 by cases x; refl
 
+@[nolint unused_arguments]
 lemma option.comp_traverse {α β γ} (f : β → F γ) (g : α → G β) (x : option α) :
   option.traverse (comp.mk ∘ (<$>) f ∘ g) x =
   comp.mk (option.traverse f <$> option.traverse g x) :=
@@ -61,6 +62,7 @@ protected lemma id_traverse {α} (xs : list α) :
   list.traverse id.mk xs = xs :=
 by induction xs; simp! * with functor_norm; refl
 
+@[nolint unused_arguments]
 protected lemma comp_traverse {α β γ} (f : β → F γ) (g : α → G β) (x : list α) :
   list.traverse (comp.mk ∘ (<$>) f ∘ g) x =
   comp.mk (list.traverse f <$> list.traverse g x) :=
@@ -128,11 +130,16 @@ variables [applicative F] [applicative G]
 open applicative functor
 open list (cons)
 
+protected lemma traverse_map {α β γ : Type u} (g : α → β) (f : β → G γ) (x : σ ⊕ α) :
+  sum.traverse f (g <$> x) = sum.traverse (f ∘ g) x :=
+by cases x; simp [sum.traverse, id_map] with functor_norm; refl
+
 variables [is_lawful_applicative F] [is_lawful_applicative G]
 
 protected lemma id_traverse {σ α} (x : σ ⊕ α) : sum.traverse id.mk x = x :=
 by cases x; refl
 
+@[nolint unused_arguments]
 protected lemma comp_traverse {α β γ} (f : β → F γ) (g : α → G β) (x : σ ⊕ α) :
   sum.traverse (comp.mk ∘ (<$>) f ∘ g) x =
   comp.mk (sum.traverse f <$> sum.traverse g x) :=
@@ -145,10 +152,6 @@ by induction x; simp! * with functor_norm; refl
 protected lemma map_traverse {α β γ} (g : α → G β) (f : β → γ) (x : σ ⊕ α) :
   (<$>) f <$> sum.traverse g x = sum.traverse ((<$>) f ∘ g) x :=
 by cases x; simp [sum.traverse, id_map] with functor_norm; congr; refl
-
-protected lemma traverse_map {α β γ : Type u} (g : α → β) (f : β → G γ) (x : σ ⊕ α) :
-  sum.traverse f (g <$> x) = sum.traverse (f ∘ g) x :=
-by cases x; simp [sum.traverse, id_map] with functor_norm; refl
 
 variable (η : applicative_transformation F G)
 

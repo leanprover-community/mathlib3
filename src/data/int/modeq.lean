@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import data.nat.modeq
-import tactic
+import tactic.ring
 
 namespace int
 
+/-- `a ≡ b [ZMOD n]` when `a % n = b % n`. -/
 def modeq (n a b : ℤ) := a % n = b % n
 
 notation a ` ≡ `:50 b ` [ZMOD `:50 n `]`:0 := modeq n a b

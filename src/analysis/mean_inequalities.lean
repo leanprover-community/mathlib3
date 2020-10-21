@@ -32,7 +32,8 @@ a version for real-valued non-negative functions is in the `real` namespace, and
 
 - `geom_mean_le_arith_mean_weighted` : weighted version for functions on `finset`s;
 - `geom_mean_le_arith_mean2_weighted` : weighted version for two numbers;
-- `geom_mean_le_arith_mean3_weighted` : weighted version for three numbers.
+- `geom_mean_le_arith_mean3_weighted` : weighted version for three numbers;
+- `geom_mean_le_arith_mean4_weighted` : weighted version for four numbers.
 
 ### Generalized mean inequality
 
@@ -145,7 +146,7 @@ theorem pow_arith_mean_le_arith_mean_pow (w z : ι → ℝ) (hw : ∀ i ∈ s, 0
 (convex_on_pow n).map_sum_le hw hw' hz
 
 theorem pow_arith_mean_le_arith_mean_pow_of_even (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
-  (hw' : ∑ i in s, w i = 1) {n : ℕ} (hn : n.even) :
+  (hw' : ∑ i in s, w i = 1) {n : ℕ} (hn : even n) :
   (∑ i in s, w i * z i) ^ n ≤ ∑ i in s, (w i * z i ^ n) :=
 (convex_on_pow_of_even hn).map_sum_le hw hw' (λ _ _, trivial)
 
@@ -199,6 +200,15 @@ using geom_mean_le_arith_mean_weighted (univ : finset (fin 3))
   (fin.cons w₁ $ fin.cons w₂ $ fin.cons w₃ fin_zero_elim)
   (fin.cons p₁ $ fin.cons p₂ $ fin.cons p₃ fin_zero_elim)
 
+theorem geom_mean_le_arith_mean4_weighted (w₁ w₂ w₃ w₄ p₁ p₂ p₃ p₄ : ℝ≥0) :
+  w₁ + w₂ + w₃ + w₄ = 1 → p₁ ^ (w₁:ℝ) * p₂ ^ (w₂:ℝ) * p₃ ^ (w₃:ℝ)* p₄ ^ (w₄:ℝ) ≤
+    w₁ * p₁ + w₂ * p₂ + w₃ * p₃ + w₄ * p₄ :=
+by simpa only  [fin.prod_univ_succ, fin.sum_univ_succ, fin.prod_univ_zero, fin.sum_univ_zero,
+  fin.cons_succ, fin.cons_zero, add_zero, mul_one, ← add_assoc, mul_assoc]
+using geom_mean_le_arith_mean_weighted (univ : finset (fin 4))
+  (fin.cons w₁ $ fin.cons w₂ $ fin.cons w₃ $ fin.cons w₄ fin_zero_elim)
+  (fin.cons p₁ $ fin.cons p₂ $ fin.cons p₃ $ fin.cons p₄ fin_zero_elim)
+
 /-- Weighted generalized mean inequality, version sums over finite sets, with `ℝ≥0`-valued
 functions and natural exponent. -/
 theorem pow_arith_mean_le_arith_mean_pow (w z : ι → ℝ≥0) (hw' : ∑ i in s, w i = 1) (n : ℕ) :
@@ -231,6 +241,19 @@ theorem geom_mean_le_arith_mean2_weighted {w₁ w₂ p₁ p₂ : ℝ} (hw₁ : 0
   p₁ ^ w₁ * p₂ ^ w₂ ≤ w₁ * p₁ + w₂ * p₂ :=
 nnreal.geom_mean_le_arith_mean2_weighted ⟨w₁, hw₁⟩ ⟨w₂, hw₂⟩ ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ $
   nnreal.coe_eq.1 $ by assumption
+
+theorem geom_mean_le_arith_mean3_weighted {w₁ w₂ w₃ p₁ p₂ p₃ : ℝ} (hw₁ : 0 ≤ w₁) (hw₂ : 0 ≤ w₂)
+  (hw₃ : 0 ≤ w₃) (hp₁ : 0 ≤ p₁) (hp₂ : 0 ≤ p₂) (hp₃ : 0 ≤ p₃) (hw : w₁ + w₂ + w₃ = 1) :
+  p₁ ^ w₁ * p₂ ^ w₂ * p₃ ^ w₃ ≤ w₁ * p₁ + w₂ * p₂ + w₃ * p₃ :=
+nnreal.geom_mean_le_arith_mean3_weighted ⟨w₁, hw₁⟩ ⟨w₂, hw₂⟩ ⟨w₃, hw₃⟩ ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ ⟨p₃, hp₃⟩ $
+  nnreal.coe_eq.1 $ by assumption
+
+theorem geom_mean_le_arith_mean4_weighted {w₁ w₂ w₃ w₄ p₁ p₂ p₃ p₄ : ℝ} (hw₁ : 0 ≤ w₁)
+  (hw₂ : 0 ≤ w₂) (hw₃ : 0 ≤ w₃) (hw₄ : 0 ≤ w₄) (hp₁ : 0 ≤ p₁) (hp₂ : 0 ≤ p₂) (hp₃ : 0 ≤ p₃)
+  (hp₄ : 0 ≤ p₄) (hw : w₁ + w₂ + w₃ + w₄ = 1) :
+  p₁ ^ w₁ * p₂ ^ w₂ * p₃ ^ w₃ * p₄ ^ w₄ ≤ w₁ * p₁ + w₂ * p₂ + w₃ * p₃ + w₄ * p₄ :=
+nnreal.geom_mean_le_arith_mean4_weighted ⟨w₁, hw₁⟩ ⟨w₂, hw₂⟩ ⟨w₃, hw₃⟩ ⟨w₄, hw₄⟩
+  ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ ⟨p₃, hp₃⟩ ⟨p₄, hp₄⟩ $ nnreal.coe_eq.1 $ by assumption
 
 /-- Young's inequality, a version for nonnegative real numbers. -/
 theorem young_inequality_of_nonneg {a b p q : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b)
@@ -427,17 +450,19 @@ begin
     simp [this] },
   push_neg at H,
   by_cases H' : (∑ i in s, (f i)^p) ^ (1/p) = ⊤ ∨ (∑ i in s, (g i)^q) ^ (1/q) = ⊤,
-  { cases H'; simp [H', -one_div_eq_inv, H] },
+  { cases H'; simp [H', -one_div, H] },
   replace H' : (∀ i ∈ s, f i ≠ ⊤) ∧ (∀ i ∈ s, g i ≠ ⊤),
     by simpa [ennreal.rpow_eq_top_iff, asymm hpq.pos, asymm hpq.symm.pos, hpq.pos, hpq.symm.pos,
               ennreal.sum_eq_top_iff, not_or_distrib] using H',
   have := ennreal.coe_le_coe.2 (@nnreal.inner_le_Lp_mul_Lq _ s (λ i, ennreal.to_nnreal (f i))
               (λ i, ennreal.to_nnreal (g i)) _ _ hpq),
-  push_cast [← ennreal.coe_rpow_of_nonneg, le_of_lt (hpq.pos), le_of_lt (hpq.one_div_pos),
+  simp [← ennreal.coe_rpow_of_nonneg, le_of_lt (hpq.pos), le_of_lt (hpq.one_div_pos),
              le_of_lt (hpq.symm.pos), le_of_lt (hpq.symm.one_div_pos)] at this,
   convert this using 1;
   [skip, congr' 2];
-  { apply finset.sum_congr rfl (λ i hi, _), simp [H'.1 i hi, H'.2 i hi] },
+  [skip, skip, simp, skip, simp];
+  { apply finset.sum_congr rfl (λ i hi, _), simp [H'.1 i hi, H'.2 i hi, -with_zero.coe_mul,
+    with_top.coe_mul.symm] },
 end
 
 /-- Minkowski inequality: the `L_p` seminorm of the sum of two vectors is less than or equal
@@ -447,14 +472,14 @@ theorem Lp_add_le (hp : 1 ≤ p) :
   (∑ i in s, (f i + g i) ^ p)^(1/p) ≤ (∑ i in s, (f i)^p) ^ (1/p) + (∑ i in s, (g i)^p) ^ (1/p) :=
 begin
   by_cases H' : (∑ i in s, (f i)^p) ^ (1/p) = ⊤ ∨ (∑ i in s, (g i)^p) ^ (1/p) = ⊤,
-  { cases H'; simp [H', -one_div_eq_inv] },
+  { cases H'; simp [H', -one_div] },
   have pos : 0 < p := lt_of_lt_of_le zero_lt_one hp,
   replace H' : (∀ i ∈ s, f i ≠ ⊤) ∧ (∀ i ∈ s, g i ≠ ⊤),
     by simpa [ennreal.rpow_eq_top_iff, asymm pos, pos, ennreal.sum_eq_top_iff,
               not_or_distrib] using H',
   have := ennreal.coe_le_coe.2 (@nnreal.Lp_add_le _ s (λ i, ennreal.to_nnreal (f i))
               (λ i, ennreal.to_nnreal (g i)) _  hp),
-  push_cast [← ennreal.coe_rpow_of_nonneg, le_of_lt (pos), le_of_lt (one_div_pos_of_pos pos)] at this,
+  push_cast [← ennreal.coe_rpow_of_nonneg, le_of_lt (pos), le_of_lt (one_div_pos.2 pos)] at this,
   convert this using 2;
   [skip, congr' 1, congr' 1];
   { apply finset.sum_congr rfl (λ i hi, _), simp [H'.1 i hi, H'.2 i hi] }

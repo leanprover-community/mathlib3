@@ -3,8 +3,8 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Ken Lee, Chris Hughes
 -/
-
-import algebra.big_operators
+import tactic.ring
+import algebra.big_operators.basic
 import data.fintype.basic
 import data.int.gcd
 import data.set.disjointed
@@ -23,6 +23,8 @@ e.g., the multivariate polynomials `x₁` and `x₂` are not coprime.
 open_locale classical big_operators
 
 universes u v
+
+section comm_semiring
 
 variables {R : Type u} [comm_semiring R] (x y z : R)
 
@@ -102,14 +104,23 @@ begin
     exact dvd_mul_of_dvd_left (mul_dvd_mul_right H1 _) _ }
 end
 
-theorem finset.prod_dvd_of_coprime (Hs : pairwise (is_coprime on s)) (Hs1 : ∀ i, s i ∣ z) :
+theorem finset.prod_dvd_of_coprime :
+  ∀ (Hs : set.pairwise_on (↑t : set I) (is_coprime on s)) (Hs1 : ∀ i ∈ t, s i ∣ z),
   ∏ x in t, s x ∣ z :=
-finset.induction_on t (one_dvd z) (λ a r har ih, by { rw finset.prod_insert har,
-exact (is_coprime.prod_right $ λ i hir, Hs a i $ λ hai, har $ hai.symm ▸ hir).mul_dvd (Hs1 a) ih })
+finset.induction_on t (λ _ _, one_dvd z)
+begin
+  intros a r har ih Hs Hs1,
+  rw finset.prod_insert har,
+  have aux1 : a ∈ (↑(insert a r) : set I) := finset.mem_insert_self a r,
+  refine (is_coprime.prod_right $ λ i hir, Hs a aux1 i _ (by { rintro rfl, exact har hir })).mul_dvd
+    (Hs1 a aux1) (ih (Hs.mono _) $ λ i hi, Hs1 i (finset.mem_insert_of_mem hi)),
+  { exact finset.mem_insert_of_mem hir },
+  { simp only [finset.coe_insert, set.subset_insert] }
+end
 
 theorem fintype.prod_dvd_of_coprime [fintype I] (Hs : pairwise (is_coprime on s))
   (Hs1 : ∀ i, s i ∣ z) : ∏ x, s x ∣ z :=
-finset.prod_dvd_of_coprime Hs Hs1
+finset.prod_dvd_of_coprime (Hs.pairwise_on _) (λ i _, Hs1 i)
 
 theorem is_coprime.of_mul_left_left (H : is_coprime (x * y) z) : is_coprime x z :=
 let ⟨a, b, h⟩ := H in ⟨a * y, b, by rwa [mul_right_comm, mul_assoc]⟩
@@ -162,3 +173,91 @@ show is_coprime x (x * k), from hk ▸ H
 theorem is_coprime.map (H : is_coprime x y) {S : Type v} [comm_semiring S] (f : R →+* S) :
   is_coprime (f x) (f y) :=
 let ⟨a, b, h⟩ := H in ⟨f a, f b, by rw [← f.map_mul, ← f.map_mul, ← f.map_add, h, f.map_one]⟩
+
+variables {x y z}
+
+lemma is_coprime.of_add_mul_left_left (h : is_coprime (x + y * z) y) : is_coprime x y :=
+let ⟨a, b, H⟩ := h in ⟨a, a * z + b, by simpa only [add_mul, mul_add,
+    add_assoc, add_comm, add_left_comm, mul_assoc, mul_comm, mul_left_comm] using H⟩
+
+lemma is_coprime.of_add_mul_right_left (h : is_coprime (x + z * y) y) : is_coprime x y :=
+by { rw mul_comm at h, exact h.of_add_mul_left_left }
+
+lemma is_coprime.of_add_mul_left_right (h : is_coprime x (y + x * z)) : is_coprime x y :=
+by { rw is_coprime_comm at h ⊢, exact h.of_add_mul_left_left }
+
+lemma is_coprime.of_add_mul_right_right (h : is_coprime x (y + z * x)) : is_coprime x y :=
+by { rw mul_comm at h, exact h.of_add_mul_left_right }
+
+lemma is_coprime.of_mul_add_left_left (h : is_coprime (y * z + x) y) : is_coprime x y :=
+by { rw add_comm at h, exact h.of_add_mul_left_left }
+
+lemma is_coprime.of_mul_add_right_left (h : is_coprime (z * y + x) y) : is_coprime x y :=
+by { rw add_comm at h, exact h.of_add_mul_right_left }
+
+lemma is_coprime.of_mul_add_left_right (h : is_coprime x (x * z + y)) : is_coprime x y :=
+by { rw add_comm at h, exact h.of_add_mul_left_right }
+
+lemma is_coprime.of_mul_add_right_right (h : is_coprime x (z * x + y)) : is_coprime x y :=
+by { rw add_comm at h, exact h.of_add_mul_right_right }
+
+end comm_semiring
+
+namespace is_coprime
+
+section comm_ring
+
+variables {R : Type u} [comm_ring R]
+
+lemma add_mul_left_left {x y : R} (h : is_coprime x y) (z : R) : is_coprime (x + y * z) y :=
+@of_add_mul_left_left R _ _ _ (-z) $
+by simpa only [mul_neg_eq_neg_mul_symm, add_neg_cancel_right] using h
+
+lemma add_mul_right_left {x y : R} (h : is_coprime x y) (z : R) : is_coprime (x + z * y) y :=
+by { rw mul_comm, exact h.add_mul_left_left z }
+
+lemma add_mul_left_right {x y : R} (h : is_coprime x y) (z : R) : is_coprime x (y + x * z) :=
+by { rw is_coprime_comm, exact h.symm.add_mul_left_left z }
+
+lemma add_mul_right_right {x y : R} (h : is_coprime x y) (z : R) : is_coprime x (y + z * x) :=
+by { rw is_coprime_comm, exact h.symm.add_mul_right_left z }
+
+lemma mul_add_left_left {x y : R} (h : is_coprime x y) (z : R) : is_coprime (y * z + x) y :=
+by { rw add_comm, exact h.add_mul_left_left z }
+
+lemma mul_add_right_left {x y : R} (h : is_coprime x y) (z : R) : is_coprime (z * y + x) y :=
+by { rw add_comm, exact h.add_mul_right_left z }
+
+lemma mul_add_left_right {x y : R} (h : is_coprime x y) (z : R) : is_coprime x (x * z + y) :=
+by { rw add_comm, exact h.add_mul_left_right z }
+
+lemma mul_add_right_right {x y : R} (h : is_coprime x y) (z : R) : is_coprime x (z * x + y) :=
+by { rw add_comm, exact h.add_mul_right_right z }
+
+lemma add_mul_left_left_iff {x y z : R} : is_coprime (x + y * z) y ↔ is_coprime x y :=
+⟨of_add_mul_left_left, λ h, h.add_mul_left_left z⟩
+
+lemma add_mul_right_left_iff {x y z : R} : is_coprime (x + z * y) y ↔ is_coprime x y :=
+⟨of_add_mul_right_left, λ h, h.add_mul_right_left z⟩
+
+lemma add_mul_left_right_iff {x y z : R} : is_coprime x (y + x * z) ↔ is_coprime x y :=
+⟨of_add_mul_left_right, λ h, h.add_mul_left_right z⟩
+
+lemma add_mul_right_right_iff {x y z : R} : is_coprime x (y + z * x) ↔ is_coprime x y :=
+⟨of_add_mul_right_right, λ h, h.add_mul_right_right z⟩
+
+lemma mul_add_left_left_iff {x y z : R} : is_coprime (y * z + x) y ↔ is_coprime x y :=
+⟨of_mul_add_left_left, λ h, h.mul_add_left_left z⟩
+
+lemma mul_add_right_left_iff {x y z : R} : is_coprime (z * y + x) y ↔ is_coprime x y :=
+⟨of_mul_add_right_left, λ h, h.mul_add_right_left z⟩
+
+lemma mul_add_left_right_iff {x y z : R} : is_coprime x (x * z + y) ↔ is_coprime x y :=
+⟨of_mul_add_left_right, λ h, h.mul_add_left_right z⟩
+
+lemma mul_add_right_right_iff {x y z : R} : is_coprime x (z * x + y) ↔ is_coprime x y :=
+⟨of_mul_add_right_right, λ h, h.mul_add_right_right z⟩
+
+end comm_ring
+
+end is_coprime

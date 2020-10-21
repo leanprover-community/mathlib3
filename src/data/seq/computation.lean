@@ -7,6 +7,7 @@ Coinductive formalization of unbounded computations.
 -/
 import data.stream
 import tactic.basic
+
 universes u v w
 
 /-
@@ -336,7 +337,7 @@ get_eq_of_mem _ $ (thinkN_mem _).2 (get_mem _)
 theorem get_promises : s ~> get s := λ a, get_eq_of_mem _
 
 theorem mem_of_promises {a} (p : s ~> a) : a ∈ s :=
-by unfreezeI; cases h with a' h; rw p h; exact h
+by { casesI h with a' h, rw p h, exact h }
 
 theorem get_eq_of_promises {a} : s ~> a → get s = a :=
 get_eq_of_mem _ ∘ mem_of_promises _

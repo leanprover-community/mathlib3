@@ -3,14 +3,15 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-
-import algebra.big_operators
+import algebra.big_operators.basic
 
 open finset
 open_locale big_operators
 
 namespace nat
 
+/-- Euler's totient function. This counts the number of positive integers less than `n` which are
+coprime with `n`. -/
 def totient (n : ℕ) : ℕ := ((range n).filter (nat.coprime n)).card
 
 localized "notation `φ` := nat.totient" in nat
@@ -65,7 +66,7 @@ calc ∑ m in (range n.succ).filter (∣ n), φ m
 ... = ((filter (∣ n) (range n.succ)).bind (λ d, (range n).filter (λ m, gcd n m = d))).card :
   (card_bind (by intros; apply disjoint_filter.2; cc)).symm
 ... = (range n).card :
-  congr_arg card (finset.ext.2 (λ m, ⟨by finish,
+  congr_arg card (finset.ext (λ m, ⟨by finish,
     λ hm, have h : m < n, from mem_range.1 hm,
       mem_bind.2 ⟨gcd n m, mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd (lt_of_le_of_lt (nat.zero_le _) h)
         (gcd_dvd_left _ _))), gcd_dvd_left _ _⟩, mem_filter.2 ⟨hm, rfl⟩⟩⟩))

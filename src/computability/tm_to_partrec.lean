@@ -188,12 +188,13 @@ begin
   suffices : ∃ c : code, ∀ v : vector ℕ m,
     c.eval v.1 = subtype.val <$> vector.m_of_fn (λ i, g i v),
   { obtain ⟨cf, hf⟩ := hf, obtain ⟨cg, hg⟩ := this,
-    exact ⟨cf.comp cg, λ v, by simp [hg, hf, map_bind, seq_bind_eq, (∘)]; refl⟩ },
+    exact ⟨cf.comp cg, λ v,
+      by { simp [hg, hf, map_bind, seq_bind_eq, (∘), -subtype.val_eq_coe], refl }⟩ },
   clear hf f, induction n with n IH,
   { exact ⟨nil, λ v, by simp [vector.m_of_fn]; refl⟩ },
   { obtain ⟨cg, hg₁⟩ := hg 0, obtain ⟨cl, hl⟩ := IH (λ i, hg i.succ),
-    exact ⟨cons cg cl, λ v, by simp [vector.m_of_fn, hg₁, map_bind,
-      seq_bind_eq, bind_assoc, (∘), hl]; refl⟩ },
+    exact ⟨cons cg cl, λ v, by { simp [vector.m_of_fn, hg₁, map_bind,
+      seq_bind_eq, bind_assoc, (∘), hl, -subtype.val_eq_coe], refl }⟩ },
 end
 
 theorem exists_code {n} {f : vector ℕ n →. ℕ} (hf : nat.partrec' f) :
@@ -214,22 +215,24 @@ begin
     obtain ⟨cf, hf⟩ := IHf, obtain ⟨cg, hg⟩ := IHg,
     simp only [roption.map_eq_map, roption.map_some, pfun.coe_val] at hf hg,
     refine ⟨prec cf cg, λ v, _⟩, rw ← v.cons_head_tail,
-    specialize hf v.tail, replace hg := λ a b, hg (a :: b :: v.tail),
+    specialize hf v.tail, replace hg := λ a b, hg (a ::ᵥ b ::ᵥ v.tail),
     simp only [vector.cons_val, vector.tail_val] at hf hg,
     simp only [roption.map_eq_map, roption.map_some, vector.cons_val,
       vector.cons_tail, vector.cons_head, pfun.coe_val, vector.tail_val],
     simp only [← roption.pure_eq_some] at hf hg ⊢,
     induction v.head with n IH; simp [prec, hf, bind_assoc, ← roption.map_eq_map,
-      ← bind_pure_comp_eq_map, show ∀ x, pure x = [x], from λ _, rfl],
+      ← bind_pure_comp_eq_map, show ∀ x, pure x = [x], from λ _, rfl, -subtype.val_eq_coe],
     suffices : ∀ a b, a + b = n →
-      (n.succ :: 0 :: g (n :: nat.elim (f v.tail) (λ y IH, g (y::IH::v.tail)) n :: v.tail)
-         :: v.val.tail : list ℕ) ∈
+      (n.succ :: 0 :: g
+        (n ::ᵥ (nat.elim (f v.tail) (λ y IH, g (y ::ᵥ IH ::ᵥ v.tail)) n) ::ᵥ v.tail)
+        :: v.val.tail : list ℕ) ∈
       pfun.fix (λ v : list ℕ, do
         x ← cg.eval (v.head :: v.tail.tail),
         pure $ if v.tail.head = 0
           then sum.inl (v.head.succ :: v.tail.head.pred :: x.head :: v.tail.tail.tail : list ℕ)
           else sum.inr (v.head.succ :: v.tail.head.pred :: x.head :: v.tail.tail.tail))
-        (a :: b :: nat.elim (f v.tail) (λ y IH, g (y::IH::v.tail)) a :: v.val.tail),
+        (a :: b :: nat.elim (f v.tail)
+          (λ y IH, g (y ::ᵥ IH ::ᵥ v.tail)) a :: v.val.tail),
     { rw (_ : pfun.fix _ _ = pure _), swap, exact roption.eq_some_iff.2 (this 0 n (zero_add n)),
       simp only [list.head, pure_bind, list.tail_cons] },
     intros a b e, induction b with b IH generalizing a e,
@@ -241,7 +244,7 @@ begin
   case comp : m n f g hf hg IHf IHg { exact exists_code.comp IHf IHg },
   case rfind : n f hf IHf {
     obtain ⟨cf, hf⟩ := IHf, refine ⟨rfind cf, λ v, _⟩,
-    replace hf := λ a, hf (a :: v),
+    replace hf := λ a, hf (a ::ᵥ v),
     simp only [roption.map_eq_map, roption.map_some, vector.cons_val, pfun.coe_val,
       show ∀ x, pure x = [x], from λ _, rfl] at hf ⊢,
     refine roption.ext (λ x, _),
@@ -255,8 +258,9 @@ begin
       suffices : ∀ (v₁ : list ℕ), v' ∈ pfun.fix
         (λ v, (cf.eval v).bind $ λ y, roption.some $ if y.head = 0 then
           sum.inl (v.head.succ :: v.tail) else sum.inr (v.head.succ :: v.tail)) v₁ →
-        ∀ n, v₁ = n :: v.val → (∀ m < n, ¬f (m :: v) = 0) →
-        (∃ (a : ℕ), (f (a :: v) = 0 ∧ ∀ {m : ℕ}, m < a → ¬f (m :: v) = 0) ∧ [a] = [v'.head.pred]),
+        ∀ n, v₁ = n :: v.val → (∀ m < n, ¬f (m ::ᵥ v) = 0) →
+        (∃ (a : ℕ), (f (a ::ᵥ v) = 0 ∧ ∀ {m : ℕ}, m < a → ¬f (m ::ᵥ v) = 0) ∧
+          [a] = [v'.head.pred]),
       { exact this _ h1 0 rfl (by rintro _ ⟨⟩) },
       clear h1, intros v₀ h1,
       refine pfun.fix_induction h1 (λ v₁ h2 IH, _), clear h1,
@@ -269,13 +273,13 @@ begin
         subst this, exact ⟨_, ⟨h, hm⟩, rfl⟩ },
       { simp only [list.head, exists_eq_left, roption.mem_some_iff,
           list.tail_cons, false_or] at this,
-        refine IH _ this (by simp [hf, h]) _ rfl (λ m h', _),
+        refine IH _ this (by simp [hf, h, -subtype.val_eq_coe]) _ rfl (λ m h', _),
         obtain h|rfl := nat.lt_succ_iff_lt_or_eq.1 h', exacts [hm _ h, h] } },
     { rintro ⟨n, ⟨hn, hm⟩, rfl⟩, refine ⟨n.succ :: v.1, _, rfl⟩,
       have : (n.succ :: v.1 : list ℕ) ∈ pfun.fix
         (λ v, (cf.eval v).bind $ λ y, roption.some $ if y.head = 0 then
           sum.inl (v.head.succ :: v.tail) else sum.inr (v.head.succ :: v.tail)) (n :: v.val) :=
-        pfun.mem_fix_iff.2 (or.inl (by simp [hf, hn])),
+        pfun.mem_fix_iff.2 (or.inl (by simp [hf, hn, -subtype.val_eq_coe])),
       generalize_hyp : (n.succ :: v.1 : list ℕ) = w at this ⊢, clear hn,
       induction n with n IH, {exact this},
       refine IH (λ m h', hm (nat.lt_succ_of_lt h')) (pfun.mem_fix_iff.2 (or.inr ⟨_, _, this⟩)),

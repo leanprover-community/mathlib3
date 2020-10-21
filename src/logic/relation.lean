@@ -6,6 +6,7 @@ Authors: Johannes Hölzl
 Transitive reflexive as well as reflexive closure of relations.
 -/
 import tactic.basic
+
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
 namespace relation
@@ -13,6 +14,11 @@ namespace relation
 section comp
 variables {r : α → β → Prop} {p : β → γ → Prop} {q : γ → δ → Prop}
 
+/--
+The composition of two relations, yielding a new relation.  The result
+relates a term of `α` and a term of `γ` if there is an intermediate
+term of `β` related to both.
+-/
 def comp (r : α → β → Prop) (p : β → γ → Prop) (a : α) (c : γ) : Prop := ∃b, r a b ∧ p b c
 
 local infixr ` ∘r ` : 80 := relation.comp
@@ -53,6 +59,12 @@ end
 
 end comp
 
+/--
+The map of a relation `r` through a pair of functions pushes the
+relation to the codomains of the functions.  The resulting relation is
+defined by having pairs of terms related if they have preimages
+related by `r`.
+-/
 protected def map (r : α → β → Prop) (f : α → γ) (g : β → δ) : γ → δ → Prop :=
 λc d, ∃a b, r a b ∧ f a = c ∧ g b = d
 
@@ -294,6 +306,14 @@ refl_trans_gen_lift' id
 
 end refl_trans_gen
 
+/--
+The join of a relation on a single type is a new relation for which
+pairs of terms are related if there is a third term they are both
+related to.  For example, if `r` is a relation representing rewrites
+in a term rewriting system, then *confluence* is the property that if
+`a` rewrites to both `b` and `c`, then `join r` relates `b` and `c`
+(see `relation.church_rosser`).
+-/
 def join (r : α → α → Prop) : α → α → Prop := λa b, ∃c, r a c ∧ r b c
 
 section join

@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mitchell Rowett, Scott Morrison, Johan Commelin, Mario
 -/
 import group_theory.subgroup
 import deprecated.submonoid
+
 open set function
 
 variables {G : Type*} {H : Type*} {A : Type*} {a a₁ a₂ b c: G}
@@ -13,17 +14,14 @@ variables {G : Type*} {H : Type*} {A : Type*} {a a₁ a₂ b c: G}
 section group
 variables [group G] [add_group A]
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- `s` is an additive subgroup: a set containing 0 and closed under addition and negation. -/
 class is_add_subgroup (s : set A) extends is_add_submonoid s : Prop :=
 (neg_mem {a} : a ∈ s → -a ∈ s)
 
 /-- `s` is a subgroup: a set containing 1 and closed under multiplication and inverse. -/
-@[to_additive is_add_subgroup]
+@[to_additive]
 class is_subgroup (s : set G) extends is_submonoid s : Prop :=
 (inv_mem {a} : a ∈ s → a⁻¹ ∈ s)
-end prio
 
 lemma additive.is_add_subgroup
   (s : set G) [is_subgroup s] : @is_add_subgroup (additive G) _ s :=
@@ -45,13 +43,13 @@ theorem multiplicative.is_subgroup_iff
 ⟨by rintro ⟨⟨h₁, h₂⟩, h₃⟩; exact @is_add_subgroup.mk A _ _ ⟨h₁, @h₂⟩ @h₃,
   λ h, by exactI multiplicative.is_subgroup _⟩
 
-@[to_additive add_group]
+@[to_additive]
 instance subtype.group {s : set G} [is_subgroup s] : group s :=
 { inv := λ x, ⟨(x:G)⁻¹, is_subgroup.inv_mem x.2⟩,
   mul_left_inv := λ x, subtype.eq $ mul_left_inv x.1,
   .. subtype.monoid }
 
-@[to_additive add_comm_group]
+@[to_additive]
 instance subtype.comm_group {G : Type*} [comm_group G] {s : set G} [is_subgroup s] : comm_group s :=
 { .. subtype.group, .. subtype.comm_monoid }
 
@@ -96,7 +94,7 @@ instance is_subgroup.Inter {ι : Sort*} (s : ι → set G) [h : ∀ y : ι, is_s
   is_subgroup (set.Inter s) :=
 { inv_mem := λ x h, set.mem_Inter.2 $ λ y, is_subgroup.inv_mem (set.mem_Inter.1 h y) }
 
-@[to_additive is_add_subgroup_Union_of_directed]
+@[to_additive]
 lemma is_subgroup_Union_of_directed {ι : Type*} [hι : nonempty ι]
   (s : ι → set G) [∀ i, is_subgroup (s i)]
   (directed : ∀ i j, ∃ k, s i ⊆ s k ∧ s j ⊆ s k) :
@@ -117,7 +115,7 @@ instance gpowers.is_subgroup (x : G) : is_subgroup (gpowers x) :=
 
 instance gmultiples.is_add_subgroup (x : A) : is_add_subgroup (gmultiples x) :=
 multiplicative.is_subgroup_iff.1 $ gpowers.is_subgroup _
-attribute [to_additive is_add_subgroup] gpowers.is_subgroup
+attribute [to_additive] gpowers.is_subgroup
 
 lemma is_subgroup.gpow_mem {a : G} {s : set G} [is_subgroup s] (h : a ∈ s) : ∀{i:ℤ}, a ^ i ∈ s
 | (n : ℕ) := is_submonoid.pow_mem h
@@ -162,17 +160,14 @@ theorem is_add_subgroup.sub_mem {A} [add_group A] (s : set A) [is_add_subgroup s
   (ha : a ∈ s) (hb : b ∈ s) : a - b ∈ s :=
 is_add_submonoid.add_mem ha (is_add_subgroup.neg_mem hb)
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 class normal_add_subgroup [add_group A] (s : set A) extends is_add_subgroup s : Prop :=
 (normal : ∀ n ∈ s, ∀ g : A, g + n - g ∈ s)
 
-@[to_additive normal_add_subgroup]
+@[to_additive]
 class normal_subgroup [group G] (s : set G) extends is_subgroup s : Prop :=
 (normal : ∀ n ∈ s, ∀ g : G, g * n * g⁻¹ ∈ s)
-end prio
 
-@[to_additive normal_add_subgroup_of_add_comm_group]
+@[to_additive]
 lemma normal_subgroup_of_comm_group [comm_group G] (s : set G) [hs : is_subgroup s] :
   normal_subgroup s :=
 { normal := λ n hn g, by rwa [mul_right_comm, mul_right_inv, one_mul],
@@ -262,7 +257,7 @@ instance center_normal : normal_subgroup (center G) :=
 def normalizer (s : set G) : set G :=
 {g : G | ∀ n, n ∈ s ↔ g * n * g⁻¹ ∈ s}
 
-@[to_additive normalizer_is_add_subgroup]
+@[to_additive]
 instance normalizer_is_subgroup (s : set G) : is_subgroup (normalizer s) :=
 { one_mem := by simp [normalizer],
   mul_mem := λ a b (ha : ∀ n, n ∈ s ↔ a * n * a⁻¹ ∈ s)
@@ -313,7 +308,7 @@ end
 lemma one_ker_inv' (f : G → H) [is_group_hom f] {a b : G} (h : f (a⁻¹ * b) = 1) : f a = f b :=
 begin
   rw [map_mul f, map_inv f] at h,
-  apply eq_of_inv_eq_inv,
+  apply inv_injective,
   rw eq_inv_of_mul_eq_one h
 end
 
@@ -343,7 +338,7 @@ by rw [mem_ker]; exact one_iff_ker_inv _ _ _
 lemma inv_iff_ker' (f : G → H) [w : is_group_hom f] (a b : G) : f a = f b ↔ a⁻¹ * b ∈ ker f :=
 by rw [mem_ker]; exact one_iff_ker_inv' _ _ _
 
-@[to_additive image_add_subgroup]
+@[to_additive]
 instance image_subgroup (f : G → H) [is_group_hom f] (s : set G) [is_subgroup s] :
   is_subgroup (f '' s) :=
 { mul_mem := assume a₁ a₂ ⟨b₁, hb₁, eq₁⟩ ⟨b₂, hb₂, eq₂⟩,
@@ -351,7 +346,7 @@ instance image_subgroup (f : G → H) [is_group_hom f] (s : set G) [is_subgroup 
   one_mem := ⟨1, one_mem, map_one f⟩,
   inv_mem := assume a ⟨b, hb, eq⟩, ⟨b⁻¹, inv_mem hb, by rw map_inv f; simp *⟩ }
 
-@[to_additive range_add_subgroup]
+@[to_additive]
 instance range_subgroup (f : G → H) [is_group_hom f] : is_subgroup (set.range f) :=
 @set.image_univ _ _ f ▸ is_group_hom.image_subgroup f set.univ
 
@@ -372,7 +367,7 @@ instance normal_subgroup_ker (f : G → H) [is_group_hom f] : normal_subgroup (k
 is_group_hom.preimage_normal f (trivial H)
 
 @[to_additive]
-lemma inj_of_trivial_ker (f : G → H) [is_group_hom f] (h : ker f = trivial G) :
+lemma injective_of_trivial_ker (f : G → H) [is_group_hom f] (h : ker f = trivial G) :
   function.injective f :=
 begin
   intros a₁ a₂ hfa,
@@ -382,7 +377,7 @@ begin
 end
 
 @[to_additive]
-lemma trivial_ker_of_inj (f : G → H) [is_group_hom f] (h : function.injective f) :
+lemma trivial_ker_of_injective (f : G → H) [is_group_hom f] (h : function.injective f) :
   ker f = trivial G :=
 set.ext $ assume x, iff.intro
   (assume hx,
@@ -391,9 +386,9 @@ set.ext $ assume x, iff.intro
   (by simp [mem_ker, is_group_hom.map_one f] {contextual := tt})
 
 @[to_additive]
-lemma inj_iff_trivial_ker (f : G → H) [is_group_hom f] :
+lemma injective_iff_trivial_ker (f : G → H) [is_group_hom f] :
   function.injective f ↔ ker f = trivial G :=
-⟨trivial_ker_of_inj f, inj_of_trivial_ker f⟩
+⟨trivial_ker_of_injective f, injective_of_trivial_ker f⟩
 
 @[to_additive]
 lemma trivial_ker_iff_eq_one (f : G → H) [is_group_hom f] :
@@ -403,20 +398,20 @@ by rw set.ext_iff; simp [ker]; exact
 
 end is_group_hom
 
-@[to_additive is_add_group_hom]
+@[to_additive]
 instance subtype_val.is_group_hom [group G] {s : set G} [is_subgroup s] :
   is_group_hom (subtype.val : s → G) := { ..subtype_val.is_monoid_hom }
 
-@[to_additive is_add_group_hom]
+@[to_additive]
 instance coe.is_group_hom [group G] {s : set G} [is_subgroup s] :
   is_group_hom (coe : s → G) := { ..subtype_val.is_monoid_hom }
 
-@[to_additive is_add_group_hom]
+@[to_additive]
 instance subtype_mk.is_group_hom [group G] [group H] {s : set G}
   [is_subgroup s] (f : H → G) [is_group_hom f] (h : ∀ x, f x ∈ s) :
   is_group_hom (λ x, (⟨f x, h x⟩ : s)) := { ..subtype_mk.is_monoid_hom f h }
 
-@[to_additive is_add_group_hom]
+@[to_additive]
 instance set_inclusion.is_group_hom [group G] {s t : set G}
   [is_subgroup s] [is_subgroup t] (h : s ⊆ t) : is_group_hom (set.inclusion h) :=
 subtype_mk.is_group_hom _ _
@@ -467,7 +462,7 @@ def closure (s : set G) : set G := {a | in_closure s a }
 @[to_additive]
 lemma mem_closure {a : G} : a ∈ s → a ∈ closure s := in_closure.basic
 
-@[to_additive is_add_subgroup]
+@[to_additive]
 instance closure.is_subgroup (s : set G) : is_subgroup (closure s) :=
 { one_mem := in_closure.one,
   mul_mem := assume a b, in_closure.mul,
@@ -488,7 +483,7 @@ lemma closure_subset_iff (s t : set G) [is_subgroup t] : closure s ⊆ t ↔ s �
 theorem closure_mono {s t : set G} (h : s ⊆ t) : closure s ⊆ closure t :=
 closure_subset $ set.subset.trans h subset_closure
 
-@[simp, to_additive closure_add_subgroup]
+@[simp, to_additive]
 lemma closure_subgroup (s : set G) [is_subgroup s] : closure s = s :=
 set.subset.antisymm (closure_subset $ set.subset.refl s) subset_closure
 
@@ -645,7 +640,7 @@ class simple_group (G : Type*) [group G] : Prop :=
 class simple_add_group (A : Type*) [add_group A] : Prop :=
 (simple : ∀ (N : set A) [normal_add_subgroup N], N = is_add_subgroup.trivial A ∨ N = set.univ)
 
-attribute [to_additive simple_add_group] simple_group
+attribute [to_additive] simple_group
 
 theorem additive.simple_add_group_iff [group G] :
   simple_add_group (additive G) ↔ simple_group G :=
@@ -663,7 +658,7 @@ theorem multiplicative.simple_group_iff [add_group A] :
 instance multiplicative.simple_group [add_group A] [simple_add_group A] :
 simple_group (multiplicative A) := multiplicative.simple_group_iff.2 (by apply_instance)
 
-@[to_additive simple_add_group_of_surjective]
+@[to_additive]
 lemma simple_group_of_surjective [group G] [group H] [simple_group G] (f : G → H)
   [is_group_hom f] (hf : function.surjective f) : simple_group H :=
 ⟨λ H iH, have normal_subgroup (f ⁻¹' H), by resetI; apply_instance,
@@ -696,3 +691,8 @@ instance subgroup.is_subgroup [group G] (K : subgroup G) : is_subgroup (K : set 
 { one_mem := K.one_mem',
   mul_mem := K.mul_mem',
   inv_mem := K.inv_mem' }
+
+@[to_additive]
+instance subgroup.of_normal [group G] (s : set G) [h : is_subgroup s] [n : normal_subgroup s] :
+  subgroup.normal (subgroup.of s) :=
+{ conj_mem := n.normal, }

@@ -59,7 +59,7 @@ suffices edist x y ≤ edist x (f x) + edist y (f y) + K * edist x y,
     mul_comm, ennreal.sub_mul (λ _ _, ne_of_lt h), one_mul, ennreal.sub_le_iff_le_add],
 calc edist x y ≤ edist x (f x) + edist (f x) (f y) + edist (f y) y : edist_triangle4 _ _ _ _
   ... = edist x (f x) + edist y (f y) + edist (f x) (f y) : by rw [edist_comm y, add_right_comm]
-  ... ≤ edist x (f x) + edist y (f y) + K * edist x y : add_le_add' (le_refl _) (hf.2 _ _)
+  ... ≤ edist x (f x) + edist y (f y) + K * edist x y : add_le_add (le_refl _) (hf.2 _ _)
 
 lemma edist_le_of_fixed_point (hf : contracting_with K f) {x y}
   (h : edist x y < ⊤) (hy : is_fixed_pt f y) :
@@ -156,7 +156,7 @@ theorem exists_fixed_point' {s : set α} (hsc : is_complete s) (hsf : maps_to f 
 begin
   haveI := hsc.complete_space_coe,
   rcases hf.exists_fixed_point ⟨x, hxs⟩ hx with ⟨y, hfy, h_tendsto, hle⟩,
-  refine ⟨y, y.2, subtype.ext.1 hfy, _, λ n, _⟩,
+  refine ⟨y, y.2, subtype.ext_iff_val.1 hfy, _, λ n, _⟩,
   { convert (continuous_subtype_coe.tendsto _).comp h_tendsto, ext n,
     simp only [(∘), maps_to.iterate_restrict, maps_to.coe_restrict_apply, subtype.coe_mk] },
   { convert hle n,

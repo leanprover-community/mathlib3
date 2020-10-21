@@ -38,7 +38,7 @@ well_founded.fix_eq _ _ _
 
 lemma bernoulli_def (n : ℕ) :
   bernoulli n = 1 - ∑ k in finset.range n, (n.choose k) * (bernoulli k) / (n + 1 - k) :=
-by { rw [bernoulli_def', finset.range_sum_eq_univ_sum], refl }
+by { rw [bernoulli_def', ← fin.sum_univ_eq_sum_range], refl }
 
 @[simp] lemma bernoulli_zero  : bernoulli 0 = 1   := rfl
 @[simp] lemma bernoulli_one   : bernoulli 1 = 1/2 :=
@@ -75,9 +75,7 @@ begin
   congr' 1,
   rw [← mul_div_assoc, eq_div_iff],
   { rw [mul_comm ((n+1 : ℕ) : ℚ)],
-    rw_mod_cast nat.choose_mul_succ_eq n k,
-    rw [int.coe_nat_mul],
     have hk' : k ≤ n + 1, by linarith,
-    rw [int.coe_nat_sub hk', int.sub_nat_nat_eq_coe] },
+    rw_mod_cast nat.choose_mul_succ_eq n k },
   { contrapose! hk with H, rw sub_eq_zero at H, norm_cast at H, linarith }
 end

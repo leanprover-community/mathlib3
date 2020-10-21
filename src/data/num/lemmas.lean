@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
 import data.num.bitwise
-import data.int.basic
+import data.int.char_zero
 import data.nat.gcd
+import data.nat.psub
 
 /-!
 # Properties of the binary representation of integers
@@ -16,12 +17,12 @@ local attribute [simp] add_assoc
 namespace pos_num
 variables {α : Type*}
 
-@[simp, norm_cast] theorem cast_one [has_zero α] [has_one α] [has_add α] :
+@[simp, norm_cast] theorem cast_one [has_one α] [has_add α] :
   ((1 : pos_num) : α) = 1 := rfl
-@[simp] theorem cast_one' [has_zero α] [has_one α] [has_add α] : (pos_num.one : α) = 1 := rfl
-@[simp, norm_cast] theorem cast_bit0 [has_zero α] [has_one α] [has_add α] (n : pos_num) :
+@[simp] theorem cast_one' [has_one α] [has_add α] : (pos_num.one : α) = 1 := rfl
+@[simp, norm_cast] theorem cast_bit0 [has_one α] [has_add α] (n : pos_num) :
   (n.bit0 : α) = _root_.bit0 n := rfl
-@[simp, norm_cast] theorem cast_bit1 [has_zero α] [has_one α] [has_add α] (n : pos_num) :
+@[simp, norm_cast] theorem cast_bit1 [has_one α] [has_add α] (n : pos_num) :
   (n.bit1 : α) = _root_.bit1 n := rfl
 
 @[simp, norm_cast] theorem cast_to_nat [add_monoid α] [has_one α] :
@@ -97,7 +98,7 @@ theorem cmp_swap (m) : ∀n, (cmp m n).swap = cmp n m :=
 by induction m with m IH m IH; intro n;
    cases n with n n; try {unfold cmp}; try {refl}; rw ←IH; cases cmp m n; refl
 
-theorem cmp_to_nat : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℕ) < n) (m = n) ((m:ℕ) > n) : Prop)
+theorem cmp_to_nat : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℕ) < n) (m = n) ((n:ℕ) < m) : Prop)
 | 1        1        := rfl
 | (bit0 a) 1        := let h : (1:ℕ) ≤ a := to_nat_pos a in add_le_add h h
 | (bit1 a) 1        := nat.succ_lt_succ $ to_nat_pos $ bit0 a
@@ -227,7 +228,7 @@ theorem mul_to_nat : ∀ m n, ((m * n : num) : ℕ) = m * n
 | (pos p) 0       := rfl
 | (pos p) (pos q) := pos_num.mul_to_nat _ _
 
-theorem cmp_to_nat : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℕ) < n) (m = n) ((m:ℕ) > n) : Prop)
+theorem cmp_to_nat : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℕ) < n) (m = n) ((n:ℕ) < m) : Prop)
 | 0       0       := rfl
 | 0       (pos b) := to_nat_pos _
 | (pos a) 0       := to_nat_pos _
@@ -272,10 +273,27 @@ namespace num
 @[norm_cast] theorem to_nat_inj {m n : num} : (m : ℕ) = n ↔ m = n :=
 ⟨λ h, function.left_inverse.injective of_to_nat h, congr_arg _⟩
 
+/--
+This tactic tries to turn an (in)equality about `num`s to one about `nat`s by rewriting.
+```lean
+example (n : num) (m : num) : n ≤ n + m :=
+begin
+  num.transfer_rw,
+  exact nat.le_add_right _ _
+end
+```
+-/
 meta def transfer_rw : tactic unit :=
 `[repeat {rw ← to_nat_inj <|> rw ← lt_to_nat <|> rw ← le_to_nat},
   repeat {rw add_to_nat <|> rw mul_to_nat <|> rw cast_one <|> rw cast_zero}]
 
+/--
+This tactic tries to prove (in)equalities about `num`s by transfering them to the `nat` world and
+then trying to call `simp`.
+```lean
+example (n : num) (m : num) : n ≤ n + m := by num.transfer
+```
+-/
 meta def transfer : tactic unit := `[intros, transfer_rw, try {simp}]
 
 instance : comm_semiring num :=
@@ -303,12 +321,13 @@ instance : ordered_cancel_add_comm_monoid num :=
 
 instance : decidable_linear_ordered_semiring num :=
 { le_total                   := by {intros a b, transfer_rw, apply le_total},
-  zero_lt_one                := dec_trivial,
+  zero_le_one                := dec_trivial,
   mul_lt_mul_of_pos_left     := by {intros a b c, transfer_rw, apply mul_lt_mul_of_pos_left},
   mul_lt_mul_of_pos_right    := by {intros a b c, transfer_rw, apply mul_lt_mul_of_pos_right},
   decidable_lt               := num.decidable_lt,
   decidable_le               := num.decidable_le,
   decidable_eq               := num.decidable_eq,
+  exists_pair_ne             := ⟨0, 1, dec_trivial⟩,
   ..num.comm_semiring, ..num.ordered_cancel_add_comm_monoid }
 
 @[norm_cast]
@@ -347,6 +366,11 @@ num.to_nat_inj.1 $ by rw [pred'_to_nat, succ'_to_nat,
 to_nat_inj.1 $ by rw [succ'_to_nat, pred'_to_nat,
   nat.add_one, nat.succ_pred_eq_of_pos (to_nat_pos _)]
 
+instance : has_dvd pos_num := ⟨λ m n, pos m ∣ pos n⟩
+
+@[norm_cast] theorem dvd_to_nat {m n : pos_num} : (m:ℕ) ∣ n ↔ m ∣ n :=
+num.dvd_to_nat (pos m) (pos n)
+
 theorem size_to_nat : ∀ n, (size n : ℕ) = nat.size n
 | 1        := nat.size_one.symm
 | (bit0 n) := by rw [size, succ_to_nat, size_to_nat, cast_bit0,
@@ -365,10 +389,27 @@ by rw [← size_eq_nat_size, size_to_nat]
 theorem nat_size_pos (n) : 0 < nat_size n :=
 by cases n; apply nat.succ_pos
 
+/--
+This tactic tries to turn an (in)equality about `pos_num`s to one about `nat`s by rewriting.
+```lean
+example (n : pos_num) (m : pos_num) : n ≤ n + m :=
+begin
+  pos_num.transfer_rw,
+  exact nat.le_add_right _ _
+end
+```
+-/
 meta def transfer_rw : tactic unit :=
 `[repeat {rw ← to_nat_inj <|> rw ← lt_to_nat <|> rw ← le_to_nat},
   repeat {rw add_to_nat <|> rw mul_to_nat <|> rw cast_one <|> rw cast_zero}]
 
+/--
+This tactic tries to prove (in)equalities about `pos_num`s by transferring them to the `nat` world
+and then trying to call `simp`.
+```lean
+example (n : pos_num) (m : pos_num) : n ≤ n + m := by pos_num.transfer
+```
+-/
 meta def transfer : tactic unit :=
 `[intros, transfer_rw, try {simp [add_comm, add_left_comm, mul_comm, mul_left_comm]}]
 
@@ -377,7 +418,6 @@ by refine {add := (+), ..}; transfer
 
 instance : comm_monoid pos_num :=
 by refine {mul := (*), one := 1, ..}; transfer
-
 
 instance : distrib pos_num :=
 by refine {add := (+), mul := (*), ..}; {transfer, simp [mul_add, mul_comm]}
@@ -513,7 +553,7 @@ end num
 namespace pos_num
 open num
 
-theorem pred_to_nat {n : pos_num} (h : n > 1) : (pred n : ℕ) = nat.pred n :=
+theorem pred_to_nat {n : pos_num} (h : 1 < n) : (pred n : ℕ) = nat.pred n :=
 begin
   unfold pred,
   have := pred'_to_nat n,
@@ -807,7 +847,7 @@ theorem cast_sub' [add_group α] [has_one α] : ∀ m n : pos_num, (sub' m n : �
 | a        1        := by rw [sub'_one, num.cast_to_znum,
                               ← num.cast_to_nat, pred'_to_nat, ← nat.sub_one];
                           simp [pos_num.cast_pos]
-| 1        b        := by rw [one_sub', num.cast_to_znum_neg, ← neg_sub, neg_inj',
+| 1        b        := by rw [one_sub', num.cast_to_znum_neg, ← neg_sub, neg_inj,
                               ← num.cast_to_nat, pred'_to_nat, ← nat.sub_one];
                           simp [pos_num.cast_pos]
 | (bit0 a) (bit0 b) := begin
@@ -946,7 +986,7 @@ of_int_cast n
 | (n : ℕ) := to_int_inj.1 $ by simp [znum.of_int']
 | -[1+ n] := to_int_inj.1 $ by simp [znum.of_int']
 
-theorem cmp_to_int : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℤ) < n) (m = n) ((m:ℤ) > n) : Prop)
+theorem cmp_to_int : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℤ) < n) (m = n) ((n:ℤ) < m) : Prop)
 | 0       0       := rfl
 | (pos a) (pos b) := begin
     have := pos_num.cmp_to_nat a b; revert this; dsimp [cmp];
@@ -989,10 +1029,31 @@ by rw ← not_lt; exact not_congr cast_lt
 theorem cast_inj [linear_ordered_ring α] {m n : znum} : (m:α) = n ↔ m = n :=
 by rw [← cast_to_int m, ← cast_to_int n, int.cast_inj, to_int_inj]
 
+/--
+This tactic tries to turn an (in)equality about `znum`s to one about `int`s by rewriting.
+```lean
+example (n : znum) (m : znum) : n ≤ n + m * m :=
+begin
+  znum.transfer_rw,
+  exact le_add_of_nonneg_right (mul_self_nonneg _)
+end
+```
+-/
 meta def transfer_rw : tactic unit :=
 `[repeat {rw ← to_int_inj <|> rw ← lt_to_int <|> rw ← le_to_int},
   repeat {rw cast_add <|> rw mul_to_int <|> rw cast_one <|> rw cast_zero}]
 
+/--
+This tactic tries to prove (in)equalities about `znum`s by transfering them to the `int` world and
+then trying to call `simp`.
+```lean
+example (n : znum) (m : znum) : n ≤ n + m * m :=
+begin
+  znum.transfer,
+  exact mul_self_nonneg _
+end
+```
+-/
 meta def transfer : tactic unit :=
 `[intros, transfer_rw, try {simp [add_comm, add_left_comm, mul_comm, mul_left_comm]}]
 
@@ -1027,10 +1088,10 @@ instance : decidable_linear_ordered_comm_ring znum :=
   left_distrib     := by {transfer, simp [mul_add]},
   right_distrib    := by {transfer, simp [mul_add, mul_comm]},
   mul_comm         := by transfer,
-  zero_ne_one      := dec_trivial,
+  exists_pair_ne   := ⟨0, 1, dec_trivial⟩,
   add_le_add_left  := by {intros a b h c, revert h, transfer_rw, exact λ h, add_le_add_left h c},
   mul_pos          := λ a b, show 0 < a → 0 < b → 0 < a * b, by {transfer_rw, apply mul_pos},
-  zero_lt_one      := dec_trivial,
+  zero_le_one      := dec_trivial,
   ..znum.decidable_linear_order, ..znum.add_comm_group }
 
 @[simp, norm_cast] theorem dvd_to_int (m n : znum) : (m : ℤ) ∣ n ↔ m ∣ n :=
@@ -1131,7 +1192,7 @@ theorem gcd_to_nat_aux : ∀ {n} {a b : num},
     exact le_of_lt (nat.mod_lt _ (pos_num.cast_pos _)) },
   rw [nat_size_to_nat, mul_to_nat, nat.size_le] at h ⊢,
   rw [mod_to_nat, mul_comm],
-  rw [nat.pow_succ, ← nat.mod_add_div b (pos a)] at h,
+  rw [pow_succ', ← nat.mod_add_div b (pos a)] at h,
   refine lt_of_mul_lt_mul_right (lt_of_le_of_lt _ h) (nat.zero_le 2),
   rw [mul_two, mul_add],
   refine add_le_add_left (nat.mul_le_mul_left _
@@ -1146,7 +1207,7 @@ have ∀ a b : num, (a * b).nat_size ≤ a.nat_size + b.nat_size,
 begin
   intros,
   simp [nat_size_to_nat],
-  rw [nat.size_le, nat.pow_add],
+  rw [nat.size_le, pow_add],
   exact mul_lt_mul'' (nat.lt_size_self _)
     (nat.lt_size_self _) (nat.zero_le _) (nat.zero_le _)
 end,
@@ -1161,10 +1222,13 @@ theorem dvd_iff_mod_eq_zero {m n : num} : m ∣ n ↔ n % m = 0 :=
 by rw [← dvd_to_nat, nat.dvd_iff_mod_eq_zero,
   ← to_nat_inj, mod_to_nat]; refl
 
-instance : decidable_rel ((∣) : num → num → Prop)
+instance decidable_dvd : decidable_rel ((∣) : num → num → Prop)
 | a b := decidable_of_iff' _ dvd_iff_mod_eq_zero
 
 end num
+
+instance pos_num.decidable_dvd : decidable_rel ((∣) : pos_num → pos_num → Prop)
+| a b := num.decidable_dvd _ _
 
 namespace znum
 
@@ -1216,6 +1280,8 @@ instance : decidable_rel ((∣) : znum → znum → Prop)
 end znum
 
 namespace int
+
+/-- Cast a `snum` to the corresponding integer. -/
 def of_snum : snum → ℤ :=
 snum.rec' (λ a, cond a (-1) 0) (λa p IH, cond a (bit1 IH) (bit0 IH))
 

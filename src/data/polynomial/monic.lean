@@ -222,6 +222,18 @@ variables [ring R] {p : polynomial R}
 theorem monic_X_sub_C (x : R) : monic (X - C x) :=
 by simpa only [C_neg] using monic_X_add_C (-x)
 
+/-`X ^ n - a` is monic. -/
+lemma monic_X_pow_sub_C {R : Type u} [ring R] (a : R) {n : ℕ} : n ≠ 0 → (X ^ n - C a).monic :=
+begin
+  intro h,
+  obtain ⟨k, hk⟩ := nat.exists_eq_succ_of_ne_zero h,
+  rw [hk],
+  apply monic_X_pow_sub,
+  have hleq := le_trans (@degree_C_le _ a _) (with_bot.coe_le_coe.2 (nat.zero_le ↑k)),
+  norm_cast at hleq,
+  exact hleq
+end
+
 theorem monic_X_pow_sub {n : ℕ} (H : degree p ≤ n) : monic (X ^ (n+1) - p) :=
 monic_X_pow_add ((degree_neg p).symm ▸ H)
 

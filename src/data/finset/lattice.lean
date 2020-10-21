@@ -214,7 +214,7 @@ theorem max_eq_sup_with_bot (s : finset α) :
 by { rw [← insert_emptyc_eq], exact max_insert }
 
 theorem max_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.max :=
-(@le_sup (with_bot α) _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
+(with_bot.le_def.mp (@le_sup (with_bot α) _ _ _ _ _ h) _ rfl).imp $ λ b, Exists.fst
 
 theorem max_of_nonempty {s : finset α} (h : s.nonempty) : ∃ a, a ∈ s.max :=
 let ⟨a, ha⟩ := h in max_of_mem ha
@@ -237,7 +237,7 @@ finset.induction_on s (λ _ H, by cases H)
   end)
 
 theorem le_max_of_mem {s : finset α} {a b : α} (h₁ : a ∈ s) (h₂ : b ∈ s.max) : a ≤ b :=
-by rcases @le_sup (with_bot α) _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
+by rcases with_bot.le_def.mp (@le_sup (with_bot α) _ _ _ _ _ h₁) _ rfl with ⟨b', hb, ab⟩;
    cases h₂.symm.trans hb; assumption
 
 /-- Let `s` be a finset in a linear order. Then `s.min` is the minimum of `s` if `s` is not empty,
@@ -259,7 +259,7 @@ fold_insert_idem
 by { rw ← insert_emptyc_eq, exact min_insert }
 
 theorem min_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.min :=
-(@inf_le (with_top α) _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
+(with_top.le_def.mp (@inf_le (with_top α) _ _ _ _ _ h) _ rfl).imp $ λ b, Exists.fst
 
 theorem min_of_nonempty {s : finset α} (h : s.nonempty) : ∃ a, a ∈ s.min :=
 let ⟨a, ha⟩ := h in min_of_mem ha
@@ -282,7 +282,7 @@ finset.induction_on s (λ _ H, by cases H) $
   end
 
 theorem min_le_of_mem {s : finset α} {a b : α} (h₁ : b ∈ s) (h₂ : a ∈ s.min) : a ≤ b :=
-by rcases @inf_le (with_top α) _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
+by rcases with_top.le_def.mp (@inf_le (with_top α) _ _ _ _ _ h₁) _ rfl with ⟨b', hb, ab⟩;
    cases h₂.symm.trans hb; assumption
 
 /-- Given a nonempty finset `s` in a linear order `α `, then `s.min' h` is its minimum, as an

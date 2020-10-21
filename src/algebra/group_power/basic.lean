@@ -419,6 +419,15 @@ begin
   exact or.cases_on (mul_eq_zero.1 H) id ih
 end
 
+@[simp] lemma pow_eq_zero_iff [monoid_with_zero R] [no_zero_divisors R]
+  {a : R} {n : ℕ} (hn : 0 < n) :
+  a ^ n = 0 ↔ a = 0 :=
+begin
+  refine ⟨pow_eq_zero, _⟩,
+  rintros rfl,
+  exact zero_pow hn,
+end
+
 @[field_simps] theorem pow_ne_zero [monoid_with_zero R] [no_zero_divisors R]
   {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero h
@@ -502,7 +511,7 @@ namespace canonically_ordered_semiring
 variable [canonically_ordered_comm_semiring R]
 
 theorem pow_pos {a : R} (H : 0 < a) : ∀ n : ℕ, 0 < a ^ n
-| 0     := canonically_ordered_semiring.zero_lt_one
+| 0     := by { nontriviality, exact canonically_ordered_semiring.zero_lt_one }
 | (n+1) := canonically_ordered_semiring.mul_pos.2 ⟨H, pow_pos n⟩
 
 lemma pow_le_pow_of_le_left {a b : R} (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
@@ -521,7 +530,7 @@ section linear_ordered_semiring
 variable [linear_ordered_semiring R]
 
 @[simp] theorem pow_pos {a : R} (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
-| 0     := zero_lt_one
+| 0     := by { nontriviality, exact zero_lt_one }
 | (n+1) := mul_pos H (pow_pos _)
 
 @[simp] theorem pow_nonneg {a : R} (H : 0 ≤ a) : ∀ (n : ℕ), 0 ≤ a ^ n
@@ -563,6 +572,7 @@ calc a ^ n = a ^ n * 1 : (mul_one _).symm
 
 lemma pow_lt_pow {a : R} {n m : ℕ} (h : 1 < a) (h2 : n < m) : a ^ n < a ^ m :=
 begin
+  nontriviality,
   have h' : 1 ≤ a := le_of_lt h,
   have h'' : 0 < a := lt_trans zero_lt_one h,
   cases m, cases h2, rw [pow_succ, ←one_mul (a ^ n)],
@@ -582,7 +592,10 @@ theorem pow_two_nonneg [linear_ordered_ring R] (a : R) : 0 ≤ a ^ 2 :=
 by { rw pow_two, exact mul_self_nonneg _ }
 
 theorem pow_two_pos_of_ne_zero [linear_ordered_ring R] (a : R) (h : a ≠ 0) : 0 < a ^ 2 :=
-lt_of_le_of_ne (pow_two_nonneg a) (pow_ne_zero 2 h).symm
+begin
+  nontriviality,
+  exact lt_of_le_of_ne (pow_two_nonneg a) (pow_ne_zero 2 h).symm
+end
 
 @[simp] lemma neg_square {α} [ring α] (z : α) : (-z)^2 = z^2 :=
 by simp [pow, monoid.pow]

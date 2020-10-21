@@ -739,10 +739,10 @@ operations, first about adding or removing elements at the beginning of a tuple.
 -/
 
 /-- There is exactly one tuple of size zero. -/
-instance tuple0_unique (α : fin 0 → Type u) : unique (Π i : fin 0, α i) :=
+instance tuple0_unique (α : fin 0 → Sort u) : unique (Π i : fin 0, α i) :=
 { default := fin_zero_elim, uniq := λ x, funext fin_zero_elim }
 
-variables {α : fin (n+1) → Type u} (x : α 0) (q : Πi, α i) (p : Π(i : fin n), α (i.succ))
+variables {α : fin (n+1) → Sort u} (x : α 0) (q : Πi, α i) (p : Π(i : fin n), α (i.succ))
 (i : fin n) (y : α i.succ) (z : α 0)
 
 /-- The tail of an `n+1` tuple, i.e., its last `n` entries -/

@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
 import analysis.special_functions.exp_log
+import data.set.intervals.infinite
+import algebra.quadratic_discriminant
+import ring_theory.polynomial.chebyshev.defs
 
 /-!
 # Trigonometric functions
@@ -21,6 +24,9 @@ Many basic inequalities on trigonometric functions are established.
 
 The continuity and differentiability of the usual trigonometric functions are proved, and their
 derivatives are computed.
+
+* `polynomial.chebyshev₁_complex_cos`: the `n`-th Chebyshev polynomial evaluates on `complex.cos θ`
+  to the value `n * complex.cos θ`.
 
 ## Tags
 
@@ -56,6 +62,8 @@ funext $ λ x, (has_deriv_at_sin x).deriv
 lemma continuous_sin : continuous sin :=
 differentiable_sin.continuous
 
+lemma continuous_on_sin {s : set ℂ} : continuous_on sin s := continuous_sin.continuous_on
+
 lemma measurable_sin : measurable sin := continuous_sin.measurable
 
 /-- The complex cosine function is everywhere differentiable, with the derivative `-sin x`. -/
@@ -82,6 +90,8 @@ funext $ λ x, deriv_cos
 
 lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
+
+lemma continuous_on_cos {s : set ℂ} : continuous_on cos s := continuous_cos.continuous_on
 
 lemma measurable_cos : measurable cos := continuous_cos.measurable
 
@@ -331,6 +341,8 @@ funext $ λ _, deriv_cos
 lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
 
+lemma continuous_on_cos {s} : continuous_on cos s := continuous_cos.continuous_on
+
 lemma measurable_cos : measurable cos := continuous_cos.measurable
 
 lemma has_deriv_at_sinh (x : ℝ) : has_deriv_at sinh (cosh x) x :=
@@ -538,7 +550,7 @@ end
 namespace real
 
 lemma exists_cos_eq_zero : 0 ∈ cos '' Icc (1:ℝ) 2 :=
-intermediate_value_Icc' (by norm_num) continuous_cos.continuous_on
+intermediate_value_Icc' (by norm_num) continuous_on_cos
   ⟨le_of_lt cos_two_neg, le_of_lt cos_one_pos⟩
 
 /-- The number π = 3.14159265... Defined here using choice as twice a zero of cos in [1,2], from
@@ -581,11 +593,11 @@ lemma two_pi_pos : 0 < 2 * π :=
 by linarith [pi_pos]
 
 @[simp] lemma sin_pi : sin π = 0 :=
-by rw [← mul_div_cancel_left pi (@two_ne_zero ℝ _), two_mul, add_div,
+by rw [← mul_div_cancel_left pi (@two_ne_zero ℝ _ _), two_mul, add_div,
     sin_add, cos_pi_div_two]; simp
 
 @[simp] lemma cos_pi : cos π = -1 :=
-by rw [← mul_div_cancel_left pi (@two_ne_zero ℝ _), mul_div_assoc,
+by rw [← mul_div_cancel_left pi (@two_ne_zero ℝ _ _), mul_div_assoc,
     cos_two_mul, cos_pi_div_two];
   simp [bit0, pow_add]
 
@@ -806,7 +818,7 @@ by convert intermediate_value_Icc
   continuous_sin.continuous_on; simp only [sin_neg, sin_pi_div_two]
 
 lemma exists_cos_eq : (Icc (-1) 1 : set ℝ) ⊆ cos '' Icc 0 π :=
-by convert intermediate_value_Icc' real.pi_pos.le real.continuous_cos.continuous_on;
+by convert intermediate_value_Icc' real.pi_pos.le real.continuous_on_cos;
   simp only [real.cos_pi, real.cos_zero]
 
 lemma range_cos : range cos = (Icc (-1) 1 : set ℝ) :=
@@ -828,6 +840,12 @@ begin
     rcases real.exists_sin_eq h with ⟨y, -, hy⟩,
     exact ⟨y, hy⟩ }
 end
+
+lemma range_cos_infinite : (range real.cos).infinite :=
+by { rw real.range_cos, exact Icc.infinite (by norm_num) }
+
+lemma range_sin_infinite : (range real.sin).infinite :=
+by { rw real.range_sin, exact Icc.infinite (by norm_num) }
 
 lemma sin_lt {x : ℝ} (h : 0 < x) : sin x < x :=
 begin
@@ -1092,19 +1110,20 @@ begin
         false_or, sin_eq_zero_iff, sin_eq_zero_iff] at Hcos,
     rcases Hcos with ⟨n, hn⟩ | ⟨n, hn⟩,
     { right,
-      rw [eq_div_iff_mul_eq (@two_ne_zero ℝ _), ← sub_eq_iff_eq_add] at hn,
+      rw [eq_div_iff_mul_eq (@two_ne_zero ℝ _ _), ← sub_eq_iff_eq_add] at hn,
       rw [← hn, coe_sub, eq_neg_iff_add_eq_zero, sub_add_cancel, mul_assoc,
           coe_int_mul_eq_gsmul, mul_comm, coe_two_pi, gsmul_zero] },
     { left,
-      rw [eq_div_iff_mul_eq (@two_ne_zero ℝ _), eq_sub_iff_add_eq] at hn,
+      rw [eq_div_iff_mul_eq (@two_ne_zero ℝ _ _), eq_sub_iff_add_eq] at hn,
       rw [← hn, coe_add, mul_assoc,
-          coe_int_mul_eq_gsmul, mul_comm, coe_two_pi, gsmul_zero, zero_add] } },
+          coe_int_mul_eq_gsmul, mul_comm, coe_two_pi, gsmul_zero, zero_add] },
+    apply_instance, },
   { rw [angle_eq_iff_two_pi_dvd_sub, ← coe_neg, angle_eq_iff_two_pi_dvd_sub],
     rintro (⟨k, H⟩ | ⟨k, H⟩),
-    rw [← sub_eq_zero_iff_eq, cos_sub_cos, H, mul_assoc 2 π k, mul_div_cancel_left _ (@two_ne_zero ℝ _),
+    rw [← sub_eq_zero_iff_eq, cos_sub_cos, H, mul_assoc 2 π k, mul_div_cancel_left _ (@two_ne_zero ℝ _ _),
       mul_comm π _, sin_int_mul_pi, mul_zero],
     rw [←sub_eq_zero_iff_eq, cos_sub_cos, ← sub_neg_eq_add, H, mul_assoc 2 π k,
-      mul_div_cancel_left _ (@two_ne_zero ℝ _), mul_comm π _, sin_int_mul_pi, mul_zero, zero_mul] }
+      mul_div_cancel_left _ (@two_ne_zero ℝ _ _), mul_comm π _, sin_int_mul_pi, mul_zero, zero_mul] }
 end
 
 theorem sin_eq_iff_eq_or_add_eq_pi {θ ψ : ℝ} : sin θ = sin ψ ↔ (θ : angle) = ψ ∨ (θ : angle) + ψ = π :=
@@ -1118,11 +1137,11 @@ begin
     exact h.symm },
   { rw [angle_eq_iff_two_pi_dvd_sub, ←eq_sub_iff_add_eq, ←coe_sub, angle_eq_iff_two_pi_dvd_sub],
     rintro (⟨k, H⟩ | ⟨k, H⟩),
-    rw [← sub_eq_zero_iff_eq, sin_sub_sin, H, mul_assoc 2 π k, mul_div_cancel_left _ (@two_ne_zero ℝ _),
+    rw [← sub_eq_zero_iff_eq, sin_sub_sin, H, mul_assoc 2 π k, mul_div_cancel_left _ (@two_ne_zero ℝ _ _),
       mul_comm π _, sin_int_mul_pi, mul_zero, zero_mul],
     have H' : θ + ψ = (2 * k) * π + π := by rwa [←sub_add, sub_add_eq_add_sub, sub_eq_iff_eq_add,
       mul_assoc, mul_comm π _, ←mul_assoc] at H,
-    rw [← sub_eq_zero_iff_eq, sin_sub_sin, H', add_div, mul_assoc 2 _ π, mul_div_cancel_left _ (@two_ne_zero ℝ _),
+    rw [← sub_eq_zero_iff_eq, sin_sub_sin, H', add_div, mul_assoc 2 _ π, mul_div_cancel_left _ (@two_ne_zero ℝ _ _),
       cos_add_pi_div_two, sin_int_mul_pi, neg_zero, mul_zero] }
 end
 
@@ -1467,7 +1486,7 @@ by simp [arg, le_refl]
 by simp [arg, zero_le_one]
 
 @[simp] lemma arg_neg_one : arg (-1) = π :=
-by simp [arg, le_refl, not_le.2 (@zero_lt_one ℝ _)]
+by simp [arg, le_refl, not_le.2 (@zero_lt_one ℝ _ _)]
 
 @[simp] lemma arg_I : arg I = π / 2 :=
 by simp [arg, le_refl]
@@ -1626,6 +1645,9 @@ by rw [log, exp_add_mul_I, ← of_real_sin, sin_arg, ← of_real_cos, cos_arg hx
   mul_div_cancel' _ (of_real_ne_zero.2 (mt abs_eq_zero.1 hx)), ← mul_assoc,
   mul_div_cancel' _ (of_real_ne_zero.2 (mt abs_eq_zero.1 hx)), re_add_im]
 
+lemma range_exp : range exp = {x | x ≠ 0} :=
+set.ext $ λ x, ⟨by { rintro ⟨x, rfl⟩, exact exp_ne_zero x }, λ hx, ⟨log x, exp_log hx⟩⟩
+
 lemma exp_inj_of_neg_pi_lt_of_le_pi {x y : ℂ} (hx₁ : -π < x.im) (hx₂ : x.im ≤ π)
   (hy₁ : - π < y.im) (hy₂ : y.im ≤ π) (hxy : exp x = exp y) : x = y :=
 by rw [exp_eq_exp_re_mul_sin_add_cos, exp_eq_exp_re_mul_sin_add_cos y] at hxy;
@@ -1657,6 +1679,21 @@ lemma log_neg_one : log (-1) = π * I := by simp [log]
 lemma log_I : log I = π / 2 * I := by simp [log]
 
 lemma log_neg_I : log (-I) = -(π / 2) * I := by simp [log]
+
+lemma exists_pow_nat_eq (x : ℂ) {n : ℕ} (hn : 0 < n) : ∃ z, z ^ n = x :=
+begin
+  by_cases hx : x = 0,
+  { use 0, simp only [hx, zero_pow_eq_zero, hn] },
+  { use exp (log x / n),
+    rw [← exp_nat_mul, mul_div_cancel', exp_log hx],
+    exact_mod_cast (nat.pos_iff_ne_zero.mp hn) }
+end
+
+lemma exists_eq_mul_self (x : ℂ) : ∃ z, x = z * z :=
+begin
+  obtain ⟨z, rfl⟩ := exists_pow_nat_eq x zero_lt_two,
+  exact ⟨z, pow_two z⟩
+end
 
 lemma two_pi_I_ne_zero : (2 * π * I : ℂ) ≠ 0 :=
 by norm_num [real.pi_ne_zero, I_ne_zero]
@@ -1855,15 +1892,70 @@ lemma differentiable_at_tan {x : ℂ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π /
 @[simp] lemma deriv_tan {x : ℂ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) : deriv tan x = 1 / (cos x)^2 :=
 (has_deriv_at_tan h).deriv
 
-lemma continuous_tan : continuous (λ x : {x | cos x ≠ 0}, tan x) :=
-(continuous_sin.comp continuous_subtype_val).mul
-  (continuous.inv subtype.property (continuous_cos.comp continuous_subtype_val))
-
 lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
-by { rw continuous_on_iff_continuous_restrict, convert continuous_tan }
+continuous_on_sin.div continuous_on_cos $ λ x, id
+
+lemma continuous_tan : continuous (λ x : {x | cos x ≠ 0}, tan x) :=
+continuous_on_iff_continuous_restrict.1 continuous_on_tan
+
+lemma cos_surjective : function.surjective cos :=
+begin
+  intro x,
+  obtain ⟨w, hw⟩ : ∃ w, 1 * w * w + (-2 * x) * w + 1 = 0,
+  { exact exists_quadratic_eq_zero one_ne_zero (exists_eq_mul_self _) },
+  have hw' : exp (log w / I * I) = w,
+  { rw [div_mul_cancel _ I_ne_zero, exp_log],
+    rintro rfl,
+    simpa only [zero_add, one_ne_zero, mul_zero] using hw },
+  obtain ⟨z, hz⟩ : ∃ z : ℂ, (exp (z * I)) ^ 2 - 2 * x * exp (z * I) + 1 = 0,
+  { use log w / I, rw [hw', ← hw], ring },
+  use z,
+  delta cos,
+  rw ← mul_left_inj' (exp_ne_zero (z * I)),
+  rw [sub_add_eq_add_sub, sub_eq_zero, pow_two, ← exp_add, mul_comm _ x, mul_right_comm] at hz,
+  field_simp [add_mul, ← exp_add, hz]
+end
+
+@[simp] lemma range_cos : range cos = set.univ :=
+cos_surjective.range_eq
+
+lemma sin_surjective : function.surjective sin :=
+begin
+  intro x,
+  rcases cos_surjective x with ⟨z, rfl⟩,
+  exact ⟨z+π/2, sin_add_pi_div_two z⟩
+end
+
+@[simp] lemma range_sin : range sin = set.univ :=
+sin_surjective.range_eq
 
 end complex
 
+section chebyshev₁
+
+open polynomial complex
+
+/-- the `n`-th Chebyshev polynomial evaluates on `cos θ` to the value `cos (n * θ)`. -/
+lemma chebyshev₁_complex_cos (θ : ℂ) :
+  ∀ n, (chebyshev₁ ℂ n).eval (cos θ) = cos (n * θ)
+| 0       := by simp only [chebyshev₁_zero, eval_one, nat.cast_zero, zero_mul, cos_zero]
+| 1       := by simp only [eval_X, one_mul, chebyshev₁_one, nat.cast_one]
+| (n + 2) :=
+begin
+  simp only [eval_X, eval_one, chebyshev₁_add_two, eval_sub, eval_bit0, nat.cast_succ, eval_mul],
+  rw [chebyshev₁_complex_cos (n + 1), chebyshev₁_complex_cos n],
+  have aux : sin θ * sin θ = 1 - cos θ * cos θ,
+  { rw ← sin_sq_add_cos_sq θ, ring, },
+  simp only [nat.cast_add, nat.cast_one, add_mul, cos_add, one_mul, sin_add, mul_assoc, aux],
+  ring,
+end
+
+/-- `cos (n * θ)` is equal to the `n`-th Chebyshev polynomial evaluated on `cos θ`. -/
+lemma cos_nat_mul (n : ℕ) (θ : ℂ) :
+  cos (n * θ) = (chebyshev₁ ℂ n).eval (cos θ) :=
+(chebyshev₁_complex_cos θ n).symm
+
+end chebyshev₁
 
 namespace real
 open_locale real

@@ -82,6 +82,13 @@ lemma adjoin_image (f : A →ₐ[R] B) (s : set A) :
 le_antisymm (adjoin_le $ set.image_subset _ subset_adjoin) $
 subalgebra.map_le.2 $ adjoin_le $ set.image_subset_iff.1 subset_adjoin
 
+@[simp] lemma adjoin_insert_adjoin (x : A) :
+  adjoin R (insert x ↑(adjoin R s : submodule R A)) = adjoin R (insert x s) :=
+le_antisymm
+  (adjoin_le (set.insert_subset.mpr
+    ⟨subset_adjoin (set.mem_insert _ _), adjoin_mono (set.subset_insert _ _)⟩))
+  (algebra.adjoin_mono (set.insert_subset_insert algebra.subset_adjoin))
+
 end semiring
 
 section comm_semiring
@@ -120,6 +127,17 @@ le_antisymm
     (λ n r ih, by { rw [pow_succ', ← mul_assoc, alg_hom.map_mul,
       polynomial.aeval_def _ polynomial.X, polynomial.eval₂_X],
       exact is_submonoid.mul_mem ih (subset_adjoin rfl) }))
+
+lemma adjoin_singleton_one : adjoin R ({1} : set A) = ⊥ :=
+begin
+  rw [eq_bot_iff, adjoin_singleton_eq_range],
+  intro a,
+  simp only [alg_hom.coe_range, set.mem_range, coe_bot, exists_imp_distrib],
+  rintro φ rfl,
+  refine ⟨polynomial.aeval 1 φ, _⟩,
+  simp only [polynomial.aeval_def, polynomial.eval₂_eq_sum, finsupp.sum, ring_hom.map_sum,
+    one_pow, mul_one, id.map_eq_self]
+end
 
 theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t) : submodule R A) =
   (adjoin R s) * (adjoin R t) :=
@@ -228,7 +246,7 @@ theorem fg_of_fg_to_submodule {S : subalgebra R A} : (S : submodule R A).fg → 
   (algebra.adjoin_le (λ x hx, show x ∈ (S : submodule R A), from ht ▸ subset_span hx))
   (λ x (hx : x ∈ (S : submodule R A)), span_le.mpr
     (λ x hx, algebra.subset_adjoin hx)
-    (show x ∈ span R ↑t, by { rw ht, exact hx }))⟩
+      (show x ∈ span R ↑t, by { rw ht, exact hx }))⟩
 
 theorem fg_of_noetherian [is_noetherian R A] (S : subalgebra R A) : S.fg :=
 fg_of_fg_to_submodule (is_noetherian.noetherian S)
@@ -252,6 +270,19 @@ by { rw [← algebra.adjoin_image, finset.coe_preimage, set.image_preimage_eq_of
 lemma fg_top (S : subalgebra R A) : (⊤ : subalgebra R S).fg ↔ S.fg :=
 ⟨λ h, by { rw [← S.range_val, ← algebra.map_top], exact fg_map _ _ h },
 λ h, fg_of_fg_map _ S.val subtype.val_injective $ by { rw [algebra.map_top, range_val], exact h }⟩
+
+lemma induction_on_adjoin [is_noetherian R A] (P : subalgebra R A → Prop)
+  (base : P ⊥) (ih : ∀ (S : subalgebra R A) (x : A), P S → P (algebra.adjoin R (insert x S)))
+  (S : subalgebra R A) : P S :=
+begin
+  classical,
+  obtain ⟨t, rfl⟩ := S.fg_of_noetherian,
+  refine finset.induction_on t _ _,
+  { simpa using base },
+  intros x t hxt h,
+  convert ih _ x h using 1,
+  rw [finset.coe_insert, coe_coe, algebra.adjoin_insert_adjoin]
+end
 
 end subalgebra
 

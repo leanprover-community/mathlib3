@@ -312,15 +312,14 @@ by rintro ⟨f, _⟩ ⟨g, _⟩ ⟨h⟩; congr
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
 coe_injective $ funext H
 
-lemma coe_fn_congr : Π {x x' : M}, x = x' → f x = f x'
+protected lemma congr_arg : Π {x x' : M}, x = x' → f x = f x'
 | _ _ rfl := rfl
+
+/-- If two linear maps are equal, they are equal at each point. -/
+protected lemma congr_fun (h : f = g) (x : M) : f x = g x := h ▸ rfl
 
 theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
 ⟨by { rintro rfl x, refl } , ext⟩
-
-/-- If two linear maps are equal, they are equal at each point. -/
-lemma lcongr_fun (h : f = g) (m : M) : f m = g m :=
-congr_fun (congr_arg linear_map.to_fun h) m
 
 variables (f g)
 

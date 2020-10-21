@@ -87,7 +87,10 @@ begin
 end
 
 lemma is_basis.injective [nontrivial R] (hv : is_basis R v) : injective v :=
-  λ x y h, linear_independent.injective hv.1 h
+λ x y h, linear_independent.injective hv.1 h
+
+lemma is_basis.ne_zero [nontrivial R] (hv : is_basis R v) (i) : v i ≠ 0 :=
+hv.1.ne_zero
 
 lemma is_basis.range (hv : is_basis R v) : is_basis R (λ x, x : range v → M) :=
 ⟨hv.1.to_subtype_range, by { convert hv.2, ext i, exact ⟨λ ⟨p, hp⟩, hp ▸ p.2, λ hi, ⟨⟨i, hi⟩, rfl⟩⟩ }⟩
@@ -272,7 +275,7 @@ def equiv_of_is_basis' {v : ι → M} {v' : ι' → M'} (f : M → M') (g : M' �
   (equiv_of_is_basis hv hv' e).trans (equiv_of_is_basis hv' hv'' f) =
   equiv_of_is_basis hv hv'' (e.trans f) :=
 begin
-  apply linear_equiv.eq_of_linear_map_eq,
+  apply linear_equiv.injective_to_linear_map,
   apply hv.ext,
   intros i,
   simp [equiv_of_is_basis]
@@ -281,7 +284,7 @@ end
 @[simp] lemma equiv_of_is_basis_refl :
   equiv_of_is_basis hv hv (equiv.refl ι) = linear_equiv.refl R M :=
 begin
-  apply linear_equiv.eq_of_linear_map_eq,
+  apply linear_equiv.injective_to_linear_map,
   apply hv.ext,
   intros i,
   simp [equiv_of_is_basis]
@@ -394,9 +397,7 @@ begin
   dsimp [finsupp.equiv_fun_on_fintype, finsupp.sum],
   rw finset.sum_filter,
   refine finset.sum_congr rfl (λi hi, _),
-  by_cases H : x i = 0,
-  { simp [H] },
-  { simp [H], refl }
+  by_cases H : x i = 0; simp [H]
 end
 
 lemma is_basis.equiv_fun_apply (u : M) : h.equiv_fun u = h.repr u := rfl

@@ -220,6 +220,11 @@ lemma matrix.to_lin_apply (M : matrix m n R) (v : M₁) :
 show hv₂.equiv_fun.symm (matrix.to_lin' M (hv₁.equiv_fun v)) = _,
 by rw [matrix.to_lin'_apply, hv₂.equiv_fun_symm_apply]
 
+@[simp] lemma matrix.to_lin_self (M : matrix m n R) (i : n) :
+  matrix.to_lin hv₁ hv₂ M (v₁ i) = ∑ j, M j i • v₂ j :=
+by simp only [matrix.to_lin_apply, matrix.mul_vec, dot_product, hv₁.equiv_fun_self, mul_boole,
+  finset.sum_ite_eq, finset.mem_univ, if_true]
+
 @[simp]
 lemma linear_map.to_matrix_id : linear_map.to_matrix hv₁ hv₁ id = 1 :=
 begin
@@ -265,12 +270,12 @@ end to_matrix
 
 section is_basis_to_matrix
 
-variables {ι ι' : Type*} [fintype ι] [decidable_eq ι] [fintype ι'] [decidable_eq ι']
+variables {ι ι' : Type*} [fintype ι] [fintype ι']
 variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
 
 open function matrix
 
-/-- From a basis `e : ι → M` and a family of vectors `v : ι → M`, make the matrix whose columns
+/-- From a basis `e : ι → M` and a family of vectors `v : ι' → M`, make the matrix whose columns
 are the vectors `v i` written in the basis `e`. -/
 def is_basis.to_matrix {e : ι → M} (he : is_basis R e) (v : ι' → M) : matrix ι ι' R :=
 λ i j, he.equiv_fun (v j) i
@@ -282,18 +287,18 @@ namespace is_basis
 lemma to_matrix_apply : he.to_matrix v i j = he.equiv_fun (v j) i :=
 rfl
 
-lemma to_matrix_eq_to_matrix_constr (v : ι → M) :
+lemma to_matrix_eq_to_matrix_constr [decidable_eq ι] (v : ι → M) :
   he.to_matrix v = linear_map.to_matrix he he (he.constr v) :=
 by { ext, simp [is_basis.to_matrix_apply, linear_map.to_matrix_apply] }
 
-@[simp] lemma to_matrix_self : he.to_matrix e = 1 :=
+@[simp] lemma to_matrix_self [decidable_eq ι] : he.to_matrix e = 1 :=
 begin
   rw is_basis.to_matrix,
   ext i j,
   simp [is_basis.equiv_fun, matrix.one_apply, finsupp.single, eq_comm]
 end
 
-lemma to_matrix_update (x : M) :
+lemma to_matrix_update [decidable_eq ι'] (x : M) :
   he.to_matrix (function.update v j x) = matrix.update_column (he.to_matrix v) j (he.repr x) :=
 begin
   ext i' k,
@@ -302,6 +307,18 @@ begin
   { rw [h, update_same j x v, he.equiv_fun_apply] },
   { rw update_noteq h },
 end
+
+@[simp] lemma sum_to_matrix_smul_self : ∑ (i : ι), he.to_matrix v i j • e i = v j :=
+begin
+  conv_rhs { rw ← he.total_repr (v j) },
+  rw [finsupp.total_apply, finsupp.sum_fintype],
+  { refl },
+  simp
+end
+
+@[simp] lemma to_lin_to_matrix [decidable_eq ι'] (hv : is_basis R v) :
+  matrix.to_lin hv he (he.to_matrix v) = id :=
+hv.ext (λ i, by rw [to_lin_self, id_apply, he.sum_to_matrix_smul_self])
 
 /-- From a basis `e : ι → M`, build a linear equivalence between families of vectors `v : ι → M`,
 and matrices, making the matrix whose columns are the vectors `v i` written in the basis `e`. -/
@@ -332,6 +349,25 @@ def to_matrix_equiv {e : ι → M} (he : is_basis R e) : (ι → M) ≃ₗ[R] ma
   end }
 
 end is_basis
+
+section mul_linear_map_to_matrix
+
+variables {N : Type*} [add_comm_group N] [module R N]
+variables {b : ι → M} {b' : ι' → M} {c : ι → N} {c' : ι' → N}
+variables (hb : is_basis R b) (hb' : is_basis R b') (hc : is_basis R c) (hc' : is_basis R c')
+variables (f : M →ₗ[R] N)
+
+@[simp] lemma is_basis_to_matrix_mul_linear_map_to_matrix [decidable_eq ι'] :
+  hc.to_matrix c' ⬝ linear_map.to_matrix hb' hc' f = linear_map.to_matrix hb' hc f :=
+(matrix.to_lin hb' hc).injective
+  (by rw [to_lin_to_matrix, to_lin_mul hb' hc' hc, to_lin_to_matrix, hc.to_lin_to_matrix, id_comp])
+
+@[simp] lemma linear_map_to_matrix_mul_is_basis_to_matrix [decidable_eq ι] [decidable_eq ι'] :
+  linear_map.to_matrix hb' hc' f ⬝ hb'.to_matrix b = linear_map.to_matrix hb hc' f :=
+(matrix.to_lin hb hc').injective
+  (by rw [to_lin_to_matrix, to_lin_mul hb hb' hc', to_lin_to_matrix, hb'.to_lin_to_matrix, comp_id])
+
+end mul_linear_map_to_matrix
 
 end is_basis_to_matrix
 
@@ -743,9 +779,9 @@ theorem trace_aux_eq (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] 
   {κ : Type*} [decidable_eq κ] [fintype κ] {c : κ → M} (hc : is_basis R c) :
   trace_aux R hb = trace_aux R hc :=
 calc  trace_aux R hb
-    = trace_aux R hb.range : by { rw trace_aux_range R hb }
+    = trace_aux R hb.range : by rw trace_aux_range R hb
 ... = trace_aux R hc.range : trace_aux_eq' _ _ _
-... = trace_aux R hc : by { rw trace_aux_range R hc }
+... = trace_aux R hc : by rw trace_aux_range R hc
 
 /-- Trace of an endomorphism independent of basis. -/
 def trace (R : Type u) [comm_ring R] (M : Type v) [add_comm_group M] [module R M] :

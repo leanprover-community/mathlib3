@@ -7,26 +7,6 @@ import ring_theory.adjoin
 open finite_dimensional
 open polynomial
 
-namespace intermediate_field
-variables {K L : Type*} [field K] [field L] [algebra K L]
-
-lemma fg_of_noetherian (F : intermediate_field K L)
-  [is_noetherian K L] : ∃ (t : finset L), F = adjoin K ↑t :=
-begin
-  obtain ⟨t, ht⟩ := subalgebra.fg_of_noetherian F.to_subalgebra,
-  use t,
-  apply le_antisymm,
-  { show F.to_subalgebra ≤ (adjoin K ↑t).to_subalgebra,
-    rw ← ht,
-    apply algebra_adjoin_le_adjoin },
-  rw adjoin_le_iff,
-  show (↑t : set L) ⊆ F.to_subalgebra,
-  rw ← ht,
-  exact algebra.subset_adjoin
-end
-
-end intermediate_field
-
 /-- A computable specialization of `finsupp.emb_domain` from `fin i` to `ℕ`. -/
 def finsupp.emb_fin_nat {M : Type*} [has_zero M] {i : ℕ} (f : fin i →₀ M) : ℕ →₀ M :=
 { to_fun := λ n, if h : n < i then f ⟨n, h⟩ else 0,

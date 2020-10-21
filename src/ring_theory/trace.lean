@@ -433,6 +433,10 @@ lemma trace_form_to_matrix [decidable_eq ι] (i j) :
   bilin_form_equiv_matrix hb (trace_form R S) i j = trace R S (b i * b j) :=
 by rw [bilin_form_equiv_matrix_apply, trace_form_apply]
 
+lemma trace_form_to_matrix_power_basis (h : has_power_basis R S) :
+  bilin_form_equiv_matrix h.is_basis (trace_form R S) = λ i j, (trace R S (h.gen ^ (i + j : ℕ))) :=
+by { ext, rw [trace_form_to_matrix, pow_add] }
+
 open bilin_form
 
 lemma lmul_mul (x y : S) : lmul R S (x * y) = (lmul R S x).comp (lmul R S y) :=
@@ -914,32 +918,22 @@ end
 lemma lmul_one : lmul R S 1 = linear_map.id :=
 by { ext, simp }
 
-lemma trace_form.nondegenerate [finite_dimensional K L] [is_separable K L] :
-  (trace_form K L).nondegenerate :=
+lemma det_vandermonde {n : ℕ} (v : fin n → R) :
+  det (λ i j, v j ^ (i : ℕ)) = ∏ (i j : fin n), if i < j then v j - v i else 0 :=
 begin
-  rw bilin_form.nondegenerate_iff_eq_zero,
-  intros x hxy,
-  simp_rw [trace_form_apply] at hxy,
-  have alg : is_algebraic K L := is_algebraic_of_finite,
-  have hb := has_power_basis_of_is_simple_extension K alg,
-  haveI := classical.prop_decidable,
-  by_contra hx,
-  have trace_eq_zero : ∀ (z : L), algebra.trace K L z = 0,
-  { intro z,
-    convert hxy (x⁻¹ * z),
-    rw [←mul_assoc, mul_inv_cancel hx, one_mul] },
-  sorry,
-
-/-
-  use x⁻¹ * is_simple_extension.primitive_element K L,
-  rw [trace_form_apply, ← mul_assoc, mul_inv_cancel hxy, one_mul, trace_apply,
-      linear_map.trace_eq_matrix_trace K hb, matrix.trace_apply],
-  simp_rw [linear_equiv_matrix_apply' hb hb],
-  -/
+  induction n with n ih,
+  { exact det_eq_one_of_card_eq_zero (fintype.card_fin 0) },
+  rw det_succ_row',
 end
 
-end trace_form
+lemma det_trace_form_ne_zero (h : has_power_basis R S) :
+  det (bilin_form_equiv_matrix h.is_basis (trace_form R S)) ≠ 0 :=
+begin
+  rw trace_form_to_matrix_power_basis R h,
+end
 
-end algebra
+lemma trace_form.nondegenerate [finite_dimensional K L] [is_separable K L] :
+  (trace_form K L).nondegenerate :=
+trace_form.nondegenerate_of_has_power_basis (has_power_basis_of_is_simple_extension K is_algebraic_of_finite)
 
 #lint

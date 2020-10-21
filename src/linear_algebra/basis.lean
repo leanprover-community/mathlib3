@@ -87,7 +87,10 @@ begin
 end
 
 lemma is_basis.injective [nontrivial R] (hv : is_basis R v) : injective v :=
-  λ x y h, linear_independent.injective hv.1 h
+λ x y h, linear_independent.injective hv.1 h
+
+lemma is_basis.ne_zero [nontrivial R] (hv : is_basis R v) (i) : v i ≠ 0 :=
+hv.1.ne_zero
 
 lemma is_basis.range (hv : is_basis R v) : is_basis R (λ x, x : range v → M) :=
 ⟨hv.1.to_subtype_range, by { convert hv.2, ext i, exact ⟨λ ⟨p, hp⟩, hp ▸ p.2, λ hi, ⟨⟨i, hi⟩, rfl⟩⟩ }⟩

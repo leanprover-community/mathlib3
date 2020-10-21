@@ -274,7 +274,8 @@ lemma ne_zero_of_monic (h : monic p) : p ≠ 0 :=
   a polynomial of the same degree. -/
 lemma lifts_of_same_degree {R : Type u} {S : Type v} [comm_semiring R]
   [comm_semiring S] [nontrivial R] [nontrivial S] (f : R →+* S) (P : polynomial S) :
-  (∃ (Q : polynomial R), map f Q = P) → (∃ (Q₁ : polynomial R), map f Q₁ = P ∧ Q₁.degree = P.degree) :=
+  (∃ (Q : polynomial R), map f Q = P) → (∃ (Q₁ : polynomial R),
+  map f Q₁ = P ∧ Q₁.degree = P.degree) :=
 begin
   intro hexist,
   obtain ⟨Q, hQ⟩ := hexist,

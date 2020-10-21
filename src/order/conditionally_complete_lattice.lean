@@ -663,6 +663,7 @@ This result can be used to show that the extended reals [-∞, ∞] are a comple
 -/
 
 open_locale classical
+local attribute [semireducible] with_top.has_le with_bot.has_le
 
 /-- Adding a top element to a conditionally complete lattice gives a conditionally complete lattice -/
 noncomputable instance with_top.conditionally_complete_lattice

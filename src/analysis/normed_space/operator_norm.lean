@@ -684,12 +684,12 @@ variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
 /-- Left-multiplication in a normed algebra, considered as a continuous linear map. -/
 def lmul_left : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
-λ x, (algebra.lmul_left 𝕜 𝕜' x).mk_continuous ∥x∥
+λ x, (algebra.lmul_left 𝕜 x).mk_continuous ∥x∥
 (λ y, by {rw algebra.lmul_left_apply, exact norm_mul_le x y})
 
 /-- Right-multiplication in a normed algebra, considered as a continuous linear map. -/
 def lmul_right : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
-λ x, (algebra.lmul_right 𝕜 𝕜' x).mk_continuous ∥x∥
+λ x, (algebra.lmul_right 𝕜 x).mk_continuous ∥x∥
 (λ y, by {rw [algebra.lmul_right_apply, mul_comm], exact norm_mul_le y x})
 
 /-- Simultaneous left- and right-multiplication in a normed algebra, considered as a continuous

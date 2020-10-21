@@ -243,45 +243,6 @@ begin
   exact hyp ht,
 end
 
-variables (R A)
-/-- The multiplication in an algebra is a bilinear map. -/
-def lmul : A →ₗ A →ₗ A :=
-linear_map.mk₂ R (*)
-  (λ x y z, add_mul x y z)
-  (λ c x y, by rw [smul_def, smul_def, mul_assoc _ x y])
-  (λ x y z, mul_add x y z)
-  (λ c x y, by rw [smul_def, smul_def, left_comm])
-
-/-- The multiplication on the left in an algebra is a linear map. -/
-def lmul_left (r : A) : A →ₗ A :=
-lmul R A r
-
-/-- The multiplication on the right in an algebra is a linear map. -/
-def lmul_right (r : A) : A →ₗ A :=
-(lmul R A).flip r
-
-/-- Simultaneous multiplication on the left and right is a linear map. -/
-def lmul_left_right (vw: A × A) : A →ₗ[R] A :=
-(lmul_right R A vw.2).comp (lmul_left R A vw.1)
-
-/-- The multiplication map on an algebra, as an `R`-linear map from `A ⊗[R] A` to `A`. -/
-def lmul' : A ⊗[R] A →ₗ[R] A :=
-tensor_product.lift (algebra.lmul R A)
-
-variables {R A}
-
-@[simp] lemma lmul_apply (p q : A) : lmul R A p q = p * q := rfl
-@[simp] lemma lmul_left_apply (p q : A) : lmul_left R A p q = p * q := rfl
-@[simp] lemma lmul_right_apply (p q : A) : lmul_right R A p q = q * p := rfl
-@[simp] lemma lmul_left_right_apply (vw : A × A) (p : A) :
-  lmul_left_right R A vw p = vw.1 * p * vw.2 := rfl
-
-@[simp] lemma lmul'_apply {x y} : algebra.lmul' R A (x ⊗ₜ y) = x * y :=
-begin
-  dsimp [algebra.lmul'],
-  simp,
-end
-
 /-- Explicit characterization of the submonoid map in the case of an algebra.
 `S` is made explicit to help with type inference -/
 def algebra_map_submonoid (S : Type*) [semiring S] [algebra R S]
@@ -291,17 +252,6 @@ submonoid.map (algebra_map R S : R →* S) M
 lemma mem_algebra_map_submonoid_of_mem [algebra R S] {M : submonoid R} (x : M) :
   (algebra_map R S x) ∈ algebra_map_submonoid S M :=
 set.mem_image_of_mem (algebra_map R S) x.2
-
-instance linear_map.semimodule' (R : Type u) [comm_semiring R]
-  (M : Type v) [add_comm_monoid M] [semimodule R M]
-  (S : Type w) [comm_semiring S] [algebra R S] : semimodule S (M →ₗ[R] S) :=
-{ smul := λ s f, linear_map.llcomp _ _ _ _ (algebra.lmul R S s) f,
-  one_smul := λ f, linear_map.ext $ λ x, one_mul _,
-  mul_smul := λ s₁ s₂ f, linear_map.ext $ λ x, mul_assoc _ _ _,
-  smul_add := λ s f g, linear_map.map_add _ _ _,
-  smul_zero := λ s, linear_map.map_zero _,
-  add_smul := λ s₁ s₂ f, linear_map.ext $ λ x, add_mul _ _ _,
-  zero_smul := λ f, linear_map.ext $ λ x, zero_mul _ }
 
 end semiring
 
@@ -335,9 +285,9 @@ end ring
 end algebra
 
 namespace module
+variables (R : Type u) (M : Type v) [comm_semiring R] [add_comm_monoid M] [semimodule R M]
 
-instance endomorphism_algebra (R : Type u) (M : Type v)
-  [comm_ring R] [add_comm_group M] [module R M] : algebra R (M →ₗ[R] M) :=
+instance endomorphism_algebra : algebra R (M →ₗ[R] M) :=
 { to_fun    := λ r, r • linear_map.id,
   map_one' := one_smul _ _,
   map_zero' := zero_smul _ _,
@@ -346,15 +296,13 @@ instance endomorphism_algebra (R : Type u) (M : Type v)
   commutes' := by { intros, ext, simp },
   smul_def' := by { intros, ext, simp } }
 
-lemma algebra_map_End_eq_smul_id (R : Type u) (M : Type v)
-  [comm_ring R] [add_comm_group M] [module R M] (a : R) :
+lemma algebra_map_End_eq_smul_id (a : R) :
   (algebra_map R (End R M)) a = a • linear_map.id := rfl
 
-lemma algebra_map_End_apply (R : Type u) (M : Type v)
-  [comm_ring R] [add_comm_group M] [module R M] (a : R) (m : M) :
+@[simp] lemma algebra_map_End_apply (a : R) (m : M) :
   (algebra_map R (End R M)) a m = a • m := rfl
 
-lemma ker_algebra_map_End (K : Type u) (V : Type v)
+@[simp] lemma ker_algebra_map_End (K : Type u) (V : Type v)
   [field K] [add_comm_group V] [vector_space K V] (a : K) (ha : a ≠ 0) :
   ((algebra_map K (End K V)) a).ker = ⊥ :=
 linear_map.ker_smul _ _ ha
@@ -825,6 +773,7 @@ instance algebra_rat {α} [division_ring α] [char_zero α] : algebra ℚ α :=
 end rat
 
 namespace algebra
+open module
 
 variables (R : Type u) (A : Type v)
 
@@ -836,6 +785,73 @@ def of_id : R →ₐ[R] A :=
 variables {R}
 
 theorem of_id_apply (r) : of_id R A r = algebra_map R A r := rfl
+
+variables (R A)
+/-- The multiplication in an algebra is a bilinear map. -/
+def lmul : A →ₐ[R] (End R A) :=
+{ map_one' := by { ext a, exact one_mul a },
+  map_mul' := by { intros a b, ext c, exact mul_assoc a b c },
+  map_zero' := by { ext a, exact zero_mul a },
+  commutes' := by { intro r, ext a, dsimp, rw [smul_def] },
+  .. (show A →ₗ[R] A →ₗ[R] A, from linear_map.mk₂ R (*)
+  (λ x y z, add_mul x y z)
+  (λ c x y, by rw [smul_def, smul_def, mul_assoc _ x y])
+  (λ x y z, mul_add x y z)
+  (λ c x y, by rw [smul_def, smul_def, left_comm])) }
+
+variables {A}
+
+/-- The multiplication on the left in an algebra is a linear map. -/
+def lmul_left (r : A) : A →ₗ A :=
+lmul R A r
+
+/-- The multiplication on the right in an algebra is a linear map. -/
+def lmul_right (r : A) : A →ₗ A :=
+(lmul R A).to_linear_map.flip r
+
+/-- Simultaneous multiplication on the left and right is a linear map. -/
+def lmul_left_right (vw: A × A) : A →ₗ[R] A :=
+(lmul_right R vw.2).comp (lmul_left R vw.1)
+
+/-- The multiplication map on an algebra, as an `R`-linear map from `A ⊗[R] A` to `A`. -/
+def lmul' : A ⊗[R] A →ₗ[R] A :=
+tensor_product.lift (lmul R A).to_linear_map
+
+variables {R A}
+
+@[simp] lemma lmul_apply (p q : A) : lmul R A p q = p * q := rfl
+@[simp] lemma lmul_left_apply (p q : A) : lmul_left R p q = p * q := rfl
+@[simp] lemma lmul_right_apply (p q : A) : lmul_right R p q = q * p := rfl
+@[simp] lemma lmul_left_right_apply (vw : A × A) (p : A) :
+  lmul_left_right R vw p = vw.1 * p * vw.2 := rfl
+
+@[simp] lemma lmul_left_one : lmul_left R (1:A) = linear_map.id :=
+by { ext, simp only [linear_map.id_coe, one_mul, id.def, lmul_left_apply] }
+
+@[simp] lemma lmul_left_mul (a b : A) :
+  lmul_left R (a * b) = (lmul_left R a).comp (lmul_left R b) :=
+by { ext, simp only [lmul_left_apply, linear_map.comp_apply, mul_assoc] }
+
+@[simp] lemma lmul_right_one : lmul_right R (1:A) = linear_map.id :=
+by { ext, simp only [linear_map.id_coe, mul_one, id.def, lmul_right_apply] }
+
+@[simp] lemma lmul_right_mul (a b : A) :
+  lmul_right R (a * b) = (lmul_right R b).comp (lmul_right R a) :=
+by { ext, simp only [lmul_right_apply, linear_map.comp_apply, mul_assoc] }
+
+@[simp] lemma lmul'_apply {x y : A} : lmul' R (x ⊗ₜ y) = x * y :=
+by simp only [algebra.lmul', tensor_product.lift.tmul, alg_hom.to_linear_map_apply, lmul_apply]
+
+instance linear_map.semimodule' (R : Type u) [comm_semiring R]
+  (M : Type v) [add_comm_monoid M] [semimodule R M]
+  (S : Type w) [comm_semiring S] [algebra R S] : semimodule S (M →ₗ[R] S) :=
+{ smul := λ s f, linear_map.llcomp _ _ _ _ (algebra.lmul R S s) f,
+  one_smul := λ f, linear_map.ext $ λ x, one_mul _,
+  mul_smul := λ s₁ s₂ f, linear_map.ext $ λ x, mul_assoc _ _ _,
+  smul_add := λ s f g, linear_map.map_add _ _ _,
+  smul_zero := λ s, linear_map.map_zero _,
+  add_smul := λ s₁ s₂ f, linear_map.ext $ λ x, add_mul _ _ _,
+  zero_smul := λ f, linear_map.ext $ λ x, zero_mul _ }
 
 end algebra
 

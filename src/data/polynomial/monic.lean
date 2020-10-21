@@ -269,11 +269,12 @@ by simpa only [monic, leading_coeff_zero] using (zero_ne_one : (0 : R) ≠ 1)
 lemma ne_zero_of_monic (h : monic p) : p ≠ 0 :=
 λ h₁, @not_monic_zero R _ _ (h₁ ▸ h)
 
-/-If we have a morphism of semiring `f : R →+* S` and a polynomial `P : polynomial S` that comes via `f` from a polynomial
-  `Q : polynomial R`, then it comes from a polynomial of the same degree. -/
-lemma lifts_of_same_degree {R : Type u} {S : Type v} [comm_semiring R] [comm_semiring S] [nontrivial R]
-  [nontrivial S] (f : R →+* S) (P : polynomial S) : (∃ (Q : polynomial R), map f Q = P) →
-  (∃ (Q₁ : polynomial R), map f Q₁ = P ∧ Q₁.degree = P.degree) :=
+/-If we have a morphism of semiring `f : R →+* S` and a polynomial `P : polynomial S`
+  that comes via `f` from a polynomial `Q : polynomial R`, then it comes from
+  a polynomial of the same degree. -/
+lemma lifts_of_same_degree {R : Type u} {S : Type v} [comm_semiring R]
+  [comm_semiring S] [nontrivial R] [nontrivial S] (f : R →+* S) (P : polynomial S) :
+  (∃ (Q : polynomial R), map f Q = P) → (∃ (Q₁ : polynomial R), map f Q₁ = P ∧ Q₁.degree = P.degree) :=
 begin
   intro hexist,
   obtain ⟨Q, hQ⟩ := hexist,
@@ -317,7 +318,8 @@ begin
     ne.def, not_false_iff, degree_monomial]
 end
 
-/-If we have a morphism of semiring `f : R →+* S` and a monic polynomial `P : polynomial S` that comes via `f` from polynomial
+/-If we have a morphism of semiring `f : R →+* S` and a monic polynomial
+  `P : polynomial S` that comes via `f` from polynomial
   `Q : polynomial R`, then it comes from a monic polynomial
   of the same degree. -/
 lemma monic_lifts_of_same_degree {R : Type u} {S : Type v} [comm_semiring R] [comm_semiring S]

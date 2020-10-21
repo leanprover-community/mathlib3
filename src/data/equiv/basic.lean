@@ -277,6 +277,8 @@ lemma mul_def {α : Type u} (f g : perm α) : f * g = g.trans f := rfl
 
 lemma inv_def {α : Type u} (f : perm α) : f⁻¹ = f.symm := rfl
 
+@[simp] lemma coe_mul {α : Type u} (f g : perm α) : ⇑(f * g) = f ∘ g := rfl
+
 end perm
 
 /-- If `α` is an empty type, then it is equivalent to the `empty` type. -/

@@ -685,11 +685,11 @@ meta def rintro_patt_parse : bool → parser (listΠ rcases_patt)
   (do tk ":", e ← texpr, pure (pats.map (λ p, rcases_patt.typed p e))) <|>
   pure pats
 
-/-- Syntax for a `rintro` pattern: `('?' (: n)?) | patt*`. -/
+/-- Syntax for a `rintro` pattern: `('?' (: n)?) | rintro_patt`. -/
 meta def rintro_parse : parser (listΠ rcases_patt ⊕ nat) :=
 with_desc "('?' (: n)?) | patt*" $
 (tk "?" >> sum.inr <$> rcases_parse_depth) <|>
-(sum.inl ∘ list.join) <$> (rintro_patt_parse tt)*
+sum.inl <$> rintro_patt_parse ff
 
 namespace interactive
 open interactive interactive.types expr

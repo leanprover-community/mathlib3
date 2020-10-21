@@ -431,6 +431,10 @@ theorem coe_eq_coe {a b : α} : (a : with_bot α) = b ↔ a = b :=
 by rw [← option.some.inj_eq a b]; refl
 
 @[priority 10]
+instance has_le [has_le α] : has_le (with_bot α) :=
+{ le          := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b }
+
+@[priority 10]
 instance has_lt [has_lt α] : has_lt (with_bot α) :=
 { lt := λ o₁ o₂ : option α, ∃ b ∈ o₂, ∀ a ∈ o₁, a < b }
 
@@ -444,10 +448,10 @@ lemma bot_lt_some [has_lt α] (a : α) : (⊥ : with_bot α) < some a :=
 lemma bot_lt_coe [has_lt α] (a : α) : (⊥ : with_bot α) < a := bot_lt_some a
 
 instance [preorder α] : preorder (with_bot α) :=
-{ le          := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b,
+{ le          := (≤),
   lt          := (<),
   lt_iff_le_not_le := by intros; cases a; cases b;
-                         simp [lt_iff_le_not_le]; simp [(<)];
+                         simp [lt_iff_le_not_le]; simp [(≤), (<)];
                          split; refl,
   le_refl     := λ o a ha, ⟨a, ha, le_refl _⟩,
   le_trans    := λ o₁ o₂ o₃ h₁ h₂ a ha,
@@ -652,7 +656,7 @@ by simp [(≤)]
 by simp [(<)]; existsi a; refl
 
 instance [preorder α] : preorder (with_top α) :=
-{ le          := λ o₁ o₂ : option α, ∀ a ∈ o₂, ∃ b ∈ o₁, b ≤ a,
+{ le          := (≤),
   lt          := (<),
   lt_iff_le_not_le := by { intros; cases a; cases b;
                            simp [lt_iff_le_not_le]; simp [(<),(≤)] },
@@ -740,6 +744,7 @@ instance semilattice_inf [semilattice_inf α] : semilattice_inf_top (with_top α
       exact ⟨d, rfl, le_inf h₁' h₂⟩ }
   end,
   ..with_top.order_top }
+
 
 lemma coe_inf [semilattice_inf α] (a b : α) : ((a ⊓ b : α) : with_top α) = a ⊓ b := rfl
 
@@ -1083,3 +1088,5 @@ is_compl.of_eq bot_inf_eq sup_top_eq
 
 lemma is_compl_top_bot [bounded_lattice α] : is_compl (⊤ : α) ⊥ :=
 is_compl.of_eq inf_bot_eq top_sup_eq
+
+attribute [irreducible] with_bot.has_le with_top.has_le

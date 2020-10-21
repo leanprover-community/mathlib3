@@ -956,7 +956,7 @@ restrict on measures and the RHS has a restrict on outer measures. -/
 lemma restrict_to_outer_measure_eq_to_outer_measure_restrict {s : set α} (h : is_measurable s) :
     (μ.restrict s).to_outer_measure = outer_measure.restrict s μ.to_outer_measure :=
 by simp_rw [restrict, restrictₗ, lift_linear, linear_map.coe_mk, to_measure_to_outer_measure,
-  outer_measure.restrict_trim_of_trimmed h μ.trimmed]
+  outer_measure.restrict_trim h, μ.trimmed]
 
 /-- This lemma shows that `Inf` and `restrict` commute for measures. -/
 lemma restrict_Inf_eq_Inf_restrict {m : set (measure α)} {t : set α}

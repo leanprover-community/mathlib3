@@ -887,9 +887,8 @@ end
 
 /-- The trimmed property of a measure μ states that `μ.to_outer_measure.trim = μ.to_outer_measure`.
 This theorem shows that a restricted trimmed outer measure is a trimmed outer measure. -/
-lemma restrict_trim_of_trimmed {α : Type*} [measurable_space α]
-    {μ : outer_measure α} {s : set α} (hs : is_measurable s) :
-    (restrict s μ).trim = restrict s μ.trim :=
+lemma restrict_trim {μ : outer_measure α} {s : set α} (hs : is_measurable s) :
+  (restrict s μ).trim = restrict s μ.trim :=
 begin
   apply measure_theory.outer_measure.ext, intro t,
   simp_rw [restrict_apply, trim_eq_infi, restrict_apply],

@@ -6,6 +6,7 @@ Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio
 import ring_theory.discrete_valuation_ring
 import ring_theory.fractional_ideal
 import ring_theory.ideal.over
+import logic.function.basic
 
 /-!
 # Dedekind domains
@@ -195,7 +196,33 @@ begin
   sorry,
 end
 
-set_option class.instance_max_depth 5000
+lemma mul_val (I J : fractional_ideal (fraction_ring.of A)) : (I*J).val = I.val*J.val :=
+begin
+  simp only [val_eq_coe, coe_mul],
+end
+
+lemma ext' (I J : fractional_ideal (fraction_ring.of A)) : I = J ↔ ∀ (x : localization_map.codomain (fraction_ring.of A)), (x ∈ I ↔ x ∈ J) :=
+begin
+  split,
+  {
+    rintros,
+    rw a,
+  },
+  rintros,
+  apply ring.fractional_ideal.ext,
+  apply submodule.ext,
+  assumption,
+end
+
+lemma one_mem : (1 : localization_map.codomain (fraction_ring.of A)) ∈ ((1 : ideal A) : fractional_ideal (fraction_ring.of A)) :=
+begin
+  apply one_mem_one,
+end
+
+lemma local_one : (localization_map.to_map (fraction_ring.of A)) 1 = 1 :=
+begin
+  simp,
+end
 
 theorem tp : is_dedekind_domain_inv A <-> is_dedekind_domain A :=
 begin
@@ -224,7 +251,7 @@ begin
       specialize h2 M,
       specialize hpinv ((coe_ne_bot A p).1 nz),
       specialize h2 ( (coe_ne_bot A M).1 (max_ideal_ne_bot A M hM1 h1)),
-      let I := (M : fractional_ideal (fraction_ring.of A))⁻¹ * (p : fractional_ideal (fraction_ring.of A)),
+      set I := (M : fractional_ideal (fraction_ring.of A))⁻¹ * (p : fractional_ideal (fraction_ring.of A)) with hI,
       have f : (M : fractional_ideal (fraction_ring.of A)) * I = (p : fractional_ideal (fraction_ring.of A)),
       {
         change ↑M * ((↑M)⁻¹ * ↑p) = ↑p,
@@ -246,8 +273,45 @@ begin
         assumption,
       },
       rw <-subtype.coe_le_coe at g,
---      change ((↑M)⁻¹ * ↑p) ≤ ↑p at g,
-      have g' := submodule.mul_le_mul_left g (↑M).coe,
+      rw hI at g,
+      norm_cast at g,
+      change ((↑M)⁻¹ * ↑p) ≤ ↑p at g,
+      have hM := le_refl (M : fractional_ideal (fraction_ring.of A)),
+      have g' := submodule.mul_le_mul g hM,
+      rw mul_comm at g',
+      simp only [val_eq_coe, <-coe_mul] at g',
+      norm_cast at g',
+      assoc_rw h2 at g',
+      rw one_mul at g',
+      set q := (p : fractional_ideal (fraction_ring.of A))⁻¹ with hq,
+      have g'' := submodule.mul_le_mul g' (le_refl q),
+      simp only [val_eq_coe, <-coe_mul] at g'',
+      norm_cast at g'',
+      rw hpinv at g'',
+      rw mul_comm at g'',
+      rw mul_comm at hpinv,
+      assoc_rw hpinv at g'',
+      rw one_mul at g'',
+      have ginv : (M : fractional_ideal (fraction_ring.of A)) ≤ 1,
+      sorry,
+      have k := (has_le.le.le_iff_eq ginv).1 g'',
+      cases hM1 with hM11 hM12,
+      apply hM11,
+      unfold has_one.one at k,
+      simp at k,
+      change ((1 : ideal A) : fractional_ideal (fraction_ring.of A)) = (M : fractional_ideal (fraction_ring.of A)) at k,
+      rw ideal.eq_top_iff_one,
+      rw ext' at k,
+      specialize k 1,
+      have k' := k.1 (one_mem A),
+      rw mem_coe at k',
+      cases k' with x k',
+      cases k' with hx k',
+      suffices f' : x = 1,
+      rw f' at hx,
+      assumption,
+      rw <-(local_one A) at k',
+      apply (localization_map.to_map_injective k'),
     sorry,
     },
     {

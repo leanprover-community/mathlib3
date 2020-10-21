@@ -16,7 +16,7 @@ instance is_galois_of_fixed_field (G : Type*) [group G] [fintype G] [mul_semirin
   is_galois (mul_action.fixed_points G E) E :=
 ⟨fixed_points.separable G E, fixed_points.normal G E⟩
 
-lemma is_separable_splitting_field_of_is_galois [finite_dimensional F E] (h : is_galois F E) :
+lemma is_separable_splitting_field_of_is_galois [finite_dimensional F E] [h : is_galois F E] :
   ∃ p : polynomial F, p.separable ∧ p.is_splitting_field F E :=
 begin
   cases field.exists_primitive_element h.1 with α h1,
@@ -54,6 +54,20 @@ section galois_correspondence
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 variables (H : subgroup (E ≃ₐ[F] E)) (K : intermediate_field F E)
 
+instance galois_of_tower_top [h : is_galois F E] : is_galois K E :=
+begin
+  split,
+  exact is_separable_tower_top_of_is_separable K h.1,
+  intros x,
+  cases h.2 x with hx hhx,
+  rw (show (algebra_map F E) = (algebra_map K E).comp (algebra_map F K), by ext;refl) at hhx,
+  use is_integral_of_is_scalar_tower x hx,
+  have key := minimal_polynomial.dvd_map_of_is_scalar_tower K hx,
+  exact polynomial.splits_of_splits_of_dvd (algebra_map K E)
+    (polynomial.map_ne_zero (minimal_polynomial.ne_zero hx))
+    ((polynomial.splits_map_iff (algebra_map F K) (algebra_map K E)).mpr hhx) key,
+end
+
 instance subgroup_action : faithful_mul_semiring_action H E := {
   smul := λ h x, h x,
   smul_zero := λ _, alg_equiv.map_zero _,
@@ -75,6 +89,10 @@ def fixed_field : intermediate_field F E := {
   inv_mem' := λ _ hx _, by rw [smul_inv, hx],
   algebra_map_mem' := λ _ _, alg_equiv.commutes _ _,
 }
+
+lemma findim_fixed_field_eq_card [finite_dimensional F E] :
+  finite_dimensional.findim (fixed_field H) E = fintype.card H :=
+fixed_points.findim_eq_card H E
 
 def fixing_subgroup : subgroup (E ≃ₐ[F] E) := {
   carrier := λ ϕ, ∀ x : K, ϕ x = x,
@@ -134,8 +152,19 @@ begin
     right_inv := λ _, by {ext, refl} },
 end
 
-lemma findim_fixed_field_eq_card [finite_dimensional F E] :
-  finite_dimensional.findim (fixed_field H) E = fintype.card H :=
-fixed_points.findim_eq_card H E
+theorem fixed_field_of_fixing_subgroup [finite_dimensional F E] [h : is_galois F E] :
+  fixed_field (fixing_subgroup K) = K :=
+begin
+  have le_K : K ≤ fixed_field (fixing_subgroup K) :=
+    λ x hx ϕ, subtype.mem ϕ (⟨x, hx⟩ : K),
+
+
+  replace h := galois_of_tower_top K,
+  haveI : finite_dimensional K E := sorry,
+  cases field.exists_primitive_element h.1 with α hα,
+  cases h.2 α with hi hs,
+  /-roadmap : prove that the number of F-automorphisms of F⟮α⟯ equals
+    the number of roots of the minimal polynomial -/
+end
 
 end galois_correspondence

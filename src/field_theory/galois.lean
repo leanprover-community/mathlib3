@@ -9,6 +9,10 @@ variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
 /-- A field extension E/F is galois if it is both separable and normal -/
 @[class] def is_galois : Prop := is_separable F E ∧ normal F E
 
+instance is_galois_of_fixed_field (G : Type*) [group G] [fintype G] [mul_semiring_action G E] :
+  is_galois (mul_action.fixed_points G E) E :=
+⟨fixed_points.separable G E, fixed_points.normal G E⟩
+
 lemma lem1 [finite_dimensional F E] (h : is_galois F E) :
   ∃ p : polynomial F, p.separable ∧ p.is_splitting_field F E :=
 begin
@@ -41,48 +45,15 @@ instance aut : group (E ≃ₐ[F] E) := {
     mul_left_inv := λ ϕ, by {ext, exact alg_equiv.symm_apply_apply ϕ a},
 }
 
-instance aut_action : faithful_mul_semiring_action (E ≃ₐ[F] E) E := {
-    smul := alg_equiv.to_fun,
-    smul_zero := alg_equiv.map_zero,
-    smul_one := alg_equiv.map_one,
-    one_smul := λ _, rfl,
-    smul_add := alg_equiv.map_add,
-    smul_mul := alg_equiv.map_mul,
-    mul_smul := λ _ _ _, rfl,
-    eq_of_smul_eq_smul' := λ _ _, alg_equiv.ext,
-}
-
-def aut_fixed_field : intermediate_field F E := {
-  carrier := mul_action.fixed_points (E ≃ₐ[F] E) E,
-  zero_mem' := smul_zero,
-  add_mem' := λ _ _ hx hy _, by rw [smul_add, hx, hy],
-  neg_mem' := λ _ hx _, by rw [smul_neg, hx],
-  one_mem' := smul_one,
-  mul_mem' := λ _ _ hx hy _, by rw [smul_mul', hx, hy],
-  inv_mem' := λ _ hx _, by rw [smul_inv, hx],
-  algebra_map_mem' := λ _ _, alg_equiv.commutes _ _,
-}
-
-lemma aut_fixed_field_findim_eq_card [finite_dimensional F E] :
-  finite_dimensional.findim (aut_fixed_field F E) E = fintype.card (E ≃ₐ[F] E) :=
-fixed_points.findim_eq_card (E ≃ₐ[F] E) E
-
-lemma card_aut_le_dim [finite_dimensional F E] :
-  fintype.card (E ≃ₐ[F] E) ≤ finite_dimensional.findim F E :=
-begin
-  rw ← aut_fixed_field_findim_eq_card F E,
-  rw ← finite_dimensional.findim_mul_findim F (aut_fixed_field F E) E,
-  exact nat.le_mul_of_pos_left finite_dimensional.findim_pos,
 end
 
-end
+section galois_correspondence
 
-section
-
-variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E] (H : subgroup (E ≃ₐ[F] E))
+variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
+variables (H : subgroup (E ≃ₐ[F] E)) (K : intermediate_field F E)
 
 instance subgroup_action : faithful_mul_semiring_action H E := {
-  smul := λ h x, (↑h : (E ≃ₐ[F] E)) • x,
+  smul := λ h x, h x,
   smul_zero := λ _, alg_equiv.map_zero _,
   smul_add := λ _, alg_equiv.map_add _,
   one_smul := λ _, rfl,
@@ -92,7 +63,7 @@ instance subgroup_action : faithful_mul_semiring_action H E := {
   eq_of_smul_eq_smul' := λ x y z, subtype.ext (alg_equiv.ext z),
 }
 
-def subgroup_fixed_field : intermediate_field F E := {
+def fixed_field : intermediate_field F E := {
   carrier := mul_action.fixed_points H E,
   zero_mem' := smul_zero,
   add_mem' := λ _ _ hx hy _, by rw [smul_add, hx, hy],
@@ -103,17 +74,37 @@ def subgroup_fixed_field : intermediate_field F E := {
   algebra_map_mem' := λ _ _, alg_equiv.commutes _ _,
 }
 
-lemma subgroup_fixed_field_findim_eq_card [finite_dimensional F E] :
-  finite_dimensional.findim (subgroup_fixed_field H) E = fintype.card H :=
-fixed_points.findim_eq_card H E
+def fixing_subgroup : subgroup (E ≃ₐ[F] E) := {
+  carrier := λ ϕ, ∀ x : K, ϕ x = x,
+  one_mem' := λ _, rfl,
+  mul_mem' := λ _ _ hx hy _, (congr_arg _ (hy _)).trans (hx _),
+  inv_mem' := λ _ hx _, (equiv.symm_apply_eq (alg_equiv.to_equiv _)).mpr (hx _).symm,
+}
 
-lemma lem2 (h : ∃ p : polynomial F, p.separable ∧ p.is_splitting_field F E) :
-  aut_fixed_field F E = ⊥ :=
+noncomputable def fixing_subgroup_equiv : fixing_subgroup K ≃ (E ≃ₐ[K] E) := {
+  to_fun := λ ϕ, alg_equiv.of_bijective (alg_hom.mk ϕ (alg_equiv.map_one ϕ) (alg_equiv.map_mul ϕ)
+    (alg_equiv.map_zero ϕ) (alg_equiv.map_add ϕ) (ϕ.mem)) (alg_equiv.bijective ϕ),
+  inv_fun := λ ϕ, ⟨alg_equiv.of_bijective (alg_hom.mk ϕ (alg_equiv.map_one ϕ) (alg_equiv.map_mul ϕ)
+    (alg_equiv.map_zero ϕ) (alg_equiv.map_add ϕ) (λ r, ϕ.commutes (algebra_map F K r)))
+      (alg_equiv.bijective ϕ), ϕ.commutes⟩,
+  left_inv := λ _, by {ext, refl},
+  right_inv := λ _, by {ext, refl},
+}
+
+theorem fixing_subgroup_of_fixed_field [finite_dimensional F E] :
+  fixing_subgroup (fixed_field H) = H :=
 begin
-  cases h with p hp,
-  haveI := hp.2,
-  haveI := polynomial.is_splitting_field.finite_dimensional E p,
-  have key := aut_fixed_field_findim_eq_card F E,
+  have H_le : H ≤ (fixing_subgroup (fixed_field H)) :=
+    λ ϕ ϕh x, (mul_action.mem_fixed_points E).mp (subtype.mem x) ⟨ϕ, ϕh⟩,
+  have key1 := fixing_subgroup_equiv (fixed_field H),
+  have key2 := fixed_points.to_alg_hom_equiv H E,
+  have key3 : (fixing_subgroup (fixed_field H)) ≃ H := sorry,
+  have key4 := (fintype.bijective_iff_injective_and_card (set.inclusion H_le)).mpr,
+  sorry,
 end
 
-end
+/-lemma findim_fixed_field_eq_card [finite_dimensional F E] :
+  finite_dimensional.findim (fixed_field H) E = fintype.card H :=
+fixed_points.findim_eq_card H E-/
+
+end galois_correspondence

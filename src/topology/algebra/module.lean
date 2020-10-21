@@ -219,11 +219,11 @@ protected lemma continuous (f : M →L[R] M₂) : continuous f := f.2
 theorem coe_injective : function.injective (coe : (M →L[R] M₂) → (M →ₗ[R] M₂)) :=
 by { intros f g H, cases f, cases g, congr' 1, exact H }
 
-theorem coe_fn_injective : function.injective (λ f : M →L[R] M₂, show M → M₂, from f) :=
+theorem injective_coe_fn : function.injective (λ f : M →L[R] M₂, show M → M₂, from f) :=
 linear_map.coe_injective.comp coe_injective
 
 @[ext] theorem ext {f g : M →L[R] M₂} (h : ∀ x, f x = g x) : f = g :=
-coe_fn_injective $ funext h
+injective_coe_fn $ funext h
 
 theorem ext_iff {f g : M →L[R] M₂} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, by rw h, by ext⟩
@@ -995,7 +995,7 @@ def units_equiv : units (M →L[R] M) ≃* (M ≃L[R] M) :=
   map_mul'  := λ x y, by {ext, refl} }
 
 @[simp] lemma units_equiv_apply (f : units (M →L[R] M)) (x : M) :
-  (units_equiv R M f) x = f x := rfl
+  units_equiv R M f x = f x := rfl
 
 end
 

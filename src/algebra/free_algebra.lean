@@ -173,6 +173,8 @@ instance : algebra R (free_algebra R X) :=
   commutes' := λ _, by { rintros ⟨⟩, exact quot.sound rel.central_scalar },
   smul_def' := λ _ _, rfl }
 
+instance {S : Type*} [comm_ring S] : ring (free_algebra S X) := algebra.semiring_to_ring S
+
 variables {X}
 
 /--

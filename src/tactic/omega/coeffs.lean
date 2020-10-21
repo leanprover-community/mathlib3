@@ -115,6 +115,7 @@ begin
   apply val_between_set, apply zero_le,
   apply lt_of_lt_of_le (lt_add_one _),
   simp only [length_set, zero_add, le_max_right],
+  apply_instance,
 end
 
 lemma val_between_neg {as : list int} {l : nat} :

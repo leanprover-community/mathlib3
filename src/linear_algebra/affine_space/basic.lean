@@ -228,13 +228,35 @@ include V
 instance : has_coe (affine_subspace k P) (set P) := ⟨carrier⟩
 instance : has_mem P (affine_subspace k P) := ⟨λ p s, p ∈ (s : set P)⟩
 
-variables {k P}
+variables {k P} (s : affine_subspace k P) {v v₁ v₂ : V} {p p₁ p₂ : P}
 
 /-- A point is in an affine subspace coerced to a set if and only if
 it is in that affine subspace. -/
 @[simp, norm_cast] lemma mem_coe (p : P) (s : affine_subspace k P) :
   p ∈ (s : set P) ↔ p ∈ s :=
 iff.rfl
+
+lemma vadd_mem_iff_mem_direction (h : p ∈ s) : v +ᵥ p ∈ s ↔ v ∈ s.direction :=
+s.vadd_mem_iff' p h v
+
+lemma vadd_mem (hv : v ∈ s.direction) (hp : p ∈ s) : v +ᵥ p ∈ s :=
+(s.vadd_mem_iff_mem_direction hp).2 hv
+
+lemma vadd_mem_iff_mem (hv : v ∈ s.direction) : v +ᵥ p ∈ s ↔ p ∈ s :=
+⟨λ h, by { rw [← zero_vadd V p, ← neg_add_self v, ← vadd_assoc],
+  exact s.vadd_mem (s.direction.neg_mem hv) h}, s.vadd_mem hv⟩
+
+lemma vsub_mem_direction_iff_left (h : p₂ ∈ s) : p₁ -ᵥ p₂ ∈ s.direction ↔ p₁ ∈ s :=
+by rw [← s.vadd_mem_iff_mem_direction h, vsub_vadd]
+
+lemma vsub_mem_direction_iff_right (h : p₁ ∈ s) : p₁ -ᵥ p₂ ∈ s.direction ↔ p₂ ∈ s :=
+by rw [← s.direction.neg_mem_iff, neg_vsub_eq_vsub_rev, s.vsub_mem_direction_iff_left h]
+
+lemma vsub_mem_direction (h₁ : p₁ ∈ s) (h₂ : p₂ ∈ s) : p₁ -ᵥ p₂ ∈ s.direction :=
+(s.vsub_mem_direction_iff_left h₂).2 h₁
+
+lemma vsub_set_subset_direction : (s : set P) -ᵥ (s : set P) ⊆ ↑s.direction :=
+_
 
 lemma direction_eq_span (s : affine_subspace k P) :
   s.direction = submodule.span k (set.image2 (-ᵥ) (s : set P) s) :=

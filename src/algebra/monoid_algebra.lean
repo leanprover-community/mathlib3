@@ -738,8 +738,7 @@ lemma lift_unique (F : add_monoid_algebra k G →ₐ[k] A) (f : monoid_algebra k
   F f = f.sum (λ a b, b • F (single a 1)) :=
 by conv_lhs { rw lift_unique' F, simp [lift_apply] }
 
-lemma alg_hom_ext_iff {A : Type u₃} [comm_semiring k] [add_monoid G]
-  [semiring A] [algebra k A] ⦃φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] A⦄ :
+lemma alg_hom_ext_iff {φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] A} :
   (∀ x, φ₁ (finsupp.single x 1) = φ₂ (finsupp.single x 1)) ↔ φ₁ = φ₂ :=
 ⟨λ h, alg_hom_ext h, by rintro rfl _; refl⟩
 

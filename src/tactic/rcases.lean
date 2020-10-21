@@ -654,7 +654,6 @@ with_desc "('?' expr (: n)?) | ((h :)? expr (with patt)?)" $ do
     pure $ rcases_args.hint p depth
   end
 
-
 /--
 `rintro_patt_parse` is like `rcases_patt_parse`, but is used for parsing top level
 `rintro` patterns, which allow sequences like `(x y : t)` in addition to simple `rcases` patterns.

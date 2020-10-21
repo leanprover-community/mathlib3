@@ -91,6 +91,19 @@ noncomputable def fixing_subgroup_equiv : fixing_subgroup K ≃ (E ≃ₐ[K] E) 
   right_inv := λ _, by {ext, refl},
 }
 
+lemma finite_dimensional.bijective {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
+  [finite_dimensional F E] (ϕ : E →ₐ[F] E) : function.bijective ϕ :=
+begin
+  have inj : function.injective ϕ.to_linear_map := ϕ.to_ring_hom.injective,
+  have rank_nullity := linear_map.findim_range_add_findim_ker ϕ.to_linear_map,
+  rw [linear_map.ker_eq_bot_of_injective inj, findim_bot, add_zero] at rank_nullity,
+  rw ← @findim_top F E _ _ _ at rank_nullity,
+  split,
+  { exact inj },
+  { exact linear_map.range_eq_top.mp (finite_dimensional.eq_of_le_of_findim_eq
+    (@le_top (submodule F E) _ ϕ.to_linear_map.range) rank_nullity) },
+end
+
 theorem fixing_subgroup_of_fixed_field [finite_dimensional F E] :
   fixing_subgroup (fixed_field H) = H :=
 begin
@@ -98,13 +111,33 @@ begin
     λ ϕ ϕh x, (mul_action.mem_fixed_points E).mp (subtype.mem x) ⟨ϕ, ϕh⟩,
   have key1 := fixing_subgroup_equiv (fixed_field H),
   have key2 := fixed_points.to_alg_hom_equiv H E,
-  have key3 : (fixing_subgroup (fixed_field H)) ≃ H := sorry,
-  have key4 := (fintype.bijective_iff_injective_and_card (set.inclusion H_le)).mpr,
+  have key3 : (E ≃ₐ[fixed_field H] E) ≃ (E →ₐ[mul_action.fixed_points H E] E) := {
+    to_fun := λ ϕ, alg_hom.mk ϕ ϕ.map_one ϕ.map_mul ϕ.map_zero ϕ.map_add ϕ.commutes,
+    inv_fun := λ ϕ, alg_equiv.of_bijective
+      (alg_hom.mk ϕ ϕ.map_one ϕ.map_mul ϕ.map_zero ϕ.map_add ϕ.commutes) begin
+        have inj : function.injective ϕ.to_linear_map := ϕ.to_ring_hom.injective,
+        have rank_nullity := linear_map.findim_range_add_findim_ker (ϕ.to_linear_map),
+        rw [linear_map.ker_eq_bot_of_injective inj, findim_bot, add_zero] at rank_nullity,
+        have key : finite_dimensional.findim (mul_action.fixed_points H E)
+          (ϕ.to_linear_map.range) =
+          finite_dimensional.findim (mul_action.fixed_points H E)
+          (⊤ : submodule (mul_action.fixed_points H E) E),
+          { rw rank_nullity,
+            library_search,},
+        have tada := finite_dimensional.eq_of_le_of_findim_eq,
+      sorry,
+    end,
+    left_inv := λ _, by {ext, refl},
+    right_inv := λ _, by {ext, refl},
+  },
+  have key4 : (fixing_subgroup (fixed_field H)) ≃ H := equiv.trans (equiv.trans key1 key3) key2.trans,
+  have key5 := (fintype.bijective_iff_injective_and_card (set.inclusion H_le)).mpr,
   sorry,
 end
 
 /-lemma findim_fixed_field_eq_card [finite_dimensional F E] :
   finite_dimensional.findim (fixed_field H) E = fintype.card H :=
 fixed_points.findim_eq_card H E-/
+
 
 end galois_correspondence

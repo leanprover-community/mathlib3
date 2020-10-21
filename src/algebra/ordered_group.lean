@@ -10,6 +10,7 @@ import algebra.order_functions
 import order.bounded_lattice
 
 set_option old_structure_cmd true
+local attribute [semireducible] with_top.has_le with_bot.has_le
 
 /-!
 # Ordered monoids and groups
@@ -321,8 +322,8 @@ begin
     ..with_zero.add_comm_monoid, .. },
   { intros a b c h,
     have h' := lt_iff_le_not_le.1 h,
-    rw lt_iff_le_not_le at ⊢,
-    refine ⟨λ b h₂, _, λ h₂, h'.2 $ this _ _ h₂ _⟩,
+    rw [lt_iff_le_not_le],
+    refine ⟨with_bot.le_def.mpr $ λ b h₂, _, λ h₂, h'.2 $ this _ _ h₂ _⟩,
     cases h₂, cases c with c,
     { cases h'.2 (this _ _ bot_le a) },
     { refine ⟨_, rfl, _⟩,
@@ -330,7 +331,7 @@ begin
       { exact with_bot.some_le_some.1 h'.1 },
       { exact le_of_lt (lt_of_add_lt_add_left $
           with_bot.some_lt_some.1 h), } } },
-  { intros a b h c ca h₂,
+  { intros a b h c, refine with_bot.le_def.mpr (λ ca h₂, _),
     cases b with b,
     { rw le_antisymm h bot_le at h₂,
       exact ⟨_, h₂, le_refl _⟩ },
@@ -411,17 +412,17 @@ begin
   { intros a b c h,
     have h' := h,
     rw lt_iff_le_not_le at h' ⊢,
-    refine ⟨λ c h₂, _, λ h₂, h'.2 $ this _ _ h₂ _⟩,
+    refine ⟨with_top.le_def.mpr $ λ c h₂, _, λ h₂, h'.2 $ this _ _ h₂ _⟩,
     cases h₂, cases a with a,
     { exact (not_le_of_lt h).elim le_top },
     cases b with b,
     { exact (not_le_of_lt h).elim le_top },
     { exact ⟨_, rfl, le_of_lt (lt_of_add_lt_add_left $
         with_top.some_lt_some.1 h)⟩ } },
-  { intros a b h c ca h₂,
-    cases c with c, {cases h₂},
+  { intros a b h c, refine with_top.le_def.mpr (λ ca h₂, _),
+    cases c with c, { cases h₂ },
     cases b with b; cases h₂,
-    cases a with a, {cases le_antisymm h le_top },
+    cases a with a, { cases le_antisymm h le_top },
     simp at h,
     exact ⟨_, rfl, add_le_add_left h _⟩, }
 end

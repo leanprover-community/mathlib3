@@ -434,6 +434,10 @@ by rw [← option.some.inj_eq a b]; refl
 instance has_le [has_le α] : has_le (with_bot α) :=
 { le          := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b }
 
+lemma le_def [has_le α] {o₁ o₂ : with_bot α} :
+  o₁ ≤ o₂ ↔ ∀ a (h : @has_mem.mem _ _ option.has_mem a o₁),
+    ∃ b (h : @has_mem.mem _ _ option.has_mem b o₂), a ≤ b := iff.rfl
+
 @[priority 10]
 instance has_lt [has_lt α] : has_lt (with_bot α) :=
 { lt := λ o₁ o₂ : option α, ∃ b ∈ o₂, ∀ a ∈ o₁, a < b }
@@ -638,6 +642,10 @@ instance has_lt [has_lt α] : has_lt (with_top α) :=
 @[priority 10]
 instance has_le [has_le α] : has_le (with_top α) :=
 { le          := λ o₁ o₂ : option α, ∀ a ∈ o₂, ∃ b ∈ o₁, b ≤ a }
+
+lemma le_def [has_le α] {o₁ o₂ : with_top α} :
+  o₁ ≤ o₂ ↔ ∀ a (h : @has_mem.mem _ _ option.has_mem a o₂),
+    ∃ b (h : @has_mem.mem _ _ option.has_mem b o₁), b ≤ a := iff.rfl
 
 @[simp] theorem some_lt_some [has_lt α] {a b : α} :
   @has_lt.lt (with_top α) _ (some a) (some b) ↔ a < b :=

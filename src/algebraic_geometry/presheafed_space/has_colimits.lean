@@ -233,19 +233,18 @@ def colimit_cocone_is_colimit (F : J ⥤ PresheafedSpace C) : is_colimit (colimi
     c :=
     { app := λ U, desc_c_app F s U,
       naturality' := λ U V i, desc_c_naturality F s i }, },
-  fac' :=
+  fac' := -- tidy can do this but it takes too long
   begin
     intros s j,
-    dsimp at *,
-    tactic.ext1 [] {new_goals := tactic.new_goals.all},
-    { dsimp, simp only [map_cocone_ι, colimit.ι_desc, forget_map], },
+    dsimp,
+    fapply PresheafedSpace.ext,
+    { simp, },
     { ext,
-      dsimp,
-      simp only [eq_to_hom_op, eq_to_hom_map, assoc, pushforward.comp_inv_app],
       dsimp [desc_c_app],
-      simp only [limit.lift_π_assoc, eq_to_hom_trans, eq_to_hom_map, assoc, eq_to_hom_refl, comp_id,
-                 limit_obj_iso_limit_comp_evaluation_inv_π_app_assoc, id_comp],
-      refl },
+      simp only [eq_to_hom_op, limit.lift_π_assoc, eq_to_hom_map, assoc, pushforward.comp_inv_app,
+                 limit_obj_iso_limit_comp_evaluation_inv_π_app_assoc],
+      dsimp,
+      simp },
   end,
   uniq' := λ s m w,
   begin

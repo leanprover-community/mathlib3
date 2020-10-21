@@ -273,7 +273,7 @@ lemma ne_zero_of_monic (h : monic p) : p ≠ 0 :=
   that comes via `f` from a polynomial `Q : polynomial R`, then it comes from
   a polynomial of the same degree. -/
 lemma lifts_of_same_degree {R : Type u} {S : Type v} [comm_semiring R]
-  [comm_semiring S] [nontrivial R] [nontrivial S] (f : R →+* S) (P : polynomial S) :
+  [comm_semiring S] [nontrivial R] (f : R →+* S) (P : polynomial S) :
   (∃ (Q : polynomial R), map f Q = P) → (∃ (Q₁ : polynomial R),
   map f Q₁ = P ∧ Q₁.degree = P.degree) :=
 begin

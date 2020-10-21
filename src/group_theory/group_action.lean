@@ -204,6 +204,8 @@ def comp_hom [monoid γ] (g : γ →* α) :
   one_smul := by simp [g.map_one, mul_action.one_smul],
   mul_smul := by simp [g.map_mul, mul_action.mul_smul] }
 
+instance submonoid_action (γ : submonoid α) : mul_action γ β := comp_hom β γ.subtype
+
 variables (α) {β}
 
 /-- The stabilizer of a point `b` as a submonoid of `α`. -/

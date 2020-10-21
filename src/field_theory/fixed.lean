@@ -232,6 +232,12 @@ noncomputable instance alg_hom.fintype (K : Type u) (V : Type v)
 classical.choice $ cardinal.lt_omega_iff_fintype.1 $
 lt_of_le_of_lt (cardinal_mk_alg_hom K V) (cardinal.nat_lt_omega _)
 
+noncomputable instance alg_equiv.fintype (K : Type u) (V : Type v)
+  [field K] [field V] [algebra K V] [finite_dimensional K V] :
+  fintype (V ≃ₐ[K] V) :=
+fintype.of_injective (@alg_equiv.to_alg_hom K V V _ _ _ _ _)
+  (λ _ _ h, alg_equiv.ext (alg_hom.ext_iff.mp h))
+
 lemma findim_alg_hom (K : Type u) (V : Type v)
   [field K] [field V] [algebra K V] [finite_dimensional K V] :
   fintype.card (V →ₐ[K] V) ≤ findim V (V →ₗ[K] V) :=

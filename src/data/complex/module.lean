@@ -53,10 +53,10 @@ end
 
 instance : finite_dimensional ℝ ℂ := of_fintype_basis is_basis_one_I
 
-lemma findim_real_complex : finite_dimensional.findim ℝ ℂ = 2 :=
+@[simp] lemma findim_real_complex : finite_dimensional.findim ℝ ℂ = 2 :=
 by rw [findim_eq_card_basis is_basis_one_I, fintype.card_fin]
 
-lemma dim_real_complex : vector_space.dim ℝ ℂ = 2 :=
+@[simp] lemma dim_real_complex : vector_space.dim ℝ ℂ = 2 :=
 by simp [← findim_eq_dim, findim_real_complex]
 
 lemma {u} dim_real_complex' : cardinal.lift.{0 u} (vector_space.dim ℝ ℂ) = 2 :=

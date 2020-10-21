@@ -159,10 +159,7 @@ theorem fixed_field_of_fixing_subgroup [finite_dimensional F E] [h : is_galois F
 begin
   have le_K : K ≤ fixed_field (fixing_subgroup K) :=
     λ x hx ϕ, subtype.mem ϕ (⟨x, hx⟩ : K),
-  haveI : finite_dimensional K E := sorry,/- These three sorries should be proved with general fact
-                                               about intermediate_fields -/
   haveI : finite_dimensional K (fixed_field (fixing_subgroup K)) := sorry,
-  haveI : finite_dimensional (fixed_field (fixing_subgroup K)) E := sorry,
   suffices : findim K E = findim (fixed_field (fixing_subgroup K)) E,
   { rw ← findim_mul_findim K (fixed_field (fixing_subgroup K)) E at this,
     have key := (nat.mul_left_eq_self_iff findim_pos).mp this,

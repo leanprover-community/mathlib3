@@ -5,7 +5,7 @@ Authors: Anne Baanen
 -/
 
 import field_theory.subfield
-import ring_theory.algebra_tower
+import field_theory.tower
 
 /-!
 # Intermediate fields
@@ -285,5 +285,17 @@ instance has_lift2 {F : intermediate_field K L} :
   x ∈ (↑E : intermediate_field K L) ↔ x ∈ E := iff.rfl
 
 end tower
+
+section finite_dimensional
+
+instance finite_dimensional_left [finite_dimensional K L] (F : intermediate_field K L) :
+  finite_dimensional K F :=
+  finite_dimensional.finite_dimensional_submodule F.to_subalgebra.to_submodule
+
+instance finite_dimensional_right [finite_dimensional K L] (F : intermediate_field K L) :
+  finite_dimensional F L :=
+finite_dimensional.right K F L
+
+end finite_dimensional
 
 end intermediate_field

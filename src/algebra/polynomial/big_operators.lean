@@ -91,21 +91,24 @@ begin
 end
 
 /--If we have a finite set of polynomial, with coefficients in a semiring `S`, and each of them comes from a polynomial with coefficients in `R`, then the same is true for their product. -/
-lemma lifts_of_prod_lifts {R : Type u} {S : Type v} [comm_semiring R] [comm_semiring S] (f : R →+* S) {ι : Type u_1} (g : ι → polynomial S) (s : finset ι) : (∀ x ∈ s, ∃ P : (polynomial R), map f P = g x) →  ∃ Q : (polynomial R), map f Q = ∏ x in s, g x :=
+lemma lifts_of_prod_lifts {R : Type u} {S : Type w} [comm_semiring R] [comm_semiring S] (f : R →+* S)
+  {ι : Type u} (g : ι → polynomial S) (s : finset ι) : (∀ x ∈ s, ∃ P :
+    (polynomial R), map f P = g x) →  ∃ Q : (polynomial R), map f Q = ∏ x in s, g x :=
 begin
-  apply finset.induction_on s,
+  classical,
+  induction s using finset.induction with a s ha hs,
   { intros x,
     use (1 : polynomial R),
     simp only [map_one, finset.prod_empty]},
-  intros a t ha h₁ h₂,
+  intro h,
   simp only [ha, finset.prod_insert, not_false_iff],
-  have hprod : ∃ (Q : polynomial R), map f Q = t.prod g,
-  { apply h₁,
+  have hprod : ∃ (Q : polynomial R), map f Q = s.prod g,
+  { apply hs,
     intros y hy,
-    apply h₂ y,
+    apply h y,
     simp only [hy, or_true, finset.mem_insert] },
   have ha : ∃ (Q : polynomial R), map f Q = g a,
-  { apply h₂ a,
+  { apply h a,
     simp only [true_or, eq_self_iff_true, finset.mem_insert] },
   obtain ⟨Qprod, hQprod ⟩ := hprod,
   obtain ⟨Qa, hQa ⟩ := ha,

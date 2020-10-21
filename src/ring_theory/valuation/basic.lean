@@ -45,7 +45,7 @@ on R / J = `ideal.quotient J` is `on_quot v h`.
 
 -/
 
-open_locale classical
+open_locale classical big_operators
 noncomputable theory
 
 local attribute [instance, priority 0] classical.DLO
@@ -94,6 +94,34 @@ variables {R} {Γ₀} (v : valuation R Γ₀) {x y z : R}
 @[simp] lemma map_one  : v 1 = 1 := v.map_one'
 @[simp] lemma map_mul  : ∀ x y, v (x * y) = v x * v y := v.map_mul'
 @[simp] lemma map_add  : ∀ x y, v (x + y) ≤ max (v x) (v y) := v.map_add'
+
+lemma map_add_le {x y g} (hx : v x ≤ g) (hy : v y ≤ g) : v (x + y) ≤ g :=
+le_trans (v.map_add x y) $ max_le hx hy
+
+lemma map_add_lt {x y g} (hx : v x < g) (hy : v y < g) : v (x + y) < g :=
+lt_of_le_of_lt (v.map_add x y) $ max_lt hx hy
+
+lemma map_sum_le {ι : Type*} {s : finset ι} {f : ι → R} {g : Γ₀} (hf : ∀ i ∈ s, v (f i) ≤ g) :
+  v (∑ i in s, f i) ≤ g :=
+begin
+  refine finset.induction_on s
+    (λ _, trans_rel_right (≤) v.map_zero zero_le') (λ a s has ih hf, _) hf,
+  rw finset.forall_mem_insert at hf, rw finset.sum_insert has,
+  exact v.map_add_le hf.1 (ih hf.2)
+end
+
+lemma map_sum_lt {ι : Type*} {s : finset ι} {f : ι → R} {g : Γ₀} (hg : g ≠ 0)
+  (hf : ∀ i ∈ s, v (f i) < g) : v (∑ i in s, f i) < g :=
+begin
+  refine finset.induction_on s
+    (λ _, trans_rel_right (<) v.map_zero (zero_lt_iff.2 hg)) (λ a s has ih hf, _) hf,
+  rw finset.forall_mem_insert at hf, rw finset.sum_insert has,
+  exact v.map_add_lt hf.1 (ih hf.2)
+end
+
+lemma map_sum_lt' {ι : Type*} {s : finset ι} {f : ι → R} {g : Γ₀} (hg : 0 < g)
+  (hf : ∀ i ∈ s, v (f i) < g) : v (∑ i in s, f i) < g :=
+v.map_sum_lt (ne_of_gt hg) hf
 
 @[simp] lemma map_pow  : ∀ x (n:ℕ), v (x^n) = (v x)^n :=
 v.to_monoid_hom.map_pow

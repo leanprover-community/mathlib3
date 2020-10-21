@@ -899,7 +899,7 @@ lemma aeval_eq_eval₂_hom (p : mv_polynomial σ R) :
 
 @[simp] lemma aeval_C (r : R) : aeval f (C r) = algebra_map R S₁ r := eval₂_C _ _ _
 
-theorem eval_unique (φ : mv_polynomial σ R →ₐ[R] S₁) :
+theorem aeval_unique (φ : mv_polynomial σ R →ₐ[R] S₁) :
   φ = aeval (φ ∘ X) :=
 by { ext i, simp }
 

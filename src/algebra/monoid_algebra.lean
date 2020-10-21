@@ -105,24 +105,28 @@ instance : semiring (monoid_algebra k G) :=
 
 variables {R : Type*} [semiring R]
 
-/-- A non-commutative version of `monoid_algebra.lift`: given a ring homomorphism from the
-coefficients ring and a multiplicative . -/
-def lift₂ (f : k →+ R) (g : G →* R) : monoid_algebra k G →+ R :=
+/-- A non-commutative version of `monoid_algebra.lift`: given a additive homomorphism `f : k →+ R`
+and a multiplicative monoid homomorphism `g : G →* R`, returns the additive homomorphism from
+`monoid_algebra k G` such that `lift_nc f g (single a b) = f b * g a`. If `f` is a ring homomorphism
+and the range of either `f` or `g` is in center of `R`, then the result is a ring homomorphism.  If
+`R` is a `k`-algebra and `f = algebra_map k R`, then the result is an algebra homomorphism called
+`monoid_algebra.lift`. -/
+def lift_nc (f : k →+ R) (g : G →* R) : monoid_algebra k G →+ R :=
 lift_add_hom (λ x : G, (add_monoid_hom.mul_right (g x)).comp f)
 
-@[simp] lemma lift₂_single (f : k →+ R) (g : G →* R) (a : G) (b : k) :
-  lift₂ f g (single a b) = f b * g a :=
+@[simp] lemma lift_nc_single (f : k →+ R) (g : G →* R) (a : G) (b : k) :
+  lift_nc f g (single a b) = f b * g a :=
 lift_add_hom_apply_single _ _ _
 
-@[simp] lemma lift₂_one (f : k →+* R) (g : G →* R) : lift₂ (f : k →+ R) g 1 = 1 :=
+@[simp] lemma lift_nc_one (f : k →+* R) (g : G →* R) : lift_nc (f : k →+ R) g 1 = 1 :=
 by simp [one_def]
 
-lemma lift₂_mul_noncomm (f : k →+* R) (g : G →* R)
+lemma lift_nc_mul_noncomm (f : k →+* R) (g : G →* R)
   (a b : monoid_algebra k G) (h_comm : ∀ {x y}, y ∈ a.support → commute (f (b x)) (g y)) :
-  lift₂ (f : k →+ R) g (a * b) = lift₂ (f : k →+ R) g a * lift₂ (f : k →+ R) g b :=
+  lift_nc (f : k →+ R) g (a * b) = lift_nc (f : k →+ R) g a * lift_nc (f : k →+ R) g b :=
 begin
   conv_rhs { rw [← sum_single a, ← sum_single b] },
-  simp_rw [mul_def, (lift₂ _ g).map_finsupp_sum, lift₂_single, finsupp.sum_mul, finsupp.mul_sum],
+  simp_rw [mul_def, (lift_nc _ g).map_finsupp_sum, lift_nc_single, finsupp.sum_mul, finsupp.mul_sum],
   refine finset.sum_congr rfl (λ y hy, finset.sum_congr rfl (λ x hx, _)),
   simp [mul_assoc, (h_comm hy).left_comm]
 end
@@ -323,11 +327,11 @@ alg_hom.to_linear_map_inj $ finsupp.lhom_ext h
 def lift : (G →* A) ≃ (monoid_algebra k G →ₐ[k] A) :=
 { inv_fun := λ f, (f : monoid_algebra k G →* A).comp (of k G),
   to_fun := λ F, {
-    to_fun := lift₂ ((algebra_map k A : k →+* A) : k →+ A) F,
-    map_one' := lift₂_one _ _,
-    map_mul' := λ f g, lift₂_mul_noncomm _ _ _ _ $ λ _ _ _, algebra.commutes _ _,
+    to_fun := lift_nc ((algebra_map k A : k →+* A) : k →+ A) F,
+    map_one' := lift_nc_one _ _,
+    map_mul' := λ f g, lift_nc_mul_noncomm _ _ _ _ $ λ _ _ _, algebra.commutes _ _,
     commutes' := λ r, by simp,
-    .. lift₂ ((algebra_map k A : k →+* A) : k →+ A) F },
+    .. lift_nc ((algebra_map k A : k →+* A) : k →+ A) F },
   left_inv := λ f, by { ext, simp  },
   right_inv := λ F, by { ext, simp } }
 
@@ -341,7 +345,7 @@ lemma lift_apply (F : G →* A) (f : monoid_algebra k G) :
 by simp only [lift_apply', algebra.smul_def]
 
 lemma lift_def (F : G →* A) :
-  ⇑(lift k G A F) = lift₂ ((algebra_map k A : k →+* A) : k →+ A) F :=
+  ⇑(lift k G A F) = lift_nc ((algebra_map k A : k →+* A) : k →+ A) F :=
 rfl
 
 @[simp] lemma lift_symm_apply (F : monoid_algebra k G →ₐ[k] A) (x : G) :
@@ -353,7 +357,7 @@ by rw [of_apply, ← lift_symm_apply, equiv.symm_apply_apply]
 
 @[simp] lemma lift_single (F : G →* A) (a b) :
   lift k G A F (single a b) = b • F a :=
-by rw [lift_def, lift₂_single, algebra.smul_def, ring_hom.coe_add_monoid_hom]
+by rw [lift_def, lift_nc_single, algebra.smul_def, ring_hom.coe_add_monoid_hom]
 
 lemma lift_unique' (F : monoid_algebra k G →ₐ[k] A) :
   F = lift k G A ((F : monoid_algebra k G →* A).comp (of k G)) :=
@@ -529,22 +533,26 @@ instance : semiring (add_monoid_algebra k G) :=
 
 variables {R : Type*} [semiring R]
 
-/-- A non-commutative version of `monoid_algebra.lift`: given a ring homomorphism from the
-coefficients ring and a multiplicative . -/
-def lift₂ (f : k →+ R) (g : multiplicative G →* R) : add_monoid_algebra k G →+ R :=
+/-- A non-commutative version of `add_monoid_algebra.lift`: given a additive homomorphism `f : k →+
+R` and a multiplicative monoid homomorphism `g : multiplicative G →* R`, returns the additive
+homomorphism from `add_monoid_algebra k G` such that `lift_nc f g (single a b) = f b * g a`. If `f`
+is a ring homomorphism and the range of either `f` or `g` is in center of `R`, then the result is a
+ring homomorphism.  If `R` is a `k`-algebra and `f = algebra_map k R`, then the result is an algebra
+homomorphism called `add_monoid_algebra.lift`. -/
+def lift_nc (f : k →+ R) (g : multiplicative G →* R) : add_monoid_algebra k G →+ R :=
 lift_add_hom (λ x : G, (add_monoid_hom.mul_right (g $ multiplicative.of_add x)).comp f)
 
-@[simp] lemma lift₂_single (f : k →+ R) (g : multiplicative G →* R) (a : G) (b : k) :
-  lift₂ f g (single a b) = f b * g (multiplicative.of_add a) :=
+@[simp] lemma lift_nc_single (f : k →+ R) (g : multiplicative G →* R) (a : G) (b : k) :
+  lift_nc f g (single a b) = f b * g (multiplicative.of_add a) :=
 lift_add_hom_apply_single _ _ _
 
-@[simp] lemma lift₂_one (f : k →+* R) (g : multiplicative G →* R) : lift₂ (f : k →+ R) g 1 = 1 :=
-@monoid_algebra.lift₂_one k (multiplicative G) _ _ _ _ f g
+@[simp] lemma lift_nc_one (f : k →+* R) (g : multiplicative G →* R) : lift_nc (f : k →+ R) g 1 = 1 :=
+@monoid_algebra.lift_nc_one k (multiplicative G) _ _ _ _ f g
 
-lemma lift₂_mul_noncomm (f : k →+* R) (g : multiplicative G →* R) (a b : add_monoid_algebra k G)
+lemma lift_nc_mul_noncomm (f : k →+* R) (g : multiplicative G →* R) (a b : add_monoid_algebra k G)
   (h_comm : ∀ {x y}, y ∈ a.support → commute (f (b x)) (g $ multiplicative.of_add y)) :
-  lift₂ (f : k →+ R) g (a * b) = lift₂ (f : k →+ R) g a * lift₂ (f : k →+ R) g b :=
-@monoid_algebra.lift₂_mul_noncomm k (multiplicative G) _ _ _ _ f g a b @h_comm
+  lift_nc (f : k →+ R) g (a * b) = lift_nc (f : k →+ R) g a * lift_nc (f : k →+ R) g b :=
+@monoid_algebra.lift_nc_mul_noncomm k (multiplicative G) _ _ _ _ f g a b @h_comm
 
 end semiring
 
@@ -692,7 +700,7 @@ variables (k G A)
 def lift : (multiplicative G →* A) ≃ (add_monoid_algebra k G →ₐ[k] A) :=
 { inv_fun := λ f, (f : add_monoid_algebra k G →* A).comp (of k G),
   to_fun := λ F, {
-    to_fun := lift₂ ((algebra_map k A : k →+* A) : k →+ A) F,
+    to_fun := lift_nc ((algebra_map k A : k →+* A) : k →+ A) F,
     .. @monoid_algebra.lift k (multiplicative G) _ _ A _ _ F},
   .. @monoid_algebra.lift k (multiplicative G) _ _ A _ _ }
 
@@ -706,7 +714,7 @@ lemma lift_apply (F : multiplicative G →* A) (f : monoid_algebra k G) :
 by simp only [lift_apply', algebra.smul_def]
 
 lemma lift_def (F : multiplicative G →* A) :
-  ⇑(lift k G A F) = lift₂ ((algebra_map k A : k →+* A) : k →+ A) F :=
+  ⇑(lift k G A F) = lift_nc ((algebra_map k A : k →+* A) : k →+ A) F :=
 rfl
 
 @[simp] lemma lift_symm_apply (F : add_monoid_algebra k G →ₐ[k] A) (x : multiplicative G) :
@@ -718,7 +726,7 @@ by rw [of_apply, ← lift_symm_apply, equiv.symm_apply_apply]
 
 @[simp] lemma lift_single (F : multiplicative G →* A) (a b) :
   lift k G A F (single a b) = b • F (multiplicative.of_add a) :=
-by rw [lift_def, lift₂_single, algebra.smul_def, ring_hom.coe_add_monoid_hom]
+by rw [lift_def, lift_nc_single, algebra.smul_def, ring_hom.coe_add_monoid_hom]
 
 lemma lift_unique' (F : add_monoid_algebra k G →ₐ[k] A) :
   F = lift k G A ((F : add_monoid_algebra k G →* A).comp (of k G)) :=

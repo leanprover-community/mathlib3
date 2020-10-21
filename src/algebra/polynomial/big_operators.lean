@@ -90,7 +90,8 @@ begin
   rw prod_eq_one, intros, apply h, assumption,
 end
 
-/--If we have a finite set of polynomial, with coefficients in a semiring `S`, and each of them comes from a polynomial with coefficients in `R`,
+/--If we have a finite set of polynomial, with coefficients in a semiring `S`,
+    and each of them comes from a polynomial with coefficients in `R`,
     then the same is true for their product. -/
 lemma lifts_of_prod_lifts {R : Type u} {S : Type w} [comm_semiring R]
   [comm_semiring S] (f : R →+* S)

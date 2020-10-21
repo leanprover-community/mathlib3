@@ -185,26 +185,37 @@ end
 
 variables {M : ideal R} [is_maximal M]
 
-theorem is_integral_of_noetherian' (B : Type*) [comm_ring B] [algebra R B] (A : subalgebra R B) (H : is_noetherian R A) (x : B) :
-  (x ∈ A) → is_integral R x :=
-  begin
-sorry,
-  end
 
-lemma if_inv_then_int {I : ideal R} (h : is_dedekind_domain R) (x : f.codomain) (h_I : I ≠ 0) (h_prod : ↑I * (1 / ↑I : fractional_ideal f) = ↑I) :
+lemma if_inv_then_int {I : ideal R} (hR : is_dedekind_domain R) (x : f.codomain) (h_nzI : I ≠ 0)
+(h_prod : ↑I * (1 / ↑I : fractional_ideal f) = ↑I) :
 x ∈ (1/↑I : fractional_ideal f).val → (f.to_map).is_integral_elem x :=
 begin
+have h_y : ∃ (y : I), y ≠ 0, sorry, cases h_y with y h_nzy,
 let h_RalgK := (ring_hom.to_algebra f.to_map),
 let φ := @aeval R K _ _ h_RalgK x,
 let A := @alg_hom.range R (polynomial R) f.codomain _ _ _  _ h_RalgK φ,
 have h_xA :  x ∈ A,--may be it is better to have hxn : ∀ (n : ℕ ), x^n ∈ A, (which is not much harder to prove)
   suffices hp : ∃ (p : polynomial R), φ p = x, simpa,
   use X, apply aeval_X,--if done for x^n rather than x, use aeval_X_pow rather than aeval_X
-have h_fracA : is_fractional f A, sorry,
--- let IA := fractional_ideal f ↑ A,-- : (fractional_ideal f R),-- := (↥ A , h_fracA),
-have h_A : is_noetherian R A, apply fractional_ideal.fg_of_noetherian h.2 ↥A h_fracA,
+have h_fracA : is_fractional f A,
+  use y, split, sorry, --apply h_nzy,
+  {suffices h_xintn : ∀ (n : ℕ), f.is_integer (f.to_map y * x^n ),
+  have h_pol : ∀ ( p : polynomial R), f.is_integer (f.to_map y * eval₂ f.to_map x p), sorry,
+    -- {intro p,
+    --  apply polynomial.induction_on' p, intros q₁ q₂ , rw eval₂_add, apply localization_map.is_integer_add,
+    --  intros n a, rw monomial_eq_smul_X, rw eval₂_smul, apply localization_map.is_integer_smul,
+    --   rw eval₂_X_pow, specialize h_xintn n, exact h_xintn,
+    -- },
+  intros b hb,
+  have h_polb : ∃ (p : polynomial R), eval₂ f.to_map x p = b, sorry,
+  cases h_polb with p hp, rw ← hp,
+  specialize h_pol p, exact h_pol,
+  sorry,
+  },--end of the proof of h_fracA
+let IA : fractional_ideal f := ⟨A, h_fracA⟩,
+have h_noethA : is_noetherian R A, apply fractional_ideal.fg_of_noetherian hR.2 IA,
 obtain ⟨ _ , h_int_x ⟩ : is_integral R x,
-apply @is_integral_of_noetherian' R _ K _ h_RalgK A h_A x h_xA,
+apply @is_integral_of_noetherian' R _ K _ h_RalgK A h_noethA x h_xA,
 cases h_int_x with px zero_px, intro h_xI, use w, split,
 exact px, exact zero_px,
 end

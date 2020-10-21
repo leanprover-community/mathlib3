@@ -83,7 +83,6 @@ def is_fractional (I : submodule R f.codomain) :=
 -/
 def fractional_ideal :=
 {I : submodule R f.codomain // is_fractional f I}
-#check fractional_ideal
 
 end defs
 
@@ -598,8 +597,7 @@ end
 ⟨imp_of_not_imp_not _ _ (map_ne_zero _),
  λ hI, hI.symm ▸ map_zero h⟩
 
-lemma fg_of_noetherian (hR : is_noetherian_ring R) ( I : submodule R f.codomain) :
-(is_fractional f I ) → (is_noetherian R I) :=
+lemma fg_of_noetherian (hR : is_noetherian_ring R) (I : fractional_ideal f ) : (is_noetherian R I) :=
 begin
   sorry,
 end

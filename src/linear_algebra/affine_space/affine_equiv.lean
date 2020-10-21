@@ -18,7 +18,7 @@ We define the following equivalences:
 
 * `e.symm`: the inverse map of an `affine_equiv` as an `affine_equiv`;
 
-* `e.trans e': composition of two `affine_equiv`s; note that the order follows `mathlib`'s
+* `e.trans e'`: composition of two `affine_equiv`s; note that the order follows `mathlib`'s
   `category_theory` convention (apply `e`, then `e'`), not the convention used in function
   composition and compositions of bundled morphisms.
 
@@ -44,10 +44,11 @@ structure affine_equiv (k P₁ P₂ : Type*) {V₁ V₂ : Type*} [ring k]
 notation P₁ ` ≃ᵃ[`:25 k:25 `] `:0 P₂:0 := affine_equiv k P₁ P₂
 
 instance (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Type*)
-    [ring k]
-    [add_comm_group V1] [module k V1] [affine_space V1 P1]
-    [add_comm_group V2] [module k V2] [affine_space V2 P2]:
-    has_coe_to_fun (P1 ≃ᵃ[k] P2) := ⟨_, λ e, e.to_fun⟩
+  [ring k]
+  [add_comm_group V1] [module k V1] [affine_space V1 P1]
+  [add_comm_group V2] [module k V2] [affine_space V2 P2] :
+  has_coe_to_fun (P1 ≃ᵃ[k] P2) :=
+⟨_, λ e, e.to_fun⟩
 
 variables {k V₁ V₂ V₃ V₄ P₁ P₂ P₃ P₄ : Type*} [ring k]
   [add_comm_group V₁] [semimodule k V₁] [add_torsor V₁ P₁]

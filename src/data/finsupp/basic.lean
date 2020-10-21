@@ -943,11 +943,6 @@ lemma prod_sum_index
   (f.sum g).prod h = f.prod (λa b, (g a b).prod h) :=
 (prod_finset_sum_index h_zero h_add).symm
 
-@[simp] lemma sum_sum_index' [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
-  {f : α →₀ M} {g : α → M → β →₀ N} (h : β → N →+ P) :
-  (f.sum g).sum (λ x, h x) = f.sum (λ a b, (g a b).sum (λ x, h x)) :=
-sum_sum_index (λ a, (h a).map_zero) (λ a, (h a).map_add)
-
 lemma multiset_sum_sum_index
   [add_comm_monoid M] [add_comm_monoid N]
   (f : multiset (α →₀ M)) (h : α → M → N)

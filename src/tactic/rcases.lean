@@ -654,11 +654,30 @@ with_desc "('?' expr (: n)?) | ((h :)? expr (with patt)?)" $ do
     pure $ rcases_args.hint p depth
   end
 
+meta mutual def rintro_patt_parse, rintro_patt_parse_list
+with rintro_patt_parse : bool → parser (listΠ rcases_patt)
+| tt := with_desc "patt_hi" $
+  brackets "(" ")" (rintro_patt_parse ff) <|>
+  (do p ← rcases_patt_parse tt, pure [p])
+| ff := with_desc "patt" $ do
+  pats ← rintro_patt_parse_list,
+  (do tk ":", e ← texpr, pure (pats.map (λ p, rcases_patt.typed p e))) <|>
+  pure pats
+
+with rintro_patt_parse_list : parser (listΠ rcases_patt)
+| x := (with_desc "patt_med" $ do
+  ll ← (rintro_patt_parse tt)*,
+  match ll.join with
+  | [] := failed
+  | [pat] := do l ← rcases_patt_parse_list_rest pat, pure [rcases_patt.alts' l]
+  | pats := pure pats
+  end) x
+
 /-- Syntax for a `rintro` pattern: `('?' (: n)?) | patt*`. -/
 meta def rintro_parse : parser (listΠ rcases_patt ⊕ nat) :=
 with_desc "('?' (: n)?) | patt*" $
 (tk "?" >> sum.inr <$> rcases_parse_depth) <|>
-sum.inl <$> (rcases_patt_parse tt)*
+(sum.inl ∘ list.join) <$> (rintro_patt_parse tt)*
 
 namespace interactive
 open interactive interactive.types expr
@@ -735,6 +754,9 @@ allow for destructuring patterns while introducing variables. See `rcases` for
 a description of supported patterns. For example, `rintro (a | ⟨b, c⟩) ⟨d, e⟩`
 will introduce two variables, and then do case splits on both of them producing
 two subgoals, one with variables `a d e` and the other with `b c d e`.
+
+`rintro`, unlike `rcases`, also supports the form `(x y : ty)` for introducing
+and type-ascripting multiple variables at once, similar to binders.
 
 `rintro?` will introduce and case split on variables in the same way as
 `rintro`, but will also print the `rintro` invocation that would have the same

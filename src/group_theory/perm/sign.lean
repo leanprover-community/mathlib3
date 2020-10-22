@@ -7,6 +7,7 @@ import data.fintype.basic
 import data.finset.sort
 import algebra.group.conj
 import algebra.big_operators.basic
+import tactic.linarith
 
 universes u v
 open equiv function fintype finset
@@ -785,5 +786,193 @@ end
 end
 
 end sign
+
+/--
+A permutation that swaps `i` with `i+1`.
+-/
+def adj_swap [add_monoid α] [has_one α] (i : α) : perm α := equiv.swap i (i + 1)
+
+/-- The set of adjacent swaps needed to perform a move -/
+def move_components (i j : ℕ) : list (perm ℕ) :=
+((list.range' j (i - j) ++ (list.range' i (j - i)).reverse).map adj_swap)
+
+/--
+A permutation that moves i to j, shifting other elements back.
+
+This could apply to ℤ and `fin n`, but is hard to generalize right now until we generalize
+`list.range'`.
+-/
+def move (i j : ℕ) : perm ℕ :=
+(move_components i j).prod
+
+/-- A move can be implemented as a product of adjacent swaps -/
+lemma move_eq_prod_swap_adj {i j : ℕ} :
+  move i j = ((list.range' j (i - j) ++ (list.range' i (j - i)).reverse).map adj_swap).prod :=
+rfl -- currently by definition, but may not be in future
+
+@[simp]
+lemma move_self_eq_one (i : ℕ) : move i i = 1 :=
+by simp [move_components, move]
+
+lemma move_anticomm (i j : ℕ) : move i j = (move j i)⁻¹ :=
+begin
+  have : ((λ (x : perm ℕ), x⁻¹) ∘ adj_swap) = adj_swap := by {ext, simp [adj_swap]},
+  simp [move_components, move, list.prod_inv_reverse, this],
+end
+
+@[simp]
+lemma move_succ_eq_swap (i : ℕ) : move i (i + 1) = equiv.swap i (i + 1) :=
+begin
+  have : i - (i + 1) = 0 := nat.sub_self_add i 1,
+  simp [move_components, move, adj_swap, this],
+end
+
+@[simp]
+lemma move_succ_eq_swap' (i : ℕ) : move (i + 1) i = equiv.swap (i + 1) i :=
+begin
+  have : i - (i + 1) = 0 := nat.sub_self_add i 1,
+  simp [move_components, move, adj_swap, this, swap_comm],
+end
+
+local attribute [simp] inv_involutive
+
+lemma prod_reverse (α : Type*) [group α] (l : list α) :
+  l.reverse.prod = (l.map (λ x, x⁻¹)).prod⁻¹ :=
+by simp [list.prod_inv_reverse]
+
+@[simp]
+lemma move_mul_move (i j k : ℕ) :
+  move j k * move i j = move i k:=
+begin
+  have : ((λ (x : perm ℕ), x⁻¹) ∘ adj_swap) = adj_swap := by {ext, simp [adj_swap]},
+  simp [move_components, move, prod_reverse, this],
+
+  -- deal with the nat subtractions by introducing as many ≤s as possible
+  by_cases hij : i ≤ j;
+  by_cases hjk : j ≤ k;
+  by_cases hik : i ≤ k;
+  try { exfalso, linarith };
+  try { replace hjk := le_of_not_le hjk };
+  try { replace hij := le_of_not_le hij };
+  try { replace hik := le_of_not_le hik };
+  simp [nat.sub_eq_zero_of_le hij, nat.sub_eq_zero_of_le hjk, nat.sub_eq_zero_of_le hik],
+
+  -- case-bash, adjusting inverses until we have a single range
+  {
+    rw [←mul_inv_rev, inv_inj],
+    rw [←list.prod_append, ←list.map_append],
+    congr,
+    convert list.range'_append i (j - i) (k - j),
+    rw nat.add_sub_cancel' hij, rw nat.sub_add_sub_cancel hjk hij,
+  },
+  {
+    rw [eq_inv_iff_eq_inv, mul_inv_rev, inv_inv, eq_mul_inv_iff_mul_eq],
+    rw [←list.prod_append, ←list.map_append],
+    congr,
+    convert list.range'_append i (k - i) (j - k),
+    rw nat.add_sub_cancel' hik, rw nat.sub_add_sub_cancel hjk hik,
+  },
+  {
+    rw mul_inv_eq_iff_eq_mul,
+    rw [←list.prod_append, ←list.map_append],
+    congr,
+    convert (list.range'_append k (i - k) (j - i)).symm,
+    rw nat.sub_add_sub_cancel hij hik, rw nat.add_sub_cancel' hik,
+  },
+  {
+    rw [eq_inv_iff_eq_inv, mul_inv_rev, inv_inv, eq_inv_mul_iff_mul_eq],
+    rw [←list.prod_append, ←list.map_append],
+    congr,
+    convert list.range'_append j (i - j) (k - i),
+    rw nat.add_sub_cancel' hij, rw nat.sub_add_sub_cancel hik hij,
+  },
+  {
+    rw inv_mul_eq_iff_eq_mul,
+    rw [←list.prod_append, ←list.map_append],
+    congr,
+    convert (list.range'_append j (k - j) (i - k)).symm,
+    rw nat.sub_add_sub_cancel hik hjk, rw nat.add_sub_cancel' hjk,
+  },
+  {
+    rw [←list.prod_append, ←list.map_append],
+    congr,
+    convert list.range'_append k (j - k) (i - j),
+    rw nat.add_sub_cancel' hjk, rw nat.sub_add_sub_cancel hij hjk,
+  },
+end
+
+lemma swap_factor (i j k : α) (hik : i ≠ k) (hjk : j ≠ k) : swap i k = swap i j * swap j k * swap j i :=
+begin
+  ext,
+  simp [swap_apply_def],
+  split_ifs; simp * at *,
+end
+
+lemma swap_eq_move_swap'' (i j : ℕ) :
+  swap i (i + 1 + j) = move (i + 1) (i + 1 + j) * swap i (i + 1) * move (i + 1 + j) (i + 1) :=
+begin
+  rw move_anticomm (i + 1 + j) (i + 1),
+  induction j with j hind,
+  { simp, },
+  {
+    rw nat.succ_eq_add_one,
+    rw ←move_mul_move (i + 1) (i + 1 + j) (i + 1 + (j + 1)),
+    rw [mul_inv_rev, move_anticomm],
+    rw ←mul_assoc,
+    rw eq_mul_inv_iff_mul_eq,
+    repeat {rw mul_assoc},
+    rw eq_inv_mul_iff_mul_eq,
+    repeat {rw ←mul_assoc},
+    rw ←hind,
+    rw ←add_assoc,
+    rw ←move_anticomm,
+    rw move_succ_eq_swap (i + 1 + j),
+    rw move_succ_eq_swap' (i + 1 + j),
+    conv {
+      for (equiv.swap _ _) [1, 2, 3, 4] {
+        rw swap_comm,
+      }
+    },
+    refine (swap_factor (i + 1 + j) (i + 1 + j + 1) i _ _).symm,
+    linarith only,
+    linarith only,
+  }
+end
+
+def swap_adj_components_aux (i j : ℕ) (h : i < j) :
+  {L : list (perm ℕ) // L.prod = equiv.swap i j ∧ ∀ p ∈ L, ∃ k, p = adj_swap k } :=
+⟨
+  move_components (i + 1) (i + 1 + (j - i - 1))
+    ++ [i].map adj_swap
+    ++ move_components (i + 1 + (j - i - 1)) (i + 1),
+  by {
+    rw [list.prod_append, list.prod_append, list.map, list.map, list.prod_singleton,
+      ←move, ←move, adj_swap, ←swap_eq_move_swap''],
+    congr,
+    rw [nat.sub_sub, nat.add_sub_cancel' (nat.succ_le_iff.mpr h)],
+  },
+  λ p hp, by {
+    simp only [move_components, ←list.map_append, list.mem_map] at hp,
+    obtain ⟨k, _, hk⟩ := hp,
+    exact ⟨k, hk.symm⟩,
+  }
+⟩
+
+/--
+Decompose `equiv.swap i j` into a list of swaps of the form `adj_swap k`
+-/
+def swap_adj_components (i j : ℕ) :
+  {L : list (perm ℕ) // L.prod = equiv.swap i j ∧ ∀ p ∈ L, ∃ k, p = adj_swap k } :=
+if hij : i < j then
+  swap_adj_components_aux i j hij
+else if hji : j < i then
+  by {
+    rw swap_comm,
+    exact swap_adj_components_aux j i hji,
+  }
+else
+  ⟨[], by {
+    simp [linarith.eq_of_not_lt_of_not_gt _ _ hij hji, equiv.swap_self, equiv.perm.one_def],
+  }, by simp⟩
 
 end equiv.perm

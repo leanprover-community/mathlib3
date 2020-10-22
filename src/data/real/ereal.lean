@@ -33,6 +33,8 @@ also do some limits stuff (liminf/limsup etc).
 See https://isabelle.in.tum.de/dist/library/HOL/HOL-Library/Extended_Real.html
 -/
 
+local attribute [semireducible] with_top.has_le with_bot.has_le
+
 /-- ereal : The type `[-∞, ∞]` -/
 @[derive [linear_order, order_bot, order_top,
   has_Sup, has_Inf, complete_lattice, has_add]]
@@ -41,9 +43,9 @@ def ereal := with_top (with_bot ℝ)
 namespace ereal
 instance : has_coe ℝ ereal := ⟨some ∘ some⟩
 @[simp, norm_cast] protected lemma coe_real_le {x y : ℝ} : (x : ereal) ≤ (y : ereal) ↔ x ≤ y :=
-by { unfold_coes, norm_num }
+by { unfold_coes, simp }
 @[simp, norm_cast] protected lemma coe_real_lt {x y : ℝ} : (x : ereal) < (y : ereal) ↔ x < y :=
-by { unfold_coes, norm_num }
+by { unfold_coes, simp }
 @[simp, norm_cast] protected lemma coe_real_inj' {x y : ℝ} : (x : ereal) = (y : ereal) ↔ x = y :=
 by { unfold_coes, simp [option.some_inj] }
 

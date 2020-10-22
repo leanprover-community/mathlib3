@@ -222,6 +222,47 @@ theorem add_sub_of_lt {a b : ℕ+} : a < b → a + (b - a) = b :=
  λ h, eq $ by { rw [add_coe, sub_coe, if_pos h],
                 exact nat.add_sub_of_le (le_of_lt h) }
 
+instance : has_well_founded ℕ+ := ⟨(<), measure_wf coe⟩
+
+/-- Strong induction on `pnat`. -/
+lemma strong_induction_on {p : pnat → Prop} : ∀ (n : pnat) (h : ∀ k, (∀ m, m < k → p m) → p k), p n
+| n := λ IH, IH _ (λ a h, strong_induction_on a IH)
+using_well_founded { dec_tac := `[assumption] }
+
+/-- If `(n : pnat)` is different from `1`, then it is the successor of some `(k : pnat)`. -/
+lemma exists_eq_succ_of_ne_one {n : pnat} : n ≠ 1 → ∃ (k : pnat), n = nat.succ_pnat k :=
+begin
+  intro hone,
+  obtain ⟨a, ha⟩ := nat.exists_eq_succ_of_ne_zero (ne_zero n),
+  have hazero : a ≠ 0,
+  { intro h,
+    rw h at ha,
+    simp only [coe_eq_one_iff] at ha,
+    exact hone ha },
+  obtain ⟨b, hb⟩ := nat.exists_eq_succ_of_ne_zero hazero,
+  rw ← nat.succ_pnat_coe b at hb,
+  use b.succ_pnat,
+  rw ← hb,
+  apply eq,
+  simp only [ha, nat.succ_pnat_coe]
+end
+
+lemma case_strong_induction_on {p : pnat → Prop} (a : pnat)
+  (hz : p 1)
+  (hi : ∀ n, (∀ m, m ≤ n → p m) → p (nat.succ_pnat n)) : p a :=
+begin
+  apply strong_induction_on a,
+  intros k hk,
+  by_cases hone : k = 1,
+  { rw hone; exact hz },
+  obtain ⟨b, hb⟩ := exists_eq_succ_of_ne_one hone,
+  rw hb at hk ⊢,
+  apply hi b,
+  intros m hm,
+  apply hk m,
+  exact (lt_add_one_iff.2 hm)
+end
+
 /-- We define `m % k` and `m / k` in the same way as for `ℕ`
   except that when `m = n * k` we take `m % k = k` and
   `m / k = n - 1`.  This ensures that `m % k` is always positive

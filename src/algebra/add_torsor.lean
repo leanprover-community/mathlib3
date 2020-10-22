@@ -339,9 +339,11 @@ section comm
 
 variables {G : Type*} {P : Type*} [add_comm_group G] [add_torsor G P]
 
+include G
+
 /-- Cancellation subtracting the results of two subtractions. -/
 @[simp] lemma vsub_sub_vsub_cancel_left (p1 p2 p3 : P) :
-  (p3 -ᵥ p2 : G) - (p3 -ᵥ p1) = (p1 -ᵥ p2) :=
+  (p3 -ᵥ p2) - (p3 -ᵥ p1) = (p1 -ᵥ p2) :=
 by rw [sub_eq_add_neg, neg_vsub_eq_vsub_rev, add_comm, vsub_add_vsub_cancel]
 
 @[simp] lemma vadd_vsub_vadd_cancel_left (v : G) (p1 p2 : P) :
@@ -357,6 +359,10 @@ end
 lemma vadd_eq_vadd_iff_sub_eq_vsub {v₁ v₂ : G} {p₁ p₂ : P} :
   v₁ +ᵥ p₁ = v₂ +ᵥ p₂ ↔ v₂ - v₁ = p₁ -ᵥ p₂ :=
 by rw [vadd_eq_vadd_iff_neg_add_eq_vsub, neg_add_eq_sub]
+
+lemma vsub_sub_vsub_comm (p₁ p₂ p₃ p₄ : P) :
+  (p₁ -ᵥ p₂) - (p₃ -ᵥ p₄) = (p₁ -ᵥ p₃) - (p₂ -ᵥ p₄) :=
+by rw [← vsub_vadd_eq_vsub_sub, vsub_vadd_comm, vsub_vadd_eq_vsub_sub]
 
 end comm
 

@@ -34,14 +34,6 @@ section module
 
 variables [ring R] [invertible (2:R)] [normed_group E] [module R E]
 
-@[simp] lemma point_reflection_midpoint_left (x y : E) :
-  (point_reflection (midpoint R x y) : E → E) x = y :=
-equiv.point_reflection_midpoint_left R x y
-
-@[simp] lemma point_reflection_midpoint_right (x y : E) :
-  (point_reflection (midpoint R x y) : E → E) y = x :=
-equiv.point_reflection_midpoint_right R x y
-
 variable (R)
 
 include R

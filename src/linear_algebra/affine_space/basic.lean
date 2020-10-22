@@ -1520,6 +1520,8 @@ rfl
 
 lemma homothety_apply (c : P1) (r : k) (p : P1) : homothety c r p = r • (p -ᵥ c : V1) +ᵥ c := rfl
 
+lemma homothety_eq_line_map (c : P1) (r : k) (p : P1) : homothety c r p = line_map c p r := rfl
+
 @[simp] lemma homothety_one (c : P1) : homothety c (1:k) = id k P1 :=
 by { ext p, simp [homothety_apply] }
 

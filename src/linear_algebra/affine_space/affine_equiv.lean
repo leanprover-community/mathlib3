@@ -138,6 +138,22 @@ lemma injective_to_equiv : injective (to_equiv : (P₁ ≃ᵃ[k] P₂) → (P₁
 @[simp] lemma to_equiv_inj {e e' : P₁ ≃ᵃ[k] P₂} : e.to_equiv = e'.to_equiv ↔ e = e' :=
 injective_to_equiv.eq_iff
 
+/-- Construct an affine equivalence by verifying the relation between the map and its linear part at
+one base point. Namely, this function takes an equivalence `e : P₁ ≃ P₂`, a linear equivalece
+`e' : V₁ ≃ₗ[k] V₂`, and a point `p` such that for any other point `p'` we have
+`e p' = e' (p' -ᵥ p) +ᵥ e p`. -/
+def mk' (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (p : P₁) (h : ∀ p' : P₁, e p' = e' (p' -ᵥ p) +ᵥ e p) :
+  P₁ ≃ᵃ[k] P₂ :=
+{ to_equiv := e,
+  linear := e',
+  .. affine_map.mk' e (e' : V₁ →ₗ[k] V₂) p h }
+
+@[simp] lemma coe_mk' (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (p h) : ⇑(mk' e e' p h) = e := rfl
+@[simp] lemma to_equiv_mk' (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (p h) :
+  (mk' e e' p h).to_equiv = e := rfl
+@[simp] lemma linear_mk' (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (p h) :
+  (mk' e e' p h).linear = e' := rfl
+
 /-- Inverse of an affine equivalence as an affine equivalence. -/
 @[symm] def symm (e : P₁ ≃ᵃ[k] P₂) : P₂ ≃ᵃ[k] P₁ :=
 { to_equiv := e.to_equiv.symm,
@@ -244,16 +260,6 @@ def vadd_const (b : P₁) : V₁ ≃ᵃ[k] P₁ :=
 
 @[simp] lemma vadd_const_symm_apply (b p : P₁) : (vadd_const k b).symm p = p -ᵥ b := rfl
 
-open affine_map
-
-lemma line_map_vadd (v v' : V₁) (p : P₁) (c : k) :
-  line_map v v' c +ᵥ p = line_map (v +ᵥ p) (v' +ᵥ p) c :=
-(vadd_const k p).apply_line_map v v' c
-
-lemma line_map_vsub (p₁ p₂ p₃ : P₁) (c : k) :
-  line_map p₁ p₂ c -ᵥ p₃ = line_map (p₁ -ᵥ p₃) (p₂ -ᵥ p₃) c :=
-(vadd_const k p₃).symm.apply_line_map p₁ p₂ c
-
 /-- `p' ↦ p -ᵥ p'` as an equivalence. -/
 def const_vsub (p : P₁) : P₁ ≃ᵃ[k] V₁ :=
 { to_equiv := equiv.const_vsub p,
@@ -263,10 +269,6 @@ def const_vsub (p : P₁) : P₁ ≃ᵃ[k] V₁ :=
 @[simp] lemma coe_const_vsub (p : P₁) : ⇑(const_vsub k p) = (-ᵥ) p := rfl
 
 @[simp] lemma coe_const_vsub_symm (p : P₁) : ⇑(const_vsub k p).symm = λ v, -v +ᵥ p := rfl
-
-lemma vsub_line_map (p₁ p₂ p₃ : P₁) (c : k) :
-  p₁ -ᵥ line_map p₂ p₃ c = line_map (p₁ -ᵥ p₂) (p₁ -ᵥ p₃) c :=
-(const_vsub k p₁).apply_line_map p₂ p₃ c
 
 variable (P₁)
 
@@ -281,10 +283,6 @@ def const_vadd (v : V₁) : P₁ ≃ᵃ[k] P₁ :=
 @[simp] lemma const_vadd_apply (v : V₁) (p : P₁) : const_vadd k P₁ v p = v +ᵥ p := rfl
 
 @[simp] lemma const_vadd_symm_apply (v : V₁) (p : P₁) : (const_vadd k P₁ v).symm p = -v +ᵥ p := rfl
-
-lemma vadd_line_map (v : V₁) (p₁ p₂ : P₁) (c : k) :
-  v +ᵥ line_map p₁ p₂ c = line_map (v +ᵥ p₁) (v +ᵥ p₂) c :=
-(const_vadd k P₁ v).apply_line_map p₁ p₂ c
 
 variable {P₁}
 open function
@@ -327,3 +325,33 @@ lemma point_reflection_fixed_iff_of_module [invertible (2:k)] {x y : P₁} :
 ((injective_point_reflection_left_of_module k y).eq_iff' (point_reflection_self k y)).trans eq_comm
 
 end affine_equiv
+
+namespace affine_map
+
+open affine_equiv
+
+include V₁
+
+lemma line_map_vadd (v v' : V₁) (p : P₁) (c : k) :
+  line_map v v' c +ᵥ p = line_map (v +ᵥ p) (v' +ᵥ p) c :=
+(vadd_const k p).apply_line_map v v' c
+
+lemma line_map_vsub (p₁ p₂ p₃ : P₁) (c : k) :
+  line_map p₁ p₂ c -ᵥ p₃ = line_map (p₁ -ᵥ p₃) (p₂ -ᵥ p₃) c :=
+(vadd_const k p₃).symm.apply_line_map p₁ p₂ c
+
+lemma vsub_line_map (p₁ p₂ p₃ : P₁) (c : k) :
+  p₁ -ᵥ line_map p₂ p₃ c = line_map (p₁ -ᵥ p₂) (p₁ -ᵥ p₃) c :=
+(const_vsub k p₁).apply_line_map p₂ p₃ c
+
+lemma vadd_line_map (v : V₁) (p₁ p₂ : P₁) (c : k) :
+  v +ᵥ line_map p₁ p₂ c = line_map (v +ᵥ p₁) (v +ᵥ p₂) c :=
+(const_vadd k P₁ v).apply_line_map p₁ p₂ c
+
+variables {R' : Type*} [comm_ring R'] [semimodule R' V₁]
+
+lemma homothety_neg_one_apply (c p : P₁) :
+  homothety c (-1:R') p = point_reflection R' c p :=
+by simp [homothety_apply, point_reflection_apply]
+
+end affine_map

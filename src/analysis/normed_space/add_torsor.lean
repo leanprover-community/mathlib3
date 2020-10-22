@@ -3,10 +3,9 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Yury Kudryashov.
 -/
-import linear_algebra.affine_space.affine_equiv
+import linear_algebra.affine_space.midpoint
 import topology.metric_space.isometry
-
-noncomputable theory
+import topology.instances.real_vector_space
 
 /-!
 # Torsors of additive normed group actions.
@@ -16,6 +15,10 @@ metric space structure.  The motivating case is Euclidean affine
 spaces.
 
 -/
+
+noncomputable theory
+open_locale nnreal topological_space
+open filter
 
 /-- A `normed_add_torsor V P` is a torsor of an additive normed group
 action by a `normed_group V` on points `P`. We bundle the metric space
@@ -28,7 +31,7 @@ class normed_add_torsor (V : out_param $ Type*) (P : Type*)
   extends add_torsor V P :=
 (dist_eq_norm' : ∀ (x y : P), dist x y = ∥(x -ᵥ y : V)∥)
 
-variables {V P : Type*} [normed_group V] [metric_space P] [normed_add_torsor V P]
+variables {α V P : Type*} [normed_group V] [metric_space P] [normed_add_torsor V P]
 include V
 
 section
@@ -62,6 +65,31 @@ by rw [dist_eq_norm, vsub_sub_vsub_cancel_left, dist_comm, dist_eq_norm_vsub V]
 
 @[simp] lemma dist_vsub_cancel_right (x y z : P) : dist (x -ᵥ z) (y -ᵥ z) = dist x y :=
 by rw [dist_eq_norm, vsub_sub_vsub_cancel_right, dist_eq_norm_vsub V]
+
+lemma dist_vadd_vadd_le (v v' : V) (p p' : P) :
+  dist (v +ᵥ p) (v' +ᵥ p') ≤ dist v v' + dist p p' :=
+by simpa using dist_triangle (v +ᵥ p) (v' +ᵥ p) (v' +ᵥ p')
+
+lemma dist_vsub_vsub_le (p₁ p₂ p₃ p₄ : P) :
+  dist (p₁ -ᵥ p₂) (p₃ -ᵥ p₄) ≤ dist p₁ p₃ + dist p₂ p₄ :=
+by { rw [dist_eq_norm, vsub_sub_vsub_comm, dist_eq_norm_vsub V, dist_eq_norm_vsub V],
+ exact norm_sub_le _ _ }
+
+lemma nndist_vadd_vadd_le (v v' : V) (p p' : P) :
+  nndist (v +ᵥ p) (v' +ᵥ p') ≤ nndist v v' + nndist p p' :=
+by simp only [← nnreal.coe_le_coe, nnreal.coe_add, ← dist_nndist, dist_vadd_vadd_le]
+
+lemma nndist_vsub_vsub_le (p₁ p₂ p₃ p₄ : P) :
+  nndist (p₁ -ᵥ p₂) (p₃ -ᵥ p₄) ≤ nndist p₁ p₃ + nndist p₂ p₄ :=
+by simp only [← nnreal.coe_le_coe, nnreal.coe_add, ← dist_nndist, dist_vsub_vsub_le]
+
+lemma edist_vadd_vadd_le (v v' : V) (p p' : P) :
+  edist (v +ᵥ p) (v' +ᵥ p') ≤ edist v v' + edist p p' :=
+by { simp only [edist_nndist], apply_mod_cast nndist_vadd_vadd_le }
+
+lemma edist_vsub_vsub_le (p₁ p₂ p₃ p₄ : P) :
+  edist (p₁ -ᵥ p₂) (p₃ -ᵥ p₄) ≤ edist p₁ p₃ + edist p₂ p₄ :=
+by { simp only [edist_nndist], apply_mod_cast nndist_vsub_vsub_le }
 
 omit V
 
@@ -153,11 +181,98 @@ lemma point_reflection_fixed_iff (𝕜 : Type*) [normed_field 𝕜] [normed_spac
   point_reflection x y = y ↔ y = x :=
 affine_equiv.point_reflection_fixed_iff_of_module 𝕜
 
-lemma dist_point_reflection_self_real [normed_space ℝ V] (x y : P) :
+variables [normed_space ℝ V]
+
+lemma dist_point_reflection_self_real (x y : P) :
   dist (point_reflection x y) y = 2 * dist x y :=
 by { rw [dist_point_reflection_self ℝ, real.norm_two], apply_instance }
 
+@[simp] lemma point_reflection_midpoint_left (x y : P) :
+  point_reflection (midpoint ℝ x y) x = y :=
+affine_equiv.point_reflection_midpoint_left x y
+
+@[simp] lemma point_reflection_midpoint_right (x y : P) :
+  point_reflection (midpoint ℝ x y) y = x :=
+affine_equiv.point_reflection_midpoint_right x y
+
 end isometric
+
+lemma lipschitz_with.vadd [emetric_space α] {f : α → V} {g : α → P} {Kf Kg : ℝ≥0}
+  (hf : lipschitz_with Kf f) (hg : lipschitz_with Kg g) :
+  lipschitz_with (Kf + Kg) (f +ᵥ g) :=
+λ x y,
+calc edist (f x +ᵥ g x) (f y +ᵥ g y) ≤ edist (f x) (f y) + edist (g x) (g y) :
+  edist_vadd_vadd_le _ _ _ _
+... ≤ Kf * edist x y + Kg * edist x y :
+  add_le_add (hf x y) (hg x y)
+... = (Kf + Kg) * edist x y :
+  (add_mul _ _ _).symm
+
+lemma lipschitz_with.vsub [emetric_space α] {f g : α → P} {Kf Kg : ℝ≥0}
+  (hf : lipschitz_with Kf f) (hg : lipschitz_with Kg g) :
+  lipschitz_with (Kf + Kg) (f -ᵥ g) :=
+λ x y,
+calc edist (f x -ᵥ g x) (f y -ᵥ g y) ≤ edist (f x) (f y) + edist (g x) (g y) :
+  edist_vsub_vsub_le _ _ _ _
+... ≤ Kf * edist x y + Kg * edist x y :
+  add_le_add (hf x y) (hg x y)
+... = (Kf + Kg) * edist x y :
+  (add_mul _ _ _).symm
+
+lemma uniform_continuous_vadd : uniform_continuous (λ x : V × P, x.1 +ᵥ x.2) :=
+(lipschitz_with.prod_fst.vadd lipschitz_with.prod_snd).uniform_continuous
+
+lemma uniform_continuous_vsub : uniform_continuous (λ x : P × P, x.1 -ᵥ x.2) :=
+(lipschitz_with.prod_fst.vsub lipschitz_with.prod_snd).uniform_continuous
+
+lemma continuous_vadd : continuous (λ x : V × P, x.1 +ᵥ x.2) :=
+uniform_continuous_vadd.continuous
+
+lemma continuous_vsub : continuous (λ x : P × P, x.1 -ᵥ x.2) :=
+uniform_continuous_vsub.continuous
+
+lemma filter.tendsto.vadd {l : filter α} {f : α → V} {g : α → P} {v : V} {p : P}
+  (hf : tendsto f l (𝓝 v)) (hg : tendsto g l (𝓝 p)) :
+  tendsto (f +ᵥ g) l (𝓝 (v +ᵥ p)) :=
+(continuous_vadd.tendsto (v, p)).comp (hf.prod_mk_nhds hg)
+
+lemma filter.tendsto.vsub {l : filter α} {f g : α → P} {x y : P}
+  (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
+  tendsto (f -ᵥ g) l (𝓝 (x -ᵥ y)) :=
+(continuous_vsub.tendsto (x, y)).comp (hf.prod_mk_nhds hg)
+
+section
+
+variables [topological_space α]
+
+lemma continuous.vadd {f : α → V} {g : α → P} (hf : continuous f) (hg : continuous g) :
+  continuous (f +ᵥ g) :=
+continuous_vadd.comp (hf.prod_mk hg)
+
+lemma continuous.vsub {f g : α → P} (hf : continuous f) (hg : continuous g) :
+  continuous (f -ᵥ g) :=
+continuous_vsub.comp (hf.prod_mk hg)
+
+lemma continuous_at.vadd {f : α → V} {g : α → P} {x : α} (hf : continuous_at f x)
+  (hg : continuous_at g x) :
+  continuous_at (f +ᵥ g) x :=
+hf.vadd hg
+
+lemma continuous_at.vsub {f g : α → P}  {x : α} (hf : continuous_at f x) (hg : continuous_at g x) :
+  continuous_at (f -ᵥ g) x :=
+hf.vsub hg
+
+lemma continuous_within_at.vadd {f : α → V} {g : α → P} {x : α} {s : set α}
+  (hf : continuous_within_at f s x) (hg : continuous_within_at g s x) :
+  continuous_within_at (f +ᵥ g) s x :=
+hf.vadd hg
+
+lemma continuous_within_at.vsub {f g : α → P} {x : α} {s : set α}
+  (hf : continuous_within_at f s x) (hg : continuous_within_at g s x) :
+  continuous_within_at (f -ᵥ g) s x :=
+hf.vsub hg
+
+end
 
 variables {V' : Type*} {P' : Type*} [normed_group V'] [metric_space P'] [normed_add_torsor V' P']
 
@@ -170,3 +285,19 @@ begin
     (hf.comp (isometric.vadd_const p).isometry),
   exact funext hg
 end
+
+variables [normed_space ℝ V] [normed_space ℝ V']
+include V'
+
+def affine_map.of_map_midpoint (f : P → P')
+  (h : ∀ x y, f (midpoint ℝ x y) = midpoint ℝ (f x) (f y))
+  (hfc : continuous f) :
+  P →ᵃ[ℝ] P' :=
+affine_map.mk' f
+  ↑((add_monoid_hom.of_map_midpoint ℝ ℝ
+    ((affine_equiv.vadd_const ℝ (f $ classical.arbitrary P)).symm ∘ f ∘
+      (affine_equiv.vadd_const ℝ (classical.arbitrary P))) (by simp)
+      (λ x y, by simp [h])).to_real_linear_map $ by apply_rules [continuous.vadd, continuous.vsub,
+        continuous_const, hfc.comp, continuous_id])
+  (classical.arbitrary P)
+  (λ p, by simp)

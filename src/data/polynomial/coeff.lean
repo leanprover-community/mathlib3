@@ -86,7 +86,7 @@ add_monoid_algebra.mul_single_zero_apply p a n
 
 lemma coeff_X_pow (k n : ℕ) :
   coeff (X^k : polynomial R) n = if n = k then 1 else 0 :=
-by rw [← monomial_one_eq_X_pow]; simp [monomial, single, eq_comm, coeff]; congr
+by rw [X_pow_eq_monomial]; simp [monomial, single, eq_comm, coeff]; congr
 
 @[simp]
 lemma coeff_X_pow_self (n : ℕ) :

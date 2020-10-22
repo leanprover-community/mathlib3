@@ -358,24 +358,40 @@ begin
   refine ⟨max'_mem _ _, λ t Ht, le_antisymm (le_max' s t Ht) (le_trans a (min'_le s t Ht))⟩,
 end
 
-lemma max'_eq_dual_min' {s : finset α} (hs : s.nonempty) :
-  max' s hs = of_dual (min' (image to_dual s) (nonempty.image hs to_dual)) :=
+@[simp] lemma max'_eq_dual_min' {s : finset α} (hs : s.nonempty) :
+  min' (image to_dual s) (nonempty.image hs to_dual) = to_dual (max' s hs) :=
 begin
   apply le_antisymm,
-  { apply max'_le,
+  { rw [← of_dual_to_dual ((image to_dual s).min' _)],
+    apply max'_le,
     intros,
     rw [← le_to_dual],
     apply min'_le,
     rw [mem_image],
     refine ⟨_, H, rfl⟩ },
-  { rw [← to_dual_le],
+  { rw [to_dual_le],
+    apply le_max',
+    convert max'_mem s hs,
+    rw to_dual,
+    exact image_id, },
+end
+
+@[simp] lemma min'_eq_dual_max' {s : finset α} (hs : s.nonempty) :
+  max' (image to_dual s) (nonempty.image hs to_dual) = to_dual (min' s hs) :=
+begin
+  apply le_antisymm,
+  { rw [le_to_dual],
+    apply min'_le,
+    convert min'_mem s hs,
+    rw to_dual,
+    exact image_id, },
+  { rw [← of_dual_to_dual ((image to_dual s).max' _)],
     apply le_min',
     intros,
-    rw [to_dual_le],
+    rw [← to_dual_le],
     apply le_max',
-    rw mem_image at H,
-    rcases H with ⟨x, H, rfl⟩,
-    exact H }
+    rw [mem_image],
+    refine ⟨_, H, rfl⟩ },
 end
 
 @[simp] lemma of_dual_max_eq_min_of_dual {a b : α} :

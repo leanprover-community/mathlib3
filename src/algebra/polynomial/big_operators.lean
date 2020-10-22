@@ -95,8 +95,8 @@ end
     then the same is true for their product. -/
 lemma lifts_of_prod_lifts {R : Type u} {S : Type w} [comm_semiring R]
   [comm_semiring S] (f : R →+* S)
-  {ι : Type u} (g : ι → polynomial S) (s : finset ι) : (∀ x ∈ s, ∃ P :
-  (polynomial R), map f P = g x) →  ∃ Q : (polynomial R), map f Q = ∏ x in s, g x :=
+  {ι : Type u} (g : ι → polynomial S) (s : finset ι) :
+  (∀ x ∈ s, ∃ P : (polynomial R), map f P = g x) → ∃ Q : (polynomial R), map f Q = ∏ x in s, g x :=
 begin
   classical,
   induction s using finset.induction with a s ha hs,

@@ -375,32 +375,35 @@ section
 local attribute [reducible] monoid_algebra
 
 variables (k)
+-- TODO: generalise from groups `G` to monoids
 /-- When `V` is a `k[G]`-module, multiplication by a group element `g` is a `k`-linear map. -/
 def group_smul.linear_map [group G] [comm_ring k]
-  (V : Type u₃) [add_comm_group V] [module (monoid_algebra k G) V] (g : G) :
-  (semimodule.restrict_scalars k (monoid_algebra k G) V) →ₗ[k]
-  (semimodule.restrict_scalars k (monoid_algebra k G) V) :=
+  (V : Type u₃) [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
+  [is_scalar_tower k (monoid_algebra k G) V] (g : G) :
+  V →ₗ[k] V :=
 { to_fun    := λ v, (single g (1 : k) • v : V),
   map_add'  := λ x y, smul_add (single g (1 : k)) x y,
-  map_smul' := λ c x,
-  by simp only [semimodule.restrict_scalars_smul_def, coe_algebra_map, ←mul_smul, single_one_comm], }.
+  map_smul' := λ c x, smul_algebra_smul_comm _ _ _ }
 
 @[simp]
 lemma group_smul.linear_map_apply [group G] [comm_ring k]
-  (V : Type u₃) [add_comm_group V] [module (monoid_algebra k G) V] (g : G) (v : V) :
+  (V : Type u₃) [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
+  [is_scalar_tower k (monoid_algebra k G) V] (g : G) (v : V) :
   (group_smul.linear_map k V g) v = (single g (1 : k) • v : V) :=
 rfl
 
 section
 variables {k}
-variables [group G] [comm_ring k]
-  {V : Type u₃} {gV : add_comm_group V} {mV : module (monoid_algebra k G) V}
-  {W : Type u₃} {gW : add_comm_group W} {mW : module (monoid_algebra k G) W}
-  (f : (semimodule.restrict_scalars k (monoid_algebra k G) V) →ₗ[k]
-       (semimodule.restrict_scalars k (monoid_algebra k G) W))
+variables [group G] [comm_ring k] {V W : Type u₃}
+  [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
+  [is_scalar_tower k (monoid_algebra k G) V]
+  [add_comm_group W] [module k W] [module (monoid_algebra k G) W]
+  [is_scalar_tower k (monoid_algebra k G) W]
+  (f : V →ₗ[k] W)
   (h : ∀ (g : G) (v : V), f (single g (1 : k) • v : V) = (single g (1 : k) • (f v) : W))
 include h
 
+-- TODO generalise from groups `G` to monoids??
 /-- Build a `k[G]`-linear map from a `k`-linear map and evidence that it is `G`-equivariant. -/
 def equivariant_of_linear_of_comm : V →ₗ[monoid_algebra k G] W :=
 { to_fun := f,
@@ -410,10 +413,10 @@ def equivariant_of_linear_of_comm : V →ₗ[monoid_algebra k G] W :=
   apply finsupp.induction c,
   { simp, },
   { intros g r c' nm nz w,
-    rw [add_smul, linear_map.map_add, w, add_smul, add_left_inj,
-      single_eq_algebra_map_mul_of, ←smul_smul, ←smul_smul],
-    erw [f.map_smul, h g v],
-    refl, }
+    simp only [add_smul, f.map_add, w, add_left_inj, single_eq_algebra_map_mul_of, ← smul_smul],
+    erw [algebra_map_smul (monoid_algebra k G) r, algebra_map_smul (monoid_algebra k G) r,
+      f.map_smul, h g v, of_apply],
+    all_goals { apply_instance } }
   end, }
 
 @[simp]

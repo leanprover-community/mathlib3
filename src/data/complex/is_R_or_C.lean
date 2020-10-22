@@ -362,6 +362,8 @@ by rw [← of_real_rat_cast, of_real_im]
 
 /-! ### Characteristic zero -/
 
+-- TODO: I think this can be instance, because it is a `Prop`
+
 /--
 ℝ and ℂ are both of characteristic zero.
 
@@ -584,6 +586,26 @@ noncomputable instance complex.is_R_or_C : is_R_or_C ℂ :=
   mul_im_I_ax := λ z, by simp only [mul_one, add_monoid_hom.coe_mk, complex.I_im],
   inv_def_ax := λ z, by convert complex.inv_def z; exact (complex.norm_sq_eq_abs z).symm,
   div_I_ax := complex.div_I }
+
+section
+noncomputable theory
+
+variables (𝕜 : Type*) [is_R_or_C 𝕜]
+
+section real
+variables (M : Type*) [add_comm_monoid M] [semimodule 𝕜 M]
+
+@[priority 100]
+instance semimodule_ℝ : semimodule ℝ M :=
+restrict_scalars.semimodule ℝ 𝕜 M
+
+@[priority 100]
+instance is_scalar_tower_ℝ : is_scalar_tower ℝ 𝕜 M :=
+restrict_scalars.is_scalar_tower ℝ 𝕜 M
+
+end real
+
+end
 
 end instances
 

@@ -1094,6 +1094,8 @@ def has_inner.is_R_or_C_to_real : has_inner ℝ E :=
 lemma real_inner_eq_re_inner (x y : E) :
   @has_inner.inner ℝ E (has_inner.is_R_or_C_to_real 𝕜) x y = re ⟪x, y⟫ := rfl
 
+-- TODO: remove the `'` on `restrict_scalars'`
+
 /-- A general inner product space structure implies a real inner product structure. This is not
 registered as an instance since it creates problems with the case `𝕜 = ℝ`, but in can be used in a
 proof to obtain a real inner product space structure from a given `𝕜`-inner product space
@@ -1353,7 +1355,7 @@ theorem exists_norm_eq_infi_of_complete_subspace (K : subspace 𝕜 E)
   (h : is_complete (↑K : set E)) : ∀ u : E, ∃ v ∈ K, ∥u - v∥ = ⨅ w : (K : set E), ∥u - w∥ :=
 begin
   letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜,
-  let K' : subspace ℝ E := K.restrict_scalars ℝ,
+  let K' : subspace ℝ E := submodule.restrict_scalars ℝ K,
   exact exists_norm_eq_infi_of_complete_convex ⟨0, K'.zero_mem⟩ h K'.convex
 end
 

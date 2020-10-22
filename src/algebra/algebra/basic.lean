@@ -1092,6 +1092,7 @@ def lto_fun (R : Type u) (M : Type v) (A : Type w)
 For `r : R`, and `f : M →ₗ[A] N` (where `A` is an `R`-algebra) we define
 `(r • f) m = f (r • m)`.
 -/
+@[priority 500]
 instance algebra_has_scalar : has_scalar R (M →ₗ[A] N) :=
 { smul := λ r f,
   { to_fun := λ v, r • f v,
@@ -1099,6 +1100,7 @@ instance algebra_has_scalar : has_scalar R (M →ₗ[A] N) :=
     map_smul' := λ s v, by simp [smul_smul, algebra.commutes, smul_algebra_smul_comm], } }
 
 /-- The `R`-module structure on `A`-linear maps, for `A` an `R`-algebra. -/
+@[priority 500]
 instance algebra_module : semimodule R (M →ₗ[A] N) :=
 { one_smul := λ f, by { ext v, simp only [(•), coe_mk, one_smul] },
   mul_smul := λ r r' f, by { ext v, simp only [(•), mul_smul, coe_mk, map_smul_eq_smul_map] },
@@ -1252,6 +1254,7 @@ variables (R : Type*) [comm_semiring R] (S : Type*) [semiring S] [algebra R S]
   (W : Type*) [add_comm_monoid W] [semimodule R W] [semimodule S W] [is_scalar_tower R S W]
 
 /-- The set of `R`-linear maps admits an `S`-action by left multiplication -/
+@[priority 500]
 instance has_scalar_extend_scalars :
   has_scalar S (V →ₗ[R] W) :=
 { smul := λ r f,
@@ -1260,6 +1263,7 @@ instance has_scalar_extend_scalars :
     map_smul' := λ c x, by rw [map_smul, smul_algebra_smul_comm] } }
 
 /-- The set of `R`-linear maps is an `S`-module-/
+@[priority 500]
 instance module_extend_scalars :
   semimodule S (V →ₗ[R] W) :=
 { one_smul := λ f, by { ext v, simp only [(•), coe_mk, one_smul] },

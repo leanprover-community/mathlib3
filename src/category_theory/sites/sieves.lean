@@ -354,8 +354,19 @@ lemma nat_trans_of_le_comm {S T : sieve X} (h : S ≤ T) :
 rfl
 
 /-- The presheaf induced by a sieve is a subobject of the yoneda embedding. -/
-instance functor_inclusion_is_mono : mono (functor_inclusion S) :=
+instance functor_inclusion_is_mono : mono S.functor_inclusion :=
 ⟨λ Z f g h, by { ext Y y, apply congr_fun (nat_trans.congr_app h Y) y }⟩
+
+instance inclusion_top_is_iso : is_iso ((⊤ : sieve X).functor_inclusion) :=
+{ inv := { app := λ Y a, ⟨a, ⟨⟩⟩ } }
+
+@[simps]
+def thing (f : Y ⟶ X) : (pullback f S).functor ⟶ S.functor :=
+{ app := λ Z g, ⟨g.1 ≫ f, g.2⟩ }
+
+lemma pullback_comm {S : sieve X} (f : Y ⟶ X) :
+  (S.pullback f).functor_inclusion ≫ yoneda.map f = thing f ≫ S.functor_inclusion :=
+rfl
 
 end sieve
 end category_theory

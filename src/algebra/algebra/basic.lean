@@ -1094,7 +1094,7 @@ For `r : R`, and `f : M →ₗ[A] N` (where `A` is an `R`-algebra) we define
 -/
 instance algebra_has_scalar : has_scalar R (M →ₗ[A] N) :=
 { smul := λ r f,
-  { to_fun := λ v, f (r • v),
+  { to_fun := λ v, r • f v,
     map_add' := λ x y, by simp [smul_add],
     map_smul' := λ s v, by simp [smul_smul, algebra.commutes, smul_algebra_smul_comm], } }
 
@@ -1102,10 +1102,19 @@ instance algebra_has_scalar : has_scalar R (M →ₗ[A] N) :=
 instance algebra_module : semimodule R (M →ₗ[A] N) :=
 { one_smul := λ f, by { ext v, simp only [(•), coe_mk, one_smul] },
   mul_smul := λ r r' f, by { ext v, simp only [(•), mul_smul, coe_mk, map_smul_eq_smul_map] },
-  smul_zero := λ r, by { ext v, simp only [(•), coe_mk, zero_apply] },
-  smul_add := λ r f g, by { ext v, simp only [(•), coe_mk, add_apply] },
+  smul_zero := λ r, by { ext v, simp only [(•), coe_mk, zero_apply, smul_zero] },
+  smul_add := λ r f g, by { ext v, simp only [(•), coe_mk, add_apply, smul_add] },
   zero_smul := λ f, by { ext v, simp only [(•), coe_mk, zero_smul, map_zero, zero_apply] },
   add_smul := λ r r' f, by { ext v, simp only [(•), add_smul, map_add, coe_mk, add_apply] } }
+
+/-
+Check that two module structures on `M →ₗ[R] N` are defeq.
+
+- On the LHS we have the new instance, defined above, and we feed it `R` as algebra over itself.
+- On the RHS we have the ordinary instance for linear maps between `R`-modules.
+ -/
+example : @linear_map.algebra_module R _ R _ _ M _ _ _ _ N _ _ _ _ =
+          @linear_map.semimodule R M N _ _ _ _ _ := rfl
 
 variables {R A M N}
 @[simp]
@@ -1259,6 +1268,15 @@ instance module_extend_scalars :
   smul_add := λ r f g, by { ext v, simp only [(•), coe_mk, add_apply, smul_add] },
   zero_smul := λ f, by { ext v, simp only [(•), coe_mk, zero_smul, map_zero, zero_apply] },
   add_smul := λ r r' f, by { ext v, simp only [(•), add_smul, map_add, coe_mk, add_apply] } }
+
+/-
+Check that two module structures on `V →ₗ[R] W` are defeq.
+
+- On the LHS we have the new instance, defined above, and we feed it `R` as algebra over itself.
+- On the RHS we have the ordinary instance for linear maps between `R`-modules.
+ -/
+example : @linear_map.module_extend_scalars R _ R _ _ V _ _ W _ _ _ _ =
+          @linear_map.semimodule R V W _ _ _ _ _ := rfl
 
 instance is_scalar_tower_extend_scalars :
   is_scalar_tower R S (V →ₗ[R] W) :=

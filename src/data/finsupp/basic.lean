@@ -724,6 +724,18 @@ verify `f (single a 1) = g (single a 1)`. -/
   f = g :=
 add_hom_ext $ λ x, add_monoid_hom.congr_fun (H x)
 
+lemma mul_hom_ext [monoid N] ⦃f g : multiplicative (α →₀ M) →* N⦄
+  (H : ∀ x y, f (multiplicative.of_add $ single x y) = g (multiplicative.of_add $ single x y)) :
+  f = g :=
+monoid_hom.ext $ add_monoid_hom.congr_fun $
+  @add_hom_ext α M (additive N) _ _ f.to_additive'' g.to_additive'' H
+
+@[ext] lemma mul_hom_ext' [monoid N] {f g : multiplicative (α →₀ M) →* N}
+  (H : ∀ x, f.comp (single_add_hom x).to_multiplicative =
+    g.comp (single_add_hom x).to_multiplicative) :
+  f = g :=
+mul_hom_ext $ λ x, monoid_hom.congr_fun (H x)
+
 lemma map_range_add [add_monoid N]
   {f : M → N} {hf : f 0 = 0} (hf' : ∀ x y, f (x + y) = f x + f y) (v₁ v₂ : α →₀ M) :
   map_range f hf (v₁ + v₂) = map_range f hf v₁ + map_range f hf v₂ :=

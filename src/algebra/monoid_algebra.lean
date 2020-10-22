@@ -122,7 +122,7 @@ lift_add_hom_apply_single _ _ _
 @[simp] lemma lift_nc_one (f : k →+* R) (g : G →* R) : lift_nc (f : k →+ R) g 1 = 1 :=
 by simp [one_def]
 
-lemma lift_nc_mul_noncomm (f : k →+* R) (g : G →* R)
+lemma lift_nc_mul (f : k →+* R) (g : G →* R)
   (a b : monoid_algebra k G) (h_comm : ∀ {x y}, y ∈ a.support → commute (f (b x)) (g y)) :
   lift_nc (f : k →+ R) g (a * b) = lift_nc (f : k →+ R) g a * lift_nc (f : k →+ R) g b :=
 begin
@@ -358,7 +358,7 @@ def lift : (G →* A) ≃ (monoid_algebra k G →ₐ[k] A) :=
   to_fun := λ F, {
     to_fun := lift_nc ((algebra_map k A : k →+* A) : k →+ A) F,
     map_one' := lift_nc_one _ _,
-    map_mul' := λ f g, lift_nc_mul_noncomm _ _ _ _ $ λ _ _ _, algebra.commutes _ _,
+    map_mul' := λ f g, lift_nc_mul _ _ _ _ $ λ _ _ _, algebra.commutes _ _,
     commutes' := λ r, by simp,
     .. lift_nc ((algebra_map k A : k →+* A) : k →+ A) F },
   left_inv := λ f, by { ext, simp },
@@ -578,10 +578,10 @@ lift_add_hom_apply_single _ _ _
 @[simp] lemma lift_nc_one (f : k →+* R) (g : multiplicative G →* R) : lift_nc (f : k →+ R) g 1 = 1 :=
 @monoid_algebra.lift_nc_one k (multiplicative G) _ _ _ _ f g
 
-lemma lift_nc_mul_noncomm (f : k →+* R) (g : multiplicative G →* R) (a b : add_monoid_algebra k G)
+lemma lift_nc_mul (f : k →+* R) (g : multiplicative G →* R) (a b : add_monoid_algebra k G)
   (h_comm : ∀ {x y}, y ∈ a.support → commute (f (b x)) (g $ multiplicative.of_add y)) :
   lift_nc (f : k →+ R) g (a * b) = lift_nc (f : k →+ R) g a * lift_nc (f : k →+ R) g b :=
-@monoid_algebra.lift_nc_mul_noncomm k (multiplicative G) _ _ _ _ f g a b @h_comm
+@monoid_algebra.lift_nc_mul k (multiplicative G) _ _ _ _ f g a b @h_comm
 
 end semiring
 

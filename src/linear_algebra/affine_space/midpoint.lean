@@ -37,7 +37,7 @@ variables (R : Type*) {V V' P P' : Type*} [ring R] [invertible (2:R)]
 
 open affine_map affine_equiv
 
-section monoid
+section
 
 include V
 
@@ -55,70 +55,64 @@ f.apply_line_map a b _
   f (midpoint R a b) = midpoint R (f a) (f b) :=
 f.apply_line_map a b _
 
-lemma point_reflection_midpoint_left (x y : V) :
-  point_reflection R (midpoint R x y) x = y :=
-by rw [midpoint]
+omit V'
 
-@[simp] lemma midpoint_add_self (x y : E) : midpoint R x y + midpoint R x y = x + y :=
-((midpoint_eq_iff R).1 rfl).symm
+@[simp] lemma point_reflection_midpoint_left (x y : P) :
+  point_reflection R (midpoint R x y) x = y :=
+by rw [midpoint, point_reflection_apply, line_map_apply, vadd_vsub,
+  vadd_assoc, ← add_smul, ← two_mul, mul_inv_of_self, one_smul, vsub_vadd]
+
+lemma midpoint_comm (x y : P) : midpoint R x y = midpoint R y x :=
+by rw [midpoint, ← line_map_apply_one_sub, one_sub_inv_of_two, midpoint]
+
+@[simp] lemma point_reflection_midpoint_right (x y : P) :
+  point_reflection R (midpoint R x y) y = x :=
+by rw [midpoint_comm, point_reflection_midpoint_left]
+
+lemma midpoint_vsub_midpoint (p₁ p₂ p₃ p₄ : P) :
+  midpoint R p₁ p₂ -ᵥ midpoint R p₃ p₄ = midpoint R (p₁ -ᵥ p₃) (p₂ -ᵥ p₄) :=
+line_map_vsub_line_map _ _ _ _ _
+
+lemma midpoint_vadd_midpoint (v v' : V) (p p' : P) :
+  midpoint R v v' +ᵥ midpoint R p p' = midpoint R (v +ᵥ p) (v' +ᵥ p') :=
+line_map_vadd_line_map _ _ _ _ _
+
+lemma midpoint_eq_iff {x y z : P} : midpoint R x y = z ↔ point_reflection R z x = y :=
+eq_comm.trans ((injective_point_reflection_left_of_module R x).eq_iff'
+  (point_reflection_midpoint_left x y)).symm
+
+variable (R)
+
+lemma midpoint_eq_midpoint_iff_vsub_eq_vsub {x x' y y' : P} :
+  midpoint R x y = midpoint R x' y' ↔ x -ᵥ x' = y' -ᵥ y :=
+by rw [← @vsub_eq_zero_iff_eq V, midpoint_vsub_midpoint, midpoint_eq_iff, point_reflection_apply,
+  vsub_eq_sub, zero_sub, vadd_eq_add, add_zero, neg_eq_iff_neg_eq, neg_vsub_eq_vsub_rev, eq_comm]
+
+lemma midpoint_eq_iff' {x y z : P} : midpoint R x y = z ↔ equiv.point_reflection z x = y :=
+midpoint_eq_iff
 
 /-- `midpoint` does not depend on the ring `R`. -/
-lemma midpoint_unique (R' : Type*) [semiring R'] [invertible (2:R')] [semimodule R' E] (x y : E) :
+lemma midpoint_unique (R' : Type*) [ring R'] [invertible (2:R')] [semimodule R' V] (x y : P) :
   midpoint R x y = midpoint R' x y :=
-(midpoint_eq_iff R).2 $ (midpoint_eq_iff R').1 rfl
+(midpoint_eq_iff' R).2 $ (midpoint_eq_iff' R').1 rfl
 
-@[simp] lemma midpoint_self (x : E) : midpoint R x x = x :=
-by rw [midpoint, smul_add, ← two_smul R, smul_smul, mul_inv_of_self, one_smul]
+@[simp] lemma midpoint_self (x : P) : midpoint R x x = x :=
+line_map_same_apply _ _
 
-variable {R}
+@[simp] lemma midpoint_add_self (x y : V) : midpoint R x y + midpoint R x y = x + y :=
+calc midpoint R x y +ᵥ midpoint R x y = midpoint R x y +ᵥ midpoint R y x : by rw midpoint_comm
+... = x + y : by rw [midpoint_vadd_midpoint, vadd_eq_add, vadd_eq_add, add_comm, midpoint_self]
 
-lemma midpoint_def (x y : E) : midpoint R x y = (⅟2:R) • (x + y) := rfl
+lemma midpoint_zero_add (x y : V) : midpoint R 0 (x + y) = midpoint R x y :=
+(midpoint_eq_midpoint_iff_vsub_eq_vsub R).2 $ by simp [sub_add_eq_sub_sub_swap]
 
-lemma midpoint_comm (x y : E) : midpoint R x y = midpoint R y x :=
-by simp only [midpoint_def, add_comm]
-
-lemma midpoint_zero_add (x y : E) : midpoint R 0 (x + y) = midpoint R x y :=
-(midpoint_eq_iff R).2 $ (zero_add (x + y)).symm ▸ (midpoint_eq_iff R).1 rfl
-
-lemma midpoint_add_add (x y x' y' : E) :
-  midpoint R (x + x') (y + y') = midpoint R x y + midpoint R x' y' :=
-by { simp only [midpoint_def, ← smul_add, add_assoc, add_left_comm x'] }
-
-lemma midpoint_add_right (x y z : E) : midpoint R (x + z) (y + z) = midpoint R x y + z :=
-by rw [midpoint_add_add, midpoint_self]
-
-lemma midpoint_add_left (x y z : E) : midpoint R (x + y) (x + z) = x + midpoint R y z :=
-by rw [midpoint_add_add, midpoint_self]
-
-lemma midpoint_smul_smul (c : R) (x y : E) : midpoint R (c • x) (c • y) = c • midpoint R x y :=
-(midpoint_eq_iff R).2 $ by rw [← smul_add, ← smul_add, (midpoint_eq_iff R).1 rfl]
-
-end monoid
-
-section group
-
-variables [ring R] [invertible (2:R)] [add_comm_group E] [module R E]
-
-lemma midpoint_neg_neg (x y : E) : midpoint R (-x) (-y) = -midpoint R x y :=
-by simpa only [neg_one_smul] using midpoint_smul_smul (-1:R) x y
-
-lemma midpoint_sub_sub (x y x' y' : E) :
-  midpoint R (x - x') (y - y') = midpoint R x y - midpoint R x' y' :=
-by simp only [sub_eq_add_neg, midpoint_add_add, midpoint_neg_neg]
-
-lemma midpoint_sub_right (x y z : E) : midpoint R (x - z) (y - z) = midpoint R x y - z :=
-by rw [midpoint_sub_sub, midpoint_self]
-
-lemma midpoint_sub_left (x y z : E) : midpoint R (x - y) (x - z) = x - midpoint R y z :=
-by rw [midpoint_sub_sub, midpoint_self]
-
-end group
+end
 
 namespace add_monoid_hom
 
-variables (R) (R' : Type*) {F : Type*}
-  [semiring R] [invertible (2:R)] [add_comm_monoid E] [semimodule R E]
-  [semiring R'] [invertible (2:R')] [add_comm_monoid F] [semimodule R' F]
+variables (R) (R' : Type*) {E F : Type*}
+  [ring R] [invertible (2:R)] [add_comm_group E] [semimodule R E]
+  [ring R'] [invertible (2:R')] [add_comm_group F] [semimodule R' F]
 
 /-- A map `f : E → F` sending zero to zero and midpoints to midpoints is an `add_monoid_hom`. -/
 def of_map_midpoint (f : E → F) (h0 : f 0 = 0)
@@ -126,7 +120,7 @@ def of_map_midpoint (f : E → F) (h0 : f 0 = 0)
   E →+ F :=
 { to_fun := f,
   map_zero' := h0,
-  map_add' := λ x y, -- by rw [← midpoint_self R (x + y), ← midpoint_zero_add, hm, h0]
+  map_add' := λ x y,
     calc f (x + y) = f 0 + f (x + y) : by rw [h0, zero_add]
     ... = midpoint R' (f 0) (f (x + y)) + midpoint R' (f 0) (f (x + y)) :
       (midpoint_add_self _ _ _).symm
@@ -138,17 +132,3 @@ def of_map_midpoint (f : E → F) (h0 : f 0 = 0)
   ⇑(of_map_midpoint R R' f h0 hm) = f := rfl
 
 end add_monoid_hom
-
-namespace equiv
-
-variables [ring R] [invertible (2:R)] [add_comm_group E] [module R E]
-
-@[simp] lemma point_reflection_midpoint_left (x y : E) :
-  (point_reflection (midpoint R x y) : E → E) x = y :=
-by rw [point_reflection_apply, midpoint_add_self, add_sub_cancel']
-
-@[simp] lemma point_reflection_midpoint_right (x y : E) :
-  (point_reflection (midpoint R x y) : E → E) y = x :=
-by rw [point_reflection_apply, midpoint_add_self, add_sub_cancel]
-
-end equiv

@@ -1447,6 +1447,16 @@ by rw [← line_map_apply_one_sub, line_map_vsub_left]
   p₁ -ᵥ line_map p₀ p₁ c = (1 - c) • (p₁ -ᵥ p₀) :=
 by rw [← line_map_apply_one_sub, left_vsub_line_map]
 
+lemma line_map_vadd_line_map (v₁ v₂ : V1) (p₁ p₂ : P1) (c : k) :
+  line_map v₁ v₂ c +ᵥ line_map p₁ p₂ c = line_map (v₁ +ᵥ p₁) (v₂ +ᵥ p₂) c :=
+((fst : V1 × P1 →ᵃ[k] V1) +ᵥ snd).apply_line_map  (v₁, p₁) (v₂, p₂) c
+
+lemma line_map_vsub_line_map (p₁ p₂ p₃ p₄ : P1) (c : k) :
+  line_map p₁ p₂ c -ᵥ line_map p₃ p₄ c = line_map (p₁ -ᵥ p₃) (p₂ -ᵥ p₄) c :=
+-- Why Lean fails to file this instance without a hint?
+by letI : affine_space (V1 × V1) (P1 × P1) := prod.add_torsor; exact
+((fst : P1 × P1 →ᵃ[k] P1) -ᵥ (snd : P1 × P1 →ᵃ[k] P1)).apply_line_map (_, _) (_, _) c
+
 /-- Decomposition of an affine map in the special case when the point space and vector space
 are the same. -/
 lemma decomp (f : V1 →ᵃ[k] V2) : (f : V1 → V2) = f.linear + (λ z, f 0) :=

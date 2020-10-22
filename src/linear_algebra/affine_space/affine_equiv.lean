@@ -244,6 +244,16 @@ def vadd_const (b : P₁) : V₁ ≃ᵃ[k] P₁ :=
 
 @[simp] lemma vadd_const_symm_apply (b p : P₁) : (vadd_const k b).symm p = p -ᵥ b := rfl
 
+open affine_map
+
+lemma line_map_vadd (v v' : V₁) (p : P₁) (c : k) :
+  line_map v v' c +ᵥ p = line_map (v +ᵥ p) (v' +ᵥ p) c :=
+(vadd_const k p).apply_line_map v v' c
+
+lemma line_map_vsub (p₁ p₂ p₃ : P₁) (c : k) :
+  line_map p₁ p₂ c -ᵥ p₃ = line_map (p₁ -ᵥ p₃) (p₂ -ᵥ p₃) c :=
+(vadd_const k p₃).symm.apply_line_map p₁ p₂ c
+
 /-- `p' ↦ p -ᵥ p'` as an equivalence. -/
 def const_vsub (p : P₁) : P₁ ≃ᵃ[k] V₁ :=
 { to_equiv := equiv.const_vsub p,
@@ -253,6 +263,10 @@ def const_vsub (p : P₁) : P₁ ≃ᵃ[k] V₁ :=
 @[simp] lemma coe_const_vsub (p : P₁) : ⇑(const_vsub k p) = (-ᵥ) p := rfl
 
 @[simp] lemma coe_const_vsub_symm (p : P₁) : ⇑(const_vsub k p).symm = λ v, -v +ᵥ p := rfl
+
+lemma vsub_line_map (p₁ p₂ p₃ : P₁) (c : k) :
+  p₁ -ᵥ line_map p₂ p₃ c = line_map (p₁ -ᵥ p₂) (p₁ -ᵥ p₃) c :=
+(const_vsub k p₁).apply_line_map p₂ p₃ c
 
 variable (P₁)
 
@@ -267,6 +281,10 @@ def const_vadd (v : V₁) : P₁ ≃ᵃ[k] P₁ :=
 @[simp] lemma const_vadd_apply (v : V₁) (p : P₁) : const_vadd k P₁ v p = v +ᵥ p := rfl
 
 @[simp] lemma const_vadd_symm_apply (v : V₁) (p : P₁) : (const_vadd k P₁ v).symm p = -v +ᵥ p := rfl
+
+lemma vadd_line_map (v : V₁) (p₁ p₂ : P₁) (c : k) :
+  v +ᵥ line_map p₁ p₂ c = line_map (v +ᵥ p₁) (v +ᵥ p₂) c :=
+(const_vadd k P₁ v).apply_line_map p₁ p₂ c
 
 variable {P₁}
 open function

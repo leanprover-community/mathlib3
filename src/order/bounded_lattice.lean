@@ -443,8 +443,6 @@ instance with_bot.decidable_le {α} [has_le α] [decidable_rel ((≤) : α → �
   decidable_rel (@has_le.le (with_bot α) _) :=
 by { delta with_bot.has_le, apply_instance }
 
-protected lemma bot_le [has_le α] (a : with_bot α) : ⊥ ≤ a :=  λ a' h, option.no_confusion h
-
 @[priority 10]
 instance has_lt [has_lt α] : has_lt (with_bot α) :=
 { lt := λ o₁ o₂ : option α, ∃ b ∈ o₂, ∀ a ∈ o₁, a < b }
@@ -461,27 +459,26 @@ lemma bot_lt_coe [has_lt α] (a : α) : (⊥ : with_bot α) < a := bot_lt_some a
 instance [preorder α] : preorder (with_bot α) :=
 { le          := (≤),
   lt          := (<),
-  lt_iff_le_not_le := by intros; cases a; cases b;
+  lt_iff_le_not_le := by abstract { intros; cases a; cases b;
                          simp [lt_iff_le_not_le]; simp [(≤), (<)];
-                         split; refl,
-  le_refl     := λ o a ha, ⟨a, ha, le_refl _⟩,
-  le_trans    := λ o₁ o₂ o₃ h₁ h₂ a ha,
+                         split; refl },
+  le_refl     := by abstract { exact λ o a ha, ⟨a, ha, le_refl _⟩ },
+  le_trans    := by abstract { exact λ o₁ o₂ o₃ h₁ h₂ a ha,
     let ⟨b, hb, ab⟩ := h₁ a ha, ⟨c, hc, bc⟩ := h₂ b hb in
-    ⟨c, hc, le_trans ab bc⟩ }
+    ⟨c, hc, le_trans ab bc⟩ } }
 
 instance partial_order [partial_order α] : partial_order (with_bot α) :=
-{ le_antisymm := λ o₁ o₂ h₁ h₂, begin
+{ le_antisymm := by abstract { intros o₁ o₂ h₁ h₂,
     cases o₁ with a,
     { cases o₂ with b, {refl},
       rcases h₂ b rfl with ⟨_, ⟨⟩, _⟩ },
     { rcases h₁ a rfl with ⟨b, ⟨⟩, h₁'⟩,
       rcases h₂ b rfl with ⟨_, ⟨⟩, h₂'⟩,
-      rw le_antisymm h₁' h₂' }
-  end,
+      rw le_antisymm h₁' h₂' } },
   .. with_bot.preorder }
 
 instance order_bot [partial_order α] : order_bot (with_bot α) :=
-{ bot_le := with_bot.bot_le,
+{ bot_le := by abstract { exact λ a a' h, option.no_confusion h },
   ..with_bot.partial_order, ..with_bot.has_bot }
 
 @[simp, norm_cast] theorem coe_le_coe [partial_order α] {a b : α} :
@@ -504,11 +501,10 @@ lemma le_coe_get_or_else [preorder α] : ∀ (a : with_bot α) (b : α), a ≤ a
 | none     b := λ _ h, option.no_confusion h
 
 instance linear_order [linear_order α] : linear_order (with_bot α) :=
-{ le_total := λ o₁ o₂, begin
+{ le_total := by abstract { intros o₁ o₂,
     cases o₁ with a, {exact or.inl bot_le},
     cases o₂ with b, {exact or.inr bot_le},
-    simp [le_total]
-  end,
+    simp [le_total] },
   ..with_bot.partial_order }
 
 instance decidable_lt [has_lt α] [@decidable_rel α (<)] : @decidable_rel (with_bot α) (<)
@@ -520,47 +516,40 @@ instance decidable_lt [has_lt α] [@decidable_rel α (<)] : @decidable_rel (with
 | x none := is_false $ by rintro ⟨a,⟨⟨⟩⟩⟩
 
 instance decidable_linear_order [decidable_linear_order α] : decidable_linear_order (with_bot α) :=
-{ decidable_le := λ a b, begin
+{ decidable_le := by abstract { intros a b,
     cases a with a,
     { exact is_true bot_le },
     cases b with b,
     { exact is_false (mt (le_antisymm bot_le) (by simp)) },
-    { exact decidable_of_iff _ some_le_some }
-  end,
+    { exact decidable_of_iff _ some_le_some } },
   ..with_bot.linear_order }
 
 instance semilattice_sup [semilattice_sup α] : semilattice_sup_bot (with_bot α) :=
 { sup          := option.lift_or_get (⊔),
-  le_sup_left  := λ o₁ o₂ a ha,
-    by cases ha; cases o₂; simp [option.lift_or_get],
-  le_sup_right := λ o₁ o₂ a ha,
-    by cases ha; cases o₁; simp [option.lift_or_get],
-  sup_le       := λ o₁ o₂ o₃ h₁ h₂ a ha, begin
+  le_sup_left  := by abstract { intros o₁ o₂ a ha, cases ha; cases o₂; simp [option.lift_or_get] },
+  le_sup_right := by abstract { intros o₁ o₂ a ha, cases ha; cases o₁; simp [option.lift_or_get] },
+  sup_le       := by abstract { intros o₁ o₂ o₃ h₁ h₂ a ha,
     cases o₁ with b; cases o₂ with c; cases ha,
     { exact h₂ a rfl },
     { exact h₁ a rfl },
     { rcases h₁ b rfl with ⟨d, ⟨⟩, h₁'⟩,
       simp at h₂,
-      exact ⟨d, rfl, sup_le h₁' h₂⟩ }
-  end,
+      exact ⟨d, rfl, sup_le h₁' h₂⟩ } },
   ..with_bot.order_bot }
 
 instance semilattice_inf [semilattice_inf α] : semilattice_inf_bot (with_bot α) :=
 { inf          := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a ⊓ b)),
-  inf_le_left  := λ o₁ o₂ a ha, begin
+  inf_le_left  := by abstract { intros o₁ o₂ a ha,
     simp at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
-    exact ⟨_, rfl, inf_le_left⟩
-  end,
-  inf_le_right := λ o₁ o₂ a ha, begin
+    exact ⟨_, rfl, inf_le_left⟩ },
+  inf_le_right := by abstract { intros  o₁ o₂ a ha,
     simp at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
-    exact ⟨_, rfl, inf_le_right⟩
-  end,
-  le_inf       := λ o₁ o₂ o₃ h₁ h₂ a ha, begin
+    exact ⟨_, rfl, inf_le_right⟩ },
+  le_inf       := by abstract { intros o₁ o₂ o₃ h₁ h₂ a ha,
     cases ha,
     rcases h₁ a rfl with ⟨b, ⟨⟩, ab⟩,
     rcases h₂ a rfl with ⟨c, ⟨⟩, ac⟩,
-    exact ⟨_, rfl, le_inf ab ac⟩
-  end,
+    exact ⟨_, rfl, le_inf ab ac⟩ },
   ..with_bot.order_bot }
 
 instance lattice [lattice α] : lattice (with_bot α) :=
@@ -598,13 +587,13 @@ have acc_bot : acc ((<) : with_bot α → with_bot α → Prop) ⊥ :=
 
 instance densely_ordered [partial_order α] [densely_ordered α] [no_bot_order α] :
   densely_ordered (with_bot α) :=
-⟨ assume a b,
+⟨ by abstract { intros a b, exact
   match a, b with
   | a,      none   := assume h : a < ⊥, (not_lt_bot h).elim
   | none,   some b := assume h, let ⟨a, ha⟩ := no_bot b in ⟨a, bot_lt_coe a, coe_lt_coe.2 ha⟩
   | some a, some b := assume h, let ⟨a, ha₁, ha₂⟩ := exists_between (coe_lt_coe.1 h) in
     ⟨a, coe_lt_coe.2 ha₁, coe_lt_coe.2 ha₂⟩
-  end⟩
+  end }⟩
 
 end with_bot
 
@@ -659,8 +648,6 @@ instance with_top.decidable_le {α} [has_le α] [decidable_rel ((≤) : α → �
   decidable_rel (@has_le.le (with_top α) _) :=
 by { delta with_top.has_le, apply_instance }
 
-protected lemma le_top [has_le α] (a : with_top α) : a ≤ ⊤ :=  λ a' h, option.no_confusion h
-
 @[simp] theorem some_lt_some [has_lt α] {a b : α} :
   @has_lt.lt (with_top α) _ (some a) (some b) ↔ a < b :=
 by simp [(<)]
@@ -680,27 +667,25 @@ by simp [(<)]; existsi a; refl
 instance [preorder α] : preorder (with_top α) :=
 { le          := (≤),
   lt          := (<),
-  lt_iff_le_not_le := by { intros; cases a; cases b;
+  lt_iff_le_not_le := by abstract { intros; cases a; cases b;
                            simp [lt_iff_le_not_le]; simp [(<),(≤)] },
-  le_refl     := λ o a ha, ⟨a, ha, le_refl _⟩,
-  le_trans    := λ o₁ o₂ o₃ h₁ h₂ c hc,
+  le_refl     := by abstract { intros o a ha, exact ⟨a, ha, le_refl _⟩ },
+  le_trans    := by abstract { intros o₁ o₂ o₃ h₁ h₂ c hc, exact
     let ⟨b, hb, bc⟩ := h₂ c hc, ⟨a, ha, ab⟩ := h₁ b hb in
-    ⟨a, ha, le_trans ab bc⟩,
- }
+    ⟨a, ha, le_trans ab bc⟩ } }
 
 instance partial_order [partial_order α] : partial_order (with_top α) :=
-{ le_antisymm := λ o₁ o₂ h₁ h₂, begin
+{ le_antisymm := by abstract { intros o₁ o₂ h₁ h₂,
     cases o₂ with b,
     { cases o₁ with a, {refl},
       rcases h₂ a rfl with ⟨_, ⟨⟩, _⟩ },
     { rcases h₁ b rfl with ⟨a, ⟨⟩, h₁'⟩,
       rcases h₂ a rfl with ⟨_, ⟨⟩, h₂'⟩,
-      rw le_antisymm h₁' h₂' }
-  end,
+      rw le_antisymm h₁' h₂' } },
   .. with_top.preorder }
 
 instance order_top [partial_order α] : order_top (with_top α) :=
-{ le_top := with_top.le_top,
+{ le_top := by abstract { exact λ a a' h, option.no_confusion h },
   ..with_top.partial_order, .. with_top.has_top }
 
 @[simp, norm_cast] theorem coe_le_coe [partial_order α] {a b : α} :
@@ -734,58 +719,49 @@ lemma not_top_le_coe [partial_order α] (a : α) : ¬ (⊤:with_top α) ≤ ↑a
 assume h, (lt_irrefl ⊤ (lt_of_le_of_lt h (coe_lt_top a))).elim
 
 instance linear_order [linear_order α] : linear_order (with_top α) :=
-{ le_total := λ o₁ o₂, begin
+{ le_total := by abstract { intros o₁ o₂,
     cases o₁ with a, {exact or.inr le_top},
     cases o₂ with b, {exact or.inl le_top},
-    simp [le_total]
-  end,
+    simp [le_total] },
   ..with_top.partial_order }
 
 instance decidable_linear_order [decidable_linear_order α] : decidable_linear_order (with_top α) :=
-{ decidable_le := λ a b, begin
+{ decidable_le := by abstract { intros a b,
     cases b with b,
     { exact is_true le_top },
     cases a with a,
     { exact is_false (mt (le_antisymm le_top) (by simp)) },
-    { exact decidable_of_iff _ some_le_some }
-  end,
+    { exact decidable_of_iff _ some_le_some } },
   ..with_top.linear_order }
 
 instance semilattice_inf [semilattice_inf α] : semilattice_inf_top (with_top α) :=
 { inf          := option.lift_or_get (⊓),
-  inf_le_left  := λ o₁ o₂ a ha,
-    by cases ha; cases o₂; simp [option.lift_or_get],
-  inf_le_right := λ o₁ o₂ a ha,
-    by cases ha; cases o₁; simp [option.lift_or_get],
-  le_inf       := λ o₁ o₂ o₃ h₁ h₂ a ha, begin
+  inf_le_left  := by abstract { intros o₁ o₂ a ha, cases ha; cases o₂; simp [option.lift_or_get] },
+  inf_le_right := by abstract { intros o₁ o₂ a ha, cases ha; cases o₁; simp [option.lift_or_get] },
+  le_inf       := by abstract { intros o₁ o₂ o₃ h₁ h₂ a ha,
     cases o₂ with b; cases o₃ with c; cases ha,
     { exact h₂ a rfl },
     { exact h₁ a rfl },
     { rcases h₁ b rfl with ⟨d, ⟨⟩, h₁'⟩,
       simp at h₂,
-      exact ⟨d, rfl, le_inf h₁' h₂⟩ }
-  end,
+      exact ⟨d, rfl, le_inf h₁' h₂⟩ } },
   ..with_top.order_top }
-
 
 lemma coe_inf [semilattice_inf α] (a b : α) : ((a ⊓ b : α) : with_top α) = a ⊓ b := rfl
 
 instance semilattice_sup [semilattice_sup α] : semilattice_sup_top (with_top α) :=
 { sup          := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a ⊔ b)),
-  le_sup_left  := λ o₁ o₂ a ha, begin
+  le_sup_left  := by abstract { intros o₁ o₂ a ha,
     simp at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
-    exact ⟨_, rfl, le_sup_left⟩
-  end,
-  le_sup_right := λ o₁ o₂ a ha, begin
+    exact ⟨_, rfl, le_sup_left⟩ },
+  le_sup_right := by abstract { intros o₁ o₂ a ha,
     simp at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
-    exact ⟨_, rfl, le_sup_right⟩
-  end,
-  sup_le       := λ o₁ o₂ o₃ h₁ h₂ a ha, begin
+    exact ⟨_, rfl, le_sup_right⟩ },
+  sup_le       := by abstract { intros o₁ o₂ o₃ h₁ h₂ a ha,
     cases ha,
     rcases h₁ a rfl with ⟨b, ⟨⟩, ab⟩,
     rcases h₂ a rfl with ⟨c, ⟨⟩, ac⟩,
-    exact ⟨_, rfl, sup_le ab ac⟩
-  end,
+    exact ⟨_, rfl, sup_le ab ac⟩ },
   ..with_top.order_top }
 
 lemma coe_sup [semilattice_sup α] (a b : α) : ((a ⊔ b : α) : with_top α) = a ⊔ b := rfl
@@ -805,7 +781,7 @@ by rw [← inf_eq_min, lattice_eq_DLO]
 
 instance order_bot [order_bot α] : order_bot (with_top α) :=
 { bot := some ⊥,
-  bot_le := λ o a ha, by cases ha; exact ⟨_, rfl, bot_le⟩,
+  bot_le := by abstract { intros o a ha, cases ha; exact ⟨_, rfl, bot_le⟩ },
   ..with_top.partial_order }
 
 instance bounded_lattice [bounded_lattice α] : bounded_lattice (with_top α) :=

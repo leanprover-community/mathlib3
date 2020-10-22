@@ -14,7 +14,7 @@ import data.polynomial.field_division
 import ring_theory.principal_ideal_domain
 
 noncomputable theory
-local attribute [instance, priority 100] classical.prop_decidable
+open_locale classical
 
 universes u v w
 

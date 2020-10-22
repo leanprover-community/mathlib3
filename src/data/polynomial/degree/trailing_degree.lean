@@ -98,7 +98,6 @@ option.some_inj.1 $ show (nat_trailing_degree p : with_top ℕ) = n,
 begin
   by_cases hp : p = 0, { rw hp, exact le_top },
   rw [trailing_degree_eq_nat_trailing_degree hp],
-  exact le_refl _
 end
 
 lemma nat_trailing_degree_eq_of_trailing_degree_eq [semiring S] {q : polynomial S} (h : trailing_degree p = trailing_degree q) :
@@ -145,7 +144,7 @@ end
 show inf (ite (a = 0) ∅ {0}) some = 0, by rw if_neg ha; refl
 
 lemma le_trailing_degree_C : (0 : with_top ℕ) ≤ trailing_degree (C a) :=
-by by_cases h : a = 0; [rw [h, C_0], rw [trailing_degree_C h]]; [exact bot_le, exact le_refl _]
+by { by_cases h : a = 0; [rw [h, C_0], rw [trailing_degree_C h]], exact bot_le }
 
 lemma trailing_degree_one_le : (0 : with_top ℕ) ≤ trailing_degree (1 : polynomial R) :=
 by rw [← C_1]; exact le_trailing_degree_C

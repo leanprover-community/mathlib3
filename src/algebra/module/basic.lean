@@ -351,6 +351,12 @@ theorem to_add_monoid_hom_injective :
   function.injective (to_add_monoid_hom : (M →ₗ[R] M₂) → (M →+ M₂)) :=
 λ f g h, ext $ add_monoid_hom.congr_fun h
 
+omit semimodule_M₂
+
+/-- If two `R`-linear maps from `R` are equal on `1`, then they are equal. -/
+@[ext] theorem ext_ring {f g : R →ₗ[R] M} (h : f 1 = g 1) : f = g :=
+ext $ λ x, by rw [← mul_one x, ← smul_eq_mul, f.map_smul, g.map_smul, h]
+
 end
 
 section

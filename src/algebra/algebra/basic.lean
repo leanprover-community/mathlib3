@@ -1197,7 +1197,7 @@ corresponding to `V`, an `S`-submodule of the original `S`-module.
 def restrict_scalars (V : submodule A M) : submodule R M :=
 { carrier := V.carrier,
   zero_mem' := V.zero_mem,
-  smul_mem' := λ c m h, by { rw [algebra_compatible_smul A c m], exact V.smul_mem _ h },
+  smul_mem' := λ c m h, by { rw algebra_compatible_smul A c m, exact V.smul_mem _ h },
   add_mem' := λ x y hx hy, V.add_mem hx hy }
 
 @[simp]
@@ -1224,7 +1224,7 @@ lemma restrict_scalars_top : restrict_scalars R (⊤ : submodule A M) = ⊤ := r
 end submodule
 
 @[simp]
-lemma linear_map.restrict_scalars_ker (f : M →ₗ[A] N) :
+lemma linear_map.ker_restrict_scalars (f : M →ₗ[A] N) :
   (f.restrict_scalars R).ker = submodule.restrict_scalars R f.ker :=
 rfl
 

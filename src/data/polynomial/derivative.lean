@@ -161,6 +161,22 @@ theorem of_mem_support_derivative {p : polynomial R} {n : ℕ} (h : n ∈ p.deri
   n + 1 ∈ p.support :=
 finsupp.mem_support_iff.2 $ λ (h1 : p.coeff (n+1) = 0), finsupp.mem_support_iff.1 h $
 show p.derivative.coeff n = 0, by rw [coeff_derivative, h1, zero_mul]
+-- #print with_bot.order_bot
+-- #print instances semilattice_sup_bot
+-- #print with_bot.semilattice_sup
+-- set_option pp.implicit true
+-- -- set_option trace.elaborator_detail true
+-- -- local attribute [semireducible] with_bot.has_le
+-- #print order_bot
+-- example : @order_bot.bot_le _ (@with_bot.order_bot ℕ
+--     (@ordered_cancel_add_comm_monoid.to_partial_order ℕ
+--        (@ordered_semiring.to_ordered_cancel_add_comm_monoid ℕ nat.ordered_semiring))) =
+--           @order_bot.bot_le _ (@semilattice_sup_bot.to_order_bot (with_bot ℕ)
+--     (@with_bot.semilattice_sup ℕ (@semilattice_sup_bot.to_semilattice_sup ℕ nat.semilattice_sup_bot))) :=
+-- begin rfl end
+
+-- #reduce @order_bot.le _ (@semilattice_sup_bot.to_order_bot (with_bot ℕ)
+--     (@with_bot.semilattice_sup ℕ (@semilattice_sup_bot.to_semilattice_sup ℕ nat.semilattice_sup_bot)))
 
 theorem degree_derivative_lt {p : polynomial R} (hp : p ≠ 0) : p.derivative.degree < p.degree :=
 (finset.sup_lt_iff $ bot_lt_iff_ne_bot.2 $ mt degree_eq_bot.1 hp).2 $ λ n hp, lt_of_lt_of_le

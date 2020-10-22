@@ -296,15 +296,15 @@ instance finite_dimensional_right [finite_dimensional K L] (F : intermediate_fie
   finite_dimensional F L :=
 finite_dimensional.right K F L
 
-lemma rename_this [finite_dimensional K L] {F E : intermediate_field K L} (h_le : F ≤ E)
+lemma eq_of_le_of_findim_eq [finite_dimensional K L] {F E : intermediate_field K L} (h_le : F ≤ E)
   (h_findim : finite_dimensional.findim K F = finite_dimensional.findim K E) : F = E :=
 intermediate_field.ext'_iff.mpr (submodule.ext'_iff.mp (finite_dimensional.eq_of_le_of_findim_eq
   (show F.to_subalgebra.to_submodule ≤ E.to_subalgebra.to_submodule, by exact h_le) h_findim))
 
-lemma rename_this_also [finite_dimensional K L] {F E : intermediate_field K L} (h_le : F ≤ E)
+lemma eq_of_le_of_findim_eq' [finite_dimensional K L] {F E : intermediate_field K L} (h_le : F ≤ E)
   (h_findim : finite_dimensional.findim F L = finite_dimensional.findim E L) : F = E :=
 begin
-  apply rename_this h_le,
+  apply eq_of_le_of_findim_eq h_le,
   have h1 := finite_dimensional.findim_mul_findim K F L,
   have h2 := finite_dimensional.findim_mul_findim K E L,
   rw [←h2, h_findim] at h1,

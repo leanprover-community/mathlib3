@@ -384,7 +384,7 @@ theorem sub_add_min (n m : ℕ) : n - m + min n m = n :=
 protected theorem add_sub_cancel' {n m : ℕ} (h : m ≤ n) : m + (n - m) = n :=
 by rw [add_comm, nat.sub_add_cancel h]
 
-protected theorem sub_add_sub_cancel {a b c: ℕ} (hab : b ≤ a) (hbc : c ≤ b) :
+protected theorem sub_add_sub_cancel {a b c : ℕ} (hab : b ≤ a) (hbc : c ≤ b) :
   (a - b) + (b - c) = a - c :=
 by rw [←nat.add_sub_assoc hbc, ←nat.sub_add_comm hab, nat.add_sub_cancel]
 

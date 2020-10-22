@@ -1240,6 +1240,12 @@ do e ← lean.parser.pexpr 0,
   p ← eval_expr (lean.parser unit) e,
   p
 
+add_tactic_doc
+{ name       := "run_parser",
+  category   := doc_category.cmd,
+  decl_names := [``run_parser_cmd],
+  tags       := ["parsing"] }
+
 /-- `get_current_namespace` returns the current namespace (it could be `name.anonymous`).
 
 This function deserves a C++ implementation in core lean, and will fail if it is not called from

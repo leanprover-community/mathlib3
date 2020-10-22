@@ -314,13 +314,13 @@ begin
 end
 
 lemma direction_eq_span (s : affine_subspace k P) :
-  s.direction = submodule.span k ((s : set P) -ᵥ s) :=
+  s.direction = vector_span k (s : set P) :=
 begin
   by_cases hbot : s.direction = ⊥,
   { refine (submodule.span_eq_of_le _ s.vsub_set_subset_coe_direction _).symm,
     rw hbot,
     exact bot_le },
-  { rw [← s.coe_direction_eq_vsub_set (s.nonempty hbot), submodule.span_eq] }
+  { rw [vector_span, ← s.coe_direction_eq_vsub_set (s.nonempty hbot), submodule.span_eq] }
 end
 
 /-- Two affine subspaces are equal if they have the same points. -/
@@ -497,6 +497,11 @@ have ∀ S : set (affine_subspace k P), is_glb S (Inf S),
   le_inf := λ s t u ht hu x hx, ⟨ht hx, hu hx⟩,
   .. complete_lattice_of_Inf _ this }
 
+@[simp] lemma coe_bot : ((⊥ : affine_subspace k P) : set P) = ∅ := rfl
+@[simp] lemma direction_bot : (⊥ : affine_subspace k P).direction = ⊥ := rfl
+@[simp] lemma coe_top : ((⊤ : affine_subspace k P) : set P) = univ := rfl
+@[simp] lemma direction_top : (⊤ : affine_subspace k P).direction = ⊤ := rfl
+
 end lattice
 
 
@@ -508,34 +513,41 @@ variables (k : Type*) {V : Type*} {P : Type*} [ring k] [add_comm_group V] [modul
           [affine_space V P]
 include V
 
+open affine_subspace
+
 /-- The affine span of a set of points is the smallest affine subspace
 containing those points. -/
-def affine_span (s : set P) : affine_subspace k P :=
+def affine_span (s : set P) : affine_subspace k P := Inf {S | s ⊆ S}
 
-/-- The affine span, converted to a set, is `span_points`. -/
-@[simp] lemma coe_affine_span (s : set P) :
-  (affine_span k s : set P) = span_points k s :=
-rfl
+variable {k}
+
+lemma mem_affine_span_iff {x : P} {s : set P} :
+  x ∈ affine_span k s ↔ ∀ S : affine_subspace k P, s ⊆ S → x ∈ S :=
+mem_Inf
 
 /-- A set is contained in its affine span. -/
 lemma subset_affine_span (s : set P) : s ⊆ affine_span k s :=
-subset_span_points k s
+λ x hx, mem_affine_span_iff.2 $ λ S hS, hS hx
+
+/-- A point in a set is in its affine span. -/
+lemma mem_affine_span {p : P} {s : set P} (hp : p ∈ s) : p ∈ affine_span k s :=
+subset_affine_span s hp
+
+@[simp] lemma affine_span_empty : affine_span k (∅ : set P) = ⊥ :=
+bot_unique $ Inf_le (empty_subset _)
 
 /-- The direction of the affine span is the `vector_span`. -/
 lemma direction_affine_span (s : set P) : (affine_span k s).direction = vector_span k s :=
 begin
-  apply le_antisymm,
-  { refine submodule.span_le.2 _,
-    rintros v ⟨p1, p3, ⟨p2, hp2, v1, hv1, hp1⟩, ⟨p4, hp4, v2, hv2, hp3⟩, rfl⟩,
-    rw [hp1, hp3, vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, submodule.mem_coe],
-    exact (vector_span k s).sub_mem ((vector_span k s).add_mem hv1
-      (vsub_mem_vector_span k hp2 hp4)) hv2 },
-  { exact vector_span_mono k (subset_span_points k s) }
+  rcases eq_empty_or_nonempty s with (rfl|⟨x, hx⟩), { simp },
+  refine (direction_Inf_of_mem $ mem_affine_span hx).trans _,
+  refine (submodule.span_eq_of_le _ _ _).symm,
+  { rintros _ ⟨x, y, hx, hy, rfl⟩,
+    simp only [submodule.mem_coe, submodule.mem_infi, mem_Inter, mem_set_of_eq],
+    intros p hp,
+    exact p.vsub_mem_direction (hp hx) (hp hy) },
+  -- {  }
 end
-
-/-- A point in a set is in its affine span. -/
-lemma mem_affine_span {p : P} {s : set P} (hp : p ∈ s) : p ∈ affine_span k s :=
-mem_span_points k p s hp
 
 end affine_span
 

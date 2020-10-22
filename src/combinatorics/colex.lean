@@ -80,9 +80,9 @@ begin
 end
 
 /-- A special case of `colex_hom` which is sometimes useful. -/
-/-lemma colex_hom_fin {n : ℕ} (A B : finset (fin n)) :
-  image fin.val A.1 <ᶜ image fin.val B ↔ A <ᶜ B :=
-colex_hom (λ x y k, k) _ _-/
+lemma colex_hom_fin {n : ℕ} (A B : finset (fin n)) :
+  image subtype.val A <ᶜ image subtype.val B ↔ A <ᶜ B :=
+colex_hom (λ x y k, k) _ _
 
 -- The basic order properties of colex.
 

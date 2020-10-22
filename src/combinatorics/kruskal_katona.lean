@@ -116,9 +116,10 @@ section
       any_goals {exfalso, apply h₂, refl}, use max' V hV,
     refine ⟨_, not_mem_sdiff_of_mem_right (max'_mem _ _), h₁.2 (max'_mem _ _)⟩,
     intros x hx,
-    have: x ∉ V := λ z, not_le_of_lt hx (le_max' _ _ _ z),
+    /-have: x ∉ V := λ z, not_le_of_lt hx (le_max' _ _ _ z),
     have: x ∉ U := λ z, not_le_of_lt hx (trans (le_max' _ _ _ z) (le_of_lt h)),
-    simp [‹x ∉ U›, ‹x ∉ V›]
+    simp [‹x ∉ U›, ‹x ∉ V›]-/
+    sorry,
   end
 
   /--

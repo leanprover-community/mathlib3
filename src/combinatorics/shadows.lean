@@ -180,7 +180,7 @@ section shadow
       split,
         intro p, exact ⟨B, p, subset.refl _, subset.refl _⟩,
         rintro ⟨A, _, q⟩, rw ← subset.antisymm_iff at q, rwa q,
-    simp, rw @ih (∂𝒜) B, clear ih,
+    simp, rw iterate, rw @ih (∂𝒜) B, clear ih,
     split,
       rintro ⟨A, hA, BsubA, card_AdiffB_is_k⟩, rw sub_iff_shadow_one at hA,
       rcases hA with ⟨C, CinA, AsubC, card_CdiffA_is_1⟩,
@@ -526,7 +526,7 @@ begin
     { apply nat.zero_le },
     { apply choose_pos, rw mem_range at hr, rwa ← nat.lt_succ_iff },
     { apply choose_le_middle },
-  rw [← sum_div, ← sum_nat_cast, div_le_one_iff_le] at this,
+  /-rw [← sum_div, ← sum_nat_cast, div_le_one_iff_le] at this,
     swap, norm_cast, apply choose_pos, apply nat.div_le_self,
   norm_cast at this, rw ← card_bind at this,
     convert this,
@@ -535,5 +535,6 @@ begin
       intro ha, refine ⟨a.card, card_le_of_subset (subset_univ _), ha, rfl⟩,
     rintro ⟨_, _, q, _⟩, exact q,
   intros x _ y _ ne, rw disjoint_left, intros a Ha k,
-  exact ne_of_diff_slice Ha k ne rfl
+  exact ne_of_diff_slice Ha k ne rfl-/
+  sorry,
 end

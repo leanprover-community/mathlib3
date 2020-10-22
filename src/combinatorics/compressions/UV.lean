@@ -136,7 +136,8 @@ namespace UV
   lemma is_compressed_empty (𝒜 : finset (finset α)) : is_compressed ∅ ∅ 𝒜 :=
   begin
     have q: ∀ (A : finset α), compress ∅ ∅ A = A, simp [compress],
-    simp [is_compressed, compress_family, ext, q]
+    simp [is_compressed, compress_family], --ext, q]
+    sorry,
   end
 
   /--
@@ -285,7 +286,8 @@ namespace UV
   lemma sdiff_sdiff {A B C : finset α} (h : C ⊆ A) : A \ (B \ C) = A \ B ∪ C :=
   begin
     ext1 i,
-    simp only [mem_union, not_and, mem_sdiff, classical.not_not],
+    simp only [mem_union, not_and, mem_sdiff],
+    push_neg,
     refine ⟨_, _⟩,
     rintro ⟨iA, iBC⟩,
     by_cases (i ∈ C),

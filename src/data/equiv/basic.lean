@@ -260,7 +260,7 @@ begin
   apply symm_apply_apply
 end
 
-@[simp] theorem mul_apply {α : Type u} (f g : perm α) (x) : (f * g) x = f (g x) :=
+theorem mul_apply {α : Type u} (f g : perm α) (x) : (f * g) x = f (g x) :=
 equiv.trans_apply _ _ _
 
 @[simp] theorem one_apply {α : Type u} (x) : (1 : perm α) x = x := rfl
@@ -276,6 +276,8 @@ lemma one_def {α : Type u} : (1 : perm α) = equiv.refl α := rfl
 lemma mul_def {α : Type u} (f g : perm α) : f * g = g.trans f := rfl
 
 lemma inv_def {α : Type u} (f : perm α) : f⁻¹ = f.symm := rfl
+
+@[simp] lemma coe_mul {α : Type u} (f g : perm α) : ⇑(f * g) = f ∘ g := rfl
 
 end perm
 

@@ -246,8 +246,7 @@ begin
   simp only [ha, nat.succ_pnat_coe]
 end
 
-lemma case_strong_induction_on {p : pnat → Prop} (a : pnat)
-  (hz : p 1)
+lemma case_strong_induction_on {p : pnat → Prop} (a : pnat) (hz : p 1)
   (hi : ∀ n, (∀ m, m ≤ n → p m) → p (nat.succ_pnat n)) : p a :=
 begin
   apply strong_induction_on a,

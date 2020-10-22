@@ -280,8 +280,7 @@ begin
   intro hexist,
   obtain ⟨Q, hQ⟩ := hexist,
   by_cases hzero : P = 0,
-  {
-    use 0,
+  { use 0,
     simp only [hzero, degree_zero, eq_self_iff_true, and_self, map_zero] },
   have hcoeff : ∀ n ∈ finset.range (P.nat_degree + 1), f (Q.coeff n) = P.coeff n,
   { intros n hn,

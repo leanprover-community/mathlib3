@@ -438,6 +438,11 @@ lemma le_def [has_le α] {o₁ o₂ : with_bot α} :
   o₁ ≤ o₂ ↔ ∀ a (h : @has_mem.mem _ _ option.has_mem a o₁),
     ∃ b (h : @has_mem.mem _ _ option.has_mem b o₂), a ≤ b := iff.rfl
 
+@[priority 1010]
+instance with_bot.decidable_le {α} [has_le α] [decidable_rel ((≤) : α → α → Prop)] :
+  decidable_rel (@has_le.le (with_bot α) _) :=
+by { delta with_bot.has_le, apply_instance }
+
 @[priority 10]
 instance has_lt [has_lt α] : has_lt (with_bot α) :=
 { lt := λ o₁ o₂ : option α, ∃ b ∈ o₂, ∀ a ∈ o₁, a < b }
@@ -646,6 +651,11 @@ instance has_le [has_le α] : has_le (with_top α) :=
 lemma le_def [has_le α] {o₁ o₂ : with_top α} :
   o₁ ≤ o₂ ↔ ∀ a (h : @has_mem.mem _ _ option.has_mem a o₂),
     ∃ b (h : @has_mem.mem _ _ option.has_mem b o₁), b ≤ a := iff.rfl
+
+@[priority 1010]
+instance with_top.decidable_le {α} [has_le α] [decidable_rel ((≤) : α → α → Prop)] :
+  decidable_rel (@has_le.le (with_top α) _) :=
+by { delta with_top.has_le, apply_instance }
 
 @[simp] theorem some_lt_some [has_lt α] {a b : α} :
   @has_lt.lt (with_top α) _ (some a) (some b) ↔ a < b :=

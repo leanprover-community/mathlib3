@@ -120,8 +120,7 @@ have degree p ≤ 0,
     if hu0 : u = 0
     then begin
         rw [hu0, mul_zero] at hu,
-        rw [← mul_one p, hu, mul_zero],
-        simp
+        rw [← mul_one p, hu, mul_zero]
       end
     else have p.leading_coeff * u.leading_coeff ≠ 0,
         by rw [hm.leading_coeff, one_mul, ne.def, leading_coeff_eq_zero];

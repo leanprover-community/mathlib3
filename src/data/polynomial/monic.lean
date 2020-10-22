@@ -367,7 +367,7 @@ begin
     rw [add_comm, polynomial.leading_coeff_add_of_degree_lt _],
     { simp only [leading_coeff_X_pow] },
     apply lt_of_lt_of_le deglt _,
-    simp only [degree_X_pow, degree_le_nat_degree]},
+    simp only [degree_X_pow, degree_le_nat_degree] },
 end
 
 end nonzero_semiring

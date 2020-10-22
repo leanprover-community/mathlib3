@@ -504,7 +504,7 @@ this.elim
     by rw h₁ at h₂; exact absurd h₂ dec_trivial)
   (λ hgu, by rw [hg, degree_mul, degree_X_sub_C, degree_eq_zero_of_is_unit hgu, add_zero])
 
-/-Division by a monic polynomial doesn't change the leading coefficient. -/
+/-- Division by a monic polynomial doesn't change the leading coefficient. -/
 lemma leading_coeff_of_div_monic {R : Type u} [integral_domain R] {p q : polynomial R} :
   q.monic → q.degree ≤ p.degree → p.leading_coeff = (p /ₘ q).leading_coeff :=
 begin

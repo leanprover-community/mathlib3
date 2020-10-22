@@ -15,12 +15,14 @@ variables {R : Type u} [ring R]
 /-- `S` is a subring: a set containing 1 and closed under multiplication, addition and and additive inverse. -/
 class is_subring (S : set R) extends is_add_subgroup S, is_submonoid S : Prop.
 
+/-- The ring structure on a subring coerced to a type. -/
 local attribute [instance]
 def subset.ring {S : set R} [is_subring S] : ring S :=
 { left_distrib := λ x y z, subtype.eq $ left_distrib x.1 y.1 z.1,
   right_distrib := λ x y z, subtype.eq $ right_distrib x.1 y.1 z.1,
   .. subtype.add_comm_group, .. subtype.monoid }
 
+/-- The ring structure on a subring coerced to a type. -/
 def subtype.ring {S : set R} [is_subring S] : ring (subtype S) := subset.ring
 
 namespace ring_hom
@@ -55,12 +57,15 @@ def is_subring.subtype (S : set R) [is_subring S] : S →+* R :=
 
 variables {cR : Type u} [comm_ring cR]
 
+/-- The commutative ring structure on a subring coerced to a type. -/
 def subset.comm_ring {S : set cR} [is_subring S] : comm_ring S :=
 { mul_comm := λ x y, subtype.eq $ mul_comm x.1 y.1,
   .. subset.ring }
 
+/-- The commutative ring structure on a subring coerced to a type. -/
 def subtype.comm_ring {S : set cR} [is_subring S] : comm_ring (subtype S) := subset.comm_ring
 
+/-- The integral domain structure on a subring of an integral domain coerced to a type. -/
 def subring.domain {D : Type*} [integral_domain D] (S : set D) [is_subring S] :
   integral_domain S :=
 { exists_pair_ne := ⟨0, 1, mt subtype.ext_iff_val.1 zero_ne_one⟩,

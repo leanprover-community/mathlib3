@@ -43,13 +43,16 @@ theorem multiplicative.is_subgroup_iff
 ⟨by rintro ⟨⟨h₁, h₂⟩, h₃⟩; exact @is_add_subgroup.mk A _ _ ⟨h₁, @h₂⟩ @h₃,
   λ h, by exactI multiplicative.is_subgroup _⟩
 
-@[to_additive]
+/-- The group structure on a subgroup coerced to a type. -/
+@[to_additive "/-- The additive group structure on an additive subgroup coerced to a type."]
 def subtype.group {s : set G} [is_subgroup s] : group s :=
 { inv := λ x, ⟨(x:G)⁻¹, is_subgroup.inv_mem x.2⟩,
   mul_left_inv := λ x, subtype.eq $ mul_left_inv x.1,
   .. subtype.monoid }
 
-@[to_additive]
+/-- The commutative group structure on a commutative subgroup coerced to a type. -/
+@[to_additive "The additive commutative group structure
+ on a additive commutative subgroup coerced to a type."]
 def subtype.comm_group {G : Type*} [comm_group G] {s : set G} [is_subgroup s] : comm_group s :=
 { .. subtype.group, .. subtype.comm_monoid }
 

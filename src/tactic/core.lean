@@ -1229,7 +1229,7 @@ meta def emit_code_here_aux : string → ℕ → lean.parser unit
 | str slen := do
   left ← emit_command_here str,
   let llen := left.length,
-  when (llen < slen) (emit_code_here_aux left llen)
+  when (llen < slen ∧ llen ≠ 0) (emit_code_here_aux left llen)
 
 /-- `emit_code_here str` behaves as if the string `str` were placed at the current location in
 source code. -/

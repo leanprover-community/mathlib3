@@ -251,7 +251,7 @@ begin
   have h2b0 : b / 2 ≠ 0,
   { apply ne_zero_pow (dec_trivial : 2 ≠ 0),
     rw hs, apply mul_ne_zero, { exact ne_of_gt h4}, { exact hrsz } },
-  obtain ⟨i, ⟨hi0, hi⟩⟩ := int.sqr_of_coprime h2b0 hcp hs.symm,
+  obtain ⟨i, hi⟩ := int.sqr_of_coprime hcp hs.symm,
   -- use m is positive to exclude m = - i ^ 2
   have hi' : ¬ m = - i ^ 2,
   { by_contradiction h1,
@@ -259,10 +259,12 @@ begin
     rw ← h1 at hit,
     apply absurd h4 (not_lt.mpr hit) },
   replace hi : m = i ^ 2, { apply or.resolve_right hi hi' },
+  have hi0 : i ≠ 0,
+  { intro h0, rw [h0, zero_pow (dec_trivial : 0 < 2)] at hi, apply absurd hi (ne_of_gt h4) },
   rw mul_comm at hs,
   rw [int.gcd_comm] at hcp,
   -- obtain d such that r * s = d ^ 2
-  obtain ⟨d, ⟨hd0, hd⟩⟩ := int.sqr_of_coprime h2b0 hcp hs.symm,
+  obtain ⟨d, hd⟩ := int.sqr_of_coprime hcp hs.symm,
   -- (b / 2) ^ 2 and m are positive so r * s is positive
   have hd' : ¬ r * s = - d ^ 2,
   { by_contradiction h1,
@@ -274,11 +276,17 @@ begin
     exact absurd (lt_of_le_of_ne h2' (ne.symm (pow_ne_zero _ h2b0))) (not_lt.mpr h2) },
   replace hd : r * s = d ^ 2, { apply or.resolve_right hd hd' },
   -- r = +/- j ^ 2
-  obtain ⟨j, ⟨hj0, hj⟩⟩ := int.sqr_of_coprime hd0 htt4 hd,
+  obtain ⟨j, hj⟩ := int.sqr_of_coprime htt4 hd,
+  have hj0 : j ≠ 0,
+  { intro h0, rw [h0, zero_pow (dec_trivial : 0 < 2), neg_zero, or_self] at hj,
+    apply left_ne_zero_of_mul hrsz hj },
   rw mul_comm at hd,
   rw [int.gcd_comm] at htt4,
   -- s = +/- k ^ 2
-  obtain ⟨k, ⟨hk0, hk⟩⟩ := int.sqr_of_coprime hd0 htt4 hd,
+  obtain ⟨k, hk⟩ := int.sqr_of_coprime htt4 hd,
+  have hk0 : k ≠ 0,
+  { intro h0, rw [h0, zero_pow (dec_trivial : 0 < 2), neg_zero, or_self] at hk,
+    apply right_ne_zero_of_mul hrsz hk },
   have hj2 : r ^ 2 = j ^ 4, { cases hj with hjp hjp; { rw hjp, ring } },
   have hk2 : s ^ 2 = k ^ 4, { cases hk with hkp hkp; { rw hkp, ring } },
   -- from m = r ^ 2 + s ^ 2 we now get a new solution to a ^ 4 + b ^ 4 = c ^ 2:

@@ -144,17 +144,12 @@ lemma nat_abs_lcm (i j : ℤ) : nat_abs (gcd_monoid.lcm i j) = int.lcm i j := rf
 
 end gcd_monoid
 
-lemma sqr_of_coprime {a b c : ℤ} (hc : c ≠ 0) (h : int.gcd a b = 1) (heq : a * b = c ^ 2) :
-  ∃ (a0 : ℤ), a0 ≠ 0 ∧ (a = a0 ^ 2 ∨ a = - (a0 ^ 2)) :=
+lemma sqr_of_coprime {a b c : ℤ} (h : int.gcd a b = 1) (heq : a * b = c ^ 2) :
+  ∃ (a0 : ℤ), a = a0 ^ 2 ∨ a = - (a0 ^ 2) :=
 begin
-  have hc2 : a * b ≠ 0, { rw heq, exact pow_ne_zero 2 hc },
   have h' : gcd_monoid.gcd a b = 1, { rw [← coe_gcd, h], dec_trivial },
-  obtain ⟨d, ⟨u, hu⟩⟩ := exists_associated_pow_of_mul_eq_pow (left_ne_zero_of_mul hc2)
-    (right_ne_zero_of_mul hc2) h' heq,
+  obtain ⟨d, ⟨u, hu⟩⟩ := exists_associated_pow_of_mul_eq_pow h' heq,
   use d,
-  have h2 : d ^ 2 ≠ 0,
-  { apply @left_ne_zero_of_mul _ _ _ (u : ℤ), rw hu, exact (left_ne_zero_of_mul hc2) },
-  apply and.intro (ne_zero_pow (dec_trivial : 2 ≠ 0) h2),
   rw ← hu,
   cases int.units_eq_one_or u with hu' hu'; { rw hu', simp }
 end

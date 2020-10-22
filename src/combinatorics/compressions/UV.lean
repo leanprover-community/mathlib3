@@ -136,7 +136,7 @@ namespace UV
   lemma is_compressed_empty (𝒜 : finset (finset α)) : is_compressed ∅ ∅ 𝒜 :=
   begin
     have q: ∀ (A : finset α), compress ∅ ∅ A = A, simp [compress],
-    simp [is_compressed, compress_family], --ext, q]
+    simp [is_compressed, compress_family], --ext, q]s
     sorry,
   end
 

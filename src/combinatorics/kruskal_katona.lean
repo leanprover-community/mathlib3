@@ -127,7 +127,7 @@ section
   on the ordering of the ground set, unlike KK itself).
   -/
   def family_measure (𝒜 : finset (finset (fin n))) : ℕ :=
-  𝒜.sum (λ A, (A.image fin.val).sum (pow 2))
+  𝒜.sum (λ A, (image subtype.val A).sum (pow 2))
 
   /--
   Applying a compression strictly decreases the measure. This helps show that
@@ -151,13 +151,14 @@ section
     rw [family_measure, family_measure, sum_union (compress_disjoint U V)],
     conv_rhs {rw ← uA}, rw [sum_union, add_comm, add_lt_add_iff_left, sum_image],
         apply sum_lt_sum_of_nonempty ne₂, intros A hA, rw [binary_iff, colex_hom_fin],
-        apply compression_reduces_set A h (q _ hA),
+        sorry, sorry,
+        /-apply compression_reduces_set A h (q _ hA),
       intros x Hx y Hy k, have cx := q x Hx, have cy := q y Hy,
       rw compress at k cx, split_ifs at k cx,
         rw compress at k cy, split_ifs at k cy,
           exact inj_ish h_1 h_2 k,
         exfalso, apply cy rfl,
-      exfalso, apply cx rfl,
+      exfalso, apply cx rfl,-/
     rw disjoint_iff_inter_eq_empty,
     apply filter_inter_filter_neg_eq
   end

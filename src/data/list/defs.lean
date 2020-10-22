@@ -597,12 +597,6 @@ list.decidable_pairwise
      erase_dup [1, 0, 2, 2, 1] = [0, 2, 1] -/
 def erase_dup [decidable_eq α] : list α → list α := pw_filter (≠)
 
-/-- `range' s n` is the list of numbers `[s, s+1, ..., s+n-1]`.
-  It is intended mainly for proving properties of `range` and `iota`. -/
-@[simp] def range' : ℕ → ℕ → list ℕ
-| s 0     := []
-| s (n+1) := s :: range' (s+1) n
-
 /-- Drop `none`s from a list, and replace each remaining `some a` with `a`. -/
 def reduce_option {α} : list (option α) → list α :=
 list.filter_map id

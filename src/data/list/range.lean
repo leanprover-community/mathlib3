@@ -16,6 +16,12 @@ universe u
 
 variables {α : Type u}
 
+/-- `range' s n` is the list of numbers `[s, s+1, ..., s+n-1]`.
+It is intended mainly for proving properties of `range` and `iota`. -/
+@[simp] def range' : ℕ → ℕ → list ℕ
+| s 0     := []
+| s (n+1) := s :: range' (s+1) n
+
 @[simp] theorem length_range' : ∀ (s n : ℕ), length (range' s n) = n
 | s 0     := rfl
 | s (n+1) := congr_arg succ (length_range' _ _)

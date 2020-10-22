@@ -17,7 +17,7 @@ instance is_subfield.field [is_subfield S] : field S :=
   mul_inv_cancel := λ a ha, subtype.ext_iff_val.2 (mul_inv_cancel
     (λ h, ha $ subtype.ext_iff_val.2 h)),
   inv_zero := subtype.ext_iff_val.2 inv_zero,
-  ..show comm_ring S, by apply_instance }
+  .. show comm_ring S, from @subtype.comm_ring _ _ _ _inst_2.to_is_subring }
 
 lemma is_subfield.pow_mem {a : F} {n : ℤ} {s : set F} [is_subfield s] (h : a ∈ s) :
   a ^ n ∈ s :=

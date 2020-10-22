@@ -8,8 +8,6 @@ import deprecated.group
 
 universes u v
 
-set_option default_priority 90
-
 open group
 
 variables {R : Type u} [ring R]
@@ -56,13 +54,13 @@ def is_subring.subtype (S : set R) [is_subring S] : S →+* R :=
 
 variables {cR : Type u} [comm_ring cR]
 
-instance subset.comm_ring {S : set cR} [is_subring S] : comm_ring S :=
+def subset.comm_ring {S : set cR} [is_subring S] : comm_ring S :=
 { mul_comm := λ x y, subtype.eq $ mul_comm x.1 y.1,
   .. subset.ring }
 
-instance subtype.comm_ring {S : set cR} [is_subring S] : comm_ring (subtype S) := subset.comm_ring
+def subtype.comm_ring {S : set cR} [is_subring S] : comm_ring (subtype S) := subset.comm_ring
 
-instance subring.domain {D : Type*} [integral_domain D] (S : set D) [is_subring S] :
+def subring.domain {D : Type*} [integral_domain D] (S : set D) [is_subring S] :
   integral_domain S :=
 { exists_pair_ne := ⟨0, 1, mt subtype.ext_iff_val.1 zero_ne_one⟩,
   eq_zero_or_eq_zero_of_mul_eq_zero := λ ⟨x, hx⟩ ⟨y, hy⟩,

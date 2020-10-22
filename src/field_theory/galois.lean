@@ -99,19 +99,6 @@ def fixing_subgroup_equiv : fixing_subgroup K ≃ (E ≃ₐ[K] E) := {
   right_inv := λ _, by {ext, refl},
 }
 
-lemma key_lemma {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
-  [finite_dimensional F E] (ϕ : E →ₐ[F] E) : function.bijective ϕ :=
-begin
-  have inj : function.injective ϕ.to_linear_map := ϕ.to_ring_hom.injective,
-  have rank_nullity := linear_map.findim_range_add_findim_ker ϕ.to_linear_map,
-  rw [linear_map.ker_eq_bot_of_injective inj, findim_bot, add_zero] at rank_nullity,
-  rw ← @findim_top F E _ _ _ at rank_nullity,
-  split,
-  { exact inj },
-  { exact linear_map.range_eq_top.mp (eq_of_le_of_findim_eq
-    (@le_top (submodule F E) _ ϕ.to_linear_map.range) rank_nullity) },
-end
-
 theorem fixing_subgroup_of_fixed_field [finite_dimensional F E] :
   fixing_subgroup (fixed_field H) = H :=
 begin
@@ -128,7 +115,7 @@ begin
   exact
   { to_fun := λ ϕ, alg_equiv.of_bijective
       (alg_hom.mk ϕ ϕ.map_one ϕ.map_mul ϕ.map_zero ϕ.map_add ϕ.commutes)
-      (by { have key := key_lemma ϕ, exact key }),
+      (by { have key := algebra_hom.bijective ϕ, exact key }),
     inv_fun := λ ϕ, alg_hom.mk ϕ ϕ.map_one ϕ.map_mul ϕ.map_zero ϕ.map_add ϕ.commutes,
     left_inv := λ _, by {ext, refl},
     right_inv := λ _, by {ext, refl} },

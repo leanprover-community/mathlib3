@@ -8,6 +8,8 @@ import deprecated.group
 
 universes u v
 
+set_option default_priority 90
+
 open group
 
 variables {R : Type u} [ring R]

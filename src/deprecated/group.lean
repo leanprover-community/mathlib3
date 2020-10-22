@@ -52,6 +52,8 @@ library_note "no instance on morphisms"
 universes u v
 variables {α : Type u} {β : Type v}
 
+set_option default_priority 90
+
 /-- Predicate for maps which preserve an addition. -/
 class is_add_hom {α β : Type*} [has_add α] [has_add β] (f : α → β) : Prop :=
 (map_add [] : ∀ x y, f (x + y) = f x + f y)

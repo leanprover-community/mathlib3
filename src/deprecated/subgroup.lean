@@ -7,6 +7,8 @@ Authors: Johannes Hölzl, Mitchell Rowett, Scott Morrison, Johan Commelin, Mario
 import group_theory.subgroup
 import deprecated.submonoid
 
+set_option default_priority 90
+
 open set function
 
 variables {G : Type*} {H : Type*} {A : Type*} {a a₁ a₂ b c: G}

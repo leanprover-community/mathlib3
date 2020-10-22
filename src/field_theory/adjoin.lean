@@ -7,6 +7,7 @@ Authors: Thomas Browning and Patrick Lutz
 import field_theory.tower
 import field_theory.intermediate_field
 import field_theory.splitting_field
+import field_theory.fixed
 
 open finite_dimensional
 
@@ -380,7 +381,7 @@ section adjoin_integral_element
 
 variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (α : E) [h : is_integral F α]
 
-lemma finite_dimensional_adjoin_integral : findim F F⟮α⟯ = (minimal_polynomial h).nat_degree :=
+instance finite_dimensional_adjoin_integral : finite_dimensional F F⟮α⟯ :=
 begin
 end
 
@@ -388,9 +389,13 @@ lemma findim_adjoin_integral : findim F F⟮α⟯ = (minimal_polynomial h).nat_d
 begin
 end
 
-lemma findim_adjoin_integral : findim F F⟮α⟯ = (minimal_polynomial h).nat_degree :=
+lemma alg_hom_adjoin_integral : fintype.card (F⟮α⟯ →ₐ[F] F⟮α⟯) = (minimal_polynomial h).nat_degree :=
 begin
 end
+
+lemma alg_equiv_adjoin_integral : fintype.card (F⟮α⟯ ≃ₐ[F] F⟮α⟯) = (minimal_polynomial h).nat_degree :=
+eq.trans (fintype.card_congr (algebra_equiv_equiv_algebra_hom F F⟮α⟯))
+  (@alg_hom_adjoin_integral F _ _ _ _ α h)
 
 end adjoin_integral_element
 

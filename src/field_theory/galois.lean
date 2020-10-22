@@ -110,15 +110,9 @@ begin
   haveI := fintype.of_equiv _ ((fixed_points.to_alg_hom_equiv H E)),
   haveI := fintype.of_equiv _ (fixing_subgroup_equiv (fixed_field H)),
   rw fintype.card_congr (fixing_subgroup_equiv (fixed_field H)),
-  rw fintype.card_congr ((fixed_points.to_alg_hom_equiv H E)),
-  apply fintype.card_congr,
-  exact
-  { to_fun := λ ϕ, alg_equiv.of_bijective
-      (alg_hom.mk ϕ ϕ.map_one ϕ.map_mul ϕ.map_zero ϕ.map_add ϕ.commutes)
-      (by { have key := algebra_hom.bijective ϕ, exact key }),
-    inv_fun := λ ϕ, alg_hom.mk ϕ ϕ.map_one ϕ.map_mul ϕ.map_zero ϕ.map_add ϕ.commutes,
-    left_inv := λ _, by {ext, refl},
-    right_inv := λ _, by {ext, refl} },
+  rw fintype.card_congr (fixed_points.to_alg_hom_equiv H E),
+  rw fintype.card_congr (algebra_equiv_equiv_algebra_hom (fixed_field H) E),
+  exact fintype.card_congr (by refl),
 end
 
 instance alg_instance : algebra K (fixed_field (fixing_subgroup K)) := {

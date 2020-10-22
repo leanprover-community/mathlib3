@@ -224,7 +224,7 @@ theorem add_sub_of_lt {a b : ℕ+} : a < b → a + (b - a) = b :=
 
 instance : has_well_founded ℕ+ := ⟨(<), measure_wf coe⟩
 
-/-Strong induction on `pnat`. -/
+/-- Strong induction on `pnat`. -/
 lemma strong_induction_on {p : pnat → Prop} : ∀ (n : pnat) (h : ∀ k, (∀ m, m < k → p m) → p k), p n
 | n := λ IH, IH _ (λ a h, strong_induction_on a IH)
 using_well_founded { dec_tac := `[assumption] }

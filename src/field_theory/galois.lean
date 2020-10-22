@@ -157,20 +157,11 @@ instance tower_instance : is_scalar_tower K (fixed_field (fixing_subgroup K)) E 
 theorem fixed_field_of_fixing_subgroup [finite_dimensional F E] [h : is_galois F E] :
   fixed_field (fixing_subgroup K) = K :=
 begin
-  have le_K : K ≤ fixed_field (fixing_subgroup K) :=
+  have K_le : K ≤ fixed_field (fixing_subgroup K) :=
     λ x hx ϕ, subtype.mem ϕ (⟨x, hx⟩ : K),
   haveI : finite_dimensional K (fixed_field (fixing_subgroup K)) := sorry,
   suffices : findim K E = findim (fixed_field (fixing_subgroup K)) E,
-  { rw ← findim_mul_findim K (fixed_field (fixing_subgroup K)) E at this,
-    have key := (nat.mul_left_eq_self_iff findim_pos).mp this,
-    have key' := subalgebra.findim_eq_one_iff.mp,
-    sorry,
-    sorry,
-    sorry,
-    sorry,
-    sorry,
-    sorry,
-    sorry, },
+  { exact (intermediate_field.rename_this_also K_le this).symm },
   rw findim_fixed_field_eq_card,
   haveI := galois_of_tower_top K,
   rw fintype.card_congr (fixing_subgroup_equiv K),

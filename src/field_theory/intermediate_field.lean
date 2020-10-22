@@ -296,6 +296,24 @@ instance finite_dimensional_right [finite_dimensional K L] (F : intermediate_fie
   finite_dimensional F L :=
 finite_dimensional.right K F L
 
+lemma mylemma (F : Type*) [field F] (V : Type*) [add_comm_group V] [module F V]
+  [finite_dimensional F V] (s t : submodule F V) (h_le : s ≤ t)
+    (h_findim : finite_dimensional.findim F s = finite_dimensional.findim F t) : s = t :=
+begin
+  sorry,
+end
+
+lemma rename_this [finite_dimensional K L] {F E : intermediate_field K L} (h_le : F ≤ E)
+  (h_findim : finite_dimensional.findim K F = finite_dimensional.findim K E) : F = E :=
+intermediate_field.ext'_iff.mpr (submodule.ext'_iff.mp
+  (mylemma K L F.to_subalgebra.to_submodule E.to_subalgebra.to_submodule h_le h_findim))
+
+lemma rename_this_also [finite_dimensional K L] {F E : intermediate_field K L} (h_le : F ≤ E)
+  (h_findim : finite_dimensional.findim F L = finite_dimensional.findim E L) : F = E :=
+begin
+  --Use previous lemma (rename_this) and tower law (findim_mul_findim)
+end
+
 end finite_dimensional
 
 end intermediate_field

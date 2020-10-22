@@ -269,7 +269,7 @@ by simpa only [monic, leading_coeff_zero] using (zero_ne_one : (0 : R) ≠ 1)
 lemma ne_zero_of_monic (h : monic p) : p ≠ 0 :=
 λ h₁, @not_monic_zero R _ _ (h₁ ▸ h)
 
-/-If we have a morphism of semiring `f : R →+* S` and a polynomial `P : polynomial S`
+/-- If we have a morphism of semirings `f : R →+* S` and a polynomial `P : polynomial S`
   that comes via `f` from a polynomial `Q : polynomial R`, then it comes from
   a polynomial of the same degree. -/
 lemma lifts_of_same_degree {R : Type u} {S : Type v} [comm_semiring R]

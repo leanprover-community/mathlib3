@@ -196,8 +196,14 @@ lemma if_inv_then_int {I : ideal R} (hR : is_dedekind_domain R) (x : f.codomain)
 (h_prod : ↑I * (1 / ↑I : fractional_ideal f) = ↑I) :
 x ∈ (1/↑I : fractional_ideal f).val → (f.to_map).is_integral_elem x :=
 begin
-obtain ⟨y, ⟨h_Iy , h_nzy⟩⟩ : ∃ y ∈ I, y ≠ (0 : R),
-  apply (submodule.ne_bot_iff I).mp, exact h_nzI,
+have h_Sam : ∀ (n : ℕ), ∀ (y ∈ I), (f.to_map y) * x^n ∈ (↑I : fractional_ideal f).val,
+  intro n, induction n with n hn,
+  {intros y hy, ring, apply (fractional_ideal.mem_coe).mpr,
+   use y, apply and.intro hy _, triv,
+  }
+  {
+
+  },
 let h_RalgK := (ring_hom.to_algebra f.to_map),
 let φ := @aeval R K _ _ h_RalgK x,
 let A := @alg_hom.range R (polynomial R) f.codomain _ _ _  _ h_RalgK φ,
@@ -205,6 +211,8 @@ have h_xA :  x ∈ A,
   suffices hp : ∃ (p : polynomial R), φ p = x, simpa,
   use X, apply aeval_X,
 have h_fracA : is_fractional f A,
+obtain ⟨y, ⟨h_Iy , h_nzy⟩⟩ : ∃ y ∈ I, y ≠ (0 : R),
+  apply (submodule.ne_bot_iff I).mp, exact h_nzI,
  use y, split, apply mem_non_zero_divisors_iff_ne_zero.mpr h_nzy,
   {suffices h_intmon : ∀ (n : ℕ), f.is_integer (f.to_map y * x^n),
     have h_intpol : ∀ (p : polynomial R), f.is_integer (f.to_map y * eval₂ f.to_map x p),
@@ -220,11 +228,10 @@ have h_fracA : is_fractional f A,
       apply aeval_def x pb,
      },
     rw ← h_polb, specialize h_intpol polb, exact h_intpol,
-    intro n, induction n with n hn,
-      {use y, ring,
-      },--the case n=0
-      {rw pow_succ, sorry,
-      },--inductive step
+    intro n, specialize h_Sam n y h_Iy,
+    obtain ⟨z, ⟨ _ , hz⟩⟩ :  ∃ (x' ∈ I), (f.to_map x') = (f.to_map y) * x ^ n,
+     apply (fractional_ideal.mem_coe).mp, exact h_Sam,
+    use z, exact hz,
   },
 let IA : fractional_ideal f := ⟨A, h_fracA⟩,
 have h_noethA : is_noetherian R A, apply fractional_ideal.fg_of_noetherian hR.2 IA,

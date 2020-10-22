@@ -534,7 +534,7 @@ begin
     { split, { ring }, rw int.gcd_comm, exact coprime_pow_two_sub_mul co pp } }
 end
 
-private lemma parity_eq_neg_parity (i : ℤ) : (-i) % 2 = i % 2 :=
+private lemma neg_parity_eq_parity (i : ℤ) : (-i) % 2 = i % 2 :=
 begin
   apply int.mod_eq_mod_iff_mod_sub_eq_zero.mpr,
   convert int.mul_mod_right 2 (-i), ring
@@ -577,7 +577,7 @@ begin
       { apply and.intro h_pos,
         split,
         { delta int.gcd, rw [int.nat_abs_neg, int.nat_abs_neg], exact ht3 },
-        { rw [parity_eq_neg_parity, parity_eq_neg_parity],
+        { rw [neg_parity_eq_parity, neg_parity_eq_parity],
           apply and.intro ht4, linarith } },
       { exfalso, revert h_pos, rw h_neg,
         exact imp_false.mpr (not_lt.mpr (neg_nonpos.mpr (add_nonneg (pow_two_nonneg m)

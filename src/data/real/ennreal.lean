@@ -71,13 +71,19 @@ noncomputable theory
 open classical set
 
 open_locale classical big_operators nnreal
+
 variables {α : Type*} {β : Type*}
+
+section semireducible
+local attribute [semireducible] with_top.has_le
 
 /-- The extended nonnegative real numbers. This is usually denoted [0, ∞],
   and is relevant as the codomain of a measure. -/
 @[derive canonically_ordered_comm_semiring, derive complete_linear_order, derive densely_ordered,
   derive nontrivial]
 def ennreal := with_top ℝ≥0
+
+end semireducible
 
 localized "notation `∞` := (⊤ : ennreal)" in ennreal
 
@@ -710,8 +716,7 @@ lemma sub_mul_ge : a * c - b * c ≤ (a - b) * c :=
 begin
   -- with `0 < b → b < a → c ≠ ∞` Lean names the first variable `a`
   by_cases h : ∀ (hb : 0 < b), b < a → c ≠ ∞,
-  { rw [sub_mul h],
-    exact le_refl _ },
+  { rw [sub_mul h] },
   { push_neg at h,
     rcases h with ⟨hb, hba, hc⟩,
     subst c,

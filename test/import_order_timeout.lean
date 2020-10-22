@@ -1,5 +1,5 @@
-import deprecated.subring
 import linear_algebra.tensor_product
+import deprecated.subring
 
 -- Swap these ↑ two imports, and then `foo` will always be happy.
 -- This was not the cases on commit `df4500242eb6aa6ee20b315b185b0f97a9b359c5`.

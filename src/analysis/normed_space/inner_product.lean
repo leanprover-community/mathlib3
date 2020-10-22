@@ -1094,8 +1094,6 @@ def has_inner.is_R_or_C_to_real : has_inner ℝ E :=
 lemma real_inner_eq_re_inner (x y : E) :
   @has_inner.inner ℝ E (has_inner.is_R_or_C_to_real 𝕜) x y = re ⟪x, y⟫ := rfl
 
--- TODO: remove the `'` on `restrict_scalars'`
-
 /-- A general inner product space structure implies a real inner product structure. This is not
 registered as an instance since it creates problems with the case `𝕜 = ℝ`, but in can be used in a
 proof to obtain a real inner product space structure from a given `𝕜`-inner product space
@@ -1113,7 +1111,7 @@ def inner_product_space.is_R_or_C_to_real : inner_product_space ℝ E :=
     simp [this, inner_smul_left, smul_coe_mul_ax],
   end,
   ..has_inner.is_R_or_C_to_real 𝕜,
-  ..normed_space.restrict_scalars' ℝ 𝕜 E }
+  ..normed_space.restrict_scalars ℝ 𝕜 E }
 
 omit 𝕜
 

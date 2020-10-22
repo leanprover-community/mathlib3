@@ -1,132 +1,25 @@
 /-
 Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Floris van Doorn
+Authors: Floris van Doorn, Benjamin Davidson
 -/
-import analysis.special_functions.trigonometric
+import analysis.special_functions.pow
+/-!
+# Pi
+
+This file contains lemmas which establish bounds on or approximations of `real.pi`. Notably, these
+include `pi_gt_sqrt_two_add_series` and `pi_lt_sqrt_two_add_series`, which bound `pi` using series;
+numerical bounds on `pi` such as `pi_gt_314`and `pi_lt_315` (more precise versions are given, too);
+and `tendsto_sum_pi_div_four`, Leibniz's series for `pi`.
+-/
 
 namespace real
-variable (x : ℝ)
 
-/-- the series `sqrt_two_add_series x n` is `sqrt(2 + sqrt(2 + ... ))` with `n` square roots,
-  starting with `x`. We define it here because `cos (pi / 2 ^ (n+1)) = sqrt_two_add_series 0 n / 2`
--/
-@[simp] noncomputable def sqrt_two_add_series (x : ℝ) : ℕ → ℝ
-| 0     := x
-| (n+1) := sqrt (2 + sqrt_two_add_series n)
-
-lemma sqrt_two_add_series_zero : sqrt_two_add_series x 0 = x := by simp
-lemma sqrt_two_add_series_one : sqrt_two_add_series 0 1 = sqrt 2 := by simp
-lemma sqrt_two_add_series_two : sqrt_two_add_series 0 2 = sqrt (2 + sqrt 2) := by simp
-
-lemma sqrt_two_add_series_zero_nonneg : ∀(n : ℕ), sqrt_two_add_series 0 n ≥ 0
-| 0     := le_refl 0
-| (n+1) := sqrt_nonneg _
-
-lemma sqrt_two_add_series_nonneg {x : ℝ} (h : 0 ≤ x) : ∀(n : ℕ), sqrt_two_add_series x n ≥ 0
-| 0     := h
-| (n+1) := sqrt_nonneg _
-
-lemma sqrt_two_add_series_lt_two : ∀(n : ℕ), sqrt_two_add_series 0 n < 2
-| 0     := by norm_num
-| (n+1) :=
-  begin
-    refine lt_of_lt_of_le _ (le_of_eq $ sqrt_sqr $ le_of_lt two_pos),
-    rw [sqrt_two_add_series, sqrt_lt],
-    apply add_lt_of_lt_sub_left,
-    apply lt_of_lt_of_le (sqrt_two_add_series_lt_two n),
-    norm_num, apply add_nonneg, norm_num, apply sqrt_two_add_series_zero_nonneg, norm_num
-  end
-
-lemma sqrt_two_add_series_succ (x : ℝ) :
-  ∀(n : ℕ), sqrt_two_add_series x (n+1) = sqrt_two_add_series (sqrt (2 + x)) n
-| 0     := rfl
-| (n+1) := by rw [sqrt_two_add_series, sqrt_two_add_series_succ, sqrt_two_add_series]
-
-lemma sqrt_two_add_series_monotone_left {x y : ℝ} (h : x ≤ y) :
-  ∀(n : ℕ), sqrt_two_add_series x n ≤ sqrt_two_add_series y n
-| 0     := h
-| (n+1) :=
-  begin
-    rw [sqrt_two_add_series, sqrt_two_add_series],
-    apply sqrt_le_sqrt, apply add_le_add_left, apply sqrt_two_add_series_monotone_left
-  end
-
-@[simp] lemma cos_pi_over_two_pow : ∀(n : ℕ), cos (pi / 2 ^ (n+1)) = sqrt_two_add_series 0 n / 2
-| 0     := by simp
-| (n+1) :=
-  begin
-    symmetry, rw [div_eq_iff_mul_eq], symmetry,
-    rw [sqrt_two_add_series, sqrt_eq_iff_sqr_eq, mul_pow, cos_square, ←mul_div_assoc,
-      nat.add_succ, pow_succ, mul_div_mul_left, cos_pi_over_two_pow, add_mul],
-    congr, norm_num,
-    rw [mul_comm, pow_two, mul_assoc, ←mul_div_assoc, mul_div_cancel_left, ←mul_div_assoc,
-        mul_div_cancel_left],
-    norm_num, norm_num, norm_num,
-    apply add_nonneg, norm_num, apply sqrt_two_add_series_zero_nonneg, norm_num,
-    apply le_of_lt, apply cos_pos_of_neg_pi_div_two_lt_of_lt_pi_div_two,
-    { transitivity (0 : ℝ), rw neg_lt_zero, apply pi_div_two_pos,
-      apply div_pos pi_pos, apply pow_pos, norm_num },
-    apply div_lt_div' (le_refl pi) _ pi_pos _,
-    refine lt_of_le_of_lt (le_of_eq (pow_one _).symm) _,
-    apply pow_lt_pow, norm_num, apply nat.succ_lt_succ, apply nat.succ_pos, all_goals {norm_num}
-  end
-
-lemma sin_square_pi_over_two_pow (n : ℕ) :
-  sin (pi / 2 ^ (n+1)) ^ 2 = 1 - (sqrt_two_add_series 0 n / 2) ^ 2 :=
-by rw [sin_square, cos_pi_over_two_pow]
-
-lemma sin_square_pi_over_two_pow_succ (n : ℕ) :
-  sin (pi / 2 ^ (n+2)) ^ 2 = 1 / 2 - sqrt_two_add_series 0 n / 4 :=
+lemma pi_gt_sqrt_two_add_series (n : ℕ) : 2 ^ (n+1) * sqrt (2 - sqrt_two_add_series 0 n) < pi :=
 begin
-  rw [sin_square_pi_over_two_pow, sqrt_two_add_series, div_pow, sqr_sqrt, add_div, ←sub_sub],
-  congr, norm_num, norm_num, apply add_nonneg, norm_num, apply sqrt_two_add_series_zero_nonneg,
-end
-
-@[simp] lemma sin_pi_over_two_pow_succ (n : ℕ) :
-  sin (pi / 2 ^ (n+2)) = sqrt (2 - sqrt_two_add_series 0 n) / 2 :=
-begin
-  symmetry, rw [div_eq_iff_mul_eq], symmetry,
-  rw [sqrt_eq_iff_sqr_eq, mul_pow, sin_square_pi_over_two_pow_succ, sub_mul],
-  { congr, norm_num, rw [mul_comm], convert mul_div_cancel' _ _, norm_num, norm_num },
-  { rw [sub_nonneg], apply le_of_lt, apply sqrt_two_add_series_lt_two },
-  apply le_of_lt, apply mul_pos, apply sin_pos_of_pos_of_lt_pi,
-  { apply div_pos pi_pos, apply pow_pos, norm_num },
-  refine lt_of_lt_of_le _ (le_of_eq (div_one _)), rw [div_lt_div_left],
-  refine lt_of_le_of_lt (le_of_eq (pow_zero 2).symm) _,
-  apply pow_lt_pow, norm_num, apply nat.succ_pos, apply pi_pos,
-  apply pow_pos, all_goals {norm_num}
-end
-
-lemma cos_pi_div_four : cos (pi / 4) = sqrt 2 / 2 :=
-by { transitivity cos (pi / 2 ^ 2), congr, norm_num, simp }
-
-lemma sin_pi_div_four : sin (pi / 4) = sqrt 2 / 2 :=
-by { transitivity sin (pi / 2 ^ 2), congr, norm_num, simp }
-
-lemma cos_pi_div_eight : cos (pi / 8) = sqrt (2 + sqrt 2) / 2 :=
-by { transitivity cos (pi / 2 ^ 3), congr, norm_num, simp }
-
-lemma sin_pi_div_eight : sin (pi / 8) = sqrt (2 - sqrt 2) / 2 :=
-by { transitivity sin (pi / 2 ^ 3), congr, norm_num, simp }
-
-lemma cos_pi_div_sixteen : cos (pi / 16) = sqrt (2 + sqrt (2 + sqrt 2)) / 2 :=
-by { transitivity cos (pi / 2 ^ 4), congr, norm_num, simp }
-
-lemma sin_pi_div_sixteen : sin (pi / 16) = sqrt (2 - sqrt (2 + sqrt 2)) / 2 :=
-by { transitivity sin (pi / 2 ^ 4), congr, norm_num, simp }
-
-lemma cos_pi_div_thirty_two : cos (pi / 32) = sqrt (2 + sqrt (2 + sqrt (2 + sqrt 2))) / 2 :=
-by { transitivity cos (pi / 2 ^ 5), congr, norm_num, simp }
-
-lemma sin_pi_div_thirty_two : sin (pi / 32) = sqrt (2 - sqrt (2 + sqrt (2 + sqrt 2))) / 2 :=
-by { transitivity sin (pi / 2 ^ 5), congr, norm_num, simp }
-
-lemma pi_gt_sqrt_two_add_series (n : ℕ) : pi > 2 ^ (n+1) * sqrt (2 - sqrt_two_add_series 0 n) :=
-begin
-  have : pi > sqrt (2 - sqrt_two_add_series 0 n) / 2 * 2 ^ (n+2),
-  { apply mul_lt_of_lt_div, apply pow_pos, norm_num,
-    rw [←sin_pi_over_two_pow_succ], apply sin_lt, apply div_pos pi_pos, apply pow_pos, norm_num },
+  have : sqrt (2 - sqrt_two_add_series 0 n) / 2 * 2 ^ (n+2) < pi,
+  { rw [← lt_div_iff, ←sin_pi_over_two_pow_succ], apply sin_lt, apply div_pos pi_pos,
+    all_goals { apply pow_pos, norm_num } },
   apply lt_of_le_of_lt (le_of_eq _) this,
   rw [pow_succ _ (n+1), ←mul_assoc, div_mul_cancel, mul_comm], norm_num
 end
@@ -135,23 +28,24 @@ lemma pi_lt_sqrt_two_add_series (n : ℕ) :
   pi < 2 ^ (n+1) * sqrt (2 - sqrt_two_add_series 0 n) + 1 / 4 ^ n :=
 begin
   have : pi < (sqrt (2 - sqrt_two_add_series 0 n) / 2 + 1 / (2 ^ n) ^ 3 / 4) * 2 ^ (n+2),
-  { rw [←div_lt_iff, ←sin_pi_over_two_pow_succ],
+  { rw [← div_lt_iff, ← sin_pi_over_two_pow_succ],
     refine lt_of_lt_of_le (lt_add_of_sub_right_lt (sin_gt_sub_cube _ _)) _,
     { apply div_pos pi_pos, apply pow_pos, norm_num },
-    { apply div_le_of_le_mul, apply pow_pos, norm_num, refine le_trans pi_le_four _,
-      simp only [show ((4 : ℝ) = 2 ^ 2), by norm_num, mul_one],
-      apply pow_le_pow, norm_num, apply le_add_of_nonneg_left, apply nat.zero_le },
+    { rw div_le_iff',
+      { refine le_trans pi_le_four _,
+        simp only [show ((4 : ℝ) = 2 ^ 2), by norm_num, mul_one],
+        apply pow_le_pow, norm_num, apply le_add_of_nonneg_left, apply nat.zero_le },
+        { apply pow_pos, norm_num }},
     apply add_le_add_left, rw div_le_div_right,
-    apply le_div_of_mul_le, apply pow_pos, apply pow_pos, norm_num,
-    rw [←mul_pow],
+    rw [le_div_iff, ←mul_pow],
     refine le_trans _ (le_of_eq (one_pow 3)), apply pow_le_pow_of_le_left,
     { apply le_of_lt, apply mul_pos, apply div_pos pi_pos, apply pow_pos, norm_num, apply pow_pos,
       norm_num },
-    apply mul_le_of_le_div, apply pow_pos, norm_num,
+    rw ← le_div_iff,
     refine le_trans ((div_le_div_right _).mpr pi_le_four) _, apply pow_pos, norm_num,
     rw [pow_succ, pow_succ, ←mul_assoc, ←div_div_eq_div_mul],
-    convert le_refl _, norm_num, norm_num,
-    apply pow_pos, norm_num },
+    convert le_refl _,
+    all_goals { repeat {apply pow_pos}, norm_num }},
   apply lt_of_lt_of_le this (le_of_eq _), rw [add_mul], congr' 1,
   { rw [pow_succ _ (n+1), ←mul_assoc, div_mul_cancel, mul_comm], norm_num },
   rw [pow_succ, ←pow_mul, mul_comm n 2, pow_mul, show (2 : ℝ) ^ 2 = 4, by norm_num, pow_succ,
@@ -160,14 +54,14 @@ begin
   apply pow_ne_zero, norm_num, norm_num
 end
 
-/-- From an upper bound on `sqrt_two_add_series 0 n = 2 cos (pi / 2 ^ (n+1))` of the form 
+/-- From an upper bound on `sqrt_two_add_series 0 n = 2 cos (pi / 2 ^ (n+1))` of the form
 `sqrt_two_add_series 0 n ≤ 2 - (a / 2 ^ (n + 1)) ^ 2)`, one can deduce the lower bound `a < pi`
 thanks to basic trigonometric inequalities as expressed in `pi_gt_sqrt_two_add_series`. -/
 theorem pi_lower_bound_start (n : ℕ) {a}
   (h : sqrt_two_add_series ((0:ℕ) / (1:ℕ)) n ≤ 2 - (a / 2 ^ (n + 1)) ^ 2) : a < pi :=
 begin
   refine lt_of_le_of_lt _ (pi_gt_sqrt_two_add_series n), rw [mul_comm],
-  refine le_mul_of_div_le (pow_pos (by norm_num) _) (le_sqrt_of_sqr_le _),
+  refine (div_le_iff (pow_pos (by norm_num) _ : (0 : ℝ) < _)).mp (le_sqrt_of_sqr_le _),
   rwa [le_sub, show (0:ℝ) = (0:ℕ)/(1:ℕ), by rw [nat.cast_zero, zero_div]],
 end
 
@@ -178,7 +72,7 @@ begin
   refine le_trans _ hz, rw sqrt_two_add_series_succ, apply sqrt_two_add_series_monotone_left,
   have hb' : 0 < (b:ℝ) := nat.cast_pos.2 hb,
   have hd' : 0 < (d:ℝ) := nat.cast_pos.2 hd,
-  rw [sqrt_le_left (div_nonneg (nat.cast_nonneg _) hd'), div_pow,
+  rw [sqrt_le_left (div_nonneg c.cast_nonneg d.cast_nonneg), div_pow,
     add_div_eq_mul_add_div _ _ (ne_of_gt hb'), div_le_div_iff hb' (pow_pos hd' _)],
   exact_mod_cast h
 end
@@ -206,8 +100,8 @@ begin
   refine lt_of_lt_of_le (pi_lt_sqrt_two_add_series n) _,
   rw [← le_sub_iff_add_le, ← le_div_iff', sqrt_le_left, sub_le],
   { rwa [nat.cast_zero, zero_div] at h },
-  { exact div_nonneg (sub_nonneg.2 h₂) (pow_pos two_pos _) },
-  { exact pow_pos two_pos _ }
+  { exact div_nonneg (sub_nonneg.2 h₂) (pow_nonneg (le_of_lt zero_lt_two) _) },
+  { exact pow_pos zero_lt_two _ }
 end
 
 lemma sqrt_two_add_series_step_down (a b : ℕ) {c d n : ℕ} {z : ℝ}
@@ -255,5 +149,129 @@ lemma pi_gt_3141592 : 3.141592 < pi := by pi_lower_bound [
 lemma pi_lt_3141593 : pi < 3.141593 := by pi_upper_bound [
   27720/19601, 56935/30813, 49359/25163, 258754/130003, 113599/56868, 1101994/551163,
   8671537/4336095, 3877807/1938940, 52483813/26242030, 56946167/28473117, 23798415/11899211]
+
+
+/-! ### Leibniz's Series for Pi -/
+
+open filter set
+open_locale real classical big_operators topological_space
+local notation `|`x`|` := abs x
+
+/-- This theorem establishes Leibniz's series for `π`: The alternating sum of the reciprocals of the
+  odd numbers is `π/4`. Note that this is a conditionally rather than absolutely convergent series.
+  The main tool that this proof uses is the Mean Value Theorem (specifically avoiding the
+  Fundamental Theorem of Calculus).
+
+  Intuitively, the theorem holds because Leibniz's series is the Taylor series of `arctan x`
+  centered about `0` and evaluated at the value `x = 1`. Therefore, much of this proof consists of
+  reasoning about a function
+    `f := arctan x - ∑ i in finset.range k, (-(1:ℝ))^i * x^(2*i+1) / (2*i+1)`,
+  the difference between `arctan` and the `k`-th partial sum of its Taylor series. Some ingenuity is
+  required due to the fact that the Taylor series is not absolutely convergent at `x = 1`.
+
+  This proof requires a bound on `f 1`, the key idea being that `f 1` can be split as the sum of
+  `f 1 - f u` and `f u`, where `u` is a sequence of values in [0,1], carefully chosen such that
+  each of these two terms can be controlled (in different ways).
+
+  We begin the proof by (1) introducing that sequence `u` and then proving that another sequence
+  constructed from `u` tends to `0` at `+∞`. After (2) converting the limit in our goal to an
+  inequality, we (3) introduce the auxiliary function `f` defined above. Next, we (4) compute the
+  derivative of `f`, denoted by `f'`, first generally and then on each of two subintervals of [0,1].
+  We then (5) prove a bound for `f'`, again both generally as well as on each of the two
+  subintervals. Finally, we (6) apply the Mean Value Theorem twice, obtaining bounds on `f 1 - f u`
+  and `f u - f 0` from the bounds on `f'` (note that `f 0 = 0`). -/
+theorem tendsto_sum_pi_div_four :
+  tendsto (λ k, ∑ i in finset.range k, ((-(1:ℝ))^i / (2*i+1))) at_top (𝓝 (π/4)) :=
+begin
+  rw [tendsto_iff_norm_tendsto_zero, ← tendsto_zero_iff_norm_tendsto_zero],
+  -- (1) We introduce a useful sequence `u` of values in [0,1], then prove that another sequence
+  --     constructed from `u` tends to `0` at `+∞`
+  let u := λ k : ℕ, (k:nnreal) ^ (-1 / (2 * (k:ℝ) + 1)),
+  have H : tendsto (λ k : ℕ, (1:ℝ) - (u k) + (u k) ^ (2 * (k:ℝ) + 1)) at_top (𝓝 0),
+  { convert (tendsto.const_add (1:ℝ) (((tendsto_rpow_div_mul_add (-1) 2 1 (by norm_num)).neg).add
+      tendsto_inv_at_top_zero)).comp tendsto_coe_nat_at_top_at_top,
+    { ext k,
+      simp only [nnreal.coe_nat_cast, function.comp_app, nnreal.coe_rpow],
+      rw [← rpow_mul (nat.cast_nonneg k) ((-1)/(2*(k:ℝ)+1)) (2*(k:ℝ)+1),
+          @div_mul_cancel _ _ _ (2*(k:ℝ)+1) (by { norm_cast, linarith }), rpow_neg_one k],
+      ring },
+    { simp } },
+  -- (2) We convert the limit in our goal to an inequality
+  refine squeeze_zero_norm _ H,
+  intro k,
+  -- Since `k` is now fixed, we henceforth denote `u k` as `U`
+  let U := u k,
+  -- (3) We introduce an auxiliary function `f`
+  let b := λ (i:ℕ) x, (-(1:ℝ))^i * x^(2*i+1) / (2*i+1),
+  let f := λ x, arctan x - (∑ i in finset.range k, b i x),
+  suffices f_bound : |f 1 - f 0| ≤ (1:ℝ) - U + U ^ (2 * (k:ℝ) + 1),
+  { rw ← norm_neg,
+    convert f_bound,
+    simp only [f], simp [b] },
+  -- We show that `U` is indeed in [0,1]
+  have hU1 : (U:ℝ) ≤ 1,
+  { by_cases hk : k = 0,
+    { simpa only [U, hk] using zero_rpow_le_one _ },
+    { exact rpow_le_one_of_one_le_of_nonpos (by { norm_cast, exact nat.succ_le_iff.mpr
+        (nat.pos_of_ne_zero hk) }) (le_of_lt (@div_neg_of_neg_of_pos _ _ (-(1:ℝ)) (2*k+1)
+          (by norm_num) (by { norm_cast, linarith }))) } },
+  have hU2 := nnreal.coe_nonneg U,
+  -- (4) We compute the derivative of `f`, denoted by `f'`
+  let f' := λ x : ℝ, (-x^2) ^ k / (1 + x^2),
+  have has_deriv_at_f : ∀ x, has_deriv_at f (f' x) x,
+  { intro x,
+    have has_deriv_at_b : ∀ i ∈ finset.range k, (has_deriv_at (b i) ((-x^2)^i) x),
+    { intros i hi,
+      convert has_deriv_at.const_mul ((-1:ℝ)^i / (2*i+1)) (@has_deriv_at.pow _ _ _ _ _ (2*i+1)
+        (has_deriv_at_id x)),
+      { ext y,
+        simp only [b, id.def],
+        ring },
+      { simp only [nat.add_succ_sub_one, add_zero, mul_one, id.def, nat.cast_bit0, nat.cast_add,
+                  nat.cast_one, nat.cast_mul],
+        rw [← mul_assoc, @div_mul_cancel _ _ _ (2*(i:ℝ)+1) (by { norm_cast, linarith }),
+            pow_mul x 2 i, ← mul_pow (-1) (x^2) i],
+        ring } },
+    convert (has_deriv_at_arctan x).sub (has_deriv_at.sum has_deriv_at_b),
+    have g_sum := @geom_sum _ _ (-x^2) (by linarith [neg_nonpos.mpr (pow_two_nonneg x)]) k,
+    simp only [geom_series, f'] at g_sum ⊢,
+    rw [g_sum, ← neg_add' (x^2) 1, add_comm (x^2) 1, sub_eq_add_neg, neg_div', neg_div_neg_eq],
+    ring },
+  have hderiv1 : ∀ x ∈ Icc (U:ℝ) 1, has_deriv_within_at f (f' x) (Icc (U:ℝ) 1) x :=
+    λ x hx, (has_deriv_at_f x).has_deriv_within_at,
+  have hderiv2 : ∀ x ∈ Icc 0 (U:ℝ), has_deriv_within_at f (f' x) (Icc 0 (U:ℝ)) x :=
+    λ x hx, (has_deriv_at_f x).has_deriv_within_at,
+  -- (5) We prove a general bound for `f'` and then more precise bounds on each of two subintervals
+  have f'_bound : ∀ x ∈ Icc (-1:ℝ) 1, |f' x| ≤ |x|^(2*k),
+  { intros x hx,
+    rw [abs_div, is_absolute_value.abv_pow abs (-x^2) k, abs_neg, is_absolute_value.abv_pow abs x 2,
+        tactic.ring_exp.pow_e_pf_exp rfl rfl, @abs_of_pos _ _ (1+x^2) (by nlinarith)],
+    convert @div_le_div_of_le_left _ _ _ (1+x^2) 1 (pow_nonneg (abs_nonneg x) (2*k)) (by norm_num)
+      (by nlinarith),
+    simp },
+  have hbound1 : ∀ x ∈ Ico (U:ℝ) 1, |f' x| ≤ 1,
+  { rintros x ⟨hx_left, hx_right⟩,
+    have hincr := pow_le_pow_of_le_left (le_trans hU2 hx_left) (le_of_lt hx_right) (2*k),
+    rw [one_pow (2*k), ← abs_of_nonneg (le_trans hU2 hx_left)] at hincr,
+    rw ← abs_of_nonneg (le_trans hU2 hx_left) at hx_right,
+    linarith [f'_bound x (mem_Icc.mpr (abs_le.mp (le_of_lt hx_right)))] },
+  have hbound2 : ∀ x ∈ Ico 0 (U:ℝ), |f' x| ≤ U ^ (2*k),
+  { rintros x ⟨hx_left, hx_right⟩,
+    have hincr := pow_le_pow_of_le_left hx_left (le_of_lt hx_right) (2*k),
+    rw ← abs_of_nonneg hx_left at hincr hx_right,
+    rw ← abs_of_nonneg hU2 at hU1 hx_right,
+    linarith [f'_bound x (mem_Icc.mpr (abs_le.mp (le_trans (le_of_lt hx_right) hU1)))] },
+  -- (6) We twice apply the Mean Value Theorem to obtain bounds on `f` from the bounds on `f'`
+  have mvt1 :=
+    norm_image_sub_le_of_norm_deriv_le_segment' hderiv1 hbound1 _ (right_mem_Icc.mpr hU1),
+  have mvt2 :=
+    norm_image_sub_le_of_norm_deriv_le_segment' hderiv2 hbound2 _ (right_mem_Icc.mpr hU2),
+  -- The following algebra is enough to complete the proof
+  calc |f 1 - f 0| = |(f 1 - f U) + (f U - f 0)| : by ring
+               ... ≤ 1 * (1-U) + U^(2*k) * (U - 0) : le_trans (abs_add (f 1 - f U) (f U - f 0))
+                                                      (add_le_add mvt1 mvt2)
+               ... = 1 - U + U^(2*k) * U : by ring
+               ... = 1 - (u k) + (u k)^(2*(k:ℝ)+1) : by { rw [← pow_succ' (U:ℝ) (2*k)], norm_cast },
+end
 
 end real

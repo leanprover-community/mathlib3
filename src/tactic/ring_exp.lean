@@ -6,6 +6,7 @@ Author: Tim Baanen.
 Solve equations in commutative (semi)rings with exponents.
 -/
 import tactic.norm_num
+import control.traversable.basic
 
 /-!
 # `ring_exp` tactic
@@ -821,7 +822,7 @@ lemma mul_pf_prod_c {pps p ps qs pqs : α} :
 lemma mul_pp_pf_overlap {pps p_b ps qqs qs psqs : α} {p_e q_e : ℕ} :
   pps = p_b ^ p_e * ps → qqs = p_b ^ q_e * qs →
   p_b ^ (p_e + q_e) * (ps * qs) = psqs → pps * qqs = psqs
-:= λ ps_pf qs_pf psqs_pf, by simp [symm psqs_pf, _root_.pow_add, ps_pf, qs_pf]; ac_refl
+:= λ ps_pf qs_pf psqs_pf, by simp [symm psqs_pf, pow_add, ps_pf, qs_pf]; ac_refl
 
 lemma mul_pp_pf_prod_lt {pps p ps qqs pqs : α} :
   pps = p * ps → ps * qqs = pqs → pps * qqs = p * pqs := by cc
@@ -966,6 +967,18 @@ lemma pow_e_pf_exp {pps p : α} {ps qs psqs : ℕ} :
   ... = p ^ psqs : by rw [psqs_pf]
 
 /--
+Compute the exponentiation of two coefficients.
+
+The returned value is of the form `ex.coeff _ (p ^ q)`,
+with the proof of `expr.of_rat p ^ expr.of_rat q = expr.of_rat (p ^ q)`.
+-/
+meta def pow_coeff (p_p q_p : expr) (p q : coeff) : ring_exp_m (ex prod) := do
+  ctx ← get_context,
+  pq' ← mk_pow [p_p, q_p],
+  (pq_p, pq_pf) ← lift $ norm_num.derive' pq',
+  pure $ ex.coeff ⟨pq_p, pq_p, pq_pf⟩ ⟨p.1 * q.1⟩
+
+/--
 Exponentiate two expressions.
 
 * `(p ^ ps) ^ qs = p ^ (ps * qs)`
@@ -981,7 +994,10 @@ meta def pow_e : ex exp → ex prod → ring_exp_m (ex exp)
   pure $ ppsqs.set_info ppsqs_o pf
 
 lemma pow_pp_pf_one {ps : α} {qs : ℕ} : ps = 1 → ps ^ qs = 1 :=
-λ ps_pf, by rw [ps_pf, _root_.one_pow]
+λ ps_pf, by rw [ps_pf, one_pow]
+
+lemma pow_pf_c_c {ps ps' pq : α} {qs qs' : ℕ} :
+  ps = ps' → qs = qs' → ps' ^ qs' = pq → ps ^ qs = pq := by cc
 
 lemma pow_pp_pf_c {ps ps' pqs : α} {qs qs' : ℕ} :
   ps = ps' → qs = qs' → ps' ^ qs' = pqs → ps ^ qs = pqs * 1 :=
@@ -1007,6 +1023,13 @@ meta def pow_pp : ex prod → ex prod → ring_exp_m (ex prod)
   o_o ← pow_orig ps qs,
   pf ← mk_proof ``pow_pp_pf_one [ps.orig, qs.orig] [ps.info],
   pure $ o.set_info o_o pf
+| ps@(ex.coeff ps_i x) qs@(ex.coeff qs_i y) := do
+  pq ← pow_coeff ps.pretty qs.pretty x y,
+  pq_o ← pow_orig ps qs,
+  pf ← mk_proof_or_refl pq.pretty ``pow_pf_c_c
+    [ps.orig, ps.pretty, pq.pretty, qs.orig, qs.pretty]
+    [ps.info, qs.info, pq.info],
+  pure $ pq.set_info pq_o pf
 | ps@(ex.coeff ps_i x) qs := do
   ps'' ← pure ps >>= prod_to_sum >>= ex_sum_b,
   pqs ← ex_exp ps'' qs,
@@ -1355,7 +1378,6 @@ meta def eval : expr → ring_exp_m (ex sum)
   psqs_pf ← psqs.proof_term,
   (do has_pow_pf ← match hp_instance with
   | `(monoid.has_pow) := lift $ mk_eq_refl e
-  | `(nat.has_pow) := lift $ mk_app ``nat.pow_eq_pow [ps, qs] >>= mk_eq_symm
   | _ := lift $ fail "has_pow instance must be nat.has_pow or monoid.has_pow"
   end,
   pf ← lift $ mk_eq_trans has_pow_pf psqs_pf,

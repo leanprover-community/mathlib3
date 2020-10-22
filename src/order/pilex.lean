@@ -3,14 +3,19 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import algebra.pi_instances
+import algebra.group.pi
+import order.well_founded
+import algebra.order_functions
 
 variables {ι : Type*} {β : ι → Type*} (r : ι → ι → Prop)
   (s : Π {i}, β i → β i → Prop)
 
+/-- The lexicographic relation on `Π i : ι, β i`, where `ι` is ordered by `r`,
+  and each `β i` is ordered by `s`. -/
 def pi.lex (x y : Π i, β i) : Prop :=
 ∃ i, (∀ j, r j i → x j = y j) ∧ s (x i) (y i)
 
+/-- The cartesian product of an indexed family, equipped with the lexicographic order. -/
 def pilex (α : Type*) (β : α → Type*) : Type* := Π a, β a
 
 instance [has_lt ι] [∀ a, has_lt (β a)] : has_lt (pilex ι β) :=
@@ -71,7 +76,7 @@ protected def pilex.linear_order [linear_order ι] (wf : well_founded ((<) : ι 
 { le_total := λ x y, by classical; exact
     or_iff_not_imp_left.2 (λ hxy, begin
       have := not_or_distrib.1 hxy,
-      let i : ι := well_founded.min wf _ (classical.not_forall.1 (this.2 ∘ funext)),
+      let i : ι := well_founded.min wf _ (not_forall.1 (this.2 ∘ funext)),
       have hjiyx : ∀ j < i, y j = x j,
       { assume j,
         rw [eq_comm, ← not_imp_not],

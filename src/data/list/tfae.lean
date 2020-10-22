@@ -7,7 +7,11 @@ import data.list.basic
 
 namespace list
 
-/- tfae: The Following (propositions) Are Equivalent -/
+/--
+tfae: The Following (propositions) Are Equivalent.
+
+The `tfae_have` and `tfae_finish` tactics can be useful in proofs with `tfae` goals.
+-/
 def tfae (l : list Prop) : Prop := ∀ x ∈ l, ∀ y ∈ l, x ↔ y
 
 theorem tfae_nil : tfae [] := forall_mem_nil _
@@ -33,17 +37,18 @@ theorem tfae_of_forall (b : Prop) (l : list Prop) (h : ∀ a ∈ l, a ↔ b) : t
 theorem tfae_of_cycle {a b} {l : list Prop} :
   list.chain (→) a (b::l) → (ilast' b l → a) → tfae (a::b::l) :=
 begin
-  induction l with c l IH generalizing a b; simp only [tfae_cons_cons, tfae_singleton, and_true, chain_cons, chain.nil] at *,
+  induction l with c l IH generalizing a b;
+    simp only [tfae_cons_cons, tfae_singleton, and_true, chain_cons, chain.nil] at *,
   { intros a b, exact iff.intro a b },
   rintros ⟨ab,⟨bc,ch⟩⟩ la,
   have := IH ⟨bc,ch⟩ (ab ∘ la),
   exact ⟨⟨ab, la ∘ (this.2 c (or.inl rfl) _ (ilast'_mem _ _)).1 ∘ bc⟩, this⟩
 end
 
-theorem tfae.out {l} (h : tfae l) (n₁ n₂)
- (h₁ : n₁ < list.length l . tactic.exact_dec_trivial)
- (h₂ : n₂ < list.length l . tactic.exact_dec_trivial) :
-  list.nth_le l n₁ h₁ ↔ list.nth_le l n₂ h₂ :=
-h _ (list.nth_le_mem _ _ _) _ (list.nth_le_mem _ _ _)
+theorem tfae.out {l} (h : tfae l) (n₁ n₂) {a b}
+  (h₁ : list.nth l n₁ = some a . tactic.interactive.refl)
+  (h₂ : list.nth l n₂ = some b . tactic.interactive.refl) :
+  a ↔ b :=
+h _ (list.nth_mem h₁) _ (list.nth_mem h₂)
 
 end list

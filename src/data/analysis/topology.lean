@@ -180,7 +180,7 @@ theorem locally_finite_iff_exists_realizer [topological_space α]
        show ∃ (b : F.σ), x ∈ (F.F) b ∧ (F.F) b ⊆ g x, from
        let ⟨h, h'⟩ := h₁ x in F.mem_nhds.1 h) in
   ⟨⟨λ x, ⟨g₂ x, (h₂ x).1⟩, λ x, finite.fintype $
-    let ⟨h, h'⟩ := h₁ x in finite_subset h' $ λ i hi,
+    let ⟨h, h'⟩ := h₁ x in h'.subset $ λ i hi,
     hi.mono (inter_subset_inter_right _ (h₂ x).2)⟩⟩,
  λ ⟨R⟩, R.to_locally_finite⟩
 

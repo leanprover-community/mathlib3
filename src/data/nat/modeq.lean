@@ -96,6 +96,8 @@ by rw [modeq_iff_dvd] at *; exact dvd.trans (dvd_mul_left (n : ℤ) (m : ℤ)) h
 theorem modeq_of_modeq_mul_right (m : ℕ) : a ≡ b [MOD n * m] → a ≡ b [MOD n] :=
 mul_comm m n ▸ modeq_of_modeq_mul_left _
 
+local attribute [semireducible] int.nonneg
+
 /-- The natural number less than `n*m` congruent to `a` mod `n` and `b` mod `m` -/
 def chinese_remainder (co : coprime n m) (a b : ℕ) : {k // k ≡ a [MOD n] ∧ k ≡ b [MOD m]} :=
 ⟨let (c, d) := xgcd n m in int.to_nat ((b * c * n + a * d * m) % (n * m)), begin
@@ -131,7 +133,7 @@ lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℕ} (hmn : coprime m n) :
 λ h, ⟨nat.modeq.modeq_of_modeq_mul_right _ h, nat.modeq.modeq_of_modeq_mul_left _ h⟩⟩
 
 lemma coprime_of_mul_modeq_one (b : ℕ) {a n : ℕ} (h : a * b ≡ 1 [MOD n]) : coprime a n :=
-nat.coprime_of_dvd' (λ k ⟨ka, hka⟩ ⟨kb, hkb⟩, int.coe_nat_dvd.1 begin
+nat.coprime_of_dvd' (λ k kp ⟨ka, hka⟩ ⟨kb, hkb⟩, int.coe_nat_dvd.1 begin
   rw [hka, hkb, modeq_iff_dvd] at h,
   cases h with z hz,
   rw [sub_eq_iff_eq_add] at hz,
@@ -222,7 +224,7 @@ have hn0 : 0 < n := nat.pos_of_ne_zero (λ h, by simp * at *),
 (nat.mul_right_inj (show 0 < 2, from dec_trivial)).1 $
 by rw [mul_add, two_mul_odd_div_two hm1, mul_left_comm, two_mul_odd_div_two hn1,
   two_mul_odd_div_two (nat.odd_mul_odd hm1 hn1), nat.mul_sub_left_distrib, mul_one,
-  ← nat.add_sub_assoc hm0, nat.sub_add_cancel (le_mul_of_one_le_right' (nat.zero_le _) hn0)]
+  ← nat.add_sub_assoc hm0, nat.sub_add_cancel (le_mul_of_one_le_right (nat.zero_le _) hn0)]
 
 lemma odd_of_mod_four_eq_one {n : ℕ} (h : n % 4 = 1) : n % 2 = 1 :=
 @modeq.modeq_of_modeq_mul_left 2 n 1 2 h

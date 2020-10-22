@@ -8,7 +8,7 @@ The writer monad transformer for passing immutable state.
 import control.monad.basic
 import algebra.group.basic
 
-universes u v w
+universes u v w u₀ u₁ v₀ v₁
 
 structure writer_t (ω : Type u) (m : Type u → Type v) (α : Type u) : Type (max u v) :=
 (run : m (α × ω))
@@ -133,14 +133,17 @@ instance {ω : Type u} {m : Type u → Type v} [monad m] [monad_writer ω m] : m
 
 /-- Adapt a monad stack, changing the type of its top-most environment.
 
-    This class is comparable to [Control.Lens.Magnify](https://hackage.haskell.org/package/lens-4.15.4/docs/Control-Lens-Zoom.html#t:Magnify), but does not use lenses (why would it), and is derived automatically for any transformer implementing `monad_functor`.
+This class is comparable to
+[Control.Lens.Magnify](https://hackage.haskell.org/package/lens-4.15.4/docs/Control-Lens-Zoom.html#t:Magnify),
+but does not use lenses (why would it), and is derived automatically for any transformer
+implementing `monad_functor`.
 
-    Note: This class can be seen as a simplification of the more "principled" definition
-    ```
-    class monad_reader_functor (ρ ρ' : out_param (Type u)) (n n' : Type u → Type u) :=
-    (map {α : Type u} : (∀ {m : Type u → Type u} [monad m], reader_t ρ m α → reader_t ρ' m α) → n α → n' α)
-    ```
-    -/
+Note: This class can be seen as a simplification of the more "principled" definition
+```
+class monad_reader_functor (ρ ρ' : out_param (Type u)) (n n' : Type u → Type u) :=
+(map {α : Type u} : (∀ {m : Type u → Type u} [monad m], reader_t ρ m α → reader_t ρ' m α) → n α → n' α)
+```
+-/
 class monad_writer_adapter (ω ω' : out_param (Type u)) (m m' : Type u → Type v) :=
 (adapt_writer {α : Type u} : (ω → ω') → m α → m' α)
 export monad_writer_adapter (adapt_writer)
@@ -150,9 +153,10 @@ variables {ω ω' : Type u} {m m' : Type u → Type v}
 
 /-- Transitivity.
 
-This instance generates the type-class problem with a metavariable argument (which is why this is marked as
-`[nolint dangerous_instance]`).
-Currently that is not a problem, as there are almost no instances of `monad_functor` or `monad_writer_adapter`.
+This instance generates the type-class problem with a metavariable argument (which is why this
+is marked as `[nolint dangerous_instance]`).
+Currently that is not a problem, as there are almost no instances of `monad_functor` or
+`monad_writer_adapter`.
 
 see Note [lower instance priority] -/
 @[nolint dangerous_instance, priority 100]
@@ -166,3 +170,13 @@ end
 
 instance (ω : Type u) (m out) [monad_run out m] : monad_run (λ α, out (α × ω)) (writer_t ω m) :=
 ⟨λ α x, run $ x.run ⟩
+
+/-- reduce the equivalence between two writer monads to the equivalence between
+their underlying monad -/
+def writer_t.equiv {m₁ : Type u₀ → Type v₀} {m₂ : Type u₁ → Type v₁}
+  {α₁ ω₁ : Type u₀} {α₂ ω₂ : Type u₁} (F : (m₁ (α₁ × ω₁)) ≃ (m₂ (α₂ × ω₂))) :
+  writer_t ω₁ m₁ α₁ ≃ writer_t ω₂ m₂ α₂ :=
+{ to_fun := λ ⟨f⟩, ⟨F f⟩,
+  inv_fun := λ ⟨f⟩, ⟨F.symm f⟩,
+  left_inv := λ ⟨f⟩, congr_arg writer_t.mk $ F.left_inv _,
+  right_inv := λ ⟨f⟩, congr_arg writer_t.mk $ F.right_inv _ }

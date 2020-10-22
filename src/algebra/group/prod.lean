@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot, Yury Kudryashov
 -/
 import algebra.group.hom
+import data.equiv.mul_add
 import data.prod
 
 /-!
@@ -65,18 +66,18 @@ lemma snd_inv [has_inv G] [has_inv H] (p : G × H) : (p⁻¹).2 = (p.2)⁻¹ := 
 @[simp, to_additive]
 lemma inv_mk [has_inv G] [has_inv H] (a : G) (b : H) : (a, b)⁻¹ = (a⁻¹, b⁻¹) := rfl
 
-@[to_additive add_semigroup]
+@[to_additive]
 instance [semigroup M] [semigroup N] : semigroup (M × N) :=
 { mul_assoc := assume a b c, mk.inj_iff.mpr ⟨mul_assoc _ _ _, mul_assoc _ _ _⟩,
   .. prod.has_mul }
 
-@[to_additive add_monoid]
+@[to_additive]
 instance [monoid M] [monoid N] : monoid (M × N) :=
 { one_mul := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨one_mul _, one_mul _⟩,
   mul_one := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨mul_one _, mul_one _⟩,
   .. prod.semigroup, .. prod.has_one }
 
-@[to_additive add_group]
+@[to_additive]
 instance [group G] [group H] : group (G × H) :=
 { mul_left_inv := assume a, mk.inj_iff.mpr ⟨mul_left_inv _, mul_left_inv _⟩,
   .. prod.monoid, .. prod.has_inv }
@@ -86,16 +87,30 @@ instance [group G] [group H] : group (G × H) :=
 @[simp] lemma mk_sub_mk [add_group A] [add_group B] (x₁ x₂ : A) (y₁ y₂ : B) :
   (x₁, y₁) - (x₂, y₂) = (x₁ - x₂, y₁ - y₂) := rfl
 
-@[to_additive add_comm_semigroup]
+@[to_additive]
 instance [comm_semigroup G] [comm_semigroup H] : comm_semigroup (G × H) :=
 { mul_comm := assume a b, mk.inj_iff.mpr ⟨mul_comm _ _, mul_comm _ _⟩,
   .. prod.semigroup }
 
-@[to_additive add_comm_monoid]
+@[to_additive]
+instance [left_cancel_semigroup G] [left_cancel_semigroup H] :
+  left_cancel_semigroup (G × H) :=
+{ mul_left_cancel := λ a b c h, prod.ext (mul_left_cancel (prod.ext_iff.1 h).1)
+    (mul_left_cancel (prod.ext_iff.1 h).2),
+  .. prod.semigroup }
+
+@[to_additive]
+instance [right_cancel_semigroup G] [right_cancel_semigroup H] :
+  right_cancel_semigroup (G × H) :=
+{ mul_right_cancel := λ a b c h, prod.ext (mul_right_cancel (prod.ext_iff.1 h).1)
+    (mul_right_cancel (prod.ext_iff.1 h).2),
+  .. prod.semigroup }
+
+@[to_additive]
 instance [comm_monoid M] [comm_monoid N] : comm_monoid (M × N) :=
 { .. prod.comm_semigroup, .. prod.monoid }
 
-@[to_additive add_comm_group]
+@[to_additive]
 instance [comm_group G] [comm_group H] : comm_group (G × H) :=
 { .. prod.comm_semigroup, .. prod.group }
 
@@ -156,15 +171,15 @@ protected def prod (f : M →* N) (g : M →* P) : M →* N × P :=
 @[simp, to_additive prod_apply]
 lemma prod_apply (f : M →* N) (g : M →* P) (x) : f.prod g x = (f x, g x) := rfl
 
-@[to_additive fst_comp_prod]
+@[simp, to_additive fst_comp_prod]
 lemma fst_comp_prod (f : M →* N) (g : M →* P) : (fst N P).comp (f.prod g) = f :=
 ext $ λ x, rfl
 
-@[to_additive snd_comp_prod]
+@[simp, to_additive snd_comp_prod]
 lemma snd_comp_prod (f : M →* N) (g : M →* P) : (snd N P).comp (f.prod g) = g :=
 ext $ λ x, rfl
 
-@[to_additive prod_unique]
+@[simp, to_additive prod_unique]
 lemma prod_unique (f : M →* N × P) :
   ((fst N P).comp f).prod ((snd N P).comp f) = f :=
 ext $ λ x, by simp only [prod_apply, coe_fst, coe_snd, comp_apply, prod.mk.eta]
@@ -183,9 +198,8 @@ def prod_map : M × N →* M' × N' := (f.comp (fst M N)).prod (g.comp (snd M N)
 @[to_additive prod_map_def]
 lemma prod_map_def : prod_map f g = (f.comp (fst M N)).prod (g.comp (snd M N)) := rfl
 
--- TODO : use `rfl` once we redefine `prod.map` in stdlib
 @[simp, to_additive coe_prod_map]
-lemma coe_prod_map : ⇑(prod_map f g) = prod.map f g := funext $ λ ⟨x, y⟩, rfl
+lemma coe_prod_map : ⇑(prod_map f g) = prod.map f g := rfl
 
 @[to_additive prod_comp_prod_map]
 lemma prod_comp_prod_map (f : P →* M) (g : P →* N) (f' : M →* M') (g' : N →* N') :
@@ -230,3 +244,18 @@ ext $ λ x, by simp
 end coprod
 
 end monoid_hom
+
+namespace mul_equiv
+variables (M N) [monoid M] [monoid N]
+
+/-- The equivalence between `M × N` and `N × M` given by swapping the components is multiplicative. -/
+@[to_additive prod_comm "The equivalence between `M × N` and `N × M` given by swapping the components is
+additive."]
+def prod_comm : M × N ≃* N × M :=
+{ map_mul' := λ ⟨x₁, y₁⟩ ⟨x₂, y₂⟩, rfl, ..equiv.prod_comm M N }
+
+@[simp, to_additive coe_prod_comm] lemma coe_prod_comm : ⇑(prod_comm M N) = prod.swap := rfl
+@[simp, to_additive coe_prod_comm_symm] lemma coe_prod_comm_symm :
+  ⇑((prod_comm M N).symm) = prod.swap := rfl
+
+end mul_equiv

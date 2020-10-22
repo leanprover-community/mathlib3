@@ -12,7 +12,7 @@ variables {α : Type*} {β : Type*}
 attribute [inline] option.is_some option.is_none
 
 /-- An elimination principle for `option`. It is a nondependent version of `option.rec_on`. -/
-protected def elim : option α → β → (α → β) → β
+@[simp] protected def elim : option α → β → (α → β) → β
 | (some x) y f := f x
 | none     y f := y
 

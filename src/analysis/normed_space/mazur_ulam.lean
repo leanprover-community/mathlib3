@@ -5,19 +5,27 @@ Author: Yury Kudryashov
 -/
 import analysis.normed_space.point_reflection
 import topology.instances.real_vector_space
+import analysis.normed_space.add_torsor
+import linear_algebra.affine_space.basic
 
 /-!
 # Mazur-Ulam Theorem
 
 Mazur-Ulam theorem states that an isometric bijection between two normed spaces over `ℝ` is affine.
-Since `mathlib` has no notion of an affine map (yet?), we formalize it in two definitions:
+We formalize it in two definitions:
 
 * `isometric.to_real_linear_equiv_of_map_zero` : given `E ≃ᵢ F` sending `0` to `0`,
   returns `E ≃L[ℝ] F` with the same `to_fun` and `inv_fun`;
 * `isometric.to_real_linear_equiv` : given `f : E ≃ᵢ F`,
   returns `g : E ≃L[ℝ] F` with `g x = f x - f 0`.
+* `isometric.to_affine_map` : given `PE ≃ᵢ PF`, returns `g : PE →ᵃ[ℝ] PF` with the same
+  `to_fun`.
 
 The formalization is based on [Jussi Väisälä, *A Proof of the Mazur-Ulam Theorem*][Vaisala_2003].
+
+## TODO
+
+Once we have affine equivalences, upgrade `isometric.to_affine_map` to `isometric.to_affine_equiv`.
 
 ## Tags
 
@@ -70,7 +78,7 @@ begin
   have : c ≤ c / 2,
   { apply csupr_le,
     rintros ⟨e, he⟩,
-    simp only [coe_fn_coe_base, subtype.coe_mk, le_div_iff' (@zero_lt_two ℝ _), ← hf_dist],
+    simp only [coe_fn_coe_base, subtype.coe_mk, le_div_iff' (@zero_lt_two ℝ _ _), ← hf_dist],
     exact le_csupr h_bdd ⟨f e, hf_maps_to he⟩ },
   replace : c ≤ 0, { linarith },
   refine λ e hx hy, dist_le_zero.1 (le_trans _ this),
@@ -93,8 +101,7 @@ end
 
 /-!
 Since `f : E ≃ᵢ F` sends midpoints to midpoints, it is an affine map.
-We have no predicate `is_affine_map` in `mathlib`, so we convert `f` to a linear map.
-If `f 0 = 0`, then we proceed as is, otherwise we use `f - f 0`.
+We define a conversion to a `continuous_linear_equiv` first, then a conversion to an `affine_map`.
 -/
 
 /-- Mazur-Ulam Theorem: if `f` is an isometric bijection between two normed vector spaces
@@ -120,5 +127,20 @@ def to_real_linear_equiv (f : E ≃ᵢ F) : E ≃L[ℝ] F :=
 
 @[simp] lemma to_real_linear_equiv_symm_apply (f : E ≃ᵢ F) (y : F) :
   (f.to_real_linear_equiv.symm : F → E) y = f.symm (y + f 0) := rfl
+
+variables {E F} {PE : Type*} {PF : Type*} [metric_space PE] [normed_add_torsor E PE]
+  [metric_space PF] [normed_add_torsor F PF]
+
+include E F
+
+/-- Convert an isometric equivalence between two affine spaces to an `affine_map`. -/
+def to_affine_map (f : PE ≃ᵢ PF) : PE →ᵃ[ℝ] PF :=
+affine_map.mk' f
+ ((vadd_const (classical.choice $ add_torsor.nonempty : PE)).trans $ f.trans
+   (vadd_const (f $ classical.choice $ add_torsor.nonempty : PF)).symm).to_real_linear_equiv
+ (classical.choice $ add_torsor.nonempty) $ λ p',
+ by simp
+
+@[simp] lemma coe_to_affine_map (f : PE ≃ᵢ PF) : ⇑f.to_affine_map = f := rfl
 
 end isometric

@@ -11,6 +11,8 @@ universes u v w
 namespace filter
 variables {α : Type u} {β : Type v} {γ : Type w}
 
+open_locale filter
+
 /-
 Relations.
 -/
@@ -161,7 +163,7 @@ theorem ptendsto_iff_rtendsto (l₁ : filter α) (l₂ : filter β) (f : α →.
 iff.rfl
 
 theorem pmap_res (l : filter α) (s : set α) (f : α → β) :
-  pmap (pfun.res f s) l = map f (l ⊓ principal s) :=
+  pmap (pfun.res f s) l = map f (l ⊓ 𝓟 s) :=
 filter_eq $
 begin
   apply set.ext, intro t, simp [pfun.core_res], split,
@@ -173,7 +175,7 @@ begin
 end
 
 theorem tendsto_iff_ptendsto (l₁ : filter α) (l₂ : filter β) (s : set α) (f : α → β) :
-  tendsto f (l₁ ⊓ principal s) l₂ ↔ ptendsto (pfun.res f s) l₁ l₂ :=
+  tendsto f (l₁ ⊓ 𝓟 s) l₂ ↔ ptendsto (pfun.res f s) l₁ l₂ :=
 by simp only [tendsto, ptendsto, pmap_res]
 
 theorem tendsto_iff_ptendsto_univ (l₁ : filter α) (l₂ : filter β) (f : α → β) :

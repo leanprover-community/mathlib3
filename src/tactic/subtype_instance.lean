@@ -25,7 +25,7 @@ do
   field ← get_current_field,
   b ← target >>= is_prop,
   if b then  do
-    `[simp [subtype.ext], dsimp [set.set_coe_eq_subtype]],
+    `[simp [subtype.ext_iff_val], dsimp [set.set_coe_eq_subtype]],
     intros,
     applyc field; assumption
   else do

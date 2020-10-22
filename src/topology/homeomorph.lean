@@ -9,11 +9,12 @@ open set
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
-/-- α and β are homeomorph, also called topological isomoph -/
+/-- Homeomorphism between `α` and `β`, also called topological isomorphism -/
+@[nolint has_inhabited_instance] -- not all spaces are homeomorphic to each other
 structure homeomorph (α : Type*) (β : Type*) [topological_space α] [topological_space β]
   extends α ≃ β :=
-(continuous_to_fun  : continuous to_fun)
-(continuous_inv_fun : continuous inv_fun)
+(continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
+(continuous_inv_fun : continuous inv_fun . tactic.interactive.continuity')
 
 infix ` ≃ₜ `:25 := homeomorph
 
@@ -22,9 +23,13 @@ variables [topological_space α] [topological_space β] [topological_space γ] [
 
 instance : has_coe_to_fun (α ≃ₜ β) := ⟨λ_, α → β, λe, e.to_equiv⟩
 
+@[simp] lemma homeomorph_mk_coe (a : equiv α β) (b c) :
+  ((homeomorph.mk a b c) : α → β) = a :=
+rfl
+
 lemma coe_eq_to_equiv (h : α ≃ₜ β) (a : α) : h a = h.to_equiv a := rfl
 
-/-- Identity map is a homeomorphism. -/
+/-- Identity map as a homeomorphism. -/
 protected def refl (α : Type*) [topological_space α] : α ≃ₜ α :=
 { continuous_to_fun := continuous_id, continuous_inv_fun := continuous_id, .. equiv.refl α }
 
@@ -40,7 +45,23 @@ protected def symm (h : α ≃ₜ β) : β ≃ₜ α :=
   continuous_inv_fun := h.continuous_to_fun,
   .. h.to_equiv.symm }
 
+@[simp] lemma homeomorph_mk_coe_symm (a : equiv α β) (b c) :
+  ((homeomorph.mk a b c).symm : β → α) = a.symm :=
+rfl
+
+@[continuity]
 protected lemma continuous (h : α ≃ₜ β) : continuous h := h.continuous_to_fun
+
+/-- Change the homeomorphism `f` to make the inverse function definitionally equal to `g`. -/
+def change_inv (f : α ≃ₜ β) (g : β → α) (hg : function.right_inverse g f) : α ≃ₜ β :=
+have g = f.symm, from funext (λ x, calc g x = f.symm (f (g x)) : (f.left_inv (g x)).symm
+                                        ... = f.symm x : by rw hg x),
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := by convert f.left_inv,
+  right_inv := by convert f.right_inv,
+  continuous_to_fun := f.continuous,
+  continuous_inv_fun := by convert f.symm.continuous }
 
 lemma symm_comp_self (h : α ≃ₜ β) : ⇑h.symm ∘ ⇑h = id :=
 funext $ assume a, h.to_equiv.left_inv a
@@ -78,10 +99,10 @@ le_antisymm
 protected lemma embedding (h : α ≃ₜ β) : embedding h :=
 ⟨⟨h.induced_eq.symm⟩, h.to_equiv.injective⟩
 
-lemma compact_image {s : set α} (h : α ≃ₜ β) : compact (h '' s) ↔ compact s :=
+lemma compact_image {s : set α} (h : α ≃ₜ β) : is_compact (h '' s) ↔ is_compact s :=
 h.embedding.compact_iff_compact_image.symm
 
-lemma compact_preimage {s : set β} (h : α ≃ₜ β) : compact (h ⁻¹' s) ↔ compact s :=
+lemma compact_preimage {s : set β} (h : α ≃ₜ β) : is_compact (h ⁻¹' s) ↔ is_compact s :=
 by rw ← image_symm; exact h.symm.compact_image
 
 protected lemma dense_embedding (h : α ≃ₜ β) : dense_embedding h :=
@@ -101,6 +122,15 @@ begin
   assume s,
   rw ← h.preimage_symm,
   exact continuous_iff_is_closed.1 (h.symm.continuous) _
+end
+
+protected lemma closed_embedding (h : α ≃ₜ β) : closed_embedding h :=
+closed_embedding_of_embedding_closed h.embedding h.is_closed_map
+
+@[simp] lemma is_open_preimage (h : α ≃ₜ β) {s : set β} : is_open (h ⁻¹' s) ↔ is_open s :=
+begin
+  refine ⟨λ hs, _, h.continuous_to_fun s⟩,
+  rw [← (image_preimage_eq h.to_equiv.surjective : _ = s)], exact h.is_open_map _ hs
 end
 
 /-- If an bijective map `e : α ≃ β` is continuous and open, then it is a homeomorphism. -/
@@ -138,6 +168,14 @@ def set_congr {s t : set α} (h : s = t) : s ≃ₜ t :=
   continuous_inv_fun := continuous_subtype_mk _ continuous_subtype_val,
   .. equiv.set_congr h }
 
+/-- Sum of two homeomorphisms. -/
+def sum_congr (h₁ : α ≃ₜ β) (h₂ : γ ≃ₜ δ) : α ⊕ γ ≃ₜ β ⊕ δ :=
+{ continuous_to_fun  :=
+    continuous_sum_rec (continuous_inl.comp h₁.continuous) (continuous_inr.comp h₂.continuous),
+  continuous_inv_fun :=
+    continuous_sum_rec (continuous_inl.comp h₁.symm.continuous) (continuous_inr.comp h₂.symm.continuous),
+  .. h₁.to_equiv.sum_congr h₂.to_equiv }
+
 /-- Product of two homeomorphisms. -/
 def prod_congr (h₁ : α ≃ₜ β) (h₂ : γ ≃ₜ δ) : α × γ ≃ₜ β × δ :=
 { continuous_to_fun  :=
@@ -174,6 +212,24 @@ def {u v} ulift {α : Type u} [topological_space α] : ulift.{v u} α ≃ₜ α 
   .. equiv.ulift }
 
 section distrib
+
+/-- `(α ⊕ β) × γ` is homeomorphic to `α × γ ⊕ β × γ`. -/
+def sum_prod_distrib : (α ⊕ β) × γ ≃ₜ α × γ ⊕ β × γ :=
+homeomorph.symm $
+homeomorph.homeomorph_of_continuous_open (equiv.sum_prod_distrib α β γ).symm
+  (continuous_sum_rec
+    ((continuous_inl.comp continuous_fst).prod_mk continuous_snd)
+    ((continuous_inr.comp continuous_fst).prod_mk continuous_snd))
+  (is_open_map_sum
+    (open_embedding_inl.prod open_embedding_id).is_open_map
+    (open_embedding_inr.prod open_embedding_id).is_open_map)
+
+/-- `α × (β ⊕ γ)` is homeomorphic to `α × β ⊕ α × γ`. -/
+def prod_sum_distrib : α × (β ⊕ γ) ≃ₜ α × β ⊕ α × γ :=
+(prod_comm _ _).trans $
+sum_prod_distrib.trans $
+sum_congr (prod_comm _ _) (prod_comm _ _)
+
 variables {ι : Type*} {σ : ι → Type*} [Π i, topological_space (σ i)]
 
 /-- `(Σ i, σ i) × β` is homeomorphic to `Σ i, (σ i × β)`. -/

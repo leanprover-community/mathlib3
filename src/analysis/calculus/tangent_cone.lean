@@ -50,7 +50,7 @@ To avoid pathologies in dimension 0, we also require that `x` belongs to the clo
 is automatic when `E` is not `0`-dimensional).
  -/
 def unique_diff_within_at (s : set E) (x : E) : Prop :=
-closure ((submodule.span 𝕜 (tangent_cone_at 𝕜 s x)) : set E) = univ ∧ x ∈ closure s
+dense ((submodule.span 𝕜 (tangent_cone_at 𝕜 s x)) : set E) ∧ x ∈ closure s
 
 /-- A property ensuring that the tangent cone to `s` at any of its points spans a dense subset of
 the whole space.  The main role of this property is to ensure that the differential along `s` is
@@ -72,7 +72,7 @@ begin
   rcases exists_one_lt_norm 𝕜 with ⟨w, hw⟩,
   refine ⟨λn, w^n, λn, (w^n)⁻¹ • y, univ_mem_sets' (λn, mem_univ _),  _, _⟩,
   { simp only [norm_pow],
-    exact tendsto_pow_at_top_at_top_of_gt_1 hw },
+    exact tendsto_pow_at_top_at_top_of_one_lt hw },
   { convert tendsto_const_nhds,
     ext n,
     have : w ^ n * (w ^ n)⁻¹ = 1,
@@ -110,20 +110,19 @@ begin
   exact D
 end
 
-lemma tangent_cone_mono_nhds (h : nhds_within x s ≤ nhds_within x t) :
+lemma tangent_cone_mono_nhds (h : 𝓝[s] x ≤ 𝓝[t] x) :
   tangent_cone_at 𝕜 s x ⊆ tangent_cone_at 𝕜 t x :=
 begin
   rintros y ⟨c, d, ds, ctop, clim⟩,
   refine ⟨c, d, _, ctop, clim⟩,
-  suffices : tendsto (λ n, x + d n) at_top (nhds_within x t),
+  suffices : tendsto (λ n, x + d n) at_top (𝓝[t] x),
     from tendsto_principal.1 (tendsto_inf.1 this).2,
-  apply tendsto_le_right h,
-  refine tendsto_inf.2 ⟨_, tendsto_principal.2 ds⟩,
+  refine (tendsto_inf.2 ⟨_, tendsto_principal.2 ds⟩).mono_right h,
   simpa only [add_zero] using tendsto_const_nhds.add (tangent_cone_at.lim_zero at_top ctop clim)
 end
 
-/-- Tangent cone of `s` at `x` depends only on `nhds_within x s`. -/
-lemma tangent_cone_congr (h : nhds_within x s = nhds_within x t) :
+/-- Tangent cone of `s` at `x` depends only on `𝓝[s] x`. -/
+lemma tangent_cone_congr (h : 𝓝[s] x = 𝓝[t] x) :
   tangent_cone_at 𝕜 s x = tangent_cone_at 𝕜 t x :=
 subset.antisymm
   (tangent_cone_mono_nhds $ le_of_eq h)
@@ -136,7 +135,7 @@ tangent_cone_congr (nhds_within_restrict' _ ht).symm
 
 /-- The tangent cone of a product contains the tangent cone of its left factor. -/
 lemma subset_tangent_cone_prod_left {t : set F} {y : F} (ht : y ∈ closure t) :
-  prod.inl '' (tangent_cone_at 𝕜 s x) ⊆ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
+  linear_map.inl 𝕜 E F '' (tangent_cone_at 𝕜 s x) ⊆ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
 begin
   rintros _ ⟨v, ⟨c, d, hd, hc, hy⟩, rfl⟩,
   have : ∀n, ∃d', y + d' ∈ t ∧ ∥c n • d'∥ ≤ ((1:ℝ)/2)^n,
@@ -176,7 +175,7 @@ end
 /-- The tangent cone of a product contains the tangent cone of its right factor. -/
 lemma subset_tangent_cone_prod_right {t : set F} {y : F}
   (hs : x ∈ closure s) :
-  prod.inr '' (tangent_cone_at 𝕜 t y) ⊆ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
+  linear_map.inr 𝕜 E F '' (tangent_cone_at 𝕜 t y) ⊆ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
 begin
   rintros _ ⟨w, ⟨c, d, hd, hc, hy⟩, rfl⟩,
   have : ∀n, ∃d', x + d' ∈ s ∧ ∥c n • d'∥ ≤ ((1:ℝ)/2)^n,
@@ -232,7 +231,7 @@ begin
   { have : (λ (n : ℕ), ∥c n∥) = c,
       by { ext n, exact abs_of_nonneg (pow_nonneg (by norm_num) _) },
     rw this,
-    exact tendsto_pow_at_top_at_top_of_gt_1 (by norm_num) },
+    exact tendsto_pow_at_top_at_top_of_one_lt (by norm_num) },
   show filter.tendsto (λ (n : ℕ), c n • d n) filter.at_top (𝓝 (y - x)),
   { have : (λ (n : ℕ), c n • d n) = (λn, y - x),
     { ext n,
@@ -246,8 +245,14 @@ end
 end tangent_cone
 
 section unique_diff
-/- This section is devoted to properties of the predicates `unique_diff_within_at` and
-`unique_diff_on`. -/
+/-!
+### Properties of `unique_diff_within_at` and `unique_diff_on`
+
+This section is devoted to properties of the predicates `unique_diff_within_at` and `unique_diff_on`. -/
+
+lemma unique_diff_on.unique_diff_within_at {s : set E} {x} (hs : unique_diff_on 𝕜 s) (h : x ∈ s) :
+  unique_diff_within_at 𝕜 s x :=
+hs x h
 
 lemma unique_diff_within_at_univ : unique_diff_within_at 𝕜 univ x :=
 by { rw [unique_diff_within_at, tangent_cone_univ], simp }
@@ -259,21 +264,20 @@ lemma unique_diff_on_empty : unique_diff_on 𝕜 (∅ : set E) :=
 λ x hx, hx.elim
 
 lemma unique_diff_within_at.mono_nhds (h : unique_diff_within_at 𝕜 s x)
-  (st : nhds_within x s ≤ nhds_within x t) :
+  (st : 𝓝[s] x ≤ 𝓝[t] x) :
   unique_diff_within_at 𝕜 t x :=
 begin
   unfold unique_diff_within_at at *,
-  rw [← univ_subset_iff, ← h.1],
   rw [mem_closure_iff_nhds_within_ne_bot] at h ⊢,
-  exact ⟨closure_mono (submodule.span_mono (tangent_cone_mono_nhds st)),
-    ne_bot_of_le_ne_bot h.2 st⟩
+  exact ⟨h.1.mono $ submodule.span_mono $ tangent_cone_mono_nhds st,
+    h.2.mono st⟩
 end
 
 lemma unique_diff_within_at.mono (h : unique_diff_within_at 𝕜 s x) (st : s ⊆ t) :
   unique_diff_within_at 𝕜 t x :=
 h.mono_nhds $ nhds_within_mono _ st
 
-lemma unique_diff_within_at_congr (st : nhds_within x s = nhds_within x t) :
+lemma unique_diff_within_at_congr (st : 𝓝[s] x = 𝓝[t] x) :
   unique_diff_within_at 𝕜 s x ↔ unique_diff_within_at 𝕜 t x :=
 ⟨λ h, h.mono_nhds $ le_of_eq st, λ h, h.mono_nhds $ le_of_eq st.symm⟩
 
@@ -285,11 +289,11 @@ lemma unique_diff_within_at.inter (hs : unique_diff_within_at 𝕜 s x) (ht : t 
   unique_diff_within_at 𝕜 (s ∩ t) x :=
 (unique_diff_within_at_inter ht).2 hs
 
-lemma unique_diff_within_at_inter' (ht : t ∈ nhds_within x s) :
+lemma unique_diff_within_at_inter' (ht : t ∈ 𝓝[s] x) :
   unique_diff_within_at 𝕜 (s ∩ t) x ↔ unique_diff_within_at 𝕜 s x :=
 unique_diff_within_at_congr $ (nhds_within_restrict'' _ ht).symm
 
-lemma unique_diff_within_at.inter' (hs : unique_diff_within_at 𝕜 s x) (ht : t ∈ nhds_within x s) :
+lemma unique_diff_within_at.inter' (hs : unique_diff_within_at 𝕜 s x) (ht : t ∈ 𝓝[s] x) :
   unique_diff_within_at 𝕜 (s ∩ t) x :=
 (unique_diff_within_at_inter' ht).2 hs
 
@@ -312,13 +316,13 @@ lemma unique_diff_within_at.prod {t : set F} {y : F}
   unique_diff_within_at 𝕜 (set.prod s t) (x, y) :=
 begin
   rw [unique_diff_within_at] at ⊢ hs ht,
-  rw [← univ_subset_iff, closure_prod_eq],
+  rw [closure_prod_eq],
   refine ⟨_, hs.2, ht.2⟩,
-  have : _ ⊆ tangent_cone_at 𝕜 (s.prod t) (x, y) :=
-    union_subset (subset_tangent_cone_prod_left ht.2) (subset_tangent_cone_prod_right hs.2),
-  refine subset.trans _ (closure_mono $ submodule.span_mono this),
-  rw [linear_map.span_inl_union_inr, submodule.prod_coe, closure_prod_eq,
-    hs.1, ht.1, univ_prod_univ]
+  have : _ ≤ submodule.span 𝕜 (tangent_cone_at 𝕜 (s.prod t) (x, y)) :=
+    submodule.span_mono (union_subset (subset_tangent_cone_prod_left ht.2)
+      (subset_tangent_cone_prod_right hs.2)),
+  rw [linear_map.span_inl_union_inr, submodule.le_def, submodule.prod_coe] at this,
+  exact (hs.1.prod ht.1).mono this
 end
 
 /-- The product of two sets of unique differentiability is a set of unique differentiability. -/
@@ -334,9 +338,9 @@ begin
   assume x xs,
   rcases hs with ⟨y, hy⟩,
   suffices : y - x ∈ interior (tangent_cone_at ℝ s x),
-  { refine ⟨_, subset_closure xs⟩,
-    rw [submodule.eq_top_of_nonempty_interior _ ⟨y - x, interior_mono submodule.subset_span this⟩,
-      submodule.top_coe, closure_univ] },
+  { refine ⟨dense.of_closure _, subset_closure xs⟩,
+    simp [(submodule.span ℝ (tangent_cone_at ℝ s x)).eq_top_of_nonempty_interior'
+      ⟨y - x, interior_mono submodule.subset_span this⟩] },
   rw [mem_interior_iff_mem_nhds] at hy ⊢,
   apply mem_sets_of_superset ((is_open_map_add_right (-x)).image_mem_nhds hy),
   rintros _ ⟨z, zs, rfl⟩,

@@ -1,35 +1,38 @@
 import tactic.simp_command
 import analysis.special_functions.trigonometric
 
+/- Turn off trace messages only if the statements are simplified to true: -/
+set_option trace.silence_simp_if_true true
+
 /-!
 Tests for the #simp command.
 -/
 
-#simp 5 - 5
+#simp 5 - 5 = 0
 
 section arith
 
 def f (x : ℤ) := x + (x - x)
-#simp [f] f 3
+#simp [f] f 3 = 3
 
 mk_simp_attribute test ""
 attribute [test] f
 -- You can use the optional `:` to separate
 -- the simp lemmas and attributes from the expression to simplify.
-#simp with test : (f 3)
+#simp with test : (f 3) = 3
 
 attribute [simp] f
-#simp f 3
-#simp only [f] f 3
+#simp f 3 = 3
+#simp only [f, eq_self_iff_true] f 3 = 3 + (3 - 3)
 
 local attribute [simp] sub_self
 
 variables (x : ℤ)
 
-#simp with test : (f x)
-#simp f x
-#simp only [f] f x
-#simp only [f, sub_self] f x
+#simp with test : (f x) = x
+#simp f x = x
+#simp only [f, eq_self_iff_true] f x = x + (x - x)
+#simp only [f, sub_self, eq_self_iff_true] f x = x + 0
 
 end arith
 
@@ -38,13 +41,14 @@ end arith
 section real
 
 open real
-#simp [exp_ne_zero] : λ x, deriv (λ x, (sin x) / (exp x)) x
+#simp [exp_ne_zero] : (λ x, deriv (λ x, (sin x) / (exp x)) x) =
+  (λ (x : ℝ), (cos x * exp x - sin x * exp x) / exp x ^ 2)
 
 variables (x : ℝ)
 
 -- You can refer to local variables, rather than having to use lambdas.
 open real
-#simp [exp_ne_zero] : deriv (λ x, (sin x) / (exp x)) x
+#simp [exp_ne_zero] : deriv (λ x, (sin x) / (exp x)) x = (cos x * exp x - sin x * exp x) / exp x ^ 2
 
 end real
 
@@ -54,8 +58,8 @@ section func_hyp
 
 variables (f : ℕ → ℕ) (hf : f 3 = 0) (hg : 9 = 55)
 
-#simp only [hg] : 9
-#simp only [hf, add_zero] : 1 + f 3
+#simp only [hg, eq_self_iff_true] : 9 = 55
+#simp only [hf, add_zero, eq_self_iff_true] : 1 + f 3 = 1
 
 end func_hyp
 

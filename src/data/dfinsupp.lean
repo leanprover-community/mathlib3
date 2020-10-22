@@ -3,7 +3,9 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau
 -/
-import algebra.pi_instances
+import algebra.module.pi
+import algebra.big_operators.basic
+import data.set.finite
 
 /-!
 # Dependent functions with finite support
@@ -12,6 +14,8 @@ For a non-dependent version see `data/finsupp.lean`.
 -/
 
 universes u u₁ u₂ v v₁ v₂ v₃ w x y l
+
+open_locale big_operators
 
 variables (ι : Type u) (β : ι → Type v)
 
@@ -140,21 +144,23 @@ instance [Π i, add_comm_group (β i)] : add_comm_group (Π₀ i, β i) :=
 { add_comm := λ f g, ext $ λ i, by simp only [add_apply, add_comm],
   ..dfinsupp.add_group }
 
-/-- The scalar multiplication on a direct sum of modules. -/
-def to_has_scalar {γ : Type w} [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)] :
+/-- Dependent functions with finite support inherit a semiring action from an action on each
+coordinate. -/
+def to_has_scalar {γ : Type w} [semiring γ] [Π i, add_comm_group (β i)] [Π i, semimodule γ (β i)] :
   has_scalar γ (Π₀ i, β i) :=
 ⟨λc v, v.map_range (λ _, (•) c) (λ _, smul_zero _)⟩
 local attribute [instance] to_has_scalar
 
-@[simp] lemma smul_apply {γ : Type w} [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)]
-  {i : ι} {b : γ} {v : Π₀ i, β i} :
+@[simp] lemma smul_apply {γ : Type w} [semiring γ] [Π i, add_comm_group (β i)]
+  [Π i, semimodule γ (β i)] {i : ι} {b : γ} {v : Π₀ i, β i} :
   (b • v) i = b • (v i) :=
 map_range_apply
 
-/-- The module structure on a direct sum of modules. -/
-def to_module {γ : Type w} [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)] :
-  module γ (Π₀ i, β i) :=
-module.of_core {
+/-- Dependent functions with finite support inherit a semimodule structure from such a structure on
+each coordinate. -/
+def to_semimodule {γ : Type w} [semiring γ] [Π i, add_comm_group (β i)] [Π i, semimodule γ (β i)] :
+  semimodule γ (Π₀ i, β i) :=
+semimodule.of_core {
   smul_add := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, smul_add],
   add_smul := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, add_smul],
   one_smul := λ x, ext $ λ i, by simp only [smul_apply, one_smul],
@@ -194,17 +200,17 @@ ext $ λ i, by simp only [add_apply, filter_apply]; split_ifs; simp only [add_ze
 /-- `subtype_domain p f` is the restriction of the finitely supported function
   `f` to the subtype `p`. -/
 def subtype_domain [Π i, has_zero (β i)] (p : ι → Prop) [decidable_pred p]
-  (f : Π₀ i, β i) : Π₀ i : subtype p, β i.1 :=
+  (f : Π₀ i, β i) : Π₀ i : subtype p, β i :=
 begin
   fapply quotient.lift_on f,
   { intro x,
-    refine ⟦⟨λ i, x.1 i.1,
-      (x.2.filter p).attach.map $ λ j, ⟨j.1, (multiset.mem_filter.1 j.2).2⟩, _⟩⟧,
-    refine λ i, or.cases_on (x.3 i.1) (λ H, _) or.inr,
-    left, rw multiset.mem_map, refine ⟨⟨i.1, multiset.mem_filter.2 ⟨H, i.2⟩⟩, _, subtype.eta _ _⟩,
+    refine ⟦⟨λ i, x.1 (i : ι),
+      (x.2.filter p).attach.map $ λ j, ⟨j, (multiset.mem_filter.1 j.2).2⟩, _⟩⟧,
+    refine λ i, or.cases_on (x.3 i) (λ H, _) or.inr,
+    left, rw multiset.mem_map, refine ⟨⟨i, multiset.mem_filter.2 ⟨H, i.2⟩⟩, _, subtype.eta _ _⟩,
     apply multiset.mem_attach },
   intros x y H,
-  exact quotient.sound (λ i, H i.1)
+  exact quotient.sound (λ i, H i)
 end
 
 @[simp] lemma subtype_domain_zero [Π i, has_zero (β i)] {p : ι → Prop} [decidable_pred p] :
@@ -213,7 +219,7 @@ rfl
 
 @[simp] lemma subtype_domain_apply [Π i, has_zero (β i)] {p : ι → Prop} [decidable_pred p]
   {i : subtype p} {v : Π₀ i, β i} :
-  (subtype_domain p v) i = v (i.val) :=
+  (subtype_domain p v) i = v i :=
 quotient.induction_on v $ λ x, rfl
 
 @[simp] lemma subtype_domain_add [Π i, add_monoid (β i)] {p : ι → Prop} [decidable_pred p]
@@ -249,23 +255,22 @@ omit dec
 lemma finite_supp (f : Π₀ i, β i) : set.finite {i | f i ≠ 0} :=
 begin
   classical,
-  exact quotient.induction_on f (λ x, set.finite_subset
-  (finset.finite_to_set x.2.to_finset) (λ i H,
+  exact quotient.induction_on f (λ x, x.2.to_finset.finite_to_set.subset (λ i H,
     multiset.mem_to_finset.2 ((x.3 i).resolve_right H)))
 end
 include dec
 
 /-- Create an element of `Π₀ i, β i` from a finset `s` and a function `x`
 defined on this `finset`. -/
-def mk (s : finset ι) (x : Π i : (↑s : set ι), β i.1) : Π₀ i, β i :=
+def mk (s : finset ι) (x : Π i : (↑s : set ι), β (i : ι)) : Π₀ i, β i :=
 ⟦⟨λ i, if H : i ∈ s then x ⟨i, H⟩ else 0, s.1,
 λ i, if H : i ∈ s then or.inl H else or.inr $ dif_neg H⟩⟧
 
-@[simp] lemma mk_apply {s : finset ι} {x : Π i : (↑s : set ι), β i.1} {i : ι} :
+@[simp] lemma mk_apply {s : finset ι} {x : Π i : (↑s : set ι), β i} {i : ι} :
   (mk s x : Π i, β i) i = if H : i ∈ s then x ⟨i, H⟩ else 0 :=
 rfl
 
-theorem mk_inj (s : finset ι) : function.injective (@mk ι β _ _ s) :=
+theorem mk_injective (s : finset ι) : function.injective (@mk ι β _ _ s) :=
 begin
   intros x y H,
   ext i,
@@ -279,7 +284,7 @@ end
 /-- The function `single i b : Π₀ i, β i` sends `i` to `b`
 and all other points to `0`. -/
 def single (i : ι) (b : β i) : Π₀ i, β i :=
-mk {i} $ λ j, eq.rec_on (finset.mem_singleton.1 j.2).symm b
+mk {i} $ λ j, eq.rec_on (finset.mem_singleton.1 j.prop).symm b
 
 @[simp] lemma single_apply {i i' b} :
   (single i b : Π₀ i, β i) i' = (if h : i = i' then eq.rec_on h b else 0) :=
@@ -287,7 +292,7 @@ begin
   dsimp only [single],
   by_cases h : i = i',
   { have h1 : i' ∈ ({i} : finset ι) := finset.mem_singleton.2 h.symm,
-    simp only [mk_apply, dif_pos h, dif_pos h1] },
+    simp only [mk_apply, dif_pos h, dif_pos h1], refl },
   { have h1 : i' ∉ ({i} : finset ι) := finset.not_mem_singleton.2 (ne.symm h),
     simp only [mk_apply, dif_neg h, dif_neg h1] }
 end
@@ -362,11 +367,11 @@ begin
         { left, rw H3, exact H1 },
         { left, exact H3 } },
       right, exact H2 },
-    have H3 : (⟦{to_fun := f, pre_support := i :: s, zero := H}⟧ : Π₀ i, β i)
+    have H3 : (⟦{to_fun := f, pre_support := i ::ₘ s, zero := H}⟧ : Π₀ i, β i)
       = ⟦{to_fun := f, pre_support := s, zero := H2}⟧,
     { exact quotient.sound (λ i, rfl) },
     rw H3, apply ih },
-  have H2 : p (erase i ⟦{to_fun := f, pre_support := i :: s, zero := H}⟧),
+  have H2 : p (erase i ⟦{to_fun := f, pre_support := i ::ₘ s, zero := H}⟧),
   { dsimp only [erase, quotient.lift_on_beta],
     have H2 : ∀ j, j ∈ s ∨ ite (j = i) 0 (f j) = 0,
     { intro j, cases H j with H2 H2,
@@ -375,11 +380,11 @@ begin
         { left, exact H3 } },
       right, split_ifs; [refl, exact H2] },
     have H3 : (⟦{to_fun := λ (j : ι), ite (j = i) 0 (f j),
-         pre_support := i :: s, zero := _}⟧ : Π₀ i, β i)
+         pre_support := i ::ₘ s, zero := _}⟧ : Π₀ i, β i)
       = ⟦{to_fun := λ (j : ι), ite (j = i) 0 (f j), pre_support := s, zero := H2}⟧ :=
       quotient.sound (λ i, rfl),
     rw H3, apply ih },
-  have H3 : single i _ + _ = (⟦{to_fun := f, pre_support := i :: s, zero := H}⟧ : Π₀ i, β i) :=
+  have H3 : single i _ + _ = (⟦{to_fun := f, pre_support := i ::ₘ s, zero := H}⟧ : Π₀ i, β i) :=
     single_add_erase,
   rw ← H3,
   change p (single i (f i) + _),
@@ -401,7 +406,7 @@ eq.rec_on h4 $ ha i b f h1 h2 h3
 
 end add_monoid
 
-@[simp] lemma mk_add [Π i, add_monoid (β i)] {s : finset ι} {x y : Π i : (↑s : set ι), β i.1} :
+@[simp] lemma mk_add [Π i, add_monoid (β i)] {s : finset ι} {x y : Π i : (↑s : set ι), β i} :
   mk s (x + y) = mk s x + mk s y :=
 ext $ λ i, by simp only [add_apply, mk_apply]; split_ifs; [refl, rw zero_add]
 
@@ -421,9 +426,10 @@ instance [Π i, add_group (β i)] {s : finset ι} : is_add_group_hom (@mk ι β 
 { map_add := λ _ _, mk_add }
 
 section
-local attribute [instance] to_module
-variables (γ : Type w) [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)]
+local attribute [instance] to_semimodule
+variables (γ : Type w) [semiring γ] [Π i, add_comm_group (β i)] [Π i, semimodule γ (β i)]
 include γ
+
 @[simp] lemma mk_smul {s : finset ι} {c : γ} (x : Π i : (↑s : set ι), β i.1) :
   mk s (c • x) = c • mk s x :=
 ext $ λ i, by simp only [smul_apply, mk_apply]; split_ifs; [refl, rw smul_zero]
@@ -483,7 +489,7 @@ theorem eq_mk_support (f : Π₀ i, β i) : f = mk f.support (λ i, f i) :=
 begin
   change f = mk f.support (λ i, f i.1),
   ext i,
-  by_cases h : f i ≠ 0; [skip, rw [classical.not_not] at h];
+  by_cases h : f i ≠ 0; [skip, rw [not_not] at h];
     simp [h]
 end
 
@@ -493,7 +499,7 @@ lemma mem_support_iff (f : Π₀ i, β i) : ∀i:ι, i ∈ f.support ↔ f i ≠
 f.mem_support_to_fun
 
 @[simp] lemma support_eq_empty {f : Π₀ i, β i} : f.support = ∅ ↔ f = 0 :=
-⟨λ H, ext $ by simpa [finset.ext] using H, by simp {contextual:=tt}⟩
+⟨λ H, ext $ by simpa [finset.ext_iff] using H, by simp {contextual:=tt}⟩
 
 instance decidable_zero : decidable_pred (eq (0 : Π₀ i, β i)) :=
 λ f, decidable_of_iff _ $ support_eq_empty.trans eq_comm
@@ -501,7 +507,7 @@ instance decidable_zero : decidable_pred (eq (0 : Π₀ i, β i)) :=
 lemma support_subset_iff {s : set ι} {f : Π₀ i, β i} :
   ↑f.support ⊆ s ↔ (∀i∉s, f i = 0) :=
 by simp [set.subset_def];
-   exact forall_congr (assume i, @not_imp_comm _ _ (classical.dec _) (classical.dec _))
+   exact forall_congr (assume i, not_imp_comm)
 
 lemma support_single_ne_zero {i : ι} {b : β i} (hb : b ≠ 0) : (single i b).support = {i} :=
 begin
@@ -542,7 +548,7 @@ lemma zip_with_def {f : Π i, β₁ i → β₂ i → β i} {hf : ∀ i, f i 0 0
 begin
   ext i,
   by_cases h1 : g₁ i ≠ 0; by_cases h2 : g₂ i ≠ 0;
-    simp only [classical.not_not, ne.def] at h1 h2; simp [h1, h2, hf]
+    simp only [not_not, ne.def] at h1 h2; simp [h1, h2, hf]
 end
 
 lemma support_zip_with {f : Π i, β₁ i → β₂ i → β i} {hf : ∀ i, f i 0 0 = 0}
@@ -574,15 +580,13 @@ by ext i; by_cases h1 : p i; by_cases h2 : f i ≠ 0;
 by ext i; by_cases h : p i; simp [h]
 
 lemma subtype_domain_def (f : Π₀ i, β i) :
-  f.subtype_domain p = mk (f.support.subtype p) (λ i, f i.1) :=
-by ext i; cases i with i hi;
-by_cases h1 : p i; by_cases h2 : f i ≠ 0;
-try {simp at h2}; dsimp; simp [h1, h2]
+  f.subtype_domain p = mk (f.support.subtype p) (λ i, f i) :=
+by ext i; by_cases h1 : p i; by_cases h2 : f i ≠ 0;
+try {simp at h2}; dsimp; simp [h1, h2, ← subtype.val_eq_coe]
 
 @[simp] lemma support_subtype_domain {f : Π₀ i, β i} :
   (subtype_domain p f).support = f.support.subtype p :=
-by ext i; cases i with i hi;
-by_cases h1 : p i; by_cases h2 : f i ≠ 0;
+by ext i; by_cases h1 : p i; by_cases h2 : f i ≠ 0;
 try {simp at h2}; dsimp; simp [h1, h2]
 
 end filter_and_subtype_domain
@@ -598,7 +602,7 @@ support_zip_with
   support (-f) = support f :=
 by ext i; simp
 
-local attribute [instance] dfinsupp.to_module
+local attribute [instance] dfinsupp.to_semimodule
 
 lemma support_smul {γ : Type w} [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)]
   [Π (i : ι) (x : β i), decidable (x ≠ 0)]
@@ -622,13 +626,13 @@ variables {γ : Type w}
 /-- `sum f g` is the sum of `g i (f i)` over the support of `f`. -/
 def sum [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)] [add_comm_monoid γ]
   (f : Π₀ i, β i) (g : Π i, β i → γ) : γ :=
-f.support.sum (λi, g i (f i))
+∑ i in f.support, g i (f i)
 
 /-- `prod f g` is the product of `g i (f i)` over the support of `f`. -/
 @[to_additive]
 def prod [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)] [comm_monoid γ]
   (f : Π₀ i, β i) (g : Π i, β i → γ) : γ :=
-f.support.prod (λi, g i (f i))
+∏ i in f.support, g i (f i)
 
 @[to_additive]
 lemma prod_map_range_index {β₁ : ι → Type v₁} {β₂ : ι → Type v₂}
@@ -660,7 +664,7 @@ lemma prod_single_index [Π i, has_zero (β i)] [Π i (x : β i), decidable (x �
 begin
   by_cases h : b ≠ 0,
   { simp [dfinsupp.prod, support_single_ne_zero h] },
-  { rw [classical.not_not] at h, simp [h, prod_zero_index, h_zero], refl }
+  { rw [not_not] at h, simp [h, prod_zero_index, h_zero], refl }
 end
 
 @[to_additive]
@@ -710,18 +714,18 @@ lemma prod_add_index [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable 
   [comm_monoid γ] {f g : Π₀ i, β i}
   {h : Π i, β i → γ} (h_zero : ∀i, h i 0 = 1) (h_add : ∀i b₁ b₂, h i (b₁ + b₂) = h i b₁ * h i b₂) :
   (f + g).prod h = f.prod h * g.prod h :=
-have f_eq : (f.support ∪ g.support).prod (λi, h i (f i)) = f.prod h,
+have f_eq : ∏ i in f.support ∪ g.support, h i (f i) = f.prod h,
   from (finset.prod_subset (finset.subset_union_left _ _) $
     by simp [mem_support_iff, h_zero] {contextual := tt}).symm,
-have g_eq : (f.support ∪ g.support).prod (λi, h i (g i)) = g.prod h,
+have g_eq : ∏ i in f.support ∪ g.support, h i (g i) = g.prod h,
   from (finset.prod_subset (finset.subset_union_right _ _) $
     by simp [mem_support_iff, h_zero] {contextual := tt}).symm,
-calc (f + g).support.prod (λi, h i ((f + g) i)) =
-      (f.support ∪ g.support).prod (λi, h i ((f + g) i)) :
+calc ∏ i in (f + g).support, h i ((f + g) i) =
+      ∏ i in f.support ∪ g.support, h i ((f + g) i) :
     finset.prod_subset support_add $
       by simp [mem_support_iff, h_zero] {contextual := tt}
-  ... = (f.support ∪ g.support).prod (λi, h i (f i)) *
-      (f.support ∪ g.support).prod (λi, h i (g i)) :
+  ... = (∏ i in f.support ∪ g.support, h i (f i)) *
+      (∏ i in f.support ∪ g.support, h i (g i)) :
     by simp [h_add, finset.prod_mul_distrib]
   ... = _ : by rw [f_eq, g_eq]
 
@@ -752,7 +756,7 @@ lemma prod_finset_sum_index {γ : Type w} {α : Type x}
   [comm_monoid γ]
   {s : finset α} {g : α → Π₀ i, β i}
   {h : Π i, β i → γ} (h_zero : ∀i, h i 0 = 1) (h_add : ∀i b₁ b₂, h i (b₁ + b₂) = h i b₁ * h i b₂) :
-  s.prod (λi, (g i).prod h) = (s.sum g).prod h :=
+  ∏ i in s, (g i).prod h = (∑ i in s, g i).prod h :=
 begin
   classical,
   exact finset.induction_on s
@@ -783,18 +787,17 @@ end
 @[to_additive]
 lemma prod_subtype_domain_index [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [comm_monoid γ] {v : Π₀ i, β i} {p : ι → Prop} [decidable_pred p]
-  {h : Π i, β i → γ} (hp : ∀x∈v.support, p x) :
-  (v.subtype_domain p).prod (λi b, h i.1 b) = v.prod h :=
-finset.prod_bij (λp _, p.val)
-  (by simp)
-  (by simp)
+  {h : Π i, β i → γ} (hp : ∀ x ∈ v.support, p x) :
+  (v.subtype_domain p).prod (λi b, h i b) = v.prod h :=
+finset.prod_bij (λp _, p)
+  (by simp) (by simp)
   (assume ⟨a₀, ha₀⟩ ⟨a₁, ha₁⟩, by simp)
   (λ i hi, ⟨⟨i, hp i hi⟩, by simpa using hi, rfl⟩)
 
 omit dec
 lemma subtype_domain_sum [Π i, add_comm_monoid (β i)]
   {s : finset γ} {h : γ → Π₀ i, β i} {p : ι → Prop} [decidable_pred p] :
-  (s.sum h).subtype_domain p = s.sum (λc, (h c).subtype_domain p) :=
+  (∑ c in s, h c).subtype_domain p = ∑ c in s, (h c).subtype_domain p :=
 eq.symm (s.sum_hom _)
 
 lemma subtype_domain_finsupp_sum {δ : γ → Type x} [decidable_eq γ]

@@ -2,25 +2,30 @@
 Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Johannes Hölzl, Mario Carneiro
-
-An efficient binary implementation of a (sqrt n) function that
-returns s s.t.
-    s*s ≤ n ≤ s*s + s + s
 -/
-import data.nat.cast
-import init_.data.int.order
+import data.int.basic
+/-!
+# Square root of natural numbers
 
+An efficient binary implementation of a (`sqrt n`) function that
+returns `s` such that
+```
+s*s ≤ n ≤ s*s + s + s
+```
+-/
 namespace nat
 
 theorem sqrt_aux_dec {b} (h : b ≠ 0) : shiftr b 2 < b :=
 begin
-  simp [shiftr_eq_div_pow],
+  simp only [shiftr_eq_div_pow],
   apply (nat.div_lt_iff_lt_mul' (dec_trivial : 0 < 4)).2,
   have := nat.mul_lt_mul_of_pos_left
     (dec_trivial : 1 < 4) (nat.pos_of_ne_zero h),
   rwa mul_one at this
 end
 
+/-- Auxiliary function for `nat.sqrt`. See e.g.
+<https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Binary_numeral_system_(base_2)> -/
 def sqrt_aux : ℕ → ℕ → ℕ → ℕ
 | b r n := if b0 : b = 0 then r else
   let b' := shiftr b 2 in
@@ -32,7 +37,7 @@ def sqrt_aux : ℕ → ℕ → ℕ → ℕ
 
 /-- `sqrt n` is the square root of a natural number `n`. If `n` is not a
   perfect square, it returns the largest `k:ℕ` such that `k*k ≤ n`. -/
-def sqrt (n : ℕ) : ℕ :=
+@[pp_nodot] def sqrt (n : ℕ) : ℕ :=
 match size n with
 | 0      := 0
 | succ s := sqrt_aux (shiftl 1 (bit0 (div2 s))) 0 n
@@ -68,7 +73,7 @@ private lemma sqrt_aux_is_sqrt_lemma (m r n : ℕ)
   is_sqrt n (sqrt_aux (2^m * 2^m) ((2*r)*2^m) (n - r*r)) :=
 begin
   have b0 :=
-    have b0:_, from ne_of_gt (@pos_pow_of_pos 2 m dec_trivial),
+    have b0:_, from ne_of_gt (pow_pos (show 0 < 2, from dec_trivial) m),
     nat.mul_ne_zero b0 b0,
   have lb : n - r * r < 2 * r * 2^m + 2^m * 2^m ↔
             n < (r+2^m)*(r+2^m), {
@@ -103,7 +108,7 @@ private lemma sqrt_aux_is_sqrt (n) : ∀ m r,
       intros,
     { have := sqrt_aux_is_sqrt m r h₁ a,
       simpa [pow_succ, mul_comm, mul_assoc] },
-    { rw [pow_succ, mul_two, ← add_assoc] at h₂,
+    { rw [pow_succ', mul_two, ← add_assoc] at h₂,
       have := sqrt_aux_is_sqrt m (r + 2^(m+1)) a h₂,
       rwa show (r + 2^(m + 1)) * 2^(m+1) = 2 * (r + 2^(m + 1)) * 2^m,
           by simp [pow_succ, mul_comm, mul_left_comm] }

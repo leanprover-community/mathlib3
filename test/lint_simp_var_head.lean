@@ -17,8 +17,20 @@ end
 
 
 open tactic
-#eval do
+run_cmd do
 decl ← get_decl ``const_zero_eq_zero,
 res ← linter.simp_var_head.test decl,
 -- linter complains
 guard $ res.is_some
+
+
+
+-- However injectivity lemmas can still be marked simp,
+-- even though injective is reducible and unfolds to a bad simp lemma:
+@[simp] axiom injective_succ : function.injective nat.succ
+
+run_cmd do
+decl ← get_decl ``injective_succ,
+res ← linter.simp_var_head.test decl,
+-- linter does not complain
+guard res.is_none

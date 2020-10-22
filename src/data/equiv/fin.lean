@@ -56,12 +56,12 @@ def sum_fin_sum_equiv : fin m ⊕ fin n ≃ fin (m + n) :=
       from (nat.add_sub_of_le $ le_of_not_gt H).symm ▸ x.2⟩,
   left_inv := λ x, begin
     cases x with y y,
-    { simp [y.2, fin.ext_iff] },
+    { simp [fin.ext_iff, y.is_lt], },
     { have H : ¬m + y.val < m := not_lt_of_ge (nat.le_add_right _ _),
       simp [H, nat.add_sub_cancel_left, fin.ext_iff] }
   end,
   right_inv := λ x, begin
-    by_cases H : x.1 < m,
+    by_cases H : (x:ℕ) < m,
     { dsimp, rw [dif_pos H], simp },
     { dsimp, rw [dif_neg H], simp [fin.ext_iff, nat.add_sub_of_le (le_of_not_gt H)] }
   end }

@@ -5,7 +5,7 @@ Isometries of emetric and metric spaces
 Authors: Sébastien Gouëzel
 -/
 import topology.bounded_continuous_function
-import topology.opens
+import topology.compacts
 
 /-!
 # Isometries
@@ -96,7 +96,7 @@ lemma isometry.ediam_range (hf : isometry f) :
 by { rw ← image_univ, exact hf.ediam_image univ }
 
 /-- The injection from a subtype is an isometry -/
-lemma isometry_subtype_val {s : set α} : isometry (subtype.val : s → α) :=
+lemma isometry_subtype_coe {s : set α} : isometry (coe : s → α) :=
 λx y, rfl
 
 end emetric_isometry --section
@@ -111,6 +111,7 @@ lemma isometry.diam_range [metric_space α] [metric_space β] {f : α → β} (h
 by { rw ← image_univ, exact hf.diam_image univ }
 
 /-- `α` and `β` are isometric if there is an isometric bijection between them. -/
+@[nolint has_inhabited_instance] -- such a bijection need not exist
 structure isometric (α : Type*) (β : Type*) [emetric_space α] [emetric_space β]
   extends α ≃ β :=
 (isometry_to_fun  : isometry to_fun)
@@ -139,7 +140,7 @@ lemma to_equiv_inj : ∀ ⦃h₁ h₂ : α ≃ᵢ β⦄, (h₁.to_equiv = h₂.t
 | ⟨e₁, h₁⟩ ⟨e₂, h₂⟩ H := by { dsimp at H, subst e₁ }
 
 @[ext] lemma ext ⦃h₁ h₂ : α ≃ᵢ β⦄ (H : ∀ x, h₁ x = h₂ x) : h₁ = h₂ :=
-to_equiv_inj $ equiv.ext _ _ H
+to_equiv_inj $ equiv.ext H
 
 /-- Alternative constructor for isometric bijections,
 taking as input an isometry, and a right inverse. -/
@@ -211,6 +212,26 @@ protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
 @[simp] lemma to_homeomorph_to_equiv (h : α ≃ᵢ β) :
   h.to_homeomorph.to_equiv = h.to_equiv :=
 rfl
+
+/-- The group of isometries. -/
+instance : group (α ≃ᵢ α) :=
+  { one := isometric.refl _,
+    mul := λ e₁ e₂, e₁.trans e₂,
+    inv := isometric.symm,
+    mul_assoc := λ e₁ e₂ e₃, rfl,
+    one_mul := λ e, ext $ λ _, rfl,
+    mul_one := λ e, ext $ λ _, rfl,
+    mul_left_inv := λ e, ext e.apply_symm_apply }
+
+@[simp] lemma coe_one : ⇑(1 : α ≃ᵢ α) = id := rfl
+
+@[simp] lemma coe_mul (e₁ e₂ : α ≃ᵢ α) : ⇑(e₁ * e₂) = e₂ ∘ e₁ := rfl
+
+lemma mul_apply (e₁ e₂ : α ≃ᵢ α) (x : α) : (e₁ * e₂) x = e₂ (e₁ x) := rfl
+
+@[simp] lemma inv_apply_self (e : α ≃ᵢ α) (x: α) : e⁻¹ (e x) = x := e.symm_apply_apply x
+
+@[simp] lemma apply_inv_self (e : α ≃ᵢ α) (x: α) : e (e⁻¹ x) = x := e.apply_symm_apply x
 
 section normed_group
 
@@ -307,21 +328,18 @@ lemma embedding_of_subset_dist_le (a b : α) :
   dist (embedding_of_subset x a) (embedding_of_subset x b) ≤ dist a b :=
 begin
   refine (dist_le dist_nonneg).2 (λn, _),
-  have A : dist a (x n) + (dist (x 0) (x n) + (-dist b (x n) + -dist (x 0) (x n)))
-    = dist a (x n) - dist b (x n), by ring,
-  simp only [embedding_of_subset_coe, real.dist_eq, A, add_comm, neg_add_rev, _root_.neg_neg,
-             sub_eq_add_neg, add_left_comm],
-  exact abs_dist_sub_le _ _ _
+  simp only [embedding_of_subset_coe, real.dist_eq],
+  convert abs_dist_sub_le a b (x n) using 2,
+  ring
 end
 
 /-- When the reference set is dense, the embedding map is an isometry on its image. -/
-lemma embedding_of_subset_isometry (H : closure (range x) = univ) : isometry (embedding_of_subset x) :=
+lemma embedding_of_subset_isometry (H : dense_range x) : isometry (embedding_of_subset x) :=
 begin
   refine isometry_emetric_iff_metric.2 (λa b, _),
   refine le_antisymm (embedding_of_subset_dist_le x a b) (real.le_of_forall_epsilon_le (λe epos, _)),
   /- First step: find n with dist a (x n) < e -/
-  have A : a ∈ closure (range x), by { have B := mem_univ a, rwa [← H] at B },
-  rcases metric.mem_closure_range_iff.1 A (e/2) (half_pos epos) with ⟨n, hn⟩,
+  rcases metric.mem_closure_range_iff.1 (H a) (e/2) (half_pos epos) with ⟨n, hn⟩,
   /- Second step: use the norm control at index n to conclude -/
   have C : dist b (x n) - dist a (x n) = embedding_of_subset x b n - embedding_of_subset x a n :=
     by { simp only [embedding_of_subset_coe, sub_sub_sub_cancel_right] },
@@ -345,15 +363,13 @@ begin
   cases (univ : set α).eq_empty_or_nonempty with h h,
   { use (λ_, 0), assume x, exact absurd h (nonempty.ne_empty ⟨x, mem_univ x⟩) },
   { /- We construct a map x : ℕ → α with dense image -/
-    rcases h with basepoint,
+    rcases h with ⟨basepoint⟩,
     haveI : inhabited α := ⟨basepoint⟩,
-    have : ∃s:set α, countable s ∧ closure s = univ := separable_space.exists_countable_closure_eq_univ,
+    have : ∃s:set α, countable s ∧ dense s := exists_countable_dense α,
     rcases this with ⟨S, ⟨S_countable, S_dense⟩⟩,
     rcases countable_iff_exists_surjective.1 S_countable with ⟨x, x_range⟩,
-    have : closure (range x) = univ :=
-      univ_subset_iff.1 (by { rw [← S_dense], apply closure_mono, assumption }),
     /- Use embedding_of_subset to construct the desired isometry -/
-    exact ⟨embedding_of_subset x, embedding_of_subset_isometry x this⟩ }
+    exact ⟨embedding_of_subset x, embedding_of_subset_isometry x (S_dense.mono x_range)⟩ }
 end
 end Kuratowski_embedding
 

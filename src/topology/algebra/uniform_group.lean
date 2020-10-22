@@ -2,8 +2,14 @@
 Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
+-/
+import topology.uniform_space.uniform_embedding
+import topology.uniform_space.complete_separated
+import topology.algebra.group
+import tactic.abel
 
-Uniform structure on topological groups:
+/-!
+# Uniform structure on topological groups
 
 * `topological_add_group.to_uniform_space` and `topological_add_group_is_uniform` can be used to
   construct a canonical uniformity for a topological add group.
@@ -13,13 +19,9 @@ Uniform structure on topological groups:
 * `add_group_with_zero_nhd`: construct the topological structure from a group with a neighbourhood
   around zero. Then with `topological_add_group.to_uniform_space` one can derive a `uniform_space`.
 -/
-import topology.uniform_space.uniform_embedding
-import topology.uniform_space.complete_separated
-import topology.algebra.group
-import tactic.abel
 
 noncomputable theory
-open_locale classical uniformity topological_space
+open_locale classical uniformity topological_space filter
 
 section uniform_add_group
 open filter set
@@ -88,13 +90,13 @@ lemma uniform_embedding_translate (a : α) : uniform_embedding (λx:α, x + a) :
     rintros ⟨p₁, p₂⟩ ⟨q₁, q₂⟩,
     simp [prod.eq_iff_fst_eq_snd_eq] {contextual := tt}
   end,
-  inj := assume x y, eq_of_add_eq_add_right }
+  inj := add_left_injective a }
 
 section
 variables (α)
 lemma uniformity_eq_comap_nhds_zero : 𝓤 α = comap (λx:α×α, x.2 - x.1) (𝓝 (0:α)) :=
 begin
-  rw [nhds_eq_comap_uniformity, filter.comap_comap_comp],
+  rw [nhds_eq_comap_uniformity, filter.comap_comap],
   refine le_antisymm (filter.map_le_iff_le_comap.1 _) _,
   { assume s hs,
     rcases mem_uniformity_of_uniform_continuous_invariant uniform_continuous_sub hs with ⟨t, ht, hts⟩,
@@ -143,6 +145,7 @@ open filter
 variables {G : Type u} [add_comm_group G] [topological_space G] [topological_add_group G]
 
 variable (G)
+/-- The right uniformity on a topological group. -/
 def topological_add_group.to_uniform_space : uniform_space G :=
 { uniformity          := comap (λp:G×G, p.2 - p.1) (𝓝 0),
   refl                :=
@@ -159,7 +162,7 @@ def topological_add_group.to_uniform_space : uniform_space G :=
     intros D H,
     rw mem_lift'_sets,
     { rcases H with ⟨U, U_nhds, U_sub⟩,
-      rcases exists_nhds_half U_nhds with ⟨V, ⟨V_nhds, V_sum⟩⟩,
+      rcases exists_nhds_zero_half U_nhds with ⟨V, ⟨V_nhds, V_sum⟩⟩,
       existsi ((λp:G×G, p.2 - p.1) ⁻¹' V),
       have H : (λp:G×G, p.2 - p.1) ⁻¹' V ∈ comap (λp:G×G, p.2 - p.1) (𝓝 (0 : G)),
         by existsi [V, V_nhds] ; refl,
@@ -168,7 +171,7 @@ def topological_add_group.to_uniform_space : uniform_space G :=
       begin
         intros p p_comp_rel,
         rcases p_comp_rel with ⟨z, ⟨Hz1, Hz2⟩⟩,
-        simpa [sub_eq_add_neg, add_comm, add_left_comm] using V_sum _ _ Hz1 Hz2
+        simpa [sub_eq_add_neg, add_comm, add_left_comm] using V_sum _ Hz1 _ Hz2
       end,
       exact set.subset.trans comp_rel_sub U_sub },
     { exact monotone_comp_rel monotone_id monotone_id }
@@ -226,6 +229,7 @@ variables [add_comm_group α] [add_comm_group β] [add_comm_group γ]
 
 /- TODO: when modules are changed to have more explicit base ring, then change replace `is_Z_bilin`
 by using `is_bilinear_map ℤ` from `tensor_product`. -/
+/-- `ℤ`-bilinearity for maps between additive commutative groups. -/
 class is_Z_bilin (f : α × β → γ) : Prop :=
 (add_left []  : ∀ a a' b, f (a + a', b) = f (a, b) + f (a', b))
 (add_right [] : ∀ a b b', f (a, b + b') = f (a, b) + f (a, b'))
@@ -337,7 +341,7 @@ variables [topological_space α] [add_comm_group α] [topological_add_group α]
 variables [topological_space β] [add_comm_group β] [topological_add_group β]
 variables [topological_space γ] [add_comm_group γ] [topological_add_group γ]
 variables [topological_space δ] [add_comm_group δ] [topological_add_group δ]
-variables [uniform_space G] [add_comm_group G] [uniform_add_group G] [separated G] [complete_space G]
+variables [uniform_space G] [add_comm_group G] [uniform_add_group G] [separated_space G] [complete_space G]
 variables {e : β → α} [is_add_group_hom e] (de : dense_inducing e)
 variables {f : δ → γ} [is_add_group_hom f] (df : dense_inducing f)
 variables {φ : β × δ → G} (hφ : continuous φ) [bilin : is_Z_bilin φ]
@@ -353,7 +357,7 @@ begin
   let Nx := 𝓝 x₀,
   let ee := λ u : β × β, (e u.1, e u.2),
 
-  have lim1 : tendsto (λ a : β × β, (a.2 - a.1, y₁)) (filter.prod (comap e Nx) (comap e Nx)) (𝓝 (0, y₁)),
+  have lim1 : tendsto (λ a : β × β, (a.2 - a.1, y₁)) (comap e Nx ×ᶠ comap e Nx) (𝓝 (0, y₁)),
   { have := tendsto.prod_mk (tendsto_sub_comap_self de x₀) (tendsto_const_nhds : tendsto (λ (p : β × β), y₁) (comap ee $ 𝓝 (x₀, x₀)) (𝓝 y₁)),
     rw [nhds_prod_eq, prod_comap_comap_eq, ←nhds_prod_eq],
     exact (this : _) },
@@ -378,15 +382,15 @@ begin
     rwa [is_Z_bilin.zero φ] at this },
 
   have lim_φ_sub_sub : tendsto (λ (p : (β × β) × (δ × δ)), φ (p.1.2 - p.1.1, p.2.2 - p.2.1))
-    (filter.prod (comap ee $ 𝓝 (x₀, x₀)) (comap ff $ 𝓝 (y₀, y₀))) (𝓝 0),
+    ((comap ee $ 𝓝 (x₀, x₀)) ×ᶠ (comap ff $ 𝓝 (y₀, y₀))) (𝓝 0),
   { have lim_sub_sub :  tendsto (λ (p : (β × β) × δ × δ), (p.1.2 - p.1.1, p.2.2 - p.2.1))
-      (filter.prod (comap ee (𝓝 (x₀, x₀))) (comap ff (𝓝 (y₀, y₀)))) (filter.prod (𝓝 0) (𝓝 0)),
+      ((comap ee (𝓝 (x₀, x₀))) ×ᶠ (comap ff (𝓝 (y₀, y₀)))) (𝓝 0 ×ᶠ 𝓝 0),
     { have := filter.prod_mono (tendsto_sub_comap_self de x₀) (tendsto_sub_comap_self df y₀),
       rwa prod_map_map_eq at this },
     rw ← nhds_prod_eq at lim_sub_sub,
     exact tendsto.comp lim_φ lim_sub_sub },
 
-  rcases exists_nhds_quarter W'_nhd with ⟨W, W_nhd, W4⟩,
+  rcases exists_nhds_zero_quarter W'_nhd with ⟨W, W_nhd, W4⟩,
 
   have : ∃ U₁ ∈ comap e (𝓝 x₀), ∃ V₁ ∈ comap f (𝓝 y₀),
     ∀ x x' ∈ U₁, ∀ y y' ∈ V₁,  φ (x'-x, y'-y) ∈ W,
@@ -402,9 +406,9 @@ begin
   rcases this with ⟨U₁, U₁_nhd, V₁, V₁_nhd, H⟩,
 
   obtain ⟨x₁, x₁_in⟩ : U₁.nonempty :=
-    (forall_sets_nonempty_iff_ne_bot.2 de.comap_nhds_ne_bot U₁ U₁_nhd),
+    ((de.comap_nhds_ne_bot _).nonempty_of_mem U₁_nhd),
   obtain ⟨y₁, y₁_in⟩ : V₁.nonempty :=
-    (forall_sets_nonempty_iff_ne_bot.2 df.comap_nhds_ne_bot V₁ V₁_nhd),
+    ((df.comap_nhds_ne_bot _).nonempty_of_mem V₁_nhd),
 
   rcases (extend_Z_bilin_aux de df hφ W_nhd x₀ y₁) with ⟨U₂, U₂_nhd, HU⟩,
   rcases (extend_Z_bilin_aux df de (hφ.comp continuous_swap) W_nhd y₀ x₁) with ⟨V₂, V₂_nhd, HV⟩,
@@ -439,7 +443,7 @@ begin
   refine continuous_extend_of_cauchy _ _,
   rintro ⟨x₀, y₀⟩,
   split,
-  { apply map_ne_bot,
+  { apply ne_bot.map,
     apply comap_ne_bot,
 
     intros U h,
@@ -448,7 +452,7 @@ begin
     cc },
   { suffices : map (λ (p : (β × δ) × (β × δ)), φ p.2 - φ p.1)
       (comap (λ (p : (β × δ) × β × δ), ((e p.1.1, f p.1.2), (e p.2.1, f p.2.2)))
-         (filter.prod (𝓝 (x₀, y₀)) (𝓝 (x₀, y₀)))) ≤ 𝓝 0,
+         (𝓝 (x₀, y₀) ×ᶠ 𝓝 (x₀, y₀))) ≤ 𝓝 0,
     by rwa [uniformity_eq_comap_nhds_zero G, prod_map_map_eq, ←map_le_iff_le_comap, filter.map_map,
         prod_comap_comap_eq],
 

@@ -264,7 +264,7 @@ begin
   rcases v.1 c.b_mem_bottom with ⟨_, ⟨i, rfl⟩, hi⟩,
   have h2i : i ∈ bcubes cs c := ⟨hi.1.symm, v.2.1 i hi.1.symm ⟨tail c.b, hi.2, λ j, c.b_mem_side j.succ⟩⟩,
   let j : fin (n+1) := ⟨2, h.2.2.2.2⟩,
-  have hj : 0 ≠ j := by { intro h', have := congr_arg fin.val h', contradiction },
+  have hj : 0 ≠ j := by { simp only [fin.ext_iff, ne.def], contradiction },
   let p : fin (n+1) → ℝ := λ j', if j' = j then c.b j + (cs i).w else c.b j',
   have hp : p ∈ c.bottom,
   { split, { simp only [bottom, p, if_neg hj] },
@@ -314,7 +314,7 @@ begin
   swap, exact ⟨mi h v, mi_mem_bcubes⟩,
   apply lt_of_lt_of_le _ (b_add_w_le_one h), exact i, exact 0,
   rw [xm, mi_mem_bcubes.1, hi.1, _root_.add_lt_add_iff_left],
-  apply mi_strict_minimal _ hi, intro h', apply h2i, rw subtype.ext, exact h'
+  apply mi_strict_minimal _ hi, intro h', apply h2i, rw subtype.ext_iff_val, exact h'
 end
 
 /-- If `mi` lies on the boundary of the valley in dimension j, then this lemma expresses that all

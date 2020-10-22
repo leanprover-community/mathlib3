@@ -84,7 +84,7 @@ theorem chain_iff_pairwise (tr : transitive R) {a : α} {l : list α} :
   chain R a l ↔ pairwise R (a::l) :=
 ⟨λ c, begin
   induction c with b b c l r p IH, {exact pairwise_singleton _ _},
-  apply IH.cons _, simp only [mem_cons_iff, forall_mem_cons', r, true_and],
+  apply IH.cons _, simp only [mem_cons_iff, forall_eq_or_imp, r, true_and],
   show ∀ x ∈ l, R b x, from λ x m, (tr r (rel_of_pairwise_cons IH m)),
 end, chain_of_pairwise⟩
 
@@ -232,6 +232,20 @@ begin
       simp only [add_zero, length, add_succ_sub_one] at w,
       simpa using w, }
     },
+end
+
+/-- If `l₁ l₂` and `l₃` are lists and `l₁ ++ l₂` and `l₂ ++ l₃` both satisfy
+  `chain' R`, then so does `l₁ ++ l₂ ++ l₃` provided `l₂ ≠ []` -/
+lemma chain'.append_overlap : ∀ {l₁ l₂ l₃ : list α}
+  (h₁ : chain' R (l₁ ++ l₂)) (h₂ : chain' R (l₂ ++ l₃)) (hn : l₂ ≠ []),
+  chain' R (l₁ ++ l₂ ++ l₃)
+| [] l₂ l₃ h₁ h₂ hn := h₂
+| l₁ [] l₃ h₁ h₂ hn := (hn rfl).elim
+| [a] (b::l₂) l₃ h₁ h₂ hn := by { simp at *, tauto }
+| (a::b::l₁) (c::l₂) l₃ h₁ h₂ hn := begin
+  simp only [cons_append, chain'_cons] at h₁ h₂ ⊢,
+  simp only [← cons_append] at h₁ h₂ ⊢,
+  exact ⟨h₁.1, chain'.append_overlap h₁.2 h₂ (cons_ne_nil _ _)⟩
 end
 
 /--

@@ -78,3 +78,13 @@ do test_pp "test1"
    test_pp "test3"
            "([3] ++ [2], ([5] ++ [4], ([], append (some [1]) _ (some [2]))))"
            (parse_mono_function' ``([1] ++ [3] ++ [2] ++ [2]) ``([1] ++ [5] ++ ([4] ++ [2])))
+
+@[mono]
+lemma test {α : Type*} [preorder α] : monotone (id : α → α) :=
+λ x y h, h
+
+example : id 0 ≤ id 1 :=
+begin
+  mono,
+  simp,
+end

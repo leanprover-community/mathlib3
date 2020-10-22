@@ -168,7 +168,7 @@ section det_zero
 Prove that a matrix with a repeated column has determinant equal to zero.
 -/
 
-lemma det_eq_zero_of_column_eq_zero {A : matrix n n R} (i : n) (h : ∀ j, A i j = 0) : det A = 0 :=
+lemma det_eq_zero_of_row_eq_zero {A : matrix n n R} (i : n) (h : ∀ j, A i j = 0) : det A = 0 :=
 begin
   rw [←det_transpose, det],
   convert @sum_const_zero _ _ (univ : finset (perm n)) _,
@@ -178,6 +178,9 @@ begin
   rw [transpose_apply],
   apply h
 end
+
+lemma det_eq_zero_of_column_eq_zero {A : matrix n n R} (j : n) (h : ∀ i, A i j = 0) : det A = 0 :=
+by { rw ← det_transpose, exact det_eq_zero_of_row_eq_zero j h, }
 
 /--
   `mod_swap i j` contains permutations up to swapping `i` and `j`.
@@ -195,8 +198,8 @@ instance (i j : n) : decidable_rel (mod_swap i j).r := λ σ τ, or.decidable
 
 variables {M : matrix n n R} {i j : n}
 
-/-- If a matrix has a repeated column, the determinant will be zero. -/
-theorem det_zero_of_column_eq (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 :=
+/-- If a matrix has a repeated row, the determinant will be zero. -/
+theorem det_zero_of_row_eq (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 :=
 begin
   have swap_invariant : ∀ k, M (swap i j k) = M k,
   { intros k,

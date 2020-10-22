@@ -336,6 +336,8 @@
   author : Neil Strickland
 97:
   title  : Cramer’s Rule
+  decl   : matrix.cramers_rule
+  author : Anne Baanen
 98:
   title  : Bertrand’s Postulate
 99:

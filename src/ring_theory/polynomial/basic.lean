@@ -87,6 +87,8 @@ begin
   exact lt_of_le_of_lt (degree_X_pow_le _) (with_bot.coe_lt_coe.2 $ finset.mem_range.1 hk)
 end
 
+local attribute [instance] subset.ring
+
 /-- Given a polynomial, return the polynomial whose coefficients are in
 the ring closure of the original coefficients. -/
 def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set R)) :=

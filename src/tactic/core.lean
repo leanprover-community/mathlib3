@@ -1236,7 +1236,7 @@ top level, giving access to operations like `emit_code_here`. -/
 @[user_command]
 meta def run_parser_cmd (_ : interactive.parse $ tk "run_parser") : lean.parser unit :=
 do e ← lean.parser.pexpr 0,
-  e ← to_expr ``(%%e : lean.parser unit),
+  e ← to_expr ``(%%e : lean.parser unit) ff ff,
   p ← eval_expr (lean.parser unit) e,
   p
 

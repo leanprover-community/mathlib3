@@ -443,6 +443,8 @@ instance with_bot.decidable_le {α} [has_le α] [decidable_rel ((≤) : α → �
   decidable_rel (@has_le.le (with_bot α) _) :=
 by { delta with_bot.has_le, apply_instance }
 
+protected lemma bot_le [has_le α] (a : with_bot α) : ⊥ ≤ a :=  λ a' h, option.no_confusion h
+
 @[priority 10]
 instance has_lt [has_lt α] : has_lt (with_bot α) :=
 { lt := λ o₁ o₂ : option α, ∃ b ∈ o₂, ∀ a ∈ o₁, a < b }
@@ -479,7 +481,7 @@ instance partial_order [partial_order α] : partial_order (with_bot α) :=
   .. with_bot.preorder }
 
 instance order_bot [partial_order α] : order_bot (with_bot α) :=
-{ bot_le := λ a a' h, option.no_confusion h,
+{ bot_le := with_bot.bot_le,
   ..with_bot.partial_order, ..with_bot.has_bot }
 
 @[simp, norm_cast] theorem coe_le_coe [partial_order α] {a b : α} :
@@ -657,6 +659,8 @@ instance with_top.decidable_le {α} [has_le α] [decidable_rel ((≤) : α → �
   decidable_rel (@has_le.le (with_top α) _) :=
 by { delta with_top.has_le, apply_instance }
 
+protected lemma le_top [has_le α] (a : with_top α) : a ≤ ⊤ :=  λ a' h, option.no_confusion h
+
 @[simp] theorem some_lt_some [has_lt α] {a b : α} :
   @has_lt.lt (with_top α) _ (some a) (some b) ↔ a < b :=
 by simp [(<)]
@@ -696,7 +700,7 @@ instance partial_order [partial_order α] : partial_order (with_top α) :=
   .. with_top.preorder }
 
 instance order_top [partial_order α] : order_top (with_top α) :=
-{ le_top := λ a a' h, option.no_confusion h,
+{ le_top := with_top.le_top,
   ..with_top.partial_order, .. with_top.has_top }
 
 @[simp, norm_cast] theorem coe_le_coe [partial_order α] {a b : α} :

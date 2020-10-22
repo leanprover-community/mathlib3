@@ -159,9 +159,8 @@ theorem fixed_field_of_fixing_subgroup [finite_dimensional F E] [h : is_galois F
 begin
   have K_le : K ≤ fixed_field (fixing_subgroup K) :=
     λ x hx ϕ, subtype.mem ϕ (⟨x, hx⟩ : K),
-  haveI : finite_dimensional K (fixed_field (fixing_subgroup K)) := sorry,
   suffices : findim K E = findim (fixed_field (fixing_subgroup K)) E,
-  { exact (intermediate_field.rename_this_also K_le this).symm },
+  { exact (intermediate_field.eq_of_le_of_findim_eq' K_le this).symm },
   rw findim_fixed_field_eq_card,
   haveI := galois_of_tower_top K,
   rw fintype.card_congr (fixing_subgroup_equiv K),

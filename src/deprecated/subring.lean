@@ -15,12 +15,13 @@ variables {R : Type u} [ring R]
 /-- `S` is a subring: a set containing 1 and closed under multiplication, addition and and additive inverse. -/
 class is_subring (S : set R) extends is_add_subgroup S, is_submonoid S : Prop.
 
-instance subset.ring {S : set R} [is_subring S] : ring S :=
+local attribute [instance]
+def subset.ring {S : set R} [is_subring S] : ring S :=
 { left_distrib := λ x y z, subtype.eq $ left_distrib x.1 y.1 z.1,
   right_distrib := λ x y z, subtype.eq $ right_distrib x.1 y.1 z.1,
   .. subtype.add_comm_group, .. subtype.monoid }
 
-instance subtype.ring {S : set R} [is_subring S] : ring (subtype S) := subset.ring
+def subtype.ring {S : set R} [is_subring S] : ring (subtype S) := subset.ring
 
 namespace ring_hom
 

@@ -7,6 +7,8 @@ import ring_theory.discrete_valuation_ring
 import ring_theory.fractional_ideal
 import ring_theory.ideal.over
 import logic.function.basic
+import field_theory.minimal_polynomial
+import ring_theory.adjoin_root
 
 /-!
 # Dedekind domains
@@ -187,12 +189,12 @@ begin
   assumption,
 end
 
-lemma frac_ideal_le_ideal (I J : ideal A) (h : ∃ x : A, x ∈ I ∧ x ∉ J) (B : fractional_ideal (fraction_ring.of A) ) (g : (I : fractional_ideal (fraction_ring.of A)) * B = (J : fractional_ideal (fraction_ring.of A))) : B ≤ (J : fractional_ideal (fraction_ring.of A)) :=
+lemma frac_ideal_le_ideal (I J : ideal A) (h : ∃ x : A, x ∈ I ∧ x ∉ J) (hJ : J.is_prime) (B : fractional_ideal (fraction_ring.of A) ) (g : (I : fractional_ideal (fraction_ring.of A)) * B = (J : fractional_ideal (fraction_ring.of A))) : B ≤ (J : fractional_ideal (fraction_ring.of A)) :=
 begin
-  rcases h with ⟨x, h1, h2⟩,
+  rcases h with ⟨x, hI, hJ⟩,
   rw le_iff,
   rintros y hy,
-
+  --have f : x*y ∈ (J : fractional_ideal (fraction_ring.of A)),
   sorry,
 end
 
@@ -223,6 +225,11 @@ lemma local_one : (localization_map.to_map (fraction_ring.of A)) 1 = 1 :=
 begin
   simp,
 end
+
+/- lemma fraction_ring_fractional_ideal (x : (fraction_ring A)) (hx : is_integral A x) : is_fractional (fraction_ring.of A) ((adjoin_root (minimal_polynomial hx)) :  submodule A (localization_map.codomain (fraction_ring.of A))) :=
+begin
+  sorry,
+end -/
 
 theorem tp : is_dedekind_domain_inv A <-> is_dedekind_domain A :=
 begin
@@ -268,8 +275,15 @@ begin
       {
         apply frac_ideal_le_ideal A M,
         {
-          sorry,
+          classical,
+          by_contradiction,
+          simp at a,
+          change M ≤ p at a,
+          apply h,
+          rw <-has_le.le.le_iff_eq a,
+          assumption,
         },
+        assumption,
         assumption,
       },
       rw <-subtype.coe_le_coe at g,
@@ -293,7 +307,9 @@ begin
       assoc_rw hpinv at g'',
       rw one_mul at g'',
       have ginv : (M : fractional_ideal (fraction_ring.of A)) ≤ 1,
-      sorry,
+      {
+        sorry,
+      },
       have k := (has_le.le.le_iff_eq ginv).1 g'',
       cases hM1 with hM11 hM12,
       apply hM11,
@@ -311,11 +327,27 @@ begin
       rw f' at hx,
       assumption,
       rw <-(local_one A) at k',
-      apply (localization_map.to_map_injective k'),
-    sorry,
+      apply fraction_map.injective (fraction_ring.of A),
+      assumption,
     },
     {
+      ext1,
+      split,
+      {
+        rintros hx,
+        cases hx with p hp,
+        sorry,
+      },
+      rintros hx,
+      rw mem_integral_closure_iff_mem_fg,
+      use ⊥,
+      split,
+      unfold submodule.fg,
+      use {0},
+      simp,
+--      rw submodule.fg_bot,
       sorry,
+      assumption,
     },
   },
   {

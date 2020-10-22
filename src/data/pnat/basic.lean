@@ -229,7 +229,7 @@ lemma strong_induction_on {p : pnat → Prop} : ∀ (n : pnat) (h : ∀ k, (∀ 
 | n := λ IH, IH _ (λ a h, strong_induction_on a IH)
 using_well_founded { dec_tac := `[assumption] }
 
-/--If `(n : pnat)` is different from `1`, then it is the successor of some `(k : pnat)`. -/
+/-- If `(n : pnat)` is different from `1`, then it is the successor of some `(k : pnat)`. -/
 lemma exists_eq_succ_of_ne_one {n : pnat} : n ≠ 1 → ∃ (k : pnat), n = nat.succ_pnat k :=
 begin
   intro hone,

@@ -80,9 +80,9 @@ begin
 end
 
 /-- A special case of `colex_hom` which is sometimes useful. -/
-lemma colex_hom_fin {n : ℕ} (A B : finset (fin n)) :
-  image fin.val A <ᶜ image fin.val B ↔ A <ᶜ B :=
-colex_hom (λ x y k, k) _ _
+/-lemma colex_hom_fin {n : ℕ} (A B : finset (fin n)) :
+  image fin.val A.1 <ᶜ image fin.val B ↔ A <ᶜ B :=
+colex_hom (λ x y k, k) _ _-/
 
 -- The basic order properties of colex.
 
@@ -204,7 +204,9 @@ lemma binary_sum_nat {k : ℕ} {A : finset ℕ} (h₁ : ∀ {x}, x ∈ A → x <
 begin
   apply lt_of_le_of_lt (sum_le_sum_of_subset (λ t, mem_range.2 ∘ h₁)),
   have z := geom_sum_mul_add 1 k, rw [geom_series, mul_one] at z,
-  simp only [nat.pow_eq_pow] at z, rw ← z, apply nat.lt_succ_self
+  rw one_add_one_eq_two at z,
+  rw ← z,
+  apply nat.lt_succ_self,
 end
 
 /-- Colex doesn't care if you remove the other set -/

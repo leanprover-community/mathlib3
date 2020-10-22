@@ -98,7 +98,7 @@ section shadow
   lemma iter_shadow_empty (k : ℕ) : shadow^[k] (∅ : finset (finset α)) = ∅ :=
   begin
     induction k with k ih, refl,
-    rwa [iterate_succ, shadow_empty]
+    rwa [iterate, shadow_empty],
   end
 
   /-- The shadow is monotonic (though not strictly so). -/
@@ -242,7 +242,8 @@ section local_lym
     rw nat.succ_eq_add_one at *,
     rw [← nat.sub_add_comm hr2, nat.add_sub_add_right] at h,
     convert nat.mul_le_mul_right (choose n r) h using 1;
-      {simp [mul_assoc, nat.choose_succ_right_eq], ac_refl},
+      {simp [mul_assoc, nat.choose_succ_right_eq],
+      left, ac_refl},
     apply nat.choose_pos hr2,
     apply nat.choose_pos (le_trans (nat.pred_le _) hr2)
   end
@@ -334,7 +335,7 @@ section local_lym
     cases lt_or_le n r with z hr2,
       -- Take care of the r > n case: it's trivial
       rw [choose_eq_zero_of_lt z, cast_zero, div_zero],
-      apply div_nonneg'; norm_cast,
+      refine div_nonneg _ _; norm_cast,
       any_goals {apply nat.zero_le},
     apply multiply_out hr1 hr2,
     -- Multiply out, convert to the cardinality forms we got above and done

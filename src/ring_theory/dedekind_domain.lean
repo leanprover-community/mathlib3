@@ -196,7 +196,8 @@ lemma if_inv_then_int {I : ideal R} (hR : is_dedekind_domain R) (x : f.codomain)
 (h_prod : ↑I * (1 / ↑I : fractional_ideal f) = ↑I) :
 x ∈ (1/↑I : fractional_ideal f).val → (f.to_map).is_integral_elem x :=
 begin
-have h_y : ∃ (y : R), y ∈ I ∧ y ≠ (0 : R), sorry, cases h_y with y h_nzy,--just need that h_nzI provides for a ≠ 0 element
+obtain ⟨y, ⟨h_Iy , h_nzy⟩⟩ : ∃ y ∈ I, y ≠ (0 : R),
+  apply (submodule.ne_bot_iff I).mp, exact h_nzI,
 let h_RalgK := (ring_hom.to_algebra f.to_map),
 let φ := @aeval R K _ _ h_RalgK x,
 let A := @alg_hom.range R (polynomial R) f.codomain _ _ _  _ h_RalgK φ,
@@ -204,21 +205,26 @@ have h_xA :  x ∈ A,
   suffices hp : ∃ (p : polynomial R), φ p = x, simpa,
   use X, apply aeval_X,
 have h_fracA : is_fractional f A,
-  use y, split, apply mem_non_zero_divisors_iff_ne_zero.mpr h_nzy.right,
-    {suffices h_xintn : ∀ (n : ℕ), f.is_integer (f.to_map y * x^n),
-     have h_pol : ∀ (p : polynomial R), f.is_integer (f.to_map y * eval₂ f.to_map x p),
-      {intro p,
-       apply polynomial.induction_on' p,
-       intros q₁ q₂, rw eval₂_add, rw left_distrib, apply localization_map.is_integer_add,
-       intros n a, rw monomial_eq_smul_X, rw eval₂_smul, rw algebra.mul_smul_comm, apply @localization_map.is_integer_smul,
-       rw eval₂_X_pow, specialize h_xintn n, exact h_xintn,
-      },
-     intros b hb,
-     have h_polb : ∃ (p : polynomial R), eval₂ f.to_map x p = b, sorry,
-     cases h_polb with p hp, rw ← hp,
-     specialize h_pol p, exact h_pol,
-    {sorry, -- the true proof
+ use y, split, apply mem_non_zero_divisors_iff_ne_zero.mpr h_nzy,
+  {suffices h_intmon : ∀ (n : ℕ), f.is_integer (f.to_map y * x^n),
+    have h_intpol : ∀ (p : polynomial R), f.is_integer (f.to_map y * eval₂ f.to_map x p),
+    {intro p,
+     apply polynomial.induction_on' p,
+     intros q₁ q₂, rw eval₂_add, rw left_distrib, apply localization_map.is_integer_add,
+     intros n a, rw monomial_eq_smul_X, rw eval₂_smul, rw algebra.mul_smul_comm, apply localization_map.is_integer_smul,
+     rw eval₂_X_pow, specialize h_intmon n, exact h_intmon,
     },
+    intros b hb,
+    obtain ⟨polb, h_polb ⟩ : ∃ (p : polynomial R), eval₂ f.to_map x p = b,
+     {cases hb with pb h_pb, use pb, rw ← h_pb.right,
+      apply aeval_def x pb,
+     },
+    rw ← h_polb, specialize h_intpol polb, exact h_intpol,
+    intro n, induction n with n hn,
+      {use y, ring,
+      },--the case n=0
+      {rw pow_succ, sorry,
+      },--inductive step
   },
 let IA : fractional_ideal f := ⟨A, h_fracA⟩,
 have h_noethA : is_noetherian R A, apply fractional_ideal.fg_of_noetherian hR.2 IA,
@@ -246,7 +252,7 @@ end
 local attribute [instance] classical.prop_decidable
 
 lemma maximal_ideal_inv_of_dedekind
-  (h : is_dedekind_domain R) (hM : ideal.is_maximal M)
+  (hR : is_dedekind_domain R) (hM : ideal.is_maximal M)
   (hnz_M : M ≠ 0) -- this is now superfluous as by def'n DD are not fields
   : is_unit (M : fractional_ideal f) :=
 begin
@@ -294,7 +300,7 @@ have h_top : I= ⊤,
        split,
         {intros x hx,--the proof that 1/M ≤ 1
          have h_MMinvI : ↑ M * (1 / ↑M : fractional_ideal f) = ↑M, rw ← hI, rw h_IM,
-         have h_integralfx : (f.to_map).is_integral_elem x, apply if_inv_then_int _ x hnz_M h_MMinvI hx,
+         have h_integralfx : (f.to_map).is_integral_elem x, apply if_inv_then_int hR x hnz_M h_MMinvI hx,
          have h_intxR : x ∈ (integral_closure R f.codomain), apply h_integralfx,
          have h_xintegral : x ∈ (⊥  : subalgebra R f.codomain), rw ← ((is_dedekind_domain_iff _ _ f).mp h).right.right.right, exact h_intxR,
          have h_coe : ((⊥  : subalgebra R f.codomain) : submodule R f.codomain) = localization_map.coe_submodule f ⊤,

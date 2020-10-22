@@ -318,7 +318,7 @@ begin
     ne.def, not_false_iff, degree_monomial]
 end
 
-/-If we have a morphism of semiring `f : R →+* S` and a monic polynomial
+/-- If we have a morphism of semirings `f : R →+* S` and a monic polynomial
   `P : polynomial S` that comes via `f` from polynomial
   `Q : polynomial R`, then it comes from a monic polynomial
   of the same degree. -/

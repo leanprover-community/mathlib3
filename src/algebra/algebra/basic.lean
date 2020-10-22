@@ -1050,7 +1050,8 @@ by rw [←(one_smul A m), ←smul_assoc, algebra.smul_def, mul_one, one_smul]
 variable {A}
 
 lemma smul_algebra_smul_comm (r : R) (a : A) (m : M) : a • r • m = r • a • m :=
-by rw [algebra_compatible_smul A r (a • m), smul_smul, algebra.commutes, mul_smul, ←algebra_compatible_smul]
+by rw [algebra_compatible_smul A r (a • m), smul_smul, algebra.commutes, mul_smul,
+  ←algebra_compatible_smul]
 
 @[simp] lemma map_smul_eq_smul_map (f : M →ₗ[A] N) (r : R) (m : M) :
   f (r • m) = r • f m :=
@@ -1088,6 +1089,17 @@ def lto_fun (R : Type u) (M : Type v) (A : Type w)
   map_add' := λ f g, rfl,
   map_smul' := λ c f, rfl }
 
+end linear_map
+
+end is_scalar_tower
+
+namespace linear_map
+
+variables (R : Type*) (A : Type*) (M : Type*) (N : Type*)
+variables [comm_semiring R] [semiring A] [algebra R A]
+variables [add_comm_monoid M] [semimodule A M]
+variables [add_comm_monoid N] [semimodule A N] [semimodule R N] [is_scalar_tower R A N]
+
 /--
 For `r : R`, and `f : M →ₗ[A] N` (where `A` is an `R`-algebra) we define
 `(r • f) m = f (r • m)`.
@@ -1115,18 +1127,17 @@ Check that two module structures on `M →ₗ[R] N` are defeq.
 - On the LHS we have the new instance, defined above, and we feed it `R` as algebra over itself.
 - On the RHS we have the ordinary instance for linear maps between `R`-modules.
  -/
-example : @linear_map.algebra_module R _ R _ _ M _ _ _ _ N _ _ _ _ =
-          @linear_map.semimodule R M N _ _ _ _ _ := rfl
+example [semimodule R M] :
+  @linear_map.algebra_module R R M N _ _ _ _ _ _ _ _ _ =
+  @linear_map.semimodule R M N _ _ _ _ _ := rfl
 
 variables {R A M N}
-@[simp]
+
 lemma algebra_module.smul_apply (c : R) (f : M →ₗ[A] N) (m : M) :
   (c • f) m = (c • (f m) : N) :=
 by simp only [(•), coe_mk, map_smul_eq_smul_map]
 
 end linear_map
-
-end is_scalar_tower
 
 section restrict_scalars
 /- In this section, we describe restriction of scalars: if `S` is an algebra over `R`, then

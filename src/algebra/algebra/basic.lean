@@ -252,8 +252,12 @@ lemma coe_algebra_map_of_subring {R : Type*} [comm_ring R] (S : subring R) :
 lemma algebra_map_of_subring_apply {R : Type*} [comm_ring R] (S : subring R) (x : S) :
   algebra_map S R x = x := rfl
 
+section
+local attribute [instance] subset.comm_ring
+
 /-- Algebra over a set that is closed under the ring operations. -/
-instance of_is_subring {R A : Type*} [comm_ring R] [ring A] [algebra R A]
+local attribute [instance]
+def of_is_subring {R A : Type*} [comm_ring R] [ring A] [algebra R A]
   (S : set R) [is_subring S] : algebra S A :=
 algebra.of_subring S.to_subring
 
@@ -271,6 +275,8 @@ lemma set_range_subset {R : Type*} [comm_ring R] {T₁ T₂ : set R} [is_subring
 begin
   rintros x ⟨⟨t, ht⟩, rfl⟩,
   exact hyp ht,
+end
+
 end
 
 variables (R A)

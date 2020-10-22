@@ -15,11 +15,37 @@ open category_theory category sieve
 
 variables {C : Type u} [category.{v} C]
 
+namespace sheaf
 namespace grothendieck_topology
 variables {X Y : C} {S R : sieve X}
 variables (J J₂ : grothendieck_topology C)
 
 open opposite
+
+structure matching_family (P : Cᵒᵖ ⥤ Type v) (R : arrows_with_codomain X) :=
+(x : Π ⦃Y : C⦄ ⦃f : Y ⟶ X⦄, R f → P.obj (opposite.op Y))
+(matching : ∀ ⦃Y₁ Y₂ Z⦄ (g₁ : Z ⟶ Y₁) (g₂ : Z ⟶ Y₂) ⦃f₁ : Y₁ ⟶ X⦄ ⦃f₂ : Y₂ ⟶ X⦄
+            (h₁ : R f₁) (h₂ : R f₂), g₁ ≫ f₁ = g₂ ≫ f₂ → P.map g₁.op (x h₁) = P.map g₂.op (x h₂))
+
+instance (P : Cᵒᵖ ⥤ Type v) (R : arrows_with_codomain X) : has_coe_to_fun (matching_family P R) :=
+⟨_, matching_family.x⟩
+
+def is_amalgamation_for {P : Cᵒᵖ ⥤ Type v} {R : arrows_with_codomain X} (x : matching_family P R)
+  (t : P.obj (opposite.op X)) : Prop :=
+∀ ⦃Y : C⦄ ⦃f : Y ⟶ X⦄ (h : R f), P.map f.op t = x h
+
+def is_separated_for (P : Cᵒᵖ ⥤ Type v) (R : arrows_with_codomain X) : Prop :=
+∀ (x : matching_family P R) (t₁ t₂), is_amalgamation_for x t₁ → is_amalgamation_for x t₂ → t₁ = t₂
+
+structure is_sheaf_for (P : Cᵒᵖ ⥤ Type v) (R : arrows_with_codomain X) :=
+(gluing : Π (x : matching_family P R), P.obj (opposite.op X))
+(uniqueness : is_separated_for P R)
+
+instance : subsingleton (is_sheaf_for P R) :=
+begin
+end
+
+#exit
 
 def matching_family (P : Cᵒᵖ ⥤ Type v) (S : sieve X) : Type (max u v) :=
 S.functor ⟶ P
@@ -214,5 +240,6 @@ structure Sheaf :=
 instance : category (Sheaf C J) := induced_category.category Sheaf.P
 
 end grothendieck_topology
+end sheaf
 
 end category_theory

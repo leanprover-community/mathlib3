@@ -99,8 +99,7 @@ option.some_inj.1 $ show (nat_degree p : with_bot ℕ) = n,
 @[simp] lemma degree_le_nat_degree : degree p ≤ nat_degree p :=
 begin
   by_cases hp : p = 0, { rw hp, exact bot_le },
-  rw [degree_eq_nat_degree hp],
-  exact le_refl _
+  rw [degree_eq_nat_degree hp]
 end
 
 lemma nat_degree_eq_of_degree_eq [semiring S] {q : polynomial S} (h : degree p = degree q) :
@@ -148,7 +147,7 @@ end
 show sup (ite (a = 0) ∅ {0}) some = 0, by rw if_neg ha; refl
 
 lemma degree_C_le : degree (C a) ≤ (0 : with_bot ℕ) :=
-by by_cases h : a = 0; [rw [h, C_0], rw [degree_C h]]; [exact bot_le, exact le_refl _]
+by { by_cases h : a = 0; [rw [h, C_0], rw [degree_C h]], exact bot_le }
 
 lemma degree_one_le : degree (1 : polynomial R) ≤ (0 : with_bot ℕ) :=
 by rw [← C_1]; exact degree_C_le
@@ -723,14 +722,13 @@ if hp0 : p = 0 then by simp [hp0]
 else by rw [degree_eq_nat_degree hp0, ← with_bot.coe_zero, with_bot.coe_le_coe,
   nat.le_zero_iff]
 
-
 theorem degree_le_iff_coeff_zero (f : polynomial R) (n : with_bot ℕ) :
   degree f ≤ n ↔ ∀ m : ℕ, n < m → coeff f m = 0 :=
-⟨λ (H : finset.sup (f.support) some ≤ n) m (Hm : n < (m : with_bot ℕ)), decidable.of_not_not $ λ H4,
+⟨λ (H : finset.sup (f.support) some ≤ n) m (Hm : n < (m : with_bot ℕ)), of_not_not $ λ H4,
   have H1 : m ∉ f.support,
     from λ H2, not_lt_of_ge ((finset.sup_le_iff.1 H) m H2 : ((m : with_bot ℕ) ≤ n)) Hm,
   H1 $ (finsupp.mem_support_to_fun f m).2 H4,
-λ H, finset.sup_le $ λ b Hb, decidable.of_not_not $ λ Hn,
+λ H, finset.sup_le $ λ b Hb, of_not_not $ λ Hn,
   (finsupp.mem_support_to_fun f b).1 Hb $ H b $ lt_of_not_ge Hn⟩
 
 lemma degree_lt_degree_mul_X (hp : p ≠ 0) : p.degree < (p * X).degree :=

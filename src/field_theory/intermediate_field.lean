@@ -296,29 +296,15 @@ instance finite_dimensional_right [finite_dimensional K L] (F : intermediate_fie
   finite_dimensional F L :=
 finite_dimensional.right K F L
 
-lemma mylemma (F : Type*) [field F] (V : Type*) [add_comm_group V] [module F V]
-  [finite_dimensional F V] (s t : submodule F V) (h_le : s ≤ t)
-    (h_findim : finite_dimensional.findim F s = finite_dimensional.findim F t) : s = t :=
-begin
-  sorry,
-end
-
 lemma rename_this [finite_dimensional K L] {F E : intermediate_field K L} (h_le : F ≤ E)
   (h_findim : finite_dimensional.findim K F = finite_dimensional.findim K E) : F = E :=
-intermediate_field.ext'_iff.mpr (submodule.ext'_iff.mp
-  (mylemma K L F.to_subalgebra.to_submodule E.to_subalgebra.to_submodule h_le h_findim))
-
-example (a b c : ℕ) (h1 : a * b = c) (h2 : 0 < b) : a = c / b :=
-begin
-  exact (nat.div_eq_of_eq_mul_left h2 (eq.symm h1)).symm,
-end
+intermediate_field.ext'_iff.mpr (submodule.ext'_iff.mp (finite_dimensional.eq_of_le_of_findim_eq
+  (show F.to_subalgebra.to_submodule ≤ E.to_subalgebra.to_submodule, by exact h_le) h_findim))
 
 lemma rename_this_also [finite_dimensional K L] {F E : intermediate_field K L} (h_le : F ≤ E)
   (h_findim : finite_dimensional.findim F L = finite_dimensional.findim E L) : F = E :=
 begin
   apply rename_this h_le,
-  have key := nat.div_eq_of_eq_mul_left finite_dimensional.findim_pos (finite_dimensional.findim_mul_findim K F L).symm,
-
   have h1 := finite_dimensional.findim_mul_findim K F L,
   have h2 := finite_dimensional.findim_mul_findim K E L,
   rw [←h2, h_findim] at h1,

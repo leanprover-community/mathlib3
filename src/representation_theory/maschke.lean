@@ -150,18 +150,17 @@ lemma monoid_algebra.exists_left_inverse_of_injective
   (not_dvd : ¬(ring_char k ∣ fintype.card G)) (f : V →ₗ[monoid_algebra k G] W) (hf : f.ker = ⊥) :
   ∃ (g : W →ₗ[monoid_algebra k G] V), g.comp f = linear_map.id :=
 begin
-  let E := linear_map.exists_left_inverse_of_injective
-    (by convert f.restrict_scalars k) (by simp [hf]),
-  fsplit,
   haveI : invertible (fintype.card G : k) :=
     invertible_of_ring_char_not_dvd not_dvd,
-  exact (classical.some E).equivariant_projection G,
-  { ext v,
-    apply linear_map.equivariant_projection_condition,
-    intro v,
-    have := classical.some_spec E,
-    have := congr_arg linear_map.to_fun this,
-    exact congr_fun this v, }
+  obtain ⟨φ, hφ⟩ := (f.restrict_scalars k).exists_left_inverse_of_injective
+    (by simp only [hf, submodule.restrict_scalars_bot, linear_map.ker_restrict_scalars]),
+  refine ⟨φ.equivariant_projection G, _⟩,
+  ext v,
+  simp only [linear_map.id_coe, id.def, linear_map.comp_apply],
+  apply linear_map.equivariant_projection_condition,
+  intro v,
+  have := congr_arg linear_map.to_fun hφ,
+  exact congr_fun this v
 end
 
 lemma monoid_algebra.submodule.exists_is_compl

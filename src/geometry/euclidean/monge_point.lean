@@ -252,8 +252,9 @@ opposite edge (in 2 dimensions, this is the same as an altitude).
 This definition is only intended to be used when `i₁ ≠ i₂`. -/
 def monge_plane {n : ℕ} (s : simplex ℝ P (n + 2)) (i₁ i₂ : fin (n + 3)) :
   affine_subspace ℝ P :=
-mk' (({i₁, i₂}ᶜ : finset (fin (n + 3))).centroid ℝ s.points) (submodule.span ℝ {s.points i₁ -ᵥ s.points i₂}).orthogonal ⊓
-  affine_span ℝ (set.range s.points)
+mk' (({i₁, i₂}ᶜ : finset (fin (n + 3))).centroid ℝ s.points)
+  (submodule.span ℝ {s.points i₁ -ᵥ s.points i₂}).orthogonal ⊓
+    affine_span ℝ (set.range s.points)
 
 /-- The definition of a Monge plane. -/
 lemma monge_plane_def {n : ℕ} (s : simplex ℝ P (n + 2)) (i₁ i₂ : fin (n + 3)) :

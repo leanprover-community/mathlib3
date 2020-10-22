@@ -179,8 +179,8 @@ begin
   apply h
 end
 
-lemma det_eq_zero_of_column_eq_zero {A : matrix n n R} (i : n) (h : ∀ j, A j i = 0) : det A = 0 :=
-by { rw ← det_transpose, exact det_eq_zero_of_row_eq_zero i h, }
+lemma det_eq_zero_of_column_eq_zero {A : matrix n n R} (j : n) (h : ∀ i, A i j = 0) : det A = 0 :=
+by { rw ← det_transpose, exact det_eq_zero_of_row_eq_zero j h, }
 
 /--
   `mod_swap i j` contains permutations up to swapping `i` and `j`.

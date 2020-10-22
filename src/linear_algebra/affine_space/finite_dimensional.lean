@@ -35,7 +35,7 @@ open affine_subspace finite_dimensional vector_space
 /-- The `vector_span` of a finite set is finite-dimensional. -/
 lemma finite_dimensional_vector_span_of_finite {s : set P} (h : set.finite s) :
   finite_dimensional k (vector_span k s) :=
-span_of_finite k $ vsub_set_finite_of_finite h
+span_of_finite k $ h.vsub h
 
 /-- The `vector_span` of a family indexed by a `fintype` is
 finite-dimensional. -/

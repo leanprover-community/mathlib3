@@ -633,23 +633,21 @@ noncomputable def gcd_monoid_of_gcd [decidable_eq α] (gcd : α → α → α)
   lcm := λ a b, if a = 0 then 0 else classical.some (dvd_normalize_iff.2
           (dvd.trans (gcd_dvd_left a b) (dvd.intro b rfl))),
   gcd_mul_lcm := λ a b, by {
-    by_cases a0 : a = 0,
-    { rw [if_pos a0, mul_zero, a0, zero_mul, normalize_zero] },
-    { rw if_neg a0,
-      exact (classical.some_spec (dvd_normalize_iff.2
+    split_ifs with a0,
+    { rw [mul_zero, a0, zero_mul, normalize_zero] },
+    { exact (classical.some_spec (dvd_normalize_iff.2
                   (dvd.trans (gcd_dvd_left a b) (dvd.intro b rfl)))).symm } },
   lcm_zero_left := λ a, if_pos rfl,
   lcm_zero_right := λ a, by {
-    by_cases a0 : a = 0, { apply if_pos a0 },
-    rw if_neg a0,
+    split_ifs with a0, { refl },
     rw ← normalize_eq_zero at a0,
     have h := (classical.some_spec (dvd_normalize_iff.2
                   (dvd.trans (gcd_dvd_left a 0) (dvd.intro 0 rfl)))).symm,
     have gcd0 : gcd a 0 = normalize a,
-    { rw [← normalize_gcd],
-      apply normalize_eq_normalize (gcd_dvd_left _ _) (dvd_gcd (dvd_refl a) (dvd_zero a)) },
+    { rw ← normalize_gcd,
+      exact normalize_eq_normalize (gcd_dvd_left _ _) (dvd_gcd (dvd_refl a) (dvd_zero a)) },
     rw ← gcd0 at a0,
-    apply or_iff_not_imp_left.1 (mul_eq_zero.1 _) a0,
+    apply or.resolve_left (mul_eq_zero.1 _) a0,
     rw [h, mul_zero, normalize_zero] },
   .. (infer_instance : normalization_monoid α) }
 
@@ -660,9 +658,10 @@ noncomputable def gcd_monoid_of_lcm [decidable_eq α] (lcm : α → α → α)
   (lcm_dvd        : ∀{a b c}, c ∣ a → b ∣ a → lcm c b ∣ a)
   (normalize_lcm  : ∀a b, normalize (lcm a b) = lcm a b) :
   gcd_monoid α :=
+let exists_gcd := λ a b, dvd_normalize_iff.2 (lcm_dvd (dvd.intro b rfl) (dvd.intro_left a rfl)) in
 { lcm := lcm,
   gcd := λ a b, if a = 0 then normalize b else (if b = 0 then normalize a else
-    classical.some (dvd_normalize_iff.2 (lcm_dvd (dvd.intro b rfl) (dvd.intro_left a rfl)))),
+    classical.some (exists_gcd a b)),
   gcd_mul_lcm := λ a b, by {
     split_ifs,
     { rw [h, zero_dvd_iff.1 (dvd_lcm_left _ _), mul_zero, zero_mul, normalize_zero] },
@@ -673,18 +672,15 @@ noncomputable def gcd_monoid_of_lcm [decidable_eq α] (lcm : α → α → α)
     split_ifs,
     { apply normalize_idem },
     { apply normalize_idem },
-    have hspec := (classical.some_spec
-      (dvd_normalize_iff.2 (lcm_dvd (dvd.intro b rfl) (dvd.intro_left a rfl)))).symm,
     have h0 : lcm a b ≠ 0,
     { intro con,
       have h := lcm_dvd (dvd.intro b rfl) (dvd.intro_left a rfl),
       rw [con, zero_dvd_iff, mul_eq_zero] at h,
       cases h; tauto },
     apply mul_left_cancel' h0,
-    rw [hspec],
-    apply eq.trans (congr (congr rfl (normalize_lcm a b).symm) rfl),
-    apply eq.trans (monoid_hom.map_mul _ _ _).symm,
-    apply eq.trans (congr rfl hspec) (normalize_idem _) },
+    refine trans _ (classical.some_spec (exists_gcd a b)),
+    conv_lhs { congr, rw [← normalize_lcm a b] },
+    erw [← normalize.map_mul, ← classical.some_spec (exists_gcd a b), normalize_idem] },
   lcm_zero_left := λ a, zero_dvd_iff.1 (dvd_lcm_left _ _),
   lcm_zero_right := λ a, zero_dvd_iff.1 (dvd_lcm_right _ _),
   gcd_dvd_left := λ a b, by {
@@ -696,9 +692,8 @@ noncomputable def gcd_monoid_of_lcm [decidable_eq α] (lcm : α → α → α)
       have h := lcm_dvd (dvd.intro b rfl) (dvd.intro_left a rfl),
       rw [con, zero_dvd_iff, mul_eq_zero] at h,
       cases h; tauto },
-    rw [← mul_dvd_mul_iff_left h0, (classical.some_spec (dvd_normalize_iff.2
-      (lcm_dvd (dvd.intro b rfl) (dvd.intro_left a rfl)))).symm,
-      normalize_dvd_iff, mul_comm, mul_dvd_mul_iff_right h],
+    rw [← mul_dvd_mul_iff_left h0, ← classical.some_spec (exists_gcd a b),
+        normalize_dvd_iff, mul_comm, mul_dvd_mul_iff_right h],
     apply dvd_lcm_right },
   gcd_dvd_right := λ a b, by {
     split_ifs,
@@ -709,9 +704,8 @@ noncomputable def gcd_monoid_of_lcm [decidable_eq α] (lcm : α → α → α)
       have h := lcm_dvd (dvd.intro b rfl) (dvd.intro_left a rfl),
       rw [con, zero_dvd_iff, mul_eq_zero] at h,
       cases h; tauto },
-    rw [← mul_dvd_mul_iff_left h0, (classical.some_spec (dvd_normalize_iff.2
-      (lcm_dvd (dvd.intro b rfl) (dvd.intro_left a rfl)))).symm,
-      normalize_dvd_iff, mul_dvd_mul_iff_right h_1],
+    rw [← mul_dvd_mul_iff_left h0, ← classical.some_spec (exists_gcd a b),
+        normalize_dvd_iff, mul_dvd_mul_iff_right h_1],
     apply dvd_lcm_left },
   dvd_gcd := λ a b c ac ab, by {
     split_ifs,

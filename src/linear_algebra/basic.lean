@@ -629,7 +629,7 @@ def map (f : M →ₗ[R] M₂) (p : submodule R M) : submodule R M₂ :=
 theorem mem_map_of_mem {f : M →ₗ[R] M₂} {p : submodule R M} {r} (h : r ∈ p) : f r ∈ map f p :=
 set.mem_image_of_mem _ h
 
-lemma map_id : map linear_map.id p = p :=
+@[simp] lemma map_id : map linear_map.id p = p :=
 submodule.ext $ λ a, by simp
 
 lemma map_comp (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) (p : submodule R M) :
@@ -1018,6 +1018,17 @@ variables [semimodule R M] [semimodule R M₂] [semimodule R M₃]
 variables (p p' : submodule R M) (q q' : submodule R M₂)
 variables {r : R} {x y : M}
 open set
+
+@[simp] lemma neg_coe : -(p : set M) = p := set.ext $ λ x, p.neg_mem_iff
+
+@[simp] protected lemma map_neg (f : M →ₗ[R] M₂) : map (-f) p = map f p :=
+ext $ λ y, ⟨λ ⟨x, hx, hy⟩, hy ▸ ⟨-x, neg_mem _ hx, f.map_neg x⟩,
+  λ ⟨x, hx, hy⟩, hy ▸ ⟨-x, neg_mem _ hx, ((-f).map_neg _).trans (neg_neg (f x))⟩⟩
+
+@[simp] lemma span_neg (s : set M) : span R (-s) = span R s :=
+calc span R (-s) = span R ((-linear_map.id : M →ₗ[R] M) '' s) : by simp
+ ... = map (-linear_map.id) (span R s) : (map_span _ _).symm
+... = span R s : by simp
 
 lemma mem_span_insert' {y} {s : set M} : x ∈ span R (insert y s) ↔ ∃(a:R), x + a • y ∈ span R s :=
 begin

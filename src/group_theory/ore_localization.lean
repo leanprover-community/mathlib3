@@ -416,21 +416,100 @@ end construction
 
 section universal
 variables {Z : Type*} [mul_action M Z] (hZ : ∀ s ∈ S, function.bijective (λ (z : Z), s • z))
+include hZ
 
-/-
-lemma exists_lift (f : localization_map S X Y) (g : X →[M] Z) :
-  ∃ g' : Y →[M] Z, g'.comp f.to_map = g :=
-sorry
--/
+lemma exists_lift_aux (f : localization_map S X Y) (g : X →[M] Z)
+  (y : Y) (x₁ x₂ : X) (s₁ s₂ : S) (h₁ : (s₁ : M) • y = f.to_map x₁) (h₂ : (s₂ : M) • y = f.to_map x₂)
+  (z₁ z₂ : Z) (j₁ : (s₁ : M) • z₁ = g x₁) (j₂ : (s₂ : M) • z₂ = g x₂) : z₁ = z₂ :=
+begin
+  obtain ⟨m'₂, s'₁, hs'₁, h⟩ := S.exists_left_ore s₂ s₁ s₁.property,
+  have : f.to_map (m'₂ • x₁) = f.to_map (s'₁ • x₂),
+  { rw [f.to_map.map_smul, f.to_map.map_smul, ←h₁, ←h₂, smul_smul, smul_smul, h] },
+  obtain ⟨s, hs, h'⟩ := (f.eq_iff_exists' _ _).mp this,
+  have : (s * s'₁ * s₂) • z₁ = (s * s'₁ * s₂) • z₂,
+  { conv_lhs { rw [mul_assoc, h, ←mul_assoc, mul_smul, j₁, ←g.map_smul, mul_smul] },
+    conv_rhs { rw [mul_smul, j₂, ←g.map_smul, mul_smul] },
+    rw h' },
+  refine (hZ _ _).1 this,
+  exact S.to_submonoid.mul_mem (S.to_submonoid.mul_mem hs hs'₁) s₂.property
+end
+
+lemma exists_lift_fn (f : localization_map S X Y) (g : X →[M] Z) :
+  ∃ g' : Y → Z, ∀ y x (s : S) z,
+  (s : M) • y = f.to_map x → (s : M) • z = g x → g' y = z :=
+begin
+  choose cS hcS cX hcX using f.surj',
+  let cZ : S → Z → Z := λ s, (equiv.of_bijective _ (hZ s s.property)).symm,
+  refine ⟨λ y, cZ ⟨cS y, hcS y⟩ (g (cX y)), λ y x s z h j, _⟩,
+  refine exists_lift_aux hZ f g y (cX y) x ⟨cS y, hcS y⟩ s (hcX y) h _ z _ j,
+  exact (equiv.of_bijective _ (hZ _ _)).apply_symm_apply _
+end
+
+noncomputable def lift_fn (f : localization_map S X Y) (g : X →[M] Z) : Y → Z :=
+classical.some (exists_lift_fn hZ f g)
+
+lemma lift_fn_def {f : localization_map S X Y} {g : X →[M] Z} :
+  ∀ (y : Y) (x : X) (s : S) (z : Z) (h : (s : M) • y = f.to_map x) (j : (s : M) • z = g x),
+  (lift_fn hZ f g) y = z :=
+classical.some_spec (exists_lift_fn hZ f g)
+
+lemma lift_fn_def' {f : localization_map S X Y} {g : X →[M] Z}
+  (y : Y) (x : X) (s : M) (hs : s ∈ S) (h : s • y = f.to_map x) :
+  s • (lift_fn hZ f g) y = g x :=
+begin
+  obtain ⟨z, j : s • z = g x⟩ := (hZ s hs).2 (g x),
+  rw [←j, lift_fn_def hZ y x ⟨s, hs⟩ z h j]
+end
+
+noncomputable def lift (f : localization_map S X Y) (g : X →[M] Z) : Y →[M] Z :=
+{ to_fun := lift_fn hZ f g,
+  map_smul' := λ m y, begin
+    obtain ⟨s, hs, x, h⟩ := f.surj' y,
+    obtain ⟨m', s', hs', h'⟩ := S.exists_left_ore m s hs,
+    refine (hZ s' hs').1 _,
+    change s' • _ = s' • _,
+    rw lift_fn_def' hZ (m • y) (m' • x) s' hs', swap,
+    { rw [smul_smul, h', mul_smul, h, f.to_map.map_smul], refl },
+    rw [smul_smul, h', mul_smul, lift_fn_def' hZ y x s hs h, g.map_smul]
+  end }
+
+lemma lift_comp {f : localization_map S X Y} {g : X →[M] Z} :
+  (lift hZ f g).comp f.to_map = g :=
+begin
+  ext x,
+  suffices : (1 : M) • (lift hZ f g) (f.to_fun x) = g x,
+  { rwa one_smul at this },
+  apply lift_fn_def' hZ (f.to_fun x) x 1 S.to_submonoid.one_mem,
+  rw one_smul,
+  refl
+end
+
+lemma lift_beta {f : localization_map S X Y} {g : X →[M] Z} (x : X) :
+  (lift hZ f g) (f.to_map x) = g x :=
+show (lift hZ f g).comp f.to_map x = g x,
+by rw lift_comp
+
+lemma lift_unique_aux (f : localization_map S X Y) {g'₁ g'₂ : Y →[M] Z}
+  (h : g'₁.comp f.to_map = g'₂.comp f.to_map) : g'₁ = g'₂ :=
+begin
+  ext y,
+  obtain ⟨s, hs, x, hx⟩ := f.surj' y,
+  suffices : s • g'₁ y = s • g'₂ y,
+  { exact (hZ s hs).1 this },
+  rw [←g'₁.map_smul, ←g'₂.map_smul, hx],
+  exact (mul_action_hom.ext_iff.mp h x : _)
+end
+
+-- TODO: conclude that `lift` is the unique extension (trivial)
 
 end universal
 
 -- TODO:
--- * universal property of localizations
 -- * various sorts of functoriality? certainly in the module,
 --   and also whatever is needed to support the existing constructions for monoid localizations
 -- * (look at original localization for other properties)
 
+section monoid
 -- * module localizations are monoid localizations
 /-
 Plan:
@@ -452,6 +531,105 @@ Plan: Use this map to define multiplication on N and show that:
 * the above map N → End(Y) is a monoid homomorphism, so Y becomes an N-module,
 * f : M → N has a universal property among monoid homomorphisms which invert S.
 -/
+
+local attribute [instance] mul_action.regular
+
+variables {N : Type*} [mul_action M N] (f : localization_map S M N)
+variables (hY : ∀ s ∈ S, function.bijective (λ (y : Y), s • y))
+
+-- TODO: naming
+def foo : M →[M] (Y → Y) :=
+{ to_fun := λ m y, m • y,
+  map_smul' := λ m n, funext (λ y, mul_smul m n y) }
+
+lemma ptwise {α : Type*} : ∀ s ∈ S, function.bijective (λ (f : α → Y), s • f) :=
+λ s hs, (equiv.Pi_congr_right $ λ y, equiv.of_bijective _ (hY s hs)).bijective
+
+noncomputable def extended_smul : N →[M] (Y → Y) :=
+lift (ptwise hY) f foo
+
+noncomputable def extended_mul : N → N → N :=
+extended_smul f f.acts_invertibly'
+
+local infixl ` *' `:70 := extended_mul f
+
+lemma smul_extended_mul (m : M) (n₁ n₂ : N) : (m • n₁) *' n₂ = m • (n₁ *' n₂) :=
+congr_fun ((extended_smul f f.acts_invertibly').map_smul m n₁) n₂
+
+lemma extended_mul_f (m : M) (n : N) : f.to_map m *' n = m • n :=
+congr_fun (lift_beta _ m) n
+
+-- TODO: generalize the mul_assoc/mul_one arguments below to the action on Y
+-- N →[M] (N → Y → Y)
+
+noncomputable def extended_monoid : monoid N :=
+{ mul := extended_mul f,
+  one := f.to_map 1,
+  mul_assoc := begin
+    let μ₁ : N →[M] (N → N → N) :=
+    { to_fun := λ n₁ n₂ n₃, (n₁ *' n₂) *' n₃,
+      map_smul' := λ m n₁, begin
+        ext n₂ n₃,
+        rw [smul_extended_mul, smul_extended_mul],
+        refl
+      end },
+    let μ₂ : N →[M] (N → N → N) :=
+    { to_fun := λ n₁ n₂ n₃, n₁ *' (n₂ *' n₃),
+      map_smul' := λ m n₁, begin
+        ext n₂ n₃,
+        apply smul_extended_mul
+      end },
+    suffices : μ₁ = μ₂,
+    { intros n₁ n₂ n₃,
+      change μ₁ n₁ n₂ n₃ = μ₂ n₁ n₂ n₃,
+      rw this },
+    refine lift_unique_aux (ptwise (ptwise f.acts_invertibly')) f _,
+    ext m n₂ n₃,
+    change (f.to_map m *' n₂) *' n₃ = f.to_map m *' (n₂ *' n₃),
+    rw [extended_mul_f, extended_mul_f, smul_extended_mul]
+  end,
+  one_mul := λ n, show f.to_map 1 *' n = n, by rw [extended_mul_f, one_smul],
+  mul_one := begin
+    let η : N →[M] N :=
+    { to_fun := λ n, n *' f.to_map 1,
+      map_smul' := λ m n, by apply smul_extended_mul },
+    suffices : η = mul_action_hom.id M,
+    { intro n,
+      change η n = n,
+      rw this,
+      refl },
+    refine lift_unique_aux f.acts_invertibly' f _,
+    ext m,
+    change f.to_map m *' f.to_map 1 = f.to_map m,
+    rw [extended_mul_f, ←f.to_map.map_smul],
+    congr,
+    apply mul_one               -- m • 1 = m * 1
+  end }
+
+-- TODO: define `f.codomain` & put the above monoid instance on it, and use below
+
+noncomputable def extended_f : @monoid_hom M N _ (extended_monoid f) :=
+{ to_fun := f.to_map,
+  map_one' := rfl,
+  map_mul' := λ m₁ m₂,
+  by letI := extended_monoid f;
+  calc
+    f.to_map (m₁ * m₂)
+    = f.to_map ((m₁ * m₂) * 1)         : by rw mul_one
+... = f.to_map ((m₁ * m₂) • 1)         : rfl
+... = (m₁ * m₂) • f.to_map 1           : by rw f.to_map.map_smul
+... = m₁ • m₂ • f.to_map 1             : by apply mul_smul
+... = m₁ • f.to_map (m₂ • 1)           : by rw f.to_map.map_smul
+... = m₁ • f.to_map (m₂ * 1)           : rfl
+... = m₁ • f.to_map m₂                 : by rw mul_one
+... = m₁ • (1 * f.to_map m₂)           : by rw one_mul
+... = (m₁ • 1) * f.to_map m₂           : by symmetry; apply smul_extended_mul
+... = (m₁ • f.to_map 1) * f.to_map m₂  : rfl
+... = f.to_map (m₁ • 1) * f.to_map m₂  : by rw f.to_map.map_smul
+... = f.to_map (m₁ * 1) * f.to_map m₂  : rfl
+... = f.to_map m₁ * f.to_map m₂        : by rw mul_one }
+
+end monoid
 
 -- * S⁻¹ (X × Y) ≃ S⁻¹ X × S⁻¹ Y. Use this to show:
 -- * When `X` has extra structure (e.g., additive),

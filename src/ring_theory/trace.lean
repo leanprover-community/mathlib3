@@ -98,6 +98,40 @@ begin
     exact ⟨fx * fy, (ring_hom.map_mul _ _ _).symm⟩ },
 end
 
+lemma sub_mul_sum_pow (a b : R) (n : ℕ) :
+  (a - b) * ∑ i in finset.range (n + 1), a ^ i * b ^ (n - i) = a ^ (n + 1) - b ^ (n + 1) :=
+begin
+  induction n with n ih,
+  { simp },
+  calc (a - b) * ∑ (i : ℕ) in finset.range (n + 2), a ^ i * b ^ (n + 1 - i)
+      = a * ((a - b) * (∑ (x : ℕ) in finset.range (n + 1), a ^ x * b ^ (n - x))) + (a - b) * (b * b ^ n) :
+    by simp [finset.sum_range_succ', pow_succ, mul_assoc, ← finset.mul_sum, mul_add, mul_left_comm]
+  ... = a * (a ^ (n + 1) - b ^ (n + 1)) + (a - b) * (b * b ^ n) : by rw ih
+  ... = a ^ (n + 2) - b ^ (n + 2) : by ring_exp
+end
+
+lemma det_vandermonde {n : ℕ} (v : fin n → R) :
+  det (λ i j, v j ^ (i : ℕ)) = ∏ j : fin n, ∏ i in finset.fin_range' j, (v j - v i) :=
+begin
+  induction n with n ih,
+  { exact det_eq_one_of_card_eq_zero (fintype.card_fin 0) },
+
+  calc det (λ (i j : fin n.succ), v j ^ (i : ℕ))
+      = det (λ (i : fin n.succ), fin.cons (v 0 ^ (i : ℕ)) (λ j, v j.succ ^ (i : ℕ) - v 0 ^ (i : ℕ))) :
+        sorry
+  ... = det (λ (i j : fin n), @fin.cons _ (λ _, R)
+              (v 0 ^ (i.succ : ℕ))
+              (λ (j : fin n), v j.succ ^ (i.succ : ℕ) - v 0 ^ (i.succ : ℕ))
+              (fin.succ_above 0 j)) :
+    by simp_rw [det_succ_column, fin.sum_univ_succ, fin.cons_zero, fin.cons_succ, fin.coe_zero,
+                pow_zero, sub_self, one_mul, mul_zero, zero_mul, finset.sum_const_zero, add_zero]
+  ... = det (λ (i j : fin n), (v j.succ - v 0) *
+              (∑ k in finset.range (i + 1 : ℕ), v j.succ ^ k * v 0 ^ (i - k : ℕ))) :
+    by { congr, ext i j, rw [fin.succ_above_zero, fin.cons_succ, fin.coe_succ, sub_mul_sum_pow] }
+  ... = (∏ (j : fin n), (v j.succ - v 0)) * det (λ (i j : fin n), (∑ k in finset.range (i + 1 : ℕ), v j.succ ^ k * v 0 ^ (i - k : ℕ))) : sorry
+  ... = ∏ j : fin n.succ, ∏ i in finset.fin_range' j, (v j - v i) : sorry
+end
+
 /-- Bundle `power_basis` in a structure to generalize over `algebra.adjoin` and `adjoin`. -/
 structure has_power_basis (R S : Type*) [comm_ring R] [ring S] [algebra R S] :=
 (dim : ℕ)
@@ -917,14 +951,6 @@ end
 
 lemma lmul_one : lmul R S 1 = linear_map.id :=
 by { ext, simp }
-
-lemma det_vandermonde {n : ℕ} (v : fin n → R) :
-  det (λ i j, v j ^ (i : ℕ)) = ∏ (i j : fin n), if i < j then v j - v i else 0 :=
-begin
-  induction n with n ih,
-  { exact det_eq_one_of_card_eq_zero (fintype.card_fin 0) },
-  rw det_succ_row',
-end
 
 lemma det_trace_form_ne_zero (h : has_power_basis R S) :
   det (bilin_form_equiv_matrix h.is_basis (trace_form R S)) ≠ 0 :=

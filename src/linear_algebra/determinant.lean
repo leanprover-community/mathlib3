@@ -846,7 +846,7 @@ end
 This version of `det_succ` gives a minor matrix with one column deleted.
 For similar lemmas with one column swapped, see `det_succ_eq_sum_swap` and `det_succ_eq_sum_ite`.
 -/
-lemma det_succ {n : ℕ} (M : matrix (fin n.succ) (fin n.succ) R) :
+lemma det_succ_row {n : ℕ} (M : matrix (fin n.succ) (fin n.succ) R) :
   det M =
     ∑ (j : fin n.succ), (-1) ^ (j : ℕ) * M j 0 * det (λ (i' j' : fin n), M (j.succ_above i') j'.succ) :=
 begin
@@ -859,6 +859,17 @@ begin
   rw [det_permute (cycle_range' j) (λ i' j', M ((fin.succ j).succ_above i') j'.succ),
       fin.coe_succ, pow_succ],
   simp, ring
+end
+
+/-- Expand a `n+1` by `n+1` matrix along column 0. -/
+lemma det_succ_column {n : ℕ} (M : matrix (fin n.succ) (fin n.succ) R) :
+  det M =
+    ∑ (i : fin n.succ), (-1) ^ (i : ℕ) * M 0 i * det (λ (i' j' : fin n), M i'.succ (i.succ_above j')) :=
+begin
+  rw [← det_transpose, det_succ_row, finset.sum_congr rfl],
+  intros i _,
+  rw [transpose_apply, ← det_transpose],
+  refl
 end
 
 end matrix

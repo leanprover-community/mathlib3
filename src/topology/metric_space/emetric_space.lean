@@ -135,9 +135,7 @@ lemma edist_le_Ico_sum_edist (f : ℕ → α) {m n} (h : m ≤ n) :
 begin
   revert n,
   refine nat.le_induction _ _,
-  { simp only [finset.sum_empty, finset.Ico.self_eq_empty, edist_self],
-    -- TODO: Why doesn't Lean close this goal automatically? `apply le_refl` fails too.
-    exact le_refl (0:ennreal) },
+  { simp only [finset.sum_empty, finset.Ico.self_eq_empty, edist_self] },
   { assume n hn hrec,
     calc edist (f m) (f (n+1)) ≤ edist (f m) (f n) + edist (f n) (f (n+1)) : edist_triangle _ _ _
       ... ≤ ∑ i in finset.Ico m n, _ + _ : add_le_add hrec (le_refl _)
@@ -536,7 +534,7 @@ theorem exists_ball_subset_ball (h : y ∈ ball x ε) : ∃ ε' > 0, ball y ε' 
 begin
   have : 0 < ε - edist y x := by simpa using h,
   refine ⟨ε - edist y x, this, ball_subset _ _⟩,
-  { rw ennreal.add_sub_cancel_of_le (le_of_lt h), apply le_refl _},
+  { rw ennreal.add_sub_cancel_of_le (le_of_lt h) },
   { have : edist y x ≠ ⊤ := ne_top_of_lt h, apply lt_top_iff_ne_top.2 this }
 end
 

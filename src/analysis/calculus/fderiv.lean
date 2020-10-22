@@ -2535,7 +2535,6 @@ section smul_algebra
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [normed_space 𝕜' E]
-variables [is_scalar_tower 𝕜 𝕜' E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F] [normed_space 𝕜' F]
 variables [is_scalar_tower 𝕜 𝕜' F]
 variables {f : E → F} {f' : E →L[𝕜] F} {s : set E} {x : E}

@@ -1266,7 +1266,6 @@ instance is_scalar_tower_extend_scalars :
 
 variables {R S V W}
 
-@[simp]
 lemma smul_apply' (c : R) (f : V →ₗ[R] W) (v : V) :
   (c • f) v = (c • (f v) : W) :=
 by simp only [(•), coe_mk, map_smul_eq_smul_map]

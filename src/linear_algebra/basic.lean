@@ -1021,7 +1021,7 @@ open set
 
 @[simp] lemma neg_coe : -(p : set M) = p := set.ext $ λ x, p.neg_mem_iff
 
-@[simp] lemma map_neg (f : M →ₗ[R] M₂) : map (-f) p = map f p :=
+@[simp] protected lemma map_neg (f : M →ₗ[R] M₂) : map (-f) p = map f p :=
 ext $ λ y, ⟨λ ⟨x, hx, hy⟩, hy ▸ ⟨-x, neg_mem _ hx, f.map_neg x⟩,
   λ ⟨x, hx, hy⟩, hy ▸ ⟨-x, neg_mem _ hx, ((-f).map_neg _).trans (neg_neg (f x))⟩⟩
 

@@ -194,13 +194,8 @@ instance dlex_linear_order [linear_order α] [∀ a, linear_order (Z a)] : linea
     { right, right, exact hb },
     { left, right, exact hb },
     { right, right, exact hb },
-  end
-  .. dlex_partial_order }.
-
-/-- Dictionary / lexicographic linear_order for dependent pairs. -/
-instance dlex_linear_order [linear_order α] [∀ a, linear_order (Z a)] :
-  linear_order (Σ' a, Z a) :=
-{ decidable_le :=
+  end,
+  decidable_le :=
   begin
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
     rcases linear_order.decidable_le a₁ a₂ with a_lt | a_le,
@@ -221,4 +216,4 @@ instance dlex_linear_order [linear_order α] [∀ a, linear_order (Z a)] :
       -- a₁ < a₂
       { right, left, apply lt_of_le_of_ne, repeat { assumption } } }
   end,
-  .. dlex_linear_order }
+  .. dlex_partial_order }.

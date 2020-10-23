@@ -169,22 +169,13 @@ namespace dedekind_domain
 variables {R S : Type*} [integral_domain R] [integral_domain S] [algebra R S]
 variables {L : Type*} [field L] {f : fraction_map R K}
 
-#check fraction_ring R
-#check Type u_3
-
 open finsupp polynomial
-
--- lemma smul_mul (a₁ a₂ : α) (b : β) : b • (a₁ * a₂) = b * a₁ * a₂ :=
--- by sorry,
---may be, use smul_eq_mul of modules/basic.lean?
-
-lemma smul_mul (a₁ a₂ : f.codomain) (b : R) : b • (a₁ * a₂) = f.to_map b * a₁ * a₂ :=
-begin
-sorry,
-end
 
 variables {M : ideal R} [is_maximal M]
 
+/-
+this theorem definitely needs to go elsewhere
+-/
 theorem is_integral_of_noetherian' (B : Type*) [comm_ring B] [algebra R B] (A : subalgebra R B) (H : is_noetherian R A) (x : B) :
   (x ∈ A) → is_integral R x :=
   begin
@@ -255,15 +246,13 @@ cases h_int_x with px zero_px, use w, split,
 exact px, exact zero_px,
 end
 
-#check if_inv_then_int
-
 local attribute [instance] classical.prop_decidable
 
 lemma maximal_ideal_inv_of_dedekind
   (hR : is_dedekind_domain R) (hM : ideal.is_maximal M)
-  (hnz_M : M ≠ 0) -- this is now superfluous as by def'n DD are not fields
   : is_unit (M : fractional_ideal f) :=
 begin
+have hnz_M : M ≠ 0, apply (lt_iff_le_and_ne.mp (ideal.bot_lt_of_maximal M hR.1) ).2.symm,
 have hnz_Mf : (↑ M : fractional_ideal f) ≠ (0 : fractional_ideal f),
  apply fractional_ideal.coe_nonzero_of_nonzero.mp hnz_M,
 have hnz_invMf : (1 : fractional_ideal f)/(↑ M : fractional_ideal f) ≠ (0 : fractional_ideal f),

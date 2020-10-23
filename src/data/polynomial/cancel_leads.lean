@@ -60,7 +60,8 @@ begin
       mul_comm _ q.leading_coeff, ← sub_eq_add_neg, ← mul_sub, sub_self, mul_zero] }
 end
 
-lemma dvd_cancel_leads_of_dvd_of_dvd [comm_ring R] {p q r : polynomial R} (pq : p ∣ q) (pr : p ∣ r) :
+lemma dvd_cancel_leads_of_dvd_of_dvd
+  [comm_ring R] {p q r : polynomial R} (pq : p ∣ q) (pr : p ∣ r) :
   p ∣ q.cancel_leads r :=
 dvd_sub (dvd.trans pr (dvd.intro_left _ rfl)) (dvd.trans pq (dvd.intro_left _ rfl))
 

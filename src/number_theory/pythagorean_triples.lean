@@ -534,12 +534,6 @@ begin
     { split, { ring }, rw int.gcd_comm, exact coprime_pow_two_sub_mul co pp } }
 end
 
-private lemma neg_parity_eq_parity (i : ℤ) : (-i) % 2 = i % 2 :=
-begin
-  apply int.mod_eq_mod_iff_mod_sub_eq_zero.mpr,
-  convert int.mul_mod_right 2 (-i), ring
-end
-
 /-- by assuming `x` is odd and `z` is positive we get a slightly more precise classification of
 the pythagorean triple `x ^ 2 + y ^ 2 = z ^ 2`-/
 theorem coprime_classification' {x y z : ℤ} (h : pythagorean_triple x y z)

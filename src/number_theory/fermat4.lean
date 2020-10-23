@@ -152,7 +152,7 @@ begin
     revert h3, exact h0 }
 end
 
-private lemma coprime_of_sqr_sum {m r s : ℤ} (h : m = r ^ 2 + s ^ 2) (h2 : int.gcd r s = 1) :
+lemma coprime_of_sqr_sum {m r s : ℤ} (h : m = r ^ 2 + s ^ 2) (h2 : int.gcd r s = 1) :
   int.gcd m r = 1 :=
 begin
   by_contradiction hg,
@@ -167,7 +167,7 @@ begin
   rw pow_two, exact dvd_mul_of_dvd_left (int.coe_nat_dvd_left.mpr hr) r
 end
 
-private lemma coprime_of_sqr_sum' {m r s : ℤ} (h : m = r ^ 2 + s ^ 2) (h2 : int.gcd r s = 1) :
+lemma coprime_of_sqr_sum' {m r s : ℤ} (h : m = r ^ 2 + s ^ 2) (h2 : int.gcd r s = 1) :
   int.gcd m (r * s) = 1 :=
 begin
   dunfold int.gcd,

@@ -505,10 +505,9 @@ this.elim
   (λ hgu, by rw [hg, degree_mul, degree_X_sub_C, degree_eq_zero_of_is_unit hgu, add_zero])
 
 /-- Division by a monic polynomial doesn't change the leading coefficient. -/
-lemma leading_coeff_of_div_monic {R : Type u} [integral_domain R] {p q : polynomial R} :
-  q.monic → q.degree ≤ p.degree → p.leading_coeff = (p /ₘ q).leading_coeff :=
+lemma leading_coeff_of_div_monic {R : Type u} [integral_domain R] {p q : polynomial R}
+  (hmonic : q.monic) (hdegree : q.degree ≤ p.degree) : p.leading_coeff = (p /ₘ q).leading_coeff :=
 begin
-  intros hmonic hdegree,
   have hp := mod_by_monic_add_div p hmonic,
   have hzero : (p /ₘ q) ≠ 0,
   { intro h,

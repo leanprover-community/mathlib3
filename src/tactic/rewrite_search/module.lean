@@ -3,7 +3,7 @@ import tactic.rewrite_search.core
 -- Default strategy, metric, and tracer used as a fallback by the engine
 -- (so must be present)
 import tactic.rewrite_search.strategy.bfs
-import tactic.rewrite_search.metric.edit_distance
+import tactic.rewrite_search.metric.trivial
 import tactic.rewrite_search.tracer.unit
 
 namespace tactic.rewrite_search
@@ -11,7 +11,7 @@ namespace tactic.rewrite_search
 meta def pick_default_strategy : tactic unit :=
 `[exact tactic.rewrite_search.strategy.bfs]
 meta def pick_default_metric   : tactic unit :=
-`[exact tactic.rewrite_search.metric.edit_distance]
+`[exact tactic.rewrite_search.metric.trivial]
 meta def pick_default_tracer   : tactic unit :=
 `[exact tactic.rewrite_search.tracer.unit_tracer]
 
@@ -20,28 +20,28 @@ structure collect_cfg :=
 (inflate_rws     : bool := ff)
 (help_me         : bool := ff)
 
--- This is the "public" config structure which has convenient tactic-mode
--- invocation syntax. The data in this structure is extracted and transformed
--- into the internal representation of the settings and modules by
--- `try_mk_search_instance`.
+/-
+This is the "public" config structure which has convenient tactic-mode
+invocation syntax. The data in this structure is extracted and transformed
+into the internal representation of the settings and modules by
+`try_mk_search_instance`.
+-/
 meta structure config (α β γ δ : Type) extends collect_cfg, tactic.nth_rewrite.cfg :=
-(max_iterations  : ℕ := 500)
-(optimal         : bool := tt)
-(exhaustive      : bool := ff)
-(trace           : bool := ff)
-(trace_summary   : bool := ff)
-(trace_rules     : bool := ff)
-(explain         : bool := ff)
+(max_iterations     : ℕ := 500)
+(optimal            : bool := tt)
+(exhaustive         : bool := ff)
+(trace              : bool := ff)
+(trace_summary      : bool := ff)
+(trace_rules        : bool := ff)
+(explain            : bool := ff)
 (explain_using_conv : bool := tt)
-(metric          : metric_constructor β γ . pick_default_metric)
-(strategy        : strategy_constructor α . pick_default_strategy)
-(view            : tracer_constructor δ   . pick_default_tracer)
+(metric             : metric_constructor β γ . pick_default_metric)
+(strategy           : strategy_constructor α . pick_default_strategy)
+(view               : tracer_constructor δ   . pick_default_tracer)
 
-open tactic.rewrite_search.edit_distance
-open tactic.rewrite_search.metric.edit_distance
 open tactic.rewrite_search.strategy.bfs
 
-meta def default_config : config bfs_state ed_state ed_partial unit := {}
+meta def default_config : config bfs_state unit unit unit := {}
 meta def pick_default_config : tactic unit := `[exact tactic.rewrite_search.default_config]
 
 variables {α β γ δ : Type}
@@ -51,7 +51,8 @@ meta def mk_initial_search_state (conf : core_cfg)
   (s : strategy α β γ δ) (m : metric α β γ δ) (tr : tracer α β γ δ)
   (strat_state : α) (metric_state : β) (tr_state : δ)
   : search_state α β γ δ :=
-⟨tr, conf, rw_cfg, rs, strat_state, metric_state, table.create, table.create, table.create, none, tr_state, statistics.init⟩
+⟨tr, conf, rw_cfg, rs, strat_state, metric_state, table.create, table.create,
+ table.create, none, tr_state, statistics.init⟩
 
 meta def setup_instance (conf : core_cfg)
   (rw_cfg : tactic.nth_rewrite.cfg) (rs : list (expr × bool))
@@ -64,7 +65,8 @@ do let g := mk_initial_search_state conf rw_cfg rs s m tr s_state m_state tr_sta
    g ← s.startup g m vl vr,
    return ⟨m, s, g⟩
 
-meta def instantiate_modules (cfg : config α β γ δ) : strategy α β γ δ × metric α β γ δ × tracer α β γ δ :=
+meta def instantiate_modules (cfg : config α β γ δ) :
+strategy α β γ δ × metric α β γ δ × tracer α β γ δ :=
 (cfg.strategy β γ δ, cfg.metric α δ, cfg.view α β γ)
 
 meta def try_mk_search_instance (cfg : config α β γ δ)

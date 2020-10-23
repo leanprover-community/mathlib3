@@ -41,15 +41,10 @@ in this file.
 
 noncomputable theory
 
-universes u v w u₁
 open mv_polynomial
-open set
-open finset (range)
-open finsupp (single)
 
 open_locale big_operators
 
-local attribute [-simp] coe_eval₂_hom
 local attribute [semireducible] witt_vector
 
 variables {p : ℕ} {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
@@ -59,8 +54,6 @@ open_locale witt
 
 namespace witt_vector
 
-variables {p} {R}
-
 section map
 open function
 variables {α : Type*} {β : Type*}
@@ -68,12 +61,10 @@ variables {α : Type*} {β : Type*}
 /-- `f : α → β` induces a map from `𝕎 α` to `𝕎 β` in the obvious way. -/
 def map_fun (f : α → β) : 𝕎 α → 𝕎 β := λ x, f ∘ x
 
-lemma map_fun_injective (f : α → β) (hf : injective f) :
-  injective (map_fun f : 𝕎 α → 𝕎 β) :=
+lemma map_fun_injective (f : α → β) (hf : injective f) : injective (map_fun f : 𝕎 α → 𝕎 β) :=
 λ x y h, funext $ λ n, hf $ by exact congr_fun h n
 
-lemma map_fun_surjective (f : α → β) (hf : surjective f) :
-  surjective (map_fun f : 𝕎 α → 𝕎 β) :=
+lemma map_fun_surjective (f : α → β) (hf : surjective f) : surjective (map_fun f : 𝕎 α → 𝕎 β) :=
 λ x, ⟨λ n, classical.some $ hf $ x n,
 by { funext n, dsimp [map_fun], rw classical.some_spec (hf (x n)) }⟩
 
@@ -116,11 +107,10 @@ do fn ← to_expr ```(%%fn : fin _ → ℕ → R),
   to_expr ```(witt_structure_int_prop p (%%φ : mv_polynomial (fin %%k) ℤ) n) >>= note `aux none >>=
      apply_fun_to_hyp ```(aeval (function.uncurry %%fn)) none,
 `[simp only [aeval_bind₁] at aux,
-  simp only [ghost_component_fun_apply],
+  dsimp only [ghost_component_fun_apply],
   convert aux using 1; clear aux;
   simp only [alg_hom.map_zero, alg_hom.map_one, alg_hom.map_add, alg_hom.map_mul, alg_hom.map_neg,
-    aeval_X];
-  simp only [aeval_eq_eval₂_hom, eval₂_hom_rename]; refl]
+    aeval_X, aeval_rename]; refl]
 end tactic
 
 namespace witt_vector
@@ -134,39 +124,25 @@ aeval x.coeff (W_ ℤ n)
 lemma ghost_component_fun_apply (n : ℕ) (x : 𝕎 R) :
   ghost_component_fun n x = aeval x.coeff (W_ ℤ n) := rfl
 
-lemma ghost_component_fun_apply' (n : ℕ) (x : 𝕎 R) :
-  ghost_component_fun n x = aeval x.coeff (W_ R n) :=
-begin
-  simp only [ghost_component_fun_apply, aeval_eq_eval₂_hom,
-    ← map_witt_polynomial p (int.cast_ring_hom R), eval₂_hom_map_hom],
-  exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl,
-end
-
 /-- Reorders the arguments of `ghost_component_fun`.
 This function will be bundled as the ring homomorphism `witt_vector.ghost_map`
 once the ring structure is available,
 but we rely on it to set up the ring structure in the first place. -/
 private def ghost_map_fun : 𝕎 R → (ℕ → R) := λ w n, ghost_component_fun n w
 
+lemma ghost_map_fun_apply (x : 𝕎 R) (n : ℕ) : ghost_map_fun x n = ghost_component_fun n x := rfl
+
 section p_prime
-open finset mv_polynomial function set
-
-variable {p}
-
-/- The following lemmas are not `@[simp]` because we will bundle these functions later on. -/
-
-lemma ghost_map_fun_apply (x : 𝕎 R) (n : ℕ) :
-  ghost_map_fun x n = ghost_component_fun n x := rfl
 
 variable [hp : fact p.prime]
 include hp
 
-lemma ghost_component_fun_zero (n : ℕ) :
-  ghost_component_fun n (0 : 𝕎 R) = 0 :=
+/- The following lemmas are not `@[simp]` because we will bundle these functions later on. -/
+
+lemma ghost_component_fun_zero (n : ℕ) : ghost_component_fun n (0 : 𝕎 R) = 0 :=
 by ghost_component 0 ![]
 
-lemma ghost_component_fun_one (n : ℕ) :
-  ghost_component_fun n (1 : 𝕎 R) = 1 :=
+lemma ghost_component_fun_one (n : ℕ) : ghost_component_fun n (1 : 𝕎 R) = 1 :=
 by ghost_component 1 ![]
 
 variable {R}
@@ -240,11 +216,7 @@ lemma ghost_map_fun.bijective_of_invertible [invertible (p : R)] :
   function.bijective (ghost_map_fun : 𝕎 R → ℕ → R) :=
 by { rw ghost_map_fun_eq, exact (ghost_map_fun.equiv_of_invertible p R).bijective }
 
-local attribute [instance] mv_polynomial.invertible_coe_nat
-
-variable (R)
-
-variable [hp : fact p.prime]
+variables (R) [hp : fact p.prime]
 include hp
 
 private def comm_ring_aux₁ : comm_ring (𝕎 (mv_polynomial R ℚ)) :=

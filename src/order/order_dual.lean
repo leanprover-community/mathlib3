@@ -44,9 +44,6 @@ def of_dual : order_dual α ≃ α := to_dual.symm
 @[simp] lemma to_dual_lt_to_dual [has_lt α] {a b : α} :
   to_dual a < to_dual b ↔ b < a := iff.rfl
 
-lemma of_dual_injective : function.injective (of_dual : order_dual α → α) :=
-function.injective_id
-
 @[simp] lemma of_dual_inj {a b : order_dual α} :
   of_dual a = of_dual b ↔ a = b := iff.rfl
 

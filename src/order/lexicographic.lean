@@ -92,13 +92,8 @@ instance lex_linear_order [linear_order α] [linear_order β] : linear_order (le
     { right, right, exact hb },
     { left, right, exact hb },
     { right, right, exact hb },
-  end
-  .. lex_partial_order }.
-
-/-- Dictionary / lexicographic linear_order for pairs. -/
-instance lex_linear_order [linear_order α] [linear_order β] :
-  linear_order (lex α β) :=
-{ decidable_le :=
+  end,
+  decidable_le :=
   begin
     rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
     rcases linear_order.decidable_le a₁ a₂ with a_lt | a_le,
@@ -119,7 +114,7 @@ instance lex_linear_order [linear_order α] [linear_order β] :
       -- a₁ < a₂
       { right, left, apply lt_of_le_of_ne, repeat { assumption } } }
   end,
-  .. lex_linear_order }
+  .. lex_partial_order }.
 
 variables {Z : α → Type v}
 /--

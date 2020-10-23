@@ -28,7 +28,7 @@ def contour_integral (f : ℂ → ℂ) (T : triangle) : ℂ :=
 ∑ i, contour_integral_segment f (T i) (T (i + 1))
 
 /-- The contour integral of a constant `c` around a triangle is `0`. -/
-lemma contour_integral.const (c : ℂ) (T : triangle) : contour_integral (λ z, c) T = 0 :=
+lemma contour_integral.integral_const (c : ℂ) (T : triangle) : contour_integral (λ z, c) T = 0 :=
 begin
   simp only [contour_integral, contour_integral_segment.integral_const],
   calc ∑ i, c * (T (i + 1) - T i)
@@ -39,3 +39,9 @@ begin
   congr' 1,
   exact (equiv.add_left (1 : zmod 3)).sum_comp _
 end
+
+/-- The function partitioning a triangle into four smaller triangles, parametrized by `ℤ/3ℤ` (one
+for each of the three corner triangles) and `none` (for the centre triangle). -/
+def quadrisect (T : triangle) : option (zmod 3) → triangle
+| none := λ j, ((∑ i, T i) - T j) / 2
+| (some i) := λ j, (T i + T j) / 2

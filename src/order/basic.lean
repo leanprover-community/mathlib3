@@ -204,9 +204,6 @@ def of_dual : order_dual α ≃ α := to_dual.symm
 @[simp] lemma to_dual_of_dual (a : order_dual α) : to_dual (of_dual a) = a := rfl
 @[simp] lemma of_dual_to_dual (a : α) : of_dual (to_dual a) = a := rfl
 
-lemma to_dual_injective : function.injective (to_dual : α → order_dual α) :=
-function.injective_id
-
 @[simp] lemma to_dual_inj {a b : α} :
   to_dual a = to_dual b ↔ a = b := iff.rfl
 

@@ -7,10 +7,6 @@ import data.subtype
 import data.prod
 import data.equiv.basic
 import data.finset.basic
---import data.finsupp.basic
---import order.lattice
-
-open function
 
 /-!
 # Initial lemmas to work with the `order_dual`
@@ -20,6 +16,8 @@ open function
 
 ## Basic Lemmas to convert between an order and its dual
 -/
+
+open function
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}

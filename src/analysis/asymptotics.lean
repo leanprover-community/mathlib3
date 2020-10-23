@@ -1094,7 +1094,7 @@ section exists_mul_eq
 variables {u v : α → 𝕜}
 
 /-- If `∥φ∥` is eventually bounded by `c`, and `u =ᶠ[l] φ * v`, then we have `is_O_with c u v l`.
-    This does not require any assumptions on `c`, which is one we keep this version along with
+    This does not require any assumptions on `c`, which is why we keep this version along with
     `is_O_with_iff_exists_eq_mul`. -/
 lemma is_O_with_of_eq_mul (φ : α → 𝕜) (hφ : ∀ᶠ x in l, ∥φ x∥ ≤ c) (h : u =ᶠ[l] φ * v) :
   is_O_with c u v l :=

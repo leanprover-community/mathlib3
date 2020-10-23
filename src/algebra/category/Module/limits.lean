@@ -140,6 +140,8 @@ variables (G : ι → Type v)
 variables [Π i, add_comm_group (G i)] [Π i, module R (G i)]
 variables (f : Π i j, i ≤ j → G i →ₗ[R] G j) [module.directed_system G f]
 
+/-- The diagram (in the sense of `category_theory`)
+ of an unbundled `direct_limit` of modules. -/
 @[simps]
 def direct_limit_diagram : ι ⥤ Module R :=
 { obj := λ i, Module.of R (G i),
@@ -155,6 +157,10 @@ def direct_limit_diagram : ι ⥤ Module R :=
 
 variables [decidable_eq ι]
 
+/-- The `cocone` on `direct_limit_diagram` corresponding to
+the unbundled `direct_limit` of modules.
+
+In `direct_limit_is_colimit` we show that it is a colimit cocone. -/
 @[simps]
 def direct_limit_cocone : cocone (direct_limit_diagram G f) :=
 { X := Module.of R $ direct_limit G f,
@@ -167,6 +173,8 @@ def direct_limit_cocone : cocone (direct_limit_diagram G f) :=
       exact direct_limit.of_f
     end } }
 
+/-- The unbundled `direct_limit` of modules is a colimit
+in the sense of `category_theory`. -/
 @[simps]
 def direct_limit_is_colimit [nonempty ι] : is_colimit (direct_limit_cocone G f) :=
 { desc := λ s, direct_limit.lift R ι G f s.ι.app

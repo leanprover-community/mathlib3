@@ -277,7 +277,7 @@ begin
   exact hyp ht,
 end
 
-section semiring
+end
 
 /-- Explicit characterization of the submonoid map in the case of an algebra.
 `S` is made explicit to help with type inference -/

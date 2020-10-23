@@ -303,23 +303,20 @@ have h_top : I= ⊤,
   {by_contradiction h_abs,
     have h_IM : I = M, apply (is_maximal.eq_of_le hM h_abs h_Iincl).symm,
     have h_inveqR : 1/↑ M = (1:fractional_ideal f),
-      {suffices h_invR_dbl : 1/↑ M≤ (1:fractional_ideal f) ∧ (1:fractional_ideal f) ≤ 1/↑ M,
+      {have h_MMinvI : ↑ M * (1 / ↑M : fractional_ideal f) = ↑M, rw ← hI, rw h_IM,
+       suffices h_invR_dbl : 1/↑ M≤ (1:fractional_ideal f) ∧ (1:fractional_ideal f) ≤ 1/↑ M,
        apply (has_le.le.le_iff_eq h_invR_dbl.right).mp (h_invR_dbl.left),
        split,
         {intros x hx,--the proof that 1/M ≤ 1
-         have h_MMinvI : ↑ M * (1 / ↑M : fractional_ideal f) = ↑M, rw ← hI, rw h_IM,
          have h_integralfx : (f.to_map).is_integral_elem x, apply if_inv_then_int _ hR x hnz_M h_MMinvI hx,
          have h_intxR : x ∈ (integral_closure R f.codomain), apply h_integralfx,
-         have h_xintegral : x ∈ (⊥  : subalgebra R f.codomain), rw ← ((is_dedekind_domain_iff _ _ f).mp hR).right.right.right, exact h_intxR,
-         have h_coe : ((⊥  : subalgebra R f.codomain) : submodule R f.codomain) = localization_map.coe_submodule f ⊤,
-          --  have try : (⊥  : subalgebra R f.codomain) = (f.to_map).alg_hom.range, →  I believe that the localization map should be upbgraded to a algebra hom (see l. 91 of localization.lean)
-        --  apply subalgebra.ext,
-         sorry,
-         suffices h_final : x ∈ localization_map.coe_submodule f ⊤,
-         simpa, rw ← h_coe, exact h_xintegral,
+         have h_xint : x ∈ ((⊥  : subalgebra R f.codomain) : submodule R f.codomain), rw ← ((is_dedekind_domain_iff _ _ f).mp hR).right.right.right, exact h_intxR,
+        rw [algebra.to_submodule_bot, ← (fractional_ideal.coe_span_singleton 1)] at h_xint,
+        rw [← fractional_ideal.span_singleton_one, (fractional_ideal.val_eq_coe (fractional_ideal.span_singleton 1))],
+        exact h_xint,
         },
-        {sorry,--the proof that 1≤ 1/M
-        --
+        {apply (fractional_ideal.le_div_iff_mul_le hnz_Mf).mpr,
+         ring, exact h_MfinR,
         },
       },--end of the proof of h_inveqR (assuming h_abs)
     sorry, -- this sorry (showing that h_inveqR is absurd) must be replaced by the 3rd part in Samuel's proof, using his Lemma 3 on prime ideals

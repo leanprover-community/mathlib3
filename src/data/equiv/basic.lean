@@ -383,16 +383,13 @@ instance [is_idempotent α f] : is_idempotent β (equiv.arrow_congr e (equiv.arr
 ⟨λ x, by simp [@is_idempotent.idempotent _ f]⟩
 
 instance [is_left_cancel α f] : is_left_cancel β (equiv.arrow_congr e (equiv.arrow_congr e e) f) :=
-⟨λ x y z hx, equiv.injective e.symm $ by {
-  simp at hx,
-  rw @is_left_cancel.left_cancel _ f _ _ _ _ hx,
-}⟩
+⟨λ x y z hx, equiv.injective e.symm $
+ by { simp at hx, rw @is_left_cancel.left_cancel _ f _ _ _ _ hx }⟩
 
-instance [is_right_cancel α f] : is_right_cancel β (equiv.arrow_congr e (equiv.arrow_congr e e) f) :=
-⟨λ x y z hx, equiv.injective e.symm $ by {
-  simp at hx,
-  rw @is_right_cancel.right_cancel _ f _ _ _ _ hx,
-}⟩
+instance [is_right_cancel α f] :
+  is_right_cancel β (equiv.arrow_congr e (equiv.arrow_congr e e) f) :=
+⟨λ x y z hx, equiv.injective e.symm $
+ by { simp at hx, rw @is_right_cancel.right_cancel _ f _ _ _ _ hx }⟩
 
 end binary_op
 

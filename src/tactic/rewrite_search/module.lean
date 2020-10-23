@@ -51,7 +51,7 @@ meta def mk_initial_search_state (conf : core_cfg)
   (s : strategy α β γ δ) (m : metric α β γ δ) (tr : tracer α β γ δ)
   (strat_state : α) (metric_state : β) (tr_state : δ)
   : search_state α β γ δ :=
-⟨tr, conf, rw_cfg, rs, strat_state, metric_state, table.create, table.create,
+⟨conf, rw_cfg, rs, strat_state, metric_state, table.create, table.create,
  table.create, none, tr_state, statistics.init⟩
 
 meta def setup_instance (conf : core_cfg)

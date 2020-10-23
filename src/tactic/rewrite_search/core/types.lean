@@ -202,7 +202,6 @@ structure statistics :=
 def statistics.init : statistics := ⟨0⟩
 
 meta structure search_state (α β γ δ : Type) :=
-(tr           : tracer α β γ δ)
 (conf         : core_cfg)
 (rwall_conf   : nth_rewrite.cfg)
 (rs           : list (expr × bool))
@@ -218,9 +217,14 @@ meta structure search_state (α β γ δ : Type) :=
 def LHS_VERTEX_ID : table_ref := table_ref.of_nat 0
 def RHS_VERTEX_ID : table_ref := table_ref.of_nat 1
 
-meta def update_fn (α β γ δ : Type) : Type := search_state α β γ δ → ℕ → tactic (search_state α β γ δ)
-meta def init_bound_fn (α β γ δ : Type) := search_state α β γ δ → vertex → vertex → bound_progress γ
-meta def improve_estimate_fn (α β γ δ : Type) := search_state α β γ δ → dnum → vertex → vertex → bound_progress γ → bound_progress γ
+meta def update_fn (α β γ δ : Type) : Type :=
+search_state α β γ δ → ℕ → tactic (search_state α β γ δ)
+
+meta def init_bound_fn (α β γ δ : Type) :=
+search_state α β γ δ → vertex → vertex → bound_progress γ
+
+meta def improve_estimate_fn (α β γ δ : Type) :=
+search_state α β γ δ → dnum → vertex → vertex → bound_progress γ → bound_progress γ
 
 meta structure metric (α β γ δ : Type) :=
 (init : init_fn β)
@@ -228,8 +232,11 @@ meta structure metric (α β γ δ : Type) :=
 (init_bound : init_bound_fn α β γ δ)
 (improve_estimate_over : improve_estimate_fn α β γ δ)
 
-meta def startup_fn (α β γ δ : Type) : Type := search_state α β γ δ → metric α β γ δ → vertex → vertex → tactic (search_state α β γ δ)
-meta def step_fn (α β γ δ : Type) : Type := search_state α β γ δ → metric α β γ δ → ℕ → tactic (search_state α β γ δ × status)
+meta def startup_fn (α β γ δ : Type) : Type :=
+search_state α β γ δ → metric α β γ δ → vertex → vertex → tactic (search_state α β γ δ)
+
+meta def step_fn (α β γ δ : Type) : Type :=
+search_state α β γ δ → metric α β γ δ → ℕ → tactic (search_state α β γ δ × status)
 
 meta structure strategy (α β γ δ : Type) :=
 (init : init_fn α)
@@ -262,7 +269,8 @@ vf ← g.vertices.get p.l, vt ← g.vertices.get p.r, return (vf, vt)
 meta def get_endpoints (e : edge) : tactic (vertex × vertex) := do
 vf ← g.vertices.get e.f, vt ← g.vertices.get e.t, return (vf, vt)
 
-meta def get_estimate_verts (de : dist_estimate γ) : tactic (vertex × vertex) := g.lookup_pair de.to_pair
+meta def get_estimate_verts (de : dist_estimate γ) : tactic (vertex × vertex) :=
+g.lookup_pair de.to_pair
 
 end search_state
 

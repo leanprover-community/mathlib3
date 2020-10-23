@@ -10,6 +10,8 @@ import order.conditionally_complete_lattice
 import data.real.cau_seq_completion
 import algebra.archimedean
 
+/-- The type `ℝ` of real numbers constructed as equivalence classes of Cauchy sequences of rational
+numbers. -/
 def real := @cau_seq.completion.Cauchy ℚ _ _ _ abs _
 notation `ℝ` := real
 
@@ -106,7 +108,7 @@ instance : linear_ordered_comm_ring ℝ :=
     (le_iff_le_iff_lt_iff_lt.2 $ real.add_lt_add_iff_left c).2 h,
   exists_pair_ne  := ⟨0, 1, ne_of_lt real.zero_lt_one⟩,
   mul_pos     := @real.mul_pos,
-  zero_lt_one := real.zero_lt_one,
+  zero_le_one := le_of_lt real.zero_lt_one,
   .. real.comm_ring, .. real.linear_order, .. real.semiring }
 
 /- Extra instances to short-circuit type class resolution -/
@@ -153,7 +155,7 @@ noncomputable instance decidable_lt (a b : ℝ) : decidable (a < b) := by apply_
 noncomputable instance decidable_le (a b : ℝ) : decidable (a ≤ b) := by apply_instance
 noncomputable instance decidable_eq (a b : ℝ) : decidable (a = b) := by apply_instance
 
-lemma le_of_forall_epsilon_le {a b : real} (h : ∀ε, ε > 0 → a ≤ b + ε) : a ≤ b :=
+lemma le_of_forall_epsilon_le {a b : real} (h : ∀ε, 0 < ε → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,
 calc  a ≤ b + (x - b) : h (x-b) $ sub_pos.2 hxb
     ... = x : by rw [add_comm]; simp
@@ -446,10 +448,11 @@ end,
     rw [add_mul_self_eq, add_assoc, ← le_sub_iff_add_le', ← add_mul,
       ← le_div_iff (div_pos h _30), div_div_cancel' (ne_of_gt h)],
     apply add_le_add,
-    { simpa using (mul_le_mul_left (@two_pos ℝ _)).2 (Sup_le_ub _ ⟨_, lb⟩ ub) },
-    { rw [div_le_one_iff_le _30],
+    { simpa using (mul_le_mul_left (@zero_lt_two ℝ _ _)).2 (Sup_le_ub _ ⟨_, lb⟩ ub) },
+    { rw [div_le_one _30],
       refine le_trans (sub_le_self _ (mul_self_nonneg _)) (le_trans x1 _),
-      exact (le_add_iff_nonneg_left _).2 (le_of_lt two_pos) } }
+      exact (le_add_iff_nonneg_left _).2 (le_of_lt zero_lt_two) },
+    apply_instance, }
 end
 
 def sqrt_aux (f : cau_seq ℚ abs) : ℕ → ℚ
@@ -458,7 +461,7 @@ def sqrt_aux (f : cau_seq ℚ abs) : ℕ → ℚ
 
 theorem sqrt_aux_nonneg (f : cau_seq ℚ abs) : ∀ i : ℕ, 0 ≤ sqrt_aux f i
 | 0       := by rw [sqrt_aux, mk_nat_eq, mk_eq_div];
-  apply div_nonneg'; exact int.cast_nonneg.2 (int.of_nat_nonneg _)
+  apply div_nonneg; exact int.cast_nonneg.2 (int.of_nat_nonneg _)
 | (n + 1) := le_max_left _ _
 
 /- TODO(Mario): finish the proof
@@ -476,6 +479,7 @@ begin
      }
 end -/
 
+/-- The square root of a real number. This returns 0 for negative inputs. -/
 @[pp_nodot] noncomputable def sqrt (x : ℝ) : ℝ :=
 classical.some (sqrt_exists (le_max_left 0 x))
 /-quotient.lift_on x

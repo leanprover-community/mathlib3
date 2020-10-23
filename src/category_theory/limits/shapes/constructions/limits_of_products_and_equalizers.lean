@@ -15,6 +15,8 @@ Similarly, if it has all finite products, and all equalizers, then it has all fi
 TODO: provide the dual result.
 -/
 
+noncomputable theory
+
 open category_theory
 open opposite
 
@@ -111,18 +113,27 @@ end has_limit_of_has_products_of_has_equalizers
 
 open has_limit_of_has_products_of_has_equalizers
 
-/-- Any category with products and equalizers has all limits. -/
+/--
+Any category with products and equalizers has all limits.
+
+See https://stacks.math.columbia.edu/tag/002N.
+-/
 -- This is not an instance, as it is not always how one wants to construct limits!
-def limits_from_equalizers_and_products
+lemma limits_from_equalizers_and_products
   [has_products C] [has_equalizers C] : has_limits C :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit.of_cones_iso (diagram F) F (cones_iso F) } }
 
-/-- Any category with finite products and equalizers has all finite limits. -/
+/--
+Any category with finite products and equalizers has all finite limits.
+
+See https://stacks.math.columbia.edu/tag/002O.
+(We do not prove equivalence with the third condition.)
+-/
 -- This is not an instance, as it is not always how one wants to construct finite limits!
-def finite_limits_from_equalizers_and_finite_products
+lemma finite_limits_from_equalizers_and_finite_products
   [has_finite_products C] [has_equalizers C] : has_finite_limits C :=
-{ has_limits_of_shape := λ J _ _, by exactI
-  { has_limit := λ F, has_limit.of_cones_iso (diagram F) F (cones_iso F) } }
+λ J _ _, by exactI
+  { has_limit := λ F, has_limit.of_cones_iso (diagram F) F (cones_iso F) }
 
 end category_theory.limits

@@ -3,7 +3,6 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Yury G. Kudryashov
 -/
-import tactic.lint
 
 /-!
 # More theorems about the sum type
@@ -12,6 +11,26 @@ import tactic.lint
 universes u v w x
 variables {α : Type u} {α' : Type w} {β : Type v} {β' : Type x}
 open sum
+
+/-- Check if a sum is `inl` and if so, retrieve its contents. -/
+@[simp] def sum.get_left {α β} : α ⊕ β → option α
+| (inl a) := some a
+| (inr _) := none
+
+/-- Check if a sum is `inr` and if so, retrieve its contents. -/
+@[simp] def sum.get_right {α β} : α ⊕ β → option β
+| (inr b) := some b
+| (inl _) := none
+
+/-- Check if a sum is `inl`. -/
+@[simp] def sum.is_left {α β} : α ⊕ β → bool
+| (inl _) := tt
+| (inr _) := ff
+
+/-- Check if a sum is `inr`. -/
+@[simp] def sum.is_right {α β} : α ⊕ β → bool
+| (inl _) := ff
+| (inr _) := tt
 
 attribute [derive decidable_eq] sum
 
@@ -28,6 +47,12 @@ end, λ h, match h with
 end⟩
 
 namespace sum
+
+lemma injective_inl : function.injective (sum.inl : α → α ⊕ β) :=
+λ x y, sum.inl.inj
+
+lemma injective_inr : function.injective (sum.inr : β → α ⊕ β) :=
+λ x y, sum.inr.inj
 
 /-- Map `α ⊕ β` to `α' ⊕ β'` sending `α` to `α'` and `β` to `β'`. -/
 protected def map (f : α → α') (g : β → β')  : α ⊕ β → α' ⊕ β'

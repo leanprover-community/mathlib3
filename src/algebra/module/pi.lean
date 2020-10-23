@@ -3,7 +3,9 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
-import algebra.module.basic algebra.ring.pi
+import algebra.module.basic
+import algebra.ring.pi
+
 /-!
 # Pi instances for module and multiplicative actions
 
@@ -30,6 +32,21 @@ instance has_scalar' {g : I → Type*} [Π i, has_scalar (f i) (g i)] :
 lemma smul_apply' {g : I → Type*} [∀ i, has_scalar (f i) (g i)] (s : Π i, f i) (x : Π i, g i) :
   (s • x) i = s i • x i :=
 rfl
+
+instance is_scalar_tower {α β : Type*}
+  [has_scalar α β] [Π i, has_scalar β $ f i] [Π i, has_scalar α $ f i]
+  [Π i, is_scalar_tower α β (f i)] : is_scalar_tower α β (Π i : I, f i) :=
+⟨λ x y z, funext $ λ i, smul_assoc x y (z i)⟩
+
+instance is_scalar_tower' {g : I → Type*} {α : Type*}
+  [Π i, has_scalar α $ f i] [Π i, has_scalar (f i) (g i)] [Π i, has_scalar α $ g i]
+  [Π i, is_scalar_tower α (f i) (g i)] : is_scalar_tower α (Π i : I, f i) (Π i : I, g i) :=
+⟨λ x y z, funext $ λ i, smul_assoc x (y i) (z i)⟩
+
+instance is_scalar_tower'' {g : I → Type*} {h : I → Type*}
+  [Π i, has_scalar (f i) (g i)] [Π i, has_scalar (g i) (h i)] [Π i, has_scalar (f i) (h i)]
+  [Π i, is_scalar_tower (f i) (g i) (h i)] : is_scalar_tower (Π i, f i) (Π i, g i) (Π i, h i) :=
+⟨λ x y z, funext $ λ i, smul_assoc (x i) (y i) (z i)⟩
 
 instance mul_action (α) {m : monoid α} [Π i, mul_action α $ f i] :
   @mul_action α (Π i : I, f i) m :=

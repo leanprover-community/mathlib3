@@ -185,7 +185,7 @@ have zn0 : (0 : R) ≠ 1, from λ h, by haveI := subsingleton_of_zero_eq_one h;
   begin
     have := congr_arg nat_degree hr,
     rw [nat_degree_mul' hpnr0,  nat_degree_pow' hpn0', add_mul, add_assoc] at this,
-    exact ne_of_lt (lt_add_of_le_of_pos (le_mul_of_one_le_right' (nat.zero_le _) hnp)
+    exact ne_of_lt (lt_add_of_le_of_pos (le_mul_of_one_le_right (nat.zero_le _) hnp)
       (add_pos_of_pos_of_nonneg (by rwa one_mul) (nat.zero_le _))) this
   end⟩
 
@@ -486,12 +486,20 @@ lemma dvd_iff_mod_by_monic_eq_zero (hq : monic q) : p %ₘ q = 0 ↔ q ∣ p :=
       degree_eq_nat_degree (mt leading_coeff_eq_zero.2 hrpq0)] at this;
     exact not_lt_of_ge (nat.le_add_right _ _) (with_bot.some_lt_some.1 this))⟩
 
+theorem map_dvd_map [comm_ring S] (f : R →+* S) (hf : function.injective f) {x y : polynomial R}
+  (hx : x.monic) : x.map f ∣ y.map f ↔ x ∣ y :=
+begin
+  rw [← dvd_iff_mod_by_monic_eq_zero hx, ← dvd_iff_mod_by_monic_eq_zero (monic_map f hx),
+    ← map_mod_by_monic f hx],
+  exact ⟨λ H, map_injective f hf $ by rw [H, map_zero],
+  λ H, by rw [H, map_zero]⟩
+end
+
 @[simp] lemma mod_by_monic_one (p : polynomial R) : p %ₘ 1 = 0 :=
 (dvd_iff_mod_by_monic_eq_zero (by convert monic_one)).2 (one_dvd _)
 
 @[simp] lemma div_by_monic_one (p : polynomial R) : p /ₘ 1 = p :=
 by conv_rhs { rw [← mod_by_monic_add_div p monic_one] }; simp
-
 
 @[simp] lemma mod_by_monic_X_sub_C_eq_C_eval (p : polynomial R) (a : R) :
   p %ₘ (X - C a) = C (p.eval a) :=

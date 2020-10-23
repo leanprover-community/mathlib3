@@ -15,7 +15,24 @@ universes u v w
 namespace function
 
 section
-variables {α : Sort u} {β : Sort v} {f : α → β}
+variables {α β γ : Sort*} {f : α → β}
+
+/-- Evaluate a function at an argument. Useful if you want to talk about the partially applied
+  `function.eval x : (Π x, β x) → β x`. -/
+@[reducible] def eval {β : α → Sort*} (x : α) (f : Π x, β x) : β x := f x
+
+@[simp] lemma eval_apply {β : α → Sort*} (x : α) (f : Π x, β x) : eval x f = f x := rfl
+
+lemma comp_apply {α : Sort u} {β : Sort v} {φ : Sort w} (f : β → φ) (g : α → β) (a : α) :
+  (f ∘ g) a = f (g a) := rfl
+
+lemma const_def {y : β} : (λ x : α, y) = const α y := rfl
+
+@[simp] lemma const_apply {y : β} {x : α} : const α y x = y := rfl
+
+@[simp] lemma const_comp {f : α → β} {c : γ} : const β c ∘ f = const α c := rfl
+
+@[simp] lemma comp_const {f : β → γ} {b : β} : f ∘ const α b = const α (f b) := rfl
 
 lemma hfunext {α α': Sort u} {β : α → Sort v} {β' : α' → Sort v} {f : Πa, β a} {f' : Πa, β' a}
   (hα : α = α') (h : ∀a a', a == a' → f a == f' a') : f == f' :=
@@ -33,9 +50,6 @@ end
 
 lemma funext_iff {β : α → Sort*} {f₁ f₂ : Π (x : α), β x} : f₁ = f₂ ↔ (∀a, f₁ a = f₂ a) :=
 iff.intro (assume h a, h ▸ rfl) funext
-
-lemma comp_apply {α : Sort u} {β : Sort v} {φ : Sort w} (f : β → φ) (g : α → β) (a : α) :
-  (f ∘ g) a = f (g a) := rfl
 
 @[simp] theorem injective.eq_iff (I : injective f) {a b : α} :
   f a = f b ↔ a = b :=
@@ -60,10 +74,10 @@ the domain `α` also has decidable equality. -/
 def injective.decidable_eq [decidable_eq β] (I : injective f) : decidable_eq α :=
 λ a b, decidable_of_iff _ I.eq_iff
 
-lemma injective.of_comp {γ : Sort w} {g : γ → α} (I : injective (f ∘ g)) : injective g :=
+lemma injective.of_comp {g : γ → α} (I : injective (f ∘ g)) : injective g :=
 λ x y h, I $ show f (g x) = f (g y), from congr_arg f h
 
-lemma surjective.of_comp {γ : Sort w} {g : γ → α} (S : surjective (f ∘ g)) : surjective f :=
+lemma surjective.of_comp {g : γ → α} (S : surjective (f ∘ g)) : surjective f :=
 λ y, let ⟨x, h⟩ := S y in ⟨g x, h⟩
 
 instance decidable_eq_pfun (p : Prop) [decidable p] (α : p → Type*)
@@ -125,14 +139,20 @@ theorem injective_of_partial_inv_right {α β} {f : α → β} {g} (H : is_parti
 theorem left_inverse.comp_eq_id {f : α → β} {g : β → α} (h : left_inverse f g) : f ∘ g = id :=
 funext h
 
+theorem left_inverse_iff_comp {f : α → β} {g : β → α} : left_inverse f g ↔ f ∘ g = id :=
+⟨left_inverse.comp_eq_id, congr_fun⟩
+
 theorem right_inverse.comp_eq_id {f : α → β} {g : β → α} (h : right_inverse f g) : g ∘ f = id :=
 funext h
 
-theorem left_inverse.comp {γ} {f : α → β} {g : β → α} {h : β → γ} {i : γ → β}
+theorem right_inverse_iff_comp {f : α → β} {g : β → α} : right_inverse f g ↔ g ∘ f = id :=
+⟨right_inverse.comp_eq_id, congr_fun⟩
+
+theorem left_inverse.comp {f : α → β} {g : β → α} {h : β → γ} {i : γ → β}
   (hf : left_inverse f g) (hh : left_inverse h i) : left_inverse (h ∘ f) (g ∘ i) :=
 assume a, show h (f (g (i a))) = a, by rw [hf (i a), hh a]
 
-theorem right_inverse.comp {γ} {f : α → β} {g : β → α} {h : β → γ} {i : γ → β}
+theorem right_inverse.comp {f : α → β} {g : β → α} {h : β → γ} {i : γ → β}
   (hf : right_inverse f g) (hh : right_inverse h i) : right_inverse (h ∘ f) (g ∘ i) :=
 left_inverse.comp hh hf
 
@@ -306,14 +326,18 @@ begin
   { simp [h, hg.ne] }
 end
 
-lemma comp_update {α' : Sort*} {β : Sort*} (f : α' → β) (g : α → α') (i : α) (v : α') :
-  f ∘ (update g i v) = update (f ∘ g) i (f v) :=
+lemma apply_update {ι : Sort*} [decidable_eq ι] {α β : ι → Sort*}
+  (f : Π i, α i → β i) (g : Π i, α i) (i : ι) (v : α i) (j : ι) :
+  f j (update g i v j) = update (λ k, f k (g k)) i (f i v) j :=
 begin
-  refine funext (λj, _),
   by_cases h : j = i,
-  { rw h, simp },
+  { subst j, simp },
   { simp [h] }
 end
+
+lemma comp_update {α' : Sort*} {β : Sort*} (f : α' → β) (g : α → α') (i : α) (v : α') :
+  f ∘ (update g i v) = update (f ∘ g) i (f v) :=
+funext $ apply_update _ _ _ _
 
 theorem update_comm {α} [decidable_eq α] {β : α → Sort*}
   {a b : α} (h : a ≠ b) (v : β a) (w : β b) (f : Πa, β a) :
@@ -330,11 +354,51 @@ by {funext b, by_cases b = a; simp [update, h]}
 
 end update
 
+section extend
+
+noncomputable theory
+local attribute [instance, priority 10] classical.prop_decidable
+
+variables {α β γ : Type*} {f : α → β}
+
+/-- `extend f g e'` extends a function `g : α → γ`
+along a function `f : α → β` to a function `β → γ`,
+by using the values of `g` on the range of `f`
+and the values of an auxiliary function `e' : β → γ` elsewhere.
+
+Mostly useful when `f` is injective. -/
+def extend (f : α → β) (g : α → γ) (e' : β → γ) : β → γ :=
+λ b, if h : ∃ a, f a = b then g (classical.some h) else e' b
+
+lemma extend_def (f : α → β) (g : α → γ) (e' : β → γ) (b : β) :
+  extend f g e' b = if h : ∃ a, f a = b then g (classical.some h) else e' b := rfl
+
+@[simp] lemma extend_apply (hf : injective f) (g : α → γ) (e' : β → γ) (a : α) :
+  extend f g e' (f a) = g a :=
+begin
+  simp only [extend_def, dif_pos, exists_apply_eq_apply],
+  exact congr_arg g (hf $ classical.some_spec (exists_apply_eq_apply f a))
+end
+
+@[simp] lemma extend_comp (hf : injective f) (g : α → γ) (e' : β → γ) :
+  extend f g e' ∘ f = g :=
+funext $ λ a, extend_apply hf g e' a
+
+end extend
+
 lemma uncurry_def {α β γ} (f : α → β → γ) : uncurry f = (λp, f p.1 p.2) :=
 rfl
 
+@[simp] lemma uncurry_apply_pair {α β γ} (f : α → β → γ) (x : α) (y : β) :
+  uncurry f (x, y) = f x y :=
+rfl
+
+@[simp] lemma curry_apply {α β γ} (f : α × β → γ) (x : α) (y : β) :
+  curry f x y = f (x, y) :=
+rfl
+
 section bicomp
-variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ε : Type*}
+variables {α β γ δ ε : Type*}
 
 /-- Compose a binary function `f` with a pair of unary functions `g` and `h`.
 If both arguments of `f` have the same type and `g = h`, then `bicompl f g g = f on g`. -/
@@ -357,6 +421,29 @@ rfl
 
 end bicomp
 
+section uncurry
+
+variables {α β γ δ : Type*}
+
+/-- Records a way to turn an element of `α` into a function from `β` to `γ`. The most generic use
+is to recursively uncurry. For instance `f : α → β → γ → δ` will be turned into
+`↿f : α × β × γ → δ`. One can also add instances for bundled maps. -/
+class has_uncurry (α : Type*) (β : out_param Type*) (γ : out_param Type*) := (uncurry : α → (β → γ))
+
+/-- Uncurrying operator. The most generic use is to recursively uncurry. For instance
+`f : α → β → γ → δ` will be turned into `↿f : α × β × γ → δ`. One can also add instances
+for bundled maps.-/
+add_decl_doc has_uncurry.uncurry
+
+notation `↿`:max x:max := has_uncurry.uncurry x
+
+instance has_uncurry_base : has_uncurry (α → β) α β := ⟨id⟩
+
+instance has_uncurry_induction [has_uncurry β γ δ] : has_uncurry (α → β) (α × γ) δ :=
+⟨λ f p, ↿(f p.1) p.2⟩
+
+end uncurry
+
 /-- A function is involutive, if `f ∘ f = id`. -/
 def involutive {α} (f : α → α) : Prop := ∀ x, f (f x) = x
 
@@ -365,6 +452,10 @@ funext_iff.symm
 
 namespace involutive
 variables {α : Sort u} {f : α → α} (h : involutive f)
+include h
+
+@[simp]
+lemma comp_self : f ∘ f = id := funext h
 
 protected lemma left_inverse : left_inverse f f := h
 protected lemma right_inverse : right_inverse f f := h
@@ -372,6 +463,11 @@ protected lemma right_inverse : right_inverse f f := h
 protected lemma injective : injective f := h.left_inverse.injective
 protected lemma surjective : surjective f := λ x, ⟨f x, h x⟩
 protected lemma bijective : bijective f := ⟨h.injective, h.surjective⟩
+
+/-- Involuting an `ite` of an involuted value `x : α` negates the `Prop` condition in the `ite`. -/
+protected lemma ite_not (P : Prop) [decidable P] (x : α) :
+  f (ite P x (f x)) = ite (¬ P) x (f x) :=
+by rw [apply_ite f, h, ite_not]
 
 end involutive
 
@@ -394,6 +490,24 @@ lemma eq_iff (hf : injective2 f) ⦃a₁ a₂ b₁ b₂⦄ : f a₁ b₁ = f a�
 ⟨λ h, hf h, λ⟨h1, h2⟩, congr_arg2 f h1 h2⟩
 
 end injective2
+
+section sometimes
+local attribute [instance, priority 10] classical.prop_decidable
+
+/-- `sometimes f` evaluates to some value of `f`, if it exists. This function is especially
+interesting in the case where `α` is a proposition, in which case `f` is necessarily a
+constant function, so that `sometimes f = f a` for all `a`. -/
+noncomputable def sometimes {α β} [nonempty β] (f : α → β) : β :=
+if h : nonempty α then f (classical.choice h) else classical.choice ‹_›
+
+theorem sometimes_eq {p : Prop} {α} [nonempty α] (f : p → α) (a : p) : sometimes f = f a :=
+dif_pos ⟨a⟩
+
+theorem sometimes_spec {p : Prop} {α} [nonempty α]
+  (P : α → Prop) (f : p → α) (a : p) (h : P (f a)) : P (sometimes f) :=
+by rwa sometimes_eq
+
+end sometimes
 
 end function
 

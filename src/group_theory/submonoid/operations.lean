@@ -1,3 +1,10 @@
+/-
+Copyright (c) 2018 Johannes Hölzl. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard,
+Amelia Livingston, Yury Kudryashov
+-/
+
 import group_theory.submonoid.basic
 import data.equiv.mul_add
 import algebra.group.prod
@@ -122,6 +129,10 @@ lemma comap_comap (S : submonoid P) (g : N →* P) (f : M →* N) :
   (S.comap g).comap f = S.comap (g.comp f) :=
 rfl
 
+@[to_additive, simp]
+lemma comap_id (S : submonoid P) : S.comap (monoid_hom.id _) = S :=
+ext (by simp)
+
 /-- The image of a submonoid along a monoid homomorphism is a submonoid. -/
 @[to_additive "The image of an `add_submonoid` along an `add_monoid` homomorphism is
 an `add_submonoid`."]
@@ -141,6 +152,10 @@ lemma mem_map {f : M →* N} {S : submonoid M} {y : N} :
 mem_image_iff_bex
 
 @[to_additive]
+lemma mem_map_of_mem {f : M →* N} {S : submonoid M} (x : S) : f x ∈ S.map f :=
+mem_image_of_mem f x.2
+
+@[to_additive]
 lemma map_map (g : N →* P) (f : M →* N) : (S.map f).map g = S.map (g.comp f) :=
 ext' $ image_image _ _ _
 
@@ -152,6 +167,38 @@ image_subset_iff
 @[to_additive]
 lemma gc_map_comap (f : M →* N) : galois_connection (map f) (comap f) :=
 λ S T, map_le_iff_le_comap
+
+@[to_additive]
+lemma map_le_of_le_comap {T : submonoid N} {f : M →* N} : S ≤ T.comap f → S.map f ≤ T :=
+(gc_map_comap f).l_le
+
+@[to_additive]
+lemma le_comap_of_map_le {T : submonoid N} {f : M →* N} : S.map f ≤ T → S ≤ T.comap f :=
+(gc_map_comap f).le_u
+
+@[to_additive]
+lemma le_comap_map {f : M →* N} : S ≤ (S.map f).comap f :=
+(gc_map_comap f).le_u_l _
+
+@[to_additive]
+lemma map_comap_le {S : submonoid N} {f : M →* N} : (S.comap f).map f ≤ S :=
+(gc_map_comap f).l_u_le _
+
+@[to_additive]
+lemma monotone_map {f : M →* N} : monotone (map f) :=
+(gc_map_comap f).monotone_l
+
+@[to_additive]
+lemma monotone_comap {f : M →* N} : monotone (comap f) :=
+(gc_map_comap f).monotone_u
+
+@[simp, to_additive]
+lemma map_comap_map {f : M →* N} : ((S.map f).comap f).map f = S.map f :=
+congr_fun ((gc_map_comap f).l_u_l_eq_l) _
+
+@[simp, to_additive]
+lemma comap_map_comap {S : submonoid N} {f : M →* N} : ((S.comap f).map f).comap f = S.comap f :=
+congr_fun ((gc_map_comap f).u_l_u_eq_u) _
 
 @[to_additive]
 lemma map_sup (S T : submonoid M) (f : M →* N) : (S ⊔ T).map f = S.map f ⊔ T.map f :=
@@ -180,6 +227,86 @@ lemma comap_infi {ι : Sort*} (f : M →* N) (s : ι → submonoid N) :
 @[simp, to_additive] lemma map_id (S : submonoid M) : S.map (monoid_hom.id M) = S :=
 ext (λ x, ⟨λ ⟨_, h, rfl⟩, h, λ h, ⟨_, h, rfl⟩⟩)
 
+section galois_coinsertion
+
+variables {ι : Type*} {f : M →* N} (hf : function.injective f)
+
+include hf
+
+/-- `map f` and `comap f` form a `galois_coinsertion` when `f` is injective. -/
+def gci_map_comap : galois_coinsertion (map f) (comap f) :=
+(gc_map_comap f).to_galois_coinsertion
+  (λ S x, by simp [mem_comap, mem_map, hf.eq_iff])
+
+lemma comap_map_eq_of_injective (S : submonoid M) : (S.map f).comap f = S :=
+(gci_map_comap hf).u_l_eq _
+
+lemma comap_surjective_of_injective : function.surjective (comap f) :=
+(gci_map_comap hf).u_surjective
+
+lemma map_injective_of_injective : function.injective (map f) :=
+(gci_map_comap hf).l_injective
+
+lemma comap_inf_map_of_injective (S T : submonoid M) : (S.map f ⊓ T.map f).comap f = S ⊓ T :=
+(gci_map_comap hf).u_inf_l _ _
+
+lemma comap_infi_map_of_injective (S : ι → submonoid M) : (⨅ i, (S i).map f).comap f = infi S :=
+(gci_map_comap hf).u_infi_l _
+
+lemma comap_sup_map_of_injective (S T : submonoid M) : (S.map f ⊔ T.map f).comap f = S ⊔ T :=
+(gci_map_comap hf).u_sup_l _ _
+
+lemma comap_supr_map_of_injective (S : ι → submonoid M) : (⨆ i, (S i).map f).comap f = supr S :=
+(gci_map_comap hf).u_supr_l _
+
+lemma map_le_map_iff_of_injective {S T : submonoid M} : S.map f ≤ T.map f ↔ S ≤ T :=
+(gci_map_comap hf).l_le_l_iff
+
+lemma map_strict_mono_of_injective : strict_mono (map f) :=
+(gci_map_comap hf).strict_mono_l
+
+end galois_coinsertion
+
+section galois_insertion
+
+variables {ι : Type*} {f : M →* N} (hf : function.surjective f)
+
+include hf
+
+/-- `map f` and `comap f` form a `galois_insertion` when `f` is surjective. -/
+def gi_map_comap : galois_insertion (map f) (comap f) :=
+(gc_map_comap f).to_galois_insertion
+  (λ S x h, let ⟨y, hy⟩ := hf x in mem_map.2 ⟨y, by simp [hy, h]⟩)
+
+lemma map_comap_eq_of_surjective (S : submonoid N) : (S.comap f).map f = S :=
+(gi_map_comap hf).l_u_eq _
+
+lemma map_surjective_of_surjective : function.surjective (map f) :=
+(gi_map_comap hf).l_surjective
+
+lemma comap_injective_of_surjective : function.injective (comap f) :=
+(gi_map_comap hf).u_injective
+
+lemma map_inf_comap_of_surjective (S T : submonoid N) : (S.comap f ⊓ T.comap f).map f = S ⊓ T :=
+(gi_map_comap hf).l_inf_u _ _
+
+lemma map_infi_comap_of_surjective (S : ι → submonoid N) : (⨅ i, (S i).comap f).map f = infi S :=
+(gi_map_comap hf).l_infi_u _
+
+lemma map_sup_comap_of_surjective (S T : submonoid N) : (S.comap f ⊔ T.comap f).map f = S ⊔ T :=
+(gi_map_comap hf).l_sup_u _ _
+
+lemma map_supr_comap_of_surjective (S : ι → submonoid N) : (⨆ i, (S i).comap f).map f = supr S :=
+(gi_map_comap hf).l_supr_u _
+
+lemma comap_le_comap_iff_of_surjective {S T : submonoid N} : S.comap f ≤ T.comap f ↔ S ≤ T :=
+(gi_map_comap hf).u_le_u_iff
+
+lemma comap_strict_mono_of_surjective : strict_mono (comap f) :=
+(gi_map_comap hf).strict_mono_u
+
+end galois_insertion
+
 /-- A submonoid of a monoid inherits a multiplication. -/
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits an addition."]
 instance has_mul : has_mul S := ⟨λ a b, ⟨a.1 * b.1, S.mul_mem a.2 b.2⟩⟩
@@ -194,13 +321,13 @@ attribute [norm_cast] coe_mul coe_one
 attribute [norm_cast] add_submonoid.coe_add add_submonoid.coe_zero
 
 /-- A submonoid of a monoid inherits a monoid structure. -/
-@[to_additive to_add_monoid "An `add_submonoid` of an `add_monoid` inherits an `add_monoid`
+@[to_additive "An `add_submonoid` of an `add_monoid` inherits an `add_monoid`
 structure."]
 instance to_monoid {M : Type*} [monoid M] (S : submonoid M) : monoid S :=
 S.coe_injective.monoid coe rfl (λ _ _, rfl)
 
 /-- A submonoid of a `comm_monoid` is a `comm_monoid`. -/
-@[to_additive to_add_comm_monoid "An `add_submonoid` of an `add_comm_monoid` is
+@[to_additive "An `add_submonoid` of an `add_comm_monoid` is
 an `add_comm_monoid`."]
 instance to_comm_monoid {M} [comm_monoid M] (S : submonoid M) : comm_monoid S :=
 S.coe_injective.comm_monoid coe rfl (λ _ _, rfl)
@@ -311,6 +438,9 @@ lemma mrange_top_of_surjective {N} [monoid N] (f : M →* N) (hf : function.surj
 mrange_top_iff_surjective.2 hf
 
 @[to_additive]
+lemma mrange_eq_map (f : M →* N) : f.mrange = map f ⊤ := rfl
+
+@[to_additive]
 lemma mclosure_preimage_le (f : M →* N) (s : set N) :
   closure (f ⁻¹' s) ≤ (closure s).comap f :=
 closure_le.2 $ λ x hx, mem_coe.2 $ mem_comap.2 $ subset_closure hx
@@ -388,6 +518,52 @@ S.subtype.cod_mrestrict _ (λ x, h x.2)
 lemma range_subtype (s : submonoid M) : s.subtype.mrange = s :=
 ext' $ (coe_mrange _).trans $ subtype.range_coe
 
+@[to_additive] lemma eq_bot_iff_forall : S = ⊥ ↔ ∀ x ∈ S, x = (1 : M) :=
+begin
+  split,
+  { intros h x x_in,
+    rwa [h, mem_bot] at x_in },
+  { intros h,
+    ext x,
+    rw mem_bot,
+    exact ⟨h x, by { rintros rfl, exact S.one_mem }⟩ },
+end
+
+@[to_additive] lemma nontrivial_iff_exists_ne_one (S : submonoid M) : nontrivial S ↔ ∃ x ∈ S, x ≠ (1:M) :=
+begin
+  split,
+  { introI h,
+    rcases exists_ne (1 : S) with ⟨⟨h, h_in⟩, h_ne⟩,
+    use [h, h_in],
+    intro hyp,
+    apply  h_ne,
+    simpa [hyp] },
+  { rintros ⟨x, x_in, hx⟩,
+    apply nontrivial_of_ne (⟨x, x_in⟩ : S) 1,
+    intro hyp,
+    apply hx,
+    simpa [has_one.one] using hyp },
+end
+
+/-- A submonoid is either the trivial submonoid or nontrivial. -/
+@[to_additive] lemma bot_or_nontrivial (S : submonoid M) : S = ⊥ ∨ nontrivial S :=
+begin
+  classical,
+  by_cases h : ∀ x ∈ S, x = (1 : M),
+  { left,
+    exact S.eq_bot_iff_forall.mpr h },
+  { right,
+    push_neg at h,
+    simpa [nontrivial_iff_exists_ne_one] using h },
+end
+
+/-- A submonoid is either the trivial submonoid or contains a nonzero element. -/
+@[to_additive] lemma bot_or_exists_ne_one (S : submonoid M) : S = ⊥ ∨ ∃ x ∈ S, x ≠ (1:M) :=
+begin
+  convert S.bot_or_nontrivial,
+  rw nontrivial_iff_exists_ne_one
+end
+
 end submonoid
 
 namespace mul_equiv
@@ -396,7 +572,7 @@ variables {S} {T : submonoid M}
 
 /-- Makes the identity isomorphism from a proof that two submonoids of a multiplicative
     monoid are equal. -/
-@[to_additive add_submonoid_congr "Makes the identity additive isomorphism from a proof two
+@[to_additive "Makes the identity additive isomorphism from a proof two
 submonoids of an additive monoid are equal."]
 def submonoid_congr (h : S = T) : S ≃* T :=
 { map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ submonoid.ext'_iff.1 h }

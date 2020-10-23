@@ -20,7 +20,7 @@ variables {α : Type u} {β : Type v} [uniform_space α]
   `s ∈ f` such that `s × s ⊆ r`. This is a generalization of Cauchy
   sequences, because if `a : ℕ → α` then the filter of sets containing
   cofinitely many of the `a n` is Cauchy iff `a` is a Cauchy sequence. -/
-def cauchy (f : filter α) := ne_bot f ∧ filter.prod f f ≤ (𝓤 α)
+def cauchy (f : filter α) := ne_bot f ∧ f ×ᶠ f ≤ (𝓤 α)
 
 /-- A set `s` is called *complete*, if any Cauchy filter `f` such that `s ∈ f`
 has a limit in `s` (formally, it satisfies `f ≤ 𝓝 x` for some `x ∈ s`). -/
@@ -42,11 +42,11 @@ lemma cauchy_iff {f : filter α} :
   by simp only [subset_def, prod.forall, mem_prod_eq, and_imp, id]
 
 lemma cauchy_map_iff {l : filter β} {f : β → α} :
-  cauchy (l.map f) ↔ (ne_bot l ∧ tendsto (λp:β×β, (f p.1, f p.2)) (l.prod l) (𝓤 α)) :=
+  cauchy (l.map f) ↔ (ne_bot l ∧ tendsto (λp:β×β, (f p.1, f p.2)) (l ×ᶠ l) (𝓤 α)) :=
 by rw [cauchy, map_ne_bot_iff, prod_map_map_eq, tendsto]
 
 lemma cauchy_map_iff' {l : filter β} [hl : ne_bot l] {f : β → α} :
-  cauchy (l.map f) ↔ tendsto (λp:β×β, (f p.1, f p.2)) (l.prod l) (𝓤 α) :=
+  cauchy (l.map f) ↔ tendsto (λp:β×β, (f p.1, f p.2)) (l ×ᶠ l) (𝓤 α) :=
 cauchy_map_iff.trans $ and_iff_right hl
 
 lemma cauchy.mono {f g : filter α} [hg : ne_bot g] (h_c : cauchy f) (h_le : g ≤ f) : cauchy g :=
@@ -57,7 +57,7 @@ h_c.mono h_le
 
 lemma cauchy_nhds {a : α} : cauchy (𝓝 a) :=
 ⟨nhds_ne_bot,
-  calc filter.prod (𝓝 a) (𝓝 a) =
+  calc 𝓝 a ×ᶠ 𝓝 a =
     (𝓤 α).lift (λs:set (α×α), (𝓤 α).lift' (λt:set(α×α),
       set.prod {y : α | (y, a) ∈ s} {y : α | (a, y) ∈ t})) : nhds_nhds_eq_uniformity_uniformity_prod
     ... ≤ (𝓤 α).lift' (λs:set (α×α), comp_rel s s) :
@@ -69,6 +69,11 @@ lemma cauchy_nhds {a : α} : cauchy (𝓝 a) :=
 
 lemma cauchy_pure {a : α} : cauchy (pure a) :=
 cauchy_nhds.mono (pure_le_nhds a)
+
+lemma filter.tendsto.cauchy_map {l : filter β} [ne_bot l] {f : β → α} {a : α}
+  (h : tendsto f l (𝓝 a)) :
+  cauchy (map f l) :=
+cauchy_nhds.mono h
 
 /-- The common part of the proofs of `le_nhds_of_cauchy_adhp` and
 `sequentially_complete.le_nhds_of_seq_tendsto_nhds`: if for any entourage `s`
@@ -96,7 +101,7 @@ lemma le_nhds_of_cauchy_adhp {f : filter α} {x : α} (hf : cauchy f)
 le_nhds_of_cauchy_adhp_aux
 begin
   assume s hs,
-  obtain ⟨t, t_mem, ht⟩ : ∃ (t : set α) (h : t ∈ f), t.prod t ⊆ s,
+  obtain ⟨t, t_mem, ht⟩ : ∃ t ∈ f, set.prod t t ⊆ s,
     from (cauchy_iff.1 hf).2 s hs,
   use [t, t_mem, ht],
   exact (forall_sets_nonempty_iff_ne_bot.2 adhs _
@@ -110,8 +115,7 @@ lemma le_nhds_iff_adhp_of_cauchy {f : filter α} {x : α} (hf : cauchy f) :
 lemma cauchy.map [uniform_space β] {f : filter α} {m : α → β}
   (hf : cauchy f) (hm : uniform_continuous m) : cauchy (map m f) :=
 ⟨hf.1.map _,
-  calc filter.prod (map m f) (map m f) =
-          map (λp:α×α, (m p.1, m p.2)) (filter.prod f f) : filter.prod_map_map_eq
+  calc map m f ×ᶠ map m f = map (λp:α×α, (m p.1, m p.2)) (f ×ᶠ f) : filter.prod_map_map_eq
     ... ≤ map (λp:α×α, (m p.1, m p.2)) (𝓤 α) : map_mono hf.right
     ... ≤ 𝓤 β : hm⟩
 
@@ -119,8 +123,7 @@ lemma cauchy.comap [uniform_space β] {f : filter β} {m : α → β}
   (hf : cauchy f) (hm : comap (λp:α×α, (m p.1, m p.2)) (𝓤 β) ≤ 𝓤 α)
   [ne_bot (comap m f)] : cauchy (comap m f) :=
 ⟨‹_›,
-  calc filter.prod (comap m f) (comap m f) =
-          comap (λp:α×α, (m p.1, m p.2)) (filter.prod f f) : filter.prod_comap_comap_eq
+  calc comap m f ×ᶠ comap m f = comap (λp:α×α, (m p.1, m p.2)) (f ×ᶠ f) : filter.prod_comap_comap_eq
     ... ≤ comap (λp:α×α, (m p.1, m p.2)) (𝓤 β) : comap_mono hf.right
     ... ≤ 𝓤 α : hm⟩
 
@@ -146,10 +149,10 @@ begin
   exact H (i, j) ⟨le_of_max_le_left  hi, le_of_max_le_right hj⟩,
 end
 
-lemma cauchy_seq_of_tendsto_nhds [semilattice_sup β] [nonempty β] (f : β → α) {x}
+lemma filter.tendsto.cauchy_seq [semilattice_sup β] [nonempty β] {f : β → α} {x}
   (hx : tendsto f at_top (𝓝 x)) :
   cauchy_seq f :=
-cauchy_nhds.mono hx
+hx.cauchy_map
 
 lemma cauchy_seq_iff_tendsto [nonempty β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ tendsto (prod.map u u) at_top (𝓤 α) :=
@@ -174,7 +177,6 @@ begin
     mem_prod_eq, mem_set_of_eq, mem_Ici, and_imp, prod.map]
 end
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma filter.has_basis.cauchy_seq_iff' {γ} [nonempty β] [semilattice_sup β] {u : β → α}
   {p : γ → Prop} {s : γ → set (α × α)} (H : (𝓤 α).has_basis p s) :
   cauchy_seq u ↔ ∀ i, p i → ∃N, ∀n≥N, (u n, u N) ∈ s i :=
@@ -216,7 +218,7 @@ begin
 end
 
 lemma cauchy_prod [uniform_space β] {f : filter α} {g : filter β} :
-  cauchy f → cauchy g → cauchy (filter.prod f g)
+  cauchy f → cauchy g → cauchy (f ×ᶠ g)
 | ⟨f_proper, hf⟩ ⟨g_proper, hg⟩ := ⟨filter.prod_ne_bot.2 ⟨f_proper, g_proper⟩,
   let p_α := λp:(α×β)×(α×β), (p.1.1, p.2.1), p_β := λp:(α×β)×(α×β), (p.1.2, p.2.2) in
   suffices (f.prod f).comap p_α ⊓ (g.prod g).comap p_β ≤ (𝓤 α).comap p_α ⊓ (𝓤 β).comap p_β,
@@ -264,7 +266,7 @@ h₁ _ h₃ $ le_principal_iff.2 $ mem_map_sets_iff.2 ⟨univ, univ_mem_sets,
 
 theorem cauchy.le_nhds_Lim [complete_space α] [nonempty α] {f : filter α} (hf : cauchy f) :
   f ≤ 𝓝 (Lim f) :=
-Lim_spec (complete_space.complete hf)
+le_nhds_Lim (complete_space.complete hf)
 
 theorem cauchy_seq.tendsto_lim [semilattice_sup β] [complete_space α] [nonempty α] {u : β → α}
   (h : cauchy_seq u) :
@@ -360,7 +362,7 @@ lemma cauchy_of_totally_bounded_of_ultrafilter {s : set α} {f : filter α}
   have set.prod {x | (x,y) ∈ t'} {x | (x,y) ∈ t'} ⊆ comp_rel t' t',
     from assume ⟨x₁, x₂⟩ ⟨(h₁ : (x₁, y) ∈ t'), (h₂ : (x₂, y) ∈ t')⟩,
       ⟨y, h₁, ht'_symm h₂⟩,
-  (filter.prod f f).sets_of_superset (prod_mem_prod hif hif) (subset.trans this ht'_t)⟩
+  (f ×ᶠ f).sets_of_superset (prod_mem_prod hif hif) (subset.trans this ht'_t)⟩
 
 lemma totally_bounded_iff_filter {s : set α} :
   totally_bounded s ↔ (∀f, ne_bot f → f ≤ 𝓟 s → ∃c ≤ f, cauchy c) :=
@@ -505,7 +507,7 @@ le_nhds_of_cauchy_adhp_aux
 begin
   assume s hs,
   rcases U_le s hs with ⟨m, hm⟩,
-  rcases (tendsto_at_top' _ _).1 ha _ (mem_nhds_left a (U_mem m)) with ⟨n, hn⟩,
+  rcases tendsto_at_top'.1 ha _ (mem_nhds_left a (U_mem m)) with ⟨n, hn⟩,
   refine ⟨set_seq hf U_mem (max m n), set_seq_mem hf U_mem _, _,
           seq hf U_mem (max m n), _, seq_mem hf U_mem _⟩,
   { have := le_max_left m n,
@@ -551,4 +553,33 @@ complete_of_convergent_controlled_sequences H U' (λ n, hU'.2 ⟨n, subset.refl 
 protected lemma first_countable_topology : first_countable_topology α :=
 ⟨λ a, by { rw nhds_eq_comap_uniformity, exact H.comap (prod.mk a) }⟩
 
+/-- A separable uniform space with countably generated uniformity filter is second countable:
+one obtains a countable basis by taking the balls centered at points in a dense subset,
+and with rational "radii" from a countable open symmetric antimono basis of `𝓤 α`. We do not
+register this as an instance, as there is already an instance going in the other direction
+from second countable spaces to separable spaces, and we want to avoid loops. -/
+lemma second_countable_of_separable [separable_space α] : second_countable_topology α :=
+begin
+  rcases exists_countable_dense α with ⟨s, hsc, hsd⟩,
+  obtain ⟨t : ℕ → set (α × α),
+    hto : ∀ (i : ℕ), t i ∈ (𝓤 α).sets ∧ is_open (t i) ∧ symmetric_rel (t i),
+    h_basis : (𝓤 α).has_antimono_basis (λ _, true) t⟩ :=
+    H.exists_antimono_subbasis uniformity_has_basis_open_symmetric,
+  refine ⟨⟨⋃ (x ∈ s), range (λ k, ball x (t k)), hsc.bUnion (λ x hx, countable_range _), _⟩⟩,
+  refine (is_topological_basis_of_open_of_nhds _ _).2.2,
+  { simp only [mem_bUnion_iff, mem_range],
+    rintros _ ⟨x, hxs, k, rfl⟩,
+    exact is_open_ball x (hto k).2.1 },
+  { intros x V hxV hVo,
+    simp only [mem_bUnion_iff, mem_range, exists_prop],
+    rcases uniform_space.mem_nhds_iff.1 (mem_nhds_sets hVo hxV) with ⟨U, hU, hUV⟩,
+    rcases comp_symm_of_uniformity hU with ⟨U', hU', hsymm, hUU'⟩,
+    rcases h_basis.to_has_basis.mem_iff.1 hU' with ⟨k, -, hk⟩,
+    rcases hsd.inter_open_nonempty (ball x $ t k) (uniform_space.is_open_ball x (hto k).2.1)
+      ⟨x, uniform_space.mem_ball_self _ (hto k).1⟩ with ⟨y, hxy, hys⟩,
+    refine ⟨_, ⟨y, hys, k, rfl⟩, (hto k).2.2.subset hxy, λ z hz, _⟩,
+    exact hUV (ball_subset_of_comp_subset (hk hxy) hUU' (hk hz)) }
+end
+
 end uniform_space
+

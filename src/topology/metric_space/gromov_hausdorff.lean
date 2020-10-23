@@ -76,7 +76,7 @@ definition GH_space : Type := quotient (isometry_rel.setoid)
 definition to_GH_space (α : Type u) [metric_space α] [compact_space α] [nonempty α] : GH_space :=
   ⟦nonempty_compacts.Kuratowski_embedding α⟧
 
-instance : inhabited GH_space := ⟨quot.mk _ ⟨{0}, by simp [-singleton_zero]⟩⟩
+instance : inhabited GH_space := ⟨quot.mk _ ⟨{0}, by simp⟩⟩
 
 /-- A metric space representative of any abstract point in `GH_space` -/
 definition GH_space.rep (p : GH_space) : Type := (quot.out p).val
@@ -135,7 +135,7 @@ lemma to_GH_space_eq_to_GH_space_iff_isometric {α : Type u} [metric_space α] [
 ⟨begin
   simp only [to_GH_space, quotient.eq],
   assume h,
-  rcases h with e,
+  rcases h with ⟨e⟩,
   have I : ((nonempty_compacts.Kuratowski_embedding α).val ≃ᵢ (nonempty_compacts.Kuratowski_embedding β).val)
           = ((range (Kuratowski_embedding α)) ≃ᵢ (range (Kuratowski_embedding β))),
     by { dunfold nonempty_compacts.Kuratowski_embedding, refl },
@@ -385,7 +385,7 @@ instance GH_space_metric_space : metric_space GH_space :=
            = ((λ (p : nonempty_compacts ℓ_infty_ℝ × nonempty_compacts ℓ_infty_ℝ),
                  Hausdorff_dist ((p.fst).val) ((p.snd).val)) ∘ prod.swap) '' (set.prod {a | ⟦a⟧ = x} {b | ⟦b⟧ = y}) :=
       by { congr, funext, simp, rw Hausdorff_dist_comm },
-    simp only [dist, A, image_comp, prod.swap, image_swap_prod],
+    simp only [dist, A, image_comp, image_swap_prod],
   end,
   eq_of_dist_eq_zero := λx y hxy, begin
     /- To show that two spaces at zero distance are isometric, we argue that the distance
@@ -409,7 +409,7 @@ instance GH_space_metric_space : metric_space GH_space :=
   end,
   dist_triangle := λx y z, begin
     /- To show the triangular inequality between `X`, `Y` and `Z`, realize an optimal coupling
-    between `X` and `Y` in a space `γ1`, and an optimal coupling between `Y`and `Z` in a space `γ2`.
+    between `X` and `Y` in a space `γ1`, and an optimal coupling between `Y` and `Z` in a space `γ2`.
     Then, glue these metric spaces along `Y`. We get a new space `γ` in which `X` and `Y` are
     optimally coupled, as well as `Y` and `Z`. Apply the triangle inequality for the Hausdorff
     distance in `γ` to conclude. -/
@@ -449,7 +449,7 @@ instance GH_space_metric_space : metric_space GH_space :=
                            ((to_glue_l hΦ hΨ) '' (range (optimal_GH_injr X Y)))
           + Hausdorff_dist ((to_glue_r hΦ hΨ) '' (range (optimal_GH_injl Y Z)))
                            ((to_glue_r hΦ hΨ) '' (range (optimal_GH_injr Y Z))) :
-        by simp only [eq.symm range_comp, Comm, eq_self_iff_true, add_right_inj]
+        by simp only [← range_comp, Comm, eq_self_iff_true, add_right_inj]
       ... = Hausdorff_dist (range (optimal_GH_injl X Y))
                            (range (optimal_GH_injr X Y))
           + Hausdorff_dist (range (optimal_GH_injl Y Z))
@@ -601,7 +601,7 @@ begin
   { assume p t ht,
     letI : fintype t := finite.fintype ht,
     rcases fintype.exists_equiv_fin t with ⟨n, hn⟩,
-    rcases hn with e,
+    rcases hn with ⟨e⟩,
     exact ⟨n, e, trivial⟩ },
   choose N e hne using this,
   -- cardinality of the nice finite subset `s p` of `p.rep`, called `N p`
@@ -639,9 +639,9 @@ begin
       assume x,
       have : x ∈ ⋃y∈(s q), ball y ε := (hs q).2 (mem_univ _),
       rcases mem_bUnion_iff.1 this with ⟨y, ys, hy⟩,
-      let i := ((E q) ⟨y, ys⟩).1,
-      let hi := ((E q) ⟨y, ys⟩).2,
-      have ihi_eq : (⟨i, hi⟩ : fin (N q)) = (E q) ⟨y, ys⟩, by rw fin.ext_iff,
+      let i : ℕ := E q ⟨y, ys⟩,
+      let hi := ((E q) ⟨y, ys⟩).is_lt,
+      have ihi_eq : (⟨i, hi⟩ : fin (N q)) = (E q) ⟨y, ys⟩, by rw [fin.ext_iff, fin.coe_mk],
       have hiq : i < N q := hi,
       have hip : i < N p, { rwa Npq.symm at hiq },
       let z := (E p).symm ⟨i, hip⟩,
@@ -661,12 +661,12 @@ begin
       have : dist (Φ x) (Φ y) = dist (Ψ x) (Ψ y) := rfl,
       rw this,
       -- introduce `i`, that codes both `x` and `Φ x` in `fin (N p) = fin (N q)`
-      let i := ((E p) x).1,
+      let i : ℕ := E p x,
       have hip : i < N p := ((E p) x).2,
       have hiq : i < N q, by rwa Npq at hip,
-      have i' : i = ((E q) (Ψ x)).1, by { simp [Ψ] },
+      have i' : i = ((E q) (Ψ x)), by { simp [Ψ] },
       -- introduce `j`, that codes both `y` and `Φ y` in `fin (N p) = fin (N q)`
-      let j := ((E p) y).1,
+      let j : ℕ := E p y,
       have hjp : j < N p := ((E p) y).2,
       have hjq : j < N q, by rwa Npq at hjp,
       have j' : j = ((E q) (Ψ y)).1, by { simp [Ψ] },
@@ -780,9 +780,9 @@ begin
       assume x,
       have : x ∈ ⋃y∈(s q), ball y (u n) := (hs q qt) (mem_univ _),
       rcases mem_bUnion_iff.1 this with ⟨y, ys, hy⟩,
-      let i := ((E q) ⟨y, ys⟩).1,
+      let i : ℕ := E q ⟨y, ys⟩,
       let hi := ((E q) ⟨y, ys⟩).2,
-      have ihi_eq : (⟨i, hi⟩ : fin (N q)) = (E q) ⟨y, ys⟩, by rw fin.ext_iff,
+      have ihi_eq : (⟨i, hi⟩ : fin (N q)) = (E q) ⟨y, ys⟩, by rw [fin.ext_iff, fin.coe_mk],
       have hiq : i < N q := hi,
       have hip : i < N p, { rwa Npq.symm at hiq },
       let z := (E p).symm ⟨i, hip⟩,
@@ -802,15 +802,15 @@ begin
       have : dist (Φ x) (Φ y) = dist (Ψ x) (Ψ y) := rfl,
       rw this,
       -- introduce `i`, that codes both `x` and `Φ x` in `fin (N p) = fin (N q)`
-      let i := ((E p) x).1,
+      let i : ℕ := E p x,
       have hip : i < N p := ((E p) x).2,
       have hiq : i < N q, by rwa Npq at hip,
-      have i' : i = ((E q) (Ψ x)).1, by { simp [Ψ] },
+      have i' : i = ((E q) (Ψ x)), by { simp [Ψ] },
       -- introduce `j`, that codes both `y` and `Φ y` in `fin (N p) = fin (N q)`
-      let j := ((E p) y).1,
+      let j : ℕ := E p y,
       have hjp : j < N p := ((E p) y).2,
       have hjq : j < N q, by rwa Npq at hjp,
-      have j' : j = ((E q) (Ψ y)).1, by { simp [Ψ] },
+      have j' : j = ((E q) (Ψ y)), by { simp [Ψ] },
       -- Express `dist x y` in terms of `F p`
       have Ap : ((F p).2 ⟨i, hip⟩ ⟨j, hjp⟩).1 = (floor (ε⁻¹ * dist x y)).to_nat := calc
         ((F p).2 ⟨i, hip⟩ ⟨j, hjp⟩).1 = ((F p).2 ((E p) x) ((E p) y)).1 :
@@ -923,7 +923,7 @@ def aux_gluing (n : ℕ) : aux_gluing_struct (X n) := nat.rec_on n
 /-- The Gromov-Hausdorff space is complete. -/
 instance : complete_space (GH_space) :=
 begin
-  have : ∀ (n : ℕ), 0 < ((1:ℝ) / 2) ^ n, by { apply _root_.pow_pos, norm_num },
+  have : ∀ (n : ℕ), 0 < ((1:ℝ) / 2) ^ n, by { apply pow_pos, norm_num },
   -- start from a sequence of nonempty compact metric spaces within distance `1/2^n` of each other
   refine metric.complete_of_convergent_controlled_sequences (λn, (1/2)^n) this (λu hu, _),
   -- `X n` is a representative of `u n`

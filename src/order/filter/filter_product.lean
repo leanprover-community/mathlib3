@@ -72,10 +72,15 @@ lemma lt_def [preorder β] (U : is_ultrafilter φ) :
   ((<) : β* → β* → Prop) = lift_rel (<) :=
 by { ext ⟨f⟩ ⟨g⟩, exact coe_lt U }
 
+lemma le_def [preorder β] :
+  ((≤) : β* → β* → Prop) = lift_rel (≤) :=
+by { ext ⟨f⟩ ⟨g⟩, exact coe_le }
+
 /-- If `φ` is an ultrafilter then the ultraproduct is an ordered ring.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
 protected def ordered_ring [ordered_ring β] (U : is_ultrafilter φ) : ordered_ring β* :=
-{ mul_pos := λ x y, induction_on₂ x y $ λ f g hf hg, (coe_pos U).2 $
+{ zero_le_one := by { rw le_def, show (∀* i, (0 : β) ≤ 1), simp [zero_le_one] },
+  mul_pos := λ x y, induction_on₂ x y $ λ f g hf hg, (coe_pos U).2 $
     ((coe_pos U).1 hg).mp $ ((coe_pos U).1 hf).mono $ λ x, mul_pos,
   .. germ.ring, .. germ.ordered_add_comm_group, .. @germ.nontrivial _ _ _ _ U.1 }
 
@@ -83,8 +88,10 @@ protected def ordered_ring [ordered_ring β] (U : is_ultrafilter φ) : ordered_r
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
 protected def linear_ordered_ring [linear_ordered_ring β] (U : is_ultrafilter φ) :
   linear_ordered_ring β* :=
-{ zero_lt_one := by rw lt_def U; show (∀* i, (0 : β) < 1); simp [zero_lt_one],
-  .. germ.ordered_ring U, .. germ.linear_order U }
+{ .. germ.ordered_ring U,
+  .. germ.linear_order U,
+  .. nontrivial_of_lt 0 (1 : β*)
+       (by { rw lt_def U, show (∀* i, (0 : β) < 1), simp [zero_lt_one] }) }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a linear ordered field.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
@@ -133,9 +140,9 @@ lemma max_def [K : decidable_linear_order β] (U : is_ultrafilter φ) (x y : β*
 quotient.induction_on₂' x y $ λ a b, by unfold max;
 begin
   split_ifs,
-  exact quotient.sound'(by filter_upwards [h] λ i hi, (max_eq_right hi).symm),
+  exact quotient.sound'(by filter_upwards [h] λ i hi, (max_eq_left hi).symm),
   exact quotient.sound'(by filter_upwards [@le_of_not_le _ (germ.linear_order U) _ _ h]
-    λ i hi, (max_eq_left hi).symm),
+    λ i hi, (max_eq_right hi).symm),
 end
 
 lemma min_def [K : decidable_linear_order β] (U : is_ultrafilter φ) (x y : β*) :

@@ -208,7 +208,7 @@ begin
   { intros n a,
     rw [inv_fun, eval₂_monomial, alg_hom.coe_to_ring_hom, algebra.tensor_product.include_left_apply,
       algebra.tensor_product.tmul_pow, one_pow, algebra.tensor_product.tmul_mul_tmul,
-      mul_one, one_mul, to_fun_alg_hom_apply_tmul, ←monomial_one_eq_X_pow],
+      mul_one, one_mul, to_fun_alg_hom_apply_tmul, X_pow_eq_monomial],
     dsimp [monomial],
     rw [finsupp.sum_single_index]; simp, }
 end
@@ -253,7 +253,7 @@ open matrix
 open_locale big_operators
 
 variables {R}
-variables {n : Type w} [fintype n] [decidable_eq n]
+variables {n : Type w} [decidable_eq n] [fintype n]
 
 /--
 The algebra isomorphism stating "matrices of polynomials are the same as polynomials of matrices".
@@ -284,7 +284,7 @@ begin
   simp only [algebra.tensor_product.tmul_mul_tmul, one_pow, one_mul, matrix.mul_one,
     algebra.tensor_product.tmul_pow, algebra.tensor_product.include_left_apply, mul_eq_mul],
   rw [monomial_eq_smul_X, ← tensor_product.smul_tmul],
-  congr, ext, simp, dsimp, simp,
+  congr' with i' j'; simp
 end
 
 lemma mat_poly_equiv_coeff_apply_aux_2
@@ -294,7 +294,7 @@ lemma mat_poly_equiv_coeff_apply_aux_2
 begin
   apply polynomial.induction_on' p,
   { intros p q hp hq, ext,
-    simp [hp, hq, coeff_add, add_val, std_basis_matrix_add], },
+    simp [hp, hq, coeff_add, add_apply, std_basis_matrix_add], },
   { intros k x,
     simp only [mat_poly_equiv_coeff_apply_aux_1, coeff_monomial],
     split_ifs; { funext, simp, }, }
@@ -329,7 +329,7 @@ lemma mat_poly_equiv_smul_one (p : polynomial R) :
   mat_poly_equiv (p • 1) = p.map (algebra_map R (matrix n n R)) :=
 begin
   ext m i j,
-  simp only [coeff_map, one_val, algebra_map_matrix_val, mul_boole,
-    smul_val, mat_poly_equiv_coeff_apply],
+  simp only [coeff_map, one_apply, algebra_map_matrix_apply, mul_boole,
+    smul_apply, mat_poly_equiv_coeff_apply],
   split_ifs; simp,
 end

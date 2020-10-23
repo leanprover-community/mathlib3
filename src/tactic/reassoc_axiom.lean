@@ -62,8 +62,8 @@ Given a lemma of the form `f ≫ g = h`, proves a new lemma of the form
 -/
 meta def prove_reassoc (h : expr) : tactic (expr × expr) :=
 do
-   (vs,t) ← infer_type h >>= mk_local_pis,
-   (vs',t) ← whnf t >>= mk_local_pis,
+   (vs,t) ← infer_type h >>= open_pis,
+   (vs',t) ← whnf t >>= open_pis,
    let vs := vs ++ vs',
    (lhs,rhs) ← match_eq t,
    struct_inst ← get_cat_inst lhs <|> get_cat_inst rhs <|> fail "no composition found in statement",

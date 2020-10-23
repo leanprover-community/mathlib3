@@ -90,8 +90,7 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
   symm := begin
     refine le_of_eq _,
     rw map_supr,
-    congr,
-    ext1 x,
+    congr' with x : 1,
     erw [nhds_prod_eq, ← prod_comm],
   end,
   comp := begin
@@ -147,7 +146,7 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
         { right,
           rw mem_prod,
           tauto }, },
-      all_goals { simp only [is_open_prod, *] } },
+      all_goals { simp only [is_open.prod, *] } },
     -- So W ○ W ∈ F by definition of F
     have : W ○ W ∈ F,
     { dsimp [F],-- Lean has weird elaboration trouble with this line
@@ -204,18 +203,12 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
 continuous. -/
 lemma compact_space.uniform_continuous_of_continuous [compact_space α] [separated_space α]
   {f : α → β} (h : continuous f) : uniform_continuous f :=
-begin
-  calc
-  map (prod.map f f) (𝓤 α) = map (prod.map f f) (⨆ x, 𝓝 (x, x))  : by rw compact_space_uniformity
-                       ... =  ⨆ x, map (prod.map f f) (𝓝 (x, x)) : by rw map_supr
-                       ... ≤ ⨆ x, 𝓝 (f x, f x) : supr_le_supr (λ x, (h.prod_map h).continuous_at)
-                       ... ≤ ⨆ y, 𝓝 (y, y)     : _
-                       ... ≤ 𝓤 β                : nhds_le_uniformity,
-  rw ← supr_range,
-  simp only [and_imp, supr_le_iff, prod.forall, supr_exists, mem_range, prod.mk.inj_iff],
-  rintros _ _ ⟨y, rfl, rfl⟩,
-  exact le_supr (λ x, 𝓝 (x, x)) (f y),
-end
+calc
+map (prod.map f f) (𝓤 α) = map (prod.map f f) (⨆ x, 𝓝 (x, x))  : by rw compact_space_uniformity
+                     ... =  ⨆ x, map (prod.map f f) (𝓝 (x, x)) : by rw map_supr
+                     ... ≤ ⨆ x, 𝓝 (f x, f x)     : supr_le_supr (λ x, (h.prod_map h).continuous_at)
+                     ... ≤ ⨆ y, 𝓝 (y, y)         : supr_comp_le (λ y, 𝓝 (y, y)) f
+                     ... ≤ 𝓤 β                   : nhds_le_uniformity
 
 /-- Heine-Cantor: a continuous function on a compact separated set of a uniform space is
 uniformly continuous. -/

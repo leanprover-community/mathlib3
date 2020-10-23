@@ -28,15 +28,15 @@ variables [decidable_eq n]
 
 instance : algebra R (matrix n n A) :=
 { commutes' := λ r x,
-  begin ext, simp [matrix.scalar, matrix.mul_val, matrix.one_val, algebra.commutes], end,
+  begin ext, simp [matrix.scalar, matrix.mul_apply, matrix.one_apply, algebra.commutes], end,
   smul_def' := λ r x, begin ext, simp [matrix.scalar, algebra.smul_def'' r], end,
   ..((matrix.scalar n).comp (algebra_map R A)) }
 
-lemma algebra_map_matrix_val {r : R} {i j : n} :
+lemma algebra_map_matrix_apply {r : R} {i j : n} :
   algebra_map R (matrix n n A) r i j = if i = j then algebra_map R A r else 0 :=
 begin
   dsimp [algebra_map, algebra.to_ring_hom, matrix.scalar],
-  split_ifs with h; simp [h, matrix.one_val_ne],
+  split_ifs with h; simp [h, matrix.one_apply_ne],
 end
 end
 
@@ -62,7 +62,7 @@ def to_fun_right_linear (a : A) : matrix n n R →ₗ[R] matrix n n A :=
   begin
     dsimp only [to_fun],
     ext,
-    simp only [matrix.smul_val, pi.smul_apply, ring_hom.map_mul,
+    simp only [matrix.smul_apply, pi.smul_apply, ring_hom.map_mul,
       algebra.id.smul_eq_mul, ring_hom.map_mul],
     rw [algebra.smul_def r, ←_root_.mul_assoc, ←_root_.mul_assoc, algebra.commutes],
   end, }
@@ -99,14 +99,14 @@ begin
   dsimp,
   simp_rw [to_fun_right_linear],
   dsimp,
-  simp_rw [to_fun, matrix.mul_mul_left, matrix.smul_val, matrix.mul_val, ←_root_.mul_assoc _ a₂ _,
-    algebra.commutes, _root_.mul_assoc a₂ _ _, ←finset.mul_sum, ring_hom.map_sum, ring_hom.map_mul,
-    _root_.mul_assoc],
+  simp_rw [to_fun, matrix.mul_mul_left, matrix.smul_apply, matrix.mul_apply,
+    ←_root_.mul_assoc _ a₂ _, algebra.commutes, _root_.mul_assoc a₂ _ _, ←finset.mul_sum,
+    ring_hom.map_sum, ring_hom.map_mul, _root_.mul_assoc],
 end
 begin
   intros, ext,
-  simp only [to_fun_linear, to_fun_bilinear, to_fun_right_linear, to_fun, matrix.one_val,
-    algebra_map_matrix_val, lift.tmul, linear_map.coe_mk],
+  simp only [to_fun_linear, to_fun_bilinear, to_fun_right_linear, to_fun, matrix.one_apply,
+    algebra_map_matrix_apply, lift.tmul, linear_map.coe_mk],
   split_ifs; simp,
 end
 

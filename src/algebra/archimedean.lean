@@ -15,11 +15,46 @@ such that `0 < y` there exists a natural number `n` such that `x ≤ n •ℕ y`
 class archimedean (α) [ordered_add_comm_monoid α] : Prop :=
 (arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n •ℕ y)
 
+namespace decidable_linear_ordered_add_comm_group
+variables [decidable_linear_ordered_add_comm_group α] [archimedean α]
+
+/-- An archimedean decidable linearly ordered `add_comm_group` has a version of the floor: for `a > 0`,
+any `g` in the group lies between some two consecutive multiples of `a`. -/
+lemma exists_int_smul_near_of_pos {a : α} (ha : 0 < a) (g : α) :
+  ∃ k, k •ℤ a ≤ g ∧ g < (k + 1) •ℤ a :=
+begin
+  let s : set ℤ := {n : ℤ | n •ℤ a ≤ g},
+  obtain ⟨k, hk : -g ≤ k •ℕ a⟩ := archimedean.arch (-g) ha,
+  have h_ne : s.nonempty := ⟨-k, by simpa using neg_le_neg hk⟩,
+  obtain ⟨k, hk⟩ := archimedean.arch g ha,
+  have h_bdd : ∀ n ∈ s, n ≤ (k : ℤ) :=
+    λ n hn, (gsmul_le_gsmul_iff ha).mp (le_trans hn hk : n •ℤ a ≤ k •ℤ a),
+  obtain ⟨m, hm, hm'⟩ := int.exists_greatest_of_bdd ⟨k, h_bdd⟩ h_ne,
+  refine ⟨m, hm, _⟩,
+  by_contra H,
+  linarith [hm' _ $ not_lt.mp H]
+end
+
+lemma exists_int_smul_near_of_pos' {a : α} (ha : 0 < a) (g : α) :
+  ∃ k, 0 ≤ g - k •ℤ a ∧ g - k •ℤ a < a :=
+begin
+  obtain ⟨k, h1, h2⟩ := exists_int_smul_near_of_pos ha g,
+  refine ⟨k, sub_nonneg.mpr h1, _⟩,
+  have : g < k •ℤ a + 1 •ℤ a, by rwa ← add_gsmul a k 1,
+  simpa [sub_lt_iff_lt_add']
+end
+
+end decidable_linear_ordered_add_comm_group
+
 theorem exists_nat_gt [linear_ordered_semiring α] [archimedean α]
   (x : α) : ∃ n : ℕ, x < n :=
 let ⟨n, h⟩ := archimedean.arch x zero_lt_one in
 ⟨n+1, lt_of_le_of_lt (by rwa ← nsmul_one)
   (nat.cast_lt.2 (nat.lt_succ_self _))⟩
+
+theorem exists_nat_ge [linear_ordered_semiring α] [archimedean α] (x : α) :
+  ∃ n : ℕ, x ≤ n :=
+(exists_nat_gt x).imp $ λ n, le_of_lt
 
 lemma add_one_pow_unbounded_of_pos [linear_ordered_semiring α] [archimedean α] (x : α) {y : α}
   (hy : 0 < y) :
@@ -38,15 +73,15 @@ lemma pow_unbounded_of_one_lt (x : α) {y : α} (hy1 : 1 < y) :
   ∃ n : ℕ, x < y ^ n :=
 sub_add_cancel y 1 ▸ add_one_pow_unbounded_of_pos _ (sub_pos.2 hy1)
 
-/-- Every x greater than 1 is between two successive natural-number
-powers of another y greater than one. -/
-lemma exists_nat_pow_near {x : α} {y : α} (hx : 1 < x) (hy : 1 < y) :
+/-- Every x greater than or equal to 1 is between two successive
+natural-number powers of every y greater than one. -/
+lemma exists_nat_pow_near {x : α} {y : α} (hx : 1 ≤ x) (hy : 1 < y) :
   ∃ n : ℕ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
 have h : ∃ n : ℕ, x < y ^ n, from pow_unbounded_of_one_lt _ hy,
 by classical; exact let n := nat.find h in
   have hn  : x < y ^ n, from nat.find_spec h,
   have hnp : 0 < n,     from nat.pos_iff_ne_zero.2 (λ hn0,
-    by rw [hn0, pow_zero] at hn; exact (not_lt_of_gt hn hx)),
+    by rw [hn0, pow_zero] at hn; exact (not_le_of_gt hn hx)),
   have hnsp : nat.pred n + 1 = n,     from nat.succ_pred_eq_of_pos hnp,
   have hltn : nat.pred n < n,         from nat.pred_lt (ne_of_gt hnp),
   ⟨nat.pred n, le_of_not_lt (nat.find_min h hltn), by rwa hnsp⟩
@@ -194,7 +229,7 @@ begin
   rw [int.cast_add, int.cast_one],
   refine lt_of_le_of_lt (add_le_add_right ((zh _).1 (le_refl _)) _) _,
   rwa [← lt_sub_iff_add_lt', ← sub_mul,
-       ← div_lt_iff' (sub_pos.2 h), one_div_eq_inv],
+       ← div_lt_iff' (sub_pos.2 h), one_div],
   { rw [rat.coe_int_denom, nat.cast_one], exact one_ne_zero },
   { intro H, rw [rat.coe_nat_num, ← coe_coe, nat.cast_eq_zero] at H, subst H, cases n0 },
   { rw [rat.coe_nat_denom, nat.cast_one], exact one_ne_zero }
@@ -202,14 +237,12 @@ end
 
 theorem exists_nat_one_div_lt {ε : α} (hε : 0 < ε) : ∃ n : ℕ, 1 / (n + 1: α) < ε :=
 begin
-  cases archimedean_iff_nat_lt.1 (by apply_instance) (1/ε) with n hn,
-  existsi n,
-  apply div_lt_of_mul_lt_of_pos,
-  { simp, apply add_pos_of_nonneg_of_pos, apply nat.cast_nonneg, apply zero_lt_one },
-  { apply (div_lt_iff' hε).1,
-    transitivity,
-    { exact hn },
-    { simp [zero_lt_one] }}
+  cases exists_nat_gt (1/ε) with n hn,
+  use n,
+  rw [div_lt_iff, ← div_lt_iff' hε],
+  { apply hn.trans,
+    simp [zero_lt_one] },
+  { exact n.cast_add_one_pos }
 end
 
 theorem exists_pos_rat_lt {x : α} (x0 : 0 < x) : ∃ q : ℚ, 0 < q ∧ (q : α) < x :=

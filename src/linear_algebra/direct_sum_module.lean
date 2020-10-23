@@ -27,7 +27,7 @@ All of this file assumes that
 universes u v w u₁
 
 variables (R : Type u) [semiring R]
-variables (ι : Type v) [decidable_eq ι] (M : ι → Type w)
+variables (ι : Type v) [dec_ι : decidable_eq ι] (M : ι → Type w)
 variables [Π i, add_comm_group (M i)] [Π i, semimodule R (M i)]
 include R
 
@@ -37,6 +37,8 @@ open_locale direct_sum
 variables {R ι M}
 
 instance : semimodule R (⨁ i, M i) := @dfinsupp.to_semimodule ι M _ _ _ _
+
+include dec_ι
 
 variables R ι M
 /-- Create the direct sum given a family `M` of `R` semimodules indexed over `ι`. -/
@@ -100,6 +102,10 @@ def lset_to_set (S T : set ι) (H : S ⊆ T) :
   (⨁ (i : S), M i) →ₗ (⨁ (i : T), M i) :=
 to_module R _ _ $ λ i, lof R T (M ∘ @subtype.val _ T) ⟨i.1, H i.2⟩
 
+omit dec_ι
+
+/-- The natural linear equivalence between `⨁ _ : punit, M` and `M`. -/
+-- TODO: generalize this to arbitrary index type `ι` with `unique ι`
 protected def lid (M : Type v) [add_comm_group M] [semimodule R M] :
   (⨁ (_ : punit), M) ≃ₗ M :=
 { .. direct_sum.id M,
@@ -113,11 +119,22 @@ def component (i : ι) : (⨁ i, M i) →ₗ[R] M i :=
   map_smul' := λ _ _, dfinsupp.smul_apply }
 
 variables {ι M}
-@[simp] lemma lof_apply (i : ι) (b : M i) : ((lof R ι M i) b) i = b :=
-by rw [lof, dfinsupp.lsingle_apply, dfinsupp.single_apply, dif_pos rfl]
 
 lemma apply_eq_component (f : ⨁ i, M i) (i : ι) :
   f i = component R ι M i f := rfl
+
+@[ext] lemma ext {f g : ⨁ i, M i}
+  (h : ∀ i, component R ι M i f = component R ι M i g) : f = g :=
+dfinsupp.ext h
+
+lemma ext_iff {f g : ⨁ i, M i} : f = g ↔
+  ∀ i, component R ι M i f = component R ι M i g :=
+⟨λ h _, by rw h, ext R⟩
+
+include dec_ι
+
+@[simp] lemma lof_apply (i : ι) (b : M i) : ((lof R ι M i) b) i = b :=
+by rw [lof, dfinsupp.lsingle_apply, dfinsupp.single_apply, dif_pos rfl]
 
 @[simp] lemma component.lof_self (i : ι) (b : M i) :
   component R ι M i ((lof R ι M i) b) = b :=
@@ -127,13 +144,5 @@ lemma component.of (i j : ι) (b : M j) :
   component R ι M i ((lof R ι M j) b) =
   if h : j = i then eq.rec_on h b else 0 :=
 dfinsupp.single_apply
-
-@[ext] lemma ext {f g : ⨁ i, M i}
-  (h : ∀ i, component R ι M i f = component R ι M i g) : f = g :=
-dfinsupp.ext h
-
-lemma ext_iff {f g : ⨁ i, M i} : f = g ↔
-  ∀ i, component R ι M i f = component R ι M i g :=
-⟨λ h _, by rw h, ext R⟩
 
 end direct_sum

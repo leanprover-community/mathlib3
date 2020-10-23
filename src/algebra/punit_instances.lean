@@ -12,7 +12,7 @@ universes u
 namespace punit
 variables (x y : punit.{u+1}) (s : set punit.{u+1})
 
-@[to_additive add_comm_group]
+@[to_additive]
 instance : comm_group punit :=
 by refine
 { mul := λ _ _, star,
@@ -26,7 +26,6 @@ by refine
   .. punit.add_comm_group,
   .. };
 intros; exact subsingleton.elim _ _
-
 
 instance : complete_boolean_algebra punit :=
 by refine

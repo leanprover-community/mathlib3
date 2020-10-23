@@ -65,7 +65,7 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E]
           {F : Type*} [normed_group F] [normed_space ℝ F]
 
 open metric set asymptotics continuous_linear_map filter
-open_locale classical topological_space
+open_locale classical topological_space nnreal
 
 /-! ### One-dimensional fencing inequalities -/
 
@@ -83,7 +83,7 @@ lemma image_le_of_liminf_slope_right_lt_deriv_boundary' {f f' : ℝ → ℝ} {a 
   (hf : continuous_on f (Icc a b))
   -- `hf'` actually says `liminf (z - x)⁻¹ * (f z - f x) ≤ f' x`
   (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
-    ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (f z - f x) < r)
+    ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (f z - f x) < r)
   {B B' : ℝ → ℝ} (ha : f a ≤ B a) (hB : continuous_on B (Icc a b))
   (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ioi x) x)
   (bound : ∀ x ∈ Ico a b, f x = B x → f' x < B' x) :
@@ -100,17 +100,17 @@ begin
   change f x ≤ B x at hxB,
   cases lt_or_eq_of_le hxB with hxB hxB,
   { -- If `f x < B x`, then all we need is continuity of both sides
-    apply @nonempty_of_mem_sets _ (nhds_within x (Ioi x)),
+    apply @nonempty_of_mem_sets _ (𝓝[Ioi x] x),
     refine inter_mem_sets _ (Ioc_mem_nhds_within_Ioi ⟨le_refl x, hy⟩),
-    have : ∀ᶠ x in nhds_within x (Icc a b), f x < B x,
+    have : ∀ᶠ x in 𝓝[Icc a b] x, f x < B x,
       from A x (Ico_subset_Icc_self xab)
         (mem_nhds_sets (is_open_lt continuous_fst continuous_snd) hxB),
-    have : ∀ᶠ x in nhds_within x (Ioi x), f x < B x,
+    have : ∀ᶠ x in 𝓝[Ioi x] x, f x < B x,
       from nhds_within_le_of_mem (Icc_mem_nhds_within_Ioi xab) this,
     refine mem_sets_of_superset this (set_of_subset_set_of.2 $ λ y, le_of_lt) },
-  { rcases dense (bound x xab hxB) with ⟨r, hfr, hrB⟩,
+  { rcases exists_between (bound x xab hxB) with ⟨r, hfr, hrB⟩,
     specialize hf' x xab r hfr,
-    have HB : ∀ᶠ z in nhds_within x (Ioi x), r < (z - x)⁻¹ * (B z - B x),
+    have HB : ∀ᶠ z in 𝓝[Ioi x] x, r < (z - x)⁻¹ * (B z - B x),
       from (has_deriv_within_at_iff_tendsto_slope' $ lt_irrefl x).1 (hB' x xab)
         (mem_nhds_sets is_open_Ioi hrB),
     obtain ⟨z, ⟨hfz, hzB⟩, hz⟩ :
@@ -137,7 +137,7 @@ lemma image_le_of_liminf_slope_right_lt_deriv_boundary {f f' : ℝ → ℝ} {a b
   (hf : continuous_on f (Icc a b))
   -- `hf'` actually says `liminf (z - x)⁻¹ * (f z - f x) ≤ f' x`
   (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
-    ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (f z - f x) < r)
+    ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (f z - f x) < r)
   {B B' : ℝ → ℝ} (ha : f a ≤ B a) (hB : ∀ x, has_deriv_at B (B' x) x)
   (bound : ∀ x ∈ Ico a b, f x = B x → f' x < B' x) :
   ∀ ⦃x⦄, x ∈ Icc a b → f x ≤ B x :=
@@ -160,7 +160,7 @@ lemma image_le_of_liminf_slope_right_le_deriv_boundary {f : ℝ → ℝ} {a b : 
   (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ioi x) x)
   -- `bound` actually says `liminf (z - x)⁻¹ * (f z - f x) ≤ B' x`
   (bound : ∀ x ∈ Ico a b, ∀ r, B' x < r →
-    ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (f z - f x) < r) :
+    ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (f z - f x) < r) :
   ∀ ⦃x⦄, x ∈ Icc a b → f x ≤ B x :=
 begin
   have Hr : ∀ x ∈ Icc a b, ∀ r ∈ Ioi (0:ℝ), f x ≤ B x + r * (x - a),
@@ -258,7 +258,7 @@ lemma image_norm_le_of_liminf_right_slope_norm_lt_deriv_boundary {E : Type*} [no
   {f : ℝ → E} {f' : ℝ → ℝ} (hf : continuous_on f (Icc a b))
   -- `hf'` actually says `liminf ∥z - x∥⁻¹ * (∥f z∥ - ∥f x∥) ≤ f' x`
   (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
-    ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (∥f z∥ - ∥f x∥) < r)
+    ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (∥f z∥ - ∥f x∥) < r)
   {B B' : ℝ → ℝ} (ha : ∥f a∥ ≤ B a) (hB : continuous_on B (Icc a b))
   (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ioi x) x)
   (bound : ∀ x ∈ Ico a b, ∥f x∥ = B x → f' x < B' x) :
@@ -367,7 +367,7 @@ begin
     simpa using (has_deriv_at_const x C).mul ((has_deriv_at_id x).sub (has_deriv_at_const x a)) },
   convert image_norm_le_of_norm_deriv_right_le_deriv_boundary hg hg' _ hB bound,
   { simp only [g, B] },
-  { simp only [g, B], rw [sub_self, _root_.norm_zero, sub_self, mul_zero] }
+  { simp only [g, B], rw [sub_self, norm_zero, sub_self, mul_zero] }
 end
 
 /-- A function on `[a, b]` with the norm of the derivative within `[a, b]`
@@ -452,6 +452,19 @@ begin
   exact bound (g t) (segm $ Ico_subset_Icc_self ht)
 end
 
+/-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C` on `s`,
+then the function is `C`-Lipschitz on `s`. Version with `has_fderiv_within` and `lipschitz_on_with`. -/
+theorem convex.lipschitz_on_with_of_norm_has_fderiv_within_le
+  {f : E → F} {C : ℝ} {s : set E} {f' : E → (E →L[ℝ] F)}
+  (hf : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (bound : ∀x∈s, ∥f' x∥ ≤ C)
+  (hs : convex s) : lipschitz_on_with (nnreal.of_real C) f s :=
+begin
+  rw lipschitz_on_with_iff_norm_sub_le,
+  intros x x_in y y_in,
+  convert hs.norm_image_sub_le_of_norm_has_fderiv_within_le hf bound y_in x_in,
+  exact nnreal.coe_of_real C ((norm_nonneg $ f' x).trans $ bound x x_in)
+end
+
 /-- The mean value theorem on a convex set: if the derivative of a function within this set is
 bounded by `C`, then the function is `C`-Lipschitz. Version with `fderiv_within`. -/
 theorem convex.norm_image_sub_le_of_norm_fderiv_within_le {f : E → F} {C : ℝ} {s : set E} {x y : E}
@@ -460,6 +473,13 @@ theorem convex.norm_image_sub_le_of_norm_fderiv_within_le {f : E → F} {C : ℝ
 hs.norm_image_sub_le_of_norm_has_fderiv_within_le (λ x hx, (hf x hx).has_fderiv_within_at)
 bound xs ys
 
+/-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C` on `s`,
+then the function is `C`-Lipschitz on `s`. Version with `fderiv_within` and `lipschitz_on_with`. -/
+theorem convex.lipschitz_on_with_of_norm_fderiv_within_le {f : E → F} {C : ℝ} {s : set E}
+  (hf : differentiable_on ℝ f s) (bound : ∀x∈s, ∥fderiv_within ℝ f s x∥ ≤ C)
+  (hs : convex s) : lipschitz_on_with (nnreal.of_real C) f s:=
+hs.lipschitz_on_with_of_norm_has_fderiv_within_le (λ x hx, (hf x hx).has_fderiv_within_at) bound
+
 /-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C`,
 then the function is `C`-Lipschitz. Version with `fderiv`. -/
 theorem convex.norm_image_sub_le_of_norm_fderiv_le {f : E → F} {C : ℝ} {s : set E} {x y : E}
@@ -467,6 +487,14 @@ theorem convex.norm_image_sub_le_of_norm_fderiv_le {f : E → F} {C : ℝ} {s : 
   (hs : convex s) (xs : x ∈ s) (ys : y ∈ s) : ∥f y - f x∥ ≤ C * ∥y - x∥ :=
 hs.norm_image_sub_le_of_norm_has_fderiv_within_le
 (λ x hx, (hf x hx).has_fderiv_at.has_fderiv_within_at) bound xs ys
+
+/-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C` on `s`,
+then the function is `C`-Lipschitz on `s`. Version with `fderiv` and `lipschitz_on_with`. -/
+theorem convex.lipschitz_on_with_of_norm_fderiv_le {f : E → F} {C : ℝ} {s : set E}
+  (hf : ∀ x ∈ s, differentiable_at ℝ f x) (bound : ∀x∈s, ∥fderiv ℝ f x∥ ≤ C)
+  (hs : convex s) : lipschitz_on_with (nnreal.of_real C) f s :=
+hs.lipschitz_on_with_of_norm_has_fderiv_within_le
+(λ x hx, (hf x hx).has_fderiv_at.has_fderiv_within_at) bound
 
 /-- Variant of the mean value inequality on a convex set, using a bound on the difference between
 the derivative and a fixed linear map, rather than a bound on the derivative itself. Version with
@@ -509,7 +537,7 @@ theorem convex.is_const_of_fderiv_within_eq_zero {s : set E} (hs : convex s)
   {x y : E} (hx : x ∈ s) (hy : y ∈ s) :
   f x = f y :=
 have bound : ∀ x ∈ s, ∥fderiv_within ℝ f s x∥ ≤ 0,
-  from λ x hx, by simp only [hf' x hx, _root_.norm_zero],
+  from λ x hx, by simp only [hf' x hx, norm_zero],
 by simpa only [(dist_eq_norm _ _).symm, zero_mul, dist_le_zero, eq_comm]
   using hs.norm_image_sub_le_of_norm_fderiv_within_le hf bound hx hy
 
@@ -528,6 +556,16 @@ theorem convex.norm_image_sub_le_of_norm_has_deriv_within_le
 convex.norm_image_sub_le_of_norm_has_fderiv_within_le (λ x hx, (hf x hx).has_fderiv_within_at)
 (λ x hx, le_trans (by simp) (bound x hx)) hs xs ys
 
+/-- The mean value theorem on a convex set in dimension 1: if the derivative of a function is
+bounded by `C` on `s`, then the function is `C`-Lipschitz on `s`.
+Version with `has_deriv_within` and `lipschitz_on_with`. -/
+theorem convex.lipschitz_on_with_of_norm_has_deriv_within_le
+  {f f' : ℝ → F} {C : ℝ} {s : set ℝ} (hs : convex s)
+  (hf : ∀ x ∈ s, has_deriv_within_at f (f' x) s x) (bound : ∀x∈s, ∥f' x∥ ≤ C) :
+  lipschitz_on_with (nnreal.of_real C) f s :=
+convex.lipschitz_on_with_of_norm_has_fderiv_within_le (λ x hx, (hf x hx).has_fderiv_within_at)
+(λ x hx, le_trans (by simp) (bound x hx)) hs
+
 /-- The mean value theorem on a convex set in dimension 1: if the derivative of a function within
 this set is bounded by `C`, then the function is `C`-Lipschitz. Version with `deriv_within` -/
 theorem convex.norm_image_sub_le_of_norm_deriv_within_le
@@ -538,12 +576,30 @@ hs.norm_image_sub_le_of_norm_has_deriv_within_le (λ x hx, (hf x hx).has_deriv_w
 bound xs ys
 
 /-- The mean value theorem on a convex set in dimension 1: if the derivative of a function is
+bounded by `C` on `s`, then the function is `C`-Lipschitz on `s`.
+Version with `deriv_within` and `lipschitz_on_with`. -/
+theorem convex.lipschitz_on_with_of_norm_deriv_within_le
+  {f : ℝ → F} {C : ℝ} {s : set ℝ} (hs : convex s)
+  (hf : differentiable_on ℝ f s) (bound : ∀x∈s, ∥deriv_within f s x∥ ≤ C) :
+  lipschitz_on_with (nnreal.of_real C) f s :=
+hs.lipschitz_on_with_of_norm_has_deriv_within_le (λ x hx, (hf x hx).has_deriv_within_at) bound
+
+/-- The mean value theorem on a convex set in dimension 1: if the derivative of a function is
 bounded by `C`, then the function is `C`-Lipschitz. Version with `deriv`. -/
 theorem convex.norm_image_sub_le_of_norm_deriv_le {f : ℝ → F} {C : ℝ} {s : set ℝ} {x y : ℝ}
   (hf : ∀ x ∈ s, differentiable_at ℝ f x) (bound : ∀x∈s, ∥deriv f x∥ ≤ C)
   (hs : convex s) (xs : x ∈ s) (ys : y ∈ s) : ∥f y - f x∥ ≤ C * ∥y - x∥ :=
 hs.norm_image_sub_le_of_norm_has_deriv_within_le
 (λ x hx, (hf x hx).has_deriv_at.has_deriv_within_at) bound xs ys
+
+/-- The mean value theorem on a convex set in dimension 1: if the derivative of a function is
+bounded by `C` on `s`, then the function is `C`-Lipschitz on `s`.
+Version with `deriv` and `lipschitz_on_with`. -/
+theorem convex.lipschitz_on_with_of_norm_deriv_le {f : ℝ → F} {C : ℝ} {s : set ℝ}
+  (hf : ∀ x ∈ s, differentiable_at ℝ f x) (bound : ∀x∈s, ∥deriv f x∥ ≤ C)
+  (hs : convex s) : lipschitz_on_with (nnreal.of_real C) f s :=
+hs.lipschitz_on_with_of_norm_has_deriv_within_le
+(λ x hx, (hf x hx).has_deriv_at.has_deriv_within_at) bound
 
 /-! ### Functions `[a, b] → ℝ`. -/
 
@@ -573,7 +629,37 @@ begin
   exact ⟨c, cmem, sub_eq_zero.1 hc⟩
 end
 
-omit hgc hgg'
+omit hfc hgc
+
+/-- Cauchy's Mean Value Theorem, extended `has_deriv_at` version. -/
+lemma exists_ratio_has_deriv_at_eq_ratio_slope' {lfa lga lfb lgb : ℝ}
+  (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hgg' : ∀ x ∈ Ioo a b, has_deriv_at g (g' x) x)
+  (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 lfa)) (hga : tendsto g (𝓝[Ioi a] a) (𝓝 lga))
+  (hfb : tendsto f (𝓝[Iio b] b) (𝓝 lfb)) (hgb : tendsto g (𝓝[Iio b] b) (𝓝 lgb)) :
+  ∃ c ∈ Ioo a b, (lgb - lga) * (f' c) = (lfb - lfa) * (g' c) :=
+begin
+  let h := λ x, (lgb - lga) * f x - (lfb - lfa) * g x,
+  have hha : tendsto h (𝓝[Ioi a] a) (𝓝 $ lgb * lfa - lfb * lga),
+  { have : tendsto h (𝓝[Ioi a] a)(𝓝 $ (lgb - lga) * lfa - (lfb - lfa) * lga) :=
+      (tendsto_const_nhds.mul hfa).sub (tendsto_const_nhds.mul hga),
+    convert this using 2,
+    ring },
+  have hhb : tendsto h (𝓝[Iio b] b) (𝓝 $ lgb * lfa - lfb * lga),
+  { have : tendsto h (𝓝[Iio b] b)(𝓝 $ (lgb - lga) * lfb - (lfb - lfa) * lgb) :=
+      (tendsto_const_nhds.mul hfb).sub (tendsto_const_nhds.mul hgb),
+    convert this using 2,
+    ring },
+  let h' := λ x, (lgb - lga) * f' x - (lfb - lfa) * g' x,
+  have hhh' : ∀ x ∈ Ioo a b, has_deriv_at h (h' x) x,
+  { intros x hx,
+    exact ((hff' x hx).const_mul _ ).sub (((hgg' x hx)).const_mul _) },
+  rcases exists_has_deriv_at_eq_zero' hab hha hhb hhh' with ⟨c, cmem, hc⟩,
+  exact ⟨c, cmem, sub_eq_zero.1 hc⟩
+end
+
+include hfc
+
+omit hgg'
 
 /-- Lagrange's Mean Value Theorem, `has_deriv_at` version -/
 lemma exists_has_deriv_at_eq_slope : ∃ c ∈ Ioo a b, f' c = (f b - f a) / (b - a) :=
@@ -595,6 +681,19 @@ exists_ratio_has_deriv_at_eq_ratio_slope f (deriv f) hab hfc
   (λ x hx, ((hfd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at)
   g (deriv g) hgc (λ x hx, ((hgd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at)
 
+omit hfc
+
+/-- Cauchy's Mean Value Theorem, extended `deriv` version. -/
+lemma exists_ratio_deriv_eq_ratio_slope' {lfa lga lfb lgb : ℝ}
+  (hdf : differentiable_on ℝ f $ Ioo a b) (hdg : differentiable_on ℝ g $ Ioo a b)
+  (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 lfa)) (hga : tendsto g (𝓝[Ioi a] a) (𝓝 lga))
+  (hfb : tendsto f (𝓝[Iio b] b) (𝓝 lfb)) (hgb : tendsto g (𝓝[Iio b] b) (𝓝 lgb)) :
+  ∃ c ∈ Ioo a b, (lgb - lga) * (deriv f c) = (lfb - lfa) * (deriv g c) :=
+exists_ratio_has_deriv_at_eq_ratio_slope' _ _ hab _ _
+  (λ x hx, ((hdf x hx).differentiable_at $ Ioo_mem_nhds hx.1 hx.2).has_deriv_at)
+  (λ x hx, ((hdg x hx).differentiable_at $ Ioo_mem_nhds hx.1 hx.2).has_deriv_at)
+  hfa hga hfb hgb
+
 /-- Lagrange's Mean Value Theorem, `deriv` version. -/
 lemma exists_deriv_eq_slope : ∃ c ∈ Ioo a b, deriv f c = (f b - f a) / (b - a) :=
 exists_has_deriv_at_eq_slope f (deriv f) hab hfc
@@ -612,7 +711,7 @@ theorem convex.mul_sub_lt_image_sub_of_lt_deriv {D : set ℝ} (hD : convex D) {f
   ∀ x y ∈ D, x < y → C * (y - x) < f y - f x :=
 begin
   assume x y hx hy hxy,
-  have hxyD : Icc x y ⊆ D, from convex_real_iff.1 hD hx hy,
+  have hxyD : Icc x y ⊆ D, from hD.ord_connected hx hy,
   have hxyD' : Ioo x y ⊆ interior D,
     from subset_sUnion_of_mem ⟨is_open_Ioo, subset.trans Ioo_subset_Icc_self hxyD⟩,
   obtain ⟨a, a_mem, ha⟩ : ∃ a ∈ Ioo x y, deriv f a = (f y - f x) / (y - x),
@@ -640,7 +739,7 @@ theorem convex.mul_sub_le_image_sub_of_le_deriv {D : set ℝ} (hD : convex D) {f
 begin
   assume x y hx hy hxy,
   cases eq_or_lt_of_le hxy with hxy' hxy', by rw [hxy', sub_self, sub_self, mul_zero],
-  have hxyD : Icc x y ⊆ D, from convex_real_iff.1 hD hx hy,
+  have hxyD : Icc x y ⊆ D, from hD.ord_connected hx hy,
   have hxyD' : Ioo x y ⊆ interior D,
     from subset_sUnion_of_mem ⟨is_open_Ioo, subset.trans Ioo_subset_Icc_self hxyD⟩,
   obtain ⟨a, a_mem, ha⟩ : ∃ a ∈ Ioo x y, deriv f a = (f y - f x) / (y - x),
@@ -785,7 +884,7 @@ convex_on_real_of_slope_mono_adjacent hD
 begin
   intros x y z hx hz hxy hyz,
   -- First we prove some trivial inclusions
-  have hxzD : Icc x z ⊆ D, from convex_real_iff.1 hD hx hz,
+  have hxzD : Icc x z ⊆ D, from hD.ord_connected hx hz,
   have hxyD : Icc x y ⊆ D, from subset.trans (Icc_subset_Icc_right $ le_of_lt hyz) hxzD,
   have hxyD' : Ioo x y ⊆ interior D,
     from subset_sUnion_of_mem ⟨is_open_Ioo, subset.trans Ioo_subset_Icc_self hxyD⟩,

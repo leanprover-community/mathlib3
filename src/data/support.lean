@@ -6,6 +6,7 @@ Authors: Yury Kudryashov
 import order.conditionally_complete_lattice
 import algebra.big_operators.basic
 import algebra.group.prod
+import algebra.group.pi
 
 /-!
 # Support of a function
@@ -26,7 +27,7 @@ def support [has_zero A] (f : α → A) : set α := {x | f x ≠ 0}
 
 lemma nmem_support [has_zero A] {f : α → A} {x : α} :
   x ∉ support f ↔ f x = 0 :=
-classical.not_not
+not_not
 
 lemma mem_support [has_zero A] {f : α → A} {x : α} :
   x ∈ support f ↔ f x ≠ 0 :=
@@ -39,6 +40,10 @@ iff.rfl
 lemma support_subset_iff' [has_zero A] {f : α → A} {s : set α} :
   support f ⊆ s ↔ ∀ x ∉ s, f x = 0 :=
 forall_congr $ λ x, by classical; exact not_imp_comm
+
+@[simp] lemma support_eq_empty_iff [has_zero A] {f : α → A} :
+  support f = ∅ ↔ f = 0 :=
+by { simp_rw [← subset_empty_iff, support_subset_iff', funext_iff], simp }
 
 lemma support_binop_subset [has_zero A] (op : A → A → A) (op0 : op 0 0 = 0) (f g : α → A) :
   support (λ x, op (f x) (g x)) ⊆ support f ∪ support g :=
@@ -137,7 +142,7 @@ set.ext $ λ x, not_congr hg
 
 lemma support_prod_mk [has_zero A] [has_zero B] (f : α → A) (g : α → B) :
   support (λ x, (f x, g x)) = support f ∪ support g :=
-set.ext $ λ x, by simp only [support, classical.not_and_distrib, mem_union_eq, mem_set_of_eq,
+set.ext $ λ x, by simp only [support, not_and_distrib, mem_union_eq, mem_set_of_eq,
   prod.mk_eq_zero, ne.def]
 
 end function

@@ -1,6 +1,6 @@
 import tactic.transport
 import order.bounded_lattice
-import algebra.lie_algebra
+import algebra.lie.basic
 
 -- We verify that `transport` can move a `semiring` across an equivalence.
 -- Note that we've never even mentioned the idea of addition or multiplication to `transport`.

@@ -84,6 +84,12 @@ mem_nhds_sets is_closed_singleton $ by rwa [mem_compl_eq, mem_singleton_iff]
   closure ({a} : set α) = {a} :=
 is_closed_singleton.closure_eq
 
+lemma is_closed_map_const {α β} [topological_space α] [topological_space β] [t1_space β] {y : β} :
+  is_closed_map (function.const α y) :=
+begin
+  apply is_closed_map.of_nonempty, intros s hs h2s, simp_rw [h2s.image_const, is_closed_singleton]
+end
+
 /-- A T₂ space, also known as a Hausdorff space, is one in which for every
   `x ≠ y` there exists disjoint open sets around `x` and `y`. This is
   the most widely used of the separation axioms. -/
@@ -182,12 +188,35 @@ are useful without a `nonempty α` instance.
 
 lemma Lim_eq {a : α} [ne_bot f] (h : f ≤ 𝓝 a) :
   @Lim _ _ ⟨a⟩ f = a :=
-tendsto_nhds_unique (Lim_spec ⟨a, h⟩) h
+tendsto_nhds_unique (le_nhds_Lim ⟨a, h⟩) h
 
-lemma filter.tendsto.lim_eq {a : α} {f : filter β} {g : β → α} (h : tendsto g f (𝓝 a))
-  [ne_bot f] :
+lemma Lim_eq_iff [ne_bot f] (h : ∃ (a : α), f ≤ nhds a) {a} : @Lim _ _ ⟨a⟩ f = a ↔ f ≤ 𝓝 a :=
+⟨λ c, c ▸ le_nhds_Lim h, Lim_eq⟩
+
+lemma is_ultrafilter.Lim_eq_iff_le_nhds [compact_space α] (x : α) (F : ultrafilter α) :
+  @Lim _ _ ⟨x⟩ F.1 = x ↔ F.1 ≤ 𝓝 x :=
+⟨λ h, h ▸ is_ultrafilter.le_nhds_Lim _, Lim_eq⟩
+
+lemma is_open_iff_ultrafilter' [compact_space α] (U : set α) :
+  is_open U ↔ (∀ F : ultrafilter α, F.Lim ∈ U → U ∈ F.1) :=
+begin
+  rw is_open_iff_ultrafilter,
+  refine ⟨λ h F hF, h _ hF _ F.2 (is_ultrafilter.le_nhds_Lim _), _⟩,
+  intros cond x hx f hf h,
+  let F : ultrafilter α := ⟨f, hf⟩,
+  change F.1 ≤ _ at h,
+  rw ←is_ultrafilter.Lim_eq_iff_le_nhds at h,
+  rw ←h at *,
+  exact cond _ hx
+end
+
+lemma filter.tendsto.lim_eq {a : α} {f : filter β} [ne_bot f] {g : β → α} (h : tendsto g f (𝓝 a)) :
   @lim _ _ _ ⟨a⟩ f g = a :=
 Lim_eq h
+
+lemma filter.lim_eq_iff {f : filter β} [ne_bot f] {g : β → α} (h : ∃ a, tendsto g f (𝓝 a)) {a} :
+  @lim _ _ _ ⟨a⟩ f g = a ↔ tendsto g f (𝓝 a) :=
+⟨λ c, c ▸ tendsto_nhds_lim h, filter.tendsto.lim_eq⟩
 
 lemma continuous.lim_eq [topological_space β] {f : β → α} (h : continuous f) (a : β) :
   @lim _ _ _ ⟨f a⟩ (𝓝 a) f = f a :=
@@ -200,12 +229,12 @@ Lim_eq (le_refl _)
 Lim_nhds a
 
 @[simp] lemma Lim_nhds_within {a : α} {s : set α} (h : a ∈ closure s) :
-  @Lim _ _ ⟨a⟩ (nhds_within a s) = a :=
-by haveI : ne_bot (nhds_within a s) := mem_closure_iff_cluster_pt.1 h;
+  @Lim _ _ ⟨a⟩ (𝓝[s] a) = a :=
+by haveI : ne_bot (𝓝[s] a) := mem_closure_iff_cluster_pt.1 h;
 exact Lim_eq inf_le_left
 
 @[simp] lemma lim_nhds_within_id {a : α} {s : set α} (h : a ∈ closure s) :
-  @lim _ _ _ ⟨a⟩ (nhds_within a s) id = a :=
+  @lim _ _ _ ⟨a⟩ (𝓝[s] a) id = a :=
 Lim_nhds_within h
 
 end lim
@@ -247,6 +276,18 @@ lemma is_closed_eq [t2_space α] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : is_closed {x:β | f x = g x} :=
 continuous_iff_is_closed.mp (hf.prod_mk hg) _ is_closed_diagonal
 
+/-- If two continuous maps are equal on `s`, then they are equal on the closure of `s`. -/
+lemma set.eq_on.closure [t2_space α] {s : set β} {f g : β → α} (h : eq_on f g s)
+  (hf : continuous f) (hg : continuous g) :
+  eq_on f g (closure s) :=
+closure_minimal h (is_closed_eq hf hg)
+
+/-- If two continuous functions are equal on a dense set, then they are equal. -/
+lemma continuous.ext_on [t2_space α] {s : set β} (hs : dense s) {f g : β → α}
+  (hf : continuous f) (hg : continuous g) (h : eq_on f g s) :
+  f = g :=
+funext $ λ x, h.closure hf hg (hs x)
+
 lemma diagonal_eq_range_diagonal_map {α : Type*} : {p:α×α | p.1 = p.2} = range (λx, (x,x)) :=
 ext $ assume p, iff.intro
   (assume h, ⟨p.1, prod.ext_iff.2 ⟨rfl, h⟩⟩)
@@ -263,6 +304,7 @@ lemma compact_compact_separated [t2_space α] {s t : set α}
 by simp only [prod_subset_compl_diagonal_iff_disjoint.symm] at ⊢ hst;
    exact generalized_tube_lemma hs ht is_closed_diagonal hst
 
+/-- In a `t2_space`, every compact set is closed. -/
 lemma is_compact.is_closed [t2_space α] {s : set α} (hs : is_compact s) : is_closed s :=
 is_open_compl_iff.mpr $ is_open_iff_forall_mem_open.mpr $ assume x hx,
   let ⟨u, v, uo, vo, su, xv, uv⟩ :=
@@ -292,30 +334,26 @@ open finset function
 /-- For every finite open cover `Uᵢ` of a compact set, there exists a compact cover `Kᵢ ⊆ Uᵢ`. -/
 lemma is_compact.finite_compact_cover [t2_space α] {s : set α} (hs : is_compact s) {ι} (t : finset ι)
   (U : ι → set α) (hU : ∀ i ∈ t, is_open (U i)) (hsC : s ⊆ ⋃ i ∈ t, U i) :
-  ∃ K : ι → set α, (∀ i ∈ t, is_compact (K i) ∧ K i ⊆ U i) ∧ s = ⋃ i ∈ t, K i :=
+  ∃ K : ι → set α, (∀ i, is_compact (K i)) ∧ (∀i, K i ⊆ U i) ∧ s = ⋃ i ∈ t, K i :=
 begin
   classical,
   induction t using finset.induction with x t hx ih generalizing U hU s hs hsC,
-  { refine ⟨λ _, ∅, λ i _, ⟨compact_empty, empty_subset _⟩, _⟩, simpa only [subset_empty_iff,
+  { refine ⟨λ _, ∅, λ i, compact_empty, λ i, empty_subset _, _⟩, simpa only [subset_empty_iff,
       finset.not_mem_empty, Union_neg, Union_empty, not_false_iff] using hsC },
   simp only [finset.bUnion_insert] at hsC,
   simp only [finset.mem_insert] at hU,
   have hU' : ∀ i ∈ t, is_open (U i) := λ i hi, hU i (or.inr hi),
   rcases hs.binary_compact_cover (hU x (or.inl rfl)) (is_open_bUnion hU') hsC
     with ⟨K₁, K₂, h1K₁, h1K₂, h2K₁, h2K₂, hK⟩,
-  rcases ih U hU' h1K₂ h2K₂ with ⟨K, h1K, h2K⟩,
-  refine ⟨update K x K₁, _, _⟩,
-  { intros i hi, simp only [finset.mem_insert] at hi, rcases hi with rfl|hi,
-    simpa only [update_same, h1K₁, true_and] using h2K₁,
-    rw [update_noteq], exact h1K i hi, rintro rfl, exact hx hi },
-  { ext y, simp only [exists_prop, mem_Union, mem_union_eq, finset.bUnion_insert, update_same, hK],
-    split,
-    { rintro (hy|hy), exact or.inl hy,
-      simp only [h2K, mem_Union, subtype.exists] at hy, rcases hy with ⟨i, h1i, h2i⟩,
-      refine or.inr ⟨i, h1i, _⟩, rw [update_noteq], exact h2i, rintro rfl, exact hx h1i },
-    { rintro (hy|⟨i, h1i, h2i⟩), exact or.inl hy,
-      rw [h2K], simp only [exists_prop, mem_Union], rw [update_noteq] at h2i,
-      exact or.inr ⟨i, h1i, h2i⟩, rintro rfl, exact hx h1i }}
+  rcases ih U hU' h1K₂ h2K₂ with ⟨K, h1K, h2K, h3K⟩,
+  refine ⟨update K x K₁, _, _, _⟩,
+  { intros i, by_cases hi : i = x,
+    { simp only [update_same, hi, h1K₁] },
+    { rw [← ne.def] at hi, simp only [update_noteq hi, h1K] }},
+  { intros i, by_cases hi : i = x,
+    { simp only [update_same, hi, h2K₁] },
+    { rw [← ne.def] at hi, simp only [update_noteq hi, h2K] }},
+  { simp only [bUnion_insert_update _ hx, hK, h3K] }
 end
 end
 
@@ -373,19 +411,16 @@ end separation
 
 section regularity
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A T₃ space, also known as a regular space (although this condition sometimes
   omits T₂), is one in which for every closed `C` and `x ∉ C`, there exist
   disjoint open sets containing `x` and `C` respectively. -/
 class regular_space (α : Type u) [topological_space α] extends t1_space α : Prop :=
-(regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝 a ⊓ 𝓟 t = ⊥)
-end prio
+(regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝[t] a = ⊥)
 
 lemma nhds_is_closed [regular_space α] {a : α} {s : set α} (h : s ∈ 𝓝 a) :
   ∃t∈(𝓝 a), t ⊆ s ∧ is_closed t :=
 let ⟨s', h₁, h₂, h₃⟩ := mem_nhds_sets_iff.mp h in
-have ∃t, is_open t ∧ s'ᶜ ⊆ t ∧ 𝓝 a ⊓ 𝓟 t = ⊥,
+have ∃t, is_open t ∧ s'ᶜ ⊆ t ∧ 𝓝[t] a = ⊥,
   from regular_space.regular (is_closed_compl_iff.mpr h₂) (not_not_intro h₃),
 let ⟨t, ht₁, ht₂, ht₃⟩ := this in
 ⟨tᶜ,
@@ -404,7 +439,7 @@ instance subtype.regular_space [regular_space α] {p : α → Prop} : regular_sp
    rcases is_closed_induced_iff.1 hs with ⟨s, hs', rfl⟩,
    rcases regular_space.regular hs' ha with ⟨t, ht, hst, hat⟩,
    refine ⟨coe ⁻¹' t, is_open_induced ht, preimage_mono hst, _⟩,
-   rw [nhds_induced, ← comap_principal, ← comap_inf, hat, comap_bot]
+   rw [nhds_within, nhds_induced, ← comap_principal, ← comap_inf, ← nhds_within, hat, comap_bot]
  end⟩
 
 variable (α)
@@ -436,15 +471,12 @@ end regularity
 
 section normality
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A T₄ space, also known as a normal space (although this condition sometimes
   omits T₂), is one in which for every pair of disjoint closed sets `C` and `D`,
   there exist disjoint open sets containing `C` and `D` respectively. -/
 class normal_space (α : Type u) [topological_space α] extends t1_space α : Prop :=
 (normal : ∀ s t : set α, is_closed s → is_closed t → disjoint s t →
   ∃ u v, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v)
-end prio
 
 theorem normal_separation [normal_space α] (s t : set α)
   (H1 : is_closed s) (H2 : is_closed t) (H3 : disjoint s t) :

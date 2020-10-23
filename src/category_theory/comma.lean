@@ -14,11 +14,13 @@ with a common codomain. Specifically, for functors `L : A ⥤ T` and `R : B ⥤ 
 `right : B`, and a morphism in `comma L R` between `hom : L.obj left ⟶ R.obj right` and
 `hom' : L.obj left' ⟶ R.obj right'` is a commutative square
 
+```
 L.obj left   ⟶   L.obj left'
       |               |
   hom |               | hom'
       ↓               ↓
 R.obj right  ⟶   R.obj right',
+```
 
 where the top and bottom morphism come from morphisms `left ⟶ left'` and `right ⟶ right'`,
 respectively.
@@ -32,7 +34,7 @@ respectively.
 
 ## References
 
-* https://ncatlab.org/nlab/show/comma+category
+* <https://ncatlab.org/nlab/show/comma+category>
 
 ## Tags
 
@@ -126,6 +128,19 @@ def nat_trans : fst L R ⋙ L ⟶ snd L R ⋙ R :=
 
 section
 variables {L₁ L₂ L₃ : A ⥤ T} {R₁ R₂ R₃ : B ⥤ T}
+
+/--
+Construct an isomorphism in the comma category given isomorphisms of the objects whose forward
+directions give a commutative square.
+-/
+@[simps]
+def iso_mk {X Y : comma L₁ R₁} (l : X.left ≅ Y.left) (r : X.right ≅ Y.right)
+  (h : L₁.map l.hom ≫ Y.hom = X.hom ≫ R₁.map r.hom) : X ≅ Y :=
+{ hom := { left := l.hom, right := r.hom },
+  inv :=
+  { left := l.inv,
+    right := r.inv,
+    w' := by { erw [L₁.map_inv l.hom, iso.inv_comp_eq, reassoc_of h, ← R₁.map_comp], simp } } }
 
 /-- A natural transformation `L₁ ⟶ L₂` induces a functor `comma L₂ R ⥤ comma L₁ R`. -/
 @[simps]

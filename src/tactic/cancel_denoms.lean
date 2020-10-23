@@ -57,7 +57,7 @@ lemma cancel_factors_lt {α} [linear_ordered_field α] {a b ad bd a' b' gcd : α
 begin
   rw [mul_lt_mul_left, ←ha, ←hb, ←mul_assoc, ←mul_assoc, mul_comm bd, mul_lt_mul_left],
   exact mul_pos had hbd,
-  exact one_div_pos_of_pos hgcd
+  exact one_div_pos.2 hgcd
 end
 
 lemma cancel_factors_le {α} [linear_ordered_field α] {a b ad bd a' b' gcd : α} (ha : ad*a = a')
@@ -66,7 +66,7 @@ lemma cancel_factors_le {α} [linear_ordered_field α] {a b ad bd a' b' gcd : α
 begin
   rw [mul_le_mul_left, ←ha, ←hb, ←mul_assoc, ←mul_assoc, mul_comm bd, mul_le_mul_left],
   exact mul_pos had hbd,
-  exact one_div_pos_of_pos hgcd
+  exact one_div_pos.2 hgcd
 end
 
 lemma cancel_factors_eq {α} [linear_ordered_field α] {a b ad bd a' b' gcd : α} (ha : ad*a = a')

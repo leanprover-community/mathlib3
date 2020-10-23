@@ -92,7 +92,7 @@ polynomial.induction_on p (λ x, by { rw aeval_C, refl })
 
 theorem adjoin_root_eq_top : algebra.adjoin R ({root f} : set (adjoin_root f)) = ⊤ :=
 algebra.eq_top_iff.2 $ λ x, induction_on f x $ λ p,
-(algebra.adjoin_singleton_eq_range R (root f)).symm ▸ ⟨p, aeval_eq p⟩
+(algebra.adjoin_singleton_eq_range R (root f)).symm ▸ ⟨p, set.mem_univ _, aeval_eq p⟩
 
 @[simp] lemma eval₂_root (f : polynomial R) : f.eval₂ (of f) (root f) = 0 :=
 by rw [← algebra_map_eq, ← aeval_def, aeval_eq, mk_self]
@@ -123,6 +123,16 @@ by rw [← mk_C x, lift_mk, eval₂_C]
 
 @[simp] lemma lift_comp_of : (lift i a h).comp (of f) = i :=
 ring_hom.ext $ λ _, @lift_of _ _ _ _ _ _ _ h _
+
+/-- Produce an algebra homomorphism `adjoin_root f →ₐ[R] S` sending `root f` to
+a root of `f` in `S`. -/
+def alg_hom [algebra R S] (f : polynomial R) (x : S) (hfx : aeval x f = 0) : adjoin_root f →ₐ[R] S :=
+{ commutes' := λ r, show lift _ _ hfx r = _, from lift_of,
+  .. lift (algebra_map R S) x hfx }
+
+@[simp] lemma coe_alg_hom [algebra R S] (f : polynomial R) (x : S) (hfx : aeval x f = 0) :
+  (alg_hom f x hfx : adjoin_root f →+* S) = lift (algebra_map R S) x hfx :=
+rfl
 
 end comm_ring
 

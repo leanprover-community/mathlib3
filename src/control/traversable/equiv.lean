@@ -19,9 +19,15 @@ variables [functor t]
 
 open functor
 
+/-- Given a functor `t`, a function `t' : Type u → Type u`, and
+equivalences `t α ≃ t' α` for all `α`, then every function `α → β` can
+be mapped to a function `t' α → t' β` functorially (see
+`equiv.functor`). -/
 protected def map {α β : Type u} (f : α → β) (x : t' α) : t' β :=
 eqv β $ map f ((eqv α).symm x)
 
+/-- The function `equiv.map` transfers the functoriality of `t` to
+`t'` using the equivalences `eqv`.  -/
 protected def functor : functor t' :=
 { map := @equiv.map _ }
 
@@ -59,9 +65,14 @@ variables [traversable t]
 variables {m : Type u → Type u} [applicative m]
 variables {α β : Type u}
 
+/-- Like `equiv.map`, a function `t' : Type u → Type u` can be given
+the structure of a traversable functor using a traversable functor
+`t'` and equivalences `t α ≃ t' α` for all α.  See `equiv.traversable`. -/
 protected def traverse (f : α → m β) (x : t' α) : m (t' β) :=
 eqv β <$> traverse f ((eqv α).symm x)
 
+/-- The function `equiv.tranverse` transfers a traversable functor
+instance across the equivalences `eqv`. -/
 protected def traversable : traversable t' :=
 { to_functor := equiv.functor eqv,
   traverse := @equiv.traverse _ }
@@ -96,6 +107,9 @@ protected lemma naturality (f : α → F β) (x : t' α) :
   η (equiv.traverse eqv f x) = equiv.traverse eqv (@η _ ∘ f) x :=
 by simp only [equiv.traverse] with functor_norm
 
+/-- The fact that `t` is a lawful traversable functor carries over the
+equivalences to `t'`, with the traversable functor structure given by
+`equiv.traversable`. -/
 protected def is_lawful_traversable :
   @is_lawful_traversable t' (equiv.traversable eqv) :=
 { to_is_lawful_functor := @equiv.is_lawful_functor _ _ eqv _ _,
@@ -104,12 +118,18 @@ protected def is_lawful_traversable :
   traverse_eq_map_id := @equiv.traverse_eq_map_id _ _,
   naturality := @equiv.naturality _ _ }
 
+/-- If the `traversable t'` instance has the properties that `map`,
+`map_const`, and `traverse` are equal to the ones that come from
+carrying the traversable functor structure from `t` over the
+equivalences, then the the fact `t` is a lawful traversable functor
+carries over as well. -/
 protected def is_lawful_traversable' [_i : traversable t']
   (h₀ : ∀ {α β} (f : α → β),
          map f = equiv.map eqv f)
   (h₁ : ∀ {α β} (f : β),
          map_const f = (equiv.map eqv ∘ function.const α) f)
-  (h₂ : ∀ {F : Type u → Type u} [applicative F] [is_lawful_applicative F]
+  (h₂ : ∀ {F : Type u → Type u} [applicative F],
+        by exactI ∀ [is_lawful_applicative F]
           {α β} (f : α → F β),
          traverse f = equiv.traverse eqv f) :
   _root_.is_lawful_traversable t' :=

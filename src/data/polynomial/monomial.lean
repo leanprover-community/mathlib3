@@ -25,7 +25,7 @@ variables [semiring R] {p q r : polynomial R}
 `C a` is the constant polynomial `a`.
 `C` is provided as a ring homomorphism.
 -/
-def C : R →+* polynomial R := add_monoid_algebra.algebra_map' (ring_hom.id R)
+def C : R →+* polynomial R := add_monoid_algebra.single_zero_ring_hom
 
 @[simp] lemma monomial_zero_left (a : R) : monomial 0 a = C a := rfl
 
@@ -68,7 +68,24 @@ lemma single_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
     ... = (C a * X^n) * X : by rw [single_eq_C_mul_X]
     ... = C a * X^(n+1) : by simp only [pow_add, mul_assoc, pow_one]
 
-lemma C_inj : C a = C b ↔ a = b :=
+@[simp] lemma C_inj : C a = C b ↔ a = b :=
 ⟨λ h, coeff_C_zero.symm.trans (h.symm ▸ coeff_C_zero), congr_arg C⟩
+
+@[simp] lemma C_eq_zero : C a = 0 ↔ a = 0 :=
+calc C a = 0 ↔ C a = C 0 : by rw C_0
+         ... ↔ a = 0 : C_inj
+
+instance [nontrivial R] : infinite (polynomial R) :=
+infinite.of_injective (λ i, monomial i 1)
+begin
+  intros m n h,
+  have := (single_eq_single_iff _ _ _ _).mp h,
+  simpa only [and_true, eq_self_iff_true, or_false, one_ne_zero, and_self],
+end
+
+lemma monomial_eq_smul_X {n} : monomial n (a : R) = a • X^n :=
+calc monomial n a = monomial n (a * 1) : by simp
+  ... = a • monomial n 1 : (smul_single' _ _ _).symm
+  ... = a • X^n  : by rw X_pow_eq_monomial
 
 end polynomial

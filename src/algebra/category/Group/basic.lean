@@ -41,8 +41,10 @@ attribute [derive [has_coe_to_sort, large_category, concrete_category]] Group Ad
 /-- Construct a bundled `AddGroup` from the underlying type and typeclass. -/
 add_decl_doc AddGroup.of
 
-@[to_additive add_group]
+@[to_additive]
 instance (G : Group) : group G := G.str
+
+@[simp, to_additive] lemma coe_of (R : Type u) [group R] : (Group.of R : Type u) = R := rfl
 
 @[to_additive]
 instance : has_one Group := ⟨Group.of punit⟩
@@ -92,8 +94,10 @@ attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommGrou
 /-- Construct a bundled `AddCommGroup` from the underlying type and typeclass. -/
 add_decl_doc AddCommGroup.of
 
-@[to_additive add_comm_group_instance]
+@[to_additive]
 instance comm_group_instance (G : CommGroup) : comm_group G := G.str
+
+@[simp, to_additive] lemma coe_of (R : Type u) [comm_group R] : (CommGroup.of R : Type u) = R := rfl
 
 @[to_additive] instance : has_one CommGroup := ⟨CommGroup.of punit⟩
 
@@ -199,25 +203,17 @@ namespace category_theory.iso
 @[to_additive AddGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category
 `AddGroup`."]
 def Group_iso_to_mul_equiv {X Y : Group} (i : X ≅ Y) : X ≃* Y :=
-{ to_fun    := i.hom,
-  inv_fun   := i.inv,
-  left_inv  := by tidy,
-  right_inv := by tidy,
-  map_mul'  := by tidy }.
+i.hom.to_mul_equiv i.inv i.hom_inv_id i.inv_hom_id
 
-attribute [simps] Group_iso_to_mul_equiv AddGroup_iso_to_add_equiv
+attribute [simps {rhs_md := semireducible}] Group_iso_to_mul_equiv AddGroup_iso_to_add_equiv
 
 /-- Build a `mul_equiv` from an isomorphism in the category `CommGroup`. -/
 @[to_additive AddCommGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism
 in the category `AddCommGroup`."]
 def CommGroup_iso_to_mul_equiv {X Y : CommGroup} (i : X ≅ Y) : X ≃* Y :=
-{ to_fun    := i.hom,
-  inv_fun   := i.inv,
-  left_inv  := by tidy,
-  right_inv := by tidy,
-  map_mul'  := by tidy }.
+i.hom.to_mul_equiv i.inv i.hom_inv_id i.inv_hom_id
 
-attribute [simps] CommGroup_iso_to_mul_equiv AddCommGroup_iso_to_add_equiv
+attribute [simps {rhs_md := semireducible}] CommGroup_iso_to_mul_equiv AddCommGroup_iso_to_add_equiv
 
 end category_theory.iso
 
@@ -253,3 +249,23 @@ def mul_equiv_perm {α : Type u} : Aut α ≃* equiv.perm α :=
 iso_perm.Group_iso_to_mul_equiv
 
 end category_theory.Aut
+
+@[to_additive]
+instance Group.forget_reflects_isos : reflects_isomorphisms (forget Group.{u}) :=
+{ reflects := λ X Y f _,
+  begin
+    resetI,
+    let i := as_iso ((forget Group).map f),
+    let e : X ≃* Y := { ..f, ..i.to_equiv },
+    exact { ..e.to_Group_iso },
+  end }
+
+@[to_additive]
+instance CommGroup.forget_reflects_isos : reflects_isomorphisms (forget CommGroup.{u}) :=
+{ reflects := λ X Y f _,
+  begin
+    resetI,
+    let i := as_iso ((forget CommGroup).map f),
+    let e : X ≃* Y := { ..f, ..i.to_equiv },
+    exact { ..e.to_CommGroup_iso },
+  end }

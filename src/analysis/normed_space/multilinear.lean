@@ -111,7 +111,7 @@ begin
   by a power of a scalar `c` with norm `∥c∥ > 1`.-/
   by_cases h : ∃i, m i = 0,
   { rcases h with ⟨i, hi⟩,
-    rw [f.map_coord_zero i hi, _root_.norm_zero],
+    rw [f.map_coord_zero i hi, norm_zero],
     exact mul_nonneg (le_of_lt C_pos) (prod_nonneg (λi hi, norm_nonneg _)) },
   { push_neg at h,
     have : ∀i, ∃d:𝕜, d ≠ 0 ∧ ∥d • m i∥ ≤ δ ∧ (δ/∥c∥ ≤ ∥d • m i∥) ∧ (∥d∥⁻¹ ≤ δ⁻¹ * ∥c∥ * ∥m i∥) :=
@@ -122,10 +122,10 @@ begin
     -- use the bound on `f` on the ball of size `δ` to conclude.
     calc
       ∥f m∥ = ∥f (λi, (d i)⁻¹ • (d i • m i))∥ :
-        by { unfold_coes, congr, ext i, rw [← mul_smul, inv_mul_cancel (hd i).1, one_smul] }
+        by { unfold_coes, congr' with i, rw [← mul_smul, inv_mul_cancel (hd i).1, one_smul] }
       ... = ∥(∏ i, (d i)⁻¹) • f (λi, d i • m i)∥ : by rw f.map_smul_univ
       ... = (∏ i, ∥d i∥⁻¹) * ∥f (λi, d i • m i)∥ :
-        by { rw [norm_smul, normed_field.norm_prod], congr, ext i, rw normed_field.norm_inv }
+        by { rw [norm_smul, normed_field.norm_prod], congr' with i, rw normed_field.norm_inv }
       ... ≤ (∏ i, ∥d i∥⁻¹) * (1 + ∥f 0∥) :
         mul_le_mul_of_nonneg_left (H ((pi_norm_le_iff (le_of_lt δ_pos)).2 (λi, (hd i).2.1)))
           (prod_nonneg B)
@@ -252,32 +252,14 @@ lemma restr_norm_le {k n : ℕ} (f : (multilinear_map 𝕜 (λ i : fin n, G) E�
   (s : finset (fin n)) (hk : s.card = k) (z : G) {C : ℝ}
   (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) (v : fin k → G) :
   ∥f.restr s hk z v∥ ≤ C * ∥z∥ ^ (n - k) * ∏ i, ∥v i∥ :=
-calc ∥f.restr s hk z v∥
-≤ C * ∏ j, ∥(if h : j ∈ s then v ((s.mono_equiv_of_fin hk).symm ⟨j, h⟩) else z)∥ : H _
-... = C * ((∏ j in finset.univ \ s,
-        ∥(if h : j ∈ s then v ((s.mono_equiv_of_fin hk).symm ⟨j, h⟩) else z)∥)
-      * (∏ j in s,
-        ∥(if h : j ∈ s then v ((s.mono_equiv_of_fin hk).symm ⟨j, h⟩) else z)∥)) :
-  by rw ← finset.prod_sdiff (finset.subset_univ _)
-... = C * (∥z∥ ^ (n - k) * ∏ i, ∥v i∥) :
-  begin
-    congr' 2,
-    { have : ∥z∥ ^ (n - k) = ∏ j in finset.univ \ s, ∥z∥,
-        by simp [finset.card_sdiff  (finset.subset_univ _), hk],
-      rw this,
-      exact finset.prod_congr rfl (λ i hi, by rw dif_neg (finset.mem_sdiff.1 hi).2) },
-    { apply finset.prod_bij (λ (i : fin n) (hi : i ∈ s), (s.mono_equiv_of_fin hk).symm ⟨i, hi⟩),
-      { exact λ _ _, finset.mem_univ _ },
-      { exact λ i hi, by simp [hi] },
-      { exact λ i j hi hi hij, subtype.mk.inj ((s.mono_equiv_of_fin hk).symm.injective hij) },
-      { assume i hi,
-        rcases (s.mono_equiv_of_fin hk).symm.surjective i with ⟨j, hj⟩,
-        refine ⟨j.1, j.2, _⟩,
-        unfold_coes,
-        convert hj.symm,
-        rw subtype.ext_iff_val } }
-  end
-... = C * ∥z∥ ^ (n - k) * ∏ i, ∥v i∥ : by rw mul_assoc
+begin
+  rw mul_assoc,
+  convert H _ using 2,
+  simp only [apply_dite norm, fintype.prod_dite, prod_const (∥z∥), finset.card_univ,
+    fintype.card_of_subtype sᶜ (λ x, mem_compl), card_compl, fintype.card_fin, hk, mk_coe,
+    (s.mono_equiv_of_fin hk).symm.prod_comp (λ x, ∥v x∥)],
+  apply mul_comm
+end
 
 end multilinear_map
 
@@ -328,8 +310,9 @@ begin
     rw [this, norm_zero],
     exact mul_nonneg (op_norm_nonneg f) A },
   { have hlt : 0 < ∏ i, ∥m i∥ := lt_of_le_of_ne A (ne.symm h),
-    exact le_mul_of_div_le hlt ((le_Inf _ bounds_nonempty bounds_bdd_below).2
-      (λ c ⟨_, hc⟩, div_le_of_le_mul hlt (begin rw mul_comm, apply hc, end))) }
+    rw [← div_le_iff hlt],
+    apply (le_Inf _ bounds_nonempty bounds_bdd_below).2,
+    rintro c ⟨_, hc⟩, rw [div_le_iff hlt], apply hc }
 end
 
 lemma ratio_le_op_norm : ∥f m∥ / ∏ i, ∥m i∥ ≤ ∥f∥ :=
@@ -373,9 +356,6 @@ begin
     rw h,
     simp }
 end
-
-@[simp] lemma norm_zero : ∥(0 : continuous_multilinear_map 𝕜 E₁ E₂)∥ = 0 :=
-by rw op_norm_zero_iff
 
 lemma op_norm_smul_le : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
 (Inf_le _ bounds_bdd_below
@@ -559,6 +539,112 @@ begin
   exact mul_nonneg (norm_nonneg _) (pow_nonneg (norm_nonneg _) _)
 end
 
+section
+
+variables (𝕜 ι) (A : Type*) [normed_comm_ring A] [normed_algebra 𝕜 A]
+
+/-- The continuous multilinear map on `A^ι`, where `A` is a normed commutative algebra
+over `𝕜`, associating to `m` the product of all the `m i`.
+
+See also `continuous_multilinear_map.mk_pi_algebra_fin`. -/
+protected def mk_pi_algebra : continuous_multilinear_map 𝕜 (λ i : ι, A) A :=
+@multilinear_map.mk_continuous 𝕜 ι (λ i : ι, A) A _ _ _ _ _ _ _
+  (multilinear_map.mk_pi_algebra 𝕜 ι A) (if nonempty ι then 1 else ∥(1 : A)∥) $
+  begin
+    intro m,
+    by_cases hι : nonempty ι,
+    { resetI, simp [hι, norm_prod_le' univ univ_nonempty] },
+    { simp [eq_empty_of_not_nonempty hι univ, hι] }
+  end
+
+variables {A 𝕜 ι}
+
+@[simp] lemma mk_pi_algebra_apply (m : ι → A) :
+  continuous_multilinear_map.mk_pi_algebra 𝕜 ι A m = ∏ i, m i :=
+rfl
+
+lemma norm_mk_pi_algebra_le [nonempty ι] :
+  ∥continuous_multilinear_map.mk_pi_algebra 𝕜 ι A∥ ≤ 1 :=
+calc ∥continuous_multilinear_map.mk_pi_algebra 𝕜 ι A∥ ≤ if nonempty ι then 1 else ∥(1 : A)∥ :
+  multilinear_map.mk_continuous_norm_le _ (by split_ifs; simp [zero_le_one]) _
+... = _ : if_pos ‹_›
+
+lemma norm_mk_pi_algebra_of_empty (h : ¬nonempty ι) :
+  ∥continuous_multilinear_map.mk_pi_algebra 𝕜 ι A∥ = ∥(1 : A)∥ :=
+begin
+  apply le_antisymm,
+  calc ∥continuous_multilinear_map.mk_pi_algebra 𝕜 ι A∥ ≤ if nonempty ι then 1 else ∥(1 : A)∥ :
+    multilinear_map.mk_continuous_norm_le _ (by split_ifs; simp [zero_le_one]) _
+  ... = ∥(1 : A)∥ : if_neg ‹_›,
+  convert ratio_le_op_norm _ (λ _, 1); [skip, apply_instance],
+  simp [eq_empty_of_not_nonempty h univ]
+end
+
+@[simp] lemma norm_mk_pi_algebra [norm_one_class A] :
+  ∥continuous_multilinear_map.mk_pi_algebra 𝕜 ι A∥ = 1 :=
+begin
+  by_cases hι : nonempty ι,
+  { resetI,
+    refine le_antisymm norm_mk_pi_algebra_le _,
+    convert ratio_le_op_norm _ (λ _, 1); [skip, apply_instance],
+    simp },
+  { simp [norm_mk_pi_algebra_of_empty hι] }
+end
+
+end
+
+section
+
+variables (𝕜 n) (A : Type*) [normed_ring A] [normed_algebra 𝕜 A]
+
+/-- The continuous multilinear map on `A^n`, where `A` is a normed algebra over `𝕜`, associating to
+`m` the product of all the `m i`.
+
+See also: `multilinear_map.mk_pi_algebra`. -/
+protected def mk_pi_algebra_fin : continuous_multilinear_map 𝕜 (λ i : fin n, A) A :=
+@multilinear_map.mk_continuous 𝕜 (fin n) (λ i : fin n, A) A _ _ _ _ _ _ _
+  (multilinear_map.mk_pi_algebra_fin 𝕜 n A) (nat.cases_on n ∥(1 : A)∥ (λ _, 1)) $
+  begin
+    intro m,
+    cases n,
+    { simp },
+    { have : @list.of_fn A n.succ m ≠ [] := by simp,
+      simpa [← fin.prod_of_fn] using list.norm_prod_le' this }
+  end
+
+variables {A 𝕜 n}
+
+@[simp] lemma mk_pi_algebra_fin_apply (m : fin n → A) :
+  continuous_multilinear_map.mk_pi_algebra_fin 𝕜 n A m = (list.of_fn m).prod :=
+rfl
+
+lemma norm_mk_pi_algebra_fin_succ_le :
+  ∥continuous_multilinear_map.mk_pi_algebra_fin 𝕜 n.succ A∥ ≤ 1 :=
+multilinear_map.mk_continuous_norm_le _ zero_le_one _
+
+lemma norm_mk_pi_algebra_fin_le_of_pos (hn : 0 < n) :
+  ∥continuous_multilinear_map.mk_pi_algebra_fin 𝕜 n A∥ ≤ 1 :=
+by cases n; [exact hn.false.elim, exact norm_mk_pi_algebra_fin_succ_le]
+
+lemma norm_mk_pi_algebra_fin_zero :
+  ∥continuous_multilinear_map.mk_pi_algebra_fin 𝕜 0 A∥ = ∥(1 : A)∥ :=
+begin
+  refine le_antisymm (multilinear_map.mk_continuous_norm_le _ (norm_nonneg _) _) _,
+  convert ratio_le_op_norm _ (λ _, 1); [simp, apply_instance]
+end
+
+lemma norm_mk_pi_algebra_fin [norm_one_class A] :
+  ∥continuous_multilinear_map.mk_pi_algebra_fin 𝕜 n A∥ = 1 :=
+begin
+  cases n,
+  { simp [norm_mk_pi_algebra_fin_zero] },
+  { refine le_antisymm norm_mk_pi_algebra_fin_succ_le _,
+    convert ratio_le_op_norm _ (λ _, 1); [skip, apply_instance],
+    simp }
+end
+
+end
+
 variables (𝕜 ι)
 
 /-- The canonical continuous multilinear map on `𝕜^ι`, associating to `m` the product of all the
@@ -573,14 +659,9 @@ variables {𝕜 ι}
 @[simp] lemma mk_pi_field_apply (z : E₂) (m : ι → 𝕜) :
   (continuous_multilinear_map.mk_pi_field 𝕜 ι z : (ι → 𝕜) → E₂) m = (∏ i, m i) • z := rfl
 
-lemma mk_pi_ring_apply_one_eq_self (f : continuous_multilinear_map 𝕜 (λ(i : ι), 𝕜) E₂) :
+lemma mk_pi_field_apply_one_eq_self (f : continuous_multilinear_map 𝕜 (λ(i : ι), 𝕜) E₂) :
   continuous_multilinear_map.mk_pi_field 𝕜 ι (f (λi, 1)) = f :=
-begin
-  ext m,
-  have : m = (λi, m i • 1), by { ext j, simp },
-  conv_rhs { rw [this, f.map_smul_univ] },
-  refl
-end
+to_multilinear_map_inj f.to_multilinear_map.mk_pi_ring_apply_one_eq_self
 
 variables (𝕜 ι E₂)
 
@@ -595,7 +676,7 @@ protected def pi_field_equiv_aux : E₂ ≃ₗ[𝕜] (continuous_multilinear_map
   map_add'  := λ z z', by { ext m, simp [smul_add] },
   map_smul' := λ c z, by { ext m, simp [smul_smul, mul_comm] },
   left_inv  := λ z, by simp,
-  right_inv := λ f, f.mk_pi_ring_apply_one_eq_self }
+  right_inv := λ f, f.mk_pi_field_apply_one_eq_self }
 
 /-- Continuous multilinear maps on `𝕜^n` with values in `E₂` are in bijection with `E₂`, as such a
 continuous multilinear map is completely determined by its value on the constant vector made of

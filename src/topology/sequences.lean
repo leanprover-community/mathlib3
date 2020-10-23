@@ -35,7 +35,6 @@ variables [topological_space α] [topological_space β]
 
 /-- A sequence converges in the sence of topological spaces iff the associated statement for filter
 holds. -/
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma topological_space.seq_tendsto_iff {x : ℕ → α} {limit : α} :
   tendsto x at_top (𝓝 limit) ↔
     ∀ U : set α, limit ∈ U → is_open U → ∃ N, ∀ n ≥ N, (x n) ∈ U :=
@@ -155,7 +154,7 @@ instance : sequential_space α :=
   assume (p : α) (hp : p ∈ closure M),
   -- Since we are in a first-countable space, the neighborhood filter around `p` has a decreasing
   -- basis `U` indexed by `ℕ`.
-  let ⟨U, hU ⟩ := (nhds_generated_countable p).has_antimono_basis in
+  let ⟨U, hU⟩ := (nhds_generated_countable p).exists_antimono_basis in
   -- Since `p ∈ closure M`, there is an element in each `M ∩ U i`
   have hp : ∀ (i : ℕ), ∃ (y : α), y ∈ M ∧ y ∈ U i,
     by simpa using (mem_closure_iff_nhds_basis hU.1).mp hp,
@@ -265,7 +264,7 @@ begin
     from comp_mem_uniformity_sets (hV.to_has_basis.mem_of_mem trivial),
   obtain ⟨N, x_φ_N_in, hVNW⟩ : ∃ N, x (φ N) ∈ ball x₀ W ∧ V (φ N) ⊆ W,
   { obtain ⟨N₁, h₁⟩ : ∃ N₁, ∀ n ≥ N₁, x (φ n) ∈ ball x₀ W,
-      from (tendsto_at_top' (λ (b : ℕ), (x ∘ φ) b) (𝓝 x₀)).mp hlim _ (mem_nhds_left x₀ W_in),
+      from tendsto_at_top'.mp hlim _ (mem_nhds_left x₀ W_in),
     obtain ⟨N₂, h₂⟩ : ∃ N₂, V (φ N₂) ⊆ W,
     { rcases hV.to_has_basis.mem_iff.mp W_in with ⟨N, _, hN⟩,
       use N,
@@ -304,7 +303,7 @@ begin
   intros x x_in φ,
   intros hφ huφ,
   obtain ⟨N, hN⟩ : ∃ N, ∀ p q, p ≥ N → q ≥ N → (u (φ p), u (φ q)) ∈ V,
-    from (cauchy_seq_of_tendsto_nhds _ huφ).mem_entourage V_in,
+    from huφ.cauchy_seq.mem_entourage V_in,
   specialize hN N (N+1) (le_refl N) (nat.le_succ N),
   specialize hu (φ $ N+1) (φ N) (hφ $ lt_add_one N),
   exact hu hN,
@@ -386,7 +385,6 @@ tendsto_subseq_of_frequently_bounded hs $ frequently_of_forall hu
 lemma metric.compact_space_iff_seq_compact_space : compact_space β ↔ seq_compact_space β :=
 uniform_space.compact_space_iff_seq_compact_space emetric.uniformity_has_countable_basis
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma seq_compact.lebesgue_number_lemma_of_metric
   {ι : Type*} {c : ι → set β} (hs : is_seq_compact s)
   (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i) :

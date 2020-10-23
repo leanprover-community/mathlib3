@@ -3,7 +3,7 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-import algebra.gcd_domain
+import ring_theory.int.basic
 import algebra.field_power
 import ring_theory.multiplicity
 import data.real.cau_seq
@@ -429,7 +429,7 @@ begin
     haveI Hp : fact p.prime := hp.2,
     rw [multiset.mem_to_finset, multiset.mem_coe, mem_factors_iff_dvd hn Hp],
     contrapose! hpn,
-    rw [padic_val_nat_of_not_dvd hpn, nat.pow_zero], },
+    rw [padic_val_nat_of_not_dvd hpn, pow_zero], },
   { intros, assumption },
   { intros p hp hpn,
     rw [multiset.mem_to_finset, multiset.mem_coe] at hp,
@@ -438,12 +438,11 @@ begin
     refine ⟨p, ⟨_, Hp⟩, ⟨_, rfl⟩⟩,
     { rw mem_factors_iff_dvd hn Hp at hp, exact lt_of_le_of_lt (le_of_dvd hn hp) pr },
     { rw padic_val_nat_eq_factors_count,
-      simp only [pow_eq_pow, ne.def, multiset.coe_count] at hpn,
-      convert hpn } },
+      simpa [ne.def, multiset.coe_count] using hpn } },
   { intros p hp hpn,
     rw [finset.mem_filter, finset.mem_range] at hp,
     haveI Hp : fact p.prime := hp.2,
-    rw [padic_val_nat_eq_factors_count, multiset.coe_count, pow_eq_pow] }
+    rw [padic_val_nat_eq_factors_count, multiset.coe_count] }
 end
 
 end padic_val_nat
@@ -491,10 +490,53 @@ The p-adic norm of 1 is 1.
 @[simp] protected lemma one : padic_norm p 1 = 1 := by simp [padic_norm]
 
 /--
-The image of `padic_norm p` is {0} ∪ {p^(-n) | n ∈ ℤ}.
+The p-adic norm of `p` is `1/p` if `p > 1`.
+
+See also `padic_norm.padic_norm_p_of_prime` for a version that assumes `p` is prime.
 -/
-protected theorem image {q : ℚ} (hq : q ≠ 0) : ∃ n : ℤ, padic_norm p q = p ^ (-n) :=
+lemma padic_norm_p {p : ℕ} (hp : 1 < p) : padic_norm p p = 1 / p :=
+by simp [padic_norm, (show p ≠ 0, by linarith), padic_val_rat.padic_val_rat_self hp]
+
+/--
+The p-adic norm of `p` is `1/p` if `p` is prime.
+
+See also `padic_norm.padic_norm_p` for a version that assumes `1 < p`.
+-/
+@[simp] lemma padic_norm_p_of_prime (p : ℕ) [fact p.prime] : padic_norm p p = 1 / p :=
+padic_norm_p $ nat.prime.one_lt ‹_›
+
+/--
+The p-adic norm of `p` is less than 1 if `1 < p`.
+
+See also `padic_norm.padic_norm_p_lt_one_of_prime` for a version assuming `prime p`.
+-/
+lemma padic_norm_p_lt_one {p : ℕ} (hp : 1 < p) : padic_norm p p < 1 :=
+begin
+  rw [padic_norm_p hp, div_lt_iff, one_mul],
+  { exact_mod_cast hp },
+  { exact_mod_cast zero_lt_one.trans hp },
+end
+
+/--
+The p-adic norm of `p` is less than 1 if `p` is prime.
+
+See also `padic_norm.padic_norm_p_lt_one` for a version assuming `1 < p`.
+-/
+lemma padic_norm_p_lt_one_of_prime (p : ℕ) [fact p.prime] : padic_norm p p < 1 :=
+padic_norm_p_lt_one $ nat.prime.one_lt ‹_›
+
+/--
+`padic_norm p q` takes discrete values `p ^ -z` for `z : ℤ`.
+-/
+protected theorem values_discrete {q : ℚ} (hq : q ≠ 0) : ∃ z : ℤ, padic_norm p q = p ^ (-z) :=
 ⟨ (padic_val_rat p q), by simp [padic_norm, hq] ⟩
+
+/--
+`padic_norm p` is symmetric.
+-/
+@[simp] protected lemma neg (q : ℚ) : padic_norm p (-q) = padic_norm p q :=
+if hq : q = 0 then by simp [hq]
+else by simp [padic_norm, hq]
 
 variable [hp : fact p.prime]
 include hp
@@ -508,13 +550,6 @@ begin
   apply fpow_ne_zero_of_ne_zero,
   exact_mod_cast ne_of_gt hp.pos
 end
-
-/--
-`padic_norm p` is symmetric.
--/
-@[simp] protected lemma neg (q : ℚ) : padic_norm p (-q) = padic_norm p q :=
-if hq : q = 0 then by simp [hq]
-else by simp [padic_norm, hq, hp.one_lt]
 
 /--
 If the p-adic norm of `q` is 0, then `q` is 0.
@@ -657,23 +692,20 @@ instance : is_absolute_value (padic_norm p) :=
   abv_add := padic_norm.triangle_ineq p,
   abv_mul := padic_norm.mul p }
 
-/--
-If `p^n` divides an integer `z`, then the p-adic norm of `z` is at most `p^(-n)`.
--/
-lemma le_of_dvd {n : ℕ} {z : ℤ} (hd : ↑(p^n) ∣ z) : padic_norm p z ≤ ↑p ^ (-n : ℤ) :=
+variable {p}
+
+lemma dvd_iff_norm_le {n : ℕ} {z : ℤ} : ↑(p^n) ∣ z ↔ padic_norm p z ≤ ↑p ^ (-n : ℤ) :=
 begin
-  unfold padic_norm, split_ifs with hz hz,
-  { apply fpow_nonneg_of_nonneg,
-    exact_mod_cast le_of_lt hp.pos },
-  { apply fpow_le_of_le,
-    exact_mod_cast le_of_lt hp.one_lt,
-    apply neg_le_neg,
-    rw padic_val_rat_of_int _ hp.ne_one _,
+  unfold padic_norm, split_ifs with hz,
+  { norm_cast at hz,
+    have : 0 ≤ (p^n : ℚ), {apply pow_nonneg, exact_mod_cast le_of_lt hp.pos },
+    simp [hz, this] },
+  { rw [fpow_le_iff_le, neg_le_neg_iff, padic_val_rat_of_int _ hp.ne_one _],
     { norm_cast,
-      rw [← enat.coe_le_coe, enat.coe_get],
-      apply multiplicity.le_multiplicity_of_pow_dvd,
-      exact_mod_cast hd },
-    { exact_mod_cast hz }},
+      rw [← enat.coe_le_coe, enat.coe_get, ← multiplicity.pow_dvd_iff_le_multiplicity],
+      simp },
+    { exact_mod_cast hz },
+    { exact_mod_cast hp.one_lt } }
 end
 
 end padic_norm

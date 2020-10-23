@@ -15,7 +15,7 @@ open_locale topological_space
 namespace continuous_map
 
 section compact_open
-variables {α : Type} {β : Type*} {γ : Type*}
+variables {α : Type*} {β : Type*} {γ : Type*}
 variables [topological_space α] [topological_space β] [topological_space γ]
 
 def compact_open.gen (s : set α) (u : set β) : set C(α,β) := {f | f '' s ⊆ u}
@@ -71,7 +71,7 @@ continuous_iff_continuous_at.mpr $ assume ⟨f, x⟩ n hn,
     f' x' ∈ f' '' s  : mem_image_of_mem f' (us hx')
     ...       ⊆ v            : hf'
     ...       ⊆ n            : vn,
-  have is_open w, from is_open_prod (is_open_gen sc vo) uo,
+  have is_open w, from (is_open_gen sc vo).prod uo,
   have (f, x) ∈ w, from ⟨image_subset_iff.mpr sv, xu⟩,
   mem_nhds_sets_iff.mpr ⟨w, by assumption, by assumption, by assumption⟩
 

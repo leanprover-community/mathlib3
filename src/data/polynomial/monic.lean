@@ -30,7 +30,7 @@ variables [semiring R] {p q r : polynomial R}
 lemma monic.as_sum {p : polynomial R} (hp : p.monic) :
   p = X^(p.nat_degree) + (∑ i in finset.range p.nat_degree, C (p.coeff i) * X^i) :=
 begin
-  conv_lhs { rw [p.as_sum, finset.sum_range_succ] },
+  conv_lhs { rw [p.as_sum_range, finset.sum_range_succ] },
   suffices : C (p.coeff p.nat_degree) = 1,
   { rw [this, one_mul] },
   exact congr_arg C hp
@@ -60,6 +60,11 @@ begin
   suffices : (map f p).nat_degree = p.nat_degree, rw this, exact hp,
   rwa nat_degree_eq_of_degree_eq (degree_map_eq_of_leading_coeff_ne_zero _ _),
 end
+
+lemma monic_mul_C_of_leading_coeff_mul_eq_one [nontrivial R] {b : R}
+  (hp : p.leading_coeff * b = 1) : monic (p * C b) :=
+by rw [monic, leading_coeff_mul' _]; simp [leading_coeff_C b, hp]
+
 theorem monic_of_degree_le (n : ℕ) (H1 : degree p ≤ n) (H2 : coeff p n = 1) : monic p :=
 decidable.by_cases
   (assume H : degree p < n, eq_of_zero_eq_one
@@ -160,7 +165,8 @@ begin
   { rw nontrivial_iff at h, push_neg at h, apply h, },
   haveI := h, clear h,
   have := monic.nat_degree_mul hp hq,
-  dsimp [next_coeff], rw this, simp [hp, hq], clear this,
+  dsimp only [next_coeff], rw this,
+  simp only [hp, hq, degree_eq_zero_iff_eq_one, add_eq_zero_iff], clear this,
   split_ifs; try { tauto <|> simp [h_1, h_2] },
   rename h_1 hp0, rename h_2 hq0, clear h,
   rw ← degree_eq_zero_iff_eq_one at hp0 hq0, assumption',
@@ -170,19 +176,21 @@ begin
   have : {(dp, dq - 1), (dp - 1, dq)} ⊆ nat.antidiagonal (dp + dq - 1),
   { rw insert_subset, split,
     work_on_goal 0 { rw [nat.mem_antidiagonal, nat.add_sub_assoc] },
-    work_on_goal 1 { simp only [singleton_subset_iff, nat.mem_antidiagonal], apply nat.sub_add_eq_add_sub },
+    work_on_goal 1 { simp only [singleton_subset_iff, nat.mem_antidiagonal],
+      apply nat.sub_add_eq_add_sub },
     all_goals { apply nat.succ_le_of_lt, apply nat.pos_of_ne_zero, assumption } },
   rw ← sum_subset this,
   { rw [sum_insert, sum_singleton], iterate 2 { rw coeff_nat_degree }, ring, assumption',
     suffices : dp ≠ dp - 1, { rw mem_singleton, simp [this] }, omega }, clear this,
-  intros x hx hx1, simp only [nat.mem_antidiagonal] at hx, simp only [mem_insert, mem_singleton] at hx1,
+  intros x hx hx1,
+  simp only [nat.mem_antidiagonal] at hx, simp only [mem_insert, mem_singleton] at hx1,
   suffices : p.coeff x.fst = 0 ∨ q.coeff x.snd = 0, cases this; simp [this],
   suffices : dp < x.fst ∨ dq < x.snd, cases this,
   { left,  apply coeff_eq_zero_of_nat_degree_lt, assumption },
   { right, apply coeff_eq_zero_of_nat_degree_lt, assumption },
-  by_cases h : dp < x.fst, { tauto }, push_neg at h, right,
-  have : x.fst ≠ dp - 1, { contrapose! hx1, right, ext, assumption, dsimp, omega },
-  have : x.fst ≠ dp,     { contrapose! hx1, left,  ext, assumption, dsimp, omega },
+  by_cases h : dp < x.fst, { left, exact h }, push_neg at h, right,
+  have : x.fst ≠ dp - 1, { contrapose! hx1, right, ext, assumption, dsimp only, omega },
+  have : x.fst ≠ dp,     { contrapose! hx1, left,  ext, assumption, dsimp only, omega },
   omega,
 end
 

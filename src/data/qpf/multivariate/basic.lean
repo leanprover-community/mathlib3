@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad
+Author: Jeremy Avigad, Simon Hudon
 -/
 import data.pfunctor.multivariate.basic
 universe u
@@ -44,7 +44,7 @@ inductive tree (a : Type)
 ```
 
 An unordered tree. This is currently not supported by Lean because it nests
-an inductive type inside of a quotient. We can go further and define 
+an inductive type inside of a quotient. We can go further and define
 unordered, possibly infinite trees:
 
 ```lean
@@ -63,13 +63,15 @@ matched because they preserve the properties of QPF. The latter example,
    * cofix
    * quot
    * comp
+   * sigma / pi
+   * prj
+   * const
 
 each proves that some operations on functors preserves the QPF structure
 
 ##reference
 
  * [Jeremy Avigad, Mario M. Carneiro and Simon Hudon, *Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
-
 -/
 
 open_locale mvfunctor

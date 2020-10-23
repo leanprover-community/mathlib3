@@ -38,6 +38,8 @@ open category_theory.limits
 
 universes v u
 
+noncomputable theory
+
 namespace category_theory
 
 variables {C : Type u} [category.{v} C]
@@ -151,7 +153,7 @@ begin
   simp only [add_comp, comp_add, add_comp_assoc, add_zero, zero_add,
     biprod.inl_fst, biprod.inl_snd, biprod.inr_fst, biprod.inr_snd,
     biprod.inl_fst_assoc, biprod.inl_snd_assoc, biprod.inr_fst_assoc, biprod.inr_snd_assoc,
-    has_zero_morphisms.comp_zero, has_zero_morphisms.zero_comp, has_zero_morphisms.zero_comp_assoc,
+    comp_zero, zero_comp,
     category.comp_id, category.assoc],
 end
 
@@ -250,7 +252,7 @@ lemma biprod.column_nonzero_of_iso {W X Y Z : C}
 begin
   classical,
   by_contradiction,
-  rw [not_or_distrib, not_or_distrib, classical.not_not, classical.not_not] at a,
+  rw [not_or_distrib, not_or_distrib, not_not, not_not] at a,
   rcases a with ⟨nz, a₁, a₂⟩,
   set x := biprod.inl ≫ f ≫ inv f ≫ biprod.fst,
   have h₁ : x = 𝟙 W, by simp [x],
@@ -261,9 +263,9 @@ begin
     simp only [category.assoc],
     rw [comp_add_assoc, add_comp],
     conv_lhs { congr, skip, slice 1 3, rw a₂, },
-    simp only [has_zero_morphisms.zero_comp, add_zero],
+    simp only [zero_comp, add_zero],
     conv_lhs { slice 1 3, rw a₁, },
-    simp only [has_zero_morphisms.zero_comp], },
+    simp only [zero_comp], },
   exact nz (h₁.symm.trans h₀),
 end
 
@@ -307,7 +309,7 @@ begin
   have t := biproduct.column_nonzero_of_iso'.{v} s f,
   classical,
   by_contradiction,
-  simp only [classical.not_exists_not] at a,
+  simp only [not_exists_not] at a,
   exact nz (t a)
 end
 

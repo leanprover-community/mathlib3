@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import logic.nontrivial
-import algebra.group.commute
 import algebra.group.units_hom
 import algebra.group.inj_surj
 
@@ -45,17 +44,12 @@ division-free."
 
 section
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
-
 /-- Typeclass for expressing that a type `M₀` with multiplication and a zero satisfies
 `0 * a = 0` and `a * 0 = 0` for all `a : M₀`. -/
 @[protect_proj, ancestor has_mul has_zero]
 class mul_zero_class (M₀ : Type*) extends has_mul M₀, has_zero M₀ :=
 (zero_mul : ∀ a : M₀, 0 * a = 0)
 (mul_zero : ∀ a : M₀, a * 0 = 0)
-
-end prio
 
 section mul_zero_class
 
@@ -95,6 +89,10 @@ lemma right_ne_zero_of_mul : a * b ≠ 0 → b ≠ 0 := mt (mul_eq_zero_of_right
 
 lemma ne_zero_and_ne_zero_of_mul (h : a * b ≠ 0) : a ≠ 0 ∧ b ≠ 0 :=
 ⟨left_ne_zero_of_mul h, right_ne_zero_of_mul h⟩
+
+lemma mul_eq_zero_of_ne_zero_imp_eq_zero {a b : M₀} (h : a ≠ 0 → b = 0) :
+  a * b = 0 :=
+if ha : a = 0 then by rw [ha, zero_mul] else by rw [h ha, mul_zero]
 
 end mul_zero_class
 
@@ -157,10 +155,7 @@ lemma zero_eq_mul_self : 0 = a * a ↔ a = 0 := by simp
 
 end
 
-end -- default_priority 100
-
-section prio
-set_option default_priority 10 -- see Note [default priority]
+end
 
 /-- A type `M` is a “monoid with zero” if it is a monoid with zero element, and `0` is left
 and right absorbing. -/
@@ -213,6 +208,12 @@ element, and `0` is left and right absorbing. -/
 @[protect_proj]
 class comm_monoid_with_zero (M₀ : Type*) extends comm_monoid M₀, monoid_with_zero M₀.
 
+/-- A type `M` is a `comm_cancel_monoid_with_zero` if it is a commutative monoid with zero element,
+ `0` is left and right absorbing,
+  and left/right multiplication by a non-zero element is injective. -/
+@[protect_proj] class comm_cancel_monoid_with_zero (M₀ : Type*) extends
+  comm_monoid_with_zero M₀, cancel_monoid_with_zero M₀.
+
 /-- A type `G₀` is a “group with zero” if it is a monoid with zero element (distinct from `1`)
 such that every nonzero element is invertible.
 The type is required to come with an “inverse” function, and the inverse of `0` must be `0`.
@@ -230,10 +231,9 @@ The type is required to come with an “inverse” function, and the inverse of 
 class comm_group_with_zero (G₀ : Type*) extends comm_monoid_with_zero G₀, group_with_zero G₀.
 
 /-- The division operation on a group with zero element. -/
+@[priority 100] -- see Note [lower instance priority]
 instance group_with_zero.has_div {G₀ : Type*} [group_with_zero G₀] :
   has_div G₀ := ⟨λ g h, g * h⁻¹⟩
-
-end prio
 
 section monoid_with_zero
 
@@ -273,6 +273,8 @@ variables [monoid_with_zero M₀]
 
 namespace units
 
+/-- An element of the unit group of a nonzero monoid with zero represented as an element
+    of the monoid is nonzero. -/
 @[simp] lemma ne_zero [nontrivial M₀] (u : units M₀) :
   (u : M₀) ≠ 0 :=
 left_ne_zero_of_mul_eq_one u.mul_inv
@@ -311,16 +313,18 @@ All other elements will be provably equal to it, but not necessarily definitiona
 def unique_of_zero_eq_one (h : (0 : M₀) = 1) : unique M₀ :=
 { default := 0, uniq := eq_zero_of_zero_eq_one h }
 
-/-- In a monoid with zero, if zero equals one, then all elements of that semiring are equal. -/
-theorem subsingleton_of_zero_eq_one (h : (0 : M₀) = 1) : subsingleton M₀ :=
-@unique.subsingleton _ (unique_of_zero_eq_one h)
+/-- In a monoid with zero, zero equals one if and only if all elements of that semiring are equal. -/
+theorem subsingleton_iff_zero_eq_one : (0 : M₀) = 1 ↔ subsingleton M₀ :=
+⟨λ h, @unique.subsingleton _ (unique_of_zero_eq_one h), λ h, @subsingleton.elim _ h _ _⟩
+
+alias subsingleton_iff_zero_eq_one ↔ subsingleton_of_zero_eq_one _
 
 lemma eq_of_zero_eq_one (h : (0 : M₀) = 1) (a b : M₀) : a = b :=
 @subsingleton.elim _ (subsingleton_of_zero_eq_one h) a b
 
 @[simp] theorem is_unit_zero_iff : is_unit (0 : M₀) ↔ (0:M₀) = 1 :=
 ⟨λ ⟨⟨_, a, (a0 : 0 * a = 1), _⟩, rfl⟩, by rwa zero_mul at a0,
- λ h, ⟨⟨0, 0, eq_of_zero_eq_one h _ _, eq_of_zero_eq_one h _ _⟩, rfl⟩⟩
+ λ h, @is_unit_of_subsingleton _ _ (subsingleton_of_zero_eq_one h) 0⟩
 
 @[simp] theorem not_is_unit_zero [nontrivial M₀] : ¬ is_unit (0 : M₀) :=
 mt is_unit_zero_iff.1 zero_ne_one
@@ -337,6 +341,11 @@ section cancel_monoid_with_zero
 
 variables [cancel_monoid_with_zero M₀] {a b c : M₀}
 
+@[priority 10] -- see Note [lower instance priority]
+instance comm_cancel_monoid_with_zero.no_zero_divisors : no_zero_divisors M₀ :=
+⟨λ a b ab0, by { by_cases a = 0, { left, exact h }, right,
+  apply cancel_monoid_with_zero.mul_left_cancel_of_ne_zero h, rw [ab0, mul_zero], }⟩
+
 lemma mul_left_cancel' (ha : a ≠ 0) (h : a * b = a * c) : b = c :=
 cancel_monoid_with_zero.mul_left_cancel_of_ne_zero ha h
 
@@ -346,6 +355,12 @@ cancel_monoid_with_zero.mul_right_cancel_of_ne_zero hb h
 lemma mul_left_inj' (hc : c ≠ 0) : a * c = b * c ↔ a = b := ⟨mul_right_cancel' hc, λ h, h ▸ rfl⟩
 
 lemma mul_right_inj' (ha : a ≠ 0) : a * b = a * c ↔ b = c := ⟨mul_left_cancel' ha, λ h, h ▸ rfl⟩
+
+@[simp] lemma mul_eq_mul_right_iff : a * c = b * c ↔ a = b ∨ c = 0 :=
+by by_cases hc : c = 0; [simp [hc], simp [mul_left_inj', hc]]
+
+@[simp] lemma mul_eq_mul_left_iff : a * b = a * c ↔ b = c ∨ a = 0 :=
+by by_cases ha : a = 0; [simp [ha], simp [mul_right_inj', ha]]
 
 /-- Pullback a `monoid_with_zero` class along an injective function. -/
 protected def function.injective.cancel_monoid_with_zero [has_zero M₀'] [has_mul M₀'] [has_one M₀']
@@ -507,6 +522,9 @@ inv_involutive'.injective
 lemma inv_eq_iff {g h : G₀} : g⁻¹ = h ↔ h⁻¹ = g :=
 by rw [← inv_inj', eq_comm, inv_inv']
 
+@[simp] lemma inv_eq_one' {g : G₀} : g⁻¹ = 1 ↔ g = 1 :=
+by rw [inv_eq_iff, inv_one, eq_comm]
+
 end group_with_zero
 
 namespace units
@@ -549,9 +567,7 @@ lemma is_unit.mk0 (x : G₀) (hx : x ≠ 0) : is_unit x := is_unit_unit (units.m
 lemma is_unit_iff_ne_zero {x : G₀} : is_unit x ↔ x ≠ 0 :=
 units.exists_iff_ne_zero
 
-section prio
-set_option default_priority 10 -- see Note [default priority]
-
+@[priority 10] -- see Note [lower instance priority]
 instance group_with_zero.no_zero_divisors : no_zero_divisors G₀ :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h,
     begin
@@ -560,14 +576,13 @@ instance group_with_zero.no_zero_divisors : no_zero_divisors G₀ :=
     end,
   .. (‹_› : group_with_zero G₀) }
 
+@[priority 10] -- see Note [lower instance priority]
 instance group_with_zero.cancel_monoid_with_zero : cancel_monoid_with_zero G₀ :=
 { mul_left_cancel_of_ne_zero := λ x y z hx h,
     by rw [← inv_mul_cancel_left' hx y, h, inv_mul_cancel_left' hx z],
   mul_right_cancel_of_ne_zero := λ x y z hy h,
     by rw [← mul_inv_cancel_right' hy x, h, mul_inv_cancel_right' hy z],
   .. (‹_› : group_with_zero G₀) }
-
-end prio
 
 lemma mul_inv_rev' (x y : G₀) : (x * y)⁻¹ = y⁻¹ * x⁻¹ :=
 begin
@@ -583,7 +598,7 @@ end
 
 @[simp] lemma div_one (a : G₀) : a / 1 = a := by simp [div_eq_mul_inv]
 
-lemma one_div (a : G₀) : 1 / a = a⁻¹ := one_mul _
+@[simp] lemma one_div (a : G₀) : 1 / a = a⁻¹ := one_mul _
 
 @[simp] lemma zero_div (a : G₀) : 0 / a = 0 := zero_mul _
 
@@ -631,7 +646,7 @@ by simpa only [one_div] using eq_inv_of_mul_left_eq_one h
 @[simp] lemma one_div_div (a b : G₀) : 1 / (a / b) = b / a :=
 by rw [one_div, div_eq_mul_inv, mul_inv_rev', inv_inv', div_eq_mul_inv]
 
-@[simp] lemma one_div_one_div (a : G₀) : 1 / (1 / a) = a :=
+lemma one_div_one_div (a : G₀) : 1 / (1 / a) = a :=
 by simp
 
 lemma eq_of_one_div_eq_one_div {a b : G₀} (h : 1 / a = 1 / b) : a = b :=
@@ -641,6 +656,9 @@ variables {a b c : G₀}
 
 @[simp] lemma inv_eq_zero {a : G₀} : a⁻¹ = 0 ↔ a = 0 :=
 by rw [inv_eq_iff, inv_zero, eq_comm]
+
+@[simp] lemma zero_eq_inv {a : G₀} : 0 = a⁻¹ ↔ 0 = a :=
+eq_comm.trans $ inv_eq_zero.trans eq_comm
 
 lemma one_div_mul_one_div_rev (a b : G₀) : (1 / a) * (1 / b) =  1 / (b * a) :=
 by simp only [div_eq_mul_inv, one_mul, mul_inv_rev']
@@ -710,6 +728,10 @@ end group_with_zero
 section comm_group_with_zero -- comm
 variables [comm_group_with_zero G₀] {a b c : G₀}
 
+@[priority 10] -- see Note [lower instance priority]
+instance comm_group_with_zero.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero G₀ :=
+{ ..group_with_zero.cancel_monoid_with_zero, ..comm_group_with_zero.to_comm_monoid_with_zero G₀ }
+
 /-- Pullback a `comm_group_with_zero` class along an injective function. -/
 protected def function.injective.comm_group_with_zero [has_zero G₀'] [has_mul G₀'] [has_one G₀']
   [has_inv G₀'] (f : G₀' → G₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -750,7 +772,7 @@ local attribute [simp] mul_assoc mul_comm mul_left_comm
 
 lemma div_mul_div (a b c d : G₀) :
       (a / b) * (c / d) = (a * c) / (b * d) :=
-by { simp [div_eq_mul_inv], rw [mul_inv_rev', mul_comm d⁻¹] }
+by simp [div_eq_mul_inv, mul_inv']
 
 lemma mul_div_mul_left (a b : G₀) {c : G₀} (hc : c ≠ 0) :
       (c * a) / (c * b) = a / b :=
@@ -921,10 +943,11 @@ end commute
 
 namespace monoid_hom
 
-section group_with_zero
+variables [group_with_zero G₀] [group_with_zero G₀'] [monoid_with_zero M₀] [nontrivial M₀]
 
-variables [group_with_zero G₀] [group_with_zero G₀'] (f : G₀ →* G₀') (h0 : f 0 = 0)
-  {a : G₀}
+section monoid_with_zero
+
+variables (f : G₀ →* M₀) (h0 : f 0 = 0) {a : G₀}
 
 include h0
 
@@ -934,7 +957,13 @@ lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
 lemma map_eq_zero : f a = 0 ↔ a = 0 :=
 by { classical, exact not_iff_not.1 (f.map_ne_zero h0) }
 
-variables (a) (b : G₀)
+end monoid_with_zero
+
+section group_with_zero
+
+variables (f : G₀ →* G₀') (h0 : f 0 = 0) (a b : G₀)
+
+include h0
 
 /-- A monoid homomorphism between groups with zeros sending `0` to `0` sends `a⁻¹` to `(f a)⁻¹`. -/
 lemma map_inv' : f a⁻¹ = (f a)⁻¹ :=
@@ -944,18 +973,15 @@ begin
   rw [← f.map_mul, inv_mul_cancel h, f.map_one]
 end
 
-lemma map_div : f (a / b) = f a / f b := (f.map_mul _ _).trans $ congr_arg _ $ f.map_inv' h0 b
+lemma map_div : f (a / b) = f a / f b :=
+(f.map_mul _ _).trans $ _root_.congr_arg _ $ f.map_inv' h0 b
+
+omit h0
+
+@[simp] lemma map_units_inv {M G₀ : Type*} [monoid M] [group_with_zero G₀]
+  (f : M →* G₀) (u : units M) : f ↑u⁻¹ = (f u)⁻¹ :=
+by rw [← units.coe_map, ← units.coe_map, ← units.coe_inv', map_inv]
 
 end group_with_zero
-
-section comm_group_with_zero
-
-@[simp] lemma map_units_inv {M G₀ : Type*} [monoid M] [comm_group_with_zero G₀]
-  (f : M →* G₀) (u : units M) : f ↑u⁻¹ = (f u)⁻¹ :=
-have f (u * ↑u⁻¹) = 1 := by rw [←units.coe_mul, mul_inv_self, units.coe_one, f.map_one],
-inv_unique (trans (f.map_mul _ _).symm this)
-  (mul_inv_cancel (λ hu, zero_ne_one (trans (by rw [f.map_mul, hu, zero_mul]) this)))
-
-end comm_group_with_zero
 
 end monoid_hom

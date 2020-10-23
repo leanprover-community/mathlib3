@@ -3,10 +3,15 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.category.Group
+import algebra.category.Group.abelian
+import category_theory.limits.shapes.images
+import category_theory.limits.types
 
 /-!
 # The category of commutative additive groups has images.
+
+Note that we don't need to register any of the constructions here as instances, because we get them
+from the fact that `AddCommGroup` is an abelian category.
 -/
 
 open category_theory
@@ -23,15 +28,17 @@ variables {G H : AddCommGroup.{0}} (f : G ⟶ H)
 local attribute [ext] subtype.ext_val
 
 section -- implementation details of `has_image` for AddCommGroup; use the API, not these
-/-- the image of a morphism in AddCommGroup is just the bundling of `set.range f` -/
-def image : AddCommGroup := AddCommGroup.of (set.range f)
+/-- the image of a morphism in AddCommGroup is just the bundling of `add_monoid_hom.range f` -/
+def image : AddCommGroup := AddCommGroup.of (add_monoid_hom.range f)
 
 /-- the inclusion of `image f` into the target -/
-def image.ι : image f ⟶ H := f.range_subtype_val
+def image.ι : image f ⟶ H := f.range.subtype
+
 instance : mono (image.ι f) := concrete_category.mono_of_injective (image.ι f) subtype.val_injective
 
 /-- the corestriction map to the image -/
-def factor_thru_image : G ⟶ image f := add_monoid_hom.range_factorization f
+def factor_thru_image : G ⟶ image f := f.to_range
+
 lemma image.fac : factor_thru_image f ≫ image.ι f = f :=
 by { ext, refl, }
 
@@ -79,31 +86,18 @@ def mono_factorisation : mono_factorisation f :=
   m := image.ι f,
   e := factor_thru_image f }
 
-noncomputable instance : has_image f :=
-{ F := mono_factorisation f,
-  is_image :=
-  { lift := image.lift,
-    lift_fac' := image.lift_fac } }
+/-- the factorisation of any morphism in AddCommGroup through a mono has the universal property of
+the image. -/
+noncomputable def is_image : is_image (mono_factorisation f) :=
+{ lift := image.lift,
+  lift_fac' := image.lift_fac }
 
-noncomputable instance : has_images AddCommGroup.{0} :=
-{ has_image := infer_instance }
-
--- We'll later get this as a consequence of `[abelian AddCommGroup]`.
--- Nevertheless this instance has the desired definitional behaviour,
--- and is useful in the meantime for doing cohomology.
-
--- When the `[abelian AddCommGroup]` instance is available
--- this instance should be reviewed, and ideally removed if the `[abelian]` instance
--- provides something definitionally equivalent.
-noncomputable instance : has_image_maps AddCommGroup.{0} :=
-{ has_image_map := λ f g st,
-  { map :=
-    { to_fun := image.map ((forget AddCommGroup).map_arrow.map st),
-      map_zero' := by { ext, simp, },
-      map_add' := λ x y, by { ext, simp, refl, } } } }
-
-@[simp] lemma image_map {f g : arrow AddCommGroup.{0}} (st : f ⟶ g) (x : image f.hom):
-  (image.map st x).val = st.right x.1 :=
-rfl
+/--
+The categorical image of a morphism in `AddCommGroup`
+agrees with the usual group-theoretical range.
+-/
+noncomputable def image_iso_range {G H : AddCommGroup.{0}} (f : G ⟶ H) :
+  limits.image f ≅ AddCommGroup.of f.range :=
+is_image.iso_ext (image.is_image f) (is_image f)
 
 end AddCommGroup

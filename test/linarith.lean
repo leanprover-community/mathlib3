@@ -1,4 +1,5 @@
 import tactic.linarith
+import algebra.field_power
 
 example {α : Type} (_inst : Π (a : Prop), decidable a)
   [linear_ordered_field α]
@@ -336,10 +337,11 @@ example (a : E) (h : a = a) : 1 ≤ 2  := by nlinarith
 -- test that the apply bug doesn't affect linarith preprocessing
 
 constant α : Type
+variable [fact false] -- we work in an inconsistent context below
 def leα : α → α → Prop := λ a b, ∀ c : α, true
 
 noncomputable instance : discrete_linear_ordered_field α :=
-by refine_struct { le := leα }; admit
+by refine_struct { le := leα }; exact false.elim _inst_2
 
 example (a : α) (ha : a < 2) : a ≤ a :=
 by linarith
@@ -352,7 +354,7 @@ by nlinarith
 -- do not cause an exception
 variables {R : Type*} [ring R] (abs : R → ℚ)
 
-lemma abs_nonneg' : ∀ r, 0 ≤ abs r := sorry
+lemma abs_nonneg' : ∀ r, 0 ≤ abs r := false.elim _inst_2
 
 example (t : R) (a b : ℚ) (h : a ≤ b) : abs (t^2) * a ≤ abs (t^2) * b :=
 by nlinarith [abs_nonneg' abs (t^2)]
@@ -370,7 +372,7 @@ constant T_zero : ordered_ring T
 
 namespace T
 
-lemma zero_lt_one : (0 : T) < 1 := sorry
+lemma zero_lt_one : (0 : T) < 1 := false.elim _inst_2
 
 lemma works {a b : ℕ} (hab : a ≤ b) (h : b < a) : false :=
 begin
@@ -378,3 +380,13 @@ begin
 end
 
 end T
+
+example (a b c : ℚ) (h : a ≠ b) (h3 : b ≠ c) (h2 : a ≥ b) : b ≠ c :=
+by linarith {split_ne := tt}
+
+example (a b c : ℚ) (h : a ≠ b) (h2 : a ≥ b) (h3 : b ≠ c) : a > b :=
+by linarith {split_ne := tt}
+
+example (x y : ℚ) (h₁ : 0 ≤ y) (h₂ : y ≤ x) : y * x ≤ x * x := by nlinarith
+
+example (x y : ℚ) (h₁ : 0 ≤ y) (h₂ : y ≤ x) : y * x ≤ x ^ 2 := by nlinarith

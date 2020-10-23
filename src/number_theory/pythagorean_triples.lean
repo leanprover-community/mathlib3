@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Paul van Wamelen.
 -/
 import algebra.field
-import algebra.gcd_domain
+import ring_theory.int.basic
 import algebra.group_with_zero_power
-import tactic
+import tactic.ring
+import tactic.ring_exp
 
 /-!
 # Pythagorean Triples
@@ -27,10 +28,13 @@ open_locale classical
 /-- Three integers `x`, `y`, and `z` form a Pythagorean triple if `x * x + y * y = z * z`. -/
 def pythagorean_triple (x y z : ℤ) : Prop := x * x + y * y = z * z
 
+/-- Pythagorean triples are interchangable, i.e `x * x + y * y = y * y + x * x = z * z`.
+This comes from additive commutativity. -/
 lemma pythagorean_triple_comm {x y z : ℤ} :
  (pythagorean_triple x y z) ↔ (pythagorean_triple y x z) :=
 by { delta pythagorean_triple, rw add_comm }
 
+/-- The zeroth Pythagorean triple is all zeros. -/
 lemma pythagorean_triple.zero : pythagorean_triple 0 0 0 :=
 by simp only [pythagorean_triple, zero_mul, zero_add]
 
@@ -47,6 +51,8 @@ lemma symm :
   pythagorean_triple y x z :=
 by rwa [pythagorean_triple_comm]
 
+/-- A triple is still a triple if you multiply `x`, `y` and `z`
+by a constant `k`. -/
 lemma mul (k : ℤ) : pythagorean_triple (k * x) (k * y) (k * z) :=
 begin
   by_cases hk : k = 0,
@@ -59,6 +65,8 @@ end
 
 omit h
 
+/-- `(k*x, k*y, k*z)` is a Pythagorean triple if and only if
+`(x, y, z)` is also a triple. -/
 lemma mul_iff (k : ℤ) (hk : k ≠ 0) :
   pythagorean_triple (k * x) (k * y) (k * z) ↔ pythagorean_triple x y z :=
 begin
@@ -181,7 +189,7 @@ end
 
 lemma ne_zero_of_coprime (hc : int.gcd x y = 1) : z ≠ 0 :=
 begin
-  suffices : 0 < z * z, { rintro rfl, simpa only [] },
+  suffices : 0 < z * z, { rintro rfl, norm_num at this },
   rw [← h.eq, ← pow_two, ← pow_two],
   have hc' : int.gcd x y ≠ 0, { rw hc, exact one_ne_zero },
   cases int.ne_zero_of_gcd hc' with hxz hyz,
@@ -304,7 +312,7 @@ begin
   cases int.prime.dvd_mul hp hp2 with hp2m hpn,
   { rw int.nat_abs_mul at hp2m,
     cases (nat.prime.dvd_mul hp).mp hp2m with hp2 hpm,
-    { have hp2' : p = 2, { exact le_antisymm (nat.le_of_dvd two_pos hp2) (nat.prime.two_le hp) },
+    { have hp2' : p = 2, { exact le_antisymm (nat.le_of_dvd zero_lt_two hp2) (nat.prime.two_le hp) },
       revert hp1, rw hp2',
       apply mt int.mod_eq_zero_of_dvd,
       norm_num [pow_two, int.sub_mod, int.mul_mod, hm, hn],

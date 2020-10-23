@@ -275,7 +275,7 @@ begin
   have := mt repr_inj.1 (λ h, by injection h : oadd e n a ≠ 0),
   have L := le_of_not_lt (λ l, not_le_of_lt (h.below_of_lt l).repr_lt (le_of_dvd this d)),
   simp at d,
-  exact ⟨L, (dvd_add_iff $ dvd_mul_of_dvd _ $ power_dvd_power _ L).1 d⟩
+  exact ⟨L, (dvd_add_iff $ dvd_mul_of_dvd_left (power_dvd_power _ L) _).1 d⟩
 end
 
 theorem NF.of_dvd_omega {e n a} (h : NF (oadd e n a)) :
@@ -611,7 +611,7 @@ begin
   cases e : split' o with a n,
   rw split_eq_scale_split' e at h,
   injection h, subst o',
-  cases NF_repr_split' e, resetI, simp [dvd_mul]
+  cases NF_repr_split' e, resetI, simp
 end
 
 theorem split_add_lt {o e n a m} [NF o] (h : split o = (oadd e n a, m)) : repr a + m < ω ^ repr e :=
@@ -643,8 +643,8 @@ begin
   haveI := (NF_repr_split' e₂).1,
   casesI a with a0 n a',
   { cases m with m,
-    { by_cases o₂ = 0; simp [pow, power, e₁, h]; apply_instance },
-    { by_cases m = 0; simp [pow, power, e₁, e₂, h]; apply_instance } },
+    { by_cases o₂ = 0; simp [pow, power, *]; apply_instance },
+    { by_cases m = 0; simp [pow, power, -monoid.pow_eq_has_pow, *]; apply_instance } },
   { simp [pow, power, e₁, e₂, split_eq_scale_split' e₂],
     have := na.fst,
     cases k with k; simp [succ_eq_add_one, power]; resetI; apply_instance }
@@ -728,8 +728,8 @@ begin
   ... = (ω0 ^ k * α' + R) * α' + (ω0 ^ k * α' + R) * m : _
   ... = (α' + m) ^ succ k.succ : by rw [← ordinal.mul_add, ← nat_cast_succ, power_succ, IH.2],
   congr' 1,
-  { have αd : ω ∣ α' := dvd_add (dvd_mul_of_dvd _
-      (by simpa using power_dvd_power ω (one_le_iff_ne_zero.2 e0))) d,
+  { have αd : ω ∣ α' := dvd_add (dvd_mul_of_dvd_left
+      (by simpa using power_dvd_power ω (one_le_iff_ne_zero.2 e0)) _) d,
     rw [ordinal.mul_add (ω0 ^ k), add_assoc, ← mul_assoc, ← power_succ,
         add_mul_limit _ (is_limit_iff_omega_dvd.2 ⟨ne_of_gt α0, αd⟩), mul_assoc,
         @mul_omega_dvd n (nat_cast_pos.2 n.pos) (nat_lt_omega _) _ αd],

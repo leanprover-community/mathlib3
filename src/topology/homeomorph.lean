@@ -9,11 +9,12 @@ open set
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
-/-- α and β are homeomorph, also called topological isomoph -/
+/-- Homeomorphism between `α` and `β`, also called topological isomorphism -/
+@[nolint has_inhabited_instance] -- not all spaces are homeomorphic to each other
 structure homeomorph (α : Type*) (β : Type*) [topological_space α] [topological_space β]
   extends α ≃ β :=
-(continuous_to_fun  : continuous to_fun)
-(continuous_inv_fun : continuous inv_fun)
+(continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
+(continuous_inv_fun : continuous inv_fun . tactic.interactive.continuity')
 
 infix ` ≃ₜ `:25 := homeomorph
 
@@ -22,9 +23,13 @@ variables [topological_space α] [topological_space β] [topological_space γ] [
 
 instance : has_coe_to_fun (α ≃ₜ β) := ⟨λ_, α → β, λe, e.to_equiv⟩
 
+@[simp] lemma homeomorph_mk_coe (a : equiv α β) (b c) :
+  ((homeomorph.mk a b c) : α → β) = a :=
+rfl
+
 lemma coe_eq_to_equiv (h : α ≃ₜ β) (a : α) : h a = h.to_equiv a := rfl
 
-/-- Identity map is a homeomorphism. -/
+/-- Identity map as a homeomorphism. -/
 protected def refl (α : Type*) [topological_space α] : α ≃ₜ α :=
 { continuous_to_fun := continuous_id, continuous_inv_fun := continuous_id, .. equiv.refl α }
 
@@ -40,7 +45,23 @@ protected def symm (h : α ≃ₜ β) : β ≃ₜ α :=
   continuous_inv_fun := h.continuous_to_fun,
   .. h.to_equiv.symm }
 
+@[simp] lemma homeomorph_mk_coe_symm (a : equiv α β) (b c) :
+  ((homeomorph.mk a b c).symm : β → α) = a.symm :=
+rfl
+
+@[continuity]
 protected lemma continuous (h : α ≃ₜ β) : continuous h := h.continuous_to_fun
+
+/-- Change the homeomorphism `f` to make the inverse function definitionally equal to `g`. -/
+def change_inv (f : α ≃ₜ β) (g : β → α) (hg : function.right_inverse g f) : α ≃ₜ β :=
+have g = f.symm, from funext (λ x, calc g x = f.symm (f (g x)) : (f.left_inv (g x)).symm
+                                        ... = f.symm x : by rw hg x),
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := by convert f.left_inv,
+  right_inv := by convert f.right_inv,
+  continuous_to_fun := f.continuous,
+  continuous_inv_fun := by convert f.symm.continuous }
 
 lemma symm_comp_self (h : α ≃ₜ β) : ⇑h.symm ∘ ⇑h = id :=
 funext $ assume a, h.to_equiv.left_inv a
@@ -102,6 +123,9 @@ begin
   rw ← h.preimage_symm,
   exact continuous_iff_is_closed.1 (h.symm.continuous) _
 end
+
+protected lemma closed_embedding (h : α ≃ₜ β) : closed_embedding h :=
+closed_embedding_of_embedding_closed h.embedding h.is_closed_map
 
 @[simp] lemma is_open_preimage (h : α ≃ₜ β) {s : set β} : is_open (h ⁻¹' s) ↔ is_open s :=
 begin

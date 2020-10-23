@@ -3,7 +3,8 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.concrete_category
+import category_theory.concrete_category.bundled_hom
+import category_theory.concrete_category.reflects_isomorphisms
 import algebra.punit_instances
 
 /-!
@@ -49,8 +50,10 @@ instance : inhabited Mon :=
 -- which breaks to_additive.
 ⟨@of punit $ @group.to_monoid _ $ @comm_group.to_group _ punit.comm_group⟩
 
-@[to_additive add_monoid]
+@[to_additive]
 instance (M : Mon) : monoid M := M.str
+
+@[simp, to_additive] lemma coe_of (R : Type u) [monoid R] : (Mon.of R : Type u) = R := rfl
 
 end Mon
 
@@ -81,8 +84,10 @@ instance : inhabited CommMon :=
 -- which breaks to_additive.
 ⟨@of punit $ @comm_group.to_comm_monoid _ punit.comm_group⟩
 
-@[to_additive add_comm_monoid]
+@[to_additive]
 instance (M : CommMon) : comm_monoid M := M.str
+
+@[simp, to_additive] lemma coe_of (R : Type u) [comm_monoid R] : (CommMon.of R : Type u) = R := rfl
 
 @[to_additive has_forget_to_AddMon]
 instance has_forget_to_Mon : has_forget₂ CommMon Mon := bundled_hom.forget₂ _ _
@@ -100,7 +105,7 @@ example (R : CommMon.{u}) : R ⟶ R :=
 { to_fun := λ x,
   begin
     match_target (R : Type u),
-    match_hyp x := (R : Type u),
+    match_hyp x : (R : Type u),
     exact x * x
   end ,
   map_one' := by simp,
@@ -144,24 +149,16 @@ end
 namespace category_theory.iso
 
 /-- Build a `mul_equiv` from an isomorphism in the category `Mon`. -/
-@[to_additive AddMond_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category
+@[to_additive AddMon_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category
 `AddMon`."]
 def Mon_iso_to_mul_equiv {X Y : Mon} (i : X ≅ Y) : X ≃* Y :=
-{ to_fun    := i.hom,
-  inv_fun   := i.inv,
-  left_inv  := by tidy,
-  right_inv := by tidy,
-  map_mul'  := by tidy }.
+i.hom.to_mul_equiv i.inv i.hom_inv_id i.inv_hom_id
 
 /-- Build a `mul_equiv` from an isomorphism in the category `CommMon`. -/
-@[to_additive AddCommMon_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category
+@[to_additive "Build an `add_equiv` from an isomorphism in the category
 `AddCommMon`."]
 def CommMon_iso_to_mul_equiv {X Y : CommMon} (i : X ≅ Y) : X ≃* Y :=
-{ to_fun    := i.hom,
-  inv_fun   := i.inv,
-  left_inv  := by tidy,
-  right_inv := by tidy,
-  map_mul'  := by tidy }.
+i.hom.to_mul_equiv i.inv i.hom_inv_id i.inv_hom_id
 
 end category_theory.iso
 
@@ -182,3 +179,30 @@ def mul_equiv_iso_CommMon_iso {X Y : Type u} [comm_monoid X] [comm_monoid Y] :
   (X ≃* Y) ≅ (CommMon.of X ≅ CommMon.of Y) :=
 { hom := λ e, e.to_CommMon_iso,
   inv := λ i, i.CommMon_iso_to_mul_equiv, }
+
+@[to_additive]
+instance Mon.forget_reflects_isos : reflects_isomorphisms (forget Mon.{u}) :=
+{ reflects := λ X Y f _,
+  begin
+    resetI,
+    let i := as_iso ((forget Mon).map f),
+    let e : X ≃* Y := { ..f, ..i.to_equiv },
+    exact { ..e.to_Mon_iso },
+  end }
+
+@[to_additive]
+instance CommMon.forget_reflects_isos : reflects_isomorphisms (forget CommMon.{u}) :=
+{ reflects := λ X Y f _,
+  begin
+    resetI,
+    let i := as_iso ((forget CommMon).map f),
+    let e : X ≃* Y := { ..f, ..i.to_equiv },
+    exact { ..e.to_CommMon_iso },
+  end }
+
+/-!
+Once we've shown that the forgetful functors to type reflect isomorphisms,
+we automatically obtain that the `forget₂` functors between our concrete categories
+reflect isomorphisms.
+-/
+example : reflects_isomorphisms (forget₂ CommMon Mon) := by apply_instance

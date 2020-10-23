@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.category.CommRing.basic
+import category_theory.limits.limits
+import category_theory.limits.concrete_category
 
 /-!
 # The category of commutative rings has all colimits.
@@ -395,7 +397,6 @@ begin
 end
 
 /-- The ring homomorphism from the colimit commutative ring to the cone point of any other cocone. -/
-@[simps]
 def desc_morphism (s : cocone F) : colimit F ⟶ s.X :=
 { to_fun := desc_fun F s,
   map_one' := rfl,
@@ -423,8 +424,8 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
   end }.
 
 instance has_colimits_CommRing : has_colimits CommRing :=
-{ has_colimits_of_shape := λ J 𝒥,
-  { has_colimit := λ F, by exactI
+{ has_colimits_of_shape := λ J 𝒥, by exactI
+  { has_colimit := λ F, has_colimit.mk
     { cocone := colimit_cocone F,
       is_colimit := colimit_is_colimit F } } }
 

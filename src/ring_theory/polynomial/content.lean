@@ -395,7 +395,7 @@ begin
 end
 
 lemma dvd_iff_content_dvd_content_and_prim_part_dvd_prim_part
-  [decidable_eq R] {p q : polynomial R} (hq : q ≠ 0) :
+  {p q : polynomial R} (hq : q ≠ 0) :
   p ∣ q ↔ p.content ∣ q.content ∧ p.prim_part ∣ q.prim_part :=
 begin
   split; intro h,
@@ -406,7 +406,7 @@ begin
     exact mul_dvd_mul (ring_hom.map_dvd C h.1) h.2 }
 end
 
-instance [decidable_eq R] : gcd_monoid (polynomial R) :=
+instance : gcd_monoid (polynomial R) :=
 gcd_monoid_of_exists_lcm $ λ p q, begin
   rcases exists_primitive_lcm_of_is_primitive p.is_primitive_prim_part q.is_primitive_prim_part
     with ⟨r, rprim, hr⟩,

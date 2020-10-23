@@ -260,7 +260,7 @@ begin
   apply symm_apply_apply
 end
 
-@[simp] theorem mul_apply {α : Type u} (f g : perm α) (x) : (f * g) x = f (g x) :=
+theorem mul_apply {α : Type u} (f g : perm α) (x) : (f * g) x = f (g x) :=
 equiv.trans_apply _ _ _
 
 @[simp] theorem one_apply {α : Type u} (x) : (1 : perm α) x = x := rfl
@@ -276,6 +276,8 @@ lemma one_def {α : Type u} : (1 : perm α) = equiv.refl α := rfl
 lemma mul_def {α : Type u} (f g : perm α) : f * g = g.trans f := rfl
 
 lemma inv_def {α : Type u} (f : perm α) : f⁻¹ = f.symm := rfl
+
+@[simp] lemma coe_mul {α : Type u} (f g : perm α) : ⇑(f * g) = f ∘ g := rfl
 
 end perm
 
@@ -1407,8 +1409,9 @@ calc  (s ∪ t : set α) ⊕ (s ∩ t : set α)
 /-- Given an equivalence `e₀` between sets `s : set α` and `t : set β`, the set of equivalences
 `e : α ≃ β` such that `e ↑x = ↑(e₀ x)` for each `x : s` is equivalent to the set of equivalences
 between `sᶜ` and `tᶜ`. -/
-protected def compl {α β : Type*} {s : set α} {t : set β} [decidable_pred s] [decidable_pred t]
-  (e₀ : s ≃ t) : {e : α ≃ β // ∀ x : s, e x = e₀ x} ≃ ((sᶜ : set α) ≃ (tᶜ : set β)) :=
+protected def compl {α : Type u} {β : Type v} {s : set α} {t : set β} [decidable_pred s]
+  [decidable_pred t] (e₀ : s ≃ t) :
+  {e : α ≃ β // ∀ x : s, e x = e₀ x} ≃ ((sᶜ : set α) ≃ (tᶜ : set β)) :=
 { to_fun := λ e, subtype_congr e
     (λ a, not_congr $ iff.symm $ maps_to.mem_iff
       (maps_to_iff_exists_map_subtype.2 ⟨e₀, e.2⟩)

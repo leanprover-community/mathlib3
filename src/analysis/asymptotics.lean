@@ -1073,19 +1073,10 @@ lemma is_O_with.eventually_mul_div_cancel (h : is_O_with c u v l) :
   ∀ᶠ x in l, (u x / v x) * v x = u x :=
 begin
   rw is_O_with at h,
-  rw eventually_iff_exists_mem at *,
-  rcases h with ⟨s, hsl, hs⟩,
-  use [s, hsl],
-  intros y hy,
-  specialize hs y hy,
-  by_cases hvy : v y = 0,
-  { rw hvy at *,
-    rw [norm_zero, mul_zero] at hs,
-    have hs' := le_antisymm hs (norm_nonneg _),
-    rw norm_eq_zero at hs',
-    rw hs',
-    norm_num },
-  { rw div_mul_cancel _ hvy }
+  refine eventually.mono h (λ y hy, div_mul_cancel_of_imp $ λ hv, _),
+  rw hv at *,
+  rw [norm_zero, mul_zero] at hy,
+  exact norm_le_zero_iff.mp hy
 end
 
 lemma is_O.eventually_mul_div_cancel (h : is_O u v l) : ∀ᶠ x in l, (u x / v x) * v x = u x :=
@@ -1102,6 +1093,9 @@ section exists_mul_eq
 
 variables {u v : α → 𝕜}
 
+/-- If `∥φ∥` is eventually bounded by `c`, and `u =ᶠ[l] φ * v`, then we have `is_O_with c u v l`.
+    This does not require any assumptions on `c`, which is one we keep this version along with
+    `is_O_with_iff_exists_eq_mul`. -/
 lemma is_O_with_of_eq_mul (φ : α → 𝕜) (hφ : ∀ᶠ x in l, ∥φ x∥ ≤ c) (h : u =ᶠ[l] φ * v) :
   is_O_with c u v l :=
 begin
@@ -1118,11 +1112,8 @@ begin
     use (λ x, u x / v x),
     split,
     { rw is_O_with at h,
-      rw eventually_iff_exists_mem at *,
-      rcases h with ⟨s, hsl, hs⟩,
-      use [s, hsl],
-      intros y hy,
-      have := div_le_iff_of_nonneg_of_le (norm_nonneg _) hc (hs y hy),
+      refine h.mono (λ y hy, _),
+      have := div_le_iff_of_nonneg_of_le (norm_nonneg _) hc hy,
       simpa },
     { exact eventually_eq.symm h.eventually_mul_div_cancel } },
   { rintros ⟨φ, hφ, h⟩,
@@ -1134,8 +1125,9 @@ lemma is_O_with.exists_eq_mul (h : is_O_with c u v l) (hc : 0 ≤ c) :
 (is_O_with_iff_exists_eq_mul hc).mp h
 
 lemma is_O_iff_exists_eq_mul :
-  is_O u v l ↔ ∃ (φ : α → 𝕜) (hφ : ∃ c, ∀ᶠ x in l, ∥φ x∥ ≤ c), u =ᶠ[l] φ * v :=
+  is_O u v l ↔ ∃ (φ : α → 𝕜) (hφ : is_O φ (λ _, (1:𝕜)) l), u =ᶠ[l] φ * v :=
 begin
+  conv_rhs {simp [is_O_iff]},
   split,
   { rintros h,
     rcases h.exists_nonneg with ⟨c, hnnc, hc⟩,
@@ -1145,7 +1137,7 @@ begin
 end
 
 lemma is_O.exists_eq_mul (h : is_O u v l) :
-  ∃ (φ : α → 𝕜) (hφ : ∃ c, ∀ᶠ x in l, ∥φ x∥ ≤ c), u =ᶠ[l] φ * v :=
+  ∃ (φ : α → 𝕜) (hφ : is_O φ (λ _, (1:𝕜)) l), u =ᶠ[l] φ * v :=
 is_O_iff_exists_eq_mul.mp h
 
 lemma is_o_iff_exists_eq_mul :
@@ -1155,7 +1147,7 @@ begin
   { exact λ h, ⟨λ x, u x / v x, h.tendsto_0, eventually_eq.symm h.eventually_mul_div_cancel⟩ },
   { rw is_o,
     rintros ⟨φ, hφ, huvφ⟩ c hpos,
-    simp_rw [metric.tendsto_nhds, dist_zero_right] at hφ,
+    rw normed_group.tendsto_nhds_zero at hφ,
     exact is_O_with_of_eq_mul _ ((hφ c hpos).mp (eventually_of_forall $ λ x, le_of_lt)) huvφ }
 end
 

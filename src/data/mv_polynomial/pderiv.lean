@@ -132,6 +132,18 @@ lemma pderiv_C_mul {f : mv_polynomial σ R} {i : σ} :
   pderiv i (C a * f) = C a * pderiv i f :=
 by convert linear_map.map_smul (pderiv i) a f; rw C_mul'
 
+variables (R) (i j : σ)
+lemma pderiv_X_self : pderiv i (X i : mv_polynomial σ R) = 1 :=
+pderiv_monomial_single.trans $
+by rw [nat.sub_self, single_zero, one_mul, nat.cast_one, monomial, add_monoid_algebra.one_def]
+
+lemma pderiv_X_ne (hij : i ≠ j) : pderiv i (X j : mv_polynomial σ R) = 0 :=
+pderiv_monomial.trans $ by rw [single_eq_of_ne hij.symm, nat.cast_zero, mul_zero, monomial_zero]
+
+lemma pderiv_X : pderiv i (X j : mv_polynomial σ R) = if i = j then 1 else 0 :=
+by { split_ifs, { rw [h, pderiv_X_self] }, { exact pderiv_X_ne R i j h } }
+variables {R}
+
 end pderiv
 
 end mv_polynomial

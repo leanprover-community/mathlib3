@@ -752,6 +752,11 @@ let s : linear_ordered_semiring α := @linear_ordered_ring.to_linear_ordered_sem
   mul_lt_mul_of_pos_right    := @linear_ordered_semiring.mul_lt_mul_of_pos_right α s,
   ..d }
 
+instance linear_ordered_comm_ring.to_linear_ordered_add_comm_group
+  [s : linear_ordered_comm_ring α] :
+  linear_ordered_add_comm_group α :=
+{ .. s }
+
 section linear_ordered_comm_ring
 
 variables [linear_ordered_comm_ring α] {a b c d : α}
@@ -893,14 +898,16 @@ instance to_nonneg_ring : nonneg_ring α :=
 /-- Construct `linear_order` from `linear_nonneg_ring`. This is not an instance
 because we don't use it in `mathlib`. -/
 local attribute [instance]
-def to_linear_order : linear_order α :=
+def to_linear_order [decidable_pred (nonneg : α → Prop)] : linear_order α :=
 { le_total := nonneg_total_iff.1 nonneg_total,
+  decidable_le := by apply_instance,
+  decidable_lt := by apply_instance,
   ..‹linear_nonneg_ring α›, ..(infer_instance : ordered_add_comm_group α) }
 
 /-- Construct `linear_ordered_ring` from `linear_nonneg_ring`.
 This is not an instance because we don't use it in `mathlib`. -/
 local attribute [instance]
-def to_linear_ordered_ring : linear_ordered_ring α :=
+def to_linear_ordered_ring [decidable_pred (nonneg : α → Prop)] : linear_ordered_ring α :=
 { mul_pos := by simp [pos_def.symm]; exact @nonneg_ring.mul_pos _ _,
   zero_le_one := le_of_lt $ lt_of_not_ge $ λ (h : nonneg (0 - 1)), begin
     rw [zero_sub] at h,
@@ -916,10 +923,8 @@ def to_linear_ordered_comm_ring
   [decidable_pred (@nonneg α _)]
   [comm : @is_commutative α (*)]
   : linear_ordered_comm_ring α :=
-{ decidable_le := by apply_instance,
-  decidable_lt := by apply_instance,
-  mul_comm := is_commutative.comm,
-  ..@linear_nonneg_ring.to_linear_ordered_ring _ _ }
+{ mul_comm := is_commutative.comm,
+  ..@linear_nonneg_ring.to_linear_ordered_ring _ _ _ }
 
 end linear_nonneg_ring
 

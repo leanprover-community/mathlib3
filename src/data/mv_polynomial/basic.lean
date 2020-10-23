@@ -113,6 +113,8 @@ local attribute [instance] coeff_coe_to_fun
 /-- `monomial s a` is the monomial `a * X^s` -/
 def monomial (s : σ →₀ ℕ) (a : R) : mv_polynomial σ R := single s a
 
+lemma single_eq_monomial (s : σ →₀ ℕ) (a : R) : single s a = monomial s a := rfl
+
 /-- `C a` is the constant polynomial with value `a` -/
 def C : R →+* mv_polynomial σ R :=
 { to_fun := monomial 0,
@@ -272,7 +274,7 @@ lemma is_id (f : mv_polynomial σ R →+* mv_polynomial σ R)
   f p = p :=
 hom_eq_hom f (ring_hom.id _) hC hX p
 
-lemma ring_hom_ext {A : Type*} [comm_semiring A] (f g : mv_polynomial σ R →+* A)
+@[ext] lemma ring_hom_ext {A : Type*} [comm_semiring A] (f g : mv_polynomial σ R →+* A)
   (hC : ∀ r, f (C r) = g (C r)) (hX : ∀ i, f (X i) = g (X i)) :
   f = g :=
 begin
@@ -283,8 +285,8 @@ begin
   { intros p q hp hq, simp only [ring_hom.map_add, hp, hq] }
 end
 
-lemma alg_hom_ext {A : Type*} [comm_semiring A] [algebra R A]
-  (f g : mv_polynomial σ R →ₐ[R] A) (hf : ∀ i : σ, f (X i) = g (X i)) :
+@[ext] lemma alg_hom_ext {A : Type*} [comm_semiring A] [algebra R A]
+  {f g : mv_polynomial σ R →ₐ[R] A} (hf : ∀ i : σ, f (X i) = g (X i)) :
   f = g :=
 begin
   apply alg_hom.coe_ring_hom_injective,
@@ -381,8 +383,8 @@ lemma coeff_mul (p q : mv_polynomial σ R) (n : σ →₀ ℕ) :
 begin
   rw mul_def,
   -- We need to manipulate both sides into a shape to which we can apply `finset.sum_bij_ne_zero`,
-  -- so we need to turn both sides into a sum over a sigma/product.
-  have := @finset.sum_sigma (σ →₀ ℕ) R _ _ p.support (λ _, q.support)
+  -- so we need to turn both sides into a sum over a product.
+  have := @finset.sum_product (σ →₀ ℕ) R _ _ p.support q.support
     (λ x, if (x.1 + x.2 = n) then coeff x.1 p * coeff x.2 q else 0),
   convert this.symm using 1; clear this,
   { rw [coeff],
@@ -390,7 +392,7 @@ begin
     convert single_apply },
   symmetry,
   -- We are now ready to show that both sums are equal using `finset.sum_bij_ne_zero`.
-  apply finset.sum_bij_ne_zero (λ (x : Σ (a : σ →₀ ℕ), σ →₀ ℕ) _ _, (x.1, x.2)),
+  apply finset.sum_bij_ne_zero (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)) _ _, (x.1, x.2)),
   { intros x hx hx',
     simp only [mem_antidiagonal_support, eq_self_iff_true, if_false, forall_true_iff],
     contrapose! hx',
@@ -399,11 +401,11 @@ begin
     simpa only [and_imp, prod.mk.inj_iff, heq_iff_eq] using and.intro },
   { rintros ⟨i, j⟩ hij hij',
     refine ⟨⟨i, j⟩, _, _⟩,
-    { simp only [mem_support_iff, finset.mem_sigma],
+    { simp only [mem_support_iff, finset.mem_product],
       contrapose! hij',
       exact mul_eq_zero_of_ne_zero_imp_eq_zero hij' },
     { rw [mem_antidiagonal_support] at hij,
-      simp only [exists_prop, and_true, eq_self_iff_true, ne.def, if_pos hij, hij', not_false_iff] } },
+      simp only [exists_prop, true_and, ne.def, if_pos hij, hij', not_false_iff] } },
   { intros x hx hx',
     simp only [ne.def] at hx' ⊢,
     split_ifs with H,
@@ -825,7 +827,7 @@ coeff_map f φ 0
 
 lemma constant_coeff_comp_map (f : R →+* S₁) :
   (constant_coeff : mv_polynomial σ S₁ →+* S₁).comp (mv_polynomial.map f) = f.comp (constant_coeff) :=
-by { ext, apply constant_coeff_map }
+by { ext; simp }
 
 lemma support_map_subset (p : mv_polynomial σ R) : (map f p).support ⊆ p.support :=
 begin
@@ -897,42 +899,35 @@ lemma aeval_eq_eval₂_hom (p : mv_polynomial σ R) :
 
 @[simp] lemma aeval_C (r : R) : aeval f (C r) = algebra_map R S₁ r := eval₂_C _ _ _
 
-theorem eval_unique (φ : mv_polynomial σ R →ₐ[R] S₁) :
+theorem aeval_unique (φ : mv_polynomial σ R →ₐ[R] S₁) :
   φ = aeval (φ ∘ X) :=
-begin
-  ext p,
-  apply mv_polynomial.induction_on p,
-  { intro r, rw aeval_C, exact φ.commutes r },
-  { intros f g ih1 ih2,
-    rw [φ.map_add, ih1, ih2, alg_hom.map_add] },
-  { intros p j ih,
-    rw [φ.map_mul, alg_hom.map_mul, aeval_X, ih] }
-end
+by { ext i, simp }
 
 lemma comp_aeval {B : Type*} [comm_semiring B] [algebra R B]
   (φ : S₁ →ₐ[R] B) :
-  φ.comp (aeval f) = (aeval (λ i, φ (f i))) :=
-begin
-  apply mv_polynomial.alg_hom_ext,
-  intros i,
-  rw [alg_hom.comp_apply, aeval_X, aeval_X],
-end
+  φ.comp (aeval f) = aeval (λ i, φ (f i)) :=
+by { ext i, simp }
 
 @[simp] lemma map_aeval {B : Type*} [comm_semiring B]
   (g : σ → S₁) (φ : S₁ →+* B) (p : mv_polynomial σ R) :
   φ (aeval g p) = (eval₂_hom (φ.comp (algebra_map R S₁)) (λ i, φ (g i)) p) :=
 by { rw ← comp_eval₂_hom, refl }
 
+@[simp] lemma eval₂_hom_zero (f : R →+* S₂) (p : mv_polynomial σ R) :
+  eval₂_hom f (0 : σ → S₂) p = f (constant_coeff p) :=
+begin
+  suffices : eval₂_hom f (0 : σ → S₂) = f.comp constant_coeff,
+    from ring_hom.congr_fun this p,
+  ext; simp
+end
+
+@[simp] lemma eval₂_hom_zero' (f : R →+* S₂) (p : mv_polynomial σ R) :
+  eval₂_hom f (λ _, 0 : σ → S₂) p = f (constant_coeff p) :=
+eval₂_hom_zero f p
+
 @[simp] lemma aeval_zero (p : mv_polynomial σ R) :
   aeval (0 : σ → S₁) p = algebra_map _ _ (constant_coeff p) :=
-begin
-  apply mv_polynomial.induction_on p,
-  { simp only [aeval_C, forall_const, if_true, constant_coeff_C, eq_self_iff_true] },
-  { intros, simp only [*, alg_hom.map_add, ring_hom.map_add, coeff_add] },
-  { intros,
-    simp only [ring_hom.map_mul, constant_coeff_X, pi.zero_apply, ring_hom.map_zero, eq_self_iff_true,
-      mem_support_iff, not_true, aeval_X, if_false, ne.def, mul_zero, alg_hom.map_mul, zero_apply] }
-end
+eval₂_hom_zero (algebra_map R S₁) p
 
 @[simp] lemma aeval_zero' (p : mv_polynomial σ R) :
   aeval (λ _, 0 : σ → S₁) p = algebra_map _ _ (constant_coeff p) :=

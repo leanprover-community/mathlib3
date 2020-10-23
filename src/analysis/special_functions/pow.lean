@@ -174,24 +174,33 @@ by split_ifs; simp [rpow_def, *]; exact rpow_def_of_neg (lt_of_le_of_ne hx h) _
 lemma rpow_pos_of_pos {x : ℝ} (hx : 0 < x) (y : ℝ) : 0 < x ^ y :=
 by rw rpow_def_of_pos hx; apply exp_pos
 
+@[simp] lemma rpow_zero (x : ℝ) : x ^ (0 : ℝ) = 1 := by simp [rpow_def]
+
+@[simp] lemma zero_rpow {x : ℝ} (h : x ≠ 0) : (0 : ℝ) ^ x = 0 :=
+by simp [rpow_def, *]
+
+@[simp] lemma rpow_one (x : ℝ) : x ^ (1 : ℝ) = x := by simp [rpow_def]
+
+@[simp] lemma one_rpow (x : ℝ) : (1 : ℝ) ^ x = 1 := by simp [rpow_def]
+
+lemma zero_rpow_le_one (x : ℝ) : (0 : ℝ) ^ x ≤ 1 :=
+by { by_cases h : x = 0; simp [h, zero_le_one] }
+
+lemma zero_rpow_nonneg (x : ℝ) : 0 ≤ (0 : ℝ) ^ x :=
+by { by_cases h : x = 0; simp [h, zero_le_one] }
+
+lemma rpow_nonneg_of_nonneg {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : 0 ≤ x ^ y :=
+by rw [rpow_def_of_nonneg hx];
+  split_ifs; simp only [zero_le_one, le_refl, le_of_lt (exp_pos _)]
+
 lemma abs_rpow_le_abs_rpow (x y : ℝ) : abs (x ^ y) ≤ abs (x) ^ y :=
-abs_le_of_le_of_neg_le
 begin
-  cases lt_trichotomy 0 x, { rw abs_of_pos h },
-  cases h, { simp [h.symm] },
-  rw [rpow_def_of_neg h, rpow_def_of_pos (abs_pos_of_neg h), log_abs],
-  calc exp (log x * y) * cos (y * π) ≤ exp (log x * y) * 1 :
-    mul_le_mul_of_nonneg_left (cos_le_one _) (le_of_lt $ exp_pos _)
-  ... = _ : mul_one _
-end
-begin
-  cases lt_trichotomy 0 x, { rw abs_of_pos h, have : 0 < x^y := rpow_pos_of_pos h _, linarith },
-  cases h, { simp only [h.symm, abs_zero, rpow_def_of_nonneg], split_ifs, repeat {norm_num} },
-  rw [rpow_def_of_neg h, rpow_def_of_pos (abs_pos_of_neg h), log_abs],
-  calc -(exp (log x * y) * cos (y * π)) = exp (log x * y) * (-cos (y * π)) : by ring
-    ... ≤ exp (log x * y) * 1 :
-      mul_le_mul_of_nonneg_left (neg_le.2 $ neg_one_le_cos _) (le_of_lt $ exp_pos _)
-    ... = exp (log x * y) : mul_one _
+  rcases lt_trichotomy 0 x with (hx|rfl|hx),
+  { rw [abs_of_pos hx, abs_of_pos (rpow_pos_of_pos hx _)] },
+  { rw [abs_zero, abs_of_nonneg (rpow_nonneg_of_nonneg le_rfl _)] },
+  { rw [abs_of_neg hx, rpow_def_of_neg hx, rpow_def_of_pos (neg_pos.2 hx), log_neg_eq_log,
+      abs_mul, abs_of_pos (exp_pos _)],
+    exact mul_le_of_le_one_right (exp_pos _).le (abs_cos_le_one _) }
 end
 
 end real
@@ -218,25 +227,6 @@ end complex
 namespace real
 
 variables {x y z : ℝ}
-
-@[simp] lemma rpow_zero (x : ℝ) : x ^ (0 : ℝ) = 1 := by simp [rpow_def]
-
-@[simp] lemma zero_rpow {x : ℝ} (h : x ≠ 0) : (0 : ℝ) ^ x = 0 :=
-by simp [rpow_def, *]
-
-@[simp] lemma rpow_one (x : ℝ) : x ^ (1 : ℝ) = x := by simp [rpow_def]
-
-@[simp] lemma one_rpow (x : ℝ) : (1 : ℝ) ^ x = 1 := by simp [rpow_def]
-
-lemma zero_rpow_le_one (x : ℝ) : (0 : ℝ) ^ x ≤ 1 :=
-by { by_cases h : x = 0; simp [h, zero_le_one] }
-
-lemma zero_rpow_nonneg (x : ℝ) : 0 ≤ (0 : ℝ) ^ x :=
-by { by_cases h : x = 0; simp [h, zero_le_one] }
-
-lemma rpow_nonneg_of_nonneg {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : 0 ≤ x ^ y :=
-by rw [rpow_def_of_nonneg hx];
-  split_ifs; simp only [zero_le_one, le_refl, le_of_lt (exp_pos _)]
 
 lemma rpow_add {x : ℝ} (hx : 0 < x) (y z : ℝ) : x ^ (y + z) = x ^ y * x ^ z :=
 by simp only [rpow_def_of_pos hx, mul_add, exp_add]
@@ -319,6 +309,12 @@ end
 
 lemma div_rpow (hx : 0 ≤ x) (hy : 0 ≤ y) (z : ℝ) : (x / y) ^ z = x^z / y^z :=
 by simp only [div_eq_mul_inv, mul_rpow hx (inv_nonneg.2 hy), inv_rpow hy]
+
+lemma log_rpow {x : ℝ} (hx : 0 < x) (y : ℝ) : log (x^y) = y * (log x) :=
+begin
+  apply exp_injective,
+  rw [exp_log (rpow_pos_of_pos hx y), ← exp_log hx, mul_comm, rpow_def_of_pos (exp_pos (log x)) y],
+end
 
 lemma rpow_lt_rpow (hx : 0 ≤ x) (hxy : x < y) (hz : 0 < z) : x^z < y^z :=
 begin
@@ -409,7 +405,7 @@ by rw [rpow_def_of_pos hx, one_lt_exp_iff, mul_pos_iff, log_pos_iff hx, log_neg_
 lemma one_lt_rpow_iff (hx : 0 ≤ x) : 1 < x ^ y ↔ 1 < x ∧ 0 < y ∨ 0 < x ∧ x < 1 ∧ y < 0 :=
 begin
   rcases hx.eq_or_lt with (rfl|hx),
-  { rcases em (y = 0) with (rfl|hy); simp [*, lt_irrefl, (@zero_lt_one ℝ _).not_lt] },
+  { rcases em (y = 0) with (rfl|hy); simp [*, lt_irrefl, (@zero_lt_one ℝ _ _).not_lt] },
   { simp [one_lt_rpow_iff_of_pos hx, hx] }
 end
 
@@ -761,6 +757,51 @@ lemma deriv_within_sqrt (hf : differentiable_within_at ℝ f s x) (hx : f x ≠ 
 (hf.has_deriv_at.sqrt hx).deriv
 
 end differentiability
+
+section limits
+open real filter
+
+/-- The function `x ^ y` tends to `+∞` at `+∞` for any positive real `y`. -/
+lemma tendsto_rpow_at_top {y : ℝ} (hy : 0 < y) : tendsto (λ x : ℝ, x ^ y) at_top at_top :=
+begin
+  rw tendsto_at_top_at_top,
+  intro b,
+  use (max b 0) ^ (1/y),
+  intros x hx,
+  exact le_of_max_le_left
+    (by { convert rpow_le_rpow (rpow_nonneg_of_nonneg (le_max_right b 0) (1/y)) hx (le_of_lt hy),
+      rw [← rpow_mul (le_max_right b 0), (eq_div_iff (ne_of_gt hy)).mp rfl, rpow_one] }),
+end
+
+/-- The function `x ^ (-y)` tends to `0` at `+∞` for any positive real `y`. -/
+lemma tendsto_rpow_neg_at_top {y : ℝ} (hy : 0 < y) : tendsto (λ x : ℝ, x ^ (-y)) at_top (𝓝 0) :=
+tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) (λ x hx, (rpow_neg (le_of_lt hx) y).symm))
+  (tendsto.inv_tendsto_at_top (tendsto_rpow_at_top hy))
+
+/-- The function `x ^ (a / (b * x + c))` tends to `1` at `+∞`, for any real numbers `a`, `b`, and
+`c` such that `b` is nonzero. -/
+lemma tendsto_rpow_div_mul_add (a b c : ℝ) (hb : 0 ≠ b) :
+  tendsto (λ x, x ^ (a / (b*x+c))) at_top (𝓝 1) :=
+begin
+  refine tendsto.congr' _ ((tendsto_exp_nhds_0_nhds_1.comp
+    (by simpa only [mul_zero, pow_one] using ((@tendsto_const_nhds _ _ _ a _).mul
+      (tendsto_div_pow_mul_exp_add_at_top b c 1 hb (by norm_num))))).comp (tendsto_log_at_top)),
+  apply eventually_eq_of_mem (Ioi_mem_at_top (0:ℝ)),
+  intros x hx,
+  simp only [set.mem_Ioi, function.comp_app] at hx ⊢,
+  rw [exp_log hx, ← exp_log (rpow_pos_of_pos hx (a / (b * x + c))), log_rpow hx (a / (b * x + c))],
+  field_simp,
+end
+
+/-- The function `x ^ (1 / x)` tends to `1` at `+∞`. -/
+lemma tendsto_rpow_div : tendsto (λ x, x ^ ((1:ℝ) / x)) at_top (𝓝 1) :=
+by { convert tendsto_rpow_div_mul_add (1:ℝ) _ (0:ℝ) zero_ne_one, ring }
+
+/-- The function `x ^ (-1 / x)` tends to `1` at `+∞`. -/
+lemma tendsto_rpow_neg_div : tendsto (λ x, x ^ (-(1:ℝ) / x)) at_top (𝓝 1) :=
+by { convert tendsto_rpow_div_mul_add (-(1:ℝ)) _ (0:ℝ) zero_ne_one, ring }
+
+end limits
 
 namespace nnreal
 

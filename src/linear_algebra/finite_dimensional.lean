@@ -195,13 +195,16 @@ begin
   exact (classical.some_spec (lt_omega.1 (dim_lt_omega K V))).symm
 end
 
+lemma findim_of_infinite_dimensional {K V : Type*} [field K] [add_comm_group V] [vector_space K V]
+  (h : ¬finite_dimensional K V) : findim K V = 0 :=
+dif_neg $ mt finite_dimensional_iff_dim_lt_omega.2 h
+
 /-- If a vector space has a finite basis, then its dimension (seen as a cardinal) is equal to the
 cardinality of the basis. -/
 lemma dim_eq_card_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K b) :
   dim K V = fintype.card ι :=
 by rw [←h.mk_range_eq_dim, cardinal.fintype_card,
        set.card_range_of_injective h.injective]
-
 
 /-- If a vector space has a finite basis, then its dimension is equal to the cardinality of the
 basis. -/
@@ -819,10 +822,10 @@ section
 noncomputable def field_of_finite_dimensional (F K : Type*) [field F] [integral_domain K]
   [algebra F K] [finite_dimensional F K] : field K :=
 { inv := λ x, if H : x = 0 then 0 else classical.some $
-    (show function.surjective (algebra.lmul_left F K x), from
+    (show function.surjective (algebra.lmul_left F x), from
       linear_map.injective_iff_surjective.1 $ λ _ _, (mul_right_inj' H).1) 1,
   mul_inv_cancel := λ x hx, show x * dite _ _ _ = _, by { rw dif_neg hx,
-    exact classical.some_spec ((show function.surjective (algebra.lmul_left F K x), from
+    exact classical.some_spec ((show function.surjective (algebra.lmul_left F x), from
       linear_map.injective_iff_surjective.1 $ λ _ _, (mul_right_inj' hx).1) 1) },
   inv_zero := dif_pos rfl,
   .. ‹integral_domain K› }
@@ -980,8 +983,8 @@ begin
       have hx : (x : V) ∈ span K (set.range b) := x.property,
       conv at hx { congr, skip, rw h },
       simpa [mem_map] using hx },
-    have hi : disjoint (span K (set.range b')) f.ker, by simp,
-    convert (linear_independent_of_span_eq_top_of_card_eq_findim hs hc).image hi }
+    have hi : f.ker = ⊥ := ker_subtype _,
+    convert (linear_independent_of_span_eq_top_of_card_eq_findim hs hc).map' _ hi }
 end
 
 lemma is_basis_of_span_eq_top_of_card_eq_findim {ι : Type*} [fintype ι] {b : ι → V}
@@ -1049,27 +1052,9 @@ variables {F E : Type*} [field F] [field E] [algebra F E]
 
 lemma subalgebra.dim_eq_one_of_eq_bot {S : subalgebra F E} (h : S = ⊥) : dim F S = 1 :=
 begin
-  rw eq_bot_iff at h,
-  let b : set S := {1},
-  have : fintype b := unique.fintype,
-  have b_lin_ind : linear_independent F (coe : b → S) := linear_independent_singleton one_ne_zero,
-  have b_spans : span F b = ⊤,
-  { rw eq_top_iff,
-    rintros ⟨x, hx⟩ -,
-    rw submodule.mem_span_singleton,
-    specialize h hx,
-    simp only [mem_coe, subalgebra.mem_to_submodule, coe_coe, algebra.mem_bot] at h,
-    cases h with y hy,
-    use y,
-    ext,
-    change y • 1 = x,
-    simp only [algebra.smul_def, mul_one, *], },
-  have b_basis : is_basis F (coe : b → S),
-  { refine ⟨b_lin_ind, _⟩,
-    convert b_spans,
-    simp *, },
-  have b_card : fintype.card b = 1 := fintype.card_of_subsingleton _,
-  rw [dim_eq_card_basis b_basis, b_card, nat.cast_one],
+  rw [← S.to_submodule_equiv.dim_eq, h,
+    (linear_equiv.of_eq ↑(⊥ : subalgebra F E) _ algebra.to_submodule_bot).dim_eq, dim_span_set],
+  exacts [mk_singleton _, linear_independent_singleton one_ne_zero]
 end
 
 @[simp]

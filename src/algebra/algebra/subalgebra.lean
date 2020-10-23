@@ -201,6 +201,11 @@ ext $ λ x, by rw [← mem_to_submodule, ← mem_to_submodule, h]
 theorem to_submodule_inj {S U : subalgebra R A} : (S : submodule R A) = U ↔ S = U :=
 ⟨to_submodule_injective, congr_arg _⟩
 
+/-- Linear equivalence between `S : submodule R A` and `S`. Though these types are equal,
+we define it as a `linear_equiv` to avoid type equalities. -/
+def to_submodule_equiv (S : subalgebra R A) : (S : submodule R A) ≃ₗ[R] S :=
+linear_equiv.of_eq _ _ rfl
+
 instance : partial_order (subalgebra R A) :=
 { le := λ S T, (S : set A) ⊆ (T : set A),
   le_refl := λ S, set.subset.refl S,
@@ -315,6 +320,9 @@ suffices (of_id R A).range = (⊥ : subalgebra R A),
 by { rw [← this, ← subalgebra.mem_coe, alg_hom.coe_range], refl },
 le_bot_iff.mp (λ x hx, subalgebra.range_le _ ((of_id R A).coe_range ▸ hx))
 
+theorem to_submodule_bot : ((⊥ : subalgebra R A) : submodule R A) = submodule.span R {1} :=
+by { ext x, simp [mem_bot, -set.singleton_one, submodule.mem_span_singleton, algebra.smul_def] }
+
 @[simp] theorem mem_top {x : A} : x ∈ (⊤ : subalgebra R A) :=
 subsemiring.subset_closure $ or.inr trivial
 
@@ -368,6 +376,7 @@ bot_equiv_of_injective (ring_hom.injective _)
 end algebra
 
 namespace subalgebra
+open algebra
 
 variables {R : Type u} {A : Type v}
 variables [comm_semiring R] [semiring A] [algebra R A]
@@ -375,6 +384,15 @@ variables (S : subalgebra R A)
 
 lemma range_val : S.val.range = S :=
 ext $ set.ext_iff.1 $ S.val.coe_range.trans subtype.range_val
+
+instance : unique (subalgebra R R) :=
+{ uniq :=
+  begin
+    intro S,
+    refine le_antisymm (λ r hr, _) bot_le,
+    simp only [set.mem_range, coe_bot, id.map_eq_self, exists_apply_eq_apply, default],
+  end
+  .. algebra.inhabited }
 
 end subalgebra
 

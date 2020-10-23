@@ -182,10 +182,8 @@ variables {ι : Type*} [fintype ι]
 /-- Construct a continuous linear map given the value at a finite basis. -/
 def is_basis.constrL {v : ι → E} (hv : is_basis 𝕜 v) (f : ι → F) :
   E →L[𝕜] F :=
-⟨hv.constr f, begin
-  haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis hv,
-  exact (hv.constr f).continuous_of_finite_dimensional,
-end⟩
+by haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis hv;
+  exact (hv.constr f).to_continuous_linear_map
 
 @[simp, norm_cast] lemma is_basis.coe_constrL {v : ι → E} (hv : is_basis 𝕜 v) (f : ι → F) :
   (hv.constrL f : E →ₗ[𝕜] F) = hv.constr f := rfl
@@ -258,7 +256,7 @@ begin
   from metric.second_countable_of_countable_discretization
     (λ ε ε_pos, ⟨fin d → ℕ, by apply_instance, this ε ε_pos⟩),
   intros ε ε_pos,
-  obtain ⟨u : ℕ → F, hu : closure (range u) = univ⟩ := exists_dense_seq F,
+  obtain ⟨u : ℕ → F, hu : dense_range u⟩ := exists_dense_seq F,
   obtain ⟨v : fin d → E, hv : is_basis 𝕜 v⟩ := finite_dimensional.fin_basis 𝕜 E,
   obtain ⟨C : ℝ, C_pos : 0 < C,
           hC : ∀ {φ : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ∥φ (v i)∥ ≤ M) → ∥φ∥ ≤ C * M⟩ := hv.op_norm_le,
@@ -269,7 +267,7 @@ begin
     have : ∀ i, ∃ n, ∥φ (v i) - u n∥ ≤ ε/(2*C),
     { simp only [norm_sub_rev],
       intro i,
-      have : φ (v i) ∈ closure (range u), by simp [hu],
+      have : φ (v i) ∈ closure (range u) := hu _,
       obtain ⟨n, hn⟩ : ∃ n, ∥u n - φ (v i)∥ < ε / (2 * C),
       { rw mem_closure_iff_nhds_basis metric.nhds_basis_ball at this,
         specialize this (ε/(2*C)) hε2C,
@@ -382,3 +380,29 @@ instance finite_dimensional.proper_real
 finite_dimensional.proper ℝ E
 
 attribute [instance, priority 900] finite_dimensional.proper_real
+
+/-- In a finite dimensional vector space over `ℝ`, the series `∑ x, ∥f x∥` is unconditionally
+summable if and only if the series `∑ x, f x` is unconditionally summable. One implication holds in
+any complete normed space, while the other holds only in finite dimensional spaces. -/
+lemma summable_norm_iff {α E : Type*} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+  {f : α → E} : summable (λ x, ∥f x∥) ↔ summable f :=
+begin
+  refine ⟨summable_of_summable_norm, λ hf, _⟩,
+  -- First we use a finite basis to reduce the problem to the case `E = fin N → ℝ`
+  suffices : ∀ {N : ℕ} {g : α → fin N → ℝ}, summable g → summable (λ x, ∥g x∥),
+  { rcases fin_basis ℝ E with ⟨v, hv⟩,
+    set e := hv.equiv_funL,
+    have : summable (λ x, ∥e (f x)∥) := this (e.summable.2 hf),
+    refine summable_of_norm_bounded _ (this.mul_left
+      ↑(nnnorm (e.symm : (fin (findim ℝ E) → ℝ) →L[ℝ] E))) (λ i, _),
+    simpa using (e.symm : (fin (findim ℝ E) → ℝ) →L[ℝ] E).le_op_norm (e $ f i) },
+  unfreezingI { clear_dependent E },
+  -- Now we deal with `g : α → fin N → ℝ`
+  intros N g hg,
+  have : ∀ i, summable (λ x, ∥g x i∥) := λ i, (pi.summable.1 hg i).abs,
+  refine summable_of_norm_bounded _ (summable_sum (λ i (hi : i ∈ finset.univ), this i)) (λ x, _),
+  rw [norm_norm, pi_norm_le_iff],
+  { refine λ i, finset.single_le_sum (λ i hi, _) (finset.mem_univ i),
+    exact norm_nonneg (g x i) },
+  { exact finset.sum_nonneg (λ _ _, norm_nonneg _) }
+end

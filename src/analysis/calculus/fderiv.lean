@@ -240,36 +240,22 @@ begin
   rwa [this, zero_add] at L3
 end
 
+/-- If `f'` and `f₁'` are two derivatives of `f` within `s` at `x`, then they are equal on the
+tangent cone to `s` at `x` -/
+theorem has_fderiv_within_at.unique_on (hf : has_fderiv_within_at f f' s x)
+  (hg : has_fderiv_within_at f f₁' s x) :
+  eq_on f' f₁' (tangent_cone_at 𝕜 s x) :=
+λ y ⟨c, d, dtop, clim, cdlim⟩,
+  tendsto_nhds_unique (hf.lim at_top dtop clim cdlim) (hg.lim at_top dtop clim cdlim)
+
 /-- `unique_diff_within_at` achieves its goal: it implies the uniqueness of the derivative. -/
 theorem unique_diff_within_at.eq (H : unique_diff_within_at 𝕜 s x)
-  (h : has_fderiv_within_at f f' s x) (h₁ : has_fderiv_within_at f f₁' s x) : f' = f₁' :=
-begin
-  have A : ∀y ∈ tangent_cone_at 𝕜 s x, f' y = f₁' y,
-  { rintros y ⟨c, d, dtop, clim, cdlim⟩,
-    exact tendsto_nhds_unique (h.lim at_top dtop clim cdlim) (h₁.lim at_top dtop clim cdlim) },
-  have B : ∀y ∈ submodule.span 𝕜 (tangent_cone_at 𝕜 s x), f' y = f₁' y,
-  { assume y hy,
-    apply submodule.span_induction hy,
-    { exact λy hy, A y hy },
-    { simp only [continuous_linear_map.map_zero] },
-    { simp {contextual := tt} },
-    { simp {contextual := tt} } },
-  have C : ∀y ∈ closure ((submodule.span 𝕜 (tangent_cone_at 𝕜 s x)) : set E), f' y = f₁' y,
-  { assume y hy,
-    let K := {y | f' y = f₁' y},
-    have : (submodule.span 𝕜 (tangent_cone_at 𝕜 s x) : set E) ⊆ K := B,
-    have : closure (submodule.span 𝕜 (tangent_cone_at 𝕜 s x) : set E) ⊆ closure K :=
-      closure_mono this,
-    have : y ∈ closure K := this hy,
-    rwa (is_closed_eq f'.continuous f₁'.continuous).closure_eq at this },
-  rw H.1 at C,
-  ext y,
-  exact C y (mem_univ _)
-end
+  (hf : has_fderiv_within_at f f' s x) (hg : has_fderiv_within_at f f₁' s x) : f' = f₁' :=
+continuous_linear_map.ext_on H.1 (hf.unique_on hg)
 
 theorem unique_diff_on.eq (H : unique_diff_on 𝕜 s) (hx : x ∈ s)
   (h : has_fderiv_within_at f f' s x) (h₁ : has_fderiv_within_at f f₁' s x) : f' = f₁' :=
-unique_diff_within_at.eq (H x hx) h h₁
+(H x hx).eq h h₁
 
 end derivative_uniqueness
 
@@ -1921,32 +1907,26 @@ namespace continuous_linear_equiv
 
 In this section we establish that the set of continuous linear equivalences between two Banach
 spaces is an open subset of the space of linear maps between them.  These facts are placed here
-because the proof uses `is_bounded_bilinear_map.continuous`, proved just above as a consequence
+because the proof uses `is_bounded_bilinear_map.continuous_left`, proved just above as a consequence
 of its differentiability.
 -/
 
 protected lemma is_open [complete_space E] : is_open (range (coe : (E ≃L[𝕜] F) → (E →L[𝕜] F))) :=
 begin
+  nontriviality E,
   rw [is_open_iff_mem_nhds, forall_range_iff],
   refine λ e, mem_nhds_sets _ (mem_range_self _),
   let O : (E →L[𝕜] F) → (E →L[𝕜] E) := λ f, (e.symm : F →L[𝕜] E).comp f,
-  cases subsingleton_or_nontrivial E with _i _i; resetI,
-  { exact is_open_discrete _ },
-  have h_O : continuous O,
-  { have h_e_symm : continuous (λ (x : E →L[𝕜] F), (e.symm : F →L[𝕜] E)) := continuous_const,
-    exact is_bounded_bilinear_map_comp.continuous.comp (continuous_id.prod_mk h_e_symm) },
+  have h_O : continuous O := is_bounded_bilinear_map_comp.continuous_left,
   convert units.is_open.preimage h_O using 1,
   ext f',
   split,
   { rintros ⟨e', rfl⟩,
-    let w : units (E →L[𝕜] E) := continuous_linear_equiv.to_unit (e'.trans e.symm),
-    exact ⟨w, rfl⟩ },
+    exact ⟨(e'.trans e.symm).to_unit, rfl⟩ },
   { rintros ⟨w, hw⟩,
-    let e' : E ≃L[𝕜] E := continuous_linear_equiv.of_unit w,
-    use e'.trans e,
+    use (units_equiv 𝕜 E w).trans e,
     ext x,
-    have he'w : e' x = w x := rfl,
-    simp [hw, he'w] }
+    simp [hw] }
 end
 
 protected lemma nhds [complete_space E] (e : E ≃L[𝕜] F) :
@@ -2458,44 +2438,22 @@ end
 under a map with onto derivative has also the unique differentiability property at the image point.
 -/
 lemma has_fderiv_within_at.unique_diff_within_at {x : E} (h : has_fderiv_within_at f f' s x)
-  (hs : unique_diff_within_at 𝕜 s x) (h' : closure (range f') = univ) :
+  (hs : unique_diff_within_at 𝕜 s x) (h' : dense_range f') :
   unique_diff_within_at 𝕜 (f '' s) (f x) :=
 begin
-  have B : ∀v ∈ (submodule.span 𝕜 (tangent_cone_at 𝕜 s x) : set E),
-    f' v ∈ (submodule.span 𝕜 (tangent_cone_at 𝕜 (f '' s) (f x)) : set F),
-  { assume v hv,
-    apply submodule.span_induction hv,
-    { exact λ w hw, submodule.subset_span (h.maps_to_tangent_cone hw) },
-    { simp },
-    { assume w₁ w₂ hw₁ hw₂,
-      rw continuous_linear_map.map_add,
-      exact submodule.add_mem (submodule.span 𝕜 (tangent_cone_at 𝕜 (f '' s) (f x))) hw₁ hw₂ },
-    { assume a w hw,
-      rw continuous_linear_map.map_smul,
-      exact submodule.smul_mem (submodule.span 𝕜 (tangent_cone_at 𝕜 (f '' s) (f x))) _ hw } },
-  rw [unique_diff_within_at, ← univ_subset_iff],
-  split,
-  show f x ∈ closure (f '' s), from h.continuous_within_at.mem_closure_image hs.2,
-  show univ ⊆ closure ↑(submodule.span 𝕜 (tangent_cone_at 𝕜 (f '' s) (f x))), from calc
-    univ ⊆ closure (range f') : univ_subset_iff.2 h'
-    ... = closure (f' '' univ) : by rw image_univ
-    ... = closure (f' '' (closure (submodule.span 𝕜 (tangent_cone_at 𝕜 s x) : set E))) : by rw hs.1
-    ... ⊆ closure (closure (f' '' (submodule.span 𝕜 (tangent_cone_at 𝕜 s x) : set E))) :
-      closure_mono (image_closure_subset_closure_image f'.cont)
-    ... = closure (f' '' (submodule.span 𝕜 (tangent_cone_at 𝕜 s x) : set E)) : closure_closure
-    ... ⊆ closure (submodule.span 𝕜 (tangent_cone_at 𝕜 (f '' s) (f x)) : set F) :
-      closure_mono (image_subset_iff.mpr B)
+  refine ⟨h'.dense_of_maps_to f'.continuous hs.1 _,
+    h.continuous_within_at.mem_closure_image hs.2⟩,
+  show submodule.span 𝕜 (tangent_cone_at 𝕜 s x) ≤
+    (submodule.span 𝕜 (tangent_cone_at 𝕜 (f '' s) (f x))).comap f',
+  rw [submodule.span_le],
+  exact h.maps_to_tangent_cone.mono (subset.refl _) submodule.subset_span
 end
 
 lemma has_fderiv_within_at.unique_diff_within_at_of_continuous_linear_equiv
   {x : E} (e' : E ≃L[𝕜] F) (h : has_fderiv_within_at f (e' : E →L[𝕜] F) s x)
   (hs : unique_diff_within_at 𝕜 s x) :
   unique_diff_within_at 𝕜 (f '' s) (f x) :=
-begin
-  apply h.unique_diff_within_at hs,
-  have : set.range (e' : E →L[𝕜] F) = univ := e'.to_linear_equiv.to_equiv.range_eq_univ,
-  rw [this, closure_univ]
-end
+h.unique_diff_within_at hs e'.surjective.dense_range
 
 lemma continuous_linear_equiv.unique_diff_on_preimage_iff (e : F ≃L[𝕜] E) :
   unique_diff_on 𝕜 (e ⁻¹' s) ↔ unique_diff_on 𝕜 s :=
@@ -2530,11 +2488,12 @@ respectively by `𝕜'` and `𝕜` where `𝕜'` is a normed algebra over `𝕜`
 -/
 
 variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-{𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
-{E : Type*} [normed_group E] [normed_space 𝕜' E]
-{F : Type*} [normed_group F] [normed_space 𝕜' F]
-{f : semimodule.restrict_scalars 𝕜 𝕜' E → semimodule.restrict_scalars 𝕜 𝕜' F}
-{f' : semimodule.restrict_scalars 𝕜 𝕜' E →L[𝕜'] semimodule.restrict_scalars 𝕜 𝕜' F} {s : set E} {x : E}
+variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [normed_space 𝕜' E]
+variables [is_scalar_tower 𝕜 𝕜' E]
+variables {F : Type*} [normed_group F] [normed_space 𝕜 F] [normed_space 𝕜' F]
+variables [is_scalar_tower 𝕜 𝕜' F]
+variables {f : E → F} {f' : E →L[𝕜'] F} {s : set E} {x : E}
 
 lemma has_strict_fderiv_at.restrict_scalars (h : has_strict_fderiv_at f f' x) :
   has_strict_fderiv_at f (f'.restrict_scalars 𝕜) x := h
@@ -2574,12 +2533,12 @@ by a normed algebra `𝕜'` over `𝕜`.
 section smul_algebra
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
-{F : Type*} [normed_group F] [normed_space 𝕜' F]
-{f : E → semimodule.restrict_scalars 𝕜 𝕜' F}
-{f' : E →L[𝕜] semimodule.restrict_scalars 𝕜 𝕜' F} {s : set E} {x : E}
-{c : E → 𝕜'} {c' : E →L[𝕜] 𝕜'} {L : filter E}
+variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables {F : Type*} [normed_group F] [normed_space 𝕜 F] [normed_space 𝕜' F]
+variables [is_scalar_tower 𝕜 𝕜' F]
+variables {f : E → F} {f' : E →L[𝕜] F} {s : set E} {x : E}
+variables {c : E → 𝕜'} {c' : E →L[𝕜] 𝕜'} {L : filter E}
 
 theorem has_strict_fderiv_at.smul_algebra (hc : has_strict_fderiv_at c c' x)
   (hf : has_strict_fderiv_at f f' x) :
@@ -2628,60 +2587,58 @@ lemma fderiv_smul_algebra (hc : differentiable_at 𝕜 c x) (hf : differentiable
 (hc.has_fderiv_at.smul_algebra hf.has_fderiv_at).fderiv
 
 theorem has_strict_fderiv_at.smul_algebra_const
-  (hc : has_strict_fderiv_at c c' x) (f : semimodule.restrict_scalars 𝕜 𝕜' F) :
+  (hc : has_strict_fderiv_at c c' x) (f : F) :
   has_strict_fderiv_at (λ y, c y • f) (c'.smul_algebra_right f) x :=
 by simpa only [smul_zero, zero_add] using hc.smul_algebra (has_strict_fderiv_at_const f x)
 
 theorem has_fderiv_within_at.smul_algebra_const
-  (hc : has_fderiv_within_at c c' s x) (f : semimodule.restrict_scalars 𝕜 𝕜' F) :
+  (hc : has_fderiv_within_at c c' s x) (f : F) :
   has_fderiv_within_at (λ y, c y • f) (c'.smul_algebra_right f) s x :=
 by simpa only [smul_zero, zero_add] using hc.smul_algebra (has_fderiv_within_at_const f x s)
 
 theorem has_fderiv_at.smul_algebra_const
-  (hc : has_fderiv_at c c' x) (f : semimodule.restrict_scalars 𝕜 𝕜' F) :
+  (hc : has_fderiv_at c c' x) (f : F) :
   has_fderiv_at (λ y, c y • f) (c'.smul_algebra_right f) x :=
 by simpa only [smul_zero, zero_add] using hc.smul_algebra (has_fderiv_at_const f x)
 
 lemma differentiable_within_at.smul_algebra_const
-  (hc : differentiable_within_at 𝕜 c s x) (f : semimodule.restrict_scalars 𝕜 𝕜' F) :
+  (hc : differentiable_within_at 𝕜 c s x) (f : F) :
   differentiable_within_at 𝕜 (λ y, c y • f) s x :=
 (hc.has_fderiv_within_at.smul_algebra_const f).differentiable_within_at
 
 lemma differentiable_at.smul_algebra_const
-  (hc : differentiable_at 𝕜 c x) (f : semimodule.restrict_scalars 𝕜 𝕜' F) :
+  (hc : differentiable_at 𝕜 c x) (f : F) :
   differentiable_at 𝕜 (λ y, c y • f) x :=
 (hc.has_fderiv_at.smul_algebra_const f).differentiable_at
 
 lemma differentiable_on.smul_algebra_const
-  (hc : differentiable_on 𝕜 c s) (f : semimodule.restrict_scalars 𝕜 𝕜' F) :
+  (hc : differentiable_on 𝕜 c s) (f : F) :
   differentiable_on 𝕜 (λ y, c y • f) s :=
 λx hx, (hc x hx).smul_algebra_const f
 
 lemma differentiable.smul_algebra_const
-  (hc : differentiable 𝕜 c) (f : semimodule.restrict_scalars 𝕜 𝕜' F) :
+  (hc : differentiable 𝕜 c) (f : F) :
   differentiable 𝕜 (λ y, c y • f) :=
 λx, (hc x).smul_algebra_const f
 
 lemma fderiv_within_smul_algebra_const (hxs : unique_diff_within_at 𝕜 s x)
-  (hc : differentiable_within_at 𝕜 c s x) (f : semimodule.restrict_scalars 𝕜 𝕜' F) :
+  (hc : differentiable_within_at 𝕜 c s x) (f : F) :
   fderiv_within 𝕜 (λ y, c y • f) s x =
     (fderiv_within 𝕜 c s x).smul_algebra_right f :=
 (hc.has_fderiv_within_at.smul_algebra_const f).fderiv_within hxs
 
 lemma fderiv_smul_algebra_const
-  (hc : differentiable_at 𝕜 c x) (f : semimodule.restrict_scalars 𝕜 𝕜' F) :
+  (hc : differentiable_at 𝕜 c x) (f : F) :
   fderiv 𝕜 (λ y, c y • f) x = (fderiv 𝕜 c x).smul_algebra_right f :=
 (hc.has_fderiv_at.smul_algebra_const f).fderiv
 
 theorem has_strict_fderiv_at.const_smul_algebra (h : has_strict_fderiv_at f f' x) (c : 𝕜') :
   has_strict_fderiv_at (λ x, c • f x) (c • f') x :=
-(c • (1 : (semimodule.restrict_scalars 𝕜 𝕜' F) →L[𝕜] ((semimodule.restrict_scalars 𝕜 𝕜' F))))
-  .has_strict_fderiv_at.comp x h
+(c • (1 : F →L[𝕜] F)).has_strict_fderiv_at.comp x h
 
 theorem has_fderiv_at_filter.const_smul_algebra (h : has_fderiv_at_filter f f' x L) (c : 𝕜') :
   has_fderiv_at_filter (λ x, c • f x) (c • f') x L :=
-(c • (1 : (semimodule.restrict_scalars 𝕜 𝕜' F) →L[𝕜] ((semimodule.restrict_scalars 𝕜 𝕜' F))))
-  .has_fderiv_at_filter.comp x h
+(c • (1 : F →L[𝕜] F)).has_fderiv_at_filter.comp x h
 
 theorem has_fderiv_within_at.const_smul_algebra (h : has_fderiv_within_at f f' s x) (c : 𝕜') :
   has_fderiv_within_at (λ x, c • f x) (c • f') s x :=

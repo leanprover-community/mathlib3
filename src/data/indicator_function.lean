@@ -49,6 +49,10 @@ lemma indicator_apply (s : set α) (f : α → β) (a : α) :
 
 @[simp] lemma indicator_of_not_mem (h : a ∉ s) (f : α → β) : indicator s f a = 0 := if_neg h
 
+lemma indicator_eq_zero_or_self (s : set α) (f : α → β) (a : α) :
+  indicator s f a = 0 ∨ indicator s f a = f a :=
+if h : a ∈ s then or.inr (indicator_of_mem h f) else or.inl (indicator_of_not_mem h f)
+
 /-- If an indicator function is nonzero at a point, that
 point is in the set. -/
 lemma mem_of_indicator_ne_zero (h : indicator s f a ≠ 0) : a ∈ s :=
@@ -282,6 +286,14 @@ variables [mul_zero_class β] {s t : set α} {f g : α → β} {a : α}
 lemma indicator_mul (s : set α) (f g : α → β) :
   indicator s (λa, f a * g a) = λa, indicator s f a * indicator s g a :=
 by { funext, simp only [indicator], split_ifs, { refl }, rw mul_zero }
+
+lemma indicator_mul_left (s : set α) (f g : α → β) :
+  indicator s (λa, f a * g a) a = indicator s f a * g a :=
+by { simp only [indicator], split_ifs, { refl }, rw [zero_mul] }
+
+lemma indicator_mul_right (s : set α) (f g : α → β) :
+  indicator s (λa, f a * g a) a = f a * indicator s g a :=
+by { simp only [indicator], split_ifs, { refl }, rw [mul_zero] }
 
 end mul_zero_class
 

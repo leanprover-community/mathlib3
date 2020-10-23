@@ -237,7 +237,7 @@ then
   end,
   have hdiv0 : p /ₘ (X - C x) ≠ 0 := mt (div_by_monic_eq_zero_iff (monic_X_sub_C x)
     (ne_zero_of_monic (monic_X_sub_C x))).1 $ not_lt.2 hdeg,
-  ⟨x :: t, calc (card (x :: t) : with_bot ℕ) = t.card + 1 :
+  ⟨x ::ₘ t, calc (card (x ::ₘ t) : with_bot ℕ) = t.card + 1 :
       by exact_mod_cast card_cons _ _
     ... ≤ degree p :
       by rw [← degree_add_div_by_monic (monic_X_sub_C x) hdeg,
@@ -321,7 +321,7 @@ multiset.ext.mpr $ λ r,
     not_le_of_gt hp0 $ h.symm ▸ degree_C_le)).trans
   (by rw [is_root.def, eval_sub, eval_C, sub_eq_zero])
 
-@[simp] lemma roots_X_sub_C (r : R) : roots (X - C r) = r :: 0 :=
+@[simp] lemma roots_X_sub_C (r : R) : roots (X - C r) = r ::ₘ 0 :=
 begin
   ext s,
   rw [count_roots (X_sub_C_ne_zero r), root_multiplicity_X_sub_C],
@@ -404,6 +404,14 @@ then if h : (X : polynomial R) ^ n - C a = 0
       exact degree_C_le))
 else by rw [← with_bot.coe_le_coe, ← degree_X_pow_sub_C (nat.pos_of_ne_zero hn) a];
   exact card_roots (X_pow_sub_C_ne_zero (nat.pos_of_ne_zero hn) a)
+
+/-- The multiset `nth_roots ↑n (1 : R)` as a finset. -/
+def nth_roots_finset (n : ℕ+) (R : Type*) [integral_domain R] : finset R :=
+multiset.to_finset (nth_roots n (1 : R))
+
+@[simp] lemma mem_nth_roots_finset {n : ℕ+} {x : R} :
+  x ∈ nth_roots_finset n R ↔ x ^ (n : ℕ) = 1 :=
+by rw [nth_roots_finset, mem_to_finset, mem_nth_roots n.pos]
 
 end nth_roots
 

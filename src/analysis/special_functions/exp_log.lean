@@ -208,19 +208,28 @@ to `log |x|` for `x < 0`, and to `0` for `0`. We use this unconventional extensi
 `(-∞, 0]` as it gives the formula `log (x * y) = log x + log y` for all nonzero `x` and `y`, and
 the derivative of `log` is `1/x` away from `0`. -/
 @[pp_nodot] noncomputable def log (x : ℝ) : ℝ :=
-if hx : x ≠ 0 then classical.some (exists_exp_eq_of_pos (abs_pos_iff.mpr hx)) else 0
+if hx : x ≠ 0 then classical.some (exists_exp_eq_of_pos (abs_pos.mpr hx)) else 0
 
 lemma exp_log_eq_abs (hx : x ≠ 0) : exp (log x) = abs x :=
-by { rw [log, dif_pos hx], exact classical.some_spec (exists_exp_eq_of_pos ((abs_pos_iff.mpr hx))) }
+by { rw [log, dif_pos hx], exact classical.some_spec (exists_exp_eq_of_pos ((abs_pos.mpr hx))) }
 
 lemma exp_log (hx : 0 < x) : exp (log x) = x :=
 by { rw exp_log_eq_abs (ne_of_gt hx), exact abs_of_pos hx }
+
+lemma range_exp : set.range exp = {x | 0 < x} :=
+set.ext $ λ x, ⟨by { rintro ⟨x, rfl⟩, exact exp_pos x }, λ hx, ⟨log x, exp_log hx⟩⟩
 
 lemma exp_log_of_neg (hx : x < 0) : exp (log x) = -x :=
 by { rw exp_log_eq_abs (ne_of_lt hx), exact abs_of_neg hx }
 
 @[simp] lemma log_exp (x : ℝ) : log (exp x) = x :=
 exp_injective $ exp_log (exp_pos x)
+
+lemma log_surjective : function.surjective log :=
+λ x, ⟨exp x, log_exp x⟩
+
+@[simp] lemma range_log : set.range log = set.univ :=
+log_surjective.range_eq
 
 @[simp] lemma log_zero : log 0 = 0 :=
 by simp [log]
@@ -435,19 +444,21 @@ lemma tendsto_exp_at_top : tendsto exp at_top at_top :=
 begin
   have A : tendsto (λx:ℝ, x + 1) at_top at_top :=
     tendsto_at_top_add_const_right at_top 1 tendsto_id,
-  have B : ∀ᶠ x in at_top, x + 1 ≤ exp x,
-  { have : ∀ᶠ (x : ℝ) in at_top, 0 ≤ x := mem_at_top 0,
-    filter_upwards [this],
-    exact λx hx, add_one_le_exp_of_nonneg hx },
+  have B : ∀ᶠ x in at_top, x + 1 ≤ exp x :=
+    eventually_at_top.2 ⟨0, λx hx, add_one_le_exp_of_nonneg hx⟩,
   exact tendsto_at_top_mono' at_top B A
 end
 
-/-- The real exponential function tends to 0 at -infinity or, equivalently, `exp(-x)` tends to `0`
-at +infinity -/
+/-- The real exponential function tends to `0` at `-∞` or, equivalently, `exp(-x)` tends to `0`
+at `+∞` -/
 lemma tendsto_exp_neg_at_top_nhds_0 : tendsto (λx, exp (-x)) at_top (𝓝 0) :=
 (tendsto_inv_at_top_zero.comp (tendsto_exp_at_top)).congr (λx, (exp_neg x).symm)
 
-/-- The function `exp(x)/x^n` tends to +infinity at +infinity, for any natural number `n` -/
+/-- The real exponential function tends to `1` at `0`. -/
+lemma tendsto_exp_nhds_0_nhds_1 : tendsto exp (𝓝 0) (𝓝 1) :=
+by { convert continuous_exp.tendsto 0, simp }
+
+/-- The function `exp(x)/x^n` tends to `+∞` at `+∞`, for any natural number `n` -/
 lemma tendsto_exp_div_pow_at_top (n : ℕ) : tendsto (λx, exp x / x^n) at_top at_top :=
 begin
   have n_pos : (0 : ℝ) < n + 1 := nat.cast_add_one_pos n,
@@ -485,6 +496,38 @@ end
 lemma tendsto_pow_mul_exp_neg_at_top_nhds_0 (n : ℕ) : tendsto (λx, x^n * exp (-x)) at_top (𝓝 0) :=
 (tendsto_inv_at_top_zero.comp (tendsto_exp_div_pow_at_top n)).congr $ λx,
   by rw [function.comp_app, inv_eq_one_div, div_div_eq_mul_div, one_mul, div_eq_mul_inv, exp_neg]
+
+/-- The function `(b * exp x + c) / (x ^ n)` tends to `+∞` at `+∞`, for any positive natural number
+`n` and any real numbers `b` and `c` such that `b` is positive. -/
+lemma tendsto_mul_exp_add_div_pow_at_top (b c : ℝ) (n : ℕ) (hb : 0 < b) (hn : 1 ≤ n) :
+  tendsto (λ x, (b * (exp x) + c) / (x^n)) at_top at_top :=
+begin
+  refine tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) _)
+    (tendsto_at_top_add_tendsto_right (tendsto_at_top_mul_left hb (tendsto_exp_div_pow_at_top n))
+      ((tendsto_pow_neg_at_top hn).mul (@tendsto_const_nhds _ _ _ c _))),
+  intros x hx,
+  simp only [fpow_neg x n],
+  ring,
+end
+
+/-- The function `(x ^ n) / (b * exp x + c)` tends to `0` at `+∞`, for any positive natural number
+`n` and any real numbers `b` and `c` such that `b` is nonzero. -/
+lemma tendsto_div_pow_mul_exp_add_at_top (b c : ℝ) (n : ℕ) (hb : 0 ≠ b) (hn : 1 ≤ n) :
+  tendsto (λ x, x^n / (b * (exp x) + c)) at_top (𝓝 0) :=
+begin
+  have H : ∀ d e, 0 < d → tendsto (λ (x:ℝ), x^n / (d * (exp x) + e)) at_top (𝓝 0),
+  { intros b' c' h,
+    convert tendsto.inv_tendsto_at_top (tendsto_mul_exp_add_div_pow_at_top b' c' n h hn),
+    ext x,
+    simpa only [pi.inv_apply] using inv_div.symm },
+  cases lt_or_gt_of_ne hb,
+  { exact H b c h },
+  { convert (H (-b) (-c) (neg_pos.mpr h)).neg,
+    { ext x,
+      field_simp,
+      rw [← neg_add (b * exp x) c, neg_div_neg_eq] },
+    { exact neg_zero.symm } },
+end
 
 /-- The real logarithm function tends to `+∞` at `+∞`. -/
 lemma tendsto_log_at_top : tendsto log at_top at_top :=
@@ -526,7 +569,7 @@ begin
     calc abs (deriv F y) = abs (-(y^n) / (1 - y)) : by rw [A y this]
     ... ≤ (abs x)^n / (1 - abs x) :
       begin
-        have : abs y ≤ abs x := abs_le_of_le_of_neg_le hy.2 (by linarith [hy.1]),
+        have : abs y ≤ abs x := abs_le.2 hy,
         have : 0 < 1 - abs x, by linarith,
         have : 1 - abs x ≤ abs (1 - y) := le_trans (by linarith [hy.2]) (le_abs_self _),
         simp only [← pow_abs, abs_div, abs_neg],

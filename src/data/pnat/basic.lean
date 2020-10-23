@@ -230,14 +230,9 @@ lemma strong_induction_on {p : pnat → Prop} : ∀ (n : pnat) (h : ∀ k, (∀ 
 using_well_founded { dec_tac := `[assumption] }
 
 /-- If `(n : pnat)` is different from `1`, then it is the successor of some `(k : pnat)`. -/
-lemma exists_eq_succ_of_ne_one {n : pnat} (h1 : n ≠ 1) : ∃ (k : pnat), n = k + 1 :=
-begin
-  rcases n with ⟨n, hn⟩,
-  obtain ⟨m, rfl⟩ := nat.exists_eq_succ_of_ne_zero (pos_iff_ne_zero.mp hn),
-  have hm0 : m ≠ 0, { rintro rfl, exact h1 rfl },
-  obtain ⟨k, rfl⟩ := nat.exists_eq_succ_of_ne_zero hm0,
-  exact ⟨k.succ_pnat, rfl⟩
-end
+lemma exists_eq_succ_of_ne_one : ∀ {n : pnat} (h1 : n ≠ 1), ∃ (k : pnat), n = k + 1
+| ⟨1, _⟩ h1 := false.elim $ h1 rfl
+| ⟨n+2, _⟩ _ := ⟨⟨n+1, by simp⟩, rfl⟩
 
 lemma case_strong_induction_on {p : pnat → Prop} (a : pnat) (hz : p 1)
   (hi : ∀ n, (∀ m, m ≤ n → p m) → p (n + 1)) : p a :=

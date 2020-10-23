@@ -328,10 +328,10 @@ end add_comm_monoid
 
 section add_comm_group
 
-variables [semiring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃] [add_comm_group M₄]
-variables [semimodule R M] [semimodule R M₂] [semimodule R M₃] [semimodule R M₄]
-variables (f g : M →ₗ[R] M₂)
-include R
+variables [semiring R]
+  [add_comm_monoid M] [add_comm_group M₂] [add_comm_group M₃] [add_comm_group M₄]
+  [semimodule R M] [semimodule R M₂] [semimodule R M₃] [semimodule R M₄]
+  (f g : M →ₗ[R] M₂)
 
 /-- The negation of a linear map is linear. -/
 instance : has_neg (M →ₗ[R] M₂) :=
@@ -395,15 +395,24 @@ def applyₗ (v : M) : (M →ₗ[R] M₂) →ₗ[R] M₂ :=
 
 end comm_semiring
 
+section semiring
+
+variables [semiring R] [add_comm_monoid M] [semimodule R M]
+
+instance endomorphism_semiring : semiring (M →ₗ[R] M) :=
+by refine {mul := (*), one := 1, ..linear_map.add_comm_monoid, ..};
+  { intros, apply linear_map.ext, simp {proj := ff} }
+
+lemma mul_apply (f g : M →ₗ[R] M) (x : M) : (f * g) x = f (g x) := rfl
+
+end semiring
+
 section ring
 
 variables [ring R] [add_comm_group M] [semimodule R M]
 
 instance endomorphism_ring : ring (M →ₗ[R] M) :=
-by refine {mul := (*), one := 1, ..linear_map.add_comm_group, ..};
-  { intros, apply linear_map.ext, simp {proj := ff} }
-
-@[simp] lemma mul_apply (f g : M →ₗ[R] M) (x : M) : (f * g) x = f (g x) := rfl
+{ ..linear_map.endomorphism_semiring, ..linear_map.add_comm_group }
 
 end ring
 
@@ -629,7 +638,7 @@ def map (f : M →ₗ[R] M₂) (p : submodule R M) : submodule R M₂ :=
 theorem mem_map_of_mem {f : M →ₗ[R] M₂} {p : submodule R M} {r} (h : r ∈ p) : f r ∈ map f p :=
 set.mem_image_of_mem _ h
 
-lemma map_id : map linear_map.id p = p :=
+@[simp] lemma map_id : map linear_map.id p = p :=
 submodule.ext $ λ a, by simp
 
 lemma map_comp (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) (p : submodule R M) :
@@ -1018,6 +1027,17 @@ variables [semimodule R M] [semimodule R M₂] [semimodule R M₃]
 variables (p p' : submodule R M) (q q' : submodule R M₂)
 variables {r : R} {x y : M}
 open set
+
+@[simp] lemma neg_coe : -(p : set M) = p := set.ext $ λ x, p.neg_mem_iff
+
+@[simp] protected lemma map_neg (f : M →ₗ[R] M₂) : map (-f) p = map f p :=
+ext $ λ y, ⟨λ ⟨x, hx, hy⟩, hy ▸ ⟨-x, neg_mem _ hx, f.map_neg x⟩,
+  λ ⟨x, hx, hy⟩, hy ▸ ⟨-x, neg_mem _ hx, ((-f).map_neg _).trans (neg_neg (f x))⟩⟩
+
+@[simp] lemma span_neg (s : set M) : span R (-s) = span R s :=
+calc span R (-s) = span R ((-linear_map.id : M →ₗ[R] M) '' s) : by simp
+ ... = map (-linear_map.id) (span R s) : (map_span _ _).symm
+... = span R s : by simp
 
 lemma mem_span_insert' {y} {s : set M} : x ∈ span R (insert y s) ↔ ∃(a:R), x + a • y ∈ span R s :=
 begin
@@ -1773,8 +1793,18 @@ rfl
 @[nolint doc_blame]
 def to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂ := λ f, f.to_add_equiv.to_equiv
 
-lemma to_equiv_injective : function.injective (to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂) :=
+lemma injective_to_equiv : function.injective (to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂) :=
 λ ⟨_, _, _, _, _, _⟩ ⟨_, _, _, _, _, _⟩ h, linear_equiv.mk.inj_eq.mpr (equiv.mk.inj h)
+
+@[simp] lemma to_equiv_inj {e₁ e₂ : M ≃ₗ[R] M₂} : e₁.to_equiv = e₂.to_equiv ↔ e₁ = e₂ :=
+injective_to_equiv.eq_iff
+
+lemma injective_to_linear_map : function.injective (coe : (M ≃ₗ[R] M₂) → (M →ₗ[R] M₂)) :=
+λ e₁ e₂ H, injective_to_equiv $ equiv.ext $ linear_map.congr_fun H
+
+@[simp, norm_cast] lemma to_linear_map_inj {e₁ e₂ : M ≃ₗ[R] M₂} :
+  (e₁ : M →ₗ[R] M₂) = e₂ ↔ e₁ = e₂ :=
+injective_to_linear_map.eq_iff
 
 end
 
@@ -1791,16 +1821,7 @@ variables (e e' : M ≃ₗ[R] M₂)
 section
 variables {e e'}
 @[ext] lemma ext (h : ∀ x, e x = e' x) : e = e' :=
-to_equiv_injective (equiv.ext h)
-
-variables [semimodule R M] [semimodule R M₂]
-
-lemma eq_of_linear_map_eq {f f' : M ≃ₗ[R] M₂} (h : (f : M →ₗ[R] M₂) = f') : f = f' :=
-begin
-  ext x,
-  change (f : M →ₗ[R] M₂) x = (f' : M →ₗ[R] M₂) x,
-  rw h
-end
+injective_to_equiv (equiv.ext h)
 
 end
 
@@ -1838,8 +1859,8 @@ def trans : M ≃ₗ[R] M₃ :=
 @[simp] theorem symm_apply_apply (b : M) : e.symm (e b) = b := e.5 b
 @[simp] lemma symm_trans_apply (c : M₃) : (e₁.trans e₂).symm c = e₁.symm (e₂.symm c) := rfl
 
-@[simp] lemma trans_refl : e.trans (refl R M₂) = e := to_equiv_injective e.to_equiv.trans_refl
-@[simp] lemma refl_trans : (refl R M).trans e = e := to_equiv_injective e.to_equiv.refl_trans
+@[simp] lemma trans_refl : e.trans (refl R M₂) = e := injective_to_equiv e.to_equiv.trans_refl
+@[simp] lemma refl_trans : (refl R M).trans e = e := injective_to_equiv e.to_equiv.refl_trans
 
 lemma symm_apply_eq {x y} : e.symm x = y ↔ x = e y := e.to_equiv.symm_apply_eq
 
@@ -2044,12 +2065,28 @@ protected def skew_prod (f : M →ₗ[R] M₄) :
 
 end add_comm_group
 
+section neg
+
+variables (R) [semiring R] [add_comm_group M] [semimodule R M]
+
+/-- `x ↦ -x` as a `linear_equiv` -/
+def neg : M ≃ₗ[R] M := { .. equiv.neg M, .. (-linear_map.id : M →ₗ[R] M) }
+
+variable {R}
+
+@[simp] lemma coe_neg : ⇑(neg R : M ≃ₗ[R] M) = -id := rfl
+
+lemma neg_apply (x : M) : neg R x = -x := by simp
+
+@[simp] lemma symm_neg : (neg R : M ≃ₗ[R] M).symm = neg R := rfl
+
+end neg
+
 section ring
 
 variables [ring R] [add_comm_group M] [add_comm_group M₂]
 variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
 variables (f : M →ₗ[R] M₂) (e : M ≃ₗ[R] M₂)
-
 
 /-- An `injective` linear map `f : M →ₗ[R] M₂` defines a linear equivalence
 between `M` and `f.range`. -/

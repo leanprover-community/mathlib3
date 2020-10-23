@@ -67,6 +67,13 @@ example (x : ℕ) : ℕ := begin
   exact n
 end
 
+example (a : ℚ) (h : 3⁻¹ * a = a) : true :=
+begin
+  norm_num at h,
+  guard_hyp h : 1 / 3 * a = a,
+  trivial
+end
+
 example : nat.prime 1277 := by norm_num
 example : nat.min_fac 221 = 13 := by norm_num
 

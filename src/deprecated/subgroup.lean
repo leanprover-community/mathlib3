@@ -44,7 +44,7 @@ theorem multiplicative.is_subgroup_iff
   λ h, by exactI multiplicative.is_subgroup _⟩
 
 /-- The group structure on a subgroup coerced to a type. -/
-@[to_additive "/-- The additive group structure on an additive subgroup coerced to a type."]
+@[to_additive "The additive group structure on an additive subgroup coerced to a type."]
 def subtype.group {s : set G} [is_subgroup s] : group s :=
 { inv := λ x, ⟨(x:G)⁻¹, is_subgroup.inv_mem x.2⟩,
   mul_left_inv := λ x, subtype.eq $ mul_left_inv x.1,

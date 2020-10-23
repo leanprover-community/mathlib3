@@ -374,7 +374,7 @@ rfl
 
 section binary_op
 
-variables (f : α → α → α) (e : α ≃ β)
+variables {α β : Type*} (f : α → α → α) (e : α ≃ β)
 
 instance [is_associative α f] : is_associative β (equiv.arrow_congr e (equiv.arrow_congr e e) f) :=
 ⟨λ x y z, by simp [@is_associative.assoc _ f]⟩

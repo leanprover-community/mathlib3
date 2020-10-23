@@ -98,9 +98,8 @@ instance : linear_order cardinal.{u} :=
   le_refl     := by rintros ⟨α⟩; exact ⟨embedding.refl _⟩,
   le_trans    := by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.trans e₂⟩,
   le_antisymm := by rintros ⟨α⟩ ⟨β⟩ ⟨e₁⟩ ⟨e₂⟩; exact quotient.sound (e₁.antisymm e₂),
-  le_total    := by rintros ⟨α⟩ ⟨β⟩; exact embedding.total }
-
-noncomputable instance : linear_order cardinal.{u} := classical.DLO _
+  le_total    := by rintros ⟨α⟩ ⟨β⟩; exact embedding.total,
+  decidable_le := classical.dec_rel _ }
 
 noncomputable instance : distrib_lattice cardinal.{u} := by apply_instance -- short-circuit type class inference
 

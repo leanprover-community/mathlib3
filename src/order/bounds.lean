@@ -401,7 +401,6 @@ variables [linear_order γ] [densely_ordered γ]
 lemma is_glb_Ioo {a b : γ} (hab : a < b) : is_glb (Ioo a b) a :=
 begin
   refine ⟨λx hx, le_of_lt hx.1, λy hy, le_of_not_lt $ λ h, _⟩,
-  letI := classical.DLO γ,
   have : a < min b y, by { rw lt_min_iff, exact ⟨hab, h⟩ },
   rcases exists_between this with ⟨z, az, zy⟩,
   rw lt_min_iff at zy,

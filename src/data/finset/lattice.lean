@@ -365,7 +365,6 @@ variables [linear_order α]
 lemma exists_max_image (s : finset β) (f : β → α) (h : s.nonempty) :
   ∃ x ∈ s, ∀ x' ∈ s, f x' ≤ f x :=
 begin
-  letI := classical.DLO α,
   cases max_of_nonempty (h.image f) with y hy,
   rcases mem_image.mp (mem_of_max hy) with ⟨x, hx, rfl⟩,
   exact ⟨x, hx, λ x' hx', le_max_of_mem (mem_image_of_mem f hx') hy⟩,

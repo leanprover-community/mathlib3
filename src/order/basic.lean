@@ -494,11 +494,6 @@ or_iff_not_imp_left.2 $ assume h,
 
 variables {s : β → β → Prop} {t : γ → γ → Prop}
 
-/-- Any `linear_order` is a noncomputable `linear_order`. This is not marked
-as an instance to avoid a loop. -/
-noncomputable def classical.DLO (α) [LO : linear_order α] : linear_order α :=
-{ decidable_le := classical.dec_rel _, ..LO }
-
 /-- Type synonym to create an instance of `linear_order` from a
 `partial_order` and `[is_total α (≤)]` -/
 def as_linear_order (α : Type u) := α

@@ -237,10 +237,8 @@ begin
   { rintro rfl,
     simp only [coe_eq_one_iff] at ha,
     exact hone ha },
-  obtain ⟨b, hb⟩ := nat.exists_eq_succ_of_ne_zero hazero,
-  rw ← nat.succ_pnat_coe b at hb,
+  obtain ⟨b, rfl⟩ := nat.exists_eq_succ_of_ne_zero hazero,
   use b.succ_pnat,
-  rw ← hb,
   apply eq,
   simp only [ha, nat.succ_pnat_coe]
 end
@@ -252,8 +250,7 @@ begin
   intros k hk,
   by_cases hone : k = 1,
   { rw hone; exact hz },
-  obtain ⟨b, hb⟩ := exists_eq_succ_of_ne_one hone,
-  rw hb at hk ⊢,
+  obtain ⟨b, rfl⟩ := exists_eq_succ_of_ne_one hone,
   apply hi b,
   intros m hm,
   apply hk m,

@@ -522,7 +522,7 @@ begin
   rw leading_coeff_mul q (p /ₘ q) at hrew,
   simp only [hmonic, one_mul, monic.leading_coeff] at hrew,
   nth_rewrite 0 ← hp,
-  exact hrew
+  exact hrew.symm
 end
 
 end integral_domain

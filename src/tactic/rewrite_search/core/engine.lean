@@ -138,7 +138,7 @@ do (g, o, rw) ← match o.rws.at_ref o.rw_front with
     return (g, o, some (v, e))
   end
 
-meta def visit_vertex (v : vertex) : tactic (search_state α β γ δ × rewriterator) :=
+meta def visit_vertex (v : vertex) : tactic (search_state α β γ δ × rewrite_iter) :=
 do
   (g, v) ← if ¬v.visited then do
         g.mark_vertex_visited v
@@ -180,13 +180,13 @@ return (g, ff)
 
 end search_state
 
-namespace rewriterator
+namespace rewrite_iter
 
-private meta def advance (it : rewriterator) : rewriterator :=
+private meta def advance (it : rewrite_iter) : rewrite_iter :=
 {it with front := it.front.next}
 
-meta def next (it : rewriterator) (g : search_state α β γ δ) :
-tactic (search_state α β γ δ × rewriterator × option (vertex × edge)) := do
+meta def next (it : rewrite_iter) (g : search_state α β γ δ) :
+tactic (search_state α β γ δ × rewrite_iter × option (vertex × edge)) := do
   o ← g.vertices.get it.orig,
   match o.adj.at_ref it.front with
   | some e := do
@@ -201,8 +201,8 @@ tactic (search_state α β γ δ × rewriterator × option (vertex × edge)) := 
   end
 
 meta def exhaust :
-rewriterator → search_state α β γ δ →
-tactic (search_state α β γ δ × rewriterator × list (vertex × edge))
+rewrite_iter → search_state α β γ δ →
+tactic (search_state α β γ δ × rewrite_iter × list (vertex × edge))
 | it g := do
   (g, it, ret) ← it.next g,
   match ret with
@@ -212,7 +212,7 @@ tactic (search_state α β γ δ × rewriterator × list (vertex × edge))
     return (g, it, ((v, e) :: rest))
   end
 
-end rewriterator
+end rewrite_iter
 
 namespace search_state
 

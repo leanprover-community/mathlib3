@@ -71,7 +71,7 @@ meta instance has_to_format : has_to_format edge := ⟨λ e, format!"{e.f}->{e.t
 
 end edge
 
-structure rewriterator :=
+structure rewrite_iter :=
 (orig : table_ref)
 (front : table_ref)
 

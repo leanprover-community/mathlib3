@@ -7,6 +7,7 @@ Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
 import algebra.gcd_monoid
 import ring_theory.integral_domain
 import ring_theory.noetherian
+import ring_theory.polynomial.content
 
 /--
 
@@ -1126,4 +1127,13 @@ noncomputable def unique_factorization_monoid.to_gcd_monoid
   normalize_gcd := assume a b, by convert normalize_out _,
   .. ‹normalization_monoid α› }
 
+end
+
+instance polynomial.unique_factorization_monoid
+  [integral_domain α] [normalization_monoid α] [unique_factorization_monoid α]  :
+  unique_factorization_monoid (polynomial α) :=
+begin
+  classical,
+  haveI := unique_factorization_monoid.to_gcd_monoid α,
+  exact ufm_of_gcd_of_wf_dvd_monoid,
 end

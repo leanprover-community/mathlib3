@@ -1990,6 +1990,11 @@ lemma prod_inv_reverse : ∀ (L : list α), L.prod⁻¹ = (L.map (λ x, x⁻¹))
 | [] := by simp
 | (x :: xs) := by simp [prod_inv_reverse xs]
 
+/-- A non-commutative variant of `list.prod_reverse` -/
+@[to_additive "A non-commutative variant of `list.sum_reverse`"]
+lemma prod_reverse_noncomm : ∀ (L : list α), L.reverse.prod = (L.map (λ x, x⁻¹)).prod⁻¹ :=
+by simp [prod_inv_reverse]
+
 end group
 
 section comm_group

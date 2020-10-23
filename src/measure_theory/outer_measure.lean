@@ -327,6 +327,10 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑'i, m (f i) in
       subset_Union _ $ equiv.nat_prod_nat_equiv_nat (i, j)),
   end }
 
+lemma of_function_apply (s : set α) :
+  outer_measure.of_function m m_empty s =
+  (⨅ (t : ℕ → set α) (h : s ⊆ Union t), ∑' n, m (t n)) := rfl
+
 variables {m m_empty}
 theorem of_function_le (s : set α) : outer_measure.of_function m m_empty s ≤ m s :=
 let f : ℕ → set α := λi, nat.rec_on i s (λn s, ∅) in
@@ -523,11 +527,12 @@ lemma Inf_gen_nonempty1 (m : set (outer_measure α)) (t : set α) (h : t.nonempt
   Inf_gen m t = (⨅ (μ : outer_measure α) (h : μ ∈ m), μ t) :=
 by rw [Inf_gen, supr_pos h]
 
-lemma Inf_gen_nonempty2 (m : set (outer_measure α)) (μ) (h : μ ∈ m) (t) :
+lemma Inf_gen_nonempty2 (m : set (outer_measure α)) (h : m.nonempty) (t : set α) :
   Inf_gen m t = (⨅ (μ : outer_measure α) (h : μ ∈ m), μ t) :=
 begin
   cases t.eq_empty_or_nonempty with ht ht,
-  { simp [ht],
+  { simp only [ht, empty', Inf_gen_empty],
+    rcases h with ⟨μ, h⟩,
     refine (bot_unique $ infi_le_of_le μ $ _).symm,
     refine infi_le_of_le h (le_refl ⊥) },
   { exact Inf_gen_nonempty1 m t ht }
@@ -542,6 +547,44 @@ begin
     cases t.eq_empty_or_nonempty with ht ht; simp [ht, Inf_gen_nonempty1],
   { assume μ hμ, exact (show Inf m ≤ μ, from _root_.Inf_le hμ) t },
   { exact infi_le_of_le μ (infi_le _ hμ) }
+end
+
+/-- The value of the Infimum of a nonempty set of outer measures on a set is not simply
+the minimum value of a measure on that set: it is the infimum sum of measures of countable set of
+sets that covers that set, where a different measure can be used for each set in the cover. -/
+lemma Inf_apply {m : set (outer_measure α)} {s : set α} (h : m.nonempty) :
+  Inf m s = ⨅ (t : ℕ → set α) (h2 : s ⊆ Union t),
+    ∑' n, ⨅ (μ : outer_measure α) (h3 : μ ∈ m), μ (t n) :=
+by simp_rw [Inf_eq_of_function_Inf_gen, of_function_apply, Inf_gen_nonempty2 _ h]
+
+/-- This proves that Inf and restrict commute for outer measures, so long as the set of
+outer measures is nonempty. -/
+lemma restrict_Inf_eq_Inf_restrict
+  (m : set (outer_measure α)) {s : set α} (hm : m.nonempty) :
+  restrict s (Inf m) = Inf ((restrict s) '' m) :=
+begin
+  have hm2 : ((measure_theory.outer_measure.restrict s) '' m).nonempty :=
+    set.nonempty_image_iff.mpr hm,
+  ext1 u, rw [restrict_apply, Inf_apply hm, Inf_apply hm2],
+  apply le_antisymm; simp only [set.mem_image, infi_exists, le_infi_iff]; intros t hu,
+  { refine infi_le_of_le (λ n, (t n) ∩ s) _,
+    refine infi_le_of_le _ _,
+    { rw [← Union_inter], exact inter_subset_inter hu subset.rfl },
+    apply ennreal.tsum_le_tsum (λ n, _) ,
+    simp only [and_imp, set.mem_image, infi_exists, le_infi_iff],
+    rintro _ ⟨μ, h_μ_in_s, rfl⟩,
+    refine infi_le_of_le μ _,
+    refine infi_le_of_le h_μ_in_s _,
+    simp_rw [restrict_apply, le_refl] },
+  { refine infi_le_of_le (λ n, (t n) ∪ sᶜ) _,
+    refine infi_le_of_le _ _,
+    { rwa [inter_subset, set.union_comm, Union_union] at hu },
+    apply ennreal.tsum_le_tsum (λ n, _),
+    refine le_binfi (λ μ hμ, _),
+    refine infi_le_of_le (restrict s μ) _,
+    refine infi_le_of_le ⟨_, hμ, rfl⟩ _,
+    rw [restrict_apply, union_inter_distrib_right, compl_inter_self, set.union_empty],
+    exact μ.mono (inter_subset_left _ _) },
 end
 
 end Inf_gen
@@ -839,6 +882,28 @@ begin
   refine ennreal.infi_mul_left (assume hc hs, _),
   rw ← trim_eq_infi' at hs,
   simpa [and_assoc] using exists_is_measurable_superset_of_trim_eq_zero hs
+end
+
+/-- The trimmed property of a measure μ states that `μ.to_outer_measure.trim = μ.to_outer_measure`.
+This theorem shows that a restricted trimmed outer measure is a trimmed outer measure. -/
+lemma restrict_trim {μ : outer_measure α} {s : set α} (hs : is_measurable s) :
+  (restrict s μ).trim = restrict s μ.trim :=
+begin
+  apply measure_theory.outer_measure.ext, intro t,
+  simp_rw [restrict_apply, trim_eq_infi, restrict_apply],
+  apply le_antisymm,
+  { simp only [le_infi_iff],
+    intros v h_subset hv,
+    refine infi_le_of_le (v ∪ sᶜ) _,
+    refine infi_le_of_le _ _,
+    { rwa [set.union_comm, ← inter_subset] },
+    refine infi_le_of_le (hv.union hs.compl) _,
+    rw [union_inter_distrib_right, compl_inter_self, set.union_empty],
+    exact μ.mono (inter_subset_left _ _) },
+  { simp only [le_infi_iff], intros u h_subset hu,
+    refine infi_le_of_le (u ∩ s) _,
+    refine infi_le_of_le (set.inter_subset_inter_left _ h_subset) _,
+    refine infi_le_of_le (hu.inter hs) le_rfl },
 end
 
 end outer_measure

@@ -50,24 +50,4 @@ meta def rewrite_search_using (try_harder : parse $ optional (tk "!")) (as : lis
 --   decl_names  := [`tactic.interactive.rewrite_search_using],
 --   tags        := ["rewrite", "automation"] }
 
-meta def simp_search (cfg : collect_cfg := {}) : tactic unit :=
-  tactic.simp_search cfg
-
--- Uncomment this after adding a docstring.
--- add_tactic_doc
--- { name        := "simp_search",
---   category    := doc_category.tactic,
---   decl_names  := [`tactic.interactive.simp_search],
---   tags        := ["simp", "automation"] }
-
-meta def simp_search_with (rs : parse rw_rules) (cfg : collect_cfg := {}) : tactic unit :=
-  tactic.simp_search_with rs.rules cfg
-
--- Uncomment this after adding a docstring.
--- add_tactic_doc
--- { name        := "simp_search_with",
---   category    := doc_category.tactic,
---   decl_names  := [`tactic.interactive.simp_search_with],
---   tags        := ["simp", "automation"] }
-
 end tactic.interactive

@@ -46,6 +46,8 @@ calc (2:α) = 1+1 : one_add_one_eq_two
 
 lemma one_le_two : 1 ≤ (2:α) := one_lt_two.le
 
+lemma zero_lt_three : 0 < (3:α) := add_pos zero_lt_two zero_lt_one
+
 lemma zero_lt_four : 0 < (4:α) := add_pos zero_lt_two zero_lt_two
 
 end nontrivial
@@ -670,6 +672,13 @@ lemma mul_self_lt_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a < b 
 iff.trans (lt_iff_not_ge _ _) $ iff.trans (not_iff_not_of_iff $ mul_self_le_mul_self_iff h2 h1) $
   iff.symm (lt_iff_not_ge _ _)
 
+lemma eq_if_mul_self_eq_mul_self {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) (h3 : a * a = b * b) : a = b :=
+begin
+  have h4 : a ≤ b, from (mul_self_le_mul_self_iff h1 h2).mpr (le_of_eq h3),
+  have h5 : b ≤ a, from (mul_self_le_mul_self_iff h2 h1).mpr (le_of_eq h3.symm),
+  exact le_antisymm h4 h5
+end
+
 /- TODO This theorem ought to be written in the context of `nontrivial` linearly ordered (additive)
 commutative groups rather than linearly ordered rings; however, the former concept does not
 currently exist in mathlib. -/
@@ -828,14 +837,31 @@ begin
 end
 
 lemma eq_zero_of_mul_self_add_mul_self_eq_zero (h : a * a + b * b = 0) : a = 0 :=
-have a * a ≤ (0 : α), from calc
-     a * a ≤ a * a + b * b : le_add_of_nonneg_right (mul_self_nonneg b)
-       ... = 0             : h,
-eq_zero_of_mul_self_eq_zero (le_antisymm this (mul_self_nonneg a))
+(mul_self_add_mul_self_eq_zero.mp h).left
 
 -- The proof doesn't need commutativity but we have no `decidable_linear_ordered_ring`
 @[simp] lemma abs_two : abs (2:α) = 2 :=
 abs_of_pos zero_lt_two
+
+lemma abs_eq_iff_mul_self_eq : abs a = abs b ↔ a * a = b * b :=
+begin
+  rw [← abs_mul_abs_self, ← (abs_mul_abs_self b)],
+  split,
+  { intro h1, rw h1 },
+  { intro h2, exact eq_if_mul_self_eq_mul_self (abs_nonneg a) (abs_nonneg b) h2 }
+end
+
+lemma abs_lt_iff_mul_self_lt : abs a < abs b ↔ a * a < b * b :=
+begin
+  rw [← abs_mul_abs_self, ← (abs_mul_abs_self b)],
+  exact mul_self_lt_mul_self_iff (abs_nonneg a) (abs_nonneg b)
+end
+
+lemma abs_le_iff_mul_self_le : abs a ≤ abs b ↔ a * a ≤ b * b :=
+begin
+  rw [← abs_mul_abs_self, ← (abs_mul_abs_self b)],
+  exact mul_self_le_mul_self_iff (abs_nonneg a) (abs_nonneg b)
+end
 
 end decidable_linear_ordered_comm_ring
 

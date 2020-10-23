@@ -5,7 +5,7 @@ Author: Mario Carneiro
 -/
 import data.finset.fold
 import data.multiset.lattice
-import order.dual
+import order.order_dual
 
 /-!
 # Lattice operations on finsets

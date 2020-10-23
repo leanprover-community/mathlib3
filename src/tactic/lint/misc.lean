@@ -10,6 +10,7 @@ import tactic.lint.basic
 
 This file defines several small linters:
   - `ge_or_gt` checks that `>` and `≥` do not occur in the statement of theorems.
+  - `range` checks that `list.range` is replaced by `list.Ico` in the statement of theorems.
   - `dup_namespace` checks that no declaration has a duplicated namespace such as `list.list.monad`.
   - `unused_arguments` checks that definitions and theorems do not have unused arguments.
   - `doc_blame` checks that every definition has a documentation string
@@ -243,3 +244,31 @@ has been used. -/
   errors_found := "INCORRECT DEF/LEMMA" }
 
 attribute [nolint def_lemma] classical.dec classical.dec_pred classical.dec_rel classical.dec_eq
+
+/-!
+## Linter against deprecated names
+-/
+/-- Names of deprecated definitions defined in core, disallowed in declarations -/
+private meta def deprecated : list name := [`list.range]
+
+/-- Checks whether a deprecated name is used in the statement of `d`. -/
+private meta def deprecated_in_statement (d : declaration) : tactic (option string) :=
+return $ if d.type.contains_constant (λ n, n ∈ deprecated)
+  then some "The type contains deprecated definitions."
+  else none
+
+/-- A linter for checking whether illegal constants (≥, >) appear in a declaration's type. -/
+@[linter] meta def linter.deprecated : linter :=
+{ test := deprecated_in_statement,
+  auto_decls := ff,
+  no_errors_found := "Not using deprecated definitions",
+  errors_found := "The following declarations use deprecated definitions. See library note [deprecated] for more information.",
+  is_fast := ff }
+
+/--
+The following definitions in core Lean have been superseded by new definitions in Mathlib,
+make sure you update your usage accordingly.
+
+ * `list.range` -> `list.Ico`
+-/
+library_note "deprecated"

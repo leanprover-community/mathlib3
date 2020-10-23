@@ -8,6 +8,7 @@ import data.list.bag_inter
 import data.list.basic
 import data.list.chain
 import data.list.defs
+import data.list.enum
 import data.list.erase_dup
 import data.list.forall2
 import data.list.func
@@ -19,7 +20,6 @@ import data.list.nodup
 import data.list.of_fn
 import data.list.pairwise
 import data.list.perm
-import data.list.range
 import data.list.rotate
 import data.list.sections
 import data.list.sigma

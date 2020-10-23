@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
 import data.multiset.powerset
-import data.multiset.range
+import data.multiset.enum
 
 /-!
 # The `nodup` predicate for multisets without duplicate elements.

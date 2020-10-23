@@ -521,7 +521,7 @@ begin
   have hrew := (leading_coeff_add_of_degree_lt deglt),
   rw leading_coeff_mul q (p /ₘ q) at hrew,
   simp only [hmonic, one_mul, monic.leading_coeff] at hrew,
-  nth_rewrite 0 ← hp,
+  nth_rewrite 1 ← hp,
   exact hrew.symm
 end
 

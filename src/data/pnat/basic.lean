@@ -234,8 +234,7 @@ lemma exists_eq_succ_of_ne_one {n : pnat} (hone : n ≠ 1) : ∃ (k : pnat), n =
 begin
   obtain ⟨a, ha⟩ := nat.exists_eq_succ_of_ne_zero (ne_zero n),
   have hazero : a ≠ 0,
-  { intro h,
-    rw h at ha,
+  { rintro rfl,
     simp only [coe_eq_one_iff] at ha,
     exact hone ha },
   obtain ⟨b, hb⟩ := nat.exists_eq_succ_of_ne_zero hazero,

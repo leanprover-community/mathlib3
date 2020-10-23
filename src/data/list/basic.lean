@@ -2400,9 +2400,6 @@ linear_order_of_STO' (lex (<))
 instance has_le' [linear_order α] : has_le (list α) :=
 preorder.to_has_le _
 
-instance [linear_order α] : linear_order (list α) :=
-linear_order_of_STO' (lex (<))
-
 /-! ### all & any -/
 
 @[simp] theorem all_nil (p : α → bool) : all [] p = tt := rfl

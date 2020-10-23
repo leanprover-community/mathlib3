@@ -236,13 +236,11 @@ by { induction h, simp [ext_iff] }
 instance {n : ℕ} : nontrivial (fin (n + 2)) := ⟨⟨0, 1, dec_trivial⟩⟩
 
 instance {n : ℕ} : linear_order (fin n) :=
-{ le := (≤), lt := (<), ..linear_order.lift (coe : fin n → ℕ) (@fin.eq_of_veq _) }
-
-instance {n : ℕ} : linear_order (fin n) :=
-{ decidable_le := fin.decidable_le,
+{ le := (≤), lt := (<),
+  decidable_le := fin.decidable_le,
   decidable_lt := fin.decidable_lt,
   decidable_eq := fin.decidable_eq _,
-  ..fin.linear_order }
+ ..linear_order.lift (coe : fin n → ℕ) (@fin.eq_of_veq _) }
 
 lemma exists_iff {p : fin n → Prop} : (∃ i, p i) ↔ ∃ i h, p ⟨i, h⟩ :=
 ⟨λ h, exists.elim h (λ ⟨i, hi⟩ hpi, ⟨i, hi, hpi⟩),

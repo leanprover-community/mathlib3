@@ -512,6 +512,7 @@ instance linear_order [linear_order α] : linear_order (with_bot α) :=
     simp [le_total]
   end,
   decidable_le := with_bot.decidable_le,
+  decidable_lt := with_bot.decidable_lt,
   ..with_bot.partial_order }
 
 instance semilattice_sup [semilattice_sup α] : semilattice_sup_bot (with_bot α) :=
@@ -707,13 +708,11 @@ lemma coe_lt_top [partial_order α] (a : α) : (a : with_top α) < ⊤ := some_l
 lemma not_top_le_coe [partial_order α] (a : α) : ¬ (⊤:with_top α) ≤ ↑a :=
 assume h, (lt_irrefl ⊤ (lt_of_le_of_lt h (coe_lt_top a))).elim
 
-instance decidable_le [preorder α] [@decidable_rel α (≤)] : @decidable_rel (with_top α) (≤)
-| none (some x) := is_false $ λ h, by { rcases h x rfl with ⟨y, ⟨_⟩, _⟩ }
-| (some x) (some y) :=
-  if h : x ≤ y
-  then is_true (some_le_some.2 h)
-  else is_false $ by simp *
-| x none := is_true $ λ a h, option.no_confusion h
+instance decidable_le [preorder α] [@decidable_rel α (≤)] : @decidable_rel (with_top α) (≤) :=
+λ x y, @with_bot.decidable_le (order_dual α) _ _ y x
+
+instance decidable_lt [has_lt α] [@decidable_rel α (<)] : @decidable_rel (with_top α) (<) :=
+λ x y, @with_bot.decidable_lt (order_dual α) _ _ y x
 
 instance linear_order [linear_order α] : linear_order (with_top α) :=
 { le_total := λ o₁ o₂, begin
@@ -722,6 +721,7 @@ instance linear_order [linear_order α] : linear_order (with_top α) :=
     simp [le_total]
   end,
   decidable_le := with_top.decidable_le,
+  decidable_lt := with_top.decidable_lt,
   ..with_top.partial_order }
 
 instance semilattice_inf [semilattice_inf α] : semilattice_inf_top (with_top α) :=

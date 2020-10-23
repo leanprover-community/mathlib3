@@ -22,22 +22,25 @@ namespace search_state
 meta def unmark_all_visited : tactic (search_state α β γ δ) := do
   return { g with vertices := g.vertices.map $ λ v, {v with visited := ff} }
 
-meta def reset_estimate (init : init_bound_fn α β γ δ) (de : dist_estimate γ) : tactic (dist_estimate γ) := do
+meta def reset_estimate (init : init_bound_fn α β γ δ) (de : dist_estimate γ) :
+tactic (dist_estimate γ) := do
   (vl, vr) ← g.get_estimate_verts de,
   return de
 
-meta def reset_all_estimates (init : init_bound_fn α β γ δ) : tactic (search_state α β γ δ) := do
-  new_estimates ← g.estimates.mmap $ g.reset_estimate init,
-  return { g with estimates := new_estimates }
+meta def reset_all_estimates (init : init_bound_fn α β γ δ) : tactic (search_state α β γ δ) :=
+do new_estimates ← g.estimates.mmap $ g.reset_estimate init,
+return { g with estimates := new_estimates }
 
-private meta def register_tokens_aux (s : side) : table token → list string → table token × list table_ref
+private meta def register_tokens_aux (s : side) :
+table token → list string → table token × list table_ref
 | tokens [] := (tokens, [])
 | tokens (tstr :: rest) := do
   let (tokens, t) := find_or_create_token tokens s tstr,
   let (tokens, l) := register_tokens_aux tokens rest,
   (tokens, t.id :: l)
 
-meta def register_tokens (s : side) (strs : list string) : search_state α β γ δ × list table_ref :=
+meta def register_tokens (s : side) (strs : list string) :
+search_state α β γ δ × list table_ref :=
   let (new_tokens, refs) := register_tokens_aux s g.tokens strs in
   ({g with tokens := new_tokens}, refs)
 
@@ -61,12 +64,13 @@ do (pp, tokens) ← tokenise_expr e,
 
 -- Look up the given vertex associated to (e : expr), or create it if it is
 -- not already present.
-meta def add_vertex_aux (e : expr) (root : bool) (s : side) : tactic (search_state α β γ δ × vertex) :=
+meta def add_vertex_aux (e : expr) (root : bool) (s : side) :
+tactic (search_state α β γ δ × vertex) :=
 do maybe_v ← g.find_vertex e,
    match maybe_v with
    | none := do
      (g, v) ← g.alloc_vertex e root s,
-     g.tracer_vertex_added v,
+     g.trace_vertex_added v,
      return (g, v)
    | (some v) := return (g, v)
    end
@@ -97,7 +101,7 @@ meta def mark_vertex_visited (v : vertex) : tactic (search_state α β γ δ × 
 
 meta def add_edge (f t : vertex) (proof : tactic expr) (how : how) : tactic (search_state α β γ δ × vertex × vertex × edge) :=
 do let new_edge : edge := ⟨ f.id, t.id, proof, how ⟩,
-   g.tracer_edge_added new_edge,
+   g.trace_edge_added new_edge,
    let (g, f) := g.add_adj f new_edge,
    let (g, t) := g.add_adj t new_edge,
    let (g, t) := g.publish_parent f t new_edge,
@@ -133,7 +137,6 @@ meta def reveal_more_adjs (o : vertex) : tactic (search_state α β γ δ × ver
 meta def visit_vertex (v : vertex) : tactic (search_state α β γ δ × rewriterator) :=
 do
   (g, v) ← if ¬v.visited then do
-        g.tracer_visited v,
         g.mark_vertex_visited v
       else
         pure (g, v),

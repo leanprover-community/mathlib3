@@ -127,7 +127,7 @@ meta def build_proof (e : edge) : tactic (expr × list proof_unit) := do
   let bt := if i.g.conf.optimal then bfs.backtrack i else naive.backtrack i,
   edges ← bt e,
 
-  i.g.tracer_search_finished edges,
+  i.g.trace_search_finished edges,
 
   units ← build_units edges,
   proof ← combine_units units,

@@ -361,16 +361,16 @@ end
 lemma max'_eq_of_dual_min' {s : finset α} (hs : s.nonempty) :
   max' s hs = of_dual (min' (image to_dual s) (nonempty.image hs to_dual)) :=
 begin
-  dsimp [order_dual, of_dual, to_dual],
-  simp only [image_id],
+  rw [of_dual, to_dual, equiv.coe_fn_mk, equiv.coe_fn_symm_mk, id.def],
+  simp_rw (@image_id (order_dual α) (s : finset (order_dual α))),
   refl,
 end
 
 lemma min'_eq_of_dual_max' {s : finset α} (hs : s.nonempty) :
   min' s hs = of_dual (max' (image to_dual s) (nonempty.image hs to_dual)) :=
 begin
-  dsimp [order_dual, of_dual, to_dual],
-  simp only [image_id],
+  rw [of_dual, to_dual, equiv.coe_fn_mk, equiv.coe_fn_symm_mk, id.def],
+  simp_rw (@image_id (order_dual α) (s : finset (order_dual α))),
   refl,
 end
 

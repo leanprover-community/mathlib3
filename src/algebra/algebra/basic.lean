@@ -277,6 +277,8 @@ begin
   exact hyp ht,
 end
 
+section semiring
+
 /-- Explicit characterization of the submonoid map in the case of an algebra.
 `S` is made explicit to help with type inference -/
 def algebra_map_submonoid (S : Type*) [semiring S] [algebra R S]

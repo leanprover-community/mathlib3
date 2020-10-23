@@ -267,6 +267,28 @@ instance : order_bot (structure_groupoid H) :=
 instance (H : Type u) [topological_space H] : inhabited (structure_groupoid H) :=
 ⟨id_groupoid H⟩
 
+instance : has_inf (structure_groupoid H) :=
+{ inf := λ G G',
+  { members := G.members ∩ G'.members,
+    trans' := λ e e' he he', ⟨G.trans he.1 he'.1, G'.trans he.2 he'.2⟩,
+    symm' := λ e he, ⟨G.symm he.1, G'.symm he.2⟩,
+    id_mem' := ⟨G.id_mem, G'.id_mem⟩,
+    locality' := λ e he, begin
+      refine ⟨G.locality (λ x hx, _), G'.locality (λ x hx, _)⟩,
+      { obtain ⟨s, hs, hs', hs''⟩ := he x hx,
+        exact ⟨s, hs, hs', hs''.1⟩ },
+      { obtain ⟨s, hs, hs', hs''⟩ := he x hx,
+        exact ⟨s, hs, hs', hs''.2⟩ }
+    end,
+    eq_on_source' :=
+      λ e e' he hee', ⟨G.eq_on_source' e e' he.1 hee', G'.eq_on_source' e e' he.2 hee'⟩ } }
+
+instance : semilattice_inf (structure_groupoid H) :=
+{ inf_le_left := λ G G' e he, he.1,
+  inf_le_right := λ G G' e he, he.2,
+  le_inf := λ G G₁ G₂ h₁ h₂ e he, ⟨h₁ he, h₂ he⟩,
+  ..structure_groupoid.has_inf, ..structure_groupoid.partial_order }
+
 /-- To construct a groupoid, one may consider classes of local homeos such that both the function
 and its inverse have some property. If this property is stable under composition,
 one gets a groupoid. `pregroupoid` bundles the properties needed for this construction, with the
@@ -441,6 +463,147 @@ end
 -/
 instance : closed_under_restriction (continuous_groupoid H) :=
 (closed_under_restriction_iff_id_le _).mpr (by convert le_top)
+
+instance (G G' : structure_groupoid H)
+  [i : closed_under_restriction G] [i' : closed_under_restriction G'] :
+  closed_under_restriction (G ⊓ G') :=
+by { rw closed_under_restriction_iff_id_le at ⊢ i i', exact le_inf i i' }
+
+section
+
+variables (K : set H)
+
+def relative_continuous_pregroupoid : pregroupoid H :=
+{ property := λ f s, ∀ x ∈ s ∩ K, f x ∈ K,
+  comp := begin
+    intros f g _ _ hf hg _ _ _ x hx,
+    exact hg (f x) ⟨hx.1.2, hf x ⟨hx.1.1, hx.2⟩⟩,
+  end,
+  id_mem := by simp,
+  locality := begin
+    intros f _ _ h x hx,
+    obtain ⟨v, -, hv', hv''⟩ := h x hx.1,
+    exact hv'' x ⟨⟨hx.1, hv'⟩, hx.2⟩,
+  end,
+  congr := begin
+    intros f g _ _ hfg hf x hx,
+    rw hfg x hx.1,
+    exact hf x hx,
+  end }
+
+/-- Given a subset `K` of a model space `H`, the set of local homeomorphisms of `H` stabilizing `K`
+forms a groupoid. -/
+def relative_continuous_groupoid : structure_groupoid H :=
+(relative_continuous_pregroupoid K).groupoid
+
+instance : closed_under_restriction (relative_continuous_groupoid K) := sorry
+-- class relative_groupoid (G : structure_groupoid H) : Prop :=
+-- (le_relative_continuous : G ≤ relative_continuous_groupoid K)
+
+-- instance : relative_groupoid K (relative_continuous_groupoid K) := ⟨rfl.le⟩
+
+-- instance : relative_groupoid K (id_groupoid H) := ⟨bot_le⟩
+
+-- instance (G : structure_groupoid H) : relative_groupoid K (G ⊓ (relative_continuous_groupoid K)) :=
+-- ⟨inf_le_right⟩
+
+def restr_pregroupoid (G : structure_groupoid H) [closed_under_restriction G] :
+  pregroupoid K :=
+{ property := λ f s, ∀ x, x ∈ s → ∃ f' : local_homeomorph H H, f' ∈ G ∧
+    (x : H) ∈ f'.source ∧ eq_on (coe ∘ f) (f' ∘ coe) (s ∩ coe ⁻¹' f'.source),
+  comp := begin
+    intros f g s t hf hg _ _ _ x hx,
+    obtain ⟨f', hf', hxf', hff'⟩ := hf x hx.1,
+    obtain ⟨g', hg', hxg', hgg'⟩ := hg (f x) hx.2,
+    refine ⟨f'.trans g', G.trans hf' hg', _, _⟩,
+    { refine ⟨hxf', _⟩,
+      simp,
+      convert hxg',
+      exact (hff' ⟨hx.1, hxf'⟩).symm },
+    intros y hy,
+    have := hff' ⟨hy.1.1, hy.2.1⟩,
+    simp at this,
+    have hyf : ↑(f y) ∈ g'.to_local_equiv.source,
+    { have := hy.2.2,
+      simp at this,
+      convert this },
+    have hyg := hgg' ⟨hy.1.2, hyf⟩,
+    simp [local_homeomorph.coe_trans, function.comp_app, hyg],
+    rw this
+  end,
+  id_mem := λ x hx, ⟨local_homeomorph.refl H, G.id_mem, by simp, by simp⟩,
+  locality := begin
+    intros f s _ h x hx,
+    obtain ⟨v, hv, hxv, hxf'⟩ := h x hx,
+    obtain ⟨v', hv', hvv'⟩ : ∃ v' : set H, is_open v' ∧ (coe ⁻¹' v' = v),
+    { rwa is_open_induced_iff at hv },
+    obtain ⟨f', hf', hxf', h'⟩ := hxf' x ⟨hx, hxv⟩,
+    have h_coe : ∀ {x}, ↑x ∈ v' ↔ x ∈ (coe : K → H) ⁻¹' v' := by simp,
+    refine ⟨f'.restr v', closed_under_restriction' hf' hv', _, λ y hy, _⟩,
+    { refine ⟨hxf', _⟩,
+      simp [hv'.interior_eq, h_coe, hvv', hxv] },
+    { refine h' ⟨⟨hy.1, _⟩, hy.2.1⟩,
+      have := hy.2.2,
+      simp [hv'.interior_eq] at this,
+      have : y ∈ coe ⁻¹' v':= by rwa [h_coe] at this,
+      rwa hvv' at this },
+  end,
+  congr := begin
+    rintros f g s _ hfg hf x hx,
+    obtain ⟨f', hf', hxf', hff'⟩ := hf x hx,
+    refine ⟨f', hf', hxf', _⟩,
+    intros x hx,
+    simpa [hfg x hx.1] using hff' hx
+  end }
+
+def restr (G : structure_groupoid H) [closed_under_restriction G] : structure_groupoid K :=
+(restr_pregroupoid K G).groupoid
+
+lemma foo (G : structure_groupoid H) [closed_under_restriction G] :
+  restr K G = restr K (G ⊓ (relative_continuous_groupoid K)) :=
+sorry
+
+-- def relative_groupoid : structure_groupoid H :=
+-- { members := {e | ∀ x ∈ e.source, e x ∈ K ↔ x ∈ K },
+--   trans' := begin
+--     rintros e e' he he' x ⟨hx₁, hx₂⟩, --hx,
+--     split,
+--     { intros h,
+--       exact (he x hx₁).mp ((he' (e x) hx₂).mp h) },
+--     { intros h,
+--       exact (he' (e x) hx₂).mpr (((he x hx₁).mpr) h) }
+--   end,
+--   symm' := begin
+--     rintros e he x hx,
+--     -- split,
+--     symmetry,
+--     convert he (e.symm x) (e.symm.map_source hx),
+--     calc x = of_set e.symm.source e.symm.open_source x : _
+--     ... = e (e.symm x) : _,
+--     simp [*] with mfld_simps,
+--     symmetry,
+--     apply e.trans_symm_self.eq_on,
+--     rw e.trans_symm_self.source_eq,
+--     simpa using hx,
+--   end,
+--   id_mem' := by simp,
+--   locality' := begin
+--     intros e he x hx,
+--     obtain ⟨s, hs, hs', hs''⟩ := he x hx,
+--     have : x ∈ (e.restr s).source,
+--     { simp only [hs.interior_eq, hx, hs'] with mfld_simps },
+--     exact hs'' x this
+--   end,
+--   eq_on_source' := begin
+--     intros e e' he' hee' x hx,
+--     have hx' : x ∈ e.source,
+--     { rwa hee'.source_eq at hx },
+--     convert he' x hx' using 2,
+--     apply hee'.eq_on,
+--     exact hx,
+--   end }
+
+end
 
 end groupoid
 
@@ -901,3 +1064,27 @@ def structomorph.trans (e : structomorph G M M') (e' : structomorph G M' M'') : 
   ..homeomorph.trans e.to_homeomorph e'.to_homeomorph }
 
 end has_groupoid
+
+section
+variables [topological_space H] [topological_space M] (K : set H) (N : set M)
+
+open structure_groupoid
+
+class charted_subspace :=
+(adapted_atlas : charted_space H M) -- (G ⊓ relative_continuous_groupoid K))
+(adapted_atlas_spec₂ :
+  ∀ {e : local_homeomorph M H}, e ∈ adapted_atlas.atlas → ∀ x ∈ e.source, e x ∈ K ↔ x ∈ N)
+
+instance bar [charted_subspace K N] : charted_space K N := sorry
+
+class sub_has_groupoid [i : charted_space H M] [j : charted_subspace K N]
+  (G : structure_groupoid H) [@has_groupoid _ _ M _ i G] :=
+(adapted_atlas_spec₁ : @has_groupoid _ _ _ _ (j.adapted_atlas) (G ⊓ relative_continuous_groupoid K))
+(compatible : @maximal_atlas _ _ _ _ i G = @maximal_atlas _ _ _ _ j.adapted_atlas G)
+
+
+instance [charted_space H M] [charted_subspace K N] (G : structure_groupoid H) [closed_under_restriction G]
+  [has_groupoid M G] [sub_has_groupoid K N G] :
+  has_groupoid N (restr K G) := sorry
+
+end

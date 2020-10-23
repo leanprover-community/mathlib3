@@ -110,6 +110,19 @@ begin
   ... = a ^ (n + 2) - b ^ (n + 2) : by ring_exp
 end
 
+/-- Multiplying each row with a scalar, scales the determinant with the product of all scales. -/
+lemma det_row_mul {n : ℕ} (v : fin n → R) (M : matrix (fin n) (fin n) R) :
+  det (λ i j, v j * M i j) = (∏ j, v j) * det M :=
+begin
+  induction n with n ih,
+  { rw [det_eq_one_of_card_eq_zero, det_eq_one_of_card_eq_zero, fin.prod_univ_zero, mul_one];
+    exact fintype.card_fin 0 },
+  simp only [det_succ_row, det_succ_row, ih (λ j, v j.succ), finset.mul_sum, fin.prod_univ_succ],
+  apply finset.sum_congr rfl,
+  intros x _,
+  ring
+end
+
 lemma det_vandermonde {n : ℕ} (v : fin n → R) :
   det (λ i j, v j ^ (i : ℕ)) = ∏ j : fin n, ∏ i in finset.fin_range' j, (v j - v i) :=
 begin
@@ -128,8 +141,10 @@ begin
   ... = det (λ (i j : fin n), (v j.succ - v 0) *
               (∑ k in finset.range (i + 1 : ℕ), v j.succ ^ k * v 0 ^ (i - k : ℕ))) :
     by { congr, ext i j, rw [fin.succ_above_zero, fin.cons_succ, fin.coe_succ, sub_mul_sum_pow] }
-  ... = (∏ (j : fin n), (v j.succ - v 0)) * det (λ (i j : fin n), (∑ k in finset.range (i + 1 : ℕ), v j.succ ^ k * v 0 ^ (i - k : ℕ))) : sorry
-  ... = ∏ j : fin n.succ, ∏ i in finset.fin_range' j, (v j - v i) : sorry
+  ... = (∏ (j : fin n), (v j.succ - v 0)) * det (λ (i j : fin n), (∑ k in finset.range (i + 1 : ℕ), v j.succ ^ k * v 0 ^ (i - k : ℕ))) :
+    det_row_mul (λ j, v j.succ - v 0) _
+  ... = ∏ j : fin n.succ, ∏ i in finset.fin_range' j, (v j - v i) : _,
+
 end
 
 /-- Bundle `power_basis` in a structure to generalize over `algebra.adjoin` and `adjoin`. -/

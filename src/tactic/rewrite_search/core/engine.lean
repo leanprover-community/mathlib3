@@ -56,7 +56,8 @@ meta def find_vertex (e : expr) : tactic (option vertex) := do
 
 -- Forcibly add a new vertex to the vertex table. You probably actually want to call
 -- add_vertex, which will check that we haven't seen the vertex before first.
-meta def alloc_vertex (e : expr) (root : bool) (s : side) : tactic (search_state α β γ δ × vertex) :=
+meta def alloc_vertex (e : expr) (root : bool) (s : side) :
+tactic (search_state α β γ δ × vertex) :=
 do (pp, tokens) ← tokenise_expr e,
    let (g, token_refs) := g.register_tokens s tokens,
    let v : vertex := vertex.create g.vertices.next_id e pp token_refs root s,
@@ -99,7 +100,8 @@ else
 meta def mark_vertex_visited (v : vertex) : tactic (search_state α β γ δ × vertex) := do
   return $ g.set_vertex { v with visited := tt }
 
-meta def add_edge (f t : vertex) (proof : tactic expr) (how : how) : tactic (search_state α β γ δ × vertex × vertex × edge) :=
+meta def add_edge (f t : vertex) (proof : tactic expr) (how : how) :
+tactic (search_state α β γ δ × vertex × vertex × edge) :=
 do let new_edge : edge := ⟨ f.id, t.id, proof, how ⟩,
    g.trace_edge_added new_edge,
    let (g, f) := g.add_adj f new_edge,
@@ -110,19 +112,21 @@ do let new_edge : edge := ⟨ f.id, t.id, proof, how ⟩,
    else
      return (g, f, t, new_edge)
 
-meta def commit_rewrite (f : vertex) (r : rewrite) : tactic (search_state α β γ δ × vertex × (vertex × edge)) := do
-  (g, v) ← g.add_vertex r.e f.s,
+meta def commit_rewrite (f : vertex) (r : rewrite) :
+tactic (search_state α β γ δ × vertex × (vertex × edge)) :=
+do (g, v) ← g.add_vertex r.e f.s,
   (g, f, v, e) ← g.add_edge f v r.prf r.how,
   return (g, f, (v, e))
 
-meta def reveal_more_rewrites (v : vertex) : tactic (search_state α β γ δ × vertex × option rewrite) := do
-  (rw_prog, new_rws) ← discover_more_rewrites g.rs v.exp g.rwall_conf v.s v.rw_prog,
+meta def reveal_more_rewrites (v : vertex) :
+tactic (search_state α β γ δ × vertex × option rewrite) :=
+do (rw_prog, new_rws) ← discover_more_rewrites g.rs v.exp g.rwall_conf v.s v.rw_prog,
   (g, v) ← pure $ g.set_vertex {v with rw_prog := rw_prog, rws := v.rws.alloc_list new_rws},
   return (g, v, new_rws.nth 0)
 
--- TODO implement a table-backed queue?
-meta def reveal_more_adjs (o : vertex) : tactic (search_state α β γ δ × vertex × option (vertex × edge)) := do
-  (g, o, rw) ← match o.rws.at_ref o.rw_front with
+meta def reveal_more_adjs (o : vertex) :
+tactic (search_state α β γ δ × vertex × option (vertex × edge)) :=
+do (g, o, rw) ← match o.rws.at_ref o.rw_front with
   | none := g.reveal_more_rewrites o
   | some rw := pure (g, o, some rw)
   end,
@@ -142,7 +146,8 @@ do
         pure (g, v),
   return ⟨g, ⟨v.id, table_ref.first⟩⟩
 
-meta def improve_estimate_over (threshold : dnum) (de : dist_estimate γ) : tactic (search_state α β γ δ × dist_estimate γ) := do
+meta def improve_estimate_over (threshold : dnum) (de : dist_estimate γ) :
+tactic (search_state α β γ δ × dist_estimate γ) := do
   (vl, vr) ← g.get_estimate_verts de,
   let new_bnd := m.improve_estimate_over g threshold vl vr de.bnd,
   let new_de := {de with bnd := new_bnd},
@@ -180,7 +185,8 @@ namespace rewriterator
 private meta def advance (it : rewriterator) : rewriterator :=
 {it with front := it.front.next}
 
-meta def next (it : rewriterator) (g : search_state α β γ δ) : tactic (search_state α β γ δ × rewriterator × option (vertex × edge)) := do
+meta def next (it : rewriterator) (g : search_state α β γ δ) :
+tactic (search_state α β γ δ × rewriterator × option (vertex × edge)) := do
   o ← g.vertices.get it.orig,
   match o.adj.at_ref it.front with
   | some e := do
@@ -194,7 +200,9 @@ meta def next (it : rewriterator) (g : search_state α β γ δ) : tactic (searc
     end
   end
 
-meta def exhaust : rewriterator → search_state α β γ δ → tactic (search_state α β γ δ × rewriterator × list (vertex × edge))
+meta def exhaust :
+rewriterator → search_state α β γ δ →
+tactic (search_state α β γ δ × rewriterator × list (vertex × edge))
 | it g := do
   (g, it, ret) ← it.next g,
   match ret with

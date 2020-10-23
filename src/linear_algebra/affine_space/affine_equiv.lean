@@ -137,6 +137,22 @@ lemma injective_to_equiv : injective (to_equiv : (P₁ ≃ᵃ[k] P₂) → (P₁
 @[simp] lemma to_equiv_inj {e e' : P₁ ≃ᵃ[k] P₂} : e.to_equiv = e'.to_equiv ↔ e = e' :=
 injective_to_equiv.eq_iff
 
+/-- Construct an affine equivalence by verifying the relation between the map and its linear part at
+one base point. Namely, this function takes an equivalence `e : P₁ ≃ P₂`, a linear equivalece
+`e' : V₁ ≃ₗ[k] V₂`, and a point `p` such that for any other point `p'` we have
+`e p' = e' (p' -ᵥ p) +ᵥ e p`. -/
+def mk' (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (p : P₁) (h : ∀ p' : P₁, e p' = e' (p' -ᵥ p) +ᵥ e p) :
+  P₁ ≃ᵃ[k] P₂ :=
+{ to_equiv := e,
+  linear := e',
+  .. affine_map.mk' e (e' : V₁ →ₗ[k] V₂) p h }
+
+@[simp] lemma coe_mk' (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (p h) : ⇑(mk' e e' p h) = e := rfl
+@[simp] lemma to_equiv_mk' (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (p h) :
+  (mk' e e' p h).to_equiv = e := rfl
+@[simp] lemma linear_mk' (e : P₁ ≃ P₂) (e' : V₁ ≃ₗ[k] V₂) (p h) :
+  (mk' e e' p h).linear = e' := rfl
+
 /-- Inverse of an affine equivalence as an affine equivalence. -/
 @[symm] def symm (e : P₁ ≃ᵃ[k] P₂) : P₂ ≃ᵃ[k] P₁ :=
 { to_equiv := e.to_equiv.symm,

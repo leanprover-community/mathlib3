@@ -679,12 +679,14 @@ by { rw div_nonzero h, exact submodule.mem_div_iff_forall_mul_mem }
 
 lemma div_mul_inv {I J : fractional_ideal g} (h: J≠ 0) : I/J = I * ( (1 : fractional_ideal g) / J) :=
 begin
-  sorry,
+sorry,
+-- apply div_eq_mul_one_div I J,
 end
 
 lemma inv_inv {J : fractional_ideal g} (h : J ≠ 0): 1 / (1 / J) = J :=
-begin
-  sorry,
+begin sorry,
+  -- rw ← inv_eq, rw ← inv_eq, apply inv_inv',
+  -- apply div_div_eq_mul_div (1 : fractional_ideal g) (1 : fractional_ideal g) J,
 end
 
 lemma nonzero_inv_of_nonzero {J : fractional_ideal g} (h : J ≠ 0): (1 / J) ≠ 0 :=
@@ -704,7 +706,6 @@ begin
   rw [val_eq_coe, val_eq_coe, ←coe_mul],
   refl,
 end
-#check @le_div_iff_mul_le
 
 lemma coe_inv_of_nonzero {I : fractional_ideal g} (h : I ≠ 0) :
   (↑I⁻¹ : submodule R₁ g.codomain) = g.coe_submodule 1 / I :=

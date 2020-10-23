@@ -160,15 +160,6 @@ end
 
 end nat_predicate
 
-lemma coe_sq_le {m n : ℤ} (h1 : m.nat_abs ≤ n.nat_abs) : m ^ 2 ≤ n ^ 2 :=
-begin
-  rw [pow_two, pow_two],
-  have h2 : m.nat_abs * m.nat_abs ≤ n.nat_abs * n.nat_abs, from nat.mul_le_mul h1 h1,
-  rw [← int.nat_abs_mul_self, ← int.nat_abs_mul_self],
-  norm_cast,
-  exact h2
-end
-
 /-
 Now we just have to demonstrate that 987 and 1597 are in fact the largest Fibonacci
 numbers in this range, and thus provide the maximum of `specified_set`.
@@ -206,8 +197,8 @@ begin
   have h4 : 0 ≤ n, from le_of_lt h2.right.left.left,
   rw [← int.nat_abs_of_nonneg h3, ← int.nat_abs_of_nonneg h4] at h2,
   have h7 : m.nat_abs ≤ K.fib ∧ n.nat_abs ≤ (K+1).fib, from m_n_bounds HK h2,
-  have h8 : m ^ 2 ≤ K.fib ^ 2, from coe_sq_le h7.left,
-  have h9 : n ^ 2 ≤ (K+1).fib ^ 2, from coe_sq_le h7.right,
+  have h8 : m ^ 2 ≤ K.fib ^ 2, from int.nat_abs_le_iff_sq_le.mp h7.left,
+  have h9 : n ^ 2 ≤ (K+1).fib ^ 2, from int.nat_abs_le_iff_sq_le.mp h7.right,
   linarith
 end
 

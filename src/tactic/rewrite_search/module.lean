@@ -49,30 +49,29 @@ variables {α β γ δ : Type}
 meta def mk_initial_search_state (conf : core_cfg)
   (rw_cfg : tactic.nth_rewrite.cfg) (rs : list (expr × bool))
   (s : strategy α β γ δ) (m : metric α β γ δ)
-  (strat_state : α) (metric_state : β) (tr_state : δ)
+  (strat_state : α) (metric_state : β)
   : search_state α β γ δ :=
 ⟨conf, rw_cfg, rs, strat_state, metric_state, table.create, table.create,
- table.create, none, tr_state, statistics.init⟩
+ table.create, none, statistics.init⟩
 
 meta def setup_instance (conf : core_cfg)
   (rw_cfg : tactic.nth_rewrite.cfg) (rs : list (expr × bool))
   (s : strategy α β γ δ) (m : metric α β γ δ)
-  (s_state : α) (m_state : β) (tr_state : δ)
+  (s_state : α) (m_state : β)
   (eqn : sided_pair expr) : tactic (inst α β γ δ) :=
-do let g := mk_initial_search_state conf rw_cfg rs s m s_state m_state tr_state,
+do let g := mk_initial_search_state conf rw_cfg rs s m s_state m_state,
    (g, vl) ← g.add_root_vertex eqn.l side.L,
    (g, vr) ← g.add_root_vertex eqn.r side.R,
    g ← s.startup g m vl vr,
    return ⟨m, s, g⟩
 
 meta def instantiate_modules (cfg : config α β γ δ) :
-strategy α β γ δ × metric α β γ δ × tracer α β γ δ :=
-(cfg.strategy β γ δ, cfg.metric α δ, cfg.view α β γ)
+strategy α β γ δ × metric α β γ δ :=
+(cfg.strategy β γ δ, cfg.metric α δ)
 
 meta def try_mk_search_instance (cfg : config α β γ δ)
   (rs : list (expr × bool)) (eqn : sided_pair expr) : tactic (option (inst α β γ δ)) :=
-do let (s, m, t) := instantiate_modules cfg,
-   init_result.try "tracer"   t.init $ λ tracer_state,
+do let (s, m) := instantiate_modules cfg,
    init_result.try "metric"   m.init $ λ metric_state,
    init_result.try "strategy" s.init $ λ strat_state, do
    let conf : core_cfg := {
@@ -86,7 +85,7 @@ do let (s, m, t) := instantiate_modules cfg,
     explain_using_conv := cfg.explain_using_conv
   },
   option.some <$>
-    setup_instance conf cfg.to_cfg rs s m strat_state metric_state tracer_state eqn
+    setup_instance conf cfg.to_cfg rs s m strat_state metric_state eqn
 
 open tactic
 

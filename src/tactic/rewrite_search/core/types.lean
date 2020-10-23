@@ -211,7 +211,6 @@ meta structure search_state (α β γ δ : Type) :=
 (vertices     : table vertex)
 (estimates    : table (dist_estimate γ))
 (solving_edge : option edge)
-(tr_state     : δ)
 (stats        : statistics)
 
 def LHS_VERTEX_ID : table_ref := table_ref.of_nat 0

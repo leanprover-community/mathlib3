@@ -13,6 +13,8 @@ import data.equiv.basic
 `to_dual` and `of_dual` the order reversing identity maps, bundled as equivalences.
 
 ## Basic Lemmas to convert between an order and its dual
+
+This file is similar to algebra/group/type_tags.lean
 -/
 
 open function

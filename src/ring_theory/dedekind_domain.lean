@@ -173,16 +173,6 @@ open finsupp polynomial
 
 variables {M : ideal R} [is_maximal M]
 
-/-
-this theorem definitely needs to go elsewhere
--/
-theorem is_integral_of_noetherian' (B : Type*) [comm_ring B] [algebra R B] (A : subalgebra R B) (H : is_noetherian R A) (x : B) :
-  (x ∈ A) → is_integral R x :=
-  begin
-sorry,
-  end
-
-
 lemma if_inv_then_int {I : ideal R} (hR : is_dedekind_domain R) (x : f.codomain) (h_nzI : I ≠ 0)
 (h_prod : (↑I : fractional_ideal f) * (1 / ↑I : fractional_ideal f) = ↑I ):
 x ∈ (1/↑I : fractional_ideal f) → (f.to_map).is_integral_elem x :=
@@ -241,7 +231,7 @@ obtain ⟨y, ⟨h_Iy , h_nzy⟩⟩ : ∃ y ∈ I, y ≠ (0 : R),
 let IA : fractional_ideal f := ⟨A, h_fracA⟩,
 have h_noethA : is_noetherian R A, apply fractional_ideal.fg_of_noetherian hR.2 IA,
 obtain ⟨ _ , h_int_x ⟩ : is_integral R x,
-apply @is_integral_of_noetherian' R _ K _ h_RalgK A h_noethA x h_xA,
+apply @is_integral_of_submodule_noetherian R K _ _ h_RalgK A h_noethA x h_xA,
 cases h_int_x with px zero_px, use w, split,
 exact px, exact zero_px,
 end

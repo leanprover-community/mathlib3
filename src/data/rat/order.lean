@@ -123,7 +123,6 @@ instance : semilattice_inf ℚ := by apply_instance
 instance : semilattice_sup ℚ := by apply_instance
 instance : has_inf ℚ         := by apply_instance
 instance : has_sup ℚ         := by apply_instance
-instance : linear_order ℚ    := by apply_instance
 instance : partial_order ℚ   := by apply_instance
 instance : preorder ℚ        := by apply_instance
 
@@ -167,18 +166,16 @@ instance : discrete_linear_ordered_field ℚ :=
   ..rat.semiring }
 
 /- Extra instances to short-circuit type class resolution -/
-instance : linear_ordered_field ℚ                := by apply_instance
-instance : linear_ordered_comm_ring ℚ  := by apply_instance
-instance : linear_ordered_comm_ring ℚ            := by apply_instance
-instance : linear_ordered_ring ℚ                 := by apply_instance
-instance : ordered_ring ℚ                        := by apply_instance
-instance : linear_ordered_semiring ℚ   := by apply_instance
-instance : linear_ordered_semiring ℚ             := by apply_instance
-instance : ordered_semiring ℚ                    := by apply_instance
-instance : linear_ordered_add_comm_group ℚ := by apply_instance
-instance : ordered_add_comm_group ℚ              := by apply_instance
-instance : ordered_cancel_add_comm_monoid ℚ      := by apply_instance
-instance : ordered_add_comm_monoid ℚ             := by apply_instance
+instance : linear_ordered_field ℚ           := by apply_instance
+instance : linear_ordered_comm_ring ℚ       := by apply_instance
+instance : linear_ordered_ring ℚ            := by apply_instance
+instance : ordered_ring ℚ                   := by apply_instance
+instance : linear_ordered_semiring ℚ        := by apply_instance
+instance : ordered_semiring ℚ               := by apply_instance
+instance : linear_ordered_add_comm_group ℚ  := by apply_instance
+instance : ordered_add_comm_group ℚ         := by apply_instance
+instance : ordered_cancel_add_comm_monoid ℚ := by apply_instance
+instance : ordered_add_comm_monoid ℚ        := by apply_instance
 
 attribute [irreducible] rat.le
 

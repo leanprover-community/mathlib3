@@ -826,10 +826,10 @@ noncomputable def subset_conditionally_complete_linear_order [inhabited s]
     have := (strict_mono_coe s).monotone.cInf_image_le hct h_bdd,
     rwa subset_Inf_of_within s (h_Inf ⟨c, hct⟩ h_bdd) at this,
   end,
-  decidable_le := classical.dec_rel _,
   ..subset_has_Sup s,
   ..subset_has_Inf s,
-  ..distrib_lattice.to_lattice s }
+  ..distrib_lattice.to_lattice s,
+  ..(infer_instance : linear_order s) }
 
 section ord_connected
 

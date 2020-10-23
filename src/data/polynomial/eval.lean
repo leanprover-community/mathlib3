@@ -259,11 +259,8 @@ rfl
 
 @[simp] lemma comp_X : p.comp X = p :=
 begin
-  refine ext (λ n, _),
-  rw [comp, eval₂],
-  conv in (C _ * _) { rw ← single_eq_C_mul_X },
-  congr,
-  convert finsupp.sum_single _,
+  simp only [comp, eval₂, ← single_eq_C_mul_X],
+  exact finsupp.sum_single _,
 end
 
 @[simp] lemma X_comp : X.comp p = p := eval₂_X _ _

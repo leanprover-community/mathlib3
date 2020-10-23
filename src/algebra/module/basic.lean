@@ -5,6 +5,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import group_theory.group_action
 import tactic.nth_rewrite
+import algebra.group.hom
 
 /-!
 # Modules over a ring
@@ -208,6 +209,13 @@ theorem smul_eq_zero {R E : Type*} [division_ring R] [add_comm_group E] [module 
 
 end module
 
+/-- A semimodule over a `subsingleton` semiring is a `subsingleton`. We cannot register this
+as an instance because Lean has no way to guess `R`. -/
+theorem semimodule.subsingleton (R M : Type*) [semiring R] [subsingleton R] [add_comm_monoid M]
+  [semimodule R M] :
+  subsingleton M :=
+⟨λ x y, by rw [← one_smul R x, ← one_smul R y, subsingleton.elim (1:R) 0, zero_smul, zero_smul]⟩
+
 @[priority 910] -- see Note [lower instance priority]
 instance semiring.to_semimodule [semiring R] : semimodule R R :=
 { smul := (*),
@@ -240,15 +248,21 @@ structure is_linear_map (R : Type u) {M : Type v} {M₂ : Type w}
 (map_add : ∀ x y, f (x + y) = f x + f y)
 (map_smul : ∀ (c : R) x, f (c • x) = c • f x)
 
+
+set_option old_structure_cmd true
+
 /-- A map `f` between semimodules over a semiring is linear if it satisfies the two properties
 `f (x + y) = f x + f y` and `f (c • x) = c • f x`. Elements of `linear_map R M M₂` (available under
 the notation `M →ₗ[R] M₂`) are bundled versions of such maps. An unbundled version is available with
 the predicate `is_linear_map`, but it should be avoided most of the time. -/
 structure linear_map (R : Type u) (M : Type v) (M₂ : Type w)
-  [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂] :=
-(to_fun : M → M₂)
-(map_add'  : ∀x y, to_fun (x + y) = to_fun x + to_fun y)
+  [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂] extends add_hom M M₂ :=
 (map_smul' : ∀(c : R) x, to_fun (c • x) = c • to_fun x)
+
+/-- The `add_hom` underlying a `linear_map`. -/
+add_decl_doc linear_map.to_add_hom
+
+set_option old_structure_cmd false
 
 infixr ` →ₗ `:25 := linear_map _
 notation M ` →ₗ[`:25 R:25 `] `:0 M₂:0 := linear_map R M M₂
@@ -267,7 +281,6 @@ instance : has_coe_to_fun (M →ₗ[R] M₂) := ⟨_, to_fun⟩
 @[simp] lemma coe_mk (f : M → M₂) (h₁ h₂) :
   ((linear_map.mk f h₁ h₂ : M →ₗ[R] M₂) : M → M₂) = f := rfl
 
-
 /-- Identity map as a `linear_map` -/
 def id : M →ₗ[R] M :=
 ⟨id, λ _ _, rfl, λ _ _, rfl⟩
@@ -285,6 +298,7 @@ section
 -- rather than via typeclass resolution.
 variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
 variables (f g : M →ₗ[R] M₂)
+include semimodule_M semimodule_M₂
 
 @[simp] lemma to_fun_eq_coe : f.to_fun = ⇑f := rfl
 
@@ -292,21 +306,20 @@ theorem is_linear : is_linear_map R f := ⟨f.2, f.3⟩
 
 variables {f g}
 
-theorem coe_inj (h : (f : M → M₂) = g) : f = g :=
-by cases f; cases g; cases h; refl
+theorem coe_injective : injective (λ f : M →ₗ[R] M₂, show M → M₂, from f) :=
+by rintro ⟨f, _⟩ ⟨g, _⟩ ⟨h⟩; congr
 
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
-coe_inj $ funext H
+coe_injective $ funext H
 
-lemma coe_fn_congr : Π {x x' : M}, x = x' → f x = f x'
+protected lemma congr_arg : Π {x x' : M}, x = x' → f x = f x'
 | _ _ rfl := rfl
+
+/-- If two linear maps are equal, they are equal at each point. -/
+protected lemma congr_fun (h : f = g) (x : M) : f x = g x := h ▸ rfl
 
 theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
 ⟨by { rintro rfl x, refl } , ext⟩
-
-/-- If two linear maps are equal, they are equal at each point. -/
-lemma lcongr_fun (h : f = g) (m : M) : f m = g m :=
-congr_fun (congr_arg linear_map.to_fun h) m
 
 variables (f g)
 
@@ -333,6 +346,10 @@ def to_add_monoid_hom : M →+ M₂ :=
 @[simp] lemma map_sum {ι} {t : finset ι} {g : ι → M} :
   f (∑ i in t, g i) = (∑ i in t, f (g i)) :=
 f.to_add_monoid_hom.map_sum _ _
+
+theorem to_add_monoid_hom_injective :
+  function.injective (to_add_monoid_hom : (M →ₗ[R] M₂) → (M →+ M₂)) :=
+λ f g h, ext $ add_monoid_hom.congr_fun h
 
 end
 

@@ -130,7 +130,7 @@ begin
   replace h : ∀ᶠ n in at_top, f (a + d n) ≤ f a, from mem_map.1 (hd h),
   replace hc : ∀ᶠ n in at_top, 0 ≤ c n, from mem_map.1 (hc (mem_at_top (0:ℝ))),
   filter_upwards [h, hc],
-  simp only [mem_set_of_eq, smul_eq_mul, mem_preimage, subset_def],
+  simp only [smul_eq_mul, mem_preimage, subset_def],
   assume n hnf hn,
   exact mul_nonpos_of_nonneg_of_nonpos hn (sub_nonpos.2 hnf)
 end
@@ -287,7 +287,7 @@ begin
     { have : ∀ x ∈ Icc a b, f x = f a,
         from λ x hx, le_antisymm (hC ▸ Cge x hx) (hc ▸ cle x hx),
       -- `f` is a constant, so we can take any point in `Ioo a b`
-      rcases dense hab with ⟨c', hc'⟩,
+      rcases exists_between hab with ⟨c', hc'⟩,
       refine ⟨c', hc', or.inl _⟩,
       assume x hx,
       rw [mem_set_of_eq, this x hx, ← hC],

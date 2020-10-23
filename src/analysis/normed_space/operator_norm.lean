@@ -566,7 +566,7 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
 }
 
 lemma extend_unique (g : G →L[𝕜] F) (H : g.comp e = f) : extend f e h_dense h_e = g :=
-continuous_linear_map.coe_inj $
+continuous_linear_map.injective_coe_fn $
   uniformly_extend_unique h_e h_dense (continuous_linear_map.ext_iff.1 H) g.continuous
 
 @[simp] lemma extend_zero : extend (0 : E →L[𝕜] F) e h_dense h_e = 0 :=
@@ -767,26 +767,43 @@ def smul_algebra_right (f : E →L[𝕜] 𝕜') (x : semimodule.restrict_scalars
 
 end extend_scalars
 
+end continuous_linear_map
+
 section has_sum
 
-variables {ι : Type*}
+-- Results in this section hold for continuous additive monoid homomorphisms or equivalences but we
+-- don't have bundled continuous additive homomorphisms.
+
+variables {ι R M M₂ : Type*} [semiring R] [add_comm_monoid M] [semimodule R M]
+  [add_comm_monoid M₂] [semimodule R M₂] [topological_space M] [topological_space M₂]
+
+omit 𝕜
 
 /-- Applying a continuous linear map commutes with taking an (infinite) sum. -/
-protected lemma has_sum {f : ι → E} (φ : E →L[𝕜] F) {x : E} (hf : has_sum f x) :
+protected lemma continuous_linear_map.has_sum {f : ι → M} (φ : M →L[R] M₂) {x : M}
+  (hf : has_sum f x) :
   has_sum (λ (b:ι), φ (f b)) (φ x) :=
-begin
-  unfold has_sum,
-  convert φ.continuous.continuous_at.tendsto.comp hf,
-  ext s, rw [function.comp_app, finset.sum_hom s φ],
-end
+by simpa only using hf.map φ.to_linear_map.to_add_monoid_hom φ.continuous
 
-lemma has_sum_of_summable {f : ι → E} (φ : E →L[𝕜] F) (hf : summable f) :
-  has_sum (λ (b:ι), φ (f b)) (φ (∑'b, f b)) :=
-φ.has_sum hf.has_sum
+alias continuous_linear_map.has_sum ← has_sum.mapL
+
+protected lemma continuous_linear_map.summable {f : ι → M} (φ : M →L[R] M₂) (hf : summable f) :
+  summable (λ b:ι, φ (f b)) :=
+(hf.has_sum.mapL φ).summable
+
+alias continuous_linear_map.summable ← summable.mapL
+
+/-- Applying a continuous linear map commutes with taking an (infinite) sum. -/
+protected lemma continuous_linear_equiv.has_sum {f : ι → M} (e : M ≃L[R] M₂) {y : M₂} :
+  has_sum (λ (b:ι), e (f b)) y ↔ has_sum f (e.symm y) :=
+⟨λ h, by simpa only [e.symm.coe_coe, e.symm_apply_apply] using h.mapL (e.symm : M₂ →L[R] M),
+  λ h, by simpa only [e.coe_coe, e.apply_symm_apply] using (e : M →L[R] M₂).has_sum h⟩
+
+protected lemma continuous_linear_equiv.summable {f : ι → M} (e : M ≃L[R] M₂) :
+  summable (λ b:ι, e (f b)) ↔ summable f :=
+⟨λ hf, (e.has_sum.1 hf.has_sum).summable, (e : M →L[R] M₂).summable⟩
 
 end has_sum
-
-end continuous_linear_map
 
 namespace continuous_linear_equiv
 
@@ -899,6 +916,14 @@ continuous_linear_equiv.uniform_embedding
 { continuous_to_fun := h₁,
   continuous_inv_fun := h₂,
   .. e }
+
+/-- Construct a continuous linear equivalence from a linear equivalence together with
+bounds in both directions. -/
+def linear_equiv.to_continuous_linear_equiv_of_bounds (e : E ≃ₗ[𝕜] F) (C_to C_inv : ℝ)
+  (h_to : ∀ x, ∥e x∥ ≤ C_to * ∥x∥) (h_inv : ∀ x : F, ∥e.symm x∥ ≤ C_inv * ∥x∥) : E ≃L[𝕜] F :=
+{ to_linear_equiv := e,
+  continuous_to_fun := e.to_linear_map.continuous_of_bound C_to h_to,
+  continuous_inv_fun := e.symm.to_linear_map.continuous_of_bound C_inv h_inv }
 
 namespace continuous_linear_map
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']

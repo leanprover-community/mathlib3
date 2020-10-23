@@ -40,11 +40,11 @@ open function
 
 variables {α : Type*} {β : Type*} {s s₁ s₂ t t₁ t₂ u : set α} {a b : α} {x y : β}
 
-/-! Properties about 1 -/
+/-! ### Properties about 1 -/
 @[to_additive]
 instance [has_one α] : has_one (set α) := ⟨{1}⟩
 
-@[simp, to_additive]
+@[to_additive]
 lemma singleton_one [has_one α] : ({1} : set α) = 1 := rfl
 
 @[simp, to_additive]
@@ -62,7 +62,8 @@ theorem one_nonempty [has_one α] : (1 : set α).nonempty := ⟨1, rfl⟩
 @[simp, to_additive]
 theorem image_one [has_one α] {f : α → β} : f '' 1 = {f 1} := image_singleton
 
-/-! Properties about multiplication -/
+/-! ### Properties about multiplication -/
+
 @[to_additive]
 instance [has_mul α] : has_mul (set α) := ⟨image2 has_mul.mul⟩
 
@@ -93,6 +94,14 @@ lemma image_mul_left' [group α] : (λ b, a⁻¹ * b) '' t = (λ b, a * b) ⁻¹
 lemma image_mul_right' [group α] : (λ a, a * b⁻¹) '' t = (λ a, a * b) ⁻¹' t := by simp
 
 @[simp, to_additive]
+lemma preimage_mul_left_singleton [group α] : ((*) a) ⁻¹' {b} = {a⁻¹ * b} :=
+by rw [← image_mul_left', image_singleton]
+
+@[simp, to_additive]
+lemma preimage_mul_right_singleton [group α] : (* a) ⁻¹' {b} = {b * a⁻¹} :=
+by rw [← image_mul_right', image_singleton]
+
+@[simp, to_additive]
 lemma preimage_mul_left_one [group α] : (λ b, a * b) ⁻¹' 1 = {a⁻¹} :=
 by rw [← image_mul_left', image_one, mul_one]
 
@@ -117,8 +126,7 @@ lemma singleton_mul_singleton [has_mul α] : ({a} : set α) * {b} = {a * b} := i
 
 @[to_additive set.add_semigroup]
 instance [semigroup α] : semigroup (set α) :=
-{ mul_assoc :=
-    by { intros, simp only [← image2_mul, image2_image2_left, image2_image2_right, mul_assoc] },
+{ mul_assoc := λ _ _ _, image2_assoc mul_assoc,
   ..set.has_mul }
 
 @[to_additive set.add_monoid]
@@ -189,7 +197,7 @@ def fintype_mul [has_mul α] [decidable_eq α] (s t : set α) [hs : fintype s] [
   fintype (s * t : set α) :=
 set.fintype_image2 _ s t
 
-/-! Properties about inversion -/
+/-! ### Properties about inversion -/
 @[to_additive set.has_neg'] -- todo: remove prime once name becomes available
 instance [has_inv α] : has_inv (set α) :=
 ⟨preimage has_inv.inv⟩
@@ -231,7 +239,7 @@ lemma inv_subset_inv [group α] {s t : set α} : s⁻¹ ⊆ t⁻¹ ↔ s ⊆ t :
 @[to_additive] lemma inv_subset [group α] {s t : set α} : s⁻¹ ⊆ t ↔ s ⊆ t⁻¹ :=
 by { rw [← inv_subset_inv, set.inv_inv] }
 
-/-! Properties about scalar multiplication -/
+/-! ### Properties about scalar multiplication -/
 
 /-- Scaling a set: multiplying every element by a scalar. -/
 instance has_scalar_set [has_scalar α β] : has_scalar α (set β) :=
@@ -279,7 +287,7 @@ image2_singleton_left
 
 section monoid
 
-/-! `set α` as a `(∪,*)`-semiring -/
+/-! ### `set α` as a `(∪,*)`-semiring -/
 
 /-- An alias for `set α`, which has a semiring structure given by `∪` as "addition" and pointwise
   multiplication `*` as "multiplication". -/

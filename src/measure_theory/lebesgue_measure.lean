@@ -140,7 +140,8 @@ begin
   refine le_trans _ (add_le_add_left (le_of_lt hε) _),
   rw ← ennreal.tsum_add,
   choose g hg using show
-    ∀ i, ∃ p:ℝ×ℝ, f i ⊆ Ioo p.1 p.2 ∧ (of_real (p.2 - p.1) : ennreal) < lebesgue_length (f i) + ε' i,
+    ∀ i, ∃ p:ℝ×ℝ, f i ⊆ Ioo p.1 p.2 ∧ (of_real (p.2 - p.1) : ennreal) <
+      lebesgue_length (f i) + ε' i,
   { intro i,
     have := (ennreal.lt_add_right (lt_of_le_of_lt (ennreal.le_tsum i) h)
         (ennreal.zero_lt_coe_iff.2 (ε'0 i))),
@@ -298,6 +299,17 @@ eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
   by simp [measure.map_apply measurable_neg is_measurable_Ioo]
 
 end real
+
+open_locale topological_space
+
+lemma filter.eventually.volume_pos_of_nhds_real {p : ℝ → Prop} {a : ℝ} (h : ∀ᶠ x in 𝓝 a, p x) :
+  (0 : ennreal) < volume {x | p x} :=
+begin
+  rcases h.exists_Ioo_subset with ⟨l, u, hx, hs⟩,
+  refine lt_of_lt_of_le _ (measure_mono hs),
+  simpa [-mem_Ioo] using hx.1.trans hx.2
+end
+
 /-
 section vitali
 

@@ -269,7 +269,7 @@ end
 end ring_hom
 
 /-- Inversion is a group homomorphism if the group is commutative. -/
-@[instance, to_additive]
+@[instance, to_additive "neg.is_add_group_hom"]
 lemma inv.is_group_hom [comm_group α] : is_group_hom (has_inv.inv : α → α) :=
 { map_mul := mul_inv }
 

@@ -31,8 +31,21 @@ instance aut : group (E ≃ₐ[F] E) := {
 lemma is_galois_implies_card_aut_eq_findim [finite_dimensional F E] [h : is_galois F E] :
   fintype.card (E ≃ₐ[F] E) = findim F E :=
 begin
+  have switch : (⊤ : intermediate_field F E).to_subalgebra.to_submodule = ⊤ :=
+    by { ext, exact iff_of_true intermediate_field.mem_top submodule.mem_top },
+  rw [←findim_top, ←switch],
+  change fintype.card (E ≃ₐ[F] E) = findim F (⊤ : intermediate_field F E),
   cases field.exists_primitive_element h.1 with α hα,
-  sorry,
+  rw ←hα,
+  cases h.2 α with H h_splits,
+  rw @intermediate_field.findim_adjoin_integral F _ _ _ _ α H,
+  rw ← @intermediate_field.alg_equiv_adjoin_integral F _ _ _ _ α H h_splits,
+  rw fintype.card_congr (algebra_equiv_equiv_algebra_hom F E),
+  rw fintype.card_congr (algebra_equiv_equiv_algebra_hom F F⟮α⟯),
+  apply fintype.card_congr,
+  rw hα,
+  change _ ≃ ((⊤ : intermediate_field F E).to_subalgebra →ₐ[F] (⊤ : intermediate_field F E).to_subalgebra),
+  rw intermediate_field.top_to_subalgebra,
 end
 
 end

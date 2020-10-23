@@ -383,19 +383,24 @@ variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (α : E) [h 
 
 instance finite_dimensional_adjoin_integral : finite_dimensional F F⟮α⟯ :=
 begin
+  sorry
 end
 
 lemma findim_adjoin_integral : findim F F⟮α⟯ = (minimal_polynomial h).nat_degree :=
 begin
+  sorry
 end
 
-lemma alg_hom_adjoin_integral : fintype.card (F⟮α⟯ →ₐ[F] F⟮α⟯) = (minimal_polynomial h).nat_degree :=
+lemma alg_hom_adjoin_integral (h_splits : (minimal_polynomial h).splits (algebra_map F E)) :
+  fintype.card (F⟮α⟯ →ₐ[F] F⟮α⟯) = (minimal_polynomial h).nat_degree :=
 begin
+  sorry
 end
 
-lemma alg_equiv_adjoin_integral : fintype.card (F⟮α⟯ ≃ₐ[F] F⟮α⟯) = (minimal_polynomial h).nat_degree :=
+lemma alg_equiv_adjoin_integral (h_splits : (minimal_polynomial h).splits (algebra_map F E)) :
+  fintype.card (F⟮α⟯ ≃ₐ[F] F⟮α⟯) = (minimal_polynomial h).nat_degree :=
 eq.trans (fintype.card_congr (algebra_equiv_equiv_algebra_hom F F⟮α⟯))
-  (@alg_hom_adjoin_integral F _ _ _ _ α h)
+  (@alg_hom_adjoin_integral F _ _ _ _ α h h_splits)
 
 end adjoin_integral_element
 

@@ -22,11 +22,24 @@ noncomputable theory
 
 variables {R : Type*}
 
+section comm_ring
+variables [comm_ring R] (p q : polynomial R)
+
 /-- `cancel_leads p q` is formed by multiplying `p` and `q` by monomials so that they
   have the same leading term, and then subtracting. -/
-def cancel_leads [comm_ring R] (p q : polynomial R) : polynomial R :=
-  C p.leading_coeff * X ^ (p.nat_degree - q.nat_degree) * q
-  - C q.leading_coeff * X ^ (q.nat_degree - p.nat_degree) * p
+def cancel_leads : polynomial R :=
+C p.leading_coeff * X ^ (p.nat_degree - q.nat_degree) * q -
+C q.leading_coeff * X ^ (q.nat_degree - p.nat_degree) * p
+
+variables {p q}
+
+@[simp] lemma neg_cancel_leads : - p.cancel_leads q = q.cancel_leads p := neg_sub _ _
+
+lemma dvd_cancel_leads_of_dvd_of_dvd {r : polynomial R} (pq : p ∣ q) (pr : p ∣ r) :
+  p ∣ q.cancel_leads r :=
+dvd_sub (dvd.trans pr (dvd.intro_left _ rfl)) (dvd.trans pq (dvd.intro_left _ rfl))
+
+end comm_ring
 
 lemma nat_degree_cancel_leads_lt_of_nat_degree_le_nat_degree [integral_domain R]
   {p q : polynomial R} (h : p.nat_degree ≤ q.nat_degree) (hq : 0 < q.nat_degree) :
@@ -59,10 +72,5 @@ begin
     rw [add_comm p.nat_degree, nat.sub_add_cancel h, ← leading_coeff, ← leading_coeff,
       mul_comm _ q.leading_coeff, ← sub_eq_add_neg, ← mul_sub, sub_self, mul_zero] }
 end
-
-lemma dvd_cancel_leads_of_dvd_of_dvd
-  [comm_ring R] {p q r : polynomial R} (pq : p ∣ q) (pr : p ∣ r) :
-  p ∣ q.cancel_leads r :=
-dvd_sub (dvd.trans pr (dvd.intro_left _ rfl)) (dvd.trans pq (dvd.intro_left _ rfl))
 
 end polynomial

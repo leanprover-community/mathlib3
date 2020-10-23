@@ -196,12 +196,14 @@ begin
     apply h _ (C_content_dvd _) }
 end
 
+open_locale classical
+noncomputable theory
+
 section prim_part
-variable [decidable_eq R]
 
 /-- The primitive part of a polynomial `p` is the primitive polynomial gained by dividing `p` by
   `p.content`. If `p = 0`, then `p.prim_part = 1`.  -/
-noncomputable def prim_part (p : polynomial R) : polynomial R :=
+def prim_part (p : polynomial R) : polynomial R :=
 if p = 0 then 1 else classical.some (C_content_dvd p)
 
 lemma eq_C_content_mul_prim_part (p : polynomial R) : p = C p.content * p.prim_part :=
@@ -330,7 +332,7 @@ theorem is_primitive.mul {p q : polynomial R} (hp : p.is_primitive) (hq : q.is_p
 by rw [is_primitive, content_mul, hp.content_eq_one, hq.content_eq_one, mul_one]
 
 @[simp]
-theorem prim_part_mul [decidable_eq R] {p q : polynomial R} (h0 : p * q ≠ 0) :
+theorem prim_part_mul {p q : polynomial R} (h0 : p * q ≠ 0) :
   (p * q).prim_part = p.prim_part * q.prim_part :=
 begin
   rw [ne.def, ← content_eq_zero_iff, ← C_eq_zero] at h0,
@@ -341,7 +343,7 @@ begin
   ring,
 end
 
-lemma is_primitive.dvd_prim_part_iff_dvd [decidable_eq R] {p q : polynomial R}
+lemma is_primitive.dvd_prim_part_iff_dvd {p q : polynomial R}
   (hp : p.is_primitive) (hq : q ≠ 0) :
   p ∣ q.prim_part ↔ p ∣ q :=
 begin
@@ -404,7 +406,7 @@ begin
     exact mul_dvd_mul (ring_hom.map_dvd C h.1) h.2 }
 end
 
-noncomputable instance [decidable_eq R] : gcd_monoid (polynomial R) :=
+instance [decidable_eq R] : gcd_monoid (polynomial R) :=
 gcd_monoid_of_exists_lcm $ λ p q, begin
   rcases exists_primitive_lcm_of_is_primitive p.is_primitive_prim_part q.is_primitive_prim_part
     with ⟨r, rprim, hr⟩,

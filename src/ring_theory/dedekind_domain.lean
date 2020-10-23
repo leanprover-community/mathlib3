@@ -193,18 +193,31 @@ sorry,
 
 
 lemma if_inv_then_int {I : ideal R} (hR : is_dedekind_domain R) (x : f.codomain) (h_nzI : I ≠ 0)
-(h_prod : ↑I * (1 / ↑I : fractional_ideal f) = ↑I) :
-x ∈ (1/↑I : fractional_ideal f).val → (f.to_map).is_integral_elem x :=
+(h_prod : (↑I : fractional_ideal f) * (1 / ↑I : fractional_ideal f) = ↑I ):
+x ∈ (1/↑I : fractional_ideal f) → (f.to_map).is_integral_elem x :=
 begin
-have h_Sam : ∀ (n : ℕ), ∀ (y ∈ I), (f.to_map y) * x^n ∈ (↑I : fractional_ideal f).val,
+intro hx,
+let h_RalgK := (ring_hom.to_algebra f.to_map),
+have h_prod_mem : ∀ a ∈ I, ∀ t ∈ (1 / ↑I : fractional_ideal f), (f.to_map a ) * t ∈ (↑I : fractional_ideal f),
+ {intros a ha t ht, rw ← h_prod,
+  have hfa : (f.to_map a) ∈ (↑I : fractional_ideal f),
+   apply fractional_ideal.mem_coe.mpr, use a, apply and.intro ha _, triv,
+  apply fractional_ideal.mul_mem_mul hfa ht,
+ },
+have h_Samuel : ∀ (n : ℕ), ∀ (y ∈ I), (f.to_map y) * x^n ∈ (↑I : fractional_ideal f).val,
   intro n, induction n with n hn,
   {intros y hy, ring, apply (fractional_ideal.mem_coe).mpr,
    use y, apply and.intro hy _, triv,
-  }
-  {
-
   },
-let h_RalgK := (ring_hom.to_algebra f.to_map),
+  {intros y hy,
+
+  obtain ⟨z, ⟨hz₁, hz₂⟩ ⟩ : ∃ z ∈ I, f.to_map z = (f.to_map y) * x, --sorry,
+   {apply (fractional_ideal.mem_coe).mp,
+    apply h_prod_mem, exact hy, exact hx,
+   },
+   rw [pow_succ, ← mul_assoc (f.to_map y) x (x^n), ← hz₂],
+   specialize hn z hz₁, exact hn,
+  },
 let φ := @aeval R K _ _ h_RalgK x,
 let A := @alg_hom.range R (polynomial R) f.codomain _ _ _  _ h_RalgK φ,
 have h_xA :  x ∈ A,
@@ -219,7 +232,8 @@ obtain ⟨y, ⟨h_Iy , h_nzy⟩⟩ : ∃ y ∈ I, y ≠ (0 : R),
     {intro p,
      apply polynomial.induction_on' p,
      intros q₁ q₂, rw eval₂_add, rw left_distrib, apply localization_map.is_integer_add,
-     intros n a, rw monomial_eq_smul_X, rw eval₂_smul, rw algebra.mul_smul_comm, apply localization_map.is_integer_smul,
+     intros n a, rw monomial_eq_smul_X, rw eval₂_smul, rw algebra.mul_smul_comm,
+     apply localization_map.is_integer_smul,
      rw eval₂_X_pow, specialize h_intmon n, exact h_intmon,
     },
     intros b hb,
@@ -228,33 +242,20 @@ obtain ⟨y, ⟨h_Iy , h_nzy⟩⟩ : ∃ y ∈ I, y ≠ (0 : R),
       apply aeval_def x pb,
      },
     rw ← h_polb, specialize h_intpol polb, exact h_intpol,
-    intro n, specialize h_Sam n y h_Iy,
+    intro n, specialize h_Samuel n y h_Iy,
     obtain ⟨z, ⟨ _ , hz⟩⟩ :  ∃ (x' ∈ I), (f.to_map x') = (f.to_map y) * x ^ n,
-     apply (fractional_ideal.mem_coe).mp, exact h_Sam,
+     apply (fractional_ideal.mem_coe).mp, exact h_Samuel,
     use z, exact hz,
   },
 let IA : fractional_ideal f := ⟨A, h_fracA⟩,
 have h_noethA : is_noetherian R A, apply fractional_ideal.fg_of_noetherian hR.2 IA,
 obtain ⟨ _ , h_int_x ⟩ : is_integral R x,
 apply @is_integral_of_noetherian' R _ K _ h_RalgK A h_noethA x h_xA,
-cases h_int_x with px zero_px, intro h_xI, use w, split,
+cases h_int_x with px zero_px, use w, split,
 exact px, exact zero_px,
 end
-/-
-lemma if_inv_then_int {I : ideal R} (x : f.codomain) (h_I : I ≠ 0) (h : ↑I * (1 / ↑I : fractional_ideal f) = ↑I) :
-x ∈ (1/↑I : fractional_ideal f).val → (f.to_map).is_integral_elem x :=
-begin
-have h_powx_M : ∀ (n : ℕ), (ring.fractional_ideal.span_singleton x^n ) • (↑I : fractional_ideal f) ≤ (↑I : fractional_ideal f),
-intro, induction n with n hn,
-  {have h_Id : ↑ I = ↑ I, triv,
-   simp, apply eq.le h_Id,
-  },
-  {intros a ha,sorry,
-  },
-intro x,sorry,
-end
--/
 
+#check if_inv_then_int
 
 local attribute [instance] classical.prop_decidable
 
@@ -307,11 +308,12 @@ have h_top : I= ⊤,
        split,
         {intros x hx,--the proof that 1/M ≤ 1
          have h_MMinvI : ↑ M * (1 / ↑M : fractional_ideal f) = ↑M, rw ← hI, rw h_IM,
-         have h_integralfx : (f.to_map).is_integral_elem x, apply if_inv_then_int hR x hnz_M h_MMinvI hx,
+         have h_integralfx : (f.to_map).is_integral_elem x, apply if_inv_then_int _ hR x hnz_M h_MMinvI hx,
          have h_intxR : x ∈ (integral_closure R f.codomain), apply h_integralfx,
-         have h_xintegral : x ∈ (⊥  : subalgebra R f.codomain), rw ← ((is_dedekind_domain_iff _ _ f).mp h).right.right.right, exact h_intxR,
+         have h_xintegral : x ∈ (⊥  : subalgebra R f.codomain), rw ← ((is_dedekind_domain_iff _ _ f).mp hR).right.right.right, exact h_intxR,
          have h_coe : ((⊥  : subalgebra R f.codomain) : submodule R f.codomain) = localization_map.coe_submodule f ⊤,
           --  have try : (⊥  : subalgebra R f.codomain) = (f.to_map).alg_hom.range, →  I believe that the localization map should be upbgraded to a algebra hom (see l. 91 of localization.lean)
+        --  apply subalgebra.ext,
          sorry,
          suffices h_final : x ∈ localization_map.coe_submodule f ⊤,
          simpa, rw ← h_coe, exact h_xintegral,

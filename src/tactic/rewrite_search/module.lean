@@ -48,7 +48,7 @@ variables {α β γ δ : Type}
 
 meta def mk_initial_search_state (conf : core_cfg)
   (rw_cfg : tactic.nth_rewrite.cfg) (rs : list (expr × bool))
-  (s : strategy α β γ δ) (m : metric α β γ δ) (tr : tracer α β γ δ)
+  (s : strategy α β γ δ) (m : metric α β γ δ)
   (strat_state : α) (metric_state : β) (tr_state : δ)
   : search_state α β γ δ :=
 ⟨conf, rw_cfg, rs, strat_state, metric_state, table.create, table.create,
@@ -56,10 +56,10 @@ meta def mk_initial_search_state (conf : core_cfg)
 
 meta def setup_instance (conf : core_cfg)
   (rw_cfg : tactic.nth_rewrite.cfg) (rs : list (expr × bool))
-  (s : strategy α β γ δ) (m : metric α β γ δ) (tr : tracer α β γ δ)
+  (s : strategy α β γ δ) (m : metric α β γ δ)
   (s_state : α) (m_state : β) (tr_state : δ)
   (eqn : sided_pair expr) : tactic (inst α β γ δ) :=
-do let g := mk_initial_search_state conf rw_cfg rs s m tr s_state m_state tr_state,
+do let g := mk_initial_search_state conf rw_cfg rs s m s_state m_state tr_state,
    (g, vl) ← g.add_root_vertex eqn.l side.L,
    (g, vr) ← g.add_root_vertex eqn.r side.R,
    g ← s.startup g m vl vr,
@@ -86,7 +86,7 @@ do let (s, m, t) := instantiate_modules cfg,
     explain_using_conv := cfg.explain_using_conv
   },
   option.some <$>
-    setup_instance conf cfg.to_cfg rs s m t strat_state metric_state tracer_state eqn
+    setup_instance conf cfg.to_cfg rs s m strat_state metric_state tracer_state eqn
 
 open tactic
 

@@ -1587,7 +1587,7 @@ lemma image_coe_mem_sets {f : filter α} {U : set α} (h : U ∈ f) {W : set U}
   (W_in : W ∈ comap (coe : U → α) f) : coe '' W ∈ f :=
 image_mem_sets (by simp [h]) W_in
 
-lemma comap_map {f : filter α} {m : α → β} (h : ∀ x y, m x = m y → x = y) :
+lemma comap_map {f : filter α} {m : α → β} (h : function.injective m) :
   comap m (map m f) = f :=
 have ∀s, preimage m (image m s) = s,
   from assume s, preimage_image_eq s h,

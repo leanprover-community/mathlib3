@@ -218,14 +218,14 @@ whnf type >>= get_expl_pi_arity_aux
 meta def get_expl_arity (fn : expr) : tactic nat :=
 infer_type fn >>= get_expl_pi_arity
 
-/--
-Auxiliary function for `get_app_fn_args_whnf`.
--/
 private meta def get_app_fn_args_whnf_aux (md : transparency)
   (unfold_ginductive : bool) : list expr → expr → tactic (expr × list expr) :=
 λ args e, do
-  (expr.app t u) ← whnf e md unfold_ginductive | pure (e, args),
-  get_app_fn_args_whnf_aux (u :: args) t
+  e ← whnf e md unfold_ginductive,
+  match e with
+  | (expr.app t u) := get_app_fn_args_whnf_aux (u :: args) t
+  | _ := pure (e, args)
+  end
 
 /--
 For `e = f x₁ ... xₙ`, `get_app_fn_args_whnf e` returns `(f, [x₁, ..., xₙ])`. `e`
@@ -234,6 +234,8 @@ is normalised as necessary; for example:
 ```
 get_app_fn_args_whnf `(let f := g x in f y) = (`(g), [`(x), `(y)])
 ```
+
+The returned expression is in whnf, but the arguments are generally not.
 -/
 meta def get_app_fn_args_whnf (e : expr) (md := semireducible)
   (unfold_ginductive := tt) : tactic (expr × list expr) :=
@@ -242,12 +244,31 @@ get_app_fn_args_whnf_aux md unfold_ginductive [] e
 /--
 `get_app_fn_whnf e md unfold_ginductive` is like `expr.get_app_fn e` but `e` is
 normalised as necessary (with transparency `md`). `unfold_ginductive` controls
-whether constructors of generalised inductive types are unfolded.
+whether constructors of generalised inductive types are unfolded. The returned
+expression is in whnf.
 -/
 meta def get_app_fn_whnf : expr → opt_param _ semireducible → opt_param _ tt → tactic expr
 | e md unfold_ginductive := do
-  (expr.app f _) ← whnf e md unfold_ginductive | pure e,
-  get_app_fn_whnf f md
+  e ← whnf e md unfold_ginductive,
+  match e with
+  | (expr.app f _) := get_app_fn_whnf f md unfold_ginductive
+  | _ := pure e
+  end
+
+/--
+`get_app_fn_const_whnf e md unfold_ginductive` expects that `e = C x₁ ... xₙ`,
+where `C` is a constant, after normalisation with transparency `md`. If so, the
+name of `C` is returned. Otherwise the tactic fails. `unfold_ginductive`
+controls whether constructors of generalised inductive types are unfolded.
+-/
+meta def get_app_fn_const_whnf (e : expr) (md := semireducible)
+  (unfold_ginductive := tt) : tactic name := do
+  f ← get_app_fn_whnf e md unfold_ginductive,
+  match f with
+  | (expr.const n _) := pure n
+  | _ := fail format!
+    "expected a constant (possibly applied to some arguments), but got:\n{e}"
+  end
 
 /-- `pis loc_consts f` is used to create a pi expression whose body is `f`.
 `loc_consts` should be a list of local constants. The function will abstract these local
@@ -1209,6 +1230,21 @@ meta def emit_code_here : string → lean.parser unit
 | str := do left ← emit_command_here str,
             if left.length = 0 then return ()
             else emit_code_here left
+
+/-- `run_parser p` is like `run_cmd` but for the parser monad. It executes parser `p` at the
+top level, giving access to operations like `emit_code_here`. -/
+@[user_command]
+meta def run_parser_cmd (_ : interactive.parse $ tk "run_parser") : lean.parser unit :=
+do e ← lean.parser.pexpr 0,
+  e ← to_expr ``(%%e : lean.parser unit) ff ff,
+  p ← eval_expr (lean.parser unit) e,
+  p
+
+add_tactic_doc
+{ name       := "run_parser",
+  category   := doc_category.cmd,
+  decl_names := [``run_parser_cmd],
+  tags       := ["parsing"] }
 
 /-- `get_current_namespace` returns the current namespace (it could be `name.anonymous`).
 

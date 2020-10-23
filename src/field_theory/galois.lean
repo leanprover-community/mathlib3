@@ -31,21 +31,24 @@ instance aut : group (E ≃ₐ[F] E) := {
 lemma is_galois_implies_card_aut_eq_findim [finite_dimensional F E] [h : is_galois F E] :
   fintype.card (E ≃ₐ[F] E) = findim F E :=
 begin
+  cases field.exists_primitive_element h.1 with α hα,
+  cases h.2 α with H h_splits,
   have switch : (⊤ : intermediate_field F E).to_subalgebra.to_submodule = ⊤ :=
     by { ext, exact iff_of_true intermediate_field.mem_top submodule.mem_top },
   rw [←findim_top, ←switch],
   change fintype.card (E ≃ₐ[F] E) = findim F (⊤ : intermediate_field F E),
-  cases field.exists_primitive_element h.1 with α hα,
-  rw ←hα,
-  cases h.2 α with H h_splits,
-  rw @intermediate_field.findim_adjoin_integral F _ _ _ _ α H,
-  rw ← @intermediate_field.alg_equiv_adjoin_integral F _ _ _ _ α H h_splits,
-  rw fintype.card_congr (algebra_equiv_equiv_algebra_hom F E),
-  rw fintype.card_congr (algebra_equiv_equiv_algebra_hom F F⟮α⟯),
+  rw [←hα, @intermediate_field.findim_adjoin_integral F _ _ _ _ α H,
+    ←@intermediate_field.alg_equiv_adjoin_integral F _ _ _ _ α H h_splits],
   apply fintype.card_congr,
   rw hα,
-  change _ ≃ ((⊤ : intermediate_field F E).to_subalgebra →ₐ[F] (⊤ : intermediate_field F E).to_subalgebra),
+  change (E ≃ₐ[F] E) ≃
+    ((⊤ : intermediate_field F E).to_subalgebra ≃ₐ[F] (⊤ : intermediate_field F E).to_subalgebra),
   rw intermediate_field.top_to_subalgebra,
+  exact
+  { to_fun := λ ϕ, (algebra.top_equiv).trans (alg_equiv.trans ϕ (algebra.top_equiv).symm),
+    inv_fun := λ ϕ, (algebra.top_equiv).symm.trans (alg_equiv.trans ϕ (algebra.top_equiv)),
+    left_inv := λ _, by { ext, simp only [alg_equiv.apply_symm_apply, alg_equiv.trans_apply] },
+    right_inv := λ _, by { ext, simp only [alg_equiv.symm_apply_apply, alg_equiv.trans_apply] } },
 end
 
 end
@@ -58,15 +61,14 @@ variables (H : subgroup (E ≃ₐ[F] E)) (K : intermediate_field F E)
 instance galois_of_tower_top [h : is_galois F E] : is_galois K E :=
 begin
   split,
-  exact is_separable_tower_top_of_is_separable K h.1,
+  { exact is_separable_tower_top_of_is_separable K h.1 },
   intros x,
   cases h.2 x with hx hhx,
   rw (show (algebra_map F E) = (algebra_map K E).comp (algebra_map F K), by ext;refl) at hhx,
-  use is_integral_of_is_scalar_tower x hx,
-  have key := minimal_polynomial.dvd_map_of_is_scalar_tower K hx,
-  exact polynomial.splits_of_splits_of_dvd (algebra_map K E)
+  exact ⟨is_integral_of_is_scalar_tower x hx, polynomial.splits_of_splits_of_dvd (algebra_map K E)
     (polynomial.map_ne_zero (minimal_polynomial.ne_zero hx))
-    ((polynomial.splits_map_iff (algebra_map F K) (algebra_map K E)).mpr hhx) key,
+    ((polynomial.splits_map_iff (algebra_map F K) (algebra_map K E)).mpr hhx)
+    (minimal_polynomial.dvd_map_of_is_scalar_tower K hx)⟩,
 end
 
 instance subgroup_action : faithful_mul_semiring_action H E := {
@@ -129,12 +131,8 @@ begin
 end
 
 instance alg_instance : algebra K (fixed_field (fixing_subgroup K)) := {
-  smul := λ x y, ⟨x*y, begin
-    intros ϕ,
-    have hx : ϕ • ↑x = ↑x := subtype.mem ϕ x,
-    have hy : ϕ • ↑y = ↑y := subtype.mem y ϕ,
-    rw [smul_mul', hx, hy],
-  end⟩,
+  smul := λ x y, ⟨x*y, λ ϕ, by rw [smul_mul', (show ϕ • ↑x = ↑x, by exact subtype.mem ϕ x),
+    (show ϕ • ↑y = ↑y, by exact subtype.mem y ϕ)]⟩,
   to_fun := λ x, ⟨x, λ ϕ, subtype.mem ϕ x⟩,
   map_zero' := rfl,
   map_add' := λ _ _, rfl,
@@ -144,15 +142,13 @@ instance alg_instance : algebra K (fixed_field (fixing_subgroup K)) := {
   smul_def' := λ _ _, rfl,
 }
 
-instance tower_instance : is_scalar_tower K (fixed_field (fixing_subgroup K)) E := {
-  smul_assoc := λ _ _ _, mul_assoc _ _ _,
-}
+instance tower_instance : is_scalar_tower K (fixed_field (fixing_subgroup K)) E :=
+⟨λ _ _ _, mul_assoc _ _ _⟩
 
 theorem fixed_field_of_fixing_subgroup [finite_dimensional F E] [h : is_galois F E] :
   fixed_field (fixing_subgroup K) = K :=
 begin
-  have K_le : K ≤ fixed_field (fixing_subgroup K) :=
-    λ x hx ϕ, subtype.mem ϕ (⟨x, hx⟩ : K),
+  have K_le : K ≤ fixed_field (fixing_subgroup K) := λ x hx ϕ, subtype.mem ϕ (⟨x, hx⟩ : K),
   suffices : findim K E = findim (fixed_field (fixing_subgroup K)) E,
   { exact (intermediate_field.eq_of_le_of_findim_eq' K_le this).symm },
   rw findim_fixed_field_eq_card,
@@ -160,6 +156,10 @@ begin
   rw fintype.card_congr (fixing_subgroup_equiv K),
   exact (is_galois_implies_card_aut_eq_findim K E).symm,
 end
+
+lemma findim_eq_card_fixing_subgroup [finite_dimensional F E] [is_galois F E] :
+  findim K E = fintype.card (fixing_subgroup K) :=
+by conv { to_lhs, rw [←fixed_field_of_fixing_subgroup K, findim_fixed_field_eq_card] }
 
 end galois_correspondence
 

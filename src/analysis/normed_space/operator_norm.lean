@@ -566,7 +566,7 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
 }
 
 lemma extend_unique (g : G →L[𝕜] F) (H : g.comp e = f) : extend f e h_dense h_e = g :=
-continuous_linear_map.coe_fn_injective $
+continuous_linear_map.injective_coe_fn $
   uniformly_extend_unique h_e h_dense (continuous_linear_map.ext_iff.1 H) g.continuous
 
 @[simp] lemma extend_zero : extend (0 : E →L[𝕜] F) e h_dense h_e = 0 :=
@@ -684,12 +684,12 @@ variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
 /-- Left-multiplication in a normed algebra, considered as a continuous linear map. -/
 def lmul_left : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
-λ x, (algebra.lmul_left 𝕜 𝕜' x).mk_continuous ∥x∥
+λ x, (algebra.lmul_left 𝕜 x).mk_continuous ∥x∥
 (λ y, by {rw algebra.lmul_left_apply, exact norm_mul_le x y})
 
 /-- Right-multiplication in a normed algebra, considered as a continuous linear map. -/
 def lmul_right : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
-λ x, (algebra.lmul_right 𝕜 𝕜' x).mk_continuous ∥x∥
+λ x, (algebra.lmul_right 𝕜 x).mk_continuous ∥x∥
 (λ y, by {rw [algebra.lmul_right_apply, mul_comm], exact norm_mul_le y x})
 
 /-- Simultaneous left- and right-multiplication in a normed algebra, considered as a continuous
@@ -708,19 +708,20 @@ section restrict_scalars
 
 variable (𝕜)
 variables {𝕜' : Type*} [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
-{E' : Type*} [normed_group E'] [normed_space 𝕜' E']
-{F' : Type*} [normed_group F'] [normed_space 𝕜' F']
+variables {E' : Type*} [normed_group E'] [normed_space 𝕜 E'] [normed_space 𝕜' E']
+variables [is_scalar_tower 𝕜 𝕜' E']
+variables {F' : Type*} [normed_group F'] [normed_space 𝕜 F'] [normed_space 𝕜' F']
+variables [is_scalar_tower 𝕜 𝕜' F']
 
 /-- `𝕜`-linear continuous function induced by a `𝕜'`-linear continuous function when `𝕜'` is a
 normed algebra over `𝕜`. -/
 def restrict_scalars (f : E' →L[𝕜'] F') :
-  (semimodule.restrict_scalars 𝕜 𝕜' E') →L[𝕜] (semimodule.restrict_scalars 𝕜 𝕜' F') :=
+  E' →L[𝕜] F' :=
 { cont := f.cont,
   ..linear_map.restrict_scalars 𝕜 (f.to_linear_map) }
 
 @[simp, norm_cast] lemma restrict_scalars_coe_eq_coe (f : E' →L[𝕜'] F') :
-  (f.restrict_scalars 𝕜 :
-    (semimodule.restrict_scalars 𝕜 𝕜' E') →ₗ[𝕜] (semimodule.restrict_scalars 𝕜 𝕜' F')) =
+  (f.restrict_scalars 𝕜 : E' →ₗ[𝕜] F') =
   (f : E' →ₗ[𝕜'] F').restrict_scalars 𝕜 := rfl
 
 @[simp, norm_cast squash] lemma restrict_scalars_coe_eq_coe' (f : E' →L[𝕜'] F') :
@@ -731,9 +732,10 @@ end restrict_scalars
 section extend_scalars
 
 variables {𝕜' : Type*} [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
-{F' : Type*} [normed_group F'] [normed_space 𝕜' F']
+variables {F' : Type*} [normed_group F'] [normed_space 𝕜 F'] [normed_space 𝕜' F']
+variables [is_scalar_tower 𝕜 𝕜' F']
 
-instance has_scalar_extend_scalars : has_scalar 𝕜' (E →L[𝕜] (semimodule.restrict_scalars 𝕜 𝕜' F')) :=
+instance has_scalar_extend_scalars : has_scalar 𝕜' (E →L[𝕜] F') :=
 { smul := λ c f, (c • f.to_linear_map).mk_continuous (∥c∥ * ∥f∥)
 begin
   assume x,
@@ -742,7 +744,7 @@ begin
   ... = ∥c∥ * ∥f∥ * ∥x∥ : (mul_assoc _ _ _).symm
 end }
 
-instance module_extend_scalars : module 𝕜' (E →L[𝕜] (semimodule.restrict_scalars 𝕜 𝕜' F')) :=
+instance module_extend_scalars : module 𝕜' (E →L[𝕜] F') :=
 { smul_zero := λ _, ext $ λ _, smul_zero _,
   zero_smul := λ _, ext $ λ _, zero_smul _ _,
   one_smul  := λ _, ext $ λ _, one_smul _ _,
@@ -750,19 +752,16 @@ instance module_extend_scalars : module 𝕜' (E →L[𝕜] (semimodule.restrict
   add_smul  := λ _ _ _, ext $ λ _, add_smul _ _ _,
   smul_add  := λ _ _ _, ext $ λ _, smul_add _ _ _ }
 
-instance normed_space_extend_scalars : normed_space 𝕜' (E →L[𝕜] (semimodule.restrict_scalars 𝕜 𝕜' F')) :=
+instance normed_space_extend_scalars : normed_space 𝕜' (E →L[𝕜] F') :=
 { norm_smul_le := λ c f,
     linear_map.mk_continuous_norm_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _ }
 
 /-- When `f` is a continuous linear map taking values in `S`, then `λb, f b • x` is a
 continuous linear map. -/
-def smul_algebra_right (f : E →L[𝕜] 𝕜') (x : semimodule.restrict_scalars 𝕜 𝕜' F') :
-  E →L[𝕜] (semimodule.restrict_scalars 𝕜 𝕜' F') :=
-{ cont := by continuity!,
-  .. smul_algebra_right f.to_linear_map x }
+def smul_algebra_right (f : E →L[𝕜] 𝕜') (x : F') : E →L[𝕜] F' :=
+{ cont := by continuity!, .. f.to_linear_map.smul_algebra_right x }
 
-@[simp] theorem smul_algebra_right_apply
-  (f : E →L[𝕜] 𝕜') (x : semimodule.restrict_scalars 𝕜 𝕜' F') (c : E) :
+@[simp] theorem smul_algebra_right_apply (f : E →L[𝕜] 𝕜') (x : F') (c : E) :
   smul_algebra_right f x c = f c • x := rfl
 
 end extend_scalars

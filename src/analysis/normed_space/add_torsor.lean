@@ -76,13 +76,13 @@ namespace isometric
 
 /-- The map `v ↦ v +ᵥ p` as an isometric equivalence between `V` and `P`. -/
 def vadd_const (p : P) : V ≃ᵢ P :=
-⟨equiv.vadd_const V p, isometry_emetric_iff_metric.2 $ λ x₁ x₂, dist_vadd_cancel_right x₁ x₂ p⟩
+⟨equiv.vadd_const p, isometry_emetric_iff_metric.2 $ λ x₁ x₂, dist_vadd_cancel_right x₁ x₂ p⟩
 
 @[simp] lemma coe_vadd_const (p : P) : ⇑(vadd_const p) = λ v, v +ᵥ p := rfl
 
 @[simp] lemma coe_vadd_const_symm (p : P) : ⇑(vadd_const p).symm = λ p', p' -ᵥ p := rfl
 
-@[simp] lemma vadd_const_to_equiv (p : P) : (vadd_const p).to_equiv = equiv.vadd_const V p := rfl
+@[simp] lemma vadd_const_to_equiv (p : P) : (vadd_const p).to_equiv = equiv.vadd_const p := rfl
 
 variables (P)
 

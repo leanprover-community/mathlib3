@@ -126,8 +126,7 @@ lemma singleton_mul_singleton [has_mul α] : ({a} : set α) * {b} = {a * b} := i
 
 @[to_additive set.add_semigroup]
 instance [semigroup α] : semigroup (set α) :=
-{ mul_assoc :=
-    by { intros, simp only [← image2_mul, image2_image2_left, image2_image2_right, mul_assoc] },
+{ mul_assoc := λ _ _ _, image2_assoc mul_assoc,
   ..set.has_mul }
 
 @[to_additive set.add_monoid]

@@ -120,6 +120,9 @@ theorem is_integral_of_is_scalar_tower [algebra A B] [is_scalar_tower R A B]
 let ⟨p, hp, hpx⟩ := hx in
 ⟨p.map $ algebra_map R A, monic_map _ hp, by rw [← aeval_def, ← is_scalar_tower.aeval_apply, aeval_def, hpx]⟩
 
+section
+local attribute [instance] subset.comm_ring algebra.of_is_subring
+
 theorem is_integral_of_subring {x : A} (T : set R) [is_subring T]
   (hx : is_integral T x) : is_integral R x :=
 is_integral_of_is_scalar_tower x hx
@@ -133,6 +136,8 @@ begin
     erw [← aeval_def, is_scalar_tower.aeval_apply _ R, map_restriction, aeval_def, hpr] },
   rcases hr with ⟨s, hs, hsr⟩,
   exact is_integral_of_subring _ hsr
+end
+
 end
 
 theorem fg_adjoin_singleton_of_integral (x : A) (hx : is_integral R x) :
@@ -187,6 +192,8 @@ begin
   choose ly hly1 hly2,
   let S₀ : set R := ring.closure ↑(lx.frange ∪ finset.bind finset.univ (finsupp.frange ∘ ly)),
   refine is_integral_of_subring S₀ _,
+  letI : comm_ring S₀ := @subtype.comm_ring _ _ _ ring.is_subring,
+  letI : algebra S₀ A := algebra.of_is_subring _,
   have : span S₀ (insert 1 ↑y : set A) * span S₀ (insert 1 ↑y : set A) ≤ span S₀ (insert 1 ↑y : set A),
   { rw span_mul_span, refine span_le.2 (λ z hz, _),
     rcases set.mem_mul.1 hz with ⟨p, q, rfl | hp, hq, rfl⟩,
@@ -446,11 +453,14 @@ end
 
 end algebra
 
+section
+local attribute [instance] subset.comm_ring algebra.of_is_subring
 theorem integral_closure_idem {R : Type*} {A : Type*} [comm_ring R] [comm_ring A] [algebra R A] :
   integral_closure (integral_closure R A : set A) A = ⊥ :=
 eq_bot_iff.2 $ λ x hx, algebra.mem_bot.2
 ⟨⟨x, @is_integral_trans _ _ _ _ _ _ _ _ (integral_closure R A).algebra
      _ integral_closure.is_integral x hx⟩, rfl⟩
+end
 
 section integral_domain
 variables {R S : Type*} [comm_ring R] [integral_domain S] [algebra R S]

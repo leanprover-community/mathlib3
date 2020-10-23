@@ -1,18 +1,15 @@
--- This file almost qualifies for inclusion in the `core` dir, but
--- the hooks into non-core pieces, i.e. providing defaults, and also
--- the external interface it exports is enough to keep it out here.
 import tactic.rewrite_search.core
 
 -- Default strategy, metric, and tracer used as a fallback by the engine
 -- (so must be present)
-import tactic.rewrite_search.strategy.pexplore
+import tactic.rewrite_search.strategy.bfs
 import tactic.rewrite_search.metric.edit_distance
 import tactic.rewrite_search.tracer.unit
 
 namespace tactic.rewrite_search
 
 meta def pick_default_strategy : tactic unit :=
-`[exact tactic.rewrite_search.strategy.pexplore]
+`[exact tactic.rewrite_search.strategy.bfs]
 meta def pick_default_metric   : tactic unit :=
 `[exact tactic.rewrite_search.metric.edit_distance]
 meta def pick_default_tracer   : tactic unit :=
@@ -24,7 +21,7 @@ structure collect_cfg :=
 (help_me         : bool := ff)
 
 -- This is the "public" config structure which has convenient tactic-mode
--- invocation synatx. The data in this structure is extracted and transformed
+-- invocation syntax. The data in this structure is extracted and transformed
 -- into the internal representation of the settings and modules by
 -- `try_mk_search_instance`.
 meta structure config (α β γ δ : Type) extends collect_cfg, tactic.nth_rewrite.cfg :=
@@ -42,15 +39,15 @@ meta structure config (α β γ δ : Type) extends collect_cfg, tactic.nth_rewri
 
 open tactic.rewrite_search.edit_distance
 open tactic.rewrite_search.metric.edit_distance
-open tactic.rewrite_search.strategy.pexplore
+open tactic.rewrite_search.strategy.bfs
 
-meta def default_config : config pexplore_state ed_state ed_partial unit := {}
+meta def default_config : config bfs_state ed_state ed_partial unit := {}
 meta def pick_default_config : tactic unit := `[exact tactic.rewrite_search.default_config]
 
 variables {α β γ δ : Type}
 
 meta def mk_fallback_config (orig : config α β γ δ)
-  : config pexplore_state ed_state ed_partial unit :=
+  : config bfs_state ed_state ed_partial unit :=
 {orig with view     := by pick_default_tracer,
             metric   := by pick_default_metric,
             strategy := by pick_default_strategy}

@@ -571,7 +571,7 @@ begin
       { apply and.intro h_pos,
         split,
         { delta int.gcd, rw [int.nat_abs_neg, int.nat_abs_neg], exact ht3 },
-        { rw [neg_parity_eq_parity, neg_parity_eq_parity],
+        { rw [int.neg_parity_eq_parity, int.neg_parity_eq_parity],
           apply and.intro ht4, linarith } },
       { exfalso, revert h_pos, rw h_neg,
         exact imp_false.mpr (not_lt.mpr (neg_nonpos.mpr (add_nonneg (pow_two_nonneg m)

@@ -189,12 +189,23 @@ begin
   assumption,
 end
 
+--lemma blah (I : ideal A) : (I : fractional_ideal (fraction_ring.of A)) = localization_map.to_map (fraction_ring.of A) I
+--lemma frac_prime_ideal_is_prime (I : ideal A) (hI : I.is_prime) : is_prime (I : fractional_ideal (fraction_ring.of A)) :=
+
 lemma frac_ideal_le_ideal (I J : ideal A) (h : ∃ x : A, x ∈ I ∧ x ∉ J) (hJ : J.is_prime) (B : fractional_ideal (fraction_ring.of A) ) (g : (I : fractional_ideal (fraction_ring.of A)) * B = (J : fractional_ideal (fraction_ring.of A))) : B ≤ (J : fractional_ideal (fraction_ring.of A)) :=
 begin
   rcases h with ⟨x, hI, hJ⟩,
   rw le_iff,
   rintros y hy,
-  --have f : x*y ∈ (J : fractional_ideal (fraction_ring.of A)),
+  have f : ((localization_map.to_map (fraction_ring.of A)) x)*y ∈ (J : fractional_ideal (fraction_ring.of A)),
+  {
+    rw <-g,
+    have k : ((localization_map.to_map (fraction_ring.of A)) x) ∈ (I : fractional_ideal (fraction_ring.of A)),
+    sorry,
+    apply submodule.mul_mem_mul k hy,
+  },
+  simp at f,
+  rcases f with ⟨z, hz1, hz⟩,
   sorry,
 end
 
@@ -308,7 +319,9 @@ begin
       rw one_mul at g'',
       have ginv : (M : fractional_ideal (fraction_ring.of A)) ≤ 1,
       {
-        sorry,
+        change (M : fractional_ideal (fraction_ring.of A)) ≤ ((1 : ideal A) : fractional_ideal (fraction_ring.of A)),
+        apply submodule.map_mono,
+        simp,
       },
       have k := (has_le.le.le_iff_eq ginv).1 g'',
       cases hM1 with hM11 hM12,

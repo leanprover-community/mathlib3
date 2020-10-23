@@ -494,7 +494,7 @@ begin
         mul_comm _ (n * (b / n)), mul_assoc, add_mul_mod_self_left] }
 end
 
-lemma neg_parity_eq_parity (i : ℤ) : (-i) % 2 = i % 2 :=
+@[simp] lemma neg_mod_two (i : ℤ) : (-i) % 2 = i % 2 :=
 begin
   apply int.mod_eq_mod_iff_mod_sub_eq_zero.mpr,
   convert int.mul_mod_right 2 (-i),

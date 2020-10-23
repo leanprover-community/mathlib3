@@ -125,10 +125,13 @@ of_algebra_map_eq $ λ x, rfl
 @[priority 999] instance subsemiring (U : subsemiring S) : is_scalar_tower U S A :=
 of_algebra_map_eq $ λ x, rfl
 
+section
+local attribute [instance] algebra.of_is_subring subset.comm_ring
 -- conflicts with is_scalar_tower.subalgebra
 @[priority 999] instance subring {S A : Type*} [comm_ring S] [ring A] [algebra S A]
   (U : set S) [is_subring U] : is_scalar_tower U S A :=
 of_algebra_map_eq $ λ x, rfl
+end
 
 @[nolint instance_priority]
 instance of_ring_hom {R A B : Type*} [comm_semiring R] [comm_semiring A] [comm_semiring B]

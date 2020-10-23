@@ -289,6 +289,8 @@ end
 variables [normed_space ℝ V] [normed_space ℝ V']
 include V'
 
+/-- A continuous map between two normed affine spaces is an affine map provided that
+it sends midpoints to midpoints. -/
 def affine_map.of_map_midpoint (f : P → P')
   (h : ∀ x y, f (midpoint ℝ x y) = midpoint ℝ (f x) (f y))
   (hfc : continuous f) :

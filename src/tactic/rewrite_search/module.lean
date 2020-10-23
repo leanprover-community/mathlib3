@@ -46,12 +46,6 @@ meta def pick_default_config : tactic unit := `[exact tactic.rewrite_search.defa
 
 variables {α β γ δ : Type}
 
-meta def mk_fallback_config (orig : config α β γ δ)
-  : config bfs_state ed_state ed_partial unit :=
-{orig with view     := by pick_default_tracer,
-            metric   := by pick_default_metric,
-            strategy := by pick_default_strategy}
-
 meta def mk_initial_search_state (conf : core_cfg)
   (rw_cfg : tactic.nth_rewrite.cfg) (rs : list (expr × bool))
   (s : strategy α β γ δ) (m : metric α β γ δ) (tr : tracer α β γ δ)

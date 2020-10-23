@@ -7,7 +7,6 @@ Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
 import algebra.gcd_monoid
 import ring_theory.integral_domain
 import ring_theory.noetherian
-import ring_theory.polynomial.content
 
 /--
 

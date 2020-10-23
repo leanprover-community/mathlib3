@@ -192,10 +192,14 @@ instance (α : Type*) [decidable_linear_order α] : decidable_linear_order (orde
 instance : Π [inhabited α], inhabited (order_dual α) := id
 
 /-- `to_dual` is the identity function to the `order_dual` of a linear order.  -/
-def to_dual : α → order_dual α := id
+def to_dual : α ≃ order_dual α := ⟨id, id, function.injective_id, function.injective_id⟩
 
 /-- `of_dual` is the identity function from the `order_dual` of a linear order.  -/
-def of_dual : order_dual α → α := id
+def of_dual : order_dual α ≃ α := to_dual.symm
+
+@[simp] lemma to_dual_symm_eq : (@to_dual α).symm = of_dual := rfl
+
+@[simp] lemma of_dual_symm_eq : (@of_dual α).symm = to_dual := rfl
 
 @[simp] lemma to_dual_of_dual (a : order_dual α) : to_dual (of_dual a) = a := rfl
 @[simp] lemma of_dual_to_dual (a : α) : of_dual (to_dual a) = a := rfl

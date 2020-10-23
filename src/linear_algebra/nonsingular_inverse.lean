@@ -406,11 +406,11 @@ B.nonsing_inv_left_right A h
 end inv
 
 /- One form of Cramer's rule. -/
-lemma mul_vec_cramer_of_det_is_unit (A : matrix n n α) (b : n → α) (h : is_unit A.det) :
-  cramer A b = A.det • A⁻¹.mul_vec b :=
+@[simp] lemma det_smul_inv_mul_vec_eq_cramer (A : matrix n n α) (b : n → α) (h : is_unit A.det) :
+  A.det • A⁻¹.mul_vec b = cramer A b :=
 begin
   rw [cramer_eq_adjugate_mul_vec, A.nonsing_inv_apply h, ← smul_mul_vec_assoc],
-  conv_rhs { congr, congr, rw ← h.unit_spec, },
+  conv_lhs { congr, congr, rw ← h.unit_spec, },
   rw units.smul_inv_smul,
 end
 

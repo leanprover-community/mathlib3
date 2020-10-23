@@ -1981,6 +1981,28 @@ lemma prod_update_nth : ∀ (L : list α) (n : ℕ) (a : α),
 
 end monoid
 
+section group
+variables [group α]
+
+/-- This is the `list.prod` version of `mul_inv_rev` -/
+@[to_additive "This is the `list.sum` version of `add_neg_rev`"]
+lemma prod_inv_reverse : ∀ (L : list α), L.prod⁻¹ = (L.map (λ x, x⁻¹)).reverse.prod
+| [] := by simp
+| (x :: xs) := by simp [prod_inv_reverse xs]
+
+end group
+
+section comm_group
+variables [comm_group α]
+
+/-- This is the `list.prod` version of `mul_inv` -/
+@[to_additive "This is the `list.sum` version of `add_neg`"]
+lemma prod_inv : ∀ (L : list α), L.prod⁻¹ = (L.map (λ x, x⁻¹)).prod
+| [] := by simp
+| (x :: xs) := by simp [mul_comm, prod_inv xs]
+
+end comm_group
+
 @[simp]
 lemma sum_take_add_sum_drop [add_monoid α] :
   ∀ (L : list α) (i : ℕ), (L.take i).sum + (L.drop i).sum = L.sum

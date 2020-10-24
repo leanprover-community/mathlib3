@@ -245,11 +245,26 @@ namespace ordering
 | eq a b := a = b
 | gt a b := a > b
 
+theorem compares_swap [has_lt α] {a b : α} {o : ordering} :
+  o.swap.compares a b ↔ o.compares b a :=
+by { cases o, exacts [iff.rfl, eq_comm, iff.rfl] }
+
+alias compares_swap ↔ ordering.compares.of_swap ordering.compares.swap
+
+theorem swap_eq_iff_eq_swap {o o' : ordering} : o.swap = o' ↔ o = o'.swap :=
+⟨λ h, by rw [← swap_swap o, h], λ h, by rw [← swap_swap o', h]⟩
+
 theorem compares.eq_lt [preorder α] :
   ∀ {o} {a b : α}, compares o a b → (o = lt ↔ a < b)
 | lt a b h := ⟨λ _, h, λ _, rfl⟩
 | eq a b h := ⟨λ h, by injection h, λ h', (ne_of_lt h' h).elim⟩
 | gt a b h := ⟨λ h, by injection h, λ h', (lt_asymm h h').elim⟩
+
+theorem compares.ne_lt [preorder α] :
+  ∀ {o} {a b : α}, compares o a b → (o ≠ lt ↔ b ≤ a)
+| lt a b h := ⟨absurd rfl, λ h', (not_le_of_lt h h').elim⟩
+| eq a b h := ⟨λ _, ge_of_eq h, λ _ h, by injection h⟩
+| gt a b h := ⟨λ _, le_of_lt h, λ _ h, by injection h⟩
 
 theorem compares.eq_eq [preorder α] :
   ∀ {o} {a b : α}, compares o a b → (o = eq ↔ a = b)
@@ -257,11 +272,23 @@ theorem compares.eq_eq [preorder α] :
 | eq a b h := ⟨λ _, h, λ _, rfl⟩
 | gt a b h := ⟨λ h, by injection h, λ h', (ne_of_gt h h').elim⟩
 
-theorem compares.eq_gt [preorder α] :
-  ∀ {o} {a b : α}, compares o a b → (o = gt ↔ b < a)
-| lt a b h := ⟨λ h, by injection h, λ h', (lt_asymm h h').elim⟩
-| eq a b h := ⟨λ h, by injection h, λ h', (ne_of_gt h' h).elim⟩
-| gt a b h := ⟨λ _, h, λ _, rfl⟩
+theorem compares.eq_gt [preorder α] {o} {a b : α} (h : compares o a b) : (o = gt ↔ b < a) :=
+swap_eq_iff_eq_swap.symm.trans h.swap.eq_lt
+
+theorem compares.ne_gt [preorder α] {o} {a b : α} (h : compares o a b) : (o ≠ gt ↔ a ≤ b) :=
+(not_congr swap_eq_iff_eq_swap.symm).trans h.swap.ne_lt
+
+theorem compares.le_total [preorder α] {a b : α} :
+  ∀ {o}, compares o a b → a ≤ b ∨ b ≤ a
+| lt h := or.inl (le_of_lt h)
+| eq h := or.inl (le_of_eq h)
+| gt h := or.inr (le_of_lt h)
+
+theorem compares.le_antisymm [preorder α] {a b : α} :
+  ∀ {o}, compares o a b → a ≤ b → b ≤ a → a = b
+| lt h _ hba := (not_le_of_lt h hba).elim
+| eq h _ _   := h
+| gt h hab _ := (not_le_of_lt h hab).elim
 
 theorem compares.inj [preorder α] {o₁} :
   ∀ {o₂} {a b : α}, compares o₁ a b → compares o₂ a b → o₁ = o₂
@@ -306,3 +333,14 @@ begin
   by_cases a < b; by_cases h₂ : b < a; simp [h, h₂, gt, ordering.swap],
   exact lt_asymm h h₂
 end
+
+/-- Generate a linear order structure from a preorder and `cmp` function. -/
+def linear_order_of_compares [preorder α] (cmp : α → α → ordering)
+  (h : ∀ a b, (cmp a b).compares a b) :
+  linear_order α :=
+{ le_antisymm := λ a b, (h a b).le_antisymm,
+  le_total := λ a b, (h a b).le_total,
+  decidable_le := λ a b, decidable_of_iff _ (h a b).ne_gt,
+  decidable_lt := λ a b, decidable_of_iff _ (h a b).eq_lt,
+  decidable_eq := λ a b, decidable_of_iff _ (h a b).eq_eq,
+  .. ‹preorder α› }

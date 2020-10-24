@@ -61,7 +61,9 @@ begin
 
 
 
+
   exact (equiv.add_left (1 : zmod 3)).sum_comp _
+
 end
 
 
@@ -78,10 +80,33 @@ lemma foo (f : ℂ → ℂ ) (T : triangle ) :
   contour_integral f T = ∑ i, contour_integral f (quadrisect T i)
   :=
 begin
+
   /- Adrian? -/
   sorry,
 end
 
+/-
+lemma max_lemma (S : finset ℝ≥0 ) :
+  S.sum ≤  S.cardinality * (Sup S) :=
+begin
+end
+
+lemma max_lemma (S : finset ℝ) (hS: nonempty S) :
+  (∑ s in S, s ) ≤ S.card * (S.max' hS) :=
+begin
+  sorry,
+end
+
+-/
+
+
+/-
+example {α : Type*} (S: fintype α) (f : α → ℕ) (g : α → ℕ) (h : ∀ a, f a ≤ g a) :
+  ∑ (a : S), f a ≤ ∑ (a : S), g a :=
+  begin
+    exact  finset.sum_le_sum (λ x _ , h x),
+  end
+-/
 
 /-- The integral of a function over a triangle is bounded by the maximal of the four subdivided triangles
 -/
@@ -90,7 +115,31 @@ lemma foo2 (f : ℂ → ℂ ) (T : triangle ) :
   4 * Sup (set.range (λ i, abs ( contour_integral f (quadrisect T i)))) :=
 begin
   /- AK? -/
+  rw foo,
+
+  calc
+ abs (∑ (i : option (zmod 3)), contour_integral f (quadrisect T i))
+ ≤  ∑ (i : option (zmod 3)), abs( contour_integral f (quadrisect T i)) : _
+ ... ≤ ∑ (i : option (zmod 3)),   Sup (set.range (λ i, abs ( contour_integral f (quadrisect T i)))) : _
+... = 4 * Sup (set.range (λ i, abs ( contour_integral f (quadrisect T i)))) : _ ,
+
+{
+  --refine finset.abs_sum_le_sum_abs,
   sorry,
+},
+
+{
+--  congr,
+  sorry,
+},
+
+{
+  rw sum_const,
+  simp,
+  left,
+  -- ???
+  sorry,
+},
 end
 
 /--  ∫_a^b F' = F(b)-F(a)
@@ -99,7 +148,7 @@ lemma foo3 (F: ℂ → ℂ ) (holc: differentiable ℂ F) (a b :ℂ ) :
   contour_integral_segment (deriv F) a b =
   F b - F a :=
 begin
-  /- Adrian? -/
+  /- Adrian? NOPE ! -/
   sorry,
 end
 
@@ -109,9 +158,197 @@ end
 lemma foo3a (F: ℂ → ℂ ) (holc: differentiable ℂ F) (T: triangle ) :
   contour_integral (deriv F) T = 0 :=
 begin
-  /- AK -/
+  /- AK NOPE! -/
   sorry,
 end
+
+/--  ∫_γ  c = c (b-a)
+-/
+lemma foo3b (c: ℂ ) (a b :ℂ ) :
+  contour_integral_segment (λ x, c) a b =
+  c*(b-a) :=
+begin
+  rw contour_integral_segment,
+  rw interval_integral.integral_const,
+  simp,
+end
+
+def int_t := ∫ (t : ℝ) in 0..1, (t:ℂ )
+
+lemma integral_smul_C  (c : ℂ) :
+∫ (t : ℝ) in 0..1,  ((t:ℂ ) * c)
+=
+(∫ (t : ℝ) in 0..1, (t:ℂ )) * c
+:=
+begin
+  --by library_search,
+  sorry,
+end
+
+lemma foo3bX (c: ℂ ) (a b :ℂ ) :
+  contour_integral_segment (λ x, x) a b =
+  int_t * (b-a)^2
+  + a*(b-a)
+   :=
+begin
+  rw contour_integral_segment,
+
+  calc
+  ∫ (t : ℝ) in 0..1, ((1 - ↑t) * a + ↑t * b) * (b - a)
+  =  ∫ (t : ℝ) in 0..1, (a* (b - a)  + ↑t * ((b-a) * (b - a))) : _
+  ... = (∫ (t : ℝ) in 0..1, (a* (b - a))) + ∫ (t : ℝ) in 0..1, (↑t * ((b-a) * (b - a))) : _
+  ... =  (a* (b - a)) + ∫ (t : ℝ) in 0..1, (↑t * ((b-a) * (b - a))) : _
+  ... = int_t * (b-a)^2 + a*(b-a) : _,
+
+  {
+    congr,
+    rw funext_iff,
+    intros,
+    ring,
+  },
+
+  {
+    refine  interval_integral.integral_add _ _ ,
+    sorry,
+    sorry,
+  },
+  {
+    rw interval_integral.integral_const,
+    simp,
+  },
+  {
+    rw (_ :
+    ∫ (t : ℝ) in 0..1, ↑t * ((b - a) * (b - a))
+    =
+    (∫ (t : ℝ) in 0..1, ↑t) * ((b - a) * (b - a))),
+
+    {
+      rw int_t,
+      ring,
+    },
+
+    {
+      refine  integral_smul_C ((b - a) * (b - a)),
+    },
+
+  },
+
+end
+
+
+/-
+lemma rw1 (f g : ℂ  → ℂ  ) :
+( f = g ) ↔ (∀  x, f x = g x) :=
+begin
+  by library_search, -- funext_iff
+end
+
+lemma rw1 ( f g :ℂ → ℂ ) (S : finset ℂ  ) :
+∑ s in S, (f s + g s)
+=
+∑ s in S, (f s )+
+∑ s in S, ( g s)
+:=
+begin
+  by library_search, --exact sum_add_distrib
+end
+
+
+lemma rw1 ( c :ℂ ) (f g :ℂ → ℂ ) :
+f=g → ∀ x, c*(f x) = c*(g x ) :=
+begin
+
+  intros,
+
+    by library_search,
+    --exact congr_arg (has_mul.mul c) (congr_fun a x)
+end
+
+-/
+
+
+/--  ∫_T c = 0
+-/
+lemma foo3bT (c: ℂ ) (T: triangle ) :
+  contour_integral (λ x, c) T = 0 :=
+begin
+  /- AK -/
+  rw contour_integral,
+
+  calc
+  ∑ (i : zmod 3), contour_integral_segment (λ (x : ℂ), c) (T i) (T (i + 1))
+  =
+  ∑ (i : zmod 3), c * (T (i+1) - (T i)) : _
+  ... = 0 : _,
+
+  congr,
+  rw funext_iff,
+  intros,
+  rw foo3b,
+
+  rw (_ :
+  ∑ (i : zmod 3), c * (T (i + 1) - T i)
+  =
+  ∑ (i : zmod 3), c * (T (i + 1))
+  - ∑ (i : zmod 3), c * ( T i)),
+
+  rw (_ :
+  ∑ (i : zmod 3), c * (T (i + 1))
+  =
+  ∑ (i : zmod 3), c * (T (i ))),
+
+  ring,
+
+  {
+    rw (_ : ∑ (i : zmod 3), c * T (i + 1) =
+     c * ∑ (i : zmod 3), T (i + 1) ),
+
+    rw (_ : ∑ (i : zmod 3), c * T (i ) =
+     c * ∑ (i : zmod 3), T (i ) ),
+
+    refine congr_arg (has_mul.mul c) _, --exact congr_arg (has_mul.mul c) (congr_fun a x)
+
+    exact (equiv.add_left (1 : zmod 3)).sum_comp _,
+
+    rw ← mul_sum,
+    rw ← mul_sum,
+  },
+
+  {
+    rw ←  sum_sub_distrib,
+    ring,
+  },
+
+
+/-
+  let integs:  ℂ  := contour_integral_segment (λ (x : ℂ), c) (T 1) (T (1 + 1)),
+  let integs1: ℂ :=
+    ∫ (t : ℝ) in 0..1, (c * ((T(1+1)) - (T 1))),
+  have : ∀ i, contour_integral_segment (λ (x : ℂ), c) (T i) (T (i + 1))
+  =
+  ∫ (t : ℝ) in 0..1, (c * ((T(i+1)) - (T i)))
+  ,
+  {
+    intros,
+    refl,
+  },
+  rw this,
+
+  --rw (_ : te
+  --= ∑ (i : zmod 3), contour_integral_segment (λ (x : ℂ), c) (T i) (T (i + 1))),
+-/
+end
+
+lemma foo3bTX (c d: ℂ ) (T: triangle ) :
+  contour_integral (λ x, c*x +d ) T = 0 :=
+begin
+  /- Adrian? -/
+  sorry,
+end
+
+
+
+
 
 def triangle_hull (T: triangle): set ℂ  := convex_hull (set.range T )
 
@@ -126,17 +363,32 @@ begin
 end
 
 lemma foo4 (T:triangle ) (i k : zmod 3) (j : option (zmod 3)) :
-  abs ( T i -  (quadrisect T j k)) ≤ max_side_length T :=
+  dist (T i)   (quadrisect T j k) ≤ max_side_length T :=
 begin
   /- AK -/
-  sorry,
+  have TiInT : T i ∈ (triangle_hull T),
+  {
+    rw triangle_hull,
+    rw convex_hull,
+    ---???
+    sorry,
+  },
+  have quadInT : (quadrisect T j k) ∈ (triangle_hull T),
+  {
+    rw triangle_hull,
+    rw convex_hull,
+    sorry,
+  },
+  exact foo5 T (T i) (quadrisect T j k) TiInT quadInT,
 end
+
 
 lemma foo6 (T:triangle ) (j : option (zmod 3)) :
   max_side_length (quadrisect T j) =
   max_side_length T / 2 :=
 begin
   /- AK -/
+
   sorry,
 end
 

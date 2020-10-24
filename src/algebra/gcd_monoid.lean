@@ -604,6 +604,13 @@ instance normalization_monoid_of_unique_units : normalization_monoid α :=
 
 @[simp] lemma normalize_eq (x : α) : normalize x = x := mul_one x
 
+@[simp] lemma associated_iff_eq (x y : α) : associated x y ↔ x = y :=
+begin
+  refine ⟨_, λ h, h ▸ associated.refl x⟩,
+  rintro ⟨u, rfl⟩,
+  simp [units_eq_one u],
+end
+
 end unique_unit
 
 section integral_domain
@@ -632,7 +639,34 @@ by rw [gcd_comm _ a, gcd_comm _ a, gcd_eq_of_dvd_sub_right h]
 end integral_domain
 
 section constructors
-variables [comm_cancel_monoid_with_zero α] [nontrivial α] [normalization_monoid α]
+noncomputable theory
+
+variables [comm_cancel_monoid_with_zero α] [nontrivial α]
+
+def normalization_monoid_of_monoid_hom_right_inverse [decidable_eq α] (f : associates α →* α)
+  (hinv : function.right_inverse f associates.mk) :
+  normalization_monoid α :=
+{ norm_unit := λ a, if a = 0 then 1 else
+    classical.some (associates.mk_eq_mk_iff_associated.1 (hinv (associates.mk a)).symm),
+  norm_unit_zero := if_pos rfl,
+  norm_unit_mul := λ a b ha hb, by {
+    rw [if_neg (mul_ne_zero ha hb), if_neg ha, if_neg hb, units.ext_iff, units.coe_mul],
+    apply mul_left_cancel' (mul_ne_zero ha hb),
+    conv_rhs { rw [← mul_assoc, mul_comm, mul_assoc, mul_comm b, mul_comm, ← mul_assoc], },
+    rw [classical.some_spec (associates.mk_eq_mk_iff_associated.1 (hinv (associates.mk a)).symm),
+      classical.some_spec (associates.mk_eq_mk_iff_associated.1 (hinv (associates.mk (a * b))).symm),
+      mul_assoc,
+      classical.some_spec (associates.mk_eq_mk_iff_associated.1 (hinv (associates.mk b)).symm),
+      ← monoid_hom.map_mul, associates.mk_mul_mk] },
+  norm_unit_coe_units := λ u, by {
+    rw [if_neg (units.ne_zero u), units.ext_iff],
+    apply mul_left_cancel' (units.ne_zero u),
+    rw [units.mul_inv,
+      classical.some_spec (associates.mk_eq_mk_iff_associated.1 (hinv (associates.mk u)).symm),
+      associates.mk_eq_mk_iff_associated.2 (associated_one_iff_is_unit.2 ⟨u, rfl⟩),
+      associates.mk_one, monoid_hom.map_one] } }
+
+variable [normalization_monoid α]
 
 /-- Define `gcd_monoid` on a structure just from the `gcd` and its properties. -/
 noncomputable def gcd_monoid_of_gcd [decidable_eq α] (gcd : α → α → α)

@@ -166,7 +166,6 @@ instance : linear_ordered_field ℚ :=
   ..rat.semiring }
 
 /- Extra instances to short-circuit type class resolution -/
-instance : linear_ordered_field ℚ           := by apply_instance
 instance : linear_ordered_comm_ring ℚ       := by apply_instance
 instance : linear_ordered_ring ℚ            := by apply_instance
 instance : ordered_ring ℚ                   := by apply_instance

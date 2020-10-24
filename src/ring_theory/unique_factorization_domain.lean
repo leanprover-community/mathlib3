@@ -1203,7 +1203,7 @@ open_locale classical
 open unique_factorization_monoid
 variables (α) [integral_domain α] [unique_factorization_monoid α]
 
-instance unique_factorization_monoid : unique_factorization_monoid α :=
+@[priority 100] instance unique_factorization_monoid : unique_factorization_monoid α :=
 begin
   haveI := arbitrary (normalization_monoid α),
   haveI := to_gcd_monoid α,

@@ -438,15 +438,7 @@ end
 continuous. -/
 @[priority 100] -- see Note [lower instance priority]
 instance normed_uniform_group : uniform_add_group α :=
-begin
-  refine ⟨metric.uniform_continuous_iff.2 $ assume ε hε, ⟨ε / 2, half_pos hε, assume a b h, _⟩⟩,
-  rw [prod.dist_eq, max_lt_iff, dist_eq_norm, dist_eq_norm] at h,
-  calc dist (a.1 - a.2) (b.1 - b.2) = ∥(a.1 - b.1) - (a.2 - b.2)∥ :
-      by simp [dist_eq_norm, sub_eq_add_neg]; abel
-    ... ≤ ∥a.1 - b.1∥ + ∥a.2 - b.2∥ : norm_sub_le _ _
-    ... < ε / 2 + ε / 2 : add_lt_add h.1 h.2
-    ... = ε : add_halves _
-end
+⟨(lipschitz_with.prod_fst.sub lipschitz_with.prod_snd).uniform_continuous⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance normed_top_monoid : has_continuous_add α := by apply_instance -- short-circuit type class inference

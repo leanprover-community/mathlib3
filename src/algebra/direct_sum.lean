@@ -30,20 +30,14 @@ variables (ι : Type v) [dec_ι : decidable_eq ι] (β : ι → Type w) [Π i, a
 /-- `direct_sum β` is the direct sum of a family of additive commutative groups `β i`.
 
 Note: `open_locale direct_sum` will enable the notation `⨁ i, β i` for `direct_sum β`. -/
+@[derive [has_coe_to_fun, add_comm_group, inhabited]]
 def direct_sum : Type* := Π₀ i, β i
 
 localized "notation `⨁` binders `, ` r:(scoped f, direct_sum _ f) := r" in direct_sum
 
 namespace direct_sum
 
-variables {ι β}
-
-instance : add_comm_group (⨁ i, β i) :=
-dfinsupp.add_comm_group
-
-instance : inhabited (⨁ i, β i) := ⟨0⟩
-
-variables β
+variables {ι}
 
 include dec_ι
 
@@ -66,7 +60,7 @@ theorem mk_injective (s : finset ι) : function.injective (mk β s) :=
 dfinsupp.mk_injective s
 
 theorem of_injective (i : ι) : function.injective (of β i) :=
-λ x y H, congr_fun (mk_injective _ H) ⟨i, by simp⟩
+dfinsupp.single_injective
 
 @[elab_as_eliminator]
 protected theorem induction_on {C : (⨁ i, β i) → Prop}
@@ -139,23 +133,21 @@ where `h : S ⊆ T`. -/
 -- TODO: generalize this to remove the assumption `S ⊆ T`.
 def set_to_set (S T : set ι) (H : S ⊆ T) :
   (⨁ (i : S), β i) →+ (⨁ (i : T), β i) :=
-to_group $ λ i, of (β ∘ @subtype.val _ T) ⟨i.1, H i.2⟩
+to_group $ λ i, of (λ (i : subtype T), β i) ⟨↑i, H i.prop⟩
 variables {β}
 
 omit dec_ι
 
-/-- The natural equivalence between `⨁ _ : punit, M` and `M`. -/
--- TODO: generalize this to a sum over any type `ι` that is `unique ι`.
-protected def id (M : Type v) [add_comm_group M] : (⨁ (_ : punit), M) ≃ M :=
+/-- The natural equivalence between `⨁ _ : ι, M` and `M` when `unique ι`. -/
+protected def id (M : Type v) (ι : Type* := punit) [add_comm_group M] [unique ι] :
+  (⨁ (_ : ι), M) ≃+ M :=
 { to_fun := direct_sum.to_group (λ _, add_monoid_hom.id M),
-  inv_fun := of (λ _, M) punit.star,
+  inv_fun := of (λ _, M) (default ι),
   left_inv := λ x, direct_sum.induction_on x
     (by rw [add_monoid_hom.map_zero, add_monoid_hom.map_zero])
-    (λ ⟨⟩ x, by rw [to_group_of]; refl)
+    (λ p x, by rw [unique.default_eq p, to_group_of]; refl)
     (λ x y ihx ihy, by rw [add_monoid_hom.map_add, add_monoid_hom.map_add, ihx, ihy]),
-  right_inv := λ x, to_group_of _ _ _ }
-
-instance : has_coe_to_fun (⨁ i, β i) :=
-dfinsupp.has_coe_to_fun
+  right_inv := λ x, to_group_of _ _ _,
+  ..direct_sum.to_group (λ _, add_monoid_hom.id M) }
 
 end direct_sum

@@ -206,23 +206,11 @@ begin
   { rintro ⟨q, p⟩,
     apply (lt_trichotomy x y).resolve_right,
     rw not_or_distrib,
-    split,
-    { intro,
-      apply p,
-      symmetry,
-      assumption },
-    { intro a,
-      specialize q a,
-      apply p,
-      symmetry,
-      rw ← q } },
-  { intro,
-    split,
-    { intros z hz,
-      rw iff_false_left,
-      { apply ne_of_gt hz },
-      { apply ne_of_gt (trans hz a) } },
-    { apply ne_of_gt a } }
+    refine ⟨ne.symm p, λ a, p _⟩,
+    { symmetry,
+      rw ← q a } },
+  { intro a,
+    exact ⟨λ z hz, iff_of_false (ne_of_gt (trans hz a)) (ne_of_gt hz), ne_of_gt a⟩ }
 end
 
 /--

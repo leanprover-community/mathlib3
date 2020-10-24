@@ -100,6 +100,23 @@ quotient.induction_on₂ a b $ λ f g,
   show pos (f - 0) → pos (g - 0) → pos (f * g - 0),
   by simpa using cau_seq.mul_pos
 
+instance : ordered_ring ℝ :=
+{ add_le_add_left := λ a b h c, h.imp (real.add_lt_add_iff_left c).2 (λ h, h ▸ rfl),
+  zero_le_one := le_of_lt real.zero_lt_one,
+  mul_pos     := @real.mul_pos,
+  .. real.comm_ring, .. real.partial_order, .. real.semiring }
+
+instance : ordered_semiring ℝ           := by apply_instance
+instance : ordered_add_comm_group ℝ     := by apply_instance
+instance : ordered_cancel_add_comm_monoid ℝ := by apply_instance
+instance : ordered_add_comm_monoid ℝ    := by apply_instance
+instance : has_one ℝ                    := by apply_instance
+instance : has_zero ℝ                   := by apply_instance
+instance : has_mul ℝ                    := by apply_instance
+instance : has_add ℝ                    := by apply_instance
+instance : has_sub ℝ                    := by apply_instance
+instance : nontrivial ℝ := ⟨⟨0, 1, ne_of_lt real.zero_lt_one⟩⟩
+
 open_locale classical
 
 noncomputable instance : linear_order ℝ :=
@@ -109,42 +126,25 @@ noncomputable instance : linear_order ℝ :=
   .. real.partial_order }
 
 noncomputable instance : linear_ordered_comm_ring ℝ :=
-{ add_le_add_left := λ a b h c,
-    (le_iff_le_iff_lt_iff_lt.2 $ real.add_lt_add_iff_left c).2 h,
-  exists_pair_ne  := ⟨0, 1, ne_of_lt real.zero_lt_one⟩,
-  mul_pos     := @real.mul_pos,
-  zero_le_one := le_of_lt real.zero_lt_one,
-  .. real.comm_ring, .. real.linear_order, .. real.semiring }
+{ .. real.nontrivial, .. real.ordered_ring, .. real.comm_ring, .. real.linear_order }
 
 /- Extra instances to short-circuit type class resolution -/
-instance : linear_ordered_ring ℝ        := by apply_instance
-instance : ordered_ring ℝ               := by apply_instance
-instance : linear_ordered_semiring ℝ    := by apply_instance
-instance : ordered_semiring ℝ           := by apply_instance
-instance : ordered_add_comm_group ℝ     := by apply_instance
-instance : ordered_cancel_add_comm_monoid ℝ := by apply_instance
-instance : ordered_add_comm_monoid ℝ    := by apply_instance
-instance : domain ℝ                     := by apply_instance
-instance : has_one ℝ                    := by apply_instance
-instance : has_zero ℝ                   := by apply_instance
-instance : has_mul ℝ                    := by apply_instance
-instance : has_add ℝ                    := by apply_instance
-instance : has_sub ℝ                    := by apply_instance
+noncomputable instance : linear_ordered_ring ℝ        := by apply_instance
+noncomputable instance : linear_ordered_semiring ℝ    := by apply_instance
+instance : domain ℝ                     :=
+{ .. real.nontrivial, .. real.comm_ring, .. linear_ordered_ring.to_domain }
 
 noncomputable instance : linear_ordered_field ℝ :=
-{ decidable_le := by apply_instance,
-  ..real.linear_ordered_comm_ring,
+{ ..real.linear_ordered_comm_ring,
   ..real.domain,
   ..cau_seq.completion.field }
 
 /- Extra instances to short-circuit type class resolution -/
 
-noncomputable instance : linear_ordered_field ℝ    := by apply_instance
 noncomputable instance : linear_ordered_add_comm_group ℝ := by apply_instance
 noncomputable instance field : field ℝ := by apply_instance
 noncomputable instance : division_ring ℝ           := by apply_instance
 noncomputable instance : integral_domain ℝ         := by apply_instance
-instance : nontrivial ℝ                            := by apply_instance
 noncomputable instance : distrib_lattice ℝ := by apply_instance
 noncomputable instance : lattice ℝ         := by apply_instance
 noncomputable instance : semilattice_inf ℝ := by apply_instance

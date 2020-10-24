@@ -2,13 +2,44 @@
 Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
-
-Nonnegative real numbers.
 -/
 import algebra.linear_ordered_comm_group_with_zero
 import algebra.big_operators.ring
 import data.real.basic
 import data.indicator_function
+
+/-!
+# Nonnegative real numbers
+
+In this file we define `nnreal` (notation: `ℝ≥0`) to be the type of non-negative real numbers,
+a.k.a. the interval `[0, ∞)`. We also define the following operations and structures on `ℝ≥0`:
+
+* the order on `ℝ≥0` is the restriction of the order on `ℝ`; these relations define a conditionally
+  complete linear order with a bottom element, `conditionally_complete_linear_order_bot`;
+
+* `a + b` and `a * b` are the restrictions of addition and multiplication of real numbers to `ℝ≥0`;
+  these operations together with `0 = ⟨0, _⟩` and `1 = ⟨1, _⟩` turn `ℝ≥0` into a linear ordered
+  archimedean commutative semifield; we have no typeclass for this in `mathlib` yet, so we define
+  the following instances instead:
+
+  - `linear_ordered_semiring ℝ≥0`;
+  - `comm_semiring ℝ≥0`;
+  - `canonically_ordered_comm_semiring ℝ≥0`;
+  - `linear_ordered_comm_group_with_zero ℝ≥0`;
+  - `archimedean ℝ≥0`.
+
+* `nnreal.of_real x` is defined as `⟨max x 0, _⟩`, i.e. `↑(nnreal.of_real x) = x` when `0 ≤ x` and
+  `↑(nnreal.of_real x) = 0` otherwise.
+
+We also define an instance `can_lift ℝ ℝ≥0`. This instance can be used by the `lift` tactic to
+replace `x : ℝ` and `hx : 0 ≤ x` in the proof context with `x : ℝ≥0` while replacing all occurences
+of `x` with `↑x`. This tactic also works for a function `f : α → ℝ` with a hypothesis
+`hf : ∀ x, 0 ≤ f x`.
+
+## Notations
+
+This file defines `ℝ≥0` as a localized notation for `nnreal`.
+-/
 
 noncomputable theory
 
@@ -61,8 +92,9 @@ instance : has_le ℝ≥0    := ⟨λ r s, (r:ℝ) ≤ s⟩
 instance : has_bot ℝ≥0   := ⟨0⟩
 instance : inhabited ℝ≥0 := ⟨0⟩
 
+protected lemma injective_coe : function.injective (coe : ℝ≥0 → ℝ) := subtype.coe_injective
 @[simp, norm_cast] protected lemma coe_eq {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) = r₂ ↔ r₁ = r₂ :=
-subtype.ext_iff_val.symm
+nnreal.injective_coe.eq_iff
 @[simp, norm_cast] protected lemma coe_zero : ((0 : ℝ≥0) : ℝ) = 0 := rfl
 @[simp, norm_cast] protected lemma coe_one  : ((1 : ℝ≥0) : ℝ) = 1 := rfl
 @[simp, norm_cast] protected lemma coe_add (r₁ r₂ : ℝ≥0) : ((r₁ + r₂ : ℝ≥0) : ℝ) = r₁ + r₂ := rfl
@@ -141,7 +173,7 @@ to_real_hom.to_add_monoid_hom.map_nsmul _ _
 to_real_hom.map_nat_cast n
 
 instance : decidable_linear_order ℝ≥0 :=
-decidable_linear_order.lift (coe : ℝ≥0 → ℝ) subtype.val_injective
+decidable_linear_order.lift (coe : ℝ≥0 → ℝ) nnreal.injective_coe
 
 @[norm_cast] protected lemma coe_le_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) ≤ r₂ ↔ r₁ ≤ r₂ := iff.rfl
 @[norm_cast] protected lemma coe_lt_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) < r₂ ↔ r₁ < r₂ := iff.rfl
@@ -192,10 +224,11 @@ instance : linear_ordered_semiring ℝ≥0 :=
   le_of_add_le_add_left      := assume a b c, @le_of_add_le_add_left ℝ _ a b c,
   mul_lt_mul_of_pos_left     := assume a b c, @mul_lt_mul_of_pos_left ℝ _ a b c,
   mul_lt_mul_of_pos_right    := assume a b c, @mul_lt_mul_of_pos_right ℝ _ a b c,
-  zero_lt_one                := @zero_lt_one ℝ _,
+  zero_le_one                := @zero_le_one ℝ _,
+  exists_pair_ne             := ⟨0, 1, ne_of_lt (@zero_lt_one ℝ _ _)⟩,
   .. nnreal.decidable_linear_order,
   .. nnreal.canonically_ordered_add_monoid,
-  .. nnreal.comm_semiring }
+  .. nnreal.comm_semiring, }
 
 instance : linear_ordered_comm_group_with_zero ℝ≥0 :=
 { mul_le_mul_left := assume a b h c, mul_le_mul (le_refl c) h (zero_le a) (zero_le c),

@@ -50,7 +50,7 @@ def has_sum (f : β → α) (a : α) : Prop := tendsto (λs:finset β, ∑ b in 
 def summable (f : β → α) : Prop := ∃a, has_sum f a
 
 /-- `∑' i, f i` is the sum of `f` it exists, or 0 otherwise -/
-def tsum {β} (f : β → α) := if h : summable f then classical.some h else 0
+@[irreducible] def tsum {β} (f : β → α) := if h : summable f then classical.some h else 0
 
 notation `∑'` binders `, ` r:(scoped f, tsum f) := r
 
@@ -731,7 +731,7 @@ lemma cauchy_seq_finset_iff_vanishing :
 begin
   simp only [cauchy_seq, cauchy_map_iff, and_iff_right at_top_ne_bot,
     prod_at_top_at_top_eq, uniformity_eq_comap_nhds_zero α, tendsto_comap_iff, (∘)],
-  rw [tendsto_at_top' (_ : finset β × finset β → α)],
+  rw [tendsto_at_top'],
   split,
   { assume h e he,
     rcases h e he with ⟨⟨s₁, s₂⟩, h⟩,

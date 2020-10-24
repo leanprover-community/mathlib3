@@ -36,6 +36,9 @@ by rw [even_iff, mod_two_ne_zero]
 @[simp] lemma odd_iff_not_even {n : ℤ} : odd n ↔ ¬ even n :=
 by rw [not_even_iff, odd_iff]
 
+lemma ne_of_odd_sum {x y : ℤ} (h : odd (x + y)) : x ≠ y :=
+by { rw odd_iff_not_even at h, intros contra, apply h, exact ⟨x, by rw [contra, two_mul]⟩, }
+
 @[simp] theorem two_dvd_ne_zero {n : ℤ} : ¬ 2 ∣ n ↔ n % 2 = 1 :=
 not_even_iff
 

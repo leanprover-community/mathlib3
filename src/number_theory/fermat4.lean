@@ -46,8 +46,8 @@ begin
       ... = k ^ 4 * c ^ 2 : by ring }}
 end
 
-/-- We say a solution to `a ^ 4 + b ^ 4 = c ^ 2` is minimal if there are no other solution with
-a smaller c (in absolute value). -/
+/-- We say a solution to `a ^ 4 + b ^ 4 = c ^ 2` is minimal if there is no other solution with
+a smaller `c` (in absolute value). -/
 def minimal_fermat_42 (a b c : ℤ) : Prop :=
   (fermat_42 a b c) ∧ ∀ (a1 b1 c1 : ℤ), (fermat_42 a1 b1 c1) → int.nat_abs c ≤ int.nat_abs c1
 

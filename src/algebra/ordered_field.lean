@@ -14,8 +14,6 @@ import algebra.field
 
   ### Main Definitions
   * `linear_ordered_field`: the class of linear ordered fields.
-  * `linear_ordered_field`: the class of linear ordered fields where the inequality is
-    decidable.
 -/
 
 set_option old_structure_cmd true

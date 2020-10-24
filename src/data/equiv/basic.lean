@@ -376,13 +376,16 @@ section binary_op
 
 variables {α₁ β₁ : Type*} (f : α₁ → α₁ → α₁) (e : α₁ ≃ β₁)
 
-instance [is_associative α₁ f] : is_associative β₁ (equiv.arrow_congr e (equiv.arrow_congr e e) f) :=
+instance [is_associative α₁ f] :
+  is_associative β₁ (equiv.arrow_congr e (equiv.arrow_congr e e) f) :=
 ⟨λ x y z, by simp [@is_associative.assoc _ f]⟩
 
-instance [is_idempotent α₁ f] : is_idempotent β₁ (equiv.arrow_congr e (equiv.arrow_congr e e) f) :=
+instance [is_idempotent α₁ f] :
+  is_idempotent β₁ (equiv.arrow_congr e (equiv.arrow_congr e e) f) :=
 ⟨λ x, by simp [@is_idempotent.idempotent _ f]⟩
 
-instance [is_left_cancel α₁ f] : is_left_cancel β₁ (equiv.arrow_congr e (equiv.arrow_congr e e) f) :=
+instance [is_left_cancel α₁ f] :
+  is_left_cancel β₁ (equiv.arrow_congr e (equiv.arrow_congr e e) f) :=
 ⟨λ x y z hx, equiv.injective e.symm $
  by { simp at hx, rw @is_left_cancel.left_cancel _ f _ _ _ _ hx }⟩
 

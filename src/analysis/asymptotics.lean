@@ -1070,19 +1070,19 @@ section eventually_mul_div_cancel
 variables {u v : α → 𝕜}
 
 lemma is_O_with.eventually_mul_div_cancel (h : is_O_with c u v l) :
-  ∀ᶠ x in l, (u x / v x) * v x = u x :=
+  (u / v) * v =ᶠ[l] u :=
 begin
-  rw is_O_with at h,
   refine eventually.mono h (λ y hy, div_mul_cancel_of_imp $ λ hv, _),
   rw hv at *,
-  rw [norm_zero, mul_zero] at hy,
-  exact norm_le_zero_iff.mp hy
+  simpa using hy
 end
 
-lemma is_O.eventually_mul_div_cancel (h : is_O u v l) : ∀ᶠ x in l, (u x / v x) * v x = u x :=
+/-! If `u = O(v)` along `l`, then `(u / v) * v = u` eventually at `l`. -/
+lemma is_O.eventually_mul_div_cancel (h : is_O u v l) :  (u / v) * v =ᶠ[l] u :=
 let ⟨c, hc⟩ := h in hc.eventually_mul_div_cancel
 
-lemma is_o.eventually_mul_div_cancel (h : is_o u v l) : ∀ᶠ x in l, (u x / v x) * v x = u x :=
+/-! If `u = o(v)` along `l`, then `(u / v) * v = u` eventually at `l`. -/
+lemma is_o.eventually_mul_div_cancel (h : is_o u v l) : (u / v) * v =ᶠ[l] u :=
 (h zero_lt_one).eventually_mul_div_cancel
 
 end eventually_mul_div_cancel
@@ -1099,7 +1099,7 @@ variables {u v : α → 𝕜}
 lemma is_O_with_of_eq_mul (φ : α → 𝕜) (hφ : ∀ᶠ x in l, ∥φ x∥ ≤ c) (h : u =ᶠ[l] φ * v) :
   is_O_with c u v l :=
 begin
-  apply h.symm.rw (λ x a, ∥a∥ ≤ c * ∥v x∥) (hφ.mp (eventually_of_forall $ λ x hx, _)),
+  refine h.symm.rw (λ x a, ∥a∥ ≤ c * ∥v x∥) (hφ.mono $ λ x hx, _),
   simp only [normed_field.norm_mul, pi.mul_apply],
   exact mul_le_mul_of_nonneg_right hx (norm_nonneg _)
 end
@@ -1110,12 +1110,8 @@ begin
   split,
   { intro h,
     use (λ x, u x / v x),
-    split,
-    { rw is_O_with at h,
-      refine h.mono (λ y hy, _),
-      have := div_le_iff_of_nonneg_of_le (norm_nonneg _) hc hy,
-      simpa },
-    { exact eventually_eq.symm h.eventually_mul_div_cancel } },
+    refine ⟨eventually.mono h (λ y hy, _), h.eventually_mul_div_cancel.symm⟩,
+    simpa using div_le_iff_of_nonneg_of_le (norm_nonneg _) hc hy },
   { rintros ⟨φ, hφ, h⟩,
     exact is_O_with_of_eq_mul φ hφ h }
 end
@@ -1125,35 +1121,30 @@ lemma is_O_with.exists_eq_mul (h : is_O_with c u v l) (hc : 0 ≤ c) :
 (is_O_with_iff_exists_eq_mul hc).mp h
 
 lemma is_O_iff_exists_eq_mul :
-  is_O u v l ↔ ∃ (φ : α → 𝕜) (hφ : is_O φ (λ _, (1:𝕜)) l), u =ᶠ[l] φ * v :=
+  is_O u v l ↔ ∃ (φ : α → 𝕜) (hφ : l.is_bounded_under (≤) (norm ∘ φ)), u =ᶠ[l] φ * v :=
 begin
-  conv_rhs {simp [is_O_iff]},
   split,
   { rintros h,
     rcases h.exists_nonneg with ⟨c, hnnc, hc⟩,
     rcases hc.exists_eq_mul hnnc with ⟨φ, hφ, huvφ⟩,
     exact ⟨φ, ⟨c, hφ⟩, huvφ⟩ },
-  { exact λ ⟨φ, ⟨c, hφ⟩, huvφ⟩, ⟨c, is_O_with_of_eq_mul φ hφ huvφ⟩ }
+  { rintros ⟨φ, ⟨c, hφ⟩, huvφ⟩,
+    exact ⟨c, is_O_with_of_eq_mul φ hφ huvφ⟩ }
 end
 
-lemma is_O.exists_eq_mul (h : is_O u v l) :
-  ∃ (φ : α → 𝕜) (hφ : is_O φ (λ _, (1:𝕜)) l), u =ᶠ[l] φ * v :=
-is_O_iff_exists_eq_mul.mp h
+alias is_O_iff_exists_eq_mul ↔ asymptotics.is_O.exists_eq_mul _
 
 lemma is_o_iff_exists_eq_mul :
   is_o u v l ↔ ∃ (φ : α → 𝕜) (hφ : tendsto φ l (𝓝 0)), u =ᶠ[l] φ * v :=
 begin
   split,
-  { exact λ h, ⟨λ x, u x / v x, h.tendsto_0, eventually_eq.symm h.eventually_mul_div_cancel⟩ },
-  { rw is_o,
-    rintros ⟨φ, hφ, huvφ⟩ c hpos,
+  { exact λ h, ⟨λ x, u x / v x, h.tendsto_0, h.eventually_mul_div_cancel.symm⟩ },
+  { rintros ⟨φ, hφ, huvφ⟩ c hpos,
     rw normed_group.tendsto_nhds_zero at hφ,
-    exact is_O_with_of_eq_mul _ ((hφ c hpos).mp (eventually_of_forall $ λ x, le_of_lt)) huvφ }
+    exact is_O_with_of_eq_mul _ ((hφ c hpos).mono $ λ x, le_of_lt)  huvφ }
 end
 
-lemma is_o.exists_eq_mum (h : is_o u v l) :
-  ∃ (φ : α → 𝕜) (hφ : tendsto φ l (𝓝 0)), u =ᶠ[l] φ * v :=
-is_o_iff_exists_eq_mul.mp h
+alias is_o_iff_exists_eq_mul ↔ asymptotics.is_o.exists_eq_mul _
 
 end exists_mul_eq
 

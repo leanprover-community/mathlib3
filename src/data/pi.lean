@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2020 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors:Eric Wieser
+Authors: Simon Hudon, Patrick Massot, Eric Wieser
 -/
 import tactic.split_ifs
+import tactic.simpa
 /-!
 # Theorems on pi types
 
@@ -45,10 +46,6 @@ end
 variables (f)
 
 lemma single_injective (i : I) : function.injective (single i : f i → Π i, f i) :=
-λ x y h, begin
-  replace h := congr_fun h i,
-  simp only [single, dif_pos] at h,
-  exact h,
-end
+λ x y h, by simpa only [single, dif_pos] using congr_fun h i
 
 end pi

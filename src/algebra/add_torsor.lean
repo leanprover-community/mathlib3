@@ -23,14 +23,20 @@ defines the notation `+ᵥ` for adding a group element to a point and
 
 ## Implementation notes
 
-Affine spaces are the motivating example of torsors of additive group
-actions.  It may be appropriate to refactor in terms of the general
-definition of group actions, via `to_additive`, when there is a use
-for multiplicative torsors (currently mathlib only develops the theory
-of group actions for multiplicative group actions).  The variable `G`
-is an explicit rather than implicit argument to lemmas because
-otherwise the elaborator sometimes has problems inferring appropriate
-types and type class instances.
+Affine spaces are the motivating example of torsors of additive group actions. It may be appropriate
+to refactor in terms of the general definition of group actions, via `to_additive`, when there is a
+use for multiplicative torsors (currently mathlib only develops the theory of group actions for
+multiplicative group actions).
+
+## Notations
+
+* `v +ᵥ p` is a notation for `has_vadd.vadd`, the left action of an additive monoid;
+
+* `p₁ -ᵥ p₂` is a notation for `has_vsub.vsub`, difference between two points in an additive torsor
+  as an element of the corresponding additive group;
+
+* `affine_space V P` is an alternative notation for `add_torsor V P` introduced at the end of this
+  file.
 
 ## References
 
@@ -448,3 +454,8 @@ def const_vadd_hom : multiplicative G →* equiv.perm P :=
   map_mul' := const_vadd_add P }
 
 end equiv
+
+/-! `affine_space` is an alternative notation for `add_torsor`. If it is a `def` (even an
+`abbreviation`), then we get lots of hard to debug compile errors. We define this notation at the
+end of this file so that Lean doesn't show `affine_space` in the proof state too early. -/
+notation `affine_space` := add_torsor

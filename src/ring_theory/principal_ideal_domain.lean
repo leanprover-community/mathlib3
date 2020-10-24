@@ -162,12 +162,6 @@ associates.irreducible_iff_prime_iff.1 (λ _, irreducible_iff_prime)
 section
 open_locale classical
 
-/-- A principal ideal domain has unique factorization -/
-@[priority 100] -- see Note [lower instance priority]
-instance to_unique_factorization_monoid : unique_factorization_monoid R :=
-{ irreducible_iff_prime := λ _, principal_ideal_ring.irreducible_iff_prime
-  .. (is_noetherian_ring.wf_dvd_monoid : wf_dvd_monoid R) }
-
 /-- `factors a` is a multiset of irreducible elements whose product is `a`, up to units -/
 noncomputable def factors (a : R) : multiset R :=
 if h : a = 0 then ∅ else classical.some (wf_dvd_monoid.exists_factors a h)
@@ -199,6 +193,12 @@ lemma ring_hom_mem_submonoid_of_factors_subset_of_units_subset {R S : Type*}
   (h : ∀ b ∈ factors a, f b ∈ s) (hf: ∀ c : units R, f c ∈ s) :
   f a ∈ s :=
 mem_submonoid_of_factors_subset_of_units_subset (s.comap f.to_monoid_hom) ha h hf
+
+/-- A principal ideal domain has unique factorization -/
+@[priority 100] -- see Note [lower instance priority]
+instance to_unique_factorization_monoid : unique_factorization_monoid R :=
+{ irreducible_iff_prime := λ _, principal_ideal_ring.irreducible_iff_prime
+  .. (is_noetherian_ring.wf_dvd_monoid : wf_dvd_monoid R) }
 
 end
 

@@ -1196,18 +1196,3 @@ noncomputable def unique_factorization_monoid.to_gcd_monoid
   .. ‹normalization_monoid α› }
 
 end
-
-namespace polynomial
-
-open_locale classical
-open unique_factorization_monoid
-variables (α) [integral_domain α] [unique_factorization_monoid α]
-
-@[priority 100] instance unique_factorization_monoid : unique_factorization_monoid α :=
-begin
-  haveI := arbitrary (normalization_monoid α),
-  haveI := to_gcd_monoid α,
-  exact ufm_of_gcd_of_wf_dvd_monoid
-end
-
-end polynomial

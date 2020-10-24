@@ -54,8 +54,8 @@ begin
       (pow_two_pos_of_ne_zero _ (pow_ne_zero 2 h.2.1))
 end
 
-/-- We say a solution to `a ^ 4 + b ^ 4 = c ^ 2` is minimal if there are no other solution with
-a smaller c (in absolute value). -/
+/-- We say a solution to `a ^ 4 + b ^ 4 = c ^ 2` is minimal if there is no other solution with
+a smaller `c` (in absolute value). -/
 def minimal (a b c : ℤ) : Prop :=
   (fermat_42 a b c) ∧ ∀ (a1 b1 c1 : ℤ), (fermat_42 a1 b1 c1) → int.nat_abs c ≤ int.nat_abs c1
 

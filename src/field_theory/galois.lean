@@ -31,13 +31,25 @@ lemma is_galois_implies_card_aut_eq_findim [finite_dimensional F E] [h : is_galo
   fintype.card (E ≃ₐ[F] E) = findim F E :=
 begin
   cases field.exists_primitive_element h.1 with α hα,
-  cases h.2 α with H h_splits,
+  cases h.1 α with H1 h_separable,
+  cases h.2 α with H2 h_splits,
   have switch : (⊤ : intermediate_field F E).to_subalgebra.to_submodule = ⊤ :=
     by { ext, exact iff_of_true intermediate_field.mem_top submodule.mem_top },
   rw [←findim_top, ←switch],
   change fintype.card (E ≃ₐ[F] E) = findim F (⊤ : intermediate_field F E),
-  rw [←hα, @intermediate_field.findim_adjoin_integral F _ _ _ _ α H,
-    ←@intermediate_field.alg_equiv_adjoin_integral F _ _ _ _ α H h_splits],
+
+  replace h_splits : polynomial.splits (algebra_map F F⟮α⟯) (minimal_polynomial H2),
+  { rw hα,
+    let map : E →+* (⊤ : intermediate_field F E) :=
+    { to_fun := λ x, ⟨x, intermediate_field.mem_top⟩,
+      map_one' := rfl,
+      map_mul' := λ _ _, rfl,
+      map_zero' := rfl,
+      map_add' := λ _ _, rfl },
+    rw (show algebra_map F (⊤ : intermediate_field F E) = map.comp (algebra_map F E), by { ext, refl }),
+    exact polynomial.splits_comp_of_splits (algebra_map F E) map h_splits },
+  rw [←hα, @intermediate_field.findim_adjoin_integral F _ _ _ _ α H2,
+      ←@intermediate_field.alg_equiv_adjoin_integral F _ _ _ _ α H2 h_separable h_splits],
   apply fintype.card_congr,
   rw hα,
   change (E ≃ₐ[F] E) ≃

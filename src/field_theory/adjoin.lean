@@ -423,16 +423,28 @@ begin
   sorry
 end
 
-lemma alg_hom_adjoin_integral (h_splits : (minimal_polynomial h).splits (algebra_map F E)) :
+lemma alg_hom_adjoin_integral (h_separable : (minimal_polynomial h).separable)
+  (h_splits : (minimal_polynomial h).splits (algebra_map F F⟮α⟯)) :
   fintype.card (F⟮α⟯ →ₐ[F] F⟮α⟯) = (minimal_polynomial h).nat_degree :=
 begin
-  sorry
+  have ϕ := @adjoin_root_equiv_adjoin_simple F  _ _ _ _ α h,
+  have swap : (F⟮α⟯ →ₐ[F] F⟮α⟯) ≃
+    (adjoin_root (minimal_polynomial h) →ₐ[F] adjoin_root (minimal_polynomial h)) :=
+  { to_fun := λ f, ϕ.symm.to_alg_hom.comp (f.comp (ϕ.to_alg_hom)),
+    inv_fun := λ f, ϕ.to_alg_hom.comp (f.comp (ϕ.symm.to_alg_hom)),
+    left_inv := λ _, by { ext, simp only [alg_equiv.coe_alg_hom,
+      alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply, alg_equiv.apply_symm_apply]},
+    right_inv := λ _, by { ext, simp only [alg_equiv.symm_apply_apply,
+      alg_equiv.coe_alg_hom, alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply] } },
+  rw ←fintype.of_equiv_card swap,
+  sorry,
 end
 
-lemma alg_equiv_adjoin_integral (h_splits : (minimal_polynomial h).splits (algebra_map F E)) :
+lemma alg_equiv_adjoin_integral (h_separable : (minimal_polynomial h).separable)
+  (h_splits : (minimal_polynomial h).splits (algebra_map F F⟮α⟯)) :
   fintype.card (F⟮α⟯ ≃ₐ[F] F⟮α⟯) = (minimal_polynomial h).nat_degree :=
 eq.trans (fintype.card_congr (algebra_equiv_equiv_algebra_hom F F⟮α⟯))
-  (@alg_hom_adjoin_integral F _ _ _ _ α h h_splits)
+  (@alg_hom_adjoin_integral F _ _ _ _ α h h_separable h_splits)
 
 end adjoin_integral_element
 

@@ -621,6 +621,22 @@ instance linear_ordered_ring.to_domain : domain α :=
 @[simp] lemma abs_one : abs (1 : α) = 1 := abs_of_pos zero_lt_one
 @[simp] lemma abs_two : abs (2:α) = 2 := abs_of_pos zero_lt_two
 
+lemma abs_mul (a b : α) : abs (a * b) = abs a * abs b :=
+begin
+  rw [abs_eq (mul_nonneg (abs_nonneg a) (abs_nonneg b))],
+  cases le_total a 0 with ha ha; cases le_total b 0 with hb hb;
+    simp [abs_of_nonpos, abs_of_nonneg, *]
+end
+
+/-- `abs` as a `monoid_hom`. -/
+def abs_hom : α →* α := ⟨abs, abs_one, abs_mul⟩
+
+lemma abs_mul_abs_self (a : α) : abs a * abs a = a * a :=
+abs_by_cases (λ x, x * x = a * a) rfl (neg_mul_neg a a)
+
+lemma abs_mul_self (a : α) : abs (a * a) = a * a :=
+by rw [abs_mul, abs_mul_abs_self]
+
 lemma mul_pos_iff : 0 < a * b ↔ 0 < a ∧ 0 < b ∨ a < 0 ∧ b < 0 :=
 ⟨pos_and_pos_or_neg_and_neg_of_mul_pos,
   λ h, h.elim (and_imp.2 mul_pos) (and_imp.2 mul_pos_of_neg_of_neg)⟩
@@ -773,22 +789,6 @@ have cd : c * d ≤ max a c * max b d,
 max_le
   (by simpa [mul_comm, max_comm] using ba)
   (by simpa [mul_comm, max_comm] using cd)
-
-lemma abs_mul (a b : α) : abs (a * b) = abs a * abs b :=
-begin
-  rw [abs_eq (mul_nonneg (abs_nonneg a) (abs_nonneg b))],
-  cases le_total a 0 with ha ha; cases le_total b 0 with hb hb;
-    simp [abs_of_nonpos, abs_of_nonneg, *]
-end
-
-/-- `abs` as a `monoid_hom`. -/
-def abs_hom : α →* α := ⟨abs, abs_one, abs_mul⟩
-
-lemma abs_mul_abs_self (a : α) : abs a * abs a = a * a :=
-abs_by_cases (λ x, x * x = a * a) rfl (neg_mul_neg a a)
-
-lemma abs_mul_self (a : α) : abs (a * a) = a * a :=
-by rw [abs_mul, abs_mul_abs_self]
 
 lemma sub_le_of_abs_sub_le_left (h : abs (a - b) ≤ c) : b - c ≤ a :=
 if hz : 0 ≤ a - b then

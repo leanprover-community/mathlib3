@@ -587,6 +587,7 @@ multiplication with a positive number and addition are monotone. -/
 @[protect_proj] class linear_ordered_ring (α : Type u)
   extends ordered_ring α, linear_order α, nontrivial α
 
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_ring.to_linear_ordered_add_comm_group [s : linear_ordered_ring α] :
   linear_ordered_add_comm_group α :=
 { .. s }

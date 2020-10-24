@@ -31,6 +31,7 @@ The main definitions are in the `adjoin_root` namespace.
 
 -/
 noncomputable theory
+open_locale classical
 open_locale big_operators
 
 universes u v w
@@ -133,6 +134,31 @@ def alg_hom [algebra R S] (f : polynomial R) (x : S) (hfx : aeval x f = 0) : adj
 @[simp] lemma coe_alg_hom [algebra R S] (f : polynomial R) (x : S) (hfx : aeval x f = 0) :
   (alg_hom f x hfx : adjoin_root f →+* S) = lift (algebra_map R S) x hfx :=
 rfl
+
+def equiv (F E : Type*) [field F] [field E] [algebra F E] (f : polynomial F) (hf : f ≠ 0) :
+  (adjoin_root f →ₐ[F] E) ≃ (↑(f.map (algebra_map F E)).roots.to_finset : set E) :=
+{ to_fun := λ ϕ, ⟨ϕ (root f), begin
+    rw [finset.mem_coe, multiset.mem_to_finset, mem_roots (map_ne_zero hf),
+      is_root.def, ←eval₂_eq_eval_map, show (algebra_map F E = ϕ.to_ring_hom.comp (of f)),
+      by { ext, rw [ring_hom.comp_apply, ←algebra_map_eq], exact (alg_hom.commutes ϕ x).symm },
+      ←ring_hom.map_zero ϕ.to_ring_hom, ←eval₂_root f, hom_eval₂],
+    refl,
+    exact field.to_nontrivial E, end⟩,
+  inv_fun := λ x, alg_hom f ↑x begin
+    rw [aeval_def, eval₂_eq_eval_map, ←is_root.def, ←mem_roots (map_ne_zero hf),
+      ←multiset.mem_to_finset],
+    exact subtype.mem x,
+    exact field.to_nontrivial E end,
+  left_inv := λ ϕ, begin
+    change alg_hom f (ϕ (root f)) _ = ϕ,
+    --basically need to prove that every algebra_map is of the form alg_hom
+    --this should be a separate lemma
+    sorry,
+  end,
+  right_inv := λ x, by { ext, exact @lift_root F E _ f _ _ ↑x begin
+    rw [eval₂_eq_eval_map, ←is_root.def, ←mem_roots (map_ne_zero hf), ←multiset.mem_to_finset],
+    exact subtype.mem x,
+    exact field.to_nontrivial E end } }
 
 end comm_ring
 

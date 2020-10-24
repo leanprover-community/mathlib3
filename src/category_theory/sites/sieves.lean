@@ -218,6 +218,32 @@ def gi_generate : galois_insertion (generate : arrows_with_codomain X → sieve 
   choice_eq := λ _ _, rfl,
   le_l_u := λ S Y f hf, ⟨_, 𝟙 _, _, hf, category.id_comp _⟩ }
 
+lemma le_generate (R : arrows_with_codomain X) :
+  R ≤ generate R :=
+gi_generate.gc.le_u_l R
+
+/-- If the identity arrow is in a sieve, the sieve is maximal. -/
+lemma id_mem_iff_eq_top : S (𝟙 X) ↔ S = ⊤ :=
+⟨λ h, top_unique $ λ Y f _, by simpa using downward_closed _ h f,
+ λ h, h.symm ▸ trivial⟩
+
+/-- If an arrow set contains a split epi, it generates the maximal sieve. -/
+lemma generate_of_contains_split_epi {R : arrows_with_codomain X} (f : Y ⟶ X) [split_epi f]
+  (hf : R f) : generate R = ⊤ :=
+begin
+  rw ← id_mem_iff_eq_top,
+  refine ⟨_, section_ f, f, hf, by simp⟩,
+end
+
+@[simp]
+lemma generate_of_singleton_split_epi {f : Y ⟶ X} [split_epi f] :
+  generate (arrows_with_codomain.singleton_arrow f) = ⊤ :=
+generate_of_contains_split_epi f (arrows_with_codomain.singleton_arrow_self _)
+
+@[simp]
+lemma generate_top : generate (⊤ : arrows_with_codomain X) = ⊤ :=
+generate_of_contains_split_epi (𝟙 _) ⟨⟩
+
 /-- Given a morphism `h : Y ⟶ X`, send a sieve S on X to a sieve on Y
     as the inverse image of S with `_ ≫ h`.
     That is, `sieve.pullback S h := (≫ h) '⁻¹ S`. -/
@@ -244,11 +270,6 @@ by simp [sieve.ext_iff]
 lemma pullback_inter {f : Y ⟶ X} (S R : sieve X) :
  (S ⊓ R).pullback f = S.pullback f ⊓ R.pullback f :=
 by simp [sieve.ext_iff]
-
-/-- If the identity arrow is in a sieve, the sieve is maximal. -/
-lemma id_mem_iff_eq_top : S (𝟙 X) ↔ S = ⊤ :=
-⟨λ h, top_unique $ λ Y f _, by simpa using downward_closed _ h f,
- λ h, h.symm ▸ trivial⟩
 
 lemma pullback_eq_top_iff_mem (f : Y ⟶ X) : S f ↔ S.pullback f = ⊤ :=
 by rw [← id_mem_iff_eq_top, mem_pullback, category.id_comp]
@@ -357,16 +378,18 @@ rfl
 instance functor_inclusion_is_mono : mono S.functor_inclusion :=
 ⟨λ Z f g h, by { ext Y y, apply congr_fun (nat_trans.congr_app h Y) y }⟩
 
+def sieve_of_subfunctor (R) (f : R ⟶ yoneda.obj X) [mono f] : sieve X :=
+{ arrows := λ Y g, ∃ t, f.app (opposite.op Y) t = g,
+  downward_closed' := λ Y Z _,
+  begin
+    rintro ⟨t, rfl⟩ g,
+    refine ⟨R.map g.op t, _⟩,
+    rw functor_to_types.naturality _ _ f,
+    simp,
+  end }
+
 instance inclusion_top_is_iso : is_iso ((⊤ : sieve X).functor_inclusion) :=
 { inv := { app := λ Y a, ⟨a, ⟨⟩⟩ } }
-
-@[simps]
-def thing (f : Y ⟶ X) : (pullback f S).functor ⟶ S.functor :=
-{ app := λ Z g, ⟨g.1 ≫ f, g.2⟩ }
-
-lemma pullback_comm {S : sieve X} (f : Y ⟶ X) :
-  (S.pullback f).functor_inclusion ≫ yoneda.map f = thing f ≫ S.functor_inclusion :=
-rfl
 
 end sieve
 end category_theory

@@ -113,7 +113,7 @@ section linear_ordered_field
 /-- Every positive x is between two successive integer powers of
 another y greater than one. This is the same as `exists_int_pow_near'`,
 but with ≤ and < the other way around. -/
-lemma exists_int_pow_near [discrete_linear_ordered_field α] [archimedean α]
+lemma exists_int_pow_near [linear_ordered_field α] [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
   ∃ n : ℤ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
 by classical; exact
@@ -131,7 +131,7 @@ let ⟨n, hn₁, hn₂⟩ := int.exists_greatest_of_bdd hb he in
 /-- Every positive x is between two successive integer powers of
 another y greater than one. This is the same as `exists_int_pow_near`,
 but with ≤ and < the other way around. -/
-lemma exists_int_pow_near' [discrete_linear_ordered_field α] [archimedean α]
+lemma exists_int_pow_near' [linear_ordered_field α] [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
   ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1) :=
 let ⟨m, hle, hlt⟩ := exists_int_pow_near (inv_pos.2 hx) hy in
@@ -263,7 +263,7 @@ end
 end linear_ordered_field
 
 section
-variables [discrete_linear_ordered_field α]
+variables [linear_ordered_field α]
 
 /-- `round` rounds a number to the nearest integer. `round (1 / 2) = 1` -/
 def round [floor_ring α] (x : α) : ℤ := ⌊x + 1 / 2⌋

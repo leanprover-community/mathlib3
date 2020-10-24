@@ -22,8 +22,8 @@ notation `ℝ*` := hyperreal
 
 private def U : is_ultrafilter (@hyperfilter ℕ) := is_ultrafilter_hyperfilter
 
-noncomputable instance : discrete_linear_ordered_field ℝ* :=
-germ.discrete_linear_ordered_field U
+noncomputable instance : linear_ordered_field ℝ* :=
+germ.linear_ordered_field U
 
 noncomputable instance : inhabited ℝ* := ⟨0⟩
 

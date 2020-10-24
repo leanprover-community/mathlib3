@@ -38,7 +38,7 @@ namespace generalized_continued_fraction
 open generalized_continued_fraction as gcf
 
 /- Fix a discrete linear ordered floor field and a value `v`. -/
-variables {K : Type*} [discrete_linear_ordered_field K] [floor_ring K] {v : K}
+variables {K : Type*} [linear_ordered_field K] [floor_ring K] {v : K}
 
 namespace int_fract_pair
 /-!

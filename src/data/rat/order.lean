@@ -155,7 +155,7 @@ by unfold has_le.le rat.le; rw add_sub_add_left_eq_sub
 protected theorem mul_nonneg {a b : ℚ} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a * b :=
 by rw ← nonneg_iff_zero_le at ha hb ⊢; exact rat.nonneg_mul ha hb
 
-instance : discrete_linear_ordered_field ℚ :=
+instance : linear_ordered_field ℚ :=
 { zero_le_one     := dec_trivial,
   add_le_add_left := assume a b ab c, rat.add_le_add_left.2 ab,
   mul_pos         := assume a b ha hb, lt_of_le_of_ne

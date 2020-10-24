@@ -14,7 +14,7 @@ import algebra.field
 
   ### Main Definitions
   * `linear_ordered_field`: the class of linear ordered fields.
-  * `discrete_linear_ordered_field`: the class of linear ordered fields where the inequality is
+  * `linear_ordered_field`: the class of linear ordered fields where the inequality is
     decidable.
 -/
 
@@ -593,16 +593,6 @@ lemma mul_self_inj_of_nonneg (a0 : 0 ≤ a) (b0 : 0 ≤ b) : a * a = b * b ↔ a
 mul_self_eq_mul_self_iff.trans $ or_iff_left_of_imp $
   λ h, by { subst a, have : b = 0 := le_antisymm (neg_nonneg.1 a0) b0, rw [this, neg_zero] }
 
-end linear_ordered_field
-
-/-- A discrete linear ordered field is a field with a decidable linear order respecting the
-  operations. -/
-@[protect_proj] class discrete_linear_ordered_field (α : Type*)
-  extends linear_ordered_field α, linear_ordered_comm_ring α
-
-section discrete_linear_ordered_field
-variables [discrete_linear_ordered_field α]
-
 lemma min_div_div_right {c : α} (hc : 0 ≤ c) (a b : α) : min (a / c) (b / c) = (min a b) / c :=
 eq.symm $ monotone.map_min (λ x y, div_le_div_of_le hc)
 
@@ -626,4 +616,4 @@ by rw [abs_div, abs_of_nonneg (zero_le_one : 1 ≥ (0 : α))]
 lemma abs_inv (a : α) : abs a⁻¹ = (abs a)⁻¹ :=
 by rw [inv_eq_one_div, abs_one_div, inv_eq_one_div]
 
-end discrete_linear_ordered_field
+end linear_ordered_field

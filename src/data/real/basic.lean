@@ -79,20 +79,17 @@ theorem add_lt_add_iff_left {a b : ℝ} (c : ℝ) : c + a < c + b ↔ a < b :=
 quotient.induction_on₃ a b c (λ f g h,
   iff_of_eq (congr_arg pos $ by rw add_sub_add_left_eq_sub))
 
-instance : linear_order ℝ :=
+instance : partial_order ℝ :=
 { le := (≤), lt := (<),
   le_refl := λ a, or.inr rfl,
   le_trans := λ a b c, quotient.induction_on₃ a b c $
     λ f g h, by simpa [quotient_mk_eq_mk] using le_trans,
-  lt_iff_le_not_le := λ a b, quotient.induction_on₂ a b $
+    lt_iff_le_not_le := λ a b, quotient.induction_on₂ a b $
     λ f g, by simpa [quotient_mk_eq_mk] using lt_iff_le_not_le,
   le_antisymm := λ a b, quotient.induction_on₂ a b $
-    λ f g, by simpa [mk_eq, quotient_mk_eq_mk] using @cau_seq.le_antisymm _ _ f g,
-  le_total := λ a b, quotient.induction_on₂ a b $
-    λ f g, by simpa [quotient_mk_eq_mk] using le_total f g }
+    λ f g, by simpa [mk_eq, quotient_mk_eq_mk] using @cau_seq.le_antisymm _ _ f g }
 
-instance : partial_order ℝ := by apply_instance
-instance : preorder ℝ      := by apply_instance
+instance : preorder ℝ := by apply_instance
 
 theorem of_rat_lt {x y : ℚ} : of_rat x < of_rat y ↔ x < y := const_lt
 
@@ -103,7 +100,15 @@ quotient.induction_on₂ a b $ λ f g,
   show pos (f - 0) → pos (g - 0) → pos (f * g - 0),
   by simpa using cau_seq.mul_pos
 
-instance : linear_ordered_comm_ring ℝ :=
+open_locale classical
+
+noncomputable instance : linear_order ℝ :=
+{ le_total := λ a b, quotient.induction_on₂ a b $
+    λ f g, by simpa [quotient_mk_eq_mk] using le_total f g,
+  decidable_le := by apply_instance,
+  .. real.partial_order }
+
+noncomputable instance : linear_ordered_comm_ring ℝ :=
 { add_le_add_left := λ a b h c,
     (le_iff_le_iff_lt_iff_lt.2 $ real.add_lt_add_iff_left c).2 h,
   exists_pair_ne  := ⟨0, 1, ne_of_lt real.zero_lt_one⟩,
@@ -126,9 +131,7 @@ instance : has_mul ℝ                    := by apply_instance
 instance : has_add ℝ                    := by apply_instance
 instance : has_sub ℝ                    := by apply_instance
 
-open_locale classical
-
-noncomputable instance : discrete_linear_ordered_field ℝ :=
+noncomputable instance : linear_ordered_field ℝ :=
 { decidable_le := by apply_instance,
   ..real.linear_ordered_comm_ring,
   ..real.domain,
@@ -137,14 +140,11 @@ noncomputable instance : discrete_linear_ordered_field ℝ :=
 /- Extra instances to short-circuit type class resolution -/
 
 noncomputable instance : linear_ordered_field ℝ    := by apply_instance
-noncomputable instance : linear_ordered_comm_ring ℝ := by apply_instance
-noncomputable instance : linear_ordered_semiring ℝ := by apply_instance
 noncomputable instance : linear_ordered_add_comm_group ℝ := by apply_instance
 noncomputable instance field : field ℝ := by apply_instance
 noncomputable instance : division_ring ℝ           := by apply_instance
 noncomputable instance : integral_domain ℝ         := by apply_instance
 instance : nontrivial ℝ                            := by apply_instance
-noncomputable instance : linear_order ℝ  := by apply_instance
 noncomputable instance : distrib_lattice ℝ := by apply_instance
 noncomputable instance : lattice ℝ         := by apply_instance
 noncomputable instance : semilattice_inf ℝ := by apply_instance

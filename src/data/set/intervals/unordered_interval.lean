@@ -169,9 +169,9 @@ abs_sub_le_of_subinterval (interval_subset_interval_right h)
 
 end ordered_add_comm_group
 
-section discrete_linear_ordered_field
+section linear_ordered_field
 
-variables {k : Type u} [discrete_linear_ordered_field k] {a : k}
+variables {k : Type u} [linear_ordered_field k] {a : k}
 
 @[simp] lemma preimage_mul_const_interval (ha : a ≠ 0) (b c : k) :
   (λ x, x * a) ⁻¹' [b, c] = [b / a, c / a] :=
@@ -199,6 +199,6 @@ by simpa only [mul_comm] using image_mul_const_interval a b c
 @[simp] lemma image_div_const_interval (a b c : k) : (λ x, x / a) '' [b, c] = [b / a, c / a] :=
 image_mul_const_interval _ _ _
 
-end discrete_linear_ordered_field
+end linear_ordered_field
 
 end set

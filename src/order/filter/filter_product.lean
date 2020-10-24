@@ -130,8 +130,8 @@ protected noncomputable def linear_ordered_comm_ring
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a discrete linear ordered field.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
-protected noncomputable def discrete_linear_ordered_field [discrete_linear_ordered_field β]
-  (U : is_ultrafilter φ) : discrete_linear_ordered_field β* :=
+protected noncomputable def linear_ordered_field [linear_ordered_field β]
+  (U : is_ultrafilter φ) : linear_ordered_field β* :=
 { .. germ.linear_ordered_field U, .. germ.linear_ordered_comm_ring U,
   .. germ.field U }
 

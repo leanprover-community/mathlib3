@@ -50,7 +50,6 @@ instance ulift.nonempty_fin_lin_ord (α : Type u) [nonempty_fin_lin_ord α] :
   bot := ulift.up ⊥,
   le_top := λ ⟨a⟩, show a ≤ ⊤, from le_top,
   bot_le := λ ⟨a⟩, show ⊥ ≤ a, from bot_le,
-  decidable_le := λ ⟨a⟩ ⟨b⟩, linear_order.decidable_le _ _,
   .. linear_order.lift equiv.ulift (equiv.injective _),
   .. ulift.fintype _ }
 
@@ -59,9 +58,7 @@ def NonemptyFinLinOrd := bundled nonempty_fin_lin_ord
 
 namespace NonemptyFinLinOrd
 
-instance : bundled_hom.parent_projection
-  (λ α i, @linear_order.to_linear_order _
-  (@nonempty_fin_lin_ord.to_linear_order α i)) := ⟨⟩
+instance : bundled_hom.parent_projection @nonempty_fin_lin_ord.to_linear_order := ⟨⟩
 
 attribute [derive [has_coe_to_sort, large_category, concrete_category]] NonemptyFinLinOrd
 

@@ -100,10 +100,10 @@ rfl
 
 end coe
 
--- Note: this could be relaxed to something like `discrete_linear_ordered_division_ring` in the
+-- Note: this could be relaxed to something like `linear_ordered_division_ring` in the
 -- future.
 /- Fix a discrete linear ordered field with `floor` function. -/
-variables [discrete_linear_ordered_field K] [floor_ring K]
+variables [linear_ordered_field K] [floor_ring K]
 
 /-- Creates the integer and fractional part of a value `v`, i.e. `⟨⌊v⌋, v - ⌊v⌋⟩`. -/
 protected def of (v : K) : int_fract_pair K := ⟨⌊v⌋, fract v⟩
@@ -166,7 +166,7 @@ process stops when the fractional part `v- ⌊v⌋` hits 0 at some step.
 The implementation uses `int_fract_pair.stream` to obtain the partial denominators of the continued
 fraction. Refer to said function for more details about the computation process.
 -/
-protected def of [discrete_linear_ordered_field K] [floor_ring K] (v : K) : gcf K :=
+protected def of [linear_ordered_field K] [floor_ring K] (v : K) : gcf K :=
 let ⟨h, s⟩ := int_fract_pair.seq1 v in -- get the sequence of integer and fractional parts.
 ⟨ h.b, -- the head is just the first integer part
   s.map (λ p, ⟨1, p.b⟩) ⟩ -- the sequence consists of the remaining integer parts as the partial

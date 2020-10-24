@@ -21,15 +21,20 @@ infixr ` • `:73 := has_scalar.smul
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
 
+/-- A typeclass mixing saying that two actions on the same space commute. -/
+class smul_comm_class (M N α : Type*) [has_scalar M α] [has_scalar N α] : Prop :=
+(smul_comm : ∀ (a : M) (a' : N) (b : α), a • a' • b = a' • a • b)
+
+export mul_action (mul_smul) smul_comm_class (smul_comm)
+
+instance smul_comm_class_self (M α : Type*) [comm_monoid M] [mul_action M α] :
+  smul_comm_class M M α :=
+⟨λ a a' b, by rw [← mul_smul, mul_comm, mul_smul]⟩
+
 section
 variables [monoid α] [mul_action α β]
 
-theorem mul_smul (a₁ a₂ : α) (b : β) : (a₁ * a₂) • b = a₁ • a₂ • b := mul_action.mul_smul _ _ _
-
 lemma smul_smul (a₁ a₂ : α) (b : β) : a₁ • a₂ • b = (a₁ * a₂) • b := (mul_smul _ _ _).symm
-
-lemma smul_comm {α : Type u} {β : Type v} [comm_monoid α] [mul_action α β] (a₁ a₂ : α) (b : β) :
-  a₁ • a₂ • b = a₂ • a₁ • b := by rw [←mul_smul, ←mul_smul, mul_comm]
 
 variable (α)
 @[simp] theorem one_smul (b : β) : (1 : α) • b = b := mul_action.one_smul _

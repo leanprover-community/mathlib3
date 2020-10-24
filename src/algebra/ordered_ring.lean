@@ -584,7 +584,12 @@ end ordered_ring
 
 /-- A `linear_ordered_ring α` is a ring `α` with a linear order such that
 multiplication with a positive number and addition are monotone. -/
-@[protect_proj] class linear_ordered_ring (α : Type u) extends ordered_ring α, linear_order α, nontrivial α
+@[protect_proj] class linear_ordered_ring (α : Type u)
+  extends ordered_ring α, linear_order α, nontrivial α
+
+instance linear_ordered_ring.to_linear_ordered_add_comm_group [s : linear_ordered_ring α] :
+  linear_ordered_add_comm_group α :=
+{ .. s }
 
 section linear_ordered_ring
 variables [linear_ordered_ring α] {a b c : α}
@@ -612,6 +617,9 @@ instance linear_ordered_ring.to_domain : domain α :=
         (mul_neg_of_pos_of_neg ha hb).ne, (mul_pos ha hb).ne.symm]
     end,
   .. ‹linear_ordered_ring α› }
+
+@[simp] lemma abs_one : abs (1 : α) = 1 := abs_of_pos zero_lt_one
+@[simp] lemma abs_two : abs (2:α) = 2 := abs_of_pos zero_lt_two
 
 lemma mul_pos_iff : 0 < a * b ↔ 0 < a ∧ 0 < b ∨ a < 0 ∧ b < 0 :=
 ⟨pos_and_pos_or_neg_and_neg_of_mul_pos,
@@ -752,16 +760,9 @@ let s : linear_ordered_semiring α := @linear_ordered_ring.to_linear_ordered_sem
   mul_lt_mul_of_pos_right    := @linear_ordered_semiring.mul_lt_mul_of_pos_right α s,
   ..d }
 
-instance linear_ordered_comm_ring.to_linear_ordered_add_comm_group
-  [s : linear_ordered_comm_ring α] :
-  linear_ordered_add_comm_group α :=
-{ .. s }
-
 section linear_ordered_comm_ring
 
 variables [linear_ordered_comm_ring α] {a b c d : α}
-
-@[simp] lemma abs_one : abs (1 : α) = 1 := abs_of_pos zero_lt_one
 
 lemma max_mul_mul_le_max_mul_max (b c : α) (ha : 0 ≤ a) (hd: 0 ≤ d) :
   max (a * b) (d * c) ≤ max a c * max d b :=
@@ -826,10 +827,6 @@ have a * a ≤ (0 : α), from calc
      a * a ≤ a * a + b * b : le_add_of_nonneg_right (mul_self_nonneg b)
        ... = 0             : h,
 eq_zero_of_mul_self_eq_zero (le_antisymm this (mul_self_nonneg a))
-
--- The proof doesn't need commutativity but we have no `linear_ordered_ring`
-@[simp] lemma abs_two : abs (2:α) = 2 :=
-abs_of_pos zero_lt_two
 
 end linear_ordered_comm_ring
 

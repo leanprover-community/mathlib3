@@ -21,7 +21,7 @@ infixr ` • `:73 := has_scalar.smul
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
 
-/-- A typeclass mixing saying that two actions on the same space commute. -/
+/-- A typeclass mixin saying that two actions on the same space commute. -/
 class smul_comm_class (M N α : Type*) [has_scalar M α] [has_scalar N α] : Prop :=
 (smul_comm : ∀ (a : M) (a' : N) (b : α), a • a' • b = a' • a • b)
 

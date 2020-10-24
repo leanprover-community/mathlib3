@@ -3,7 +3,6 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Alena Gusakov
 -/
-
 import data.finset
 import data.fintype.basic
 import algebra.geom_sum
@@ -64,19 +63,22 @@ infix ` ≤ᶜ `:50 := colex_le
 /-- Strictly monotone functions preserve the colex ordering. -/
 lemma colex_hom {β : Type*} [linear_order α] [decidable_eq β] [preorder β]
   {f : α → β} (h₁ : strict_mono f) (A B : finset α) :
-  image f A <ᶜ image f B ↔ A <ᶜ B :=
+  A.image f <ᶜ B.image f ↔ A <ᶜ B :=
 begin
-  simp [colex_lt],
+  simp only [colex_lt, not_exists, mem_image, exists_prop, not_and],
   split,
-    rintro ⟨k, z, q, k', _, rfl⟩,
-    refine ⟨k', λ x hx, _, λ t, q _ t rfl, ‹k' ∈ B›⟩, have := z (h₁ hx),
-    simp [strict_mono.injective h₁] at this, assumption,
+  { rintro ⟨k, z, q, k', _, rfl⟩,
+    exact ⟨k', λ x hx, by simpa [h₁.injective] using z (h₁ hx), λ t, q _ t rfl, ‹k' ∈ B›⟩ },
   rintro ⟨k, z, ka, _⟩,
   refine ⟨f k, λ x hx, _, _, k, ‹k ∈ B›, rfl⟩,
-  split, any_goals {
-    rintro ⟨x', x'in, rfl⟩, refine ⟨x', _, rfl⟩,
-    rwa ← z _ <|> rwa z _, rwa strict_mono.lt_iff_lt h₁ at hx },
-  simp [strict_mono.injective h₁], exact λ x hx, ne_of_mem_of_not_mem hx ka
+  { split,
+    any_goals {
+      rintro ⟨x', hx', rfl⟩,
+      refine ⟨x', _, rfl⟩,
+      rwa ← z _ <|> rwa z _,
+      rwa strict_mono.lt_iff_lt h₁ at hx } },
+  { simp only [h₁.injective, function.injective.eq_iff],
+    exact λ x hx, ne_of_mem_of_not_mem hx ka }
 end
 
 /-- A special case of `colex_hom` which is sometimes useful. -/
@@ -93,12 +95,16 @@ instance [linear_order α] : is_trans (finset α) (<ᶜ) :=
 begin
   constructor,
   rintros A B C ⟨k₁, k₁z, notinA, inB⟩ ⟨k₂, k₂z, notinB, inC⟩,
-  have: k₁ ≠ k₂ := ne_of_mem_of_not_mem inB notinB,
+  have : k₁ ≠ k₂ := ne_of_mem_of_not_mem inB notinB,
   cases lt_or_gt_of_ne this,
-    refine ⟨k₂, _, by rwa k₁z h, inC⟩,
-    intros x hx, rw ← k₂z hx, apply k₁z (trans h hx),
-  refine ⟨k₁, _, notinA, by rwa ← k₂z h⟩,
-  intros x hx, rw k₁z hx, apply k₂z (trans h hx)
+  { refine ⟨k₂, _, by rwa k₁z h, inC⟩,
+    intros x hx,
+    rw ← k₂z hx,
+    apply k₁z (trans h hx) },
+  { refine ⟨k₁, _, notinA, by rwa ← k₂z h⟩,
+    intros x hx,
+    rw k₁z hx,
+    apply k₂z (trans h hx) }
 end
 instance [linear_order α] : is_asymm (finset α) (<ᶜ) := by apply_instance
 instance [linear_order α] : is_antisymm (finset α) (≤ᶜ) :=
@@ -110,18 +116,34 @@ instance [linear_order α] : is_strict_order (finset α) (<ᶜ) := {}
 
 instance [linear_order α] : is_trichotomous (finset α) (<ᶜ) :=
 begin
-  split, intros A B,
+  split,
+  intros A B,
   classical,
-  by_cases (A = B), right, left, assumption,
+  by_cases (A = B),
+  { right,
+    left,
+    assumption  },
   rcases (exists_max_image (A \ B ∪ B \ A) id _) with ⟨k, hk, z⟩,
-    simp at hk, cases hk, right, right, swap, left, swap,
-      any_goals { refine ⟨k, λ t th, _, hk.2, hk.1⟩, specialize z t, by_contra,
-                  simp only [mem_union, mem_sdiff, id] at z, rw [not_iff,
-                  iff_iff_and_or_not_and_not, not_not, and_comm] at a,
-                  apply not_le_of_lt th (z _) },
-      { exact a }, { exact a.symm },
+  { simp only [mem_union, mem_sdiff] at hk,
+    cases hk,
+    { right,
+      right,
+      refine ⟨k, λ t th, _, hk.2, hk.1⟩,
+      specialize z t,
+      by_contra,
+      simp only [mem_union, mem_sdiff, id.def] at z,
+      rw [not_iff, iff_iff_and_or_not_and_not, not_not, and_comm] at a,
+      apply not_le_of_lt th (z a) },
+    { left,
+      refine ⟨k, λ t th, _, hk.2, hk.1⟩,
+      specialize z t,
+      by_contra,
+      simp only [mem_union, mem_sdiff, id.def] at z,
+      rw [not_iff, iff_iff_and_or_not_and_not, not_not, and_comm, or_comm] at a,
+      apply not_le_of_lt th (z a) }, },
   rw nonempty_iff_ne_empty,
-  intro a, simp only [union_eq_empty_iff, sdiff_eq_empty_iff_subset] at a,
+  intro a,
+  simp only [union_eq_empty_iff, sdiff_eq_empty_iff_subset] at a,
   apply h (subset.antisymm a.1 a.2)
 end
 
@@ -158,11 +180,13 @@ so we can infer decidability.
 lemma colex_dec [has_lt α] (A B : finset α) : A <ᶜ B ↔
   ∃ (k ∈ B), (∀ x ∈ A, k < x → x ∈ B) ∧ (∀ x ∈ B, k < x → x ∈ A) ∧ k ∉ A :=
 begin
-  rw colex_lt, split,
+  rw colex_lt,
+  split,
   { rintro ⟨k, z, kA, kB⟩,
     refine ⟨k, kB, λ t th kt, (z kt).1 th, λ t th kt, (z kt).2 th, kA⟩ },
   { rintro ⟨k, kB, zAB, zBA, kA⟩,
-    refine ⟨k, λ t th, _, kA, kB⟩, refine ⟨λ z, zAB _ z th, λ z, zBA _ z th⟩ }
+    refine ⟨k, λ t th, _, kA, kB⟩,
+    refine ⟨λ z, zAB _ z th, λ z, zBA _ z th⟩ }
 end
 instance colex_lt_decidable [decidable_linear_order α] (A B : finset α) :
   decidable (A <ᶜ B) := by rw colex_dec; apply_instance
@@ -176,14 +200,36 @@ instance colex_decidable_order [decidable_linear_order α] :
 lemma colex_singleton [linear_order α] {x y : α} :
   ({x} : finset α) <ᶜ {y} ↔ x < y :=
 begin
-  rw colex_lt, simp, conv_lhs { conv {congr, funext, rw and_comm,
-                                      rw and_comm (¬k=x), rw and_assoc},
-                                rw exists_eq_left },
-  split, rintro ⟨p, q⟩, apply (lt_trichotomy x y).resolve_right,
-    rw not_or_distrib, split, intro, apply p, symmetry, assumption,
-    intro a, specialize q a, apply p, symmetry, rw ← q,
-  intro, split, apply ne_of_gt a, intros z hz, rw iff_false_left,
-    apply ne_of_gt hz, apply ne_of_gt (trans hz a)
+  rw colex_lt,
+  simp only [mem_singleton],
+  conv_lhs { conv
+            { congr,
+              funext,
+              rw and_comm,
+              rw and_comm (¬k=x),
+              rw and_assoc },
+            rw exists_eq_left },
+  split,
+  { rintro ⟨p, q⟩,
+    apply (lt_trichotomy x y).resolve_right,
+    rw not_or_distrib,
+    split,
+    { intro,
+      apply p,
+      symmetry,
+      assumption },
+    { intro a,
+      specialize q a,
+      apply p,
+      symmetry,
+      rw ← q }, },
+  { intro,
+    split,
+    { apply ne_of_gt a },
+    { intros z hz,
+    rw iff_false_left,
+    apply ne_of_gt hz,
+    apply ne_of_gt (trans hz a) }, },
 end
 /--
 If A is before B in colex, and everything in B is small, then everything in
@@ -193,9 +239,15 @@ lemma max_colex [linear_order α] {A B : finset α} (t : α)
   (h₁ : A <ᶜ B) (h₂ : ∀ x ∈ B, x < t) :
   ∀ x ∈ A, x < t :=
 begin
-  rw colex_lt at h₁, rcases h₁ with ⟨k, z, _, _⟩,
-  intros x hx, apply lt_of_not_ge, intro, apply not_lt_of_ge a, apply h₂,
-  rwa ← z, apply lt_of_lt_of_le (h₂ k ‹_›) a,
+  rw colex_lt at h₁,
+  rcases h₁ with ⟨k, z, _, _⟩,
+  intros x hx,
+  apply lt_of_not_ge,
+  intro,
+  apply not_lt_of_ge a,
+  apply h₂,
+  rwa ← z,
+  apply lt_of_lt_of_le (h₂ k ‹_›) a,
 end
 
 /-- If everything in A is less than k, we can bound the sum of powers. -/
@@ -203,7 +255,8 @@ lemma binary_sum_nat {k : ℕ} {A : finset ℕ} (h₁ : ∀ {x}, x ∈ A → x <
   A.sum (pow 2) < 2^k :=
 begin
   apply lt_of_le_of_lt (sum_le_sum_of_subset (λ t, mem_range.2 ∘ h₁)),
-  have z := geom_sum_mul_add 1 k, rw [geom_series, mul_one] at z,
+  have z := geom_sum_mul_add 1 k,
+  rw [geom_series, mul_one] at z,
   rw one_add_one_eq_two at z,
   rw ← z,
   apply nat.lt_succ_self,
@@ -213,26 +266,45 @@ end
 lemma colex_ignores_sdiff [has_lt α] [decidable_eq α] (A B : finset α) :
   A <ᶜ B ↔ A \ B <ᶜ B \ A :=
 begin
-  rw colex_lt, rw colex_lt, apply exists_congr, intro k,
-  split; rintro ⟨z, kA, kB⟩; refine ⟨_, _, _⟩; simp at kA kB z ⊢,
-  intros x hx, rw z hx, intro, exact kB, exact ⟨kB, kA⟩,
-  intros x hx, specialize z hx, tauto, tauto, tauto
+  rw colex_lt,
+  rw colex_lt,
+  apply exists_congr,
+  intro k,
+  split; rintro ⟨z, kA, kB⟩; refine ⟨_, _, _⟩; simp only [not_and, mem_sdiff, not_not] at kA kB z ⊢,
+  intros x hx,
+  { rw z hx },
+  { intro,
+    exact kB },
+  { exact ⟨kB, kA⟩ },
+  { intros x hx,
+    specialize z hx,
+    tauto },
+  { tauto },
+  { tauto },
 end
 
 /-- For subsets of ℕ, we can show that colex is equivalent to binary. -/
 lemma binary_iff (A B : finset ℕ) : A.sum (pow 2) < B.sum (pow 2) ↔ A <ᶜ B :=
 begin
   have z: ∀ (A B : finset ℕ), A <ᶜ B → A.sum (pow 2) < B.sum (pow 2),
-    intros A B, rw colex_ignores_sdiff, rintro ⟨k, z, kA, kB⟩,
-    rw ← sdiff_union_inter A B, conv_rhs {rw ← sdiff_union_inter B A},
+  { intros A B,
+    rw colex_ignores_sdiff,
+    rintro ⟨k, z, kA, kB⟩,
+    rw ← sdiff_union_inter A B,
+    conv_rhs { rw ← sdiff_union_inter B A },
     rw [sum_union (disjoint_sdiff_inter _ _), sum_union (disjoint_sdiff_inter _ _),
         inter_comm, add_lt_add_iff_right],
     apply lt_of_lt_of_le (@binary_sum_nat k (A \ B) _),
-      apply single_le_sum (λ _ _, nat.zero_le _) kB,
-    intros x hx, apply lt_of_le_of_ne (le_of_not_lt (λ kx, _)),
-      apply (ne_of_mem_of_not_mem hx kA), specialize z kx, have := z.1 hx,
-    rw mem_sdiff at this hx, exact hx.2 this.1,
+    { apply single_le_sum (λ _ _, nat.zero_le _) kB },
+    intros x hx,
+    apply lt_of_le_of_ne (le_of_not_lt (λ kx, _)),
+    { apply (ne_of_mem_of_not_mem hx kA) },
+    specialize z kx,
+    have := z.1 hx,
+    rw mem_sdiff at this hx,
+    exact hx.2 this.1 },
   refine ⟨λ h, (trichotomous A B).resolve_right
                (λ h₁, h₁.elim _ (not_lt_of_gt h ∘ z _ _)), z A B⟩,
-  rintro rfl, apply irrefl _ h
+  rintro rfl,
+  apply irrefl _ h
 end

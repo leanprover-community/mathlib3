@@ -142,17 +142,26 @@ namespace pi
 
 variables {I : Type*} {f : I → Type*}
 
-/-- If any of the internal types are nontrivial, so is the collection -/
-instance nontrivial [decidable_eq I] [Π i, has_zero (f i)] [inst : ∃ i, nontrivial $ f i] : nontrivial (Π i : I, f i) :=
-let ⟨i, hi⟩ := inst in by exactI (single_injective f i).nontrivial
-
-/-- A weaker statement that is easier to apply -/
-instance nontrivial' [inhabited I] [∀ i, nontrivial $ f i] : nontrivial (Π i : I, f i) :=
+/-- If the internal type at `i'` is nontrivial, and all others are nonempty, so is the collection -/
+def nontrivial_at (i' : I) [inst : Π i, nonempty (f i)] [nontrivial (f i')]
+  : nontrivial (Π i : I, f i) :=
+let ⟨x, hxy⟩ := classical.indefinite_description _ (exists_pair_ne (f i')),
+    ⟨y, hxy⟩ := classical.indefinite_description _ hxy
+in
 ⟨⟨
-  λ i, classical.some (exists_pair_ne (f i)),
-  λ i, classical.some $ classical.some_spec (exists_pair_ne (f i)),
-  λ h, classical.some_spec (classical.some_spec (exists_pair_ne (f _))) (congr_fun h (default I)),
+  λ i, if h : i = i' then by { rw h, exact x} else classical.choice (inst i),
+  λ i, if h : i = i' then by { rw h, exact y} else classical.choice (inst i),
+  λ h, hxy (by simpa only [dif_pos] using congr_fun h i'),
 ⟩⟩
+
+/--
+As a convenience, provide an instance automatically if `(f (default I))` is nontrivial.
+
+If a different index has the non-trivial type, then use `haveI := nontrivial_at that_index`.
+-/
+instance nontrivial [inhabited I] [inst : Π i, nonempty (f i)] [nontrivial (f (default I))]
+  : nontrivial (Π i : I, f i) :=
+nontrivial_at (default I)
 
 end pi
 

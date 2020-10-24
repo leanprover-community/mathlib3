@@ -403,9 +403,6 @@ end
 lemma exists_le_mul_self (a : α) : ∃ x : α, a ≤ x * x :=
 let ⟨x, hx⟩ := exists_lt_mul_self a in ⟨x, le_of_lt hx⟩
 
-/- TODO This theorem ought to be written in the context of `nontrivial` linearly ordered (additive)
-commutative monoids rather than linearly ordered rings; however, the former concept does not
-currently exist in mathlib. -/
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_semiring α] :
   no_top_order α :=

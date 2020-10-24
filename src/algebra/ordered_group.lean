@@ -1809,9 +1809,13 @@ begin
   { exact ⟨y, h⟩ }
 end
 
-/- TODO If the typeclass `linear_ordered_add_comm_monoid` is introduced someday, write
-`linear_ordered_add_comm_monoid.to_no_top_order` for it, and get rid of
-`linear_ordered_semiring.to_no_top_order`. -/
+@[priority 100] -- see Note [lower instance priority]
+instance linear_ordered_add_comm_group.to_no_top_order [nontrivial α] :
+  no_top_order α :=
+⟨ begin
+    obtain ⟨y, hy⟩ : ∃ (a:α), 0 < a := exists_gt_zero,
+    exact λ a, ⟨a + y, lt_add_of_pos_right a hy⟩
+  end ⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_add_comm_group.to_no_bot_order [nontrivial α] : no_bot_order α :=

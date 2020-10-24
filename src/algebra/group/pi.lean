@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
 import algebra.ordered_group
+import algebra.group_with_zero
 import tactic.pi_instances
 /-!
 # Pi instances for groups and monoids
@@ -78,6 +79,14 @@ instance ordered_comm_group [∀ i, ordered_comm_group $ f i] :
 { mul_le_mul_left := λ x y hxy c i, mul_le_mul_left' (hxy i) _,
   ..pi.comm_group,
   ..pi.partial_order }
+
+instance mul_zero_class [∀ i, mul_zero_class $ f i] :
+  mul_zero_class (Π i : I, f i) :=
+by refine_struct { zero := (0 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
+
+instance comm_monoid_with_zero [∀ i, comm_monoid_with_zero $ f i] :
+  comm_monoid_with_zero (Π i : I, f i) :=
+by refine_struct { zero := (0 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
 
 section instance_lemmas
 open function

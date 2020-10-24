@@ -160,7 +160,6 @@ local attribute [semireducible] witt_vector
 
 open mv_polynomial
 open function (uncurry)
-local attribute [-simp] coe_eval₂_hom
 
 include hp
 variables (p)

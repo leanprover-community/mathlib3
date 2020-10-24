@@ -10,6 +10,7 @@ import field_theory.splitting_field
 import field_theory.fixed
 
 open finite_dimensional
+open_locale classical
 
 /-!
 # Adjoining Elements to Fields
@@ -438,8 +439,14 @@ begin
       alg_equiv.coe_alg_hom, alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply] } },
   have swap2 := adjoin_root.equiv F F⟮α⟯ (minimal_polynomial h) (minimal_polynomial.ne_zero h),
   rw [←fintype.of_equiv_card (swap1.trans swap2), polynomial.nat_degree_eq_card_roots h_splits],
-  have nodup := polynomial.nodup_roots ((polynomial.separable_map (algebra_map F F⟮α⟯)).mpr h_sep),
-  rw multiset.to_finset_card_of_nodup,
+  set s := ((minimal_polynomial h).map (algebra_map F F⟮α⟯)).roots,
+  change _ = s.card,
+  have nodup : s.nodup :=
+    polynomial.nodup_roots ((polynomial.separable_map (algebra_map F F⟮α⟯)).mpr h_sep),
+  rw ←multiset.to_finset_card_of_nodup nodup,
+  --Why doesn't this work???
+  --exact fintype.card_coe s.to_finset,
+  sorry
 end
 
 lemma alg_equiv_adjoin_integral (h_separable : (minimal_polynomial h).separable)

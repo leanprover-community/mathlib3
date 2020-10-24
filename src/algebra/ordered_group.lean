@@ -1801,6 +1801,31 @@ abs_sub_le_iff.2 ⟨sub_le_sub hau hbl, sub_le_sub hbu hal⟩
 lemma eq_of_abs_sub_nonpos (h : abs (a - b) ≤ 0) : a = b :=
 eq_of_abs_sub_eq_zero (le_antisymm h (abs_nonneg (a - b)))
 
+lemma exists_gt_zero [nontrivial α] : ∃ (a:α), 0 < a :=
+begin
+  obtain ⟨y, hy⟩ := exists_ne (0 : α),
+  cases hy.lt_or_lt,
+  { exact ⟨- y, neg_pos.mpr h⟩ },
+  { exact ⟨y, h⟩ }
+end
+
+/- TODO This theorem could be written in the context of monoids rather than groups; however,
+`linear_ordered_add_comm_monoid` does not currently exist in mathlib. -/
+@[priority 100] -- see Note [lower instance priority]
+instance linear_ordered_add_comm_group.to_no_top_order [nontrivial α] :
+  no_top_order α :=
+⟨ begin
+    obtain ⟨y, hy⟩ : ∃ (a:α), 0 < a := exists_gt_zero,
+    exact λ a, ⟨a + y, lt_add_of_pos_right a hy⟩
+  end ⟩
+
+@[priority 100] -- see Note [lower instance priority]
+instance linear_ordered_add_comm_group.to_no_bot_order [nontrivial α] : no_bot_order α :=
+⟨ begin
+    obtain ⟨y, hy⟩ : ∃ (a:α), 0 < a := exists_gt_zero,
+    exact λ a, ⟨a - y, sub_lt_self a hy⟩
+  end ⟩
+
 end linear_ordered_add_comm_group
 
 /-- This is not so much a new structure as a construction mechanism

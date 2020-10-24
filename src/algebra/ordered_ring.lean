@@ -403,14 +403,6 @@ end
 lemma exists_le_mul_self (a : α) : ∃ x : α, a ≤ x * x :=
 let ⟨x, hx⟩ := exists_lt_mul_self a in ⟨x, le_of_lt hx⟩
 
-/- TODO This theorem ought to be written in the context of `nontrivial` linearly ordered (additive)
-commutative monoids rather than linearly ordered rings; however, the former concept does not
-currently exist in mathlib. -/
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_semiring α] :
-  no_top_order α :=
-⟨assume a, ⟨a + 1, lt_add_of_pos_right _ zero_lt_one⟩⟩
-
 end linear_ordered_semiring
 
 section mono
@@ -690,13 +682,6 @@ lemma mul_self_lt_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a < b 
 iff.trans (lt_iff_not_ge _ _) $ iff.trans (not_iff_not_of_iff $ mul_self_le_mul_self_iff h2 h1) $
   iff.symm (lt_iff_not_ge _ _)
 
-/- TODO This theorem ought to be written in the context of `nontrivial` linearly ordered (additive)
-commutative groups rather than linearly ordered rings; however, the former concept does not
-currently exist in mathlib. -/
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_ring.to_no_bot_order : no_bot_order α :=
-⟨assume a, ⟨a - 1, sub_lt_iff_lt_add.mpr $ lt_add_of_pos_right _ zero_lt_one⟩⟩
-
 @[simp] lemma mul_le_mul_left_of_neg {a b c : α} (h : c < 0) : c * a ≤ c * b ↔ b ≤ a :=
 ⟨le_imp_le_of_lt_imp_lt $ λ h', mul_lt_mul_of_neg_left h' h,
   λ h', mul_le_mul_of_nonpos_left h' h.le⟩
@@ -747,6 +732,38 @@ begin
   rw mul_self_eq_zero at this, split; assumption
 end
 
+lemma sub_le_of_abs_sub_le_left (h : abs (a - b) ≤ c) : b - c ≤ a :=
+if hz : 0 ≤ a - b then
+  (calc
+      a ≥ b     : le_of_sub_nonneg hz
+    ... ≥ b - c : sub_le_self _ $ (abs_nonneg _).trans h)
+else
+  have habs : b - a ≤ c, by rwa [abs_of_neg (lt_of_not_ge hz), neg_sub] at h,
+  have habs' : b ≤ c + a, from le_add_of_sub_right_le habs,
+  sub_left_le_of_le_add habs'
+
+lemma sub_le_of_abs_sub_le_right (h : abs (a - b) ≤ c) : a - c ≤ b :=
+sub_le_of_abs_sub_le_left (abs_sub a b ▸ h)
+
+lemma sub_lt_of_abs_sub_lt_left (h : abs (a - b) < c) : b - c < a :=
+if hz : 0 ≤ a - b then
+   (calc
+      a ≥ b     : le_of_sub_nonneg hz
+    ... > b - c : sub_lt_self _ ((abs_nonneg _).trans_lt h))
+else
+  have habs : b - a < c, by rwa [abs_of_neg (lt_of_not_ge hz), neg_sub] at h,
+  have habs' : b < c + a, from lt_add_of_sub_right_lt habs,
+  sub_left_lt_of_lt_add habs'
+
+lemma sub_lt_of_abs_sub_lt_right (h : abs (a - b) < c) : a - c < b :=
+sub_lt_of_abs_sub_lt_left (abs_sub a b ▸ h)
+
+lemma eq_zero_of_mul_self_add_mul_self_eq_zero (h : a * a + b * b = 0) : a = 0 :=
+have a * a ≤ (0 : α), from calc
+     a * a ≤ a * a + b * b : le_add_of_nonneg_right (mul_self_nonneg b)
+       ... = 0             : h,
+eq_zero_of_mul_self_eq_zero (le_antisymm this (mul_self_nonneg a))
+
 end linear_ordered_ring
 
 /-- A `linear_ordered_comm_ring α` is a commutative ring `α` with a linear order
@@ -791,43 +808,11 @@ max_le
   (by simpa [mul_comm, max_comm] using ba)
   (by simpa [mul_comm, max_comm] using cd)
 
-lemma sub_le_of_abs_sub_le_left (h : abs (a - b) ≤ c) : b - c ≤ a :=
-if hz : 0 ≤ a - b then
-  (calc
-      a ≥ b     : le_of_sub_nonneg hz
-    ... ≥ b - c : sub_le_self _ $ (abs_nonneg _).trans h)
-else
-  have habs : b - a ≤ c, by rwa [abs_of_neg (lt_of_not_ge hz), neg_sub] at h,
-  have habs' : b ≤ c + a, from le_add_of_sub_right_le habs,
-  sub_left_le_of_le_add habs'
-
-lemma sub_le_of_abs_sub_le_right (h : abs (a - b) ≤ c) : a - c ≤ b :=
-sub_le_of_abs_sub_le_left (abs_sub a b ▸ h)
-
-lemma sub_lt_of_abs_sub_lt_left (h : abs (a - b) < c) : b - c < a :=
-if hz : 0 ≤ a - b then
-   (calc
-      a ≥ b     : le_of_sub_nonneg hz
-    ... > b - c : sub_lt_self _ ((abs_nonneg _).trans_lt h))
-else
-  have habs : b - a < c, by rwa [abs_of_neg (lt_of_not_ge hz), neg_sub] at h,
-  have habs' : b < c + a, from lt_add_of_sub_right_lt habs,
-  sub_left_lt_of_lt_add habs'
-
-lemma sub_lt_of_abs_sub_lt_right (h : abs (a - b) < c) : a - c < b :=
-sub_lt_of_abs_sub_lt_left (abs_sub a b ▸ h)
-
 lemma abs_sub_square (a b : α) : abs (a - b) * abs (a - b) = a * a + b * b - (1 + 1) * a * b :=
 begin
   rw abs_mul_abs_self,
   simp [left_distrib, right_distrib, add_assoc, add_comm, add_left_comm, mul_comm, sub_eq_add_neg],
 end
-
-lemma eq_zero_of_mul_self_add_mul_self_eq_zero (h : a * a + b * b = 0) : a = 0 :=
-have a * a ≤ (0 : α), from calc
-     a * a ≤ a * a + b * b : le_add_of_nonneg_right (mul_self_nonneg b)
-       ... = 0             : h,
-eq_zero_of_mul_self_eq_zero (le_antisymm this (mul_self_nonneg a))
 
 end linear_ordered_comm_ring
 

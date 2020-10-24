@@ -156,10 +156,10 @@ Each element (except zero) is non-uniquely represented as a multiset
 of prime factors.
 
 To define a UFD using the definition in terms of multisets
-of irreducible factors, use the definition `of_unique_irreducible_factorization`
+of irreducible factors, use the definition `of_exists_unique_irreducible_factors`
 
 To define a UFD using the definition in terms of multisets
-of prime factors, use the definition `of_exists_prime_factorization`
+of prime factors, use the definition `of_exists_prime_factors`
 
 -/
 class unique_factorization_monoid (α : Type*) [comm_cancel_monoid_with_zero α] extends wf_dvd_monoid α :
@@ -280,7 +280,7 @@ variables (pf : ∀ (a : α), a ≠ 0 → ∃ f : multiset α, (∀b ∈ f, prim
 
 include pf
 
-lemma wf_dvd_monoid_of_exists_prime_factors : wf_dvd_monoid α :=
+lemma wf_dvd_monoid.of_exists_prime_factors : wf_dvd_monoid α :=
 ⟨begin
   classical,
   apply rel_hom.well_founded (rel_hom.mk _ _) (with_top.well_founded_lt nat.lt_wf),
@@ -323,18 +323,18 @@ begin
   exact hf.1 q (multiset.mem_cons_self _ _)
 end
 
-theorem unique_factorization_monoid_of_exists_prime_factors :
+theorem unique_factorization_monoid.of_exists_prime_factors :
   unique_factorization_monoid α :=
 { irreducible_iff_prime := λ _, irreducible_iff_prime_of_exists_prime_factors pf,
-  .. wf_dvd_monoid_of_exists_prime_factors pf }
+  .. wf_dvd_monoid.of_exists_prime_factors pf }
 
 end exists_prime_factors
 
-theorem unique_factorization_monoid_iff_exists_prime_factors [comm_cancel_monoid_with_zero α] :
+theorem unique_factorization_monoid.iff_exists_prime_factors [comm_cancel_monoid_with_zero α] :
   unique_factorization_monoid α ↔
     (∀ (a : α), a ≠ 0 → ∃ f : multiset α, (∀b ∈ f, prime b) ∧ f.prod ~ᵤ a) :=
 ⟨λ h, @unique_factorization_monoid.exists_prime_factors _ _ h,
-  unique_factorization_monoid_of_exists_prime_factors⟩
+  unique_factorization_monoid.of_exists_prime_factors⟩
 
 theorem irreducible_iff_prime_of_exists_unique_irreducible_factors [comm_cancel_monoid_with_zero α]
   (eif : ∀ (a : α), a ≠ 0 → ∃ f : multiset α, (∀b ∈ f, irreducible b) ∧ f.prod ~ᵤ a)
@@ -383,7 +383,7 @@ theorem unique_factorization_monoid.of_exists_unique_irreducible_factors
   (uif : ∀ (f g : multiset α),
   (∀ x ∈ f, irreducible x) → (∀ x ∈ g, irreducible x) → f.prod ~ᵤ g.prod → multiset.rel associated f g) :
   unique_factorization_monoid α :=
-unique_factorization_monoid_of_exists_prime_factors (by
+unique_factorization_monoid.of_exists_prime_factors (by
   { convert eif,
     simp_rw irreducible_iff_prime_of_exists_unique_irreducible_factors eif uif })
 

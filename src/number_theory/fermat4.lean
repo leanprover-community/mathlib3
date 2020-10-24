@@ -305,18 +305,24 @@ begin
   apply absurd (not_le_of_lt hic) (not_not.mpr hic')
 end
 
-lemma not_fermat_42 {a b c : ℤ} : ¬fermat_42 a b c :=
+lemma not_fermat_42 {a b c : ℤ} (ha : a ≠ 0) (hb : b ≠ 0) :
+  a ^ 4 + b ^ 4 ≠ c ^ 2 :=
 begin
   intro h,
-  obtain ⟨a0, b0, c0, ⟨hf, h2, hp⟩⟩ := exists_pos_odd_minimal_fermat_42 h,
+  have hc : c ≠ 0,
+  { apply ne_zero_pow (dec_trivial : 2 ≠ 0), apply ne_of_gt,
+    rw [← h, (by ring : a ^ 4 + b ^ 4 = (a ^ 2) ^ 2 + (b ^ 2) ^ 2)],
+    exact add_pos (pow_two_pos_of_ne_zero _ (pow_ne_zero 2 ha))
+      (pow_two_pos_of_ne_zero _ (pow_ne_zero 2 hb)) },
+  obtain ⟨a0, b0, c0, ⟨hf, h2, hp⟩⟩ :=
+    exists_pos_odd_minimal_fermat_42 (and.intro ha (and.intro hb (and.intro hc h))),
   apply not_minimal_fermat_42 hf h2 hp
 end
 
-lemma not_fermat_4 {a b c : ℤ} (ha : a ≠ 0) (hb : b ≠ 0) (hc : c ≠ 0) :
+theorem not_fermat_4 {a b c : ℤ} (ha : a ≠ 0) (hb : b ≠ 0) :
   a ^ 4 + b ^ 4 ≠ c ^ 4 :=
 begin
   intro heq,
-  apply @not_fermat_42 a b (c ^ 2),
-  apply and.intro ha (and.intro hb (and.intro (pow_ne_zero' _ hc) _)),
+  apply @not_fermat_42 _ _ (c ^ 2) ha hb,
   rw heq, ring
 end

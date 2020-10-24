@@ -81,7 +81,7 @@ include h
 
 /-- A pythogorean triple `x, y, z` is “classified” if there exist integers `k, m, n` such that either
  * `x = k * (m ^ 2 - n ^ 2)` and `y = k * (2 * m * n)`, or
- * `(x = k * (2 * m * n)` and `y = k * (m ^ 2 - n ^ 2)`. -/
+ * `x = k * (2 * m * n)` and `y = k * (m ^ 2 - n ^ 2)`. -/
 @[nolint unused_arguments] def is_classified := ∃ (k m n : ℤ),
   ((x = k * (m ^ 2 - n ^ 2) ∧ y = k * (2 * m * n))
     ∨ (x = k * (2 * m * n) ∧ y = k * (m ^ 2 - n ^ 2)))

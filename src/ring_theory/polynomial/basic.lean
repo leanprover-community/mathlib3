@@ -358,15 +358,14 @@ is_noetherian_submodule_left.1 (is_noetherian_of_fg_of_noetherian _
 
 end ideal
 
-@[priority 100]  -- see Note [lower instance priority]
-protected instance polynomial.wf_dvd_monoid [integral_domain α] [wf_dvd_monoid α] :
-  wf_dvd_monoid (polynomial α) :=
+protected theorem polynomial.wf_dvd_monoid {R : Type*} [integral_domain R] [wf_dvd_monoid R] :
+  wf_dvd_monoid (polynomial R) :=
 { well_founded_dvd_not_unit := begin
     classical,
     refine rel_hom.well_founded
       ⟨λ p, (if p = 0 then ⊤ else ↑p.degree, p.leading_coeff), _⟩
       (prod.lex_wf (with_top.well_founded_lt $ with_bot.well_founded_lt nat.lt_wf)
-        _inst_2.well_founded_dvd_not_unit),
+        _inst_5.well_founded_dvd_not_unit),
     rintros a b ⟨ane0, ⟨c, ⟨not_unit_c, rfl⟩⟩⟩,
     rw [polynomial.degree_mul, if_neg ane0],
     split_ifs with hac,
@@ -388,6 +387,8 @@ protected instance polynomial.wf_dvd_monoid [integral_domain α] [wf_dvd_monoid 
           ← with_bot.coe_add, with_bot.coe_lt_coe],
       exact lt_add_of_pos_right _ (nat.pos_of_ne_zero (λ h, hdeg (h.symm ▸ with_bot.coe_zero))) },
   end }
+
+attribute [priority 100] [instance] polynomial.wf_dvd_monoid
 
 /-- Hilbert basis theorem: a polynomial ring over a noetherian ring is a noetherian ring. -/
 protected theorem polynomial.is_noetherian_ring [is_noetherian_ring R] :
@@ -637,12 +638,13 @@ open unique_factorization_monoid
 
 variables {D : Type u} [integral_domain D] [unique_factorization_monoid D]
 
-@[priority 100]
-protected instance unique_factorization_monoid : unique_factorization_monoid D :=
+protected theorem unique_factorization_monoid : unique_factorization_monoid D :=
 begin
   haveI := arbitrary (normalization_monoid D),
   haveI := to_gcd_monoid D,
   exact ufm_of_gcd_of_wf_dvd_monoid
 end
+
+attribute [priority 100] [instance] polynomial.unique_factorization_monoid
 
 end polynomial

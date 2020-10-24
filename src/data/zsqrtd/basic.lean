@@ -567,8 +567,7 @@ instance : linear_ordered_comm_ring ℤ√d :=
   .. zsqrtd.comm_ring, .. zsqrtd.linear_order, .. zsqrtd.nontrivial }
 
 instance : linear_ordered_semiring ℤ√d := by apply_instance
-instance : linear_ordered_semiring ℤ√d           := by apply_instance
-instance : ordered_semiring ℤ√d                  := by apply_instance
+instance : ordered_semiring ℤ√d        := by apply_instance
 
 end
 end zsqrtd

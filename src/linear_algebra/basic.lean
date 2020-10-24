@@ -403,6 +403,12 @@ instance endomorphism_semiring : semiring (M →ₗ[R] M) :=
 by refine {mul := (*), one := 1, ..linear_map.add_comm_monoid, ..};
   { intros, apply linear_map.ext, simp {proj := ff} }
 
+lemma one_def : (1 : M →ₗ[R] M) = id := rfl
+
+lemma mul_def (g f : M →ₗ[R] M) : g * f = g.comp f := rfl
+
+@[simp] lemma one_coe : ((1 : M →ₗ[R] M) : M → M) = id := rfl
+
 lemma mul_apply (f g : M →ₗ[R] M) (x : M) : (f * g) x = f (g x) := rfl
 
 end semiring

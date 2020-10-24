@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Johan Commelin
 -/
 
 import linear_algebra.tensor_product
@@ -9,28 +9,143 @@ import algebra.algebra.basic
 
 universes u v₁ v₂ v₃ v₄
 
-
 /-!
-The tensor product of R-algebras.
+# Tensor products and algebras
 
-We construct the R-algebra structure on `A ⊗[R] B`, when `A` and `B` are both `R`-algebras,
-and provide the structure isomorphisms
+Let `R` be a (semi)ring and `A` an `R`-algebra.
+In this file we:
 
-* `R ⊗[R] A ≃ₐ[R] A`
-* `A ⊗[R] R ≃ₐ[R] A`
-* `A ⊗[R] B ≃ₐ[R] B ⊗[R] A`
+- Define the `A`-module structure on `A ⊗ M`, for an `R`-module `M`.
+- Define the `R`-algebra structure on `A ⊗ B`, for another `R`-algebra `B`.
+  and provide the structure isomorphisms
+  * `R ⊗[R] A ≃ₐ[R] A`
+  * `A ⊗[R] R ≃ₐ[R] A`
+  * `A ⊗[R] B ≃ₐ[R] B ⊗[R] A`
+  The code for
+  * `((A ⊗[R] B) ⊗[R] C) ≃ₐ[R] (A ⊗[R] (B ⊗[R] C))`
+  is written and compiles, but takes longer than the `-T100000` time limit,
+  so is currently commented out.
 
-The code for
-* `((A ⊗[R] B) ⊗[R] C) ≃ₐ[R] (A ⊗[R] (B ⊗[R] C))`
-is written and compiles, but takes longer than the `-T100000` time limit,
-so is currently commented out.
+## Main declaration
+
+- `linear_map.base_change A f` is the `A`-linear map `A ⊗ f`, for an `R`-linear map `f`.
+
 -/
-
-namespace algebra
 
 open_locale tensor_product
 open tensor_product
 
+namespace tensor_product
+
+variables {R A M N : Type*} [comm_semiring R] [semiring A] [algebra R A]
+variables [add_comm_monoid M] [semimodule R M] [add_comm_monoid N] [semimodule A N]
+
+
+/-!
+### The `A`-module structure on `A ⊗[R] M`
+-/
+
+open linear_map
+
+variables (R A M)
+
+instance algebra_tensor_module : semimodule A (A ⊗[R] M) :=
+{ smul := λ a, rtensor M (algebra.lmul R A a),
+  one_smul := λ x, by simp only [alg_hom.map_one, one_def, id.def, id_coe, rtensor_id],
+  mul_smul := λ a b x, by simp only [alg_hom.map_mul, mul_def, rtensor_comp, comp_apply],
+  smul_add := λ a x y, by simp only [map_add],
+  smul_zero := λ a, by simp only [map_zero],
+  add_smul := λ a b x, by simp only [alg_hom.map_add, add_apply, rtensor_add],
+  zero_smul := λ x, by simp only [rtensor_zero, alg_hom.map_zero, zero_apply] }
+
+variables {R A M}
+
+lemma algebra_tensor_module.smul_def (a : A) (x : A ⊗[R] M) :
+  a • x = rtensor M (algebra.lmul R A a) x := rfl
+
+@[ext]
+theorem algebra_tensor_module.ext (g h : (A ⊗[R] M) →ₗ[A] N)
+  (H : ∀ x y, g (x ⊗ₜ y) = h (x ⊗ₜ y)) : g = h :=
+linear_map.ext $ λ z, tensor_product.induction_on z (by simp_rw linear_map.map_zero) H $
+λ x y ihx ihy, by rw [g.map_add, h.map_add, ihx, ihy]
+
+variables (R A M)
+
+instance algebra_tensor_module.is_scalar_tower :
+  is_scalar_tower R A (A ⊗[R] M) :=
+{ smul_assoc :=
+  begin
+    intros r a x,
+    simp only [algebra_tensor_module.smul_def, alg_hom.map_smul, smul_apply, rtensor_smul]
+  end }
+
+end tensor_product
+
+namespace linear_map
+open tensor_product
+
+/-!
+### The basechange of a linear map of `R`-modules to a linear map of `A`-modules
+-/
+
+section semiring
+
+variables {R A B M N : Type*} [comm_semiring R]
+variables [semiring A] [algebra R A] [semiring B] [algebra R B]
+variables [add_comm_monoid M] [semimodule R M] [add_comm_monoid N] [semimodule R N]
+variables (f g : M →ₗ[R] N)
+
+variables (A)
+
+/-- `base_change A f` for `f : M →ₗ[R] N` is the `A`-linear map `A ⊗[R] M →ₗ[A] A ⊗[R] N`. -/
+def base_change (f : M →ₗ[R] N) : A ⊗[R] M →ₗ[A] A ⊗[R] N :=
+{ to_fun := f.ltensor A,
+  map_add' := (f.ltensor A).map_add,
+  map_smul' := λ a x,
+    show (f.ltensor A) (rtensor M (algebra.lmul R A a) x) =
+      (rtensor N ((algebra.lmul R A) a)) ((ltensor A f) x),
+    by simp only [← comp_apply, ltensor_comp_rtensor, rtensor_comp_ltensor] }
+
+variables {A}
+
+@[simp] lemma base_change_tmul (a : A) (x : M) :
+  f.base_change A (a ⊗ₜ x) = a ⊗ₜ (f x) := rfl
+
+lemma base_change_eq_ltensor :
+  (f.base_change A : A ⊗ M → A ⊗ N) = f.ltensor A := rfl
+
+@[simp] lemma base_change_add :
+  (f + g).base_change A = f.base_change A + g.base_change A :=
+by { ext, simp only [base_change_eq_ltensor, add_apply, ltensor_add] }
+
+@[simp] lemma base_change_zero : base_change A (0 : M →ₗ[R] N) = 0 :=
+by { ext, simp only [base_change_eq_ltensor, zero_apply, ltensor_zero] }
+
+@[simp] lemma base_change_smul (r : R) :
+  (r • f).base_change A = r • (f.base_change A) :=
+by { ext a m, simp only [base_change_tmul, smul_apply, tmul_smul], refl }
+
+end semiring
+
+section ring
+
+variables {R A B M N : Type*} [comm_ring R]
+variables [ring A] [algebra R A] [ring B] [algebra R B]
+variables [add_comm_group M] [module R M] [add_comm_group N] [module R N]
+variables (f g : M →ₗ[R] N)
+
+@[simp] lemma base_change_sub :
+  (f - g).base_change A = f.base_change A - g.base_change A :=
+by { ext, simp only [base_change_eq_ltensor, sub_apply, ltensor_sub] }
+
+@[simp] lemma base_change_neg : (-f).base_change A = -(f.base_change A) :=
+by { ext, simp only [base_change_eq_ltensor, neg_apply, ltensor_neg] }
+
+end ring
+
+end linear_map
+
+namespace algebra
 namespace tensor_product
 
 section semiring
@@ -38,6 +153,10 @@ section semiring
 variables {R : Type u} [comm_semiring R]
 variables {A : Type v₁} [semiring A] [algebra R A]
 variables {B : Type v₂} [semiring B] [algebra R B]
+
+/-!
+### The `R`-algebra structure on `A ⊗[R] B`
+-/
 
 /--
 (Implementation detail)

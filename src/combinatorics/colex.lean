@@ -201,16 +201,9 @@ lemma colex_singleton [linear_order α] {x y : α} :
   ({x} : finset α) <ᶜ {y} ↔ x < y :=
 begin
   rw colex_lt,
-  simp only [mem_singleton],
-  conv_lhs { conv
-            { congr,
-              funext,
-              rw and_comm,
-              rw and_comm (¬k=x),
-              rw and_assoc },
-            rw exists_eq_left },
+  simp only [mem_singleton, ← and_assoc, exists_eq_right],
   split,
-  { rintro ⟨p, q⟩,
+  { rintro ⟨q, p⟩,
     apply (lt_trichotomy x y).resolve_right,
     rw not_or_distrib,
     split,
@@ -222,15 +215,16 @@ begin
       specialize q a,
       apply p,
       symmetry,
-      rw ← q }, },
+      rw ← q } },
   { intro,
     split,
-    { apply ne_of_gt a },
     { intros z hz,
-    rw iff_false_left,
-    apply ne_of_gt hz,
-    apply ne_of_gt (trans hz a) }, },
+      rw iff_false_left,
+      { apply ne_of_gt hz },
+      { apply ne_of_gt (trans hz a) } },
+    { apply ne_of_gt a } }
 end
+
 /--
 If A is before B in colex, and everything in B is small, then everything in
 A is small.

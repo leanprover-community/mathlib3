@@ -1809,8 +1809,6 @@ begin
   { exact ⟨y, h⟩ }
 end
 
-/- TODO This theorem could be written in the context of monoids rather than groups; however,
-`linear_ordered_add_comm_monoid` does not currently exist in mathlib. -/
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_add_comm_group.to_no_top_order [nontrivial α] :
   no_top_order α :=

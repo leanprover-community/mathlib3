@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import algebra.category.Module.basic
 import algebra.category.Group.limits
+import algebra.direct_limit
 
 /-!
 # The category of R-modules has all limits
@@ -129,5 +130,71 @@ instance forget_preserves_limits : preserves_limits (forget (Module R)) :=
 { preserves_limits_of_shape := λ J 𝒥, by exactI
   { preserves_limit := λ F, preserves_limit_of_preserves_limit_cone
     (limit_cone_is_limit F) (types.limit_cone_is_limit (F ⋙ forget _)) } }
+
+section direct_limit
+open module
+
+variables {ι : Type v}
+variables [dec_ι : decidable_eq ι] [directed_order ι]
+variables (G : ι → Type v)
+variables [Π i, add_comm_group (G i)] [Π i, module R (G i)]
+variables (f : Π i j, i ≤ j → G i →ₗ[R] G j) [module.directed_system G f]
+
+@[simps]
+def direct_limit_diagram : ι ⥤ Module R :=
+{ obj := λ i, Module.of R (G i),
+  map := λ i j hij, f i j hij.down.down,
+  map_id' := by { intro i, ext x, apply module.directed_system.map_self },
+  map_comp' :=
+  begin
+    intros i j k hij hjk,
+    ext x,
+    symmetry,
+    apply module.directed_system.map_map
+  end }
+
+variables [decidable_eq ι]
+
+@[simps]
+def direct_limit_cocone : cocone (direct_limit_diagram G f) :=
+{ X := Module.of R $ direct_limit G f,
+  ι :=
+  { app := module.direct_limit.of R ι G f,
+    naturality' :=
+    begin
+      intros i j hij,
+      ext x,
+      exact direct_limit.of_f
+    end } }
+
+@[simps]
+def direct_limit_is_colimit [nonempty ι] : is_colimit (direct_limit_cocone G f) :=
+{ desc := λ s, direct_limit.lift R ι G f s.ι.app
+    begin
+      intros i j h x,
+      have := (s.ι.naturality ⟨⟨h⟩⟩),
+      dsimp at this,
+      rw [category.comp_id] at this,
+      rw [← this, coe_comp],
+    end,
+  fac' :=
+  begin
+    intros s i,
+    ext x,
+    dsimp,
+    apply direct_limit.lift_of
+  end,
+  uniq' :=
+  begin
+    intros s m h,
+    have : s.ι.app = λ i, linear_map.comp m (direct_limit.of R ι (λ i, G i) (λ i j H, f i j H) i),
+    { funext i, rw ← h, refl },
+    ext x,
+    dsimp,
+    simp only [this],
+    apply module.direct_limit.lift_unique
+  end }
+
+end direct_limit
 
 end Module

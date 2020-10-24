@@ -35,22 +35,78 @@ In this file we:
 open_locale tensor_product
 open tensor_product
 
+-- move this
+namespace algebra
+
+variables {R A M N P : Type*}
+variables [comm_semiring R] [semiring A] [algebra R A]
+variables [add_comm_monoid M] [semimodule R M] [semimodule A M] [is_scalar_tower R A M]
+variables [add_comm_monoid N] [semimodule R N]
+
+variables (R M)
+
+/-- The `R`-algebra morphism `A → End (M)` corresponding to the `A`-module structure on `M`. -/
+def lsmul : A →ₐ[R] (M →ₗ[R] M) :=
+{ map_one' := by { ext m, exact one_smul A m },
+  map_mul' := by { intros a b, ext c, exact smul_assoc a b c },
+  map_zero' := by { ext m, exact zero_smul A m },
+  commutes' := by { intro r, ext m, exact algebra_map_smul A r m },
+  .. (show A →ₗ[R] M →ₗ[R] M, from linear_map.mk₂ R (•)
+  (λ x y z, add_smul x y z)
+  (λ c x y, smul_assoc c x y)
+  (λ x y z, smul_add x y z)
+  (λ c x y, smul_algebra_smul_comm c x y)) }
+
+@[simp] lemma lsmul_coe (a : A) : (lsmul R M a : M → M) = (•) a := rfl
+
+instance : is_scalar_tower R A A :=
+{ smul_assoc := λ r a b, by simp only [smul_eq_mul, smul_mul_assoc] }
+
+end algebra
+
 namespace tensor_product
 
-variables {R A M N : Type*} [comm_semiring R] [semiring A] [algebra R A]
-variables [add_comm_monoid M] [semimodule R M] [add_comm_monoid N] [semimodule A N]
+variables {R A M N P : Type*}
 
+section restrict_scalars
+variables [comm_semiring R] [comm_semiring A] [algebra R A]
+variables [add_comm_monoid M] [semimodule R M] [semimodule A M] [is_scalar_tower R A M]
+variables [add_comm_monoid N] [semimodule R N] [semimodule A N] [is_scalar_tower R A N]
+
+variables (R A M N)
+
+@[priority 500]
+instance restrict_scalars.semimodule : semimodule R (M ⊗[A] N) :=
+show semimodule R (restrict_scalars R A (M ⊗ N)), from
+restrict_scalars.semimodule R A (M ⊗ N)
+
+instance restrict_scalars.is_scalar_tower : is_scalar_tower R A (M ⊗[A] N) :=
+show is_scalar_tower R A (restrict_scalars R A (M ⊗ N)), from
+restrict_scalars.is_scalar_tower R A (M ⊗ N)
+
+/- Check that we didn't introduce a diamond. -/
+example : tensor_product.restrict_scalars.semimodule R R M N =
+          @tensor_product.semimodule R _ M N _ _ _ _ := rfl
+
+end restrict_scalars
 
 /-!
 ### The `A`-module structure on `A ⊗[R] M`
 -/
 
 open linear_map
+open algebra (lsmul)
 
-variables (R A M)
+section defn
+variables [comm_semiring R] [semiring A] [algebra R A]
+variables [add_comm_monoid M] [semimodule R M] [semimodule A M] [is_scalar_tower R A M]
+variables [add_comm_monoid N] [semimodule R N]
 
-instance algebra_tensor_module : semimodule A (A ⊗[R] M) :=
-{ smul := λ a, rtensor M (algebra.lmul R A a),
+variables (R A M N)
+
+@[priority 500]
+instance algebra_tensor_module : semimodule A (M ⊗[R] N) :=
+{ smul := λ a, (lsmul R M a).rtensor N,
   one_smul := λ x, by simp only [alg_hom.map_one, one_def, id.def, id_coe, rtensor_id],
   mul_smul := λ a b x, by simp only [alg_hom.map_mul, mul_def, rtensor_comp, comp_apply],
   smul_add := λ a x y, by simp only [map_add],
@@ -58,26 +114,53 @@ instance algebra_tensor_module : semimodule A (A ⊗[R] M) :=
   add_smul := λ a b x, by simp only [alg_hom.map_add, add_apply, rtensor_add],
   zero_smul := λ x, by simp only [rtensor_zero, alg_hom.map_zero, zero_apply] }
 
+/- Check that we didn't introduce a diamond. -/
+example : tensor_product.algebra_tensor_module R R M N =
+          @tensor_product.semimodule R _ M N _ _ _ _ := rfl
+
+end defn
+
+namespace algebra_tensor_module
+
+section semiring
+variables [comm_semiring R] [semiring A] [algebra R A]
+variables [add_comm_monoid M] [semimodule R M] [semimodule A M] [is_scalar_tower R A M]
+variables [add_comm_monoid N] [semimodule R N]
+variables [add_comm_monoid P] [semimodule A P]
+
 variables {R A M}
 
-lemma algebra_tensor_module.smul_def (a : A) (x : A ⊗[R] M) :
-  a • x = rtensor M (algebra.lmul R A a) x := rfl
+lemma smul_def (a : A) (x : M ⊗[R] N) : a • x = (lsmul R M a).rtensor N x := rfl
 
-@[ext]
-theorem algebra_tensor_module.ext (g h : (A ⊗[R] M) →ₗ[A] N)
+@[ext] theorem ext (g h : (M ⊗[R] N) →ₗ[A] P)
   (H : ∀ x y, g (x ⊗ₜ y) = h (x ⊗ₜ y)) : g = h :=
 linear_map.ext $ λ z, tensor_product.induction_on z (by simp_rw linear_map.map_zero) H $
 λ x y ihx ihy, by rw [g.map_add, h.map_add, ihx, ihy]
 
-variables (R A M)
+variables (R A M N)
 
-instance algebra_tensor_module.is_scalar_tower :
-  is_scalar_tower R A (A ⊗[R] M) :=
+instance is_scalar_tower :
+  is_scalar_tower R A (M ⊗[R] N) :=
 { smul_assoc :=
   begin
     intros r a x,
     simp only [algebra_tensor_module.smul_def, alg_hom.map_smul, smul_apply, rtensor_smul]
   end }
+
+end semiring
+
+section comm_semiring
+variables [comm_semiring R] [comm_semiring A] [algebra R A]
+variables [add_comm_monoid M] [semimodule R M] [semimodule A M] [is_scalar_tower R A M]
+variables [add_comm_monoid N] [semimodule R N] [semimodule A N] [is_scalar_tower R A N]
+variables [add_comm_monoid P] [semimodule R P]
+
+def assoc : ((M ⊗[A] N) ⊗[R] P) ≃ₗ[A] (M ⊗[A] (N ⊗[R] P)) :=
+_
+
+end comm_semiring
+
+end algebra_tensor_module
 
 end tensor_product
 

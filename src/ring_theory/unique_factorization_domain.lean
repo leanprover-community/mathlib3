@@ -501,7 +501,7 @@ noncomputable theory
 variables [comm_cancel_monoid_with_zero α] [nontrivial α] [unique_factorization_monoid α]
 
 /-- Noncomputably defines a `normalization_monoid` structure on a `unique_factorization_monoid`. -/
-def default_normalization_monoid : normalization_monoid α :=
+protected def normalization_monoid : normalization_monoid α :=
 normalization_monoid_of_monoid_hom_right_inverse {
   to_fun := λ a : associates α, if a = 0 then 0 else ((factors a).map
     (classical.some mk_surjective.has_right_inverse : associates α → α)).prod,
@@ -524,7 +524,7 @@ normalization_monoid_of_monoid_hom_right_inverse {
   apply factors_prod hx
 end
 
-instance : inhabited (normalization_monoid α) := ⟨default_normalization_monoid⟩
+instance : inhabited (normalization_monoid α) := ⟨unique_factorization_monoid.normalization_monoid⟩
 
 end unique_factorization_monoid
 
@@ -1197,18 +1197,3 @@ noncomputable def unique_factorization_monoid.to_gcd_monoid
   .. ‹normalization_monoid α› }
 
 end
-
-namespace polynomial
-
-open_locale classical
-open unique_factorization_monoid
-variables (α) [integral_domain α] [unique_factorization_monoid α]
-
-theorem unique_factorization_monoid : unique_factorization_monoid α :=
-begin
-  haveI := arbitrary (normalization_monoid α),
-  haveI := to_gcd_monoid α,
-  exact ufm_of_gcd_of_wf_dvd_monoid
-end
-
-end polynomial

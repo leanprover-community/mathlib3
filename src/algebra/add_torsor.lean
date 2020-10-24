@@ -530,6 +530,6 @@ include G
 (equiv.vadd_const a).symm.image_eq_preimage s
 
 @[simp] lemma image_vsub_left (a : P) (s : set P) : ((-ᵥ) a) '' s = (λ x, -x +ᵥ a) ⁻¹' s :=
-TODO
+(equiv.const_vsub a).image_eq_preimage s
 
 end set

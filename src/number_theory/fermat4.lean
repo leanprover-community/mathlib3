@@ -305,9 +305,9 @@ begin
   -- and it has a smaller c: from c = m ^ 2 + n ^ 2 we see that m is smaller than c, and i ^ 2 = m.
   have hic : int.nat_abs i < int.nat_abs c,
   { apply int.coe_nat_lt.mp, rw ← (int.eq_nat_abs_of_zero_le (le_of_lt hc)),
-    apply gt_of_gt_of_ge _ (int.abs_le_mul_self i),
+    apply gt_of_gt_of_ge _ (int.abs_le_self_pow_two i),
     rw [← hi, ht3],
-    apply gt_of_gt_of_ge _ (int.le_mul_self m),
+    apply gt_of_gt_of_ge _ (int.le_self_pow_two m),
     exact lt_add_of_pos_right (m ^ 2) (pow_two_pos_of_ne_zero n hn) },
   have hic' : int.nat_abs c ≤ int.nat_abs i,
   { apply (h.2 j k i),

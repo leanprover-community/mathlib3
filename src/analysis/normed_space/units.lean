@@ -108,9 +108,7 @@ begin
   rw [eventually_iff, mem_nhds_iff],
   casesI subsingleton_or_nontrivial R,
   { use [1, by norm_num] },
-  { have hinv : 0 < ∥(↑x⁻¹ : R)∥⁻¹,
-    { cancel_denoms,
-      exact x⁻¹.norm_pos },
+  { have hinv : 0 < ∥(↑x⁻¹ : R)∥⁻¹, by cancel_denoms,
     use [∥(↑x⁻¹ : R)∥⁻¹, hinv],
     intros t ht,
     simp only [mem_ball, dist_zero_right] at ht,
@@ -121,7 +119,7 @@ begin
       cancel_denoms },
     have hright := inverse_one_sub (-↑x⁻¹ * t) ht',
     have hleft := inverse_unit (x.add t ht),
-    simp only [neg_mul_eq_neg_mul_symm, sub_neg_eq_add] at hright,
+    simp only [← neg_mul_eq_neg_mul, sub_neg_eq_add] at hright,
     simp only [units.add_coe] at hleft,
     simp [hleft, hright, units.add] }
 end

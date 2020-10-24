@@ -3,6 +3,7 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
+import data.pi
 import logic.unique
 import logic.function.basic
 
@@ -136,6 +137,24 @@ begin
   { exact ⟨x₁, (hf.ne_iff' h).2 hx⟩ },
   { exact ⟨x₂, h⟩ }
 end
+
+namespace pi
+
+variables {I : Type*} {f : I → Type*}
+
+/-- If any of the internal types are nontrivial, so is the collection -/
+instance nontrivial [decidable_eq I] [Π i, has_zero (f i)] [inst : ∃ i, nontrivial $ f i] : nontrivial (Π i : I, f i) :=
+let ⟨i, hi⟩ := inst in by exactI (single_injective f i).nontrivial
+
+/-- A weaker statement that is easier to apply -/
+instance nontrivial' [inhabited I] [∀ i, nontrivial $ f i] : nontrivial (Π i : I, f i) :=
+⟨⟨
+  λ i, classical.some (exists_pair_ne (f i)),
+  λ i, classical.some $ classical.some_spec (exists_pair_ne (f i)),
+  λ h, classical.some_spec (classical.some_spec (exists_pair_ne (f _))) (congr_fun h (default I)),
+⟩⟩
+
+end pi
 
 mk_simp_attribute nontriviality "Simp lemmas for `nontriviality` tactic"
 

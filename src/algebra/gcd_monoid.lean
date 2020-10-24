@@ -604,13 +604,6 @@ instance normalization_monoid_of_unique_units : normalization_monoid α :=
 
 @[simp] lemma normalize_eq (x : α) : normalize x = x := mul_one x
 
-@[simp] lemma associated_iff_eq (x y : α) : associated x y ↔ x = y :=
-begin
-  refine ⟨_, λ h, h ▸ associated.refl x⟩,
-  rintro ⟨u, rfl⟩,
-  simp [units_eq_one u],
-end
-
 end unique_unit
 
 section integral_domain
@@ -643,6 +636,7 @@ noncomputable theory
 
 variables [comm_cancel_monoid_with_zero α] [nontrivial α]
 
+/-- Define `normalization_monoid` on a structure from a `monoid_hom` inverse to `associates.mk`. -/
 def normalization_monoid_of_monoid_hom_right_inverse [decidable_eq α] (f : associates α →* α)
   (hinv : function.right_inverse f associates.mk) :
   normalization_monoid α :=

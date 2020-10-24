@@ -1380,10 +1380,7 @@ begin
   exact le_trans (le_of_max_le_left (by rwa pow_one x)) (pow_le_pow (le_of_max_le_right hx) hn),
 end
 
-end linear_ordered_semiring
-
-section linear_ordered_semiring
-variables [linear_ordered_semiring α] [archimedean α]
+variables [archimedean α]
 variables {l : filter β} {f : β → α}
 
 /-- If a function tends to infinity along a filter, then this function multiplied by a positive

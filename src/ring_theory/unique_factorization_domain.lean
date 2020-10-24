@@ -166,7 +166,7 @@ class unique_factorization_monoid (α : Type*) [comm_cancel_monoid_with_zero α]
   Prop :=
 (irreducible_iff_prime : ∀ {a : α}, irreducible a ↔ prime a)
 
-lemma ufm_of_gcd_of_wf_dvd_monoid [nontrivial α] [comm_cancel_monoid_with_zero α]
+instance ufm_of_gcd_of_wf_dvd_monoid [nontrivial α] [comm_cancel_monoid_with_zero α]
   [wf_dvd_monoid α] [gcd_monoid α] : unique_factorization_monoid α :=
 { irreducible_iff_prime := λ _, gcd_monoid.irreducible_iff_prime
   .. ‹wf_dvd_monoid α› }
@@ -1107,7 +1107,7 @@ open associates unique_factorization_monoid
 
 /-- `to_gcd_monoid` constructs a GCD monoid out of a normalization on a
   unique factorization domain. -/
-@[priority 100] noncomputable instance unique_factorization_monoid.to_gcd_monoid
+noncomputable def unique_factorization_monoid.to_gcd_monoid
   (α : Type*) [integral_domain α] [unique_factorization_monoid α] [normalization_monoid α]
   [decidable_eq (associates α)] [decidable_eq α] : gcd_monoid α :=
 { gcd := λa b, (associates.mk a ⊓ associates.mk b).out,

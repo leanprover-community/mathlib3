@@ -381,6 +381,38 @@ section adjoin_integral_element
 
 variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (α : E) [h : is_integral F α]
 
+lemma min_poly_eval_gen_eq_zero : (minimal_polynomial h).eval₂ (algebra_map F F⟮α⟯) (adjoin_simple.gen F α) = 0 :=
+begin
+  have comp : algebra_map F E = (algebra_map F⟮α⟯ E).comp (algebra_map F F⟮α⟯) := by { ext, refl },
+  have hom_eval := polynomial.hom_eval₂ (minimal_polynomial h)
+    (algebra_map F F⟮α⟯) (algebra_map F⟮α⟯ E) (adjoin_simple.gen F α),
+  rw [←comp, adjoin_simple.algebra_map_gen, ←polynomial.aeval_def, ←polynomial.aeval_def,
+    minimal_polynomial.aeval h] at hom_eval,
+  ext,
+  exact hom_eval,
+end
+
+noncomputable def adjoin_root_equiv_adjoin_simple : adjoin_root (minimal_polynomial h) ≃ₐ[F] F⟮α⟯ :=
+alg_equiv.of_bijective (alg_hom.mk (adjoin_root.lift (algebra_map F F⟮α⟯)
+  (adjoin_simple.gen F α) (@min_poly_eval_gen_eq_zero F  _ _ _ _ α h)) (ring_hom.map_one _)
+  (λ x y, ring_hom.map_mul _ x y) (ring_hom.map_zero _) (λ x y, ring_hom.map_add _ x y)
+  (by { exact λ _, adjoin_root.lift_of })) (begin
+    set f := adjoin_root.lift _ _ (@min_poly_eval_gen_eq_zero F  _ _ _ _ α h),
+    have mem_top :=
+      @subfield.mem_top _ (@adjoin_root.field F _ _ (minimal_polynomial.irreducible h)),
+    split,
+    { exact @ring_hom.injective _ _ (@field.to_division_ring _
+        (@adjoin_root.field F _ _ (minimal_polynomial.irreducible h))) _ _ f },
+    { set range := @ring_hom.field_range _ _ (@adjoin_root.field F _ _
+        (minimal_polynomial.irreducible h)) _ ((F⟮α⟯.to_subfield.subtype).comp f),
+      suffices : F⟮α⟯.to_subfield ≤ range,
+      { exact λ x, Exists.cases_on (this (subtype.mem x)) (λ y hy, ⟨y, subtype.ext hy.2⟩) },
+      exact subfield.closure_le.mpr (set.union_subset (λ x hx, Exists.cases_on hx (λ y hy, ⟨y,
+        ⟨mem_top y, by { rw [ring_hom.comp_apply, adjoin_root.lift_of], exact hy }⟩⟩))
+        (set.singleton_subset_iff.mpr ⟨adjoin_root.root (minimal_polynomial h),
+        ⟨mem_top (adjoin_root.root (minimal_polynomial h)),
+        by { rw [ring_hom.comp_apply, adjoin_root.lift_root], refl }⟩⟩)) } end)
+
 instance finite_dimensional_adjoin_integral : finite_dimensional F F⟮α⟯ :=
 begin
   sorry

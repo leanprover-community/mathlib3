@@ -18,15 +18,14 @@ instance is_galois_of_fixed_field (G : Type*) [group G] [fintype G] [mul_semirin
   is_galois (mul_action.fixed_points G E) E :=
 ⟨fixed_points.separable G E, fixed_points.normal G E⟩
 
-instance aut : group (E ≃ₐ[F] E) := {
-    mul := λ ϕ ψ, ψ.trans ϕ,
-    mul_assoc := λ ϕ ψ χ, rfl,
-    one := 1,
-    one_mul := λ ϕ, by {ext, refl},
-    mul_one := λ ϕ, by {ext, refl},
-    inv := alg_equiv.symm,
-    mul_left_inv := λ ϕ, by {ext, exact alg_equiv.symm_apply_apply ϕ a},
-}
+instance aut : group (E ≃ₐ[F] E) :=
+{ mul := λ ϕ ψ, ψ.trans ϕ,
+  mul_assoc := λ ϕ ψ χ, rfl,
+  one := 1,
+  one_mul := λ ϕ, by {ext, refl},
+  mul_one := λ ϕ, by {ext, refl},
+  inv := alg_equiv.symm,
+  mul_left_inv := λ ϕ, by {ext, exact alg_equiv.symm_apply_apply ϕ a} }
 
 lemma is_galois_implies_card_aut_eq_findim [finite_dimensional F E] [h : is_galois F E] :
   fintype.card (E ≃ₐ[F] E) = findim F E :=

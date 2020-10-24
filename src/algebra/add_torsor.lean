@@ -454,3 +454,23 @@ def const_vadd_hom : multiplicative G →* equiv.perm P :=
   map_mul' := const_vadd_add P }
 
 end equiv
+
+namespace set
+
+variables {G : Type*} {P : Type*} [add_group G] [add_torsor G P]
+
+include G
+
+@[simp] lemma image_vadd_left (a : G) (s : set P) : (+ᵥ) a '' s = ((+ᵥ) (-a)) ⁻¹' s :=
+(equiv.const_vadd P a).image_eq_preimage s
+
+@[simp] lemma image_vadd_right (a : P) (s : set G) : (+ᵥ a) '' s = (-ᵥ a) ⁻¹' s :=
+(equiv.vadd_const a).image_eq_preimage s
+
+@[simp] lemma image_vsub_right (a : P) (s : set P) : (-ᵥ a) '' s = (+ᵥ a) ⁻¹' s :=
+(equiv.vadd_const a).symm.image_eq_preimage s
+
+@[simp] lemma image_vsub_left (a : P) (s : set P) : ((-ᵥ) a) '' s = (λ x, -x +ᵥ a) ⁻¹' s :=
+TODO
+
+end set

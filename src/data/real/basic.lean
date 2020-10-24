@@ -84,7 +84,7 @@ instance : partial_order ℝ :=
   le_refl := λ a, or.inr rfl,
   le_trans := λ a b c, quotient.induction_on₃ a b c $
     λ f g h, by simpa [quotient_mk_eq_mk] using le_trans,
-    lt_iff_le_not_le := λ a b, quotient.induction_on₂ a b $
+  lt_iff_le_not_le := λ a b, quotient.induction_on₂ a b $
     λ f g, by simpa [quotient_mk_eq_mk] using lt_iff_le_not_le,
   le_antisymm := λ a b, quotient.induction_on₂ a b $
     λ f g, by simpa [mk_eq, quotient_mk_eq_mk] using @cau_seq.le_antisymm _ _ f g }

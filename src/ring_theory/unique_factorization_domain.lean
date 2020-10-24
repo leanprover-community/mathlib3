@@ -42,6 +42,7 @@ instance is_noetherian_ring.wf_dvd_monoid [integral_domain α] [is_noetherian_ri
       ext,
       exact ideal.span_singleton_lt_span_singleton.symm }⟩
 
+@[priority 100]  -- see Note [lower instance priority]
 instance polynomial.wf_dvd_monoid [integral_domain α] [wf_dvd_monoid α] : wf_dvd_monoid (polynomial α) :=
 { well_founded_dvd_not_unit := begin
     classical,
@@ -1203,7 +1204,7 @@ open_locale classical
 open unique_factorization_monoid
 variables (α) [integral_domain α] [unique_factorization_monoid α]
 
-@[priority 100] instance unique_factorization_monoid : unique_factorization_monoid α :=
+theorem unique_factorization_monoid : unique_factorization_monoid α :=
 begin
   haveI := arbitrary (normalization_monoid α),
   haveI := to_gcd_monoid α,

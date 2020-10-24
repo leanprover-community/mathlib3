@@ -343,6 +343,14 @@ theorem dvd_antisymm {m n : ℕ+} : m ∣ n → n ∣ m → m = n :=
 theorem dvd_one_iff (n : ℕ+) : n ∣ 1 ↔ n = 1 :=
  ⟨λ h, dvd_antisymm h (one_dvd n), λ h, h.symm ▸ (dvd_refl 1)⟩
 
+lemma pos_of_div_pos {n : ℕ+} {a : ℕ} (h : a ∣ n) : 0 < a :=
+begin
+  apply zero_lt_iff_ne_zero.2,
+  intro hzero,
+  rw hzero at h,
+  exact pnat.ne_zero n (eq_zero_of_zero_dvd h)
+end
+
 /-- The greatest common divisor (gcd) of two positive natural numbers,
   viewed as positive natural number. -/
 def gcd (n m : ℕ+) : ℕ+ :=

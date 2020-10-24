@@ -1231,6 +1231,21 @@ meta def emit_code_here : string → lean.parser unit
             if left.length = 0 then return ()
             else emit_code_here left
 
+/-- `run_parser p` is like `run_cmd` but for the parser monad. It executes parser `p` at the
+top level, giving access to operations like `emit_code_here`. -/
+@[user_command]
+meta def run_parser_cmd (_ : interactive.parse $ tk "run_parser") : lean.parser unit :=
+do e ← lean.parser.pexpr 0,
+  e ← to_expr ``(%%e : lean.parser unit) ff ff,
+  p ← eval_expr (lean.parser unit) e,
+  p
+
+add_tactic_doc
+{ name       := "run_parser",
+  category   := doc_category.cmd,
+  decl_names := [``run_parser_cmd],
+  tags       := ["parsing"] }
+
 /-- `get_current_namespace` returns the current namespace (it could be `name.anonymous`).
 
 This function deserves a C++ implementation in core lean, and will fail if it is not called from

@@ -12,12 +12,13 @@ class is_subfield extends is_subring S : Prop :=
 (inv_mem : ∀ {x : F}, x ∈ S → x⁻¹ ∈ S)
 
 instance is_subfield.field [is_subfield S] : field S :=
+by letI cr_inst : comm_ring S := subset.comm_ring; exact
 { inv := λ x, ⟨x⁻¹, is_subfield.inv_mem x.2⟩,
   exists_pair_ne := ⟨0, 1, λ h, zero_ne_one (subtype.ext_iff_val.1 h)⟩,
   mul_inv_cancel := λ a ha, subtype.ext_iff_val.2 (mul_inv_cancel
     (λ h, ha $ subtype.ext_iff_val.2 h)),
   inv_zero := subtype.ext_iff_val.2 inv_zero,
-  ..show comm_ring S, by apply_instance }
+  .. cr_inst }
 
 lemma is_subfield.pow_mem {a : F} {n : ℤ} {s : set F} [is_subfield s] (h : a ∈ s) :
   a ^ n ∈ s :=

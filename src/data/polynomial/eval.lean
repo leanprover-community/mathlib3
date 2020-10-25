@@ -572,14 +572,7 @@ is_ring_hom.map_neg _
 
 @[simp] lemma map_int_cast {S} [ring S] (f : R →+* S) (n : ℤ) :
   map f ↑n = ↑n :=
-begin
-  by_cases hpos : 0 ≤ n,
-  { obtain ⟨a, rfl⟩ := int.eq_coe_of_zero_le hpos,
-    simp only [map_nat_cast, int.cast_coe_nat] },
-  rw [not_le] at hpos,
-  obtain ⟨a, rfl⟩ := int.exists_eq_neg_of_nat (int.le_of_lt hpos),
-  simp only [map_nat_cast, int.cast_coe_nat, int.cast_neg, map_neg]
-end
+(ring_hom.of (map f)).map_int_cast n
 
 @[simp] lemma eval_int_cast {n : ℤ} {x : R} : (n : polynomial R).eval x = n :=
 by simp only [←C_eq_int_cast, eval_C]

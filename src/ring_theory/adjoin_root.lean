@@ -9,6 +9,7 @@ import data.polynomial.field_division
 import ring_theory.adjoin
 import ring_theory.principal_ideal_domain
 import linear_algebra.finite_dimensional
+import linear_algebra.lagrange
 
 /-!
 # Adjoining roots of polynomials
@@ -206,13 +207,71 @@ mul_div_eq_iff_is_root.2 $ is_root_root _
 
 section findim
 
+lemma polynomial.degree_mod_lt {R : Type*} [field R] (p q : polynomial R)
+  (h : p ≠ 0) : (q % p).degree < p.degree :=
+begin
+  exact euclidean_domain.mod_lt q h,
+end
+
+def degree_lt_linear_map : polynomial.degree_lt K (f.nat_degree) →ₗ[K] adjoin_root f := {
+  to_fun := λ q, adjoin_root.mk f q,
+  map_add' := λ _ _, ring_hom.map_add _ _ _,
+  map_smul' := λ _ _, by { simp only [algebra.smul_def, ring_hom.map_mul, submodule.coe_smul,
+    algebra_map_eq, mul_eq_mul_right_iff], left, refl }
+}
+
+lemma degree_lt_linear_map_injective : function.injective (degree_lt_linear_map f) :=
+begin
+  rw is_add_group_hom.injective_iff,
+  intros q hq,
+  change ideal.quotient.mk _ _ = 0 at hq,
+  rw [ideal.quotient.eq_zero_iff_mem, ideal.mem_span_singleton] at hq,
+  cases hq with r hr,
+  cases q with q hq,
+  rw submodule.coe_mk at hr,
+  rw [submodule.mk_eq_zero, hr],
+  rw [mem_degree_lt, hr, degree_mul] at hq,
+  clear hr q,
+  by_cases hp : (f = 0),
+  { rw [hp, zero_mul] },
+  by_cases hr : (r = 0),
+  { rw [hr, mul_zero] },
+  rw [degree_eq_nat_degree hp, degree_eq_nat_degree hr,
+    ←with_bot.coe_add, with_bot.coe_lt_coe] at hq,
+  exfalso,
+  nlinarith,
+end
+
+lemma degree_lt_linear_map_surjective (h : f ≠ 0) : function.surjective (degree_lt_linear_map f) :=
+begin
+  intro q,
+  obtain ⟨q', hq'⟩ : ∃ q', adjoin_root.mk p q' = q := ideal.quotient.mk_surjective q,
+  use (q' % p),
+  { rw [mem_degree_lt, ← degree_eq_nat_degree h],
+    exact euclidean_domain.mod_lt q' h, },
+  { change adjoin_root.mk p (q' % p) = q,
+    symmetry,
+    rw [← hq', adjoin_root.mk, ideal.quotient.eq, ideal.mem_span_singleton'],
+    exact ⟨q' / p, by rw [eq_sub_iff_add_eq, mul_comm, euclidean_domain.div_add_mod]⟩, },
+end
+
+lemma degree_lt_linear_map_bijective (h : f ≠ 0) : function.bijective (degree_lt_linear_map f) :=
+⟨degree_lt_linear_map_injective f, degree_lt_linear_map_surjective f h⟩
+
+def degree_lt_linear_equiv (h : f ≠ 0) : polynomial.degree_lt K (f.nat_degree) ≃ₗ[K] adjoin_root f :=
+{ .. (degree_lt_linear_map f), .. equiv.of_bijective _ (degree_lt_linear_map_bijective f h) }
+
 instance finite_dimensional (hf : f ≠ 0) : finite_dimensional K (adjoin_root f) :=
 begin
+  have key1 := degree_lt_linear_equiv f hf,
+  have key2 := linear_equiv.finite_dimensional,
   sorry
 end
 
 lemma findim (hf : f ≠ 0) : finite_dimensional.findim K (adjoin_root f) = f.nat_degree :=
 begin
+  have key1 := degree_lt_linear_equiv f hf,
+  have key := linear_equiv.findim_eq,
   sorry,
 end
 

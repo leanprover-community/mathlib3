@@ -207,13 +207,7 @@ mul_div_eq_iff_is_root.2 $ is_root_root _
 
 section findim
 
-lemma polynomial.degree_mod_lt {R : Type*} [field R] (p q : polynomial R)
-  (h : p ≠ 0) : (q % p).degree < p.degree :=
-begin
-  exact euclidean_domain.mod_lt q h,
-end
-
-def degree_lt_linear_map : polynomial.degree_lt K (f.nat_degree) →ₗ[K] adjoin_root f := {
+def degree_lt_linear_map : degree_lt K (f.nat_degree) →ₗ[K] adjoin_root f := {
   to_fun := λ q, adjoin_root.mk f q,
   map_add' := λ _ _, ring_hom.map_add _ _ _,
   map_smul' := λ _ _, by { simp only [algebra.smul_def, ring_hom.map_mul, submodule.coe_smul,
@@ -258,22 +252,20 @@ end
 lemma degree_lt_linear_map_bijective (h : f ≠ 0) : function.bijective (degree_lt_linear_map f) :=
 ⟨degree_lt_linear_map_injective f, degree_lt_linear_map_surjective f h⟩
 
-def degree_lt_linear_equiv (h : f ≠ 0) : polynomial.degree_lt K (f.nat_degree) ≃ₗ[K] adjoin_root f :=
+def degree_lt_linear_equiv (h : f ≠ 0) : degree_lt K (f.nat_degree) ≃ₗ[K] adjoin_root f :=
 { .. (degree_lt_linear_map f), .. equiv.of_bijective _ (degree_lt_linear_map_bijective f h) }
 
+instance temp_inst (F : Type*) [field F] (n : ℕ) :
+  finite_dimensional F (polynomial.degree_lt F n) := sorry
+
+lemma temp_lem (F : Type*) [field F] (n : ℕ) :
+  finite_dimensional.findim F (polynomial.degree_lt F n) = n := sorry
+
 instance finite_dimensional (hf : f ≠ 0) : finite_dimensional K (adjoin_root f) :=
-begin
-  have key1 := degree_lt_linear_equiv f hf,
-  have key2 := linear_equiv.finite_dimensional,
-  repeat {sorry},
-end
+linear_equiv.finite_dimensional (degree_lt_linear_equiv f hf)
 
 lemma findim (hf : f ≠ 0) : finite_dimensional.findim K (adjoin_root f) = f.nat_degree :=
-begin
-  have key1 := degree_lt_linear_equiv f hf,
-  have key := linear_equiv.findim_eq,
-  repeat {sorry},
-end
+eq.trans (linear_equiv.findim_eq (degree_lt_linear_equiv f hf)).symm (temp_lem K f.nat_degree)
 
 end findim
 

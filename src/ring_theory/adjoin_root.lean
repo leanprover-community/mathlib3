@@ -245,10 +245,9 @@ linear_equiv.finite_dimensional (((polynomial.degree_lt_linear_equiv K (f.nat_de
   (degree_lt_linear_equiv f hf))
 
 lemma findim (hf : f ≠ 0) : finite_dimensional.findim K (adjoin_root f) = f.nat_degree :=
-begin
-  rw ←linear_equiv.findim_eq (((polynomial.degree_lt_linear_equiv K (f.nat_degree)).symm).trans (degree_lt_linear_equiv f hf)),
-  sorry,
-end
+by rw [←linear_equiv.findim_eq (((polynomial.degree_lt_linear_equiv K (f.nat_degree)).symm).trans
+      (degree_lt_linear_equiv f hf)), finite_dimensional.findim_fintype_fun_eq_card K,
+      fintype.card_coe, finset.card_range]
 
 end findim
 

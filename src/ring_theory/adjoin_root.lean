@@ -255,11 +255,17 @@ lemma degree_lt_linear_map_bijective (h : f ≠ 0) : function.bijective (degree_
 def degree_lt_linear_equiv (h : f ≠ 0) : degree_lt K (f.nat_degree) ≃ₗ[K] adjoin_root f :=
 { .. (degree_lt_linear_map f), .. equiv.of_bijective _ (degree_lt_linear_map_bijective f h) }
 
+/-- If we can show that this is bijective then we're done... -/
+def temp_map (F : Type*) [field F] (n : ℕ) : degree_lt F n →ₗ[F] ((↑(finset.range n) : set ℕ) → F) :=
+{ to_fun := λ p n, (↑p : polynomial F).coeff n,
+  map_add' := λ p q, by { ext, rw [submodule.coe_add, coeff_add], refl },
+  map_smul' := λ x p, by { ext, rw [submodule.coe_smul, coeff_smul], refl } }
+
 instance temp_inst (F : Type*) [field F] (n : ℕ) :
-  finite_dimensional F (polynomial.degree_lt F n) := sorry
+  finite_dimensional F (degree_lt F n) := sorry
 
 lemma temp_lem (F : Type*) [field F] (n : ℕ) :
-  finite_dimensional.findim F (polynomial.degree_lt F n) = n := sorry
+  finite_dimensional.findim F (degree_lt F n) = n := sorry
 
 instance finite_dimensional (hf : f ≠ 0) : finite_dimensional K (adjoin_root f) :=
 linear_equiv.finite_dimensional (degree_lt_linear_equiv f hf)

@@ -36,7 +36,7 @@ lemma sum_antidiagonal_succ {n : ℕ} {f : ℕ × ℕ → N} :
 @[to_additive]
 lemma prod_antidiagonal_swap {n : ℕ} {f : ℕ × ℕ → M} :
   ∏ p in antidiagonal n, f p.swap = ∏ p in antidiagonal n, f p :=
-by { nth_rewrite 1 ← map_swap_antidiagonal, rw [prod_map], refl } 
+by { nth_rewrite 1 ← map_swap_antidiagonal, rw [prod_map], refl }
 
 lemma prod_antidiagonal_succ' {n : ℕ} {f : ℕ × ℕ → M} :
   ∏ p in antidiagonal (n + 1), f p = f (n + 1, 0) * ∏ p in antidiagonal n, f (p.1, p.2 + 1) :=

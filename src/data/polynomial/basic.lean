@@ -64,23 +64,19 @@ def X : polynomial R := monomial 1 1
 lemma X_mul : X * p = p * X :=
 by { ext, simp [X, monomial, add_monoid_algebra.mul_apply, sum_single_index, add_comm] }
 
-lemma X_pow_mul {n : ℕ} : X^n * p = p * X^n :=
-begin
-  induction n with n ih,
-  { simp, },
-  { conv_lhs { rw pow_succ', },
-    rw [mul_assoc, X_mul, ←mul_assoc, ih, mul_assoc, ←pow_succ'], }
-end
-
-lemma X_pow_mul_assoc {n : ℕ} : (p * X^n) * q = (p * q) * X^n :=
-by rw [mul_assoc, X_pow_mul, ←mul_assoc]
-
 lemma commute_X (p : polynomial R) : commute X p := X_mul
+
+lemma X_pow_mul {n : ℕ} : X^n * p = p * X^n := p.commute_X.pow_left n
+
+lemma X_pow_mul_assoc {n : ℕ} : p * X^n * q = p * q * X^n :=
+((q.commute_X.pow_left n).symm.right_comm p).symm
 
 /-- coeff p n is the coefficient of X^n in p -/
 def coeff (p : polynomial R) : ℕ → R := @coe_fn (ℕ →₀ R) _ p
 
 @[simp] lemma coeff_mk (s) (f) (h) : coeff (finsupp.mk s f h : polynomial R) = f := rfl
+
+lemma mem_support_iff : n ∈ p.support ↔ p.coeff n ≠ 0 := mem_support_iff
 
 lemma coeff_monomial : coeff (monomial n a) m = if n = m then a else 0 :=
 by { dsimp [monomial, coeff], rw finsupp.single_apply, congr }

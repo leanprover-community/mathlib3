@@ -254,6 +254,8 @@ def srange : subsemiring S := (⊤ : subsemiring R).map f
 @[simp] lemma mem_srange {f : R →+* S} {y : S} : y ∈ f.srange ↔ ∃ x, f x = y :=
 by simp [srange]
 
+lemma mem_srange_self (f : R →+* S) (x : R) : f x ∈ f.srange := ⟨x, trivial, rfl⟩
+
 lemma map_srange : f.srange.map g = (g.comp f).srange :=
 (⊤ : subsemiring R).map_map g f
 

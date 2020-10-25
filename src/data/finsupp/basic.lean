@@ -205,6 +205,12 @@ if_neg hb
 lemma support_single_subset : (single a b).support ⊆ {a} :=
 show ite _ _ _ ⊆ _, by split_ifs; [exact empty_subset _, exact subset.refl _]
 
+lemma single_apply_mem (x) : single a b x ∈ ({0, b} : set M) :=
+by rcases em (a = x) with (rfl|hx); [simp, simp [single_eq_of_ne hx]]
+
+lemma range_single_subset : set.range (single a b) ⊆ {0, b} :=
+set.range_subset_iff.2 single_apply_mem
+
 lemma single_injective (a : α) : function.injective (single a : M → α →₀ M) :=
 assume b₁ b₂ eq,
 have (single a b₁ : α →₀ M) a = (single a b₂ : α →₀ M) a, by rw eq,

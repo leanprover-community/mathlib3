@@ -58,6 +58,8 @@ begin
     simp }
 end
 
+lemma 
+
 end nat
 
 end finset

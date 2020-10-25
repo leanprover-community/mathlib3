@@ -316,7 +316,7 @@ multiset.ext.mpr $ λ r,
          count_roots (right_ne_zero_of_mul hpq), root_multiplicity_mul hpq]
 
 @[simp] lemma mem_roots_sub_C {p : polynomial R} {a x : R} (hp0 : 0 < degree p) :
-  x ∈ (p - C a).roots ↔ p.eval x = a :=
+  x ∈ (p - C a).roots ↔ eval x p = a :=
 (mem_roots (show p - C a ≠ 0, from mt sub_eq_zero.1 $ λ h,
     not_le_of_gt hp0 $ h.symm ▸ degree_C_le)).trans
   (by rw [is_root.def, eval_sub, eval_C, sub_eq_zero])
@@ -421,7 +421,7 @@ lemma coeff_comp_degree_mul_degree (hqd0 : nat_degree q ≠ 0) :
 if hp0 : p = 0 then by simp [hp0] else
 calc coeff (p.comp q) (nat_degree p * nat_degree q)
   = p.sum (λ n a, coeff (C a * q ^ n) (nat_degree p * nat_degree q)) :
-    by rw [comp, eval₂, coeff_sum]
+    by rw [comp, eval₂_eq_sum, coeff_sum]
 ... = coeff (C (leading_coeff p) * q ^ nat_degree p) (nat_degree p * nat_degree q) :
   finset.sum_eq_single _
   begin
@@ -471,11 +471,11 @@ by rw [←polynomial.C_mul', ←polynomial.eq_C_of_degree_eq_zero (degree_coe_un
   nat_degree (u : polynomial R) = 0 :=
 nat_degree_eq_of_degree_eq_some (degree_coe_units u)
 
-lemma zero_of_eval_zero [infinite R] (p : polynomial R) (h : ∀ x, p.eval x = 0) : p = 0 :=
+lemma zero_of_eval_zero [infinite R] (p : polynomial R) (h : ∀ x, eval x p = 0) : p = 0 :=
 by classical; by_contradiction hp; exact
 infinite.not_fintype ⟨p.roots.to_finset, λ x, multiset.mem_to_finset.mpr ((mem_roots hp).mpr (h _))⟩
 
-lemma funext [infinite R] {p q : polynomial R} (ext : ∀ r : R, p.eval r = q.eval r) : p = q :=
+lemma funext [infinite R] {p q : polynomial R} (ext : ∀ r : R, eval r p = eval r q) : p = q :=
 begin
   rw ← sub_eq_zero,
   apply zero_of_eval_zero,

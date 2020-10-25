@@ -9,3 +9,6 @@ run_parser do
   emit_code_here "def foo := 1"
 
 example : foo = 1 := rfl
+
+-- check that `emit_code_here` terminates properly
+run_parser emit_code_here "\n"

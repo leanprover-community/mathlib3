@@ -302,6 +302,6 @@ mv_polynomial.is_noetherian_ring;
 convert alg_hom.is_noetherian_ring_range _; apply_instance
 
 theorem is_noetherian_ring_closure (s : set R) (hs : s.finite) :
-  is_noetherian_ring (ring.closure s) :=
+  @@is_noetherian_ring (ring.closure s) subset.ring :=
 show is_noetherian_ring (subalgebra_of_is_subring (ring.closure s)), from
 algebra.adjoin_int s ▸ is_noetherian_ring_of_fg (subalgebra.fg_def.2 ⟨s, hs, rfl⟩)

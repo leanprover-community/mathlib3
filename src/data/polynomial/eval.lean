@@ -59,7 +59,7 @@ end
 
 @[simp] lemma eval₂_X_pow {n : ℕ} : (X^n).eval₂ f x = x^n :=
 begin
-  rw ←monomial_one_eq_X_pow,
+  rw X_pow_eq_monomial,
   convert eval₂_monomial f x,
   simp,
 end

@@ -1367,6 +1367,9 @@ by simp only [insert_eq, map_union, map_singleton]
 lemma attach_map_val {s : finset α} : s.attach.map (embedding.subtype _) = s :=
 eq_of_veq $ by rw [map_val, attach_val]; exact attach_map_val _
 
+lemma nonempty.map (h : s.nonempty) (f : α ↪ β) : (s.map f).nonempty :=
+let ⟨a, ha⟩ := h in ⟨f a, (mem_map' f).mpr ha⟩
+
 end map
 
 lemma range_add_one' (n : ℕ) :
@@ -1404,9 +1407,6 @@ by simp [finset.nonempty]
 
 @[simp, norm_cast] lemma coe_image {f : α → β} : ↑(s.image f) = f '' ↑s :=
 set.ext $ λ _, mem_image.trans set.mem_image_iff_bex.symm
-
-lemma nonempty.map (h : s.nonempty) (f : α ↪ β) : (s.map f).nonempty :=
-let ⟨a, ha⟩ := h in ⟨f a, (mem_map' f).mpr ha⟩
 
 lemma nonempty.image (h : s.nonempty) (f : α → β) : (s.image f).nonempty :=
 let ⟨a, ha⟩ := h in ⟨f a, mem_image_of_mem f ha⟩

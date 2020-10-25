@@ -317,17 +317,13 @@ lemma le_nat_degree_of_mem_supp (a : ℕ) :
   a ∈ p.support → a ≤ nat_degree p:=
 le_nat_degree_of_ne_zero ∘ mem_support_iff_coeff_ne_zero.mp
 
-lemma supp_card_le_succ_nat_degree (p : polynomial R) : p.support.card ≤ p.nat_degree + 1 :=
+lemma supp_subset_range_nat_degree_succ : p.support ⊆ finset.range (nat_degree p + 1) :=
+λ n hn, mem_range.2 $ nat.lt_succ_of_le $ le_nat_degree_of_mem_supp _ hn
+
+lemma card_supp_le_succ_nat_degree (p : polynomial R) : p.support.card ≤ p.nat_degree + 1 :=
 begin
   rw ← finset.card_range (p.nat_degree + 1),
-  apply finset.card_le_of_subset,
-  rw [finset.range_add_one, finset.subset_iff],
-  intros n hn,
-  replace hn := le_nat_degree_of_mem_supp n hn,
-  by_cases h : n = p.nat_degree,
-  { simp only [h, finset.not_mem_range_self, or_false, finset.mem_insert] },
-  simp only [h, hn, lt_of_le_of_ne, false_or, ne.def, not_false_iff,
-    finset.mem_insert, finset.mem_range]
+  exact finset.card_le_of_subset supp_subset_range_nat_degree_succ,
 end
 
 lemma le_degree_of_mem_supp (a : ℕ) :

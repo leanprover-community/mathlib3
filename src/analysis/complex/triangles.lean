@@ -369,15 +369,40 @@ begin
   have TiInT : T i ∈ (triangle_hull T),
   {
     apply subset_convex_hull,
+    refine set.mem_range_self _,
+    --simp,
+    --apply set.mem_range.1,
+    --rw set.range,
     ---???
-    sorry,
   },
   have quadInT : (quadrisect T j k) ∈ (triangle_hull T),
   {
     have hs : finite (set.range T) := finite_range T,
     rw triangle_hull,
     simp [hs.convex_hull_eq],
-    sorry,
+    split,
+    {
+      split,
+      {
+        intros,
+        sorry,
+      },
+
+      split,
+      {
+
+       sorry,
+      },
+      {
+
+        sorry,
+      },
+
+    },
+
+    {
+      sorry,
+    },
   },
   exact foo5 T (T i) (quadrisect T j k) TiInT quadInT,
 end

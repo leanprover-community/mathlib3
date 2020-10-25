@@ -192,8 +192,8 @@ open derive_fintype tactic expr
 
 namespace derive_fintype
 
-/-- Construct the term `Σ' (a:A) (b:B a) (c:C a b), unit` from `Π (a:A) (b:B a), C a b → T` (the type of a
-constructor). -/
+/-- Construct the term `Σ' (a:A) (b:B a) (c:C a b), unit` from
+`Π (a:A) (b:B a), C a b → T` (the type of a constructor). -/
 meta def mk_sigma : expr → tactic expr
 | (expr.pi n bi d b) := do
   p ← mk_local' n bi d,

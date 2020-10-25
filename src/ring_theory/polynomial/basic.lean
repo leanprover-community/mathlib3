@@ -16,6 +16,7 @@ import data.mv_polynomial.comm_ring
 import data.mv_polynomial.equiv
 import data.polynomial.field_division
 import ring_theory.principal_ideal_domain
+import ring_theory.polynomial.content
 
 noncomputable theory
 open_locale classical
@@ -638,7 +639,7 @@ open unique_factorization_monoid
 
 variables {D : Type u} [integral_domain D] [unique_factorization_monoid D]
 
-protected theorem unique_factorization_monoid : unique_factorization_monoid D :=
+protected theorem unique_factorization_monoid : unique_factorization_monoid (polynomial D) :=
 begin
   haveI := arbitrary (normalization_monoid D),
   haveI := to_gcd_monoid D,

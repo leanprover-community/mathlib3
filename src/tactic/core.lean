@@ -1224,12 +1224,16 @@ meta def emit_command_here (str : string) : lean.parser string :=
 do (_, left) ← with_input command_like str,
    return left
 
+/-- Inner recursion for `emit_code_here`. -/
+meta def emit_code_here_aux : string → ℕ → lean.parser unit
+| str slen := do
+  left ← emit_command_here str,
+  let llen := left.length,
+  when (llen < slen ∧ llen ≠ 0) (emit_code_here_aux left llen)
+
 /-- `emit_code_here str` behaves as if the string `str` were placed at the current location in
 source code. -/
-meta def emit_code_here : string → lean.parser unit
-| str := do left ← emit_command_here str,
-            if left.length = 0 then return ()
-            else emit_code_here left
+meta def emit_code_here (s : string) : lean.parser unit := emit_code_here_aux s s.length
 
 /-- `run_parser p` is like `run_cmd` but for the parser monad. It executes parser `p` at the
 top level, giving access to operations like `emit_code_here`. -/

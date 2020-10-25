@@ -76,6 +76,9 @@ def π : F.elements ⥤ C :=
 { obj := λ X, X.1,
   map := λ X Y f, f.val }
 
+/--
+A natural transformation between functors induces a functor between the categories of elements.
+-/
 @[simps]
 def map {F₁ F₂ : C ⥤ Type w} (α : F₁ ⟶ F₂) : F₁.elements ⥤ F₂.elements :=
 { obj := λ t, ⟨t.1, α.app t.1 t.2⟩,

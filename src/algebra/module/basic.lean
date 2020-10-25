@@ -256,7 +256,8 @@ set_option old_structure_cmd true
 the notation `M →ₗ[R] M₂`) are bundled versions of such maps. An unbundled version is available with
 the predicate `is_linear_map`, but it should be avoided most of the time. -/
 structure linear_map (R : Type u) (M : Type v) (M₂ : Type w)
-  [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂] extends add_hom M M₂ :=
+  [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂]
+  extends add_hom M M₂ :=
 (map_smul' : ∀(c : R) x, to_fun (c • x) = c • to_fun x)
 
 /-- The `add_hom` underlying a `linear_map`. -/
@@ -327,6 +328,11 @@ variables (f g)
 
 @[simp] lemma map_smul (c : R) (x : M) : f (c • x) = c • f x := f.map_smul' c x
 
+@[simp] lemma map_smul_of_tower {S : Type*} [has_scalar S R] [has_scalar S M]
+  [is_scalar_tower S R M] [has_scalar S M₂] [is_scalar_tower S R M₂] (c : S) (x : M) :
+  f (c • x) = c • f x :=
+by { simp only [← smul_one_smul R c x, ← smul_one_smul R c (f x)], apply f.map_smul' }
+
 @[simp] lemma map_zero : f 0 = 0 :=
 by rw [← zero_smul R, map_smul f 0 0, zero_smul]
 
@@ -342,6 +348,13 @@ def to_add_monoid_hom : M →+ M₂ :=
 
 @[simp] lemma to_add_monoid_hom_coe :
   ((f.to_add_monoid_hom) : M → M₂) = f := rfl
+
+/-- The `R`-linear map induced by an `A`-linear map when `A` is an algebra over `R`. -/
+def restrict_scalars (S : Type*) [has_scalar S R] [semiring S] [semimodule S M] [semimodule S M₂]
+  [is_scalar_tower S R M] [is_scalar_tower S R M₂] (f : M →ₗ[R] M₂) : M →ₗ[S] M₂ :=
+{ to_fun := f,
+  map_add' := λ x y, f.map_add x y,
+  map_smul' := λ c x, map_smul_of_tower _ _ _ }
 
 @[simp] lemma map_sum {ι} {t : finset ι} {g : ι → M} :
   f (∑ i in t, g i) = (∑ i in t, f (g i)) :=

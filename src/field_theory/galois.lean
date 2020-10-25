@@ -37,7 +37,6 @@ begin
     by { ext, exact iff_of_true intermediate_field.mem_top submodule.mem_top },
   rw [←findim_top, ←switch],
   change fintype.card (E ≃ₐ[F] E) = findim F (⊤ : intermediate_field F E),
-
   replace h_splits : polynomial.splits (algebra_map F F⟮α⟯) (minimal_polynomial H2),
   { rw hα,
     let map : E →+* (⊤ : intermediate_field F E) :=
@@ -69,7 +68,7 @@ section galois_correspondence
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 variables (H : subgroup (E ≃ₐ[F] E)) (K : intermediate_field F E)
 
-instance galois_of_tower_top [h : is_galois F E] : is_galois K E :=
+instance is_galois_of_tower_top [h : is_galois F E] : is_galois K E :=
 begin
   split,
   { exact is_separable_tower_top_of_is_separable K h.1 },
@@ -133,8 +132,6 @@ begin
   suffices : fintype.card H = fintype.card (fixing_subgroup (fixed_field H)),
   { exact subgroup.ext' (set.eq_of_inclusion_surjective ((fintype.bijective_iff_injective_and_card
     (set.inclusion H_le)).mpr ⟨set.inclusion_injective H_le, this⟩).2).symm },
-  haveI := fintype.of_equiv _ ((fixed_points.to_alg_hom_equiv H E)),
-  haveI := fintype.of_equiv _ (fixing_subgroup_equiv (fixed_field H)),
   rw fintype.card_congr (fixing_subgroup_equiv (fixed_field H)),
   rw fintype.card_congr (fixed_points.to_alg_hom_equiv H E),
   rw fintype.card_congr (algebra_equiv_equiv_algebra_hom (fixed_field H) E),
@@ -162,15 +159,13 @@ begin
   have K_le : K ≤ fixed_field (fixing_subgroup K) := λ x hx ϕ, subtype.mem ϕ (⟨x, hx⟩ : K),
   suffices : findim K E = findim (fixed_field (fixing_subgroup K)) E,
   { exact (intermediate_field.eq_of_le_of_findim_eq' K_le this).symm },
-  rw findim_fixed_field_eq_card,
-  haveI := galois_of_tower_top K,
-  rw fintype.card_congr (fixing_subgroup_equiv K),
+  rw [findim_fixed_field_eq_card, fintype.card_congr (fixing_subgroup_equiv K)],
   exact (is_galois_implies_card_aut_eq_findim K E).symm,
 end
 
-lemma findim_eq_card_fixing_subgroup [finite_dimensional F E] [is_galois F E] :
-  findim K E = fintype.card (fixing_subgroup K) :=
-by conv { to_lhs, rw [←fixed_field_of_fixing_subgroup K, findim_fixed_field_eq_card] }
+lemma card_fixing_subgroup_eq_findim [finite_dimensional F E] [is_galois F E] :
+  fintype.card (fixing_subgroup K) = findim K E :=
+by conv { to_rhs, rw [←fixed_field_of_fixing_subgroup K, findim_fixed_field_eq_card] }
 
 end galois_correspondence
 

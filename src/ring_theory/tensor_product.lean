@@ -132,7 +132,9 @@ variables {R A M}
 
 lemma smul_def (a : A) (x : M ⊗[R] N) : a • x = (lsmul R M a).rtensor N x := rfl
 
-@[ext] theorem ext (g h : (M ⊗[R] N) →ₗ[A] P)
+@[simp] lemma smul_tmul (c : A) (x : M) (y : N) : c • (x ⊗ₜ[R] y) = (c • x) ⊗ₜ[R] y := rfl
+
+@[ext] theorem ext {g h : (M ⊗[R] N) →ₗ[A] P}
   (H : ∀ x y, g (x ⊗ₜ y) = h (x ⊗ₜ y)) : g = h :=
 linear_map.ext $ λ z, tensor_product.induction_on z (by simp_rw linear_map.map_zero) H $
 λ x y ihx ihy, by rw [g.map_add, h.map_add, ihx, ihy]
@@ -152,11 +154,65 @@ end semiring
 section comm_semiring
 variables [comm_semiring R] [comm_semiring A] [algebra R A]
 variables [add_comm_monoid M] [semimodule R M] [semimodule A M] [is_scalar_tower R A M]
+variables [add_comm_monoid N] [semimodule R N]
+variables [add_comm_monoid P] [semimodule R P] [semimodule A P] [is_scalar_tower R A P]
+
+variables {R A M N P}
+@[simps] def lift' (f : M →ₗ[A] (N →ₗ[R] P)) : (M ⊗[R] N) →ₗ[A] P :=
+{ map_smul' := λ c, show ∀ x : M ⊗[R] N, (lift (f.restrict_scalars R)).comp (lsmul R _ c) x =
+      (lsmul R _ c).comp (lift (f.restrict_scalars R)) x,
+    from ext_iff.1 $ tensor_product.ext $ λ x y,
+    by simp only [comp_apply, algebra.lsmul_coe, smul_tmul, lift.tmul, coe_restrict_scalars_eq_coe,
+        f.map_smul, smul_apply'],
+  .. lift (f.restrict_scalars R) }
+
+@[simp] lemma lift'_tmul (f : M →ₗ[A] (N →ₗ[R] P)) (x : M) (y : N) :
+  lift' f (x ⊗ₜ y) = f x y :=
+lift.tmul' x y
+
+@[simps] def curry' (f : (M ⊗[R] N) →ₗ[A] P) : M →ₗ[A] (N →ₗ[R] P) :=
+{ map_smul' := λ c x, linear_map.ext $ λ y, f.map_smul c (x ⊗ₜ y),
+  .. curry (f.restrict_scalars R) }
+
+variables (R A M N P)
+@[simps] def uncurry' : (M →ₗ[A] (N →ₗ[R] P)) →ₗ[A] ((M ⊗[R] N) →ₗ[A] P) :=
+{ to_fun := lift',
+  map_add' := λ f g, ext $ λ x y, by simp only [lift'_tmul, add_apply],
+  map_smul' := λ c f, ext $ λ x y, by simp only [lift'_tmul, smul_apply'] }
+
+@[simps] def lcurry' : ((M ⊗[R] N) →ₗ[A] P) →ₗ[A] (M →ₗ[A] (N →ₗ[R] P)) :=
+{ to_fun := curry',
+  map_add' := λ f g, rfl,
+  map_smul' := λ c f, rfl }
+
+def lift_equiv' : (M →ₗ[A] (N →ₗ[R] P)) ≃ₗ[A] ((M ⊗[R] N) →ₗ[A] P) :=
+linear_equiv.of_linear (uncurry' R A M N P) (lcurry' R A M N P)
+  (linear_map.ext $ λ f, ext $ λ x y, lift'_tmul _ x y)
+  (linear_map.ext $ λ f, linear_map.ext $ λ x, linear_map.ext $ λ y, lift'_tmul f x y)
+
+variables {R A M N P}
+lemma curry'_inj : function.injective (@curry' R A M N P _ _ _ _ _ _ _ _ _ _ _ _ _) :=
+(lift_equiv' R A M N P).to_equiv.symm.injective
+
+variables (R A M N P)
+@[simps] def mk' : M →ₗ[A] N →ₗ[R] M ⊗[R] N :=
+{ map_smul' := λ c x, rfl,
+  .. mk R M N }
+
+end comm_semiring
+
+section comm_semiring
+variables [comm_semiring R] [comm_semiring A] [algebra R A]
+variables [add_comm_monoid M] [semimodule R M] [semimodule A M] [is_scalar_tower R A M]
 variables [add_comm_monoid N] [semimodule R N] [semimodule A N] [is_scalar_tower R A N]
 variables [add_comm_monoid P] [semimodule R P]
 
 def assoc : ((M ⊗[A] N) ⊗[R] P) ≃ₗ[A] (M ⊗[A] (N ⊗[R] P)) :=
-_
+linear_equiv.of_linear
+  (uncurry' R A _ _ _ $ uncurry A _ _ _ $ comp (lcurry' _ _ _ _ _) $ mk A M (N ⊗[R] P))
+  (uncurry A _ _ _ $ comp (uncurry' _ _ _ _ _) $ curry $ mk' R A _ _)
+  (mk_compr₂_inj $ linear_map.ext $ λ x, ext $ λ y z, rfl)
+  (curry'_inj $ ext $ λ x y, linear_map.ext $ λ z, rfl)
 
 end comm_semiring
 
@@ -248,23 +304,7 @@ for a fixed pure tensor in the first argument,
 as an `R`-linear map.
 -/
 def mul_aux (a₁ : A) (b₁ : B) : (A ⊗[R] B) →ₗ[R] (A ⊗[R] B) :=
-begin
-  -- Why doesn't `apply tensor_product.lift` work?
-  apply @tensor_product.lift R _ A B (A ⊗[R] B) _ _ _ _ _ _ _,
-  fsplit,
-  intro a₂,
-  fsplit,
-  intro b₂,
-  exact (a₁ * a₂) ⊗ₜ[R] (b₁ * b₂),
-  { intros b₂ b₂',
-    simp [mul_add, tmul_add], },
-  { intros c b₂,
-    simp [mul_smul, tmul_smul], },
-  { intros a₂ a₂', ext b₂,
-    simp [mul_add, add_tmul], },
-  { intros c a₂, ext b₂,
-    simp [mul_smul, smul_tmul], }
-end
+tensor_product.map (lmul_left R a₁) (lmul_left R b₁)
 
 @[simp]
 lemma mul_aux_apply (a₁ a₂ : A) (b₁ b₂ : B) :
@@ -277,31 +317,15 @@ The multiplication map on `A ⊗[R] B`,
 as an `R`-bilinear map.
 -/
 def mul : (A ⊗[R] B) →ₗ[R] (A ⊗[R] B) →ₗ[R] (A ⊗[R] B) :=
-begin
-  apply @tensor_product.lift R _ A B ((A ⊗[R] B) →ₗ[R] (A ⊗[R] B)) _ _ _ _ _ _ _,
-  fsplit,
-  intro a₁,
-  fsplit,
-  intro b₁,
-  exact mul_aux a₁ b₁,
-  { intros b₁ b₁',
-    -- Why doesn't just `apply tensor_product.ext`, or indeed `ext` work?!
-    apply @tensor_product.ext R _ A B (A ⊗[R] B) _ _ _ _ _ _,
-    intros a₂ b₂,
-    simp [add_mul, tmul_add], },
-  { intros c b₁,
-    apply @tensor_product.ext R _ A B (A ⊗[R] B) _ _ _ _ _ _,
-    intros a₂ b₂,
-    simp, },
-  { intros a₁ a₁', ext1 b₁,
-    apply @tensor_product.ext R _ A B (A ⊗[R] B) _ _ _ _ _ _,
-    intros a₂ b₂,
-    simp [add_mul, add_tmul], },
-  { intros c a₁, ext1 b₁,
-    apply @tensor_product.ext R _ A B (A ⊗[R] B) _ _ _ _ _ _,
-    intros a₂ b₂,
-    simp [smul_tmul], },
-end
+tensor_product.lift $ linear_map.mk₂ R mul_aux
+  (λ x₁ x₂ y, tensor_product.ext $ λ x' y',
+    by simp only [mul_aux_apply, linear_map.add_apply, add_mul, add_tmul])
+  (λ c x y, tensor_product.ext $ λ x' y',
+    by simp only [mul_aux_apply, linear_map.smul_apply, smul_tmul', smul_mul_assoc])
+  (λ x y₁ y₂, tensor_product.ext $ λ x' y',
+    by simp only [mul_aux_apply, linear_map.add_apply, add_mul, tmul_add])
+  (λ c x y, tensor_product.ext $ λ x' y',
+    by simp only [mul_aux_apply, linear_map.smul_apply, smul_tmul, smul_tmul', smul_mul_assoc])
 
 @[simp]
 lemma mul_apply (a₁ a₂ : A) (b₁ b₂ : B) :

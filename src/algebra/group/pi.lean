@@ -30,6 +30,9 @@ instance has_mul [∀ i, has_mul $ f i] : has_mul (Π i : I, f i) := ⟨λ f g i
 @[to_additive] instance has_inv [∀ i, has_inv $ f i] : has_inv (Π i : I, f i) := ⟨λ f i, (f i)⁻¹⟩
 @[simp, to_additive] lemma inv_apply [∀ i, has_inv $ f i] : x⁻¹ i = (x i)⁻¹ := rfl
 
+instance has_div [Π i, has_div $ f i] : has_div (Π i : I, f i) := ⟨λ f g i, f i / g i⟩
+@[simp] lemma div_apply [Π i, has_div $ f i] : (x / y) i = x i / y i := rfl
+
 @[to_additive]
 instance semigroup [∀ i, semigroup $ f i] : semigroup (Π i : I, f i) :=
 by refine_struct { mul := (*), .. }; tactic.pi_instance_derive_field

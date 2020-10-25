@@ -270,8 +270,8 @@ meta def mk_finset (args : list expr) : ℕ → list name → tactic unit
 
 /-- Prove the goal `|- Σ' (a:A) (b: B a) (c:C a b), unit` given a list of terms `a, b, c`. -/
 meta def mk_sigma_mem : list expr → tactic unit
-| (x::xs) := constructor >> exact x >> mk_sigma_mem xs
-| [] := constructor $> ()
+| (x::xs) := fconstructor >> exact x >> mk_sigma_mem xs
+| [] := fconstructor $> ()
 
 /-- This function is called to prove `a : T |- a ∈ S.1` where `S` is the `finset_above` constructed
 by `mk_finset`, after the initial cases on `a : T`, producing a list of subgoals. For each case,

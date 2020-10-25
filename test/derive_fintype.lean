@@ -34,7 +34,7 @@ instance (α β : Type) [decidable_eq α] [fintype α] [fintype β] (n : ℕ) : 
 by tactic.mk_fintype_instance
 
 @[derive fintype]
-structure foo4 {m n : Type} (b : ℕ) :=
+structure foo4 {m n : Type} (b : m → ℕ) :=
 (x : m × n)
 (y : m × n)
-(h : b = b)
+(h : b x.1 = b y.1)

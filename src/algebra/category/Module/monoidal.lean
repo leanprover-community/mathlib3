@@ -203,28 +203,4 @@ namespace monoidal_category
 
 end monoidal_category
 
-open category_theory.monoidal_category
-
-instance (M : Module.{u} R) : is_left_adjoint (tensor_right M) :=
-{ right :=
-  { obj := λ N, Module.of R (M →ₗ[R] N),
-    map := λ N P f, linear_map.llcomp R M N P f,
-    map_id' := by { intros X, ext1, dsimp at *, ext1, refl },
-    map_comp' := by { intros X Y Z f g, refl } },
-  adj :=
-  { hom_equiv := λ N P, (tensor_product.lift.equiv R N M P).symm.to_equiv,
-    unit :=
-    { app := λ N, tensor_product.lcurry R _ _ _ $ linear_map.id,
-      naturality' := λ N P f, rfl },
-    counit :=
-    { app := λ N, tensor_product.uncurry R _ _ _ $ linear_map.id,
-      naturality' :=
-      begin
-        intros X Y f,
-        ext1, dsimp at *,
-        simp only [linear_map.id_coe, id.def, tensor_product.uncurry_apply, linear_map.llcomp_apply]
-      end },
-    hom_equiv_unit' := λ N P f, rfl,
-    hom_equiv_counit' := by { intros X Y g, ext1, refl } } }
-
 end Module

@@ -246,7 +246,7 @@ lemma degree_lt_linear_map_surjective (h : f ≠ 0) : function.surjective (degre
 begin
   intro q,
   obtain ⟨q', hq'⟩ : ∃ q', adjoin_root.mk p q' = q := ideal.quotient.mk_surjective q,
-  use (q' % p),
+  use (q' % f),
   { rw [mem_degree_lt, ← degree_eq_nat_degree h],
     exact euclidean_domain.mod_lt q' h, },
   { change adjoin_root.mk p (q' % p) = q,
@@ -265,14 +265,14 @@ instance finite_dimensional (hf : f ≠ 0) : finite_dimensional K (adjoin_root f
 begin
   have key1 := degree_lt_linear_equiv f hf,
   have key2 := linear_equiv.finite_dimensional,
-  sorry
+  repeat {sorry},
 end
 
 lemma findim (hf : f ≠ 0) : finite_dimensional.findim K (adjoin_root f) = f.nat_degree :=
 begin
   have key1 := degree_lt_linear_equiv f hf,
   have key := linear_equiv.findim_eq,
-  sorry,
+  repeat {sorry},
 end
 
 end findim

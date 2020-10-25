@@ -411,14 +411,22 @@ alg_equiv.of_bijective (alg_hom.mk (adjoin_root.lift (algebra_map F F⟮α⟯)
         ⟨subfield.mem_top (adjoin_root.root (minimal_polynomial h)),
         by { rw [ring_hom.comp_apply, adjoin_root.lift_root], refl }⟩⟩)) } end)
 
-instance finite_dimensional_adjoin_integral : finite_dimensional F F⟮α⟯ :=
+instance finite_dimensional_adjoin_integral [h : fact (is_integral F α)] :
+  finite_dimensional F F⟮α⟯ :=
 begin
-  sorry
+  haveI := minimal_polynomial.irreducible h,
+  haveI := adjoin_root.finite_dimensional (minimal_polynomial h) (minimal_polynomial.ne_zero h),
+  exact linear_equiv.finite_dimensional (adjoin_root_equiv_adjoin_simple F α).to_linear_equiv,
 end
 
-lemma findim_adjoin_integral : findim F F⟮α⟯ = (minimal_polynomial h).nat_degree :=
+lemma findim_adjoin_integral [h : fact (is_integral F α)] :
+  findim F F⟮α⟯ = (minimal_polynomial h).nat_degree :=
 begin
-  sorry
+  haveI := minimal_polynomial.irreducible h,
+  haveI := adjoin_root.finite_dimensional (minimal_polynomial h) (minimal_polynomial.ne_zero h),
+  have key1 := linear_equiv.findim_eq (adjoin_root_equiv_adjoin_simple F α).to_linear_equiv,
+  have key2 := adjoin_root.findim (minimal_polynomial h) (minimal_polynomial.ne_zero h),
+  exact eq.trans key1.symm key2,
 end
 
 lemma alg_hom_adjoin_integral (h_sep : (minimal_polynomial h).separable)

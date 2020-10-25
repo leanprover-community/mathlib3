@@ -8,6 +8,7 @@ Adjoining roots of polynomials
 import data.polynomial.field_division
 import ring_theory.adjoin
 import ring_theory.principal_ideal_domain
+import linear_algebra.finite_dimensional
 
 /-!
 # Adjoining roots of polynomials
@@ -202,5 +203,19 @@ lemma mul_div_root_cancel :
   ((X - C (root f)) * (f.map (of f) / (X - C (root f))) : polynomial (adjoin_root f)) =
     f.map (of f) :=
 mul_div_eq_iff_is_root.2 $ is_root_root _
+
+section findim
+
+instance finite_dimensional (hf : f ≠ 0) : finite_dimensional K (adjoin_root f) :=
+begin
+  sorry
+end
+
+lemma findim (hf : f ≠ 0) : finite_dimensional.findim K (adjoin_root f) = f.nat_degree :=
+begin
+  sorry,
+end
+
+end findim
 
 end adjoin_root

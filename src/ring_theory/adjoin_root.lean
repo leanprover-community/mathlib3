@@ -214,46 +214,38 @@ def degree_lt_linear_map : degree_lt K (f.nat_degree) →ₗ[K] adjoin_root f :=
     algebra_map_eq, mul_eq_mul_right_iff], left, refl }
 }
 
-lemma degree_lt_linear_map_injective : function.injective (degree_lt_linear_map f) :=
+lemma degree_lt_linear_map_def (g : polynomial K) (h : g ∈ degree_lt K f.nat_degree) :
+  degree_lt_linear_map f ⟨g, h⟩ = adjoin_root.mk f g := rfl
+
+lemma degree_lt_linear_map_injective (hf : f ≠ 0) : function.injective (degree_lt_linear_map f) :=
 begin
   rw is_add_group_hom.injective_iff,
-  intros q hq,
-  change ideal.quotient.mk _ _ = 0 at hq,
-  rw [ideal.quotient.eq_zero_iff_mem, ideal.mem_span_singleton] at hq,
-  cases hq with r hr,
-  cases q with q hq,
-  rw submodule.coe_mk at hr,
-  rw [submodule.mk_eq_zero, hr],
-  rw [mem_degree_lt, hr, degree_mul] at hq,
-  clear hr q,
-  by_cases hp : (f = 0),
-  { rw [hp, zero_mul] },
-  by_cases hr : (r = 0),
-  { rw [hr, mul_zero] },
-  rw [degree_eq_nat_degree hp, degree_eq_nat_degree hr,
-    ←with_bot.coe_add, with_bot.coe_lt_coe] at hq,
-  exfalso,
-  nlinarith,
+  rintros ⟨g, hg⟩ h,
+  rw [degree_lt_linear_map_def, adjoin_root.mk, quotient.eq_zero_iff_mem, mem_span_singleton] at h,
+  by_cases g_ne_zero : g = 0,
+  { simpa, },
+  { rw [mem_degree_lt, ← degree_eq_nat_degree hf] at hg,
+    exfalso,
+    exact euclidean_domain.val_dvd_le g f h g_ne_zero hg, },
 end
 
-lemma degree_lt_linear_map_surjective (h : f ≠ 0) : function.surjective (degree_lt_linear_map f) :=
+lemma degree_lt_linear_map_surjective (hf : f ≠ 0) : function.surjective (degree_lt_linear_map f) :=
 begin
-  intro q,
-  obtain ⟨q', hq'⟩ : ∃ q', adjoin_root.mk f q' = q := ideal.quotient.mk_surjective q,
-  use (q' % f),
-  { rw [mem_degree_lt, ← degree_eq_nat_degree h],
-    exact euclidean_domain.mod_lt q' h, },
-  { change adjoin_root.mk f (q' % f) = q,
-    symmetry,
-    rw [← hq', adjoin_root.mk, ideal.quotient.eq, ideal.mem_span_singleton'],
-    exact ⟨q' / f, by rw [eq_sub_iff_add_eq, mul_comm, euclidean_domain.div_add_mod]⟩, },
+  intro g,
+  obtain ⟨g', hg'⟩ : ∃ q', adjoin_root.mk f q' = g := ideal.quotient.mk_surjective g,
+  use (g' % f),
+  { rw [mem_degree_lt, ← degree_eq_nat_degree hf],
+    exact euclidean_domain.mod_lt g' hf, },
+  { symmetry,
+    rw [degree_lt_linear_map_def, ← hg', adjoin_root.mk, ideal.quotient.eq, ideal.mem_span_singleton'],
+    exact ⟨g' / f, by rw [eq_sub_iff_add_eq, mul_comm, euclidean_domain.div_add_mod]⟩, },
 end
 
-lemma degree_lt_linear_map_bijective (h : f ≠ 0) : function.bijective (degree_lt_linear_map f) :=
-⟨degree_lt_linear_map_injective f, degree_lt_linear_map_surjective f h⟩
+lemma degree_lt_linear_map_bijective (hf : f ≠ 0) : function.bijective (degree_lt_linear_map f) :=
+⟨degree_lt_linear_map_injective f hf, degree_lt_linear_map_surjective f hf⟩
 
-def degree_lt_linear_equiv (h : f ≠ 0) : degree_lt K (f.nat_degree) ≃ₗ[K] adjoin_root f :=
-{ .. (degree_lt_linear_map f), .. equiv.of_bijective _ (degree_lt_linear_map_bijective f h) }
+def degree_lt_linear_equiv (hf : f ≠ 0) : degree_lt K (f.nat_degree) ≃ₗ[K] adjoin_root f :=
+{ .. (degree_lt_linear_map f), .. equiv.of_bijective _ (degree_lt_linear_map_bijective f hf) }
 
 /-- If we can show that this is bijective then we're done... -/
 def temp_map (F : Type*) [field F] (n : ℕ) : degree_lt F n →ₗ[F] ((↑(finset.range n) : set ℕ) → F) :=

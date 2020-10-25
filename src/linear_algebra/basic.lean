@@ -328,10 +328,10 @@ end add_comm_monoid
 
 section add_comm_group
 
-variables [semiring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃] [add_comm_group M₄]
-variables [semimodule R M] [semimodule R M₂] [semimodule R M₃] [semimodule R M₄]
-variables (f g : M →ₗ[R] M₂)
-include R
+variables [semiring R]
+  [add_comm_monoid M] [add_comm_group M₂] [add_comm_group M₃] [add_comm_group M₄]
+  [semimodule R M] [semimodule R M₂] [semimodule R M₃] [semimodule R M₄]
+  (f g : M →ₗ[R] M₂)
 
 /-- The negation of a linear map is linear. -/
 instance : has_neg (M →ₗ[R] M₂) :=
@@ -395,15 +395,24 @@ def applyₗ (v : M) : (M →ₗ[R] M₂) →ₗ[R] M₂ :=
 
 end comm_semiring
 
+section semiring
+
+variables [semiring R] [add_comm_monoid M] [semimodule R M]
+
+instance endomorphism_semiring : semiring (M →ₗ[R] M) :=
+by refine {mul := (*), one := 1, ..linear_map.add_comm_monoid, ..};
+  { intros, apply linear_map.ext, simp {proj := ff} }
+
+lemma mul_apply (f g : M →ₗ[R] M) (x : M) : (f * g) x = f (g x) := rfl
+
+end semiring
+
 section ring
 
 variables [ring R] [add_comm_group M] [semimodule R M]
 
 instance endomorphism_ring : ring (M →ₗ[R] M) :=
-by refine {mul := (*), one := 1, ..linear_map.add_comm_group, ..};
-  { intros, apply linear_map.ext, simp {proj := ff} }
-
-@[simp] lemma mul_apply (f g : M →ₗ[R] M) (x : M) : (f * g) x = f (g x) := rfl
+{ ..linear_map.endomorphism_semiring, ..linear_map.add_comm_group }
 
 end ring
 
@@ -2056,12 +2065,28 @@ protected def skew_prod (f : M →ₗ[R] M₄) :
 
 end add_comm_group
 
+section neg
+
+variables (R) [semiring R] [add_comm_group M] [semimodule R M]
+
+/-- `x ↦ -x` as a `linear_equiv` -/
+def neg : M ≃ₗ[R] M := { .. equiv.neg M, .. (-linear_map.id : M →ₗ[R] M) }
+
+variable {R}
+
+@[simp] lemma coe_neg : ⇑(neg R : M ≃ₗ[R] M) = -id := rfl
+
+lemma neg_apply (x : M) : neg R x = -x := by simp
+
+@[simp] lemma symm_neg : (neg R : M ≃ₗ[R] M).symm = neg R := rfl
+
+end neg
+
 section ring
 
 variables [ring R] [add_comm_group M] [add_comm_group M₂]
 variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
 variables (f : M →ₗ[R] M₂) (e : M ≃ₗ[R] M₂)
-
 
 /-- An `injective` linear map `f : M →ₗ[R] M₂` defines a linear equivalence
 between `M` and `f.range`. -/

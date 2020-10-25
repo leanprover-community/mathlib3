@@ -37,7 +37,8 @@ namespace linear_map
 variables {R : Type*} [comm_semiring R]
 variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
 
-variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q] [add_comm_monoid S]
+variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q]
+  [add_comm_monoid S]
 variables [semimodule R M] [semimodule R N] [semimodule R P] [semimodule R Q] [semimodule R S]
 include R
 
@@ -152,7 +153,8 @@ section semiring
 variables {R : Type*} [comm_semiring R]
 variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
 
-variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q] [add_comm_monoid S]
+variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q]
+  [add_comm_monoid S]
 variables [semimodule R M] [semimodule R N] [semimodule R P] [semimodule R Q] [semimodule R S]
 include R
 
@@ -500,6 +502,9 @@ begin
   simp,
 end
 
+@[simp] lemma lid_symm_apply (m : M) :
+  (tensor_product.lid R M).symm m = 1 ⊗ₜ m := rfl
+
 section
 variables (R M N)
 
@@ -512,11 +517,10 @@ linear_equiv.of_linear (lift (mk R N M).flip) (lift (mk R M N).flip)
   (ext $ λ m n, rfl)
 
 @[simp] theorem comm_tmul (m : M) (n : N) :
-  ((tensor_product.comm R M N) : (M ⊗ N → N ⊗ M)) (m ⊗ₜ n) = n ⊗ₜ m :=
-begin
-  dsimp [tensor_product.comm],
-  simp,
-end
+  (tensor_product.comm R M N) (m ⊗ₜ n) = n ⊗ₜ m := rfl
+
+@[simp] theorem comm_symm_tmul (m : M) (n : N) :
+  (tensor_product.comm R M N).symm (n ⊗ₜ m) = m ⊗ₜ n := rfl
 
 end
 
@@ -526,15 +530,19 @@ variables (R M)
 /--
 The base ring is a right identity for the tensor product of modules, up to linear equivalence.
 -/
-protected def rid : M ⊗[R] R ≃ₗ M := linear_equiv.trans (tensor_product.comm R M R) (tensor_product.lid R M)
+protected def rid : M ⊗[R] R ≃ₗ M :=
+linear_equiv.trans (tensor_product.comm R M R) (tensor_product.lid R M)
 end
 
 @[simp] theorem rid_tmul (m : M) (r : R) :
-  ((tensor_product.rid R M) : (M ⊗ R → M)) (m ⊗ₜ r) = r • m :=
+  (tensor_product.rid R M) (m ⊗ₜ r) = r • m :=
 begin
   dsimp [tensor_product.rid, tensor_product.comm, tensor_product.lid],
   simp,
 end
+
+@[simp] lemma rid_symm_apply (m : M) :
+  (tensor_product.rid R M).symm m = m ⊗ₜ 1 := rfl
 
 open linear_map
 section
@@ -555,8 +563,10 @@ end
 end
 
 @[simp] theorem assoc_tmul (m : M) (n : N) (p : P) :
-  ((tensor_product.assoc R M N P) : (M ⊗[R] N) ⊗[R] P → M ⊗[R] (N ⊗[R] P)) ((m ⊗ₜ n) ⊗ₜ p) = m ⊗ₜ (n ⊗ₜ p) :=
-rfl
+  (tensor_product.assoc R M N P) ((m ⊗ₜ n) ⊗ₜ p) = m ⊗ₜ (n ⊗ₜ p) := rfl
+
+@[simp] theorem assoc_symm_tmul (m : M) (n : N) (p : P) :
+  (tensor_product.assoc R M N P).symm (m ⊗ₜ (n ⊗ₜ p)) = (m ⊗ₜ n) ⊗ₜ p := rfl
 
 /-- The tensor product of a pair of linear maps between modules. -/
 def map (f : M →ₗ[R] P) (g : N →ₗ Q) : M ⊗ N →ₗ[R] P ⊗ Q :=
@@ -566,8 +576,23 @@ lift $ comp (compl₂ (mk _ _ _) g) f
   map f g (m ⊗ₜ n) = f m ⊗ₜ g n :=
 rfl
 
-/-- If M and P are linearly equivalent and N and Q are linearly equivalent
-then M ⊗ N and P ⊗ Q are linearly equivalent. -/
+section
+variables {P' Q' : Type*}
+variables [add_comm_monoid P'] [semimodule R P']
+variables [add_comm_monoid Q'] [semimodule R Q']
+
+lemma map_comp (f₂ : P →ₗ[R] P') (f₁ : M →ₗ[R] P) (g₂ : Q →ₗ[R] Q') (g₁ : N →ₗ[R] Q) :
+  map (f₂.comp f₁) (g₂.comp g₁) = (map f₂ g₂).comp (map f₁ g₁) :=
+by { ext1, simp only [linear_map.comp_apply, map_tmul] }
+
+lemma lift_comp_map (i : P →ₗ[R] Q →ₗ[R] Q') (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
+  (lift i).comp (map f g) = lift ((i.comp f).compl₂ g) :=
+by { ext1, simp only [lift.tmul, map_tmul, linear_map.compl₂_apply, linear_map.comp_apply] }
+
+end
+
+/-- If `M` and `P` are linearly equivalent and `N` and `Q` are linearly equivalent
+then `M ⊗ N` and `P ⊗ Q` are linearly equivalent. -/
 def congr (f : M ≃ₗ[R] P) (g : N ≃ₗ[R] Q) : M ⊗ N ≃ₗ[R] P ⊗ Q :=
 linear_equiv.of_linear (map f g) (map f.symm g.symm)
   (ext $ λ m n, by simp; simp only [linear_equiv.apply_symm_apply])
@@ -575,6 +600,10 @@ linear_equiv.of_linear (map f g) (map f.symm g.symm)
 
 @[simp] theorem congr_tmul (f : M ≃ₗ[R] P) (g : N ≃ₗ[R] Q) (m : M) (n : N) :
   congr f g (m ⊗ₜ n) = f m ⊗ₜ g n :=
+rfl
+
+@[simp] theorem congr_symm_tmul (f : M ≃ₗ[R] P) (g : N ≃ₗ[R] Q) (p : P) (q : Q) :
+  (congr f g).symm (p ⊗ₜ q) = f.symm p ⊗ₜ g.symm q :=
 rfl
 
 end tensor_product
@@ -588,7 +617,8 @@ namespace tensor_product
 variables {R : Type*} [comm_ring R]
 variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
 
-variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q] [add_comm_group S]
+variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q]
+  [add_comm_group S]
 variables [module R M] [module R N] [module R P] [module R Q] [module R S]
 
 open_locale tensor_product

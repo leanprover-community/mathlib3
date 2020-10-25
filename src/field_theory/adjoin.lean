@@ -435,15 +435,9 @@ begin
     right_inv := λ _, by { ext, simp only [alg_equiv.symm_apply_apply,
       alg_equiv.coe_alg_hom, alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply] } },
   have swap2 := adjoin_root.equiv F F⟮α⟯ (minimal_polynomial h) (minimal_polynomial.ne_zero h),
-  rw [←fintype.of_equiv_card (swap1.trans swap2), polynomial.nat_degree_eq_card_roots h_splits],
-  set s := ((minimal_polynomial h).map (algebra_map F F⟮α⟯)).roots,
-  change _ = s.card,
-  have nodup : s.nodup :=
-    polynomial.nodup_roots ((polynomial.separable_map (algebra_map F F⟮α⟯)).mpr h_sep),
-  rw ←multiset.to_finset_card_of_nodup nodup,
-  --Why doesn't this work???
-  --exact fintype.card_coe s.to_finset,
-  sorry
+  rw [fintype.card_congr (swap1.trans swap2), polynomial.nat_degree_eq_card_roots h_splits,
+      fintype.card_coe, multiset.to_finset_card_of_nodup],
+  exact polynomial.nodup_roots ((polynomial.separable_map (algebra_map F F⟮α⟯)).mpr h_sep),
 end
 
 lemma alg_equiv_adjoin_integral (h_separable : (minimal_polynomial h).separable)

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import data.pi
+import data.prod
 import logic.unique
 import logic.function.basic
 
@@ -81,35 +82,8 @@ by { rw [← not_nontrivial_iff_subsingleton, or_comm], exact classical.em _ }
 lemma false_of_nontrivial_of_subsingleton (α : Type*) [nontrivial α] [subsingleton α] : false :=
 let ⟨x, y, h⟩ := exists_pair_ne α in h $ subsingleton.elim x y
 
-instance nontrivial_prod_left [nontrivial α] [nonempty β] : nontrivial (α × β) :=
-begin
-  inhabit β,
-  rcases exists_pair_ne α with ⟨x, y, h⟩,
-  use [(x, default β), (y, default β)],
-  contrapose! h,
-  exact congr_arg prod.fst h
-end
-
-instance nontrivial_prod_right [nontrivial α] [nonempty β] : nontrivial (β × α) :=
-begin
-  inhabit β,
-  rcases exists_pair_ne α with ⟨x, y, h⟩,
-  use [(default β, x), (default β, y)],
-  contrapose! h,
-  exact congr_arg prod.snd h
-end
-
 instance option.nontrivial [nonempty α] : nontrivial (option α) :=
 by { inhabit α, use [none, some (default α)] }
-
-instance function.nontrivial [nonempty α] [nontrivial β] : nontrivial (α → β) :=
-begin
-  rcases exists_pair_ne β with ⟨x, y, h⟩,
-  use [λ _, x, λ _, y],
-  contrapose! h,
-  inhabit α,
-  exact congr_fun h (default α)
-end
 
 /-- Pushforward a `nontrivial` instance along an injective function. -/
 protected lemma function.injective.nontrivial [nontrivial α]
@@ -138,6 +112,12 @@ begin
   { exact ⟨x₂, h⟩ }
 end
 
+instance nontrivial_prod_right [nonempty α] [nontrivial β] : nontrivial (α × β) :=
+prod.snd_surjective.nontrivial
+
+instance nontrivial_prod_left [nontrivial α] [nonempty β] : nontrivial (α × β) :=
+prod.fst_surjective.nontrivial
+
 namespace pi
 
 variables {I : Type*} {f : I → Type*}
@@ -145,14 +125,8 @@ variables {I : Type*} {f : I → Type*}
 /-- If the internal type at `i'` is nontrivial, and all others are nonempty, so is the collection -/
 lemma nontrivial_at (i' : I) [inst : Π i, nonempty (f i)] [nontrivial (f i')]
   : nontrivial (Π i : I, f i) :=
-let ⟨x, hxy⟩ := classical.indefinite_description _ (exists_pair_ne (f i')),
-    ⟨y, hxy⟩ := classical.indefinite_description _ hxy
-in
-⟨⟨
-  λ i, if h : i = i' then by { rw h, exact x} else classical.choice (inst i),
-  λ i, if h : i = i' then by { rw h, exact y} else classical.choice (inst i),
-  λ h, hxy (by simpa only [dif_pos] using congr_fun h i'),
-⟩⟩
+by classical; exact
+(function.injective_update (λ i, classical.choice (inst i)) i').nontrivial
 
 /--
 As a convenience, provide an instance automatically if `(f (default I))` is nontrivial.
@@ -164,6 +138,9 @@ instance nontrivial [inhabited I] [inst : Π i, nonempty (f i)] [nontrivial (f (
 nontrivial_at (default I)
 
 end pi
+
+instance function.nontrivial [h : nonempty α] [nontrivial β] : nontrivial (α → β) :=
+h.elim $ λ a, pi.nontrivial_at a
 
 mk_simp_attribute nontriviality "Simp lemmas for `nontriviality` tactic"
 

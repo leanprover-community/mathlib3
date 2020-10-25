@@ -380,7 +380,8 @@ end adjoin_subalgebra_lattice
 
 section adjoin_integral_element
 
-variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (α : E) [h : is_integral F α]
+variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (α : E)
+variables [h : fact (is_integral F α)]
 
 lemma min_poly_eval_gen_eq_zero : (minimal_polynomial h).eval₂ (algebra_map F F⟮α⟯) (adjoin_simple.gen F α) = 0 :=
 begin
@@ -398,20 +399,16 @@ alg_equiv.of_bijective (alg_hom.mk (adjoin_root.lift (algebra_map F F⟮α⟯)
   (adjoin_simple.gen F α) (@min_poly_eval_gen_eq_zero F  _ _ _ _ α h)) (ring_hom.map_one _)
   (λ x y, ring_hom.map_mul _ x y) (ring_hom.map_zero _) (λ x y, ring_hom.map_add _ x y)
   (by { exact λ _, adjoin_root.lift_of })) (begin
-    set f := adjoin_root.lift _ _ (@min_poly_eval_gen_eq_zero F  _ _ _ _ α h),
-    have mem_top :=
-      @subfield.mem_top _ (@adjoin_root.field F _ _ (minimal_polynomial.irreducible h)),
+    set f := adjoin_root.lift _ _ (min_poly_eval_gen_eq_zero F α),
+    haveI := minimal_polynomial.irreducible h,
     split,
-    { exact @ring_hom.injective _ _ (@field.to_division_ring _
-        (@adjoin_root.field F _ _ (minimal_polynomial.irreducible h))) _ _ f },
-    { set range := @ring_hom.field_range _ _ (@adjoin_root.field F _ _
-        (minimal_polynomial.irreducible h)) _ ((F⟮α⟯.to_subfield.subtype).comp f),
-      suffices : F⟮α⟯.to_subfield ≤ range,
+    { exact ring_hom.injective f },
+    { suffices : F⟮α⟯.to_subfield ≤ ring_hom.field_range ((F⟮α⟯.to_subfield.subtype).comp f),
       { exact λ x, Exists.cases_on (this (subtype.mem x)) (λ y hy, ⟨y, subtype.ext hy.2⟩) },
       exact subfield.closure_le.mpr (set.union_subset (λ x hx, Exists.cases_on hx (λ y hy, ⟨y,
-        ⟨mem_top y, by { rw [ring_hom.comp_apply, adjoin_root.lift_of], exact hy }⟩⟩))
+        ⟨subfield.mem_top y, by { rw [ring_hom.comp_apply, adjoin_root.lift_of], exact hy }⟩⟩))
         (set.singleton_subset_iff.mpr ⟨adjoin_root.root (minimal_polynomial h),
-        ⟨mem_top (adjoin_root.root (minimal_polynomial h)),
+        ⟨subfield.mem_top (adjoin_root.root (minimal_polynomial h)),
         by { rw [ring_hom.comp_apply, adjoin_root.lift_root], refl }⟩⟩)) } end)
 
 instance finite_dimensional_adjoin_integral : finite_dimensional F F⟮α⟯ :=
@@ -428,7 +425,7 @@ lemma alg_hom_adjoin_integral (h_sep : (minimal_polynomial h).separable)
   (h_splits : (minimal_polynomial h).splits (algebra_map F F⟮α⟯)) :
   fintype.card (F⟮α⟯ →ₐ[F] F⟮α⟯) = (minimal_polynomial h).nat_degree :=
 begin
-  have ϕ := @adjoin_root_equiv_adjoin_simple F  _ _ _ _ α h,
+  have ϕ := adjoin_root_equiv_adjoin_simple F α,
   have swap1 : (F⟮α⟯ →ₐ[F] F⟮α⟯) ≃
     (adjoin_root (minimal_polynomial h) →ₐ[F] F⟮α⟯) :=
   { to_fun := λ f, f.comp (ϕ.to_alg_hom),

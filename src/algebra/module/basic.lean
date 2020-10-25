@@ -328,10 +328,11 @@ variables (f g)
 
 @[simp] lemma map_smul (c : R) (x : M) : f (c • x) = c • f x := f.map_smul' c x
 
-@[simp] lemma map_smul_of_tower {S : Type*} [has_scalar S R] [has_scalar S M]
+@[simp, priority 900]
+lemma map_smul_of_tower {S : Type*} [has_scalar S R] [has_scalar S M]
   [is_scalar_tower S R M] [has_scalar S M₂] [is_scalar_tower S R M₂] (c : S) (x : M) :
   f (c • x) = c • f x :=
-by { simp only [← smul_one_smul R c x, ← smul_one_smul R c (f x)], apply f.map_smul' }
+by simp only [← smul_one_smul R c x, ← smul_one_smul R c (f x), map_smul]
 
 @[simp] lemma map_zero : f 0 = 0 :=
 by rw [← zero_smul R, map_smul f 0 0, zero_smul]

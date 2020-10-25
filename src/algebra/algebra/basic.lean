@@ -1074,10 +1074,12 @@ by rw [←(one_smul A m), ←smul_assoc, algebra.smul_def, mul_one, one_smul]
 
 variable {A}
 
+@[priority 100] -- see Note [lower instance priority]
 instance is_scalar_tower.to_smul_comm_class : smul_comm_class R A M :=
 ⟨λ r a m, by rw [algebra_compatible_smul A r (a • m), smul_smul, algebra.commutes, mul_smul,
   ←algebra_compatible_smul]⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance is_scalar_tower.to_smul_comm_class' : smul_comm_class A R M :=
 smul_comm_class.symm _ _ _
 

@@ -364,8 +364,7 @@ section has_scalar
 variables {S : Type*} [semiring R] [monoid S]
   [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
   [semimodule R M] [semimodule R M₂] [semimodule R M₃]
-  [distrib_mul_action S M₂] [distrib_mul_action S M₃]
-  [smul_comm_class R S M₂] [smul_comm_class R S M₃]
+  [distrib_mul_action S M₂] [smul_comm_class R S M₂]
   (f : M →ₗ[R] M₂)
 
 instance : has_scalar S (M →ₗ[R] M₂) :=
@@ -380,7 +379,7 @@ instance : distrib_mul_action S (M →ₗ[R] M₂) :=
   smul_add := λ c f g, ext $ λ x, smul_add _ _ _,
   smul_zero := λ c, ext $ λ x, smul_zero _ }
 
-theorem smul_comp (g : M₂ →ₗ[R] M₃) (a : S) : (a • g).comp f = a • (g.comp f) :=
+theorem smul_comp (a : S) (g : M₃ →ₗ[R] M₂) (f : M →ₗ[R] M₃) : (a • g).comp f = a • (g.comp f) :=
 rfl
 
 end has_scalar

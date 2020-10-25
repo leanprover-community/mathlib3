@@ -1658,9 +1658,7 @@ end
 
 @[simp] lemma smul_single {_ : semiring R} [add_comm_monoid M] [semimodule R M]
   (c : R) (a : α) (b : M) : c • finsupp.single a b = finsupp.single a (c • b) :=
-ext $ λ a', by by_cases a = a';
-  [{ subst h, simp only [smul_apply', single_eq_same] },
-   simp only [h, smul_apply', ne.def, not_false_iff, single_eq_of_ne, smul_zero]]
+map_range_single
 
 @[simp] lemma smul_single' {_ : semiring R}
   (c : R) (a : α) (b : R) : c • finsupp.single a b = finsupp.single a (c * b) :=

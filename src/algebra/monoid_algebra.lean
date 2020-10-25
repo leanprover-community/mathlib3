@@ -265,6 +265,16 @@ lemma single_one_mul_apply (f : monoid_algebra k G) (r : k) (x : G) :
   (single 1 r * f) x = r * f x :=
 f.single_mul_apply_aux $ λ a, by rw [one_mul]
 
+lemma lift_nc_smul {R : Type*} [semiring R] (f : k →+* R) (g : G →* R) (c : k)
+  (φ : monoid_algebra k G) :
+  lift_nc (f : k →+ R) g (c • φ) = f c * lift_nc (f : k →+ R) g φ :=
+begin
+  suffices : (lift_nc ↑f g).comp (smul_add_hom k (monoid_algebra k G) c) =
+    (add_monoid_hom.mul_left (f c)).comp (lift_nc ↑f g),
+    from add_monoid_hom.congr_fun this φ,
+  ext a b, simp [mul_assoc]
+end
+
 end misc_theorems
 
 /-! #### Algebra structure -/
@@ -321,15 +331,16 @@ def single_one_alg_hom {A : Type*} [comm_semiring k] [semiring A] [algebra k A] 
 { commutes' := λ r, by { ext, simp, refl, }, ..single_one_ring_hom}
 
 @[simp] lemma coe_algebra_map {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] :
-  (algebra_map k (monoid_algebra A G) : k → monoid_algebra A G) = single 1 ∘ (algebra_map k A) :=
+  ⇑(algebra_map k (monoid_algebra A G)) = single 1 ∘ (algebra_map k A) :=
 rfl
 
 lemma single_eq_algebra_map_mul_of [comm_semiring k] [monoid G] (a : G) (b : k) :
-  single a b = (algebra_map k (monoid_algebra k G) : k → monoid_algebra k G) b * of k G a :=
+  single a b = algebra_map k (monoid_algebra k G) b * of k G a :=
 by simp
 
-lemma single_algebra_map_eq_algebra_map_mul_of {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] (a : G) (b : k) :
-  single a (algebra_map k A b) = (algebra_map k (monoid_algebra A G) : k → monoid_algebra A G) b * of A G a :=
+lemma single_algebra_map_eq_algebra_map_mul_of {A : Type*} [comm_semiring k] [semiring A]
+  [algebra k A] [monoid G] (a : G) (b : k) :
+  single a (algebra_map k A b) = algebra_map k (monoid_algebra A G) b * of A G a :=
 by simp
 
 end algebra
@@ -678,6 +689,11 @@ lemma single_mul_apply_aux (f : add_monoid_algebra k G) (r : k) (x y z : G)
 lemma single_zero_mul_apply (f : add_monoid_algebra k G) (r : k) (x : G) :
   (single 0 r * f) x = r * f x :=
 f.single_mul_apply_aux r _ _ _ $ λ a, by rw [zero_add]
+
+lemma lift_nc_smul {R : Type*} [semiring R] (f : k →+* R) (g : multiplicative G →* R) (c : k)
+  (φ : monoid_algebra k G) :
+  lift_nc (f : k →+ R) g (c • φ) = f c * lift_nc (f : k →+ R) g φ :=
+@monoid_algebra.lift_nc_smul k (multiplicative G) _ _ _ _ f g c φ
 
 end misc_theorems
 

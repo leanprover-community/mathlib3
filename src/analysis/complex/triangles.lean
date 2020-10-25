@@ -386,6 +386,7 @@ begin
       {
         intros,
         sorry,
+        -- try again?
       },
 
       split,

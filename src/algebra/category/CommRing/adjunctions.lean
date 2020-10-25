@@ -47,6 +47,6 @@ def adj : free ⊣ forget CommRing :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X R, hom_equiv,
   hom_equiv_naturality_left_symm' :=
-    by intros; ext; apply eval₂_cast_comp f (int.cast_ring_hom Y) g x }
+    λ _ _ Y f g, ring_hom.ext $ λ x, eval₂_cast_comp f (int.cast_ring_hom Y) g x }
 
 end CommRing

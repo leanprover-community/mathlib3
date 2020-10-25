@@ -125,35 +125,58 @@ by rw [← mk_C x, lift_mk, eval₂_C]
 @[simp] lemma lift_comp_of : (lift i a h).comp (of f) = i :=
 ring_hom.ext $ λ _, @lift_of _ _ _ _ _ _ _ h _
 
+variables (f) [algebra R S]
+
 /-- Produce an algebra homomorphism `adjoin_root f →ₐ[R] S` sending `root f` to
 a root of `f` in `S`. -/
-def alg_hom [algebra R S] (f : polynomial R) (x : S) (hfx : aeval x f = 0) : adjoin_root f →ₐ[R] S :=
+def alg_hom (x : S) (hfx : aeval x f = 0) : adjoin_root f →ₐ[R] S :=
 { commutes' := λ r, show lift _ _ hfx r = _, from lift_of,
   .. lift (algebra_map R S) x hfx }
 
-@[simp] lemma coe_alg_hom [algebra R S] (f : polynomial R) (x : S) (hfx : aeval x f = 0) :
+@[simp] lemma coe_alg_hom (x : S) (hfx : aeval x f = 0) :
   (alg_hom f x hfx : adjoin_root f →+* S) = lift (algebra_map R S) x hfx :=
 rfl
+
+lemma aeval_alg_hom_eq_zero (ϕ : adjoin_root f →ₐ[R] S) : aeval (ϕ (root f)) f = 0 :=
+begin
+  by_cases f = 0,
+  { have key := aeval_zero (ϕ (root f)),
+    rw ← h at key,
+    exact key },
+  { rw [aeval_def, show (algebra_map R S = ϕ.to_ring_hom.comp (of f)),
+      by { ext, rw [ring_hom.comp_apply, ←algebra_map_eq], exact (alg_hom.commutes ϕ x).symm },
+      ←ring_hom.map_zero ϕ.to_ring_hom, ←eval₂_root f, hom_eval₂],
+    refl },
+end
+
+lemma alg_hom_eq_alg_hom [algebra R S] (f : polynomial R) (ϕ : adjoin_root f →ₐ[R] S) :
+  ϕ = alg_hom f (ϕ (root f)) (aeval_alg_hom_eq_zero f ϕ) :=
+begin
+  suffices : subalgebra.equalizer ϕ (alg_hom f (ϕ (root f)) (aeval_alg_hom_eq_zero f ϕ)) = ⊤,
+  { exact alg_hom.ext (λ x, (subalgebra.ext_iff.mp this x).mpr algebra.mem_top) },
+  rw [eq_top_iff, ←adjoin_root_eq_top, algebra.adjoin_le_iff],
+  change ({root f} : set (adjoin_root f)) ⊆ subalgebra.equalizer ϕ (alg_hom f (ϕ (root f)) _),
+  rw set.singleton_subset_iff,
+  change ϕ (root f) = lift (algebra_map R S) (ϕ (root f)) _ (root f),
+  rw lift_root,
+  exact aeval_alg_hom_eq_zero f ϕ,
+end
 
 def equiv (F E : Type*) [field F] [field E] [algebra F E] (f : polynomial F) (hf : f ≠ 0) :
   (adjoin_root f →ₐ[F] E) ≃ (↑(f.map (algebra_map F E)).roots.to_finset : set E) :=
 { to_fun := λ ϕ, ⟨ϕ (root f), begin
     rw [finset.mem_coe, multiset.mem_to_finset, mem_roots (map_ne_zero hf),
-      is_root.def, ←eval₂_eq_eval_map, show (algebra_map F E = ϕ.to_ring_hom.comp (of f)),
-      by { ext, rw [ring_hom.comp_apply, ←algebra_map_eq], exact (alg_hom.commutes ϕ x).symm },
-      ←ring_hom.map_zero ϕ.to_ring_hom, ←eval₂_root f, hom_eval₂],
-    refl,
+      is_root.def, ←eval₂_eq_eval_map, ←aeval_def],
+    exact aeval_alg_hom_eq_zero f ϕ,
     exact field.to_nontrivial E, end⟩,
-  inv_fun := λ x, alg_hom f ↑x begin
+  inv_fun := λ x, alg_hom f ↑x (begin
     rw [aeval_def, eval₂_eq_eval_map, ←is_root.def, ←mem_roots (map_ne_zero hf),
       ←multiset.mem_to_finset],
     exact subtype.mem x,
-    exact field.to_nontrivial E end,
+    exact field.to_nontrivial E end),
   left_inv := λ ϕ, begin
     change alg_hom f (ϕ (root f)) _ = ϕ,
-    --basically need to prove that every algebra_map is of the form alg_hom
-    --this should be a separate lemma
-    sorry,
+    exact (alg_hom_eq_alg_hom f ϕ).symm,
   end,
   right_inv := λ x, by { ext, exact @lift_root F E _ f _ _ ↑x begin
     rw [eval₂_eq_eval_map, ←is_root.def, ←mem_roots (map_ne_zero hf), ←multiset.mem_to_finset],

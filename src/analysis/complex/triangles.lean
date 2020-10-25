@@ -368,15 +368,15 @@ begin
   /- AK -/
   have TiInT : T i ∈ (triangle_hull T),
   {
-    rw triangle_hull,
-    rw convex_hull,
+    apply subset_convex_hull,
     ---???
     sorry,
   },
   have quadInT : (quadrisect T j k) ∈ (triangle_hull T),
   {
+    have hs : finite (set.range T) := finite_range T,
     rw triangle_hull,
-    rw convex_hull,
+    simp [hs.convex_hull_eq],
     sorry,
   },
   exact foo5 T (T i) (quadrisect T j k) TiInT quadInT,

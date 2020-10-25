@@ -156,10 +156,10 @@ lemma norm_sum_le_of_le {β} (s : finset β) {f : β → α} {n : β → ℝ} (h
   ∥∑ b in s, f b∥ ≤ ∑ b in s, n b :=
 le_trans (norm_sum_le s f) (finset.sum_le_sum h)
 
-lemma norm_pos_iff {g : α} : 0 < ∥ g ∥ ↔ g ≠ 0 :=
+@[simp] lemma norm_pos_iff {g : α} : 0 < ∥ g ∥ ↔ g ≠ 0 :=
 dist_zero_right g ▸ dist_pos
 
-lemma norm_le_zero_iff {g : α} : ∥g∥ ≤ 0 ↔ g = 0 :=
+@[simp] lemma norm_le_zero_iff {g : α} : ∥g∥ ≤ 0 ↔ g = 0 :=
 by { rw[←dist_zero_right], exact dist_le_zero }
 
 lemma norm_sub_le (g h : α) : ∥g - h∥ ≤ ∥g∥ + ∥h∥ :=

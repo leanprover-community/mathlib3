@@ -164,6 +164,14 @@ def is_separated_for (P : Cᵒᵖ ⥤ Type v) (R : arrows_with_codomain X) : Pro
 ∀ (x : family_of_elements P R) (t₁ t₂),
   is_consistent x → is_amalgamation_for x t₁ → is_amalgamation_for x t₂ → t₁ = t₂
 
+lemma test_of_separated {P : Cᵒᵖ ⥤ Type v} (R : arrows_with_codomain X) (hR : is_separated_for P R)
+  {t₁ t₂ : P.obj (opposite.op X)} (h : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : R f), P.map f.op t₁ = P.map f.op t₂) :
+t₁ = t₂ :=
+begin
+  apply hR (λ Y f hf, P.map f.op t₂) t₁ t₂ _ (λ Y f hf, h hf) (λ Y f hf, rfl),
+  apply is_consistent_of_exists_amalgamation _ ⟨_, λ Y f hf, rfl⟩,
+end
+
 lemma is_separated_for_iff_generate :
   is_separated_for P R ↔ is_separated_for P (generate R) :=
 begin
@@ -297,40 +305,135 @@ begin
   apply (trans f).uniqueness,
 end
 
-def is_sheaf_for_bind (P : Cᵒᵖ ⥤ Type v) (S : arrows_with_codomain X)
-  (R : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄, S f → sieve Y)
-  (hS : is_sheaf_for P S) (hR : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (H : S f), is_sheaf_for P (R H))
-  (hR' : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (H : S f) ⦃Z⦄ (g : Z ⟶ Y), is_separated_for P ((R H).pullback g)) :
-  is_sheaf_for P (sieve.bind S R) :=
-{ gluing := λ x hx,
+def is_sheaf_for_bind (P : Cᵒᵖ ⥤ Type v) (U : sieve X)
+  (B : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄, U f → sieve Y)
+  (hU : is_sheaf_for P U)
+  (hB : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : U f), is_sheaf_for P (B hf))
+  (hB' : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : U f) ⦃Z⦄ (g : Z ⟶ Y), is_separated_for P ((B hf).pullback g)) :
+  is_sheaf_for P (sieve.bind U B) :=
+{ gluing := λ s hs,
   begin
-    let y : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄ (H : S f), family_of_elements P (R H) := λ Y f H Z g hg,
-      x _ (arrows_with_codomain.bind_comp _ _ hg),
-    have hy : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (H : S f), is_consistent (y H),
+    let y : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : U f), family_of_elements P (B hf) := λ Y f hf Z g hg,
+      s _ (arrows_with_codomain.bind_comp _ _ hg),
+    have hy : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : U f), is_consistent (y hf),
     { intros Y f H Y₁ Y₂ Z g₁ g₂ f₁ f₂ hf₁ hf₂ comm,
-      apply hx,
+      apply hs,
       apply reassoc_of comm },
-    apply hS.gluing (λ Y f Hf, (hR Hf).gluing _ (hy Hf)) _,
-    intros Y₁ Y₂ Z g₁ g₂ f₁ f₂ h₁ h₂ comm,
-    apply hR' h₁ g₁ (λ W k hk, _) _ _ _ _ _,
-    { exact x _ (arrows_with_codomain.bind_comp _ _ hk) },
+    let t : Π ⦃Y⦄ (f : Y ⟶ X) (hf : U f), P.obj (opposite.op Y),
+    { intros Y f hf,
+      apply (hB hf).gluing (y hf) (hy hf) },
+    have ht : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : U f), is_amalgamation_for (y hf) (t f hf),
+    { intros Y f hf,
+      exact (hB hf).is_valid_gluing (y hf) (hy hf) },
+    have hT : is_consistent t,
     { rw is_sieve_consistent_iff,
-      intros Y' Z' f g hf,
-      rw is_sieve_consistent_iff at hx,
-      simpa using hx _ g (arrows_with_codomain.bind_comp _ _ hf) },
-    { intros Y k hk,
-      dsimp,
-      have : _ = x _ _ := (hR h₁).is_valid_gluing (y h₁) (hy _) (k ≫ g₁) hk,
-      rw ← this,
-      simp },
-    {
+      intros Z W f h hf,
+      apply test_of_separated (B (U.downward_closed hf h)) ((hB _).uniqueness),
+      intros Y l hl,
+      apply test_of_separated _ (hB' hf (l ≫ h)),
+      intros M m hm,
+      have : (bind ⇑U B) (m ≫ l ≫ h ≫ f),
+      { have : bind U B _ := arrows_with_codomain.bind_comp f hf hm,
+        simpa using this },
+      transitivity s (m ≫ l ≫ h ≫ f) this,
+      { have := ht (U.downward_closed hf h) _ ((B _).downward_closed hl m),
+        rw [op_comp, functor_to_types.map_comp_apply] at this,
+        rw this,
+        change s _ _ = s _ _,
+        simp },
+      { have : s _ _ = _ := (ht hf _ hm).symm,
+        simp only [assoc] at this,
+        simp only [op_comp, functor_to_types.map_comp_apply] at this,
+        exact this } },
+    apply hU.gluing t hT,
+  end,
+  is_valid_gluing := λ s hs,
+  begin
+    let y : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : U f), family_of_elements P (B hf) := λ Y f hf Z g hg,
+      s _ (arrows_with_codomain.bind_comp _ _ hg),
+    have hy : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : U f), is_consistent (y hf),
+    { intros Y f H Y₁ Y₂ Z g₁ g₂ f₁ f₂ hf₁ hf₂ comm,
+      apply hs,
+      apply reassoc_of comm },
+    let t : Π ⦃Y⦄ (f : Y ⟶ X) (hf : U f), P.obj (opposite.op Y),
+    { intros Y f hf,
+      apply (hB hf).gluing (y hf) (hy hf) },
+    have ht : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : U f), is_amalgamation_for (y hf) (t f hf),
+    { intros Y f hf,
+      exact (hB hf).is_valid_gluing (y hf) (hy hf) },
+    have hT : is_consistent t,
+    { rw is_sieve_consistent_iff,
+      intros Z W f h hf,
+      apply test_of_separated (B (U.downward_closed hf h)) ((hB _).uniqueness),
+      intros Y l hl,
+      apply test_of_separated _ (hB' hf (l ≫ h)),
+      intros M m hm,
+      have : (bind ⇑U B) (m ≫ l ≫ h ≫ f),
+      { have : bind U B _ := arrows_with_codomain.bind_comp f hf hm,
+        simpa using this },
+      transitivity s (m ≫ l ≫ h ≫ f) this,
+      { have := ht (U.downward_closed hf h) _ ((B _).downward_closed hl m),
+        rw [op_comp, functor_to_types.map_comp_apply] at this,
+        rw this,
+        change s _ _ = s _ _,
+        simp },
+      { have : s _ _ = _ := (ht hf _ hm).symm,
+        simp only [assoc] at this,
+        simp only [op_comp, functor_to_types.map_comp_apply] at this,
+        exact this } },
+    rintro Z _ ⟨Y, f, g, hg, hf, rfl⟩,
+    change P.map _ (hU.gluing t hT) = _,
+    rw op_comp,
+    rw functor_to_types.map_comp_apply,
+    rw (hU.is_valid_gluing t hT) _ hg,
+    apply ht hg _ hf,
+  end,
+  uniqueness :=
+  begin
+    intros s t₁ t₂ hs ht₁ ht₂,
+    apply test_of_separated _ hU.uniqueness,
+    intros Y f hf,
+    apply test_of_separated _ (hB hf).uniqueness,
+    intros Z g hg,
+    have ht₁' := ht₁ _ (arrows_with_codomain.bind_comp _ _ hg),
+    rw [op_comp, functor_to_types.map_comp_apply] at ht₁',
+    have ht₂' := ht₂ _ (arrows_with_codomain.bind_comp _ _ hg),
+    rw [op_comp, functor_to_types.map_comp_apply] at ht₂',
+    rw [ht₁', ht₂'],
+  end }
 
-    }
-  end
+def is_sheaf_for_trans (P : Cᵒᵖ ⥤ Type v) (R S : sieve X)
+  (hR : is_sheaf_for P R)
+  (hR' : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : S f), is_separated_for P (R.pullback f))
+  (hS : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : R f), is_sheaf_for P (S.pullback f)) :
+  is_sheaf_for P S :=
+begin
+  have : (bind ⇑R (λ (Y : C) (f : Y ⟶ X) (hf : R f), pullback f S) : arrows_with_codomain X) ≤ S,
+    rintros Z f ⟨W, f, g, hg, (hf : S _), rfl⟩,
+    apply hf,
+  apply is_sheaf_for_subsieve_aux P this,
+  apply is_sheaf_for_bind _ _ _ hR hS,
+  { intros Y f hf Z g,
+    dsimp,
+    rw ← pullback_comp,
+    apply (hS _).uniqueness,
+    simp [hf] },
+  { intros Y f hf,
+    have : (sieve.pullback f (bind R (λ T (k : T ⟶ X) (hf : R k), pullback k S))) = R.pullback f,
+    { ext Z g,
+      split,
+      { rintro ⟨W, k, l, hl, _, comm⟩,
+        rw [mem_pullback, ← comm],
+        simp [hl] },
+      { intro,
+        refine ⟨Z, 𝟙 Z, _, a, _⟩,
+        simp [hf] } },
+    rw this,
+    apply hR',
+    apply hf },
+end
 
-}
-
-def finest_topology (P : Cᵒᵖ ⥤ Type v) : grothendieck_topology C :=
+def finest_topology_single (P : Cᵒᵖ ⥤ Type v) : grothendieck_topology C :=
 { sieves := λ X S, ∀ Y (f : Y ⟶ X), nonempty (is_sheaf_for P (S.pullback f)),
   top_mem' := λ X Y f,
   begin
@@ -344,26 +447,20 @@ def finest_topology (P : Cᵒᵖ ⥤ Type v) : grothendieck_topology C :=
   end,
   transitive' := λ X S hS R hR Z g,
   begin
-    simp_rw [set.mem_def] at hR,
-    simp_rw [set.mem_def] at hS,
-    have hS' : Π (Y : C) (f : Y ⟶ X), is_sheaf_for P ⇑(pullback f S),
-      intros Y f,
-      apply classical.choice (hS Y f),
-    clear hS,
-    let R' := R.pullback g,
-    let S' := S.pullback g,
-    -- have hR' : ∀ ⦃Y : C⦄ ⦃f : Y ⟶ X⦄, S f → ∀ (Y_1 : C) (f_1 : Y_1 ⟶ Y), nonempty (is_sheaf_for P ⇑(pullback f_1 (pullback f R))),
-    have hR' : Π ⦃Y W : C⦄ (h : W ⟶ Y) ⦃f : Y ⟶ X⦄, S f → is_sheaf_for P (R.pullback (h ≫ f)),
-      intros,
-      rw pullback_comp,
-      apply classical.choice (hR a _ h),
-    -- change nonempty (is_sheaf_for P R'),
+    apply nonempty.intro,
+    apply is_sheaf_for_trans P (pullback g S),
+    { apply classical.choice (hS Z g) },
+    { intros Y f hf,
+      rw ← pullback_comp,
+      apply (classical.choice (hS _ _)).uniqueness },
+    { rintros Y f hf,
+      have := hR hf _ (𝟙 _),
+      rw [pullback_id, pullback_comp] at this,
+      apply classical.choice this },
+  end }
 
-
-  end
-}
-
-#exit
+def finest_topology (Ps : set (Cᵒᵖ ⥤ Type v)) : grothendieck_topology C :=
+Inf (finest_topology_single '' Ps)
 
 def is_separated (P : Cᵒᵖ ⥤ Type v) : Prop :=
 ∀ {X} (S : sieve X), S ∈ J X → is_separated_for P S
@@ -371,6 +468,33 @@ def is_separated (P : Cᵒᵖ ⥤ Type v) : Prop :=
 @[derive subsingleton]
 def is_sheaf (P : Cᵒᵖ ⥤ Type v) : Type (max u v) :=
 Π {X} (S : sieve X), S ∈ J X → is_sheaf_for P S
+
+def is_sheaf_for_coarser_topology (P : Cᵒᵖ ⥤ Type v) {J₁ J₂ : grothendieck_topology C} (h : J₁ ≤ J₂) :
+  is_sheaf J₂ P → is_sheaf J₁ P :=
+λ t X S hS, t S (h _ hS)
+
+noncomputable def sheaf_for_finest_topology (Ps : set (Cᵒᵖ ⥤ Type v)) :
+  P ∈ Ps → is_sheaf (finest_topology Ps) P :=
+begin
+  intros h X S hS,
+  have hS' : S ∈ finest_topology_single P X,
+  { exact hS _ ⟨⟨_, _, ⟨_, h, rfl⟩, rfl⟩, rfl⟩ },
+  have := hS' _ (𝟙 _),
+  rw pullback_id at this,
+  apply classical.choice this,
+end
+
+lemma is_finest_topology (Ps : set (Cᵒᵖ ⥤ Type v)) (J : grothendieck_topology C)
+  (hJ : ∀ P ∈ Ps, is_sheaf J P) : J ≤ finest_topology Ps :=
+begin
+  intros X S hS,
+  rintro _ ⟨⟨_, _, ⟨P, hP, rfl⟩, rfl⟩, rfl⟩,
+  intros Y f,
+  exact ⟨hJ P hP (S.pullback f) (J.pullback_stable f hS)⟩,
+end
+
+def canonical_topology : grothendieck_topology C :=
+finest_topology (set.range yoneda.obj)
 
 lemma separated_of_sheaf (P : Cᵒᵖ ⥤ Type v) (h : is_sheaf J P) : is_separated J P :=
 λ X S hS, (h S hS).uniqueness

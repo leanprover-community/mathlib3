@@ -245,14 +245,14 @@ end
 lemma degree_lt_linear_map_surjective (h : f ≠ 0) : function.surjective (degree_lt_linear_map f) :=
 begin
   intro q,
-  obtain ⟨q', hq'⟩ : ∃ q', adjoin_root.mk p q' = q := ideal.quotient.mk_surjective q,
+  obtain ⟨q', hq'⟩ : ∃ q', adjoin_root.mk f q' = q := ideal.quotient.mk_surjective q,
   use (q' % f),
   { rw [mem_degree_lt, ← degree_eq_nat_degree h],
     exact euclidean_domain.mod_lt q' h, },
-  { change adjoin_root.mk p (q' % p) = q,
+  { change adjoin_root.mk f (q' % f) = q,
     symmetry,
     rw [← hq', adjoin_root.mk, ideal.quotient.eq, ideal.mem_span_singleton'],
-    exact ⟨q' / p, by rw [eq_sub_iff_add_eq, mul_comm, euclidean_domain.div_add_mod]⟩, },
+    exact ⟨q' / f, by rw [eq_sub_iff_add_eq, mul_comm, euclidean_domain.div_add_mod]⟩, },
 end
 
 lemma degree_lt_linear_map_bijective (h : f ≠ 0) : function.bijective (degree_lt_linear_map f) :=

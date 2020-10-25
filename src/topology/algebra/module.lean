@@ -725,6 +725,8 @@ instance : has_coe_to_fun (M ≃L[R] M₂) := ⟨λ _, M → M₂, λ f, f⟩
 
 @[simp] theorem coe_apply (e : M ≃L[R] M₂) (b : M) : (e : M →L[R] M₂) b = e b := rfl
 
+@[simp] lemma coe_to_linear_equiv (f : M ≃L[R] M₂) : ⇑f.to_linear_equiv = f := rfl
+
 @[norm_cast] lemma coe_coe (e : M ≃L[R] M₂) : ((e : M →L[R] M₂) : M → M₂) = e := rfl
 
 @[ext] lemma ext {f g : M ≃L[R] M₂} (h : (f : M → M₂) = g) : f = g :=

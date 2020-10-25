@@ -87,6 +87,52 @@ begin
   exact lt_of_le_of_lt (degree_X_pow_le _) (with_bot.coe_lt_coe.2 $ finset.mem_range.1 hk)
 end
 
+def degree_lt_linear_map (F : Type*) [field F] (n : ℕ) :
+  degree_lt F n →ₗ[F] ((↑(finset.range n) : set ℕ) → F) :=
+{ to_fun := λ p n, (↑p : polynomial F).coeff n,
+  map_add' := λ p q, by { ext, rw [submodule.coe_add, coeff_add], refl },
+  map_smul' := λ x p, by { ext, rw [submodule.coe_smul, coeff_smul], refl } }
+
+lemma degree_lt_linear_map_bijective (F : Type*) [field F] (n : ℕ) :
+  function.bijective (degree_lt_linear_map F n) :=
+begin
+  split,
+  { intros p q h,
+    ext,
+    have key := function.funext_iff.mp h,
+    by_cases n_1 < n,
+    { exact key ⟨n_1, finset.mem_range.mpr h⟩ },
+    rw polynomial.coeff_eq_zero_of_degree_lt (lt_of_lt_of_le (mem_degree_lt.mp (subtype.mem p))
+      (with_bot.coe_le_coe.mpr (le_of_not_lt h))),
+    rw polynomial.coeff_eq_zero_of_degree_lt (lt_of_lt_of_le (mem_degree_lt.mp (subtype.mem q))
+     (with_bot.coe_le_coe.mpr (le_of_not_lt h))) },
+  { intro f,
+    let g : ℕ → F := λ k, dite (k < n)
+      (λ h, f ⟨k, finset.mem_coe.mpr (finset.mem_range.mpr h)⟩) (λ h, 0),
+    let p : polynomial F := finsupp.on_finset (finset.filter (λ n, g n ≠ 0) (finset.range n)) g begin
+      intros k hk,
+      rw finset.mem_filter,
+      by_cases (k < n),
+      { exact ⟨finset.mem_coe.mpr (finset.mem_range.mpr h), hk⟩ },
+      { exfalso, apply hk, exact dif_neg h } end,
+    have key : ∀ n, p.coeff n = g n := λ _, finsupp.on_finset_apply,
+    suffices : p.degree < n,
+    { use (⟨p, mem_degree_lt.mpr this⟩ : degree_lt F n),
+      ext,
+      change p.coeff x = _,
+      rw key x,
+      rw [←subtype.coe_eta x] {occs := occurrences.pos [2]},
+      exact dif_pos (finset.mem_range.mp (subtype.mem x)) },
+    rw polynomial.degree_lt_iff_coeff_zero,
+    intros m hm,
+    rw key m,
+    exact dif_neg (not_lt.mpr hm) }
+end
+
+def degree_lt_linear_equiv (F : Type*) [field F] (n : ℕ) :
+  degree_lt F n ≃ₗ[F] ((↑(finset.range n) : set ℕ) → F) :=
+{ .. (degree_lt_linear_map F n), .. equiv.of_bijective _ (degree_lt_linear_map_bijective F n) }
+
 local attribute [instance] subset.ring
 
 /-- Given a polynomial, return the polynomial whose coefficients are in

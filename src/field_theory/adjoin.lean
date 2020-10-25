@@ -287,7 +287,7 @@ end
 end adjoin_simple
 end adjoin_def
 
-section adjoin_subalgebra_lattice
+section adjoin_intermediate_field_lattice
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E] {α : E} {S : set E}
 
 @[simp] lemma adjoin_eq_bot_iff : adjoin F S = ⊥ ↔ S ⊆ (⊥ : intermediate_field F E) :=
@@ -376,7 +376,7 @@ lemma subsingleton_of_findim_adjoin_le_one [finite_dimensional F E]
 subsingleton_of_bot_eq_top (bot_eq_top_of_findim_adjoin_le_one h)
 
 end adjoin_dim
-end adjoin_subalgebra_lattice
+end adjoin_intermediate_field_lattice
 
 section adjoin_integral_element
 

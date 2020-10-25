@@ -143,7 +143,7 @@ namespace pi
 variables {I : Type*} {f : I → Type*}
 
 /-- If the internal type at `i'` is nontrivial, and all others are nonempty, so is the collection -/
-def nontrivial_at (i' : I) [inst : Π i, nonempty (f i)] [nontrivial (f i')]
+lemma nontrivial_at (i' : I) [inst : Π i, nonempty (f i)] [nontrivial (f i')]
   : nontrivial (Π i : I, f i) :=
 let ⟨x, hxy⟩ := classical.indefinite_description _ (exists_pair_ne (f i')),
     ⟨y, hxy⟩ := classical.indefinite_description _ hxy

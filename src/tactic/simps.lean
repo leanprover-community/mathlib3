@@ -259,7 +259,7 @@ library_note "custom simps projection"
   will give the output
   ```
     [(`(@equiv.to_fun.{u u} α α), `apply, `equiv.to_fun, `(id)),
-     (`(@equiv.inv_fun.{u u} α α), `symm, `equiv.inv_fun, `(id)),
+     (`(@equiv.inv_fun.{u u} α α), `symm_apply, `equiv.inv_fun, `(id)),
      ...,
      ...]
   ```

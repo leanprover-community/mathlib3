@@ -3,6 +3,7 @@ Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Scott Morrison, Adam Topaz.
 -/
+import algebra.algebra.subalgebra
 import algebra.monoid_algebra
 import linear_algebra
 
@@ -27,6 +28,7 @@ Given a commutative semiring `R`, and a type `X`, we construct the free `R`-alge
 4. `lift_comp_ι` is a combination of `ι_comp_lift` and `lift_unique`. It states that the lift
   of the composition of an algebra morphism with `ι` is the algebra morphism itself.
 5. `equiv_monoid_algebra_free_monoid : free_algebra R X ≃ₐ[R] monoid_algebra R (free_monoid X)`
+6. An inductive principle `induction`.
 
 ## Implementation details
 
@@ -171,6 +173,8 @@ instance : algebra R (free_algebra R X) :=
   commutes' := λ _, by { rintros ⟨⟩, exact quot.sound rel.central_scalar },
   smul_def' := λ _ _, rfl }
 
+instance {S : Type*} [comm_ring S] : ring (free_algebra S X) := algebra.semiring_to_ring S
+
 variables {X}
 
 /--
@@ -293,5 +297,44 @@ begin
   { intros x y ih, simp at ih, simp [ih], }
 end
 (by { ext, simp, })
+
+end free_algebra
+
+-- There is something weird in the above namespace that breaks the typeclass resolution of `has_coe_to_sort` below.
+-- Closing it and reopening it fixes it...
+namespace free_algebra
+
+/-- An induction principle for the free algebra.
+
+If `C` holds for the `algebra_map` of `r : R` into `free_algebra R X`, the `ι` of `x : X`, and is
+preserved under addition and muliplication, then it holds for all of `free_algebra R X`.
+-/
+@[elab_as_eliminator]
+lemma induction {C : free_algebra R X → Prop}
+  (h_grade0 : ∀ r, C (algebra_map R (free_algebra R X) r))
+  (h_grade1 : ∀ x, C (ι R x))
+  (h_mul : ∀ a b, C a → C b → C (a * b))
+  (h_add : ∀ a b, C a → C b → C (a + b))
+  (a : free_algebra R X) :
+  C a :=
+begin
+  -- the arguments are enough to construct a subalgebra, and a mapping into it from X
+  let s : subalgebra R (free_algebra R X) := {
+    carrier := C,
+    one_mem' := h_grade0 1,
+    zero_mem' := h_grade0 0,
+    mul_mem' := h_mul,
+    add_mem' := h_add,
+    algebra_map_mem' := h_grade0, },
+  let of : X → s := subtype.coind (ι R) h_grade1,
+  -- the mapping through the subalgebra is the identity
+  have of_id : alg_hom.id R (free_algebra R X) = s.val.comp (lift R of),
+  { ext,
+    simp [of, subtype.coind], },
+  -- finding a proof is finding an element of the subalgebra
+  convert subtype.prop (lift R of a),
+  simp [alg_hom.ext_iff] at of_id,
+  exact of_id a,
+end
 
 end free_algebra

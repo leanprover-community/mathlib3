@@ -82,7 +82,6 @@ end
 lemma det_of_card_zero (h : fintype.card n = 0) (M : matrix n n R) : M.det = 1 :=
 by { rw fintype.card_eq_zero_iff at h, suffices : M = 1, { simp [this] }, ext, tauto }
 
-
 theorem char_poly_degree_eq_dim [nontrivial R] (M : matrix n n R) :
 (char_poly M).degree = fintype.card n :=
 begin
@@ -101,9 +100,10 @@ theorem char_poly_nat_degree_eq_dim [nontrivial R] (M : matrix n n R) :
   (char_poly M).nat_degree = fintype.card n :=
 nat_degree_eq_of_degree_eq_some (char_poly_degree_eq_dim M)
 
-lemma char_poly_monic_of_nontrivial [nontrivial R] (M : matrix n n R) :
+lemma char_poly_monic (M : matrix n n R) :
   monic (char_poly M) :=
 begin
+  nontriviality,
   by_cases fintype.card n = 0, rw [char_poly, det_of_card_zero h], apply monic_one,
   have mon : (∏ (i : n), (X - C (M i i))).monic,
   { apply monic_prod_of_monic univ (λ i : n, (X - C (M i i))), simp [monic_X_sub_C], },
@@ -114,19 +114,10 @@ begin
   rw ← nat.pred_eq_sub_one, apply nat.pred_lt, apply h,
 end
 
-lemma char_poly_monic (M : matrix n n R) :
-  monic (char_poly M) :=
-begin
-  classical, by_cases h : nontrivial R,
-  { letI := h, apply char_poly_monic_of_nontrivial, },
-  { rw nontrivial_iff at h, push_neg at h, apply h, }
-end
-
 theorem trace_eq_neg_char_poly_coeff [nonempty n] (M : matrix n n R) :
   (matrix.trace n R R) M = -(char_poly M).coeff (fintype.card n - 1) :=
 begin
-  by_cases nontrivial R; try { rw not_nontrivial_iff_subsingleton at h }; haveI := h, swap,
-  { apply subsingleton.elim },
+  nontriviality,
   rw char_poly_coeff_eq_prod_coeff_of_le, swap, refl,
   rw [fintype.card, prod_X_sub_C_coeff_card_pred univ (λ i : n, M i i)], simp,
   rw [← fintype.card, fintype.card_pos_iff], apply_instance,

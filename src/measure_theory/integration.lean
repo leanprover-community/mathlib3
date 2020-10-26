@@ -454,8 +454,8 @@ by rw [approx_apply _ hf, approx_apply _ (hf.comp hg)]
 
 end
 
-lemma supr_approx_apply [topological_space β] [complete_lattice β] [order_closed_topology β] [has_zero β]
-  [measurable_space β] [opens_measurable_space β]
+lemma supr_approx_apply [topological_space β] [complete_lattice β] [order_closed_topology β]
+  [has_zero β] [measurable_space β] [opens_measurable_space β]
   (i : ℕ → β) (f : α → β) (a : α) (hf : measurable f) (h_zero : (0 : β) = ⊥) :
   (⨆n, (approx i f n : α →ₛ β) a) = (⨆k (h : i k ≤ f a), i k) :=
 begin
@@ -832,6 +832,9 @@ variables [measurable_space α] {μ : measure α}
 def lintegral (μ : measure α) (f : α → ennreal) : ennreal :=
 ⨆ (g : α →ₛ ennreal) (hf : ⇑g ≤ f), g.lintegral μ
 
+/-! In the notation for integrals, an expression like `∫⁻ x, g ∥x∥ ∂μ` will not be parsed correctly,
+  and needs parentheses. We do not set the binding power of `r` to `0`, because then
+  `∫⁻ x, f x = 0` will be parsed incorrectly. -/
 notation `∫⁻` binders `, ` r:(scoped:60 f, f) ` ∂` μ:70 := lintegral μ r
 notation `∫⁻` binders `, ` r:(scoped:60 f, lintegral volume f) := r
 notation `∫⁻` binders ` in ` s `, ` r:(scoped:60 f, f) ` ∂` μ:70 :=
@@ -1106,6 +1109,18 @@ begin
   simpa [(mul_assoc _ _ _).symm, rinv]
     using canonically_ordered_semiring.mul_le_mul (le_refl r) this
 end
+
+lemma lintegral_mul_const (r : ennreal) {f : α → ennreal} (hf : measurable f) :
+  ∫⁻ a, f a * r ∂μ = ∫⁻ a, f a ∂μ * r :=
+by simp_rw [mul_comm, lintegral_const_mul r hf]
+
+lemma lintegral_mul_const_le (r : ennreal) (f : α → ennreal) :
+  ∫⁻ a, f a ∂μ * r ≤ ∫⁻ a, f a * r ∂μ :=
+by simp_rw [mul_comm, lintegral_const_mul_le r f]
+
+lemma lintegral_mul_const' (r : ennreal) (f : α → ennreal) (hr : r ≠ ⊤):
+  ∫⁻ a, f a * r ∂μ = ∫⁻ a, f a ∂μ * r :=
+by simp_rw [mul_comm, lintegral_const_mul' r f hr]
 
 lemma lintegral_mono_ae {f g : α → ennreal} (h : ∀ᵐ a ∂μ, f a ≤ g a) :
   (∫⁻ a, f a ∂μ) ≤ (∫⁻ a, g a ∂μ) :=
@@ -1419,8 +1434,7 @@ begin
 end
 
 lemma lintegral_map [measurable_space β] {f : β → ennreal} {g : α → β}
-  (hf : measurable f) (hg : measurable g) :
-  ∫⁻ a, f a ∂(map g μ) = ∫⁻ a, f (g a) ∂μ :=
+  (hf : measurable f) (hg : measurable g) : ∫⁻ a, f a ∂(map g μ) = ∫⁻ a, f (g a) ∂μ :=
 begin
   simp only [lintegral_eq_supr_eapprox_lintegral, hf, hf.comp hg],
   { congr, funext n, symmetry,
@@ -1428,6 +1442,10 @@ begin
     { assume a, exact congr_fun (simple_func.eapprox_comp hf hg) a },
     { assume s hs, exact map_apply hg hs } },
 end
+
+lemma lintegral_comp [measurable_space β] {f : β → ennreal} {g : α → β}
+  (hf : measurable f) (hg : measurable g) : lintegral μ (f ∘ g) = ∫⁻ a, f a ∂(map g μ) :=
+(lintegral_map hf hg).symm
 
 lemma set_lintegral_map [measurable_space β] {f : β → ennreal} {g : α → β}
   {s : set β} (hs : is_measurable s) (hf : measurable f) (hg : measurable g) :
@@ -1437,6 +1455,16 @@ by rw [restrict_map hg hs, lintegral_map hf hg]
 lemma lintegral_dirac (a : α) {f : α → ennreal} (hf : measurable f) :
   ∫⁻ a, f a ∂(dirac a) = f a :=
 by simp [lintegral_congr_ae (eventually_eq_dirac hf)]
+
+lemma ae_lt_top {f : α → ennreal} (hf : measurable f) (h2f : ∫⁻ x, f x ∂μ < ⊤) :
+  ∀ᵐ x ∂μ, f x < ⊤ :=
+begin
+  simp_rw [ae_iff, ennreal.not_lt_top], by_contra h, rw [← not_le] at h2f, apply h2f,
+  have : (f ⁻¹' {⊤}).indicator ⊤ ≤ f,
+  { intro x, by_cases hx : x ∈ f ⁻¹' {⊤}; [simpa [hx], simp [hx]] },
+  convert lintegral_mono this,
+  rw [lintegral_indicator _ (hf (is_measurable_singleton ⊤))], simp [ennreal.top_mul, preimage, h]
+end
 
 /-- Given a measure `μ : measure α` and a function `f : α → ennreal`, `μ.with_density f` is the
 measure such that for a measurable set `s` we have `μ.with_density f s = ∫⁻ a in s, f a ∂μ`. -/

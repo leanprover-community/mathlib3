@@ -70,8 +70,13 @@ instance : has_coe_to_fun (continuous_multilinear_map R M₁ M₂) :=
 
 @[simp] lemma coe_coe : (f.to_multilinear_map : (Π i, M₁ i) → M₂) = f := rfl
 
+theorem to_multilinear_map_inj :
+  function.injective (continuous_multilinear_map.to_multilinear_map :
+    continuous_multilinear_map R M₁ M₂ → multilinear_map R M₁ M₂)
+| ⟨f, hf⟩ ⟨g, hg⟩ rfl := rfl
+
 @[ext] theorem ext {f f' : continuous_multilinear_map R M₁ M₂} (H : ∀ x, f x = f' x) : f = f' :=
-by { cases f, cases f', congr' with x, exact H x }
+to_multilinear_map_inj $ multilinear_map.ext H
 
 @[simp] lemma map_add (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
   f (update m i (x + y)) = f (update m i x) + f (update m i y) :=

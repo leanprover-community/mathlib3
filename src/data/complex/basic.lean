@@ -125,7 +125,6 @@ ext_iff.2 $ by simp
 @[simp] lemma re_add_im (z : ℂ) : (z.re : ℂ) + z.im * I = z :=
 ext_iff.2 $ by simp
 
-
 /-! ### Commutative ring instance and lemmas -/
 
 instance : comm_ring ℂ :=
@@ -137,6 +136,12 @@ instance re.is_add_group_hom : is_add_group_hom complex.re :=
 
 instance im.is_add_group_hom : is_add_group_hom complex.im :=
 { map_add := complex.add_im }
+
+@[simp] lemma I_pow_bit0 (n : ℕ) : I ^ (bit0 n) = (-1) ^ n :=
+by rw [pow_bit0', I_mul_I]
+
+@[simp] lemma I_pow_bit1 (n : ℕ) : I ^ (bit1 n) = (-1) ^ n * I :=
+by rw [pow_bit1', I_mul_I]
 
 /-! ### Complex conjugation -/
 
@@ -279,6 +284,12 @@ noncomputable instance : field ℂ :=
   inv_zero := complex.inv_zero,
   ..complex.comm_ring }
 
+@[simp] lemma I_fpow_bit0 (n : ℤ) : I ^ (bit0 n) = (-1) ^ n :=
+by rw [fpow_bit0', I_mul_I]
+
+@[simp] lemma I_fpow_bit1 (n : ℤ) : I ^ (bit1 n) = (-1) ^ n * I :=
+by rw [fpow_bit1', I_mul_I]
+
 lemma div_re (z w : ℂ) : (z / w).re = z.re * w.re / norm_sq w + z.im * w.im / norm_sq w :=
 by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg]
 lemma div_im (z w : ℂ) : (z / w).im = z.im * w.re / norm_sq w - z.re * w.im / norm_sq w :=
@@ -336,7 +347,7 @@ by rw [← of_real_rat_cast, of_real_im]
 /-! ### Characteristic zero -/
 
 instance char_zero_complex : char_zero ℂ :=
-add_group.char_zero_of_inj_zero $ λ n h,
+char_zero_of_inj_zero $ λ n h,
 by rwa [← of_real_nat_cast, of_real_eq_zero, nat.cast_eq_zero] at h
 
 theorem re_eq_add_conj (z : ℂ) : (z.re : ℂ) = (z + conj z) / 2 :=
@@ -407,7 +418,7 @@ lemma abs_add (z w : ℂ) : abs (z + w) ≤ abs z + abs w :=
 begin
   rw [mul_self_abs, add_mul_self_eq, mul_self_abs, mul_self_abs,
       add_right_comm, norm_sq_add, add_le_add_iff_left,
-      mul_assoc, mul_le_mul_left (@zero_lt_two ℝ _)],
+      mul_assoc, mul_le_mul_left (@zero_lt_two ℝ _ _)],
   simpa [-mul_re] using re_le_abs (z * conj w)
 end
 

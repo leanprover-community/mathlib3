@@ -82,6 +82,10 @@ normed_group.dist_eq _ _
 @[simp] lemma dist_zero_right (g : α) : dist g 0 = ∥g∥ :=
 by rw [dist_eq_norm, sub_zero]
 
+lemma tendsto_norm_cocompact_at_top [proper_space α] :
+  tendsto norm (cocompact α) at_top :=
+by simpa only [dist_zero_right] using tendsto_dist_right_cocompact_at_top (0:α)
+
 lemma norm_sub_rev (g h : α) : ∥g - h∥ = ∥h - g∥ :=
 by simpa only [dist_eq_norm] using dist_comm g h
 
@@ -142,6 +146,9 @@ dist_zero_right g ▸ dist_eq_zero
 
 @[simp] lemma norm_zero : ∥(0:α)∥ = 0 := norm_eq_zero.2 rfl
 
+@[nontriviality] lemma norm_of_subsingleton [subsingleton α] (x : α) : ∥x∥ = 0 :=
+by rw [subsingleton.elim x 0, norm_zero]
+
 lemma norm_sum_le {β} : ∀(s : finset β) (f : β → α), ∥∑ a in s, f a∥ ≤ ∑ a in s, ∥ f a ∥ :=
 finset.le_sum_of_subadditive norm norm_zero norm_add_le
 
@@ -149,10 +156,10 @@ lemma norm_sum_le_of_le {β} (s : finset β) {f : β → α} {n : β → ℝ} (h
   ∥∑ b in s, f b∥ ≤ ∑ b in s, n b :=
 le_trans (norm_sum_le s f) (finset.sum_le_sum h)
 
-lemma norm_pos_iff {g : α} : 0 < ∥ g ∥ ↔ g ≠ 0 :=
+@[simp] lemma norm_pos_iff {g : α} : 0 < ∥ g ∥ ↔ g ≠ 0 :=
 dist_zero_right g ▸ dist_pos
 
-lemma norm_le_zero_iff {g : α} : ∥g∥ ≤ 0 ↔ g = 0 :=
+@[simp] lemma norm_le_zero_iff {g : α} : ∥g∥ ≤ 0 ↔ g = 0 :=
 by { rw[←dist_zero_right], exact dist_le_zero }
 
 lemma norm_sub_le (g h : α) : ∥g - h∥ ≤ ∥g∥ + ∥h∥ :=
@@ -405,6 +412,10 @@ lemma filter.tendsto.norm {β : Type*} {l : filter β} {f : β → α} {a : α} 
   tendsto (λ x, ∥f x∥) l (𝓝 ∥a∥) :=
 tendsto.comp continuous_norm.continuous_at h
 
+lemma continuous.norm [topological_space γ] {f : γ → α} (hf : continuous f) :
+  continuous (λ x, ∥f x∥) :=
+continuous_norm.comp hf
+
 lemma continuous_nnnorm : continuous (nnnorm : α → nnreal) :=
 continuous_subtype_mk _ continuous_norm
 
@@ -427,15 +438,7 @@ end
 continuous. -/
 @[priority 100] -- see Note [lower instance priority]
 instance normed_uniform_group : uniform_add_group α :=
-begin
-  refine ⟨metric.uniform_continuous_iff.2 $ assume ε hε, ⟨ε / 2, half_pos hε, assume a b h, _⟩⟩,
-  rw [prod.dist_eq, max_lt_iff, dist_eq_norm, dist_eq_norm] at h,
-  calc dist (a.1 - a.2) (b.1 - b.2) = ∥(a.1 - b.1) - (a.2 - b.2)∥ :
-      by simp [dist_eq_norm, sub_eq_add_neg]; abel
-    ... ≤ ∥a.1 - b.1∥ + ∥a.2 - b.2∥ : norm_sub_le _ _
-    ... < ε / 2 + ε / 2 : add_lt_add h.1 h.2
-    ... = ε : add_halves _
-end
+⟨(lipschitz_with.prod_fst.sub lipschitz_with.prod_snd).uniform_continuous⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance normed_top_monoid : has_continuous_add α := by apply_instance -- short-circuit type class inference
@@ -468,7 +471,7 @@ attribute [simp] norm_one
 @[simp] lemma nnnorm_one [normed_group α] [has_one α] [norm_one_class α] : nnnorm (1:α) = 1 :=
 nnreal.eq norm_one
 
-@[priority 100]
+@[priority 100] -- see Note [lower instance priority]
 instance normed_comm_ring.to_comm_ring [β : normed_comm_ring α] : comm_ring α := { ..β }
 
 @[priority 100] -- see Note [lower instance priority]
@@ -755,14 +758,44 @@ lemma filter.tendsto.inv' [normed_field α] {l : filter β} {f : β → α} {y :
   tendsto (λx, (f x)⁻¹) l (𝓝 y⁻¹) :=
 (normed_field.tendsto_inv hy).comp h
 
+lemma continuous_at.inv' [topological_space α] [normed_field β] {f : α → β} {x : α}
+  (hf : continuous_at f x) (hx : f x ≠ 0) :
+  continuous_at (λ x, (f x)⁻¹) x :=
+hf.inv' hx
+
+lemma continuous_within_at.inv' [topological_space α] [normed_field β] {f : α → β} {x : α}
+  {s : set α} (hf : continuous_within_at f s x) (hx : f x ≠ 0) :
+  continuous_within_at (λ x, (f x)⁻¹) s x :=
+hf.inv' hx
+
+lemma continuous.inv' [topological_space α] [normed_field β] {f : α → β} (hf : continuous f)
+  (h0 : ∀ x, f x ≠ 0) : continuous (λ x, (f x)⁻¹) :=
+continuous_iff_continuous_at.2 $ λ x, (hf.tendsto x).inv' (h0 x)
+
+lemma continuous_on.inv' [topological_space α] [normed_field β] {f : α → β} {s : set α}
+  (hf : continuous_on f s) (h0 : ∀ x ∈ s, f x ≠ 0) :
+  continuous_on (λ x, (f x)⁻¹) s :=
+λ x hx, (hf x hx).inv' (h0 x hx)
+
+lemma filter.tendsto.div_const [normed_field α] {l : filter β} {f : β → α} {x y : α}
+  (hf : tendsto f l (𝓝 x)) : tendsto (λa, f a / y) l (𝓝 (x / y)) :=
+hf.mul tendsto_const_nhds
+
 lemma filter.tendsto.div [normed_field α] {l : filter β} {f g : β → α} {x y : α}
   (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) (hy : y ≠ 0) :
   tendsto (λa, f a / g a) l (𝓝 (x / y)) :=
 hf.mul (hg.inv' hy)
 
-lemma filter.tendsto.div_const [normed_field α] {l : filter β} {f : β → α} {x y : α}
-  (hf : tendsto f l (𝓝 x)) : tendsto (λa, f a / y) l (𝓝 (x / y)) :=
-by { simp only [div_eq_inv_mul], exact tendsto_const_nhds.mul hf }
+lemma continuous_within_at.div [topological_space α] [normed_field β] {f : α → β} {g : α → β}
+  {s : set α} {x : α} (hf : continuous_within_at f s x) (hg : continuous_within_at g s x)
+  (hnz : g x ≠ 0) :
+  continuous_within_at (λ x, f x / g x) s x :=
+hf.div hg hnz
+
+lemma continuous_on.div [topological_space α] [normed_field β] {f : α → β} {g : α → β}
+  {s : set α} (hf : continuous_on f s) (hg : continuous_on g s) (hnz : ∀ x ∈ s, g x ≠ 0) :
+  continuous_on (λ x, f x / g x) s :=
+λ x hx, (hf x hx).div (hg x hx) (hnz x hx)
 
 /-- Continuity at a point of the result of dividing two functions
 continuous at that point, where the denominator is nonzero. -/
@@ -770,6 +803,11 @@ lemma continuous_at.div [topological_space α] [normed_field β] {f : α → β}
     (hf : continuous_at f x) (hg : continuous_at g x) (hnz : g x ≠ 0) :
   continuous_at (λ x, f x / g x) x :=
 hf.div hg hnz
+
+lemma continuous.div [topological_space α] [normed_field β] {f : α → β} {g : α → β}
+  (hf : continuous f) (hg : continuous g) (h0 : ∀ x, g x ≠ 0) :
+  continuous (λ x, f x / g x) :=
+continuous_iff_continuous_at.2 $ λ x, (hf.tendsto x).div (hg.tendsto x) (h0 x)
 
 namespace real
 
@@ -782,7 +820,7 @@ abs_of_nonneg hx
 
 @[simp] lemma nnnorm_coe_nat (n : ℕ) : nnnorm (n : ℝ) = n := nnreal.eq $ by simp
 
-@[simp] lemma norm_two : ∥(2:ℝ)∥ = 2 := abs_of_pos (@zero_lt_two ℝ _)
+@[simp] lemma norm_two : ∥(2:ℝ)∥ = 2 := abs_of_pos (@zero_lt_two ℝ _ _)
 
 @[simp] lemma nnnorm_two : nnnorm (2:ℝ) = 2 := nnreal.eq $ by simp
 
@@ -911,7 +949,7 @@ begin
     ((continuous_id.smul continuous_const).add continuous_const).continuous_within_at,
   convert this.mem_closure _ _,
   { rw [one_smul, sub_add_cancel] },
-  { simp [closure_Ico (@zero_lt_one ℝ _), zero_le_one] },
+  { simp [closure_Ico (@zero_lt_one ℝ _ _), zero_le_one] },
   { rintros c ⟨hc0, hc1⟩,
     rw [set.mem_preimage, mem_ball, dist_eq_norm, add_sub_cancel, norm_smul, real.norm_eq_abs,
       abs_of_nonneg hc0, mul_comm, ← mul_one r],
@@ -1081,27 +1119,30 @@ section restrict_scalars
 variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 (E : Type*) [normed_group E] [normed_space 𝕜' E]
 
-/-- `𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
+/-- Warning: This declaration should be used judiciously.
+Please consider using `is_scalar_tower` instead.
+
+`𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
 normed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred.
 
 The type synonym `semimodule.restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.
 -/
-def normed_space.restrict_scalars' : normed_space 𝕜 E :=
+def normed_space.restrict_scalars : normed_space 𝕜 E :=
 { norm_smul_le := λc x, le_of_eq $ begin
     change ∥(algebra_map 𝕜 𝕜' c) • x∥ = ∥c∥ * ∥x∥,
     simp [norm_smul]
   end,
-  ..semimodule.restrict_scalars' 𝕜 𝕜' E }
+  ..restrict_scalars.semimodule 𝕜 𝕜' E }
 
 instance {𝕜 : Type*} {𝕜' : Type*} {E : Type*} [I : normed_group E] :
-  normed_group (semimodule.restrict_scalars 𝕜 𝕜' E) := I
+  normed_group (restrict_scalars 𝕜 𝕜' E) := I
 
 instance semimodule.restrict_scalars.normed_space_orig {𝕜 : Type*} {𝕜' : Type*} {E : Type*}
   [normed_field 𝕜'] [normed_group E] [I : normed_space 𝕜' E] :
-  normed_space 𝕜' (semimodule.restrict_scalars 𝕜 𝕜' E) := I
+  normed_space 𝕜' (restrict_scalars 𝕜 𝕜' E) := I
 
-instance : normed_space 𝕜 (semimodule.restrict_scalars 𝕜 𝕜' E) :=
-(normed_space.restrict_scalars' 𝕜 𝕜' E : normed_space 𝕜 E)
+instance : normed_space 𝕜 (restrict_scalars 𝕜 𝕜' E) :=
+(normed_space.restrict_scalars 𝕜 𝕜' E : normed_space 𝕜 E)
 
 end restrict_scalars
 
@@ -1110,32 +1151,14 @@ open_locale classical
 open finset filter
 variables [normed_group α] [normed_group β]
 
--- Applying a bounded homomorphism commutes with taking an (infinite) sum.
-lemma has_sum_of_bounded_monoid_hom_of_has_sum
-  {f : ι → α} {φ : α →+ β} {x : α} (hf : has_sum f x) (C : ℝ) (hφ : ∀x, ∥φ x∥ ≤ C * ∥x∥) :
-  has_sum (λ (b:ι), φ (f b)) (φ x) :=
-begin
-  unfold has_sum,
-  convert (φ.continuous_of_bound C hφ).continuous_at.tendsto.comp hf,
-  ext s, rw [function.comp_app, finset.sum_hom s φ],
-end
-
-lemma has_sum_of_bounded_monoid_hom_of_summable
-  {f : ι → α} {φ : α →+ β} (hf : summable f) (C : ℝ) (hφ : ∀x, ∥φ x∥ ≤ C * ∥x∥) :
-  has_sum (λ (b:ι), φ (f b)) (φ (∑'b, f b)) :=
-has_sum_of_bounded_monoid_hom_of_has_sum hf.has_sum C hφ
-
 lemma cauchy_seq_finset_iff_vanishing_norm {f : ι → α} :
-  cauchy_seq (λ s : finset ι, ∑ i in s, f i) ↔ ∀ε > (0 : ℝ), ∃s:finset ι, ∀t, disjoint t s → ∥ ∑ i in t, f i ∥ < ε :=
+  cauchy_seq (λ s : finset ι, ∑ i in s, f i) ↔
+    ∀ε > (0 : ℝ), ∃s:finset ι, ∀t, disjoint t s → ∥ ∑ i in t, f i ∥ < ε :=
 begin
-  simp only [cauchy_seq_finset_iff_vanishing, metric.mem_nhds_iff, exists_imp_distrib],
-  split,
-  { assume h ε hε, refine h {x | ∥x∥ < ε} ε hε _, rw [ball_0_eq ε] },
-  { assume h s ε hε hs,
-    rcases h ε hε with ⟨t, ht⟩,
-    refine ⟨t, assume u hu, hs _⟩,
-    rw [ball_0_eq],
-    exact ht u hu }
+  rw [cauchy_seq_finset_iff_vanishing, nhds_basis_ball.forall_iff],
+  { simp only [ball_0_eq, set.mem_set_of_eq] },
+  { rintros s t hst ⟨s', hs'⟩,
+    exact ⟨s', λ t' ht', hst $ hs' _ ht'⟩ }
 end
 
 lemma summable_iff_vanishing_norm [complete_space α] {f : ι → α} :

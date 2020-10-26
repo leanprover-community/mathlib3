@@ -278,7 +278,9 @@ rfl
 
 end mul_semiring_action_hom
 
+section
 variables (M) {R'} (U : set R') [is_subring U] [is_invariant_subring M U]
+local attribute [instance] subset.ring
 
 /-- The canonical inclusion from an invariant subring. -/
 def is_invariant_subring.subtype_hom : U →+*[M] R' :=
@@ -288,3 +290,5 @@ def is_invariant_subring.subtype_hom : U →+*[M] R' :=
 
 @[simp] theorem is_invariant_subring.coe_subtype_hom' :
   (is_invariant_subring.subtype_hom M U : U →+* R') = is_subring.subtype U := rfl
+
+end

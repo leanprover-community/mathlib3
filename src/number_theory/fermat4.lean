@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Paul van Wamelen.
 -/
 import number_theory.pythagorean_triples
+import ring_theory.coprime
 
 /-!
 # Fermat's Last Theorem for the case n = 4
@@ -162,7 +163,7 @@ end
 
 end fermat_42
 
-lemma int.coprime_of_sqr_sum {m r s : ℤ} (h : m = r ^ 2 + s ^ 2) (h2 : int.gcd r s = 1) :
+lemma int.coprime_of_sqr_sum_delete {m r s : ℤ} (h : m = r ^ 2 + s ^ 2) (h2 : int.gcd r s = 1) :
   int.gcd m r = 1 :=
 begin
   by_contradiction hg,
@@ -177,7 +178,17 @@ begin
   rw pow_two, exact dvd_mul_of_dvd_left (int.coe_nat_dvd_left.mpr hr) r
 end
 
-lemma int.coprime_of_sqr_sum' {m r s : ℤ} (h : m = r ^ 2 + s ^ 2) (h2 : int.gcd r s = 1) :
+lemma int.coprime_of_sqr_sum {m r s : ℤ} (h : m = r ^ 2 + s ^ 2) (h2 : int.gcd r s = 1) :
+  int.gcd m r = 1 :=
+begin
+  apply int.gcd_eq_one_iff_coprime.mpr,
+  rw [h, pow_two, pow_two],
+  apply is_coprime.mul_add_left_left _ r,
+  apply is_coprime.mul_left;
+  { apply int.gcd_eq_one_iff_coprime.mp, rw int.gcd_comm, exact h2 },
+end
+
+lemma int.coprime_of_sqr_sum_delete' {m r s : ℤ} (h : m = r ^ 2 + s ^ 2) (h2 : int.gcd r s = 1) :
   int.gcd m (r * s) = 1 :=
 begin
   dunfold int.gcd,
@@ -186,6 +197,13 @@ begin
   rw add_comm at h,
   rw [int.gcd_comm r s] at h2,
   exact int.coprime_of_sqr_sum h h2
+end
+
+lemma int.coprime_of_sqr_sum' {m r s : ℤ} (h : m = r ^ 2 + s ^ 2) (h2 : int.gcd r s = 1) :
+  int.gcd m (r * s) = 1 :=
+begin
+  apply int.gcd_eq_one_iff_coprime.mpr,
+  rw [h, pow_two, pow_two],
 end
 
 namespace fermat_42

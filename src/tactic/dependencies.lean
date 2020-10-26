@@ -281,8 +281,8 @@ hyp_depends_on_local_name_set_inclusive h $ local_list_to_name_set hs
 `dependency_set_of_hyp h` is the set of dependencies of the hypothesis `h`.
 
 This tactic is moderately expensive if the context up to `h` contains local
-definitions. If you need to check dependencies of multiple hypotheses, you may
-want to use `tactic.context_dependencies`.
+definitions. If you need the dependencies of multiple hypotheses, you may want
+to use `tactic.context_dependencies`.
 -/
 meta def dependency_set_of_hyp (h : expr) : tactic expr_set := do
   ctx ← local_context,
@@ -308,6 +308,35 @@ order.
 -/
 meta def dependencies_of_hyp (h : expr) : tactic (list expr) :=
 rb_set.to_list <$> dependency_set_of_hyp h
+
+/--
+`dependency_set_of_hyp_inclusive h` is the set of dependencies of the hypothesis
+`h`, plus `h` itself.
+
+This tactic is moderately expensive if the context up to `h` includes local
+definitions. If you need the dependencies of multiple hypotheses, you may want
+to use `tactic.context_dependencies`.
+-/
+meta def dependency_set_of_hyp_inclusive (h : expr) : tactic expr_set := do
+  deps ← dependency_set_of_hyp h,
+  pure $ deps.insert h
+
+/--
+`dependency_name_set_of_hyp_inclusive h` is the set of unique names of the
+dependencies of the hypothesis `h`, plus `h` itself. See
+`tactic.dependency_set_of_hyp_inclusive`.
+-/
+meta def dependency_name_set_of_hyp_inclusive (h : expr) : tactic name_set :=
+local_set_to_name_set <$> dependency_set_of_hyp_inclusive h
+
+/--
+`dependencies_of_hyp_inclusive h` is the list of dependencies of the hypothesis
+`h`, plus `h` itself. See `tactic.dependency_set_of_hyp_inclusive`. The
+dependencies are returned in no particular order.
+-/
+meta def dependencies_of_hyp_inclusive (h : expr) : tactic (list expr) :=
+rb_set.to_list <$> dependency_set_of_hyp_inclusive h
+
 
 /-! ## Reverse Dependencies -/
 
@@ -372,8 +401,8 @@ private meta def reverse_dependencies_of_hyp_name_set_inclusive_aux :
 /--
 `reverse_dependencies_of_hyp_name_set_inclusive hs` is the list of reverse
 dependencies of the hypotheses whose unique names appear in `hs`, including the
-`hs` themselves. The inclusive reverse dependencies are returned in the order
-in which they appear in the context.
+`hs` themselves. The reverse dependencies are returned in the order in which
+they appear in the context.
 -/
 meta def reverse_dependencies_of_hyp_name_set_inclusive (hs : name_set) :
   tactic (list expr) := do
@@ -393,8 +422,8 @@ reverse_dependencies_of_hyp_name_set_inclusive $ local_set_to_name_set hs
 
 /--
 `reverse_dependencies_of_hyps_inclusive hs` is the list of reverse dependencies
-of the hypotheses `hs`, including the `hs` themselves. The inclusive reverse
-dependencies are returned in the order in which they appear in the context.
+of the hypotheses `hs`, including the `hs` themselves. The reverse dependencies
+are returned in the order in which they appear in the context.
 -/
 meta def reverse_dependencies_of_hyps_inclusive (hs : list expr) :
   tactic (list expr) :=

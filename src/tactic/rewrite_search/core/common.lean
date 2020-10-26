@@ -55,8 +55,6 @@ def set : side → α → sided_pair α
 | side.L v := ⟨v, p.r⟩
 | side.R v := ⟨p.l, v⟩
 
-def flip : sided_pair α := ⟨p.r, p.l⟩
-
 def map (f : α → β) : sided_pair β := ⟨f p.l, f p.r⟩
 
 def to_list : list α := [p.l, p.r]
@@ -82,8 +80,6 @@ def get : dir → α
 def set : dir → α → dir_pair α
 | dir.F v := ⟨v, p.r⟩
 | dir.A v := ⟨p.l, v⟩
-
-def flip : dir_pair α := ⟨p.r, p.l⟩
 
 def map (f : α → β) : dir_pair β := ⟨f p.l, f p.r⟩
 

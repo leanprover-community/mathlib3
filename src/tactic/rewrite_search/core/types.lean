@@ -45,22 +45,6 @@ meta instance : has_to_format dnum := nat.has_to_format
 
 end dnum
 
-inductive bound_progress (β : Type u)
-| exactly : dnum → β → bound_progress
-| at_least : dnum → β → bound_progress
-
-open bound_progress
-
-def bound_progress.bound {β : Type u} : bound_progress β → dnum
-| (exactly n _)  := n
-| (at_least n _) := n
-def bound_progress.sure {β : Type u} : bound_progress β → bool
-| (exactly _ _)  := tt
-| (at_least _ _) := ff
-def bound_progress.to_string {β : Type u} : bound_progress β → string
-| (exactly n _)  := "= " ++ to_string n
-| (at_least n _) := "≥ " ++ to_string n
-
 meta structure edge :=
 (f t   : table_ref)
 (proof : tactic expr)
@@ -68,9 +52,6 @@ meta structure edge :=
 
 namespace edge
 variables (e : edge)
-
--- TODO What to do about the how? Using this currently breaks backtracking
-meta def flip : edge := ⟨e.t, e.f, e.proof >>= tactic.mk_eq_symm, e.how⟩
 
 meta def other (r : table_ref) : option table_ref :=
   if e.f = r then e.t else
@@ -211,12 +192,6 @@ def RHS_VERTEX_ID : table_ref := table_ref.of_nat 1
 meta def update_fn (α β γ δ : Type) : Type :=
 search_state α β γ δ → ℕ → tactic (search_state α β γ δ)
 
-meta def init_bound_fn (α β γ δ : Type) :=
-search_state α β γ δ → vertex → vertex → bound_progress γ
-
-meta def improve_estimate_fn (α β γ δ : Type) :=
-search_state α β γ δ → dnum → vertex → vertex → bound_progress γ → bound_progress γ
-
 meta def startup_fn (α β γ δ : Type) : Type :=
 search_state α β γ δ → vertex → vertex → tactic (search_state α β γ δ)
 
@@ -237,9 +212,6 @@ variables {α β γ δ : Type} (g : search_state α β γ δ)
 
 meta def mutate_strat (new_state : α) : search_state α β γ δ :=
 { g with strat_state := new_state }
-
-meta def mutate_stats (new_stats : statistics) : search_state α β γ δ :=
-{ g with stats := new_stats}
 
 meta def set_vertex (v : vertex) : search_state α β γ δ × vertex :=
 ({ g with vertices := g.vertices.set v.id v }, v)

@@ -85,7 +85,9 @@ end
 -/
 
 /-
-This tactic is used later in the development for certain simplifications.
+### Simplification tactics
+
+`ghost_simp` is used later in the development for certain simplifications.
 We define it here so it is a shared import.
 -/
 
@@ -166,6 +168,10 @@ variables (p)
 
 noncomputable theory
 
+/-!
+### The `is_poly` predicate
+-/
+
 lemma poly_eq_of_witt_polynomial_bind_eq' (f g : ℕ → mv_polynomial (idx × ℕ) ℤ)
   (h : ∀ n, bind₁ f (witt_polynomial p _ n) = bind₁ g (witt_polynomial p _ n)) :
   f = g :=
@@ -205,6 +211,8 @@ is said to be *polynomial* if there is a family of polynomials `φₙ` over `ℤ
 coefficient of `f x` is given by evaluating `φₙ` at the coefficients of `x`.
 
 See also `witt_vector.is_poly₂` for the binary variant.
+
+The `ghost_calc` tactic treats `is_poly` as a type class, and the `@[is_poly]` attribute derives certain specialized composition instances for declarations of type `is_poly f`. For the most part, users are not expected to treat `is_poly` as a class.
 -/
 @[class] def is_poly (f : Π ⦃R⦄ [comm_ring R], witt_vector p R → 𝕎 R) : Prop :=
 ∃ φ : ℕ → mv_polynomial ℕ ℤ, ∀ ⦃R⦄ [comm_ring R] (x : 𝕎 R),
@@ -276,6 +284,8 @@ is said to be *polynomial* if there is a family of polynomials `φₙ` over `ℤ
 coefficient of `f x y` is given by evaluating `φₙ` at the coefficients of `x` and `y`.
 
 See also `witt_vector.is_poly` for the unary variant.
+
+The `ghost_calc` tactic treats `is_poly₂` as a type class, and the `@[is_poly]` attribute derives certain specialized composition instances for declarations of type `is_poly₂ f`. For the most part, users are not expected to treat `is_poly₂` as a class.
 -/
 @[class] def is_poly₂ (f : Π ⦃R⦄ [comm_ring R], witt_vector p R → 𝕎 R → 𝕎 R) : Prop :=
 ∃ φ : ℕ → mv_polynomial (fin 2 × ℕ) ℤ, ∀ ⦃R⦄ [comm_ring R] (x y : 𝕎 R),
@@ -332,6 +342,12 @@ end
 
 namespace tactic
 open tactic
+
+/-!
+### The `@[is_poly]` attribute 
+
+This attribute is used to derive specialized composition instances for `is_poly` and `is_poly₂` declarations. 
+-/
 
 /--
 If `n` is the name of a lemma with opened type `∀ vars, tp`,
@@ -430,6 +446,12 @@ The user-written lemmas are not instances. Users should be able to assemble `is_
 end tactic
 
 include hp
+
+/-!
+### `is_poly` instances 
+
+These are not declared as instances at the top level, but the `@[is_poly]` attribute adds instances based on each one. Users are expected to use the non-instance versions manually.
+-/
 
 /-- The additive negation is a polynomial function on Witt vectors. -/
 @[is_poly]

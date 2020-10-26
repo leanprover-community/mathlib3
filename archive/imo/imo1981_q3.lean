@@ -52,12 +52,12 @@ m ∈ Ioc 0 (N : ℤ) ∧ n ∈ Ioc 0 (N : ℤ)
 lemma m_le_n {m n : ℤ} (h1 : problem_predicate N m n) : m ≤ n :=
 begin
   by_contradiction h2,
-  have h2 : 1 = (n * (n - m) - m ^ 2) ^ 2,
+  have h3 : 1 = (n * (n - m) - m ^ 2) ^ 2,
   { calc 1 = (n ^ 2 - m * n - m ^ 2) ^ 2 : h1.eq_one.symm
        ... = (n * (n - m) - m ^ 2) ^ 2   : by ring },
-  have h3 : n * (n - m) - m ^ 2 < -1, by nlinarith [h1.n_range.left],
-  have h4 : 1 < (n * (n - m) - m ^ 2) ^ 2, by nlinarith,
-  exact h4.ne h2
+  have h4 : n * (n - m) - m ^ 2 < -1, by nlinarith [h1.n_range.left],
+  have h5 : 1 < (n * (n - m) - m ^ 2) ^ 2, by nlinarith,
+  exact h5.ne h3
 end
 
 lemma eq_imp_1 {n : ℤ} (h1 : problem_predicate N n n) : n = 1 :=

@@ -745,21 +745,11 @@ theorem degree_le_iff_coeff_zero (f : polynomial R) (n : with_bot ℕ) :
 theorem degree_lt_iff_coeff_zero (f : polynomial R) (n : ℕ) :
   degree f < n ↔ ∀ m : ℕ, n ≤ m → coeff f m = 0 :=
 begin
-  by_cases n = 0,
-  { rw [h, with_bot.coe_zero, nat.with_bot.lt_zero_iff, degree_eq_bot],
-    simp only [zero_le, true_implies_iff],
-    exact polynomial.ext_iff },
-  { have one_le_n : 1 ≤ n,
-    { rw [←zero_add 1, ←nat.lt_iff_add_one_le],
-      exact nat.pos_of_ne_zero h },
-    by_cases f = 0,
-    { rw [h, degree_zero, iff_true_left (with_bot.bot_lt_coe n)],
-      intros m hm,
-      rw coeff_zero },
-    { rw [degree_eq_nat_degree h, with_bot.coe_lt_coe, nat.lt_iff_add_one_le,
-        ←nat.sub_add_cancel one_le_n, nat.add_le_add_iff_le_right, ←with_bot.coe_le_coe,
-        ←degree_eq_nat_degree h, degree_le_iff_coeff_zero],
-    simp only [with_bot.coe_lt_coe, nat.lt_iff_add_one_le] } }
+  refine ⟨λ hf m hm, coeff_eq_zero_of_degree_lt (lt_of_lt_of_le hf (with_bot.coe_le_coe.2 hm)), _⟩,
+  simp only [degree, finset.sup_lt_iff (with_bot.bot_lt_coe n), mem_support_iff,
+    with_bot.some_eq_coe, with_bot.coe_lt_coe, ← @not_le ℕ],
+  intros h m,
+  exact mt (h m)
 end
 
 lemma degree_lt_degree_mul_X (hp : p ≠ 0) : p.degree < (p * X).degree :=

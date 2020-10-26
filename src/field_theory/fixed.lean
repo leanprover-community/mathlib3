@@ -278,6 +278,7 @@ begin
       exact has_le.le.trans_eq (findim_alg_hom _ F) (findim_linear_map' _ _ _) } },
 end
 
+/-- Bijection between G and algebra homomorphisms that fix the fixed points -/
 def to_alg_hom_equiv (G : Type u) (F : Type v) [group G] [field F]
   [fintype G] [faithful_mul_semiring_action G F] : G ≃ (F →ₐ[fixed_points G F] F) :=
 function.embedding.equiv_of_surjective (to_alg_hom G F) (to_alg_hom_bijective G F).2

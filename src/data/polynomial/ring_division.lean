@@ -512,6 +512,27 @@ this.elim
     by rw h₁ at h₂; exact absurd h₂ dec_trivial)
   (λ hgu, by rw [hg, degree_mul, degree_X_sub_C, degree_eq_zero_of_is_unit hgu, add_zero])
 
+/-- Division by a monic polynomial doesn't change the leading coefficient. -/
+lemma leading_coeff_div_by_monic_of_monic {R : Type u} [integral_domain R] {p q : polynomial R}
+  (hmonic : q.monic) (hdegree : q.degree ≤ p.degree) : (p /ₘ q).leading_coeff = p.leading_coeff :=
+begin
+  have hp := mod_by_monic_add_div p hmonic,
+  have hzero : (p /ₘ q) ≠ 0,
+  { intro h,
+    exact not_lt_of_le hdegree ((div_by_monic_eq_zero_iff hmonic (monic.ne_zero hmonic)).1 h) },
+  have deglt : (p %ₘ q).degree < (q * (p /ₘ q)).degree,
+  { rw degree_mul,
+    refine lt_of_lt_of_le (degree_mod_by_monic_lt p hmonic (monic.ne_zero hmonic)) _,
+    rw [degree_eq_nat_degree (monic.ne_zero hmonic), degree_eq_nat_degree hzero],
+    norm_cast,
+    simp only [zero_le, le_add_iff_nonneg_right] },
+  have hrew := (leading_coeff_add_of_degree_lt deglt),
+  rw leading_coeff_mul q (p /ₘ q) at hrew,
+  simp only [hmonic, one_mul, monic.leading_coeff] at hrew,
+  nth_rewrite 1 ← hp,
+  exact hrew.symm
+end
+
 end integral_domain
 
 section

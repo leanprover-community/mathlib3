@@ -9,7 +9,6 @@ import data.polynomial.field_division
 import ring_theory.adjoin
 import ring_theory.principal_ideal_domain
 import linear_algebra.finite_dimensional
-import linear_algebra.lagrange
 
 /-!
 # Adjoining roots of polynomials
@@ -151,7 +150,7 @@ begin
     refl },
 end
 
-lemma alg_hom_eq_alg_hom [algebra R S] (f : polynomial R) (ϕ : adjoin_root f →ₐ[R] S) :
+lemma alg_hom_eq_alg_hom (f : polynomial R) (ϕ : adjoin_root f →ₐ[R] S) :
   ϕ = alg_hom f (ϕ (root f)) (aeval_alg_hom_eq_zero f ϕ) :=
 begin
   suffices : subalgebra.equalizer ϕ (alg_hom f (ϕ (root f)) (aeval_alg_hom_eq_zero f ϕ)) = ⊤,
@@ -164,6 +163,8 @@ begin
   exact aeval_alg_hom_eq_zero f ϕ,
 end
 
+/-- If `E` is a field extension of `F` and `f` is a polynomial over `F` then the set
+of maps from `F[x]/(f)` into `E` is in bijection with the set of roots of `f` in `E`. -/
 def equiv (F E : Type*) [field F] [field E] [algebra F E] (f : polynomial F) (hf : f ≠ 0) :
   (adjoin_root f →ₐ[F] E) ≃ (↑(f.map (algebra_map F E)).roots.to_finset : set E) :=
 { to_fun := λ ϕ, ⟨ϕ (root f), begin
@@ -206,7 +207,11 @@ lemma mul_div_root_cancel :
 mul_div_eq_iff_is_root.2 $ is_root_root _
 
 section findim
+open vector_space
+open finite_dimensional
 
+/-- The restriction of `adjoin_root.mk f` to the polynomials of degree less than `f`,
+viewed as a linear map between vector spaces over `K`. -/
 def degree_lt_linear_map : degree_lt K (f.nat_degree) →ₗ[K] adjoin_root f :=
 { to_fun := λ q, adjoin_root.mk f q,
   map_add' := λ _ _, ring_hom.map_add _ _ _,
@@ -237,6 +242,7 @@ begin
       exact ⟨g' / f, by rw [eq_sub_iff_add_eq, mul_comm, euclidean_domain.div_add_mod]⟩ } }
 end
 
+/-- The map `degree_lt_linear_map` is an isomorphism. -/
 def degree_lt_linear_equiv (hf : f ≠ 0) : degree_lt K (f.nat_degree) ≃ₗ[K] adjoin_root f :=
 { .. (degree_lt_linear_map f), .. equiv.of_bijective _ (degree_lt_linear_map_bijective f hf) }
 
@@ -250,5 +256,4 @@ by rw [←linear_equiv.findim_eq (((polynomial.degree_lt_linear_equiv K (f.nat_d
       fintype.card_coe, finset.card_range]
 
 end findim
-
 end adjoin_root

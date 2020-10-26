@@ -217,7 +217,6 @@ meta structure search_state (α β γ δ : Type) :=
 (rwall_conf   : nth_rewrite.cfg)
 (rs           : list (expr × bool))
 (strat_state  : α)
-(metric_state : β)
 (tokens       : table token)
 (vertices     : table vertex)
 (estimates    : table (dist_estimate γ))
@@ -235,12 +234,6 @@ search_state α β γ δ → vertex → vertex → bound_progress γ
 
 meta def improve_estimate_fn (α β γ δ : Type) :=
 search_state α β γ δ → dnum → vertex → vertex → bound_progress γ → bound_progress γ
-
-meta structure metric (α β γ δ : Type) :=
-(init : init_fn β)
-(update : update_fn α β γ δ)
-(init_bound : init_bound_fn α β γ δ)
-(improve_estimate_over : improve_estimate_fn α β γ δ)
 
 meta def startup_fn (α β γ δ : Type) : Type :=
 search_state α β γ δ → vertex → vertex → tactic (search_state α β γ δ)
@@ -262,9 +255,6 @@ variables {α β γ δ : Type} (g : search_state α β γ δ)
 
 meta def mutate_strat (new_state : α) : search_state α β γ δ :=
 { g with strat_state := new_state }
-
-meta def mutate_metric (new_state : β) : search_state α β γ δ :=
-{ g with metric_state := new_state }
 
 meta def mutate_stats (new_stats : statistics) : search_state α β γ δ :=
 { g with stats := new_stats}
@@ -293,6 +283,5 @@ meta inductive search_result
 | failure (message : string) : search_result
 
 meta def strategy_constructor (α : Type) := Π (β γ δ : Type), strategy α β γ δ
-meta def metric_constructor (β γ : Type) := Π (α δ : Type), metric α β γ δ
 
 end tactic.rewrite_search

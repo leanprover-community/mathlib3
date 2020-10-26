@@ -12,7 +12,6 @@ They do not monitor for performance regression, so be aware of that if you make 
 -/
 
 open tactic.rewrite_search.strategy
-open tactic.rewrite_search.metric
 
 namespace tactic.rewrite_search.testing
 

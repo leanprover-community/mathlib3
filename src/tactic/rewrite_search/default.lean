@@ -3,7 +3,6 @@ import tactic.rewrite_search.interactive
 
 -- FIXME: delete this block
 import tactic.rewrite_search.strategy
-import tactic.rewrite_search.metric
 
 /-!
 # Searching for chains of rewrites

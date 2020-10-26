@@ -7,7 +7,6 @@ Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 import tactic.rewrite_search.core
 
 import tactic.rewrite_search.strategy.bfs -- FIXME: remove this block
-import tactic.rewrite_search.metric.trivial
 
 /-!
 # Configuration and wrapper functions for rewrite search.
@@ -17,8 +16,6 @@ namespace tactic.rewrite_search
 
 meta def pick_default_strategy : tactic unit :=
 `[exact tactic.rewrite_search.strategy.bfs]
-meta def pick_default_metric   : tactic unit :=
-`[exact tactic.rewrite_search.metric.trivial]
 
 structure collect_cfg :=
 (suggest         : list name := [])
@@ -40,7 +37,6 @@ meta structure config (α β γ δ : Type) extends collect_cfg, tactic.nth_rewri
 (trace_rules        : bool := ff)
 (explain            : bool := ff)
 (explain_using_conv : bool := tt)
-(metric             : metric_constructor β γ . pick_default_metric)
 (strategy           : strategy_constructor α . pick_default_strategy)
 
 open tactic.rewrite_search.strategy.bfs
@@ -50,31 +46,27 @@ meta def pick_default_config : tactic unit := `[exact tactic.rewrite_search.defa
 
 variables {α β γ δ : Type}
 
-meta def mk_initial_search_state (conf : core_cfg)
-  (rw_cfg : tactic.nth_rewrite.cfg) (rs : list (expr × bool))
-  (s : strategy α β γ δ) (strat_state : α) (metric_state : β)
-  : search_state α β γ δ :=
-⟨conf, rw_cfg, rs, strat_state, metric_state, table.create, table.create,
+meta def mk_initial_search_state (conf : core_cfg) (rw_cfg : tactic.nth_rewrite.cfg)
+  (rs : list (expr × bool)) (s : strategy α β γ δ) (strat_state : α) :
+  search_state α β γ δ :=
+⟨conf, rw_cfg, rs, strat_state, table.create, table.create,
  table.create, none, statistics.init⟩
 
-meta def setup_instance (conf : core_cfg)
-  (rw_cfg : tactic.nth_rewrite.cfg) (rs : list (expr × bool))
-  (s : strategy α β γ δ) (s_state : α) (m_state : β)
-  (eqn : sided_pair expr) : tactic (inst α β γ δ) :=
-do let g := mk_initial_search_state conf rw_cfg rs s s_state m_state,
+meta def setup_instance (conf : core_cfg) (rw_cfg : tactic.nth_rewrite.cfg)
+  (rs : list (expr × bool)) (s : strategy α β γ δ) (s_state : α) (eqn : sided_pair expr) :
+  tactic (inst α β γ δ) :=
+do let g := mk_initial_search_state conf rw_cfg rs s s_state,
    (g, vl) ← g.add_root_vertex eqn.l side.L,
    (g, vr) ← g.add_root_vertex eqn.r side.R,
    g ← s.startup g vl vr,
    return ⟨s, g⟩
 
-meta def instantiate_modules (cfg : config α β γ δ) :
-strategy α β γ δ × metric α β γ δ :=
-(cfg.strategy β γ δ, cfg.metric α δ)
+meta def instantiate_modules (cfg : config α β γ δ) : strategy α β γ δ :=
+(cfg.strategy β γ δ)
 
 meta def try_mk_search_instance (cfg : config α β γ δ)
   (rs : list (expr × bool)) (eqn : sided_pair expr) : tactic (option (inst α β γ δ)) :=
-do let (s, m) := instantiate_modules cfg,
-   init_result.try "metric"   m.init $ λ metric_state,
+do let (s) := instantiate_modules cfg,
    init_result.try "strategy" s.init $ λ strat_state, do
    let conf : core_cfg := {
     max_iterations := cfg.max_iterations,
@@ -87,7 +79,7 @@ do let (s, m) := instantiate_modules cfg,
     explain_using_conv := cfg.explain_using_conv
   },
   option.some <$>
-    setup_instance conf cfg.to_cfg rs s strat_state metric_state eqn
+    setup_instance conf cfg.to_cfg rs s strat_state eqn
 
 open tactic
 

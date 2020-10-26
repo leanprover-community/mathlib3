@@ -212,7 +212,10 @@ coefficient of `f x` is given by evaluating `φₙ` at the coefficients of `x`.
 
 See also `witt_vector.is_poly₂` for the binary variant.
 
-The `ghost_calc` tactic treats `is_poly` as a type class, and the `@[is_poly]` attribute derives certain specialized composition instances for declarations of type `is_poly f`. For the most part, users are not expected to treat `is_poly` as a class.
+The `ghost_calc` tactic treats `is_poly` as a type class,
+and the `@[is_poly]` attribute derives certain specialized composition instances
+for declarations of type `is_poly f`.
+For the most part, users are not expected to treat `is_poly` as a class.
 -/
 @[class] def is_poly (f : Π ⦃R⦄ [comm_ring R], witt_vector p R → 𝕎 R) : Prop :=
 ∃ φ : ℕ → mv_polynomial ℕ ℤ, ∀ ⦃R⦄ [comm_ring R] (x : 𝕎 R),
@@ -285,7 +288,10 @@ coefficient of `f x y` is given by evaluating `φₙ` at the coefficients of `x`
 
 See also `witt_vector.is_poly` for the unary variant.
 
-The `ghost_calc` tactic treats `is_poly₂` as a type class, and the `@[is_poly]` attribute derives certain specialized composition instances for declarations of type `is_poly₂ f`. For the most part, users are not expected to treat `is_poly₂` as a class.
+The `ghost_calc` tactic treats `is_poly₂` as a type class,
+and the `@[is_poly]` attribute derives certain specialized composition instances
+for declarations of type `is_poly₂ f`.
+For the most part, users are not expected to treat `is_poly₂` as a class.
 -/
 @[class] def is_poly₂ (f : Π ⦃R⦄ [comm_ring R], witt_vector p R → 𝕎 R → 𝕎 R) : Prop :=
 ∃ φ : ℕ → mv_polynomial (fin 2 × ℕ) ℤ, ∀ ⦃R⦄ [comm_ring R] (x y : 𝕎 R),
@@ -344,9 +350,10 @@ namespace tactic
 open tactic
 
 /-!
-### The `@[is_poly]` attribute 
+### The `@[is_poly]` attribute
 
-This attribute is used to derive specialized composition instances for `is_poly` and `is_poly₂` declarations. 
+This attribute is used to derive specialized composition instances
+for `is_poly` and `is_poly₂` declarations.
 -/
 
 /--
@@ -448,9 +455,11 @@ end tactic
 include hp
 
 /-!
-### `is_poly` instances 
+### `is_poly` instances
 
-These are not declared as instances at the top level, but the `@[is_poly]` attribute adds instances based on each one. Users are expected to use the non-instance versions manually.
+These are not declared as instances at the top level,
+but the `@[is_poly]` attribute adds instances based on each one.
+Users are expected to use the non-instance versions manually.
 -/
 
 /-- The additive negation is a polynomial function on Witt vectors. -/

@@ -316,6 +316,9 @@ theorem length_Ico'_ℕ : ∀ (s n : ℕ), length (Ico'_ℕ s n) = n
 @[simp] lemma length_Ico (b t : ℕ) : length (Ico b t) = t - b :=
 length_Ico'_ℕ _ _
 
+lemma length_Ico_zero (t : ℕ) : length (Ico 0 t) = t :=
+length_Ico 0 t
+
 theorem mem_Ico'_ℕ {m : ℕ} : ∀ {s n : ℕ}, m ∈ Ico'_ℕ s n ↔ s ≤ m ∧ m < s + n
 | s 0     := (false_iff _).2 $ λ ⟨H1, H2⟩, not_le_of_lt H2 H1
 | s (succ n) :=
@@ -361,7 +364,6 @@ decidable_linear_ordered_cancel_add_comm_monoid.map_add_list_Ico
 lemma map_add_Ico_ℕ' (x b t : ℕ) : map ((+) x) (Ico b t) = Ico (b + x) (t + x) :=
 by rw [map_add_Ico_ℕ, add_comm b x, add_comm t x]
 
-@[simp]
 lemma map_succ_Ico'_ℕ : ∀ (s n : ℕ), map nat.succ (Ico'_ℕ s n) = Ico'_ℕ (s + 1) n
 | s 0       := rfl
 | s (n + 1) := congr_arg (cons _) (map_succ_Ico'_ℕ _ _)
@@ -492,18 +494,18 @@ instance (n : ℕ) : has_lawful_enum (fin n) :=
 
 /-- All elements of `fin n`, from `0` to `n-1`. -/
 def fin_range (n : ℕ) : list (fin n) :=
-(range n).pmap fin.mk (λ _, list.mem_range.1)
+(Ico 0 n).pmap fin.mk (λ _ h, (mem_Ico.mp h).2)
 
 @[simp] lemma fin_range_zero : fin_range 0 = [] := rfl
 
 @[simp] lemma mem_fin_range {n : ℕ} (a : fin n) : a ∈ fin_range n :=
-mem_pmap.2 ⟨a.1, mem_range.2 a.2, fin.eta _ _⟩
+mem_pmap.2 ⟨a.1, mem_Ico.mpr ⟨nat.zero_le _, a.2⟩, fin.eta _ _⟩
 
 lemma nodup_fin_range (n : ℕ) : (fin_range n).nodup :=
-nodup_pmap (λ _ _ _ _, fin.veq_of_eq) (nodup_range _)
+nodup_pmap (λ _ _ _ _, fin.veq_of_eq) (nodup_Ico _ _)
 
 @[simp] lemma length_fin_range (n : ℕ) : (fin_range n).length = n :=
-by rw [fin_range, length_pmap, length_range]
+by rw [fin_range, length_pmap, length_Ico_zero]
 
 @[simp] lemma fin_range_eq_nil {n : ℕ} : fin_range n = [] ↔ n = 0 :=
 by rw [← length_eq_zero, length_fin_range]
@@ -511,20 +513,20 @@ by rw [← length_eq_zero, length_fin_range]
 end fin
 
 @[to_additive]
-theorem prod_range_succ {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :
-  ((range n.succ).map f).prod = ((range n).map f).prod * f n :=
-by rw [range_concat, map_append, map_singleton,
+theorem prod_Ico_zero_succ {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :
+  ((Ico 0 n.succ).map f).prod = ((Ico 0 n).map f).prod * f n :=
+by rw [Ico_zero_succ, map_append, map_singleton,
   prod_append, prod_cons, prod_nil, mul_one]
 
-/-- A variant of `prod_range_succ` which pulls off the first
+/-- A variant of `prod_Ico_zero_succ` which pulls off the first
   term in the product rather than the last.-/
-@[to_additive "A variant of `sum_range_succ` which pulls off the first term in the sum
+@[to_additive "A variant of `sum_Ico_zero_succ` which pulls off the first term in the sum
   rather than the last."]
 theorem prod_range_succ' {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :
-  ((range n.succ).map f).prod = f 0 * ((range n).map (λ i, f (succ i))).prod :=
+  ((Ico 0 n.succ).map f).prod = f 0 * ((Ico 0 n).map (λ i, f (succ i))).prod :=
 nat.rec_on n
   (show 1 * f 0 = f 0 * 1, by rw [one_mul, mul_one])
-  (λ _ hd, by rw [list.prod_range_succ, hd, mul_assoc, ←list.prod_range_succ])
+  (λ _ hd, by rw [list.prod_Ico_zero_succ, hd, mul_assoc, ←list.prod_Ico_zero_succ])
 
 @[simp] theorem enum_from_map_fst : ∀ n (l : list α),
   map prod.fst (enum_from n l) = Ico'_ℕ n l.length
@@ -532,15 +534,15 @@ nat.rec_on n
 | n (a :: l) := congr_arg (cons _) (enum_from_map_fst _ _)
 
 @[simp] theorem enum_map_fst (l : list α) :
-  map prod.fst (enum l) = range l.length :=
-by simp only [enum, enum_from_map_fst, range_eq_Ico'_ℕ]
+  map prod.fst (enum l) = Ico 0 l.length :=
+by simp only [enum, enum_from_map_fst, Ico'_ℕ_eq_Ico, zero_add]
 
-@[simp] lemma nth_le_range {n} (i) (H : i < (range n).length) :
-  nth_le (range n) i H = i :=
-option.some.inj $ by rw [← nth_le_nth _, nth_range (by simpa using H)]
+@[simp] lemma nth_le_Ico_zero {n} (i) (H : i < (Ico 0 n).length) :
+  nth_le (Ico 0 n) i H = i :=
+option.some.inj $ by rw [← nth_le_nth _, nth_Ico_zero (by simpa using H)]
 
 theorem of_fn_eq_pmap {α n} {f : fin n → α} :
-  of_fn f = pmap (λ i hi, f ⟨i, hi⟩) (range n) (λ _, mem_range.1) :=
+  of_fn f = pmap (λ i hi, f ⟨i, hi⟩) (Ico 0 n) (λ _ h, (mem_Ico.mp h).2) :=
 by rw [pmap_eq_map_attach]; from ext_le (by simp)
   (λ i hi1 hi2, by { simp at hi1, simp [nth_le_of_fn f ⟨i, hi1⟩, -subtype.val_eq_coe] })
 
@@ -553,8 +555,6 @@ by rw [← of_fn_id, map_of_fn, function.right_id]
 theorem nodup_of_fn {α n} {f : fin n → α} (hf : function.injective f) :
   nodup (of_fn f) :=
 by rw of_fn_eq_pmap; from nodup_pmap
-  (λ _ _ _ _ H, fin.veq_of_eq $ hf H) (nodup_range n)
+  (λ _ _ _ _ H, fin.veq_of_eq $ hf H) (nodup_Ico _ n)
 
 end list
-
-#lint

@@ -9,9 +9,6 @@ import field_theory.intermediate_field
 import field_theory.splitting_field
 import field_theory.fixed
 
-open finite_dimensional
-open_locale classical
-
 /-!
 # Adjoining Elements to Fields
 
@@ -29,6 +26,9 @@ For example, `algebra.adjoin K {x}` might not include `x⁻¹`.
 
  - `F⟮α⟯`: adjoin a single element `α` to `F`.
 -/
+
+open finite_dimensional
+open_locale classical
 
 namespace intermediate_field
 

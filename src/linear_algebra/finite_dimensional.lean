@@ -793,6 +793,27 @@ section top
 theorem findim_top : findim K (⊤ : submodule K V) = findim K V :=
 by { unfold findim, simp [dim_top] }
 
+lemma algebra_hom.bijective {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
+  [finite_dimensional F E] (ϕ : E →ₐ[F] E) : function.bijective ϕ :=
+begin
+  have inj : function.injective ϕ.to_linear_map := ϕ.to_ring_hom.injective,
+  have rank_nullity := linear_map.findim_range_add_findim_ker ϕ.to_linear_map,
+  rw [linear_map.ker_eq_bot_of_injective inj, findim_bot, add_zero] at rank_nullity,
+  rw ← @findim_top F E _ _ _ at rank_nullity,
+  split,
+  { exact inj },
+  { exact linear_map.range_eq_top.mp (eq_of_le_of_findim_eq
+    (@le_top (submodule F E) _ ϕ.to_linear_map.range) rank_nullity) },
+end
+
+/-- Biijection between algebra equivalences and algebra homomorphisms -/
+noncomputable def algebra_equiv_equiv_algebra_hom (F : Type u) [field F] (E : Type v) [field E]
+  [algebra F E] [finite_dimensional F E] : (E ≃ₐ[F] E) ≃ (E →ₐ[F] E) :=
+{ to_fun := λ ϕ, ϕ.to_alg_hom,
+  inv_fun := λ ϕ, alg_equiv.of_bijective ϕ (algebra_hom.bijective ϕ),
+  left_inv := λ _, by {ext, refl},
+  right_inv := λ _, by {ext, refl} }
+
 end top
 
 namespace linear_map

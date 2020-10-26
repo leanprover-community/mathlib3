@@ -18,6 +18,7 @@ In this file we define Galois extensions as extensions which are both separable 
 - `is_galois F E` where `E` is an extension of `F`
 - `fixed_field K` where `K : intermediate_field F E`
 - `fixing_subgroup H` where `H : subgroup (E ≃ₐ[F] E)`
+- `galois_correspondence` where E/F is finite dimensional and Galois
 
 ## Main results
 
@@ -193,6 +194,15 @@ end
 lemma card_fixing_subgroup_eq_findim [finite_dimensional F E] [is_galois F E] :
   fintype.card (fixing_subgroup K) = findim K E :=
 by conv { to_rhs, rw [←fixed_field_of_fixing_subgroup K, findim_fixed_field_eq_card] }
+
+--TODO: Maybe upgrade this to some sort of lattice anti-isomorphism?
+/-- The bundled Galois correspondence -/
+def galois_correspondence [finite_dimensional F E] [is_galois F E] :
+  intermediate_field F E ≃ subgroup (E ≃ₐ[F] E) :=
+{ to_fun := fixing_subgroup,
+  inv_fun := fixed_field,
+  left_inv := λ K, fixed_field_of_fixing_subgroup K,
+  right_inv := λ H, fixing_subgroup_of_fixed_field H }
 
 end galois_correspondence
 

@@ -1,5 +1,14 @@
+/-
+Copyright (c) 2020 Kevin Lacker, Keeley Hoek, Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
+-/
 import tactic.nth_rewrite
 import tactic.rewrite_search.core.common
+
+/-!
+# FIXME: what is this?
+-/
 
 open tactic
 open tactic.nth_rewrite.congr
@@ -8,7 +17,8 @@ namespace tactic.rewrite_search
 
 meta def rewrite_progress := mllist tactic rewrite
 
-meta def progress_init (rs : list (expr × bool)) (exp : expr) (cfg : nth_rewrite.cfg) : rewrite_progress :=
+meta def progress_init (rs : list (expr × bool)) (exp : expr) (cfg : nth_rewrite.cfg) :
+rewrite_progress :=
 (all_rewrites_lazy_of_list rs exp cfg)
   .map $ λ t, ⟨t.1.exp, t.1.proof, how.rewrite t.2.1 t.2.2 t.1.addr⟩
 
@@ -38,7 +48,8 @@ do
          | some prog := pure (prog, [])
          | none := do
           let prog := progress_init rs exp cfg,
-          sl ← if cfg.try_simp then option.to_list <$> tactic.try_core (simp_rewrite exp) else pure [],
+          sl ← if cfg.try_simp then option.to_list <$> tactic.try_core (simp_rewrite exp)
+                               else pure [],
           pure (prog, sl)
          end,
   (prog, rw) ← progress_next prog,

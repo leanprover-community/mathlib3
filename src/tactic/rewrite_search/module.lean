@@ -6,9 +6,7 @@ Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 
 import tactic.rewrite_search.core
 
--- Default strategy, metric, and tracer used as a fallback by the engine
--- (so must be present)
-import tactic.rewrite_search.strategy.bfs
+import tactic.rewrite_search.strategy.bfs -- FIXME: remove this block
 import tactic.rewrite_search.metric.trivial
 import tactic.rewrite_search.tracer.unit
 

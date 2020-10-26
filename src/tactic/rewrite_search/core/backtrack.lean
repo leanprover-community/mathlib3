@@ -1,5 +1,15 @@
+/-
+Copyright (c) 2020 Kevin Lacker, Keeley Hoek, Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
+-/
+
 import tactic.rewrite_search.core.types
 import tactic.rewrite_search.core.debug
+
+/-!
+# The backtracking component of rewrite search.
+-/
 
 open tactic
 
@@ -35,7 +45,8 @@ end naive
 
 namespace bfs
 
-meta def search_step (me : table_ref) : table edge → list edge → tactic (table edge × list table_ref)
+meta def search_step (me : table_ref) :
+table edge → list edge → tactic (table edge × list table_ref)
 | been [] := return (been, [])
 | been (e :: rest) :=
   match e.other me with
@@ -138,7 +149,7 @@ meta def build_proof (e : edge) : tactic (expr × list proof_unit) := do
     let saw := vl.length,
     let visited := (vl.filter (λ v : vertex, v.visited)).length,
     name ← decl_name,
-    tactic.trace format!"rewrite_search (saw/visited/used) {saw}/{visited}/{edges.length} expressions during proof of {name}"
+    tactic.trace format!"rewrite_search for {name} saw {saw}, visited {visited}"
   else skip,
 
   return (proof, units)

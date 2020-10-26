@@ -1,7 +1,16 @@
+/-
+Copyright (c) 2020 Kevin Lacker, Keeley Hoek, Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
+-/
 import tactic.rewrite_search.core.types
 import tactic.rewrite_search.core.debug
 import tactic.rewrite_search.core.backtrack
 import tactic.rewrite_search.core.explain
+
+/-!
+# The core algorithm underlying rewrite search.
+-/
 
 universe u
 
@@ -221,7 +230,8 @@ meta def exhaust_vertex (v : vertex) : tactic (search_state α β γ δ) := do
   (g, it) ← it.exhaust g,
   return g
 
-meta def exhaust_all_visited_aux : search_state α β γ δ → list vertex → tactic (search_state α β γ δ)
+meta def exhaust_all_visited_aux :
+search_state α β γ δ → list vertex → tactic (search_state α β γ δ)
 | g []          := return g
 | g (v :: rest) := do
   g ← g.exhaust_vertex v,

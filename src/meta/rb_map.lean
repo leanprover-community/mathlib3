@@ -200,3 +200,12 @@ meta instance {data : Type} : inhabited (name_map data) :=
 ⟨mk_name_map⟩
 
 end name_map
+
+/-! ### Declarations about `expr_set` -/
+
+namespace expr_set
+
+meta def local_set_to_name_set (lcs : expr_set) : name_set :=
+lcs.fold mk_name_set $ λ h ns, ns.insert h.local_uniq_name
+
+end expr_set

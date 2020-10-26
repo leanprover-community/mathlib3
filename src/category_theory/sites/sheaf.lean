@@ -162,34 +162,31 @@ end
 
 def is_separated_for (P : Cᵒᵖ ⥤ Type v) (R : arrows_with_codomain X) : Prop :=
 ∀ (x : family_of_elements P R) (t₁ t₂),
-  is_consistent x → is_amalgamation_for x t₁ → is_amalgamation_for x t₂ → t₁ = t₂
+  is_amalgamation_for x t₁ → is_amalgamation_for x t₂ → t₁ = t₂
 
 lemma test_of_separated {P : Cᵒᵖ ⥤ Type v} (R : arrows_with_codomain X) (hR : is_separated_for P R)
   {t₁ t₂ : P.obj (opposite.op X)} (h : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : R f), P.map f.op t₁ = P.map f.op t₂) :
 t₁ = t₂ :=
 begin
-  apply hR (λ Y f hf, P.map f.op t₂) t₁ t₂ _ (λ Y f hf, h hf) (λ Y f hf, rfl),
-  apply is_consistent_of_exists_amalgamation _ ⟨_, λ Y f hf, rfl⟩,
+  apply hR (λ Y f hf, P.map f.op t₂) t₁ t₂ (λ Y f hf, h hf) (λ Y f hf, rfl),
 end
 
 lemma is_separated_for_iff_generate :
   is_separated_for P R ↔ is_separated_for P (generate R) :=
 begin
   split,
-  { intros h x t₁ t₂ hx ht₁ ht₂,
-    apply h (restrict_family (le_generate R) x) t₁ t₂ _ _ _,
-    { exact restrict_family_is_consistent _ x hx },
+  { intros h x t₁ t₂ ht₁ ht₂,
+    apply h (restrict_family (le_generate R) x) t₁ t₂ _ _,
     { exact is_amalgamation_for_restrict _ x t₁ ht₁ },
     { exact is_amalgamation_for_restrict _ x t₂ ht₂ } },
-  { intros h x t₁ t₂ hx ht₁ ht₂,
+  { intros h x t₁ t₂ ht₁ ht₂,
     apply h (extend_family x),
-    { exact extend_family_is_consistent x hx },
     { exact is_amalgamation_for_extend x t₁ ht₁ },
     { exact is_amalgamation_for_extend x t₂ ht₂ } }
 end
 
 lemma is_separated_for_top (P : Cᵒᵖ ⥤ Type v) : is_separated_for P (⊤ : arrows_with_codomain X) :=
-λ x t₁ t₂ hx h₁ h₂,
+λ x t₁ t₂ h₁ h₂,
 begin
   have q₁ := h₁ (𝟙 X) trivial,
   have q₂ := h₂ (𝟙 X) trivial,
@@ -208,7 +205,7 @@ instance (R : arrows_with_codomain X) : subsingleton (is_sheaf_for P R) :=
   rintros ⟨a, ha₁, ha₂⟩ ⟨b, hb₁, hb₂⟩,
   congr' 1,
   ext x hx,
-  exact ha₂ x (a x hx) (b x hx) hx (ha₁ x hx) (hb₁ x hx),
+  exact ha₂ x (a x hx) (b x hx) (ha₁ x hx) (hb₁ x hx),
 end⟩
 
 lemma is_separated_for_of_is_sheaf_for : is_sheaf_for P R → is_separated_for P R :=
@@ -280,7 +277,7 @@ def is_sheaf_for_subsieve_aux (P : Cᵒᵖ ⥤ Type v) {S : sieve X} {R : arrows
     { intros Y₁ Y₂ Z g₁ g₂ f₁ f₂ h₁ h₂ comm,
       apply hx,
       apply reassoc_of comm },
-    refine trans hj y _ (x j hj) hy _ _,
+    refine trans hj y _ (x j hj) _ _,
     { intros Y f hf,
       rw [←functor_to_types.map_comp_apply, ←op_comp,
           hS.is_valid_gluing _ (restrict_family_is_consistent h x hx) _ hf],
@@ -289,9 +286,8 @@ def is_sheaf_for_subsieve_aux (P : Cᵒᵖ ⥤ Type v) {S : sieve X} {R : arrows
       rw hx f (𝟙 _) hj (h _ hf) (id_comp _).symm,
       simp }
   end,
-  uniqueness := λ x t₁ t₂ hx ht₁ ht₂,
-    hS.uniqueness _ _ _ (restrict_family_is_consistent _ _ hx)
-                        (is_amalgamation_for_restrict h x t₁ ht₁)
+  uniqueness := λ x t₁ t₂ ht₁ ht₂,
+    hS.uniqueness _ _ _ (is_amalgamation_for_restrict h x t₁ ht₁)
                         (is_amalgamation_for_restrict h x t₂ ht₂) }
 
 def is_sheaf_for_subsieve (P : Cᵒᵖ ⥤ Type v) {S : sieve X} {R : arrows_with_codomain X}
@@ -385,7 +381,7 @@ def is_sheaf_for_bind (P : Cᵒᵖ ⥤ Type v) (U : sieve X)
   end,
   uniqueness :=
   begin
-    intros s t₁ t₂ hs ht₁ ht₂,
+    intros s t₁ t₂ ht₁ ht₂,
     apply test_of_separated _ hU.uniqueness,
     intros Y f hf,
     apply test_of_separated _ (hB hf).uniqueness,

@@ -3,6 +3,7 @@ Copyright (c) 2020 Kevin Lacker, Keeley Hoek, Scott Morrison. All rights reserve
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 -/
+
 import tactic.rewrite_search.core.types
 import tactic.rewrite_search.core.debug
 import tactic.rewrite_search.core.backtrack
@@ -16,7 +17,7 @@ universe u
 
 namespace tactic.rewrite_search
 
-variables {α : Type} (i : inst) (g : search_state)
+variables (i : inst) (g : search_state)
 
 private meta def chop : list char → list string → list string
 | [] L := L
@@ -218,6 +219,33 @@ meta def exhaust_all : tactic search_state := do
 
 end search_state
 
+meta def bfs_init : tactic (init_result bfs_state) :=
+init_result.pure ⟨1, []⟩
+
+meta def bfs_startup (g : search_state) (l r : vertex) :
+tactic search_state :=
+return $ g.mutate_strat ⟨1, [l.id, r.id, none]⟩
+
+meta def bfs_step (g : search_state) : tactic (search_state × status) := do
+  let state := g.strat_state,
+  if state.curr_depth > 50 then
+    return (g, status.abort "max bfs depth reached!")
+  else match state.queue with
+  | [] := return (g, status.abort "all vertices exhausted!")
+  | (none :: rest) := do
+    return (g.mutate_strat {state with queue := rest.concat none, curr_depth :=
+                            state.curr_depth + 1}, status.repeat)
+  | (some v :: rest) := do
+    v ← g.vertices.get v,
+    (g, it) ← g.visit_vertex v,
+    (g, it, adjs) ← it.exhaust g,
+    let adjs := adjs.filter $ λ u, ¬u.1.visited,
+    return (g.mutate_strat {state with queue := rest.append $ adjs.map $ λ u, some u.1.id},
+            status.continue)
+  end
+
+meta def bfs : strategy := strategy.mk bfs_init bfs_startup bfs_step
+
 namespace inst
 
 meta def mutate : inst := { i with g := g }
@@ -229,7 +257,7 @@ match i.g.solving_edge with
   if itr > i.g.conf.max_iterations then
     return (i, status.abort "max iterations reached!")
   else do
-    (g, s) ← i.strategy.step i.g,
+    (g, s) ← bfs_step i.g,
     return (i.mutate g, s)
 end
 

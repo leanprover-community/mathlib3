@@ -19,11 +19,7 @@ open tactic
 
 namespace tactic.rewrite_search
 
-structure bfs_config :=
-(max_depth : ℕ := 50)
-
 structure bfs_state :=
-(conf       : bfs_config)
 (curr_depth : ℕ)
 (queue      : list (option table_ref))
 
@@ -180,8 +176,7 @@ meta def try {ε : Type u} {η : Type v} (name : string) (fn : init_fn ε)
 
 end init_result
 
-structure statistics :=
-(num_discovers : ℕ)
+structure statistics := (num_discovers : ℕ)
 def statistics.init : statistics := ⟨0⟩
 
 meta structure search_state :=

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 -/
 
-import tactic.rewrite_search.bfs
 import tactic.rewrite_search.core
 
 /-!
@@ -12,9 +11,6 @@ import tactic.rewrite_search.core
 -/
 
 namespace tactic.rewrite_search
-
-meta def pick_default_strategy : tactic unit :=
-`[exact tactic.rewrite_search.bfs]
 
 structure collect_cfg :=
 (suggest         : list name := [])
@@ -43,17 +39,16 @@ meta def pick_default_config : tactic unit := `[exact tactic.rewrite_search.defa
 variables {α : Type}
 
 meta def mk_initial_search_state (conf : core_cfg) (rw_cfg : tactic.nth_rewrite.cfg)
-  (rs : list (expr × bool)) (s : strategy) (strat_state : bfs_state) :
-  search_state :=
+  (rs : list (expr × bool)) (strat_state : bfs_state) : search_state :=
 ⟨conf, rw_cfg, rs, strat_state, table.create, table.create, none, statistics.init⟩
 
 meta def setup_instance (conf : core_cfg) (rw_cfg : tactic.nth_rewrite.cfg)
   (rs : list (expr × bool)) (s : strategy) (s_state : bfs_state) (eqn : sided_pair expr) :
   tactic inst :=
-do let g := mk_initial_search_state conf rw_cfg rs s s_state,
+do let g := mk_initial_search_state conf rw_cfg rs s_state,
    (g, vl) ← g.add_root_vertex eqn.l side.L,
    (g, vr) ← g.add_root_vertex eqn.r side.R,
-   g ← s.startup g vl vr,
+   g ← bfs_startup g vl vr,
    return ⟨s, g⟩
 
 meta def instantiate_modules (cfg : config) : strategy := bfs

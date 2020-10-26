@@ -13,8 +13,6 @@ import tactic.rewrite_search.discovery
 
 open tactic
 
-variables {α β γ δ : Type}
-
 namespace tactic.rewrite_search
 
 meta def rewrite_search_pair (cfg : config) (rs : list (expr × bool))

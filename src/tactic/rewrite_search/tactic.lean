@@ -17,17 +17,16 @@ variables {α β γ δ : Type}
 
 namespace tactic.rewrite_search
 
-meta def rewrite_search_pair (cfg : config α)
-(rs : list (expr × bool)) (eqn : sided_pair expr) : tactic string :=
+meta def rewrite_search_pair (cfg : config) (rs : list (expr × bool))
+(eqn : sided_pair expr) : tactic string :=
 do result ← try_search cfg rs eqn,
 match result with
   | some str := return str
   | none := fail "Could not initialize rewrite_search instance."
 end
 
-meta def collect_rw_lemmas (cfg : collect_cfg)
-  (extra_names : list name) (extra_rws : list (expr × bool))
-  : tactic (list (expr × bool)) :=
+meta def collect_rw_lemmas (cfg : collect_cfg) (extra_names : list name)
+(extra_rws : list (expr × bool)) : tactic (list (expr × bool)) :=
 do rws ← discovery.collect extra_names,
    hyp_rws ← discovery.rewrite_list_from_hyps,
    let rws := rws ++ extra_rws ++ hyp_rws,
@@ -36,7 +35,7 @@ do rws ← discovery.collect extra_names,
    if cfg.inflate_rws then list.join <$> (rws.mmap $ discovery.inflate_rw locs)
    else pure rws
 
-meta def rewrite_search_target (cfg : config α) (try_harder : bool)
+meta def rewrite_search_target (cfg : config) (try_harder : bool)
   (extra_names : list name) (extra_rws : list (expr × bool)) : tactic string :=
 do let cfg := if ¬try_harder then cfg
               else { cfg with try_simp := tt },
@@ -56,17 +55,16 @@ namespace tactic
 
 open tactic.rewrite_search
 
-meta def rewrite_search (cfg : config α)
-  (try_harder : bool := ff) : tactic string :=
+meta def rewrite_search (cfg : config) (try_harder : bool := ff) : tactic string :=
 rewrite_search_target cfg try_harder [] []
 
-meta def rewrite_search_with (rs : list interactive.rw_rule) (cfg : config α)
+meta def rewrite_search_with (rs : list interactive.rw_rule) (cfg : config)
   (try_harder : bool := ff) : tactic string :=
 do extra_rws ← discovery.rewrite_list_from_rw_rules rs,
    rewrite_search_target cfg try_harder [] extra_rws
 
-meta def rewrite_search_using (as : list name) (cfg : config α)
-  (try_harder : bool := ff) : tactic string :=
+meta def rewrite_search_using (as : list name) (cfg : config) (try_harder : bool := ff) :
+tactic string :=
 do extra_names ← discovery.load_attr_list as,
    rewrite_search_target cfg try_harder extra_names []
 

@@ -15,11 +15,9 @@ namespace tactic.interactive
 open lean.parser interactive interactive.types
 open tactic.rewrite_search
 
-variables {α : Type}
-
 /-- Search for a chain of rewrites to prove equations or iffs. -/
 meta def rewrite_search (try_harder : parse $ optional (tk "!"))
-  (cfg : config α . pick_default_config) : tactic string :=
+  (cfg : config . pick_default_config) : tactic string :=
   tactic.rewrite_search cfg try_harder.is_some
 
 add_tactic_doc
@@ -29,7 +27,7 @@ add_tactic_doc
   tags        := ["rewrite", "automation"] }
 
 meta def rewrite_search_with (try_harder : parse $ optional (tk "!")) (rs : parse rw_rules)
-  (cfg : config α . pick_default_config) : tactic string :=
+  (cfg : config . pick_default_config) : tactic string :=
   tactic.rewrite_search_with rs.rules cfg try_harder.is_some
 
 -- Uncomment this after adding a docstring.
@@ -40,7 +38,7 @@ meta def rewrite_search_with (try_harder : parse $ optional (tk "!")) (rs : pars
 --   tags        := ["rewrite", "automation"] }
 
 meta def rewrite_search_using (try_harder : parse $ optional (tk "!")) (as : list name)
-  (cfg : config α . pick_default_config) : tactic string :=
+  (cfg : config . pick_default_config) : tactic string :=
   tactic.rewrite_search_using as cfg try_harder.is_some
 
 -- Uncomment this after adding a docstring.

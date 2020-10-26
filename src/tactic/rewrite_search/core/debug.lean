@@ -12,7 +12,7 @@ import tactic.rewrite_search.core.types
 namespace tactic.rewrite_search
 
 namespace search_state
-variables {α : Type} (g : search_state α)
+variables (g : search_state)
 
 meta def trace_tactic {ε : Type} [has_to_tactic_format ε] (fn : tactic ε) : tactic unit :=
 if g.conf.trace then do ev ← fn, tactic.trace ev else tactic.skip

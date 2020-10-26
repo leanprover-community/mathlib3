@@ -11,25 +11,16 @@ import tactic.rewrite_search.core
 
 namespace tactic.rewrite_search
 
-structure bfs_config :=
-(max_depth : ℕ := 50)
-
-structure bfs_state :=
-(conf       : bfs_config)
-(curr_depth : ℕ)
-(queue      : list (option table_ref))
-
-variables {β γ δ : Type} (g : search_state bfs_state)
+variables (g : search_state)
 
 meta def bfs_init : tactic (init_result bfs_state) :=
 init_result.pure ⟨{}, 1, []⟩
 
-meta def bfs_startup (cfg : bfs_config) (g : search_state bfs_state) (l r : vertex)
-  : tactic (search_state bfs_state) :=
+meta def bfs_startup (cfg : bfs_config) (g : search_state) (l r : vertex) :
+tactic search_state :=
 return $ g.mutate_strat ⟨cfg, 1, [l.id, r.id, none]⟩
 
-meta def bfs_step (g : search_state bfs_state) :
-tactic (search_state bfs_state × status) := do
+meta def bfs_step (g : search_state) : tactic (search_state × status) := do
   let state := g.strat_state,
   if state.curr_depth > g.strat_state.conf.max_depth then
     return (g, status.abort "max bfs depth reached!")
@@ -47,7 +38,7 @@ tactic (search_state bfs_state × status) := do
             status.continue)
   end
 
-meta def bfs (conf : bfs_config := {}) : strategy_constructor bfs_state :=
+meta def bfs (conf : bfs_config := {}) : strategy :=
 strategy.mk bfs_init (bfs_startup conf) bfs_step
 
 end tactic.rewrite_search

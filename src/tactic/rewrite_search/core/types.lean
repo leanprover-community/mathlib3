@@ -19,6 +19,14 @@ open tactic
 
 namespace tactic.rewrite_search
 
+structure bfs_config :=
+(max_depth : ℕ := 50)
+
+structure bfs_state :=
+(conf       : bfs_config)
+(curr_depth : ℕ)
+(queue      : list (option table_ref))
+
 -- jmc: What's the purpose of `dnum`? Can't we just use `ℕ`?
 @[reducible] def dnum : Type := ℕ
 
@@ -176,11 +184,11 @@ structure statistics :=
 (num_discovers : ℕ)
 def statistics.init : statistics := ⟨0⟩
 
-meta structure search_state (α : Type) :=
+meta structure search_state :=
 (conf         : core_cfg)
 (rwall_conf   : nth_rewrite.cfg)
 (rs           : list (expr × bool))
-(strat_state  : α)
+(strat_state  : bfs_state)
 (tokens       : table token)
 (vertices     : table vertex)
 (solving_edge : option edge)
@@ -189,31 +197,28 @@ meta structure search_state (α : Type) :=
 def LHS_VERTEX_ID : table_ref := table_ref.of_nat 0
 def RHS_VERTEX_ID : table_ref := table_ref.of_nat 1
 
-meta def update_fn (α : Type) : Type :=
-search_state α → ℕ → tactic (search_state α)
+meta def update_fn : Type := search_state → ℕ → tactic search_state
 
-meta def startup_fn (α : Type) : Type :=
-search_state α → vertex → vertex → tactic (search_state α)
+meta def startup_fn : Type := search_state → vertex → vertex → tactic search_state
 
-meta def step_fn (α : Type) : Type :=
-search_state α → tactic (search_state α × status)
+meta def step_fn : Type := search_state → tactic (search_state × status)
 
-meta structure strategy (α : Type) :=
-(init : init_fn α)
-(startup : startup_fn α)
-(step : step_fn α)
+meta structure strategy :=
+(init : init_fn bfs_state)
+(startup : startup_fn)
+(step : step_fn)
 
-meta structure inst (α : Type) :=
-(strategy : strategy α)
-(g : search_state α)
+meta structure inst :=
+(strategy : strategy)
+(g : search_state)
 
 namespace search_state
-variables {α β γ δ : Type} (g : search_state α)
+variables (g : search_state)
 
-meta def mutate_strat (new_state : α) : search_state α :=
+meta def mutate_strat (new_state : bfs_state) : search_state :=
 { g with strat_state := new_state }
 
-meta def set_vertex (v : vertex) : search_state α × vertex :=
+meta def set_vertex (v : vertex) : search_state × vertex :=
 ({ g with vertices := g.vertices.set v.id v }, v)
 
 meta def lookup_pair (p : pair) : tactic (vertex × vertex) := do
@@ -232,7 +237,5 @@ meta structure proof_unit :=
 meta inductive search_result
 | success (proof : expr) (units : list proof_unit) : search_result
 | failure (message : string) : search_result
-
-meta def strategy_constructor (α : Type) := strategy α
 
 end tactic.rewrite_search

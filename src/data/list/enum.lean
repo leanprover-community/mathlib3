@@ -470,6 +470,26 @@ end iota
 
 end nat
 
+section fin
+
+instance (n : ℕ) : has_enum (fin n) :=
+⟨λ b t, (Ico (b : ℕ) (t : ℕ)).pmap fin.mk (λ i hi, lt_trans (lt_top_of_mem_Ico hi) t.2)⟩
+
+@[simp] lemma coe_fin_nat_mem_Ico_coe_coe {n : ℕ} {x b t : fin n} :
+  (x : ℕ) ∈ Ico (b : ℕ) (t : ℕ) ↔ x ∈ Ico b t :=
+begin
+  refine (mem_pmap.trans ⟨_, _⟩).symm,
+  { rintros ⟨x, hx, rfl⟩,
+    exact hx },
+  { intro hx,
+    exact ⟨x, hx, fin.mk_coe x⟩ }
+end
+
+instance (n : ℕ) : has_lawful_enum (fin n) :=
+{ mem_Ico := λ x b t, iff.trans coe_fin_nat_mem_Ico_coe_coe.symm mem_Ico,
+  sorted_Ico := λ b t, pairwise_pmap.mpr (pairwise.imp (λ x y (h : x < y) _ _, h)
+                        (sorted_Ico (b : ℕ) (t : ℕ))) }
+
 /-- All elements of `fin n`, from `0` to `n-1`. -/
 def fin_range (n : ℕ) : list (fin n) :=
 (range n).pmap fin.mk (λ _, list.mem_range.1)
@@ -487,6 +507,8 @@ by rw [fin_range, length_pmap, length_range]
 
 @[simp] lemma fin_range_eq_nil {n : ℕ} : fin_range n = [] ↔ n = 0 :=
 by rw [← length_eq_zero, length_fin_range]
+
+end fin
 
 @[to_additive]
 theorem prod_range_succ {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :

@@ -2534,6 +2534,20 @@ by rw [← length_eq_zero, length_pmap, length_eq_zero]
 
 @[simp] lemma attach_eq_nil (l : list α) : l.attach = [] ↔ l = [] := pmap_eq_nil
 
+lemma pairwise_pmap {p : α → Prop} {q : β → β → Prop} {f : Π a, p a → β} :
+  ∀ {l : list α} {H},
+  pairwise q (pmap f l H) ↔ pairwise (λ x y, ∀ (hx : p x) (hy : p y), q (f x hx) (f y hy)) l
+| [] _        := by simp
+| (x :: xs) _ := begin
+  simp only [pairwise_cons, pmap, bex_imp_distrib, mem_pmap, pairwise_pmap],
+  refine and_congr ⟨_, _⟩ iff.rfl,
+  { intros h y y_mem hx hy,
+    exact h (f y hy) y y_mem rfl },
+  { rintros h _ y y_mem rfl,
+    exact h y y_mem _ _ }
+end
+
+
 /-! ### find -/
 
 section find

@@ -109,8 +109,8 @@
   title  : Fermat’s Last Theorem
 34:
   title  : Divergence of the Harmonic Series
-  decl   : harmonic_tendsto_at_top
-  author : Anatole Dedecker
+  decl   : real.tendsto_sum_range_one_div_nat_succ_at_top
+  author : Anatole Dedecker, Yury Kudryashov
 35:
   title  : Taylor’s Theorem
 36:
@@ -336,6 +336,8 @@
   author : Neil Strickland
 97:
   title  : Cramer’s Rule
+  decl   : matrix.mul_vec_cramer
+  author : Anne Baanen
 98:
   title  : Bertrand’s Postulate
 99:

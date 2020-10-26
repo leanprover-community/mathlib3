@@ -258,6 +258,7 @@ instance integral_domain {R A : Type*} [comm_ring R] [integral_domain A] [algebr
   (S : subalgebra R A) : integral_domain S :=
 @subring.domain A _ S _
 
+/-- The equalizer of two R-algebra homomorphisms -/
 def equalizer (ϕ ψ : A →ₐ[R] B) : subalgebra R A :=
 { carrier := λ a, ϕ a = ψ a,
   zero_mem' := by { change ϕ 0 = ψ 0, rw [alg_hom.map_zero, alg_hom.map_zero] },

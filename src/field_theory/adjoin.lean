@@ -383,7 +383,8 @@ section adjoin_integral_element
 variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (α : E)
 variables [h : fact (is_integral F α)]
 
-lemma min_poly_eval_gen_eq_zero : (minimal_polynomial h).eval₂ (algebra_map F F⟮α⟯) (adjoin_simple.gen F α) = 0 :=
+lemma min_poly_eval_gen_eq_zero :
+  (minimal_polynomial h).eval₂ (algebra_map F F⟮α⟯) (adjoin_simple.gen F α) = 0 :=
 begin
   have comp : algebra_map F E = (algebra_map F⟮α⟯ E).comp (algebra_map F F⟮α⟯) := by { ext, refl },
   have hom_eval := polynomial.hom_eval₂ (minimal_polynomial h)

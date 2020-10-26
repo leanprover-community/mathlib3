@@ -205,6 +205,11 @@ end name_map
 
 namespace expr_set
 
+/--
+`local_set_to_name_set lcs` is the set of unique names of the local constants
+`lcs`. If any of the `lcs` are not local constants, the returned set will
+contain bogus names.
+-/
 meta def local_set_to_name_set (lcs : expr_set) : name_set :=
 lcs.fold mk_name_set $ λ h ns, ns.insert h.local_uniq_name
 

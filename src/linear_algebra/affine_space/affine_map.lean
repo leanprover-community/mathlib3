@@ -14,46 +14,25 @@ This file defines affine maps.
 
 ## Main definitions
 
-* `affine_space V P` is a notation for `add_torsor V P` in the case of `module k V`. `P` is the type
-  of points in the space and `V` the `k`-module of displacement vectors.  Definitions and results
-  not depending on the `module` structure appear in `algebra.add_torsor` instead of here; that
-  includes the instance of an `add_group` as an `add_torsor` over itself, which thus gives a
-  `module` as an `affine_space` over itself.  Definitions of affine spaces vary as to whether a
-  space with no points is permitted; here, we require a nonempty type of points (via the definition
-  of torsors requiring a nonempty type).  Affine spaces are defined over any module, with stronger
-  type class requirements on `k` being used for individual lemmas where needed.
-
 * `affine_map` is the type of affine maps between two affine spaces with the same ring `k`.  Various
   basic examples of affine maps are defined, including `const`, `id`, `line_map` and `homothety`.
 
 ## Notations
 
-* `P1 →ᵃ[k] P2` is a notation for `affine_map k P1 P2`
+* `P1 →ᵃ[k] P2` is a notation for `affine_map k P1 P2`;
+* `affine_space V P`: a localized notation for `add_torsor V P` defined in
+  `linear_algebra.affine_space.basic`.
 
 ## Implementation notes
 
-`affine_space V P` is a notation for `add_torsor`, not a definition. This means that Lean will
-accept both `add_torsor` and `affine_space` in the input, and will always use `affine_space` in the
-output.
-
-`out_param` is used to make `V` an implicit argument (deduced from `P`) in most cases; `include V`
-is needed in many cases for `V`, and type classes using it, to be added as implicit arguments to
-individual lemmas.  As for modules, `k` is an explicit argument rather than implied by `P` or `V`.
+`out_param` is used in the definition of `[add_torsor V P]` to make `V` an implicit argument
+(deduced from `P`) in most cases; `include V` is needed in many cases for `V`, and type classes
+using it, to be added as implicit arguments to individual lemmas.  As for modules, `k` is an
+explicit argument rather than implied by `P` or `V`.
 
 This file only provides purely algebraic definitions and results. Those depending on analysis or
 topology are defined elsewhere; see `analysis.normed_space.add_torsor` and
 `topology.algebra.affine`.
-
-## TODO
-
-Some key definitions are not yet present.
-
-* Affine frames.  An affine frame might perhaps be represented as an `affine_equiv` to a `finsupp`
-  (in the general case) or function type (in the finite-dimensional case) that gives the
-  coordinates, with appropriate proofs of existence when `k` is a field.
-
-* Although results on affine combinations implicitly provide barycentric frames and coordinates,
-  there is no explicit representation of the map from a point to its coordinates.
 
 ## References
 

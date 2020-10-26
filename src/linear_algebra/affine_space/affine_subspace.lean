@@ -10,7 +10,7 @@ import data.set.intervals.unordered_interval
 /-!
 # Affine spaces
 
-This file defines affine spaces (over modules) and subspaces, and the affine span of a set of
+This file defines affine subspaces (over modules) and the affine span of a set of
 points.  For affine combinations of points, see `linear_algebra.affine_space.combination`.  For
 affinely independent families of points, see `linear_algebra.affine_space.independent`.  For some
 additional results relating to finite-dimensional subspaces of affine spaces, see
@@ -18,18 +18,6 @@ additional results relating to finite-dimensional subspaces of affine spaces, se
 
 ## Main definitions
 
-* `affine_space V P` is an abbreviation for `add_torsor V P` in the
-  case of `module k V`.  `P` is the type of points in the space and
-  `V` the `k`-module of displacement vectors.  Definitions and results
-  not depending on the `module` structure appear in
-  `algebra.add_torsor` instead of here; that includes the instance of
-  an `add_group` as an `add_torsor` over itself, which thus gives a
-  `module` as an `affine_space` over itself.  Definitions of affine
-  spaces vary as to whether a space with no points is permitted; here,
-  we require a nonempty type of points (via the definition of torsors
-  requiring a nonempty type).  Affine spaces are defined over any
-  module, with stronger type class requirements on `k` being used for
-  individual lemmas where needed.
 * `affine_subspace k P` is the type of affine subspaces.  Unlike
   affine spaces, affine subspaces are allowed to be empty, and lemmas
   that do not apply to empty affine subspaces have `nonempty`
@@ -53,28 +41,20 @@ additional results relating to finite-dimensional subspaces of affine spaces, se
 
 ## Implementation notes
 
-`out_param` is used to make `V` an implicit argument (deduced from
-`P`) in most cases; `include V` is needed in many cases for `V`, and
-type classes using it, to be added as implicit arguments to
-individual lemmas.  As for modules, `k` is an explicit argument rather
-than implied by `P` or `V`.
+`out_param` is used in the definiton of `add_torsor V P` to make `V` an implicit argument (deduced
+from `P`) in most cases; `include V` is needed in many cases for `V`, and type classes using it, to
+be added as implicit arguments to individual lemmas.  As for modules, `k` is an explicit argument
+rather than implied by `P` or `V`.
 
 This file only provides purely algebraic definitions and results.
 Those depending on analysis or topology are defined elsewhere; see
 `analysis.normed_space.add_torsor` and `topology.algebra.affine`.
 
-TODO: Some key definitions are not yet present.
+## TODO
 
 * Coercions from an `affine_subspace` to the subtype of its points,
   and a corresponding `affine_space` instance on that subtype in the
   case of a nonempty subspace.
-* Affine frames.  An affine frame might perhaps be represented as an
-  `affine_equiv` to a `finsupp` (in the general case) or function type
-  (in the finite-dimensional case) that gives the coordinates, with
-  appropriate proofs of existence when `k` is a field.
-* Although results on affine combinations implicitly provide
-  barycentric frames and coordinates, there is no explicit
-  representation of the map from a point to its coordinates.
 
 ## References
 

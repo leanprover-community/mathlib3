@@ -159,8 +159,8 @@ map_range_apply
 /-- Dependent functions with finite support inherit a semimodule structure from such a structure on
 each coordinate. -/
 def to_semimodule {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, semimodule γ (β i)] :
-  semimodule γ (Π₀ i, β i) := {
-  smul_zero := λ c, ext $ λ i, by simp only [smul_apply, smul_zero, zero_apply],
+  semimodule γ (Π₀ i, β i) :=
+{ smul_zero := λ c, ext $ λ i, by simp only [smul_apply, smul_zero, zero_apply],
   zero_smul := λ c, ext $ λ i, by simp only [smul_apply, zero_smul, zero_apply],
   smul_add := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, smul_add],
   add_smul := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, add_smul],

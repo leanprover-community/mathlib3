@@ -36,43 +36,4 @@ g.trace str
 
 end search_state
 
-namespace inst
-variables {α β γ δ : Type} (i : inst α β γ δ)
-
-meta def dump_rws : list (expr × expr × ℕ × ℕ) → tactic unit
-| [] := tactic.skip
-| (a :: rest) := do tactic.trace format!"→{a.1}\nPF:{a.2}", dump_rws rest
-
-meta def dump_tokens : list token → tactic unit
-| [] := tactic.skip
-| (a :: rest) := do
-    tactic.trace format!"V{a.id.to_string}:{a.str}|{a.freq.get side.L}v{a.freq.get side.R}",
-    dump_tokens rest
-
-meta def dump_vertices : list vertex → tactic unit
-| [] := tactic.skip
-| (a :: rest) := do
-    let pfx : string := match a.parent with
-      | none := "?"
-      | some p := p.f.to_string
-    end,
-    i.g.trace_dump (to_string format!"V{a.id.to_string}:{a.pp}<-{pfx}:{a.root}"),
-    dump_vertices rest
-
-meta def dump_edges : list edge → tactic unit
-| [] := tactic.skip
-| (a :: rest) := do
-    (vf, vt) ← i.g.get_endpoints a,
-    i.g.trace_dump format!"E{vf.pp}→{vt.pp}",
-    dump_edges rest
-
-meta def dump_estimates : list (dist_estimate γ) → tactic unit
-| [] := tactic.trace ""
-| (a :: rest) := do
-    (lpp, rpp) ← i.g.get_estimate_verts a,
-    i.g.trace_dump format!"I{lpp}-{rpp}:{a.bnd.bound}",
-    dump_estimates rest
-
-end inst
-
 end tactic.rewrite_search

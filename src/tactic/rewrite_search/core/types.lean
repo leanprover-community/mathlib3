@@ -120,23 +120,6 @@ def pair := sided_pair table_ref
 def pair.null : pair := ⟨table_ref.null, table_ref.null⟩
 instance pair.has_to_string : has_to_string pair := ⟨sided_pair.to_string⟩
 
-structure dist_estimate (state_type : Type u) extends sided_pair table_ref :=
-  (id : table_ref)
-  (bnd : bound_progress state_type)
-namespace dist_estimate
-variables {α : Type} (de : dist_estimate α)
-
-def to_pair : pair := de.to_sided_pair
-def side (s : side) : table_ref := de.to_pair.get s
-def set_bound (bnd : bound_progress α) : dist_estimate α := { de with bnd := bnd }
-def to_string : string := de.to_pair.to_string ++ "Δ" ++ de.bnd.to_string
-
-instance {γ : Type} : has_to_string (dist_estimate γ) := ⟨λ v, v.to_string⟩
-instance {γ : Type} : indexed (dist_estimate γ) := ⟨λ v, v.id⟩
-instance {γ : Type} : keyed (dist_estimate γ) pair := ⟨λ v, v.to_pair⟩
-
-end dist_estimate
-
 structure token :=
 (id   : table_ref)
 (str  : string)
@@ -219,7 +202,6 @@ meta structure search_state (α β γ δ : Type) :=
 (strat_state  : α)
 (tokens       : table token)
 (vertices     : table vertex)
-(estimates    : table (dist_estimate γ))
 (solving_edge : option edge)
 (stats        : statistics)
 
@@ -267,9 +249,6 @@ vf ← g.vertices.get p.l, vt ← g.vertices.get p.r, return (vf, vt)
 
 meta def get_endpoints (e : edge) : tactic (vertex × vertex) := do
 vf ← g.vertices.get e.f, vt ← g.vertices.get e.t, return (vf, vt)
-
-meta def get_estimate_verts (de : dist_estimate γ) : tactic (vertex × vertex) :=
-g.lookup_pair de.to_pair
 
 end search_state
 

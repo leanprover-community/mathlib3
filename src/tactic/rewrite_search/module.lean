@@ -46,8 +46,7 @@ variables {α β γ δ : Type}
 meta def mk_initial_search_state (conf : core_cfg) (rw_cfg : tactic.nth_rewrite.cfg)
   (rs : list (expr × bool)) (s : strategy α β γ δ) (strat_state : α) :
   search_state α β γ δ :=
-⟨conf, rw_cfg, rs, strat_state, table.create, table.create,
- table.create, none, statistics.init⟩
+⟨conf, rw_cfg, rs, strat_state, table.create, table.create, none, statistics.init⟩
 
 meta def setup_instance (conf : core_cfg) (rw_cfg : tactic.nth_rewrite.cfg)
   (rs : list (expr × bool)) (s : strategy α β γ δ) (s_state : α) (eqn : sided_pair expr) :

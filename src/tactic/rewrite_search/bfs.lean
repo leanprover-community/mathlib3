@@ -9,9 +9,7 @@ import tactic.rewrite_search.core
 # A breadth-first-search algorithm for rewrite search.
 -/
 
-open tactic.rewrite_search
-
-namespace tactic.rewrite_search.strategy.bfs
+namespace tactic.rewrite_search
 
 structure bfs_config :=
 (max_depth : ℕ := 50)
@@ -49,13 +47,7 @@ tactic (search_state bfs_state β γ δ × status) := do
             status.continue)
   end
 
-end tactic.rewrite_search.strategy.bfs
-
-namespace tactic.rewrite_search.strategy
-
-open bfs
-
 meta def bfs (conf : bfs_config := {}) : strategy_constructor bfs_state :=
 λ β γ δ, strategy.mk bfs_init (bfs_startup conf) bfs_step
 
-end tactic.rewrite_search.strategy
+end tactic.rewrite_search

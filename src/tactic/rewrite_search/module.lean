@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 -/
 
+import tactic.rewrite_search.bfs
 import tactic.rewrite_search.core
-
-import tactic.rewrite_search.strategy.bfs -- FIXME: remove this block
 
 /-!
 # Configuration and wrapper functions for rewrite search.
@@ -15,7 +14,7 @@ import tactic.rewrite_search.strategy.bfs -- FIXME: remove this block
 namespace tactic.rewrite_search
 
 meta def pick_default_strategy : tactic unit :=
-`[exact tactic.rewrite_search.strategy.bfs]
+`[exact tactic.rewrite_search.bfs]
 
 structure collect_cfg :=
 (suggest         : list name := [])
@@ -38,8 +37,6 @@ meta structure config (α β γ δ : Type) extends collect_cfg, tactic.nth_rewri
 (explain            : bool := ff)
 (explain_using_conv : bool := tt)
 (strategy           : strategy_constructor α . pick_default_strategy)
-
-open tactic.rewrite_search.strategy.bfs
 
 meta def default_config : config bfs_state unit unit unit := {}
 meta def pick_default_config : tactic unit := `[exact tactic.rewrite_search.default_config]

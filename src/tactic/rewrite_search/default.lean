@@ -1,8 +1,4 @@
--- Provide the interactive tactics
 import tactic.rewrite_search.interactive
-
--- FIXME: delete this block
-import tactic.rewrite_search.strategy
 
 /-!
 # Searching for chains of rewrites

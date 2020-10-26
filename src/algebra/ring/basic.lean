@@ -197,8 +197,11 @@ def mul_right {R : Type*} [semiring R] (r : R) : R →+ R :=
   map_zero' := zero_mul r,
   map_add' := λ _ _, add_mul _ _ r }
 
-@[simp] lemma mul_right_apply {R : Type*} [semiring R] (a r : R) :
-  (mul_right r : R → R) a = a * r := rfl
+@[simp] lemma coe_mul_right {R : Type*} [semiring R] (r : R) :
+  ⇑(mul_right r) = (* r) := rfl
+
+lemma mul_right_apply {R : Type*} [semiring R] (a r : R) :
+  mul_right r a = a * r := rfl
 
 end add_monoid_hom
 

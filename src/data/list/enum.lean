@@ -103,7 +103,7 @@ lemma Ico_unique_iff {b t : α} {l : list α}  :
   hs
   (sorted_Ico b t)⟩
 
-/-- The properties in `has_lawful_Ico` uniquely specify `Ico b t`. -/
+/-- The properties in `has_lawful_enum` uniquely specify `Ico b t`. -/
 theorem Ico_unique {b t : α} {l : list α}
   (hs : sorted (<) l) (hm : ∀ x, x ∈ l ↔ b ≤ x ∧ x < t) :
   l = Ico b t :=
@@ -227,34 +227,34 @@ lemma bot_le_bot_of_Ico_subset_Ico {b b' t t' : α} (hlt : b < t)
   (h : Ico b t ⊆ Ico b' t') : b' ≤ b :=
 bot_le_of_mem_Ico (h (bot_mem_Ico.mpr hlt))
 
-lemma top_le_top_of_Ico_subset_Ico {b b' t t' : α} (hle : b ≤ t')
-  (h : Ico b t ⊆ Ico b' t') : t ≤ t' :=
-le_of_not_lt (λ hlt, top_not_mem_Ico b' t' (h (mem_Ico.mpr ⟨hle, hlt⟩)))
+lemma bot_lt_top_of_Ico_subset_Ico {b b' t t' : α} (hlt : b < t)
+  (h : Ico b t ⊆ Ico b' t') : b < t' :=
+lt_top_of_mem_Ico (h (bot_mem_Ico.mpr hlt))
 
-theorem Ico_sublist {b t b' t' : α} (hle : b < t) : Ico b t <+ Ico b' t' ↔ b' ≤ b ∧ t ≤ t' :=
+lemma top_le_top_of_Ico_subset_Ico {b b' t t' : α} (hbt : b < t)
+  (h : Ico b t ⊆ Ico b' t') : t ≤ t' :=
+le_of_not_lt (λ htt', top_not_mem_Ico b' t' (h (mem_Ico.mpr
+  ⟨le_of_lt (bot_lt_top_of_Ico_subset_Ico hbt h), htt'⟩)))
+
+theorem Ico_sublist_Ico {b t b' t' : α} (hlt : b < t) : Ico b t <+ Ico b' t' ↔ b' ≤ b ∧ t ≤ t' :=
 begin
   split,
   { intro h,
-    refine ⟨bot_le_bot_of_Ico_subset_Ico hle h.subset, top_le_top_of_Ico_subset_Ico _ h.subset⟩, },
+    exact ⟨bot_le_bot_of_Ico_subset_Ico hlt h.subset, top_le_top_of_Ico_subset_Ico hlt h.subset⟩ },
+  { rintros ⟨hb, ht⟩,
+    rw [← Ico_append_Ico hb (le_trans (le_of_lt hlt) ht), ← Ico_append_Ico (le_of_lt hlt) ht],
+    exact sublist_append_of_sublist_right (sublist_append_left _ _) }
 end
 
-theorem range_subset {m n : ℕ} : range m ⊆ range n ↔ m ≤ n :=
-by simp only [range_eq_Ico'_ℕ, Ico'_ℕ_subset_right]
-
-@[simp] theorem mem_range {m n : ℕ} : m ∈ range n ↔ m < n :=
-by simp only [range_eq_Ico'_ℕ, mem_Ico'_ℕ, nat.zero_le, true_and, zero_add]
-
-@[simp] theorem not_mem_range_self {n : ℕ} : n ∉ range n :=
-mt mem_range.1 $ lt_irrefl _
-
-@[simp] theorem self_mem_range_succ (n : ℕ) : n ∈ range (n + 1) :=
-by simp only [succ_pos', lt_add_iff_pos_right, mem_range]
-
-theorem nth_range {m n : ℕ} (h : m < n) : nth (range n) m = some m :=
-by simp only [range_eq_Ico'_ℕ, nth_Ico'_ℕ _ h, zero_add]
-
-theorem range_concat (n : ℕ) : range (succ n) = range n ++ [n] :=
-by simp only [range_eq_Ico'_ℕ, Ico'_ℕ_concat, zero_add]
+theorem Ico_subset_Ico {b t b' t' : α} (hlt : b < t) : Ico b t ⊆ Ico b' t' ↔ b' ≤ b ∧ t ≤ t' :=
+begin
+  split,
+  { intro h,
+    exact ⟨bot_le_bot_of_Ico_subset_Ico hlt h, top_le_top_of_Ico_subset_Ico hlt h⟩ },
+  { rintros ⟨hb, ht⟩,
+    rw [← Ico_append_Ico hb (le_trans (le_of_lt hlt) ht), ← Ico_append_Ico (le_of_lt hlt) ht],
+    exact subset_append_of_subset_right _ _ _ (subset_append_left _ _) }
+end
 
 end list
 
@@ -292,7 +292,7 @@ universe u
 
 variables {α : Type u}
 
-section Ico'_ℕ
+section nat
 
 /-- `Ico'_ℕ s n` is the list of natural numbers `[s, s+1, ..., s+n-1]`.
 It is intended mainly for implementing `nat.has_enum`. -/
@@ -337,16 +337,6 @@ theorem pairwise_lt_Ico'_ℕ : ∀ s n : ℕ, pairwise (<) (Ico'_ℕ s n)
 | s 0     := pairwise.nil
 | s (n+1) := (chain_iff_pairwise (by exact λ a b c, lt_trans)).1 (chain_lt_Ico'_ℕ s n)
 
-example {m n l : ℕ} : n ≤ l ∧ l < n + (m - n) ↔ n ≤ l ∧ l < m :=
-begin
-  cases le_total n m with hnm hmn,
-  { rw [nat.add_sub_of_le hnm] },
-  { rw [nat.sub_eq_zero_of_le hmn, add_zero],
-    exact and_congr_right (assume hnl, iff.intro
-    (assume hln, (not_le_of_gt hln hnl).elim)
-    (assume hlm, lt_of_lt_of_le hlm hmn)) }
-end
-
 instance nat.has_lawful_enum : has_lawful_enum ℕ :=
 { mem_Ico := λ x b t, mem_Ico'_ℕ.trans
     ⟨λ ⟨hb, ht⟩, ⟨hb,
@@ -367,6 +357,18 @@ theorem map_add_Ico'_ℕ (a) : ∀ s n : ℕ, map ((+) a) (Ico'_ℕ s n) = Ico'_
 lemma map_add_Ico_ℕ (x b t : ℕ) : map ((+) x) (Ico b t) = Ico (x + b) (x + t) :=
 decidable_linear_ordered_cancel_add_comm_monoid.map_add_list_Ico
   (λ x y z h, ⟨z - x, nat.add_sub_cancel' (le_trans (nat.le_add_right _ _) h)⟩) _ _ _
+
+lemma map_add_Ico_ℕ' (x b t : ℕ) : map ((+) x) (Ico b t) = Ico (b + x) (t + x) :=
+by rw [map_add_Ico_ℕ, add_comm b x, add_comm t x]
+
+@[simp]
+lemma map_succ_Ico'_ℕ : ∀ (s n : ℕ), map nat.succ (Ico'_ℕ s n) = Ico'_ℕ (s + 1) n
+| s 0       := rfl
+| s (n + 1) := congr_arg (cons _) (map_succ_Ico'_ℕ _ _)
+
+@[simp]
+lemma map_succ_Ico (b t : ℕ) : map nat.succ (Ico b t) = Ico (b + 1) (t + 1) :=
+by rw [add_comm b 1, add_comm t 1, ← map_add_Ico_ℕ, show ((+) 1) = nat.succ, from funext nat.one_add]
 
 theorem map_sub_Ico'_ℕ (a) :
   ∀ (s n : ℕ) (h : a ≤ s), map (λ x, x - a) (Ico'_ℕ s n) = Ico'_ℕ (s - a) n
@@ -412,19 +414,32 @@ exact range_core_Ico'_ℕ s (n+1)
 theorem range_eq_Ico'_ℕ (n : ℕ) : range n = Ico'_ℕ 0 n :=
 (range_core_Ico'_ℕ n 0).trans $ by rw zero_add
 
+theorem Ico_zero_eq_Ico'_ℕ (n : ℕ) : Ico 0 n = Ico'_ℕ 0 n :=
+rfl
+
 @[nolint deprecated, simp]
 theorem range_eq_Ico_ℕ (n : ℕ) : range n = Ico 0 n :=
 range_eq_Ico'_ℕ n
 
-end Ico'_ℕ
+@[simp] theorem self_mem_Ico_zero_succ (n : ℕ) : n ∈ Ico 0 (n + 1) :=
+by simp only [succ_pos', lt_add_iff_pos_right, mem_Ico, nat.zero_le n, true_and]
+
+theorem nth_Ico_zero {m n : ℕ} (h : m < n) : nth (Ico 0 n) m = some m :=
+(nth_Ico'_ℕ _ (by rwa nat.sub_zero)).trans $ by rw zero_add
 
 theorem Ico_succ_right {b t : ℕ} (h : b ≤ t) : Ico b (t + 1) = b :: Ico (b + 1) (t + 1) :=
 by { conv_lhs { rw [← nat.add_sub_cancel' h, add_assoc, ← Ico'_ℕ_eq_Ico, Ico'_ℕ_succ] },
-     rw [Ico'_ℕ_eq_Ico, succ_add, nat.add_sub_cancel' h] }
+rw [Ico'_ℕ_eq_Ico, succ_add, nat.add_sub_cancel' h] }
+
+theorem Ico_zero_succ (n : ℕ) : Ico 0 (succ n) = Ico 0 n ++ [n] :=
+by simp only [Ico_zero_eq_Ico'_ℕ, Ico'_ℕ_concat, zero_add]
+
+section iota
 
 theorem iota_eq_reverse_Ico'_ℕ : ∀ n : ℕ, iota n = reverse (Ico'_ℕ 1 n)
 | 0     := rfl
-| (n+1) := by simp only [iota, Ico'_ℕ_concat, iota_eq_reverse_Ico'_ℕ n, reverse_append, add_comm]; refl
+| (n + 1) := by { simp only [iota, Ico'_ℕ_concat, iota_eq_reverse_Ico'_ℕ n, reverse_append, add_comm],
+                refl }
 
 @[simp] theorem length_iota (n : ℕ) : length (iota n) = n :=
 by simp only [iota_eq_reverse_Ico'_ℕ, length_reverse, length_Ico'_ℕ]
@@ -439,14 +454,21 @@ theorem mem_iota {m n : ℕ} : m ∈ iota n ↔ 1 ≤ m ∧ m ≤ n :=
 by simp only [iota_eq_reverse_Ico'_ℕ, mem_reverse, mem_Ico'_ℕ, add_comm, lt_succ_iff]
 
 theorem reverse_Ico'_ℕ : ∀ s n : ℕ,
-  reverse (Ico'_ℕ s n) = map (λ i, s + n - 1 - i) (range n)
-| s 0     := rfl
-| s (n+1) := by rw [Ico'_ℕ_concat, reverse_append, range_succ_eq_map];
-  simpa only [show s + (n + 1) - 1 = s + n, from rfl, (∘),
-    λ a i, show a - 1 - i = a - succ i, from pred_sub _ _,
-    reverse_singleton, map_cons, nat.sub_zero, cons_append,
-    nil_append, eq_self_iff_true, true_and, map_map]
-  using reverse_Ico'_ℕ s n
+  reverse (Ico'_ℕ s n) = map (λ i, s + n - 1 - i) (Ico 0 n)
+| s 0       := rfl
+| s (n + 1) := begin
+  simp_rw [Ico'_ℕ_concat, reverse_append, reverse_singleton, singleton_append,
+    Ico_succ_right (nat.zero_le _), ← map_add_Ico_ℕ', reverse_Ico'_ℕ,
+    map_cons, map_map, nat.sub_zero, nat.add_succ, nat.succ_sub_one, add_zero, eq_self_iff_true,
+    true_and],
+  congr,
+  ext i,
+  rw nat.sub_sub
+end
+
+end iota
+
+end nat
 
 /-- All elements of `fin n`, from `0` to `n-1`. -/
 def fin_range (n : ℕ) : list (fin n) :=

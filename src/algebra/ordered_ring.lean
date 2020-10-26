@@ -591,7 +591,8 @@ end ordered_ring
 
 /-- A `linear_ordered_ring α` is a ring `α` with a linear order such that
 multiplication with a positive number and addition are monotone. -/
-@[protect_proj] class linear_ordered_ring (α : Type u) extends ordered_ring α, linear_order α, nontrivial α
+@[protect_proj] class linear_ordered_ring (α : Type u)
+    extends ordered_ring α, linear_order α, nontrivial α
 
 section linear_ordered_ring
 variables [linear_ordered_ring α] {a b c : α}
@@ -672,12 +673,10 @@ lemma mul_self_lt_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a < b 
 iff.trans (lt_iff_not_ge _ _) $ iff.trans (not_iff_not_of_iff $ mul_self_le_mul_self_iff h2 h1) $
   iff.symm (lt_iff_not_ge _ _)
 
-lemma eq_if_mul_self_eq_mul_self {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) (h3 : a * a = b * b) : a = b :=
-begin
-  have h4 : a ≤ b, from (mul_self_le_mul_self_iff h1 h2).mpr (le_of_eq h3),
-  have h5 : b ≤ a, from (mul_self_le_mul_self_iff h2 h1).mpr (le_of_eq h3.symm),
-  exact le_antisymm h4 h5
-end
+lemma mul_self_inj {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a * a = b * b ↔ a = b :=
+⟨λ h3, le_antisymm ((nonneg_le_nonneg_of_squares_le h2) h3.le) $
+  (nonneg_le_nonneg_of_squares_le h1) h3.symm.le,
+ λ h3, le_antisymm ((mul_self_le_mul_self h1) h3.le) $ (mul_self_le_mul_self h2) h3.symm.le⟩
 
 /- TODO This theorem ought to be written in the context of `nontrivial` linearly ordered (additive)
 commutative groups rather than linearly ordered rings; however, the former concept does not
@@ -756,12 +755,13 @@ instance linear_ordered_comm_ring.to_integral_domain [s : linear_ordered_comm_ri
 /-- A `decidable_linear_ordered_comm_ring α` is a commutative ring `α` with a
 decidable linear order such that multiplication with a positive number and
 addition are monotone. -/
-@[protect_proj] class decidable_linear_ordered_comm_ring (α : Type u) extends linear_ordered_comm_ring α,
-    decidable_linear_ordered_add_comm_group α
+@[protect_proj] class decidable_linear_ordered_comm_ring (α : Type u)
+    extends linear_ordered_comm_ring α, decidable_linear_ordered_add_comm_group α
 
 @[priority 100] -- see Note [lower instance priority]
-instance decidable_linear_ordered_comm_ring.to_decidable_linear_ordered_semiring [d : decidable_linear_ordered_comm_ring α] :
-   decidable_linear_ordered_semiring α :=
+instance decidable_linear_ordered_comm_ring.to_decidable_linear_ordered_semiring
+  [d : decidable_linear_ordered_comm_ring α] :
+  decidable_linear_ordered_semiring α :=
 let s : linear_ordered_semiring α := @linear_ordered_ring.to_linear_ordered_semiring α _ in
 { zero_mul                   := @linear_ordered_semiring.zero_mul α s,
   mul_zero                   := @linear_ordered_semiring.mul_zero α s,
@@ -845,21 +845,19 @@ abs_of_pos zero_lt_two
 
 lemma abs_eq_iff_mul_self_eq : abs a = abs b ↔ a * a = b * b :=
 begin
-  rw [← abs_mul_abs_self, ← (abs_mul_abs_self b)],
-  split,
-  { intro h1, rw h1 },
-  { intro h2, exact eq_if_mul_self_eq_mul_self (abs_nonneg a) (abs_nonneg b) h2 }
+  rw [← abs_mul_abs_self, ← abs_mul_abs_self b],
+  exact (mul_self_inj (abs_nonneg a) (abs_nonneg b)).symm,
 end
 
 lemma abs_lt_iff_mul_self_lt : abs a < abs b ↔ a * a < b * b :=
 begin
-  rw [← abs_mul_abs_self, ← (abs_mul_abs_self b)],
+  rw [← abs_mul_abs_self, ← abs_mul_abs_self b],
   exact mul_self_lt_mul_self_iff (abs_nonneg a) (abs_nonneg b)
 end
 
 lemma abs_le_iff_mul_self_le : abs a ≤ abs b ↔ a * a ≤ b * b :=
 begin
-  rw [← abs_mul_abs_self, ← (abs_mul_abs_self b)],
+  rw [← abs_mul_abs_self, ← abs_mul_abs_self b],
   exact mul_self_le_mul_self_iff (abs_nonneg a) (abs_nonneg b)
 end
 
@@ -1115,7 +1113,8 @@ instance [nontrivial α] : canonically_ordered_comm_semiring (with_top α) :=
   mul_comm        := comm,
   one_mul         := one_mul',
   mul_one         := assume a, by rw [comm, one_mul'],
-  .. with_top.add_comm_monoid, .. with_top.mul_zero_class, .. with_top.canonically_ordered_add_monoid,
+  .. with_top.add_comm_monoid, .. with_top.mul_zero_class,
+  .. with_top.canonically_ordered_add_monoid,
   .. with_top.no_zero_divisors, .. with_top.nontrivial }
 
 end with_top

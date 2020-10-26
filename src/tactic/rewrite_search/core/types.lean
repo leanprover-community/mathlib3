@@ -23,32 +23,6 @@ structure bfs_state :=
 (curr_depth : ℕ)
 (queue      : list (option table_ref))
 
--- jmc: What's the purpose of `dnum`? Can't we just use `ℕ`?
-@[reducible] def dnum : Type := ℕ
-
-namespace dnum
-
-@[inline] def of_nat (n : ℕ) : dnum := n
-@[inline] def of_int : ℤ → dnum
-| (int.of_nat n)          := n
-| (int.neg_succ_of_nat n) := 0
-
-@[inline] def max (n m : dnum) : dnum := if n > m then n else m
-@[inline] def min (n m : dnum) : dnum := if n < m then n else m
-
-@[inline]
-def minl : list dnum → dnum
-| [] := 0
-| [a] := a
-| (n :: rest) := min n (minl rest)
-
-@[inline] def diff (n m : dnum) : dnum := if n > m then n - m else m - n
-
-instance : has_to_string dnum := nat.has_to_string
-meta instance : has_to_format dnum := nat.has_to_format
-
-end dnum
-
 meta structure edge :=
 (f t   : table_ref)
 (proof : tactic expr)

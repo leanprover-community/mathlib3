@@ -31,7 +31,12 @@ add_decl_doc has_enum.enum
 
 variables {α : Type*} [has_enum α] (b t : α)
 
-/-- `list.Ico b t` is a list of the values between `b` (inclusive) and `t` (exclusive). -/
+/-- `list.Ico b t` is a list of the values between `b` (inclusive) and `t` (exclusive).
+(Ico stands for "interval, closed-open".)
+
+See also `data/set/intervals.lean` for `set.Ico`, modelling intervals in general preorders, and
+`multiset.Ico` and `finset.Ico` for `n ≤ x < m` as a multiset or as a finset.
+-/
 def list.Ico : list α := has_enum.enum b t
 
 @[simp] lemma has_enum.enum_eq : @has_enum.enum α _ = list.Ico := rfl
@@ -138,6 +143,9 @@ lemma not_mem_Icc_of_lt {x b t : α} (htb : t < b) [@decidable_rel α (≤)] : �
 eq_nil_iff_forall_not_mem.trans
   ⟨λ h, le_of_not_gt (mt bot_mem_Ico.mpr (h b)),
    λ h x, not_mem_Ico_of_le h⟩
+
+@[simp] lemma Ico_self {b : α} : Ico b b = [] :=
+Ico_eq_nil.mpr le_rfl
 
 lemma exists_le_mem_Ico_of_lt {x b t : α} (hbt : b < t) (hxt : x < t) :
   ∃ y ∈ Ico b t, x ≤ y :=
@@ -380,6 +388,12 @@ begin
   convert congr_arg (cons (s-a)) (map_sub_Ico'_ℕ (s+1) n (nat.le_succ_of_le h)),
   rw nat.succ_sub h,
   refl,
+end
+
+theorem map_sub_Ico_ℕ (a b t : ℕ) (h : a ≤ b) : (Ico b t).map (λ x, x - a) = Ico (b - a) (t - a) :=
+begin
+  refine trans (map_sub_Ico'_ℕ a b _ h) (congr_arg (Ico'_ℕ (b - a)) _),
+  rw [nat.sub_sub, nat.add_sub_cancel' h],
 end
 
 theorem nodup_Ico'_ℕ (s n : ℕ) : nodup (Ico'_ℕ s n) :=

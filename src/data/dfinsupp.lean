@@ -309,6 +309,9 @@ by simp only [single_apply, dif_pos rfl]
 lemma single_eq_of_ne {i i' b} (h : i ≠ i') : (single i b : Π₀ i, β i) i' = 0 :=
 by simp only [single_apply, dif_neg h]
 
+lemma single_injective {i} : function.injective (single i : β i → Π₀ i, β i) :=
+λ x y H, congr_fun (mk_injective _ H) ⟨i, by simp⟩
+
 /-- Redefine `f i` to be `0`. -/
 def erase (i : ι) (f : Π₀ i, β i) : Π₀ i, β i :=
 quotient.lift_on f (λ x, ⟦(⟨λ j, if j = i then 0 else x.1 j, x.2,

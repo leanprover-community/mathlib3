@@ -14,7 +14,7 @@ import data.polynomial.field_division
 import ring_theory.principal_ideal_domain
 
 noncomputable theory
-local attribute [instance, priority 100] classical.prop_decidable
+open_locale classical
 
 universes u v w
 
@@ -87,6 +87,8 @@ begin
   exact lt_of_le_of_lt (degree_X_pow_le _) (with_bot.coe_lt_coe.2 $ finset.mem_range.1 hk)
 end
 
+local attribute [instance] subset.ring
+
 /-- Given a polynomial, return the polynomial whose coefficients are in
 the ring closure of the original coefficients. -/
 def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set R)) :=
@@ -99,8 +101,11 @@ def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set
 
 @[simp] theorem coeff_restriction' {p : polynomial R} {n : ℕ} : (coeff (restriction p) n).1 = coeff p n := rfl
 
+section
+local attribute [instance] algebra.of_is_subring subring.domain subset.comm_ring
 @[simp] theorem map_restriction (p : polynomial R) : p.restriction.map (algebra_map _ _) = p :=
 ext $ λ n, by rw [coeff_map, algebra.is_subring_algebra_map_apply, coeff_restriction]
+end
 
 @[simp] theorem degree_restriction {p : polynomial R} : (restriction p).degree = p.degree := rfl
 

@@ -87,6 +87,7 @@ begin
   exact lt_of_le_of_lt (degree_X_pow_le _) (with_bot.coe_lt_coe.2 $ finset.mem_range.1 hk)
 end
 
+/-- Coefficient linear map on degree_lt -/
 def degree_lt_linear_map (F : Type*) [field F] (n : ℕ) :
   degree_lt F n →ₗ[F] ((↑(finset.range n) : set ℕ) → F) :=
 { to_fun := λ p n, (↑p : polynomial F).coeff n,
@@ -129,6 +130,7 @@ begin
     exact dif_neg (not_lt.mpr hm) }
 end
 
+/-- Coefficient linear equiv on degree_lt -/
 def degree_lt_linear_equiv (F : Type*) [field F] (n : ℕ) :
   degree_lt F n ≃ₗ[F] ((↑(finset.range n) : set ℕ) → F) :=
 { .. (degree_lt_linear_map F n), .. equiv.of_bijective _ (degree_lt_linear_map_bijective F n) }

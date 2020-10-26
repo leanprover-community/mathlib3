@@ -701,7 +701,9 @@ top_unique $ λ x hx, finsupp.induction x (add_submonoid.zero_mem _) $
   λ a b f ha hb hf, add_submonoid.add_mem _
     (add_submonoid.subset_closure $ set.mem_Union.2 ⟨a, set.mem_range_self _⟩) hf
 
-@[ext] lemma add_hom_ext [add_monoid N] ⦃f g : (α →₀ M) →+ N⦄
+/-- If two additive homomorphisms from `α →₀ M` are equal on each `single a b`, then
+they are equal. -/
+lemma add_hom_ext [add_monoid N] ⦃f g : (α →₀ M) →+ N⦄
   (H : ∀ x y, f (single x y) = g (single x y)) :
   f = g :=
 begin
@@ -710,6 +712,29 @@ begin
   rcases hf with ⟨x, y, rfl⟩,
   apply H
 end
+
+/-- If two additive homomorphisms from `α →₀ M` are equal on each `single a b`, then
+they are equal.
+
+We formulate this using equality of `add_monoid_hom`s so that `ext` tactic can apply a type-specific
+extensionality lemma after this one.  E.g., if the fiber `M` is `ℕ` or `ℤ`, then it suffices to
+verify `f (single a 1) = g (single a 1)`. -/
+@[ext] lemma add_hom_ext' [add_monoid N] ⦃f g : (α →₀ M) →+ N⦄
+  (H : ∀ x, f.comp (single_add_hom x) = g.comp (single_add_hom x)) :
+  f = g :=
+add_hom_ext $ λ x, add_monoid_hom.congr_fun (H x)
+
+lemma mul_hom_ext [monoid N] ⦃f g : multiplicative (α →₀ M) →* N⦄
+  (H : ∀ x y, f (multiplicative.of_add $ single x y) = g (multiplicative.of_add $ single x y)) :
+  f = g :=
+monoid_hom.ext $ add_monoid_hom.congr_fun $
+  @add_hom_ext α M (additive N) _ _ f.to_additive'' g.to_additive'' H
+
+@[ext] lemma mul_hom_ext' [monoid N] {f g : multiplicative (α →₀ M) →* N}
+  (H : ∀ x, f.comp (single_add_hom x).to_multiplicative =
+    g.comp (single_add_hom x).to_multiplicative) :
+  f = g :=
+mul_hom_ext $ λ x, monoid_hom.congr_fun (H x)
 
 lemma map_range_add [add_monoid N]
   {f : M → N} {hf : f 0 = 0} (hf' : ∀ x y, f (x + y) = f x + f y) (v₁ v₂ : α →₀ M) :
@@ -1643,17 +1668,6 @@ smul_single _ _ _
 
 lemma smul_single_one [semiring R] (a : α) (b : R) : b • single a 1 = single a b :=
 by rw [smul_single, smul_eq_mul, mul_one]
-
-@[ext] lemma lhom_ext' [semiring R] [add_comm_monoid M] [semimodule R M] [add_comm_monoid N]
-  [semimodule R N] ⦃φ ψ : (α →₀ M) →ₗ[R] N⦄ (h : ∀ a b, φ (single a b) = ψ (single a b)) :
-  φ = ψ :=
-linear_map.to_add_monoid_hom_injective $ add_hom_ext h
-
-/-- Two `R`-linear maps from `finsupp X R` which agree on `single x 1` agree everywhere. -/
-@[ext] lemma lhom_ext [semiring R] [add_comm_monoid M] [semimodule R M] ⦃φ ψ : (α →₀ R) →ₗ[R] M⦄
-  (h : ∀ a : α, φ (single a 1) = ψ (single a 1)) : φ = ψ :=
-lhom_ext' $ λ x y, by simp only [← smul_single_one x y, linear_map.to_add_monoid_hom_coe,
-  linear_map.map_smul, h]
 
 end
 

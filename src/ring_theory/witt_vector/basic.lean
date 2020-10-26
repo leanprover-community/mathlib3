@@ -70,7 +70,7 @@ by { funext n, dsimp [map_fun], rw classical.some_spec (hf (x n)) }⟩
 variables (f : R →+* S) (x y : 𝕎 R)
 
 /-- Auxiliary tactic for showing that `map_fun` respects the ring operations. -/
-meta def witt_map : tactic unit :=
+meta def map_fun_tac : tactic unit :=
 `[funext n,
   show f (aeval _ _) = aeval _ _,
   rw map_aeval,
@@ -80,17 +80,17 @@ meta def witt_map : tactic unit :=
 
 include hp
 
-/- We do not tag these lemmas as `@[simp]` because the will be bundled in `map` later on. -/
+/- We do not tag these lemmas as `@[simp]` because they will be bundled in `map` later on. -/
 
-lemma zero : map_fun f (0 : 𝕎 R) = 0 := by witt_map
+lemma zero : map_fun f (0 : 𝕎 R) = 0 := by map_fun_tac
 
-lemma one : map_fun f (1 : 𝕎 R) = 1 := by witt_map
+lemma one : map_fun f (1 : 𝕎 R) = 1 := by map_fun_tac
 
-lemma add : map_fun f (x + y) = map_fun f x + map_fun f y := by witt_map
+lemma add : map_fun f (x + y) = map_fun f x + map_fun f y := by map_fun_tac
 
-lemma mul : map_fun f (x * y) = map_fun f x * map_fun f y := by witt_map
+lemma mul : map_fun f (x * y) = map_fun f x * map_fun f y := by map_fun_tac
 
-lemma neg : map_fun f (-x) = -map_fun f x := by witt_map
+lemma neg : map_fun f (-x) = -map_fun f x := by map_fun_tac
 
 end map_fun
 
@@ -101,7 +101,7 @@ setup_tactic_parser
 open tactic
 
 /-- An auxiliary tactic for proving that `ghost_fun` respects the ring operations. -/
-meta def tactic.interactive.ghost_fun (φ fn : parse parser.pexpr) : tactic unit :=
+meta def tactic.interactive.ghost_fun_tac (φ fn : parse parser.pexpr) : tactic unit :=
 do fn ← to_expr ```(%%fn : fin _ → ℕ → R),
   `(fin %%k → _ → _) ← infer_type fn,
   `[ext n],
@@ -126,21 +126,21 @@ private def ghost_fun : 𝕎 R → (ℕ → R) := λ x n, aeval x.coeff (W_ ℤ 
 section ghost_fun
 include hp
 
-/- The following lemmas are not `@[simp]` because we will bundle `ghost_fun` later on. -/
+/- The following lemmas are not `@[simp]` because they will be bundled in `ghost_map` later on. -/
 
 variables (x y : 𝕎 R)
 
-private lemma ghost_fun_zero : ghost_fun (0 : 𝕎 R) = 0 := by ghost_fun 0 ![]
+private lemma ghost_fun_zero : ghost_fun (0 : 𝕎 R) = 0 := by ghost_fun_tac 0 ![]
 
-private lemma ghost_fun_one : ghost_fun (1 : 𝕎 R) = 1 := by ghost_fun 1 ![]
+private lemma ghost_fun_one : ghost_fun (1 : 𝕎 R) = 1 := by ghost_fun_tac 1 ![]
 
 private lemma ghost_fun_add : ghost_fun (x + y) = ghost_fun x + ghost_fun y :=
-by ghost_fun (X 0 + X 1) ![x.coeff, y.coeff]
+by ghost_fun_tac (X 0 + X 1) ![x.coeff, y.coeff]
 
 private lemma ghost_fun_mul : ghost_fun (x * y) = ghost_fun x * ghost_fun y :=
-by ghost_fun (X 0 * X 1) ![x.coeff, y.coeff]
+by ghost_fun_tac (X 0 * X 1) ![x.coeff, y.coeff]
 
-private lemma ghost_fun_neg : ghost_fun (-x) = - ghost_fun x := by ghost_fun (-X 0) ![x.coeff]
+private lemma ghost_fun_neg : ghost_fun (-x) = - ghost_fun x := by ghost_fun_tac (-X 0) ![x.coeff]
 
 end ghost_fun
 

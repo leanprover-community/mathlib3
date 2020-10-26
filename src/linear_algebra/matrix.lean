@@ -546,7 +546,7 @@ by ext j; simp [mul_vec_diagonal]
 lemma diagonal_comp_std_basis (w : n → R) (i : n) :
   (diagonal w).to_lin'.comp (std_basis R (λ_:n, R) i) = (w i) • std_basis R (λ_:n, R) i :=
 begin
-  ext a j,
+  ext j,
   simp_rw [linear_map.comp_apply, to_lin'_apply, mul_vec_diagonal, linear_map.smul_apply,
     pi.smul_apply, algebra.id.smul_eq_mul],
   by_cases i = j,

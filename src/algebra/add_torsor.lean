@@ -35,9 +35,6 @@ multiplicative group actions).
 * `p₁ -ᵥ p₂` is a notation for `has_vsub.vsub`, difference between two points in an additive torsor
   as an element of the corresponding additive group;
 
-* `affine_space V P` is an alternative notation for `add_torsor V P` introduced at the end of this
-  file.
-
 ## References
 
 * https://en.wikipedia.org/wiki/Principal_homogeneous_space
@@ -454,8 +451,3 @@ def const_vadd_hom : multiplicative G →* equiv.perm P :=
   map_mul' := const_vadd_add P }
 
 end equiv
-
-/-! `affine_space` is an alternative notation for `add_torsor`. If it is a `def` (even an
-`abbreviation`), then we get lots of hard to debug compile errors. We define this notation at the
-end of this file so that Lean doesn't show `affine_space` in the proof state too early. -/
-notation `affine_space` := add_torsor

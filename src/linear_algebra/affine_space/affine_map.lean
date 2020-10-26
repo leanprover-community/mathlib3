@@ -3,7 +3,7 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Myers.
 -/
-import algebra.add_torsor
+import linear_algebra.affine_space.basic
 import linear_algebra.tensor_product
 import data.set.intervals.unordered_interval
 
@@ -60,6 +60,8 @@ Some key definitions are not yet present.
 * https://en.wikipedia.org/wiki/Affine_space
 * https://en.wikipedia.org/wiki/Principal_homogeneous_space
 -/
+
+open_locale affine
 
 /-- An `affine_map k P1 P2` (notation: `P1 →ᵃ[k] P2`) is a map from `P1` to `P2` that
 induces a corresponding linear map from `V1` to `V2`. -/

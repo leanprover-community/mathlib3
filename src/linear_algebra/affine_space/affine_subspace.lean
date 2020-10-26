@@ -3,7 +3,7 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Myers.
 -/
-import algebra.add_torsor
+import linear_algebra.affine_space.basic
 import linear_algebra.tensor_product
 import data.set.intervals.unordered_interval
 
@@ -83,8 +83,7 @@ TODO: Some key definitions are not yet present.
 -/
 
 noncomputable theory
-open_locale big_operators
-open_locale classical
+open_locale big_operators classical affine
 
 open set
 

@@ -9,10 +9,6 @@ import linear_algebra.affine_space.affine_map
 import linear_algebra.affine_space.affine_subspace
 import linear_algebra.finsupp
 
-noncomputable theory
-open_locale big_operators
-open_locale classical
-
 /-!
 # Affine combinations of points
 
@@ -41,6 +37,9 @@ These definitions are for sums over a `finset`; versions for a
 * https://en.wikipedia.org/wiki/Affine_space
 
 -/
+
+noncomputable theory
+open_locale big_operators classical affine
 
 namespace finset
 

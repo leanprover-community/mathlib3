@@ -28,6 +28,7 @@ affine space, affine equivalence
 -/
 
 open function set
+open_locale affine
 
 /-- An affine equivalence is an equivalence between affine spaces such that both forward
 and inverse maps are affine.

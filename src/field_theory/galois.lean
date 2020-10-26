@@ -34,6 +34,8 @@ open_locale classical
 
 open finite_dimensional
 
+namespace galois
+
 section
 
 variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
@@ -237,3 +239,5 @@ begin
 end
 
 end galois_equivalent_definitions
+
+end galois

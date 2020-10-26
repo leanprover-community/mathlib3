@@ -124,8 +124,8 @@ def to_alg_equiv {X Y : Algebra R} (i : X ≅ Y) : X ≃ₐ[R] Y :=
 
 end category_theory.iso
 
-/-- algebra equivalences between `algebras`s are the same as (isomorphic to) isomorphisms in
-`Algebra` -/
+/-- Algebra equivalences between `algebras`s are the same as (isomorphic to) isomorphisms in
+`Algebra`. -/
 @[simps]
 def alg_equiv_iso_Algebra_iso {X Y : Type u}
   [ring X] [ring Y] [algebra R X] [algebra R Y] :

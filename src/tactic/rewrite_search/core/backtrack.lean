@@ -15,26 +15,26 @@ open tactic
 
 namespace tactic.rewrite_search
 
-variables (i : inst)
+variables (g : search_state)
 
 namespace backtrack
 
-meta def backtrack_fn := inst → edge → tactic (list edge)
+meta def backtrack_fn := search_state → edge → tactic (list edge)
 
 namespace naive
 
 meta def walk_up_parents : vertex → option edge → tactic (list edge)
 | v none     := return []
 | v (some e) := do
-                 w ← i.g.vertices.get e.f,
+                 w ← g.vertices.get e.f,
                  edges ← walk_up_parents w w.parent,
                  return (e :: edges)
 
-meta def backtrack : backtrack_fn := λ (i : inst) (e : edge), do
-  v ← i.g.vertices.get e.t,
+meta def backtrack : backtrack_fn := λ (g : search_state) (e : edge), do
+  v ← g.vertices.get e.t,
 
-  vts ← walk_up_parents i v e,
-  vfs ← walk_up_parents i v v.parent,
+  vts ← walk_up_parents g v e,
+  vfs ← walk_up_parents g v v.parent,
 
   return $ match v.s with
               | side.L := vfs.reverse ++ vts
@@ -62,7 +62,7 @@ table edge → list edge → tactic (table edge × list table_ref)
 meta def search_aux : table edge → list table_ref → tactic (table edge)
 | been [] := fail "bug: bfs could not find the path LHS -> RHS!"
 | been (t :: rest) := do
-  child ← i.g.vertices.get t,
+  child ← g.vertices.get t,
   if child.id = RHS_VERTEX_ID then
     return been
   else do
@@ -70,7 +70,7 @@ meta def search_aux : table edge → list table_ref → tactic (table edge)
     search_aux been (rest ++ new_es)
 
 meta def search : tactic (table edge) :=
-  search_aux i (table.create i.g.vertices.length) [LHS_VERTEX_ID]
+  search_aux g (table.create g.vertices.length) [LHS_VERTEX_ID]
 
 meta def crawl (t : table edge) : table_ref → tactic (list edge)
 | id :=
@@ -86,10 +86,10 @@ meta def crawl (t : table edge) : table_ref → tactic (list edge)
     end
   end
 
-meta def backtrack : backtrack_fn := λ (i : inst) (_ : edge), do
+meta def backtrack : backtrack_fn := λ (g : search_state) (_ : edge), do
 -- We just disregard the "finishing edge" we are passed, looking for the
 -- shortest path whatever instead.
-  tab ← search i,
+  tab ← search g,
   list.reverse <$> crawl tab RHS_VERTEX_ID
 
 end bfs
@@ -135,17 +135,17 @@ meta def combine_units : list proof_unit → tactic (option expr)
   end
 
 meta def build_proof (e : edge) : tactic (expr × list proof_unit) := do
-  let bt := if i.g.conf.optimal then bfs.backtrack i else naive.backtrack i,
+  let bt := if g.conf.optimal then bfs.backtrack g else naive.backtrack g,
   edges ← bt e,
 
-  i.g.trace_search_finished edges,
+  g.trace_search_finished edges,
 
   units ← build_units edges,
   proof ← combine_units units,
   proof ← proof <|> fail "could not combine proof units!",
 
-  if i.g.conf.trace_summary then do
-    let vl := i.g.vertices.to_list,
+  if g.conf.trace_summary then do
+    let vl := g.vertices.to_list,
     let saw := vl.length,
     let visited := (vl.filter (λ v : vertex, v.visited)).length,
     name ← decl_name,

@@ -17,7 +17,7 @@ universe u
 
 namespace tactic.rewrite_search
 
-variables (i : inst) (g : search_state)
+variables (g : search_state)
 
 private meta def chop : list char → list string → list string
 | [] L := L
@@ -246,52 +246,50 @@ meta def bfs_step (g : search_state) : tactic (search_state × status) := do
 
 meta def bfs : strategy := strategy.mk bfs_init bfs_startup bfs_step
 
-namespace inst
+namespace search_state
 
-meta def mutate : inst := { i with g := g }
-
-meta def step_once (itr : ℕ) : tactic (inst × status) :=
-match i.g.solving_edge with
-| some e := return (i, status.done e)
+meta def step_once (itr : ℕ) : tactic (search_state × status) :=
+match g.solving_edge with
+| some e := return (g, status.done e)
 | none := do
-  if itr > i.g.conf.max_iterations then
-    return (i, status.abort "max iterations reached!")
+  if itr > g.conf.max_iterations then
+    return (g, status.abort "max iterations reached!")
   else do
-    (g, s) ← bfs_step i.g,
-    return (i.mutate g, s)
+    (g, s) ← bfs_step g,
+    return (g, s)
 end
 
-meta def finish_search (e : edge) : tactic (inst × search_result) := do
-  -- This must be called before i.g.exhaust_all
-  (proof, units) ← backtrack.build_proof i e,
+meta def finish_search (e : edge) : tactic (search_state × search_result) := do
+  -- This must be called before exhaust_all
+  (proof, units) ← backtrack.build_proof g e,
 
-  i ← if i.g.conf.exhaustive then do
-      g ← i.g.exhaust_all,
-      pure $ i.mutate g
+  i ← if g.conf.exhaustive then do
+      g ← g.exhaust_all,
+      pure $ g
     else
-      pure i,
-  return (i, search_result.success proof units)
+      pure g,
+  return (g, search_result.success proof units)
 
-meta def search_until_solved_aux : inst → ℕ → tactic (inst × search_result)
-| i itr := do
-  (i, s) ← i.step_once itr,
+meta def search_until_solved_aux : search_state → ℕ → tactic (search_state × search_result)
+| g itr := do
+  (g, s) ← g.step_once itr,
   match s with
-  | status.continue := search_until_solved_aux i (itr + 1)
-  | status.repeat   := search_until_solved_aux i itr
-  | status.abort r  := return (i, search_result.failure ("aborted: " ++ r))
-  | status.done e   := i.finish_search e
+  | status.continue := search_until_solved_aux g (itr + 1)
+  | status.repeat   := search_until_solved_aux g itr
+  | status.abort r  := return (g, search_result.failure ("aborted: " ++ r))
+  | status.done e   := g.finish_search e
   end
 
-meta def search_until_solved : tactic (inst × search_result) := do
-  if i.g.conf.trace_rules then (do
-    rs ← i.g.rs.mmap pp_rule,
+meta def search_until_solved : tactic (search_state × search_result) := do
+  if g.conf.trace_rules then (do
+    rs ← g.rs.mmap pp_rule,
     tactic.trace $ "rewrite_search using:\n---\n" ++ (string.intercalate "\n" rs) ++ "\n---"
   ) else tactic.skip,
-  i.search_until_solved_aux 0
+  g.search_until_solved_aux 0
 
 meta def explain (proof : expr) (steps : list proof_unit) : tactic string :=
-  explain_search_result i.g.conf i.g.rs proof steps
+  explain_search_result g.conf g.rs proof steps
 
-end inst
+end search_state
 
 end tactic.rewrite_search

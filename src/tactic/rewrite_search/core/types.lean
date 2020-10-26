@@ -203,10 +203,6 @@ meta structure strategy :=
 (startup : startup_fn)
 (step : step_fn)
 
-meta structure inst :=
-(strategy : strategy)
-(g : search_state)
-
 namespace search_state
 variables (g : search_state)
 

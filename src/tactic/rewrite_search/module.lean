@@ -43,18 +43,18 @@ meta def mk_initial_search_state (conf : core_cfg) (rw_cfg : tactic.nth_rewrite.
 ⟨conf, rw_cfg, rs, strat_state, table.create, table.create, none, statistics.init⟩
 
 meta def setup_instance (conf : core_cfg) (rw_cfg : tactic.nth_rewrite.cfg)
-  (rs : list (expr × bool)) (s : strategy) (s_state : bfs_state) (eqn : sided_pair expr) :
-  tactic inst :=
+  (rs : list (expr × bool)) (s_state : bfs_state) (eqn : sided_pair expr) :
+  tactic search_state :=
 do let g := mk_initial_search_state conf rw_cfg rs s_state,
    (g, vl) ← g.add_root_vertex eqn.l side.L,
    (g, vr) ← g.add_root_vertex eqn.r side.R,
    g ← bfs_startup g vl vr,
-   return ⟨s, g⟩
+   return g
 
 meta def instantiate_modules (cfg : config) : strategy := bfs
 
 meta def try_mk_search_instance (cfg : config) (rs : list (expr × bool))
-(eqn : sided_pair expr) : tactic (option inst) :=
+(eqn : sided_pair expr) : tactic (option search_state) :=
 do let (s) := instantiate_modules cfg,
    init_result.try "strategy" s.init $ λ strat_state, do
    let conf : core_cfg := {
@@ -68,7 +68,7 @@ do let (s) := instantiate_modules cfg,
     explain_using_conv := cfg.explain_using_conv
   },
   option.some <$>
-    setup_instance conf cfg.to_cfg rs s strat_state eqn
+    setup_instance conf cfg.to_cfg rs strat_state eqn
 
 open tactic
 

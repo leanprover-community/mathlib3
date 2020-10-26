@@ -31,7 +31,7 @@ meta def bfs_startup (cfg : bfs_config) (g : search_state bfs_state β γ δ)
   : tactic (search_state bfs_state β γ δ) :=
 return $ g.mutate_strat ⟨cfg, 1, [l.id, r.id, none]⟩
 
-meta def bfs_step (g : search_state bfs_state β γ δ) (_ : metric bfs_state β γ δ) (_: ℕ) :
+meta def bfs_step (g : search_state bfs_state β γ δ) :
 tactic (search_state bfs_state β γ δ × status) := do
   let state := g.strat_state,
   if state.curr_depth > g.strat_state.conf.max_depth then

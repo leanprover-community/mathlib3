@@ -246,7 +246,7 @@ meta def startup_fn (α β γ δ : Type) : Type :=
 search_state α β γ δ → metric α β γ δ → vertex → vertex → tactic (search_state α β γ δ)
 
 meta def step_fn (α β γ δ : Type) : Type :=
-search_state α β γ δ → metric α β γ δ → ℕ → tactic (search_state α β γ δ × status)
+search_state α β γ δ → tactic (search_state α β γ δ × status)
 
 meta structure strategy (α β γ δ : Type) :=
 (init : init_fn α)

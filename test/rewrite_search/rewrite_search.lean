@@ -11,8 +11,6 @@ These tests ensure that `rewrite_search` works on some relatively simple example
 They do not monitor for performance regression, so be aware of that if you make changes.
 -/
 
-open tactic.rewrite_search.strategy
-
 namespace tactic.rewrite_search.testing
 
 private axiom foo' : [6] = [7]

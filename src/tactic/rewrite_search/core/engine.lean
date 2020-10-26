@@ -244,8 +244,6 @@ meta def bfs_step (g : search_state) : tactic (search_state × status) := do
             status.continue)
   end
 
-meta def bfs : strategy := strategy.mk bfs_init bfs_startup bfs_step
-
 namespace search_state
 
 meta def step_once (itr : ℕ) : tactic (search_state × status) :=

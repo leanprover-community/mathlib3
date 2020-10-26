@@ -198,11 +198,6 @@ meta def startup_fn : Type := search_state → vertex → vertex → tactic sear
 
 meta def step_fn : Type := search_state → tactic (search_state × status)
 
-meta structure strategy :=
-(init : init_fn bfs_state)
-(startup : startup_fn)
-(step : step_fn)
-
 namespace search_state
 variables (g : search_state)
 

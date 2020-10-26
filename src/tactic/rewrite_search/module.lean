@@ -51,12 +51,9 @@ do let g := mk_initial_search_state conf rw_cfg rs s_state,
    g ← bfs_startup g vl vr,
    return g
 
-meta def instantiate_modules (cfg : config) : strategy := bfs
-
 meta def try_mk_search_instance (cfg : config) (rs : list (expr × bool))
 (eqn : sided_pair expr) : tactic (option search_state) :=
-do let (s) := instantiate_modules cfg,
-   init_result.try "strategy" s.init $ λ strat_state, do
+   init_result.try "strategy" bfs_init $ λ strat_state, do
    let conf : core_cfg := {
     max_iterations := cfg.max_iterations,
     optimal := cfg.optimal,

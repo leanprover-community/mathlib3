@@ -18,13 +18,13 @@ In this file we define Galois extensions as extensions which are both separable 
 - `is_galois F E` where `E` is an extension of `F`
 - `fixed_field K` where `K : intermediate_field F E`
 - `fixing_subgroup H` where `H : subgroup (E ≃ₐ[F] E)`
-- `galois_correspondence` where E/F is finite dimensional and Galois
+- `galois_correspondence` where `E/F` is finite dimensional and Galois
 
 ## Main results
 
-- `fixing_subgroup_of_fixed_field` : If E/F is finite dimensional (but not necessarily Galois)
+- `fixing_subgroup_of_fixed_field` : If `E/F` is finite dimensional (but not necessarily Galois)
   then `fixing_subgroup (fixed_field H) = H`
-- `fixed_field_of_fixing_subgroup`: If E/F is finite dimensional and Galois
+- `fixed_field_of_fixing_subgroup`: If `E/F` is finite dimensional and Galois
   then `fixed_field (fixing_subgroup K) = K`
 Together, these two result prove the Galois correspondence
 -/

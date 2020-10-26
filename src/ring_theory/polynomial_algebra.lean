@@ -88,14 +88,14 @@ def to_fun_bilinear : A →ₗ[R] polynomial R →ₗ[R] polynomial A :=
   map_smul' := by {
     intros, unfold to_fun_linear_right,
     congr, simp only [linear_map.coe_mk],
-    unfold to_fun finsupp.sum monomial,
-    simp_rw [finset.smul_sum, finsupp.smul_single,  ← algebra.smul_mul_assoc],
+    unfold to_fun finsupp.sum,
+    simp_rw [finset.smul_sum, smul_monomial,  ← algebra.smul_mul_assoc],
     refl },
   map_add' := by {
     intros, unfold to_fun_linear_right,
     congr, simp only [linear_map.coe_mk],
-    unfold to_fun finsupp.sum monomial,
-    simp_rw [← finset.sum_add_distrib, ← finsupp.single_add, ← add_mul],
+    unfold to_fun finsupp.sum,
+    simp_rw [← finset.sum_add_distrib, ← monomial_add, ← add_mul],
     refl } }
 
 /--
@@ -148,9 +148,8 @@ begin
   dsimp [to_fun_linear],
   simp only [lift.tmul],
   dsimp [to_fun_bilinear, to_fun_linear_right, to_fun],
-  rw [← C_1, ←monomial_zero_left, monomial, finsupp.sum_single_index],
-  { simp, refl, },
-  { simp, },
+  rw [← C_1, ←monomial_zero_left],
+  refine (finsupp.sum_single_index _).trans _; simp [algebra_map_apply]
 end
 
 /--

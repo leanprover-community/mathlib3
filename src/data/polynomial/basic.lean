@@ -35,8 +35,8 @@ variables [semiring R] {p q : polynomial R}
 
 instance : inhabited (polynomial R) := add_monoid_algebra.inhabited _ _
 instance : semiring (polynomial R) := add_monoid_algebra.semiring
-instance : has_scalar R (polynomial R) := add_monoid_algebra.has_scalar
-instance : semimodule R (polynomial R) := add_monoid_algebra.semimodule
+instance {S} [semiring S] [semimodule S R] : semimodule S (polynomial R) :=
+add_monoid_algebra.semimodule
 
 instance [subsingleton R] : unique (polynomial R) := add_monoid_algebra.unique
 
@@ -49,6 +49,8 @@ lemma monomial_zero_right (n : ℕ) :
   monomial n (0 : R) = 0 :=
 finsupp.single_zero
 
+lemma monomial_def (n : ℕ) (a : R) : monomial n a = finsupp.single n a := rfl
+
 lemma monomial_add (n : ℕ) (r s : R) :
   monomial n (r + s) = monomial n r + monomial n s :=
 finsupp.single_add
@@ -56,6 +58,10 @@ finsupp.single_add
 lemma monomial_mul_monomial (n m : ℕ) (r s : R) :
   monomial n r * monomial m s = monomial (n + m) (r * s) :=
 add_monoid_algebra.single_mul_single
+
+lemma smul_monomial {S} [semiring S] [semimodule S R] (a : S) (n : ℕ) (b : R) :
+  a • monomial n b = monomial n (a • b) :=
+finsupp.smul_single _ _ _
 
 /-- `X` is the polynomial variable (aka indeterminant). -/
 def X : polynomial R := monomial 1 1

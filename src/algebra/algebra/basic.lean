@@ -520,7 +520,7 @@ end comm_semiring
 
 section ring
 
-variables [comm_ring R] [ring A] [ring B]
+variables [comm_semiring R] [ring A] [ring B]
 variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
 
 @[simp] lemma map_neg (x) : φ (-x) = -φ x :=
@@ -528,6 +528,9 @@ variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
 
 @[simp] lemma map_sub (x y) : φ (x - y) = φ x - φ y :=
 φ.to_ring_hom.map_sub x y
+
+@[simp] lemma map_int_cast (n : ℤ) : φ n = n :=
+φ.to_ring_hom.map_int_cast n
 
 end ring
 

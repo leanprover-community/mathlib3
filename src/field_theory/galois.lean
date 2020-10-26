@@ -120,6 +120,7 @@ instance subgroup_action : faithful_mul_semiring_action H E := {
   eq_of_smul_eq_smul' := λ x y z, subtype.ext (alg_equiv.ext z),
 }
 
+/-- The intermediate_field fixed by a subgroup -/
 def fixed_field : intermediate_field F E := {
   carrier := mul_action.fixed_points H E,
   zero_mem' := smul_zero,
@@ -135,6 +136,7 @@ lemma findim_fixed_field_eq_card [finite_dimensional F E] :
   findim (fixed_field H) E = fintype.card H :=
 fixed_points.findim_eq_card H E
 
+/-- The subgroup fixing an intermediate_field -/
 def fixing_subgroup : subgroup (E ≃ₐ[F] E) := {
   carrier := λ ϕ, ∀ x : K, ϕ x = x,
   one_mem' := λ _, rfl,
@@ -142,7 +144,9 @@ def fixing_subgroup : subgroup (E ≃ₐ[F] E) := {
   inv_mem' := λ _ hx _, (equiv.symm_apply_eq (alg_equiv.to_equiv _)).mpr (hx _).symm,
 }
 
-def fixing_subgroup_equiv : fixing_subgroup K ≃ (E ≃ₐ[K] E) := {
+
+/-- The fixing_subgroup of `K : intermediate_field F E` is isomorphic to `E ≃ₐ[K] E` -/
+def fixing_subgroup_iso : fixing_subgroup K ≃* (E ≃ₐ[K] E) := {
   to_fun := λ ϕ, alg_equiv.of_bijective (alg_hom.mk ϕ (alg_equiv.map_one ϕ) (alg_equiv.map_mul ϕ)
     (alg_equiv.map_zero ϕ) (alg_equiv.map_add ϕ) (ϕ.mem)) (alg_equiv.bijective ϕ),
   inv_fun := λ ϕ, ⟨alg_equiv.of_bijective (alg_hom.mk ϕ (alg_equiv.map_one ϕ) (alg_equiv.map_mul ϕ)
@@ -150,6 +154,7 @@ def fixing_subgroup_equiv : fixing_subgroup K ≃ (E ≃ₐ[K] E) := {
       (alg_equiv.bijective ϕ), ϕ.commutes⟩,
   left_inv := λ _, by {ext, refl},
   right_inv := λ _, by {ext, refl},
+  map_mul' := λ _ _, by {ext, refl},
 }
 
 theorem fixing_subgroup_of_fixed_field [finite_dimensional F E] :
@@ -160,7 +165,7 @@ begin
   suffices : fintype.card H = fintype.card (fixing_subgroup (fixed_field H)),
   { exact subgroup.ext' (set.eq_of_inclusion_surjective ((fintype.bijective_iff_injective_and_card
     (set.inclusion H_le)).mpr ⟨set.inclusion_injective H_le, this⟩).2).symm },
-  rw fintype.card_congr (fixing_subgroup_equiv (fixed_field H)),
+  rw fintype.card_congr (fixing_subgroup_iso (fixed_field H)).to_equiv,
   rw fintype.card_congr (fixed_points.to_alg_hom_equiv H E),
   rw fintype.card_congr (algebra_equiv_equiv_algebra_hom (fixed_field H) E),
   exact fintype.card_congr (by refl),
@@ -187,7 +192,7 @@ begin
   have K_le : K ≤ fixed_field (fixing_subgroup K) := λ x hx ϕ, subtype.mem ϕ (⟨x, hx⟩ : K),
   suffices : findim K E = findim (fixed_field (fixing_subgroup K)) E,
   { exact (intermediate_field.eq_of_le_of_findim_eq' K_le this).symm },
-  rw [findim_fixed_field_eq_card, fintype.card_congr (fixing_subgroup_equiv K)],
+  rw [findim_fixed_field_eq_card, fintype.card_congr (fixing_subgroup_iso K).to_equiv],
   exact (is_galois_implies_card_aut_eq_findim K E).symm,
 end
 

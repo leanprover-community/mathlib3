@@ -22,7 +22,7 @@ private meta def chop : list char → list string → list string
 | [] L := L
 | (c :: rest) L := chop rest $ list.join $ L.map (λ l, l.split_on c)
 
-meta def tokenise_expr (e : expr) : tactic (string × list string) := do
+meta def tokenize_expr (e : expr) : tactic (string × list string) := do
   pp ← to_string <$> tactic.pp e,
   pure (pp, chop [' '/-, '(', ')'-/] [pp])
 
@@ -30,15 +30,6 @@ namespace search_state
 
 meta def unmark_all_visited : tactic (search_state α β γ δ) := do
   return { g with vertices := g.vertices.map $ λ v, {v with visited := ff} }
-
-meta def reset_estimate (init : init_bound_fn α β γ δ) (de : dist_estimate γ) :
-tactic (dist_estimate γ) := do
-  (vl, vr) ← g.get_estimate_verts de,
-  return de
-
-meta def reset_all_estimates (init : init_bound_fn α β γ δ) : tactic (search_state α β γ δ) :=
-do new_estimates ← g.estimates.mmap $ g.reset_estimate init,
-return { g with estimates := new_estimates }
 
 private meta def register_tokens_aux (s : side) :
 table token → list string → table token × list table_ref
@@ -67,7 +58,7 @@ meta def find_vertex (e : expr) : tactic (option vertex) := do
 -- add_vertex, which will check that we haven't seen the vertex before first.
 meta def alloc_vertex (e : expr) (root : bool) (s : side) :
 tactic (search_state α β γ δ × vertex) :=
-do (pp, tokens) ← tokenise_expr e,
+do (pp, tokens) ← tokenize_expr e,
    let (g, token_refs) := g.register_tokens s tokens,
    let v : vertex := vertex.create g.vertices.next_id e pp token_refs root s,
    return ({ g with vertices := g.vertices.alloc v }, v)
@@ -154,38 +145,6 @@ do
       else
         pure (g, v),
   return ⟨g, ⟨v.id, table_ref.first⟩⟩
-
-meta def improve_estimate_over (threshold : dnum) (de : dist_estimate γ) :
-tactic (search_state α β γ δ × dist_estimate γ) := do
-  (vl, vr) ← g.get_estimate_verts de,
-  let new_bnd := m.improve_estimate_over g threshold vl vr de.bnd,
-  let new_de := {de with bnd := new_bnd},
-  return ({g with estimates := g.estimates.update new_de}, new_de)
-
-meta def alloc_estimate (p : pair) : tactic (search_state α β γ δ × table_ref) := do
-  (vl, vr) ← g.lookup_pair p,
-  let ref := g.estimates.next_id,
-  let new_estimates := g.estimates.alloc ⟨p, ref, m.init_bound g vl vr⟩,
-  return ({g with estimates := new_estimates}, ref)
-
-/-- Check if `eq.refl _` suffices to prove the two sides are equal. -/
-meta def try_unify (p : pair) : tactic (search_state α β γ δ × bool) := do
-  (lhs, rhs) ← g.lookup_pair p,
-  prf ← tactic.try_core $ tactic.attempt_refl lhs.exp rhs.exp,
-  match prf with
-  | none := return (g, ff)
-  | some prf := do
-    (g, _) ← g.add_edge lhs rhs (pure prf) how.defeq,
-    return (g, tt)
-  end
-
--- Currently, we guarentee that if the boolean we return is true, then there
--- is at least new rewrite possible in the environment which was not accessible
--- before. This follows here since it is (currently) guaranteed that each
--- element of `discovery.more_candidates` has an application *somewhere*.
-meta def be_desperate (goals : list pair) : tactic (search_state α β γ δ × bool) :=
--- TODO merge the lemma discovery functionality
-return (g, ff)
 
 end search_state
 

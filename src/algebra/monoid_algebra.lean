@@ -132,6 +132,15 @@ begin
   simp [mul_assoc, (h_comm hy).left_comm]
 end
 
+/--
+`lift_nc` as a `ring_hom`
+-/
+def lift_nc_ring_hom (F : G →* R) (H : k →+* R) (FH_comm : ∀ x y, commute (H x) (F y)) : monoid_algebra k G →+* R :=
+{ to_fun := lift_nc (H : k →+ R) F,
+  map_one' := lift_nc_one _ _,
+  map_mul' := λ a b, lift_nc_mul _ _ _ _ $ λ _ _ _, FH_comm _ _,
+  ..(lift_nc (H : k →+ R) F)}
+
 end semiring
 
 instance [comm_semiring k] [comm_monoid G] : comm_semiring (monoid_algebra k G) :=
@@ -337,6 +346,7 @@ end algebra
 section lift
 
 variables {k G} [comm_semiring k] [monoid G] {A : Type u₃} [semiring A] [algebra k A]
+variables {B : Type*} [semiring B] [algebra k B]
 
 /-- A `k`-algebra homomorphism from `monoid_algebra k G` is uniquely defined by its
 values on the functions `single a 1`. -/
@@ -349,7 +359,8 @@ alg_hom.to_linear_map_inj $ finsupp.lhom_ext' $ λ a, linear_map.ext_ring (h a)
     (φ₂ : monoid_algebra k G →* A).comp (of k G)) : φ₁ = φ₂ :=
 alg_hom_ext $ monoid_hom.congr_fun h
 
-variables (k G A)
+variables (k G A B)
+
 
 /-- Any monoid homomorphism `G →* A` can be lifted to an algebra homomorphism
 `monoid_algebra k G →ₐ[k] A`. -/
@@ -407,7 +418,7 @@ The `alg_hom` which maps from a grading of an algebra `A` back to that algebra.
 -/
 def sum_id {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] :
   monoid_algebra A G →ₐ[k] A :=
-lift_aux ⟨λ g, 1, by simp, λ a b, by simp⟩ (alg_hom.id k A) (by simp)
+lift_nc ⟨λ g, 1, by simp, λ a b, by simp⟩ (alg_hom.id k A) (by simp)
 
 lemma sum_id_apply {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] (g : monoid_algebra A G) :
   sum_id k g = g.sum (λ _ gi, gi) :=

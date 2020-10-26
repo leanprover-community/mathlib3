@@ -298,12 +298,7 @@ def is_sheaf_for_subsieve (P : Cᵒᵖ ⥤ Type v) {S : sieve X} {R : arrows_wit
   (h : (S : arrows_with_codomain X) ≤ R)
   (trans : Π ⦃Y⦄ (f : Y ⟶ X), is_sheaf_for P (S.pullback f)) :
   is_sheaf_for P R :=
-begin
-  apply is_sheaf_for_subsieve_aux P h,
-  { simpa using trans (𝟙 _) },
-  intros,
-  apply (trans f).uniqueness,
-end
+is_sheaf_for_subsieve_aux P h (by simpa using trans (𝟙 _)) (λ Y f hf, (trans f).uniqueness)
 
 def is_sheaf_for_bind (P : Cᵒᵖ ⥤ Type v) (U : sieve X)
   (B : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄, U f → sieve Y)

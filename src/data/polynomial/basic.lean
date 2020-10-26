@@ -43,9 +43,9 @@ instance [subsingleton R] : unique (polynomial R) := add_monoid_algebra.unique
 @[simp] lemma support_zero : (0 : polynomial R).support = ∅ := rfl
 
 /-- `monomial s a` is the monomial `a * X^s` -/
-def monomial (n : ℕ) (a : R) : polynomial R := finsupp.single n a
+def monomial (n : ℕ) : R →ₗ[R] polynomial R := finsupp.lsingle n
 
-@[simp] lemma monomial_zero_right (n : ℕ) :
+lemma monomial_zero_right (n : ℕ) :
   monomial n (0 : R) = 0 :=
 finsupp.single_zero
 
@@ -56,7 +56,6 @@ finsupp.single_add
 lemma monomial_mul_monomial (n m : ℕ) (r s : R) :
   monomial n r * monomial m s = monomial (n + m) (r * s) :=
 add_monoid_algebra.single_mul_single
-
 
 /-- `X` is the polynomial variable (aka indeterminant). -/
 def X : polynomial R := monomial 1 1
@@ -116,8 +115,7 @@ lemma X_pow_eq_monomial (n) : X ^ n = monomial n (1:R) :=
 begin
   induction n with n hn,
   { refl, },
-  { conv_rhs {rw nat.succ_eq_add_one, congr, skip, rw ← mul_one (1:R)},
-    rw [← monomial_mul_monomial, ← hn, pow_succ, X_mul, X], },
+  { rw [pow_succ', hn, X, monomial_mul_monomial, one_mul] },
 end
 
 lemma support_X_pow (H : ¬ (1:R) = 0) (n : ℕ) : (X^n : polynomial R).support = singleton n :=

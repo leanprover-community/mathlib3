@@ -65,6 +65,8 @@ by unfold monic; apply_instance
 
 @[simp] lemma nat_degree_zero : nat_degree (0 : polynomial R) = 0 := rfl
 
+@[simp] lemma coeff_nat_degree : coeff p (nat_degree p) = leading_coeff p := rfl
+
 lemma degree_eq_bot : degree p = ⊥ ↔ p = 0 :=
 ⟨λ h, by rw [degree, ← max_eq_sup_with_bot] at h;
   exact support_eq_empty.1 (max_eq_none.1 h),
@@ -168,7 +170,7 @@ end
 by simp only [←C_eq_nat_cast, nat_degree_C]
 
 @[simp] lemma degree_monomial (n : ℕ) (ha : a ≠ 0) : degree (C a * X ^ n) = n :=
-by rw [← single_eq_C_mul_X, degree, monomial, support_single_ne_zero ha]; refl
+by rw [← single_eq_C_mul_X, degree, support_monomial _ _ ha]; refl
 
 lemma degree_monomial_le (n : ℕ) (a : R) : degree (C a * X ^ n) ≤ n :=
 if h : a = 0 then by rw [h, C_0, zero_mul]; exact bot_le else le_of_eq (degree_monomial n h)
@@ -324,18 +326,14 @@ le_degree_of_ne_zero ∘ mem_support_iff_coeff_ne_zero.mp
 lemma nonempty_support_iff : p.support.nonempty ↔ p ≠ 0 :=
 by rw [ne.def, nonempty_iff_ne_empty, ne.def, ← support_eq_empty]
 
-lemma support_C_mul_X_pow_nonzero {c : R} {n : ℕ} (h : c ≠ 0): (C c * X ^ n).support = singleton n :=
+lemma support_C_mul_X_pow_nonzero {c : R} {n : ℕ} (h : c ≠ 0) :
+  (C c * X ^ n).support = singleton n :=
 begin
-  ext1,
-  rw [mem_singleton],
-  split,
-  { exact mem_support_C_mul_X_pow, },
-  { intro,
-    rwa [mem_support_iff_coeff_ne_zero, ne.def, a_1, coeff_C_mul, coeff_X_pow_self n, mul_one], },
+  rw [C_mul_X_pow_eq_monomial],
+  exact support_single_ne_zero h
 end
 
 end semiring
-
 
 section nonzero_semiring
 variables [semiring R] [nontrivial R] {p q : polynomial R}

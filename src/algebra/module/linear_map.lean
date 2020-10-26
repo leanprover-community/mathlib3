@@ -140,12 +140,16 @@ def to_add_monoid_hom : M →+ M₂ :=
 @[simp] lemma to_add_monoid_hom_coe :
   (f.to_add_monoid_hom : M → M₂) = f := rfl
 
-/-- The `R`-linear map induced by an `A`-linear map when `A` is an algebra over `R`. -/
+/-- If `M` and `M₂` are both `R`-semimodules and `S`-semimodules and `S`-semimodule structure
+is defined by an action of `S` on `R` (formally, we have two scalar towers), then any `R`-linear
+map from `M` to `M₂` is `S`-linear.
+
+See also `linear_map.map_smul_of_tower`. -/
 def restrict_scalars (S : Type*) [has_scalar S R] [semiring S] [semimodule S M] [semimodule S M₂]
   [is_scalar_tower S R M] [is_scalar_tower S R M₂] (f : M →ₗ[R] M₂) : M →ₗ[S] M₂ :=
 { to_fun := f,
-  map_add' := λ x y, f.map_add x y,
-  map_smul' := λ c x, map_smul_of_tower _ _ _ }
+  map_add' := f.map_add,
+  map_smul' := f.map_smul_of_tower }
 
 @[simp] lemma map_sum {ι} {t : finset ι} {g : ι → M} :
   f (∑ i in t, g i) = (∑ i in t, f (g i)) :=

@@ -27,6 +27,8 @@ class smul_comm_class (M N α : Type*) [has_scalar M α] [has_scalar N α] : Pro
 
 export mul_action (mul_smul) smul_comm_class (smul_comm)
 
+/-- Commutativity of actions is a symmetric relation. This lemma can't be an instance because this
+would cause a loop in the instance search graph. -/
 lemma smul_comm_class.symm (M N α : Type*) [has_scalar M α] [has_scalar N α]
   [smul_comm_class M N α] : smul_comm_class N M α :=
 ⟨λ a' a b, (smul_comm a a' b).symm⟩

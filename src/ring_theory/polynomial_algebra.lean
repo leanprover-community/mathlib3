@@ -208,7 +208,7 @@ begin
   { intros n a,
     rw [inv_fun, eval₂_monomial, alg_hom.coe_to_ring_hom, algebra.tensor_product.include_left_apply,
       algebra.tensor_product.tmul_pow, one_pow, algebra.tensor_product.tmul_mul_tmul,
-      mul_one, one_mul, to_fun_alg_hom_apply_tmul, ←monomial_one_eq_X_pow],
+      mul_one, one_mul, to_fun_alg_hom_apply_tmul, X_pow_eq_monomial],
     dsimp [monomial],
     rw [finsupp.sum_single_index]; simp, }
 end

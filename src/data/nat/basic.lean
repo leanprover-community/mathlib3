@@ -51,10 +51,11 @@ instance : decidable_linear_ordered_semiring nat :=
   lt                         := nat.lt,
   add_le_add_left            := @nat.add_le_add_left,
   le_of_add_le_add_left      := @nat.le_of_add_le_add_left,
-  zero_lt_one                := nat.zero_lt_succ 0,
+  zero_le_one                := nat.le_of_lt (nat.zero_lt_succ 0),
   mul_lt_mul_of_pos_left     := @nat.mul_lt_mul_of_pos_left,
   mul_lt_mul_of_pos_right    := @nat.mul_lt_mul_of_pos_right,
   decidable_eq               := nat.decidable_eq,
+  exists_pair_ne             := ⟨0, 1, ne_of_lt nat.zero_lt_one⟩,
   ..nat.comm_semiring, ..nat.decidable_linear_order }
 
 -- all the fields are already included in the decidable_linear_ordered_semiring instance
@@ -382,6 +383,10 @@ theorem sub_add_min (n m : ℕ) : n - m + min n m = n :=
 
 protected theorem add_sub_cancel' {n m : ℕ} (h : m ≤ n) : m + (n - m) = n :=
 by rw [add_comm, nat.sub_add_cancel h]
+
+protected theorem sub_add_sub_cancel {a b c : ℕ} (hab : b ≤ a) (hbc : c ≤ b) :
+  (a - b) + (b - c) = a - c :=
+by rw [←nat.add_sub_assoc hbc, ←nat.sub_add_comm hab, nat.add_sub_cancel]
 
 protected theorem sub_eq_of_eq_add (h : k = m + n) : k - m = n :=
 begin rw [h, nat.add_sub_cancel_left] end

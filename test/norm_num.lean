@@ -42,6 +42,7 @@ example {α} [semiring α] [char_zero α] : (1:α) ≠ 2 := by norm_num
 example {α} [ring α] [char_zero α] : (-1:α) ≠ 2 := by norm_num
 example {α} [division_ring α] [char_zero α] : (-1:α) ≠ 2 := by norm_num
 example {α} [division_ring α] [char_zero α] : (1:α) / 3 ≠ 2 / 7 := by norm_num
+example {α} [division_ring α] [char_zero α] : (1:α) / 3 ≠ 0 := by norm_num
 
 example : (5 / 2:ℕ) = 2 := by norm_num
 example : (5 / -2:ℤ) < -1 := by norm_num
@@ -64,6 +65,13 @@ example : (2 * 12868 + 25705) * 11621 ^ 2 ≤ 23235 ^ 2 * 12868 := by norm_num
 example (x : ℕ) : ℕ := begin
   let n : ℕ, {apply_normed (2^32 - 71)},
   exact n
+end
+
+example (a : ℚ) (h : 3⁻¹ * a = a) : true :=
+begin
+  norm_num at h,
+  guard_hyp h : 1 / 3 * a = a,
+  trivial
 end
 
 example : nat.prime 1277 := by norm_num

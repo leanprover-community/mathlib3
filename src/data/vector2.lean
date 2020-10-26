@@ -197,28 +197,28 @@ into the provided starting value `b : β` and the recursed `scanl`
 
 This lemma is the `cons` version of `scanl_nth`.
 -/
-lemma scanl_cons (x : α) : scanl f b (x ::ᵥ v) = b ::ᵥ scanl f (f b x) v :=
+@[simp] lemma scanl_cons (x : α) : scanl f b (x ::ᵥ v) = b ::ᵥ scanl f (f b x) v :=
 by simpa only [scanl, to_list_cons]
 
 /--
 The underlying `list` of a `vector` after a `scanl` is the `list.scanl`
 of the underlying `list` of the original `vector`.
 -/
-lemma scanl_val : ∀ {v : vector α n}, (scanl f b v).val = list.scanl f b v.val
+@[simp] lemma scanl_val : ∀ {v : vector α n}, (scanl f b v).val = list.scanl f b v.val
 | ⟨l, hl⟩ := rfl
 
 /--
 The `to_list` of a `vector` after a `scanl` is the `list.scanl`
 of the `to_list` of the original `vector`.
 -/
-lemma to_list_scanl : (scanl f b v).to_list = list.scanl f b v.to_list := rfl
+@[simp] lemma to_list_scanl : (scanl f b v).to_list = list.scanl f b v.to_list := rfl
 
 /--
 The recursive step of `scanl` splits a vector made up of a single element
 `x ::ᵥ nil : vector α 1` into a `vector` of the provided starting value `b : β`
 and the mapped `f b x : β` as the last value.
 -/
-lemma scanl_singleton (v : vector α 1) : scanl f b v = b ::ᵥ f b v.head ::ᵥ nil :=
+@[simp] lemma scanl_singleton (v : vector α 1) : scanl f b v = b ::ᵥ f b v.head ::ᵥ nil :=
 begin
   rw [←cons_head_tail v],
   simp only [scanl_cons, scanl_nil, cons_head, singleton_tail]
@@ -246,7 +246,7 @@ function `f : β → α → β` of the `i.cast_succ` element of
 
 This lemma is the `nth` version of `scanl_cons`.
 -/
-lemma scanl_nth (i : fin n) :
+@[simp] lemma scanl_nth (i : fin n) :
   (scanl f b v).nth i.succ = f ((scanl f b v).nth i.cast_succ) (v.nth i) :=
 begin
   cases n,

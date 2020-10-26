@@ -440,6 +440,10 @@ end
 lemma eval_map (x : S) : (p.map f).eval x = p.eval₂ f x :=
 eval₂_map f (ring_hom.id _) x
 
+lemma map_sum {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
+  (∑ i in s, g i).map f = ∑ i in s, (g i).map f :=
+eq.symm $ sum_hom _ _
+
 end map
 
 /-!
@@ -522,10 +526,6 @@ lemma map_prod {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
   (∏ i in s, g i).map f = ∏ i in s, (g i).map f :=
 eq.symm $ prod_hom _ _
 
-lemma map_sum {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
-  (∑ i in s, g i).map f = ∑ i in s, (g i).map f :=
-eq.symm $ sum_hom _ _
-
 lemma support_map_subset (p : polynomial R) : (map f p).support ⊆ p.support :=
 begin
   intros x,
@@ -562,13 +562,17 @@ lemma C_sub : C (a - b) = C a - C b := ring_hom.map_sub C a b
 instance map.is_ring_hom {S} [ring S] (f : R →+* S) : is_ring_hom (map f) :=
 by apply is_ring_hom.of_semiring
 
-@[simp] lemma map_sub {S} [comm_ring S] (f : R →+* S) :
+@[simp] lemma map_sub {S} [ring S] (f : R →+* S) :
   (p - q).map f = p.map f - q.map f :=
 is_ring_hom.map_sub _
 
-@[simp] lemma map_neg {S} [comm_ring S] (f : R →+* S) :
+@[simp] lemma map_neg {S} [ring S] (f : R →+* S) :
   (-p).map f = -(p.map f) :=
 is_ring_hom.map_neg _
+
+@[simp] lemma map_int_cast {S} [ring S] (f : R →+* S) (n : ℤ) :
+  map f ↑n = ↑n :=
+(ring_hom.of (map f)).map_int_cast n
 
 @[simp] lemma eval_int_cast {n : ℤ} {x : R} : (n : polynomial R).eval x = n :=
 by simp only [←C_eq_int_cast, eval_C]

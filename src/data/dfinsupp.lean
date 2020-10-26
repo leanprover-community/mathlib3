@@ -308,6 +308,9 @@ by simp only [single_apply, dif_pos rfl]
 lemma single_eq_of_ne {i i' b} (h : i ≠ i') : (single i b : Π₀ i, β i) i' = 0 :=
 by simp only [single_apply, dif_neg h]
 
+lemma single_injective {i} : function.injective (single i : β i → Π₀ i, β i) :=
+λ x y H, congr_fun (mk_injective _ H) ⟨i, by simp⟩
+
 /-- Redefine `f i` to be `0`. -/
 def erase (i : ι) (f : Π₀ i, β i) : Π₀ i, β i :=
 quotient.lift_on f (λ x, ⟦(⟨λ j, if j = i then 0 else x.1 j, x.2,
@@ -694,20 +697,20 @@ have ∀i₁ : ι, f.sum (λ (i : ι₁) (b : β₁ i), (g i b) i₁) ≠ 0 →
   ⟨i, (f.mem_support_iff i).mp hi, ne⟩,
 by simpa [finset.subset_iff, mem_support_iff, finset.mem_bind, sum_apply] using this
 
-@[simp] lemma sum_zero [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
-  [add_comm_monoid γ] {f : Π₀ i, β i} :
-  f.sum (λi b, (0 : γ)) = 0 :=
-finset.sum_const_zero
+@[simp, to_additive] lemma prod_one [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+  [comm_monoid γ] {f : Π₀ i, β i} :
+  f.prod (λi b, (1 : γ)) = 1 :=
+finset.prod_const_one
 
-@[simp] lemma sum_add [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
-  [add_comm_monoid γ] {f : Π₀ i, β i} {h₁ h₂ : Π i, β i → γ} :
-  f.sum (λi b, h₁ i b + h₂ i b) = f.sum h₁ + f.sum h₂ :=
-finset.sum_add_distrib
+@[simp, to_additive] lemma prod_mul [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+  [comm_monoid γ] {f : Π₀ i, β i} {h₁ h₂ : Π i, β i → γ} :
+  f.prod (λi b, h₁ i b * h₂ i b) = f.prod h₁ * f.prod h₂ :=
+finset.prod_mul_distrib
 
-@[simp] lemma sum_neg [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
-  [add_comm_group γ] {f : Π₀ i, β i} {h : Π i, β i → γ} :
-  f.sum (λi b, - h i b) = - f.sum h :=
-f.support.sum_hom (@has_neg.neg γ _)
+@[simp, to_additive] lemma prod_inv [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+  [comm_group γ] {f : Π₀ i, β i} {h : Π i, β i → γ} :
+  f.prod (λi b, (h i b)⁻¹) = (f.prod h)⁻¹ :=
+f.support.prod_hom (@has_inv.inv γ _)
 
 @[to_additive]
 lemma prod_add_index [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]

@@ -175,7 +175,7 @@ See `discrete_valuation_ring.of_has_unit_mul_pow_irreducible_factorization`. -/
 theorem ufd : unique_factorization_monoid R :=
 let p := classical.some hR in
 let spec := classical.some_spec hR in
-unique_factorization_monoid_of_exists_prime_of_factor $ λ x hx,
+unique_factorization_monoid.of_exists_prime_factors $ λ x hx,
 begin
   use multiset.repeat p (classical.some (spec.2 hx)),
   split,

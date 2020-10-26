@@ -45,7 +45,6 @@ meta structure config (α β γ δ : Type) extends collect_cfg, tactic.nth_rewri
 (explain_using_conv : bool := tt)
 (metric             : metric_constructor β γ . pick_default_metric)
 (strategy           : strategy_constructor α . pick_default_strategy)
-(view               : tracer_constructor δ   . pick_default_tracer)
 
 open tactic.rewrite_search.strategy.bfs
 

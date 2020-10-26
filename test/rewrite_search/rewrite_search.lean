@@ -23,7 +23,7 @@ private axiom bar' : [[5], [5]] = [[6], [6]]
 example : [[7], [6]] = [[5], [5]] :=
 begin
   success_if_fail { rewrite_search },
-  rewrite_search_with [foo', bar'] {explain := ff}
+  rewrite_search_with [foo', bar']
 end
 
 @[search] private axiom foo : [0] = [1]

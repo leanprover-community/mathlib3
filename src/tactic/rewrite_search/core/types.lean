@@ -208,15 +208,6 @@ meta def try {ε : Type u} {η : Type v} (name : string) (fn : init_fn ε)
 
 end init_result
 
-meta structure tracer (α β γ δ : Type) :=
-(init             : init_fn δ)
-(publish_vertex   : δ → vertex → tactic unit)
-(publish_edge     : δ → edge → tactic unit)
-(publish_visited  : δ → vertex → tactic unit)
-(publish_finished : δ → list edge → tactic unit)
-(dump             : δ → string → tactic unit)
-(pause            : δ → tactic unit)
-
 structure statistics :=
 (num_discovers : ℕ)
 def statistics.init : statistics := ⟨0⟩
@@ -304,6 +295,5 @@ meta inductive search_result
 
 meta def strategy_constructor (α : Type) := Π (β γ δ : Type), strategy α β γ δ
 meta def metric_constructor (β γ : Type) := Π (α δ : Type), metric α β γ δ
-meta def tracer_constructor (δ : Type) := Π (α β γ : Type), tracer α β γ δ
 
 end tactic.rewrite_search

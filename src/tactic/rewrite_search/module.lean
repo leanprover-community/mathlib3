@@ -8,7 +8,6 @@ import tactic.rewrite_search.core
 
 import tactic.rewrite_search.strategy.bfs -- FIXME: remove this block
 import tactic.rewrite_search.metric.trivial
-import tactic.rewrite_search.tracer.unit
 
 /-!
 # Configuration and wrapper functions for rewrite search.
@@ -20,8 +19,6 @@ meta def pick_default_strategy : tactic unit :=
 `[exact tactic.rewrite_search.strategy.bfs]
 meta def pick_default_metric   : tactic unit :=
 `[exact tactic.rewrite_search.metric.trivial]
-meta def pick_default_tracer   : tactic unit :=
-`[exact tactic.rewrite_search.tracer.unit_tracer]
 
 structure collect_cfg :=
 (suggest         : list name := [])

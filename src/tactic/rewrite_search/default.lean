@@ -1,10 +1,9 @@
 -- Provide the interactive tactics
 import tactic.rewrite_search.interactive
 
--- We include the shipped library of strategies, metrics, and tracers
+-- FIXME: delete this block
 import tactic.rewrite_search.strategy
 import tactic.rewrite_search.metric
-import tactic.rewrite_search.tracer
 
 /-!
 # Searching for chains of rewrites

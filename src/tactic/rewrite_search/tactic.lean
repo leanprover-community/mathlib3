@@ -17,7 +17,7 @@ variables {α β γ δ : Type}
 
 namespace tactic.rewrite_search
 
-meta def rewrite_search_pair (cfg : config α β γ δ)
+meta def rewrite_search_pair (cfg : config α)
 (rs : list (expr × bool)) (eqn : sided_pair expr) : tactic string :=
 do result ← try_search cfg rs eqn,
 match result with
@@ -36,7 +36,7 @@ do rws ← discovery.collect extra_names,
    if cfg.inflate_rws then list.join <$> (rws.mmap $ discovery.inflate_rw locs)
    else pure rws
 
-meta def rewrite_search_target (cfg : config α β γ δ) (try_harder : bool)
+meta def rewrite_search_target (cfg : config α) (try_harder : bool)
   (extra_names : list name) (extra_rws : list (expr × bool)) : tactic string :=
 do let cfg := if ¬try_harder then cfg
               else { cfg with try_simp := tt },
@@ -56,16 +56,16 @@ namespace tactic
 
 open tactic.rewrite_search
 
-meta def rewrite_search (cfg : config α β γ δ)
+meta def rewrite_search (cfg : config α)
   (try_harder : bool := ff) : tactic string :=
 rewrite_search_target cfg try_harder [] []
 
-meta def rewrite_search_with (rs : list interactive.rw_rule) (cfg : config α β γ δ)
+meta def rewrite_search_with (rs : list interactive.rw_rule) (cfg : config α)
   (try_harder : bool := ff) : tactic string :=
 do extra_rws ← discovery.rewrite_list_from_rw_rules rs,
    rewrite_search_target cfg try_harder [] extra_rws
 
-meta def rewrite_search_using (as : list name) (cfg : config α β γ δ)
+meta def rewrite_search_using (as : list name) (cfg : config α)
   (try_harder : bool := ff) : tactic string :=
 do extra_names ← discovery.load_attr_list as,
    rewrite_search_target cfg try_harder extra_names []

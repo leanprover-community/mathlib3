@@ -15,11 +15,11 @@ open tactic
 
 namespace tactic.rewrite_search
 
-variables {α β γ δ : Type} (i : inst α β γ δ)
+variables {α : Type} (i : inst α)
 
 namespace backtrack
 
-meta def backtrack_fn := inst α β γ δ → edge → tactic (list edge)
+meta def backtrack_fn := inst α → edge → tactic (list edge)
 
 namespace naive
 
@@ -30,7 +30,7 @@ meta def walk_up_parents : vertex → option edge → tactic (list edge)
                  edges ← walk_up_parents w w.parent,
                  return (e :: edges)
 
-meta def backtrack : backtrack_fn := λ (i : inst α β γ δ) (e : edge), do
+meta def backtrack : backtrack_fn := λ (i : inst α) (e : edge), do
   v ← i.g.vertices.get e.t,
 
   vts ← walk_up_parents i v e,
@@ -86,7 +86,7 @@ meta def crawl (t : table edge) : table_ref → tactic (list edge)
     end
   end
 
-meta def backtrack : backtrack_fn := λ (i : inst α β γ δ) (_ : edge), do
+meta def backtrack : backtrack_fn := λ (i : inst α) (_ : edge), do
 -- We just disregard the "finishing edge" we are passed, looking for the
 -- shortest path whatever instead.
   tab ← search i,

@@ -176,7 +176,7 @@ structure statistics :=
 (num_discovers : ℕ)
 def statistics.init : statistics := ⟨0⟩
 
-meta structure search_state (α β γ δ : Type) :=
+meta structure search_state (α : Type) :=
 (conf         : core_cfg)
 (rwall_conf   : nth_rewrite.cfg)
 (rs           : list (expr × bool))
@@ -189,31 +189,31 @@ meta structure search_state (α β γ δ : Type) :=
 def LHS_VERTEX_ID : table_ref := table_ref.of_nat 0
 def RHS_VERTEX_ID : table_ref := table_ref.of_nat 1
 
-meta def update_fn (α β γ δ : Type) : Type :=
-search_state α β γ δ → ℕ → tactic (search_state α β γ δ)
+meta def update_fn (α : Type) : Type :=
+search_state α → ℕ → tactic (search_state α)
 
-meta def startup_fn (α β γ δ : Type) : Type :=
-search_state α β γ δ → vertex → vertex → tactic (search_state α β γ δ)
+meta def startup_fn (α : Type) : Type :=
+search_state α → vertex → vertex → tactic (search_state α)
 
-meta def step_fn (α β γ δ : Type) : Type :=
-search_state α β γ δ → tactic (search_state α β γ δ × status)
+meta def step_fn (α : Type) : Type :=
+search_state α → tactic (search_state α × status)
 
-meta structure strategy (α β γ δ : Type) :=
+meta structure strategy (α : Type) :=
 (init : init_fn α)
-(startup : startup_fn α β γ δ)
-(step : step_fn α β γ δ)
+(startup : startup_fn α)
+(step : step_fn α)
 
-meta structure inst (α β γ δ : Type) :=
-(strategy : strategy α β γ δ)
-(g : search_state α β γ δ)
+meta structure inst (α : Type) :=
+(strategy : strategy α)
+(g : search_state α)
 
 namespace search_state
-variables {α β γ δ : Type} (g : search_state α β γ δ)
+variables {α β γ δ : Type} (g : search_state α)
 
-meta def mutate_strat (new_state : α) : search_state α β γ δ :=
+meta def mutate_strat (new_state : α) : search_state α :=
 { g with strat_state := new_state }
 
-meta def set_vertex (v : vertex) : search_state α β γ δ × vertex :=
+meta def set_vertex (v : vertex) : search_state α × vertex :=
 ({ g with vertices := g.vertices.set v.id v }, v)
 
 meta def lookup_pair (p : pair) : tactic (vertex × vertex) := do
@@ -233,6 +233,6 @@ meta inductive search_result
 | success (proof : expr) (units : list proof_unit) : search_result
 | failure (message : string) : search_result
 
-meta def strategy_constructor (α : Type) := Π (β γ δ : Type), strategy α β γ δ
+meta def strategy_constructor (α : Type) := strategy α
 
 end tactic.rewrite_search

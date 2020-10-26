@@ -19,17 +19,17 @@ structure bfs_state :=
 (curr_depth : ℕ)
 (queue      : list (option table_ref))
 
-variables {β γ δ : Type} (g : search_state bfs_state β γ δ)
+variables {β γ δ : Type} (g : search_state bfs_state)
 
 meta def bfs_init : tactic (init_result bfs_state) :=
 init_result.pure ⟨{}, 1, []⟩
 
-meta def bfs_startup (cfg : bfs_config) (g : search_state bfs_state β γ δ) (l r : vertex)
-  : tactic (search_state bfs_state β γ δ) :=
+meta def bfs_startup (cfg : bfs_config) (g : search_state bfs_state) (l r : vertex)
+  : tactic (search_state bfs_state) :=
 return $ g.mutate_strat ⟨cfg, 1, [l.id, r.id, none]⟩
 
-meta def bfs_step (g : search_state bfs_state β γ δ) :
-tactic (search_state bfs_state β γ δ × status) := do
+meta def bfs_step (g : search_state bfs_state) :
+tactic (search_state bfs_state × status) := do
   let state := g.strat_state,
   if state.curr_depth > g.strat_state.conf.max_depth then
     return (g, status.abort "max bfs depth reached!")
@@ -48,6 +48,6 @@ tactic (search_state bfs_state β γ δ × status) := do
   end
 
 meta def bfs (conf : bfs_config := {}) : strategy_constructor bfs_state :=
-λ β γ δ, strategy.mk bfs_init (bfs_startup conf) bfs_step
+strategy.mk bfs_init (bfs_startup conf) bfs_step
 
 end tactic.rewrite_search

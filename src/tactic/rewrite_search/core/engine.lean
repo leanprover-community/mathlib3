@@ -16,7 +16,7 @@ universe u
 
 namespace tactic.rewrite_search
 
-variables {α β γ δ : Type} (i : inst α β γ δ) (g : search_state α β γ δ)
+variables {α : Type} (i : inst α) (g : search_state α)
 
 private meta def chop : list char → list string → list string
 | [] L := L
@@ -28,7 +28,7 @@ meta def tokenize_expr (e : expr) : tactic (string × list string) := do
 
 namespace search_state
 
-meta def unmark_all_visited : tactic (search_state α β γ δ) := do
+meta def unmark_all_visited : tactic (search_state α) := do
   return { g with vertices := g.vertices.map $ λ v, {v with visited := ff} }
 
 private meta def register_tokens_aux (s : side) :
@@ -40,7 +40,7 @@ table token → list string → table token × list table_ref
   (tokens, t.id :: l)
 
 meta def register_tokens (s : side) (strs : list string) :
-search_state α β γ δ × list table_ref :=
+search_state α × list table_ref :=
   let (new_tokens, refs) := register_tokens_aux s g.tokens strs in
   ({g with tokens := new_tokens}, refs)
 
@@ -57,7 +57,7 @@ meta def find_vertex (e : expr) : tactic (option vertex) := do
 -- Forcibly add a new vertex to the vertex table. You probably actually want to call
 -- add_vertex, which will check that we haven't seen the vertex before first.
 meta def alloc_vertex (e : expr) (root : bool) (s : side) :
-tactic (search_state α β γ δ × vertex) :=
+tactic (search_state α × vertex) :=
 do (pp, tokens) ← tokenize_expr e,
    let (g, token_refs) := g.register_tokens s tokens,
    let v : vertex := vertex.create g.vertices.next_id e pp token_refs root s,
@@ -66,7 +66,7 @@ do (pp, tokens) ← tokenize_expr e,
 -- Look up the given vertex associated to (e : expr), or create it if it is
 -- not already present.
 meta def add_vertex_aux (e : expr) (root : bool) (s : side) :
-tactic (search_state α β γ δ × vertex) :=
+tactic (search_state α × vertex) :=
 do maybe_v ← g.find_vertex e,
    match maybe_v with
    | none := do
@@ -82,13 +82,13 @@ g.add_vertex_aux e ff s
 meta def add_root_vertex (e : expr) (s : side) :=
 g.add_vertex_aux e tt s
 
-meta def register_solved (e : edge) : search_state α β γ δ :=
+meta def register_solved (e : edge) : search_state α :=
 { g with solving_edge := some e }
 
-meta def add_adj (v : vertex) (e : edge) : search_state α β γ δ × vertex :=
+meta def add_adj (v : vertex) (e : edge) : search_state α × vertex :=
 g.set_vertex { v with adj := v.adj.alloc e }
 
-meta def publish_parent (f t : vertex) (e : edge) : search_state α β γ δ × vertex :=
+meta def publish_parent (f t : vertex) (e : edge) : search_state α × vertex :=
 if t.root then
   (g, t)
 else
@@ -97,11 +97,11 @@ else
   | none := g.set_vertex { t with parent := some e }
   end
 
-meta def mark_vertex_visited (v : vertex) : tactic (search_state α β γ δ × vertex) := do
+meta def mark_vertex_visited (v : vertex) : tactic (search_state α × vertex) := do
   return $ g.set_vertex { v with visited := tt }
 
 meta def add_edge (f t : vertex) (proof : tactic expr) (how : how) :
-tactic (search_state α β γ δ × vertex × vertex × edge) :=
+tactic (search_state α × vertex × vertex × edge) :=
 do let new_edge : edge := ⟨ f.id, t.id, proof, how ⟩,
    g.trace_edge_added new_edge,
    let (g, f) := g.add_adj f new_edge,
@@ -113,19 +113,19 @@ do let new_edge : edge := ⟨ f.id, t.id, proof, how ⟩,
      return (g, f, t, new_edge)
 
 meta def commit_rewrite (f : vertex) (r : rewrite) :
-tactic (search_state α β γ δ × vertex × (vertex × edge)) :=
+tactic (search_state α × vertex × (vertex × edge)) :=
 do (g, v) ← g.add_vertex r.e f.s,
   (g, f, v, e) ← g.add_edge f v r.prf r.how,
   return (g, f, (v, e))
 
 meta def reveal_more_rewrites (v : vertex) :
-tactic (search_state α β γ δ × vertex × option rewrite) :=
+tactic (search_state α × vertex × option rewrite) :=
 do (rw_prog, new_rws) ← discover_more_rewrites g.rs v.exp g.rwall_conf v.s v.rw_prog,
   (g, v) ← pure $ g.set_vertex {v with rw_prog := rw_prog, rws := v.rws.alloc_list new_rws},
   return (g, v, new_rws.nth 0)
 
 meta def reveal_more_adjs (o : vertex) :
-tactic (search_state α β γ δ × vertex × option (vertex × edge)) :=
+tactic (search_state α × vertex × option (vertex × edge)) :=
 do (g, o, rw) ← match o.rws.at_ref o.rw_front with
   | none := g.reveal_more_rewrites o
   | some rw := pure (g, o, some rw)
@@ -138,7 +138,7 @@ do (g, o, rw) ← match o.rws.at_ref o.rw_front with
     return (g, o, some (v, e))
   end
 
-meta def visit_vertex (v : vertex) : tactic (search_state α β γ δ × rewrite_iter) :=
+meta def visit_vertex (v : vertex) : tactic (search_state α × rewrite_iter) :=
 do
   (g, v) ← if ¬v.visited then do
         g.mark_vertex_visited v
@@ -153,8 +153,8 @@ namespace rewrite_iter
 private meta def advance (it : rewrite_iter) : rewrite_iter :=
 {it with front := it.front.next}
 
-meta def next (it : rewrite_iter) (g : search_state α β γ δ) :
-tactic (search_state α β γ δ × rewrite_iter × option (vertex × edge)) := do
+meta def next (it : rewrite_iter) (g : search_state α) :
+tactic (search_state α × rewrite_iter × option (vertex × edge)) := do
   o ← g.vertices.get it.orig,
   match o.adj.at_ref it.front with
   | some e := do
@@ -169,8 +169,8 @@ tactic (search_state α β γ δ × rewrite_iter × option (vertex × edge)) := 
   end
 
 meta def exhaust :
-rewrite_iter → search_state α β γ δ →
-tactic (search_state α β γ δ × rewrite_iter × list (vertex × edge))
+rewrite_iter → search_state α →
+tactic (search_state α × rewrite_iter × list (vertex × edge))
 | it g := do
   (g, it, ret) ← it.next g,
   match ret with
@@ -184,24 +184,24 @@ end rewrite_iter
 
 namespace search_state
 
-meta def exhaust_vertex (v : vertex) : tactic (search_state α β γ δ) := do
+meta def exhaust_vertex (v : vertex) : tactic (search_state α) := do
   (g, it) ← g.visit_vertex v,
   (g, it) ← it.exhaust g,
   return g
 
 meta def exhaust_all_visited_aux :
-search_state α β γ δ → list vertex → tactic (search_state α β γ δ)
+search_state α → list vertex → tactic (search_state α)
 | g []          := return g
 | g (v :: rest) := do
   g ← g.exhaust_vertex v,
   exhaust_all_visited_aux g rest
 
-meta def exhaust_all_visited : tactic (search_state α β γ δ) :=
+meta def exhaust_all_visited : tactic (search_state α) :=
   g.exhaust_all_visited_aux g.vertices.to_list
 
 -- Find a vertex we haven't visited, and visit it. The bool is true if there might
 -- be other unvisited vertices.
-meta def exhaust_one_unvisited : list vertex → tactic (search_state α β γ δ × bool)
+meta def exhaust_one_unvisited : list vertex → tactic (search_state α × bool)
 | []          := return (g, ff)
 | (v :: rest) :=
   if v.visited then
@@ -210,12 +210,12 @@ meta def exhaust_one_unvisited : list vertex → tactic (search_state α β γ �
     g ← g.exhaust_vertex v,
     return (g, tt)
 
-meta def exhaust_all_unvisited : search_state α β γ δ → tactic (search_state α β γ δ)
+meta def exhaust_all_unvisited : search_state α → tactic (search_state α)
 | g := do
   (g, more_left) ← g.exhaust_one_unvisited g.vertices.to_list,
   if more_left then g.exhaust_all_unvisited else return g
 
-meta def exhaust_all : tactic (search_state α β γ δ) := do
+meta def exhaust_all : tactic (search_state α) := do
   g ← g.exhaust_all_visited,
   g ← g.exhaust_all_unvisited,
   return g
@@ -224,10 +224,10 @@ end search_state
 
 namespace inst
 
-meta def mutate : inst α β γ δ :=
+meta def mutate : inst α :=
 { i with g := g }
 
-meta def step_once (itr : ℕ) : tactic (inst α β γ δ × status) :=
+meta def step_once (itr : ℕ) : tactic (inst α × status) :=
 match i.g.solving_edge with
 | some e := return (i, status.done e)
 | none := do
@@ -238,7 +238,7 @@ match i.g.solving_edge with
     return (i.mutate g, s)
 end
 
-meta def finish_search (e : edge) : tactic (inst α β γ δ × search_result) := do
+meta def finish_search (e : edge) : tactic (inst α × search_result) := do
   -- This must be called before i.g.exhaust_all
   (proof, units) ← backtrack.build_proof i e,
 
@@ -249,7 +249,7 @@ meta def finish_search (e : edge) : tactic (inst α β γ δ × search_result) :
       pure i,
   return (i, search_result.success proof units)
 
-meta def search_until_solved_aux : inst α β γ δ → ℕ → tactic (inst α β γ δ × search_result)
+meta def search_until_solved_aux : inst α → ℕ → tactic (inst α × search_result)
 | i itr := do
   (i, s) ← i.step_once itr,
   match s with
@@ -259,7 +259,7 @@ meta def search_until_solved_aux : inst α β γ δ → ℕ → tactic (inst α 
   | status.done e   := i.finish_search e
   end
 
-meta def search_until_solved : tactic (inst α β γ δ × search_result) := do
+meta def search_until_solved : tactic (inst α × search_result) := do
   if i.g.conf.trace_rules then (do
     rs ← i.g.rs.mmap pp_rule,
     tactic.trace $ "rewrite_search using:\n---\n" ++ (string.intercalate "\n" rs) ++ "\n---"

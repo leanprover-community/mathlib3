@@ -312,15 +312,14 @@ by rintro ⟨f, _⟩ ⟨g, _⟩ ⟨h⟩; congr
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
 coe_injective $ funext H
 
-lemma coe_fn_congr : Π {x x' : M}, x = x' → f x = f x'
+protected lemma congr_arg : Π {x x' : M}, x = x' → f x = f x'
 | _ _ rfl := rfl
+
+/-- If two linear maps are equal, they are equal at each point. -/
+protected lemma congr_fun (h : f = g) (x : M) : f x = g x := h ▸ rfl
 
 theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
 ⟨by { rintro rfl x, refl } , ext⟩
-
-/-- If two linear maps are equal, they are equal at each point. -/
-lemma lcongr_fun (h : f = g) (m : M) : f m = g m :=
-congr_fun (congr_arg linear_map.to_fun h) m
 
 variables (f g)
 
@@ -351,6 +350,12 @@ f.to_add_monoid_hom.map_sum _ _
 theorem to_add_monoid_hom_injective :
   function.injective (to_add_monoid_hom : (M →ₗ[R] M₂) → (M →+ M₂)) :=
 λ f g h, ext $ add_monoid_hom.congr_fun h
+
+omit semimodule_M₂
+
+/-- If two `R`-linear maps from `R` are equal on `1`, then they are equal. -/
+@[ext] theorem ext_ring {f g : R →ₗ[R] M} (h : f 1 = g 1) : f = g :=
+ext $ λ x, by rw [← mul_one x, ← smul_eq_mul, f.map_smul, g.map_smul, h]
 
 end
 

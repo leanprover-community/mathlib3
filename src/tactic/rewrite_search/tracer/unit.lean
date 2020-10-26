@@ -1,4 +1,14 @@
+/-
+Copyright (c) 2020 Kevin Lacker, Keeley Hoek, Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
+-/
+
 import tactic.rewrite_search.core
+
+/-!
+# An implementation of a tracer that does nothing.
+-/
 
 open tactic.rewrite_search
 
@@ -21,7 +31,8 @@ namespace tactic.rewrite_search.tracer
 open unit
 
 meta def unit_tracer : tracer_constructor unit := λ α β γ,
-tracer.mk unit.init unit.publish_vertex unit.publish_edge unit.publish_visited unit.publish_finished unit.dump unit.pause
+tracer.mk unit.init unit.publish_vertex unit.publish_edge unit.publish_visited
+unit.publish_finished unit.dump unit.pause
 
 meta def no {δ : Type} (_ : tracer_constructor δ) : tracer_constructor unit := unit_tracer
 

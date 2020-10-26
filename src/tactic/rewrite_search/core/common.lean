@@ -1,8 +1,10 @@
+/-
+Copyright (c) 2020 Kevin Lacker, Keeley Hoek, Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
+-/
+
 import tactic.nth_rewrite
-
-universe u
-
-namespace tactic.rewrite_search
 
 /-!
 FIXME
@@ -16,6 +18,10 @@ and so have two completely isomorphic but separate structures `dir_pair` and `si
 
 This is LAME!
 -/
+
+universe u
+
+namespace tactic.rewrite_search
 
 @[derive decidable_eq, derive inhabited]
 inductive side

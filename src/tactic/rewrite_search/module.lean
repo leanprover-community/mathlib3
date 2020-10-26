@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2020 Kevin Lacker, Keeley Hoek, Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
+-/
+
 import tactic.rewrite_search.core
 
 -- Default strategy, metric, and tracer used as a fallback by the engine
@@ -5,6 +11,10 @@ import tactic.rewrite_search.core
 import tactic.rewrite_search.strategy.bfs
 import tactic.rewrite_search.metric.trivial
 import tactic.rewrite_search.tracer.unit
+
+/-!
+# Configuration and wrapper functions for rewrite search.
+-/
 
 namespace tactic.rewrite_search
 

@@ -275,8 +275,7 @@ match i.g.solving_edge with
   if itr > i.g.conf.max_iterations then
     return (i, status.abort "max iterations reached!")
   else do
-    g ← i.metric.update i.g itr,
-    (g, s) ← i.strategy.step g i.metric itr,
+    (g, s) ← i.strategy.step i.g i.metric itr,
     return (i.mutate g, s)
 end
 

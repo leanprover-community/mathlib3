@@ -318,7 +318,7 @@ private meta def reverse_dependencies_of_hyp_name_set_aux (hs : name_set) :
   let H_uname := H.local_uniq_name,
   H_is_revdep ← list.mband
     [ pure $ ¬ hs.contains H_uname,
-      hyp_directly_depends_on_locals H ns ],
+      hyp_directly_depends_on_local_name_set H ns ],
   if H_is_revdep
     then
       reverse_dependencies_of_hyp_name_set_aux Hs (H :: revdeps)
@@ -361,7 +361,7 @@ private meta def reverse_dependencies_of_hyp_name_set_inclusive_aux :
   let H_uname := H.local_uniq_name,
   H_is_revdep ← list.mbor
     [ pure $ ns.contains H.local_uniq_name,
-      hyp_directly_depends_on_locals H ns ],
+      hyp_directly_depends_on_local_name_set H ns ],
   if H_is_revdep
     then
       reverse_dependencies_of_hyp_name_set_inclusive_aux Hs (H :: revdeps)

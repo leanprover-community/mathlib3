@@ -806,6 +806,7 @@ begin
     (@le_top (submodule F E) _ ϕ.to_linear_map.range) rank_nullity) },
 end
 
+/-- Biijection between algebra equivalences and algebra homomorphisms -/
 noncomputable def algebra_equiv_equiv_algebra_hom (F : Type u) [field F] (E : Type v) [field E]
   [algebra F E] [finite_dimensional F E] : (E ≃ₐ[F] E) ≃ (E →ₐ[F] E) :=
 { to_fun := λ ϕ, ϕ.to_alg_hom,

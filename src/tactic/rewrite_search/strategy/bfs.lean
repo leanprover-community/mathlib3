@@ -26,8 +26,7 @@ variables {β γ δ : Type} (g : search_state bfs_state β γ δ)
 meta def bfs_init : tactic (init_result bfs_state) :=
 init_result.pure ⟨{}, 1, []⟩
 
-meta def bfs_startup (cfg : bfs_config) (g : search_state bfs_state β γ δ)
-  (m : metric bfs_state β γ δ) (l r : vertex)
+meta def bfs_startup (cfg : bfs_config) (g : search_state bfs_state β γ δ) (l r : vertex)
   : tactic (search_state bfs_state β γ δ) :=
 return $ g.mutate_strat ⟨cfg, 1, [l.id, r.id, none]⟩
 

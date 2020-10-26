@@ -52,22 +52,20 @@ variables {α β γ δ : Type}
 
 meta def mk_initial_search_state (conf : core_cfg)
   (rw_cfg : tactic.nth_rewrite.cfg) (rs : list (expr × bool))
-  (s : strategy α β γ δ) (m : metric α β γ δ)
-  (strat_state : α) (metric_state : β)
+  (s : strategy α β γ δ) (strat_state : α) (metric_state : β)
   : search_state α β γ δ :=
 ⟨conf, rw_cfg, rs, strat_state, metric_state, table.create, table.create,
  table.create, none, statistics.init⟩
 
 meta def setup_instance (conf : core_cfg)
   (rw_cfg : tactic.nth_rewrite.cfg) (rs : list (expr × bool))
-  (s : strategy α β γ δ) (m : metric α β γ δ)
-  (s_state : α) (m_state : β)
+  (s : strategy α β γ δ) (s_state : α) (m_state : β)
   (eqn : sided_pair expr) : tactic (inst α β γ δ) :=
-do let g := mk_initial_search_state conf rw_cfg rs s m s_state m_state,
+do let g := mk_initial_search_state conf rw_cfg rs s s_state m_state,
    (g, vl) ← g.add_root_vertex eqn.l side.L,
    (g, vr) ← g.add_root_vertex eqn.r side.R,
-   g ← s.startup g m vl vr,
-   return ⟨m, s, g⟩
+   g ← s.startup g vl vr,
+   return ⟨s, g⟩
 
 meta def instantiate_modules (cfg : config α β γ δ) :
 strategy α β γ δ × metric α β γ δ :=
@@ -89,7 +87,7 @@ do let (s, m) := instantiate_modules cfg,
     explain_using_conv := cfg.explain_using_conv
   },
   option.some <$>
-    setup_instance conf cfg.to_cfg rs s m strat_state metric_state eqn
+    setup_instance conf cfg.to_cfg rs s strat_state metric_state eqn
 
 open tactic
 

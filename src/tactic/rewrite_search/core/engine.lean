@@ -16,7 +16,7 @@ universe u
 
 namespace tactic.rewrite_search
 
-variables {α β γ δ : Type} (i : inst α β γ δ) (g : search_state α β γ δ) (m : metric α β γ δ)
+variables {α β γ δ : Type} (i : inst α β γ δ) (g : search_state α β γ δ)
 
 private meta def chop : list char → list string → list string
 | [] L := L

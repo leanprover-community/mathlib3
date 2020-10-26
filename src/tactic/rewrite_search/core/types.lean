@@ -243,7 +243,7 @@ meta structure metric (α β γ δ : Type) :=
 (improve_estimate_over : improve_estimate_fn α β γ δ)
 
 meta def startup_fn (α β γ δ : Type) : Type :=
-search_state α β γ δ → metric α β γ δ → vertex → vertex → tactic (search_state α β γ δ)
+search_state α β γ δ → vertex → vertex → tactic (search_state α β γ δ)
 
 meta def step_fn (α β γ δ : Type) : Type :=
 search_state α β γ δ → tactic (search_state α β γ δ × status)
@@ -254,7 +254,6 @@ meta structure strategy (α β γ δ : Type) :=
 (step : step_fn α β γ δ)
 
 meta structure inst (α β γ δ : Type) :=
-(metric : metric α β γ δ)
 (strategy : strategy α β γ δ)
 (g : search_state α β γ δ)
 

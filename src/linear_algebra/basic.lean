@@ -395,15 +395,24 @@ def applyₗ (v : M) : (M →ₗ[R] M₂) →ₗ[R] M₂ :=
 
 end comm_semiring
 
+section semiring
+
+variables [semiring R] [add_comm_monoid M] [semimodule R M]
+
+instance endomorphism_semiring : semiring (M →ₗ[R] M) :=
+by refine {mul := (*), one := 1, ..linear_map.add_comm_monoid, ..};
+  { intros, apply linear_map.ext, simp {proj := ff} }
+
+lemma mul_apply (f g : M →ₗ[R] M) (x : M) : (f * g) x = f (g x) := rfl
+
+end semiring
+
 section ring
 
 variables [ring R] [add_comm_group M] [semimodule R M]
 
 instance endomorphism_ring : ring (M →ₗ[R] M) :=
-by refine {mul := (*), one := 1, ..linear_map.add_comm_group, ..};
-  { intros, apply linear_map.ext, simp {proj := ff} }
-
-@[simp] lemma mul_apply (f g : M →ₗ[R] M) (x : M) : (f * g) x = f (g x) := rfl
+{ ..linear_map.endomorphism_semiring, ..linear_map.add_comm_group }
 
 end ring
 

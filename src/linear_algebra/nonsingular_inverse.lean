@@ -194,7 +194,9 @@ begin
     exact h ((symm_apply_eq σ).mp h'.symm) }
 end
 
-lemma cramer_transpose_eq_adjugate_mul_vec (A : matrix n n α) (b : n → α) :
+/-- Since the map `b ↦ cramer A b` is linear in `b`, it must be multiplication by some matrix. This
+matrix is `A.adjugate`. -/
+lemma cramer_eq_adjugate_mul_vec (A : matrix n n α) (b : n → α) :
   cramer A b = A.adjugate.mul_vec b :=
 begin
   nth_rewrite 1 ← A.transpose_transpose,
@@ -403,12 +405,20 @@ B.nonsing_inv_left_right A h
 
 end inv
 
-lemma cramers_rule (A : matrix n n α) (b : n → α) (h : is_unit A.det) :
-  cramer A b = A.det • A⁻¹.mul_vec b :=
+/- One form of Cramer's rule. -/
+@[simp] lemma det_smul_inv_mul_vec_eq_cramer (A : matrix n n α) (b : n → α) (h : is_unit A.det) :
+  A.det • A⁻¹.mul_vec b = cramer A b :=
 begin
-  rw [cramer_transpose_eq_adjugate_mul_vec, A.nonsing_inv_apply h, ← smul_mul_vec_assoc],
-  conv_rhs { congr, congr, rw ← h.unit_spec, },
+  rw [cramer_eq_adjugate_mul_vec, A.nonsing_inv_apply h, ← smul_mul_vec_assoc],
+  conv_lhs { congr, congr, rw ← h.unit_spec, },
   rw units.smul_inv_smul,
 end
+
+/- A stronger form of Cramer's rule that allows us to solve some instances of `A ⬝ x = b` even if
+the determinant is not a unit. A sufficient (but still not necessary) condition is that `A.det`
+divides `b`. -/
+@[simp] lemma mul_vec_cramer (A : matrix n n α) (b : n → α) :
+  A.mul_vec (cramer A b) = A.det • b :=
+by rw [cramer_eq_adjugate_mul_vec, mul_vec_mul_vec, mul_adjugate, smul_mul_vec_assoc, mul_vec_one]
 
 end matrix

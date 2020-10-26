@@ -2370,7 +2370,7 @@ end prod_map
 /-! ### Inversion in a complete normed algebra -/
 
 section algebra_inverse
-variables (𝕜) (R : Type*) [normed_ring R] [normed_algebra 𝕜 R]
+variables (𝕜) {R : Type*} [normed_ring R] [normed_algebra 𝕜 R]
 open normed_ring continuous_linear_map ring
 
 /-- In a complete normed algebra, the operation of inversion is `C^n`, for all `n`, at each
@@ -2468,13 +2468,14 @@ begin
   rw this,
   -- `O₁` and `O₂` are `times_cont_diff`, so we reduce to proving that `ring.inverse` is `times_cont_diff`
   have h₁ : times_cont_diff 𝕜 n O₁,
-  { exact is_bounded_bilinear_map_comp.times_cont_diff.comp (times_cont_diff_const.prod times_cont_diff_id) },
+    from is_bounded_bilinear_map_comp.times_cont_diff.comp
+      (times_cont_diff_const.prod times_cont_diff_id),
   have h₂ : times_cont_diff 𝕜 n O₂,
-  { exact is_bounded_bilinear_map_comp.times_cont_diff.comp (times_cont_diff_id.prod times_cont_diff_const) },
+    from is_bounded_bilinear_map_comp.times_cont_diff.comp
+      (times_cont_diff_id.prod times_cont_diff_const),
   refine h₁.times_cont_diff_at.comp _ (times_cont_diff_at.comp _ _ h₂.times_cont_diff_at),
-  convert times_cont_diff_at_ring_inverse 𝕜 (E →L[𝕜] E) 1,
-  simp [O₂],
-  refl
+  convert times_cont_diff_at_ring_inverse 𝕜 (1 : units (E →L[𝕜] E)),
+  simp [O₂, one_def]
 end
 
 end map_inverse

@@ -35,7 +35,7 @@ end
 
 section
 variables {α : Type*} {β : Type*} [ring β]
-  [discrete_linear_ordered_field α] [archimedean α] {abv : β → α} [is_absolute_value abv]
+  [linear_ordered_field α] [archimedean α] {abv : β → α} [is_absolute_value abv]
 
 lemma is_cau_of_decreasing_bounded (f : ℕ → α) {a : α} {m : ℕ} (ham : ∀ n ≥ m, abs (f n) ≤ a)
   (hnm : ∀ n ≥ m, f n.succ ≤ f n) : is_cau_seq abs f :=
@@ -83,7 +83,7 @@ end
 
 section no_archimedean
 variables {α : Type*} {β : Type*} [ring β]
-  [discrete_linear_ordered_field α] {abv : β → α} [is_absolute_value abv]
+  [linear_ordered_field α] {abv : β → α} [is_absolute_value abv]
 
 lemma is_cau_series_of_abv_le_cau {f : ℕ → β} {g : ℕ → α} (n : ℕ) :
   (∀ m, n ≤ m → abv (f m) ≤ g m) →
@@ -122,7 +122,7 @@ end no_archimedean
 
 section
 variables {α : Type*} {β : Type*} [ring β]
-  [discrete_linear_ordered_field α] [archimedean α] {abv : β → α} [is_absolute_value abv]
+  [linear_ordered_field α] [archimedean α] {abv : β → α} [is_absolute_value abv]
 
 lemma is_cau_geo_series {β : Type*} [field β] {abv : β → α} [is_absolute_value abv]
    (x : β) (hx1 : abv x < 1) : is_cau_seq abv (λ n, ∑ m in range n, x ^ m) :=
@@ -133,7 +133,7 @@ begin
   have : (λ (m : ℕ), ∑ n in range m, (abv x) ^ n) =
    λ m, geom_series (abv x) m := rfl,
   simp only [this, geom_sum hx1'] {eta := ff},
-  conv in (_ / _) { rw [← neg_div_neg_eq, neg_sub, neg_sub] },
+  conv { congr, skip, funext, rw [← neg_div_neg_eq, neg_sub, neg_sub] },
   refine @is_cau_of_mono_bounded _ _ _ _ ((1 : α) / (1 - abv x)) 0 _ _,
   { assume n hn,
     rw abs_of_nonneg,
@@ -228,7 +228,7 @@ end
 
 section no_archimedean
 variables {α : Type*} {β : Type*} [ring β]
-  [discrete_linear_ordered_field α] {abv : β → α} [is_absolute_value abv]
+  [linear_ordered_field α] {abv : β → α} [is_absolute_value abv]
 
 lemma abv_sum_le_sum_abv {γ : Type*} (f : γ → β) (s : finset γ) :
   abv (∑ k in s, f k) ≤ ∑ k in s, abv (f k) :=
@@ -1130,7 +1130,7 @@ end real
 
 namespace complex
 
-lemma sum_div_factorial_le {α : Type*} [discrete_linear_ordered_field α] (n j : ℕ) (hn : 0 < n) :
+lemma sum_div_factorial_le {α : Type*} [linear_ordered_field α] (n j : ℕ) (hn : 0 < n) :
   ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α) ≤ n.succ * (n! * n)⁻¹ :=
 calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
     = ∑ m in range (j - n), 1 / (m + n)! :

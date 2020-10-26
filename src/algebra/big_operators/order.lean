@@ -31,7 +31,7 @@ begin
   refl
 end
 
-lemma abs_sum_le_sum_abs [discrete_linear_ordered_field α] {f : β → α} {s : finset β} :
+lemma abs_sum_le_sum_abs [linear_ordered_field α] {f : β → α} {s : finset β} :
   abs (∑ x in s, f x) ≤ ∑ x in s, abs (f x) :=
 le_sum_of_subadditive _ abs_zero abs_add s f
 

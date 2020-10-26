@@ -574,8 +574,8 @@ section order_topology
 
 instance {α : Type*} [topological_space α] [partial_order α] [order_topology α] :
   order_topology (order_dual α) :=
-⟨by convert @order_topology.topology_eq_generate_intervals α _ _ _;
-  conv in (_ ∨ _) { rw or.comm }; refl⟩
+⟨by { convert @order_topology.topology_eq_generate_intervals α _ _ _,
+  dsimp [order_dual], simp only [or.comm] }⟩
 
 section partial_order
 variables [topological_space α] [partial_order α] [t : order_topology α]
@@ -1380,10 +1380,7 @@ begin
   exact le_trans (le_of_max_le_left (by rwa pow_one x)) (pow_le_pow (le_of_max_le_right hx) hn),
 end
 
-end linear_ordered_semiring
-
-section linear_ordered_semiring
-variables [linear_ordered_semiring α] [archimedean α]
+variables [archimedean α]
 variables {l : filter β} {f : β → α}
 
 /-- If a function tends to infinity along a filter, then this function multiplied by a positive
@@ -1482,8 +1479,8 @@ end
 
 end linear_ordered_field
 
-section discrete_linear_ordered_field
-variables [discrete_linear_ordered_field α] [topological_space α] [order_topology α]
+section linear_ordered_field
+variables [linear_ordered_field α] [topological_space α] [order_topology α]
 
 /-- The function `x ↦ x⁻¹` tends to `+∞` on the right of `0`. -/
 lemma tendsto_inv_zero_at_top : tendsto (λx:α, x⁻¹) (𝓝[set.Ioi (0:α)] 0) at_top :=
@@ -1526,7 +1523,7 @@ lemma tendsto_pow_neg_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ 
 tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) (λ x hx, (fpow_neg x n).symm))
   (tendsto.inv_tendsto_at_top (tendsto_pow_at_top hn))
 
-end discrete_linear_ordered_field
+end linear_ordered_field
 
 lemma preimage_neg [add_group α] : preimage (has_neg.neg : α → α) = image (has_neg.neg : α → α) :=
 (image_eq_preimage_of_inverse neg_neg neg_neg).symm

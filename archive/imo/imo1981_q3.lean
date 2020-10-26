@@ -43,10 +43,9 @@ except for the base case of `(1, 1)`.
 namespace problem_predicate
 variable {N}
 
-/-- A reformulation of `problem_predicate` for use in `norm_num`. -/
-@[simp] protected lemma iff (m n : ℤ) : problem_predicate N m n ↔
-m ∈ Ioc 0 (N : ℤ) ∧ n ∈ Ioc 0 (N : ℤ) ∧ (n ^ 2 - m * n - m ^ 2) ^ 2 = 1 :=
-⟨λ h, ⟨h.1, ⟨h.2.1, h.2.2⟩, h.3⟩, λ h, ⟨h.1, h.2.1, h.2.2⟩⟩
+/- This creates a lemma `problem_predicate.iff` that allows `problem_predicate`
+to be unfolded in `norm_num`. -/
+mk_iff_of_inductive_prop problem_predicate problem_predicate.iff
 
 lemma m_le_n {m n : ℤ} (h1 : problem_predicate N m n) : m ≤ n :=
 begin

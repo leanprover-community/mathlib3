@@ -182,6 +182,10 @@ p.eval₂
 lemma inv_fun_add {p q} : inv_fun R A (p + q) = inv_fun R A p + inv_fun R A q :=
 by simp only [inv_fun, eval₂_add]
 
+lemma inv_fun_monomial (n : ℕ) (a : A) :
+  inv_fun R A (monomial n a) = include_left a * ((1 : A) ⊗ₜ[R] (X : polynomial R)) ^ n :=
+eval₂_monomial _ _
+
 lemma left_inv (x : A ⊗ polynomial R) :
   inv_fun R A ((to_fun_alg_hom R A) x) = x :=
 begin
@@ -206,7 +210,7 @@ begin
   apply polynomial.induction_on' x,
   { intros p q hp hq, simp only [inv_fun_add, alg_hom.map_add, hp, hq], },
   { intros n a,
-    rw [inv_fun, eval₂_monomial, alg_hom.coe_to_ring_hom, algebra.tensor_product.include_left_apply,
+    rw [inv_fun_monomial, algebra.tensor_product.include_left_apply,
       algebra.tensor_product.tmul_pow, one_pow, algebra.tensor_product.tmul_mul_tmul,
       mul_one, one_mul, to_fun_alg_hom_apply_tmul, X_pow_eq_monomial],
     dsimp [monomial],

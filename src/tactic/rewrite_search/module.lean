@@ -36,36 +36,31 @@ meta structure config extends collect_cfg, tactic.nth_rewrite.cfg :=
 meta def default_config : config := {}
 meta def pick_default_config : tactic unit := `[exact tactic.rewrite_search.default_config]
 
-variables {α : Type}
-
 meta def mk_initial_search_state (conf : core_cfg) (rw_cfg : tactic.nth_rewrite.cfg)
   (rs : list (expr × bool)) (strat_state : bfs_state) : search_state :=
 ⟨conf, rw_cfg, rs, strat_state, table.create, table.create, none, statistics.init⟩
 
 meta def setup_instance (conf : core_cfg) (rw_cfg : tactic.nth_rewrite.cfg)
-  (rs : list (expr × bool)) (s_state : bfs_state) (eqn : sided_pair expr) :
+  (rs : list (expr × bool)) (eqn : sided_pair expr) :
   tactic search_state :=
-do let g := mk_initial_search_state conf rw_cfg rs s_state,
+do let g := mk_initial_search_state conf rw_cfg rs (bfs_init []),
    (g, vl) ← g.add_root_vertex eqn.l side.L,
    (g, vr) ← g.add_root_vertex eqn.r side.R,
-   g ← bfs_startup g vl vr,
-   return g
+   return $ g.mutate_strat $ bfs_init [vl.id, vr.id, none]
 
 meta def try_mk_search_instance (cfg : config) (rs : list (expr × bool))
 (eqn : sided_pair expr) : tactic (option search_state) :=
-   init_result.try "strategy" bfs_init $ λ strat_state, do
-   let conf : core_cfg := {
-    max_iterations := cfg.max_iterations,
-    optimal := cfg.optimal,
-    exhaustive := cfg.exhaustive,
-    trace := cfg.trace,
-    trace_summary := cfg.trace_summary,
-    trace_rules := cfg.trace_rules,
-    explain := cfg.explain,
-    explain_using_conv := cfg.explain_using_conv
-  },
-  option.some <$>
-    setup_instance conf cfg.to_cfg rs strat_state eqn
+do let conf : core_cfg := {
+   max_iterations := cfg.max_iterations,
+   optimal := cfg.optimal,
+   exhaustive := cfg.exhaustive,
+   trace := cfg.trace,
+   trace_summary := cfg.trace_summary,
+   trace_rules := cfg.trace_rules,
+   explain := cfg.explain,
+   explain_using_conv := cfg.explain_using_conv
+},
+option.some <$> setup_instance conf cfg.to_cfg rs eqn
 
 open tactic
 

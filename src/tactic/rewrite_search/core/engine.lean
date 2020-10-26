@@ -219,12 +219,7 @@ meta def exhaust_all : tactic search_state := do
 
 end search_state
 
-meta def bfs_init : tactic (init_result bfs_state) :=
-init_result.pure ⟨1, []⟩
-
-meta def bfs_startup (g : search_state) (l r : vertex) :
-tactic search_state :=
-return $ g.mutate_strat ⟨1, [l.id, r.id, none]⟩
+meta def bfs_init (refs : list (option table_ref)) : bfs_state := ⟨1, refs⟩
 
 meta def bfs_step (g : search_state) : tactic (search_state × status) := do
   let state := g.strat_state,

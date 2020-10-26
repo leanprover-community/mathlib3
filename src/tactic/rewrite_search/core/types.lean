@@ -192,12 +192,6 @@ meta structure search_state :=
 def LHS_VERTEX_ID : table_ref := table_ref.of_nat 0
 def RHS_VERTEX_ID : table_ref := table_ref.of_nat 1
 
-meta def update_fn : Type := search_state → ℕ → tactic search_state
-
-meta def startup_fn : Type := search_state → vertex → vertex → tactic search_state
-
-meta def step_fn : Type := search_state → tactic (search_state × status)
-
 namespace search_state
 variables (g : search_state)
 

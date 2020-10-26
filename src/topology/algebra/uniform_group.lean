@@ -162,7 +162,7 @@ def topological_add_group.to_uniform_space : uniform_space G :=
     intros D H,
     rw mem_lift'_sets,
     { rcases H with ⟨U, U_nhds, U_sub⟩,
-      rcases exists_nhds_half U_nhds with ⟨V, ⟨V_nhds, V_sum⟩⟩,
+      rcases exists_nhds_zero_half U_nhds with ⟨V, ⟨V_nhds, V_sum⟩⟩,
       existsi ((λp:G×G, p.2 - p.1) ⁻¹' V),
       have H : (λp:G×G, p.2 - p.1) ⁻¹' V ∈ comap (λp:G×G, p.2 - p.1) (𝓝 (0 : G)),
         by existsi [V, V_nhds] ; refl,
@@ -171,7 +171,7 @@ def topological_add_group.to_uniform_space : uniform_space G :=
       begin
         intros p p_comp_rel,
         rcases p_comp_rel with ⟨z, ⟨Hz1, Hz2⟩⟩,
-        simpa [sub_eq_add_neg, add_comm, add_left_comm] using V_sum _ _ Hz1 Hz2
+        simpa [sub_eq_add_neg, add_comm, add_left_comm] using V_sum _ Hz1 _ Hz2
       end,
       exact set.subset.trans comp_rel_sub U_sub },
     { exact monotone_comp_rel monotone_id monotone_id }
@@ -390,7 +390,7 @@ begin
     rw ← nhds_prod_eq at lim_sub_sub,
     exact tendsto.comp lim_φ lim_sub_sub },
 
-  rcases exists_nhds_quarter W'_nhd with ⟨W, W_nhd, W4⟩,
+  rcases exists_nhds_zero_quarter W'_nhd with ⟨W, W_nhd, W4⟩,
 
   have : ∃ U₁ ∈ comap e (𝓝 x₀), ∃ V₁ ∈ comap f (𝓝 y₀),
     ∀ x x' ∈ U₁, ∀ y y' ∈ V₁,  φ (x'-x, y'-y) ∈ W,

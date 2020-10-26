@@ -189,6 +189,11 @@ def to_monoid_hom {M N} [monoid M] [monoid N] (h : M ≃* N) : (M →* N) :=
 { map_one' := h.map_one, .. h }
 
 @[simp, to_additive]
+lemma coe_to_monoid_hom {M N} [monoid M] [monoid N] (e : M ≃* N) :
+  ⇑e.to_monoid_hom = e :=
+rfl
+
+@[to_additive]
 lemma to_monoid_hom_apply {M N} [monoid M] [monoid N] (e : M ≃* N) (x : M) :
   e.to_monoid_hom x = e x :=
 rfl
@@ -222,9 +227,46 @@ begin
   { exact congr_arg equiv.inv_fun h₁ }
 end
 
+@[to_additive] lemma to_monoid_hom_injective
+  {M N} [monoid M] [monoid N] : function.injective (to_monoid_hom : (M ≃* N) → M →* N) :=
+λ f g h, mul_equiv.ext (monoid_hom.ext_iff.1 h)
+
 attribute [ext] add_equiv.ext
 
 end mul_equiv
+
+-- We don't use `to_additive` to generate definition because it fails to tell Lean about
+-- equational lemmas
+
+/-- Given a pair of additive monoid homomorphisms `f`, `g` such that `g.comp f = id` and
+`f.comp g = id`, returns an additive equivalence with `to_fun = f` and `inv_fun = g`.  This
+constructor is useful if the underlying type(s) have specialized `ext` lemmas for additive
+monoid homomorphisms. -/
+def add_monoid_hom.to_add_equiv [add_monoid M] [add_monoid N] (f : M →+ N) (g : N →+ M)
+  (h₁ : g.comp f = add_monoid_hom.id _) (h₂ : f.comp g = add_monoid_hom.id _) :
+  M ≃+ N :=
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := add_monoid_hom.congr_fun h₁,
+  right_inv := add_monoid_hom.congr_fun h₂,
+  map_add' := f.map_add }
+
+/-- Given a pair of monoid homomorphisms `f`, `g` such that `g.comp f = id` and `f.comp g = id`,
+returns an multiplicative equivalence with `to_fun = f` and `inv_fun = g`.  This constructor is
+useful if the underlying type(s) have specialized `ext` lemmas for monoid homomorphisms. -/
+@[to_additive]
+def monoid_hom.to_mul_equiv [monoid M] [monoid N] (f : M →* N) (g : N →* M)
+  (h₁ : g.comp f = monoid_hom.id _) (h₂ : f.comp g = monoid_hom.id _) :
+  M ≃* N :=
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := monoid_hom.congr_fun h₁,
+  right_inv := monoid_hom.congr_fun h₂,
+  map_mul' := f.map_mul }
+
+@[simp, to_additive]
+lemma monoid_hom.coe_to_mul_equiv [monoid M] [monoid N] (f : M →* N) (g : N →* M) (h₁ h₂) :
+  ⇑(f.to_mul_equiv g h₁ h₂) = f := rfl
 
 /-- An additive equivalence of additive groups preserves subtraction. -/
 lemma add_equiv.map_sub [add_group A] [add_group B] (h : A ≃+ B) (x y : A) :

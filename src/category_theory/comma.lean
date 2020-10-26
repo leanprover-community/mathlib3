@@ -14,11 +14,13 @@ with a common codomain. Specifically, for functors `L : A ⥤ T` and `R : B ⥤ 
 `right : B`, and a morphism in `comma L R` between `hom : L.obj left ⟶ R.obj right` and
 `hom' : L.obj left' ⟶ R.obj right'` is a commutative square
 
+```
 L.obj left   ⟶   L.obj left'
       |               |
   hom |               | hom'
       ↓               ↓
 R.obj right  ⟶   R.obj right',
+```
 
 where the top and bottom morphism come from morphisms `left ⟶ left'` and `right ⟶ right'`,
 respectively.
@@ -32,7 +34,7 @@ respectively.
 
 ## References
 
-* https://ncatlab.org/nlab/show/comma+category
+* <https://ncatlab.org/nlab/show/comma+category>
 
 ## Tags
 

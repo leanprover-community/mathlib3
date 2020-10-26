@@ -207,6 +207,13 @@ theorem smul_eq_zero {R E : Type*} [division_ring R] [add_comm_group E] [module 
 
 end module
 
+/-- A semimodule over a `subsingleton` semiring is a `subsingleton`. We cannot register this
+as an instance because Lean has no way to guess `R`. -/
+theorem semimodule.subsingleton (R M : Type*) [semiring R] [subsingleton R] [add_comm_monoid M]
+  [semimodule R M] :
+  subsingleton M :=
+⟨λ x y, by rw [← one_smul R x, ← one_smul R y, subsingleton.elim (1:R) 0, zero_smul, zero_smul]⟩
+
 @[priority 910] -- see Note [lower instance priority]
 instance semiring.to_semimodule [semiring R] : semimodule R R :=
 { smul := (*),

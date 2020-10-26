@@ -88,9 +88,7 @@ by { ext x, refl }
 end
 
 section
--- We can infer the module structure implicitly from the linear maps,
--- rather than via typeclass resolution.
-variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
+variables [semimodule R M] [semimodule R M₂]
 variables (f g : M →ₗ[R] M₂)
 
 @[simp] lemma to_fun_eq_coe : f.to_fun = ⇑f := rfl
@@ -99,21 +97,20 @@ theorem is_linear : is_linear_map R f := ⟨f.2, f.3⟩
 
 variables {f g}
 
-theorem coe_inj (h : (f : M → M₂) = g) : f = g :=
-by cases f; cases g; cases h; refl
+theorem coe_injective : injective (λ f : M →ₗ[R] M₂, show M → M₂, from f) :=
+by rintro ⟨f, _⟩ ⟨g, _⟩ ⟨h⟩; congr
 
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
-coe_inj $ funext H
+coe_injective $ funext H
 
-lemma coe_fn_congr : Π {x x' : M}, x = x' → f x = f x'
+protected lemma congr_arg : Π {x x' : M}, x = x' → f x = f x'
 | _ _ rfl := rfl
+
+/-- If two linear maps are equal, they are equal at each point. -/
+protected lemma congr_fun (h : f = g) (x : M) : f x = g x := h ▸ rfl
 
 theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
 ⟨by { rintro rfl x, refl } , ext⟩
-
-/-- If two linear maps are equal, they are equal at each point. -/
-lemma lcongr_fun (h : f = g) (m : M) : f m = g m :=
-congr_fun (congr_arg linear_map.to_fun h) m
 
 variables (f g)
 
@@ -141,10 +138,13 @@ def to_add_monoid_hom : M →+ M₂ :=
   f (∑ i in t, g i) = (∑ i in t, f (g i)) :=
 f.to_add_monoid_hom.map_sum _ _
 
-theorem to_add_monoid_hom_injective [semimodule R M] [semimodule R M₂] :
+theorem to_add_monoid_hom_injective :
   function.injective (to_add_monoid_hom : (M →ₗ[R] M₂) → (M →+ M₂)) :=
-λ f g h, coe_inj $ funext $ add_monoid_hom.congr_fun h
+λ f g h, ext $ add_monoid_hom.congr_fun h
 
+/-- If two `R`-linear maps from `R` are equal on `1`, then they are equal. -/
+@[ext] theorem ext_ring {f g : R →ₗ[R] M} (h : f 1 = g 1) : f = g :=
+ext $ λ x, by rw [← mul_one x, ← smul_eq_mul, f.map_smul, g.map_smul, h]
 end
 
 section
@@ -303,8 +303,18 @@ rfl
 @[nolint doc_blame]
 def to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂ := λ f, f.to_add_equiv.to_equiv
 
-lemma to_equiv_injective : function.injective (to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂) :=
+lemma injective_to_equiv : function.injective (to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂) :=
 λ ⟨_, _, _, _, _, _⟩ ⟨_, _, _, _, _, _⟩ h, linear_equiv.mk.inj_eq.mpr (equiv.mk.inj h)
+
+@[simp] lemma to_equiv_inj {e₁ e₂ : M ≃ₗ[R] M₂} : e₁.to_equiv = e₂.to_equiv ↔ e₁ = e₂ :=
+injective_to_equiv.eq_iff
+
+lemma injective_to_linear_map : function.injective (coe : (M ≃ₗ[R] M₂) → (M →ₗ[R] M₂)) :=
+λ e₁ e₂ H, injective_to_equiv $ equiv.ext $ linear_map.congr_fun H
+
+@[simp, norm_cast] lemma to_linear_map_inj {e₁ e₂ : M ≃ₗ[R] M₂} :
+  (e₁ : M →ₗ[R] M₂) = e₂ ↔ e₁ = e₂ :=
+injective_to_linear_map.eq_iff
 
 end
 
@@ -321,16 +331,7 @@ variables (e e' : M ≃ₗ[R] M₂)
 section
 variables {e e'}
 @[ext] lemma ext (h : ∀ x, e x = e' x) : e = e' :=
-to_equiv_injective (equiv.ext h)
-
-variables [semimodule R M] [semimodule R M₂]
-
-lemma eq_of_linear_map_eq {f f' : M ≃ₗ[R] M₂} (h : (f : M →ₗ[R] M₂) = f') : f = f' :=
-begin
-  ext x,
-  change (f : M →ₗ[R] M₂) x = (f' : M →ₗ[R] M₂) x,
-  rw h
-end
+injective_to_equiv (equiv.ext h)
 
 end
 
@@ -368,8 +369,8 @@ def trans : M ≃ₗ[R] M₃ :=
 @[simp] theorem symm_apply_apply (b : M) : e.symm (e b) = b := e.5 b
 @[simp] lemma symm_trans_apply (c : M₃) : (e₁.trans e₂).symm c = e₁.symm (e₂.symm c) := rfl
 
-@[simp] lemma trans_refl : e.trans (refl R M₂) = e := to_equiv_injective e.to_equiv.trans_refl
-@[simp] lemma refl_trans : (refl R M).trans e = e := to_equiv_injective e.to_equiv.refl_trans
+@[simp] lemma trans_refl : e.trans (refl R M₂) = e := injective_to_equiv e.to_equiv.trans_refl
+@[simp] lemma refl_trans : (refl R M).trans e = e := injective_to_equiv e.to_equiv.refl_trans
 
 lemma symm_apply_eq {x y} : e.symm x = y ↔ x = e y := e.to_equiv.symm_apply_eq
 

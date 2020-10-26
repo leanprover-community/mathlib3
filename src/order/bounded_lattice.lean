@@ -489,6 +489,12 @@ lemma le_coe_get_or_else [preorder α] : ∀ (a : with_bot α) (b : α), a ≤ a
 | (some a) b := le_refl a
 | none     b := λ _ h, option.no_confusion h
 
+@[simp] lemma get_or_else_bot (a : α) : option.get_or_else (⊥ : with_bot α) a = a := rfl
+
+lemma get_or_else_bot_le_iff [order_bot α] {a : with_bot α} {b : α} :
+  a.get_or_else ⊥ ≤ b ↔ a ≤ b :=
+by cases a; simp [none_eq_bot, some_eq_coe]
+
 instance decidable_le [preorder α] [@decidable_rel α (≤)] : @decidable_rel (with_bot α) (≤)
 | none x := is_true $ λ a h, option.no_confusion h
 | (some x) (some y) :=

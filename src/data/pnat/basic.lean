@@ -222,6 +222,29 @@ theorem add_sub_of_lt {a b : ℕ+} : a < b → a + (b - a) = b :=
  λ h, eq $ by { rw [add_coe, sub_coe, if_pos h],
                 exact nat.add_sub_of_le (le_of_lt h) }
 
+instance : has_well_founded ℕ+ := ⟨(<), measure_wf coe⟩
+
+/-- Strong induction on `pnat`. -/
+lemma strong_induction_on {p : pnat → Prop} : ∀ (n : pnat) (h : ∀ k, (∀ m, m < k → p m) → p k), p n
+| n := λ IH, IH _ (λ a h, strong_induction_on a IH)
+using_well_founded { dec_tac := `[assumption] }
+
+/-- If `(n : pnat)` is different from `1`, then it is the successor of some `(k : pnat)`. -/
+lemma exists_eq_succ_of_ne_one : ∀ {n : pnat} (h1 : n ≠ 1), ∃ (k : pnat), n = k + 1
+| ⟨1, _⟩ h1 := false.elim $ h1 rfl
+| ⟨n+2, _⟩ _ := ⟨⟨n+1, by simp⟩, rfl⟩
+
+lemma case_strong_induction_on {p : pnat → Prop} (a : pnat) (hz : p 1)
+  (hi : ∀ n, (∀ m, m ≤ n → p m) → p (n + 1)) : p a :=
+begin
+  apply strong_induction_on a,
+  intros k hk,
+  by_cases h1 : k = 1, { rwa h1 },
+  obtain ⟨b, rfl⟩ := exists_eq_succ_of_ne_one h1,
+  simp only [lt_add_one_iff] at hk,
+  exact hi b hk
+end
+
 /-- We define `m % k` and `m / k` in the same way as for `ℕ`
   except that when `m = n * k` we take `m % k = k` and
   `m / k = n - 1`.  This ensures that `m % k` is always positive

@@ -350,10 +350,9 @@ begin
   split,
   { assume h,
     ext m,
-    simpa [h, norm_le_zero_iff.symm] using f.le_op_norm m },
-  { assume h,
-    apply le_antisymm (op_norm_le_bound f (le_refl _) (λm, _)) (op_norm_nonneg _),
-    rw h,
+    simpa [h] using f.le_op_norm m },
+  { rintro rfl,
+    apply le_antisymm (op_norm_le_bound 0 le_rfl (λm, _)) (op_norm_nonneg _),
     simp }
 end
 

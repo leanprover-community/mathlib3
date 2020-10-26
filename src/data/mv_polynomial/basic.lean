@@ -261,41 +261,26 @@ finsupp.induction p (suffices P (monomial 0 0), by rwa monomial_zero at this,
                     (λ a b f ha hb hPf, h2 _ _ (h1 _ _) hPf)
 
 
+@[ext] lemma ring_hom_ext {A : Type*} [semiring A] {f g : mv_polynomial σ R →+* A}
+  (hC : ∀ r, f (C r) = g (C r)) (hX : ∀ i, f (X i) = g (X i)) :
+  f = g :=
+by { ext, exacts [hC _, hX _] }
+
 lemma hom_eq_hom [semiring S₂]
   (f g : mv_polynomial σ R →+* S₂)
   (hC : ∀a:R, f (C a) = g (C a)) (hX : ∀n:σ, f (X n) = g (X n)) (p : mv_polynomial σ R) :
   f p = g p :=
-mv_polynomial.induction_on p hC
-  begin assume p q hp hq, rw [is_semiring_hom.map_add f, is_semiring_hom.map_add g, hp, hq] end
-  begin assume p n hp, rw [is_semiring_hom.map_mul f, is_semiring_hom.map_mul g, hp, hX] end
+ring_hom.congr_fun (ring_hom_ext hC hX) p
 
 lemma is_id (f : mv_polynomial σ R →+* mv_polynomial σ R)
   (hC : ∀a:R, f (C a) = (C a)) (hX : ∀n:σ, f (X n) = (X n)) (p : mv_polynomial σ R) :
   f p = p :=
 hom_eq_hom f (ring_hom.id _) hC hX p
 
-@[ext] lemma ring_hom_ext {A : Type*} [comm_semiring A] (f g : mv_polynomial σ R →+* A)
-  (hC : ∀ r, f (C r) = g (C r)) (hX : ∀ i, f (X i) = g (X i)) :
-  f = g :=
-begin
-  ext p : 1,
-  apply mv_polynomial.induction_on' p,
-  { intros m r, rw [monomial_eq, finsupp.prod],
-    simp only [monomial_eq, ring_hom.map_mul, ring_hom.map_prod, ring_hom.map_pow, hC, hX], },
-  { intros p q hp hq, simp only [ring_hom.map_add, hp, hq] }
-end
-
 @[ext] lemma alg_hom_ext {A : Type*} [comm_semiring A] [algebra R A]
   {f g : mv_polynomial σ R →ₐ[R] A} (hf : ∀ i : σ, f (X i) = g (X i)) :
   f = g :=
-begin
-  apply alg_hom.coe_ring_hom_injective,
-  apply ring_hom_ext,
-  { intro r,
-    calc f (C r) = algebra_map R A r : f.commutes r
-             ... = g (C r)           : (g.commutes r).symm },
-  { simpa only [hf] },
-end
+by { ext, exact hf _ }
 
 @[simp] lemma alg_hom_C (f : mv_polynomial σ R →ₐ[R] mv_polynomial σ R) (r : R) :
   f (C r) = C r :=

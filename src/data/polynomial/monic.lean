@@ -225,6 +225,14 @@ by simpa only [C_neg] using monic_X_add_C (-x)
 theorem monic_X_pow_sub {n : ℕ} (H : degree p ≤ n) : monic (X ^ (n+1) - p) :=
 monic_X_pow_add ((degree_neg p).symm ▸ H)
 
+/-- `X ^ n - a` is monic. -/
+lemma monic_X_pow_sub_C {R : Type u} [ring R] (a : R) {n : ℕ} (h : n ≠ 0) : (X ^ n - C a).monic :=
+begin
+  obtain ⟨k, hk⟩ := nat.exists_eq_succ_of_ne_zero h,
+  convert monic_X_pow_sub _,
+  exact le_trans degree_C_le nat.with_bot.coe_nonneg,
+end
+
 section injective
 open function
 variables [semiring S] {f : R →+* S} (hf : injective f)

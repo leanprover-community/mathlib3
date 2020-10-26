@@ -436,7 +436,7 @@ lemma monoid_hom.apply_mnat [monoid M] (f : multiplicative ℕ →* M) (n : mult
   f n = (f (multiplicative.of_add 1)) ^ n.to_add :=
 by rw [← powers_hom_symm_apply, ← powers_hom_apply, equiv.apply_symm_apply]
 
-lemma monoid_hom.ext_mnat [monoid M] ⦃f g : multiplicative ℕ →* M⦄
+@[ext] lemma monoid_hom.ext_mnat [monoid M] ⦃f g : multiplicative ℕ →* M⦄
   (h : f (multiplicative.of_add 1) = g (multiplicative.of_add 1)) : f = g :=
 monoid_hom.ext $ λ n, by rw [f.apply_mnat, g.apply_mnat, h]
 
@@ -444,7 +444,7 @@ lemma monoid_hom.apply_mint [group M] (f : multiplicative ℤ →* M) (n : multi
   f n = (f (multiplicative.of_add 1)) ^ n.to_add :=
 by rw [← gpowers_hom_symm_apply, ← gpowers_hom_apply, equiv.apply_symm_apply]
 
-lemma monoid_hom.ext_mint [group M] ⦃f g : multiplicative ℤ →* M⦄
+@[ext] lemma monoid_hom.ext_mint [group M] ⦃f g : multiplicative ℤ →* M⦄
   (h : f (multiplicative.of_add 1) = g (multiplicative.of_add 1)) : f = g :=
 monoid_hom.ext $ λ n, by rw [f.apply_mint, g.apply_mint, h]
 

@@ -86,7 +86,7 @@ lemma trans [algebra A B] [is_scalar_tower R A B] [hRA : finite R A] [hAB : fini
 let ⟨s, hs⟩ := hRA, ⟨t, ht⟩ := hAB in submodule.fg_def.2
 ⟨set.image2 (•) (↑s : set A) (↑t : set B),
 set.finite.image2 _ s.finite_to_set t.finite_to_set,
-by rw [set.image2_smul, submodule.span_smul hs (↑t : set B), ht, submodule.restrict_scalars'_top]⟩
+by rw [set.image2_smul, submodule.span_smul hs (↑t : set B), ht, submodule.restrict_scalars_top]⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance finite_type [hRA : finite R A] : algebra.finite_type R A :=

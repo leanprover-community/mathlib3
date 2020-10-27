@@ -203,6 +203,7 @@ lemma card_fixing_subgroup_eq_findim [finite_dimensional F E] [is_galois F E] :
   fintype.card (fixing_subgroup K) = findim K E :=
 by conv { to_rhs, rw [←fixed_field_of_fixing_subgroup K, findim_fixed_field_eq_card] }
 
+/-- The Galois correspondence from intermediate fields to subgroups -/
 def galois_correspondence [finite_dimensional F E] [is_galois F E] :
   intermediate_field F E ≃o order_dual (subgroup (E ≃ₐ[F] E)) :=
 { to_fun := fixing_subgroup,

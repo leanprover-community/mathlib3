@@ -30,7 +30,8 @@ def free : Type u ⥤ CommRing :=
 { obj := λ α, of (mv_polynomial α ℤ),
   map := λ X Y f, ((rename f : mv_polynomial X ℤ →ₐ[ℤ] mv_polynomial Y ℤ) :
                               (mv_polynomial X ℤ →+*   mv_polynomial Y ℤ)),
-  -- TODO these next two fields can be done by `tidy`, but the calls in `dsimp` and `simp` it generates are too slow.
+  -- TODO these next two fields can be done by `tidy`, but the calls in `dsimp` and `simp` it
+  -- generates are too slow.
   map_id' := λ X, ring_hom.ext $ rename_id,
   map_comp' := λ X Y Z f g, ring_hom.ext $ λ p, (rename_rename f g p).symm }
 

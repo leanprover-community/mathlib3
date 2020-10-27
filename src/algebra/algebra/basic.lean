@@ -121,7 +121,8 @@ it suffices to check the `algebra_map`s agree.
 -- We'll later use this to show `algebra ℤ M` is a subsingleton.
 @[ext]
 lemma algebra_ext {R : Type*} [comm_semiring R] {A : Type*} [semiring A] (P Q : algebra R A)
-  (w : ∀ (r : R), by { haveI := P, exact algebra_map R A r } = by { haveI := Q, exact algebra_map R A r }) :
+  (w : ∀ (r : R), by { haveI := P, exact algebra_map R A r } =
+    by { haveI := Q, exact algebra_map R A r }) :
   P = Q :=
 begin
   unfreezingI { rcases P with ⟨⟨P⟩⟩, rcases Q with ⟨⟨Q⟩⟩ },
@@ -702,7 +703,8 @@ by { ext, simp }
 by { ext, simp }
 
 /-- If an algebra morphism has an inverse, it is a algebra isomorphism. -/
-def of_alg_hom (f : A₁ →ₐ[R] A₂) (g : A₂ →ₐ[R] A₁) (h₁ : f.comp g = alg_hom.id R A₂) (h₂ : g.comp f = alg_hom.id R A₁) : A₁ ≃ₐ[R] A₂ :=
+def of_alg_hom (f : A₁ →ₐ[R] A₂) (g : A₂ →ₐ[R] A₁) (h₁ : f.comp g = alg_hom.id R A₂)
+  (h₂ : g.comp f = alg_hom.id R A₁) : A₁ ≃ₐ[R] A₂ :=
 { inv_fun   := g,
   left_inv  := alg_hom.ext_iff.1 h₂,
   right_inv := alg_hom.ext_iff.1 h₁,
@@ -802,8 +804,8 @@ include R S A
   Other than that, `algebra.comap` is now deprecated and replaced with `is_scalar_tower`. -/
 /- This is done to avoid a type class search with meta-variables `algebra R ?m_1` and
     `algebra ?m_1 A -/
-/- The `nolint` attribute is added because it has unused arguments `R` and `S`, but these are necessary for synthesizing the
-     appropriate type classes -/
+/- The `nolint` attribute is added because it has unused arguments `R` and `S`, but these are
+  necessary for synthesizing the appropriate type classes -/
 @[nolint unused_arguments]
 def comap : Type w := A
 

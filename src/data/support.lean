@@ -84,11 +84,11 @@ lemma support_inf [has_zero A] [semilattice_inf A] (f g : α → A) :
   support (λ x, (f x) ⊓ (g x)) ⊆ support f ∪ support g :=
 support_binop_subset (⊓) inf_idem f g
 
-lemma support_max [has_zero A] [decidable_linear_order A] (f g : α → A) :
+lemma support_max [has_zero A] [linear_order A] (f g : α → A) :
   support (λ x, max (f x) (g x)) ⊆ support f ∪ support g :=
 support_sup f g
 
-lemma support_min [has_zero A] [decidable_linear_order A] (f g : α → A) :
+lemma support_min [has_zero A] [linear_order A] (f g : α → A) :
   support (λ x, min (f x) (g x)) ⊆ support f ∪ support g :=
 support_inf f g
 

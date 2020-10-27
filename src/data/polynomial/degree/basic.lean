@@ -700,6 +700,15 @@ theorem degree_le_iff_coeff_zero (f : polynomial R) (n : with_bot ℕ) :
 λ H, finset.sup_le $ λ b Hb, decidable.of_not_not $ λ Hn,
   (finsupp.mem_support_to_fun f b).1 Hb $ H b $ lt_of_not_ge Hn⟩
 
+theorem degree_lt_iff_coeff_zero (f : polynomial R) (n : ℕ) :
+  degree f < n ↔ ∀ m : ℕ, n ≤ m → coeff f m = 0 :=
+begin
+  refine ⟨λ hf m hm, coeff_eq_zero_of_degree_lt (lt_of_lt_of_le hf (with_bot.coe_le_coe.2 hm)), _⟩,
+  simp only [degree, finset.sup_lt_iff (with_bot.bot_lt_coe n), mem_support_iff,
+    with_bot.some_eq_coe, with_bot.coe_lt_coe, ← @not_le ℕ],
+  exact λ h m, mt (h m),
+end
+
 lemma degree_lt_degree_mul_X (hp : p ≠ 0) : p.degree < (p * X).degree :=
 by haveI := nontrivial.of_polynomial_ne hp; exact
 have leading_coeff p * leading_coeff X ≠ 0, by simpa,

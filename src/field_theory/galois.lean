@@ -164,8 +164,7 @@ def fixing_subgroup_iso : fixing_subgroup K ≃* (E ≃ₐ[K] E) := {
 theorem fixing_subgroup_of_fixed_field [finite_dimensional F E] :
   fixing_subgroup (fixed_field H) = H :=
 begin
-  have H_le : H ≤ (fixing_subgroup (fixed_field H)) :=
-    λ ϕ ϕh x, (mul_action.mem_fixed_points E).mp (subtype.mem x) ⟨ϕ, ϕh⟩,
+  have H_le : H ≤ (fixing_subgroup (fixed_field H)) := (le_iff_le _ _).mp (le_refl _),
   suffices : fintype.card H = fintype.card (fixing_subgroup (fixed_field H)),
   { exact subgroup.ext' (set.eq_of_inclusion_surjective ((fintype.bijective_iff_injective_and_card
     (set.inclusion H_le)).mpr ⟨set.inclusion_injective H_le, this⟩).2).symm },
@@ -193,7 +192,7 @@ instance tower_instance : is_scalar_tower K (fixed_field (fixing_subgroup K)) E 
 theorem fixed_field_of_fixing_subgroup [finite_dimensional F E] [h : is_galois F E] :
   fixed_field (fixing_subgroup K) = K :=
 begin
-  have K_le : K ≤ fixed_field (fixing_subgroup K) := λ x hx ϕ, subtype.mem ϕ (⟨x, hx⟩ : K),
+  have K_le : K ≤ fixed_field (fixing_subgroup K) := (le_iff_le _ _).mpr (le_refl _),
   suffices : findim K E = findim (fixed_field (fixing_subgroup K)) E,
   { exact (intermediate_field.eq_of_le_of_findim_eq' K_le this).symm },
   rw [findim_fixed_field_eq_card, fintype.card_congr (fixing_subgroup_iso K).to_equiv],
@@ -204,8 +203,6 @@ lemma card_fixing_subgroup_eq_findim [finite_dimensional F E] [is_galois F E] :
   fintype.card (fixing_subgroup K) = findim K E :=
 by conv { to_rhs, rw [←fixed_field_of_fixing_subgroup K, findim_fixed_field_eq_card] }
 
---TODO: Maybe upgrade this to some sort of lattice anti-isomorphism?
-/-- The bundled Galois correspondence -/
 def galois_correspondence [finite_dimensional F E] [is_galois F E] :
   intermediate_field F E ≃o order_dual (subgroup (E ≃ₐ[F] E)) :=
 { to_fun := fixing_subgroup,

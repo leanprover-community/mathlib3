@@ -90,7 +90,7 @@ calc monomial n a = monomial n (a * 1) : by simp
 lemma ring_hom_ext {S} [semiring S] {f g : polynomial R →+* S}
   (h₁ : ∀ a, f (C a) = g (C a)) (h₂ : f X = g X) : f = g :=
 by { ext, exacts [h₁ _, h₂] }
-  
+
 @[ext] lemma ring_hom_ext' {S} [semiring S] {f g : polynomial R →+* S}
   (h₁ : f.comp C = g.comp C) (h₂ : f X = g X) : f = g :=
 ring_hom_ext (ring_hom.congr_fun h₁) h₂

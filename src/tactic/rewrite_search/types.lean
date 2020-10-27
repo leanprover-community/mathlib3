@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 -/
 
-import data.array.table
-
 import tactic.rewrite_search.common
 import tactic.rewrite_search.hook
 
@@ -40,6 +38,8 @@ meta instance has_to_format : has_to_format edge := ⟨λ e, format!"{e.f}->{e.t
 
 end edge
 
+def invalid_index : ℕ := 0xFFFFFFFF
+
 structure rewrite_iter :=
 (orig : ℕ)
 (front : ℕ)
@@ -66,7 +66,7 @@ meta def to_string (v : vertex) : string := v.s.to_string ++ v.pp
 meta def create (id : ℕ) (e : expr) (pp : string) (token_refs : list ℕ) (root : bool) (s : side) : vertex :=
 ⟨ id, e, pp, token_refs, root, ff, s, none, none, buffer.nil, 0, buffer.nil ⟩
 
-meta def null : vertex := vertex.create table.null (default expr) "__NULLEXPR" [] ff side.L
+meta def null : vertex := vertex.create invalid_index (default expr) "__NULLEXPR" [] ff side.L
 
 meta instance inhabited : inhabited vertex := ⟨null⟩
 meta instance indexed : indexed vertex := ⟨λ v, v.id⟩
@@ -76,7 +76,7 @@ meta instance has_to_format : has_to_format vertex := ⟨λ v, v.pp⟩
 end vertex
 
 def pair := sided_pair ℕ
-def pair.null : pair := ⟨table.null, table.null⟩
+def pair.null : pair := ⟨invalid_index, invalid_index⟩
 instance pair.has_to_string : has_to_string pair := ⟨sided_pair.to_string⟩
 
 structure token :=
@@ -88,7 +88,7 @@ namespace token
 
 def inc (t : token) (s : side) : token := {t with freq := t.freq.set s $ (t.freq.get s) + 1}
 
-def null : token := ⟨ table.null, "__NULLTOKEN", 0, 0 ⟩
+def null : token := ⟨ invalid_index, "__NULLTOKEN", 0, 0 ⟩
 
 instance inhabited : inhabited token := ⟨null⟩
 instance indexed : indexed token := ⟨λ t, t.id⟩

@@ -55,7 +55,7 @@ meta def find_vertex (e : expr) : tactic (option vertex) := do
   pp ← to_string <$> tactic.pp e,
   return (g.vertices.foldl none (vertex_finder pp))
 
--- Forcibly add a new vertex to the vertex table. You probably actually want to call
+-- Forcibly add a new vertex to the vertex buffer. You probably actually want to call
 -- add_vertex, which will check that we haven't seen the vertex before first.
 meta def alloc_vertex (e : expr) (root : bool) (s : side) : tactic (search_state × vertex) :=
 do (pp, tokens) ← tokenize_expr e,
@@ -143,7 +143,7 @@ do
         g.mark_vertex_visited v
       else
         pure (g, v),
-  return ⟨g, ⟨v.id, table.first⟩⟩
+  return ⟨g, ⟨v.id, 0⟩⟩
 
 end search_state
 

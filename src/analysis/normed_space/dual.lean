@@ -190,7 +190,8 @@ begin
       exact sub_self (ℓ x * ℓ z) },
     have h₂ : (ℓ z) * ⟪z, x⟫_ℝ = (ℓ x) * ⟪z, z⟫_ℝ,
     { have h₃ := calc
-        0    = ⟪z, (ℓ z) • x - (ℓ x) • z⟫_ℝ       : by { rw [(Y.mem_orthogonal' z).mp hz], exact h₁ }
+        0    = ⟪z, (ℓ z) • x - (ℓ x) • z⟫_ℝ       :
+                  by { rw [(Y.mem_orthogonal' z).mp hz], exact h₁ }
          ... = ⟪z, (ℓ z) • x⟫_ℝ - ⟪z, (ℓ x) • z⟫_ℝ  : by rw [inner_sub_right]
          ... = (ℓ z) * ⟪z, x⟫_ℝ - (ℓ x) * ⟪z, z⟫_ℝ  : by simp [inner_smul_right],
       exact sub_eq_zero.mp (eq.symm h₃) },

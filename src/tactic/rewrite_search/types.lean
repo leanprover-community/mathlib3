@@ -69,8 +69,6 @@ meta def create (id : ℕ) (e : expr) (pp : string) (token_refs : list ℕ) (roo
 meta def null : vertex := vertex.create invalid_index (default expr) "__NULLEXPR" [] ff side.L
 
 meta instance inhabited : inhabited vertex := ⟨null⟩
-meta instance indexed : indexed vertex := ⟨λ v, v.id⟩
-meta instance keyed : keyed vertex string := ⟨λ v, v.pp⟩
 meta instance has_to_format : has_to_format vertex := ⟨λ v, v.pp⟩
 
 end vertex
@@ -91,8 +89,6 @@ def inc (t : token) (s : side) : token := {t with freq := t.freq.set s $ (t.freq
 def null : token := ⟨ invalid_index, "__NULLTOKEN", 0, 0 ⟩
 
 instance inhabited : inhabited token := ⟨null⟩
-instance indexed : indexed token := ⟨λ t, t.id⟩
-instance keyed : keyed token string := ⟨λ v, v.str⟩
 
 end token
 

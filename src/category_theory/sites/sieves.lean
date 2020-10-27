@@ -236,7 +236,7 @@ begin
 end
 
 @[simp]
-lemma generate_of_singleton_split_epi {f : Y ⟶ X} [split_epi f] :
+lemma generate_of_singleton_split_epi (f : Y ⟶ X) [split_epi f] :
   generate (arrows_with_codomain.singleton_arrow f) = ⊤ :=
 generate_of_contains_split_epi f (arrows_with_codomain.singleton_arrow_self _)
 

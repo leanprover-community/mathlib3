@@ -440,7 +440,7 @@ do gs ← get_goals,
    tac, done,
    set_goals $ gs
 
-def list.minimum_on {α β} [decidable_linear_order β] (f : α → β) : list α → list α
+def list.minimum_on {α β} [linear_order β] (f : α → β) : list α → list α
 | [] := []
 | (x :: xs) := prod.snd $ xs.foldl (λ ⟨k,a⟩ b,
      let k' := f b in

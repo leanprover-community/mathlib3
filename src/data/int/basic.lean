@@ -50,13 +50,13 @@ instance : semiring int           := by apply_instance
 instance : ring int               := by apply_instance
 instance : distrib int            := by apply_instance
 
-instance : decidable_linear_ordered_comm_ring int :=
+instance : linear_ordered_comm_ring int :=
 { add_le_add_left := @int.add_le_add_left,
   mul_pos         := @int.mul_pos,
   zero_le_one     := le_of_lt int.zero_lt_one,
-  .. int.comm_ring, .. int.decidable_linear_order, .. int.nontrivial }
+  .. int.comm_ring, .. int.linear_order, .. int.nontrivial }
 
-instance : decidable_linear_ordered_add_comm_group int :=
+instance : linear_ordered_add_comm_group int :=
 by apply_instance
 
 theorem abs_eq_nat_abs : ∀ a : ℤ, abs a = nat_abs a

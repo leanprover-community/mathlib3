@@ -42,7 +42,8 @@ lemma trailing_degree_lt_wf : well_founded
 (λp q : polynomial R, trailing_degree p < trailing_degree q) :=
 inv_image.wf trailing_degree (with_top.well_founded_lt nat.lt_wf)
 
-/-- `nat_trailing_degree p` forces `trailing_degree p` to ℕ, by defining nat_trailing_degree 0 = 0. -/
+/-- `nat_trailing_degree p` forces `trailing_degree p` to `ℕ`, by defining
+`nat_trailing_degree ⊤ = 0`. -/
 def nat_trailing_degree (p : polynomial R) : ℕ := (trailing_degree p).get_or_else 0
 
 /-- `trailing_coeff p` gives the coefficient of the smallest power of `X` in `p`-/
@@ -103,7 +104,8 @@ begin
   exact le_refl _
 end
 
-lemma nat_trailing_degree_eq_of_trailing_degree_eq [semiring S] {q : polynomial S} (h : trailing_degree p = trailing_degree q) :
+lemma nat_trailing_degree_eq_of_trailing_degree_eq [semiring S] {q : polynomial S}
+  (h : trailing_degree p = trailing_degree q) :
 nat_trailing_degree p = nat_trailing_degree q :=
 by unfold nat_trailing_degree; rw h
 
@@ -170,7 +172,8 @@ by rw [← C_1]; exact le_trailing_degree_C
 @[simp] lemma nat_trailing_degree_C (a : R) : nat_trailing_degree (C a) = 0 :=
 le_zero_iff_eq.1 nat_trailing_degree_monomial_le
 
-@[simp] lemma nat_trailing_degree_one : nat_trailing_degree (1 : polynomial R) = 0 := nat_trailing_degree_C 1
+@[simp] lemma nat_trailing_degree_one : nat_trailing_degree (1 : polynomial R) = 0 :=
+nat_trailing_degree_C 1
 
 @[simp] lemma nat_trailing_degree_nat_cast (n : ℕ) : nat_trailing_degree (n : polynomial R) = 0 :=
 by simp only [←C_eq_nat_cast, nat_trailing_degree_C]
@@ -183,7 +186,8 @@ lemma le_trailing_degree_C_mul_X_pow (n : ℕ) (a : R) :
   (n : with_top ℕ) ≤ trailing_degree (C a * X ^ n) :=
 by { rw C_mul_X_pow_eq_monomial, exact le_trailing_degree_monomial }
 
-lemma coeff_eq_zero_of_trailing_degree_lt (h : (n : with_top ℕ) < trailing_degree p) : coeff p n = 0 :=
+lemma coeff_eq_zero_of_trailing_degree_lt (h : (n : with_top ℕ) < trailing_degree p) :
+  coeff p n = 0 :=
 not_not.1 (mt le_trailing_degree_of_ne_zero (not_le_of_gt h))
 
 lemma coeff_eq_zero_of_lt_nat_trailing_degree {p : polynomial R} {n : ℕ}
@@ -196,7 +200,8 @@ begin
   { rwa [trailing_degree_eq_nat_trailing_degree hp, with_top.coe_lt_coe] },
 end
 
-@[simp] lemma coeff_nat_trailing_degree_pred_eq_zero {p : polynomial R} {hp : (0 : with_top ℕ) < nat_trailing_degree p} : p.coeff (p.nat_trailing_degree - 1) = 0 :=
+@[simp] lemma coeff_nat_trailing_degree_pred_eq_zero {p : polynomial R}
+  {hp : (0 : with_top ℕ) < nat_trailing_degree p} : p.coeff (p.nat_trailing_degree - 1) = 0 :=
 coeff_eq_zero_of_lt_nat_trailing_degree $ nat.sub_lt
   ((with_top.zero_lt_coe (nat_trailing_degree p)).mp hp) nat.one_pos
 

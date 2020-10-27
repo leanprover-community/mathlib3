@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 -/
 
-import data.array.table -- data.rat.basic
+import data.array.table
 
 import tactic.rewrite_search.core.common
 import tactic.rewrite_search.core.hook
@@ -111,44 +111,6 @@ meta inductive status
 | repeat : status
 | done : edge → status
 | abort : string → status
-
-@[derive has_reflect]
-inductive init_result (ε : Type u)
-| success : ε → init_result
-| failure [] : string → init_result
-
-meta def init_fn (ε : Type u) := tactic (init_result ε)
-
-namespace init_result
-
-meta def pure {ε : Type u} (v : ε) : tactic (init_result ε) := return $ success v
-meta def fail {ε : Type u} (reason : string) : tactic (init_result ε) :=
-return $ init_result.failure ε reason
-
-meta def cases {ε : Type u} {η : Type v} (name : string) (fn : init_fn ε)
-(next_step : ε → tactic η) (fallback : string → tactic η) : tactic η :=
-tactic.down.{max u v} $ do
-  val ← tactic.up fn,
-  tactic.up $ match val.down with
-  | failure _ reason := do
-    fallback reason
-  | success val := do
-    next_step val
-  end
-
-meta def chain {ε : Type u} {η : Type v} (name : string) (fn : init_fn ε)
-(next_step : ε → init_fn η) : tactic (init_result η) :=
-  cases name fn next_step $ λ reason,
-  return $ failure _ ("An error occurred while initialising " ++ name ++ ": " ++ reason)
-
-meta def try {ε : Type u} {η : Type v} (name : string) (fn : init_fn ε)
-(next_step : ε → tactic (option η)) : tactic (option η) :=
-  cases name fn next_step $ λ reason, do
-    tactic.up $ tactic.trace
-      ("\nWarning: failed to initialise " ++ name ++ "! Reason:\n\n" ++ reason),
-    return none
-
-end init_result
 
 structure statistics := (num_discovers : ℕ)
 def statistics.init : statistics := ⟨0⟩

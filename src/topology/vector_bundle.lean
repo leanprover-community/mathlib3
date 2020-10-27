@@ -20,27 +20,26 @@ there is an appropriate instance on each `E x` and an instance of topological sp
 Naming conventions are essential to work with vector bundles this way.
 -/
 
-notation V `ᵛ` R := module.dual R V
+localized "notation V `ᵛ` R := module.dual R V" in linear_algebra.dual
 
 variables {B : Type*}
 
 /--
 Type synonim not to have conflict with sigma types. It is the total space of the vector bundle.
 -/
-def total_space (E : B → Type*) := Σ x, E x
+def bundle.total_space (E : B → Type*) := Σ x, E x
 
 /-- Canonical projection on the base space. -/
-def vector_bundle.proj (E : B → Type*) : total_space E → B := λ y : (total_space E), y.1
+def bundle.proj (E : B → Type*) : bundle.total_space E → B := λ y : (bundle.total_space E), y.1
+
+open bundle
 
 variables (R : Type*) (E : B → Type*) (F : Type*)
-  [comm_semiring R] [topological_space B] [∀ x, add_comm_monoid (E x)]
-  [∀ x, topological_space (E x)] [∀ x, semimodule R (E x)]
-  [topological_space F] [add_comm_monoid F] [semimodule R F]
-  [topological_space (total_space E)]
+[comm_semiring R] [topological_space B] [∀ x, add_comm_monoid (E x)] [∀ x, semimodule R (E x)]
+[topological_space F] [add_comm_monoid F] [semimodule R F]
+[topological_space (total_space E)]
 
-open vector_bundle
-
-/-@[reducible] def dual := (Σ x, (E x)ᵛR)-/
+/-@[reducible] def vector_bundle.dual := (λ x, (E x)ᵛR)-/
 
 instance is_this_a_good_idea {x : B} :
   has_coe (E x) (total_space E) := ⟨λ y, (⟨x, y⟩ : total_space E)⟩

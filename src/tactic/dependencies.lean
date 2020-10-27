@@ -10,9 +10,9 @@ import tactic.core
 
 This module provides tactics to compute dependencies and reverse dependencies of
 hypotheses. An expression `e` depends on a hypothesis `h` if `e` would not be
-valid if `h` were removed from the context. For example, the expression `e = x >
-0` depends on `x`. We say that `x` is a dependency of `e` and that `e` is a
-reverse dependency of `x`.
+valid if `h` were removed from the context. For example, the expression
+`e := x > 0` depends on `x`. We say that `x` is a dependency of `e` and that `e`
+is a reverse dependency of `x`.
 
 It is sometimes useful to consider *inclusive* dependency: `e` inclusively
 depends on `h` iff `e` depends on `h` or `e = h` (so inclusive dependency is the
@@ -56,11 +56,9 @@ value, if the hypothesis is a local definition).
 
 open native
 open expr_set (local_set_to_name_set)
+open name_set (local_list_to_name_set)
 
 namespace tactic
-
-private meta def local_list_to_name_set (lcs : list expr) : name_set :=
-lcs.foldl (λ ns h, ns.insert h.local_uniq_name) mk_name_set
 
 /-! ### Direct Dependencies -/
 

@@ -749,7 +749,7 @@ end
 instance is_principal {R} [integral_domain R] [is_principal_ideal_ring R] {f : fraction_map R K}
   (I : fractional_ideal f) : (I : submodule R f.codomain).is_principal :=
  begin
-  obtain ⟨a, aI, ⟨-, ha⟩⟩ := exists_eq_span_singleton_mul I,
+  obtain ⟨a, aI, -, ha⟩ := exists_eq_span_singleton_mul I,
   have := (f.to_map a)⁻¹ * f.to_map (generator aI),
   use (f.to_map a)⁻¹ * f.to_map (generator aI),
   suffices : I = span_singleton ((f.to_map a)⁻¹ * f.to_map (generator aI)),

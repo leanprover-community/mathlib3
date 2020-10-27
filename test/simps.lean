@@ -256,7 +256,8 @@ Note: the projection names used by @[simps] might not correspond to the projecti
     "Invalid simp-lemma specify.specify5_snd_snd.
 The given definition is not a constructor application:
   prod.map (λ (x : ℕ), x) (λ (y : ℕ), y) (2, 3)
-Possible solution: add option {rhs_md := semireducible}."
+Possible solution: add option {rhs_md := semireducible}.
+The option {simp_rhs := tt} might also be useful to simplify the right-hand side."
 
 
 /- We also eta-reduce if we explicitly specify the projection. -/

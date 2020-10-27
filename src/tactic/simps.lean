@@ -294,8 +294,8 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
     projections are applied in a lemma. When this is `ff` (default) all projection names will be
     appended to the definition name to form the lemma name, and when this is `tt`, only the
     last projection name will be appended.
-  * if `simp_rhs` is `tt` then the right-hand-side of the generated lemmas will be put in simp-normal
-    form.
+  * if `simp_rhs` is `tt` then the right-hand-side of the generated lemmas will be put in
+    simp-normal form.
   * `type_md` specifies how aggressively definitions are unfolded in the type of expressions
     for the purposes of finding out whether the type is a function type.
     Default: `instances`. This will unfold coercion instances (so that a coercion to a function type
@@ -412,12 +412,15 @@ Note: the projection names used by @[simps] might not correspond to the projecti
               ff cfg new_todo
     else do
       when must_be_str $
-        fail!"Invalid `simps` attribute. The body is not a constructor application:\n{rhs_ap}
-Possible solution: add option {{rhs_md := semireducible}.",
+        fail!"Invalid `simps` attribute. The body is not a constructor application:
+  {rhs_ap}
+Possible solution: add option {{rhs_md := semireducible}.
+The option {{simp_rhs := tt} might also be useful to simplify the right-hand side.",
       when (todo_next ≠ []) $
         fail!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo_next.head}.
 The given definition is not a constructor application:\n  {rhs_ap}
-Possible solution: add option {{rhs_md := semireducible}.",
+Possible solution: add option {{rhs_md := semireducible}.
+The option {{simp_rhs := tt} might also be useful to simplify the right-hand side.",
       if cfg.fully_applied then
         simps_add_projection new_nm tgt lhs_ap rhs_ap new_args univs cfg else
         simps_add_projection new_nm type lhs rhs args univs cfg

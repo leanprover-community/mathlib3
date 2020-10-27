@@ -140,7 +140,7 @@ mt $ λ h, by rw [nat_degree, h, option.get_or_else_coe]
 theorem nat_degree_le_iff_degree_le {n : ℕ} : nat_degree p ≤ n ↔ degree p ≤ n :=
 with_bot.get_or_else_bot_le_iff
 
-alias nat_degree_le_iff_degree_le ↔ . .
+alias polynomial.nat_degree_le_iff_degree_le ↔ . .
 
 lemma nat_degree_le_nat_degree (hpq : p.degree ≤ q.degree) : p.nat_degree ≤ q.nat_degree :=
 with_bot.gi_get_or_else_bot.gc.monotone_l hpq
@@ -259,6 +259,14 @@ lemma eq_X_add_C_of_degree_eq_one (h : degree p = 1) :
   p = C (p.leading_coeff) * X + C (p.coeff 0) :=
 (eq_X_add_C_of_degree_le_one (show degree p ≤ 1, from h ▸ le_refl _)).trans
   (by simp [leading_coeff, nat_degree_eq_of_degree_eq_some h])
+
+lemma eq_X_add_C_of_nat_degree_le_one (h : nat_degree p ≤ 1) :
+  p = C (p.coeff 1) * X + C (p.coeff 0) :=
+eq_X_add_C_of_degree_le_one $ degree_le_of_nat_degree_le h
+
+lemma exists_eq_X_add_C_of_nat_degree_le_one (h : nat_degree p ≤ 1) :
+  ∃ a b, p = C a * X + C b :=
+⟨p.coeff 1, p.coeff 0, eq_X_add_C_of_nat_degree_le_one h⟩
 
 theorem degree_X_pow_le (n : ℕ) : degree (X^n : polynomial R) ≤ n :=
 by simpa only [C_1, one_mul] using degree_C_mul_X_pow_le n (1:R)
@@ -691,6 +699,15 @@ theorem degree_le_iff_coeff_zero (f : polynomial R) (n : with_bot ℕ) :
   H1 $ (finsupp.mem_support_to_fun f m).2 H4,
 λ H, finset.sup_le $ λ b Hb, decidable.of_not_not $ λ Hn,
   (finsupp.mem_support_to_fun f b).1 Hb $ H b $ lt_of_not_ge Hn⟩
+
+theorem degree_lt_iff_coeff_zero (f : polynomial R) (n : ℕ) :
+  degree f < n ↔ ∀ m : ℕ, n ≤ m → coeff f m = 0 :=
+begin
+  refine ⟨λ hf m hm, coeff_eq_zero_of_degree_lt (lt_of_lt_of_le hf (with_bot.coe_le_coe.2 hm)), _⟩,
+  simp only [degree, finset.sup_lt_iff (with_bot.bot_lt_coe n), mem_support_iff,
+    with_bot.some_eq_coe, with_bot.coe_lt_coe, ← @not_le ℕ],
+  exact λ h m, mt (h m),
+end
 
 lemma degree_lt_degree_mul_X (hp : p ≠ 0) : p.degree < (p * X).degree :=
 by haveI := nontrivial.of_polynomial_ne hp; exact

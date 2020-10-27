@@ -180,7 +180,7 @@ le_antisymm
       { refine le_degree_of_ne_zero _, simpa only [mem_support_iff] using hn },
       { assume h, simpa only [h, support_zero] using hn }
     end,
-    le_trans (degree_monomial_le _ _) $ with_bot.coe_le_coe.2 $ nat.sub_le_sub_right this _)
+    le_trans (degree_C_mul_X_pow_le _ _) $ with_bot.coe_le_coe.2 $ nat.sub_le_sub_right this _)
   begin
     refine le_sup _,
     rw [mem_support_derivative, nat.sub_add_cancel, mem_support_iff],

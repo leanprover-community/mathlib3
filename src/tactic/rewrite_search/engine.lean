@@ -33,7 +33,7 @@ meta def tokenize_expr (e : expr) : tactic (string × list string) := do
 namespace search_state
 
 private meta def register_tokens_aux (s : side) :
-table token → list string → table token × list ℕ
+buffer token → list string → buffer token × list ℕ
 | tokens [] := (tokens, [])
 | tokens (tstr :: rest) := do
   let (tokens, t) := find_or_create_token tokens s tstr,

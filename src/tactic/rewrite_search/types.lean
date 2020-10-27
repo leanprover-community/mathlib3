@@ -96,14 +96,22 @@ instance keyed : keyed token string := ⟨λ v, v.str⟩
 
 end token
 
-meta def find_or_create_token (tokens : table token) (s : side) (tstr : string) :
-table token × token :=
-match tokens.find_key tstr with
+meta def token_finder (tstr : string) (left : token) (right : option token) : option token :=
+match right with
+| some t := some t
+| none   := if left.str = tstr then some left else none
+end
+
+meta def find_token (tokens : buffer token) (tstr : string) : option token :=
+tokens.foldl none (token_finder tstr) 
+
+meta def find_or_create_token (tokens : buffer token) (s : side) (tstr : string) : buffer token × token :=
+match find_token tokens tstr with
 | none := do
-  let t : token := ⟨tokens.next_id, tstr, ⟨0, 0⟩⟩,
+  let t : token := ⟨tokens.size, tstr, ⟨0, 0⟩⟩,
   let t := t.inc s in (tokens.push_back t, t)
 | (some t) := do
-  let t := t.inc s in (tokens.update t, t)
+  let t := t.inc s in (tokens.write' t.id t, t)
 end
 
 meta inductive status
@@ -116,7 +124,7 @@ meta structure search_state :=
 (conf         : config)
 (rs           : list (expr × bool))
 (strat_state  : bfs_state)
-(tokens       : table token)
+(tokens       : buffer token)
 (vertices     : table vertex)
 (solving_edge : option edge)
 

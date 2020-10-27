@@ -117,7 +117,7 @@ instance : has_inner 𝕜 (normed_space.dual 𝕜 E) :=
             - (I:𝕜) * (𝓚 ∥x - (I:𝕜) • y∥) * (𝓚 ∥x - (I:𝕜) • y∥)) }
 
 /-- The dual of an inner product space is itself an inner product space. -/
-instance : inner_product_space 𝕜 (normed_space.dual 𝕜 E) :=
+instance dual_inner_product_space : inner_product_space 𝕜 (normed_space.dual 𝕜 E) :=
 { norm_sq_eq_inner := assume ℓ,
   begin
     have h₁ : norm_sq (4:𝕜) = 16,

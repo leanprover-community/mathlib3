@@ -809,10 +809,8 @@ end
 
 lemma alg_hom.bijective {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
   [finite_dimensional F E] (ϕ : E →ₐ[F] E) : function.bijective ϕ :=
-begin
-  have inj : function.injective ϕ.to_linear_map := ϕ.to_ring_hom.injective,
-  exact ⟨inj, (injective_iff_surjective_of_findim_eq_findim rfl).mp inj⟩,
-end
+have inj : function.injective ϕ.to_linear_map := ϕ.to_ring_hom.injective,
+⟨inj, (injective_iff_surjective_of_findim_eq_findim rfl).mp inj⟩
 
 /-- Biijection between algebra equivalences and algebra homomorphisms -/
 noncomputable def alg_equiv_equiv_alg_hom (F : Type u) [field F] (E : Type v) [field E]

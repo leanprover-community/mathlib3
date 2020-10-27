@@ -225,7 +225,7 @@ begin
   intros a ha,
   rw ← sum_monomial_eq a,
   dsimp,
-  rw eval₂_sum (C.comp (quotient.mk I)) a monomial X,
+  rw eval₂_sum,
   refine finset.sum_eq_zero (λ n hn, _),
   dsimp,
   rw eval₂_monomial (C.comp (quotient.mk I)) X,

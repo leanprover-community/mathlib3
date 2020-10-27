@@ -38,7 +38,7 @@ meta def pick_default_config : tactic unit := `[exact tactic.rewrite_search.defa
 
 meta def mk_initial_search_state (conf : core_cfg) (rw_cfg : tactic.nth_rewrite.cfg)
   (rs : list (expr × bool)) (strat_state : bfs_state) : search_state :=
-⟨conf, rw_cfg, rs, strat_state, table.create, table.create, none, statistics.init⟩
+⟨conf, rw_cfg, rs, strat_state, table.create, table.create, none⟩
 
 meta def setup_instance (conf : core_cfg) (rw_cfg : tactic.nth_rewrite.cfg)
   (rs : list (expr × bool)) (eqn : sided_pair expr) :

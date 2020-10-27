@@ -112,9 +112,6 @@ meta inductive status
 | done : edge → status
 | abort : string → status
 
-structure statistics := (num_discovers : ℕ)
-def statistics.init : statistics := ⟨0⟩
-
 meta structure search_state :=
 (conf         : core_cfg)
 (rwall_conf   : nth_rewrite.cfg)
@@ -123,7 +120,6 @@ meta structure search_state :=
 (tokens       : table token)
 (vertices     : table vertex)
 (solving_edge : option edge)
-(stats        : statistics)
 
 def LHS_VERTEX_ID : table_ref := table_ref.of_nat 0
 def RHS_VERTEX_ID : table_ref := table_ref.of_nat 1

@@ -122,7 +122,8 @@ lemma ring_hom.map_multiset_sum [semiring β] [semiring γ] (f : β →+* γ) (s
   f s.sum = (s.map f).sum :=
 f.to_add_monoid_hom.map_multiset_sum s
 
-lemma ring_hom.map_prod [comm_semiring β] [comm_semiring γ] (g : β →+* γ) (f : α → β) (s : finset α) :
+lemma ring_hom.map_prod [comm_semiring β] [comm_semiring γ] (g : β →+* γ) (f : α → β)
+  (s : finset α) :
   g (∏ x in s, f x) = ∏ x in s, g (f x) :=
 g.to_monoid_hom.map_prod f s
 

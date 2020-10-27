@@ -253,10 +253,10 @@ You can also see this information by running
   `initialize_simps_projections prod`.
 Note: the projection names used by @[simps] might not correspond to the projection names in the structure.",
   success_if_fail_with_msg (simps_tac `specify.specify5 {} ["snd_snd"])
-    "Invalid simp-lemma specify.specify5_snd_snd. The given definition is not a constructor application:
+    "Invalid simp-lemma specify.specify5_snd_snd.
+The given definition is not a constructor application:
   prod.map (λ (x : ℕ), x) (λ (y : ℕ), y) (2, 3)
-Possible solution: add option {rhs_md := semireducible}.
-The option {simp_rhs := tt} might also be useful to simplify the right-hand side."
+Possible solution: add option {rhs_md := semireducible}."
 
 
 /- We also eta-reduce if we explicitly specify the projection. -/
@@ -560,7 +560,8 @@ instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
 def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
 
 /-- See Note [custom simps projection] -/
--- test: intentionally using different unvierse levels for equiv.symm than for equiv
+-- test: intentionally using different names for the universe variables for equiv.symm than for
+-- equiv
 def equiv.simps.inv_fun {α : Type u} {β : Type v} (e : α ≃ β) : β → α := e.symm
 
 run_cmd do e ← get_env,

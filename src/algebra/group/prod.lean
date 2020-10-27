@@ -93,6 +93,20 @@ instance [comm_semigroup G] [comm_semigroup H] : comm_semigroup (G × H) :=
   .. prod.semigroup }
 
 @[to_additive]
+instance [left_cancel_semigroup G] [left_cancel_semigroup H] :
+  left_cancel_semigroup (G × H) :=
+{ mul_left_cancel := λ a b c h, prod.ext (mul_left_cancel (prod.ext_iff.1 h).1)
+    (mul_left_cancel (prod.ext_iff.1 h).2),
+  .. prod.semigroup }
+
+@[to_additive]
+instance [right_cancel_semigroup G] [right_cancel_semigroup H] :
+  right_cancel_semigroup (G × H) :=
+{ mul_right_cancel := λ a b c h, prod.ext (mul_right_cancel (prod.ext_iff.1 h).1)
+    (mul_right_cancel (prod.ext_iff.1 h).2),
+  .. prod.semigroup }
+
+@[to_additive]
 instance [comm_monoid M] [comm_monoid N] : comm_monoid (M × N) :=
 { .. prod.comm_semigroup, .. prod.monoid }
 

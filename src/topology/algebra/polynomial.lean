@@ -11,7 +11,7 @@ import data.real.cau_seq
 
 open polynomial is_absolute_value
 
-lemma polynomial.tendsto_infinity {α β : Type*} [comm_ring α] [discrete_linear_ordered_field β]
+lemma polynomial.tendsto_infinity {α β : Type*} [comm_ring α] [linear_ordered_field β]
   (abv : α → β) [is_absolute_value abv] {p : polynomial α} (h : 0 < degree p) :
   ∀ x : β, ∃ r > 0, ∀ z : α, r < abv z → x < abv (p.eval z) :=
 degree_pos_induction_on p h

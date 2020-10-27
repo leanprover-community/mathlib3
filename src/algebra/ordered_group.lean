@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.group.with_one
 import algebra.group.type_tags
+import algebra.group.prod
 import algebra.order_functions
 import order.bounded_lattice
 
@@ -223,17 +224,13 @@ partial_order.lift coe units.ext
 instance [monoid α] [linear_order α] : linear_order (units α) :=
 linear_order.lift coe units.ext
 
-@[to_additive]
-instance [monoid α] [decidable_linear_order α] : decidable_linear_order (units α) :=
-decidable_linear_order.lift coe units.ext
-
 @[simp, to_additive, norm_cast]
-theorem max_coe [monoid α] [decidable_linear_order α] {a b : units α} :
+theorem max_coe [monoid α] [linear_order α] {a b : units α} :
   (↑(max a b) : α) = max a b :=
 by by_cases b ≤ a; simp [max, h]
 
 @[simp, to_additive, norm_cast]
-theorem min_coe [monoid α] [decidable_linear_order α] {a b : units α} :
+theorem min_coe [monoid α] [linear_order α] {a b : units α} :
   (↑(min a b) : α) = min a b :=
 by by_cases a ≤ b; simp [min, h]
 
@@ -262,9 +259,6 @@ with_bot.coe_le_coe
 instance [lattice α] : lattice (with_zero α) := with_bot.lattice
 
 instance [linear_order α] : linear_order (with_zero α) := with_bot.linear_order
-
-instance [decidable_linear_order α] :
- decidable_linear_order (with_zero α) := with_bot.decidable_linear_order
 
 lemma mul_le_mul_left {α : Type u}
   [ordered_comm_monoid α] :
@@ -604,14 +598,14 @@ end canonically_ordered_add_monoid
     whose ordering is a decidable linear order. -/
 @[protect_proj]
 class canonically_linear_ordered_add_monoid (α : Type*)
-      extends canonically_ordered_add_monoid α, decidable_linear_order α
+      extends canonically_ordered_add_monoid α, linear_order α
 
 section canonically_linear_ordered_add_monoid
 variables [canonically_linear_ordered_add_monoid α]
 
 @[priority 100]  -- see Note [lower instance priority]
 instance canonically_linear_ordered_add_monoid.semilattice_sup_bot : semilattice_sup_bot α :=
-{ ..lattice_of_decidable_linear_order, ..canonically_ordered_add_monoid.to_order_bot α }
+{ ..lattice_of_linear_order, ..canonically_ordered_add_monoid.to_order_bot α }
 
 end canonically_linear_ordered_add_monoid
 
@@ -863,11 +857,27 @@ lemma with_top.add_lt_add_iff_left :
     { norm_cast, exact add_lt_add_iff_left _ }
   end
 
+lemma with_bot.add_lt_add_iff_left :
+  ∀{a b c : with_bot α}, ⊥ < a → (a + c < a + b ↔ c < b)
+| none := assume b c h, (lt_irrefl ⊥ h).elim
+| (some a) :=
+  begin
+    assume b c h,
+    cases b; cases c;
+      simp [with_bot.none_eq_bot, with_bot.some_eq_coe, with_bot.bot_lt_coe, with_bot.coe_lt_coe],
+    { norm_cast, exact with_bot.bot_lt_coe _ },
+    { norm_cast, exact add_lt_add_iff_left _ }
+  end
+
 local attribute [reducible] with_zero
 
 lemma with_top.add_lt_add_iff_right
   {a b c : with_top α} : a < ⊤ → (c + a < b + a ↔ c < b) :=
 by simpa [add_comm] using @with_top.add_lt_add_iff_left _ _ a b c
+
+lemma with_bot.add_lt_add_iff_right
+  {a b c : with_bot α} : ⊥ < a → (c + a < b + a ↔ c < b) :=
+by simpa [add_comm] using @with_bot.add_lt_add_iff_left _ _ a b c
 
 end ordered_cancel_add_comm_monoid
 
@@ -1551,23 +1561,23 @@ def ordered_comm_group.mk' {α : Type u} [comm_group α] [partial_order α]
 /-- A decidable linearly ordered cancellative additive commutative monoid
 is an additive commutative monoid with a decidable linear order
 in which addition is cancellative and strictly monotone. -/
-@[protect_proj] class decidable_linear_ordered_cancel_add_comm_monoid (α : Type u)
-  extends ordered_cancel_add_comm_monoid α, decidable_linear_order α
+@[protect_proj] class linear_ordered_cancel_add_comm_monoid (α : Type u)
+  extends ordered_cancel_add_comm_monoid α, linear_order α
 
 /-! Some lemmas about types that have an ordering and a binary operation, with no
   rules relating them. -/
 @[to_additive]
-lemma fn_min_mul_fn_max {β} [decidable_linear_order α] [comm_semigroup β] (f : α → β) (n m : α) :
+lemma fn_min_mul_fn_max {β} [linear_order α] [comm_semigroup β] (f : α → β) (n m : α) :
   f (min n m) * f (max n m) = f n * f m :=
 by { cases le_total n m with h h; simp [h, mul_comm] }
 
 @[to_additive]
-lemma min_mul_max [decidable_linear_order α] [comm_semigroup α] (n m : α) :
+lemma min_mul_max [linear_order α] [comm_semigroup α] (n m : α) :
   min n m * max n m = n * m :=
 fn_min_mul_fn_max id n m
 
-section decidable_linear_ordered_cancel_add_comm_monoid
-variables [decidable_linear_ordered_cancel_add_comm_monoid α]
+section linear_ordered_cancel_add_comm_monoid
+variables [linear_ordered_cancel_add_comm_monoid α]
 
 lemma min_add_add_left (a b c : α) : min (a + b) (a + c) = a + min b c :=
 (monotone_id.const_add a).map_min.symm
@@ -1590,32 +1600,32 @@ min_le_iff.2 $ or.inr $ le_add_of_nonneg_left ha
 lemma max_le_add_of_nonneg {a b : α} (ha : 0 ≤ a) (hb : 0 ≤ b) : max a b ≤ a + b :=
 max_le_iff.2 ⟨le_add_of_nonneg_right hb, le_add_of_nonneg_left ha⟩
 
-end decidable_linear_ordered_cancel_add_comm_monoid
+end linear_ordered_cancel_add_comm_monoid
 
 /-- A decidable linearly ordered additive commutative group is an
 additive commutative group with a decidable linear order in which
 addition is strictly monotone. -/
-@[protect_proj] class decidable_linear_ordered_add_comm_group (α : Type u)
-  extends add_comm_group α, decidable_linear_order α :=
+@[protect_proj] class linear_ordered_add_comm_group (α : Type u)
+  extends add_comm_group α, linear_order α :=
 (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 
 @[priority 100] -- see Note [lower instance priority]
-instance decidable_linear_ordered_comm_group.to_ordered_add_comm_group (α : Type u)
-  [s : decidable_linear_ordered_add_comm_group α] : ordered_add_comm_group α :=
+instance linear_ordered_comm_group.to_ordered_add_comm_group (α : Type u)
+  [s : linear_ordered_add_comm_group α] : ordered_add_comm_group α :=
 { add := s.add, ..s }
 
-section decidable_linear_ordered_add_comm_group
-variables [decidable_linear_ordered_add_comm_group α] {a b c : α}
+section linear_ordered_add_comm_group
+variables [linear_ordered_add_comm_group α] {a b c : α}
 
 @[priority 100] -- see Note [lower instance priority]
-instance decidable_linear_ordered_add_comm_group.to_decidable_linear_ordered_cancel_add_comm_monoid :
-  decidable_linear_ordered_cancel_add_comm_monoid α :=
+instance linear_ordered_add_comm_group.to_linear_ordered_cancel_add_comm_monoid :
+  linear_ordered_cancel_add_comm_monoid α :=
 { le_of_add_le_add_left := λ x y z, le_of_add_le_add_left,
   add_left_cancel := λ x y z, add_left_cancel,
   add_right_cancel := λ x y z, add_right_cancel,
-  ..‹decidable_linear_ordered_add_comm_group α› }
+  ..‹linear_ordered_add_comm_group α› }
 
-lemma decidable_linear_ordered_add_comm_group.add_lt_add_left
+lemma linear_ordered_add_comm_group.add_lt_add_left
   (a b : α) (h : a < b) (c : α) : c + a < c + b :=
 ordered_add_comm_group.add_lt_add_left a b h c
 
@@ -1791,7 +1801,30 @@ abs_sub_le_iff.2 ⟨sub_le_sub hau hbl, sub_le_sub hbu hal⟩
 lemma eq_of_abs_sub_nonpos (h : abs (a - b) ≤ 0) : a = b :=
 eq_of_abs_sub_eq_zero (le_antisymm h (abs_nonneg (a - b)))
 
-end decidable_linear_ordered_add_comm_group
+lemma exists_gt_zero [nontrivial α] : ∃ (a:α), 0 < a :=
+begin
+  obtain ⟨y, hy⟩ := exists_ne (0 : α),
+  cases hy.lt_or_lt,
+  { exact ⟨- y, neg_pos.mpr h⟩ },
+  { exact ⟨y, h⟩ }
+end
+
+@[priority 100] -- see Note [lower instance priority]
+instance linear_ordered_add_comm_group.to_no_top_order [nontrivial α] :
+  no_top_order α :=
+⟨ begin
+    obtain ⟨y, hy⟩ : ∃ (a:α), 0 < a := exists_gt_zero,
+    exact λ a, ⟨a + y, lt_add_of_pos_right a hy⟩
+  end ⟩
+
+@[priority 100] -- see Note [lower instance priority]
+instance linear_ordered_add_comm_group.to_no_bot_order [nontrivial α] : no_bot_order α :=
+⟨ begin
+    obtain ⟨y, hy⟩ : ∃ (a:α), 0 < a := exists_gt_zero,
+    exact λ a, ⟨a - y, sub_lt_self a hy⟩
+  end ⟩
+
+end linear_ordered_add_comm_group
 
 /-- This is not so much a new structure as a construction mechanism
   for ordered groups, by specifying only the "positive cone" of the group. -/
@@ -1840,13 +1873,13 @@ theorem nonneg_total_iff :
  λ h a, by rw [nonneg_def, nonneg_def, neg_nonneg]; apply h⟩
 
 /--
-A `nonneg_add_comm_group` is a `decidable_linear_ordered_add_comm_group`
+A `nonneg_add_comm_group` is a `linear_ordered_add_comm_group`
 if `nonneg` is total and decidable.
 -/
-def to_decidable_linear_ordered_add_comm_group
+def to_linear_ordered_add_comm_group
   [decidable_pred (@nonneg α _)]
   (nonneg_total : ∀ a : α, nonneg a ∨ nonneg (-a))
-  : decidable_linear_ordered_add_comm_group α :=
+  : linear_ordered_add_comm_group α :=
 { le := (≤),
   lt := (<),
   le_total := nonneg_total_iff.1 nonneg_total,
@@ -1875,18 +1908,37 @@ instance [ordered_add_comm_group α] : ordered_add_comm_group (order_dual α) :=
   ..order_dual.ordered_add_comm_monoid,
   ..show add_comm_group α, by apply_instance }
 
-instance [decidable_linear_ordered_add_comm_group α] :
-  decidable_linear_ordered_add_comm_group (order_dual α) :=
+instance [linear_ordered_add_comm_group α] :
+  linear_ordered_add_comm_group (order_dual α) :=
 { add_le_add_left := λ a b h c, @add_le_add_left α _ b a h _,
-  ..order_dual.decidable_linear_order α,
+  ..order_dual.linear_order α,
   ..show add_comm_group α, by apply_instance }
 
-instance [decidable_linear_ordered_cancel_add_comm_monoid α] :
-  decidable_linear_ordered_cancel_add_comm_monoid (order_dual α) :=
-{ .. order_dual.decidable_linear_order α,
+instance [linear_ordered_cancel_add_comm_monoid α] :
+  linear_ordered_cancel_add_comm_monoid (order_dual α) :=
+{ .. order_dual.linear_order α,
   .. order_dual.ordered_cancel_add_comm_monoid }
 
 end order_dual
+
+namespace prod
+
+variables {M N G H : Type*}
+
+@[to_additive]
+instance [ordered_cancel_comm_monoid M] [ordered_cancel_comm_monoid N] :
+  ordered_cancel_comm_monoid (M × N) :=
+{ mul_le_mul_left := λ a b h c, ⟨mul_le_mul_left' h.1 _, mul_le_mul_left' h.2 _⟩,
+  le_of_mul_le_mul_left := λ a b c h, ⟨le_of_mul_le_mul_left' h.1, le_of_mul_le_mul_left' h.2⟩,
+ .. prod.comm_monoid, .. prod.left_cancel_semigroup, .. prod.right_cancel_semigroup,
+ .. prod.partial_order M N }
+
+@[to_additive]
+instance [ordered_comm_group M] [ordered_comm_group N] :
+  ordered_comm_group (M × N) :=
+{ .. prod.comm_group, .. prod.partial_order M N, .. prod.ordered_cancel_comm_monoid }
+
+end prod
 
 section type_tags
 
@@ -1896,8 +1948,6 @@ instance : Π [partial_order α], partial_order (multiplicative α) := id
 instance : Π [partial_order α], partial_order (additive α) := id
 instance : Π [linear_order α], linear_order (multiplicative α) := id
 instance : Π [linear_order α], linear_order (additive α) := id
-instance : Π [decidable_linear_order α], decidable_linear_order (multiplicative α) := id
-instance : Π [decidable_linear_order α], decidable_linear_order (additive α) := id
 
 instance [ordered_add_comm_monoid α] : ordered_comm_monoid (multiplicative α) :=
 { mul_le_mul_left := @ordered_add_comm_monoid.add_le_add_left α _,

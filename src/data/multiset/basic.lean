@@ -643,6 +643,9 @@ quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
 instance (f : α → β) : is_add_monoid_hom (map f) :=
 { map_add := map_add _, map_zero := map_zero _ }
 
+theorem map_nsmul (f : α → β) (n s) : map f (n •ℕ s) = n •ℕ map f s :=
+(add_monoid_hom.of (map f)).map_nsmul _ _
+
 @[simp] theorem mem_map {f : α → β} {b : β} {s : multiset α} :
   b ∈ map f s ↔ ∃ a, a ∈ s ∧ f a = b :=
 quot.induction_on s $ λ l, mem_map
@@ -851,7 +854,6 @@ theorem prod_eq_zero_iff [comm_cancel_monoid_with_zero α] [nontrivial α]
 multiset.induction_on s (by simp) $
   assume a s, by simp [mul_eq_zero, @eq_comm _ 0 a] {contextual := tt}
 
-
 @[to_additive sum_nonneg]
 lemma one_le_prod_of_one_le [ordered_comm_monoid α] {m : multiset α} :
   (∀ x ∈ m, (1 : α) ≤ x) → 1 ≤ m.prod :=
@@ -883,7 +885,7 @@ multiset.induction_on s (le_of_eq h_zero) $
   assume a s ih, by rw [sum_cons, map_cons, sum_cons];
     from le_trans (h_add a s.sum) (add_le_add_left ih _)
 
-lemma abs_sum_le_sum_abs [discrete_linear_ordered_field α] {s : multiset α} :
+lemma abs_sum_le_sum_abs [linear_ordered_field α] {s : multiset α} :
   abs s.sum ≤ (s.map abs).sum :=
 le_sum_of_subadditive _ abs_zero abs_add s
 
@@ -892,7 +894,10 @@ multiset.induction_on s (λ _, dvd_zero _)
   (λ x s ih h, by rw sum_cons; exact dvd_add
     (h _ (mem_cons_self _ _)) (ih (λ y hy, h _ (mem_cons.2 (or.inr hy)))))
 
-/- join -/
+@[simp] theorem sum_map_singleton (s : multiset α) : (s.map (λ a, a ::ₘ 0)).sum = s :=
+multiset.induction_on s (by simp) (by simp)
+
+/-! ### Join -/
 
 /-- `join S`, where `S` is a multiset of multisets, is the lift of the list join
   operation, that is, the union of all the sets.
@@ -1663,6 +1668,10 @@ countp_le_of_le
 
 theorem count_le_count_cons (a b : α) (s : multiset α) : count a s ≤ count a (b ::ₘ s) :=
 count_le_of_le _ (le_cons_self _ _)
+
+theorem count_cons (a b : α) (s : multiset α) :
+  count a (b ::ₘ s) = count a s + (if a = b then 1 else 0) :=
+by by_cases h : a = b; simp [h]
 
 theorem count_singleton (a : α) : count a (a ::ₘ 0) = 1 :=
 by simp

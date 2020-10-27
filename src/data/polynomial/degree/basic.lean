@@ -50,6 +50,9 @@ def leading_coeff (p : polynomial R) : R := coeff p (nat_degree p)
 /-- a polynomial is `monic` if its leading coefficient is 1 -/
 def monic (p : polynomial R) := leading_coeff p = (1 : R)
 
+@[nontriviality] lemma monic_of_subsingleton [subsingleton R] (p : polynomial R) : monic p :=
+subsingleton.elim _ _
+
 lemma monic.def : monic p ↔ leading_coeff p = 1 := iff.rfl
 
 instance monic.decidable [decidable_eq R] : decidable (monic p) :=
@@ -313,6 +316,15 @@ end
 lemma le_nat_degree_of_mem_supp (a : ℕ) :
   a ∈ p.support → a ≤ nat_degree p:=
 le_nat_degree_of_ne_zero ∘ mem_support_iff_coeff_ne_zero.mp
+
+lemma supp_subset_range_nat_degree_succ : p.support ⊆ finset.range (nat_degree p + 1) :=
+λ n hn, mem_range.2 $ nat.lt_succ_of_le $ le_nat_degree_of_mem_supp _ hn
+
+lemma card_supp_le_succ_nat_degree (p : polynomial R) : p.support.card ≤ p.nat_degree + 1 :=
+begin
+  rw ← finset.card_range (p.nat_degree + 1),
+  exact finset.card_le_of_subset supp_subset_range_nat_degree_succ,
+end
 
 lemma le_degree_of_mem_supp (a : ℕ) :
   a ∈ p.support → ↑a ≤ degree p :=
@@ -730,6 +742,15 @@ theorem degree_le_iff_coeff_zero (f : polynomial R) (n : with_bot ℕ) :
 λ H, finset.sup_le $ λ b Hb, decidable.of_not_not $ λ Hn,
   (finsupp.mem_support_to_fun f b).1 Hb $ H b $ lt_of_not_ge Hn⟩
 
+theorem degree_lt_iff_coeff_zero (f : polynomial R) (n : ℕ) :
+  degree f < n ↔ ∀ m : ℕ, n ≤ m → coeff f m = 0 :=
+begin
+  refine ⟨λ hf m hm, coeff_eq_zero_of_degree_lt (lt_of_lt_of_le hf (with_bot.coe_le_coe.2 hm)), _⟩,
+  simp only [degree, finset.sup_lt_iff (with_bot.bot_lt_coe n), mem_support_iff,
+    with_bot.some_eq_coe, with_bot.coe_lt_coe, ← @not_le ℕ],
+  exact λ h m, mt (h m),
+end
+
 lemma degree_lt_degree_mul_X (hp : p ≠ 0) : p.degree < (p * X).degree :=
 by haveI := nonzero.of_polynomial_ne hp; exact
 have leading_coeff p * leading_coeff X ≠ 0, by simpa,
@@ -786,9 +807,9 @@ lemma degree_sub_lt (hd : degree p = degree q)
   (hp0 : p ≠ 0) (hlc : leading_coeff p = leading_coeff q) :
   degree (p - q) < degree p :=
 have hp : single (nat_degree p) (leading_coeff p) + p.erase (nat_degree p) = p :=
-  finsupp.single_add_erase,
+  finsupp.single_add_erase _ _,
 have hq : single (nat_degree q) (leading_coeff q) + q.erase (nat_degree q) = q :=
-  finsupp.single_add_erase,
+  finsupp.single_add_erase _ _,
 have hd' : nat_degree p = nat_degree q := by unfold nat_degree; rw hd,
 have hq0 : q ≠ 0 := mt degree_eq_bot.2 (hd ▸ mt degree_eq_bot.1 hp0),
 calc degree (p - q) = degree (erase (nat_degree q) p + -erase (nat_degree q) q) :

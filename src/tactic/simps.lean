@@ -14,11 +14,11 @@ reducing a definition when projections are applied to it.
 
 There are three attributes being defined here
 * `@[simps]` is the attribute for objects of a structure or instances of a class. It will
-  automatically generate simplication lemmas for each projection of the object/instance that
+  automatically generate simplification lemmas for each projection of the object/instance that
   contains data. See the doc strings for `simps_attr` and `simps_cfg` for more details and
   configuration options.
 * `@[_simps_str]` is automatically added to structures that have been used in `@[simps]` at least
-  once. They contain the data of the projections used for this structure by all following
+  once. This attribute contains the data of the projections used for this structure by all following
   invocations of `@[simps]`.
 * `@[notation_class]` should be added to all classes that define notation, like `has_mul` and
   `has_zero`. This specifies that the projections that `@[simps]` used are the projections from
@@ -259,7 +259,7 @@ library_note "custom simps projection"
   will give the output
   ```
     [(`(@equiv.to_fun.{u u} α α), `apply, `equiv.to_fun, `(id)),
-     (`(@equiv.inv_fun.{u u} α α), `symm, `equiv.inv_fun, `(id)),
+     (`(@equiv.inv_fun.{u u} α α), `symm_apply, `equiv.inv_fun, `(id)),
      ...,
      ...]
   ```
@@ -294,7 +294,7 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
     projections are applied in a lemma. When this is `ff` (default) all projection names will be
     appended to the definition name to form the lemma name, and when this is `tt`, only the
     last projection name will be appended.
-  * if `simp_rhs` is `tt` then the right-hand-side of the generated lemmas will be put simp-normal
+  * if `simp_rhs` is `tt` then the right-hand-side of the generated lemmas will be put in simp-normal
     form.
   * `type_md` specifies how aggressively definitions are unfolded in the type of expressions
     for the purposes of finding out whether the type is a function type.
@@ -412,17 +412,12 @@ Note: the projection names used by @[simps] might not correspond to the projecti
               ff cfg new_todo
     else do
       when must_be_str $
-        fail!
-"Invalid `simps` attribute. The body is not a constructor application:
-  {rhs_ap}
-Possible solution: add option {{rhs_md := semireducible}.
-The option {{simp_rhs := tt} might also be useful to simplify the right-hand side.",
+        fail!"Invalid `simps` attribute. The body is not a constructor application:\n{rhs_ap}
+Possible solution: add option {{rhs_md := semireducible}.",
       when (todo_next ≠ []) $
-        fail!
-"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo_next.head}. The given definition is not a constructor application:
-  {rhs_ap}
-Possible solution: add option {{rhs_md := semireducible}.
-The option {{simp_rhs := tt} might also be useful to simplify the right-hand side.",
+        fail!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo_next.head}.
+The given definition is not a constructor application:\n  {rhs_ap}
+Possible solution: add option {{rhs_md := semireducible}.",
       if cfg.fully_applied then
         simps_add_projection new_nm tgt lhs_ap rhs_ap new_args univs cfg else
         simps_add_projection new_nm type lhs rhs args univs cfg

@@ -22,8 +22,8 @@ notation `ℝ*` := hyperreal
 
 private def U : is_ultrafilter (@hyperfilter ℕ) := is_ultrafilter_hyperfilter
 
-noncomputable instance : discrete_linear_ordered_field ℝ* :=
-germ.discrete_linear_ordered_field U
+noncomputable instance : linear_ordered_field ℝ* :=
+germ.linear_ordered_field U
 
 noncomputable instance : inhabited ℝ* := ⟨0⟩
 
@@ -51,9 +51,9 @@ germ.const_inj
 @[simp, norm_cast] lemma coe_pos {x : ℝ} : 0 < (x : ℝ*) ↔ 0 < x :=
 coe_lt_coe
 @[simp, norm_cast] lemma coe_le_coe {x y : ℝ} : (x : ℝ*) ≤ y ↔ x ≤ y := germ.const_le_iff
-@[simp, norm_cast] lemma coe_abs (x : ℝ) : ((abs x : ℝ) : ℝ*) = abs x := germ.const_abs _ _
-@[simp, norm_cast] lemma coe_max (x y : ℝ) : ((max x y : ℝ) : ℝ*) = max x y := germ.const_max _ _ _
-@[simp, norm_cast] lemma coe_min (x y : ℝ) : ((min x y : ℝ) : ℝ*) = min x y := germ.const_min _ _ _
+@[simp, norm_cast] lemma coe_abs (x : ℝ) : ((abs x : ℝ) : ℝ*) = abs x := germ.const_abs U _
+@[simp, norm_cast] lemma coe_max (x y : ℝ) : ((max x y : ℝ) : ℝ*) = max x y := germ.const_max U _ _
+@[simp, norm_cast] lemma coe_min (x y : ℝ) : ((min x y : ℝ) : ℝ*) = min x y := germ.const_min U _ _
 
 /-- Construct a hyperreal number from a sequence of real numbers. -/
 noncomputable def of_seq (f : ℕ → ℝ) : ℝ* := (↑f : germ (@hyperfilter ℕ) ℝ)
@@ -436,7 +436,7 @@ lemma infinite_neg_add_not_infinite {x y : ℝ*} :
 
 theorem infinite_pos_of_tendsto_top {f : ℕ → ℝ} (hf : tendsto f at_top at_top) :
   infinite_pos (of_seq f) :=
-λ r, have hf' : _ := (tendsto_at_top_at_top _).mp hf,
+λ r, have hf' : _ := tendsto_at_top_at_top.mp hf,
 Exists.cases_on (hf' (r + 1)) $ λ i hi,
   have hi' : ∀ (a : ℕ), f a < (r + 1) → a < i :=
     λ a, by rw [←not_le, ←not_le]; exact not_imp_not.mpr (hi a),
@@ -448,7 +448,7 @@ Exists.cases_on (hf' (r + 1)) $ λ i hi,
 
 theorem infinite_neg_of_tendsto_bot {f : ℕ → ℝ} (hf : tendsto f at_top at_bot) :
   infinite_neg (of_seq f) :=
-λ r, have hf' : _ := (tendsto_at_top_at_bot _).mp hf,
+λ r, have hf' : _ := tendsto_at_top_at_bot.mp hf,
 Exists.cases_on (hf' (r - 1)) $ λ i hi,
   have hi' : ∀ (a : ℕ), r - 1 < f a → a < i :=
     λ a, by rw [←not_le, ←not_le]; exact not_imp_not.mpr (hi a),

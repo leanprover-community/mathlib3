@@ -15,11 +15,11 @@ such that `0 < y` there exists a natural number `n` such that `x ≤ n •ℕ y`
 class archimedean (α) [ordered_add_comm_monoid α] : Prop :=
 (arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n •ℕ y)
 
-namespace decidable_linear_ordered_add_comm_group
-variables [decidable_linear_ordered_add_comm_group α] [archimedean α]
+namespace linear_ordered_add_comm_group
+variables [linear_ordered_add_comm_group α] [archimedean α]
 
-/-- An archimedean decidable linearly ordered `add_comm_group` has a version of the floor: for `a > 0`,
-any `g` in the group lies between some two consecutive multiples of `a`. -/
+/-- An archimedean decidable linearly ordered `add_comm_group` has a version of the floor: for
+`a > 0`, any `g` in the group lies between some two consecutive multiples of `a`. -/
 lemma exists_int_smul_near_of_pos {a : α} (ha : 0 < a) (g : α) :
   ∃ k, k •ℤ a ≤ g ∧ g < (k + 1) •ℤ a :=
 begin
@@ -44,7 +44,7 @@ begin
   simpa [sub_lt_iff_lt_add']
 end
 
-end decidable_linear_ordered_add_comm_group
+end linear_ordered_add_comm_group
 
 theorem exists_nat_gt [linear_ordered_semiring α] [archimedean α]
   (x : α) : ∃ n : ℕ, x < n :=
@@ -113,7 +113,7 @@ section linear_ordered_field
 /-- Every positive x is between two successive integer powers of
 another y greater than one. This is the same as `exists_int_pow_near'`,
 but with ≤ and < the other way around. -/
-lemma exists_int_pow_near [discrete_linear_ordered_field α] [archimedean α]
+lemma exists_int_pow_near [linear_ordered_field α] [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
   ∃ n : ℤ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
 by classical; exact
@@ -131,7 +131,7 @@ let ⟨n, hn₁, hn₂⟩ := int.exists_greatest_of_bdd hb he in
 /-- Every positive x is between two successive integer powers of
 another y greater than one. This is the same as `exists_int_pow_near`,
 but with ≤ and < the other way around. -/
-lemma exists_int_pow_near' [discrete_linear_ordered_field α] [archimedean α]
+lemma exists_int_pow_near' [linear_ordered_field α] [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
   ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1) :=
 let ⟨m, hle, hlt⟩ := exists_int_pow_near (inv_pos.2 hx) hy in
@@ -167,8 +167,8 @@ instance : archimedean ℕ :=
 
 instance : archimedean ℤ :=
 ⟨λ n m m0, ⟨n.to_nat, le_trans (int.le_to_nat _) $
-by simpa only [nsmul_eq_mul, int.nat_cast_eq_coe_nat, zero_add, mul_one] using mul_le_mul_of_nonneg_left
-    (int.add_one_le_iff.2 m0) (int.coe_zero_le n.to_nat)⟩⟩
+by simpa only [nsmul_eq_mul, int.nat_cast_eq_coe_nat, zero_add, mul_one]
+  using mul_le_mul_of_nonneg_left (int.add_one_le_iff.2 m0) (int.coe_zero_le n.to_nat)⟩⟩
 
 /-- A linear ordered archimedean ring is a floor ring. This is not an `instance` because in some
 cases we have a computable `floor` function. -/
@@ -263,7 +263,7 @@ end
 end linear_ordered_field
 
 section
-variables [discrete_linear_ordered_field α]
+variables [linear_ordered_field α]
 
 /-- `round` rounds a number to the nearest integer. `round (1 / 2) = 1` -/
 def round [floor_ring α] (x : α) : ℤ := ⌊x + 1 / 2⌋

@@ -241,6 +241,10 @@ by haveI := classical.dec_eq β; exact ⟨by apply_instance⟩
 theorem finite.image {s : set α} (f : α → β) : finite s → finite (f '' s)
 | ⟨h⟩ := ⟨@set.fintype_image _ _ (classical.dec_eq β) _ _ h⟩
 
+theorem infinite_of_infinite_image (f : α → β) {s : set α} (hs : (f '' s).infinite) :
+  s.infinite :=
+mt (finite.image f) hs
+
 lemma finite.dependent_image {s : set α} (hs : finite s) {F : Π i ∈ s, β} {t : set β}
   (H : ∀ y ∈ t, ∃ x (hx : x ∈ s), y = F x hx) : set.finite t :=
 begin
@@ -432,7 +436,7 @@ let ⟨I, Ifin, hI⟩ := finite_subset_Union tfin h in
     end⟩
 
 /-- An increasing union distributes over finite intersection. -/
-lemma Union_Inter_of_monotone {ι ι' α : Type*} [fintype ι] [decidable_linear_order ι']
+lemma Union_Inter_of_monotone {ι ι' α : Type*} [fintype ι] [linear_order ι']
   [nonempty ι'] {s : ι → ι' → set α} (hs : ∀ i, monotone (s i)) :
   (⋃ j : ι', ⋂ i : ι, s i j) = ⋂ i : ι, ⋃ j : ι', s i j :=
 begin

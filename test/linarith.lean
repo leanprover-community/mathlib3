@@ -340,7 +340,7 @@ constant α : Type
 variable [fact false] -- we work in an inconsistent context below
 def leα : α → α → Prop := λ a b, ∀ c : α, true
 
-noncomputable instance : discrete_linear_ordered_field α :=
+noncomputable instance : linear_ordered_field α :=
 by refine_struct { le := leα }; exact false.elim _inst_2
 
 example (a : α) (ha : a < 2) : a ≤ a :=

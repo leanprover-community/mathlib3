@@ -48,7 +48,8 @@ Then we define
   More definitions of this kind can be found in other files. E.g., `data/equiv/transfer_instance`
   does it for many algebraic type classes like `group`, `module`, etc.
 
-* group structure on `equiv.perm α`. More lemmas about `equiv.perm` can be found in `data/equiv/perm`.
+* group structure on `equiv.perm α`. More lemmas about `equiv.perm` can be found in
+  `data/equiv/perm`.
 
 ## Tags
 
@@ -61,7 +62,7 @@ universes u v w z
 variables {α : Sort u} {β : Sort v} {γ : Sort w}
 
 /-- `α ≃ β` is the type of functions from `α → β` with a two-sided inverse. -/
-@[nolint inhabited]
+@[nolint has_inhabited_instance]
 structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
@@ -85,16 +86,18 @@ instance : has_coe_to_fun (α ≃ β) :=
 @[simp] theorem coe_fn_mk (f : α → β) (g l r) : (equiv.mk f g l r : α → β) = f :=
 rfl
 
-/-- The map `coe_fn : (r ≃ s) → (r → s)` is injective. We can't use `function.injective`
-here but mimic its signature by using `⦃e₁ e₂⦄`. -/
-theorem coe_fn_injective : ∀ ⦃e₁ e₂ : equiv α β⦄, (e₁ : α → β) = e₂ → e₁ = e₂
+/-- The map `coe_fn : (r ≃ s) → (r → s)` is injective. -/
+theorem injective_coe_fn : function.injective (λ (e : α ≃ β) (x : α), e x)
 | ⟨f₁, g₁, l₁, r₁⟩ ⟨f₂, g₂, l₂, r₂⟩ h :=
   have f₁ = f₂, from h,
   have g₁ = g₂, from l₁.eq_right_inverse (this.symm ▸ r₂),
   by simp *
 
+@[simp, norm_cast] protected lemma coe_inj {e₁ e₂ : α ≃ β} : ⇑e₁ = e₂ ↔ e₁ = e₂ :=
+injective_coe_fn.eq_iff
+
 @[ext] lemma ext {f g : equiv α β} (H : ∀ x, f x = g x) : f = g :=
-coe_fn_injective (funext H)
+injective_coe_fn (funext H)
 
 @[ext] lemma perm.ext {σ τ : equiv.perm α} (H : ∀ x, σ x = τ x) : σ = τ :=
 equiv.ext H
@@ -262,7 +265,7 @@ begin
   apply symm_apply_apply
 end
 
-@[simp] theorem mul_apply {α : Type u} (f g : perm α) (x) : (f * g) x = f (g x) :=
+theorem mul_apply {α : Type u} (f g : perm α) (x) : (f * g) x = f (g x) :=
 equiv.trans_apply _ _ _
 
 @[simp] theorem one_apply {α : Type u} (x) : (1 : perm α) x = x := rfl
@@ -278,6 +281,8 @@ lemma one_def {α : Type u} : (1 : perm α) = equiv.refl α := rfl
 lemma mul_def {α : Type u} (f g : perm α) : f * g = g.trans f := rfl
 
 lemma inv_def {α : Type u} (f : perm α) : f⁻¹ = f.symm := rfl
+
+@[simp] lemma coe_mul {α : Type u} (f g : perm α) : ⇑(f * g) = f ∘ g := rfl
 
 end perm
 
@@ -451,6 +456,10 @@ rfl
 /-- Type product is associative up to an equivalence. -/
 @[simps] def prod_assoc (α β γ : Sort*) : (α × β) × γ ≃ α × (β × γ) :=
 ⟨λ p, (p.1.1, p.1.2, p.2), λp, ((p.1, p.2.1), p.2.2), λ ⟨⟨a, b⟩, c⟩, rfl, λ ⟨a, ⟨b, c⟩⟩, rfl⟩
+
+lemma prod_assoc_preimage {α β γ} {s : set α} {t : set β} {u : set γ} :
+  equiv.prod_assoc α β γ ⁻¹' s.prod (t.prod u) = (s.prod t).prod u :=
+by { ext, simp [and_assoc] }
 
 section
 /-- `punit` is a right identity for type product up to an equivalence. -/
@@ -722,7 +731,8 @@ def sigma_congr_left {α₁ α₂} {β : α₂ → Sort*} (e : α₁ ≃ α₂) 
  λ ⟨a, b⟩, match e.symm (e a), e.left_inv a : ∀ a' (h : a' = a),
      @sigma.mk _ (β ∘ e) _ (@@eq.rec β b (congr_arg e h.symm)) = ⟨a, b⟩ with
    | _, rfl := rfl end,
- λ ⟨a, b⟩, match e (e.symm a), _ : ∀ a' (h : a' = a), sigma.mk a' (@@eq.rec β b h.symm) = ⟨a, b⟩ with
+ λ ⟨a, b⟩, match e (e.symm a), _ : ∀ a' (h : a' = a),
+     sigma.mk a' (@@eq.rec β b h.symm) = ⟨a, b⟩ with
    | _, rfl := rfl end⟩
 
 /-- Transporting a sigma type through an equivalence of the base -/
@@ -1262,7 +1272,8 @@ by cases x with x hx; exact set.sum_compl_symm_apply_of_not_mem hx
 `s ⊕ (t \ s)` and `t`, where `s` and `t` are two sets. -/
 protected def sum_diff_subset {α} {s t : set α} (h : s ⊆ t) [decidable_pred s] :
   s ⊕ (t \ s : set α) ≃ t :=
-calc s ⊕ (t \ s : set α) ≃ (s ∪ (t \ s) : set α) : (equiv.set.union (by simp [inter_diff_self])).symm
+calc s ⊕ (t \ s : set α) ≃ (s ∪ (t \ s) : set α) :
+  (equiv.set.union (by simp [inter_diff_self])).symm
 ... ≃ t : equiv.set.of_eq (by { simp [union_diff_self, union_eq_self_of_subset_left h] })
 
 @[simp] lemma sum_diff_subset_apply_inl
@@ -1309,8 +1320,9 @@ calc  (s ∪ t : set α) ⊕ (s ∩ t : set α)
 /-- Given an equivalence `e₀` between sets `s : set α` and `t : set β`, the set of equivalences
 `e : α ≃ β` such that `e ↑x = ↑(e₀ x)` for each `x : s` is equivalent to the set of equivalences
 between `sᶜ` and `tᶜ`. -/
-protected def compl {α β : Type*} {s : set α} {t : set β} [decidable_pred s] [decidable_pred t]
-  (e₀ : s ≃ t) : {e : α ≃ β // ∀ x : s, e x = e₀ x} ≃ ((sᶜ : set α) ≃ (tᶜ : set β)) :=
+protected def compl {α : Type u} {β : Type v} {s : set α} {t : set β} [decidable_pred s]
+  [decidable_pred t] (e₀ : s ≃ t) :
+  {e : α ≃ β // ∀ x : s, e x = e₀ x} ≃ ((sᶜ : set α) ≃ (tᶜ : set β)) :=
 { to_fun := λ e, subtype_congr e
     (λ a, not_congr $ iff.symm $ maps_to.mem_iff
       (maps_to_iff_exists_map_subtype.2 ⟨e₀, e.2⟩)
@@ -1389,6 +1401,13 @@ protected def congr {α β : Type*} (e : α ≃ β) : set α ≃ set β :=
 protected def sep {α : Type u} (s : set α) (t : α → Prop) :
   ({ x ∈ s | t x } : set α) ≃ { x : s | t x } :=
 (equiv.subtype_subtype_equiv_subtype_inter s t).symm
+
+/-- The set `𝒫 S := {x | x ⊆ S}` is equivalent to the type `set S`. -/
+protected def powerset {α} (S : set α) : 𝒫 S ≃ set S :=
+{ to_fun := λ x : 𝒫 S, coe ⁻¹' (x : set α),
+  inv_fun := λ x : set S, ⟨coe '' x, by rintro _ ⟨a : S, _, rfl⟩; exact a.2⟩,
+  left_inv := λ x, by ext y; exact ⟨λ ⟨⟨_, _⟩, h, rfl⟩, h, λ h, ⟨⟨_, x.2 h⟩, h, rfl⟩⟩,
+  right_inv := λ x, by ext; simp }
 
 end set
 

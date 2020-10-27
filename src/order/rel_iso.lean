@@ -355,16 +355,16 @@ lemma map_rel_iff'' {r : α → α → Prop} {s : β → β → Prop} (f : r ≃
 
 @[simp] theorem coe_fn_to_equiv (f : r ≃r s) : (f.to_equiv : α → β) = f := rfl
 
-theorem to_equiv_injective : injective (to_equiv : (r ≃r s) → α ≃ β)
+theorem injective_to_equiv : injective (to_equiv : (r ≃r s) → α ≃ β)
 | ⟨e₁, o₁⟩ ⟨e₂, o₂⟩ h := by { congr, exact h }
 
-/-- The map `coe_fn : (r ≃r s) → (α → β)` is injective. We can't use `function.injective`
-here but mimic its signature by using `⦃e₁ e₂⦄`. -/
-theorem coe_fn_injective ⦃e₁ e₂ : r ≃r s⦄ (h : (e₁ : α → β) = e₂) : e₁ = e₂ :=
-to_equiv_injective $ equiv.coe_fn_injective h
+/-- The map `coe_fn : (r ≃r s) → (α → β)` is injective. Lean fails to parse
+`function.injective (λ e : r ≃r s, (e : α → β))`, so we use a trick to say the same. -/
+theorem injective_coe_fn : function.injective (λ (e : r ≃r s) (x : α), e x) :=
+equiv.injective_coe_fn.comp injective_to_equiv
 
 @[ext] theorem ext ⦃f g : r ≃r s⦄ (h : ∀ x, f x = g x) : f = g :=
-coe_fn_injective (funext h)
+injective_coe_fn (funext h)
 
 theorem ext_iff {f g : r ≃r s} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩

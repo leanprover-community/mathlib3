@@ -243,11 +243,7 @@ end
 namespace multiplicity
 
 lemma finite_int_iff_nat_abs_finite {a b : ℤ} : finite a b ↔ finite a.nat_abs b.nat_abs :=
-begin
-  rw [finite_def, finite_def],
-  conv in (a ^ _ ∣ b)
-    { rw [← int.nat_abs_dvd_abs_iff, int.nat_abs_pow] }
-end
+by simp only [finite_def, ← int.nat_abs_dvd_abs_iff, int.nat_abs_pow]
 
 lemma finite_int_iff {a b : ℤ} : finite a b ↔ (a.nat_abs ≠ 1 ∧ b ≠ 0) :=
 begin

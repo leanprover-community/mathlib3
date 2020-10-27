@@ -18,11 +18,16 @@ We also prove that, for base field such as the real or the complex numbers, this
 More generically, this is proved for any field in the class `has_exists_extension_norm_eq`, i.e.,
 satisfying the Hahn-Banach theorem.
 
-In the case of inner product spaces, we define `to_dual` which maps an element x of the space
-to `λ y, ⟪x, y⟫`. We also give the Fréchet-Riesz representation, which states that every element
-of the dual of a Hilbert space `E` has the form `λ u, ⟪x, u⟫` for some `x : E`, and define
-`to_primal` which gives the corresponding primal vector of an element of the dual. We also prove
-that the dual of a Hilbert space is itself a Hilbert space.
+We then consider inner product spaces, with base field over `ℝ` (the corresponding results for `ℂ`
+will require the definition of conjugate-linear maps). We define `to_dual_map`, a continuous linear
+map from `E` to its dual, which maps an element x of the space to `λ y, ⟪x, y⟫`. We check
+(`to_dual_map_isometry`) that this map is an isometry onto its image, and particular is injective.
+
+Finally, under the hypothesis of completeness (i.e., for Hilbert spaces), we prove the Fréchet-Riesz
+representation (`exists_elem_of_mem_dual`), which states the surjectivity: every element of the dual
+of a Hilbert space `E` has the form `λ u, ⟪x, u⟫` for some `x : E`.  This permits the map
+`to_dual_map` to be upgraded to an (isometric) continuous linear equivalence, `to_dual`, between a
+Hilbert space and its dual.
 
 ## References
 
@@ -144,7 +149,7 @@ variables {𝕜}
 lemma inner_eq_to_dual'_apply {x y : E} : ⟪x, y⟫ = (to_dual' 𝕜 x) y :=
 by simp only [to_dual'_def]
 
-def to_dual'' : F →L[ℝ] (normed_space.dual ℝ F) :=
+def to_dual_map : F →L[ℝ] (normed_space.dual ℝ F) :=
 linear_map.mk_continuous
   { to_fun := λ x, to_dual' ℝ x,
     map_add' := λ x y, by { ext, simp [inner_add_left] },
@@ -158,6 +163,38 @@ linear_map.mk_continuous
       simp only [one_mul, linear_map.coe_mk, to_dual'_def, norm_eq_abs, abs_inner_le_norm] }
   end
 
+@[simp] lemma to_dual_map_apply {x y : F} : to_dual_map x y = ⟪x, y⟫_ℝ := rfl
+
+/-- In an inner product space, the norm of the dual of a vector x is `∥x∥` -/
+@[simp] lemma to_dual_map_isometry (x : F) :
+  ∥to_dual_map x∥ = ∥x∥ :=
+begin
+  refine le_antisymm _ _,
+  { change ∥to_dual_map x∥ ≤ ∥x∥,
+    simp only [to_dual_map],
+    exact linear_map.mk_continuous_norm_le _ (norm_nonneg _) _ },
+  { cases eq_or_lt_of_le (norm_nonneg x),
+    { have : x = 0 := norm_eq_zero.mp (eq.symm h),
+      simp [this] },
+    { refine (mul_le_mul_right h).mp _,
+      calc ∥x∥ * ∥x∥ = ∥x∥ ^2 : by ring
+      ... = ⟪x, x⟫_ℝ : norm_sq_eq_inner _
+      ... ≤ ∥to_dual_map x x∥ : le_abs_self _
+      ... ≤ ∥to_dual_map x∥ * ∥x∥ : le_op_norm (to_dual_map x) x } }
+end
+
+lemma to_dual_map_injective : (@to_dual_map F _).ker = ⊥ :=
+begin
+  rw eq_bot_iff,
+  intros x hx,
+  have : ∥to_dual_map x∥ = 0,
+  { simpa only [norm_eq_zero] using hx },
+  simpa using this
+end
+
+@[simp] lemma to_dual_map_eq_iff_eq {x y : F} : to_dual_map x = to_dual_map y ↔ x = y :=
+((linear_map.ker_eq_bot).mp (@to_dual_map_injective F _)).eq_iff
+
 variables [complete_space F]
 
 /--
@@ -165,9 +202,9 @@ Fréchet-Riesz representation: any ℓ in the dual of a real Hilbert space F is 
 λ u, ⟪y, u⟫ for some y in F.
 -/
 -- TODO extend to `is_R_or_C` (requires a definition of conjugate linear maps)
-lemma exists_elem_of_mem_dual : (@to_dual'' F _).range = ⊤ :=
+lemma exists_elem_of_mem_dual : (@to_dual_map F _).range = ⊤ :=
 begin
-  apply (@linear_map.range_eq_top ℝ F _ _ _ _ _ _ (@to_dual'' F _).to_linear_map).mpr,
+  apply (@linear_map.range_eq_top ℝ F _ _ _ _ _ _ (@to_dual_map F _).to_linear_map).mpr,
   intros ℓ,
   set Y := ker ℓ with hY,
   by_cases htriv : Y = ⊤,
@@ -212,45 +249,18 @@ begin
     exact h₄ }
 end
 
-lemma to_dual''_isometry (x : F) :
-  ∥to_dual'' x∥ = ∥x∥ :=
-begin
-  refine le_antisymm _ _,
-  { change ∥to_dual'' x∥ ≤ ∥x∥,
-    simp only [to_dual''],
-    exact linear_map.mk_continuous_norm_le _ (norm_nonneg _) _ },
-  { cases eq_or_lt_of_le (norm_nonneg x),
-    { have : x = 0 := norm_eq_zero.mp (eq.symm h),
-      simp [this] },
-    { refine (mul_le_mul_right h).mp _,
-      calc ∥x∥ * ∥x∥ = ∥x∥ ^2 : by ring
-      ... = ⟪x, x⟫_ℝ : norm_sq_eq_inner _
-      ... ≤ ∥to_dual'' x x∥ : le_abs_self _
-      ... ≤ ∥to_dual'' x∥ * ∥x∥ : le_op_norm (to_dual'' x) x } }
-end
-
-lemma to_dual''_injective : (@to_dual'' F _).ker = ⊥ :=
-begin
-  rw eq_bot_iff,
-  intros x hx,
-  have : ∥x∥ = 0,
-  { rw ← to_dual''_isometry,
-    simpa using hx },
-  simpa using this
-end
-
-/-- If `F` is a Hilbert space, the function that takes a vector in the conjugate
-vector space of `F` to its dual is a continuous linear equivalence.  -/
+/-- If `F` is a Hilbert space, the function that takes a vector in `F` to its dual is a continuous
+linear equivalence.  -/
 def to_dual : F ≃L[ℝ] (normed_space.dual ℝ F) :=
 continuous_linear_equiv.of_homothety
   ℝ
   (linear_equiv.of_bijective
-    (@to_dual'' F _).to_linear_map
-    (@to_dual''_injective F _ _)
+    (@to_dual_map F _).to_linear_map
+    (@to_dual_map_injective F _)
     (@exists_elem_of_mem_dual F _ _))
   1
   (by norm_num)
-  (λ x, by { convert to_dual''_isometry x, simp })
+  (λ x, by { convert to_dual_map_isometry x, simp })
 
 @[simp] lemma to_dual_apply {x y : F} : to_dual x y = ⟪x, y⟫_ℝ := rfl
 
@@ -259,7 +269,7 @@ continuous_linear_equiv.of_homothety
 
 /-- In a Hilbert space, the norm of the dual of a vector x is `∥x∥` -/
 @[simp] lemma to_dual_norm_eq_primal_norm (x : F) : ∥to_dual x∥ = ∥x∥ :=
-to_dual''_isometry x
+to_dual_map_isometry x
 
 /-- In a Hilbert space, the norm of a vector in the dual space is the norm of its corresponding
 primal vector. -/

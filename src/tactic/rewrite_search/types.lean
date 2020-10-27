@@ -56,7 +56,7 @@ meta structure vertex :=
 (rw_prog  : option rewrite_progress)
 (rws      : buffer rewrite)
 (rw_front : ℕ)
-(adj      : table edge)
+(adj      : buffer edge)
 
 namespace vertex
 
@@ -64,7 +64,7 @@ meta def same_side (a b : vertex) : bool := a.s = b.s
 meta def to_string (v : vertex) : string := v.s.to_string ++ v.pp
 
 meta def create (id : ℕ) (e : expr) (pp : string) (token_refs : list ℕ) (root : bool) (s : side) : vertex :=
-⟨ id, e, pp, token_refs, root, ff, s, none, none, buffer.nil, table.first, table.create ⟩
+⟨ id, e, pp, token_refs, root, ff, s, none, none, buffer.nil, 0, buffer.nil ⟩
 
 meta def null : vertex := vertex.create table.null (default expr) "__NULLEXPR" [] ff side.L
 

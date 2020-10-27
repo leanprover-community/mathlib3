@@ -15,6 +15,9 @@ import tactic.rewrite_search.explain
 
 universe u
 
+meta def read_option {α : Type u} (buf : buffer α) (i : ℕ) : option α :=
+if h : i < buf.size then some (buf.read (fin.mk i h)) else none
+
 namespace tactic.rewrite_search
 
 variables (g : search_state)
@@ -114,9 +117,6 @@ do (rw_prog, new_rws) ← discover_more_rewrites g.rs v.exp g.conf v.s v.rw_prog
   (g, v) ← pure $ g.set_vertex {v with rw_prog := rw_prog, rws := v.rws.append_list new_rws},
   return (g, v, new_rws.nth 0)
 
-meta def read_option (buf : buffer rewrite) (i : ℕ) : option rewrite :=
-if h : i < buf.size then some (buf.read (fin.mk i h)) else none
-
 meta def reveal_more_adjs (o : vertex) :
 tactic (search_state × vertex × option (vertex × edge)) :=
 do (g, o, rw) ← match read_option o.rws o.rw_front with
@@ -147,9 +147,9 @@ private meta def advance (it : rewrite_iter) : rewrite_iter :=
 {it with front := it.front + 1}
 
 meta def next (it : rewrite_iter) (g : search_state) :
-tactic (search_state × rewrite_iter × option (vertex × edge)) := do
-  o ← g.vertices.get it.orig,
-  match o.adj.at_ref it.front with
+tactic (search_state × rewrite_iter × option (vertex × edge)) :=
+do o ← g.vertices.get it.orig,
+match read_option o.adj it.front with
   | some e := do
     v ← g.vertices.get e.t,
     return (g, advance it, some (v, e))

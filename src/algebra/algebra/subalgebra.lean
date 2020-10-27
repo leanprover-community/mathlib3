@@ -258,25 +258,6 @@ instance integral_domain {R A : Type*} [comm_ring R] [integral_domain A] [algebr
   (S : subalgebra R A) : integral_domain S :=
 @subring.domain A _ S _
 
-/-- The equalizer of two R-algebra homomorphisms -/
-def equalizer (ϕ ψ : A →ₐ[R] B) : subalgebra R A :=
-{ carrier := {a | ϕ a = ψ a},
-  zero_mem' := by { change ϕ 0 = ψ 0, rw [alg_hom.map_zero, alg_hom.map_zero] },
-  add_mem' := λ x y hx hy, by
-  { change ϕ x = ψ x at hx,
-    change ϕ y = ψ y at hy,
-    change ϕ (x + y) = ψ (x + y),
-    rw [alg_hom.map_add, alg_hom.map_add, hx, hy] },
-  one_mem' := by { change ϕ 1 = ψ 1, rw [alg_hom.map_one, alg_hom.map_one] },
-  mul_mem' := λ x y hx hy, by
-  { change ϕ x = ψ x at hx,
-    change ϕ y = ψ y at hy,
-    change ϕ (x * y) = ψ (x * y),
-    rw [alg_hom.map_mul, alg_hom.map_mul, hx, hy] },
-  algebra_map_mem' := λ x, by
-  { change ϕ (algebra_map R A x) = ψ (algebra_map R A x),
-    rw [alg_hom.commutes, alg_hom.commutes] } }
-
 end subalgebra
 
 namespace alg_hom
@@ -304,6 +285,28 @@ def cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : ∀ x, f x ∈ S
 theorem injective_cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : ∀ x, f x ∈ S) :
   function.injective (f.cod_restrict S hf) ↔ function.injective f :=
 ⟨λ H x y hxy, H $ subtype.eq hxy, λ H x y hxy, H (congr_arg subtype.val hxy : _)⟩
+
+/-- The equalizer of two R-algebra homomorphisms -/
+def equalizer (ϕ ψ : A →ₐ[R] B) : subalgebra R A :=
+{ carrier := {a | ϕ a = ψ a},
+  zero_mem' := by { change ϕ 0 = ψ 0, rw [alg_hom.map_zero, alg_hom.map_zero] },
+  add_mem' := λ x y hx hy, by
+  { change ϕ x = ψ x at hx,
+    change ϕ y = ψ y at hy,
+    change ϕ (x + y) = ψ (x + y),
+    rw [alg_hom.map_add, alg_hom.map_add, hx, hy] },
+  one_mem' := by { change ϕ 1 = ψ 1, rw [alg_hom.map_one, alg_hom.map_one] },
+  mul_mem' := λ x y hx hy, by
+  { change ϕ x = ψ x at hx,
+    change ϕ y = ψ y at hy,
+    change ϕ (x * y) = ψ (x * y),
+    rw [alg_hom.map_mul, alg_hom.map_mul, hx, hy] },
+  algebra_map_mem' := λ x, by
+  { change ϕ (algebra_map R A x) = ψ (algebra_map R A x),
+    rw [alg_hom.commutes, alg_hom.commutes] } }
+
+@[simp] lemma mem_equalizer (ϕ ψ : A →ₐ[R] B) (x : A) :
+  x ∈ ϕ.equalizer ψ ↔ ϕ x = ψ x := by refl
 
 end alg_hom
 

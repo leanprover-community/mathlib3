@@ -44,17 +44,23 @@ meta def register_tokens (s : side) (strs : list string) : search_state × list 
   let (new_tokens, refs) := register_tokens_aux s g.tokens strs in
   ({g with tokens := new_tokens}, refs)
 
+meta def vertex_finder (pp : string) (left : vertex) (right : option vertex) : option vertex :=
+match right with
+| some v := some v
+| none   := if left.pp = pp then some left else none
+end
+
 -- Find the vertex with the given (e : expr), or return the null vertex if not found.
 meta def find_vertex (e : expr) : tactic (option vertex) := do
   pp ← to_string <$> tactic.pp e,
-  return (g.vertices.find_key pp)
+  return (g.vertices.foldl none (vertex_finder pp))
 
 -- Forcibly add a new vertex to the vertex table. You probably actually want to call
 -- add_vertex, which will check that we haven't seen the vertex before first.
 meta def alloc_vertex (e : expr) (root : bool) (s : side) : tactic (search_state × vertex) :=
 do (pp, tokens) ← tokenize_expr e,
    let (g, token_refs) := g.register_tokens s tokens,
-   let v : vertex := vertex.create g.vertices.next_id e pp token_refs root s,
+   let v : vertex := vertex.create g.vertices.size e pp token_refs root s,
    return ({ g with vertices := g.vertices.push_back v }, v)
 
 -- Look up the given vertex associated to (e : expr), or create it if it is
@@ -148,10 +154,10 @@ private meta def advance (it : rewrite_iter) : rewrite_iter :=
 
 meta def next (it : rewrite_iter) (g : search_state) :
 tactic (search_state × rewrite_iter × option (vertex × edge)) :=
-do o ← g.vertices.get it.orig,
+do let o := g.vertices.read' it.orig,
 match read_option o.adj it.front with
   | some e := do
-    v ← g.vertices.get e.t,
+    let v := g.vertices.read' e.t,
     return (g, advance it, some (v, e))
   | none := do
     (g, o, ret) ← g.reveal_more_adjs o,
@@ -225,7 +231,7 @@ meta def bfs_step (g : search_state) : tactic (search_state × status) := do
     return (g.mutate_strat {state with queue := rest.concat none, curr_depth :=
                             state.curr_depth + 1}, status.repeat)
   | (some v :: rest) := do
-    v ← g.vertices.get v,
+    let v := g.vertices.read' v,
     (g, it) ← g.visit_vertex v,
     (g, it, adjs) ← it.exhaust g,
     let adjs := adjs.filter $ λ u, ¬u.1.visited,

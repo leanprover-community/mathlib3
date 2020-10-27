@@ -26,12 +26,12 @@ namespace naive
 meta def walk_up_parents : vertex → option edge → tactic (list edge)
 | v none     := return []
 | v (some e) := do
-                 w ← g.vertices.get e.f,
+                 let w := g.vertices.read' e.f,
                  edges ← walk_up_parents w w.parent,
                  return (e :: edges)
 
 meta def backtrack : backtrack_fn := λ (g : search_state) (e : edge), do
-  v ← g.vertices.get e.t,
+  let v := g.vertices.read' e.t,
 
   vts ← walk_up_parents g v e,
   vfs ← walk_up_parents g v v.parent,
@@ -60,8 +60,8 @@ meta def search_step (me : ℕ) : buffer (option edge) → list edge → tactic 
 
 meta def search_aux : buffer (option edge) → list ℕ → tactic (buffer (option edge))
 | been [] := fail "bug: bfs could not find the path LHS -> RHS!"
-| been (t :: rest) := do
-  child ← g.vertices.get t,
+| been (t :: rest) :=
+do let child := g.vertices.read' t,
   if child.id = RHS_VERTEX_ID then
     return been
   else do
@@ -69,7 +69,7 @@ meta def search_aux : buffer (option edge) → list ℕ → tactic (buffer (opti
     search_aux been (rest ++ new_es)
 
 meta def search : tactic (buffer (option edge)) :=
-  search_aux g ⟨g.vertices.length, mk_array g.vertices.length none⟩ [LHS_VERTEX_ID]
+  search_aux g ⟨g.vertices.size, mk_array g.vertices.size none⟩ [LHS_VERTEX_ID]
 
 meta def crawl (t : buffer (option edge)) : ℕ → tactic (list edge)
 | id :=

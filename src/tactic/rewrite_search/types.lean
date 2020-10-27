@@ -125,7 +125,7 @@ meta structure search_state :=
 (rs           : list (expr × bool))
 (strat_state  : bfs_state)
 (tokens       : buffer token)
-(vertices     : table vertex)
+(vertices     : buffer vertex)
 (solving_edge : option edge)
 
 def LHS_VERTEX_ID : ℕ := 0
@@ -138,13 +138,13 @@ meta def mutate_strat (new_state : bfs_state) : search_state :=
 { g with strat_state := new_state }
 
 meta def set_vertex (v : vertex) : search_state × vertex :=
-({ g with vertices := g.vertices.set v.id v }, v)
+({ g with vertices := g.vertices.write' v.id v }, v)
 
-meta def lookup_pair (p : pair) : tactic (vertex × vertex) := do
-vf ← g.vertices.get p.l, vt ← g.vertices.get p.r, return (vf, vt)
+meta def lookup_pair (p : pair) : tactic (vertex × vertex) :=
+return (g.vertices.read' p.l, g.vertices.read' p.r)
 
-meta def get_endpoints (e : edge) : tactic (vertex × vertex) := do
-vf ← g.vertices.get e.f, vt ← g.vertices.get e.t, return (vf, vt)
+meta def get_endpoints (e : edge) : tactic (vertex × vertex) :=
+return (g.vertices.read' e.f, g.vertices.read' e.t)
 
 end search_state
 

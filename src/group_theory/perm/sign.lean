@@ -235,7 +235,7 @@ else let m := swap_factors_aux l (swap x (f x) * f)
 /-- `swap_factors` represents a permutation as a product of a list of transpositions.
 The representation is non unique and depends on the linear order structure.
 For types without linear order `trunc_swap_factors` can be used -/
-def swap_factors [fintype α] [decidable_linear_order α] (f : perm α) :
+def swap_factors [fintype α] [linear_order α] (f : perm α) :
   {l : list (perm α) // l.prod = f ∧ ∀ g ∈ l, is_swap g} :=
 swap_factors_aux ((@univ α _).sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
 

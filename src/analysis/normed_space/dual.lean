@@ -163,7 +163,7 @@ variables {F : Type*} [inner_product_space ℝ F]
 -- TODO extend to `is_R_or_C` (requires a definition of conjugate linear maps)
 def to_dual_map : F →L[ℝ] (normed_space.dual ℝ F) :=
 linear_map.mk_continuous
-  { to_fun := λ x, to_dual' ℝ x,
+  { to_fun := to_dual' ℝ,
     map_add' := λ x y, by { ext, simp [inner_add_left] },
     map_smul' := λ c x, by { ext, simp [inner_smul_left] } }
   1
@@ -254,7 +254,7 @@ def to_dual : F ≃L[ℝ] (normed_space.dual ℝ F) :=
 continuous_linear_equiv.of_homothety
   ℝ
   (linear_equiv.of_bijective
-    (@to_dual_map F _).to_linear_map
+    to_dual_map.to_linear_map
     to_dual_map_injective
     to_dual_map_range_eq_top)
   1
@@ -266,8 +266,7 @@ continuous_linear_equiv.of_homothety
 @[simp] lemma to_dual_eq_iff_eq {x y : F} : to_dual x = to_dual y ↔ x = y :=
 (@to_dual F _ _).injective.eq_iff
 
-@[simp] lemma to_dual_norm_eq_primal_norm (x : F) : ∥to_dual x∥ = ∥x∥ :=
-to_dual_map_isometry x
+@[simp] lemma to_dual_norm_eq_primal_norm (x : F) : ∥to_dual x∥ = ∥x∥ := to_dual_map_isometry x
 
 /-- In a Hilbert space, the norm of a vector in the dual space is the norm of its corresponding
 primal vector. -/

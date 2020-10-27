@@ -651,6 +651,7 @@ nnreal.eq $ by simp
 @[simp] lemma norm_fpow : ∀ (a : α) (n : ℤ), ∥a^n∥ = ∥a∥^n :=
 (norm_hom : α →* ℝ).map_fpow norm_zero
 
+@[priority 100]
 instance : has_continuous_inv' α :=
 begin
   refine ⟨λ r r0, (nhds_basis_closed_ball.tendsto_iff nhds_basis_closed_ball).2 (λε εpos, _)⟩,

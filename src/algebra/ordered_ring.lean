@@ -617,7 +617,7 @@ instance linear_ordered_ring.to_domain : domain α :=
   .. ‹linear_ordered_ring α› }
 
 @[simp] lemma abs_one : abs (1 : α) = 1 := abs_of_pos zero_lt_one
-@[simp] lemma abs_two : abs (2:α) = 2 := abs_of_pos zero_lt_two
+@[simp] lemma abs_two : abs (2 : α) = 2 := abs_of_pos zero_lt_two
 
 lemma abs_mul (a b : α) : abs (a * b) = abs a * abs b :=
 begin

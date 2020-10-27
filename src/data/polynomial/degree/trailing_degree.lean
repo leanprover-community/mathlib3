@@ -327,7 +327,7 @@ end
 lemma ne_zero_of_trailing_degree_lt {n : with_top ℕ} (h : trailing_degree p < n) : p ≠ 0 :=
 begin
   rintro rfl,
-  rw [trailing_degree_zero] at h,
+  rw trailing_degree_zero at h,
   exact h.not_le le_top
 end
 

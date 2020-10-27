@@ -190,7 +190,7 @@ meta def hyp_directly_depends_on_locals (h : expr) (hs : list expr) :
 hyp_directly_depends_on_local_name_set h $ local_list_to_name_set hs
 
 
-/-! ### (Indirect) Dependencies -/
+/-! ### (Indirect/Transitive) Dependencies -/
 
 /--
 `context_dependencies ctx` is a map associating each hypothesis `r ∈ ctx` with

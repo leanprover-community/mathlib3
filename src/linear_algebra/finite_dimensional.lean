@@ -823,10 +823,6 @@ lemma bijective {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 have inj : function.injective ϕ.to_linear_map := ϕ.to_ring_hom.injective,
 ⟨inj, (linear_map.injective_iff_surjective_of_findim_eq_findim rfl).mp inj⟩
 
-end alg_hom
-
-namespace linear_map
-
 /-- Biijection between algebra equivalences and algebra homomorphisms -/
 noncomputable def alg_equiv_equiv_alg_hom (F : Type u) [field F] (E : Type v) [field E]
   [algebra F E] [finite_dimensional F E] : (E ≃ₐ[F] E) ≃ (E →ₐ[F] E) :=
@@ -835,7 +831,7 @@ noncomputable def alg_equiv_equiv_alg_hom (F : Type u) [field F] (E : Type v) [f
   left_inv := λ _, by {ext, refl},
   right_inv := λ _, by {ext, refl} }
 
-end linear_map
+end alg_hom
 
 section
 

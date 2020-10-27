@@ -152,7 +152,7 @@ def to_has_scalar {γ : Type w} [semiring γ] [Π i, add_comm_group (β i)] [Π 
 local attribute [instance] to_has_scalar
 
 @[simp] lemma smul_apply {γ : Type w} [semiring γ] [Π i, add_comm_group (β i)]
-  [Π i, semimodule γ (β i)] (i : ι) (b : γ) (v : Π₀ i, β i) :
+  [Π i, semimodule γ (β i)] (b : γ) (v : Π₀ i, β i) (i : ι) :
   (b • v) i = b • (v i) :=
 map_range_apply _ _ v i
 

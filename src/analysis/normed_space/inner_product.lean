@@ -1011,6 +1011,82 @@ by simp_rw [sum_inner, inner_sum, real_inner_smul_left, real_inner_smul_right,
 
 end norm
 
+section of_norm
+
+variables {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+
+lemma a_plus_I_b (a b : E') (h : (I : 𝕜) ≠ 0) :
+  a + (I : 𝕜) • b = (I : 𝕜) • (b - (I : 𝕜) • a) :=
+begin
+  have h' := I_mul_I_of_nonzero h,
+  rw [smul_sub I, ←smul_assoc, smul_eq_mul, h', neg_smul, sub_neg_eq_add, one_smul, add_comm]
+end
+
+-- TODO, some useful references:
+-- http://www.mathematik.uni-muenchen.de/~michel/jordan-von_neumann_-_parallelogram_identity.pdf
+-- https://math.stackexchange.com/questions/21792/norms-induced-by-inner-products-and-the-parallelogram-law
+-- https://math.dartmouth.edu/archive/m113w10/public_html/jordan-vneumann-thm.pdf
+
+/-- Fréchet–von Neumann–Jordan theorm. A normed space `E'` whose norm satisfies the parallelogram
+identity can be given a compatible inner product. -/
+def inner_product_space.of_norm
+  (h : ∀ x y : E', ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥)) :
+  inner_product_space 𝕜 E' :=
+{ inner := λ x y, 4⁻¹ * ((𝓚 ∥x + y∥) * (𝓚 ∥x + y∥) - (𝓚 ∥x - y∥) * (𝓚 ∥x - y∥)
+            + (I:𝕜) * (𝓚 ∥x + (I:𝕜) • y∥) * (𝓚 ∥x + (I:𝕜) • y∥)
+            - (I:𝕜) * (𝓚 ∥x - (I:𝕜) • y∥) * (𝓚 ∥x - (I:𝕜) • y∥)),
+  norm_sq_eq_inner := assume x,
+  begin
+    have h₁ : norm_sq (4:𝕜) = 16,
+    { have : (of_real 4 : 𝕜) = (4 : 𝕜),
+      { simp only [of_real_one, of_real_bit0] },
+      rw [←this, norm_sq_eq_def', is_R_or_C.norm_eq_abs, is_R_or_C.abs_of_nonneg (by norm_num : (0 : ℝ) ≤ 4)],
+      norm_num },
+    have h₂ : ∥x + x∥ = 2 * ∥x∥,
+    { have : ∥(2 : 𝕜)∥ = 2,
+      { rw [is_R_or_C.norm_eq_abs, is_R_or_C.abs_two] },
+      rw [←this, ←norm_smul, two_smul] },
+    simp only [inner, h₁, h₂, one_im, bit0_zero, add_zero, norm_zero, I_re, of_real_im,
+      add_monoid_hom.map_add, bit0_im, zero_div, zero_mul, add_monoid_hom.map_neg, of_real_re,
+      add_monoid_hom.map_sub, sub_zero, inv_re, one_re, inv_im, bit0_re, mul_re, mul_zero, sub_self,
+      neg_zero],
+    ring
+  end,
+  conj_sym := λ x y, begin
+    simp [inner],
+    congr' 1,
+    { have : (of_real 4⁻¹ : 𝕜) = (4⁻¹ : 𝕜),
+      { simp only [of_real_one, of_real_bit0, of_real_inv]},
+      rw [←this, conj_of_real] },
+    have : y + x = x + y := by abel,
+    rw this,
+    have : y - x = - (x - y) := by abel,
+    rw this,
+    rw norm_neg,
+    by_cases h : (I : 𝕜) = 0,
+    { rw h, simp only [add_zero, zero_mul, sub_zero, neg_zero]},
+    have := abs_I_of_nonzero h,
+    rw ← is_R_or_C.norm_eq_abs at this,
+    rw [a_plus_I_b x y h, a_plus_I_b y x h, norm_smul, norm_smul, this],
+    ring, ring -- huh?
+  end,
+  nonneg_im := λ x, begin
+    simp [inner],
+    right,
+    sorry
+  end,
+  add_left := assume x y z,
+  begin
+    sorry,
+  end,
+  smul_left := assume x y r,
+  begin
+    simp [inner],
+    sorry,
+  end }
+
+end of_norm
+
 /-! ### Inner product space structure on product spaces -/
 
 /-

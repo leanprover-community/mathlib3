@@ -109,69 +109,17 @@ variables {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
 
 local notation `𝓚` := @is_R_or_C.of_real 𝕜 _
 
-/-- The inner product on the dual of an inner product space is given by the polarization identity
-for the dual norm. -/
-instance : has_inner 𝕜 (normed_space.dual 𝕜 E) :=
-{ inner := λ x y, 4⁻¹ * ((𝓚 ∥x + y∥) * (𝓚 ∥x + y∥) - (𝓚 ∥x - y∥) * (𝓚 ∥x - y∥)
-            + (I:𝕜) * (𝓚 ∥x + (I:𝕜) • y∥) * (𝓚 ∥x + (I:𝕜) • y∥)
-            - (I:𝕜) * (𝓚 ∥x - (I:𝕜) • y∥) * (𝓚 ∥x - (I:𝕜) • y∥)) }
-
-lemma a_plus_I_b (a b : normed_space.dual 𝕜 E) (h : (I : 𝕜) ≠ 0) :
-  a + (I : 𝕜) • b = (I : 𝕜) • (b - (I : 𝕜) • a) :=
+/-- The dual of an inner product space satisfies the parallelogram identity. -/
+lemma parallelogram_law_with_dual_norm (α β : normed_space.dual 𝕜 E) :
+  ∥α + β∥ * ∥α + β∥ + ∥α - β∥ * ∥α - β∥ = 2 * (∥α∥ * ∥α∥ + ∥β∥ * ∥β∥) :=
 begin
-  have h' := I_mul_I_of_nonzero h,
-  rw [smul_sub I, ←smul_assoc, smul_eq_mul, h', neg_smul, sub_neg_eq_add, one_smul, add_comm]
+  -- is this even true? (without the completeness hypothesis on `E`.) Not clear.
+  -- Idea: apply `analysis.normed_space.riesz_lemma` to `ker (r • α + s • β)`, for each `r`, `s`.
+  sorry
 end
 
 /-- The dual of an inner product space is itself an inner product space. -/
 instance dual_inner_product_space : inner_product_space 𝕜 (normed_space.dual 𝕜 E) :=
-{ norm_sq_eq_inner := assume ℓ,
-  begin
-    have h₁ : norm_sq (4:𝕜) = 16,
-    { have : (of_real 4 : 𝕜) = (4 : 𝕜),
-      { simp only [of_real_one, of_real_bit0] },
-      rw [←this, norm_sq_eq_def', norm_eq_abs, is_R_or_C.abs_of_nonneg (by norm_num : (0 : ℝ) ≤ 4)],
-      norm_num },
-    have h₂ : ∥ℓ + ℓ∥ = 2 * ∥ℓ∥,
-    { have : ∥(2 : 𝕜)∥ = 2,
-      { rw [norm_eq_abs, is_R_or_C.abs_two] },
-      rw [←this, ←norm_smul, two_smul] },
-    simp only [inner, h₁, h₂, one_im, bit0_zero, add_zero, norm_zero, I_re, of_real_im,
-      add_monoid_hom.map_add, bit0_im, zero_div, zero_mul, add_monoid_hom.map_neg, of_real_re,
-      add_monoid_hom.map_sub, sub_zero, inv_re, one_re, inv_im, bit0_re, mul_re, mul_zero, sub_self,
-      neg_zero],
-    ring
-  end,
-  conj_sym := λ x y, begin
-    simp [inner],
-    congr' 1,
-    { have : (of_real 4⁻¹ : 𝕜) = (4⁻¹ : 𝕜),
-      { simp only [of_real_one, of_real_bit0, of_real_inv]},
-      rw [←this, conj_of_real] },
-    have : y + x = x + y := by abel,
-    rw this,
-    have : y - x = - (x - y) := by abel,
-    rw this,
-    rw norm_neg,
-    by_cases h : (I : 𝕜) = 0,
-    { rw h, simp only [add_zero, zero_mul, sub_zero, neg_zero]},
-    have := abs_I_of_nonzero h,
-    rw ←norm_eq_abs at this,
-    rw [a_plus_I_b _ x y h, a_plus_I_b _ y x h, norm_smul, norm_smul, this],
-    ring, ring -- huh?
-  end,
-  nonneg_im := λ x, begin
-    simp [inner],
-    right,
-    sorry
-  end,
-  add_left := assume x y z,
-  begin
-    sorry,
-  end,
-  smul_left := assume x y r,
-  begin
-    sorry,
-  end }
+inner_product_space.of_norm (parallelogram_law_with_dual_norm 𝕜)
 
 end inner_product_space

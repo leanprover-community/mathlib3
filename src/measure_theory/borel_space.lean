@@ -449,7 +449,7 @@ measurable_inv.comp hf
 
 lemma measurable_inv' {α : Type*} [normed_field α] [measurable_space α] [borel_space α] :
   measurable (has_inv.inv : α → α) :=
-measurable_of_continuous_on_compl_singleton 0 normed_field.continuous_on_inv
+measurable_of_continuous_on_compl_singleton 0 continuous_on_inv'
 
 lemma measurable.inv' {α : Type*} [normed_field α] [measurable_space α] [borel_space α]
   {f : δ → α} (hf : measurable f) :

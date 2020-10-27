@@ -125,13 +125,12 @@ open is_R_or_C continuous_linear_map
 
 variables (𝕜 : Type*)
 variables {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
-variables {F : Type*} [inner_product_space ℝ F]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
 local postfix `†`:90 := @is_R_or_C.conj 𝕜 _
 
 /--
-Given some x in an inner product space, we can define its dual as the continuous linear map
-λ y, ⟪x, y⟫.
+Given some `x` in an inner product space, we can define its dual as the continuous linear map
+`λ y, ⟪x, y⟫`.
 -/
 def to_dual' (x : E) : normed_space.dual 𝕜 E :=
 linear_map.mk_continuous
@@ -141,13 +140,9 @@ linear_map.mk_continuous
   ∥x∥
   (λ y, by { rw [is_R_or_C.norm_eq_abs], exact abs_inner_le_norm _ _ })
 
-@[simp] lemma to_dual'_def {x y : E} : to_dual' 𝕜 x y = ⟪x, y⟫ := rfl
+@[simp] lemma to_dual'_apply {x y : E} : to_dual' 𝕜 x y = ⟪x, y⟫ := rfl
 
-variables {𝕜}
-
-/-- The inner product can be written as an application of the dual of the first argument. -/
-lemma inner_eq_to_dual'_apply {x y : E} : ⟪x, y⟫ = (to_dual' 𝕜 x) y :=
-by simp only [to_dual'_def]
+variables {F : Type*} [inner_product_space ℝ F]
 
 def to_dual_map : F →L[ℝ] (normed_space.dual ℝ F) :=
 linear_map.mk_continuous
@@ -160,12 +155,12 @@ linear_map.mk_continuous
     apply op_norm_le_bound,
     { simp [norm_nonneg] },
     { intros y,
-      simp only [one_mul, linear_map.coe_mk, to_dual'_def, norm_eq_abs, abs_inner_le_norm] }
+      simp only [one_mul, linear_map.coe_mk, to_dual'_apply, norm_eq_abs, abs_inner_le_norm] }
   end
 
 @[simp] lemma to_dual_map_apply {x y : F} : to_dual_map x y = ⟪x, y⟫_ℝ := rfl
 
-/-- In an inner product space, the norm of the dual of a vector x is `∥x∥` -/
+/-- In an inner product space, the norm of the dual of a vector `x` is `∥x∥` -/
 @[simp] lemma to_dual_map_isometry (x : F) :
   ∥to_dual_map x∥ = ∥x∥ :=
 begin
@@ -198,8 +193,8 @@ end
 variables [complete_space F]
 
 /--
-Fréchet-Riesz representation: any ℓ in the dual of a real Hilbert space F is of the form
-λ u, ⟪y, u⟫ for some y in F.  See `inner_product_space.to_dual` for the continuous linear
+Fréchet-Riesz representation: any `ℓ` in the dual of a real Hilbert space `F` is of the form
+`λ u, ⟪y, u⟫` for some `y` in `F`.  See `inner_product_space.to_dual` for the continuous linear
 equivalence thus induced.
 -/
 -- TODO extend to `is_R_or_C` (requires a definition of conjugate linear maps)
@@ -269,7 +264,6 @@ continuous_linear_equiv.of_homothety
 @[simp] lemma to_dual_eq_iff_eq {x y : F} : to_dual x = to_dual y ↔ x = y :=
 (@to_dual F _ _).injective.eq_iff
 
-/-- In a Hilbert space, the norm of the dual of a vector x is `∥x∥` -/
 @[simp] lemma to_dual_norm_eq_primal_norm (x : F) : ∥to_dual x∥ = ∥x∥ :=
 to_dual_map_isometry x
 

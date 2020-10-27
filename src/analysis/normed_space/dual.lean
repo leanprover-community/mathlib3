@@ -162,6 +162,7 @@ variables {F : Type*} [inner_product_space ℝ F]
 
 /-- In an inner product space `F`, the function that takes a vector `x` in `F` to its dual
 `λ y, ⟪x, y⟫` is a continuous linear map. -/
+-- TODO extend to `is_R_or_C` (requires a definition of conjugate linear maps)
 def to_dual_map : F →L[ℝ] (normed_space.dual ℝ F) :=
 linear_map.mk_continuous
   { to_fun := λ x, to_dual' ℝ x,
@@ -272,8 +273,7 @@ to_dual_map_isometry x
 
 /-- In a Hilbert space, the norm of a vector in the dual space is the norm of its corresponding
 primal vector. -/
-lemma dual_norm_eq_primal_norm (ℓ : normed_space.dual ℝ F) :
-  ∥ℓ∥ = ∥to_dual.symm ℓ∥ :=
+lemma dual_norm_eq_primal_norm (ℓ : normed_space.dual ℝ F) : ∥ℓ∥ = ∥to_dual.symm ℓ∥ :=
 by { convert to_dual_norm_eq_primal_norm (to_dual.symm ℓ), simp }
 
 end inner_product_space

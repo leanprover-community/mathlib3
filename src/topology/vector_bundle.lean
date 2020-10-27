@@ -25,52 +25,73 @@ localized "notation V `ᵛ` R := module.dual R V" in linear_algebra.dual
 variables {B : Type*}
 
 /--
-Type synonim not to have conflict with sigma types. It is the total space of the vector bundle.
+`total_space E` is the total space of the bundle `Σ x, E x`. This type synonym is used to avoid
+conflicts with general sigma types.
 -/
 def bundle.total_space (E : B → Type*) := Σ x, E x
 
-/-- Canonical projection on the base space. -/
+instance {E : B → Type*} [inhabited B] [inhabited (E (default B))] :
+  inhabited (bundle.total_space E) := ⟨⟨default B, default (E (default B))⟩⟩
+
+/-- `bundle.proj E` is the canonical projection `total_space E → B` on the base space. -/
 def bundle.proj (E : B → Type*) : bundle.total_space E → B := λ y : (bundle.total_space E), y.1
 
 open bundle
 
 variables (R : Type*) (E : B → Type*) (F : Type*)
-[comm_semiring R] [topological_space B] [∀ x, add_comm_monoid (E x)] [∀ x, semimodule R (E x)]
-[topological_space F] [add_comm_monoid F] [semimodule R F]
-[topological_space (total_space E)]
+[comm_semiring R] [∀ x, add_comm_monoid (E x)] [∀ x, semimodule R (E x)]
+
+section
+
+variables [topological_space B] [topological_space F] [topological_space (total_space E)]
+[add_comm_monoid F] [semimodule R F]
 
 /-@[reducible] def vector_bundle.dual := (λ x, (E x)ᵛR)-/
 
-instance is_this_a_good_idea {x : B} :
-  has_coe (E x) (total_space E) := ⟨λ y, (⟨x, y⟩ : total_space E)⟩
+@[nolint unused_arguments]
+instance {x : B} : has_coe (E x) (total_space E) := ⟨λ y, (⟨x, y⟩ : total_space E)⟩
 
 /-- Local trivialization for vector bunlde. -/
+@[nolint has_inhabited_instance]
 structure vector_bundle_trivialization extends bundle_trivialization F (proj E) :=
 (linear : ∀ x ∈ base_set, is_linear_map R (λ y : (E x), (to_fun y).2))
 
 instance : has_coe (vector_bundle_trivialization R E F) (bundle_trivialization F (proj E)) :=
 ⟨vector_bundle_trivialization.to_bundle_trivialization⟩
 
+instance : has_coe_to_fun (vector_bundle_trivialization R E F) :=
+⟨_, λ e, e.to_bundle_trivialization⟩
+
 /-- Topological vector bundle of fiber `F`. -/
 class topological_vector_bundle :=
 (trivialization_at [] : B → (vector_bundle_trivialization R E F))
 (mem_trivialization_source [] : ∀ x : total_space E, x ∈ (trivialization_at x.1).source)
 
+end
+
 variable (B)
 
-/-- Tirvial bundle of fiber `F`. -/
+/-- `trivial_bundle B F` is the trivial bundle over `B` of fiber `F`. -/
+@[nolint unused_arguments]
 def trivial_bundle : B → Type* := λ x, F
+
+instance [inhabited F] {b : B} : inhabited (trivial_bundle B F b) :=
+by { unfold trivial_bundle, exact ⟨default F⟩ }
 
 /-- The trivial bundle, unlike other bundles, has a canonical projection on the fiber. -/
 def trivial_bundle.proj_snd : (total_space (trivial_bundle B F)) → F := sigma.snd
 
 instance [I : add_comm_monoid F] : ∀ x : B, add_comm_monoid (trivial_bundle B F x) := λ x, I
-instance [I : semimodule R F] : ∀ x : B, semimodule R (trivial_bundle B F x) := λ x, I
+instance [add_comm_monoid F] [I : semimodule R F] : ∀ x : B, semimodule R (trivial_bundle B F x) :=
+  λ x, I
 instance [I : topological_space F] : ∀ x : B, topological_space (trivial_bundle B F x) := λ x, I
 instance [t₁ : topological_space B] [t₂ : topological_space F] :
   topological_space (total_space (trivial_bundle B F)) :=
 topological_space.induced (proj (trivial_bundle B F)) t₁ ⊓
   topological_space.induced (trivial_bundle.proj_snd B F) t₂
+
+variables [topological_space B] [topological_space F] [topological_space (total_space E)]
+[add_comm_monoid F] [semimodule R F]
 
 /-- Local trivialization for trivial bundle. -/
 def trivial_bundle_trivialization : vector_bundle_trivialization R (trivial_bundle B F) F :=
@@ -84,8 +105,11 @@ def trivial_bundle_trivialization : vector_bundle_trivialization R (trivial_bund
   right_inv' := λ x h, prod.ext rfl rfl,
   open_source := is_open_univ,
   open_target := is_open_univ,
-  continuous_to_fun := by { dsimp, rw ← continuous_iff_continuous_on_univ, sorry },
-  continuous_inv_fun := by { dsimp, rw ← continuous_iff_continuous_on_univ, sorry },
+  continuous_to_fun := by { rw [←continuous_iff_continuous_on_univ, continuous_iff_le_induced],
+    simp only [prod.topological_space, induced_inf, induced_compose], exact le_refl _, },
+  continuous_inv_fun := by { rw [←continuous_iff_continuous_on_univ, continuous_iff_le_induced],
+    simp only [bundle.total_space.topological_space, induced_inf, induced_compose],
+    exact le_refl _, },
   base_set := set.univ,
   open_base_set := is_open_univ,
   source_eq := rfl,

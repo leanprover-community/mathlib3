@@ -12,7 +12,7 @@ import data.polynomial.degree.basic
 
 /-!
 Given semirings `R` and `S` with a morphism `f : R →+* S`, we say that a polynomial with
-coefficients in `S` lifts if there exist `q : polynomial S` such that `map f p = q`.
+coefficients in `S` lifts if there exist `q : polynomial R` such that `map f p = q`.
 We prove various basic results about polynomials that lift, for example that if `p` and `q`
 lift then `p + q` lifts. Then, we prove that a polynomial that lifts can always be lifted to a
 polynomial of the same degree and that a monic polynomial that lifts can be lifted to a monic

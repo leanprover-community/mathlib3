@@ -105,10 +105,9 @@ begin
              and_self, singleton_tail]
 end
 
-/-- Mapping under `id` does not change a vector.-/
+/-- Mapping under `id` does not change a vector. -/
 @[simp] lemma map_id {n : ℕ} (v : vector α n) : vector.map id v = v :=
   vector.eq _ _ (by simp only [list.map_id, vector.to_list_map])
-
 
 lemma mem_iff_nth {a : α} {v : vector α n} : a ∈ v.to_list ↔ ∃ i, v.nth i = a :=
 by simp only [list.mem_iff_nth_le, fin.exists_iff, vector.nth_eq_nth_le];

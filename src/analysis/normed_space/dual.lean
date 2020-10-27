@@ -199,7 +199,8 @@ variables [complete_space F]
 
 /--
 Fréchet-Riesz representation: any ℓ in the dual of a real Hilbert space F is of the form
-λ u, ⟪y, u⟫ for some y in F.
+λ u, ⟪y, u⟫ for some y in F.  See `inner_product_space.to_dual` for the continuous linear
+equivalence thus induced.
 -/
 -- TODO extend to `is_R_or_C` (requires a definition of conjugate linear maps)
 lemma exists_elem_of_mem_dual : (@to_dual_map F _).range = ⊤ :=
@@ -249,8 +250,9 @@ begin
     exact h₄ }
 end
 
-/-- If `F` is a Hilbert space, the function that takes a vector in `F` to its dual is a continuous
-linear equivalence.  -/
+/--
+Fréchet-Riesz representation: If `F` is a Hilbert space, the function that takes a vector in `F` to
+its dual is a continuous linear equivalence.  -/
 def to_dual : F ≃L[ℝ] (normed_space.dual ℝ F) :=
 continuous_linear_equiv.of_homothety
   ℝ

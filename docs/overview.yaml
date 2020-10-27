@@ -227,7 +227,7 @@ Analysis:
     absolutely convergent series in Banach spaces: 'summable_of_summable_norm'
     Hahn-Banach theorem: 'exists_extension_norm_eq'
     dual of a normed space: 'normed_space.dual'
-    representation of the dual of a Hilbert space: 'inner_product_space.exists_elem_of_mem_dual'
+    Fréchet-Riesz representation of the dual of a Hilbert space: 'inner_product_space.to_dual'
     isometric inclusion in double dual: 'normed_space.inclusion_in_double_dual_isometry'
     completeness of spaces of bounded continuous functions: 'bounded_continuous_function.complete_space'
 

@@ -306,7 +306,7 @@ def equalizer (ϕ ψ : A →ₐ[R] B) : subalgebra R A :=
     rw [alg_hom.commutes, alg_hom.commutes] } }
 
 @[simp] lemma mem_equalizer (ϕ ψ : A →ₐ[R] B) (x : A) :
-  x ∈ ϕ.equalizer ψ ↔ ϕ x = ψ x := by refl
+  x ∈ ϕ.equalizer ψ ↔ ϕ x = ψ x := iff.rfl
 
 end alg_hom
 

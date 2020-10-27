@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth, Frédéric Dupuis
 -/
 import analysis.normed_space.hahn_banach
-import analysis.normed_space.banach
 import analysis.normed_space.inner_product
-import analysis.normed_space.operator_norm
 
 /-!
 # The topological dual of a normed space
@@ -202,9 +200,9 @@ Fréchet-Riesz representation: any `ℓ` in the dual of a real Hilbert space `F`
 equivalence thus induced.
 -/
 -- TODO extend to `is_R_or_C` (requires a definition of conjugate linear maps)
-lemma exists_elem_of_mem_dual : (@to_dual_map F _).range = ⊤ :=
+lemma to_dual_map_range_eq_top : (@to_dual_map F _).range = ⊤ :=
 begin
-  apply (@linear_map.range_eq_top ℝ F _ _ _ _ _ _ (@to_dual_map F _).to_linear_map).mpr,
+  apply linear_map.range_eq_top.mpr,
   intros ℓ,
   set Y := ker ℓ with hY,
   by_cases htriv : Y = ⊤,
@@ -257,8 +255,8 @@ continuous_linear_equiv.of_homothety
   ℝ
   (linear_equiv.of_bijective
     (@to_dual_map F _).to_linear_map
-    (@to_dual_map_injective F _)
-    (@exists_elem_of_mem_dual F _ _))
+    to_dual_map_injective
+    to_dual_map_range_eq_top)
   1
   (by norm_num)
   (λ x, by { convert to_dual_map_isometry x, simp })

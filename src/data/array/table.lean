@@ -162,10 +162,6 @@ do new_buff ← t.entries.mmap_copy (empty_buff t) (λ a : option α,
    end),
    return ⟨t.next_id, t.buff_len, new_buff⟩
 
-def is_after_last (r : table_ref) : bool := t.next_id.to_nat <= r.to_nat
-
 meta def to_list : list α := t.foldl list.concat []
-
-meta instance [has_to_string α] : has_to_string (table α) := ⟨λ t, to_string t.to_list⟩
 
 end table

@@ -24,9 +24,9 @@ polynomial (of the same degree).
 
 ## Main results
 
-* `lifts_iff_lifts_deg` : A polynomial lifts if and only if it can be lifted to a polynomial
+* `lifts_deg_iff_lifts` : A polynomial lifts if and only if it can be lifted to a polynomial
 of the same degree.
-* `lifts_iff_lifts_deg_monic` : A monic polynomial lifts if and only if it can be lifted to a
+* `lifts_deg_monic_iff_lifts` : A monic polynomial lifts if and only if it can be lifted to a
 monic polynomial of the same degree.
 * `lifts_iff` : if `R` is commutative, a polynomial lifts if and only if it is in the image of
 `map_alg`, where `map_alg : polynomial R →ₐ[R] polynomial S` is the only `R`-algebra map
@@ -185,7 +185,7 @@ begin
 end
 
 /--A polynomial lifts if and only if it can be lifted to a polynomial of the same degree. -/
-lemma lifts_iff_lifts_deg (f : R →+* S) (p : polynomial S) : lifts_deg f p ↔ lifts f p :=
+lemma lifts_deg_iff_lifts (f : R →+* S) (p : polynomial S) : lifts_deg f p ↔ lifts f p :=
 begin
   split,
   { intro h; obtain ⟨q, hq⟩ := h; use q; exact hq.1 },
@@ -228,7 +228,7 @@ def lifts_deg_monic (f : R →+* S) (p : polynomial S) : Prop :=
 
 /--A monic polynomial lifts if and only if it can be lifted to a monic polynomial
 of the same degree. -/
-lemma lifts_iff_lifts_deg_monic {f : R →+* S} [nontrivial S] (p : polynomial S) (hmonic : p.monic) :
+lemma lifts_deg_monic_iff_lifts {f : R →+* S} [nontrivial S] (p : polynomial S) (hmonic : p.monic) :
   lifts_deg_monic f p ↔ lifts f p :=
 begin
   split,
@@ -237,7 +237,7 @@ begin
   by_cases Rtrivial : nontrivial R,
   swap,
   { rw not_nontrivial_iff_subsingleton at Rtrivial,
-    obtain ⟨q, hq⟩ := (lifts_iff_lifts_deg f p).2 hlifts,
+    obtain ⟨q, hq⟩ := (lifts_deg_iff_lifts f p).2 hlifts,
     use q,
     exact ⟨hq.1, hq.2, @monic_of_subsingleton _ _ Rtrivial q⟩ },
   by_cases er_zero : p.erase_lead = 0,
@@ -247,7 +247,7 @@ begin
     { simp only [map_pow, map_X] },
     { rw [@degree_X_pow R _ Rtrivial, degree_X_pow] },
     {exact monic_pow monic_X p.nat_degree } },
-  obtain ⟨q, hq⟩ := (lifts_iff_lifts_deg f p.erase_lead).2 (erase_lead_lifts_of_lifts hlifts),
+  obtain ⟨q, hq⟩ := (lifts_deg_iff_lifts f p.erase_lead).2 (erase_lead_lifts_of_lifts hlifts),
   have deg_er : p.erase_lead.nat_degree < p.nat_degree :=
     or.resolve_right (erase_lead_nat_degree_lt_or_erase_lead_eq_zero p) er_zero,
   replace deg_er := with_bot.coe_lt_coe.2 deg_er,

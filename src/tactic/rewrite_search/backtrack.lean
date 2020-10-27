@@ -45,21 +45,20 @@ end naive
 
 namespace bfs
 
-meta def search_step (me : ℕ) :
-table edge → list edge → tactic (table edge × list ℕ)
+meta def search_step (me : ℕ) : buffer (option edge) → list edge → tactic (buffer (option edge) × list ℕ)
 | been [] := return (been, [])
 | been (e :: rest) :=
   match e.other me with
   | none := fail "bad edge in adjacency table!"
   | some id := do
     (been, queue_head) ← pure $
-      if been.present id ∨ id = LHS_VERTEX_ID then (been, [])
-      else (been.set id e, [id]),
+      if (been.read' id).is_some ∨ id = LHS_VERTEX_ID then (been, [])
+      else (been.write' id (some e), [id]),
     (been, queue) ← search_step been rest,
     return (been, queue_head ++ queue)
   end
 
-meta def search_aux : table edge → list ℕ → tactic (table edge)
+meta def search_aux : buffer (option edge) → list ℕ → tactic (buffer (option edge))
 | been [] := fail "bug: bfs could not find the path LHS -> RHS!"
 | been (t :: rest) := do
   child ← g.vertices.get t,
@@ -69,13 +68,13 @@ meta def search_aux : table edge → list ℕ → tactic (table edge)
     (been, new_es) ← search_step child.id been child.adj.to_list,
     search_aux been (rest ++ new_es)
 
-meta def search : tactic (table edge) :=
-  search_aux g (table.create g.vertices.length) [LHS_VERTEX_ID]
+meta def search : tactic (buffer (option edge)) :=
+  search_aux g ⟨g.vertices.length, mk_array g.vertices.length none⟩ [LHS_VERTEX_ID]
 
-meta def crawl (t : table edge) : ℕ → tactic (list edge)
+meta def crawl (t : buffer (option edge)) : ℕ → tactic (list edge)
 | id :=
   if id = LHS_VERTEX_ID then return [] else do
-  match t.at_ref id with
+  match t.read' id with
   | none := fail "bug: broken chain while bfs crawling!"
   | some e :=
     match e.other id with

@@ -488,6 +488,12 @@ lemma le_coe_get_or_else [preorder α] : ∀ (a : with_bot α) (b : α), a ≤ a
 | (some a) b := le_refl a
 | none     b := λ _ h, option.no_confusion h
 
+@[simp] lemma get_or_else_bot (a : α) : option.get_or_else (⊥ : with_bot α) a = a := rfl
+
+lemma get_or_else_bot_le_iff [order_bot α] {a : with_bot α} {b : α} :
+  a.get_or_else ⊥ ≤ b ↔ a ≤ b :=
+by cases a; simp [none_eq_bot, some_eq_coe]
+
 instance linear_order [linear_order α] : linear_order (with_bot α) :=
 { le_total := λ o₁ o₂, begin
     cases o₁ with a, {exact or.inl bot_le},

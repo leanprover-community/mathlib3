@@ -18,8 +18,8 @@ class archimedean (α) [ordered_add_comm_monoid α] : Prop :=
 namespace decidable_linear_ordered_add_comm_group
 variables [decidable_linear_ordered_add_comm_group α] [archimedean α]
 
-/-- An archimedean decidable linearly ordered `add_comm_group` has a version of the floor: for `a > 0`,
-any `g` in the group lies between some two consecutive multiples of `a`. -/
+/-- An archimedean decidable linearly ordered `add_comm_group` has a version of the floor: for
+`a > 0`, any `g` in the group lies between some two consecutive multiples of `a`. -/
 lemma exists_int_smul_near_of_pos {a : α} (ha : 0 < a) (g : α) :
   ∃ k, k •ℤ a ≤ g ∧ g < (k + 1) •ℤ a :=
 begin
@@ -167,8 +167,8 @@ instance : archimedean ℕ :=
 
 instance : archimedean ℤ :=
 ⟨λ n m m0, ⟨n.to_nat, le_trans (int.le_to_nat _) $
-by simpa only [nsmul_eq_mul, int.nat_cast_eq_coe_nat, zero_add, mul_one] using mul_le_mul_of_nonneg_left
-    (int.add_one_le_iff.2 m0) (int.coe_zero_le n.to_nat)⟩⟩
+by simpa only [nsmul_eq_mul, int.nat_cast_eq_coe_nat, zero_add, mul_one]
+  using mul_le_mul_of_nonneg_left (int.add_one_le_iff.2 m0) (int.coe_zero_le n.to_nat)⟩⟩
 
 /-- A linear ordered archimedean ring is a floor ring. This is not an `instance` because in some
 cases we have a computable `floor` function. -/

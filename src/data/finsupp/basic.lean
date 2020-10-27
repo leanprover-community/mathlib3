@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Scott Morrison
 -/
 import algebra.group.pi
 import algebra.big_operators.order
-import algebra.module.basic
+import algebra.module.linear_map
 import data.fintype.card
 import data.finset.preimage
 import data.multiset.antidiagonal
@@ -98,11 +98,15 @@ namespace finsupp
 section basic
 variable [has_zero M]
 
-instance : has_coe_to_fun (α →₀ M) := ⟨λ_, α → M, to_fun⟩
+instance : has_coe_to_fun (α →₀ M) := ⟨λ _, α → M, to_fun⟩
 
-instance : has_zero (α →₀ M) := ⟨⟨∅, (λ_, 0), λ _, ⟨false.elim, λ H, H rfl⟩⟩⟩
+@[simp] lemma coe_mk (f : α → M) (s : finset α) (h : ∀ a, a ∈ s ↔ f a ≠ 0) :
+  ⇑(⟨s, f, h⟩ : α →₀ M) = f := rfl
 
-@[simp] lemma zero_apply {a : α} : (0 : α →₀ M) a = 0 := rfl
+instance : has_zero (α →₀ M) := ⟨⟨∅, (λ _, 0), λ _, ⟨false.elim, λ H, H rfl⟩⟩⟩
+
+@[simp] lemma coe_zero : ⇑(0 : α →₀ M) = (λ _, (0:M)) := rfl
+lemma zero_apply {a : α} : (0 : α →₀ M) a = 0 := rfl
 @[simp] lemma support_zero : (0 : α →₀ M).support = ∅ := rfl
 
 instance : inhabited (α →₀ M) := ⟨0⟩
@@ -113,18 +117,25 @@ f.mem_support_to_fun
 lemma not_mem_support_iff {f : α →₀ M} {a} : a ∉ f.support ↔ f a = 0 :=
 not_iff_comm.1 mem_support_iff.symm
 
-@[ext]
-lemma ext : ∀{f g : α →₀ M}, (∀a, f a = g a) → f = g
+lemma injective_coe_fn : function.injective (show (α →₀ M) → α → M, from coe_fn)
 | ⟨s, f, hf⟩ ⟨t, g, hg⟩ h :=
   begin
-    have : f = g, { funext a, exact h a },
-    subst this,
+    change f = g at h, subst h,
     have : s = t, { ext a, exact (hf a).trans (hg a).symm },
     subst this
   end
 
+@[ext] lemma ext {f g : α →₀ M} (h : ∀a, f a = g a) : f = g := injective_coe_fn (funext h)
+
 lemma ext_iff {f g : α →₀ M} : f = g ↔ (∀a:α, f a = g a) :=
 ⟨by rintros rfl a; refl, ext⟩
+
+lemma ext_iff' {f g : α →₀ M} : f = g ↔ f.support = g.support ∧ ∀ x ∈ f.support, f x = g x :=
+⟨λ h, h ▸ ⟨rfl, λ _ _, rfl⟩, λ ⟨h₁, h₂⟩, ext $ λ a,
+  if h : a ∈ f.support then h₂ a h else
+    have hf : f a = 0, from not_mem_support_iff.1 h,
+    have hg : g a = 0, by rwa [h₁, not_mem_support_iff] at h,
+    by rw [hf, hg]⟩
 
 @[simp] lemma support_eq_empty {f : α →₀ M} : f.support = ∅ ↔ f = 0 :=
 ⟨assume h, ext $ assume a, by_contradiction $ λ H, (finset.ext_iff.1 h a).1 $
@@ -134,13 +145,7 @@ lemma card_support_eq_zero {f : α →₀ M} : card f.support = 0 ↔ f = 0 :=
 by simp
 
 instance finsupp.decidable_eq [decidable_eq α] [decidable_eq M] : decidable_eq (α →₀ M) :=
-assume f g, decidable_of_iff (f.support = g.support ∧ (∀a∈f.support, f a = g a))
-  ⟨assume ⟨h₁, h₂⟩, ext $ assume a,
-      if h : a ∈ f.support then h₂ a h else
-        have hf : f a = 0, by rwa [mem_support_iff, not_not] at h,
-        have hg : g a = 0, by rwa [h₁, mem_support_iff, not_not] at h,
-        by rw [hf, hg],
-    by rintro rfl; exact ⟨rfl, λ _ _, rfl⟩⟩
+assume f g, decidable_of_iff (f.support = g.support ∧ (∀a∈f.support, f a = g a)) ext_iff'.symm
 
 lemma finite_supp (f : α →₀ M) : set.finite {a | f a ≠ 0} :=
 ⟨fintype.of_finset f.support (λ _, mem_support_iff)⟩
@@ -252,6 +257,13 @@ lemma single_eq_zero : single a b = 0 ↔ b = 0 :=
 lemma single_swap (a₁ a₂ : α) (b : M) : single a₁ b a₂ = single a₂ b a₁ :=
 by simp only [single_apply]; ac_refl
 
+instance [nonempty α] [nontrivial M] : nontrivial (α →₀ M) :=
+begin
+  inhabit α,
+  rcases exists_ne (0 : M) with ⟨x, hx⟩,
+  exact nontrivial_of_ne (single (default α) x) 0 (mt single_eq_zero.1 hx)
+end
+
 lemma unique_single [unique α] (x : α →₀ M) : x = single (default α) (x (default α)) :=
 ext $ unique.forall_iff.2 single_eq_same.symm
 
@@ -292,10 +304,7 @@ variables [has_zero M]
   The function needs to be `0` outside of `s`. Use this when the set needs to be filtered anyways,
   otherwise a better set representation is often available. -/
 def on_finset (s : finset α) (f : α → M) (hf : ∀a, f a ≠ 0 → a ∈ s) : α →₀ M :=
-⟨s.filter (λa, f a ≠ 0), f,
-  assume a, classical.by_cases
-    (assume h : f a = 0, by rw mem_filter; exact ⟨and.right, λ H, (H h).elim⟩)
-    (assume h : f a ≠ 0, by rw mem_filter; simp only [iff_true_intro h, hf a h, true_and])⟩
+⟨s.filter (λa, f a ≠ 0), f, by simpa⟩
 
 @[simp] lemma on_finset_apply {s : finset α} {f : α → M} {hf a} :
   (on_finset s f hf : α →₀ M) a = f a :=
@@ -305,20 +314,15 @@ rfl
   (on_finset s f hf).support ⊆ s :=
 filter_subset _
 
-lemma mem_support_on_finset
+@[simp] lemma mem_support_on_finset
   {s : finset α} {f : α → M} (hf : ∀ (a : α), f a ≠ 0 → a ∈ s) {a : α} :
   a ∈ (finsupp.on_finset s f hf).support ↔ f a ≠ 0 :=
-by simp [finsupp.mem_support_iff, finsupp.on_finset_apply]
+by rw [finsupp.mem_support_iff, finsupp.on_finset_apply]
 
 lemma support_on_finset
   {s : finset α} {f : α → M} (hf : ∀ (a : α), f a ≠ 0 → a ∈ s) :
   (finsupp.on_finset s f hf).support = s.filter (λ a, f a ≠ 0) :=
-begin
-  ext a,
-  rw [mem_support_on_finset, finset.mem_filter],
-  specialize hf a,
-  finish
-end
+rfl
 
 end on_finset
 
@@ -579,18 +583,16 @@ by { dsimp [finsupp.prod], rw f.support.prod_ite_eq', }
   f.prod (λ a b, g a ^ b) = ∏ a, g a ^ (f a) :=
 f.prod_fintype _ $ λ a, pow_zero _
 
-/-- If `g` maps a second argument of 0 to 0, summing it over the
-result of `on_finset` is the same as summing it over the original
+/-- If `g` maps a second argument of 0 to 1, then multiplying it over the
+result of `on_finset` is the same as multiplying it over the original
 `finset`. -/
-lemma on_finset_sum [add_comm_monoid P] {s : finset α} {f : α → M} {g : α → M → P}
-    (hf : ∀a, f a ≠ 0 → a ∈ s) (hg : ∀ a, g a 0 = 0) :
-  (on_finset s f hf).sum g = ∑ a in s, g a (f a) :=
-begin
-  refine finset.sum_subset support_on_finset_subset _,
-  intros x hx hxs,
-  rw not_mem_support_iff.1 hxs,
-  exact hg _
-end
+@[to_additive "If `g` maps a second argument of 0 to 0, summing it over the
+result of `on_finset` is the same as summing it over the original
+`finset`."]
+lemma on_finset_prod {s : finset α} {f : α → M} {g : α → M → N}
+    (hf : ∀a, f a ≠ 0 → a ∈ s) (hg : ∀ a, g a 0 = 1) :
+  (on_finset s f hf).prod g = ∏ a in s, g a (f a) :=
+finset.prod_subset support_on_finset_subset $ by simp [*] { contextual := tt }
 
 end sum_prod
 
@@ -699,7 +701,9 @@ top_unique $ λ x hx, finsupp.induction x (add_submonoid.zero_mem _) $
   λ a b f ha hb hf, add_submonoid.add_mem _
     (add_submonoid.subset_closure $ set.mem_Union.2 ⟨a, set.mem_range_self _⟩) hf
 
-@[ext] lemma add_hom_ext [add_monoid N] ⦃f g : (α →₀ M) →+ N⦄
+/-- If two additive homomorphisms from `α →₀ M` are equal on each `single a b`, then
+they are equal. -/
+lemma add_hom_ext [add_monoid N] ⦃f g : (α →₀ M) →+ N⦄
   (H : ∀ x y, f (single x y) = g (single x y)) :
   f = g :=
 begin
@@ -708,6 +712,29 @@ begin
   rcases hf with ⟨x, y, rfl⟩,
   apply H
 end
+
+/-- If two additive homomorphisms from `α →₀ M` are equal on each `single a b`, then
+they are equal.
+
+We formulate this using equality of `add_monoid_hom`s so that `ext` tactic can apply a type-specific
+extensionality lemma after this one.  E.g., if the fiber `M` is `ℕ` or `ℤ`, then it suffices to
+verify `f (single a 1) = g (single a 1)`. -/
+@[ext] lemma add_hom_ext' [add_monoid N] ⦃f g : (α →₀ M) →+ N⦄
+  (H : ∀ x, f.comp (single_add_hom x) = g.comp (single_add_hom x)) :
+  f = g :=
+add_hom_ext $ λ x, add_monoid_hom.congr_fun (H x)
+
+lemma mul_hom_ext [monoid N] ⦃f g : multiplicative (α →₀ M) →* N⦄
+  (H : ∀ x y, f (multiplicative.of_add $ single x y) = g (multiplicative.of_add $ single x y)) :
+  f = g :=
+monoid_hom.ext $ add_monoid_hom.congr_fun $
+  @add_hom_ext α M (additive N) _ _ f.to_additive'' g.to_additive'' H
+
+@[ext] lemma mul_hom_ext' [monoid N] {f g : multiplicative (α →₀ M) →* N}
+  (H : ∀ x, f.comp (single_add_hom x).to_multiplicative =
+    g.comp (single_add_hom x).to_multiplicative) :
+  f = g :=
+mul_hom_ext $ λ x, monoid_hom.congr_fun (H x)
 
 lemma map_range_add [add_monoid N]
   {f : M → N} {hf : f 0 = 0} (hf' : ∀ x y, f (x + y) = f x + f y) (v₁ v₂ : α →₀ M) :
@@ -849,6 +876,18 @@ have hfg : (f + g).prod h = ∏ a in f.support ∪ g.support, h a ((f + g) a),
   from (f + g).prod_of_support_subset support_add _ $ λ a ha, h_zero a,
 by simp only [*, add_apply, prod_mul_distrib]
 
+@[simp]
+lemma sum_add_index' [add_comm_monoid M] [add_comm_monoid N] {f g : α →₀ M} (h : α → M →+ N) :
+  (f + g).sum (λ x, h x) = f.sum (λ x, h x) + g.sum (λ x, h x) :=
+sum_add_index (λ a, (h a).map_zero) (λ a, (h a).map_add)
+
+@[simp]
+lemma prod_add_index' [add_comm_monoid M] [comm_monoid N] {f g : α →₀ M}
+  (h : α → multiplicative M →* N) :
+  (f + g).prod (λ a b, h a (multiplicative.of_add b)) =
+    f.prod (λ a b, h a (multiplicative.of_add b)) * g.prod (λ a b, h a (multiplicative.of_add b)) :=
+prod_add_index (λ a, (h a).map_one) (λ a, (h a).map_mul)
+
 /-- The canonical isomorphism between families of additive monoid homomorphisms `α → (M →+ N)`
 and monoid homomorphisms `(α →₀ M) →+ N`. -/
 def lift_add_hom [add_comm_monoid M] [add_comm_monoid N] : (α → M →+ N) ≃+ ((α →₀ M) →+ N) :=
@@ -883,6 +922,22 @@ lift_add_hom.to_equiv.apply_eq_iff_eq_symm_apply.2 rfl
 @[simp] lemma sum_single [add_comm_monoid M] (f : α →₀ M) :
   f.sum single = f :=
 add_monoid_hom.congr_fun lift_add_hom_single_add_hom f
+
+@[simp] lemma lift_add_hom_apply_single [add_comm_monoid M] [add_comm_monoid N]
+  (f : α → M →+ N) (a : α) (b : M) :
+  lift_add_hom f (single a b) = f a b :=
+sum_single_index (f a).map_zero
+
+@[simp] lemma lift_add_hom_comp_single [add_comm_monoid M] [add_comm_monoid N] (f : α → M →+ N)
+  (a : α) :
+  (lift_add_hom f).comp (single_add_hom a) = f a :=
+add_monoid_hom.ext $ λ b, lift_add_hom_apply_single f a b
+
+lemma comp_lift_add_hom [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
+  (g : N →+ P) (f : α → M →+ N) :
+  g.comp (lift_add_hom f) = lift_add_hom (λ a, g.comp (f a)) :=
+lift_add_hom.symm_apply_eq.1 $ funext $ λ a,
+  by rw [lift_add_hom_symm_apply, add_monoid_hom.comp_assoc, lift_add_hom_comp_single]
 
 lemma sum_sub_index [add_comm_group β] [add_comm_group γ] {f g : α →₀ β}
   {h : α → β → γ} (h_sub : ∀a b₁ b₂, h a (b₁ - b₂) = h a b₁ - h a b₂) :
@@ -1613,17 +1668,6 @@ smul_single _ _ _
 
 lemma smul_single_one [semiring R] (a : α) (b : R) : b • single a 1 = single a b :=
 by rw [smul_single, smul_eq_mul, mul_one]
-
-@[ext] lemma lhom_ext' [semiring R] [add_comm_monoid M] [semimodule R M] [add_comm_monoid N]
-  [semimodule R N] ⦃φ ψ : (α →₀ M) →ₗ[R] N⦄ (h : ∀ a b, φ (single a b) = ψ (single a b)) :
-  φ = ψ :=
-linear_map.to_add_monoid_hom_injective $ add_hom_ext h
-
-/-- Two `R`-linear maps from `finsupp X R` which agree on `single x 1` agree everywhere. -/
-@[ext] lemma lhom_ext [semiring R] [add_comm_monoid M] [semimodule R M] ⦃φ ψ : (α →₀ R) →ₗ[R] M⦄
-  (h : ∀ a : α, φ (single a 1) = ψ (single a 1)) : φ = ψ :=
-lhom_ext' $ λ x y, by simp only [← smul_single_one x y, linear_map.to_add_monoid_hom_coe,
-  linear_map.map_smul, h]
 
 end
 

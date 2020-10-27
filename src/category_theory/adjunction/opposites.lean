@@ -88,4 +88,22 @@ def right_adjoint_uniq {F : C ⥤ D} {G G' : D ⥤ C}
 nat_iso.remove_op
   (left_adjoint_uniq (op_adjoint_op_of_adjoint _ F adj2) (op_adjoint_op_of_adjoint _ _ adj1))
 
+/--
+Given two adjunctions, if the left adjoints are naturally isomorphic, then so are the right
+adjoints.
+-/
+def nat_iso_of_left_adjoint_nat_iso {F F' : C ⥤ D} {G G' : D ⥤ C}
+  (adj1 : F ⊣ G) (adj2 : F' ⊣ G') (l : F ≅ F') :
+  G ≅ G' :=
+right_adjoint_uniq adj1 (adj2.of_nat_iso_left l.symm)
+
+/--
+Given two adjunctions, if the right adjoints are naturally isomorphic, then so are the left
+adjoints.
+-/
+def nat_iso_of_right_adjoint_nat_iso {F F' : C ⥤ D} {G G' : D ⥤ C}
+  (adj1 : F ⊣ G) (adj2 : F' ⊣ G') (r : G ≅ G') :
+  F ≅ F' :=
+left_adjoint_uniq adj1 (adj2.of_nat_iso_right r.symm)
+
 end adjunction

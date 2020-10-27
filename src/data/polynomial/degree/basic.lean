@@ -317,6 +317,15 @@ lemma le_nat_degree_of_mem_supp (a : ℕ) :
   a ∈ p.support → a ≤ nat_degree p:=
 le_nat_degree_of_ne_zero ∘ mem_support_iff_coeff_ne_zero.mp
 
+lemma supp_subset_range_nat_degree_succ : p.support ⊆ finset.range (nat_degree p + 1) :=
+λ n hn, mem_range.2 $ nat.lt_succ_of_le $ le_nat_degree_of_mem_supp _ hn
+
+lemma card_supp_le_succ_nat_degree (p : polynomial R) : p.support.card ≤ p.nat_degree + 1 :=
+begin
+  rw ← finset.card_range (p.nat_degree + 1),
+  exact finset.card_le_of_subset supp_subset_range_nat_degree_succ,
+end
+
 lemma le_degree_of_mem_supp (a : ℕ) :
   a ∈ p.support → ↑a ≤ degree p :=
 le_degree_of_ne_zero ∘ mem_support_iff_coeff_ne_zero.mp
@@ -732,6 +741,15 @@ theorem degree_le_iff_coeff_zero (f : polynomial R) (n : with_bot ℕ) :
   H1 $ (finsupp.mem_support_to_fun f m).2 H4,
 λ H, finset.sup_le $ λ b Hb, decidable.of_not_not $ λ Hn,
   (finsupp.mem_support_to_fun f b).1 Hb $ H b $ lt_of_not_ge Hn⟩
+
+theorem degree_lt_iff_coeff_zero (f : polynomial R) (n : ℕ) :
+  degree f < n ↔ ∀ m : ℕ, n ≤ m → coeff f m = 0 :=
+begin
+  refine ⟨λ hf m hm, coeff_eq_zero_of_degree_lt (lt_of_lt_of_le hf (with_bot.coe_le_coe.2 hm)), _⟩,
+  simp only [degree, finset.sup_lt_iff (with_bot.bot_lt_coe n), mem_support_iff,
+    with_bot.some_eq_coe, with_bot.coe_lt_coe, ← @not_le ℕ],
+  exact λ h m, mt (h m),
+end
 
 lemma degree_lt_degree_mul_X (hp : p ≠ 0) : p.degree < (p * X).degree :=
 by haveI := nonzero.of_polynomial_ne hp; exact

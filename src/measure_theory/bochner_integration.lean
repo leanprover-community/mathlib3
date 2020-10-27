@@ -577,10 +577,8 @@ variables (α E)
 lemma zero_to_simple_func : (0 : α →₁ₛ[μ] E).to_simple_func =ᵐ[μ] 0 :=
 begin
   filter_upwards [to_simple_func_eq_to_fun (0 : α →₁ₛ[μ] E), l1.zero_to_fun α E],
-  simp only [mem_set_of_eq],
-  assume a h,
-  rw h,
-  exact id
+  assume a h₁ h₂,
+  rwa h₁,
 end
 variables {α E}
 
@@ -590,7 +588,7 @@ begin
   filter_upwards [to_simple_func_eq_to_fun (f + g), to_simple_func_eq_to_fun f,
     to_simple_func_eq_to_fun g, l1.add_to_fun (f : α →₁[μ] E) g],
   assume a,
-  simp only [mem_set_of_eq, ← coe_coe, coe_add, pi.add_apply],
+  simp only [← coe_coe, coe_add, pi.add_apply],
   iterate 4 { assume h, rw h }
 end
 
@@ -599,7 +597,7 @@ begin
   filter_upwards [to_simple_func_eq_to_fun (-f), to_simple_func_eq_to_fun f,
     l1.neg_to_fun (f : α →₁[μ] E)],
   assume a,
-  simp only [mem_set_of_eq, pi.neg_apply, coe_neg, ← coe_coe],
+  simp only [pi.neg_apply, coe_neg, ← coe_coe],
   repeat { assume h, rw h }
 end
 
@@ -609,7 +607,7 @@ begin
   filter_upwards [to_simple_func_eq_to_fun (f - g), to_simple_func_eq_to_fun f,
     to_simple_func_eq_to_fun g, l1.sub_to_fun (f : α →₁[μ] E) g],
   assume a,
-  simp only [mem_set_of_eq, coe_sub, pi.sub_apply, ← coe_coe],
+  simp only [coe_sub, pi.sub_apply, ← coe_coe],
   repeat { assume h, rw h }
 end
 
@@ -621,7 +619,7 @@ begin
   filter_upwards [to_simple_func_eq_to_fun (k • f), to_simple_func_eq_to_fun f,
     l1.smul_to_fun k (f : α →₁[μ] E)],
   assume a,
-  simp only [mem_set_of_eq, pi.smul_apply, coe_smul, ← coe_coe],
+  simp only [pi.smul_apply, coe_smul, ← coe_coe],
   repeat { assume h, rw h }
 end
 
@@ -801,7 +799,6 @@ begin
   have ae_eq : ∀ᵐ a ∂μ, f.pos_part.to_simple_func a = max (f.to_simple_func a) 0,
   { filter_upwards [to_simple_func_eq_to_fun f.pos_part, pos_part_to_fun (f : α →₁[μ] ℝ),
       to_simple_func_eq_to_fun f],
-    simp only [mem_set_of_eq],
     assume a h₁ h₂ h₃,
     rw [h₁, ← coe_coe, coe_pos_part, h₂, coe_coe, ← h₃] },
   refine ae_eq.mono (assume a h, _),
@@ -813,7 +810,6 @@ lemma neg_part_to_simple_func (f : α →₁ₛ[μ] ℝ) :
 begin
   rw [simple_func.neg_part, measure_theory.simple_func.neg_part],
   filter_upwards [pos_part_to_simple_func (-f), neg_to_simple_func f],
-  simp only [mem_set_of_eq],
   assume a h₁ h₂,
   rw h₁,
   show max _ _ = max _ _,
@@ -826,14 +822,12 @@ begin
   -- Convert things in `L¹` to their `simple_func` counterpart
   have ae_eq₁ : f.to_simple_func.pos_part =ᵐ[μ] (f.pos_part).to_simple_func.map norm,
   { filter_upwards [pos_part_to_simple_func f],
-    simp only [mem_set_of_eq],
     assume a h,
     rw [simple_func.map_apply, h],
     conv_lhs { rw [← simple_func.pos_part_map_norm, simple_func.map_apply] } },
   -- Convert things in `L¹` to their `simple_func` counterpart
   have ae_eq₂ : f.to_simple_func.neg_part =ᵐ[μ] (f.neg_part).to_simple_func.map norm,
   { filter_upwards [neg_part_to_simple_func f],
-    simp only [mem_set_of_eq],
     assume a h,
     rw [simple_func.map_apply, h],
     conv_lhs { rw [← simple_func.neg_part_map_norm, simple_func.map_apply] } },
@@ -841,7 +835,6 @@ begin
   have ae_eq : ∀ᵐ a ∂μ, f.to_simple_func.pos_part a - f.to_simple_func.neg_part a =
     (f.pos_part).to_simple_func.map norm a - (f.neg_part).to_simple_func.map norm a,
   { filter_upwards [ae_eq₁, ae_eq₂],
-    simp only [mem_set_of_eq],
     assume a h₁ h₂,
     rw [h₁, h₂] },
   rw [integral, norm_eq_integral, norm_eq_integral, ← simple_func.integral_sub],
@@ -849,7 +842,6 @@ begin
       ((f.pos_part.to_simple_func).map norm - f.neg_part.to_simple_func.map norm).integral μ,
     apply measure_theory.simple_func.integral_congr f.integrable,
     filter_upwards [ae_eq₁, ae_eq₂],
-    simp only [mem_set_of_eq],
     assume a h₁ h₂, show _ = _ - _,
     rw [← h₁, ← h₂],
     have := f.to_simple_func.pos_part_sub_neg_part,
@@ -1149,7 +1141,6 @@ begin
     { assumption },
     { intro, refine (h _ _).2, exact nat.le_add_left _ _ },
     { filter_upwards [h_lim],
-      simp only [mem_set_of_eq],
       assume a h_lim,
       apply @tendsto.comp _ _ _ (λn, x (n + k)) (λn, F n a),
       { assumption },
@@ -1171,7 +1162,6 @@ begin
   congr' 1,
   apply lintegral_congr_ae,
   filter_upwards [l1.pos_part_to_fun f₁, l1.to_fun_of_fun f hf],
-  simp only [mem_set_of_eq],
   assume a h₁ h₂,
   rw [h₁, h₂, real.norm_eq_abs, abs_of_nonneg],
   exact le_max_right _ _
@@ -1183,7 +1173,6 @@ begin
   congr' 1,
   apply lintegral_congr_ae,
   filter_upwards [l1.neg_part_to_fun_eq_min f₁, l1.to_fun_of_fun f hf],
-  simp only [mem_set_of_eq],
   assume a h₁ h₂,
   rw [h₁, h₂, real.norm_eq_abs, abs_of_nonneg],
   rw [neg_nonneg],

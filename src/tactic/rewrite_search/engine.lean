@@ -29,9 +29,6 @@ meta def tokenize_expr (e : expr) : tactic (string × list string) := do
 
 namespace search_state
 
-meta def unmark_all_visited : tactic search_state := do
-  return { g with vertices := g.vertices.map $ λ v, {v with visited := ff} }
-
 private meta def register_tokens_aux (s : side) :
 table token → list string → table token × list table_ref
 | tokens [] := (tokens, [])
@@ -40,17 +37,11 @@ table token → list string → table token × list table_ref
   let (tokens, l) := register_tokens_aux tokens rest,
   (tokens, t.id :: l)
 
-meta def register_tokens (s : side) (strs : list string) :
-search_state × list table_ref :=
+meta def register_tokens (s : side) (strs : list string) : search_state × list table_ref :=
   let (new_tokens, refs) := register_tokens_aux s g.tokens strs in
   ({g with tokens := new_tokens}, refs)
 
-private meta def find_vertex_aux (pp : string) : list vertex → option vertex
-| [] := none
-| (a :: rest) := if a.pp = pp then some a else find_vertex_aux rest
-
--- Find the vertex with the given (e : expr), or return the null verterx if not
--- found.
+-- Find the vertex with the given (e : expr), or return the null vertex if not found.
 meta def find_vertex (e : expr) : tactic (option vertex) := do
   pp ← to_string <$> tactic.pp e,
   return (g.vertices.find_key pp)

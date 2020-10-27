@@ -36,7 +36,7 @@ open_locale direct_sum
 
 variables {R ι M}
 
-instance : semimodule R (⨁ i, M i) := dfinsupp.to_semimodule
+instance : semimodule R (⨁ i, M i) := dfinsupp.semimodule
 
 include dec_ι
 

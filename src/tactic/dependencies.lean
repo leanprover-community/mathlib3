@@ -62,7 +62,7 @@ namespace tactic
 private meta def local_list_to_name_set (lcs : list expr) : name_set :=
 lcs.foldl (λ ns h, ns.insert h.local_uniq_name) mk_name_set
 
-/-! ## Direct Dependencies -/
+/-! ### Direct Dependencies -/
 
 /--
 `type_has_local_in_name_set h ns` returns true iff the type of `h` contains a
@@ -192,7 +192,7 @@ meta def hyp_directly_depends_on_locals (h : expr) (hs : list expr) :
 hyp_directly_depends_on_local_name_set h $ local_list_to_name_set hs
 
 
-/-! ## (Indirect) Dependencies -/
+/-! ### (Indirect) Dependencies -/
 
 /--
 `context_dependencies ctx` is a map associating each hypothesis `r ∈ ctx` with
@@ -338,7 +338,7 @@ meta def dependencies_of_hyp_inclusive (h : expr) : tactic (list expr) :=
 rb_set.to_list <$> dependency_set_of_hyp_inclusive h
 
 
-/-! ## Reverse Dependencies -/
+/-! ### Reverse Dependencies -/
 
 private meta def reverse_dependencies_of_hyp_name_set_aux (hs : name_set) :
   list expr → list expr → name_set → tactic (list expr)
@@ -429,7 +429,7 @@ meta def reverse_dependencies_of_hyps_inclusive (hs : list expr) :
   tactic (list expr) :=
 reverse_dependencies_of_hyp_name_set_inclusive $ local_list_to_name_set hs
 
-/-! ## Reverting -/
+/-! ### Reverting -/
 
 /--
 `revert_name_set hs` reverts the local constants whose unique names appear

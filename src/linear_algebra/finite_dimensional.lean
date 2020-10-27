@@ -816,7 +816,7 @@ have inj : function.injective ϕ.to_linear_map := ϕ.to_ring_hom.injective,
 noncomputable def alg_equiv_equiv_alg_hom (F : Type u) [field F] (E : Type v) [field E]
   [algebra F E] [finite_dimensional F E] : (E ≃ₐ[F] E) ≃ (E →ₐ[F] E) :=
 { to_fun := λ ϕ, ϕ.to_alg_hom,
-  inv_fun := λ ϕ, alg_equiv.of_bijective ϕ (algebra_hom.bijective ϕ),
+  inv_fun := λ ϕ, alg_equiv.of_bijective ϕ (ϕ.bijective),
   left_inv := λ _, by {ext, refl},
   right_inv := λ _, by {ext, refl} }
 

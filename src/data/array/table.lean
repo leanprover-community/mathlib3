@@ -19,44 +19,23 @@ universe variables u v w z
 attribute [inline] bool.decidable_eq option.is_some option.is_none list.head
 attribute [inline] array.read array.write
 
-@[irreducible] def table_ref : Type := ℕ
-
-namespace table_ref
-
-section internal
-
-local attribute [reducible] table_ref
-
-def MAXIMUM := 0xFFFFFFFF
-
-def of_nat (r : ℕ) : table_ref := r
-def to_nat (r : table_ref) : ℕ := r
-def next (r : table_ref) : table_ref := of_nat (r + 1)
-
-instance : decidable_eq table_ref := by apply_instance
-
-instance : has_to_string table_ref := by apply_instance
-meta instance : has_to_format table_ref := by apply_instance
-
-end internal
-
-def to_string (r : table_ref) : string := to_string r.to_nat
-def null  : table_ref := of_nat MAXIMUM
-def first : table_ref := of_nat 0
-
-end table_ref
+def null : ℕ := 0xFFFFFFFF
+def first : ℕ := 0
 
 class indexed (α : Type u) :=
-(index : α → table_ref)
+(index : α → ℕ)
 class keyed (α : Type u) (κ : Type v) [decidable_eq κ] :=
 (key : α → κ)
 
 structure table (α : Type u) :=
-(next_id : table_ref)
+(next_id : ℕ)
 (buff_len : ℕ)
 (entries : array buff_len (option α))
 
 namespace table
+
+def null : ℕ := 0xFFFFFFFF
+def first : ℕ := 0
 
 variables {α : Type u} {β : Type v} {κ : Type w} [decidable_eq κ] (t : table α)
 
@@ -66,24 +45,23 @@ variables {α : Type u} {β : Type v} {κ : Type w} [decidable_eq κ] (t : table
 def DEFAULT_BUFF_LEN := 10
 
 def create (buff_len : ℕ := DEFAULT_BUFF_LEN) : table α :=
-⟨table_ref.first, buff_len, mk_array buff_len none⟩
+⟨table.first, buff_len, mk_array buff_len none⟩
 
 def from_list (l : list α) : table α :=
 let n := l.length in
 let buff : array n (option α) := mk_array n none in
-⟨table_ref.of_nat n, n, buff.map_copy_from_list (λ a, some a) l⟩
+⟨n, n, buff.map_copy_from_list (λ a, some a) l⟩
 
 meta def from_map_array {dim : ℕ} (x : array dim α) (f : α → β) : table β :=
 let buff : array dim (option β) := mk_array dim none in
-⟨table_ref.of_nat dim, dim, x.map_copy buff (λ a, some $ f a)⟩
+⟨dim, dim, x.map_copy buff (λ a, some $ f a)⟩
 
 meta def from_array {dim : ℕ} (x : array dim α) : table α := from_map_array x id
 
-@[inline] def is_full : bool := t.next_id.to_nat = t.buff_len
+@[inline] def is_full : bool := t.next_id = t.buff_len
 
-@[inline] private def try_fin (r : table_ref) : option (fin t.buff_len) :=
+@[inline] private def try_fin (r : ℕ) : option (fin t.buff_len) :=
 begin
-  let r := r.to_nat,
   by_cases h : r < t.buff_len,
   exact fin.mk r h,
   exact none
@@ -94,23 +72,23 @@ let new_len := t.buff_len * 2 in
 let new_buff : array new_len (option α) := mk_array new_len none in
 {t with buff_len := new_len, entries := array.copy t.entries new_buff}
 
-@[inline] def at_ref (r : table_ref) : option α :=
+@[inline] def at_ref (r : ℕ) : option α :=
 match try_fin t r with
 | none := none
 | some r := t.entries.read r
 end
 
-@[inline] def present (r : table_ref) : bool := (t.at_ref r).is_some
+@[inline] def present (r : ℕ) : bool := (t.at_ref r).is_some
 
-@[inline] meta def get (r : table_ref) : option α := t.at_ref r
+@[inline] meta def get (r : ℕ) : option α := t.at_ref r
 
-@[inline] def iget [inhabited α] (r : table_ref) : α :=
+@[inline] def iget [inhabited α] (r : ℕ) : α :=
 match t.at_ref r with
 | none := default α
 | some a := a
 end
 
-@[inline] def set (r : table_ref) (a : α) : table α :=
+@[inline] def set (r : ℕ) (a : α) : table α :=
 match try_fin t r with
 | none := t
 | some r := {t with entries := t.entries.write r a}
@@ -119,7 +97,7 @@ end
 @[inline] meta def alloc (a : α) : table α :=
 let t : table α := if t.is_full then t.grow else t in
 let t := t.set t.next_id a in
-{ t with next_id := t.next_id.next }
+{ t with next_id := t.next_id + 1 }
 
 @[inline] meta def alloc_list : table α → list α → table α
 | t [] := t
@@ -127,16 +105,16 @@ let t := t.set t.next_id a in
 
 @[inline] def update [indexed α] (a : α) : table α := t.set (indexed.index a) a
 
-@[inline] def length : ℕ := t.next_id.to_nat
+@[inline] def length : ℕ := t.next_id
 
-meta def find_from (p : α → Prop) [decidable_pred p] : table_ref → option α
+meta def find_from (p : α → Prop) [decidable_pred p] : ℕ → option α
 | ref := match t.at_ref ref with
          | none := none
-         | some a := if p a then some a else find_from ref.next
+         | some a := if p a then some a else find_from (ref + 1)
          end
 
 @[inline] meta def find (p : α → Prop) [decidable_pred p] : option α :=
-t.find_from p table_ref.first
+t.find_from p table.first
 
 @[inline] meta def find_key [decidable_eq κ] [keyed α κ] (key : κ) : option α :=
 t.find (λ a, key = @keyed.key _ _ _ _ a)

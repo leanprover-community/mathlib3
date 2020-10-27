@@ -45,8 +45,8 @@ end naive
 
 namespace bfs
 
-meta def search_step (me : table_ref) :
-table edge → list edge → tactic (table edge × list table_ref)
+meta def search_step (me : ℕ) :
+table edge → list edge → tactic (table edge × list ℕ)
 | been [] := return (been, [])
 | been (e :: rest) :=
   match e.other me with
@@ -59,7 +59,7 @@ table edge → list edge → tactic (table edge × list table_ref)
     return (been, queue_head ++ queue)
   end
 
-meta def search_aux : table edge → list table_ref → tactic (table edge)
+meta def search_aux : table edge → list ℕ → tactic (table edge)
 | been [] := fail "bug: bfs could not find the path LHS -> RHS!"
 | been (t :: rest) := do
   child ← g.vertices.get t,
@@ -72,7 +72,7 @@ meta def search_aux : table edge → list table_ref → tactic (table edge)
 meta def search : tactic (table edge) :=
   search_aux g (table.create g.vertices.length) [LHS_VERTEX_ID]
 
-meta def crawl (t : table edge) : table_ref → tactic (list edge)
+meta def crawl (t : table edge) : ℕ → tactic (list edge)
 | id :=
   if id = LHS_VERTEX_ID then return [] else do
   match t.at_ref id with

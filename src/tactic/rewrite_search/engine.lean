@@ -30,14 +30,14 @@ meta def tokenize_expr (e : expr) : tactic (string × list string) := do
 namespace search_state
 
 private meta def register_tokens_aux (s : side) :
-table token → list string → table token × list table_ref
+table token → list string → table token × list ℕ
 | tokens [] := (tokens, [])
 | tokens (tstr :: rest) := do
   let (tokens, t) := find_or_create_token tokens s tstr,
   let (tokens, l) := register_tokens_aux tokens rest,
   (tokens, t.id :: l)
 
-meta def register_tokens (s : side) (strs : list string) : search_state × list table_ref :=
+meta def register_tokens (s : side) (strs : list string) : search_state × list ℕ :=
   let (new_tokens, refs) := register_tokens_aux s g.tokens strs in
   ({g with tokens := new_tokens}, refs)
 
@@ -124,7 +124,7 @@ do (g, o, rw) ← match o.rws.at_ref o.rw_front with
   | none := return (g, o, none)
   | some rw := do
     (g, o, (v, e)) ← g.commit_rewrite o rw,
-    (g, o) ← pure $ g.set_vertex {o with rw_front := o.rw_front.next},
+    (g, o) ← pure $ g.set_vertex {o with rw_front := o.rw_front + 1},
     return (g, o, some (v, e))
   end
 
@@ -134,14 +134,14 @@ do
         g.mark_vertex_visited v
       else
         pure (g, v),
-  return ⟨g, ⟨v.id, table_ref.first⟩⟩
+  return ⟨g, ⟨v.id, table.first⟩⟩
 
 end search_state
 
 namespace rewrite_iter
 
 private meta def advance (it : rewrite_iter) : rewrite_iter :=
-{it with front := it.front.next}
+{it with front := it.front + 1}
 
 meta def next (it : rewrite_iter) (g : search_state) :
 tactic (search_state × rewrite_iter × option (vertex × edge)) := do
@@ -210,7 +210,7 @@ meta def exhaust_all : tactic search_state := do
 
 end search_state
 
-meta def bfs_init (refs : list (option table_ref)) : bfs_state := ⟨1, refs⟩
+meta def bfs_init (refs : list (option ℕ)) : bfs_state := ⟨1, refs⟩
 
 meta def bfs_step (g : search_state) : tactic (search_state × status) := do
   let state := g.strat_state,

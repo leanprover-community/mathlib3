@@ -21,17 +21,17 @@ namespace tactic.rewrite_search
 
 structure bfs_state :=
 (curr_depth : ℕ)
-(queue      : list (option table_ref))
+(queue      : list (option ℕ))
 
 meta structure edge :=
-(f t   : table_ref)
+(f t   : ℕ)
 (proof : tactic expr)
 (how   : how)
 
 namespace edge
 variables (e : edge)
 
-meta def other (r : table_ref) : option table_ref :=
+meta def other (r : ℕ) : option ℕ :=
   if e.f = r then e.t else
   if e.t = r then e.f else
   none
@@ -41,32 +41,32 @@ meta instance has_to_format : has_to_format edge := ⟨λ e, format!"{e.f}->{e.t
 end edge
 
 structure rewrite_iter :=
-(orig : table_ref)
-(front : table_ref)
+(orig : ℕ)
+(front : ℕ)
 
 meta structure vertex :=
-(id       : table_ref)
+(id       : ℕ)
 (exp      : expr)
 (pp       : string)
-(tokens   : list table_ref)
+(tokens   : list ℕ)
 (root     : bool)
 (visited  : bool)
 (s        : side)
 (parent   : option edge)
 (rw_prog  : option rewrite_progress)
 (rws      : table rewrite)
-(rw_front : table_ref)
+(rw_front : ℕ)
 (adj      : table edge)
 
 namespace vertex
 
 meta def same_side (a b : vertex) : bool := a.s = b.s
 meta def to_string (v : vertex) : string := v.s.to_string ++ v.pp
-meta def create (id : table_ref) (e : expr) (pp : string) (token_refs : list table_ref)
+meta def create (id : ℕ) (e : expr) (pp : string) (token_refs : list ℕ)
 (root : bool) (s : side) : vertex :=
-⟨ id, e, pp, token_refs, root, ff, s, none, none, table.create, table_ref.first, table.create ⟩
+⟨ id, e, pp, token_refs, root, ff, s, none, none, table.create, table.first, table.create ⟩
 
-meta def null : vertex := vertex.create table_ref.null (default expr) "__NULLEXPR" [] ff side.L
+meta def null : vertex := vertex.create table.null (default expr) "__NULLEXPR" [] ff side.L
 
 meta instance inhabited : inhabited vertex := ⟨null⟩
 meta instance indexed : indexed vertex := ⟨λ v, v.id⟩
@@ -75,12 +75,12 @@ meta instance has_to_format : has_to_format vertex := ⟨λ v, v.pp⟩
 
 end vertex
 
-def pair := sided_pair table_ref
-def pair.null : pair := ⟨table_ref.null, table_ref.null⟩
+def pair := sided_pair ℕ
+def pair.null : pair := ⟨table.null, table.null⟩
 instance pair.has_to_string : has_to_string pair := ⟨sided_pair.to_string⟩
 
 structure token :=
-(id   : table_ref)
+(id   : ℕ)
 (str  : string)
 (freq : sided_pair ℕ)
 
@@ -88,7 +88,7 @@ namespace token
 
 def inc (t : token) (s : side) : token := {t with freq := t.freq.set s $ (t.freq.get s) + 1}
 
-def null : token := ⟨ table_ref.null, "__NULLTOKEN", 0, 0 ⟩
+def null : token := ⟨ table.null, "__NULLTOKEN", 0, 0 ⟩
 
 instance inhabited : inhabited token := ⟨null⟩
 instance indexed : indexed token := ⟨λ t, t.id⟩
@@ -120,8 +120,8 @@ meta structure search_state :=
 (vertices     : table vertex)
 (solving_edge : option edge)
 
-def LHS_VERTEX_ID : table_ref := table_ref.of_nat 0
-def RHS_VERTEX_ID : table_ref := table_ref.of_nat 1
+def LHS_VERTEX_ID : ℕ := 0
+def RHS_VERTEX_ID : ℕ := 1
 
 namespace search_state
 variables (g : search_state)

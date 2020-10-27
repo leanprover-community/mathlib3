@@ -21,10 +21,10 @@ meta def trace {ε : Type} [has_to_tactic_format ε] (s : ε) : tactic unit :=
 g.trace_tactic $ return s
 
 meta def trace_vertex_added (v : vertex) : tactic unit :=
-g.trace_tactic $ return format!"addV({v.id.to_string}): {v.pp}"
+g.trace_tactic $ return format!"addV({to_string v.id}): {v.pp}"
 
 meta def trace_edge_added (e : edge) : tactic unit :=
-g.trace_tactic $ return format!"addE: {e.f.to_string}→{e.t.to_string}"
+g.trace_tactic $ return format!"addE: {to_string e.f}→{to_string e.t}"
 
 meta def trace_search_finished (es : list edge) : tactic unit :=
 g.trace "Done!"

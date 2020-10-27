@@ -133,7 +133,7 @@ begin
   have : (λ (m : ℕ), ∑ n in range m, (abv x) ^ n) =
    λ m, geom_series (abv x) m := rfl,
   simp only [this, geom_sum hx1'] {eta := ff},
-  conv { congr, skip, funext, rw [← neg_div_neg_eq, neg_sub, neg_sub] },
+  conv in (_ / _) { rw [← neg_div_neg_eq, neg_sub, neg_sub] },
   refine @is_cau_of_mono_bounded _ _ _ _ ((1 : α) / (1 - abv x)) 0 _ _,
   { assume n hn,
     rw abs_of_nonneg,

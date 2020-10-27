@@ -574,8 +574,8 @@ section order_topology
 
 instance {α : Type*} [topological_space α] [partial_order α] [order_topology α] :
   order_topology (order_dual α) :=
-⟨by { convert @order_topology.topology_eq_generate_intervals α _ _ _,
-  dsimp [order_dual], simp only [or.comm] }⟩
+⟨by convert @order_topology.topology_eq_generate_intervals α _ _ _;
+  conv in (_ ∨ _) { rw or.comm }; refl⟩
 
 section partial_order
 variables [topological_space α] [partial_order α] [t : order_topology α]

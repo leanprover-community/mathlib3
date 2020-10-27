@@ -146,8 +146,7 @@ instance [Π i, add_comm_group (β i)] : add_comm_group (Π₀ i, β i) :=
 
 /-- Dependent functions with finite support inherit a semiring action from an action on each
 coordinate. -/
-instance has_scalar {γ : Type w} [semiring γ] [Π i, add_comm_group (β i)]
-  [Π i, semimodule γ (β i)] :
+instance {γ : Type w} [semiring γ] [Π i, add_comm_group (β i)] [Π i, semimodule γ (β i)] :
   has_scalar γ (Π₀ i, β i) :=
 ⟨λc v, v.map_range (λ _, (•) c) (λ _, smul_zero _)⟩
 

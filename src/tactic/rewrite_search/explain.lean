@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 -/
 
-import tactic.rewrite_search.core.types
+import tactic.rewrite_search.types
 import tactic.converter.interactive -- Required for us to emit more compact `conv` invocations
 
 /-!

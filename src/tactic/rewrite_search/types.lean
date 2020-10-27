@@ -6,8 +6,8 @@ Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 
 import data.array.table
 
-import tactic.rewrite_search.core.common
-import tactic.rewrite_search.core.hook
+import tactic.rewrite_search.common
+import tactic.rewrite_search.hook
 
 /-!
 # Types used in rewrite search.

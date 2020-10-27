@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 -/
 
-import tactic.rewrite_search.core.types
-import tactic.rewrite_search.core.debug
-import tactic.rewrite_search.core.backtrack
-import tactic.rewrite_search.core.explain
+import tactic.rewrite_search.types
+import tactic.rewrite_search.debug
+import tactic.rewrite_search.backtrack
+import tactic.rewrite_search.explain
 
 /-!
 # The core algorithm underlying rewrite search.

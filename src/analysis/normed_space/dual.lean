@@ -142,6 +142,24 @@ linear_map.mk_continuous
 
 @[simp] lemma to_dual'_apply {x y : E} : to_dual' 𝕜 x y = ⟪x, y⟫ := rfl
 
+/-- In an inner product space, the norm of the dual of a vector `x` is `∥x∥` -/
+@[simp] lemma to_dual'_isometry (x : E) : ∥to_dual' 𝕜 x∥ = ∥x∥ :=
+begin
+  refine le_antisymm _ _,
+  { change ∥to_dual' 𝕜 x∥ ≤ ∥x∥,
+    simp only [to_dual'],
+    exact linear_map.mk_continuous_norm_le _ (norm_nonneg _) _ },
+  { cases eq_or_lt_of_le (norm_nonneg x),
+    { have : x = 0 := norm_eq_zero.mp (eq.symm h),
+      simp [this] },
+    { refine (mul_le_mul_right h).mp _,
+      calc ∥x∥ * ∥x∥ = ∥x∥ ^ 2 : by ring
+      ... = re ⟪x, x⟫ : norm_sq_eq_inner _
+      ... ≤ abs ⟪x, x⟫ : re_le_abs _
+      ... = ∥to_dual' 𝕜 x x∥ : by simp [norm_eq_abs]
+      ... ≤ ∥to_dual' 𝕜 x∥ * ∥x∥ : le_op_norm (to_dual' 𝕜 x) x } }
+end
+
 variables {F : Type*} [inner_product_space ℝ F]
 
 /-- In an inner product space `F`, the function that takes a vector `x` in `F` to its dual
@@ -163,22 +181,7 @@ linear_map.mk_continuous
 @[simp] lemma to_dual_map_apply {x y : F} : to_dual_map x y = ⟪x, y⟫_ℝ := rfl
 
 /-- In an inner product space, the norm of the dual of a vector `x` is `∥x∥` -/
-@[simp] lemma to_dual_map_isometry (x : F) :
-  ∥to_dual_map x∥ = ∥x∥ :=
-begin
-  refine le_antisymm _ _,
-  { change ∥to_dual_map x∥ ≤ ∥x∥,
-    simp only [to_dual_map],
-    exact linear_map.mk_continuous_norm_le _ (norm_nonneg _) _ },
-  { cases eq_or_lt_of_le (norm_nonneg x),
-    { have : x = 0 := norm_eq_zero.mp (eq.symm h),
-      simp [this] },
-    { refine (mul_le_mul_right h).mp _,
-      calc ∥x∥ * ∥x∥ = ∥x∥ ^2 : by ring
-      ... = ⟪x, x⟫_ℝ : norm_sq_eq_inner _
-      ... ≤ ∥to_dual_map x x∥ : le_abs_self _
-      ... ≤ ∥to_dual_map x∥ * ∥x∥ : le_op_norm (to_dual_map x) x } }
-end
+@[simp] lemma to_dual_map_isometry (x : F) : ∥to_dual_map x∥ = ∥x∥ := to_dual'_isometry _ _
 
 lemma to_dual_map_injective : (@to_dual_map F _).ker = ⊥ :=
 begin

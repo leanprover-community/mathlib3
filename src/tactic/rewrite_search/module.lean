@@ -19,7 +19,7 @@ meta def pick_default_config : tactic unit := `[exact tactic.rewrite_search.defa
 
 meta def mk_search_state (conf : config) (rs : list (expr × bool)) (eqn : sided_pair expr) :
 tactic search_state :=
-do let g : search_state := ⟨conf, conf.to_cfg, rs, bfs_init [], table.create, table.create, none⟩,
+do let g : search_state := ⟨conf, rs, bfs_init [], table.create, table.create, none⟩,
    (g, vl) ← g.add_root_vertex eqn.l side.L,
    (g, vr) ← g.add_root_vertex eqn.r side.R,
    return $ g.mutate_strat $ bfs_init [vl.id, vr.id, none]

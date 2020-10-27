@@ -119,7 +119,7 @@ do (g, v) ← g.add_vertex r.e f.s,
 
 meta def reveal_more_rewrites (v : vertex) :
 tactic (search_state × vertex × option rewrite) :=
-do (rw_prog, new_rws) ← discover_more_rewrites g.rs v.exp g.rwall_conf v.s v.rw_prog,
+do (rw_prog, new_rws) ← discover_more_rewrites g.rs v.exp g.conf v.s v.rw_prog,
   (g, v) ← pure $ g.set_vertex {v with rw_prog := rw_prog, rws := v.rws.alloc_list new_rws},
   return (g, v, new_rws.nth 0)
 

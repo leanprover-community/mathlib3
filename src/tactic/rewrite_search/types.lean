@@ -114,7 +114,6 @@ meta inductive status
 
 meta structure search_state :=
 (conf         : config)
-(rwall_conf   : nth_rewrite.cfg)
 (rs           : list (expr × bool))
 (strat_state  : bfs_state)
 (tokens       : table token)

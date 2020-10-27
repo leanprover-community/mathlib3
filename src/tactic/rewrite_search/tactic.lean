@@ -22,7 +22,7 @@ match result with
   | none := fail "Could not initialize rewrite_search instance."
 end
 
-meta def collect_rw_lemmas (cfg : collect_cfg) (extra_names : list name)
+meta def collect_rw_lemmas (cfg : config) (extra_names : list name)
 (extra_rws : list (expr × bool)) : tactic (list (expr × bool)) :=
 do rws ← discovery.collect extra_names,
    hyp_rws ← discovery.rewrite_list_from_hyps,
@@ -41,7 +41,7 @@ do let cfg := if ¬try_harder then cfg
      fail "rewrite_search is not suitable for goals containing metavariables"
    else skip,
 
-   rws ← collect_rw_lemmas cfg.to_collect_cfg extra_names extra_rws,
+   rws ← collect_rw_lemmas cfg extra_names extra_rws,
 
    (lhs, rhs) ← rw_equation.split t,
    rewrite_search_pair cfg rws ⟨lhs, rhs⟩

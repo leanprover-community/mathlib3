@@ -630,7 +630,8 @@ begin
       { right, cases t,
         use t_w, exact le_iff_neg_ge.2 t_h, },
       { left, cases t,
-        use (@right_moves_neg (yR j)) t_w, convert le_iff_neg_ge.2 _, convert t_h; simp <|> refl } } },
+        use (@right_moves_neg (yR j)) t_w, convert le_iff_neg_ge.2 _,
+        convert t_h; simp <|> refl } } },
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

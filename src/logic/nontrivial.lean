@@ -122,19 +122,19 @@ namespace pi
 
 variables {I : Type*} {f : I → Type*}
 
-/-- If the internal type at `i'` is nontrivial, and all others are nonempty, so is the collection -/
-lemma nontrivial_at (i' : I) [inst : Π i, nonempty (f i)] [nontrivial (f i')]
-  : nontrivial (Π i : I, f i) :=
+/-- A pi type is nontrivial if it's nonempty everywhere and nontrivial somewhere. -/
+lemma nontrivial_at (i' : I) [inst : Π i, nonempty (f i)] [nontrivial (f i')] :
+  nontrivial (Π i : I, f i) :=
 by classical; exact
-(function.injective_update (λ i, classical.choice (inst i)) i').nontrivial
+(function.update_injective (λ i, classical.choice (inst i)) i').nontrivial
 
 /--
 As a convenience, provide an instance automatically if `(f (default I))` is nontrivial.
 
 If a different index has the non-trivial type, then use `haveI := nontrivial_at that_index`.
 -/
-instance nontrivial [inhabited I] [inst : Π i, nonempty (f i)] [nontrivial (f (default I))]
-  : nontrivial (Π i : I, f i) :=
+instance nontrivial [inhabited I] [inst : Π i, nonempty (f i)] [nontrivial (f (default I))] :
+  nontrivial (Π i : I, f i) :=
 nontrivial_at (default I)
 
 end pi

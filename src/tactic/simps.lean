@@ -538,8 +538,6 @@ derives two simp-lemmas:
   ```
 * For configuration options, see the doc string of `simps_cfg`.
 * The precise syntax is `('simps' ident* e)`, where `e` is an expression of type `simps_cfg`.
-* If one of the projections is marked as a coercion, the generated lemmas do *not* use this
-  coercion.
 * `@[simps]` reduces let-expressions where necessary.
 * If one of the fields is a partially applied constructor, we will eta-expand it
   (this likely never happens).

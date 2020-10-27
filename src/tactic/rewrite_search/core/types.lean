@@ -113,7 +113,7 @@ meta inductive status
 | abort : string → status
 
 meta structure search_state :=
-(conf         : core_cfg)
+(conf         : config)
 (rwall_conf   : nth_rewrite.cfg)
 (rs           : list (expr × bool))
 (strat_state  : bfs_state)

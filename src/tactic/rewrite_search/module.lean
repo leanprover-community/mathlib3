@@ -12,71 +12,23 @@ import tactic.rewrite_search.core
 
 namespace tactic.rewrite_search
 
-structure collect_cfg :=
-(suggest         : list name := [])
-(inflate_rws     : bool := ff)
-(help_me         : bool := ff)
-
-/-
-This is the "public" config structure which has convenient tactic-mode
-invocation syntax. The data in this structure is extracted and transformed
-into the internal representation of the settings and modules by
-`try_mk_search_instance`.
--/
-meta structure config extends collect_cfg, tactic.nth_rewrite.cfg :=
-(max_iterations     : ℕ := 500)
-(optimal            : bool := tt)
-(exhaustive         : bool := ff)
-(trace              : bool := ff)
-(trace_summary      : bool := ff)
-(trace_rules        : bool := ff)
-(explain            : bool := ff)
-(explain_using_conv : bool := tt)
-
 meta def default_config : config := {}
 meta def pick_default_config : tactic unit := `[exact tactic.rewrite_search.default_config]
 
-meta def mk_initial_search_state (conf : core_cfg) (rw_cfg : tactic.nth_rewrite.cfg)
-  (rs : list (expr × bool)) (strat_state : bfs_state) : search_state :=
-⟨conf, rw_cfg, rs, strat_state, table.create, table.create, none⟩
-
-meta def setup_instance (conf : core_cfg) (rw_cfg : tactic.nth_rewrite.cfg)
-  (rs : list (expr × bool)) (eqn : sided_pair expr) :
-  tactic search_state :=
-do let g := mk_initial_search_state conf rw_cfg rs (bfs_init []),
+meta def mk_search_state (conf : config) (rs : list (expr × bool)) (eqn : sided_pair expr) :
+tactic search_state :=
+do let g : search_state := ⟨conf, conf.to_cfg, rs, bfs_init [], table.create, table.create, none⟩,
    (g, vl) ← g.add_root_vertex eqn.l side.L,
    (g, vr) ← g.add_root_vertex eqn.r side.R,
    return $ g.mutate_strat $ bfs_init [vl.id, vr.id, none]
 
-meta def try_mk_search_instance (cfg : config) (rs : list (expr × bool))
-(eqn : sided_pair expr) : tactic (option search_state) :=
-do let conf : core_cfg := {
-   max_iterations := cfg.max_iterations,
-   optimal := cfg.optimal,
-   exhaustive := cfg.exhaustive,
-   trace := cfg.trace,
-   trace_summary := cfg.trace_summary,
-   trace_rules := cfg.trace_rules,
-   explain := cfg.explain,
-   explain_using_conv := cfg.explain_using_conv
-},
-option.some <$> setup_instance conf cfg.to_cfg rs eqn
-
-open tactic
-
 meta def try_search (cfg : config) (rs : list (expr × bool)) (eqn : sided_pair expr) :
 tactic (option string) :=
-do i ← try_mk_search_instance cfg rs eqn,
-   match i with
-   | none := return none
-   | some i := do (i, result) ← i.search_until_solved,
-                  match result with
-                  | search_result.failure reason :=
-                    tactic.fail reason
-                  | search_result.success proof steps :=
-                    tactic.exact proof >> some <$> i.explain proof steps
-                  end
-
+do i ← mk_search_state cfg rs eqn,
+(i, result) ← i.search_until_solved,
+match result with
+  | search_result.failure reason := tactic.fail reason
+  | search_result.success proof steps := tactic.exact proof >> some <$> i.explain proof steps
 end
 
 end tactic.rewrite_search

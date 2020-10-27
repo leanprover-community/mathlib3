@@ -232,7 +232,7 @@ meta def explain_proof_concisely (rs : list (expr × bool)) (proof : expr)
   needs_refl ← check_if_simple_rewrite_succeeds rws goal,
   explain_rewrites_concisely rws needs_refl
 
-meta def explain_search_result (cfg : core_cfg) (rs : list (expr × bool)) (proof : expr)
+meta def explain_search_result (cfg : config) (rs : list (expr × bool)) (proof : expr)
 (units : list proof_unit) : tactic string := do
   if cfg.trace then do
     pp ← pp proof,

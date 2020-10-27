@@ -108,7 +108,15 @@ meta structure rewrite :=
 (prf : tactic expr) -- we defer constructing the proofs until they are needed
 (how : how)
 
-meta structure core_cfg :=
+structure collect_cfg :=
+(suggest         : list name := [])
+(inflate_rws     : bool := ff)
+(help_me         : bool := ff)
+
+/-
+Configuration options for a rewrite search.
+-/
+meta structure config extends collect_cfg, tactic.nth_rewrite.cfg :=
 (max_iterations     : ℕ := 500)
 (optimal            : bool := tt)
 (exhaustive         : bool := ff)

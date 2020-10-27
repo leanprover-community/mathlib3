@@ -101,7 +101,7 @@ table token × token :=
 match tokens.find_key tstr with
 | none := do
   let t : token := ⟨tokens.next_id, tstr, ⟨0, 0⟩⟩,
-  let t := t.inc s in (tokens.alloc t, t)
+  let t := t.inc s in (tokens.push_back t, t)
 | (some t) := do
   let t := t.inc s in (tokens.update t, t)
 end

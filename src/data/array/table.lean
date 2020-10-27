@@ -40,11 +40,9 @@ def first : ℕ := 0
 variables {α : Type u} {β : Type v} {κ : Type w} [decidable_eq κ] (t : table α)
 
 -- TODO use push_back and pop_back builtins to avoid array preallocation
--- TODO several recusion-induced-meta can be removed from the file (given proofs)
+-- TODO several recursion-induced-meta can be removed from the file (given proofs)
 
-def DEFAULT_BUFF_LEN := 10
-
-def create (buff_len : ℕ := DEFAULT_BUFF_LEN) : table α :=
+def create (buff_len : ℕ := 0) : table α :=
 ⟨table.first, buff_len, mk_array buff_len none⟩
 
 def from_list (l : list α) : table α :=
@@ -58,8 +56,6 @@ let buff : array dim (option β) := mk_array dim none in
 
 meta def from_array {dim : ℕ} (x : array dim α) : table α := from_map_array x id
 
-@[inline] def is_full : bool := t.next_id = t.buff_len
-
 @[inline] private def try_fin (r : ℕ) : option (fin t.buff_len) :=
 begin
   by_cases h : r < t.buff_len,
@@ -68,7 +64,7 @@ begin
 end
 
 @[inline] meta def grow : table α :=
-let new_len := t.buff_len * 2 in
+let new_len := t.buff_len + 1 in
 let new_buff : array new_len (option α) := mk_array new_len none in
 {t with buff_len := new_len, entries := array.copy t.entries new_buff}
 
@@ -94,14 +90,12 @@ match try_fin t r with
 | some r := {t with entries := t.entries.write r a}
 end
 
-@[inline] meta def alloc (a : α) : table α :=
-let t : table α := if t.is_full then t.grow else t in
-let t := t.set t.next_id a in
-{ t with next_id := t.next_id + 1 }
+@[inline] meta def push_back (a : α) : table α :=
+let new_length := t.buff_len + 1 in ⟨new_length, new_length, t.entries.push_back a⟩
 
 @[inline] meta def alloc_list : table α → list α → table α
 | t [] := t
-| t (a :: rest) := alloc_list (t.alloc a) rest
+| t (a :: rest) := alloc_list (t.push_back a) rest
 
 @[inline] def update [indexed α] (a : α) : table α := t.set (indexed.index a) a
 

@@ -52,7 +52,7 @@ meta def alloc_vertex (e : expr) (root : bool) (s : side) : tactic (search_state
 do (pp, tokens) ← tokenize_expr e,
    let (g, token_refs) := g.register_tokens s tokens,
    let v : vertex := vertex.create g.vertices.next_id e pp token_refs root s,
-   return ({ g with vertices := g.vertices.alloc v }, v)
+   return ({ g with vertices := g.vertices.push_back v }, v)
 
 -- Look up the given vertex associated to (e : expr), or create it if it is
 -- not already present.
@@ -76,7 +76,7 @@ meta def register_solved (e : edge) : search_state :=
 { g with solving_edge := some e }
 
 meta def add_adj (v : vertex) (e : edge) : search_state × vertex :=
-g.set_vertex { v with adj := v.adj.alloc e }
+g.set_vertex { v with adj := v.adj.push_back e }
 
 meta def publish_parent (f t : vertex) (e : edge) : search_state × vertex :=
 if t.root then

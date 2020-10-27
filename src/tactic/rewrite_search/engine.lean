@@ -111,26 +111,29 @@ do (g, v) ← g.add_vertex r.e f.s,
 meta def reveal_more_rewrites (v : vertex) :
 tactic (search_state × vertex × option rewrite) :=
 do (rw_prog, new_rws) ← discover_more_rewrites g.rs v.exp g.conf v.s v.rw_prog,
-  (g, v) ← pure $ g.set_vertex {v with rw_prog := rw_prog, rws := v.rws.alloc_list new_rws},
+  (g, v) ← pure $ g.set_vertex {v with rw_prog := rw_prog, rws := v.rws.append_list new_rws},
   return (g, v, new_rws.nth 0)
+
+meta def read_option (buf : buffer rewrite) (i : ℕ) : option rewrite :=
+if h : i < buf.size then some (buf.read (fin.mk i h)) else none
 
 meta def reveal_more_adjs (o : vertex) :
 tactic (search_state × vertex × option (vertex × edge)) :=
-do (g, o, rw) ← match o.rws.at_ref o.rw_front with
+do (g, o, rw) ← match read_option o.rws o.rw_front with
   | none := g.reveal_more_rewrites o
   | some rw := pure (g, o, some rw)
-  end,
-  match rw with
+end,
+match rw with
   | none := return (g, o, none)
   | some rw := do
     (g, o, (v, e)) ← g.commit_rewrite o rw,
     (g, o) ← pure $ g.set_vertex {o with rw_front := o.rw_front + 1},
     return (g, o, some (v, e))
-  end
+end
 
 meta def visit_vertex (v : vertex) : tactic (search_state × rewrite_iter) :=
 do
-  (g, v) ← if ¬v.visited then do
+(g, v) ← if ¬v.visited then do
         g.mark_vertex_visited v
       else
         pure (g, v),

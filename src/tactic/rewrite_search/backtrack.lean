@@ -49,7 +49,7 @@ meta def search_step (me : ℕ) : buffer (option edge) → list edge → tactic 
 | been [] := return (been, [])
 | been (e :: rest) :=
   match e.other me with
-  | none := fail "bad edge in adjacency table!"
+  | none := fail "bad edge in adjacency buffer!"
   | some id := do
     (been, queue_head) ← pure $
       if (been.read' id).is_some ∨ id = LHS_VERTEX_ID then (been, [])

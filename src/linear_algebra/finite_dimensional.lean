@@ -807,7 +807,7 @@ begin
   { rw [h, findim_top, H] at this, exact findim_eq_zero.1 (add_right_injective _ this) }
 end
 
-lemma algebra_hom.bijective {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
+lemma alg_hom.bijective {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
   [finite_dimensional F E] (ϕ : E →ₐ[F] E) : function.bijective ϕ :=
 begin
   have inj : function.injective ϕ.to_linear_map := ϕ.to_ring_hom.injective,

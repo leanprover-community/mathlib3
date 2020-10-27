@@ -807,25 +807,33 @@ begin
   { rw [h, findim_top, H] at this, exact findim_eq_zero.1 (add_right_injective _ this) }
 end
 
-lemma alg_hom.bijective {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
-  [finite_dimensional F E] (ϕ : E →ₐ[F] E) : function.bijective ϕ :=
-have inj : function.injective ϕ.to_linear_map := ϕ.to_ring_hom.injective,
-⟨inj, (injective_iff_surjective_of_findim_eq_findim rfl).mp inj⟩
-
-/-- Biijection between algebra equivalences and algebra homomorphisms -/
-noncomputable def alg_equiv_equiv_alg_hom (F : Type u) [field F] (E : Type v) [field E]
-  [algebra F E] [finite_dimensional F E] : (E ≃ₐ[F] E) ≃ (E →ₐ[F] E) :=
-{ to_fun := λ ϕ, ϕ.to_alg_hom,
-  inv_fun := λ ϕ, alg_equiv.of_bijective ϕ (alg_hom.bijective ϕ),
-  left_inv := λ _, by {ext, refl},
-  right_inv := λ _, by {ext, refl} }
-
 theorem findim_le_findim_of_injective [finite_dimensional K V] [finite_dimensional K V₂]
   {f : V →ₗ[K] V₂} (hf : function.injective f) : findim K V ≤ findim K V₂ :=
 calc  findim K V
     = findim K f.range + findim K f.ker : (findim_range_add_findim_ker f).symm
 ... = findim K f.range : by rw [ker_eq_bot.2 hf, findim_bot, add_zero]
 ... ≤ findim K V₂ : submodule.findim_le _
+
+end linear_map
+
+namespace alg_hom
+
+lemma bijective {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
+  [finite_dimensional F E] (ϕ : E →ₐ[F] E) : function.bijective ϕ :=
+have inj : function.injective ϕ.to_linear_map := ϕ.to_ring_hom.injective,
+⟨inj, (linear_map.injective_iff_surjective_of_findim_eq_findim rfl).mp inj⟩
+
+end alg_hom
+
+namespace linear_map
+
+/-- Biijection between algebra equivalences and algebra homomorphisms -/
+noncomputable def alg_equiv_equiv_alg_hom (F : Type u) [field F] (E : Type v) [field E]
+  [algebra F E] [finite_dimensional F E] : (E ≃ₐ[F] E) ≃ (E →ₐ[F] E) :=
+{ to_fun := λ ϕ, ϕ.to_alg_hom,
+  inv_fun := λ ϕ, alg_equiv.of_bijective ϕ ϕ.bijective,
+  left_inv := λ _, by {ext, refl},
+  right_inv := λ _, by {ext, refl} }
 
 end linear_map
 

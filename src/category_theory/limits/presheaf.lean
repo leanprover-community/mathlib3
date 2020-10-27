@@ -186,7 +186,7 @@ begin
   rw [comp_id, colimit.ι_desc],
   dsimp,
   rw ← A.map_comp,
-  congr' 1,
+  congr' 1, refl
 end
 
 instance : preserves_colimits (extend_along_yoneda A) :=

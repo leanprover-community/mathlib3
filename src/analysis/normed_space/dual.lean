@@ -22,7 +22,7 @@ map from `E` to its dual, which maps an element x of the space to `λ y, ⟪x, y
 (`to_dual_map_isometry`) that this map is an isometry onto its image, and particular is injective.
 
 Finally, under the hypothesis of completeness (i.e., for Hilbert spaces), we prove the Fréchet-Riesz
-representation (`exists_elem_of_mem_dual`), which states the surjectivity: every element of the dual
+representation (`to_dual_map_eq_top`), which states the surjectivity: every element of the dual
 of a Hilbert space `E` has the form `λ u, ⟪x, u⟫` for some `x : E`.  This permits the map
 `to_dual_map` to be upgraded to an (isometric) continuous linear equivalence, `to_dual`, between a
 Hilbert space and its dual.

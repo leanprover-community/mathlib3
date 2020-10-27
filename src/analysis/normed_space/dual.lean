@@ -121,7 +121,10 @@ instance dual_inner_product_space : inner_product_space 𝕜 (normed_space.dual 
 { norm_sq_eq_inner := assume ℓ,
   begin
     have h₁ : norm_sq (4:𝕜) = 16,
-    { sorry },
+    { have : (of_real 4 : 𝕜) = (4 : 𝕜),
+      { simp only [of_real_one, of_real_bit0] },
+      rw [←this, norm_sq_eq_def', norm_eq_abs, is_R_or_C.abs_of_nonneg (by norm_num : (0 : ℝ) ≤ 4)],
+      norm_num },
     have h₂ : ∥ℓ + ℓ∥ = 2 * ∥ℓ∥,
     { sorry },
     simp only [inner, h₁, h₂, one_im, bit0_zero, add_zero, norm_zero, I_re, of_real_im,

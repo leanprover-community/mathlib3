@@ -116,6 +116,13 @@ instance : has_inner 𝕜 (normed_space.dual 𝕜 E) :=
             + (I:𝕜) * (𝓚 ∥x + (I:𝕜) • y∥) * (𝓚 ∥x + (I:𝕜) • y∥)
             - (I:𝕜) * (𝓚 ∥x - (I:𝕜) • y∥) * (𝓚 ∥x - (I:𝕜) • y∥)) }
 
+lemma a_plus_I_b (a b : normed_space.dual 𝕜 E) (h : (I : 𝕜) ≠ 0) :
+  a + (I : 𝕜) • b = (I : 𝕜) • (b - (I : 𝕜) • a) :=
+begin
+  have h' := I_mul_I_of_nonzero h,
+  rw [smul_sub I, ←smul_assoc, smul_eq_mul, h', neg_smul, sub_neg_eq_add, one_smul, add_comm]
+end
+
 /-- The dual of an inner product space is itself an inner product space. -/
 instance dual_inner_product_space : inner_product_space 𝕜 (normed_space.dual 𝕜 E) :=
 { norm_sq_eq_inner := assume ℓ,
@@ -138,13 +145,20 @@ instance dual_inner_product_space : inner_product_space 𝕜 (normed_space.dual 
   conj_sym := λ x y, begin
     simp [inner],
     congr' 1,
-    { sorry },
+    { have : (of_real 4⁻¹ : 𝕜) = (4⁻¹ : 𝕜),
+      { simp only [of_real_one, of_real_bit0, of_real_inv]},
+      rw [←this, conj_of_real] },
     have : y + x = x + y := by abel,
     rw this,
     have : y - x = - (x - y) := by abel,
     rw this,
-    simp,
-    sorry,
+    rw norm_neg,
+    by_cases h : (I : 𝕜) = 0,
+    { rw h, simp only [add_zero, zero_mul, sub_zero, neg_zero]},
+    have := abs_I_of_nonzero h,
+    rw ←norm_eq_abs at this,
+    rw [a_plus_I_b _ x y h, a_plus_I_b _ y x h, norm_smul, norm_smul, this],
+    ring, ring -- huh?
   end,
   nonneg_im := λ x, begin
     simp [inner],

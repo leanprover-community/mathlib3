@@ -14,7 +14,7 @@ import tactic.lean_core_docs
 import tactic.interactive_expr
 import system.io
 
-universes u
+universe variable u
 
 attribute [derive [has_reflect, decidable_eq]] tactic.transparency
 
@@ -1209,18 +1209,6 @@ Instantiates metavariables in all goals.
 meta def instantiate_mvars_in_goals : tactic unit :=
 all_goals' $ instantiate_mvars_in_target
 
-meta def type_cast (α : Type u) [reflected α] (n : name) : tactic α :=
-eval_expr α (expr.const n [])
-
-meta def attempt_refl (lhs rhs : expr) : tactic expr :=
-lock_tactic_state $
-do gs ← get_goals,
-   m ← to_expr ``(%%lhs = %%rhs) >>= mk_meta_var,
-   set_goals [m],
-   refl ← mk_const `eq.refl,
-   apply_core refl {new_goals := new_goals.non_dep_only},
-   instantiate_mvars m
-
 meta def mk_app_aux : expr → expr → expr → tactic expr
  | f (expr.pi n binder_info.default d b) arg :=
    do infer_type arg >>= unify d,
@@ -1247,15 +1235,6 @@ do r ← to_expr ``(%%f %%arg) -- FIXME: this is expensive
 meta def mk_apps (f : expr) (args : list expr) : tactic (list (expr × expr)) :=
 do l ← args.mmap $ λ arg, option.to_list <$> try_core (mk_app' f arg >>= λ m, return (m, arg)),
    return l.join
-
-/-- Similar to `mk_local_pis` but make meta variables instead of
-local constants. -/
-meta def mk_meta_pis : expr → tactic (list expr × expr)
-| (expr.pi n bi d b) := do
-  p ← mk_meta_var d,
-  (ps, r) ← mk_meta_pis (expr.instantiate_var b p),
-  return ((p :: ps), r)
-| e := return ([], e)
 
 /-- Protect the declaration `n` -/
 meta def mk_protected (n : name) : tactic unit :=

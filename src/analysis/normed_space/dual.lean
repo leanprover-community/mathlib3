@@ -144,6 +144,8 @@ linear_map.mk_continuous
 
 variables {F : Type*} [inner_product_space ℝ F]
 
+/-- In an inner product space `F`, the function that takes a vector `x` in `F` to its dual
+`λ y, ⟪x, y⟫` is a continuous linear map. -/
 def to_dual_map : F →L[ℝ] (normed_space.dual ℝ F) :=
 linear_map.mk_continuous
   { to_fun := λ x, to_dual' ℝ x,

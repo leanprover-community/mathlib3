@@ -146,6 +146,8 @@ def fixing_subgroup : subgroup (E ≃ₐ[F] E) := {
   inv_mem' := λ _ hx _, (equiv.symm_apply_eq (alg_equiv.to_equiv _)).mpr (hx _).symm,
 }
 
+lemma le_iff_le : K ≤ fixed_field H ↔ H ≤ fixing_subgroup K :=
+⟨λ h g hg x, h (subtype.mem x) ⟨g, hg⟩, λ h x hx g, h (subtype.mem g) ⟨x, hx⟩⟩
 
 /-- The fixing_subgroup of `K : intermediate_field F E` is isomorphic to `E ≃ₐ[K] E` -/
 def fixing_subgroup_iso : fixing_subgroup K ≃* (E ≃ₐ[K] E) := {
@@ -205,11 +207,13 @@ by conv { to_rhs, rw [←fixed_field_of_fixing_subgroup K, findim_fixed_field_eq
 --TODO: Maybe upgrade this to some sort of lattice anti-isomorphism?
 /-- The bundled Galois correspondence -/
 def galois_correspondence [finite_dimensional F E] [is_galois F E] :
-  intermediate_field F E ≃ subgroup (E ≃ₐ[F] E) :=
+  intermediate_field F E ≃o order_dual (subgroup (E ≃ₐ[F] E)) :=
 { to_fun := fixing_subgroup,
   inv_fun := fixed_field,
   left_inv := λ K, fixed_field_of_fixing_subgroup K,
-  right_inv := λ H, fixing_subgroup_of_fixed_field H }
+  right_inv := λ H, fixing_subgroup_of_fixed_field H,
+  map_rel_iff' := λ K L, by { rw [←fixed_field_of_fixing_subgroup L, le_iff_le,
+                                  fixed_field_of_fixing_subgroup L, ←order_dual.dual_le], refl} }
 
 end galois_correspondence
 

@@ -192,7 +192,7 @@ end
 --lemma blah (I : ideal A) : (I : fractional_ideal (fraction_ring.of A)) = localization_map.to_map (fraction_ring.of A) I
 --lemma frac_prime_ideal_is_prime (I : ideal A) (hI : I.is_prime) : is_prime (I : fractional_ideal (fraction_ring.of A)) :=
 
-lemma frac_ideal_le_ideal (I J : ideal A) (h : ∃ x : A, x ∈ I ∧ x ∉ J) (hJ : J.is_prime) (B : fractional_ideal (fraction_ring.of A) ) (g : (I : fractional_ideal (fraction_ring.of A)) * B = (J : fractional_ideal (fraction_ring.of A))) : B ≤ (J : fractional_ideal (fraction_ring.of A)) :=
+lemma frac_ideal_le_ideal (I J : ideal A) (h : ∃ x : A, x ∈ I ∧ x ∉ J) (hJ : J.is_prime) (B : fractional_ideal (fraction_ring.of A) ) (hB : B ≤ 1) (g : (I : fractional_ideal (fraction_ring.of A)) * B = (J : fractional_ideal (fraction_ring.of A))) : B ≤ (J : fractional_ideal (fraction_ring.of A)) :=
 begin
   rcases h with ⟨x, hI, hJ⟩,
   rw le_iff,
@@ -237,10 +237,63 @@ begin
   simp,
 end
 
-/- lemma fraction_ring_fractional_ideal (x : (fraction_ring A)) (hx : is_integral A x) : is_fractional (fraction_ring.of A) ((adjoin_root (minimal_polynomial hx)) :  submodule A (localization_map.codomain (fraction_ring.of A))) :=
+lemma ideal_le_iff_frac_ideal_le (I J : ideal A) : I ≤ J ↔ (I : fractional_ideal (fraction_ring.of A)) ≤ (J : fractional_ideal (fraction_ring.of A)) :=
 begin
+  split,
+  {
+    rintros h,
+    tidy,
+  },
+  rintros h,
+  rw le_iff at h,
+  change (∀ (x : A), x ∈ I → x ∈ J),
+  rintros x hI,
+  specialize h ((localization_map.to_map (fraction_ring.of A)) x),
+  rw mem_coe at h,
+  simp at h,
+  specialize h x hI rfl,
+  rcases h with ⟨y, hJ, h⟩,
+  have f : y = x,
+  apply fraction_map.injective (fraction_ring.of A),
+  assumption,
+  rw f at hJ,
+  assumption,
+end
+
+lemma fractional_ideal_iff_fin_gen (I : fractional_ideal (fraction_ring.of A)) (hI : I ≤ 1) : ((submodule.comap (localization_map.lin_coe (fraction_ring.of A)) I.1) : ideal A) :=
+begin
+    split,
+
+      --have h:= submodule.comap_mono hI, rotate,
+      --exact A,
+      --repeat{apply_instance,},
+      --refine (localization_map.lin_coe (fraction_ring.of A))),
+
+      --let x : localization (non_zero_divisors A) in hI,
+      --choose! f H using hI,
+      have g : ∃ (x : localization (non_zero_divisors A)), x ∈ I,
+      sorry,
+      cases g with x g,
+      rw le_iff at hI,
+      specialize hI x g,
+      rw mem_one_iff at hI,
+      cases hI with y hI,
+      rw <-hI at g,
+      have g' : (localization_map.to_map (fraction_ring.of A)) y ∈ I.val,
+      apply g,
+      rw <-localization_map.lin_coe_apply at g',
+      rw <-submodule.mem_comap at g',
+      convert g',
+
+    sorry,
+end
+
+lemma fraction_ring_fractional_ideal (x : (fraction_ring A)) (hx : is_integral A x) : is_fractional (fraction_ring.of A) ((algebra.adjoin A {x}).to_submodule : submodule A (localization_map.codomain (fraction_ring.of A))) :=
+begin
+  unfold is_fractional,
+
   sorry,
-end -/
+end
 
 theorem tp : is_dedekind_domain_inv A <-> is_dedekind_domain A :=
 begin
@@ -270,6 +323,17 @@ begin
       specialize hpinv ((coe_ne_bot A p).1 nz),
       specialize h2 ( (coe_ne_bot A M).1 (max_ideal_ne_bot A M hM1 h1)),
       set I := (M : fractional_ideal (fraction_ring.of A))⁻¹ * (p : fractional_ideal (fraction_ring.of A)) with hI,
+      have f' : I ≤ 1,
+      {
+        set N := (M : fractional_ideal (fraction_ring.of A))⁻¹ with hN,
+        rw ideal_le_iff_frac_ideal_le at hM2,
+        have g'' := submodule.mul_le_mul hM2 (le_refl N),
+        simp only [val_eq_coe, <-coe_mul] at g'',
+        norm_cast at g'',
+        rw h2 at g'',
+        rw mul_comm at g'',
+        exact g'',
+      },
       have f : (M : fractional_ideal (fraction_ring.of A)) * I = (p : fractional_ideal (fraction_ring.of A)),
       {
         change ↑M * ((↑M)⁻¹ * ↑p) = ↑p,
@@ -282,6 +346,7 @@ begin
         assumption,
       },
       exfalso,
+
       have g : I ≤ (p : fractional_ideal (fraction_ring.of A)),
       {
         apply frac_ideal_le_ideal A M,
@@ -294,6 +359,7 @@ begin
           rw <-has_le.le.le_iff_eq a,
           assumption,
         },
+        assumption,
         assumption,
         assumption,
       },

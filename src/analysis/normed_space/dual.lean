@@ -146,10 +146,8 @@ linear_map.mk_continuous
 @[simp] lemma to_dual'_isometry (x : E) : ∥to_dual' 𝕜 x∥ = ∥x∥ :=
 begin
   refine le_antisymm _ _,
-  { change ∥to_dual' 𝕜 x∥ ≤ ∥x∥,
-    simp only [to_dual'],
-    exact linear_map.mk_continuous_norm_le _ (norm_nonneg _) _ },
-  { cases eq_or_lt_of_le (norm_nonneg x),
+  { exact linear_map.mk_continuous_norm_le _ (norm_nonneg _) _ },
+  { cases eq_or_lt_of_le (norm_nonneg x) with h h,
     { have : x = 0 := norm_eq_zero.mp (eq.symm h),
       simp [this] },
     { refine (mul_le_mul_right h).mp _,

@@ -31,6 +31,7 @@ def FinType := bundled fintype
 
 namespace FinType
 
+/-- Construct a bundled `FinType` from the underlying type and typeclass. -/
 def of (X : Type*) [fintype X] : FinType := bundled.of X
 instance : inhabited FinType := ⟨⟨pempty⟩⟩
 instance {X : FinType} : fintype X := X.2

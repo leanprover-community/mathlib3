@@ -272,18 +272,22 @@ end standard_lemmas
 /-- Type for signifying on which side of an expression the `calc_step` tactic
 should perform a step.
 
-Example: transform `a = b` into `c * a = c * b` (`L`) or into `a * c = b * c` (`R`).  -/
-@[derive [has_reflect, inhabited]]
-inductive side | L | R
+Example: transform `a = b` into `c * a = c * b` (`L`) or into `a * c = b * c` (`R`).
+
+The extra constructor `N` (none) effectively makes this into an option type. -/
+@[derive [has_reflect]]
+inductive side | L | R | N
 
 namespace side
 
 /-- Auxilliary function for lifting a decidable linear order from `ℕ` to `side`. -/
 def to_nat : side → ℕ
-| L := 0 | R := 1
+| L := 0 | R := 1 | N := 2
 
 instance : decidable_linear_order side :=
 decidable_linear_order.lift to_nat (by { rintros ⟨⟩ ⟨⟩ ⟨⟩; refl })
+
+instance : inhabited side := ⟨N⟩
 
 end side
 
@@ -308,7 +312,7 @@ end op
 its argument is positive or negative.
 
 The extra constructor `none` effectively makes this into an option type. -/
-@[derive [has_reflect, inhabited]]
+@[derive [has_reflect]]
 inductive sign | pos | neg | none
 
 namespace sign
@@ -319,6 +323,8 @@ def to_nat : sign → ℕ
 
 instance : decidable_linear_order sign :=
 decidable_linear_order.lift to_nat (by { rintros ⟨⟩ ⟨⟩ ⟨⟩; refl })
+
+instance : inhabited sign := ⟨none⟩
 
 end sign
 
@@ -331,73 +337,73 @@ open side op sign
 meta def lookup : native.rb_lmap (side × op × sign) name := native.rb_lmap.of_list
 [ /- EQ -/
   /- mul -/
-  ((L, mul, none), `left_mul_cancel),
-  ((R, mul, none), `right_mul_cancel),
-  ((L, mul, none), `left_mul_cancel'),
-  ((R, mul, none), `right_mul_cancel'),
+  ((L, mul, none), ``left_mul_cancel),
+  ((R, mul, none), ``right_mul_cancel),
+  ((L, mul, none), ``left_mul_cancel'),
+  ((R, mul, none), ``right_mul_cancel'),
   /- add -/
-  ((L, add, none), `left_add_cancel),
-  ((R, add, none), `right_add_cancel),
+  ((L, add, none), ``left_add_cancel),
+  ((R, add, none), ``right_add_cancel),
   /- div -/
-  ((L, div, none), `left_div_cancel),
-  ((R, div, none), `right_div_cancel),
+  ((L, div, none), ``left_div_cancel),
+  ((R, div, none), ``right_div_cancel),
   /- sub -/
-  ((L, sub, none), `left_sub_cancel),
-  ((R, sub, none), `right_sub_cancel),
+  ((L, sub, none), ``left_sub_cancel),
+  ((R, sub, none), ``right_sub_cancel),
   /- inv -/
-  ((L, inv, none), `inv_cancel),  -- NB: the side argument doesn't really make sense here
-  ((L, inv, none), `inv_cancel'),
+  ((N, inv, none), ``inv_cancel),
+  ((N, inv, none), ``inv_cancel'),
   /- neg -/
-  ((L, neg, none), `neg_cancel),
+  ((N, neg, none), ``neg_cancel),
   /- LE/LT -/
   /- mul -/
-  ((L, mul, none), `left_le_of_mul_le_mul),
-  ((R, mul, none), `right_le_of_mul_le_mul),
-  ((L, mul, none), `left_lt_of_mul_lt_mul),
-  ((R, mul, none), `right_lt_of_mul_lt_mul),
-  ((L, mul, none), `left_le_of_mul_le_mul'),
-  ((R, mul, none), `right_le_of_mul_le_mul'),
-  ((L, mul, none), `left_lt_of_mul_lt_mul'),
-  ((R, mul, none), `right_lt_of_mul_lt_mul'),
-  ((L, mul, pos ), `left_le_of_mul_le_mul_pos),
-  ((R, mul, pos ), `right_le_of_mul_le_mul_pos),
-  ((L, mul, pos ), `left_lt_of_mul_lt_mul_pos),
-  ((R, mul, pos ), `right_lt_of_mul_lt_mul_pos),
-  ((L, mul, neg ), `left_le_of_mul_le_mul_neg),
-  ((R, mul, neg ), `right_le_of_mul_le_mul_neg),
-  ((L, mul, neg ), `left_lt_of_mul_lt_mul_neg),
-  ((R, mul, neg ), `right_lt_of_mul_lt_mul_neg),
+  ((L, mul, none), ``left_le_of_mul_le_mul),
+  ((R, mul, none), ``right_le_of_mul_le_mul),
+  ((L, mul, none), ``left_lt_of_mul_lt_mul),
+  ((R, mul, none), ``right_lt_of_mul_lt_mul),
+  ((L, mul, none), ``left_le_of_mul_le_mul'),
+  ((R, mul, none), ``right_le_of_mul_le_mul'),
+  ((L, mul, none), ``left_lt_of_mul_lt_mul'),
+  ((R, mul, none), ``right_lt_of_mul_lt_mul'),
+  ((L, mul, pos ), ``left_le_of_mul_le_mul_pos),
+  ((R, mul, pos ), ``right_le_of_mul_le_mul_pos),
+  ((L, mul, pos ), ``left_lt_of_mul_lt_mul_pos),
+  ((R, mul, pos ), ``right_lt_of_mul_lt_mul_pos),
+  ((L, mul, neg ), ``left_le_of_mul_le_mul_neg),
+  ((R, mul, neg ), ``right_le_of_mul_le_mul_neg),
+  ((L, mul, neg ), ``left_lt_of_mul_lt_mul_neg),
+  ((R, mul, neg ), ``right_lt_of_mul_lt_mul_neg),
   /- add -/
-  ((L, add, none), `left_le_of_add_le_add),
-  ((R, add, none), `right_le_of_add_le_add),
-  ((L, add, none), `left_lt_of_add_lt_add),
-  ((R, add, none), `right_lt_of_add_lt_add),
+  ((L, add, none), ``left_le_of_add_le_add),
+  ((R, add, none), ``right_le_of_add_le_add),
+  ((L, add, none), ``left_lt_of_add_lt_add),
+  ((R, add, none), ``right_lt_of_add_lt_add),
   /- div -/
-  ((R, div, pos ), `right_le_of_div_le_div_pos),
-  ((R, div, neg ), `right_le_of_div_le_div_neg),
-  ((R, div, pos ), `right_lt_of_div_lt_div_pos),
-  ((R, div, neg ), `right_lt_of_div_lt_div_neg),
-  ((L, div, none), `left_le_of_div_le_div'),
-  ((R, div, none), `right_le_of_div_le_div'),
-  ((L, div, none), `left_lt_of_div_lt_div'),
-  ((R, div, none), `right_lt_of_div_lt_div'),
+  ((R, div, pos ), ``right_le_of_div_le_div_pos),
+  ((R, div, neg ), ``right_le_of_div_le_div_neg),
+  ((R, div, pos ), ``right_lt_of_div_lt_div_pos),
+  ((R, div, neg ), ``right_lt_of_div_lt_div_neg),
+  ((L, div, none), ``left_le_of_div_le_div'),
+  ((R, div, none), ``right_le_of_div_le_div'),
+  ((L, div, none), ``left_lt_of_div_lt_div'),
+  ((R, div, none), ``right_lt_of_div_lt_div'),
   /- sub -/
-  ((L, sub, none), `left_le_of_sub_le_sub),
-  ((R, sub, none), `right_le_of_sub_le_sub),
-  ((L, sub, none), `left_lt_of_sub_lt_sub),
-  ((R, sub, none), `right_lt_of_sub_lt_sub),
+  ((L, sub, none), ``left_le_of_sub_le_sub),
+  ((R, sub, none), ``right_le_of_sub_le_sub),
+  ((L, sub, none), ``left_lt_of_sub_lt_sub),
+  ((R, sub, none), ``right_lt_of_sub_lt_sub),
   /- inv -/
-  ((L, inv, pos ), `le_of_inv_le_inv_pos), -- the side `L` doesn't make sense here
-  ((L, inv, neg ), `le_of_inv_le_inv_neg),
-  ((L, inv, pos ), `lt_of_inv_lt_inv_pos),
-  ((L, inv, neg ), `lt_of_inv_lt_inv_neg),
-  ((L, inv, none), `le_of_inv_le_inv'),
-  ((L, inv, none), `lt_of_inv_lt_inv'),
-  ((L, inv, none), `le_of_inv_le_inv''),
-  ((L, inv, none), `lt_of_inv_lt_inv''),
+  ((N, inv, pos ), ``le_of_inv_le_inv_pos),
+  ((N, inv, neg ), ``le_of_inv_le_inv_neg),
+  ((N, inv, pos ), ``lt_of_inv_lt_inv_pos),
+  ((N, inv, neg ), ``lt_of_inv_lt_inv_neg),
+  ((N, inv, none), ``le_of_inv_le_inv'),
+  ((N, inv, none), ``lt_of_inv_lt_inv'),
+  ((N, inv, none), ``le_of_inv_le_inv''),
+  ((N, inv, none), ``lt_of_inv_lt_inv''),
   /- neg -/
-  ((L, neg, none), `le_of_neg_le_neg), -- the side `L` doesn't make sense here
-  ((L, neg, none), `lt_of_neg_lt_neg)
+  ((N, neg, none), ``le_of_neg_le_neg),
+  ((N, neg, none), ``lt_of_neg_lt_neg)
   ]
 
 /-
@@ -427,7 +433,7 @@ do env ← get_env,
     !name.is_prefix_of `calc_step.sign n &&
     !name.is_prefix_of `calc_step.rel  n &&
     !name.is_prefix_of `calc_step.lookup n),
-  let M1 : multiset name := lookup.values.map (name.append `calc_step),
+  let M1 : multiset name := lookup.values,
   let M2 : multiset name := lems,
   let D1 := (M1 - M2),
   let D2 := (M2 - M1),

@@ -419,6 +419,16 @@ def prod.mk : Π {n} {α β : typevec.{u} n} (i : fin2 n), α i → β i → (α
 | (succ n) α β (fin2.fs i) := prod.mk i
 | (succ n) α β fin2.fz := _root_.prod.mk
 
+@[simp]
+lemma prod_fst_mk {α β : typevec n} (i : fin2 n) (a : α i) (b : β i) :
+  typevec.prod.fst i (prod.mk i a b) = a :=
+by induction i; simp [prod.fst, prod.mk, *] at *
+
+@[simp]
+lemma prod_snd_mk {α β : typevec n} (i : fin2 n) (a : α i) (b : β i) :
+  typevec.prod.snd i (prod.mk i a b) = b :=
+by induction i; simp [prod.snd, prod.mk, *] at *
+
 /-- `prod` is functorial -/
 protected def prod.map : Π {n} {α α' β β' : typevec.{u} n}, (α ⟹ β) → (α' ⟹ β') → α ⊗ α' ⟹ β ⊗ β'
 | (succ n) α α' β β' x y (fin2.fs i) a := @prod.map _ (drop α) (drop α') (drop β) (drop β') (drop_fun x) (drop_fun y) _ a
@@ -587,9 +597,23 @@ lemma to_subtype_of_subtype {α : typevec n} (p : α ⟹ repeat n Prop) :
 by ext i x; induction i; dsimp only [id, to_subtype, comp, of_subtype] at *; simp *
 
 @[simp]
+lemma subtype_val_to_subtype {α : typevec n} (p : α ⟹ repeat n Prop) :
+  subtype_val p ⊚ to_subtype p = λ _, subtype.val :=
+by ext i x; induction i; dsimp only [to_subtype, comp, subtype_val] at *; simp *
+
+@[simp]
 lemma to_subtype_of_subtype_assoc {α β : typevec n} (p : α ⟹ repeat n Prop)
   (f : β ⟹ subtype_ p) :
   @to_subtype n _ p ⊚ of_subtype _ ⊚ f = f :=
 by rw [← comp_assoc,to_subtype_of_subtype]; simp
+
+@[simp]
+lemma to_subtype'_of_subtype' {α : typevec n} (r : α ⊗ α ⟹ repeat n Prop) :
+  to_subtype' r ⊚ of_subtype' r = id :=
+by ext i x; induction i; dsimp only [id, to_subtype', comp, of_subtype'] at *; simp *
+
+lemma subtype_val_to_subtype' {α : typevec n} (r : α ⊗ α ⟹ repeat n Prop) :
+  subtype_val r ⊚ to_subtype' r = λ i x, prod.mk i x.1.fst x.1.snd :=
+by ext i x; induction i; dsimp only [id, to_subtype', comp, subtype_val, prod.mk] at *; simp *
 
 end typevec

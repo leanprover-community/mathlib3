@@ -31,22 +31,29 @@ meta def calc_step (e : option pexpr) (s : side) (op : op) (sgn : sign) : tactic
 focus1 $ do
   let sd := get_side s op,
   let lems := lookup.find (sd, op, sgn),
-  let e' := match e with
-  | none := ``(0)
-  | some x := x
+  match e with
+  | none := lems.mfirst calc_step_unary
+  | some x := lems.mfirst (calc_step_binary x)
   end,
-  if op = neg ∨ op = inv then lems.mfirst calc_step_unary else lems.mfirst (calc_step_binary e'),
-  all_goals' $ try $ `[assumption <|> norm_num, done]
+  gs ← get_goals,
+  match gs with
+  | (h::t) := do
+    set_goals t,
+    all_goals' $ try $ `[assumption <|> norm_num, done],
+    gs ← get_goals,
+    set_goals (h::gs)
+  | _ := skip
+  end
 
 namespace interactive
 
 setup_tactic_parser
 
 meta def side_p : lean.parser calc_step.side :=
-do t <- ident, if t = `L then return side.L else if t = `R then return side.R else failed
+do t ← ident, if t = `L then return side.L else if t = `R then return side.R else failed
 
 meta def sign_p : lean.parser calc_step.sign :=
-do t <- ident,
+do t ← ident,
 if t = `pos then return sign.pos else
 if t = `neg then return sign.neg else
                  return sign.none

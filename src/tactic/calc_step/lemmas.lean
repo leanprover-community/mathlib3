@@ -280,14 +280,14 @@ inductive side | L | R | N
 
 namespace side
 
+instance : inhabited side := ⟨N⟩
+
 /-- Auxilliary function for lifting a decidable linear order from `ℕ` to `side`. -/
 def to_nat : side → ℕ
 | L := 0 | R := 1 | N := 2
 
 instance : decidable_linear_order side :=
 decidable_linear_order.lift to_nat (by { rintros ⟨⟩ ⟨⟩ ⟨⟩; refl })
-
-instance : inhabited side := ⟨N⟩
 
 end side
 
@@ -317,14 +317,14 @@ inductive sign | pos | neg | none
 
 namespace sign
 
+instance : inhabited sign := ⟨none⟩
+
 /-- Auxilliary function for lifting a decidable linear order from `ℕ` to `sign`. -/
 def to_nat : sign → ℕ
 | pos := 0 | neg := 1 | none := 2
 
 instance : decidable_linear_order sign :=
 decidable_linear_order.lift to_nat (by { rintros ⟨⟩ ⟨⟩ ⟨⟩; refl })
-
-instance : inhabited sign := ⟨none⟩
 
 end sign
 

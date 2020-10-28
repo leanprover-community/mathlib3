@@ -533,7 +533,7 @@ end
 
 theorem nhds_induced [T : topological_space α] (f : β → α) (a : β) :
   @nhds β (topological_space.induced f T) a = comap f (𝓝 (f a)) :=
-filter_eq $ by ext s; rw mem_nhds_induced; rw mem_comap_sets
+by { ext s, rw [mem_nhds_induced, mem_comap_sets] }
 
 lemma induced_iff_nhds_eq [tα : topological_space α] [tβ : topological_space β] (f : β → α) :
 tβ = tα.induced f ↔ ∀ b, 𝓝 b = comap f (𝓝 $ f b) :=

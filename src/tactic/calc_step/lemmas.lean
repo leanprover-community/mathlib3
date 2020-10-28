@@ -12,7 +12,7 @@ import ring_theory.witt_vector.basic
 import analysis.special_functions.trigonometric
 -- TODO: minimize these imports
 
-/-! # Lemmas for the `baby_calc` tactic
+/-! # Lemmas for the `calc_step` tactic
 
 In this file we record a long list of lemmas in a certain standard form.
 We then add those lemmas to a lookup table.
@@ -35,7 +35,7 @@ and will automatically create new goals
 
 -/
 
-namespace baby_calc
+namespace calc_step
 
 section standard_lemmas
 
@@ -397,13 +397,13 @@ special support for `0` and `1`? things like:
 - `1 < x ↔ x⁻¹ < 1`
 
 Run a command that checks that there is a 1-to-1 correspondence
-between lemmas in the `baby_calc` namespace and entries in the lookup list.
+between lemmas in the `calc_step` namespace and entries in the lookup list.
 
 -/
 
 meta def check_list : tactic unit :=
 do env ← tactic.get_env,
-  let lems := (env.get_decls.map declaration.to_name).filter (λ n, name.is_prefix_of `baby_calc n),
+  let lems := (env.get_decls.map declaration.to_name).filter (λ n, name.is_prefix_of `calc_step n),
   let M1 : multiset name := lookup.values,
   let M2 : multiset name := lems,
   let D1 := (M1 - M2),
@@ -413,4 +413,4 @@ do env ← tactic.get_env,
 
 run_cmd check_list
 
-end baby_calc
+end calc_step

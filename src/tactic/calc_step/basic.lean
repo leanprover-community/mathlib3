@@ -4,13 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import tactic.core
-import tactic.baby_calc.lemmas
+import tactic.calc_step.lemmas
 
 namespace tactic
 
-open baby_calc
+open calc_step
 
-meta def baby_calc (e : pexpr) (s : option side) (op : op) (sgn : option sign) : tactic unit :=
+meta def calc_step (e : pexpr) (s : option side) (op : op) (sgn : option sign) : tactic unit :=
 focus1 $
 do ctx ← local_context,
   n ← get_unused_name `nonzero,
@@ -46,7 +46,7 @@ namespace interactive
 
 setup_tactic_parser
 
-meta def side_p : lean.parser baby_calc.side :=
+meta def side_p : lean.parser calc_step.side :=
 do t <- ident, if t = `L then return side.L else if t = `R then return side.R else failed
 
 meta def add_by (q : parse parser.pexpr) (s : parse side_p?) : tactic unit :=

@@ -57,7 +57,6 @@ Configuration options for a rewrite search.
 -/
 meta structure config extends tactic.nth_rewrite.cfg :=
 (max_iterations     : ℕ := 500)
-(optimal            : bool := tt)
 (exhaustive         : bool := ff)
 (explain            : bool := ff)
 (explain_using_conv : bool := tt)

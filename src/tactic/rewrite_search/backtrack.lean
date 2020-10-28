@@ -16,34 +16,6 @@ namespace tactic.rewrite_search
 
 variables (g : search_state)
 
-namespace backtrack
-
-meta def backtrack_fn := search_state → edge → tactic (list edge)
-
-namespace naive
-
-meta def walk_up_parents : vertex → option edge → tactic (list edge)
-| v none     := return []
-| v (some e) := do
-                 let w := g.vertices.read' e.f,
-                 edges ← walk_up_parents w w.parent,
-                 return (e :: edges)
-
-meta def backtrack : backtrack_fn := λ (g : search_state) (e : edge), do
-  let v := g.vertices.read' e.t,
-
-  vts ← walk_up_parents g v e,
-  vfs ← walk_up_parents g v v.parent,
-
-  return $ match v.s with
-              | side.L := vfs.reverse ++ vts
-              | side.R := vts.reverse ++ vfs
-              end
-
-end naive
-
-namespace bfs
-
 meta def search_step (me : ℕ) : buffer (option edge) → list edge → tactic (buffer (option edge) × list ℕ)
 | been [] := return (been, [])
 | been (e :: rest) :=
@@ -84,13 +56,9 @@ meta def crawl (t : buffer (option edge)) : ℕ → tactic (list edge)
     end
   end
 
-meta def backtrack : backtrack_fn := λ (g : search_state) (_ : edge), do
--- We just disregard the "finishing edge" we are passed, looking for the
--- shortest path whatever instead.
-  tab ← search g,
-  list.reverse <$> crawl tab RHS_VERTEX_ID
-
-end bfs
+meta def backtrack : tactic (list edge) :=
+do tab ← search g,
+   list.reverse <$> crawl tab RHS_VERTEX_ID
 
 meta def chop_into_units : list edge → list (side × list edge)
 | [] := []
@@ -132,18 +100,12 @@ meta def combine_units : list proof_unit → tactic (option expr)
   | some rest_proof := some <$> mk_eq_trans u.proof rest_proof
   end
 
-meta def build_proof (e : edge) : tactic (expr × list proof_unit) := do
-  let bt := if g.conf.optimal then bfs.backtrack g else naive.backtrack g,
-  edges ← bt e,
-
+meta def build_proof : tactic (expr × list proof_unit) :=
+do edges ← backtrack g,
   trace_if_enabled `rewrite_search "Done!",
-
   units ← build_units edges,
   proof ← combine_units units,
   proof ← proof <|> fail "could not combine proof units!",
-
   return (proof, units)
-
-end backtrack
 
 end tactic.rewrite_search

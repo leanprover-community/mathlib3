@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 -/
 
-import tactic.rewrite_search.types
 import tactic.rewrite_search.backtrack
 import tactic.rewrite_search.explain
+import tactic.rewrite_search.types
 
 /-!
 # The core algorithm underlying rewrite search.
@@ -236,9 +236,9 @@ match g.solving_edge with
     return (g, s)
 end
 
-meta def finish_search (e : edge) : tactic (search_state × search_result) := do
+meta def finish_search : tactic (search_state × search_result) := do
   -- This must be called before exhaust_all
-  (proof, units) ← backtrack.build_proof g e,
+  (proof, units) ← build_proof g,
 
   i ← if g.conf.exhaustive then do
       g ← g.exhaust_all,
@@ -254,7 +254,7 @@ meta def search_until_solved_aux : search_state → ℕ → tactic (search_state
   | status.continue := search_until_solved_aux g (itr + 1)
   | status.repeat   := search_until_solved_aux g itr
   | status.abort r  := return (g, search_result.failure ("aborted: " ++ r))
-  | status.done e   := g.finish_search e
+  | status.done e   := g.finish_search
   end
 
 meta def search_until_solved : tactic (search_state × search_result) := g.search_until_solved_aux 0

@@ -2403,8 +2403,8 @@ by simpa only [inverse_eq_has_inv] using times_cont_diff_at_ring_inverse 𝕜 (u
 variable {𝕜}
 
 -- TODO: the next few lemmas don't need `𝕜` or `𝕜'` to be complete
--- A good way to show this is to generalize proofs about `inverse` to a function `f` such that
--- `∀ᶠ x in 𝓝 a, x * f x = 1`.
+-- A good way to show this is to generalize `times_cont_diff_at_ring_inverse` to the setting
+-- of a function `f` such that `∀ᶠ x in 𝓝 a, x * f x = 1`.
 
 lemma times_cont_diff_within_at.inv {f : E → 𝕜'} {n} (hf : times_cont_diff_within_at 𝕜 n f s x)
   (hx : f x ≠ 0) :

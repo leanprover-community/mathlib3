@@ -8,7 +8,7 @@ import tactic.calc_step.lemmas
 
 namespace tactic
 
-open calc_step
+open calc_step calc_step.side calc_step.op calc_step.sign
 
 meta def calc_step (e : pexpr) (s : option side) (op : op) (sgn : option sign) : tactic unit :=
 focus1 $

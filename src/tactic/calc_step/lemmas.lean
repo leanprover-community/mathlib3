@@ -270,11 +270,16 @@ right_lt_of_mul_lt_mul' (c⁻¹) h
 
 end standard_lemmas
 
+/-- Type for signifying on which side of an expression the `calc_step` tactic
+should perform a step.
+
+Example: transform `a = b` into `c * a = c * b` (`L`) or into `a * c = b * c` (`R`).  -/
 @[derive [has_reflect, inhabited]]
 inductive side | L | R
 
 namespace side
 
+/-- Auxilliary function for lifting a decidable linear order from `ℕ` to `side`. -/
 def to_nat : side → ℕ
 | L := 0 | R := 1
 
@@ -283,11 +288,15 @@ decidable_linear_order.lift to_nat (by { rintros ⟨⟩ ⟨⟩ ⟨⟩; refl })
 
 end side
 
+/-- Type for signifying which operator the `calc_step` tactic should use.
+
+Example: `neg` should be used to transform `a = b` into `-a = -b`. -/
 @[derive [has_reflect, inhabited]]
 inductive op | mul | add | div | sub | inv | neg
 
 namespace op
 
+/-- Auxilliary function for lifting a decidable linear order from `ℕ` to `op`. -/
 def to_nat : op → ℕ
 | mul := 0 | add := 1 | div := 2 | sub := 3 | inv := 4 | neg := 5
 
@@ -296,11 +305,16 @@ decidable_linear_order.lift to_nat (by { rintros ⟨⟩ ⟨⟩ ⟨⟩; refl })
 
 end op
 
+/-- Type for signifying whether the `calc_step` tactic may assume that
+its argument is positive or negative.
+
+The extra constructor `none` effectively makes this into an option type. -/
 @[derive [has_reflect, inhabited]]
 inductive sign | pos | neg | none
 
 namespace sign
 
+/-- Auxilliary function for lifting a decidable linear order from `ℕ` to `sign`. -/
 def to_nat : sign → ℕ
 | pos := 0 | neg := 1 | none := 2
 
@@ -309,13 +323,13 @@ decidable_linear_order.lift to_nat (by { rintros ⟨⟩ ⟨⟩ ⟨⟩; refl })
 
 end sign
 
-@[derive [decidable_eq, has_reflect, inhabited]]
-inductive rel | eq | le | lt | ne -- can we pull this last one off?
+-- @[derive [decidable_eq, has_reflect, inhabited]]
+-- inductive rel | eq | le | lt | ne -- can we pull this last one off?
 
 open side op sign
 
-def lookup_list : list (lex side (lex op sign) × name) :=
-by delta lex; exact
+/-- Lookup list for all the lemmas in the `calc_step` namespace. -/
+meta def lookup : native.rb_lmap (side × op × sign) name := native.rb_lmap.of_list
 [ /- EQ -/
   /- mul -/
   ((L, mul, none), `left_mul_cancel),
@@ -387,8 +401,6 @@ by delta lex; exact
   ((L, neg, none), `lt_of_neg_lt_neg)
   ]
 
-meta def lookup := native.rb_lmap.of_list lookup_list
-
 /-
 TODO:
 special support for `0` and `1`? things like:
@@ -415,7 +427,6 @@ do env ← get_env,
             !name.is_prefix_of `calc_step.op   n &&
             !name.is_prefix_of `calc_step.sign n &&
             !name.is_prefix_of `calc_step.rel  n &&
-            !name.is_prefix_of `calc_step.lookup_list n &&
             !name.is_prefix_of `calc_step.lookup n),
   let M1 : multiset name := lookup.values.map (name.append `calc_step),
   let M2 : multiset name := lems,

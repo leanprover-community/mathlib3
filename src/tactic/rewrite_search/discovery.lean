@@ -10,7 +10,7 @@ import tactic.rewrite_search.types
 # Generating a list of rewrites to use as steps in rewrite search.
 -/
 
-namespace tactic.rewrite_search.discovery
+namespace tactic.rewrite_search
 
 open tactic tactic.interactive tactic.rewrite_search
 
@@ -97,4 +97,4 @@ do rws ← collect extra_names,
    if cfg.inflate_rws then list.join <$> (rws.mmap $ inflate_rw locs)
    else pure rws
 
-end tactic.rewrite_search.discovery
+end tactic.rewrite_search

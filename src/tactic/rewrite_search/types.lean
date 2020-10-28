@@ -11,7 +11,6 @@ import tactic.nth_rewrite
 -/
 
 open tactic tactic.nth_rewrite.congr
-universes u
 
 namespace tactic.rewrite_search
 
@@ -33,32 +32,6 @@ def side.to_xhs : side → string
 | side.R := "rhs"
 
 instance : has_to_string side := ⟨side.to_string⟩
-
-structure dir_pair (α : Type u) :=
-(l r : α)
-
-namespace dir_pair
-open expr_lens
-
-variables {α β : Type} (p : dir_pair α)
-
-def get : dir → α
-| dir.F := p.l
-| dir.A := p.r
-
-def set : dir → α → dir_pair α
-| dir.F v := ⟨v, p.r⟩
-| dir.A v := ⟨p.l, v⟩
-
-def map (f : α → β) : dir_pair β := ⟨f p.l, f p.r⟩
-
-def to_list : list α := [p.l, p.r]
-
-def to_string [has_to_string α] (p : dir_pair α) : string :=
-  to_string p.l ++ "-" ++ to_string p.r
-instance has_to_string [has_to_string α] : has_to_string (dir_pair α) := ⟨to_string⟩
-
-end dir_pair
 
 meta inductive how
 | rewrite (rule_index : ℕ) (location : ℕ) (addr : option (list expr_lens.dir))

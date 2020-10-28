@@ -48,7 +48,7 @@ do let cfg := if ¬try_harder then cfg else { cfg with try_simp := tt },
      tactic.fail "rewrite_search is not suitable for goals containing metavariables"
    else tactic.skip,
 
-   rws ← discovery.collect_rw_lemmas cfg extra_names extra_rws,
+   rws ← collect_rw_lemmas cfg extra_names extra_rws,
 
    (lhs, rhs) ← rw_equation.split t,
    rewrite_search_pair cfg rws lhs rhs
@@ -73,7 +73,7 @@ add_tactic_doc
 
 meta def rewrite_search_with (try_harder : parse $ optional (tk "!")) (rs : parse rw_rules)
   (cfg : config . pick_default_config) : tactic string :=
-do extra_rws ← discovery.rewrite_list_from_rw_rules rs.rules,
+do extra_rws ← rewrite_list_from_rw_rules rs.rules,
    rewrite_search_target cfg try_harder.is_some [] extra_rws  
 
 -- Uncomment this after adding a docstring.
@@ -85,7 +85,7 @@ do extra_rws ← discovery.rewrite_list_from_rw_rules rs.rules,
 
 meta def rewrite_search_using (try_harder : parse $ optional (tk "!")) (as : list name)
   (cfg : config . pick_default_config) : tactic string :=
-do extra_names ← discovery.load_attr_list as,
+do extra_names ← load_attr_list as,
    rewrite_search_target cfg try_harder.is_some extra_names []
 
 -- Uncomment this after adding a docstring.

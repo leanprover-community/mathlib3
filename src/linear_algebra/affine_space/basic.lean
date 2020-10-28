@@ -18,6 +18,15 @@ errors. So, we introduce a localized notation instead. When this notation is ena
 `open_locale affine`, Lean will use `affine_space` instead of `add_torsor` both in input and in the
 proof state.
 
+Here is an incomplete list of notions related to affine spaces, all of them are defined in other
+files:
+
+* `affine_map`: a map between affine spaces that preserves the affine structure;
+* `affine_equiv`: an equivalence between affine spaces that preserves the affine structure;
+* `affine_subspace`: a subset of an affine space closed w.r.t. affine combinations of points;
+* `affine_combination`: an affine combination of points;
+* `affine_independent`: affine independent set of points.
+
 ## TODO
 
 Some key definitions are not yet present.

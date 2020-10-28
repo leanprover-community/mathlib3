@@ -10,11 +10,7 @@ import data.set.intervals.unordered_interval
 /-!
 # Affine spaces
 
-This file defines affine subspaces (over modules) and the affine span of a set of
-points.  For affine combinations of points, see `linear_algebra.affine_space.combination`.  For
-affinely independent families of points, see `linear_algebra.affine_space.independent`.  For some
-additional results relating to finite-dimensional subspaces of affine spaces, see
-`linear_algebra.affine_space.finite_dimensional`.
+This file defines affine subspaces (over modules) and the affine span of a set of points.
 
 ## Main definitions
 

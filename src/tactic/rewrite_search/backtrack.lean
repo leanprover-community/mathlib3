@@ -16,50 +16,24 @@ namespace tactic.rewrite_search
 
 variables (g : search_state)
 
-private meta def search_step (me : ℕ) :
-buffer (option edge) → list edge → tactic (buffer (option edge) × list ℕ)
-| been [] := return (been, [])
-| been (e :: rest) :=
-  match e.other me with
-  | none := fail "bad edge in adjacency buffer!"
-  | some id := do
-    (been, queue_head) ← pure $
-      if (been.read' id).is_some ∨ id = LHS_VERTEX_ID then (been, [])
-      else (been.write' id (some e), [id]),
-    (been, queue) ← search_step been rest,
-    return (been, queue_head ++ queue)
-  end
-
-private meta def search_aux : buffer (option edge) → list ℕ → tactic (buffer (option edge))
-| been [] := fail "bug: bfs could not find the path LHS -> RHS!"
-| been (t :: rest) :=
-do let child := g.vertices.read' t,
-  if child.id = RHS_VERTEX_ID then
-    return been
-  else do
-    (been, new_es) ← search_step child.id been child.adj.to_list,
-    search_aux been (rest ++ new_es)
-
-private meta def search : tactic (buffer (option edge)) :=
-  search_aux g ⟨g.vertices.size, mk_array g.vertices.size none⟩ [LHS_VERTEX_ID]
-
-private meta def crawl (t : buffer (option edge)) : ℕ → tactic (list edge)
-| id :=
-  if id = LHS_VERTEX_ID then return [] else do
-  match t.read' id with
-  | none := fail "bug: broken chain while bfs crawling!"
-  | some e :=
-    match e.other id with
-    | none := fail "bug: bad chain while bfs crawling!"
-    | some oid := do
-      rest ← crawl oid,
-      return (e :: rest)
-    end
-  end
+private meta def walk_up_parents : vertex → option edge → tactic (list edge)
+| v none     := return []
+| v (some e) := do
+                 let w := g.vertices.read' e.f,
+                 edges ← walk_up_parents w w.parent,
+                 return (e :: edges)
 
 private meta def backtrack : tactic (list edge) :=
-do tab ← search g,
-   list.reverse <$> crawl tab RHS_VERTEX_ID
+do e ← g.solving_edge,
+let v := g.vertices.read' e.t,
+
+  vts ← walk_up_parents g v e,
+  vfs ← walk_up_parents g v v.parent,
+
+  return $ match v.s with
+              | side.L := vfs.reverse ++ vts
+              | side.R := vts.reverse ++ vfs
+              end
 
 private meta def chop_into_units : list edge → list (side × list edge)
 | [] := []

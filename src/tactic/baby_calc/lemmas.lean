@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
+import order.lexicographic
+import tactic.core
+
 import algebra.group_with_zero
 import ring_theory.witt_vector.basic
 import analysis.special_functions.trigonometric
@@ -267,21 +270,52 @@ right_lt_of_mul_lt_mul' (c⁻¹) h
 
 end standard_lemmas
 
-@[derive [decidable_eq, has_reflect, inhabited]]
+@[derive [has_reflect, inhabited]]
 inductive side | L | R
 
-@[derive [decidable_eq, has_reflect, inhabited]]
+namespace side
+
+def to_nat : side → ℕ
+| L := 0 | R := 1
+
+instance : decidable_linear_order side :=
+decidable_linear_order.lift to_nat (by { rintros ⟨⟩ ⟨⟩ ⟨⟩; refl })
+
+end side
+
+@[derive [has_reflect, inhabited]]
 inductive op | mul | add | div | sub | inv | neg
 
-@[derive [decidable_eq, has_reflect, inhabited]]
-inductive sign | pos | neg
+namespace op
+
+def to_nat : op → ℕ
+| mul := 0 | add := 1 | div := 2 | sub := 3 | inv := 4 | neg := 5
+
+instance : decidable_linear_order op :=
+decidable_linear_order.lift to_nat (by { rintros ⟨⟩ ⟨⟩ ⟨⟩; refl })
+
+end op
+
+@[derive [has_reflect, inhabited]]
+inductive sign | pos | neg | none
+
+namespace sign
+
+def to_nat : sign → ℕ
+| pos := 0 | neg := 1 | none := 2
+
+instance : decidable_linear_order sign :=
+decidable_linear_order.lift to_nat (by { rintros ⟨⟩ ⟨⟩ ⟨⟩; refl })
+
+end sign
 
 @[derive [decidable_eq, has_reflect, inhabited]]
 inductive rel | eq | le | lt | ne -- can we pull this last one off?
 
 open side op sign
 
-def lookup_list : list ((side × op × option sign) × name) :=
+def lookup_list : list (lex side (lex op sign) × name) :=
+by delta lex; exact
 [ /- EQ -/
   /- mul -/
   ((L, mul, none), `left_mul_cancel),
@@ -353,12 +387,30 @@ def lookup_list : list ((side × op × option sign) × name) :=
   ((L, neg, none), `lt_of_neg_lt_neg)
   ]
 
+meta def lookup := native.rb_lmap.of_list lookup_list
+
 /-
 TODO:
 special support for `0` and `1`? things like:
 - `0 < x ↔ -x < 0`
 - `(h : 0 ≤ x * y) (h0 : 0 ≤ 2) : 0 ≤ y`
 - `1 < x ↔ x⁻¹ < 1`
+
+Run a command that checks that there is a 1-to-1 correspondence
+between lemmas in the `baby_calc` namespace and entries in the lookup list.
+
 -/
+
+meta def check_list : tactic unit :=
+do env ← tactic.get_env,
+  let lems := (env.get_decls.map declaration.to_name).filter (λ n, name.is_prefix_of `baby_calc n),
+  let M1 : multiset name := lookup.values,
+  let M2 : multiset name := lems,
+  let D1 := (M1 - M2),
+  let D2 := (M2 - M1),
+  trace (to_string (D1.unquot)),
+  tactic.skip
+
+run_cmd check_list
 
 end baby_calc

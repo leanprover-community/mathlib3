@@ -10,6 +10,20 @@ namespace tactic
 
 open baby_calc
 
+meta def baby_calc (e : pexpr) (s : option side) (op : op) (sgn : option sign) : tactic unit :=
+focus1 $
+do ctx ← local_context,
+  n ← get_unused_name `nonzero,
+  to_expr ``(%%e ≠ 0) >>= assert n,
+  focus1 `[try { assumption <|> norm_num, done }],
+  swap,
+  h0 ← get_local n,
+  match s with
+  | (some side.R) := `[apply (mul_left_inj' %%h0).mp]
+  | _             := `[apply (mul_right_inj' %%h0).mp]
+  end,
+  clear h0
+
 meta def add_by (e : pexpr) : option side → tactic unit
 | (some side.R) := do `[apply (add_right_inj %%e).mp]
 | _ := do `[apply (add_right_inj %%e).mp]

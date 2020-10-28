@@ -26,26 +26,21 @@ open_locale classical
 open category_theory
 
 /-- The category of finite types. -/
+@[derive has_coe_to_sort]
 def FinType := bundled fintype
 
 namespace FinType
 
+def of (X : Type*) [fintype X] : FinType := bundled.of X
 instance : inhabited FinType := ⟨⟨pempty⟩⟩
-instance : has_coe_to_sort FinType := ⟨Type*, bundled.α⟩
 instance {X : FinType} : fintype X := X.2
 
-instance : category FinType :=
-{ hom := λ X Y, X → Y,
-  id := λ _, id,
-  comp := λ _ _ _ f g, g ∘ f }
+instance : category FinType := induced_category.category bundled.α
 
 /-- The fully faithful embedding of `FinType` into the category of types. -/
-def incl : FinType ⥤ Type* :=
-{ obj := λ X, X,
-  map := λ _ _ f, f }
+@[derive [full, faithful]]
+def incl : FinType ⥤ Type* := induced_functor _
 
-instance : full incl := { preimage := λ _ _ f, f }
-instance : faithful incl := {}
 instance : concrete_category FinType := ⟨incl⟩
 
 /-- The "standard" skeleton for `FinType`. -/
@@ -74,7 +69,7 @@ lemma is_skeletal : skeletal Skeleton := λ X Y ⟨h⟩, fin.equiv_iff_eq.mp $ n
 
 /-- The canonical fully faithful embedding of `FinType.Skeleton` into `FinType`. -/
 def incl : Skeleton ⥤ FinType :=
-{ obj := λ X, { α := fin X },
+{ obj := λ X, FinType.of (fin X),
   map := λ _ _ f, f }
 
 instance : full incl := { preimage := λ _ _ f, f }

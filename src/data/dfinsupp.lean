@@ -62,10 +62,9 @@ instance : has_coe_to_fun (Π₀ i, β i) :=
 instance : has_zero (Π₀ i, β i) := ⟨⟦⟨λ i, 0, ∅, λ i, or.inr rfl⟩⟧⟩
 instance : inhabited (Π₀ i, β i) := ⟨0⟩
 
-@[simp] lemma zero_apply {i : ι} : (0 : Π₀ i, β i) i = 0 := rfl
+@[simp] lemma zero_apply (i : ι) : (0 : Π₀ i, β i) i = 0 := rfl
 
-@[ext]
-lemma ext {f g : Π₀ i, β i} (H : ∀ i, f i = g i) : f = g :=
+@[ext] lemma ext {f g : Π₀ i, β i} (H : ∀ i, f i = g i) : f = g :=
 quotient.induction_on₂ f g (λ _ _ H, quotient.sound H) H
 
 /-- The composition of `f : β₁ → β₂` and `g : Π₀ i, β₁ i` is
@@ -107,7 +106,7 @@ section algebra
 instance [Π i, add_monoid (β i)] : has_add (Π₀ i, β i) :=
 ⟨zip_with (λ _, (+)) (λ _, add_zero 0)⟩
 
-@[simp] lemma add_apply [Π i, add_monoid (β i)] {g₁ g₂ : Π₀ i, β i} {i : ι} :
+@[simp] lemma add_apply [Π i, add_monoid (β i)] (g₁ g₂ : Π₀ i, β i) (i : ι) :
   (g₁ + g₂) i = g₁ i + g₂ i :=
 zip_with_apply
 
@@ -119,8 +118,8 @@ instance [Π i, add_monoid (β i)] : add_monoid (Π₀ i, β i) :=
   zero_add  := λ f, ext $ λ i, by simp only [add_apply, zero_apply, zero_add],
   add_zero  := λ f, ext $ λ i, by simp only [add_apply, zero_apply, add_zero] }
 
-instance [Π i, add_monoid (β i)] {i : ι} : is_add_monoid_hom (λ g : Π₀ i : ι, β i, g i) :=
-{ map_add := λ _ _, add_apply, map_zero := zero_apply }
+instance [Π i, add_monoid (β i)] (i : ι) : is_add_monoid_hom (λ g : Π₀ i : ι, β i, g i) :=
+{ map_add := λ _ _, add_apply _ _ _, map_zero := zero_apply _ }
 
 instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
 ⟨λ f, f.map_range (λ _, has_neg.neg) (λ _, neg_zero)⟩
@@ -153,7 +152,7 @@ def to_has_scalar {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)] [Π
 local attribute [instance] to_has_scalar
 
 @[simp] lemma smul_apply {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)]
-  [Π i, semimodule γ (β i)] {i : ι} {b : γ} {v : Π₀ i, β i} :
+  [Π i, semimodule γ (β i)] (b : γ) (v : Π₀ i, β i) (i : ι) :
   (b • v) i = b • (v i) :=
 map_range_apply
 
@@ -609,9 +608,9 @@ by ext i; simp
 
 local attribute [instance] dfinsupp.to_semimodule
 
-lemma support_smul {γ : Type w} [ring γ] [Π i, add_comm_monoid (β i)] [Π i, semimodule γ (β i)]
-  [Π (i : ι) (x : β i), decidable (x ≠ 0)]
-  {b : γ} {v : Π₀ i, β i} : (b • v).support ⊆ v.support :=
+lemma support_smul {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, semimodule γ (β i)]
+  [Π ( i : ι) (x : β i), decidable (x ≠ 0)]
+  (b : γ) (v : Π₀ i, β i) : (b • v).support ⊆ v.support :=
 support_map_range
 
 instance [Π i, has_zero (β i)] [Π i, decidable_eq (β i)] : decidable_eq (Π₀ i, β i) :=

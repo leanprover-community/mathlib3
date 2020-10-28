@@ -86,16 +86,18 @@ instance : has_coe_to_fun (α ≃ β) :=
 @[simp] theorem coe_fn_mk (f : α → β) (g l r) : (equiv.mk f g l r : α → β) = f :=
 rfl
 
-/-- The map `coe_fn : (r ≃ s) → (r → s)` is injective. We can't use `function.injective`
-here but mimic its signature by using `⦃e₁ e₂⦄`. -/
-theorem coe_fn_injective : ∀ ⦃e₁ e₂ : equiv α β⦄, (e₁ : α → β) = e₂ → e₁ = e₂
+/-- The map `coe_fn : (r ≃ s) → (r → s)` is injective. -/
+theorem injective_coe_fn : function.injective (λ (e : α ≃ β) (x : α), e x)
 | ⟨f₁, g₁, l₁, r₁⟩ ⟨f₂, g₂, l₂, r₂⟩ h :=
   have f₁ = f₂, from h,
   have g₁ = g₂, from l₁.eq_right_inverse (this.symm ▸ r₂),
   by simp *
 
+@[simp, norm_cast] protected lemma coe_inj {e₁ e₂ : α ≃ β} : ⇑e₁ = e₂ ↔ e₁ = e₂ :=
+injective_coe_fn.eq_iff
+
 @[ext] lemma ext {f g : equiv α β} (H : ∀ x, f x = g x) : f = g :=
-coe_fn_injective (funext H)
+injective_coe_fn (funext H)
 
 @[ext] lemma perm.ext {σ τ : equiv.perm α} (H : ∀ x, σ x = τ x) : σ = τ :=
 equiv.ext H
@@ -258,7 +260,7 @@ begin
   apply symm_apply_apply
 end
 
-@[simp] theorem mul_apply {α : Type u} (f g : perm α) (x) : (f * g) x = f (g x) :=
+theorem mul_apply {α : Type u} (f g : perm α) (x) : (f * g) x = f (g x) :=
 equiv.trans_apply _ _ _
 
 @[simp] theorem one_apply {α : Type u} (x) : (1 : perm α) x = x := rfl
@@ -274,6 +276,8 @@ lemma one_def {α : Type u} : (1 : perm α) = equiv.refl α := rfl
 lemma mul_def {α : Type u} (f g : perm α) : f * g = g.trans f := rfl
 
 lemma inv_def {α : Type u} (f : perm α) : f⁻¹ = f.symm := rfl
+
+@[simp] lemma coe_mul {α : Type u} (f g : perm α) : ⇑(f * g) = f ∘ g := rfl
 
 end perm
 
@@ -1405,8 +1409,9 @@ calc  (s ∪ t : set α) ⊕ (s ∩ t : set α)
 /-- Given an equivalence `e₀` between sets `s : set α` and `t : set β`, the set of equivalences
 `e : α ≃ β` such that `e ↑x = ↑(e₀ x)` for each `x : s` is equivalent to the set of equivalences
 between `sᶜ` and `tᶜ`. -/
-protected def compl {α β : Type*} {s : set α} {t : set β} [decidable_pred s] [decidable_pred t]
-  (e₀ : s ≃ t) : {e : α ≃ β // ∀ x : s, e x = e₀ x} ≃ ((sᶜ : set α) ≃ (tᶜ : set β)) :=
+protected def compl {α : Type u} {β : Type v} {s : set α} {t : set β} [decidable_pred s]
+  [decidable_pred t] (e₀ : s ≃ t) :
+  {e : α ≃ β // ∀ x : s, e x = e₀ x} ≃ ((sᶜ : set α) ≃ (tᶜ : set β)) :=
 { to_fun := λ e, subtype_congr e
     (λ a, not_congr $ iff.symm $ maps_to.mem_iff
       (maps_to_iff_exists_map_subtype.2 ⟨e₀, e.2⟩)
@@ -1489,6 +1494,13 @@ protected def congr {α β : Type*} (e : α ≃ β) : set α ≃ set β :=
 protected def sep {α : Type u} (s : set α) (t : α → Prop) :
   ({ x ∈ s | t x } : set α) ≃ { x : s | t x } :=
 (equiv.subtype_subtype_equiv_subtype_inter s t).symm
+
+/-- The set `𝒫 S := {x | x ⊆ S}` is equivalent to the type `set S`. -/
+protected def powerset {α} (S : set α) : 𝒫 S ≃ set S :=
+{ to_fun := λ x : 𝒫 S, coe ⁻¹' (x : set α),
+  inv_fun := λ x : set S, ⟨coe '' x, by rintro _ ⟨a : S, _, rfl⟩; exact a.2⟩,
+  left_inv := λ x, by ext y; exact ⟨λ ⟨⟨_, _⟩, h, rfl⟩, h, λ h, ⟨⟨_, x.2 h⟩, h, rfl⟩⟩,
+  right_inv := λ x, by ext; simp }
 
 end set
 

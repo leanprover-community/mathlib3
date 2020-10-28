@@ -67,26 +67,30 @@ variables (φ : Π i, M i →ₗ[R] N)
 variables (ι N φ)
 /-- The linear map constructed using the universal property of the coproduct. -/
 def to_module : (⨁ i, M i) →ₗ[R] N :=
-{ to_fun := to_group (λ i, φ i),
-  map_add' := to_group_add _,
+{ to_fun := to_group (λ i, (φ i).to_add_monoid_hom),
+  map_add' := (to_group (λ i, (φ i).to_add_monoid_hom)).map_add,
   map_smul' := λ c x, direct_sum.induction_on x
-    (by rw [smul_zero, to_group_zero, smul_zero])
-    (λ i x, by rw [← of_smul, to_group_of, to_group_of, (φ i).map_smul c x])
-    (λ x y ihx ihy, by rw [smul_add, to_group_add, ihx, ihy, to_group_add, smul_add]) }
+    (by rw [smul_zero, add_monoid_hom.map_zero, smul_zero])
+    (λ i x,
+      by rw [← of_smul, to_group_of, to_group_of, linear_map.to_add_monoid_hom_coe,
+        linear_map.map_smul])
+    (λ x y ihx ihy,
+      by rw [smul_add, add_monoid_hom.map_add, ihx, ihy, add_monoid_hom.map_add, smul_add]),
+  ..(to_group (λ i, (φ i).to_add_monoid_hom))}
 
 variables {ι N φ}
 
 /-- The map constructed using the universal property gives back the original maps when
 restricted to each component. -/
 @[simp] lemma to_module_lof (i) (x : M i) : to_module R ι N φ (lof R ι M i x) = φ i x :=
-to_group_of (λ i, φ i) i x
+to_group_of (λ i, (φ i).to_add_monoid_hom) i x
 
 variables (ψ : (⨁ i, M i) →ₗ[R] N)
 
 /-- Every linear map from a direct sum agrees with the one obtained by applying
 the universal property to each of its components. -/
 theorem to_module.unique (f : ⨁ i, M i) : ψ f = to_module R ι N (λ i, ψ.comp $ lof R ι M i) f :=
-to_group.unique ψ f
+to_group.unique ψ.to_add_monoid_hom f
 
 variables {ψ} {ψ' : (⨁ i, M i) →ₗ[R] N}
 
@@ -100,16 +104,16 @@ into a larger subset of the direct summands, as a linear map.
 -/
 def lset_to_set (S T : set ι) (H : S ⊆ T) :
   (⨁ (i : S), M i) →ₗ (⨁ (i : T), M i) :=
-to_module R _ _ $ λ i, lof R T (M ∘ @subtype.val _ T) ⟨i.1, H i.2⟩
+to_module R _ _ $ λ i, lof R T (λ (i : subtype T), M i) ⟨i, H i.prop⟩
 
 omit dec_ι
 
-/-- The natural linear equivalence between `⨁ _ : punit, M` and `M`. -/
+/-- The natural linear equivalence between `⨁ _ : ι, M` and `M` when `unique ι`. -/
 -- TODO: generalize this to arbitrary index type `ι` with `unique ι`
-protected def lid (M : Type v) [add_comm_group M] [semimodule R M] :
-  (⨁ (_ : punit), M) ≃ₗ M :=
-{ .. direct_sum.id M,
-  .. to_module R punit M (λ i, linear_map.id) }
+protected def lid (M : Type v) (ι : Type* := punit) [add_comm_group M] [semimodule R M] [unique ι] :
+  (⨁ (_ : ι), M) ≃ₗ M :=
+{ .. direct_sum.id M ι,
+  .. to_module R ι M (λ i, linear_map.id) }
 
 variables (ι M)
 /-- The projection map onto one component, as a linear map. -/

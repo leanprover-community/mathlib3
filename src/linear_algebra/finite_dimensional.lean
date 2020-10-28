@@ -416,7 +416,7 @@ begin
 end
 
 section
-variables {L : Type*} [discrete_linear_ordered_field L]
+variables {L : Type*} [linear_ordered_field L]
 variables {W : Type v} [add_comm_group W] [vector_space L W]
 
 /--
@@ -822,10 +822,10 @@ section
 noncomputable def field_of_finite_dimensional (F K : Type*) [field F] [integral_domain K]
   [algebra F K] [finite_dimensional F K] : field K :=
 { inv := λ x, if H : x = 0 then 0 else classical.some $
-    (show function.surjective (algebra.lmul_left F K x), from
+    (show function.surjective (algebra.lmul_left F x), from
       linear_map.injective_iff_surjective.1 $ λ _ _, (mul_right_inj' H).1) 1,
   mul_inv_cancel := λ x hx, show x * dite _ _ _ = _, by { rw dif_neg hx,
-    exact classical.some_spec ((show function.surjective (algebra.lmul_left F K x), from
+    exact classical.some_spec ((show function.surjective (algebra.lmul_left F x), from
       linear_map.injective_iff_surjective.1 $ λ _ _, (mul_right_inj' hx).1) 1) },
   inv_zero := dif_pos rfl,
   .. ‹integral_domain K› }

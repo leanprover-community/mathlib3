@@ -33,10 +33,10 @@ We sometimes use `V'` as local notation for `dual K V`.
 
 namespace module
 variables (R : Type*) (M : Type*)
-variables [comm_ring R] [add_comm_group M] [module R M]
+variables [comm_semiring R] [add_comm_monoid M] [semimodule R M]
 
 /-- The dual space of an R-module M is the R-module of linear maps `M → R`. -/
-@[derive [add_comm_group, module R]] def dual := M →ₗ[R] R
+@[derive [add_comm_monoid, semimodule R]] def dual := M →ₗ[R] R
 
 namespace dual
 
@@ -54,7 +54,7 @@ begin
   rw [linear_map.flip_apply, linear_map.id_apply]
 end
 
-variables {R M} {M' : Type*} [add_comm_group M'] [module R M']
+variables {R M} {M' : Type*} [add_comm_monoid M'] [semimodule R M']
 
 /-- The transposition of linear maps, as a linear map from `M →ₗ[R] M'` to
 `dual R M' →ₗ[R] dual R M`. -/
@@ -63,7 +63,7 @@ def transpose : (M →ₗ[R] M') →ₗ[R] (dual R M' →ₗ[R] dual R M) :=
 
 lemma transpose_apply (u : M →ₗ[R] M') (l : dual R M') : transpose u l = l.comp u := rfl
 
-variables {M'' : Type*} [add_comm_group M''] [module R M'']
+variables {M'' : Type*} [add_comm_monoid M''] [semimodule R M'']
 
 lemma transpose_comp (u : M' →ₗ[R] M'') (v : M →ₗ[R] M') :
   transpose (u.comp v) = (transpose v).comp (transpose u) := rfl

@@ -259,8 +259,8 @@ end
 lemma int.prime.dvd_pow {n : ℤ} {k p : ℕ}
   (hp : nat.prime p) (h : (p : ℤ) ∣ n ^ k) : p  ∣ n.nat_abs :=
 begin
-  apply nat.prime.dvd_of_dvd_pow,
-  rw ← int.nat_abs_mul,
+  apply @nat.prime.dvd_of_dvd_pow _ _ k hp,
+  rw ← int.nat_abs_pow,
   exact int.coe_nat_dvd_left.mp h
 end
 

@@ -213,8 +213,8 @@ begin
       (int.gcd_eq_one_iff_coprime.mp htt4)) },
   -- b is even because b ^ 2 = 2 * m * n.
   have hb2 : 2 ∣ b,
-  { apply int.prime.dvd_pow' (by norm_num : nat.prime 2) _),
-    rw ← pow_two, rw [ht2, mul_assoc], exact dvd_mul_right 2 (m * n) },
+  { apply @int.prime.dvd_pow' _ 2 _ (by norm_num : nat.prime 2),
+    rw [ht2, mul_assoc], exact dvd_mul_right 2 (m * n) },
   have hs : (b / 2) ^ 2 = m * (r * s),
   { have hb22 : 2 * (b / 2) = b, { exact int.mul_div_cancel' hb2 },
     apply (mul_right_inj' (by norm_num : (4 : ℤ) ≠ 0)).mp,

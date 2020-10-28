@@ -771,10 +771,7 @@ lemma sub_lt_of_abs_sub_lt_right (h : abs (a - b) < c) : a - c < b :=
 sub_lt_of_abs_sub_lt_left (abs_sub a b ▸ h)
 
 lemma eq_zero_of_mul_self_add_mul_self_eq_zero (h : a * a + b * b = 0) : a = 0 :=
-have a * a ≤ (0 : α), from calc
-     a * a ≤ a * a + b * b : le_add_of_nonneg_right (mul_self_nonneg b)
-       ... = 0             : h,
-eq_zero_of_mul_self_eq_zero (le_antisymm this (mul_self_nonneg a))
+(mul_self_add_mul_self_eq_zero.mp h).left
 
 lemma abs_eq_iff_mul_self_eq : abs a = abs b ↔ a * a = b * b :=
 begin

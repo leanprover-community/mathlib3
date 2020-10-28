@@ -267,7 +267,6 @@ by { rw [pow_two, pow_two], exact nat_abs_lt_iff_mul_self_lt }
 lemma nat_abs_le_iff_sq_le {a b : ℤ} : a.nat_abs ≤ b.nat_abs ↔ a ^ 2 ≤ b ^ 2 :=
 by { rw [pow_two, pow_two], exact nat_abs_le_iff_mul_self_le }
 
-
 /-! ### `/`  -/
 
 @[simp] theorem of_nat_div (m n : ℕ) : of_nat (m / n) = (of_nat m) / (of_nat n) := rfl

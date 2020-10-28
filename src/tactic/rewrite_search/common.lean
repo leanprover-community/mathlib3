@@ -17,9 +17,8 @@ We want to have pairs indexed by these types, with convenient getter/setter meth
 and so have two completely isomorphic but separate structures `dir_pair` and `sided_pair`.
 
 This is LAME!
--/
 
-universe u
+universes u
 
 namespace tactic.rewrite_search
 
@@ -144,3 +143,4 @@ meta def rhs (e : expr) : tactic expr := prod.snd <$> split e
 
 end rw_equation
 
+-/

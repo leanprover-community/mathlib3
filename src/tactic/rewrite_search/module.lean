@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 -/
 
-import tactic.rewrite_search.common
 import tactic.rewrite_search.engine
 import tactic.rewrite_search.types
 

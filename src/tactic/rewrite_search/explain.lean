@@ -13,11 +13,7 @@ import tactic.converter.interactive -- Required for us to emit more compact `con
 
 open interactive interactive.types expr tactic
 
-variables {α β γ δ : Type}
-
 namespace tactic.rewrite_search
-
-private meta def hand : sided_pair string := ⟨"lhs", "rhs"⟩
 
 meta def nth_rule (rs : list (expr × bool)) (i : ℕ) : expr × bool := (rs.nth i).iget
 
@@ -32,7 +28,7 @@ meta def explain_using_location (rs : list (expr × bool)) (s : side) :
 how → tactic (option string)
 | (how.rewrite index location _) := do
   rule ← pp_rule $ nth_rule rs index,
-  return $ some ("nth_rewrite_" ++ hand.get s ++ " " ++ to_string location ++ " " ++ rule)
+  return $ some ("nth_rewrite_" ++ s.to_xhs ++ " " ++ to_string location ++ " " ++ rule)
 | _ := return none
 
 meta def using_location.explain_rewrites (rs : list (expr × bool)) (s : side)
@@ -62,14 +58,12 @@ inductive splice_result
 
 open splice_result
 
-def splice_result.pack (s : expr_lens.dir) :
-splice_result → dir_pair (option app_addr) → splice_result
+def splice_result.pack (s : expr_lens.dir) : splice_result → dir_pair (option app_addr) → splice_result
 | (new addr) c := new $ app_addr.node $ c.set s (some addr)
 | sr _ := sr
 
 -- TODO? prove well founded
-private meta def splice_in_aux (new_rws : list ℕ) :
-option app_addr → list expr_lens.dir → splice_result
+private meta def splice_in_aux (new_rws : list ℕ) : option app_addr → list expr_lens.dir → splice_result
 | (some $ node _) [] := contained
 | (some $ node c) (s :: rest) := (splice_in_aux (c.get s) rest).pack s c
 | (some $ rw _) (_ :: _) := obstructed
@@ -121,7 +115,7 @@ option app_addr → list how → tactic (list string)
 | (some tree) [] := do
   tacs ← explain_tree rs tree,
   return $ if tacs.length = 0 then []
-  else ["conv_" ++ hand.get s ++ " { " ++ string.intercalate ", " tacs ++ " }"]
+  else ["conv_" ++ s.to_xhs ++ " { " ++ string.intercalate ", " tacs ++ " }"]
 | tree (h :: rest) := do
 -- TODO handle other how.* values here, e.g. how.simp
 -- At the moment we just silently drop these.

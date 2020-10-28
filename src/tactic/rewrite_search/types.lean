@@ -28,34 +28,11 @@ def side.to_string : side → string
 | side.L := "L"
 | side.R := "R"
 
+def side.to_xhs : side → string
+| side.L := "lhs"
+| side.R := "rhs"
+
 instance : has_to_string side := ⟨side.to_string⟩
-
-
-@[derive decidable_eq]
-structure sided_pair (α : Type u) :=
-(l r : α)
-
-namespace sided_pair
-
-variables {α β : Type} (p : sided_pair α)
-
-def get : side → α
-| side.L := p.l
-| side.R := p.r
-
-def set : side → α → sided_pair α
-| side.L v := ⟨v, p.r⟩
-| side.R v := ⟨p.l, v⟩
-
-def map (f : α → β) : sided_pair β := ⟨f p.l, f p.r⟩
-
-def to_list : list α := [p.l, p.r]
-
-def to_string [has_to_string α] (p : sided_pair α) : string :=
-  to_string p.l ++ "-" ++ to_string p.r
-instance has_to_string [has_to_string α] : has_to_string (sided_pair α) := ⟨to_string⟩
-
-end sided_pair
 
 structure dir_pair (α : Type u) :=
 (l r : α)
@@ -225,10 +202,6 @@ meta instance has_to_format : has_to_format vertex := ⟨λ v, v.pp⟩
 
 end vertex
 
-def pair := sided_pair ℕ
-def pair.null : pair := ⟨invalid_index, invalid_index⟩
-instance pair.has_to_string : has_to_string pair := ⟨sided_pair.to_string⟩
-
 meta inductive status
 | continue : status
 | repeat : status
@@ -253,9 +226,6 @@ meta def mutate_strat (new_state : bfs_state) : search_state :=
 
 meta def set_vertex (v : vertex) : search_state × vertex :=
 ({ g with vertices := g.vertices.write' v.id v }, v)
-
-meta def lookup_pair (p : pair) : tactic (vertex × vertex) :=
-return (g.vertices.read' p.l, g.vertices.read' p.r)
 
 meta def get_endpoints (e : edge) : tactic (vertex × vertex) :=
 return (g.vertices.read' e.f, g.vertices.read' e.t)

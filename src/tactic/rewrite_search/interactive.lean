@@ -16,25 +16,25 @@ namespace tactic.rewrite_search
 meta def default_config : config := {}
 meta def pick_default_config : tactic unit := `[exact tactic.rewrite_search.default_config]
 
-meta def mk_search_state (conf : config) (rs : list (expr × bool)) (eqn : sided_pair expr) :
+meta def mk_search_state (conf : config) (rs : list (expr × bool)) (lhs : expr) (rhs : expr) :
 tactic search_state :=
 do let g : search_state := ⟨conf, rs, bfs_init [], buffer.nil, none⟩,
-   (g, vl) ← g.add_root_vertex eqn.l side.L,
-   (g, vr) ← g.add_root_vertex eqn.r side.R,
+   (g, vl) ← g.add_root_vertex lhs side.L,
+   (g, vr) ← g.add_root_vertex rhs side.R,
    return $ g.mutate_strat $ bfs_init [vl.id, vr.id, none]
 
-meta def try_search (cfg : config) (rs : list (expr × bool)) (eqn : sided_pair expr) :
+meta def try_search (cfg : config) (rs : list (expr × bool)) (lhs : expr) (rhs : expr) :
 tactic (option string) :=
-do i ← mk_search_state cfg rs eqn,
+do i ← mk_search_state cfg rs lhs rhs,
 (i, result) ← i.search_until_solved,
 match result with
   | search_result.failure reason := tactic.fail reason
   | search_result.success proof steps := tactic.exact proof >> some <$> i.explain proof steps
 end
 
-meta def rewrite_search_pair (cfg : config) (rs : list (expr × bool))
-(eqn : sided_pair expr) : tactic string :=
-do result ← try_search cfg rs eqn,
+meta def rewrite_search_pair (cfg : config) (rs : list (expr × bool)) (lhs : expr) (rhs : expr) :
+tactic string :=
+do result ← try_search cfg rs lhs rhs,
 match result with
   | some str := return str
   | none := tactic.fail "Could not initialize rewrite_search instance."
@@ -51,7 +51,7 @@ do let cfg := if ¬try_harder then cfg else { cfg with try_simp := tt },
    rws ← discovery.collect_rw_lemmas cfg extra_names extra_rws,
 
    (lhs, rhs) ← rw_equation.split t,
-   rewrite_search_pair cfg rws ⟨lhs, rhs⟩
+   rewrite_search_pair cfg rws lhs rhs
 
 end tactic.rewrite_search
 

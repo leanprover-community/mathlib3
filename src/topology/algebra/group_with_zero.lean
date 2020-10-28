@@ -11,12 +11,19 @@ import algebra.group.pi
 
 In this file we define `has_continuous_inv'` to be a mixin typeclass a type with `has_inv` and
 `has_zero` (e.g., a `group_with_zero`) such that `λ x, x⁻¹` is continuous at all nonzero points. Any
-normed (semi)field has this property.
+normed (semi)field has this property. Currently the only example of `has_continuous_inv'` in
+`mathlib` which is not a normed field is the type `nnnreal` (a.k.a. `ℝ≥0`) of nonnegative real
+numbers.
 
 Then we prove lemmas about continuity of `x ↦ x⁻¹` and `f / g` providing dot-style `*.inv'` and
 `*.div` operations on `filter.tendsto`, `continuous_at`, `continuous_within_at`, `continuous_on`,
 and `continuous`. As a special case, we provide `*.div_const` operations that require only
-`group_with_zero` and `has_continuous_mul` instances. -/
+`group_with_zero` and `has_continuous_mul` instances.
+
+All lemmas about `(⁻¹)` use `inv'` in their names because lemmas without `'` are used for
+`topological_group`s. We also use `'` in the typeclass name `has_continuous_inv'` for the sake of
+consistency of notation.
+-/
 
 open_locale topological_space
 open filter

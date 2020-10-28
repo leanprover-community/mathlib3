@@ -148,9 +148,7 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
           tauto }, },
       all_goals { simp only [is_open.prod, *] } },
     -- So W ○ W ∈ F by definition of F
-    have : W ○ W ∈ F,
-    { dsimp [F],-- Lean has weird elaboration trouble with this line
-      exact mem_lift' W_in },
+    have : W ○ W ∈ F, by simpa only using mem_lift' W_in,
     -- And V₁.prod V₂ ∈ 𝓝 (x, y)
     have hV₁₂ : V₁.prod V₂ ∈ 𝓝 (x, y) := prod_mem_nhds_sets V₁_in V₂_in,
     -- But (x, y) is also a cluster point of F so (V₁.prod V₂) ∩ (W ○ W) ≠ ∅

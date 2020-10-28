@@ -468,46 +468,25 @@ begin
     exact ⟨u, hu, p, hp⟩ }
 end
 
-lemma times_cont_diff_within_at.continuous_within_at' {n : with_top ℕ}
-  (h : times_cont_diff_within_at 𝕜 n f s x) : continuous_within_at f (insert x s) x :=
-begin
-  rcases h 0 bot_le with ⟨u, hu, p, H⟩,
-  rcases mem_nhds_within.1 hu with ⟨t, t_open, xt, tu⟩,
-  have A : x ∈ t ∩ insert x s, by simp [xt],
-  have := (H.mono tu).continuous_on.continuous_within_at A,
-  rw inter_comm at this,
-  exact (continuous_within_at_inter (mem_nhds_sets t_open xt)).1 this
-end
-
 lemma times_cont_diff_within_at.continuous_within_at {n : with_top ℕ}
   (h : times_cont_diff_within_at 𝕜 n f s x) : continuous_within_at f s x :=
-(h.continuous_within_at').mono (subset_insert x s)
+begin
+  rcases h 0 bot_le with ⟨u, hu, p, H⟩,
+  rw [mem_nhds_within_insert] at hu,
+  exact (H.continuous_on.continuous_within_at hu.1).mono_of_mem hu.2
+end
 
 lemma times_cont_diff_within_at.congr_of_eventually_eq {n : with_top ℕ}
   (h : times_cont_diff_within_at 𝕜 n f s x) (h₁ : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x) :
   times_cont_diff_within_at 𝕜 n f₁ s x :=
-begin
-  assume m hm,
-  rcases h m hm with ⟨u, hu, p, H⟩,
-  rcases h₁.exists_mem with ⟨v, v_neighb, hv⟩,
-  refine ⟨u ∩ ((insert x v) ∩ (insert x s)), _, p, _⟩,
-  { exact filter.inter_mem_sets hu (filter.inter_mem_sets (mem_nhds_within_insert v_neighb)
-      self_mem_nhds_within) },
-  { apply (H.mono (inter_subset_left u _)).congr (λ y hy, _),
-    simp at hy,
-    rcases hy.2.1 with rfl|hy',
-    { exact hx },
-    { exact hv hy' } }
-end
+λ m hm, let ⟨u, hu, p, H⟩ := h m hm in
+⟨{x ∈ u | f₁ x = f x}, filter.inter_mem_sets hu (mem_nhds_within_insert.2 ⟨hx, h₁⟩), p,
+  (H.mono (sep_subset _ _)).congr (λ _, and.right)⟩
 
 lemma times_cont_diff_within_at.congr_of_eventually_eq' {n : with_top ℕ}
   (h : times_cont_diff_within_at 𝕜 n f s x) (h₁ : f₁ =ᶠ[𝓝[s] x] f) (hx : x ∈ s) :
   times_cont_diff_within_at 𝕜 n f₁ s x :=
-begin
-  apply h.congr_of_eventually_eq h₁,
-  rcases h₁.exists_mem with ⟨t, ht, t_eq⟩,
-  exact t_eq (mem_of_mem_nhds_within hx ht)
-end
+h.congr_of_eventually_eq h₁ $ h₁.self_of_nhds_within hx
 
 lemma filter.eventually_eq.times_cont_diff_within_at_iff {n : with_top ℕ}
   (h₁ : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x) :
@@ -520,14 +499,28 @@ lemma times_cont_diff_within_at.congr {n : with_top ℕ}
   times_cont_diff_within_at 𝕜 n f₁ s x :=
 h.congr_of_eventually_eq (filter.eventually_eq_of_mem self_mem_nhds_within h₁) hx
 
-lemma times_cont_diff_within_at.mono {n : with_top ℕ}
-  (h : times_cont_diff_within_at 𝕜 n f s x) {t : set E} (hst : t ⊆ s) :
+lemma times_cont_diff_within_at.mono_of_mem {n : with_top ℕ}
+  (h : times_cont_diff_within_at 𝕜 n f s x) {t : set E} (hst : s ∈ 𝓝[t] x) :
   times_cont_diff_within_at 𝕜 n f t x :=
 begin
   assume m hm,
   rcases h m hm with ⟨u, hu, p, H⟩,
-  exact ⟨u, nhds_within_mono _ (insert_subset_insert hst) hu, p, H⟩,
+  exact ⟨u, nhds_within_le_of_mem (insert_mem_nhds_within_insert hst) hu, p, H⟩
 end
+
+lemma times_cont_diff_within_at.mono {n : with_top ℕ}
+  (h : times_cont_diff_within_at 𝕜 n f s x) {t : set E} (hst : t ⊆ s) :
+  times_cont_diff_within_at 𝕜 n f t x :=
+h.mono_of_mem $ filter.mem_sets_of_superset self_mem_nhds_within hst
+
+lemma times_cont_diff_within_at.congr_nhds {n : with_top ℕ}
+  (h : times_cont_diff_within_at 𝕜 n f s x) {t : set E} (hst : 𝓝[s] x = 𝓝[t] x) :
+  times_cont_diff_within_at 𝕜 n f t x :=
+h.mono_of_mem $ hst ▸ self_mem_nhds_within
+
+lemma times_cont_diff_within_at_congr_nhds {n : with_top ℕ} {t : set E} (hst : 𝓝[s] x = 𝓝[t] x) :
+  times_cont_diff_within_at 𝕜 n f s x ↔ times_cont_diff_within_at 𝕜 n f t x :=
+⟨λ h, h.congr_nhds hst, λ h, h.congr_nhds hst.symm⟩
 
 lemma times_cont_diff_within_at.of_le {m n : with_top ℕ}
   (h : times_cont_diff_within_at 𝕜 n f s x) (hmn : m ≤ n) :
@@ -536,14 +529,7 @@ lemma times_cont_diff_within_at.of_le {m n : with_top ℕ}
 
 lemma times_cont_diff_within_at_inter' {n : with_top ℕ} (h : t ∈ 𝓝[s] x) :
   times_cont_diff_within_at 𝕜 n f (s ∩ t) x ↔ times_cont_diff_within_at 𝕜 n f s x :=
-begin
-  refine ⟨λ H m hm, _, λ H, H.mono (inter_subset_left _ _)⟩,
-  rcases H m hm with ⟨u, u_nhbd, p, hu⟩,
-  refine ⟨(insert x s ∩ insert x t) ∩ u, _, p, hu.mono (inter_subset_right _ _)⟩,
-  rw nhds_within_restrict'' (insert x s) (mem_nhds_within_insert h),
-  rw insert_inter at u_nhbd,
-  exact filter.inter_mem_sets self_mem_nhds_within u_nhbd
-end
+times_cont_diff_within_at_congr_nhds $ eq.symm $ nhds_within_restrict'' _ h
 
 lemma times_cont_diff_within_at_inter {n : with_top ℕ} (h : t ∈ 𝓝 x) :
   times_cont_diff_within_at 𝕜 n f (s ∩ t) x ↔ times_cont_diff_within_at 𝕜 n f s x :=
@@ -639,7 +625,8 @@ lemma times_cont_diff_within_at.times_cont_diff_on {n : with_top ℕ} {m : ℕ}
   ∃ u ∈ 𝓝[insert x s] x, u ⊆ insert x s ∧ times_cont_diff_on 𝕜 m f u :=
 begin
   rcases h m hm with ⟨u, u_nhd, p, hp⟩,
-  refine ⟨u ∩ insert x s, filter.inter_mem_sets u_nhd self_mem_nhds_within, inter_subset_right _ _, _⟩,
+  refine ⟨u ∩ insert x s, filter.inter_mem_sets u_nhd self_mem_nhds_within,
+    inter_subset_right _ _, _⟩,
   assume y hy m' hm',
   refine ⟨u ∩ insert x s, _, p, (hp.mono (inter_subset_left _ _)).of_le hm'⟩,
   convert self_mem_nhds_within,
@@ -1641,6 +1628,10 @@ lemma times_cont_diff_at_id {n : with_top ℕ} {x} :
   times_cont_diff_at 𝕜 n (id : E → E) x :=
 times_cont_diff_id.times_cont_diff_at
 
+lemma times_cont_diff_on_id {n : with_top ℕ} {s} :
+  times_cont_diff_on 𝕜 n (id : E → E) s :=
+times_cont_diff_id.times_cont_diff_on
+
 /--
 Bilinear functions are `C^∞`.
 -/
@@ -2031,7 +2022,7 @@ begin
     ⟨(mem_of_mem_nhds_within (mem_insert (f x) _) u_nhd : _),
     mem_of_mem_nhds_within (mem_insert x s) v_nhd⟩,
   have : f ⁻¹' u ∈ 𝓝[insert x s] x,
-  { apply hf.continuous_within_at'.preimage_mem_nhds_within',
+  { apply hf.continuous_within_at.insert_self.preimage_mem_nhds_within',
     apply nhds_within_mono _ _ u_nhd,
     rw image_insert_eq,
     exact insert_subset_insert (image_subset_iff.mpr st) },

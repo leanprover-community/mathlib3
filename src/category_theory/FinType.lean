@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Adam Topaz
+Authors: Bhavik Mehta, Adam Topaz
 -/
 
 import data.fintype.basic
@@ -27,22 +27,22 @@ open category_theory
 
 /-- The category of finite types. -/
 @[derive has_coe_to_sort]
-def FinType := bundled fintype
+def Fintype := bundled fintype
 
-namespace FinType
+namespace Fintype
 
 /-- Construct a bundled `FinType` from the underlying type and typeclass. -/
-def of (X : Type*) [fintype X] : FinType := bundled.of X
-instance : inhabited FinType := ⟨⟨pempty⟩⟩
-instance {X : FinType} : fintype X := X.2
+def of (X : Type*) [fintype X] : Fintype := bundled.of X
+instance : inhabited Fintype := ⟨⟨pempty⟩⟩
+instance {X : Fintype} : fintype X := X.2
 
-instance : category FinType := induced_category.category bundled.α
+instance : category Fintype := induced_category.category bundled.α
 
 /-- The fully faithful embedding of `FinType` into the category of types. -/
 @[derive [full, faithful]]
-def incl : FinType ⥤ Type* := induced_functor _
+def incl : Fintype ⥤ Type* := induced_functor _
 
-instance : concrete_category FinType := ⟨incl⟩
+instance : concrete_category Fintype := ⟨incl⟩
 
 /-- The "standard" skeleton for `FinType`. -/
 def Skeleton := ℕ
@@ -69,8 +69,8 @@ lemma is_skeletal : skeletal Skeleton := λ X Y ⟨h⟩, fin.equiv_iff_eq.mp $ n
   right_inv := λ _, by {change (h.inv ≫ h.hom) _ = _, simpa} }
 
 /-- The canonical fully faithful embedding of `FinType.Skeleton` into `FinType`. -/
-def incl : Skeleton ⥤ FinType :=
-{ obj := λ X, FinType.of (fin X),
+def incl : Skeleton ⥤ Fintype :=
+{ obj := λ X, Fintype.of (fin X),
   map := λ _ _ f, f }
 
 instance : full incl := { preimage := λ _ _ f, f }
@@ -88,10 +88,10 @@ noncomputable instance : is_equivalence incl :=
 equivalence.equivalence_of_fully_faithfully_ess_surj _
 
 /-- The equivalence between `FinType.Skeleton` and `FinType`. -/
-noncomputable def equivalence : Skeleton ≌ FinType := incl.as_equivalence
+noncomputable def equivalence : Skeleton ≌ Fintype := incl.as_equivalence
 
 @[simp] lemma incl_mk_nat_card (n : ℕ) : fintype.card (incl.obj (mk n)) = n := finset.card_fin n
 
 end Skeleton
 
-end FinType
+end Fintype

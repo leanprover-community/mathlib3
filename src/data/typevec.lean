@@ -583,13 +583,8 @@ by { clear_except, ext i, induction i; [refl, apply i_ih], }
 
 @[simp]
 lemma to_subtype_of_subtype {α : typevec n} (p : α ⟹ repeat n Prop) :
-  @to_subtype n _ p ⊚ of_subtype _ = id :=
-by { ext i : 2, dsimp [typevec.comp], induction i;
-       simp [@to_subtype.equations._eqn_2 _ _ p,of_subtype,*],
-     { refl },
-       rw @to_subtype.equations._eqn_2 _ _ p i_a,
-       change (λ (i : fin2 i_n.succ) (x : α i), p i x) with p,
-       rw i_ih, refl  }
+  to_subtype p ⊚ of_subtype p = id :=
+by ext i x; induction i; dsimp only [id, to_subtype, comp, of_subtype] at *; simp *
 
 @[simp]
 lemma to_subtype_of_subtype_assoc {α β : typevec n} (p : α ⟹ repeat n Prop)

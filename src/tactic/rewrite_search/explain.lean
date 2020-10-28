@@ -210,8 +210,7 @@ meta def explain_proof_full (rs : list (expr × bool)) (explain_using_conv : boo
 list proof_unit → tactic string
 | [] := return ""
 | (u :: rest) := do
-  -- This is an optimisation: don't use transitivity for the last unit, since
-  -- it neccesarily must be redundant.
+  -- Don't use transitivity for the last unit, since it must be redundant.
   head ← if rest.length = 0 ∨ u.side = side.L then pure [] else (do
     n ← infer_type u.proof >>= rw_equation.rhs >>= pp,
     pure $ ["transitivity " ++ to_string n]

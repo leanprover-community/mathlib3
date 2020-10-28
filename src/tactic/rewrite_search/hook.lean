@@ -8,7 +8,7 @@ import tactic.rewrite_search.common
 
 /-!
 # FIXME: what is this?
--/
+
 
 open tactic
 open tactic.nth_rewrite.congr
@@ -48,3 +48,4 @@ do
   return (some prog, head.append rw.to_list)
 
 end tactic.rewrite_search
+-/

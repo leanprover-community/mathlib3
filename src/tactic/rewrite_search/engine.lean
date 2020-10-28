@@ -5,6 +5,7 @@ Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 -/
 
 import tactic.rewrite_search.backtrack
+import tactic.rewrite_search.discovery
 import tactic.rewrite_search.explain
 import tactic.rewrite_search.types
 
@@ -95,20 +96,17 @@ do let new_edge : edge := ⟨ f.id, t.id, proof, how ⟩,
    else
      return (g, f, t, new_edge)
 
-meta def commit_rewrite (f : vertex) (r : rewrite) :
-tactic (search_state × vertex × (vertex × edge)) :=
+meta def commit_rewrite (f : vertex) (r : rewrite) : tactic (search_state × vertex × (vertex × edge)) :=
 do (g, v) ← g.add_vertex r.e f.s,
   (g, f, v, e) ← g.add_edge f v r.prf r.how,
   return (g, f, (v, e))
 
-meta def reveal_more_rewrites (v : vertex) :
-tactic (search_state × vertex × option rewrite) :=
+meta def reveal_more_rewrites (v : vertex) : tactic (search_state × vertex × option rewrite) :=
 do (rw_prog, new_rws) ← discover_more_rewrites g.rs v.exp g.conf v.s v.rw_prog,
   (g, v) ← pure $ g.set_vertex {v with rw_prog := rw_prog, rws := v.rws.append_list new_rws},
   return (g, v, new_rws.nth 0)
 
-meta def reveal_more_adjs (o : vertex) :
-tactic (search_state × vertex × option (vertex × edge)) :=
+meta def reveal_more_adjs (o : vertex) : tactic (search_state × vertex × option (vertex × edge)) :=
 do (g, o, rw) ← match read_option o.rws o.rw_front with
   | none := g.reveal_more_rewrites o
   | some rw := pure (g, o, some rw)

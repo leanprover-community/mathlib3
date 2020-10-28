@@ -14,7 +14,7 @@ namespace tactic.rewrite_search
 
 open tactic tactic.interactive tactic.rewrite_search
 
-meta def assert_acceptable_lemma (r : expr) : tactic unit := do
+private meta def assert_acceptable_lemma (r : expr) : tactic unit := do
   ret ← pure tt,
   if ret then return ()
   else do
@@ -28,20 +28,17 @@ meta def load_attr_list : list name → tactic (list name)
   l ← load_attr_list rest,
   return $ names ++ l
 
-meta def load_names (l : list name) : tactic (list expr) :=
+private meta def load_names (l : list name) : tactic (list expr) :=
   l.mmap mk_const
 
 meta def rewrite_list_from_rw_rules (rws : list rw_rule) : tactic (list (expr × bool)) :=
   rws.mmap (λ r, do e ← to_expr' r.rule, pure (e, r.symm))
 
-meta def rewrite_list_from_lemmas (l : list expr) : list (expr × bool) :=
+private meta def rewrite_list_from_lemmas (l : list expr) : list (expr × bool) :=
   l.map (λ e, (e, ff)) ++ l.map (λ e, (e, tt))
 
-meta def rewrite_list_from_lemma (e : expr) : list (expr × bool) :=
-  rewrite_list_from_lemmas [e]
-
 /-- Returns true if expression is an equation or iff. -/
-meta def is_acceptable_rewrite : expr → bool
+private meta def is_acceptable_rewrite : expr → bool
 | (expr.pi n bi d b) := is_acceptable_rewrite b
 | `(%%a = %%b)       := tt
 | `(%%a ↔ %%b)       := tt
@@ -49,29 +46,28 @@ meta def is_acceptable_rewrite : expr → bool
 
 /-- Returns true if the type of expression is an equation or iff
 and does not contain metavariables. -/
-meta def is_acceptable_hyp (r : expr) : tactic bool :=
+private meta def is_acceptable_hyp (r : expr) : tactic bool :=
   do t ← infer_type r >>= whnf, return $ is_acceptable_rewrite t ∧ ¬t.has_meta_var
 
-meta def rewrite_list_from_hyps : tactic (list (expr × bool)) := do
+private meta def rewrite_list_from_hyps : tactic (list (expr × bool)) := do
   hyps ← local_context,
   rewrite_list_from_lemmas <$> hyps.mfilter is_acceptable_hyp
 
--- TODO mk_apps recursively
-meta def inflate_under_apps (locals : list expr) : expr → tactic (list expr)
+private meta def inflate_under_apps (locals : list expr) : expr → tactic (list expr)
 | e := do
   rws ← list.map prod.fst <$> mk_apps e locals,
   rws_extras ← list.join <$> rws.mmap inflate_under_apps,
   return $ e :: (rws ++ rws_extras)
 
-meta def inflate_rw (locals : list expr) : expr × bool → tactic (list (expr × bool))
+private meta def inflate_rw (locals : list expr) : expr × bool → tactic (list (expr × bool))
 | (e, sy) := do
   as ← inflate_under_apps locals e,
   return $ as.map $ λ a, (a, sy)
 
-meta def is_rewrite_lemma (d : declaration) : option (name × expr) :=
+private meta def is_rewrite_lemma (d : declaration) : option (name × expr) :=
   let t := d.type in if is_acceptable_rewrite t then some (d.to_name, t) else none
 
-meta def find_all_rewrites : tactic (list (name × expr)) := do
+private meta def find_all_rewrites : tactic (list (name × expr)) := do
   e ← get_env,
   return $ e.decl_filter_map is_rewrite_lemma
 
@@ -81,7 +77,7 @@ meta def search_attr : user_attribute := {
   descr := "declare that this definition should be considered by `rewrite_search`",
 }
 
-meta def collect (extra_names : list name) : tactic (list (expr × bool)) :=
+private meta def collect (extra_names : list name) : tactic (list (expr × bool)) :=
 do names ← attribute.get_instances `search,
    exprs ← load_names $ names ++ extra_names,
    exprs.mmap assert_acceptable_lemma,
@@ -96,5 +92,26 @@ do rws ← collect extra_names,
    locs ← local_context,
    if cfg.inflate_rws then list.join <$> (rws.mmap $ inflate_rw locs)
    else pure rws
+
+private meta def progress_next (prog : rewrite_progress) : tactic (rewrite_progress × option rewrite) :=
+do u ← mllist.uncons prog,
+   match u with
+   | (some (r, p)) := return (p, (some r))
+   | none          := return (mllist.nil, none)
+   end
+
+open tactic.nth_rewrite.congr
+
+meta def discover_more_rewrites
+  (rs : list (expr × bool)) (exp : expr) (cfg : config) (_ : side)
+  (prog : option rewrite_progress) :
+  tactic (rewrite_progress × list rewrite) :=
+do
+  let prog := match prog with
+         | some prog := prog
+         | none := (all_rewrites_lazy_of_list rs exp cfg.to_cfg).map $ λ t, ⟨t.1.exp, t.1.proof, how.rewrite t.2.1 t.2.2 t.1.addr⟩
+         end,
+  (prog, rw) ← progress_next prog,
+  return (prog, rw.to_list)
 
 end tactic.rewrite_search

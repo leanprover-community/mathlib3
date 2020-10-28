@@ -641,7 +641,41 @@ by rw [gcd_comm _ a, gcd_comm _ a, gcd_eq_of_dvd_sub_right h]
 end integral_domain
 
 section constructors
-variables [comm_cancel_monoid_with_zero α] [nontrivial α] [normalization_monoid α]
+noncomputable theory
+
+open associates
+
+variables [comm_cancel_monoid_with_zero α] [nontrivial α]
+
+private lemma map_mk_unit_aux [decidable_eq α] {f : associates α →* α}
+  (hinv : function.right_inverse f associates.mk) (a : α) :
+    a * ↑(classical.some (associated_map_mk hinv a)) = f (associates.mk a) :=
+classical.some_spec (associated_map_mk hinv a)
+
+/-- Define `normalization_monoid` on a structure from a `monoid_hom` inverse to `associates.mk`. -/
+def normalization_monoid_of_monoid_hom_right_inverse [decidable_eq α] (f : associates α →* α)
+  (hinv : function.right_inverse f associates.mk) :
+  normalization_monoid α :=
+{ norm_unit := λ a, if a = 0 then 1 else
+    classical.some (associates.mk_eq_mk_iff_associated.1 (hinv (associates.mk a)).symm),
+  norm_unit_zero := if_pos rfl,
+  norm_unit_mul := λ a b ha hb, by {
+    rw [if_neg (mul_ne_zero ha hb), if_neg ha, if_neg hb, units.ext_iff, units.coe_mul],
+    suffices : (a * b) * ↑(classical.some (associated_map_mk hinv (a * b))) =
+      (a * ↑(classical.some (associated_map_mk hinv a))) *
+      (b * ↑(classical.some (associated_map_mk hinv b))),
+    { apply mul_left_cancel' (mul_ne_zero ha hb) _,
+      simpa only [mul_assoc, mul_comm, mul_left_comm] using this },
+    rw [map_mk_unit_aux hinv a, map_mk_unit_aux hinv (a * b), map_mk_unit_aux hinv b,
+        ← monoid_hom.map_mul, associates.mk_mul_mk] },
+  norm_unit_coe_units := λ u, by {
+    rw [if_neg (units.ne_zero u), units.ext_iff],
+    apply mul_left_cancel' (units.ne_zero u),
+    rw [units.mul_inv, map_mk_unit_aux hinv u,
+      associates.mk_eq_mk_iff_associated.2 (associated_one_iff_is_unit.2 ⟨u, rfl⟩),
+      associates.mk_one, monoid_hom.map_one] } }
+
+variable [normalization_monoid α]
 
 /-- Define `gcd_monoid` on a structure just from the `gcd` and its properties. -/
 noncomputable def gcd_monoid_of_gcd [decidable_eq α] (gcd : α → α → α)

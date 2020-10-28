@@ -395,21 +395,34 @@ special support for `0` and `1`? things like:
 - `0 < x ↔ -x < 0`
 - `(h : 0 ≤ x * y) (h0 : 0 ≤ 2) : 0 ≤ y`
 - `1 < x ↔ x⁻¹ < 1`
-
-Run a command that checks that there is a 1-to-1 correspondence
-between lemmas in the `calc_step` namespace and entries in the lookup list.
-
 -/
 
+open tactic
+
+/--
+A command that checks that there is a 1-to-1 correspondence
+between lemmas in the `calc_step` namespace and entries in the lookup list.
+
+If it traces output, then there is something wrong. On success, it is silent.
+-/
+private
 meta def check_list : tactic unit :=
-do env ← tactic.get_env,
-  let lems := (env.get_decls.map declaration.to_name).filter (λ n, name.is_prefix_of `calc_step n),
-  let M1 : multiset name := lookup.values,
+do env ← get_env,
+  let names := env.get_decls.map declaration.to_name,
+  let in_scope := names.filter (λ n, name.is_prefix_of `calc_step n),
+  let lems := in_scope.filter (λ n,
+            !name.is_prefix_of `calc_step.side n &&
+            !name.is_prefix_of `calc_step.op   n &&
+            !name.is_prefix_of `calc_step.sign n &&
+            !name.is_prefix_of `calc_step.rel  n &&
+            !name.is_prefix_of `calc_step.lookup_list n &&
+            !name.is_prefix_of `calc_step.lookup n),
+  let M1 : multiset name := lookup.values.map (name.append `calc_step),
   let M2 : multiset name := lems,
   let D1 := (M1 - M2),
   let D2 := (M2 - M1),
-  trace (to_string (D1.unquot)),
-  tactic.skip
+  if D1.unquot = [] then skip else trace D1.unquot,
+  if D2.unquot = [] then skip else trace D2.unquot
 
 run_cmd check_list
 

@@ -6,6 +6,8 @@ Authors: Johan Commelin
 Nonnegative real numbers.
 -/
 import topology.algebra.infinite_sum
+import topology.algebra.group_with_zero
+
 noncomputable theory
 open set topological_space metric
 open_locale topological_space
@@ -36,9 +38,9 @@ continuous_subtype_mk _ $ continuous_id.max continuous_const
 lemma continuous_coe : continuous (coe : ℝ≥0 → ℝ) :=
 continuous_subtype_val
 
-@[simp, norm_cast] lemma tendsto_coe {f : filter α} {m : α → ℝ≥0} :
-  ∀{x : ℝ≥0}, tendsto (λa, (m a : ℝ)) f (𝓝 (x : ℝ)) ↔ tendsto m f (𝓝 x)
-| ⟨r, hr⟩ := by rw [nhds_subtype_eq_comap, tendsto_comap_iff]; refl
+@[simp, norm_cast] lemma tendsto_coe {f : filter α} {m : α → ℝ≥0} {x : ℝ≥0} :
+  tendsto (λa, (m a : ℝ)) f (𝓝 (x : ℝ)) ↔ tendsto m f (𝓝 x) :=
+tendsto_subtype_rng.symm
 
 lemma tendsto_coe' {f : filter α} [ne_bot f] {m : α → ℝ≥0} {x : ℝ} :
   tendsto (λ a, m a : α → ℝ) f (𝓝 x) ↔ ∃ hx : 0 ≤ x, tendsto m f (𝓝 ⟨x, hx⟩) :=
@@ -65,10 +67,9 @@ instance : has_continuous_sub ℝ≥0 :=
   ((continuous_coe.comp continuous_fst).sub
    (continuous_coe.comp continuous_snd)).max continuous_const⟩
 
-lemma tendsto.sub {f : filter α} {m n : α → ℝ≥0} {r p : ℝ≥0}
-  (hm : tendsto m f (𝓝 r)) (hn : tendsto n f (𝓝 p)) :
-  tendsto (λa, m a - n a) f (𝓝 (r - p)) :=
-tendsto_of_real $ (tendsto_coe.2 hm).sub (tendsto_coe.2 hn)
+instance : has_continuous_inv' ℝ≥0 :=
+⟨λ x hx, tendsto_coe.1 $ (real.tendsto_inv $ nnreal.coe_ne_zero.2 hx).comp
+  continuous_coe.continuous_at⟩
 
 @[norm_cast] lemma has_sum_coe {f : α → ℝ≥0} {r : ℝ≥0} :
   has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=

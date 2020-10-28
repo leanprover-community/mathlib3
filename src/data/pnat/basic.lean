@@ -66,8 +66,8 @@ open nat
 
 instance : decidable_eq ℕ+ := λ (a b : ℕ+), by apply_instance
 
-instance : decidable_linear_order ℕ+ :=
-subtype.decidable_linear_order _
+instance : linear_order ℕ+ :=
+subtype.linear_order _
 
 @[simp] lemma mk_le_mk (n k : ℕ) (hn : 0 < n) (hk : 0 < k) :
   (⟨n, hn⟩ : ℕ+) ≤ ⟨k, hk⟩ ↔ n ≤ k := iff.rfl
@@ -196,7 +196,7 @@ instance : ordered_cancel_comm_monoid ℕ+ :=
   le_of_mul_le_mul_left := by { intros a b c h, apply nat.le_of_mul_le_mul_left h a.property, },
   .. (pnat.left_cancel_semigroup),
   .. (pnat.right_cancel_semigroup),
-  .. (pnat.decidable_linear_order),
+  .. (pnat.linear_order),
   .. (pnat.comm_monoid)}
 
 instance : distrib ℕ+ :=

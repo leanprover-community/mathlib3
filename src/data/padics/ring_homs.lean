@@ -590,7 +590,7 @@ begin
   obtain ⟨N, hN⟩ := padic_norm_e.defn (nth_hom_seq f_compat r) hε'0,
   use N,
   intros n hn,
-  apply lt.trans _ hε',
+  apply lt_trans _ hε',
   change ↑(padic_norm_e _) < _,
   norm_cast,
   convert hN _ hn,

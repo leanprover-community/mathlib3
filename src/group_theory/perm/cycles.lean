@@ -145,7 +145,7 @@ else let ⟨m, hm₁, hm₂, hm₃⟩ := cycle_factors_aux l ((cycle_of f x)⁻�
         hm₃⟩⟩
 
 /-- Factors a permutation `f` into a list of disjoint cyclic permutations that multiply to `f`. -/
-def cycle_factors [fintype α] [decidable_linear_order α] (f : perm α) :
+def cycle_factors [fintype α] [linear_order α] (f : perm α) :
   {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint} :=
 cycle_factors_aux (univ.sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
 

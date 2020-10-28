@@ -1073,7 +1073,11 @@ def inner_product_space.of_norm
   nonneg_im := λ x, begin
     simp [inner],
     right,
-    sorry
+    by_cases h : (I : 𝕜) = 0,
+    { rw h, simp only [zero_mul, sub_zero, add_monoid_hom.map_zero]},
+    have := abs_I_of_nonzero h,
+    rw ← is_R_or_C.norm_eq_abs at this,
+    rw [a_plus_I_b x x h, norm_smul, this, one_mul, sub_self]
   end,
   add_left := assume x y z,
   begin

@@ -13,7 +13,7 @@ import tactic.equiv_rw
 universes v u
 namespace category_theory
 
-open category_theory category sieve classical
+open category_theory category limits sieve classical
 
 variables {C : Type u} [category.{v} C]
 
@@ -50,6 +50,24 @@ the element of `P Y₂` along `g₂` are the same.
 def family_of_elements.consistent (x : family_of_elements P R) : Prop :=
 ∀ ⦃Y₁ Y₂ Z⦄ (g₁ : Z ⟶ Y₁) (g₂ : Z ⟶ Y₂) ⦃f₁ : Y₁ ⟶ X⦄ ⦃f₂ : Y₂ ⟶ X⦄
   (h₁ : R f₁) (h₂ : R f₂), g₁ ≫ f₁ = g₂ ≫ f₂ → P.map g₁.op (x f₁ h₁) = P.map g₂.op (x f₂ h₂)
+
+def family_of_elements.pullback_consistent (x : family_of_elements P R) [has_pullbacks C] : Prop :=
+∀ ⦃Y₁ Y₂⦄ ⦃f₁ : Y₁ ⟶ X⦄ ⦃f₂ : Y₂ ⟶ X⦄ (h₁ : R f₁) (h₂ : R f₂),
+  P.map (pullback.fst : pullback f₁ f₂ ⟶ _).op (x f₁ h₁) = P.map pullback.snd.op (x f₂ h₂)
+
+lemma is_sieve_consistent_iff (x : family_of_elements P S) [has_pullbacks C] :
+  x.consistent ↔ x.pullback_consistent :=
+begin
+  split,
+  { intros t Y₁ Y₂ f₁ f₂ hf₁ hf₂,
+    apply t,
+    apply pullback.condition },
+  { intros t Y₁ Y₂ Z g₁ g₂ f₁ f₂ hf₁ hf₂ comm,
+    rw [←pullback.lift_fst _ _ comm, op_comp, functor_to_types.map_comp_apply, t hf₁ hf₂,
+        ←functor_to_types.map_comp_apply, ←op_comp, pullback.lift_snd] }
+end
+
+#exit
 
 /-- The restriction of a consistent family is consistent. -/
 lemma family_of_elements.consistent.restrict {R₁ R₂ : arrows_with_codomain X} (h : R₁ ≤ R₂)
@@ -115,36 +133,6 @@ end
 lemma family_of_elements.consistent.to_sieve_consistent {x : family_of_elements P S}
   (t : x.consistent) : x.sieve_consistent :=
 (is_sieve_consistent_iff x).1 t
-
-lemma nat_trans_equiv_consistent_family :
-  (S.functor ⟶ P) ≃ {x : family_of_elements P S // x.consistent} :=
-{ to_fun := λ α,
-  begin
-    refine ⟨λ Y f hf, _, _⟩,
-    { apply α.app (opposite.op Y) ⟨_, hf⟩ },
-    { rw is_sieve_consistent_iff,
-      intros Y Z f g hf,
-      dsimp,
-      rw ← functor_to_types.naturality _ _ α g.op,
-      refl }
-  end,
-  inv_fun := λ t,
-  { app := λ Y f, t.1 _ f.2,
-    naturality' := λ Y Z g,
-    begin
-      ext ⟨f, hf⟩,
-      apply t.2.to_sieve_consistent _,
-    end },
-  left_inv := λ α,
-  begin
-    ext X ⟨_, _⟩,
-    refl
-  end,
-  right_inv :=
-  begin
-    rintro ⟨x, hx⟩,
-    refl,
-  end }
 
 lemma restrict_inj {x₁ x₂ : family_of_elements P (generate R)}
   (t₁ : x₁.consistent) (t₂ : x₂.consistent) :
@@ -242,14 +230,82 @@ begin
   simpa only [subtype.forall, subtype.val_eq_coe],
 end
 
--- lemma yoneda_condition_iff_sheaf_condition :
---   is_sheaf_for P S ↔ yoneda_sheaf_condition P S :=
--- begin
---   simp_rw [is_sheaf_for, yoneda_sheaf_condition],
---   rw equiv.forall_congr nat_trans_equiv_consistent_family _,
---   rw subtype.forall,
---   apply ball_congr,
--- end
+def nat_trans_equiv_consistent_family :
+  (S.functor ⟶ P) ≃ {x : family_of_elements P S // x.consistent} :=
+{ to_fun := λ α,
+  begin
+    refine ⟨λ Y f hf, _, _⟩,
+    { apply α.app (opposite.op Y) ⟨_, hf⟩ },
+    { rw is_sieve_consistent_iff,
+      intros Y Z f g hf,
+      dsimp,
+      rw ← functor_to_types.naturality _ _ α g.op,
+      refl }
+  end,
+  inv_fun := λ t,
+  { app := λ Y f, t.1 _ f.2,
+    naturality' := λ Y Z g,
+    begin
+      ext ⟨f, hf⟩,
+      apply t.2.to_sieve_consistent _,
+    end },
+  left_inv := λ α,
+  begin
+    ext X ⟨_, _⟩,
+    refl
+  end,
+  right_inv :=
+  begin
+    rintro ⟨x, hx⟩,
+    refl,
+  end }
+
+def yoneda_equiv {F : Cᵒᵖ ⥤ Type v} : (yoneda.obj X ⟶ F) ≃ F.obj (opposite.op X) :=
+(yoneda_sections X F).to_equiv.trans equiv.ulift
+
+lemma extension_iff_amalgamation (x : S.functor ⟶ P) (g : yoneda.obj X ⟶ P) :
+  is_yoneda_extension x g ↔ is_amalgamation_for (nat_trans_equiv_consistent_family x).1 (yoneda_equiv g) :=
+begin
+  dsimp [is_amalgamation_for, yoneda_equiv, yoneda_lemma, nat_trans_equiv_consistent_family,
+         is_yoneda_extension],
+  split,
+  { rintro rfl,
+    intros Y f hf,
+    rw ← functor_to_types.naturality _ _ g,
+    dsimp,
+    simp },
+  { intro h,
+    ext Y ⟨f, hf⟩,
+    have : _ = x.app Y _ := h f hf,
+    rw [← this, ← functor_to_types.naturality _ _ g],
+    dsimp, simp },
+end
+
+lemma equiv.exists_unique_congr {α β : Type*} (p : β → Prop) (e : α ≃ β) :
+  (∃! (y : β), p y) ↔ ∃! (x : α), p (e x) :=
+begin
+  split,
+  { rintro ⟨b, hb₁, hb₂⟩,
+    exact ⟨e.symm b, by simpa using hb₁, λ x hx, by simp [←hb₂ (e x) hx]⟩ },
+  { rintro ⟨a, ha₁, ha₂⟩,
+    refine ⟨e a, ha₁, λ y hy, _⟩,
+    rw ← equiv.symm_apply_eq,
+    apply ha₂,
+    simpa using hy },
+end
+
+lemma yoneda_condition_iff_sheaf_condition :
+  is_sheaf_for P S ↔ yoneda_sheaf_condition P S :=
+begin
+  rw [is_sheaf_for, yoneda_sheaf_condition],
+  simp_rw [extension_iff_amalgamation],
+  rw equiv.forall_congr_left' nat_trans_equiv_consistent_family,
+  rw subtype.forall,
+  apply ball_congr,
+  intros x hx,
+  rw ← equiv.exists_unique_congr _ _,
+  simp,
+end
 
 lemma separated_for_and_exists_amalgamation_iff_sheaf_for :
   is_separated_for P R ∧ (∀ (x : family_of_elements P R), x.consistent → ∃ t, is_amalgamation_for x t) ↔ is_sheaf_for P R :=

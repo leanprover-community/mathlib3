@@ -20,18 +20,17 @@ We then add those lemmas to a lookup table.
 Take as example
 ```
 lemma left_mul_cancel' [cancel_monoid_with_zero α] {a b : α} (c : α)
-  (h : c * a = c * b) (h0 : c ≠ 0) : a = b := (mul_right_inj' h0).mp h
+  (h : c * a = c * b) {h0 : c ≠ 0} : a = b := (mul_right_inj' h0).mp h
 ```
 
-We point out two things:
+We point out some things:
 
 - the argument `c` is always explicit, even if it is determined by a later argument
-- the side condition `h0` comes after the main hypothesis `h`
+- the side condition `h0` is implicit
 
 In this way, we can try to apply lemmas from a long list,
-without worry about the position of arguments:
-if there are side conditions, they come later in the list,
-and will automatically create new goals
+without worrying about the binders of the arguments.
+If there are side conditions, they will automatically create new goals.
 
 -/
 
@@ -52,10 +51,10 @@ lemma right_mul_cancel [right_cancel_semigroup α] {a b : α} (c : α)
   (h : a * c = b * c) : a = b := (mul_left_inj c).mp h
 
 lemma left_mul_cancel' [cancel_monoid_with_zero α] {a b : α} (c : α)
-  (h : c * a = c * b) (h0 : c ≠ 0) : a = b := (mul_right_inj' h0).mp h
+  (h : c * a = c * b) {h0 : c ≠ 0} : a = b := (mul_right_inj' h0).mp h
 
 lemma right_mul_cancel' [cancel_monoid_with_zero α] {a b : α} (c : α)
-  (h : a * c = b * c) (h0 : c ≠ 0) : a = b := (mul_left_inj'  h0).mp h
+  (h : a * c = b * c) {h0 : c ≠ 0} : a = b := (mul_left_inj' h0).mp h
 
 /-! ### add -/
 
@@ -67,11 +66,11 @@ lemma right_add_cancel [add_right_cancel_semigroup α] {a b : α} (c : α)
 
 /-! ### div -/
 lemma left_div_cancel [field α] {a b : α} (c : α)
-  (h : c / a = c / b) (h0 : c ≠ 0) : a = b := inv_inj'.mp $ (mul_right_inj' h0).mp h
+  (h : c / a = c / b) {h0 : c ≠ 0} : a = b := inv_inj'.mp $ (mul_right_inj' h0).mp h
 -- TODO: PR ↑ to mathlib
 
 lemma right_div_cancel [group_with_zero α] {a b : α} (c : α)
-  (h : a / c = b / c) (h0 : c ≠ 0) : a = b := (div_left_inj' h0).mp h
+  (h : a / c = b / c) {h0 : c ≠ 0} : a = b := (div_left_inj' h0).mp h
 
 /-! ### sub -/
 
@@ -109,12 +108,12 @@ lemma right_lt_of_mul_lt_mul [ordered_cancel_comm_monoid α] {a b : α} (c : α)
   (h : a * c < b * c) : a < b := (mul_lt_mul_iff_right c).mp h
 
 lemma left_le_of_mul_le_mul' [linear_ordered_comm_group_with_zero α] {a b : α} (c : α)
-  (h : c * a ≤ c * b) (h0 : c ≠ 0) : a ≤ b :=
+  (h : c * a ≤ c * b) {h0 : c ≠ 0} : a ≤ b :=
 by simpa only [inv_mul_cancel_left' h0] using (mul_le_mul_left' h c⁻¹)
 -- TODO: PR ↑ to mathlib
 
 lemma right_le_of_mul_le_mul' [linear_ordered_comm_group_with_zero α] {a b : α} (c : α)
-  (h : a * c ≤ b * c) (h0 : c ≠ 0) : a ≤ b := le_of_le_mul_right h0 h
+  (h : a * c ≤ b * c) {h0 : c ≠ 0} : a ≤ b := le_of_le_mul_right h0 h
 
 lemma left_lt_of_mul_lt_mul' [linear_ordered_comm_group_with_zero α] {a b : α} (c : α)
   (h : c * a < c * b) : a < b :=
@@ -130,16 +129,16 @@ section linear_ordered_semiring
 variables [linear_ordered_semiring α] {a b : α} (c : α)
 
 lemma left_le_of_mul_le_mul_pos
-  (h : c * a ≤ c * b) (h0 : 0 < c) : a ≤ b := (mul_le_mul_left h0).mp h
+  (h : c * a ≤ c * b) {h0 : 0 < c} : a ≤ b := (mul_le_mul_left h0).mp h
 
 lemma right_le_of_mul_le_mul_pos
-  (h : a * c ≤ b * c) (h0 : 0 < c) : a ≤ b := (mul_le_mul_right h0).mp h
+  (h : a * c ≤ b * c) {h0 : 0 < c} : a ≤ b := (mul_le_mul_right h0).mp h
 
 lemma left_lt_of_mul_lt_mul_pos
-  (h : c * a < c * b) (h0 : 0 < c) : a < b := (mul_lt_mul_left h0).mp h
+  (h : c * a < c * b) {h0 : 0 < c} : a < b := (mul_lt_mul_left h0).mp h
 
 lemma right_lt_of_mul_lt_mul_pos
-  (h : a * c < b * c) (h0 : 0 < c) : a < b := (mul_lt_mul_right h0).mp h
+  (h : a * c < b * c) {h0 : 0 < c} : a < b := (mul_lt_mul_right h0).mp h
 
 end linear_ordered_semiring
 
@@ -147,16 +146,16 @@ section linear_ordered_ring
 variables [linear_ordered_ring α] {a b : α} (c : α)
 
 lemma left_le_of_mul_le_mul_neg
-  (h : c * a ≤ c * b) (h0 : c < 0) : b ≤ a := (mul_le_mul_left_of_neg h0).mp h
+  (h : c * a ≤ c * b) {h0 : c < 0} : b ≤ a := (mul_le_mul_left_of_neg h0).mp h
 
 lemma right_le_of_mul_le_mul_neg
-  (h : a * c ≤ b * c) (h0 : c < 0) : b ≤ a := (mul_le_mul_right_of_neg h0).mp h
+  (h : a * c ≤ b * c) {h0 : c < 0} : b ≤ a := (mul_le_mul_right_of_neg h0).mp h
 
 lemma left_lt_of_mul_lt_mul_neg
-  (h : c * a < c * b) (h0 : c < 0) : b < a := (mul_lt_mul_left_of_neg h0).mp h
+  (h : c * a < c * b) {h0 : c < 0} : b < a := (mul_lt_mul_left_of_neg h0).mp h
 
 lemma right_lt_of_mul_lt_mul_neg
-  (h : a * c < b * c) (h0 : c < 0) : b < a := (mul_lt_mul_right_of_neg h0).mp h
+  (h : a * c < b * c) {h0 : c < 0} : b < a := (mul_lt_mul_right_of_neg h0).mp h
 
 end linear_ordered_ring
 
@@ -191,32 +190,32 @@ lemma right_lt_of_sub_lt_sub [ordered_add_comm_group α] {a b : α} (c : α)
 /-! ### inv -/
 
 lemma le_of_inv_le_inv_pos [linear_ordered_field α] {a b : α}
-  (h : a⁻¹ ≤ b⁻¹) (h0 : 0 < a) : b ≤ a :=
+  (h : a⁻¹ ≤ b⁻¹) {h0 : 0 < a} : b ≤ a :=
 have hb : 0 < b, by { rw ← inv_pos at h0 ⊢, exact lt_of_lt_of_le h0 h },
 (inv_le_inv h0 hb).mp h
 
 lemma lt_of_inv_lt_inv_pos [linear_ordered_field α] {a b : α}
-  (h : a⁻¹ < b⁻¹) (h0 : 0 < a) : b < a :=
+  (h : a⁻¹ < b⁻¹) {h0 : 0 < a} : b < a :=
 have hb : 0 < b, by { rw ← inv_pos at h0 ⊢, exact lt_trans h0 h },
 (inv_lt_inv h0 hb).mp h
 
 lemma le_of_inv_le_inv_neg [linear_ordered_field α] {a b : α}
-  (h : a⁻¹ ≤ b⁻¹) (h0 : b < 0) : b ≤ a :=
+  (h : a⁻¹ ≤ b⁻¹) {h0 : b < 0} : b ≤ a :=
 have ha : a < 0, by { rw ← inv_lt_zero at h0 ⊢, exact lt_of_le_of_lt h h0 },
 (inv_le_inv_of_neg ha h0).mp h
 
 lemma lt_of_inv_lt_inv_neg [linear_ordered_field α] {a b : α}
-  (h : a⁻¹ < b⁻¹) (h0 : b < 0) : b < a :=
+  (h : a⁻¹ < b⁻¹) {h0 : b < 0} : b < a :=
 have ha : a < 0, by { rw ← inv_lt_zero at h0 ⊢, exact lt_trans h h0 },
 (inv_lt_inv_of_neg ha h0).mp h
 
 lemma le_of_inv_le_inv' [linear_ordered_comm_group_with_zero α] {a b : α}
-  (h : a⁻¹ ≤ b⁻¹) (h0 : a ≠ 0) : b ≤ a :=
+  (h : a⁻¹ ≤ b⁻¹) {h0 : a ≠ 0} : b ≤ a :=
 have hb : b ≠ 0, by { rintro rfl, rw [inv_zero, le_zero_iff, inv_eq_zero] at h, exact h0 h },
 (inv_le_inv'' h0 hb).mp h
 
 lemma lt_of_inv_lt_inv' [linear_ordered_comm_group_with_zero α] {a b : α}
-  (h : a⁻¹ < b⁻¹) (h0 : a ≠ 0) : b < a :=
+  (h : a⁻¹ < b⁻¹) {h0 : a ≠ 0} : b < a :=
 have hb : b ≠ 0, by { rintro rfl, rw [inv_zero] at h, exact not_lt_zero' h },
 (inv_lt_inv'' h0 hb).mp h
 
@@ -237,32 +236,32 @@ lemma lt_of_neg_lt_neg [ordered_add_comm_group α] {a b : α}
 /-! ### div -/
 
 lemma right_le_of_div_le_div_pos [linear_ordered_field α] {a b : α} (c : α)
-  (h : a / c ≤ b / c) (h0 : 0 < c) : a ≤ b :=
-right_le_of_mul_le_mul_pos c⁻¹ h $ inv_pos.mpr h0
+  (h : a / c ≤ b / c) {h0 : 0 < c} : a ≤ b :=
+by { apply right_le_of_mul_le_mul_pos c⁻¹ h, exact inv_pos.mpr h0 }
 
 lemma right_le_of_div_le_div_neg [linear_ordered_field α] {a b : α} (c : α)
-  (h : a / c ≤ b / c) (h0 : c < 0) : b ≤ a :=
-right_le_of_mul_le_mul_neg c⁻¹ h $ inv_lt_zero.mpr h0
+  (h : a / c ≤ b / c) {h0 : c < 0} : b ≤ a :=
+by { apply right_le_of_mul_le_mul_neg c⁻¹ h, exact inv_lt_zero.mpr h0 }
 
 lemma right_lt_of_div_lt_div_pos [linear_ordered_field α] {a b : α} (c : α)
-  (h : a / c < b / c) (h0 : 0 < c) : a < b :=
-right_lt_of_mul_lt_mul_pos c⁻¹ h $ inv_pos.mpr h0
+  (h : a / c < b / c) {h0 : 0 < c} : a < b :=
+by { apply right_lt_of_mul_lt_mul_pos c⁻¹ h, exact inv_pos.mpr h0 }
 
 lemma right_lt_of_div_lt_div_neg [linear_ordered_field α] {a b : α} (c : α)
-  (h : a / c < b / c) (h0 : c < 0) : b < a :=
-right_lt_of_mul_lt_mul_neg c⁻¹ h $ inv_lt_zero.mpr h0
+  (h : a / c < b / c) {h0 : c < 0} : b < a :=
+by { apply right_lt_of_mul_lt_mul_neg c⁻¹ h, exact inv_lt_zero.mpr h0 }
 
 lemma left_le_of_div_le_div' [linear_ordered_comm_group_with_zero α] {a b : α} (c : α)
-  (h : c / a ≤ c / b) (h0 : c ≠ 0) (ha : a ≠ 0) : b ≤ a :=
-le_of_inv_le_inv' (left_le_of_mul_le_mul' c h h0) ha
+  (h : c / a ≤ c / b) {h0 : c ≠ 0} (ha : a ≠ 0) : b ≤ a :=
+by { apply le_of_inv_le_inv' (left_le_of_mul_le_mul' c h), assumption' }
 
 lemma right_le_of_div_le_div' [linear_ordered_comm_group_with_zero α] {a b : α} (c : α)
-  (h : a / c ≤ b / c) (h0 : c ≠ 0) : a ≤ b :=
-right_le_of_mul_le_mul' (c⁻¹) h $ inv_ne_zero h0
+  (h : a / c ≤ b / c) {h0 : c ≠ 0} : a ≤ b :=
+by { apply right_le_of_mul_le_mul' (c⁻¹) h, exact inv_ne_zero h0 }
 
 lemma left_lt_of_div_lt_div' [linear_ordered_comm_group_with_zero α] {a b : α} (c : α)
   (h : c / a < c / b) (ha : a ≠ 0) : b < a :=
-lt_of_inv_lt_inv' (left_lt_of_mul_lt_mul' c h) ha
+by { apply lt_of_inv_lt_inv' (left_lt_of_mul_lt_mul' c h), exact ha }
 
 lemma right_lt_of_div_lt_div' [linear_ordered_comm_group_with_zero α] {a b : α} (c : α)
   (h : a / c < b / c) : a < b :=
@@ -405,7 +404,7 @@ meta def lookup : native.rb_lmap (side × op × sign) name := native.rb_lmap.of_
 TODO:
 special support for `0` and `1`? things like:
 - `0 < x ↔ -x < 0`
-- `(h : 0 ≤ x * y) (h0 : 0 ≤ 2) : 0 ≤ y`
+- `(h : 0 ≤ x * y) {h0 : 0 ≤ 2} : 0 ≤ y`
 - `1 < x ↔ x⁻¹ < 1`
 -/
 
@@ -423,11 +422,11 @@ do env ← get_env,
   let names := env.get_decls.map declaration.to_name,
   let in_scope := names.filter (λ n, name.is_prefix_of `calc_step n),
   let lems := in_scope.filter (λ n,
-            !name.is_prefix_of `calc_step.side n &&
-            !name.is_prefix_of `calc_step.op   n &&
-            !name.is_prefix_of `calc_step.sign n &&
-            !name.is_prefix_of `calc_step.rel  n &&
-            !name.is_prefix_of `calc_step.lookup n),
+    !name.is_prefix_of `calc_step.side n &&
+    !name.is_prefix_of `calc_step.op   n &&
+    !name.is_prefix_of `calc_step.sign n &&
+    !name.is_prefix_of `calc_step.rel  n &&
+    !name.is_prefix_of `calc_step.lookup n),
   let M1 : multiset name := lookup.values.map (name.append `calc_step),
   let M2 : multiset name := lems,
   let D1 := (M1 - M2),

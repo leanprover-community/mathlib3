@@ -90,6 +90,10 @@ equivalence.equivalence_of_fully_faithfully_ess_surj _
 /-- The equivalence between `FinType.Skeleton` and `FinType`. -/
 noncomputable def equivalence : Skeleton ≌ Fintype := incl.as_equivalence
 
+noncomputable def is_skeleton_of : is_skeleton_of Fintype Skeleton incl :=
+{ skel := is_skeletal,
+  eqv := by apply_instance }
+
 @[simp] lemma incl_mk_nat_card (n : ℕ) : fintype.card (incl.obj (mk n)) = n := finset.card_fin n
 
 end Skeleton

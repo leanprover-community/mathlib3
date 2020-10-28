@@ -279,13 +279,23 @@ add_decl_doc add_hom.comp
 /-- Composition of additive monoid morphisms as an additive monoid morphism. -/
 add_decl_doc add_monoid_hom.comp
 
-@[simp, to_additive] lemma one_hom.comp_apply [has_one M] [has_one N] [has_one P]
+@[simp, to_additive] lemma one_hom.coe_comp [has_one M] [has_one N] [has_one P]
+  (g : one_hom N P) (f : one_hom M N) :
+  ⇑(g.comp f) = g ∘ f := rfl
+@[simp, to_additive] lemma mul_hom.coe_comp [has_mul M] [has_mul N] [has_mul P]
+  (g : mul_hom N P) (f : mul_hom M N) :
+  ⇑(g.comp f) = g ∘ f := rfl
+@[simp, to_additive] lemma monoid_hom.coe_comp [monoid M] [monoid N] [monoid P]
+  (g : N →* P) (f : M →* N) :
+  ⇑(g.comp f) = g ∘ f := rfl
+
+@[to_additive] lemma one_hom.comp_apply [has_one M] [has_one N] [has_one P]
   (g : one_hom N P) (f : one_hom M N) (x : M) :
   g.comp f x = g (f x) := rfl
-@[simp, to_additive] lemma mul_hom.comp_apply [has_mul M] [has_mul N] [has_mul P]
+@[to_additive] lemma mul_hom.comp_apply [has_mul M] [has_mul N] [has_mul P]
   (g : mul_hom N P) (f : mul_hom M N) (x : M) :
   g.comp f x = g (f x) := rfl
-@[simp, to_additive] lemma monoid_hom.comp_apply [monoid M] [monoid N] [monoid P]
+@[to_additive] lemma monoid_hom.comp_apply [monoid M] [monoid N] [monoid P]
   (g : N →* P) (f : M →* N) (x : M) :
   g.comp f x = g (f x) := rfl
 

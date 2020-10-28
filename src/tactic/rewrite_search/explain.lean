@@ -43,23 +43,23 @@ instance has_to_string [has_to_string α] : has_to_string (dir_pair α) := ⟨to
 
 end dir_pair
 
-meta def nth_rule (rs : list (expr × bool)) (i : ℕ) : expr × bool := (rs.nth i).iget
+private meta def nth_rule (rs : list (expr × bool)) (i : ℕ) : expr × bool := (rs.nth i).iget
 
-meta def pp_rule (r : expr × bool) : tactic string :=
+private meta def pp_rule (r : expr × bool) : tactic string :=
   do pp ← pp r.1, return $ (if r.2 then "←" else "") ++ (to_string pp)
 
-meta def how.to_rewrite (rs : list (expr × bool)) : how → option (expr × bool)
+private meta def how.to_rewrite (rs : list (expr × bool)) : how → option (expr × bool)
 | (how.rewrite index _ _) := nth_rule rs index
 | _ := none
 
-meta def explain_using_location (rs : list (expr × bool)) (s : side) :
+private meta def explain_using_location (rs : list (expr × bool)) (s : side) :
 how → tactic (option string)
 | (how.rewrite index location _) := do
   rule ← pp_rule $ nth_rule rs index,
   return $ some ("nth_rewrite_" ++ s.to_xhs ++ " " ++ to_string location ++ " " ++ rule)
 | _ := return none
 
-meta def using_location.explain_rewrites (rs : list (expr × bool)) (s : side)
+private meta def using_location.explain_rewrites (rs : list (expr × bool)) (s : side)
 (steps : list how) : tactic string := do
   rules ← steps.mmap $ λ h : how, option.to_list <$> explain_using_location rs s h,
   return $ string.intercalate ",\n" rules.join
@@ -72,7 +72,7 @@ inductive app_addr
 
 open app_addr
 
-meta def app_addr.to_string : app_addr → string
+private meta def app_addr.to_string : app_addr → string
 | (node c) := "(node " ++ ((c.to_list.filter_map id).map app_addr.to_string).to_string ++ ")"
 | (rw rws) := "(rw " ++ rws.to_string ++ ")"
 
@@ -86,7 +86,7 @@ inductive splice_result
 
 open splice_result
 
-def splice_result.pack (s : expr_lens.dir) : splice_result → dir_pair (option app_addr) → splice_result
+meta def splice_result.pack (s : expr_lens.dir) : splice_result → dir_pair (option app_addr) → splice_result
 | (new addr) c := new $ app_addr.node $ c.set s (some addr)
 | sr _ := sr
 
@@ -112,15 +112,15 @@ private meta def to_congr_form : list expr_lens.dir → tactic (list expr_lens.d
 | [dir.F] := fail "app list ends in side.L!"
 | (dir.F :: (dir.F :: _)) := fail "app list has repeated side.L!"
 
-meta def splice_in (a : option app_addr) (rws : list ℕ) (s : list expr_lens.dir) :
+private meta def splice_in (a : option app_addr) (rws : list ℕ) (s : list expr_lens.dir) :
 tactic splice_result :=
   splice_in_aux rws a <$> to_congr_form s
 
-meta def build_rw_tactic (rs : list (expr × bool)) (hs : list ℕ) : tactic string := do
+private meta def build_rw_tactic (rs : list (expr × bool)) (hs : list ℕ) : tactic string := do
   rws ← (hs.map $ nth_rule rs).mmap pp_rule,
   return $ "erw [" ++ (string.intercalate ", " rws) ++ "]"
 
-meta def explain_tree_aux (rs : list (expr × bool)) :
+private meta def explain_tree_aux (rs : list (expr × bool)) :
 app_addr → tactic (option (list string))
 | (app_addr.rw rws) := (λ a, some [a]) <$> build_rw_tactic rs rws
 | (app_addr.node ⟨func, arg⟩) := do
@@ -134,10 +134,10 @@ app_addr → tactic (option (list string))
   end
 
 -- TODO break the tree into pieces when the gaps are too big
-meta def explain_tree (rs : list (expr × bool)) (tree : app_addr) : tactic (list string) :=
+private meta def explain_tree (rs : list (expr × bool)) (tree : app_addr) : tactic (list string) :=
   list.join <$> option.to_list <$> explain_tree_aux rs tree
 
-meta def compile_rewrites_aux (rs : list (expr × bool)) (s : side) :
+private meta def compile_rewrites_aux (rs : list (expr × bool)) (s : side) :
 option app_addr → list how → tactic (list string)
 | none [] := return []
 | (some tree) [] := do
@@ -163,7 +163,7 @@ option app_addr → list how → tactic (list string)
     return $ line ++ lines
   end
 
-meta def compile_rewrites (rs : list (expr × bool)) (s : side) :
+private meta def compile_rewrites (rs : list (expr × bool)) (s : side) :
 list how → tactic (list string) :=
   compile_rewrites_aux rs s none
 
@@ -173,14 +173,14 @@ tactic string :=
 
 end using_conv
 
-meta def explain_rewrites_concisely (steps : list (expr × bool)) (needs_refl : bool) :
+private meta def explain_rewrites_concisely (steps : list (expr × bool)) (needs_refl : bool) :
 tactic string := do
   rules ← string.intercalate ", " <$> steps.mmap pp_rule,
   return $ "erw [" ++ rules ++ "]" ++ (if needs_refl then ", refl" else "")
 
 -- fails if we can't just use rewrite
 -- otherwise, returns 'tt' if we need a `refl` at the end
-meta def check_if_simple_rewrite_succeeds (rewrites : list (expr × bool)) (goal : expr) :
+private meta def check_if_simple_rewrite_succeeds (rewrites : list (expr × bool)) (goal : expr) :
 tactic bool :=
 lock_tactic_state $ do
   m ← mk_meta_var goal,
@@ -228,7 +228,7 @@ meta def proof_unit.explain (u : proof_unit) (rs : list (expr × bool))
   else
     using_location.explain_rewrites rs u.side u.steps
 
-meta def explain_proof_full (rs : list (expr × bool)) (explain_using_conv : bool) :
+private meta def explain_proof_full (rs : list (expr × bool)) (explain_using_conv : bool) :
 list proof_unit → tactic string
 | [] := return ""
 | (u :: rest) := do
@@ -243,7 +243,7 @@ list proof_unit → tactic string
   let expls := (head ++ [unit_expl, rest_expl]).filter $ λ t, ¬(t.length = 0),
   return $ string.intercalate ",\n" expls
 
-meta def explain_proof_concisely (rs : list (expr × bool)) (proof : expr)
+private meta def explain_proof_concisely (rs : list (expr × bool)) (proof : expr)
 (l : list proof_unit) : tactic string := do
   let rws : list (expr × bool) := list.join $ l.map (λ u, do
     (r, s) ← u.rewrites rs,

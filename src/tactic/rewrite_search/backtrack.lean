@@ -16,7 +16,8 @@ namespace tactic.rewrite_search
 
 variables (g : search_state)
 
-meta def search_step (me : ℕ) : buffer (option edge) → list edge → tactic (buffer (option edge) × list ℕ)
+private meta def search_step (me : ℕ) :
+buffer (option edge) → list edge → tactic (buffer (option edge) × list ℕ)
 | been [] := return (been, [])
 | been (e :: rest) :=
   match e.other me with
@@ -29,7 +30,7 @@ meta def search_step (me : ℕ) : buffer (option edge) → list edge → tactic 
     return (been, queue_head ++ queue)
   end
 
-meta def search_aux : buffer (option edge) → list ℕ → tactic (buffer (option edge))
+private meta def search_aux : buffer (option edge) → list ℕ → tactic (buffer (option edge))
 | been [] := fail "bug: bfs could not find the path LHS -> RHS!"
 | been (t :: rest) :=
 do let child := g.vertices.read' t,
@@ -39,10 +40,10 @@ do let child := g.vertices.read' t,
     (been, new_es) ← search_step child.id been child.adj.to_list,
     search_aux been (rest ++ new_es)
 
-meta def search : tactic (buffer (option edge)) :=
+private meta def search : tactic (buffer (option edge)) :=
   search_aux g ⟨g.vertices.size, mk_array g.vertices.size none⟩ [LHS_VERTEX_ID]
 
-meta def crawl (t : buffer (option edge)) : ℕ → tactic (list edge)
+private meta def crawl (t : buffer (option edge)) : ℕ → tactic (list edge)
 | id :=
   if id = LHS_VERTEX_ID then return [] else do
   match t.read' id with
@@ -56,11 +57,11 @@ meta def crawl (t : buffer (option edge)) : ℕ → tactic (list edge)
     end
   end
 
-meta def backtrack : tactic (list edge) :=
+private meta def backtrack : tactic (list edge) :=
 do tab ← search g,
    list.reverse <$> crawl tab RHS_VERTEX_ID
 
-meta def chop_into_units : list edge → list (side × list edge)
+private meta def chop_into_units : list edge → list (side × list edge)
 | [] := []
 | [e] := [(if e.f = RHS_VERTEX_ID then side.R else side.L, [e])]
 | (e₁ :: (e₂ :: rest)) :=
@@ -82,16 +83,16 @@ private meta def edges_to_unit_aux (s : side) : expr → list how → list edge 
   new_proof ← orient_proof s e.proof >>= mk_eq_trans proof,
   edges_to_unit_aux new_proof (if s = side.L then hows ++ [e.how] else [e.how] ++ hows) rest
 
-meta def edges_to_unit : side × list edge → tactic proof_unit
+private meta def edges_to_unit : side × list edge → tactic proof_unit
 | (_, []) := fail "empty edge list for unit!"
 | (s, (e :: rest)) := do
   proof ← orient_proof s e.proof,
   edges_to_unit_aux s proof [e.how] rest
 
-meta def build_units (l : list edge) : tactic (list proof_unit) :=
+private meta def build_units (l : list edge) : tactic (list proof_unit) :=
   (chop_into_units l).mmap edges_to_unit
 
-meta def combine_units : list proof_unit → tactic (option expr)
+private meta def combine_units : list proof_unit → tactic (option expr)
 | [] := return none
 | (u :: rest) := do
   rest_proof ← combine_units rest,

@@ -16,7 +16,7 @@ universe u
 
 open tactic
 
-meta def read_option {α : Type u} (buf : buffer α) (i : ℕ) : option α :=
+private meta def read_option {α : Type u} (buf : buffer α) (i : ℕ) : option α :=
 if h : i < buf.size then some (buf.read (fin.mk i h)) else none
 
 namespace tactic.rewrite_search
@@ -29,7 +29,7 @@ private meta def chop : list char → list string → list string
 
 namespace search_state
 
-meta def vertex_finder (pp : string) (left : vertex) (right : option vertex) : option vertex :=
+private meta def vertex_finder (pp : string) (left : vertex) (right : option vertex) : option vertex :=
 match right with
 | some v := some v
 | none   := if left.pp = pp then some left else none

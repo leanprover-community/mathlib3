@@ -201,7 +201,6 @@ meta structure vertex :=
 (id       : ℕ)
 (exp      : expr)
 (pp       : string)
-(tokens   : list ℕ)
 (root     : bool)
 (visited  : bool)
 (s        : side)
@@ -216,10 +215,10 @@ namespace vertex
 meta def same_side (a b : vertex) : bool := a.s = b.s
 meta def to_string (v : vertex) : string := v.s.to_string ++ v.pp
 
-meta def create (id : ℕ) (e : expr) (pp : string) (token_refs : list ℕ) (root : bool) (s : side) : vertex :=
-⟨ id, e, pp, token_refs, root, ff, s, none, none, buffer.nil, 0, buffer.nil ⟩
+meta def create (id : ℕ) (e : expr) (pp : string) (root : bool) (s : side) : vertex :=
+⟨ id, e, pp, root, ff, s, none, none, buffer.nil, 0, buffer.nil ⟩
 
-meta def null : vertex := vertex.create invalid_index (default expr) "__NULLEXPR" [] ff side.L
+meta def null : vertex := vertex.create invalid_index (default expr) "__NULLEXPR" ff side.L
 
 meta instance inhabited : inhabited vertex := ⟨null⟩
 meta instance has_to_format : has_to_format vertex := ⟨λ v, v.pp⟩
@@ -229,39 +228,6 @@ end vertex
 def pair := sided_pair ℕ
 def pair.null : pair := ⟨invalid_index, invalid_index⟩
 instance pair.has_to_string : has_to_string pair := ⟨sided_pair.to_string⟩
-
-structure token :=
-(id   : ℕ)
-(str  : string)
-(freq : sided_pair ℕ)
-
-namespace token
-
-def inc (t : token) (s : side) : token := {t with freq := t.freq.set s $ (t.freq.get s) + 1}
-
-def null : token := ⟨ invalid_index, "__NULLTOKEN", 0, 0 ⟩
-
-instance inhabited : inhabited token := ⟨null⟩
-
-end token
-
-meta def token_finder (tstr : string) (left : token) (right : option token) : option token :=
-match right with
-| some t := some t
-| none   := if left.str = tstr then some left else none
-end
-
-meta def find_token (tokens : buffer token) (tstr : string) : option token :=
-tokens.foldl none (token_finder tstr) 
-
-meta def find_or_create_token (tokens : buffer token) (s : side) (tstr : string) : buffer token × token :=
-match find_token tokens tstr with
-| none := do
-  let t : token := ⟨tokens.size, tstr, ⟨0, 0⟩⟩,
-  let t := t.inc s in (tokens.push_back t, t)
-| (some t) := do
-  let t := t.inc s in (tokens.write' t.id t, t)
-end
 
 meta inductive status
 | continue : status
@@ -273,7 +239,6 @@ meta structure search_state :=
 (conf         : config)
 (rs           : list (expr × bool))
 (strat_state  : bfs_state)
-(tokens       : buffer token)
 (vertices     : buffer vertex)
 (solving_edge : option edge)
 

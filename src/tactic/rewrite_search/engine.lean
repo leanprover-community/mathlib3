@@ -26,23 +26,7 @@ private meta def chop : list char → list string → list string
 | [] L := L
 | (c :: rest) L := chop rest $ list.join $ L.map (λ l, l.split_on c)
 
-meta def tokenize_expr (e : expr) : tactic (string × list string) := do
-  pp ← to_string <$> tactic.pp e,
-  pure (pp, chop [' '/-, '(', ')'-/] [pp])
-
 namespace search_state
-
-private meta def register_tokens_aux (s : side) :
-buffer token → list string → buffer token × list ℕ
-| tokens [] := (tokens, [])
-| tokens (tstr :: rest) := do
-  let (tokens, t) := find_or_create_token tokens s tstr,
-  let (tokens, l) := register_tokens_aux tokens rest,
-  (tokens, t.id :: l)
-
-meta def register_tokens (s : side) (strs : list string) : search_state × list ℕ :=
-  let (new_tokens, refs) := register_tokens_aux s g.tokens strs in
-  ({g with tokens := new_tokens}, refs)
 
 meta def vertex_finder (pp : string) (left : vertex) (right : option vertex) : option vertex :=
 match right with
@@ -58,10 +42,9 @@ meta def find_vertex (e : expr) : tactic (option vertex) := do
 -- Forcibly add a new vertex to the vertex buffer. You probably actually want to call
 -- add_vertex, which will check that we haven't seen the vertex before first.
 meta def alloc_vertex (e : expr) (root : bool) (s : side) : tactic (search_state × vertex) :=
-do (pp, tokens) ← tokenize_expr e,
-   let (g, token_refs) := g.register_tokens s tokens,
-   let v : vertex := vertex.create g.vertices.size e pp token_refs root s,
-   return ({ g with vertices := g.vertices.push_back v }, v)
+do pp ← tactic.pp e,
+let v : vertex := vertex.create g.vertices.size e (to_string pp) root s,
+return ({ g with vertices := g.vertices.push_back v }, v)
 
 -- Look up the given vertex associated to (e : expr), or create it if it is
 -- not already present.

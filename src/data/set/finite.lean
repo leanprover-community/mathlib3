@@ -436,7 +436,7 @@ let ⟨I, Ifin, hI⟩ := finite_subset_Union tfin h in
     end⟩
 
 /-- An increasing union distributes over finite intersection. -/
-lemma Union_Inter_of_monotone {ι ι' α : Type*} [fintype ι] [decidable_linear_order ι']
+lemma Union_Inter_of_monotone {ι ι' α : Type*} [fintype ι] [linear_order ι']
   [nonempty ι'] {s : ι → ι' → set α} (hs : ∀ i, monotone (s i)) :
   (⋃ j : ι', ⋂ i : ι, s i j) = ⋂ i : ι, ⋃ j : ι', s i j :=
 begin

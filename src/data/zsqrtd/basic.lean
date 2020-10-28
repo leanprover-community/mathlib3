@@ -527,7 +527,7 @@ theorem nonneg_antisymm : Π {a : ℤ√d}, nonneg a → nonneg (-a) → a = 0
 theorem le_antisymm {a b : ℤ√d} (ab : a ≤ b) (ba : b ≤ a) : a = b :=
 eq_of_sub_eq_zero $ nonneg_antisymm ba (by rw neg_sub; exact ab)
 
-instance : decidable_linear_order ℤ√d :=
+instance : linear_order ℤ√d :=
 { le_antisymm     := @zsqrtd.le_antisymm,
   le_total        := zsqrtd.le_total,
   decidable_le    := zsqrtd.decidable_le,
@@ -560,15 +560,14 @@ or.elim (eq_zero_or_eq_zero_of_mul_eq_zero
   (λe, ne_of_gt a0 e)
   (λe, ne_of_gt b0 e)
 
-instance : decidable_linear_ordered_comm_ring ℤ√d :=
+instance : linear_ordered_comm_ring ℤ√d :=
 { add_le_add_left := @zsqrtd.add_le_add_left,
   mul_pos         := @zsqrtd.mul_pos,
   zero_le_one     := dec_trivial,
-  .. zsqrtd.comm_ring, .. zsqrtd.decidable_linear_order, .. zsqrtd.nontrivial }
+  .. zsqrtd.comm_ring, .. zsqrtd.linear_order, .. zsqrtd.nontrivial }
 
-instance : decidable_linear_ordered_semiring ℤ√d := by apply_instance
-instance : linear_ordered_semiring ℤ√d           := by apply_instance
-instance : ordered_semiring ℤ√d                  := by apply_instance
+instance : linear_ordered_semiring ℤ√d := by apply_instance
+instance : ordered_semiring ℤ√d        := by apply_instance
 
 end
 end zsqrtd

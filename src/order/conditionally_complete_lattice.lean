@@ -80,7 +80,7 @@ complete linear orders, we prefix Inf and Sup by a c everywhere. The same statem
 hold in both worlds, sometimes with additional assumptions of nonemptiness or
 boundedness.-/
 class conditionally_complete_linear_order (α : Type*)
-  extends conditionally_complete_lattice α, decidable_linear_order α
+  extends conditionally_complete_lattice α, linear_order α
 
 /-- A conditionally complete linear order with `bot` is a linear order with least element, in which
 every nonempty subset which is bounded above has a supremum, and every nonempty subset (necessarily
@@ -431,7 +431,7 @@ by { rw [nat.Inf_def ⟨m, hm⟩], exact nat.find_min' ⟨m, hm⟩ hm }
 
 /-- This instance is necessary, otherwise the lattice operations would be derived via
 conditionally_complete_linear_order_bot and marked as noncomputable. -/
-instance : lattice ℕ := lattice_of_decidable_linear_order
+instance : lattice ℕ := lattice_of_linear_order
 
 noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
 { Sup := Sup, Inf := Inf,
@@ -446,8 +446,8 @@ noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
     apply bot_unique (nat.find_min' _ _),
     trivial
   end,
-  .. (infer_instance : order_bot ℕ), .. (lattice_of_decidable_linear_order : lattice ℕ),
-  .. (infer_instance : decidable_linear_order ℕ) }
+  .. (infer_instance : order_bot ℕ), .. (lattice_of_linear_order : lattice ℕ),
+  .. (infer_instance : linear_order ℕ) }
 
 end nat
 
@@ -598,7 +598,7 @@ noncomputable instance : complete_linear_order enat :=
     apply h1,
     assumption
   end,
-  ..enat.decidable_linear_order,
+  ..enat.linear_order,
   ..enat.bounded_lattice }
 
 end enat
@@ -618,7 +618,7 @@ instance (α : Type*) [conditionally_complete_lattice α] :
 instance (α : Type*) [conditionally_complete_linear_order α] :
   conditionally_complete_linear_order (order_dual α) :=
 { ..order_dual.conditionally_complete_lattice α,
-  ..order_dual.decidable_linear_order α }
+  ..order_dual.linear_order α }
 
 end order_dual
 
@@ -829,7 +829,7 @@ noncomputable def subset_conditionally_complete_linear_order [inhabited s]
   ..subset_has_Sup s,
   ..subset_has_Inf s,
   ..distrib_lattice.to_lattice s,
-  ..classical.DLO s }
+  ..(infer_instance : linear_order s) }
 
 section ord_connected
 

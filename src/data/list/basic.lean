@@ -1981,6 +1981,33 @@ lemma prod_update_nth : ∀ (L : list α) (n : ℕ) (a : α),
 
 end monoid
 
+section group
+variables [group α]
+
+/-- This is the `list.prod` version of `mul_inv_rev` -/
+@[to_additive "This is the `list.sum` version of `add_neg_rev`"]
+lemma prod_inv_reverse : ∀ (L : list α), L.prod⁻¹ = (L.map (λ x, x⁻¹)).reverse.prod
+| [] := by simp
+| (x :: xs) := by simp [prod_inv_reverse xs]
+
+/-- A non-commutative variant of `list.prod_reverse` -/
+@[to_additive "A non-commutative variant of `list.sum_reverse`"]
+lemma prod_reverse_noncomm : ∀ (L : list α), L.reverse.prod = (L.map (λ x, x⁻¹)).prod⁻¹ :=
+by simp [prod_inv_reverse]
+
+end group
+
+section comm_group
+variables [comm_group α]
+
+/-- This is the `list.prod` version of `mul_inv` -/
+@[to_additive "This is the `list.sum` version of `add_neg`"]
+lemma prod_inv : ∀ (L : list α), L.prod⁻¹ = (L.map (λ x, x⁻¹)).prod
+| [] := by simp
+| (x :: xs) := by simp [mul_comm, prod_inv xs]
+
+end comm_group
+
 @[simp]
 lemma sum_take_add_sum_drop [add_monoid α] :
   ∀ (L : list α) (i : ℕ), (L.take i).sum + (L.drop i).sum = L.sum
@@ -2109,7 +2136,7 @@ by induction L; [refl, simp only [*, join, map, sum_cons, length_append]]
   length (list.bind l f) = sum (map (length ∘ f) l) :=
 by rw [list.bind, length_join, map_map]
 
-lemma exists_lt_of_sum_lt [decidable_linear_ordered_cancel_add_comm_monoid β] {l : list α}
+lemma exists_lt_of_sum_lt [linear_ordered_cancel_add_comm_monoid β] {l : list α}
   (f g : α → β) (h : (l.map f).sum < (l.map g).sum) : ∃ x ∈ l, f x < g x :=
 begin
   induction l with x l,
@@ -2119,7 +2146,7 @@ begin
     exact lt_of_add_lt_add_left (lt_of_lt_of_le h $ add_le_add_right (le_of_not_gt h') _) }
 end
 
-lemma exists_le_of_sum_le [decidable_linear_ordered_cancel_add_comm_monoid β] {l : list α}
+lemma exists_le_of_sum_le [linear_ordered_cancel_add_comm_monoid β] {l : list α}
   (hl : l ≠ []) (f g : α → β) (h : (l.map f).sum ≤ (l.map g).sum) : ∃ x ∈ l, f x ≤ g x :=
 begin
   cases l with x l,
@@ -2399,9 +2426,6 @@ linear_order_of_STO' (lex (<))
 --Note: this overrides an instance in core lean
 instance has_le' [linear_order α] : has_le (list α) :=
 preorder.to_has_le _
-
-instance [decidable_linear_order α] : decidable_linear_order (list α) :=
-decidable_linear_order_of_STO' (lex (<))
 
 /-! ### all & any -/
 

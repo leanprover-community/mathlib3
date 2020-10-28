@@ -25,7 +25,7 @@ by rw [fpow_bit1', fpow_bit1', neg_mul_neg, neg_mul_eq_mul_neg]
 section ordered_field_power
 open int
 
-variables {K : Type u} [discrete_linear_ordered_field K]
+variables {K : Type u} [linear_ordered_field K]
 
 lemma fpow_nonneg_of_nonneg {a : K} (ha : 0 ≤ a) : ∀ (z : ℤ), 0 ≤ a ^ z
 | (of_nat n) := pow_nonneg ha _
@@ -91,13 +91,13 @@ lemma one_lt_pow {K} [linear_ordered_semiring K] {p : K} (hp : 1 < p) : ∀ {n :
 
 section
 local attribute [semireducible] int.nonneg
-lemma one_lt_fpow {K}  [discrete_linear_ordered_field K] {p : K} (hp : 1 < p) :
+lemma one_lt_fpow {K}  [linear_ordered_field K] {p : K} (hp : 1 < p) :
   ∀ z : ℤ, 0 < z → 1 < p ^ z
 | (int.of_nat n) h := one_lt_pow hp (nat.succ_le_of_lt (int.lt_of_coe_nat_lt_coe_nat h))
 end
 
 section ordered
-variables  {K : Type*} [discrete_linear_ordered_field K]
+variables  {K : Type*} [linear_ordered_field K]
 
 lemma nat.fpow_pos_of_pos {p : ℕ} (h : 0 < p) (n:ℤ) : 0 < (p:K)^n :=
 by { apply fpow_pos_of_pos, exact_mod_cast h }

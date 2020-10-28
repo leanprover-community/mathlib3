@@ -31,7 +31,7 @@ begin
   refl
 end
 
-lemma abs_sum_le_sum_abs [discrete_linear_ordered_field α] {f : β → α} {s : finset β} :
+lemma abs_sum_le_sum_abs [linear_ordered_field α] {f : β → α} {s : finset β} :
   abs (∑ x in s, f x) ≤ ∑ x in s, abs (f x) :=
 le_sum_of_subadditive _ abs_zero abs_add s f
 
@@ -195,9 +195,9 @@ end
 
 end ordered_cancel_comm_monoid
 
-section decidable_linear_ordered_cancel_comm_monoid
+section linear_ordered_cancel_comm_monoid
 
-variables [decidable_linear_ordered_cancel_add_comm_monoid β]
+variables [linear_ordered_cancel_add_comm_monoid β]
 
 theorem exists_lt_of_sum_lt (Hlt : (∑ x in s, f x) < ∑ x in s, g x) :
   ∃ i ∈ s, f i < g i :=
@@ -225,7 +225,7 @@ begin
                  ... = 0           : by rw [finset.sum_const, nsmul_zero],
 end
 
-end decidable_linear_ordered_cancel_comm_monoid
+end linear_ordered_cancel_comm_monoid
 
 section linear_ordered_comm_ring
 variables [linear_ordered_comm_ring β]

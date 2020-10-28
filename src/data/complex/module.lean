@@ -68,11 +68,11 @@ end complex
 vector space. -/
 @[priority 900]
 instance module.complex_to_real (E : Type*) [add_comm_group E] [module ℂ E] : module ℝ E :=
-semimodule.restrict_scalars' ℝ ℂ E
+restrict_scalars.semimodule ℝ ℂ E
 
 instance module.real_complex_tower (E : Type*) [add_comm_group E] [module ℂ E] :
   is_scalar_tower ℝ ℂ E :=
-semimodule.restrict_scalars.is_scalar_tower ℝ
+restrict_scalars.is_scalar_tower ℝ ℂ E
 
 instance (E : Type*) [add_comm_group E] [module ℝ E]
   (F : Type*) [add_comm_group F] [module ℂ F] : module ℂ (E →ₗ[ℝ] F) :=

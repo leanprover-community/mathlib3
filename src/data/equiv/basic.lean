@@ -1495,6 +1495,13 @@ protected def sep {α : Type u} (s : set α) (t : α → Prop) :
   ({ x ∈ s | t x } : set α) ≃ { x : s | t x } :=
 (equiv.subtype_subtype_equiv_subtype_inter s t).symm
 
+/-- The set `𝒫 S := {x | x ⊆ S}` is equivalent to the type `set S`. -/
+protected def powerset {α} (S : set α) : 𝒫 S ≃ set S :=
+{ to_fun := λ x : 𝒫 S, coe ⁻¹' (x : set α),
+  inv_fun := λ x : set S, ⟨coe '' x, by rintro _ ⟨a : S, _, rfl⟩; exact a.2⟩,
+  left_inv := λ x, by ext y; exact ⟨λ ⟨⟨_, _⟩, h, rfl⟩, h, λ h, ⟨⟨_, x.2 h⟩, h, rfl⟩⟩,
+  right_inv := λ x, by ext; simp }
+
 end set
 
 /-- If `f` is a bijective function, then its domain is equivalent to its codomain. -/

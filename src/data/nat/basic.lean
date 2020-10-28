@@ -45,7 +45,7 @@ instance : comm_semiring nat :=
   mul_zero       := nat.mul_zero,
   mul_comm       := nat.mul_comm }
 
-instance : decidable_linear_ordered_semiring nat :=
+instance : linear_ordered_semiring nat :=
 { add_left_cancel            := @nat.add_left_cancel,
   add_right_cancel           := @nat.add_right_cancel,
   lt                         := nat.lt,
@@ -56,12 +56,12 @@ instance : decidable_linear_ordered_semiring nat :=
   mul_lt_mul_of_pos_right    := @nat.mul_lt_mul_of_pos_right,
   decidable_eq               := nat.decidable_eq,
   exists_pair_ne             := ⟨0, 1, ne_of_lt nat.zero_lt_one⟩,
-  ..nat.comm_semiring, ..nat.decidable_linear_order }
+  ..nat.comm_semiring, ..nat.linear_order }
 
--- all the fields are already included in the decidable_linear_ordered_semiring instance
-instance : decidable_linear_ordered_cancel_add_comm_monoid ℕ :=
+-- all the fields are already included in the linear_ordered_semiring instance
+instance : linear_ordered_cancel_add_comm_monoid ℕ :=
 { add_left_cancel := @nat.add_left_cancel,
-  ..nat.decidable_linear_ordered_semiring }
+  ..nat.linear_ordered_semiring }
 
 /-! Extra instances to short-circuit type class resolution -/
 instance : add_comm_monoid nat    := by apply_instance
@@ -93,7 +93,7 @@ instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred s] [h : n
 { bot := ⟨nat.find (nonempty_subtype.1 h), nat.find_spec (nonempty_subtype.1 h)⟩,
   bot_le := λ x, nat.find_min' _ x.2,
   ..subtype.linear_order s,
-  ..lattice_of_decidable_linear_order }
+  ..lattice_of_linear_order }
 
 theorem nat.eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : 0 < m) (H : n * m = k * m) : n = k :=
 by rw [mul_comm n m, mul_comm k m] at H; exact nat.eq_of_mul_eq_mul_left Hm H
@@ -383,6 +383,10 @@ theorem sub_add_min (n m : ℕ) : n - m + min n m = n :=
 
 protected theorem add_sub_cancel' {n m : ℕ} (h : m ≤ n) : m + (n - m) = n :=
 by rw [add_comm, nat.sub_add_cancel h]
+
+protected theorem sub_add_sub_cancel {a b c : ℕ} (hab : b ≤ a) (hbc : c ≤ b) :
+  (a - b) + (b - c) = a - c :=
+by rw [←nat.add_sub_assoc hbc, ←nat.sub_add_comm hab, nat.add_sub_cancel]
 
 protected theorem sub_eq_of_eq_add (h : k = m + n) : k - m = n :=
 begin rw [h, nat.add_sub_cancel_left] end

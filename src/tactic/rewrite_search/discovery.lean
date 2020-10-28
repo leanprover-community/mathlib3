@@ -93,24 +93,27 @@ do rws ← collect extra_names,
    if cfg.inflate_rws then list.join <$> (rws.mmap $ inflate_rw locs)
    else pure rws
 
-private meta def progress_next (prog : rewrite_progress) : tactic (rewrite_progress × option rewrite) :=
-do u ← mllist.uncons prog,
-   match u with
-   | (some (r, p)) := return (p, (some r))
-   | none          := return (mllist.nil, none)
-   end
-
 open tactic.nth_rewrite.congr
 
-meta def discover_more_rewrites (rs : list (expr × bool)) (exp : expr) (cfg : config)
-(prog : option rewrite_progress) :
-  tactic (rewrite_progress × option rewrite) :=
-do
-  let prog := match prog with
-         | some prog := prog
-         | none := (all_rewrites_lazy_of_list rs exp cfg.to_cfg).map $ λ t, ⟨t.1.exp, t.1.proof, how.rewrite t.2.1 t.2.2 t.1.addr⟩
-         end,
-  (prog, rw) ← progress_next prog,
-  return (prog, rw)
+/-
+Constructing our rewrite structure from the `tracked_rewrite` provided by `nth_rewrite`.
+rule_idx is the index of the rule used from the rules provided.
+tracked is an (index, tracked_rewrite) pair for the element of `all_rewrites exp rule` we used.
+-/
+private meta def from_tracked (rule_idx : ℕ) (tracked : ℕ × tactic.nth_rewrite.tracked_rewrite) :
+rewrite :=
+do let (rw_idx, rw) := tracked,
+⟨rw.exp, rw.proof, how.rewrite rule_idx rw_idx rw.addr⟩
+
+private meta def rewrites_for_rule (exp : expr) (cfg : config) (numbered_rule: ℕ × expr × bool) :
+tactic (list rewrite) :=
+do let (rule_idx, rule) := numbered_rule,
+tracked ← all_rewrites exp rule cfg.to_cfg,
+return (list.map (from_tracked rule_idx) tracked.enum)
+
+meta def get_rewrites (rs : list (expr × bool)) (exp : expr) (cfg : config) :
+tactic (buffer rewrite) :=
+do lists ← list.mmap (rewrites_for_rule exp cfg) rs.enum,
+return (list.foldl buffer.append_list buffer.nil lists)
 
 end tactic.rewrite_search

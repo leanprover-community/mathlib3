@@ -72,26 +72,6 @@ meta def all_rewrites (e : expr) (r : expr × bool) (cfg : nth_rewrite.cfg := {}
   tactic (list tracked_rewrite) :=
 e.app_map (rewrite_at_lens cfg r)
 
-/-- Lazy list of all rewrites of an expression `e` by `r : expr × bool`.
-Here `r.1` is the substituting expression and `r.2` flags the direction of the rewrite. -/
--- Note that this eagerly builds the whole list, merely returning a lazy wrapper.
-meta def all_rewrites_lazy (e : expr) (r : expr × bool) (cfg : nth_rewrite.cfg := {}) :
-  mllist tactic tracked_rewrite :=
-mllist.squash $ mllist.of_list <$> all_rewrites e r cfg
-
-/--
-Return a lazy list of (t, n, k) where
-* `t` is a `tracked_rewrite` (i.e. a pair `(e' : expr, prf : e = e')`)
-* `n` is the index of the rule `r` used from `rs`, and
-* `k` is the index of `t` in `all_rewrites r e`.
--/
-meta def all_rewrites_lazy_of_list
-  (rs : list (expr × bool)) (e : expr)
-  (cfg : nth_rewrite.cfg := {md := semireducible}) :
-  mllist tactic (tracked_rewrite × ℕ × ℕ) :=
-(mllist.of_list rs).enum.bind_ $ λ r,
-   ((all_rewrites_lazy e r.2 cfg).enum).map (λ p, (p.2, r.1, p.1))
-
 end nth_rewrite.congr
 
 end tactic

@@ -26,7 +26,8 @@ variables (g : search_state)
 
 namespace search_state
 
-private meta def vertex_finder (pp : string) (left : vertex) (right : option vertex) : option vertex :=
+private meta def vertex_finder (pp : string) (left : vertex) (right : option vertex) :
+option vertex :=
 match right with
 | some v := some v
 | none   := if left.pp = pp then some left else none
@@ -83,7 +84,8 @@ meta def mark_vertex_visited (v : vertex) : tactic (search_state × vertex) := d
 meta def add_edge (f t : vertex) (proof : tactic expr) (how : how) :
 tactic (search_state × vertex × vertex × edge) :=
 do let new_edge : edge := ⟨ f.id, t.id, proof, how ⟩,
-   when_tracing `rewrite_search (trace format!"addE: {to_string new_edge.f}→{to_string new_edge.t}"),
+   when_tracing `rewrite_search
+     (trace format!"addE: {to_string new_edge.f}→{to_string new_edge.t}"),
    let (g, f) := g.add_adj f new_edge,
    let (g, t) := g.add_adj t new_edge,
    let (g, t) := g.publish_parent f t new_edge,
@@ -92,22 +94,21 @@ do let new_edge : edge := ⟨ f.id, t.id, proof, how ⟩,
    else
      return (g, f, t, new_edge)
 
-meta def commit_rewrite (f : vertex) (r : rewrite) : tactic (search_state × vertex × (vertex × edge)) :=
+meta def commit_rewrite (f : vertex) (r : rewrite) :
+tactic (search_state × vertex × (vertex × edge)) :=
 do (g, v) ← g.add_vertex r.e f.s,
   (g, f, v, e) ← g.add_edge f v r.prf r.how,
   return (g, f, (v, e))
 
-meta def reveal_more_rewrites (v : vertex) : tactic (search_state × vertex × option rewrite) :=
-do (rw_prog, new_rw) ← discover_more_rewrites g.rs v.exp g.conf v.rw_prog,
-  (g, v) ← pure $ g.set_vertex {v with rw_prog := rw_prog, rws := v.rws.append_list new_rw.to_list},
-  return (g, v, new_rw)
+meta def init_rewrites (v : vertex) : tactic (search_state × vertex) :=
+match v.rws.size with
+  | 0 := do rws ← get_rewrites g.rs v.exp g.conf, return (g.set_vertex {v with rws := rws})
+  | _ := return (g, v)
+end
 
 meta def reveal_more_adjs (o : vertex) : tactic (search_state × option (vertex × edge)) :=
-do (g, o, rw) ← match read_option o.rws o.rw_front with
-  | none := g.reveal_more_rewrites o
-  | some rw := pure (g, o, some rw)
-end,
-match rw with
+do (g, o) ← g.init_rewrites o,
+match read_option o.rws o.rw_front with
   | none := return (g, none)
   | some rw := do
     (g, o, (v, e)) ← g.commit_rewrite o rw,
@@ -145,7 +146,8 @@ match read_option o.adj it.front with
     end
   end
 
-meta def exhaust : rewrite_iter → search_state → tactic (search_state × rewrite_iter × list (vertex × edge))
+meta def exhaust :
+rewrite_iter → search_state → tactic (search_state × rewrite_iter × list (vertex × edge))
 | it g := do
   (g, it, ret) ← it.next g,
   match ret with
@@ -208,7 +210,8 @@ meta def search_until_solved_aux : search_state → ℕ → tactic (search_state
   | status.done e   := g.finish_search
   end
 
-meta def search_until_solved : tactic (search_state × search_result) := g.search_until_solved_aux 0
+meta def search_until_solved : tactic (search_state × search_result) :=
+g.search_until_solved_aux 0
 
 meta def explain (proof : expr) (steps : list proof_unit) : tactic string :=
   explain_search_result g.conf g.rs proof steps

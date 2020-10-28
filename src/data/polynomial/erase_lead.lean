@@ -102,7 +102,7 @@ end
 begin
   by_cases hr : r = 0,
   { subst r, simp only [monomial_zero_right, erase_lead_zero] },
-  { rw [erase_lead, nat_degree_monomial _ _ hr, monomial, erase_single] }
+  { rw [erase_lead, nat_degree_monomial _ _ hr], exact erase_single }
 end
 
 @[simp] lemma erase_lead_C (r : R) : erase_lead (C r) = 0 :=

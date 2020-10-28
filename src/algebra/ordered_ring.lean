@@ -405,9 +405,6 @@ end
 lemma exists_le_mul_self (a : α) : ∃ x : α, a ≤ x * x :=
 let ⟨x, hx⟩ := exists_lt_mul_self a in ⟨x, le_of_lt hx⟩
 
-/- TODO This theorem ought to be written in the context of `nontrivial` linearly ordered (additive)
-commutative monoids rather than linearly ordered rings; however, the former concept does not
-currently exist in mathlib. -/
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_semiring α] :
   no_top_order α :=
@@ -467,13 +464,8 @@ lemma strict_mono.mul (hf : strict_mono f) (hg : strict_mono g) (hf0 : ∀ x, 0 
 
 end mono
 
-/-- A `decidable_linear_ordered_semiring α` is a semiring `α` with a decidable linear order
-such that multiplication with a positive number and addition are monotone. -/
-@[protect_proj] class decidable_linear_ordered_semiring (α : Type u)
-  extends linear_ordered_semiring α, decidable_linear_order α
-
-section decidable_linear_ordered_semiring
-variables [decidable_linear_ordered_semiring α] {a b c : α}
+section linear_ordered_semiring
+variables [linear_ordered_semiring α] {a b c : α}
 
 @[simp] lemma decidable.mul_le_mul_left (h : 0 < c) : c * a ≤ c * b ↔ a ≤ b :=
 decidable.le_iff_le_iff_lt_iff_lt.2 $ mul_lt_mul_left h
@@ -493,7 +485,7 @@ lemma max_mul_of_nonneg (a b : α) (hc : 0 ≤ c) : max a b * c = max (a * c) (b
 lemma min_mul_of_nonneg (a b : α) (hc : 0 ≤ c) : min a b * c = min (a * c) (b * c) :=
 (monotone_mul_right_of_nonneg hc).map_min
 
-end decidable_linear_ordered_semiring
+end linear_ordered_semiring
 
 /-- An `ordered_ring α` is a ring `α` with a partial order such that
 multiplication with a positive number and addition are monotone. -/
@@ -592,7 +584,12 @@ end ordered_ring
 /-- A `linear_ordered_ring α` is a ring `α` with a linear order such that
 multiplication with a positive number and addition are monotone. -/
 @[protect_proj] class linear_ordered_ring (α : Type u)
-    extends ordered_ring α, linear_order α, nontrivial α
+  extends ordered_ring α, linear_order α, nontrivial α
+
+@[priority 100] -- see Note [lower instance priority]
+instance linear_ordered_ring.to_linear_ordered_add_comm_group [s : linear_ordered_ring α] :
+  linear_ordered_add_comm_group α :=
+{ .. s }
 
 section linear_ordered_ring
 variables [linear_ordered_ring α] {a b c : α}
@@ -620,6 +617,25 @@ instance linear_ordered_ring.to_domain : domain α :=
         (mul_neg_of_pos_of_neg ha hb).ne, (mul_pos ha hb).ne.symm]
     end,
   .. ‹linear_ordered_ring α› }
+
+@[simp] lemma abs_one : abs (1 : α) = 1 := abs_of_pos zero_lt_one
+@[simp] lemma abs_two : abs (2 : α) = 2 := abs_of_pos zero_lt_two
+
+lemma abs_mul (a b : α) : abs (a * b) = abs a * abs b :=
+begin
+  rw [abs_eq (mul_nonneg (abs_nonneg a) (abs_nonneg b))],
+  cases le_total a 0 with ha ha; cases le_total b 0 with hb hb;
+    simp [abs_of_nonpos, abs_of_nonneg, *]
+end
+
+/-- `abs` as a `monoid_hom`. -/
+def abs_hom : α →* α := ⟨abs, abs_one, abs_mul⟩
+
+lemma abs_mul_abs_self (a : α) : abs a * abs a = a * a :=
+abs_by_cases (λ x, x * x = a * a) rfl (neg_mul_neg a a)
+
+lemma abs_mul_self (a : α) : abs (a * a) = a * a :=
+by rw [abs_mul, abs_mul_abs_self]
 
 lemma mul_pos_iff : 0 < a * b ↔ 0 < a ∧ 0 < b ∨ a < 0 ∧ b < 0 :=
 ⟨pos_and_pos_or_neg_and_neg_of_mul_pos,
@@ -678,13 +694,6 @@ lemma mul_self_inj {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a * a = b * b ↔ 
   (nonneg_le_nonneg_of_squares_le h1) h3.symm.le,
  λ h3, le_antisymm ((mul_self_le_mul_self h1) h3.le) $ (mul_self_le_mul_self h2) h3.symm.le⟩
 
-/- TODO This theorem ought to be written in the context of `nontrivial` linearly ordered (additive)
-commutative groups rather than linearly ordered rings; however, the former concept does not
-currently exist in mathlib. -/
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_ring.to_no_bot_order : no_bot_order α :=
-⟨assume a, ⟨a - 1, sub_lt_iff_lt_add.mpr $ lt_add_of_pos_right _ zero_lt_one⟩⟩
-
 @[simp] lemma mul_le_mul_left_of_neg {a b c : α} (h : c < 0) : c * a ≤ c * b ↔ b ≤ a :=
 ⟨le_imp_le_of_lt_imp_lt $ λ h', mul_lt_mul_of_neg_left h' h,
   λ h', mul_le_mul_of_nonpos_left h' h.le⟩
@@ -735,75 +744,6 @@ begin
   rw mul_self_eq_zero at this, split; assumption
 end
 
-end linear_ordered_ring
-
-/-- A `linear_ordered_comm_ring α` is a commutative ring `α` with a linear order
-such that multiplication with a positive number and addition are monotone. -/
-@[protect_proj]
-class linear_ordered_comm_ring (α : Type u) extends linear_ordered_ring α, comm_monoid α
-
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_comm_ring.to_comm_ring [s : linear_ordered_comm_ring α] :
-  comm_ring α :=
-{ ..s }
-
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_comm_ring.to_integral_domain [s : linear_ordered_comm_ring α] :
-  integral_domain α :=
-{ ..linear_ordered_ring.to_domain, ..s }
-
-/-- A `decidable_linear_ordered_comm_ring α` is a commutative ring `α` with a
-decidable linear order such that multiplication with a positive number and
-addition are monotone. -/
-@[protect_proj] class decidable_linear_ordered_comm_ring (α : Type u)
-    extends linear_ordered_comm_ring α, decidable_linear_ordered_add_comm_group α
-
-@[priority 100] -- see Note [lower instance priority]
-instance decidable_linear_ordered_comm_ring.to_decidable_linear_ordered_semiring
-  [d : decidable_linear_ordered_comm_ring α] :
-  decidable_linear_ordered_semiring α :=
-let s : linear_ordered_semiring α := @linear_ordered_ring.to_linear_ordered_semiring α _ in
-{ zero_mul                   := @linear_ordered_semiring.zero_mul α s,
-  mul_zero                   := @linear_ordered_semiring.mul_zero α s,
-  add_left_cancel            := @linear_ordered_semiring.add_left_cancel α s,
-  add_right_cancel           := @linear_ordered_semiring.add_right_cancel α s,
-  le_of_add_le_add_left      := @linear_ordered_semiring.le_of_add_le_add_left α s,
-  mul_lt_mul_of_pos_left     := @linear_ordered_semiring.mul_lt_mul_of_pos_left α s,
-  mul_lt_mul_of_pos_right    := @linear_ordered_semiring.mul_lt_mul_of_pos_right α s,
-  ..d }
-
-section decidable_linear_ordered_comm_ring
-
-variables [decidable_linear_ordered_comm_ring α] {a b c d : α}
-
-@[simp] lemma abs_one : abs (1 : α) = 1 := abs_of_pos zero_lt_one
-
-lemma max_mul_mul_le_max_mul_max (b c : α) (ha : 0 ≤ a) (hd: 0 ≤ d) :
-  max (a * b) (d * c) ≤ max a c * max d b :=
-have ba : b * a ≤ max d b * max c a,
-  from mul_le_mul (le_max_right d b) (le_max_right c a) ha (le_trans hd (le_max_left d b)),
-have cd : c * d ≤ max a c * max b d,
-  from mul_le_mul (le_max_right a c) (le_max_right b d) hd (le_trans ha (le_max_left a c)),
-max_le
-  (by simpa [mul_comm, max_comm] using ba)
-  (by simpa [mul_comm, max_comm] using cd)
-
-lemma abs_mul (a b : α) : abs (a * b) = abs a * abs b :=
-begin
-  rw [abs_eq (mul_nonneg (abs_nonneg a) (abs_nonneg b))],
-  cases le_total a 0 with ha ha; cases le_total b 0 with hb hb;
-    simp [abs_of_nonpos, abs_of_nonneg, *]
-end
-
-/-- `abs` as a `monoid_hom`. -/
-def abs_hom : α →* α := ⟨abs, abs_one, abs_mul⟩
-
-lemma abs_mul_abs_self (a : α) : abs a * abs a = a * a :=
-abs_by_cases (λ x, x * x = a * a) rfl (neg_mul_neg a a)
-
-lemma abs_mul_self (a : α) : abs (a * a) = a * a :=
-by rw [abs_mul, abs_mul_abs_self]
-
 lemma sub_le_of_abs_sub_le_left (h : abs (a - b) ≤ c) : b - c ≤ a :=
 if hz : 0 ≤ a - b then
   (calc
@@ -830,6 +770,62 @@ else
 lemma sub_lt_of_abs_sub_lt_right (h : abs (a - b) < c) : a - c < b :=
 sub_lt_of_abs_sub_lt_left (abs_sub a b ▸ h)
 
+lemma eq_zero_of_mul_self_add_mul_self_eq_zero (h : a * a + b * b = 0) : a = 0 :=
+have a * a ≤ (0 : α), from calc
+     a * a ≤ a * a + b * b : le_add_of_nonneg_right (mul_self_nonneg b)
+       ... = 0             : h,
+eq_zero_of_mul_self_eq_zero (le_antisymm this (mul_self_nonneg a))
+
+end linear_ordered_ring
+
+/-- A `linear_ordered_comm_ring α` is a commutative ring `α` with a linear order
+such that multiplication with a positive number and addition are monotone. -/
+@[protect_proj]
+class linear_ordered_comm_ring (α : Type u) extends linear_ordered_ring α, comm_monoid α
+
+@[priority 100] -- see Note [lower instance priority]
+instance linear_ordered_comm_ring.to_comm_ring [s : linear_ordered_comm_ring α] :
+  comm_ring α :=
+{ ..s }
+
+@[priority 100] -- see Note [lower instance priority]
+instance linear_ordered_comm_ring.to_integral_domain [s : linear_ordered_comm_ring α] :
+  integral_domain α :=
+{ ..linear_ordered_ring.to_domain, ..s }
+
+/-- A `decidable_linear_ordered_comm_ring α` is a commutative ring `α` with a
+decidable linear order such that multiplication with a positive number and
+addition are monotone. -/
+@[protect_proj] class decidable_linear_ordered_comm_ring (α : Type u)
+    extends linear_ordered_comm_ring α, decidable_linear_ordered_add_comm_group α
+
+@[priority 100] -- see Note [lower instance priority]
+instance linear_ordered_comm_ring.to_linear_ordered_semiring [d : linear_ordered_comm_ring α] :
+   linear_ordered_semiring α :=
+let s : linear_ordered_semiring α := @linear_ordered_ring.to_linear_ordered_semiring α _ in
+{ zero_mul                   := @linear_ordered_semiring.zero_mul α s,
+  mul_zero                   := @linear_ordered_semiring.mul_zero α s,
+  add_left_cancel            := @linear_ordered_semiring.add_left_cancel α s,
+  add_right_cancel           := @linear_ordered_semiring.add_right_cancel α s,
+  le_of_add_le_add_left      := @linear_ordered_semiring.le_of_add_le_add_left α s,
+  mul_lt_mul_of_pos_left     := @linear_ordered_semiring.mul_lt_mul_of_pos_left α s,
+  mul_lt_mul_of_pos_right    := @linear_ordered_semiring.mul_lt_mul_of_pos_right α s,
+  ..d }
+
+section linear_ordered_comm_ring
+
+variables [linear_ordered_comm_ring α] {a b c d : α}
+
+lemma max_mul_mul_le_max_mul_max (b c : α) (ha : 0 ≤ a) (hd: 0 ≤ d) :
+  max (a * b) (d * c) ≤ max a c * max d b :=
+have ba : b * a ≤ max d b * max c a,
+  from mul_le_mul (le_max_right d b) (le_max_right c a) ha (le_trans hd (le_max_left d b)),
+have cd : c * d ≤ max a c * max b d,
+  from mul_le_mul (le_max_right a c) (le_max_right b d) hd (le_trans ha (le_max_left a c)),
+max_le
+  (by simpa [mul_comm, max_comm] using ba)
+  (by simpa [mul_comm, max_comm] using cd)
+
 lemma abs_sub_square (a b : α) : abs (a - b) * abs (a - b) = a * a + b * b - (1 + 1) * a * b :=
 begin
   rw abs_mul_abs_self,
@@ -838,10 +834,6 @@ end
 
 lemma eq_zero_of_mul_self_add_mul_self_eq_zero (h : a * a + b * b = 0) : a = 0 :=
 (mul_self_add_mul_self_eq_zero.mp h).left
-
--- The proof doesn't need commutativity but we have no `decidable_linear_ordered_ring`
-@[simp] lemma abs_two : abs (2:α) = 2 :=
-abs_of_pos zero_lt_two
 
 lemma abs_eq_iff_mul_self_eq : abs a = abs b ↔ a * a = b * b :=
 begin
@@ -861,7 +853,7 @@ begin
   exact mul_self_le_mul_self_iff (abs_nonneg a) (abs_nonneg b)
 end
 
-end decidable_linear_ordered_comm_ring
+end linear_ordered_comm_ring
 
 /-- Extend `nonneg_add_comm_group` to support ordered rings
   specified by their nonnegative elements -/
@@ -928,14 +920,16 @@ instance to_nonneg_ring : nonneg_ring α :=
 /-- Construct `linear_order` from `linear_nonneg_ring`. This is not an instance
 because we don't use it in `mathlib`. -/
 local attribute [instance]
-def to_linear_order : linear_order α :=
+def to_linear_order [decidable_pred (nonneg : α → Prop)] : linear_order α :=
 { le_total := nonneg_total_iff.1 nonneg_total,
+  decidable_le := by apply_instance,
+  decidable_lt := by apply_instance,
   ..‹linear_nonneg_ring α›, ..(infer_instance : ordered_add_comm_group α) }
 
 /-- Construct `linear_ordered_ring` from `linear_nonneg_ring`.
 This is not an instance because we don't use it in `mathlib`. -/
 local attribute [instance]
-def to_linear_ordered_ring : linear_ordered_ring α :=
+def to_linear_ordered_ring [decidable_pred (nonneg : α → Prop)] : linear_ordered_ring α :=
 { mul_pos := by simp [pos_def.symm]; exact @nonneg_ring.mul_pos _ _,
   zero_le_one := le_of_lt $ lt_of_not_ge $ λ (h : nonneg (0 - 1)), begin
     rw [zero_sub] at h,
@@ -946,15 +940,13 @@ def to_linear_ordered_ring : linear_ordered_ring α :=
   ..(infer_instance : linear_order α) }
 
 /-- Convert a `linear_nonneg_ring` with a commutative multiplication and
-decidable non-negativity into a `decidable_linear_ordered_comm_ring` -/
-def to_decidable_linear_ordered_comm_ring
+decidable non-negativity into a `linear_ordered_comm_ring` -/
+def to_linear_ordered_comm_ring
   [decidable_pred (@nonneg α _)]
   [comm : @is_commutative α (*)]
-  : decidable_linear_ordered_comm_ring α :=
-{ decidable_le := by apply_instance,
-  decidable_lt := by apply_instance,
-  mul_comm := is_commutative.comm,
-  ..@linear_nonneg_ring.to_linear_ordered_ring _ _ }
+  : linear_ordered_comm_ring α :=
+{ mul_comm := is_commutative.comm,
+  ..@linear_nonneg_ring.to_linear_ordered_ring _ _ _ }
 
 end linear_nonneg_ring
 

@@ -199,7 +199,7 @@ nat_degree_eq_of_degree_eq (degree_map _ f)
 
 @[simp] lemma leading_coeff_map [field k] (f : R →+* k) :
   leading_coeff (p.map f) = f (leading_coeff p) :=
-by simp [leading_coeff, coeff_map f]
+by simp only [← coeff_nat_degree, coeff_map f, nat_degree_map]
 
 theorem monic_map_iff [field k] {f : R →+* k} {p : polynomial R} :
   (p.map f).monic ↔ p.monic :=
@@ -214,7 +214,7 @@ lemma map_div [field k] (f : R →+* k) :
 if hq0 : q = 0 then by simp [hq0]
 else
 by rw [div_def, div_def, map_mul, map_div_by_monic f (monic_mul_leading_coeff_inv hq0)];
-  simp [f.map_inv, leading_coeff, coeff_map f]
+  simp [f.map_inv, coeff_map f]
 
 lemma map_mod [field k] (f : R →+* k) :
   (p % q).map f = p.map f % q.map f :=

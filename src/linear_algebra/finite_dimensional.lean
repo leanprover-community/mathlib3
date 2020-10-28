@@ -416,7 +416,7 @@ begin
 end
 
 section
-variables {L : Type*} [discrete_linear_ordered_field L]
+variables {L : Type*} [linear_ordered_field L]
 variables {W : Type v} [add_comm_group W] [vector_space L W]
 
 /--

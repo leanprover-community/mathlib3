@@ -848,7 +848,7 @@ end
 
 end topological_group
 
-lemma summable_abs_iff [decidable_linear_ordered_add_comm_group β] [uniform_space β]
+lemma summable_abs_iff [linear_ordered_add_comm_group β] [uniform_space β]
   [uniform_add_group β] [complete_space β] {f : α → β} :
   summable (λ x, abs (f x)) ↔ summable f :=
 have h1 : ∀ x : {x | 0 ≤ f x}, abs (f x) = f x := λ x, abs_of_nonneg x.2,

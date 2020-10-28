@@ -4,14 +4,33 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Keeley Hoek, Scott Morrison
 -/
 
-import tactic.rewrite_search.module
 import tactic.rewrite_search.discovery
+import tactic.rewrite_search.engine
 
 /-!
 # Interactive versions of rewrite tactics and documentation
 -/
 
 namespace tactic.rewrite_search
+
+meta def default_config : config := {}
+meta def pick_default_config : tactic unit := `[exact tactic.rewrite_search.default_config]
+
+meta def mk_search_state (conf : config) (rs : list (expr × bool)) (eqn : sided_pair expr) :
+tactic search_state :=
+do let g : search_state := ⟨conf, rs, bfs_init [], buffer.nil, buffer.nil, none⟩,
+   (g, vl) ← g.add_root_vertex eqn.l side.L,
+   (g, vr) ← g.add_root_vertex eqn.r side.R,
+   return $ g.mutate_strat $ bfs_init [vl.id, vr.id, none]
+
+meta def try_search (cfg : config) (rs : list (expr × bool)) (eqn : sided_pair expr) :
+tactic (option string) :=
+do i ← mk_search_state cfg rs eqn,
+(i, result) ← i.search_until_solved,
+match result with
+  | search_result.failure reason := tactic.fail reason
+  | search_result.success proof steps := tactic.exact proof >> some <$> i.explain proof steps
+end
 
 meta def rewrite_search_pair (cfg : config) (rs : list (expr × bool))
 (eqn : sided_pair expr) : tactic string :=
@@ -23,8 +42,7 @@ end
 
 meta def rewrite_search_target (cfg : config) (try_harder : bool)
   (extra_names : list name) (extra_rws : list (expr × bool)) : tactic string :=
-do let cfg := if ¬try_harder then cfg
-              else { cfg with try_simp := tt },
+do let cfg := if ¬try_harder then cfg else { cfg with try_simp := tt },
    t ← tactic.target,
    if t.has_meta_var then
      tactic.fail "rewrite_search is not suitable for goals containing metavariables"

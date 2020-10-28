@@ -35,13 +35,9 @@ instance : has_to_string side := ⟨side.to_string⟩
 
 meta inductive how
 | rewrite (rule_index : ℕ) (location : ℕ) (addr : option (list expr_lens.dir))
-| defeq
-| simp  -- TODO handle "explaining" me
 
 meta def how.to_string : how → format
 | (how.rewrite idx loc addr) := format!"rewrite {idx} {loc} {addr.iget.to_string}"
-| how.defeq := "(defeq)"
-| how.simp := "simp"
 
 meta instance how.has_to_format : has_to_format how := ⟨how.to_string⟩
 
@@ -161,9 +157,6 @@ meta def mutate_strat (new_state : bfs_state) : search_state :=
 
 meta def set_vertex (v : vertex) : search_state × vertex :=
 ({ g with vertices := g.vertices.write' v.id v }, v)
-
-meta def get_endpoints (e : edge) : tactic (vertex × vertex) :=
-return (g.vertices.read' e.f, g.vertices.read' e.t)
 
 end search_state
 

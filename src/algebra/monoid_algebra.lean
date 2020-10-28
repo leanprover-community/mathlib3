@@ -434,11 +434,11 @@ The `alg_hom` which maps from a grading of an algebra `A` back to that algebra.
 -/
 def sum_id {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] :
   monoid_algebra A G →ₐ[k] A :=
-lift_nc ⟨λ g, 1, by simp, λ a b, by simp⟩ (alg_hom.id k A) (by simp)
+lift_nc_alg_hom (alg_hom.id k A) ⟨λ g, 1, by simp, λ a b, by simp⟩ (by simp)
 
 lemma sum_id_apply {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] (g : monoid_algebra A G) :
   sum_id k g = g.sum (λ _ gi, gi) :=
-by simp [sum_id, lift_aux]
+by simp [sum_id, lift_nc_alg_hom, lift_nc_ring_hom, lift_nc, alg_hom.id, ring_hom.id]
 
 section
 local attribute [reducible] monoid_algebra
@@ -864,17 +864,19 @@ lemma alg_hom_ext_iff {φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] A} :
   (∀ x, φ₁ (finsupp.single x 1) = φ₂ (finsupp.single x 1)) ↔ φ₁ = φ₂ :=
 ⟨λ h, alg_hom_ext h, by rintro rfl _; refl⟩
 
+end lift
+
 variables (k)
 /--
 The `alg_hom` which maps from a grading of an algebra `A` back to that algebra.
 -/
 def sum_id {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [add_monoid G] :
   add_monoid_algebra A G →ₐ[k] A :=
-lift_aux ⟨λ g, 1, by simp, λ a b, by simp⟩ (alg_hom.id k A) (by simp)
+lift_nc_alg_hom (alg_hom.id k A) ⟨λ g, 1, by simp, λ a b, by simp⟩ (by simp)
 
 lemma sum_id_apply {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [add_monoid G] (g : add_monoid_algebra A G) :
   sum_id k g = g.sum (λ _ gi, gi) :=
-by simp [sum_id, lift_aux]
+by simp [sum_id, lift_nc_alg_hom, lift_nc_ring_hom, lift_nc, alg_hom.id, ring_hom.id]
 
 section
 local attribute [reducible] add_monoid_algebra

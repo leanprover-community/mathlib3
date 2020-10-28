@@ -793,12 +793,6 @@ instance linear_ordered_comm_ring.to_integral_domain [s : linear_ordered_comm_ri
   integral_domain α :=
 { ..linear_ordered_ring.to_domain, ..s }
 
-/-- A `decidable_linear_ordered_comm_ring α` is a commutative ring `α` with a
-decidable linear order such that multiplication with a positive number and
-addition are monotone. -/
-@[protect_proj] class decidable_linear_ordered_comm_ring (α : Type u)
-    extends linear_ordered_comm_ring α, decidable_linear_ordered_add_comm_group α
-
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_comm_ring.to_linear_ordered_semiring [d : linear_ordered_comm_ring α] :
    linear_ordered_semiring α :=

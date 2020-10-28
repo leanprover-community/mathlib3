@@ -18,7 +18,7 @@ The variable `n` can belong to any type `α`, with the following restrictions:
 * an instance of `decidable_eq α` is available,
 * an explicit lower bound can be found amongst the hypotheses, or from `bot_le n`,
 * an explicit upper bound can be found amongst the hypotheses, or from `le_top n`,
-* if multiple bounds are located, an instance of `decidable_linear_order α` is available, and
+* if multiple bounds are located, an instance of `linear_order α` is available, and
 * an instance of `fintype set.Ico l u` is available for the relevant bounds.
 
 You can also explicitly specify a lower and upper bound to use, as `interval_cases using hl hu`.
@@ -276,7 +276,7 @@ The variable `n` can belong to any type `α`, with the following restrictions:
 * an instance of `decidable_eq α` is available,
 * an explicit lower bound can be found amongst the hypotheses, or from `bot_le n`,
 * an explicit upper bound can be found amongst the hypotheses, or from `le_top n`,
-* if multiple bounds are located, an instance of `decidable_linear_order α` is available, and
+* if multiple bounds are located, an instance of `linear_order α` is available, and
 * an instance of `fintype set.Ico l u` is available for the relevant bounds.
 -/
 add_tactic_doc

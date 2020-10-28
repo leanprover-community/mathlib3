@@ -5,12 +5,14 @@ Author: Adam Topaz.
 -/
 import algebra.free_algebra
 import algebra.ring_quot
+import linear_algebra.multilinear
 
 /-!
 # Tensor Algebras
 
 Given a commutative semiring `R`, and an `R`-module `M`, we construct the tensor algebra of `M`.
-This is the free `R`-algebra generated (`R`-linearly) by the module `M`.
+This is the free `R`-algebra generated (`R`-linearly) by the module `M`. We also construct
+the canonical multilinear map from `M^q` into the tensor algebra of `M`.
 
 ## Notation
 
@@ -36,6 +38,8 @@ modulo the additional relations making the inclusion of `M` into an `R`-linear m
 
 variables (R : Type*) [comm_semiring R]
 variables (M : Type*) [add_comm_monoid M] [semimodule R M]
+variables {S : Type*} [comm_ring S]
+variables {N : Type*} [add_comm_group N] [module S N]
 
 namespace tensor_algebra
 
@@ -60,7 +64,10 @@ def tensor_algebra := ring_quot (tensor_algebra.rel R M)
 
 namespace tensor_algebra
 
+instance : ring (tensor_algebra S N) := algebra.semiring_to_ring S
+
 variables {M}
+
 /--
 The canonical linear map `M →ₗ[R] tensor_algebra R M`.
 -/
@@ -114,5 +121,148 @@ begin
   have : g = lift R h, by rw ←lift_unique,
   rw [this, ←lift_unique, w],
 end
+
+variables (R) (M)
+variable {q : ℕ}
+
+/--
+Auxiliary map used to build `tensor_algebra.mk`. Should not be used.
+-/
+def mk_aux (ν : fin q → M) : tensor_algebra R M :=
+list.prod $ list.map (λ i, ι R (ν i)) (list.fin_range q)
+
+
+lemma mk_split_aux (ν : fin q.succ → M) :
+mk_aux R M ν = ι R (ν 0) * mk_aux R M (λ i : fin q, ν i.succ) :=
+begin
+  have key : list.fin_range q.succ =
+  0 :: list.map (λ i : fin q, i.succ) (list.fin_range q) :=
+    begin
+    unfold list.fin_range,
+    rw [list.map_pmap],
+    simp_rw [list.range_succ_eq_map],
+    rw [list.pmap],
+    congr' 1,
+    rw list.pmap_map,
+    apply list.pmap_congr,
+    intros, refl,
+    end,
+  unfold mk_aux,
+  rw [key, list.map_cons, list.prod_cons],
+  simp,
+end
+
+
+/--
+  The canonical multilinear map `(fin q → M) → tensor_algebra R M`.
+-/
+def mk : multilinear_map R (λ i : fin q, M) (tensor_algebra R M) :=
+{ to_fun := mk_aux R M,
+  map_add' :=
+  begin
+    intros ν i x y,
+    induction q with q hq,
+
+    --Base case
+    exfalso, exact nat.not_lt_zero ↑i i.is_lt,
+    --Inductive step
+    rw [mk_split_aux, mk_split_aux, mk_split_aux],
+    cases classical.em (i = 0),
+    --case i = 0
+    rw h,
+    rw [function.update_same, function.update_same, function.update_same],
+    rw [linear_map.map_add, right_distrib],
+    have fact : ∀ (z : M), ((λ k : fin q, function.update ν 0 z k.succ) = λ k : fin q, ν k.succ) :=
+    begin
+      intro z,
+      ext k,
+      rw function.update_noteq (fin.succ_ne_zero k),
+    end,
+    rw [fact (x+y), fact x, fact y],
+    --case i ≠ 0
+    rw [function.update_noteq (ne_comm.mp h), function.update_noteq (ne_comm.mp h),
+      function.update_noteq (ne_comm.mp h)],
+    have key : mk_aux R M (λ (i_1 : fin q), function.update ν i (x + y) i_1.succ) =
+    mk_aux R M (λ (i_1 : fin q), function.update ν i x i_1.succ) +
+    mk_aux R M (λ (i_1 : fin q), function.update ν i y i_1.succ) :=
+    begin
+      convert hq (λ i : fin q, ν i.succ) (i.pred h),
+      repeat{
+      ext j,
+      cases classical.em (i = j.succ) with hem hem,
+      --case i = j.succ
+      rw [←hem, function.update_same],
+      have hem1 : j = i.pred h :=
+        begin
+          ext,
+          simp [hem],
+        end,
+      rw [hem1, function.update_same],
+      --case i ≠ j.succ
+      rw function.update_noteq (ne_comm.mp hem),
+      have hem1 : j ≠ i.pred h :=
+      begin
+        intro hj,
+        rw [←fin.succ_inj, fin.succ_pred, eq_comm] at hj,
+        exact hem hj,
+      end,
+      rw function.update_noteq hem1,},
+    end,
+    rw key, rw left_distrib,
+  end,
+  map_smul' :=
+  begin
+    intros ν i r x,
+    induction q with q hq,
+    --Base case
+    exfalso, exact nat.not_lt_zero ↑i i.is_lt,
+    --Inductive step
+    rw [mk_split_aux, mk_split_aux],
+    cases classical.em (i = 0),
+    --case i = 0
+    rw h,
+    rw [function.update_same, function.update_same],
+    have fact : (λ (i : fin q), function.update ν 0 (r • x) i.succ)
+    = (λ (i : fin q), function.update ν 0 x i.succ) :=
+      begin
+        ext j,
+        rw [function.update_noteq (fin.succ_ne_zero j), function.update_noteq (fin.succ_ne_zero j)]
+      end,
+    rw fact,
+    rw [linear_map.map_smul, algebra.smul_mul_assoc],
+    --case i ≠ 0
+    rw [function.update_noteq (ne_comm.mp h), function.update_noteq (ne_comm.mp h)],
+    have key : mk_aux R M (λ (i_1 : fin q), function.update ν i (r • x) i_1.succ) =
+    r • mk_aux R M (λ (i_1 : fin q), function.update ν i x i_1.succ) :=
+      begin
+        convert hq (λ i : fin q, ν i.succ) (i.pred h),
+        repeat{
+        ext j,
+        cases classical.em (i = j.succ) with hem hem,
+        --case i = j.succ
+        rw ←hem,
+        rw function.update_same,
+        have hem1 : j = i.pred h :=
+          begin
+            ext, simp [hem],
+          end,
+        rw hem1,
+        rw function.update_same,
+        --case i ≠ j.succ
+        rw function.update_noteq (ne_comm.mp hem),
+        have hem1 : j ≠ i.pred h :=
+          begin
+          intro hj,
+          rw [←fin.succ_inj, fin.succ_pred, eq_comm] at hj,
+          exact hem hj,
+          end,
+        rw function.update_noteq hem1,},
+      end,
+    rw key, simp,
+  end }
+
+lemma mk_split (ν : fin q.succ → M) :mk R M ν = ι R (ν 0) * mk R M (λ i : fin q, ν i.succ) :=
+mk_split_aux R M ν
+
 
 end tensor_algebra

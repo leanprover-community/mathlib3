@@ -34,13 +34,19 @@ open_locale direct_sum
 
 structure grading :=
 (submodules : ι → submodule R A)
-(mul_comp : ∀ {i j} (gi : submodules i) (gj : submodules j), (gi * gj : A) ∈ submodules (i + j))
+(one_mem : (1 : A) ∈ submodules 0)
+(mul_mem : ∀ {i j} (gi : submodules i) (gj : submodules j), (gi * gj : A) ∈ submodules (i + j))
 
 namespace grading
 
-instance : has_coe_to_sort (grading R A ι) := ⟨_, λ g, ⨁ i, g.submodules i⟩
-
 variables {R A ι} (G : grading R A ι)
+
+@[reducible]
+def submodule_types (i : ι) := ↥(G.submodules i)
+
+local notation g `[`:max i `]`:max := submodule_types g i
+
+instance : has_coe_to_sort (grading R A ι) := ⟨_, λ g, ⨁ i, g[i]⟩
 
 -- TODO: move, or use classical
 instance (S : submodule R A) (x : S) : decidable (x ≠ 0) :=
@@ -58,14 +64,6 @@ begin
   exact heq_iff_eq.trans subtype.ext_iff,
 end
 
--- TODO: either prove this or make it part of the `grading` structure
-/-- the base ring of the algebra is within grade 0 -/
-lemma submodule_zero : (algebra.of_id R A).to_linear_map.range ≤ (G.submodules 0) := begin
-  have := λ (x y : G.submodules 0), G.mul_comp x y,
-  rw zero_add at this,
-  sorry
-end
-
 namespace semiring
 
 @[simps mul]
@@ -73,7 +71,7 @@ instance : has_mul G := {
   mul := λ a b,
     a.sum (λ i ai,
       b.sum (λ j bj,
-        let abij : ↥(G.submodules (i + j)) := ⟨(ai * bj : A), G.mul_comp ai bj⟩ in
+        let abij : ↥(G.submodules (i + j)) := ⟨(ai * bj : A), G.mul_mem ai bj⟩ in
         direct_sum.of (λ i, G.submodules i) (i + j) abij
       )
     )
@@ -81,12 +79,7 @@ instance : has_mul G := {
 
 @[simps one]
 instance : has_one G := {
-  one := direct_sum.of (λ i, G.submodules i) 0 ⟨1, by {
-    apply submodule_zero,
-    rw linear_map.mem_range,
-    use 1,
-    rw [alg_hom.to_linear_map_apply, alg_hom.map_one],
-  }⟩,
+  one := direct_sum.of (λ i, G.submodules i) 0 ⟨1, G.one_mem⟩,
 }
 
 /-! These proofs are very slow, so these lemmas are defined separately -/
@@ -95,7 +88,7 @@ private lemma one_mul (a : G) : 1 * a = a :=
 begin
   simp only [has_mul_mul, has_one_one, direct_sum.of, add_monoid_hom.coe_mk],
   rw dfinsupp.sum_single_index,
-  { convert @dfinsupp.sum_single ι (λ i, ↥(G.submodules i)) _ _ _ a,
+  { convert @dfinsupp.sum_single ι (λ i, G[i]) _ _ _ a,
     ext1 i, ext1,
     congr, exact zero_add i,
     rw subtype.ext_iff_heq,
@@ -103,23 +96,21 @@ begin
     { intro x, rw zero_add }, },
   { convert @dfinsupp.sum_zero _ _ _ _ _ _ _ a,
     ext1 i, ext1,
-    convert dfinsupp.single_zero,
-    simp only [zero_mul, submodule.coe_zero],
-    apply_instance, }
+    convert @dfinsupp.single_zero ι _ _ _ _,
+    simp only [zero_mul, submodule.coe_zero], }
 end
 
 private lemma mul_one (a : G) : a * 1 = a := begin
   simp only [has_mul_mul, has_one_one, direct_sum.of, add_monoid_hom.coe_mk],
-  convert @dfinsupp.sum_single ι (λ i, ↥(G.submodules i)) _ _ _ a,
+  convert @dfinsupp.sum_single ι _ _ _ _ a,
   ext1 i, ext1,
   rw dfinsupp.sum_single_index,
   { congr, exact add_zero i,
     rw subtype.ext_iff_heq,
     { rw [submodule.coe_mk, submodule.coe_mk, mul_one], },
     { intro x, rw add_zero }, },
-  { convert dfinsupp.single_zero,
-    rw [submodule.coe_zero, mul_zero],
-    apply_instance, }
+  { convert @dfinsupp.single_zero ι _ _ _ _,
+    rw [submodule.coe_zero, mul_zero], }
 end
 
 private lemma zero_mul (a : G) : 0 * a = 0 := by { rw has_mul_mul, exact dfinsupp.sum_zero_index }
@@ -128,38 +119,47 @@ private lemma mul_zero (a : G) : a * 0 = 0 := by { rw has_mul_mul, convert dfins
 
 private lemma mul_assoc (a b c : G) : a * b * c = a * (b * c) := begin
   simp only [has_mul_mul, direct_sum.of, add_monoid_hom.coe_mk],
-  dsimp only,
-  convert dfinsupp.sum_sum_index (λ i, _) (λ i bi ci, _),
-  {
-    ext1 ai, ext1,
-    rw @dfinsupp.sum_sum_index ι (λ i, ↥(G.submodules i)) _ _ _ _ _ /- -/ _ _ _ _ _,
-    {
-      rw @dfinsupp.sum_sum_index ι (λ i, ↥(G.submodules i)) _ _ _ _ _ /- -/ _ _ _ _ _,
-      {
-        congr,
+  convert dfinsupp.sum_sum_index (λ i : ι, _) (λ i (bi ci : G[i]), _),
+  { ext1 ai, ext1,
+    simp,
+    rw dfinsupp.sum_sum_index (λ i : ι, _) (λ i (bi ci : G[i]), _),
+    { rw dfinsupp.sum_sum_index (λ i : ι, _) (λ i (bi ci : G[i]), _),
+      { congr,
         ext1 bi, ext1,
-        sorry,
-      },
-      {sorry},
-      {sorry},
-    },
-    {sorry},
-    {sorry},
-  },
-  {
-    convert dfinsupp.sum_zero,
+        rw dfinsupp.sum_single_index,
+        { rw dfinsupp.sum_sum_index (λ i : ι, _) (λ i (bi ci : G[i]), _),
+          { congr,
+            ext1 ci, ext1,
+            rw dfinsupp.sum_single_index,
+            { congr' 1,
+              exact (add_assoc ai bi ci).symm,
+              rw subtype.ext_iff_heq,
+              { simp [mul_assoc], },
+              { intro x, simp [add_assoc] }, },
+            { convert @dfinsupp.single_zero ι (λ i, G[i]) _ _ _, simp, }, },
+          { convert @dfinsupp.single_zero ι (λ i, G[i]) _ _ _, simp, },
+          { convert dfinsupp.single_add, simp [mul_add]}, },
+        { convert @dfinsupp.sum_zero ι (λ i, G[i]) _ _ _ _ _ _,
+          ext1 ai, ext1,
+          { convert @dfinsupp.single_zero ι (λ i, G[i]) _ _ _, simp, }, } },
+      { convert @dfinsupp.sum_zero ι (λ i, G[i]) _ _ _ _ _ _,
+        ext1 ai, ext1,
+        { convert @dfinsupp.single_zero ι (λ i, G[i]) _ _ _, simp, }, },
+      { convert dfinsupp.sum_add,
+        ext1 ai, ext1,
+        rw ← dfinsupp.single_add,
+        congr,
+        simp [add_mul], }, },
+    { convert @dfinsupp.single_zero ι (λ i, G[i]) _ _ _, simp, },
+    { convert dfinsupp.single_add, simp [mul_add]}, },
+  { convert @dfinsupp.sum_zero ι (λ i, G[i]) _ _ _ _ _ _,
     ext1 ai, ext1,
-    { convert dfinsupp.single_zero, simp, apply_instance },
-    { apply_instance },
-    { apply_instance },
-  },
-  {
-    convert dfinsupp.sum_add,
+    { convert @dfinsupp.single_zero ι (λ i, G[i]) _ _ _, simp, }, },
+  { convert dfinsupp.sum_add,
     ext1 ai, ext1,
     rw ← dfinsupp.single_add,
     congr,
-    simp [add_mul],
-  },
+    simp [add_mul], },
 end
 
 private lemma left_distrib (a b c : G) : a * (b + c) = a * b + a * c :=
@@ -168,7 +168,7 @@ begin
   convert dfinsupp.sum_add,
   ext1, ext1,
   convert dfinsupp.sum_add_index (λ i, _) (λ i ai bi, _),
-  { convert dfinsupp.single_zero, simp, apply_instance },
+  { convert @dfinsupp.single_zero ι (λ i, G[i]) _ _ _, simp, },
   { convert dfinsupp.single_add, simp [mul_add] }
 end
 
@@ -176,10 +176,10 @@ private lemma right_distrib (a b c : G) : (a + b) * c = a * c + b * c :=
 begin
   simp only [has_mul_mul, direct_sum.of, add_monoid_hom.coe_mk],
   convert dfinsupp.sum_add_index (λ i, _) (λ i ai bi, _),
-  { convert dfinsupp.sum_zero,
+  { convert @dfinsupp.sum_zero ι (λ i, G[i]) _ _ _ _ _ _,
     ext1, ext1,
-    convert dfinsupp.single_zero,
-    simp, repeat {apply_instance} },
+    convert @dfinsupp.single_zero ι _ _ _ _,
+    simp, },
   convert dfinsupp.sum_add,
   ext1, ext1,
   convert dfinsupp.single_add,

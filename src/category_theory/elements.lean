@@ -84,7 +84,7 @@ def map {F₁ F₂ : C ⥤ Type w} (α : F₁ ⟶ F₂) : F₁.elements ⥤ F₂
 { obj := λ t, ⟨t.1, α.app t.1 t.2⟩,
   map := λ t₁ t₂ k, ⟨k.1, by simpa [←k.2] using (functor_to_types.naturality _ _ α k.1 t₁.2).symm⟩ }
 
-lemma map_π {F₁ F₂ : C ⥤ Type w} (α : F₁ ⟶ F₂) : map α ⋙ π F₂ = π F₁ := rfl
+@[simp] lemma map_π {F₁ F₂ : C ⥤ Type w} (α : F₁ ⟶ F₂) : map α ⋙ π F₂ = π F₁ := rfl
 
 /-- The forward direction of the equivalence `F.elements ≅ (*, F)`. -/
 def to_comma : F.elements ⥤ comma (functor.from_punit punit) F :=

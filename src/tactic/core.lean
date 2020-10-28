@@ -644,6 +644,24 @@ meta def clear_value (vs : list expr) : tactic unit := do
     set_goals $ g :: gs },
   ls.reverse.mmap' $ λ vs, intro_lst $ vs.map expr.local_pp_name
 
+/--
+`context_has_local_def` is true iff there is at least one local definition in
+the context.
+-/
+meta def context_has_local_def : tactic bool := do
+  ctx ← local_context,
+  ctx.many (succeeds ∘ local_def_value)
+
+/--
+`context_upto_hyp_has_local_def h` is true iff any of the hypotheses in the
+context up to and including `h` is a local definition.
+-/
+meta def context_upto_hyp_has_local_def (h : expr) : tactic bool := do
+  ff ← succeeds (local_def_value h) | pure tt,
+  ctx ← local_context,
+  let ctx := ctx.take_while (≠ h),
+  ctx.many (succeeds ∘ local_def_value)
+
 /-- A variant of `simplify_bottom_up`. Given a tactic `post` for rewriting subexpressions,
 `simp_bottom_up post e` tries to rewrite `e` starting at the leaf nodes. Returns the resulting
 expression and a proof of equality. -/

@@ -42,11 +42,11 @@ h : o > 0
 `h` depends on `o`, `k` and `m`, but only the dependency on `o` is syntactically
 obvious. `kdepends_on` ignores this complication and claims that `h` does not
 depend on `k` or `m`. We do not follow this example but process local
-definitions properly. When determining whether `r : R` depends on `d : D`, we
-first check whether the context up to `r` contains any local definitions. If
-not, we can simply check whether `d` occurs in `R`. But if there are local
-definitions, we must compute the transitive dependencies of all hypotheses up to
-`r`.
+definitions properly. This means that if the context contains a local
+definition, we need to compute the syntactic dependencies of `h`, then their
+dependencies, and so on.
+
+## Direct Dependencies
 
 If you want to ignore local definitions while computing dependencies, this
 module also provides tactics to find the *direct* dependencies of a hypothesis.
@@ -61,6 +61,8 @@ open name_set (local_list_to_name_set)
 namespace tactic
 
 /-! ### Direct Dependencies -/
+
+/-! #### Checking whether hypotheses directly depend on each other -/
 
 /--
 `type_has_local_in_name_set h ns` returns true iff the type of `h` contains a
@@ -109,6 +111,62 @@ whose value contains any of the local constants `hs`.
 meta def local_def_value_has_local_in (h : expr) (hs : list expr) :
   tactic bool :=
 local_def_value_has_local_in_name_set h $ local_list_to_name_set hs
+
+/--
+`hyp_directly_depends_on_local_name_set h ns` is true iff the hypothesis `h`
+directly depends on a hypothesis whose unique name appears in `ns`.
+-/
+meta def hyp_directly_depends_on_local_name_set (h : expr) (ns : name_set) :
+  tactic bool :=
+list.mbor
+  [ type_has_local_in_name_set h ns,
+    local_def_value_has_local_in_name_set h ns ]
+
+/--
+`hyp_directly_depends_on_local_set h hs` is true iff the hypothesis `h` directly
+depends on any of the hypotheses `hs`.
+-/
+meta def hyp_directly_depends_on_local_set (h : expr) (hs : expr_set) :
+  tactic bool :=
+hyp_directly_depends_on_local_name_set h $ local_set_to_name_set hs
+
+/--
+`hyp_directly_depends_on_locals h hs` is true iff the hypothesis `h` directly
+depends on any of the hypotheses `hs`.
+-/
+meta def hyp_directly_depends_on_locals (h : expr) (hs : list expr) :
+  tactic bool :=
+hyp_directly_depends_on_local_name_set h $ local_list_to_name_set hs
+
+/--
+`hyp_directly_depends_on_local_name_set_inclusive h ns` is true iff the
+hypothesis `h` directly depends on a hypothesis whose unique name appears in
+`ns` or `h`'s name appears in `ns`.
+-/
+meta def hyp_directly_depends_on_local_name_set_inclusive (h : expr)
+  (ns : name_set) : tactic bool :=
+list.mbor
+  [ pure $ ns.contains h.local_uniq_name
+  , hyp_directly_depends_on_local_name_set h ns ]
+
+/--
+`hyp_directly_depends_on_local_set_inclusive h ns` is true iff the hypothesis `h`
+directly depends on any of the hypotheses `hs` or `h` appears in `hs`.
+-/
+meta def hyp_directly_depends_on_local_set_inclusive (h : expr) (hs : expr_set) :
+  tactic bool :=
+hyp_directly_depends_on_local_name_set_inclusive h $ local_set_to_name_set hs
+
+/--
+`hyp_directly_depends_on_locals_inclusive h ns` is true iff the hypothesis `h`
+directly depends on any of the hypotheses `hs` or `h` appears in `hs`.
+-/
+meta def hyp_directly_depends_on_locals_inclusive (h : expr) (hs : list expr) :
+  tactic bool :=
+hyp_directly_depends_on_local_name_set_inclusive h $ local_list_to_name_set hs
+
+
+/-! #### Computing the direct dependencies of a hypothesis -/
 
 /--
 `direct_dependency_set_of_hyp h` is the set of hypotheses that the hypothesis
@@ -163,101 +221,121 @@ returned in no particular order.
 meta def direct_dependencies_of_hyp_inclusive (h : expr) : tactic (list expr) :=
 rb_set.to_list <$> direct_dependency_set_of_hyp_inclusive h
 
-/--
-`hyp_directly_depends_on_local_name_set h ns` is true iff the hypothesis `h`
-directly depends on a hypothesis whose unique name appears in `ns`.
--/
-meta def hyp_directly_depends_on_local_name_set (h : expr) (ns : name_set) :
-  tactic bool :=
-list.mbor
-  [ type_has_local_in_name_set h ns,
-    local_def_value_has_local_in_name_set h ns ]
+
+/-! ### Indirect/Transitive Dependencies -/
+
+/-! #### Checking whether hypotheses depend on each other -/
 
 /--
-`hyp_directly_depends_on_local_set h hs` is true iff the hypothesis `h` directly
-depends on any of the hypotheses `hs`.
+`hyp_depends_on_local_name_set' cache h ns` is true iff `h` depends on any of
+the hypotheses whose unique names appear in `ns`. `cache` must be a set of
+hypotheses known *not* to depend (even indirectly) on any of the `ns`. This is
+a performance optimisation, so you can give an empty cache. The tactic also
+returns an expanded cache with hypotheses which the tactic has encountered.
+
+You probably want to use `tactic.hyp_depends_on_local_name_set` or
+`tactic.hyps_depend_on_local_name_set` instead of this tactic.
 -/
-meta def hyp_directly_depends_on_local_set (h : expr) (hs : expr_set) :
-  tactic bool :=
-hyp_directly_depends_on_local_name_set h $ local_set_to_name_set hs
-
-/--
-`hyp_directly_depends_on_locals h hs` is true iff the hypothesis `h` directly
-depends on any of the hypotheses `hs`.
--/
-meta def hyp_directly_depends_on_locals (h : expr) (hs : list expr) :
-  tactic bool :=
-hyp_directly_depends_on_local_name_set h $ local_list_to_name_set hs
-
-
-/-! ### (Indirect/Transitive) Dependencies -/
-
-/--
-`context_dependencies ctx` is a map associating each hypothesis `r ∈ ctx` with
-those hypotheses `d ∈ ctx` which `r` depends on. `ctx` must be a sublist of the
-local context. In particular, the hypotheses in `ctx` must be in context order,
-so earlier hypotheses may not depend on later hypotheses.
--/
-meta def context_dependencies (ctx : list expr) : tactic (expr_map expr_set) :=
-ctx.mfoldl
-  (λ deps h, do
-    direct_deps ← direct_dependency_set_of_hyp h,
-    let trans_deps := direct_deps.fold direct_deps $ λ dep trans_deps,
-      trans_deps.union $ (deps.find dep).get_or_else mk_expr_set,
-    pure $ deps.insert h trans_deps
-    )
-  mk_expr_map
+meta def hyp_depends_on_local_name_set' : expr_set → expr → name_set →
+  tactic (bool × expr_set) := λ cache h ns, do
+  ff ← pure $ cache.contains h | pure (ff, cache),
+  direct_deps ← direct_dependency_set_of_hyp h,
+  let has_dep := direct_deps.fold ff (λ d b, b || ns.contains d.local_uniq_name),
+  ff ← pure has_dep | pure (tt, cache),
+  (has_dep, cache) ← direct_deps.mfold (ff, cache) $ λ d ⟨b, cache⟩,
+    if b
+      then pure (tt, cache)
+      else hyp_depends_on_local_name_set' cache d ns,
+  if has_dep
+    then pure (tt, cache)
+    else pure (ff, cache.insert h)
 
 /--
 `hyp_depends_on_local_name_set h ns` is true iff the hypothesis `h` depends on
-any of the hypotheses whose unique names appear in `ns`.
-
-This tactic is moderately expensive if the context up to `h` contains local
-definitions. If you need to check dependencies of multiple hypotheses, you may
-want to use `tactic.context_dependencies`.
+any of the hypotheses whose unique names appear in `ns`. If you need to check
+dependencies of multiple hypotheses, use `tactic.hyps_depend_on_local_name_set`.
 -/
 meta def hyp_depends_on_local_name_set (h : expr) (ns : name_set) : tactic bool := do
-  ctx ← local_context,
-  let ctx := ctx.take_while (≠ h) ++ [h],
-  ctx_has_local_def ← ctx.many (succeeds ∘ local_def_value),
-  if ¬ ctx_has_local_def
-    then hyp_directly_depends_on_local_name_set h ns
-    else do
-      deps ← context_dependencies ctx,
-      let h_deps := local_set_to_name_set $ (deps.find h).get_or_else mk_expr_set,
-      pure $ ns.fold ff (λ dep b, b || h_deps.contains dep)
+  ctx_has_local_def ← context_upto_hyp_has_local_def h,
+  if ctx_has_local_def
+    then prod.fst <$> hyp_depends_on_local_name_set' mk_expr_set h ns
+    else hyp_directly_depends_on_local_name_set h ns
 
 /--
 `hyp_depends_on_local_set h hs` is true iff the hypothesis `h` depends on
-any of the hypotheses `hs`.
-
-This tactic is moderately expensive if the context up to `h` contains local
-definitions. If you need to check dependencies of multiple hypotheses, you may
-want to use `tactic.context_dependencies`.
+any of the hypotheses `hs`. If you need to check dependencies of multiple
+hypotheses, use `tactic.hyps_depend_on_local_set`.
 -/
 meta def hyp_depends_on_local_set (h : expr) (hs : expr_set) : tactic bool :=
 hyp_depends_on_local_name_set h $ local_set_to_name_set hs
 
 /--
 `hyp_depends_on_locals h hs` is true iff the hypothesis `h` depends on any of
-the hypotheses `hs`.
-
-This tactic is moderately expensive if the context up to `h` contains local
-definitions. If you need to check dependencies of multiple hypotheses, you may
-want to use `tactic.context_dependencies`.
+the hypotheses `hs`. If you need to check dependencies of multiple hypotheses,
+use `tactic.hyps_depend_on_locals`.
 -/
 meta def hyp_depends_on_locals (h : expr) (hs : list expr) : tactic bool :=
 hyp_depends_on_local_name_set h $ local_list_to_name_set hs
 
 /--
+`hyps_depend_on_local_name_set hs ns` returns, for each `h ∈ hs`, whether `h`
+depends on a hypothesis whose unique name appears in `ns`. This is the same as
+(but more efficient than) calling `tactic.hyp_depends_on_local_name_set` for
+every `h ∈ hs`.
+-/
+meta def hyps_depend_on_local_name_set (hs : list expr) (ns : name_set) :
+  tactic (list bool) := do
+  ctx_has_local ← context_has_local_def,
+  if ctx_has_local
+    then
+      let go : expr → list bool × expr_set → tactic (list bool × expr_set) :=
+      λ h ⟨deps, cache⟩, do {
+        (h_dep, cache) ← hyp_depends_on_local_name_set' cache h ns,
+        pure (h_dep :: deps, cache)
+      } in
+      prod.fst <$> hs.mfoldr go ([], mk_expr_map)
+    else hs.mmap $ λ h, hyp_directly_depends_on_local_name_set h ns
+
+/--
+`hyps_depend_on_local_set hs is` returns, for each `h ∈ hs`, whether `h` depends
+on any of the hypotheses `is`. This is the same as (but more efficient than)
+calling `tactic.hyp_depends_on_local_set` for every `h ∈ hs`.
+-/
+meta def hyps_depend_on_local_set (hs : list expr) (is : expr_set) :
+  tactic (list bool) :=
+hyps_depend_on_local_name_set hs $ local_set_to_name_set is
+
+/--
+`hyps_depend_on_locals hs is` returns, for each `h ∈ hs`, whether `h` depends
+on any of the hypotheses `is`. This is the same as (but more efficient than)
+calling `tactic.hyp_depends_on_locals` for every `h ∈ hs`.
+-/
+meta def hyps_depend_on_locals (hs is : list expr) : tactic (list bool) :=
+hyps_depend_on_local_name_set hs $ local_list_to_name_set is
+
+/--
+`hyp_depends_on_local_name_set_inclusive' cache h ns` is true iff the hypothesis
+`h` inclusively depends on a hypothesis whose unique name appears in `ns`.
+`cache` must be a set of hypotheses known *not* to depend (even indirectly) on
+any of the `ns`. This is a performance optimisation, so you can give an empty
+cache. The tactic also returns an expanded cache with hypotheses which the
+tactic has encountered. Note that the cache records exclusive, not inclusive
+dependencies.
+
+You probably want to use `tactic.hyp_depends_on_local_name_set_inclusive` or
+`tactic.hyps_depend_on_local_name_set_inclusive` instead of this tactic.
+-/
+meta def hyp_depends_on_local_name_set_inclusive' (cache : expr_set) (h : expr)
+  (ns : name_set) : tactic (bool × expr_set) :=
+if ns.contains h.local_uniq_name
+  then pure (tt, cache)
+  else hyp_depends_on_local_name_set' cache h ns
+
+/--
 `hyp_depends_on_local_name_set_inclusive h ns` is true iff the hypothesis `h`
 inclusively depends on any of the hypotheses whose unique names appear in `ns`.
-This is the case if either `h` depends on any of the `ns` or `h` itself appears
-in `ns`.
-
-This tactic is moderately expensive if the context up to `h` contains local
-definitions. If you need to check dependencies of multiple hypotheses, you may
-want to use `tactic.context_dependencies`.
+If you need to check the dependencies of multiple hypotheses, use
+`tactic.hyps_depend_on_local_name_set_inclusive`.
 -/
 meta def hyp_depends_on_local_name_set_inclusive (h : expr) (ns : name_set) :
   tactic bool :=
@@ -267,74 +345,173 @@ list.mbor
 
 /--
 `hyp_depends_on_local_set_inclusive h hs` is true iff the hypothesis `h`
-depends on any of the hypotheses `hs`.
-
-This tactic is moderately expensive if the context up to `h` contains local
-definitions. If you need to check dependencies of multiple hypotheses, you may
-want to use `tactic.context_dependencies`.
+inclusively depends on any of the hypotheses `hs`. If you need to check
+dependencies of multiple hypotheses, use
+`tactic.hyps_depend_on_local_set_inclusive`.
 -/
 meta def hyp_depends_on_local_set_inclusive (h : expr) (hs : expr_set) :
   tactic bool :=
 hyp_depends_on_local_name_set_inclusive h $ local_set_to_name_set hs
 
 /--
-`hyp_depends_on_locals_inclusive h hs` is true iff the hypothesis `h` depends on
-any of the hypotheses `hs`.
-
-This tactic is moderately expensive if the context up to `h` contains local
-definitions. If you need to check dependencies of multiple hypotheses, you may
-want to use `tactic.context_dependencies`.
+`hyp_depends_on_locals_inclusive h hs` is true iff the hypothesis `h`
+inclusively depends on any of the hypotheses `hs`. If you need to check
+dependencies of multiple hypotheses, use
+`tactic.hyps_depend_on_locals_inclusive`.
 -/
 meta def hyp_depends_on_locals_inclusive (h : expr) (hs : list expr) :
   tactic bool :=
 hyp_depends_on_local_name_set_inclusive h $ local_list_to_name_set hs
 
 /--
-`dependency_set_of_hyp h` is the set of dependencies of the hypothesis `h`.
+`hyps_depend_on_local_name_set_inclusive hs ns` returns, for each `h ∈ hs`,
+whether `h` inclusively depends on a hypothesis whose unique name appears in
+`ns`. This is the same as (but more efficient than) calling
+`tactic.hyp_depends_on_local_name_set_inclusive` for every `h ∈ hs`.
+-/
+meta def hyps_depend_on_local_name_set_inclusive (hs : list expr) (ns : name_set) :
+  tactic (list bool) := do
+  ctx_has_local ← context_has_local_def,
+  if ctx_has_local
+    then
+      let go : expr → list bool × expr_set → tactic (list bool × expr_set) :=
+      λ h ⟨deps, cache⟩, do {
+        (h_dep, cache) ← hyp_depends_on_local_name_set_inclusive' cache h ns,
+        pure (h_dep :: deps, cache)
+      } in
+      prod.fst <$> hs.mfoldr go ([], mk_expr_map)
+    else
+      hs.mmap $ λ h, hyp_directly_depends_on_local_name_set_inclusive h ns
 
-This tactic is moderately expensive if the context up to `h` contains local
-definitions. If you need the dependencies of multiple hypotheses, you may want
-to use `tactic.context_dependencies`.
+/--
+`hyps_depend_on_local_set_inclusive hs is` returns, for each `h ∈ hs`, whether
+`h` depends inclusively on any of the hypotheses `is`. This is the same as
+(but more efficient than) calling `tactic.hyp_depends_on_local_set_inclusive`
+for every `h ∈ hs`.
+-/
+meta def hyps_depend_on_local_set_inclusive (hs : list expr) (is : expr_set) :
+  tactic (list bool) :=
+hyps_depend_on_local_name_set_inclusive hs $ local_set_to_name_set is
+
+/--
+`hyps_depend_on_locals_inclusive hs is` returns, for each `h ∈ hs`, whether `h`
+depends inclusively on any of the hypotheses `is`. This is the same as (but more
+efficient than) calling `tactic.hyp_depends_on_locals_inclusive` for every
+`h ∈ hs`.
+-/
+meta def hyps_depend_on_locals_inclusive (hs is : list expr) : tactic (list bool) :=
+hyps_depend_on_local_name_set_inclusive hs $ local_list_to_name_set is
+
+
+/-! #### Computing the dependencies of a hypothesis -/
+
+/--
+`dependency_set_of_hyp' cache h` is the set of dependencies of the hypothesis
+`h`. `cache` is a map from hypotheses to all their dependencies (including
+indirect dependencies). This is a performance optimisation, so you can give an
+empty cache. The tactic also returns an expanded cache with hypotheses which
+the tactic has encountered.
+
+You probably want to use `tactic.dependency_set_of_hyp` or
+`tactic.dependency_sets_of_hyps` instead of this tactic.
+-/
+meta def dependency_set_of_hyp' : expr_map expr_set → expr →
+  tactic (expr_set × expr_map expr_set) := λ cache h, do
+  match cache.find h with
+  | some deps := pure (deps, cache)
+  | none := do
+    direct_deps ← direct_dependency_set_of_hyp h,
+    (deps, cache) ←
+      direct_deps.mfold (direct_deps, cache) $ λ h' ⟨deps, cache⟩, do {
+        (deps', cache) ← dependency_set_of_hyp' cache h',
+        pure (deps.union deps', cache)
+      },
+    pure (deps, cache.insert h deps)
+  end
+
+/--
+`dependency_set_of_hyp h` is the set of dependencies of the hypothesis `h`. If
+you need the dependencies of multiple hypotheses, use
+`tactic.dependency_sets_of_hyps`.
 -/
 meta def dependency_set_of_hyp (h : expr) : tactic expr_set := do
-  ctx ← local_context,
-  let ctx := ctx.take_while (≠ h) ++ [h],
-  ctx_has_local_def ← ctx.many (succeeds ∘ local_def_value),
-  if ¬ ctx_has_local_def
-    then direct_dependency_set_of_hyp h
-    else do
-      deps ← context_dependencies ctx,
-      pure $ (deps.find h).get_or_else mk_expr_set
+  ctx_has_local ← context_upto_hyp_has_local_def h,
+  if ctx_has_local
+    then prod.fst <$> dependency_set_of_hyp' mk_expr_map h
+    else direct_dependency_set_of_hyp h
 
 /--
 `dependency_name_set_of_hyp h` is the set of unique names of the dependencies of
-the hypothesis `h`.
-
-This tactic is moderately expensive if the context up to `h` contains local
-definitions. If you need the dependencies of multiple hypotheses, you may want
-to use `tactic.context_dependencies`.
+the hypothesis `h`. If you need the dependencies of multiple hypotheses, use
+`tactic.dependency_name_sets_of_hyps`.
 -/
 meta def dependency_name_set_of_hyp (h : expr) : tactic name_set :=
 local_set_to_name_set <$> dependency_set_of_hyp h
 
 /--
 `dependencies_of_hyp h` is the list of dependencies of the hypothesis `h`.
-The dependencies are returned in no particular order.
-
-This tactic is moderately expensive if the context up to `h` contains local
-definitions. If you need the dependencies of multiple hypotheses, you may want
-to use `tactic.context_dependencies`.
+The dependencies are returned in no particular order. If you need the
+dependencies of multiple hypotheses, use `tactic.dependencies_of_hyps`.
 -/
 meta def dependencies_of_hyp (h : expr) : tactic (list expr) :=
 rb_set.to_list <$> dependency_set_of_hyp h
 
 /--
-`dependency_set_of_hyp_inclusive h` is the set of dependencies of the hypothesis
-`h`, plus `h` itself.
+`dependency_sets_of_hyps hs` returns, for each `h ∈ hs`, the set of dependencies
+of `h`. This is the same as (but more performant than) using
+`tactic.dependency_set_of_hyp` on every `h ∈ hs`.
+-/
+meta def dependency_sets_of_hyps (hs : list expr) : tactic (list expr_set) := do
+  ctx_has_def ← context_has_local_def,
+  if ctx_has_def
+    then
+      let go : expr → list expr_set × expr_map expr_set →
+        tactic (list expr_set × expr_map expr_set) := do
+      λ h ⟨deps, cache⟩, do {
+          (h_deps, cache) ← dependency_set_of_hyp' cache h,
+          pure (h_deps :: deps, cache)
+      } in
+      prod.fst <$> hs.mfoldr go ([], mk_expr_map)
+    else
+      hs.mmap direct_dependency_set_of_hyp
 
-This tactic is moderately expensive if the context up to `h` includes local
-definitions. If you need the dependencies of multiple hypotheses, you may want
-to use `tactic.context_dependencies`.
+/--
+`dependency_name_sets_of_hyps hs` returns, for each `h ∈ hs`, the set of unique
+names of the dependencies of `h`. This is the same as (but more performant than)
+using `tactic.dependency_name_set_of_hyp` on every `h ∈ hs`.
+-/
+meta def dependency_name_sets_of_hyps (hs : list expr) : tactic (list name_set) :=
+list.map local_set_to_name_set <$> dependency_sets_of_hyps hs
+
+/--
+`dependencies_of_hyps hs` returns, for each `h ∈ hs`, the dependencies of `h`.
+The dependencies appear in no particular order in the returned lists. This is
+the same as (but more performant than) using `tactic.dependencies_of_hyp` on
+every `h ∈ hs`.
+-/
+meta def dependencies_of_hyps (hs : list expr) : tactic (list (list expr)) :=
+list.map rb_set.to_list <$> dependency_sets_of_hyps hs
+
+/--
+`dependency_set_of_hyp_inclusive' cache h` is the set of dependencies of the
+hypothesis `h`, plus `h` itself. `cache` is a map from hypotheses to all their
+dependencies (including indirect dependencies). This is a performance
+optimisation, so you can give an empty cache. The tactic also returns an
+expanded cache with hypotheses which the tactic has encountered. Note that the
+cache records exclusive, not inclusive dependencies.
+
+You probably want to use `tactic.dependency_set_of_hyp_inclusive` or
+`tactic.dependency_sets_of_hyps_inclusive` instead of this tactic.
+-/
+meta def dependency_set_of_hyp_inclusive' (cache : expr_map expr_set) (h : expr) :
+  tactic (expr_set × expr_map expr_set) := do
+  (deps, cache) ← dependency_set_of_hyp' cache h,
+  pure (deps.insert h, cache)
+
+/--
+`dependency_set_of_hyp_inclusive h` is the set of dependencies of the hypothesis
+`h`, plus `h` itself. If you need the dependencies of multiple hypotheses, use
+`tactic.dependency_sets_of_hyps_inclusive`.
 -/
 meta def dependency_set_of_hyp_inclusive (h : expr) : tactic expr_set := do
   deps ← dependency_set_of_hyp h,
@@ -342,28 +519,64 @@ meta def dependency_set_of_hyp_inclusive (h : expr) : tactic expr_set := do
 
 /--
 `dependency_name_set_of_hyp_inclusive h` is the set of unique names of the
-dependencies of the hypothesis `h`, plus `h` itself.
-
-This tactic is moderately expensive if the context up to `h` includes local
-definitions. If you need the dependencies of multiple hypotheses, you may want
-to use `tactic.context_dependencies`.
+dependencies of the hypothesis `h`, plus the unique name of `h` itself. If you
+need the dependencies of multiple hypotheses, use
+`tactic.dependency_name_sets_of_hyps_inclusive`.
 -/
 meta def dependency_name_set_of_hyp_inclusive (h : expr) : tactic name_set :=
 local_set_to_name_set <$> dependency_set_of_hyp_inclusive h
 
 /--
 `dependencies_of_hyp_inclusive h` is the list of dependencies of the hypothesis
-`h`, plus `h` itself. The dependencies are returned in no particular order.
-
-This tactic is moderately expensive if the context up to `h` includes local
-definitions. If you need the dependencies of multiple hypotheses, you may want
-to use `tactic.context_dependencies`.
+`h`, plus `h` itself. The dependencies are returned in no particular order. If
+you need the dependencies of multiple hypotheses, use
+`tactic.dependencies_of_hyps_inclusive`.
 -/
 meta def dependencies_of_hyp_inclusive (h : expr) : tactic (list expr) :=
 rb_set.to_list <$> dependency_set_of_hyp_inclusive h
 
+/--
+`dependency_sets_of_hyps_inclusive hs` returns, for each `h ∈ hs`, the
+dependencies of `h`, plus `h` itself. This is the same as (but more performant
+than) using `tactic.dependency_set_of_hyp_inclusive` on every `h ∈ hs`.
+-/
+meta def dependency_sets_of_hyps_inclusive (hs : list expr) :
+  tactic (list expr_set) := do
+  ctx_has_def ← context_has_local_def,
+  if ctx_has_def
+    then
+      let go : expr → list expr_set × expr_map expr_set →
+        tactic (list expr_set × expr_map expr_set) :=
+      λ h ⟨deps, cache⟩, do {
+        (h_deps, cache) ← dependency_set_of_hyp_inclusive' cache h,
+        pure (h_deps :: deps, cache)
+      } in
+      prod.fst <$> hs.mfoldr go ([], mk_expr_map)
+    else
+      hs.mmap direct_dependency_set_of_hyp_inclusive
 
-/-! ### Reverse Dependencies -/
+/--
+`dependency_name_sets_of_hyps_inclusive hs` returns, for each `h ∈ hs`, the
+unique names of the dependencies of `h`, plus the unique name of `h` itself.
+This is the same as (but more performant than) using
+`tactic.dependency_name_set_of_hyp_inclusive` on every `h ∈ hs`.
+-/
+meta def dependency_name_sets_of_hyps_inclusive (hs : list expr) :
+  tactic (list name_set) :=
+list.map local_set_to_name_set <$> dependency_sets_of_hyps_inclusive hs
+
+/--
+`dependencies_of_hyps_inclusive hs` returns, for each `h ∈ hs`, the dependencies
+of `h`, plus `h` itself. The dependencies appear in no particular order in the
+returned lists. This is the same as (but more performant than) using
+`tactic.dependencies_of_hyp_inclusive` on every `h ∈ hs`.
+-/
+meta def dependencies_of_hyps_inclusive (hs : list expr) :
+  tactic (list (list expr)) :=
+list.map rb_set.to_list <$> dependency_sets_of_hyps_inclusive hs
+
+
+/-! #### Computing the reverse dependencies of a hypothesis -/
 
 private meta def reverse_dependencies_of_hyp_name_set_aux (hs : name_set) :
   list expr → list expr → name_set → tactic (list expr)
@@ -454,14 +667,16 @@ meta def reverse_dependencies_of_hyps_inclusive (hs : list expr) :
   tactic (list expr) :=
 reverse_dependencies_of_hyp_name_set_inclusive $ local_list_to_name_set hs
 
-/-! ### Reverting -/
+
+/-! ### Reverting a hypothesis and its reverse dependencies -/
 
 /--
-`revert_name_set hs` reverts the local constants whose unique names appear
-in `hs` as well as any hypotheses that depend on them. Returns the number of
-reverted hypotheses and a list containing these hypotheses. The returned
-hypotheses are arbitrarily ordered and are guaranteed to store the correct type
-(see `tactic.update_type`). -/
+`revert_name_set hs` reverts the hypotheses whose unique names appear in `hs`,
+as well as any hypotheses that depend on them. Returns the number of reverted
+hypotheses and a list containing these hypotheses. The reverted hypotheses are
+returned in the order in which they used to appear in the context and are
+guaranteed to store the correct type (see `tactic.update_type`).
+-/
 meta def revert_name_set (hs : name_set) : tactic (ℕ × list expr) := do
   to_revert ← reverse_dependencies_of_hyp_name_set_inclusive hs,
   to_revert_with_types ← to_revert.mmap update_type,
@@ -469,19 +684,23 @@ meta def revert_name_set (hs : name_set) : tactic (ℕ × list expr) := do
   pure (num_reverted, to_revert_with_types)
 
 /--
-`revert_set hs` reverts the local constants in `hs`, as well as any
-hypotheses that depend on them. Returns the number of reverted hypotheses and a
-list containing these hypotheses. The returned hypotheses are arbitrarily
-ordered and are guaranteed to store the correct type (see `tactic.update_type`).
+`revert_set hs` reverts the hypotheses `hs`, as well as any hypotheses that
+depend on them. Returns the number of reverted hypotheses and a list containing
+these hypotheses. The reverted hypotheses are returned in the order in which
+they used to appear in the context and are guaranteed to store the correct type
+(see `tactic.update_type`).
 -/
 meta def revert_set (hs : expr_set) : tactic (ℕ × list expr) :=
 revert_name_set $ local_set_to_name_set hs
 
 /--
-`revert_lst' hs` reverts the local constants in `hs`, as well as any
-hypotheses that depend on them. Returns the number of reverted hypotheses and a
-list containing these hypotheses. The returned hypotheses are arbitrarily
-ordered and are guaranteed to store the correct type (see `tactic.update_type`).
+`revert_lst' hs` reverts the hypotheses `hs`, as well as any hypotheses that
+depend on them. Returns the number of reverted hypotheses and a list containing
+these hypotheses. The reverted hypotheses are returned in the order in which
+they used to appear in the context and are guaranteed to store the correct type
+(see `tactic.update_type`).
+
+This is a more informative version of `tactic.revert_lst`.
 -/
 meta def revert_lst' (hs : list expr) : tactic (ℕ × list expr) :=
 revert_name_set $ local_list_to_name_set hs
@@ -489,14 +708,15 @@ revert_name_set $ local_list_to_name_set hs
 /--
 `revert_reverse_dependencies_of_hyp h` reverts all the hypotheses that depend on
 the hypothesis `h`, including the local definitions that have `h` in their
-value. This fixes a bug in `revert_kdeps` that does not revert local definitions
-for which `h` only appears in the value. Returns the number of reverted
-hypotheses.
+value. This fixes a bug in `tactic.revert_kdependencies` that does not revert
+local definitions for which `h` only appears in the value. Returns the number
+of reverted hypotheses.
 -/
-meta def revert_reverse_dependencies_of_hyp (h : expr) : tactic ℕ :=
-reverse_dependencies_of_hyps [h] >>= revert_lst
 /- We cannot implement it as `revert e >> intro1` because that would change the
 local constant in the context. -/
+meta def revert_reverse_dependencies_of_hyp (h : expr) : tactic ℕ :=
+reverse_dependencies_of_hyp_name_set (mk_name_set.insert h.local_uniq_name) >>=
+  revert_lst
 
 /--
 `revert_reverse_dependencies_of_hyp_name_set hs` reverts all the hypotheses that

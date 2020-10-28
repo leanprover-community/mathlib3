@@ -167,8 +167,6 @@ begin
   { rintro ⟨r, s, h⟩,
     by_contradiction hg,
     obtain ⟨p, ⟨hp, ha, hb⟩⟩ := nat.prime.not_coprime_iff_dvd.mp hg,
-    have ha' : (p : ℤ) ∣ a, exact coe_nat_dvd_left.mpr ha,
-    have hb' : (p : ℤ) ∣ b, exact coe_nat_dvd_left.mpr hb,
     apply nat.prime.not_dvd_one hp,
     apply coe_nat_dvd.mp,
     change (p : ℤ) ∣ 1,
@@ -178,7 +176,7 @@ begin
   }
 end
 
-lemma sqr_of_coprime {a b c : ℤ} (h : int.gcd a b = 1) (heq : a * b = c ^ 2) :
+lemma sqr_of_gcd_eq_one {a b c : ℤ} (h : int.gcd a b = 1) (heq : a * b = c ^ 2) :
   ∃ (a0 : ℤ), a = a0 ^ 2 ∨ a = - (a0 ^ 2) :=
 begin
   have h' : gcd_monoid.gcd a b = 1, { rw [← coe_gcd, h], dec_trivial },
@@ -187,6 +185,9 @@ begin
   rw ← hu,
   cases int.units_eq_one_or u with hu' hu'; { rw hu', simp }
 end
+
+lemma sqr_of_coprime {a b c : ℤ} (h : is_coprime a b) (heq : a * b = c ^ 2) :
+  ∃ (a0 : ℤ), a = a0 ^ 2 ∨ a = - (a0 ^ 2) := sqr_of_gcd_eq_one (gcd_eq_one_iff_coprime.mpr h) heq
 
 end int
 
@@ -253,6 +254,21 @@ lemma int.prime.dvd_mul' {m n : ℤ} {p : ℕ}
 begin
   rw [int.coe_nat_dvd_left, int.coe_nat_dvd_left],
   exact int.prime.dvd_mul hp h
+end
+
+lemma int.prime.dvd_pow {n : ℤ} {k p : ℕ}
+  (hp : nat.prime p) (h : (p : ℤ) ∣ n ^ k) : p  ∣ n.nat_abs :=
+begin
+  apply nat.prime.dvd_of_dvd_pow,
+  rw ← int.nat_abs_mul,
+  exact int.coe_nat_dvd_left.mp h
+end
+
+lemma int.prime.dvd_pow' {n : ℤ} {k p : ℕ}
+  (hp : nat.prime p) (h : (p : ℤ) ∣ n ^ k) : (p : ℤ)  ∣ n :=
+begin
+  rw int.coe_nat_dvd_left,
+  exact int.prime.dvd_pow hp h
 end
 
 lemma prime_two_or_dvd_of_dvd_two_mul_pow_self_two {m : ℤ} {p : ℕ}

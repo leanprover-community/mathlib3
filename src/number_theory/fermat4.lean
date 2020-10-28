@@ -64,7 +64,6 @@ def minimal (a b c : ℤ) : Prop :=
 lemma exists_minimal {a b c : ℤ} (h : fermat_42 a b c) :
   ∃ (a0 b0 c0), (minimal a0 b0 c0) :=
 begin
-  let all : set (ℤ × ℤ × ℤ) := {s | fermat_42 s.1 s.2.1 s.2.2},
   let S : set ℕ := { n | ∃ (s : ℤ × ℤ × ℤ), fermat_42 s.1 s.2.1 s.2.2 ∧ n = int.nat_abs s.2.2},
   have S_nonempty : S.nonempty,
   { use int.nat_abs c,
@@ -81,9 +80,9 @@ begin
 end
 
 /-- a minimal solution to `a ^ 4 + b ^ 4 = c ^ 2` must have `a` and `b` coprime. -/
-lemma coprime_of_minimal {a b c : ℤ} (h : minimal a b c) :
-  int.gcd a b = 1 :=
+lemma coprime_of_minimal {a b c : ℤ} (h : minimal a b c) : is_coprime a b :=
 begin
+  apply int.gcd_eq_one_iff_coprime.mp,
   by_contradiction hab,
   obtain ⟨p, hp, hpa, hpb⟩ := nat.prime.not_coprime_iff_dvd.mp hab,
   obtain ⟨a1, rfl⟩ := (int.coe_nat_dvd_left.mpr hpa),
@@ -126,7 +125,7 @@ begin
     { exfalso,
       have h1 : 2 ∣ (int.gcd a0 b0 : ℤ),
       { exact int.dvd_gcd (int.dvd_of_mod_eq_zero hap) (int.dvd_of_mod_eq_zero hbp) },
-        rw (coprime_of_minimal hf) at h1, revert h1, norm_num },
+        rw int.gcd_eq_one_iff_coprime.mpr (coprime_of_minimal hf) at h1, revert h1, norm_num },
       { exact ⟨b0, ⟨a0, ⟨c0, minimal_comm hf, hbp⟩⟩⟩ }},
   exact ⟨a0, ⟨b0, ⟨c0 , hf, hap⟩⟩⟩,
 end
@@ -146,47 +145,18 @@ end
 
 end fermat_42
 
-lemma int.coprime_of_sqr_sum_delete {m r s : ℤ} (h : m = r ^ 2 + s ^ 2) (h2 : int.gcd r s = 1) :
-  int.gcd m r = 1 :=
+lemma int.coprime_of_sqr_sum {r s : ℤ} (h2 : is_coprime s r) :
+  is_coprime (r ^ 2 + s ^ 2) r :=
 begin
-  by_contradiction hg,
-  obtain ⟨p, ⟨hp, hm, hr⟩⟩ := nat.prime.not_coprime_iff_dvd.mp hg,
-  apply nat.prime.not_dvd_one hp,
-  rw ← h2,
-  apply nat.dvd_gcd hr,
-  apply int.coe_nat_dvd_left.mp,
-  apply (or_self _).mp (int.prime.dvd_mul' hp _),
-  rw [← pow_two, (eq_sub_of_add_eq' (eq.symm h))],
-  apply dvd_sub (int.coe_nat_dvd_left.mpr hm),
-  rw pow_two, exact dvd_mul_of_dvd_left (int.coe_nat_dvd_left.mpr hr) r
+  rw [pow_two, pow_two],
+  exact (is_coprime.mul_left h2 h2).mul_add_left_left r
 end
 
-lemma int.coprime_of_sqr_sum {m r s : ℤ} (h : m = r ^ 2 + s ^ 2) (h2 : int.gcd r s = 1) :
-  int.gcd m r = 1 :=
+lemma int.coprime_of_sqr_sum' {r s : ℤ} (h : is_coprime r s) :
+  is_coprime (r ^ 2 + s ^ 2) (r * s) :=
 begin
-  apply int.gcd_eq_one_iff_coprime.mpr,
-  rw [h, pow_two, pow_two],
-  apply is_coprime.mul_add_left_left _ r,
-  apply is_coprime.mul_left;
-  { apply int.gcd_eq_one_iff_coprime.mp, rw int.gcd_comm, exact h2 },
-end
-
-lemma int.coprime_of_sqr_sum_delete' {m r s : ℤ} (h : m = r ^ 2 + s ^ 2) (h2 : int.gcd r s = 1) :
-  int.gcd m (r * s) = 1 :=
-begin
-  dunfold int.gcd,
-  rw int.nat_abs_mul,
-  apply nat.coprime.mul_right (int.coprime_of_sqr_sum h h2),
-  rw add_comm at h,
-  rw [int.gcd_comm r s] at h2,
-  exact int.coprime_of_sqr_sum h h2
-end
-
-lemma int.coprime_of_sqr_sum' {m r s : ℤ} (h : m = r ^ 2 + s ^ 2) (h2 : int.gcd r s = 1) :
-  int.gcd m (r * s) = 1 :=
-begin
-  apply int.gcd_eq_one_iff_coprime.mpr,
-  rw [h, pow_two, pow_two],
+  apply is_coprime.mul_right (int.coprime_of_sqr_sum (is_coprime_comm.mp h)),
+  rw add_comm, apply int.coprime_of_sqr_sum h
 end
 
 namespace fermat_42
@@ -206,12 +176,8 @@ begin
     ... = c * c : by rw pow_two
   },
   -- coprime requirement:
-  have h2 : int.gcd (a ^ 2) (b ^ 2) = 1,
-  { change nat.coprime (int.nat_abs (a ^ 2)) (int.nat_abs (b ^ 2)),
-    rw [pow_two, int.nat_abs_mul],
-    apply nat.coprime.mul;
-    { rw [pow_two, int.nat_abs_mul], apply nat.coprime.mul_right;
-      apply (coprime_of_minimal h) } },
+  have h2 : int.gcd (a ^ 2) (b ^ 2) = 1 :=
+    int.gcd_eq_one_iff_coprime.mpr (coprime_of_minimal h).pow,
   -- in order to reduce the possibilities we get from the classification of pythagorean triples
   -- it helps if we know the parity of a ^ 2 (and the sign of c):
   have ha22 : a ^ 2 % 2 = 1, { rw [pow_two, int.mul_mod, ha2], norm_num },
@@ -225,15 +191,10 @@ begin
     rw [← pow_two, ← pow_two, ← pow_two], exact (add_eq_of_eq_sub ht1) },
   -- a and n are coprime, because a ^ 2 = m ^ 2 - n ^ 2 and m and n are coprime.
   have h3 : int.gcd a n = 1,
-  { have ha : (int.gcd a n : ℤ) ^ 2 ∣ a ^ 2,
-    { exact (int.pow_dvd_pow_iff (dec_trivial : 0 < 2)).mpr (int.gcd_dvd_left a n),},
-    have hn : (int.gcd a n : ℤ) ^ 2 ∣ n ^ 2,
-    { exact (int.pow_dvd_pow_iff (dec_trivial : 0 < 2)).mpr (int.gcd_dvd_right a n),},
-    have hm : (int.gcd a n : ℤ) ^ 2 ∣ m ^ 2,
-    { rw [← (add_eq_of_eq_sub ht1)], exact dvd_add ha hn },
-    replace hm : (int.gcd a n : ℤ) ∣ m, { exact (int.pow_dvd_pow_iff (dec_trivial : 0 < 2)).mp hm},
-    apply nat.eq_one_of_dvd_one,
-    rw [←ht4], apply int.coe_nat_dvd.mp, exact int.dvd_gcd hm (int.gcd_dvd_right a n) },
+  { apply int.gcd_eq_one_iff_coprime.mpr,
+    apply @is_coprime.of_mul_left_left _ _ _ a,
+    rw [← pow_two, ht1, (by ring : m ^ 2 - n ^ 2 = m ^ 2 + (-n) * n)],
+    exact (int.gcd_eq_one_iff_coprime.mp ht4).pow_left.add_mul_right_left (-n) },
   -- m is positive because b is non-zero and b ^ 2 = 2 * m * n and we already have 0 ≤ m.
   have hb20 : b ^ 2 ≠ 0 := mt pow_eq_zero h.1.2.1,
   have h4 : 0 < m,
@@ -246,10 +207,13 @@ begin
   -- Now use the fact that (b / 2) ^ 2 = m * r * s, and m, r and s are pairwise coprime to obtain
   -- i, j and k such that m = i ^ 2, r = j ^ 2 and s = k ^ 2.
   -- m and r * s are coprime because m = r ^ 2 + s ^ 2 and r and s are coprime.
-  have hcp : int.gcd m (r * s) = 1, exact int.coprime_of_sqr_sum' htt3 htt4,
+  have hcp : int.gcd m (r * s) = 1,
+  { rw htt3,
+    exact int.gcd_eq_one_iff_coprime.mpr (int.coprime_of_sqr_sum'
+      (int.gcd_eq_one_iff_coprime.mp htt4)) },
   -- b is even because b ^ 2 = 2 * m * n.
   have hb2 : 2 ∣ b,
-  { apply (or_self _).mp (int.prime.dvd_mul' (by norm_num : nat.prime 2) _),
+  { apply int.prime.dvd_pow' (by norm_num : nat.prime 2) _),
     rw ← pow_two, rw [ht2, mul_assoc], exact dvd_mul_right 2 (m * n) },
   have hs : (b / 2) ^ 2 = m * (r * s),
   { have hb22 : 2 * (b / 2) = b, { exact int.mul_div_cancel' hb2 },
@@ -264,7 +228,7 @@ begin
   have h2b0 : b / 2 ≠ 0,
   { apply ne_zero_pow (dec_trivial : 2 ≠ 0),
     rw hs, apply mul_ne_zero, { exact ne_of_gt h4}, { exact hrsz } },
-  obtain ⟨i, hi⟩ := int.sqr_of_coprime hcp hs.symm,
+  obtain ⟨i, hi⟩ := int.sqr_of_gcd_eq_one hcp hs.symm,
   -- use m is positive to exclude m = - i ^ 2
   have hi' : ¬ m = - i ^ 2,
   { by_contradiction h1,
@@ -275,7 +239,7 @@ begin
   rw mul_comm at hs,
   rw [int.gcd_comm] at hcp,
   -- obtain d such that r * s = d ^ 2
-  obtain ⟨d, hd⟩ := int.sqr_of_coprime hcp hs.symm,
+  obtain ⟨d, hd⟩ := int.sqr_of_gcd_eq_one hcp hs.symm,
   -- (b / 2) ^ 2 and m are positive so r * s is positive
   have hd' : ¬ r * s = - d ^ 2,
   { by_contradiction h1,
@@ -287,14 +251,14 @@ begin
     exact absurd (lt_of_le_of_ne h2' (ne.symm (pow_ne_zero _ h2b0))) (not_lt.mpr h2) },
   replace hd : r * s = d ^ 2, { apply or.resolve_right hd hd' },
   -- r = +/- j ^ 2
-  obtain ⟨j, hj⟩ := int.sqr_of_coprime htt4 hd,
+  obtain ⟨j, hj⟩ := int.sqr_of_gcd_eq_one htt4 hd,
   have hj0 : j ≠ 0,
   { intro h0, rw [h0, zero_pow (dec_trivial : 0 < 2), neg_zero, or_self] at hj,
     apply left_ne_zero_of_mul hrsz hj },
   rw mul_comm at hd,
   rw [int.gcd_comm] at htt4,
   -- s = +/- k ^ 2
-  obtain ⟨k, hk⟩ := int.sqr_of_coprime htt4 hd,
+  obtain ⟨k, hk⟩ := int.sqr_of_gcd_eq_one htt4 hd,
   have hk0 : k ≠ 0,
   { intro h0, rw [h0, zero_pow (dec_trivial : 0 < 2), neg_zero, or_self] at hk,
     apply right_ne_zero_of_mul hrsz hk },

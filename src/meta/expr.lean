@@ -464,10 +464,18 @@ meta def to_implicit_binder : expr → expr
 | (pi n _ d b) := pi n binder_info.implicit d b
 | e  := e
 
-
 /-- Returns a list of all local constants in an expression (without duplicates). -/
 meta def list_local_consts (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_local_constant then insert e' es else es)
+
+/-- Returns the set of all local constants in an expression. -/
+meta def list_local_consts' (e : expr) : expr_set :=
+e.fold mk_expr_set (λ e' _ es, if e'.is_local_constant then es.insert e' else es)
+
+/-- Returns the unique names of all local constants in an expression. -/
+meta def list_local_const_unique_names (e : expr) : name_set :=
+e.fold mk_name_set
+  (λ e' _ es, if e'.is_local_constant then es.insert e'.local_uniq_name else es)
 
 /-- Returns a name_set of all constants in an expression. -/
 meta def list_constant (e : expr) : name_set :=
@@ -476,6 +484,10 @@ e.fold mk_name_set (λ e' _ es, if e'.is_constant then es.insert e'.const_name e
 /-- Returns a list of all meta-variables in an expression (without duplicates). -/
 meta def list_meta_vars (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_mvar then insert e' es else es)
+
+/-- Returns the set of all meta-variables in an expression. -/
+meta def list_meta_vars' (e : expr) : expr_set :=
+e.fold mk_expr_set (λ e' _ es, if e'.is_mvar then es.insert e' else es)
 
 /-- Returns a list of all universe meta-variables in an expression (without duplicates). -/
 meta def list_univ_meta_vars (e : expr) : list name :=

@@ -5,7 +5,6 @@ Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 -/
 
 import tactic.rewrite_search.types
-import tactic.rewrite_search.debug
 import tactic.rewrite_search.backtrack
 import tactic.rewrite_search.explain
 
@@ -14,6 +13,8 @@ import tactic.rewrite_search.explain
 -/
 
 universe u
+
+open tactic
 
 meta def read_option {α : Type u} (buf : buffer α) (i : ℕ) : option α :=
 if h : i < buf.size then some (buf.read (fin.mk i h)) else none
@@ -53,7 +54,7 @@ do maybe_v ← g.find_vertex e,
    match maybe_v with
    | none := do
      (g, v) ← g.alloc_vertex e root s,
-     g.trace_vertex_added v,
+     when_tracing `rewrite_search (trace format!"addV({to_string v.id}): {v.pp}"),
      return (g, v)
    | (some v) := return (g, v)
    end
@@ -85,7 +86,7 @@ meta def mark_vertex_visited (v : vertex) : tactic (search_state × vertex) := d
 meta def add_edge (f t : vertex) (proof : tactic expr) (how : how) :
 tactic (search_state × vertex × vertex × edge) :=
 do let new_edge : edge := ⟨ f.id, t.id, proof, how ⟩,
-   g.trace_edge_added new_edge,
+   when_tracing `rewrite_search (trace format!"addE: {to_string new_edge.f}→{to_string new_edge.t}"),
    let (g, f) := g.add_adj f new_edge,
    let (g, t) := g.add_adj t new_edge,
    let (g, t) := g.publish_parent f t new_edge,
@@ -256,12 +257,7 @@ meta def search_until_solved_aux : search_state → ℕ → tactic (search_state
   | status.done e   := g.finish_search e
   end
 
-meta def search_until_solved : tactic (search_state × search_result) := do
-  if g.conf.trace_rules then (do
-    rs ← g.rs.mmap pp_rule,
-    tactic.trace $ "rewrite_search using:\n---\n" ++ (string.intercalate "\n" rs) ++ "\n---"
-  ) else tactic.skip,
-  g.search_until_solved_aux 0
+meta def search_until_solved : tactic (search_state × search_result) := g.search_until_solved_aux 0
 
 meta def explain (proof : expr) (steps : list proof_unit) : tactic string :=
   explain_search_result g.conf g.rs proof steps

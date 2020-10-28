@@ -10,6 +10,8 @@ import tactic.nth_rewrite
 # Types used in rewrite search.
 -/
 
+declare_trace rewrite_search
+
 open tactic tactic.nth_rewrite.congr
 
 namespace tactic.rewrite_search
@@ -57,9 +59,6 @@ meta structure config extends tactic.nth_rewrite.cfg :=
 (max_iterations     : ℕ := 500)
 (optimal            : bool := tt)
 (exhaustive         : bool := ff)
-(trace              : bool := ff)
-(trace_summary      : bool := ff)
-(trace_rules        : bool := ff)
 (explain            : bool := ff)
 (explain_using_conv : bool := tt)
 (suggest            : list name := [])

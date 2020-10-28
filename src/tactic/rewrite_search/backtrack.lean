@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 -/
 
-import tactic.rewrite_search.debug
 import tactic.rewrite_search.types
 
 /-!
@@ -137,19 +136,11 @@ meta def build_proof (e : edge) : tactic (expr × list proof_unit) := do
   let bt := if g.conf.optimal then bfs.backtrack g else naive.backtrack g,
   edges ← bt e,
 
-  g.trace_search_finished edges,
+  trace_if_enabled `rewrite_search "Done!",
 
   units ← build_units edges,
   proof ← combine_units units,
   proof ← proof <|> fail "could not combine proof units!",
-
-  if g.conf.trace_summary then do
-    let vl := g.vertices.to_list,
-    let saw := vl.length,
-    let visited := (vl.filter (λ v : vertex, v.visited)).length,
-    name ← decl_name,
-    tactic.trace format!"rewrite_search for {name} saw {saw}, visited {visited}"
-  else skip,
 
   return (proof, units)
 

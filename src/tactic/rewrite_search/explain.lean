@@ -255,11 +255,6 @@ meta def explain_proof_concisely (rs : list (expr × bool)) (proof : expr)
 
 meta def explain_search_result (cfg : config) (rs : list (expr × bool)) (proof : expr)
 (units : list proof_unit) : tactic string := do
-  if cfg.trace then do
-    pp ← pp proof,
-    trace format!"rewrite_search found proof:\n{pp}"
-  else skip,
-
   explanation ← explain_proof_concisely rs proof units <|>
                 explain_proof_full rs cfg.explain_using_conv units,
   if cfg.explain then trace $ "/- `rewrite_search` says -/\n" ++ explanation

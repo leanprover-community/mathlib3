@@ -1,6 +1,7 @@
 import analysis.complex.basic
 import data.zmod.basic
 import measure_theory.interval_integral
+import analysis.convex.products
 
 noncomputable theory
 
@@ -8,7 +9,7 @@ open_locale classical
 open_locale nnreal
 open_locale big_operators
 open_locale topological_space
-open set function finset
+open set function
 open complex
 
 /-- A triangle is a function from `ℤ/3ℤ` to `ℂ` (this definition allows for the description of
@@ -52,7 +53,7 @@ begin
 
   {
     --squeeze_simp [mul_sum],
-    simp [mul_sum],
+    simp [finset.mul_sum],
   },
 
 
@@ -134,7 +135,7 @@ begin
 },
 
 {
-  rw sum_const,
+  rw finset.sum_const,
   simp,
   left,
   -- ???
@@ -310,12 +311,12 @@ begin
 
     exact (equiv.add_left (1 : zmod 3)).sum_comp _,
 
-    rw ← mul_sum,
-    rw ← mul_sum,
+    rw ← finset.mul_sum,
+    rw ← finset.mul_sum,
   },
 
   {
-    rw ←  sum_sub_distrib,
+    rw ←  finset.sum_sub_distrib,
     ring,
   },
 
@@ -354,13 +355,62 @@ def triangle_hull (T: triangle): set ℂ  := convex_hull (set.range T )
 
 def max_side_length (T: triangle ) : ℝ := Sup (set.range (λ i, abs (T (i+1) - T i)))
 
+/-- Our definition of `max_side_length` (given as the max of the three side lengths, cyclically
+around the triangle) is the same as a variant definition (the max of the lengths of the 9 = 3 × 3
+diff-pairs. -/
+lemma max_side_length_eq (T : triangle) (i j : zmod 3) :
+  abs (T i - T j) ≤ Sup (range (λ (i : zmod 3), abs (T (i + 1) - T i))) :=
+begin
+  sorry,
+end
+
+/-- Any two points in a triangle `T` are at most `max_side_length T` apart. -/
 lemma foo5 (T:triangle )
   (z w : ℂ ) (hz: z ∈  triangle_hull T) (hw: w ∈  triangle_hull T) :
   dist z w ≤ max_side_length T :=
 begin
   /- HM -/
-  sorry,
+  -- Introduce the map `diff`, defined as `⟨z, w⟩ ↦ z - w`, with this considered as an `ℝ`-linear
+  -- map from `ℂ × ℂ → ℂ`.
+  let diff : ℂ × ℂ →ₗ[ℝ] ℂ :=
+    (linear_map.id.comp (linear_map.fst ℝ ℂ ℂ)) - (linear_map.id.comp (linear_map.snd ℝ ℂ ℂ)),
+  -- notice that `dist` is the composition of the convex function `norm` and the linear function `diff`.
+  -- also notice that the domain of consideration, `(triangle_hull T) × (triangle_hull T)`, is equal
+  -- to the convex hull of the 9 points in `(set.range T) × (set.range T)`.  This relies on the
+  -- new lemma `prod_convex_hull` (proved in another file).
+  suffices h : ∀ p ∈ convex_hull ((set.range T).prod (set.range T)), (norm ∘ diff) p ≤ max_side_length T,
+  { refine h ⟨z, w⟩ _,
+    rw prod_convex_hull,
+    exact ⟨hz, hw⟩ },
+  -- let `p` be a point in the convex hull of `(set.range T) × (set.range T)`.  Rewrite as a linear
+  -- combination of points in `(set.range T) × (set.range T)`.
+  intros p hp,
+  rw convex_hull_eq at hp,
+  obtain ⟨ι, s, ρ, q, hρ₀, hρ₁, hq, hqp⟩ := hp,
+  rw ← hqp,
+  have h_pos : 0 < ∑ a in s, ρ a,
+  { rw hρ₁,
+    norm_num },
+  have h_in : ∀ (a : ι), a ∈ s → q a ∈ convex_hull ((range T).prod (range T)),
+  { intros a ha,
+    exact subset_convex_hull _ (hq a ha) },
+  -- by general theory, the function `norm ∘ diff` is convex, and in particular is convex on the set
+  -- we consider.
+  have convex_on_diff : convex_on (convex_hull ((set.range T).prod (set.range T))) (norm ∘ diff),
+  { exact (norm_convex.comp_linear_map diff).subset subset_preimage_univ (convex_convex_hull _) },
+  -- so it attains its maximum (over the convex hull of `(set.range T) × (set.range T)`) at one of
+  -- the 9 points in `(set.range T) × (set.range T)`.  Let `a` be this point.
+  obtain ⟨a, ha, haT⟩ := convex_on_diff.exists_ge_of_center_mass hρ₀ h_pos h_in,
+  refine le_trans haT _,
+  -- by construction, `a = ⟨T i, T j⟩` for some `i, j : zmod 3`
+  obtain ⟨⟨i, hi⟩, ⟨j, hj⟩⟩ := hq a ha,
+  simp [max_side_length, ← hi, ← hj],
+  -- so what we really need to show is that `|T i - T j| ≤ max_side_length T`, and we have a lemma
+  -- for that!
+  exact max_side_length_eq _ _ _
 end
+
+open finset
 
 lemma foo4 (T:triangle ) (i k : zmod 3) (j : option (zmod 3)) :
   dist (T i)   (quadrisect T j k) ≤ max_side_length T :=

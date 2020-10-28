@@ -1,11 +1,17 @@
 import analysis.convex.basic
+import analysis.normed_space.basic
+
+/-! Assorted convexity lemmas, maybe not worth cleaning up or PR'ing given the refactor-in-progress
+of the convexity library. -/
 
 open_locale big_operators
 open set
-
 variables {E : Type*} {F : Type*}
-  [add_comm_group E] [vector_space ℝ E] [add_comm_group F] [vector_space ℝ F]
 
+section products
+variables [add_comm_group E] [vector_space ℝ E] [add_comm_group F] [vector_space ℝ F]
+
+/-- The product of convex subsets of `E`, `F` respectively is a convex subset of `E × F`. -/
 lemma prod_convex {s : set E} {t : set F} (hs : convex s) (ht : convex t) :
   convex (s.prod t) :=
 begin
@@ -15,6 +21,7 @@ begin
   { exact ht hx.2 hy.2 ha hb hab }
 end
 
+/-- The product of the convex hulls of two sets is the convex hull of their product. -/
 lemma prod_convex_hull (s : set E) (t : set F) :
   convex_hull (s.prod t) = (convex_hull s).prod (convex_hull t) :=
 begin
@@ -81,3 +88,19 @@ begin
       { -- same as the other case
         sorry } } }
 end
+
+end products
+
+section normed_space
+
+variables [normed_group E] [normed_space ℝ E]
+
+lemma norm_convex : convex_on univ (norm : E → ℝ) :=
+begin
+  refine ⟨convex_univ, _⟩,
+  intros x y hx hy a b ha hb hab,
+  calc ∥a • x + b • y∥ ≤ ∥a • x∥ + ∥b • y∥ : norm_add_le _ _
+  ... = a * ∥x∥ + b * ∥y∥ : by { congr; simp [norm_smul, real.norm_of_nonneg, *] }
+end
+
+end normed_space

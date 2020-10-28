@@ -50,14 +50,12 @@ private meta def pp_rule (r : expr × bool) : tactic string :=
 
 private meta def how.to_rewrite (rs : list (expr × bool)) : how → option (expr × bool)
 | (how.rewrite index _ _) := nth_rule rs index
-| _ := none
 
 private meta def explain_using_location (rs : list (expr × bool)) (s : side) :
 how → tactic (option string)
 | (how.rewrite index location _) := do
   rule ← pp_rule $ nth_rule rs index,
   return $ some ("nth_rewrite_" ++ s.to_xhs ++ " " ++ to_string location ++ " " ++ rule)
-| _ := return none
 
 private meta def using_location.explain_rewrites (rs : list (expr × bool)) (s : side)
 (steps : list how) : tactic string := do

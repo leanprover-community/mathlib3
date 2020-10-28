@@ -24,10 +24,6 @@ namespace tactic.rewrite_search
 
 variables (g : search_state)
 
-private meta def chop : list char → list string → list string
-| [] L := L
-| (c :: rest) L := chop rest $ list.join $ L.map (λ l, l.split_on c)
-
 namespace search_state
 
 private meta def vertex_finder (pp : string) (left : vertex) (right : option vertex) : option vertex :=
@@ -102,21 +98,21 @@ do (g, v) ← g.add_vertex r.e f.s,
   return (g, f, (v, e))
 
 meta def reveal_more_rewrites (v : vertex) : tactic (search_state × vertex × option rewrite) :=
-do (rw_prog, new_rws) ← discover_more_rewrites g.rs v.exp g.conf v.s v.rw_prog,
-  (g, v) ← pure $ g.set_vertex {v with rw_prog := rw_prog, rws := v.rws.append_list new_rws},
-  return (g, v, new_rws.nth 0)
+do (rw_prog, new_rw) ← discover_more_rewrites g.rs v.exp g.conf v.rw_prog,
+  (g, v) ← pure $ g.set_vertex {v with rw_prog := rw_prog, rws := v.rws.append_list new_rw.to_list},
+  return (g, v, new_rw)
 
-meta def reveal_more_adjs (o : vertex) : tactic (search_state × vertex × option (vertex × edge)) :=
+meta def reveal_more_adjs (o : vertex) : tactic (search_state × option (vertex × edge)) :=
 do (g, o, rw) ← match read_option o.rws o.rw_front with
   | none := g.reveal_more_rewrites o
   | some rw := pure (g, o, some rw)
 end,
 match rw with
-  | none := return (g, o, none)
+  | none := return (g, none)
   | some rw := do
     (g, o, (v, e)) ← g.commit_rewrite o rw,
     (g, o) ← pure $ g.set_vertex {o with rw_front := o.rw_front + 1},
-    return (g, o, some (v, e))
+    return (g, some (v, e))
 end
 
 meta def visit_vertex (v : vertex) : tactic (search_state × rewrite_iter) :=
@@ -142,15 +138,14 @@ match read_option o.adj it.front with
     let v := g.vertices.read' e.t,
     return (g, advance it, some (v, e))
   | none := do
-    (g, o, ret) ← g.reveal_more_adjs o,
+    (g, ret) ← g.reveal_more_adjs o,
     match ret with
     | some (v, e) := return (g, advance it, some (v, e))
     | none := return (g, it, none)
     end
   end
 
-meta def exhaust :
-rewrite_iter → search_state → tactic (search_state × rewrite_iter × list (vertex × edge))
+meta def exhaust : rewrite_iter → search_state → tactic (search_state × rewrite_iter × list (vertex × edge))
 | it g := do
   (g, it, ret) ← it.next g,
   match ret with
@@ -163,41 +158,6 @@ rewrite_iter → search_state → tactic (search_state × rewrite_iter × list (
 end rewrite_iter
 
 namespace search_state
-
-meta def exhaust_vertex (v : vertex) : tactic search_state := do
-  (g, it) ← g.visit_vertex v,
-  (g, it) ← it.exhaust g,
-  return g
-
-meta def exhaust_all_visited_aux : search_state → list vertex → tactic search_state
-| g []          := return g
-| g (v :: rest) := do
-  g ← g.exhaust_vertex v,
-  exhaust_all_visited_aux g rest
-
-meta def exhaust_all_visited : tactic search_state :=
-  g.exhaust_all_visited_aux g.vertices.to_list
-
--- Find a vertex we haven't visited, and visit it. The bool is true if there might
--- be other unvisited vertices.
-meta def exhaust_one_unvisited : list vertex → tactic (search_state × bool)
-| []          := return (g, ff)
-| (v :: rest) :=
-  if v.visited then
-    exhaust_one_unvisited rest
-  else do
-    g ← g.exhaust_vertex v,
-    return (g, tt)
-
-meta def exhaust_all_unvisited : search_state → tactic search_state
-| g := do
-  (g, more_left) ← g.exhaust_one_unvisited g.vertices.to_list,
-  if more_left then g.exhaust_all_unvisited else return g
-
-meta def exhaust_all : tactic search_state := do
-  g ← g.exhaust_all_visited,
-  g ← g.exhaust_all_unvisited,
-  return g
 
 end search_state
 
@@ -234,15 +194,8 @@ match g.solving_edge with
     return (g, s)
 end
 
-meta def finish_search : tactic (search_state × search_result) := do
-  -- This must be called before exhaust_all
-  (proof, units) ← build_proof g,
-
-  i ← if g.conf.exhaustive then do
-      g ← g.exhaust_all,
-      pure $ g
-    else
-      pure g,
+meta def finish_search : tactic (search_state × search_result) :=
+do (proof, units) ← build_proof g,
   return (g, search_result.success proof units)
 
 meta def search_until_solved_aux : search_state → ℕ → tactic (search_state × search_result)

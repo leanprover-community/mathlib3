@@ -102,16 +102,15 @@ do u ← mllist.uncons prog,
 
 open tactic.nth_rewrite.congr
 
-meta def discover_more_rewrites
-  (rs : list (expr × bool)) (exp : expr) (cfg : config) (_ : side)
-  (prog : option rewrite_progress) :
-  tactic (rewrite_progress × list rewrite) :=
+meta def discover_more_rewrites (rs : list (expr × bool)) (exp : expr) (cfg : config)
+(prog : option rewrite_progress) :
+  tactic (rewrite_progress × option rewrite) :=
 do
   let prog := match prog with
          | some prog := prog
          | none := (all_rewrites_lazy_of_list rs exp cfg.to_cfg).map $ λ t, ⟨t.1.exp, t.1.proof, how.rewrite t.2.1 t.2.2 t.1.addr⟩
          end,
   (prog, rw) ← progress_next prog,
-  return (prog, rw.to_list)
+  return (prog, rw)
 
 end tactic.rewrite_search

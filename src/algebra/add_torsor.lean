@@ -6,6 +6,7 @@ Authors: Joseph Myers, Yury Kudryashov.
 import algebra.group.prod
 import algebra.group.type_tags
 import algebra.group.pi
+import algebra.pointwise
 import data.equiv.basic
 import data.set.finite
 
@@ -22,14 +23,17 @@ defines the notation `+ᵥ` for adding a group element to a point and
 
 ## Implementation notes
 
-Affine spaces are the motivating example of torsors of additive group
-actions.  It may be appropriate to refactor in terms of the general
-definition of group actions, via `to_additive`, when there is a use
-for multiplicative torsors (currently mathlib only develops the theory
-of group actions for multiplicative group actions).  The variable `G`
-is an explicit rather than implicit argument to lemmas because
-otherwise the elaborator sometimes has problems inferring appropriate
-types and type class instances.
+Affine spaces are the motivating example of torsors of additive group actions. It may be appropriate
+to refactor in terms of the general definition of group actions, via `to_additive`, when there is a
+use for multiplicative torsors (currently mathlib only develops the theory of group actions for
+multiplicative group actions).
+
+## Notations
+
+* `v +ᵥ p` is a notation for `has_vadd.vadd`, the left action of an additive monoid;
+
+* `p₁ -ᵥ p₂` is a notation for `has_vsub.vsub`, difference between two points in an additive torsor
+  as an element of the corresponding additive group;
 
 ## References
 
@@ -229,29 +233,72 @@ element. -/
 lemma eq_vadd_iff_vsub_eq (p1 : P) (g : G) (p2 : P) : p1 = g +ᵥ p2 ↔ p1 -ᵥ p2 = g :=
 ⟨λ h, h.symm ▸ vadd_vsub _ _, λ h, h ▸ (vsub_vadd _ _).symm⟩
 
-/-- The pairwise differences of a set of points. -/
-def vsub_set (s : set P) : set G := set.image2 (-ᵥ) s s
+lemma vadd_eq_vadd_iff_neg_add_eq_vsub {v₁ v₂ : G} {p₁ p₂ : P} :
+  v₁ +ᵥ p₁ = v₂ +ᵥ p₂ ↔ - v₁ + v₂ = p₁ -ᵥ p₂ :=
+by rw [eq_vadd_iff_vsub_eq, vadd_vsub_assoc, ← add_right_inj (-v₁), neg_add_cancel_left, eq_comm]
 
-/-- `vsub_set` of an empty set. -/
-@[simp] lemma vsub_set_empty : vsub_set (∅ : set P) = ∅ :=
-set.image2_empty_left
+namespace set
 
-/-- `vsub_set` of a single point. -/
-@[simp] lemma vsub_set_singleton (p : P) : vsub_set ({p} : set P) = {(0:G)} :=
-by simp [vsub_set]
+instance has_vsub : has_vsub (set G) (set P) := ⟨set.image2 (-ᵥ)⟩
 
-/-- `vsub_set` of a finite set is finite. -/
-lemma vsub_set_finite_of_finite {s : set P} (h : set.finite s) : set.finite (vsub_set s) :=
-h.image2 _ h
+section vsub
 
-/-- Each pairwise difference is in the `vsub_set`. -/
-lemma vsub_mem_vsub_set {p1 p2 : P} {s : set P} (hp1 : p1 ∈ s) (hp2 : p2 ∈ s) :
-  (p1 -ᵥ p2) ∈ vsub_set s :=
-set.mem_image2_of_mem hp1 hp2
+variables (s t : set P)
 
-/-- `vsub_set` is contained in `vsub_set` of a larger set. -/
-lemma vsub_set_mono {s1 s2 : set P} (h : s1 ⊆ s2) : vsub_set s1 ⊆ vsub_set s2 :=
-set.image2_subset h h
+@[simp] lemma vsub_empty : s -ᵥ ∅ = ∅ := set.image2_empty_right
+
+@[simp] lemma empty_vsub : ∅ -ᵥ s = ∅ := set.image2_empty_left
+
+@[simp] lemma singleton_vsub (p : P) : {p} -ᵥ s = ((-ᵥ) p) '' s :=
+image2_singleton_left
+
+@[simp] lemma vsub_singleton (p : P) : s -ᵥ {p} = (-ᵥ p) '' s :=
+image2_singleton_right
+
+@[simp] lemma singleton_vsub_self (p : P) : ({p} : set P) -ᵥ {p} = {(0:G)} :=
+by simp
+
+variables {s t}
+
+/-- `vsub` of a finite set is finite. -/
+lemma finite.vsub (hs : finite s) (ht : finite t) : finite (s -ᵥ t) :=
+hs.image2 _ ht
+
+/-- Each pairwise difference is in the `vsub` set. -/
+lemma vsub_mem_vsub {ps pt : P} (hs : ps ∈ s) (ht : pt ∈ t) :
+  (ps -ᵥ pt) ∈ s -ᵥ t :=
+mem_image2_of_mem hs ht
+
+/-- `s -ᵥ t` is monotone in both arguments. -/
+@[mono] lemma vsub_subset_vsub {s' t' : set P} (hs : s ⊆ s') (ht : t ⊆ t') :
+  s -ᵥ t ⊆ s' -ᵥ t' :=
+image2_subset hs ht
+
+lemma vsub_self_mono (h : s ⊆ t) : s -ᵥ s ⊆ t -ᵥ t := vsub_subset_vsub h h
+
+lemma vsub_subset_iff {u : set G} : s -ᵥ t ⊆ u ↔ ∀ (x ∈ s) (y ∈ t), x -ᵥ y ∈ u :=
+image2_subset_iff
+
+end vsub
+
+instance add_action : add_action (set G) (set P) :=
+{ vadd := set.image2 (+ᵥ),
+  zero_vadd' := λ s, by simp [← singleton_zero],
+  vadd_assoc' := λ s t p, by { symmetry, apply image2_assoc, intros, symmetry, apply vadd_assoc } }
+
+variables {s s' : set G} {t t' : set P}
+
+@[mono] lemma vadd_subset_vadd (hs : s ⊆ s') (ht : t ⊆ t') : s +ᵥ t ⊆ s' +ᵥ t' :=
+image2_subset hs ht
+
+@[simp] lemma vadd_singleton (s : set G) (p : P) : s +ᵥ {p} = (+ᵥ p) '' s := image2_singleton_right
+
+@[simp] lemma singleton_vadd (v : G) (s : set P) : ({v} : set G) +ᵥ s = ((+ᵥ) v) '' s :=
+image2_singleton_left
+
+lemma finite.vadd (hs : finite s) (ht : finite t) : finite (s +ᵥ t) := hs.image2 _ ht
+
+end set
 
 @[simp] lemma vadd_vsub_vadd_cancel_right (v₁ v₂ : G) (p : P) :
   (v₁ +ᵥ p) -ᵥ (v₂ +ᵥ p) = v₁ - v₂ :=
@@ -295,9 +342,11 @@ section comm
 
 variables {G : Type*} {P : Type*} [add_comm_group G] [add_torsor G P]
 
+include G
+
 /-- Cancellation subtracting the results of two subtractions. -/
 @[simp] lemma vsub_sub_vsub_cancel_left (p1 p2 p3 : P) :
-  (p3 -ᵥ p2 : G) - (p3 -ᵥ p1) = (p1 -ᵥ p2) :=
+  (p3 -ᵥ p2) - (p3 -ᵥ p1) = (p1 -ᵥ p2) :=
 by rw [sub_eq_add_neg, neg_vsub_eq_vsub_rev, add_comm, vsub_add_vsub_cancel]
 
 @[simp] lemma vadd_vsub_vadd_cancel_left (v : G) (p1 p2 : P) :
@@ -309,6 +358,14 @@ begin
   rw [←@vsub_eq_zero_iff_eq G, vadd_vsub_assoc, vsub_vadd_eq_vsub_sub],
   simp
 end
+
+lemma vadd_eq_vadd_iff_sub_eq_vsub {v₁ v₂ : G} {p₁ p₂ : P} :
+  v₁ +ᵥ p₁ = v₂ +ᵥ p₂ ↔ v₂ - v₁ = p₁ -ᵥ p₂ :=
+by rw [vadd_eq_vadd_iff_neg_add_eq_vsub, neg_add_eq_sub]
+
+lemma vsub_sub_vsub_comm (p₁ p₂ p₃ p₄ : P) :
+  (p₁ -ᵥ p₂) - (p₃ -ᵥ p₄) = (p₁ -ᵥ p₃) - (p₂ -ᵥ p₄) :=
+by rw [← vsub_vadd_eq_vsub_sub, vsub_vadd_comm, vsub_vadd_eq_vsub_sub]
 
 end comm
 
@@ -365,9 +422,9 @@ end pi
 
 namespace equiv
 
-variables (G : Type*) {P : Type*} [add_group G] [add_torsor G P]
+variables {G : Type*} {P : Type*} [add_group G] [add_torsor G P]
 
-open add_action add_torsor
+include G
 
 /-- `v ↦ v +ᵥ p` as an equivalence. -/
 def vadd_const (p : P) : G ≃ P :=
@@ -376,11 +433,11 @@ def vadd_const (p : P) : G ≃ P :=
   left_inv := λ v, vadd_vsub _ _,
   right_inv := λ p', vsub_vadd _ _ }
 
-@[simp] lemma coe_vadd_const (p : P) : ⇑(vadd_const G p) = λ v, v+ᵥ p := rfl
+@[simp] lemma coe_vadd_const (p : P) : ⇑(vadd_const p) = λ v, v+ᵥ p := rfl
 
-@[simp] lemma coe_vadd_const_symm (p : P) : ⇑(vadd_const G p).symm = λ p', p' -ᵥ p := rfl
+@[simp] lemma coe_vadd_const_symm (p : P) : ⇑(vadd_const p).symm = λ p', p' -ᵥ p := rfl
 
-variables {G} (P)
+variables (P)
 
 /-- The permutation given by `p ↦ v +ᵥ p`. -/
 def const_vadd (v : G) : equiv.perm P :=

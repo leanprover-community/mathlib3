@@ -81,8 +81,9 @@ end
 variables (C)
 
 /--
-A (Grothendieck) pretopology on `C` is a collection of morphisms with fixed target for each object,
-satisfying three axioms:
+A (Grothendieck) pretopology on `C` consists of a collection of families of morphisms with a fixed
+target `X` for every object `X` in `C`, called "coverings" of `X`, which satisfies the following
+three axioms:
 1. Every family consisting of a single isomorphism is a covering family.
 2. The collection of covering families is stable under pullback.
 3. Given a covering family, and a covering family on each domain of the former, the composition
@@ -188,7 +189,7 @@ def of_grothendieck (J : grothendieck_topology C) : pretopology C :=
   end }
 
 /-- We have a galois insertion from pretopologies to Grothendieck topologies. -/
-def insert : galois_insertion (to_grothendieck C) (of_grothendieck C) :=
+def gi : galois_insertion (to_grothendieck C) (of_grothendieck C) :=
 { gc :=
   λ K J,
   begin
@@ -266,8 +267,8 @@ instance : order_bot (pretopology C) :=
   ..pretopology.partial_order C }
 
 /-- The trivial pretopology induces the trivial grothendieck topology. -/
-lemma trivial_induces_trivial : to_grothendieck C ⊥ = ⊥ :=
-(insert C).gc.l_bot
+lemma to_grothendieck_bot : to_grothendieck C ⊥ = ⊥ :=
+(gi C).gc.l_bot
 
 end pretopology
 

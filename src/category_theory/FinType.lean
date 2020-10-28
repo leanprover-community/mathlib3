@@ -45,7 +45,11 @@ def incl : Fintype ⥤ Type* := induced_functor _
 
 instance : concrete_category Fintype := ⟨incl⟩
 
-/-- The "standard" skeleton for `Fintype`. -/
+/--
+The "standard" skeleton for `Fintype`. This is the full subcategory of `Fintype` spanned by objects
+of the form `fin n` for `n : ℕ`. We parameterize the objects of `Fintype.skeleton` directly as `ℕ`,
+as the type `fin m ≃ fin n` is nonempty if and only if `n = m`.
+-/
 def skeleton := ℕ
 
 namespace skeleton
@@ -95,6 +99,7 @@ noncomputable def equivalence : skeleton ≌ Fintype := incl.as_equivalence
 
 end skeleton
 
+/-- `Fintype.skeleton` is a skeleton of `Fintype`. -/
 noncomputable def is_skeleton : is_skeleton_of Fintype skeleton skeleton.incl :=
 { skel := skeleton.is_skeletal,
   eqv := by apply_instance }

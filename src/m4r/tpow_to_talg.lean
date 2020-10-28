@@ -1,4 +1,4 @@
-import tpow
+import m4r.tpow
 
 universe u
 variables (R : Type u) [comm_semiring R] (M : Type u) [add_comm_monoid M] [semimodule R M]
@@ -62,14 +62,14 @@ def jfdkjgkhgskre : R ≃ₐ[R] tensor_algebra R unit :=
     erw free_algebra.lift_ι_apply,
     rw linear_map.zero_apply,
     simp only [ring_hom.map_zero],
-
+ sorry, sorry, sorry, sorry,
     --show ring_quot.mk_alg_hom _ _ 0 = ring_quot.mk_alg_hom _ _
   --  erw tensor_algebra.ring_quot_mk_alg_hom_free_algebra_ι_eq_ι,
 
  },
-  map_mul' := _,
-  map_add' := _,
-  commutes' := _ }
+  map_mul' := sorry,
+  map_add' := sorry,
+  commutes' := sorry }
 /-
 def comap {α : Type*} {β : Type*} (f : α → β)
   (r : β → β → Prop) : α → α → Prop :=

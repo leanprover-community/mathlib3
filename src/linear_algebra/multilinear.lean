@@ -450,6 +450,11 @@ instance : has_scalar R (multilinear_map R M₁ M₂) := ⟨λ c f,
 
 @[simp] lemma smul_apply (c : R) (m : Πi, M₁ i) : (c • f) m = c • f m := rfl
 
+instance : mul_action R (multilinear_map R M₁ M₂) :=
+{ smul := (•),
+  one_smul := λ f, by {ext, rw [smul_apply, one_smul]},
+  mul_smul := λ r s f, by {ext, simp only [smul_apply, smul_smul] } }
+
 variables (R ι)
 
 /-- The canonical multilinear map on `R^ι` when `ι` is finite, associating to `m` the product of
@@ -473,6 +478,17 @@ begin
   conv_rhs { rw [this, f.map_smul_univ] },
   refl
 end
+
+/-- The space of multilinear maps is a module over `R`, for the pointwise addition and scalar
+multiplication. -/
+instance semimodule : semimodule R (multilinear_map R M₁ M₂) :=
+{ smul := (•),
+  one_smul := one_smul _,
+  mul_smul := mul_smul,
+  smul_add := λ r x y, by {ext z, simp [smul_add]},
+  smul_zero := λ r, by ext; simp [smul_zero],
+  add_smul := λ r s x, by ext; simp [add_smul],
+  zero_smul := λ r, by ext; simp [zero_smul] }
 
 end comm_semiring
 
@@ -504,16 +520,6 @@ variables [comm_ring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂]
 
 variables (R ι M₁ M₂)
 
-/-- The space of multilinear maps is a module over `R`, for the pointwise addition and scalar
-multiplication. -/
-instance semimodule : semimodule R (multilinear_map R M₁ M₂) :=
-semimodule.of_core $ by refine { smul := (•), ..};
-  intros; ext; simp [smul_add, add_smul, smul_smul]
-
--- This instance should not be needed!
-instance semimodule_ring : semimodule R (multilinear_map R (λ (i : ι), R) M₂) :=
-multilinear_map.semimodule _ _ (λ (i : ι), R) _
-
 /-- When `ι` is finite, multilinear maps on `R^ι` with values in `M₂` are in bijection with `M₂`,
 as such a multilinear map is completely determined by its value on the constant vector made of ones.
 We register this bijection as a linear equivalence in `multilinear_map.pi_ring_equiv`. -/
@@ -530,8 +536,8 @@ end comm_ring
 end multilinear_map
 
 namespace linear_map
-variables [ring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂] [add_comm_group M₃]
-[∀i, module R (M₁ i)] [module R M₂] [module R M₃]
+variables [semiring R] [∀i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂] [add_comm_monoid M₃]
+[∀i, semimodule R (M₁ i)] [semimodule R M₂] [semimodule R M₃]
 
 /-- Composing a multilinear map with a linear map gives again a multilinear map. -/
 def comp_multilinear_map (g : M₂ →ₗ[R] M₃) (f : multilinear_map R M₁ M₂) : multilinear_map R M₁ M₃ :=
@@ -558,8 +564,8 @@ We also register linear equiv versions of these correspondences, in
 open multilinear_map
 
 variables {R M M₂}
-[comm_ring R] [∀i, add_comm_group (M i)] [add_comm_group M'] [add_comm_group M₂]
-[∀i, module R (M i)] [module R M'] [module R M₂]
+[comm_semiring R] [∀i, add_comm_monoid (M i)] [add_comm_monoid M'] [add_comm_monoid M₂]
+[∀i, semimodule R (M i)] [semimodule R M'] [semimodule R M₂]
 
 /-! #### Left currying -/
 

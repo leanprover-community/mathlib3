@@ -15,7 +15,15 @@ Module.Module.monoidal_category
 
 def tensor_power {R : Type*} [comm_ring R] (M : Module R) : ℕ → Module R :=
 @tensor_power_aux _ _ huh.wtf M-/
+namespace multilinear_map
 
+lemma ext_iff {R : Type*} {ι : Type*} {M₁ : ι → Type*} {M₂ : Type*} [decidable_eq ι] [semiring R]
+  [Π i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂] [Π i, semimodule R (M₁ i)] [semimodule R M₂]
+  {f f' : multilinear_map R M₁ M₂} :
+  f = f' ↔ ∀ x, f x = f' x :=
+⟨λ h x, h ▸ rfl, multilinear_map.ext⟩
+
+end multilinear_map
 universe u
 def tpow_aux (R : Type u) [comm_semiring R] (M : Type u) [add_comm_monoid M] [semimodule R M] :
   ℕ → Σ (N : Type*) (h : add_comm_monoid N), @semimodule R N _ h

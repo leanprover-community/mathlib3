@@ -3,6 +3,7 @@ Copyright (c) 2020 Kevin Lacker, Keeley Hoek, Scott Morrison. All rights reserve
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 -/
+import tactic.nth_rewrite
 import tactic.rewrite_search.common
 
 /-!
@@ -11,13 +12,10 @@ import tactic.rewrite_search.common
 
 namespace tactic.rewrite_search.discovery
 
-section screening
-
-open tactic tactic.interactive
+open tactic tactic.interactive tactic.rewrite_search
 
 meta def assert_acceptable_lemma (r : expr) : tactic unit := do
-  -- FIXME: unfold definitions to see if there is an eq or iff
-  ret ← pure tt, -- is_acceptable_lemma r,
+  ret ← pure tt,
   if ret then return ()
   else do
     pp ← pp r,
@@ -42,6 +40,18 @@ meta def rewrite_list_from_lemmas (l : list expr) : list (expr × bool) :=
 meta def rewrite_list_from_lemma (e : expr) : list (expr × bool) :=
   rewrite_list_from_lemmas [e]
 
+/-- Returns true if expression is an equation or iff. -/
+meta def is_acceptable_rewrite : expr → bool
+| (expr.pi n bi d b) := is_acceptable_rewrite b
+| `(%%a = %%b)       := tt
+| `(%%a ↔ %%b)       := tt
+| _                  := ff
+
+/-- Returns true if the type of expression is an equation or iff
+and does not contain metavariables. -/
+meta def is_acceptable_hyp (r : expr) : tactic bool :=
+  do t ← infer_type r >>= whnf, return $ is_acceptable_rewrite t ∧ ¬t.has_meta_var
+
 meta def rewrite_list_from_hyps : tactic (list (expr × bool)) := do
   hyps ← local_context,
   rewrite_list_from_lemmas <$> hyps.mfilter is_acceptable_hyp
@@ -65,8 +75,6 @@ meta def find_all_rewrites : tactic (list (name × expr)) := do
   e ← get_env,
   return $ e.decl_filter_map is_rewrite_lemma
 
-end screening
-
 @[user_attribute]
 meta def search_attr : user_attribute := {
   name := `search,
@@ -78,5 +86,15 @@ do names ← attribute.get_instances `search,
    exprs ← load_names $ names ++ extra_names,
    exprs.mmap assert_acceptable_lemma,
    return $ rewrite_list_from_lemmas exprs
+
+meta def collect_rw_lemmas (cfg : config) (extra_names : list name)
+(extra_rws : list (expr × bool)) : tactic (list (expr × bool)) :=
+do rws ← collect extra_names,
+   hyp_rws ← rewrite_list_from_hyps,
+   let rws := rws ++ extra_rws ++ hyp_rws,
+
+   locs ← local_context,
+   if cfg.inflate_rws then list.join <$> (rws.mmap $ inflate_rw locs)
+   else pure rws
 
 end tactic.rewrite_search.discovery

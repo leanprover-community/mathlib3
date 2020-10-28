@@ -144,18 +144,3 @@ meta def rhs (e : expr) : tactic expr := prod.snd <$> split e
 
 end rw_equation
 
-/-- Returns true if expression is an equation or iff. -/
-meta def is_acceptable_rewrite : expr → bool
-| (expr.pi n bi d b) := is_acceptable_rewrite b
-| `(%%a = %%b)       := tt
-| `(%%a ↔ %%b)       := tt
-| _                  := ff
-
-/-- Returns true if the type of expression is an equation or iff. -/
-meta def is_acceptable_lemma (r : expr) : tactic bool :=
-  is_acceptable_rewrite <$> (infer_type r >>= whnf)
-
-/-- Returns true if the type of expression is an equation or iff
-and does not contain metavariables. -/
-meta def is_acceptable_hyp (r : expr) : tactic bool :=
-  do t ← infer_type r >>= whnf, return $ is_acceptable_rewrite t ∧ ¬t.has_meta_var

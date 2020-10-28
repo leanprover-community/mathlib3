@@ -135,8 +135,8 @@ instance : has_coe_to_fun (bundle_trivialization F proj) := ⟨_, λ e, e.to_fun
 @[simp, mfld_simps] lemma bundle_trivialization.coe_mk (e : local_homeomorph Z (B × F)) (i j k l m) (x : Z) :
   (bundle_trivialization.mk e i j k l m : bundle_trivialization F proj) x = e x := rfl
 
-/-- A topological fiber bundle with fiber F over a base B is a space projecting on B for which the
-fibers are all homeomorphic to F, such that the local situation around each point is a direct
+/-- A topological fiber bundle with fiber `F` over a base `B` is a space projecting on `B` for which
+the fibers are all homeomorphic to `F`, such that the local situation around each point is a direct
 product. -/
 def is_topological_fiber_bundle : Prop :=
 ∀ x : Z, ∃e : bundle_trivialization F proj, x ∈ e.source
@@ -505,7 +505,7 @@ Z.local_triv_ext (Z.index_at (Z.proj p))
 
 /-- If an element of `F` is invariant under all coordinate changes, then one can define a
 corresponding section of the fiber bundle, which is continuous. This applies in particular to the
-zero section of a vector bundle. Another example (not yet defined) would be the identity 
+zero section of a vector bundle. Another example (not yet defined) would be the identity
 section of the endomorphism bundle of a vector bundle. -/
 lemma continuous_const_section (v : F)
   (h : ∀ i j, ∀ x ∈ (Z.base_set i) ∩ (Z.base_set j), Z.coord_change i j x v = v) :

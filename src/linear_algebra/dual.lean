@@ -38,6 +38,9 @@ variables [comm_semiring R] [add_comm_monoid M] [semimodule R M]
 /-- The dual space of an R-module M is the R-module of linear maps `M → R`. -/
 @[derive [add_comm_monoid, semimodule R]] def dual := M →ₗ[R] R
 
+instance {S : Type*} [comm_ring S] {N : Type*} [add_comm_group N] [module S N] :
+  add_comm_group (dual S N) := by {unfold dual, apply_instance}
+
 namespace dual
 
 instance : inhabited (dual R M) := by dunfold dual; apply_instance
@@ -85,7 +88,7 @@ include de h
 /-- The linear map from a vector space equipped with basis to its dual vector space,
 taking basis elements to corresponding dual basis elements. -/
 def to_dual : V →ₗ[K] module.dual K V :=
-h.constr $ λ v, h.constr $ λ w, if w = v then 1 else 0
+h.constr $ λ v, h.constr $ λ w, if w = v then (1 : K) else 0
 
 variable {B}
 

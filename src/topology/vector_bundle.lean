@@ -41,15 +41,16 @@ open bundle
 variables (R : Type*) (E : B → Type*) (F : Type*)
 [comm_semiring R] [∀ x, add_comm_monoid (E x)] [∀ x, semimodule R (E x)]
 
+/-- `bundle.dual R E` is the dual bundle. -/
+@[reducible] def bundle.dual := (λ x, (E x)ᵛR)
+
 section
 
 variables [topological_space B] [topological_space F] [topological_space (total_space E)]
 [add_comm_monoid F] [semimodule R F]
 
-/-@[reducible] def vector_bundle.dual := (λ x, (E x)ᵛR)-/
-
 @[nolint unused_arguments]
-instance {x : B} : has_coe (E x) (total_space E) := ⟨λ y, (⟨x, y⟩ : total_space E)⟩
+instance {x : B} : has_coe_t (E x) (total_space E) := ⟨λ y, (⟨x, y⟩ : total_space E)⟩
 
 /-- Local trivialization for vector bunlde. -/
 @[nolint has_inhabited_instance]

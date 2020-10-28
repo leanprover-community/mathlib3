@@ -79,9 +79,6 @@ end rw_equation
 
 namespace tactic.rewrite_search
 
-structure bfs_state :=
-(queue      : list (option ℕ))
-
 meta structure edge :=
 (f t   : ℕ)
 (proof : tactic expr)
@@ -135,7 +132,7 @@ end vertex
 meta structure search_state :=
 (conf         : config)
 (rs           : list (expr × bool))
-(strat_state  : bfs_state)
+(queue        : list ℕ)
 (vertices     : buffer vertex)
 (solving_edge : option edge)
 
@@ -145,8 +142,7 @@ def RHS_VERTEX_ID : ℕ := 1
 namespace search_state
 variables (g : search_state)
 
-meta def mutate_strat (new_state : bfs_state) : search_state :=
-{ g with strat_state := new_state }
+meta def set_queue (new_queue : list ℕ) : search_state := { g with queue := new_queue }
 
 meta def set_vertex (v : vertex) : search_state × vertex :=
 ({ g with vertices := g.vertices.write' v.id v }, v)

@@ -159,26 +159,20 @@ rewrite_iter → search_state → tactic (search_state × rewrite_iter × list (
 
 end rewrite_iter
 
-meta def bfs_init (refs : list (option ℕ)) : bfs_state := ⟨refs⟩
-
 meta inductive status
 | continue : status
 | done : edge → status
 | abort : string → status
 
 meta def bfs_step (g : search_state) : tactic (search_state × status) :=
-do let state := g.strat_state,
-match state.queue with
+match g.queue with
   | [] := return (g, status.abort "all vertices exhausted!")
-  | (none :: rest) := do
-    return (g.mutate_strat {state with queue := rest.concat none}, status.continue)
-  | (some v :: rest) := do
+  | (v :: rest) := do
     let v := g.vertices.read' v,
     (g, it) ← g.visit_vertex v,
     (g, it, adjs) ← it.exhaust g,
     let adjs := adjs.filter $ λ u, ¬u.1.visited,
-    return (g.mutate_strat {state with queue := rest.append $ adjs.map $ λ u, some u.1.id},
-            status.continue)
+    return (g.set_queue $ rest.append $ adjs.map $ λ u, u.1.id, status.continue)
 end
 
 namespace search_state

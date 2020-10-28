@@ -63,7 +63,8 @@ set_option old_structure_cmd true
 
 
 
-/-- Normalization monoid: multiplying with `norm_unit` gives a normal form for associated elements. -/
+/-- Normalization monoid: multiplying with `norm_unit` gives a normal form for associated
+elements. -/
 @[protect_proj] class normalization_monoid (α : Type*) [nontrivial α]
   [comm_cancel_monoid_with_zero α] :=
 (norm_unit : α → units α)
@@ -108,7 +109,8 @@ associates.mk_eq_mk_iff_associated.2 normalize_associated
 lemma normalize_coe_units (u : units α) : normalize (u : α) = 1 := by simp
 
 lemma normalize_eq_zero {x : α} : normalize x = 0 ↔ x = 0 :=
-⟨λ hx, (associated_zero_iff_eq_zero x).1 $ hx ▸ associated_normalize, by rintro rfl; exact normalize_zero⟩
+⟨λ hx, (associated_zero_iff_eq_zero x).1 $ hx ▸ associated_normalize,
+  by rintro rfl; exact normalize_zero⟩
 
 lemma normalize_eq_one {x : α} : normalize x = 1 ↔ is_unit x :=
 ⟨λ hx, is_unit_iff_exists_inv.2 ⟨_, hx⟩, λ ⟨u, hu⟩, hu ▸ normalize_coe_units u⟩
@@ -186,10 +188,12 @@ quotient.induction_on₂ a b $ assume a b,
 by simp only [associates.quotient_mk_eq_mk, out_mk, mk_mul_mk, normalize.map_mul]
 
 lemma dvd_out_iff (a : α) (b : associates α) : a ∣ b.out ↔ associates.mk a ≤ b :=
-quotient.induction_on b $ by simp [associates.out_mk, associates.quotient_mk_eq_mk, mk_le_mk_iff_dvd_iff]
+quotient.induction_on b $
+  by simp [associates.out_mk, associates.quotient_mk_eq_mk, mk_le_mk_iff_dvd_iff]
 
 lemma out_dvd_iff (a : α) (b : associates α) : b.out ∣ a ↔ b ≤ associates.mk a :=
-quotient.induction_on b $ by simp [associates.out_mk, associates.quotient_mk_eq_mk, mk_le_mk_iff_dvd_iff]
+quotient.induction_on b $
+  by simp [associates.out_mk, associates.quotient_mk_eq_mk, mk_le_mk_iff_dvd_iff]
 
 @[simp] lemma out_top : (⊤ : associates α).out = 0 :=
 normalize_zero
@@ -246,7 +250,8 @@ theorem gcd_assoc (m n k : α) : gcd (gcd m n) k = gcd m (gcd n k) :=
 dvd_antisymm_of_normalize_eq (normalize_gcd _ _) (normalize_gcd _ _)
   (dvd_gcd
     (dvd.trans (gcd_dvd_left (gcd m n) k) (gcd_dvd_left m n))
-    (dvd_gcd (dvd.trans (gcd_dvd_left (gcd m n) k) (gcd_dvd_right m n)) (gcd_dvd_right (gcd m n) k)))
+    (dvd_gcd (dvd.trans (gcd_dvd_left (gcd m n) k) (gcd_dvd_right m n))
+      (gcd_dvd_right (gcd m n) k)))
   (dvd_gcd
     (dvd_gcd (gcd_dvd_left m (gcd n k)) (dvd.trans (gcd_dvd_right m (gcd n k)) (gcd_dvd_left n k)))
     (dvd.trans (gcd_dvd_right m (gcd n k)) (gcd_dvd_right n k)))
@@ -283,7 +288,8 @@ dvd_gcd (dvd.trans (gcd_dvd_left _ _) hab) (dvd.trans (gcd_dvd_right _ _) hcd)
 gcd_eq_normalize (gcd_dvd_left _ _) (dvd_gcd (dvd_refl a) (dvd_refl a))
 
 @[simp] theorem gcd_mul_left (a b c : α) : gcd (a * b) (a * c) = normalize a * gcd b c :=
-classical.by_cases (by rintro rfl; simp only [zero_mul, gcd_zero_left, normalize_zero]) $ assume ha : a ≠ 0,
+classical.by_cases (by rintro rfl; simp only [zero_mul, gcd_zero_left, normalize_zero]) $
+assume ha : a ≠ 0,
 suffices gcd (a * b) (a * c) = normalize (a * gcd b c),
   by simpa only [normalize.map_mul, normalize_gcd],
 let ⟨d, eq⟩ := dvd_gcd (dvd_mul_right a b) (dvd_mul_right a c) in
@@ -301,7 +307,8 @@ by simp only [mul_comm, gcd_mul_left]
 
 theorem gcd_eq_left_iff (a b : α) (h : normalize a = a) : gcd a b = a ↔ a ∣ b :=
 iff.intro (assume eq, eq ▸ gcd_dvd_right _ _) $
-  assume hab, dvd_antisymm_of_normalize_eq (normalize_gcd _ _) h (gcd_dvd_left _ _) (dvd_gcd (dvd_refl a) hab)
+  assume hab, dvd_antisymm_of_normalize_eq (normalize_gcd _ _) h (gcd_dvd_left _ _)
+    (dvd_gcd (dvd_refl a) hab)
 
 theorem gcd_eq_right_iff (a b : α) (h : normalize b = b) : gcd a b = b ↔ b ∣ a :=
 by simpa only [gcd_comm a b] using gcd_eq_left_iff b a h
@@ -520,7 +527,8 @@ iff.intro
       by rw [lcm_units_coe_left, normalize_coe_units])
 
 @[simp] theorem lcm_mul_left (a b c : α) : lcm (a * b) (a * c) = normalize a * lcm b c :=
-classical.by_cases (by rintro rfl; simp only [zero_mul, lcm_zero_left, normalize_zero]) $ assume ha : a ≠ 0,
+classical.by_cases (by rintro rfl; simp only [zero_mul, lcm_zero_left, normalize_zero]) $
+assume ha : a ≠ 0,
 suffices lcm (a * b) (a * c) = normalize (a * lcm b c),
   by simpa only [normalize.map_mul, normalize_lcm],
 have a ∣ lcm (a * b) (a * c), from dvd.trans (dvd_mul_right _ _) (dvd_lcm_left _ _),
@@ -536,7 +544,8 @@ by simp only [mul_comm, lcm_mul_left]
 
 theorem lcm_eq_left_iff (a b : α) (h : normalize a = a) : lcm a b = a ↔ b ∣ a :=
 iff.intro (assume eq, eq ▸ dvd_lcm_right _ _) $
-  assume hab, dvd_antisymm_of_normalize_eq (normalize_lcm _ _) h (lcm_dvd (dvd_refl a) hab) (dvd_lcm_left _ _)
+  assume hab, dvd_antisymm_of_normalize_eq (normalize_lcm _ _) h (lcm_dvd (dvd_refl a) hab)
+    (dvd_lcm_left _ _)
 
 theorem lcm_eq_right_iff (a b : α) (h : normalize b = b) : lcm a b = b ↔ a ∣ b :=
 by simpa only [lcm_comm b a] using lcm_eq_left_iff b a h

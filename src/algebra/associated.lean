@@ -164,7 +164,8 @@ begin
   exact H _ o.1 _ o.2 h.symm
 end
 
-lemma irreducible_of_prime [comm_cancel_monoid_with_zero α] {p : α} (hp : prime p) : irreducible p :=
+lemma irreducible_of_prime [comm_cancel_monoid_with_zero α] {p : α} (hp : prime p) :
+  irreducible p :=
 ⟨hp.not_unit, λ a b hab,
   (show a * b ∣ a ∨ a * b ∣ b, from hab ▸ hp.div_or_div (hab ▸ (dvd_refl _))).elim
     (λ ⟨x, hx⟩, or.inr (is_unit_iff_dvd_one.2
@@ -298,7 +299,8 @@ lemma eq_zero_iff_of_associated [comm_monoid_with_zero α] {a b : α} (h : a ~�
 lemma ne_zero_iff_of_associated [comm_monoid_with_zero α] {a b : α} (h : a ~ᵤ b) : a ≠ 0 ↔ b ≠ 0 :=
 by haveI := classical.dec; exact not_iff_not.2 (eq_zero_iff_of_associated h)
 
-lemma prime_of_associated [comm_monoid_with_zero α] {p q : α} (h : p ~ᵤ q) (hp : prime p) : prime q :=
+lemma prime_of_associated [comm_monoid_with_zero α] {p q : α} (h : p ~ᵤ q) (hp : prime p) :
+  prime q :=
 ⟨(ne_zero_iff_of_associated h).1 hp.ne_zero,
   let ⟨u, hu⟩ := h in
     ⟨λ ⟨v, hv⟩, hp.not_unit ⟨v * u⁻¹, by simp [hv, hu.symm]⟩,

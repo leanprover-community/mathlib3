@@ -17,7 +17,8 @@ Let `R` be a commutative ring (or semiring) and aet `A` be an `R`-algebra.
 * `1 : submodule R A`       : the R-submodule R of the R-algebra A
 * `has_mul (submodule R A)` : multiplication of two sub-R-modules M and N of A is defined to be
                               the smallest submodule containing all the products `m * n`.
-* `has_div (submodule R A)` : `I / J` is defined to be the submodule consisting of all `a : A` such that `a • J ⊆ I`
+* `has_div (submodule R A)` : `I / J` is defined to be the submodule consisting of all `a : A` such
+                              that `a • J ⊆ I`
 
 It is proved that `submodule R A` is a semiring, and also an algebra over `set A`.
 
@@ -189,7 +190,8 @@ begin
     apply mul_subset_mul }
 end
 
-/-- `span` is a semiring homomorphism (recall multiplication is pointwise multiplication of subsets on either side). -/
+/-- `span` is a semiring homomorphism (recall multiplication is pointwise multiplication of subsets
+on either side). -/
 def span.ring_hom : set_semiring A →+* submodule R A :=
 { to_fun := submodule.span R,
   map_zero' := span_empty,

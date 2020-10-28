@@ -98,10 +98,6 @@ end edge
 
 def invalid_index : ℕ := 0xFFFFFFFF
 
-structure rewrite_iter :=
-(orig : ℕ)
-(front : ℕ)
-
 meta structure vertex :=
 (id       : ℕ)
 (exp      : expr)

@@ -24,6 +24,10 @@ namespace tactic.rewrite_search
 
 variables (g : search_state)
 
+structure rewrite_iter :=
+(orig : ℕ)
+(front : ℕ)
+
 namespace search_state
 
 private meta def vertex_finder (pp : string) (left : vertex) (right : option vertex) :
@@ -118,7 +122,7 @@ end
 
 meta def visit_vertex (v : vertex) : tactic (search_state × rewrite_iter) :=
 do
-(g, v) ← if ¬v.visited then do
+(g, v) ← if ¬v.visited then
         g.mark_vertex_visited v
       else
         pure (g, v),
@@ -146,15 +150,14 @@ match read_option o.adj it.front with
     end
   end
 
-meta def exhaust :
-rewrite_iter → search_state → tactic (search_state × rewrite_iter × list (vertex × edge))
+meta def exhaust : rewrite_iter → search_state → tactic (search_state  × list (vertex × edge))
 | it g := do
   (g, it, ret) ← it.next g,
   match ret with
-  | none := return (g, it, [])
+  | none := return (g, [])
   | some (v, e) := do
-    (g, it, rest) ← exhaust it g,
-    return (g, it, ((v, e) :: rest))
+    (g, rest) ← exhaust it g,
+    return (g, ((v, e) :: rest))
   end
 
 end rewrite_iter
@@ -170,7 +173,7 @@ match g.queue with
   | (v :: rest) := do
     let v := g.vertices.read' v,
     (g, it) ← g.visit_vertex v,
-    (g, it, adjs) ← it.exhaust g,
+    (g, adjs) ← it.exhaust g,
     let adjs := adjs.filter $ λ u, ¬u.1.visited,
     return (g.set_queue $ rest.append $ adjs.map $ λ u, u.1.id, status.continue)
 end

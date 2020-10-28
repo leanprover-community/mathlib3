@@ -153,7 +153,8 @@ end comm_semiring
 /-- A product over all subsets of `s ∪ {x}` is obtained by multiplying the product over all subsets
 of `s`, and over all subsets of `s` to which one adds `x`. -/
 @[to_additive]
-lemma prod_powerset_insert [decidable_eq α] [comm_monoid β] {s : finset α} {x : α} (h : x ∉ s) (f : finset α → β) :
+lemma prod_powerset_insert [decidable_eq α] [comm_monoid β] {s : finset α} {x : α} (h : x ∉ s)
+  (f : finset α → β) :
   (∏ a in (insert x s).powerset, f a) =
     (∏ a in s.powerset, f a) * (∏ t in s.powerset, f (insert x t)) :=
 begin

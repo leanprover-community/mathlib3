@@ -9,7 +9,7 @@ import tactic.ext
 open function
 
 namespace subtype
-variables {α : Sort*} {β : Sort*} {γ : Sort*} {p : α → Prop}
+variables {α : Sort*} {β : Sort*} {γ : Sort*} {p : α → Prop} {q : α → Prop}
 
 /-- A version of `x.property` or `x.2` where `p` is syntactically applied to the coercion of `x`
   instead of `x.1`. A similar result is `subtype.mem` in `data.set.basic`. -/
@@ -36,6 +36,13 @@ protected theorem forall' {q : ∀x, p x → Prop} :
 
 lemma ext_iff {a1 a2 : {x // p x}} : a1 = a2 ↔ (a1 : α) = (a2 : α) :=
 ⟨congr_arg _, subtype.ext⟩
+
+lemma ext_iff_heq (h' : p = q) {a1 : {x // p x}} {a2 : {x // q x}} :
+  a1 == a2 ↔ (a1 : α) = (a2 : α) :=
+begin
+  subst h',
+  exact heq_iff_eq.trans ext_iff,
+end
 
 lemma ext_val {a1 a2 : {x // p x}} : a1.1 = a2.1 → a1 = a2 :=
 subtype.ext

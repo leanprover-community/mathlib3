@@ -718,7 +718,7 @@ lemma concave_on.smul {f : E → β} {c : ℝ} (hc : 0 ≤ c) (hf : concave_on s
 
 /-- A convex function on a segment is upper-bounded by the max of its endpoints. -/
 lemma convex_on.le_on_segment' {γ : Type*}
-  [decidable_linear_ordered_add_comm_group γ] [ordered_semimodule ℝ γ]
+  [linear_ordered_add_comm_group γ] [ordered_semimodule ℝ γ]
   {f : E → γ} {x y : E} {a b : ℝ}
   (hf : convex_on s f) (hx : x ∈ s) (hy : y ∈ s) (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
   f (a • x + b • y) ≤ max (f x) (f y) :=
@@ -730,7 +730,7 @@ calc
 
 /-- A concave function on a segment is lower-bounded by the min of its endpoints. -/
 lemma concave_on.le_on_segment' {γ : Type*}
-  [decidable_linear_ordered_add_comm_group γ] [ordered_semimodule ℝ γ]
+  [linear_ordered_add_comm_group γ] [ordered_semimodule ℝ γ]
   {f : E → γ} {x y : E} {a b : ℝ}
   (hf : concave_on s f) (hx : x ∈ s) (hy : y ∈ s) (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
   min (f x) (f y) ≤ f (a • x + b • y) :=
@@ -738,7 +738,7 @@ lemma concave_on.le_on_segment' {γ : Type*}
 
 /-- A convex function on a segment is upper-bounded by the max of its endpoints. -/
 lemma convex_on.le_on_segment {γ : Type*}
-  [decidable_linear_ordered_add_comm_group γ] [ordered_semimodule ℝ γ]
+  [linear_ordered_add_comm_group γ] [ordered_semimodule ℝ γ]
   {f : E → γ} (hf : convex_on s f) {x y z : E}
   (hx : x ∈ s) (hy : y ∈ s) (hz : z ∈ [x, y]) :
   f z ≤ max (f x) (f y) :=
@@ -746,7 +746,7 @@ let ⟨a, b, ha, hb, hab, hz⟩ := hz in hz ▸ hf.le_on_segment' hx hy ha hb ha
 
 /-- A concave function on a segment is lower-bounded by the min of its endpoints. -/
 lemma concave_on.le_on_segment {γ : Type*}
-  [decidable_linear_ordered_add_comm_group γ] [ordered_semimodule ℝ γ]
+  [linear_ordered_add_comm_group γ] [ordered_semimodule ℝ γ]
   {f : E → γ} (hf : concave_on s f) {x y z : E}
   (hx : x ∈ s) (hy : y ∈ s) (hz : z ∈ [x, y]) :
     min (f x) (f y) ≤ f z :=

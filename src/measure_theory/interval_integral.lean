@@ -129,7 +129,7 @@ open measure_theory set classical filter
 
 open_locale classical topological_space filter
 
-variables {α β 𝕜 E F : Type*} [decidable_linear_order α] [measurable_space α]
+variables {α β 𝕜 E F : Type*} [linear_order α] [measurable_space α]
   [measurable_space E] [normed_group E]
 
 /-!

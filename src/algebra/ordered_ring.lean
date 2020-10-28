@@ -734,7 +734,7 @@ lt_of_not_ge (λ ha, absurd h (mul_nonneg_of_nonpos_of_nonpos ha hb).not_lt)
 lemma pos_of_mul_neg_right {a b : α} (h : a * b < 0) (ha : a ≤ 0) : 0 < b :=
 lt_of_not_ge (λ hb, absurd h (mul_nonneg_of_nonpos_of_nonpos ha hb).not_lt)
 
-/- The sum of two squares is zero iff both elements are zero. -/
+/-- The sum of two squares is zero iff both elements are zero. -/
 lemma mul_self_add_mul_self_eq_zero {x y : α} : x * x + y * y = 0 ↔ x = 0 ∧ y = 0 :=
 begin
   split; intro h, swap, { rcases h with ⟨rfl, rfl⟩, simp },
@@ -775,6 +775,24 @@ have a * a ≤ (0 : α), from calc
      a * a ≤ a * a + b * b : le_add_of_nonneg_right (mul_self_nonneg b)
        ... = 0             : h,
 eq_zero_of_mul_self_eq_zero (le_antisymm this (mul_self_nonneg a))
+
+lemma abs_eq_iff_mul_self_eq : abs a = abs b ↔ a * a = b * b :=
+begin
+  rw [← abs_mul_abs_self, ← abs_mul_abs_self b],
+  exact (mul_self_inj (abs_nonneg a) (abs_nonneg b)).symm,
+end
+
+lemma abs_lt_iff_mul_self_lt : abs a < abs b ↔ a * a < b * b :=
+begin
+  rw [← abs_mul_abs_self, ← abs_mul_abs_self b],
+  exact mul_self_lt_mul_self_iff (abs_nonneg a) (abs_nonneg b)
+end
+
+lemma abs_le_iff_mul_self_le : abs a ≤ abs b ↔ a * a ≤ b * b :=
+begin
+  rw [← abs_mul_abs_self, ← abs_mul_abs_self b],
+  exact mul_self_le_mul_self_iff (abs_nonneg a) (abs_nonneg b)
+end
 
 end linear_ordered_ring
 
@@ -824,27 +842,6 @@ lemma abs_sub_square (a b : α) : abs (a - b) * abs (a - b) = a * a + b * b - (1
 begin
   rw abs_mul_abs_self,
   simp [left_distrib, right_distrib, add_assoc, add_comm, add_left_comm, mul_comm, sub_eq_add_neg],
-end
-
-lemma eq_zero_of_mul_self_add_mul_self_eq_zero (h : a * a + b * b = 0) : a = 0 :=
-(mul_self_add_mul_self_eq_zero.mp h).left
-
-lemma abs_eq_iff_mul_self_eq : abs a = abs b ↔ a * a = b * b :=
-begin
-  rw [← abs_mul_abs_self, ← abs_mul_abs_self b],
-  exact (mul_self_inj (abs_nonneg a) (abs_nonneg b)).symm,
-end
-
-lemma abs_lt_iff_mul_self_lt : abs a < abs b ↔ a * a < b * b :=
-begin
-  rw [← abs_mul_abs_self, ← abs_mul_abs_self b],
-  exact mul_self_lt_mul_self_iff (abs_nonneg a) (abs_nonneg b)
-end
-
-lemma abs_le_iff_mul_self_le : abs a ≤ abs b ↔ a * a ≤ b * b :=
-begin
-  rw [← abs_mul_abs_self, ← abs_mul_abs_self b],
-  exact mul_self_le_mul_self_iff (abs_nonneg a) (abs_nonneg b)
 end
 
 end linear_ordered_comm_ring

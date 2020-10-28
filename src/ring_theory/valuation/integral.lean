@@ -13,22 +13,23 @@ import ring_theory.valuation.integers
 The ring of integers is integrally closed inside the original ring.
 -/
 
-universes u v
+universes u v w
 
 open_locale big_operators
 
 namespace valuation
 
-namespace integer
+namespace integers
 
 section comm_ring
 
 variables {R : Type u} {Γ₀ : Type v} [comm_ring R] [linear_ordered_comm_group_with_zero Γ₀]
-variables (v : valuation R Γ₀)
+variables {v : valuation R Γ₀} {O : Type w} [comm_ring O] [algebra O R] (hv : integers v O)
+include hv
 
 open polynomial
 
-lemma mem_of_integral (x : R) (hx : is_integral v.integer x) : x ∈ v.integer :=
+lemma mem_of_integral {x : R} (hx : is_integral O x) : x ∈ v.integer :=
 let ⟨p, hpm, hpx⟩ := hx in le_of_not_lt $ λ hvx, begin
   rw [hpm.as_sum, eval₂_add, eval₂_pow, eval₂_X, eval₂_finset_sum, add_eq_zero_iff_eq_neg] at hpx,
   replace hpx := congr_arg v hpx, refine ne_of_gt _ hpx,
@@ -37,16 +38,16 @@ let ⟨p, hpm, hpx⟩ := hx in le_of_not_lt $ λ hvx, begin
       (one_le_pow_of_one_le' $ le_of_lt hvx))
     (λ i hi, _),
   rw [eval₂_mul, eval₂_pow, eval₂_C, eval₂_X, v.map_mul, v.map_pow, ← one_mul (v x ^ p.nat_degree)],
-  cases lt_or_eq_of_le (p.coeff i).2 with hvpi hvpi,
+  cases lt_or_eq_of_le (hv.2 $ p.coeff i) with hvpi hvpi,
   { exact mul_lt_mul'''' hvpi (pow_lt_pow' hvx $ finset.mem_range.1 hi) },
   { erw hvpi, rw [one_mul, one_mul], exact pow_lt_pow' hvx (finset.mem_range.1 hi) }
 end
 
-protected lemma integral_closure : integral_closure v.integer R = ⊥ :=
-eq_bot_iff.2 $ λ x hx, algebra.mem_bot.2 ⟨⟨x, mem_of_integral v x hx⟩, rfl⟩
+protected lemma integral_closure : integral_closure O R = ⊥ :=
+eq_bot_iff.2 $ λ r hr, let ⟨x, hx⟩ := hv.3 (hv.mem_of_integral hr) in algebra.mem_bot.2 ⟨x, hx⟩
 
 end comm_ring
 
-end integer
+end integers
 
 end valuation

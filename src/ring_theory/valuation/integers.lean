@@ -14,7 +14,7 @@ The elements with valuation less than or equal to 1.
 TODO: Define characteristic predicate.
 -/
 
-universes u v
+universes u v w
 
 namespace valuation
 
@@ -33,63 +33,85 @@ def integer : subring R :=
     (by { letI := classical.DLO Γ₀, exact max_le hx hy }),
   neg_mem' := λ x hx, trans_rel_right (≤) (v.map_neg x) hx }
 
-namespace integer
-
-lemma one_of_is_unit (x : v.integer) (hx : is_unit x) : v x = 1 :=
-let ⟨u, hu⟩ := hx in le_antisymm x.2 $
-by { rw [← v.map_one, ← v.integer.coe_one, ← u.mul_inv, ← mul_one (v x), hu, subring.coe_mul,
-    v.map_mul], exact mul_le_mul_left' (↑(u⁻¹ : units v.integer) : v.integer).2 _ }
-
-lemma is_unit_of_one (x : v.integer) (hx : is_unit (x : R)) (hvx : v x = 1) : is_unit x :=
-let ⟨u, hu⟩ := hx in ⟨⟨⟨u, hu.symm ▸ x.2⟩, ⟨(u⁻¹ : units R), show v _ ≤ 1,
-    by rw [← one_mul (v _), ← hvx, ← v.map_mul, ← hu, u.mul_inv, hu, hvx, v.map_one]⟩,
-  subtype.eq u.mul_inv, subtype.eq u.inv_mul⟩, subtype.eq hu⟩
-
-lemma le_of_dvd {x y : v.integer} (h : x ∣ y) : v y ≤ v x :=
-let ⟨z, hz⟩ := h in by { rw [← mul_one (v x), hz, subring.coe_mul, v.map_mul],
-  exact mul_le_mul_left' z.2 _ }
-
-end integer
-
 end ring
 
 section comm_ring
 
 variables {R : Type u} {Γ₀ : Type v} [comm_ring R] [linear_ordered_comm_group_with_zero Γ₀]
 variables (v : valuation R Γ₀)
+variables (O : Type w) [comm_ring O] [algebra O R]
 
-namespace integer
+/-- Given a valuation v : R → Γ₀ and a ring homomorphism O →+* R, we say that O is the integers of v
+if f is injective, and its range is exactly `v.integer`. -/
+structure integers : Prop :=
+(hom_inj : function.injective (algebra_map O R))
+(map_le_one : ∀ x, v (algebra_map O R x) ≤ 1)
+(exists_of_le_one : ∀ ⦃r⦄, v r ≤ 1 → ∃ x, algebra_map O R x = r)
 
 -- typeclass shortcut
 instance : algebra v.integer R :=
 algebra.of_subring v.integer
 
-end integer
+theorem integer.integers : v.integers v.integer :=
+{ hom_inj := subtype.coe_injective,
+  map_le_one := λ r, r.2,
+  exists_of_le_one := λ r hr, ⟨⟨r, hr⟩, rfl⟩ }
+
+namespace integers
+
+variables {v O} (hv : integers v O)
+include hv
+
+lemma one_of_is_unit {x : O} (hx : is_unit x) : v (algebra_map O R x) = 1 :=
+let ⟨u, hu⟩ := hx in le_antisymm (hv.2 _) $
+by { rw [← v.map_one, ← (algebra_map O R).map_one, ← u.mul_inv, ← mul_one (v (algebra_map O R x)),
+  hu, (algebra_map O R).map_mul, v.map_mul], exact mul_le_mul_left' (hv.2 (u⁻¹ : units O)) _ }
+
+lemma is_unit_of_one {x : O} (hx : is_unit (algebra_map O R x)) (hvx : v (algebra_map O R x) = 1) :
+  is_unit x :=
+let ⟨u, hu⟩ := hx in
+have h1 : v u ≤ 1, from hu.symm ▸ hv.2 x,
+have h2 : v (u⁻¹ : units R) ≤ 1,
+  by rw [← one_mul (v _), ← hvx, ← v.map_mul, ← hu, u.mul_inv, hu, hvx, v.map_one],
+let ⟨r1, hr1⟩ := hv.3 h1, ⟨r2, hr2⟩ := hv.3 h2 in
+⟨⟨r1, r2, hv.1 $ by rw [ring_hom.map_mul, ring_hom.map_one, hr1, hr2, units.mul_inv],
+  hv.1 $ by rw [ring_hom.map_mul, ring_hom.map_one, hr1, hr2, units.inv_mul]⟩,
+hv.1 $ hr1.trans hu⟩
+
+lemma le_of_dvd {x y : O} (h : x ∣ y) : v (algebra_map O R y) ≤ v (algebra_map O R x) :=
+let ⟨z, hz⟩ := h in by { rw [← mul_one (v (algebra_map O R x)), hz, ring_hom.map_mul, v.map_mul],
+  exact mul_le_mul_left' (hv.2 z) _ }
+
+end integers
 
 end comm_ring
 
 section field
 
 variables {F : Type u} {Γ₀ : Type v} [field F] [linear_ordered_comm_group_with_zero Γ₀]
-variables (v : valuation F Γ₀)
+variables {v : valuation F Γ₀} {O : Type w} [comm_ring O] [algebra O F] (hv : integers v O)
+include hv
 
-namespace integer
+namespace integers
 
-lemma dvd_of_le {x y : v.integer} (h : v x ≤ v y) : y ∣ x :=
-classical.by_cases (λ hy : (y : F) = 0, have hx : x = 0,
-    from subtype.ext $ v.zero_iff.1 $ le_zero_iff.1 (v.map_zero ▸ hy ▸ h),
+lemma dvd_of_le {x y : O} (h : v (algebra_map O F x) ≤ v (algebra_map O F y)) : y ∣ x :=
+classical.by_cases (λ hy : algebra_map O F y = 0, have hx : x = 0,
+    from hv.1 $ (algebra_map O F).map_zero.symm ▸
+      (v.zero_iff.1 $ le_zero_iff.1 (v.map_zero ▸ hy ▸ h)),
   hx.symm ▸ dvd_zero y) $
-λ hy : (y : F) ≠ 0, ⟨⟨y⁻¹ * x, show v (y⁻¹ * x) ≤ 1,
-  by { rw [← v.map_one, ← inv_mul_cancel hy, v.map_mul, v.map_mul], exact mul_le_mul_left' h _ }⟩,
-subtype.ext $ eq.symm $ mul_inv_cancel_left' hy x⟩
+λ hy : algebra_map O F y ≠ 0,
+have v ((algebra_map O F y)⁻¹ * algebra_map O F x) ≤ 1,
+  by { rw [← v.map_one, ← inv_mul_cancel hy, v.map_mul, v.map_mul], exact mul_le_mul_left' h _ },
+let ⟨z, hz⟩ := hv.3 this in
+⟨z, hv.1 $ ((algebra_map O F).map_mul y z).symm ▸ hz.symm ▸ (mul_inv_cancel_left' hy _).symm⟩
 
-lemma dvd_iff_le {x y : v.integer} : x ∣ y ↔ v y ≤ v x :=
-⟨le_of_dvd v, dvd_of_le v⟩
+lemma dvd_iff_le {x y : O} : x ∣ y ↔ v (algebra_map O F y) ≤ v (algebra_map O F x) :=
+⟨hv.le_of_dvd, hv.dvd_of_le⟩
 
-lemma le_iff_dvd {x y : v.integer} : v x ≤ v y ↔ y ∣ x :=
-⟨dvd_of_le v, le_of_dvd v⟩
+lemma le_iff_dvd {x y : O} : v (algebra_map O F x) ≤ v (algebra_map O F y) ↔ y ∣ x :=
+⟨hv.dvd_of_le, hv.le_of_dvd⟩
 
-end integer
+end integers
 
 end field
 

@@ -6,10 +6,14 @@ Authors: Kenny Lau
 # Ring-theoretic supplement of data.polynomial.
 
 ## Main results
-* If a ring is an integral domain, then so is its polynomial ring.
-* Hilbert basis theorem, that if a ring is noetherian then so is its polynomial ring.
-* If an integral domain is a `wf_dvd_monoid`, then so is its polynomial ring.
-* If an integral domain is a `unique_factorization_monoid`, then so is its polynomial ring.
+* `mv_polynomial.integral_domain`:
+  If a ring is an integral domain, then so is its polynomial ring over finitely many variables.
+* `polynomial.is_noetherian_ring`:
+  Hilbert basis theorem, that if a ring is noetherian then so is its polynomial ring.
+* `polynomial.wf_dvd_monoid`:
+  If an integral domain is a `wf_dvd_monoid`, then so is its polynomial ring.
+* `polynomial.unique_factorization_monoid`:
+  If an integral domain is a `unique_factorization_monoid`, then so is its polynomial ring.
 -/
 import algebra.char_p
 import data.mv_polynomial.comm_ring
@@ -359,7 +363,9 @@ is_noetherian_submodule_left.1 (is_noetherian_of_fg_of_noetherian _
 
 end ideal
 
-protected theorem polynomial.wf_dvd_monoid {R : Type*} [integral_domain R] [wf_dvd_monoid R] :
+namespace polynomial
+@[priority 100]
+instance {R : Type*} [integral_domain R] [wf_dvd_monoid R] :
   wf_dvd_monoid (polynomial R) :=
 { well_founded_dvd_not_unit := begin
     classical,
@@ -389,7 +395,7 @@ protected theorem polynomial.wf_dvd_monoid {R : Type*} [integral_domain R] [wf_d
       exact lt_add_of_pos_right _ (nat.pos_of_ne_zero (λ h, hdeg (h.symm ▸ with_bot.coe_zero))) },
   end }
 
-attribute [priority 100] [instance] polynomial.wf_dvd_monoid
+end polynomial
 
 /-- Hilbert basis theorem: a polynomial ring over a noetherian ring is a noetherian ring. -/
 protected theorem polynomial.is_noetherian_ring [is_noetherian_ring R] :
@@ -639,13 +645,12 @@ open unique_factorization_monoid
 
 variables {D : Type u} [integral_domain D] [unique_factorization_monoid D]
 
-protected theorem unique_factorization_monoid : unique_factorization_monoid (polynomial D) :=
+@[priority 100]
+instance unique_factorization_monoid : unique_factorization_monoid (polynomial D) :=
 begin
   haveI := arbitrary (normalization_monoid D),
   haveI := to_gcd_monoid D,
   exact ufm_of_gcd_of_wf_dvd_monoid
 end
-
-attribute [priority 100] [instance] polynomial.unique_factorization_monoid
 
 end polynomial

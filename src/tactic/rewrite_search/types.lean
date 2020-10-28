@@ -80,7 +80,6 @@ end rw_equation
 namespace tactic.rewrite_search
 
 structure bfs_state :=
-(curr_depth : ℕ)
 (queue      : list (option ℕ))
 
 meta structure edge :=
@@ -132,12 +131,6 @@ meta instance inhabited : inhabited vertex := ⟨null⟩
 meta instance has_to_format : has_to_format vertex := ⟨λ v, v.pp⟩
 
 end vertex
-
-meta inductive status
-| continue : status
-| repeat : status
-| done : edge → status
-| abort : string → status
 
 meta structure search_state :=
 (conf         : config)

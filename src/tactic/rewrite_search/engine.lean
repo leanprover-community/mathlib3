@@ -159,21 +159,19 @@ rewrite_iter → search_state → tactic (search_state × rewrite_iter × list (
 
 end rewrite_iter
 
-namespace search_state
+meta def bfs_init (refs : list (option ℕ)) : bfs_state := ⟨refs⟩
 
-end search_state
+meta inductive status
+| continue : status
+| done : edge → status
+| abort : string → status
 
-meta def bfs_init (refs : list (option ℕ)) : bfs_state := ⟨1, refs⟩
-
-meta def bfs_step (g : search_state) : tactic (search_state × status) := do
-  let state := g.strat_state,
-  if state.curr_depth > 50 then
-    return (g, status.abort "max bfs depth reached!")
-  else match state.queue with
+meta def bfs_step (g : search_state) : tactic (search_state × status) :=
+do let state := g.strat_state,
+match state.queue with
   | [] := return (g, status.abort "all vertices exhausted!")
   | (none :: rest) := do
-    return (g.mutate_strat {state with queue := rest.concat none, curr_depth :=
-                            state.curr_depth + 1}, status.repeat)
+    return (g.mutate_strat {state with queue := rest.concat none}, status.continue)
   | (some v :: rest) := do
     let v := g.vertices.read' v,
     (g, it) ← g.visit_vertex v,
@@ -181,7 +179,7 @@ meta def bfs_step (g : search_state) : tactic (search_state × status) := do
     let adjs := adjs.filter $ λ u, ¬u.1.visited,
     return (g.mutate_strat {state with queue := rest.append $ adjs.map $ λ u, some u.1.id},
             status.continue)
-  end
+end
 
 namespace search_state
 
@@ -205,7 +203,6 @@ meta def search_until_solved_aux : search_state → ℕ → tactic (search_state
   (g, s) ← g.step_once itr,
   match s with
   | status.continue := search_until_solved_aux g (itr + 1)
-  | status.repeat   := search_until_solved_aux g itr
   | status.abort r  := return (g, search_result.failure ("aborted: " ++ r))
   | status.done e   := g.finish_search
   end

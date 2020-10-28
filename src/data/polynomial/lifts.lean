@@ -86,133 +86,122 @@ lemma X_pow_lifts (f : R →+* S) (n : ℕ) : lifts f (X ^ n : polynomial S) :=
   by use X ^ n; rw [map_pow, map_X]
 
 /--If `p` and `q` lift then `p + q` lifts. -/
-lemma lifts_add_mem {p q : polynomial S} (hp : lifts f p) (hq : lifts f q) : lifts f (p + q) :=
+lemma lifts_add {p q : polynomial S} (hp : lifts f p) (hq : lifts f q) : lifts f (p + q) :=
   by rw lifts_iff at hp hq ⊢; exact subsemiring.add_mem (ring_hom.of (map f)).srange hp hq
 
 /--If `p` and `q` lift then `p * q` lifts. -/
-lemma lifts_mul_mem {p q : polynomial S} (hp : lifts f p) (hq : lifts f q) : lifts f (p * q) :=
+lemma lifts_mul {p q : polynomial S} (hp : lifts f p) (hq : lifts f q) : lifts f (p * q) :=
   by rw lifts_iff at hp hq ⊢; exact subsemiring.mul_mem (ring_hom.of (map f)).srange hp hq
 
 /--If `p` lifts and `(n : ℕ)` then `p ^ n` lifts. -/
-lemma lifts.pow_mem {p : polynomial S} (n : ℕ) (hp : lifts f p) : lifts f (p ^ n) :=
+lemma lifts.pow {p : polynomial S} (n : ℕ) (hp : lifts f p) : lifts f (p ^ n) :=
   by rw lifts_iff at hp ⊢; exact subsemiring.pow_mem (ring_hom.of (map f)).srange hp n
 
 /--If `p` lifts and `(n : ℕ)` then `n • p` lifts. -/
-lemma lifts.nat_smul_mem {p : polynomial S} (n : ℕ) (hp : lifts f p) : lifts f (n • p) :=
+lemma lifts.nat_smul {p : polynomial S} (n : ℕ) (hp : lifts f p) : lifts f (n • p) :=
   by rw lifts_iff at hp ⊢; exact subsemiring.nsmul_mem (ring_hom.of (map f)).srange hp n
 
 /--If `p` lifts and `(r : R)` then `r * p` lifts. -/
-lemma lifts.base_mul_mem {p : polynomial S} (r : R) (hp : lifts f p) : lifts f (C (f r) * p) :=
+lemma lifts.base_mul {p : polynomial S} (r : R) (hp : lifts f p) : lifts f (C (f r) * p) :=
   by rw lifts at hp ⊢; obtain ⟨p₁, rfl⟩ := hp; use C r * p₁; rw [map_mul, map_C]
 
 /--If any element of a list of polynomials lifts, then the product lifts-/
-lemma lifts_list_prod_mem {L : list (polynomial S)} :
+lemma lifts_list_prod {L : list (polynomial S)} :
   (∀ (p : polynomial S), p ∈ L → lifts f p) → lifts f L.prod :=
   by simp_rw [lifts_iff]; exact subsemiring.list_prod_mem (ring_hom.of (map f)).srange
 
 /--If any element of a list of polynomials lifts, then the sum lifts-/
-lemma lifts_list_sum_mem {L : list (polynomial S)} :
+lemma lifts_list_sum {L : list (polynomial S)} :
   (∀ (p : polynomial S), p ∈ L → lifts f p) → lifts f L.sum :=
   by simp_rw [lifts_iff]; exact subsemiring.list_sum_mem (ring_hom.of (map f)).srange
 
 /--If any element of a multiset of polynomials lifts, then the sum lifts-/
-lemma lifts_multiset_sum_mem {m : multiset (polynomial S)} :
+lemma lifts_multiset_sum {m : multiset (polynomial S)} :
   (∀ (p : polynomial S), p ∈ m → lifts f p) → lifts f m.sum :=
   by simp_rw [lifts_iff]; exact subsemiring.multiset_sum_mem (ring_hom.of (map f)).srange m
 
 /--If any element of a finset of polynomials lifts, then the sum lifts-/
-lemma lifts_sum_mem {ι : Type w} {t : finset ι} {g : ι → (polynomial S)} :
+lemma lifts_sum {ι : Type w} {t : finset ι} {g : ι → (polynomial S)} :
   (∀ (x : ι), x ∈ t → lifts f (g x)) → lifts f (∑ (x : ι) in t, g x) :=
 by simp_rw [lifts_iff]; exact subsemiring.sum_mem (ring_hom.of (map f)).srange
 
-/--If `p` lifts then is leading monomial lifts. -/
-lemma lead_monom_lifts_of_lifts {p : polynomial S} (h : lifts f p) :
-  lifts f ((C p.leading_coeff) * polynomial.X ^ p.nat_degree) :=
+/--If `p` lifts then any `monomial n (p.coeff n)` lifts. -/
+lemma monom_lifts_of_lifts {p : polynomial S} (n : ℕ) (h : lifts f p) :
+  lifts f (monomial n (p.coeff n)) :=
 begin
-  obtain ⟨q, hq⟩ := h,
-  rw leading_coeff,
-  use (C (q.coeff p.nat_degree)) * polynomial.X ^ p.nat_degree,
-  nth_rewrite 2 ←hq,
-  simp only [map_C, coeff_map, map_pow, map_X, map_mul]
+  obtain ⟨q, rfl⟩ := h,
+  use (monomial n (q.coeff n)),
+  simp only [coeff_map, map_monomial],
 end
 
-/--If `p` lifts then `p.erase_lead` lifts. -/
-lemma erase_lead_lifts_of_lifts {p : polynomial S} (h : lifts f p) : lifts f p.erase_lead :=
+/--If `p` lifts then `p.erase n` lifts. -/
+lemma erase_lifts_of_lifts {p : polynomial S} (n : ℕ) (h : lifts f p) : lifts f (p.erase n) :=
 begin
-  cases erase_lead_nat_degree_lt_or_erase_lead_eq_zero p with hdeg hzero,
-  { obtain ⟨q, hq⟩ := h,
-    have hcoeff : ∀ n ∈ p.erase_lead.support, f (q.coeff n) = p.erase_lead.coeff n,
-    { intros n hn,
-      rw [erase_lead_coeff_of_ne n (ne_nat_degree_of_mem_erase_lead_support hn), ← hq, coeff_map] },
-    use (∑ (i : ℕ) in p.erase_lead.support, (C (q.coeff i)) * polynomial.X ^ i),
-    simp [map_sum, map_C, map_pow, map_X, map_mul],
-    conv_lhs { apply_congr,
-               skip,
-               simp only [hcoeff, H] },
-    nth_rewrite 1 [as_sum_support p.erase_lead] },
-  { use 0; simp only [hzero, map_zero] },
+  rw [lifts_iff_set_range, mem_map_range, coeff] at h ⊢,
+  intros k,
+  by_cases hk : k = n,
+  { use 0,
+    simp only [hk, ring_hom.map_zero, finsupp.erase_same] },
+  obtain ⟨i, hi⟩ := h k,
+  use i,
+  simp only [hi, hk, finsupp.erase_ne, ne.def, not_false_iff],
 end
 
 section lift_deg
 
-/--`lifts_deg f p` means that `p` can be lifted to a polynomial of the same degree. -/
-def lifts_deg (f : R →+* S) (p : polynomial S) : Prop :=
-  ∃ (q : polynomial R), map f q = p ∧ q.degree = p.degree
-
-lemma lifts_deg_of_supp_le_one {p : polynomial S} (hs : p.support.card < 2) (hl : lifts f p) :
-  lifts_deg f p :=
+lemma lifts_deg_of_monom_lifts {s : S} {n : ℕ} (hl : lifts f (monomial n s)) :
+  ∃ (q : polynomial R), map f q = (monomial n s) ∧ q.degree = (monomial n s).degree :=
 begin
-  have h : p.support.card = 0 ∨ p.support.card = 1 := by omega,
-  cases h with h0 h1,
-  { simp only [finsupp.support_eq_empty, finset.card_eq_zero] at h0,
-    use 0,
-    simp only [h0, degree_zero, eq_self_iff_true, and_self, map_zero] },
-  have hzero : p ≠ 0 := by rw [←nonempty_support_iff, ←finset.card_pos, h1]; exact zero_lt_one,
-  replace hs := C_mul_X_pow_eq_self (le_of_eq h1),
-  rw [← hs, lifts_deg],
+  by_cases hzero : s = 0,
+  { use 0,
+    simp only [hzero, degree_zero, eq_self_iff_true, and_self, monomial_zero_right, map_zero] },
   obtain ⟨q, hq⟩ := hl,
-  use (C(q.coeff p.nat_degree) * X ^ p.nat_degree),
-  have hcoeff : f (q.coeff p.nat_degree ) = p.coeff p.nat_degree,
-  { rw [← hq, coeff_map] },
+  replace hq := (ext_iff.1 hq) n,
+  have hcoeff : f (q.coeff n) = s,
+  { simp [coeff_monomial] at hq,
+    exact hq },
+  use (monomial n (q.coeff n)),
   split,
-  { simp only [leading_coeff, hcoeff, map_C, map_pow, map_X, map_mul] },
-  have pcoeff : p.leading_coeff ≠ 0 := by intro ha; exact hzero (leading_coeff_eq_zero.1 ha),
-  have qcoeff : q.coeff p.nat_degree ≠ 0,
+  { simp only [hcoeff, map_monomial] },
+  have hqzero : q.coeff n ≠ 0,
   { intro habs,
-    rw [habs, ←leading_coeff, ring_hom.map_zero] at hcoeff,
-    exact pcoeff hcoeff.symm },
-  simp only [qcoeff, pcoeff, ne.def, not_false_iff, degree_monomial]
+    simp only [habs, ring_hom.map_zero] at hcoeff,
+    exact hzero hcoeff.symm },
+  repeat {rw single_eq_C_mul_X},
+  simp only [hzero, hqzero, ne.def, not_false_iff, degree_monomial]
 end
 
 /--A polynomial lifts if and only if it can be lifted to a polynomial of the same degree. -/
-lemma lifts_deg_iff_lifts (f : R →+* S) (p : polynomial S) : lifts_deg f p ↔ lifts f p :=
+lemma lifts_deg_of_lifts {p : polynomial S} (hlifts : lifts f p) :
+  ∃ (q : polynomial R), map f q = p ∧ q.degree = p.degree :=
 begin
-  split,
-  { intro h; obtain ⟨q, hq⟩ := h; use q; exact hq.1 },
   generalize' hd : p.nat_degree = d,
   revert hd p,
   apply nat.strong_induction_on d,
-  intros n hn p hdeg hlifts,
-  by_cases hsuppcard : 2 ≤ p.support.card,
-  swap,
-  { rw [not_le] at hsuppcard; exact lifts_deg_of_supp_le_one hsuppcard hlifts },
-  obtain ⟨lead, hlead⟩ := lifts_deg_of_supp_le_one (lt_of_le_of_lt
-    (@card_support_C_mul_X_pow_le_one S _ p.leading_coeff p.nat_degree) one_lt_two)
-    (lead_monom_lifts_of_lifts hlifts),
+  intros n hn p hlifts hdeg,
+  by_cases erase_zero : p.erase_lead = 0,
+  { rw [← erase_lead_add_monomial_nat_degree_leading_coeff p, erase_zero, zero_add, leading_coeff],
+    exact lifts_deg_of_monom_lifts (monom_lifts_of_lifts p.nat_degree hlifts) },
+  have deg_erase := or.resolve_right (erase_lead_nat_degree_lt_or_erase_lead_eq_zero p) erase_zero,
   have pzero : p ≠ 0,
-  { rw [← nonempty_support_iff, ← finset.card_pos]; exact lt_of_lt_of_le zero_lt_two hsuppcard },
-  have lead_zero : p.leading_coeff ≠ 0,
-  { rw [ne.def, leading_coeff_eq_zero]; exact pzero },
+  { intro habs,
+    exfalso,
+    rw [habs, erase_lead_zero, eq_self_iff_true, not_true] at erase_zero,
+    exact erase_zero },
+  have lead_zero : p.coeff p.nat_degree ≠ 0,
+  { rw [← leading_coeff, ne.def, leading_coeff_eq_zero]; exact pzero },
+  obtain ⟨lead, hlead⟩ := lifts_deg_of_monom_lifts (monom_lifts_of_lifts p.nat_degree hlifts),
   have deg_lead : lead.degree = p.nat_degree,
-  { rw [hlead.2, degree_monomial p.nat_degree lead_zero] },
-  have deg_erase := erase_lead_nat_degree_lt hsuppcard,
+  { rw [hlead.2, single_eq_C_mul_X],
+    simp only [lead_zero, ne.def, not_false_iff, degree_monomial] },
   rw hdeg at deg_erase,
-  obtain ⟨erase, herase⟩ := hn p.erase_lead.nat_degree deg_erase p.erase_lead
-    (refl p.erase_lead.nat_degree) (erase_lead_lifts_of_lifts hlifts),
+  obtain ⟨erase, herase⟩ := hn p.erase_lead.nat_degree deg_erase
+    (erase_lifts_of_lifts p.nat_degree hlifts) (refl p.erase_lead.nat_degree),
   use erase + lead,
   split,
-  { simp only [hlead, herase, map_add]; nth_rewrite 3 ← erase_lead_add_C_mul_X_pow p },
-  rw [←hdeg] at deg_erase,
+  { simp only [hlead, herase, map_add],
+    nth_rewrite 0 erase_lead_add_monomial_nat_degree_leading_coeff p },
+  rw [←hdeg, erase_lead] at deg_erase,
   replace deg_erase := lt_of_le_of_lt degree_le_nat_degree (with_bot.coe_lt_coe.2 deg_erase),
   rw [← deg_lead, ← herase.2] at deg_erase,
   rw [degree_add_eq_of_degree_lt deg_erase, deg_lead, degree_eq_nat_degree pzero]
@@ -222,22 +211,15 @@ end lift_deg
 
 section monic
 
-/--`lifts_deg_monic f p` means that `p` can be lifted to a monic polynomial of the same degree. -/
-def lifts_deg_monic (f : R →+* S) (p : polynomial S) : Prop :=
-  ∃ (q : polynomial R), map f q = p ∧ q.degree = p.degree ∧ q.monic
-
 /--A monic polynomial lifts if and only if it can be lifted to a monic polynomial
 of the same degree. -/
-lemma lifts_deg_monic_iff_lifts {f : R →+* S} [nontrivial S] (p : polynomial S) (hmonic : p.monic) :
-  lifts_deg_monic f p ↔ lifts f p :=
+lemma lifts_deg_monic_of_lifts [nontrivial S] {p : polynomial S} (hlifts : lifts f p)
+  (hmonic : p.monic) : ∃ (q : polynomial R), map f q = p ∧ q.degree = p.degree ∧ q.monic :=
 begin
-  split,
-  { intro h; obtain ⟨q, hq⟩ := h; use q; exact hq.1 },
-  intro hlifts,
   by_cases Rtrivial : nontrivial R,
   swap,
   { rw not_nontrivial_iff_subsingleton at Rtrivial,
-    obtain ⟨q, hq⟩ := (lifts_deg_iff_lifts f p).2 hlifts,
+    obtain ⟨q, hq⟩ := lifts_deg_of_lifts hlifts,
     use q,
     exact ⟨hq.1, hq.2, @monic_of_subsingleton _ _ Rtrivial q⟩ },
   by_cases er_zero : p.erase_lead = 0,
@@ -247,20 +229,21 @@ begin
     { simp only [map_pow, map_X] },
     { rw [@degree_X_pow R _ Rtrivial, degree_X_pow] },
     {exact monic_pow monic_X p.nat_degree } },
-  obtain ⟨q, hq⟩ := (lifts_deg_iff_lifts f p.erase_lead).2 (erase_lead_lifts_of_lifts hlifts),
+  obtain ⟨q, hq⟩ := lifts_deg_of_lifts (erase_lifts_of_lifts p.nat_degree hlifts),
   have deg_er : p.erase_lead.nat_degree < p.nat_degree :=
     or.resolve_right (erase_lead_nat_degree_lt_or_erase_lead_eq_zero p) er_zero,
   replace deg_er := with_bot.coe_lt_coe.2 deg_er,
-  rw [← degree_eq_nat_degree er_zero, ← hq.2, ← @degree_X_pow R _ Rtrivial p.nat_degree] at deg_er,
+  rw [← degree_eq_nat_degree er_zero, erase_lead, ← hq.2,
+    ← @degree_X_pow R _ Rtrivial p.nat_degree] at deg_er,
   use q + X ^ p.nat_degree,
   repeat {split},
   { simp only [hq, map_add, map_pow, map_X],
-    nth_rewrite 2 [← erase_lead_add_C_mul_X_pow p],
-    rw [monic.leading_coeff hmonic, C_1, one_mul] },
+    nth_rewrite 3 [← erase_lead_add_C_mul_X_pow p],
+    rw [erase_lead, monic.leading_coeff hmonic, C_1, one_mul] },
   { rw [degree_add_eq_of_degree_lt deg_er, @degree_X_pow R _ Rtrivial p.nat_degree,
     degree_eq_nat_degree (monic.ne_zero hmonic)] },
   { rw [monic.def, leading_coeff_add_of_degree_lt deg_er],
-    exact monic_pow monic_X p.nat_degree },
+    exact monic_pow monic_X p.nat_degree }
 end
 
 end monic
@@ -272,12 +255,12 @@ section comm_semiring
 variables {R : Type u} [semiring R] {S : Type v} [comm_semiring S] (f : R →+* S)
 
 /--If any element of a multiset of polynomials lifts, then the product lifts-/
-lemma lifts_multiset_prod_mem {m : multiset (polynomial S)} :
+lemma lifts_multiset_prod {m : multiset (polynomial S)} :
   (∀ (p : polynomial S), p ∈ m → lifts f p) → lifts f m.prod :=
 by simp_rw [lifts_iff]; exact subsemiring.multiset_prod_mem (ring_hom.of (map f)).srange m
 
 /--If any element of a finset of polynomials lifts, then the product lifts-/
-lemma lifts_prod_mem {ι : Type w} {t : finset ι} {g : ι → (polynomial S)} :
+lemma lifts_prod {ι : Type w} {t : finset ι} {g : ι → (polynomial S)} :
   (∀ (x : ι), x ∈ t → lifts f (g x)) → lifts f (∏ (x : ι) in t, g x) :=
 by simp_rw [lifts_iff]; exact subsemiring.prod_mem (ring_hom.of (map f)).srange
 
@@ -288,19 +271,19 @@ section ring
 variables {R : Type u} [ring R] {S : Type v} [ring S] (f : R →+* S)
 
 /--If `p` lifts, then `-p` lifts. -/
-lemma lifts.neg_mem {p : polynomial S} (hp : lifts f p) : lifts f (-p) :=
+lemma lifts.neg {p : polynomial S} (hp : lifts f p) : lifts f (-p) :=
   by rw lifts_iff at hp ⊢; exact subring.neg_mem (ring_hom.range (ring_hom.of (map f))) hp
 
 /--If `p` and `q` lift then `p - q` lifts. -/
-lemma lifts_sub_mem {p q : polynomial S} (hp : lifts f p) (hq : lifts f q) : lifts f (p - q) :=
+lemma lifts_sub {p q : polynomial S} (hp : lifts f p) (hq : lifts f q) : lifts f (p - q) :=
   by rw lifts_iff at hp hq ⊢; exact subring.sub_mem (ring_hom.range (ring_hom.of (map f))) hp hq
 
 /--For any `(n : ℤ)`, the polynomial `(n : polynomial S)` lifts. -/
-lemma lifts.int_mem (f : R →+* S) (n : ℤ) : lifts f (n : polynomial S) :=
+lemma lifts.int (f : R →+* S) (n : ℤ) : lifts f (n : polynomial S) :=
   by rw lifts_iff at ⊢; exact subring.coe_int_mem (ring_hom.range (ring_hom.of (map f))) n
 
 /--If `p` lifts and `(n : ℤ)` then `n • p` lifts. -/
-lemma lifts.int_smul_mem {p : polynomial S} (n : ℤ) (hp : lifts f p) : lifts f (n • p) :=
+lemma lifts.int_smul {p : polynomial S} (n : ℤ) (hp : lifts f p) : lifts f (n • p) :=
   by rw lifts_iff at hp ⊢; exact subring.gsmul_mem (ring_hom.range (ring_hom.of (map f))) hp n
 
 end ring
@@ -323,7 +306,7 @@ lemma lifts_iff_alg (R : Type u) [comm_semiring R] {S : Type v} [semiring S] [al
   by simp only [lifts, map_alg_eq_map, alg_hom.mem_range]
 
 /--If `p` lifts and `(r : R)` then `r • p` lifts. -/
-lemma lifts.smul_mem {p : polynomial S} (r : R) (hp : lifts (algebra_map R S) p) :
+lemma lifts.smul {p : polynomial S} (r : R) (hp : lifts (algebra_map R S) p) :
   lifts (algebra_map R S) (r • p) :=
   by rw lifts_iff_alg at hp ⊢; exact subalgebra.smul_mem (map_alg R S).range hp r
 

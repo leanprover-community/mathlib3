@@ -373,7 +373,7 @@ by rw decomp ; simp only [linear_map.map_zero, pi.add_apply, add_sub_cancel, zer
 
 omit V1
 
-lemma image_interval {k : Type*} [discrete_linear_ordered_field k] (f : k →ᵃ[k] k)
+lemma image_interval {k : Type*} [linear_ordered_field k] (f : k →ᵃ[k] k)
   (a b : k) :
   f '' set.interval a b = set.interval (f a) (f b) :=
 begin

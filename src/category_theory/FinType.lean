@@ -14,12 +14,13 @@ import category_theory.skeletal
 /-!
 # The category of finite types.
 
-We define the category of finite types, denoted `FinType` as
+We define the category of finite types, denoted `Fintype` as
 (bundled) types with a `fintype` instance.
 
-We also define `FinType.Skeleton`, the standard skeleton of `FinType` whose objects are `fin n`
-for `n : ℕ`. We prove that the obvious inclusion functor `FinType.Skeleton ⥤ FinType` is an
-equivalence of categories in `FinType.Skeleton.equivalence`.
+We also define `Fintype.skeleton`, the standard skeleton of `Fintype` whose objects are `fin n`
+for `n : ℕ`. We prove that the obvious inclusion functor `Fintype.skeleton ⥤ Fintype` is an
+equivalence of categories in `Fintype.skeleton.equivalence`.
+We prove that `Fintype.skeleton` is a skeleton of `Fintype` in `Fintype.is_skeleton`.
 -/
 
 open_locale classical
@@ -31,45 +32,45 @@ def Fintype := bundled fintype
 
 namespace Fintype
 
-/-- Construct a bundled `FinType` from the underlying type and typeclass. -/
+/-- Construct a bundled `Fintype` from the underlying type and typeclass. -/
 def of (X : Type*) [fintype X] : Fintype := bundled.of X
 instance : inhabited Fintype := ⟨⟨pempty⟩⟩
 instance {X : Fintype} : fintype X := X.2
 
 instance : category Fintype := induced_category.category bundled.α
 
-/-- The fully faithful embedding of `FinType` into the category of types. -/
+/-- The fully faithful embedding of `Fintype` into the category of types. -/
 @[derive [full, faithful]]
 def incl : Fintype ⥤ Type* := induced_functor _
 
 instance : concrete_category Fintype := ⟨incl⟩
 
-/-- The "standard" skeleton for `FinType`. -/
-def Skeleton := ℕ
+/-- The "standard" skeleton for `Fintype`. -/
+def skeleton := ℕ
 
-namespace Skeleton
+namespace skeleton
 
-/-- Given any natural number `n`, this creates the associated object of `FinType.Skeleton`. -/
-def mk : ℕ → Skeleton := id
+/-- Given any natural number `n`, this creates the associated object of `Fintype.skeleton`. -/
+def mk : ℕ → skeleton := id
 
-instance : inhabited Skeleton := ⟨mk 0⟩
+instance : inhabited skeleton := ⟨mk 0⟩
 
-/-- Given any object of `FinType.Skeleton`, this returns the associated natural number. -/
-def to_nat : Skeleton → ℕ := id
+/-- Given any object of `Fintype.skeleton`, this returns the associated natural number. -/
+def to_nat : skeleton → ℕ := id
 
-instance : category Skeleton :=
+instance : category skeleton :=
 { hom := λ X Y, fin X → fin Y,
   id := λ _, id,
   comp := λ _ _ _ f g, g ∘ f }
 
-lemma is_skeletal : skeletal Skeleton := λ X Y ⟨h⟩, fin.equiv_iff_eq.mp $ nonempty.intro $
+lemma is_skeletal : skeletal skeleton := λ X Y ⟨h⟩, fin.equiv_iff_eq.mp $ nonempty.intro $
 { to_fun := h.1,
   inv_fun := h.2,
   left_inv := λ _, by {change (h.hom ≫ h.inv) _ = _, simpa},
   right_inv := λ _, by {change (h.inv ≫ h.hom) _ = _, simpa} }
 
-/-- The canonical fully faithful embedding of `FinType.Skeleton` into `FinType`. -/
-def incl : Skeleton ⥤ Fintype :=
+/-- The canonical fully faithful embedding of `Fintype.skeleton` into `Fintype`. -/
+def incl : skeleton ⥤ Fintype :=
 { obj := λ X, Fintype.of (fin X),
   map := λ _ _ f, f }
 
@@ -87,15 +88,15 @@ noncomputable instance : ess_surj incl :=
 noncomputable instance : is_equivalence incl :=
 equivalence.equivalence_of_fully_faithfully_ess_surj _
 
-/-- The equivalence between `FinType.Skeleton` and `FinType`. -/
-noncomputable def equivalence : Skeleton ≌ Fintype := incl.as_equivalence
-
-noncomputable def is_skeleton_of : is_skeleton_of Fintype Skeleton incl :=
-{ skel := is_skeletal,
-  eqv := by apply_instance }
+/-- The equivalence between `Fintype.skeleton` and `Fintype`. -/
+noncomputable def equivalence : skeleton ≌ Fintype := incl.as_equivalence
 
 @[simp] lemma incl_mk_nat_card (n : ℕ) : fintype.card (incl.obj (mk n)) = n := finset.card_fin n
 
-end Skeleton
+end skeleton
+
+noncomputable def is_skeleton : is_skeleton_of Fintype skeleton skeleton.incl :=
+{ skel := skeleton.is_skeletal,
+  eqv := by apply_instance }
 
 end Fintype

@@ -3,7 +3,7 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Yury G. Kudryashov
 -/
-import linear_algebra.affine_space.basic
+import linear_algebra.affine_space.affine_map
 
 /-!
 # Affine equivalences
@@ -28,6 +28,7 @@ affine space, affine equivalence
 -/
 
 open function set
+open_locale affine
 
 /-- An affine equivalence is an equivalence between affine spaces such that both forward
 and inverse maps are affine.

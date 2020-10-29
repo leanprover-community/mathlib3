@@ -1436,12 +1436,14 @@ do e ← instantiate_mvars e,
 subexpressions. -/
 meta def derive (e : expr) : tactic (expr × expr) := do f ← get_step, derive' f e
 
+end norm_num
+
 /-- Basic version of `norm_num` that does not call `simp`. It uses the provided `step` tactic
 to simplify the expression; use `get_step` to get the default `norm_num` set and `derive.step` for
 the basic builtin set of simplifications. -/
-meta def norm_num1 (step : expr → tactic (expr × expr)) (loc : interactive.loc) : tactic unit :=
+meta def tactic.norm_num1 (step : expr → tactic (expr × expr)) (loc : interactive.loc) : tactic unit :=
 do ns ← loc.get_locals,
-   tt ← tactic.replace_at (derive' step) ns loc.include_goal
+   tt ← tactic.replace_at (norm_num.derive' step) ns loc.include_goal
       | fail "norm_num failed to simplify",
    when loc.include_goal $ try tactic.triv,
    when (¬ ns.empty) $ try tactic.contradiction
@@ -1449,21 +1451,18 @@ do ns ← loc.get_locals,
 /-- Normalize numerical expressions. It uses the provided `step` tactic to simplify the expression;
 use `get_step` to get the default `norm_num` set and `derive.step` for the basic builtin set of
 simplifications. -/
-meta def norm_num (step : expr → tactic (expr × expr))
+meta def tactic.norm_num (step : expr → tactic (expr × expr))
   (hs : list simp_arg_type) (l : interactive.loc) : tactic unit :=
-do f ← get_step,
-  repeat1 $ orelse' (norm_num1 f l) $
-  interactive.simp_core {} (norm_num1 f (interactive.loc.ns [none]))
-    ff (simp_arg_type.except ``one_div :: hs) [] l
-
-end norm_num
+repeat1 $ orelse' (tactic.norm_num1 step l) $
+interactive.simp_core {} (tactic.norm_num1 step (interactive.loc.ns [none]))
+  ff (simp_arg_type.except ``one_div :: hs) [] l
 
 namespace tactic.interactive
 open norm_num interactive interactive.types
 
 /-- Basic version of `norm_num` that does not call `simp`. -/
 meta def norm_num1 (loc : parse location) : tactic unit :=
-do f ← get_step, norm_num.norm_num1 f loc
+do f ← get_step, tactic.norm_num1 f loc
 
 /-- Normalize numerical expressions. Supports the operations
 `+` `-` `*` `/` `^` and `%` over numerical types such as
@@ -1472,7 +1471,7 @@ and can prove goals of the form `A = B`, `A ≠ B`, `A < B` and `A ≤ B`,
 where `A` and `B` are numerical expressions.
 It also has a relatively simple primality prover. -/
 meta def norm_num (hs : parse simp_arg_list) (l : parse location) : tactic unit :=
-do f ← get_step, _root_.norm_num.norm_num f hs l
+do f ← get_step, tactic.norm_num f hs l
 
 add_hint_tactic "norm_num"
 

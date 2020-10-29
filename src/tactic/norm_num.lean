@@ -1384,30 +1384,44 @@ meta def eval_prime : expr → tactic (expr × expr)
 | _ := failed
 
 /-- This version of `derive` does not fail when the input is already a numeral -/
-meta def derive' (e : expr) : tactic (expr × expr) :=
+meta def derive.step (e : expr) : tactic (expr × expr) :=
 eval_field e <|> eval_nat_int_ext e <|>
 eval_pow e <|> eval_ineq e <|> eval_prime e
 
-meta def derive : expr → tactic (expr × expr) | e :=
+@[user_attribute]
+protected meta def attr : user_attribute (expr → tactic (expr × expr)) unit :=
+{ name      := `norm_num,
+  descr     := "Add norm_num derivers",
+  cache_cfg :=
+  { mk_cache := λ ns, do {
+      t ← ns.mfoldl
+        (λ (t : expr → tactic (expr × expr)) n, do
+          t' ← eval_expr (expr → tactic (expr × expr)) (expr.const n []),
+          pure (λ e, t' e <|> t e))
+        (λ _, failed),
+      pure (λ e, derive.step e <|> t e) },
+    dependencies := [] } }
+
+meta def get_step : tactic (expr → tactic (expr × expr)) := norm_num.attr.get_cache
+
+meta def derive' (step : expr → tactic (expr × expr))
+  : expr → tactic (expr × expr) | e :=
 do e ← instantiate_mvars e,
    (_, e', pr) ←
     ext_simplify_core () {} simp_lemmas.mk (λ _, failed) (λ _ _ _ _ _, failed)
       (λ _ _ _ _ e,
-        do (new_e, pr) ← derive' e,
+        do (new_e, pr) ← step e,
            guard (¬ new_e =ₐ e),
            return ((), new_e, some pr, tt))
       `eq e,
     return (e', pr)
 
-end norm_num
-
-namespace tactic.interactive
-open norm_num interactive interactive.types
+meta def derive (e : expr) : tactic (expr × expr) := do f ← get_step, derive' f e
 
 /-- Basic version of `norm_num` that does not call `simp`. -/
-meta def norm_num1 (loc : parse location) : tactic unit :=
+meta def norm_num1 (step : expr → tactic (expr × expr)) (loc : interactive.loc) : tactic unit :=
 do ns ← loc.get_locals,
-   tt ← tactic.replace_at derive ns loc.include_goal
+   tt ← tactic.replace_at (derive' step) ns loc.include_goal
       | fail "norm_num failed to simplify",
    when loc.include_goal $ try tactic.triv,
    when (¬ ns.empty) $ try tactic.contradiction
@@ -1418,9 +1432,30 @@ do ns ← loc.get_locals,
 and can prove goals of the form `A = B`, `A ≠ B`, `A < B` and `A ≤ B`,
 where `A` and `B` are numerical expressions.
 It also has a relatively simple primality prover. -/
+meta def norm_num (step : expr → tactic (expr × expr))
+  (hs : list simp_arg_type) (l : interactive.loc) : tactic unit :=
+do f ← get_step,
+  repeat1 $ orelse' (norm_num1 f l) $
+  interactive.simp_core {} (norm_num1 f (interactive.loc.ns [none]))
+    ff (simp_arg_type.except ``one_div :: hs) [] l
+
+end norm_num
+
+namespace tactic.interactive
+open norm_num interactive interactive.types
+
+/-- Basic version of `norm_num` that does not call `simp`. -/
+meta def norm_num1 (loc : parse location) : tactic unit :=
+do f ← get_step, norm_num.norm_num1 f loc
+
+/-- Normalize numerical expressions. Supports the operations
+`+` `-` `*` `/` `^` and `%` over numerical types such as
+`ℕ`, `ℤ`, `ℚ`, `ℝ`, `ℂ` and some general algebraic types,
+and can prove goals of the form `A = B`, `A ≠ B`, `A < B` and `A ≤ B`,
+where `A` and `B` are numerical expressions.
+It also has a relatively simple primality prover. -/
 meta def norm_num (hs : parse simp_arg_list) (l : parse location) : tactic unit :=
-repeat1 $ orelse' (norm_num1 l) $
-simp_core {} (norm_num1 (loc.ns [none])) ff (simp_arg_type.except ``one_div :: hs) [] l
+do f ← get_step, _root_.norm_num.norm_num f hs l
 
 add_hint_tactic "norm_num"
 

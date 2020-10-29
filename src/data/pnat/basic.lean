@@ -3,14 +3,13 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro, Neil Strickland
 -/
+import data.nat.basic
 
 /-!
 # The positive natural numbers
 
 This file defines the type `ℕ+` or `pnat`, the subtype of natural numbers that are positive.
 -/
-
-import data.nat.basic
 
 /-- `ℕ+` is the type of positive natural numbers. It is defined as a subtype,
   and the VM representation of `ℕ+` is the same as `ℕ` because the proof

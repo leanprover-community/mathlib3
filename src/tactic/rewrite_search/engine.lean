@@ -79,7 +79,7 @@ else
   end
 
 meta def add_edge (f t : vertex) (proof : tactic expr) (how : how) :
-tactic (search_state × vertex × vertex × edge) :=
+tactic (search_state × edge) :=
 do let new_edge : edge := ⟨ f.id, t.id, proof, how ⟩,
    when_tracing `rewrite_search
      (trace format!"addE: {to_string new_edge.f}→{to_string new_edge.t}"),
@@ -87,54 +87,28 @@ do let new_edge : edge := ⟨ f.id, t.id, proof, how ⟩,
    let (g, t) := g.add_adj t new_edge,
    let (g, t) := g.publish_parent f t new_edge,
    if ¬(vertex.same_side f t) then
-     return (g.register_solved new_edge, f, t, new_edge)
+     return (g.register_solved new_edge, new_edge)
    else
-     return (g, f, t, new_edge)
+     return (g, new_edge)
 
-meta def commit_rewrite (f : vertex) (r : rewrite) :
-tactic (search_state × vertex × (vertex × edge)) :=
-do (g, v) ← g.add_vertex r.e f.s,
-  (g, f, v, e) ← g.add_edge f v r.prf r.how,
-  return (g, f, (v, e))
+meta def add_rewrite (v : vertex) (rw : rewrite) : tactic (search_state × edge) :=
+do (g, new_vertex) ← g.add_vertex rw.e v.s,
+g.add_edge v new_vertex rw.prf rw.how
 
-meta def reveal_more_adjs (v : vertex) : tactic (search_state × option (vertex × edge)) :=
-match read_option v.rws v.rw_front with
-  | none := return (g, none)
-  | some rw := do
-    (g, v, pair) ← g.commit_rewrite v rw,
-    (g, v) ← pure $ g.set_vertex {v with rw_front := v.rw_front + 1},
-    return (g, some pair)
-end
+private meta def append_edge (v : vertex) (pair : search_state × list edge) (rw : rewrite) :
+tactic (search_state × list edge) :=
+do let (g, edges) := pair,
+(g, e) ← g.add_rewrite v rw,
+return (g, e :: edges)
 
-meta def process (orig : ℕ) (front : ℕ) : tactic (search_state × ℕ × option (vertex × edge)) :=
-do let o := g.vertices.read' orig,
-match read_option o.adj front with
-  | some e := do
-    let v := g.vertices.read' e.t,
-    return (g, front + 1, some (v, e))
-  | none := do
-    (g, ret) ← g.reveal_more_adjs o,
-    match ret with
-    | some (v, e) := return (g, front + 1, some (v, e))
-    | none := return (g, front, none)
-    end
-  end
+meta def make_edges (v : vertex) (rws : list rewrite) : tactic (search_state × list edge) :=
+list.mfoldl (append_edge v) ⟨g, []⟩ rws
 
-meta def exhaust : search_state → vertex → ℕ → tactic (search_state  × list (vertex × edge))
-| g v edge_idx := do
-  (g, edge_idx, ret) ← g.process v.id edge_idx,
-  match ret with
-  | none := return (g, [])
-  | some pair := do
-    (g, rest) ← g.exhaust v edge_idx,
-    return (g, (pair :: rest))
-  end
-
-meta def visit_vertex (v : vertex) : tactic (search_state × list (vertex × edge)) :=
+meta def visit_vertex (v : vertex) : tactic (search_state × list edge) :=
 if v.visited then return (g, []) else
 do rws ← get_rewrites g.rs v.exp g.conf,
-let (g, v) := g.set_vertex { v with rws := rws, visited := tt },
-g.exhaust v 0
+let (g, v) := g.set_vertex { v with visited := tt },
+g.make_edges v rws.to_list
 
 meta inductive status
 | continue : status
@@ -146,8 +120,8 @@ match g.queue with
   | [] := return (g, status.abort "all vertices exhausted!")
   | (v :: rest) := do
     let v := g.vertices.read' v,
-    (g, adjs) ← g.visit_vertex v,
-    return (g.set_queue $ rest.append $ adjs.map $ λ u, u.1.id, status.continue)
+    (g, edges) ← g.visit_vertex v,
+    return (g.set_queue $ rest.append $ edges.map $ λ e, e.t, status.continue)
 end
 
 meta def step_once (itr : ℕ) : tactic (search_state × status) :=

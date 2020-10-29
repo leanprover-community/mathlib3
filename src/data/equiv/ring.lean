@@ -102,7 +102,6 @@ variables {R}
 { .. e.to_mul_equiv.symm, .. e.to_add_equiv.symm }
 
 /-- See Note [custom simps projection] -/
-@[to_additive]
 def simps.inv_fun (e : R ≃+* S) : S → R := e.symm
 
 initialize_simps_projections ring_equiv (to_fun → apply, inv_fun → symm_apply)

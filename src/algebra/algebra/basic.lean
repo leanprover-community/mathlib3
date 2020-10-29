@@ -677,7 +677,6 @@ def symm (e : A₁ ≃ₐ[R] A₂) : A₂ ≃ₐ[R] A₁ :=
   ..e.to_ring_equiv.symm, }
 
 /-- See Note [custom simps projection] -/
-@[to_additive]
 def simps.inv_fun (e : A₁ ≃ₐ[R] A₂) : A₂ → A₁ := e.symm
 
 initialize_simps_projections alg_equiv (to_fun → apply, inv_fun → symm_apply)

@@ -125,6 +125,7 @@ meta instance has_to_format : has_to_format vertex := ⟨λ v, v.pp⟩
 
 end vertex
 
+-- queue is a list of pending vertex ids to visit
 meta structure search_state :=
 (conf         : config)
 (rs           : list (expr × bool))

@@ -97,13 +97,13 @@ do (g, v) ← g.add_vertex r.e f.s,
   (g, f, v, e) ← g.add_edge f v r.prf r.how,
   return (g, f, (v, e))
 
-meta def reveal_more_adjs (o : vertex) : tactic (search_state × option (vertex × edge)) :=
-match read_option o.rws o.rw_front with
+meta def reveal_more_adjs (v : vertex) : tactic (search_state × option (vertex × edge)) :=
+match read_option v.rws v.rw_front with
   | none := return (g, none)
   | some rw := do
-    (g, o, (v, e)) ← g.commit_rewrite o rw,
-    (g, o) ← pure $ g.set_vertex {o with rw_front := o.rw_front + 1},
-    return (g, some (v, e))
+    (g, v, pair) ← g.commit_rewrite v rw,
+    (g, v) ← pure $ g.set_vertex {v with rw_front := v.rw_front + 1},
+    return (g, some pair)
 end
 
 meta def process (orig : ℕ) (front : ℕ) : tactic (search_state × ℕ × option (vertex × edge)) :=
@@ -147,7 +147,6 @@ match g.queue with
   | (v :: rest) := do
     let v := g.vertices.read' v,
     (g, adjs) ← g.visit_vertex v,
-    let adjs := adjs.filter $ λ u, ¬u.1.visited,
     return (g.set_queue $ rest.append $ adjs.map $ λ u, u.1.id, status.continue)
 end
 

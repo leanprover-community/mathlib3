@@ -70,7 +70,7 @@ lemma one_lifts (f : R →+* S) : lifts f (1 : polynomial S) :=
   by rw [lifts_iff]; exact subsemiring.one_mem (ring_hom.of (map f)).srange
 
 /--If `(r : R)`, then `C (algebra_map R S r)` lifts. -/
-lemma lifts_of_C (f : R →+* S) (r : R) : lifts f (C (f r)) :=
+lemma lifts_C (f : R →+* S) (r : R) : lifts f (C (f r)) :=
   by use C r; rw [map_C]
 
 /--For any `(n : ℕ)`, the polynomial `(n : polynomial S)` lifts. -/

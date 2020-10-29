@@ -59,11 +59,13 @@ else fail "invalid vertex access"
 private meta def walk_up_parents : option edge → tactic (list edge)
 | none     := return []
 | (some e) := do
-  w ← g.get_vertex e.fr,
-  edges ← walk_up_parents w.parent,
+  v ← g.get_vertex e.fr,
+  edges ← walk_up_parents v.parent,
   return (e :: edges)
 
-meta def backtrack : tactic (list edge) :=
+-- Returns a list of edges that goes from the left side to the right side.
+-- TODO: the directions will all be wack, unfortunately
+private meta def solution_path : tactic (list edge) :=
 do e ← g.solving_edge,
   v ← g.get_vertex e.to,
   vts ← walk_up_parents g e,
@@ -90,16 +92,16 @@ match maybe_id with
                     vmap := g.vmap.insert pp new_vertex_id }
 end
 
-meta def expand_vertex (v : vertex) : tactic graph :=
+private meta def expand_vertex (v : vertex) : tactic graph :=
 do rws ← get_rewrites g.rules v.exp g.conf,
 list.mfoldl (λ g rw, add_rewrite g v rw) g rws.to_list
 
-meta def find_solving_edge : graph → ℕ → tactic (graph × edge)
+private meta def find_solving_edge : graph → ℕ → tactic (graph × edge)
 | g vertex_id :=
 if vertex_id ≥ g.conf.max_iterations then fail "search failed: max iterations reached"
 else if h : vertex_id < g.vertices.size then
   do let v := g.vertices.read (fin.mk vertex_id h),
-  g ← g.expand_vertex v,
+  g ← expand_vertex g v,
   match g.solving_edge with
     | some e := return (g, e)
     | none   := find_solving_edge g (vertex_id + 1)
@@ -146,17 +148,17 @@ private meta def combine_units : list proof_unit → tactic (option expr)
   | some rest_proof := some <$> mk_eq_trans u.proof rest_proof
   end
 
-meta def build_proof : tactic (expr × list proof_unit) :=
-do edges ← g.backtrack,
-  trace_if_enabled `rewrite_search "Done!",
+private meta def build_proof : tactic (expr × list proof_unit) :=
+do edges ← solution_path g,
+  trace_if_enabled `rewrite_search "success!",
   units ← build_units edges,
   proof ← combine_units units,
   proof ← proof <|> fail "could not combine proof units!",
   return (proof, units)
 
 meta def find_proof : tactic (graph × expr × list proof_unit) :=
-do (g, e) ← g.find_solving_edge 0,
-(proof, units) ← g.build_proof,
+do (g, e) ← find_solving_edge g 0,
+(proof, units) ← build_proof g,
 return (g, proof, units)
 
 end graph

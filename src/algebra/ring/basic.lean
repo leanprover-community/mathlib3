@@ -219,6 +219,8 @@ add_decl_doc ring_hom.to_monoid_hom
 The `simp`-normal form is `(f : R →+ S)`. -/
 add_decl_doc ring_hom.to_add_monoid_hom
 
+initialize_simps_projections ring_hom (to_fun → apply)
+
 namespace ring_hom
 
 section coe

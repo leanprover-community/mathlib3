@@ -64,8 +64,7 @@ instance : inhabited (Π₀ i, β i) := ⟨0⟩
 
 @[simp] lemma zero_apply (i : ι) : (0 : Π₀ i, β i) i = 0 := rfl
 
-@[ext]
-lemma ext {f g : Π₀ i, β i} (H : ∀ i, f i = g i) : f = g :=
+@[ext] lemma ext {f g : Π₀ i, β i} (H : ∀ i, f i = g i) : f = g :=
 quotient.induction_on₂ f g (λ _ _ H, quotient.sound H) H
 
 /-- The composition of `f : β₁ → β₂` and `g : Π₀ i, β₁ i` is
@@ -160,8 +159,8 @@ map_range_apply _ _ v i
 /-- Dependent functions with finite support inherit a semimodule structure from such a structure on
 each coordinate. -/
 def to_semimodule {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, semimodule γ (β i)] :
-  semimodule γ (Π₀ i, β i) := {
-  smul_zero := λ c, ext $ λ i, by simp only [smul_apply, smul_zero, zero_apply],
+  semimodule γ (Π₀ i, β i) :=
+{ smul_zero := λ c, ext $ λ i, by simp only [smul_apply, smul_zero, zero_apply],
   zero_smul := λ c, ext $ λ i, by simp only [smul_apply, zero_smul, zero_apply],
   smul_add := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, smul_add],
   add_smul := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, add_smul],
@@ -609,9 +608,9 @@ by ext i; simp
 
 local attribute [instance] dfinsupp.to_semimodule
 
-lemma support_smul {γ : Type w} [ring γ] [Π i, add_comm_monoid (β i)] [Π i, semimodule γ (β i)]
-  [Π (i : ι) (x : β i), decidable (x ≠ 0)]
-  {b : γ} {v : Π₀ i, β i} : (b • v).support ⊆ v.support :=
+lemma support_smul {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, semimodule γ (β i)]
+  [Π ( i : ι) (x : β i), decidable (x ≠ 0)]
+  (b : γ) (v : Π₀ i, β i) : (b • v).support ⊆ v.support :=
 support_map_range
 
 instance [Π i, has_zero (β i)] [Π i, decidable_eq (β i)] : decidable_eq (Π₀ i, β i) :=

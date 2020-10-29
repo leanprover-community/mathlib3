@@ -56,7 +56,7 @@ begin
   { rintro X S ⟨R, hR, RS⟩ x hx,
     rcases hR x hx with ⟨U, f, hf, hU⟩,
     exact ⟨_, f, RS _ hf, hU⟩ },
-  { rintro X S hS,
+  { intros X S hS,
     exact ⟨S, hS, le_refl _⟩ }
 end
 

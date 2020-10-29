@@ -172,7 +172,7 @@ lemma coprime.coprime_dvd_left {m k n : ℕ+} :
   m ∣ k → k.coprime n → m.coprime n :=
 by { rw dvd_iff, repeat {rw ← coprime_coe}, apply nat.coprime.coprime_dvd_left }
 
-lemma coprime.factor_eq_gcd_left {a b m n : ℕ+} (cop : m.coprime n) (am : a ∣ m) (bn : b ∣ n):
+lemma coprime.factor_eq_gcd_left {a b m n : ℕ+} (cop : m.coprime n) (am : a ∣ m) (bn : b ∣ n) :
   a = (a * b).gcd m :=
 begin
   rw gcd_eq_left_iff_dvd at am,
@@ -181,20 +181,20 @@ begin
   apply coprime.coprime_dvd_left bn cop.symm,
 end
 
-lemma coprime.factor_eq_gcd_right {a b m n : ℕ+} (cop : m.coprime n) (am : a ∣ m) (bn : b ∣ n):
+lemma coprime.factor_eq_gcd_right {a b m n : ℕ+} (cop : m.coprime n) (am : a ∣ m) (bn : b ∣ n) :
   a = (b * a).gcd m :=
 begin
   rw mul_comm, apply coprime.factor_eq_gcd_left cop am bn,
 end
 
-lemma coprime.factor_eq_gcd_left_right {a b m n : ℕ+} (cop : m.coprime n) (am : a ∣ m) (bn : b ∣ n):
-  a = m.gcd (a * b) :=
+lemma coprime.factor_eq_gcd_left_right {a b m n : ℕ+}
+  (cop : m.coprime n) (am : a ∣ m) (bn : b ∣ n) : a = m.gcd (a * b) :=
 begin
   rw gcd_comm, apply coprime.factor_eq_gcd_left cop am bn,
 end
 
-lemma coprime.factor_eq_gcd_right_right {a b m n : ℕ+} (cop : m.coprime n) (am : a ∣ m) (bn : b ∣ n):
-  a = m.gcd (b * a) :=
+lemma coprime.factor_eq_gcd_right_right {a b m n : ℕ+}
+  (cop : m.coprime n) (am : a ∣ m) (bn : b ∣ n) : a = m.gcd (b * a) :=
 begin
   rw gcd_comm, apply coprime.factor_eq_gcd_right cop am bn,
 end

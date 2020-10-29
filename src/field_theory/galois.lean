@@ -170,7 +170,7 @@ begin
     (set.inclusion H_le)).mpr ⟨set.inclusion_injective H_le, this⟩).2).symm },
   rw fintype.card_congr (fixing_subgroup_iso (fixed_field H)).to_equiv,
   rw fintype.card_congr (fixed_points.to_alg_hom_equiv H E),
-  rw fintype.card_congr (algebra_equiv_equiv_algebra_hom (fixed_field H) E),
+  rw fintype.card_congr (alg_equiv_equiv_alg_hom (fixed_field H) E),
   exact fintype.card_congr (by refl),
 end
 

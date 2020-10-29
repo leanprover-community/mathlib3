@@ -453,7 +453,7 @@ end
 lemma alg_equiv_adjoin_integral (h_separable : (minimal_polynomial h).separable)
   (h_splits : (minimal_polynomial h).splits (algebra_map F F⟮α⟯)) :
   fintype.card (F⟮α⟯ ≃ₐ[F] F⟮α⟯) = (minimal_polynomial h).nat_degree :=
-eq.trans (fintype.card_congr (algebra_equiv_equiv_algebra_hom F F⟮α⟯))
+eq.trans (fintype.card_congr (alg_equiv_equiv_alg_hom F F⟮α⟯))
   (@alg_hom_adjoin_integral F _ _ _ _ α h h_separable h_splits)
 
 end adjoin_integral_element

@@ -264,7 +264,7 @@ section comm_semiring
 
 variables {R : Type u} [semiring R] {S : Type v} [comm_semiring S] (f : R →+* S)
 
-/-- If any element of a multiset of polynomials lifts, then the product lifts-/
+/-- If any element of a multiset of polynomials lifts, then the product lifts. -/
 lemma lifts_multiset_prod {m : multiset (polynomial S)} :
   (∀ (p : polynomial S), p ∈ m → lifts f p) → lifts f m.prod :=
 by simp_rw [lifts_iff]; exact subsemiring.multiset_prod_mem (ring_hom.of (map f)).srange m

@@ -27,19 +27,12 @@ end
 @[search] private axiom bar2 : [3] = [2]
 @[search] private axiom bar3 : [3] = [4]
 
-private example (a : unit) : [[0], [0]] = [[4], [4]] := by rewrite_search
-private example (a : unit) : [[0], [0]] = [[4], [4]] := by rewrite_search
-
-private example : [[0], [0]] = [[4], [4]] :=
-begin
-  rewrite_search
-end
+private example : [[0], [0]] = [[4], [4]] := by rewrite_search
+private example (x : unit) : [[0], [0]] = [[4], [4]] := by rewrite_search
 
 @[search] private axiom qux' : [[1], [2]] = [[6], [7]]
 @[search] private axiom qux'' : [6] = [7]
 private example : [[1], [1]] = [[7], [7]] := by rewrite_search
-
-private example : [[0], [0]] = [[4], [4]] := by rewrite_search
 
 constants f g : ℕ → ℕ → ℕ → ℕ
 @[search] axiom f_0_0 : ∀ a b c : ℕ, f a b c = f 0 b c

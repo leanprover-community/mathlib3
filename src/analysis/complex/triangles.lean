@@ -75,15 +75,55 @@ def quadrisect (T : triangle) : option (zmod 3) → triangle
 | none := λ j, ((∑ i, T i) - T j) / 2
 | (some i) := λ j, (T i + T j) / 2
 
-/-- The integral of a function over a triangle is the sum of the four subdivided triangles
--/
+/-- Given a function `f : ℂ → ℂ`, the contour integral of `f` around a triangle equal to the sum of
+the contour integrals of `f` around each triangle in its quadrisection. -/
 lemma foo (f : ℂ → ℂ ) (T : triangle ) :
   contour_integral f T = ∑ i, contour_integral f (quadrisect T i)
   :=
 begin
-
-  /- Adrian? -/
-  sorry,
+  simp [contour_integral],
+  rw finset.sum_comm,
+  congr,
+  ext1 j,
+  let F : Π (a b : ℂ), ℂ := contour_integral_segment f,
+  have h : ∀ (a b : ℂ), F a b = F a ((a + b) / 2) + F ((a + b) / 2) b,
+  { intros a b,
+    simp [F, contour_integral_segment],
+    sorry, -- need change of variable
+    },
+  apply symm,
+  calc ∑ x, contour_integral_segment f (quadrisect T x j) (quadrisect T x (j+1)) =
+        F (quadrisect T none     j) (quadrisect T none     (j+1)) +
+        (F (quadrisect T (some 0) j) (quadrisect T (some 0) (j+1)) +
+        (F (quadrisect T (some 1) j) (quadrisect T (some 1) (j+1)) +
+        (F (quadrisect T (some 2) j) (quadrisect T (some 2) (j+1)) + 0)))
+    : rfl
+  ... = F (quadrisect T none     j) (quadrisect T none     (j+1)) +
+        F (quadrisect T (some 0) j) (quadrisect T (some 0) (j+1)) +
+        F (quadrisect T (some 1) j) (quadrisect T (some 1) (j+1)) +
+        F (quadrisect T (some 2) j) (quadrisect T (some 2) (j+1))
+    : by simp [add_assoc]
+  ... = F (((∑ i, T i) - T j) / 2)  (((∑ i, T i) - T (j+1)) / 2) +
+        F ((T 0 + T j) / 2)         ((T 0 + T (j+1)) / 2) +
+        F ((T 1 + T j) / 2)         ((T 1 + T (j+1)) / 2) +
+        F ((T 2 + T j) / 2)         ((T 2 + T (j+1)) / 2)
+    : rfl
+  ... = F (((T 0 + (T 1 + (T 2 + 0))) - T j) / 2)  (((T 0 + (T 1 + (T 2 + 0))) - T (j+1)) / 2) +
+        F ((T 0 + T j) / 2)         ((T 0 + T (j+1)) / 2) +
+        F ((T 1 + T j) / 2)         ((T 1 + T (j+1)) / 2) +
+        F ((T 2 + T j) / 2)         ((T 2 + T (j+1)) / 2)
+    : rfl
+  ... = F ((T 0 + T 1 + T 2 - T j) / 2)  ((T 0 + T 1 + T 2 - T (j+1)) / 2) +
+        F ((T 0 + T j) / 2)         ((T 0 + T (j+1)) / 2) +
+        F ((T 1 + T j) / 2)         ((T 1 + T (j+1)) / 2) +
+        F ((T 2 + T j) / 2)         ((T 2 + T (j+1)) / 2)
+    : by simp [add_assoc]
+  ... = (∫ (t : ℝ) in 0..1, f ((1 - t) * ((T 0 + T 1 + T 2 - T j) / 2) + t * ((T 0 + T 1 + T 2 - T (j+1)) / 2)) * (((T 0 + T 1 + T 2 - T (j+1)) / 2) - ((T 0 + T 1 + T 2 - T j) / 2))) +
+        (∫ (t : ℝ) in 0..1, f ((1 - t) * ((T 0 + T j) / 2) + t * ((T 0 + T (j+1)) / 2)) * (((T 0 + T (j+1)) / 2) - ((T 0 + T j) / 2))) +
+        (∫ (t : ℝ) in 0..1, f ((1 - t) * ((T 1 + T j) / 2) + t * ((T 1 + T (j+1)) / 2)) * (((T 1 + T (j+1)) / 2) - ((T 1 + T j) / 2))) +
+        (∫ (t : ℝ) in 0..1, f ((1 - t) * ((T 2 + T j) / 2) + t * ((T 2 + T (j+1)) / 2)) * (((T 2 + T (j+1)) / 2) - ((T 2 + T j) / 2)))
+    : by simp [F, contour_integral_segment]
+  ... = _ : sorry,
 end
 
 /-

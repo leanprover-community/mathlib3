@@ -438,6 +438,21 @@ meta def mk_psigma : list expr → tactic expr
      pure $ r x y
 | _ := fail "mk_psigma expects a list of local constants"
 
+/--
+Update the type of a local constant or metavariable. For local constants and
+metavariables obtained via, for example, `tactic.get_local`, the type stored in
+the expression is not necessarily the same as the type returned by `infer_type`.
+This tactic, given a local constant or metavariable, updates the stored type to
+match the output of `infer_type`. If the input is not a local constant or
+metavariable, `update_type` does nothing.
+-/
+meta def update_type : expr → tactic expr
+| e@(expr.local_const ppname uname binfo _) :=
+  expr.local_const ppname uname binfo <$> infer_type e
+| e@(expr.mvar ppname uname _) :=
+  expr.mvar ppname uname <$> infer_type e
+| e := pure e
+
 /-- `elim_gen_prod n e _ ns` with `e` an expression of type `psigma _`, applies `cases` on `e` `n`
 times and uses `ns` to name the resulting variables. Returns a triple: list of new variables,
 remaining term and unused variable names.
@@ -586,22 +601,6 @@ tactic.unsafe.type_context.run $ do
     tactic.unsafe.type_context.fail format!"Variable {e} is not a local definition.",
   return let_val
 
-/-- `revert_deps e` reverts all the hypotheses that depend on one of the local
-constants `e`, including the local definitions that have `e` in their definition.
-This fixes a bug in `revert_kdeps` that does not revert local definitions for which `e` only
-appears in the definition. -/
-/- We cannot implement it as `revert e >> intro1`, because that would change the local constant in
-the context. -/
-meta def revert_deps (e : expr) : tactic ℕ := do
-  n ← revert_kdeps e,
-  l ← local_context,
-  [pos] ← return $ l.indexes_of e,
-  let l := l.drop pos.succ, -- local hypotheses after `e`
-  ls ← l.mfilter $ λ e', try_core (local_def_value e') >>= λ o, return $ o.elim ff $ λ e'',
-    e''.has_local_constant e,
-  n' ← revert_lst ls,
-  return $ n + n'
-
 /-- `is_local_def e` succeeds when `e` is a local definition (a local constant of the form
 `e : α := t`) and otherwise fails. -/
 meta def is_local_def (e : expr) : tactic unit :=
@@ -644,6 +643,24 @@ meta def clear_value (vs : list expr) : tactic unit := do
     gs ← get_goals,
     set_goals $ g :: gs },
   ls.reverse.mmap' $ λ vs, intro_lst $ vs.map expr.local_pp_name
+
+/--
+`context_has_local_def` is true iff there is at least one local definition in
+the context.
+-/
+meta def context_has_local_def : tactic bool := do
+  ctx ← local_context,
+  ctx.many (succeeds ∘ local_def_value)
+
+/--
+`context_upto_hyp_has_local_def h` is true iff any of the hypotheses in the
+context up to and including `h` is a local definition.
+-/
+meta def context_upto_hyp_has_local_def (h : expr) : tactic bool := do
+  ff ← succeeds (local_def_value h) | pure tt,
+  ctx ← local_context,
+  let ctx := ctx.take_while (≠ h),
+  ctx.many (succeeds ∘ local_def_value)
 
 /-- A variant of `simplify_bottom_up`. Given a tactic `post` for rewriting subexpressions,
 `simp_bottom_up post e` tries to rewrite `e` starting at the leaf nodes. Returns the resulting

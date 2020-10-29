@@ -75,7 +75,7 @@ quotient.lift_on g (λ x, ⟦(⟨λ i, f i (x.1 i), x.2,
 quotient.sound $ λ i, by simp only [H i]
 
 @[simp] lemma map_range_apply
-  {f : Π i, β₁ i → β₂ i} {hf : ∀ i, f i 0 = 0} {g : Π₀ i, β₁ i} {i : ι} :
+  (f : Π i, β₁ i → β₂ i) (hf : ∀ i, f i 0 = 0) (g : Π₀ i, β₁ i) (i : ι) :
   map_range f hf g i = f i (g i) :=
 quotient.induction_on g $ λ x, rfl
 
@@ -95,7 +95,7 @@ begin
 end
 
 @[simp] lemma zip_with_apply
-  {f : Π i, β₁ i → β₂ i → β i} {hf : ∀ i, f i 0 0 = 0} {g₁ : Π₀ i, β₁ i} {g₂ : Π₀ i, β₂ i} {i : ι} :
+  (f : Π i, β₁ i → β₂ i → β i) (hf : ∀ i, f i 0 0 = 0) (g₁ : Π₀ i, β₁ i) (g₂ : Π₀ i, β₂ i) (i : ι) :
   zip_with f hf g₁ g₂ i = f i (g₁ i) (g₂ i) :=
 quotient.induction_on₂ g₁ g₂ $ λ _ _, rfl
 
@@ -108,7 +108,7 @@ instance [Π i, add_monoid (β i)] : has_add (Π₀ i, β i) :=
 
 @[simp] lemma add_apply [Π i, add_monoid (β i)] (g₁ g₂ : Π₀ i, β i) (i : ι) :
   (g₁ + g₂) i = g₁ i + g₂ i :=
-zip_with_apply
+zip_with_apply _ _ g₁ g₂ i
 
 instance [Π i, add_monoid (β i)] : add_monoid (Π₀ i, β i) :=
 { add_monoid .
@@ -118,8 +118,8 @@ instance [Π i, add_monoid (β i)] : add_monoid (Π₀ i, β i) :=
   zero_add  := λ f, ext $ λ i, by simp only [add_apply, zero_apply, zero_add],
   add_zero  := λ f, ext $ λ i, by simp only [add_apply, zero_apply, add_zero] }
 
-instance [Π i, add_monoid (β i)] (i : ι) : is_add_monoid_hom (λ g : Π₀ i : ι, β i, g i) :=
-{ map_add := λ _ _, add_apply _ _ _, map_zero := zero_apply _ }
+instance [Π i, add_monoid (β i)] {i : ι} : is_add_monoid_hom (λ g : Π₀ i : ι, β i, g i) :=
+{ map_add := λ f g, add_apply f g i, map_zero := zero_apply i }
 
 instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
 ⟨λ f, f.map_range (λ _, has_neg.neg) (λ _, neg_zero)⟩
@@ -128,15 +128,15 @@ instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (Π₀ i, β i) :=
 { add_comm := λ f g, ext $ λ i, by simp only [add_apply, add_comm],
   .. dfinsupp.add_monoid }
 
-@[simp] lemma neg_apply [Π i, add_group (β i)] {g : Π₀ i, β i} {i : ι} : (- g) i = - g i :=
-map_range_apply
+@[simp] lemma neg_apply [Π i, add_group (β i)] (g : Π₀ i, β i) (i : ι) : (- g) i = - g i :=
+map_range_apply _ _ g i
 
 instance [Π i, add_group (β i)] : add_group (Π₀ i, β i) :=
 { add_left_neg := λ f, ext $ λ i, by simp only [add_apply, neg_apply, zero_apply, add_left_neg],
   .. dfinsupp.add_monoid,
   .. (infer_instance : has_neg (Π₀ i, β i)) }
 
-@[simp] lemma sub_apply [Π i, add_group (β i)] {g₁ g₂ : Π₀ i, β i} {i : ι} :
+@[simp] lemma sub_apply [Π i, add_group (β i)] (g₁ g₂ : Π₀ i, β i) (i : ι) :
   (g₁ - g₂) i = g₁ i - g₂ i :=
 by rw [sub_eq_add_neg]; simp [sub_eq_add_neg]
 
@@ -154,7 +154,7 @@ local attribute [instance] to_has_scalar
 @[simp] lemma smul_apply {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)]
   [Π i, semimodule γ (β i)] (b : γ) (v : Π₀ i, β i) (i : ι) :
   (b • v) i = b • (v i) :=
-map_range_apply
+map_range_apply _ _ v i
 
 /-- Dependent functions with finite support inherit a semimodule structure from such a structure on
 each coordinate. -/
@@ -179,22 +179,22 @@ quotient.lift_on f (λ x, ⟦(⟨λ i, if p i then x.1 i else 0, x.2,
 quotient.sound $ λ i, by simp only [H i]
 
 @[simp] lemma filter_apply [Π i, has_zero (β i)]
-  {p : ι → Prop} [decidable_pred p] {i : ι} {f : Π₀ i, β i} :
+  (p : ι → Prop) [decidable_pred p] (i : ι) (f : Π₀ i, β i) :
   f.filter p i = if p i then f i else 0 :=
 quotient.induction_on f $ λ x, rfl
 
 lemma filter_apply_pos [Π i, has_zero (β i)]
-  {p : ι → Prop} [decidable_pred p] {f : Π₀ i, β i} {i : ι} (h : p i) :
+  {p : ι → Prop} [decidable_pred p] (f : Π₀ i, β i) {i : ι} (h : p i) :
   f.filter p i = f i :=
 by simp only [filter_apply, if_pos h]
 
 lemma filter_apply_neg [Π i, has_zero (β i)]
-  {p : ι → Prop} [decidable_pred p] {f : Π₀ i, β i} {i : ι} (h : ¬ p i) :
+  {p : ι → Prop} [decidable_pred p] (f : Π₀ i, β i) {i : ι} (h : ¬ p i) :
   f.filter p i = 0 :=
 by simp only [filter_apply, if_neg h]
 
-lemma filter_pos_add_filter_neg [Π i, add_monoid (β i)] {f : Π₀ i, β i}
-  {p : ι → Prop} [decidable_pred p] :
+lemma filter_pos_add_filter_neg [Π i, add_monoid (β i)] (f : Π₀ i, β i)
+  (p : ι → Prop) [decidable_pred p] :
   f.filter p + f.filter (λi, ¬ p i) = f :=
 ext $ λ i, by simp only [add_apply, filter_apply]; split_ifs; simp only [add_zero, zero_add]
 

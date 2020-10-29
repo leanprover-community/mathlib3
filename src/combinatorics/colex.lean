@@ -175,17 +175,14 @@ end
 
 instance [linear_order α] : is_trichotomous (finset.colex α) (<) := ⟨lt_trichotomy⟩
 
+-- It should be possible to do this computably but it doesn't seem to make any difference for now.
 noncomputable instance [linear_order α] : linear_order (finset.colex α) :=
 { le_refl := λ A, or.inr rfl,
   le_trans := le_trans,
   le_antisymm := λ A B AB BA, AB.elim (λ k, BA.elim (λ t, (asymm k t).elim) (λ t, t.symm)) id,
   le_total := λ A B,
           (lt_trichotomy A B).elim3 (or.inl ∘ or.inl) (or.inl ∘ or.inr) (or.inr ∘ or.inl),
-  decidable_le :=
-  begin
-    classical,
-    apply_instance -- TODO (BM): there should be a computable way of doing this
-  end,
+  decidable_le := classical.dec_rel _,
   ..finset.colex.has_le }
 
 instance [linear_order α] : is_incomp_trans (finset.colex α) (<) :=

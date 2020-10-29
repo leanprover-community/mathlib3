@@ -77,7 +77,7 @@ def associated_p : pretopology (opens T) :=
   end }
 
 /--
-The pretopology associated to a space induces the Grothdendieck topology associated to the space.
+The pretopology associated to a space induces the Grothendieck topology associated to the space.
 -/
 lemma same_topology : pretopology.to_grothendieck _ (associated_p T) = associated T :=
 begin

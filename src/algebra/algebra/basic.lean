@@ -364,8 +364,6 @@ run_cmd tactic.add_doc_string `alg_hom.to_ring_hom "Reinterpret an `alg_hom` as 
 infixr ` →ₐ `:25 := alg_hom _
 notation A ` →ₐ[`:25 R `] ` B := alg_hom R A B
 
-initialize_simps_projections alg_hom (to_fun → apply)
-
 namespace alg_hom
 
 variables {R : Type u} {A : Type v} {B : Type w} {C : Type u₁} {D : Type v₁}
@@ -376,6 +374,8 @@ variables [comm_semiring R] [semiring A] [semiring B] [semiring C] [semiring D]
 variables [algebra R A] [algebra R B] [algebra R C] [algebra R D]
 
 instance : has_coe_to_fun (A →ₐ[R] B) := ⟨_, λ f, f.to_fun⟩
+
+initialize_simps_projections alg_hom (to_fun → apply)
 
 instance coe_ring_hom : has_coe (A →ₐ[R] B) (A →+* B) := ⟨alg_hom.to_ring_hom⟩
 

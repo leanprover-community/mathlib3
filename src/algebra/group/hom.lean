@@ -68,10 +68,6 @@ structure add_monoid_hom (M : Type*) (N : Type*) [add_monoid M] [add_monoid N]
 attribute [nolint doc_blame] add_monoid_hom.to_add_hom
 attribute [nolint doc_blame] add_monoid_hom.to_zero_hom
 
-initialize_simps_projections zero_hom (to_fun → apply)
-initialize_simps_projections add_hom (to_fun → apply)
-initialize_simps_projections add_monoid_hom (to_fun → apply)
-
 infixr ` →+ `:25 := add_monoid_hom
 
 /-- Homomorphism that preserves one -/
@@ -93,10 +89,6 @@ structure monoid_hom (M : Type*) (N : Type*) [monoid M] [monoid N] extends one_h
 attribute [nolint doc_blame] monoid_hom.to_mul_hom
 attribute [nolint doc_blame] monoid_hom.to_one_hom
 
-initialize_simps_projections one_hom (to_fun → apply)
-initialize_simps_projections mul_hom (to_fun → apply)
-initialize_simps_projections monoid_hom (to_fun → apply)
-
 infixr ` →* `:25 := monoid_hom
 
 -- completely uninteresting lemmas about coercion to function, that all homs need
@@ -111,6 +103,15 @@ instance {mM : has_mul M} {mN : has_mul N} : has_coe_to_fun (mul_hom M N) :=
 @[to_additive]
 instance {mM : monoid M} {mN : monoid N} : has_coe_to_fun (M →* N) :=
 ⟨_, monoid_hom.to_fun⟩
+
+-- these must come after the coe_to_fun definitions
+initialize_simps_projections zero_hom (to_fun → apply)
+initialize_simps_projections add_hom (to_fun → apply)
+initialize_simps_projections add_monoid_hom (to_fun → apply)
+
+initialize_simps_projections one_hom (to_fun → apply)
+initialize_simps_projections mul_hom (to_fun → apply)
+initialize_simps_projections monoid_hom (to_fun → apply)
 
 @[simp, to_additive]
 lemma one_hom.to_fun_eq_coe [has_one M] [has_one N] (f : one_hom M N) : f.to_fun = f := rfl

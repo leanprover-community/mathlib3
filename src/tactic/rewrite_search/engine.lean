@@ -87,7 +87,7 @@ meta def add_rewrite (v : vertex) (rw : rewrite) : tactic (search_state × edge)
 do (g, new_vertex) ← g.add_vertex rw.e v.s,
 g.add_edge v new_vertex rw.prf rw.how
 
-private meta def append_edge (v : vertex) (pair : search_state × list edge) (rw : rewrite) :
+private meta def visit_vertex_aux (v : vertex) (pair : search_state × list edge) (rw : rewrite) :
 tactic (search_state × list edge) :=
 do let (g, edges) := pair,
 (g, e) ← g.add_rewrite v rw,
@@ -97,7 +97,7 @@ meta def visit_vertex (v : vertex) : tactic (search_state × list edge) :=
 if v.visited then return (g, []) else
 do rws ← get_rewrites g.rs v.exp g.conf,
 let (g, v) := g.set_vertex { v with visited := tt },
-list.mfoldl (append_edge v) ⟨g, []⟩ rws.to_list
+list.mfoldl (visit_vertex_aux v) ⟨g, []⟩ rws.to_list
 
 meta inductive status
 | continue : status

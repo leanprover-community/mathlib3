@@ -357,14 +357,12 @@ for `is_poly` and `is_poly₂` declarations.
 -/
 
 /--
-If `n` is the name of a lemma with opened type `∀ vars, tp`,
-where `tp` is an application of `is_poly`,
-`mk_poly_comp_lemmas n vars tp` adds composition instances to the environment
+If `n` is the name of a lemma with opened type `∀ vars, is_poly p _`,
+`mk_poly_comp_lemmas n vars p` adds composition instances to the environment
 `n.comp_i` and `n.comp₂_i`.
 -/
-meta def mk_poly_comp_lemmas (n : name) (vars : list expr) (tp : expr) : tactic unit :=
+meta def mk_poly_comp_lemmas (n : name) (vars : list expr) (p : expr) : tactic unit :=
 do c ← mk_const n,
-   `(is_poly %%p _) ← return tp,
    let appd := vars.foldl expr.app c,
 
    tgt_bod ← to_expr ``(λ f [hf : is_poly %%p f], is_poly.comp %%appd hf) >>=
@@ -384,14 +382,12 @@ do c ← mk_const n,
    set_attribute `instance nm
 
 /--
-If `n` is the name of a lemma with opened type `∀ vars, tp`,
-where `tp` is an application of `is_poly₂`,
-`mk_poly₂_comp_lemmas n vars tp` adds composition instances to the environment
+If `n` is the name of a lemma with opened type `∀ vars, is_poly₂ p _`,
+`mk_poly₂_comp_lemmas n vars p` adds composition instances to the environment
 `n.comp₂_i` and `n.comp_diag`.
 -/
-meta def mk_poly₂_comp_lemmas (n : name) (vars : list expr) (tp : expr) : tactic unit :=
+meta def mk_poly₂_comp_lemmas (n : name) (vars : list expr) (p : expr) : tactic unit :=
 do c ← mk_const n,
-   `(is_poly₂ %%p _) ← return tp,
    let appd := vars.foldl expr.app c,
 
    tgt_bod ← to_expr ``(λ {f g} [hf : is_poly %%p f] [hg : is_poly %%p g],
@@ -416,11 +412,11 @@ The `after_set` function for `@[is_poly]`. Calls `mk_poly(₂)_comp_lemmas`.
 meta def mk_comp_lemmas (n : name) : tactic unit :=
 do d ← get_decl n,
    (vars, tp) ← open_pis d.type,
-   if tp.is_app_of ``is_poly then
-     mk_poly_comp_lemmas n vars tp
-   else if tp.is_app_of ``is_poly₂ then
-     mk_poly₂_comp_lemmas n vars tp
-   else fail "@[is_poly] should only be applied to terms of type `is_poly _ _` or `is_poly₂ _ _`"
+   match tp with
+   | `(is_poly %%p _) := mk_poly_comp_lemmas n vars p
+   | `(is_poly₂ %%p _) := mk_poly₂_comp_lemmas n vars p
+   | _ := fail "@[is_poly] should only be applied to terms of type `is_poly _ _` or `is_poly₂ _ _`"
+   end
 
 /--
 `@[is_poly]` is applied to lemmas of the form `is_poly f φ` or `is_poly₂ f φ`.

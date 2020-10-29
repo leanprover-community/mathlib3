@@ -34,13 +34,13 @@ by the pretopology for the purpose of having nice definitional properties for th
 
 universe u
 
+namespace opens
 variables (T : Type u) [topological_space T]
 
-namespace category_theory
-open topological_space limits
+open category_theory topological_space category_theory.limits
 
 /-- The Grothendieck topology associated to a topological space. -/
-def associated : grothendieck_topology (opens T) :=
+def grothendieck_topology : grothendieck_topology (opens T) :=
 { sieves := λ X S, ∀ x ∈ X, ∃ U (f : U ⟶ X), S f ∧ x ∈ U,
   top_mem' := λ X x hx, ⟨_, 𝟙 _, trivial, hx⟩,
   pullback_stable' := λ X Y S f hf y hy,
@@ -57,7 +57,7 @@ def associated : grothendieck_topology (opens T) :=
   end }
 
 /-- The Grothendieck pretopology associated to a topological space. -/
-def associated_p : pretopology (opens T) :=
+def pretopology : pretopology (opens T) :=
 { coverings := λ X R, ∀ x ∈ X, ∃ U (f : U ⟶ X), R f ∧ x ∈ U,
   has_isos := λ X Y f i x hx,
         by exactI ⟨_, _, presieve.singleton_self _, le_of_hom (inv f) hx⟩,
@@ -79,7 +79,8 @@ def associated_p : pretopology (opens T) :=
 /--
 The pretopology associated to a space induces the Grothendieck topology associated to the space.
 -/
-lemma same_topology : pretopology.to_grothendieck _ (associated_p T) = associated T :=
+lemma pretopology_induces_grothendieck_topology :
+  pretopology.to_grothendieck _ (opens.pretopology T) = opens.grothendieck_topology T :=
 begin
   apply le_antisymm,
   { rintro X S ⟨R, hR, RS⟩ x hx,
@@ -89,4 +90,4 @@ begin
     exact ⟨S, hS, le_refl _⟩ }
 end
 
-end category_theory
+end opens

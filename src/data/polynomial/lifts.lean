@@ -73,6 +73,10 @@ lemma one_lifts (f : R →+* S) : lifts f (1 : polynomial S) :=
 lemma lifts_C (f : R →+* S) (r : R) : lifts f (C (f r)) :=
   by use C r; rw [map_C]
 
+/--If `(s : S)` is in the image of `f`, then `C s` lifts. -/
+lemma lifts_C' {f : R →+* S} {s : S} (h : s ∈ set.range f) : lifts f (C s) :=
+  by obtain ⟨r, rfl⟩ := set.mem_range.1 h; use C r; simp only [map_C]
+
 /--For any `(n : ℕ)`, the polynomial `(n : polynomial S)` lifts. -/
 lemma lifts.nat_mem (f : R →+* S) (n : ℕ) : lifts f (n : polynomial S) :=
   by rw [lifts_iff]; exact subsemiring.coe_nat_mem (ring_hom.of (map f)).srange n

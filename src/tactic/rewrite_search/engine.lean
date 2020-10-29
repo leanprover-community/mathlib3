@@ -110,16 +110,6 @@ match v.rws.size with
   | _ := return (g, v)
 end
 
-meta def reveal_more_adjs (o : vertex) : tactic (search_state × option (vertex × edge)) :=
-do (g, o) ← g.init_rewrites o,
-match read_option o.rws o.rw_front with
-  | none := return (g, none)
-  | some rw := do
-    (g, o, (v, e)) ← g.commit_rewrite o rw,
-    (g, o) ← pure $ g.set_vertex {o with rw_front := o.rw_front + 1},
-    return (g, some (v, e))
-end
-
 meta def visit_vertex (v : vertex) : tactic (search_state × rewrite_iter) :=
 do
 (g, v) ← if ¬v.visited then
@@ -135,24 +125,35 @@ namespace rewrite_iter
 private meta def advance (it : rewrite_iter) : rewrite_iter :=
 {it with front := it.front + 1}
 
-meta def next (it : rewrite_iter) (g : search_state) :
+meta def reveal_more_adjs (g : search_state) (o : vertex) :
+tactic (search_state × option (vertex × edge)) :=
+do (g, o) ← g.init_rewrites o,
+match read_option o.rws o.rw_front with
+  | none := return (g, none)
+  | some rw := do
+    (g, o, (v, e)) ← g.commit_rewrite o rw,
+    (g, o) ← pure $ g.set_vertex {o with rw_front := o.rw_front + 1},
+    return (g, some (v, e))
+end
+
+meta def next (g : search_state) (orig : ℕ) (front : ℕ) :
 tactic (search_state × rewrite_iter × option (vertex × edge)) :=
-do let o := g.vertices.read' it.orig,
-match read_option o.adj it.front with
+do let o := g.vertices.read' orig,
+match read_option o.adj front with
   | some e := do
     let v := g.vertices.read' e.t,
-    return (g, advance it, some (v, e))
+    return (g, ⟨orig, front + 1⟩, some (v, e))
   | none := do
-    (g, ret) ← g.reveal_more_adjs o,
+    (g, ret) ← reveal_more_adjs g o,
     match ret with
-    | some (v, e) := return (g, advance it, some (v, e))
-    | none := return (g, it, none)
+    | some (v, e) := return (g, ⟨orig, front + 1⟩, some (v, e))
+    | none := return (g, ⟨orig, front⟩, none)
     end
   end
 
 meta def exhaust : rewrite_iter → search_state → tactic (search_state  × list (vertex × edge))
 | it g := do
-  (g, it, ret) ← it.next g,
+  (g, it, ret) ← next g it.orig it.front,
   match ret with
   | none := return (g, [])
   | some (v, e) := do
@@ -161,6 +162,11 @@ meta def exhaust : rewrite_iter → search_state → tactic (search_state  × li
   end
 
 end rewrite_iter
+
+meta def visit_and_exhaust (g : search_state) (v : vertex) :
+tactic (search_state × list (vertex × edge)) :=
+do (g, it) ← g.visit_vertex v,
+it.exhaust g
 
 meta inductive status
 | continue : status
@@ -172,8 +178,7 @@ match g.queue with
   | [] := return (g, status.abort "all vertices exhausted!")
   | (v :: rest) := do
     let v := g.vertices.read' v,
-    (g, it) ← g.visit_vertex v,
-    (g, adjs) ← it.exhaust g,
+    (g, adjs) ← visit_and_exhaust g v,
     let adjs := adjs.filter $ λ u, ¬u.1.visited,
     return (g.set_queue $ rest.append $ adjs.map $ λ u, u.1.id, status.continue)
 end

@@ -1142,6 +1142,10 @@ structure sub_has_groupoid [_i : charted_space H M] (_j : charted_subspace hi N)
 def baz [charted_space H M] (_i : charted_subspace hi N) (G' : structure_groupoid H')
   (G : structure_groupoid H)
   [has_groupoid M G] (_i' : sub_has_groupoid hi N _i G) :
-  @has_groupoid N _ _ _ (charted_subspace.to_charted_space_on_subspace _ _ _i) := sorry
+  @has_groupoid H' _ N _ (charted_subspace.to_charted_space_on_subspace hi N _i) G' :=
+{ compatible := begin
+    intros e e' he he',
+    sorry
+  end }
 
 end

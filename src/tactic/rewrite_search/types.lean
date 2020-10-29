@@ -106,8 +106,6 @@ meta structure vertex :=
 (visited  : bool)
 (s        : side)
 (parent   : option edge)
-(rw_front : ℕ)
-(adj      : buffer edge)
 
 namespace vertex
 
@@ -115,7 +113,7 @@ meta def same_side (a b : vertex) : bool := a.s = b.s
 meta def to_string (v : vertex) : string := v.s.to_string ++ v.pp
 
 meta def create (id : ℕ) (e : expr) (pp : string) (root : bool) (s : side) : vertex :=
-⟨ id, e, pp, root, ff, s, none, 0, buffer.nil ⟩
+⟨ id, e, pp, root, ff, s, none ⟩
 
 meta def null : vertex := vertex.create invalid_index (default expr) "__NULLEXPR" ff side.L
 

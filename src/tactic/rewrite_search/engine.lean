@@ -17,9 +17,6 @@ universe u
 
 open tactic
 
-private meta def read_option {α : Type u} (buf : buffer α) (i : ℕ) : option α :=
-if h : i < buf.size then some (buf.read (fin.mk i h)) else none
-
 namespace tactic.rewrite_search
 
 variables (g : search_state)
@@ -66,9 +63,6 @@ g.add_vertex_aux e tt s
 meta def register_solved (e : edge) : search_state :=
 { g with solving_edge := some e }
 
-meta def add_adj (v : vertex) (e : edge) : search_state × vertex :=
-g.set_vertex { v with adj := v.adj.push_back e }
-
 meta def publish_parent (f t : vertex) (e : edge) : search_state × vertex :=
 if t.root then
   (g, t)
@@ -83,8 +77,6 @@ tactic (search_state × edge) :=
 do let new_edge : edge := ⟨ f.id, t.id, proof, how ⟩,
    when_tracing `rewrite_search
      (trace format!"addE: {to_string new_edge.f}→{to_string new_edge.t}"),
-   let (g, f) := g.add_adj f new_edge,
-   let (g, t) := g.add_adj t new_edge,
    let (g, t) := g.publish_parent f t new_edge,
    if ¬(vertex.same_side f t) then
      return (g.register_solved new_edge, new_edge)
@@ -101,14 +93,11 @@ do let (g, edges) := pair,
 (g, e) ← g.add_rewrite v rw,
 return (g, e :: edges)
 
-meta def make_edges (v : vertex) (rws : list rewrite) : tactic (search_state × list edge) :=
-list.mfoldl (append_edge v) ⟨g, []⟩ rws
-
 meta def visit_vertex (v : vertex) : tactic (search_state × list edge) :=
 if v.visited then return (g, []) else
 do rws ← get_rewrites g.rs v.exp g.conf,
 let (g, v) := g.set_vertex { v with visited := tt },
-g.make_edges v rws.to_list
+list.mfoldl (append_edge v) ⟨g, []⟩ rws.to_list
 
 meta inductive status
 | continue : status

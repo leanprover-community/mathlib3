@@ -23,7 +23,7 @@ def side.other : side → side
 | side.L := side.R
 | side.R := side.L
 
-def side.to_string : side → string
+meta def side.to_string : side → format
 | side.L := "L"
 | side.R := "R"
 
@@ -31,7 +31,7 @@ def side.to_xhs : side → string
 | side.L := "lhs"
 | side.R := "rhs"
 
-instance : has_to_string side := ⟨side.to_string⟩
+meta instance side.has_to_format : has_to_format side := ⟨side.to_string⟩
 
 meta structure how := (rule_index : ℕ) (location : ℕ) (addr : option (list expr_lens.dir))
 
@@ -47,7 +47,7 @@ meta structure rewrite :=
 
 meta structure proof_unit :=
 (proof : expr)
-(side : side)
+(side  : side)
 (steps : list how)
 
 /-

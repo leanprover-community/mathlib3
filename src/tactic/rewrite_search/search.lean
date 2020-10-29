@@ -21,6 +21,11 @@ meta structure edge :=
 (proof : tactic expr)
 (how   : how)
 
+meta def edge.to_string : edge → format
+| e := format!"{e.fr} → {e.to}"
+
+meta instance edge.has_to_format : has_to_format edge := ⟨edge.to_string⟩
+
 meta structure vertex :=
 (id     : ℕ)
 (exp    : expr)
@@ -56,23 +61,27 @@ meta def get_vertex (i : ℕ) : tactic vertex :=
 if h : i < g.vertices.size then return $ g.vertices.read (fin.mk i h)
 else fail "invalid vertex access"
 
+-- note: the returned edges are backwards
 private meta def walk_up_parents : option edge → tactic (list edge)
 | none     := return []
 | (some e) := do
+  trace format!"walking up edge {e}",
   v ← g.get_vertex e.fr,
   edges ← walk_up_parents v.parent,
   return (e :: edges)
 
--- Returns a list of edges that goes from the left side to the right side.
--- TODO: the directions will all be wack, unfortunately
-private meta def solution_path : tactic (list edge) :=
+-- Returns two lists. The first is a path from LHS to some interior vertex,
+-- the second is a path from that interior vertex to the RHS.
+-- On the second path, all the edges are backwards, since we originally found them
+-- via searching backwards.
+private meta def solution_paths : tactic (list edge × list edge) :=
 do e ← g.solving_edge,
   v ← g.get_vertex e.to,
-  vts ← walk_up_parents g e,
-  vfs ← walk_up_parents g v.parent,
+  path1 ← walk_up_parents g e,
+  path2 ← walk_up_parents g v.parent,
   match v.side with
-    | side.L := return (vfs.reverse ++ vts)
-    | side.R := return (vts.reverse ++ vfs)
+    | side.L := return (path2.reverse, path1)
+    | side.R := return (path1.reverse, path2)
   end
 
 private meta def add_rewrite (v : vertex) (rw : rewrite) : tactic graph :=
@@ -87,7 +96,7 @@ match maybe_id with
     let new_vertex_id := g.vertices.size,
     let new_edge : edge := ⟨v.id, new_vertex_id, rw.proof, rw.how⟩,
     let new_vertex : vertex := ⟨new_vertex_id, rw.exp, pp, v.side, (some new_edge)⟩,
-    when_tracing `rewrite_search (trace format!"new edge: {v.pp} → {new_vertex.pp}"),
+    trace_if_enabled `rewrite_search format!"new edge: {v.pp} → {new_vertex.pp}",
     return { g with vertices := g.vertices.push_back new_vertex,
                     vmap := g.vmap.insert pp new_vertex_id }
 end
@@ -108,18 +117,6 @@ else if h : vertex_id < g.vertices.size then
   end
 else fail "search failed: all vertices explored"
 
-private meta def chop_into_units : list edge → list (side × list edge)
-| [] := []
-| [e] := [(if e.fr = RHS_VERTEX_ID then side.R else side.L, [e])]
-| (e₁ :: (e₂ :: rest)) :=
-  match chop_into_units (e₂ :: rest) with
-  | ((s, u) :: us) := if e₁.to = e₂.fr ∨ e₁.fr = e₂.to then
-                        ((s, e₁ :: u) :: us)
-                      else
-                        ((s.other, [e₁]) :: ((s, u) :: us))
-  | _ := [] -- Unreachable
-  end
-
 private meta def orient_proof : side → tactic expr → tactic expr
 | side.L proof := proof
 | side.R proof := proof >>= mk_eq_symm
@@ -136,8 +133,11 @@ private meta def edges_to_unit : side × list edge → tactic proof_unit
   proof ← orient_proof s e.proof,
   edges_to_unit_aux s proof [e.how] rest
 
-private meta def build_units (l : list edge) : tactic (list proof_unit) :=
-  (chop_into_units l).mmap edges_to_unit
+private meta def build_units : tactic (list proof_unit) :=
+do (left_edges, right_edges) ← solution_paths g,
+let chopped : list (side × list edge) := [⟨side.L, left_edges⟩, ⟨side.R, right_edges⟩],
+let chopped := chopped.filter (λ pair, ¬ pair.2.empty),
+chopped.mmap edges_to_unit
 
 private meta def combine_units : list proof_unit → tactic (option expr)
 | [] := return none
@@ -149,9 +149,8 @@ private meta def combine_units : list proof_unit → tactic (option expr)
   end
 
 private meta def build_proof : tactic (expr × list proof_unit) :=
-do edges ← solution_path g,
-  trace_if_enabled `rewrite_search "success!",
-  units ← build_units edges,
+do trace_if_enabled `rewrite_search "success!",
+  units ← build_units g,
   proof ← combine_units units,
   proof ← proof <|> fail "could not combine proof units!",
   return (proof, units)

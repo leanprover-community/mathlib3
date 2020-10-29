@@ -1388,6 +1388,13 @@ meta def derive.step (e : expr) : tactic (expr × expr) :=
 eval_field e <|> eval_nat_int_ext e <|>
 eval_pow e <|> eval_ineq e <|> eval_prime e
 
+/-- An attribute for adding additional extensions to `norm_num`. To use this attribute, put
+`@[norm_num]` on a tactic of type `expr → tactic (expr × expr)`; the tactic will be called on
+subterms by `norm_num`, and it is responsible for identifying that the expression is a numerical
+function applied to numerals, for example `nat.fib 17`, and should return the reduced numerical
+expression (which must be in `norm_num`-normal form: a natural or rational numeral, i.e. `37`,
+`12 / 7` or `-(2 / 3)`, although this can be an expression in any type), and the proof that the
+original expression is equal to the rewritten expression. -/
 @[user_attribute]
 protected meta def attr : user_attribute (expr → tactic (expr × expr)) unit :=
 { name      := `norm_num,
@@ -1402,8 +1409,11 @@ protected meta def attr : user_attribute (expr → tactic (expr × expr)) unit :
       pure (λ e, derive.step e <|> t e) },
     dependencies := [] } }
 
+/-- Look up the `norm_num` extensions in the cache and return a tactic extending `derive.step` with
+additional reduction procedures. -/
 meta def get_step : tactic (expr → tactic (expr × expr)) := norm_num.attr.get_cache
 
+/-- Simplify an expression bottom-up using `step` to simplify the subexpressions. -/
 meta def derive' (step : expr → tactic (expr × expr))
   : expr → tactic (expr × expr) | e :=
 do e ← instantiate_mvars e,
@@ -1416,9 +1426,13 @@ do e ← instantiate_mvars e,
       `eq e,
     return (e', pr)
 
+/-- Simplify an expression bottom-up using the default `norm_num` set to simplify the
+subexpressions. -/
 meta def derive (e : expr) : tactic (expr × expr) := do f ← get_step, derive' f e
 
-/-- Basic version of `norm_num` that does not call `simp`. -/
+/-- Basic version of `norm_num` that does not call `simp`. It uses the provided `step` tactic
+to simplify the expression; use `get_step` to get the default `norm_num` set and `derive.step` for
+the basic builtin set of simplifications. -/
 meta def norm_num1 (step : expr → tactic (expr × expr)) (loc : interactive.loc) : tactic unit :=
 do ns ← loc.get_locals,
    tt ← tactic.replace_at (derive' step) ns loc.include_goal
@@ -1426,12 +1440,9 @@ do ns ← loc.get_locals,
    when loc.include_goal $ try tactic.triv,
    when (¬ ns.empty) $ try tactic.contradiction
 
-/-- Normalize numerical expressions. Supports the operations
-`+` `-` `*` `/` `^` and `%` over numerical types such as
-`ℕ`, `ℤ`, `ℚ`, `ℝ`, `ℂ` and some general algebraic types,
-and can prove goals of the form `A = B`, `A ≠ B`, `A < B` and `A ≤ B`,
-where `A` and `B` are numerical expressions.
-It also has a relatively simple primality prover. -/
+/-- Normalize numerical expressions. It uses the provided `step` tactic to simplify the expression;
+use `get_step` to get the default `norm_num` set and `derive.step` for the basic builtin set of
+simplifications. -/
 meta def norm_num (step : expr → tactic (expr × expr))
   (hs : list simp_arg_type) (l : interactive.loc) : tactic unit :=
 do f ← get_step,

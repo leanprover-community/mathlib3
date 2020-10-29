@@ -1441,7 +1441,8 @@ end norm_num
 /-- Basic version of `norm_num` that does not call `simp`. It uses the provided `step` tactic
 to simplify the expression; use `get_step` to get the default `norm_num` set and `derive.step` for
 the basic builtin set of simplifications. -/
-meta def tactic.norm_num1 (step : expr → tactic (expr × expr)) (loc : interactive.loc) : tactic unit :=
+meta def tactic.norm_num1 (step : expr → tactic (expr × expr))
+  (loc : interactive.loc) : tactic unit :=
 do ns ← loc.get_locals,
    tt ← tactic.replace_at (norm_num.derive' step) ns loc.include_goal
       | fail "norm_num failed to simplify",

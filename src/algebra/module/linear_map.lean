@@ -353,7 +353,6 @@ def symm : M₂ ≃ₗ[R] M :=
   .. e.to_equiv.symm }
 
 /-- See Note [custom simps projection] -/
-@[to_additive]
 def simps.inv_fun (e : M ≃ₗ[R] M₂) : M₂ → M := e.symm
 
 initialize_simps_projections linear_equiv (to_fun → apply, inv_fun → symm_apply)

@@ -36,7 +36,10 @@ open_locale direct_sum
 
 variables {R ι M}
 
-instance : semimodule R (⨁ i, M i) := dfinsupp.to_semimodule
+instance : semimodule R (⨁ i, M i) := @dfinsupp.to_semimodule ι M _ _ _ _
+
+@[simp] lemma smul_apply (b : R) (v : ⨁ i, M i) (i : ι) :
+  (b • v) i = b • (v i) := dfinsupp.smul_apply _ _ _
 
 include dec_ι
 
@@ -61,10 +64,14 @@ theorem mk_smul (s : finset ι) (c : R) (x) : mk M s (c • x) = c • mk M s x 
 theorem of_smul (i : ι) (c : R) (x) : of M i (c • x) = c • of M i x :=
 (lof R ι M i).map_smul c x
 
+variables {R}
+lemma support_smul [Π (i : ι) (x : M i), decidable (x ≠ 0)]
+  (c : R) (v : ⨁ i, M i) : (c • v).support ⊆ v.support := dfinsupp.support_smul _ _
+
 variables {N : Type u₁} [add_comm_group N] [semimodule R N]
 variables (φ : Π i, M i →ₗ[R] N)
 
-variables (ι N φ)
+variables (R ι N φ)
 /-- The linear map constructed using the universal property of the coproduct. -/
 def to_module : (⨁ i, M i) →ₗ[R] N :=
 { to_fun := to_group (λ i, (φ i).to_add_monoid_hom),

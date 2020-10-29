@@ -39,6 +39,13 @@ namespace direct_sum
 
 variables {ι}
 
+@[simp] lemma zero_apply (i : ι) : (0 : ⨁ i, β i) i = 0 := rfl
+
+variables {β}
+@[simp] lemma add_apply (g₁ g₂ : ⨁ i, β i) (i : ι) : (g₁ + g₂) i = g₁ i + g₂ i :=
+dfinsupp.add_apply _ _ _
+
+variables (β)
 include dec_ι
 
 /-- `mk β s x` is the element of `⨁ i, β i` that is zero outside `s`

@@ -43,7 +43,7 @@ variable {ι}
 /-- A dependent function `Π i, β i` with finite support. -/
 @[reducible]
 def dfinsupp [Π i, has_zero (β i)] : Type* :=
-quotient (dfinsupp.setoid ι β)
+quotient (dfinsupp.pre.setoid ι β)
 variable {β}
 
 notation `Π₀` binders `, ` r:(scoped f, dfinsupp f) := r
@@ -119,7 +119,8 @@ instance [Π i, add_monoid (β i)] : add_monoid (Π₀ i, β i) :=
   zero_add  := λ f, ext $ λ i, by simp only [add_apply, zero_apply, zero_add],
   add_zero  := λ f, ext $ λ i, by simp only [add_apply, zero_apply, add_zero] }
 
-instance [Π i, add_monoid (β i)] {i : ι} : is_add_monoid_hom (λ g : Π₀ i : ι, β i, g i) :=
+instance is_add_monoid_hom [Π i, add_monoid (β i)] {i : ι} :
+  is_add_monoid_hom (λ g : Π₀ i : ι, β i, g i) :=
 { map_add := λ _ _, add_apply, map_zero := zero_apply }
 
 instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=

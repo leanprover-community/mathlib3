@@ -731,7 +731,9 @@ by rw [filter.frequently, filter.eventually, ← mem_interior_iff_mem_nhds,
 
 alias mem_closure_iff_frequently ↔ _ filter.frequently.mem_closure
 
-lemma is_closed_cluster_pts {f : filter α} : is_closed {x | cluster_pt x f} :=
+/-- The set of cluster points of a filter is closed. In particular, the set of limit points
+of a sequence is closed. -/
+lemma is_closed_set_of_cluster_pt {f : filter α} : is_closed {x | cluster_pt x f} :=
 begin
   simp only [cluster_pt, inf_ne_bot_iff_frequently_left, set_of_forall, imp_iff_not_or],
   refine is_closed_Inter (λ p, is_closed_union _ _); apply is_closed_compl_iff.2,

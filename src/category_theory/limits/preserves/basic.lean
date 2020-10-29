@@ -171,6 +171,23 @@ def preserves_colimit_of_iso {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K
   end }
 
 /--
+A convenience function for `preserves_limit`, which takes the functor as an explicit argument to
+guide typeclass resolution.
+-/
+def is_limit_of_preserves (F : C ⥤ D) {c : cone K} (t : is_limit c) [preserves_limit K F] :
+  is_limit (F.map_cone c) :=
+preserves_limit.preserves t
+
+/--
+A convenience function for `preserves_colimit`, which takes the functor as an explicit argument to
+guide typeclass resolution.
+-/
+def is_colimit_of_preserves (F : C ⥤ D) {c : cocone K} (t : is_colimit c)
+  [preserves_colimit K F] :
+  is_colimit (F.map_cocone c) :=
+preserves_colimit.preserves t
+
+/--
 A functor `F : C ⥤ D` reflects limits for `K : J ⥤ C` if
 whenever the image of a cone over `K` under `F` is a limit cone in `D`,
 the cone was already a limit cone in `C`.

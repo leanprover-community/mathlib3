@@ -169,6 +169,10 @@ by have := @mul_right_inj _ _ a a 1; rwa mul_one at this
 theorem inv_eq_one : a⁻¹ = 1 ↔ a = 1 :=
 by rw [← @inv_inj _ _ a 1, one_inv]
 
+@[simp, to_additive]
+theorem one_eq_inv : 1 = a⁻¹ ↔ a = 1 :=
+by rw [eq_comm, inv_eq_one]
+
 @[to_additive]
 theorem inv_ne_one : a⁻¹ ≠ 1 ↔ a ≠ 1 :=
 not_congr inv_eq_one

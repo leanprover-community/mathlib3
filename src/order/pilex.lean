@@ -27,7 +27,6 @@ by unfold pilex; apply_instance
 set_option eqn_compiler.zeta true
 
 instance [linear_order ι] [∀ a, partial_order (β a)] : partial_order (pilex ι β) :=
-let I := classical.DLO ι in
 have lt_not_symm : ∀ {x y : pilex ι β}, ¬ (x < y ∧ y < x),
   from λ x y ⟨⟨i, hi⟩, ⟨j, hj⟩⟩, begin
       rcases lt_trichotomy i j with hij | hij | hji,
@@ -71,8 +70,9 @@ have lt_not_symm : ∀ {x y : pilex ι β}, ¬ (x < y ∧ y < x),
 
 /-- `pilex` is a linear order if the original order is well-founded.
 This cannot be an instance, since it depends on the well-foundedness of `<`. -/
-protected def pilex.linear_order [linear_order ι] (wf : well_founded ((<) : ι → ι → Prop))
-  [∀ a, linear_order (β a)] : linear_order (pilex ι β) :=
+protected noncomputable def pilex.linear_order [linear_order ι]
+  (wf : well_founded ((<) : ι → ι → Prop)) [∀ a, linear_order (β a)] :
+  linear_order (pilex ι β) :=
 { le_total := λ x y, by classical; exact
     or_iff_not_imp_left.2 (λ hxy, begin
       have := not_or_distrib.1 hxy,
@@ -86,6 +86,7 @@ protected def pilex.linear_order [linear_order ι] (wf : well_founded ((<) : ι 
         exact this.1 ⟨i, (λ j hj, (hjiyx j hj).symm),
           lt_of_le_of_ne hyx (well_founded.min_mem _ {i | x i ≠ y i} _)⟩ }
     end),
+  decidable_le := classical.dec_rel _,
   ..pilex.partial_order }
 
 instance [linear_order ι] [∀ a, ordered_add_comm_group (β a)] : ordered_add_comm_group (pilex ι β) :=

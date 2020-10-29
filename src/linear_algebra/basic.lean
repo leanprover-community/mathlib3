@@ -19,7 +19,7 @@ modules over a ring, submodules, and linear maps. If `p` and `q` are submodules 
 means that `p ⊆ q`.
 
 Many of the relevant definitions, including `module`, `submodule`, and `linear_map`, are found in
-`src/algebra/module.lean`.
+`src/algebra/module`.
 
 ## Main definitions
 
@@ -29,8 +29,6 @@ Many of the relevant definitions, including `module`, `submodule`, and `linear_m
   that is, elements of `M` are identified if their difference is in `p`. This is itself a module.
 * The kernel `ker` and range `range` of a linear map are submodules of the domain and codomain
   respectively.
-* `linear_equiv M M₂`, the type of linear equivalences between `M` and `M₂`, is a structure that
-  extends `linear_map` and `equiv`.
 * The general linear group is defined to be the group of invertible linear maps from `M` to itself.
 
 ## Main statements
@@ -147,12 +145,6 @@ lemma restrict_eq_cod_restrict_dom_restrict
 lemma restrict_eq_dom_restrict_cod_restrict
   {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x, f x ∈ p) :
   f.restrict (λ x _, hf x) = (f.cod_restrict p hf).dom_restrict p := rfl
-
-/-- If a function `g` is a left and right inverse of a linear map `f`, then `g` is linear itself. -/
-def inverse (g : M₂ → M) (h₁ : left_inverse g f) (h₂ : right_inverse g f) : M₂ →ₗ[R] M :=
-by dsimp [left_inverse, function.right_inverse] at h₁ h₂; exact
-⟨g, λ x y, by rw [← h₁ (g (x + y)), ← h₁ (g x + g y)]; simp [h₂],
-    λ a b, by rw [← h₁ (g (a • b)), ← h₁ (a • g b)]; simp [h₂]⟩
 
 /-- The constant 0 map is linear. -/
 instance : has_zero (M →ₗ[R] M₂) := ⟨⟨λ _, 0, by simp, by simp⟩⟩
@@ -1754,23 +1746,6 @@ end linear_map
 by simp [f.range_cod_restrict _]
 
 /-! ### Linear equivalences -/
-
-section
-set_option old_structure_cmd true
-
-/-- A linear equivalence is an invertible linear map. -/
-@[nolint has_inhabited_instance]
-structure linear_equiv (R : Type u) (M : Type v) (M₂ : Type w)
-  [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂]
-  extends M →ₗ[R] M₂, M ≃+ M₂
-end
-
-attribute [nolint doc_blame] linear_equiv.to_linear_map
-attribute [nolint doc_blame] linear_equiv.to_add_equiv
-
-infix ` ≃ₗ ` := linear_equiv _
-notation M ` ≃ₗ[`:50 R `] ` M₂ := linear_equiv R M M₂
-
 namespace linear_equiv
 
 section add_comm_monoid
@@ -1778,130 +1753,8 @@ variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
 [add_comm_monoid M₃] [add_comm_monoid M₄]
 
 section
-variables [semimodule R M] [semimodule R M₂] [semimodule R M₃]
-include R
-
-instance : has_coe (M ≃ₗ[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
--- see Note [function coercion]
-instance : has_coe_to_fun (M ≃ₗ[R] M₂) := ⟨_, λ f, f.to_fun⟩
-
-@[simp] lemma mk_apply {to_fun inv_fun map_add map_smul left_inv right_inv  a} :
-  (⟨to_fun, map_add, map_smul, inv_fun, left_inv, right_inv⟩ : M ≃ₗ[R] M₂) a = to_fun a :=
-rfl
-
--- This exists for compatibility, previously `≃ₗ[R]` extended `≃` instead of `≃+`.
-@[nolint doc_blame]
-def to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂ := λ f, f.to_add_equiv.to_equiv
-
-lemma injective_to_equiv : function.injective (to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂) :=
-λ ⟨_, _, _, _, _, _⟩ ⟨_, _, _, _, _, _⟩ h, linear_equiv.mk.inj_eq.mpr (equiv.mk.inj h)
-
-@[simp] lemma to_equiv_inj {e₁ e₂ : M ≃ₗ[R] M₂} : e₁.to_equiv = e₂.to_equiv ↔ e₁ = e₂ :=
-injective_to_equiv.eq_iff
-
-lemma injective_to_linear_map : function.injective (coe : (M ≃ₗ[R] M₂) → (M →ₗ[R] M₂)) :=
-λ e₁ e₂ H, injective_to_equiv $ equiv.ext $ linear_map.congr_fun H
-
-@[simp, norm_cast] lemma to_linear_map_inj {e₁ e₂ : M ≃ₗ[R] M₂} :
-  (e₁ : M →ₗ[R] M₂) = e₂ ↔ e₁ = e₂ :=
-injective_to_linear_map.eq_iff
-
-end
-
-section
 variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
 variables (e e' : M ≃ₗ[R] M₂)
-
-@[simp, norm_cast] theorem coe_coe : ((e : M →ₗ[R] M₂) : M → M₂) = (e : M → M₂) := rfl
-
-@[simp] lemma coe_to_equiv : ((e.to_equiv) : M → M₂) = (e : M → M₂) := rfl
-
-@[simp] lemma to_fun_apply {m : M} : e.to_fun m = e m := rfl
-
-section
-variables {e e'}
-@[ext] lemma ext (h : ∀ x, e x = e' x) : e = e' :=
-injective_to_equiv (equiv.ext h)
-
-end
-
-section
-variables (M R)
-
-/-- The identity map is a linear equivalence. -/
-@[refl]
-def refl [semimodule R M] : M ≃ₗ[R] M := { .. linear_map.id, .. equiv.refl M }
-end
-
-@[simp] lemma refl_apply [semimodule R M] (x : M) : refl R M x = x := rfl
-
-/-- Linear equivalences are symmetric. -/
-@[symm]
-def symm : M₂ ≃ₗ[R] M :=
-{ .. e.to_linear_map.inverse e.inv_fun e.left_inv e.right_inv,
-  .. e.to_equiv.symm }
-
-@[simp] lemma inv_fun_apply {m : M₂} : e.inv_fun m = e.symm m := rfl
-
-variables {semimodule_M₃ : semimodule R M₃} (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃)
-
-/-- Linear equivalences are transitive. -/
-@[trans]
-def trans : M ≃ₗ[R] M₃ :=
-{ .. e₂.to_linear_map.comp e₁.to_linear_map,
-  .. e₁.to_equiv.trans e₂.to_equiv }
-
-@[simp] lemma coe_to_add_equiv : ⇑(e.to_add_equiv) = e := rfl
-
-@[simp] theorem trans_apply (c : M) :
-  (e₁.trans e₂) c = e₂ (e₁ c) := rfl
-@[simp] theorem apply_symm_apply (c : M₂) : e (e.symm c) = c := e.6 c
-@[simp] theorem symm_apply_apply (b : M) : e.symm (e b) = b := e.5 b
-@[simp] lemma symm_trans_apply (c : M₃) : (e₁.trans e₂).symm c = e₁.symm (e₂.symm c) := rfl
-
-@[simp] lemma trans_refl : e.trans (refl R M₂) = e := injective_to_equiv e.to_equiv.trans_refl
-@[simp] lemma refl_trans : (refl R M).trans e = e := injective_to_equiv e.to_equiv.refl_trans
-
-lemma symm_apply_eq {x y} : e.symm x = y ↔ x = e y := e.to_equiv.symm_apply_eq
-
-lemma eq_symm_apply {x y} : y = e.symm x ↔ e y = x := e.to_equiv.eq_symm_apply
-
-@[simp] lemma trans_symm [semimodule R M] [semimodule R M₂] (f : M ≃ₗ[R] M₂) :
-  f.trans f.symm = linear_equiv.refl R M :=
-by { ext x, simp }
-
-@[simp] lemma symm_trans [semimodule R M] [semimodule R M₂] (f : M ≃ₗ[R] M₂) :
-  f.symm.trans f = linear_equiv.refl R M₂ :=
-by { ext x, simp }
-
-@[simp, norm_cast] lemma refl_to_linear_map [semimodule R M] :
-  (linear_equiv.refl R M : M →ₗ[R] M) = linear_map.id :=
-rfl
-
-@[simp, norm_cast]
-lemma comp_coe [semimodule R M] [semimodule R M₂] [semimodule R M₃] (f :  M ≃ₗ[R] M₂)
-  (f' :  M₂ ≃ₗ[R] M₃) : (f' : M₂ →ₗ[R] M₃).comp (f : M →ₗ[R] M₂) = (f.trans f' : M →ₗ[R] M₃) :=
-rfl
-
-@[simp] theorem map_add (a b : M) : e (a + b) = e a + e b := e.map_add' a b
-@[simp] theorem map_zero : e 0 = 0 := e.to_linear_map.map_zero
-@[simp] theorem map_smul (c : R) (x : M) : e (c • x) = c • e x := e.map_smul' c x
-
-@[simp] lemma map_sum {s : finset ι} (u : ι → M) : e (∑ i in s, u i) = ∑ i in s, e (u i) :=
-e.to_linear_map.map_sum
-
-@[simp] theorem map_eq_zero_iff {x : M} : e x = 0 ↔ x = 0 :=
-e.to_add_equiv.map_eq_zero_iff
-theorem map_ne_zero_iff {x : M} : e x ≠ 0 ↔ x ≠ 0 :=
-e.to_add_equiv.map_ne_zero_iff
-
-@[simp] theorem symm_symm : e.symm.symm = e := by { cases e, refl }
-
-protected lemma bijective : function.bijective e := e.to_equiv.bijective
-protected lemma injective : function.injective e := e.to_equiv.injective
-protected lemma surjective : function.surjective e := e.to_equiv.surjective
-protected lemma image_eq_preimage (s : set M) : e '' s = e.symm ⁻¹' s :=
-e.to_equiv.image_eq_preimage s
 
 lemma map_eq_comap {p : submodule R M} : (p.map e : submodule R M₂) = p.comap e.symm :=
 submodule.coe_injective $ by simp [e.image_eq_preimage]

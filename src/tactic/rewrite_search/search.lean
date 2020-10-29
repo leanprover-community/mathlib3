@@ -97,6 +97,7 @@ match g.solving_edge with
     return (g, status.abort "max iterations reached")
   else g.bfs_step
 end
+
 private meta def chop_into_units : list edge → list (side × list edge)
 | [] := []
 | [e] := [(if e.f = RHS_VERTEX_ID then side.R else side.L, [e])]

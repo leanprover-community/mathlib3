@@ -1,1 +1,1 @@
-import tactic.rewrite_search.interactive
+import tactic.rewrite_search.frontend

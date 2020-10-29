@@ -5,7 +5,7 @@ Authors: Keeley Hoek, Scott Morrison
 -/
 
 import tactic.rewrite_search.discovery
-import tactic.rewrite_search.engine
+import tactic.rewrite_search.search
 
 /-!
 # Interactive versions of rewrite tactics and documentation

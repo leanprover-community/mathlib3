@@ -1409,6 +1409,12 @@ protected meta def attr : user_attribute (expr → tactic (expr × expr)) unit :
       pure (λ e, derive.step e <|> t e) },
     dependencies := [] } }
 
+add_tactic_doc
+{ name := "norm_num",
+  category := doc_category.attr,
+  decl_names := [`norm_num.attr],
+  tags := ["arithmetic", "decision_procedure"] }
+
 /-- Look up the `norm_num` extensions in the cache and return a tactic extending `derive.step` with
 additional reduction procedures. -/
 meta def get_step : tactic (expr → tactic (expr × expr)) := norm_num.attr.get_cache

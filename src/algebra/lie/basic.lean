@@ -310,7 +310,7 @@ instance : lie_ring (⨁ i, L i) :=
   ..(infer_instance : add_comm_group _) }
 
 @[simp] lemma bracket_apply {x y : (⨁ i, L i)} {i : ι} :
-  ⁅x, y⁆ i = ⁅x i, y i⁆ := zip_with_apply
+  ⁅x, y⁆ i = ⁅x i, y i⁆ := zip_with_apply _ _ x y i
 
 /-- The direct sum of Lie algebras carries a natural Lie algebra structure. -/
 instance : lie_algebra R (⨁ i, L i) :=

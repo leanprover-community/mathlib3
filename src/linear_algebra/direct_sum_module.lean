@@ -110,7 +110,8 @@ omit dec_ι
 
 /-- The natural linear equivalence between `⨁ _ : ι, M` and `M` when `unique ι`. -/
 -- TODO: generalize this to arbitrary index type `ι` with `unique ι`
-protected def lid (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [semimodule R M] [unique ι] :
+protected def lid (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [semimodule R M]
+  [unique ι] :
   (⨁ (_ : ι), M) ≃ₗ M :=
 { .. direct_sum.id M ι,
   .. to_module R ι M (λ i, linear_map.id) }
@@ -119,8 +120,8 @@ variables (ι M)
 /-- The projection map onto one component, as a linear map. -/
 def component (i : ι) : (⨁ i, M i) →ₗ[R] M i :=
 { to_fun := λ f, f i,
-  map_add' := λ _ _, dfinsupp.add_apply,
-  map_smul' := λ _ _, dfinsupp.smul_apply }
+  map_add' := λ f g, dfinsupp.add_apply f g i,
+  map_smul' := λ c f, dfinsupp.smul_apply c f i}
 
 variables {ι M}
 

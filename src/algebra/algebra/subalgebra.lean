@@ -286,6 +286,28 @@ theorem injective_cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : �
   function.injective (f.cod_restrict S hf) ↔ function.injective f :=
 ⟨λ H x y hxy, H $ subtype.eq hxy, λ H x y hxy, H (congr_arg subtype.val hxy : _)⟩
 
+/-- The equalizer of two R-algebra homomorphisms -/
+def equalizer (ϕ ψ : A →ₐ[R] B) : subalgebra R A :=
+{ carrier := {a | ϕ a = ψ a},
+  zero_mem' := by { change ϕ 0 = ψ 0, rw [alg_hom.map_zero, alg_hom.map_zero] },
+  add_mem' := λ x y hx hy, by
+  { change ϕ x = ψ x at hx,
+    change ϕ y = ψ y at hy,
+    change ϕ (x + y) = ψ (x + y),
+    rw [alg_hom.map_add, alg_hom.map_add, hx, hy] },
+  one_mem' := by { change ϕ 1 = ψ 1, rw [alg_hom.map_one, alg_hom.map_one] },
+  mul_mem' := λ x y hx hy, by
+  { change ϕ x = ψ x at hx,
+    change ϕ y = ψ y at hy,
+    change ϕ (x * y) = ψ (x * y),
+    rw [alg_hom.map_mul, alg_hom.map_mul, hx, hy] },
+  algebra_map_mem' := λ x, by
+  { change ϕ (algebra_map R A x) = ψ (algebra_map R A x),
+    rw [alg_hom.commutes, alg_hom.commutes] } }
+
+@[simp] lemma mem_equalizer (ϕ ψ : A →ₐ[R] B) (x : A) :
+  x ∈ ϕ.equalizer ψ ↔ ϕ x = ψ x := iff.rfl
+
 end alg_hom
 
 namespace algebra
@@ -372,6 +394,11 @@ alg_equiv.symm $ alg_equiv.of_bijective (algebra.of_id R _)
 noncomputable def bot_equiv (F R : Type*) [field F] [semiring R] [nontrivial R] [algebra F R] :
   (⊥ : subalgebra F R) ≃ₐ[F] F :=
 bot_equiv_of_injective (ring_hom.injective _)
+
+/-- The top subalgebra is isomorphic to the field. -/
+noncomputable def top_equiv : (⊤ : subalgebra R A) ≃ₐ[R] A :=
+(alg_equiv.of_bijective to_top ⟨λ _ _, subtype.mk.inj,
+  λ x, ⟨x.val, by { ext, refl }⟩⟩ : A ≃ₐ[R] (⊤ : subalgebra R A)).symm
 
 end algebra
 

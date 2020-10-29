@@ -303,9 +303,9 @@ hf.prod_mk hg is_measurable_lt'
 
 end linear_order
 
-section decidable_linear_order
+section linear_order
 
-variables [decidable_linear_order α] [order_closed_topology α]
+variables [linear_order α] [order_closed_topology α]
 
 lemma is_measurable_interval {a b : α} : is_measurable (interval a b) :=
 is_measurable_Icc
@@ -320,7 +320,7 @@ lemma measurable.min {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ a, min (f a) (g a)) :=
 hf.piecewise (is_measurable_le hf hg) hg
 
-end decidable_linear_order
+end linear_order
 
 /-- A continuous function from an `opens_measurable_space` to a `borel_space`
 is measurable. -/
@@ -449,7 +449,7 @@ measurable_inv.comp hf
 
 lemma measurable_inv' {α : Type*} [normed_field α] [measurable_space α] [borel_space α] :
   measurable (has_inv.inv : α → α) :=
-measurable_of_continuous_on_compl_singleton 0 normed_field.continuous_on_inv
+measurable_of_continuous_on_compl_singleton 0 continuous_on_inv'
 
 lemma measurable.inv' {α : Type*} [normed_field α] [measurable_space α] [borel_space α]
   {f : δ → α} (hf : measurable f) :

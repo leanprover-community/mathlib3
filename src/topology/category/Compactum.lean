@@ -204,14 +204,14 @@ begin
   -- All sets in C0 are nonempty.
   have claim2 : ∀ B ∈ C0, set.nonempty B,
   { rintros B ⟨Q,hQ,rfl⟩,
-    obtain ⟨q⟩ := nonempty_of_mem_ultrafilter _ F.2 hQ,
+    obtain ⟨q⟩ := nonempty_of_mem_ultrafilter F.2 hQ,
     use X.incl q,
     simpa, },
   -- The intersection of AA with every set in C0 is nonempty.
   have claim3 : ∀ B ∈ C0, (AA ∩ B).nonempty,
   { rintros B ⟨Q,hQ,rfl⟩,
     have : (Q ∩ cl A).nonempty,
-    { apply nonempty_of_mem_ultrafilter _ F.2,
+    { apply nonempty_of_mem_ultrafilter F.2,
       exact F.1.inter_sets hQ hF },
     rcases this with ⟨q,hq1,P,hq2,hq3⟩,
     refine ⟨P,hq2,_⟩,

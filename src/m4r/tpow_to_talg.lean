@@ -13,6 +13,7 @@ list.prod_nil
 
 local attribute [semireducible] tensor_algebra tensor_algebra.lift
   free_algebra ring_quot.mk_ring_hom ring_quot.mk_alg_hom ring_quot free_algebra.lift
+  tensor_algebra.ι free_algebra.ι
 
 lemma free_algebra_map_apply {x : R} :
   algebra_map R (free_algebra R M) x =
@@ -129,21 +130,62 @@ end
 
 variables {R M}
 
+local attribute [instance] free_algebra.pre.has_mul
+
 lemma tensor_algebra.induction_on {C : tensor_algebra R M → Prop}
   (H : ∀ (n : ℕ) (i : fin n → M), C $ tensor_algebra.mk R M i)
-  (Hadd : ∀ x y, C x → C y → C (x + y)) (x) : C x :=
+  (Hadd : ∀ x y, C x → C y → C (x + y))
+  (Hsmul : ∀ x (c : R), C x → C (c • x))
+  (Hmul : ∀ x y, C x → C y → C (x * y)) (x) : C x :=
 begin
   refine quot.induction_on x _,
   intro a,
   refine quot.induction_on a _,
-  rintro (y | y | ⟨y, z⟩ | ⟨y, z⟩);
-  sorry
+  intro z,
+  refine free_algebra.pre.rec_on z _ _ _ _,
+  intro y,
+  have h := H 1 (λ _, y),
+  suffices : tensor_algebra.mk R M (λ x : fin 1, y) =
+    quot.mk (ring_quot.rel (tensor_algebra.rel R M))
+      (quot.mk (free_algebra.rel R M) (free_algebra.pre.of y)),
+  by rwa this at h,
+  show list.prod _ = _,
+  erw list.map_singleton,
+  rw list.prod_singleton,
+  refl,
+  intro y,
+  have h := Hsmul _ y (H 0 (default _)),
+  suffices : y • tensor_algebra.mk R M (default (fin 0 → M)) =
+    quot.mk (ring_quot.rel (tensor_algebra.rel R M)) (quot.mk (free_algebra.rel R M)
+      (free_algebra.pre.of_scalar y)),
+  by rwa this at h,
+  show y • list.prod _ = _,
+  erw list.map_nil, rw list.prod_nil,
+  rw ←algebra.algebra_map_eq_smul_one,
+  refl,
+  intros y z hy hz,
+  rw falg_map_add,
+  exact Hadd _ _ hy hz,
+  intros y z hy hz,
+  rw falg_map_mul,
+  exact Hmul _ _ hy hz,
 end
 
 lemma tpow.induction_on (n : ℕ) {C : tpow R M n → Prop}
   (H : ∀ (i : fin n → M), C $ tpow.mk R M n i)
-  (H : ∀ x y, C x → C y → C (x + y)) (x) : C x :=
-sorry
+  (Hadd : ∀ x y, C x → C y → C (x + y))
+  (Hsmul : ∀ x (c : R), C x → C (c • x)) (x) : C x :=
+begin
+  induction n with n hn,
+  have h := Hsmul _ x (H (default _)),
+  convert h,
+  rw algebra.id.smul_eq_mul, exact (mul_one _).symm,
+  apply tensor_product.induction_on x,
+  have h := Hsmul _ 0 (H 0),
+  rwa zero_smul at h,
+  intros y z, sorry, sorry,
+end
+
 
 theorem inj_of_pow_to_alg (n : ℕ) : (pow_to_alg R M n).ker = ⊥ :=
 begin
@@ -159,10 +201,10 @@ begin
   intros y z h,
   rw tensor_product.lift.tmul at h,
   revert h,
-  refine tpow.induction_on n _ _ y,
+  refine tpow.induction_on n _ _ _ y,
   intros i h,
   erw tpow.lift_mk_apply at h,
   rw multilinear_map.curry_right_apply at h,
-  sorry, sorry, sorry,
+  sorry, sorry, sorry, sorry,
 end
 

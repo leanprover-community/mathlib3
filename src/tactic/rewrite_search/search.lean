@@ -5,7 +5,6 @@ Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 -/
 
 import tactic.rewrite_search.discovery
-import tactic.rewrite_search.explain
 import tactic.rewrite_search.types
 
 /-!
@@ -17,6 +16,43 @@ universe u
 open tactic
 
 namespace tactic.rewrite_search
+
+meta structure edge :=
+(f t   : ℕ)
+(proof : tactic expr)
+(how   : how)
+
+meta structure vertex :=
+(id       : ℕ)
+(exp      : expr)
+(pp       : string)
+(s        : side)
+(parent   : option edge)
+
+namespace vertex
+
+meta def same_side (a b : vertex) : bool := a.s = b.s
+meta def to_string (v : vertex) : string := v.s.to_string ++ v.pp
+
+meta def create (id : ℕ) (e : expr) (pp : string) (s : side) (parent : option edge) : vertex :=
+⟨ id, e, pp, s, parent ⟩
+
+meta def null : vertex := vertex.create invalid_index (default expr) "__NULLEXPR" side.L none
+
+meta instance inhabited : inhabited vertex := ⟨null⟩
+meta instance has_to_format : has_to_format vertex := ⟨λ v, v.pp⟩
+
+end vertex
+
+meta structure search_state :=
+(conf         : config)
+(rs           : list (expr × bool))
+(vertices     : buffer vertex)
+(next_vertex  : ℕ)
+(solving_edge : option edge)
+
+def LHS_VERTEX_ID : ℕ := 0
+def RHS_VERTEX_ID : ℕ := 1
 
 meta def mk_search_state (conf : config) (rs : list (expr × bool)) (lhs : expr) (rhs : expr) :
 tactic search_state :=
@@ -39,27 +75,26 @@ private meta def walk_up_parents : option edge → tactic (list edge)
 
 meta def backtrack : tactic (list edge) :=
 do e ← g.solving_edge,
-let v := g.vertices.read' e.t,
-vts ← walk_up_parents g e,
-vfs ← walk_up_parents g v.parent,
-return $ match v.s with
-           | side.L := vfs.reverse ++ vts
-           | side.R := vts.reverse ++ vfs
-end
+  let v := g.vertices.read' e.t,
+  vts ← walk_up_parents g e,
+  vfs ← walk_up_parents g v.parent,
+  match v.s with
+    | side.L := return (vfs.reverse ++ vts)
+    | side.R := return (vts.reverse ++ vfs)
+  end
 
 private meta def vertex_finder (pp : string) (left : vertex) (right : option vertex) :
 option vertex :=
 match right with
-| some v := some v
-| none   := if left.pp = pp then some left else none
+  | some v := some v
+  | none   := if left.pp = pp then some left else none
 end
 
--- Find the vertex with the given (e : expr), or return the null vertex if not found.
 meta def find_vertex (e : expr) : tactic (option vertex) := do
   pp ← to_string <$> tactic.pp e,
   return (g.vertices.foldl none (vertex_finder pp))
 
-meta def add_rewrite (v : vertex) (rw : rewrite) : tactic search_state :=
+private meta def add_rewrite (v : vertex) (rw : rewrite) : tactic search_state :=
 do maybe_v ← g.find_vertex rw.e,
 match maybe_v with
   | some new_vertex := if vertex.same_side v new_vertex then return g
@@ -73,30 +108,21 @@ match maybe_v with
     return { g with vertices := g.vertices.push_back new_vertex }
 end
 
-meta def visit_vertex (v : vertex) : tactic search_state :=
+meta def expand_vertex (v : vertex) : tactic search_state :=
 do rws ← get_rewrites g.rs v.exp g.conf,
-list.mfoldl (λ g rw, g.add_rewrite v rw) g rws.to_list
+list.mfoldl (λ g rw, add_rewrite g v rw) g rws.to_list
 
-meta inductive status
-| continue : status
-| done : edge → status
-| abort : string → status
-
-meta def bfs_step : tactic (search_state × status) :=
-if h : g.next_vertex < g.vertices.size then
-  do let v := g.vertices.read (fin.mk g.next_vertex h),
-  g ← g.visit_vertex v,
-  return ({g with next_vertex := g.next_vertex + 1}, status.continue)
-else return (g, status.abort "all vertices explored")
-
-meta def step_once (itr : ℕ) : tactic (search_state × status) :=
-match g.solving_edge with
-| some e := return (g, status.done e)
-| none := do
-  if itr > g.conf.max_iterations then
-    return (g, status.abort "max iterations reached")
-  else g.bfs_step
-end
+meta def find_solving_edge : search_state → ℕ → tactic (search_state × edge)
+| g vertex_idx :=
+if vertex_idx ≥ g.conf.max_iterations then fail "search failed: max iterations reached"
+else if h : vertex_idx < g.vertices.size then
+  do let v := g.vertices.read (fin.mk vertex_idx h),
+  g ← g.expand_vertex v,
+  match g.solving_edge with
+    | some e := return (g, e)
+    | none   := find_solving_edge g (vertex_idx + 1)
+  end
+else fail "search failed: all vertices explored"
 
 private meta def chop_into_units : list edge → list (side × list edge)
 | [] := []
@@ -146,24 +172,10 @@ do edges ← g.backtrack,
   proof ← proof <|> fail "could not combine proof units!",
   return (proof, units)
 
-meta def finish_search : tactic (search_state × search_result) :=
-do (proof, units) ← build_proof g,
-  return (g, search_result.success proof units)
-
-meta def search_until_solved_aux : search_state → ℕ → tactic (search_state × search_result)
-| g itr := do
-  (g, s) ← g.step_once itr,
-  match s with
-  | status.continue := search_until_solved_aux g (itr + 1)
-  | status.abort r  := return (g, search_result.failure ("aborted: " ++ r))
-  | status.done e   := g.finish_search
-  end
-
-meta def search_until_solved : tactic (search_state × search_result) :=
-g.search_until_solved_aux 0
-
-meta def explain (proof : expr) (units : list proof_unit) : tactic string :=
-  explain_search_result g.conf g.rs proof units
+meta def find_proof : tactic (search_state × expr × list proof_unit) :=
+do (g, e) ← g.find_solving_edge 0,
+(proof, units) ← g.build_proof,
+return (g, proof, units)
 
 end search_state
 

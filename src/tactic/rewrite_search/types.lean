@@ -46,6 +46,11 @@ meta structure rewrite :=
 (prf : tactic expr) -- we defer constructing the proofs until they are needed
 (how : how)
 
+meta structure proof_unit :=
+(proof : expr)
+(side : side)
+(steps : list how)
+
 /-
 Configuration options for a rewrite search.
 -/
@@ -79,73 +84,6 @@ end rw_equation
 
 namespace tactic.rewrite_search
 
-meta structure edge :=
-(f t   : ℕ)
-(proof : tactic expr)
-(how   : how)
-
-namespace edge
-variables (e : edge)
-
-meta def other (r : ℕ) : option ℕ :=
-  if e.f = r then e.t else
-  if e.t = r then e.f else
-  none
-
-meta instance has_to_format : has_to_format edge := ⟨λ e, format!"{e.f}->{e.t}"⟩
-
-end edge
-
 def invalid_index : ℕ := 0xFFFFFFFF
-
-meta structure vertex :=
-(id       : ℕ)
-(exp      : expr)
-(pp       : string)
-(s        : side)
-(parent   : option edge)
-
-namespace vertex
-
-meta def same_side (a b : vertex) : bool := a.s = b.s
-meta def to_string (v : vertex) : string := v.s.to_string ++ v.pp
-
-meta def create (id : ℕ) (e : expr) (pp : string) (s : side) (parent : option edge) : vertex :=
-⟨ id, e, pp, s, parent ⟩
-
-meta def null : vertex := vertex.create invalid_index (default expr) "__NULLEXPR" side.L none
-
-meta instance inhabited : inhabited vertex := ⟨null⟩
-meta instance has_to_format : has_to_format vertex := ⟨λ v, v.pp⟩
-
-end vertex
-
--- queue is a list of pending vertex ids to visit
-meta structure search_state :=
-(conf         : config)
-(rs           : list (expr × bool))
-(vertices     : buffer vertex)
-(next_vertex  : ℕ)
-(solving_edge : option edge)
-
-def LHS_VERTEX_ID : ℕ := 0
-def RHS_VERTEX_ID : ℕ := 1
-
-namespace search_state
-variables (g : search_state)
-
-meta def set_vertex (v : vertex) : search_state × vertex :=
-({ g with vertices := g.vertices.write' v.id v }, v)
-
-end search_state
-
-meta structure proof_unit :=
-(proof : expr)
-(side : side)
-(steps : list how)
-
-meta inductive search_result
-| success (proof : expr) (units : list proof_unit) : search_result
-| failure (message : string) : search_result
 
 end tactic.rewrite_search

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Keeley Hoek, Scott Morrison
 -/
 
+import tactic.rewrite_search.explain
 import tactic.rewrite_search.discovery
 import tactic.rewrite_search.search
 
@@ -20,11 +21,8 @@ meta def pick_default_config : tactic unit := `[exact tactic.rewrite_search.defa
 meta def try_search (cfg : config) (rs : list (expr × bool)) (lhs : expr) (rhs : expr) :
 tactic string :=
 do i ← mk_search_state cfg rs lhs rhs,
-  (i, result) ← i.search_until_solved,
-  match result with
-    | search_result.failure reason := tactic.fail reason
-    | search_result.success proof steps := tactic.exact proof >> (i.explain proof steps)
-  end
+  (i, proof, steps) ← i.find_proof,
+  tactic.exact proof >> (explain_search_result cfg rs proof steps)
 
 meta def rewrite_search_target (cfg : config) (extra_names : list name)
   (extra_rws : list (expr × bool)) : tactic string :=

@@ -65,6 +65,20 @@ variables [semiring R] [add_comm_monoid M] [semimodule R M] [add_comm_monoid N] 
 def lsingle (a : α) : M →ₗ[R] (α →₀ M) :=
 { map_smul' := assume a b, (smul_single _ _ _).symm, ..finsupp.single_add_hom a }
 
+/-- Two `R`-linear maps from `finsupp X M` which agree on each `single x y` agree everywhere. -/
+lemma lhom_ext ⦃φ ψ : (α →₀ M) →ₗ[R] N⦄ (h : ∀ a b, φ (single a b) = ψ (single a b)) :
+  φ = ψ :=
+linear_map.to_add_monoid_hom_injective $ add_hom_ext h
+
+/-- Two `R`-linear maps from `finsupp X M` which agree on each `single x y` agree everywhere.
+
+We formulate this fact using equality of linear maps `φ.comp (lsingle a)` and `ψ.comp (lsingle a)`
+so that the `ext` tactic can apply a type-specific extensionality lemma to prove equality of these
+maps. E.g., if `M = R`, then it suffices to verify `φ (single a 1) = ψ (single a 1)`. -/
+@[ext] lemma lhom_ext' ⦃φ ψ : (α →₀ M) →ₗ[R] N⦄ (h : ∀ a, φ.comp (lsingle a) = ψ.comp (lsingle a)) :
+  φ = ψ :=
+lhom_ext $ λ a, linear_map.congr_fun (h a)
+
 /-- Interpret `λ (f : α →₀ M), f a` as a linear map. -/
 def lapply (a : α) : (α →₀ M) →ₗ[R] M :=
 { map_smul' := assume a b, rfl, ..finsupp.eval_add_hom a }

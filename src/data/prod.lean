@@ -35,6 +35,10 @@ funext $ map_fst f g
 lemma map_snd' (f : α → γ) (g : β → δ) : (prod.snd ∘ map f g) = g ∘ prod.snd :=
 funext $ map_snd f g
 
+/-
+Composing a `prod.map` with another `prod.map` is equal to
+a single `prod.map` of composed functions.
+-/
 lemma comp_map {ε ζ : Type*}
   (f : α → β) (f' : γ → δ) (g : β → ε) (g' : δ → ζ) :
   prod.map g g' ∘ prod.map f f' = prod.map (g ∘ f) (g' ∘ f') :=

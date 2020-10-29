@@ -52,7 +52,7 @@ section semiring
 
 variables {R : Type u} [semiring R] {S : Type v} [semiring S] {f : R →+* S}
 
-/--We say that a polyonmial lifts when there is a polynomial `q` such that `map f q = p`. -/
+/-- We say that a polyonmial lifts when there is a polynomial `q` such that `map f q = p`. -/
 def lifts (f : R →+* S) (p : polynomial S) : Prop := ∃ (q : polynomial R), map f q = p
 
 lemma lifts_iff (p : polynomial S) : lifts f p ↔ p ∈ ring_hom.srange (ring_hom.of (map f)) :=
@@ -64,11 +64,11 @@ lemma lifts_iff_set_range (p : polynomial S) : lifts f p ↔ p ∈ set.range (ma
 lemma lifts_iff_coeff_lifts (p : polynomial S) : lifts f p ↔ ∀ (n : ℕ), p.coeff n ∈ set.range f :=
   by rw [lifts_iff_set_range, mem_map_range]
 
-/--The polynomial `0` lifts. -/
+/-- The polynomial `0` lifts. -/
 lemma zero_lifts (f : R →+* S) : lifts f (0 : polynomial S) :=
   by rw [lifts_iff]; exact subsemiring.zero_mem (ring_hom.of (map f)).srange
 
-/--The polynomial `1` lifts. -/
+/-- The polynomial `1` lifts. -/
 lemma one_lifts (f : R →+* S) : lifts f (1 : polynomial S) :=
   by rw [lifts_iff]; exact subsemiring.one_mem (ring_hom.of (map f)).srange
 
@@ -76,63 +76,63 @@ lemma one_lifts (f : R →+* S) : lifts f (1 : polynomial S) :=
 lemma lifts_C (f : R →+* S) (r : R) : lifts f (C (f r)) :=
   by use C r; rw [map_C]
 
-/--If `(s : S)` is in the image of `f`, then `C s` lifts. -/
+/-- If `(s : S)` is in the image of `f`, then `C s` lifts. -/
 lemma lifts_C' {f : R →+* S} {s : S} (h : s ∈ set.range f) : lifts f (C s) :=
   by obtain ⟨r, rfl⟩ := set.mem_range.1 h; use C r; simp only [map_C]
 
-/--For any `(n : ℕ)`, the polynomial `(n : polynomial S)` lifts. -/
+/-- For any `(n : ℕ)`, the polynomial `(n : polynomial S)` lifts. -/
 lemma lifts.nat_mem (f : R →+* S) (n : ℕ) : lifts f (n : polynomial S) :=
   by rw [lifts_iff]; exact subsemiring.coe_nat_mem (ring_hom.of (map f)).srange n
 
-/--The polynomial `X` lifts. -/
+/-- The polynomial `X` lifts. -/
 lemma lifts_X (f : R →+* S) : lifts f (X : polynomial S) :=
   by use X; rw [map_X]
 
-/--The polynomial `X ^ n` lifts. -/
+/-- The polynomial `X ^ n` lifts. -/
 lemma lifts_X_pow (f : R →+* S) (n : ℕ) : lifts f (X ^ n : polynomial S) :=
   by use X ^ n; rw [map_pow, map_X]
 
-/--If `p` and `q` lift then `p + q` lifts. -/
+/-- If `p` and `q` lift then `p + q` lifts. -/
 lemma lifts.add {p q : polynomial S} (hp : lifts f p) (hq : lifts f q) : lifts f (p + q) :=
   by rw lifts_iff at hp hq ⊢; exact subsemiring.add_mem (ring_hom.of (map f)).srange hp hq
 
-/--If `p` and `q` lift then `p * q` lifts. -/
+/-- If `p` and `q` lift then `p * q` lifts. -/
 lemma lifts.mul {p q : polynomial S} (hp : lifts f p) (hq : lifts f q) : lifts f (p * q) :=
   by rw lifts_iff at hp hq ⊢; exact subsemiring.mul_mem (ring_hom.of (map f)).srange hp hq
 
-/--If `p` lifts and `(n : ℕ)` then `p ^ n` lifts. -/
+/-- If `p` lifts and `(n : ℕ)` then `p ^ n` lifts. -/
 lemma lifts.pow {p : polynomial S} (n : ℕ) (hp : lifts f p) : lifts f (p ^ n) :=
   by rw lifts_iff at hp ⊢; exact subsemiring.pow_mem (ring_hom.of (map f)).srange hp n
 
-/--If `p` lifts and `(n : ℕ)` then `n • p` lifts. -/
+/-- If `p` lifts and `(n : ℕ)` then `n • p` lifts. -/
 lemma lifts.nat_smul {p : polynomial S} (n : ℕ) (hp : lifts f p) : lifts f (n • p) :=
   by rw lifts_iff at hp ⊢; exact subsemiring.nsmul_mem (ring_hom.of (map f)).srange hp n
 
-/--If `p` lifts and `(r : R)` then `r * p` lifts. -/
+/-- If `p` lifts and `(r : R)` then `r * p` lifts. -/
 lemma lifts.base_mul {p : polynomial S} (r : R) (hp : lifts f p) : lifts f (C (f r) * p) :=
   by rw lifts at hp ⊢; obtain ⟨p₁, rfl⟩ := hp; use C r * p₁; rw [map_mul, map_C]
 
-/--If any element of a list of polynomials lifts, then the product lifts-/
+/-- If any element of a list of polynomials lifts, then the product lifts-/
 lemma lifts_list_prod {L : list (polynomial S)} :
   (∀ (p : polynomial S), p ∈ L → lifts f p) → lifts f L.prod :=
   by simp_rw [lifts_iff]; exact subsemiring.list_prod_mem (ring_hom.of (map f)).srange
 
-/--If any element of a list of polynomials lifts, then the sum lifts-/
+/-- If any element of a list of polynomials lifts, then the sum lifts-/
 lemma lifts_list_sum {L : list (polynomial S)} :
   (∀ (p : polynomial S), p ∈ L → lifts f p) → lifts f L.sum :=
   by simp_rw [lifts_iff]; exact subsemiring.list_sum_mem (ring_hom.of (map f)).srange
 
-/--If any element of a multiset of polynomials lifts, then the sum lifts-/
+/-- If any element of a multiset of polynomials lifts, then the sum lifts-/
 lemma lifts_multiset_sum {m : multiset (polynomial S)} :
   (∀ (p : polynomial S), p ∈ m → lifts f p) → lifts f m.sum :=
   by simp_rw [lifts_iff]; exact subsemiring.multiset_sum_mem (ring_hom.of (map f)).srange m
 
-/--If any element of a finset of polynomials lifts, then the sum lifts-/
+/-- If any element of a finset of polynomials lifts, then the sum lifts-/
 lemma lifts_sum {ι : Type w} {t : finset ι} {g : ι → (polynomial S)} :
   (∀ (x : ι), x ∈ t → lifts f (g x)) → lifts f (∑ (x : ι) in t, g x) :=
 by simp_rw [lifts_iff]; exact subsemiring.sum_mem (ring_hom.of (map f)).srange
 
-/--If `(s : S)` is in the image of `f`, then `monomial n s` lifts. -/
+/-- If `(s : S)` is in the image of `f`, then `monomial n s` lifts. -/
 lemma lifts_monomial {s : S} (n : ℕ) (h : s ∈ set.range f) : lifts f (monomial n s) :=
 begin
   obtain ⟨r, rfl⟩ := set.mem_range.1 h,
@@ -140,7 +140,7 @@ begin
   simp only [map_monomial],
 end
 
-/--If `p` lifts then `p.erase n` lifts. -/
+/-- If `p` lifts then `p.erase n` lifts. -/
 lemma erase_lifts_of_lifts {p : polynomial S} (n : ℕ) (h : lifts f p) : lifts f (p.erase n) :=
 begin
   rw [lifts_iff_set_range, mem_map_range, coeff] at h ⊢,
@@ -177,7 +177,7 @@ begin
   simp only [hzero, hqzero, ne.def, not_false_iff, degree_monomial]
 end
 
-/--A polynomial lifts if and only if it can be lifted to a polynomial of the same degree. -/
+/-- A polynomial lifts if and only if it can be lifted to a polynomial of the same degree. -/
 lemma lifts_deg_of_lifts {p : polynomial S} (hlifts : lifts f p) :
   ∃ (q : polynomial R), map f q = p ∧ q.degree = p.degree :=
 begin
@@ -219,7 +219,7 @@ end lift_deg
 
 section monic
 
-/--A monic polynomial lifts if and only if it can be lifted to a monic polynomial
+/-- A monic polynomial lifts if and only if it can be lifted to a monic polynomial
 of the same degree. -/
 lemma lifts_deg_monic_of_lifts [nontrivial S] {p : polynomial S} (hlifts : lifts f p)
   (hmonic : p.monic) : ∃ (q : polynomial R), map f q = p ∧ q.degree = p.degree ∧ q.monic :=
@@ -262,12 +262,12 @@ section comm_semiring
 
 variables {R : Type u} [semiring R] {S : Type v} [comm_semiring S] (f : R →+* S)
 
-/--If any element of a multiset of polynomials lifts, then the product lifts-/
+/-- If any element of a multiset of polynomials lifts, then the product lifts-/
 lemma lifts_multiset_prod {m : multiset (polynomial S)} :
   (∀ (p : polynomial S), p ∈ m → lifts f p) → lifts f m.prod :=
 by simp_rw [lifts_iff]; exact subsemiring.multiset_prod_mem (ring_hom.of (map f)).srange m
 
-/--If any element of a finset of polynomials lifts, then the product lifts-/
+/-- If any element of a finset of polynomials lifts, then the product lifts-/
 lemma lifts_prod {ι : Type w} {t : finset ι} {g : ι → (polynomial S)} :
   (∀ (x : ι), x ∈ t → lifts f (g x)) → lifts f (∏ (x : ι) in t, g x) :=
 by simp_rw [lifts_iff]; exact subsemiring.prod_mem (ring_hom.of (map f)).srange
@@ -278,19 +278,19 @@ section ring
 
 variables {R : Type u} [ring R] {S : Type v} [ring S] (f : R →+* S)
 
-/--If `p` lifts, then `-p` lifts. -/
+/-- If `p` lifts, then `-p` lifts. -/
 lemma lifts.neg {p : polynomial S} (hp : lifts f p) : lifts f (-p) :=
   by rw lifts_iff at hp ⊢; exact subring.neg_mem (ring_hom.range (ring_hom.of (map f))) hp
 
-/--If `p` and `q` lift then `p - q` lifts. -/
+/-- If `p` and `q` lift then `p - q` lifts. -/
 lemma lifts.sub {p q : polynomial S} (hp : lifts f p) (hq : lifts f q) : lifts f (p - q) :=
   by rw lifts_iff at hp hq ⊢; exact subring.sub_mem (ring_hom.range (ring_hom.of (map f))) hp hq
 
-/--For any `(n : ℤ)`, the polynomial `(n : polynomial S)` lifts. -/
+/-- For any `(n : ℤ)`, the polynomial `(n : polynomial S)` lifts. -/
 lemma lifts.int (f : R →+* S) (n : ℤ) : lifts f (n : polynomial S) :=
   by rw lifts_iff at ⊢; exact subring.coe_int_mem (ring_hom.range (ring_hom.of (map f))) n
 
-/--If `p` lifts and `(n : ℤ)` then `n • p` lifts. -/
+/-- If `p` lifts and `(n : ℤ)` then `n • p` lifts. -/
 lemma lifts.int_smul {p : polynomial S} (n : ℤ) (hp : lifts f p) : lifts f (n • p) :=
   by rw lifts_iff at hp ⊢; exact subring.gsmul_mem (ring_hom.range (ring_hom.of (map f))) hp n
 
@@ -300,20 +300,20 @@ section algebra
 
 variables {R : Type u} [comm_semiring R] {S : Type v} [semiring S] [algebra R S]
 
-/--The map `polynomial R → polynomial S` as an algebra homomorphism. -/
+/-- The map `polynomial R → polynomial S` as an algebra homomorphism. -/
 def map_alg (R : Type u) [comm_semiring R] (S : Type v) [semiring S] [algebra R S] :
   polynomial R →ₐ[R] polynomial S := @aeval _ (polynomial S) _ _ _ (X : polynomial S)
 
-/--`map_alg` is the morphism induced by `R → S`. -/
+/-- `map_alg` is the morphism induced by `R → S`. -/
 lemma map_alg_eq_map (p : polynomial R) : map_alg R S p = map (algebra_map R S) p := by
   simp only [map_alg, aeval_def, eval₂, map, algebra_map_apply, ring_hom.coe_comp]
 
-/--A polynomial `p` lifts if and only if it is in the image of `map_alg`. -/
+/-- A polynomial `p` lifts if and only if it is in the image of `map_alg`. -/
 lemma lifts_iff_alg (R : Type u) [comm_semiring R] {S : Type v} [semiring S] [algebra R S]
   (p : polynomial S) : lifts (algebra_map R S) p ↔ p ∈ (alg_hom.range (@map_alg R _ S _ _)) :=
   by simp only [lifts, map_alg_eq_map, alg_hom.mem_range]
 
-/--If `p` lifts and `(r : R)` then `r • p` lifts. -/
+/-- If `p` lifts and `(r : R)` then `r • p` lifts. -/
 lemma lifts.smul {p : polynomial S} (r : R) (hp : lifts (algebra_map R S) p) :
   lifts (algebra_map R S) (r • p) :=
   by rw lifts_iff_alg at hp ⊢; exact subalgebra.smul_mem (map_alg R S).range hp r

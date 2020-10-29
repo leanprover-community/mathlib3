@@ -566,6 +566,53 @@ sorry
 
 variables [topological_space H'] (e : Type*) (i : continuous_map H' H)
 
+open_locale topological_space
+
+def pullback_pregroupoid (G : structure_groupoid H) : pregroupoid H' :=
+{ property := λ f s, continuous_on f s ∧ ∀ x ∈ s, ∃ u ∈ 𝓝 x, ∃ e ∈ G, eq_on (i ∘ f) (e ∘ i) (s ∩ u),
+  comp := begin
+    rintros f g s t ⟨f_cont, hf⟩ ⟨g_cont, hg⟩ hs _ _,
+    refine ⟨continuous_on.comp' g_cont f_cont, _⟩,
+    intros x hx,
+    obtain ⟨u, hu, e, Hf, hf⟩ := hf x hx.1,
+    obtain ⟨v, hv, e', Hg, hg⟩ := hg (f x) hx.2,
+    refine ⟨u ∩ f⁻¹' v, _, e.trans e', G.trans Hf Hg, _⟩,
+    { refine (𝓝 x).inter_sets hu _,
+      refine continuous_at.preimage_mem_nhds _ hv,
+      refine (f_cont.continuous_within_at hx.1).continuous_at _,
+      exact mem_nhds_sets hs hx.1 },
+    intros y hy,
+    have h₂ : i (f y) = e (i y) := hf ⟨hy.1.1, hy.2.1⟩,
+    simp [hg ⟨hy.1.2, hy.2.2⟩, h₂]
+  end,
+  id_mem :=
+    ⟨continuous_on_id, λ x hx, ⟨univ, (𝓝 x).univ_sets, local_homeomorph.refl H, G.id_mem, by simp⟩⟩,
+  locality := begin
+    intros f s hs h,
+    split,
+    { intros x hx,
+      obtain ⟨v, hv, hxv, H, _⟩ := h x hx,
+      refine (continuous_within_at_inter _).mp (H.continuous_within_at ⟨hx, hxv⟩),
+      exact mem_nhds_sets hv hxv },
+    { intros x hx,
+      obtain ⟨u, hu, hux, h⟩ := h x hx,
+      obtain ⟨v, H, e, he, h⟩ := h.2 x ⟨hx, hux⟩,
+      refine ⟨u ∩ v, _, e, he, _⟩,
+      { refine (𝓝 x).inter_sets _ H,
+        exact mem_nhds_sets hu hux },
+      { convert h using 1,
+        mfld_set_tac } }
+  end,
+  congr := begin
+    rintros f g s _ h h',
+    refine ⟨(continuous_on_congr (eq_on.symm h)).mp h'.1, _⟩,
+    intros x hx,
+    obtain ⟨u, hu, e, H, h'⟩ := h'.2 x hx,
+    refine ⟨u, hu, e, H, _⟩,
+    intros y hy,
+    simpa [h y hy.1] using h' hy
+  end }
+
 structure morphism (G : structure_groupoid H) (G' : structure_groupoid H') : Prop :=
 (compatible : ∀ e' ∈ G', ∀ x ∈ (e' : local_homeomorph H' H').source, ∃ e ∈ G, eq_on (e ∘ i) (i ∘ e') (i ⁻¹' e.source) )
 

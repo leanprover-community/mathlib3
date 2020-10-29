@@ -1394,7 +1394,17 @@ subterms by `norm_num`, and it is responsible for identifying that the expressio
 function applied to numerals, for example `nat.fib 17`, and should return the reduced numerical
 expression (which must be in `norm_num`-normal form: a natural or rational numeral, i.e. `37`,
 `12 / 7` or `-(2 / 3)`, although this can be an expression in any type), and the proof that the
-original expression is equal to the rewritten expression. -/
+original expression is equal to the rewritten expression.
+
+Failure is used to indicate that this tactic does not apply to the term. For performance reasons,
+it is best to detect non-applicability as soon as possible so that the next tactic can have a go,
+so generally it will start with a pattern match and then checking that the arguments to the term
+are numerals or of the appropriate form, followed by proof construction, which should not fail.
+
+Propositions are treated like any other term. The normal form for propositions is `true` or
+`false`, so it should produce a proof of the form `p = true` or `p = false`. `eq_true_intro` can be
+used to help here.
+-/
 @[user_attribute]
 protected meta def attr : user_attribute (expr → tactic (expr × expr)) unit :=
 { name      := `norm_num,

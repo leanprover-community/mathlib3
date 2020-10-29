@@ -38,7 +38,7 @@ variables {R ι M}
 
 instance : semimodule R (⨁ i, M i) := dfinsupp.to_semimodule
 
-@[simp] lemma smul_apply (b : R) (v : ⨁ i, M i) (i : ι) :
+lemma smul_apply (b : R) (v : ⨁ i, M i) (i : ι) :
   (b • v) i = b • (v i) := dfinsupp.smul_apply _ _ _
 
 include dec_ι

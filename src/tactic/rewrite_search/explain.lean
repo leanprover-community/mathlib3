@@ -232,7 +232,7 @@ list proof_unit → tactic string
 | (u :: rest) := do
   -- Don't use transitivity for the last unit, since it must be redundant.
   head ← if rest.length = 0 ∨ u.side = side.L then pure [] else (do
-    n ← infer_type u.proof >>= rw_equation.rhs >>= pp,
+    n ← infer_type u.proof >>= (λ e, prod.snd <$> split_equation e) >>= pp,
     pure $ ["transitivity " ++ to_string n]
   ),
 

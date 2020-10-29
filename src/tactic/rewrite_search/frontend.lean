@@ -18,12 +18,6 @@ open tactic.rewrite_search
 meta def default_config : config := {}
 meta def pick_default_config : tactic unit := `[exact tactic.rewrite_search.default_config]
 
-meta def try_search (cfg : config) (rs : list (expr × bool)) (lhs : expr) (rhs : expr) :
-tactic string :=
-do g ← mk_graph cfg rs lhs rhs,
-  (_, proof, steps) ← g.find_proof,
-  tactic.exact proof >> (explain_search_result cfg rs proof steps)
-
 meta def rewrite_search_target (cfg : config) (extra_names : list name)
   (extra_rws : list (expr × bool)) : tactic string :=
 do t ← tactic.target,
@@ -31,10 +25,11 @@ do t ← tactic.target,
     tactic.fail "rewrite_search is not suitable for goals containing metavariables"
   else tactic.skip,
 
-  rws ← collect_rw_lemmas cfg extra_names extra_rws,
+  rules ← collect_rw_lemmas cfg extra_names extra_rws,
 
-  (lhs, rhs) ← rw_equation.split t,
-  try_search cfg rws lhs rhs
+  g ← mk_graph cfg rules t,
+  (_, proof, steps) ← g.find_proof,
+  tactic.exact proof >> (explain_search_result cfg rules proof steps)
 
 end tactic.rewrite_search
 

@@ -62,23 +62,10 @@ meta structure config extends tactic.nth_rewrite.cfg :=
 (inflate_rws        : bool := ff)
 (help_me            : bool := ff)
 
-end tactic.rewrite_search
-
-open tactic
-
-namespace rw_equation
-
-/-- Split an expression that is an equation or an iff into its rhs and lhs parts. -/
-meta def split : expr → tactic (expr × expr)
+meta def split_equation : expr → tactic (expr × expr)
 | `(%%lhs = %%rhs) := return (lhs, rhs)
 | `(%%lhs ↔ %%rhs) := return (lhs, rhs)
-| _                := fail "target is not an equation or iff"
+| _                := tactic.fail "target is not an equation or iff"
 
-/-- The left hand side of an expression (fails if the expression is not an equation or iff). -/
-meta def lhs (e : expr) : tactic expr := prod.fst <$> split e
-
-/-- The right hand side of an expression (fails if the expression is not an equation or iff). -/
-meta def rhs (e : expr) : tactic expr := prod.snd <$> split e
-
-end rw_equation
+end tactic.rewrite_search
 

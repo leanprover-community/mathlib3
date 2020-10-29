@@ -38,9 +38,10 @@ meta structure graph :=
 def LHS_VERTEX_ID : ℕ := 0
 def RHS_VERTEX_ID : ℕ := 1
 
-meta def mk_graph (conf : config) (rules : list (expr × bool)) (lhs : expr) (rhs : expr) :
+meta def mk_graph (conf : config) (rules : list (expr × bool)) (equation : expr) :
 tactic graph :=
-do lhs_pp ← to_string <$> tactic.pp lhs,
+do (lhs, rhs) ← split_equation equation,
+lhs_pp ← to_string <$> tactic.pp lhs,
 rhs_pp ← to_string <$> tactic.pp rhs,
 let lhs_vertex : vertex := ⟨0, lhs, lhs_pp, side.L, none⟩,
 let rhs_vertex : vertex := ⟨1, rhs, rhs_pp, side.R, none⟩,

@@ -61,6 +61,9 @@ lemma lifts_iff (p : polynomial S) : lifts f p ↔ p ∈ ring_hom.srange (ring_h
 lemma lifts_iff_set_range (p : polynomial S) : lifts f p ↔ p ∈ set.range (map f) :=
   by simp only [lifts, set.mem_range]
 
+lemma lifts_iff_coeff_lifts (p : polynomial S) : lifts f p ↔ ∀ (n : ℕ), p.coeff n ∈ set.range f :=
+  by rw [lifts_iff_set_range, mem_map_range]
+
 /--The polynomial `0` lifts. -/
 lemma zero_lifts (f : R →+* S) : lifts f (0 : polynomial S) :=
   by rw [lifts_iff]; exact subsemiring.zero_mem (ring_hom.of (map f)).srange
@@ -129,13 +132,12 @@ lemma lifts_sum {ι : Type w} {t : finset ι} {g : ι → (polynomial S)} :
   (∀ (x : ι), x ∈ t → lifts f (g x)) → lifts f (∑ (x : ι) in t, g x) :=
 by simp_rw [lifts_iff]; exact subsemiring.sum_mem (ring_hom.of (map f)).srange
 
-/--If `p` lifts then any `monomial n (p.coeff n)` lifts. -/
-lemma monom_lifts_of_lifts {p : polynomial S} (n : ℕ) (h : lifts f p) :
-  lifts f (monomial n (p.coeff n)) :=
+/--If `(s : S)` is in the image of `f`, then `monomial n s` lifts. -/
+lemma lifts_monomial {s : S} (n : ℕ) (h : s ∈ set.range f) : lifts f (monomial n s) :=
 begin
-  obtain ⟨q, rfl⟩ := h,
-  use (monomial n (q.coeff n)),
-  simp only [coeff_map, map_monomial],
+  obtain ⟨r, rfl⟩ := set.mem_range.1 h,
+  use monomial n r,
+  simp only [map_monomial],
 end
 
 /--If `p` lifts then `p.erase n` lifts. -/
@@ -185,7 +187,8 @@ begin
   intros n hn p hlifts hdeg,
   by_cases erase_zero : p.erase_lead = 0,
   { rw [← erase_lead_add_monomial_nat_degree_leading_coeff p, erase_zero, zero_add, leading_coeff],
-    exact lifts_deg_of_monom_lifts (monom_lifts_of_lifts p.nat_degree hlifts) },
+    exact lifts_deg_of_monom_lifts (lifts_monomial p.nat_degree
+    ((lifts_iff_coeff_lifts p).1 hlifts p.nat_degree)) },
   have deg_erase := or.resolve_right (erase_lead_nat_degree_lt_or_erase_lead_eq_zero p) erase_zero,
   have pzero : p ≠ 0,
   { intro habs,
@@ -194,7 +197,8 @@ begin
     exact erase_zero },
   have lead_zero : p.coeff p.nat_degree ≠ 0,
   { rw [← leading_coeff, ne.def, leading_coeff_eq_zero]; exact pzero },
-  obtain ⟨lead, hlead⟩ := lifts_deg_of_monom_lifts (monom_lifts_of_lifts p.nat_degree hlifts),
+  obtain ⟨lead, hlead⟩ := lifts_deg_of_monom_lifts (lifts_monomial p.nat_degree
+    ((lifts_iff_coeff_lifts p).1 hlifts p.nat_degree)),
   have deg_lead : lead.degree = p.nat_degree,
   { rw [hlead.2, single_eq_C_mul_X],
     simp only [lead_zero, ne.def, not_false_iff, degree_monomial] },

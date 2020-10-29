@@ -11,6 +11,8 @@ import data.polynomial.erase_lead
 import data.polynomial.degree.basic
 
 /-!
+# Polynomials that lift
+
 Given semirings `R` and `S` with a morphism `f : R →+* S`, we say that a polynomial with
 coefficients in `S` lifts if there exist `q : polynomial R` such that `map f p = q`.
 We prove various basic results about polynomials that lift, for example that if `p` and `q`

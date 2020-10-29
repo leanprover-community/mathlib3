@@ -1,7 +1,36 @@
+/-
+Copyright (c) 2020 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
+
 import topology.opens
 import category_theory.sites.grothendieck
 import category_theory.sites.pretopology
 import category_theory.limits.lattice
+
+/-!
+# Grothendieck topology on a topological space
+
+Define the Grothendieck topology and the pretopology associated to a topological space, and show
+that the pretopology induces the topology.
+
+The covering (pre)sieves on `X` are those for which the union of domains contains `X`.
+
+## Tags
+
+site, Grothendieck topology, space
+
+## References
+
+* [https://ncatlab.org/nlab/show/Grothendieck+topology][nlab]
+* [S. MacLane, I. Moerdijk, *Sheaves in Geometry and Logic*][MM92]
+
+## Implementation notes
+
+We define the two separately, rather than defining the Grothendieck topology as that generated
+by the pretopology for the purpose of having nice definitional properties for the sieves.
+-/
 
 universe u
 
@@ -48,7 +77,7 @@ def associated_p : pretopology (opens T) :=
   end }
 
 /--
-The pretopology associated to a space induces the Grothendieck topology associated to the space.
+The pretopology associated to a space induces the Grothdendieck topology associated to the space.
 -/
 lemma same_topology : pretopology.to_grothendieck _ (associated_p T) = associated T :=
 begin

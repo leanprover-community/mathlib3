@@ -269,7 +269,7 @@ lemma lifts_multiset_prod {m : multiset (polynomial S)} :
   (∀ (p : polynomial S), p ∈ m → lifts f p) → lifts f m.prod :=
 by simp_rw [lifts_iff]; exact subsemiring.multiset_prod_mem (ring_hom.of (map f)).srange m
 
-/-- If any element of a finset of polynomials lifts, then the product lifts-/
+/-- If any element of a finset of polynomials lifts, then the product lifts. -/
 lemma lifts_prod {ι : Type w} {t : finset ι} {g : ι → (polynomial S)} :
   (∀ (x : ι), x ∈ t → lifts f (g x)) → lifts f (∏ (x : ι) in t, g x) :=
 by simp_rw [lifts_iff]; exact subsemiring.prod_mem (ring_hom.of (map f)).srange

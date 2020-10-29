@@ -37,7 +37,7 @@ noncomputable theory
 
 namespace category_theory
 
-open category_theory category limits arrows_with_codomain
+open category_theory category limits presieve
 
 variables {C : Type u} [category.{v} C] [has_pullbacks C]
 
@@ -47,13 +47,13 @@ category.
 This is not the same as the arrow set of `sieve.pullback`, but there is a relation between them
 in `pullback_arrows_comm`.
 -/
-def pullback_arrows {X Y : C} (f : Y ⟶ X) (S : arrows_with_codomain X) :
-  arrows_with_codomain Y :=
+def pullback_arrows {X Y : C} (f : Y ⟶ X) (S : presieve X) :
+  presieve Y :=
 λ Z g, ∃ Z' (h : Z' ⟶ X), S h ∧ ∃ (H : Z = pullback h f),
   eq_to_hom H ≫ pullback.snd = g
 
 lemma pullback_arrows_comm {X Y : C} (f : Y ⟶ X)
-  (R : arrows_with_codomain X) :
+  (R : presieve X) :
   sieve.generate (pullback_arrows f R) = (sieve.generate R).pullback f :=
 begin
   ext Z g,
@@ -66,7 +66,7 @@ begin
 end
 
 lemma pullback_singleton {X Y Z : C} (f : Y ⟶ X) (g : Z ⟶ X) :
- ∃ (W : C) (k : W ⟶ Y), pullback_arrows f (singleton_arrow g) = singleton_arrow k :=
+ ∃ (W : C) (k : W ⟶ Y), pullback_arrows f (singleton g) = singleton k :=
 begin
   refine ⟨pullback (eq_to_hom (eq.refl _) ≫ g) f, pullback.snd, _⟩,
   ext W k,
@@ -99,11 +99,11 @@ a basis for a topology.
 -/
 @[ext]
 structure pretopology :=
-(coverings : Π (X : C), set (arrows_with_codomain X))
-(has_isos : ∀ ⦃X Y⦄ (f : Y ⟶ X) [is_iso f], arrows_with_codomain.singleton_arrow f ∈ coverings X)
+(coverings : Π (X : C), set (presieve X))
+(has_isos : ∀ ⦃X Y⦄ (f : Y ⟶ X) [is_iso f], presieve.singleton f ∈ coverings X)
 (pullbacks : ∀ ⦃X Y⦄ (f : Y ⟶ X) S, S ∈ coverings X → pullback_arrows f S ∈ coverings Y)
-(transitive : ∀ ⦃X : C⦄ (S : arrows_with_codomain X)
-               (Ti : Π ⦃Y⦄ (f : Y ⟶ X), S f → arrows_with_codomain Y), S ∈ coverings X →
+(transitive : ∀ ⦃X : C⦄ (S : presieve X)
+               (Ti : Π ⦃Y⦄ (f : Y ⟶ X), S f → presieve Y), S ∈ coverings X →
                (∀ ⦃Y⦄ f (H : S f), Ti f H ∈ coverings Y) → S.bind Ti ∈ coverings X)
 
 namespace pretopology
@@ -135,8 +135,8 @@ A pretopology `K` can be completed to a Grothendieck topology `J` by declaring a
 See https://stacks.math.columbia.edu/tag/00ZC, or [MM92] Chapter III, Section 2, Equation (2).
 -/
 def to_grothendieck (K : pretopology C) : grothendieck_topology C :=
-{ sieves := λ X S, ∃ R ∈ K X, R ≤ (S : arrows_with_codomain _),
-  top_mem' := λ X, ⟨arrows_with_codomain.singleton_arrow (𝟙 _), K.has_isos _, λ _ _ _, ⟨⟩⟩,
+{ sieves := λ X S, ∃ R ∈ K X, R ≤ (S : presieve _),
+  top_mem' := λ X, ⟨presieve.singleton (𝟙 _), K.has_isos _, λ _ _ _, ⟨⟩⟩,
   pullback_stable' := λ X Y S g,
   begin
     rintro ⟨R, hR, RS⟩,
@@ -155,7 +155,7 @@ def to_grothendieck (K : pretopology C) : grothendieck_topology C :=
   end }
 
 lemma mem_to_grothendieck (K : pretopology C) (X S) :
-  S ∈ to_grothendieck C K X ↔ ∃ R ∈ K X, R ≤ (S : arrows_with_codomain X) :=
+  S ∈ to_grothendieck C K X ↔ ∃ R ∈ K X, R ≤ (S : presieve X) :=
 iff.rfl
 
 /--
@@ -213,7 +213,7 @@ also known as the indiscrete, coarse, or chaotic topology.
 See https://stacks.math.columbia.edu/tag/07GE
 -/
 def trivial : pretopology C :=
-{ coverings := λ X S, ∃ Y (f : Y ⟶ X) (h : is_iso f), S = arrows_with_codomain.singleton_arrow f,
+{ coverings := λ X S, ∃ Y (f : Y ⟶ X) (h : is_iso f), S = presieve.singleton f,
   has_isos := λ X Y f i, ⟨_, _, i, rfl⟩,
   pullbacks := λ X Y f S,
   begin

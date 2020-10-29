@@ -24,10 +24,6 @@ namespace tactic.rewrite_search
 
 variables (g : search_state)
 
-structure rewrite_iter :=
-(orig : ℕ)
-(front : ℕ)
-
 namespace search_state
 
 private meta def vertex_finder (pp : string) (left : vertex) (right : option vertex) :
@@ -110,20 +106,15 @@ match v.rws.size with
   | _ := return (g, v)
 end
 
-meta def visit_vertex (v : vertex) : tactic (search_state × rewrite_iter) :=
+meta def visit_vertex (v : vertex) : tactic (search_state × vertex) :=
 do
 (g, v) ← if ¬v.visited then
         g.mark_vertex_visited v
       else
         pure (g, v),
-  return ⟨g, ⟨v.id, 0⟩⟩
+  return ⟨g, v⟩
 
 end search_state
-
-namespace rewrite_iter
-
-private meta def advance (it : rewrite_iter) : rewrite_iter :=
-{it with front := it.front + 1}
 
 meta def reveal_more_adjs (g : search_state) (o : vertex) :
 tactic (search_state × option (vertex × edge)) :=
@@ -137,36 +128,34 @@ match read_option o.rws o.rw_front with
 end
 
 meta def next (g : search_state) (orig : ℕ) (front : ℕ) :
-tactic (search_state × rewrite_iter × option (vertex × edge)) :=
+tactic (search_state × ℕ × ℕ × option (vertex × edge)) :=
 do let o := g.vertices.read' orig,
 match read_option o.adj front with
   | some e := do
     let v := g.vertices.read' e.t,
-    return (g, ⟨orig, front + 1⟩, some (v, e))
+    return (g, orig, front + 1, some (v, e))
   | none := do
     (g, ret) ← reveal_more_adjs g o,
     match ret with
-    | some (v, e) := return (g, ⟨orig, front + 1⟩, some (v, e))
-    | none := return (g, ⟨orig, front⟩, none)
+    | some (v, e) := return (g, orig, front + 1, some (v, e))
+    | none := return (g, orig, front, none)
     end
   end
 
-meta def exhaust : rewrite_iter → search_state → tactic (search_state  × list (vertex × edge))
-| it g := do
-  (g, it, ret) ← next g it.orig it.front,
+meta def exhaust : ℕ → ℕ → search_state → tactic (search_state  × list (vertex × edge))
+| orig front g := do
+  (g, orig, front, ret) ← next g orig front,
   match ret with
   | none := return (g, [])
   | some (v, e) := do
-    (g, rest) ← exhaust it g,
+    (g, rest) ← exhaust orig front g,
     return (g, ((v, e) :: rest))
   end
 
-end rewrite_iter
-
 meta def visit_and_exhaust (g : search_state) (v : vertex) :
 tactic (search_state × list (vertex × edge)) :=
-do (g, it) ← g.visit_vertex v,
-it.exhaust g
+do (g, v) ← g.visit_vertex v,
+exhaust v.id 0 g
 
 meta inductive status
 | continue : status

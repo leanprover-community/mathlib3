@@ -40,6 +40,9 @@ colex, colexicographic, binary
 
 ## References
 * https://github.com/b-mehta/maths-notes/blob/master/iii/mich/combinatorics.pdf
+
+## Todo
+Show the subset ordering is a sub-relation of the colex ordering.
 -/
 
 variable {α : Type*}
@@ -54,7 +57,8 @@ rather than the natural subset ordering.
 def finset.colex (α) := finset α
 
 /--
-ugh
+A convenience constructor to turn a `finset α` into a `finset.colex α`, useful in order to
+use the colex ordering rather than the subset ordering.
 -/
 def finset.to_colex {α} (s : finset α) : finset.colex α := s
 

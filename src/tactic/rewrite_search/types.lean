@@ -102,8 +102,6 @@ meta structure vertex :=
 (id       : ℕ)
 (exp      : expr)
 (pp       : string)
-(root     : bool)
-(visited  : bool)
 (s        : side)
 (parent   : option edge)
 
@@ -112,10 +110,10 @@ namespace vertex
 meta def same_side (a b : vertex) : bool := a.s = b.s
 meta def to_string (v : vertex) : string := v.s.to_string ++ v.pp
 
-meta def create (id : ℕ) (e : expr) (pp : string) (root : bool) (s : side) : vertex :=
-⟨ id, e, pp, root, ff, s, none ⟩
+meta def create (id : ℕ) (e : expr) (pp : string) (s : side) (parent : option edge) : vertex :=
+⟨ id, e, pp, s, parent ⟩
 
-meta def null : vertex := vertex.create invalid_index (default expr) "__NULLEXPR" ff side.L
+meta def null : vertex := vertex.create invalid_index (default expr) "__NULLEXPR" side.L none
 
 meta instance inhabited : inhabited vertex := ⟨null⟩
 meta instance has_to_format : has_to_format vertex := ⟨λ v, v.pp⟩

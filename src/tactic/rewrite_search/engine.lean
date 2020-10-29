@@ -19,6 +19,14 @@ open tactic
 
 namespace tactic.rewrite_search
 
+meta def mk_search_state (conf : config) (rs : list (expr × bool)) (lhs : expr) (rhs : expr) :
+tactic search_state :=
+do lhs_pp ← to_string <$> tactic.pp lhs,
+rhs_pp ← to_string <$> tactic.pp rhs,
+let left_root : vertex  := ⟨0, lhs, lhs_pp, side.L, none⟩,
+let right_root : vertex := ⟨1, rhs, rhs_pp, side.R, none⟩,
+return ⟨conf, rs, [left_root, right_root].to_buffer, 0, none⟩
+
 variables (g : search_state)
 
 namespace search_state
@@ -35,63 +43,22 @@ meta def find_vertex (e : expr) : tactic (option vertex) := do
   pp ← to_string <$> tactic.pp e,
   return (g.vertices.foldl none (vertex_finder pp))
 
--- Forcibly add a new vertex to the vertex buffer. You probably actually want to call
--- add_vertex, which will check that we haven't seen the vertex before first.
-meta def alloc_vertex (e : expr) (root : bool) (s : side) : tactic (search_state × vertex) :=
-do pp ← tactic.pp e,
-let v : vertex := vertex.create g.vertices.size e (to_string pp) root s,
-return ({ g with vertices := g.vertices.push_back v }, v)
-
--- Look up the given vertex associated to (e : expr), or create it if it is
--- not already present.
-meta def add_vertex_aux (e : expr) (root : bool) (s : side) : tactic (search_state × vertex) :=
-do maybe_v ← g.find_vertex e,
-   match maybe_v with
-   | none := do
-     (g, v) ← g.alloc_vertex e root s,
-     when_tracing `rewrite_search (trace format!"addV({to_string v.id}): {v.pp}"),
-     return (g, v)
-   | (some v) := return (g, v)
-   end
-
-meta def add_vertex (e : expr) (s : side) :=
-g.add_vertex_aux e ff s
-
-meta def add_root_vertex (e : expr) (s : side) :=
-g.add_vertex_aux e tt s
-
-meta def register_solved (e : edge) : search_state :=
-{ g with solving_edge := some e }
-
-meta def publish_parent (f t : vertex) (e : edge) : search_state × vertex :=
-if t.root then
-  (g, t)
-else
-  match t.parent with
-  | some parent := (g, t)
-  | none := g.set_vertex { t with parent := some e }
-  end
-
-meta def add_edge (f t : vertex) (proof : tactic expr) (how : how) :
-tactic (search_state × edge) :=
-do let new_edge : edge := ⟨ f.id, t.id, proof, how ⟩,
-   when_tracing `rewrite_search
-     (trace format!"addE: {to_string new_edge.f}→{to_string new_edge.t}"),
-   let (g, t) := g.publish_parent f t new_edge,
-   if ¬(vertex.same_side f t) then
-     return (g.register_solved new_edge, new_edge)
-   else
-     return (g, new_edge)
-
 meta def add_rewrite (v : vertex) (rw : rewrite) : tactic search_state :=
-do (g, new_vertex) ← g.add_vertex rw.e v.s,
-(g, e) ← g.add_edge v new_vertex rw.prf rw.how,
-return g
+do maybe_v ← g.find_vertex rw.e,
+match maybe_v with
+  | some new_vertex := if vertex.same_side v new_vertex then return g
+    else return { g with solving_edge := some ⟨v.id, new_vertex.id, rw.prf, rw.how⟩ }
+  | none := do
+    let new_vertex_id := g.vertices.size,
+    let new_edge : edge := ⟨v.id, new_vertex_id, rw.prf, rw.how⟩,
+    do pp ← to_string <$> tactic.pp rw.e,
+    let new_vertex : vertex := ⟨new_vertex_id, rw.e, pp, v.s, (some new_edge)⟩,
+    when_tracing `rewrite_search (trace format!"new edge: {v.pp} → {new_vertex.pp}"),
+    return { g with vertices := g.vertices.push_back new_vertex }
+end
 
 meta def visit_vertex (v : vertex) : tactic search_state :=
-if v.visited then return g else
 do rws ← get_rewrites g.rs v.exp g.conf,
-let (g, v) := g.set_vertex { v with visited := tt },
 list.mfoldl (λ g rw, g.add_rewrite v rw) g rws.to_list
 
 meta inductive status
@@ -135,12 +102,5 @@ meta def explain (proof : expr) (steps : list proof_unit) : tactic string :=
   explain_search_result g.conf g.rs proof steps
 
 end search_state
-
-meta def mk_search_state (conf : config) (rs : list (expr × bool)) (lhs : expr) (rhs : expr) :
-tactic search_state :=
-do let g : search_state := ⟨conf, rs, buffer.nil, 0, none⟩,
-   (g, vl) ← g.add_root_vertex lhs side.L,
-   (g, vr) ← g.add_root_vertex rhs side.R,
-   return g
 
 end tactic.rewrite_search

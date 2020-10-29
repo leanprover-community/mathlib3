@@ -823,7 +823,6 @@ lemma sum_add_hom_apply [Π i, add_monoid (β i)] [Π i (x : β i), decidable (x
   [add_comm_monoid γ] (φ : Π i, β i →+ γ) (f : Π₀ i, β i) :
   sum_add_hom φ f = f.sum (λ x, φ x) :=
 begin
-  simp only [sum_add_hom, add_monoid_hom.coe_mk],
   refine quotient.induction_on f (λ x, _),
   change ∑ i in _, _ = (∑ i in finset.filter _ _, _),
   rw [finset.sum_filter, finset.sum_congr rfl],

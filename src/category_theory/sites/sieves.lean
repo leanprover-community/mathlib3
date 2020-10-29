@@ -68,7 +68,7 @@ begin
     exact ⟨rfl, category.id_comp _⟩ },
 end
 
-lemma singleton_arrow_self : singleton f f := (singleton_eq_iff_domain _ _).2 rfl
+lemma singleton_self : singleton f f := (singleton_eq_iff_domain _ _).2 rfl
 
 end presieve
 

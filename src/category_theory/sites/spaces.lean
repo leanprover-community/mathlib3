@@ -31,7 +31,7 @@ def associated : grothendieck_topology (opens T) :=
 def associated_p : pretopology (opens T) :=
 { coverings := λ X R, ∀ x ∈ X, ∃ U (f : U ⟶ X), R f ∧ x ∈ U,
   has_isos := λ X Y f i x hx,
-        by exactI ⟨_, _, arrows_with_codomain.singleton_arrow_self _, le_of_hom (inv f) hx⟩,
+        by exactI ⟨_, _, presieve.singleton_self _, le_of_hom (inv f) hx⟩,
   pullbacks := λ X Y f S hS x hx,
   begin
     rcases hS _ (le_of_hom f hx) with ⟨U, g, hg, hU⟩,
@@ -48,7 +48,7 @@ def associated_p : pretopology (opens T) :=
   end }
 
 /--
-The pretopology associated to a space induces the Grothdendieck topology associated to the space.
+The pretopology associated to a space induces the Grothendieck topology associated to the space.
 -/
 lemma same_topology : pretopology.to_grothendieck _ (associated_p T) = associated T :=
 begin

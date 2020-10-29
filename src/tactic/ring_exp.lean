@@ -975,7 +975,7 @@ with the proof of `expr.of_rat p ^ expr.of_rat q = expr.of_rat (p ^ q)`.
 meta def pow_coeff (p_p q_p : expr) (p q : coeff) : ring_exp_m (ex prod) := do
   ctx ← get_context,
   pq' ← mk_pow [p_p, q_p],
-  (pq_p, pq_pf) ← lift $ norm_num.eval_field pq',
+  (pq_p, pq_pf) ← lift $ norm_num.eval_pow pq',
   pure $ ex.coeff ⟨pq_p, pq_p, pq_pf⟩ ⟨p.1 * q.1⟩
 
 /--

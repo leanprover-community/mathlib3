@@ -227,15 +227,15 @@ by rw [← cast_zero, cast_lt]
 @[simp, norm_cast] theorem cast_id : ∀ n : ℚ, ↑n = n
 | ⟨n, d, h, c⟩ := show (n / (d : ℤ) : ℚ) = _, by rw [num_denom', mk_eq_div]
 
-@[simp, norm_cast] theorem cast_min [discrete_linear_ordered_field α] {a b : ℚ} :
+@[simp, norm_cast] theorem cast_min [linear_ordered_field α] {a b : ℚ} :
   (↑(min a b) : α) = min a b :=
 by by_cases a ≤ b; simp [h, min]
 
-@[simp, norm_cast] theorem cast_max [discrete_linear_ordered_field α] {a b : ℚ} :
+@[simp, norm_cast] theorem cast_max [linear_ordered_field α] {a b : ℚ} :
   (↑(max a b) : α) = max a b :=
 by by_cases b ≤ a; simp [h, max]
 
-@[simp, norm_cast] theorem cast_abs [discrete_linear_ordered_field α] {q : ℚ} :
+@[simp, norm_cast] theorem cast_abs [linear_ordered_field α] {q : ℚ} :
   ((abs q : ℚ) : α) = abs q :=
 by simp [abs]
 

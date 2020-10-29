@@ -8,10 +8,6 @@ import data.matrix.notation
 import linear_algebra.affine_space.combination
 import linear_algebra.basis
 
-noncomputable theory
-open_locale big_operators
-open_locale classical
-
 /-!
 # Affine independence
 
@@ -33,6 +29,9 @@ This file defines affinely independent families of points.
 * https://en.wikipedia.org/wiki/Affine_space
 
 -/
+
+noncomputable theory
+open_locale big_operators classical affine
 
 section affine_independent
 

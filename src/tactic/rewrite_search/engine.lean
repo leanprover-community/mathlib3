@@ -114,9 +114,7 @@ do
         pure (g, v),
   return ⟨g, v⟩
 
-end search_state
-
-meta def reveal_more_adjs (g : search_state) (o : vertex) :
+meta def reveal_more_adjs (o : vertex) :
 tactic (search_state × option (vertex × edge)) :=
 do (g, o) ← g.init_rewrites o,
 match read_option o.rws o.rw_front with
@@ -127,7 +125,7 @@ match read_option o.rws o.rw_front with
     return (g, some (v, e))
 end
 
-meta def next (g : search_state) (orig : ℕ) (front : ℕ) :
+meta def next (orig : ℕ) (front : ℕ) :
 tactic (search_state × ℕ × ℕ × option (vertex × edge)) :=
 do let o := g.vertices.read' orig,
 match read_option o.adj front with
@@ -135,34 +133,34 @@ match read_option o.adj front with
     let v := g.vertices.read' e.t,
     return (g, orig, front + 1, some (v, e))
   | none := do
-    (g, ret) ← reveal_more_adjs g o,
+    (g, ret) ← g.reveal_more_adjs o,
     match ret with
     | some (v, e) := return (g, orig, front + 1, some (v, e))
     | none := return (g, orig, front, none)
     end
   end
 
-meta def exhaust : ℕ → ℕ → search_state → tactic (search_state  × list (vertex × edge))
-| orig front g := do
-  (g, orig, front, ret) ← next g orig front,
+meta def exhaust : search_state → ℕ → ℕ → tactic (search_state  × list (vertex × edge))
+| g orig front := do
+  (g, orig, front, ret) ← g.next orig front,
   match ret with
   | none := return (g, [])
   | some (v, e) := do
-    (g, rest) ← exhaust orig front g,
+    (g, rest) ← g.exhaust orig front,
     return (g, ((v, e) :: rest))
   end
 
-meta def visit_and_exhaust (g : search_state) (v : vertex) :
+meta def visit_and_exhaust (v : vertex) :
 tactic (search_state × list (vertex × edge)) :=
 do (g, v) ← g.visit_vertex v,
-exhaust v.id 0 g
+g.exhaust v.id 0
 
 meta inductive status
 | continue : status
 | done : edge → status
 | abort : string → status
 
-meta def bfs_step (g : search_state) : tactic (search_state × status) :=
+meta def bfs_step : tactic (search_state × status) :=
 match g.queue with
   | [] := return (g, status.abort "all vertices exhausted!")
   | (v :: rest) := do
@@ -172,8 +170,6 @@ match g.queue with
     return (g.set_queue $ rest.append $ adjs.map $ λ u, u.1.id, status.continue)
 end
 
-namespace search_state
-
 meta def step_once (itr : ℕ) : tactic (search_state × status) :=
 match g.solving_edge with
 | some e := return (g, status.done e)
@@ -181,7 +177,7 @@ match g.solving_edge with
   if itr > g.conf.max_iterations then
     return (g, status.abort "max iterations reached!")
   else do
-    (g, s) ← bfs_step g,
+    (g, s) ← g.bfs_step,
     return (g, s)
 end
 

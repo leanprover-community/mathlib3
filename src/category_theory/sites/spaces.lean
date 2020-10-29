@@ -79,6 +79,7 @@ def pretopology : pretopology (opens T) :=
 /--
 The pretopology associated to a space induces the Grothendieck topology associated to the space.
 -/
+@[simp]
 lemma pretopology_induces_grothendieck_topology :
   pretopology.to_grothendieck _ (opens.pretopology T) = opens.grothendieck_topology T :=
 begin

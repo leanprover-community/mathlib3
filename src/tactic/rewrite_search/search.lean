@@ -105,17 +105,35 @@ private meta def expand_vertex (v : vertex) : tactic graph :=
 do rws ← get_rewrites g.rules v.exp g.conf,
 list.mfoldl (λ g rw, add_rewrite g v rw) g rws.to_list
 
-private meta def find_solving_edge : graph → ℕ → tactic (graph × edge)
+private meta def find_solving_edge : graph → ℕ → tactic graph
 | g vertex_id :=
 if vertex_id ≥ g.conf.max_iterations then fail "search failed: max iterations reached"
 else if h : vertex_id < g.vertices.size then
   do let v := g.vertices.read (fin.mk vertex_id h),
   g ← expand_vertex g v,
   match g.solving_edge with
-    | some e := return (g, e)
+    | some _ := return g
     | none   := find_solving_edge g (vertex_id + 1)
   end
 else fail "search failed: all vertices explored"
+
+private meta def proofs_for_edges (edges : list edge) : tactic (list expr) :=
+edges.mmap (λ e, e.proof)
+
+private meta def hows_for_edges (edges : list edge) : list how :=
+edges.map (λ e, e.how)
+
+private meta def flip_proofs (proofs : tactic (list expr)) : tactic (list expr) :=
+do ps ← proofs, ps.mmap mk_eq_symm
+
+-- Fails if the list is empty
+private meta def combine_proofs (proofs : list expr) : tactic expr :=
+match proofs with
+  | []              := fail "programming error. cannot combine empty proof list"
+  | (proof :: rest) := list.mfoldl mk_eq_trans proof rest
+end
+
+--- TODO: remove down to other TODO
 
 private meta def orient_proof : side → tactic expr → tactic expr
 | side.L proof := proof
@@ -139,24 +157,16 @@ let chopped : list (side × list edge) := [⟨side.L, left_edges⟩, ⟨side.R, 
 let chopped := chopped.filter (λ pair, ¬ pair.2.empty),
 chopped.mmap edges_to_unit
 
-private meta def combine_units : list proof_unit → tactic (option expr)
-| [] := return none
-| (u :: rest) := do
-  rest_proof ← combine_units rest,
-  match rest_proof with
-  | none            := return u.proof
-  | some rest_proof := some <$> mk_eq_trans u.proof rest_proof
-  end
+--- TODO: remove up to other TODO
 
 private meta def build_proof : tactic (expr × list proof_unit) :=
 do trace_if_enabled `rewrite_search "success!",
   units ← build_units g,
-  proof ← combine_units units,
-  proof ← proof <|> fail "could not combine proof units!",
+  proof ← combine_proofs $ units.map $ λ u, u.proof,
   return (proof, units)
 
 meta def find_proof : tactic (graph × expr × list proof_unit) :=
-do (g, e) ← find_solving_edge g 0,
+do g ← find_solving_edge g 0,
 (proof, units) ← build_proof g,
 return (g, proof, units)
 

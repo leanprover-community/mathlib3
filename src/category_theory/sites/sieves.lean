@@ -33,32 +33,33 @@ variables {X Y Z : C} (f : Y ⟶ X)
 
 /-- A set of arrows all with codomain `X`. -/
 @[derive complete_lattice]
-def arrows_with_codomain (X : C) := Π ⦃Y⦄, set (Y ⟶ X)
+def presieve (X : C) := Π ⦃Y⦄, set (Y ⟶ X)
 
-namespace arrows_with_codomain
+namespace presieve
 
-instance : inhabited (arrows_with_codomain X) := ⟨⊤⟩
+instance : inhabited (presieve X) := ⟨⊤⟩
 
 /--
 Given a set of arrows `S` all with codomain `X`, and a set of arrows with codomain `Y` for each
 `f : Y ⟶ X` in `S`, produce a set of arrows with codomain `X`:
 `{ g ≫ f | (f : Y ⟶ X) ∈ S, (g : Z ⟶ Y) ∈ R f }`.
 -/
-def bind (S : arrows_with_codomain X) (R : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄, S f → arrows_with_codomain Y) :
-  arrows_with_codomain X :=
+def bind (S : presieve X) (R : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄, S f → presieve Y) :
+  presieve X :=
 λ Z h, ∃ (Y : C) (g : Z ⟶ Y) (f : Y ⟶ X) (H : S f), R H g ∧ g ≫ f = h
 
 @[simp]
-lemma bind_comp {S : arrows_with_codomain X}
-  {R : Π ⦃Y : C⦄ ⦃f : Y ⟶ X⦄, S f → arrows_with_codomain Y} {g : Z ⟶ Y} (h₁ : S f) (h₂ : R h₁ g) :
+lemma bind_comp {S : presieve X}
+  {R : Π ⦃Y : C⦄ ⦃f : Y ⟶ X⦄, S f → presieve Y} {g : Z ⟶ Y} (h₁ : S f) (h₂ : R h₁ g) :
 bind S R (g ≫ f) :=
 ⟨_, _, _, h₁, h₂, rfl⟩
 
-/-- The singleton arrow set. -/
-def singleton_arrow : arrows_with_codomain X :=
+/-- The singleton presieve.  -/
+-- Note we can't make this into `has_singleton` because of the out-param.
+def singleton : presieve X :=
 λ Z g, ∃ (H : Z = Y), eq_to_hom H ≫ f = g
 
-@[simp] lemma singleton_arrow_eq_iff_domain (f g : Y ⟶ X) : singleton_arrow f g ↔ f = g :=
+@[simp] lemma singleton_eq_iff_domain (f g : Y ⟶ X) : singleton f g ↔ f = g :=
 begin
   split,
   { rintro ⟨_, rfl⟩,
@@ -67,16 +68,16 @@ begin
     exact ⟨rfl, category.id_comp _⟩ },
 end
 
-lemma singleton_arrow_self : singleton_arrow f f := (singleton_arrow_eq_iff_domain _ _).2 rfl
+lemma singleton_arrow_self : singleton f f := (singleton_eq_iff_domain _ _).2 rfl
 
-end arrows_with_codomain
+end presieve
 
 /--
 For an object `X` of a category `C`, a `sieve X` is a set of morphisms to `X` which is closed under
 left-composition.
 -/
 structure sieve {C : Type u} [category.{v} C] (X : C) :=
-(arrows : arrows_with_codomain X)
+(arrows : presieve X)
 (downward_closed' : ∀ {Y Z f} (hf : arrows f) (g : Z ⟶ Y), arrows (g ≫ f))
 
 namespace sieve
@@ -179,7 +180,7 @@ iff.rfl
 lemma mem_top (f : Y ⟶ X) : (⊤ : sieve X) f := trivial
 
 /-- Generate the smallest sieve containing the given set of arrows. -/
-def generate (R : arrows_with_codomain X) : sieve X :=
+def generate (R : presieve X) : sieve X :=
 { arrows := λ Z f, ∃ Y (h : Z ⟶ Y) (g : Y ⟶ X), R g ∧ h ≫ g = f,
   downward_closed' :=
   begin
@@ -187,12 +188,12 @@ def generate (R : arrows_with_codomain X) : sieve X :=
     exact ⟨_, h ≫ g, _, hf, by simp⟩,
   end }
 
-lemma mem_generate (R : arrows_with_codomain X) (f : Z ⟶ X) :
+lemma mem_generate (R : presieve X) (f : Z ⟶ X) :
   generate R f ↔ ∃ (Y : C) (h : Z ⟶ Y) (g : Y ⟶ X), R g ∧ h ≫ g = f :=
 iff.rfl
 
 /-- Given a collection of arrows with fixed codomain,  -/
-def bind (S : arrows_with_codomain X) (R : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄, S f → sieve Y) : sieve X :=
+def bind (S : presieve X) (R : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄, S f → sieve Y) : sieve X :=
 { arrows := S.bind (λ Y f h, R h),
   downward_closed' :=
   begin
@@ -202,7 +203,7 @@ def bind (S : arrows_with_codomain X) (R : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄, S f →
 
 open order lattice
 
-lemma sets_iff_generate (R : arrows_with_codomain X) (S : sieve X) :
+lemma sets_iff_generate (R : presieve X) (S : sieve X) :
   generate R ≤ S ↔ R ≤ S :=
 ⟨λ H Y g hg, H _ ⟨_, 𝟙 _, _, hg, category.id_comp _⟩,
  λ ss Y f,
@@ -212,7 +213,7 @@ lemma sets_iff_generate (R : arrows_with_codomain X) (S : sieve X) :
   end⟩
 
 /-- Show that there is a galois insertion (generate, set_over). -/
-def gi_generate : galois_insertion (generate : arrows_with_codomain X → sieve X) arrows :=
+def gi_generate : galois_insertion (generate : presieve X → sieve X) arrows :=
 { gc := sets_iff_generate,
   choice := λ 𝒢 _, generate 𝒢,
   choice_eq := λ _ _, rfl,
@@ -295,7 +296,7 @@ lemma pushforward_union {f : Y ⟶ X} (S R : sieve Y) :
   (S ⊔ R).pushforward f = S.pushforward f ⊔ R.pushforward f :=
 (galois_connection f).l_sup
 
-lemma pushforward_le_bind_of_mem (S : arrows_with_codomain X)
+lemma pushforward_le_bind_of_mem (S : presieve X)
   (R : Π ⦃Y : C⦄ ⦃f : Y ⟶ X⦄, S f → sieve Y) (f : Y ⟶ X) (h : S f) :
   (R h).pushforward f ≤ bind S R :=
 begin
@@ -303,7 +304,7 @@ begin
   exact ⟨_, g, f, h, hg, rfl⟩,
 end
 
-lemma le_pullback_bind (S : arrows_with_codomain X) (R : Π ⦃Y : C⦄ ⦃f : Y ⟶ X⦄, S f → sieve Y)
+lemma le_pullback_bind (S : presieve X) (R : Π ⦃Y : C⦄ ⦃f : Y ⟶ X⦄, S f → sieve Y)
   (f : Y ⟶ X) (h : S f) :
   R h ≤ (bind S R).pullback f :=
 begin

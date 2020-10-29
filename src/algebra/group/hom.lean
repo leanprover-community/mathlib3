@@ -68,6 +68,10 @@ structure add_monoid_hom (M : Type*) (N : Type*) [add_monoid M] [add_monoid N]
 attribute [nolint doc_blame] add_monoid_hom.to_add_hom
 attribute [nolint doc_blame] add_monoid_hom.to_zero_hom
 
+initialize_simps_projections zero_hom (to_fun → apply)
+initialize_simps_projections add_hom (to_fun → apply)
+initialize_simps_projections add_monoid_hom (to_fun → apply)
+
 infixr ` →+ `:25 := add_monoid_hom
 
 /-- Homomorphism that preserves one -/
@@ -88,6 +92,10 @@ structure monoid_hom (M : Type*) (N : Type*) [monoid M] [monoid N] extends one_h
 
 attribute [nolint doc_blame] monoid_hom.to_mul_hom
 attribute [nolint doc_blame] monoid_hom.to_one_hom
+
+initialize_simps_projections one_hom (to_fun → apply)
+initialize_simps_projections mul_hom (to_fun → apply)
+initialize_simps_projections monoid_hom (to_fun → apply)
 
 infixr ` →* `:25 := monoid_hom
 

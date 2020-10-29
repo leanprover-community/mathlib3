@@ -364,6 +364,8 @@ run_cmd tactic.add_doc_string `alg_hom.to_ring_hom "Reinterpret an `alg_hom` as 
 infixr ` →ₐ `:25 := alg_hom _
 notation A ` →ₐ[`:25 R `] ` B := alg_hom R A B
 
+initialize_simps_projections alg_hom (to_fun → apply)
+
 namespace alg_hom
 
 variables {R : Type u} {A : Type v} {B : Type w} {C : Type u₁} {D : Type v₁}
@@ -673,6 +675,12 @@ def symm (e : A₁ ≃ₐ[R] A₂) : A₂ ≃ₐ[R] A₁ :=
 { commutes' := λ r, by { rw ←e.to_ring_equiv.symm_apply_apply (algebra_map R A₁ r), congr,
                          change _ = e _, rw e.commutes, },
   ..e.to_ring_equiv.symm, }
+
+/-- See Note [custom simps projection] -/
+@[to_additive]
+def simps.inv_fun (e : A₁ ≃ₐ[R] A₂) : A₂ → A₁ := e.symm
+
+initialize_simps_projections alg_equiv (to_fun → apply, inv_fun → symm_apply)
 
 @[simp] lemma inv_fun_apply {e : A₁ ≃ₐ[R] A₂} {a : A₂} : e.inv_fun a = e.symm a := rfl
 

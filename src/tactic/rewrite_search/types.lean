@@ -126,8 +126,8 @@ end vertex
 meta structure search_state :=
 (conf         : config)
 (rs           : list (expr × bool))
-(queue        : list ℕ)
 (vertices     : buffer vertex)
+(next_vertex  : ℕ)
 (solving_edge : option edge)
 
 def LHS_VERTEX_ID : ℕ := 0
@@ -135,8 +135,6 @@ def RHS_VERTEX_ID : ℕ := 1
 
 namespace search_state
 variables (g : search_state)
-
-meta def set_queue (new_queue : list ℕ) : search_state := { g with queue := new_queue }
 
 meta def set_vertex (v : vertex) : search_state × vertex :=
 ({ g with vertices := g.vertices.write' v.id v }, v)

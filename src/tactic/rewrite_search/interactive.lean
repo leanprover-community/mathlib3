@@ -12,16 +12,10 @@ import tactic.rewrite_search.engine
 -/
 
 namespace tactic.rewrite_search
+open tactic.rewrite_search
 
 meta def default_config : config := {}
 meta def pick_default_config : tactic unit := `[exact tactic.rewrite_search.default_config]
-
-meta def mk_search_state (conf : config) (rs : list (expr × bool)) (lhs : expr) (rhs : expr) :
-tactic search_state :=
-do let g : search_state := ⟨conf, rs, [], buffer.nil, none⟩,
-   (g, vl) ← g.add_root_vertex lhs side.L,
-   (g, vr) ← g.add_root_vertex rhs side.R,
-   return $ g.set_queue $ [vl.id, vr.id]
 
 meta def try_search (cfg : config) (rs : list (expr × bool)) (lhs : expr) (rhs : expr) :
 tactic (option string) :=

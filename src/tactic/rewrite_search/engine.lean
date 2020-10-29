@@ -83,21 +83,16 @@ do let new_edge : edge := ⟨ f.id, t.id, proof, how ⟩,
    else
      return (g, new_edge)
 
-meta def add_rewrite (v : vertex) (rw : rewrite) : tactic (search_state × edge) :=
+meta def add_rewrite (v : vertex) (rw : rewrite) : tactic search_state :=
 do (g, new_vertex) ← g.add_vertex rw.e v.s,
-g.add_edge v new_vertex rw.prf rw.how
+(g, e) ← g.add_edge v new_vertex rw.prf rw.how,
+return g
 
-private meta def visit_vertex_aux (v : vertex) (pair : search_state × list edge) (rw : rewrite) :
-tactic (search_state × list edge) :=
-do let (g, edges) := pair,
-(g, e) ← g.add_rewrite v rw,
-return (g, e :: edges)
-
-meta def visit_vertex (v : vertex) : tactic (search_state × list edge) :=
-if v.visited then return (g, []) else
+meta def visit_vertex (v : vertex) : tactic search_state :=
+if v.visited then return g else
 do rws ← get_rewrites g.rs v.exp g.conf,
 let (g, v) := g.set_vertex { v with visited := tt },
-list.mfoldl (visit_vertex_aux v) ⟨g, []⟩ rws.to_list
+list.mfoldl (λ g rw, g.add_rewrite v rw) g rws.to_list
 
 meta inductive status
 | continue : status
@@ -105,23 +100,19 @@ meta inductive status
 | abort : string → status
 
 meta def bfs_step : tactic (search_state × status) :=
-match g.queue with
-  | [] := return (g, status.abort "all vertices exhausted!")
-  | (v :: rest) := do
-    let v := g.vertices.read' v,
-    (g, edges) ← g.visit_vertex v,
-    return (g.set_queue $ rest.append $ edges.map $ λ e, e.t, status.continue)
-end
+if h : g.next_vertex < g.vertices.size then
+  do let v := g.vertices.read' g.next_vertex,
+  g ← g.visit_vertex v,
+  return ({g with next_vertex := g.next_vertex + 1}, status.continue)
+else return (g, status.abort "all vertices explored")
 
 meta def step_once (itr : ℕ) : tactic (search_state × status) :=
 match g.solving_edge with
 | some e := return (g, status.done e)
 | none := do
   if itr > g.conf.max_iterations then
-    return (g, status.abort "max iterations reached!")
-  else do
-    (g, s) ← g.bfs_step,
-    return (g, s)
+    return (g, status.abort "max iterations reached")
+  else g.bfs_step
 end
 
 meta def finish_search : tactic (search_state × search_result) :=
@@ -144,5 +135,12 @@ meta def explain (proof : expr) (steps : list proof_unit) : tactic string :=
   explain_search_result g.conf g.rs proof steps
 
 end search_state
+
+meta def mk_search_state (conf : config) (rs : list (expr × bool)) (lhs : expr) (rhs : expr) :
+tactic search_state :=
+do let g : search_state := ⟨conf, rs, buffer.nil, 0, none⟩,
+   (g, vl) ← g.add_root_vertex lhs side.L,
+   (g, vr) ← g.add_root_vertex rhs side.R,
+   return g
 
 end tactic.rewrite_search

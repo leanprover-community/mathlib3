@@ -162,8 +162,8 @@ meta def search_until_solved_aux : search_state → ℕ → tactic (search_state
 meta def search_until_solved : tactic (search_state × search_result) :=
 g.search_until_solved_aux 0
 
-meta def explain (proof : expr) (steps : list proof_unit) : tactic string :=
-  explain_search_result g.conf g.rs proof steps
+meta def explain (proof : expr) (units : list proof_unit) : tactic string :=
+  explain_search_result g.conf g.rs proof units
 
 end search_state
 

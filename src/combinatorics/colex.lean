@@ -47,6 +47,14 @@ variable {α : Type*}
 open finset
 
 /--
+We define this type synonym to refer to the colexicographic ordering on finsets
+rather than the natural subset ordering.
+-/
+def finset.colex (α) := finset α
+
+def finset.to_colex {α} (s : finset α) : finset.colex α := s
+
+/--
 A <ᶜ B if the largest thing that's not in both sets is in B.
 In other words, max (A ▵ B) ∈ B.
 -/
@@ -169,32 +177,9 @@ instance colex_preorder [linear_order α] : preorder (finset α) :=
 {le_refl := refl_of (≤ᶜ), le_trans := is_trans.trans, ..colex_order}
 instance colex_partial_order [linear_order α] : partial_order (finset α) :=
 {le_antisymm := is_antisymm.antisymm, ..colex_preorder}
-instance colex_linear_order [linear_order α] :
+/-instance colex_linear_order [linear_order α] :
   linear_order (finset α) :=
-{le_total := is_total.total, ..colex_partial_order}
-
-/--
-Rewrite colex in a particular way so that it uses only bounded quantification,
-so we can infer decidability.
--/
-lemma colex_dec [has_lt α] (A B : finset α) : A <ᶜ B ↔
-  ∃ (k ∈ B), (∀ x ∈ A, k < x → x ∈ B) ∧ (∀ x ∈ B, k < x → x ∈ A) ∧ k ∉ A :=
-begin
-  rw colex_lt,
-  split,
-  { rintro ⟨k, z, kA, kB⟩,
-    refine ⟨k, kB, λ t th kt, (z kt).1 th, λ t th kt, (z kt).2 th, kA⟩ },
-  { rintro ⟨k, kB, zAB, zBA, kA⟩,
-    refine ⟨k, λ t th, _, kA, kB⟩,
-    refine ⟨λ z, zAB _ z th, λ z, zBA _ z th⟩ }
-end
-instance colex_lt_decidable [decidable_linear_order α] (A B : finset α) :
-  decidable (A <ᶜ B) := by rw colex_dec; apply_instance
-instance colex_le_decidable [decidable_linear_order α] (A B : finset α) :
-  decidable (A ≤ᶜ B) := or.decidable
-instance colex_decidable_order [decidable_linear_order α] :
-  decidable_linear_order (finset α) :=
-{decidable_le := infer_instance, ..colex_linear_order}
+{le_total := is_total.total, ..colex_partial_order}-/
 
 /-- Colex is an extension of the base ordering on α. -/
 lemma colex_singleton [linear_order α] {x y : α} :

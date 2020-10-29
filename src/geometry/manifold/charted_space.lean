@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import topology.local_homeomorph
+import topology.continuous_map
 
 /-!
 # Charted spaces
@@ -563,6 +564,11 @@ lemma foo (G : structure_groupoid H) [closed_under_restriction G] :
   restr K G = restr K (G ⊓ (relative_continuous_groupoid K)) :=
 sorry
 
+variables [topological_space H'] (e : Type*) (i : continuous_map H' H)
+
+structure morphism (G : structure_groupoid H) (G' : structure_groupoid H') : Prop :=
+(compatible : ∀ e' ∈ G', ∀ x ∈ (e' : local_homeomorph H' H').source, ∃ e ∈ G, eq_on (e ∘ i) (i ∘ e') (i ⁻¹' e.source) )
+
 -- def relative_groupoid : structure_groupoid H :=
 -- { members := {e | ∀ x ∈ e.source, e x ∈ K ↔ x ∈ K },
 --   trans' := begin
@@ -1065,26 +1071,77 @@ def structomorph.trans (e : structomorph G M M') (e' : structomorph G M' M'') : 
 
 end has_groupoid
 
+section local_homeomorph
+
+variables [topological_space M] [topological_space M']
+
+variables (M) (M') (N : set M) (N' : set M')
+
+structure relative_local_homeomorph :=
+(to_equiv : local_homeomorph M M')
+(preserves : ∀ x ∈ to_equiv.source, to_equiv x ∈ N' ↔ x ∈ N)
+
+variables {M} {N} {M'} {N'}
+def local_homeomorph_restrict (e : relative_local_homeomorph M M' N N') : local_homeomorph N N' := sorry
+
+variables [topological_space M'']
+
+def pullback {i : M'' → M} (hi : embedding i) : homeomorph M'' (set.range i) := sorry
+
+end local_homeomorph
+
 section
-variables [topological_space H] [topological_space M] (K : set H) (N : set M)
+variables [topological_space H] [topological_space M] [topological_space H'] {i : H' → H}
+variables (hi : embedding i) (N : set M)
 
 open structure_groupoid
 
-class charted_subspace :=
-(adapted_atlas : charted_space H M) -- (G ⊓ relative_continuous_groupoid K))
+include hi
+structure charted_subspace :=
+(adapted_atlas : charted_space H M)
 (adapted_atlas_spec₂ :
-  ∀ {e : local_homeomorph M H}, e ∈ adapted_atlas.atlas → ∀ x ∈ e.source, e x ∈ K ↔ x ∈ N)
+  ∀ {e : local_homeomorph M H}, e ∈ adapted_atlas.atlas → ∀ x ∈ e.source, e x ∈ (set.range i) ↔ x ∈ N)
 
-instance bar [charted_subspace K N] : charted_space K N := sorry
+def atlas_relative
+  (_i : charted_subspace hi N) {e : local_homeomorph M H} (he : e ∈ _i.adapted_atlas.atlas) :
+  relative_local_homeomorph M H N (set.range i) :=
+{ to_equiv := e,
+  preserves := _i.adapted_atlas_spec₂ he }
 
-class sub_has_groupoid [i : charted_space H M] [j : charted_subspace K N]
-  (G : structure_groupoid H) [@has_groupoid _ _ M _ i G] :=
-(adapted_atlas_spec₁ : @has_groupoid _ _ _ _ (j.adapted_atlas) (G ⊓ relative_continuous_groupoid K))
-(compatible : @maximal_atlas _ _ _ _ i G = @maximal_atlas _ _ _ _ j.adapted_atlas G)
+def atlas_pullback
+  (_i : charted_subspace hi N) {e : local_homeomorph M H} (he : e ∈ _i.adapted_atlas.atlas) :
+  local_homeomorph N H' :=
+(local_homeomorph_restrict (atlas_relative hi N _i he)).trans (pullback hi).symm.to_local_homeomorph
+
+def get_chart (_i : charted_subspace hi N) :=
+  _i.adapted_atlas.chart_mem_atlas
+
+def charted_subspace.to_charted_space_on_subspace (_i : charted_subspace hi N) :
+  charted_space H' N :=
+{ atlas := {f : local_homeomorph N H' | ∃ e : _i.adapted_atlas.atlas, f = atlas_pullback hi N _i e.2},
+  chart_at := λ x, atlas_pullback hi N _i (get_chart hi N _i x),
+  mem_chart_source := begin
+    intros x,
+    refine ⟨_, mem_univ x⟩,
+    sorry
+  end,
+  chart_mem_atlas := begin
+    intros x,
+    let := _i.adapted_atlas.chart_at,
+    use this x, -- can't combine
+    have := _i.adapted_atlas.chart_mem_atlas,
+    exact this x
+  end }
+
+structure sub_has_groupoid [_i : charted_space H M] (_j : charted_subspace hi N)
+  (G : structure_groupoid H) [@has_groupoid _ _ M _ _i G] :=
+(adapted_atlas_spec₁ : @has_groupoid _ _ _ _ (_j.adapted_atlas) (G ⊓ relative_continuous_groupoid (set.range i)))
+(compatible : @maximal_atlas _ _ _ _ _i G = @maximal_atlas _ _ _ _ _j.adapted_atlas G)
 
 
-instance [charted_space H M] [charted_subspace K N] (G : structure_groupoid H) [closed_under_restriction G]
-  [has_groupoid M G] [sub_has_groupoid K N G] :
-  has_groupoid N (restr K G) := sorry
+def baz [charted_space H M] (_i : charted_subspace hi N) (G' : structure_groupoid H')
+  (G : structure_groupoid H)
+  [has_groupoid M G] (_i' : sub_has_groupoid hi N _i G) :
+  @has_groupoid N _ _ _ (charted_subspace.to_charted_space_on_subspace _ _ _i) := sorry
 
 end

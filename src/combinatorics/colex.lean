@@ -202,18 +202,16 @@ instance [linear_order α] : is_strict_weak_order (finset.colex α) (<) := {}
 instance [linear_order α] : is_strict_total_order (finset.colex α) (<) := {}
 
 /-- Colex is an extension of the base ordering on α. -/
-lemma singleton_lt_iff_lt [linear_order α] {x y : α} :
-  ({x} : finset α) <ᶜ {y} ↔ x < y :=
+lemma singleton_lt_iff_lt [linear_order α] {r s : α} :
+  ({r} : finset α) <ᶜ {s} ↔ r < s :=
 begin
   rw colex.lt_def,
   simp only [mem_singleton, ← and_assoc, exists_eq_right],
   split,
   { rintro ⟨q, p⟩,
-    apply (_root_.lt_trichotomy x y).resolve_right, -- TODO (BM): nicen this
-    rw not_or_distrib,
-    refine ⟨ne.symm p, λ a, p _⟩,
-    { symmetry,
-      rw ← q a } },
+    apply lt_of_le_of_ne _ (ne.symm p),
+    contrapose! p,
+    rw (q p).1 rfl },
   { intro a,
     exact ⟨λ z hz, iff_of_false (ne_of_gt (trans hz a)) (ne_of_gt hz), ne_of_gt a⟩ }
 end

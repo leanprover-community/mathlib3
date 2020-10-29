@@ -20,8 +20,8 @@ meta def pick_default_config : tactic unit := `[exact tactic.rewrite_search.defa
 
 meta def try_search (cfg : config) (rs : list (expr × bool)) (lhs : expr) (rhs : expr) :
 tactic string :=
-do i ← mk_search_state cfg rs lhs rhs,
-  (i, proof, steps) ← i.find_proof,
+do g ← mk_graph cfg rs lhs rhs,
+  (_, proof, steps) ← g.find_proof,
   tactic.exact proof >> (explain_search_result cfg rs proof steps)
 
 meta def rewrite_search_target (cfg : config) (extra_names : list name)

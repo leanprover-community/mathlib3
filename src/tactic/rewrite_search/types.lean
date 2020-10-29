@@ -82,8 +82,3 @@ meta def rhs (e : expr) : tactic expr := prod.snd <$> split e
 
 end rw_equation
 
-namespace tactic.rewrite_search
-
-def invalid_index : ℕ := 0xFFFFFFFF
-
-end tactic.rewrite_search

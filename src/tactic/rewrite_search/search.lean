@@ -18,67 +18,55 @@ open tactic
 namespace tactic.rewrite_search
 
 meta structure edge :=
-(f t   : ℕ)
+(fr to : ℕ)
 (proof : tactic expr)
 (how   : how)
 
 meta structure vertex :=
-(id       : ℕ)
-(exp      : expr)
-(pp       : string)
-(s        : side)
-(parent   : option edge)
+(id     : ℕ)
+(exp    : expr)
+(pp     : string)
+(side   : side)
+(parent : option edge)
 
-namespace vertex
-
-meta def same_side (a b : vertex) : bool := a.s = b.s
-meta def to_string (v : vertex) : string := v.s.to_string ++ v.pp
-
-meta def create (id : ℕ) (e : expr) (pp : string) (s : side) (parent : option edge) : vertex :=
-⟨ id, e, pp, s, parent ⟩
-
-meta def null : vertex := vertex.create invalid_index (default expr) "__NULLEXPR" side.L none
-
-meta instance inhabited : inhabited vertex := ⟨null⟩
-meta instance has_to_format : has_to_format vertex := ⟨λ v, v.pp⟩
-
-end vertex
-
-meta structure search_state :=
+meta structure graph :=
 (conf         : config)
-(rs           : list (expr × bool))
+(rules        : list (expr × bool))
 (vertices     : buffer vertex)
-(next_vertex  : ℕ)
 (solving_edge : option edge)
 
 def LHS_VERTEX_ID : ℕ := 0
 def RHS_VERTEX_ID : ℕ := 1
 
-meta def mk_search_state (conf : config) (rs : list (expr × bool)) (lhs : expr) (rhs : expr) :
-tactic search_state :=
+meta def mk_graph (conf : config) (rules : list (expr × bool)) (lhs : expr) (rhs : expr) :
+tactic graph :=
 do lhs_pp ← to_string <$> tactic.pp lhs,
 rhs_pp ← to_string <$> tactic.pp rhs,
-let left_root : vertex  := ⟨0, lhs, lhs_pp, side.L, none⟩,
-let right_root : vertex := ⟨1, rhs, rhs_pp, side.R, none⟩,
-return ⟨conf, rs, [left_root, right_root].to_buffer, 0, none⟩
+let lhs_vertex : vertex  := ⟨0, lhs, lhs_pp, side.L, none⟩,
+let rhs_vertex : vertex := ⟨1, rhs, rhs_pp, side.R, none⟩,
+return ⟨conf, rules, [lhs_vertex, rhs_vertex].to_buffer, none⟩
 
-variables (g : search_state)
+variables (g : graph)
 
-namespace search_state
+namespace graph
+
+meta def get_vertex (i : ℕ) : tactic vertex :=
+if h : i < g.vertices.size then return $ g.vertices.read (fin.mk i h)
+else fail "invalid vertex access"
 
 private meta def walk_up_parents : option edge → tactic (list edge)
 | none     := return []
 | (some e) := do
-  let w := g.vertices.read' e.f,
+  w ← g.get_vertex e.fr,
   edges ← walk_up_parents w.parent,
   return (e :: edges)
 
 meta def backtrack : tactic (list edge) :=
 do e ← g.solving_edge,
-  let v := g.vertices.read' e.t,
+  v ← g.get_vertex e.to,
   vts ← walk_up_parents g e,
   vfs ← walk_up_parents g v.parent,
-  match v.s with
+  match v.side with
     | side.L := return (vfs.reverse ++ vts)
     | side.R := return (vts.reverse ++ vfs)
   end
@@ -94,25 +82,25 @@ meta def find_vertex (e : expr) : tactic (option vertex) := do
   pp ← to_string <$> tactic.pp e,
   return (g.vertices.foldl none (vertex_finder pp))
 
-private meta def add_rewrite (v : vertex) (rw : rewrite) : tactic search_state :=
+private meta def add_rewrite (v : vertex) (rw : rewrite) : tactic graph :=
 do maybe_v ← g.find_vertex rw.e,
 match maybe_v with
-  | some new_vertex := if vertex.same_side v new_vertex then return g
+  | some new_vertex := if v.side = new_vertex.side then return g
     else return { g with solving_edge := some ⟨v.id, new_vertex.id, rw.prf, rw.how⟩ }
   | none := do
     let new_vertex_id := g.vertices.size,
     let new_edge : edge := ⟨v.id, new_vertex_id, rw.prf, rw.how⟩,
     do pp ← to_string <$> tactic.pp rw.e,
-    let new_vertex : vertex := ⟨new_vertex_id, rw.e, pp, v.s, (some new_edge)⟩,
+    let new_vertex : vertex := ⟨new_vertex_id, rw.e, pp, v.side, (some new_edge)⟩,
     when_tracing `rewrite_search (trace format!"new edge: {v.pp} → {new_vertex.pp}"),
     return { g with vertices := g.vertices.push_back new_vertex }
 end
 
-meta def expand_vertex (v : vertex) : tactic search_state :=
-do rws ← get_rewrites g.rs v.exp g.conf,
+meta def expand_vertex (v : vertex) : tactic graph :=
+do rws ← get_rewrites g.rules v.exp g.conf,
 list.mfoldl (λ g rw, add_rewrite g v rw) g rws.to_list
 
-meta def find_solving_edge : search_state → ℕ → tactic (search_state × edge)
+meta def find_solving_edge : graph → ℕ → tactic (graph × edge)
 | g vertex_idx :=
 if vertex_idx ≥ g.conf.max_iterations then fail "search failed: max iterations reached"
 else if h : vertex_idx < g.vertices.size then
@@ -126,10 +114,10 @@ else fail "search failed: all vertices explored"
 
 private meta def chop_into_units : list edge → list (side × list edge)
 | [] := []
-| [e] := [(if e.f = RHS_VERTEX_ID then side.R else side.L, [e])]
+| [e] := [(if e.fr = RHS_VERTEX_ID then side.R else side.L, [e])]
 | (e₁ :: (e₂ :: rest)) :=
   match chop_into_units (e₂ :: rest) with
-  | ((s, u) :: us) := if e₁.t = e₂.f ∨ e₁.f = e₂.t then
+  | ((s, u) :: us) := if e₁.to = e₂.fr ∨ e₁.fr = e₂.to then
                         ((s, e₁ :: u) :: us)
                       else
                         ((s.other, [e₁]) :: ((s, u) :: us))
@@ -172,11 +160,11 @@ do edges ← g.backtrack,
   proof ← proof <|> fail "could not combine proof units!",
   return (proof, units)
 
-meta def find_proof : tactic (search_state × expr × list proof_unit) :=
+meta def find_proof : tactic (graph × expr × list proof_unit) :=
 do (g, e) ← g.find_solving_edge 0,
 (proof, units) ← g.build_proof,
 return (g, proof, units)
 
-end search_state
+end graph
 
 end tactic.rewrite_search

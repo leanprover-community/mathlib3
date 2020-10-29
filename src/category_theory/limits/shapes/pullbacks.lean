@@ -255,7 +255,7 @@ end
 The pullback cone `(𝟙 X, 𝟙 X)` for the pair `(f, f)` is a limit if `f` is a mono. The converse is
 shown in `mono_of_pullback_is_id`.
 -/
-def is_id_of_mono (f : X ⟶ Y) [mono f] :
+def is_limit_mk_id_id (f : X ⟶ Y) [mono f] :
   is_limit (mk (𝟙 X) (𝟙 X) rfl : pullback_cone f f) :=
 is_limit.mk _ _ _
   (λ s, s.fst)
@@ -267,7 +267,7 @@ is_limit.mk _ _ _
 `f` is a mono if the pullback cone `(𝟙 X, 𝟙 X)` is a limit for the pair `(f, f)`. The converse is
 given in `pullback_cone.is_id_of_mono`.
 -/
-lemma mono_of_pullback_is_id (f : X ⟶ Y) (t : is_limit (mk (𝟙 X) (𝟙 X) rfl : pullback_cone f f)) :
+lemma mono_of_is_limit_mk_id_id (f : X ⟶ Y) (t : is_limit (mk (𝟙 X) (𝟙 X) rfl : pullback_cone f f)) :
   mono f :=
 ⟨λ Z g h eq, by { rcases pullback_cone.is_limit.lift' t _ _ eq with ⟨_, rfl, rfl⟩, refl } ⟩
 

@@ -476,7 +476,12 @@ begin
     "No such hypothesis 1 + 2." },
   revert_deps k, tactic.intron 5, guard_target unit,
   revert_after n, tactic.intron 7, guard_target unit,
-  do { e ← get_local `k, tactic.revert_deps e, l ← local_context, guard $ e ∈ l, intros },
+  do {
+    e ← get_local `k,
+    tactic.revert_reverse_dependencies_of_hyp e,
+    l ← local_context,
+    guard $ e ∈ l,
+    intros },
   exact unit.star
 end
 

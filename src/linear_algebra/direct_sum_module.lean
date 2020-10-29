@@ -119,8 +119,8 @@ variables (ι M)
 /-- The projection map onto one component, as a linear map. -/
 def component (i : ι) : (⨁ i, M i) →ₗ[R] M i :=
 { to_fun := λ f, f i,
-  map_add' := λ _ _, dfinsupp.add_apply,
-  map_smul' := λ _ _, dfinsupp.smul_apply }
+  map_add' := λ f g, dfinsupp.add_apply f g i,
+  map_smul' := λ c f, dfinsupp.smul_apply c f i}
 
 variables {ι M}
 

@@ -13,24 +13,18 @@ open topological_space limits
 /-- The Grothendieck topology associated to a topological space. -/
 def associated : grothendieck_topology (opens T) :=
 { sieves := λ X S, ∀ x ∈ X, ∃ U (f : U ⟶ X), S f ∧ x ∈ U,
-  top_mem' := λ X,
+  top_mem' := λ X x hx, ⟨_, 𝟙 _, trivial, hx⟩,
+  pullback_stable' := λ X Y S f hf y hy,
   begin
-    intros x hx,
-    exact ⟨_, 𝟙 _, trivial, hx⟩,
-  end,
-  pullback_stable' := λ X Y S f hf,
-  begin
-    intros y hy,
-    rcases hf y (le_of_hom f hy) with ⟨U, f, hf, hU⟩,
+    rcases hf y (le_of_hom f hy) with ⟨U, g, hg, hU⟩,
     refine ⟨U ⊓ Y, hom_of_le inf_le_right, _, hU, hy⟩,
-    { apply S.downward_closed hf _,
-      apply hom_of_le inf_le_left },
+    apply S.downward_closed hg (hom_of_le inf_le_left),
   end,
   transitive' := λ X S hS R hR x hx,
   begin
     rcases hS x hx with ⟨U, f, hf, hU⟩,
-    rcases hR hf _ hU with ⟨V, g, (hg : R _), hV⟩,
-    refine ⟨_, g ≫ f, hg, hV⟩,
+    rcases hR hf _ hU with ⟨V, g, hg, hV⟩,
+    exact ⟨_, g ≫ f, hg, hV⟩,
   end }
 
 /-- The Grothendieck pretopology associated to a topological space. -/
@@ -40,7 +34,6 @@ def associated_p : pretopology (opens T) :=
         by exactI ⟨_, _, arrows_with_codomain.singleton_arrow_self _, le_of_hom (inv f) hx⟩,
   pullbacks := λ X Y f S hS x hx,
   begin
-    rw set.mem_def at hS,
     rcases hS _ (le_of_hom f hx) with ⟨U, g, hg, hU⟩,
     refine ⟨_, _, ⟨_, _, hg, rfl, rfl⟩, _⟩,
     have : U ⊓ Y ≤ pullback g f,
@@ -49,7 +42,6 @@ def associated_p : pretopology (opens T) :=
   end,
   transitive := λ X S Ti hS hTi x hx,
   begin
-    rw set.mem_def at hS,
     rcases hS x hx with ⟨U, f, hf, hU⟩,
     rcases hTi f hf x hU with ⟨V, g, hg, hV⟩,
     exact ⟨_, _, ⟨_, g, f, hf, hg, rfl⟩, hV⟩,

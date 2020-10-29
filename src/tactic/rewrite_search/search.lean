@@ -4,14 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 -/
 
+import meta.rb_map
 import tactic.rewrite_search.discovery
 import tactic.rewrite_search.types
 
 /-!
 # The core algorithm underlying rewrite search.
 -/
-
-universe u
 
 open tactic
 
@@ -33,6 +32,7 @@ meta structure graph :=
 (conf         : config)
 (rules        : list (expr × bool))
 (vertices     : buffer vertex)
+(vmap         : native.rb_map string ℕ)
 (solving_edge : option edge)
 
 def LHS_VERTEX_ID : ℕ := 0
@@ -42,9 +42,10 @@ meta def mk_graph (conf : config) (rules : list (expr × bool)) (lhs : expr) (rh
 tactic graph :=
 do lhs_pp ← to_string <$> tactic.pp lhs,
 rhs_pp ← to_string <$> tactic.pp rhs,
-let lhs_vertex : vertex  := ⟨0, lhs, lhs_pp, side.L, none⟩,
+let lhs_vertex : vertex := ⟨0, lhs, lhs_pp, side.L, none⟩,
 let rhs_vertex : vertex := ⟨1, rhs, rhs_pp, side.R, none⟩,
-return ⟨conf, rules, [lhs_vertex, rhs_vertex].to_buffer, none⟩
+return ⟨conf, rules, [lhs_vertex, rhs_vertex].to_buffer,
+        native.rb_map.of_list [(lhs_pp, 0), (rhs_pp, 1)], none⟩
 
 variables (g : graph)
 
@@ -71,29 +72,21 @@ do e ← g.solving_edge,
     | side.R := return (vts.reverse ++ vfs)
   end
 
-private meta def vertex_finder (pp : string) (left : vertex) (right : option vertex) :
-option vertex :=
-match right with
-  | some v := some v
-  | none   := if left.pp = pp then some left else none
-end
-
-meta def find_vertex (e : expr) : tactic (option vertex) := do
-  pp ← to_string <$> tactic.pp e,
-  return (g.vertices.foldl none (vertex_finder pp))
-
 private meta def add_rewrite (v : vertex) (rw : rewrite) : tactic graph :=
-do maybe_v ← g.find_vertex rw.e,
-match maybe_v with
-  | some new_vertex := if v.side = new_vertex.side then return g
-    else return { g with solving_edge := some ⟨v.id, new_vertex.id, rw.prf, rw.how⟩ }
+do pp ← to_string <$> tactic.pp rw.e,
+let maybe_id := g.vmap.find pp,
+match maybe_id with
+  | (some id) := do
+    existing_vertex ← g.get_vertex id,
+    if v.side = existing_vertex.side then return g
+    else return { g with solving_edge := some ⟨v.id, existing_vertex.id, rw.prf, rw.how⟩ }
   | none := do
     let new_vertex_id := g.vertices.size,
     let new_edge : edge := ⟨v.id, new_vertex_id, rw.prf, rw.how⟩,
-    do pp ← to_string <$> tactic.pp rw.e,
     let new_vertex : vertex := ⟨new_vertex_id, rw.e, pp, v.side, (some new_edge)⟩,
     when_tracing `rewrite_search (trace format!"new edge: {v.pp} → {new_vertex.pp}"),
-    return { g with vertices := g.vertices.push_back new_vertex }
+    return { g with vertices := g.vertices.push_back new_vertex,
+                    vmap := g.vmap.insert pp new_vertex_id }
 end
 
 meta def expand_vertex (v : vertex) : tactic graph :=
@@ -101,14 +94,14 @@ do rws ← get_rewrites g.rules v.exp g.conf,
 list.mfoldl (λ g rw, add_rewrite g v rw) g rws.to_list
 
 meta def find_solving_edge : graph → ℕ → tactic (graph × edge)
-| g vertex_idx :=
-if vertex_idx ≥ g.conf.max_iterations then fail "search failed: max iterations reached"
-else if h : vertex_idx < g.vertices.size then
-  do let v := g.vertices.read (fin.mk vertex_idx h),
+| g vertex_id :=
+if vertex_id ≥ g.conf.max_iterations then fail "search failed: max iterations reached"
+else if h : vertex_id < g.vertices.size then
+  do let v := g.vertices.read (fin.mk vertex_id h),
   g ← g.expand_vertex v,
   match g.solving_edge with
     | some e := return (g, e)
-    | none   := find_solving_edge g (vertex_idx + 1)
+    | none   := find_solving_edge g (vertex_id + 1)
   end
 else fail "search failed: all vertices explored"
 

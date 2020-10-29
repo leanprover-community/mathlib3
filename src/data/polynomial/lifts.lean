@@ -52,7 +52,7 @@ section semiring
 
 variables {R : Type u} [semiring R] {S : Type v} [semiring S] {f : R →+* S}
 
-/-- We say that a polyonmial lifts when there is a polynomial `q` such that `map f q = p`. -/
+/-- We say that a polynomial lifts when there is a polynomial `q` such that `map f q = p`. -/
 def lifts (f : R →+* S) (p : polynomial S) : Prop := ∃ (q : polynomial R), map f q = p
 
 lemma lifts_iff (p : polynomial S) : lifts f p ↔ p ∈ ring_hom.srange (ring_hom.of (map f)) :=

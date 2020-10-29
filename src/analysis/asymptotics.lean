@@ -1080,11 +1080,11 @@ begin
   simpa using hy
 end
 
-/-! If `u = O(v)` along `l`, then `(u / v) * v = u` eventually at `l`. -/
+/-- If `u = O(v)` along `l`, then `(u / v) * v = u` eventually at `l`. -/
 lemma is_O.eventually_mul_div_cancel (h : is_O u v l) :  (u / v) * v =ᶠ[l] u :=
 let ⟨c, hc⟩ := h in hc.eventually_mul_div_cancel
 
-/-! If `u = o(v)` along `l`, then `(u / v) * v = u` eventually at `l`. -/
+/-- If `u = o(v)` along `l`, then `(u / v) * v = u` eventually at `l`. -/
 lemma is_o.eventually_mul_div_cancel (h : is_o u v l) : (u / v) * v =ᶠ[l] u :=
 (h zero_lt_one).eventually_mul_div_cancel
 

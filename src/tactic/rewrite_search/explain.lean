@@ -49,13 +49,13 @@ private meta def pp_rule (r : expr × bool) : tactic string :=
   do pp ← pp r.1, return $ (if r.2 then "←" else "") ++ (to_string pp)
 
 private meta def how.to_rewrite (rs : list (expr × bool)) : how → option (expr × bool)
-| (how.rewrite index _ _) := nth_rule rs index
+| h := nth_rule rs h.rule_index
 
 private meta def explain_using_location (rs : list (expr × bool)) (s : side) :
 how → tactic (option string)
-| (how.rewrite index location _) := do
-  rule ← pp_rule $ nth_rule rs index,
-  return $ some ("nth_rewrite_" ++ s.to_xhs ++ " " ++ to_string location ++ " " ++ rule)
+| h := do
+  rule ← pp_rule $ nth_rule rs h.rule_index,
+  return $ some ("nth_rewrite_" ++ s.to_xhs ++ " " ++ to_string h.location ++ " " ++ rule)
 
 private meta def using_location.explain_rewrites (rs : list (expr × bool)) (s : side)
 (steps : list how) : tactic string := do
@@ -132,8 +132,9 @@ app_addr → tactic (option (list string))
   end
 
 -- TODO break the tree into pieces when the gaps are too big
-private meta def explain_tree (rs : list (expr × bool)) (tree : app_addr) : tactic (list string) :=
-  list.join <$> option.to_list <$> explain_tree_aux rs tree
+private meta def explain_tree (rs : list (expr × bool)) (tree : app_addr) :
+tactic (list string) :=
+list.join <$> option.to_list <$> explain_tree_aux rs tree
 
 private meta def compile_rewrites_aux (rs : list (expr × bool)) (s : side) :
 option app_addr → list how → tactic (list string)
@@ -143,16 +144,13 @@ option app_addr → list how → tactic (list string)
   return $ if tacs.length = 0 then []
   else ["conv_" ++ s.to_xhs ++ " { " ++ string.intercalate ", " tacs ++ " }"]
 | tree (h :: rest) := do
--- TODO handle other how.* values here, e.g. how.simp
--- At the moment we just silently drop these.
-  (new_tree, rest_if_fail) ← match h with
-  | how.rewrite index loc (some addr) := do
-    new_tree ← splice_in tree [index] addr,
+  (new_tree, rest_if_fail) ← match h.addr with
+  | (some addr) := do
+    new_tree ← splice_in tree [h.rule_index] addr,
     return (some new_tree, list.cons h rest)
-  | _ := do
+  | none := do
     return (none, rest)
   end,
-
   match new_tree with
   | some (new new_tree) := compile_rewrites_aux new_tree rest
   | _ := do

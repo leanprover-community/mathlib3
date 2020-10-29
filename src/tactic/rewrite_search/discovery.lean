@@ -19,7 +19,7 @@ private meta def assert_acceptable_lemma (r : expr) : tactic unit := do
   if ret then return ()
   else do
     pp ← pp r,
-    fail format!"\"{pp}\" is not a valid rewrite lemma!"
+    fail format!"\"{pp}\" is not a valid rewrite lemma."
 
 meta def load_attr_list : list name → tactic (list name)
 | [] := return []
@@ -93,23 +93,23 @@ do rws ← collect extra_names,
    if cfg.inflate_rws then list.join <$> (rws.mmap $ inflate_rw locs)
    else pure rws
 
-open tactic.nth_rewrite.congr
+open tactic.nth_rewrite tactic.nth_rewrite.congr
 
 /-
 Constructing our rewrite structure from the `tracked_rewrite` provided by `nth_rewrite`.
-rule_idx is the index of the rule used from the rules provided.
+rule_index is the index of the rule used from the rules provided.
 tracked is an (index, tracked_rewrite) pair for the element of `all_rewrites exp rule` we used.
 -/
-private meta def from_tracked (rule_idx : ℕ) (tracked : ℕ × tactic.nth_rewrite.tracked_rewrite) :
-rewrite :=
-do let (rw_idx, rw) := tracked,
-⟨rw.exp, rw.proof, how.rewrite rule_idx rw_idx rw.addr⟩
+private meta def from_tracked (rule_index : ℕ) (tracked : ℕ × tracked_rewrite) : rewrite :=
+do let (rw_index, rw) := tracked,
+let h : how := ⟨rule_index, rw_index, rw.addr⟩,
+⟨rw.exp, rw.proof, h⟩
 
 private meta def rewrites_for_rule (exp : expr) (cfg : config) (numbered_rule: ℕ × expr × bool) :
 tactic (list rewrite) :=
-do let (rule_idx, rule) := numbered_rule,
+do let (rule_index, rule) := numbered_rule,
 tracked ← all_rewrites exp rule cfg.to_cfg,
-return (list.map (from_tracked rule_idx) tracked.enum)
+return (list.map (from_tracked rule_index) tracked.enum)
 
 meta def get_rewrites (rs : list (expr × bool)) (exp : expr) (cfg : config) :
 tactic (buffer rewrite) :=

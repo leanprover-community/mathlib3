@@ -33,18 +33,17 @@ def side.to_xhs : side → string
 
 instance : has_to_string side := ⟨side.to_string⟩
 
-meta inductive how
-| rewrite (rule_index : ℕ) (location : ℕ) (addr : option (list expr_lens.dir))
+meta structure how := (rule_index : ℕ) (location : ℕ) (addr : option (list expr_lens.dir))
 
 meta def how.to_string : how → format
-| (how.rewrite idx loc addr) := format!"rewrite {idx} {loc} {addr.iget.to_string}"
+| h := format!"rewrite {h.rule_index} {h.location} {h.addr.iget.to_string}"
 
 meta instance how.has_to_format : has_to_format how := ⟨how.to_string⟩
 
 meta structure rewrite :=
-(e   : expr)
-(prf : tactic expr) -- we defer constructing the proofs until they are needed
-(how : how)
+(exp   : expr)
+(proof : tactic expr) -- we defer constructing the proofs until they are needed
+(how   : how)
 
 meta structure proof_unit :=
 (proof : expr)

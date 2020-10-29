@@ -76,17 +76,17 @@ do e ← g.solving_edge,
   end
 
 private meta def add_rewrite (v : vertex) (rw : rewrite) : tactic graph :=
-do pp ← to_string <$> tactic.pp rw.e,
+do pp ← to_string <$> tactic.pp rw.exp,
 let maybe_id := g.vmap.find pp,
 match maybe_id with
   | (some id) := do
     existing_vertex ← g.get_vertex id,
     if v.side = existing_vertex.side then return g
-    else return { g with solving_edge := some ⟨v.id, existing_vertex.id, rw.prf, rw.how⟩ }
+    else return { g with solving_edge := some ⟨v.id, existing_vertex.id, rw.proof, rw.how⟩ }
   | none := do
     let new_vertex_id := g.vertices.size,
-    let new_edge : edge := ⟨v.id, new_vertex_id, rw.prf, rw.how⟩,
-    let new_vertex : vertex := ⟨new_vertex_id, rw.e, pp, v.side, (some new_edge)⟩,
+    let new_edge : edge := ⟨v.id, new_vertex_id, rw.proof, rw.how⟩,
+    let new_vertex : vertex := ⟨new_vertex_id, rw.exp, pp, v.side, (some new_edge)⟩,
     when_tracing `rewrite_search (trace format!"new edge: {v.pp} → {new_vertex.pp}"),
     return { g with vertices := g.vertices.push_back new_vertex,
                     vmap := g.vmap.insert pp new_vertex_id }

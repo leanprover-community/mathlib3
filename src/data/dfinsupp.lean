@@ -825,14 +825,13 @@ lemma sum_add_hom_apply [Π i, add_monoid (β i)] [Π i (x : β i), decidable (x
 begin
   simp only [sum_add_hom, add_monoid_hom.coe_mk],
   refine quotient.induction_on f (λ x, _),
-  change ∑ i in _, _ = (∑ i in _, _),
-  simp only [support, quotient.lift_on_beta, finset.filter_congr_decidable],
-  have : ⇑⟦x⟧ = x.to_fun := rfl,
-  rw this,
-  rw finset.sum_filter,
-  congr,
-  ext1 i,
-  split_ifs, refl, rw [(not_not.mp h), add_monoid_hom.map_zero],
+  change ∑ i in _, _ = (∑ i in finset.filter _ _, _),
+  rw [finset.sum_filter, finset.sum_congr rfl],
+  intros i _,
+  dsimp only,
+  split_ifs,
+  refl,
+  rw [(not_not.mp h), add_monoid_hom.map_zero],
 end
 
 /-- The `dfinsupp` version of `finsupp.lift_add_hom`,-/

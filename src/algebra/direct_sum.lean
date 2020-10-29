@@ -39,7 +39,17 @@ namespace direct_sum
 
 variables {ι}
 
-instance [Π i, add_comm_group (β i)] : add_comm_group (direct_sum ι β) := dfinsupp.add_comm_group
+section add_comm_group
+
+variables [Π i, add_comm_group (β i)]
+
+instance : add_comm_group (direct_sum ι β) := dfinsupp.add_comm_group
+
+variables {β}
+@[simp] lemma sub_apply (g₁ g₂ : ⨁ i, β i) (i : ι) : (g₁ - g₂) i = g₁ i - g₂ i :=
+dfinsupp.sub_apply _ _ _
+
+end add_comm_group
 
 variables [Π i, add_comm_monoid (β i)]
 

@@ -1,58 +1,48 @@
-import algebra.category.Module.monoidal
 import linear_algebra.tensor_algebra
-import algebra.category.CommRing.basic
 
-open category_theory
-variables {C : Type*} [category C] [monoidal_category C]
-/-
-
-def tensor_power_aux (X : C) : ℕ → C
-| 0 := 𝟙_ C
-| (n+1) := tensor_power_aux n ⊗ X
-
-instance wtf {R : Type*} [comm_ring R] : monoidal_category (Module R) :=
-Module.Module.monoidal_category
-
-def tensor_power {R : Type*} [comm_ring R] (M : Module R) : ℕ → Module R :=
-@tensor_power_aux _ _ huh.wtf M-/
 namespace multilinear_map
 
-lemma ext_iff {R : Type*} {ι : Type*} {M₁ : ι → Type*} {M₂ : Type*} [decidable_eq ι] [semiring R]
-  [Π i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂] [Π i, semimodule R (M₁ i)] [semimodule R M₂]
-  {f f' : multilinear_map R M₁ M₂} :
+lemma ext_iff {R : Type*} {ι : Type*} {M₁ : ι → Type*} {M₂ : Type*}
+  [decidable_eq ι] [semiring R] [Π i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂]
+  [Π i, semimodule R (M₁ i)] [semimodule R M₂] {f f' : multilinear_map R M₁ M₂} :
   f = f' ↔ ∀ x, f x = f' x :=
 ⟨λ h x, h ▸ rfl, multilinear_map.ext⟩
 
 end multilinear_map
 universe u
+
 def tpow_aux (R : Type u) [comm_semiring R] (M : Type u) [add_comm_monoid M] [semimodule R M] :
   ℕ → Σ (N : Type*) (h : add_comm_monoid N), @semimodule R N _ h
 | 0 := ⟨R, ⟨by apply_instance, by apply_instance⟩⟩
-| (n+1) := ⟨@tensor_product R _ (tpow_aux n).1 M (tpow_aux n).2.1 _ (tpow_aux n).2.2 _, ⟨by apply_instance, by apply_instance⟩⟩
+| (n+1) := ⟨@tensor_product R _ (tpow_aux n).1 M (tpow_aux n).2.1 _
+  (tpow_aux n).2.2 _, ⟨by apply_instance, by apply_instance⟩⟩
 
-def tpow (R : Type u) [comm_semiring R] (M : Type u) [add_comm_monoid M] [semimodule R M] (n : ℕ) :=
+instance tpow_acg (R : Type u) [comm_semiring R] (M : Type u)
+  [add_comm_monoid M] [semimodule R M] (n : ℕ) :
+add_comm_monoid (tpow_aux R M n).1 := (tpow_aux R M n).2.1
+
+instance tpow_semimodule (R : Type u) [comm_semiring R] (M : Type u)
+  [add_comm_monoid M] [semimodule R M] (n : ℕ) :
+semimodule R (tpow_aux R M n).1 := (tpow_aux R M n).2.2
+
+@[reducible] def tpow (R : Type u) [comm_semiring R] (M : Type u)
+  [add_comm_monoid M] [semimodule R M] (n : ℕ) :=
 (tpow_aux R M n).1
-
-instance tpow_acg (R : Type u) [comm_semiring R] (M : Type u) [add_comm_monoid M] [semimodule R M] (n : ℕ) :
-add_comm_monoid (tpow R M n) := (tpow_aux R M n).2.1
-
-instance tpow_semimodule (R : Type u) [comm_semiring R] (M : Type u) [add_comm_monoid M] [semimodule R M] (n : ℕ) :
-semimodule R (tpow R M n) := (tpow_aux R M n).2.2
 
 instance tpow_zero_comm_semiring (R : Type u) [comm_semiring R] (M : Type u)
   [add_comm_monoid M] [semimodule R M] :
-  comm_semiring (tpow R M 0) := by assumption
---abbreviation tpow (R : Type u) [comm_ring R] (M : Type u) [add_comm_group M]
---  [module R M] := tensor_power (Module.of R M)
+  comm_semiring (tpow_aux R M 0).1 := by assumption
 
-variables {R : Type u} [comm_semiring R] {M : Type u} [add_comm_monoid M] [semimodule R M]
+instance tpow_zero_scalar (R : Type u) [comm_semiring R] (M : Type u)
+  [add_comm_monoid M] [semimodule R M] :
+  has_scalar (tpow_aux R M 0).1 (tensor_algebra R M) :=
+  { smul := ((•) : R → tensor_algebra R M → tensor_algebra R M) }
 
---lemma tpow_zero : tensor_power (Module.of R M) 0 = Module.of R R := rfl
+variables {R : Type u} [comm_semiring R] {M : Type u}
+  [add_comm_monoid M] [semimodule R M]
 
 lemma tpow_zero : tpow R M 0 = R := rfl
 
---def tpow_one : tensor_power (Module.of R M) 1 ≅ Module.of R M :=
---Module.monoidal_category.left_unitor (Module.of R M)
 variables (R M)
 def tpow_one : linear_equiv R (tpow R M 1) M :=
 tensor_product.lid R M
@@ -62,23 +52,46 @@ def algebra_alg_hom (S : Type*) [semiring S] [algebra R S] : R →ₐ[R] S :=
 {  commutes' := λ r, rfl,
    ..algebra_map R S }
 
-local attribute [semireducible] tensor_algebra
+local attribute [semireducible] tensor_algebra ring_quot ring_quot.mk_ring_hom
+  free_algebra
 
---def of_scalar :
----  R →ₗ[R] tensor_algebra R M :=
----(((ring_quot.mk_alg_hom R (tensor_algebra.rel R M)).comp
---(algebra_alg_hom R (free_algebra R M))) : R →ₐ[R] tensor_algebra R M).to_linear_map
+lemma free_algebra_map_apply {x : R} :
+  algebra_map R (free_algebra R M) x =
+  quot.mk (free_algebra.rel R M) (free_algebra.pre.of_scalar x) :=
+rfl
 
+def of_scalar :
+  R →+* tensor_algebra R M :=
+(ring_quot.mk_ring_hom (tensor_algebra.rel R M)).comp
+(algebra_map R (free_algebra R M))
 
-/-def mk : Π (n : ℕ) (f : fin n → M), tpow R M n
-| 0 _ := (1 : R)
-| (n + 1) f := tensor_product.mk _ _ _ (mk n $ λ y, f y) $ f (n + 1)-/
+local attribute [instance]
+  free_algebra.pre.has_mul
+
+lemma commutes (c : R) (x : tensor_algebra R M) :
+  of_scalar R M c * x = x * of_scalar R M c :=
+begin
+   refine quot.induction_on x _,
+  intro y,
+  show of_scalar R M c * ring_quot.mk_ring_hom (tensor_algebra.rel R M) y =
+    ring_quot.mk_ring_hom (tensor_algebra.rel R M) y * of_scalar R M c,
+  unfold of_scalar,
+  rw ring_hom.comp_apply,
+  rw ←ring_hom.map_mul,
+  rw ← ring_hom.map_mul,
+  congr' 1,
+  refine quot.induction_on y _,
+  intro z,
+  rw free_algebra_map_apply,
+  apply quot.sound,
+  exact free_algebra.rel.central_scalar,
+end
 
 def mk : Π (n : ℕ) (f : fin n → M), tpow R M n
 | 0 _ := (1 : R)
-| (n + 1) f := @tensor_product.mk R _ (tpow R M n) M _ _ _ _ (mk n $ λ y, f y) $ f (n + 1)
+| (n + 1) f := @tensor_product.mk R _ (tpow R M n) M _ _ _ _
+  (mk n $ λ y, f y) $ f (n + 1)
 
-variables (x : M)
 
 def mk' (n : ℕ) : @multilinear_map R (fin n) (λ _, M) (tpow R M n) _ _ _ _ _ _ :=
 { to_fun := mk R M n,
@@ -138,15 +151,6 @@ lemma eq_iff_eq_one (f g : R →ₗ[R] M) :
   f = g ↔ f 1 = g 1 :=
 ⟨λ h, h ▸ rfl, λ h, linear_map.ext $ λ x, by
   rw [←eq_smul_one, h, eq_smul_one]⟩
-
-/-def lift {M : Type u} [add_comm_group M] [module R M] :
-  Π (n : ℕ) (P : Type u) {h1 : add_comm_monoid P}, by exactI Π
-  {h2 : semimodule R P}, by exactI Π
-  (f : @multilinear_map R (fin n) (λ _, M) P _ _ _ _ _ _),
-  tpow R M n →ₗ[R] P
-| 0 P h1 h2 g := @linear_map.to_span_singleton R P _ h1 h2 $ g (default _)
-| (n + 1) P h1 h2 g := @tensor_product.lift _ _ _ _ _ _ _ h1 _ _ h2
-$ lift n _ (@multilinear_map.curry_right _ _ _ _ _ _ h1 _ h2 g)-/
 
 variables (R M)
 def lift {M : Type u} [add_comm_monoid M] [semimodule R M] :

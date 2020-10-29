@@ -1,21 +1,8 @@
-import m4r.tpow
+import m4r.tpow algebra.punit_instances
 
 universe u
 variables (R : Type u) [comm_semiring R] (M : Type u) [add_comm_monoid M] [semimodule R M]
 open tpow
-
-/-def talg_ring : ring (tensor_algebra R M) :=
-algebra.semiring_to_ring R
-def talg_acg : add_comm_group (tensor_algebra R M) :=
-@ring.to_add_comm_group _ talg_ring
-def talg_mod : @module R (tensor_algebra R M) _ talg_acg :=
-{ smul := (•),
-  one_smul := one_smul _,
-  mul_smul := mul_smul,
-  smul_add := smul_add,
-  smul_zero := smul_zero,
-  add_smul := add_smul,
-  zero_smul := zero_smul _ }-/
 
 def pow_to_alg (n : ℕ) : (tpow R M n) →ₗ[R] (tensor_algebra R M) :=
 tpow.lift R n (tensor_algebra R M) $ tensor_algebra.mk R M
@@ -24,138 +11,158 @@ tpow.lift R n (tensor_algebra R M) $ tensor_algebra.mk R M
   tensor_algebra.mk R M (default (fin 0 → M)) = 1 :=
 list.prod_nil
 
-local attribute [semireducible] tensor_algebra tensor_algebra.lift free_algebra ring_quot.mk_ring_hom ring_quot.mk_alg_hom ring_quot free_algebra.lift
---#check ring_quot.mk
-#check (ring_quot.mk_ring_hom (tensor_algebra.rel R M) (quot.mk (free_algebra.rel R M) $ free_algebra.pre.of_scalar 1 : free_algebra R M) : tensor_algebra R M)
+local attribute [semireducible] tensor_algebra tensor_algebra.lift
+  free_algebra ring_quot.mk_ring_hom ring_quot.mk_alg_hom ring_quot free_algebra.lift
 
-#check quot.mk (tensor_algebra.rel R M) (quot.mk (free_algebra.rel R M) $ free_algebra.pre.of_scalar (1 : R))
-#check algebra_map R (free_algebra R M)
-
---#check (quot.mk (ring_quot.rel (tensor_algebra.rel R M)) (algebra_map R (free_algebra R M) 1) : tensor_algebra R M)
 lemma free_algebra_map_apply {x : R} :
   algebra_map R (free_algebra R M) x =
   quot.mk (free_algebra.rel R M) (free_algebra.pre.of_scalar x) :=
 rfl
 
 lemma tensor_algebra_map_apply {x : R} :
-  algebra_map R (tensor_algebra R M) x = (quot.mk (ring_quot.rel $ tensor_algebra.rel R M) (algebra_map R (free_algebra R M) x) : tensor_algebra R M) :=
+  algebra_map R (tensor_algebra R M) x
+  = (quot.mk (ring_quot.rel $ tensor_algebra.rel R M)
+      (algebra_map R (free_algebra R M) x) : tensor_algebra R M) :=
 rfl
 
-lemma fdk {A : Type*} (f : M →ₗ[R] R) {x : R} :
-  tensor_algebra.lift R f (quot.mk (ring_quot.rel $ tensor_algebra.rel _ _) $ quot.mk (free_algebra.rel _ _) $ free_algebra.pre.of_scalar x) = x :=
-begin
-  erw ring_quot.lift_alg_hom_mk_alg_hom_apply,
-  refl,
-end
-#check free_algebra.ι
-#check ring_quot.mk_alg_hom
+lemma talg_map_add (x y : free_algebra.pre R M) :
+  quot.mk (ring_quot.rel (tensor_algebra.rel R M)) (quot.mk (free_algebra.rel R M) (x.add y))
+  = (quot.mk (ring_quot.rel (tensor_algebra.rel R M)) (quot.mk (free_algebra.rel R M) x)
+    + quot.mk (ring_quot.rel (tensor_algebra.rel R M))
+      (quot.mk (free_algebra.rel R M) y) : tensor_algebra R M) :=
+rfl
 
+lemma falg_map_add (x y : free_algebra.pre R M) :
+  quot.mk (free_algebra.rel R M) (x.add y)
+  = (quot.mk (free_algebra.rel R M) x
+    + quot.mk (free_algebra.rel R M) y : free_algebra R M) :=
+rfl
 
-def jfdkjgkhgskre : R ≃ₐ[R] tensor_algebra R unit :=
-{ to_fun := λ x, quot.mk (ring_quot.rel $ tensor_algebra.rel R unit) (algebra_map R (free_algebra R unit) x),
-  inv_fun := tensor_algebra.lift R 0,
-  left_inv := λ x, by {erw ring_quot.lift_alg_hom_mk_alg_hom_apply, refl,},
-  right_inv := λ x, by {refine quot.induction_on x _, intro y,
-    refine quot.induction_on y _, intro z, cases z,
+lemma talg_map_mul (x y : free_algebra.pre R M) :
+  quot.mk (ring_quot.rel (tensor_algebra.rel R M)) (quot.mk (free_algebra.rel R M) (x.mul y))
+  = (quot.mk (ring_quot.rel (tensor_algebra.rel R M)) (quot.mk (free_algebra.rel R M) x)
+  * quot.mk (ring_quot.rel (tensor_algebra.rel R M))
+    (quot.mk (free_algebra.rel R M) y) : tensor_algebra R M) :=
+rfl
+
+lemma falg_map_mul (x y : free_algebra.pre R M) :
+  quot.mk (free_algebra.rel R M) (x.mul y)
+  = (quot.mk (free_algebra.rel R M) x
+    * quot.mk (free_algebra.rel R M) y : free_algebra R M) :=
+rfl
+
+def trivial_talg : tensor_algebra R punit ≃ₐ[R] R :=
+{ to_fun := tensor_algebra.lift R 0,
+  inv_fun := λ x, quot.mk (ring_quot.rel $ tensor_algebra.rel R punit)
+    (algebra_map R (free_algebra R punit) x),
+  left_inv := λ x, by {refine quot.induction_on x _, intro y,
+    refine quot.induction_on y _, intro z,
+    refine free_algebra.pre.rec_on z _ _ _ _,
+    intro z,
     erw free_algebra.quot_mk_eq_ι,
     erw ring_quot.lift_alg_hom_mk_alg_hom_apply,
     erw free_algebra.lift_ι_apply,
     rw linear_map.zero_apply,
     simp only [ring_hom.map_zero],
- sorry, sorry, sorry, sorry,
-    --show ring_quot.mk_alg_hom _ _ 0 = ring_quot.mk_alg_hom _ _
-  --  erw tensor_algebra.ring_quot_mk_alg_hom_free_algebra_ι_eq_ι,
-
+    rw @punit.ext z 0,
+    have := @tensor_algebra.rel.smul R _ punit _ _ (0 : R) (0 : punit),
+    rw zero_smul at this,
+    rw ring_hom.map_zero at this,
+    rw zero_mul at this,
+    rw quot.sound (ring_quot.rel.of this),
+    intro z,
+    congr,
+    erw ring_quot.lift_alg_hom_mk_alg_hom_apply, refl,
+    intros a b hb ha,
+    dsimp only at hb ha ⊢,
+    erw ring_quot.lift_alg_hom_mk_alg_hom_apply,
+    rw talg_map_add R punit a b,
+    rw ←ha, rw ←hb,
+    erw ring_quot.lift_alg_hom_mk_alg_hom_apply,
+    erw ring_quot.lift_alg_hom_mk_alg_hom_apply,
+    rw falg_map_add,
+    rw alg_hom.map_add,
+    rw ring_hom.map_add,
+    refl,
+    intros a b ha hb,
+    dsimp only at hb ha ⊢,
+    erw ring_quot.lift_alg_hom_mk_alg_hom_apply,
+    rw talg_map_mul R punit a b,
+    rw ←ha, rw ←hb,
+    erw ring_quot.lift_alg_hom_mk_alg_hom_apply,
+    erw ring_quot.lift_alg_hom_mk_alg_hom_apply,
+    rw falg_map_mul,
+    rw alg_hom.map_mul,
+    rw ring_hom.map_mul,
+    refl,
  },
-  map_mul' := sorry,
-  map_add' := sorry,
-  commutes' := sorry }
-/-
-def comap {α : Type*} {β : Type*} (f : α → β)
-  (r : β → β → Prop) : α → α → Prop :=
-λ x y, r (f x) (f y)
-lemma eqv_gen_le_comap {α : Type*} {β : Type*} (f : α → β)
-  (r : β → β → Prop) : eqv_gen.setoid (comap f r) ≤ setoid.comap f (eqv_gen.setoid r) :=
+  right_inv := λ x, by {erw ring_quot.lift_alg_hom_mk_alg_hom_apply, refl,},
+  map_mul' :=
+    begin
+      intros x y,
+      rw alg_hom.map_mul,
+    end,
+  map_add' :=
+    begin
+      intros x y,
+      rw alg_hom.map_add,
+    end,
+  commutes' := λ r, by {erw ring_quot.lift_alg_hom_mk_alg_hom_apply, refl,}  }
+
+def talg_to_ring : tensor_algebra R M →ₐ tpow R M 0 :=
+(trivial_talg R).to_alg_hom.comp $
+  tensor_algebra.lift R (0 : M →ₗ[R] tensor_algebra R punit)
+
+lemma talg_inj_zero :
+  linear_map.ker (pow_to_alg R M 0) = ⊥ :=
 begin
-  rw setoid.eqv_gen_eq,
-  rw setoid.eqv_gen_eq,
-  intros x y h s hs,
-  apply h (s.comap f),
-  intros x y hxy,
-  exact hs hxy,
+  apply linear_map.ker_eq_bot_of_injective,
+  refine @function.left_inverse.injective _ _ (talg_to_ring R M) _ _,
+  intro x,
+  unfold pow_to_alg, unfold tpow.lift,
+  rw to_span_singleton_apply,
+  rw alg_hom.map_smul,
+  rw algebra.id.smul_eq_mul, convert mul_one x,
+  rw tensor_algebra.mk_default,
+  rw alg_hom.map_one,
 end
 
-lemma idk
-  (r : tensor_algebra R M → tensor_algebra R M → Prop) {x y : R} :
-  (eqv_gen.setoid r).rel ((algebra_map R (tensor_algebra R M)) x) (algebra_map R (tensor_algebra R M) y)
-  → (eqv_gen.setoid (comap (algebra_map R (tensor_algebra R M)) r)).rel x y :=
-begin
-  intro h,
-  rw setoid.eqv_gen_eq at h ⊢,
-  intros s hs,
-  specialize h (eqv_gen.setoid r) eqv_gen.rel,
-
-
-end
-
-
-
-#exit
-lemma eqv_gen.rec_one {α : Type*} {β : Type*} {f : α → β}
-  (x : α) (r : β → β → Prop) {C : α → Prop}
-  (Ho : ∀ y, r (f x) (f y) → C y)
-  (Hr : C x) (Hs : ∀ y, eqv_gen r (f y) (f x) → C y) (Ht : ∀ y z, eqv_gen r (f x) (f y) → eqv_gen r (f y) (f z) → C z)
-  (y : α)
-  (H : eqv_gen r (f x) (f y)) : C y :=
-begin
-  refine @eqv_gen.rec_on _ (comap f r) _ x y _ _ _ _ _,
-  have := eqv_gen_le_comap f r (show (eqv_gen.setoid (comap f r)).rel x y, by {}),
-
-  /-cases H,
-  exact Ho y H_a,
-  exact Hr,
-  exact Hs y H_a,
-  exact Ht H_y y H_a H_a_1,-/
-end
-
-lemma ffs {S : Type*} [semiring S] (r : S → S → Prop) {x} :
-  ring_quot.mk_ring_hom r x = quot.mk (ring_quot.rel r) x :=
-rfl-/
-
-#exit
-#check eqv_gen
-lemma tensor_algebra_map_inj {x : R}
-  (h : algebra.linear_map R (tensor_algebra R M) x = 0) :
-  x = 0 :=
-begin
-  rw ←(algebra.linear_map R (tensor_algebra R M)).map_zero at h,
-  --change quot.mk (tensor_algebra.rel R M) x = quot.mk (tensor_algebra.rel R M) 0 at h,
- -- erw tensor_algebra_map_apply at h,
- -- conv_rhs at h {erw tensor_algebra_map_apply},
---  change quot.mk (ring_quot.rel (tensor_algebra.rel R M)) _ = (0 : tensor_algebra R M) at h,
---  erw tensor_algebra_map_apply at h,
---  erw tensor_algebra_map_apply at h,
---  unfold ring_quot.mk_ring_hom at h, simp at h,
-  have := quot.exact _ h,
-  refine eqv_gen.rec_one 0 _ _ _ _ _ x this,
-  cases this,
-  simp at h,
-
-end
-
-
---@[simp] lemma smul_one
 variables {R M}
---set_option pp.implicit true
+
+lemma tensor_algebra.induction_on {C : tensor_algebra R M → Prop}
+  (H : ∀ (n : ℕ) (i : fin n → M), C $ tensor_algebra.mk R M i)
+  (Hadd : ∀ x y, C x → C y → C (x + y)) (x) : C x :=
+begin
+  refine quot.induction_on x _,
+  intro a,
+  refine quot.induction_on a _,
+  rintro (y | y | ⟨y, z⟩ | ⟨y, z⟩);
+  sorry
+end
+
+lemma tpow.induction_on (n : ℕ) {C : tpow R M n → Prop}
+  (H : ∀ (i : fin n → M), C $ tpow.mk R M n i)
+  (H : ∀ x y, C x → C y → C (x + y)) (x) : C x :=
+sorry
+
 theorem inj_of_pow_to_alg (n : ℕ) : (pow_to_alg R M n).ker = ⊥ :=
-linear_map.ker_eq_bot'.2 $ λ x h,
 begin
   induction n with n hn,
+    exact talg_inj_zero R M,
+  apply linear_map.ker_eq_bot'.2,
+  intros x h,
   unfold pow_to_alg at h,
-  change linear_map.to_span_singleton R (tensor_algebra R M) _ _ = 0 at h,
-  rw to_span_singleton_apply at h,
-  rw tensor_algebra.mk_default at h,
-  rw algebra.smul_def at h,
-  erw @algebra.id.smul_eq_mul R _ (x : R) (1 : R) at h, rw mul_one at h,
+  unfold tpow.lift at h,
+  revert h,
+  refine tensor_product.induction_on x _ _ _,
+  tauto,
+  intros y z h,
+  rw tensor_product.lift.tmul at h,
+  revert h,
+  refine tpow.induction_on n _ _ y,
+  intros i h,
+  erw tpow.lift_mk_apply at h,
+  rw multilinear_map.curry_right_apply at h,
+  sorry, sorry, sorry,
 end
 

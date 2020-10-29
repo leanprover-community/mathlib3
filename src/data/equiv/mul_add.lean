@@ -111,7 +111,7 @@ def symm (h : M ≃* N) : N ≃* M :=
   .. h.to_equiv.symm}
 
 /-- See Note [custom simps projection] -/
-@[to_additive simps.inv_fun]
+@[to_additive add_equiv.simps.inv_fun "See Note [custom simps projection]"]
 def simps.inv_fun (e : M ≃* N) : N → M := e.symm
 
 initialize_simps_projections add_equiv (to_fun → apply, inv_fun → symm_apply)

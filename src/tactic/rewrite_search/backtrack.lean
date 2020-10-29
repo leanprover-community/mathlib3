@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 -/
 
-import tactic.rewrite_search.types
+import tactic.rewrite_search.engine
 
 /-!
 # The backtracking component of rewrite search.
@@ -13,27 +13,8 @@ import tactic.rewrite_search.types
 open tactic
 
 namespace tactic.rewrite_search
-
+/-
 variables (g : search_state)
-
-private meta def walk_up_parents : vertex → option edge → tactic (list edge)
-| v none     := return []
-| v (some e) := do
-                 let w := g.vertices.read' e.f,
-                 edges ← walk_up_parents w w.parent,
-                 return (e :: edges)
-
-private meta def backtrack : tactic (list edge) :=
-do e ← g.solving_edge,
-let v := g.vertices.read' e.t,
-
-  vts ← walk_up_parents g v e,
-  vfs ← walk_up_parents g v v.parent,
-
-  return $ match v.s with
-              | side.L := vfs.reverse ++ vts
-              | side.R := vts.reverse ++ vfs
-              end
 
 private meta def chop_into_units : list edge → list (side × list edge)
 | [] := []
@@ -76,11 +57,12 @@ private meta def combine_units : list proof_unit → tactic (option expr)
   end
 
 meta def build_proof : tactic (expr × list proof_unit) :=
-do edges ← backtrack g,
+do edges ← g.backtrack,
   trace_if_enabled `rewrite_search "Done!",
   units ← build_units edges,
   proof ← combine_units units,
   proof ← proof <|> fail "could not combine proof units!",
   return (proof, units)
-
+-/
 end tactic.rewrite_search
+    

@@ -82,19 +82,19 @@ lemma lifts.nat_mem (f : R →+* S) (n : ℕ) : lifts f (n : polynomial S) :=
   by rw [lifts_iff]; exact subsemiring.coe_nat_mem (ring_hom.of (map f)).srange n
 
 /--The polynomial `X` lifts. -/
-lemma X_lifts (f : R →+* S) : lifts f (X : polynomial S) :=
+lemma lifts_X (f : R →+* S) : lifts f (X : polynomial S) :=
   by use X; rw [map_X]
 
 /--The polynomial `X ^ n` lifts. -/
-lemma X_pow_lifts (f : R →+* S) (n : ℕ) : lifts f (X ^ n : polynomial S) :=
+lemma lifts_X_pow (f : R →+* S) (n : ℕ) : lifts f (X ^ n : polynomial S) :=
   by use X ^ n; rw [map_pow, map_X]
 
 /--If `p` and `q` lift then `p + q` lifts. -/
-lemma lifts_add {p q : polynomial S} (hp : lifts f p) (hq : lifts f q) : lifts f (p + q) :=
+lemma lifts.add {p q : polynomial S} (hp : lifts f p) (hq : lifts f q) : lifts f (p + q) :=
   by rw lifts_iff at hp hq ⊢; exact subsemiring.add_mem (ring_hom.of (map f)).srange hp hq
 
 /--If `p` and `q` lift then `p * q` lifts. -/
-lemma lifts_mul {p q : polynomial S} (hp : lifts f p) (hq : lifts f q) : lifts f (p * q) :=
+lemma lifts.mul {p q : polynomial S} (hp : lifts f p) (hq : lifts f q) : lifts f (p * q) :=
   by rw lifts_iff at hp hq ⊢; exact subsemiring.mul_mem (ring_hom.of (map f)).srange hp hq
 
 /--If `p` lifts and `(n : ℕ)` then `p ^ n` lifts. -/
@@ -279,7 +279,7 @@ lemma lifts.neg {p : polynomial S} (hp : lifts f p) : lifts f (-p) :=
   by rw lifts_iff at hp ⊢; exact subring.neg_mem (ring_hom.range (ring_hom.of (map f))) hp
 
 /--If `p` and `q` lift then `p - q` lifts. -/
-lemma lifts_sub {p q : polynomial S} (hp : lifts f p) (hq : lifts f q) : lifts f (p - q) :=
+lemma lifts.sub {p q : polynomial S} (hp : lifts f p) (hq : lifts f q) : lifts f (p - q) :=
   by rw lifts_iff at hp hq ⊢; exact subring.sub_mem (ring_hom.range (ring_hom.of (map f))) hp hq
 
 /--For any `(n : ℤ)`, the polynomial `(n : polynomial S)` lifts. -/

@@ -126,7 +126,7 @@ If the variables are introduced already, call `ghost_calc x y`.
 In the unary case, use `ghost_calc _` or `ghost_calc x`.
 
 `ghost_calc` is a light wrapper around type class inference.
-All it does is apply the appropriate extensionalify lemma and try to infer the resulting goals.
+All it does is apply the appropriate extensionality lemma and try to infer the resulting goals.
 This is subtle and Lean's elaborator doesn't like it because of the HO unification involved,
 so it is easier (and prettier) to put it in a tactic script.
 -/

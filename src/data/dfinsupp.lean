@@ -3,6 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau
 -/
+import algebra.module.linear_map
 import algebra.module.pi
 import algebra.big_operators.basic
 import data.set.finite
@@ -42,7 +43,7 @@ variable {ι}
 /-- A dependent function `Π i, β i` with finite support. -/
 @[reducible]
 def dfinsupp [Π i, has_zero (β i)] : Type* :=
-quotient (dfinsupp.setoid ι β)
+quotient (dfinsupp.pre.setoid ι β)
 variable {β}
 
 notation `Π₀` binders `, ` r:(scoped f, dfinsupp f) := r
@@ -61,10 +62,9 @@ instance : has_coe_to_fun (Π₀ i, β i) :=
 instance : has_zero (Π₀ i, β i) := ⟨⟦⟨λ i, 0, ∅, λ i, or.inr rfl⟩⟧⟩
 instance : inhabited (Π₀ i, β i) := ⟨0⟩
 
-@[simp] lemma zero_apply {i : ι} : (0 : Π₀ i, β i) i = 0 := rfl
+@[simp] lemma zero_apply (i : ι) : (0 : Π₀ i, β i) i = 0 := rfl
 
-@[ext]
-lemma ext {f g : Π₀ i, β i} (H : ∀ i, f i = g i) : f = g :=
+@[ext] lemma ext {f g : Π₀ i, β i} (H : ∀ i, f i = g i) : f = g :=
 quotient.induction_on₂ f g (λ _ _ H, quotient.sound H) H
 
 /-- The composition of `f : β₁ → β₂` and `g : Π₀ i, β₁ i` is
@@ -75,7 +75,7 @@ quotient.lift_on g (λ x, ⟦(⟨λ i, f i (x.1 i), x.2,
 quotient.sound $ λ i, by simp only [H i]
 
 @[simp] lemma map_range_apply
-  {f : Π i, β₁ i → β₂ i} {hf : ∀ i, f i 0 = 0} {g : Π₀ i, β₁ i} {i : ι} :
+  (f : Π i, β₁ i → β₂ i) (hf : ∀ i, f i 0 = 0) (g : Π₀ i, β₁ i) (i : ι) :
   map_range f hf g i = f i (g i) :=
 quotient.induction_on g $ λ x, rfl
 
@@ -95,7 +95,7 @@ begin
 end
 
 @[simp] lemma zip_with_apply
-  {f : Π i, β₁ i → β₂ i → β i} {hf : ∀ i, f i 0 0 = 0} {g₁ : Π₀ i, β₁ i} {g₂ : Π₀ i, β₂ i} {i : ι} :
+  (f : Π i, β₁ i → β₂ i → β i) (hf : ∀ i, f i 0 0 = 0) (g₁ : Π₀ i, β₁ i) (g₂ : Π₀ i, β₂ i) (i : ι) :
   zip_with f hf g₁ g₂ i = f i (g₁ i) (g₂ i) :=
 quotient.induction_on₂ g₁ g₂ $ λ _ _, rfl
 
@@ -106,9 +106,9 @@ section algebra
 instance [Π i, add_monoid (β i)] : has_add (Π₀ i, β i) :=
 ⟨zip_with (λ _, (+)) (λ _, add_zero 0)⟩
 
-@[simp] lemma add_apply [Π i, add_monoid (β i)] {g₁ g₂ : Π₀ i, β i} {i : ι} :
+@[simp] lemma add_apply [Π i, add_monoid (β i)] (g₁ g₂ : Π₀ i, β i) (i : ι) :
   (g₁ + g₂) i = g₁ i + g₂ i :=
-zip_with_apply
+zip_with_apply _ _ g₁ g₂ i
 
 instance [Π i, add_monoid (β i)] : add_monoid (Π₀ i, β i) :=
 { add_monoid .
@@ -118,8 +118,9 @@ instance [Π i, add_monoid (β i)] : add_monoid (Π₀ i, β i) :=
   zero_add  := λ f, ext $ λ i, by simp only [add_apply, zero_apply, zero_add],
   add_zero  := λ f, ext $ λ i, by simp only [add_apply, zero_apply, add_zero] }
 
-instance [Π i, add_monoid (β i)] {i : ι} : is_add_monoid_hom (λ g : Π₀ i : ι, β i, g i) :=
-{ map_add := λ _ _, add_apply, map_zero := zero_apply }
+instance is_add_monoid_hom [Π i, add_monoid (β i)] {i : ι} :
+  is_add_monoid_hom (λ g : Π₀ i : ι, β i, g i) :=
+{ map_add := λ f g, add_apply f g i, map_zero := zero_apply i }
 
 instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
 ⟨λ f, f.map_range (λ _, has_neg.neg) (λ _, neg_zero)⟩
@@ -128,15 +129,15 @@ instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (Π₀ i, β i) :=
 { add_comm := λ f g, ext $ λ i, by simp only [add_apply, add_comm],
   .. dfinsupp.add_monoid }
 
-@[simp] lemma neg_apply [Π i, add_group (β i)] {g : Π₀ i, β i} {i : ι} : (- g) i = - g i :=
-map_range_apply
+@[simp] lemma neg_apply [Π i, add_group (β i)] (g : Π₀ i, β i) (i : ι) : (- g) i = - g i :=
+map_range_apply _ _ g i
 
 instance [Π i, add_group (β i)] : add_group (Π₀ i, β i) :=
 { add_left_neg := λ f, ext $ λ i, by simp only [add_apply, neg_apply, zero_apply, add_left_neg],
   .. dfinsupp.add_monoid,
   .. (infer_instance : has_neg (Π₀ i, β i)) }
 
-@[simp] lemma sub_apply [Π i, add_group (β i)] {g₁ g₂ : Π₀ i, β i} {i : ι} :
+@[simp] lemma sub_apply [Π i, add_group (β i)] (g₁ g₂ : Π₀ i, β i) (i : ι) :
   (g₁ - g₂) i = g₁ i - g₂ i :=
 by rw [sub_eq_add_neg]; simp [sub_eq_add_neg]
 
@@ -146,21 +147,21 @@ instance [Π i, add_comm_group (β i)] : add_comm_group (Π₀ i, β i) :=
 
 /-- Dependent functions with finite support inherit a semiring action from an action on each
 coordinate. -/
-def to_has_scalar {γ : Type w} [semiring γ] [Π i, add_comm_group (β i)] [Π i, semimodule γ (β i)] :
+instance {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, semimodule γ (β i)] :
   has_scalar γ (Π₀ i, β i) :=
 ⟨λc v, v.map_range (λ _, (•) c) (λ _, smul_zero _)⟩
-local attribute [instance] to_has_scalar
 
-@[simp] lemma smul_apply {γ : Type w} [semiring γ] [Π i, add_comm_group (β i)]
-  [Π i, semimodule γ (β i)] {i : ι} {b : γ} {v : Π₀ i, β i} :
+@[simp] lemma smul_apply {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)]
+  [Π i, semimodule γ (β i)] (b : γ) (v : Π₀ i, β i) (i : ι) :
   (b • v) i = b • (v i) :=
-map_range_apply
+map_range_apply _ _ v i
 
 /-- Dependent functions with finite support inherit a semimodule structure from such a structure on
 each coordinate. -/
-def to_semimodule {γ : Type w} [semiring γ] [Π i, add_comm_group (β i)] [Π i, semimodule γ (β i)] :
+instance {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, semimodule γ (β i)] :
   semimodule γ (Π₀ i, β i) :=
-semimodule.of_core {
+{ smul_zero := λ c, ext $ λ i, by simp only [smul_apply, smul_zero, zero_apply],
+  zero_smul := λ c, ext $ λ i, by simp only [smul_apply, zero_smul, zero_apply],
   smul_add := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, smul_add],
   add_smul := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, add_smul],
   one_smul := λ x, ext $ λ i, by simp only [smul_apply, one_smul],
@@ -178,22 +179,22 @@ quotient.lift_on f (λ x, ⟦(⟨λ i, if p i then x.1 i else 0, x.2,
 quotient.sound $ λ i, by simp only [H i]
 
 @[simp] lemma filter_apply [Π i, has_zero (β i)]
-  {p : ι → Prop} [decidable_pred p] {i : ι} {f : Π₀ i, β i} :
+  (p : ι → Prop) [decidable_pred p] (i : ι) (f : Π₀ i, β i) :
   f.filter p i = if p i then f i else 0 :=
 quotient.induction_on f $ λ x, rfl
 
 lemma filter_apply_pos [Π i, has_zero (β i)]
-  {p : ι → Prop} [decidable_pred p] {f : Π₀ i, β i} {i : ι} (h : p i) :
+  {p : ι → Prop} [decidable_pred p] (f : Π₀ i, β i) {i : ι} (h : p i) :
   f.filter p i = f i :=
 by simp only [filter_apply, if_pos h]
 
 lemma filter_apply_neg [Π i, has_zero (β i)]
-  {p : ι → Prop} [decidable_pred p] {f : Π₀ i, β i} {i : ι} (h : ¬ p i) :
+  {p : ι → Prop} [decidable_pred p] (f : Π₀ i, β i) {i : ι} (h : ¬ p i) :
   f.filter p i = 0 :=
 by simp only [filter_apply, if_neg h]
 
-lemma filter_pos_add_filter_neg [Π i, add_monoid (β i)] {f : Π₀ i, β i}
-  {p : ι → Prop} [decidable_pred p] :
+lemma filter_pos_add_filter_neg [Π i, add_monoid (β i)] (f : Π₀ i, β i)
+  (p : ι → Prop) [decidable_pred p] :
   f.filter p + f.filter (λi, ¬ p i) = f :=
 ext $ λ i, by simp only [add_apply, filter_apply]; split_ifs; simp only [add_zero, zero_add]
 
@@ -342,6 +343,14 @@ begin
   { simp only [add_apply, single_eq_of_ne h, zero_add] }
 end
 
+variables (β)
+
+/-- `dfinsupp.single` as an `add_monoid_hom`. -/
+@[simps] def single_add_hom (i : ι) : β i →+ Π₀ i, β i :=
+{ to_fun := single i, map_zero' := single_zero, map_add' := λ _ _, single_add }
+
+variables {β}
+
 lemma single_add_erase {i : ι} {f : Π₀ i, β i} : single i (f i) + f.erase i = f :=
 ext $ λ i',
 if h : i = i'
@@ -407,6 +416,38 @@ have h4 : f + single i b = single i b + f,
   { simp [H] } },
 eq.rec_on h4 $ ha i b f h1 h2 h3
 
+@[simp] lemma add_closure_Union_range_single :
+  add_submonoid.closure (⋃ i : ι, set.range (single i : β i → (Π₀ i, β i))) = ⊤ :=
+top_unique $ λ x hx, (begin
+  apply dfinsupp.induction x,
+  exact add_submonoid.zero_mem _,
+  exact λ a b f ha hb hf, add_submonoid.add_mem _
+    (add_submonoid.subset_closure $ set.mem_Union.2 ⟨a, set.mem_range_self _⟩) hf
+end)
+
+/-- If two additive homomorphisms from `Π₀ i, β i` are equal on each `single a b`, then
+they are equal. -/
+lemma add_hom_ext {γ : Type w} [add_monoid γ] ⦃f g : (Π₀ i, β i) →+ γ⦄
+  (H : ∀ (i : ι) (y : β i), f (single i y) = g (single i y)) :
+  f = g :=
+begin
+  refine add_monoid_hom.eq_of_eq_on_mdense add_closure_Union_range_single (λ f hf, _),
+  simp only [set.mem_Union, set.mem_range] at hf,
+  rcases hf with ⟨x, y, rfl⟩,
+  apply H
+end
+
+/-- If two additive homomorphisms from `Π₀ i, β i` are equal on each `single a b`, then
+they are equal.
+
+We formulate this using equality of `add_monoid_hom`s so that `ext` tactic can apply a type-specific
+extensionality lemma after this one.  E.g., if the fiber `M` is `ℕ` or `ℤ`, then it suffices to
+verify `f (single a 1) = g (single a 1)`. -/
+@[ext] lemma add_hom_ext' {γ : Type w} [add_monoid γ] ⦃f g : (Π₀ i, β i) →+ γ⦄
+  (H : ∀ x, f.comp (single_add_hom β x) = g.comp (single_add_hom β x)) :
+  f = g :=
+add_hom_ext $ λ x, add_monoid_hom.congr_fun (H x)
+
 end add_monoid
 
 @[simp] lemma mk_add [Π i, add_monoid (β i)] {s : finset ι} {x y : Π i : (↑s : set ι), β i} :
@@ -429,8 +470,7 @@ instance [Π i, add_group (β i)] {s : finset ι} : is_add_group_hom (@mk ι β 
 { map_add := λ _ _, mk_add }
 
 section
-local attribute [instance] to_semimodule
-variables (γ : Type w) [semiring γ] [Π i, add_comm_group (β i)] [Π i, semimodule γ (β i)]
+variables (γ : Type w) [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, semimodule γ (β i)]
 include γ
 
 @[simp] lemma mk_smul {s : finset ι} {c : γ} (x : Π i : (↑s : set ι), β i.1) :
@@ -605,11 +645,9 @@ support_zip_with
   support (-f) = support f :=
 by ext i; simp
 
-local attribute [instance] dfinsupp.to_semimodule
-
-lemma support_smul {γ : Type w} [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)]
-  [Π (i : ι) (x : β i), decidable (x ≠ 0)]
-  {b : γ} {v : Π₀ i, β i} : (b • v).support ⊆ v.support :=
+lemma support_smul {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, semimodule γ (β i)]
+  [Π ( i : ι) (x : β i), decidable (x ≠ 0)]
+  (b : γ) (v : Π₀ i, β i) : (b • v).support ⊆ v.support :=
 support_map_range
 
 instance [Π i, has_zero (β i)] [Π i, decidable_eq (β i)] : decidable_eq (Π₀ i, β i) :=
@@ -731,6 +769,76 @@ calc ∏ i in (f + g).support, h i ((f + g) i) =
       (∏ i in f.support ∪ g.support, h i (g i)) :
     by simp [h_add, finset.prod_mul_distrib]
   ... = _ : by rw [f_eq, g_eq]
+
+/--
+When summing over an `add_monoid_hom`, the decidability assumption is not needed, and the result is
+also an `add_monoid_hom`.
+-/
+def sum_add_hom [Π i, add_monoid (β i)] [add_comm_monoid γ] (φ : Π i, β i →+ γ) :
+  (Π₀ i, β i) →+ γ :=
+{ to_fun := (λ f,
+    quotient.lift_on f (λ x, ∑ i in x.2.to_finset, φ i (x.1 i)) $ λ x y H,
+    begin
+      have H1 : x.2.to_finset ∩ y.2.to_finset ⊆ x.2.to_finset, from finset.inter_subset_left _ _,
+      have H2 : x.2.to_finset ∩ y.2.to_finset ⊆ y.2.to_finset, from finset.inter_subset_right _ _,
+      refine (finset.sum_subset H1 _).symm.trans
+          ((finset.sum_congr rfl _).trans (finset.sum_subset H2 _)),
+      { intros i H1 H2, rw finset.mem_inter at H2, rw H i,
+        simp only [multiset.mem_to_finset] at H1 H2,
+        rw [(y.3 i).resolve_left (mt (and.intro H1) H2), add_monoid_hom.map_zero] },
+      { intros i H1, rw H i },
+      { intros i H1 H2, rw finset.mem_inter at H2, rw ← H i,
+        simp only [multiset.mem_to_finset] at H1 H2,
+        rw [(x.3 i).resolve_left (mt (λ H3, and.intro H3 H1) H2), add_monoid_hom.map_zero] }
+    end),
+  map_add' := assume f g,
+  begin
+    refine quotient.induction_on f (λ x, _),
+    refine quotient.induction_on g (λ y, _),
+    change ∑ i in _, _ = (∑ i in _, _) + (∑ i in _, _),
+    simp only, conv { to_lhs, congr, skip, funext, rw add_monoid_hom.map_add },
+    simp only [finset.sum_add_distrib],
+    congr' 1,
+    { refine (finset.sum_subset _ _).symm,
+      { intro i, simp only [multiset.mem_to_finset, multiset.mem_add], exact or.inl },
+      { intros i H1 H2, simp only [multiset.mem_to_finset, multiset.mem_add] at H2,
+        rw [(x.3 i).resolve_left H2, add_monoid_hom.map_zero] } },
+    { refine (finset.sum_subset _ _).symm,
+      { intro i, simp only [multiset.mem_to_finset, multiset.mem_add], exact or.inr },
+      { intros i H1 H2, simp only [multiset.mem_to_finset, multiset.mem_add] at H2,
+        rw [(y.3 i).resolve_left H2, add_monoid_hom.map_zero] } }
+  end,
+  map_zero' := rfl }
+
+@[simp] lemma sum_add_hom_single [Π i, add_monoid (β i)] [add_comm_monoid γ]
+  (φ : Π i, β i →+ γ) (i) (x : β i) : sum_add_hom φ (single i x) = φ i x :=
+(add_zero _).trans $ congr_arg (φ i) $ show (if H : i ∈ ({i} : finset _) then x else 0) = x,
+from dif_pos $ finset.mem_singleton_self i
+
+/-- While we didn't need decidable instances to define it, we do to reduce it to a sum -/
+lemma sum_add_hom_apply [Π i, add_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+  [add_comm_monoid γ] (φ : Π i, β i →+ γ) (f : Π₀ i, β i) :
+  sum_add_hom φ f = f.sum (λ x, φ x) :=
+begin
+  refine quotient.induction_on f (λ x, _),
+  change ∑ i in _, _ = (∑ i in finset.filter _ _, _),
+  rw [finset.sum_filter, finset.sum_congr rfl],
+  intros i _,
+  dsimp only,
+  split_ifs,
+  refl,
+  rw [(not_not.mp h), add_monoid_hom.map_zero],
+end
+
+/-- The `dfinsupp` version of `finsupp.lift_add_hom`,-/
+@[simps]
+def lift_add_hom [Π i, add_monoid (β i)] [add_comm_monoid γ] :
+  (Π i, β i →+ γ) ≃+ ((Π₀ i, β i) →+ γ) :=
+{ to_fun := sum_add_hom,
+  inv_fun := λ F i, F.comp (single_add_hom β i),
+  left_inv := λ x, by { ext, simp },
+  right_inv := λ ψ, by { ext, simp },
+  map_add' := λ F G, by { ext, simp } }
 
 lemma sum_sub_index [Π i, add_comm_group (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [add_comm_group γ] {f g : Π₀ i, β i}

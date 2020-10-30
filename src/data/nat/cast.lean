@@ -153,15 +153,15 @@ by rw [← cast_one, cast_lt, lt_succ_iff, le_zero_iff]
 @[simp, norm_cast] theorem cast_le_one [linear_ordered_semiring α] {n : ℕ} : (n : α) ≤ 1 ↔ n ≤ 1 :=
 by rw [← cast_one, cast_le]
 
-@[simp, norm_cast] theorem cast_min [decidable_linear_ordered_semiring α] {a b : ℕ} :
+@[simp, norm_cast] theorem cast_min [linear_ordered_semiring α] {a b : ℕ} :
   (↑(min a b) : α) = min a b :=
 by by_cases a ≤ b; simp [h, min]
 
-@[simp, norm_cast] theorem cast_max [decidable_linear_ordered_semiring α] {a b : ℕ} :
+@[simp, norm_cast] theorem cast_max [linear_ordered_semiring α] {a b : ℕ} :
   (↑(max a b) : α) = max a b :=
 by by_cases a ≤ b; simp [h, max]
 
-@[simp, norm_cast] theorem abs_cast [decidable_linear_ordered_comm_ring α] (a : ℕ) :
+@[simp, norm_cast] theorem abs_cast [linear_ordered_comm_ring α] (a : ℕ) :
   abs (a : α) = a :=
 abs_of_nonneg (cast_nonneg a)
 

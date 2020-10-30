@@ -259,11 +259,8 @@ rfl
 
 @[simp] lemma comp_X : p.comp X = p :=
 begin
-  refine ext (λ n, _),
-  rw [comp, eval₂],
-  conv in (C _ * _) { rw ← single_eq_C_mul_X },
-  congr,
-  convert finsupp.sum_single _,
+  simp only [comp, eval₂, ← single_eq_C_mul_X],
+  exact finsupp.sum_single _,
 end
 
 @[simp] lemma X_comp : X.comp p = p := eval₂_X _ _
@@ -417,7 +414,7 @@ lemma mem_map_range {p : polynomial S} :
 begin
   split,
   { rintro ⟨p, rfl⟩ n, rw coeff_map, exact set.mem_range_self _ },
-  { intro h, rw p.as_sum_range,
+  { intro h, rw p.as_sum_range_C_mul_X_pow,
     apply is_add_submonoid.finset_sum_mem,
     intros i hi,
     rcases h i with ⟨c, hc⟩,

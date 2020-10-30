@@ -833,8 +833,8 @@ end both
 
 end lattice
 
-section decidable_linear_order
-variables {α : Type u} [decidable_linear_order α] {a a₁ a₂ b b₁ b₂ c d : α}
+section linear_order
+variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ c d : α}
 
 lemma Ioc_inter_Ioo_of_left_lt (h : b₁ < b₂) : Ioc a₁ b₁ ∩ Ioo a₂ b₂ = Ioc (max a₁ a₂) b₁ :=
 ext $ λ x, by simp [and_assoc, @and.left_comm (x ≤ _),
@@ -884,11 +884,11 @@ begin
     le_max_right_of_le, le_refl] { max_depth := 5 }}
 end
 
-end decidable_linear_order
+end linear_order
 
-section decidable_linear_ordered_add_comm_group
+section linear_ordered_add_comm_group
 
-variables {α : Type u} [decidable_linear_ordered_add_comm_group α]
+variables {α : Type u} [linear_ordered_add_comm_group α]
 
 /-- If we remove a smaller interval from a larger, the result is nonempty -/
 lemma nonempty_Ico_sdiff {x dx y dy : α} (h : dy < dx) (hx : 0 < dx) :
@@ -899,6 +899,6 @@ begin
   { use max x (x + dy), simp [*, le_refl] }
 end
 
-end decidable_linear_ordered_add_comm_group
+end linear_ordered_add_comm_group
 
 end set

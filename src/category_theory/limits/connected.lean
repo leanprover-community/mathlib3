@@ -30,18 +30,18 @@ section examples
 instance wide_pullback_shape_connected (J : Type v₁) : is_connected (wide_pullback_shape J) :=
 begin
   apply is_connected.of_induct,
-  introv _ t,
+  introv hp t,
   cases j,
-  { exact a },
+  { exact hp },
   { rwa t (wide_pullback_shape.hom.term j) }
 end
 
 instance wide_pushout_shape_connected (J : Type v₁) : is_connected (wide_pushout_shape J) :=
 begin
   apply is_connected.of_induct,
-  introv _ t,
+  introv hp t,
   cases j,
-  { exact a },
+  { exact hp },
   { rwa ← t (wide_pushout_shape.hom.init j) }
 end
 

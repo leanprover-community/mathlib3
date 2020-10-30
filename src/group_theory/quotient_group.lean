@@ -59,7 +59,7 @@ omit nN
 instance {G : Type*} [comm_group G] (N : subgroup G) : comm_group (quotient N) :=
 { mul_comm := λ a b, quotient.induction_on₂' a b
     (λ a b, congr_arg mk (mul_comm a b)),
-  ..@quotient_group.group _ _ N N.normal_of_comm }
+  .. @quotient_group.quotient.group _ _ N N.normal_of_comm }
 
 include nN
 

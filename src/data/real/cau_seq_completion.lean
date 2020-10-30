@@ -131,7 +131,7 @@ noncomputable def field : field Cauchy :=
   mul_inv_cancel   := λ x x0, by rw [mul_comm, cau_seq.completion.inv_mul_cancel x0],
   exists_pair_ne   := ⟨0, 1, zero_ne_one⟩,
   inv_zero         := inv_zero,
-  ..cau_seq.completion.comm_ring }
+  .. Cauchy.comm_ring }
 
 local attribute [instance] field
 

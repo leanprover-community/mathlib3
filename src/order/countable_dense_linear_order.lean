@@ -169,9 +169,9 @@ subtype.preorder _
 variables {α β}
 
 /-- A partial isomorphism between `α` and `β` is also a partial isomorphism between `β` and `α`. -/
-def partial_iso.symm (f : partial_iso α β) : partial_iso β α :=
-{ val := f.val.image prod.swap,
-  property := λ p q hp hq, eq.symm $ f.property _ _ (mem_swap.mp hp) (mem_swap.mp hq), }
+def partial_iso.symm : partial_iso α β → partial_iso β α :=
+subtype.map (finset.image prod.swap) $ λ f hf p q hp hq,
+  eq.symm $ hf _ _ (mem_swap.mp hp) (mem_swap.mp hq)
 
 variables [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β]
 

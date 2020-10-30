@@ -24,7 +24,7 @@ a.k.a. the interval `[0, ∞)`. We also define the following operations and stru
 
   - `linear_ordered_semiring ℝ≥0`;
   - `comm_semiring ℝ≥0`;
-  - `canonically_ordered_comm_semiring ℝ≥0`;
+  - `canonically_linear_ordered_comm_semiring ℝ≥0`;
   - `linear_ordered_comm_group_with_zero ℝ≥0`;
   - `archimedean ℝ≥0`.
 
@@ -175,9 +175,9 @@ to_real_hom.map_nat_cast n
 instance : linear_order ℝ≥0 :=
 linear_order.lift (coe : ℝ≥0 → ℝ) nnreal.injective_coe
 
-@[norm_cast] protected lemma coe_le_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) ≤ r₂ ↔ r₁ ≤ r₂ := iff.rfl
-@[norm_cast] protected lemma coe_lt_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) < r₂ ↔ r₁ < r₂ := iff.rfl
-protected lemma coe_pos {r : ℝ≥0} : (0 : ℝ) < r ↔ 0 < r := iff.rfl
+@[simp, norm_cast] protected lemma coe_le_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) ≤ r₂ ↔ r₁ ≤ r₂ := iff.rfl
+@[simp, norm_cast] protected lemma coe_lt_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) < r₂ ↔ r₁ < r₂ := iff.rfl
+@[simp, norm_cast] protected lemma coe_pos {r : ℝ≥0} : (0 : ℝ) < r ↔ 0 < r := iff.rfl
 
 protected lemma coe_mono : monotone (coe : ℝ≥0 → ℝ) := λ _ _, nnreal.coe_le_coe.2
 
@@ -195,7 +195,7 @@ galois_insertion.monotone_intro nnreal.coe_mono nnreal.of_real_mono
 instance : order_bot ℝ≥0 :=
 { bot := ⊥, bot_le := assume ⟨a, h⟩, h, .. nnreal.linear_order }
 
-instance : canonically_ordered_add_monoid ℝ≥0 :=
+instance : canonically_linear_ordered_add_monoid ℝ≥0 :=
 { add_le_add_left       := assume a b h c, @add_le_add_left ℝ _ a b h c,
   lt_of_add_lt_add_left := assume a b c, @lt_of_add_lt_add_left ℝ _ a b c,
   le_iff_exists_add     := assume ⟨a, ha⟩ ⟨b, hb⟩,
@@ -227,8 +227,12 @@ instance : linear_ordered_semiring ℝ≥0 :=
   zero_le_one                := @zero_le_one ℝ _,
   exists_pair_ne             := ⟨0, 1, ne_of_lt (@zero_lt_one ℝ _ _)⟩,
   .. nnreal.linear_order,
-  .. nnreal.canonically_ordered_add_monoid,
-  .. nnreal.comm_semiring, }
+  .. nnreal.canonically_linear_ordered_add_monoid,
+  .. nnreal.comm_semiring }
+
+instance : canonically_linear_ordered_comm_semiring ℝ≥0 :=
+{ .. nnreal.linear_ordered_semiring, .. nnreal.canonically_linear_ordered_add_monoid,
+  .. nnreal.comm_group_with_zero, .. (by apply_instance : no_zero_divisors ℝ≥0) }
 
 instance : linear_ordered_comm_group_with_zero ℝ≥0 :=
 { mul_le_mul_left := assume a b h c, mul_le_mul (le_refl c) h (zero_le a) (zero_le c),
@@ -236,18 +240,9 @@ instance : linear_ordered_comm_group_with_zero ℝ≥0 :=
   .. nnreal.linear_ordered_semiring,
   .. nnreal.comm_group_with_zero }
 
-instance : canonically_ordered_comm_semiring ℝ≥0 :=
-{ .. nnreal.canonically_ordered_add_monoid,
-  .. nnreal.comm_semiring,
-  .. (show no_zero_divisors ℝ≥0, by apply_instance),
-  .. nnreal.comm_group_with_zero }
-
 instance : densely_ordered ℝ≥0 :=
 ⟨assume a b (h : (a : ℝ) < b), let ⟨c, hac, hcb⟩ := exists_between h in
   ⟨⟨c, le_trans a.property $ le_of_lt $ hac⟩, hac, hcb⟩⟩
-
-instance : no_top_order ℝ≥0 :=
-⟨assume a, let ⟨b, hb⟩ := no_top (a:ℝ) in ⟨⟨b, le_trans a.property $ le_of_lt $ hb⟩, hb⟩⟩
 
 lemma bdd_above_coe {s : set ℝ≥0} : bdd_above ((coe : nnreal → ℝ) '' s) ↔ bdd_above s :=
 iff.intro
@@ -291,8 +286,7 @@ instance : conditionally_complete_linear_order_bot ℝ≥0 :=
     le_cInf (by simp [hs]) $ assume r ⟨b, hb, eq⟩, eq ▸ h hb,
   cSup_empty := nnreal.eq $ by simp [coe_Sup, real.Sup_empty]; refl,
   decidable_le := begin assume x y, apply classical.dec end,
-  .. nnreal.linear_ordered_semiring, .. lattice_of_linear_order,
-  .. nnreal.order_bot }
+  .. nnreal.canonically_linear_ordered_comm_semiring, .. lattice_of_linear_order }
 
 instance : archimedean nnreal :=
 ⟨ assume x y pos_y,

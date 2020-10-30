@@ -8,6 +8,7 @@ Adjoining roots of polynomials
 import data.polynomial.field_division
 import ring_theory.adjoin
 import ring_theory.principal_ideal_domain
+import linear_algebra.finite_dimensional
 
 /-!
 # Adjoining roots of polynomials
@@ -31,6 +32,7 @@ The main definitions are in the `adjoin_root` namespace.
 
 -/
 noncomputable theory
+open_locale classical
 open_locale big_operators
 
 universes u v w
@@ -124,15 +126,49 @@ by rw [← mk_C x, lift_mk, eval₂_C]
 @[simp] lemma lift_comp_of : (lift i a h).comp (of f) = i :=
 ring_hom.ext $ λ _, @lift_of _ _ _ _ _ _ _ h _
 
+variables (f) [algebra R S]
+
 /-- Produce an algebra homomorphism `adjoin_root f →ₐ[R] S` sending `root f` to
 a root of `f` in `S`. -/
-def alg_hom [algebra R S] (f : polynomial R) (x : S) (hfx : aeval x f = 0) : adjoin_root f →ₐ[R] S :=
-{ commutes' := λ r, show lift _ _ hfx r = _, from lift_of,
-  .. lift (algebra_map R S) x hfx }
+def alg_hom (x : S) (hfx : aeval x f = 0) : adjoin_root f →ₐ[R] S :=
+{ commutes' := λ r, show lift _ _ hfx r = _, from lift_of, .. lift (algebra_map R S) x hfx }
 
-@[simp] lemma coe_alg_hom [algebra R S] (f : polynomial R) (x : S) (hfx : aeval x f = 0) :
-  (alg_hom f x hfx : adjoin_root f →+* S) = lift (algebra_map R S) x hfx :=
-rfl
+@[simp] lemma coe_alg_hom (x : S) (hfx : aeval x f = 0) :
+  (alg_hom f x hfx : adjoin_root f →+* S) = lift (algebra_map R S) x hfx := rfl
+
+lemma aeval_alg_hom_eq_zero (ϕ : adjoin_root f →ₐ[R] S) : aeval (ϕ (root f)) f = 0 :=
+begin
+  have h : ϕ.to_ring_hom.comp (of f) = algebra_map R S := ring_hom.ext_iff.mpr (ϕ.commutes),
+  rw [aeval_def, ←h, ←ring_hom.map_zero ϕ.to_ring_hom, ←eval₂_root f, hom_eval₂],
+  refl,
+end
+
+lemma alg_hom_eq_alg_hom (f : polynomial R) (ϕ : adjoin_root f →ₐ[R] S) :
+  ϕ = alg_hom f (ϕ (root f)) (aeval_alg_hom_eq_zero f ϕ) :=
+begin
+  suffices : ϕ.equalizer (alg_hom f (ϕ (root f)) (aeval_alg_hom_eq_zero f ϕ)) = ⊤,
+  { exact alg_hom.ext (λ x, (subalgebra.ext_iff.mp (this) x).mpr algebra.mem_top) },
+  rw [eq_top_iff, ←adjoin_root_eq_top, algebra.adjoin_le_iff, set.singleton_subset_iff],
+  exact (@lift_root _ _ _ _ _ _ _ (aeval_alg_hom_eq_zero f ϕ)).symm,
+end
+
+/-- If `E` is a field extension of `F` and `f` is a polynomial over `F` then the set
+of maps from `F[x]/(f)` into `E` is in bijection with the set of roots of `f` in `E`. -/
+def equiv (F E : Type*) [field F] [field E] [algebra F E] (f : polynomial F) (hf : f ≠ 0) :
+  (adjoin_root f →ₐ[F] E) ≃ (↑(f.map (algebra_map F E)).roots.to_finset : set E) :=
+{ to_fun := λ ϕ, ⟨ϕ (root f), finset.mem_coe.mpr (multiset.mem_to_finset.mpr begin
+    rw [mem_roots (map_ne_zero hf), is_root.def, ←eval₂_eq_eval_map],
+    exact aeval_alg_hom_eq_zero f ϕ,
+    exact field.to_nontrivial E, end)⟩,
+  inv_fun := λ x, alg_hom f ↑x (begin
+    rw [aeval_def, eval₂_eq_eval_map, ←is_root.def, ←mem_roots (map_ne_zero hf)],
+    exact multiset.mem_to_finset.mp (subtype.mem x),
+    exact field.to_nontrivial E end),
+  left_inv := λ ϕ, (alg_hom_eq_alg_hom f ϕ).symm,
+  right_inv := λ x, by { ext, exact @lift_root F E _ f _ _ ↑x begin
+    rw [eval₂_eq_eval_map, ←is_root.def, ←mem_roots (map_ne_zero hf), ←multiset.mem_to_finset],
+    exact subtype.mem x,
+    exact field.to_nontrivial E end } }
 
 end comm_ring
 
@@ -154,4 +190,52 @@ lemma mul_div_root_cancel :
     f.map (of f) :=
 mul_div_eq_iff_is_root.2 $ is_root_root _
 
+section findim
+open vector_space
+open finite_dimensional
+
+/-- The restriction of `adjoin_root.mk f` to the polynomials of degree less than `f`,
+viewed as a linear map between vector spaces over `K`. -/
+def degree_lt_linear_map : degree_lt K (f.nat_degree) →ₗ[K] adjoin_root f :=
+{ to_fun := λ q, adjoin_root.mk f q,
+  map_add' := λ _ _, ring_hom.map_add _ _ _,
+  map_smul' := λ _ _, by { simp only [algebra.smul_def, ring_hom.map_mul, submodule.coe_smul,
+    algebra_map_eq, mul_eq_mul_right_iff], left, refl } }
+
+lemma degree_lt_linear_map_def (g : polynomial K) (h : g ∈ degree_lt K f.nat_degree) :
+  degree_lt_linear_map f ⟨g, h⟩ = adjoin_root.mk f g := rfl
+
+lemma degree_lt_linear_map_bijective (hf : f ≠ 0) : function.bijective (degree_lt_linear_map f) :=
+begin
+  split,
+  { rw is_add_group_hom.injective_iff,
+    rintros ⟨g, hg⟩ h,
+    rw [degree_lt_linear_map_def, mk, quotient.eq_zero_iff_mem, mem_span_singleton] at h,
+    rw submodule.mk_eq_zero _ hg,
+    rw [mem_degree_lt, ← degree_eq_nat_degree hf] at hg,
+    exact not_imp_not.mp (euclidean_domain.val_dvd_le g f h) hg },
+  { intro g,
+    obtain ⟨g', hg'⟩ : ∃ q', mk f q' = g := quotient.mk_surjective g,
+    use (g' % f),
+    { rw [mem_degree_lt, ← degree_eq_nat_degree hf],
+      exact euclidean_domain.mod_lt g' hf, },
+    { symmetry,
+      rw [degree_lt_linear_map_def, ← hg', mk, ideal.quotient.eq, mem_span_singleton'],
+      exact ⟨g' / f, by rw [eq_sub_iff_add_eq, mul_comm, euclidean_domain.div_add_mod]⟩ } }
+end
+
+/-- The map `degree_lt_linear_map` is an isomorphism. -/
+def degree_lt_linear_equiv (hf : f ≠ 0) : degree_lt K (f.nat_degree) ≃ₗ[K] adjoin_root f :=
+{ .. (degree_lt_linear_map f), .. equiv.of_bijective _ (degree_lt_linear_map_bijective f hf) }
+
+lemma finite_dimensional (hf : f ≠ 0) : finite_dimensional K (adjoin_root f) :=
+linear_equiv.finite_dimensional (((polynomial.degree_lt_linear_equiv K (f.nat_degree)).symm).trans
+  (degree_lt_linear_equiv f hf))
+
+lemma findim (hf : f ≠ 0) : finite_dimensional.findim K (adjoin_root f) = f.nat_degree :=
+by rw [←linear_equiv.findim_eq (((polynomial.degree_lt_linear_equiv K (f.nat_degree)).symm).trans
+      (degree_lt_linear_equiv f hf)), finite_dimensional.findim_fintype_fun_eq_card K,
+      fintype.card_coe, finset.card_range]
+
+end findim
 end adjoin_root

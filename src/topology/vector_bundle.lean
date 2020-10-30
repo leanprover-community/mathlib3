@@ -13,14 +13,18 @@ import linear_algebra.dual
 
 In this file we define topological vector bundles.
 
-I believe it is an enough important concept that it should deserve to be a class, unlike fiber
-bundles. The most important idea here is that vector bundles are named through their fibers.
+The most important idea here is that vector bundles are named through their fibers.
 Let `B` be the base space. The collection of the fibers is a function `E : B → Type*` for which
 there is an appropriate instance on each `E x` and an instance of topological space over `Σ x, E x`.
 Naming conventions are essential to work with vector bundles this way.
--/
 
-localized "notation V `ᵛ` R := module.dual R V" in linear_algebra.dual
+## Definitions
+
+* `nc_topological_vector_bundle R E F`  : topological vector bundle with non constant fiber. Here
+                                          `F` is a function `I → Type*` and `I` is an index type.
+* `topological_vector_bundle R E F`     : topological vector bundle constant fiber `F : Type*`.
+
+-/
 
 variables {B : Type*}
 
@@ -42,7 +46,9 @@ variables (R : Type*) (E : B → Type*) (F : Type*)
 [comm_semiring R] [∀ x, add_comm_monoid (E x)] [∀ x, semimodule R (E x)]
 
 /-- `bundle.dual R E` is the dual bundle. -/
-@[reducible] def bundle.dual := (λ x, (E x)ᵛR)
+@[reducible] def bundle.dual := (λ x, module.dual R (E x))
+
+localized "notation E `ᵛ` R := bundle.dual R E" in bundle.dual
 
 section
 
@@ -63,10 +69,25 @@ instance : has_coe (vector_bundle_trivialization R E F) (bundle_trivialization F
 instance : has_coe_to_fun (vector_bundle_trivialization R E F) :=
 ⟨_, λ e, e.to_bundle_trivialization⟩
 
+variables {I : Type*} (F' : I → Type*) [∀ i, topological_space (F' i)]
+[∀ i, add_comm_monoid (F' i)] [∀ i, semimodule R (F' i)]
+
+/-- Topological vector bundle with varying fiber. `nc` stands for non constant. -/
+class nc_topological_vector_bundle :=
+(fiber_index_at [] : B → I)
+(trivialization_at [] : ∀ b : B, (vector_bundle_trivialization R E (F' (fiber_index_at b))))
+(mem_trivialization_source [] : ∀ x : total_space E, x ∈ (trivialization_at x.1).source)
+
 /-- Topological vector bundle of fiber `F`. -/
 class topological_vector_bundle :=
 (trivialization_at [] : B → (vector_bundle_trivialization R E F))
 (mem_trivialization_source [] : ∀ x : total_space E, x ∈ (trivialization_at x.1).source)
+
+instance topological_vector_bundle.nc_topological_vector_bundle [topological_vector_bundle R E F] :
+  nc_topological_vector_bundle R E (λ u : unit, F) :=
+{ fiber_index_at := λ x, unit.star,
+  trivialization_at := λ b, topological_vector_bundle.trivialization_at R E F b,
+  mem_trivialization_source := λ x, topological_vector_bundle.mem_trivialization_source R F x }
 
 end
 

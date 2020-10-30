@@ -6,6 +6,7 @@ Authors: Mario Carneiro, Kevin Kappelmann
 import tactic.linarith
 import tactic.abel
 import algebra.ordered_group
+import data.set.intervals.basic
 /-!
 # Floor and Ceil
 
@@ -91,7 +92,7 @@ eq_of_forall_le_iff $ λ a, by rw [le_floor,
 theorem floor_sub_int (x : α) (z : ℤ) : ⌊x - z⌋ = ⌊x⌋ - z :=
 eq.trans (by rw [int.cast_neg]; refl) (floor_add_int _ _)
 
-lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [decidable_linear_ordered_comm_ring α]
+lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [linear_ordered_comm_ring α]
   [floor_ring α] {x y : α} (h : ⌊x⌋ = ⌊y⌋) : abs (x - y) < 1 :=
 begin
   have : x < ⌊x⌋ + 1         := lt_floor_add_one x,
@@ -114,6 +115,12 @@ begin
   suffices : (⌊v⌋ : α) ≤ v ∧ v < ⌊v⌋ + 1, by rwa [floor_eq_iff],
   exact ⟨floor_le v, lt_floor_add_one v⟩
 end
+
+lemma floor_eq_on_Ico (n : ℤ) : ∀ x ∈ (set.Ico n (n+1) : set α), floor x = n :=
+λ x ⟨h₀, h₁⟩, floor_eq_iff.mpr ⟨h₀, h₁⟩
+
+lemma floor_eq_on_Ico' (n : ℤ) : ∀ x ∈ (set.Ico n (n+1) : set α), (floor x : α) = n :=
+λ x hx, by exact_mod_cast floor_eq_on_Ico n x hx
 
 /-- The fractional part fract r of r is just r - ⌊r⌋ -/
 def fract (r : α) : α := r - ⌊r⌋
@@ -227,6 +234,17 @@ lemma ceil_pos {a : α} : 0 < ⌈a⌉ ↔ 0 < a :=
 lemma ceil_nonneg {q : α} (hq : 0 ≤ q) : 0 ≤ ⌈q⌉ :=
 if h : q > 0 then le_of_lt $ ceil_pos.2 h
 else by rw [le_antisymm (le_of_not_lt h) hq, ceil_zero]; trivial
+
+lemma ceil_eq_iff {r : α} {z : ℤ} :
+  ⌈r⌉ = z ↔ ↑z-1 < r ∧ r ≤ z :=
+by rw [←ceil_le, ←int.cast_one, ←int.cast_sub, ←lt_ceil,
+int.sub_one_lt_iff, le_antisymm_iff, and.comm]
+
+lemma ceil_eq_on_Ioc (n : ℤ) : ∀ x ∈ (set.Ioc (n-1) n : set α), ceil x = n :=
+λ x ⟨h₀, h₁⟩, ceil_eq_iff.mpr ⟨h₀, h₁⟩
+
+lemma ceil_eq_on_Ioc' (n : ℤ) : ∀ x ∈ (set.Ioc (n-1) n : set α), (ceil x : α) = n :=
+λ x hx, by exact_mod_cast ceil_eq_on_Ioc n x hx
 
 /--
 `nat_ceil x` is the smallest nonnegative integer `n` with `x ≤ n`.

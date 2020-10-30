@@ -198,7 +198,6 @@ instance : inhabited (scf α) := ⟨of_integer 1⟩
 instance has_coe_to_generalized_continued_fraction : has_coe (scf α) (gcf α) :=
 by {unfold scf, apply_instance}
 
-@[simp, norm_cast]
 lemma coe_to_generalized_continued_fraction {s : scf α} : (↑s : gcf α) = s.val := rfl
 
 end simple_continued_fraction
@@ -241,13 +240,11 @@ instance : inhabited (cf α) := ⟨of_integer 0⟩
 instance has_coe_to_simple_continued_fraction : has_coe (cf α) (scf α) :=
 by {unfold cf, apply_instance}
 
-@[simp, norm_cast]
 lemma coe_to_simple_continued_fraction {c : cf α} : (↑c : scf α) = c.val := rfl
 
 /-- Lift a cf to a scf using the inclusion map. -/
 instance has_coe_to_generalized_continued_fraction : has_coe (cf α) (gcf α) := ⟨λ c, ↑(↑c : scf α)⟩
 
-@[simp, norm_cast squash]
 lemma coe_to_generalized_continued_fraction {c : cf α} : (↑c : gcf α) = c.val := rfl
 
 end continued_fraction
@@ -266,22 +263,21 @@ variables {K : Type*} [division_ring K]
 
 /-
 We start with the definition of the recurrence relation. Given a gcf `g`, for all `n ≥ 1`, we define
-
-  `A₋₁ = 1,  A₀ = h,  Aₙ = bₙ-₁ * Aₙ₋₁ + aₙ-₁ * Aₙ₋₂`, and
-  `B₋₁ = 0,  B₀ = 1,  Bₙ = bₙ-₁ * Bₙ₋₁ + aₙ-₁ * Bₙ₋₂`.
+- `A₋₁ = 1,  A₀ = h,  Aₙ = bₙ₋₁ * Aₙ₋₁ + aₙ₋₁ * Aₙ₋₂`, and
+- `B₋₁ = 0,  B₀ = 1,  Bₙ = bₙ₋₁ * Bₙ₋₁ + aₙ₋₁ * Bₙ₋₂`.
 
 `Aₙ, `Bₙ` are called the *nth continuants*, Aₙ the *nth numerator*, and `Bₙ` the
 *nth denominator* of `g`. The *nth convergent* of `g` is given by `Aₙ / Bₙ`.
 -/
 
 /--
-Returns the next numerator `Aₙ = bₙ-₁ * Aₙ₋₁ + aₙ-₁ * Aₙ₋₂`, where `predA` is `Aₙ₋₁`,
+Returns the next numerator `Aₙ = bₙ₋₁ * Aₙ₋₁ + aₙ₋₁ * Aₙ₋₂`, where `predA` is `Aₙ₋₁`,
 `ppredA` is `Aₙ₋₂`, `a` is `aₙ₋₁`, and `b` is `bₙ₋₁`.
 -/
 def next_numerator (a b ppredA predA : K) : K := b * predA + a * ppredA
 
 /--
-Returns the next denominator `Bₙ = bₙ-₁ * Bₙ₋₁ + aₙ-₁ * Bₙ₋₂``, where `predB` is `Bₙ₋₁` and
+Returns the next denominator `Bₙ = bₙ₋₁ * Bₙ₋₁ + aₙ₋₁ * Bₙ₋₂``, where `predB` is `Bₙ₋₁` and
 `ppredB` is `Bₙ₋₂`, `a` is `aₙ₋₁`, and `b` is `bₙ₋₁`.
 -/
 def next_denominator (aₙ bₙ ppredB predB : K) : K := bₙ * predB + aₙ * ppredB

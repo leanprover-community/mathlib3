@@ -68,10 +68,10 @@ lemma not_ff : ¬ ff := by simp
 theorem dichotomy (b : bool) : b = ff ∨ b = tt :=
 by cases b; simp
 
-theorem forall_bool {p : bool → Prop} : (∀ b, p b) ↔ p ff ∧ p tt :=
+@[simp] theorem forall_bool {p : bool → Prop} : (∀ b, p b) ↔ p ff ∧ p tt :=
 ⟨λ h, by simp [h], λ ⟨h₁, h₂⟩ b, by cases b; assumption⟩
 
-theorem exists_bool {p : bool → Prop} : (∃ b, p b) ↔ p ff ∨ p tt :=
+@[simp] theorem exists_bool {p : bool → Prop} : (∃ b, p b) ↔ p ff ∨ p tt :=
 ⟨λ ⟨b, h⟩, by cases b; [exact or.inl h, exact or.inr h],
  λ h, by cases h; exact ⟨_, h⟩⟩
 
@@ -135,6 +135,8 @@ theorem bxor_left_comm : ∀ a b c, bxor a (bxor b c) = bxor b (bxor a c) := dec
 @[simp] theorem bxor_bnot_left : ∀ a, bxor (!a) a = tt := dec_trivial
 @[simp] theorem bxor_bnot_right : ∀ a, bxor a (!a) = tt := dec_trivial
 @[simp] theorem bxor_bnot_bnot : ∀ a b, bxor (!a) (!b) = bxor a b := dec_trivial
+@[simp] theorem bxor_ff_left : ∀ a, bxor ff a = a := dec_trivial
+@[simp] theorem bxor_ff_right : ∀ a, bxor a ff = a := dec_trivial
 
 lemma bxor_iff_ne : ∀ {x y : bool}, bxor x y = tt ↔ x ≠ y := dec_trivial
 
@@ -143,5 +145,44 @@ lemma bxor_iff_ne : ∀ {x y : bool}, bxor x y = tt ↔ x ≠ y := dec_trivial
 @[simp] lemma bnot_bor : ∀ (a b : bool), !(a || b) = !a && !b := dec_trivial
 
 lemma bnot_inj : ∀ {a b : bool}, !a = !b → a = b := dec_trivial
+
+end bool
+
+instance : linear_order bool :=
+{ le := λ a b, a = ff ∨ b = tt,
+  le_refl := dec_trivial,
+  le_trans := dec_trivial,
+  le_antisymm := dec_trivial,
+  le_total := dec_trivial,
+  decidable_le := infer_instance,
+  decidable_eq := infer_instance,
+  decidable_lt := infer_instance }
+
+namespace bool
+
+/-- convert a `bool` to a `ℕ`, `false -> 0`, `true -> 1` -/
+def to_nat (b : bool) : ℕ :=
+cond b 1 0
+
+/-- convert a `ℕ` to a `bool`, `0 -> false`, everything else -> `true` -/
+def of_nat (n : ℕ) : bool :=
+to_bool (n ≠ 0)
+
+lemma of_nat_le_of_nat {n m : ℕ} (h : n ≤ m) : of_nat n ≤ of_nat m :=
+begin
+  simp [of_nat];
+    cases nat.decidable_eq n 0;
+    cases nat.decidable_eq m 0;
+    simp only [to_bool],
+  { subst m, have h := le_antisymm h (nat.zero_le _),
+    contradiction },
+  { left, refl }
+end
+
+lemma to_nat_le_to_nat {b₀ b₁ : bool} (h : b₀ ≤ b₁) : to_nat b₀ ≤ to_nat b₁ :=
+by cases h; subst h; [cases b₁, cases b₀]; simp [to_nat,nat.zero_le]
+
+lemma of_nat_to_nat (b : bool) : of_nat (to_nat b) = b :=
+by cases b; simp only [of_nat,to_nat]; exact dec_trivial
 
 end bool

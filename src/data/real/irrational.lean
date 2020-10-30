@@ -4,8 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Yury Kudryashov.
 -/
 import data.real.basic
-import algebra.gcd_domain
-import ring_theory.multiplicity
+import data.rat.sqrt
+import ring_theory.int.basic
+import data.polynomial.eval
+import data.polynomial.degree
+import tactic.interval_cases
 /-!
 # Irrational real numbers
 
@@ -20,6 +23,10 @@ open rat real multiplicity
 
 /-- A real number is irrational if it is not equal to any rational number. -/
 def irrational (x : ℝ) := x ∉ set.range (coe : ℚ → ℝ)
+
+lemma irrational_iff_ne_rational (x : ℝ) : irrational x ↔ ∀ a b : ℤ, x ≠ a / b :=
+by simp only [irrational, rat.forall, cast_mk, not_exists, set.mem_range, cast_coe_int, cast_div,
+  eq_comm]
 
 /-!
 ### Irrationality of roots of integer and rational numbers
@@ -197,6 +204,27 @@ theorem of_fpow : ∀ m : ℤ, irrational (x^m) → irrational x
 | -[1+n] := λ h, by { rw fpow_neg_succ_of_nat at h, exact h.of_inv.of_pow _ }
 
 end irrational
+
+section polynomial
+
+open polynomial
+variables (x : ℝ) (p : polynomial ℤ)
+
+lemma one_lt_nat_degree_of_irrational_root (hx : irrational x) (p_nonzero : p ≠ 0)
+  (x_is_root : aeval x p = 0) : 1 < p.nat_degree :=
+begin
+  by_contra rid,
+  rcases exists_eq_X_add_C_of_nat_degree_le_one (not_lt.1 rid) with ⟨a, b, rfl⟩, clear rid,
+  have : (a : ℝ) * x = -b, by simpa [eq_neg_iff_add_eq_zero] using x_is_root,
+  rcases em (a = 0) with (rfl|ha),
+  { obtain rfl : b = 0, by simpa,
+    simpa using p_nonzero },
+  { rw [mul_comm, ← eq_div_iff_mul_eq, eq_comm] at this,
+    refine hx ⟨-b / a, _⟩,
+    assumption_mod_cast, assumption_mod_cast }
+end
+
+end polynomial
 
 section
 variables {q : ℚ} {x : ℝ}

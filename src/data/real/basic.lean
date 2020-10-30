@@ -10,6 +10,8 @@ import order.conditionally_complete_lattice
 import data.real.cau_seq_completion
 import algebra.archimedean
 
+/-- The type `ℝ` of real numbers constructed as equivalence classes of Cauchy sequences of rational
+numbers. -/
 def real := @cau_seq.completion.Cauchy ℚ _ _ _ abs _
 notation `ℝ` := real
 
@@ -77,7 +79,7 @@ theorem add_lt_add_iff_left {a b : ℝ} (c : ℝ) : c + a < c + b ↔ a < b :=
 quotient.induction_on₃ a b c (λ f g h,
   iff_of_eq (congr_arg pos $ by rw add_sub_add_left_eq_sub))
 
-instance : linear_order ℝ :=
+instance : partial_order ℝ :=
 { le := (≤), lt := (<),
   le_refl := λ a, or.inr rfl,
   le_trans := λ a b c, quotient.induction_on₃ a b c $
@@ -85,12 +87,9 @@ instance : linear_order ℝ :=
   lt_iff_le_not_le := λ a b, quotient.induction_on₂ a b $
     λ f g, by simpa [quotient_mk_eq_mk] using lt_iff_le_not_le,
   le_antisymm := λ a b, quotient.induction_on₂ a b $
-    λ f g, by simpa [mk_eq, quotient_mk_eq_mk] using @cau_seq.le_antisymm _ _ f g,
-  le_total := λ a b, quotient.induction_on₂ a b $
-    λ f g, by simpa [quotient_mk_eq_mk] using le_total f g }
+    λ f g, by simpa [mk_eq, quotient_mk_eq_mk] using @cau_seq.le_antisymm _ _ f g }
 
-instance : partial_order ℝ := by apply_instance
-instance : preorder ℝ      := by apply_instance
+instance : preorder ℝ := by apply_instance
 
 theorem of_rat_lt {x y : ℚ} : of_rat x < of_rat y ↔ x < y := const_lt
 
@@ -101,56 +100,62 @@ quotient.induction_on₂ a b $ λ f g,
   show pos (f - 0) → pos (g - 0) → pos (f * g - 0),
   by simpa using cau_seq.mul_pos
 
-instance : linear_ordered_comm_ring ℝ :=
-{ add_le_add_left := λ a b h c,
-    (le_iff_le_iff_lt_iff_lt.2 $ real.add_lt_add_iff_left c).2 h,
-  zero_ne_one := ne_of_lt real.zero_lt_one,
-  mul_pos := @real.mul_pos,
-  zero_lt_one := real.zero_lt_one,
-  ..real.comm_ring, ..real.linear_order, ..real.semiring }
+instance : ordered_ring ℝ :=
+{ add_le_add_left := λ a b h c, h.imp (real.add_lt_add_iff_left c).2 (λ h, h ▸ rfl),
+  zero_le_one := le_of_lt real.zero_lt_one,
+  mul_pos     := @real.mul_pos,
+  .. real.comm_ring, .. real.partial_order, .. real.semiring }
 
-/- Extra instances to short-circuit type class resolution -/
-instance : linear_ordered_ring ℝ        := by apply_instance
-instance : ordered_ring ℝ               := by apply_instance
-instance : linear_ordered_semiring ℝ    := by apply_instance
 instance : ordered_semiring ℝ           := by apply_instance
 instance : ordered_add_comm_group ℝ     := by apply_instance
 instance : ordered_cancel_add_comm_monoid ℝ := by apply_instance
 instance : ordered_add_comm_monoid ℝ    := by apply_instance
-instance : domain ℝ                     := by apply_instance
 instance : has_one ℝ                    := by apply_instance
 instance : has_zero ℝ                   := by apply_instance
 instance : has_mul ℝ                    := by apply_instance
 instance : has_add ℝ                    := by apply_instance
 instance : has_sub ℝ                    := by apply_instance
+instance : nontrivial ℝ := ⟨⟨0, 1, ne_of_lt real.zero_lt_one⟩⟩
 
 open_locale classical
 
-noncomputable instance : discrete_linear_ordered_field ℝ :=
-{ decidable_le := by apply_instance,
-  ..real.linear_ordered_comm_ring,
+noncomputable instance : linear_order ℝ :=
+{ le_total := λ a b, quotient.induction_on₂ a b $
+    λ f g, by simpa [quotient_mk_eq_mk] using le_total f g,
+  decidable_le := by apply_instance,
+  .. real.partial_order }
+
+noncomputable instance : linear_ordered_comm_ring ℝ :=
+{ .. real.nontrivial, .. real.ordered_ring, .. real.comm_ring, .. real.linear_order }
+
+/- Extra instances to short-circuit type class resolution -/
+noncomputable instance : linear_ordered_ring ℝ        := by apply_instance
+noncomputable instance : linear_ordered_semiring ℝ    := by apply_instance
+instance : domain ℝ                     :=
+{ .. real.nontrivial, .. real.comm_ring, .. linear_ordered_ring.to_domain }
+
+noncomputable instance : linear_ordered_field ℝ :=
+{ ..real.linear_ordered_comm_ring,
   ..real.domain,
   ..cau_seq.completion.field }
 
 /- Extra instances to short-circuit type class resolution -/
 
-noncomputable instance : linear_ordered_field ℝ    := by apply_instance
-noncomputable instance : decidable_linear_ordered_comm_ring ℝ := by apply_instance
-noncomputable instance : decidable_linear_ordered_semiring ℝ := by apply_instance
-noncomputable instance : decidable_linear_ordered_add_comm_group ℝ := by apply_instance
+noncomputable instance : linear_ordered_add_comm_group ℝ := by apply_instance
 noncomputable instance field : field ℝ := by apply_instance
 noncomputable instance : division_ring ℝ           := by apply_instance
 noncomputable instance : integral_domain ℝ         := by apply_instance
-noncomputable instance : nonzero_comm_ring ℝ       := by apply_instance
-noncomputable instance : decidable_linear_order ℝ  := by apply_instance
 noncomputable instance : distrib_lattice ℝ := by apply_instance
 noncomputable instance : lattice ℝ         := by apply_instance
 noncomputable instance : semilattice_inf ℝ := by apply_instance
 noncomputable instance : semilattice_sup ℝ := by apply_instance
 noncomputable instance : has_inf ℝ         := by apply_instance
 noncomputable instance : has_sup ℝ         := by apply_instance
+noncomputable instance decidable_lt (a b : ℝ) : decidable (a < b) := by apply_instance
+noncomputable instance decidable_le (a b : ℝ) : decidable (a ≤ b) := by apply_instance
+noncomputable instance decidable_eq (a b : ℝ) : decidable (a = b) := by apply_instance
 
-lemma le_of_forall_epsilon_le {a b : real} (h : ∀ε, ε > 0 → a ≤ b + ε) : a ≤ b :=
+lemma le_of_forall_epsilon_le {a b : real} (h : ∀ε, 0 < ε → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,
 calc  a ≤ b + (x - b) : h (x-b) $ sub_pos.2 hxb
     ... = x : by rw [add_comm]; simp
@@ -443,10 +448,11 @@ end,
     rw [add_mul_self_eq, add_assoc, ← le_sub_iff_add_le', ← add_mul,
       ← le_div_iff (div_pos h _30), div_div_cancel' (ne_of_gt h)],
     apply add_le_add,
-    { simpa using (mul_le_mul_left (@two_pos ℝ _)).2 (Sup_le_ub _ ⟨_, lb⟩ ub) },
-    { rw [div_le_one_iff_le _30],
+    { simpa using (mul_le_mul_left (@zero_lt_two ℝ _ _)).2 (Sup_le_ub _ ⟨_, lb⟩ ub) },
+    { rw [div_le_one _30],
       refine le_trans (sub_le_self _ (mul_self_nonneg _)) (le_trans x1 _),
-      exact (le_add_iff_nonneg_left _).2 (le_of_lt two_pos) } }
+      exact (le_add_iff_nonneg_left _).2 (le_of_lt zero_lt_two) },
+    apply_instance, }
 end
 
 def sqrt_aux (f : cau_seq ℚ abs) : ℕ → ℚ
@@ -455,7 +461,7 @@ def sqrt_aux (f : cau_seq ℚ abs) : ℕ → ℚ
 
 theorem sqrt_aux_nonneg (f : cau_seq ℚ abs) : ∀ i : ℕ, 0 ≤ sqrt_aux f i
 | 0       := by rw [sqrt_aux, mk_nat_eq, mk_eq_div];
-  apply div_nonneg'; exact int.cast_nonneg.2 (int.of_nat_nonneg _)
+  apply div_nonneg; exact int.cast_nonneg.2 (int.of_nat_nonneg _)
 | (n + 1) := le_max_left _ _
 
 /- TODO(Mario): finish the proof
@@ -473,7 +479,8 @@ begin
      }
 end -/
 
-noncomputable def sqrt (x : ℝ) : ℝ :=
+/-- The square root of a real number. This returns 0 for negative inputs. -/
+@[pp_nodot] noncomputable def sqrt (x : ℝ) : ℝ :=
 classical.some (sqrt_exists (le_max_left 0 x))
 /-quotient.lift_on x
   (λ f, mk ⟨sqrt_aux f, (sqrt_aux_converges f).fst⟩)

@@ -12,7 +12,7 @@ namespace cau_seq.completion
 open cau_seq
 
 section
-parameters {α : Type*} [discrete_linear_ordered_field α]
+parameters {α : Type*} [linear_ordered_field α]
 parameters {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv]
 
 def Cauchy := @quotient (cau_seq _ abv) cau_seq.equiv
@@ -39,7 +39,8 @@ by have : mk f = 0 ↔ lim_zero (f - 0) := quotient.eq;
 instance : has_add Cauchy :=
 ⟨λ x y, quotient.lift_on₂ x y (λ f g, mk (f + g)) $
   λ f₁ g₁ f₂ g₂ hf hg, quotient.sound $
-  by simpa [(≈), setoid.r, sub_eq_add_neg, add_comm, add_left_comm, add_assoc] using add_lim_zero hf hg⟩
+  by simpa [(≈), setoid.r, sub_eq_add_neg, add_comm, add_left_comm, add_assoc]
+    using add_lim_zero hf hg⟩
 
 @[simp] theorem mk_add (f g : cau_seq β abv) : mk f + mk g = mk (f + g) := rfl
 
@@ -85,7 +86,7 @@ end
 open_locale classical
 section
 
-parameters {α : Type*} [discrete_linear_ordered_field α]
+parameters {α : Type*} [linear_ordered_field α]
 parameters {β : Type*} [field β] {abv : β → α} [is_absolute_value abv]
 local notation `Cauchy` := @Cauchy _ _ _ _ abv _
 
@@ -128,7 +129,7 @@ end
 noncomputable def field : field Cauchy :=
 { inv              := has_inv.inv,
   mul_inv_cancel   := λ x x0, by rw [mul_comm, cau_seq.completion.inv_mul_cancel x0],
-  zero_ne_one      := zero_ne_one,
+  exists_pair_ne   := ⟨0, 1, zero_ne_one⟩,
   inv_zero         := inv_zero,
   ..cau_seq.completion.comm_ring }
 
@@ -143,7 +144,7 @@ by simp only [div_eq_inv_mul, of_rat_inv, of_rat_mul]
 end
 end cau_seq.completion
 
-variables {α : Type*} [discrete_linear_ordered_field α]
+variables {α : Type*} [linear_ordered_field α]
 namespace cau_seq
 section
 

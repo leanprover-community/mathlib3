@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import data.set.intervals.basic
+import algebra.ordered_group
 /-!
 
 # Upper / lower bounds
@@ -53,6 +54,34 @@ def is_lub (s : set α) : α → Prop := is_least (upper_bounds s)
 /-- `a` is a greatest lower bound of a set `s`; for a partial order, it is unique if exists. -/
 def is_glb (s : set α) : α → Prop := is_greatest (lower_bounds s)
 
+lemma mem_upper_bounds : a ∈ upper_bounds s ↔ ∀ x ∈ s, x ≤ a := iff.rfl
+
+lemma mem_lower_bounds : a ∈ lower_bounds s ↔ ∀ x ∈ s, a ≤ x := iff.rfl
+
+/-- A set `s` is not bounded above if and only if for each `x` there exists `y ∈ s` such that `x`
+is not greater than or equal to `y`. This version only assumes `preorder` structure and uses
+`¬(y ≤ x)`. A version for linear orders is called `not_bdd_above_iff`. -/
+lemma not_bdd_above_iff' : ¬bdd_above s ↔ ∀ x, ∃ y ∈ s, ¬(y ≤ x) :=
+by simp [bdd_above, upper_bounds, set.nonempty]
+
+/-- A set `s` is not bounded below if and only if for each `x` there exists `y ∈ s` such that `x`
+is not less than or equal to `y`. This version only assumes `preorder` structure and uses
+`¬(x ≤ y)`. A version for linear orders is called `not_bdd_below_iff`. -/
+lemma not_bdd_below_iff' : ¬bdd_below s ↔ ∀ x, ∃ y ∈ s, ¬(x ≤ y) :=
+@not_bdd_above_iff' (order_dual α) _ _
+
+/-- A set `s` is not bounded above if and only if for each `x` there exists `y ∈ s` that is greater
+than `x`. A version for preorders is called `not_bdd_above_iff'`. -/
+lemma not_bdd_above_iff {α : Type*} [linear_order α] {s : set α} :
+  ¬bdd_above s ↔ ∀ x, ∃ y ∈ s, x < y :=
+by simp only [not_bdd_above_iff', not_le]
+
+/-- A set `s` is not bounded below if and only if for each `x` there exists `y ∈ s` that is less
+than `x`. A version for preorders is called `not_bdd_below_iff'`. -/
+lemma not_bdd_below_iff {α : Type*} [linear_order α] {s : set α} :
+  ¬bdd_below s ↔ ∀ x, ∃ y ∈ s, y < x :=
+@not_bdd_above_iff (order_dual α) _ _
+
 /-!
 ### Monotonicity
 -/
@@ -99,6 +128,18 @@ lemma is_glb.of_subset_of_superset {s t p : set α} (hs : is_glb s a) (hp : is_g
   (hst : s ⊆ t) (htp : t ⊆ p) : is_glb t a :=
 @is_lub.of_subset_of_superset (order_dual α) _ a s t p hs hp hst htp
 
+lemma is_least.mono (ha : is_least s a) (hb : is_least t b) (hst : s ⊆ t) : b ≤ a :=
+hb.2 (hst ha.1)
+
+lemma is_greatest.mono (ha : is_greatest s a) (hb : is_greatest t b) (hst : s ⊆ t) : a ≤ b :=
+hb.2 (hst ha.1)
+
+lemma is_lub.mono (ha : is_lub s a) (hb : is_lub t b) (hst : s ⊆ t) : a ≤ b :=
+hb.mono ha $ upper_bounds_mono_set hst
+
+lemma is_glb.mono (ha : is_glb s a) (hb : is_glb t b) (hst : s ⊆ t) : b ≤ a :=
+hb.mono ha $ lower_bounds_mono_set hst
+
 /-!
 ### Conversions
 -/
@@ -118,6 +159,12 @@ h.is_glb.lower_bounds_eq
 
 lemma is_greatest.upper_bounds_eq (h : is_greatest s a) : upper_bounds s = Ici a :=
 h.is_lub.upper_bounds_eq
+
+lemma is_lub_le_iff (h : is_lub s a) : a ≤ b ↔ b ∈ upper_bounds s :=
+by { rw h.upper_bounds_eq, refl }
+
+lemma le_is_glb_iff (h : is_glb s a) : b ≤ a ↔ b ∈ lower_bounds s :=
+by { rw h.lower_bounds_eq, refl }
 
 /-- If `s` has a least upper bound, then it is bounded above. -/
 lemma is_lub.bdd_above (h : is_lub s a) : bdd_above s := ⟨a, h.1⟩
@@ -226,14 +273,14 @@ lemma is_glb.union [semilattice_inf γ] {a₁ a₂ : γ} {s t : set γ}
 
 /-- If `a` is the least element of `s` and `b` is the least element of `t`,
 then `min a b` is the least element of `s ∪ t`. -/
-lemma is_least.union [decidable_linear_order γ] {a b : γ} {s t : set γ}
+lemma is_least.union [linear_order γ] {a b : γ} {s t : set γ}
   (ha : is_least s a) (hb : is_least t b) : is_least (s ∪ t) (min a b) :=
 ⟨by cases (le_total a b) with h h; simp [h, ha.1, hb.1],
   (ha.is_glb.union hb.is_glb).1⟩
 
 /-- If `a` is the greatest element of `s` and `b` is the greatest element of `t`,
 then `max a b` is the greatest element of `s ∪ t`. -/
-lemma is_greatest.union [decidable_linear_order γ] {a b : γ} {s t : set γ}
+lemma is_greatest.union [linear_order γ] {a b : γ} {s t : set γ}
   (ha : is_greatest s a) (hb : is_greatest t b) : is_greatest (s ∪ t) (max a b) :=
 ⟨by cases (le_total a b) with h h; simp [h, ha.1, hb.1],
   (ha.is_lub.union hb.is_lub).1⟩
@@ -243,7 +290,6 @@ lemma is_greatest.union [decidable_linear_order γ] {a b : γ} {s t : set γ}
 
 #### Unbounded intervals
 -/
-
 
 lemma is_least_Ici : is_least (Ici a) a := ⟨left_mem_Ici, λ x, id⟩
 
@@ -355,9 +401,8 @@ variables [linear_order γ] [densely_ordered γ]
 lemma is_glb_Ioo {a b : γ} (hab : a < b) : is_glb (Ioo a b) a :=
 begin
   refine ⟨λx hx, le_of_lt hx.1, λy hy, le_of_not_lt $ λ h, _⟩,
-  letI := classical.DLO γ,
   have : a < min b y, by { rw lt_min_iff, exact ⟨hab, h⟩ },
-  rcases dense this with ⟨z, az, zy⟩,
+  rcases exists_between this with ⟨z, az, zy⟩,
   rw lt_min_iff at zy,
   exact lt_irrefl _ (lt_of_le_of_lt (hy ⟨az, zy.1⟩) zy.2)
 end
@@ -455,6 +500,12 @@ not_le_of_lt ha' this
 lemma is_glb.nonempty [no_top_order α] (hs : is_glb s a) : s.nonempty :=
 @is_lub.nonempty (order_dual α) _ _ _ _ hs
 
+lemma nonempty_of_not_bdd_above [ha : nonempty α] (h : ¬bdd_above s) : s.nonempty :=
+nonempty.elim ha $ λ x, (not_bdd_above_iff'.1 h x).imp $ λ a ha, ha.fst
+
+lemma nonempty_of_not_bdd_below [ha : nonempty α] (h : ¬bdd_below s) : s.nonempty :=
+@nonempty_of_not_bdd_above (order_dual α) _ _ _ h
+
 /-!
 ### insert
 -/
@@ -485,11 +536,11 @@ lemma is_glb.insert [semilattice_inf γ] (a) {b} {s : set γ} (hs : is_glb s b) 
   is_glb (insert a s) (a ⊓ b) :=
 by { rw insert_eq, exact is_glb_singleton.union hs }
 
-lemma is_greatest.insert [decidable_linear_order γ] (a) {b} {s : set γ} (hs : is_greatest s b) :
+lemma is_greatest.insert [linear_order γ] (a) {b} {s : set γ} (hs : is_greatest s b) :
   is_greatest (insert a s) (max a b) :=
 by { rw insert_eq, exact is_greatest_singleton.union hs }
 
-lemma is_least.insert [decidable_linear_order γ] (a) {b} {s : set γ} (hs : is_least s b) :
+lemma is_least.insert [linear_order γ] (a) {b} {s : set γ} (hs : is_least s b) :
   is_least (insert a s) (min a b) :=
 by { rw insert_eq, exact is_least_singleton.union hs }
 
@@ -519,10 +570,10 @@ is_lub_singleton.insert _
 lemma is_glb_pair [semilattice_inf γ] {a b : γ} : is_glb {a, b} (a ⊓ b) :=
 is_glb_singleton.insert _
 
-lemma is_least_pair [decidable_linear_order γ] {a b : γ} : is_least {a, b} (min a b) :=
+lemma is_least_pair [linear_order γ] {a b : γ} : is_least {a, b} (min a b) :=
 is_least_singleton.insert _
 
-lemma is_greatest_pair [decidable_linear_order γ] {a b : γ} : is_greatest {a, b} (max a b) :=
+lemma is_greatest_pair [linear_order γ] {a b : γ} : is_greatest {a, b} (max a b) :=
 is_greatest_singleton.insert _
 
 end
@@ -570,12 +621,6 @@ Ha.unique Hb
 lemma is_glb.unique (Ha : is_glb s a) (Hb : is_glb s b) : a = b :=
 Ha.unique Hb
 
-lemma is_lub_le_iff (h : is_lub s a) : a ≤ b ↔ b ∈ upper_bounds s :=
-by { rw h.upper_bounds_eq, refl }
-
-lemma le_is_glb_iff (h : is_glb s a) : b ≤ a ↔ b ∈ lower_bounds s :=
-by { rw h.lower_bounds_eq, refl }
-
 end partial_order
 
 section linear_order
@@ -590,6 +635,61 @@ lemma is_glb_lt_iff (h : is_glb s a) : a < b ↔ ∃ c ∈ s, c < b :=
 @lt_is_lub_iff (order_dual α) _ _ _ _ h
 
 end linear_order
+
+/-!
+### Least upper bound and the greatest lower bound in linear ordered additive commutative groups
+-/
+
+section linear_ordered_add_comm_group
+
+variables [linear_ordered_add_comm_group α] {s : set α} {a ε : α} (h₃ : 0 < ε)
+include h₃
+
+lemma is_glb.exists_between_self_add (h₁ : is_glb s a) : ∃ b, b ∈ s ∧ a ≤ b ∧ b < a + ε :=
+begin
+  have h' : a + ε ∉ lower_bounds s,
+  { set A := a + ε,
+    have : a < A := by { simp [A, h₃] },
+    intros hA,
+    exact lt_irrefl a (lt_of_lt_of_le this (h₁.2 hA)) },
+  obtain ⟨b, hb, hb'⟩ : ∃ b ∈ s, b < a + ε, by simpa [lower_bounds] using h',
+  exact ⟨b, hb, h₁.1 hb, hb'⟩
+end
+
+lemma is_glb.exists_between_self_add' (h₁ : is_glb s a) (h₂ : a ∉ s) :
+  ∃ b, b ∈ s ∧ a < b ∧ b < a + ε :=
+begin
+  rcases h₁.exists_between_self_add h₃ with ⟨b, b_in, hb₁, hb₂⟩,
+  have h₅ : a ≠ b,
+  { intros contra,
+    apply h₂,
+    rwa ← contra at b_in },
+  exact ⟨b, b_in, lt_of_le_of_ne (h₁.1 b_in) h₅, hb₂⟩
+end
+
+lemma is_lub.exists_between_sub_self  (h₁ : is_lub s a) : ∃ b, b ∈ s ∧ a - ε < b ∧ b ≤ a :=
+begin
+  have h' : a - ε ∉ upper_bounds s,
+  { set A := a - ε,
+    have : A < a := sub_lt_self a h₃,
+    intros hA,
+    exact lt_irrefl a (lt_of_le_of_lt (h₁.2 hA) this) },
+  obtain ⟨b, hb, hb'⟩ : ∃ (x : α), x ∈ s ∧ a - ε < x, by simpa [upper_bounds] using h',
+  exact ⟨b, hb, hb', h₁.1 hb⟩
+end
+
+lemma is_lub.exists_between_sub_self' (h₁ : is_lub s a) (h₂ : a ∉ s) :
+  ∃ b, b ∈ s ∧ a - ε < b ∧ b < a :=
+begin
+  rcases h₁.exists_between_sub_self h₃ with ⟨b, b_in, hb₁, hb₂⟩,
+  have h₅ : a ≠ b,
+  { intros contra,
+    apply h₂,
+    rwa ← contra at b_in },
+  exact ⟨b, b_in, hb₁, lt_of_le_of_ne (h₁.1 b_in) h₅.symm⟩
+end
+
+end linear_ordered_add_comm_group
 
 /-!
 ### Images of upper/lower bounds under monotone functions
@@ -627,7 +727,7 @@ lemma is_lub_image_le (Ha : is_lub s a) {b : β} (Hb : is_lub (f '' s) b) :
   b ≤ f a :=
 Hb.2 (Hf.mem_upper_bounds_image Ha.1)
 
-lemma le_is_glb_image_le (Ha : is_glb s a) {b : β} (Hb : is_glb (f '' s) b) :
+lemma le_is_glb_image (Ha : is_glb s a) {b : β} (Hb : is_glb (f '' s) b) :
   f a ≤ b :=
 Hb.2 (Hf.mem_lower_bounds_image Ha.1)
 

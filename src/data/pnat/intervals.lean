@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Scott Morrison
 -/
 import data.pnat.basic
-import data.finset
+import data.finset.intervals
 
 namespace pnat
 

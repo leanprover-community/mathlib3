@@ -58,14 +58,13 @@ instance decidable_le : @decidable_rel string (≤) := by apply_instance -- shor
 theorem to_list_inj : ∀ {s₁ s₂}, to_list s₁ = to_list s₂ ↔ s₁ = s₂
 | ⟨s₁⟩ ⟨s₂⟩ := ⟨congr_arg _, congr_arg _⟩
 
-instance : decidable_linear_order string :=
+instance : linear_order string :=
 by refine_struct {
     lt := (<), le := (≤),
-    le_antisymm := by simp; exact
-      λ a b h₁ h₂, to_list_inj.1 (le_antisymm h₁ h₂),
     decidable_lt := by apply_instance,
     decidable_le := string.decidable_le,
     decidable_eq := by apply_instance, .. };
-  { simp [-not_le], introv, apply_field }
+  { simp only [le_iff_to_list_le, lt_iff_to_list_lt, ← to_list_inj], introv,
+    apply_field }
 
 end string

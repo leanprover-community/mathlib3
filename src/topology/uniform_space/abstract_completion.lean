@@ -55,7 +55,7 @@ structure abstract_completion (α : Type u) [uniform_space α] :=
 (coe : α → space)
 (uniform_struct : uniform_space space)
 (complete : complete_space space)
-(separation : separated space)
+(separation : separated_space space)
 (uniform_inducing : uniform_inducing coe)
 (dense : dense_range coe)
 
@@ -67,7 +67,7 @@ variables {α : Type*} [uniform_space α] (pkg : abstract_completion α)
 local notation `hatα` := pkg.space
 local notation `ι` := pkg.coe
 
-lemma dense' : closure (range ι) = univ :=
+lemma closure_range : closure (range ι) = univ :=
 pkg.dense.closure_range
 
 lemma dense_inducing : dense_inducing ι :=
@@ -96,7 +96,7 @@ protected def extend (f : α → β) : hatα → β :=
 if uniform_continuous f then
   pkg.dense_inducing.extend f
 else
-  λ x, f (classical.inhabited_of_nonempty $ pkg.dense.nonempty.2 ⟨x⟩).default
+  λ x, f (pkg.dense.some x)
 
 variables {f : α → β}
 
@@ -107,10 +107,10 @@ lemma extend_coe [t2_space β] (hf : uniform_continuous f) (a : α) :
 (pkg.extend f) (ι a) = f a :=
 begin
   rw pkg.extend_def hf,
-  exact pkg.dense_inducing.extend_eq_of_cont hf.continuous a
+  exact pkg.dense_inducing.extend_eq hf.continuous a
 end
 
-variables [complete_space β] [separated β]
+variables [complete_space β] [separated_space β]
 
 lemma uniform_continuous_extend : uniform_continuous (pkg.extend f) :=
 begin
@@ -178,7 +178,7 @@ pkg.map_unique pkg uniform_continuous_id (assume a, rfl)
 
 variables {γ : Type*} [uniform_space γ]
 
-lemma extend_map [complete_space γ] [separated γ] {f : β → γ} {g : α → β}
+lemma extend_map [complete_space γ] [separated_space γ] {f : β → γ} {g : α → β}
   (hf : uniform_continuous f) (hg : uniform_continuous g) :
   pkg'.extend f ∘ map g = pkg.extend (f ∘ g) :=
 pkg.funext (pkg'.continuous_extend.comp (pkg.continuous_map pkg' _)) pkg.continuous_extend $ λ a,
@@ -245,7 +245,7 @@ protected def prod : abstract_completion (α × β) :=
   complete := by apply_instance,
   separation := by apply_instance,
   uniform_inducing := uniform_inducing.prod pkg.uniform_inducing pkg'.uniform_inducing,
-  dense := pkg.dense.prod pkg'.dense }
+  dense := pkg.dense.prod_map pkg'.dense }
 end prod
 
 
@@ -263,7 +263,7 @@ open function
 protected def extend₂ (f : α → β → γ) : hatα → hatβ → γ :=
 curry $ (pkg.prod pkg').extend (uncurry f)
 
-variables [separated γ] {f : α → β → γ}
+variables [separated_space γ] {f : α → β → γ}
 
 lemma extension₂_coe_coe (hf : uniform_continuous $ uncurry f) (a : α) (b : β) :
   pkg.extend₂ pkg' f (ι a) (ι' b) = f a b :=

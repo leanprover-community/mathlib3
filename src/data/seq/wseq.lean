@@ -484,7 +484,8 @@ end
 @[simp] theorem flatten_think (c : computation (wseq α)) : flatten c.think = think (flatten c) :=
 seq.destruct_eq_cons $ by simp [flatten, think]
 
-@[simp] theorem destruct_flatten (c : computation (wseq α)) : destruct (flatten c) = c >>= destruct :=
+@[simp]
+theorem destruct_flatten (c : computation (wseq α)) : destruct (flatten c) = c >>= destruct :=
 begin
   refine computation.eq_of_bisim (λc1 c2, c1 = c2 ∨
     ∃ c, c1 = destruct (flatten c) ∧ c2 = computation.bind c destruct) _ (or.inr ⟨c, rfl, rfl⟩),
@@ -554,9 +555,8 @@ by { simp [think, join], unfold functor.map, simp [join, cons, append] }
 theorem destruct_tail (s : wseq α) :
   destruct (tail s) = destruct s >>= tail.aux :=
 begin
-  dsimp [tail], simp, rw [← bind_pure_comp_eq_map, is_lawful_monad.bind_assoc],
-  apply congr_arg, funext o,
-  rcases o with _|⟨a, s⟩;
+  simp [tail], rw [← bind_pure_comp_eq_map, is_lawful_monad.bind_assoc],
+  apply congr_arg, ext1 (_|⟨a, s⟩);
   apply (@pure_bind computation _ _ _ _ _ _).trans _; simp
 end
 
@@ -631,14 +631,17 @@ begin
   contradiction
 end⟩
 
-theorem nth_terminates_le {s : wseq α} {m n} (h : m ≤ n) : terminates (nth s n) → terminates (nth s m) :=
+theorem nth_terminates_le {s : wseq α} {m n} (h : m ≤ n) :
+  terminates (nth s n) → terminates (nth s m) :=
 by induction h with m' h IH; [exact id,
   exact λ T, IH (@head_terminates_of_head_tail_terminates _ _ T)]
 
-theorem head_terminates_of_nth_terminates {s : wseq α} {n} : terminates (nth s n) → terminates (head s) :=
+theorem head_terminates_of_nth_terminates {s : wseq α} {n} :
+  terminates (nth s n) → terminates (head s) :=
 nth_terminates_le (nat.zero_le n)
 
-theorem destruct_terminates_of_nth_terminates {s : wseq α} {n} (T : terminates (nth s n)) : terminates (destruct s) :=
+theorem destruct_terminates_of_nth_terminates {s : wseq α} {n} (T : terminates (nth s n)) :
+  terminates (destruct s) :=
 (head_terminates_iff _).1 $ head_terminates_of_nth_terminates T
 
 theorem mem_rec_on {C : wseq α → Prop} {a s} (M : a ∈ s)
@@ -1003,7 +1006,7 @@ theorem map_comp (f : α → β) (g : β → γ) (s : wseq α) :
 begin
   dsimp [map], rw ←seq.map_comp,
   apply congr_fun, apply congr_arg,
-  funext o, cases o; refl
+  ext ⟨⟩; refl
 end
 
 theorem mem_map (f : α → β) {a : α} {s : wseq α} : a ∈ s → f a ∈ map f s :=

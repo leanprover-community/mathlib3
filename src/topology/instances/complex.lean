@@ -91,8 +91,7 @@ tendsto_of_uniform_continuous_subtype
     ({x | abs x < abs a₁ + 1}.prod {x | abs x < abs a₂ + 1})
     (λ x, id))
   (mem_nhds_sets
-    (is_open_prod
-      (continuous_abs _ $ is_open_gt' (abs a₁ + 1))
+    ((continuous_abs _ $ is_open_gt' (abs a₁ + 1)).prod
       (continuous_abs _ $ is_open_gt' (abs a₂ + 1)))
     ⟨lt_add_one (abs a₁), lt_add_one (abs a₂)⟩)
 
@@ -122,7 +121,7 @@ instance : topological_semiring ℂ := by apply_instance -- short-circuit type c
 
 /-- `ℂ` is homeomorphic to the real plane with `max` norm. -/
 def real_prod_homeo : ℂ ≃ₜ (ℝ × ℝ) :=
-{ to_equiv := real_prod_equiv,
+{ to_equiv := equiv_real_prod,
   continuous_to_fun := continuous_re.prod_mk continuous_im,
   continuous_inv_fun := show continuous (λ p : ℝ × ℝ, complex.mk p.1 p.2),
     by simp only [mk_eq_add_mul_I]; exact

@@ -7,12 +7,7 @@ Authors: Simon Hudon
 import tactic.ext
 import tactic.solve_by_elim
 import data.stream.basic
-import data.finset
-
-@[ext] lemma unit.ext (x y : unit) : x = y :=
-begin
-  cases x, cases y, refl
-end
+import data.finset.basic
 
 example : subsingleton unit :=
 begin

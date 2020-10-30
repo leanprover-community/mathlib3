@@ -49,7 +49,7 @@ meta def constr_to_prop (univs : list level) (g : list expr) (idxs : list expr) 
   decl ← get_decl c,
   some type' ← return $ decl.instantiate_type_univ_params univs,
   type ← drop_pis g type',
-  (args, res) ← mk_local_pis type,
+  (args, res) ← open_pis type,
   let idxs_inst := res.get_app_args.drop g.length,
   let (bs, eqs) := compact_relation args (idxs.zip idxs_inst),
   let bs' := bs.filter_map id,
@@ -166,7 +166,7 @@ meta def mk_iff_of_inductive_prop (i : name) (r : name) : tactic unit := do
   let univs := univ_names.map level.param,
     /- we use these names for our universe parameters, maybe we should construct a copy of them using uniq_name -/
 
-  (g, `(Prop)) ← mk_local_pis type | fail "Inductive type is not a proposition",
+  (g, `(Prop)) ← open_pis type | fail "Inductive type is not a proposition",
   let lhs := (const i univs).mk_app g,
   shape_rhss ← constrs.mmap (constr_to_prop univs (g.take params) (g.drop params)),
   let shape := shape_rhss.map prod.fst,

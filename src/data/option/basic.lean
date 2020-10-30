@@ -8,6 +8,8 @@ import tactic.basic
 namespace option
 variables {α : Type*} {β : Type*} {γ : Type*}
 
+lemma coe_def : (coe : α → option α) = some := rfl
+
 lemma some_ne_none (x : α) : some x ≠ none := λ h, option.no_confusion h
 
 @[simp] theorem get_mem : ∀ {o : option α} (h : is_some o), option.get h ∈ o
@@ -26,17 +28,19 @@ theorem get_of_mem {a : α} : ∀ {o : option α} (h : is_some o), a ∈ o → o
 
 @[simp] lemma get_or_else_some (x y : α) : option.get_or_else (some x) y = x := rfl
 
+@[simp] lemma get_or_else_coe (x y : α) : option.get_or_else ↑x y = x := rfl
+
 lemma get_or_else_of_ne_none {x : option α} (hx : x ≠ none) (y : α) : some (x.get_or_else y) = x :=
 by cases x; [contradiction, rw get_or_else_some]
 
 theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
 option.some.inj $ ha.symm.trans hb
 
-theorem injective_some (α : Type*) : function.injective (@some α) :=
+theorem some_injective (α : Type*) : function.injective (@some α) :=
 λ _ _, some_inj.mp
 
 /-- `option.map f` is injective if `f` is injective. -/
-theorem injective_map {f : α → β} (Hf : function.injective f) : function.injective (option.map f)
+theorem map_injective {f : α → β} (Hf : function.injective f) : function.injective (option.map f)
 | none      none      H := rfl
 | (some a₁) (some a₂) H := by rw Hf (option.some.inj H)
 
@@ -60,10 +64,12 @@ theorem eq_none_iff_forall_not_mem {o : option α} :
 @[simp] theorem bind_some : ∀ x : option α, x >>= some = x :=
 @bind_pure α option _ _
 
-@[simp] theorem bind_eq_some {α β} {x : option α} {f : α → option β} {b : β} : x >>= f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
+@[simp] theorem bind_eq_some {α β} {x : option α} {f : α → option β} {b : β} :
+  x >>= f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
 by cases x; simp
 
-@[simp] theorem bind_eq_some' {x : option α} {f : α → option β} {b : β} : x.bind f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
+@[simp] theorem bind_eq_some' {x : option α} {f : α → option β} {b : β} :
+  x.bind f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
 by cases x; simp
 
 @[simp] theorem bind_eq_none' {o : option α} {f : α → option β} :
@@ -89,10 +95,12 @@ lemma bind_assoc (x : option α) (f : α → option β) (g : β → option γ) :
 
 @[simp] theorem map_some' {a : α} {f : α → β} : option.map f (some a) = some (f a) := rfl
 
-@[simp] theorem map_eq_some {α β} {x : option α} {f : α → β} {b : β} : f <$> x = some b ↔ ∃ a, x = some a ∧ f a = b :=
+@[simp] theorem map_eq_some {α β} {x : option α} {f : α → β} {b : β} :
+  f <$> x = some b ↔ ∃ a, x = some a ∧ f a = b :=
 by cases x; simp
 
-@[simp] theorem map_eq_some' {x : option α} {f : α → β} {b : β} : x.map f = some b ↔ ∃ a, x = some a ∧ f a = b :=
+@[simp] theorem map_eq_some' {x : option α} {f : α → β} {b : β} :
+  x.map f = some b ↔ ∃ a, x = some a ∧ f a = b :=
 by cases x; simp
 
 @[simp] theorem map_id' : option.map (@id α) = id := map_id
@@ -136,6 +144,12 @@ by cases o; simp
 
 lemma ne_none_iff_is_some {o : option α} : o ≠ none ↔ o.is_some :=
 by cases o; simp
+
+lemma ne_none_iff_exists {o : option α} : o ≠ none ↔ ∃ (x : α), some x = o :=
+by {cases o; simp}
+
+lemma ne_none_iff_exists' {o : option α} : o ≠ none ↔ ∃ (x : α), o = some x :=
+ne_none_iff_exists.trans $ exists_congr $ λ _, eq_comm
 
 lemma bex_ne_none {p : option α → Prop} :
   (∃ x ≠ none, p x) ↔ ∃ x, p (some x) :=
@@ -182,5 +196,15 @@ function to `a` if it comes from `α`, and return `b` otherwise. -/
 def cases_on' : option α → β → (α → β) → β
 | none     n s := n
 | (some a) n s := s a
+
+@[simp] lemma cases_on'_none (x : β) (f : α → β) : cases_on' none x f = x := rfl
+
+@[simp] lemma cases_on'_some (x : β) (f : α → β) (a : α) : cases_on' (some a) x f = f a := rfl
+
+@[simp] lemma cases_on'_coe (x : β) (f : α → β) (a : α) : cases_on' (a : option α) x f = f a := rfl
+
+@[simp] lemma cases_on'_none_coe (f : option α → β) (o : option α) :
+  cases_on' o (f none) (f ∘ coe) = f o :=
+by cases o; refl
 
 end option

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import tactic.norm_num
+import data.int.range
 
 /-!
 # `ring`
@@ -445,14 +446,17 @@ meta def eval : expr → ring_m (horner_expr × expr)
   (e', p') ← eval_add e₁' e₂',
   p ← ic_lift $ λ ic, ic.mk_app ``norm_num.subst_into_add [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
   return (e', p)
-| e@`(@has_sub.sub %%α %%P %%e₁ %%e₂) :=
+| e@`(@has_sub.sub %%α %%inst %%e₁ %%e₂) :=
   mcond (succeeds (lift $ mk_app ``comm_ring [α] >>= mk_instance))
     (do
       e₂' ← ic_lift $ λ ic, ic.mk_app ``has_neg.neg [e₂],
       e ← ic_lift $ λ ic, ic.mk_app ``has_add.add [e₁, e₂'],
       (e', p) ← eval e,
       p' ← ic_lift $ λ ic, ic.mk_app ``unfold_sub [e₁, e₂, e', p],
-      return (e', p'))
+      return (e',
+        if inst.const_name = `int.has_sub then
+          `(norm_num.int_sub_hack).mk_app [e₁, e₂, e', p']
+        else p'))
     (eval_atom e)
 | `(- %%e) := do
   (e₁, p₁) ← eval e,
@@ -487,13 +491,6 @@ meta def eval : expr → ring_m (horner_expr × expr)
     (e₁', p₁) ← eval e₁,
     (e', p') ← eval_pow e₁' (e₂, k),
     p ← ic_lift $ λ ic, ic.mk_app ``subst_into_pow [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
-    return (e', p)
-  | some k, `(nat.has_pow) := do
-    (e₁', p₁) ← eval e₁,
-    (e', p') ← eval_pow e₁' (e₂, k),
-    p₃ ← ic_lift $ λ ic, ic.mk_app ``subst_into_pow [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
-    p₄ ← lift $ mk_eq_symm $ `(nat.pow_eq_pow).mk_app [e₁, e₂],
-    p ← lift $ mk_eq_trans p₄ p₃,
     return (e', p)
   | _, _ := eval_atom e
   end

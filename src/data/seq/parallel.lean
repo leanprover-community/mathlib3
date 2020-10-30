@@ -229,7 +229,7 @@ theorem parallel_promises {S : wseq (computation α)} {a}
 
 theorem mem_parallel {S : wseq (computation α)} {a}
   (H : ∀ s ∈ S, s ~> a) {c} (cs : c ∈ S) (ac : a ∈ c) : a ∈ parallel S :=
-by haveI := terminates_of_mem ac; have := terminates_parallel cs;
+by haveI := terminates_of_mem ac; haveI := terminates_parallel cs;
    exact mem_of_promises _ (parallel_promises H)
 
 theorem parallel_congr_lem {S T : wseq (computation α)} {a}

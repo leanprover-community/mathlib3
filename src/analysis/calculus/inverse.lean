@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury Kudryashov.
+Authors: Yury Kudryashov, Heather Macbeth.
 -/
-import analysis.calculus.deriv
+import analysis.calculus.times_cont_diff
 import topology.local_homeomorph
 import topology.metric_space.contracting
 
@@ -31,8 +31,15 @@ and prove two versions of the inverse function theorem:
   `f'.symm` at `f a` in the strict sense.
 
 In the one-dimensional case we reformulate these theorems in terms of `has_strict_deriv_at` and
-`f'⁻¹`. Some other versions of the theorem assuming that we already know the inverse function are
-formulated in `fderiv.lean` and `deriv.lean`
+`f'⁻¹`.
+
+We also reformulate the theorems in terms of `times_cont_diff`, to give that `C^k` (respectively,
+smooth) inputs give `C^k` (smooth) inverses.  These versions require that continuous
+differentiability implies strict differentiability; this is false over a general field, true over
+`ℝ` (the setting in which it is implemented here), and true but (TODO) not yet implemented over `ℂ`.
+
+Some related theorems, providing the derivative and higher regularity assuming that we already know
+the inverse function, are formulated in `fderiv.lean`, `deriv.lean`, and `times_cont_diff.lean`.
 
 ## Notations
 
@@ -45,7 +52,7 @@ shorter:
 
 ## Tags
 
-derivative, strictly differentiable, inverse function
+derivative, strictly differentiable, continuously differentiable, smooth, inverse function
 -/
 
 open function set filter metric
@@ -247,9 +254,9 @@ lemma inverse_approx_map_maps_to (hf : approximates_linear_on f (f' : E →L[�
   maps_to g (closed_ball b ε) (closed_ball b ε) :=
 begin
   cases hc with hE hc,
-  { exactI λ x hx, mem_preimage.2 (subsingleton.elim x (g x) ▸ hx) },
+  { exactI λ x hx, subsingleton.elim x (g x) ▸ hx },
   assume x hx,
-  simp only [subset_def, mem_closed_ball, mem_preimage] at hx hy ⊢,
+  simp only [mem_closed_ball] at hx hy ⊢,
   rw [dist_comm] at hy,
   calc dist (inverse_approx_map f f' y x) b ≤
     dist (inverse_approx_map f f' y x) (inverse_approx_map f f' y b) +
@@ -289,9 +296,9 @@ begin
     { exact lipschitz_with.of_dist_le_mul (λ x x', hf.inverse_approx_map_contracts_on
         y (hε x.mem) (hε x'.mem)) } },
   refine ⟨this.efixed_point' _ _ _ b (mem_closed_ball_self ε0) (edist_lt_top _ _), _, _⟩,
-  { exact is_complete_of_is_closed is_closed_ball },
+  { exact is_closed_ball.is_complete },
   { apply contracting_with.efixed_point_mem' },
-  { exact (inverse_approx_map_fixed_iff y).1 (this.efixed_point_is_fixed' _ _ _ _) }
+  { exact (inverse_approx_map_fixed_iff y).1 (this.efixed_point_is_fixed_pt' _ _ _ _) }
 end
 
 section
@@ -461,7 +468,7 @@ see `of_local_left_inverse`.  -/
 theorem to_local_left_inverse (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) {g : F → E}
   (hg : ∀ᶠ x in 𝓝 a, g (f x) = x) :
   has_strict_fderiv_at g (f'.symm : F →L[𝕜] E) (f a) :=
-hf.to_local_inverse.congr_of_mem_sets $ (hf.local_inverse_unique hg).mono $ λ _, eq.symm
+hf.to_local_inverse.congr_of_eventually_eq $ (hf.local_inverse_unique hg).mono $ λ _, eq.symm
 
 end has_strict_fderiv_at
 
@@ -496,3 +503,69 @@ theorem to_local_left_inverse {g : 𝕜 → 𝕜} (hg : ∀ᶠ x in 𝓝 a, g (f
 (hf.has_strict_fderiv_at_equiv hf').to_local_left_inverse hg
 
 end has_strict_deriv_at
+
+/-!
+### Inverse function theorem, smooth case
+
+-/
+
+namespace times_cont_diff_at
+variables {E' : Type*} [normed_group E'] [normed_space ℝ E']
+variables {F' : Type*} [normed_group F'] [normed_space ℝ F']
+variables [complete_space E'] (f : E' → F') {f' : E' ≃L[ℝ] F'} {a : E'}
+
+/-- Given a `times_cont_diff` function over `ℝ` with an invertible derivative at `a`, returns a
+`local_homeomorph` with `to_fun = f` and `a ∈ source`. -/
+def to_local_homeomorph
+  {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f a) (hf' : has_fderiv_at f (f' : E' →L[ℝ] F') a)
+  (hn : 1 ≤ n) :
+  local_homeomorph E' F' :=
+(hf.has_strict_fderiv_at' hf' hn).to_local_homeomorph f
+
+variable {f}
+
+@[simp] lemma to_local_homeomorph_coe
+  {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f a) (hf' : has_fderiv_at f (f' : E' →L[ℝ] F') a)
+  (hn : 1 ≤ n) :
+  (hf.to_local_homeomorph f hf' hn : E' → F') = f := rfl
+
+lemma mem_to_local_homeomorph_source
+  {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f a) (hf' : has_fderiv_at f (f' : E' →L[ℝ] F') a)
+  (hn : 1 ≤ n) :
+  a ∈ (hf.to_local_homeomorph f hf' hn).source :=
+(hf.has_strict_fderiv_at' hf' hn).mem_to_local_homeomorph_source
+
+lemma image_mem_to_local_homeomorph_target
+  {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f a) (hf' : has_fderiv_at f (f' : E' →L[ℝ] F') a)
+  (hn : 1 ≤ n) :
+  f a ∈ (hf.to_local_homeomorph f hf' hn).target :=
+(hf.has_strict_fderiv_at' hf' hn).image_mem_to_local_homeomorph_target
+
+/-- Given a `times_cont_diff` function over `ℝ` with an invertible derivative at `a`, returns a
+function that is locally inverse to `f`. -/
+def local_inverse
+  {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f a) (hf' : has_fderiv_at f (f' : E' →L[ℝ] F') a)
+  (hn : 1 ≤ n) :
+  F' → E' :=
+(hf.has_strict_fderiv_at' hf' hn).local_inverse f f' a
+
+lemma local_inverse_apply_image
+  {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f a) (hf' : has_fderiv_at f (f' : E' →L[ℝ] F') a)
+  (hn : 1 ≤ n) :
+  hf.local_inverse hf' hn (f a) = a :=
+(hf.has_strict_fderiv_at' hf' hn).local_inverse_apply_image
+
+/-- Given a `times_cont_diff` function over `ℝ` with an invertible derivative at `a`, the inverse
+function (produced by `times_cont_diff.to_local_homeomorph`) is also `times_cont_diff`. -/
+lemma to_local_inverse
+  {n : with_top ℕ} (hf : times_cont_diff_at ℝ n f a) (hf' : has_fderiv_at f (f' : E' →L[ℝ] F') a)
+  (hn : 1 ≤ n) :
+  times_cont_diff_at ℝ n (hf.local_inverse hf' hn) (f a) :=
+begin
+  have := hf.local_inverse_apply_image hf' hn,
+  apply times_cont_diff_at.of_local_homeomorph (image_mem_to_local_homeomorph_target hf hf' hn),
+  { convert hf' },
+  { convert hf }
+end
+
+end times_cont_diff_at

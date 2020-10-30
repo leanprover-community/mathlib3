@@ -257,7 +257,7 @@ by simp only [lifts, map_alg_eq_map, alg_hom.mem_range, ring_hom.coe_of, ring_ho
 /-- If `p` lifts and `(r : R)` then `r • p` lifts. -/
 lemma smul_mem_lifts {p : polynomial S} (r : R) (hp : p ∈ lifts (algebra_map R S)) :
   r • p ∈ lifts (algebra_map R S) :=
-by rw mem_lifts_iff_mem_alg at hp ⊢; exact subalgebra.smul_mem (map_alg R S).range hp r
+by { rw mem_lifts_iff_mem_alg at hp ⊢, exact subalgebra.smul_mem (map_alg R S).range hp r }
 
 end algebra
 

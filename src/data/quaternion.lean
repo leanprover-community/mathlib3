@@ -501,7 +501,7 @@ section field
 
 variables [linear_ordered_field R] (a b : ℍ[R])
 
-@[simps] instance : has_inv ℍ[R] := ⟨λ a, (norm_sq a)⁻¹ • a.conj⟩
+@[simps { attrs := [] }]instance : has_inv ℍ[R] := ⟨λ a, (norm_sq a)⁻¹ • a.conj⟩
 
 instance : division_ring ℍ[R] :=
 { inv := has_inv.inv,

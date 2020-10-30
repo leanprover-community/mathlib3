@@ -168,14 +168,14 @@ variable {α}
 @[simp] lemma unop_sub [add_group α] (x y : αᵒᵖ) : unop (x - y) = unop x - unop y := rfl
 
 /-- The function `op` is an additive equivalence. -/
-def op_add_equiv [has_zero α] [has_add α] : α ≃+ αᵒᵖ :=
+def op_add_equiv [has_add α] : α ≃+ αᵒᵖ :=
 { map_add' := λ a b, rfl, .. equiv_to_opposite }
 
-@[simp] lemma coe_op_add_equiv [has_zero α] [has_add α] : (op_add_equiv : α → αᵒᵖ) = op := rfl
-@[simp] lemma coe_op_add_equiv_symm [has_zero α] [has_add α] :
+@[simp] lemma coe_op_add_equiv [has_add α] : (op_add_equiv : α → αᵒᵖ) = op := rfl
+@[simp] lemma coe_op_add_equiv_symm [has_add α] :
   (op_add_equiv.symm : αᵒᵖ → α) = unop := rfl
 
-@[simp] lemma op_add_equiv_to_equiv [has_zero α] [has_add α] :
+@[simp] lemma op_add_equiv_to_equiv [has_add α] :
   (op_add_equiv : α ≃+ αᵒᵖ).to_equiv = equiv_to_opposite :=
 rfl
 

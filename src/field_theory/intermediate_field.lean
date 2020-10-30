@@ -304,11 +304,9 @@ intermediate_field.ext'_iff.mpr (submodule.ext'_iff.mp (finite_dimensional.eq_of
 lemma eq_of_le_of_findim_eq' [finite_dimensional K L] {F E : intermediate_field K L} (h_le : F ≤ E)
   (h_findim : finite_dimensional.findim F L = finite_dimensional.findim E L) : F = E :=
 begin
-  apply eq_of_le_of_findim_eq h_le,
   have h1 := finite_dimensional.findim_mul_findim K F L,
-  have h2 := finite_dimensional.findim_mul_findim K E L,
-  rw [←h2, h_findim] at h1,
-  exact (nat.mul_left_inj finite_dimensional.findim_pos).mp h1,
+  rw [←finite_dimensional.findim_mul_findim K E L, h_findim] at h1,
+  exact eq_of_le_of_findim_eq h_le ((nat.mul_left_inj finite_dimensional.findim_pos).mp h1),
 end
 
 end finite_dimensional

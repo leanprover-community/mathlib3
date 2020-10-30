@@ -103,4 +103,61 @@ begin
   ... = a * ∥x∥ + b * ∥y∥ : by { congr; simp [norm_smul, real.norm_of_nonneg, *] }
 end
 
+theorem nonempty.product {s t : finset E} : s.nonempty → t.nonempty → (s.product t).nonempty :=
+λ ⟨x, hx⟩ ⟨y, hy⟩, ⟨(x,y), by simp [hx, hy]⟩
+
+noncomputable def max_dist (s : finset E) (h : s.nonempty) : ℝ :=
+finset.max'
+  (finset.image (λ p : E × E, norm (p.1 - p.2)) (s.product s))
+  (finset.nonempty.image (nonempty.product h h) _)
+
+/-- Among the pairs of points in the convex hull of `s`, the maximum distance apart is attained by
+two points actually in `s`. -/
+lemma foo5 (s : finset E) (h : s.nonempty)
+  (z w : E) (hz: z ∈ convex_hull (↑s : set E)) (hw: w ∈ convex_hull (↑s : set E)) :
+  dist z w
+  ≤ max_dist s h :=
+begin
+  /- HM -/
+  -- Introduce the map `diff`, defined as `⟨z, w⟩ ↦ z - w`, with this considered as an `ℝ`-linear
+  -- map from `ℂ × ℂ → ℂ`.
+  let diff : E × E →ₗ[ℝ] E :=
+     (linear_map.fst ℝ E E) - (linear_map.snd ℝ E E),
+  -- notice that `dist` is the composition of the convex function `norm` and the linear function `diff`.
+  -- also notice that the domain of consideration, `s × s`, is equal
+  -- to the convex hull of the 9 points in `s × s`.  This relies on the
+  -- new lemma `prod_convex_hull` (above).
+  suffices h' : ∀ p ∈ convex_hull ((↑s : set E).prod (↑s : set E)), (norm ∘ diff) p ≤ max_dist s h,
+  { convert h' ⟨z, w⟩ _,
+    { simp [dist_eq_norm] },
+    rw prod_convex_hull,
+    exact ⟨hz, hw⟩ },
+  -- let `p` be a point in the convex hull of `s × s`.  Rewrite as a linear
+  -- combination of points in `s × s`.
+  intros p hp,
+  rw convex_hull_eq at hp,
+  obtain ⟨ι, ind, ρ, q, hρ₀, hρ₁, hq, hqp⟩ := hp,
+  rw ← hqp,
+  have h_pos : 0 < ∑ a in ind, ρ a,
+  { rw hρ₁,
+    norm_num },
+  have h_in : ∀ (a : ι), a ∈ ind → q a ∈ convex_hull ((↑s : set E).prod (↑s : set E)),
+  { intros a ha,
+    exact subset_convex_hull _ (hq a ha) },
+  -- by general theory, the function `norm ∘ diff` is convex, and in particular is convex on the set
+  -- we consider.
+  have convex_on_diff : convex_on (convex_hull ((↑s : set E).prod (↑s : set E))) (norm ∘ diff),
+  { exact (norm_convex.comp_linear_map diff).subset subset_preimage_univ (convex_convex_hull _) },
+  -- so it attains its maximum (over the convex hull of `s × s`) at one of
+  -- the finitely many points in `s × s`.  Let `q a` be this point.
+  obtain ⟨a, ha, haT⟩ := convex_on_diff.exists_ge_of_center_mass hρ₀ h_pos h_in,
+  refine le_trans haT _,
+  refine finset.le_max' _ _ _,
+  rw finset.mem_image,
+  refine ⟨q a, _, rfl⟩,
+  rw finset.mem_product,
+  exact hq a ha
+end
+
+
 end normed_space

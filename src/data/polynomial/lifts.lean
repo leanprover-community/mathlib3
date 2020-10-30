@@ -79,8 +79,8 @@ end
 
 /-- The polynomial `X` lifts. -/
 lemma X_mem_lifts (f : R →+* S) : (X : polynomial S) ∈ lifts f :=
-by use X; simp only [set.mem_univ, subsemiring.coe_top, eq_self_iff_true, map_X,
-ring_hom.coe_of, and_self]
+⟨X, by simp only [set.mem_univ, subsemiring.coe_top, eq_self_iff_true, map_X,
+  ring_hom.coe_of, and_self]⟩
 
 /-- The polynomial `X ^ n` lifts. -/
 lemma X_pow_mem_lifts (f : R →+* S) (n : ℕ) : (X ^ n : polynomial S) ∈ lifts f :=

@@ -224,7 +224,7 @@ section monic
 
 /-- A monic polynomial lifts if and only if it can be lifted to a monic polynomial
 of the same degree. -/
-lemma lifts_deg_monic_of_lifts [nontrivial S] {p : polynomial S} (hlifts : lifts f p)
+lemma lifts_and_degree_eq_and_monic [nontrivial S] {p : polynomial S} (hlifts : lifts f p)
   (hmonic : p.monic) : ∃ (q : polynomial R), map f q = p ∧ q.degree = p.degree ∧ q.monic :=
 begin
   by_cases Rtrivial : nontrivial R,

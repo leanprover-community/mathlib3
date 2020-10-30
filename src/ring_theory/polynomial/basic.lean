@@ -23,7 +23,7 @@ import ring_theory.principal_ideal_domain
 import ring_theory.polynomial.content
 
 noncomputable theory
-open_locale classical
+open_locale classical big_operators
 
 universes u v w
 
@@ -96,41 +96,30 @@ begin
   exact lt_of_le_of_lt (degree_X_pow_le _) (with_bot.coe_lt_coe.2 $ finset.mem_range.1 hk)
 end
 
-/-- Coefficient linear map on degree_lt -/
-def degree_lt_linear_map (F : Type*) [field F] (n : ℕ) :
-  degree_lt F n →ₗ[F] ((↑(finset.range n) : set ℕ) → F) :=
-{ to_fun := λ p n, (↑p : polynomial F).coeff n,
-  map_add' := λ p q, by { ext, rw [submodule.coe_add, coeff_add], refl },
-  map_smul' := λ x p, by { ext, rw [submodule.coe_smul, coeff_smul], refl } }
-
-lemma degree_lt_linear_map_bijective (F : Type*) [field F] (n : ℕ) :
-  function.bijective (degree_lt_linear_map F n) :=
+/-- The first `n` coefficients on `degree_lt n` form a linear equivalence with `fin n → F`. -/
+@[simps]
+def degree_lt_equiv (F : Type*) [field F] (n : ℕ) : degree_lt F n ≃ₗ[F] (fin n → F) :=
 begin
-  split,
-  { rw is_add_group_hom.injective_iff,
-    intros p h,
-    ext,
-    have key := function.funext_iff.mp h,
-    by_cases n_1 < n,
-    { exact key ⟨n_1, finset.mem_range.mpr h⟩ },
-    { exact coeff_eq_zero_of_degree_lt (lt_of_lt_of_le
-        (mem_degree_lt.mp (subtype.mem p)) (with_bot.coe_le_coe.mpr (le_of_not_lt h))) } },
-  { intro f,
-    let g : ℕ → F := λ k, dite (k < n) (λ h, f ⟨k, finset.mem_range.mpr h⟩) (λ h, 0),
-    let p : polynomial F := finsupp.on_finset (finset.filter (λ n, g n ≠ 0) (finset.range n)) g
-      (λ k hk, finset.mem_filter.mpr begin by_cases (k < n),
-        { exact ⟨finset.mem_coe.mpr (finset.mem_range.mpr h), hk⟩ },
-        { exfalso, apply hk, exact dif_neg h } end),
-    use ⟨p, mem_degree_lt.mpr ((degree_lt_iff_coeff_zero p n).mpr (λ _ h, dif_neg (not_lt.mpr h)))⟩,
-    ext,
-    apply eq.trans (dif_pos (finset.mem_range.mp (subtype.mem x))),
-    rw [subtype.coe_eta x] }
+  refine
+  { to_fun := λ p n, (↑p : polynomial F).coeff n,
+    inv_fun := λ f, ⟨∑ i : fin n, monomial i (f i), _⟩,
+    map_add' := λ p q, by { ext, rw [submodule.coe_add, coeff_add], refl },
+    map_smul' := λ x p, by { ext, rw [submodule.coe_smul, coeff_smul], refl },
+    .. },
+  { exact (degree_lt F n).sum_mem (λ i _, mem_degree_lt.mpr (lt_of_le_of_lt
+      (degree_monomial_le i (f i)) (with_bot.coe_lt_coe.mpr i.is_lt))) },
+  { rintro ⟨p, hp⟩,
+    ext1, simp only [submodule.coe_mk],
+    by_cases hp0 : p = 0,
+    { subst hp0, simp only [coeff_zero, linear_map.map_zero, finset.sum_const_zero] },
+    rw [mem_degree_lt, degree_eq_nat_degree hp0, with_bot.coe_lt_coe] at hp,
+    conv_rhs { rw [p.as_sum_range' n hp, ← fin.sum_univ_eq_sum_range] } },
+  { intro f, ext i,
+    simp only [finset_sum_coeff, submodule.coe_mk],
+    rw [finset.sum_eq_single i, coeff_monomial, if_pos rfl],
+    { rintro j - hji, rw [coeff_monomial, if_neg], rwa [← subtype.ext_iff] },
+    { intro h, exact (h (finset.mem_univ _)).elim } }
 end
-
-/-- Coefficient linear equiv on degree_lt -/
-def degree_lt_linear_equiv (F : Type*) [field F] (n : ℕ) :
-  degree_lt F n ≃ₗ[F] ((↑(finset.range n) : set ℕ) → F) :=
-{ .. (degree_lt_linear_map F n), .. equiv.of_bijective _ (degree_lt_linear_map_bijective F n) }
 
 local attribute [instance] subset.ring
 

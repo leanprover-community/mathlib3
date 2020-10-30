@@ -205,8 +205,6 @@ def degree_lt_linear_map : degree_lt K (f.nat_degree) →ₗ[K] adjoin_root f :=
 lemma degree_lt_linear_map_def (g : polynomial K) (h : g ∈ degree_lt K f.nat_degree) :
   degree_lt_linear_map f ⟨g, h⟩ = adjoin_root.mk f g := rfl
 
-example (P Q : Prop) : (¬P → ¬Q) → (Q → P) := not_imp_not.mp
-
 lemma degree_lt_linear_map_bijective (hf : f ≠ 0) : function.bijective (degree_lt_linear_map f) :=
 begin
   split,

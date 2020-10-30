@@ -6,7 +6,6 @@ Authors: Frédéric Dupuis
 
 import analysis.normed_space.basic
 import analysis.complex.basic
-
 open_locale big_operators
 
 /-!

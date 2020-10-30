@@ -141,6 +141,15 @@ instance prod.ordered_semimodule : ordered_semimodule k (M × N) :=
 ordered_semimodule.mk' $ λ v u c h hc,
   ⟨smul_le_smul_of_nonneg h.1.1 hc.le, smul_le_smul_of_nonneg h.1.2 hc.le⟩
 
+instance pi.ordered_semimodule {ι : Type*} {M : ι → Type*} [Π i, ordered_add_comm_group (M i)]
+  [Π i, ordered_semimodule k (M i)] :
+  ordered_semimodule k (Π i : ι, M i) :=
+begin
+  refine (ordered_semimodule.mk' $ λ v u c h hc i, _),
+  change c • v i ≤ c • u i,
+  exact smul_le_smul_of_nonneg (h.le i) hc.le,
+end
+
 end field
 
 

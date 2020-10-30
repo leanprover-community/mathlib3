@@ -74,7 +74,6 @@ meta structure config extends tactic.nth_rewrite.cfg :=
 (max_iterations     : ℕ := 500)
 (explain            : bool := ff)
 (explain_using_conv : bool := tt)
-(inflate_rws        : bool := ff)
 
 meta def default_config : config := {}
 

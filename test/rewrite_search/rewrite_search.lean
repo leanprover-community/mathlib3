@@ -53,7 +53,7 @@ constants f g : ℕ → ℕ → ℕ → ℕ
 @[rewrite] axiom g_2_0 : ∀ a b c : ℕ, g a b c = g a b 0
 @[rewrite] axiom g_2_1 : ∀ a b c : ℕ, g a b c = g a b 1
 @[rewrite] axiom g_2_2 : ∀ a b c : ℕ, g a b c = g a b 2
-@[rewrite]  axiom f_g : f 0 1 2 = g 2 0 1
+@[rewrite] axiom f_g : f 0 1 2 = g 2 0 1
 
 lemma test_pathfinding : f 0 0 0 = g 0 0 0 := by rewrite_search
 

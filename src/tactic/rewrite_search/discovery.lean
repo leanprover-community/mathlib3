@@ -14,24 +14,19 @@ namespace tactic.rewrite_search
 
 open tactic tactic.interactive tactic.rewrite_search
 
-private meta def load_attr_list : list name → tactic (list name)
-| [] := return []
-| (a :: rest) := do
-  names ← attribute.get_instances a,
-  l ← load_attr_list rest,
-  return $ names ++ l
-
-private meta def load_names (l : list name) : tactic (list expr) :=
-  l.mmap mk_const
-
 /-
 Convert the `rw_rule` format provided by the parser to the (expr × bool) format
 used by rewrite_search.
 -/
-meta def rules_from_rw_rules (rws : list rw_rule) : tactic (list (expr × bool)) :=
+private meta def rules_from_rw_rules (rws : list rw_rule) : tactic (list (expr × bool)) :=
   rws.mmap (λ r, do e ← to_expr' r.rule, pure (e, r.symm))
 
-private meta def rewrite_list_from_lemmas (l : list expr) : list (expr × bool) :=
+/-
+Convert a list of expressions into a list of rules. The difference is that a rule
+includes a flag for direction, so this simply includes each expression twice,
+once in each direction.
+-/
+private meta def rules_from_exprs (l : list expr) : list (expr × bool) :=
   l.map (λ e, (e, ff)) ++ l.map (λ e, (e, tt))
 
 /-- Returns true if expression is an equation or iff. -/
@@ -41,32 +36,14 @@ private meta def is_acceptable_rewrite : expr → bool
 | `(%%a ↔ %%b)       := tt
 | _                  := ff
 
-/-- Returns true if the type of expression is an equation or iff
-and does not contain metavariables. -/
+/- Returns true if the expression is an equation or iff and has no metavariables. -/
 private meta def is_acceptable_hyp (r : expr) : tactic bool :=
   do t ← infer_type r >>= whnf, return $ is_acceptable_rewrite t ∧ ¬t.has_meta_var
 
-private meta def rewrite_list_from_hyps : tactic (list (expr × bool)) := do
+/- Collect all hypotheses in the local context that are usable as rewrite rules. -/
+private meta def rules_from_hyps : tactic (list (expr × bool)) := do
   hyps ← local_context,
-  rewrite_list_from_lemmas <$> hyps.mfilter is_acceptable_hyp
-
-private meta def inflate_under_apps (locals : list expr) : expr → tactic (list expr)
-| e := do
-  rws ← list.map prod.fst <$> mk_apps e locals,
-  rws_extras ← list.join <$> rws.mmap inflate_under_apps,
-  return $ e :: (rws ++ rws_extras)
-
-private meta def inflate_rw (locals : list expr) : expr × bool → tactic (list (expr × bool))
-| (e, sy) := do
-  as ← inflate_under_apps locals e,
-  return $ as.map $ λ a, (a, sy)
-
-private meta def is_rewrite_lemma (d : declaration) : option (name × expr) :=
-  let t := d.type in if is_acceptable_rewrite t then some (d.to_name, t) else none
-
-private meta def find_all_rewrites : tactic (list (name × expr)) := do
-  e ← get_env,
-  return $ e.decl_filter_map is_rewrite_lemma
+  rules_from_exprs <$> hyps.mfilter is_acceptable_hyp
 
 @[user_attribute]
 meta def rewrite_search_attr : user_attribute := {
@@ -74,26 +51,23 @@ meta def rewrite_search_attr : user_attribute := {
   descr := "declare that this definition should be considered by `rewrite_search`",
 }
 
-private meta def collect (extra_names : list name) : tactic (list (expr × bool)) :=
-do names ← attribute.get_instances `rewrite,
-   exprs ← load_names $ names ++ extra_names,
-   return $ rewrite_list_from_lemmas exprs
-
 /-
-Collect rewrite rules to use. Rules can be specified as names, from the parser's
-`rw_rule` objects, or gathered from the environment according to the config.
+Gather rewrite rules from lemmas explicitly tagged with `rewrite.
 -/
-meta def collect_rules (cfg : config) (names : list name) (rws : list rw_rule) :
-tactic (list (expr × bool)) :=
-do ns ← load_attr_list names,
-  rules_from_names ← collect ns,
-  rules_from_hyps ← rewrite_list_from_hyps,
-  rules_from_rws ← rules_from_rw_rules rws,
-  let rules := rules_from_names ++ rules_from_hyps ++ rules_from_rws,
-  locs ← local_context,
-  if cfg.inflate_rws then
-    list.join <$> (rules.mmap $ inflate_rw locs)
-  else return rules
+private meta def rules_from_rewrite_attr : tactic (list (expr × bool)) :=
+do names ← attribute.get_instances `rewrite,
+exprs ← names.mmap mk_const,
+return $ rules_from_exprs exprs
+
+/--
+Collect rewrite rules to use, either provided explicitly in the parser's format, or
+gathered from the environment according to the config.
+-/
+meta def collect_rules (cfg : config) (rws : list rw_rule) : tactic (list (expr × bool)) :=
+do from_attr    ← rules_from_rewrite_attr,
+  from_hyps     ← rules_from_hyps,
+  from_rw_rules ← rules_from_rw_rules rws,
+  return $ from_attr ++ from_hyps ++ from_rw_rules
 
 open tactic.nth_rewrite tactic.nth_rewrite.congr
 

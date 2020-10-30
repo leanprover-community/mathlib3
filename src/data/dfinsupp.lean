@@ -831,7 +831,7 @@ begin
 end
 
 /-- The `dfinsupp` version of `finsupp.lift_add_hom`,-/
-@[simps]
+@[simps apply symm_apply]
 def lift_add_hom [Π i, add_monoid (β i)] [add_comm_monoid γ] :
   (Π i, β i →+ γ) ≃+ ((Π₀ i, β i) →+ γ) :=
 { to_fun := sum_add_hom,
@@ -844,22 +844,11 @@ lemma sum_sub_index [Π i, add_comm_group (β i)] [Π i (x : β i), decidable (x
   [add_comm_group γ] {f g : Π₀ i, β i}
   {h : Π i, β i → γ} (h_sub : ∀i b₁ b₂, h i (b₁ - b₂) = h i b₁ - h i b₂) :
   (f - g).sum h = f.sum h - g.sum h :=
-have h_zero : ∀i, h i 0 = 0,
-  from assume i,
-  have h i (0 - 0) = h i 0 - h i 0, from h_sub i 0 0,
-  by simpa using this,
-have h_neg : ∀i b, h i (- b) = - h i b,
-  from assume i b,
-  have h i (0 - b) = h i 0 - h i b, from h_sub i 0 b,
-  by simpa [h_zero] using this,
-have h_add : ∀i b₁ b₂, h i (b₁ + b₂) = h i b₁ + h i b₂,
-  from assume i b₁ b₂,
-  have h i (b₁ - (- b₂)) = h i b₁ - h i (- b₂), from h_sub i b₁ (-b₂),
-  by simpa [h_neg, sub_eq_add_neg] using this,
-by simp [sub_eq_add_neg];
-simp [@sum_add_index ι β _ γ _ _ _ f (-g) h h_zero h_add];
-simp [@sum_neg_index ι β _ γ _ _ _ g h h_zero, h_neg];
-simp [@sum_neg ι β _ γ _ _ _ g h]
+begin
+  have := (lift_add_hom (λ a, add_monoid_hom.of_map_sub (h a) (h_sub a))).map_sub f g,
+  rw [lift_add_hom_apply, sum_add_hom_apply, sum_add_hom_apply, sum_add_hom_apply] at this,
+  exact this,
+end
 
 @[to_additive]
 lemma prod_finset_sum_index {γ : Type w} {α : Type x}

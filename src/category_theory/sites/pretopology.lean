@@ -16,6 +16,8 @@ satisfying certain closure conditions.
 We show that a pretopology generates a genuine Grothendieck topology, and every topology has
 a maximal pretopology which generates it.
 
+The pretopology associated to a topological space is defined in `spaces.lean`.
+
 ## Todo
 
 Define sheaves on a pretopology, and show they are the same as the sheaves for the topology
@@ -73,7 +75,7 @@ begin
   split,
   { rintro ⟨W, k, ⟨rfl, rfl⟩, rfl, rfl⟩,
     rw [eq_to_hom_refl (pullback (eq_to_hom (eq.refl W) ≫ g) f) (eq.refl _), id_comp],
-    apply singleton_arrow_self },
+    apply singleton_self },
   { rintro ⟨rfl, rfl⟩,
     exact ⟨_, _, by simp, _, rfl⟩ }
 end
@@ -232,14 +234,14 @@ def trivial : pretopology C :=
     split,
     { rintro ⟨W, k, ⟨rfl, rfl⟩, rfl, rfl⟩,
       rw [eq_to_hom_refl (pullback (eq_to_hom (eq.refl W) ≫ g) f) (eq.refl _), id_comp],
-      apply singleton_arrow_self },
+      apply singleton_self },
     { rintro ⟨rfl, rfl⟩,
       exact ⟨_, _, by simp, _, rfl⟩ },
   end,
   transitive :=
   begin
     rintro X S Ti ⟨Z, g, i, rfl⟩ hS,
-    rcases hS g (singleton_arrow_self g) with ⟨Y, f, i, hTi⟩,
+    rcases hS g (singleton_self g) with ⟨Y, f, i, hTi⟩,
     refine ⟨_, f ≫ g, _, _⟩,
     { resetI,
       apply_instance },
@@ -250,11 +252,11 @@ def trivial : pretopology C :=
       rw hTi at hh,
       rcases hh with ⟨rfl, rfl⟩,
       simp only [id_comp, eq_to_hom_refl],
-      apply singleton_arrow_self (f ≫ g) },
+      apply singleton_self (f ≫ g) },
     { rintro ⟨rfl, rfl⟩,
-      refine ⟨_, f, g, singleton_arrow_self _, _, by simp⟩,
+      refine ⟨_, f, g, singleton_self _, _, by simp⟩,
       rw hTi,
-      apply singleton_arrow_self }
+      apply singleton_self }
   end }
 
 instance : order_bot (pretopology C) :=

@@ -183,11 +183,11 @@ protected def induction_on' {C : ℤ → Sort*} (z : ℤ) (b : ℤ) :
 λ H0 Hs Hp,
 begin
   rw ←sub_add_cancel z b,
-  induction (z - b),
-  { induction a with n ih, { rwa [of_nat_zero, zero_add] },
+  induction (z - b) with n n,
+  { induction n with n ih, { rwa [of_nat_zero, zero_add] },
     rw [of_nat_succ, add_assoc, add_comm 1 b, ←add_assoc],
     exact Hs _ (le_add_of_nonneg_left (of_nat_nonneg _)) ih },
-  { induction a with n ih,
+  { induction n with n ih,
     { rw [neg_succ_of_nat_eq, ←of_nat_eq_coe, of_nat_zero, zero_add, neg_add_eq_sub],
       exact Hp _ (le_refl _) H0 },
     { rw [neg_succ_of_nat_coe', nat.succ_eq_add_one, ←neg_succ_of_nat_coe, sub_add_eq_add_sub],
@@ -519,6 +519,13 @@ begin
     rw [←mod_add_div a n, ←mod_add_div b n, right_distrib, left_distrib, left_distrib,
         mul_assoc, mul_assoc, ←left_distrib n _ _, add_mul_mod_self_left,
         mul_comm _ (n * (b / n)), mul_assoc, add_mul_mod_self_left] }
+end
+
+@[simp] lemma neg_mod_two (i : ℤ) : (-i) % 2 = i % 2 :=
+begin
+  apply int.mod_eq_mod_iff_mod_sub_eq_zero.mpr,
+  convert int.mul_mod_right 2 (-i),
+  simp only [two_mul, sub_eq_add_neg]
 end
 
 local attribute [simp] -- Will be generalized to Euclidean domains.

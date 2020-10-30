@@ -419,7 +419,7 @@ instance : unique (subalgebra R R) :=
     refine le_antisymm (λ r hr, _) bot_le,
     simp only [set.mem_range, coe_bot, id.map_eq_self, exists_apply_eq_apply, default],
   end
-  .. algebra.inhabited }
+  .. algebra.subalgebra.inhabited }
 
 end subalgebra
 

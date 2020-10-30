@@ -2076,10 +2076,10 @@ lemma sum_eq_zero_iff [canonically_ordered_add_monoid α] (l : list α) :
 begin
   induction l,
   { simp },
-  { intro,
+  { intro h,
     rw [sum_cons, add_eq_zero_iff],
-    rw forall_mem_cons at a,
-    exact ⟨a.1, l_ih a.2⟩ },
+    rw forall_mem_cons at h,
+    exact ⟨h.1, l_ih h.2⟩ },
 end⟩
 
 /-- A list with sum not zero must have positive length. -/

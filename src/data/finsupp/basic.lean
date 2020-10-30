@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Scott Morrison
 -/
 import algebra.group.pi
 import algebra.big_operators.order
-import algebra.module.basic
+import algebra.module.linear_map
 import data.fintype.card
 import data.finset.preimage
 import data.multiset.antidiagonal
@@ -256,6 +256,13 @@ lemma single_eq_zero : single a b = 0 ↔ b = 0 :=
 
 lemma single_swap (a₁ a₂ : α) (b : M) : single a₁ b a₂ = single a₂ b a₁ :=
 by simp only [single_apply]; ac_refl
+
+instance [nonempty α] [nontrivial M] : nontrivial (α →₀ M) :=
+begin
+  inhabit α,
+  rcases exists_ne (0 : M) with ⟨x, hx⟩,
+  exact nontrivial_of_ne (single (default α) x) 0 (mt single_eq_zero.1 hx)
+end
 
 lemma unique_single [unique α] (x : α →₀ M) : x = single (default α) (x (default α)) :=
 ext $ unique.forall_iff.2 single_eq_same.symm
@@ -694,7 +701,9 @@ top_unique $ λ x hx, finsupp.induction x (add_submonoid.zero_mem _) $
   λ a b f ha hb hf, add_submonoid.add_mem _
     (add_submonoid.subset_closure $ set.mem_Union.2 ⟨a, set.mem_range_self _⟩) hf
 
-@[ext] lemma add_hom_ext [add_monoid N] ⦃f g : (α →₀ M) →+ N⦄
+/-- If two additive homomorphisms from `α →₀ M` are equal on each `single a b`, then
+they are equal. -/
+lemma add_hom_ext [add_monoid N] ⦃f g : (α →₀ M) →+ N⦄
   (H : ∀ x y, f (single x y) = g (single x y)) :
   f = g :=
 begin
@@ -703,6 +712,29 @@ begin
   rcases hf with ⟨x, y, rfl⟩,
   apply H
 end
+
+/-- If two additive homomorphisms from `α →₀ M` are equal on each `single a b`, then
+they are equal.
+
+We formulate this using equality of `add_monoid_hom`s so that `ext` tactic can apply a type-specific
+extensionality lemma after this one.  E.g., if the fiber `M` is `ℕ` or `ℤ`, then it suffices to
+verify `f (single a 1) = g (single a 1)`. -/
+@[ext] lemma add_hom_ext' [add_monoid N] ⦃f g : (α →₀ M) →+ N⦄
+  (H : ∀ x, f.comp (single_add_hom x) = g.comp (single_add_hom x)) :
+  f = g :=
+add_hom_ext $ λ x, add_monoid_hom.congr_fun (H x)
+
+lemma mul_hom_ext [monoid N] ⦃f g : multiplicative (α →₀ M) →* N⦄
+  (H : ∀ x y, f (multiplicative.of_add $ single x y) = g (multiplicative.of_add $ single x y)) :
+  f = g :=
+monoid_hom.ext $ add_monoid_hom.congr_fun $
+  @add_hom_ext α M (additive N) _ _ f.to_additive'' g.to_additive'' H
+
+@[ext] lemma mul_hom_ext' [monoid N] {f g : multiplicative (α →₀ M) →* N}
+  (H : ∀ x, f.comp (single_add_hom x).to_multiplicative =
+    g.comp (single_add_hom x).to_multiplicative) :
+  f = g :=
+mul_hom_ext $ λ x, monoid_hom.congr_fun (H x)
 
 lemma map_range_add [add_monoid N]
   {f : M → N} {hf : f 0 = 0} (hf' : ∀ x y, f (x + y) = f x + f y) (v₁ v₂ : α →₀ M) :
@@ -844,6 +876,18 @@ have hfg : (f + g).prod h = ∏ a in f.support ∪ g.support, h a ((f + g) a),
   from (f + g).prod_of_support_subset support_add _ $ λ a ha, h_zero a,
 by simp only [*, add_apply, prod_mul_distrib]
 
+@[simp]
+lemma sum_add_index' [add_comm_monoid M] [add_comm_monoid N] {f g : α →₀ M} (h : α → M →+ N) :
+  (f + g).sum (λ x, h x) = f.sum (λ x, h x) + g.sum (λ x, h x) :=
+sum_add_index (λ a, (h a).map_zero) (λ a, (h a).map_add)
+
+@[simp]
+lemma prod_add_index' [add_comm_monoid M] [comm_monoid N] {f g : α →₀ M}
+  (h : α → multiplicative M →* N) :
+  (f + g).prod (λ a b, h a (multiplicative.of_add b)) =
+    f.prod (λ a b, h a (multiplicative.of_add b)) * g.prod (λ a b, h a (multiplicative.of_add b)) :=
+prod_add_index (λ a, (h a).map_one) (λ a, (h a).map_mul)
+
 /-- The canonical isomorphism between families of additive monoid homomorphisms `α → (M →+ N)`
 and monoid homomorphisms `(α →₀ M) →+ N`. -/
 def lift_add_hom [add_comm_monoid M] [add_comm_monoid N] : (α → M →+ N) ≃+ ((α →₀ M) →+ N) :=
@@ -878,6 +922,22 @@ lift_add_hom.to_equiv.apply_eq_iff_eq_symm_apply.2 rfl
 @[simp] lemma sum_single [add_comm_monoid M] (f : α →₀ M) :
   f.sum single = f :=
 add_monoid_hom.congr_fun lift_add_hom_single_add_hom f
+
+@[simp] lemma lift_add_hom_apply_single [add_comm_monoid M] [add_comm_monoid N]
+  (f : α → M →+ N) (a : α) (b : M) :
+  lift_add_hom f (single a b) = f a b :=
+sum_single_index (f a).map_zero
+
+@[simp] lemma lift_add_hom_comp_single [add_comm_monoid M] [add_comm_monoid N] (f : α → M →+ N)
+  (a : α) :
+  (lift_add_hom f).comp (single_add_hom a) = f a :=
+add_monoid_hom.ext $ λ b, lift_add_hom_apply_single f a b
+
+lemma comp_lift_add_hom [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
+  (g : N →+ P) (f : α → M →+ N) :
+  g.comp (lift_add_hom f) = lift_add_hom (λ a, g.comp (f a)) :=
+lift_add_hom.symm_apply_eq.1 $ funext $ λ a,
+  by rw [lift_add_hom_symm_apply, add_monoid_hom.comp_assoc, lift_add_hom_comp_single]
 
 lemma sum_sub_index [add_comm_group β] [add_comm_group γ] {f g : α →₀ β}
   {h : α → β → γ} (h_sub : ∀a b₁ b₂, h a (b₁ - b₂) = h a b₁ - h a b₂) :
@@ -1608,17 +1668,6 @@ smul_single _ _ _
 
 lemma smul_single_one [semiring R] (a : α) (b : R) : b • single a 1 = single a b :=
 by rw [smul_single, smul_eq_mul, mul_one]
-
-@[ext] lemma lhom_ext' [semiring R] [add_comm_monoid M] [semimodule R M] [add_comm_monoid N]
-  [semimodule R N] ⦃φ ψ : (α →₀ M) →ₗ[R] N⦄ (h : ∀ a b, φ (single a b) = ψ (single a b)) :
-  φ = ψ :=
-linear_map.to_add_monoid_hom_injective $ add_hom_ext h
-
-/-- Two `R`-linear maps from `finsupp X R` which agree on `single x 1` agree everywhere. -/
-@[ext] lemma lhom_ext [semiring R] [add_comm_monoid M] [semimodule R M] ⦃φ ψ : (α →₀ R) →ₗ[R] M⦄
-  (h : ∀ a : α, φ (single a 1) = ψ (single a 1)) : φ = ψ :=
-lhom_ext' $ λ x y, by simp only [← smul_single_one x y, linear_map.to_add_monoid_hom_coe,
-  linear_map.map_smul, h]
 
 end
 

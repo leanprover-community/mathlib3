@@ -416,7 +416,7 @@ begin
 end
 
 section
-variables {L : Type*} [discrete_linear_ordered_field L]
+variables {L : Type*} [linear_ordered_field L]
 variables {W : Type v} [add_comm_group W] [vector_space L W]
 
 /--
@@ -816,16 +816,33 @@ calc  findim K V
 
 end linear_map
 
+namespace alg_hom
+
+lemma bijective {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
+  [finite_dimensional F E] (ϕ : E →ₐ[F] E) : function.bijective ϕ :=
+have inj : function.injective ϕ.to_linear_map := ϕ.to_ring_hom.injective,
+⟨inj, (linear_map.injective_iff_surjective_of_findim_eq_findim rfl).mp inj⟩
+
+end alg_hom
+
+/-- Biijection between algebra equivalences and algebra homomorphisms -/
+noncomputable def alg_equiv_equiv_alg_hom (F : Type u) [field F] (E : Type v) [field E]
+  [algebra F E] [finite_dimensional F E] : (E ≃ₐ[F] E) ≃ (E →ₐ[F] E) :=
+{ to_fun := λ ϕ, ϕ.to_alg_hom,
+  inv_fun := λ ϕ, alg_equiv.of_bijective ϕ ϕ.bijective,
+  left_inv := λ _, by {ext, refl},
+  right_inv := λ _, by {ext, refl} }
+
 section
 
 /-- An integral domain that is module-finite as an algebra over a field is a field. -/
 noncomputable def field_of_finite_dimensional (F K : Type*) [field F] [integral_domain K]
   [algebra F K] [finite_dimensional F K] : field K :=
 { inv := λ x, if H : x = 0 then 0 else classical.some $
-    (show function.surjective (algebra.lmul_left F K x), from
+    (show function.surjective (algebra.lmul_left F x), from
       linear_map.injective_iff_surjective.1 $ λ _ _, (mul_right_inj' H).1) 1,
   mul_inv_cancel := λ x hx, show x * dite _ _ _ = _, by { rw dif_neg hx,
-    exact classical.some_spec ((show function.surjective (algebra.lmul_left F K x), from
+    exact classical.some_spec ((show function.surjective (algebra.lmul_left F x), from
       linear_map.injective_iff_surjective.1 $ λ _ _, (mul_right_inj' hx).1) 1) },
   inv_zero := dif_pos rfl,
   .. ‹integral_domain K› }

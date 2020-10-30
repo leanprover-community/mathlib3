@@ -173,8 +173,7 @@ begin
   { calc ((a ^ 2) * (a ^ 2)) + ((b ^ 2) * (b ^ 2))
         = a ^ 4 + b ^ 4 : by ring
     ... = c ^ 2 : by rw h.1.2.2
-    ... = c * c : by rw pow_two
-  },
+    ... = c * c : by rw pow_two },
   -- coprime requirement:
   have h2 : int.gcd (a ^ 2) (b ^ 2) = 1 :=
     int.gcd_eq_one_iff_coprime.mpr (coprime_of_minimal h).pow,

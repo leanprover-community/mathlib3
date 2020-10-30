@@ -42,7 +42,7 @@ a single `prod.map` of composed functions.
 lemma comp_map {ε ζ : Type*}
   (f : α → β) (f' : γ → δ) (g : β → ε) (g' : δ → ζ) :
   prod.map g g' ∘ prod.map f f' = prod.map (g ∘ f) (g' ∘ f') :=
-by { ext; simp only [prod_map, function.comp_app] }
+rfl
 
 @[simp] theorem mk.inj_iff {a₁ a₂ : α} {b₁ b₂ : β} : (a₁, b₁) = (a₂, b₂) ↔ (a₁ = a₂ ∧ b₁ = b₂) :=
 ⟨prod.mk.inj, by cc⟩

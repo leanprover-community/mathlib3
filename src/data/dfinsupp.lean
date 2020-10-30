@@ -931,7 +931,7 @@ begin
 end
 
 /-- The `dfinsupp` version of `finsupp.lsum`,-/
-@[simps apply symm_apply]
+@[simps apply_apply symm_apply {simp_rhs := tt}]
 def lsum {R : Type*} [semiring R] [Π i, add_comm_monoid (β i)] [Π i, semimodule R (β i)]
   [add_comm_monoid γ] [semimodule R γ] :
     (Π i, β i →ₗ[R] γ) ≃+ ((Π₀ i, β i) →ₗ[R] γ) :=
@@ -949,6 +949,10 @@ def lsum {R : Type*} [semiring R] [Π i, add_comm_monoid (β i)] [Π i, semimodu
   left_inv := λ F, by { ext x y, simp },
   right_inv := λ F, by { ext x y, simp },
   map_add' := λ F G, by { ext x y, simp } }
+
+-- def lsum_apply [semiring R] [Π i, add_comm_monoid (β i)] [Π i, semimodule R (β i)]
+--   [add_comm_monoid γ] [semimodule R γ] (f : Π i, β i →ₗ[R] γ) :
+-- lsum f = {to_fun := ⇑(sum_add_hom (λ (i : ?M_1), (F i).to_add_monoid_hom)), map_add' := _, map_smul' := _}
 
 @[to_additive]
 lemma prod_subtype_domain_index [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]

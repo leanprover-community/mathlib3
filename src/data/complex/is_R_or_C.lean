@@ -144,12 +144,12 @@ end
 
 @[simp, norm_cast] lemma of_real_neg (r : ℝ) : ((-r : ℝ) : K) = -r := ext_iff.2 $ by simp
 @[simp, norm_cast] lemma of_real_mul (r s : ℝ) : ((r * s : ℝ) : K) = r * s := ext_iff.2 $ by simp
-lemma of_real_mul_re (r : ℝ) (z : K) : re ((r : K) * z) = r * re z :=
+lemma of_real_mul_re (r : ℝ) (z : K) : re (↑r * z) = r * re z :=
 by simp only [mul_re, of_real_im, zero_mul, of_real_re, sub_zero]
 
-lemma smul_re (r : ℝ) (z : K) : re ((r : K) * z) = r * (re z) :=
+lemma smul_re (r : ℝ) (z : K) : re (↑r * z) = r * (re z) :=
 by simp only [of_real_im, zero_mul, of_real_re, sub_zero, mul_re]
-lemma smul_im (r : ℝ) (z : K) : im ((r : K) * z) = r * (im z) :=
+lemma smul_im (r : ℝ) (z : K) : im (↑r * z) = r * (im z) :=
 by simp only [add_zero, of_real_im, zero_mul, of_real_re, mul_im]
 
 lemma smul_re' : ∀ (r : ℝ) (z : K), re (r • z) = r * (re z) :=
@@ -259,7 +259,7 @@ le_add_of_nonneg_left (mul_self_nonneg _)
 theorem mul_conj (z : K) : z * conj z = ((norm_sq z) : K) :=
 by simp [ext_iff, norm_sq, mul_comm, sub_eq_neg_add, add_comm]
 
-theorem add_conj (z : K) : z + conj z = ((2 * re z) : K) :=
+theorem add_conj (z : K) : z + conj z = 2 * (re z) :=
 by simp [ext_iff, two_mul]
 
 /-- The pseudo-coercion `of_real` as a `ring_hom`. -/
@@ -268,12 +268,12 @@ def of_real_hom : ℝ →+* K := ⟨of_real, of_real_one, of_real_mul, of_real_z
 /-- The coercion from reals as a `ring_hom`. -/
 def coe_hom : ℝ →+* K := ⟨coe, of_real_one, of_real_mul, of_real_zero, of_real_add⟩
 
-@[simp, norm_cast] lemma of_real_sub (r s : ℝ) : ((r - s : ℝ) : K) = (r : K) - (s : K) :=
+@[simp, norm_cast] lemma of_real_sub (r s : ℝ) : ((r - s : ℝ) : K) = r - s :=
 ext_iff.2 $ by simp
-@[simp, norm_cast] lemma of_real_pow (r : ℝ) (n : ℕ) : ((r ^ n : ℝ) : K) = (r : K) ^ n :=
+@[simp, norm_cast] lemma of_real_pow (r : ℝ) (n : ℕ) : ((r ^ n : ℝ) : K) = r ^ n :=
 by induction n; simp [*, of_real_mul, pow_succ]
 
-theorem sub_conj (z : K) : z - conj z = ((2 * im z) : K) * I :=
+theorem sub_conj (z : K) : z - conj z = (2 * im z) * I :=
 by simp [ext_iff, two_mul, sub_eq_add_neg, add_mul, mul_im_I_ax]
 
 lemma norm_sq_sub (z w : K) : norm_sq (z - w) =
@@ -313,10 +313,10 @@ by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg]
 lemma div_im (z w : K) : im (z / w) = im z * re w / norm_sq w - re z * im w / norm_sq w :=
 by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm]
 
-@[simp, norm_cast] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : K) = (r : K) / (s : K) :=
+@[simp, norm_cast] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : K) = r / s :=
 (@is_R_or_C.coe_hom K _).map_div r s
 
-lemma div_re_of_real {z : K} {r : ℝ} : re (z / (r : K)) = re z / r :=
+lemma div_re_of_real {z : K} {r : ℝ} : re (z / r) = re z / r :=
 begin
   by_cases h : r = 0,
   { simp [h, of_real_zero] },
@@ -325,7 +325,7 @@ begin
     simp [norm_sq, norm_sq_of_real, div_mul_eq_div_mul_one_div, div_self h] }
 end
 
-@[simp, norm_cast] lemma of_real_fpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : K) = (r : K) ^ n :=
+@[simp, norm_cast] lemma of_real_fpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : K) = r ^ n :=
 (@is_R_or_C.coe_hom K _).map_fpow r n
 
 lemma I_mul_I_of_nonzero : (I : K) ≠ 0 → (I : K) * I = -1 :=
@@ -403,7 +403,7 @@ lemma char_zero_R_or_C : char_zero K :=
 char_zero_of_inj_zero $ λ n h,
 by rwa [← of_real_nat_cast, of_real_eq_zero, nat.cast_eq_zero] at h
 
-theorem re_eq_add_conj (z : K) : ((re z) : K) = (z + conj z) / 2 :=
+theorem re_eq_add_conj (z : K) : ↑(re z) = (z + conj z) / 2 :=
 begin
   haveI : char_zero K := char_zero_R_or_C,
   rw [add_conj, mul_div_cancel_left ((re z):K) two_ne_zero'],
@@ -418,12 +418,12 @@ end
 local notation `abs'` := _root_.abs
 local notation `absK` := @abs K _
 
-@[simp, norm_cast] lemma abs_of_real (r : ℝ) : absK (r : K) = abs' r :=
+@[simp, norm_cast] lemma abs_of_real (r : ℝ) : absK r = abs' r :=
 by simp [abs, norm_sq, norm_sq_of_real, real.sqrt_mul_self_eq_abs]
 
 lemma norm_eq_abs (z : K) : ∥z∥ = absK z := by simp [abs, norm_sq_eq_def']
 
-lemma abs_of_nonneg {r : ℝ} (h : 0 ≤ r) : absK (r : K) = r :=
+lemma abs_of_nonneg {r : ℝ} (h : 0 ≤ r) : absK r = r :=
 (abs_of_real _).trans (abs_of_nonneg h)
 
 lemma abs_of_nat (n : ℕ) : absK n = n :=

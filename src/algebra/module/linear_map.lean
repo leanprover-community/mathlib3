@@ -71,6 +71,8 @@ variables [semimodule R M] [semimodule R M₂]
 
 instance : has_coe_to_fun (M →ₗ[R] M₂) := ⟨_, to_fun⟩
 
+initialize_simps_projections linear_map (to_fun → apply)
+
 @[simp] lemma coe_mk (f : M → M₂) (h₁ h₂) :
   ((linear_map.mk f h₁ h₂ : M →ₗ[R] M₂) : M → M₂) = f := rfl
 
@@ -349,6 +351,11 @@ end
 def symm : M₂ ≃ₗ[R] M :=
 { .. e.to_linear_map.inverse e.inv_fun e.left_inv e.right_inv,
   .. e.to_equiv.symm }
+
+/-- See Note [custom simps projection] -/
+def simps.inv_fun [semimodule R M] [semimodule R M₂] (e : M ≃ₗ[R] M₂) : M₂ → M := e.symm
+
+initialize_simps_projections linear_equiv (to_fun → apply, inv_fun → symm_apply)
 
 @[simp] lemma inv_fun_apply {m : M₂} : e.inv_fun m = e.symm m := rfl
 

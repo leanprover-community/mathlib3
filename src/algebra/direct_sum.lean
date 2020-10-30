@@ -71,9 +71,7 @@ def mk (s : finset ι) : (Π i : (↑s : set ι), β i.1) →+ ⨁ i, β i :=
 
 /-- `of i` is the natural inclusion map from `β i` to `⨁ i, β i`. -/
 def of (i : ι) : β i →+ ⨁ i, β i :=
-{ to_fun := dfinsupp.single i,
-  map_add' := λ _ _, dfinsupp.single_add,
-  map_zero' := dfinsupp.single_zero }
+dfinsupp.single_add_hom β i
 
 variables {β}
 
@@ -101,52 +99,16 @@ variables (φ)
 /-- `to_add_monoid φ` is the natural homomorphism from `⨁ i, β i` to `γ`
 induced by a family `φ` of homomorphisms `β i → γ`. -/
 def to_add_monoid : (⨁ i, β i) →+ γ :=
-{ to_fun := (λ f,
-    quotient.lift_on f (λ x, ∑ i in x.2.to_finset, φ i (x.1 i)) $ λ x y H,
-    begin
-      have H1 : x.2.to_finset ∩ y.2.to_finset ⊆ x.2.to_finset, from finset.inter_subset_left _ _,
-      have H2 : x.2.to_finset ∩ y.2.to_finset ⊆ y.2.to_finset, from finset.inter_subset_right _ _,
-      refine (finset.sum_subset H1 _).symm.trans ((finset.sum_congr rfl _).trans (finset.sum_subset H2 _)),
-      { intros i H1 H2, rw finset.mem_inter at H2, rw H i,
-        simp only [multiset.mem_to_finset] at H1 H2,
-        rw [(y.3 i).resolve_left (mt (and.intro H1) H2), add_monoid_hom.map_zero] },
-      { intros i H1, rw H i },
-      { intros i H1 H2, rw finset.mem_inter at H2, rw ← H i,
-        simp only [multiset.mem_to_finset] at H1 H2,
-        rw [(x.3 i).resolve_left (mt (λ H3, and.intro H3 H1) H2), add_monoid_hom.map_zero] }
-    end),
-  map_add' := assume f g,
-  begin
-    refine quotient.induction_on f (λ x, _),
-    refine quotient.induction_on g (λ y, _),
-    change ∑ i in _, _ = (∑ i in _, _) + (∑ i in _, _),
-    simp only, conv { to_lhs, congr, skip, funext, rw add_monoid_hom.map_add },
-    simp only [finset.sum_add_distrib],
-    congr' 1,
-    { refine (finset.sum_subset _ _).symm,
-      { intro i, simp only [multiset.mem_to_finset, multiset.mem_add], exact or.inl },
-      { intros i H1 H2, simp only [multiset.mem_to_finset, multiset.mem_add] at H2,
-        rw [(x.3 i).resolve_left H2, add_monoid_hom.map_zero] } },
-    { refine (finset.sum_subset _ _).symm,
-      { intro i, simp only [multiset.mem_to_finset, multiset.mem_add], exact or.inr },
-      { intros i H1 H2, simp only [multiset.mem_to_finset, multiset.mem_add] at H2,
-        rw [(y.3 i).resolve_left H2, add_monoid_hom.map_zero] } }
-  end,
-  map_zero' := rfl
-}
+(dfinsupp.lift_add_hom φ)
 
 @[simp] lemma to_add_monoid_of (i) (x : β i) : to_add_monoid φ (of β i x) = φ i x :=
-(add_zero _).trans $ congr_arg (φ i) $ show (if H : i ∈ ({i} : finset _) then x else 0) = x,
-from dif_pos $ finset.mem_singleton_self i
+by simp [to_add_monoid, of]
 
 variables (ψ : (⨁ i, β i) →+ γ)
 
 theorem to_add_monoid.unique (f : ⨁ i, β i) :
   ψ f = to_add_monoid (λ i, ψ.comp (of β i)) f :=
-direct_sum.induction_on f
-  (by rw [add_monoid_hom.map_zero, add_monoid_hom.map_zero])
-  (λ i x, by rw [to_add_monoid_of, add_monoid_hom.comp_apply])
-  (λ x y ihx ihy, by rw [add_monoid_hom.map_add, add_monoid_hom.map_add, ihx, ihy])
+by {congr, ext, simp [to_add_monoid, of]}
 
 variables (β)
 /-- `set_to_set β S T h` is the natural homomorphism `⨁ (i : S), β i → ⨁ (i : T), β i`,

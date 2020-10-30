@@ -509,7 +509,7 @@ is_iso_limit_cone_parallel_pair_of_eq ((cancel_epi _).1 (fork.condition c)) h
 
 end
 
-instance : has_equalizer f f :=
+instance has_equalizer_of_self : has_equalizer f f :=
 has_limit.mk
 { cone := id_fork rfl,
   is_limit := is_limit_id_fork rfl }
@@ -643,7 +643,7 @@ is_iso_colimit_cocone_parallel_pair_of_eq ((cancel_mono _).1 (cofork.condition c
 
 end
 
-instance : has_coequalizer f f :=
+instance has_coequalizer_of_self : has_coequalizer f f :=
 has_colimit.mk
 { cocone := id_cofork rfl,
   is_colimit := is_colimit_id_cofork rfl }

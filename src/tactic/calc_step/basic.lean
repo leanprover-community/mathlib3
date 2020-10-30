@@ -7,6 +7,21 @@ import tactic.core
 import tactic.calc_step.lemmas
 import tactic.norm_num
 
+/-
+TODO:
+* special support for `0` and `1`? things like:
+
+  - `0 < x ↔ -x < 0`
+  - `(h : 0 ≤ x * y) {h0 : 0 ≤ 2} : 0 ≤ y`
+  - `1 < x ↔ x⁻¹ < 1`
+
+* `linarith` and `chain_ineq` as dischargers?
+  probably not... just let the user chain the tactics.
+
+* call specialized parts of `norm_num` as discharger.
+
+-/
+
 #print tactic.to_expr
 
 meta def expr.elab (e : pexpr) (allow_mvars : opt_param bool tt) (subgoals : opt_param bool tt) :
@@ -29,44 +44,18 @@ meta def get_side : side → op → side
 | N sub := R
 | _ _   := N
 
--- meta def analyze_type : expr → option (ℕ × list ℕ)
--- | `(%%lhs ↔ %%rhs) := _
--- | `(%%lhs = %%rhs) := _
--- | `(%%lhs ≤ %%rhs) := _
--- | `(%%lhs < %%rhs) := _
--- | `(%%lhs ≠ %%rhs) := _
--- | _ := none
+meta def calc_step_unary (hyp : expr) (pat : expr → pexpr) : tactic expr :=
+do t ← target, (``(%%(pat hyp) : %%t)).elab
 
-
--- meta def find_named_arg (n : name) : expr → option ℕ
--- | (expr.pi a _ _ e) := if n = a then some 0 else nat.succ <$> find_named_arg e
--- | _ := none
-
--- meta def apply_named_arg (d : declaration) (n : name) (v : expr) : tactic expr :=
--- do e ← resolve_name d.to_name,
---   match find_named_arg n d.type with
---   | none := failed
---   | some n := _
---   end
-
--- run_cmd do
---   d ← get_decl ``has_add.add,
---   n ← find_named_arg `c d.type,
---   trace n -- 1
-
-meta def calc_step_unary (n : name) : tactic expr :=
-failed -- fix this
-
-meta def calc_step_binary (e : pexpr) (goal : expr) (pat : expr → expr → pexpr) : tactic expr :=
-do e' ← e.elab,
-  t ← target, r ← (``(%%(pat e' goal) : %%t)).elab, return r
+meta def calc_step_binary (val : pexpr) (hyp : expr) (pat : expr → expr → pexpr) : tactic expr :=
+do e ← val.elab, t ← target, (``(%%(pat e hyp) : %%t)).elab
 
 meta def calc_step (e : option pexpr) (s : side) (op : op) (sgn : sign) : tactic unit :=
 focus1 $ do
   let sd := get_side s op,
   newgoal ← mk_mvar,
   prf ← match e with
-  | none := (lookup.find (sd, op, sgn)).mfirst calc_step_unary
+  | none   := (lookup_unary.find (sd, op, sgn)).mfirst (calc_step_unary newgoal)
   | some x := (lookup_binary.find (sd, op, sgn)).mfirst (calc_step_binary x newgoal)
   end,
   apply prf,

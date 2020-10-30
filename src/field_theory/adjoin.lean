@@ -380,6 +380,7 @@ section adjoin_integral_element
 
 variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (α : E)
 variables [h : fact (is_integral F α)]
+variables {K : Type*} [field K] [algebra F K]
 
 lemma min_poly_eval_gen_eq_zero :
   (minimal_polynomial h).eval₂ (algebra_map F F⟮α⟯) (adjoin_simple.gen F α) = 0 :=
@@ -429,30 +430,41 @@ begin
   exact eq.trans key1.symm key2,
 end
 
-lemma alg_hom_adjoin_integral (h_sep : (minimal_polynomial h).separable)
-  (h_splits : (minimal_polynomial h).splits (algebra_map F F⟮α⟯)) :
-  fintype.card (F⟮α⟯ →ₐ[F] F⟮α⟯) = (minimal_polynomial h).nat_degree :=
+/-- Algebra homomorphism `F⟮α⟯ →ₐ[F] K` are in bijection with the set of roots
+of `minimal_polynomial α` in `K`. -/
+noncomputable def alg_hom_adjoin_integral_equiv :
+  (F⟮α⟯ →ₐ[F] K) ≃ (↑((minimal_polynomial h).map (algebra_map F K)).roots.to_finset : set K) :=
 begin
   have ϕ := adjoin_root_equiv_adjoin_simple F α,
-  have swap1 : (F⟮α⟯ →ₐ[F] F⟮α⟯) ≃
-    (adjoin_root (minimal_polynomial h) →ₐ[F] F⟮α⟯) :=
+  have swap1 : (F⟮α⟯ →ₐ[F] K) ≃ (adjoin_root (minimal_polynomial h) →ₐ[F] K) :=
   { to_fun := λ f, f.comp (ϕ.to_alg_hom),
     inv_fun := λ f, f.comp (ϕ.symm.to_alg_hom),
     left_inv := λ _, by { ext, simp only [alg_equiv.coe_alg_hom,
       alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply, alg_equiv.apply_symm_apply]},
     right_inv := λ _, by { ext, simp only [alg_equiv.symm_apply_apply,
       alg_equiv.coe_alg_hom, alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply] } },
-  have swap2 := adjoin_root.equiv F F⟮α⟯ (minimal_polynomial h) (minimal_polynomial.ne_zero h),
-  rw [fintype.card_congr (swap1.trans swap2), polynomial.nat_degree_eq_card_roots h_splits,
-      fintype.card_coe, multiset.to_finset_card_of_nodup],
-  exact polynomial.nodup_roots ((polynomial.separable_map (algebra_map F F⟮α⟯)).mpr h_sep),
+  have swap2 := adjoin_root.equiv F K (minimal_polynomial h) (minimal_polynomial.ne_zero h),
+  exact swap1.trans swap2,
 end
 
-lemma alg_equiv_adjoin_integral (h_separable : (minimal_polynomial h).separable)
+noncomputable instance [h : fact (is_integral F α)] : fintype (F⟮α⟯ →ₐ[F] K) :=
+  fintype.of_equiv _ (alg_hom_adjoin_integral_equiv F α).symm
+
+lemma alg_hom_adjoin_integral (h_sep : (minimal_polynomial h).separable)
+  (h_splits : (minimal_polynomial h).splits (algebra_map F K)) :
+  fintype.card (F⟮α⟯ →ₐ[F] K) = (minimal_polynomial h).nat_degree :=
+begin
+  rw [fintype.card_congr (alg_hom_adjoin_integral_equiv F α),
+      polynomial.nat_degree_eq_card_roots h_splits, fintype.card_coe,
+      multiset.to_finset_card_of_nodup],
+  exact polynomial.nodup_roots ((polynomial.separable_map (algebra_map F K)).mpr h_sep),
+end
+
+lemma alg_equiv_adjoin_integral (h_sep : (minimal_polynomial h).separable)
   (h_splits : (minimal_polynomial h).splits (algebra_map F F⟮α⟯)) :
   fintype.card (F⟮α⟯ ≃ₐ[F] F⟮α⟯) = (minimal_polynomial h).nat_degree :=
 eq.trans (fintype.card_congr (alg_equiv_equiv_alg_hom F F⟮α⟯))
-  (@alg_hom_adjoin_integral F _ _ _ _ α h h_separable h_splits)
+  (@alg_hom_adjoin_integral F _ _ _ _ α h _ _ _ h_sep h_splits)
 
 end adjoin_integral_element
 

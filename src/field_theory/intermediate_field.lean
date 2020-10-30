@@ -290,7 +290,7 @@ section finite_dimensional
 
 instance finite_dimensional_left [finite_dimensional K L] (F : intermediate_field K L) :
   finite_dimensional K F :=
-  finite_dimensional.finite_dimensional_submodule F.to_subalgebra.to_submodule
+finite_dimensional.finite_dimensional_submodule F.to_subalgebra.to_submodule
 
 instance finite_dimensional_right [finite_dimensional K L] (F : intermediate_field K L) :
   finite_dimensional F L :=

@@ -71,8 +71,11 @@ lemma C_mem_lifts (f : R →+* S) (r : R) : (C (f r)) ∈ lifts f :=
 
 /-- If `(s : S)` is in the image of `f`, then `C s` lifts. -/
 lemma C'_mem_lifts {f : R →+* S} {s : S} (h : s ∈ set.range f) : (C s) ∈ lifts f :=
-by obtain ⟨r, rfl⟩ := set.mem_range.1 h; use C r; simp only [map_C, set.mem_univ,
-  subsemiring.coe_top, eq_self_iff_true, ring_hom.coe_of, and_self]
+begin
+  obtain ⟨r, rfl⟩ := set.mem_range.1 h,
+  use C r,
+  simp only [map_C, set.mem_univ, subsemiring.coe_top, eq_self_iff_true, ring_hom.coe_of, and_self]
+end
 
 /-- The polynomial `X` lifts. -/
 lemma X_mem_lifts (f : R →+* S) : (X : polynomial S) ∈ lifts f :=

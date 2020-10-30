@@ -137,6 +137,7 @@ instance (V : opens_le_cover U) :
   nonempty (comma (functor.from_punit V) (pairwise_to_opens_le_cover U)) :=
 ⟨{ right := single (V.index), hom := V.hom_to_index }⟩
 
+-- this is crazy crazy slow
 /--
 The diagram consisting of the `U i` and `U i ⊓ U j` is cofinal in the diagram
 of all opens contained in some `U i`.

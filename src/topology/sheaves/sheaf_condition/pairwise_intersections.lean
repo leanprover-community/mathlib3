@@ -99,21 +99,25 @@ def cone_equiv_functor_obj (F : presheaf C X)
     begin
       cases Y; cases Z; cases f,
       { ext i, dsimp,
-        simp only [limit.lift_π, category.id_comp, fan.mk_π_app, category_theory.functor.map_id, category.assoc],
+        simp only [limit.lift_π, category.id_comp, fan.mk_π_app, category_theory.functor.map_id,
+          category.assoc],
         dsimp,
         simp only [limit.lift_π, category.id_comp, fan.mk_π_app], },
       { ext ⟨i, j⟩, dsimp [sheaf_condition_equalizer_products.left_res],
-        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app, category.assoc],
+        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app,
+          category.assoc],
         have h := c.π.naturality (has_hom.hom.op (hom.left i j)),
         dsimp at h,
-        simpa using h, },
+        simpa only [category.id_comp] using h, },
       { ext ⟨i, j⟩, dsimp [sheaf_condition_equalizer_products.right_res],
-        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app, category.assoc],
+        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app,
+          category.assoc],
         have h := c.π.naturality (has_hom.hom.op (hom.right i j)),
         dsimp at h,
-        simpa using h,  },
+        simpa only [category.id_comp] using h, },
       { ext i, dsimp,
-        simp only [limit.lift_π, category.id_comp, fan.mk_π_app, category_theory.functor.map_id, category.assoc],
+        simp only [limit.lift_π, category.id_comp, fan.mk_π_app, category_theory.functor.map_id,
+          category.assoc],
         dsimp,
         simp only [limit.lift_π, category.id_comp, fan.mk_π_app], },
     end, }, }
@@ -128,7 +132,16 @@ def cone_equiv_functor (F : presheaf C X)
   limits.cone ((diagram U).op ⋙ F) ⥤ limits.cone (sheaf_condition_equalizer_products.diagram F U) :=
 { obj := λ c, cone_equiv_functor_obj F U c,
   map := λ c c' f,
-  { hom := f.hom, }, }.
+  { hom := f.hom,
+    w' :=
+    begin
+      /- tidy and squeeze_simp say: -/
+      intros j, dsimp at *, tactic.case_bash,
+      work_on_goal 0 { dsimp at *, ext1, dsimp at *,
+         simp only [limit.lift_π, fan.mk_π_app, category.assoc] at *, solve_by_elim },
+      dsimp at *, ext1, cases j, dsimp at *,
+      simp only [cone_morphism.w, limit.lift_π, fan.mk_π_app, category.assoc] at *
+    end } }.
 
 end
 
@@ -163,14 +176,14 @@ def cone_equiv_inverse_obj (F : presheaf C X)
       generalize : f.unop = f',
       rintro rfl,
       rcases x' with ⟨i⟩|⟨⟩; rcases y' with ⟨⟩|⟨j,j⟩; rcases f' with ⟨⟩,
-      { dsimp, erw [F.map_id], simp, },
+      { dsimp, erw [F.map_id], simp only [category.id_comp, category.comp_id], },
       { dsimp, simp only [category.id_comp, category.assoc],
         have h := c.π.naturality (walking_parallel_pair_hom.left),
         dsimp [sheaf_condition_equalizer_products.left_res] at h,
         simp only [category.id_comp] at h,
         have h' := h =≫ pi.π _ (i, j),
         rw h',
-        simp,
+        simp only [limit.lift_π, fan.mk_π_app, category.assoc],
         refl, },
       { dsimp, simp only [category.id_comp, category.assoc],
         have h := c.π.naturality (walking_parallel_pair_hom.right),
@@ -178,9 +191,9 @@ def cone_equiv_inverse_obj (F : presheaf C X)
         simp only [category.id_comp] at h,
         have h' := h =≫ pi.π _ (j, i),
         rw h',
-        simp,
+        simp only [limit.lift_π, fan.mk_π_app, category.assoc],
         refl, },
-      { dsimp, erw [F.map_id], simp, },
+      { dsimp, erw [F.map_id], simp only [category.id_comp, category.comp_id], },
     end, }, }
 
 /-- Implementation of `sheaf_condition_pairwise_intersections.cone_equiv`. -/
@@ -202,6 +215,7 @@ def cone_equiv_inverse (F : presheaf C X)
         rw [←(f.w walking_parallel_pair.one), category.assoc], },
     end }, }.
 
+-- This is crazy crazy slow
 /-- Implementation of `sheaf_condition_pairwise_intersections.cone_equiv`. -/
 @[simps]
 def cone_equiv_unit_iso_app (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → opens ↥X)
@@ -210,18 +224,29 @@ def cone_equiv_unit_iso_app (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → ope
     (cone_equiv_functor F U ⋙ cone_equiv_inverse F U).obj c :=
 { hom :=
   { hom := 𝟙 _,
-    w' := λ j, begin op_induction j, rcases j; tidy, end, },
+    w' := λ j,
+    begin
+      op_induction j, rcases j; -- this only gives 1 goal, but changing `;` to `,` breaks the proof
+      dsimp at *; simp only [limit.lift_π, category.id_comp, fan.mk_π_app] at *,
+    end, },
   inv :=
   { hom := 𝟙 _,
-    w' := λ j, begin op_induction j, rcases j; tidy, end }}
+    w' := λ j,
+    begin
+      op_induction j,
+      rcases j;
+      dsimp at *; simp only [limit.lift_π, category.id_comp, fan.mk_π_app] at *,
+    end }}
 
 /-- Implementation of `sheaf_condition_pairwise_intersections.cone_equiv`. -/
 @[simps {rhs_md := semireducible}]
 def cone_equiv_unit_iso (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → opens X) :
   𝟭 (limits.cone ((diagram U).op ⋙ F)) ≅
     cone_equiv_functor F U ⋙ cone_equiv_inverse F U :=
-nat_iso.of_components (cone_equiv_unit_iso_app F U) (by tidy)
+nat_iso.of_components (cone_equiv_unit_iso_app F U) $
+by { intros, dsimp at *, ext1, dsimp at *, simp only [category.id_comp, category.comp_id] at *}
 
+-- this is crazy crazy slow
 /-- Implementation of `sheaf_condition_pairwise_intersections.cone_equiv`. -/
 @[simps {rhs_md := semireducible}]
 def cone_equiv_counit_iso (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → opens X) :
@@ -233,20 +258,26 @@ nat_iso.of_components (λ c,
     w' :=
     begin
       rintro ⟨_|_⟩,
-      { ext, dsimp, simp, },
-      { ext ⟨i,j⟩, dsimp, simp, },
+      { ext, dsimp, simp only [limit.lift_π, category.id_comp, fan.mk_π_app], },
+      { ext ⟨i,j⟩, dsimp, simp only [limit.lift_π, category.id_comp, fan.mk_π_app], },
     end },
   inv :=
   { hom := 𝟙 _,
     w' :=
     begin
       rintro ⟨_|_⟩,
-      { ext, dsimp, simp, },
-      { ext ⟨i,j⟩, dsimp, simp, },
-    end, }}) (by tidy)
+      { ext, dsimp, simp only [limit.lift_π, category.id_comp, fan.mk_π_app], },
+      { ext ⟨i,j⟩, dsimp, simp only [limit.lift_π, category.id_comp, fan.mk_π_app], },
+    end, }})
+begin
+  intros Y Z f, dsimp at *,
+  simp only at *, ext1, dsimp at *,
+  simp only [category.id_comp, category.comp_id] at *
+end
 
 /--
-Cones over `diagram U ⋙ F` are the same as a cones over the usual sheaf condition equalizer diagram.
+Cones over `diagram U ⋙ F` are the same as a cones
+over the usual sheaf condition equalizer diagram.
 -/
 @[simps]
 def cone_equiv (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → opens X) :
@@ -260,6 +291,7 @@ local attribute [reducible]
   sheaf_condition_equalizer_products.res
   sheaf_condition_equalizer_products.left_res
 
+-- this is crazy crazy slow
 /--
 If `sheaf_condition_equalizer_products.fork` is an equalizer,
 then `F.map_cone (cone U)` is a limit cone.
@@ -276,9 +308,10 @@ is_limit.of_iso_limit ((is_limit.of_cone_equiv (cone_equiv F U).symm).symm P)
       intro x,
       op_induction x,
       rcases x with ⟨⟩,
-      { dsimp, simp, refl, },
+      { dsimp, simp only [limit.lift_π, category.id_comp, fan.mk_π_app], refl, },
       { dsimp,
-        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app, category.assoc],
+        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app,
+          category.assoc],
         rw ←F.map_comp,
         refl, }
     end },
@@ -289,13 +322,15 @@ is_limit.of_iso_limit ((is_limit.of_cone_equiv (cone_equiv F U).symm).symm P)
       intro x,
       op_induction x,
       rcases x with ⟨⟩,
-      { dsimp, simp, refl, },
+      { dsimp, simp only [limit.lift_π, category.id_comp, fan.mk_π_app], refl, },
       { dsimp,
-        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app, category.assoc],
+        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app,
+          category.assoc],
         rw ←F.map_comp,
         refl, }
     end }, }
 
+-- this is crazy slow
 /--
 If `F.map_cone (cone U)` is a limit cone,
 then `sheaf_condition_equalizer_products.fork` is an equalizer.
@@ -310,9 +345,10 @@ is_limit.of_iso_limit ((is_limit.of_cone_equiv (cone_equiv F U)).symm Q)
     w' :=
     begin
       rintro ⟨⟩,
-      { dsimp, simp, refl, },
+      { dsimp, simp only [limit.lift_π, category.id_comp, fan.mk_π_app], refl, },
       { dsimp, ext ⟨i, j⟩,
-        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app, category.assoc],
+        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app,
+          category.assoc],
         rw ←F.map_comp,
         refl, }
     end },
@@ -321,9 +357,10 @@ is_limit.of_iso_limit ((is_limit.of_cone_equiv (cone_equiv F U)).symm Q)
     w' :=
     begin
       rintro ⟨⟩,
-      { dsimp, simp, refl, },
+      { dsimp, simp only [limit.lift_π, category.id_comp, fan.mk_π_app], refl, },
       { dsimp, ext ⟨i, j⟩,
-        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app, category.assoc],
+        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app,
+          category.assoc],
         rw ←F.map_comp,
         refl, }
     end }, }

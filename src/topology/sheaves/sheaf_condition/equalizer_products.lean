@@ -120,10 +120,21 @@ nat_iso.of_components
   begin rintro ⟨⟩, exact pi_opens.iso_of_iso U α, exact pi_inters.iso_of_iso U α end
   begin
     rintro ⟨⟩ ⟨⟩ ⟨⟩,
-    { simp, },
-    { ext, simp [left_res], },
-    { ext, simp [right_res], },
-    { simp, },
+    { simp only [walking_parallel_pair_hom_id, category.id_comp, category.comp_id,
+        pi_opens.iso_of_iso.equations._eqn_1, category_theory.functor.map_id, functor.map_iso_hom,
+        eq_self_iff_true] },
+    { ext,
+      simp only [left_res, limit.lift_π, iso.app_hom, nat_trans.naturality, cones.postcompose_obj_π,
+        discrete.nat_iso_hom_app, functor.map_iso_hom, pi_opens.iso_of_iso, limit.map_π_assoc,
+        limit.lift_map, parallel_pair_map_left, fan.mk_π_app, nat_trans.comp_app,
+        pi_inters.iso_of_iso, category.assoc] },
+    { ext,
+      simp only [right_res, limit.lift_π, iso.app_hom, nat_trans.naturality,
+        cones.postcompose_obj_π, discrete.nat_iso_hom_app, functor.map_iso_hom, pi_opens.iso_of_iso,
+        limit.map_π_assoc, parallel_pair_map_right, limit.lift_map, fan.mk_π_app,
+        nat_trans.comp_app, pi_inters.iso_of_iso, category.assoc] },
+    { simp only [walking_parallel_pair_hom_id, category.id_comp, category.comp_id,
+        category_theory.functor.map_id] },
   end.
 
 /--
@@ -139,7 +150,10 @@ begin
   { apply α.app, },
   { ext,
     dunfold fork.ι, -- Ugh, `simp` can't unfold abbreviations.
-    simp [res, diagram.iso_of_iso], }
+    simp only [res, diagram.iso_of_iso, discrete.nat_iso_inv_app, functor.map_iso_inv, limit.lift_π,
+     iso.app_hom, nat_trans.naturality, cones.postcompose_obj_π, iso.hom_inv_id_app_assoc,
+     fork_π_app_walking_parallel_pair_zero, nat_iso.of_components.inv_app, pi_opens.iso_of_iso,
+     iso.app_inv, limit.lift_map, fan.mk_π_app, nat_trans.comp_app, category.assoc] }
 end
 
 section open_embedding
@@ -179,6 +193,7 @@ pi.map_iso (λ X, F.map_iso
         apply le_refl _, }), },
   end)
 
+-- This is massively slow
 /-- The isomorphism of sheaf condition diagrams corresponding to an open embedding. -/
 def diagram.iso_of_open_embedding :
   diagram (oe.is_open_map.functor.op ⋙ F) 𝒰 ≅ diagram F (cover.of_open_embedding oe 𝒰) :=
@@ -190,7 +205,8 @@ nat_iso.of_components
   end
   begin
     rintro ⟨⟩ ⟨⟩ ⟨⟩,
-    { simp, },
+    { simp only [walking_parallel_pair_hom_id, category.id_comp, category.comp_id,
+        category_theory.functor.map_id] },
     { ext,
       dsimp [left_res, is_open_map.functor],
       simp only [limit.lift_π, cones.postcompose_obj_π, iso.op_hom, discrete.nat_iso_hom_app,
@@ -207,7 +223,8 @@ nat_iso.of_components
       dsimp,
       rw [category.id_comp, ←F.map_comp],
       refl, },
-    { simp, },
+    { simp only [walking_parallel_pair_hom_id, category.id_comp, category.comp_id,
+        category_theory.functor.map_id] },
   end.
 
 /--
@@ -227,8 +244,11 @@ begin
   { dsimp [is_open_map.functor],
     exact
     F.map_iso (iso.op
-    { hom := hom_of_le (by simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset, set.image_Union]),
-      inv := hom_of_le (by simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset, set.image_Union]), }), },
+    { hom := hom_of_le
+      (by simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset, set.image_Union]),
+      inv := hom_of_le
+      (by simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset,
+            set.image_Union]) }) },
   { ext,
     dunfold fork.ι, -- Ugh, it is unpleasant that we need this.
     simp only [res, diagram.iso_of_open_embedding, discrete.nat_iso_inv_app, functor.map_iso_inv,

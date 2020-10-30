@@ -975,34 +975,34 @@ begin
   apply pow_pos, all_goals {norm_num}
 end
 
-lemma cos_pi_div_four : cos (pi / 4) = sqrt 2 / 2 :=
+@[simp] lemma cos_pi_div_four : cos (pi / 4) = sqrt 2 / 2 :=
 by { transitivity cos (pi / 2 ^ 2), congr, norm_num, simp }
 
-lemma sin_pi_div_four : sin (pi / 4) = sqrt 2 / 2 :=
+@[simp] lemma sin_pi_div_four : sin (pi / 4) = sqrt 2 / 2 :=
 by { transitivity sin (pi / 2 ^ 2), congr, norm_num, simp }
 
-lemma cos_pi_div_eight : cos (pi / 8) = sqrt (2 + sqrt 2) / 2 :=
+@[simp] lemma cos_pi_div_eight : cos (pi / 8) = sqrt (2 + sqrt 2) / 2 :=
 by { transitivity cos (pi / 2 ^ 3), congr, norm_num, simp }
 
-lemma sin_pi_div_eight : sin (pi / 8) = sqrt (2 - sqrt 2) / 2 :=
+@[simp] lemma sin_pi_div_eight : sin (pi / 8) = sqrt (2 - sqrt 2) / 2 :=
 by { transitivity sin (pi / 2 ^ 3), congr, norm_num, simp }
 
-lemma cos_pi_div_sixteen : cos (pi / 16) = sqrt (2 + sqrt (2 + sqrt 2)) / 2 :=
+@[simp] lemma cos_pi_div_sixteen : cos (pi / 16) = sqrt (2 + sqrt (2 + sqrt 2)) / 2 :=
 by { transitivity cos (pi / 2 ^ 4), congr, norm_num, simp }
 
-lemma sin_pi_div_sixteen : sin (pi / 16) = sqrt (2 - sqrt (2 + sqrt 2)) / 2 :=
+@[simp] lemma sin_pi_div_sixteen : sin (pi / 16) = sqrt (2 - sqrt (2 + sqrt 2)) / 2 :=
 by { transitivity sin (pi / 2 ^ 4), congr, norm_num, simp }
 
-lemma cos_pi_div_thirty_two : cos (pi / 32) = sqrt (2 + sqrt (2 + sqrt (2 + sqrt 2))) / 2 :=
+@[simp] lemma cos_pi_div_thirty_two : cos (pi / 32) = sqrt (2 + sqrt (2 + sqrt (2 + sqrt 2))) / 2 :=
 by { transitivity cos (pi / 2 ^ 5), congr, norm_num, simp }
 
-lemma sin_pi_div_thirty_two : sin (pi / 32) = sqrt (2 - sqrt (2 + sqrt (2 + sqrt 2))) / 2 :=
+@[simp] lemma sin_pi_div_thirty_two : sin (pi / 32) = sqrt (2 - sqrt (2 + sqrt (2 + sqrt 2))) / 2 :=
 by { transitivity sin (pi / 2 ^ 5), congr, norm_num, simp }
 
 -- This section is also a convenient location for other explicit values of `sin` and `cos`.
 
 /-- The cosine of `π / 3` is `1 / 2`. -/
-lemma cos_pi_div_three : cos (π / 3) = 1 / 2 :=
+@[simp] lemma cos_pi_div_three : cos (π / 3) = 1 / 2 :=
 begin
   have h₁ : (2 * cos (π / 3) - 1) ^ 2 * (2 * cos (π / 3) + 2) = 0,
   { have : cos (3 * (π / 3)) = cos π := by { congr' 1, ring },
@@ -1029,7 +1029,7 @@ begin
 end
 
 /-- The cosine of `π / 6` is `√3 / 2`. -/
-lemma cos_pi_div_six : cos (π / 6) = (sqrt 3) / 2 :=
+@[simp] lemma cos_pi_div_six : cos (π / 6) = (sqrt 3) / 2 :=
 begin
   suffices : sqrt 3 = cos (π / 6) * 2,
   { field_simp [(by norm_num : 0 ≠ 2)], exact this.symm },
@@ -1044,7 +1044,7 @@ begin
 end
 
 /-- The sine of `π / 6` is `1 / 2`. -/
-lemma sin_pi_div_six : sin (π / 6) = 1 / 2 :=
+@[simp] lemma sin_pi_div_six : sin (π / 6) = 1 / 2 :=
 begin
   rw [← cos_pi_div_two_sub, ← cos_pi_div_three],
   congr,
@@ -1061,7 +1061,7 @@ begin
 end
 
 /-- The sine of `π / 3` is `√3 / 2`. -/
-lemma sin_pi_div_three : sin (π / 3) = (sqrt 3) / 2 :=
+@[simp] lemma sin_pi_div_three : sin (π / 3) = (sqrt 3) / 2 :=
 begin
   rw [← cos_pi_div_two_sub, ← cos_pi_div_six],
   congr,
@@ -1809,13 +1809,13 @@ begin
         neg_eq_neg_one_mul (exp (-θ * I)), ← div_eq_iff (exp_ne_zero (-θ * I)), ← exp_sub],
     field_simp, ring },
   rw [cos, h, ← exp_pi_mul_I, exp_eq_exp_iff_exists_int],
-  split; simp; intros; use x,
-  { field_simp, ring at a,
+  split; simp; intros x h2; use x,
+  { field_simp, ring at h2,
     rwa [mul_right_comm 2 I θ, mul_right_comm (2*(x:ℂ)+1) I (π:ℂ), mul_left_inj' I_ne_zero,
-        mul_comm 2 θ] at a },
-  { field_simp at a, ring,
+        mul_comm 2 θ] at h2},
+  { field_simp at h2, ring,
     rw [mul_right_comm 2 I θ, mul_right_comm (2*(x:ℂ)+1) I (π:ℂ), mul_left_inj' I_ne_zero,
-        mul_comm 2 θ, a] },
+        mul_comm 2 θ, h2] },
 end
 
 theorem cos_ne_zero_iff {θ : ℂ} : cos θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ (2 * k + 1) * π / 2 :=

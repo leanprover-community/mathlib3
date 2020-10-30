@@ -485,7 +485,7 @@ end normed_space
 
 section pos_part
 
-variables [topological_space γ] [decidable_linear_order γ] [order_closed_topology γ]
+variables [topological_space γ] [linear_order γ] [order_closed_topology γ]
   [second_countable_topology γ] [has_zero γ] [opens_measurable_space γ]
 
 /-- Positive part of an `ae_eq_fun`. -/

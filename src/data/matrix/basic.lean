@@ -600,10 +600,10 @@ begin
   rw ← finset.sum_subset, swap 4, exact {i},
   { norm_num [std_basis_matrix] },
   { simp },
-  intros, norm_num at a, norm_num,
+  intros y _ hyi, norm_num,
   convert finset.sum_const_zero,
   ext, norm_num [std_basis_matrix],
-  rw if_neg, tauto!,
+  rw if_neg, contrapose! hyi, simp [hyi]
 end
 
 -- TODO: tie this up with the `basis` machinery of linear algebra

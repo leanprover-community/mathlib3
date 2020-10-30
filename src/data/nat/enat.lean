@@ -168,7 +168,7 @@ enat.cases_on x ⟨λ _, le_top, λ _, coe_lt_top _⟩
   (λ n, ⟨λ h, enat.coe_le_coe.2 (enat.coe_lt_coe.1 h),
     λ h, enat.coe_lt_coe.2 (enat.coe_le_coe.1 h)⟩)
 
-noncomputable instance : decidable_linear_order enat :=
+noncomputable instance : linear_order enat :=
 { le_total := λ x y, enat.cases_on x
     (or.inr le_top) (enat.cases_on y (λ _, or.inl le_top)
       (λ x y, (le_total x y).elim (or.inr ∘ coe_le_coe.2)
@@ -203,7 +203,7 @@ instance : ordered_add_comm_monoid enat :=
         (λ _, coe_lt_top _)
         (λ c h,  coe_lt_coe.2 (by rw [← coe_add, ← coe_add, coe_lt_coe] at h;
             exact lt_of_add_lt_add_left h)))),
-  ..enat.decidable_linear_order,
+  ..enat.linear_order,
   ..enat.add_comm_monoid }
 
 instance : canonically_ordered_add_monoid enat :=

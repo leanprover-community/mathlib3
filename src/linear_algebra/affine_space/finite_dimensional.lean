@@ -6,10 +6,6 @@ Author: Joseph Myers.
 import linear_algebra.affine_space.independent
 import linear_algebra.finite_dimensional
 
-noncomputable theory
-open_locale big_operators
-open_locale classical
-
 /-!
 # Finite-dimensional subspaces of affine spaces.
 
@@ -22,6 +18,9 @@ subspaces of affine spaces.
   subspace of dimension at most 1.
 
 -/
+
+noncomputable theory
+open_locale big_operators classical affine
 
 section affine_space'
 

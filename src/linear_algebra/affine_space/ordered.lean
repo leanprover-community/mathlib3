@@ -115,7 +115,7 @@ other arguments belong to specific domains.
 
 section ordered_ring
 
-variables [ordered_ring k] [ordered_add_comm_group E] [ordered_semimodule k E]
+variables [ordered_ring k] [ordered_add_comm_group E] [semimodule k E] [ordered_semimodule k E]
 
 variables {a a' b b' : E} {r r' : k}
 
@@ -163,26 +163,28 @@ lemma line_map_lt_line_map_iff_of_lt (h : r < r') :
 begin
   simp only [line_map_apply_module],
   rw [← lt_sub_iff_add_lt, add_sub_assoc, ← sub_lt_iff_lt_add', ← sub_smul, ← sub_smul,
-    sub_sub_sub_cancel_left, smul_lt_smul_iff_of_pos (sub_pos.2 h)]
+    sub_sub_sub_cancel_left, smul_lt_smul_iff_of_pos (sub_pos.2 h)],
+  apply_instance,
 end
 
 lemma left_lt_line_map_iff_lt (h : 0 < r) : a < line_map a b r ↔ a < b :=
 iff.trans (by rw line_map_apply_zero) (line_map_lt_line_map_iff_of_lt h)
 
 lemma line_map_lt_left_iff_lt (h : 0 < r) : line_map a b r < a ↔ b < a :=
-@left_lt_line_map_iff_lt k (order_dual E) _ _ _ _ _ _ h
+@left_lt_line_map_iff_lt k (order_dual E) _ _ _ _ _ _ _ h
 
 lemma line_map_lt_right_iff_lt (h : r < 1) : line_map a b r < b ↔ a < b :=
 iff.trans (by rw line_map_apply_one) (line_map_lt_line_map_iff_of_lt h)
 
 lemma right_lt_line_map_iff_lt (h : r < 1) : b < line_map a b r ↔ b < a :=
-@line_map_lt_right_iff_lt k (order_dual E) _ _ _ _ _ _ h
+@line_map_lt_right_iff_lt k (order_dual E) _ _ _ _ _ _ _ h
 
 end ordered_ring
 
 section linear_ordered_field
 
-variables [linear_ordered_field k] [ordered_add_comm_group E] [ordered_semimodule k E]
+variables [linear_ordered_field k] [ordered_add_comm_group E]
+variables [semimodule k E] [ordered_semimodule k E]
 
 section
 
@@ -193,20 +195,21 @@ lemma line_map_le_line_map_iff_of_lt (h : r < r') :
 begin
   simp only [line_map_apply_module],
   rw [← le_sub_iff_add_le, add_sub_assoc, ← sub_le_iff_le_add', ← sub_smul, ← sub_smul,
-    sub_sub_sub_cancel_left, smul_le_smul_iff_of_pos (sub_pos.2 h)]
+    sub_sub_sub_cancel_left, smul_le_smul_iff_of_pos (sub_pos.2 h)],
+  apply_instance,
 end
 
 lemma left_le_line_map_iff_le (h : 0 < r) : a ≤ line_map a b r ↔ a ≤ b :=
 iff.trans (by rw line_map_apply_zero) (line_map_le_line_map_iff_of_lt h)
 
 lemma line_map_le_left_iff_le (h : 0 < r) : line_map a b r ≤ a ↔ b ≤ a :=
-@left_le_line_map_iff_le k (order_dual E) _ _ _ _ _ _ h
+@left_le_line_map_iff_le k (order_dual E) _ _ _ _ _ _ _ h
 
 lemma line_map_le_right_iff_le (h : r < 1) : line_map a b r ≤ b ↔ a ≤ b :=
 iff.trans (by rw line_map_apply_one) (line_map_le_line_map_iff_of_lt h)
 
 lemma right_le_line_map_iff_le (h : r < 1) : b ≤ line_map a b r ↔ b ≤ a :=
-@line_map_le_right_iff_le k (order_dual E) _ _ _ _ _ _ h
+@line_map_le_right_iff_le k (order_dual E) _ _ _ _ _ _ _ h
 
 end
 
@@ -257,7 +260,7 @@ by simp_rw [line_map_apply, slope, vsub_eq_sub, vadd_eq_add, smul_eq_mul, add_su
 segment `[(a, f a), (b, f b)]` if and only if `slope f a b ≤ slope f a c`. -/
 lemma line_map_le_map_iff_slope_le_slope_left (h : 0 < r * (b - a)) :
   line_map (f a) (f b) r ≤ f c ↔ slope f a b ≤ slope f a c :=
-@map_le_line_map_iff_slope_le_slope_left k (order_dual E) _ _ _ f a b r h
+@map_le_line_map_iff_slope_le_slope_left k (order_dual E) _ _ _ _ f a b r h
 
 /-- Given `c = line_map a b r`, `a < c`, the point `(c, f c)` is strictly below the
 segment `[(a, f a), (b, f b)]` if and only if `slope f a c < slope f a b`. -/
@@ -270,7 +273,7 @@ lt_iff_lt_of_le_iff_le' (line_map_le_map_iff_slope_le_slope_left h)
 segment `[(a, f a), (b, f b)]` if and only if `slope f a b < slope f a c`. -/
 lemma line_map_lt_map_iff_slope_lt_slope_left (h : 0 < r * (b - a)) :
   line_map (f a) (f b) r < f c ↔ slope f a b < slope f a c :=
-@map_lt_line_map_iff_slope_lt_slope_left k (order_dual E) _ _ _ f a b r h
+@map_lt_line_map_iff_slope_lt_slope_left k (order_dual E) _ _ _ _ f a b r h
 
 /-- Given `c = line_map a b r`, `c < b`, the point `(c, f c)` is non-strictly below the
 segment `[(a, f a), (b, f b)]` if and only if `slope f a b ≤ slope f c b`. -/
@@ -291,7 +294,7 @@ end
 segment `[(a, f a), (b, f b)]` if and only if `slope f c b ≤ slope f a b`. -/
 lemma line_map_le_map_iff_slope_le_slope_right (h : 0 < (1 - r) * (b - a)) :
   line_map (f a) (f b) r ≤ f c ↔ slope f c b ≤ slope f a b :=
-@map_le_line_map_iff_slope_le_slope_right k (order_dual E) _ _ _ f a b r h
+@map_le_line_map_iff_slope_le_slope_right k (order_dual E) _ _ _ _ f a b r h
 
 /-- Given `c = line_map a b r`, `c < b`, the point `(c, f c)` is strictly below the
 segment `[(a, f a), (b, f b)]` if and only if `slope f a b < slope f c b`. -/
@@ -304,20 +307,24 @@ lt_iff_lt_of_le_iff_le' (line_map_le_map_iff_slope_le_slope_right h)
 segment `[(a, f a), (b, f b)]` if and only if `slope f c b < slope f a b`. -/
 lemma line_map_lt_map_iff_slope_lt_slope_right (h : 0 < (1 - r) * (b - a)) :
   line_map (f a) (f b) r < f c ↔ slope f c b < slope f a b :=
-@map_lt_line_map_iff_slope_lt_slope_right k (order_dual E) _ _ _ f a b r h
+@map_lt_line_map_iff_slope_lt_slope_right k (order_dual E) _ _ _ _ f a b r h
 
 /-- Given `c = line_map a b r`, `a < c < b`, the point `(c, f c)` is non-strictly below the
 segment `[(a, f a), (b, f b)]` if and only if `slope f a c ≤ slope f c b`. -/
 lemma map_le_line_map_iff_slope_le_slope (hab : a < b) (h₀ : 0 < r) (h₁ : r < 1) :
   f c ≤ line_map (f a) (f b) r ↔ slope f a c ≤ slope f c b :=
-by rw [map_le_line_map_iff_slope_le_slope_left (mul_pos h₀ (sub_pos.2 hab)),
-  ← line_map_slope_line_map_slope_line_map f a b r, right_le_line_map_iff_le h₁]
+begin
+  rw [map_le_line_map_iff_slope_le_slope_left (mul_pos h₀ (sub_pos.2 hab)),
+    ← line_map_slope_line_map_slope_line_map f a b r, right_le_line_map_iff_le h₁],
+  apply_instance,
+  apply_instance,
+end
 
 /-- Given `c = line_map a b r`, `a < c < b`, the point `(c, f c)` is non-strictly above the
 segment `[(a, f a), (b, f b)]` if and only if `slope f c b ≤ slope f a c`. -/
 lemma line_map_le_map_iff_slope_le_slope (hab : a < b) (h₀ : 0 < r) (h₁ : r < 1) :
   line_map (f a) (f b) r ≤ f c ↔ slope f c b ≤ slope f a c :=
-@map_le_line_map_iff_slope_le_slope k (order_dual E) _ _ _ _ _ _ _ hab h₀ h₁
+@map_le_line_map_iff_slope_le_slope k (order_dual E) _ _ _ _ _ _ _ _ hab h₀ h₁
 
 /-- Given `c = line_map a b r`, `a < c < b`, the point `(c, f c)` is strictly below the
 segment `[(a, f a), (b, f b)]` if and only if `slope f a c < slope f c b`. -/
@@ -330,6 +337,6 @@ lt_iff_lt_of_le_iff_le' (line_map_le_map_iff_slope_le_slope hab h₀ h₁)
 segment `[(a, f a), (b, f b)]` if and only if `slope f c b < slope f a c`. -/
 lemma line_map_lt_map_iff_slope_lt_slope (hab : a < b) (h₀ : 0 < r) (h₁ : r < 1) :
   line_map (f a) (f b) r < f c ↔ slope f c b < slope f a c :=
-@map_lt_line_map_iff_slope_lt_slope k (order_dual E) _ _ _ _ _ _ _ hab h₀ h₁
+@map_lt_line_map_iff_slope_lt_slope k (order_dual E) _ _ _ _ _ _ _ _ hab h₀ h₁
 
 end linear_ordered_field

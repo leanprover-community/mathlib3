@@ -154,13 +154,9 @@ lemma alg_hom_eq_alg_hom (f : polynomial R) (ϕ : adjoin_root f →ₐ[R] S) :
   ϕ = alg_hom f (ϕ (root f)) (aeval_alg_hom_eq_zero f ϕ) :=
 begin
   suffices : ϕ.equalizer (alg_hom f (ϕ (root f)) (aeval_alg_hom_eq_zero f ϕ)) = ⊤,
-  { exact alg_hom.ext (λ x, (subalgebra.ext_iff.mp this x).mpr algebra.mem_top) },
-  rw [eq_top_iff, ←adjoin_root_eq_top, algebra.adjoin_le_iff],
-  change ({root f} : set (adjoin_root f)) ⊆ ϕ.equalizer (alg_hom f (ϕ (root f)) _),
-  rw set.singleton_subset_iff,
-  change ϕ (root f) = lift (algebra_map R S) (ϕ (root f)) _ (root f),
-  rw lift_root,
-  exact aeval_alg_hom_eq_zero f ϕ,
+  { exact alg_hom.ext (λ x, (subalgebra.ext_iff.mp (this) x).mpr algebra.mem_top) },
+  rw [eq_top_iff, ←adjoin_root_eq_top, algebra.adjoin_le_iff, set.singleton_subset_iff],
+  exact (@lift_root _ _ _ _ _ _ _ (aeval_alg_hom_eq_zero f ϕ)).symm,
 end
 
 /-- If `E` is a field extension of `F` and `f` is a polynomial over `F` then the set

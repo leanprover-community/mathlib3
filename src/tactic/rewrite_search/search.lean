@@ -61,11 +61,10 @@ meta def get_vertex (i : ℕ) : tactic vertex :=
 if h : i < g.vertices.size then return $ g.vertices.read (fin.mk i h)
 else fail "invalid vertex access"
 
--- note: the returned edges are backwards
+-- note: the returned edges are backwards 
 private meta def walk_up_parents : option edge → tactic (list edge)
 | none     := return []
 | (some e) := do
-  trace format!"walking up edge {e}",
   v ← g.get_vertex e.fr,
   edges ← walk_up_parents v.parent,
   return (e :: edges)
@@ -117,57 +116,32 @@ else if h : vertex_id < g.vertices.size then
   end
 else fail "search failed: all vertices explored"
 
-private meta def proofs_for_edges (edges : list edge) : tactic (list expr) :=
-edges.mmap (λ e, e.proof)
-
-private meta def hows_for_edges (edges : list edge) : list how :=
-edges.map (λ e, e.how)
-
-private meta def flip_proofs (proofs : tactic (list expr)) : tactic (list expr) :=
-do ps ← proofs, ps.mmap mk_eq_symm
-
 -- Fails if the list is empty
 private meta def combine_proofs (proofs : list expr) : tactic expr :=
 match proofs with
-  | []              := fail "programming error. cannot combine empty proof list"
+  | []              := fail "cannot combine empty proof list"
   | (proof :: rest) := list.mfoldl mk_eq_trans proof rest
 end
 
---- TODO: remove down to other TODO
-
-private meta def orient_proof : side → tactic expr → tactic expr
-| side.L proof := proof
-| side.R proof := proof >>= mk_eq_symm
-
-private meta def edges_to_unit_aux (s : side) : expr → list how → list edge → tactic proof_unit
-| proof hows [] := return ⟨proof, s, hows⟩
-| proof hows (e :: rest) := do
-  new_proof ← orient_proof s e.proof >>= mk_eq_trans proof,
-  edges_to_unit_aux new_proof (if s = side.L then hows ++ [e.how] else [e.how] ++ hows) rest
-
-private meta def edges_to_unit : side × list edge → tactic proof_unit
-| (_, []) := fail "empty edge list for unit!"
-| (s, (e :: rest)) := do
-  proof ← orient_proof s e.proof,
-  edges_to_unit_aux s proof [e.how] rest
-
-private meta def build_units : tactic (list proof_unit) :=
-do (left_edges, right_edges) ← solution_paths g,
-let chopped : list (side × list edge) := [⟨side.L, left_edges⟩, ⟨side.R, right_edges⟩],
-let chopped := chopped.filter (λ pair, ¬ pair.2.empty),
-chopped.mmap edges_to_unit
-
---- TODO: remove up to other TODO
-
-private meta def build_proof : tactic (expr × list proof_unit) :=
-do trace_if_enabled `rewrite_search "success!",
-  units ← build_units g,
-  proof ← combine_proofs $ units.map $ λ u, u.proof,
-  return (proof, units)
+private meta def proof_for_edges : (side × list edge) → tactic (option proof_unit)
+| (s, edges) :=
+if edges.empty then return none else
+do proofs ← match s with
+  | side.L := edges.mmap (λ e, e.proof)
+  | side.R := edges.mmap (λ e, e.proof >>= mk_eq_symm)
+end,
+let hows := match s with
+  | side.L := edges.map (λ e, e.how)
+  | side.R := list.reverse $ edges.map (λ e, e.how)
+end,
+proof ← combine_proofs proofs,
+return $ some ⟨proof, s, hows⟩
 
 meta def find_proof : tactic (graph × expr × list proof_unit) :=
 do g ← find_solving_edge g 0,
-(proof, units) ← build_proof g,
+(left_edges, right_edges) ← solution_paths g,
+units ← [(side.L, left_edges), (side.R, right_edges)].mmap_filter proof_for_edges,
+proof ← combine_proofs $ units.map $ λ u, u.proof,
 return (g, proof, units)
 
 end graph

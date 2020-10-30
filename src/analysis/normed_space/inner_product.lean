@@ -493,7 +493,7 @@ by rw is_R_or_C.ext_iff; exact ⟨by simp, by simp [inner_self_nonneg_im]⟩
 
 lemma inner_self_re_abs {x : E} : re ⟪x, x⟫ = abs ⟪x, x⟫ :=
 begin
-  have H : ⟪x, x⟫ = (re ⟪x, x⟫ : 𝕜) + (im ⟪x, x⟫ : 𝕜) * I,
+  have H : ⟪x, x⟫ = (re ⟪x, x⟫ : 𝕜) + (im ⟪x, x⟫) * I,
   { rw re_add_im, },
   rw [H, is_add_hom.map_add re ((re ⟪x, x⟫) : 𝕜) (((im ⟪x, x⟫) : 𝕜) * I)],
   rw [mul_re, I_re, mul_zero, I_im, zero_sub, tactic.ring.add_neg_eq_sub],

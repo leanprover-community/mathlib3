@@ -64,40 +64,47 @@ begin
   exact heq_iff_eq.trans subtype.ext_iff,
 end
 
-namespace semiring
+section semiring
+
+def lmul (i j) : G[i] →ₗ[R] G[j] →ₗ[R] G[i+j] :=
+linear_map.mk₂ R (λ gi gj, ⟨gi * gj, G.mul_mem _ _⟩)
+  (λ gi₁ gi₂ gj, subtype.eq $ add_mul _ _ _)
+  (λ c gi gj, subtype.eq $ algebra.smul_mul_assoc _ _ _)
+  (λ gi gj₁ gj₂, subtype.eq $ mul_add _ _ _)
+  (λ c gi gj, subtype.eq $ algebra.mul_smul_comm _ _ _)
+
 
 @[simps mul]
-instance : has_mul G := {
-  mul := λ a b,
-    a.sum (λ i ai,
-      b.sum (λ j bj,
-        let abij : ↥(G.submodules (i + j)) := ⟨(ai * bj : A), G.mul_mem ai bj⟩ in
-        direct_sum.of (λ i, G.submodules i) (i + j) abij
-      )
-    )
-}
+instance : has_mul G :=
+⟨λ x y, (direct_sum.to_module R ι G
+  (λ i, (direct_sum.to_module R ι _
+    (λ j, (G.lmul j i).compr₂ (direct_sum.lof R ι (λ i, G[i]) (j + i))) :
+      G →ₗ[R] G[i] →ₗ[R] G) y) : G →ₗ[R] G) x⟩
 
 @[simps one]
-instance : has_one G := {
-  one := direct_sum.of (λ i, G.submodules i) 0 ⟨1, G.one_mem⟩,
-}
+instance : has_one G :=
+⟨direct_sum.lof R ι (λ i, G[i]) 0 ⟨1, G.one_mem⟩⟩
 
 /-! These proofs are very slow, so these lemmas are defined separately -/
 
 private lemma one_mul (a : G) : 1 * a = a :=
 begin
-  simp only [has_mul_mul, has_one_one, direct_sum.of, add_monoid_hom.coe_mk],
-  rw dfinsupp.sum_single_index,
-  { convert @dfinsupp.sum_single ι (λ i, G[i]) _ _ _ a,
-    ext1 i, ext1,
-    congr, exact zero_add i,
-    rw subtype.ext_iff_heq,
-    { rw [submodule.coe_mk, submodule.coe_mk, one_mul], },
-    { intro x, rw zero_add }, },
-  { convert @dfinsupp.sum_zero _ _ _ _ _ _ _ a,
-    ext1 i, ext1,
-    convert @dfinsupp.single_zero ι _ _ _ _,
-    simp only [zero_mul, submodule.coe_zero], }
+  rw [has_mul_mul, has_one_one, direct_sum.to_module_lof, ← linear_map.flip_apply],
+  conv_rhs { rw ← @linear_map.id_apply R G _ _ _ a },
+  refine direct_sum.to_module.ext _ _ _,
+  dsimp,
+  simp [lmul, linear_map.compr₂],
+  -- rw dfinsupp.sum_single_index,
+  -- { convert @dfinsupp.sum_single ι (λ i, G[i]) _ _ _ a,
+  --   ext1 i, ext1,
+  --   congr, exact zero_add i,
+  --   rw subtype.ext_iff_heq,
+  --   { rw [submodule.coe_mk, submodule.coe_mk, one_mul], },
+  --   { intro x, rw zero_add }, },
+  -- { convert @dfinsupp.sum_zero _ _ _ _ _ _ _ a,
+  --   ext1 i, ext1,
+  --   convert @dfinsupp.single_zero ι _ _ _ _,
+  --   simp only [zero_mul, submodule.coe_zero], }
 end
 
 private lemma mul_one (a : G) : a * 1 = a := begin

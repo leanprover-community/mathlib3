@@ -202,8 +202,10 @@ end ordered_comm_monoid
 lemma bit0_pos [ordered_add_comm_monoid α] {a : α} (h : 0 < a) : 0 < bit0 a :=
 add_pos h h
 
+/-- A linearly ordered additive commutative monoid. -/
 class linear_ordered_add_comm_monoid (α : Type*) extends linear_order α, ordered_add_comm_monoid α
 
+/-- A linearly ordered multiplicative commutative monoid. -/
 @[to_additive]
 class linear_ordered_comm_monoid (α : Type*) extends linear_order α, ordered_comm_monoid α
 

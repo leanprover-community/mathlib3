@@ -121,7 +121,7 @@ def complete_lattice_of_Sup (α : Type*) [H1 : partial_order α]
   .. H1, .. H2 }
 
 /-- A complete linear order is a linear order whose lattice structure is complete. -/
-class complete_linear_order (α : Type*) extends complete_lattice α, decidable_linear_order α
+class complete_linear_order (α : Type*) extends complete_lattice α, linear_order α
 
 namespace order_dual
 variable (α)
@@ -134,7 +134,7 @@ instance [complete_lattice α] : complete_lattice (order_dual α) :=
   .. order_dual.bounded_lattice α, ..order_dual.has_Sup α, ..order_dual.has_Inf α }
 
 instance [complete_linear_order α] : complete_linear_order (order_dual α) :=
-{ .. order_dual.complete_lattice α, .. order_dual.decidable_linear_order α }
+{ .. order_dual.complete_lattice α, .. order_dual.linear_order α }
 
 end order_dual
 

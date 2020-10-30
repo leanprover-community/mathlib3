@@ -14,7 +14,7 @@ import data.polynomial.field_division
 import ring_theory.principal_ideal_domain
 
 noncomputable theory
-local attribute [instance, priority 100] classical.prop_decidable
+open_locale classical
 
 universes u v w
 
@@ -87,6 +87,44 @@ begin
   exact lt_of_le_of_lt (degree_X_pow_le _) (with_bot.coe_lt_coe.2 $ finset.mem_range.1 hk)
 end
 
+/-- Coefficient linear map on degree_lt -/
+def degree_lt_linear_map (F : Type*) [field F] (n : ℕ) :
+  degree_lt F n →ₗ[F] ((↑(finset.range n) : set ℕ) → F) :=
+{ to_fun := λ p n, (↑p : polynomial F).coeff n,
+  map_add' := λ p q, by { ext, rw [submodule.coe_add, coeff_add], refl },
+  map_smul' := λ x p, by { ext, rw [submodule.coe_smul, coeff_smul], refl } }
+
+lemma degree_lt_linear_map_bijective (F : Type*) [field F] (n : ℕ) :
+  function.bijective (degree_lt_linear_map F n) :=
+begin
+  split,
+  { rw is_add_group_hom.injective_iff,
+    intros p h,
+    ext,
+    have key := function.funext_iff.mp h,
+    by_cases n_1 < n,
+    { exact key ⟨n_1, finset.mem_range.mpr h⟩ },
+    { exact coeff_eq_zero_of_degree_lt (lt_of_lt_of_le
+        (mem_degree_lt.mp (subtype.mem p)) (with_bot.coe_le_coe.mpr (le_of_not_lt h))) } },
+  { intro f,
+    let g : ℕ → F := λ k, dite (k < n) (λ h, f ⟨k, finset.mem_range.mpr h⟩) (λ h, 0),
+    let p : polynomial F := finsupp.on_finset (finset.filter (λ n, g n ≠ 0) (finset.range n)) g
+      (λ k hk, finset.mem_filter.mpr begin by_cases (k < n),
+        { exact ⟨finset.mem_coe.mpr (finset.mem_range.mpr h), hk⟩ },
+        { exfalso, apply hk, exact dif_neg h } end),
+    use ⟨p, mem_degree_lt.mpr ((degree_lt_iff_coeff_zero p n).mpr (λ _ h, dif_neg (not_lt.mpr h)))⟩,
+    ext,
+    apply eq.trans (dif_pos (finset.mem_range.mp (subtype.mem x))),
+    rw [subtype.coe_eta x] }
+end
+
+/-- Coefficient linear equiv on degree_lt -/
+def degree_lt_linear_equiv (F : Type*) [field F] (n : ℕ) :
+  degree_lt F n ≃ₗ[F] ((↑(finset.range n) : set ℕ) → F) :=
+{ .. (degree_lt_linear_map F n), .. equiv.of_bijective _ (degree_lt_linear_map_bijective F n) }
+
+local attribute [instance] subset.ring
+
 /-- Given a polynomial, return the polynomial whose coefficients are in
 the ring closure of the original coefficients. -/
 def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set R)) :=
@@ -99,8 +137,11 @@ def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set
 
 @[simp] theorem coeff_restriction' {p : polynomial R} {n : ℕ} : (coeff (restriction p) n).1 = coeff p n := rfl
 
+section
+local attribute [instance] algebra.of_is_subring subring.domain subset.comm_ring
 @[simp] theorem map_restriction (p : polynomial R) : p.restriction.map (algebra_map _ _) = p :=
 ext $ λ n, by rw [coeff_map, algebra.is_subring_algebra_map_apply, coeff_restriction]
+end
 
 @[simp] theorem degree_restriction {p : polynomial R} : (restriction p).degree = p.degree := rfl
 
@@ -220,7 +261,7 @@ begin
   intros a ha,
   rw ← sum_monomial_eq a,
   dsimp,
-  rw eval₂_sum (C.comp (quotient.mk I)) a monomial X,
+  rw eval₂_sum,
   refine finset.sum_eq_zero (λ n hn, _),
   dsimp,
   rw eval₂_monomial (C.comp (quotient.mk I)) X,

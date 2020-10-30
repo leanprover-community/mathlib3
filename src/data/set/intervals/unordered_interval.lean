@@ -29,9 +29,9 @@ universe u
 
 namespace set
 
-section decidable_linear_order
+section linear_order
 
-variables {α : Type u} [decidable_linear_order α] {a a₁ a₂ b b₁ b₂ x : α}
+variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ x : α}
 
 /-- `interval a b` is the set of elements lying between `a` and `b`, with `a` and `b` included. -/
 def interval (a b : α) := Icc (min a b) (max a b)
@@ -108,13 +108,13 @@ begin
   { rintro ⟨a, b, h⟩, exact ⟨min a b, max a b, h⟩ }
 end
 
-end decidable_linear_order
+end linear_order
 
 open_locale interval
 
 section ordered_add_comm_group
 
-variables {α : Type u} [decidable_linear_ordered_add_comm_group α] (a b c x y : α)
+variables {α : Type u} [linear_ordered_add_comm_group α] (a b c x y : α)
 
 @[simp] lemma preimage_const_add_interval : (λ x, a + x) ⁻¹' [b, c] = [b - a, c - a] :=
 by simp only [interval, preimage_const_add_Icc, min_sub_sub_right, max_sub_sub_right]
@@ -169,9 +169,9 @@ abs_sub_le_of_subinterval (interval_subset_interval_right h)
 
 end ordered_add_comm_group
 
-section discrete_linear_ordered_field
+section linear_ordered_field
 
-variables {k : Type u} [discrete_linear_ordered_field k] {a : k}
+variables {k : Type u} [linear_ordered_field k] {a : k}
 
 @[simp] lemma preimage_mul_const_interval (ha : a ≠ 0) (b c : k) :
   (λ x, x * a) ⁻¹' [b, c] = [b / a, c / a] :=
@@ -199,6 +199,6 @@ by simpa only [mul_comm] using image_mul_const_interval a b c
 @[simp] lemma image_div_const_interval (a b c : k) : (λ x, x / a) '' [b, c] = [b / a, c / a] :=
 image_mul_const_interval _ _ _
 
-end discrete_linear_ordered_field
+end linear_ordered_field
 
 end set

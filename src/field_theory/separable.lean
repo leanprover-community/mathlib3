@@ -148,9 +148,7 @@ theorem coeff_expand {p : ℕ} (hp : 0 < p) (f : polynomial R) (n : ℕ) :
   (expand R p f).coeff n = if p ∣ n then f.coeff (n / p) else 0 :=
 begin
   simp only [expand_eq_sum],
-  change (show ℕ →₀ R, from (f.sum (λ e a, C a * (X ^ p) ^ e) : polynomial R)) n = _,
-  simp_rw [finsupp.sum_apply, finsupp.sum, ← pow_mul, C_mul', ← monomial_eq_smul_X,
-    monomial, finsupp.single_apply],
+  simp_rw [coeff_sum, ← pow_mul, C_mul_X_pow_eq_monomial, coeff_monomial, finsupp.sum],
   split_ifs with h,
   { rw [finset.sum_eq_single (n/p), nat.mul_div_cancel' h, if_pos rfl], refl,
     { intros b hb1 hb2, rw if_neg, intro hb3, apply hb2, rw [← hb3, nat.mul_div_cancel_left b hp] },
@@ -168,9 +166,8 @@ by rw [mul_comm, coeff_expand_mul hp]
 
 theorem expand_eq_map_domain (p : ℕ) (f : polynomial R) :
   expand R p f = f.map_domain (*p) :=
-finsupp.induction f (by { simp only [expand_eq_sum], refl }) $ λ n r f hf hr ih,
-by rw [finsupp.map_domain_add, finsupp.map_domain_single, alg_hom.map_add, ← monomial,
-  expand_monomial, ← monomial, ih]
+polynomial.induction_on' f (λ p q hp hq, by simp [*, finsupp.map_domain_add]) $
+  λ n a, by simp_rw [expand_monomial, monomial_def, finsupp.map_domain_single]
 
 theorem expand_inj {p : ℕ} (hp : 0 < p) {f g : polynomial R} :
   expand R p f = expand R p g ↔ f = g :=

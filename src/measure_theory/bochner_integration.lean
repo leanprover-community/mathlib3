@@ -127,7 +127,7 @@ open_locale classical topological_space big_operators
 
 namespace measure_theory
 
-variables {α E : Type*} [measurable_space α] [decidable_linear_order E] [has_zero E]
+variables {α E : Type*} [measurable_space α] [linear_order E] [has_zero E]
 
 local infixr ` →ₛ `:25 := simple_func
 

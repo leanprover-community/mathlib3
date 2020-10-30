@@ -70,6 +70,7 @@ def field_of_integral_domain [decidable_eq R] [fintype R] : field R :=
 section
 
 variables (S : set (units R)) [is_subgroup S] [fintype S]
+local attribute [instance] subtype.group
 
 /-- A finite subgroup of the units of an integral domain is cyclic. -/
 instance subgroup_units_cyclic : is_cyclic S :=
@@ -98,6 +99,8 @@ begin
       mul_inv_cancel_right, inv_mul_cancel_right], }
 end
 
+section
+local attribute [instance] subtype.group subtype.monoid range.is_submonoid
 /-- In an integral domain, a sum indexed by a nontrivial homomorphism from a finite group is zero. -/
 lemma sum_hom_units_eq_zero (f : G →* R) (hf : f ≠ 1) : ∑ g : G, f g = 0 :=
 begin
@@ -149,6 +152,7 @@ begin
   rw [← mul_left_inj' hx1, zero_mul, ← geom_series, geom_sum_mul, coe_coe],
   norm_cast,
   rw [pow_order_of_eq_one, is_submonoid.coe_one, units.coe_one, sub_self],
+end
 end
 
 /-- In an integral domain, a sum indexed by a homomorphism from a finite group is zero,

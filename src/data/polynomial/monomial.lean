@@ -57,7 +57,7 @@ by { convert coeff_monomial using 2, simp [eq_comm], }
 
 @[simp] lemma coeff_C_zero : coeff (C a) 0 = a := coeff_monomial
 
-theorem nonzero.of_polynomial_ne (h : p ≠ q) : nontrivial R :=
+theorem nontrivial.of_polynomial_ne (h : p ≠ q) : nontrivial R :=
 ⟨⟨0, 1, λ h01 : 0 = 1, h $
     by rw [← mul_one p, ← mul_one q, ← C_1, ← h01, C_0, mul_zero, mul_zero] ⟩⟩
 
@@ -83,18 +83,9 @@ begin
   simpa only [and_true, eq_self_iff_true, or_false, one_ne_zero, and_self],
 end
 
-lemma monomial_one_eq_X_pow : ∀{n}, monomial n (1 : R) = X^n
-| 0     := rfl
-| (n+1) :=
-  calc monomial (n + 1) (1 : R) = monomial n 1 * X : by rw [X, monomial_mul_monomial, mul_one]
-    ... = X^n * X : by rw [monomial_one_eq_X_pow]
-    ... = X^(n+1) : by simp only [pow_add, pow_one]
-
 lemma monomial_eq_smul_X {n} : monomial n (a : R) = a • X^n :=
-begin
-  calc monomial n a = monomial n (a * 1) : by simp
-    ... = a • monomial n 1 : (smul_single' _ _ _).symm
-    ... = a • X^n  : by rw monomial_one_eq_X_pow
-end
+calc monomial n a = monomial n (a * 1) : by simp
+  ... = a • monomial n 1 : (smul_single' _ _ _).symm
+  ... = a • X^n  : by rw X_pow_eq_monomial
 
 end polynomial

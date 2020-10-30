@@ -939,29 +939,6 @@ lemma inv_principal (I : fractional_ideal g) [submodule.is_principal (I : submod
 I⁻¹.is_principal_iff.mpr ⟨_, (right_inverse_eq _ _ (mul_generator_self_inv I h)).symm⟩
 
 lemma exists_eq_span_singleton_mul (I : fractional_ideal g) :
-  ∃ (a : K) (aI : ideal R₁), I = span_singleton a * aI :=
-begin
-  obtain ⟨a_inv, nonzero, ha⟩ := I.2,
-  have nonzero := mem_non_zero_divisors_iff_ne_zero.mp nonzero,
-  have map_a_nonzero := mt g.to_map_eq_zero_iff.mp nonzero,
-  use (g.to_map a_inv)⁻¹,
-  use (span_singleton (g.to_map a_inv) * I).1.comap g.lin_coe,
-  ext,
-  refine iff.trans _ mem_singleton_mul.symm,
-  split,
-  { intro hx,
-    obtain ⟨x', hx'⟩ := ha x hx,
-    refine ⟨g.to_map x', mem_coe.mpr ⟨x', (mem_singleton_mul.mpr ⟨x, hx, hx'⟩), rfl⟩, _⟩,
-    erw [hx', ←mul_assoc, inv_mul_cancel map_a_nonzero, one_mul] },
-  { rintros ⟨y, hy, rfl⟩,
-    obtain ⟨x', hx', rfl⟩ := mem_coe.mp hy,
-    obtain ⟨y', hy', hx'⟩ := mem_singleton_mul.mp hx',
-    rw lin_coe_apply at hx',
-    erw [hx', ←mul_assoc, inv_mul_cancel map_a_nonzero, one_mul],
-    exact hy' }
-end
-
-lemma exists_eq_span_singleton_mul' (I : fractional_ideal g) :
   ∃ (a : R₁) (aI : ideal R₁), a ≠ 0 ∧ I = span_singleton (g.to_map a)⁻¹ * aI :=
 begin
   obtain ⟨a_inv, nonzero, ha⟩ := I.2,
@@ -987,15 +964,15 @@ end
 
 instance is_principal {R} [integral_domain R] [is_principal_ideal_ring R] {f : fraction_map R K}
   (I : fractional_ideal f) : (I : submodule R f.codomain).is_principal :=
-⟨ begin
-  obtain ⟨a, aI, ha⟩ := exists_eq_span_singleton_mul I,
-  have := a * f.to_map (generator aI),
-  use a * f.to_map (generator aI),
-  suffices : I = span_singleton (a * f.to_map (generator aI)),
+ begin
+  obtain ⟨a, aI, -, ha⟩ := exists_eq_span_singleton_mul I,
+  have := (f.to_map a)⁻¹ * f.to_map (generator aI),
+  use (f.to_map a)⁻¹ * f.to_map (generator aI),
+  suffices : I = span_singleton ((f.to_map a)⁻¹ * f.to_map (generator aI)),
   { exact congr_arg subtype.val this },
   conv_lhs { rw [ha, ←span_singleton_generator aI] },
   rw [coe_ideal_span_singleton (generator aI), span_singleton_mul_span_singleton]
-end ⟩
+end
 
 end principal_ideal_ring
 
@@ -1008,7 +985,7 @@ local attribute [instance] classical.prop_decidable
 lemma fg_of_noetherian (hR : is_noetherian_ring R₁) (I : fractional_ideal g) : (is_noetherian R₁ I) :=
 begin
   obtain ⟨d, J, hhJ⟩ : ∃ (d : R₁), ∃ (J : ideal R₁), d ≠ 0 ∧ I = span_singleton (g.to_map d)⁻¹ * J,
-  apply exists_eq_span_singleton_mul' I,
+  apply exists_eq_span_singleton_mul I,
   cases hhJ with h_nzd hdJ,
   have h_gd : (g.to_map d) ≠ 0,
   { by_contradiction, simp at a,

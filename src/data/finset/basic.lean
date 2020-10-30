@@ -1367,6 +1367,9 @@ by simp only [insert_eq, map_union, map_singleton]
 lemma attach_map_val {s : finset α} : s.attach.map (embedding.subtype _) = s :=
 eq_of_veq $ by rw [map_val, attach_val]; exact attach_map_val _
 
+lemma nonempty.map (h : s.nonempty) (f : α ↪ β) : (s.map f).nonempty :=
+let ⟨a, ha⟩ := h in ⟨f a, (mem_map' f).mpr ha⟩
+
 end map
 
 lemma range_add_one' (n : ℕ) :
@@ -2260,8 +2263,12 @@ congr_arg card $ (@multiset.erase_dup_eq_self α _ l).2 h
 end list
 
 namespace multiset
+variable [decidable_eq α]
 
-lemma disjoint_to_finset [decidable_eq α] (m1 m2 : multiset α) :
+theorem to_finset_card_of_nodup {l : multiset α} (h : l.nodup) : l.to_finset.card = l.card :=
+congr_arg card $ (@multiset.erase_dup_eq_self α _ l).2 h
+
+lemma disjoint_to_finset (m1 m2 : multiset α) :
   _root_.disjoint m1.to_finset m2.to_finset ↔ m1.disjoint m2 :=
 begin
   rw finset.disjoint_iff_ne,

@@ -231,6 +231,9 @@ if hα : nonempty α then by letI := classical.inhabited_of_nonempty hα;
   exact of_surjective (inv_fun f) (inv_fun_surjective H)
 else ⟨∅, λ x, (hα ⟨x⟩).elim⟩
 
+noncomputable instance of_subtype [fintype α] (p : α → Prop) : fintype (subtype p) :=
+  fintype.of_injective coe subtype.coe_injective
+
 /-- If `f : α ≃ β` and `α` is a fintype, then `β` is also a fintype. -/
 def of_equiv (α : Type*) [fintype α] (f : α ≃ β) : fintype β := of_bijective _ f.bijective
 
@@ -317,6 +320,9 @@ list.length_fin_range n
 
 @[simp] lemma finset.card_fin (n : ℕ) : finset.card (finset.univ : finset (fin n)) = n :=
 by rw [finset.card_univ, fintype.card_fin]
+
+lemma fin.equiv_iff_eq {m n : ℕ} : nonempty (fin m ≃ fin n) ↔ m = n :=
+  ⟨λ ⟨h⟩, by simpa using fintype.card_congr h, λ h, ⟨equiv.cast $ h ▸ rfl ⟩ ⟩
 
 /-- Embed `fin n` into `fin (n + 1)` by prepending zero to the `univ` -/
 lemma fin.univ_succ (n : ℕ) :

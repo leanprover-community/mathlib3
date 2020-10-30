@@ -94,7 +94,7 @@ variables {ψ} {ψ' : (⨁ i, M i) →ₗ[R] N}
 
 theorem to_module.ext (H : ∀ i, ψ.comp (lof R ι M i) = ψ'.comp (lof R ι M i)) (f : ⨁ i, M i) :
   ψ f = ψ' f :=
-by rw [to_module.unique R ψ, to_module.unique R ψ', funext H]
+by rw dfinsupp.lhom_ext' R H
 
 /--
 The inclusion of a subset of the direct summands

@@ -131,8 +131,7 @@ variables (f) [algebra R S]
 /-- Produce an algebra homomorphism `adjoin_root f →ₐ[R] S` sending `root f` to
 a root of `f` in `S`. -/
 def alg_hom (x : S) (hfx : aeval x f = 0) : adjoin_root f →ₐ[R] S :=
-{ commutes' := λ r, show lift _ _ hfx r = _, from lift_of,
-  .. lift (algebra_map R S) x hfx }
+{ commutes' := λ r, show lift _ _ hfx r = _, from lift_of, .. lift (algebra_map R S) x hfx }
 
 @[simp] lemma coe_alg_hom (x : S) (hfx : aeval x f = 0) :
   (alg_hom f x hfx : adjoin_root f →+* S) = lift (algebra_map R S) x hfx := rfl
@@ -157,20 +156,15 @@ end
 of maps from `F[x]/(f)` into `E` is in bijection with the set of roots of `f` in `E`. -/
 def equiv (F E : Type*) [field F] [field E] [algebra F E] (f : polynomial F) (hf : f ≠ 0) :
   (adjoin_root f →ₐ[F] E) ≃ (↑(f.map (algebra_map F E)).roots.to_finset : set E) :=
-{ to_fun := λ ϕ, ⟨ϕ (root f), begin
-    rw [finset.mem_coe, multiset.mem_to_finset, mem_roots (map_ne_zero hf),
-      is_root.def, ←eval₂_eq_eval_map, ←aeval_def],
+{ to_fun := λ ϕ, ⟨ϕ (root f), finset.mem_coe.mpr (multiset.mem_to_finset.mpr begin
+    rw [mem_roots (map_ne_zero hf), is_root.def, ←eval₂_eq_eval_map],
     exact aeval_alg_hom_eq_zero f ϕ,
-    exact field.to_nontrivial E, end⟩,
+    exact field.to_nontrivial E, end)⟩,
   inv_fun := λ x, alg_hom f ↑x (begin
-    rw [aeval_def, eval₂_eq_eval_map, ←is_root.def, ←mem_roots (map_ne_zero hf),
-      ←multiset.mem_to_finset],
-    exact subtype.mem x,
+    rw [aeval_def, eval₂_eq_eval_map, ←is_root.def, ←mem_roots (map_ne_zero hf)],
+    exact multiset.mem_to_finset.mp (subtype.mem x),
     exact field.to_nontrivial E end),
-  left_inv := λ ϕ, begin
-    change alg_hom f (ϕ (root f)) _ = ϕ,
-    exact (alg_hom_eq_alg_hom f ϕ).symm,
-  end,
+  left_inv := λ ϕ, (alg_hom_eq_alg_hom f ϕ).symm,
   right_inv := λ x, by { ext, exact @lift_root F E _ f _ _ ↑x begin
     rw [eval₂_eq_eval_map, ←is_root.def, ←mem_roots (map_ne_zero hf), ←multiset.mem_to_finset],
     exact subtype.mem x,

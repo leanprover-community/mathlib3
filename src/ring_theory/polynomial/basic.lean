@@ -97,7 +97,6 @@ begin
 end
 
 /-- The first `n` coefficients on `degree_lt n` form a linear equivalence with `fin n → F`. -/
-@[simps]
 def degree_lt_equiv (F : Type*) [field F] (n : ℕ) : degree_lt F n ≃ₗ[F] (fin n → F) :=
 begin
   refine

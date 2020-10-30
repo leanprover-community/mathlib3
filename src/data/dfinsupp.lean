@@ -832,6 +832,11 @@ def sum_add_hom [Π i, add_monoid (β i)] [add_comm_monoid γ] (φ : Π i, β i 
 (add_zero _).trans $ congr_arg (φ i) $ show (if H : i ∈ ({i} : finset _) then x else 0) = x,
 from dif_pos $ finset.mem_singleton_self i
 
+@[simp] lemma sum_add_hom_comp_single [Π i, add_comm_monoid (β i)] [add_comm_monoid γ]
+  (f : Π i, β i →+ γ) (i : ι) :
+  (sum_add_hom f).comp (single_add_hom β i) = f i :=
+add_monoid_hom.ext $ λ x, sum_add_hom_single f i x
+
 /-- While we didn't need decidable instances to define it, we do to reduce it to a sum -/
 lemma sum_add_hom_apply [Π i, add_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [add_comm_monoid γ] (φ : Π i, β i →+ γ) (f : Π₀ i, β i) :
@@ -848,7 +853,7 @@ begin
 end
 
 /-- The `dfinsupp` version of `finsupp.lift_add_hom`,-/
-@[simps apply symm_apply symm_apply_apply {rhs_md := semireducible, simp_rhs := tt}]
+@[simps apply symm_apply]
 def lift_add_hom [Π i, add_monoid (β i)] [add_comm_monoid γ] :
   (Π i, β i →+ γ) ≃+ ((Π₀ i, β i) →+ γ) :=
 { to_fun := sum_add_hom,
@@ -869,10 +874,10 @@ lemma lift_add_hom_apply_single [Π i, add_comm_monoid (β i)] [add_comm_monoid 
 by simp
 
 /-- The `dfinsupp` version of `finsupp.lift_add_hom_comp_single`,-/
-@[simp] lemma lift_add_hom_comp_single [Π i, add_comm_monoid (β i)] [add_comm_monoid γ]
+lemma lift_add_hom_comp_single [Π i, add_comm_monoid (β i)] [add_comm_monoid γ]
   (f : Π i, β i →+ γ) (i : ι) :
   (lift_add_hom f).comp (single_add_hom β i) = f i :=
-add_monoid_hom.ext $ λ x, lift_add_hom_apply_single f i x
+by simp
 
 /-- The `dfinsupp` version of `finsupp.comp_lift_add_hom`,-/
 lemma comp_lift_add_hom {δ : Type*} [Π i, add_comm_monoid (β i)] [add_comm_monoid γ]

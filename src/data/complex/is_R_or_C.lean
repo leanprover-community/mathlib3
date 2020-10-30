@@ -6,7 +6,6 @@ Authors: Frédéric Dupuis
 
 import analysis.normed_space.basic
 import analysis.complex.basic
-open_locale big_operators
 
 /-!
 # `is_R_or_C`: a typeclass for ℝ or ℂ
@@ -21,6 +20,8 @@ complex case. One would produce the definitions and proof for an arbitrary field
 typeclass, which basically amounts to doing the complex case, and the two cases then fall out
 immediately from the two instances of the class.
 -/
+
+open_locale big_operators
 
 /--
 This typeclass captures properties shared by ℝ and ℂ, with an API that closely matches that of ℂ.

@@ -275,9 +275,9 @@ begin
   -- If F contains a closed set A, then x is contained in A.
   have claim1 : ∀ (A : set X), is_closed A → A ∈ F.1 → x ∈ A,
   { intros A hA h,
-    by_contradiction,
+    by_contradiction H,
     rw le_nhds_iff at cond,
-    specialize cond Aᶜ a hA,
+    specialize cond Aᶜ H hA,
     rw ultrafilter_iff_compl_mem_iff_not_mem.mp F.2 at cond,
     contradiction },
   -- If A ∈ F, then x ∈ cl A.

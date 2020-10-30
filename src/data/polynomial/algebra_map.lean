@@ -84,7 +84,7 @@ by rw [comp, p.as_sum_range]; simp [eval₂_finset_sum, eval₂_pow]
 
 lemma eval_comp : (p.comp q).eval a = p.eval (q.eval a) := eval₂_comp _
 
-instance : is_semiring_hom (λ q : polynomial R, q.comp p) :=
+instance comp.is_semiring_hom : is_semiring_hom (λ q : polynomial R, q.comp p) :=
 by unfold comp; apply_instance
 
 end comp

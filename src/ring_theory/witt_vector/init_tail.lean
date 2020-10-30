@@ -11,9 +11,10 @@ import ring_theory.witt_vector.is_poly
 
 # `init` and `tail`
 
-Given a Witt vecfor `x`, we are sometimes interested in its components before and after an index `n`.
-This file defines those operations, proves that `init` is polynomial, and shows how that polynomial
-interacts with `mv_polynomial.bind₁`.
+Given a Witt vecfor `x`, we are sometimes interested
+in its components before and after an index `n`.
+This file defines those operations, proves that `init` is polynomial,
+and shows how that polynomial interacts with `mv_polynomial.bind₁`.
 
 ## Main declarations
 
@@ -21,7 +22,9 @@ interacts with `mv_polynomial.bind₁`.
   indices ≥ `n` are 0.
 * `witt_vector.tail n x`: the complementary part to `init`. All coefficients at indices < `n` are 0,
   otherwise they are the same as in `x`.
-
+* `witt_vector.coeff_add_of_disjoint`: if `x` and `y` are Witt vectors such that for every `n`
+  the `n`-th coefficient of `x` or of `y` is `0`, then the coefficients of `x + y`
+  are just `x.coeff n + y.coeff n`.
 -/
 
 variables {p : ℕ} [hp : fact p.prime] (n : ℕ) {R : Type*} [comm_ring R]
@@ -50,8 +53,8 @@ match assert with
   `[simp only [finset.mem_range, finset.mem_product, true_and, finset.mem_univ] at h,
     have hk : k < n, by linarith,
     fin_cases b;
-    simp only [function.uncurry, matrix.cons_val_zero, matrix.head_cons, coeff_mk, matrix.cons_val_one,
-      coeff_mk, hk, if_true]]
+    simp only [function.uncurry, matrix.cons_val_zero, matrix.head_cons, coeff_mk,
+      matrix.cons_val_one, coeff_mk, hk, if_true]]
 end
 
 end interactive
@@ -76,6 +79,8 @@ mk p (λ n, if P n then x.coeff n else 0)
 section select
 variables (P : ℕ → Prop)
 
+/-- The polynomial that witnesses that `witt_vector.select` is a polynomial function.
+`select_poly n` is `X n` if `P n` holds, and `0` otherwise. -/
 def select_poly (n : ℕ) : mv_polynomial ℕ ℤ := if P n then X n else 0
 
 lemma coeff_select (x : 𝕎 R) (n : ℕ) :
@@ -189,7 +194,7 @@ variables (p)
 omit hp
 
 /-- `witt_vector.init n x` is polynomial in the coefficients of `x`. -/
-def init_is_poly (n : ℕ) : is_poly p (λ R _Rcr, by exactI init n) :=
+lemma init_is_poly (n : ℕ) : is_poly p (λ R _Rcr, by exactI init n) :=
 select_is_poly (λ i, i < n)
 
 end

@@ -140,7 +140,7 @@ begin
     simp only [habs, ring_hom.map_zero] at hcoeff,
     exact hzero hcoeff.symm },
   repeat {rw single_eq_C_mul_X},
-  simp only [hzero, hqzero, ne.def, not_false_iff, degree_monomial]
+  simp only [hzero, hqzero, ne.def, not_false_iff, degree_C_mul_X_pow],
 end
 
 /-- A polynomial lifts if and only if it can be lifted to a polynomial of the same degree. -/
@@ -166,8 +166,7 @@ begin
   obtain ⟨lead, hlead⟩ := monomial_mem_lifts_and_degree_eq (monomial_mem_lifts p.nat_degree
     ((lifts_iff_coeff_lifts p).1 hlifts p.nat_degree)),
   have deg_lead : lead.degree = p.nat_degree,
-  { rw [hlead.2, single_eq_C_mul_X],
-    simp only [lead_zero, ne.def, not_false_iff, degree_monomial] },
+  { rw [hlead.2, single_eq_C_mul_X, degree_C_mul_X_pow p.nat_degree lead_zero] },
   rw hdeg at deg_erase,
   obtain ⟨erase, herase⟩ := hn p.erase_lead.nat_degree deg_erase
     (erase_mem_lifts p.nat_degree hlifts) (refl p.erase_lead.nat_degree),

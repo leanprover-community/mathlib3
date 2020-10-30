@@ -306,7 +306,8 @@ instance : lie_ring (⨁ i, L i) :=
   add_lie  := λ x y z, by { ext, simp only [zip_with_apply, add_apply, add_lie], },
   lie_add  := λ x y z, by { ext, simp only [zip_with_apply, add_apply, lie_add], },
   lie_self := λ x, by { ext, simp only [zip_with_apply, add_apply, lie_self, zero_apply], },
-  jacobi   := λ x y z, by { ext, simp only [zip_with_apply, add_apply, lie_ring.jacobi, zero_apply], },
+  jacobi   := λ x y z, by { ext, simp only [
+    zip_with_apply, add_apply, lie_ring.jacobi, zero_apply], },
   ..(infer_instance : add_comm_group _) }
 
 @[simp] lemma bracket_apply {x y : (⨁ i, L i)} {i : ι} :
@@ -314,7 +315,8 @@ instance : lie_ring (⨁ i, L i) :=
 
 /-- The direct sum of Lie algebras carries a natural Lie algebra structure. -/
 instance : lie_algebra R (⨁ i, L i) :=
-{ lie_smul := λ c x y, by { ext, simp only [zip_with_apply, smul_apply, bracket_apply, lie_smul], },
+{ lie_smul := λ c x y, by { ext, simp only [
+    zip_with_apply, direct_sum.smul_apply, bracket_apply, lie_smul] },
   ..(infer_instance : module R _) }
 
 end direct_sum
@@ -341,8 +343,8 @@ def of_associative_algebra_hom {R : Type u} {A : Type v} {B : Type w}
      by simp only [lie_ring.of_associative_ring_bracket, alg_hom.map_sub, alg_hom.map_mul],
   ..f.to_linear_map, }
 
-@[simp] lemma of_associative_algebra_hom_id {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A] :
-  of_associative_algebra_hom (alg_hom.id R A) = 1 := rfl
+@[simp] lemma of_associative_algebra_hom_id {R : Type u} {A : Type v}
+  [comm_ring R] [ring A] [algebra R A] : of_associative_algebra_hom (alg_hom.id R A) = 1 := rfl
 
 @[simp] lemma of_associative_algebra_hom_comp {R : Type u} {A : Type v} {B : Type w} {C : Type w₁}
   [comm_ring R] [ring A] [ring B] [ring C] [algebra R A] [algebra R B] [algebra R C]

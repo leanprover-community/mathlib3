@@ -3,54 +3,52 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Yury Kudryashov
 -/
-import analysis.normed_space.point_reflection
 import topology.instances.real_vector_space
 import analysis.normed_space.add_torsor
-import linear_algebra.affine_space.affine_map
+import linear_algebra.affine_space.midpoint
 
 /-!
 # Mazur-Ulam Theorem
 
-Mazur-Ulam theorem states that an isometric bijection between two normed spaces over `ℝ` is affine.
-We formalize it in two definitions:
+Mazur-Ulam theorem states that an isometric bijection between two normed affine spaces over `ℝ` is
+affine. We formalize it in three definitions:
 
 * `isometric.to_real_linear_equiv_of_map_zero` : given `E ≃ᵢ F` sending `0` to `0`,
   returns `E ≃L[ℝ] F` with the same `to_fun` and `inv_fun`;
 * `isometric.to_real_linear_equiv` : given `f : E ≃ᵢ F`,
   returns `g : E ≃L[ℝ] F` with `g x = f x - f 0`.
-* `isometric.to_affine_map` : given `PE ≃ᵢ PF`, returns `g : PE →ᵃ[ℝ] PF` with the same
-  `to_fun`.
+* `isometric.to_affine_equiv` : given `PE ≃ᵢ PF`, returns `g : PE ≃ᵃ[ℝ] PF` with the same
+  `to_equiv`.
 
 The formalization is based on [Jussi Väisälä, *A Proof of the Mazur-Ulam Theorem*][Vaisala_2003].
-
-## TODO
-
-Once we have affine equivalences, upgrade `isometric.to_affine_map` to `isometric.to_affine_equiv`.
 
 ## Tags
 
 isometry, affine map, linear map
 -/
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E]
-  {F : Type*} [normed_group F] [normed_space ℝ F]
+variables
+  {E PE : Type*} [normed_group E] [normed_space ℝ E] [metric_space PE] [normed_add_torsor E PE]
+  {F PF : Type*} [normed_group F] [normed_space ℝ F] [metric_space PF] [normed_add_torsor F PF]
 
-open set
+open set affine_map
 
 noncomputable theory
 
 namespace isometric
 
+include E
+
 /-- If an isometric self-homeomorphism of a normed vector space over `ℝ` fixes `x` and `y`,
 then it fixes the midpoint of `[x, y]`. This is a lemma for a more general Mazur-Ulam theorem,
 see below. -/
-lemma midpoint_fixed {x y : E} :
-  ∀ e : E ≃ᵢ E, e x = x → e y = y → e (midpoint ℝ x y) = midpoint ℝ x y :=
+lemma midpoint_fixed {x y : PE} :
+  ∀ e : PE ≃ᵢ PE, e x = x → e y = y → e (midpoint ℝ x y) = midpoint ℝ x y :=
 begin
   set z := midpoint ℝ x y,
   -- Consider the set of `e : E ≃ᵢ E` such that `e x = x` and `e y = y`
-  set s := { e : E ≃ᵢ E | e x = x ∧ e y = y },
-  haveI : nonempty s := ⟨⟨isometric.refl E, rfl, rfl⟩⟩,
+  set s := { e : PE ≃ᵢ PE | e x = x ∧ e y = y },
+  haveI : nonempty s := ⟨⟨isometric.refl PE, rfl, rfl⟩⟩,
   -- On the one hand, `e` cannot send the midpoint `z` of `[x, y]` too far
   have h_bdd : bdd_above (range $ λ e : s, dist (e z) z),
   { refine ⟨dist x z + dist x z, forall_range_iff.2 $ subtype.forall.2 _⟩,
@@ -61,18 +59,18 @@ begin
   -- On the other hand, consider the map `f : (E ≃ᵢ E) → (E ≃ᵢ E)`
   -- sending each `e` to `R ∘ e⁻¹ ∘ R ∘ e`, where `R` is the point reflection in the
   -- midpoint `z` of `[x, y]`.
-  set R : E ≃ᵢ E := point_reflection z,
-  set f : (E ≃ᵢ E) → (E ≃ᵢ E) := λ e, ((e.trans R).trans e.symm).trans R,
+  set R : PE ≃ᵢ PE := point_reflection z,
+  set f : (PE ≃ᵢ PE) → (PE ≃ᵢ PE) := λ e, ((e.trans R).trans e.symm).trans R,
   -- Note that `f` doubles the value of ``dist (e z) z`
   have hf_dist : ∀ e, dist (f e z) z = 2 * dist (e z) z,
   { intro e,
     dsimp [f],
-    rw [point_reflection_dist_fixed, ← e.dist_eq, e.apply_symm_apply,
-      point_reflection_dist_self_real, dist_comm] },
+    rw [dist_point_reflection_fixed, ← e.dist_eq, e.apply_symm_apply,
+      dist_point_reflection_self_real, dist_comm] },
   -- Also note that `f` maps `s` to itself
   have hf_maps_to : maps_to f s s,
   { rintros e ⟨hx, hy⟩,
-    split; simp [hx, hy, e.symm_apply_eq.2 hx.symm, e.symm_apply_eq.2 hy.symm] },
+    split; simp [hx, hy, e.symm_apply_eq.2 hx.symm, e.symm_apply_eq.2 hy.symm], },
   -- Therefore, `dist (e z) z = 0` for all `e ∈ s`.
   set c := ⨆ e : s, dist (e z) z,
   have : c ≤ c / 2,
@@ -85,10 +83,12 @@ begin
   exact le_csupr h_bdd ⟨e, hx, hy⟩
 end
 
+include F
+
 /-- A bijective isometry sends midpoints to midpoints. -/
-lemma map_midpoint (f : E ≃ᵢ F) (x y : E) : f (midpoint ℝ x y) = midpoint ℝ (f x) (f y) :=
+lemma map_midpoint (f : PE ≃ᵢ PF) (x y : PE) : f (midpoint ℝ x y) = midpoint ℝ (f x) (f y) :=
 begin
-  set e : E ≃ᵢ E := ((f.trans $ point_reflection $ midpoint ℝ (f x) (f y)).trans f.symm).trans
+  set e : PE ≃ᵢ PE := ((f.trans $ point_reflection $ midpoint ℝ (f x) (f y)).trans f.symm).trans
     (point_reflection $ midpoint ℝ x y),
   have hx : e x = x, by simp,
   have hy : e y = y, by simp,
@@ -100,7 +100,7 @@ begin
 end
 
 /-!
-Since `f : E ≃ᵢ F` sends midpoints to midpoints, it is an affine map.
+Since `f : PE ≃ᵢ PF` sends midpoints to midpoints, it is an affine map.
 We define a conversion to a `continuous_linear_equiv` first, then a conversion to an `affine_map`.
 -/
 
@@ -128,19 +128,13 @@ def to_real_linear_equiv (f : E ≃ᵢ F) : E ≃L[ℝ] F :=
 @[simp] lemma to_real_linear_equiv_symm_apply (f : E ≃ᵢ F) (y : F) :
   (f.to_real_linear_equiv.symm : F → E) y = f.symm (y + f 0) := rfl
 
-variables {E F} {PE : Type*} {PF : Type*} [metric_space PE] [normed_add_torsor E PE]
-  [metric_space PF] [normed_add_torsor F PF]
-
-include E F
-
 /-- Convert an isometric equivalence between two affine spaces to an `affine_map`. -/
-def to_affine_map (f : PE ≃ᵢ PF) : PE →ᵃ[ℝ] PF :=
-affine_map.mk' f
- ((vadd_const (classical.choice $ add_torsor.nonempty : PE)).trans $ f.trans
-   (vadd_const (f $ classical.choice $ add_torsor.nonempty : PF)).symm).to_real_linear_equiv
- (classical.choice $ add_torsor.nonempty) $ λ p',
- by simp
+def to_affine_equiv (f : PE ≃ᵢ PF) : PE ≃ᵃ[ℝ] PF :=
+affine_equiv.mk' f.to_equiv
+  (((vadd_const (classical.arbitrary PE)).trans $ f.trans
+    (vadd_const (f $ classical.arbitrary PE)).symm).to_real_linear_equiv.to_linear_equiv)
+  (classical.arbitrary PE) (λ p, by simp)
 
-@[simp] lemma coe_to_affine_map (f : PE ≃ᵢ PF) : ⇑f.to_affine_map = f := rfl
+@[simp] lemma coe_to_affine_equiv (f : PE ≃ᵢ PF) : ⇑f.to_affine_equiv = f := rfl
 
 end isometric

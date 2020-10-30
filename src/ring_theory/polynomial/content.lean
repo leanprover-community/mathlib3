@@ -406,7 +406,8 @@ begin
     exact mul_dvd_mul (ring_hom.map_dvd C h.1) h.2 }
 end
 
-instance : gcd_monoid (polynomial R) :=
+@[priority 100]
+instance gcd_monoid : gcd_monoid (polynomial R) :=
 gcd_monoid_of_exists_lcm $ λ p q, begin
   rcases exists_primitive_lcm_of_is_primitive p.is_primitive_prim_part q.is_primitive_prim_part
     with ⟨r, rprim, hr⟩,

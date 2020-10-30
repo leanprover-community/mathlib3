@@ -42,35 +42,6 @@ instance is_noetherian_ring.wf_dvd_monoid [integral_domain α] [is_noetherian_ri
       ext,
       exact ideal.span_singleton_lt_span_singleton.symm }⟩
 
-instance polynomial.wf_dvd_monoid [integral_domain α] [wf_dvd_monoid α] : wf_dvd_monoid (polynomial α) :=
-{ well_founded_dvd_not_unit := begin
-    classical,
-    refine rel_hom.well_founded
-      ⟨λ p, (if p = 0 then ⊤ else ↑p.degree, p.leading_coeff), _⟩
-      (prod.lex_wf (with_top.well_founded_lt $ with_bot.well_founded_lt nat.lt_wf)
-        _inst_2.well_founded_dvd_not_unit),
-    rintros a b ⟨ane0, ⟨c, ⟨not_unit_c, rfl⟩⟩⟩,
-    rw [polynomial.degree_mul, if_neg ane0],
-    split_ifs with hac,
-    { rw [hac, polynomial.leading_coeff_zero],
-      apply prod.lex.left,
-      exact lt_of_le_of_ne le_top with_top.coe_ne_top },
-    have cne0 : c ≠ 0 := right_ne_zero_of_mul hac,
-    simp only [cne0, ane0, polynomial.leading_coeff_mul],
-    by_cases hdeg : c.degree = 0,
-    { simp only [hdeg, add_zero],
-      refine prod.lex.right _ ⟨_, ⟨c.leading_coeff, (λ unit_c, not_unit_c _), rfl⟩⟩,
-      { rwa [ne, polynomial.leading_coeff_eq_zero] },
-      rw [polynomial.is_unit_iff, polynomial.eq_C_of_degree_eq_zero hdeg],
-      use [c.leading_coeff, unit_c],
-      rw [polynomial.leading_coeff, polynomial.nat_degree_eq_of_degree_eq_some hdeg] },
-    { apply prod.lex.left,
-      rw polynomial.degree_eq_nat_degree cne0 at *,
-      rw [with_top.coe_lt_coe, polynomial.degree_eq_nat_degree ane0,
-          ← with_bot.coe_add, with_bot.coe_lt_coe],
-      exact lt_add_of_pos_right _ (nat.pos_of_ne_zero (λ h, hdeg (h.symm ▸ with_bot.coe_zero))) },
-  end }
-
 namespace wf_dvd_monoid
 
 variables [comm_monoid_with_zero α]
@@ -454,6 +425,75 @@ have multiset.rel associated (p ::ₘ factors b) (factors a),
           (associated.refl _)
           (associated.symm (factors_prod hb0))),
 multiset.exists_mem_of_rel_of_mem this (by simp)
+
+@[simp] lemma factors_one : factors (1 : α) = 0 :=
+begin
+  rw ← multiset.rel_zero_right,
+  apply factors_unique irreducible_of_factor,
+  { intros x hx,
+    exfalso,
+    apply multiset.not_mem_zero x hx },
+  { simp [factors_prod one_ne_zero] },
+  apply_instance
+end
+
+@[simp] lemma factors_mul {x y : α} (hx : x ≠ 0) (hy : y ≠ 0) :
+  factors (x * y) = factors x + factors y :=
+begin
+  have h : (normalize : α → α) = associates.out ∘ associates.mk,
+  { ext, rw [function.comp_apply, associates.out_mk], },
+  rw [← multiset.map_id' (factors (x * y)), ← multiset.map_id' (factors x),
+    ← multiset.map_id' (factors y), ← multiset.map_congr normalize_factor,
+    ← multiset.map_congr normalize_factor, ← multiset.map_congr normalize_factor,
+    ← multiset.map_add, h, ← multiset.map_map associates.out, eq_comm,
+    ← multiset.map_map associates.out],
+  refine congr rfl _,
+  apply multiset.map_mk_eq_map_mk_of_rel,
+  apply factors_unique,
+  { intros x hx,
+    rcases multiset.mem_add.1 hx with hx | hx;
+    exact irreducible_of_factor x hx },
+  { exact irreducible_of_factor },
+  { rw multiset.prod_add,
+    exact associated.trans (associated_mul_mul (factors_prod hx) (factors_prod hy))
+      (factors_prod (mul_ne_zero hx hy)).symm, }
+end
+
+end unique_factorization_monoid
+
+namespace unique_factorization_monoid
+
+open_locale classical
+open multiset associates
+noncomputable theory
+
+variables [comm_cancel_monoid_with_zero α] [nontrivial α] [unique_factorization_monoid α]
+
+/-- Noncomputably defines a `normalization_monoid` structure on a `unique_factorization_monoid`. -/
+protected def normalization_monoid : normalization_monoid α :=
+normalization_monoid_of_monoid_hom_right_inverse {
+  to_fun := λ a : associates α, if a = 0 then 0 else ((factors a).map
+    (classical.some mk_surjective.has_right_inverse : associates α → α)).prod,
+  map_one' := by simp,
+  map_mul' := λ x y, by {
+    by_cases hx : x = 0, { simp [hx] },
+    by_cases hy : y = 0, { simp [hy] },
+    simp [hx, hy] } } begin
+  intro x,
+  dsimp,
+  by_cases hx : x = 0, { simp [hx] },
+  have h : associates.mk_monoid_hom ∘ (classical.some mk_surjective.has_right_inverse) =
+           (id : associates α → associates α),
+  { ext x,
+    rw [function.comp_apply, mk_monoid_hom_apply,
+      classical.some_spec mk_surjective.has_right_inverse x],
+    refl },
+  rw [if_neg hx, ← mk_monoid_hom_apply, monoid_hom.map_multiset_prod, map_map, h, map_id,
+      ← associated_iff_eq],
+  apply factors_prod hx
+end
+
+instance : inhabited (normalization_monoid α) := ⟨unique_factorization_monoid.normalization_monoid⟩
 
 end unique_factorization_monoid
 
@@ -1108,8 +1148,8 @@ open associates unique_factorization_monoid
 /-- `to_gcd_monoid` constructs a GCD monoid out of a normalization on a
   unique factorization domain. -/
 noncomputable def unique_factorization_monoid.to_gcd_monoid
-  (α : Type*) [integral_domain α] [unique_factorization_monoid α] [normalization_monoid α]
-  [decidable_eq (associates α)] [decidable_eq α] : gcd_monoid α :=
+  (α : Type*) [comm_cancel_monoid_with_zero α] [nontrivial α] [unique_factorization_monoid α]
+  [normalization_monoid α] [decidable_eq (associates α)] [decidable_eq α] : gcd_monoid α :=
 { gcd := λa b, (associates.mk a ⊓ associates.mk b).out,
   lcm := λa b, (associates.mk a ⊔ associates.mk b).out,
   gcd_dvd_left := assume a b, (out_dvd_iff a (associates.mk a ⊓ associates.mk b)).2 $ inf_le_left,

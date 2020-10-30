@@ -46,6 +46,8 @@ calc (2:α) = 1+1 : one_add_one_eq_two
 
 lemma one_le_two : 1 ≤ (2:α) := one_lt_two.le
 
+lemma zero_lt_three : 0 < (3:α) := add_pos zero_lt_two zero_lt_one
+
 lemma zero_lt_four : 0 < (4:α) := add_pos zero_lt_two zero_lt_two
 
 end nontrivial
@@ -687,6 +689,11 @@ lemma mul_self_lt_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a < b 
 iff.trans (lt_iff_not_ge _ _) $ iff.trans (not_iff_not_of_iff $ mul_self_le_mul_self_iff h2 h1) $
   iff.symm (lt_iff_not_ge _ _)
 
+lemma mul_self_inj {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a * a = b * b ↔ a = b :=
+⟨λ h3, le_antisymm ((nonneg_le_nonneg_of_squares_le h2) h3.le) $
+  (nonneg_le_nonneg_of_squares_le h1) h3.symm.le,
+ λ h3, le_antisymm ((mul_self_le_mul_self h1) h3.le) $ (mul_self_le_mul_self h2) h3.symm.le⟩
+
 @[simp] lemma mul_le_mul_left_of_neg {a b c : α} (h : c < 0) : c * a ≤ c * b ↔ b ≤ a :=
 ⟨le_imp_le_of_lt_imp_lt $ λ h', mul_lt_mul_of_neg_left h' h,
   λ h', mul_le_mul_of_nonpos_left h' h.le⟩
@@ -727,7 +734,7 @@ lt_of_not_ge (λ ha, absurd h (mul_nonneg_of_nonpos_of_nonpos ha hb).not_lt)
 lemma pos_of_mul_neg_right {a b : α} (h : a * b < 0) (ha : a ≤ 0) : 0 < b :=
 lt_of_not_ge (λ hb, absurd h (mul_nonneg_of_nonpos_of_nonpos ha hb).not_lt)
 
-/- The sum of two squares is zero iff both elements are zero. -/
+/-- The sum of two squares is zero iff both elements are zero. -/
 lemma mul_self_add_mul_self_eq_zero {x y : α} : x * x + y * y = 0 ↔ x = 0 ∧ y = 0 :=
 begin
   split; intro h, swap, { rcases h with ⟨rfl, rfl⟩, simp },
@@ -764,10 +771,25 @@ lemma sub_lt_of_abs_sub_lt_right (h : abs (a - b) < c) : a - c < b :=
 sub_lt_of_abs_sub_lt_left (abs_sub a b ▸ h)
 
 lemma eq_zero_of_mul_self_add_mul_self_eq_zero (h : a * a + b * b = 0) : a = 0 :=
-have a * a ≤ (0 : α), from calc
-     a * a ≤ a * a + b * b : le_add_of_nonneg_right (mul_self_nonneg b)
-       ... = 0             : h,
-eq_zero_of_mul_self_eq_zero (le_antisymm this (mul_self_nonneg a))
+(mul_self_add_mul_self_eq_zero.mp h).left
+
+lemma abs_eq_iff_mul_self_eq : abs a = abs b ↔ a * a = b * b :=
+begin
+  rw [← abs_mul_abs_self, ← abs_mul_abs_self b],
+  exact (mul_self_inj (abs_nonneg a) (abs_nonneg b)).symm,
+end
+
+lemma abs_lt_iff_mul_self_lt : abs a < abs b ↔ a * a < b * b :=
+begin
+  rw [← abs_mul_abs_self, ← abs_mul_abs_self b],
+  exact mul_self_lt_mul_self_iff (abs_nonneg a) (abs_nonneg b)
+end
+
+lemma abs_le_iff_mul_self_le : abs a ≤ abs b ↔ a * a ≤ b * b :=
+begin
+  rw [← abs_mul_abs_self, ← abs_mul_abs_self b],
+  exact mul_self_le_mul_self_iff (abs_nonneg a) (abs_nonneg b)
+end
 
 end linear_ordered_ring
 
@@ -1071,7 +1093,8 @@ instance [nontrivial α] : canonically_ordered_comm_semiring (with_top α) :=
   mul_comm        := comm,
   one_mul         := one_mul',
   mul_one         := assume a, by rw [comm, one_mul'],
-  .. with_top.add_comm_monoid, .. with_top.mul_zero_class, .. with_top.canonically_ordered_add_monoid,
+  .. with_top.add_comm_monoid, .. with_top.mul_zero_class,
+  .. with_top.canonically_ordered_add_monoid,
   .. with_top.no_zero_divisors, .. with_top.nontrivial }
 
 end with_top

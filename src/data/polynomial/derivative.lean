@@ -102,7 +102,7 @@ begin
 --  rw [finset.nat.sum_antidiagonal_succ, finset.nat.sum_antidiagonal_succ', add_assoc,
 --    add_left_comm (finset.sum _ _), finset.nat.sum_antidiagonal_subst],
 --  simp only [nat.cast_add, mul_add, sum_add_distrib, add_mul, mul_assoc, (nat.cast_commute _ _).eq],
-  
+
 end
 
 theorem derivative_pow_succ (p : polynomial R) (n : ℕ) :

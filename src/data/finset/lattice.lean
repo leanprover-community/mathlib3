@@ -5,6 +5,7 @@ Author: Mario Carneiro
 -/
 import data.finset.fold
 import data.multiset.lattice
+import order.order_dual
 
 /-!
 # Lattice operations on finsets
@@ -13,7 +14,7 @@ import data.multiset.lattice
 variables {α β γ : Type*}
 
 namespace finset
-open multiset
+open multiset order_dual
 
 /-! ### sup -/
 section sup
@@ -356,6 +357,28 @@ begin
   rw eq_singleton_iff_unique_mem,
   refine ⟨max'_mem _ _, λ t Ht, le_antisymm (le_max' s t Ht) (le_trans a (min'_le s t Ht))⟩,
 end
+
+lemma max'_eq_of_dual_min' {s : finset α} (hs : s.nonempty) :
+  max' s hs = of_dual (min' (image to_dual s) (nonempty.image hs to_dual)) :=
+begin
+  rw [of_dual, to_dual, equiv.coe_fn_mk, equiv.coe_fn_symm_mk, id.def],
+  simp_rw (@image_id (order_dual α) (s : finset (order_dual α))),
+  refl,
+end
+
+lemma min'_eq_of_dual_max' {s : finset α} (hs : s.nonempty) :
+  min' s hs = of_dual (max' (image to_dual s) (nonempty.image hs to_dual)) :=
+begin
+  rw [of_dual, to_dual, equiv.coe_fn_mk, equiv.coe_fn_symm_mk, id.def],
+  simp_rw (@image_id (order_dual α) (s : finset (order_dual α))),
+  refl,
+end
+
+@[simp] lemma of_dual_max_eq_min_of_dual {a b : α} :
+  of_dual (max a b) = min (of_dual a) (of_dual b) := rfl
+
+@[simp] lemma of_dual_min_eq_max_of_dual {a b : α} :
+  of_dual (min a b) = max (of_dual a) (of_dual b) := rfl
 
 end max_min
 

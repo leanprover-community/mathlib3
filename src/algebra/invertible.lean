@@ -125,6 +125,10 @@ def invertible_neg [ring α] (a : α) [invertible a] : invertible (-a) :=
 @[simp] lemma inv_of_neg [ring α] (a : α) [invertible a] [invertible (-a)] : ⅟(-a) = -⅟a :=
 inv_of_eq_right_inv (by simp)
 
+@[simp] lemma one_sub_inv_of_two [ring α] [invertible (2:α)] : 1 - (⅟2:α) = ⅟2 :=
+(is_unit_of_invertible (2:α)).mul_right_inj.1 $
+  by rw [mul_sub, mul_inv_of_self, mul_one, bit0, add_sub_cancel]
+
 /-- `a` is the inverse of `⅟a`. -/
 instance invertible_inv_of [has_one α] [has_mul α] {a : α} [invertible a] : invertible (⅟a) :=
 ⟨ a, mul_inv_of_self a, inv_of_mul_self a ⟩

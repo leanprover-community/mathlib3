@@ -426,6 +426,16 @@ instance : preorder (associates α) :=
 
 @[simp] lemma mk_one : associates.mk (1 : α) = 1 := rfl
 
+/-- `associates.mk` as a `monoid_hom`. -/
+protected def mk_monoid_hom : α →* (associates α) := ⟨associates.mk, mk_one, λ x y, mk_mul_mk⟩
+
+@[simp] lemma mk_monoid_hom_apply (a : α) : associates.mk_monoid_hom a = associates.mk a := rfl
+
+lemma associated_map_mk {f : associates α →* α}
+  (hinv : function.right_inverse f associates.mk) (a : α) :
+  a ~ᵤ f (associates.mk a) :=
+associates.mk_eq_mk_iff_associated.1 (hinv (associates.mk a)).symm
+
 lemma mk_pow (a : α) (n : ℕ) : associates.mk (a ^ n) = (associates.mk a) ^ n :=
 by induction n; simp [*, pow_succ, associates.mk_mul_mk.symm]
 

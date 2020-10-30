@@ -156,7 +156,7 @@ span_induction ((quotient.mk_eq_zero _).1 H)
       subst hxy,
       split,
       { intros i0 hi0,
-        rw [dfinsupp.mem_support_iff, dfinsupp.sub_apply, ← direct_sum.single_eq_lof,
+        rw [dfinsupp.mem_support_iff, direct_sum.sub_apply, ← direct_sum.single_eq_lof,
             ← direct_sum.single_eq_lof, dfinsupp.single_apply, dfinsupp.single_apply] at hi0,
         split_ifs at hi0 with hi hj hj, { rwa hi at hik }, { rwa hi at hik }, { rwa hj at hjk },
         exfalso, apply hi0, rw sub_zero },
@@ -175,7 +175,7 @@ span_induction ((quotient.mk_eq_zero _).1 H)
           to_module_totalize_of_le hik hi,
           to_module_totalize_of_le hjk hj]⟩)
   (λ a x ⟨i, hi, hxi⟩,
-    ⟨i, λ k hk, hi k (dfinsupp.support_smul hk),
+    ⟨i, λ k hk, hi k (direct_sum.support_smul _ _ hk),
       by simp [linear_map.map_smul, hxi]⟩)
 
 /-- A component that corresponds to zero in the direct limit is already zero in some

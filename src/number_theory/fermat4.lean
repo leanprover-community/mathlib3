@@ -215,17 +215,17 @@ begin
   have hb2 : 2 ∣ b,
   { apply @int.prime.dvd_pow' _ 2 _ (by norm_num : nat.prime 2),
     rw [ht2, mul_assoc], exact dvd_mul_right 2 (m * n) },
-  have hs : (b / 2) ^ 2 = m * (r * s),
-  { have hb22 : 2 * (b / 2) = b, { exact int.mul_div_cancel' hb2 },
-    apply (mul_right_inj' (by norm_num : (4 : ℤ) ≠ 0)).mp,
-    calc 4 * (b / 2) ^ 2 = (2 * (b / 2)) * (2 * (b / 2)) : by ring
-                    ... = 2 * m * (2 * r * s) : by rw [hb22, ← pow_two, ht2, htt2]
+  cases hb2 with b' hb2',
+  have hs : b' ^ 2 = m * (r * s),
+  { apply (mul_right_inj' (by norm_num : (4 : ℤ) ≠ 0)).mp,
+    calc 4 * b' ^ 2 = (2 * b') * (2 * b') : by ring
+                    ... = 2 * m * (2 * r * s) : by rw [← hb2', ← pow_two, ht2, htt2]
                     ... = 4 * (m * (r * s)) : by ring },
   have hrsz : r * s ≠ 0, -- because b ^ 2 is not zero and (b / 2) ^ 2 = m * (r * s)
   { by_contradiction hrsz,
     revert hb20, rw [ht2, htt2, mul_assoc, @mul_assoc _ _ _ r s, (not_not.mp hrsz)],
     simp },
-  have h2b0 : b / 2 ≠ 0,
+  have h2b0 : b' ≠ 0,
   { apply ne_zero_pow (dec_trivial : 2 ≠ 0),
     rw hs, apply mul_ne_zero, { exact ne_of_gt h4}, { exact hrsz } },
   obtain ⟨i, hi⟩ := int.sqr_of_gcd_eq_one hcp hs.symm,
@@ -244,10 +244,10 @@ begin
   have hd' : ¬ r * s = - d ^ 2,
   { by_contradiction h1,
     rw h1 at hs,
-    have h2 : (b / 2) ^ 2 ≤ 0,
+    have h2 : b' ^ 2 ≤ 0,
     { rw [hs, (by ring : - d ^ 2 * m = - (d ^ 2 * m))], apply neg_nonpos.mpr,
       apply (zero_le_mul_right h4).mpr (pow_two_nonneg d) },
-    have h2' : 0 ≤ (b / 2) ^ 2, { apply pow_two_nonneg (b / 2) },
+    have h2' : 0 ≤ b' ^ 2, { apply pow_two_nonneg b' },
     exact absurd (lt_of_le_of_ne h2' (ne.symm (pow_ne_zero _ h2b0))) (not_lt.mpr h2) },
   replace hd : r * s = d ^ 2, { apply or.resolve_right hd hd' },
   -- r = +/- j ^ 2

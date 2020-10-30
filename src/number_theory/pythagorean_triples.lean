@@ -547,13 +547,13 @@ theorem coprime_classification' {x y z : ℤ} (h : pythagorean_triple x y z)
 begin
   obtain ⟨m, n, ht1, ht2, ht3, ht4⟩ :=
     pythagorean_triple.coprime_classification.mp (and.intro h h_coprime),
-  by_cases hm_sign : 0 ≤ m,
+  cases le_or_lt 0 m with hm hm,
   { use [m, n],
     cases ht1 with h_odd h_even,
     { apply and.intro h_odd.1,
       apply and.intro h_odd.2,
       cases ht2 with h_pos h_neg,
-      { apply and.intro h_pos (and.intro ht3 (and.intro ht4 hm_sign)) },
+      { apply and.intro h_pos (and.intro ht3 (and.intro ht4 hm)) },
       { exfalso, revert h_pos, rw h_neg,
         exact imp_false.mpr (not_lt.mpr (neg_nonpos.mpr (add_nonneg (pow_two_nonneg m)
           (pow_two_nonneg n)))) } },

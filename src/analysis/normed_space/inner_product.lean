@@ -251,7 +251,7 @@ begin
       have : ⟪y, y⟫ / (⟪y, y⟫ * ⟪y, y⟫) = 1 / ⟪y, y⟫ :=
         by rw [div_mul_eq_div_mul_one_div, div_self hy', one_mul],
       rw [this, div_eq_mul_inv, one_mul, ←div_eq_mul_inv] },
-    have h₄ : ⟪y, y⟫ = (re ⟪y, y⟫) := by simp only [inner_self_re_to_K],
+    have h₄ : ⟪y, y⟫ = re ⟪y, y⟫ := by simp only [inner_self_re_to_K],
     have h₅ : re ⟪y, y⟫ > 0,
     { refine lt_of_le_of_ne inner_self_nonneg _,
       intro H,

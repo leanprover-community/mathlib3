@@ -14,7 +14,7 @@ namespace tactic.rewrite_search
 
 open tactic tactic.interactive tactic.rewrite_search
 
-meta def load_attr_list : list name → tactic (list name)
+private meta def load_attr_list : list name → tactic (list name)
 | [] := return []
 | (a :: rest) := do
   names ← attribute.get_instances a,
@@ -24,7 +24,11 @@ meta def load_attr_list : list name → tactic (list name)
 private meta def load_names (l : list name) : tactic (list expr) :=
   l.mmap mk_const
 
-meta def rewrite_list_from_rw_rules (rws : list rw_rule) : tactic (list (expr × bool)) :=
+/-
+Convert the `rw_rule` format provided by the parser to the (expr × bool) format
+used by rewrite_search.
+-/
+meta def rules_from_rw_rules (rws : list rw_rule) : tactic (list (expr × bool)) :=
   rws.mmap (λ r, do e ← to_expr' r.rule, pure (e, r.symm))
 
 private meta def rewrite_list_from_lemmas (l : list expr) : list (expr × bool) :=
@@ -75,15 +79,21 @@ do names ← attribute.get_instances `rewrite,
    exprs ← load_names $ names ++ extra_names,
    return $ rewrite_list_from_lemmas exprs
 
-meta def collect_rw_lemmas (cfg : config) (extra_names : list name)
-(extra_rws : list (expr × bool)) : tactic (list (expr × bool)) :=
-do rws ← collect extra_names,
-   hyp_rws ← rewrite_list_from_hyps,
-   let rws := rws ++ extra_rws ++ hyp_rws,
-
-   locs ← local_context,
-   if cfg.inflate_rws then list.join <$> (rws.mmap $ inflate_rw locs)
-   else pure rws
+/-
+Collect rewrite rules to use. Rules can be specified as names, from the parser's
+`rw_rule` objects, or gathered from the environment according to the config.
+-/
+meta def collect_rules (cfg : config) (names : list name) (rws : list rw_rule) :
+tactic (list (expr × bool)) :=
+do ns ← load_attr_list names,
+  rules_from_names ← collect ns,
+  rules_from_hyps ← rewrite_list_from_hyps,
+  rules_from_rws ← rules_from_rw_rules rws,
+  let rules := rules_from_names ++ rules_from_hyps ++ rules_from_rws,
+  locs ← local_context,
+  if cfg.inflate_rws then
+    list.join <$> (rules.mmap $ inflate_rw locs)
+  else return rules
 
 open tactic.nth_rewrite tactic.nth_rewrite.congr
 

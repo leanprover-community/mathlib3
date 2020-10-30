@@ -12,36 +12,31 @@ import tactic.rewrite_search.search
 # Interactive versions of rewrite tactics and documentation
 -/
 
-namespace tactic.rewrite_search
-open tactic.rewrite_search
+namespace tactic.interactive
 
-meta def default_config : config := {}
-meta def pick_default_config : tactic unit := `[exact tactic.rewrite_search.default_config]
+open lean.parser interactive interactive.types tactic.rewrite_search
 
-meta def rewrite_search_target (cfg : config) (extra_names : list name)
-  (extra_rws : list (expr × bool)) : tactic string :=
+/-
+Collects rewrite rules, runs a graph search to find a chain of rewrites to prove the
+current target, and generates a string explanation for it.
+-/
+private meta def rewrite_search_target (cfg : config) (names : list name) (rws : list rw_rule) :
+tactic string :=
 do t ← tactic.target,
   if t.has_meta_var then
     tactic.fail "rewrite_search is not suitable for goals containing metavariables"
   else tactic.skip,
-
-  rules ← collect_rw_lemmas cfg extra_names extra_rws,
-
+  rules ← collect_rules cfg names rws,
   g ← mk_graph cfg rules t,
   (_, proof, steps) ← g.find_proof,
   tactic.exact proof >> (explain_search_result cfg rules proof steps)
 
-end tactic.rewrite_search
+meta def pick_default : tactic unit := `[exact tactic.rewrite_search.default_config]
 
-namespace tactic.interactive
-
-open lean.parser interactive interactive.types
-open tactic.rewrite_search
-
-/-- Search for a chain of rewrites to prove equations or iffs. -/
+/-- Search for a chain of rewrites to prove an equation or iff statement. -/
 meta def rewrite_search (try_harder : parse $ optional (tk "!"))
-  (cfg : config . pick_default_config) : tactic string :=
-  rewrite_search_target cfg [] []
+  (cfg : config . pick_default) : tactic string :=
+rewrite_search_target cfg [] []
 
 add_tactic_doc
 { name        := "rewrite_search",
@@ -49,28 +44,32 @@ add_tactic_doc
   decl_names  := [`tactic.interactive.rewrite_search],
   tags        := ["rewrite", "automation"] }
 
+/--
+Search for a chain of rewrites to prove an equation or iff statement.
+Includes the rewrite rules specified in the same way as the `rw` tactic accepts.
+-/
 meta def rewrite_search_with (try_harder : parse $ optional (tk "!")) (rs : parse rw_rules)
-  (cfg : config . pick_default_config) : tactic string :=
-do extra_rws ← rewrite_list_from_rw_rules rs.rules,
-   rewrite_search_target cfg [] extra_rws  
+  (cfg : config . pick_default) : tactic string :=
+rewrite_search_target cfg [] rs.rules
 
--- Uncomment this after adding a docstring.
--- add_tactic_doc
--- { name        := "rewrite_search_with",
---   category    := doc_category.tactic,
---   decl_names  := [`tactic.interactive.rewrite_search_with],
---   tags        := ["rewrite", "automation"] }
+add_tactic_doc
+{ name        := "rewrite_search_with",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.rewrite_search_with],
+  tags        := ["rewrite", "automation"] }
 
+/--
+Search for a chain of rewrites to prove an equation or iff statement.
+Includes the rewrite rules specified as a list of names.
+-/
 meta def rewrite_search_using (try_harder : parse $ optional (tk "!")) (as : list name)
-  (cfg : config . pick_default_config) : tactic string :=
-do extra_names ← load_attr_list as,
-   rewrite_search_target cfg extra_names []
+  (cfg : config . pick_default) : tactic string :=
+rewrite_search_target cfg as []
 
--- Uncomment this after adding a docstring.
--- add_tactic_doc
--- { name        := "rewrite_search_using",
---   category    := doc_category.tactic,
---   decl_names  := [`tactic.interactive.rewrite_search_using],
---   tags        := ["rewrite", "automation"] }
+add_tactic_doc
+{ name        := "rewrite_search_using",
+  category    := doc_category.tactic,
+   decl_names  := [`tactic.interactive.rewrite_search_using],
+   tags        := ["rewrite", "automation"] }
 
 end tactic.interactive

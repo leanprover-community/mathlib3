@@ -76,6 +76,8 @@ meta structure config extends tactic.nth_rewrite.cfg :=
 (explain_using_conv : bool := tt)
 (inflate_rws        : bool := ff)
 
+meta def default_config : config := {}
+
 /-
 Split an equation (or an iff) into its left and right parts.
 -/

@@ -229,13 +229,13 @@ def degree_lt_linear_equiv (hf : f ≠ 0) : degree_lt K (f.nat_degree) ≃ₗ[K]
 { .. (degree_lt_linear_map f), .. equiv.of_bijective _ (degree_lt_linear_map_bijective f hf) }
 
 lemma finite_dimensional (hf : f ≠ 0) : finite_dimensional K (adjoin_root f) :=
-linear_equiv.finite_dimensional (((polynomial.degree_lt_linear_equiv K (f.nat_degree)).symm).trans
+linear_equiv.finite_dimensional (((polynomial.degree_lt_equiv K (f.nat_degree)).symm).trans
   (degree_lt_linear_equiv f hf))
 
 lemma findim (hf : f ≠ 0) : finite_dimensional.findim K (adjoin_root f) = f.nat_degree :=
-by rw [←linear_equiv.findim_eq (((polynomial.degree_lt_linear_equiv K (f.nat_degree)).symm).trans
+by rw [←linear_equiv.findim_eq (((polynomial.degree_lt_equiv K (f.nat_degree)).symm).trans
       (degree_lt_linear_equiv f hf)), finite_dimensional.findim_fintype_fun_eq_card K,
-      fintype.card_coe, finset.card_range]
+      fintype.card_fin]
 
 end findim
 end adjoin_root

@@ -577,9 +577,9 @@ begin
         exact imp_false.mpr (not_lt.mpr (neg_nonpos.mpr (add_nonneg (pow_two_nonneg m)
           (pow_two_nonneg n)))) } },
     exfalso,
-    replace h_even : 2 ∣ x, { apply dvd.intro (m * n), rw [h_even.1, mul_assoc] },
-    replace h_even : x % 2 = 0, { exact int.mod_eq_zero_of_dvd h_even },
-    rw h_parity at h_even, revert h_even, norm_num }
+    rcases h_even with ⟨rfl, -⟩,
+    rw [mul_assoc, int.mul_mod_right] at h_parity,
+    exact zero_ne_one h_parity }
 end
 
 theorem classification :

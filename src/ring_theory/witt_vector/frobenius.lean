@@ -339,6 +339,14 @@ variable {p}
 by simp only [ghost_component_apply, frobenius_fun, coeff_mk,
     ← bind₁_frobenius_poly_witt_polynomial, aeval_bind₁]
 
+/--
+If `R` has characteristic `p`, then there is a ring endomorphism
+that raises `r : R` to the power `p`.
+By applying `witt_vector.map` to this endomorphism,
+we obtain a ring endomorphism `frobenius R p : 𝕎 R →+* 𝕎 R`.
+
+The underlying function of this morphism is `witt_vector.frobenius_fun`.
+-/
 def frobenius : 𝕎 R →+* 𝕎 R :=
 { to_fun := frobenius_fun,
   map_zero' :=

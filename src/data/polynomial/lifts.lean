@@ -35,6 +35,7 @@ monic polynomial of the same degree.
 that sends `X` to `X`.
 
 ## Implementation details
+
 By definition, `p` lifts if and only if it is in the image of `map f`, that is the same
 as the image of `ring_hom.of (map f)`. We use the fact that the image is a semiring to prove all the
 basic results.

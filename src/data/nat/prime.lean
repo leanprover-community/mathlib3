@@ -273,8 +273,8 @@ section min_fac
   begin
     split,
     { intro h,
-      by_contradiction,
-      have := min_fac_prime a,
+      by_contradiction hn,
+      have := min_fac_prime hn,
       rw h at this,
       exact not_prime_one this, },
     { rintro rfl, refl, }

@@ -192,7 +192,7 @@ begin
   choose ly hly1 hly2,
   let S₀ : set R := ring.closure ↑(lx.frange ∪ finset.bind finset.univ (finsupp.frange ∘ ly)),
   refine is_integral_of_subring S₀ _,
-  letI : comm_ring S₀ := @subtype.comm_ring _ _ _ ring.is_subring,
+  letI : comm_ring S₀ := @subtype.comm_ring _ _ _ ring.closure.is_subring,
   letI : algebra S₀ A := algebra.of_is_subring _,
   have : span S₀ (insert 1 ↑y : set A) * span S₀ (insert 1 ↑y : set A) ≤ span S₀ (insert 1 ↑y : set A),
   { rw span_mul_span, refine span_le.2 (λ z hz, _),

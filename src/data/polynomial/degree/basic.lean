@@ -429,7 +429,7 @@ begin
     { intro,
       apply a0,
       rw [← C_inj, C_0],
-      apply mul_X_pow_eq_zero a_1, }, },
+      apply mul_X_pow_eq_zero ‹_›, }, },
 end
 
 lemma nat_degree_C_mul_X_pow_of_nonzero {a : R} (n : ℕ) (ha : a ≠ 0) :
@@ -440,7 +440,7 @@ begin
   { intro,
     apply ha,
     rw [← C_inj, C_0],
-    exact mul_X_pow_eq_zero a_1, },
+    exact mul_X_pow_eq_zero ‹_›, },
 end
 
 lemma degree_add_eq_of_degree_lt (h : degree p < degree q) : degree (p + q) = degree q :=

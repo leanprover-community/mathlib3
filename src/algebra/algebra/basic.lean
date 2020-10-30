@@ -375,6 +375,8 @@ variables [algebra R A] [algebra R B] [algebra R C] [algebra R D]
 
 instance : has_coe_to_fun (A →ₐ[R] B) := ⟨_, λ f, f.to_fun⟩
 
+initialize_simps_projections alg_hom (to_fun → apply)
+
 instance coe_ring_hom : has_coe (A →ₐ[R] B) (A →+* B) := ⟨alg_hom.to_ring_hom⟩
 
 instance coe_monoid_hom : has_coe (A →ₐ[R] B) (A →* B) := ⟨λ f, ↑(f : A →+* B)⟩
@@ -673,6 +675,11 @@ def symm (e : A₁ ≃ₐ[R] A₂) : A₂ ≃ₐ[R] A₁ :=
 { commutes' := λ r, by { rw ←e.to_ring_equiv.symm_apply_apply (algebra_map R A₁ r), congr,
                          change _ = e _, rw e.commutes, },
   ..e.to_ring_equiv.symm, }
+
+/-- See Note [custom simps projection] -/
+def simps.inv_fun (e : A₁ ≃ₐ[R] A₂) : A₂ → A₁ := e.symm
+
+initialize_simps_projections alg_equiv (to_fun → apply, inv_fun → symm_apply)
 
 @[simp] lemma inv_fun_apply {e : A₁ ≃ₐ[R] A₂} {a : A₂} : e.inv_fun a = e.symm a := rfl
 

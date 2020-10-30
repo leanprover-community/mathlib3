@@ -36,7 +36,7 @@ open_locale direct_sum
 
 variables {R ι M}
 
-instance : semimodule R (⨁ i, M i) := dfinsupp.to_semimodule
+instance : semimodule R (⨁ i, M i) := dfinsupp.semimodule
 
 lemma smul_apply (b : R) (v : ⨁ i, M i) (i : ι) :
   (b • v) i = b • (v i) := dfinsupp.smul_apply _ _ _

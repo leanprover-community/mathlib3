@@ -290,6 +290,42 @@ instance : semilattice_inf (structure_groupoid H) :=
   le_inf := λ G G₁ G₂ h₁ h₂ e he, ⟨h₁ he, h₂ he⟩,
   ..structure_groupoid.has_inf, ..structure_groupoid.partial_order }
 
+def free_groupoid (s : set (local_homeomorph H H)) : structure_groupoid H :=
+{ members := {e | ∀ G : structure_groupoid H, s ⊆ G.members → e ∈ G},
+  trans' := λ e e' he he' G hG, G.trans (he G hG) (he' G hG),
+  symm' := λ e he G hG, G.symm (he G hG),
+  id_mem' := λ G hG, G.id_mem,
+  locality' := λ e he G hG, begin
+    apply G.locality,
+    intros x hx,
+    obtain ⟨s, hs, hxs, h⟩ := he x hx,
+    exact ⟨s, hs, hxs, h G hG⟩,
+  end,
+  eq_on_source' := λ e e' he₁ he₂ G hG, G.eq_on_source (he₁ G hG) he₂ }
+
+lemma mem_free_groupoid (s : set (local_homeomorph H H)) : s ⊆ (free_groupoid s).members :=
+λ x hx G hG, hG hx
+
+lemma free_groupoid_le (s : set (local_homeomorph H H)) :
+  ∀ G : structure_groupoid H, s ⊆ G.members → (free_groupoid s) ≤ G :=
+λ G hG e he, he G hG
+
+instance : has_Sup (structure_groupoid H) :=
+{ Sup := λ (A : set (structure_groupoid H)), free_groupoid (supr (λ (G : A), G.1.members)) }
+
+instance : complete_lattice (structure_groupoid H) :=
+complete_lattice_of_Sup _ (begin
+  intros A,
+  split,
+  { intros G hG e he,
+    apply mem_free_groupoid,
+    exact le_supr (λ (G :A), G.1.members) ⟨G, hG⟩ he },
+  { intros G hG,
+    apply free_groupoid_le,
+    rintros e ⟨s, ⟨⟨G', hG'⟩, rfl⟩, he⟩,
+    exact hG hG' he }
+end)
+
 /-- To construct a groupoid, one may consider classes of local homeos such that both the function
 and its inverse have some property. If this property is stable under composition,
 one gets a groupoid. `pregroupoid` bundles the properties needed for this construction, with the
@@ -564,7 +600,7 @@ lemma foo (G : structure_groupoid H) [closed_under_restriction G] :
   restr K G = restr K (G ⊓ (relative_continuous_groupoid K)) :=
 sorry
 
-variables [topological_space H'] (e : Type*) (i : continuous_map H' H)
+variables [topological_space H'] (e : Type*) (i : H' → H)
 
 open_locale topological_space
 
@@ -612,6 +648,13 @@ def pullback_pregroupoid (G : structure_groupoid H) : pregroupoid H' :=
     intros y hy,
     simpa [h y hy.1] using h' hy
   end }
+
+def pushforward_pregroupoid (G : structure_groupoid H') : pregroupoid H :=
+{ property := λ f s, ∃ e ∈ G, eq_on (i ∘ e) (f ∘ i) (i ⁻¹' s),
+  comp := _,
+  id_mem := _,
+  locality := _,
+  congr := _ }
 
 structure morphism (G : structure_groupoid H) (G' : structure_groupoid H') : Prop :=
 (compatible : ∀ e' ∈ G', ∀ x ∈ (e' : local_homeomorph H' H').source, ∃ e ∈ G, eq_on (e ∘ i) (i ∘ e') (i ⁻¹' e.source) )

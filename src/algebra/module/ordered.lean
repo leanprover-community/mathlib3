@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
 
-import linear_algebra.basic
+import algebra.module.pi
+import algebra.module.prod
 import algebra.ordered_field
 
 /-!
@@ -148,7 +149,7 @@ ordered_semimodule.mk' $ λ v u c h hc,
   ⟨smul_le_smul_of_nonneg h.1.1 hc.le, smul_le_smul_of_nonneg h.1.2 hc.le⟩
 
 instance pi.ordered_semimodule {ι : Type*} {M : ι → Type*} [Π i, ordered_add_comm_group (M i)]
-  [Π i, ordered_semimodule k (M i)] :
+  [Π i, semimodule k (M i)] [∀ i, ordered_semimodule k (M i)] :
   ordered_semimodule k (Π i : ι, M i) :=
 begin
   refine (ordered_semimodule.mk' $ λ v u c h hc i, _),

@@ -20,7 +20,7 @@ open tactic
 
 namespace tactic.rewrite_search
 
-/-
+/--
 An edge represents a proof that can get from one expression to another.
 It represents the fact that, starting from the vertex `fr`, the expression in `proof`
 can prove the vertex `to`.
@@ -37,7 +37,7 @@ meta def edge.to_string : edge → format
 
 meta instance edge.has_to_format : has_to_format edge := ⟨edge.to_string⟩
 
-/-
+/--
 A vertex represents an expression that is equivalent to either the left or right side
 of our initial equation.
 `id` is a numerical id used to refer to this vertex in the context of a single graph.
@@ -54,7 +54,7 @@ meta structure vertex :=
 (side   : side)
 (parent : option edge)
 
-/-
+/--
 The graph represents two trees, one descending from each of the left and right sides
 of our initial equation.
 `conf` and `rules` determine what rewrites are used to generate new graph vertices.
@@ -73,7 +73,7 @@ meta structure graph :=
 (vmap         : native.rb_map string ℕ)
 (solving_edge : option edge)
 
-/-
+/--
 Construct a graph to search for a proof of a given equation.
 -/
 meta def mk_graph (conf : config) (rules : list (expr × bool)) (eq : expr) : tactic graph :=
@@ -89,7 +89,7 @@ variables (g : graph)
 
 namespace graph
 
-/-
+/--
 A convenience wrapper around `g.vertices` that fails if the index is out of bounds.
 -/
 meta def get_vertex (i : ℕ) : tactic vertex :=
@@ -191,7 +191,7 @@ private meta def proof_for_edges : (side × list edge) → tactic (option proof_
   let hows := edges.map (λ e, e.how),
   return $ some ⟨proof, s, hows⟩
 
-/-
+/--
 Run the search to find a proof for the provided graph.
 Normally, this is the only external method needed to run the graph search.
 -/

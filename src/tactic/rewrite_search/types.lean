@@ -14,7 +14,7 @@ declare_trace rewrite_search
 
 namespace tactic.rewrite_search
 
-/-
+/--
 `side` represents the side of an equation, either the left or the right.
 -/
 @[derive decidable_eq, derive inhabited]
@@ -36,7 +36,7 @@ def side.to_xhs : side → string
 
 meta instance side.has_to_format : has_to_format side := ⟨side.to_string⟩
 
-/-
+/--
 `how` contains information needed by the explainer to generate code for a rewrite.
 -/
 meta structure how := (rule_index : ℕ) (location : ℕ) (addr : option (list expr_lens.dir))
@@ -46,7 +46,7 @@ meta def how.to_string : how → format
 
 meta instance how.has_to_format : has_to_format how := ⟨how.to_string⟩
 
-/-
+/--
 `rewrite` represents a single step of rewriting, that proves `exp` using `proof`.
 -/
 meta structure rewrite :=
@@ -54,7 +54,7 @@ meta structure rewrite :=
 (proof : tactic expr) -- we defer constructing the proofs until they are needed
 (how   : how)
 
-/-
+/--
 `proof_unit` represents a sequence of steps that can be applied to one side of the
 equation to prove a particular expression.
 -/
@@ -63,7 +63,7 @@ meta structure proof_unit :=
 (side  : side)
 (steps : list how)
 
-/-
+/--
 Configuration options for a rewrite search.
 `max_iterations` controls how many vertices are expanded in the graph search.
 `explain` generates Lean code to replace the call to `rewrite_search`.
@@ -78,7 +78,7 @@ meta structure config extends tactic.nth_rewrite.cfg :=
 
 meta def default_config : config := {}
 
-/-
+/--
 Split an equation (or an iff) into its left and right parts.
 -/
 meta def split_equation : expr → tactic (expr × expr)

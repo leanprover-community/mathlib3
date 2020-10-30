@@ -5,6 +5,7 @@ Author: Johannes Hölzl
 -/
 import tactic.lint
 import tactic.ext
+import tactic.show_term
 
 open function
 
@@ -37,12 +38,9 @@ protected theorem forall' {q : ∀x, p x → Prop} :
 lemma ext_iff {a1 a2 : {x // p x}} : a1 = a2 ↔ (a1 : α) = (a2 : α) :=
 ⟨congr_arg _, subtype.ext⟩
 
-lemma ext_iff_heq (h' : p = q) {a1 : {x // p x}} {a2 : {x // q x}} :
+@[simp] lemma heq_iff_coe_eq (h : ∀ x, p x ↔ q x) {a1 : {x // p x}} {a2 : {x // q x}} :
   a1 == a2 ↔ (a1 : α) = (a2 : α) :=
-begin
-  subst h',
-  exact heq_iff_eq.trans ext_iff,
-end
+eq.rec (λ a2', heq_iff_eq.trans ext_iff) (funext $ λ x, propext (h x)) a2
 
 lemma ext_val {a1 a2 : {x // p x}} : a1.1 = a2.1 → a1 = a2 :=
 subtype.ext

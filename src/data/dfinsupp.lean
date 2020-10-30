@@ -343,6 +343,14 @@ begin
   { simp only [add_apply, single_eq_of_ne h, zero_add] }
 end
 
+variables (β)
+
+/-- `dfinsupp.single` as an `add_monoid_hom`. -/
+@[simps] def single_add_hom (i : ι) : β i →+ Π₀ i, β i :=
+{ to_fun := single i, map_zero' := single_zero, map_add' := λ _ _, single_add }
+
+variables {β}
+
 lemma single_add_erase {i : ι} {f : Π₀ i, β i} : single i (f i) + f.erase i = f :=
 ext $ λ i',
 if h : i = i'
@@ -407,6 +415,38 @@ have h4 : f + single i b = single i b + f,
   { subst H, simp [h1] },
   { simp [H] } },
 eq.rec_on h4 $ ha i b f h1 h2 h3
+
+@[simp] lemma add_closure_Union_range_single :
+  add_submonoid.closure (⋃ i : ι, set.range (single i : β i → (Π₀ i, β i))) = ⊤ :=
+top_unique $ λ x hx, (begin
+  apply dfinsupp.induction x,
+  exact add_submonoid.zero_mem _,
+  exact λ a b f ha hb hf, add_submonoid.add_mem _
+    (add_submonoid.subset_closure $ set.mem_Union.2 ⟨a, set.mem_range_self _⟩) hf
+end)
+
+/-- If two additive homomorphisms from `Π₀ i, β i` are equal on each `single a b`, then
+they are equal. -/
+lemma add_hom_ext {γ : Type w} [add_monoid γ] ⦃f g : (Π₀ i, β i) →+ γ⦄
+  (H : ∀ (i : ι) (y : β i), f (single i y) = g (single i y)) :
+  f = g :=
+begin
+  refine add_monoid_hom.eq_of_eq_on_mdense add_closure_Union_range_single (λ f hf, _),
+  simp only [set.mem_Union, set.mem_range] at hf,
+  rcases hf with ⟨x, y, rfl⟩,
+  apply H
+end
+
+/-- If two additive homomorphisms from `Π₀ i, β i` are equal on each `single a b`, then
+they are equal.
+
+We formulate this using equality of `add_monoid_hom`s so that `ext` tactic can apply a type-specific
+extensionality lemma after this one.  E.g., if the fiber `M` is `ℕ` or `ℤ`, then it suffices to
+verify `f (single a 1) = g (single a 1)`. -/
+@[ext] lemma add_hom_ext' {γ : Type w} [add_monoid γ] ⦃f g : (Π₀ i, β i) →+ γ⦄
+  (H : ∀ x, f.comp (single_add_hom β x) = g.comp (single_add_hom β x)) :
+  f = g :=
+add_hom_ext $ λ x, add_monoid_hom.congr_fun (H x)
 
 end add_monoid
 
@@ -729,6 +769,76 @@ calc ∏ i in (f + g).support, h i ((f + g) i) =
       (∏ i in f.support ∪ g.support, h i (g i)) :
     by simp [h_add, finset.prod_mul_distrib]
   ... = _ : by rw [f_eq, g_eq]
+
+/--
+When summing over an `add_monoid_hom`, the decidability assumption is not needed, and the result is
+also an `add_monoid_hom`.
+-/
+def sum_add_hom [Π i, add_monoid (β i)] [add_comm_monoid γ] (φ : Π i, β i →+ γ) :
+  (Π₀ i, β i) →+ γ :=
+{ to_fun := (λ f,
+    quotient.lift_on f (λ x, ∑ i in x.2.to_finset, φ i (x.1 i)) $ λ x y H,
+    begin
+      have H1 : x.2.to_finset ∩ y.2.to_finset ⊆ x.2.to_finset, from finset.inter_subset_left _ _,
+      have H2 : x.2.to_finset ∩ y.2.to_finset ⊆ y.2.to_finset, from finset.inter_subset_right _ _,
+      refine (finset.sum_subset H1 _).symm.trans
+          ((finset.sum_congr rfl _).trans (finset.sum_subset H2 _)),
+      { intros i H1 H2, rw finset.mem_inter at H2, rw H i,
+        simp only [multiset.mem_to_finset] at H1 H2,
+        rw [(y.3 i).resolve_left (mt (and.intro H1) H2), add_monoid_hom.map_zero] },
+      { intros i H1, rw H i },
+      { intros i H1 H2, rw finset.mem_inter at H2, rw ← H i,
+        simp only [multiset.mem_to_finset] at H1 H2,
+        rw [(x.3 i).resolve_left (mt (λ H3, and.intro H3 H1) H2), add_monoid_hom.map_zero] }
+    end),
+  map_add' := assume f g,
+  begin
+    refine quotient.induction_on f (λ x, _),
+    refine quotient.induction_on g (λ y, _),
+    change ∑ i in _, _ = (∑ i in _, _) + (∑ i in _, _),
+    simp only, conv { to_lhs, congr, skip, funext, rw add_monoid_hom.map_add },
+    simp only [finset.sum_add_distrib],
+    congr' 1,
+    { refine (finset.sum_subset _ _).symm,
+      { intro i, simp only [multiset.mem_to_finset, multiset.mem_add], exact or.inl },
+      { intros i H1 H2, simp only [multiset.mem_to_finset, multiset.mem_add] at H2,
+        rw [(x.3 i).resolve_left H2, add_monoid_hom.map_zero] } },
+    { refine (finset.sum_subset _ _).symm,
+      { intro i, simp only [multiset.mem_to_finset, multiset.mem_add], exact or.inr },
+      { intros i H1 H2, simp only [multiset.mem_to_finset, multiset.mem_add] at H2,
+        rw [(y.3 i).resolve_left H2, add_monoid_hom.map_zero] } }
+  end,
+  map_zero' := rfl }
+
+@[simp] lemma sum_add_hom_single [Π i, add_monoid (β i)] [add_comm_monoid γ]
+  (φ : Π i, β i →+ γ) (i) (x : β i) : sum_add_hom φ (single i x) = φ i x :=
+(add_zero _).trans $ congr_arg (φ i) $ show (if H : i ∈ ({i} : finset _) then x else 0) = x,
+from dif_pos $ finset.mem_singleton_self i
+
+/-- While we didn't need decidable instances to define it, we do to reduce it to a sum -/
+lemma sum_add_hom_apply [Π i, add_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+  [add_comm_monoid γ] (φ : Π i, β i →+ γ) (f : Π₀ i, β i) :
+  sum_add_hom φ f = f.sum (λ x, φ x) :=
+begin
+  refine quotient.induction_on f (λ x, _),
+  change ∑ i in _, _ = (∑ i in finset.filter _ _, _),
+  rw [finset.sum_filter, finset.sum_congr rfl],
+  intros i _,
+  dsimp only,
+  split_ifs,
+  refl,
+  rw [(not_not.mp h), add_monoid_hom.map_zero],
+end
+
+/-- The `dfinsupp` version of `finsupp.lift_add_hom`,-/
+@[simps]
+def lift_add_hom [Π i, add_monoid (β i)] [add_comm_monoid γ] :
+  (Π i, β i →+ γ) ≃+ ((Π₀ i, β i) →+ γ) :=
+{ to_fun := sum_add_hom,
+  inv_fun := λ F i, F.comp (single_add_hom β i),
+  left_inv := λ x, by { ext, simp },
+  right_inv := λ ψ, by { ext, simp },
+  map_add' := λ F G, by { ext, simp } }
 
 lemma sum_sub_index [Π i, add_comm_group (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [add_comm_group γ] {f g : Π₀ i, β i}

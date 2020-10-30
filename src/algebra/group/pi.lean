@@ -90,7 +90,7 @@ by refine_struct { zero := (0 : Π i, f i), mul := (*), .. }; tactic.pi_instance
 
 instance comm_monoid_with_zero [∀ i, comm_monoid_with_zero $ f i] :
   comm_monoid_with_zero (Π i : I, f i) :=
-by refine_struct { zero := (0 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
+by refine_struct { zero := (0 : Π i, f i), one := 1, mul := (*), .. }; tactic.pi_instance_derive_field
 
 section instance_lemmas
 open function

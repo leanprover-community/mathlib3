@@ -74,7 +74,7 @@ def punit_ring_equiv : mv_polynomial punit R ≃+* polynomial R :=
   left_inv  :=
     begin
       let f : polynomial R →+* mv_polynomial punit R :=
-      ring_hom.of (polynomial.eval₂ mv_polynomial.C (X punit.star)),
+        polynomial.eval₂_ring_hom mv_polynomial.C (X punit.star),
       let g : mv_polynomial punit R →+* polynomial R :=
       ring_hom.of (eval₂ polynomial.C (λu:punit, polynomial.X)),
       show ∀ p, f.comp g p = p,

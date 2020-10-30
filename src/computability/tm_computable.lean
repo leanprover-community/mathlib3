@@ -142,30 +142,33 @@ structure tm2_computable {α β : Type} (ea : fin_encoding α) (eb : fin_encodin
   (option.some ((list.map output_alphabet.inv_fun) (eb.encode (f a)))) )
 
 /-- A Turing machine + a time function + a proof it outputs f in at most time(len(input)) steps. -/
-structure tm2_computable_in_time {α β : Type} (ea : fin_encoding α) (eb : fin_encoding β) (f : α → β)
-  extends tm2_computable_aux ea.Γ eb.Γ :=
+structure tm2_computable_in_time {α β : Type} (ea : fin_encoding α) (eb : fin_encoding β)
+  (f : α → β) extends tm2_computable_aux ea.Γ eb.Γ :=
 ( time: ℕ → ℕ )
 ( outputs_fun : ∀ a, tm2_outputs_in_time tm (list.map input_alphabet.inv_fun (ea.encode a))
   (option.some ((list.map output_alphabet.inv_fun) (eb.encode (f a))))
   (time (ea.encode a).length) )
 
 /-- A Turing machine + a polynomial time function + a proof it outputs f in at most time(len(input)) steps. -/
-structure tm2_computable_in_poly_time {α β : Type} (ea : fin_encoding α) (eb : fin_encoding β) (f : α → β)
-  extends tm2_computable_aux ea.Γ eb.Γ :=
+structure tm2_computable_in_poly_time {α β : Type} (ea : fin_encoding α) (eb : fin_encoding β)
+  (f : α → β) extends tm2_computable_aux ea.Γ eb.Γ :=
 ( time: polynomial ℕ )
 ( outputs_fun : ∀ a, tm2_outputs_in_time tm (list.map input_alphabet.inv_fun (ea.encode a))
   (option.some ((list.map output_alphabet.inv_fun) (eb.encode (f a))))
-  (time.eval (ea.encode a).length) )
+  (polynomial.eval (ea.encode a).length time) )
 
 /-- A forgetful map, forgetting the time bound on the number of steps. -/
-def tm2_computable_in_time.to_tm2_computable {α β : Type} {ea : fin_encoding α} {eb : fin_encoding β}
-{f : α → β} (h : tm2_computable_in_time ea eb f) : tm2_computable ea eb f :=
+def tm2_computable_in_time.to_tm2_computable {α β : Type} {ea : fin_encoding α}
+  {eb : fin_encoding β} {f : α → β} (h : tm2_computable_in_time ea eb f) :
+  tm2_computable ea eb f :=
 ⟨h.to_tm2_computable_aux, λ a, tm2_outputs_in_time.to_tm2_outputs (h.outputs_fun a)⟩
 
 /-- A forgetful map, forgetting that the time function is polynomial. -/
-def tm2_computable_in_poly_time.to_tm2_computable_in_time {α β : Type} {ea : fin_encoding α}
-{eb : fin_encoding β} {f : α → β} (h : tm2_computable_in_poly_time ea eb f) : tm2_computable_in_time ea eb f :=
-⟨h.to_tm2_computable_aux, λ n, h.time.eval n, h.outputs_fun⟩
+noncomputable def tm2_computable_in_poly_time.to_tm2_computable_in_time {α β : Type}
+  {ea : fin_encoding α} {eb : fin_encoding β} {f : α → β}
+  (h : tm2_computable_in_poly_time ea eb f) :
+  tm2_computable_in_time ea eb f :=
+⟨h.to_tm2_computable_aux, λ n, polynomial.eval n h.time, h.outputs_fun⟩
 
 open turing.TM2.stmt
 

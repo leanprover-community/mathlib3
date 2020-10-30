@@ -20,10 +20,12 @@ over a normed field:
 
 We prove related properties.
 
-(TODO:) define and show equivalence of two notions of local convexity
+## TODO
+
+Define and show equivalence of two notions of local convexity
 for a t.v.s. over ℝ or ℂ: that it has a local base of balanced convex
 absorbent sets, and that it carries the initial topology induced by a
-family of seminorms,
+family of seminorms.
 
 ## References
 * [H. H. Schaefer, *Topological Vector Spaces*][schaefer1966]
@@ -39,7 +41,7 @@ variables
 
 open set normed_field
 
-/-- a set `A` absorbs another set `B` if `B` is contained in scaling
+/-- A set `A` absorbs another set `B` if `B` is contained in scaling
 `A` by elements of sufficiently large norms. -/
 def absorbs (A B : set E) := ∃ r > 0, ∀ a : 𝕜, r ≤ ∥a∥ → B ⊆ a • A
 
@@ -53,7 +55,7 @@ def balanced (A : set E) := ∀ a : 𝕜, ∥a∥ ≤ 1 → a • A ⊆ A
 
 variables {𝕜} (a : 𝕜) {A : set E}
 
-/-- a balanced set absorbs itself. -/
+/-- A balanced set absorbs itself. -/
 lemma absorbs_self_of_balanced (hA : balanced 𝕜 A) : absorbs 𝕜 A A :=
 begin
   use [1, zero_lt_one],
@@ -68,7 +70,7 @@ end
 -- balanced and absorbing sets in a t.v.s:
 variables [topological_space E] [topological_vector_space 𝕜 E]
 
-/-- every neighbourhood of the origin is absorbent. -/
+/-- Every neighbourhood of the origin is absorbent. -/
 lemma absorbent_nhds_zero (hA : A ∈ nhds (0 : E)) : absorbent 𝕜 A :=
 begin
   intro x,
@@ -90,8 +92,8 @@ begin
   exact hw₁ ha₃,
 end
 
-/-- the union of {0} with the interior of a balanced set
-is balanced. -/
+/-- The union of `{0}` with the interior of a balanced set
+    is balanced. -/
 lemma balanced_zero_union_interior (hA : balanced 𝕜 A) :
   balanced 𝕜 ({(0 : E)} ∪ interior A) :=
 begin
@@ -109,7 +111,7 @@ begin
       exact is_open_map_smul_of_ne_zero h _ is_open_interior }},
 end
 
-/-- the interior of a balanced set is balanced if it contains the origin. -/
+/-- The interior of a balanced set is balanced if it contains the origin. -/
 lemma balanced_interior (hA : balanced 𝕜 A) (h : (0 : E) ∈ interior A) :
   balanced 𝕜 (interior A) :=
 begin
@@ -118,7 +120,7 @@ begin
   exact balanced_zero_union_interior hA,
 end
 
-/-- the closure of a balanced set is balanced. -/
+/-- The closure of a balanced set is balanced. -/
 lemma balanced_closure (hA : balanced 𝕜 A) : balanced 𝕜 (closure A) :=
 begin
   intros a ha,
@@ -185,8 +187,8 @@ end seminorm
 
 namespace seminorm
 
-/-- the ball of radius r at x with respect to seminorm p is the set of
-    elements `y` with `p (y - x) < `r`. -/
+/-- The ball of radius `r` at `x` with respect to seminorm `p`
+    is the set of elements `y` with `p (y - x) < `r`. -/
 def ball (p : seminorm 𝕜 E) (x : E) (r : ℝ) := { y : E | p (y - x) < r }
 
 variables (p : seminorm 𝕜 E) (c : 𝕜) (x y : E) (r : ℝ)
@@ -200,7 +202,7 @@ by rw [mem_ball, sub_zero]
 lemma ball_zero_eq : ball p 0 r = { y : E | p y < r } :=
 set.ext $ λ x,by { rw mem_ball_zero, exact iff.rfl }
 
-/-- seminorm-balls at the origin are balanced. -/
+/-- Seminorm-balls at the origin are balanced. -/
 lemma balanced_ball_zero : balanced 𝕜 (ball p 0 r) :=
 begin
   rintro a ha x ⟨y, hy, hx⟩,

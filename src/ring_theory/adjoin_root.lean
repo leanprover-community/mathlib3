@@ -205,17 +205,17 @@ def degree_lt_linear_map : degree_lt K (f.nat_degree) →ₗ[K] adjoin_root f :=
 lemma degree_lt_linear_map_def (g : polynomial K) (h : g ∈ degree_lt K f.nat_degree) :
   degree_lt_linear_map f ⟨g, h⟩ = adjoin_root.mk f g := rfl
 
+example (P Q : Prop) : (¬P → ¬Q) → (Q → P) := not_imp_not.mp
+
 lemma degree_lt_linear_map_bijective (hf : f ≠ 0) : function.bijective (degree_lt_linear_map f) :=
 begin
   split,
   { rw is_add_group_hom.injective_iff,
     rintros ⟨g, hg⟩ h,
     rw [degree_lt_linear_map_def, mk, quotient.eq_zero_iff_mem, mem_span_singleton] at h,
-    by_cases g_ne_zero : g = 0,
-    { simpa, },
-    { rw [mem_degree_lt, ← degree_eq_nat_degree hf] at hg,
-      exfalso,
-      exact euclidean_domain.val_dvd_le g f h g_ne_zero hg, } },
+    rw submodule.mk_eq_zero _ hg,
+    rw [mem_degree_lt, ← degree_eq_nat_degree hf] at hg,
+    exact not_imp_not.mp (euclidean_domain.val_dvd_le g f h) hg },
   { intro g,
     obtain ⟨g', hg'⟩ : ∃ q', mk f q' = g := quotient.mk_surjective g,
     use (g' % f),

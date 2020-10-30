@@ -17,6 +17,10 @@ namespace tactic.rewrite_search
 
 universes u
 
+/--
+A `dir_pair` is a pair of items designed to be accessed according to
+`dir`, a "direction" defined in the `expr_lens` library.
+-/
 structure dir_pair (α : Type u) :=
 (l r : α)
 
@@ -43,20 +47,24 @@ instance has_to_string [has_to_string α] : has_to_string (dir_pair α) := ⟨to
 
 end dir_pair
 
+/- Helper for getting the nth item in a list of rules -/
 private meta def nth_rule (rs : list (expr × bool)) (i : ℕ) : expr × bool := (rs.nth i).iget
 
+/- Convert a rule into the string of Lean code used to refer to this rule. -/
 private meta def pp_rule (r : expr × bool) : tactic string :=
   do pp ← pp r.1, return $ (if r.2 then "←" else "") ++ (to_string pp)
 
 private meta def how.to_rewrite (rs : list (expr × bool)) : how → option (expr × bool)
 | h := nth_rule rs h.rule_index
 
+/- Explain a single rewrite using `nth_rewrite`. -/
 private meta def explain_using_location (rs : list (expr × bool)) (s : side) :
 how → tactic (option string)
 | h := do
   rule ← pp_rule $ nth_rule rs h.rule_index,
   return $ some ("nth_rewrite_" ++ s.to_xhs ++ " " ++ to_string h.location ++ " " ++ rule)
 
+/- Explain a list of rewrites using `nth_rewrite`. -/
 private meta def using_location.explain_rewrites (rs : list (expr × bool)) (s : side)
 (steps : list how) : tactic string := do
   rules ← steps.mmap $ λ h : how, option.to_list <$> explain_using_location rs s h,
@@ -64,6 +72,7 @@ private meta def using_location.explain_rewrites (rs : list (expr × bool)) (s :
 
 namespace using_conv
 
+/- `app_addr` represents a tree structure that `conv` tactics use for a rewrite. -/
 inductive app_addr
 | node (children : dir_pair (option app_addr)) : app_addr
 | rw : list ℕ → app_addr
@@ -84,12 +93,13 @@ inductive splice_result
 
 open splice_result
 
-meta def splice_result.pack (s : expr_lens.dir) : splice_result → dir_pair (option app_addr) → splice_result
+meta def splice_result.pack (s : expr_lens.dir) :
+splice_result → dir_pair (option app_addr) → splice_result
 | (new addr) c := new $ app_addr.node $ c.set s (some addr)
 | sr _ := sr
 
--- TODO? prove well founded
-private meta def splice_in_aux (new_rws : list ℕ) : option app_addr → list expr_lens.dir → splice_result
+private meta def splice_in_aux (new_rws : list ℕ) :
+option app_addr → list expr_lens.dir → splice_result
 | (some $ node _) [] := contained
 | (some $ node c) (s :: rest) := (splice_in_aux (c.get s) rest).pack s c
 | (some $ rw _) (_ :: _) := obstructed
@@ -110,10 +120,12 @@ private meta def to_congr_form : list expr_lens.dir → tactic (list expr_lens.d
 | [dir.F] := fail "app list ends in side.L!"
 | (dir.F :: (dir.F :: _)) := fail "app list has repeated side.L!"
 
+/- Attempt to add new rewrites into the `app_addr` tree. -/
 private meta def splice_in (a : option app_addr) (rws : list ℕ) (s : list expr_lens.dir) :
 tactic splice_result :=
   splice_in_aux rws a <$> to_congr_form s
 
+/- Construct a single `erw` tactic for the given rules. -/
 private meta def build_rw_tactic (rs : list (expr × bool)) (hs : list ℕ) : tactic string := do
   rws ← (hs.map $ nth_rule rs).mmap pp_rule,
   return $ "erw [" ++ (string.intercalate ", " rws) ++ "]"
@@ -131,12 +143,16 @@ app_addr → tactic (option (list string))
   | (some sf, some sa) := (["congr"].append sf).append (["skip"].append sf)
   end
 
--- TODO break the tree into pieces when the gaps are too big
+/- Construct a string of Lean code that does a rewrite for the provided tree. -/
 private meta def explain_tree (rs : list (expr × bool)) (tree : app_addr) :
 tactic (list string) :=
 list.join <$> option.to_list <$> explain_tree_aux rs tree
 
-private meta def compile_rewrites_aux (rs : list (expr × bool)) (s : side) :
+/-
+Gather all rewrites into trees, then generate a line of code for each tree.
+The return value has one `conv_x` tactic on each line.
+-/
+private meta def explanation_lines (rs : list (expr × bool)) (s : side) :
 option app_addr → list how → tactic (list string)
 | none [] := return []
 | (some tree) [] := do
@@ -152,20 +168,17 @@ option app_addr → list how → tactic (list string)
     return (none, rest)
   end,
   match new_tree with
-  | some (new new_tree) := compile_rewrites_aux new_tree rest
+  | some (new new_tree) := explanation_lines new_tree rest
   | _ := do
-    line ← compile_rewrites_aux tree [],
-    lines ← compile_rewrites_aux none rest_if_fail,
+    line ← explanation_lines tree [],
+    lines ← explanation_lines none rest_if_fail,
     return $ line ++ lines
   end
 
-private meta def compile_rewrites (rs : list (expr × bool)) (s : side) :
-list how → tactic (list string) :=
-  compile_rewrites_aux rs s none
-
+/- Explain a list of rewrites using `conv_x` tactics. -/
 meta def explain_rewrites (rs : list (expr × bool)) (s : side) (hows : list how) :
 tactic string :=
-  string.intercalate ",\n" <$> compile_rewrites rs s hows
+  string.intercalate ",\n" <$> explanation_lines rs s none hows
 
 end using_conv
 
@@ -174,8 +187,10 @@ tactic string := do
   rules ← string.intercalate ", " <$> steps.mmap pp_rule,
   return $ "erw [" ++ rules ++ "]" ++ (if needs_refl then ", refl" else "")
 
--- fails if we can't just use rewrite
--- otherwise, returns 'tt' if we need a `refl` at the end
+/-
+Fails if we can't just use rewrite.
+Otherwise, returns 'tt' if we need a `refl` at the end.
+-/
 private meta def check_if_simple_rewrite_succeeds (rewrites : list (expr × bool)) (goal : expr) :
 tactic bool :=
 lock_tactic_state $ do
@@ -187,38 +202,8 @@ lock_tactic_state $ do
 meta def proof_unit.rewrites (u : proof_unit) (rs : list (expr × bool)) : list (expr × bool) :=
   u.steps.filter_map $ how.to_rewrite rs
 
--- TODO rewrite this to use conv!
 meta def proof_unit.explain (u : proof_unit) (rs : list (expr × bool))
-(explain_using_conv : bool) : tactic string := do
-  -- TODO We could try to merge adjacent proof units or something more complicated.
-
-  -- FIXME using explain_rewrites_concisely:
-  -- Currently we only try to explain away the whole proof, falling back on
-  -- failure. Moreover, "single proof unit" is unfortunately broken, because
-  -- `erw` inspects the goal when it performs its actions. As an example of a
-  -- failing case, observe (or check) that given an axiom `foo` saying [1] = [2]`
-  -- then `check_if_simple_rewrite_succeeds` will approve using `erw [foo]` to
-  -- discharge the goal `[[1], [1]] = [[1], [2]]`, even though once part of the
-  -- explaination of a bigger proof with multiple units `erw` will turn
-  -- `[[1], [1]]` into `[[2], [2]]`, not what we want.
-
-  -- One possible solution is to prepend `transitivity xxx` in front of such
-  -- left-proof_units (currently we only do this for right-proof_units), but
-  -- this seems to tend to be more clumsy that a one-line `congr` which would
-  -- normally replace it.
-
-  -- This is a bit of a shame, though, since it works quite well in many siutations.
-  -- Perhaps we should run though given this optimisation, try to see if the
-  -- resulting whole proof works, emit if it succeeds and if it fails go-again
-  -- without the optimisations? This actually wouldn't be too hard to implement.
-
-  -- (do
-  --   goal ← infer_type u.proof,
-  --   let rewrites := u.rewrites cfg,
-  --   needs_refl ← check_if_simple_rewrite_succeeds rewrites goal,
-  --   explain_rewrites_concisely rewrites needs_refl
-  -- ) <|>
-
+(explain_using_conv : bool) : tactic string :=
   if explain_using_conv then
     using_conv.explain_rewrites rs u.side u.steps
   else
@@ -239,20 +224,23 @@ list proof_unit → tactic string
   let expls := (head ++ [unit_expl, rest_expl]).filter $ λ t, ¬(t.length = 0),
   return $ string.intercalate ",\n" expls
 
-private meta def explain_proof_concisely (rs : list (expr × bool)) (proof : expr)
-(l : list proof_unit) : tactic string := do
-  let rws : list (expr × bool) := list.join $ l.map (λ u, do
-    (r, s) ← u.rewrites rs,
+private meta def explain_proof_concisely (rules : list (expr × bool)) (proof : expr)
+(l : list proof_unit) : tactic string :=
+do let rws : list (expr × bool) := list.join $ l.map (λ u, do
+    (r, s) ← u.rewrites rules,
     return (r, if u.side = side.L then s else ¬s)
   ),
   goal ← infer_type proof,
   needs_refl ← check_if_simple_rewrite_succeeds rws goal,
   explain_rewrites_concisely rws needs_refl
 
-meta def explain_search_result (cfg : config) (rs : list (expr × bool)) (proof : expr)
+/--
+Generate a human-readable explanation in Lean code of a proof generated by rewrite search.
+-/
+meta def explain_search_result (cfg : config) (rules : list (expr × bool)) (proof : expr)
 (units : list proof_unit) : tactic string := do
-  explanation ← explain_proof_concisely rs proof units <|>
-                explain_proof_full rs cfg.explain_using_conv units,
+  explanation ← explain_proof_concisely rules proof units <|>
+                explain_proof_full rules cfg.explain_using_conv units,
   if cfg.explain then trace $ "/- `rewrite_search` says -/\n" ++ explanation
   else skip,
   return explanation

@@ -71,7 +71,7 @@ Configuration options for a rewrite search.
 `inflate_rws` makes rewrite search consider more rewrites.
 -/
 meta structure config extends tactic.nth_rewrite.cfg :=
-(max_iterations     : ℕ := 500)
+(max_iterations     : ℕ := 5000)
 (explain            : bool := ff)
 (explain_using_conv : bool := tt)
 

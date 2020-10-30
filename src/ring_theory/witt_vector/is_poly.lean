@@ -477,9 +477,6 @@ we model them as constant unary functions. -/
 instance zero_is_poly : is_poly p (λ _ _ _, by exactI 0) :=
 ⟨0, by { introsI, funext n, simp only [pi.zero_apply, alg_hom.map_zero, zero_coeff] }⟩
 
--- instance zero_is_poly_i : is_poly p (λ _ _ _, by exactI 0) :=
--- zero_is_poly
-
 @[simp] lemma bind₁_zero_witt_polynomial (n : ℕ) :
   bind₁ (0 : ℕ → mv_polynomial ℕ R) (witt_polynomial p R n) = 0 :=
 by rw [← aeval_eq_bind₁, aeval_zero, constant_coeff_witt_polynomial, ring_hom.map_zero]

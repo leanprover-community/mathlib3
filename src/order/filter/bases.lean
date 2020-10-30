@@ -433,7 +433,7 @@ lemma le_iff_forall_disjoint_principal_compl {f g : filter α} :
 forall_congr $ λ _, forall_congr $ λ _, mem_iff_disjoint_principal_compl
 
 lemma le_iff_forall_inf_principal_compl {f g : filter α} :
-  f ≤ g ↔ ∀ V ∈ g, f ⊓ 𝓟 Vᶜ ≠ ⊥ :=
+  f ≤ g ↔ ∀ V ∈ g, f ⊓ 𝓟 Vᶜ = ⊥ :=
 forall_congr $ λ _, forall_congr $ λ _, mem_iff_inf_principal_compl
 
 lemma inf_ne_bot_iff_frequently_left {f g : filter α} :

@@ -189,19 +189,18 @@ ext' $ preimage_comp.symm
 @[simp] lemma mem_comap {f : E →ₗ[ℝ] F} {S : convex_cone F} {x : E} :
   x ∈ S.comap f ↔ f x ∈ S := iff.rfl
 
--- We use `{ to_semimodule := ‹_›, .. }` to avoid making this definition noncomputable
 /--
 Constructs an ordered semimodule given an `ordered_add_comm_group`, a cone, and a proof that
 the order relation is the one defined by the cone.
 -/
-def to_ordered_semimodule {M : Type*} [ordered_add_comm_group M] [semimodule ℝ M]
+lemma to_ordered_semimodule {M : Type*} [ordered_add_comm_group M] [semimodule ℝ M]
   (S : convex_cone M) (h : ∀ x y : M, x ≤ y ↔ y - x ∈ S) : ordered_semimodule ℝ M :=
-{ .. (show ordered_semimodule ℝ M, from ordered_semimodule.mk'
-    begin
-      intros x y z xy hz,
-      rw [h (z • x) (z • y), ←smul_sub z y x],
-      exact smul_mem S hz ((h x y).mp (le_of_lt xy))
-    end) }
+ordered_semimodule.mk'
+begin
+  intros x y z xy hz,
+  rw [h (z • x) (z • y), ←smul_sub z y x],
+  exact smul_mem S hz ((h x y).mp (le_of_lt xy))
+end
 
 /-! ### Convex cones with extra properties -/
 

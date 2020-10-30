@@ -7,6 +7,7 @@ import algebra.module.linear_map
 import algebra.module.pi
 import algebra.big_operators.basic
 import data.set.finite
+import linear_algebra.basic
 
 /-!
 # Dependent functions with finite support
@@ -491,6 +492,22 @@ def lsingle (i) : β i →ₗ[γ] Π₀ i, β i :=
 ⟨single i, λ _ _, single_add, λ _ _, single_smul _⟩
 variable {β}
 
+/-- Two `R`-linear maps from `Π₀ i, β i` which agree on each `single i x` agree everywhere. -/
+lemma lhom_ext {δ : Type*} [add_comm_monoid δ] [semimodule γ δ] ⦃φ ψ : (Π₀ i, β i) →ₗ[γ] δ⦄
+  (h : ∀ i x, φ (single i x) = ψ (single i x)) :
+  φ = ψ :=
+linear_map.to_add_monoid_hom_injective $ add_hom_ext h
+
+/-- Two `R`-linear maps from `Π₀ i, β i` which agree on each `single i x` agree everywhere.
+
+We formulate this fact using equality of linear maps `φ.comp (lsingle a)` and `ψ.comp (lsingle a)`
+so that the `ext` tactic can apply a type-specific extensionality lemma to prove equality of these
+maps. E.g., if `M = R`, then it suffices to verify `φ (single a 1) = ψ (single a 1)`. -/
+@[ext] lemma lhom_ext' {δ : Type*} [add_comm_monoid δ] [semimodule γ δ] ⦃φ ψ : (Π₀ i, β i) →ₗ[γ] δ⦄
+  (h : ∀ i, φ.comp (lsingle β γ i) = ψ.comp (lsingle β γ i)) :
+  φ = ψ :=
+lhom_ext γ $ λ i, linear_map.congr_fun (h i)
+
 @[simp] lemma lmk_apply {s : finset ι} {x} : lmk β γ s x = mk s x := rfl
 
 @[simp] lemma lsingle_apply {i : ι} {x : β i} : lsingle β γ i x = single i x := rfl
@@ -903,11 +920,30 @@ lemma prod_sum_index  {ι₁ : Type u₁} [decidable_eq ι₁] {β₁ : ι₁ �
   [Π i (x : β i), decidable (x ≠ 0)] {f : Π₀ i, β i} :
   f.sum single = f :=
 begin
-  apply dfinsupp.induction f, {rw [sum_zero_index]},
-  intros i b f H hb ih,
-  rw [sum_add_index, ih, sum_single_index],
-  all_goals { intros, simp }
+  have := add_monoid_hom.congr_fun lift_add_hom_single_add_hom f,
+  rw [lift_add_hom_apply, sum_add_hom_apply] at this,
+  exact this,
 end
+
+/-- The `dfinsupp` version of `finsupp.lsum`,-/
+@[simps apply symm_apply symm_apply_apply {rhs_md := semireducible, simp_rhs := tt}]
+def lsum {R : Type*} [semiring R] [Π i, add_comm_monoid (β i)] [Π i, semimodule R (β i)]
+  [add_comm_monoid γ] [semimodule R γ] :
+    (Π i, β i →ₗ[R] γ) ≃+ ((Π₀ i, β i) →ₗ[R] γ) :=
+{ to_fun := λ F, {
+    to_fun := sum_add_hom (λ i, (F i).to_add_monoid_hom),
+    map_add' := (lift_add_hom (λ i, (F i).to_add_monoid_hom)).map_add,
+    map_smul' := λ c f, by {
+      apply dfinsupp.induction f,
+      { rw [smul_zero, add_monoid_hom.map_zero, smul_zero] },
+      { intros a b f ha hb hf,
+        rw [smul_add, add_monoid_hom.map_add, add_monoid_hom.map_add, smul_add, hf, ←single_smul,
+          sum_add_hom_single, sum_add_hom_single, linear_map.to_add_monoid_hom_coe,
+          linear_map.map_smul], } } },
+  inv_fun := λ F i, F.comp (lsingle β R i),
+  left_inv := λ F, by { ext x y, simp },
+  right_inv := λ F, by { ext x y, simp },
+  map_add' := λ F G, by { ext x y, simp } }
 
 @[to_additive]
 lemma prod_subtype_domain_index [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]

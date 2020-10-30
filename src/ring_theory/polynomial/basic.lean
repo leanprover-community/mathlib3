@@ -3,15 +3,24 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 
-Ring-theoretic supplement of data.polynomial.
+# Ring-theoretic supplement of data.polynomial.
 
-Main result: Hilbert basis theorem, that if a ring is noetherian then so is its polynomial ring.
+## Main results
+* `mv_polynomial.integral_domain`:
+  If a ring is an integral domain, then so is its polynomial ring over finitely many variables.
+* `polynomial.is_noetherian_ring`:
+  Hilbert basis theorem, that if a ring is noetherian then so is its polynomial ring.
+* `polynomial.wf_dvd_monoid`:
+  If an integral domain is a `wf_dvd_monoid`, then so is its polynomial ring.
+* `polynomial.unique_factorization_monoid`:
+  If an integral domain is a `unique_factorization_monoid`, then so is its polynomial ring.
 -/
 import algebra.char_p
 import data.mv_polynomial.comm_ring
 import data.mv_polynomial.equiv
 import data.polynomial.field_division
 import ring_theory.principal_ideal_domain
+import ring_theory.polynomial.content
 
 noncomputable theory
 open_locale classical
@@ -354,6 +363,40 @@ is_noetherian_submodule_left.1 (is_noetherian_of_fg_of_noetherian _
 
 end ideal
 
+namespace polynomial
+@[priority 100]
+instance {R : Type*} [integral_domain R] [wf_dvd_monoid R] :
+  wf_dvd_monoid (polynomial R) :=
+{ well_founded_dvd_not_unit := begin
+    classical,
+    refine rel_hom.well_founded
+      ⟨λ p, (if p = 0 then ⊤ else ↑p.degree, p.leading_coeff), _⟩
+      (prod.lex_wf (with_top.well_founded_lt $ with_bot.well_founded_lt nat.lt_wf)
+        _inst_5.well_founded_dvd_not_unit),
+    rintros a b ⟨ane0, ⟨c, ⟨not_unit_c, rfl⟩⟩⟩,
+    rw [polynomial.degree_mul, if_neg ane0],
+    split_ifs with hac,
+    { rw [hac, polynomial.leading_coeff_zero],
+      apply prod.lex.left,
+      exact lt_of_le_of_ne le_top with_top.coe_ne_top },
+    have cne0 : c ≠ 0 := right_ne_zero_of_mul hac,
+    simp only [cne0, ane0, polynomial.leading_coeff_mul],
+    by_cases hdeg : c.degree = 0,
+    { simp only [hdeg, add_zero],
+      refine prod.lex.right _ ⟨_, ⟨c.leading_coeff, (λ unit_c, not_unit_c _), rfl⟩⟩,
+      { rwa [ne, polynomial.leading_coeff_eq_zero] },
+      rw [polynomial.is_unit_iff, polynomial.eq_C_of_degree_eq_zero hdeg],
+      use [c.leading_coeff, unit_c],
+      rw [polynomial.leading_coeff, polynomial.nat_degree_eq_of_degree_eq_some hdeg] },
+    { apply prod.lex.left,
+      rw polynomial.degree_eq_nat_degree cne0 at *,
+      rw [with_top.coe_lt_coe, polynomial.degree_eq_nat_degree ane0,
+          ← with_bot.coe_add, with_bot.coe_lt_coe],
+      exact lt_add_of_pos_right _ (nat.pos_of_ne_zero (λ h, hdeg (h.symm ▸ with_bot.coe_zero))) },
+  end }
+
+end polynomial
+
 /-- Hilbert basis theorem: a polynomial ring over a noetherian ring is a noetherian ring. -/
 protected theorem polynomial.is_noetherian_ring [is_noetherian_ring R] :
   is_noetherian_ring (polynomial R) :=
@@ -417,17 +460,17 @@ attribute [instance] polynomial.is_noetherian_ring
 
 namespace polynomial
 
-theorem exists_irreducible_of_degree_pos {R : Type u} [integral_domain R] [is_noetherian_ring R]
+theorem exists_irreducible_of_degree_pos {R : Type u} [integral_domain R] [wf_dvd_monoid R]
   {f : polynomial R} (hf : 0 < f.degree) : ∃ g, irreducible g ∧ g ∣ f :=
 wf_dvd_monoid.exists_irreducible_factor
   (λ huf, ne_of_gt hf $ degree_eq_zero_of_is_unit huf)
   (λ hf0, not_lt_of_lt hf $ hf0.symm ▸ (@degree_zero R _).symm ▸ with_bot.bot_lt_coe _)
 
-theorem exists_irreducible_of_nat_degree_pos {R : Type u} [integral_domain R] [is_noetherian_ring R]
+theorem exists_irreducible_of_nat_degree_pos {R : Type u} [integral_domain R] [wf_dvd_monoid R]
   {f : polynomial R} (hf : 0 < f.nat_degree) : ∃ g, irreducible g ∧ g ∣ f :=
 exists_irreducible_of_degree_pos $ by { contrapose! hf, exact nat_degree_le_of_degree_le hf }
 
-theorem exists_irreducible_of_nat_degree_ne_zero {R : Type u} [integral_domain R] [is_noetherian_ring R]
+theorem exists_irreducible_of_nat_degree_ne_zero {R : Type u} [integral_domain R] [wf_dvd_monoid R]
   {f : polynomial R} (hf : f.nat_degree ≠ 0) : ∃ g, irreducible g ∧ g ∣ f :=
 exists_irreducible_of_nat_degree_pos $ nat.pos_of_ne_zero hf
 
@@ -596,3 +639,18 @@ instance {R : Type u} {σ : Type v} [integral_domain R] :
   .. (by apply_instance : comm_ring (mv_polynomial σ R)) }
 
 end mv_polynomial
+
+namespace polynomial
+open unique_factorization_monoid
+
+variables {D : Type u} [integral_domain D] [unique_factorization_monoid D]
+
+@[priority 100]
+instance unique_factorization_monoid : unique_factorization_monoid (polynomial D) :=
+begin
+  haveI := arbitrary (normalization_monoid D),
+  haveI := to_gcd_monoid D,
+  exact ufm_of_gcd_of_wf_dvd_monoid
+end
+
+end polynomial

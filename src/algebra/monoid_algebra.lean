@@ -233,6 +233,23 @@ subset.trans support_sum $ bind_mono $ assume a₁ _,
 
 section
 
+/-- Like `finsupp.map_domain_add`, but for the convolutive multiplication we define in this file -/
+lemma map_domain_mul {α : Type*} {β : Type*} {α₂ : Type*} [semiring β] [monoid α] [monoid α₂]
+  {x y : monoid_algebra β α} (f : mul_hom α α₂) :
+  (map_domain f (x * y : monoid_algebra β α) : monoid_algebra β α₂) =
+    (map_domain f x * map_domain f y : monoid_algebra β α₂) :=
+begin
+  simp_rw [mul_def, map_domain_sum, map_domain_single, f.map_mul],
+  rw finsupp.sum_map_domain_index,
+  { congr,
+    ext a b,
+    rw finsupp.sum_map_domain_index,
+    { simp },
+    { simp [mul_add] } },
+  { simp },
+  { simp [add_mul] }
+end
+
 variables (k G)
 
 /-- Embedding of a monoid into its monoid algebra. -/
@@ -682,6 +699,24 @@ lemma single_mul_single {a₁ a₂ : G} {b₁ b₂ : k} :
   (single a₁ b₁ : add_monoid_algebra k G) * single a₂ b₂ = single (a₁ + a₂) (b₁ * b₂) :=
 @monoid_algebra.single_mul_single k (multiplicative G) _ _ _ _ _ _
 
+/-- Like `finsupp.map_domain_add`, but for the convolutive multiplication we define in this file -/
+lemma map_domain_mul {α : Type*} {β : Type*} {α₂ : Type*}
+  [semiring β] [add_monoid α] [add_monoid α₂]
+  {x y : add_monoid_algebra β α} (f : add_hom α α₂) :
+  (map_domain f (x * y : add_monoid_algebra β α) : add_monoid_algebra β α₂) =
+    (map_domain f x * map_domain f y : add_monoid_algebra β α₂) :=
+begin
+  simp_rw [mul_def, map_domain_sum, map_domain_single, f.map_add],
+  rw finsupp.sum_map_domain_index,
+  { congr,
+    ext a b,
+    rw finsupp.sum_map_domain_index,
+    { simp },
+    { simp [mul_add] } },
+  { simp },
+  { simp [add_mul] }
+end
+
 section
 
 variables (k G)
@@ -720,6 +755,31 @@ lemma lift_nc_smul {R : Type*} [semiring R] (f : k →+* R) (g : multiplicative 
 @monoid_algebra.lift_nc_smul k (multiplicative G) _ _ _ _ f g c φ
 
 end misc_theorems
+
+end add_monoid_algebra
+
+/-!
+#### Conversions between `add_monoid_algebra` and `monoid_algebra`
+
+While we were not able to define `add_monoid_algebra k G = monoid_algebra k (multiplicative G)` due
+to definitional inconveniences, we can still show the types are isomorphic.
+-/
+
+/-- The equivalence between `add_monoid_algebra` and `monoid_algebra` in terms of `multiplicative` -/
+protected def add_monoid_algebra.to_multiplicative [semiring k] [add_monoid G] :
+  add_monoid_algebra k G ≃+* monoid_algebra k (multiplicative G) :=
+{ map_mul' := λ x y, by convert add_monoid_algebra.map_domain_mul (add_hom.id G),
+  ..finsupp.dom_congr multiplicative.of_add }
+
+/-- The equivalence between `monoid_algebra` and `add_monoid_algebra` in terms of `additive` -/
+protected def monoid_algebra.to_additive [semiring k] [monoid G] :
+  monoid_algebra k G ≃+* add_monoid_algebra k (additive G) :=
+{ map_mul' := λ x y, by convert monoid_algebra.map_domain_mul (mul_hom.id G),
+  ..finsupp.dom_congr additive.of_mul }
+
+namespace add_monoid_algebra
+
+variables {k G}
 
 /-! #### Algebra structure -/
 section algebra

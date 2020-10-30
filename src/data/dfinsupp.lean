@@ -931,7 +931,7 @@ begin
 end
 
 /-- The `dfinsupp` version of `finsupp.lsum`,-/
-@[simps apply symm_apply symm_apply_apply {rhs_md := semireducible, simp_rhs := tt}]
+@[simps apply symm_apply]
 def lsum {R : Type*} [semiring R] [Π i, add_comm_monoid (β i)] [Π i, semimodule R (β i)]
   [add_comm_monoid γ] [semimodule R γ] :
     (Π i, β i →ₗ[R] γ) ≃+ ((Π₀ i, β i) →ₗ[R] γ) :=

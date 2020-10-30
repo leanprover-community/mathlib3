@@ -53,32 +53,7 @@ namespace is_R_or_C
 variables {K : Type*} [is_R_or_C K]
 local postfix `†`:100 := @is_R_or_C.conj K _
 
-/--
-Coercions that go from a concrete structure such as
-`ℝ` to an arbitrary field `K` should be set up as follows:
-```lean
-@[priority 900] instance : has_coe_t ℝ K := ⟨...⟩
-```
-
-It needs to be `has_coe_t` instead of `has_coe` because otherwise type-class
-inference would loop when constructing the transitive coercion `ℝ → ℝ → ℝ → ...`.
-The reduced priority is necessary so that it doesn't conflict with instances
-such as `has_coe_t α (option α)`.
-
-For this to work, we reduce the priority of the `coe_base` and `coe_trans`
-instances because we want the instances for `has_coe_t` to be tried in the
-following order:
-
- 1. `has_coe_t` instances declared in mathlib (such as `has_coe_t α (with_top α)`, etc.)
- 2. `coe_base`
- 3. `is_R_or_C.cast_coe : has_coe_t ℝ K` etc.
- 4. `coe_trans`
-
-If `coe_trans` is tried first, then `is_R_or_C.cast_coe` doesn't get a chance to apply.
--/
-attribute [instance, priority 950] coe_base
-attribute [instance, priority 500] coe_trans
-
+-- see Note [coercion into rings]
 @[priority 900] instance cast_coe : has_coe_t ℝ K := ⟨of_real⟩
 
 lemma coe_eq_of_real {x : ℝ} : @is_R_or_C.of_real K _ x = x := rfl

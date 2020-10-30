@@ -543,6 +543,16 @@ ring_hom.map_prod (@coe_hom K _) _ _
   ((∑ i in s, f i : ℝ) : K) = ∑ i in s, (f i : K) :=
 ring_hom.map_sum (@coe_hom K _) _ _
 
+@[simp, norm_cast] lemma of_real_finsupp_sum
+  {α M : Type*} [has_zero M] (f : α →₀ M) (g : α → M → ℝ) :
+  ((f.sum (λ a b, g a b) : ℝ) : K) = f.sum (λ a b, ((g a b) : K)) :=
+ring_hom.map_finsupp_sum (@coe_hom K _) f g
+
+@[simp, norm_cast] lemma of_real_finsupp_prod
+  {α M : Type*} [has_zero M] (f : α →₀ M) (g : α → M → ℝ) :
+  ((f.prod (λ a b, g a b) : ℝ) : K) = f.prod (λ a b, ((g a b) : K)) :=
+ring_hom.map_finsupp_prod (@coe_hom K _) f g
+
 end is_R_or_C
 
 section instances

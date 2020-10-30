@@ -56,7 +56,7 @@ variables {R : Type u} [semiring R] {S : Type v} [semiring S] {f : R →+* S}
 def lifts (f : R →+* S) : subsemiring (polynomial S) := ring_hom.srange (ring_hom.of (map f))
 
 lemma mem_lifts (p : polynomial S) : p ∈ lifts f ↔ ∃ (q : polynomial R), map f q = p :=
-  by simp only [lifts, ring_hom.coe_of, ring_hom.mem_srange]
+by simp only [lifts, ring_hom.coe_of, ring_hom.mem_srange]
 
 lemma lifts_iff_set_range (p : polynomial S) : p ∈ lifts f ↔ p ∈ set.range (map f) :=
   by simp only [lifts, set.mem_range, ring_hom.coe_of, ring_hom.mem_srange]

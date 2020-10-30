@@ -135,19 +135,13 @@ def alg_hom (x : S) (hfx : aeval x f = 0) : adjoin_root f →ₐ[R] S :=
   .. lift (algebra_map R S) x hfx }
 
 @[simp] lemma coe_alg_hom (x : S) (hfx : aeval x f = 0) :
-  (alg_hom f x hfx : adjoin_root f →+* S) = lift (algebra_map R S) x hfx :=
-rfl
+  (alg_hom f x hfx : adjoin_root f →+* S) = lift (algebra_map R S) x hfx := rfl
 
 lemma aeval_alg_hom_eq_zero (ϕ : adjoin_root f →ₐ[R] S) : aeval (ϕ (root f)) f = 0 :=
 begin
-  by_cases f = 0,
-  { have key := aeval_zero (ϕ (root f)),
-    rw ← h at key,
-    exact key },
-  { rw [aeval_def, show (algebra_map R S = ϕ.to_ring_hom.comp (of f)),
-      by { ext, rw [ring_hom.comp_apply, ←algebra_map_eq], exact (alg_hom.commutes ϕ x).symm },
-      ←ring_hom.map_zero ϕ.to_ring_hom, ←eval₂_root f, hom_eval₂],
-    refl },
+  have h : ϕ.to_ring_hom.comp (of f) = algebra_map R S := ring_hom.ext_iff.mpr (ϕ.commutes),
+  rw [aeval_def, ←h, ←ring_hom.map_zero ϕ.to_ring_hom, ←eval₂_root f, hom_eval₂],
+  refl,
 end
 
 lemma alg_hom_eq_alg_hom (f : polynomial R) (ϕ : adjoin_root f →ₐ[R] S) :

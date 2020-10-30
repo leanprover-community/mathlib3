@@ -68,9 +68,9 @@ begin
   { have : ∀(n : ℕ), 0 < n → n! < n.succ!,
     { intros k hk, rw [factorial_succ, succ_mul, lt_add_iff_pos_left],
       apply mul_pos hk (factorial_pos k) },
-    induction h generalizing h0,
+    induction h with k hnk generalizing h0,
     { exact this _ h0, },
-    { refine lt_trans (h_ih h0) (this _ _), exact lt_trans h0 (lt_of_succ_le h_a) }}
+    { refine lt_trans (h_ih h0) (this _ _), exact lt_trans h0 (lt_of_succ_le hnk) }}
 end
 
 lemma one_lt_factorial : 1 < n! ↔ 1 < n :=

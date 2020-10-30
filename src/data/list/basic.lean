@@ -2076,10 +2076,10 @@ lemma sum_eq_zero_iff [canonically_ordered_add_monoid α] (l : list α) :
 begin
   induction l,
   { simp },
-  { intro,
+  { intro h,
     rw [sum_cons, add_eq_zero_iff],
-    rw forall_mem_cons at a,
-    exact ⟨a.1, l_ih a.2⟩ },
+    rw forall_mem_cons at h,
+    exact ⟨h.1, l_ih h.2⟩ },
 end⟩
 
 /-- A list with sum not zero must have positive length. -/
@@ -2136,7 +2136,7 @@ by induction L; [refl, simp only [*, join, map, sum_cons, length_append]]
   length (list.bind l f) = sum (map (length ∘ f) l) :=
 by rw [list.bind, length_join, map_map]
 
-lemma exists_lt_of_sum_lt [decidable_linear_ordered_cancel_add_comm_monoid β] {l : list α}
+lemma exists_lt_of_sum_lt [linear_ordered_cancel_add_comm_monoid β] {l : list α}
   (f g : α → β) (h : (l.map f).sum < (l.map g).sum) : ∃ x ∈ l, f x < g x :=
 begin
   induction l with x l,
@@ -2146,7 +2146,7 @@ begin
     exact lt_of_add_lt_add_left (lt_of_lt_of_le h $ add_le_add_right (le_of_not_gt h') _) }
 end
 
-lemma exists_le_of_sum_le [decidable_linear_ordered_cancel_add_comm_monoid β] {l : list α}
+lemma exists_le_of_sum_le [linear_ordered_cancel_add_comm_monoid β] {l : list α}
   (hl : l ≠ []) (f g : α → β) (h : (l.map f).sum ≤ (l.map g).sum) : ∃ x ∈ l, f x ≤ g x :=
 begin
   cases l with x l,
@@ -2426,9 +2426,6 @@ linear_order_of_STO' (lex (<))
 --Note: this overrides an instance in core lean
 instance has_le' [linear_order α] : has_le (list α) :=
 preorder.to_has_le _
-
-instance [decidable_linear_order α] : decidable_linear_order (list α) :=
-decidable_linear_order_of_STO' (lex (<))
 
 /-! ### all & any -/
 

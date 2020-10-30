@@ -190,7 +190,7 @@ begin
   intros n hn p hlifts hdeg,
   by_cases erase_zero : p.erase_lead = 0,
   { rw [← erase_lead_add_monomial_nat_degree_leading_coeff p, erase_zero, zero_add, leading_coeff],
-    exact lifts_deg_of_monom_lifts (lifts_monomial p.nat_degree
+    exact lifts_monomial_and_degree_eq (lifts_monomial p.nat_degree
     ((lifts_iff_coeff_lifts p).1 hlifts p.nat_degree)) },
   have deg_erase := or.resolve_right (erase_lead_nat_degree_lt_or_erase_lead_eq_zero p) erase_zero,
   have pzero : p ≠ 0,
@@ -200,7 +200,7 @@ begin
     exact erase_zero },
   have lead_zero : p.coeff p.nat_degree ≠ 0,
   { rw [← leading_coeff, ne.def, leading_coeff_eq_zero]; exact pzero },
-  obtain ⟨lead, hlead⟩ := lifts_deg_of_monom_lifts (lifts_monomial p.nat_degree
+  obtain ⟨lead, hlead⟩ := lifts_monomial_and_degree_eq (lifts_monomial p.nat_degree
     ((lifts_iff_coeff_lifts p).1 hlifts p.nat_degree)),
   have deg_lead : lead.degree = p.nat_degree,
   { rw [hlead.2, single_eq_C_mul_X],
@@ -230,7 +230,7 @@ begin
   by_cases Rtrivial : nontrivial R,
   swap,
   { rw not_nontrivial_iff_subsingleton at Rtrivial,
-    obtain ⟨q, hq⟩ := lifts_deg_of_lifts hlifts,
+    obtain ⟨q, hq⟩ := lifts_and_degree_eq hlifts,
     use q,
     exact ⟨hq.1, hq.2, @monic_of_subsingleton _ _ Rtrivial q⟩ },
   by_cases er_zero : p.erase_lead = 0,
@@ -240,7 +240,7 @@ begin
     { simp only [map_pow, map_X] },
     { rw [@degree_X_pow R _ Rtrivial, degree_X_pow] },
     {exact monic_pow monic_X p.nat_degree } },
-  obtain ⟨q, hq⟩ := lifts_deg_of_lifts (erase_lifts_of_lifts p.nat_degree hlifts),
+  obtain ⟨q, hq⟩ := lifts_and_degree_eq (erase_lifts_of_lifts p.nat_degree hlifts),
   have deg_er : p.erase_lead.nat_degree < p.nat_degree :=
     or.resolve_right (erase_lead_nat_degree_lt_or_erase_lead_eq_zero p) er_zero,
   replace deg_er := with_bot.coe_lt_coe.2 deg_er,

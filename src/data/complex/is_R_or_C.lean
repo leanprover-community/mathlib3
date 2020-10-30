@@ -80,15 +80,17 @@ theorem ext : ∀ {z w : K}, re z = re w → im z = im w → z = w :=
 by { simp_rw ext_iff, cc }
 
 
-@[simp, norm_cast] lemma of_real_zero : ((0 : ℝ) : K) = 0 := by rw [of_real_alg, zero_smul]
+@[simp, norm_cast, priority 900] lemma of_real_zero : ((0 : ℝ) : K) = 0 :=
+by rw [of_real_alg, zero_smul]
 
 lemma zero_re' : re (0 : K) = (0 : ℝ) := by simp only [add_monoid_hom.map_zero]
 
-@[simp, norm_cast] lemma of_real_one : ((1 : ℝ) : K) = 1 := by rw [of_real_alg, one_smul]
+@[simp, norm_cast, priority 900] lemma of_real_one : ((1 : ℝ) : K) = 1 :=
+by rw [of_real_alg, one_smul]
 @[simp] lemma one_re : re (1 : K) = 1 := by rw [←of_real_one, of_real_re]
 @[simp] lemma one_im : im (1 : K) = 0 := by rw [←of_real_one, of_real_im]
 
-@[simp, norm_cast] theorem of_real_inj {z w : ℝ} : (z : K) = (w : K) ↔ z = w :=
+@[simp, norm_cast, priority 900] theorem of_real_inj {z w : ℝ} : (z : K) = (w : K) ↔ z = w :=
 { mp := λ h, by { convert congr_arg re h; simp only [of_real_re] },
   mpr := λ h, by rw h }
 
@@ -99,16 +101,16 @@ by simp only [bit1, add_monoid_hom.map_add, bit0_re, add_right_inj, one_re]
 @[simp] lemma bit1_im (z : K) : im (bit1 z) = bit0 (im z) :=
 by simp only [bit1, add_right_eq_self, add_monoid_hom.map_add, bit0_im, one_im]
 
-@[simp] theorem of_real_eq_zero {z : ℝ} : (z : K) = 0 ↔ z = 0 :=
+@[simp, priority 900] theorem of_real_eq_zero {z : ℝ} : (z : K) = 0 ↔ z = 0 :=
 by rw [←of_real_zero]; exact of_real_inj
 
-@[simp, norm_cast] lemma of_real_add ⦃r s : ℝ⦄ : ((r + s : ℝ) : K) = r + s :=
+@[simp, norm_cast, priority 900] lemma of_real_add ⦃r s : ℝ⦄ : ((r + s : ℝ) : K) = r + s :=
 by { apply (@is_R_or_C.ext_iff K _ ((r + s : ℝ) : K) (r + s)).mpr, simp }
 
-@[simp, norm_cast] lemma of_real_bit0 (r : ℝ) : ((bit0 r : ℝ) : K) = bit0 (r : K) :=
+@[simp, norm_cast, priority 900] lemma of_real_bit0 (r : ℝ) : ((bit0 r : ℝ) : K) = bit0 (r : K) :=
 ext_iff.2 $ by simp [bit0]
 
-@[simp, norm_cast] lemma of_real_bit1 (r : ℝ) : ((bit1 r : ℝ) : K) = bit1 (r : K) :=
+@[simp, norm_cast, priority 900] lemma of_real_bit1 (r : ℝ) : ((bit1 r : ℝ) : K) = bit1 (r : K) :=
 ext_iff.2 $ by simp [bit1]
 
 /- Note: This can be proven by `norm_num` once K is proven to be of characteristic zero below. -/
@@ -118,8 +120,10 @@ begin
   linarith,
 end
 
-@[simp, norm_cast] lemma of_real_neg (r : ℝ) : ((-r : ℝ) : K) = -r := ext_iff.2 $ by simp
-@[simp, norm_cast] lemma of_real_mul (r s : ℝ) : ((r * s : ℝ) : K) = r * s := ext_iff.2 $ by simp
+@[simp, norm_cast, priority 900] lemma of_real_neg (r : ℝ) : ((-r : ℝ) : K) = -r :=
+ext_iff.2 $ by simp
+@[simp, norm_cast, priority 900] lemma of_real_mul (r s : ℝ) : ((r * s : ℝ) : K) = r * s :=
+ext_iff.2 $ by simp
 lemma of_real_mul_re (r : ℝ) (z : K) : re (↑r * z) = r * re z :=
 by simp only [mul_re, of_real_im, zero_mul, of_real_re, sub_zero]
 
@@ -244,9 +248,9 @@ def of_real_hom : ℝ →+* K := ⟨of_real, of_real_one, of_real_mul, of_real_z
 /-- The coercion from reals as a `ring_hom`. -/
 def coe_hom : ℝ →+* K := ⟨coe, of_real_one, of_real_mul, of_real_zero, of_real_add⟩
 
-@[simp, norm_cast] lemma of_real_sub (r s : ℝ) : ((r - s : ℝ) : K) = r - s :=
+@[simp, norm_cast, priority 900] lemma of_real_sub (r s : ℝ) : ((r - s : ℝ) : K) = r - s :=
 ext_iff.2 $ by simp
-@[simp, norm_cast] lemma of_real_pow (r : ℝ) (n : ℕ) : ((r ^ n : ℝ) : K) = r ^ n :=
+@[simp, norm_cast, priority 900] lemma of_real_pow (r : ℝ) (n : ℕ) : ((r ^ n : ℝ) : K) = r ^ n :=
 by induction n; simp [*, of_real_mul, pow_succ]
 
 theorem sub_conj (z : K) : z - conj z = (2 * im z) * I :=
@@ -271,7 +275,7 @@ by simp [inv_def, norm_sq_eq_def, norm_sq, division_def]
 @[simp] lemma inv_im (z : K) : im (z⁻¹) = im (-z) / norm_sq z :=
 by simp [inv_def, norm_sq_eq_def, norm_sq, division_def]
 
-@[simp, norm_cast] lemma of_real_inv (r : ℝ) : ((r⁻¹ : ℝ) : K) = r⁻¹ :=
+@[simp, norm_cast, priority 900] lemma of_real_inv (r : ℝ) : ((r⁻¹ : ℝ) : K) = r⁻¹ :=
 begin
   rw ext_iff, by_cases r = 0, { simp [h] },
   { simp; field_simp [h, norm_sq] },
@@ -289,7 +293,7 @@ by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg]
 lemma div_im (z w : K) : im (z / w) = im z * re w / norm_sq w - re z * im w / norm_sq w :=
 by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm]
 
-@[simp, norm_cast] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : K) = r / s :=
+@[simp, norm_cast, priority 900] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : K) = r / s :=
 (@is_R_or_C.coe_hom K _).map_div r s
 
 lemma div_re_of_real {z : K} {r : ℝ} : re (z / r) = re z / r :=
@@ -301,7 +305,7 @@ begin
     simp [norm_sq, norm_sq_of_real, div_mul_eq_div_mul_one_div, div_self h] }
 end
 
-@[simp, norm_cast] lemma of_real_fpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : K) = r ^ n :=
+@[simp, norm_cast, priority 900] lemma of_real_fpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : K) = r ^ n :=
 (@is_R_or_C.coe_hom K _).map_fpow r n
 
 lemma I_mul_I_of_nonzero : (I : K) ≠ 0 → (I : K) * I = -1 :=
@@ -339,7 +343,7 @@ by rw [div_eq_inv_mul, div_eq_inv_mul, ring_hom.map_mul]; simp only [conj_inv]
 
 /-! ### Cast lemmas -/
 
-@[simp, norm_cast] theorem of_real_nat_cast (n : ℕ) : ((n : ℝ) : K) = n :=
+@[simp, norm_cast, priority 900] theorem of_real_nat_cast (n : ℕ) : ((n : ℝ) : K) = n :=
 of_real_hom.map_nat_cast n
 
 @[simp, norm_cast] lemma nat_cast_re (n : ℕ) : re (n : K) = n :=
@@ -348,7 +352,7 @@ by rw [← of_real_nat_cast, of_real_re]
 @[simp, norm_cast] lemma nat_cast_im (n : ℕ) : im (n : K) = 0 :=
 by rw [← of_real_nat_cast, of_real_im]
 
-@[simp, norm_cast] theorem of_real_int_cast (n : ℤ) : ((n : ℝ) : K) = n :=
+@[simp, norm_cast, priority 900] theorem of_real_int_cast (n : ℤ) : ((n : ℝ) : K) = n :=
 of_real_hom.map_int_cast n
 
 @[simp, norm_cast] lemma int_cast_re (n : ℤ) : re (n : K) = n :=
@@ -357,7 +361,7 @@ by rw [← of_real_int_cast, of_real_re]
 @[simp, norm_cast] lemma int_cast_im (n : ℤ) : im (n : K) = 0 :=
 by rw [← of_real_int_cast, of_real_im]
 
-@[simp, norm_cast] theorem of_real_rat_cast (n : ℚ) : ((n : ℝ) : K) = n :=
+@[simp, norm_cast, priority 900] theorem of_real_rat_cast (n : ℚ) : ((n : ℝ) : K) = n :=
 (@is_R_or_C.of_real_hom K _).map_rat_cast n
 
 @[simp, norm_cast] lemma rat_cast_re (q : ℚ) : re (q : K) = q :=
@@ -535,11 +539,11 @@ lemma is_cau_seq_abs {f : ℕ → K} (hf : is_cau_seq abs f) :
 λ ε ε0, let ⟨i, hi⟩ := hf ε ε0 in
 ⟨i, λ j hj, lt_of_le_of_lt (abs_abs_sub_le_abs_sub _ _) (hi j hj)⟩
 
-@[simp, norm_cast] lemma of_real_prod {α : Type*} (s : finset α) (f : α → ℝ) :
+@[simp, norm_cast, priority 900] lemma of_real_prod {α : Type*} (s : finset α) (f : α → ℝ) :
   ((∏ i in s, f i : ℝ) : K) = ∏ i in s, (f i : K) :=
 ring_hom.map_prod (@coe_hom K _) _ _
 
-@[simp, norm_cast] lemma of_real_sum {α : Type*} (s : finset α) (f : α → ℝ) :
+@[simp, norm_cast, priority 900] lemma of_real_sum {α : Type*} (s : finset α) (f : α → ℝ) :
   ((∑ i in s, f i : ℝ) : K) = ∑ i in s, (f i : K) :=
 ring_hom.map_sum (@coe_hom K _) _ _
 

@@ -40,18 +40,14 @@ meta structure graph :=
 (vmap         : native.rb_map string ℕ)
 (solving_edge : option edge)
 
-def LHS_VERTEX_ID : ℕ := 0
-def RHS_VERTEX_ID : ℕ := 1
-
-meta def mk_graph (conf : config) (rules : list (expr × bool)) (equation : expr) :
-tactic graph :=
-do (lhs, rhs) ← split_equation equation,
-lhs_pp ← to_string <$> tactic.pp lhs,
-rhs_pp ← to_string <$> tactic.pp rhs,
-let lhs_vertex : vertex := ⟨0, lhs, lhs_pp, side.L, none⟩,
-let rhs_vertex : vertex := ⟨1, rhs, rhs_pp, side.R, none⟩,
-return ⟨conf, rules, [lhs_vertex, rhs_vertex].to_buffer,
-        native.rb_map.of_list [(lhs_pp, 0), (rhs_pp, 1)], none⟩
+meta def mk_graph (conf : config) (rules : list (expr × bool)) (eq : expr) : tactic graph :=
+do (lhs, rhs) ← split_equation eq,
+  lhs_pp ← to_string <$> tactic.pp lhs,
+  rhs_pp ← to_string <$> tactic.pp rhs,
+  let lhs_vertex : vertex := ⟨0, lhs, lhs_pp, side.L, none⟩,
+  let rhs_vertex : vertex := ⟨1, rhs, rhs_pp, side.R, none⟩,
+  return ⟨conf, rules, [lhs_vertex, rhs_vertex].to_buffer,
+          native.rb_map.of_list [(lhs_pp, 0), (rhs_pp, 1)], none⟩
 
 variables (g : graph)
 
@@ -70,17 +66,15 @@ private meta def walk_up_parents : option edge → tactic (list edge)
   return (e :: edges)
 
 -- Returns two lists. The first is a path from LHS to some interior vertex,
--- the second is a path from that interior vertex to the RHS.
--- On the second path, all the edges are backwards, since we originally found them
--- via searching backwards.
+-- the second is a path from the RHS to that interior vertex.
 private meta def solution_paths : tactic (list edge × list edge) :=
 do e ← g.solving_edge,
   v ← g.get_vertex e.to,
   path1 ← walk_up_parents g e,
   path2 ← walk_up_parents g v.parent,
   match v.side with
-    | side.L := return (path2.reverse, path1)
-    | side.R := return (path1.reverse, path2)
+    | side.L := return (path2.reverse, path1.reverse)
+    | side.R := return (path1.reverse, path2.reverse)
   end
 
 private meta def add_rewrite (v : vertex) (rw : rewrite) : tactic graph :=
@@ -124,25 +118,22 @@ match proofs with
 end
 
 private meta def proof_for_edges : (side × list edge) → tactic (option proof_unit)
-| (s, edges) :=
-if edges.empty then return none else
-do proofs ← match s with
-  | side.L := edges.mmap (λ e, e.proof)
-  | side.R := edges.mmap (λ e, e.proof >>= mk_eq_symm)
-end,
-let hows := match s with
-  | side.L := edges.map (λ e, e.how)
-  | side.R := list.reverse $ edges.map (λ e, e.how)
-end,
-proof ← combine_proofs proofs,
-return $ some ⟨proof, s, hows⟩
+| (s, []) := return none
+| (s, edges) := do
+  proofs ← match s with
+    | side.L := edges.mmap (λ e, e.proof)
+    | side.R := edges.reverse.mmap (λ e, e.proof >>= mk_eq_symm)
+  end,
+  proof ← combine_proofs proofs,
+  let hows := edges.map (λ e, e.how),
+  return $ some ⟨proof, s, hows⟩
 
 meta def find_proof : tactic (graph × expr × list proof_unit) :=
 do g ← find_solving_edge g 0,
-(left_edges, right_edges) ← solution_paths g,
-units ← [(side.L, left_edges), (side.R, right_edges)].mmap_filter proof_for_edges,
-proof ← combine_proofs $ units.map $ λ u, u.proof,
-return (g, proof, units)
+  (left_edges, right_edges) ← solution_paths g,
+  units ← [(side.L, left_edges), (side.R, right_edges)].mmap_filter proof_for_edges,
+  proof ← combine_proofs $ units.map $ λ u, u.proof,
+  return (g, proof, units)
 
 end graph
 

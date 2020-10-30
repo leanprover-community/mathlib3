@@ -32,6 +32,7 @@ meta structure edge :=
 (proof : tactic expr)
 (how   : how)
 
+/-- Converting an edge to a human-readable string. -/
 meta def edge.to_string : edge → format
 | e := format!"{e.fr} → {e.to}"
 

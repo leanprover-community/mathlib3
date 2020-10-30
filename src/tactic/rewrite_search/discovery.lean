@@ -45,6 +45,7 @@ private meta def rules_from_hyps : tactic (list (expr × bool)) := do
   hyps ← local_context,
   rules_from_exprs <$> hyps.mfilter is_acceptable_hyp
 
+/-- Use this attribute to make `rewrite_search` use this definition during search. -/
 @[user_attribute]
 meta def rewrite_search_attr : user_attribute := {
   name := `rewrite,
@@ -61,9 +62,9 @@ return $ rules_from_exprs exprs
 
 /--
 Collect rewrite rules to use, either provided explicitly in the parser's format, or
-gathered from the environment according to the config.
+gathered from the environment.
 -/
-meta def collect_rules (cfg : config) (rws : list rw_rule) : tactic (list (expr × bool)) :=
+meta def collect_rules (rws : list rw_rule) : tactic (list (expr × bool)) :=
 do from_attr    ← rules_from_rewrite_attr,
   from_hyps     ← rules_from_hyps,
   from_rw_rules ← rules_from_rw_rules rws,
@@ -90,7 +91,7 @@ do let (rule_index, rule) := numbered_rule,
 tracked ← all_rewrites exp rule cfg.to_cfg,
 return (list.map (from_tracked rule_index) tracked.enum)
 
-/-
+/--
 Get all rewrites that start at the given expression and use one of the given rewrite rules.
 -/
 meta def get_rewrites (rules : list (expr × bool)) (exp : expr) (cfg : config) :

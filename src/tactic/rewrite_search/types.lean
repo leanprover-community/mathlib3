@@ -22,33 +22,28 @@ inductive side
 | L
 | R
 
-def side.other : side → side
-| side.L := side.R
-| side.R := side.L
-
+/-- Convert a side to a human-readable string. -/
 meta def side.to_string : side → format
 | side.L := "L"
 | side.R := "R"
 
+/-- Convert a side to the string "lhs" or "rhs", for use in tactic name generation. -/
 def side.to_xhs : side → string
 | side.L := "lhs"
 | side.R := "rhs"
 
 meta instance side.has_to_format : has_to_format side := ⟨side.to_string⟩
 
-/--
-`how` contains information needed by the explainer to generate code for a rewrite.
--/
+/-- `how` contains information needed by the explainer to generate code for a rewrite. -/
 meta structure how := (rule_index : ℕ) (location : ℕ) (addr : option (list expr_lens.dir))
 
+/-- Convert a `how` to a human-readable string. -/
 meta def how.to_string : how → format
 | h := format!"rewrite {h.rule_index} {h.location} {h.addr.iget.to_string}"
 
 meta instance how.has_to_format : has_to_format how := ⟨how.to_string⟩
 
-/--
-`rewrite` represents a single step of rewriting, that proves `exp` using `proof`.
--/
+/-- `rewrite` represents a single step of rewriting, that proves `exp` using `proof`. -/
 meta structure rewrite :=
 (exp   : expr)
 (proof : tactic expr) -- we defer constructing the proofs until they are needed
@@ -75,6 +70,7 @@ meta structure config extends tactic.nth_rewrite.cfg :=
 (explain            : bool := ff)
 (explain_using_conv : bool := tt)
 
+/-- The default config. -/
 meta def default_config : config := {}
 
 /--

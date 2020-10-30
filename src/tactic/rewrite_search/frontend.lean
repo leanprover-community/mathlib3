@@ -26,11 +26,12 @@ do t ← tactic.target,
   if t.has_meta_var then
     tactic.fail "rewrite_search is not suitable for goals containing metavariables"
   else tactic.skip,
-  rules ← collect_rules cfg rws,
+  rules ← collect_rules rws,
   g ← mk_graph cfg rules t,
   (_, proof, steps) ← g.find_proof,
   tactic.exact proof >> (explain_search_result cfg rules proof steps)
 
+/-- A tactic to pick the default config. -/
 meta def pick_default : tactic unit := `[exact tactic.rewrite_search.default_config]
 
 /-- Search for a chain of rewrites to prove an equation or iff statement. -/

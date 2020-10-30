@@ -21,6 +21,7 @@ universes u
 A `dir_pair` is a pair of items designed to be accessed according to
 `dir`, a "direction" defined in the `expr_lens` library.
 -/
+@[derive inhabited]
 structure dir_pair (α : Type u) :=
 (l r : α)
 
@@ -29,18 +30,20 @@ open expr_lens
 
 variables {α β : Type} (p : dir_pair α)
 
+/-- Get one side of the pair, picking the side according to the direction. -/
 def get : dir → α
 | dir.F := p.l
 | dir.A := p.r
 
+/-- Set one side of the pair, picking the side according to the direction. -/
 def set : dir → α → dir_pair α
 | dir.F v := ⟨v, p.r⟩
 | dir.A v := ⟨p.l, v⟩
 
-def map (f : α → β) : dir_pair β := ⟨f p.l, f p.r⟩
-
+/-- Convert the pair to a list of its elements. -/
 def to_list : list α := [p.l, p.r]
 
+/-- Convert the pair to a readable string format. -/
 def to_string [has_to_string α] (p : dir_pair α) : string :=
   to_string p.l ++ "-" ++ to_string p.r
 instance has_to_string [has_to_string α] : has_to_string (dir_pair α) := ⟨to_string⟩
@@ -83,6 +86,8 @@ private meta def app_addr.to_string : app_addr → string
 | (node c) := "(node " ++ ((c.to_list.filter_map id).map app_addr.to_string).to_string ++ ")"
 | (rw rws) := "(rw " ++ rws.to_string ++ ")"
 
+/-- A data structure for the result of a splice operation. -/
+@[derive inhabited]
 inductive splice_result
 -- There was more of the addr to be added left, but we hit a rw
 | obstructed
@@ -93,7 +98,7 @@ inductive splice_result
 
 open splice_result
 
-meta def splice_result.pack (s : expr_lens.dir) :
+private meta def pack_splice_result (s : expr_lens.dir) :
 splice_result → dir_pair (option app_addr) → splice_result
 | (new addr) c := new $ app_addr.node $ c.set s (some addr)
 | sr _ := sr
@@ -101,7 +106,7 @@ splice_result → dir_pair (option app_addr) → splice_result
 private meta def splice_in_aux (new_rws : list ℕ) :
 option app_addr → list expr_lens.dir → splice_result
 | (some $ node _) [] := contained
-| (some $ node c) (s :: rest) := (splice_in_aux (c.get s) rest).pack s c
+| (some $ node c) (s :: rest) := pack_splice_result s (splice_in_aux (c.get s) rest) c
 | (some $ rw _) (_ :: _) := obstructed
 | (some $ rw rws) [] := new $ rw (rws ++ new_rws)
 | none [] := new $ rw new_rws
@@ -175,7 +180,7 @@ option app_addr → list how → tactic (list string)
     return $ line ++ lines
   end
 
-/- Explain a list of rewrites using `conv_x` tactics. -/
+/-- Explain a list of rewrites using `conv_x` tactics. -/
 meta def explain_rewrites (rs : list (expr × bool)) (s : side) (hows : list how) :
 tactic string :=
   string.intercalate ",\n" <$> explanation_lines rs s none hows
@@ -199,9 +204,11 @@ lock_tactic_state $ do
   rewrites.mmap' $ λ q, rewrite_target q.1 {symm := q.2, md := semireducible},
   (reflexivity reducible >> return ff) <|> (reflexivity >> return tt)
 
+/-- Construct a list of rewrites from a proof unit. -/
 meta def proof_unit.rewrites (u : proof_unit) (rs : list (expr × bool)) : list (expr × bool) :=
   u.steps.filter_map $ how.to_rewrite rs
 
+/-- Construct an explanation string from a proof unit. -/
 meta def proof_unit.explain (u : proof_unit) (rs : list (expr × bool))
 (explain_using_conv : bool) : tactic string :=
   if explain_using_conv then

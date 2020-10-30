@@ -72,13 +72,13 @@ private meta def find_all_rewrites : tactic (list (name × expr)) := do
   return $ e.decl_filter_map is_rewrite_lemma
 
 @[user_attribute]
-meta def search_attr : user_attribute := {
-  name := `search,
+meta def rewrite_search_attr : user_attribute := {
+  name := `rewrite,
   descr := "declare that this definition should be considered by `rewrite_search`",
 }
 
 private meta def collect (extra_names : list name) : tactic (list (expr × bool)) :=
-do names ← attribute.get_instances `search,
+do names ← attribute.get_instances `rewrite,
    exprs ← load_names $ names ++ extra_names,
    exprs.mmap assert_acceptable_lemma,
    return $ rewrite_list_from_lemmas exprs

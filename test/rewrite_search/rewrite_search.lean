@@ -22,46 +22,46 @@ begin
   rewrite_search_with [foo', bar']
 end
 
-@[search] private axiom foo : [0] = [1]
-@[search] private axiom bar1 : [1] = [2]
-@[search] private axiom bar2 : [3] = [2]
-@[search] private axiom bar3 : [3] = [4]
+@[rewrite] private axiom foo : [0] = [1]
+@[rewrite] private axiom bar1 : [1] = [2]
+@[rewrite] private axiom bar2 : [3] = [2]
+@[rewrite] private axiom bar3 : [3] = [4]
 
 private example : [[0], [0]] = [[4], [4]] := by rewrite_search
 private example (x : unit) : [[0], [0]] = [[4], [4]] := by rewrite_search
 
-@[search] private axiom qux' : [[1], [2]] = [[6], [7]]
-@[search] private axiom qux'' : [6] = [7]
+@[rewrite] private axiom qux' : [[1], [2]] = [[6], [7]]
+@[rewrite] private axiom qux'' : [6] = [7]
 private example : [[1], [1]] = [[7], [7]] := by rewrite_search
 
 constants f g : ℕ → ℕ → ℕ → ℕ
-@[search] axiom f_0_0 : ∀ a b c : ℕ, f a b c = f 0 b c
-@[search] axiom f_0_1 : ∀ a b c : ℕ, f a b c = f 1 b c
-@[search] axiom f_0_2 : ∀ a b c : ℕ, f a b c = f 2 b c
-@[search] axiom f_1_0 : ∀ a b c : ℕ, f a b c = f a 0 c
-@[search] axiom f_1_1 : ∀ a b c : ℕ, f a b c = f a 1 c
-@[search] axiom f_1_2 : ∀ a b c : ℕ, f a b c = f a 2 c
-@[search] axiom f_2_0 : ∀ a b c : ℕ, f a b c = f a b 0
-@[search] axiom f_2_1 : ∀ a b c : ℕ, f a b c = f a b 1
-@[search] axiom f_2_2 : ∀ a b c : ℕ, f a b c = f a b 2
-@[search] axiom g_0_0 : ∀ a b c : ℕ, g a b c = g 0 b c
-@[search] axiom g_0_1 : ∀ a b c : ℕ, g a b c = g 1 b c
-@[search] axiom g_0_2 : ∀ a b c : ℕ, g a b c = g 2 b c
-@[search] axiom g_1_0 : ∀ a b c : ℕ, g a b c = g a 0 c
-@[search] axiom g_1_1 : ∀ a b c : ℕ, g a b c = g a 1 c
-@[search] axiom g_1_2 : ∀ a b c : ℕ, g a b c = g a 2 c
-@[search] axiom g_2_0 : ∀ a b c : ℕ, g a b c = g a b 0
-@[search] axiom g_2_1 : ∀ a b c : ℕ, g a b c = g a b 1
-@[search] axiom g_2_2 : ∀ a b c : ℕ, g a b c = g a b 2
-@[search] axiom f_g : f 0 1 2 = g 2 0 1
+@[rewrite] axiom f_0_0 : ∀ a b c : ℕ, f a b c = f 0 b c
+@[rewrite] axiom f_0_1 : ∀ a b c : ℕ, f a b c = f 1 b c
+@[rewrite] axiom f_0_2 : ∀ a b c : ℕ, f a b c = f 2 b c
+@[rewrite] axiom f_1_0 : ∀ a b c : ℕ, f a b c = f a 0 c
+@[rewrite] axiom f_1_1 : ∀ a b c : ℕ, f a b c = f a 1 c
+@[rewrite] axiom f_1_2 : ∀ a b c : ℕ, f a b c = f a 2 c
+@[rewrite] axiom f_2_0 : ∀ a b c : ℕ, f a b c = f a b 0
+@[rewrite] axiom f_2_1 : ∀ a b c : ℕ, f a b c = f a b 1
+@[rewrite] axiom f_2_2 : ∀ a b c : ℕ, f a b c = f a b 2
+@[rewrite] axiom g_0_0 : ∀ a b c : ℕ, g a b c = g 0 b c
+@[rewrite] axiom g_0_1 : ∀ a b c : ℕ, g a b c = g 1 b c
+@[rewrite] axiom g_0_2 : ∀ a b c : ℕ, g a b c = g 2 b c
+@[rewrite] axiom g_1_0 : ∀ a b c : ℕ, g a b c = g a 0 c
+@[rewrite] axiom g_1_1 : ∀ a b c : ℕ, g a b c = g a 1 c
+@[rewrite] axiom g_1_2 : ∀ a b c : ℕ, g a b c = g a 2 c
+@[rewrite] axiom g_2_0 : ∀ a b c : ℕ, g a b c = g a b 0
+@[rewrite] axiom g_2_1 : ∀ a b c : ℕ, g a b c = g a b 1
+@[rewrite] axiom g_2_2 : ∀ a b c : ℕ, g a b c = g a b 2
+@[rewrite]  axiom f_g : f 0 1 2 = g 2 0 1
 
 lemma test_pathfinding : f 0 0 0 = g 0 0 0 := by rewrite_search
 
 constant h : ℕ → ℕ
-@[search,simp] axiom a1 : h 0 = h 1
-@[search,simp] axiom a2 : h 1 = h 2
-@[search,simp] axiom a3 : h 2 = h 3
-@[search,simp] axiom a4 : h 3 = h 4
+@[rewrite,simp] axiom a1 : h 0 = h 1
+@[rewrite,simp] axiom a2 : h 1 = h 2
+@[rewrite,simp] axiom a3 : h 2 = h 3
+@[rewrite,simp] axiom a4 : h 3 = h 4
 
 lemma test_linear_path : h 0 = h 4 := by rewrite_search
 

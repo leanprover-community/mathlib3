@@ -181,7 +181,7 @@ begin
 end
 
 /-- A polynomial lifts if and only if it can be lifted to a polynomial of the same degree. -/
-lemma lifts_deg_of_lifts {p : polynomial S} (hlifts : lifts f p) :
+lemma lifts_and_degree_eq {p : polynomial S} (hlifts : lifts f p) :
   ∃ (q : polynomial R), map f q = p ∧ q.degree = p.degree :=
 begin
   generalize' hd : p.nat_degree = d,

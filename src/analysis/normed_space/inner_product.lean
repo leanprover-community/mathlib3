@@ -132,7 +132,7 @@ structure inner_product_space.core
 (inner     : F → F → 𝕜)
 (conj_sym  : ∀ x y, conj (inner y x) = inner x y)
 (nonneg_im : ∀ x, im (inner x x) = 0)
-(nonneg_re : ∀ x, re (inner x x) ≥ 0)
+(nonneg_re : ∀ x, 0 ≤ re (inner x x))
 (definite  : ∀ x, inner x x = 0 → x = 0)
 (add_left  : ∀ x y z, inner (x + y) z = inner x z + inner y z)
 (smul_left : ∀ x y r, inner (r • x) y = (conj r) * inner x y)

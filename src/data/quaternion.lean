@@ -457,6 +457,10 @@ lemma self_mul_conj : a * a.conj = norm_sq a := by rw [mul_conj_eq_coe, norm_sq_
 
 lemma conj_mul_self : a.conj * a = norm_sq a := by rw [← a.commute_self_conj.eq, self_mul_conj]
 
+lemma coe_norm_sq_add :
+  (norm_sq (a + b) : ℍ[R]) = norm_sq a + a * b.conj + b * a.conj + norm_sq b :=
+by simp [← self_mul_conj, mul_add, add_mul, add_assoc]
+
 end quaternion
 
 namespace quaternion
@@ -495,7 +499,7 @@ end linear_ordered_comm_ring
 
 section field
 
-variables [linear_ordered_field R] (a : ℍ[R])
+variables [linear_ordered_field R] (a b : ℍ[R])
 
 @[simps] instance : has_inv ℍ[R] := ⟨λ a, (norm_sq a)⁻¹ • a.conj⟩
 
@@ -507,6 +511,12 @@ instance : division_ring ℍ[R] :=
   mul_inv_cancel := λ a ha, by rw [has_inv_inv, algebra.mul_smul_comm, self_mul_conj, smul_coe,
     inv_mul_cancel (norm_sq_ne_zero.2 ha), coe_one],
   .. quaternion.domain }
+
+@[simp] lemma norm_sq_inv : norm_sq a⁻¹ = (norm_sq a)⁻¹ :=
+(norm_sq : ℍ[R] →* R).map_inv' norm_sq_zero _
+
+@[simp] lemma norm_sq_div : norm_sq (a / b) = norm_sq a / norm_sq b :=
+(norm_sq : ℍ[R] →* R).map_div norm_sq_zero a b
 
 end field
 

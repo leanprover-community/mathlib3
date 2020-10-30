@@ -106,6 +106,9 @@ def aeval : polynomial R →ₐ[R] A :=
 
 variables {R A}
 
+@[ext] lemma alg_hom_ext {f g : polynomial R →ₐ[R] A} (h : f X = g X) : f = g :=
+by { ext, exact h }
+
 theorem aeval_def (p : polynomial R) : aeval x p = eval₂ (algebra_map R A) x p := rfl
 
 @[simp] lemma aeval_zero : aeval x (0 : polynomial R) = 0 :=

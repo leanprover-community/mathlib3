@@ -153,7 +153,8 @@ example {α : Type*} (S: fintype α) (f : α → ℕ) (g : α → ℕ) (h : ∀ 
 -/
 lemma foo2 (f : ℂ → ℂ ) (T : triangle ) :
   abs (contour_integral f T) ≤
-  4 * Sup (set.range (λ i, abs ( contour_integral f (quadrisect T i)))) :=
+--  4 * Sup (set.range (λ i, abs ( contour_integral f (quadrisect T i)))) :=
+  4 * supr ( (λ i, abs ( contour_integral f (quadrisect T i)))) :=
 begin
   /- AK? -/
   rw foo,
@@ -161,47 +162,41 @@ begin
   calc
  abs (∑ (i : option (zmod 3)), contour_integral f (quadrisect T i))
  ≤  ∑ (i : option (zmod 3)), abs( contour_integral f (quadrisect T i)) : _
- ... ≤ ∑ (i : option (zmod 3)),   Sup (set.range (λ i, abs ( contour_integral f (quadrisect T i)))) : _
-... = 4 * Sup (set.range (λ i, abs ( contour_integral f (quadrisect T i)))) : _ ,
+ ... ≤ ∑ (i : option (zmod 3)),   supr ( (λ i, abs ( contour_integral f (quadrisect T i)))) : _
+... = 4 * supr ( (λ i, abs ( contour_integral f (quadrisect T i)))) : _ ,
+
 
 {
-  --refine finset.abs_sum_le_sum_abs,
-  sorry,
+  let func : (option (zmod 3)) → ℂ   :=  λ i , contour_integral f (quadrisect T i),
+  refine norm_sum_le _ func ,
 },
 
 {
---  congr,
-  sorry,
-},
+  let funcabs  : (option (zmod 3)) → ℝ    :=  λ i , abs ( contour_integral f (quadrisect T i)),
+  refine finset.sum_le_sum _ ,
+  intros,
+  refine le_cSup _ _ ,
+  {
+  -- ASK ON ZULIP
 
-{
-  rw finset.sum_const,
-  simp,
-  left,
-  -- ???
-  sorry,
-},
+  --    have : range (λ (i : option (zmod 3)), abs (contour_integral f (quadrisect T i)))
+      --refine finset.bdd_above _ ,
+      sorry,
+    },
+    {
+      use x,
+    },
+  --  congr,
+  },
+
+  {
+    rw finset.sum_const,
+    simp,
+    left,
+    norm_cast,
+  },
 end
 
-/--  ∫_a^b F' = F(b)-F(a)
--/
-lemma foo3 (F: ℂ → ℂ ) (holc: differentiable ℂ F) (a b :ℂ ) :
-  contour_integral_segment (deriv F) a b =
-  F b - F a :=
-begin
-  /- Adrian? NOPE ! -/
-  sorry,
-end
-
-
-/--  ∫_T F' = 0
--/
-lemma foo3a (F: ℂ → ℂ ) (holc: differentiable ℂ F) (T: triangle ) :
-  contour_integral (deriv F) T = 0 :=
-begin
-  /- AK NOPE! -/
-  sorry,
-end
 
 /--  ∫_γ  c = c (b-a)
 -/
@@ -216,13 +211,16 @@ end
 
 def int_t := ∫ (t : ℝ) in 0..1, (t:ℂ )
 
+#check interval_integral.integral_smul
+
 lemma integral_smul_C  (c : ℂ) :
 ∫ (t : ℝ) in 0..1,  ((t:ℂ ) * c)
 =
 (∫ (t : ℝ) in 0..1, (t:ℂ )) * c
 :=
 begin
-  --by library_search,
+
+  --library_search,
   sorry,
 end
 
@@ -250,9 +248,75 @@ begin
 
   {
     refine  interval_integral.integral_add _ _ ,
-    sorry,
-    sorry,
-  },
+    {
+
+      have rw1 :
+      measure_theory.integrable_on (λ (t : ℝ), a * (b - a)) (Icc 0 1) measure_theory.measure_space.volume
+      ,
+      {
+        refine continuous.integrable_on_compact _ _,
+        exact compact_Icc,
+        exact continuous_const,
+      },
+
+      rw interval_integrable,
+      split,
+
+      {
+        refine rw1.mono_set _ ,
+        exact Ioc_subset_Icc_self,
+      },
+
+      have rw2: Ioc (1:ℝ) 0 = ∅ ,
+      {
+        have : (0:ℝ ) ≤ 1 := by linarith,
+        exact Ioc_eq_empty this,
+      },
+      rw rw2,
+
+      -- HM COMPLAIN ON ZULIP PLEASE *****
+      simp,
+--      refine measure_theory.integrable_on_empty _ ,
+--      exact measurable_const,
+    },
+    {
+
+      have rw3:=  complex.continuous_of_real.mul continuous_const,
+
+    have rw1 :
+      measure_theory.integrable_on (λ (t : ℝ), ↑t * ((b - a) * (b - a))) (Icc 0 1) measure_theory.measure_space.volume
+      ,
+      {
+        refine continuous.integrable_on_compact _ _,
+        exact compact_Icc,
+
+      exact rw3,
+        --refine continuous.mul  _ _ ,
+        --exact complex.continuous_of_real.mul continuous_const,
+--        refine complex.continuous_of_real ,
+        --exact continuous_const,
+      },
+
+      rw interval_integrable,
+      split,
+
+      {
+        refine rw1.mono_set _ ,
+        exact Ioc_subset_Icc_self,
+      },
+
+      have rw2: Ioc (1:ℝ) 0 = ∅ ,
+      {
+        have : (0:ℝ ) ≤ 1 := by linarith,
+        exact Ioc_eq_empty this,
+      },
+      rw rw2,
+      refine measure_theory.integrable_on_empty _ ,
+      refine continuous.measurable _,
+      --refine continuous.mul  _ _ ,
+      exact rw3,
+    }
+    },
   {
     rw interval_integral.integral_const,
     simp,
@@ -383,7 +447,7 @@ end
 lemma foo3bTX (c d: ℂ ) (T: triangle ) :
   contour_integral (λ x, c*x +d ) T = 0 :=
 begin
-  /- Adrian? -/
+  /- Alex  -/
   sorry,
 end
 
@@ -404,6 +468,9 @@ begin
   sorry,
 end
 
+/--
+  Not needed?
+-/
 /-- Any two points in a triangle `T` are at most `max_side_length T` apart. -/
 lemma foo5 (T:triangle )
   (z w : ℂ ) (hz: z ∈  triangle_hull T) (hw: w ∈  triangle_hull T) :
@@ -413,7 +480,7 @@ begin
   -- Introduce the map `diff`, defined as `⟨z, w⟩ ↦ z - w`, with this considered as an `ℝ`-linear
   -- map from `ℂ × ℂ → ℂ`.
   let diff : ℂ × ℂ →ₗ[ℝ] ℂ :=
-    (linear_map.id.comp (linear_map.fst ℝ ℂ ℂ)) - (linear_map.id.comp (linear_map.snd ℝ ℂ ℂ)),
+     (linear_map.fst ℝ ℂ ℂ) - (linear_map.snd ℝ ℂ ℂ),
   -- notice that `dist` is the composition of the convex function `norm` and the linear function `diff`.
   -- also notice that the domain of consideration, `(triangle_hull T) × (triangle_hull T)`, is equal
   -- to the convex hull of the 9 points in `(set.range T) × (set.range T)`.  This relies on the
@@ -452,6 +519,9 @@ end
 
 open finset
 
+/--
+  Not needed?
+-/
 lemma foo4 (T:triangle ) (i k : zmod 3) (j : option (zmod 3)) :
   dist (T i)   (quadrisect T j k) ≤ max_side_length T :=
 begin
@@ -498,7 +568,9 @@ begin
   exact foo5 T (T i) (quadrisect T j k) TiInT quadInT,
 end
 
-
+/--
+  Not needed?
+-/
 lemma foo6 (T:triangle ) (j : option (zmod 3)) :
   max_side_length (quadrisect T j) =
   max_side_length T / 2 :=
@@ -508,38 +580,27 @@ begin
   sorry,
 end
 
+
+def sup_side_length : triangle → ℝ :=
+--- HM
+sorry
+--supr (λ p, dist p.1 p.2 )
+
+lemma foo7 (T:triangle ) (j : option (zmod 3)) :
+  sup_side_length (quadrisect T j) =
+  sup_side_length T / 2 :=
+begin
+  /- AK -/
+
+  sorry,
+end
+
+
 /- NEXT TIME -/
 
 theorem Goursat (f : ℂ →  ℂ ) (holc: differentiable ℂ f) (T₀ : triangle ) :
   contour_integral f T₀  = 0 :=
 begin
-
-/-
-
-theorem Goursat (f : ℂ →  ℂ ) (holc: differentiable ℂ f) (T: triangle ) :
-  contour_integral f T = 0 :=
-begin
-
-  have : ∀ n , ∀ (T' :triangle ) , ∃ (T'' : triangle), -- ∃ j : option (zmod 3) ,
---    T'' = quadrisect T' j ∧
-    abs ( contour_integral f T') ≤ 4^n * abs (contour_integral f T'')
-    ∧
-    max_side_length T'' ≤ 1/4^n * max_side_length T'
-    ∧
-    convex_hull T'' ⊂ convex_hull T'
-    ,
-    {
-      sorry,
-    },
-  choose! T_seq  -- i h h' using this,
-   H using this,
-
-  let X := λ n, nat.rec_on n T _  _,
-    --(λ n T, (T_seq n T) (H n T)),
-
-  sorry,
-end
--/
 
   have : ∀ n , ∀ (T' :triangle ) , ∃ (T'' : triangle), ∃ j : option (zmod 3) ,
     T'' = quadrisect T' j ∧
@@ -580,17 +641,8 @@ end
   have localize := (holc z).has_deriv_at ,
   rw has_deriv_at_iff_is_o_nhds_zero  at  localize,
 
+
+
+  sorry,
   sorry,
 end
-
-/--
-  |∫_γ f| ≤ ⊔ |f|
--/
-
-
-/--
-
-  in a neighborhood of z,
-  f(w) = f(z) + f'(z) (w-z) + Err
-
--/

@@ -107,6 +107,21 @@ finsupp.ext_iff
 @[ext] lemma ext {p q : polynomial R} : (∀ n, coeff p n = coeff q n) → p = q :=
 finsupp.ext
 
+@[ext] lemma add_hom_ext' {M : Type*} [add_monoid M] {f g : polynomial R →+ M}
+  (h : ∀ n, f.comp (monomial n).to_add_monoid_hom = g.comp (monomial n).to_add_monoid_hom) :
+  f = g :=
+finsupp.add_hom_ext' h
+
+lemma add_hom_ext {M : Type*} [add_monoid M] {f g : polynomial R →+ M}
+  (h : ∀ n a, f (monomial n a) = g (monomial n a)) :
+  f = g :=
+finsupp.add_hom_ext h
+
+@[ext] lemma lhom_ext' {M : Type*} [add_comm_monoid M] [semimodule R M] {f g : polynomial R →ₗ[R] M}
+  (h : ∀ n, f.comp (monomial n) = g.comp (monomial n)) :
+  f = g :=
+finsupp.lhom_ext' h
+
 -- this has the same content as the subsingleton
 lemma eq_zero_of_eq_zero (h : (0 : R) = (1 : R)) (p : polynomial R) : p = 0 :=
 by rw [←one_smul R p, ←h, zero_smul]

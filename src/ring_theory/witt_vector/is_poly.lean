@@ -85,7 +85,9 @@ end
 -/
 
 /-
-This tactic is used later in the development for certain simplifications.
+### Simplification tactics
+
+`ghost_simp` is used later in the development for certain simplifications.
 We define it here so it is a shared import.
 -/
 
@@ -124,7 +126,7 @@ If the variables are introduced already, call `ghost_calc x y`.
 In the unary case, use `ghost_calc _` or `ghost_calc x`.
 
 `ghost_calc` is a light wrapper around type class inference.
-All it does is apply the appropriate extensionalify lemma and try to infer the resulting goals.
+All it does is apply the appropriate extensionality lemma and try to infer the resulting goals.
 This is subtle and Lean's elaborator doesn't like it because of the HO unification involved,
 so it is easier (and prettier) to put it in a tactic script.
 -/
@@ -160,12 +162,15 @@ local attribute [semireducible] witt_vector
 
 open mv_polynomial
 open function (uncurry)
-local attribute [-simp] coe_eval₂_hom
 
 include hp
 variables (p)
 
 noncomputable theory
+
+/-!
+### The `is_poly` predicate
+-/
 
 lemma poly_eq_of_witt_polynomial_bind_eq' (f g : ℕ → mv_polynomial (idx × ℕ) ℤ)
   (h : ∀ n, bind₁ f (witt_polynomial p _ n) = bind₁ g (witt_polynomial p _ n)) :
@@ -206,6 +211,11 @@ is said to be *polynomial* if there is a family of polynomials `φₙ` over `ℤ
 coefficient of `f x` is given by evaluating `φₙ` at the coefficients of `x`.
 
 See also `witt_vector.is_poly₂` for the binary variant.
+
+The `ghost_calc` tactic treats `is_poly` as a type class,
+and the `@[is_poly]` attribute derives certain specialized composition instances
+for declarations of type `is_poly f`.
+For the most part, users are not expected to treat `is_poly` as a class.
 -/
 @[class] def is_poly (f : Π ⦃R⦄ [comm_ring R], witt_vector p R → 𝕎 R) : Prop :=
 ∃ φ : ℕ → mv_polynomial ℕ ℤ, ∀ ⦃R⦄ [comm_ring R] (x : 𝕎 R),
@@ -277,6 +287,11 @@ is said to be *polynomial* if there is a family of polynomials `φₙ` over `ℤ
 coefficient of `f x y` is given by evaluating `φₙ` at the coefficients of `x` and `y`.
 
 See also `witt_vector.is_poly` for the unary variant.
+
+The `ghost_calc` tactic treats `is_poly₂` as a type class,
+and the `@[is_poly]` attribute derives certain specialized composition instances
+for declarations of type `is_poly₂ f`.
+For the most part, users are not expected to treat `is_poly₂` as a class.
 -/
 @[class] def is_poly₂ (f : Π ⦃R⦄ [comm_ring R], witt_vector p R → 𝕎 R → 𝕎 R) : Prop :=
 ∃ φ : ℕ → mv_polynomial (fin 2 × ℕ) ℤ, ∀ ⦃R⦄ [comm_ring R] (x y : 𝕎 R),
@@ -334,15 +349,20 @@ end
 namespace tactic
 open tactic
 
+/-!
+### The `@[is_poly]` attribute
+
+This attribute is used to derive specialized composition instances
+for `is_poly` and `is_poly₂` declarations.
+-/
+
 /--
-If `n` is the name of a lemma with opened type `∀ vars, tp`,
-where `tp` is an application of `is_poly`,
-`mk_poly_comp_lemmas n vars tp` adds composition instances to the environment
+If `n` is the name of a lemma with opened type `∀ vars, is_poly p _`,
+`mk_poly_comp_lemmas n vars p` adds composition instances to the environment
 `n.comp_i` and `n.comp₂_i`.
 -/
-meta def mk_poly_comp_lemmas (n : name) (vars : list expr) (tp : expr) : tactic unit :=
+meta def mk_poly_comp_lemmas (n : name) (vars : list expr) (p : expr) : tactic unit :=
 do c ← mk_const n,
-   `(is_poly %%p _) ← return tp,
    let appd := vars.foldl expr.app c,
 
    tgt_bod ← to_expr ``(λ f [hf : is_poly %%p f], is_poly.comp %%appd hf) >>=
@@ -362,14 +382,12 @@ do c ← mk_const n,
    set_attribute `instance nm
 
 /--
-If `n` is the name of a lemma with opened type `∀ vars, tp`,
-where `tp` is an application of `is_poly₂`,
-`mk_poly₂_comp_lemmas n vars tp` adds composition instances to the environment
+If `n` is the name of a lemma with opened type `∀ vars, is_poly₂ p _`,
+`mk_poly₂_comp_lemmas n vars p` adds composition instances to the environment
 `n.comp₂_i` and `n.comp_diag`.
 -/
-meta def mk_poly₂_comp_lemmas (n : name) (vars : list expr) (tp : expr) : tactic unit :=
+meta def mk_poly₂_comp_lemmas (n : name) (vars : list expr) (p : expr) : tactic unit :=
 do c ← mk_const n,
-   `(is_poly₂ %%p _) ← return tp,
    let appd := vars.foldl expr.app c,
 
    tgt_bod ← to_expr ``(λ {f g} [hf : is_poly %%p f] [hg : is_poly %%p g],
@@ -394,11 +412,11 @@ The `after_set` function for `@[is_poly]`. Calls `mk_poly(₂)_comp_lemmas`.
 meta def mk_comp_lemmas (n : name) : tactic unit :=
 do d ← get_decl n,
    (vars, tp) ← open_pis d.type,
-   if tp.is_app_of ``is_poly then
-     mk_poly_comp_lemmas n vars tp
-   else if tp.is_app_of ``is_poly₂ then
-     mk_poly₂_comp_lemmas n vars tp
-   else fail "@[is_poly] should only be applied to terms of type `is_poly _ _` or `is_poly₂ _ _`"
+   match tp with
+   | `(is_poly %%p _) := mk_poly_comp_lemmas n vars p
+   | `(is_poly₂ %%p _) := mk_poly₂_comp_lemmas n vars p
+   | _ := fail "@[is_poly] should only be applied to terms of type `is_poly _ _` or `is_poly₂ _ _`"
+   end
 
 /--
 `@[is_poly]` is applied to lemmas of the form `is_poly f φ` or `is_poly₂ f φ`.
@@ -432,6 +450,14 @@ end tactic
 
 include hp
 
+/-!
+### `is_poly` instances
+
+These are not declared as instances at the top level,
+but the `@[is_poly]` attribute adds instances based on each one.
+Users are expected to use the non-instance versions manually.
+-/
+
 /-- The additive negation is a polynomial function on Witt vectors. -/
 @[is_poly]
 lemma neg_is_poly : is_poly p (λ R _, by exactI @has_neg.neg (𝕎 R) _) :=
@@ -450,9 +476,6 @@ we model them as constant unary functions. -/
 /-- The function that is constantly zero on Witt vectors is a polynomial function. -/
 instance zero_is_poly : is_poly p (λ _ _ _, by exactI 0) :=
 ⟨0, by { introsI, funext n, simp only [pi.zero_apply, alg_hom.map_zero, zero_coeff] }⟩
-
--- instance zero_is_poly_i : is_poly p (λ _ _ _, by exactI 0) :=
--- zero_is_poly
 
 @[simp] lemma bind₁_zero_witt_polynomial (n : ℕ) :
   bind₁ (0 : ℕ → mv_polynomial ℕ R) (witt_polynomial p R n) = 0 :=

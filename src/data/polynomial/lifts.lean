@@ -158,7 +158,7 @@ end
 
 section lift_deg
 
-lemma lifts_deg_of_monom_lifts {s : S} {n : ℕ} (hl : lifts f (monomial n s)) :
+lemma lifts_monomial_and_degree_eq {s : S} {n : ℕ} (hl : lifts f (monomial n s)) :
   ∃ (q : polynomial R), map f q = (monomial n s) ∧ q.degree = (monomial n s).degree :=
 begin
   by_cases hzero : s = 0,

@@ -1,17 +1,46 @@
+/-
+Copyright (c) 2020 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
+
 import topology.opens
 import category_theory.sites.grothendieck
 import category_theory.sites.pretopology
 import category_theory.limits.lattice
 
+/-!
+# Grothendieck topology on a topological space
+
+Define the Grothendieck topology and the pretopology associated to a topological space, and show
+that the pretopology induces the topology.
+
+The covering (pre)sieves on `X` are those for which the union of domains contains `X`.
+
+## Tags
+
+site, Grothendieck topology, space
+
+## References
+
+* [https://ncatlab.org/nlab/show/Grothendieck+topology][nlab]
+* [S. MacLane, I. Moerdijk, *Sheaves in Geometry and Logic*][MM92]
+
+## Implementation notes
+
+We define the two separately, rather than defining the Grothendieck topology as that generated
+by the pretopology for the purpose of having nice definitional properties for the sieves.
+-/
+
 universe u
 
+namespace opens
 variables (T : Type u) [topological_space T]
 
-namespace category_theory
-open topological_space limits
+open category_theory topological_space category_theory.limits
 
 /-- The Grothendieck topology associated to a topological space. -/
-def associated : grothendieck_topology (opens T) :=
+def grothendieck_topology : grothendieck_topology (opens T) :=
 { sieves := λ X S, ∀ x ∈ X, ∃ U (f : U ⟶ X), S f ∧ x ∈ U,
   top_mem' := λ X x hx, ⟨_, 𝟙 _, trivial, hx⟩,
   pullback_stable' := λ X Y S f hf y hy,
@@ -28,10 +57,10 @@ def associated : grothendieck_topology (opens T) :=
   end }
 
 /-- The Grothendieck pretopology associated to a topological space. -/
-def associated_p : pretopology (opens T) :=
+def pretopology : pretopology (opens T) :=
 { coverings := λ X R, ∀ x ∈ X, ∃ U (f : U ⟶ X), R f ∧ x ∈ U,
   has_isos := λ X Y f i x hx,
-        by exactI ⟨_, _, arrows_with_codomain.singleton_arrow_self _, le_of_hom (inv f) hx⟩,
+        by exactI ⟨_, _, presieve.singleton_self _, le_of_hom (inv f) hx⟩,
   pullbacks := λ X Y f S hS x hx,
   begin
     rcases hS _ (le_of_hom f hx) with ⟨U, g, hg, hU⟩,
@@ -48,9 +77,11 @@ def associated_p : pretopology (opens T) :=
   end }
 
 /--
-The pretopology associated to a space induces the Grothdendieck topology associated to the space.
+The pretopology associated to a space induces the Grothendieck topology associated to the space.
 -/
-lemma same_topology : pretopology.to_grothendieck _ (associated_p T) = associated T :=
+@[simp]
+lemma pretopology_to_grothendieck :
+  pretopology.to_grothendieck _ (opens.pretopology T) = opens.grothendieck_topology T :=
 begin
   apply le_antisymm,
   { rintro X S ⟨R, hR, RS⟩ x hx,
@@ -60,4 +91,4 @@ begin
     exact ⟨S, hS, le_refl _⟩ }
 end
 
-end category_theory
+end opens

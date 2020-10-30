@@ -33,7 +33,7 @@ instance has_mul {G : Type*} [has_mul G] [topological_space G] [has_continuous_m
 ⟨λ f g, ⟨f * g, smooth_mul.comp (f.smooth.prod_mk g.smooth)⟩⟩
 
 @[to_additive]
-instance {G : Type*} [monoid G] [topological_space G]
+instance has_one {G : Type*} [monoid G] [topological_space G]
   [charted_space H' G] [smooth_manifold_with_corners I' G] :
   has_one C^∞⟮I, N; I', G⟯ :=
 ⟨times_cont_mdiff_map.const (1 : G)⟩

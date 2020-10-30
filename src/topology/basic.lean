@@ -693,12 +693,23 @@ end
 ### Interior, closure and frontier in terms of neighborhoods
 -/
 
+lemma interior_eq_nhds' {s : set α} : interior s = {a | s ∈ 𝓝 a} :=
+set.ext $ λ x, by simp only [mem_interior, mem_nhds_sets_iff, mem_set_of_eq]
+
 lemma interior_eq_nhds {s : set α} : interior s = {a | 𝓝 a ≤ 𝓟 s} :=
-set.ext $ λ x, by simp only [mem_interior, le_principal_iff, mem_nhds_sets_iff]; refl
+interior_eq_nhds'.trans $ by simp only [le_principal_iff]
 
 lemma mem_interior_iff_mem_nhds {s : set α} {a : α} :
   a ∈ interior s ↔ s ∈ 𝓝 a :=
-by simp only [interior_eq_nhds, le_principal_iff]; refl
+by rw [interior_eq_nhds', mem_set_of_eq]
+
+lemma interior_set_of_eq {p : α → Prop} :
+  interior {x | p x} = {x | ∀ᶠ y in 𝓝 x, p y} :=
+interior_eq_nhds'
+
+lemma is_open_set_of_eventually_nhds {p : α → Prop} :
+  is_open {x | ∀ᶠ y in 𝓝 x, p y} :=
+by simp only [← interior_set_of_eq, is_open_interior]
 
 lemma subset_interior_iff_nhds {s V : set α} : s ⊆ interior V ↔ ∀ x ∈ s, V ∈ 𝓝 x :=
 show (∀ x, x ∈ s →  x ∈ _) ↔ _, by simp_rw mem_interior_iff_mem_nhds
@@ -719,6 +730,15 @@ by rw [filter.frequently, filter.eventually, ← mem_interior_iff_mem_nhds,
   closure_eq_compl_interior_compl]; refl
 
 alias mem_closure_iff_frequently ↔ _ filter.frequently.mem_closure
+
+/-- The set of cluster points of a filter is closed. In particular, the set of limit points
+of a sequence is closed. -/
+lemma is_closed_set_of_cluster_pt {f : filter α} : is_closed {x | cluster_pt x f} :=
+begin
+  simp only [cluster_pt, inf_ne_bot_iff_frequently_left, set_of_forall, imp_iff_not_or],
+  refine is_closed_Inter (λ p, is_closed_union _ _); apply is_closed_compl_iff.2,
+  exacts [is_open_set_of_eventually_nhds, is_open_const]
+end
 
 theorem mem_closure_iff_cluster_pt {s : set α} {a : α} : a ∈ closure s ↔ cluster_pt a (𝓟 s) :=
 mem_closure_iff_frequently.trans cluster_pt_principal_iff_frequently.symm

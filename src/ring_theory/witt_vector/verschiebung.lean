@@ -21,7 +21,8 @@ local attribute [semireducible] witt_vector
 noncomputable theory
 
 /--
-`verschiebung_fun x` shifts the coefficients of `x` up by one, by inserting 0 as the 0th coefficient.
+`verschiebung_fun x` shifts the coefficients of `x` up by one,
+by inserting 0 as the 0th coefficient.
 `x.coeff i` then becomes `(verchiebung_fun x).coeff (i + 1)`.
 
 `verschiebung_fun` is the underlying function of the additive monoid hom `witt_vector.verschiebung`.
@@ -151,7 +152,8 @@ begin
   split_ifs with hn,
   { simp only [hn, verschiebung_poly_zero, witt_polynomial_zero, bind₁_X_right] },
   { obtain ⟨n, rfl⟩ := nat.exists_eq_succ_of_ne_zero hn,
-    rw [nat.succ_eq_add_one, nat.add_sub_cancel, ring_hom.map_mul, ring_hom.map_nat_cast, hom_bind₁],
+    rw [nat.succ_eq_add_one, nat.add_sub_cancel, ring_hom.map_mul,
+        ring_hom.map_nat_cast, hom_bind₁],
     calc  _
         = ghost_component (n + 1) (verschiebung $ mk p x) : _
     ... = _ : _,

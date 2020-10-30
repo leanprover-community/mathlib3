@@ -66,8 +66,8 @@ by rw [lifts_iff_set_range, mem_map_range]
 
 /--If `(r : R)`, then `C (f r)` lifts. -/
 lemma C_mem_lifts (f : R →+* S) (r : R) : (C (f r)) ∈ lifts f :=
-by use C r; simp only [map_C, set.mem_univ, subsemiring.coe_top, eq_self_iff_true,
-ring_hom.coe_of, and_self]
+⟨C r, by simp only [map_C, set.mem_univ, subsemiring.coe_top, eq_self_iff_true,
+  ring_hom.coe_of, and_self]⟩
 
 /-- If `(s : S)` is in the image of `f`, then `C s` lifts. -/
 lemma C'_mem_lifts {f : R →+* S} {s : S} (h : s ∈ set.range f) : (C s) ∈ lifts f :=

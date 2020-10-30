@@ -1209,33 +1209,6 @@ Instantiates metavariables in all goals.
 meta def instantiate_mvars_in_goals : tactic unit :=
 all_goals' $ instantiate_mvars_in_target
 
-meta def mk_app_aux : expr → expr → expr → tactic expr
- | f (expr.pi n binder_info.default d b) arg :=
-   do infer_type arg >>= unify d,
-      return $ f arg
- | f (expr.pi n binder_info.inst_implicit d b) arg :=
-   do infer_type arg >>= unify d,
-      return $ f arg -- TODO use typeclass inference?
- | f (expr.pi n _ d b) arg :=
-   do v ← mk_meta_var d,
-      t ← whnf (b.instantiate_var v),
-      mk_app_aux (f v) t arg
- | e _ _ := failed
-
-meta def mk_app' (f arg : expr) : tactic expr :=
-lock_tactic_state $
-do r ← to_expr ``(%%f %%arg) -- FIXME: this is expensive
-     | infer_type f >>= whnf >>= λ t, mk_app_aux f t arg,
-   instantiate_mvars r
-
-/-- Given an expression `f` and  list of expressions `args`, builds all applications
-    of `f` to elements of `args`. `mk_apps` returns a list of all pairs ``(`(%%f %%arg), arg)``
-    which typecheck, for `arg` in the list `args`.
--/
-meta def mk_apps (f : expr) (args : list expr) : tactic (list (expr × expr)) :=
-do l ← args.mmap $ λ arg, option.to_list <$> try_core (mk_app' f arg >>= λ m, return (m, arg)),
-   return l.join
-
 /-- Protect the declaration `n` -/
 meta def mk_protected (n : name) : tactic unit :=
 do env ← get_env, set_env (env.mk_protected n)

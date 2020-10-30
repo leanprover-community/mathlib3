@@ -2263,6 +2263,10 @@ congr_arg card $ (@multiset.erase_dup_eq_self α _ l).2 h
 end list
 
 namespace multiset
+variable [decidable_eq α]
+
+theorem to_finset_card_of_nodup {l : multiset α} (h : l.nodup) : l.to_finset.card = l.card :=
+congr_arg card $ (@multiset.erase_dup_eq_self α _ l).2 h
 
 lemma disjoint_to_finset [decidable_eq α] (m1 m2 : multiset α) :
   _root_.disjoint m1.to_finset m2.to_finset ↔ m1.disjoint m2 :=

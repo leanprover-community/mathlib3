@@ -6,10 +6,11 @@ Authors: Johan Commelin
 
 import order.lexicographic
 import tactic.core
+import order.basic
 
-import algebra.group_with_zero
-import ring_theory.witt_vector.basic
-import analysis.special_functions.trigonometric
+-- import algebra.group_with_zero
+-- import ring_theory.witt_vector.basic
+-- import analysis.special_functions.trigonometric
 -- TODO: minimize these imports
 
 /-! # Lemmas for the `calc_step` tactic
@@ -332,6 +333,13 @@ end sign
 -- inductive rel | eq | le | lt | ne -- can we pull this last one off?
 
 open side op sign
+
+meta def lookup_binary :
+  native.rb_lmap (side × op × sign) (expr → expr → pexpr) := native.rb_lmap.of_list
+[
+  ((L, mul, none), λ c h, ```((_root_.mul_right_inj %%c).mp %%h)),
+  ((L, mul, none), λ c h, ```((@_root_.mul_right_inj' _ _ %%c _ _ _).mp %%h))
+]
 
 /-- Lookup list for all the lemmas in the `calc_step` namespace. -/
 meta def lookup : native.rb_lmap (side × op × sign) name := native.rb_lmap.of_list

@@ -5,11 +5,19 @@ Authors: Johan Commelin
 -/
 import tactic.core
 import tactic.calc_step.lemmas
+import tactic.norm_num
+
+#print tactic.to_expr
+
+meta def expr.elab (e : pexpr) (allow_mvars : opt_param bool tt) (subgoals : opt_param bool tt) :
+  tactic expr :=
+tactic.to_expr e allow_mvars subgoals
 
 namespace tactic
 
 open calc_step calc_step.side calc_step.op calc_step.sign
 
+-- move this to `calc_step` namespace
 /-- The default side that the `calc_step` tactic acts on is on the left,
 but for `div` (division) the default is to divide on the right. -/
 meta def get_side : side → op → side
@@ -21,29 +29,50 @@ meta def get_side : side → op → side
 | N sub := R
 | _ _   := N
 
-meta def calc_step_unary (n : name) : tactic unit :=
-do lem ← resolve_name n, tactic.interactive.refine ``(%%lem _)
+-- meta def analyze_type : expr → option (ℕ × list ℕ)
+-- | `(%%lhs ↔ %%rhs) := _
+-- | `(%%lhs = %%rhs) := _
+-- | `(%%lhs ≤ %%rhs) := _
+-- | `(%%lhs < %%rhs) := _
+-- | `(%%lhs ≠ %%rhs) := _
+-- | _ := none
 
-meta def calc_step_binary (e : pexpr) (n : name) : tactic unit :=
-do lem ← resolve_name n, tactic.interactive.refine ``(%%lem %%e _)
+
+-- meta def find_named_arg (n : name) : expr → option ℕ
+-- | (expr.pi a _ _ e) := if n = a then some 0 else nat.succ <$> find_named_arg e
+-- | _ := none
+
+-- meta def apply_named_arg (d : declaration) (n : name) (v : expr) : tactic expr :=
+-- do e ← resolve_name d.to_name,
+--   match find_named_arg n d.type with
+--   | none := failed
+--   | some n := _
+--   end
+
+-- run_cmd do
+--   d ← get_decl ``has_add.add,
+--   n ← find_named_arg `c d.type,
+--   trace n -- 1
+
+meta def calc_step_unary (n : name) : tactic expr :=
+failed -- fix this
+
+meta def calc_step_binary (e : pexpr) (goal : expr) (pat : expr → expr → pexpr) : tactic expr :=
+do e' ← e.elab,
+  t ← target, r ← (``(%%(pat e' goal) : %%t)).elab, return r
 
 meta def calc_step (e : option pexpr) (s : side) (op : op) (sgn : sign) : tactic unit :=
 focus1 $ do
   let sd := get_side s op,
-  let lems := lookup.find (sd, op, sgn),
-  match e with
-  | none := lems.mfirst calc_step_unary
-  | some x := lems.mfirst (calc_step_binary x)
+  newgoal ← mk_mvar,
+  prf ← match e with
+  | none := (lookup.find (sd, op, sgn)).mfirst calc_step_unary
+  | some x := (lookup_binary.find (sd, op, sgn)).mfirst (calc_step_binary x newgoal)
   end,
+  apply prf,
+  all_goals' $ try $ `[assumption <|> norm_num, done],
   gs ← get_goals,
-  match gs with
-  | (h::t) := do
-    set_goals t,
-    all_goals' $ try $ `[assumption <|> norm_num, done],
-    gs ← get_goals,
-    set_goals (h::gs)
-  | _ := skip
-  end
+  set_goals (newgoal::gs)
 
 namespace interactive
 
@@ -85,9 +114,10 @@ begin
   mul_by 2,
 end
 
-example (a b : ℝ) (x : ℝ) (h : 2 * a < 2 * b) : a < b :=
+example (a b : ℚ) (x : ℚ) (h : 2 * a < 2 * b) : a < b :=
 begin
   -- negate,
-  -- take_inv pos,
+  -- take_inv neg,
   mul_by 2 L pos,
+  assumption,
 end

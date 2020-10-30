@@ -84,8 +84,8 @@ lemma X_mem_lifts (f : R →+* S) : (X : polynomial S) ∈ lifts f :=
 
 /-- The polynomial `X ^ n` lifts. -/
 lemma X_pow_mem_lifts (f : R →+* S) (n : ℕ) : (X ^ n : polynomial S) ∈ lifts f :=
-by use X ^ n; simp only [map_pow, set.mem_univ, subsemiring.coe_top, eq_self_iff_true, map_X,
-ring_hom.coe_of, and_self]
+⟨X ^ n, by simp only [map_pow, set.mem_univ, subsemiring.coe_top, eq_self_iff_true, map_X,
+  ring_hom.coe_of, and_self]⟩
 
 /-- If `p` lifts and `(r : R)` then `r * p` lifts. -/
 lemma base_mul_mem_lifts {p : polynomial S} (r : R) (hp : p ∈ lifts f) : C (f r) * p ∈ lifts f :=

@@ -48,7 +48,7 @@ rfl
 Composing a `prod.map` with another `prod.map` is equal to
 a single `prod.map` of composed functions, fully applied.
 -/
-lemma map_map {ε ζ : Type*}
+@[simp] lemma map_map {ε ζ : Type*}
   (f : α → β) (f' : γ → δ) (g : β → ε) (g' : δ → ζ) (x : α × γ) :
   prod.map g g' (prod.map f f' x) = prod.map (g ∘ f) (g' ∘ f') x :=
 rfl

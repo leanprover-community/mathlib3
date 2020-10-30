@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.equiv.encodable.basic
 import algebra.euclidean_domain
+import data.nat.gcd
 
 /-!
 # Basics for the Rational Numbers

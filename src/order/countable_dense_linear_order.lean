@@ -3,15 +3,25 @@ Copyright (c) 2020 David Wärn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
-import order.generic_cofilter
+import order.ideal
 import data.finset
+
+/-
+
+  For linear orders α β with α countable and β dense,
+  we prove that α embeds in β.
+    If additionally β is countable and α is dense,
+  then we get an order isomorphism.
+
+-/
 
 noncomputable theory
 open_locale classical
+open order
 
 section cmp
 
-variables {α : Type*} [decidable_linear_order α] (x y : α)
+variables {α : Type*} [linear_order α] (x y : α)
 
 @[simp] lemma cmp_eq_lt_iff : cmp x y = ordering.lt ↔ x < y :=
 ordering.compares.eq_lt $ cmp_compares x y
@@ -25,7 +35,7 @@ ordering.compares.eq_gt $ cmp_compares x y
 @[simp] lemma cmp_self_eq_eq : cmp x x = ordering.eq :=
 (ordering.compares.eq_eq (cmp_compares x x)).mpr rfl
 
-variables {x y} {β : Type*} [decidable_linear_order β] {x' y' : β}
+variables {x y} {β : Type*} [linear_order β] {x' y' : β}
 
 lemma cmp_eq_cmp_symm : cmp x y = cmp x' y' ↔ cmp y x = cmp y' x' :=
 by { split, rw [←cmp_swap _ y, ←cmp_swap _ y'], cc,
@@ -47,7 +57,7 @@ end cmp
 
 section orderiso
 
-variables {α : Type*} {β : Type*} [decidable_linear_order α] [decidable_linear_order β]
+variables {α : Type*} {β : Type*} [linear_order α] [linear_order β]
   (f : α → β) (g : β → α)
 
 /-- To construct an order isomorphism between decidable linear orders `α` and `β`, it
@@ -55,7 +65,7 @@ variables {α : Type*} {β : Type*} [decidable_linear_order α] [decidable_linea
   `∀ (a : α) (b : β), cmp a (g b) = cmp (f a) b`. We think of this as a two-sided Galois
   adjunction. -/
 def order_iso_of_cmp_eq_cmp (adj : ∀ (a : α) (b : β), cmp a (g b) = cmp (f a) b) :
-  ((≤) : α → α → Prop) ≃o ((≤) : β → β → Prop) :=
+  α ≃o β :=
 { to_fun := f,
   inv_fun := g,
   left_inv := begin
@@ -70,7 +80,7 @@ def order_iso_of_cmp_eq_cmp (adj : ∀ (a : α) (b : β), cmp a (g b) = cmp (f a
     { simpa using this },
     rw ←adj, simp,
   end,
-  ord' := begin
+  map_rel_iff' := begin
     intros x y,
     apply gt_iff_gt_of_cmp_eq,
     suffices : y = g (f y),
@@ -98,7 +108,7 @@ begin
   exact ⟨λ ⟨q, h, he⟩, swap_eq_iff.mp he ▸ h, λ h, ⟨p.swap, h, prod.swap_swap p⟩⟩,
 end
 
-lemma sub_swap_iff {α β} [decidable_eq α] [decidable_eq β] {s : finset $ α × β}
+lemma sub_swap_iff {α β} [decidable_eq α] [decidable_eq β] {s : finset (α × β)}
   {t : finset $ β × α} : s ⊆ t.image prod.swap ↔ s.image prod.swap ⊆ t :=
 begin
   rw [finset.subset_iff, finset.subset_iff],
@@ -117,31 +127,31 @@ end swap
 
 -- For any finsets lo, hi, with all elements of lo less than those of hi,
 -- there is an element m that separates them.
-lemma separation {α : Type*} [decidable_linear_order α]
+lemma separation {α : Type*} [linear_order α]
   [densely_ordered α] [no_bot_order α] [no_top_order α] [nonem : nonempty α]
   (lo hi : finset α) (lo_lt_hi : ∀ (x ∈ lo) (y ∈ hi), x < y) :
   ∃ m : α, (∀ x ∈ lo, x < m) ∧ (∀ y ∈ hi, m < y) :=
 if nlo : lo.nonempty then
-  if nhi : hi.nonempty then
-    exists.elim (dense (lo_lt_hi _ (finset.max'_mem _ nlo) _ (finset.min'_mem _ nhi))) (λ m hm,
-    ⟨m, λ x hx, lt_of_le_of_lt (finset.le_max' lo nlo x hx) hm.1,
-        λ y hy, lt_of_lt_of_le hm.2 (finset.min'_le hi nhi y hy)⟩)
-  else
+  if nhi : hi.nonempty then -- both sets are nonempty, use density
+    exists.elim (exists_between (lo_lt_hi _ (finset.max'_mem _ nlo) _ (finset.min'_mem _ nhi)))
+      (λ m hm, ⟨m, λ x hx, lt_of_le_of_lt (finset.le_max' lo x hx) hm.1,
+                   λ y hy, lt_of_lt_of_le hm.2 (finset.min'_le hi y hy)⟩)
+  else -- upper set is empty, use no_top
     exists.elim (no_top (finset.max' lo nlo)) (λ m hm,
-    ⟨m, λ x hx, lt_of_le_of_lt (finset.le_max' lo nlo x hx) hm,
+    ⟨m, λ x hx, lt_of_le_of_lt (finset.le_max' lo x hx) hm,
         λ y hy, (nhi ⟨y, hy⟩).elim⟩)
-else
+else -- lower set is empty, use no_bot
   if nhi : hi.nonempty then
     exists.elim (no_bot (finset.min' hi nhi)) (λ m hm,
     ⟨m, λ x hx, (nlo ⟨x, hx⟩).elim,
-        λ y hy, lt_of_lt_of_le hm (finset.min'_le hi nhi y hy)⟩)
-  else
+        λ y hy, lt_of_lt_of_le hm (finset.min'_le hi y hy)⟩)
+  else -- both sets are empty, use nonempty
     nonem.elim (λ m,
     ⟨m, λ x hx, (nlo ⟨x, hx⟩).elim,
         λ y hy, (nhi ⟨y, hy⟩).elim⟩)
 
-variables (α : Type*) [decidable_linear_order α]
-  (β : Type*) [decidable_linear_order β]
+variables (α : Type*) [linear_order α]
+  (β : Type*) [linear_order β]
 
 /-- The type of partial order isomorphism between `α` and `β` defined on finite subsets.
     A partial order isomorphism is encoded as a finite subset of `α × β`, consisting
@@ -154,9 +164,7 @@ instance : inhabited (partial_iso α β) :=
 { default := ⟨∅, λ p q h, h.elim⟩ }
 
 instance : preorder (partial_iso α β) :=
-{ le := λ f g, f.val ⊆ g.val,
-  le_refl := λ f, finset.subset.refl _,
-  le_trans := λ f g h, finset.subset.trans }
+subtype.preorder _
 
 variables {α β}
 
@@ -165,8 +173,7 @@ def partial_iso.symm (f : partial_iso α β) : partial_iso β α :=
 { val := f.val.image prod.swap,
   property := λ p q hp hq, eq.symm $ f.property _ _ (mem_swap.mp hp) (mem_swap.mp hq), }
 
-variables [densely_ordered α] [no_bot_order α] [no_top_order α] [nonempty α]
-          [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β]
+variables [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β]
 
 lemma exists_sep (f : partial_iso α β) (a : α) :
   ∃ b : β, ∀ (p ∈ f.val), cmp (prod.fst p) a = cmp (prod.snd p) b :=
@@ -209,9 +216,9 @@ end
 
 /-- The set of partial isomorphism defined on `a : α`, together with a proof that any
     partial isomorphism can be extended to include `a`. -/
-def cofinal_left_ins (a : α) : { D : set (partial_iso α β) // cofinal D } :=
-{ val := λ f : partial_iso α β, ∃ b : β, (a, b) ∈ f.val,
-  property :=
+def cofinal_left_ins (a : α) : cofinal (partial_iso α β) :=
+{ carrier := λ f : partial_iso α β, ∃ b : β, (a, b) ∈ f.val,
+  mem_gt :=
   begin
     intro f,
     cases exists_sep f a with b a_b,
@@ -229,14 +236,18 @@ def cofinal_left_ins (a : α) : { D : set (partial_iso α β) // cofinal D } :=
     { apply finset.subset_insert, }
   end }
 
+section assume_α_also_dense
+
+variables [densely_ordered α] [no_bot_order α] [no_top_order α] [nonempty α]
+
 /-- The set of partial isomorphism defined on `b : β `, together with a proof that any
     partial isomorphism can be extended to include `b`. We prove this 'by symmetry'. -/
-def cofinal_right_ins (b : β) : { D : set (partial_iso α β) // cofinal D} :=
-{ val := λ f, ∃ a, (a, b) ∈ f.val,
-  property :=
+def cofinal_right_ins (b : β) : cofinal (partial_iso α β) :=
+{ carrier := λ f, ∃ a, (a, b) ∈ f.val,
+  mem_gt :=
   begin
     intro f,
-    rcases (cofinal_left_ins b).property (partial_iso.symm f) with ⟨f', ⟨a, ha⟩, hl⟩,
+    rcases (cofinal_left_ins b).mem_gt (partial_iso.symm f) with ⟨f', ⟨a, ha⟩, hl⟩,
     use partial_iso.symm f',
     refine ⟨⟨a, mem_swap.mpr ha⟩, _⟩,
     exact sub_swap_iff.mpr hl,
@@ -246,43 +257,68 @@ variables (α β)
 
 /-- A family of cofinal constraints, indexed by the sum-type `α ⊕ β`. Together these conditions
     ensure that we get a total isomorphism. -/
-def to_cofinal : α ⊕ β → { D : set (partial_iso α β) // cofinal D}
+def to_cofinal : α ⊕ β → cofinal (partial_iso α β)
 | (sum.inl a) := cofinal_left_ins a
 | (sum.inr b) := cofinal_right_ins b
 
 variables [encodable α] [encodable β]
 
 /-- A set of partial isomorphisms whose limit is a total isomorphism. -/
-def our_cofilter : set (partial_iso α β) := generic.cofilter (default _) (to_cofinal α β)
+def our_ideal : ideal (partial_iso α β) := ideal_of_cofinals (default _) (to_cofinal α β)
 
 variables {α}
 
-lemma exists_right (a : α) : ∃ (b : β) (f ∈ our_cofilter α β), (a, b) ∈ subtype.val f :=
+lemma exists_right (a : α) : ∃ (b : β) (f ∈ our_ideal α β), (a, b) ∈ subtype.val f :=
 begin
-  rcases generic.meets (default _) (to_cofinal α β) (sum.inl a) with ⟨f, hf, b, hb⟩,
+  rcases cofinal_meets_ideal_of_cofinals (default _) (to_cofinal α β) (sum.inl a)
+    with ⟨f, ⟨b, hb⟩, hf⟩,
   exact ⟨b, f, hf, hb⟩,
 end
 
 variables (α) {β}
 
-lemma exists_left (b : β) : ∃ (a : α) (f ∈ our_cofilter α β), (a, b) ∈ subtype.val f :=
+lemma exists_left (b : β) : ∃ (a : α) (f ∈ our_ideal α β), (a, b) ∈ subtype.val f :=
 begin
-  rcases generic.meets (default _) (to_cofinal α β) (sum.inr b) with ⟨f, hf, a, ha⟩,
+  rcases cofinal_meets_ideal_of_cofinals (default _) (to_cofinal α β) (sum.inr b)
+    with ⟨f, ⟨a, ha⟩, hf⟩,
   exact ⟨a, f, hf, ha⟩,
 end
 
 variables {α}
 
-/-- The limit of our cofilter, as map `α → β`. -/
+/-- The limit of our ideal, as map `α → β`. -/
 def left_to_right : α → β := λ a, classical.some (exists_right β a)
-/-- The limit of our cofilter, as map `β → α`. -/
+/-- The limit of our ideal, as map `β → α`. -/
 def right_to_left : β → α := λ b, classical.some (exists_left α b)
 
 lemma adj (a : α) (b : β) : cmp a (right_to_left b) = cmp (left_to_right a) b :=
 begin
   rcases classical.some_spec (exists_right β a) with ⟨f, hf, ha⟩,
   rcases classical.some_spec (exists_left α b) with ⟨g, hg, hb⟩,
-  rcases generic.directed_on (default _) (to_cofinal α β) _ hf _ hg
+  rcases (our_ideal α β).directed _ hf _ hg
     with ⟨m, hm, fm, gm⟩,
   exact m.property (a, left_to_right a) (right_to_left b, b) (fm ha) (gm hb),
 end
+
+def iso_of_countable_dlo : α ≃o β :=
+order_iso_of_cmp_eq_cmp _ _ adj
+
+end assume_α_also_dense
+
+variable [encodable α]
+
+variables (α β)
+def our_ideal' : ideal (partial_iso α β) := ideal_of_cofinals (default _) cofinal_left_ins
+variables {α β}
+
+lemma exists_left' (a : α) : ∃ (b : β) (f ∈ our_ideal' α β), (a, b) ∈ subtype.val f :=
+begin
+  rcases cofinal_meets_ideal_of_cofinals (default _ : partial_iso α β) cofinal_left_ins a with
+    ⟨f, ⟨b, hb⟩, hf⟩,
+  exact ⟨b, f, hf, hb⟩,
+end
+
+def order_embedding_of_codomain_dlo_of_countable_domain : α ↪o β :=
+{ to_fun := λ a, classical.some (exists_left' a),
+  inj' := sorry,
+  map_rel_iff' := sorry }

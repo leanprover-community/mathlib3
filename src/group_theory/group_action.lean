@@ -318,7 +318,7 @@ quotient.lift_on' y (λ y, quotient_group.mk ((x : α) * y))
   (λ a b (hab : _ ∈ H), quotient_group.eq.2
     (by rwa [mul_inv_rev, ← mul_assoc, mul_assoc (a⁻¹), inv_mul_self, mul_one]))
 
-instance (H : subgroup α) : mul_action α (quotient H) :=
+instance quotient (H : subgroup α) : mul_action α (quotient H) :=
 { smul := mul_left_cosets H,
   one_smul := λ a, quotient.induction_on' a (λ a, quotient_group.eq.2
     (by simp [subgroup.one_mem])),

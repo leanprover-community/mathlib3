@@ -38,6 +38,9 @@ variables {R ι M}
 
 instance : semimodule R (⨁ i, M i) := dfinsupp.to_semimodule
 
+lemma smul_apply (b : R) (v : ⨁ i, M i) (i : ι) :
+  (b • v) i = b • (v i) := dfinsupp.smul_apply _ _ _
+
 include dec_ι
 
 variables R ι M
@@ -61,10 +64,14 @@ theorem mk_smul (s : finset ι) (c : R) (x) : mk M s (c • x) = c • mk M s x 
 theorem of_smul (i : ι) (c : R) (x) : of M i (c • x) = c • of M i x :=
 (lof R ι M i).map_smul c x
 
+variables {R}
+lemma support_smul [Π (i : ι) (x : M i), decidable (x ≠ 0)]
+  (c : R) (v : ⨁ i, M i) : (c • v).support ⊆ v.support := dfinsupp.support_smul _ _
+
 variables {N : Type u₁} [add_comm_monoid N] [semimodule R N]
 variables (φ : Π i, M i →ₗ[R] N)
 
-variables (ι N φ)
+variables (R ι N φ)
 /-- The linear map constructed using the universal property of the coproduct. -/
 def to_module : (⨁ i, M i) →ₗ[R] N :=
 { to_fun := to_add_monoid (λ i, (φ i).to_add_monoid_hom),
@@ -110,7 +117,8 @@ omit dec_ι
 
 /-- The natural linear equivalence between `⨁ _ : ι, M` and `M` when `unique ι`. -/
 -- TODO: generalize this to arbitrary index type `ι` with `unique ι`
-protected def lid (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [semimodule R M] [unique ι] :
+protected def lid (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [semimodule R M]
+  [unique ι] :
   (⨁ (_ : ι), M) ≃ₗ M :=
 { .. direct_sum.id M ι,
   .. to_module R ι M (λ i, linear_map.id) }
@@ -119,8 +127,8 @@ variables (ι M)
 /-- The projection map onto one component, as a linear map. -/
 def component (i : ι) : (⨁ i, M i) →ₗ[R] M i :=
 { to_fun := λ f, f i,
-  map_add' := λ _ _, dfinsupp.add_apply,
-  map_smul' := λ _ _, dfinsupp.smul_apply }
+  map_add' := λ f g, dfinsupp.add_apply f g i,
+  map_smul' := λ c f, dfinsupp.smul_apply c f i}
 
 variables {ι M}
 

@@ -26,7 +26,7 @@ variable {n : ℕ}
   neither endpoint of `J` coincides with an endpoint of `I`, `¬ (K ⊆ J)` and
   `K` does not lie completely to the left nor completely to the right of `J`.
   Then `I ∩ K \ J` is nonempty. -/
-lemma Ico_lemma {α} [decidable_linear_order α] {x₁ x₂ y₁ y₂ z₁ z₂ w : α}
+lemma Ico_lemma {α} [linear_order α] {x₁ x₂ y₁ y₂ z₁ z₂ w : α}
   (h₁ : x₁ < y₁) (hy : y₁ < y₂) (h₂ : y₂ < x₂)
   (hz₁ : z₁ ≤ y₂) (hz₂ : y₁ ≤ z₂) (hw : w ∉ Ico y₁ y₂ ∧ w ∈ Ico z₁ z₂) :
   ∃w, w ∈ Ico x₁ x₂ ∧ w ∉ Ico y₁ y₂ ∧ w ∈ Ico z₁ z₂ :=

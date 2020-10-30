@@ -274,7 +274,6 @@ then after any point, it reaches a value strictly greater than all previous valu
 lemma high_scores [linear_order β] [no_top_order β] {u : ℕ → β}
   (hu : tendsto u at_top at_top) : ∀ N, ∃ n ≥ N, ∀ k < n, u k < u n :=
 begin
-  letI := classical.DLO β,
   intros N,
   let A := finset.image u (finset.range $ N+1), -- A = {u 0, ..., u N}
   have Ane : A.nonempty,

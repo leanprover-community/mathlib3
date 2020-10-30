@@ -79,13 +79,12 @@ eval₂_algebra_map_X p { commutes' := λ n, by simp, .. f }
 section comp
 
 lemma eval₂_comp [comm_semiring S] (f : R →+* S) {x : S} :
-  (p.comp q).eval₂ f x = p.eval₂ f (q.eval₂ f x) :=
-by rw [comp, p.as_sum_range]; simp only [eval₂_mul, eval₂_C, eval₂_pow, eval₂_finset_sum, eval₂_X]
-
+  eval₂ f x (p.comp q) = eval₂ f (eval₂ f x q) p :=
+by rw [comp, p.as_sum_range]; simp [eval₂_finset_sum, eval₂_pow]
 
 lemma eval_comp : (p.comp q).eval a = p.eval (q.eval a) := eval₂_comp _
 
-instance : is_semiring_hom (λ q : polynomial R, q.comp p) :=
+instance comp.is_semiring_hom : is_semiring_hom (λ q : polynomial R, q.comp p) :=
 by unfold comp; apply_instance
 
 end comp

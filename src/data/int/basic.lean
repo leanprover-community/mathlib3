@@ -50,13 +50,13 @@ instance : semiring int           := by apply_instance
 instance : ring int               := by apply_instance
 instance : distrib int            := by apply_instance
 
-instance : decidable_linear_ordered_comm_ring int :=
+instance : linear_ordered_comm_ring int :=
 { add_le_add_left := @int.add_le_add_left,
   mul_pos         := @int.mul_pos,
   zero_le_one     := le_of_lt int.zero_lt_one,
-  .. int.comm_ring, .. int.decidable_linear_order, .. int.nontrivial }
+  .. int.comm_ring, .. int.linear_order, .. int.nontrivial }
 
-instance : decidable_linear_ordered_add_comm_group int :=
+instance : linear_ordered_add_comm_group int :=
 by apply_instance
 
 theorem abs_eq_nat_abs : ∀ a : ℤ, abs a = nat_abs a
@@ -183,11 +183,11 @@ protected def induction_on' {C : ℤ → Sort*} (z : ℤ) (b : ℤ) :
 λ H0 Hs Hp,
 begin
   rw ←sub_add_cancel z b,
-  induction (z - b),
-  { induction a with n ih, { rwa [of_nat_zero, zero_add] },
+  induction (z - b) with n n,
+  { induction n with n ih, { rwa [of_nat_zero, zero_add] },
     rw [of_nat_succ, add_assoc, add_comm 1 b, ←add_assoc],
     exact Hs _ (le_add_of_nonneg_left (of_nat_nonneg _)) ih },
-  { induction a with n ih,
+  { induction n with n ih,
     { rw [neg_succ_of_nat_eq, ←of_nat_eq_coe, of_nat_zero, zero_add, neg_add_eq_sub],
       exact Hp _ (le_refl _) H0 },
     { rw [neg_succ_of_nat_coe', nat.succ_eq_add_one, ←neg_succ_of_nat_coe, sub_add_eq_add_sub],
@@ -239,6 +239,33 @@ begin
   lift a to ℕ using w₁,
   simpa using w₂,
 end
+
+lemma nat_abs_eq_iff_mul_self_eq {a b : ℤ} : a.nat_abs = b.nat_abs ↔ a * a = b * b :=
+begin
+  rw [← abs_eq_iff_mul_self_eq, abs_eq_nat_abs, abs_eq_nat_abs],
+  exact int.coe_nat_inj'.symm
+end
+
+lemma nat_abs_lt_iff_mul_self_lt {a b : ℤ} : a.nat_abs < b.nat_abs ↔ a * a < b * b :=
+begin
+  rw [← abs_lt_iff_mul_self_lt, abs_eq_nat_abs, abs_eq_nat_abs],
+  exact int.coe_nat_lt.symm
+end
+
+lemma nat_abs_le_iff_mul_self_le {a b : ℤ} : a.nat_abs ≤ b.nat_abs ↔ a * a ≤ b * b :=
+begin
+  rw [← abs_le_iff_mul_self_le, abs_eq_nat_abs, abs_eq_nat_abs],
+  exact int.coe_nat_le.symm
+end
+
+lemma nat_abs_eq_iff_sq_eq {a b : ℤ} : a.nat_abs = b.nat_abs ↔ a ^ 2 = b ^ 2 :=
+by { rw [pow_two, pow_two], exact nat_abs_eq_iff_mul_self_eq }
+
+lemma nat_abs_lt_iff_sq_lt {a b : ℤ} : a.nat_abs < b.nat_abs ↔ a ^ 2 < b ^ 2 :=
+by { rw [pow_two, pow_two], exact nat_abs_lt_iff_mul_self_lt }
+
+lemma nat_abs_le_iff_sq_le {a b : ℤ} : a.nat_abs ≤ b.nat_abs ↔ a ^ 2 ≤ b ^ 2 :=
+by { rw [pow_two, pow_two], exact nat_abs_le_iff_mul_self_le }
 
 /-! ### `/`  -/
 

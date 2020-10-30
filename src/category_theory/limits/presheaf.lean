@@ -6,6 +6,7 @@ Authors: Bhavik Mehta
 import category_theory.adjunction
 import category_theory.elements
 import category_theory.limits.functor_category
+import category_theory.limits.preserves.limits
 import category_theory.limits.shapes.terminal
 import category_theory.limits.types
 
@@ -22,11 +23,12 @@ Further, the left adjoint `colimit_adj.extend_along_yoneda : (Cᵒᵖ ⥤ Type u
 `yoneda ⋙ L ≅ A`, that is, an extension of `A : C ⥤ ℰ` to `(Cᵒᵖ ⥤ Type u) ⥤ ℰ` through
 `yoneda : C ⥤ Cᵒᵖ ⥤ Type u`. It is the left Kan extension of `A` along the yoneda embedding,
 sometimes known as the Yoneda extension.
-TODO: Show `colimit_adj.extend_along_yoneda` is unique amongst cocontinuous functors with this
-property.
+
+`unique_extension_along_yoneda` shows `extend_along_yoneda` is unique amongst cocontinuous functors
+with this property, establishing the presheaf category as the free cocompletion of a small category.
 
 ## Tags
-colimit, representable, presheaf
+colimit, representable, presheaf, free cocompletion
 
 ## References
 * [S. MacLane, I. Moerdijk, *Sheaves in Geometry and Logic*][MM92]
@@ -67,7 +69,7 @@ nat_iso.of_components
 (λ P, nat_iso.of_components (λ X, yoneda_sections_small X.unop _)
   (λ X Y f, funext $ λ x,
   begin
-    dsimp [ulift_trivial, yoneda_lemma],
+    dsimp,
     rw ← functor_to_types.naturality _ _ x f (𝟙 _),
     dsimp,
     simp,
@@ -166,8 +168,8 @@ def is_initial (A : C) : is_initial (elements.initial A) :=
 
 /--
 `extend_along_yoneda A` is an extension of `A` to the presheaf category along the yoneda embedding.
-TODO: Among functors preserving colimits, `extend_along_yoneda` is unique with this property (up to
-isomorphism).
+`unique_extension_along_yoneda` shows it is unique among functors preserving colimits with this
+property (up to isomorphism).
 
 The first part of [MM92], Chapter I, Section 5, Corollary 4.
 See Property 1 of https://ncatlab.org/nlab/show/Yoneda+extension#properties.
@@ -189,6 +191,7 @@ begin
   congr' 1,
 end
 
+/-- See Property 2 of https://ncatlab.org/nlab/show/Yoneda+extension#properties. -/
 instance : preserves_colimits (extend_along_yoneda A) :=
 (yoneda_adjunction A).left_adjoint_preserves_colimits
 
@@ -231,6 +234,22 @@ cocone.extend (colimit.cocone _) (extend_along_yoneda_yoneda.hom.app P)
   (cocone_of_representable P).X = P :=
 rfl
 
+/-- An explicit formula for the legs of the cocone `cocone_of_representable`. -/
+-- Marking this as a simp lemma seems to make things more awkward.
+lemma cocone_of_representable_ι_app (P : Cᵒᵖ ⥤ Type u₁) (j : (P.elements)ᵒᵖ):
+  (cocone_of_representable P).ι.app j = (yoneda_sections_small _ _).inv j.unop.2 :=
+colimit.ι_desc _ _
+
+/-- The legs of the cocone `cocone_of_representable` are natural in the choice of presheaf. -/
+lemma cocone_of_representable_naturality {P₁ P₂ : Cᵒᵖ ⥤ Type u₁} (α : P₁ ⟶ P₂)
+  (j : (P₁.elements)ᵒᵖ) :
+  (cocone_of_representable P₁).ι.app j ≫ α =
+    (cocone_of_representable P₂).ι.app ((category_of_elements.map α).op.obj j) :=
+begin
+  ext T f,
+  simpa [cocone_of_representable_ι_app] using functor_to_types.naturality _ _ α f.op _,
+end
+
 /--
 The cocone with point `P` given by `the_cocone` is a colimit: that is, we have exhibited an
 arbitrary presheaf `P` as a colimit of representables.
@@ -244,5 +263,49 @@ begin
   rw [colimit.desc_extend, colimit.desc_cocone],
   apply_instance,
 end
+
+/--
+Given two functors L₁ and L₂ which preserve colimits, if they agree when restricted to the
+representable presheaves then they agree everywhere.
+-/
+def nat_iso_of_nat_iso_on_representables (L₁ L₂ : (Cᵒᵖ ⥤ Type u₁) ⥤ ℰ)
+  [preserves_colimits L₁] [preserves_colimits L₂]
+  (h : yoneda ⋙ L₁ ≅ yoneda ⋙ L₂) : L₁ ≅ L₂ :=
+begin
+  apply nat_iso.of_components _ _,
+  { intro P,
+    refine (is_colimit_of_preserves L₁ (colimit_of_representable P)).cocone_points_iso_of_nat_iso
+           (is_colimit_of_preserves L₂ (colimit_of_representable P)) _,
+    apply functor.associator _ _ _ ≪≫ _,
+    exact iso_whisker_left (category_of_elements.π P).left_op h },
+  { intros P₁ P₂ f,
+    apply (is_colimit_of_preserves L₁ (colimit_of_representable P₁)).hom_ext,
+    intro j,
+    dsimp only [id.def, is_colimit.cocone_points_iso_of_nat_iso_hom, iso_whisker_left_hom],
+    have :
+      (L₁.map_cocone (cocone_of_representable P₁)).ι.app j ≫ L₁.map f =
+      (L₁.map_cocone (cocone_of_representable P₂)).ι.app ((category_of_elements.map f).op.obj j),
+    { dsimp,
+      rw [← L₁.map_comp, cocone_of_representable_naturality],
+      refl },
+    rw [reassoc_of this, is_colimit.ι_map_assoc, is_colimit.ι_map],
+    dsimp,
+    rw [← L₂.map_comp, cocone_of_representable_naturality],
+    refl }
+end
+
+variable [has_colimits ℰ]
+
+/--
+Show that `extend_along_yoneda` is the unique colimit-preserving functor which extends `A` to
+the presheaf category.
+
+The second part of [MM92], Chapter I, Section 5, Corollary 4.
+See Property 3 of https://ncatlab.org/nlab/show/Yoneda+extension#properties.
+-/
+def unique_extension_along_yoneda (L : (Cᵒᵖ ⥤ Type u₁) ⥤ ℰ) (hL : yoneda ⋙ L ≅ A)
+  [preserves_colimits L] :
+  L ≅ extend_along_yoneda A :=
+nat_iso_of_nat_iso_on_representables _ _ (hL ≪≫ (is_extension_along_yoneda _).symm)
 
 end category_theory

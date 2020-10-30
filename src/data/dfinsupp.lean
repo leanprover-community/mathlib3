@@ -931,19 +931,19 @@ begin
 end
 
 /-- The `dfinsupp` version of `finsupp.lsum`,-/
-@[simps apply symm_apply symm_apply_apply {rhs_md := semireducible, simp_rhs := tt}]
+@[simps apply symm_apply]
 def lsum {R : Type*} [semiring R] [Π i, add_comm_monoid (β i)] [Π i, semimodule R (β i)]
   [add_comm_monoid γ] [semimodule R γ] :
     (Π i, β i →ₗ[R] γ) ≃+ ((Π₀ i, β i) →ₗ[R] γ) :=
 { to_fun := λ F, {
-    to_fun := sum_add_hom (λ i, (F i).to_add_monoid_hom),
+    to_fun := lift_add_hom (λ i, (F i).to_add_monoid_hom),
     map_add' := (lift_add_hom (λ i, (F i).to_add_monoid_hom)).map_add,
     map_smul' := λ c f, by {
       apply dfinsupp.induction f,
       { rw [smul_zero, add_monoid_hom.map_zero, smul_zero] },
       { intros a b f ha hb hf,
         rw [smul_add, add_monoid_hom.map_add, add_monoid_hom.map_add, smul_add, hf, ←single_smul,
-          sum_add_hom_single, sum_add_hom_single, linear_map.to_add_monoid_hom_coe,
+          lift_add_hom_apply_single, lift_add_hom_apply_single, linear_map.to_add_monoid_hom_coe,
           linear_map.map_smul], } } },
   inv_fun := λ F i, F.comp (lsingle β R i),
   left_inv := λ F, by { ext x y, simp },

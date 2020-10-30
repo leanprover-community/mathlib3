@@ -14,13 +14,6 @@ namespace tactic.rewrite_search
 
 open tactic tactic.interactive tactic.rewrite_search
 
-private meta def assert_acceptable_lemma (r : expr) : tactic unit := do
-  ret ← pure tt,
-  if ret then return ()
-  else do
-    pp ← pp r,
-    fail format!"\"{pp}\" is not a valid rewrite lemma."
-
 meta def load_attr_list : list name → tactic (list name)
 | [] := return []
 | (a :: rest) := do
@@ -80,7 +73,6 @@ meta def rewrite_search_attr : user_attribute := {
 private meta def collect (extra_names : list name) : tactic (list (expr × bool)) :=
 do names ← attribute.get_instances `rewrite,
    exprs ← load_names $ names ++ extra_names,
-   exprs.mmap assert_acceptable_lemma,
    return $ rewrite_list_from_lemmas exprs
 
 meta def collect_rw_lemmas (cfg : config) (extra_names : list name)
@@ -105,15 +97,21 @@ do let (rw_index, rw) := tracked,
 let h : how := ⟨rule_index, rw_index, rw.addr⟩,
 ⟨rw.exp, rw.proof, h⟩
 
+/-
+Get all rewrites that start at the given expression and use the given rewrite rule.
+-/
 private meta def rewrites_for_rule (exp : expr) (cfg : config) (numbered_rule: ℕ × expr × bool) :
 tactic (list rewrite) :=
 do let (rule_index, rule) := numbered_rule,
 tracked ← all_rewrites exp rule cfg.to_cfg,
 return (list.map (from_tracked rule_index) tracked.enum)
 
-meta def get_rewrites (rs : list (expr × bool)) (exp : expr) (cfg : config) :
+/-
+Get all rewrites that start at the given expression and use one of the given rewrite rules.
+-/
+meta def get_rewrites (rules : list (expr × bool)) (exp : expr) (cfg : config) :
 tactic (buffer rewrite) :=
-do lists ← list.mmap (rewrites_for_rule exp cfg) rs.enum,
+do lists ← list.mmap (rewrites_for_rule exp cfg) rules.enum,
 return (list.foldl buffer.append_list buffer.nil lists)
 
 end tactic.rewrite_search

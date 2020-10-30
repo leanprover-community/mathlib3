@@ -58,6 +58,8 @@ meta structure vertex :=
 The graph represents two trees, one descending from each of the left and right sides
 of our initial equation.
 `conf` and `rules` determine what rewrites are used to generate new graph vertices.
+Here, the format of a rewrite rule is an expression for rewriting, plus a flag for the
+direction to apply it in.
 `vertices` maps vertex.id to vertex.
 `vmap` maps vertex.pp to vertex.id, so we can quickly find collisions.
 `solving_edge` represents a solution that will prove our target equation.

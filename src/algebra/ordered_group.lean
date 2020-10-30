@@ -202,6 +202,38 @@ end ordered_comm_monoid
 lemma bit0_pos [ordered_add_comm_monoid α] {a : α} (h : 0 < a) : 0 < bit0 a :=
 add_pos h h
 
+class linear_ordered_add_comm_monoid (α : Type*) extends linear_order α, ordered_add_comm_monoid α
+
+@[to_additive]
+class linear_ordered_comm_monoid (α : Type*) extends linear_order α, ordered_comm_monoid α
+
+section linear_ordered_add_comm_monoid
+
+variables [linear_ordered_add_comm_monoid α]
+
+lemma min_add_add_left (a b c : α) : min (a + b) (a + c) = a + min b c :=
+(monotone_id.const_add a).map_min.symm
+
+lemma min_add_add_right (a b c : α) : min (a + c) (b + c) = min a b + c :=
+(monotone_id.add_const c).map_min.symm
+
+lemma max_add_add_left (a b c : α) : max (a + b) (a + c) = a + max b c :=
+(monotone_id.const_add a).map_max.symm
+
+lemma max_add_add_right (a b c : α) : max (a + c) (b + c) = max a b + c :=
+(monotone_id.add_const c).map_max.symm
+
+lemma min_le_add_of_nonneg_right {a b : α} (hb : 0 ≤ b) : min a b ≤ a + b :=
+min_le_iff.2 $ or.inl $ le_add_of_nonneg_right hb
+
+lemma min_le_add_of_nonneg_left {a b : α} (ha : 0 ≤ a) : min a b ≤ a + b :=
+min_le_iff.2 $ or.inr $ le_add_of_nonneg_left ha
+
+lemma max_le_add_of_nonneg {a b : α} (ha : 0 ≤ a) (hb : 0 ≤ b) : max a b ≤ a + b :=
+max_le_iff.2 ⟨le_add_of_nonneg_right hb, le_add_of_nonneg_left ha⟩
+
+end linear_ordered_add_comm_monoid
+
 namespace units
 
 @[to_additive]
@@ -606,6 +638,10 @@ variables [canonically_linear_ordered_add_monoid α]
 @[priority 100]  -- see Note [lower instance priority]
 instance canonically_linear_ordered_add_monoid.semilattice_sup_bot : semilattice_sup_bot α :=
 { ..lattice_of_linear_order, ..canonically_ordered_add_monoid.to_order_bot α }
+
+instance canonically_linear_ordered_add_monoid.linear_ordered_add_comm_monoid :
+  linear_ordered_add_comm_monoid α :=
+{ .. ‹canonically_linear_ordered_add_monoid α› }
 
 end canonically_linear_ordered_add_monoid
 
@@ -1579,26 +1615,11 @@ fn_min_mul_fn_max id n m
 section linear_ordered_cancel_add_comm_monoid
 variables [linear_ordered_cancel_add_comm_monoid α]
 
-lemma min_add_add_left (a b c : α) : min (a + b) (a + c) = a + min b c :=
-(monotone_id.const_add a).map_min.symm
-
-lemma min_add_add_right (a b c : α) : min (a + c) (b + c) = min a b + c :=
-(monotone_id.add_const c).map_min.symm
-
-lemma max_add_add_left (a b c : α) : max (a + b) (a + c) = a + max b c :=
-(monotone_id.const_add a).map_max.symm
-
-lemma max_add_add_right (a b c : α) : max (a + c) (b + c) = max a b + c :=
-(monotone_id.add_const c).map_max.symm
-
-lemma min_le_add_of_nonneg_right {a b : α} (hb : 0 ≤ b) : min a b ≤ a + b :=
-min_le_iff.2 $ or.inl $ le_add_of_nonneg_right hb
-
-lemma min_le_add_of_nonneg_left {a b : α} (ha : 0 ≤ a) : min a b ≤ a + b :=
-min_le_iff.2 $ or.inr $ le_add_of_nonneg_left ha
-
-lemma max_le_add_of_nonneg {a b : α} (ha : 0 ≤ a) (hb : 0 ≤ b) : max a b ≤ a + b :=
-max_le_iff.2 ⟨le_add_of_nonneg_right hb, le_add_of_nonneg_left ha⟩
+@[priority 100]
+instance linear_ordered_cancel_add_comm_monoid.to_linear_ordered_add_comm_monoid :
+  linear_ordered_add_comm_monoid α :=
+{ .. ‹linear_ordered_cancel_add_comm_monoid α›,
+ .. ordered_cancel_add_comm_monoid.to_ordered_add_comm_monoid }
 
 end linear_ordered_cancel_add_comm_monoid
 

@@ -21,7 +21,7 @@ namespace sheaf
 namespace grothendieck_topology
 
 variables {P : Cᵒᵖ ⥤ Type v}
-variables {X Y : C} {S : sieve X} {R : arrows_with_codomain X}
+variables {X Y : C} {S : sieve X} {R : presieve X}
 variables (J J₂ : grothendieck_topology C)
 
 /--
@@ -30,14 +30,14 @@ consists of an element of `P Y` for every `f : Y ⟶ X` in `R`.
 A presheaf is a sheaf (resp, separated) if every *consistent* family of elements has exactly one
 (resp, at most one) amalgamation.
 -/
-def family_of_elements (P : Cᵒᵖ ⥤ Type v) (R : arrows_with_codomain X) :=
+def family_of_elements (P : Cᵒᵖ ⥤ Type v) (R : presieve X) :=
 Π ⦃Y : C⦄ (f : Y ⟶ X), R f → P.obj (opposite.op Y)
 
 /--
 A family of elements for a presheaf on the arrow set `R₂` can be restricted to a smaller collection
 of arrows `R₁`.
 -/
-def family_of_elements.restrict {R₁ R₂ : arrows_with_codomain X} (h : R₁ ≤ R₂) :
+def family_of_elements.restrict {R₁ R₂ : presieve X} (h : R₁ ≤ R₂) :
   family_of_elements P R₂ → family_of_elements P R₁ :=
 λ x Y f hf, x f (h _ hf)
 
@@ -55,7 +55,7 @@ def family_of_elements.pullback_consistent (x : family_of_elements P R) [has_pul
 ∀ ⦃Y₁ Y₂⦄ ⦃f₁ : Y₁ ⟶ X⦄ ⦃f₂ : Y₂ ⟶ X⦄ (h₁ : R f₁) (h₂ : R f₂),
   P.map (pullback.fst : pullback f₁ f₂ ⟶ _).op (x f₁ h₁) = P.map pullback.snd.op (x f₂ h₂)
 
-lemma is_sieve_consistent_iff (x : family_of_elements P S) [has_pullbacks C] :
+lemma is_pullback_consistent_iff (x : family_of_elements P S) [has_pullbacks C] :
   x.consistent ↔ x.pullback_consistent :=
 begin
   split,
@@ -67,10 +67,8 @@ begin
         ←functor_to_types.map_comp_apply, ←op_comp, pullback.lift_snd] }
 end
 
-#exit
-
 /-- The restriction of a consistent family is consistent. -/
-lemma family_of_elements.consistent.restrict {R₁ R₂ : arrows_with_codomain X} (h : R₁ ≤ R₂)
+lemma family_of_elements.consistent.restrict {R₁ R₂ : presieve X} (h : R₁ ≤ R₂)
   {x : family_of_elements P R₂} : x.consistent → (x.restrict h).consistent :=
 λ q Y₁ Y₂ Z g₁ g₂ f₁ f₂ h₁ h₂ comm, q g₁ g₂ (h _ h₁) (h _ h₂) comm
 
@@ -170,12 +168,12 @@ begin
   simp,
 end
 
-lemma is_amalgamation_for_restrict {R₁ R₂ : arrows_with_codomain X} (h : R₁ ≤ R₂)
+lemma is_amalgamation_for_restrict {R₁ R₂ : presieve X} (h : R₁ ≤ R₂)
   (x : family_of_elements P R₂) (t : P.obj (opposite.op X)) (ht : is_amalgamation_for x t) :
   is_amalgamation_for (x.restrict h) t :=
 λ Y f hf, ht f (h Y hf)
 
-lemma is_amalgamation_for_extend {R : arrows_with_codomain X}
+lemma is_amalgamation_for_extend {R : presieve X}
   (x : family_of_elements P R) (t : P.obj (opposite.op X)) (ht : is_amalgamation_for x t) :
   is_amalgamation_for x.sieve_extend t :=
 begin
@@ -184,11 +182,11 @@ begin
   rw [←ht _, ←functor_to_types.map_comp_apply, ←op_comp, (some_spec (some_spec (some_spec hf))).2],
 end
 
-def is_separated_for (P : Cᵒᵖ ⥤ Type v) (R : arrows_with_codomain X) : Prop :=
+def is_separated_for (P : Cᵒᵖ ⥤ Type v) (R : presieve X) : Prop :=
 ∀ (x : family_of_elements P R) (t₁ t₂),
   is_amalgamation_for x t₁ → is_amalgamation_for x t₂ → t₁ = t₂
 
-lemma is_separated_for.ext {R : arrows_with_codomain X} (hR : is_separated_for P R)
+lemma is_separated_for.ext {R : presieve X} (hR : is_separated_for P R)
   {t₁ t₂ : P.obj (opposite.op X)} (h : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : R f), P.map f.op t₁ = P.map f.op t₂) :
 t₁ = t₂ :=
 hR (λ Y f hf, P.map f.op t₂) t₁ t₂ (λ Y f hf, h hf) (λ Y f hf, rfl)
@@ -207,7 +205,7 @@ begin
     { exact is_amalgamation_for_extend x t₂ ht₂ } }
 end
 
-lemma is_separated_for_top (P : Cᵒᵖ ⥤ Type v) : is_separated_for P (⊤ : arrows_with_codomain X) :=
+lemma is_separated_for_top (P : Cᵒᵖ ⥤ Type v) : is_separated_for P (⊤ : presieve X) :=
 λ x t₁ t₂ h₁ h₂,
 begin
   have q₁ := h₁ (𝟙 X) trivial,
@@ -216,7 +214,7 @@ begin
   rw [q₁, q₂],
 end
 
-def is_sheaf_for (P : Cᵒᵖ ⥤ Type v) (R : arrows_with_codomain X) : Prop :=
+def is_sheaf_for (P : Cᵒᵖ ⥤ Type v) (R : presieve X) : Prop :=
 ∀ (x : family_of_elements P R), x.consistent → ∃! t, is_amalgamation_for x t
 
 def is_yoneda_extension (f : S.functor ⟶ P) (g : yoneda.obj X ⟶ P) : Prop :=
@@ -374,14 +372,14 @@ Every presheaf is a sheaf for the family {𝟙 X}.
 Elephant: C2.1.5(i)
 -/
 lemma is_sheaf_for_singleton_iso (P : Cᵒᵖ ⥤ Type v) :
-  is_sheaf_for P (arrows_with_codomain.singleton_arrow (𝟙 X)) :=
+  is_sheaf_for P (presieve.singleton (𝟙 X)) :=
 begin
   intros x hx,
-  refine ⟨x _ (arrows_with_codomain.singleton_arrow_self _), _, _⟩,
+  refine ⟨x _ (presieve.singleton_self _), _, _⟩,
   { rintro _ _ ⟨rfl, rfl⟩,
     simp },
   { intros t ht,
-    simpa using ht _ (arrows_with_codomain.singleton_arrow_self _) }
+    simpa using ht _ (presieve.singleton_self _) }
 end
 
 /--
@@ -390,7 +388,7 @@ Every presheaf is a sheaf for the maximal sieve.
 Elephant: C2.1.5(ii)
 -/
 lemma is_sheaf_for_top_sieve (P : Cᵒᵖ ⥤ Type v) :
-  is_sheaf_for P ((⊤ : sieve X) : arrows_with_codomain X) :=
+  is_sheaf_for P ((⊤ : sieve X) : presieve X) :=
 begin
   rw ← generate_of_singleton_split_epi (𝟙 X),
   rw ← is_sheaf_for_iff_generate,
@@ -403,8 +401,8 @@ If a family of arrows `R` on `X` has a subsieve `S` such that:
 * For every `f` in `R`, `P` is separated for the pullback of `S` along `f`
 then `P` is a sheaf for `R`.
 -/
-lemma is_sheaf_for_subsieve_aux (P : Cᵒᵖ ⥤ Type v) {S : sieve X} {R : arrows_with_codomain X}
-  (h : (S : arrows_with_codomain X) ≤ R)
+lemma is_sheaf_for_subsieve_aux (P : Cᵒᵖ ⥤ Type v) {S : sieve X} {R : presieve X}
+  (h : (S : presieve X) ≤ R)
   (hS : is_sheaf_for P S)
   (trans : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄, R f → is_separated_for P (S.pullback f)) :
   is_sheaf_for P R :=
@@ -425,8 +423,8 @@ begin
     simp },
 end
 
-lemma is_sheaf_for_subsieve (P : Cᵒᵖ ⥤ Type v) {S : sieve X} {R : arrows_with_codomain X}
-  (h : (S : arrows_with_codomain X) ≤ R)
+lemma is_sheaf_for_subsieve (P : Cᵒᵖ ⥤ Type v) {S : sieve X} {R : presieve X}
+  (h : (S : presieve X) ≤ R)
   (trans : Π ⦃Y⦄ (f : Y ⟶ X), is_sheaf_for P (S.pullback f)) :
   is_sheaf_for P R :=
 is_sheaf_for_subsieve_aux P h (by simpa using trans (𝟙 _)) (λ Y f hf, (trans f).is_separated_for)
@@ -440,7 +438,7 @@ lemma is_sheaf_for_bind (P : Cᵒᵖ ⥤ Type v) (U : sieve X)
 begin
   intros s hs,
   let y : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : U f), family_of_elements P (B hf) :=
-    λ Y f hf Z g hg, s _ (arrows_with_codomain.bind_comp _ _ hg),
+    λ Y f hf Z g hg, s _ (presieve.bind_comp _ _ hg),
   have hy : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : U f), (y hf).consistent,
   { intros Y f H Y₁ Y₂ Z g₁ g₂ f₁ f₂ hf₁ hf₂ comm,
     apply hs,
@@ -459,7 +457,7 @@ begin
     apply (hB' hf (l ≫ h)).ext,
     intros M m hm,
     have : (bind ⇑U B) (m ≫ l ≫ h ≫ f),
-    { have : bind U B _ := arrows_with_codomain.bind_comp f hf hm,
+    { have : bind U B _ := presieve.bind_comp f hf hm,
       simpa using this },
     transitivity s (m ≫ l ≫ h ≫ f) this,
     { have := ht (U.downward_closed hf h) _ ((B _).downward_closed hl m),
@@ -480,7 +478,7 @@ begin
     intros Y f hf,
     apply (hB hf).is_separated_for.ext,
     intros Z g hg,
-    rw [←functor_to_types.map_comp_apply, ←op_comp, hy _ (arrows_with_codomain.bind_comp _ _ hg),
+    rw [←functor_to_types.map_comp_apply, ←op_comp, hy _ (presieve.bind_comp _ _ hg),
         hU.valid_glue _ _ hf, ht hf _ hg] }
 end
 
@@ -490,7 +488,7 @@ lemma is_sheaf_for_trans (P : Cᵒᵖ ⥤ Type v) (R S : sieve X)
   (hS : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : R f), is_sheaf_for P (S.pullback f)) :
   is_sheaf_for P S :=
 begin
-  have : (bind ⇑R (λ (Y : C) (f : Y ⟶ X) (hf : R f), pullback f S) : arrows_with_codomain X) ≤ S,
+  have : (bind ⇑R (λ (Y : C) (f : Y ⟶ X) (hf : R f), pullback f S) : presieve X) ≤ S,
   { rintros Z f ⟨W, f, g, hg, (hf : S _), rfl⟩,
     apply hf },
   apply is_sheaf_for_subsieve_aux P this,
@@ -506,7 +504,7 @@ begin
       { rintro ⟨W, k, l, hl, _, comm⟩,
         rw [mem_pullback, ← comm],
         simp [hl] },
-      { intro,
+      { intro a,
         refine ⟨Z, 𝟙 Z, _, a, _⟩,
         simp [hf] } },
     rw this,

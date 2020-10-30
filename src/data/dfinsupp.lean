@@ -831,7 +831,7 @@ begin
 end
 
 /-- The `dfinsupp` version of `finsupp.lift_add_hom`,-/
-@[simps apply symm_apply]
+@[simps apply symm_apply symm_apply_apply {rhs_md := semireducible, simp_rhs := tt}]
 def lift_add_hom [Π i, add_monoid (β i)] [add_comm_monoid γ] :
   (Π i, β i →+ γ) ≃+ ((Π₀ i, β i) →+ γ) :=
 { to_fun := sum_add_hom,
@@ -839,6 +839,31 @@ def lift_add_hom [Π i, add_monoid (β i)] [add_comm_monoid γ] :
   left_inv := λ x, by { ext, simp },
   right_inv := λ ψ, by { ext, simp },
   map_add' := λ F G, by { ext, simp } }
+
+/-- The `dfinsupp` version of `finsupp.lift_add_hom_single_add_hom`,-/
+@[simp] lemma lift_add_hom_single_add_hom [Π i, add_comm_monoid (β i)] :
+  lift_add_hom (single_add_hom β) = add_monoid_hom.id (Π₀ i, β i) :=
+lift_add_hom.to_equiv.apply_eq_iff_eq_symm_apply.2 rfl
+
+/-- The `dfinsupp` version of `finsupp.lift_add_hom_apply_single`,-/
+lemma lift_add_hom_apply_single [Π i, add_comm_monoid (β i)] [add_comm_monoid γ]
+  (f : Π i, β i →+ γ) (i : ι) (x : β i) :
+  lift_add_hom f (single i x) = f i x :=
+by simp
+
+/-- The `dfinsupp` version of `finsupp.lift_add_hom_comp_single`,-/
+@[simp] lemma lift_add_hom_comp_single [Π i, add_comm_monoid (β i)] [add_comm_monoid γ]
+  (f : Π i, β i →+ γ) (i : ι) :
+  (lift_add_hom f).comp (single_add_hom β i) = f i :=
+add_monoid_hom.ext $ λ x, lift_add_hom_apply_single f i x
+
+/-- The `dfinsupp` version of `finsupp.comp_lift_add_hom`,-/
+lemma comp_lift_add_hom {δ : Type*} [Π i, add_comm_monoid (β i)] [add_comm_monoid γ]
+  [add_comm_monoid δ]
+  (g : γ →+ δ) (f : Π i, β i →+ γ) :
+  g.comp (lift_add_hom f) = lift_add_hom (λ a, g.comp (f a)) :=
+lift_add_hom.symm_apply_eq.1 $ funext $ λ a,
+  by rw [lift_add_hom_symm_apply, add_monoid_hom.comp_assoc, lift_add_hom_comp_single]
 
 lemma sum_sub_index [Π i, add_comm_group (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [add_comm_group γ] {f g : Π₀ i, β i}

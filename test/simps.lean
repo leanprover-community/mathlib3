@@ -60,12 +60,14 @@ run_cmd do
     "Invalid `simps` attribute. Target is not a structure",
   success_if_fail_with_msg (simps_tac `foo.bar2)
     "Invalid `simps` attribute. The body is not a constructor application:
-prod.map (λ (x : ℕ), x + 2) (λ (y : ℤ), y - 3) (3, 4)
-Possible solution: add option {rhs_md := semireducible}.",
+  prod.map (λ (x : ℕ), x + 2) (λ (y : ℤ), y - 3) (3, 4)
+Possible solution: add option {rhs_md := semireducible}.
+The option {simp_rhs := tt} might also be useful to simplify the right-hand side.",
   success_if_fail_with_msg (simps_tac `foo.bar3)
     "Invalid `simps` attribute. The body is not a constructor application:
-classical.choice bar3._proof_1
-Possible solution: add option {rhs_md := semireducible}.",
+  classical.choice bar3._proof_1
+Possible solution: add option {rhs_md := semireducible}.
+The option {simp_rhs := tt} might also be useful to simplify the right-hand side.",
   e ← get_env,
   let nm := `foo.bar1,
   d ← e.get nm,
@@ -237,14 +239,25 @@ run_cmd do
     "Invalid simp-lemma specify.specify1_fst_fst.
 Projection fst doesn't exist, because target is not a structure.",
   success_if_fail_with_msg (simps_tac `specify.specify1 {} ["foo_fst"])
-    "Invalid simp-lemma specify.specify1_foo_fst. Projection foo doesn't exist.",
+    "Invalid simp-lemma specify.specify1_foo_fst. Structure prod does not have projection foo.
+The known projections are:
+  [fst, snd]
+You can also see this information by running
+  `initialize_simps_projections prod`.
+Note: the projection names used by @[simps] might not correspond to the projection names in the structure.",
   success_if_fail_with_msg (simps_tac `specify.specify1 {} ["snd_bar"])
-    "Invalid simp-lemma specify.specify1_snd_bar. Projection bar doesn't exist.",
+    "Invalid simp-lemma specify.specify1_snd_bar. Structure prod does not have projection bar.
+The known projections are:
+  [fst, snd]
+You can also see this information by running
+  `initialize_simps_projections prod`.
+Note: the projection names used by @[simps] might not correspond to the projection names in the structure.",
   success_if_fail_with_msg (simps_tac `specify.specify5 {} ["snd_snd"])
     "Invalid simp-lemma specify.specify5_snd_snd.
 The given definition is not a constructor application:
   prod.map (λ (x : ℕ), x) (λ (y : ℕ), y) (2, 3)
-Possible solution: add option {rhs_md := semireducible}."
+Possible solution: add option {rhs_md := semireducible}.
+The option {simp_rhs := tt} might also be useful to simplify the right-hand side."
 
 
 /- We also eta-reduce if we explicitly specify the projection. -/
@@ -585,6 +598,48 @@ def equiv.simps.inv_fun {α : Sort w} {β : Sort u} (e : α ≃ β) : β → α 
 initialize_simps_projections equiv
 
 end manual_universes
+
+namespace manual_projection_names
+
+structure equiv (α : Sort*) (β : Sort*) :=
+(to_fun    : α → β)
+(inv_fun   : β → α)
+
+local infix ` ≃ `:25 := manual_projection_names.equiv
+
+variables {α β γ : Sort*}
+
+instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
+
+def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
+
+/-- See Note [custom simps projection] -/
+def equiv.simps.inv_fun (e : α ≃ β) : β → α := e.symm
+
+initialize_simps_projections equiv (to_fun → apply, inv_fun → symm_apply)
+
+run_cmd do
+  e ← get_env,
+  data ← simps_get_raw_projections e `manual_projection_names.equiv,
+  guard $ data.2.map prod.fst = [`apply, `symm_apply]
+
+@[simps {simp_rhs := tt}] protected def equiv.trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
+⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
+
+example (e₁ : α ≃ β) (e₂ : β ≃ γ) (x : α) : (e₁.trans e₂) x = e₂ (e₁ x) :=
+by simp only [equiv.trans_apply]
+
+example (e₁ : α ≃ β) (e₂ : β ≃ γ) (x : γ) : (e₁.trans e₂).symm x = e₁.symm (e₂.symm x) :=
+by simp only [equiv.trans_symm_apply]
+
+-- the new projection names are parsed correctly (the old projection names won't work anymore)
+@[simps apply symm_apply] protected def equiv.trans2 (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
+⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
+
+-- initialize_simps_projections equiv
+
+end manual_projection_names
+
 
 -- test transparency setting
 structure set_plus (α : Type) :=

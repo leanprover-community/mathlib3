@@ -109,7 +109,7 @@ instance [densely_ordered α] {s : set α} [hs : ord_connected s] :
     exact (hs a₁.2 a₂.2) (Ioo_subset_Icc_self ⟨ha₁x, hxa₂⟩),
   end ⟩
 
-variables {β : Type*} [decidable_linear_order β]
+variables {β : Type*} [linear_order β]
 
 lemma ord_connected_interval {a b : β} : ord_connected (interval a b) :=
 ord_connected_Icc

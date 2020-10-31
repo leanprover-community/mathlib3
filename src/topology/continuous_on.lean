@@ -169,17 +169,20 @@ theorem nhds_within_inter' (a : α) (s t : set α) :
   𝓝[s ∩ t] a = (𝓝[s] a) ⊓ 𝓟 t :=
 by { delta nhds_within, rw [←inf_principal, inf_assoc] }
 
-lemma mem_nhds_within_insert {a : α} {s t : set α} (h : t ∈ 𝓝[s] a) :
+@[simp] theorem nhds_within_singleton (a : α) : 𝓝[{a}] a = pure a :=
+by rw [nhds_within, principal_singleton, inf_eq_right.2 (pure_le_nhds a)]
+
+@[simp] theorem nhds_within_insert (a : α) (s : set α) :
+  𝓝[insert a s] a = pure a ⊔ 𝓝[s] a :=
+by rw [← singleton_union, nhds_within_union, nhds_within_singleton]
+
+lemma mem_nhds_within_insert {a : α} {s t : set α} :
+  t ∈ 𝓝[insert a s] a ↔ a ∈ t ∧ t ∈ 𝓝[s] a :=
+by simp
+
+lemma insert_mem_nhds_within_insert {a : α} {s t : set α} (h : t ∈ 𝓝[s] a) :
   insert a t ∈ 𝓝[insert a s] a :=
-begin
-  rcases mem_nhds_within.1 h with ⟨o, o_open, ao, ho⟩,
-  apply mem_nhds_within.2 ⟨o, o_open, ao, _⟩,
-  assume y,
-  simp only [and_imp, mem_inter_eq, mem_insert_iff],
-  rintro yo (rfl | ys),
-  { simp },
-  { simp [ho ⟨yo, ys⟩] }
-end
+by simp [mem_sets_of_superset h]
 
 lemma nhds_within_prod_eq {α : Type*} [topological_space α] {β : Type*} [topological_space β]
   (a : α) (b : β) (s : set α) (t : set β) :
@@ -406,6 +409,10 @@ lemma continuous_within_at.mono {f : α → β} {s t : set α} {x : α} (h : con
   (hs : s ⊆ t) : continuous_within_at f s x :=
 h.mono_left (nhds_within_mono x hs)
 
+lemma continuous_within_at.mono_of_mem {f : α → β} {s t : set α} {x : α}
+  (h : continuous_within_at f t x) (hs : t ∈ 𝓝[s] x) : continuous_within_at f s x :=
+h.mono_left (nhds_within_le_of_mem hs)
+
 lemma continuous_within_at_inter' {f : α → β} {s t : set α} {x : α} (h : t ∈ 𝓝[s] x) :
   continuous_within_at f (s ∩ t) x ↔ continuous_within_at f s x :=
 by simp [continuous_within_at, nhds_within_restrict'' s h]
@@ -414,10 +421,14 @@ lemma continuous_within_at_inter {f : α → β} {s t : set α} {x : α} (h : t 
   continuous_within_at f (s ∩ t) x ↔ continuous_within_at f s x :=
 by simp [continuous_within_at, nhds_within_restrict' s h]
 
+lemma continuous_within_at_union {f : α → β} {s t : set α} {x : α} :
+  continuous_within_at f (s ∪ t) x ↔ continuous_within_at f s x ∧ continuous_within_at f t x :=
+by simp only [continuous_within_at, nhds_within_union, tendsto_sup]
+
 lemma continuous_within_at.union {f : α → β} {s t : set α} {x : α}
   (hs : continuous_within_at f s x) (ht : continuous_within_at f t x) :
   continuous_within_at f (s ∪ t) x :=
-by simp only [continuous_within_at, nhds_within_union, tendsto, map_sup, sup_le_iff.2 ⟨hs, ht⟩]
+continuous_within_at_union.2 ⟨hs, ht⟩
 
 lemma continuous_within_at.mem_closure_image  {f : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (hx : x ∈ closure s) : f x ∈ closure (f '' s) :=
@@ -437,8 +448,15 @@ begin
   exact (hf x hx).mem_closure_image hx
 end
 
-lemma continuous_within_at_singleton {f : α → β} {x : α} : continuous_within_at f {x} x :=
-by simp [continuous_within_at, nhds_within, inf_eq_right.2 (pure_le_nhds x), tendsto_pure_nhds]
+@[simp] lemma continuous_within_at_singleton {f : α → β} {x : α} : continuous_within_at f {x} x :=
+by simp only [continuous_within_at, nhds_within_singleton, tendsto_pure_nhds]
+
+@[simp] lemma continuous_within_at_insert_self {f : α → β} {x : α} {s : set α} :
+  continuous_within_at f (insert x s) x ↔ continuous_within_at f s x :=
+by simp only [← singleton_union, continuous_within_at_union, continuous_within_at_singleton,
+  true_and]
+
+alias continuous_within_at_insert_self ↔ _ continuous_within_at.insert_self
 
 lemma continuous_within_at.diff_iff {f : α → β} {s t : set α} {x : α}
   (ht : continuous_within_at f t x) :

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.algebra.basic
+import algebra.algebra.operations
 
 /-!
 # Subalgebras over Commutative Semiring
@@ -200,6 +201,31 @@ ext $ λ x, by rw [← mem_to_submodule, ← mem_to_submodule, h]
 
 theorem to_submodule_inj {S U : subalgebra R A} : (S : submodule R A) = U ↔ S = U :=
 ⟨to_submodule_injective, congr_arg _⟩
+
+/-- As submodules, subalgebras are idempotent. -/
+theorem mul_idem : (S : submodule R A) * (S : submodule R A) = (S : submodule R A) :=
+begin
+  ext, 
+  split,
+  {
+    rintros hx2,
+    have hle : (S : submodule R A) * (S : submodule R A) ≤ (S : submodule R A),
+    {
+      rw submodule.mul_le,
+      rintros y hy z hz,
+      rw mem_to_submodule at *,
+      exact (mul_mem S hy hz),
+    },
+    change (∀ x ∈ (S : submodule R A) * (S : submodule R A), x ∈ (S : submodule R A)) at hle,
+    exact hle x hx2,
+  },
+  rintros hx1,
+  have h1 := one_mem S,
+  rw <-mem_to_submodule at h1,
+  have hx2 := submodule.mul_mem_mul hx1 h1,
+  simp at hx2,
+  assumption,
+end
 
 /-- Linear equivalence between `S : submodule R A` and `S`. Though these types are equal,
 we define it as a `linear_equiv` to avoid type equalities. -/

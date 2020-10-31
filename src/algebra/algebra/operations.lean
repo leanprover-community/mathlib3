@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.algebra.basic
+import linear_algebra.finsupp
 
 /-!
 # Multiplication and division of submodules of an algebra.
@@ -286,6 +287,29 @@ lemma le_div_iff {I J K : submodule R A} : I ≤ J / K ↔ ∀ (x ∈ I) (z ∈ 
 
 lemma le_div_iff_mul_le {I J K : submodule R A} : I ≤ J / K ↔ I * K ≤ J :=
 by rw [le_div_iff, mul_le]
+
+lemma one_le_inv {I : submodule R A} (hI : I ≤ (1 : submodule R A)) :
+(1 : submodule R A) ≤ (1 : submodule R A) / I :=
+begin
+  rw [le_div_iff_mul_le, one_mul], assumption,
+end
+
+lemma self_le_self_inv {I : submodule R A} (hI : I ≤ (1 : submodule R A)) :
+  I ≤ I * (1 / I) :=
+begin
+  rw [← mul_one I] {occs := occurrences.pos [1]},
+  apply mul_le_mul_right (one_le_inv hI),
+end
+
+lemma self_inv_le_one {I : submodule R A} : I * (1 / I) ≤ 1 :=
+begin
+  rw submodule.mul_le,
+  intros m hm n hn,
+  rw [submodule.mem_div_iff_forall_mul_mem] at hn,
+  rw mul_comm,
+  exact hn m hm,
+end
+
 
 @[simp] lemma map_div {B : Type*} [comm_ring B] [algebra R B]
   (I J : submodule R A) (h : A ≃ₐ[R] B) :

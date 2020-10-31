@@ -344,8 +344,8 @@ meta def lookup_unary :
 meta def lookup_binary :
   native.rb_lmap (side × op × sign) (expr → expr → pexpr) := native.rb_lmap.of_list
 [
-  ((L, mul, none), λ c h, ```((_root_.mul_right_inj %%c).mp %%h)),
-  ((L, mul, none), λ c h, ```((@_root_.mul_right_inj' _ _ %%c _ _ _).mp %%h))
+  ((L, mul, none), λ c h, ```((mul_right_inj %%c).mp %%h)),
+  ((L, mul, none), λ c h, ```((@mul_right_inj' _ _ %%c _ _ _).mp %%h))
 ]
 
 -- /-- Lookup list for all the lemmas in the `calc_step` namespace. -/

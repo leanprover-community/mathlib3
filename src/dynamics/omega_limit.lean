@@ -115,7 +115,7 @@ localized "notation `ω` := omega_limit" in omega_limit
 localized "notation `ω⁺` := omega_limit at_top" in omega_limit
 localized "notation `ω⁺` := omega_limit at_bot" in omega_limit
 
-variables [topological_space τ] [topological_space β]
+variables [topological_space β]
 variables (f : filter τ) (ϕ : τ → α → β) (s s₁ s₂: set α)
 
 -- some elementary properties:
@@ -306,7 +306,7 @@ variables
 {α : Type*} [topological_space α]
 (f : filter τ) (ϕ : semiflow τ α) (s : set α)
 
-instance [inhabited α] : inhabited (semiflow τ α) :=
+instance : inhabited (semiflow τ α) :=
 ⟨{ to_fun    := λ _ x, x,
    cont'     := continuous_snd,
    map_add'  := λ _ _ _, rfl }⟩
@@ -381,7 +381,7 @@ variables
 [add_monoid τ] [has_continuous_add τ]
 (ϕ : flow τ α) (s : set α)
 
-instance [inhabited α] : inhabited (flow τ α) :=
+instance : inhabited (flow τ α) :=
 ⟨{ map_zero' := λ _, rfl,
   .. default (semiflow τ α) }⟩
 

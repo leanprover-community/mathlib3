@@ -8,7 +8,7 @@ import category_theory.discrete_category
 
 noncomputable theory
 
-universes v u u₂
+universes v u
 
 open category_theory
 

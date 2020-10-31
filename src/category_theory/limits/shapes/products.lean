@@ -87,9 +87,9 @@ colimit.desc _ (cofan.mk P p)
 Construct a morphism between categorical products (indexed by the same type)
 from a family of morphisms between the factors.
 -/
-abbreviation pi.map {f g : β → C} [has_products_of_shape β C]
+abbreviation pi.map {f g : β → C} [has_product f] [has_product g]
   (p : Π b, f b ⟶ g b) : ∏ f ⟶ ∏ g :=
-lim.map (discrete.nat_trans p)
+lim_map (discrete.nat_trans p)
 /--
 Construct an isomorphism between categorical products (indexed by the same type)
 from a family of isomorphisms between the factors.

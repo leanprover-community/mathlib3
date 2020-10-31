@@ -101,9 +101,9 @@ lim.map_iso (discrete.nat_iso p)
 Construct a morphism between categorical coproducts (indexed by the same type)
 from a family of morphisms between the factors.
 -/
-abbreviation sigma.map {f g : β → C} [has_coproducts_of_shape β C]
+abbreviation sigma.map {f g : β → C} [has_coproduct f] [has_coproduct g]
   (p : Π b, f b ⟶ g b) : ∐ f ⟶ ∐ g :=
-colim.map (discrete.nat_trans p)
+colim_map (discrete.nat_trans p)
 /--
 Construct an isomorphism between categorical coproducts (indexed by the same type)
 from a family of isomorphisms between the factors.

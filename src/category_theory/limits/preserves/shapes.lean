@@ -113,7 +113,8 @@ variables (f g)
 If `G` preserves equalizers and `C` has them, then the fork constructed of the mapped morphisms of
 a fork is a limit.
 -/
-def preserves_the_equalizer [has_equalizer f g] [preserves_limit (parallel_pair f g) G] :
+def is_limit_of_has_equalizer_of_preserves_limit
+  [has_equalizer f g] [preserves_limit (parallel_pair f g) G] :
   is_limit (fork.of_ι (G.map (equalizer.ι f g))
                       (by simp only [←G.map_comp, equalizer.condition])) :=
 map_is_limit_of_preserves_of_is_limit G _ (equalizer_is_equalizer f g)

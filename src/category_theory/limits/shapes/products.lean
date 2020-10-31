@@ -117,6 +117,8 @@ section comparison
 variables {D : Type u₂} [category.{v} D] (G : C ⥤ D)
 variables (f : β → C)
 
+-- TODO: show this is an iso iff G preserves the product of f.
+/-- The comparison morphism for the product of `f`. -/
 def pi_comparison [has_product f] [has_product (λ b, G.obj (f b))] :
   G.obj (∏ f) ⟶ ∏ (λ b, G.obj (f b)) :=
 pi.lift (λ b, G.map (pi.π f b))
@@ -132,6 +134,8 @@ lemma map_lift_pi_comparison [has_product f] [has_product (λ b, G.obj (f b))]
   G.map (pi.lift g) ≫ pi_comparison G f = pi.lift (λ j, G.map (g j)) :=
 by { ext, simp [← G.map_comp] }
 
+-- TODO: show this is an iso iff G preserves the coproduct of f.
+/-- The comparison morphism for the coproduct of `f`. -/
 def sigma_comparison [has_coproduct f] [has_coproduct (λ b, G.obj (f b))] :
   ∐ (λ b, G.obj (f b)) ⟶ G.obj (∐ f) :=
 sigma.desc (λ b, G.map (sigma.ι f b))

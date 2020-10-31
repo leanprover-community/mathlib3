@@ -52,7 +52,13 @@ rather than the natural subset ordering.
 -/
 def finset.colex (α) := finset α
 
+/--
+Coercion from subset ordering to colexicographic ordering in which
+the `<` symbol refers to `colex_lt`
+-/
 def finset.to_colex {α} (s : finset α) : finset.colex α := s
+
+instance : inhabited (finset.colex (α)) := { default := finset.empty }
 
 /--
 A <ᶜ B if the largest thing that's not in both sets is in B.

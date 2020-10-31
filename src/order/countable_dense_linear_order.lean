@@ -32,7 +32,8 @@ back and forth, dense, countable, order
 
 noncomputable theory
 open_locale classical
-open order
+
+namespace order
 
 /-- Suppose `α` is a nonempty dense linear order without endpoints, and
     suppose `lo`, `hi`, are finite subssets with all of `lo` strictly
@@ -61,8 +62,7 @@ else
     ⟨m, λ x hx, (nlo ⟨x, hx⟩).elim,
         λ y hy, (nhi ⟨y, hy⟩).elim⟩)
 
-variables (α : Type*) [linear_order α]
-  (β : Type*) [linear_order β]
+variables (α β : Type*) [linear_order α] [linear_order β]
 
 /-- The type of partial order isomorphisms between `α` and `β` defined on finite subsets.
     A partial order isomorphism is encoded as a finite subset of `α × β`, consisting
@@ -70,6 +70,8 @@ variables (α : Type*) [linear_order α]
 def partial_iso : Type* :=
 { f : finset (α × β) // ∀ (p q ∈ f),
   cmp (prod.fst p) (prod.fst q) = cmp (prod.snd p) (prod.snd q) }
+
+namespace partial_iso
 
 instance : inhabited (partial_iso α β) := ⟨⟨∅, λ p q h, h.elim⟩⟩
 instance : preorder (partial_iso α β) := subtype.preorder _
@@ -127,7 +129,7 @@ def defined_at_left [densely_ordered β] [no_bot_order β] [no_top_order β] [no
   end }
 
 /-- A partial isomorphism between `α` and `β` is also a partial isomorphism between `β` and `α`. -/
-def partial_iso.comm : partial_iso α β → partial_iso β α :=
+protected def comm : partial_iso α β → partial_iso β α :=
 subtype.map (finset.image (equiv.prod_comm _ _)) $ λ f hf p q hp hq,
   eq.symm $ hf ((equiv.prod_comm α β).symm p) ((equiv.prod_comm α β).symm q)
 (by { rw [←finset.mem_coe, finset.coe_image, equiv.image_eq_preimage] at hp,
@@ -156,10 +158,13 @@ def defined_at_right [densely_ordered α] [no_bot_order α] [no_top_order α] [n
       rwa [←finset.coe_subset, finset.coe_image] at hl }
   end }
 
+end partial_iso
+open partial_iso
+
 variables (α β)
 
 /-- Any countable linear order embeds in any nonempty dense linear order without endpoints. -/
-def order_embedding_from_countable_to_dense
+def embedding_from_countable_to_dense
 [encodable α] [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β] :
   α ↪o β :=
 let our_ideal : ideal (partial_iso α β) :=
@@ -215,3 +220,5 @@ begin
     with ⟨m, hm, fm, gm⟩,
   exact m.property (a, _) (_, b) (fm ha) (gm hb)
 end
+
+end order

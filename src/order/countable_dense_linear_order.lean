@@ -107,7 +107,7 @@ begin
     rw [←cmp_eq_gt_iff, ←cmp_eq_gt_iff] at this, cc, },
 end
 
-/-- The set of partial isomorphism defined at `a : α`, together with a proof that any
+/-- The set of partial isomorphisms defined at `a : α`, together with a proof that any
     partial isomorphism can be extended to one defined at `a`. -/
 def defined_at_left [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β]
   (a : α) : cofinal (partial_iso α β) :=
@@ -137,7 +137,7 @@ subtype.map (finset.image (equiv.prod_comm _ _)) $ λ f hf p q hp hq,
 (by { rw [←finset.mem_coe, finset.coe_image, equiv.image_eq_preimage] at hq,
   rwa ←finset.mem_coe })
 
-/-- The set of partial isomorphism defined on `b : β `, together with a proof that any
+/-- The set of partial isomorphisms defined on `b : β `, together with a proof that any
     partial isomorphism can be extended to include `b`. We prove this by symmetry. -/
 def defined_at_right [densely_ordered α] [no_bot_order α] [no_top_order α] [nonempty α]
 (b : β) : cofinal (partial_iso α β) :=

@@ -60,6 +60,12 @@ by rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, vadd_vsub_vadd_cancel_left]
   dist (v₁ +ᵥ x) (v₂ +ᵥ x) = dist v₁ v₂ :=
 by rw [dist_eq_norm_vsub V, dist_eq_norm, vadd_vsub_vadd_cancel_right]
 
+@[simp] lemma dist_vadd_left (v : V) (x : P) : dist (v +ᵥ x) x = ∥v∥ :=
+by simp [dist_eq_norm_vsub V _ x]
+
+@[simp] lemma dist_vadd_right (v : V) (x : P) : dist x (v +ᵥ x) = ∥v∥ :=
+by rw [dist_comm, dist_vadd_left]
+
 @[simp] lemma dist_vsub_cancel_left (x y z : P) : dist (x -ᵥ y) (x -ᵥ z) = dist y z :=
 by rw [dist_eq_norm, vsub_sub_vsub_cancel_left, dist_comm, dist_eq_norm_vsub V]
 
@@ -285,6 +291,50 @@ begin
     (hf.comp (isometric.vadd_const p).isometry),
   exact funext hg
 end
+
+section normed_space
+
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 V]
+
+open affine_map
+
+@[simp] lemma dist_center_homothety (p₁ p₂ : P) (c : 𝕜) :
+  dist p₁ (homothety p₁ c p₂) = ∥c∥ * dist p₁ p₂ :=
+by simp [homothety_def, norm_smul, ← dist_eq_norm_vsub, dist_comm]
+
+@[simp] lemma dist_homothety_center (p₁ p₂ : P) (c : 𝕜) :
+  dist (homothety p₁ c p₂) p₁ = ∥c∥ * dist p₁ p₂ :=
+by rw [dist_comm, dist_center_homothety]
+
+@[simp] lemma dist_homothety_self (p₁ p₂ : P) (c : 𝕜) :
+  dist (homothety p₁ c p₂) p₂ = ∥1 - c∥ * dist p₁ p₂ :=
+by rw [homothety_eq_line_map, ← line_map_apply_one_sub, ← homothety_eq_line_map,
+  dist_homothety_center, dist_comm]
+
+@[simp] lemma dist_self_homothety (p₁ p₂ : P) (c : 𝕜) :
+  dist p₂ (homothety p₁ c p₂) = ∥1 - c∥ * dist p₁ p₂ :=
+by rw [dist_comm, dist_homothety_self]
+
+variables [invertible (2:𝕜)]
+
+@[simp] lemma dist_left_midpoint (p₁ p₂ : P) :
+  dist p₁ (midpoint 𝕜 p₁ p₂) = ∥(2:𝕜)∥⁻¹ * dist p₁ p₂ :=
+by rw [midpoint, ← homothety_eq_line_map, dist_center_homothety, inv_of_eq_inv,
+  ← normed_field.norm_inv]
+
+@[simp] lemma dist_midpoint_left (p₁ p₂ : P) :
+  dist (midpoint 𝕜 p₁ p₂) p₁ = ∥(2:𝕜)∥⁻¹ * dist p₁ p₂ :=
+by rw [dist_comm, dist_left_midpoint]
+
+@[simp] lemma dist_midpoint_right (p₁ p₂ : P) :
+  dist (midpoint 𝕜 p₁ p₂) p₂ = ∥(2:𝕜)∥⁻¹ * dist p₁ p₂ :=
+by rw [midpoint_comm, dist_midpoint_left, dist_comm]
+
+@[simp] lemma dist_right_midpoint (p₁ p₂ : P) :
+  dist p₂ (midpoint 𝕜 p₁ p₂) = ∥(2:𝕜)∥⁻¹ * dist p₁ p₂ :=
+by rw [dist_comm, dist_midpoint_right]
+
+end normed_space
 
 variables [normed_space ℝ V] [normed_space ℝ V']
 include V'

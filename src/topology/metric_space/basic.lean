@@ -187,6 +187,17 @@ by simp [nndist, edist_dist, nnreal.of_real, max_eq_left dist_nonneg, ennreal.of
 lemma edist_nndist (x y : α) : edist x y = ↑(nndist x y) :=
 by { rw [edist_dist, nndist, ennreal.of_real_eq_coe_nnreal] }
 
+@[simp, norm_cast] lemma ennreal_coe_nndist (x y : α) : ↑(nndist x y) = edist x y :=
+(edist_nndist x y).symm
+
+@[simp, norm_cast] lemma edist_lt_coe {x y : α} {c : nnreal} :
+  edist x y < c ↔ nndist x y < c :=
+by rw [edist_nndist, ennreal.coe_lt_coe]
+
+@[simp, norm_cast] lemma edist_le_coe {x y : α} {c : nnreal} :
+  edist x y ≤ c ↔ nndist x y ≤ c :=
+by rw [edist_nndist, ennreal.coe_le_coe]
+
 /--In a metric space, the extended distance is always finite-/
 lemma edist_ne_top (x y : α) : edist x y ≠ ⊤ :=
 by rw [edist_dist x y]; apply ennreal.coe_ne_top
@@ -200,6 +211,17 @@ ennreal.lt_top_iff_ne_top.2 (edist_ne_top x y)
 
 /--Express `dist` in terms of `nndist`-/
 lemma dist_nndist (x y : α) : dist x y = ↑(nndist x y) := rfl
+
+@[simp, norm_cast] lemma coe_nndist (x y : α) : ↑(nndist x y) = dist x y :=
+(dist_nndist x y).symm
+
+@[simp, norm_cast] lemma dist_lt_coe {x y : α} {c : nnreal} :
+  dist x y < c ↔ nndist x y < c :=
+iff.rfl
+
+@[simp, norm_cast] lemma dist_le_coe {x y : α} {c : nnreal} :
+  dist x y ≤ c ↔ nndist x y ≤ c :=
+iff.rfl
 
 /--Express `nndist` in terms of `dist`-/
 lemma nndist_dist (x y : α) : nndist x y = nnreal.of_real (dist x y) :=
@@ -794,6 +816,14 @@ theorem real.dist_eq (x y : ℝ) : dist x y = abs (x - y) := rfl
 theorem real.dist_0_eq_abs (x : ℝ) : dist x 0 = abs x :=
 by simp [real.dist_eq]
 
+theorem real.dist_left_le_of_mem_interval {x y z : ℝ} (h : y ∈ interval x z) :
+  dist x y ≤ dist x z :=
+by simpa only [dist_comm x] using abs_sub_left_of_mem_interval h
+
+theorem real.dist_right_le_of_mem_interval {x y z : ℝ} (h : y ∈ interval x z) :
+  dist y z ≤ dist x z :=
+by simpa only [dist_comm _ z] using abs_sub_right_of_mem_interval h
+
 instance : order_topology ℝ :=
 order_topology_of_nhds_abs $ λ x, begin
   simp only [show ∀ r, {b : ℝ | abs (x - b) < r} = ball x r,
@@ -813,7 +843,7 @@ by ext y; rw [mem_closed_ball, dist_comm, real.dist_eq,
 /-- Special case of the sandwich theorem; see `tendsto_of_tendsto_of_tendsto_of_le_of_le'` for the
 general case. -/
 lemma squeeze_zero' {α} {f g : α → ℝ} {t₀ : filter α} (hf : ∀ᶠ t in t₀, 0 ≤ f t)
-  (hft : ∀ᶠ t in t₀, f t ≤ g t) (g0 : tendsto g t₀ (nhds 0)) : tendsto f t₀ (nhds 0) :=
+  (hft : ∀ᶠ t in t₀, f t ≤ g t) (g0 : tendsto g t₀ (nhds 0)) : tendsto f t₀ (𝓝 0) :=
 tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds g0 hf hft
 
 /-- Special case of the sandwich theorem; see `tendsto_of_tendsto_of_tendsto_of_le_of_le`
@@ -1134,53 +1164,51 @@ begin
   { assume x y,
     rw ← lt_top_iff_ne_top,
     have : (⊥ : ennreal) < ⊤ := ennreal.coe_lt_top,
-    simp [edist, this],
-    assume b,
-    rw lt_top_iff_ne_top,
-    exact edist_ne_top (x b) (y b) },
+    simp [pi.edist_def, finset.sup_lt_iff this, edist_lt_top] },
   show ∀ (x y : Π (b : β), π b), ↑(sup univ (λ (b : β), nndist (x b) (y b))) =
     ennreal.to_real (sup univ (λ (b : β), edist (x b) (y b))),
   { assume x y,
-    have : sup univ (λ (b : β), edist (x b) (y b)) = ↑(sup univ (λ (b : β), nndist (x b) (y b))),
-    { simp [edist_nndist],
-      refine eq.symm (comp_sup_eq_sup_comp_of_is_total _ _ _),
-      exact (assume x y h, ennreal.coe_le_coe.2 h), refl },
-    rw this,
-    refl }
+    simp only [edist_nndist],
+    norm_cast }
 end
 
-lemma dist_pi_def (f g : Πb, π b) :
+lemma pi.nndist_def (f g : Πb, π b) : nndist f g = sup univ (λb, nndist (f b) (g b)) :=
+subtype.eta _ _
+
+lemma pi.dist_def (f g : Πb, π b) :
   dist f g = (sup univ (λb, nndist (f b) (g b)) : nnreal) := rfl
 
-lemma dist_pi_lt_iff {f g : Πb, π b} {r : ℝ} (hr : 0 < r) :
+lemma pi.dist_lt_iff {f g : Πb, π b} {r : ℝ} (hr : 0 < r) :
   dist f g < r ↔ ∀b, dist (f b) (g b) < r :=
 begin
-  lift r to nnreal using le_of_lt hr,
-  rw_mod_cast [dist_pi_def, finset.sup_lt_iff],
-  { simp [nndist], refl },
-  { exact hr }
+  lift r to nnreal using hr.le,
+  simp [pi.dist_def, finset.sup_lt_iff (show ⊥ < r, from hr)],
 end
 
-lemma dist_pi_le_iff {f g : Πb, π b} {r : ℝ} (hr : 0 ≤ r) :
+lemma pi.dist_le_iff {f g : Πb, π b} {r : ℝ} (hr : 0 ≤ r) :
   dist f g ≤ r ↔ ∀b, dist (f b) (g b) ≤ r :=
 begin
   lift r to nnreal using hr,
-  rw_mod_cast [dist_pi_def, finset.sup_le_iff],
-  simp [nndist],
-  refl
+  simp [pi.nndist_def]
 end
+
+lemma pi.le_nndist (f g : Πb, π b) (b : β) : nndist (f b) (g b) ≤ nndist f g :=
+by { rw [pi.nndist_def], exact finset.le_sup (finset.mem_univ b) }
+
+lemma pi.le_dist (f g : Πb, π b) (b : β) : dist (f b) (g b) ≤ dist f g :=
+by simp only [dist_nndist, nnreal.coe_le_coe, pi.le_nndist f g b]
 
 /-- An open ball in a product space is a product of open balls. The assumption `0 < r`
 is necessary for the case of the empty product. -/
 lemma ball_pi (x : Πb, π b) {r : ℝ} (hr : 0 < r) :
   ball x r = { y | ∀b, y b ∈ ball (x b) r } :=
-by { ext p, simp [dist_pi_lt_iff hr] }
+by { ext p, simp [pi.dist_lt_iff hr] }
 
 /-- A closed ball in a product space is a product of closed balls. The assumption `0 ≤ r`
 is necessary for the case of the empty product. -/
 lemma closed_ball_pi (x : Πb, π b) {r : ℝ} (hr : 0 ≤ r) :
   closed_ball x r = { y | ∀b, y b ∈ closed_ball (x b) r } :=
-by { ext p, simp [dist_pi_le_iff hr] }
+by { ext p, simp [pi.dist_le_iff hr] }
 
 end pi
 

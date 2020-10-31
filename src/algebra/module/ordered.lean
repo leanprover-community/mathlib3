@@ -157,6 +157,11 @@ begin
   exact smul_le_smul_of_nonneg (h.le i) hc.le,
 end
 
+instance pi.ordered_semimodule' {ι : Type*} {M : Type*} [ordered_add_comm_group M]
+  [semimodule k M] [ordered_semimodule k M] :
+  ordered_semimodule k (ι → M) :=
+pi.ordered_semimodule
+
 end field
 
 

@@ -35,18 +35,18 @@ begin
 end
 
 /-- The property of reflecting products expressed in terms of fans. -/
-def is_limit_of_reflects_of_map_is_limit [reflects_limits_of_shape (discrete J) G]
+def is_limit_of_reflects_of_map_is_limit [reflects_limit (discrete.functor f) G]
   {P : C} (g : Π j, P ⟶ f j) (t : is_limit (fan.mk _ (λ j, G.map (g j)) : fan (λ j, G.obj (f j)))) :
   is_limit (fan.mk P g) :=
 reflects_limit.reflects ((fan_map_cone_limit _ _ _).symm t)
 
 /-- The property of preserving products expressed in terms of fans. -/
-def map_is_limit_of_preserves_of_is_limit [preserves_limits_of_shape (discrete J) G]
+def map_is_limit_of_preserves_of_is_limit [preserves_limit (discrete.functor f) G]
   {P : C} (g : Π j, P ⟶ f j) (t : is_limit (fan.mk _ g)) :
   is_limit (fan.mk _ (λ j, G.map (g j)) : fan (λ j, G.obj (f j))) :=
 fan_map_cone_limit _ _ _ (preserves_limit.preserves t)
 
-variables [has_product f] [preserves_limits_of_shape (discrete J) G]
+variables [has_product f] [preserves_limit (discrete.functor f) G]
 
 /--
 If `G` preserves products and `C` has them, then the fan constructed of the mapped projection of a
@@ -62,7 +62,6 @@ variables [has_product (λ (j : J), G.obj (f j))]
 If `G` preserves limits, we have an isomorphism from the image of a product to the product of the
 images.
 -/
--- TODO perhaps weaken the assumptions here, to just require the relevant limits?
 def preserves_products_iso : G.obj (∏ f) ≅ ∏ (λ j, G.obj (f j)) :=
 is_limit.cone_point_unique_up_to_iso (preserves_the_product G f) (limit.is_limit _)
 
@@ -148,7 +147,9 @@ an isomorphism.
 def preserves_equalizers_iso [has_equalizer f g] [has_equalizer (G.map f) (G.map g)]
   [preserves_limit (parallel_pair f g) G] :
   G.obj (equalizer f g) ≅ equalizer (G.map f) (G.map g) :=
-is_limit.cone_point_unique_up_to_iso (preserves_the_equalizer G f g) (limit.is_limit _)
+is_limit.cone_point_unique_up_to_iso
+  (is_limit_of_has_equalizer_of_preserves_limit G f g)
+  (limit.is_limit _)
 
 lemma preserves_equalizers_iso_hom [has_equalizer f g] [has_equalizer (G.map f) (G.map g)]
   [preserves_limit (parallel_pair f g) G] :

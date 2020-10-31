@@ -420,19 +420,19 @@ variables {ι : Type*} {V : Π i : ι, Type*} {P : Π i : ι, Type*} [Π i, add_
 include V
 
 /-- Evaluation at a point as an affine map. -/
-def eval (i : ι) : (Π i : ι, P i) →ᵃ[k] P i :=
+def proj (i : ι) : (Π i : ι, P i) →ᵃ[k] P i :=
 { to_fun := λ f, f i,
   linear := @linear_map.proj k ι _ V _ _ i,
   map_vadd' := λ p v, rfl }
 
-@[simp] lemma eval_apply (i : ι) (f : Π i, P i) : @eval k _ ι V P _ _ _ i f = f i := rfl
+@[simp] lemma proj_apply (i : ι) (f : Π i, P i) : @proj k _ ι V P _ _ _ i f = f i := rfl
 
-@[simp] lemma eval_linear (i : ι) :
-   (@eval k _ ι V P _ _ _ i).linear = @linear_map.proj k ι _ V _ _ i := rfl
+@[simp] lemma proj_linear (i : ι) :
+   (@proj k _ ι V P _ _ _ i).linear = @linear_map.proj k ι _ V _ _ i := rfl
 
-lemma line_map_eval (f g : Π i, P i) (c : k) (i : ι) :
+lemma pi_line_map_apply (f g : Π i, P i) (c : k) (i : ι) :
   line_map f g c i = line_map (f i) (g i) c :=
-(eval i : (Π i, P i) →ᵃ[k] P i).apply_line_map f g c
+(proj i : (Π i, P i) →ᵃ[k] P i).apply_line_map f g c
 
 end
 

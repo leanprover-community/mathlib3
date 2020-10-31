@@ -451,15 +451,33 @@ begin
   sorry,
 end
 
-
+example (T : triangle)
+  (transformation : option (zmod 3) → (ℂ →ᵃ[ℂ] ℂ)) (i : zmod 3)
+  (p v c : ℂ) :
+  c • v = (c • @linear_map.id ℂ ℂ _ _) v :=
+begin
+  simp,
+end
 
 def triangle_hull (T: triangle): set ℂ  := convex_hull (set.range T )
 
+def sup_side_length (T : triangle) : ℝ :=
+supr (λ p : (triangle_hull T) × (triangle_hull T), dist p.1 p.2)
 
-def sup_side_length : triangle → ℝ :=
---- HM
-sorry
---supr (λ p, dist p.1 p.2 )
+def transformation (T : triangle) : option (zmod 3) → affine_map ℂ ℂ ℂ
+| (some i) :=
+  { to_fun := λ z, (z + (T i)) / 2,
+    linear := (2:ℂ)⁻¹ • linear_map.id,
+    map_vadd' := λ p v, by { simp, ring } }
+| none :=
+  { to_fun := λ z, (-z + ∑ i, T i) / 2,
+    linear := - (2:ℂ)⁻¹ • linear_map.id,
+    map_vadd' := λ p v, by { simp, ring } }
+
+lemma transformation_works (T : triangle) (j : option (zmod 3)) (i : zmod 3) :
+  quadrisect T j i = transformation T j (T i) :=
+by cases j; { simp [quadrisect, transformation], ring }
+
 
 lemma foo7 (T:triangle ) (j : option (zmod 3)) :
   sup_side_length (quadrisect T j) =
@@ -494,7 +512,7 @@ begin
   let i_seq : ℕ → option (zmod 3) := λ n, (X n).2,
 
   have diameter : ∀ n m, ∀ i j,
-    dist (T_seq n i) (T_seq m j) ≤ max_side_length T₀ / 2^(min n m),
+    dist (T_seq n i) (T_seq m j) ≤ sup_side_length T₀ / 2^(min n m),
     {
 
       sorry,

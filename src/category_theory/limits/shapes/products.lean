@@ -71,15 +71,6 @@ limit.π (discrete.functor f) b
 abbreviation sigma.ι (f : β → C) [has_coproduct f] (b : β) : f b ⟶ ∐ f :=
 colimit.ι (discrete.functor f) b
 
-/-- The fan constructed of the projections from the product is limiting. -/
-def product_is_product (f : β → C) [has_product f] :
-  is_limit (fan.mk (∏ f) (pi.π f)) :=
-is_limit.of_iso_limit (limit.is_limit _) (cones.ext (iso.refl _) (by tidy))
-/-- The fan constructed of the projections from the product is limiting. -/
-def coproduct_is_coproduct (f : β → C) [has_coproduct f] :
-  is_colimit (cofan.mk (∐ f) (sigma.ι f)) :=
-is_colimit.of_iso_colimit (colimit.is_colimit _) (cocones.ext (iso.refl _) (by tidy))
-
 /-- A collection of morphisms `P ⟶ f b` induces a morphism `P ⟶ ∏ f`. -/
 abbreviation pi.lift {f : β → C} [has_product f] {P : C} (p : Π b, P ⟶ f b) : P ⟶ ∏ f :=
 limit.lift _ (fan.mk P p)
@@ -91,9 +82,9 @@ colimit.desc _ (cofan.mk P p)
 Construct a morphism between categorical products (indexed by the same type)
 from a family of morphisms between the factors.
 -/
-abbreviation pi.map {f g : β → C} [has_product f] [has_product g]
+abbreviation pi.map {f g : β → C} [has_products_of_shape β C]
   (p : Π b, f b ⟶ g b) : ∏ f ⟶ ∏ g :=
-lim_map (discrete.nat_trans p)
+lim.map (discrete.nat_trans p)
 /--
 Construct an isomorphism between categorical products (indexed by the same type)
 from a family of isomorphisms between the factors.
@@ -105,9 +96,9 @@ lim.map_iso (discrete.nat_iso p)
 Construct a morphism between categorical coproducts (indexed by the same type)
 from a family of morphisms between the factors.
 -/
-abbreviation sigma.map {f g : β → C} [has_coproduct f] [has_coproduct g]
+abbreviation sigma.map {f g : β → C} [has_coproducts_of_shape β C]
   (p : Π b, f b ⟶ g b) : ∐ f ⟶ ∐ g :=
-colim_map (discrete.nat_trans p)
+colim.map (discrete.nat_trans p)
 /--
 Construct an isomorphism between categorical coproducts (indexed by the same type)
 from a family of isomorphisms between the factors.

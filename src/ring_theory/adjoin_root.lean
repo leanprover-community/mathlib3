@@ -130,11 +130,11 @@ variables (f) [algebra R S]
 
 /-- Produce an algebra homomorphism `adjoin_root f →ₐ[R] S` sending `root f` to
 a root of `f` in `S`. -/
-def alg_hom (x : S) (hfx : aeval x f = 0) : adjoin_root f →ₐ[R] S :=
+def lift_hom (x : S) (hfx : aeval x f = 0) : adjoin_root f →ₐ[R] S :=
 { commutes' := λ r, show lift _ _ hfx r = _, from lift_of, .. lift (algebra_map R S) x hfx }
 
-@[simp] lemma coe_alg_hom (x : S) (hfx : aeval x f = 0) :
-  (alg_hom f x hfx : adjoin_root f →+* S) = lift (algebra_map R S) x hfx := rfl
+@[simp] lemma coe_lift_hom (x : S) (hfx : aeval x f = 0) :
+  (lift_hom f x hfx : adjoin_root f →+* S) = lift (algebra_map R S) x hfx := rfl
 
 @[simp] lemma aeval_alg_hom_eq_zero (ϕ : adjoin_root f →ₐ[R] S) : aeval (ϕ (root f)) f = 0 :=
 begin
@@ -143,10 +143,10 @@ begin
   refl,
 end
 
-@[simp] lemma alg_hom_eq_alg_hom (f : polynomial R) (ϕ : adjoin_root f →ₐ[R] S) :
-  alg_hom f (ϕ (root f)) (aeval_alg_hom_eq_zero f ϕ) = ϕ :=
+@[simp] lemma lift_hom_eq_alg_hom (f : polynomial R) (ϕ : adjoin_root f →ₐ[R] S) :
+  lift_hom f (ϕ (root f)) (aeval_alg_hom_eq_zero f ϕ) = ϕ :=
 begin
-  suffices : ϕ.equalizer (alg_hom f (ϕ (root f)) (aeval_alg_hom_eq_zero f ϕ)) = ⊤,
+  suffices : ϕ.equalizer (lift_hom f (ϕ (root f)) (aeval_alg_hom_eq_zero f ϕ)) = ⊤,
   { exact (alg_hom.ext (λ x, (subalgebra.ext_iff.mp (this) x).mpr algebra.mem_top)).symm },
   rw [eq_top_iff, ←adjoin_root_eq_top, algebra.adjoin_le_iff, set.singleton_subset_iff],
   exact (@lift_root _ _ _ _ _ _ _ (aeval_alg_hom_eq_zero f ϕ)).symm,
@@ -160,15 +160,17 @@ def equiv (F E : Type*) [field F] [field E] [algebra F E] (f : polynomial F) (hf
     rw [mem_roots (map_ne_zero hf), is_root.def, ←eval₂_eq_eval_map],
     exact aeval_alg_hom_eq_zero f ϕ,
     exact field.to_nontrivial E, end⟩,
-  inv_fun := λ x, alg_hom f ↑x (begin
+  inv_fun := λ x, lift_hom f ↑x (begin
     rw [aeval_def, eval₂_eq_eval_map, ←is_root.def, ←mem_roots (map_ne_zero hf)],
     exact subtype.mem x,
     exact field.to_nontrivial E end),
-  left_inv := λ ϕ, alg_hom_eq_alg_hom f ϕ,
-  right_inv := λ x, by { ext, exact @lift_root F E _ f _ _ ↑x begin
+  left_inv := λ ϕ, lift_hom_eq_alg_hom f ϕ,
+  right_inv := λ x, begin
+    ext,
+    refine @lift_root F E _ f _ _ ↑x _,
     rw [eval₂_eq_eval_map, ←is_root.def, ←mem_roots (map_ne_zero hf), ←multiset.mem_to_finset],
     exact multiset.mem_to_finset.mpr (subtype.mem x),
-    exact field.to_nontrivial E end } }
+    exact field.to_nontrivial E end }
 
 end comm_ring
 
@@ -195,38 +197,49 @@ open vector_space
 open finite_dimensional
 
 /-- The restriction of `adjoin_root.mk f` to the polynomials of degree less than `f`,
-viewed as a linear map between vector spaces over `K`. -/
-def degree_lt_linear_map : degree_lt K (f.nat_degree) →ₗ[K] adjoin_root f :=
+viewed as a isomorphism between vector spaces over `K`. -/
+def degree_lt_linear_equiv (hf : f ≠ 0) : degree_lt K (f.nat_degree) ≃ₗ[K] adjoin_root f :=
 { to_fun := λ q, adjoin_root.mk f q,
+  inv_fun := λ g, ⟨(classical.some (quotient.mk_surjective g)) % f,
+    by { rw [mem_degree_lt, ← degree_eq_nat_degree hf], exact euclidean_domain.mod_lt _ hf }⟩,
   map_add' := λ _ _, ring_hom.map_add _ _ _,
   map_smul' := λ _ _, by { simp only [algebra.smul_def, ring_hom.map_mul, submodule.coe_smul,
-    algebra_map_eq, mul_eq_mul_right_iff], left, refl } }
-
-lemma degree_lt_linear_map_def (g : polynomial K) (h : g ∈ degree_lt K f.nat_degree) :
-  degree_lt_linear_map f ⟨g, h⟩ = adjoin_root.mk f g := rfl
-
-lemma degree_lt_linear_map_bijective (hf : f ≠ 0) : function.bijective (degree_lt_linear_map f) :=
-begin
-  split,
-  { rw is_add_group_hom.injective_iff,
-    rintros ⟨g, hg⟩ h,
-    rw [degree_lt_linear_map_def, mk, quotient.eq_zero_iff_mem, mem_span_singleton] at h,
-    rw submodule.mk_eq_zero _ hg,
-    rw [mem_degree_lt, ← degree_eq_nat_degree hf] at hg,
-    exact not_imp_not.mp (euclidean_domain.val_dvd_le g f h) hg },
-  { intro g,
-    obtain ⟨g', hg'⟩ : ∃ q', mk f q' = g := quotient.mk_surjective g,
-    use (g' % f),
-    { rw [mem_degree_lt, ← degree_eq_nat_degree hf],
-      exact euclidean_domain.mod_lt g' hf, },
-    { symmetry,
-      rw [degree_lt_linear_map_def, ← hg', mk, ideal.quotient.eq, mem_span_singleton'],
-      exact ⟨g' / f, by rw [eq_sub_iff_add_eq, mul_comm, euclidean_domain.div_add_mod]⟩ } }
-end
-
-/-- The map `degree_lt_linear_map` is an isomorphism. -/
-def degree_lt_linear_equiv (hf : f ≠ 0) : degree_lt K (f.nat_degree) ≃ₗ[K] adjoin_root f :=
-{ .. (degree_lt_linear_map f), .. equiv.of_bijective _ (degree_lt_linear_map_bijective f hf) }
+    algebra_map_eq, mul_eq_mul_right_iff], left, refl },
+  left_inv :=
+  begin
+    intro p,
+    ext1,
+    let g := (mk f) p,
+    let g' := classical.some (quotient.mk_surjective g),
+    have hg' : mk f g' = g := classical.some_spec (quotient.mk_surjective g),
+    change g' % f = ↑p,
+    have key : ∃ c, g' % f = p + c * f,
+    { cases (mem_span_singleton.mp (ideal.quotient.eq.mp hg')) with q hq,
+      use q - (g' / f),
+      rw [euclidean_domain.mod_eq_sub_mul_div, sub_eq_iff_eq_add.mp hq],
+      ring },
+    cases key with c key,
+    rw key,
+    replace key : (↑p + c * f).degree < f.degree,
+    { rw ← key, exact euclidean_domain.mod_lt g' hf },
+    by_cases c = 0,
+    { rw [h, zero_mul, add_zero] },
+    { rw [←zero_add f.degree, degree_add_eq_of_degree_lt, degree_mul,
+        with_bot.add_lt_add_iff_right (bot_lt_iff_ne_bot.mpr (mt degree_eq_bot.mp hf))] at key,
+      { exact false.rec _ (h (degree_eq_bot.mp ((nat.with_bot.lt_zero_iff c.degree).mp key))) },
+      { rw [mul_comm, degree_mul, degree_eq_nat_degree hf],
+        exact lt_add_of_lt_of_nonneg' (mem_degree_lt.mp (subtype.mem p))
+          (le_of_not_lt (mt (nat.with_bot.lt_zero_iff c.degree).mp (mt degree_eq_bot.mp h))) } },
+  end,
+  right_inv :=
+  begin
+    intro g,
+    let g' := classical.some (quotient.mk_surjective g),
+    change (mk f) (g' % f) = g,
+    rw ← classical.some_spec (quotient.mk_surjective g),
+    exact (ideal.quotient.eq.mpr (mem_span_singleton.mpr
+      ⟨g' / f, (eq_sub_iff_add_eq.mpr (euclidean_domain.div_add_mod g' f)).symm⟩)).symm,
+  end }
 
 lemma finite_dimensional (hf : f ≠ 0) : finite_dimensional K (adjoin_root f) :=
 linear_equiv.finite_dimensional (((polynomial.degree_lt_equiv K (f.nat_degree)).symm).trans

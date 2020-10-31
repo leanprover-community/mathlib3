@@ -67,7 +67,7 @@ lemma at_bot_basis' [semilattice_inf α] (a : α) :
 
 @[instance]
 lemma at_top_ne_bot [nonempty α] [semilattice_sup α] : ne_bot (at_top : filter α) :=
-at_top_basis.forall_nonempty_iff_ne_bot.1 $ λ a _, nonempty_Ici
+at_top_basis.ne_bot_iff.2 $ λ a _, nonempty_Ici
 
 @[instance]
 lemma at_bot_ne_bot [nonempty α] [semilattice_inf α] : ne_bot (at_bot : filter α) :=

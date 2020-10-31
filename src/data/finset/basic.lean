@@ -887,6 +887,10 @@ by simp [piecewise, hi]
 lemma piecewise_eq_of_not_mem {i : α} (hi : i ∉ s) : s.piecewise f g i = g i :=
 by simp [piecewise, hi]
 
+lemma piecewise_congr {f f' g g' : Π i, δ i} (hf : ∀ i ∈ s, f i = f' i) (hg : ∀ i ∉ s, g i = g' i) :
+  s.piecewise f g = s.piecewise f' g' :=
+funext $ λ i, if_ctx_congr iff.rfl (hf i) (hg i)
+
 @[simp, priority 990]
 lemma piecewise_insert_of_ne [decidable_eq α] {i j : α} [∀i, decidable (i ∈ insert j s)]
   (h : i ≠ j) : (insert j s).piecewise f g i = s.piecewise f g i :=
@@ -900,14 +904,52 @@ begin
   congr
 end
 
+lemma piecewise_cases {i} (p : δ i → Prop) (hf : p (f i)) (hg : p (g i)) : p (s.piecewise f g i) :=
+by by_cases hi : i ∈ s; simpa [hi]
+
+lemma piecewise_mem_set_pi {δ : α → Type*} {t : set α} {t' : Π i, set (δ i)}
+  {f g} (hf : f ∈ set.pi t t') (hg : g ∈ set.pi t t') : s.piecewise f g ∈ set.pi t t' :=
+by { classical, rw ← piecewise_coe, exact set.piecewise_mem_pi ↑s hf hg }
+
+lemma piecewise_singleton [decidable_eq α] (i : α) :
+  piecewise {i} f g = function.update g i (f i) :=
+by rw [← insert_emptyc_eq, piecewise_insert, piecewise_empty]
+
 lemma update_eq_piecewise {β : Type*} [decidable_eq α] (f : α → β) (i : α) (v : β) :
   function.update f i v = piecewise (singleton i) (λj, v) f :=
+(piecewise_singleton _ _ _).symm
+
+lemma update_piecewise [decidable_eq α] (i : α) (v : δ i) :
+  function.update (s.piecewise f g) i v =
+    s.piecewise (function.update f i v) (function.update g i v) :=
 begin
   ext j,
-  by_cases h : j = i,
-  { rw [h], simp },
-  { simp [h] }
+  rcases em (j = i) with (rfl|hj); by_cases hs : j ∈ s; simp *
 end
+
+lemma update_piecewise_of_mem [decidable_eq α] {i : α} (hi : i ∈ s) (v : δ i) :
+  function.update (s.piecewise f g) i v = s.piecewise (function.update f i v) g :=
+begin
+  rw update_piecewise,
+  refine s.piecewise_congr (λ _ _, rfl) (λ j hj, function.update_noteq _ _ _),
+  exact λ h, hj (h.symm ▸ hi)
+end
+
+lemma update_piecewise_of_not_mem [decidable_eq α] {i : α} (hi : i ∉ s) (v : δ i) :
+  function.update (s.piecewise f g) i v = s.piecewise f (function.update g i v) :=
+begin
+  rw update_piecewise,
+  refine s.piecewise_congr (λ j hj, function.update_noteq _ _ _)  (λ _ _, rfl),
+  exact λ h, hi (h ▸ hj)
+end
+
+lemma piecewise_le_of_le_of_le {δ : α → Type*} [Π i, preorder (δ i)] {f g h : Π i, δ i}
+  (Hf : f ≤ h) (Hg : g ≤ h) : s.piecewise f g ≤ h :=
+λ x, piecewise_cases s f g (≤ h x) (Hf x) (Hg x)
+
+lemma le_piecewise_of_le_of_le {δ : α → Type*} [Π i, preorder (δ i)] {f g h : Π i, δ i}
+  (Hf : h ≤ f) (Hg : h ≤ g) : h ≤ s.piecewise f g :=
+λ x, piecewise_cases s f g (λ y, h x ≤ y) (Hf x) (Hg x)
 
 end piecewise
 

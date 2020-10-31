@@ -165,10 +165,12 @@ def equiv (F E : Type*) [field F] [field E] [algebra F E] (f : polynomial F) (hf
     exact subtype.mem x,
     exact field.to_nontrivial E end),
   left_inv := λ ϕ, alg_hom_eq_alg_hom f ϕ,
-  right_inv := λ x, by { ext, exact @lift_root F E _ f _ _ ↑x begin
+  right_inv := λ x, begin
+    ext,
+    refine @lift_root F E _ f _ _ ↑x _,
     rw [eval₂_eq_eval_map, ←is_root.def, ←mem_roots (map_ne_zero hf), ←multiset.mem_to_finset],
     exact multiset.mem_to_finset.mpr (subtype.mem x),
-    exact field.to_nontrivial E end } }
+    exact field.to_nontrivial E end }
 
 end comm_ring
 

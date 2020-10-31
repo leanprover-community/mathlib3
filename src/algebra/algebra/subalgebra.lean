@@ -207,10 +207,10 @@ theorem mul_idem : (S : submodule R A) * (S : submodule R A) = (S : submodule R 
 begin
   apply le_antisymm,
   { rw submodule.mul_le,
-    rintros y hy z hz,
+    intros y hy z hz,
     exact mul_mem S hy hz },
   { intros x hx1,
-    rw ←mul_one x,
+    rw ← mul_one x,
     exact submodule.mul_mem_mul hx1 (one_mem S) }
 end
 

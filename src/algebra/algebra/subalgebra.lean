@@ -208,14 +208,10 @@ begin
   apply le_antisymm,
   { rw submodule.mul_le,
     rintros y hy z hz,
-    exact (mul_mem S hy hz),
-  },
-  intros x hx1,
-  have h1 := one_mem S,
-  rw <-mem_to_submodule at h1,
-  have hx2 := submodule.mul_mem_mul hx1 h1,
-  simp at hx2,
-  assumption,
+    exact mul_mem S hy hz },
+  { intros x hx1,
+    rw ←mul_one x,
+    exact submodule.mul_mem_mul hx1 (one_mem S) }
 end
 
 /-- Linear equivalence between `S : submodule R A` and `S`. Though these types are equal,

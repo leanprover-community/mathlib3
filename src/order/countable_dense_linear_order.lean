@@ -6,8 +6,7 @@ Authors: David Wärn
 import order.ideal
 import data.finset
 
-/-
-
+/-!
 # The back and forth method and countable dense linear orders
 
 ## Results

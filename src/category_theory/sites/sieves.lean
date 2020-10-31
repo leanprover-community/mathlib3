@@ -332,7 +332,7 @@ begin
 end
 
 /-- A sieve induces a presheaf. -/
--- @[simps]
+@[simps]
 def functor (S : sieve X) : Cᵒᵖ ⥤ Type v :=
 { obj := λ Y, {g : Y.unop ⟶ X // S g},
   map := λ Y Z f g, ⟨f.unop ≫ g.1, downward_closed _ g.2 _⟩ }
@@ -378,7 +378,7 @@ lemma sieve_of_subfunctor_apply {R} (f : R ⟶ yoneda.obj X) (g : Y ⟶ X) :
   sieve_of_subfunctor f g ↔ ∃ t, f.app (opposite.op Y) t = g :=
 iff.rfl
 
-lemma sieve_of_functor_inclusion : sieve_of_subfunctor S.functor_inclusion = S :=
+lemma sieve_of_subfunctor_functor_inclusion : sieve_of_subfunctor S.functor_inclusion = S :=
 begin
   ext,
   simp only [functor_inclusion_app, sieve_of_subfunctor_apply, subtype.val_eq_coe],
@@ -389,7 +389,7 @@ begin
     exact ⟨⟨_, hf⟩, rfl⟩ }
 end
 
-instance inclusion_top_is_iso : is_iso ((⊤ : sieve X).functor_inclusion) :=
+instance functor_inclusion_top_is_iso : is_iso ((⊤ : sieve X).functor_inclusion) :=
 { inv := { app := λ Y a, ⟨a, ⟨⟩⟩ } }
 
 end sieve

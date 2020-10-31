@@ -130,11 +130,11 @@ variables (f) [algebra R S]
 
 /-- Produce an algebra homomorphism `adjoin_root f →ₐ[R] S` sending `root f` to
 a root of `f` in `S`. -/
-def alg_hom (x : S) (hfx : aeval x f = 0) : adjoin_root f →ₐ[R] S :=
+def lift_hom (x : S) (hfx : aeval x f = 0) : adjoin_root f →ₐ[R] S :=
 { commutes' := λ r, show lift _ _ hfx r = _, from lift_of, .. lift (algebra_map R S) x hfx }
 
-@[simp] lemma coe_alg_hom (x : S) (hfx : aeval x f = 0) :
-  (alg_hom f x hfx : adjoin_root f →+* S) = lift (algebra_map R S) x hfx := rfl
+@[simp] lemma coe_lift_hom (x : S) (hfx : aeval x f = 0) :
+  (lift_hom f x hfx : adjoin_root f →+* S) = lift (algebra_map R S) x hfx := rfl
 
 @[simp] lemma aeval_alg_hom_eq_zero (ϕ : adjoin_root f →ₐ[R] S) : aeval (ϕ (root f)) f = 0 :=
 begin
@@ -143,10 +143,10 @@ begin
   refl,
 end
 
-@[simp] lemma alg_hom_eq_alg_hom (f : polynomial R) (ϕ : adjoin_root f →ₐ[R] S) :
-  alg_hom f (ϕ (root f)) (aeval_alg_hom_eq_zero f ϕ) = ϕ :=
+@[simp] lemma lift_hom_eq_alg_hom (f : polynomial R) (ϕ : adjoin_root f →ₐ[R] S) :
+  lift_hom f (ϕ (root f)) (aeval_alg_hom_eq_zero f ϕ) = ϕ :=
 begin
-  suffices : ϕ.equalizer (alg_hom f (ϕ (root f)) (aeval_alg_hom_eq_zero f ϕ)) = ⊤,
+  suffices : ϕ.equalizer (lift_hom f (ϕ (root f)) (aeval_alg_hom_eq_zero f ϕ)) = ⊤,
   { exact (alg_hom.ext (λ x, (subalgebra.ext_iff.mp (this) x).mpr algebra.mem_top)).symm },
   rw [eq_top_iff, ←adjoin_root_eq_top, algebra.adjoin_le_iff, set.singleton_subset_iff],
   exact (@lift_root _ _ _ _ _ _ _ (aeval_alg_hom_eq_zero f ϕ)).symm,
@@ -160,11 +160,11 @@ def equiv (F E : Type*) [field F] [field E] [algebra F E] (f : polynomial F) (hf
     rw [mem_roots (map_ne_zero hf), is_root.def, ←eval₂_eq_eval_map],
     exact aeval_alg_hom_eq_zero f ϕ,
     exact field.to_nontrivial E, end⟩,
-  inv_fun := λ x, alg_hom f ↑x (begin
+  inv_fun := λ x, lift_hom f ↑x (begin
     rw [aeval_def, eval₂_eq_eval_map, ←is_root.def, ←mem_roots (map_ne_zero hf)],
     exact subtype.mem x,
     exact field.to_nontrivial E end),
-  left_inv := λ ϕ, alg_hom_eq_alg_hom f ϕ,
+  left_inv := λ ϕ, lift_hom_eq_alg_hom f ϕ,
   right_inv := λ x, begin
     ext,
     refine @lift_root F E _ f _ _ ↑x _,

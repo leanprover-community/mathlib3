@@ -54,7 +54,7 @@ localized "notation `ℍ[` R`,` a`,` b `]` := quaternion_algebra R a b" in quate
 
 namespace quaternion_algebra
 
-@[simp] lemma mk.eta {R : Type*} : ∀ a : ℍ[R, c₁, c₂], mk a.1 a.2 a.3 a.4 = a
+@[simp] lemma mk.eta {R : Type*} {c₁ c₂} : ∀ a : ℍ[R, c₁, c₂], mk a.1 a.2 a.3 a.4 = a
 | ⟨a₁, a₂, a₃, a₄⟩ := rfl
 
 variables {R : Type*} [comm_ring R] {c₁ c₂ : R} (r x y z : R) (a b c : ℍ[R, c₁, c₂])

@@ -268,64 +268,6 @@ instance : order_bot (structure_groupoid H) :=
 instance (H : Type u) [topological_space H] : inhabited (structure_groupoid H) :=
 ⟨id_groupoid H⟩
 
-instance : has_inf (structure_groupoid H) :=
-{ inf := λ G G',
-  { members := G.members ∩ G'.members,
-    trans' := λ e e' he he', ⟨G.trans he.1 he'.1, G'.trans he.2 he'.2⟩,
-    symm' := λ e he, ⟨G.symm he.1, G'.symm he.2⟩,
-    id_mem' := ⟨G.id_mem, G'.id_mem⟩,
-    locality' := λ e he, begin
-      refine ⟨G.locality (λ x hx, _), G'.locality (λ x hx, _)⟩,
-      { obtain ⟨s, hs, hs', hs''⟩ := he x hx,
-        exact ⟨s, hs, hs', hs''.1⟩ },
-      { obtain ⟨s, hs, hs', hs''⟩ := he x hx,
-        exact ⟨s, hs, hs', hs''.2⟩ }
-    end,
-    eq_on_source' :=
-      λ e e' he hee', ⟨G.eq_on_source' e e' he.1 hee', G'.eq_on_source' e e' he.2 hee'⟩ } }
-
-instance : semilattice_inf (structure_groupoid H) :=
-{ inf_le_left := λ G G' e he, he.1,
-  inf_le_right := λ G G' e he, he.2,
-  le_inf := λ G G₁ G₂ h₁ h₂ e he, ⟨h₁ he, h₂ he⟩,
-  ..structure_groupoid.has_inf, ..structure_groupoid.partial_order }
-
-def free_groupoid (s : set (local_homeomorph H H)) : structure_groupoid H :=
-{ members := {e | ∀ G : structure_groupoid H, s ⊆ G.members → e ∈ G},
-  trans' := λ e e' he he' G hG, G.trans (he G hG) (he' G hG),
-  symm' := λ e he G hG, G.symm (he G hG),
-  id_mem' := λ G hG, G.id_mem,
-  locality' := λ e he G hG, begin
-    apply G.locality,
-    intros x hx,
-    obtain ⟨s, hs, hxs, h⟩ := he x hx,
-    exact ⟨s, hs, hxs, h G hG⟩,
-  end,
-  eq_on_source' := λ e e' he₁ he₂ G hG, G.eq_on_source (he₁ G hG) he₂ }
-
-lemma mem_free_groupoid (s : set (local_homeomorph H H)) : s ⊆ (free_groupoid s).members :=
-λ x hx G hG, hG hx
-
-lemma free_groupoid_le (s : set (local_homeomorph H H)) :
-  ∀ G : structure_groupoid H, s ⊆ G.members → (free_groupoid s) ≤ G :=
-λ G hG e he, he G hG
-
-instance : has_Sup (structure_groupoid H) :=
-{ Sup := λ (A : set (structure_groupoid H)), free_groupoid (supr (λ (G : A), G.1.members)) }
-
-instance : complete_lattice (structure_groupoid H) :=
-complete_lattice_of_Sup _ (begin
-  intros A,
-  split,
-  { intros G hG e he,
-    apply mem_free_groupoid,
-    exact le_supr (λ (G :A), G.1.members) ⟨G, hG⟩ he },
-  { intros G hG,
-    apply free_groupoid_le,
-    rintros e ⟨s, ⟨⟨G', hG'⟩, rfl⟩, he⟩,
-    exact hG hG' he }
-end)
-
 /-- To construct a groupoid, one may consider classes of local homeos such that both the function
 and its inverse have some property. If this property is stable under composition,
 one gets a groupoid. `pregroupoid` bundles the properties needed for this construction, with the
@@ -416,6 +358,57 @@ instance : order_top (structure_groupoid H) :=
 { top    := continuous_groupoid H,
   le_top := λ u f hf, by { split; exact dec_trivial },
   ..structure_groupoid.partial_order }
+
+instance : has_inf (structure_groupoid H) :=
+{ inf := λ G G',
+  { members := G.members ∩ G'.members,
+    trans' := λ e e' he he', ⟨G.trans he.1 he'.1, G'.trans he.2 he'.2⟩,
+    symm' := λ e he, ⟨G.symm he.1, G'.symm he.2⟩,
+    id_mem' := ⟨G.id_mem, G'.id_mem⟩,
+    locality' := λ e he, begin
+      refine ⟨G.locality (λ x hx, _), G'.locality (λ x hx, _)⟩,
+      { obtain ⟨s, hs, hs', hs''⟩ := he x hx,
+        exact ⟨s, hs, hs', hs''.1⟩ },
+      { obtain ⟨s, hs, hs', hs''⟩ := he x hx,
+        exact ⟨s, hs, hs', hs''.2⟩ }
+    end,
+    eq_on_source' :=
+      λ e e' he hee', ⟨G.eq_on_source' e e' he.1 hee', G'.eq_on_source' e e' he.2 hee'⟩ } }
+
+instance : has_Inf (structure_groupoid H) :=
+{ Inf := λ s,
+  { members := {e | ∀ G : structure_groupoid H, G ∈ s → e ∈ G},
+    trans' := λ e e' he he' G hG, G.trans (he G hG) (he' G hG),
+    symm' := λ e he G hG, G.symm (he G hG),
+    id_mem' := λ G hG, G.id_mem,
+    locality' := λ e he G hG, begin
+      refine G.locality (λ x hx, _),
+      obtain ⟨s, hs, hs', hs''⟩ := he x hx,
+      exact ⟨s, hs, hs', hs'' G hG⟩
+    end,
+    eq_on_source' := λ e e' he hee' G hG, G.eq_on_source' e e' (he G hG) hee' } }
+
+def complete_lattice_aux : complete_lattice (structure_groupoid H) :=
+complete_lattice_of_Inf _ (begin
+  intros s,
+  split,
+  { intros G hG e he,
+    exact he G hG },
+  { intros G hG e he G' hG',
+    exact hG hG' he }
+end)
+
+instance : complete_lattice (structure_groupoid H) :=
+{ inf_le_left := λ G G' e he, he.1,
+  inf_le_right := λ G G' e he, he.2,
+  le_inf := λ G G₁ G₂ h₁ h₂ e he, ⟨h₁ he, h₂ he⟩,
+  ..structure_groupoid.has_inf,
+  ..structure_groupoid.order_top,
+  ..structure_groupoid.order_bot,
+  ..complete_lattice_aux }
+
+def generated_groupoid (s : set (local_homeomorph H H)) : structure_groupoid H :=
+Inf {G : structure_groupoid H | s ⊆ G.members}
 
 /-- A groupoid is closed under restriction if it contains all restrictions of its element local
 homeomorphisms to open subsets of the source. -/

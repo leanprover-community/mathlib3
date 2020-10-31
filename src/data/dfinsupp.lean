@@ -312,6 +312,28 @@ by simp only [single_apply, dif_neg h]
 lemma single_injective {i} : function.injective (single i : β i → Π₀ i, β i) :=
 λ x y H, congr_fun (mk_injective _ H) ⟨i, by simp⟩
 
+/-- Like `finsupp.single_eq_single_iff`, but with a `heq` due to dependent types -/
+lemma single_eq_single_iff (i j : ι) (xi : β i) (xj : β j) :
+  dfinsupp.single i xi = dfinsupp.single j xj ↔ i = j ∧ xi == xj ∨ xi = 0 ∧ xj = 0 :=
+begin
+  split,
+  { intro h,
+    by_cases hij : i = j,
+    { subst hij,
+      exact or.inl ⟨rfl, heq_of_eq (dfinsupp.single_injective h)⟩, },
+    { have h_coe : ⇑(dfinsupp.single i xi) = dfinsupp.single j xj := congr_arg coe_fn h,
+      have hci := congr_fun h_coe i,
+      have hcj := congr_fun h_coe j,
+      rw dfinsupp.single_eq_same at hci hcj,
+      rw dfinsupp.single_eq_of_ne (ne.symm hij) at hci,
+      rw dfinsupp.single_eq_of_ne (hij) at hcj,
+      exact or.inr ⟨hci, hcj.symm⟩, }, },
+  { rintros (⟨hi, hxi⟩ | ⟨hi, hj⟩),
+    { subst hi,
+      rw eq_of_heq hxi, },
+    { rw [hi, hj, dfinsupp.single_zero, dfinsupp.single_zero], }, },
+end
+
 /-- Redefine `f i` to be `0`. -/
 def erase (i : ι) (f : Π₀ i, β i) : Π₀ i, β i :=
 quotient.lift_on f (λ x, ⟦(⟨λ j, if j = i then 0 else x.1 j, x.2,

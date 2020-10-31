@@ -46,7 +46,7 @@ def is_limit_of_reflects_of_map_is_limit [reflects_limit (discrete.functor f) G]
   is_limit (fan.mk P g) :=
 reflects_limit.reflects ((fan_map_cone_limit _ _ _).symm t)
 
-variables [has_product f]
+variables [has_product f] [preserves_limit (discrete.functor f) G]
 
 /--
 If `G` preserves products and `C` has them, then the fan constructed of the mapped projection of a
@@ -57,19 +57,6 @@ def is_limit_of_has_product_of_preserves_limit [preserves_limit (discrete.functo
 map_is_limit_of_preserves_of_is_limit G f _ (product_is_product _)
 
 variables [has_product (λ (j : J), G.obj (f j))]
-
-def product_comparison : G.obj (∏ f) ⟶ ∏ (λ j, G.obj (f j)) :=
-pi.lift (λ j, G.map (pi.π f j))
-
-@[simp, reassoc]
-lemma product_comparison_pi (j : J) :
-  product_comparison G f ≫ pi.π _ j = G.map (pi.π f j) :=
-limit.lift_π _ j
-
-@[simp, reassoc]
-lemma map_lift_product_comparison (P : C) (g : Π j, P ⟶ f j) :
-  G.map (pi.lift g) ≫ product_comparison G f = pi.lift (λ j, G.map (g j)) :=
-by { ext, simp [← G.map_comp] }
 
 /--
 If `G` preserves limits, we have an isomorphism from the image of a product to the product of the

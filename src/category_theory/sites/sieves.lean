@@ -358,7 +358,9 @@ rfl
 instance functor_inclusion_is_mono : mono S.functor_inclusion :=
 ⟨λ Z f g h, by { ext Y y, apply congr_fun (nat_trans.congr_app h Y) y }⟩
 
--- TODO: show that when `f` is mono, this is inverse to `functor_inclusion`.
+/-- A natural transformation to a representable functor induces a sieve. -/
+-- TODO: show that when `f` is mono, this is inverse to `functor_inclusion`, in the appropriate
+-- sense.
 def sieve_of_subfunctor (R) (f : R ⟶ yoneda.obj X) : sieve X :=
 { arrows := λ Y g, ∃ t, f.app (opposite.op Y) t = g,
   downward_closed' := λ Y Z _,

@@ -157,6 +157,8 @@ begin
   exact smul_le_smul_of_nonneg (h.le i) hc.le,
 end
 
+-- Sometimes Lean fails to apply the dependent version to non-dependent functions,
+-- so we define another instance
 instance pi.ordered_semimodule' {ι : Type*} {M : Type*} [ordered_add_comm_group M]
   [semimodule k M] [ordered_semimodule k M] :
   ordered_semimodule k (ι → M) :=

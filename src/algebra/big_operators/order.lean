@@ -195,9 +195,9 @@ end
 
 end ordered_cancel_comm_monoid
 
-section linear_ordered_add_comm_monoid
+section linear_ordered_cancel_comm_monoid
 
-variables [linear_ordered_add_comm_monoid β]
+variables [linear_ordered_cancel_add_comm_monoid β]
 
 theorem exists_lt_of_sum_lt (Hlt : (∑ x in s, f x) < ∑ x in s, g x) :
   ∃ i ∈ s, f i < g i :=
@@ -205,12 +205,6 @@ begin
   contrapose! Hlt with Hle,
   exact sum_le_sum Hle
 end
-
-end linear_ordered_add_comm_monoid
-
-section linear_ordered_cancel_add_comm_monoid
-
-variables [linear_ordered_cancel_add_comm_monoid β]
 
 theorem exists_le_of_sum_le (hs : s.nonempty) (Hle : (∑ x in s, f x) ≤ ∑ x in s, g x) :
   ∃ i ∈ s, f i ≤ g i :=
@@ -231,7 +225,7 @@ begin
                  ... = 0           : by rw [finset.sum_const, nsmul_zero],
 end
 
-end linear_ordered_cancel_add_comm_monoid
+end linear_ordered_cancel_comm_monoid
 
 section linear_ordered_comm_ring
 variables [linear_ordered_comm_ring β]

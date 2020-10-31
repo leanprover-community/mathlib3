@@ -711,7 +711,7 @@ lemma coe_lt_coe [partial_order α] {a b : α} : (a : with_top α) < b ↔ a < b
 
 lemma coe_lt_top [partial_order α] (a : α) : (a : with_top α) < ⊤ := some_lt_none
 
-theorem coe_lt_iff [partial_order α] (a : α) : ∀{x : with_top α}, ↑a < x ↔ (∀b:α, x = ↑b → a < b)
+theorem coe_lt_iff [partial_order α] {a : α} : ∀{x : with_top α}, ↑a < x ↔ (∀b:α, x = ↑b → a < b)
 | (some b) := by simp [some_eq_coe, coe_eq_coe, coe_lt_coe]
 | none     := by simp [none_eq_top, coe_lt_top]
 

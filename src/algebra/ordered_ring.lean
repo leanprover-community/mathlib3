@@ -977,17 +977,6 @@ by simp only [zero_lt_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
 
 end canonically_ordered_semiring
 
-/-- A canonically linearly ordered commutative semiring is an ordered, commutative semiring
-in which `a ≤ b` iff there exists `c` with `b = a + c`. This is satisfied by the
-natural numbers, for example, but not the integers or other ordered groups. -/
-class canonically_linear_ordered_comm_semiring (α : Type*) extends
-  canonically_ordered_comm_semiring α, linear_order α
-
-@[priority 100]
-instance canonically_linear_ordered_comm_semiring.to_canonically_linear_ordered_add_monoid
-  [s : canonically_linear_ordered_comm_semiring α] : canonically_linear_ordered_add_monoid α :=
-{ .. s }
-
 namespace with_top
 
 instance [nonempty α] : nontrivial (with_top α) :=
@@ -1056,8 +1045,6 @@ instance : no_zero_divisors (with_top α) :=
 
 end no_zero_divisors
 
-section canonically_ordered_comm_semiring
-
 variables [canonically_ordered_comm_semiring α]
 
 private lemma comm (a b : with_top α) : a * b = b * a :=
@@ -1109,11 +1096,5 @@ instance [nontrivial α] : canonically_ordered_comm_semiring (with_top α) :=
   .. with_top.add_comm_monoid, .. with_top.mul_zero_class,
   .. with_top.canonically_ordered_add_monoid,
   .. with_top.no_zero_divisors, .. with_top.nontrivial }
-
-end canonically_ordered_comm_semiring
-
-instance [canonically_linear_ordered_comm_semiring α] [nontrivial α] :
-  canonically_linear_ordered_comm_semiring (with_top α) :=
-{ .. with_top.canonically_ordered_comm_semiring, .. with_top.linear_order }
 
 end with_top

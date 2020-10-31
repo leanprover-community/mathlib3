@@ -39,7 +39,7 @@ linear_equiv.of_linear
 
 @[simp] theorem finsupp_lequiv_direct_sum_single (i : ι) (m : M) :
   finsupp_lequiv_direct_sum R M ι (finsupp.single i m) = direct_sum.lof R ι _ i m :=
-finsupp.sum_single_index $ direct_sum.of_zero i
+finsupp.sum_single_index $ linear_map.map_zero _
 
 @[simp] theorem finsupp_lequiv_direct_sum_symm_lof (i : ι) (m : M) :
   (finsupp_lequiv_direct_sum R M ι).symm (direct_sum.lof R ι _ i m) = finsupp.single i m :=

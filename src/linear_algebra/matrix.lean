@@ -420,7 +420,7 @@ def is_basis.det : multilinear_map R (λ i : ι, M) R :=
   end,
   map_smul' := begin
     intros u i c x,
-    simp only [he.to_matrix_update, algebra.id.smul_eq_mul, map_smul_eq_smul_map],
+    simp only [he.to_matrix_update, algebra.id.smul_eq_mul, map_smul_of_tower],
     apply det_update_column_smul
   end }
 
@@ -546,7 +546,7 @@ by ext j; simp [mul_vec_diagonal]
 lemma diagonal_comp_std_basis (w : n → R) (i : n) :
   (diagonal w).to_lin'.comp (std_basis R (λ_:n, R) i) = (w i) • std_basis R (λ_:n, R) i :=
 begin
-  ext a j,
+  ext j,
   simp_rw [linear_map.comp_apply, to_lin'_apply, mul_vec_diagonal, linear_map.smul_apply,
     pi.smul_apply, algebra.id.smul_eq_mul],
   by_cases i = j,

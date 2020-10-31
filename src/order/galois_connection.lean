@@ -547,3 +547,12 @@ def lift_complete_lattice [complete_lattice β] (gi : galois_coinsertion l u) : 
 end lift
 
 end galois_coinsertion
+
+/-- If `α` is a partial order with bottom element (e.g., `ℕ`, `ℝ≥0`), then
+`λ o : with_bot α, o.get_or_else ⊥` and coercion form a Galois insertion. -/
+def with_bot.gi_get_or_else_bot [order_bot α] :
+  galois_insertion (λ o : with_bot α, o.get_or_else ⊥) coe :=
+{ gc := λ a b, with_bot.get_or_else_bot_le_iff,
+  le_l_u := λ a, le_rfl,
+  choice := λ o ho, _,
+  choice_eq := λ _ _, rfl }

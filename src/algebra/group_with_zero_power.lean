@@ -12,21 +12,24 @@ In this file we define integer power functions for groups with an adjoined zero 
 This generalises the integer power function on a division ring.
 -/
 
-@[simp] lemma zero_pow' {M : Type*} [monoid_with_zero M] :
-  ∀ n : ℕ, n ≠ 0 → (0 : M) ^ n = 0
+section zero
+variables {M : Type*} [monoid_with_zero M]
+
+@[simp] lemma zero_pow' : ∀ n : ℕ, n ≠ 0 → (0 : M) ^ n = 0
 | 0     h := absurd rfl h
 | (k+1) h := zero_mul _
 
-@[simp] lemma zero_pow_eq_zero {M : Type*} [monoid_with_zero M] [nontrivial M] {n : ℕ} :
-  (0 : M) ^ n = 0 ↔ 0 < n :=
+lemma ne_zero_pow {a : M} {n : ℕ} (hn : n ≠ 0) : a ^ n ≠ 0 → a ≠ 0 :=
+by { contrapose!, rintro rfl, exact zero_pow' n hn }
+
+@[simp] lemma zero_pow_eq_zero [nontrivial M] {n : ℕ} : (0 : M) ^ n = 0 ↔ 0 < n :=
 begin
   split; intro h,
   { rw [nat.pos_iff_ne_zero], rintro rfl, simpa using h },
   { exact zero_pow' n h.ne.symm }
 end
 
-theorem pow_eq_zero' {M : Type*} [monoid_with_zero M] [no_zero_divisors M]
-  {a : M} {n : ℕ} (H : a ^ n = 0) : a = 0 :=
+theorem pow_eq_zero' [no_zero_divisors M] {a : M} {n : ℕ} (H : a ^ n = 0) : a = 0 :=
 begin
   induction n with n ih,
   { rw pow_zero at H,
@@ -34,9 +37,11 @@ begin
   exact or.cases_on (mul_eq_zero.1 H) id ih
 end
 
-@[field_simps] theorem pow_ne_zero' {M : Type*} [monoid_with_zero M] [no_zero_divisors M]
-  {a : M} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
+@[field_simps]
+theorem pow_ne_zero' [no_zero_divisors M] {a : M} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero' h
+
+end zero
 
 section group_with_zero
 variables {G₀ : Type*} [group_with_zero G₀]

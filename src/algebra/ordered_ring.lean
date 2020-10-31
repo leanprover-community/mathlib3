@@ -1056,6 +1056,8 @@ instance : no_zero_divisors (with_top α) :=
 
 end no_zero_divisors
 
+section canonically_ordered_comm_semiring
+
 variables [canonically_ordered_comm_semiring α]
 
 private lemma comm (a b : with_top α) : a * b = b * a :=
@@ -1107,5 +1109,11 @@ instance [nontrivial α] : canonically_ordered_comm_semiring (with_top α) :=
   .. with_top.add_comm_monoid, .. with_top.mul_zero_class,
   .. with_top.canonically_ordered_add_monoid,
   .. with_top.no_zero_divisors, .. with_top.nontrivial }
+
+end canonically_ordered_comm_semiring
+
+instance [canonically_linear_ordered_comm_semiring α] [nontrivial α] :
+  canonically_linear_ordered_comm_semiring (with_top α) :=
+{ .. with_top.canonically_ordered_comm_semiring, .. with_top.linear_order }
 
 end with_top

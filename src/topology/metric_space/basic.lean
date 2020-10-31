@@ -1182,18 +1182,18 @@ lemma dist_pi_lt_iff {f g : Πb, π b} {r : ℝ} (hr : 0 < r) :
   dist f g < r ↔ ∀b, dist (f b) (g b) < r :=
 begin
   lift r to nnreal using hr.le,
-  simp [pi.dist_def, finset.sup_lt_iff (show ⊥ < r, from hr)],
+  simp [dist_pi_def, finset.sup_lt_iff (show ⊥ < r, from hr)],
 end
 
 lemma dist_pi_le_iff {f g : Πb, π b} {r : ℝ} (hr : 0 ≤ r) :
   dist f g ≤ r ↔ ∀b, dist (f b) (g b) ≤ r :=
 begin
   lift r to nnreal using hr,
-  simp [pi.nndist_def]
+  simp [nndist_pi_def]
 end
 
 lemma nndist_le_pi_nndist (f g : Πb, π b) (b : β) : nndist (f b) (g b) ≤ nndist f g :=
-by { rw [pi.nndist_def], exact finset.le_sup (finset.mem_univ b) }
+by { rw [nndist_pi_def], exact finset.le_sup (finset.mem_univ b) }
 
 lemma dist_le_pi_dist (f g : Πb, π b) (b : β) : dist (f b) (g b) ≤ dist f g :=
 by simp only [dist_nndist, nnreal.coe_le_coe, pi.le_nndist f g b]

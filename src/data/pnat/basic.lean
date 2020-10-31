@@ -66,8 +66,8 @@ open nat
 
 instance : decidable_eq ℕ+ := λ (a b : ℕ+), by apply_instance
 
-instance : decidable_linear_order ℕ+ :=
-subtype.decidable_linear_order _
+instance : linear_order ℕ+ :=
+subtype.linear_order _
 
 @[simp] lemma mk_le_mk (n k : ℕ) (hn : 0 < n) (hk : 0 < k) :
   (⟨n, hn⟩ : ℕ+) ≤ ⟨k, hk⟩ ↔ n ≤ k := iff.rfl
@@ -196,7 +196,7 @@ instance : ordered_cancel_comm_monoid ℕ+ :=
   le_of_mul_le_mul_left := by { intros a b c h, apply nat.le_of_mul_le_mul_left h a.property, },
   .. (pnat.left_cancel_semigroup),
   .. (pnat.right_cancel_semigroup),
-  .. (pnat.decidable_linear_order),
+  .. (pnat.linear_order),
   .. (pnat.comm_monoid)}
 
 instance : distrib ℕ+ :=
@@ -221,6 +221,29 @@ end
 theorem add_sub_of_lt {a b : ℕ+} : a < b → a + (b - a) = b :=
  λ h, eq $ by { rw [add_coe, sub_coe, if_pos h],
                 exact nat.add_sub_of_le (le_of_lt h) }
+
+instance : has_well_founded ℕ+ := ⟨(<), measure_wf coe⟩
+
+/-- Strong induction on `pnat`. -/
+lemma strong_induction_on {p : pnat → Prop} : ∀ (n : pnat) (h : ∀ k, (∀ m, m < k → p m) → p k), p n
+| n := λ IH, IH _ (λ a h, strong_induction_on a IH)
+using_well_founded { dec_tac := `[assumption] }
+
+/-- If `(n : pnat)` is different from `1`, then it is the successor of some `(k : pnat)`. -/
+lemma exists_eq_succ_of_ne_one : ∀ {n : pnat} (h1 : n ≠ 1), ∃ (k : pnat), n = k + 1
+| ⟨1, _⟩ h1 := false.elim $ h1 rfl
+| ⟨n+2, _⟩ _ := ⟨⟨n+1, by simp⟩, rfl⟩
+
+lemma case_strong_induction_on {p : pnat → Prop} (a : pnat) (hz : p 1)
+  (hi : ∀ n, (∀ m, m ≤ n → p m) → p (n + 1)) : p a :=
+begin
+  apply strong_induction_on a,
+  intros k hk,
+  by_cases h1 : k = 1, { rwa h1 },
+  obtain ⟨b, rfl⟩ := exists_eq_succ_of_ne_one h1,
+  simp only [lt_add_one_iff] at hk,
+  exact hi b hk
+end
 
 /-- We define `m % k` and `m / k` in the same way as for `ℕ`
   except that when `m = n * k` we take `m % k = k` and
@@ -342,6 +365,14 @@ theorem dvd_antisymm {m n : ℕ+} : m ∣ n → n ∣ m → m = n :=
 
 theorem dvd_one_iff (n : ℕ+) : n ∣ 1 ↔ n = 1 :=
  ⟨λ h, dvd_antisymm h (one_dvd n), λ h, h.symm ▸ (dvd_refl 1)⟩
+
+lemma pos_of_div_pos {n : ℕ+} {a : ℕ} (h : a ∣ n) : 0 < a :=
+begin
+  apply zero_lt_iff_ne_zero.2,
+  intro hzero,
+  rw hzero at h,
+  exact pnat.ne_zero n (eq_zero_of_zero_dvd h)
+end
 
 /-- The greatest common divisor (gcd) of two positive natural numbers,
   viewed as positive natural number. -/

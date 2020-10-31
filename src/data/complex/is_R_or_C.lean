@@ -362,6 +362,8 @@ by rw [← of_real_rat_cast, of_real_im]
 
 /-! ### Characteristic zero -/
 
+-- TODO: I think this can be instance, because it is a `Prop`
+
 /--
 ℝ and ℂ are both of characteristic zero.
 

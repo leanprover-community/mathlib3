@@ -91,6 +91,14 @@ example : 100 - 100 = 0 := by norm_num
 example : 5 * (2 - 3) = 0 := by norm_num
 example : 10 - 5 * 5 + (7 - 3) * 6 = 27 - 3 := by norm_num
 
+def foo : ℕ := 1
+
+@[norm_num] meta def eval_foo : expr → tactic (expr × expr)
+| `(foo) := pure (`(1:ℕ), `(eq.refl 1))
+| _ := tactic.failed
+
+example : foo = 1 := by norm_num
+
 -- ordered field examples
 
 variable {α : Type}

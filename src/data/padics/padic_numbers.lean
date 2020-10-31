@@ -767,7 +767,7 @@ instance : normed_field ℚ_[p] :=
 { dist_eq := λ _ _, rfl,
   norm_mul' := by simp [has_norm.norm, padic_norm_e.mul'] }
 
-instance : is_absolute_value (λ a : ℚ_[p], ∥a∥) :=
+instance is_absolute_value : is_absolute_value (λ a : ℚ_[p], ∥a∥) :=
 { abv_nonneg := norm_nonneg,
   abv_eq_zero := λ _, norm_eq_zero,
   abv_add := norm_add_le,
@@ -777,7 +777,7 @@ theorem rat_dense {p : ℕ} {hp : fact p.prime} (q : ℚ_[p]) {ε : ℝ} (hε : 
         ∃ r : ℚ, ∥q - r∥ < ε :=
 let ⟨ε', hε'l, hε'r⟩ := exists_rat_btwn hε,
     ⟨r, hr⟩ := rat_dense' q (by simpa using hε'l)  in
-⟨r, lt.trans (by simpa [has_norm.norm] using hr) hε'r⟩
+⟨r, lt_trans (by simpa [has_norm.norm] using hr) hε'r⟩
 
 end normed_space
 end padic
@@ -963,7 +963,7 @@ begin
   intros i hi, let h := hN i hi,
   unfold norm,
   rw_mod_cast [cau_seq.sub_apply, padic_norm_e.sub_rev],
-  refine lt.trans _ hε'.2,
+  refine lt_trans _ hε'.2,
   exact_mod_cast hN i hi
 end
 

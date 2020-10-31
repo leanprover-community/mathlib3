@@ -273,14 +273,14 @@ lemma is_glb.union [semilattice_inf γ] {a₁ a₂ : γ} {s t : set γ}
 
 /-- If `a` is the least element of `s` and `b` is the least element of `t`,
 then `min a b` is the least element of `s ∪ t`. -/
-lemma is_least.union [decidable_linear_order γ] {a b : γ} {s t : set γ}
+lemma is_least.union [linear_order γ] {a b : γ} {s t : set γ}
   (ha : is_least s a) (hb : is_least t b) : is_least (s ∪ t) (min a b) :=
 ⟨by cases (le_total a b) with h h; simp [h, ha.1, hb.1],
   (ha.is_glb.union hb.is_glb).1⟩
 
 /-- If `a` is the greatest element of `s` and `b` is the greatest element of `t`,
 then `max a b` is the greatest element of `s ∪ t`. -/
-lemma is_greatest.union [decidable_linear_order γ] {a b : γ} {s t : set γ}
+lemma is_greatest.union [linear_order γ] {a b : γ} {s t : set γ}
   (ha : is_greatest s a) (hb : is_greatest t b) : is_greatest (s ∪ t) (max a b) :=
 ⟨by cases (le_total a b) with h h; simp [h, ha.1, hb.1],
   (ha.is_lub.union hb.is_lub).1⟩
@@ -401,7 +401,6 @@ variables [linear_order γ] [densely_ordered γ]
 lemma is_glb_Ioo {a b : γ} (hab : a < b) : is_glb (Ioo a b) a :=
 begin
   refine ⟨λx hx, le_of_lt hx.1, λy hy, le_of_not_lt $ λ h, _⟩,
-  letI := classical.DLO γ,
   have : a < min b y, by { rw lt_min_iff, exact ⟨hab, h⟩ },
   rcases exists_between this with ⟨z, az, zy⟩,
   rw lt_min_iff at zy,
@@ -537,11 +536,11 @@ lemma is_glb.insert [semilattice_inf γ] (a) {b} {s : set γ} (hs : is_glb s b) 
   is_glb (insert a s) (a ⊓ b) :=
 by { rw insert_eq, exact is_glb_singleton.union hs }
 
-lemma is_greatest.insert [decidable_linear_order γ] (a) {b} {s : set γ} (hs : is_greatest s b) :
+lemma is_greatest.insert [linear_order γ] (a) {b} {s : set γ} (hs : is_greatest s b) :
   is_greatest (insert a s) (max a b) :=
 by { rw insert_eq, exact is_greatest_singleton.union hs }
 
-lemma is_least.insert [decidable_linear_order γ] (a) {b} {s : set γ} (hs : is_least s b) :
+lemma is_least.insert [linear_order γ] (a) {b} {s : set γ} (hs : is_least s b) :
   is_least (insert a s) (min a b) :=
 by { rw insert_eq, exact is_least_singleton.union hs }
 
@@ -571,10 +570,10 @@ is_lub_singleton.insert _
 lemma is_glb_pair [semilattice_inf γ] {a b : γ} : is_glb {a, b} (a ⊓ b) :=
 is_glb_singleton.insert _
 
-lemma is_least_pair [decidable_linear_order γ] {a b : γ} : is_least {a, b} (min a b) :=
+lemma is_least_pair [linear_order γ] {a b : γ} : is_least {a, b} (min a b) :=
 is_least_singleton.insert _
 
-lemma is_greatest_pair [decidable_linear_order γ] {a b : γ} : is_greatest {a, b} (max a b) :=
+lemma is_greatest_pair [linear_order γ] {a b : γ} : is_greatest {a, b} (max a b) :=
 is_greatest_singleton.insert _
 
 end
@@ -641,9 +640,9 @@ end linear_order
 ### Least upper bound and the greatest lower bound in linear ordered additive commutative groups
 -/
 
-section decidable_linear_ordered_add_comm_group
+section linear_ordered_add_comm_group
 
-variables [decidable_linear_ordered_add_comm_group α] {s : set α} {a ε : α} (h₃ : 0 < ε)
+variables [linear_ordered_add_comm_group α] {s : set α} {a ε : α} (h₃ : 0 < ε)
 include h₃
 
 lemma is_glb.exists_between_self_add (h₁ : is_glb s a) : ∃ b, b ∈ s ∧ a ≤ b ∧ b < a + ε :=
@@ -690,7 +689,7 @@ begin
   exact ⟨b, b_in, hb₁, lt_of_le_of_ne (h₁.1 b_in) h₅.symm⟩
 end
 
-end decidable_linear_ordered_add_comm_group
+end linear_ordered_add_comm_group
 
 /-!
 ### Images of upper/lower bounds under monotone functions

@@ -40,7 +40,8 @@ namespace module
 
 variables [Π i, add_comm_group (G i)] [Π i, module R (G i)]
 
-/-- A directed system is a functor from the category (directed poset) to the category of R-modules. -/
+/-- A directed system is a functor from the category (directed poset) to the category of
+`R`-modules. -/
 class directed_system (f : Π i j, i ≤ j → G i →ₗ[R] G j) : Prop :=
 (map_self [] : ∀ i x h, f i i h x = x)
 (map_map [] : ∀ i j k hij hjk x, f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x)
@@ -143,8 +144,10 @@ begin
   simp [totalize_apply, hx k hk, le_trans (hx k hk) hij, directed_system.map_map f]
 end
 
-lemma of.zero_exact_aux [nonempty ι] {x : direct_sum ι G} (H : submodule.quotient.mk x = (0 : direct_limit G f)) :
-  ∃ j, (∀ k ∈ x.support, k ≤ j) ∧ direct_sum.to_module R ι (G j) (λ i, totalize G f i j) x = (0 : G j) :=
+lemma of.zero_exact_aux [nonempty ι] {x : direct_sum ι G}
+  (H : submodule.quotient.mk x = (0 : direct_limit G f)) :
+  ∃ j, (∀ k ∈ x.support, k ≤ j) ∧
+    direct_sum.to_module R ι (G j) (λ i, totalize G f i j) x = (0 : G j) :=
 nonempty.elim (by apply_instance) $ assume ind : ι,
 span_induction ((quotient.mk_eq_zero _).1 H)
   (λ x ⟨i, j, hij, y, hxy⟩, let ⟨k, hik, hjk⟩ := directed_order.directed i j in
@@ -153,7 +156,7 @@ span_induction ((quotient.mk_eq_zero _).1 H)
       subst hxy,
       split,
       { intros i0 hi0,
-        rw [dfinsupp.mem_support_iff, dfinsupp.sub_apply, ← direct_sum.single_eq_lof,
+        rw [dfinsupp.mem_support_iff, direct_sum.sub_apply, ← direct_sum.single_eq_lof,
             ← direct_sum.single_eq_lof, dfinsupp.single_apply, dfinsupp.single_apply] at hi0,
         split_ifs at hi0 with hi hj hj, { rwa hi at hik }, { rwa hi at hik }, { rwa hj at hjk },
         exfalso, apply hi0, rw sub_zero },
@@ -172,7 +175,7 @@ span_induction ((quotient.mk_eq_zero _).1 H)
           to_module_totalize_of_le hik hi,
           to_module_totalize_of_le hjk hj]⟩)
   (λ a x ⟨i, hi, hxi⟩,
-    ⟨i, λ k hk, hi k (dfinsupp.support_smul hk),
+    ⟨i, λ k hk, hi k (direct_sum.support_smul _ _ hk),
       by simp [linear_map.map_smul, hxi]⟩)
 
 /-- A component that corresponds to zero in the direct limit is already zero in some
@@ -234,9 +237,11 @@ linear_map.is_add_group_hom _
 module.direct_limit.of_f
 
 @[simp] lemma of_zero (i) : of G f i 0 = 0 := is_add_group_hom.map_zero _
-@[simp] lemma of_add (i x y) : of G f i (x + y) = of G f i x + of G f i y := is_add_hom.map_add _ _ _
+@[simp] lemma of_add (i x y) : of G f i (x + y) = of G f i x + of G f i y :=
+is_add_hom.map_add _ _ _
 @[simp] lemma of_neg (i x) : of G f i (-x) = -of G f i x := is_add_group_hom.map_neg _ _
-@[simp] lemma of_sub (i x y) : of G f i (x - y) = of G f i x - of G f i y := is_add_group_hom.map_sub _ _ _
+@[simp] lemma of_sub (i x y) : of G f i (x - y) = of G f i x - of G f i y :=
+is_add_group_hom.map_sub _ _ _
 
 @[elab_as_eliminator]
 protected theorem induction_on [nonempty ι] {C : direct_limit G f → Prop} (z : direct_limit G f)
@@ -268,9 +273,11 @@ linear_map.is_add_group_hom _
 module.direct_limit.lift_of _ _ _
 
 @[simp] lemma lift_zero : lift G f P g Hg 0 = 0 := is_add_group_hom.map_zero _
-@[simp] lemma lift_add (x y) : lift G f P g Hg (x + y) = lift G f P g Hg x + lift G f P g Hg y := is_add_hom.map_add _ _ _
+@[simp] lemma lift_add (x y) : lift G f P g Hg (x + y) = lift G f P g Hg x + lift G f P g Hg y :=
+is_add_hom.map_add _ _ _
 @[simp] lemma lift_neg (x) : lift G f P g Hg (-x) = -lift G f P g Hg x := is_add_group_hom.map_neg _ _
-@[simp] lemma lift_sub (x y) : lift G f P g Hg (x - y) = lift G f P g Hg x - lift G f P g Hg y := is_add_group_hom.map_sub _ _ _
+@[simp] lemma lift_sub (x y) : lift G f P g Hg (x - y) = lift G f P g Hg x - lift G f P g Hg y :=
+is_add_group_hom.map_sub _ _ _
 
 lemma lift_unique [nonempty ι] (F : direct_limit G f → P) [is_add_group_hom F] (x) :
   F x = @lift _ _ _ G _ f _ P _ (λ i x, F $ of G f i x) (λ i, is_add_group_hom.comp _ _)
@@ -326,7 +333,8 @@ ideal.quotient.eq.2 $ subset_span $ or.inl ⟨i, j, hij, x, rfl⟩
 @[simp] lemma of_neg (i x) : of G f i (-x) = -of G f i x := is_ring_hom.map_neg _
 @[simp] lemma of_sub (i x y) : of G f i (x - y) = of G f i x - of G f i y := is_ring_hom.map_sub _
 @[simp] lemma of_mul (i x y) : of G f i (x * y) = of G f i x * of G f i y := is_ring_hom.map_mul _
-@[simp] lemma of_pow (i x) (n : ℕ) : of G f i (x ^ n) = of G f i x ^ n := is_monoid_hom.map_pow _ _ _
+@[simp] lemma of_pow (i x) (n : ℕ) : of G f i (x ^ n) = of G f i x ^ n :=
+is_monoid_hom.map_pow _ _ _
 
 /-- Every element of the direct limit corresponds to some element in
 some component of the directed system. -/
@@ -361,8 +369,8 @@ polynomial.induction_on q
 
 end
 
-@[elab_as_eliminator] theorem induction_on [nonempty ι] {C : direct_limit G f → Prop} (z : direct_limit G f)
-  (ih : ∀ i x, C (of G f i x)) : C z :=
+@[elab_as_eliminator] theorem induction_on [nonempty ι] {C : direct_limit G f → Prop}
+  (z : direct_limit G f) (ih : ∀ i x, C (of G f i x)) : C z :=
 let ⟨i, x, hx⟩ := exists_of z in hx ▸ ih i x
 
 section of_zero_exact
@@ -399,7 +407,8 @@ begin
 end
 variables {G f}
 
-lemma of.zero_exact_aux [nonempty ι] {x : free_comm_ring Σ i, G i} (H : ideal.quotient.mk _ x = (0 : direct_limit G f)) :
+lemma of.zero_exact_aux [nonempty ι] {x : free_comm_ring Σ i, G i}
+  (H : ideal.quotient.mk _ x = (0 : direct_limit G f)) :
   ∃ j s, ∃ H : (∀ k : Σ i, G i, k ∈ s → k.1 ≤ j), is_supported x s ∧
     lift (λ ix : s, f ix.1.1 j (H ix ix.2) ix.1.2) (restriction s x) = (0 : G j) :=
 begin
@@ -414,8 +423,8 @@ begin
         exacts [or.inr rfl, or.inl rfl] } },
     { refine ⟨i, {⟨i, 1⟩}, _, is_supported_sub (is_supported_of.2 rfl) is_supported_one, _⟩,
       { rintros k (rfl|h), refl },
-      { rw [(restriction _).map_sub, (free_comm_ring.lift _).map_sub,
-            restriction_of, dif_pos, (restriction _).map_one, lift_of, (free_comm_ring.lift _).map_one],
+      { rw [(restriction _).map_sub, (free_comm_ring.lift _).map_sub, restriction_of, dif_pos,
+          (restriction _).map_one, lift_of, (free_comm_ring.lift _).map_one],
         dsimp only, rw [is_ring_hom.map_one (f i i _), sub_self],
         { apply_assumption },
         { exact set.mem_singleton _ } } },
@@ -462,8 +471,10 @@ begin
     rcases (s.image sigma.fst).exists_le with ⟨i, hi⟩,
     rcases directed_order.directed i j with ⟨k, hik, hjk⟩,
     have : ∀ z : Σ i, G i, z ∈ ↑s ∪ t → z.1 ≤ k,
-    { rintros z (hz | hz), exact le_trans (hi z.1 $ finset.mem_image.2 ⟨z, hz, rfl⟩) hik, exact le_trans (hj z hz) hjk },
-    refine ⟨k, ↑s ∪ t, this, is_supported_mul (is_supported_upwards hxs $ set.subset_union_left ↑s t)
+    { rintros z (hz | hz),
+      exacts [(hi z.1 $ finset.mem_image.2 ⟨z, hz, rfl⟩).trans hik, (hj z hz).trans hjk] },
+    refine ⟨k, ↑s ∪ t, this, is_supported_mul
+      (is_supported_upwards hxs $ set.subset_union_left ↑s t)
       (is_supported_upwards hyt $ set.subset_union_right ↑s t), _⟩,
     rw [(restriction _).map_mul, (free_comm_ring.lift _).map_mul,
         ← of.zero_exact_aux2 G f hyt hj this hjk (set.subset_union_right ↑s t),

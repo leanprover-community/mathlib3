@@ -195,38 +195,49 @@ open vector_space
 open finite_dimensional
 
 /-- The restriction of `adjoin_root.mk f` to the polynomials of degree less than `f`,
-viewed as a linear map between vector spaces over `K`. -/
-def degree_lt_linear_map : degree_lt K (f.nat_degree) →ₗ[K] adjoin_root f :=
+viewed as a isomorphism between vector spaces over `K`. -/
+def degree_lt_linear_equiv (hf : f ≠ 0) : degree_lt K (f.nat_degree) ≃ₗ[K] adjoin_root f :=
 { to_fun := λ q, adjoin_root.mk f q,
+  inv_fun := λ g, ⟨(classical.some (quotient.mk_surjective g)) % f,
+    by { rw [mem_degree_lt, ← degree_eq_nat_degree hf], exact euclidean_domain.mod_lt _ hf }⟩,
   map_add' := λ _ _, ring_hom.map_add _ _ _,
   map_smul' := λ _ _, by { simp only [algebra.smul_def, ring_hom.map_mul, submodule.coe_smul,
-    algebra_map_eq, mul_eq_mul_right_iff], left, refl } }
-
-lemma degree_lt_linear_map_def (g : polynomial K) (h : g ∈ degree_lt K f.nat_degree) :
-  degree_lt_linear_map f ⟨g, h⟩ = adjoin_root.mk f g := rfl
-
-lemma degree_lt_linear_map_bijective (hf : f ≠ 0) : function.bijective (degree_lt_linear_map f) :=
-begin
-  split,
-  { rw is_add_group_hom.injective_iff,
-    rintros ⟨g, hg⟩ h,
-    rw [degree_lt_linear_map_def, mk, quotient.eq_zero_iff_mem, mem_span_singleton] at h,
-    rw submodule.mk_eq_zero _ hg,
-    rw [mem_degree_lt, ← degree_eq_nat_degree hf] at hg,
-    exact not_imp_not.mp (euclidean_domain.val_dvd_le g f h) hg },
-  { intro g,
-    obtain ⟨g', hg'⟩ : ∃ q', mk f q' = g := quotient.mk_surjective g,
-    use (g' % f),
-    { rw [mem_degree_lt, ← degree_eq_nat_degree hf],
-      exact euclidean_domain.mod_lt g' hf, },
-    { symmetry,
-      rw [degree_lt_linear_map_def, ← hg', mk, ideal.quotient.eq, mem_span_singleton'],
-      exact ⟨g' / f, by rw [eq_sub_iff_add_eq, mul_comm, euclidean_domain.div_add_mod]⟩ } }
-end
-
-/-- The map `degree_lt_linear_map` is an isomorphism. -/
-def degree_lt_linear_equiv (hf : f ≠ 0) : degree_lt K (f.nat_degree) ≃ₗ[K] adjoin_root f :=
-{ .. (degree_lt_linear_map f), .. equiv.of_bijective _ (degree_lt_linear_map_bijective f hf) }
+    algebra_map_eq, mul_eq_mul_right_iff], left, refl },
+  left_inv :=
+  begin
+    intro p,
+    ext1,
+    let g := (mk f) p,
+    let g' := classical.some (quotient.mk_surjective g),
+    have hg' : mk f g' = g := classical.some_spec (quotient.mk_surjective g),
+    change g' % f = ↑p,
+    have key : ∃ c, g' % f = p + c * f,
+    { cases (mem_span_singleton.mp (ideal.quotient.eq.mp hg')) with q hq,
+      use q - (g' / f),
+      rw [euclidean_domain.mod_eq_sub_mul_div, sub_eq_iff_eq_add.mp hq],
+      ring },
+    cases key with c key,
+    rw key,
+    replace key : (↑p + c * f).degree < f.degree,
+    { rw ← key, exact euclidean_domain.mod_lt g' hf },
+    by_cases c = 0,
+    { rw [h, zero_mul, add_zero] },
+    { rw [←zero_add f.degree, degree_add_eq_of_degree_lt, degree_mul,
+        with_bot.add_lt_add_iff_right (bot_lt_iff_ne_bot.mpr (mt degree_eq_bot.mp hf))] at key,
+      { exact false.rec _ (h (degree_eq_bot.mp ((nat.with_bot.lt_zero_iff c.degree).mp key))) },
+      { rw [mul_comm, degree_mul, degree_eq_nat_degree hf],
+        exact lt_add_of_lt_of_nonneg' (mem_degree_lt.mp (subtype.mem p))
+          (le_of_not_lt (mt (nat.with_bot.lt_zero_iff c.degree).mp (mt degree_eq_bot.mp h))) } },
+  end,
+  right_inv :=
+  begin
+    intro g,
+    let g' := classical.some (quotient.mk_surjective g),
+    change (mk f) (g' % f) = g,
+    rw ← classical.some_spec (quotient.mk_surjective g),
+    exact (ideal.quotient.eq.mpr (mem_span_singleton.mpr
+      ⟨g' / f, (eq_sub_iff_add_eq.mpr (euclidean_domain.div_add_mod g' f)).symm⟩)).symm,
+  end }
 
 lemma finite_dimensional (hf : f ≠ 0) : finite_dimensional K (adjoin_root f) :=
 linear_equiv.finite_dimensional (((polynomial.degree_lt_equiv K (f.nat_degree)).symm).trans

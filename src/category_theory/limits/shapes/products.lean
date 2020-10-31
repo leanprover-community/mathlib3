@@ -73,8 +73,12 @@ colimit.ι (discrete.functor f) b
 
 /-- The fan constructed of the projections from the product is limiting. -/
 def product_is_product (f : β → C) [has_product f] :
-  is_limit (fan.mk _ (pi.π f)) :=
-is_limit.of_iso_limit (limit.is_limit (discrete.functor f)) (cones.ext (iso.refl _) (by tidy))
+  is_limit (fan.mk (∏ f) (pi.π f)) :=
+is_limit.of_iso_limit (limit.is_limit _) (cones.ext (iso.refl _) (by tidy))
+/-- The fan constructed of the projections from the product is limiting. -/
+def coproduct_is_coproduct (f : β → C) [has_coproduct f] :
+  is_colimit (cofan.mk (∐ f) (sigma.ι f)) :=
+is_colimit.of_iso_colimit (colimit.is_colimit _) (cocones.ext (iso.refl _) (by tidy))
 
 /-- A collection of morphisms `P ⟶ f b` induces a morphism `P ⟶ ∏ f`. -/
 abbreviation pi.lift {f : β → C} [has_product f] {P : C} (p : Π b, P ⟶ f b) : P ⟶ ∏ f :=

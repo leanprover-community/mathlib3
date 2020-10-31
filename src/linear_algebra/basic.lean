@@ -390,7 +390,9 @@ instance : semimodule S (M →ₗ[R] M₂) :=
 
 variable (S)
 
-/-- Applying a linear map at `v : M`, seen as a linear map from `M →ₗ[R] M₂` to `M₂`. -/
+/-- Applying a linear map at `v : M`, seen as `S`-linear map from `M →ₗ[R] M₂` to `M₂`.
+
+ See `applyₗ` for a version where `S = R` -/
 def applyₗ' (v : M) : (M →ₗ[R] M₂) →ₗ[S] M₂ :=
 { to_fun := λ f, f v,
   map_add' := λ f g, f.add_apply g v,

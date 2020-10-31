@@ -301,6 +301,19 @@ f.lt_embedding.is_well_order
 protected def dual : order_dual α ↪o order_dual β :=
 ⟨f.to_embedding, λ a b, f.map_rel_iff⟩
 
+/-- A sctrictly monotone map from a linear order is an order embedding. --/
+def of_strict_mono {α β} [linear_order α] [preorder β] (f : α → β)
+  (h : strict_mono f) : α ↪o β :=
+{ to_fun := f,
+  inj' := strict_mono.injective h,
+  map_rel_iff' := begin
+    intros,
+    rcases lt_trichotomy a b with lt | eq | gt,
+    { exact iff_of_true (le_of_lt lt) (le_of_lt (h lt)) },
+    { rw eq, apply iff_of_true, refl, refl },
+    { apply iff_of_false (not_le_of_gt gt) (not_le_of_gt (h gt)) }
+  end }
+
 end order_embedding
 
 /-- The inclusion map `fin n → ℕ` is a relation embedding. -/
@@ -490,6 +503,17 @@ variables [preorder α] [preorder β]
 protected lemma monotone (e : α ≃o β) : monotone e := e.to_order_embedding.monotone
 
 protected lemma strict_mono (e : α ≃o β) : strict_mono e := e.to_order_embedding.strict_mono
+
+/-- To show that `f : α → β`, `g : β → α` make up an order isomorphism of linear orders,
+    it suffices to prove `cmp a (g b) = cmp (f a) b`. --/
+def of_cmp_eq_cmp {α β} [linear_order α] [linear_order β] (f : α → β) (g : β → α)
+  (h : ∀ (a : α) (b : β), cmp a (g b) = cmp (f a) b) : α ≃o β :=
+have gf : ∀ (a : α), a = g (f a) := by { intro, rw [←cmp_eq_eq_iff, h, cmp_self_eq_eq] },
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := λ a, (gf a).symm,
+  right_inv := by { intro, rw [←cmp_eq_eq_iff, ←h, cmp_self_eq_eq] },
+  map_rel_iff' := by { intros, apply le_iff_le_of_cmp_eq_cmp, convert h _ _, apply gf } }
 
 end order_iso
 

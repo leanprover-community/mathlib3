@@ -1172,30 +1172,30 @@ begin
     norm_cast }
 end
 
-lemma pi.nndist_def (f g : Πb, π b) : nndist f g = sup univ (λb, nndist (f b) (g b)) :=
+lemma nndist_pi_def (f g : Πb, π b) : nndist f g = sup univ (λb, nndist (f b) (g b)) :=
 subtype.eta _ _
 
-lemma pi.dist_def (f g : Πb, π b) :
+lemma dist_pi_def (f g : Πb, π b) :
   dist f g = (sup univ (λb, nndist (f b) (g b)) : nnreal) := rfl
 
-lemma pi.dist_lt_iff {f g : Πb, π b} {r : ℝ} (hr : 0 < r) :
+lemma dist_pi_lt_iff {f g : Πb, π b} {r : ℝ} (hr : 0 < r) :
   dist f g < r ↔ ∀b, dist (f b) (g b) < r :=
 begin
   lift r to nnreal using hr.le,
   simp [pi.dist_def, finset.sup_lt_iff (show ⊥ < r, from hr)],
 end
 
-lemma pi.dist_le_iff {f g : Πb, π b} {r : ℝ} (hr : 0 ≤ r) :
+lemma dist_pi_le_iff {f g : Πb, π b} {r : ℝ} (hr : 0 ≤ r) :
   dist f g ≤ r ↔ ∀b, dist (f b) (g b) ≤ r :=
 begin
   lift r to nnreal using hr,
   simp [pi.nndist_def]
 end
 
-lemma pi.le_nndist (f g : Πb, π b) (b : β) : nndist (f b) (g b) ≤ nndist f g :=
+lemma nndist_le_pi_nndist (f g : Πb, π b) (b : β) : nndist (f b) (g b) ≤ nndist f g :=
 by { rw [pi.nndist_def], exact finset.le_sup (finset.mem_univ b) }
 
-lemma pi.le_dist (f g : Πb, π b) (b : β) : dist (f b) (g b) ≤ dist f g :=
+lemma dist_le_pi_dist (f g : Πb, π b) (b : β) : dist (f b) (g b) ≤ dist f g :=
 by simp only [dist_nndist, nnreal.coe_le_coe, pi.le_nndist f g b]
 
 /-- An open ball in a product space is a product of open balls. The assumption `0 < r`

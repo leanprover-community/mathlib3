@@ -265,9 +265,21 @@ lemma eq_of_forall_eventually_le_mul {f g : (ι → ℝ) → (ι → ℝ) → en
   (hle : lo ≤ hi) (h_inf : g lo hi < ⊤) : f lo hi = 0 :=
 begin
   by_contra h0, replace h0 := zero_lt_iff_ne_zero.2 h0,
-  set c := f lo hi / 2 / g lo hi,
-  have c0 : 0 < c := ennreal.div_pos_iff.2 ⟨(ennreal.half_pos h0).ne', h_inf.ne⟩,
-  have := le_mul_of_forall_eventually_le_mul hf hg (λ b hb, Hc b hb c c0) hlo hhi hle,
+  rcases exists_between h0 with ⟨c, hc0, hcf⟩,
+  have : f lo hi ≤ (c / g lo hi) * g lo hi :=
+    le_mul_of_forall_eventually_le_mul hf hg (λ b hb, Hc b hb _
+      (ennreal.div_pos_iff.2 ⟨hc0.ne', h_inf.ne⟩)) hlo hhi hle,
+  by_cases hg0 : g lo hi = 0, { refine h0.ne' _, by simpa [hg0] },
+  refine hcf.not_le _,
+  rwa [ennreal.div_def, mul_assoc, ennreal.inv_mul_cancel hg0 h_inf.ne, mul_one] at this
 end
+
+open asymptotics
+
+lemma eq_of_forall_is_o {f g : (ι → ℝ) → (ι → ℝ) → ennreal}
+  (hf : box_subadditive_on f s) (hg : @box_subadditive_on ι ℝ (order_dual ennreal) _ _ _ g s)
+  (Hc : ∀ (b ∈ s) (c > 0), ∀ᶠ p in 𝓝[(set.Iic b).prod (set.Ici b)] (b, b),
+    f (prod.fst p) p.2 ≤ c * g p.1 p.2) {lo hi} (hlo : lo ∈ s) (hhi : hi ∈ s)
+  (hle : lo ≤ hi) (h_inf : g lo hi < ⊤) : f lo hi = 0 :=
 
 end box_subadditive_on

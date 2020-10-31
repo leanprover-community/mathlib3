@@ -334,8 +334,29 @@ by rw [infi, range_const, cInf_singleton]
 @[simp] theorem csupr_const [hι : nonempty ι] {a : α} : (⨆ b:ι, a) = a :=
 by rw [supr, range_const, cSup_singleton]
 
+lemma csupr_mem_Inter_Icc [nonempty β] [semilattice_sup β] {f g : β → α} (hf : monotone f)
+  (hg : ∀ ⦃m n⦄, m ≤ n → g n ≤ g m) (h : ∀ n, f n ≤ g n) :
+  (⨆ n, f n) ∈ ⋂ n, Icc (f n) (g n) :=
+begin
+  inhabit β,
+  refine mem_Inter.2 (λ n, ⟨le_csupr ⟨g $ default β, forall_range_iff.2 $ λ m, _⟩ _,
+    csupr_le $ λ m, _⟩); exact forall_le_of_monotone_of_mono_decr hf hg h _ _
+end
+
 end conditionally_complete_lattice
 
+instance pi.conditionally_complete_lattice {ι : Type*} {α : Π i : ι, Type*}
+  [Π i, conditionally_complete_lattice (α i)] :
+  conditionally_complete_lattice (Π i, α i) :=
+{ le_cSup := λ s f ⟨g, hg⟩ hf i, le_cSup ⟨g i, set.forall_range_iff.2 $ λ ⟨f', hf'⟩, hg hf' i⟩
+    ⟨⟨f, hf⟩, rfl⟩,
+  cSup_le := λ s f hs hf i, cSup_le (by haveI := hs.to_subtype; apply range_nonempty) $
+    λ b ⟨⟨g, hg⟩, hb⟩, hb ▸ hf hg i,
+  cInf_le := λ s f ⟨g, hg⟩ hf i, cInf_le ⟨g i, set.forall_range_iff.2 $ λ ⟨f', hf'⟩, hg hf' i⟩
+    ⟨⟨f, hf⟩, rfl⟩,
+  le_cInf := λ s f hs hf i, le_cInf (by haveI := hs.to_subtype; apply range_nonempty) $
+    λ b ⟨⟨g, hg⟩, hb⟩, hb ▸ hf hg i,
+  .. pi.lattice, .. pi.has_Sup, .. pi.has_Inf }
 
 section conditionally_complete_linear_order
 variables [conditionally_complete_linear_order α] {s t : set α} {a b : α}

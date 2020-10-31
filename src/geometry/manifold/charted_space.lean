@@ -375,6 +375,13 @@ instance : has_inf (structure_groupoid H) :=
     eq_on_source' :=
       λ e e' he hee', ⟨G.eq_on_source' e e' he.1 hee', G'.eq_on_source' e e' he.2 hee'⟩ } }
 
+instance : semilattice_inf (structure_groupoid H) :=
+{ inf_le_left := λ G G' e he, he.1,
+  inf_le_right := λ G G' e he, he.2,
+  le_inf := λ G G₁ G₂ h₁ h₂ e he, ⟨h₁ he, h₂ he⟩,
+  ..structure_groupoid.has_inf,
+  ..structure_groupoid.partial_order }
+
 instance : has_Inf (structure_groupoid H) :=
 { Inf := λ s,
   { members := {e | ∀ G : structure_groupoid H, G ∈ s → e ∈ G},
@@ -389,20 +396,10 @@ instance : has_Inf (structure_groupoid H) :=
     eq_on_source' := λ e e' he hee' G hG, G.eq_on_source' e e' (he G hG) hee' } }
 
 def complete_lattice_aux : complete_lattice (structure_groupoid H) :=
-complete_lattice_of_Inf _ (begin
-  intros s,
-  split,
-  { intros G hG e he,
-    exact he G hG },
-  { intros G hG e he G' hG',
-    exact hG hG' he }
-end)
+complete_lattice_of_Inf _ (λ s, ⟨λ G hG e he, he G hG, λ G hG e he G' hG', hG hG' he⟩)
 
 instance : complete_lattice (structure_groupoid H) :=
-{ inf_le_left := λ G G' e he, he.1,
-  inf_le_right := λ G G' e he, he.2,
-  le_inf := λ G G₁ G₂ h₁ h₂ e he, ⟨h₁ he, h₂ he⟩,
-  ..structure_groupoid.has_inf,
+{ ..structure_groupoid.semilattice_inf,
   ..structure_groupoid.order_top,
   ..structure_groupoid.order_bot,
   ..complete_lattice_aux }

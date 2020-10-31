@@ -23,7 +23,7 @@ infixr ` • `:73 := has_scalar.smul
 
 /-- A typeclass mixin saying that two actions on the same space commute. -/
 class smul_comm_class (M N α : Type*) [has_scalar M α] [has_scalar N α] : Prop :=
-(smul_comm : ∀ (a : M) (a' : N) (b : α), a • a' • b = a' • a • b)
+(smul_comm : ∀ (m : M) (n : N) (a : α), m • n • a = n • m • a)
 
 export mul_action (mul_smul) smul_comm_class (smul_comm)
 
@@ -132,7 +132,7 @@ class is_scalar_tower (M N α : Type*) [has_scalar M N] [has_scalar N α] [has_s
   (x • y) • z = x • y • z :=
 is_scalar_tower.smul_assoc x y z
 
-lemma smul_one_smul {M} (N) [monoid N] [has_scalar M N] [mul_action N α] [has_scalar M α]
+@[simp] lemma smul_one_smul {M} (N) [monoid N] [has_scalar M N] [mul_action N α] [has_scalar M α]
   [is_scalar_tower M N α] (x : M) (y : α) :
   (x • (1 : N)) • y = x • y :=
 by rw [smul_assoc, one_smul]

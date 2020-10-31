@@ -64,10 +64,10 @@ else
 variables (α : Type*) [linear_order α]
   (β : Type*) [linear_order β]
 
-/-- The type of partial order isomorphism between `α` and `β` defined on finite subsets.
+/-- The type of partial order isomorphisms between `α` and `β` defined on finite subsets.
     A partial order isomorphism is encoded as a finite subset of `α × β`, consisting
     of pairs which should be identified. -/
-def partial_iso : Type _ :=
+def partial_iso : Type* :=
 { f : finset (α × β) // ∀ (p q ∈ f),
   cmp (prod.fst p) (prod.fst q) = cmp (prod.snd p) (prod.snd q) }
 
@@ -88,10 +88,10 @@ begin
   swap,
   { intros x hx y hy,
     rw finset.mem_image at hx hy,
-    rcases hx with ⟨p, hp1, hp2⟩,
-    rcases hy with ⟨q, hq1, hq2⟩,
+    rcases hx with ⟨p, hp1, rfl⟩,
+    rcases hy with ⟨q, hq1, rfl⟩,
     rw finset.mem_filter at hp1 hq1,
-    rw [←hp2, ←hq2, ←lt_iff_lt_of_cmp_eq_cmp (f.property _ _ hp1.1 hq1.1)],
+    rw ←lt_iff_lt_of_cmp_eq_cmp (f.property _ _ hp1.1 hq1.1),
     exact lt_trans hp1.right hq1.right, },
   use b,
   rintros ⟨p1, p2⟩ hp,
@@ -114,18 +114,16 @@ def defined_at_left [densely_ordered β] [no_bot_order β] [no_top_order β] [no
   begin
     intro f,
     cases exists_across f a with b a_b,
-    use insert (a,b) f.val,
-    { intros p q hp hq,
-      rw finset.mem_insert at hp hq,
-      cases hp with ha pf;
-      cases hq with hb qf,
-      { rw [ha, hb], simp },
-      { rw [ha, cmp_eq_cmp_symm], exact a_b _ qf, },
-      { rw hb, exact a_b _ pf, },
-      { exact f.property _ _ pf qf, }, },
-    split,
-    { use b, apply finset.mem_insert_self, },
-    { apply finset.subset_insert, }
+    refine ⟨ ⟨insert (a,b) f.val, _⟩,
+      ⟨b, finset.mem_insert_self _ _⟩, finset.subset_insert _ _⟩,
+    intros p q hp hq,
+    rw finset.mem_insert at hp hq,
+    rcases hp with rfl | pf;
+    rcases hq with rfl | qf,
+    { simp },
+    { rw cmp_eq_cmp_symm, exact a_b _ qf },
+    { exact a_b _ pf },
+    { exact f.property _ _ pf qf },
   end }
 
 /-- A partial isomorphism between `α` and `β` is also a partial isomorphism between `β` and `α`. -/
@@ -162,15 +160,17 @@ variables (α β)
 
 /-- Any countable linear order embeds in any nonempty dense linear order without endpoints. -/
 def order_embedding_from_countable_to_dense
-[encodable α] [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β]
-  : α ↪o β :=
+[encodable α] [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β] :
+  α ↪o β :=
 let our_ideal : ideal (partial_iso α β) :=
   ideal_of_cofinals (default _) defined_at_left in
 have exists_right : ∀ (a : α), ∃ (b : β) (f ∈ our_ideal), (a, b) ∈ subtype.val f :=
-  begin intro a,
+  begin
+    intro a,
     rcases cofinal_meets_ideal_of_cofinals (default _) defined_at_left a
       with ⟨f, ⟨b, hb⟩, hf⟩,
-    exact ⟨b, f, hf, hb⟩, end,
+    exact ⟨b, f, hf, hb⟩,
+  end,
 order_embedding.of_strict_mono (λ a, classical.some (exists_right a))
 begin
   intros a b,
@@ -192,15 +192,19 @@ let to_cofinal : α ⊕ β → cofinal (partial_iso α β) :=
 let our_ideal : ideal (partial_iso α β) :=
   ideal_of_cofinals (default _) to_cofinal in
 have exists_right : ∀ (a : α), ∃ (b : β) (f ∈ our_ideal), (a, b) ∈ subtype.val f :=
-  begin intro a,
+  begin
+    intro a,
     rcases cofinal_meets_ideal_of_cofinals (default _) to_cofinal (sum.inl a)
       with ⟨f, ⟨b, hb⟩, hf⟩,
-    exact ⟨b, f, hf, hb⟩, end,
+    exact ⟨b, f, hf, hb⟩,
+  end,
 have exists_left : ∀ (b : β), ∃ (a : α) (f ∈ our_ideal), (a, b) ∈ subtype.val f :=
-  begin intro b,
+  begin
+    intro b,
     rcases cofinal_meets_ideal_of_cofinals (default _) to_cofinal (sum.inr b)
       with ⟨f, ⟨a, ha⟩, hf⟩,
-    exact ⟨a, f, hf, ha⟩, end,
+    exact ⟨a, f, hf, ha⟩,
+  end,
 order_iso.of_cmp_eq_cmp (λ a, classical.some (exists_right a))
                         (λ b, classical.some (exists_left b))
 begin

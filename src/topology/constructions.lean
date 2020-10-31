@@ -147,6 +147,18 @@ lemma filter.eventually.prod_mk_nhds {pa : α → Prop} {a} (ha : ∀ᶠ x in �
 lemma continuous_swap : continuous (prod.swap : α × β → β × α) :=
 continuous.prod_mk continuous_snd continuous_fst
 
+lemma continuous_uncurry_left {f : α → β → γ} (a : α)
+  (h : continuous (function.uncurry f)) : continuous (f a) :=
+show continuous (function.uncurry f ∘ (λ b, (a, b))), from h.comp (by continuity)
+
+lemma continuous_uncurry_right {f : α → β → γ} (b : β)
+  (h : continuous (function.uncurry f)) : continuous (λ a, f a b) :=
+show continuous (function.uncurry f ∘ (λ a, (a, b))), from h.comp (by continuity)
+
+lemma continuous_curry {g : α × β → γ} (a : α)
+  (h : continuous g) : continuous (function.curry g a) :=
+show continuous (g ∘ (λ b, (a, b))), from h.comp (by continuity)
+
 lemma is_open.prod {s : set α} {t : set β} (hs : is_open s) (ht : is_open t) :
   is_open (set.prod s t) :=
 is_open_inter (continuous_fst s hs) (continuous_snd t ht)
@@ -243,6 +255,18 @@ begin
   simp_rw [le_principal_iff, prod.forall,
     ((nhds_basis_opens _).prod_nhds (nhds_basis_opens _)).mem_iff, prod.exists, exists_prop],
   simp only [and_assoc, and.left_comm]
+end
+
+lemma continuous_uncurry_of_discrete_topology_left [discrete_topology α]
+  {f : α → β → γ} (h : ∀ a, continuous (f a)) : continuous (function.uncurry f) :=
+begin
+  intros v hv₁,
+  rw is_open_prod_iff,
+  intros a b hv₂,
+  use [{a}, (f a ⁻¹' v), is_open_discrete _, h a _ hv₁, mem_singleton _, hv₂],
+  rintro ⟨p₁, p₂⟩ ⟨hp₁, hp₂⟩,
+  have : p₁ = a, by rwa mem_singleton_iff at hp₁,
+  show f p₁ p₂ ∈ v, from this.symm ▸ hp₂,
 end
 
 /-- Given a neighborhood `s` of `(x, x)`, then `(x, x)` has a square open neighborhood

@@ -24,46 +24,6 @@ endowed with an order.
 
 open set function filter
 
-section -- continuity lemmas that belong elsewhere in mathlib probably:
-
-variables
-{α : Type*} [topological_space α]
-{β : Type*} [topological_space β]
-{γ : Type*} [topological_space γ]
-
-variables (f : α → β → γ) (g : α × β → γ)
-
-lemma continuous_uncurry_left (a : α) (h : continuous (uncurry f)) :
-  continuous (f a) :=
-show continuous (uncurry f ∘ (λ b, (a, b))), from h.comp (by continuity)
-
-lemma continuous_uncurry_right (b : β) (h : continuous (uncurry f)) :
-  continuous (λ a, f a b) :=
-show continuous (uncurry f ∘ (λ a, (a, b))), from h.comp (by continuity)
-
-lemma continuous_curry (a : α) (h : continuous g) : continuous (curry g a) :=
-show continuous (g ∘ (λ b, (a, b))), from h.comp (by continuity)
-
--- where does this belong?
-instance : has_continuous_add ℕ := ⟨continuous_of_discrete_topology⟩
-
-lemma continuous_uncurry_of_discrete_topology_left [discrete_topology α]
-  (h : ∀ a, continuous (f a)) : continuous (uncurry f) :=
-begin
-  intros v hv₁,
-  rw is_open_prod_iff,
-  intros a b hv₂,
-  use [{a}, (f a ⁻¹' v), is_open_discrete _, h a _ hv₁, mem_singleton _, hv₂],
-  rintro ⟨p₁, p₂⟩ ⟨hp₁, hp₂⟩,
-  have : p₁ = a, by rwa mem_singleton_iff at hp₁,
-  show f p₁ p₂ ∈ v, from this.symm ▸ hp₂,
-end
-
-lemma continuous_prod_of_discrete_topology_left [discrete_topology α]
-  (h : ∀ a, continuous (λ b, g (a, b))) : continuous g :=
-uncurry_curry g ▸ continuous_uncurry_of_discrete_topology_left _ h
-
-end
 /-!
 ### Invariant sets
 -/
@@ -177,17 +137,7 @@ end
     neighbourhoods of `y`. -/
 lemma mem_omega_limit_iff_frequently₂ (y : β) : y ∈ ω f ϕ s ↔
   ∀ n ∈ nhds y, ∃ᶠ t in f, (ϕ t '' s ∩ n).nonempty :=
-begin
-  rw mem_omega_limit_iff_frequently,
-  have : ∀ t n, (ϕ t '' s ∩ n).nonempty ↔ (s ∩ ϕ t ⁻¹' n).nonempty, begin
-    intros t n,
-    split,
-    { rintro ⟨_, ⟨x, hx₁, hx₂⟩, hy₂⟩,
-      exact ⟨x, hx₁, show ϕ t x ∈ n, from hx₂.symm ▸ hy₂⟩ },
-    { rintro ⟨_, hx₁, hx₂⟩, exact ⟨_, ⟨_, hx₁, rfl⟩, hx₂⟩ },
-  end,
-  simp_rw this,
-end
+by simp_rw [mem_omega_limit_iff_frequently, image_inter_nonempty_iff]
 
 /-- An element `y` is in the ω-limit of `x` w.r.t. `f` if the forward
     images of `x` frequently (w.r.t. `f`) falls within an arbitrary
@@ -328,7 +278,7 @@ lemma map_add (t₁ t₂ : τ) (x : α) : ϕ t₂ (ϕ t₁ x) = ϕ (t₁ + t₂)
     to itself defines a semiflow by `ℕ` on `α`. -/
 def from_iter {g : α → α} (h : continuous g) : semiflow ℕ α :=
 { to_fun := λ n x, g^[n] x,
-  cont'  := continuous_uncurry_of_discrete_topology_left _ (continuous.iterate h),
+  cont'  := continuous_uncurry_of_discrete_topology_left (continuous.iterate h),
   map_add' := λ m n x, by rw [add_comm, iterate_add_apply] }
 
 -- ω-limits under semiflows:
@@ -344,7 +294,7 @@ begin
   ... ⊆ _          : Inter_subset_Inter (λ _, image_Inter_subset _ _)
   ... ⊆ ⋂ u ∈ f, _ : Inter_subset_Inter (λ _, Inter_subset_Inter (λ _,
                        (image_closure_subset_closure_image
-                         (continuous_uncurry_left _ _ ϕ.continuous))))
+                         (continuous_uncurry_left _ ϕ.continuous))))
   ... ⊆ ω f ϕ s : by { simp_rw [image_image2, map_add],
                        exact omega_limit_subset_of_tendsto _ _ (hf t) },
 end

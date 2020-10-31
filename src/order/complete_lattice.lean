@@ -73,13 +73,16 @@ that returns the greatest lower bound of a set. Usually this constructor provide
 poor definitional equalities.  If other fields are known explicitly, they should be
 provided; for example, if `inf` is known explicitly, construct the `complete_lattice`
 instance as
-`instance : complete_lattice my_T :=
+```
+instance : complete_lattice my_T :=
  { inf := better_inf,
    le_inf := ...,
    inf_le_right := ...,
    inf_le_left := ...
    -- don't care to fix sup, Sup, bot, top
-   ..complete_lattice_of_Inf my_T _ }` -/
+   ..complete_lattice_of_Inf my_T _ }
+```
+-/
 def complete_lattice_of_Inf (α : Type*) [H1 : partial_order α]
   [H2 : has_Inf α] (is_glb_Inf : ∀ s : set α, is_glb s (Inf s)) :
   complete_lattice α :=

@@ -355,8 +355,22 @@ lemma nat_trans_of_le_comm {S T : sieve X} (h : S ≤ T) :
 rfl
 
 /-- The presheaf induced by a sieve is a subobject of the yoneda embedding. -/
-instance functor_inclusion_is_mono : mono (functor_inclusion S) :=
+instance functor_inclusion_is_mono : mono S.functor_inclusion :=
 ⟨λ Z f g h, by { ext Y y, apply congr_fun (nat_trans.congr_app h Y) y }⟩
+
+-- TODO: show that when `f` is mono, this is inverse to `functor_inclusion`.
+def sieve_of_subfunctor (R) (f : R ⟶ yoneda.obj X) : sieve X :=
+{ arrows := λ Y g, ∃ t, f.app (opposite.op Y) t = g,
+  downward_closed' := λ Y Z _,
+  begin
+    rintro ⟨t, rfl⟩ g,
+    refine ⟨R.map g.op t, _⟩,
+    rw functor_to_types.naturality _ _ f,
+    simp,
+  end }
+
+instance inclusion_top_is_iso : is_iso ((⊤ : sieve X).functor_inclusion) :=
+{ inv := { app := λ Y a, ⟨a, ⟨⟩⟩ } }
 
 end sieve
 end category_theory

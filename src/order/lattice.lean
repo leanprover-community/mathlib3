@@ -151,6 +151,8 @@ suffices (∃b, ¬b ≤ a) → (∃b, a < b),
 assume ⟨b, hb⟩,
 ⟨a ⊔ b, lt_of_le_of_ne le_sup_left $ mt left_eq_sup.1 hb⟩
 
+/-- If `f` is a monotonically increasing sequence, `g` is a monotonically decreasing
+sequence, and `f n ≤ g n` for all `n`, then for all `m`, `n` we have `f m ≤ g n`. -/
 theorem forall_le_of_monotone_of_mono_decr {β : Type*} [preorder β]
   {f g : α → β} (hf : monotone f) (hg : ∀ ⦃m n⦄, m ≤ n → g n ≤ g m)
   (h : ∀ n, f n ≤ g n) (m n : α) : f m ≤ g n :=

@@ -205,21 +205,12 @@ theorem to_submodule_inj {S U : subalgebra R A} : (S : submodule R A) = U ↔ S 
 /-- As submodules, subalgebras are idempotent. -/
 theorem mul_idem : (S : submodule R A) * (S : submodule R A) = (S : submodule R A) :=
 begin
-  ext, 
-  split,
-  {
-    rintros hx2,
-    have hle : (S : submodule R A) * (S : submodule R A) ≤ (S : submodule R A),
-    {
-      rw submodule.mul_le,
-      rintros y hy z hz,
-      rw mem_to_submodule at *,
-      exact (mul_mem S hy hz),
-    },
-    change (∀ x ∈ (S : submodule R A) * (S : submodule R A), x ∈ (S : submodule R A)) at hle,
-    exact hle x hx2,
+  apply le_antisymm,
+  { rw submodule.mul_le,
+    rintros y hy z hz,
+    exact (mul_mem S hy hz),
   },
-  rintros hx1,
+  intros x hx1,
   have h1 := one_mem S,
   rw <-mem_to_submodule at h1,
   have hx2 := submodule.mul_mem_mul hx1 h1,

@@ -63,7 +63,9 @@ If `G` preserves limits, we have an isomorphism from the image of a product to t
 images.
 -/
 def preserves_products_iso : G.obj (∏ f) ≅ ∏ (λ j, G.obj (f j)) :=
-is_limit.cone_point_unique_up_to_iso (preserves_the_product G f) (limit.is_limit _)
+is_limit.cone_point_unique_up_to_iso
+  (is_limit_of_has_product_of_preserves_limit G f)
+  (limit.is_limit _)
 
 @[simp, reassoc]
 lemma preserves_products_iso_hom_π (j) :

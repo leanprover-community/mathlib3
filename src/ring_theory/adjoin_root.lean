@@ -143,11 +143,11 @@ begin
   refl,
 end
 
-lemma alg_hom_eq_alg_hom (f : polynomial R) (ϕ : adjoin_root f →ₐ[R] S) :
-  ϕ = alg_hom f (ϕ (root f)) (aeval_alg_hom_eq_zero f ϕ) :=
+@[simp] lemma alg_hom_eq_alg_hom (f : polynomial R) (ϕ : adjoin_root f →ₐ[R] S) :
+  alg_hom f (ϕ (root f)) (aeval_alg_hom_eq_zero f ϕ) = ϕ :=
 begin
   suffices : ϕ.equalizer (alg_hom f (ϕ (root f)) (aeval_alg_hom_eq_zero f ϕ)) = ⊤,
-  { exact alg_hom.ext (λ x, (subalgebra.ext_iff.mp (this) x).mpr algebra.mem_top) },
+  { exact (alg_hom.ext (λ x, (subalgebra.ext_iff.mp (this) x).mpr algebra.mem_top)).symm },
   rw [eq_top_iff, ←adjoin_root_eq_top, algebra.adjoin_le_iff, set.singleton_subset_iff],
   exact (@lift_root _ _ _ _ _ _ _ (aeval_alg_hom_eq_zero f ϕ)).symm,
 end
@@ -164,7 +164,7 @@ def equiv (F E : Type*) [field F] [field E] [algebra F E] (f : polynomial F) (hf
     rw [aeval_def, eval₂_eq_eval_map, ←is_root.def, ←mem_roots (map_ne_zero hf)],
     exact multiset.mem_to_finset.mp (subtype.mem x),
     exact field.to_nontrivial E end),
-  left_inv := λ ϕ, (alg_hom_eq_alg_hom f ϕ).symm,
+  left_inv := λ ϕ, alg_hom_eq_alg_hom f ϕ,
   right_inv := λ x, by { ext, exact @lift_root F E _ f _ _ ↑x begin
     rw [eval₂_eq_eval_map, ←is_root.def, ←mem_roots (map_ne_zero hf), ←multiset.mem_to_finset],
     exact subtype.mem x,

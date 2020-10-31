@@ -418,10 +418,17 @@ begin
   tauto
 end
 
-theorem exists_associated_pow_of_mul_eq_pow {a b c : α} (ha : a ≠ 0) (hb : b ≠ 0)
-  (hab : gcd a b = 1) {k : ℕ} (h : a * b = c ^ k) :
-  ∃ (d : α), associated (d ^ k) a :=
+theorem exists_associated_pow_of_mul_eq_pow {a b c : α} (hab : gcd a b = 1) {k : ℕ}
+  (h : a * b = c ^ k) : ∃ (d : α), associated (d ^ k) a :=
 begin
+  by_cases ha : a = 0,
+  { use 0, rw ha,
+    by_cases hk : k = 0,
+    { exfalso, revert h, rw [ha, hk, zero_mul, pow_zero], apply zero_ne_one },
+    { rw zero_pow (nat.pos_of_ne_zero hk) }},
+  by_cases hb : b = 0,
+  { rw [hb, gcd_zero_right] at hab, use 1, rw one_pow,
+    apply (associated_one_iff_is_unit.mpr (normalize_eq_one.mp hab)).symm },
   by_cases hk : k = 0,
   { use 1, rw [hk, pow_zero] at h ⊢, use units.mk_of_mul_eq_one _ _ h,
     rw [units.coe_mk_of_mul_eq_one, one_mul] },

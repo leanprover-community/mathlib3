@@ -521,6 +521,13 @@ begin
         mul_comm _ (n * (b / n)), mul_assoc, add_mul_mod_self_left] }
 end
 
+@[simp] lemma neg_mod_two (i : ℤ) : (-i) % 2 = i % 2 :=
+begin
+  apply int.mod_eq_mod_iff_mod_sub_eq_zero.mpr,
+  convert int.mul_mod_right 2 (-i),
+  simp only [two_mul, sub_eq_add_neg]
+end
+
 local attribute [simp] -- Will be generalized to Euclidean domains.
 theorem mod_self {a : ℤ} : a % a = 0 :=
 by have := mul_mod_left 1 a; rwa one_mul at this

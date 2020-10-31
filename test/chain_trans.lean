@@ -47,3 +47,11 @@ example {w x y z : ℕ} {a b : ℤ} (h₀ : w ≤ x) (h₁ : y = id z) (h₃ : x
 begin
   chain_trans,
 end
+
+variables {α : Type} [preorder α]
+
+/-- long chain of inequalities with a mix of `≤`, `<` and `=` -/
+example {x y z w u v : α} (h₀ : x ≤ y) (h₁ : y < z) (h : y < u) (h₂ : z < w) (h₃ : w = u) (h₄ : u < v) : x ≤ u :=
+begin
+  chain_trans,
+end

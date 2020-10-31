@@ -74,16 +74,7 @@ variables (φ : Π i, M i →ₗ[R] N)
 variables (R ι N φ)
 /-- The linear map constructed using the universal property of the coproduct. -/
 def to_module : (⨁ i, M i) →ₗ[R] N :=
-{ to_fun := to_add_monoid (λ i, (φ i).to_add_monoid_hom),
-  map_add' := (to_add_monoid (λ i, (φ i).to_add_monoid_hom)).map_add,
-  map_smul' := λ c x, direct_sum.induction_on x
-    (by rw [smul_zero, add_monoid_hom.map_zero, smul_zero])
-    (λ i x,
-      by rw [← of_smul, to_add_monoid_of, to_add_monoid_of, linear_map.to_add_monoid_hom_coe,
-        linear_map.map_smul])
-    (λ x y ihx ihy,
-      by rw [smul_add, add_monoid_hom.map_add, ihx, ihy, add_monoid_hom.map_add, smul_add]),
-  ..(to_add_monoid (λ i, (φ i).to_add_monoid_hom))}
+dfinsupp.lsum φ
 
 variables {ι N φ}
 
@@ -103,7 +94,7 @@ variables {ψ} {ψ' : (⨁ i, M i) →ₗ[R] N}
 
 theorem to_module.ext (H : ∀ i, ψ.comp (lof R ι M i) = ψ'.comp (lof R ι M i)) (f : ⨁ i, M i) :
   ψ f = ψ' f :=
-by rw [to_module.unique R ψ, to_module.unique R ψ', funext H]
+by rw dfinsupp.lhom_ext' R H
 
 /--
 The inclusion of a subset of the direct summands

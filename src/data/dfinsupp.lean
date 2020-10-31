@@ -7,6 +7,7 @@ import algebra.module.linear_map
 import algebra.module.pi
 import algebra.big_operators.basic
 import data.set.finite
+import linear_algebra.basic
 
 /-!
 # Dependent functions with finite support
@@ -513,6 +514,22 @@ def lsingle (i) : β i →ₗ[γ] Π₀ i, β i :=
 ⟨single i, λ _ _, single_add, λ _ _, single_smul _⟩
 variable {β}
 
+/-- Two `R`-linear maps from `Π₀ i, β i` which agree on each `single i x` agree everywhere. -/
+lemma lhom_ext {δ : Type*} [add_comm_monoid δ] [semimodule γ δ] ⦃φ ψ : (Π₀ i, β i) →ₗ[γ] δ⦄
+  (h : ∀ i x, φ (single i x) = ψ (single i x)) :
+  φ = ψ :=
+linear_map.to_add_monoid_hom_injective $ add_hom_ext h
+
+/-- Two `R`-linear maps from `Π₀ i, β i` which agree on each `single i x` agree everywhere.
+
+We formulate this fact using equality of linear maps `φ.comp (lsingle a)` and `ψ.comp (lsingle a)`
+so that the `ext` tactic can apply a type-specific extensionality lemma to prove equality of these
+maps. E.g., if `M = R`, then it suffices to verify `φ (single a 1) = ψ (single a 1)`. -/
+@[ext] lemma lhom_ext' {δ : Type*} [add_comm_monoid δ] [semimodule γ δ] ⦃φ ψ : (Π₀ i, β i) →ₗ[γ] δ⦄
+  (h : ∀ i, φ.comp (lsingle β γ i) = ψ.comp (lsingle β γ i)) :
+  φ = ψ :=
+lhom_ext γ $ λ i, linear_map.congr_fun (h i)
+
 @[simp] lemma lmk_apply {s : finset ι} {x} : lmk β γ s x = mk s x := rfl
 
 @[simp] lemma lsingle_apply {i : ι} {x : β i} : lsingle β γ i x = single i x := rfl
@@ -837,6 +854,11 @@ def sum_add_hom [Π i, add_monoid (β i)] [add_comm_monoid γ] (φ : Π i, β i 
 (add_zero _).trans $ congr_arg (φ i) $ show (if H : i ∈ ({i} : finset _) then x else 0) = x,
 from dif_pos $ finset.mem_singleton_self i
 
+@[simp] lemma sum_add_hom_comp_single [Π i, add_comm_monoid (β i)] [add_comm_monoid γ]
+  (f : Π i, β i →+ γ) (i : ι) :
+  (sum_add_hom f).comp (single_add_hom β i) = f i :=
+add_monoid_hom.ext $ λ x, sum_add_hom_single f i x
+
 /-- While we didn't need decidable instances to define it, we do to reduce it to a sum -/
 lemma sum_add_hom_apply [Π i, add_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [add_comm_monoid γ] (φ : Π i, β i →+ γ) (f : Π₀ i, β i) :
@@ -853,7 +875,7 @@ begin
 end
 
 /-- The `dfinsupp` version of `finsupp.lift_add_hom`,-/
-@[simps]
+@[simps apply symm_apply]
 def lift_add_hom [Π i, add_monoid (β i)] [add_comm_monoid γ] :
   (Π i, β i →+ γ) ≃+ ((Π₀ i, β i) →+ γ) :=
 { to_fun := sum_add_hom,
@@ -862,26 +884,40 @@ def lift_add_hom [Π i, add_monoid (β i)] [add_comm_monoid γ] :
   right_inv := λ ψ, by { ext, simp },
   map_add' := λ F G, by { ext, simp } }
 
+/-- The `dfinsupp` version of `finsupp.lift_add_hom_single_add_hom`,-/
+@[simp] lemma lift_add_hom_single_add_hom [Π i, add_comm_monoid (β i)] :
+  lift_add_hom (single_add_hom β) = add_monoid_hom.id (Π₀ i, β i) :=
+lift_add_hom.to_equiv.apply_eq_iff_eq_symm_apply.2 rfl
+
+/-- The `dfinsupp` version of `finsupp.lift_add_hom_apply_single`,-/
+lemma lift_add_hom_apply_single [Π i, add_comm_monoid (β i)] [add_comm_monoid γ]
+  (f : Π i, β i →+ γ) (i : ι) (x : β i) :
+  lift_add_hom f (single i x) = f i x :=
+by simp
+
+/-- The `dfinsupp` version of `finsupp.lift_add_hom_comp_single`,-/
+lemma lift_add_hom_comp_single [Π i, add_comm_monoid (β i)] [add_comm_monoid γ]
+  (f : Π i, β i →+ γ) (i : ι) :
+  (lift_add_hom f).comp (single_add_hom β i) = f i :=
+by simp
+
+/-- The `dfinsupp` version of `finsupp.comp_lift_add_hom`,-/
+lemma comp_lift_add_hom {δ : Type*} [Π i, add_comm_monoid (β i)] [add_comm_monoid γ]
+  [add_comm_monoid δ]
+  (g : γ →+ δ) (f : Π i, β i →+ γ) :
+  g.comp (lift_add_hom f) = lift_add_hom (λ a, g.comp (f a)) :=
+lift_add_hom.symm_apply_eq.1 $ funext $ λ a,
+  by rw [lift_add_hom_symm_apply, add_monoid_hom.comp_assoc, lift_add_hom_comp_single]
+
 lemma sum_sub_index [Π i, add_comm_group (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [add_comm_group γ] {f g : Π₀ i, β i}
   {h : Π i, β i → γ} (h_sub : ∀i b₁ b₂, h i (b₁ - b₂) = h i b₁ - h i b₂) :
   (f - g).sum h = f.sum h - g.sum h :=
-have h_zero : ∀i, h i 0 = 0,
-  from assume i,
-  have h i (0 - 0) = h i 0 - h i 0, from h_sub i 0 0,
-  by simpa using this,
-have h_neg : ∀i b, h i (- b) = - h i b,
-  from assume i b,
-  have h i (0 - b) = h i 0 - h i b, from h_sub i 0 b,
-  by simpa [h_zero] using this,
-have h_add : ∀i b₁ b₂, h i (b₁ + b₂) = h i b₁ + h i b₂,
-  from assume i b₁ b₂,
-  have h i (b₁ - (- b₂)) = h i b₁ - h i (- b₂), from h_sub i b₁ (-b₂),
-  by simpa [h_neg, sub_eq_add_neg] using this,
-by simp [sub_eq_add_neg];
-simp [@sum_add_index ι β _ γ _ _ _ f (-g) h h_zero h_add];
-simp [@sum_neg_index ι β _ γ _ _ _ g h h_zero, h_neg];
-simp [@sum_neg ι β _ γ _ _ _ g h]
+begin
+  have := (lift_add_hom (λ a, add_monoid_hom.of_map_sub (h a) (h_sub a))).map_sub f g,
+  rw [lift_add_hom_apply, sum_add_hom_apply, sum_add_hom_apply, sum_add_hom_apply] at this,
+  exact this,
+end
 
 @[to_additive]
 lemma prod_finset_sum_index {γ : Type w} {α : Type x}
@@ -911,11 +947,30 @@ lemma prod_sum_index  {ι₁ : Type u₁} [decidable_eq ι₁] {β₁ : ι₁ �
   [Π i (x : β i), decidable (x ≠ 0)] {f : Π₀ i, β i} :
   f.sum single = f :=
 begin
-  apply dfinsupp.induction f, {rw [sum_zero_index]},
-  intros i b f H hb ih,
-  rw [sum_add_index, ih, sum_single_index],
-  all_goals { intros, simp }
+  have := add_monoid_hom.congr_fun lift_add_hom_single_add_hom f,
+  rw [lift_add_hom_apply, sum_add_hom_apply] at this,
+  exact this,
 end
+
+/-- The `dfinsupp` version of `finsupp.lsum`,-/
+@[simps apply symm_apply]
+def lsum {R : Type*} [semiring R] [Π i, add_comm_monoid (β i)] [Π i, semimodule R (β i)]
+  [add_comm_monoid γ] [semimodule R γ] :
+    (Π i, β i →ₗ[R] γ) ≃+ ((Π₀ i, β i) →ₗ[R] γ) :=
+{ to_fun := λ F, {
+    to_fun := sum_add_hom (λ i, (F i).to_add_monoid_hom),
+    map_add' := (lift_add_hom (λ i, (F i).to_add_monoid_hom)).map_add,
+    map_smul' := λ c f, by {
+      apply dfinsupp.induction f,
+      { rw [smul_zero, add_monoid_hom.map_zero, smul_zero] },
+      { intros a b f ha hb hf,
+        rw [smul_add, add_monoid_hom.map_add, add_monoid_hom.map_add, smul_add, hf, ←single_smul,
+          sum_add_hom_single, sum_add_hom_single, linear_map.to_add_monoid_hom_coe,
+          linear_map.map_smul], } } },
+  inv_fun := λ F i, F.comp (lsingle β R i),
+  left_inv := λ F, by { ext x y, simp },
+  right_inv := λ F, by { ext x y, simp },
+  map_add' := λ F G, by { ext x y, simp } }
 
 @[to_additive]
 lemma prod_subtype_domain_index [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]

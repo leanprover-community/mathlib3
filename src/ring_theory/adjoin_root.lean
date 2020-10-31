@@ -155,7 +155,7 @@ end
 /-- If `E` is a field extension of `F` and `f` is a polynomial over `F` then the set
 of maps from `F[x]/(f)` into `E` is in bijection with the set of roots of `f` in `E`. -/
 def equiv (F E : Type*) [field F] [field E] [algebra F E] (f : polynomial F) (hf : f ≠ 0) :
-  (adjoin_root f →ₐ[F] E) ≃ (↑(f.map (algebra_map F E)).roots.to_finset : set E) :=
+  (adjoin_root f →ₐ[F] E) ≃ {x // x ∈ (f.map (algebra_map F E)).roots} :=
 { to_fun := λ ϕ, ⟨ϕ (root f), finset.mem_coe.mpr (multiset.mem_to_finset.mpr begin
     rw [mem_roots (map_ne_zero hf), is_root.def, ←eval₂_eq_eval_map],
     exact aeval_alg_hom_eq_zero f ϕ,

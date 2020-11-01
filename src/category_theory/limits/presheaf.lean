@@ -395,37 +395,37 @@ begin
   rw equiv.symm_apply_apply,
 end
 
-instance : has_finite_products (Type u₁) := has_finite_products_of_has_products _
+-- instance : has_finite_products (Type u₁) := has_finite_products_of_has_products _
 
-def type_equiv {X Y Z : Type u₁} : (Z × X ⟶ Y) ≃ (X → (Z → Y)) :=
-{ to_fun := λ f x z, f ⟨z, x⟩,
-  inv_fun := λ f ⟨z, x⟩, f x z,
-  left_inv := λ f, funext (λ ⟨z, x⟩, rfl),
-  right_inv := λ x, rfl }
+-- def type_equiv {X Y Z : Type u₁} : (Z × X ⟶ Y) ≃ (X → (Z → Y)) :=
+-- { to_fun := λ f x z, f ⟨z, x⟩,
+--   inv_fun := λ f ⟨z, x⟩, f x z,
+--   left_inv := λ f, funext (λ ⟨z, x⟩, rfl),
+--   right_inv := λ x, rfl }
 
-def type_equiv' {X Y Z : Type u₁} : (Z ⨯ X ⟶ Y) ≃ (X → (Z → Y)) :=
-begin
-  apply equiv.trans _ type_equiv,
-  apply iso.hom_congr _ (iso.refl _),
-  apply limit.iso_limit_cone (types.binary_product_limit_cone _ _),
-end
+-- def type_equiv' {X Y Z : Type u₁} : (Z ⨯ X ⟶ Y) ≃ (X → (Z → Y)) :=
+-- begin
+--   apply equiv.trans _ type_equiv,
+--   apply iso.hom_congr _ (iso.refl _),
+--   apply limit.iso_limit_cone (types.binary_product_limit_cone _ _),
+-- end
 
-lemma type_equiv'_natural {X X' Y Z : Type u₁} (f : X' ⟶ X) (g : Z ⨯ X ⟶ Y) :
-  type_equiv' (limits.prod.map (𝟙 Z) f ≫ g) = f ≫ type_equiv' g :=
-begin
-  dsimp [type_equiv'],
-  have := types.binary_product_limit_cone Z X,
-  -- ext x' z,
-  -- rw type_equiv',
-  -- dsimp,
-  -- dsimp only [iso.hom_congr],
+-- lemma type_equiv'_natural {X X' Y Z : Type u₁} (f : X' ⟶ X) (g : Z ⨯ X ⟶ Y) :
+--   type_equiv' (limits.prod.map (𝟙 Z) f ≫ g) = f ≫ type_equiv' g :=
+-- begin
+--   dsimp [type_equiv'],
+--   have := types.binary_product_limit_cone Z X,
+--   -- ext x' z,
+--   -- rw type_equiv',
+--   -- dsimp,
+--   -- dsimp only [iso.hom_congr],
 
-  -- dsimp [type_equiv'],
-  -- rw comp_id,
-  -- rw comp_id,
-  -- have := limit.iso_limit_cone_inv_π,
+--   -- dsimp [type_equiv'],
+--   -- rw comp_id,
+--   -- rw comp_id,
+--   -- have := limit.iso_limit_cone_inv_π,
 
-end
+-- end
 
 instance : cartesian_closed (Type u₁) :=
 { closed := λ Z,

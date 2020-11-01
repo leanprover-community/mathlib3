@@ -170,7 +170,7 @@ open sampleable_ext
 
 set_option default_priority 50
 
-instance {α} [sampleable α] [has_repr α] : sampleable_ext α :=
+instance sampleable_ext.of_sampleable {α} [sampleable α] [has_repr α] : sampleable_ext α :=
 { proxy_repr := α,
   sample := sampleable.sample α,
   shrink := shrink }

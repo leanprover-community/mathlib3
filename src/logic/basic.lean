@@ -476,9 +476,8 @@ by rw [@iff_def (¬ a), @iff_def (¬ b)]; exact and_congr decidable.not_imp_comm
 theorem not_iff_comm : (¬ a ↔ b) ↔ (¬ b ↔ a) := decidable.not_iff_comm
 
 -- See Note [decidable namespace]
-protected theorem decidable.not_iff [decidable b] : ¬ (a ↔ b) ↔ (¬ a ↔ b) :=
-by split; intro h; [split, skip]; intro h'; [by_contra, intro, skip];
-   try { refine h _; simp [*] }; rw [h', not_iff_self] at h; exact h
+protected theorem decidable.not_iff : ∀ [decidable b], ¬ (a ↔ b) ↔ (¬ a ↔ b) :=
+by intro h; cases h; simp only [h, iff_true, iff_false]
 
 theorem not_iff : ¬ (a ↔ b) ↔ (¬ a ↔ b) := decidable.not_iff
 

@@ -694,15 +694,15 @@ theorem le_coe [partial_order α] {a b : α} :
   (@has_le.le (with_top α) _ o b ↔ a ≤ b)
 | _ rfl := coe_le_coe
 
-theorem le_coe_iff [partial_order α] (b : α) : ∀(x : with_top α), x ≤ b ↔ (∃a:α, x = a ∧ a ≤ b)
+theorem le_coe_iff [partial_order α] {b : α} : ∀{x : with_top α}, x ≤ b ↔ (∃a:α, x = a ∧ a ≤ b)
 | (some a) := by simp [some_eq_coe, coe_eq_coe]
 | none     := by simp [none_eq_top]
 
-theorem coe_le_iff [partial_order α] (a : α) : ∀(x : with_top α), ↑a ≤ x ↔ (∀b:α, x = ↑b → a ≤ b)
+theorem coe_le_iff [partial_order α] {a : α} : ∀{x : with_top α}, ↑a ≤ x ↔ (∀b:α, x = ↑b → a ≤ b)
 | (some b) := by simp [some_eq_coe, coe_eq_coe]
 | none     := by simp [none_eq_top]
 
-theorem lt_iff_exists_coe [partial_order α] : ∀(a b : with_top α), a < b ↔ (∃p:α, a = p ∧ ↑p < b)
+theorem lt_iff_exists_coe [partial_order α] : ∀{a b : with_top α}, a < b ↔ (∃p:α, a = p ∧ ↑p < b)
 | (some a) b := by simp [some_eq_coe, coe_eq_coe]
 | none     b := by simp [none_eq_top]
 
@@ -710,6 +710,10 @@ theorem lt_iff_exists_coe [partial_order α] : ∀(a b : with_top α), a < b ↔
 lemma coe_lt_coe [partial_order α] {a b : α} : (a : with_top α) < b ↔ a < b := some_lt_some
 
 lemma coe_lt_top [partial_order α] (a : α) : (a : with_top α) < ⊤ := some_lt_none
+
+theorem coe_lt_iff [partial_order α] {a : α} : ∀{x : with_top α}, ↑a < x ↔ (∀b:α, x = ↑b → a < b)
+| (some b) := by simp [some_eq_coe, coe_eq_coe, coe_lt_coe]
+| none     := by simp [none_eq_top, coe_lt_top]
 
 lemma not_top_le_coe [partial_order α] (a : α) : ¬ (⊤:with_top α) ≤ ↑a :=
 assume h, (lt_irrefl ⊤ (lt_of_le_of_lt h (coe_lt_top a))).elim
@@ -813,7 +817,7 @@ instance densely_ordered [partial_order α] [densely_ordered α] [no_top_order �
 lemma lt_iff_exists_coe_btwn [partial_order α] [densely_ordered α] [no_top_order α]
   {a b : with_top α} :
   (a < b) ↔ (∃ x : α, a < ↑x ∧ ↑x < b) :=
-⟨λ h, let ⟨y, hy⟩ := exists_between h, ⟨x, hx⟩ := (lt_iff_exists_coe _ _).1 hy.2 in ⟨x, hx.1 ▸ hy⟩,
+⟨λ h, let ⟨y, hy⟩ := exists_between h, ⟨x, hx⟩ := lt_iff_exists_coe.1 hy.2 in ⟨x, hx.1 ▸ hy⟩,
  λ ⟨x, hx⟩, lt_trans hx.1 hx.2⟩
 
 end with_top

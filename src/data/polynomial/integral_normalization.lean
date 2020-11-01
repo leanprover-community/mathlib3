@@ -77,7 +77,8 @@ begin
   by_cases hi' : i = f.nat_degree,
   { rw [hi', integral_normalization_coeff_nat_degree],
     exacts [one_ne_zero, λ hf, hi $ hf.symm ▸ coeff_zero _] },
-  { rw [integral_normalization_coeff_ne_nat_degree], },
+  { rw [integral_normalization_coeff_ne_nat_degree hi'],
+    exact mul_ne_zero hi (pow_ne_zero _ $ leading_coeff_ne_zero.2 hf) },
 end
 
 variables [comm_ring S]

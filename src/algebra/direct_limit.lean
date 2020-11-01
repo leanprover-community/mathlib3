@@ -361,9 +361,9 @@ theorem polynomial.exists_of [nonempty ι] (q : polynomial (direct_limit G f)) :
 polynomial.induction_on q
   (λ z, let ⟨i, x, h⟩ := exists_of z in ⟨i, C x, by rw [map_C, ring_hom.coe_of, h]⟩)
   (λ q₁ q₂ ⟨i₁, p₁, ih₁⟩ ⟨i₂, p₂, ih₂⟩, let ⟨i, h1, h2⟩ := directed_order.directed i₁ i₂ in
-    ⟨i, p₁.map (ring_hom.of $ f i₁ i h1) + p₂.map (ring_hom.of $ f i₂ i h2),
+    ⟨i, map (ring_hom.of $ f i₁ i h1) p₁ + map (ring_hom.of $ f i₂ i h2) p₂,
      by { rw [polynomial.map_add, map_map, map_map, ← ih₁, ← ih₂],
-      congr' 2; ext x; simp_rw [ring_hom.comp_apply, ring_hom.coe_of, of_f] }⟩)
+      congr' 3; ext x; simp }⟩)
   (λ n z ih, let ⟨i, x, h⟩ := exists_of z in ⟨i, C x * X ^ (n + 1),
     by rw [polynomial.map_mul, map_C, ring_hom.coe_of, h, polynomial.map_pow, map_X]⟩)
 

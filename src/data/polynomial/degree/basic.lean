@@ -402,6 +402,9 @@ calc degree (p + q) = ((p + q).support).sup some : rfl
   (not_not.2 h) (mem_of_max (degree_eq_nat_degree hp)),
 λ h, h.symm ▸ leading_coeff_zero⟩
 
+lemma leading_coeff_ne_zero : leading_coeff p ≠ 0 ↔ p ≠ 0 :=
+not_congr leading_coeff_eq_zero
+
 lemma leading_coeff_eq_zero_iff_deg_eq_bot : leading_coeff p = 0 ↔ degree p = ⊥ :=
 by rw [leading_coeff_eq_zero, degree_eq_bot]
 

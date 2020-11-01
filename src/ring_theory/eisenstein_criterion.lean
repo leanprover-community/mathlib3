@@ -40,7 +40,7 @@ lemma le_nat_degree_of_map_eq_mul_X_pow {n : ℕ}
   {P : ideal R} (hP : P.is_prime) {q : polynomial R} {c : polynomial P.quotient}
   (hq : map (mk P) q = c * X ^ n) (hc0 : c.degree = 0) : n ≤ q.nat_degree :=
 with_bot.coe_le_coe.1
-  (calc ↑n = degree (q.map (mk P)) :
+  (calc ↑n = degree (map (mk P) q) :
       by rw [hq, degree_mul, hc0, zero_add, degree_pow, degree_X, nsmul_one, nat.cast_with_bot]
       ... ≤ degree q : degree_map_le _
       ... ≤ nat_degree q : degree_le_nat_degree)
@@ -75,7 +75,7 @@ theorem irreducible_of_eisenstein_criterion {f : polynomial R} {P : ideal R} (hP
   (hfd0 : 0 < degree f) (h0 : f.coeff 0 ∉ P^2)
   (hu : ∀ x : R, C x ∣ f → is_unit x) : irreducible f :=
 have hf0 : f ≠ 0, from λ _, by simp only [*, not_true, submodule.zero_mem, coeff_zero] at *,
-have hf : f.map (mk P) = C (mk P (leading_coeff f)) * X ^ nat_degree f,
+have hf : map (mk P) f = C (mk P (leading_coeff f)) * X ^ nat_degree f,
   from map_eq_C_mul_X_pow_of_forall_coeff_mem hfP hf0,
 have hfd0 : 0 < f.nat_degree, from with_bot.coe_lt_coe.1
   (lt_of_lt_of_le hfd0 degree_le_nat_degree),

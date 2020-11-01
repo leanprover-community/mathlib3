@@ -173,9 +173,9 @@ The bare function `polynomial A → A ⊗[R] polynomial R`.
 (We don't need to show that it's an algebra map, thankfully --- just that it's an inverse.)
 -/
 def inv_fun (p : polynomial A) : A ⊗[R] polynomial R :=
-p.eval₂
-  (include_left : A →ₐ[R] A ⊗[R] polynomial R)
-  ((1 : A) ⊗ₜ[R] (X : polynomial R))
+eval₂
+  ↑(include_left : A →ₐ[R] A ⊗[R] polynomial R)
+  ((1 : A) ⊗ₜ[R] (X : polynomial R)) p
 
 @[simp]
 lemma inv_fun_add {p q} : inv_fun R A (p + q) = inv_fun R A p + inv_fun R A q :=
@@ -241,7 +241,7 @@ alg_equiv.symm
 @[simp]
 lemma poly_equiv_tensor_apply (p : polynomial A) :
   poly_equiv_tensor R A p =
-    p.eval₂ (include_left : A →ₐ[R] A ⊗[R] polynomial R) ((1 : A) ⊗ₜ[R] (X : polynomial R)) :=
+    eval₂ ↑(include_left : A →ₐ[R] A ⊗[R] polynomial R) ((1 : A) ⊗ₜ[R] (X : polynomial R)) p :=
 rfl
 
 @[simp]
@@ -329,7 +329,7 @@ begin
 end
 
 lemma mat_poly_equiv_smul_one (p : polynomial R) :
-  mat_poly_equiv (p • 1) = p.map (algebra_map R (matrix n n R)) :=
+  mat_poly_equiv (p • 1) = map (algebra_map R (matrix n n R)) p :=
 begin
   ext m i j,
   simp only [coeff_map, one_apply, algebra_map_matrix_apply, mul_boole,

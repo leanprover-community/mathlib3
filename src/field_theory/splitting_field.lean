@@ -30,7 +30,7 @@ variables (i : α →+* β)
 
 /-- a polynomial `splits` iff it is zero or all of its irreducible factors have `degree` 1 -/
 def splits (f : polynomial α) : Prop :=
-f = 0 ∨ ∀ {g : polynomial β}, irreducible g → g ∣ f.map i → degree g = 1
+f = 0 ∨ ∀ {g : polynomial β}, irreducible g → g ∣ map i f → degree g = 1
 
 @[simp] lemma splits_zero : splits i (0 : polynomial α) := or.inl rfl
 
@@ -89,7 +89,7 @@ lemma splits_of_splits_gcd_right {f g : polynomial α} (hg0 : g ≠ 0) (hg : spl
 polynomial.splits_of_splits_of_dvd i hg0 hg (euclidean_domain.gcd_dvd_right f g)
 
 lemma splits_map_iff (j : β →+* γ) {f : polynomial α} :
-  splits j (f.map i) ↔ splits (j.comp i) f :=
+  splits j (map i f) ↔ splits (j.comp i) f :=
 by simp [splits, polynomial.map_map]
 
 theorem splits_one : splits i 1 :=
@@ -102,7 +102,7 @@ theorem splits_X_sub_C {x : α} : (X - C x).splits i :=
 splits_of_degree_eq_one _ $ degree_X_sub_C x
 
 theorem splits_id_iff_splits {f : polynomial α} :
-  (f.map i).splits (ring_hom.id β) ↔ f.splits i :=
+  (map i f).splits (ring_hom.id β) ↔ f.splits i :=
 by rw [splits_map_iff, ring_hom.id_comp]
 
 theorem splits_mul_iff {f g : polynomial α} (hf : f ≠ 0) (hg : g ≠ 0) :
@@ -139,19 +139,19 @@ lemma exists_root_of_splits {f : polynomial α} (hs : splits i f) (hf0 : degree 
 if hf0 : f = 0 then ⟨37, by simp [hf0]⟩
 else
   let ⟨g, hg⟩ := wf_dvd_monoid.exists_irreducible_factor
-    (show ¬ is_unit (f.map i), from mt is_unit_iff_degree_eq_zero.1 (by rwa degree_map))
+    (show ¬ is_unit (map i f), from mt is_unit_iff_degree_eq_zero.1 (by rwa degree_map))
     (map_ne_zero hf0) in
   let ⟨x, hx⟩ := exists_root_of_degree_eq_one (hs.resolve_left hf0 hg.1 hg.2) in
   let ⟨i, hi⟩ := hg.2 in
   ⟨x, by rw [← eval_map, hi, eval_mul, show _ = _, from hx, zero_mul]⟩
 
 lemma exists_multiset_of_splits {f : polynomial α} : splits i f →
-  ∃ (s : multiset β), f.map i = C (i f.leading_coeff) *
+  ∃ (s : multiset β), map i f = C (i f.leading_coeff) *
   (s.map (λ a : β, (X : polynomial β) - C a)).prod :=
-suffices splits (ring_hom.id _) (f.map i) → ∃ s : multiset β, f.map i =
-  (C (f.map i).leading_coeff) * (s.map (λ a : β, (X : polynomial β) - C a)).prod,
+suffices splits (ring_hom.id _) (map i f) → ∃ s : multiset β, map i f =
+  (C (map i f).leading_coeff) * (s.map (λ a : β, (X : polynomial β) - C a)).prod,
 by rwa [splits_map_iff, leading_coeff_map i] at this,
-wf_dvd_monoid.induction_on_irreducible (f.map i)
+wf_dvd_monoid.induction_on_irreducible (map i f)
   (λ _, ⟨{37}, by simp [i.map_zero]⟩)
   (λ u hu _, ⟨0,
     by conv_lhs { rw eq_C_of_degree_eq_zero (is_unit_iff_degree_eq_zero.1 hu) };
@@ -176,13 +176,13 @@ def root_of_splits {f : polynomial α} (hf : f.splits i) (hfd : f.degree ≠ 0) 
 classical.some $ exists_root_of_splits i hf hfd
 
 theorem map_root_of_splits {f : polynomial α} (hf : f.splits i) (hfd) :
-  f.eval₂ i (root_of_splits i hf hfd) = 0 :=
+  eval₂ i (root_of_splits i hf hfd) f = 0 :=
 classical.some_spec $ exists_root_of_splits i hf hfd
 
 theorem roots_map {f : polynomial α} (hf : f.splits $ ring_hom.id α) :
-  (f.map i).roots = (f.roots).map i :=
+  (map i f).roots = (f.roots).map i :=
 if hf0 : f = 0 then by rw [hf0, map_zero, roots_zero, roots_zero, multiset.map_zero] else
-have hmf0 : f.map i ≠ 0 := map_ne_zero hf0,
+have hmf0 : map i f ≠ 0 := map_ne_zero hf0,
 let ⟨m, hm⟩ := exists_multiset_of_splits _ hf in
 have h1 : ∀ p ∈ m.map (λ r, X - C r), (p : _) ≠ 0,
   from multiset.forall_mem_map_iff.2 $ λ _ _, X_sub_C_ne_zero _,
@@ -201,13 +201,13 @@ end
 
 lemma eq_prod_roots_of_splits {p : polynomial α} {i : α →+* β}
   (hsplit : splits i p) :
-  p.map i = C (i p.leading_coeff) * ((p.map i).roots.map (λ a, X - C a)).prod :=
+  map i p = C (i p.leading_coeff) * ((map i p).roots.map (λ a, X - C a)).prod :=
 begin
   by_cases p_eq_zero : p = 0,
   { rw [p_eq_zero, map_zero, leading_coeff_zero, i.map_zero, C.map_zero, zero_mul] },
 
   obtain ⟨s, hs⟩ := exists_multiset_of_splits i hsplit,
-  have map_ne_zero : p.map i ≠ 0 := map_ne_zero (p_eq_zero),
+  have map_ne_zero : map i p ≠ 0 := map_ne_zero (p_eq_zero),
   have prod_ne_zero : C (i p.leading_coeff) * (multiset.map (λ a, X - C a) s).prod ≠ 0 :=
     by rwa hs at map_ne_zero,
 
@@ -227,7 +227,7 @@ begin
 end
 
 lemma eq_X_sub_C_of_splits_of_single_root {x : α} {h : polynomial α} (h_splits : splits i h)
-  (h_roots : (h.map i).roots = {i x}) : h = (C (leading_coeff h)) * (X - C x) :=
+  (h_roots : (map i h).roots = {i x}) : h = (C (leading_coeff h)) * (X - C x) :=
 begin
   apply polynomial.map_injective _ i.injective,
   rw [eq_prod_roots_of_splits h_splits, h_roots],
@@ -249,11 +249,11 @@ begin
 end
 
 lemma nat_degree_eq_card_roots {p : polynomial α} {i : α →+* β}
-  (hsplit : splits i p) : p.nat_degree = (p.map i).roots.card :=
+  (hsplit : splits i p) : p.nat_degree = (map i p).roots.card :=
 begin
   by_cases p_eq_zero : p = 0,
   { rw [p_eq_zero, nat_degree_zero, map_zero, roots_zero, multiset.card_zero] },
-  have map_ne_zero : p.map i ≠ 0 := map_ne_zero (p_eq_zero),
+  have map_ne_zero : map i p ≠ 0 := map_ne_zero (p_eq_zero),
   rw eq_prod_roots_of_splits hsplit at map_ne_zero,
 
   conv_lhs { rw [← nat_degree_map i, eq_prod_roots_of_splits hsplit] },
@@ -266,7 +266,7 @@ begin
 end
 
 lemma degree_eq_card_roots {p : polynomial α} {i : α →+* β} (p_ne_zero : p ≠ 0)
-  (hsplit : splits i p) : p.degree = (p.map i).roots.card :=
+  (hsplit : splits i p) : p.degree = (map i p).roots.card :=
 by rw [degree_eq_nat_degree p_ne_zero, nat_degree_eq_card_roots hsplit]
 
 section UFD
@@ -277,21 +277,21 @@ local infix ` ~ᵤ ` : 50 := associated
 open unique_factorization_monoid associates
 
 lemma splits_of_exists_multiset {f : polynomial α} {s : multiset β}
-  (hs : f.map i = C (i f.leading_coeff) * (s.map (λ a : β, (X : polynomial β) - C a)).prod) :
+  (hs : map i f = C (i f.leading_coeff) * (s.map (λ a : β, (X : polynomial β) - C a)).prod) :
   splits i f :=
 if hf0 : f = 0 then or.inl hf0
 else
   or.inr $ λ p hp hdp,
     have ht : multiset.rel associated
-      (factors (f.map i)) (s.map (λ a : β, (X : polynomial β) - C a)) :=
+      (factors (map i f)) (s.map (λ a : β, (X : polynomial β) - C a)) :=
     factors_unique
       (λ p hp, irreducible_of_factor _ hp)
       (λ p' m, begin
           obtain ⟨a,m,rfl⟩ := multiset.mem_map.1 m,
           exact irreducible_of_degree_eq_one (degree_X_sub_C _),
         end)
-      (associated.symm $ calc _ ~ᵤ f.map i :
-        ⟨(units.map' C : units β →* units (polynomial β)) (units.mk0 (f.map i).leading_coeff
+      (associated.symm $ calc _ ~ᵤ map i f :
+        ⟨(units.map' C : units β →* units (polynomial β)) (units.mk0 (map i f).leading_coeff
             (mt leading_coeff_eq_zero.1 (map_ne_zero hf0))),
           by conv_rhs {rw [hs, ← leading_coeff_map i, mul_comm]}; refl⟩
         ... ~ᵤ _ : associated.symm (unique_factorization_monoid.factors_prod (by simpa using hf0))),
@@ -314,7 +314,7 @@ unique_factorization_monoid.induction_on_prime f (λ _, splits_zero _)
 end UFD
 
 lemma splits_iff_exists_multiset {f : polynomial α} : splits i f ↔
-  ∃ (s : multiset β), f.map i = C (i f.leading_coeff) *
+  ∃ (s : multiset β), map i f = C (i f.leading_coeff) *
   (s.map (λ a : β, (X : polynomial β) - C a)).prod :=
 ⟨exists_multiset_of_splits i, λ ⟨s, hs⟩, splits_of_exists_multiset i hs⟩
 

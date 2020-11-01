@@ -190,34 +190,34 @@ by rw [div_def, mul_comm, degree_mul_leading_coeff_inv _ hq0];
     (by rw degree_mul_leading_coeff_inv _ hq0; exact hq)
 
 @[simp] lemma degree_map [field k] (p : polynomial R) (f : R →+* k) :
-  degree (p.map f) = degree p :=
+  degree (map f p) = degree p :=
 p.degree_map_eq_of_injective f.injective
 
 @[simp] lemma nat_degree_map [field k] (f : R →+* k) :
-  nat_degree (p.map f) = nat_degree p :=
+  nat_degree (map f p) = nat_degree p :=
 nat_degree_eq_of_degree_eq (degree_map _ f)
 
 @[simp] lemma leading_coeff_map [field k] (f : R →+* k) :
-  leading_coeff (p.map f) = f (leading_coeff p) :=
+  leading_coeff (map f p) = f (leading_coeff p) :=
 by simp only [← coeff_nat_degree, coeff_map f, nat_degree_map]
 
 theorem monic_map_iff [field k] {f : R →+* k} {p : polynomial R} :
-  (p.map f).monic ↔ p.monic :=
+  (map f p).monic ↔ p.monic :=
 by rw [monic, leading_coeff_map, ← f.map_one, function.injective.eq_iff f.injective, monic]
 
 theorem is_unit_map [field k] (f : R →+* k) :
-  is_unit (p.map f) ↔ is_unit p :=
+  is_unit (map f p) ↔ is_unit p :=
 by simp_rw [is_unit_iff_degree_eq_zero, degree_map]
 
 lemma map_div [field k] (f : R →+* k) :
-  (p / q).map f = p.map f / q.map f :=
+  map f (p / q) = map f p / map f q :=
 if hq0 : q = 0 then by simp [hq0]
 else
 by rw [div_def, div_def, map_mul, map_div_by_monic f (monic_mul_leading_coeff_inv hq0)];
   simp [f.map_inv, coeff_map f]
 
 lemma map_mod [field k] (f : R →+* k) :
-  (p % q).map f = p.map f % q.map f :=
+  map f (p % q) = map f p % map f q :=
 if hq0 : q = 0 then by simp [hq0]
 else by rw [mod_def, mod_def, leading_coeff_map f, ← f.map_inv, ← map_C f,
   ← map_mul f, map_mod_by_monic f (monic_mul_leading_coeff_inv hq0)]
@@ -226,31 +226,31 @@ section
 open euclidean_domain
 local attribute [-instance] finsupp.finsupp.decidable_eq
 theorem gcd_map [field k] (f : R →+* k) :
-  gcd (p.map f) (q.map f) = (gcd p q).map f :=
+  gcd (map f p) (map f q) = map f (gcd p q) :=
 gcd.induction p q (λ x, by simp_rw [map_zero, euclidean_domain.gcd_zero_left]) $ λ x y hx ih,
 by rw [gcd_val, ← map_mod, ih, ← gcd_val]
 end
 
 lemma eval₂_gcd_eq_zero [comm_semiring k] {ϕ : R →+* k} {f g : polynomial R} {α : k}
-  (hf : f.eval₂ ϕ α = 0) (hg : g.eval₂ ϕ α = 0) : (euclidean_domain.gcd f g).eval₂ ϕ α = 0 :=
+  (hf : eval₂ ϕ α f = 0) (hg : eval₂ ϕ α g = 0) : eval₂ ϕ α (euclidean_domain.gcd f g) = 0 :=
 by rw [euclidean_domain.gcd_eq_gcd_ab f g, polynomial.eval₂_add, polynomial.eval₂_mul,
        polynomial.eval₂_mul, hf, hg, zero_mul, zero_mul, zero_add]
 
-lemma eval_gcd_eq_zero {f g : polynomial R} {α : R} (hf : f.eval α = 0) (hg : g.eval α = 0) :
-  (euclidean_domain.gcd f g).eval α = 0 := eval₂_gcd_eq_zero hf hg
+lemma eval_gcd_eq_zero {f g : polynomial R} {α : R} (hf : eval α f = 0) (hg : eval α g = 0) :
+  eval α (euclidean_domain.gcd f g) = 0 := eval₂_gcd_eq_zero hf hg
 
 lemma root_left_of_root_gcd [comm_semiring k] {ϕ : R →+* k} {f g : polynomial R} {α : k}
-  (hα : (euclidean_domain.gcd f g).eval₂ ϕ α = 0) : f.eval₂ ϕ α = 0 :=
+  (hα : eval₂ ϕ α (euclidean_domain.gcd f g) = 0) : eval₂ ϕ α f = 0 :=
 by { cases euclidean_domain.gcd_dvd_left f g with p hp,
      rw [hp, polynomial.eval₂_mul, hα, zero_mul] }
 
 lemma root_right_of_root_gcd [comm_semiring k] {ϕ : R →+* k} {f g : polynomial R} {α : k}
-  (hα : (euclidean_domain.gcd f g).eval₂ ϕ α = 0) : g.eval₂ ϕ α = 0 :=
+  (hα : eval₂ ϕ α (euclidean_domain.gcd f g) = 0) : eval₂ ϕ α g = 0 :=
 by { cases euclidean_domain.gcd_dvd_right f g with p hp,
      rw [hp, polynomial.eval₂_mul, hα, zero_mul] }
 
 lemma root_gcd_iff_root_left_right [comm_semiring k] {ϕ : R →+* k} {f g : polynomial R} {α : k} :
-  (euclidean_domain.gcd f g).eval₂ ϕ α = 0 ↔ (f.eval₂ ϕ α = 0) ∧ (g.eval₂ ϕ α = 0) :=
+  eval₂ ϕ α (euclidean_domain.gcd f g) = 0 ↔ (eval₂ ϕ α f = 0) ∧ (eval₂ ϕ α g = 0) :=
 ⟨λ h, ⟨root_left_of_root_gcd h, root_right_of_root_gcd h⟩, λ h, eval₂_gcd_eq_zero h.1 h.2⟩
 
 lemma is_root_gcd_iff_is_root_left_right {f g : polynomial R} {α : R} :
@@ -258,20 +258,20 @@ lemma is_root_gcd_iff_is_root_left_right {f g : polynomial R} {α : R} :
 root_gcd_iff_root_left_right
 
 theorem is_coprime_map [field k] (f : R →+* k) :
-  is_coprime (p.map f) (q.map f) ↔ is_coprime p q :=
+  is_coprime (map f p) (map f q) ↔ is_coprime p q :=
 by rw [← gcd_is_unit_iff, ← gcd_is_unit_iff, gcd_map, is_unit_map]
 
 @[simp] lemma map_eq_zero [semiring S] [nontrivial S] (f : R →+* S) :
-  p.map f = 0 ↔ p = 0 :=
+  map f p = 0 ↔ p = 0 :=
 by simp only [polynomial.ext_iff, f.map_eq_zero, coeff_map, coeff_zero]
 
-lemma map_ne_zero [semiring S] [nontrivial S] {f : R →+* S} (hp : p ≠ 0) : p.map f ≠ 0 :=
+lemma map_ne_zero [semiring S] [nontrivial S] {f : R →+* S} (hp : p ≠ 0) : map f p ≠ 0 :=
 mt (map_eq_zero f).1 hp
 
 lemma mem_roots_map [field k] {f : R →+* k} {x : k} (hp : p ≠ 0) :
-  x ∈ (p.map f).roots ↔ p.eval₂ f x = 0 :=
+  x ∈ (map f p).roots ↔ p.eval₂ f x = 0 :=
 begin
-  rw mem_roots (show p.map f ≠ 0, by exact map_ne_zero hp),
+  rw mem_roots (show map f p ≠ 0, by exact map_ne_zero hp),
   dsimp only [is_root],
   rw polynomial.eval_map,
 end
@@ -308,7 +308,7 @@ by simp [hp]
 
 lemma normalize_monic (h : monic p) : normalize p = p := by simp [h]
 
-theorem map_dvd_map' [field k] (f : R →+* k) {x y : polynomial R} : x.map f ∣ y.map f ↔ x ∣ y :=
+theorem map_dvd_map' [field k] (f : R →+* k) {x y : polynomial R} : map f x ∣ map f y ↔ x ∣ y :=
 if H : x = 0 then by rw [H, map_zero, zero_dvd_iff, zero_dvd_iff, map_eq_zero]
 else by rw [← normalize_dvd_iff, ← @normalize_dvd_iff (polynomial R),
     normalize_apply, normalize_apply,

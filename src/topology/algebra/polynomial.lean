@@ -30,7 +30,7 @@ degree_pos_induction_on p h
 
 @[continuity]
 lemma polynomial.continuous_eval {α} [comm_semiring α] [topological_space α]
-  [topological_semiring α] (p : polynomial α) : continuous (λ x, p.eval x) :=
+  [topological_semiring α] (p : polynomial α) : continuous (λ x, eval x p) :=
 begin
   apply p.induction,
   { convert continuous_const,

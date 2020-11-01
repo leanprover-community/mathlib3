@@ -157,7 +157,7 @@ map_C _
 map_X _
 
 theorem smul_eval_smul (m : M) (f : polynomial S) (x : S) :
-  (m • f).eval (m • x) = m • f.eval x :=
+  eval (m • x) (m • f) = m • eval x f :=
 polynomial.induction_on f
   (λ r, by rw [smul_C, eval_C, eval_C])
   (λ f g ihf ihg, by rw [smul_add, eval_add, ihf, ihg, eval_add, smul_add])
@@ -165,11 +165,11 @@ polynomial.induction_on f
       eval_mul, eval_C, eval_pow, eval_X, smul_mul', smul_pow])
 
 theorem eval_smul' [mul_semiring_action G S] (g : G) (f : polynomial S) (x : S) :
-  f.eval (g • x) = g • (g⁻¹ • f).eval x :=
+  eval (g • x) f = g • eval x (g⁻¹ • f) :=
 by rw [← smul_eval_smul, mul_action.smul_inv_smul]
 
 theorem smul_eval [mul_semiring_action G S] (g : G) (f : polynomial S) (x : S) :
-  (g • f).eval x = g • f.eval (g⁻¹ • x) :=
+  eval x (g • f) = g • eval (g⁻¹ • x) f :=
 by rw [← smul_eval_smul, mul_action.smul_inv_smul]
 
 end polynomial
@@ -214,15 +214,17 @@ quotient.fintype _
 
 /-- the product of `(X - g • x)` over distinct `g • x`. -/
 noncomputable def prod_X_sub_smul (x : R) : polynomial R :=
-(finset.univ : finset (quotient_group.quotient $ mul_action.stabilizer G x)).prod $
-λ g, polynomial.X - polynomial.C (of_quotient_stabilizer G x g)
+∏ g : (quotient_group.quotient $ mul_action.stabilizer G x),
+  (polynomial.X - polynomial.C (of_quotient_stabilizer G x g))
 
 theorem prod_X_sub_smul.monic (x : R) : (prod_X_sub_smul G R x).monic :=
 polynomial.monic_prod_of_monic _ _ $ λ g _, polynomial.monic_X_sub_C _
 
-theorem prod_X_sub_smul.eval (x : R) : (prod_X_sub_smul G R x).eval x = 0 :=
-(finset.prod_hom _ (polynomial.eval x)).symm.trans $ finset.prod_eq_zero (finset.mem_univ $ quotient_group.mk 1) $
-by rw [of_quotient_stabilizer_mk, one_smul, polynomial.eval_sub, polynomial.eval_X, polynomial.eval_C, sub_self]
+theorem prod_X_sub_smul.eval (x : R) : polynomial.eval x (prod_X_sub_smul G R x) = 0 :=
+(polynomial.eval_prod _ _ _).trans $
+  finset.prod_eq_zero (finset.mem_univ $ quotient_group.mk (1 : G)) $
+by rw [of_quotient_stabilizer_mk, one_smul, polynomial.eval_sub, polynomial.eval_X,
+  polynomial.eval_C, sub_self]
 
 theorem prod_X_sub_smul.smul (x : R) (g : G) :
   g • prod_X_sub_smul G R x = prod_X_sub_smul G R x :=

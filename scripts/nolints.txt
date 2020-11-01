@@ -954,9 +954,6 @@ apply_nolint tactic.interactive.side_conditions doc_blame
 apply_nolint tactic.interactive.solve_mvar doc_blame
 apply_nolint tactic.interactive.unify_with_instance doc_blame
 
--- tactic/norm_num.lean
-apply_nolint norm_num.derive doc_blame
-
 -- tactic/obviously.lean
 apply_nolint obviously.attr doc_blame
 

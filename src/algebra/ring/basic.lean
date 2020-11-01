@@ -197,8 +197,11 @@ def mul_right {R : Type*} [semiring R] (r : R) : R →+ R :=
   map_zero' := zero_mul r,
   map_add' := λ _ _, add_mul _ _ r }
 
-@[simp] lemma mul_right_apply {R : Type*} [semiring R] (a r : R) :
-  (mul_right r : R → R) a = a * r := rfl
+@[simp] lemma coe_mul_right {R : Type*} [semiring R] (r : R) :
+  ⇑(mul_right r) = (* r) := rfl
+
+lemma mul_right_apply {R : Type*} [semiring R] (a r : R) :
+  mul_right r a = a * r := rfl
 
 end add_monoid_hom
 
@@ -225,6 +228,8 @@ variables {rα : semiring α} {rβ : semiring β}
 include rα rβ
 
 instance : has_coe_to_fun (α →+* β) := ⟨_, ring_hom.to_fun⟩
+
+initialize_simps_projections ring_hom (to_fun → apply)
 
 @[simp] lemma to_fun_eq_coe (f : α →+* β) : f.to_fun = f := rfl
 

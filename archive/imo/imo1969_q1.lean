@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker
 -/
 import algebra.group_power.identities
+import data.nat.prime
 import tactic.linarith
 import tactic.norm_cast
 import data.set.finite
@@ -46,7 +47,7 @@ Should this be in src? Probably, with assumptions 1 < a.nat_abs and 1 < b.nat_ab
 lemma int_not_prime' {a b : ℤ} {c : ℕ}
   (ha : 1 < a.nat_abs) (hb : 1 < b.nat_abs) (hc : a*b = (c : ℤ)) : ¬ prime c :=
 have h4 : a.nat_abs * b.nat_abs = c, by rw [←nat_abs_mul, hc, nat_abs_of_nat],
-norm_num.not_prime_helper a.nat_abs b.nat_abs c h4 ha hb
+tactic.norm_num.not_prime_helper a.nat_abs b.nat_abs c h4 ha hb
 
 lemma int_not_prime {a b : ℤ} {c : ℕ}
   (ha : 1 < a) (hb : 1 < b) (hc : a*b = (c : ℤ)) : ¬ prime c :=

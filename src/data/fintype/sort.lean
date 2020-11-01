@@ -14,7 +14,7 @@ open finset
 is the increasing bijection between `fin k` and `α`. Here, `h` is a proof that
 the cardinality of `s` is `k`. We use this instead of a map `fin s.card → α` to avoid
 casting issues in further uses of this function. -/
-noncomputable def mono_equiv_of_fin (α) [fintype α] [decidable_linear_order α] {k : ℕ}
+noncomputable def mono_equiv_of_fin (α) [fintype α] [linear_order α] {k : ℕ}
   (h : fintype.card α = k) : fin k ≃ α :=
 equiv.of_bijective (mono_of_fin univ h) begin
   apply set.bijective_iff_bij_on_univ.2,

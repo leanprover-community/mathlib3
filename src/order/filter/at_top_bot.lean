@@ -67,7 +67,7 @@ lemma at_bot_basis' [semilattice_inf α] (a : α) :
 
 @[instance]
 lemma at_top_ne_bot [nonempty α] [semilattice_sup α] : ne_bot (at_top : filter α) :=
-at_top_basis.forall_nonempty_iff_ne_bot.1 $ λ a _, nonempty_Ici
+at_top_basis.ne_bot_iff.2 $ λ a _, nonempty_Ici
 
 @[instance]
 lemma at_bot_ne_bot [nonempty α] [semilattice_inf α] : ne_bot (at_bot : filter α) :=
@@ -274,7 +274,6 @@ then after any point, it reaches a value strictly greater than all previous valu
 lemma high_scores [linear_order β] [no_top_order β] {u : ℕ → β}
   (hu : tendsto u at_top at_top) : ∀ N, ∃ n ≥ N, ∀ k < n, u k < u n :=
 begin
-  letI := classical.DLO β,
   intros N,
   let A := finset.image u (finset.range $ N+1), -- A = {u 0, ..., u N}
   have Ane : A.nonempty,

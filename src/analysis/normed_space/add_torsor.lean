@@ -3,8 +3,9 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Yury Kudryashov.
 -/
-import algebra.add_torsor
+import linear_algebra.affine_space.midpoint
 import topology.metric_space.isometry
+import topology.instances.real_vector_space
 
 /-!
 # Torsors of additive normed group actions.
@@ -58,6 +59,12 @@ by rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, vadd_vsub_vadd_cancel_left]
 @[simp] lemma dist_vadd_cancel_right (v₁ v₂ : V) (x : P) :
   dist (v₁ +ᵥ x) (v₂ +ᵥ x) = dist v₁ v₂ :=
 by rw [dist_eq_norm_vsub V, dist_eq_norm, vadd_vsub_vadd_cancel_right]
+
+@[simp] lemma dist_vadd_left (v : V) (x : P) : dist (v +ᵥ x) x = ∥v∥ :=
+by simp [dist_eq_norm_vsub V _ x]
+
+@[simp] lemma dist_vadd_right (v : V) (x : P) : dist x (v +ᵥ x) = ∥v∥ :=
+by rw [dist_comm, dist_vadd_left]
 
 @[simp] lemma dist_vsub_cancel_left (x y z : P) : dist (x -ᵥ y) (x -ᵥ z) = dist y z :=
 by rw [dist_eq_norm, vsub_sub_vsub_cancel_left, dist_comm, dist_eq_norm_vsub V]
@@ -122,6 +129,14 @@ def vadd_const (p : P) : V ≃ᵢ P :=
 
 @[simp] lemma vadd_const_to_equiv (p : P) : (vadd_const p).to_equiv = equiv.vadd_const p := rfl
 
+/-- `p' ↦ p -ᵥ p'` as an equivalence. -/
+def const_vsub (p : P) : P ≃ᵢ V :=
+⟨equiv.const_vsub p, isometry_emetric_iff_metric.2 $ λ p₁ p₂, dist_vsub_cancel_left _ _ _⟩
+
+@[simp] lemma coe_const_vsub (p : P) : ⇑(const_vsub p) = (-ᵥ) p := rfl
+
+@[simp] lemma coe_const_vsub_symm (p : P) : ⇑(const_vsub p).symm = λ v, -v +ᵥ p := rfl
+
 variables (P)
 
 /-- The map `p ↦ v +ᵥ p` as an isometric automorphism of `P`. -/
@@ -134,6 +149,57 @@ variable (V)
 
 @[simp] lemma const_vadd_zero : const_vadd P (0:V) = isometric.refl P :=
 isometric.to_equiv_inj $ equiv.const_vadd_zero V P
+
+variables {P V}
+
+/-- Point reflection in `x` as an `isometric` homeomorphism. -/
+def point_reflection (x : P) : P ≃ᵢ P :=
+(const_vsub x).trans (vadd_const x)
+
+lemma point_reflection_apply (x y : P) : point_reflection x y = x -ᵥ y +ᵥ x := rfl
+
+@[simp] lemma point_reflection_to_equiv (x : P) :
+  (point_reflection x).to_equiv = equiv.point_reflection x := rfl
+
+@[simp] lemma point_reflection_self (x : P) : point_reflection x x = x :=
+equiv.point_reflection_self x
+
+lemma point_reflection_involutive (x : P) : function.involutive (point_reflection x : P → P) :=
+equiv.point_reflection_involutive x
+
+@[simp] lemma point_reflection_symm (x : P) : (point_reflection x).symm = point_reflection x :=
+to_equiv_inj $ equiv.point_reflection_symm x
+
+@[simp] lemma dist_point_reflection_fixed (x y : P) :
+  dist (point_reflection x y) x = dist y x :=
+by rw [← (point_reflection x).dist_eq y x, point_reflection_self]
+
+lemma dist_point_reflection_self' (x y : P) :
+  dist (point_reflection x y) y = ∥bit0 (x -ᵥ y)∥ :=
+by rw [point_reflection_apply, dist_eq_norm_vsub V, vadd_vsub_assoc, bit0]
+
+lemma dist_point_reflection_self (𝕜 : Type*) [normed_field 𝕜] [normed_space 𝕜 V] (x y : P) :
+  dist (point_reflection x y) y = ∥(2:𝕜)∥ * dist x y :=
+by rw [dist_point_reflection_self', ← two_smul' 𝕜 (x -ᵥ y), norm_smul, ← dist_eq_norm_vsub V]
+
+lemma point_reflection_fixed_iff (𝕜 : Type*) [normed_field 𝕜] [normed_space 𝕜 V] [invertible (2:𝕜)]
+  {x y : P} :
+  point_reflection x y = y ↔ y = x :=
+affine_equiv.point_reflection_fixed_iff_of_module 𝕜
+
+variables [normed_space ℝ V]
+
+lemma dist_point_reflection_self_real (x y : P) :
+  dist (point_reflection x y) y = 2 * dist x y :=
+by { rw [dist_point_reflection_self ℝ, real.norm_two], apply_instance }
+
+@[simp] lemma point_reflection_midpoint_left (x y : P) :
+  point_reflection (midpoint ℝ x y) x = y :=
+affine_equiv.point_reflection_midpoint_left x y
+
+@[simp] lemma point_reflection_midpoint_right (x y : P) :
+  point_reflection (midpoint ℝ x y) y = x :=
+affine_equiv.point_reflection_midpoint_right x y
 
 end isometric
 
@@ -225,3 +291,65 @@ begin
     (hf.comp (isometric.vadd_const p).isometry),
   exact funext hg
 end
+
+section normed_space
+
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 V]
+
+open affine_map
+
+@[simp] lemma dist_center_homothety (p₁ p₂ : P) (c : 𝕜) :
+  dist p₁ (homothety p₁ c p₂) = ∥c∥ * dist p₁ p₂ :=
+by simp [homothety_def, norm_smul, ← dist_eq_norm_vsub, dist_comm]
+
+@[simp] lemma dist_homothety_center (p₁ p₂ : P) (c : 𝕜) :
+  dist (homothety p₁ c p₂) p₁ = ∥c∥ * dist p₁ p₂ :=
+by rw [dist_comm, dist_center_homothety]
+
+@[simp] lemma dist_homothety_self (p₁ p₂ : P) (c : 𝕜) :
+  dist (homothety p₁ c p₂) p₂ = ∥1 - c∥ * dist p₁ p₂ :=
+by rw [homothety_eq_line_map, ← line_map_apply_one_sub, ← homothety_eq_line_map,
+  dist_homothety_center, dist_comm]
+
+@[simp] lemma dist_self_homothety (p₁ p₂ : P) (c : 𝕜) :
+  dist p₂ (homothety p₁ c p₂) = ∥1 - c∥ * dist p₁ p₂ :=
+by rw [dist_comm, dist_homothety_self]
+
+variables [invertible (2:𝕜)]
+
+@[simp] lemma dist_left_midpoint (p₁ p₂ : P) :
+  dist p₁ (midpoint 𝕜 p₁ p₂) = ∥(2:𝕜)∥⁻¹ * dist p₁ p₂ :=
+by rw [midpoint, ← homothety_eq_line_map, dist_center_homothety, inv_of_eq_inv,
+  ← normed_field.norm_inv]
+
+@[simp] lemma dist_midpoint_left (p₁ p₂ : P) :
+  dist (midpoint 𝕜 p₁ p₂) p₁ = ∥(2:𝕜)∥⁻¹ * dist p₁ p₂ :=
+by rw [dist_comm, dist_left_midpoint]
+
+@[simp] lemma dist_midpoint_right (p₁ p₂ : P) :
+  dist (midpoint 𝕜 p₁ p₂) p₂ = ∥(2:𝕜)∥⁻¹ * dist p₁ p₂ :=
+by rw [midpoint_comm, dist_midpoint_left, dist_comm]
+
+@[simp] lemma dist_right_midpoint (p₁ p₂ : P) :
+  dist p₂ (midpoint 𝕜 p₁ p₂) = ∥(2:𝕜)∥⁻¹ * dist p₁ p₂ :=
+by rw [dist_comm, dist_midpoint_right]
+
+end normed_space
+
+variables [normed_space ℝ V] [normed_space ℝ V']
+include V'
+
+/-- A continuous map between two normed affine spaces is an affine map provided that
+it sends midpoints to midpoints. -/
+def affine_map.of_map_midpoint (f : P → P')
+  (h : ∀ x y, f (midpoint ℝ x y) = midpoint ℝ (f x) (f y))
+  (hfc : continuous f) :
+  P →ᵃ[ℝ] P' :=
+affine_map.mk' f
+  ↑((add_monoid_hom.of_map_midpoint ℝ ℝ
+    ((affine_equiv.vadd_const ℝ (f $ classical.arbitrary P)).symm ∘ f ∘
+      (affine_equiv.vadd_const ℝ (classical.arbitrary P))) (by simp)
+      (λ x y, by simp [h])).to_real_linear_map $ by apply_rules [continuous.vadd, continuous.vsub,
+        continuous_const, hfc.comp, continuous_id])
+  (classical.arbitrary P)
+  (λ p, by simp)

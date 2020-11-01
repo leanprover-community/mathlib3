@@ -63,6 +63,14 @@ lemma mul_inv_of_self [has_mul α] [has_one α] (a : α) [invertible a] : a * �
 invertible.mul_inv_of_self
 
 @[simp]
+lemma inv_of_mul_self_assoc [monoid α] (a b : α) [invertible a] : ⅟a * (a * b) = b :=
+by rw [←mul_assoc, inv_of_mul_self, one_mul]
+
+@[simp]
+lemma mul_inv_of_self_assoc [monoid α] (a b : α) [invertible a] : a * (⅟a * b) = b :=
+by rw [←mul_assoc, mul_inv_of_self, one_mul]
+
+@[simp]
 lemma mul_inv_of_mul_self_cancel [monoid α] (a b : α) [invertible b] : a * ⅟b * b = a :=
 by simp [mul_assoc]
 
@@ -116,6 +124,10 @@ def invertible_neg [ring α] (a : α) [invertible a] : invertible (-a) :=
 
 @[simp] lemma inv_of_neg [ring α] (a : α) [invertible a] [invertible (-a)] : ⅟(-a) = -⅟a :=
 inv_of_eq_right_inv (by simp)
+
+@[simp] lemma one_sub_inv_of_two [ring α] [invertible (2:α)] : 1 - (⅟2:α) = ⅟2 :=
+(is_unit_of_invertible (2:α)).mul_right_inj.1 $
+  by rw [mul_sub, mul_inv_of_self, mul_one, bit0, add_sub_cancel]
 
 /-- `a` is the inverse of `⅟a`. -/
 instance invertible_inv_of [has_one α] [has_mul α] {a : α} [invertible a] : invertible (⅟a) :=

@@ -362,6 +362,8 @@ by rw [← of_real_rat_cast, of_real_im]
 
 /-! ### Characteristic zero -/
 
+-- TODO: I think this can be instance, because it is a `Prop`
+
 /--
 ℝ and ℂ are both of characteristic zero.
 
@@ -385,6 +387,8 @@ local notation `absK` := @abs K _
 
 @[simp] lemma abs_of_real (r : ℝ) : absK (𝓚 r) = abs' r :=
 by simp [abs, norm_sq, norm_sq_of_real, real.sqrt_mul_self_eq_abs]
+
+lemma norm_eq_abs (z : K) : ∥z∥ = absK z := by simp [abs, norm_sq_eq_def']
 
 lemma abs_of_nonneg {r : ℝ} (h : 0 ≤ r) : absK (𝓚 r) = r :=
 (abs_of_real _).trans (abs_of_nonneg h)
@@ -439,7 +443,7 @@ lemma abs_add (z w : K) : abs (z + w) ≤ abs z + abs w :=
 begin
   rw [mul_self_abs, add_mul_self_eq, mul_self_abs, mul_self_abs,
       add_right_comm, norm_sq_add, add_le_add_iff_left,
-      mul_assoc, mul_le_mul_left (@zero_lt_two ℝ _)],
+      mul_assoc, mul_le_mul_left (@zero_lt_two ℝ _ _)],
   simpa [-mul_re] using re_le_abs (z * conj w)
 end
 

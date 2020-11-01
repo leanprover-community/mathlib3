@@ -125,6 +125,8 @@ instance : has_coe_to_fun (α ≃ᵢ β) := ⟨λ_, α → β, λe, e.to_equiv�
 
 lemma coe_eq_to_equiv (h : α ≃ᵢ β) (a : α) : h a = h.to_equiv a := rfl
 
+@[simp] lemma coe_to_equiv (h : α ≃ᵢ β) : ⇑h.to_equiv = h := rfl
+
 protected lemma isometry (h : α ≃ᵢ β) : isometry h := h.isometry_to_fun
 
 protected lemma edist_eq (h : α ≃ᵢ β) (x y : α) : edist (h x) (h y) = edist x y :=
@@ -334,13 +336,12 @@ begin
 end
 
 /-- When the reference set is dense, the embedding map is an isometry on its image. -/
-lemma embedding_of_subset_isometry (H : closure (range x) = univ) : isometry (embedding_of_subset x) :=
+lemma embedding_of_subset_isometry (H : dense_range x) : isometry (embedding_of_subset x) :=
 begin
   refine isometry_emetric_iff_metric.2 (λa b, _),
   refine le_antisymm (embedding_of_subset_dist_le x a b) (real.le_of_forall_epsilon_le (λe epos, _)),
   /- First step: find n with dist a (x n) < e -/
-  have A : a ∈ closure (range x), by { have B := mem_univ a, rwa [← H] at B },
-  rcases metric.mem_closure_range_iff.1 A (e/2) (half_pos epos) with ⟨n, hn⟩,
+  rcases metric.mem_closure_range_iff.1 (H a) (e/2) (half_pos epos) with ⟨n, hn⟩,
   /- Second step: use the norm control at index n to conclude -/
   have C : dist b (x n) - dist a (x n) = embedding_of_subset x b n - embedding_of_subset x a n :=
     by { simp only [embedding_of_subset_coe, sub_sub_sub_cancel_right] },
@@ -366,13 +367,11 @@ begin
   { /- We construct a map x : ℕ → α with dense image -/
     rcases h with ⟨basepoint⟩,
     haveI : inhabited α := ⟨basepoint⟩,
-    have : ∃s:set α, countable s ∧ closure s = univ := separable_space.exists_countable_closure_eq_univ,
+    have : ∃s:set α, countable s ∧ dense s := exists_countable_dense α,
     rcases this with ⟨S, ⟨S_countable, S_dense⟩⟩,
     rcases countable_iff_exists_surjective.1 S_countable with ⟨x, x_range⟩,
-    have : closure (range x) = univ :=
-      univ_subset_iff.1 (by { rw [← S_dense], apply closure_mono, assumption }),
     /- Use embedding_of_subset to construct the desired isometry -/
-    exact ⟨embedding_of_subset x, embedding_of_subset_isometry x this⟩ }
+    exact ⟨embedding_of_subset x, embedding_of_subset_isometry x (S_dense.mono x_range)⟩ }
 end
 end Kuratowski_embedding
 

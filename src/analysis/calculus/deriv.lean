@@ -1532,7 +1532,7 @@ lemma has_strict_deriv_at_pow (n : ℕ) (x : 𝕜) :
 begin
   convert (polynomial.C (1 : 𝕜) * (polynomial.X)^n).has_strict_deriv_at x,
   { simp },
-  { rw [polynomial.derivative_monomial], simp }
+  { rw [polynomial.derivative_C_mul_X_pow], simp }
 end
 
 lemma has_deriv_at_pow (n : ℕ) (x : 𝕜) : has_deriv_at (λx, x^n) ((n : 𝕜) * x^(n-1)) x :=
@@ -1727,7 +1727,7 @@ begin
   have C := mem_sup_sets.2 ⟨A, B⟩,
   rw [← nhds_within_union, diff_union_self, nhds_within_union, mem_sup_sets] at C,
   filter_upwards [C.1],
-  simp only [mem_set_of_eq, norm_smul, mem_Iio, normed_field.norm_inv],
+  simp only [norm_smul, mem_Iio, normed_field.norm_inv],
   exact λ _, id
 end
 

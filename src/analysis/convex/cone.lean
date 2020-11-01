@@ -193,40 +193,14 @@ ext' $ preimage_comp.symm
 Constructs an ordered semimodule given an `ordered_add_comm_group`, a cone, and a proof that
 the order relation is the one defined by the cone.
 -/
-def to_ordered_semimodule {M : Type*} [ordered_add_comm_group M] [semimodule ℝ M]
+lemma to_ordered_semimodule {M : Type*} [ordered_add_comm_group M] [semimodule ℝ M]
   (S : convex_cone M) (h : ∀ x y : M, x ≤ y ↔ y - x ∈ S) : ordered_semimodule ℝ M :=
-{ smul_lt_smul_of_pos :=
-    begin
-      intros x y z xy hz,
-      refine lt_of_le_of_ne _ _,
-      { rw [h (z • x) (z • y), ←smul_sub z y x],
-        exact smul_mem S hz ((h x y).mp (le_of_lt xy)) },
-      { intro H,
-        have H' := congr_arg (λ r, (1/z) • r) H,
-        refine (ne_of_lt xy) _,
-        field_simp [smul_smul, div_self ((ne_of_lt hz).symm)] at H',
-        exact H' },
-    end,
-  lt_of_smul_lt_smul_of_nonneg :=
-    begin
-      intros x y z hxy hz,
-      refine lt_of_le_of_ne _ _,
-      { rw [h x y],
-        have hz' : 0 < z,
-        { refine lt_of_le_of_ne hz _,
-          rintro rfl,
-          rw [zero_smul, zero_smul] at hxy,
-          exact lt_irrefl 0 hxy },
-        have hz'' : 0 < 1/z := div_pos (by linarith) hz',
-        have hxy' := (h (z • x) (z • y)).mp (le_of_lt hxy),
-        rw [←smul_sub z y x] at hxy',
-        have hxy'' := smul_mem S hz'' hxy',
-        field_simp [smul_smul, div_self ((ne_of_lt hz').symm)] at hxy'',
-        exact hxy'' },
-      { rintro rfl,
-        exact lt_irrefl (z • x) hxy }
-    end,
-}
+ordered_semimodule.mk'
+begin
+  intros x y z xy hz,
+  rw [h (z • x) (z • y), ←smul_sub z y x],
+  exact smul_mem S hz ((h x y).mp (le_of_lt xy))
+end
 
 /-! ### Convex cones with extra properties -/
 
@@ -302,7 +276,7 @@ def to_ordered_add_comm_group (S : convex_cone E) (h₁ : pointed S) (h₂ : sal
 /-! ### Positive cone of an ordered semimodule -/
 section positive_cone
 
-variables (M : Type*) [ordered_add_comm_group M] [ordered_semimodule ℝ M]
+variables (M : Type*) [ordered_add_comm_group M] [semimodule ℝ M] [ordered_semimodule ℝ M]
 
 /--
 The positive cone is the convex cone formed by the set of nonnegative elements in an ordered

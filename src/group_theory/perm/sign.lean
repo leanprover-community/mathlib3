@@ -235,7 +235,7 @@ else let m := swap_factors_aux l (swap x (f x) * f)
 /-- `swap_factors` represents a permutation as a product of a list of transpositions.
 The representation is non unique and depends on the linear order structure.
 For types without linear order `trunc_swap_factors` can be used -/
-def swap_factors [fintype α] [decidable_linear_order α] (f : perm α) :
+def swap_factors [fintype α] [linear_order α] (f : perm α) :
   {l : list (perm α) // l.prod = f ∧ ∀ g ∈ l, is_swap g} :=
 swap_factors_aux ((@univ α _).sort (≤)) f (λ _ _, (mem_sort _).2 (mem_univ _))
 
@@ -688,7 +688,7 @@ lemma is_cycle_swap_mul {α : Type*} [decidable_eq α] {f : perm α} (hf : is_cy
 finset.ext $ λ a, by simp [swap_apply_def]; split_ifs; cc
 
 lemma card_support_swap {x y : α} (hxy : x ≠ y) : (swap x y).support.card = 2 :=
-show (swap x y).support.card = finset.card ⟨x::y::0, by simp [hxy]⟩,
+show (swap x y).support.card = finset.card ⟨x ::ₘ y ::ₘ 0, by simp [hxy]⟩,
 from congr_arg card $ by rw [support_swap hxy]; simp [*, finset.ext_iff]; cc
 
 lemma sign_cycle : ∀ {f : perm α} (hf : is_cycle f),

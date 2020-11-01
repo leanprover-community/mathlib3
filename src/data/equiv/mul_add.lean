@@ -110,6 +110,13 @@ def symm (h : M ≃* N) : N ≃* M :=
     end,
   .. h.to_equiv.symm}
 
+/-- See Note [custom simps projection] -/
+@[to_additive add_equiv.simps.inv_fun "See Note [custom simps projection]"]
+def simps.inv_fun (e : M ≃* N) : N → M := e.symm
+
+initialize_simps_projections add_equiv (to_fun → apply, inv_fun → symm_apply)
+initialize_simps_projections mul_equiv (to_fun → apply, inv_fun → symm_apply)
+
 @[simp, to_additive]
 theorem to_equiv_symm (f : M ≃* N) : f.symm.to_equiv = f.to_equiv.symm := rfl
 
@@ -189,6 +196,11 @@ def to_monoid_hom {M N} [monoid M] [monoid N] (h : M ≃* N) : (M →* N) :=
 { map_one' := h.map_one, .. h }
 
 @[simp, to_additive]
+lemma coe_to_monoid_hom {M N} [monoid M] [monoid N] (e : M ≃* N) :
+  ⇑e.to_monoid_hom = e :=
+rfl
+
+@[to_additive]
 lemma to_monoid_hom_apply {M N} [monoid M] [monoid N] (e : M ≃* N) (x : M) :
   e.to_monoid_hom x = e x :=
 rfl
@@ -229,6 +241,39 @@ end
 attribute [ext] add_equiv.ext
 
 end mul_equiv
+
+-- We don't use `to_additive` to generate definition because it fails to tell Lean about
+-- equational lemmas
+
+/-- Given a pair of additive monoid homomorphisms `f`, `g` such that `g.comp f = id` and
+`f.comp g = id`, returns an additive equivalence with `to_fun = f` and `inv_fun = g`.  This
+constructor is useful if the underlying type(s) have specialized `ext` lemmas for additive
+monoid homomorphisms. -/
+def add_monoid_hom.to_add_equiv [add_monoid M] [add_monoid N] (f : M →+ N) (g : N →+ M)
+  (h₁ : g.comp f = add_monoid_hom.id _) (h₂ : f.comp g = add_monoid_hom.id _) :
+  M ≃+ N :=
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := add_monoid_hom.congr_fun h₁,
+  right_inv := add_monoid_hom.congr_fun h₂,
+  map_add' := f.map_add }
+
+/-- Given a pair of monoid homomorphisms `f`, `g` such that `g.comp f = id` and `f.comp g = id`,
+returns an multiplicative equivalence with `to_fun = f` and `inv_fun = g`.  This constructor is
+useful if the underlying type(s) have specialized `ext` lemmas for monoid homomorphisms. -/
+@[to_additive]
+def monoid_hom.to_mul_equiv [monoid M] [monoid N] (f : M →* N) (g : N →* M)
+  (h₁ : g.comp f = monoid_hom.id _) (h₂ : f.comp g = monoid_hom.id _) :
+  M ≃* N :=
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := monoid_hom.congr_fun h₁,
+  right_inv := monoid_hom.congr_fun h₂,
+  map_mul' := f.map_mul }
+
+@[simp, to_additive]
+lemma monoid_hom.coe_to_mul_equiv [monoid M] [monoid N] (f : M →* N) (g : N →* M) (h₁ h₂) :
+  ⇑(f.to_mul_equiv g h₁ h₂) = f := rfl
 
 /-- An additive equivalence of additive groups preserves subtraction. -/
 lemma add_equiv.map_sub [add_group A] [add_group B] (h : A ≃+ B) (x y : A) :
@@ -436,32 +481,6 @@ lemma coe_inv : ⇑(equiv.inv G) = has_inv.inv := rfl
 lemma inv_symm : (equiv.inv G).symm = equiv.inv G := rfl
 
 end group
-
-section point_reflection
-
-variables [add_comm_group A] (x y : A)
-
-/-- Point reflection in `x` as a permutation. -/
-def point_reflection (x : A) : perm A :=
-(equiv.neg A).trans (equiv.add_left (x + x))
-
-lemma point_reflection_apply : point_reflection x y = x + x - y := rfl
-
-@[simp] lemma point_reflection_self : point_reflection x x = x := add_sub_cancel _ _
-
-lemma point_reflection_involutive : function.involutive (point_reflection x : A → A) :=
-λ y, by simp only [point_reflection_apply, sub_sub_cancel]
-
-@[simp] lemma point_reflection_symm : (point_reflection x).symm = point_reflection x :=
-by { ext y, rw [symm_apply_eq, point_reflection_involutive x y] }
-
-/-- `x` is the only fixed point of `point_reflection x`. This lemma requires
-`x + x = y + y ↔ x = y`. There is no typeclass to use here, so we add it as an explicit argument. -/
-lemma point_reflection_fixed_iff_of_bit0_injective {x y : A} (h : function.injective (bit0 : A → A)) :
-  point_reflection x y = y ↔ y = x :=
-sub_eq_iff_eq_add.trans $ h.eq_iff.trans eq_comm
-
-end point_reflection
 
 end equiv
 

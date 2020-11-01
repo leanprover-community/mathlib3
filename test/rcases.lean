@@ -44,6 +44,13 @@ begin
   { guard_hyp c : γ, trivial }
 end
 
+example : cond ff ℕ ℤ → cond tt ℤ ℕ → (ℕ ⊕ unit) → true :=
+begin
+  rintro (x y : ℤ) (z | u),
+  { guard_hyp x : ℤ, guard_hyp y : ℤ, guard_hyp z : ℕ, trivial },
+  { guard_hyp x : ℤ, guard_hyp y : ℤ, guard_hyp u : unit, trivial }
+end
+
 example (x y : ℕ) (h : x = y) : true :=
 begin
   rcases x with _|⟨⟩|z,
@@ -106,6 +113,25 @@ begin
   trivial
 end
 
+example (x y : α × β) : true :=
+begin
+  rcases ⟨x, y⟩ with ⟨⟨a, b⟩, c, d⟩,
+  { guard_hyp a : α,
+    guard_hyp b : β,
+    guard_hyp c : α,
+    guard_hyp d : β,
+    trivial }
+end
+
+example (x y : α ⊕ β) : true :=
+begin
+  obtain ⟨a|b, c|d⟩ := ⟨x, y⟩,
+  { guard_hyp a : α, guard_hyp c : α, trivial },
+  { guard_hyp a : α, guard_hyp d : β, trivial },
+  { guard_hyp b : β, guard_hyp c : α, trivial },
+  { guard_hyp b : β, guard_hyp d : β, trivial },
+end
+
 example {i j : ℕ} : (Σ' x, i ≤ x ∧ x ≤ j) → i ≤ j :=
 begin
   intro h,
@@ -156,3 +182,7 @@ begin
     (do lc ← tactic.local_context, guard lc.empty),
     trivial },
 end
+
+example : bool → false → true
+| ff := by rintro ⟨⟩
+| tt := by rintro ⟨⟩

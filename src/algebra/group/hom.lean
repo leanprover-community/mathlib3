@@ -104,6 +104,15 @@ instance {mM : has_mul M} {mN : has_mul N} : has_coe_to_fun (mul_hom M N) :=
 instance {mM : monoid M} {mN : monoid N} : has_coe_to_fun (M →* N) :=
 ⟨_, monoid_hom.to_fun⟩
 
+-- these must come after the coe_to_fun definitions
+initialize_simps_projections zero_hom (to_fun → apply)
+initialize_simps_projections add_hom (to_fun → apply)
+initialize_simps_projections add_monoid_hom (to_fun → apply)
+
+initialize_simps_projections one_hom (to_fun → apply)
+initialize_simps_projections mul_hom (to_fun → apply)
+initialize_simps_projections monoid_hom (to_fun → apply)
+
 @[simp, to_additive]
 lemma one_hom.to_fun_eq_coe [has_one M] [has_one N] (f : one_hom M N) : f.to_fun = f := rfl
 @[simp, to_additive]
@@ -279,13 +288,23 @@ add_decl_doc add_hom.comp
 /-- Composition of additive monoid morphisms as an additive monoid morphism. -/
 add_decl_doc add_monoid_hom.comp
 
-@[simp, to_additive] lemma one_hom.comp_apply [has_one M] [has_one N] [has_one P]
+@[simp, to_additive] lemma one_hom.coe_comp [has_one M] [has_one N] [has_one P]
+  (g : one_hom N P) (f : one_hom M N) :
+  ⇑(g.comp f) = g ∘ f := rfl
+@[simp, to_additive] lemma mul_hom.coe_comp [has_mul M] [has_mul N] [has_mul P]
+  (g : mul_hom N P) (f : mul_hom M N) :
+  ⇑(g.comp f) = g ∘ f := rfl
+@[simp, to_additive] lemma monoid_hom.coe_comp [monoid M] [monoid N] [monoid P]
+  (g : N →* P) (f : M →* N) :
+  ⇑(g.comp f) = g ∘ f := rfl
+
+@[to_additive] lemma one_hom.comp_apply [has_one M] [has_one N] [has_one P]
   (g : one_hom N P) (f : one_hom M N) (x : M) :
   g.comp f x = g (f x) := rfl
-@[simp, to_additive] lemma mul_hom.comp_apply [has_mul M] [has_mul N] [has_mul P]
+@[to_additive] lemma mul_hom.comp_apply [has_mul M] [has_mul N] [has_mul P]
   (g : mul_hom N P) (f : mul_hom M N) (x : M) :
   g.comp f x = g (f x) := rfl
-@[simp, to_additive] lemma monoid_hom.comp_apply [monoid M] [monoid N] [monoid P]
+@[to_additive] lemma monoid_hom.comp_apply [monoid M] [monoid N] [monoid P]
   (g : N →* P) (f : M →* N) (x : M) :
   g.comp f x = g (f x) := rfl
 
@@ -480,6 +499,15 @@ def flip {mM : monoid M} {mN : monoid N} {mP : comm_monoid P} (f : M →* N →*
   (f : M →* N →* P) (x : M) (y : N) :
   f.flip y x = f x y :=
 rfl
+
+/-- Evaluation of a `monoid_hom` at a point as a monoid homomorphism. See also `monoid_hom.apply`
+for the evaluation of any function at a point. -/
+@[to_additive "Evaluation of an `add_monoid_hom` at a point as an additive monoid homomorphism.
+See also `add_monoid_hom.apply` for the evaluation of any function at a point."]
+def eval [monoid M] [comm_monoid N] : M →* (M →* N) →* N := (monoid_hom.id (M →* N)).flip
+
+@[simp, to_additive]
+lemma eval_apply [monoid M] [comm_monoid N] (x : M) (f : M →* N) : eval x f = f x := rfl
 
 /-- If two homomorphism from a group to a monoid are equal at `x`, then they are equal at `x⁻¹`. -/
 @[to_additive "If two homomorphism from an additive group to an additive monoid are equal at `x`,

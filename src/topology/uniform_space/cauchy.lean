@@ -137,7 +137,7 @@ defined on ℝ is Cauchy at +∞ to deduce convergence. Therefore, we define it 
 is general enough to cover both ℕ and ℝ, which are the main motivating examples. -/
 def cauchy_seq [semilattice_sup β] (u : β → α) := cauchy (at_top.map u)
 
-lemma cauchy_seq.mem_entourage {ι : Type*} [nonempty ι] [decidable_linear_order ι] {u : ι → α}
+lemma cauchy_seq.mem_entourage {ι : Type*} [nonempty ι] [linear_order ι] {u : ι → α}
   (h : cauchy_seq u) {V : set (α × α)} (hV : V ∈ 𝓤 α) :
   ∃ k₀, ∀ i j, k₀ ≤ i → k₀ ≤ j → (u i, u j) ∈ V :=
 begin
@@ -507,7 +507,7 @@ le_nhds_of_cauchy_adhp_aux
 begin
   assume s hs,
   rcases U_le s hs with ⟨m, hm⟩,
-  rcases (tendsto_at_top' _ _).1 ha _ (mem_nhds_left a (U_mem m)) with ⟨n, hn⟩,
+  rcases tendsto_at_top'.1 ha _ (mem_nhds_left a (U_mem m)) with ⟨n, hn⟩,
   refine ⟨set_seq hf U_mem (max m n), set_seq_mem hf U_mem _, _,
           seq hf U_mem (max m n), _, seq_mem hf U_mem _⟩,
   { have := le_max_left m n,
@@ -582,3 +582,4 @@ begin
 end
 
 end uniform_space
+

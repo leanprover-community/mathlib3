@@ -53,7 +53,7 @@ instance : has_one Group := ⟨Group.of punit⟩
 instance : inhabited Group := ⟨1⟩
 
 @[to_additive]
-instance : unique (1 : Group) :=
+instance one.unique : unique (1 : Group) :=
 { default := 1,
   uniq := λ a, begin cases a, refl, end }
 
@@ -104,7 +104,7 @@ instance comm_group_instance (G : CommGroup) : comm_group G := G.str
 @[to_additive] instance : inhabited CommGroup := ⟨1⟩
 
 @[to_additive]
-instance : unique (1 : CommGroup) :=
+instance one.unique : unique (1 : CommGroup) :=
 { default := 1,
   uniq := λ a, begin cases a, refl, end }
 
@@ -203,25 +203,17 @@ namespace category_theory.iso
 @[to_additive AddGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category
 `AddGroup`."]
 def Group_iso_to_mul_equiv {X Y : Group} (i : X ≅ Y) : X ≃* Y :=
-{ to_fun    := i.hom,
-  inv_fun   := i.inv,
-  left_inv  := by tidy,
-  right_inv := by tidy,
-  map_mul'  := by tidy }.
+i.hom.to_mul_equiv i.inv i.hom_inv_id i.inv_hom_id
 
-attribute [simps] Group_iso_to_mul_equiv AddGroup_iso_to_add_equiv
+attribute [simps {rhs_md := semireducible}] Group_iso_to_mul_equiv AddGroup_iso_to_add_equiv
 
 /-- Build a `mul_equiv` from an isomorphism in the category `CommGroup`. -/
 @[to_additive AddCommGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism
 in the category `AddCommGroup`."]
 def CommGroup_iso_to_mul_equiv {X Y : CommGroup} (i : X ≅ Y) : X ≃* Y :=
-{ to_fun    := i.hom,
-  inv_fun   := i.inv,
-  left_inv  := by tidy,
-  right_inv := by tidy,
-  map_mul'  := by tidy }.
+i.hom.to_mul_equiv i.inv i.hom_inv_id i.inv_hom_id
 
-attribute [simps] CommGroup_iso_to_mul_equiv AddCommGroup_iso_to_add_equiv
+attribute [simps {rhs_md := semireducible}] CommGroup_iso_to_mul_equiv AddCommGroup_iso_to_add_equiv
 
 end category_theory.iso
 

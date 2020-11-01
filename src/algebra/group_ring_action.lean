@@ -190,6 +190,7 @@ class is_invariant_subring : Prop :=
 
 variables [is_invariant_subring M S]
 
+local attribute [instance] subset.ring
 instance is_invariant_subring.to_mul_semiring_action : mul_semiring_action M S :=
 { smul := λ m x, ⟨m • x, is_invariant_subring.smul_mem m x.2⟩,
   one_smul := λ s, subtype.eq $ one_smul M s,

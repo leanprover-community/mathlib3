@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Aaron Anderson
 -/
 import data.finset.gcd
-import data.polynomial
+import data.polynomial.field_division
 import data.polynomial.erase_lead
 import data.polynomial.cancel_leads
 

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.ring_division
-import data.polynomial.derivative
 import algebra.gcd_monoid
 
 /-!
@@ -134,7 +133,7 @@ lemma div_by_monic_eq_div (p : polynomial R) (hq : monic q) : p /ₘ q = p / q :
 show p /ₘ q = C (leading_coeff q)⁻¹ * (p /ₘ (q * C (leading_coeff q)⁻¹)),
 by simp only [monic.def.1 hq, inv_one, C_1, one_mul, mul_one]
 
-lemma mod_X_sub_C_eq_C_eval (p : polynomial R) (a : R) : p % (X - C a) = C (p.eval a) :=
+lemma mod_X_sub_C_eq_C_eval (p : polynomial R) (a : R) : p % (X - C a) = C (eval a p) :=
 mod_by_monic_eq_mod p (monic_X_sub_C a) ▸ mod_by_monic_X_sub_C_eq_C_eval _ _
 
 lemma mul_div_eq_iff_is_root : (X - C a) * (p / (X - C a)) = p ↔ is_root p a :=
@@ -269,7 +268,7 @@ lemma map_ne_zero [semiring S] [nontrivial S] {f : R →+* S} (hp : p ≠ 0) : m
 mt (map_eq_zero f).1 hp
 
 lemma mem_roots_map [field k] {f : R →+* k} {x : k} (hp : p ≠ 0) :
-  x ∈ (map f p).roots ↔ p.eval₂ f x = 0 :=
+  x ∈ (map f p).roots ↔ eval₂ f x p = 0 :=
 begin
   rw mem_roots (show map f p ≠ 0, by exact map_ne_zero hp),
   dsimp only [is_root],
@@ -342,27 +341,6 @@ theorem pairwise_coprime_X_sub {α : Type u} [field α] {I : Type v}
 ⟨polynomial.C (s j - s i)⁻¹, -polynomial.C (s j - s i)⁻¹,
 by rw [neg_mul_eq_neg_mul_symm, ← sub_eq_add_neg, ← mul_sub, sub_sub_sub_cancel_left,
     ← polynomial.C_sub, ← polynomial.C_mul, inv_mul_cancel h, polynomial.C_1]⟩
-
-/-- If `f` is a polynomial over a field, and `a : K` satisfies `f' a ≠ 0`,
-then `f / (X - a)` is coprime with `X - a`.
-Note that we do not assume `f a = 0`, because `f / (X - a) = (f - f a) / (X - a)`. -/
-lemma is_coprime_of_is_root_of_eval_derivative_ne_zero {K : Type*} [field K]
-  (f : polynomial K) (a : K) (hf' : f.derivative.eval a ≠ 0) :
-  is_coprime (X - C a : polynomial K) (f /ₘ (X - C a)) :=
-begin
-  refine or.resolve_left (dvd_or_coprime (X - C a) (f /ₘ (X - C a))
-    (irreducible_of_degree_eq_one (polynomial.degree_X_sub_C a))) _,
-  contrapose! hf' with h,
-  have key : (X - C a) * (f /ₘ (X - C a)) = f - (f %ₘ (X - C a)),
-  { rw [eq_sub_iff_add_eq, ← eq_sub_iff_add_eq', mod_by_monic_eq_sub_mul_div],
-    exact monic_X_sub_C a },
-  replace key := congr_arg derivative key,
-  simp only [derivative_X, derivative_mul, one_mul, sub_zero, derivative_sub,
-    mod_by_monic_X_sub_C_eq_C_eval, derivative_C] at key,
-  have : (X - C a) ∣ derivative f := key ▸ (dvd_add h (dvd_mul_right _ _)),
-  rw [← dvd_iff_mod_by_monic_eq_zero (monic_X_sub_C _), mod_by_monic_X_sub_C_eq_C_eval] at this,
-  rw [← C_inj, this, C_0],
-end
 
 lemma prod_multiset_root_eq_finset_root {p : polynomial R} (hzero : p ≠ 0) :
   (multiset.map (λ (a : R), X - C a) p.roots).prod =

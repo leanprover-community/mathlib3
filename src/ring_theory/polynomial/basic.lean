@@ -112,7 +112,7 @@ def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set
 
 section
 local attribute [instance] algebra.of_is_subring subring.domain subset.comm_ring
-@[simp] theorem map_restriction (p : polynomial R) : p.restriction.map (algebra_map _ _) = p :=
+@[simp] theorem map_restriction (p : polynomial R) : map (algebra_map _ _) p.restriction = p :=
 ext $ λ n, by rw [coeff_map, algebra.is_subring_algebra_map_apply, coeff_restriction]
 end
 
@@ -168,7 +168,7 @@ omit hp
     (finset.singleton_subset_set_iff.2 is_submonoid.one_mem)) = 1 :=
 ext $ λ i, subtype.eq $ by rw [coeff_to_subring', coeff_one, coeff_one]; split_ifs; refl
 
-@[simp] theorem map_to_subring : (p.to_subring T hp).map (is_subring.subtype T) = p :=
+@[simp] theorem map_to_subring : map (is_subring.subtype T) (p.to_subring T hp) = p :=
 ext $ λ n, coeff_map _ _
 
 end to_subring

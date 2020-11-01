@@ -269,6 +269,13 @@ continuous_linear_equiv.of_homothety
   (by norm_num)
   (λ x, by { convert to_dual_map_isometry x, simp })
 
+/--
+Fréchet-Riesz representation: If `F` is a Hilbert space, the function that takes a vector in `F` to
+its dual is an isometry.  -/
+def isometric.to_dual : F ≃ᵢ normed_space.dual ℝ F :=
+{ to_equiv := to_dual.to_linear_equiv.to_equiv,
+  isometry_to_fun := to_dual'_isometry ℝ }
+
 @[simp] lemma to_dual_apply {x y : F} : to_dual x y = ⟪x, y⟫_ℝ := rfl
 
 @[simp] lemma to_dual_eq_iff_eq {x y : F} : to_dual x = to_dual y ↔ x = y :=

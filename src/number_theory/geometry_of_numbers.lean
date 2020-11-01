@@ -1,5 +1,4 @@
 import measure_theory.lebesgue_measure
-import measure_theory.prod_measure
 import group_theory.subgroup
 import analysis.convex.basic
 import tactic.equiv_rw

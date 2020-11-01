@@ -133,6 +133,11 @@ lemma homothety_one_half {k : Type*} {V P : Type*} [field k] [char_zero k]
   homothety a (1/2:k) b = midpoint k a b :=
 by rw [one_div, homothety_inv_two]
 
+@[simp] lemma pi_midpoint_apply {k ι : Type*} {V : Π i : ι, Type*} {P : Π i : ι, Type*} [field k]
+  [invertible (2:k)] [Π i, add_comm_group (V i)] [Π i, semimodule k (V i)]
+  [Π i, add_torsor (V i) (P i)] (f g : Π i, P i) (i : ι) :
+  midpoint k f g i = midpoint k (f i) (g i) := rfl
+
 namespace add_monoid_hom
 
 variables (R R' : Type*) {E F : Type*}

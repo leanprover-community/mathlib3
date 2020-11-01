@@ -167,12 +167,7 @@ See [MM92] Chapter III, Section 2, Equations (3,4).
 -/
 def of_grothendieck (J : grothendieck_topology C) : pretopology C :=
 { coverings := λ X R, sieve.generate R ∈ J X,
-  has_isos := λ X Y f i,
-  begin
-    apply J.covering_of_eq_top,
-    rw [← sieve.id_mem_iff_eq_top],
-    exactI ⟨_, inv f, f, by simp⟩,
-  end,
+  has_isos := λ X Y f i, by exactI J.covering_of_eq_top (by simp),
   pullbacks := λ X Y f R hR,
   begin
     rw [set.mem_def, pullback_arrows_comm],
@@ -197,14 +192,12 @@ def gi : galois_insertion (to_grothendieck C) (of_grothendieck C) :=
   begin
     split,
     { intros h X R hR,
-      apply h,
-      refine ⟨_, hR, _⟩,
-      apply sieve.gi_generate.gc.le_u_l },
+      exact h _ ⟨_, hR, sieve.le_generate R⟩ },
     { rintro h X S ⟨R, hR, RS⟩,
       apply J.superset_covering _ (h _ hR),
       rwa sieve.gi_generate.gc }
   end,
-  le_l_u := λ J X S hS, ⟨S, J.superset_covering (sieve.gi_generate.gc.le_u_l _) hS, le_refl _⟩,
+  le_l_u := λ J X S hS, ⟨S, J.superset_covering S.le_generate hS, le_refl _⟩,
   choice := λ x hx, to_grothendieck C x,
   choice_eq := λ _ _, rfl }
 
@@ -224,8 +217,7 @@ def trivial : pretopology C :=
     refine ⟨pullback (eq_to_hom (eq.refl _) ≫ g) f, pullback.snd, _, _⟩,
     { refine ⟨pullback.lift (f ≫ inv g) (𝟙 _) (by simp), _, _⟩,
       { apply pullback.hom_ext,
-        { rw [assoc, pullback.lift_fst],
-          rw ← pullback.condition_assoc,
+        { rw [assoc, pullback.lift_fst, ← pullback.condition_assoc],
           simp },
         { simp } },
       { simp } },

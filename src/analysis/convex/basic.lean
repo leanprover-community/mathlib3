@@ -709,7 +709,7 @@ begin
   calc
     c • f (a • x + b • y) ≤ c • (a • f x + b • f y)
       : smul_le_smul_of_nonneg (hf.2 hx hy ha hb hab) hc
-    ... = a • (c • f x) + b • (c • f y) : by simp only [smul_add, smul_comm]
+    ... = a • (c • f x) + b • (c • f y) : by simp only [smul_add, smul_comm c]
 end
 
 lemma concave_on.smul [ordered_semimodule ℝ β] {f : E → β} {c : ℝ} (hc : 0 ≤ c)

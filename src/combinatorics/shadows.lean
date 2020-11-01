@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Bhavik Mehta
+Authors: Bhavik Mehta, Alena Gusakov
 -/
 
 import data.finset
@@ -520,7 +520,9 @@ theorem sperner [fintype α] {𝒜 : finset (finset α)} (H : antichain 𝒜) :
 begin
   classical,
   have: (range (n + 1)).sum (λ (r : ℕ), ((𝒜#r).card : ℚ) / nat.choose n (n/2)) ≤ 1,
-    transitivity, swap, exact lubell_yamamoto_meshalkin H,
+    transitivity,
+    swap,
+    exact lubell_yamamoto_meshalkin H,
     apply sum_le_sum, intros r hr,
     apply div_le_div_of_le_left; norm_cast,
     { apply nat.zero_le },
@@ -538,4 +540,4 @@ begin
   norm_cast, apply choose_pos, apply nat.div_le_self,
 end
 
-#lint-
+#lint

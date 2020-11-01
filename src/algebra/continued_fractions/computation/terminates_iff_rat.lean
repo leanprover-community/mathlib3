@@ -208,7 +208,7 @@ variables {α β : Type*} [has_coe_t α β]
 instance has_coe_t_to_generalized_continued_fraction : has_coe (gcf α) (gcf β) :=
 ⟨λ g, ⟨(g.h : β), (g.s : seq $ gcf.pair β)⟩⟩
 
-@[simp, norm_cast]
+@[simp, norm_cast, priority 900]
 lemma coe_t_to_generalized_continued_fraction {g : gcf α} :
   (↑(g : gcf α) : gcf β) = ⟨(g.h : β), (g.s : seq $ gcf.pair β)⟩ :=
 rfl

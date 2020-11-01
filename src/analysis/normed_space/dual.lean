@@ -269,7 +269,7 @@ continuous_linear_equiv.of_homothety
 @[simp] lemma to_dual_eq_iff_eq {x y : F} : to_dual x = to_dual y ↔ x = y :=
 (@to_dual F _ _).injective.eq_iff
 
-@[simp] lemma to_dual_norm_eq_primal_norm (x : F) : ∥to_dual x∥ = ∥x∥ := to_dual_map_isometry x
+@[simp] lemma norm_to_dual_apply (x : F) : ∥to_dual x∥ = ∥x∥ := to_dual_map_isometry x
 
 /-- In a Hilbert space, the norm of a vector in the dual space is the norm of its corresponding
 primal vector. -/

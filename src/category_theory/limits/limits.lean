@@ -1033,6 +1033,10 @@ by { dsimp [limit.iso_limit_cone, is_limit.cone_point_unique_up_to_iso], tidy, }
   (w : ∀ j, f ≫ limit.π F j = f' ≫ limit.π F j) : f = f' :=
 (limit.is_limit F).hom_ext w
 
+@[simp] lemma limit.lift_map {F G : J ⥤ C} [has_limit F] [has_limit G] (c : cone F) (α : F ⟶ G) :
+  limit.lift F c ≫ lim_map α = limit.lift G ((cones.postcompose α).obj c) :=
+by { ext, rw [assoc, lim_map_π, limit.lift_π_assoc, limit.lift_π], refl }
+
 @[simp] lemma limit.lift_cone {F : J ⥤ C} [has_limit F] :
   limit.lift F (limit.cone F) = 𝟙 (limit F) :=
 (limit.is_limit _).lift_self
@@ -1239,7 +1243,7 @@ section
 local attribute [simp] lim_map
 
 /-- `limit F` is functorial in `F`, when `C` has all limits of shape `J`. -/
-@[simps obj]
+@[simps]
 def lim : (J ⥤ C) ⥤ C :=
 { obj := λ F, limit F,
   map := λ F G α, lim_map α,
@@ -1250,12 +1254,8 @@ end
 
 variables {F} {G : J ⥤ C} (α : F ⟶ G)
 
-@[simp, reassoc] lemma limit.map_π (j : J) : lim.map α ≫ limit.π G j = limit.π F j ≫ α.app j :=
-by apply is_limit.fac
-
-@[simp] lemma limit.lift_map (c : cone F) :
-  limit.lift F c ≫ lim.map α = limit.lift G ((cones.postcompose α).obj c) :=
-by ext; rw [assoc, limit.map_π, ←assoc, limit.lift_π, limit.lift_π]; refl
+@[reassoc] lemma limit.map_π (j : J) : lim.map α ≫ limit.π G j = limit.π F j ≫ α.app j :=
+by simp
 
 lemma limit.map_pre [has_limits_of_shape K C] (E : K ⥤ J) :
   lim.map α ≫ limit.pre G E = limit.pre F E ≫ lim.map (whisker_left E α) :=

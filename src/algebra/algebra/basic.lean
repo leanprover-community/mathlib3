@@ -332,7 +332,7 @@ instance : algebra R Aᵒᵖ :=
   smul_def' := λ c x, by dsimp; simp only [op_mul, algebra.smul_def, algebra.commutes, op_unop],
   commutes' := λ r, op_induction $ λ x, by dsimp; simp only [← op_mul, algebra.commutes] }
 
-@[simp] lemma smul_op (c : R) (a : A) : c • op a = op (c • a) := rfl
+@[simp] lemma op_smul (c : R) (a : A) : op (c • a) = c • op a := rfl
 
 @[simp] lemma algebra_map_apply (c : R) : algebra_map R Aᵒᵖ c = op (algebra_map R A c) := rfl
 

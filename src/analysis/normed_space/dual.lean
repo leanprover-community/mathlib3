@@ -132,7 +132,7 @@ local postfix `†`:90 := @is_R_or_C.conj 𝕜 _
 
 /--
 Given some `x` in an inner product space, we can define its dual as the continuous linear map
-`λ y, ⟪x, y⟫`.
+`λ y, ⟪x, y⟫`. Consider using `to_dual` or `to_dual_map` instead.
 -/
 def to_dual' (x : E) : normed_space.dual 𝕜 E :=
 linear_map.mk_continuous
@@ -167,7 +167,8 @@ section real
 variables {F : Type*} [inner_product_space ℝ F]
 
 /-- In an inner product space `F`, the function that takes a vector `x` in `F` to its dual
-`λ y, ⟪x, y⟫` is a continuous linear map. -/
+`λ y, ⟪x, y⟫` is a continuous linear map. If the space is complete (i.e. is a Hilbert space),
+consider using `to_dual` instead. -/
 -- TODO extend to `is_R_or_C` (requires a definition of conjugate linear maps)
 def to_dual_map : F →L[ℝ] (normed_space.dual ℝ F) :=
 linear_map.mk_continuous

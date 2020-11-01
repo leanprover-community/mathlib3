@@ -183,7 +183,7 @@ linear_map.mk_continuous
 /-- In an inner product space, the norm of the dual of a vector `x` is `∥x∥` -/
 @[simp] lemma to_dual_map_isometry (x : F) : ∥to_dual_map x∥ = ∥x∥ := norm_to_dual'_apply _ _
 
-lemma to_dual_map_injective : (@to_dual_map F _).ker = ⊥ :=
+@[simp] lemma ker_to_dual_map : (@to_dual_map F _).ker = ⊥ :=
 begin
   rw eq_bot_iff,
   intros x hx,
@@ -193,7 +193,7 @@ begin
 end
 
 @[simp] lemma to_dual_map_eq_iff_eq {x y : F} : to_dual_map x = to_dual_map y ↔ x = y :=
-((linear_map.ker_eq_bot).mp (@to_dual_map_injective F _)).eq_iff
+((linear_map.ker_eq_bot).mp (@ker_to_dual_map F _)).eq_iff
 
 variables [complete_space F]
 

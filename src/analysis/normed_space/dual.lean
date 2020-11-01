@@ -203,7 +203,7 @@ Fréchet-Riesz representation: any `ℓ` in the dual of a real Hilbert space `F`
 equivalence thus induced.
 -/
 -- TODO extend to `is_R_or_C` (requires a definition of conjugate linear maps)
-lemma to_dual_map_range_eq_top : (@to_dual_map F _).range = ⊤ :=
+lemma range_to_dual_map : (@to_dual_map F _).range = ⊤ :=
 begin
   apply linear_map.range_eq_top.mpr,
   intros ℓ,

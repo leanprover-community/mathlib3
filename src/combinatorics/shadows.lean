@@ -78,7 +78,8 @@ section shadow
     intros i ih j _ k,
     have q: i ∉ erase A j := k ▸ not_mem_erase i A,
     rw [mem_erase, not_and] at q,
-    by_contra a, apply q a ih
+    by_contra a,
+    apply q a ih
   end
 
   /--
@@ -97,7 +98,8 @@ section shadow
   /-- Iterated shadow of the empty set is empty. -/
   lemma iter_shadow_empty (k : ℕ) : shadow^[k] (∅ : finset (finset α)) = ∅ :=
   begin
-    induction k with k ih, refl,
+    induction k with k ih,
+    { refl },
     rwa [iterate, shadow_empty],
   end
 
@@ -120,13 +122,13 @@ section shadow
   begin
     rw mem_shadow,
     split,
-      rintro ⟨A, HA, i, Hi, k⟩,
+    { rintro ⟨A, HA, i, Hi, k⟩,
       rw ← k,
       refine ⟨i, not_mem_erase i A, _⟩,
-      rwa insert_erase Hi,
-    rintro ⟨i, Hi, k⟩,
+      rwa insert_erase Hi },
+    { rintro ⟨i, Hi, k⟩,
       refine ⟨insert i B, k, i, mem_insert_self _ _, _⟩,
-      rw erase_insert Hi
+      rw erase_insert Hi }
   end
 
   /-- Everything in the shadow is one smaller than things in the original. -/
@@ -178,11 +180,18 @@ section shadow
     induction k with k ih generalizing 𝒜 B,
       simp [sdiff_eq_empty_iff_subset],
       split,
-        intro p, exact ⟨B, p, subset.refl _, subset.refl _⟩,
-        rintro ⟨A, _, q⟩, rw ← subset.antisymm_iff at q, rwa q,
-    simp, rw iterate, rw @ih (∂𝒜) B, clear ih,
+      { intro p,
+        exact ⟨B, p, subset.refl _, subset.refl _⟩ },
+      { rintro ⟨A, _, q⟩,
+        rw ← subset.antisymm_iff at q,
+        rwa q },
+    simp,
+    rw iterate,
+    rw @ih (∂𝒜) B,
+    clear ih,
     split,
-      rintro ⟨A, hA, BsubA, card_AdiffB_is_k⟩, rw sub_iff_shadow_one at hA,
+    { rintro ⟨A, hA, BsubA, card_AdiffB_is_k⟩,
+      rw sub_iff_shadow_one at hA,
       rcases hA with ⟨C, CinA, AsubC, card_CdiffA_is_1⟩,
       refine ⟨C, CinA, trans BsubA AsubC, _⟩,
       rw card_sdiff (trans BsubA AsubC),
@@ -190,18 +199,28 @@ section shadow
       rw card_sdiff AsubC at card_CdiffA_is_1,
       rw [← nat.sub_add_cancel (card_le_of_subset AsubC),
           nat.add_sub_assoc (card_le_of_subset BsubA), card_CdiffA_is_1,
-          card_AdiffB_is_k, add_comm],
-    rintro ⟨A, hA, a_h_right_left, a_h_right_right⟩,
-    have z: (A \ B).nonempty, rw [← card_pos, a_h_right_right], exact nat.succ_pos _,
-    rcases z with ⟨i, hi⟩,
-    have: i ∈ A, rw mem_sdiff at hi, exact hi.1,
-    have: B ⊆ erase A i,
-    { intros t th, apply mem_erase_of_ne_of_mem _ (a_h_right_left th),
-      intro a, rw mem_sdiff at hi, rw a at th, exact hi.2 th },
-    refine ⟨erase A i, _, ‹_›, _⟩,
-    { rw mem_shadow, refine ⟨A, hA, i, ‹_›, rfl⟩ },
-    rw [card_sdiff ‹B ⊆ erase A i›, card_erase_of_mem ‹i ∈ A›, nat.pred_sub,
-        ← card_sdiff a_h_right_left, a_h_right_right], simp
+          card_AdiffB_is_k, add_comm] },
+    { rintro ⟨A, hA, a_h_right_left, a_h_right_right⟩,
+      have z: (A \ B).nonempty,
+      { rw [← card_pos, a_h_right_right],
+        exact nat.succ_pos _ },
+      rcases z with ⟨i, hi⟩,
+      have: i ∈ A, rw mem_sdiff at hi,
+      { exact hi.1 },
+      have: B ⊆ erase A i,
+      { intros t th,
+        apply mem_erase_of_ne_of_mem _ (a_h_right_left th),
+        intro a,
+        rw mem_sdiff at hi,
+        rw a at th,
+        exact hi.2 th },
+      refine ⟨erase A i, _, ‹_›, _⟩,
+      { rw mem_shadow,
+        refine ⟨A, hA, i, ‹_›, rfl⟩ },
+      rw [card_sdiff ‹B ⊆ erase A i›,
+        card_erase_of_mem ‹i ∈ A›, nat.pred_sub,
+        ← card_sdiff a_h_right_left, a_h_right_right],
+      simp }
   end
   /--
   Everything in the `k`th shadow is `k` smaller than things in the original.
@@ -209,11 +228,15 @@ section shadow
   lemma iter_shadow_sized {𝒜 : finset (finset α)} {r k : ℕ}
     (a : all_sized 𝒜 r) : all_sized (shadow^[k] 𝒜) (r-k) :=
   begin
-    intro B, rw sub_iff_shadow_iter,
-    rintro ⟨A, hA, subs, card⟩, rw [card_sdiff ‹B ⊆ A›, a _ hA] at card,
+    intro B,
+    rw sub_iff_shadow_iter,
+    rintro ⟨A, hA, subs, card⟩,
+    rw [card_sdiff ‹B ⊆ A›, a _ hA] at card,
     rw [← card, nat.sub_sub_self],
-    rw ← a _ hA, apply card_le_of_subset ‹B ⊆ A›
+    rw ← a _ hA,
+    apply card_le_of_subset ‹B ⊆ A›
   end
+
 end shadow
 
 /-!

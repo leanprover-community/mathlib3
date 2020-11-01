@@ -8,6 +8,7 @@ Tests for norm_num
 
 import tactic.norm_num
 import data.complex.basic
+import data.nat.prime
 
 -- constant real : Type
 -- notation `ℝ` := real

@@ -33,6 +33,14 @@ instance division_ring.to_group_with_zero :
 { .. ‹division_ring α›,
   .. (infer_instance : semiring α) }
 
+lemma inverse_eq_has_inv : (ring.inverse : α → α) = has_inv.inv :=
+begin
+  ext x,
+  by_cases hx : x = 0,
+  { simp [hx] },
+  { exact ring.inverse_unit (units.mk0 x hx) }
+end
+
 @[field_simps] lemma inv_eq_one_div (a : α) : a⁻¹ = 1 / a := by simp
 
 local attribute [simp]

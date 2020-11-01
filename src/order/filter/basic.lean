@@ -521,46 +521,6 @@ have ∅ ∈ f ⊓ 𝓟 sᶜ, from h.symm ▸ mem_bot_sets,
 let ⟨s₁, hs₁, s₂, (hs₂ : sᶜ ⊆ s₂), (hs : s₁ ∩ s₂ ⊆ ∅)⟩ := this in
 by filter_upwards [hs₁] assume a ha, classical.by_contradiction $ assume ha', hs ⟨ha, hs₂ ha'⟩
 
-lemma inf_ne_bot_iff {f g : filter α} :
-  ne_bot (f ⊓ g) ↔ ∀ {U V}, U ∈ f → V ∈ g → set.nonempty (U ∩ V) :=
-begin
-  rw ← forall_sets_nonempty_iff_ne_bot,
-  simp_rw mem_inf_sets,
-  split ; intro h,
-  { intros U V U_in V_in,
-    exact h (U ∩ V) ⟨U, U_in, V, V_in, subset.refl _⟩ },
-  { rintros S ⟨U, U_in, V, V_in, hUV⟩,
-    cases h U_in V_in with a ha,
-    use [a, hUV ha] }
-end
-
-lemma inf_principal_ne_bot_iff {f : filter α} {s : set α} :
-  ne_bot (f ⊓ 𝓟 s) ↔ ∀ U ∈ f, (U ∩ s).nonempty :=
-begin
-  rw inf_ne_bot_iff,
-  apply forall_congr,
-  intros U,
-  split,
-  { intros h U_in,
-    exact h U_in (mem_principal_self s) },
-  { intros h V U_in V_in,
-    rw mem_principal_sets at V_in,
-    cases h U_in with x hx,
-    exact ⟨x, hx.1, V_in hx.2⟩ },
-end
-
-lemma inf_eq_bot_iff {f g : filter α} :
-  f ⊓ g = ⊥ ↔ ∃ U V, (U ∈ f) ∧ (V ∈ g) ∧ U ∩ V = ∅ :=
-begin
-  rw ← not_iff_not,
-  apply inf_ne_bot_iff.trans,
-  simp only [not_exists, not_and, ← ne.def, ne_empty_iff_nonempty]
-end
-
-protected lemma disjoint_iff {f g : filter α} :
-  disjoint f g ↔ ∃ U V, (U ∈ f) ∧ (V ∈ g) ∧ U ∩ V = ∅ :=
-disjoint_iff.trans inf_eq_bot_iff
-
 lemma eq_Inf_of_mem_sets_iff_exists_mem {S : set (filter α)} {l : filter α}
   (h : ∀ {s}, s ∈ l ↔ ∃ f ∈ S, s ∈ f) : l = Inf S :=
 le_antisymm (le_Inf $ λ f hf s hs, h.2 ⟨f, hf, hs⟩)
@@ -806,31 +766,6 @@ begin
   filter_upwards [hs],
   intros a has hat,
   exact ⟨has, hat⟩
-end
-
-lemma mem_iff_inf_principal_compl {f : filter α} {V : set α} :
-  V ∈ f ↔ f ⊓ 𝓟 Vᶜ = ⊥ :=
-begin
-  rw inf_eq_bot_iff,
-  split,
-  { intro h,
-    use [V, Vᶜ],
-    simp [h, subset.refl] },
-  { rintros ⟨U, W, U_in, W_in, UW⟩,
-    rw [mem_principal_sets, compl_subset_comm] at W_in,
-    apply mem_sets_of_superset U_in,
-    intros x x_in,
-    apply W_in,
-    intro H,
-    have : x ∈ U ∩ W := ⟨x_in, H⟩,
-    rwa UW at this },
-end
-
-lemma le_iff_forall_inf_principal_compl {f g : filter α} :
-  f ≤ g ↔ ∀ V ∈ g, f ⊓ 𝓟 Vᶜ = ⊥ :=
-begin
-  change (∀ V ∈ g, V ∈ f) ↔ _,
-  simp_rw [mem_iff_inf_principal_compl],
 end
 
 lemma principal_le_iff {s : set α} {f : filter α} :
@@ -1097,24 +1032,6 @@ by simp only [imp_iff_not_or, eventually_or_distrib_right, not_frequently]
 @[simp]
 lemma frequently_top {p : α → Prop} : (∃ᶠ x in ⊤, p x) ↔ (∃ x, p x) :=
 by simp [filter.frequently]
-
-lemma inf_ne_bot_iff_frequently_left {f g : filter α} :
-  ne_bot (f ⊓ g) ↔ ∀ {p : α → Prop}, (∀ᶠ x in f, p x) → ∃ᶠ x in g, p x :=
-begin
-  rw filter.inf_ne_bot_iff,
-  split ; intro h,
-  { intros U U_in H,
-    rcases h U_in H with ⟨x, hx, hx'⟩,
-    exact hx' hx},
-  { intros U V U_in V_in,
-    classical,
-    by_contra H,
-    exact h U_in (mem_sets_of_superset V_in $ λ v v_in v_in', H ⟨v, v_in', v_in⟩) }
-end
-
-lemma inf_ne_bot_iff_frequently_right {f g : filter α} :
-  ne_bot (f ⊓ g) ↔ ∀ {p : α → Prop}, (∀ᶠ x in g, p x) → ∃ᶠ x in f, p x :=
-by { rw inf_comm, exact filter.inf_ne_bot_iff_frequently_left }
 
 @[simp]
 lemma frequently_principal {a : set α} {p : α → Prop} :

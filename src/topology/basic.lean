@@ -634,7 +634,7 @@ def cluster_pt (x : α) (F : filter α) : Prop := ne_bot (𝓝 x ⊓ F)
 lemma cluster_pt.ne_bot {x : α} {F : filter α} (h : cluster_pt x F) : ne_bot (𝓝 x ⊓ F) := h
 
 lemma cluster_pt_iff {x : α} {F : filter α} :
-  cluster_pt x F ↔ ∀ {U V : set α}, U ∈ 𝓝 x → V ∈ F → (U ∩ V).nonempty :=
+  cluster_pt x F ↔ ∀ ⦃U : set α⦄ (hU : U ∈ 𝓝 x) ⦃V⦄ (hV : V ∈ F), (U ∩ V).nonempty :=
 inf_ne_bot_iff
 
 /-- `x` is a cluster point of a set `s` if every neighbourhood of `x` meets `s` on a nonempty

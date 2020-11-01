@@ -379,6 +379,25 @@ instance [add_semigroup α] : add_semigroup (with_top α) :=
 @[norm_cast]
 lemma coe_bit1 [has_add α] [has_one α] {a : α} : ((bit1 a : α) : with_top α) = bit1 a := rfl
 
+@[simp] lemma add_top [has_add α] : ∀{a : with_top α}, a + ⊤ = ⊤
+| none := rfl
+| (some a) := rfl
+
+@[simp] lemma top_add [has_add α] {a : with_top α} : ⊤ + a = ⊤ := rfl
+
+lemma add_eq_top [has_add α] {a b : with_top α} : a + b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
+by {cases a; cases b; simp [none_eq_top, some_eq_coe, ←with_top.coe_add, ←with_zero.coe_add]}
+
+lemma add_lt_top [has_add α] [partial_order α] {a b : with_top α} : a + b < ⊤ ↔ a < ⊤ ∧ b < ⊤ :=
+by simp [lt_top_iff_ne_top, add_eq_top, not_or_distrib]
+
+lemma add_eq_coe [has_add α] : ∀ {a b : with_top α} {c : α},
+  a + b = c ↔ ∃ (a' b' : α), ↑a' = a ∧ ↑b' = b ∧ a' + b' = c
+| none b c := by simp [none_eq_top]
+| (some a) none c := by simp [none_eq_top]
+| (some a) (some b) c :=
+    by simp only [some_eq_coe, ← coe_add, coe_eq_coe, exists_and_distrib_left, exists_eq_left]
+
 instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
 { ..@additive.add_comm_semigroup _ $
     @with_zero.comm_semigroup (multiplicative α) _ }
@@ -396,28 +415,24 @@ instance [add_comm_monoid α] : add_comm_monoid (with_top α) :=
     @with_zero.comm_monoid_with_zero (multiplicative α) _ }
 
 instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_top α) :=
-begin
-  suffices, refine {
-    add_le_add_left := this,
-    ..with_top.partial_order,
-    ..with_top.add_comm_monoid, ..},
-  { intros a b c h,
-    have h' := h,
-    rw lt_iff_le_not_le at h' ⊢,
-    refine ⟨λ c h₂, _, λ h₂, h'.2 $ this _ _ h₂ _⟩,
-    cases h₂, cases a with a,
-    { exact (not_le_of_lt h).elim le_top },
-    cases b with b,
-    { exact (not_le_of_lt h).elim le_top },
-    { exact ⟨_, rfl, le_of_lt (lt_of_add_lt_add_left $
-        with_top.some_lt_some.1 h)⟩ } },
-  { intros a b h c ca h₂,
-    cases c with c, {cases h₂},
-    cases b with b; cases h₂,
-    cases a with a, {cases le_antisymm h le_top },
-    simp at h,
-    exact ⟨_, rfl, add_le_add_left h _⟩, }
-end
+{ add_le_add_left :=
+    begin
+      rintros a b h (_|c), { simp [none_eq_top] },
+      rcases b with (_|b), { simp [none_eq_top] },
+      rcases le_coe_iff.1 h with ⟨a, rfl, h⟩,
+      simp only [some_eq_coe, ← coe_add, coe_le_coe] at h ⊢,
+      exact add_le_add_left h c
+    end,
+  lt_of_add_lt_add_left :=
+    begin
+      intros a b c h,
+      rcases lt_iff_exists_coe.1 h with ⟨ab, hab, hlt⟩,
+      rcases add_eq_coe.1 hab with ⟨a, b, rfl, rfl, rfl⟩,
+      rw coe_lt_iff,
+      rintro c rfl,
+      exact lt_of_add_lt_add_left (coe_lt_coe.1 hlt)
+    end,
+  ..with_top.partial_order, ..with_top.add_comm_monoid }
 
 /-- Coercion from `α` to `with_top α` as an `add_monoid_hom`. -/
 def coe_add_hom [add_monoid α] : α →+ with_top α :=
@@ -431,18 +446,6 @@ coe_lt_top 0
 @[simp, norm_cast] lemma zero_lt_coe [ordered_add_comm_monoid α] (a : α) :
   (0 : with_top α) < a ↔ 0 < a :=
 coe_lt_coe
-
-@[simp] lemma add_top [ordered_add_comm_monoid α] : ∀{a : with_top α}, a + ⊤ = ⊤
-| none := rfl
-| (some a) := rfl
-
-@[simp] lemma top_add [ordered_add_comm_monoid α] {a : with_top α} : ⊤ + a = ⊤ := rfl
-
-lemma add_eq_top [ordered_add_comm_monoid α] (a b : with_top α) : a + b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
-by {cases a; cases b; simp [none_eq_top, some_eq_coe, ←with_top.coe_add, ←with_zero.coe_add]}
-
-lemma add_lt_top [ordered_add_comm_monoid α] (a b : with_top α) : a + b < ⊤ ↔ a < ⊤ ∧ b < ⊤ :=
-by simp [lt_top_iff_ne_top, add_eq_top, not_or_distrib]
 
 end with_top
 

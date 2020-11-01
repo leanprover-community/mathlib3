@@ -109,7 +109,8 @@ begin
   { have : q⁻¹.num < (⌊q⁻¹⌋ + 1) * q⁻¹.denom, from rat.num_lt_succ_floor_mul_denom q⁻¹,
     have : q⁻¹.num < ⌊q⁻¹⌋ * q⁻¹.denom + q⁻¹.denom, by rwa [right_distrib, one_mul] at this,
     rwa [←sub_lt_iff_lt_add'] at this },
-  -- use that `q.num` and `q.denom` are coprime to show that q_inv is the unreduced reciprocal of `q`
+  -- use that `q.num` and `q.denom` are coprime to show that q_inv is the unreduced reciprocal of
+  -- `q`
   have : q_inv.num = q.denom ∧ q_inv.denom = q.num.nat_abs, by
   { have coprime_q_denom_q_num : q.denom.coprime q.num.nat_abs, from q.cop.symm,
     have : int.nat_abs q.denom = q.denom, by simp,
@@ -215,7 +216,7 @@ rfl
 end coe
 
 
-variables {K : Type*} [discrete_linear_ordered_field K] [floor_ring K]
+variables {K : Type*} [linear_ordered_field K] [floor_ring K]
 
 /-!
 We want to show that the computation of a continued fraction `gcf.of v` terminates if and only if
@@ -255,7 +256,8 @@ begin
       simp only [this, pred_conts_eq] },
     -- option.some
     { -- invoke the IH a second time
-      cases (IH n $ lt_of_le_of_lt (n.le_succ) $ lt_add_one $ n + 1) with ppred_conts ppred_conts_eq,
+      cases (IH n $ lt_of_le_of_lt (n.le_succ) $ lt_add_one $ n + 1)
+        with ppred_conts ppred_conts_eq,
       obtain ⟨a_eq_one, z, b_eq_z⟩ : gp_n.a = 1 ∧ ∃ (z : ℤ), gp_n.b = (z : K), from
         of_part_num_eq_one_and_exists_int_part_denom_eq s_ppred_nth_eq,
       -- finally, unfold the recurrence to obtain the required rational value.
@@ -355,7 +357,8 @@ begin
 end
 
 lemma coe_stream_rat :
-    (↑(int_fract_pair.stream q : stream $ option $ int_fract_pair ℚ) : stream $ option $ int_fract_pair K)
+    (↑(int_fract_pair.stream q : stream $ option $ int_fract_pair ℚ)
+      : stream $ option $ int_fract_pair K)
   = int_fract_pair.stream v :=
 by { funext n, exact (int_fract_pair.coe_stream_nth_rat v_eq_q n) }
 
@@ -460,7 +463,8 @@ begin
     suffices : ifp_succ_n.fr.num + 1 ≤ (int_fract_pair.of q).fr.num - n, by
     { rw [int.coe_nat_succ, sub_add_eq_sub_sub],
       solve_by_elim [le_sub_right_of_add_le] },
-    rcases (succ_nth_stream_eq_some_iff.elim_left stream_succ_nth_eq) with ⟨ifp_n, stream_nth_eq, _⟩,
+    rcases (succ_nth_stream_eq_some_iff.elim_left stream_succ_nth_eq) with
+      ⟨ifp_n, stream_nth_eq, _⟩,
     have : ifp_succ_n.fr.num < ifp_n.fr.num, from
       stream_succ_nth_fr_num_lt_nth_fr_num_rat stream_nth_eq stream_succ_nth_eq,
     have : ifp_succ_n.fr.num + 1 ≤ ifp_n.fr.num, from int.add_one_le_of_lt this,

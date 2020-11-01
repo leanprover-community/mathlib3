@@ -28,7 +28,7 @@ meta def simpa (use_iota_eqn : parse $ (tk "!")?) (no_dflt : parse only_flag)
   (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
   (tgt : parse (tk "using" *> texpr)?) (cfg : simp_config_ext := {}) : tactic unit :=
 let simp_at lc close_tac :=
-  try (simp use_iota_eqn no_dflt hs attr_names (loc.ns lc) cfg) >>
+  simp use_iota_eqn no_dflt hs attr_names (loc.ns lc) {fail_if_unchanged := ff, ..cfg} >>
   (close_tac <|> trivial) in
 match tgt with
 | none := get_local `this >> simp_at [some `this, none] assumption <|> simp_at [none] assumption

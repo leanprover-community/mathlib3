@@ -77,7 +77,7 @@ instance left_cancel_semigroup [left_cancel_semigroup α] :
   left_cancel_semigroup (ulift α) :=
 begin
   refine_struct { mul := (*) }; tactic.pi_instance_derive_field,
-  replace a_1 := congr_arg ulift.down a_1,
+  have := congr_arg ulift.down ‹_›,
   assumption,
 end
 
@@ -86,7 +86,7 @@ instance right_cancel_semigroup [right_cancel_semigroup α] :
   right_cancel_semigroup (ulift α) :=
 begin
   refine_struct { mul := (*) }; tactic.pi_instance_derive_field,
-  replace a_1 := congr_arg ulift.down a_1,
+  have := congr_arg ulift.down ‹_›,
   assumption,
 end
 

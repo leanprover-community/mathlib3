@@ -235,6 +235,10 @@ lemma sum_over_range [add_comm_monoid S] (p : polynomial R) {f : ℕ → R → S
   p.sum f = ∑ (a : ℕ) in range (p.nat_degree + 1), f a (coeff p a) :=
 sum_over_range' p h (p.nat_degree + 1) (lt_add_one _)
 
+lemma as_sum_range' (p : polynomial R) (n : ℕ) (w : p.nat_degree < n) :
+  p = ∑ i in range n, monomial i (coeff p i) :=
+p.sum_single.symm.trans $ p.sum_over_range' (λ n, single_zero) _ w
+
 lemma as_sum_range (p : polynomial R) :
   p = ∑ i in range (p.nat_degree + 1), monomial i (coeff p i) :=
 p.sum_single.symm.trans $ p.sum_over_range $ λ n, single_zero
@@ -429,7 +433,7 @@ begin
     { intro,
       apply a0,
       rw [← C_inj, C_0],
-      apply mul_X_pow_eq_zero a_1, }, },
+      apply mul_X_pow_eq_zero ‹_›, }, },
 end
 
 lemma nat_degree_C_mul_X_pow_of_nonzero {a : R} (n : ℕ) (ha : a ≠ 0) :
@@ -440,7 +444,7 @@ begin
   { intro,
     apply ha,
     rw [← C_inj, C_0],
-    exact mul_X_pow_eq_zero a_1, },
+    exact mul_X_pow_eq_zero ‹_›, },
 end
 
 lemma degree_add_eq_of_degree_lt (h : degree p < degree q) : degree (p + q) = degree q :=

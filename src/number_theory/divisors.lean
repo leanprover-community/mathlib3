@@ -5,6 +5,7 @@ Authors: Aaron Anderson
 -/
 import algebra.big_operators.order
 import tactic
+import data.nat.prime
 
 /-!
 # Divisor finsets

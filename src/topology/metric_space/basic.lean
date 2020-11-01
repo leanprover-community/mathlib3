@@ -1142,9 +1142,7 @@ begin
     ennreal.to_real (sup univ (λ (b : β), edist (x b) (y b))),
   { assume x y,
     have : sup univ (λ (b : β), edist (x b) (y b)) = ↑(sup univ (λ (b : β), nndist (x b) (y b))),
-    { simp [edist_nndist],
-      refine eq.symm (comp_sup_eq_sup_comp_of_is_total _ _ _),
-      exact (assume x y h, ennreal.coe_le_coe.2 h), refl },
+    { simp [edist_nndist] },
     rw this,
     refl }
 end

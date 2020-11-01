@@ -285,16 +285,16 @@ lemma bind₂_monomial_one (f : R →+* mv_polynomial σ S) (d : σ →₀ ℕ) 
   bind₂ f (monomial d 1) = monomial d 1 :=
 by rw [bind₂_monomial, f.map_one, one_mul]
 
-instance : monad (λ σ, mv_polynomial σ R) :=
+instance monad : monad (λ σ, mv_polynomial σ R) :=
 { map := λ α β f p, rename f p,
   pure := λ _, X,
   bind := λ _ _ p f, bind₁ f p }
 
-instance : is_lawful_functor (λ σ, mv_polynomial σ R) :=
+instance is_lawful_functor : is_lawful_functor (λ σ, mv_polynomial σ R) :=
 { id_map := by intros; simp [(<$>)],
   comp_map := by intros; simp [(<$>)] }
 
-instance : is_lawful_monad (λ σ, mv_polynomial σ R) :=
+instance is_lawful_monad : is_lawful_monad (λ σ, mv_polynomial σ R) :=
 { pure_bind := by intros; simp [pure, bind],
   bind_assoc := by intros; simp [bind, ← bind₁_comp_bind₁] }
 

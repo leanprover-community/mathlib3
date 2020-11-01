@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Yury G. Kudryashov
 -/
 import linear_algebra.affine_space.affine_map
+import algebra.invertible
 
 /-!
 # Affine equivalences
@@ -220,6 +221,10 @@ ext e.symm_apply_apply
 @[simp] lemma symm_trans (e : P₁ ≃ᵃ[k] P₂) : e.symm.trans e = refl k P₂ :=
 ext e.apply_symm_apply
 
+@[simp] lemma apply_line_map (e : P₁ ≃ᵃ[k] P₂) (a b : P₁) (c : k) :
+  e (affine_map.line_map a b c) = affine_map.line_map (e a) (e b) c :=
+e.to_affine_map.apply_line_map a b c
+
 omit V₂
 
 instance : group (P₁ ≃ᵃ[k] P₁) :=
@@ -256,6 +261,16 @@ def vadd_const (b : P₁) : V₁ ≃ᵃ[k] P₁ :=
 
 @[simp] lemma vadd_const_symm_apply (b p : P₁) : (vadd_const k b).symm p = p -ᵥ b := rfl
 
+/-- `p' ↦ p -ᵥ p'` as an equivalence. -/
+def const_vsub (p : P₁) : P₁ ≃ᵃ[k] V₁ :=
+{ to_equiv := equiv.const_vsub p,
+  linear := linear_equiv.neg k,
+  map_vadd' := λ p' v, by simp [vsub_vadd_eq_vsub_sub, neg_add_eq_sub] }
+
+@[simp] lemma coe_const_vsub (p : P₁) : ⇑(const_vsub k p) = (-ᵥ) p := rfl
+
+@[simp] lemma coe_const_vsub_symm (p : P₁) : ⇑(const_vsub k p).symm = λ v, -v +ᵥ p := rfl
+
 variable (P₁)
 
 /-- The map `p ↦ v +ᵥ p` as an affine automorphism of an affine space. -/
@@ -270,4 +285,74 @@ def const_vadd (v : V₁) : P₁ ≃ᵃ[k] P₁ :=
 
 @[simp] lemma const_vadd_symm_apply (v : V₁) (p : P₁) : (const_vadd k P₁ v).symm p = -v +ᵥ p := rfl
 
+variable {P₁}
+open function
+
+/-- Point reflection in `x` as a permutation. -/
+def point_reflection (x : P₁) : P₁ ≃ᵃ[k] P₁ := (const_vsub k x).trans (vadd_const k x)
+
+lemma point_reflection_apply (x y : P₁) : point_reflection k x y = x -ᵥ y +ᵥ x := rfl
+
+@[simp] lemma point_reflection_symm (x : P₁) : (point_reflection k x).symm = point_reflection k x :=
+injective_to_equiv $ equiv.point_reflection_symm x
+
+@[simp] lemma to_equiv_point_reflection (x : P₁) :
+  (point_reflection k x).to_equiv = equiv.point_reflection x :=
+rfl
+
+@[simp] lemma point_reflection_self (x : P₁) : point_reflection k x x = x := vsub_vadd _ _
+
+lemma point_reflection_involutive (x : P₁) : involutive (point_reflection k x : P₁ → P₁) :=
+equiv.point_reflection_involutive x
+
+/-- `x` is the only fixed point of `point_reflection x`. This lemma requires
+`x + x = y + y ↔ x = y`. There is no typeclass to use here, so we add it as an explicit argument. -/
+lemma point_reflection_fixed_iff_of_injective_bit0 {x y : P₁} (h : injective (bit0 : V₁ → V₁)) :
+  point_reflection k x y = y ↔ y = x :=
+equiv.point_reflection_fixed_iff_of_injective_bit0 h
+
+lemma injective_point_reflection_left_of_injective_bit0 (h : injective (bit0 : V₁ → V₁)) (y : P₁) :
+  injective (λ x : P₁, point_reflection k x y) :=
+equiv.injective_point_reflection_left_of_injective_bit0 h y
+
+lemma injective_point_reflection_left_of_module [invertible (2:k)]:
+  ∀ y, injective (λ x : P₁, point_reflection k x y) :=
+injective_point_reflection_left_of_injective_bit0 k $ λ x y h,
+  by rwa [bit0, bit0, ← two_smul k x, ← two_smul k y,
+    (is_unit_of_invertible (2:k)).smul_left_cancel] at h
+
+lemma point_reflection_fixed_iff_of_module [invertible (2:k)] {x y : P₁} :
+  point_reflection k x y = y ↔ y = x :=
+((injective_point_reflection_left_of_module k y).eq_iff' (point_reflection_self k y)).trans eq_comm
+
 end affine_equiv
+
+namespace affine_map
+
+open affine_equiv
+
+include V₁
+
+lemma line_map_vadd (v v' : V₁) (p : P₁) (c : k) :
+  line_map v v' c +ᵥ p = line_map (v +ᵥ p) (v' +ᵥ p) c :=
+(vadd_const k p).apply_line_map v v' c
+
+lemma line_map_vsub (p₁ p₂ p₃ : P₁) (c : k) :
+  line_map p₁ p₂ c -ᵥ p₃ = line_map (p₁ -ᵥ p₃) (p₂ -ᵥ p₃) c :=
+(vadd_const k p₃).symm.apply_line_map p₁ p₂ c
+
+lemma vsub_line_map (p₁ p₂ p₃ : P₁) (c : k) :
+  p₁ -ᵥ line_map p₂ p₃ c = line_map (p₁ -ᵥ p₂) (p₁ -ᵥ p₃) c :=
+(const_vsub k p₁).apply_line_map p₂ p₃ c
+
+lemma vadd_line_map (v : V₁) (p₁ p₂ : P₁) (c : k) :
+  v +ᵥ line_map p₁ p₂ c = line_map (v +ᵥ p₁) (v +ᵥ p₂) c :=
+(const_vadd k P₁ v).apply_line_map p₁ p₂ c
+
+variables {R' : Type*} [comm_ring R'] [semimodule R' V₁]
+
+lemma homothety_neg_one_apply (c p : P₁) :
+  homothety c (-1:R') p = point_reflection R' c p :=
+by simp [homothety_apply, point_reflection_apply]
+
+end affine_map

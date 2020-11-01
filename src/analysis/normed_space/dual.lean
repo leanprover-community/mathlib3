@@ -258,8 +258,8 @@ continuous_linear_equiv.of_homothety
   ℝ
   (linear_equiv.of_bijective
     to_dual_map.to_linear_map
-    to_dual_map_injective
-    to_dual_map_range_eq_top)
+    ker_to_dual_map
+    range_to_dual_map)
   1
   (by norm_num)
   (λ x, by { convert to_dual_map_isometry x, simp })
@@ -274,7 +274,11 @@ continuous_linear_equiv.of_homothety
 /-- In a Hilbert space, the norm of a vector in the dual space is the norm of its corresponding
 primal vector. -/
 lemma norm_to_dual_symm_apply (ℓ : normed_space.dual ℝ F) : ∥to_dual.symm ℓ∥ = ∥ℓ∥ :=
-by { convert to_dual_norm_eq_primal_norm (to_dual.symm ℓ), simp }
+begin
+  have : ℓ = to_dual (to_dual.symm ℓ) := by simp only [continuous_linear_equiv.apply_symm_apply],
+  conv_rhs { rw [this] },
+  refine eq.symm (norm_to_dual_apply _),
+end
 
 end real
 

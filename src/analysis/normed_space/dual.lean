@@ -273,7 +273,7 @@ continuous_linear_equiv.of_homothety
 
 /-- In a Hilbert space, the norm of a vector in the dual space is the norm of its corresponding
 primal vector. -/
-lemma dual_norm_eq_primal_norm (ℓ : normed_space.dual ℝ F) : ∥ℓ∥ = ∥to_dual.symm ℓ∥ :=
+lemma norm_to_dual_symm_apply (ℓ : normed_space.dual ℝ F) : ∥to_dual.symm ℓ∥ = ∥ℓ∥ :=
 by { convert to_dual_norm_eq_primal_norm (to_dual.symm ℓ), simp }
 
 end real

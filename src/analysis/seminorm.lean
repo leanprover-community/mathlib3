@@ -40,6 +40,7 @@ variables
 {E : Type*} [add_comm_group E] [vector_space 𝕜 E]
 
 open set normed_field
+open_locale topological_space
 
 /-- A set `A` absorbs another set `B` if `B` is contained in scaling
 `A` by elements of sufficiently large norms. -/
@@ -52,11 +53,10 @@ def absorbent (A : set E) := ∀ x, ∃ r > 0, ∀ a : 𝕜, r ≤ ∥a∥ → x
 has norm no greater than one. -/
 def balanced (A : set E) := ∀ a : 𝕜, ∥a∥ ≤ 1 → a • A ⊆ A
 
-
 variables {𝕜} (a : 𝕜) {A : set E}
 
 /-- A balanced set absorbs itself. -/
-lemma absorbs_self_of_balanced (hA : balanced 𝕜 A) : absorbs 𝕜 A A :=
+lemma balanced.absorbs_self (hA : balanced 𝕜 A) : absorbs 𝕜 A A :=
 begin
   use [1, zero_lt_one],
   intros a ha x hx,
@@ -71,7 +71,7 @@ end
 variables [topological_space E] [topological_vector_space 𝕜 E]
 
 /-- Every neighbourhood of the origin is absorbent. -/
-lemma absorbent_nhds_zero (hA : A ∈ nhds (0 : E)) : absorbent 𝕜 A :=
+lemma absorbent_nhds_zero (hA : A ∈ 𝓝 (0 : E)) : absorbent 𝕜 A :=
 begin
   intro x,
   rcases mem_nhds_sets_iff.mp hA with ⟨w, hw₁, hw₂, hw₃⟩,
@@ -112,7 +112,7 @@ begin
 end
 
 /-- The interior of a balanced set is balanced if it contains the origin. -/
-lemma balanced_interior (hA : balanced 𝕜 A) (h : (0 : E) ∈ interior A) :
+lemma balanced.interior (hA : balanced 𝕜 A) (h : (0 : E) ∈ interior A) :
   balanced 𝕜 (interior A) :=
 begin
   rw ←singleton_subset_iff at h,
@@ -121,7 +121,7 @@ begin
 end
 
 /-- The closure of a balanced set is balanced. -/
-lemma balanced_closure (hA : balanced 𝕜 A) : balanced 𝕜 (closure A) :=
+lemma balanced.closure (hA : balanced 𝕜 A) : balanced 𝕜 (closure A) :=
 begin
   intros a ha,
   calc _ ⊆ closure (a • A) :
@@ -140,58 +140,51 @@ subadditive. -/
 
 structure seminorm (𝕜 : Type*) (E : Type*)
   [normed_field 𝕜] [add_comm_group E] [vector_space 𝕜 E] :=
-(to_fun   : E → ℝ)
-(smul     : ∀ (a : 𝕜) (x : E), to_fun (a • x) = ∥a∥ * to_fun x)
-(triangle : ∀ x y : E, to_fun (x + y) ≤ to_fun x + to_fun y)
+(to_fun    : E → ℝ)
+(smul'     : ∀ (a : 𝕜) (x : E), to_fun (a • x) = ∥a∥ * to_fun x)
+(triangle' : ∀ x y : E, to_fun (x + y) ≤ to_fun x + to_fun y)
 
 variables
 {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [add_comm_group E] [vector_space 𝕜 E]
 
 instance : inhabited (seminorm 𝕜 E) :=
-⟨{ to_fun   := λ _, 0,
-   smul     := λ _ _, (mul_zero _).symm,
-   triangle := λ x y, by rw add_zero }⟩
+⟨{ to_fun     := λ _, 0,
+   smul'     := λ _ _, (mul_zero _).symm,
+   triangle' := λ x y, by rw add_zero }⟩
 
 instance : has_coe_to_fun (seminorm 𝕜 E) := ⟨_, λ p, p.to_fun⟩
 
-section seminorm
+namespace seminorm
 
 variables (p : seminorm 𝕜 E) (c : 𝕜) (x y : E) (r : ℝ)
 
-lemma seminorm_smul : p (c • x) = ∥c∥ * p x := p.smul _ _
-lemma seminorm_triangle : p (x + y) ≤ p x + p y := p.triangle _ _
+protected lemma smul : p (c • x) = ∥c∥ * p x := p.smul' _ _
+protected lemma triangle : p (x + y) ≤ p x + p y := p.triangle' _ _
 
 @[simp]
-lemma seminorm_zero : p 0 = 0 :=
+protected lemma zero : p 0 = 0 :=
 calc p 0 = p ((0 : 𝕜) • 0) : by rw zero_smul
-...      = 0 : by rw [seminorm_smul p, norm_zero, zero_mul]
+...      = 0 : by rw [p.smul, norm_zero, zero_mul]
 
 @[simp]
-lemma seminorm_neg : p (-x) = p x :=
+protected lemma neg : p (-x) = p x :=
 calc p (-x) = p ((-1 : 𝕜) • x) : by rw neg_one_smul
-...         = p x : by rw [seminorm_smul,
-                           norm_neg, norm_one, one_mul]
+...         = p x : by rw [p.smul, norm_neg, norm_one, one_mul]
 
-lemma seminorm_nonneg : 0 ≤ p x :=
+lemma nonneg : 0 ≤ p x :=
 have h: 0 ≤ 2 * p x, from
-calc 0 = p (x + (- x)) : by rw [add_neg_self, seminorm_zero]
-...    ≤ p x + p (-x)  : seminorm_triangle _ _ _
-...    = 2 * p x : by rw [seminorm_neg, two_mul],
+calc 0 = p (x + (- x)) : by rw [add_neg_self, p.zero]
+...    ≤ p x + p (-x)  : p.triangle _ _
+...    = 2 * p x : by rw [p.neg, two_mul],
 nonneg_of_mul_nonneg_left h zero_lt_two
 
-lemma seminorm_sub_rev : p (x - y) = p (y - x) :=
-by rw [←neg_sub, seminorm_neg]
-
-end seminorm
-
-namespace seminorm
+lemma sub_rev : p (x - y) = p (y - x) :=
+by rw [←neg_sub, p.neg]
 
 /-- The ball of radius `r` at `x` with respect to seminorm `p`
     is the set of elements `y` with `p (y - x) < `r`. -/
 def ball (p : seminorm 𝕜 E) (x : E) (r : ℝ) := { y : E | p (y - x) < r }
-
-variables (p : seminorm 𝕜 E) (c : 𝕜) (x y : E) (r : ℝ)
 
 lemma mem_ball : y ∈ ball p x r ↔ p (y - x) < r :=
 iff.rfl
@@ -206,8 +199,8 @@ set.ext $ λ x,by { rw mem_ball_zero, exact iff.rfl }
 lemma balanced_ball_zero : balanced 𝕜 (ball p 0 r) :=
 begin
   rintro a ha x ⟨y, hy, hx⟩,
-  rw [mem_ball_zero, ←hx, seminorm_smul],
-  calc _ ≤ p y : mul_le_of_le_one_left (seminorm_nonneg _ _) ha
+  rw [mem_ball_zero, ←hx, p.smul],
+  calc _ ≤ p y : mul_le_of_le_one_left (p.nonneg _) ha
   ...    < r   : by rwa mem_ball_zero at hy,
 end
 

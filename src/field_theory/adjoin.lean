@@ -433,7 +433,7 @@ end
 /-- Algebra homomorphism `F⟮α⟯ →ₐ[F] K` are in bijection with the set of roots
 of `minimal_polynomial α` in `K`. -/
 noncomputable def alg_hom_adjoin_integral_equiv :
-  (F⟮α⟯ →ₐ[F] K) ≃ (↑((minimal_polynomial h).map (algebra_map F K)).roots.to_finset : set K) :=
+  (F⟮α⟯ →ₐ[F] K) ≃ {x // x ∈ ((minimal_polynomial h).map (algebra_map F K)).roots} :=
 begin
   have ϕ := adjoin_root_equiv_adjoin_simple F α,
   have swap1 : (F⟮α⟯ →ₐ[F] K) ≃ (adjoin_root (minimal_polynomial h) →ₐ[F] K) :=
@@ -454,9 +454,10 @@ lemma alg_hom_adjoin_integral (h_sep : (minimal_polynomial h).separable)
   (h_splits : (minimal_polynomial h).splits (algebra_map F K)) :
   fintype.card (F⟮α⟯ →ₐ[F] K) = (minimal_polynomial h).nat_degree :=
 begin
-  rw [fintype.card_congr (alg_hom_adjoin_integral_equiv F α),
-      polynomial.nat_degree_eq_card_roots h_splits, fintype.card_coe,
-      multiset.to_finset_card_of_nodup],
+  let s := ((minimal_polynomial h).map (algebra_map F K)).roots.to_finset,
+  have H := λ x, multiset.mem_to_finset,
+  rw [fintype.card_congr (alg_hom_adjoin_integral_equiv F α), fintype.card_of_subtype s H,
+      polynomial.nat_degree_eq_card_roots h_splits, multiset.to_finset_card_of_nodup],
   exact polynomial.nodup_roots ((polynomial.separable_map (algebra_map F K)).mpr h_sep),
 end
 

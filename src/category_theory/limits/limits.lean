@@ -1240,10 +1240,9 @@ section lim_functor
 variables [has_limits_of_shape J C]
 
 section
-local attribute [simp] lim_map
 
 /-- `limit F` is functorial in `F`, when `C` has all limits of shape `J`. -/
-@[simps]
+@[simps obj]
 def lim : (J ⥤ C) ⥤ C :=
 { obj := λ F, limit F,
   map := λ F G α, lim_map α,
@@ -1253,6 +1252,9 @@ def lim : (J ⥤ C) ⥤ C :=
 end
 
 variables {F} {G : J ⥤ C} (α : F ⟶ G)
+
+-- We generate this manually since `simps` gives it a weird name.
+@[simp] lemma lim_map_eq_lim_map : lim.map α = lim_map α := rfl
 
 @[reassoc] lemma limit.map_π (j : J) : lim.map α ≫ limit.π G j = limit.π F j ≫ α.app j :=
 by simp

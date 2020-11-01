@@ -9,8 +9,10 @@ import algebra.geom_sum
 
 /-!
 # Colex
+
 We define the colex ordering for finite sets, and give a couple of important
 lemmas and properties relating to it.
+
 The colex ordering likes to avoid large values - it can be thought of on
 `finset ℕ` as the "binary" ordering. That is, order A based on
 `∑_{i ∈ A} 2^i`.
@@ -19,6 +21,7 @@ the definition of colex on `finset α`. In the context of the Kruskal-Katona
 theorem, we are interested in particular on how colex behaves for sets of a
 fixed size. If the size is 3, colex on ℕ starts
 123, 124, 134, 234, 125, 135, 235, 145, 245, 345, ...
+
 ## Main statements
 * `colex_hom`: strictly monotone functions preserve colex
 * Colex order properties - linearity, decidability and so on.
@@ -27,13 +30,17 @@ fixed size. If the size is 3, colex on ℕ starts
   exhaust all sets using elements < t before allowing t to be included.
 * `binary_iff`: colex for α = ℕ is the same as binary
   (this also proves binary expansions are unique)
+
 ## Notation
 We define `<ᶜ` and `≤ᶜ` to denote colex ordering, useful in particular when
 multiple orderings are available in context.
+
 ## Tags
 colex, colexicographic, binary
+
 ## References
 * https://github.com/b-mehta/maths-notes/blob/master/iii/mich/combinatorics.pdf
+
 ## Todo
 Show the subset ordering is a sub-relation of the colex ordering.
 -/
@@ -142,7 +149,7 @@ lemma lt_trichotomy [linear_order α] (A B : finset.colex α) :
   A < B ∨ A = B ∨ B < A :=
 begin
   classical,
-  by_cases (A = B),
+  by_cases h₁ : (A = B),
   { right,
     left,
     assumption  },
@@ -153,21 +160,21 @@ begin
       right,
       refine ⟨k, λ t th, _, hk.2, hk.1⟩,
       specialize z t,
-      by_contra,
+      by_contra h₂,
       simp only [mem_union, mem_sdiff, id.def] at z,
-      rw [not_iff, iff_iff_and_or_not_and_not, not_not, and_comm] at h,
-      apply not_le_of_lt th (z h) },
+      rw [not_iff, iff_iff_and_or_not_and_not, not_not, and_comm] at h₂,
+      apply not_le_of_lt th (z h₂) },
     { left,
       refine ⟨k, λ t th, _, hk.2, hk.1⟩,
       specialize z t,
-      by_contra,
+      by_contra h₃,
       simp only [mem_union, mem_sdiff, id.def] at z,
-      rw [not_iff, iff_iff_and_or_not_and_not, not_not, and_comm, or_comm] at h,
-      apply not_le_of_lt th (z h) }, },
+      rw [not_iff, iff_iff_and_or_not_and_not, not_not, and_comm, or_comm] at h₃,
+      apply not_le_of_lt th (z h₃) }, },
   rw nonempty_iff_ne_empty,
   intro a,
   simp only [union_eq_empty_iff, sdiff_eq_empty_iff_subset] at a,
-  apply h (subset.antisymm a.1 a.2)
+  apply h₁ (subset.antisymm a.1 a.2)
 end
 
 instance [linear_order α] : is_trichotomous (finset.colex α) (<) := ⟨lt_trichotomy⟩

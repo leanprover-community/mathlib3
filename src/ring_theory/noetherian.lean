@@ -6,6 +6,7 @@ Authors: Mario Carneiro, Kevin Buzzard
 import ring_theory.ideal.operations
 import linear_algebra.linear_independent
 import order.order_iso_nat
+import algebraic_geometry.prime_spectrum
 
 /-!
 # Noetherian rings and modules
@@ -508,3 +509,21 @@ nat.rec_on n
 (λ n ih, by simpa [pow_succ] using fg_mul _ _ h ih)
 
 end submodule
+
+namespace primes
+
+variables {R : Type*} [comm_ring R] [is_noetherian_ring R]
+
+lemma prime_product (I : ideal R) : ∃ (A : finset (prime_spectrum R)),
+  ∏ p in A, (p.val : ideal R) ≤ I :=
+begin
+  sorry,
+end
+
+lemma prime_product_domain (hR : is_integral_domain R)(I : ideal R) : ∃ (A : finset (prime_spectrum R)),
+  ∏ p in A, (p.val : ideal R) ≠ 0 ∧ ∏ p in A, (p.val : ideal R) ≤ I :=
+begin
+  sorry,
+end
+
+end primes

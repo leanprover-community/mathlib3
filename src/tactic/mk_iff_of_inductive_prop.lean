@@ -2,19 +2,24 @@
 Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
-
-Generation function for iff rules for inductives, like for `list.chain`:
-
-    ∀{α : Type*} (R : α → α → Prop) (a : α) (l : list α),
-      chain R a l ↔ l = [] ∨ ∃{b : α} {l' : list α}, R a b ∧ chain R b l ∧ l = b :: l'
-
 -/
 import tactic.core
+/-!
+# mk_iff_of_inductive_prop
 
+This file defines a function that generates `iff` rules for inductive types, like for `list.chain`:
+
+```lean
+∀{α : Type*} (R : α → α → Prop) (a : α) (l : list α),
+  chain R a l ↔ l = [] ∨ ∃{b : α} {l' : list α}, R a b ∧ chain R b l ∧ l = b :: l'
+```
+
+-/
 namespace tactic
 
 open tactic expr
 
+/-- Given two expressions `e₀` and `e₁`, return the expression `` `(%%e₀ ↔ %%e₁)``. -/
 meta def mk_iff (e₀ : expr) (e₁ : expr) : expr := `(%%e₀ ↔ %%e₁)
 
 meta def select : ℕ → ℕ → tactic unit
@@ -24,12 +29,14 @@ meta def select : ℕ → ℕ → tactic unit
 | (n + 1) 0       := failure
 
 /-- `compact_relation bs as_ps`: Produce a relation of the form:
-  R as := ∃ bs, Λ_i a_i = p_i[bs]
+```lean
+R as := ∃ bs, Λ_i a_i = p_i[bs]
+```
 This relation is user visible, so we compact it by removing each `b_j` where a `p_i = b_j`, and
 hence `a_i = b_j`. We need to take care when there are `p_i` and `p_j` with `p_i = p_j = b_k`.
 
 TODO: this is copied from Lean's `coinductive_predicates.lean`, export it there.
- -/
+-/
 private meta def compact_relation :
   list expr → list (expr × expr) → list (option expr) × list (expr × expr)
 | []        ps := ([], ps)
@@ -118,7 +125,7 @@ match s.length with
       (hs, h, _) ← elim_gen_prod n h [] [],
       (es, eq, _) ← elim_gen_prod e h [] [],
       let es := es ++ [eq],
-      /- `es.mmap' subst`: fails when we have dependent equalities (heq). `subst will change the
+      /- `es.mmap' subst`: fails when we have dependent equalities (`heq`). `subst` will change the
         dependent hypotheses, so that the uniq local names in `es` are wrong afterwards. Instead
         we revert them and pull them out one by one -/
       revert_lst es,
@@ -164,7 +171,8 @@ meta def mk_iff_of_inductive_prop (i : name) (r : name) : tactic unit := do
 
   let univ_names := decl.univ_params,
   let univs := univ_names.map level.param,
-    /- we use these names for our universe parameters, maybe we should construct a copy of them using uniq_name -/
+    /- we use these names for our universe parameters, maybe we should construct a copy of them
+    using `uniq_name` -/
 
   (g, `(Prop)) ← open_pis type | fail "Inductive type is not a proposition",
   let lhs := (const i univs).mk_app g,
@@ -207,5 +215,44 @@ add_tactic_doc
 { name        := "mk_iff_of_inductive_prop",
   category    := doc_category.cmd,
   decl_names  := [``mk_iff_of_inductive_prop_cmd],
+  tags        := ["logic", "environment"] }
+
+/--
+Applying the `mk_iff` attribute to an inductively defined proposition `mk_iff` makes an iff rule `r`
+with the shape `∀ps is, i as ↔ ⋁_j, ∃cs, is = cs`, where `ps` are the type parameters, `is` are the
+indices, `j` ranges over all possible constructors, the `cs` are the parameters for each
+constructors, the equalities `is = cs` are the instantiations for each constructor for each of the
+indices to the inductive type `i`.
+
+In each case, we remove constructor parameters (i.e. `cs`) when the corresponding equality would
+be just `c = i` for some index `i`.
+
+For example, if we try the following:
+```lean
+@[mk_iff] structure foo (m n : ℕ) : Prop :=
+(equal : m = n)
+(sum_eq_two : m + n = 2)
+```
+
+Then `#check foo_iff` returns:
+```lean
+foo_iff : ∀ (m n : ℕ), foo m n ↔ m = n ∧ m + n = 2
+```
+
+You can add an optional string after `mk_iff` to change the name of the generated lemma.
+-/
+@[user_attribute] meta def mk_iff_of_inductive_prop_attr : user_attribute unit (option name) :=
+{ name := `mk_iff,
+  descr := "Generate `iff` lemma for an inductive type. Apply a name ",
+  parser := ident?,
+  after_set := some $ λ n _ _, do
+    tgt ← mk_iff_of_inductive_prop_attr.get_param n,
+    tactic.mk_iff_of_inductive_prop n
+      (tgt.get_or_else (name.anonymous.mk_string $ n.to_string ++ "_iff")) }
+
+add_tactic_doc
+{ name        := "mk_iff",
+  category    := doc_category.attr,
+  decl_names  := [`mk_iff_of_inductive_prop_attr],
   tags        := ["logic", "environment"] }
 end

@@ -312,7 +312,7 @@ rfl
 
 @[simp] lemma support_on_finset_subset {s : finset α} {f : α → M} {hf} :
   (on_finset s f hf).support ⊆ s :=
-filter_subset _
+filter_subset _ _
 
 @[simp] lemma mem_support_on_finset
   {s : finset α} {f : α → M} (hf : ∀ (a : α), f a ≠ 0 → a ∈ s) {a : α} :

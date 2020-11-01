@@ -547,8 +547,8 @@ begin
 end
 end fraction_map
 
-/-- Gauss's Lemma for `ℤ` states that a primitive integer polynomial is irreducible iff it is irreducible
-  over `ℚ`. -/
+/-- Gauss's Lemma for `ℤ` states that a primitive integer polynomial is irreducible iff it is
+  irreducible over `ℚ`. -/
 theorem is_primitive.int.irreducible_iff_irreducible_map_cast
   {p : polynomial ℤ} (hp : p.is_primitive) :
   irreducible p ↔ irreducible (p.map (int.cast_ring_hom ℚ)) :=

@@ -120,7 +120,7 @@ congr_fun (limit.lift_π s j) x
 
 @[simp]
 lemma limit.map_π_apply {F G : J ⥤ Type u} (α : F ⟶ G) (j : J) (x) :
-  limit.π G j (lim.map α x) = α.app j (limit.π F j x) :=
+  limit.π G j (lim_map α x) = α.app j (limit.π F j x) :=
 congr_fun (lim_map_π α j) x
 
 /--

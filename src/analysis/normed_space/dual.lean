@@ -40,6 +40,7 @@ dual, Fréchet-Riesz
 -/
 
 noncomputable theory
+open_locale classical
 universes u v
 
 namespace normed_space
@@ -280,6 +281,19 @@ def isometric.to_dual : F ≃ᵢ normed_space.dual ℝ F :=
 
 @[simp] lemma to_dual_eq_iff_eq {x y : F} : to_dual x = to_dual y ↔ x = y :=
 (@to_dual F _ _).injective.eq_iff
+
+lemma to_dual_eq_iff_eq' {x x' : F} : (∀ y : F, ⟪x, y⟫_ℝ = ⟪x', y⟫_ℝ) ↔ x = x' :=
+begin
+  split,
+  { intros h,
+    have : to_dual x = to_dual x' → x = x' := to_dual_eq_iff_eq.mp,
+    apply this,
+    simp_rw [←to_dual_apply] at h,
+    ext z,
+    exact h z },
+  { rintros rfl y,
+    refl }
+end
 
 @[simp] lemma norm_to_dual_apply (x : F) : ∥to_dual x∥ = ∥x∥ := to_dual_map_isometry x
 

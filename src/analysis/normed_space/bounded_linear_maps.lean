@@ -438,3 +438,28 @@ begin
 end
 
 end bilinear_map
+
+lemma continuous_linear_map.of_isometry (f : E →ₗ[𝕜] F) (hf : isometry f) (hfr : f.range = ⊤) :
+  E ≃L[𝕜] F :=
+linear_equiv.to_continuous_linear_equiv_of_bounds
+(linear_equiv.of_bijective f (linear_map.ker_eq_bot.mpr (isometry.injective hf)) hfr)
+1 1
+begin
+  intros x,
+  let f' : E →L[𝕜] F := {to_linear_map := f, cont := hf.continuous},
+  have hf' : ∀ x, ∥f' x∥ = ∥x∥ := continuous_linear_map.isometry_iff_norm_image_eq_norm.mp hf,
+  change ∥f' x∥ ≤ 1 * ∥x∥,
+  simp only [hf' x, one_mul],
+end
+begin
+  intros x,
+  set g := (linear_equiv.of_bijective f (linear_map.ker_eq_bot.mpr (isometry.injective hf)) hfr)
+    with hg,
+  set g_iso : E ≃ᵢ F := {to_equiv := g.to_equiv, isometry_to_fun := hf},
+  set g' : F →L[𝕜] E :=
+    {to_linear_map := g.symm.to_linear_map, cont := g_iso.symm.isometry.continuous} with hg',
+  have hg' : ∀ x, ∥g' x∥ = ∥x∥ :=
+    continuous_linear_map.isometry_iff_norm_image_eq_norm.mp g_iso.symm.isometry,
+  change ∥g' x∥ ≤ 1 * ∥x∥,
+  simp only [hg' x, one_mul],
+end

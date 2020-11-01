@@ -22,7 +22,7 @@ open tactic expr
 /-- Given two expressions `e₀` and `e₁`, return the expression `` `(%%e₀ ↔ %%e₁)``. -/
 meta def mk_iff (e₀ : expr) (e₁ : expr) : expr := `(%%e₀ ↔ %%e₁)
 
-meta def select : ℕ → ℕ → tactic unit
+private meta def select : ℕ → ℕ → tactic unit
 | 0 0             := skip
 | 0 (n + 1)       := left >> skip
 | (m + 1) (n + 1) := right >> select m n
@@ -240,10 +240,12 @@ foo_iff : ∀ (m n : ℕ), foo m n ↔ m = n ∧ m + n = 2
 ```
 
 You can add an optional string after `mk_iff` to change the name of the generated lemma.
+
+See also the user command `mk_iff_of_inductive_prop`.
 -/
 @[user_attribute] meta def mk_iff_of_inductive_prop_attr : user_attribute unit (option name) :=
 { name := `mk_iff,
-  descr := "Generate `iff` lemma for an inductive type. Apply a name ",
+  descr := "Generate an `iff` lemma for an inductive `Prop`.",
   parser := ident?,
   after_set := some $ λ n _ _, do
     tgt ← mk_iff_of_inductive_prop_attr.get_param n,

@@ -247,8 +247,7 @@ You can add an optional string after `mk_iff` to change the name of the generate
   parser := ident?,
   after_set := some $ λ n _ _, do
     tgt ← mk_iff_of_inductive_prop_attr.get_param n,
-    tactic.mk_iff_of_inductive_prop n
-      (tgt.get_or_else (name.anonymous.mk_string $ n.to_string ++ "_iff")) }
+    tactic.mk_iff_of_inductive_prop n (tgt.get_or_else (n.append_suffix "_iff")) }
 
 add_tactic_doc
 { name        := "mk_iff",

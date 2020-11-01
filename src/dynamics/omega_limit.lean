@@ -123,14 +123,25 @@ begin
   simp_rw this,
 end
 
+-- TODO : move to data.set.basic
+lemma singleton_inter_nonempty (a : α) : ({a} ∩ s).nonempty ↔ a ∈ s :=
+iff.intro
+  (λ ⟨a', ha₁, ha₂⟩, by { rw mem_singleton_iff at ha₁, rwa ←ha₁ })
+  (λ ha, ⟨_, ⟨rfl, ha⟩⟩)
+
 /-- An element `y` is in the ω-limit of `x` w.r.t. `f` if the forward
     images of `x` frequently (w.r.t. `f`) falls within an arbitrary
     neighbourhood of `y`. -/
-lemma mem_omega_limit_singleton_iff_frequently (x : α) (y : β) : y ∈ ω f ϕ {x} ↔
-  ∀ n ∈ nhds y, ∃ᶠ t in f, ϕ t x ∈ n :=
-have l : ∀ t x v, ϕ t x ∈ v ↔ ({x} ∩ ϕ t ⁻¹' v).nonempty, from
- λ _ _ _, iff.intro (λ h, ⟨_, mem_singleton _, h⟩) (λ ⟨_, hx, h⟩, eq_of_mem_singleton hx ▸ h),
-by simp_rw [mem_omega_limit_iff_frequently, l]
+lemma mem_omega_limit_singleton_iff_map_cluster_point (x : α) (y : β) :
+  y ∈ ω f ϕ {x} ↔ map_cluster_pt y f (λ t, ϕ t x) :=
+begin
+  rw map_cluster_pt_iff,
+  have l : ∀ t x v, ϕ t x ∈ v ↔ ({x} ∩ ϕ t ⁻¹' v).nonempty, begin
+    intros _ _ _,
+    simp_rw [←image_inter_nonempty_iff, image_singleton, singleton_inter_nonempty]
+  end,
+  simp_rw [mem_omega_limit_iff_frequently, l],
+end
 
 lemma omega_limit_inter : ω f ϕ (s₁ ∩ s₂) ⊆ ω f ϕ s₁ ∩ ω f ϕ s₂ :=
 begin

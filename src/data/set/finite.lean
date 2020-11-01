@@ -125,7 +125,8 @@ section
 
 local attribute [instance] decidable_mem_of_fintype
 
-instance fintype_insert [decidable_eq α] (a : α) (s : set α) [fintype s] : fintype (insert a s : set α) :=
+instance fintype_insert [decidable_eq α] (a : α) (s : set α) [fintype s] :
+  fintype (insert a s : set α) :=
 if h : a ∈ s then by rwa [insert_eq, union_eq_self_of_subset_left (singleton_subset_iff.2 h)]
 else fintype_insert' _ h
 
@@ -207,13 +208,15 @@ lemma infinite.exists_subset_card_eq {s : set α} (hs : infinite s) (n : ℕ) :
   ∃ t : finset α, ↑t ⊆ s ∧ t.card = n :=
 ⟨((finset.range n).map (hs.nat_embedding _)).map (embedding.subtype _), by simp⟩
 
-instance fintype_union [decidable_eq α] (s t : set α) [fintype s] [fintype t] : fintype (s ∪ t : set α) :=
+instance fintype_union [decidable_eq α] (s t : set α) [fintype s] [fintype t] :
+  fintype (s ∪ t : set α) :=
 fintype.of_finset (s.to_finset ∪ t.to_finset) $ by simp
 
 theorem finite.union {s t : set α} : finite s → finite t → finite (s ∪ t)
 | ⟨hs⟩ ⟨ht⟩ := ⟨@set.fintype_union _ (classical.dec_eq α) _ _ hs ht⟩
 
-instance fintype_sep (s : set α) (p : α → Prop) [fintype s] [decidable_pred p] : fintype ({a ∈ s | p a} : set α) :=
+instance fintype_sep (s : set α) (p : α → Prop) [fintype s] [decidable_pred p] :
+  fintype ({a ∈ s | p a} : set α) :=
 fintype.of_finset (s.to_finset.filter p) $ by simp
 
 instance fintype_inter (s t : set α) [fintype s] [decidable_pred t] : fintype (s ∩ t : set α) :=
@@ -310,7 +313,8 @@ instance fintype_Union [decidable_eq α] {ι : Type*} [fintype ι]
   (f : ι → set α) [∀ i, fintype (f i)] : fintype (⋃ i, f i) :=
 fintype.of_finset (finset.univ.bind (λ i, (f i).to_finset)) $ by simp
 
-theorem finite_Union {ι : Type*} [fintype ι] {f : ι → set α} (H : ∀i, finite (f i)) : finite (⋃ i, f i) :=
+theorem finite_Union {ι : Type*} [fintype ι] {f : ι → set α} (H : ∀i, finite (f i)) :
+  finite (⋃ i, f i) :=
 ⟨@set.fintype_Union _ (classical.dec_eq α) _ _ _ (λ i, finite.fintype (H i))⟩
 
 /-- A union of sets with `fintype` structure over a set with `fintype` structure has a `fintype`
@@ -433,7 +437,8 @@ begin
   exact ⟨x, ⟨hx, hf _⟩⟩,
 end
 
-lemma eq_finite_Union_of_finite_subset_Union  {ι} {s : ι → set α} {t : set α} (tfin : finite t) (h : t ⊆ ⋃ i, s i) :
+lemma eq_finite_Union_of_finite_subset_Union  {ι} {s : ι → set α} {t : set α} (tfin : finite t)
+  (h : t ⊆ ⋃ i, s i) :
   ∃ I : set ι, (finite I) ∧ ∃ σ : {i | i ∈ I} → set α,
      (∀ i, finite (σ i)) ∧ (∀ i, σ i ⊆ s i) ∧ t = ⋃ i, σ i :=
 let ⟨I, Ifin, hI⟩ := finite_subset_Union tfin h in

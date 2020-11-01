@@ -7,7 +7,7 @@ import tactic.core
 /-!
 # mk_iff_of_inductive_prop
 
-This file defines a function that generates `iff` rules for inductive types, like for `list.chain`:
+This file defines a tactic that generates `iff` rules for inductive `Prop`s, like for `list.chain`:
 
 ```lean
 ∀{α : Type*} (R : α → α → Prop) (a : α) (l : list α),
@@ -32,7 +32,7 @@ private meta def select : ℕ → ℕ → tactic unit
 ```lean
 R as := ∃ bs, Λ_i a_i = p_i[bs]
 ```
-This relation is user visible, so we compact it by removing each `b_j` where a `p_i = b_j`, and
+This relation is user-visible, so we compact it by removing each `b_j` where a `p_i = b_j`, and
 hence `a_i = b_j`. We need to take care when there are `p_i` and `p_j` with `p_i = p_j = b_k`.
 
 TODO: this is copied from Lean's `coinductive_predicates.lean`, export it there.
@@ -126,8 +126,8 @@ match s.length with
       (es, eq, _) ← elim_gen_prod e h [] [],
       let es := es ++ [eq],
       /- `es.mmap' subst`: fails when we have dependent equalities (`heq`). `subst` will change the
-        dependent hypotheses, so that the uniq local names in `es` are wrong afterwards. Instead
-        we revert them and pull them out one by one -/
+        dependent hypotheses, so that the `uniq` local names in `es` are wrong afterwards. Instead
+        we revert them and pull them out one-by-one. -/
       revert_lst es,
       es.mmap' (λ_, intro1 >>= subst)
     end,
@@ -143,11 +143,11 @@ match s.length with
 end
 
 /--
-`mk_iff_of_inductive_prop i r` makes an iff rule for the inductively defined proposition `i`.
+`mk_iff_of_inductive_prop i r` makes an `iff` rule for the inductively-defined proposition `i`.
 The new rule `r` has the shape `∀ps is, i as ↔ ⋁_j, ∃cs, is = cs`, where `ps` are the type
 parameters, `is` are the indices, `j` ranges over all possible constructors, the `cs` are the
-parameters for each constructors, the equalities `is = cs` are the instantiations for each
-constructor for each of the indices to the inductive type `i`.
+parameters for each of the constructors, and the equalities `is = cs` are the instantiations for
+each constructor for each of the indices to the inductive type `i`.
 
 In each case, we remove constructor parameters (i.e. `cs`) when the corresponding equality would
 be just `c = i` for some index `i`.
@@ -191,11 +191,11 @@ section
 setup_tactic_parser
 
 /--
-`mk_iff_of_inductive_prop i r` makes an iff rule for the inductively defined proposition `i`.
+`mk_iff_of_inductive_prop i r` makes an `iff` rule for the inductively-defined proposition `i`.
 The new rule `r` has the shape `∀ps is, i as ↔ ⋁_j, ∃cs, is = cs`, where `ps` are the type
 parameters, `is` are the indices, `j` ranges over all possible constructors, the `cs` are the
-parameters for each constructors, the equalities `is = cs` are the instantiations for each
-constructor for each of the indices to the inductive type `i`.
+parameters for each of the constructors, and the equalities `is = cs` are the instantiations for
+each constructor for each of the indices to the inductive type `i`.
 
 In each case, we remove constructor parameters (i.e. `cs`) when the corresponding equality would
 be just `c = i` for some index `i`.
@@ -206,6 +206,8 @@ For example: `mk_iff_of_inductive_prop` on `list.chain` produces:
 ∀ {α : Type*} (R : α → α → Prop) (a : α) (l : list α),
   chain R a l ↔ l = [] ∨ ∃{b : α} {l' : list α}, R a b ∧ chain R b l ∧ l = b :: l'
 ```
+
+See also the `mk_iff` user attribute.
 -/
 @[user_command] meta def mk_iff_of_inductive_prop_cmd (_ : parse (tk "mk_iff_of_inductive_prop")) :
   parser unit :=
@@ -218,11 +220,11 @@ add_tactic_doc
   tags        := ["logic", "environment"] }
 
 /--
-Applying the `mk_iff` attribute to an inductively defined proposition `mk_iff` makes an iff rule `r`
-with the shape `∀ps is, i as ↔ ⋁_j, ∃cs, is = cs`, where `ps` are the type parameters, `is` are the
-indices, `j` ranges over all possible constructors, the `cs` are the parameters for each
-constructors, the equalities `is = cs` are the instantiations for each constructor for each of the
-indices to the inductive type `i`.
+Applying the `mk_iff` attribute to an inductively-defined proposition `mk_iff` makes an `iff` rule
+`r` with the shape `∀ps is, i as ↔ ⋁_j, ∃cs, is = cs`, where `ps` are the type parameters, `is` are
+the indices, `j` ranges over all possible constructors, the `cs` are the parameters for each of the
+constructors, and the equalities `is = cs` are the instantiations for each constructor for each of
+the indices to the inductive type `i`.
 
 In each case, we remove constructor parameters (i.e. `cs`) when the corresponding equality would
 be just `c = i` for some index `i`.

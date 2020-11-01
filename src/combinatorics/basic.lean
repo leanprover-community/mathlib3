@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Bhavik Mehta
+Authors: Bhavik Mehta, Alena Gusakov
 -/
 
 import data.finset
@@ -35,12 +35,12 @@ lemma union_layer [decidable_eq α] {A B : finset (finset α)} :
   all_sized A r ∧ all_sized B r ↔ all_sized (A ∪ B) r :=
 begin
   split; intros p,
-    rw all_sized,
+  { rw all_sized,
     intros,
     rw mem_union at H,
-    exact H.elim (p.1 _) (p.2 _),
-  split,
-  all_goals {rw all_sized, intros, apply p, rw mem_union, tauto},
+    exact H.elim (p.1 _) (p.2 _) },
+  { split,
+    all_goals {rw all_sized, intros, apply p, rw mem_union, tauto} },
 end
 
 /-- A couple of useful lemmas on fintypes -/
@@ -56,6 +56,7 @@ by rw all_sized; apply forall_congr _; intro A; rw mem_powerset_len_iff_card
 lemma number_of_fixed_size [fintype α] {𝒜 : finset (finset α)} (h : all_sized 𝒜 r) :
   card 𝒜 ≤ nat.choose (fintype.card α) r :=
 begin
-  rw [fintype.card, ← card_powerset_len], apply card_le_of_subset,
+  rw [fintype.card, ← card_powerset_len],
+  apply card_le_of_subset,
   rwa [univ, ← powerset_len_iff_all_sized]
 end

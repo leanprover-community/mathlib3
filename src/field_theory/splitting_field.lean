@@ -453,7 +453,7 @@ begin
     { rw ← is_scalar_tower.algebra_map_eq, exact H2 },
     { rw [← is_scalar_tower.aeval_apply, minimal_polynomial.aeval H1] } },
   obtain ⟨y, hy⟩ := polynomial.exists_root_of_splits _ H6 (minimal_polynomial.degree_ne_zero H5),
-  exact ⟨subalgebra.of_under _ _ $ (adjoin_root.alg_hom (minimal_polynomial H5) y hy).comp $
+  exact ⟨subalgebra.of_under _ _ $ (adjoin_root.lift_hom (minimal_polynomial H5) y hy).comp $
     alg_equiv.adjoin_singleton_equiv_adjoin_root_minimal_polynomial _ _ H5⟩
 end
 

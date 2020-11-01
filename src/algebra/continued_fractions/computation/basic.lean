@@ -85,16 +85,26 @@ variable {K}
 
 section coe
 /-! Interlude: define some expected coercions. -/
-/- Fix another type `β` and assume `K` can be converted to `β`. -/
-variables {β : Type*} [has_coe K β]
+/- Fix another type `β`. -/
+variable {β : Type*}
 
 /-- Coerce a pair by coercing the fractional component. -/
-instance has_coe_to_int_fract_pair : has_coe (int_fract_pair K) (int_fract_pair β) :=
-⟨λ ⟨b, fr⟩, ⟨b, (fr : β)⟩⟩
-
+instance has_coe_to_int_fract_pair [has_coe K β] : has_coe (int_fract_pair K) (int_fract_pair β) :=
+⟨λ ifp, ⟨ifp.b, (ifp.fr : β)⟩⟩
 
 @[simp, norm_cast]
-lemma coe_to_int_fract_pair {b : ℤ} {fr : K} :
+lemma coe_to_int_fract_pair [has_coe K β] {b : ℤ} {fr : K} :
+  (↑(int_fract_pair.mk b fr) : int_fract_pair β) = int_fract_pair.mk b (↑fr : β) :=
+rfl
+
+/-- Again, coerce a pair by coercing the fractional component. This instance is needed for coercions
+that are not marked as `has_coe` but `has_coe_t` like `rat.cast_coe`. -/
+instance has_coe_t_int_fract_pair [has_coe_t K β] :
+  has_coe_t (int_fract_pair K) (int_fract_pair β) :=
+⟨λ ifp, ⟨ifp.b, (ifp.fr : β)⟩⟩
+
+@[simp, norm_cast]
+lemma coe_t_to_int_fract_pair [has_coe_t K β] {b : ℤ} {fr : K} :
   (↑(int_fract_pair.mk b fr) : int_fract_pair β) = int_fract_pair.mk b (↑fr : β) :=
 rfl
 
@@ -162,7 +172,7 @@ added in a future commit).
 
 The continued fraction representation of `v` is given by `[⌊v⌋; b₀, b₁, b₂,...]`, where
 `[b₀; b₁, b₂,...]` recursively is the continued fraction representation of `1 / (v − ⌊v⌋)`. This
-process stops when the fractional part `v- ⌊v⌋` hits 0 at some step.
+process stops when the fractional part `v - ⌊v⌋` hits 0 at some step.
 
 The implementation uses `int_fract_pair.stream` to obtain the partial denominators of the continued
 fraction. Refer to said function for more details about the computation process.

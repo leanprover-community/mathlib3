@@ -56,14 +56,26 @@ instance [has_repr α] : has_repr (gcf.pair α) :=
 section coe
 /-! Interlude: define some expected coercions. -/
 /- Fix another type `β` and assume `α` can be converted to `β`. -/
-variables {α} {β : Type*} [has_coe α β]
+variables {α} {β : Type*}
 
 /-- Coerce a pair by elementwise coercion. -/
-instance has_coe_to_generalized_continued_fraction_pair : has_coe (gcf.pair α) (gcf.pair β) :=
-⟨λ ⟨a, b⟩, ⟨(a : β), (b : β)⟩⟩
+instance has_coe_to_generalized_continued_fraction_pair [has_coe α β] :
+  has_coe (gcf.pair α) (gcf.pair β) :=
+⟨λ gp, ⟨(gp.a : β), (gp.b : β)⟩⟩
 
 @[simp, norm_cast]
-lemma coe_to_generalized_continued_fraction_pair {a b : α} :
+lemma coe_to_generalized_continued_fraction_pair [has_coe α β] {a b : α} :
+  (↑(gcf.pair.mk a b) : gcf.pair β) = gcf.pair.mk (a : β) (b : β) :=
+rfl
+
+/-- Again, coerce a pair by elementwise coercion. This instance is needed for coercions that are not
+marked as `has_coe` but `has_coe_t` like `rat.cast_coe`. -/
+instance has_coe_t_generalized_continued_fraction_pair [has_coe_t α β] :
+  has_coe_t (gcf.pair α) (gcf.pair β) :=
+⟨λ gp, ⟨(gp.a : β), (gp.b : β)⟩⟩
+
+@[simp, norm_cast]
+lemma coe_t_to_generalized_continued_fraction_pair [has_coe_t α β] {a b : α} :
   (↑(gcf.pair.mk a b) : gcf.pair β) = gcf.pair.mk (a : β) (b : β) :=
 rfl
 
@@ -130,12 +142,12 @@ local attribute [instance] seq.coe_to_seq
 
 /-- Coerce a gcf by elementwise coercion. -/
 instance has_coe_to_generalized_continued_fraction : has_coe (gcf α) (gcf β) :=
-⟨λ ⟨h, s⟩, ⟨(h : β), (s : seq $ gcf.pair β)⟩⟩
+⟨λ g, ⟨(g.h : β), (g.s : seq $ gcf.pair β)⟩⟩
 
 @[simp, norm_cast]
 lemma coe_to_generalized_continued_fraction {g : gcf α} :
   (↑(g : gcf α) : gcf β) = ⟨(g.h : β), (g.s : seq $ gcf.pair β)⟩ :=
-by { cases g, refl }
+rfl
 
 end coe
 end generalized_continued_fraction

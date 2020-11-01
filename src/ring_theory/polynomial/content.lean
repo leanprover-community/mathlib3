@@ -22,7 +22,10 @@ Let `p : polynomial R`.
  - `p.is_primitive` indicates that `p.content = 1`.
 
 ## Main Results
- - If `p q : polynomial R`, then `(p * q).content = p.content * q.content`.
+ - `polynomial.content_mul`:
+  If `p q : polynomial R`, then `(p * q).content = p.content * q.content`.
+ - `polynomial.is_primitive.irreducible_iff_irreducible_map_fraction_map`:
+  A primitive polynomial is irreducible iff it is irreducible in a fraction field.
 
 -/
 

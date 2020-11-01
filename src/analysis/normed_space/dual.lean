@@ -20,6 +20,8 @@ We then consider inner product spaces, with base field over `ℝ` (the correspon
 will require the definition of conjugate-linear maps). We define `to_dual_map`, a continuous linear
 map from `E` to its dual, which maps an element x of the space to `λ y, ⟪x, y⟫`. We check
 (`to_dual_map_isometry`) that this map is an isometry onto its image, and particular is injective.
+We also define `to_dual'` as the function taking taking a vector to its dual for a base field `𝕜`
+with `[is_R_or_C 𝕜]`; this is a function and not a linear map.
 
 Finally, under the hypothesis of completeness (i.e., for Hilbert spaces), we prove the Fréchet-Riesz
 representation (`to_dual_map_eq_top`), which states the surjectivity: every element of the dual
@@ -121,6 +123,8 @@ end normed_space
 namespace inner_product_space
 open is_R_or_C continuous_linear_map
 
+section is_R_or_C
+
 variables (𝕜 : Type*)
 variables {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
@@ -141,7 +145,7 @@ linear_map.mk_continuous
 @[simp] lemma to_dual'_apply {x y : E} : to_dual' 𝕜 x y = ⟪x, y⟫ := rfl
 
 /-- In an inner product space, the norm of the dual of a vector `x` is `∥x∥` -/
-@[simp] lemma to_dual'_isometry (x : E) : ∥to_dual' 𝕜 x∥ = ∥x∥ :=
+@[simp] lemma norm_to_dual'_apply (x : E) : ∥to_dual' 𝕜 x∥ = ∥x∥ :=
 begin
   refine le_antisymm _ _,
   { exact linear_map.mk_continuous_norm_le _ (norm_nonneg _) _ },
@@ -156,6 +160,10 @@ begin
       ... ≤ ∥to_dual' 𝕜 x∥ * ∥x∥ : le_op_norm (to_dual' 𝕜 x) x } }
 end
 
+end is_R_or_C
+
+section real
+
 variables {F : Type*} [inner_product_space ℝ F]
 
 /-- In an inner product space `F`, the function that takes a vector `x` in `F` to its dual
@@ -167,18 +175,12 @@ linear_map.mk_continuous
     map_add' := λ x y, by { ext, simp [inner_add_left] },
     map_smul' := λ c x, by { ext, simp [inner_smul_left] } }
   1
-  begin
-    intros x,
-    apply op_norm_le_bound,
-    { simp [norm_nonneg] },
-    { intros y,
-      simp only [one_mul, linear_map.coe_mk, to_dual'_apply, norm_eq_abs, abs_inner_le_norm] }
-  end
+  (λ x, by simp only [norm_to_dual'_apply, one_mul, linear_map.coe_mk])
 
 @[simp] lemma to_dual_map_apply {x y : F} : to_dual_map x y = ⟪x, y⟫_ℝ := rfl
 
 /-- In an inner product space, the norm of the dual of a vector `x` is `∥x∥` -/
-@[simp] lemma to_dual_map_isometry (x : F) : ∥to_dual_map x∥ = ∥x∥ := to_dual'_isometry _ _
+@[simp] lemma to_dual_map_isometry (x : F) : ∥to_dual_map x∥ = ∥x∥ := norm_to_dual'_apply _ _
 
 lemma to_dual_map_injective : (@to_dual_map F _).ker = ⊥ :=
 begin
@@ -272,5 +274,7 @@ continuous_linear_equiv.of_homothety
 primal vector. -/
 lemma dual_norm_eq_primal_norm (ℓ : normed_space.dual ℝ F) : ∥ℓ∥ = ∥to_dual.symm ℓ∥ :=
 by { convert to_dual_norm_eq_primal_norm (to_dual.symm ℓ), simp }
+
+end real
 
 end inner_product_space

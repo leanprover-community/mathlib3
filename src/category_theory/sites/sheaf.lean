@@ -331,18 +331,18 @@ end
 noncomputable def is_sheaf_for.amalgamate
   (t : is_sheaf_for P R) (x : family_of_elements P R) (hx : x.consistent) :
   P.obj (opposite.op X) :=
-classical.some ((t x hx).exists)
+classical.some (t x hx).exists
 
 lemma is_sheaf_for.is_amalgamation_for
   (t : is_sheaf_for P R) {x : family_of_elements P R} (hx : x.consistent) :
   is_amalgamation_for x (t.amalgamate x hx) :=
-classical.some_spec ((t x hx).exists)
+classical.some_spec (t x hx).exists
 
 @[simp]
 lemma is_sheaf_for.valid_glue
   (t : is_sheaf_for P R) {x : family_of_elements P R} (hx : x.consistent) (f : Y ⟶ X) (Hf : R f) :
   P.map f.op (t.amalgamate x hx) = x f Hf :=
-classical.some_spec ((t x hx).exists) f Hf
+t.is_amalgamation_for hx f Hf
 
 lemma is_sheaf_for.is_separated_for : is_sheaf_for P R → is_separated_for P R :=
 λ q, (separated_for_and_exists_amalgamation_iff_sheaf_for.2 q).1

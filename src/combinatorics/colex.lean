@@ -149,7 +149,7 @@ lemma lt_trichotomy [linear_order α] (A B : finset.colex α) :
   A < B ∨ A = B ∨ B < A :=
 begin
   classical,
-  by_cases (A = B),
+  by_cases h₁ : (A = B),
   { right,
     left,
     assumption  },
@@ -160,21 +160,21 @@ begin
       right,
       refine ⟨k, λ t th, _, hk.2, hk.1⟩,
       specialize z t,
-      by_contra,
+      by_contra h₂,
       simp only [mem_union, mem_sdiff, id.def] at z,
-      rw [not_iff, iff_iff_and_or_not_and_not, not_not, and_comm] at a,
-      apply not_le_of_lt th (z a) },
+      rw [not_iff, iff_iff_and_or_not_and_not, not_not, and_comm] at h₂,
+      apply not_le_of_lt th (z h₂) },
     { left,
       refine ⟨k, λ t th, _, hk.2, hk.1⟩,
       specialize z t,
-      by_contra,
+      by_contra h₃,
       simp only [mem_union, mem_sdiff, id.def] at z,
-      rw [not_iff, iff_iff_and_or_not_and_not, not_not, and_comm, or_comm] at a,
-      apply not_le_of_lt th (z a) }, },
+      rw [not_iff, iff_iff_and_or_not_and_not, not_not, and_comm, or_comm] at h₃,
+      apply not_le_of_lt th (z h₃) }, },
   rw nonempty_iff_ne_empty,
   intro a,
   simp only [union_eq_empty_iff, sdiff_eq_empty_iff_subset] at a,
-  apply h (subset.antisymm a.1 a.2)
+  apply h₁ (subset.antisymm a.1 a.2)
 end
 
 instance [linear_order α] : is_trichotomous (finset.colex α) (<) := ⟨lt_trichotomy⟩

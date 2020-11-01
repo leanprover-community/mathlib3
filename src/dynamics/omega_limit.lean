@@ -123,12 +123,6 @@ begin
   simp_rw this,
 end
 
--- TODO : move to data.set.basic
-lemma singleton_inter_nonempty (a : α) : ({a} ∩ s).nonempty ↔ a ∈ s :=
-iff.intro
-  (λ ⟨a', ha₁, ha₂⟩, by { rw mem_singleton_iff at ha₁, rwa ←ha₁ })
-  (λ ha, ⟨_, ⟨rfl, ha⟩⟩)
-
 /-- An element `y` is in the ω-limit of `x` w.r.t. `f` if the forward
     images of `x` frequently (w.r.t. `f`) falls within an arbitrary
     neighbourhood of `y`. -/

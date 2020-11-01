@@ -719,6 +719,11 @@ by simp [eq_empty_iff_forall_not_mem]
 theorem inter_singleton_eq_empty : s ∩ {a} = ∅ ↔ a ∉ s :=
 by rw [inter_comm, singleton_inter_eq_empty]
 
+theorem singleton_inter_nonempty : ({a} ∩ s).nonempty ↔ a ∈ s :=
+iff.intro
+  (λ ⟨a', ha₁, ha₂⟩, by { rw mem_singleton_iff at ha₁, rwa ←ha₁ })
+  (λ ha, ⟨_, ⟨rfl, ha⟩⟩)
+
 lemma nmem_singleton_empty {s : set α} : s ∉ ({∅} : set (set α)) ↔ s.nonempty :=
 by rw [mem_singleton_iff, ← ne.def, ne_empty_iff_nonempty]
 

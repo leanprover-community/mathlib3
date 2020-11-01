@@ -187,16 +187,16 @@ linear_map.mk_continuous
 @[simp] lemma to_dual_map_apply {x y : F} : to_dual_map x y = ⟪x, y⟫_ℝ := rfl
 
 /-- In an inner product space, the norm of the dual of a vector `x` is `∥x∥` -/
-@[simp] lemma to_dual_map_isometry (x : F) : ∥to_dual_map x∥ = ∥x∥ := norm_to_dual'_apply _ _
+@[simp] lemma norm_to_dual_map_apply (x : F) : ∥to_dual_map x∥ = ∥x∥ := norm_to_dual'_apply _ _
+
+lemma to_dual_map_isometry : isometry (@to_dual_map F _) :=
+add_monoid_hom.isometry_of_norm _ norm_to_dual_map_apply
+
+lemma to_dual_map_injective : function.injective (@to_dual_map F _) :=
+to_dual_map_isometry.injective
 
 @[simp] lemma ker_to_dual_map : (@to_dual_map F _).ker = ⊥ :=
-begin
-  rw eq_bot_iff,
-  intros x hx,
-  have : ∥to_dual_map x∥ = 0,
-  { simpa only [norm_eq_zero] using hx },
-  simpa using this
-end
+by exact linear_map.ker_eq_bot.mpr to_dual_map_injective
 
 @[simp] lemma to_dual_map_eq_iff_eq {x y : F} : to_dual_map x = to_dual_map y ↔ x = y :=
 ((linear_map.ker_eq_bot).mp (@ker_to_dual_map F _)).eq_iff
@@ -268,7 +268,7 @@ continuous_linear_equiv.of_homothety
     range_to_dual_map)
   1
   (by norm_num)
-  (λ x, by { convert to_dual_map_isometry x, simp })
+  (λ x, by { convert norm_to_dual_map_apply x, simp })
 
 /--
 Fréchet-Riesz representation: If `F` is a Hilbert space, the function that takes a vector in `F` to
@@ -295,7 +295,7 @@ begin
     refl }
 end
 
-@[simp] lemma norm_to_dual_apply (x : F) : ∥to_dual x∥ = ∥x∥ := to_dual_map_isometry x
+@[simp] lemma norm_to_dual_apply (x : F) : ∥to_dual x∥ = ∥x∥ := norm_to_dual_map_apply x
 
 /-- In a Hilbert space, the norm of a vector in the dual space is the norm of its corresponding
 primal vector. -/

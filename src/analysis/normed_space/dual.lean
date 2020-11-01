@@ -196,7 +196,7 @@ lemma to_dual_map_injective : function.injective (@to_dual_map F _) :=
 to_dual_map_isometry.injective
 
 @[simp] lemma ker_to_dual_map : (@to_dual_map F _).ker = ⊥ :=
-by exact linear_map.ker_eq_bot.mpr to_dual_map_injective
+linear_map.ker_eq_bot.mpr to_dual_map_injective
 
 @[simp] lemma to_dual_map_eq_iff_eq {x y : F} : to_dual_map x = to_dual_map y ↔ x = y :=
 ((linear_map.ker_eq_bot).mp (@ker_to_dual_map F _)).eq_iff

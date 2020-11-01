@@ -505,6 +505,44 @@ by simp
 
 end coprod_lemmas
 
+section distribution
+
+variables (X Y) (Z : C)
+variables [has_binary_product X Y]
+variables [has_binary_product X Z]
+variables [has_binary_coproduct Y Z]
+variables [has_binary_product X (Y ⨿ Z)]
+variables [has_binary_coproduct (X ⨯ Y) (X ⨯ Z)]
+
+/--
+The canonical morphism for distributing products over coproducts. This is an isomorphism iff `C`
+is a distributive category (see `distributive.lean`).
+-/
+def distribution : (X ⨯ Y) ⨿ (X ⨯ Z) ⟶ X ⨯ (Y ⨿ Z) :=
+coprod.desc (prod.map (𝟙 _) coprod.inl) (prod.map (𝟙 _) coprod.inr)
+
+@[simp, reassoc]
+lemma inl_distribution :
+  coprod.inl ≫ distribution X Y Z = prod.map (𝟙 _) coprod.inl :=
+coprod.inl_desc _ _
+
+@[simp, reassoc]
+lemma inr_distribution :
+  coprod.inr ≫ distribution X Y Z = prod.map (𝟙 _) coprod.inr :=
+coprod.inr_desc _ _
+
+@[simp, reassoc]
+lemma distribution_fst :
+  distribution X Y Z ≫ prod.fst = coprod.desc prod.fst prod.fst :=
+by ext; simp
+
+@[simp, reassoc]
+lemma distribution_snd :
+  distribution X Y Z ≫ prod.snd = coprod.desc (prod.snd ≫ coprod.inl) (prod.snd ≫ coprod.inr) :=
+by ext; simp
+
+end distribution
+
 variables (C)
 
 /--

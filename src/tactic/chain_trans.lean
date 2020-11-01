@@ -159,6 +159,12 @@ tactic.apply pr <|>
   fail!"`{tgt}` cannot be proved from `{infer_type pr}`",
 skip
 
+add_tactic_doc
+{ name := "chain_trans",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.chain_trans],
+  tags := ["finishing", "lemma application"] }
+
 end interactive
 
 end tactic

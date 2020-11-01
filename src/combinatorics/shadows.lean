@@ -537,3 +537,5 @@ begin
   exact ne_of_diff_slice Ha k ne rfl,
   norm_cast, apply choose_pos, apply nat.div_le_self,
 end
+
+#lint-

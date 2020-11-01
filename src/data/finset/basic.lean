@@ -951,6 +951,19 @@ lemma le_piecewise_of_le_of_le {δ : α → Type*} [Π i, preorder (δ i)] {f g 
   (Hf : h ≤ f) (Hg : h ≤ g) : h ≤ s.piecewise f g :=
 λ x, piecewise_cases s f g (λ y, h x ≤ y) (Hf x) (Hg x)
 
+lemma piecewise_mem_Icc_of_mem_of_mem {δ : α → Type*} [Π i, preorder (δ i)] {f f₁ g g₁ : Π i, δ i}
+  (hf : f ∈ set.Icc f₁ g₁) (hg : g ∈ set.Icc f₁ g₁) :
+  s.piecewise f g ∈ set.Icc f₁ g₁ :=
+⟨le_piecewise_of_le_of_le _ hf.1 hg.1, piecewise_le_of_le_of_le _ hf.2 hg.2⟩
+
+lemma piecewise_mem_Icc {δ : α → Type*} [Π i, preorder (δ i)] {f g : Π i, δ i} (h : f ≤ g) :
+  s.piecewise f g ∈ set.Icc f g :=
+piecewise_mem_Icc_of_mem_of_mem _ (set.left_mem_Icc.2 h) (set.right_mem_Icc.2 h)
+
+lemma piecewise_mem_Icc' {δ : α → Type*} [Π i, preorder (δ i)] {f g : Π i, δ i} (h : g ≤ f) :
+  s.piecewise f g ∈ set.Icc g f :=
+piecewise_mem_Icc_of_mem_of_mem _ (set.right_mem_Icc.2 h) (set.left_mem_Icc.2 h)
+
 end piecewise
 
 section decidable_pi_exists

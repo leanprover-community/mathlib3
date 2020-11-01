@@ -1095,12 +1095,36 @@ lemma exists_inv_nat_lt {a : ennreal} (h : a ≠ 0) :
   ∃n:ℕ, (n:ennreal)⁻¹ < a :=
 @inv_inv a ▸ by simp only [inv_lt_inv, ennreal.exists_nat_gt (inv_ne_top.2 h)]
 
-lemma exists_nat_mul_gt (ha : a ≠ 0) (hb : b ≠ ⊤) :
-  ∃ n : ℕ, b < n * a :=
+lemma exists_nat_pos_mul_gt (ha : a ≠ 0) (hb : b ≠ ⊤) :
+  ∃ n > 0, b < (n : ℕ) * a :=
 begin
   have : b / a ≠ ⊤, from mul_ne_top hb (inv_ne_top.2 ha),
   refine (ennreal.exists_nat_gt this).imp (λ n hn, _),
+  have : 0 < (n : ennreal), from (zero_le _).trans_lt hn,
+  refine ⟨coe_nat_lt_coe_nat.1 this, _⟩,
   rwa [← ennreal.div_lt_iff (or.inl ha) (or.inr hb)]
+end
+
+lemma exists_nat_mul_gt (ha : a ≠ 0) (hb : b ≠ ⊤) :
+  ∃ n : ℕ, b < n * a :=
+(exists_nat_pos_mul_gt ha hb).imp $ λ n, Exists.snd
+
+lemma exists_nat_pos_inv_mul_lt (ha : a ≠ ⊤) (hb : b ≠ 0) :
+  ∃ n > 0, ((n : ℕ) : ennreal)⁻¹ * a < b :=
+begin
+  rcases exists_nat_pos_mul_gt hb ha with ⟨n, npos, hn⟩,
+  have : (n : ennreal) ≠ 0 := nat.cast_ne_zero.2 npos.lt.ne',
+  use [n, npos],
+  rwa [← one_mul b, ← inv_mul_cancel this coe_nat_ne_top,
+    mul_assoc, mul_lt_mul_left (inv_ne_zero.2 coe_nat_ne_top) (inv_ne_top.2 this)]
+end
+
+lemma exists_nnreal_pos_mul_lt (ha : a ≠ ⊤) (hb : b ≠ 0) :
+  ∃ n > 0, ↑(n : ℝ≥0) * a < b :=
+begin
+  rcases exists_nat_pos_inv_mul_lt ha hb with ⟨n, npos : 0 < n, hn⟩,
+  use (n : ℝ≥0)⁻¹,
+  simp [*, npos.ne', zero_lt_one]
 end
 
 end inv

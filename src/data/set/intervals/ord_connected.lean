@@ -47,13 +47,9 @@ begin
   simp [*, insert_subset]
 end
 
-lemma ord_connected.mem_of_le_of_le (hs : ord_connected s) {x y z} (hx : x ∈ s) (hy : y ∈ s)
-  (hxz : x ≤ z) (hzy : z ≤ y) : z ∈ s :=
-hs hx hy ⟨hxz, hzy⟩
-
-lemma mem_of_le_of_le [hs : ord_connected s] {x y z} (hx : x ∈ s) (hy : y ∈ s)
-  (hxz : x ≤ z) (hzy : z ≤ y) : z ∈ s :=
-hs hx hy ⟨hxz, hzy⟩
+protected lemma Icc_subset (s : set α) [hs : ord_connected s] {x y} (hx : x ∈ s) (hy : y ∈ s) :
+  Icc x y ⊆ s :=
+hs hx hy
 
 lemma ord_connected.inter {s t : set α} (hs : ord_connected s) (ht : ord_connected t) :
   ord_connected (s ∩ t) :=

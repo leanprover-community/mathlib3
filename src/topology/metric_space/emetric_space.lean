@@ -481,7 +481,7 @@ instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π 
     simp [set.ext_iff, εpos]
   end }
 
-lemma pi.edist_def [Π b, emetric_space (π b)] (f g : Π b, π b) :
+lemma edist_pi_def [Π b, emetric_space (π b)] (f g : Π b, π b) :
   edist f g = finset.sup univ (λb, edist (f b) (g b)) := rfl
 
 end pi

@@ -1164,7 +1164,7 @@ begin
   { assume x y,
     rw ← lt_top_iff_ne_top,
     have : (⊥ : ennreal) < ⊤ := ennreal.coe_lt_top,
-    simp [pi.edist_def, finset.sup_lt_iff this, edist_lt_top] },
+    simp [edist_pi_def, finset.sup_lt_iff this, edist_lt_top] },
   show ∀ (x y : Π (b : β), π b), ↑(sup univ (λ (b : β), nndist (x b) (y b))) =
     ennreal.to_real (sup univ (λ (b : β), edist (x b) (y b))),
   { assume x y,
@@ -1196,19 +1196,19 @@ lemma nndist_le_pi_nndist (f g : Πb, π b) (b : β) : nndist (f b) (g b) ≤ nn
 by { rw [nndist_pi_def], exact finset.le_sup (finset.mem_univ b) }
 
 lemma dist_le_pi_dist (f g : Πb, π b) (b : β) : dist (f b) (g b) ≤ dist f g :=
-by simp only [dist_nndist, nnreal.coe_le_coe, pi.le_nndist f g b]
+by simp only [dist_nndist, nnreal.coe_le_coe, nndist_le_pi_nndist f g b]
 
 /-- An open ball in a product space is a product of open balls. The assumption `0 < r`
 is necessary for the case of the empty product. -/
 lemma ball_pi (x : Πb, π b) {r : ℝ} (hr : 0 < r) :
   ball x r = { y | ∀b, y b ∈ ball (x b) r } :=
-by { ext p, simp [pi.dist_lt_iff hr] }
+by { ext p, simp [dist_pi_lt_iff hr] }
 
 /-- A closed ball in a product space is a product of closed balls. The assumption `0 ≤ r`
 is necessary for the case of the empty product. -/
 lemma closed_ball_pi (x : Πb, π b) {r : ℝ} (hr : 0 ≤ r) :
   closed_ball x r = { y | ∀b, y b ∈ closed_ball (x b) r } :=
-by { ext p, simp [pi.dist_le_iff hr] }
+by { ext p, simp [dist_pi_le_iff hr] }
 
 end pi
 

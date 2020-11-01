@@ -154,6 +154,19 @@ end
 
 end normed_field
 
+section add_monoid_hom
+
+lemma add_monoid_hom.isometry_of_norm (f : E →+ F) (hf : ∀ x, ∥f x∥ = ∥x∥) : isometry f :=
+begin
+  intros x y,
+  simp_rw [edist_dist],
+  congr',
+  simp_rw [dist_eq_norm, ←add_monoid_hom.map_sub],
+  exact hf (x - y),
+end
+
+end add_monoid_hom
+
 variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F] [normed_space 𝕜 G]
 (c : 𝕜) (f g : E →L[𝕜] F) (h : F →L[𝕜] G) (x y z : E)
 include 𝕜

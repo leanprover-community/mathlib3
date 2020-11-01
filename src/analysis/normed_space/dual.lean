@@ -134,13 +134,15 @@ local postfix `†`:90 := @is_R_or_C.conj 𝕜 _
 Given some `x` in an inner product space, we can define its dual as the continuous linear map
 `λ y, ⟪x, y⟫`. Consider using `to_dual` or `to_dual_map` instead.
 -/
-def to_dual' (x : E) : normed_space.dual 𝕜 E :=
-linear_map.mk_continuous
+def to_dual' : E →+ normed_space.dual 𝕜 E :=
+{ to_fun := λ x, linear_map.mk_continuous
   { to_fun := λ y, ⟪x, y⟫,
     map_add' := λ _ _, inner_add_right,
     map_smul' := λ _ _, inner_smul_right }
   ∥x∥
-  (λ y, by { rw [is_R_or_C.norm_eq_abs], exact abs_inner_le_norm _ _ })
+  (λ y, by { rw [is_R_or_C.norm_eq_abs], exact abs_inner_le_norm _ _ }),
+  map_zero' := by { ext z, simp },
+  map_add' := λ x y, by { ext z, simp [inner_add_left] } }
 
 @[simp] lemma to_dual'_apply {x y : E} : to_dual' 𝕜 x y = ⟪x, y⟫ := rfl
 
@@ -159,6 +161,9 @@ begin
       ... = ∥to_dual' 𝕜 x x∥ : by simp [norm_eq_abs]
       ... ≤ ∥to_dual' 𝕜 x∥ * ∥x∥ : le_op_norm (to_dual' 𝕜 x) x } }
 end
+
+lemma to_dual'_isometry : isometry (@to_dual' 𝕜 E _ _) :=
+add_monoid_hom.isometry_of_norm _ (norm_to_dual'_apply 𝕜)
 
 end is_R_or_C
 

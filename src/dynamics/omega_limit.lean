@@ -3,49 +3,10 @@ Copyright (c) 2020 Jean Lo. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jean Lo
 -/
-
-import topology.algebra.group
-import logic.function.iterate
+import dynamics.flow
 
 /-!
-# Semiflows, invariant sets, ω-limits
-
-This file defines (forward) invariant sets, flows and semigroup-flows
-on a topological space, and ω-limits of subsets.
-
-## Notations
-
-The `omega_limit` locale provides the localised notation `ω` for
-`omega_limit`, as well as `ω⁺` and `ω⁻` for `omega_limit at_top` and
-`omega_limit at_bot` respectively for when the acting semigroup is
-endowed with an order.
-
--/
-
-open set function filter
-
-/-!
-### Invariant sets
--/
-
-section invariant
-
-variables {τ  : Type*} {α : Type*}
-
-/-- A set `s ⊆ α` is forward-invariant under `ϕ : τ → α → α` if
-    `ϕ t s ⊆ s` for all `t` in `τ`. -/
-def is_fw_invariant (ϕ : τ → α → α) (s : set α): Prop := ∀ t (x ∈ s), ϕ t x ∈ s
-
-variables (ϕ : τ → α → α) (s : set α)
-
-lemma is_fw_invariant_iff_image : is_fw_invariant ϕ s ↔ ∀ t, ϕ t '' s ⊆ s :=
-by { simp_rw image_subset_iff, exact iff.rfl }
-
-end invariant
-
-
-/-!
-### ω-limit sets
+# ω-limits
 
 For a function `ϕ : τ → α → β` where `β` is a topological space, we
 define the ω-limit under `ϕ` of a set `s` in `α` with respect to
@@ -53,12 +14,25 @@ filter `f` on `τ`: an element `y : β` is in the ω-limit of `s` if the
 forward images of `s` intersect arbitrarily small neighbourhoods of
 `y` frequently "in the direction of `f`".
 
-In practice `ϕ` is often a flow by a (semi)group, but the definition
+In practice `ϕ` is often a continuous monoid-act, but the definition
 requires only that `ϕ` has a coercion to the appropriate function
 type. In the case where `τ` is `ℕ` or `ℝ` and `f` is `at_top`, we
 recover the usual definition of the ω-limit set as the set of all `y`
 such that there exist sequences `(tₙ)`, `(xₙ)` such that `ϕ tₙ xₙ ⟶ y`
 as `n ⟶ ∞`.
+
+## Notations
+
+The `omega_limit` locale provides the localised notation `ω` for
+`omega_limit`, as well as `ω⁺` and `ω⁻` for `omega_limit at_top` and
+`omega_limit at_bot` respectively for when the acting monoid is
+endowed with an order.
+-/
+
+open set function filter
+
+/-!
+### ω-limit sets
 -/
 
 section omega_limit
@@ -137,7 +111,17 @@ end
     neighbourhoods of `y`. -/
 lemma mem_omega_limit_iff_frequently₂ (y : β) : y ∈ ω f ϕ s ↔
   ∀ n ∈ nhds y, ∃ᶠ t in f, (ϕ t '' s ∩ n).nonempty :=
-by simp_rw [mem_omega_limit_iff_frequently, image_inter_nonempty_iff]
+begin
+  rw mem_omega_limit_iff_frequently,
+  have : ∀ t n, (ϕ t '' s ∩ n).nonempty ↔ (s ∩ ϕ t ⁻¹' n).nonempty, begin
+    intros t n,
+    split,
+    { rintro ⟨_, ⟨x, hx₁, hx₂⟩, hy₂⟩,
+      exact ⟨x, hx₁, show ϕ t x ∈ n, from hx₂.symm ▸ hy₂⟩ },
+    { rintro ⟨_, hx₁, hx₂⟩, exact ⟨_, ⟨_, hx₁, rfl⟩, hx₂⟩ },
+  end,
+  simp_rw this,
+end
 
 /-- An element `y` is in the ω-limit of `x` w.r.t. `f` if the forward
     images of `x` frequently (w.r.t. `f`) falls within an arbitrary
@@ -228,66 +212,19 @@ end
 
 end omega_limit
 
-/-!
-### Semiflows and flows
-
-A semiflow (resp. flow) on a topological space `α` by a topological
-semigroup (resp. monoid) `τ` is a continuous semigroup-act
-(resp. monoid-act) of `τ` on `α`.
-
-Anticipating the cases where `τ` is one of `ℕ`, `ℤ`, `ℝ⁺`, or `ℝ`, we
-use additive notation for the (semi)groups, though the definition does
-not require commutativity.
--/
-
-/-- A semiflow on a topological space `α` by an a additive topological
-    semigroup `τ` is a continuous semigroup-act of `τ` on `α`.-/
-structure semiflow
-  (τ : Type*) [topological_space τ] [add_semigroup τ] [has_continuous_add τ]
-  (α : Type*) [topological_space α] :=
-(to_fun   : τ → α → α)
-(cont'    : continuous (uncurry to_fun))
-(map_add' : ∀ t₁ t₂ x, to_fun t₂ (to_fun t₁ x) = to_fun (t₁ + t₂) x)
-
-namespace semiflow
+namespace flow
 
 variables
-{τ : Type*} [topological_space τ] [add_semigroup τ] [has_continuous_add τ]
+{τ : Type*} [topological_space τ] [add_monoid τ] [has_continuous_add τ]
 {α : Type*} [topological_space α]
-(f : filter τ) (ϕ : semiflow τ α) (s : set α)
+(f : filter τ) (ϕ : flow τ α) (s : set α)
 
-instance : inhabited (semiflow τ α) :=
-⟨{ to_fun    := λ _ x, x,
-   cont'     := continuous_snd,
-   map_add'  := λ _ _ _, rfl }⟩
-
-instance : has_coe_to_fun (semiflow τ α) := ⟨_, semiflow.to_fun⟩
-
-@[ext]
-lemma ext : ∀ {ϕ₁ ϕ₂ : semiflow τ α}, (∀ t x, ϕ₁ t x = ϕ₂ t x) → ϕ₁ = ϕ₂
-| ⟨f₁, _, _⟩ ⟨f₂, _, _⟩ h := by { congr, funext, exact h _ _ }
-
-@[continuity]
-protected lemma continuous : continuous (uncurry ϕ) := ϕ.cont'
-
-@[simp]
-lemma map_add (t₁ t₂ : τ) (x : α) : ϕ t₂ (ϕ t₁ x) = ϕ (t₁ + t₂) x :=
-ϕ.map_add' _ _ _
-
-/-- Iterations of a continuous function from a topological space `α`
-    to itself defines a semiflow by `ℕ` on `α`. -/
-def from_iter {g : α → α} (h : continuous g) : semiflow ℕ α :=
-{ to_fun := λ n x, g^[n] x,
-  cont'  := continuous_uncurry_of_discrete_topology_left (continuous.iterate h),
-  map_add' := λ m n x, by rw [add_comm, iterate_add_apply] }
-
--- ω-limits under semiflows:
 open_locale omega_limit
 
-lemma is_fw_invariant_omega_limit (hf : ∀ t, tendsto (+ t) f f) :
-  is_fw_invariant ϕ (ω f ϕ s) :=
+lemma is_invariant_omega_limit (hf : ∀ t, tendsto (+ t) f f) :
+  is_invariant ϕ (ω f ϕ s) :=
 begin
-  rw is_fw_invariant_iff_image,
+  rw is_invariant_iff_image,
   intro t,
   calc ϕ t '' ω f ϕ s
       ⊆ _          : image_Inter_subset _ (ϕ t)
@@ -310,76 +247,16 @@ begin
     exact image2_subset (image_preimage_subset _ _) subset.rfl,
 end
 
-end semiflow
+end flow
 
-/-- A flow on a topological space `α` by an a additive topological
-    monoid `τ` is a continuous monoid-act of `τ` on `α`.-/
-structure flow
-  (τ : Type*) [topological_space τ] [add_monoid τ] [has_continuous_add τ]
-  (α : Type*) [topological_space α] extends semiflow τ α :=
-(map_zero' : ∀ x, to_fun 0 x = x)
-
+-- ω-limits of flows by a group:
 namespace flow
 
 variables
-{τ : Type*} [topological_space τ]
+{τ : Type*} [topological_space τ] [add_comm_group τ] [topological_add_group τ]
 {α : Type*} [topological_space α]
-
-section
-
-variables
-[add_monoid τ] [has_continuous_add τ]
-(ϕ : flow τ α) (s : set α)
-
-instance : inhabited (flow τ α) :=
-⟨{ map_zero' := λ _, rfl,
-  .. default (semiflow τ α) }⟩
-
-instance : has_coe (flow τ α) (semiflow τ α) := ⟨flow.to_semiflow⟩
-instance : has_coe_to_fun (flow τ α) := ⟨_, λ ϕ, ϕ.to_fun⟩
-
-@[ext]
-lemma ext : ∀ {ϕ₁ ϕ₂ : flow τ α}, (∀ t x, ϕ₁ t x = ϕ₂ t x) → ϕ₁ = ϕ₂
-| ⟨f₁, _⟩ ⟨f₂, _⟩ h := by { congr, exact semiflow.ext h }
-
-@[simp]
-lemma coe_coe : ⇑(ϕ : semiflow τ α) = ϕ := rfl
-
-@[continuity]
-protected lemma continuous : continuous (uncurry ϕ) := ϕ.cont'
-
-@[simp]
-lemma map_add (t₁ t₂ : τ) (x : α) : ϕ t₂ (ϕ t₁ x) = ϕ (t₁ + t₂) x :=
-semiflow.map_add _ _ _ _
-
-@[simp]
-lemma map_zero (x : α) : ϕ 0 x = x := ϕ.map_zero' _
-
-end
-
-section
-
-variables
-[add_comm_group τ] [topological_add_group τ]
 (f : filter τ) (ϕ : flow τ α) (s : set α)
 
-lemma is_fw_invariant_iff_image_eq : is_fw_invariant ϕ s ↔ ∀ t, ϕ t '' s = s :=
-(is_fw_invariant_iff_image _ _).trans (iff.intro
-  (λ h t, subset.antisymm (h t) (λ _ hx, ⟨_, h (-t) ⟨_, hx, rfl⟩, by simp⟩))
-  (λ h t, by rw h t))
-
-/-- The time-reversal of a flow ϕ is defined ϕ.reverse t x = ϕ (-t) x. -/
-def reverse : flow τ α :=
-{ to_fun    := λ t x, ϕ (-t) x,
-  cont'     := ϕ.continuous.comp (continuous.prod_mk
-                 (continuous_neg.comp continuous_fst) continuous_snd),
-  map_add'  := λ _ _ _, by rw [map_add, neg_add],
-  map_zero' := λ _, by simp_rw [neg_zero, map_zero] }
-
-lemma reverse_twice : ϕ.reverse.reverse = ϕ :=
-flow.ext (λ t x, show ϕ (- -t) x = ϕ t x, by simp)
-
--- ω-limits of flows:
 open_locale omega_limit
 
 lemma omega_limit_fw_image_eq (hf : ∀ t, tendsto (+ t) f f) (t : τ) :
@@ -388,7 +265,7 @@ begin
   apply subset.antisymm,
   { have : ∀ t, tendsto (λ t₁, t + t₁) f f,
       by { simp_rw add_comm at hf, assumption },
-    apply semiflow.omega_limit_fw_image_subset,
+    apply omega_limit_fw_image_subset,
     assumption },
   { calc ω f ϕ s
          ⊆ ω f (λ t₁ x, ϕ (t₁ - t) x) (ϕ t '' s) : 
@@ -397,8 +274,6 @@ begin
     ... ⊆ ω f ϕ (ϕ t '' s) :
           omega_limit_subset_of_tendsto _ _
           (by { simp_rw sub_eq_add_neg, exact hf (-t) })},
-end
-
 end
 
 end flow

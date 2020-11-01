@@ -103,7 +103,7 @@ instance has_coe_t_int_fract_pair [has_coe_t K β] :
   has_coe_t (int_fract_pair K) (int_fract_pair β) :=
 ⟨λ ifp, ⟨ifp.b, (ifp.fr : β)⟩⟩
 
-@[simp, norm_cast]
+@[simp, norm_cast, priority 900]
 lemma coe_t_to_int_fract_pair [has_coe_t K β] {b : ℤ} {fr : K} :
   (↑(int_fract_pair.mk b fr) : int_fract_pair β) = int_fract_pair.mk b (↑fr : β) :=
 rfl

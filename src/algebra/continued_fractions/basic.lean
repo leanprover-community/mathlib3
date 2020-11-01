@@ -74,7 +74,7 @@ instance has_coe_t_generalized_continued_fraction_pair [has_coe_t α β] :
   has_coe_t (gcf.pair α) (gcf.pair β) :=
 ⟨λ gp, ⟨(gp.a : β), (gp.b : β)⟩⟩
 
-@[simp, norm_cast]
+@[simp, norm_cast, priority 900]
 lemma coe_t_to_generalized_continued_fraction_pair [has_coe_t α β] {a b : α} :
   (↑(gcf.pair.mk a b) : gcf.pair β) = gcf.pair.mk (a : β) (b : β) :=
 rfl
@@ -148,6 +148,7 @@ instance has_coe_to_generalized_continued_fraction : has_coe (gcf α) (gcf β) :
 lemma coe_to_generalized_continued_fraction {g : gcf α} :
   (↑(g : gcf α) : gcf β) = ⟨(g.h : β), (g.s : seq $ gcf.pair β)⟩ :=
 rfl
+
 
 end coe
 end generalized_continued_fraction

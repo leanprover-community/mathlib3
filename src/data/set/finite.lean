@@ -290,6 +290,18 @@ theorem infinite_image_iff {s : set α} {f : α → β} (hi : inj_on f s) :
   infinite (f '' s) ↔ infinite s :=
 not_congr $ finite_image_iff hi
 
+theorem infinite_of_inj_on_maps_to {s : set α} {t : set β} {f : α → β}
+  (hi : inj_on f s) (hm : maps_to f s t) (hs : infinite s) : infinite t :=
+infinite_mono (maps_to'.mp hm) $ (infinite_image_iff hi).2 hs
+
+theorem infinite_range_of_injective [_root_.infinite α] {f : α → β} (hi : injective f) :
+  infinite (range f) :=
+by { rw [←image_univ, infinite_image_iff (inj_on_of_injective hi _)], exact infinite_univ }
+
+theorem infinite_of_injective_forall_mem [_root_.infinite α] {s : set β} {f : α → β}
+  (hi : injective f) (hf : ∀ x : α, f x ∈ s) : infinite s :=
+by { rw ←range_subset_iff at hf, exact infinite_mono hf (infinite_range_of_injective hi) }
+
 theorem finite.preimage {s : set β} {f : α → β}
   (I : set.inj_on f (f⁻¹' s)) (h : finite s) : finite (f ⁻¹' s) :=
 finite_of_finite_image I (h.subset (image_preimage_subset f s))

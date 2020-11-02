@@ -986,24 +986,27 @@ end decidable_pi_exists
 
 /-! ### filter -/
 section filter
-variables {p q : α → Prop} [decidable_pred p] [decidable_pred q]
+variables (p q : α → Prop) [decidable_pred p] [decidable_pred q]
 
 /-- `filter p s` is the set of elements of `s` that satisfy `p`. -/
-def filter (p : α → Prop) [decidable_pred p] (s : finset α) : finset α :=
+def filter (s : finset α) : finset α :=
 ⟨_, nodup_filter p s.2⟩
 
 @[simp] theorem filter_val (s : finset α) : (filter p s).1 = s.1.filter p := rfl
 
-@[simp] theorem mem_filter {s : finset α} {a : α} : a ∈ s.filter p ↔ a ∈ s ∧ p a := mem_filter
+@[simp] theorem filter_subset (s : finset α) : s.filter p ⊆ s := filter_subset _ _
 
-@[simp] theorem filter_subset (s : finset α) : s.filter p ⊆ s := filter_subset _
+variable {p}
+
+@[simp] theorem mem_filter {s : finset α} {a : α} : a ∈ s.filter p ↔ a ∈ s ∧ p a := mem_filter
 
 theorem filter_ssubset {s : finset α} : s.filter p ⊂ s ↔ ∃ x ∈ s, ¬ p x :=
 ⟨λ h, let ⟨x, hs, hp⟩ := set.exists_of_ssubset h in ⟨x, hs, mt (λ hp, mem_filter.2 ⟨hs, hp⟩) hp⟩,
-  λ ⟨x, hs, hp⟩, ⟨s.filter_subset, λ h, hp (mem_filter.1 (h hs)).2⟩⟩
+  λ ⟨x, hs, hp⟩, ⟨s.filter_subset _, λ h, hp (mem_filter.1 (h hs)).2⟩⟩
 
-theorem filter_filter (s : finset α) :
-  (s.filter p).filter q = s.filter (λa, p a ∧ q a) :=
+variable (p)
+
+theorem filter_filter (s : finset α) : (s.filter p).filter q = s.filter (λa, p a ∧ q a) :=
 ext $ assume a, by simp only [mem_filter, and_comm, and.left_comm]
 
 lemma filter_true {s : finset α} [h : decidable_pred (λ _, true)] :
@@ -1012,6 +1015,8 @@ by ext; simp
 
 @[simp] theorem filter_false {h} (s : finset α) : @filter α (λa, false) h s = ∅ :=
 ext $ assume a, by simp only [mem_filter, and_false]; refl
+
+variables {p q}
 
 /-- If all elements of a `finset` satisfy the predicate `p`, `s.filter p` is `s`. -/
 @[simp] lemma filter_true_of_mem {s : finset α} (h : ∀ x ∈ s, p x) : s.filter p = s :=
@@ -1024,8 +1029,9 @@ eq_empty_of_forall_not_mem (by simpa)
 lemma filter_congr {s : finset α} (H : ∀ x ∈ s, p x ↔ q x) : filter p s = filter q s :=
 eq_of_veq $ filter_congr H
 
-lemma filter_empty : filter p ∅ = ∅ :=
-subset_empty.1 $ filter_subset _
+variables (p q)
+
+lemma filter_empty : filter p ∅ = ∅ := subset_empty.1 $ filter_subset _ _
 
 lemma filter_subset_filter {s t : finset α} (h : s ⊆ t) : s.filter p ⊆ t.filter p :=
 assume a ha, mem_filter.2 ⟨h (mem_filter.1 ha).1, (mem_filter.1 ha).2⟩
@@ -1038,26 +1044,24 @@ by { classical, ext x, simp, split_ifs with h; by_cases h' : x = a; simp [h, h']
 
 variable [decidable_eq α]
 
-theorem filter_union (s₁ s₂ : finset α) :
-  (s₁ ∪ s₂).filter p = s₁.filter p ∪ s₂.filter p :=
+theorem filter_union (s₁ s₂ : finset α) : (s₁ ∪ s₂).filter p = s₁.filter p ∪ s₂.filter p :=
 ext $ λ _, by simp only [mem_filter, mem_union, or_and_distrib_right]
 
-theorem filter_union_right (p q : α → Prop) [decidable_pred p] [decidable_pred q] (s : finset α) :
-  s.filter p ∪ s.filter q = s.filter (λx, p x ∨ q x) :=
+theorem filter_union_right (s : finset α) : s.filter p ∪ s.filter q = s.filter (λx, p x ∨ q x) :=
 ext $ λ x, by simp only [mem_filter, mem_union, and_or_distrib_left.symm]
 
 lemma filter_mem_eq_inter {s t : finset α} [Π i, decidable (i ∈ t)] :
   s.filter (λ i, i ∈ t) = s ∩ t :=
 ext $ λ i, by rw [mem_filter, mem_inter]
 
-theorem filter_inter {s t : finset α} : filter p s ∩ t = filter p (s ∩ t) :=
+theorem filter_inter (s t : finset α) : filter p s ∩ t = filter p (s ∩ t) :=
 by { ext, simp only [mem_inter, mem_filter, and.right_comm] }
 
-theorem inter_filter {s t : finset α} : s ∩ filter p t = filter p (s ∩ t) :=
+theorem inter_filter (s t : finset α) : s ∩ filter p t = filter p (s ∩ t) :=
 by rw [inter_comm, filter_inter, inter_comm]
 
 theorem filter_insert (a : α) (s : finset α) :
-  filter p (insert a s) = if p a then insert a (filter p s) else (filter p s) :=
+  filter p (insert a s) = if p a then insert a (filter p s) else filter p s :=
 by { ext x, simp, split_ifs with h; by_cases h' : x = a; simp [h, h'] }
 
 theorem filter_or [decidable_pred (λ a, p a ∨ q a)] (s : finset α) :
@@ -1088,7 +1092,7 @@ by { simp [subset.antisymm_iff,sdiff_subset_self],
 
 theorem filter_union_filter_neg_eq [decidable_pred (λ a, ¬ p a)]
   (s : finset α) : s.filter p ∪ s.filter (λa, ¬ p a) = s :=
-by simp only [filter_not, union_sdiff_of_subset (filter_subset s)]
+by simp only [filter_not, union_sdiff_of_subset (filter_subset p s)]
 
 theorem filter_inter_filter_neg_eq (s : finset α) : s.filter p ∩ s.filter (λa, ¬ p a) = ∅ :=
 by simp only [filter_not, inter_sdiff_self]
@@ -1133,7 +1137,7 @@ end classical
 -- This is not a good simp lemma, as it would prevent `finset.mem_filter` from firing
 -- on, e.g. `x ∈ s.filter(eq b)`.
 lemma filter_eq [decidable_eq β] (s : finset β) (b : β) :
-  s.filter(eq b) = ite (b ∈ s) {b} ∅ :=
+  s.filter (eq b) = ite (b ∈ s) {b} ∅ :=
 begin
   split_ifs,
   { ext,
@@ -2155,7 +2159,7 @@ by split; simp [disjoint_left] {contextual := tt}
 lemma disjoint_filter_filter {s t : finset α} {p q : α → Prop} [decidable_pred p]
   [decidable_pred q] :
   (disjoint s t) → disjoint (s.filter p) (t.filter q) :=
-disjoint.mono (filter_subset _) (filter_subset _)
+disjoint.mono (filter_subset _ _) (filter_subset _ _)
 
 lemma disjoint_iff_disjoint_coe {α : Type*} {a b : finset α} [decidable_eq α] :
   disjoint a b ↔ disjoint (↑a : set α) (↑b : set α) :=

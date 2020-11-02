@@ -259,7 +259,7 @@ begin
   { intro n, refine measurable.indicator _ (is_measurable_integrable hf),
     have : ∀ x, (s' n x).range.filter (λ x, x ≠ 0) ⊆
       (s n).range,
-    { intros x, refine finset.subset.trans (finset.filter_subset _) _, intro y,
+    { intros x, refine finset.subset.trans (finset.filter_subset _ _) _, intro y,
       simp_rw [simple_func.mem_range], rintro ⟨z, rfl⟩, exact ⟨(x, z), rfl⟩ },
     simp only [simple_func.integral_eq_sum_of_subset (this _)],
     refine finset.measurable_sum _ _, intro x,

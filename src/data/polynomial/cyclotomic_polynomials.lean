@@ -314,7 +314,7 @@ end
 lemma cyclotomic_two : cyclotomic 2 = X + 1 :=
 begin
   have hspec : map (int.cast_ring_hom ℂ) (X + 1) = cyclotomic' 2 ℂ,
-  { simp [cyclotomic'_two ℂ 0 two_ne_zero.symm] },
+  { simp only [cyclotomic'_two ℂ 0 two_ne_zero.symm, map_add, map_X, map_one] },
   symmetry,
   exact cyclotomic_unique hspec
 end

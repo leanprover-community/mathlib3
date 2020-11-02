@@ -16,7 +16,7 @@ import analysis.complex.roots_of_unity
 
 For `n : ℕ` and an integral domain `R`, we define a modified version of the `n`-th cyclotomic
 polynomial with coefficients in `R`, denoted `cyclotomic' n R`, as `∏ (X - μ)`, where `μ` varies
-over the `n`-th primitive root of unity. If there is a `n`-th primitive root of unity in `R` then
+over the primitive `n`th roots of unity. If there is a primitive `n`th root of unity in `R` then
 this the standard definition. We then define the standard cyclotomic polynomial `cyclotomic n`
 with coefficients in `ℤ`, using `cyclotomic' n ℂ`.
 

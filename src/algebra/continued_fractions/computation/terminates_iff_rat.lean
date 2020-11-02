@@ -144,7 +144,6 @@ lemma coe_t_to_some [has_coe_t α β] {a : α} : (↑(some a) : option β) = som
 @[simp, norm_cast]
 lemma coe_t_to_none [has_coe_t α β] : (↑(none : option α) : option β) = (none : option β) := rfl
 
-@[simp, norm_cast]
 lemma coe_t_eq_some (a : α) : ↑a = some a := rfl
 
 @[simp, norm_cast]

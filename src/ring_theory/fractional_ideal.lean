@@ -1072,7 +1072,6 @@ begin
       apply mem_span_singleton_self,
       assoc_rewrite span_singleton_mul_span_singleton (g.to_map d) (g.to_map d)⁻¹ at hx,
       rw [group_with_zero.mul_inv_cancel, span_singleton_one, mul_one] at hx,
-      -- exact hx, exa | h_gd),
       exact hx, exact h_gd,
       use x * (g.to_map d)⁻¹, apply h_xd,
       split, simp only [top_coe],

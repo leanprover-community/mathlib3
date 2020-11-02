@@ -291,7 +291,7 @@ lemma one_le_inv {I : submodule R A} (hI : I ≤ 1) :
   (1 : submodule R A) ≤ 1 / I :=
 by rwa [le_div_iff_mul_le, one_mul]
 
-lemma self_le_self_inv {I : submodule R A} (hI : I ≤ (1 : submodule R A)) :
+lemma self_le_self_inv {I : submodule R A} (hI : I ≤ 1) :
   I ≤ I * (1 / I) :=
 begin
   rw [← mul_one I] {occs := occurrences.pos [1]},

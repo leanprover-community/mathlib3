@@ -328,9 +328,7 @@ lemma cycl_ne_zero (n : ℕ) : cyclotomic n ≠ 0 := monic.ne_zero (cyclotomic.m
 /- The degree of `cyclotomic n` is `totient n`. -/
 lemma deg_of_cyclotomic (n : ℕ) : (cyclotomic n).degree = nat.totient n :=
 begin
-  by_cases hzero : n = 0,
-  { simp only [hzero, cyclotomic, degree_one, nat.totient_zero, with_top.coe_zero] },
-  obtain ⟨k, rfl⟩ := nat.exists_eq_succ_of_ne_zero hzero,
+  cases n with k, simp [cyclotomic],
   rw [←deg_of_cyclotomic' (complex.is_primitive_root_exp k.succ (nat.succ_ne_zero k))],
   exact (cyclotomic_spec k.succ).2.1
 end

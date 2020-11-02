@@ -934,7 +934,6 @@ begin
 end
 
 /-- The `dfinsupp` version of `finsupp.lsum`,-/
-@[simps apply_apply symm_apply {simp_rhs := tt}]
 def lsum {R : Type*} [semiring R] [Π i, add_comm_monoid (β i)] [Π i, semimodule R (β i)]
   [add_comm_monoid γ] [semimodule R γ] :
     (Π i, β i →ₗ[R] γ) ≃+ ((Π₀ i, β i) →ₗ[R] γ) :=
@@ -952,6 +951,33 @@ def lsum {R : Type*} [semiring R] [Π i, add_comm_monoid (β i)] [Π i, semimodu
   left_inv := λ F, by { ext x y, simp },
   right_inv := λ F, by { ext x y, simp },
   map_add' := λ F G, by { ext x y, simp } }
+
+
+/-- The `lsum` version of `dfinsupp.lift_add_hom_single_add_hom`,-/
+@[simp] lemma lsum_single_add_hom [Π i, add_comm_monoid (β i)] :
+  lsum (lsingle β) = linear_map.id (Π₀ i, β i) :=
+lsum.to_equiv.apply_eq_iff_eq_symm_apply.2 rfl
+
+/-- The `lsum` version of `dfinsupp.lift_add_hom_apply_single`,-/
+lemma lsum_apply_single [Π i, add_comm_monoid (β i)] [add_comm_monoid γ]
+  (f : Π i, β i →+ γ) (i : ι) (x : β i) :
+  lsum f (single i x) = f i x :=
+by simp
+
+/-- The `lsum` version of `dfinsupp.lift_add_hom_comp_single`,-/
+lemma lsum_comp_single [Π i, add_comm_monoid (β i)] [add_comm_monoid γ]
+  (f : Π i, β i →+ γ) (i : ι) :
+  (lsum f).comp (lsingle β i) = f i :=
+by simp
+
+/-- The `lsum` version of `dfinsupp.comp_lift_add_hom`,-/
+lemma comp_lift_add_hom {δ : Type*} [Π i, add_comm_monoid (β i)] [add_comm_monoid γ]
+  [add_comm_monoid δ]
+  (g : γ →+ δ) (f : Π i, β i →+ γ) :
+  g.comp (lift_add_hom f) = lift_add_hom (λ a, g.comp (f a)) :=
+lift_add_hom.symm_apply_eq.1 $ funext $ λ a,
+  by rw [lift_add_hom_symm_apply, add_monoid_hom.comp_assoc, lift_add_hom_comp_single]
+
 
 -- def lsum_apply [semiring R] [Π i, add_comm_monoid (β i)] [Π i, semimodule R (β i)]
 --   [add_comm_monoid γ] [semimodule R γ] (f : Π i, β i →ₗ[R] γ) :

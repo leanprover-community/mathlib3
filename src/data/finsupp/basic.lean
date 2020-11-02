@@ -649,7 +649,7 @@ See `finsupp.lsingle` for the stronger version as a linear map.
 
 See `finsupp.lapply` for the stronger version as a linear map. -/
 @[simps apply]
-def eval_add_hom (a : α) : (α →₀ M) →+ M := ⟨λ g, g a, zero_apply, λ _ _, add_apply⟩
+def apply_add_hom (a : α) : (α →₀ M) →+ M := ⟨λ g, g a, zero_apply, λ _ _, add_apply⟩
 
 lemma single_add_erase (a : α) (f : α →₀ M) : single a (f a) + f.erase a = f :=
 ext $ λ a',
@@ -838,7 +838,7 @@ finset.subset.antisymm
 @[simp] lemma sum_apply [has_zero M] [add_comm_monoid N]
   {f : α →₀ M} {g : α → M → β →₀ N} {a₂ : β} :
   (f.sum g) a₂ = f.sum (λa₁ b, g a₁ b a₂) :=
-(eval_add_hom a₂ : (β →₀ N) →+ _).map_sum _ _
+(apply_add_hom a₂ : (β →₀ N) →+ _).map_sum _ _
 
 lemma support_sum [has_zero M] [add_comm_monoid N]
   {f : α →₀ M} {g : α → M → (β →₀ N)} :

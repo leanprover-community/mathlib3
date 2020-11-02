@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Scott Morrison
 -/
 import algebra.group.pi
 import algebra.big_operators.order
-import algebra.module.linear_map
+import algebra.module.basic
 import data.fintype.card
 import data.finset.preimage
 import data.multiset.antidiagonal
@@ -638,14 +638,18 @@ instance : add_monoid (α →₀ M) :=
   zero_add  := assume ⟨s, f, hf⟩, ext $ assume a, zero_add _,
   add_zero  := assume ⟨s, f, hf⟩, ext $ assume a, add_zero _ }
 
-/-- `finsupp.single` as an `add_monoid_hom`. -/
+/-- `finsupp.single` as an `add_monoid_hom`.
+
+See `finsupp.lsingle` for the stronger version as a linear map.
+-/
 @[simps] def single_add_hom (a : α) : M →+ α →₀ M :=
 ⟨single a, single_zero, λ _ _, single_add⟩
 
-/-- Evaluation of a function `f : α →₀ M` at a point as an additive monoid homomorphism. -/
-def eval_add_hom (a : α) : (α →₀ M) →+ M := ⟨λ g, g a, zero_apply, λ _ _, add_apply⟩
+/-- Evaluation of a function `f : α →₀ M` at a point as an additive monoid homomorphism.
 
-@[simp] lemma eval_add_hom_apply (a : α) (g : α →₀ M) : eval_add_hom a g = g a := rfl
+See `finsupp.lapply` for the stronger version as a linear map. -/
+@[simps apply]
+def eval_add_hom (a : α) : (α →₀ M) →+ M := ⟨λ g, g a, zero_apply, λ _ _, add_apply⟩
 
 lemma single_add_erase (a : α) (f : α →₀ M) : single a (f a) + f.erase a = f :=
 ext $ λ a',
@@ -1608,24 +1612,7 @@ instance [semiring R] [add_comm_monoid M] [semimodule R M] : semimodule R (α �
   zero_smul := λ x, ext $ λ _, zero_smul _ _,
   smul_zero := λ x, ext $ λ _, smul_zero _ }
 
-variables {α M} (R)
-
-/-- Evaluation at point as a linear map. This version assumes that the codomain is a semimodule
-over some semiring. See also `leval`. -/
-def leval' [semiring R] [add_comm_monoid M] [semimodule R M] (a : α) :
-  (α →₀ M) →ₗ[R] M :=
-⟨λ g, g a, λ _ _, add_apply, λ _ _, rfl⟩
-
-@[simp] lemma coe_leval' [semiring R] [add_comm_monoid M] [semimodule R M] (a : α) (g : α →₀ M) :
-  leval' R a g = g a :=
-rfl
-
-variable {R}
-
-/-- Evaluation at point as a linear map. This version assumes that the codomain is a semiring. -/
-def leval [semiring R] (a : α) : (α →₀ R) →ₗ[R] R := leval' R a
-
-@[simp] lemma coe_leval [semiring R] (a : α) (g : α →₀ R) : leval a g = g a := rfl
+variables {α M} {R}
 
 lemma support_smul {_ : semiring R} [add_comm_monoid M] [semimodule R M] {b : R} {g : α →₀ M} :
   (b • g).support ⊆ g.support :=

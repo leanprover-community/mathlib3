@@ -353,6 +353,18 @@ lemma map_mul {L : matrix m n α} {M : matrix n o α}
 (L ⬝ M).map f = L.map f ⬝ M.map f :=
 by { ext, simp [mul_apply, ring_hom.map_sum], }
 
+/-- A version of `one_map` where `f` is a ring hom. -/
+@[simp] lemma ring_hom_map_one [decidable_eq n]
+  {β : Type w} [semiring β] (f : α →+* β) :
+  (1 : matrix n n α).map f = 1 :=
+one_map f.map_zero f.map_one
+
+/-- A version of `map_zero` where `f` is a ring hom. -/
+@[simp] lemma ring_hom_map_zero
+  {β : Type w} [semiring β] (f : α →+* β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
 lemma is_add_monoid_hom_mul_left (M : matrix l m α) :
   is_add_monoid_hom (λ x : matrix m n α, M ⬝ x) :=
 { to_is_add_hom := ⟨matrix.mul_add _⟩, map_zero := matrix.mul_zero _ }
@@ -394,6 +406,15 @@ def ring_hom.map_matrix [decidable_eq m] [semiring α] {β : Type w} [semiring �
 
 @[simp] lemma ring_hom.map_matrix_apply [decidable_eq m] [semiring α] {β : Type w} [semiring β]
   (f : α →+* β) (M : matrix m m α) : f.map_matrix M = M.map f := rfl
+
+open_locale matrix
+
+/-- Specialize `ring_hom.map_mul` to use `matrix.mul` instead of `has_mul.mul`. -/
+@[simp]
+lemma map_matrix.map_mul [decidable_eq m] [semiring α] {β : Type w} [semiring β]
+  (f : α →+* β) (M N : matrix m m α) :
+  f.map_matrix (M ⬝ N) = f.map_matrix M ⬝ f.map_matrix N :=
+ring_hom.map_mul _ _ _
 
 open_locale matrix
 

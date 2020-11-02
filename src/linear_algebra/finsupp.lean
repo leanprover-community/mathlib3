@@ -40,7 +40,7 @@ interpreted as a submodule of `α →₀ M`. We also define `linear_map` version
 * `finsupp.dom_lcongr`: a `linear_equiv` version of `finsupp.dom_congr`;
 
 * `finsupp.congr`: if the sets `s` and `t` are equivalent, then `supported M R s` is equivalent to
-  `supported M R t`; 
+  `supported M R t`;
 
 * `finsupp.lcongr`: a `linear_equiv`alence between `α →₀ M` and `β →₀ N` constructed using `e : α ≃
   β` and `e' : M ≃ₗ[R] N`.

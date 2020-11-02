@@ -35,7 +35,7 @@ comes from a polynomial with integer coefficients.
 
 Our definition of `cyclotomic' n R` makes sense in any integral domain `R`, but the interesting
 results hold if there is a primitive `n`-th root of unity in `R`. In particular, our definition is
-not the standard one unless there is a `n`-th primitive root of unity in `R`. For example,
+not the standard one unless there is a primitive `n`th root of unity in `R`. For example,
 `cyclotomic' 3 ℤ = 1`, since there are no `3`rd primitive roots of unity in `ℤ`. To get the standard
 cyclotomic polynomials with integer coefficients, we use `int_coeff_of_cycl`, with `R = ℂ`, that is
 the main example. We decided to work in general since the difficulties are essentially the same.

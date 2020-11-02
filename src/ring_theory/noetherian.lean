@@ -514,14 +514,35 @@ namespace primes
 
 variables {R : Type*} [comm_ring R] [is_noetherian_ring R]
 
-lemma prime_product (I : ideal R) : ∃ (A : finset (prime_spectrum R)),
-  ∏ p in A, (p.val : ideal R) ≤ I :=
+/-In a noetherian ring, every ideal contains a product of prime ideals
+([Samuel, § 3.3, Lemma 3])-/
+lemma prime_product (I : ideal R) : ∃ (Z : finset (prime_spectrum R)),
+  ∏ p in Z, (p.val : ideal R) ≤ I :=
 begin
-  -- sorry,
-  let X:= {J : ideal R | ∀ (B : finset (prime_spectrum R)), ¬ ∏ p in B, (p.val : ideal R) ≤ J },
-  by_cases X = ∅,
-  {},
-  {sorry,}
+  let P := λ J, ∀ (Y : finset (prime_spectrum R)), ¬ ∏ p in Y, (p.val : ideal R) ≤ J,
+  let Ω := {J : ideal R | P J },
+  by_cases hΩ : Ω = ∅,
+  { have hP : ∀ J, ¬ P J,
+    apply (eq_empty_iff_forall_not_mem).mp hΩ,
+    specialize hP I,
+    dsimp [P] at hP,
+    rw not_forall_not at hP,
+    cases hP with Z hZ,
+    use Z, exact hZ },
+  {have hM : ∃ (M : ideal R) (H: M ∈ Ω), ∀ (J : ideal R), J ∈ Ω → M ≤ J → J = M,
+    apply (set_has_maximal_iff_noetherian).mpr _inst_2 Ω, sorry,
+   rcases hM with ⟨M, ⟨h_PM,h_maxM⟩⟩,
+   have h_prM : ¬ prime M, sorry,
+   obtain ⟨x, y, hx, hy, h_xy⟩ : ∃ (x y : R), x ∉ M ∧ y ∉ M ∧ x * y ∈ M, sorry,
+  --  have h_xy : ∃ (x y : R), x ∉ M ∧ y ∉ M ∧ x * y ∈ M, sorry,
+  --  cases h_xy with x h2,
+  --  cases  h2 with y h3,
+   let Jx := M + span R {x},
+   let Jy := M + span R {y},
+   have hJ_xy : Jx ∉ Ω ∧ Jy ∉ Ω, sorry,
+
+
+   sorry, }
 end
 
 lemma prime_product_domain (hR : is_integral_domain R) (I : ideal R) : ∃ (A : finset (prime_spectrum R)),

@@ -7,7 +7,6 @@ Direct sum of modules over commutative rings, indexed by a discrete type.
 -/
 import algebra.direct_sum
 import linear_algebra.dfinsupp
-import linear_algebra.basic
 
 /-!
 # Direct sum of modules over commutative rings, indexed by a discrete type.

@@ -203,7 +203,7 @@ theorem to_submodule_inj {S U : subalgebra R A} : (S : submodule R A) = U ↔ S 
 ⟨to_submodule_injective, congr_arg _⟩
 
 /-- As submodules, subalgebras are idempotent. -/
-theorem mul_idem : (S : submodule R A) * (S : submodule R A) = (S : submodule R A) :=
+@[simp] theorem mul_self : (S : submodule R A) * (S : submodule R A) = (S : submodule R A) :=
 begin
   apply le_antisymm,
   { rw submodule.mul_le,

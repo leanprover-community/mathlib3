@@ -565,16 +565,15 @@ if there is a primitive root of unity in `R`. -/
 lemma card_nth_roots {ζ : R} {n : ℕ} (h : is_primitive_root ζ n) :
   (nth_roots n (1 : R)).card = n :=
 begin
-  by_cases hzero: n = 0,
+  cases nat.eq_zero_or_pos n with hzero hpos,
   { simp only [hzero, multiset.card_zero, nth_roots_zero] },
   rw eq_iff_le_not_lt,
-  split,
-  { exact card_nth_roots n 1 },
+  use card_nth_roots n 1,
   { rw [not_lt],
     have hcard : fintype.card {x // x ∈ nth_roots n (1 : R)}
       ≤ (nth_roots n (1 : R)).attach.card := multiset.card_le_of_le (multiset.erase_dup_le _),
     rw multiset.card_attach at hcard,
-    rw ← pnat.to_pnat'_coe (nat.pos_of_ne_zero hzero) at hcard h ⊢,
+    rw ← pnat.to_pnat'_coe hpos at hcard h ⊢,
     set m := nat.to_pnat' n,
     rw [← fintype.card_congr (roots_of_unity_equiv_nth_roots R m), card_roots_of_unity h] at hcard,
     exact hcard }
@@ -584,7 +583,7 @@ end
 if there is a primitive root of unity in `R`. -/
 lemma nth_roots_nodup {ζ : R} {n : ℕ} (h : is_primitive_root ζ n) : (nth_roots n (1 : R)).nodup :=
 begin
-  by_cases hzero : n = 0,
+  cases nat.eq_zero_or_pos n with hzero hpos,
   { simp only [hzero, multiset.nodup_zero, nth_roots_zero] },
   apply (@multiset.erase_dup_eq_self R _ _).1,
   rw eq_iff_le_not_lt,
@@ -599,7 +598,7 @@ begin
       rw [← finset.card_mk, ← fintype.card_of_subtype fs _],
       intro x,
       simp only [multiset.mem_erase_dup, finset.mem_mk] },
-    rw ← pnat.to_pnat'_coe (nat.pos_of_ne_zero hzero) at h hrw ha,
+    rw ← pnat.to_pnat'_coe hpos at h hrw ha,
     set m := nat.to_pnat' n,
     rw [hrw, ← fintype.card_congr (roots_of_unity_equiv_nth_roots R m),
         card_roots_of_unity h] at ha,

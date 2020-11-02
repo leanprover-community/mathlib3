@@ -524,7 +524,7 @@ begin
   {sorry,}
 end
 
-lemma prime_product_domain (hR : is_integral_domain R)(I : ideal R) : ∃ (A : finset (prime_spectrum R)),
+lemma prime_product_domain (hR : is_integral_domain R) (I : ideal R) : ∃ (A : finset (prime_spectrum R)),
   ∏ p in A, (p.val : ideal R) ≠ 0 ∧ ∏ p in A, (p.val : ideal R) ≤ I :=
 begin
   sorry,

@@ -492,6 +492,9 @@ def lsingle (i) : β i →ₗ[γ] Π₀ i, β i :=
 ⟨single i, λ _ _, single_add, λ _ _, single_smul _⟩
 variable {β}
 
+@[simp]
+def lsingle_to_add_monoid_hom (i) : (lsingle β γ i).to_add_monoid_hom = single_add_hom β i := rfl
+
 /-- Two `R`-linear maps from `Π₀ i, β i` which agree on each `single i x` agree everywhere. -/
 lemma lhom_ext {δ : Type*} [add_comm_monoid δ] [semimodule γ δ] ⦃φ ψ : (Π₀ i, β i) →ₗ[γ] δ⦄
   (h : ∀ i x, φ (single i x) = ψ (single i x)) :

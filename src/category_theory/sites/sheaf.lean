@@ -15,9 +15,9 @@ import tactic.equiv_rw
 universes v u
 namespace category_theory
 
-open category_theory category limits sieve classical
+open opposite category_theory category limits sieve classical
 
-namespace grothendieck_topology
+namespace presieve
 
 variables {C : Type u} [category.{v} C]
 
@@ -36,7 +36,9 @@ version of the middle object in https://stacks.math.columbia.edu/tag/00VM which 
 direct calculations. It is also used implicitly in Definition C2.1.2 in [Elephant].
 -/
 def family_of_elements (P : Cᵒᵖ ⥤ Type v) (R : presieve X) :=
-Π ⦃Y : C⦄ (f : Y ⟶ X), R f → P.obj (opposite.op Y)
+Π ⦃Y : C⦄ (f : Y ⟶ X), R f → P.obj (op Y)
+
+instance : inhabited (family_of_elements P (⊥ : presieve X)) := ⟨λ Y f, false.elim⟩
 
 /--
 A family of elements for a presheaf on the presieve `R₂` can be restricted to a smaller presieve
@@ -55,7 +57,8 @@ the element of `P Y₂` along `g₂` are the same.
 In special cases, this condition can be simplified, see `is_pullback_consistent_iff` and
 `is_sieve_consistent_iff`.
 
-This is referred to as a "compatible family" in Definition C2.1.2 of [Elephant].
+This is referred to as a "compatible family" in Definition C2.1.2 of [Elephant], and on nlab:
+https://ncatlab.org/nlab/show/sheaf#GeneralDefinitionInComponents
 -/
 def family_of_elements.consistent (x : family_of_elements P R) : Prop :=
 ∀ ⦃Y₁ Y₂ Z⦄ (g₁ : Z ⟶ Y₁) (g₂ : Z ⟶ Y₂) ⦃f₁ : Y₁ ⟶ X⦄ ⦃f₂ : Y₂ ⟶ X⦄
@@ -141,7 +144,7 @@ consistency condition can be simplified.
 This is an equivalent condition, see `is_sieve_consistent_iff`.
 
 This is the notion of "matching" given for families on sieves given in [MM92], Chapter III,
-Section 4, Equation 1.
+Section 4, Equation 1, and nlab: https://ncatlab.org/nlab/show/matching+family.
 See also the discussion before Lemma C2.1.4 of [Elephant].
 -/
 def family_of_elements.sieve_consistent (x : family_of_elements P S) : Prop :=
@@ -184,8 +187,16 @@ begin
   exact t.restrict (le_generate R),
 end
 
+/--
+The given element `t` of `P.obj (op X)` is an amalgamation for the family of elements `x` if every
+restriction `P.map f.op t = x_f` for every arrow `f` in the presieve `R`.
+
+This is the definition given in  https://ncatlab.org/nlab/show/sheaf#GeneralDefinitionInComponents,
+and https://ncatlab.org/nlab/show/matching+family, as well as [MM92], Chapter III, Section 4,
+equation (2).
+-/
 def is_amalgamation_for (x : family_of_elements P R)
-  (t : P.obj (opposite.op X)) : Prop :=
+  (t : P.obj (op X)) : Prop :=
 ∀ ⦃Y : C⦄ (f : Y ⟶ X) (h : R f), P.map f.op t = x f h
 
 lemma is_consistent_of_exists_amalgamation (x : family_of_elements P R)
@@ -198,12 +209,12 @@ begin
 end
 
 lemma is_amalgamation_for_restrict {R₁ R₂ : presieve X} (h : R₁ ≤ R₂)
-  (x : family_of_elements P R₂) (t : P.obj (opposite.op X)) (ht : is_amalgamation_for x t) :
+  (x : family_of_elements P R₂) (t : P.obj (op X)) (ht : is_amalgamation_for x t) :
   is_amalgamation_for (x.restrict h) t :=
 λ Y f hf, ht f (h Y hf)
 
 lemma is_amalgamation_for_extend {R : presieve X}
-  (x : family_of_elements P R) (t : P.obj (opposite.op X)) (ht : is_amalgamation_for x t) :
+  (x : family_of_elements P R) (t : P.obj (op X)) (ht : is_amalgamation_for x t) :
   is_amalgamation_for x.sieve_extend t :=
 begin
   intros Y f hf,
@@ -217,7 +228,7 @@ def is_separated_for (P : Cᵒᵖ ⥤ Type v) (R : presieve X) : Prop :=
   is_amalgamation_for x t₁ → is_amalgamation_for x t₂ → t₁ = t₂
 
 lemma is_separated_for.ext {R : presieve X} (hR : is_separated_for P R)
-  {t₁ t₂ : P.obj (opposite.op X)} (h : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : R f), P.map f.op t₁ = P.map f.op t₂) :
+  {t₁ t₂ : P.obj (op X)} (h : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : R f), P.map f.op t₁ = P.map f.op t₂) :
 t₁ = t₂ :=
 hR (λ Y f hf, P.map f.op t₂) t₁ t₂ (λ Y f hf, h hf) (λ Y f hf, rfl)
 
@@ -244,23 +255,41 @@ begin
   rw [q₁, q₂],
 end
 
+/--
+We define `P` to be a sheaf for the presieve `R` if every consistent family has a unique
+amalgamation.
+
+This is the definition of a sheaf for the given presieve given in C2.1.2 of [Elephant], and
+https://ncatlab.org/nlab/show/sheaf#GeneralDefinitionInComponents. Using `is_sieve_consistent_iff`,
+this is equivalent to the definition of a sheaf in [MM92], Chapter III, Section 4.
+-/
 def is_sheaf_for (P : Cᵒᵖ ⥤ Type v) (R : presieve X) : Prop :=
 ∀ (x : family_of_elements P R), x.consistent → ∃! t, is_amalgamation_for x t
 
+/--
+This is an equivalent condition to be a sheaf, which is useful for the abstraction to local
+operators on elementary toposes. However this definition is defined only for sieves, not presieves.
+The equivalence between this and `is_sheaf_for` is given in `yoneda_condition_iff_sheaf_condition`.
+
+See the discussion before Equation (3) of [MM92], Chapter III, Section 4. See also C2.1.4 of
+[Elephant]. This is also a direct reformulation of https://stacks.math.columbia.edu/tag/00Z8.
+-/
 def yoneda_sheaf_condition (P : Cᵒᵖ ⥤ Type v) (S : sieve X) : Prop :=
 ∀ (f : S.functor ⟶ P), ∃! g, S.functor_inclusion ≫ g = f
 
-example {α : Sort*} {p q : α → Prop} : (∀ (x : {a // p a}), q x.1) ↔ ∀ a, p a → q a :=
-begin
-  simpa only [subtype.forall, subtype.val_eq_coe],
-end
+/--
+(Implementation). This is a (primarily internal) equivalence between natural transformations
+and consistent families.
 
+Cf the discussion after Lemma 7.47.10 in https://stacks.math.columbia.edu/tag/00YW. See also
+the proof of C2.1.4 of [Elephant], and the discussion in [MM92], Chapter III, Section 4.
+-/
 def nat_trans_equiv_consistent_family :
   (S.functor ⟶ P) ≃ {x : family_of_elements P S // x.consistent} :=
 { to_fun := λ α,
   begin
     refine ⟨λ Y f hf, _, _⟩,
-    { apply α.app (opposite.op Y) ⟨_, hf⟩ },
+    { apply α.app (op Y) ⟨_, hf⟩ },
     { rw is_sieve_consistent_iff,
       intros Y Z f g hf,
       dsimp,
@@ -285,9 +314,15 @@ def nat_trans_equiv_consistent_family :
     refl,
   end }
 
-def yoneda_equiv {F : Cᵒᵖ ⥤ Type v} : (yoneda.obj X ⟶ F) ≃ F.obj (opposite.op X) :=
+-- TODO: MOVE ME BEFORE PR
+/--
+We have a type-level equivalence between natural transformations from the yoneda embedding
+and elements of `F.obj X`, without any universe switching.
+-/
+def yoneda_equiv {F : Cᵒᵖ ⥤ Type v} : (yoneda.obj X ⟶ F) ≃ F.obj (op X) :=
 (yoneda_sections X F).to_equiv.trans equiv.ulift
 
+/-- (Implementation). A lemma useful to prove `yoneda_condition_iff_sheaf_condition`. -/
 lemma extension_iff_amalgamation (x : S.functor ⟶ P) (g : yoneda.obj X ⟶ P) :
   S.functor_inclusion ≫ g = x ↔ is_amalgamation_for (nat_trans_equiv_consistent_family x).1 (yoneda_equiv g) :=
 begin
@@ -296,7 +331,7 @@ begin
   { rintro rfl,
     intros Y f hf,
     rw ← functor_to_types.naturality _ _ g,
-    change g.app (opposite.op Y) (f ≫ 𝟙 X) = g.app (opposite.op Y) f,
+    change g.app (op Y) (f ≫ 𝟙 X) = g.app (op Y) f,
     simp only [comp_id] },
   { intro h,
     ext Y ⟨f, hf⟩,
@@ -306,6 +341,7 @@ begin
     simp },
 end
 
+-- TODO: MOVE ME BEFORE PR
 lemma equiv.exists_unique_congr {α β : Type*} (p : β → Prop) (e : α ≃ β) :
   (∃! (y : β), p y) ↔ ∃! (x : α), p (e x) :=
 begin
@@ -355,9 +391,10 @@ begin
   apply and.intro t,
 end
 
+/-- Get the amalgamation of the given consistent family, provided we have a sheaf. -/
 noncomputable def is_sheaf_for.amalgamate
   (t : is_sheaf_for P R) (x : family_of_elements P R) (hx : x.consistent) :
-  P.obj (opposite.op X) :=
+  P.obj (op X) :=
 classical.some (t x hx).exists
 
 lemma is_sheaf_for.is_amalgamation_for
@@ -371,6 +408,7 @@ lemma is_sheaf_for.valid_glue
   P.map f.op (t.amalgamate x hx) = x f Hf :=
 t.is_amalgamation_for hx f Hf
 
+/-- If `P` is a sheaf for `R`, it is separated for `R`. -/
 lemma is_sheaf_for.is_separated_for : is_sheaf_for P R → is_separated_for P R :=
 λ q, (separated_for_and_exists_amalgamation_iff_sheaf_for.2 q).1
 
@@ -441,8 +479,10 @@ end
 
 /--
 If a family of arrows `R` on `X` has a subsieve `S` such that:
+
 * `P` is a sheaf for `S`.
-* For every `f` in `R`, `P` is separated for the pullback of `S` along `f`
+* For every `f` in `R`, `P` is separated for the pullback of `S` along `f`,
+
 then `P` is a sheaf for `R`.
 -/
 lemma is_sheaf_for_subsieve_aux (P : Cᵒᵖ ⥤ Type v) {S : sieve X} {R : presieve X}
@@ -467,17 +507,26 @@ begin
     simp },
 end
 
+/--
+If `P` is a sheaf for every pullback of the sieve `S`, then `P` is a sheaf for any presieve which
+contains `S`.
+-/
 lemma is_sheaf_for_subsieve (P : Cᵒᵖ ⥤ Type v) {S : sieve X} {R : presieve X}
   (h : (S : presieve X) ≤ R)
   (trans : Π ⦃Y⦄ (f : Y ⟶ X), is_sheaf_for P (S.pullback f)) :
   is_sheaf_for P R :=
 is_sheaf_for_subsieve_aux P h (by simpa using trans (𝟙 _)) (λ Y f hf, (trans f).is_separated_for)
 
-/-- A presheaf is separated if it is separated for every sieve in the topology. -/
+/-- A presheaf is separated for a topology if it is separated for every sieve in the topology. -/
 def is_separated (P : Cᵒᵖ ⥤ Type v) : Prop :=
 ∀ {X} (S : sieve X), S ∈ J X → is_separated_for P S
 
-/-- A presheaf is a sheaf if it is a sheaf for every sieve in the topology. -/
+/--
+A presheaf is a sheaf for a topology if it is a sheaf for every sieve in the topology.
+
+If the given topology is given by a pretopology, `is_sheaf_for_pretopology` shows it suffices to
+check the sheaf condition at presieves in the pretopology.
+-/
 def is_sheaf (P : Cᵒᵖ ⥤ Type v) : Prop :=
 ∀ {X} (S : sieve X), S ∈ J X → is_sheaf_for P S
 
@@ -521,8 +570,9 @@ begin
     exact PK (pullback_arrows f R) (K.pullbacks f R hR) }
 end
 
-end grothendieck_topology
+end presieve
 
+-- TODO: move me before PR
 lemma type_equalizer {X Y Z : Type v} (f : X ⟶ Y) (g h : Y ⟶ Z) (w : f ≫ g = f ≫ h) :
   (∀ (y : Y), g y = h y → ∃! (x : X), f x = y) ↔ nonempty (is_limit (fork.of_ι _ w)) :=
 begin
@@ -558,12 +608,17 @@ variables {C : Type v} [small_category C] {X : C} (R : presieve X) (S : sieve X)
 
 noncomputable theory
 
+/--
+The middle object of the fork diagram given in Equation (3) of [MM92], Chapter III, Section 4, as
+well as the fork diagram of https://stacks.math.columbia.edu/tag/00VM.
+-/
 def first_obj : Type v :=
-∏ (λ (f : Σ Y, {f : Y ⟶ X // R f}), P.obj (opposite.op f.1))
+∏ (λ (f : Σ Y, {f : Y ⟶ X // R f}), P.obj (op f.1))
 
+/-- Show that `first_obj` is isomorphic to `family_of_elements`. -/
 @[simps]
-def first_obj_eq_family : first_obj R P ≅ grothendieck_topology.family_of_elements P R :=
-{ hom := λ t Y f hf, pi.π (λ (f : Σ Y, {f : Y ⟶ X // R f}), P.obj (opposite.op f.1)) ⟨_, _, hf⟩ t,
+def first_obj_eq_family : first_obj R P ≅ R.family_of_elements P :=
+{ hom := λ t Y f hf, pi.π (λ (f : Σ Y, {f : Y ⟶ X // R f}), P.obj (op f.1)) ⟨_, _, hf⟩ t,
   inv := pi.lift (λ f x, x _ f.2.2),
   hom_inv_id' :=
   begin
@@ -576,19 +631,19 @@ def first_obj_eq_family : first_obj R P ≅ grothendieck_topology.family_of_elem
     apply limits.types.limit.lift_π_apply,
   end }
 
-namespace sieve_equalizer
+def fork_map : P.obj (op X) ⟶ first_obj R P :=
+pi.lift (λ f, P.map f.2.1.op)
+
+namespace sieve
 
 def second_obj : Type v :=
-∏ (λ (f : Σ Y Z (g : Z ⟶ Y), {f' : Y ⟶ X // S f'}), P.obj (opposite.op f.2.1))
+∏ (λ (f : Σ Y Z (g : Z ⟶ Y), {f' : Y ⟶ X // S f'}), P.obj (op f.2.1))
 
 def first_map : first_obj S P ⟶ second_obj S P :=
 pi.lift (λ fg, pi.π _ (⟨_, _, S.downward_closed fg.2.2.2.2 fg.2.2.1⟩ : Σ Y, {f : Y ⟶ X // S f}))
 
 def second_map : first_obj S P ⟶ second_obj S P :=
-pi.lift (λ fg, pi.π _ ⟨_, fg.2.2.2⟩ ≫ P.map (fg.2.2.1.op))
-
-def fork_map : P.obj (opposite.op X) ⟶ first_obj S P :=
-pi.lift (λ f, P.map f.2.1.op)
+pi.lift (λ fg, pi.π _ ⟨_, fg.2.2.2⟩ ≫ P.map fg.2.2.1.op)
 
 lemma w : fork_map S P ≫ first_map S P = fork_map S P ≫ second_map S P :=
 begin
@@ -600,7 +655,7 @@ end
 lemma consistent_iff (x : first_obj S P) :
   ((first_obj_eq_family S P).hom x).consistent ↔ first_map S P x = second_map S P x :=
 begin
-  rw grothendieck_topology.is_sieve_consistent_iff,
+  rw presieve.is_sieve_consistent_iff,
   split,
   { intro t,
     ext ⟨Y, Z, g, f, hf⟩,
@@ -613,7 +668,7 @@ begin
 end
 
 lemma equalizer_sheaf_condition :
-  grothendieck_topology.is_sheaf_for P S ↔ nonempty (is_limit (fork.of_ι _ (w S P))) :=
+  presieve.is_sheaf_for P S ↔ nonempty (is_limit (fork.of_ι _ (w S P))) :=
 begin
   rw [← type_equalizer, ← equiv.forall_congr_left (first_obj_eq_family S P).to_equiv.symm],
   simp_rw ← consistent_iff,
@@ -633,27 +688,21 @@ begin
     simp [first_obj_eq_family, fork_map] }
 end
 
-end sieve_equalizer
+end sieve
 
-namespace presieve_equalizer
+namespace presieve
 
 variables [has_pullbacks C]
 
-def first_obj : Type v :=
-∏ λ (f : Σ Y, {f : Y ⟶ X // R f}), P.obj (opposite.op f.1)
-
 def second_obj : Type v :=
 ∏ (λ (fg : (Σ Y, {f : Y ⟶ X // R f}) × (Σ Z, {g : Z ⟶ X // R g})),
-  P.obj (opposite.op (pullback fg.1.2.1 fg.2.2.1)))
+  P.obj (op (pullback fg.1.2.1 fg.2.2.1)))
 
 def first_map : first_obj R P ⟶ second_obj R P :=
 pi.lift (λ fg, pi.π _ _ ≫ P.map pullback.fst.op)
 
 def second_map : first_obj R P ⟶ second_obj R P :=
 pi.lift (λ fg, pi.π _ _ ≫ P.map pullback.snd.op)
-
-def fork_map : P.obj (opposite.op X) ⟶ first_obj R P :=
-pi.lift (λ f, P.map f.2.1.op)
 
 lemma w : fork_map R P ≫ first_map R P = fork_map R P ≫ second_map R P :=
 begin
@@ -669,7 +718,7 @@ end
 lemma consistent_iff (x : first_obj R P) :
   ((first_obj_eq_family R P).hom x).consistent ↔ first_map R P x = second_map R P x :=
 begin
-  rw grothendieck_topology.is_pullback_consistent_iff,
+  rw presieve.is_pullback_consistent_iff,
   split,
   { intro t,
     ext ⟨⟨Y, f, hf⟩, Z, g, hg⟩,
@@ -681,9 +730,8 @@ begin
     simpa [first_map, second_map] using this }
 end
 
-
 lemma equalizer_sheaf_condition :
-  grothendieck_topology.is_sheaf_for P R ↔ nonempty (is_limit (fork.of_ι _ (w R P))) :=
+  R.is_sheaf_for P ↔ nonempty (is_limit (fork.of_ι _ (w R P))) :=
 begin
   rw ← type_equalizer,
   erw ← equiv.forall_congr_left (first_obj_eq_family R P).to_equiv.symm,
@@ -702,8 +750,10 @@ begin
     simp [fork_map] }
 end
 
-end presieve_equalizer
+end presieve
 end equalizer
+
+#lint
 
 -- variables (C J)
 

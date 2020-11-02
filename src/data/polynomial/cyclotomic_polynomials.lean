@@ -117,8 +117,7 @@ begin
   rw [cyclotomic'],
   rw nat_degree_prod (primitive_roots n R) (λ (z : R), (X - C z)),
   simp only [is_primitive_root.card_primitive_roots h (nat.pos_of_ne_zero hzero), mul_one,
-  nat_degree_X_sub_C,
-  nat.cast_id, finset.sum_const, nsmul_eq_mul],
+    nat_degree_X_sub_C, nat.cast_id, finset.sum_const, nsmul_eq_mul],
   intros z hz,
   exact X_sub_C_ne_zero z
 end

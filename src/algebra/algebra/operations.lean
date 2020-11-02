@@ -287,18 +287,22 @@ lemma le_div_iff {I J K : submodule R A} : I ≤ J / K ↔ ∀ (x ∈ I) (z ∈ 
 lemma le_div_iff_mul_le {I J K : submodule R A} : I ≤ J / K ↔ I * K ≤ J :=
 by rw [le_div_iff, mul_le]
 
-lemma one_le_inv {I : submodule R A} (hI : I ≤ 1) :
-  (1 : submodule R A) ≤ 1 / I :=
-by rwa [le_div_iff_mul_le, one_mul]
+lemma one_le_div {I : submodule R A} :
+  I ≤ (1 : submodule R A) ↔ 1 ≤ 1 / I :=
+begin
+  split, all_goals {intro hI},
+  {rw [le_div_iff_mul_le, one_mul], assumption },
+  {rw [le_div_iff_mul_le, one_mul] at hI, assumption },
+end
 
-lemma self_le_self_inv {I : submodule R A} (hI : I ≤ 1) :
+lemma self_le_self_div {I : submodule R A} (hI : I ≤ 1) :
   I ≤ I * (1 / I) :=
 begin
   rw [← mul_one I] {occs := occurrences.pos [1]},
-  apply mul_le_mul_right (one_le_inv hI),
+  apply mul_le_mul_right (one_le_div.mp hI),
 end
 
-lemma self_inv_le_one {I : submodule R A} : I * (1 / I) ≤ 1 :=
+lemma self_div_le_one {I : submodule R A} : I * (1 / I) ≤ 1 :=
 begin
   rw submodule.mul_le,
   intros m hm n hn,
@@ -306,7 +310,6 @@ begin
   rw mul_comm,
   exact hn m hm,
 end
-
 
 @[simp] lemma map_div {B : Type*} [comm_ring B] [algebra R B]
   (I J : submodule R A) (h : A ≃ₐ[R] B) :

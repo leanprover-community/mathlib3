@@ -133,6 +133,14 @@ begin
   simp [mul_assoc, (h_comm hy).left_comm]
 end
 
+/-- `lift_nc` as a `ring_hom`, for when `f x` and `g y` commute -/
+def lift_nc_ring_hom (f : k →+* R) (g : G →* R) (h_comm : ∀ x y, commute (f x) (g y)) :
+  monoid_algebra k G →+* R :=
+{ to_fun := lift_nc (f : k →+ R) g,
+  map_one' := lift_nc_one _ _,
+  map_mul' := λ a b, lift_nc_mul _ _ _ _ $ λ _ _ _, h_comm _ _,
+  ..(lift_nc (f : k →+ R) g)}
+
 end semiring
 
 instance [comm_semiring k] [comm_monoid G] : comm_semiring (monoid_algebra k G) :=
@@ -200,7 +208,7 @@ calc (f * g) x = (∑ a₁ in f.support, ∑ a₂ in g.support, F (a₁, a₂)) 
   (finset.sum_filter _ _).symm
 ... = ∑ p in s.filter (λ p : G × G, p.1 ∈ f.support ∧ p.2 ∈ g.support), f p.1 * g p.2 :
   sum_congr (by { ext, simp only [mem_filter, mem_product, hs, and_comm] }) (λ _ _, rfl)
-... = ∑ p in s, f p.1 * g p.2 : sum_subset (filter_subset _) $ λ p hps hp,
+... = ∑ p in s, f p.1 * g p.2 : sum_subset (filter_subset _ _) $ λ p hps hp,
   begin
     simp only [mem_filter, mem_support_iff, not_and, not_not] at hp ⊢,
     by_cases h1 : f p.1 = 0,
@@ -224,6 +232,23 @@ subset.trans support_sum $ bind_mono $ assume a₁ _,
 | (n+1) := by simp only [pow_succ, single_pow n, single_mul_single]
 
 section
+
+/-- Like `finsupp.map_domain_add`, but for the convolutive multiplication we define in this file -/
+lemma map_domain_mul {α : Type*} {β : Type*} {α₂ : Type*} [semiring β] [monoid α] [monoid α₂]
+  {x y : monoid_algebra β α} (f : mul_hom α α₂) :
+  (map_domain f (x * y : monoid_algebra β α) : monoid_algebra β α₂) =
+    (map_domain f x * map_domain f y : monoid_algebra β α₂) :=
+begin
+  simp_rw [mul_def, map_domain_sum, map_domain_single, f.map_mul],
+  rw finsupp.sum_map_domain_index,
+  { congr,
+    ext a b,
+    rw finsupp.sum_map_domain_index,
+    { simp },
+    { simp [mul_add] } },
+  { simp },
+  { simp [add_mul] }
+end
 
 variables (k G)
 
@@ -267,6 +292,16 @@ calc (single x r * f) y = sum f (λ a b, ite (x * a = y) (r * b) 0) :
 lemma single_one_mul_apply (f : monoid_algebra k G) (r : k) (x : G) :
   (single 1 r * f) x = r * f x :=
 f.single_mul_apply_aux $ λ a, by rw [one_mul]
+
+lemma lift_nc_smul {R : Type*} [semiring R] (f : k →+* R) (g : G →* R) (c : k)
+  (φ : monoid_algebra k G) :
+  lift_nc (f : k →+ R) g (c • φ) = f c * lift_nc (f : k →+ R) g φ :=
+begin
+  suffices : (lift_nc ↑f g).comp (smul_add_hom k (monoid_algebra k G) c) =
+    (add_monoid_hom.mul_left (f c)).comp (lift_nc ↑f g),
+    from add_monoid_hom.congr_fun this φ,
+  ext a b, simp [mul_assoc]
+end
 
 end misc_theorems
 
@@ -325,22 +360,31 @@ def single_one_alg_hom {A : Type*} [comm_semiring k] [semiring A] [algebra k A] 
 { commutes' := λ r, by { ext, simp, refl, }, ..single_one_ring_hom}
 
 @[simp] lemma coe_algebra_map {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] :
-  (algebra_map k (monoid_algebra A G) : k → monoid_algebra A G) = single 1 ∘ (algebra_map k A) :=
+  ⇑(algebra_map k (monoid_algebra A G)) = single 1 ∘ (algebra_map k A) :=
 rfl
 
 lemma single_eq_algebra_map_mul_of [comm_semiring k] [monoid G] (a : G) (b : k) :
-  single a b = (algebra_map k (monoid_algebra k G) : k → monoid_algebra k G) b * of k G a :=
+  single a b = algebra_map k (monoid_algebra k G) b * of k G a :=
 by simp
 
-lemma single_algebra_map_eq_algebra_map_mul_of {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] (a : G) (b : k) :
-  single a (algebra_map k A b) = (algebra_map k (monoid_algebra A G) : k → monoid_algebra A G) b * of A G a :=
+lemma single_algebra_map_eq_algebra_map_mul_of {A : Type*} [comm_semiring k] [semiring A]
+  [algebra k A] [monoid G] (a : G) (b : k) :
+  single a (algebra_map k A b) = algebra_map k (monoid_algebra A G) b * of A G a :=
 by simp
 
 end algebra
 
 section lift
 
-variables {k G} [comm_semiring k] [monoid G] {A : Type u₃} [semiring A] [algebra k A]
+variables {k G} [comm_semiring k] [monoid G]
+variables {A : Type u₃} [semiring A] [algebra k A] {B : Type*} [semiring B] [algebra k B]
+
+/-- `lift_nc_ring_hom` as a `alg_hom`, for when `f` is an `alg_hom` -/
+def lift_nc_alg_hom (f : A →ₐ[k] B) (g : G →* B) (h_comm : ∀ x y, commute (f x) (g y)) :
+  monoid_algebra A G →ₐ[k] B :=
+{ to_fun := lift_nc_ring_hom (f : A →+* B) g h_comm,
+  commutes' := by simp [lift_nc_ring_hom],
+  ..(lift_nc_ring_hom (f : A →+* B) g h_comm)}
 
 /-- A `k`-algebra homomorphism from `monoid_algebra k G` is uniquely defined by its
 values on the functions `single a 1`. -/
@@ -359,14 +403,9 @@ variables (k G A)
 `monoid_algebra k G →ₐ[k] A`. -/
 def lift : (G →* A) ≃ (monoid_algebra k G →ₐ[k] A) :=
 { inv_fun := λ f, (f : monoid_algebra k G →* A).comp (of k G),
-  to_fun := λ F, {
-    to_fun := lift_nc ((algebra_map k A : k →+* A) : k →+ A) F,
-    map_one' := lift_nc_one _ _,
-    map_mul' := λ f g, lift_nc_mul _ _ _ _ $ λ _ _ _, algebra.commutes _ _,
-    commutes' := λ r, by simp,
-    .. lift_nc ((algebra_map k A : k →+* A) : k →+ A) F },
-  left_inv := λ f, by { ext, simp },
-  right_inv := λ F, by { ext, simp } }
+  to_fun := λ F, lift_nc_alg_hom (algebra.of_id k A) F $ λ _ _, algebra.commutes _ _,
+  left_inv := λ f, by { ext, simp [lift_nc_alg_hom, lift_nc_ring_hom] },
+  right_inv := λ F, by { ext, simp [lift_nc_alg_hom, lift_nc_ring_hom] } }
 
 variables {k G A}
 
@@ -590,6 +629,15 @@ lemma lift_nc_mul (f : k →+* R) (g : multiplicative G →* R) (a b : add_monoi
   lift_nc (f : k →+ R) g (a * b) = lift_nc (f : k →+ R) g a * lift_nc (f : k →+ R) g b :=
 @monoid_algebra.lift_nc_mul k (multiplicative G) _ _ _ _ f g a b @h_comm
 
+/-- `lift_nc` as a `ring_hom`, for when `f` and `g` commute -/
+def lift_nc_ring_hom (f : k →+* R) (g : multiplicative G →* R)
+  (h_comm : ∀ x y, commute (f x) (g y)) :
+  add_monoid_algebra k G →+* R :=
+{ to_fun := lift_nc (f : k →+ R) g,
+  map_one' := lift_nc_one _ _,
+  map_mul' := λ a b, lift_nc_mul _ _ _ _ $ λ _ _ _, h_comm _ _,
+  ..(lift_nc (f : k →+ R) g)}
+
 end semiring
 
 instance [comm_semiring k] [add_comm_monoid G] : comm_semiring (add_monoid_algebra k G) :=
@@ -651,6 +699,24 @@ lemma single_mul_single {a₁ a₂ : G} {b₁ b₂ : k} :
   (single a₁ b₁ : add_monoid_algebra k G) * single a₂ b₂ = single (a₁ + a₂) (b₁ * b₂) :=
 @monoid_algebra.single_mul_single k (multiplicative G) _ _ _ _ _ _
 
+/-- Like `finsupp.map_domain_add`, but for the convolutive multiplication we define in this file -/
+lemma map_domain_mul {α : Type*} {β : Type*} {α₂ : Type*}
+  [semiring β] [add_monoid α] [add_monoid α₂]
+  {x y : add_monoid_algebra β α} (f : add_hom α α₂) :
+  (map_domain f (x * y : add_monoid_algebra β α) : add_monoid_algebra β α₂) =
+    (map_domain f x * map_domain f y : add_monoid_algebra β α₂) :=
+begin
+  simp_rw [mul_def, map_domain_sum, map_domain_single, f.map_add],
+  rw finsupp.sum_map_domain_index,
+  { congr,
+    ext a b,
+    rw finsupp.sum_map_domain_index,
+    { simp },
+    { simp [mul_add] } },
+  { simp },
+  { simp [add_mul] }
+end
+
 section
 
 variables (k G)
@@ -683,7 +749,37 @@ lemma single_zero_mul_apply (f : add_monoid_algebra k G) (r : k) (x : G) :
   (single 0 r * f) x = r * f x :=
 f.single_mul_apply_aux r _ _ _ $ λ a, by rw [zero_add]
 
+lemma lift_nc_smul {R : Type*} [semiring R] (f : k →+* R) (g : multiplicative G →* R) (c : k)
+  (φ : monoid_algebra k G) :
+  lift_nc (f : k →+ R) g (c • φ) = f c * lift_nc (f : k →+ R) g φ :=
+@monoid_algebra.lift_nc_smul k (multiplicative G) _ _ _ _ f g c φ
+
 end misc_theorems
+
+end add_monoid_algebra
+
+/-!
+#### Conversions between `add_monoid_algebra` and `monoid_algebra`
+
+While we were not able to define `add_monoid_algebra k G = monoid_algebra k (multiplicative G)` due
+to definitional inconveniences, we can still show the types are isomorphic.
+-/
+
+/-- The equivalence between `add_monoid_algebra` and `monoid_algebra` in terms of `multiplicative` -/
+protected def add_monoid_algebra.to_multiplicative [semiring k] [add_monoid G] :
+  add_monoid_algebra k G ≃+* monoid_algebra k (multiplicative G) :=
+{ map_mul' := λ x y, by convert add_monoid_algebra.map_domain_mul (add_hom.id G),
+  ..finsupp.dom_congr multiplicative.of_add }
+
+/-- The equivalence between `monoid_algebra` and `add_monoid_algebra` in terms of `additive` -/
+protected def monoid_algebra.to_additive [semiring k] [monoid G] :
+  monoid_algebra k G ≃+* add_monoid_algebra k (additive G) :=
+{ map_mul' := λ x y, by convert monoid_algebra.map_domain_mul (mul_hom.id G),
+  ..finsupp.dom_congr additive.of_mul }
+
+namespace add_monoid_algebra
+
+variables {k G}
 
 /-! #### Algebra structure -/
 section algebra
@@ -741,7 +837,15 @@ end algebra
 
 section lift
 
-variables {k G} [comm_semiring k] [add_monoid G] {A : Type u₃} [semiring A] [algebra k A]
+variables {k G} [comm_semiring k] [add_monoid G]
+variables {A : Type u₃} [semiring A] [algebra k A] {B : Type*} [semiring B] [algebra k B]
+
+/-- `lift_nc_ring_hom` as a `alg_hom`, for when `f` is an `alg_hom` -/
+def lift_nc_alg_hom (f : A →ₐ[k] B) (g : multiplicative G →* B) (h_comm : ∀ x y, commute (f x) (g y)) :
+  add_monoid_algebra A G →ₐ[k] B :=
+{ to_fun := lift_nc_ring_hom (f : A →+* B) g h_comm,
+  commutes' := by simp [lift_nc_ring_hom],
+  ..(lift_nc_ring_hom (f : A →+* B) g h_comm)}
 
 /-- A `k`-algebra homomorphism from `monoid_algebra k G` is uniquely defined by its
 values on the functions `single a 1`. -/
@@ -761,7 +865,7 @@ variables (k G A)
 def lift : (multiplicative G →* A) ≃ (add_monoid_algebra k G →ₐ[k] A) :=
 { inv_fun := λ f, (f : add_monoid_algebra k G →* A).comp (of k G),
   to_fun := λ F, {
-    to_fun := lift_nc ((algebra_map k A : k →+* A) : k →+ A) F,
+    to_fun := lift_nc_alg_hom (algebra.of_id k A) F $ λ _ _, algebra.commutes _ _,
     .. @monoid_algebra.lift k (multiplicative G) _ _ A _ _ F},
   .. @monoid_algebra.lift k (multiplicative G) _ _ A _ _ }
 

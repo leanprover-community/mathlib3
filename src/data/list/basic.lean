@@ -2076,10 +2076,10 @@ lemma sum_eq_zero_iff [canonically_ordered_add_monoid α] (l : list α) :
 begin
   induction l,
   { simp },
-  { intro,
+  { intro h,
     rw [sum_cons, add_eq_zero_iff],
-    rw forall_mem_cons at a,
-    exact ⟨a.1, l_ih a.2⟩ },
+    rw forall_mem_cons at h,
+    exact ⟨h.1, l_ih h.2⟩ },
 end⟩
 
 /-- A list with sum not zero must have positive length. -/
@@ -2784,13 +2784,14 @@ end
 theorem filter_eq_nil {l} : filter p l = [] ↔ ∀ a ∈ l, ¬p a :=
 by simp only [eq_nil_iff_forall_not_mem, mem_filter, not_and]
 
+variable (p)
 theorem filter_sublist_filter {l₁ l₂} (s : l₁ <+ l₂) : filter p l₁ <+ filter p l₂ :=
 filter_map_eq_filter p ▸ s.filter_map _
 
 theorem filter_of_map (f : β → α) (l) : filter p (map f l) = map f (filter (p ∘ f) l) :=
 by rw [← filter_map_eq_map, filter_filter_map, filter_map_filter]; refl
 
-@[simp] theorem filter_filter {q} [decidable_pred q] : ∀ l,
+@[simp] theorem filter_filter (q) [decidable_pred q] : ∀ l,
   filter p (filter q l) = filter (λ a, p a ∧ q a) l
 | [] := rfl
 | (a :: l) := by by_cases hp : p a; by_cases hq : q a; simp only [hp, hq, filter, if_true, if_false,
@@ -2804,21 +2805,19 @@ by convert filter_eq_self.2 (λ _ _, trivial)
   @filter α (λ _, false) h l = [] :=
 by convert filter_eq_nil.2 (λ _ _, id)
 
-@[simp] theorem span_eq_take_drop (p : α → Prop) [decidable_pred p] :
-  ∀ (l : list α), span p l = (take_while p l, drop_while p l)
+@[simp] theorem span_eq_take_drop : ∀ (l : list α), span p l = (take_while p l, drop_while p l)
 | []     := rfl
 | (a::l) :=
     if pa : p a then by simp only [span, if_pos pa, span_eq_take_drop l, take_while, drop_while]
     else by simp only [span, take_while, drop_while, if_neg pa]
 
-@[simp] theorem take_while_append_drop (p : α → Prop) [decidable_pred p] :
-  ∀ (l : list α), take_while p l ++ drop_while p l = l
+@[simp] theorem take_while_append_drop : ∀ (l : list α), take_while p l ++ drop_while p l = l
 | []     := rfl
 | (a::l) := if pa : p a then by rw [take_while, drop_while, if_pos pa, if_pos pa, cons_append,
       take_while_append_drop l]
     else by rw [take_while, drop_while, if_neg pa, if_neg pa, nil_append]
 
-@[simp] theorem countp_nil (p : α → Prop) [decidable_pred p] : countp p [] = 0 := rfl
+@[simp] theorem countp_nil : countp p [] = 0 := rfl
 
 @[simp] theorem countp_cons_of_pos {a : α} (l) (pa : p a) : countp p (a::l) = countp p l + 1 :=
 if_pos pa
@@ -2829,7 +2828,7 @@ if_neg pa
 theorem countp_eq_length_filter (l) : countp p l = length (filter p l) :=
 by induction l with x l ih; [refl, by_cases (p x)];
   [simp only [filter_cons_of_pos _ h, countp, ih, if_pos h],
-   simp only [countp_cons_of_neg _ h, ih, filter_cons_of_neg _ h]]; refl
+   simp only [countp_cons_of_neg _ _ h, ih, filter_cons_of_neg _ h]]; refl
 
 local attribute [simp] countp_eq_length_filter
 
@@ -2840,7 +2839,7 @@ theorem countp_pos {l} : 0 < countp p l ↔ ∃ a ∈ l, p a :=
 by simp only [countp_eq_length_filter, length_pos_iff_exists_mem, mem_filter, exists_prop]
 
 theorem countp_le_of_sublist {l₁ l₂} (s : l₁ <+ l₂) : countp p l₁ ≤ countp p l₂ :=
-by simpa only [countp_eq_length_filter] using length_le_of_sublist (filter_sublist_filter s)
+by simpa only [countp_eq_length_filter] using length_le_of_sublist (filter_sublist_filter p s)
 
 @[simp] theorem countp_filter {q} [decidable_pred q] (l : list α) :
   countp p (filter q l) = countp (λ a, p a ∧ q a) l :=
@@ -2874,7 +2873,7 @@ theorem count_tail : Π (l : list α) (a : α) (h : 0 < l.length),
 | (_ :: _) a h := by { rw [count_cons], split_ifs; simp }
 
 theorem count_le_of_sublist (a : α) {l₁ l₂} : l₁ <+ l₂ → count a l₁ ≤ count a l₂ :=
-countp_le_of_sublist
+countp_le_of_sublist _
 
 theorem count_le_count_cons (a b : α) (l : list α) : count a l ≤ count a (b :: l) :=
 count_le_of_sublist _ (sublist_cons _ _)
@@ -2882,7 +2881,7 @@ count_le_of_sublist _ (sublist_cons _ _)
 theorem count_singleton (a : α) : count a [a] = 1 := if_pos rfl
 
 @[simp] theorem count_append (a : α) : ∀ l₁ l₂, count a (l₁ ++ l₂) = count a l₁ + count a l₂ :=
-countp_append
+countp_append _
 
 theorem count_concat (a : α) (l : list α) : count a (concat l a) = succ (count a l) :=
 by simp [-add_comm]

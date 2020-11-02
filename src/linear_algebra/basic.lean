@@ -352,38 +352,75 @@ lemma comp_sub (g : M →ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) :
 
 end add_comm_group
 
+section has_scalar
+variables {S : Type*} [semiring R] [monoid S]
+  [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
+  [semimodule R M] [semimodule R M₂] [semimodule R M₃]
+  [distrib_mul_action S M₂] [smul_comm_class R S M₂]
+  (f : M →ₗ[R] M₂)
+
+instance : has_scalar S (M →ₗ[R] M₂) :=
+⟨λ a f, ⟨λ b, a • f b, λ x y, by rw [f.map_add, smul_add],
+  λ c x, by simp only [f.map_smul, smul_comm c]⟩⟩
+
+@[simp] lemma smul_apply (a : S) (x : M) : (a • f) x = a • f x := rfl
+
+instance : distrib_mul_action S (M →ₗ[R] M₂) :=
+{ one_smul := λ f, ext $ λ _, one_smul _ _,
+  mul_smul := λ c c' f, ext $ λ _, mul_smul _ _ _,
+  smul_add := λ c f g, ext $ λ x, smul_add _ _ _,
+  smul_zero := λ c, ext $ λ x, smul_zero _ }
+
+theorem smul_comp (a : S) (g : M₃ →ₗ[R] M₂) (f : M →ₗ[R] M₃) : (a • g).comp f = a • (g.comp f) :=
+rfl
+
+end has_scalar
+
+section semimodule
+
+variables {S : Type*} [semiring R] [semiring S]
+  [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
+  [semimodule R M] [semimodule R M₂] [semimodule R M₃]
+  [semimodule S M₂] [semimodule S M₃] [smul_comm_class R S M₂] [smul_comm_class R S M₃]
+  (f : M →ₗ[R] M₂)
+
+instance : semimodule S (M →ₗ[R] M₂) :=
+{ add_smul := λ a b f, ext $ λ x, add_smul _ _ _,
+  zero_smul := λ f, ext $ λ x, zero_smul _ _ }
+
+variable (S)
+
+/-- Applying a linear map at `v : M`, seen as `S`-linear map from `M →ₗ[R] M₂` to `M₂`.
+
+ See `applyₗ` for a version where `S = R` -/
+def applyₗ' (v : M) : (M →ₗ[R] M₂) →ₗ[S] M₂ :=
+{ to_fun := λ f, f v,
+  map_add' := λ f g, f.add_apply g v,
+  map_smul' := λ x f, f.smul_apply x v }
+
+end semimodule
+
 section comm_semiring
+
 variables [comm_semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
 variables [semimodule R M] [semimodule R M₂] [semimodule R M₃]
 variables (f g : M →ₗ[R] M₂)
 include R
 
-instance : has_scalar R (M →ₗ[R] M₂) := ⟨λ a f,
-  ⟨λ b, a • f b, by simp [smul_add], by simp [smul_smul, mul_comm]⟩⟩
-
-@[simp] lemma smul_apply (a : R) (x : M) : (a • f) x = a • f x := rfl
-
-instance : semimodule R (M →ₗ[R] M₂) :=
-by refine { smul := (•), .. }; intros; ext; simp [smul_add, add_smul, smul_smul]
+theorem comp_smul (g : M₂ →ₗ[R] M₃) (a : R) : g.comp (a • f) = a • (g.comp f) :=
+ext $ assume b, by rw [comp_apply, smul_apply, g.map_smul]; refl
 
 /-- Composition by `f : M₂ → M₃` is a linear map from the space of linear maps `M → M₂`
 to the space of linear maps `M₂ → M₃`. -/
 def comp_right (f : M₂ →ₗ[R] M₃) : (M →ₗ[R] M₂) →ₗ[R] (M →ₗ[R] M₃) :=
-⟨linear_map.comp f,
+⟨f.comp,
 λ _ _, linear_map.ext $ λ _, f.2 _ _,
 λ _ _, linear_map.ext $ λ _, f.3 _ _⟩
 
-theorem smul_comp (g : M₂ →ₗ[R] M₃) (a : R) : (a • g).comp f = a • (g.comp f) :=
-rfl
-
-theorem comp_smul (g : M₂ →ₗ[R] M₃) (a : R) : g.comp (a • f) = a • (g.comp f) :=
-ext $ assume b, by rw [comp_apply, smul_apply, g.map_smul]; refl
-
-/-- Applying a linear map at `v : M`, seen as a linear map from `M →ₗ[R] M₂` to `M₂`. -/
+/-- Applying a linear map at `v : M`, seen as a linear map from `M →ₗ[R] M₂` to `M₂`.
+See also `linear_map.applyₗ'` for a version that works with two different semirings. -/
 def applyₗ (v : M) : (M →ₗ[R] M₂) →ₗ[R] M₂ :=
-{ to_fun := λ f, f v,
-  map_add' := λ f g, f.add_apply g v,
-  map_smul' := λ x f, f.smul_apply x v }
+applyₗ' R v
 
 end comm_semiring
 

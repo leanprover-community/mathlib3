@@ -414,7 +414,7 @@ lemma mem_map_range {p : polynomial S} :
 begin
   split,
   { rintro ⟨p, rfl⟩ n, rw coeff_map, exact set.mem_range_self _ },
-  { intro h, rw p.as_sum_range,
+  { intro h, rw p.as_sum_range_C_mul_X_pow,
     apply is_add_submonoid.finset_sum_mem,
     intros i hi,
     rcases h i with ⟨c, hc⟩,

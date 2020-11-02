@@ -273,7 +273,7 @@ calc (∏ x in s.sigma t, f x) =
        ∏ x in s.bind (λa, (t a).map (function.embedding.sigma_mk a)), f x : by rw sigma_eq_bind
   ... = ∏ a in s, ∏ x in (t a).map (function.embedding.sigma_mk a), f x :
     prod_bind $ assume a₁ ha a₂ ha₂ h x hx,
-    by { simp only [inf_eq_inter, mem_inter, mem_map, function.embedding.sigma_mk_to_fun] at hx,
+    by { simp only [inf_eq_inter, mem_inter, mem_map, function.embedding.sigma_mk_apply] at hx,
       rcases hx with ⟨⟨y, hy, rfl⟩, ⟨z, hz, hz'⟩⟩, cc }
   ... = ∏ a in s, ∏ s in t a, f ⟨a, s⟩ :
     prod_congr rfl $ λ _ _, prod_map _ _ _
@@ -335,7 +335,7 @@ by rw [←prod_sdiff h]; simp only [this, prod_const_one, one_mul]
 @[to_additive]
 lemma prod_filter_of_ne {p : α → Prop} [decidable_pred p] (hp : ∀ x ∈ s, f x ≠ 1 → p x) :
   (∏ x in (s.filter p), f x) = (∏ x in s, f x) :=
-prod_subset (filter_subset _) $ λ x,
+prod_subset (filter_subset _ _) $ λ x,
   by { classical, rw [not_imp_comm, mem_filter], exact λ h₁ h₂, ⟨h₁, hp _ h₁ h₂⟩ }
 
 -- If we use `[decidable_eq β]` here, some rewrites fail because they find a wrong `decidable`
@@ -352,7 +352,7 @@ calc (∏ a in s.filter p, f a) = ∏ a in s.filter p, if p a then f a else 1 :
     prod_congr rfl (assume a h, by rw [if_pos (mem_filter.1 h).2])
   ... = ∏ a in s, if p a then f a else 1 :
     begin
-      refine prod_subset (filter_subset s) (assume x hs h, _),
+      refine prod_subset (filter_subset _ s) (assume x hs h, _),
       rw [mem_filter, not_and] at h,
       exact if_neg (h hs)
     end

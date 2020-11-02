@@ -20,7 +20,7 @@ open cau_seq cau_seq.completion
 
 variables {x y : ℝ}
 
-def comm_ring_aux : comm_ring ℝ := cau_seq.completion.comm_ring
+def comm_ring_aux : comm_ring ℝ := Cauchy.comm_ring
 
 instance : comm_ring ℝ := { ..comm_ring_aux }
 

@@ -409,6 +409,32 @@ lemma conj_comp (e : α ≃ β) (f₁ f₂ : α → α) :
   e.conj (f₁ ∘ f₂) = (e.conj f₁) ∘ (e.conj f₂) :=
 by apply arrow_congr_comp
 
+section binary_op
+
+variables {α₁ β₁ : Type*} (e : α₁ ≃ β₁) (f : α₁ → α₁ → α₁)
+
+lemma semiconj_conj (f : α₁ → α₁) : semiconj e f (e.conj f) := λ x, by simp
+
+lemma semiconj₂_conj : semiconj₂ e f (e.arrow_congr e.conj f) := λ x y, by simp
+
+instance [is_associative α₁ f] :
+  is_associative β₁ (e.arrow_congr (e.arrow_congr e) f) :=
+(e.semiconj₂_conj f).is_associative_right e.surjective
+
+instance [is_idempotent α₁ f] :
+  is_idempotent β₁ (e.arrow_congr (e.arrow_congr e) f) :=
+(e.semiconj₂_conj f).is_idempotent_right e.surjective
+
+instance [is_left_cancel α₁ f] :
+  is_left_cancel β₁ (e.arrow_congr (e.arrow_congr e) f) :=
+⟨e.surjective.forall₃.2 $ λ x y z, by simpa using @is_left_cancel.left_cancel _ f _ x y z⟩
+
+instance [is_right_cancel α₁ f] :
+  is_right_cancel β₁ (e.arrow_congr (e.arrow_congr e) f) :=
+⟨e.surjective.forall₃.2 $ λ x y z, by simpa using @is_right_cancel.right_cancel _ f _ x y z⟩
+
+end binary_op
+
 /-- `punit` sorts in any two universes are equivalent. -/
 def punit_equiv_punit : punit.{v} ≃ punit.{w} :=
 ⟨λ _, punit.star, λ _, punit.star, λ u, by { cases u, refl }, λ u, by { cases u, reflexivity }⟩

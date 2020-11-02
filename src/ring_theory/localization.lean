@@ -912,7 +912,7 @@ Defines the `R`-algebra instance on a copy of `S` carrying the data of the local
 
 /-- We use a copy of the localization map `f`'s codomain `S` carrying the data of `f` so that the
 `R`-algebra instance on `S` can 'know' the map needed to induce the `R`-algebra structure. -/
-instance : algebra R f.codomain := f.to_map.to_algebra
+instance algebra : algebra R f.codomain := f.to_map.to_algebra
 
 end localization_map
 namespace localization

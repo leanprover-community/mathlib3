@@ -806,7 +806,7 @@ theorem bit1_of_bit1 : ∀ n : znum, _root_.bit1 n = n.bit1
 | (pos p) := by rw [znum.bit1, cast_pos, cast_pos]; refl
 | (neg p) := begin
     rw [znum.bit1, cast_neg, cast_neg],
-    cases e : pred' p;
+    cases e : pred' p with a;
     have : p = _ := (succ'_pred' p).symm.trans
       (congr_arg num.succ' e),
     { change p=1 at this, subst p,

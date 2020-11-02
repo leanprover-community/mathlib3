@@ -104,6 +104,15 @@ instance {mM : has_mul M} {mN : has_mul N} : has_coe_to_fun (mul_hom M N) :=
 instance {mM : monoid M} {mN : monoid N} : has_coe_to_fun (M →* N) :=
 ⟨_, monoid_hom.to_fun⟩
 
+-- these must come after the coe_to_fun definitions
+initialize_simps_projections zero_hom (to_fun → apply)
+initialize_simps_projections add_hom (to_fun → apply)
+initialize_simps_projections add_monoid_hom (to_fun → apply)
+
+initialize_simps_projections one_hom (to_fun → apply)
+initialize_simps_projections mul_hom (to_fun → apply)
+initialize_simps_projections monoid_hom (to_fun → apply)
+
 @[simp, to_additive]
 lemma one_hom.to_fun_eq_coe [has_one M] [has_one N] (f : one_hom M N) : f.to_fun = f := rfl
 @[simp, to_additive]

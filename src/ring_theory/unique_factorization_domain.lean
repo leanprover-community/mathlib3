@@ -42,35 +42,6 @@ instance is_noetherian_ring.wf_dvd_monoid [integral_domain α] [is_noetherian_ri
       ext,
       exact ideal.span_singleton_lt_span_singleton.symm }⟩
 
-instance polynomial.wf_dvd_monoid [integral_domain α] [wf_dvd_monoid α] : wf_dvd_monoid (polynomial α) :=
-{ well_founded_dvd_not_unit := begin
-    classical,
-    refine rel_hom.well_founded
-      ⟨λ p, (if p = 0 then ⊤ else ↑p.degree, p.leading_coeff), _⟩
-      (prod.lex_wf (with_top.well_founded_lt $ with_bot.well_founded_lt nat.lt_wf)
-        _inst_2.well_founded_dvd_not_unit),
-    rintros a b ⟨ane0, ⟨c, ⟨not_unit_c, rfl⟩⟩⟩,
-    rw [polynomial.degree_mul, if_neg ane0],
-    split_ifs with hac,
-    { rw [hac, polynomial.leading_coeff_zero],
-      apply prod.lex.left,
-      exact lt_of_le_of_ne le_top with_top.coe_ne_top },
-    have cne0 : c ≠ 0 := right_ne_zero_of_mul hac,
-    simp only [cne0, ane0, polynomial.leading_coeff_mul],
-    by_cases hdeg : c.degree = 0,
-    { simp only [hdeg, add_zero],
-      refine prod.lex.right _ ⟨_, ⟨c.leading_coeff, (λ unit_c, not_unit_c _), rfl⟩⟩,
-      { rwa [ne, polynomial.leading_coeff_eq_zero] },
-      rw [polynomial.is_unit_iff, polynomial.eq_C_of_degree_eq_zero hdeg],
-      use [c.leading_coeff, unit_c],
-      rw [polynomial.leading_coeff, polynomial.nat_degree_eq_of_degree_eq_some hdeg] },
-    { apply prod.lex.left,
-      rw polynomial.degree_eq_nat_degree cne0 at *,
-      rw [with_top.coe_lt_coe, polynomial.degree_eq_nat_degree ane0,
-          ← with_bot.coe_add, with_bot.coe_lt_coe],
-      exact lt_add_of_pos_right _ (nat.pos_of_ne_zero (λ h, hdeg (h.symm ▸ with_bot.coe_zero))) },
-  end }
-
 namespace wf_dvd_monoid
 
 variables [comm_monoid_with_zero α]

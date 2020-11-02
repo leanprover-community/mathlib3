@@ -981,7 +981,7 @@ lemma disjoint_nhds_at_top [no_top_order α] (x : α) :
 begin
   rw filter.disjoint_iff,
   cases no_top x with a ha,
-  use [Iio a, Ici a, Iio_mem_nhds ha, mem_at_top a],
+  use [Iio a, Iio_mem_nhds ha, Ici a, mem_at_top a],
   rw [inter_comm, Ici_inter_Iio, Ico_self]
 end
 

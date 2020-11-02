@@ -253,10 +253,10 @@ begin
     refl },
   { exact alg_hom.commutes g x },
   { change g (quot.mk _ _ + quot.mk _ _) = _,
-    rw [alg_hom.map_add, x_ih_a, x_ih_a_1],
+    simp only [alg_hom.map_add, *],
     refl },
   { change g (quot.mk _ _ * quot.mk _ _) = _,
-    rw [alg_hom.map_mul, x_ih_a, x_ih_a_1],
+    simp only [alg_hom.map_mul, *],
     refl },
 end
 

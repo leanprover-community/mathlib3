@@ -81,7 +81,7 @@ lhom_ext $ λ a, linear_map.congr_fun (h a)
 
 /-- Interpret `λ (f : α →₀ M), f a` as a linear map. -/
 def lapply (a : α) : (α →₀ M) →ₗ[R] M :=
-{ map_smul' := assume a b, rfl, ..finsupp.eval_add_hom a }
+{ map_smul' := assume a b, rfl, ..finsupp.apply_add_hom a }
 
 section lsubtype_domain
 variables (s : set α)

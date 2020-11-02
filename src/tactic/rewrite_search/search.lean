@@ -97,7 +97,7 @@ meta def get_vertex (i : ℕ) : tactic vertex :=
 if h : i < g.vertices.size then return $ g.vertices.read (fin.mk i h)
 else fail "invalid vertex access"
 
-/-
+/--
 Find a list of edges that connect the given edge to the root of its tree.
 The edges are returned in leaf-to-root order, while they are in root-to-leaf direction,
 so if you want them in the logical order you must reverse the returned list.
@@ -109,7 +109,7 @@ private meta def walk_up_parents : option edge → tactic (list edge)
   edges ← walk_up_parents v.parent,
   return (e :: edges)
 
-/-
+/--
 Returns two lists that represent a solution. The first list is a path from LHS to some
 interior vertex, the second is a path from the RHS to that interior vertex.
 -/
@@ -123,7 +123,7 @@ do e ← g.solving_edge,
     | side.R := return (path1.reverse, path2.reverse)
   end
 
-/-
+/--
 Add the new vertex and edge to the graph, that can be proved in one step starting
 at a given vertex, with a given rewrite expression.
 For efficiency, it's important that this is the only way the graph is mutated,
@@ -131,8 +131,8 @@ and it only appends to the end of the `vertices` buffer.
 -/
 private meta def add_rewrite (v : vertex) (rw : rewrite) : tactic graph :=
 do pp ← to_string <$> tactic.pp rw.exp,
-let maybe_id := g.vmap.find pp,
-match maybe_id with
+  let maybe_id := g.vmap.find pp,
+  match maybe_id with
   | (some id) := do
     existing_vertex ← g.get_vertex id,
     if v.side = existing_vertex.side then return g
@@ -146,38 +146,38 @@ match maybe_id with
                     vmap := g.vmap.insert pp new_vertex_id }
 end
 
-/-
+/--
 Add all single-step rewrites starting at a particular vertex to the graph.
 -/
 private meta def expand_vertex (v : vertex) : tactic graph :=
 do rws ← get_rewrites g.rules v.exp g.conf,
-list.mfoldl (λ g rw, add_rewrite g v rw) g rws.to_list
+  list.mfoldl (λ g rw, add_rewrite g v rw) g rws.to_list
 
-/-
+/--
 Repeatedly expand edges, starting at a given vertex id, until a solution is found.
 -/
 private meta def find_solving_edge : graph → ℕ → tactic graph
 | g vertex_id :=
 if vertex_id ≥ g.conf.max_iterations then fail "search failed: max iterations reached"
 else if h : vertex_id < g.vertices.size then
-  do let v := g.vertices.read (fin.mk vertex_id h),
+do let v := g.vertices.read (fin.mk vertex_id h),
   g ← expand_vertex g v,
   match g.solving_edge with
-    | some _ := return g
-    | none   := find_solving_edge g (vertex_id + 1)
+  | some _ := return g
+  | none   := find_solving_edge g (vertex_id + 1)
   end
 else fail "search failed: all vertices explored"
 
-/-
+/--
 Use `mk_eq_trans` to combine a list of proof expressions into a single proof expression.
 -/
 private meta def combine_proofs (proofs : list expr) : tactic expr :=
 match proofs with
-  | []              := fail "cannot combine empty proof list"
-  | (proof :: rest) := list.mfoldl mk_eq_trans proof rest
+| []              := fail "cannot combine empty proof list"
+| (proof :: rest) := list.mfoldl mk_eq_trans proof rest
 end
 
-/-
+/--
 Construct a proof unit, given a path through the graph.
 This reverses the direction of the proof on the right hand side, with `mk_eq_symm`.
 -/
@@ -187,7 +187,7 @@ private meta def proof_for_edges : (side × list edge) → tactic (option proof_
   proofs ← match s with
     | side.L := edges.mmap (λ e, e.proof)
     | side.R := edges.reverse.mmap (λ e, e.proof >>= mk_eq_symm)
-  end,
+    end,
   proof ← combine_proofs proofs,
   let hows := edges.map (λ e, e.how),
   return $ some ⟨proof, s, hows⟩

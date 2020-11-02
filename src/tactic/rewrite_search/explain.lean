@@ -50,24 +50,24 @@ instance has_to_string [has_to_string α] : has_to_string (dir_pair α) := ⟨to
 
 end dir_pair
 
-/- Helper for getting the nth item in a list of rules -/
+/-- Helper for getting the nth item in a list of rules -/
 private meta def nth_rule (rs : list (expr × bool)) (i : ℕ) : expr × bool := (rs.nth i).iget
 
-/- Convert a rule into the string of Lean code used to refer to this rule. -/
+/-- Convert a rule into the string of Lean code used to refer to this rule. -/
 private meta def pp_rule (r : expr × bool) : tactic string :=
   do pp ← pp r.1, return $ (if r.2 then "←" else "") ++ (to_string pp)
 
 private meta def how.to_rewrite (rs : list (expr × bool)) : how → option (expr × bool)
 | h := nth_rule rs h.rule_index
 
-/- Explain a single rewrite using `nth_rewrite`. -/
+/-- Explain a single rewrite using `nth_rewrite`. -/
 private meta def explain_using_location (rs : list (expr × bool)) (s : side) :
 how → tactic (option string)
 | h := do
   rule ← pp_rule $ nth_rule rs h.rule_index,
   return $ some ("nth_rewrite_" ++ s.to_xhs ++ " " ++ to_string h.location ++ " " ++ rule)
 
-/- Explain a list of rewrites using `nth_rewrite`. -/
+/-- Explain a list of rewrites using `nth_rewrite`. -/
 private meta def using_location.explain_rewrites (rs : list (expr × bool)) (s : side)
 (steps : list how) : tactic string := do
   rules ← steps.mmap $ λ h : how, option.to_list <$> explain_using_location rs s h,
@@ -75,7 +75,7 @@ private meta def using_location.explain_rewrites (rs : list (expr × bool)) (s :
 
 namespace using_conv
 
-/- `app_addr` represents a tree structure that `conv` tactics use for a rewrite. -/
+/-- `app_addr` represents a tree structure that `conv` tactics use for a rewrite. -/
 inductive app_addr
 | node (children : dir_pair (option app_addr)) : app_addr
 | rw : list ℕ → app_addr
@@ -86,14 +86,16 @@ private meta def app_addr.to_string : app_addr → string
 | (node c) := "(node " ++ ((c.to_list.filter_map id).map app_addr.to_string).to_string ++ ")"
 | (rw rws) := "(rw " ++ rws.to_string ++ ")"
 
-/-- A data structure for the result of a splice operation. -/
+/--
+A data structure for the result of a splice operation.
+obstructed:  There was more of the addr to be added left, but we hit a rw
+contained:   The added addr was already contained, and did not terminate at an existing rw
+new:         The added addr terminated at an existing rw or we could create a new one for it
+-/
 @[derive inhabited]
 inductive splice_result
--- There was more of the addr to be added left, but we hit a rw
 | obstructed
--- The added addr was already fully contained, and did not terminate at an existing rw
 | contained
--- The added addr terminated at an existing rw or we could create a new one for it
 | new (addr : app_addr)
 
 open splice_result
@@ -125,12 +127,12 @@ private meta def to_congr_form : list expr_lens.dir → tactic (list expr_lens.d
 | [dir.F] := fail "app list ends in side.L!"
 | (dir.F :: (dir.F :: _)) := fail "app list has repeated side.L!"
 
-/- Attempt to add new rewrites into the `app_addr` tree. -/
+/-- Attempt to add new rewrites into the `app_addr` tree. -/
 private meta def splice_in (a : option app_addr) (rws : list ℕ) (s : list expr_lens.dir) :
 tactic splice_result :=
   splice_in_aux rws a <$> to_congr_form s
 
-/- Construct a single `erw` tactic for the given rules. -/
+/-- Construct a single `erw` tactic for the given rules. -/
 private meta def build_rw_tactic (rs : list (expr × bool)) (hs : list ℕ) : tactic string := do
   rws ← (hs.map $ nth_rule rs).mmap pp_rule,
   return $ "erw [" ++ (string.intercalate ", " rws) ++ "]"
@@ -148,12 +150,12 @@ app_addr → tactic (option (list string))
   | (some sf, some sa) := (["congr"].append sf).append (["skip"].append sf)
   end
 
-/- Construct a string of Lean code that does a rewrite for the provided tree. -/
+/-- Construct a string of Lean code that does a rewrite for the provided tree. -/
 private meta def explain_tree (rs : list (expr × bool)) (tree : app_addr) :
 tactic (list string) :=
 list.join <$> option.to_list <$> explain_tree_aux rs tree
 
-/-
+/--
 Gather all rewrites into trees, then generate a line of code for each tree.
 The return value has one `conv_x` tactic on each line.
 -/
@@ -192,7 +194,7 @@ tactic string := do
   rules ← string.intercalate ", " <$> steps.mmap pp_rule,
   return $ "erw [" ++ rules ++ "]" ++ (if needs_refl then ", refl" else "")
 
-/-
+/--
 Fails if we can't just use rewrite.
 Otherwise, returns 'tt' if we need a `refl` at the end.
 -/

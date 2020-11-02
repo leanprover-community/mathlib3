@@ -16,7 +16,7 @@ namespace tactic.interactive
 
 open lean.parser interactive interactive.types tactic.rewrite_search
 
-/-
+/--
 Collects rewrite rules, runs a graph search to find a chain of rewrites to prove the
 current target, and generates a string explanation for it.
 -/

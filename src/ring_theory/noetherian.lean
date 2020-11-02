@@ -316,7 +316,7 @@ theorem is_noetherian_iff_well_founded
   is_noetherian R M ↔ well_founded ((>) : submodule R M → submodule R M → Prop) :=
 ⟨λ h, begin
   apply rel_embedding.well_founded_iff_no_descending_seq.2,
-  swap, { apply is_strict_order.swap },
+  swap, { apply is_strict_order.swap },z
   rintro ⟨⟨N, hN⟩⟩,
   let Q := ⨆ n, N n,
   resetI,
@@ -517,7 +517,11 @@ variables {R : Type*} [comm_ring R] [is_noetherian_ring R]
 lemma prime_product (I : ideal R) : ∃ (A : finset (prime_spectrum R)),
   ∏ p in A, (p.val : ideal R) ≤ I :=
 begin
-  sorry,
+  -- sorry,
+  let X:= {J : ideal R | ∀ (B : finset (prime_spectrum R)), ¬ ∏ p in B, (p.val : ideal R) ≤ J },
+  by_cases X = ∅,
+  {},
+  {sorry,}
 end
 
 lemma prime_product_domain (hR : is_integral_domain R)(I : ideal R) : ∃ (A : finset (prime_spectrum R)),

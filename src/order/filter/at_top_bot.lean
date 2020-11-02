@@ -685,6 +685,39 @@ lemma map_at_bot_eq_of_gc [semilattice_inf α] [semilattice_inf β] {f : α → 
   map f at_bot = at_bot :=
 @map_at_top_eq_of_gc (order_dual α) (order_dual β) _ _ _ _ _ hf.order_dual gc hgi
 
+/-- The image of the filter `at_top` on `Ioi a` under the coercion equals `at_top`. -/
+lemma map_coe_Ioi_at_top [semilattice_sup α] [no_top_order α] (a : α) :
+  map (coe : Ioi a → α) at_top = at_top :=
+begin
+  rcases no_top a with ⟨b, hb⟩,
+  letI : semilattice_sup (Ioi a) :=
+    subtype.semilattice_sup (λ x y hx hy, lt_of_lt_of_le hx le_sup_left),
+  refine @map_at_top_eq_of_gc (Ioi a) α _ _ coe
+    (λ x, if h : a < x then ⟨x, h⟩ else ⟨b, hb⟩) b (subtype.mono_coe _) _ _,
+  { intros x y hy,
+    simp only [dif_pos (hb.trans_le hy), ← subtype.coe_le_coe, subtype.coe_mk] },
+  { intros x hx,
+    simp only [dif_pos (hb.trans_le hx), subtype.coe_mk] }
+end
+
+/-- The `at_top` filter for an open interval `Ioi a` comes from the `at_top` filter in the ambient
+order. -/
+lemma at_top_Ioi_eq [semilattice_sup α] [no_top_order α] (a : α) :
+  at_top = comap (coe : Ioi a → α) at_top :=
+by rw [← map_coe_Ioi_at_top a, comap_map subtype.coe_injective]
+
+/-- The `at_bot` filter for an open interval `Iio a` comes from the `at_bot` filter in the ambient
+order. -/
+lemma map_coe_Iio_at_bot [semilattice_inf α] [no_bot_order α] (a : α) :
+  map (coe : Iio a → α) at_bot = at_bot :=
+@map_coe_Ioi_at_top (order_dual α) _ _ _
+
+/-- The `at_bot` filter for an open interval `Iio a` comes from the `at_bot` filter in the ambient
+order. -/
+lemma at_bot_Iio_eq [semilattice_inf α] [no_bot_order α] (a : α) :
+  at_bot = comap (coe : Iio a → α) at_bot :=
+@at_top_Ioi_eq (order_dual α) _ _ _
+
 lemma map_add_at_top_eq_nat (k : ℕ) : map (λa, a + k) at_top = at_top :=
 map_at_top_eq_of_gc (λa, a - k) k
   (assume a b h, add_le_add_right h k)

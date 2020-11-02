@@ -365,7 +365,7 @@ begin
   simp only [h, mem_filter, and_true, and_iff_right_iff_imp, cast_id, mem_range, ne.def,
   not_false_iff, mem_divisors],
   intros a ha,
-  exact nat.lt_succ_of_le (nat.divisor_le (nat.mem_divisors.2 (and.intro ha h)))
+  exact nat.lt_succ_of_le (nat.divisor_le (nat.mem_divisors.2 ⟨ha, h⟩))
 end
 
 end nat

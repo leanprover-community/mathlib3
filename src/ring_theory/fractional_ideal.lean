@@ -161,10 +161,24 @@ instance : has_zero (fractional_ideal f) := ⟨(0 : ideal R)⟩
 @[simp] lemma coe_zero : ↑(0 : fractional_ideal f) = (⊥ : submodule R f.codomain) :=
 submodule.ext $ λ _, mem_zero_iff
 
-lemma coe_nonzero_of_nonzero { I : ideal R } : I ≠ (0 : ideal R) ↔ ↑I ≠ (0 : fractional_ideal f) :=
-begin
-  sorry,
-end
+@[simp] lemma coe_to_fractional_ideal_zero : ((0 : ideal R) : fractional_ideal f) = 0 :=
+rfl
+
+@[simp] lemma exists_mem_to_map_eq {x : R} {I : ideal R} (h : S ≤ non_zero_divisors R) :
+  (∃ (x' ∈ I), f.to_map x' = f.to_map x) ↔ x ∈ I :=
+⟨λ ⟨x', hx', eq⟩, f.injective h eq ▸ hx', λ h, ⟨x, h, rfl⟩⟩
+
+lemma coe_to_fractional_ideal_injective (h : S ≤ non_zero_divisors R) :
+  function.injective (coe : ideal R → fractional_ideal f) :=
+λ I J heq, have
+  ∀ (x : R), f.to_map x ∈ (I : fractional_ideal f) ↔ f.to_map x ∈ (J : fractional_ideal f) :=
+λ x, heq ▸ iff.rfl,
+ideal.ext (by { simpa only [mem_coe, exists_mem_to_map_eq h] using this })
+
+lemma coe_nonzero_of_nonzero {I : ideal R} (hS : S ≤ non_zero_divisors R) :
+  I ≠ (0 : ideal R) ↔ ↑ I ≠ (0 : fractional_ideal f) :=
+not_iff_not.mpr ⟨λ h, by rw [h, coe_to_fractional_ideal_zero],
+                 λ h, coe_to_fractional_ideal_injective hS h⟩
 
 lemma coe_ne_bot_iff_nonzero {I : fractional_ideal f} :
   ↑I ≠ (⊥ : submodule R f.codomain) ↔ I ≠ 0 :=

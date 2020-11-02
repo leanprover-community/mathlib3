@@ -58,7 +58,7 @@ def cyclotomic' (n : ℕ) (R : Type*) [integral_domain R] : polynomial R :=
 ∏ μ in primitive_roots n R, (X - C μ)
 
 /- The zeroth modified cyclotomic polyomial is `1`. -/
-lemma cyclotomic'_zero (R : Type*) [integral_domain R] : cyclotomic' 0 R = 1 :=
+@[simp] lemma cyclotomic'_zero (R : Type*) [integral_domain R] : cyclotomic' 0 R = 1 :=
 begin
   rw [cyclotomic'],
   have prim_root_zero : primitive_roots 0 R = ∅,

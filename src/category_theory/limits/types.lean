@@ -104,6 +104,10 @@ begin
   simp [w j],
 end
 
+lemma limit_ext_iff (F : J ⥤ Type u) (x y : limit F) :
+  (∀ j, limit.π F j x = limit.π F j y) ↔ x = y :=
+⟨limit_ext _ _ _, λ t _, t ▸ rfl⟩
+
 -- TODO: are there other limits lemmas that should have `_apply` versions?
 -- Can we generate these like with `@[reassoc]`?
 -- PROJECT: prove these for any concrete category where the forgetful functor preserves limits?

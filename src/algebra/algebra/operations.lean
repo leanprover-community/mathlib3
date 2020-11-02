@@ -288,7 +288,7 @@ lemma le_div_iff_mul_le {I J K : submodule R A} : I ≤ J / K ↔ I * K ≤ J :=
 by rw [le_div_iff, mul_le]
 
 lemma one_le_inv {I : submodule R A} (hI : I ≤ (1 : submodule R A)) :
-(1 : submodule R A) ≤ (1 : submodule R A) / I :=
+  (1 : submodule R A) ≤ (1 : submodule R A) / I :=
 by rwa [le_div_iff_mul_le, one_mul]
 
 lemma self_le_self_inv {I : submodule R A} (hI : I ≤ (1 : submodule R A)) :

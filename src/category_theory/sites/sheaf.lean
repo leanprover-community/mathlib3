@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2020 Bhavik Mehta, E. W. Ayers. All rights reserved.
+Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Bhavik Mehta, E. W. Ayers
+Authors: Bhavik Mehta
 -/
 
 import category_theory.sites.grothendieck
@@ -24,23 +24,23 @@ variables {P : Cᵒᵖ ⥤ Type v}
 variables {X Y : C} {S : sieve X} {R : presieve X}
 variables (J J₂ : grothendieck_topology C)
 
-def equiv_to_equalizer (W : C) {X Y Z : C} {f : X ⟶ Y} {g h : Y ⟶ Z} (w : f ≫ g = f ≫ h)
-  (t : is_limit (fork.of_ι _ w)) :
-(W ⟶ X) ≃ {t : W ⟶ Y // t ≫ g = t ≫ h} :=
-{ to_fun := λ z, ⟨z ≫ f, by simp [w]⟩,
-  inv_fun := λ q, (fork.is_limit.lift' t _ q.prop).1,
-  left_inv := λ z,
-  begin
-    dsimp,
-    apply fork.is_limit.hom_ext t,
-    apply (fork.is_limit.lift' t (z ≫ f) _).prop,
-  end,
-  right_inv :=
-  begin
-    rintro q,
-    apply subtype.ext,
-    apply (fork.is_limit.lift' t q.1 _).prop,
-  end }
+-- def equiv_to_equalizer (W : C) {X Y Z : C} {f : X ⟶ Y} {g h : Y ⟶ Z} (w : f ≫ g = f ≫ h)
+--   (t : is_limit (fork.of_ι _ w)) :
+-- (W ⟶ X) ≃ {t : W ⟶ Y // t ≫ g = t ≫ h} :=
+-- { to_fun := λ z, ⟨z ≫ f, by simp [w]⟩,
+--   inv_fun := λ q, (fork.is_limit.lift' t _ q.prop).1,
+--   left_inv := λ z,
+--   begin
+--     dsimp,
+--     apply fork.is_limit.hom_ext t,
+--     apply (fork.is_limit.lift' t (z ≫ f) _).prop,
+--   end,
+--   right_inv :=
+--   begin
+--     rintro q,
+--     apply subtype.ext,
+--     apply (fork.is_limit.lift' t q.1 _).prop,
+--   end }
 
 /--
 A family of elements for a presheaf `P` given a collection of arrows `R` with fixed codomain `X`

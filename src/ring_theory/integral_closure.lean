@@ -271,6 +271,11 @@ theorem is_integral_mul {x y : A}
 is_integral_of_mem_closure hx hy (is_submonoid.mul_mem
   (ring.subset_closure (or.inl rfl)) (ring.subset_closure (or.inr rfl)))
 
+theorem is_integral_pow {x : A} :
+  Π (n : ℕ) (hx : is_integral R x), is_integral R (x ^ n)
+| 0 hx := by simpa using is_integral_one
+| (n + 1) hx := by simpa using is_integral_mul hx (is_integral_pow n hx)
+
 variables (R A)
 
 /-- The integral closure of R in an R-algebra A. -/

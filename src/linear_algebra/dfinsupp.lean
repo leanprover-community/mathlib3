@@ -25,7 +25,7 @@ In this file we define `linear_map` versions of various maps:
 ## Implementation notes
 
 This file should try to mirror `linear_algebra.finsupp` where possible. The API of `finsupp` is
-much more developed, but many lemmas in that file should be elegible to copy over.
+much more developed, but many lemmas in that file should be eligible to copy over.
 
 ## Tags
 
@@ -86,7 +86,7 @@ omit dec_ι
 
 include dec_ι
 
-/-- The `dfinsupp` version of `finsupp.lsum`,-/
+/-- The `dfinsupp` version of `finsupp.lsum`. -/
 @[simps apply symm_apply]
 def lsum : (Π i, M i →ₗ[R] N) ≃+ ((Π₀ i, M i) →ₗ[R] N) :=
 { to_fun := λ F, {

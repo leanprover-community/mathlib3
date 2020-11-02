@@ -253,9 +253,9 @@ $ tc.mk_simple
 meta def implicit_arg_list (tooltip : tc subexpr empty) (e : expr) : tactic $ html empty := do
   fn ← (mk tooltip) $ expr.get_app_fn e,
   args ← list.mmap (mk tooltip) $ expr.get_app_args e,
-  pure $ h "div" []
-    ( (h "span" [className "bg-blue br3 ma1 ph2 white"] [fn]) ::
-      list.map (λ a, h "span" [className "bg-gray br3 ma1 ph2 white"] [a]) args
+  pure $ h "div" [style [("display", "flex"), ("flexWrap", "wrap"), ("alignItems", "baseline")]]
+    ( (h "span" [className "bg-blue br3 ma1 ph2 pl3 white"] [fn]) ::
+      list.map (λ a, h "span" [className "bg-gray br3 ma1 ph2 pl3 white"] [a]) args
     )
 
 /--

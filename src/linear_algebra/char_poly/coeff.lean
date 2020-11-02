@@ -86,7 +86,7 @@ theorem char_poly_degree_eq_dim [nontrivial R] (M : matrix n n R) :
 (char_poly M).degree = fintype.card n :=
 begin
   by_cases fintype.card n = 0,
-  { rw h, unfold char_poly, rw det_of_card_zero, simp, assumption },
+  { rw h, unfold char_poly, rw det_of_card_zero, {simp}, {assumption} },
   rw ← sub_add_cancel (char_poly M) (∏ (i : n), (X - C (M i i))),
   have h1 : (∏ (i : n), (X - C (M i i))).degree = fintype.card n,
   { rw degree_eq_iff_nat_degree_eq_of_pos, swap, apply nat.pos_of_ne_zero h,

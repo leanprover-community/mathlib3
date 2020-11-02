@@ -29,7 +29,7 @@ with coefficients in `ℤ`, using `cyclotomic' n ℂ`.
 * `int_coeff_of_cycl` : If there is a primitive `n`-th root of unity in `K`, then `cyclotomic' n K`
 comes from a polynomial with integer coefficients.
 * `deg_of_cyclotomic` : The degree of `cyclotomic n` is `totient n`.
-* `X_pow_sub_one_eq_prod_cycl` : `X ^ n - 1 = ∏ (cyclotomic' i K)`, where `i` divides `n`.
+* `X_pow_sub_one_eq_prod_cycl` : `X ^ n - 1 = ∏ (cyclotomic i)`, where `i` divides `n`.
 
 ## Implementation details
 

@@ -101,12 +101,7 @@ end
 
 /-- `cyclotomic' n R` is monic. -/
 lemma cyclotomic'.monic (n : ℕ) (R : Type*) [integral_domain R] : (cyclotomic' n R).monic :=
-begin
-  rw [cyclotomic'],
-  apply monic_prod_of_monic (primitive_roots n R) (λ (z : R), (X - C z)),
-  intros z hz,
-  simp only [monic_X_sub_C],
-end
+monic_prod_of_monic _ _ $ λ z hz, monic_X_sub_C _
 
 /-- `cyclotomic' n R` is different from `0`. -/
 lemma cycl'_ne_zero (n : ℕ) (R : Type*) [integral_domain R] : cyclotomic' n R ≠ 0 :=

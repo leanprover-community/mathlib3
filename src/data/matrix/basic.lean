@@ -416,8 +416,6 @@ lemma map_matrix.map_mul [decidable_eq m] [semiring α] {β : Type w} [semiring 
   f.map_matrix (M ⬝ N) = f.map_matrix M ⬝ f.map_matrix N :=
 ring_hom.map_mul _ _ _
 
-open_locale matrix
-
 namespace matrix
 
 section ring

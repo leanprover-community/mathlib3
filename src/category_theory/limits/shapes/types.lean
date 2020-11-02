@@ -135,4 +135,53 @@ def coproduct_limit_cone {J : Type u} (F : J → Type u) : limits.colimit_cocone
       exact this,
     end }, }
 
+section fork
+variables {X Y Z : Type u} (f : X ⟶ Y) {g h : Y ⟶ Z} (w : f ≫ g = f ≫ h)
+
+/--
+Show the given fork in `Type u` is an equalizer given that any element in the "difference kernel"
+comes from `X`.
+The converse of `unique_of_type_equalizer`.
+-/
+noncomputable def type_equalizer_of_unique (t : ∀ (y : Y), g y = h y → ∃! (x : X), f x = y) :
+  is_limit (fork.of_ι _ w) :=
+fork.is_limit.mk' _ $ λ s,
+begin
+  refine ⟨λ i, _, _, _⟩,
+  { apply classical.some (t (s.ι i) _),
+    apply congr_fun s.condition i },
+  { ext i,
+    apply (classical.some_spec (t (s.ι i) _)).1 },
+  { intros m hm,
+    ext i,
+    apply (classical.some_spec (t (s.ι i) _)).2,
+    apply congr_fun hm i },
+end
+
+/-- The converse of `type_equalizer_of_unique`. -/
+lemma unique_of_type_equalizer (t : is_limit (fork.of_ι _ w)) :
+  (∀ (y : Y), g y = h y → ∃! (x : X), f x = y) :=
+begin
+  intros y hy,
+  let y' : punit ⟶ Y := λ _, y,
+  have hy' : y' ≫ g = y' ≫ h := funext (λ _, hy),
+  refine ⟨(fork.is_limit.lift' t _ hy').1 ⟨⟩, congr_fun (fork.is_limit.lift' t y' _).2 ⟨⟩, _⟩,
+  intros x' hx',
+  suffices : (λ (_ : punit), x') = (fork.is_limit.lift' t y' hy').1,
+    rw ← this,
+  apply fork.is_limit.hom_ext t,
+  ext ⟨⟩,
+  apply hx'.trans (congr_fun (fork.is_limit.lift' t _ hy').2 ⟨⟩).symm,
+end
+
+/-- Show that the subtype `{x : Y // g x = h x}` is an equalizer for the pair `(g,h)`. -/
+def equalizer_limit : limits.limit_cone (parallel_pair g h) :=
+{ cone := fork.of_ι (subtype.val : {x : Y // g x = h x} → Y) (funext subtype.prop),
+  is_limit := fork.is_limit.mk' _ $ λ s,
+    ⟨λ i, ⟨s.ι i, by apply congr_fun s.condition i⟩,
+     rfl,
+     λ m hm, funext $ λ x, subtype.ext (congr_fun hm x)⟩ }
+
+end fork
+
 end category_theory.limits.types

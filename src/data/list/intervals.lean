@@ -3,7 +3,6 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.list.bag_inter
 import data.list.enum
 
 open nat
@@ -13,16 +12,6 @@ namespace list
 namespace Ico
 
 #print map_add_Ico
-
-@[simp] lemma inter_consecutive (n m l : ℕ) : Ico n m ∩ Ico m l = [] :=
-begin
-  apply eq_nil_iff_forall_not_mem.2,
-  intro a,
-  simp only [and_imp, not_and, not_lt, list.mem_inter, list.Ico.mem],
-  intros h₁ h₂ h₃,
-  exfalso,
-  exact not_lt_of_ge h₃ h₂
-end
 
 @[simp] lemma bag_inter_consecutive (n m l : ℕ) : list.bag_inter (Ico n m) (Ico m l) = [] :=
 (bag_inter_nil_iff_inter_nil _ _).2 (inter_consecutive n m l)

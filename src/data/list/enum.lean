@@ -3,9 +3,10 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kenny Lau, Scott Morrison, Anne Baanen
 -/
+import data.list.bag_inter
 import data.list.chain
-import data.list.of_fn
 import data.list.nodup
+import data.list.of_fn
 import data.list.sort
 
 open nat
@@ -49,6 +50,13 @@ Edge cases (assuming `has_lawful_enum α`):
 -/
 def list.Icc [has_le α] [@decidable_rel α (≤)] : list α :=
 if b ≤ t then list.Ico b t ++ [t] else []
+
+/-- `list.Ioo b t` is a list of the values between `b` (exclusive) and `t` (inclusive).
+
+Edge cases (assuming `has_lawful_enum α`):
+- if `t ≤ b`, this list is empty
+-/
+def list.Ioo : list α := (list.Ico b t).tail
 
 end has_enum
 
@@ -97,6 +105,30 @@ begin
   { simp only [mem_nil_iff, false_iff],
     intro hx,
     exact h (le_trans hx.1 hx.2) },
+end
+
+lemma pairwise_tail {r : α → α → Prop} : ∀ {l : list α} (h : pairwise r l), pairwise r (l.tail)
+| [] h := pairwise.nil
+| (x :: xs) h := (pairwise_cons.mp h).2
+
+lemma sorted_Ioo (b t : α) [@decidable_rel α (<)] : sorted (<) (Ioo b t) :=
+pairwise_tail (sorted_Ico b t)
+
+lemma nodup_Ioo (b t : α) [@decidable_rel α (≤)] : nodup (Ioo b t) :=
+pairwise.imp (λ a b, ne_of_lt) (sorted_Ioo b t)
+
+lemma mem_tail_of_nodup {x : α} : ∀ {l : list α} (hl : l.nodup), x ∈ l.tail ↔ x ∉ l.nth 0 ∧ x ∈ l
+| [] hl := by simp
+| (y :: l) hl :=
+by { simp only [tail, nth, option.mem_def, mem_cons_iff, eq_comm,
+    and_or_distrib_left, not_and_self, false_or],
+  refine ⟨λ h, ⟨_, h⟩, λ h, h.2⟩,
+  library_search }
+
+@[simp] lemma mem_Ioo {x b t : α} [@decidable_rel α (≤)] : x ∈ Ioo b t ↔ b < x ∧ x < t :=
+begin
+  unfold Ioo,
+  rw mem_tail_of_nodup (nodup_Ico b t),
 end
 
 lemma Ico_unique_iff {b t : α} {l : list α}  :
@@ -262,6 +294,93 @@ begin
   { rintros ⟨hb, ht⟩,
     rw [← Ico_append_Ico hb (le_trans (le_of_lt hlt) ht), ← Ico_append_Ico (le_of_lt hlt) ht],
     exact subset_append_of_subset_right _ _ _ (subset_append_left _ _) }
+end
+
+@[simp] lemma Ico_inter_Ico_consecutive [decidable_eq α] (b m t : α) : Ico b m ∩ Ico m t = [] :=
+begin
+  apply eq_nil_iff_forall_not_mem.2,
+  intro a,
+  simp only [and_imp, not_and, not_lt, mem_inter, mem_Ico],
+  intros h₁ h₂ h₃,
+  exfalso,
+  exact not_lt_of_ge h₃ h₂
+end
+
+@[simp] lemma Ico_bag_inter_Ico_consecutive [decidable_eq α] (b m t : α) :
+  list.bag_inter (Ico b m) (Ico m t) = [] :=
+(bag_inter_nil_iff_inter_nil _ _).2 (Ico_inter_Ico_consecutive b m t)
+
+lemma filter_lt_of_top_le [decidable_rel ((<) : α → α → Prop)] {n m l : α} (hml : m ≤ l) :
+  (Ico n m).filter (λ x, x < l) = Ico n m :=
+filter_eq_self.2 $ assume k hk, lt_of_lt_of_le (mem_Ico.1 hk).2 hml
+
+lemma filter_lt_of_le_bot [decidable_rel ((<) : α → α → Prop)] {n m l : α} (hln : l ≤ n) :
+  (Ico n m).filter (λ x, x < l) = [] :=
+filter_eq_nil.2 $ assume k hk, not_lt_of_le $ le_trans hln $ (mem_Ico.1 hk).1
+
+lemma filter_lt_of_ge [decidable_rel ((<) : α → α → Prop)] {n m l : α} (hlm : l ≤ m) :
+  (Ico n m).filter (λ x, x < l) = Ico n l :=
+begin
+  cases le_total n l with hnl hln,
+  { rw [← Ico_append_Ico hnl hlm, filter_append,
+      filter_lt_of_top_le (le_refl l), filter_lt_of_le_bot (le_refl l), append_nil] },
+  { rw [Ico_eq_nil.mpr hln, filter_lt_of_le_bot hln] }
+end
+
+@[simp] lemma filter_lt {α : Type*} [decidable_linear_order α] [has_lawful_enum α] (n m l : α) :
+  (Ico n m).filter (λ x, x < l) = Ico n (min m l) :=
+begin
+  cases le_total m l with hml hlm,
+  { rw [min_eq_left hml, filter_lt_of_top_le hml] },
+  { rw [min_eq_right hlm, filter_lt_of_ge hlm] }
+end
+
+lemma filter_le_of_le_bot [decidable_rel ((≤) : α → α → Prop)] {n m l : α} (hln : l ≤ n) :
+  (Ico n m).filter (λ x, l ≤ x) = Ico n m :=
+filter_eq_self.2 $ assume k hk, le_trans hln (mem_Ico.1 hk).1
+
+lemma filter_le_of_top_le [decidable_rel ((≤) : α → α → Prop)] {n m l : α} (hml : m ≤ l) :
+  (Ico n m).filter (λ x, l ≤ x) = [] :=
+filter_eq_nil.2 $ assume k hk, not_le_of_gt (lt_of_lt_of_le (mem_Ico.1 hk).2 hml)
+
+lemma filter_le_of_le [decidable_rel ((≤) : α → α → Prop)] {n m l : α} (hnl : n ≤ l) :
+  (Ico n m).filter (λ x, l ≤ x) = Ico l m :=
+begin
+  cases le_total l m with hlm hml,
+  { rw [← Ico_append_Ico hnl hlm, filter_append,
+      filter_le_of_top_le (le_refl l), filter_le_of_le_bot (le_refl l), nil_append] },
+  { rw [Ico_eq_nil.mpr hml, filter_le_of_top_le hml] }
+end
+
+@[simp] lemma filter_le {α : Type*} [decidable_linear_order α] [has_lawful_enum α] (n m l : α) :
+  (Ico n m).filter (λ x, l ≤ x) = Ico (max n l) m :=
+begin
+  cases le_total n l with hnl hln,
+  { rw [max_eq_right hnl, filter_le_of_le hnl] },
+  { rw [max_eq_left hln, filter_le_of_le_bot hln] }
+end
+
+@[simp] lemma filter_le_of_bot {α : Type*} [decidable_linear_order α] [has_lawful_enum α] {n m : α}
+  (hnm : n < m) : (Ico n m).filter (λ x, x ≤ n) = [n] :=
+begin
+  rw ← Icc_append_Ioo
+  sorry
+end
+
+/--
+For any `n a b : α`, one of the following holds:
+1. n < a
+2. n ≥ b
+3. n ∈ Ico a b
+-/
+lemma trichotomy (n a b : α) : n < a ∨ b ≤ n ∨ n ∈ Ico a b :=
+begin
+  by_cases h₁ : n < a,
+  { left, exact h₁ },
+  { right,
+    by_cases h₂ : n ∈ Ico a b,
+    { right, exact h₂ },
+    { left,  simp only [Ico.mem, not_and, not_lt] at *, exact h₂ h₁ }}
 end
 
 end list
@@ -447,8 +566,30 @@ theorem Ico_succ_right {b t : ℕ} (h : b ≤ t) : Ico b (t + 1) = b :: Ico (b +
 by { conv_lhs { rw [← nat.add_sub_cancel' h, add_assoc, ← Ico'_ℕ_eq_Ico, Ico'_ℕ_succ] },
 rw [Ico'_ℕ_eq_Ico, succ_add, nat.add_sub_cancel' h] }
 
+theorem Ico_eq_cons {b t : ℕ} (h : b < t) : Ico b t = b :: Ico (b + 1) t :=
+by { cases t, { cases h }, exact Ico_succ_right (nat.lt_succ_iff.mp h) }
+
+@[simp] lemma Ico_succ_self (n : ℕ) : Ico n (n + 1) = [n] :=
+by rw [Ico_succ_right (le_refl n), Ico_self]
+
+@[simp] lemma Ico_pred_self {n : ℕ} (h : 0 < n) : Ico (n - 1) n = [n - 1] :=
+by { cases n, { cases h }, exact Ico_succ_self n }
+
 theorem Ico_zero_succ (n : ℕ) : Ico 0 (succ n) = Ico 0 n ++ [n] :=
 by simp only [Ico_zero_eq_Ico'_ℕ, Ico'_ℕ_concat, zero_add]
+
+theorem chain'_succ_Ico (n m : ℕ) : chain' (λa b, b = succ a) (Ico n m) :=
+begin
+  by_cases n < m,
+  { rw [Ico_eq_cons h], exact chain_succ_Ico'_ℕ _ _ },
+  { rw [Ico_eq_nil.mpr (le_of_not_gt h)], trivial }
+end
+
+lemma filter_lt_of_succ_bot {n m : ℕ} (hnm : n < m) : (Ico n m).filter (λ x, x < n + 1) = [n] :=
+begin
+  have r : min m (n + 1) = n + 1 := (@inf_eq_right _ _ m (n + 1)).mpr hnm,
+  simp [filter_lt n m (n + 1), r],
+end
 
 section iota
 

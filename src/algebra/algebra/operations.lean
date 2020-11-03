@@ -295,7 +295,7 @@ begin
   {rw [le_div_iff_mul_le, one_mul] at hI, assumption },
 end
 
-lemma self_le_self_div {I : submodule R A} (hI : I ≤ 1) :
+lemma le_self_mul_one_div {I : submodule R A} (hI : I ≤ 1) :
   I ≤ I * (1 / I) :=
 begin
   rw [← mul_one I] {occs := occurrences.pos [1]},

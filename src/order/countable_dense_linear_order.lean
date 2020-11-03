@@ -81,7 +81,7 @@ variables {α β}
 /-- For each `a`, we can find a `b` in the codomain, such that `a`'s relation to
 the domain of `f` is `b`'s relation to the image of `f`.
 
-Thus, if `a` is not already in `f`, we can extend `f` by sending `a` to `b`.
+Thus, if `a` is not already in `f`, then we can extend `f` by sending `a` to `b`.
 -/
 lemma exists_across [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β]
   (f : partial_iso α β) (a : α) :
@@ -112,6 +112,14 @@ begin
     rw [←cmp_eq_gt_iff, ←cmp_eq_gt_iff] at this, cc, },
 end
 
+/-- A partial isomorphism between `α` and `β` is also a partial isomorphism between `β` and `α`. -/
+protected def comm : partial_iso α β → partial_iso β α :=
+subtype.map (finset.image (equiv.prod_comm _ _)) $ λ f hf p q hp hq,
+  eq.symm $ hf ((equiv.prod_comm α β).symm p) ((equiv.prod_comm α β).symm q)
+(by { rw [←finset.mem_coe, finset.coe_image, equiv.image_eq_preimage] at hp, rwa ←finset.mem_coe })
+(by { rw [←finset.mem_coe, finset.coe_image, equiv.image_eq_preimage] at hq, rwa ←finset.mem_coe })
+
+variable (β)
 /-- The set of partial isomorphisms defined at `a : α`, together with a proof that any
     partial isomorphism can be extended to one defined at `a`. -/
 def defined_at_left [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β]
@@ -132,16 +140,8 @@ def defined_at_left [densely_ordered β] [no_bot_order β] [no_top_order β] [no
     { exact f.property _ _ pf qf },
   end }
 
-/-- A partial isomorphism between `α` and `β` is also a partial isomorphism between `β` and `α`. -/
-protected def comm : partial_iso α β → partial_iso β α :=
-subtype.map (finset.image (equiv.prod_comm _ _)) $ λ f hf p q hp hq,
-  eq.symm $ hf ((equiv.prod_comm α β).symm p) ((equiv.prod_comm α β).symm q)
-(by { rw [←finset.mem_coe, finset.coe_image, equiv.image_eq_preimage] at hp,
-  rwa ←finset.mem_coe })
-(by { rw [←finset.mem_coe, finset.coe_image, equiv.image_eq_preimage] at hq,
-  rwa ←finset.mem_coe })
-
-/-- The set of partial isomorphisms defined on `b : β`, together with a proof that any
+variables (α) {β}
+/-- The set of partial isomorphisms defined at `b : β`, together with a proof that any
     partial isomorphism can be extended to include `b`. We prove this by symmetry. -/
 def defined_at_right [densely_ordered α] [no_bot_order α] [no_top_order α] [nonempty α]
   (b : β) : cofinal (partial_iso α β) :=
@@ -149,8 +149,8 @@ def defined_at_right [densely_ordered α] [no_bot_order α] [no_top_order α] [n
   mem_gt :=
   begin
     intro f,
-    rcases (defined_at_left b).mem_gt (partial_iso.comm f) with ⟨f', ⟨a, ha⟩, hl⟩,
-    use partial_iso.comm f',
+    rcases (defined_at_left α b).mem_gt f.comm with ⟨f', ⟨a, ha⟩, hl⟩,
+    use f'.comm,
     split,
     { use a,
       change (a, b) ∈ f'.val.image _,
@@ -161,6 +161,22 @@ def defined_at_right [densely_ordered α] [no_bot_order α] [no_top_order α] [n
       rwa [←finset.coe_subset, finset.coe_image] at hl }
   end }
 
+variable {α}
+
+/-- Given an ideal which intersects `defined_at_left β a`, pick `b : β` such that
+    some partial function in the ideal maps `a` to `b`. -/
+def fun_of_ideal [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β]
+  (a : α) (I : ideal (partial_iso α β)) :
+  (∃ f, f ∈ defined_at_left β a ∧ f ∈ I) → { b // ∃ f ∈ I, (a, b) ∈ subtype.val f } :=
+classical.indefinite_description _ ∘ (λ ⟨f, ⟨b, hb⟩, hf⟩, ⟨b, f, hf, hb⟩)
+
+/-- Given an ideal which intersects `defined_at_right α b`, pick `a : α` such that
+    some partial function in the ideal maps `a` to `b`. -/
+def inv_of_ideal [densely_ordered α] [no_bot_order α] [no_top_order α] [nonempty α]
+  (b : β) (I : ideal (partial_iso α β)) :
+  (∃ f, f ∈ defined_at_right α b ∧ f ∈ I) → { a // ∃ f ∈ I, (a, b) ∈ subtype.val f } :=
+classical.indefinite_description _ ∘ (λ ⟨f, ⟨a, ha⟩, hf⟩, ⟨a, f, hf, ha⟩)
+
 end partial_iso
 open partial_iso
 
@@ -170,57 +186,33 @@ variables (α β)
 def embedding_from_countable_to_dense
   [encodable α] [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β] :
   α ↪o β :=
-let our_ideal : ideal (partial_iso α β) :=
-  ideal_of_cofinals (default _) defined_at_left in
-have exists_right : ∀ (a : α), ∃ (b : β) (f ∈ our_ideal), (a, b) ∈ subtype.val f :=
-  begin
-    intro a,
-    rcases cofinal_meets_ideal_of_cofinals (default _) defined_at_left a
-      with ⟨f, ⟨b, hb⟩, hf⟩,
-    exact ⟨b, f, hf, hb⟩,
-  end,
-order_embedding.of_strict_mono (λ a, classical.some (exists_right a))
+let our_ideal : ideal (partial_iso α β) := ideal_of_cofinals (default _) (defined_at_left β) in
+let F := λ a, fun_of_ideal a our_ideal (cofinal_meets_ideal_of_cofinals _ _ a) in
+order_embedding.of_strict_mono (λ a, (F a).val)
 begin
-  intros a b,
-  refine (lt_iff_lt_of_cmp_eq_cmp _).mp,
-  rcases classical.some_spec (exists_right a) with ⟨f, hf, ha⟩,
-  rcases classical.some_spec (exists_right b) with ⟨g, hg, hb⟩,
-  rcases our_ideal.directed _ hf _ hg
-    with ⟨m, hm, fm, gm⟩,
-  exact m.property (a, _) (b, _) (fm ha) (gm hb)
+  intros a₁ a₂,
+  rcases (F a₁).property with ⟨f, hf, ha₁⟩,
+  rcases (F a₂).property with ⟨g, hg, ha₂⟩,
+  rcases our_ideal.directed _ hf _ hg with ⟨m, hm, fm, gm⟩,
+  exact (lt_iff_lt_of_cmp_eq_cmp $ m.property (a₁, _) (a₂, _) (fm ha₁) (gm ha₂)).mp
 end
 
-/-- Any two countable dense, nonempty linear orders without endpoints are order isomorphic. --/
+/-- Any two countable dense, nonempty linear orders without endpoints are order isomorphic. -/
 def iso_of_countable_dense
   [encodable α] [densely_ordered α] [no_bot_order α] [no_top_order α] [nonempty α]
   [encodable β] [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β] :
   α ≃o β :=
 let to_cofinal : α ⊕ β → cofinal (partial_iso α β) :=
-  λ p, sum.rec_on p defined_at_left defined_at_right in
-let our_ideal : ideal (partial_iso α β) :=
-  ideal_of_cofinals (default _) to_cofinal in
-have exists_right : ∀ (a : α), ∃ (b : β) (f ∈ our_ideal), (a, b) ∈ subtype.val f :=
-  begin
-    intro a,
-    rcases cofinal_meets_ideal_of_cofinals (default _) to_cofinal (sum.inl a)
-      with ⟨f, ⟨b, hb⟩, hf⟩,
-    exact ⟨b, f, hf, hb⟩,
-  end,
-have exists_left : ∀ (b : β), ∃ (a : α) (f ∈ our_ideal), (a, b) ∈ subtype.val f :=
-  begin
-    intro b,
-    rcases cofinal_meets_ideal_of_cofinals (default _) to_cofinal (sum.inr b)
-      with ⟨f, ⟨a, ha⟩, hf⟩,
-    exact ⟨a, f, hf, ha⟩,
-  end,
-order_iso.of_cmp_eq_cmp (λ a, classical.some (exists_right a))
-                        (λ b, classical.some (exists_left b))
+  λ p, sum.rec_on p (defined_at_left β) (defined_at_right α) in
+let our_ideal : ideal (partial_iso α β) := ideal_of_cofinals (default _) to_cofinal in
+let F := λ a, fun_of_ideal a our_ideal (cofinal_meets_ideal_of_cofinals _ to_cofinal (sum.inl a)) in
+let G := λ b, inv_of_ideal b our_ideal (cofinal_meets_ideal_of_cofinals _ to_cofinal (sum.inr b)) in
+order_iso.of_cmp_eq_cmp (λ a, (F a).val) (λ b, (G b).val)
 begin
   intros a b,
-  rcases classical.some_spec (exists_right a) with ⟨f, hf, ha⟩,
-  rcases classical.some_spec (exists_left b) with ⟨g, hg, hb⟩,
-  rcases our_ideal.directed _ hf _ hg
-    with ⟨m, hm, fm, gm⟩,
+  rcases (F a).property with ⟨f, hf, ha⟩,
+  rcases (G b).property with ⟨g, hg, hb⟩,
+  rcases our_ideal.directed _ hf _ hg with ⟨m, hm, fm, gm⟩,
   exact m.property (a, _) (_, b) (fm ha) (gm hb)
 end
 

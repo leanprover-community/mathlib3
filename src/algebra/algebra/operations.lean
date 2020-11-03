@@ -288,18 +288,18 @@ lemma le_div_iff_mul_le {I J K : submodule R A} : I ≤ J / K ↔ I * K ≤ J :=
 by rw [le_div_iff, mul_le]
 
 @[simp] lemma one_le_one_div {I : submodule R A} :
-  1 ≤ 1 / I ↔ I ≤ (1 : submodule R A) :=
+  1 ≤ 1 / I ↔ I ≤ 1 :=
 begin
   split, all_goals {intro hI},
-  {rw [le_div_iff_mul_le, one_mul], assumption },
-  {rw [le_div_iff_mul_le, one_mul] at hI, assumption },
+  {rwa [le_div_iff_mul_le, one_mul] at hI },
+  {rwa [le_div_iff_mul_le, one_mul] },
 end
 
 lemma le_self_mul_one_div {I : submodule R A} (hI : I ≤ 1) :
   I ≤ I * (1 / I) :=
 begin
   rw [← mul_one I] {occs := occurrences.pos [1]},
-  apply mul_le_mul_right (one_le_div.mp hI),
+  apply mul_le_mul_right (one_le_one_div.mpr hI),
 end
 
 lemma self_div_le_one {I : submodule R A} : I * (1 / I) ≤ 1 :=

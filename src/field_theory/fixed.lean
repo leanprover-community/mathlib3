@@ -4,13 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import algebra.group_action_hom
 import deprecated.subfield
 import field_theory.normal
 import field_theory.separable
 import field_theory.tower
 import linear_algebra.matrix
 import ring_theory.polynomial
+import algebra.polynomial.group_ring_action
 
 /-!
 # Fixed field under a group action.

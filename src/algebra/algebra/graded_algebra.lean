@@ -124,6 +124,7 @@ instance : has_mul G :=
     x)
   y⟩
 
+#check dfinsupp.sum_apply
 
 @[simps one]
 instance : has_one G :=
@@ -149,6 +150,24 @@ begin
     -- solved
     ext1 i, ext1 xi,
     simpa using (this i xi),
+  },
+  intros i xi,
+  have := zero_add i,
+  congr,
+  exact this,
+  exact one_lmul G xi,
+end
+
+private lemma one_mul' (a : G) : 1 * a = a :=
+begin
+  suffices : ∀ i xi, dfinsupp.single (0 + i) (G.lmul G.lone xi) = dfinsupp.single i xi,
+  {
+    simp_rw [has_mul_mul, has_one_one],
+    ext,
+
+    simp [dfinsupp.lsum, dfinsupp.lift_add_hom_apply, dfinsupp.sum_add_hom_apply, dfinsupp.sum_apply],
+
+    sorry
   },
   intros i xi,
   have := zero_add i,

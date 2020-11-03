@@ -1540,6 +1540,19 @@ by { dsimp [set_value], simp [swap_apply_left] }
 
 end swap
 
+protected lemma exists_unique_congr (p : β → Prop) (e : α ≃ β) :
+  (∃! (y : β), p y) ↔ ∃! (x : α), p (e x) :=
+begin
+  split,
+  { rintro ⟨b, hb₁, hb₂⟩,
+    exact ⟨e.symm b, by simpa using hb₁, λ x hx, by simp [←hb₂ (e x) hx]⟩ },
+  { rintro ⟨a, ha₁, ha₂⟩,
+    refine ⟨e a, ha₁, λ y hy, _⟩,
+    rw ← equiv.symm_apply_eq,
+    apply ha₂,
+    simpa using hy },
+end
+
 protected lemma forall_congr {p : α → Prop} {q : β → Prop} (f : α ≃ β)
   (h : ∀{x}, p x ↔ q (f x)) : (∀x, p x) ↔ (∀y, q y) :=
 begin

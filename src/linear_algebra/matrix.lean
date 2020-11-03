@@ -735,7 +735,6 @@ begin
   { intros σ _, ext, simp only [equiv.symm_symm, equiv.perm_congr_apply, equiv.symm_apply_apply] },
   { intros σ _, apply finset.mem_univ },
   { intros σ _, apply finset.mem_univ },
-
   intros σ _,
   simp_rw [equiv.perm_congr_apply, equiv.symm_symm],
   congr,

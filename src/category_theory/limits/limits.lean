@@ -389,22 +389,10 @@ If `F` and `G` are naturally isomorphic, then `F.map_cone c` being a limit impli
 -/
 def map_cone_equiv {D : Type u'} [category.{v} D] {K : J ⥤ C} {F G : C ⥤ D} (h : F ≅ G) {c : cone K}
   (t : is_limit (F.map_cone c)) : is_limit (G.map_cone c) :=
-{ lift := λ s, t.map s (iso_whisker_left K h).inv ≫ h.hom.app c.X,
-  fac' := λ s j,
-  begin
-    erw [assoc, ← h.hom.naturality (c.π.app j), t.map_π_assoc s (iso_whisker_left K h).inv j],
-    dsimp,
-    simp,
-  end,
-  uniq' := λ s m J,
-  begin
-    rw ← cancel_mono (h.inv.app c.X),
-    apply t.hom_ext,
-    intro j,
-    rw [assoc, assoc, assoc, h.hom_inv_id_app_assoc],
-    erw [← h.inv.naturality (c.π.app j), reassoc_of (J j)],
-    apply (t.map_π s (iso_whisker_left K h).inv j).symm,
-  end }
+begin
+  apply postcompose_inv_equiv (iso_whisker_left K h : _) (G.map_cone c) _,
+  apply t.of_iso_limit (postcompose_whisker_left_map_cone h.symm c).symm,
+end
 
 /--
 A cone is a limit cone exactly if
@@ -808,6 +796,17 @@ def of_faithful {t : cocone F} {D : Type u'} [category.{v} D] (G : C ⥤ D) [fai
     convert ←congr_arg (λ f, G.map f) (w j),
     apply G.map_comp
   end }
+
+/--
+If `F` and `G` are naturally isomorphic, then `F.map_cone c` being a colimit implies
+`G.map_cone c` is also a colimit.
+-/
+def map_cocone_equiv {D : Type u'} [category.{v} D] {K : J ⥤ C} {F G : C ⥤ D} (h : F ≅ G)
+  {c : cocone K} (t : is_colimit (F.map_cocone c)) : is_colimit (G.map_cocone c) :=
+begin
+  apply is_colimit.of_iso_colimit _ (precompose_whisker_left_map_cocone h c),
+  apply (precompose_inv_equiv (iso_whisker_left K h : _) _).symm t,
+end
 
 /--
 A cocone is a colimit cocone exactly if

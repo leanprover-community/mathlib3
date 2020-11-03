@@ -11,9 +11,9 @@ import algebra.field
 -/
 
 namespace opposite
-universes u
+universes u v
 
-variables (α : Type u)
+variables (α : Type u) (β : Type v)
 
 instance [has_add α] : has_add (opposite α) :=
 { add := λ x y, op (unop x + unop y) }
@@ -142,6 +142,16 @@ instance [field α] : field (opposite α) :=
 { mul_inv_cancel := λ x hx, unop_injective $ inv_mul_cancel $ λ hx', hx $ unop_injective hx',
   inv_zero := unop_injective inv_zero,
   .. opposite.comm_ring α, .. opposite.has_inv α, .. opposite.nontrivial α }
+  
+instance [comm_semiring α] [semiring β] [algebra α β] : algebra α β := {
+  smul := λ c a, opposite.op (c • a.unop),
+  to_fun := λ c, opposite.op (algebra_map α β c),
+  map_one' := by rw [ring_hom.map_one, op_one],
+  map_mul' := λ a b, by rw [ring_hom.map_mul, ←op_mul, algebra.commutes],
+  map_zero' := by rw [ring_hom.map_zero, op_zero],
+  map_add' := λ a b, by rw [ring_hom.map_add, op_add],
+  commutes' := λ c a, unop_injective $ by simp [algebra.commutes],
+  smul_def' := λ c a, unop_injective $ by simp [algebra.smul_def, algebra.commutes] }
 
 @[simp] lemma op_zero [has_zero α] : op (0 : α) = 0 := rfl
 @[simp] lemma unop_zero [has_zero α] : unop (0 : αᵒᵖ) = 0 := rfl

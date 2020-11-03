@@ -450,17 +450,9 @@ begin
   have hdeg := degree_C u.ne_zero,
   rw [hu, degree_map' hinj] at hdeg,
   rw [eq_C_of_degree_eq_zero hdeg, is_primitive, content_C, normalize_eq_one] at hf,
-  rw [eq_C_of_degree_eq_zero hdeg, is_unit_C],
-  exact hf
+  rwa [eq_C_of_degree_eq_zero hdeg, is_unit_C],
 end
 
-/--
-A polynomial over an integral domain `R` is irreducible if it is monic and
-  irreducible after mapping into an integral domain `S`.
-
-A special case of this lemma is that a polynomial over `ℤ` is irreducible if
-  it is monic and irreducible over `ℤ/pℤ` for some prime `p`.
--/
 lemma is_primitive.irreducible_of_irreducible_map_of_injective (h_irr : irreducible (map φ f)) :
   irreducible f :=
 begin
@@ -517,20 +509,19 @@ begin
   rw [submonoid.mem_carrier, mem_non_zero_divisors_iff_ne_zero] at c0 d0,
   have hcd0 : c * d ≠ 0 := mul_ne_zero c0 d0,
   rw [ne.def, ← C_eq_zero] at hcd0,
-  have h1 : C c * C d * p = @integer_normalization _ _ _ _ _ f a
-    * @integer_normalization _ _ _ _ _ f b,
+  have h1 : C c * C d * p = f.integer_normalization a * f.integer_normalization b,
   { apply (map_injective _ f.injective _),
     rw [map_mul, map_mul, map_mul, hc, hd, map_C, map_C, hab],
     ring },
-  obtain ⟨u, hu⟩ : associated (c * d) (content (@integer_normalization _ _ _ _ _ f a) *
-            content (@integer_normalization _ _ _ _ _ f b)),
+  obtain ⟨u, hu⟩ : associated (c * d) (content (f.integer_normalization a) *
+            content (f.integer_normalization b)),
   { rw [← dvd_dvd_iff_associated, ← normalize_eq_normalize_iff, monoid_hom.map_mul,
         monoid_hom.map_mul, normalize_content, normalize_content,
         ← mul_one (normalize c * normalize d), ← hp.content_eq_one, ← content_C, ← content_C,
         ← content_mul, ← content_mul, ← content_mul, h1] },
   rw [← ring_hom.map_mul, eq_comm,
-    (@integer_normalization _ _ _ _ _ f a).eq_C_content_mul_prim_part,
-    (@integer_normalization _ _ _ _ _ f b).eq_C_content_mul_prim_part, mul_assoc,
+    (f.integer_normalization a).eq_C_content_mul_prim_part,
+    (f.integer_normalization b).eq_C_content_mul_prim_part, mul_assoc,
     mul_comm _ (C _ * _), ← mul_assoc, ← mul_assoc, ← ring_hom.map_mul, ← hu, ring_hom.map_mul,
     mul_assoc, mul_assoc, ← mul_assoc (C ↑u)] at h1,
   have h0 : (a ≠ 0) ∧ (b ≠ 0),

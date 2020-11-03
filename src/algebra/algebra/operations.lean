@@ -302,7 +302,7 @@ begin
   apply mul_le_mul_right (one_le_one_div.mpr hI),
 end
 
-lemma self_div_le_one {I : submodule R A} : I * (1 / I) ≤ 1 :=
+lemma mul_one_div_le_one {I : submodule R A} : I * (1 / I) ≤ 1 :=
 begin
   rw submodule.mul_le,
   intros m hm n hn,

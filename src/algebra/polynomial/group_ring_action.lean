@@ -9,6 +9,8 @@ import algebra.group_action_hom
 
 /-!
 # Group action on rings applied to polynomials
+
+This file contains instances and definitions relating `mul_semiring_action` to `polynomial`.
 -/
 
 variables (M : Type*) [monoid M]
@@ -89,8 +91,10 @@ theorem prod_X_sub_smul.monic (x : R) : (prod_X_sub_smul G R x).monic :=
 polynomial.monic_prod_of_monic _ _ $ λ g _, polynomial.monic_X_sub_C _
 
 theorem prod_X_sub_smul.eval (x : R) : (prod_X_sub_smul G R x).eval x = 0 :=
-(finset.prod_hom _ (polynomial.eval x)).symm.trans $ finset.prod_eq_zero (finset.mem_univ $ quotient_group.mk 1) $
-by rw [of_quotient_stabilizer_mk, one_smul, polynomial.eval_sub, polynomial.eval_X, polynomial.eval_C, sub_self]
+(finset.prod_hom _ (polynomial.eval x)).symm.trans $
+  finset.prod_eq_zero (finset.mem_univ $ quotient_group.mk 1) $
+  by rw [of_quotient_stabilizer_mk, one_smul, polynomial.eval_sub, polynomial.eval_X,
+    polynomial.eval_C, sub_self]
 
 theorem prod_X_sub_smul.smul (x : R) (g : G) :
   g • prod_X_sub_smul G R x = prod_X_sub_smul G R x :=
@@ -126,7 +130,8 @@ protected noncomputable def polynomial (g : P →+*[M] Q) : polynomial P →+*[M
   map_one' := polynomial.map_one g,
   map_mul' := λ p q, polynomial.map_mul g }
 
-@[simp] theorem coe_polynomial (g : P →+*[M] Q) : (g.polynomial : polynomial P → polynomial Q) = map g :=
+@[simp] theorem coe_polynomial (g : P →+*[M] Q) :
+  (g.polynomial : polynomial P → polynomial Q) = map g :=
 rfl
 
 end mul_semiring_action_hom

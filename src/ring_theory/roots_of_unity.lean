@@ -711,12 +711,7 @@ if there is a primitive root of unity in `R`. -/
 lemma nth_roots_one_eq_bind_primitive_roots {ζ : R} {n : ℕ} (hpos : 0 < n)
   (h : is_primitive_root ζ n) : nth_roots_finset n R =
   (nat.divisors n).bind (λ i, (primitive_roots i R)) :=
-begin
-  rw ← pnat.to_pnat'_coe hpos at h,
-  replace h := nth_roots_one_eq_bind_primitive_roots' h,
-  rw pnat.to_pnat'_coe hpos at h,
-  exact h
-end
+@nth_roots_one_eq_bind_primitive_roots' _ _ _ ⟨n, hpos⟩ h
 
 end integral_domain
 

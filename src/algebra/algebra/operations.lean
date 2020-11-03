@@ -291,8 +291,8 @@ by rw [le_div_iff, mul_le]
   1 ≤ 1 / I ↔ I ≤ 1 :=
 begin
   split, all_goals {intro hI},
-  {rwa [le_div_iff_mul_le, one_mul] at hI },
-  {rwa [le_div_iff_mul_le, one_mul] },
+  {rwa [le_div_iff_mul_le, one_mul] at hI},
+  {rwa [le_div_iff_mul_le, one_mul]},
 end
 
 lemma le_self_mul_one_div {I : submodule R A} (hI : I ≤ 1) :

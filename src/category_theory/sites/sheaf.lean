@@ -346,6 +346,8 @@ def is_sheaf_for (P : Cᵒᵖ ⥤ Type v) (R : presieve X) : Prop :=
 This is an equivalent condition to be a sheaf, which is useful for the abstraction to local
 operators on elementary toposes. However this definition is defined only for sieves, not presieves.
 The equivalence between this and `is_sheaf_for` is given in `yoneda_condition_iff_sheaf_condition`.
+This version is also useful to establish that being a sheaf is preserved under isomorphism of
+presheaves.
 
 See the discussion before Equation (3) of [MM92], Chapter III, Section 4. See also C2.1.4 of
 [Elephant]. This is also a direct reformulation of https://stacks.math.columbia.edu/tag/00Z8.
@@ -432,6 +434,11 @@ begin
     simpa using hy },
 end
 
+/--
+The yoneda version of the sheaf condition is equivalent to the sheaf condition.
+
+C2.1.4 of [Elephant].
+-/
 lemma yoneda_condition_iff_sheaf_condition :
   is_sheaf_for P S ↔ yoneda_sheaf_condition P S :=
 begin
@@ -445,6 +452,7 @@ begin
   simp,
 end
 
+/-- `P` is a sheaf for `R` iff it is separated for `R` and there exists an amalgamation. -/
 lemma separated_for_and_exists_amalgamation_iff_sheaf_for :
   is_separated_for P R ∧ (∀ (x : family_of_elements P R), x.compatible → ∃ t, x.is_amalgamation t) ↔ is_sheaf_for P R :=
 begin
@@ -460,6 +468,7 @@ begin
     exact is_compatible_of_exists_amalgamation x ⟨_, ht₂⟩ }
 end
 
+/-- If `P` is separated for `R` and every family has an amalgamation is a sheaf. -/
 lemma is_separated_for.is_sheaf_for (t : is_separated_for P R) :
   (∀ (x : family_of_elements P R), x.compatible → ∃ t, x.is_amalgamation t) →
   is_sheaf_for P R :=
@@ -489,7 +498,7 @@ t.is_amalgamation hx f Hf
 lemma is_sheaf_for.is_separated_for : is_sheaf_for P R → is_separated_for P R :=
 λ q, (separated_for_and_exists_amalgamation_iff_sheaf_for.2 q).1
 
-/-- C2.1.3 in Elephant -/
+/-- C2.1.3 in [Elephant] -/
 lemma is_sheaf_for_iff_generate :
   is_sheaf_for P R ↔ is_sheaf_for P (generate R) :=
 begin
@@ -511,7 +520,7 @@ end
 /--
 Every presheaf is a sheaf for the family {𝟙 X}.
 
-Elephant: C2.1.5(i)
+[Elephant] C2.1.5(i)
 -/
 lemma is_sheaf_for_singleton_iso (P : Cᵒᵖ ⥤ Type v) :
   is_sheaf_for P (presieve.singleton (𝟙 X)) :=
@@ -527,7 +536,7 @@ end
 /--
 Every presheaf is a sheaf for the maximal sieve.
 
-Elephant: C2.1.5(ii)
+[Elephant] C2.1.5(ii)
 -/
 lemma is_sheaf_for_top_sieve (P : Cᵒᵖ ⥤ Type v) :
   is_sheaf_for P ((⊤ : sieve X) : presieve X) :=
@@ -561,6 +570,8 @@ If a family of arrows `R` on `X` has a subsieve `S` such that:
 * For every `f` in `R`, `P` is separated for the pullback of `S` along `f`,
 
 then `P` is a sheaf for `R`.
+
+This is closely related to [Elephant] C2.1.6(i).
 -/
 lemma is_sheaf_for_subsieve_aux (P : Cᵒᵖ ⥤ Type v) {S : sieve X} {R : presieve X}
   (h : (S : presieve X) ≤ R)
@@ -587,6 +598,7 @@ end
 /--
 If `P` is a sheaf for every pullback of the sieve `S`, then `P` is a sheaf for any presieve which
 contains `S`.
+This is closely related to [Elephant] C2.1.6.
 -/
 lemma is_sheaf_for_subsieve (P : Cᵒᵖ ⥤ Type v) {S : sieve X} {R : presieve X}
   (h : (S : presieve X) ≤ R)

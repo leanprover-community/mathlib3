@@ -815,6 +815,18 @@ begin
   exact set.insert_diff_of_mem ↑s h
 end
 
+@[simp] lemma insert_sdiff_insert (s t : finset α) (x : α) :
+  (insert x s) \ (insert x t) = s \ insert x t :=
+insert_sdiff_of_mem _ (mem_insert_self _ _)
+
+lemma sdiff_insert_of_not_mem {s : finset α} {x : α} (h : x ∉ s) (t : finset α) :
+  s \ (insert x t) = s \ t :=
+begin
+  refine subset.antisymm (sdiff_subset_sdiff (subset.refl _) (subset_insert _ _)) (λ y hy, _),
+  simp only [mem_sdiff, mem_insert, not_or_distrib] at hy ⊢,
+  exact ⟨hy.1, λ hxy, h $ hxy ▸ hy.1, hy.2⟩
+end
+
 @[simp] lemma sdiff_subset (s t : finset α) : s \ t ⊆ s :=
 by simp [subset_iff, mem_sdiff] {contextual := tt}
 
@@ -914,6 +926,24 @@ by { classical, rw ← piecewise_coe, exact set.piecewise_mem_pi ↑s hf hg }
 lemma piecewise_singleton [decidable_eq α] (i : α) :
   piecewise {i} f g = function.update g i (f i) :=
 by rw [← insert_emptyc_eq, piecewise_insert, piecewise_empty]
+
+lemma piecewise_piecewise_of_subset_left {s t : finset α} [Π i, decidable (i ∈ s)]
+  [Π i, decidable (i ∈ t)] (h : s ⊆ t) (f₁ f₂ g : Π a, δ a) :
+  s.piecewise (t.piecewise f₁ f₂) g = s.piecewise f₁ g :=
+s.piecewise_congr (λ i hi, piecewise_eq_of_mem _ _ _ (h hi)) (λ _ _, rfl)
+
+@[simp] lemma piecewise_idem_left (f₁ f₂ g : Π a, δ a) :
+  s.piecewise (s.piecewise f₁ f₂) g = s.piecewise f₁ g :=
+piecewise_piecewise_of_subset_left (subset.refl _) _ _ _
+
+lemma piecewise_piecewise_of_subset_right {s t : finset α} [Π i, decidable (i ∈ s)]
+  [Π i, decidable (i ∈ t)] (h : t ⊆ s) (f g₁ g₂ : Π a, δ a) :
+  s.piecewise f (t.piecewise g₁ g₂) = s.piecewise f g₂ :=
+s.piecewise_congr (λ _ _, rfl) (λ i hi, t.piecewise_eq_of_not_mem _ _ (mt (@h _) hi))
+
+@[simp] lemma piecewise_idem_right (f g₁ g₂ : Π a, δ a) :
+  s.piecewise f (s.piecewise g₁ g₂) = s.piecewise f g₂ :=
+piecewise_piecewise_of_subset_right (subset.refl _) f g₁ g₂
 
 lemma update_eq_piecewise {β : Type*} [decidable_eq α] (f : α → β) (i : α) (v : β) :
   function.update f i v = piecewise (singleton i) (λj, v) f :=

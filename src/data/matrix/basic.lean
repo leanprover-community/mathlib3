@@ -6,6 +6,7 @@ Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
 import algebra.big_operators.pi
 import algebra.module.pi
 import algebra.big_operators.ring
+import algebra.star.basic
 import data.fintype.card
 
 /-!
@@ -43,6 +44,11 @@ def map (M : matrix m n α) {β : Type w} (f : α → β) : matrix m n β := λ 
 @[simp]
 lemma map_apply {M : matrix m n α} {β : Type w} {f : α → β} {i : m} {j : n} :
   M.map f i j = f (M i j) := rfl
+
+@[simp]
+lemma map_map {M : matrix m n α} {β γ : Type*} {f : α → β} {g : β → γ} :
+  (M.map f).map g = M.map (g ∘ f) :=
+by { ext, simp, }
 
 /-- The transpose of a matrix. -/
 def transpose (M : matrix m n α) : matrix n m α
@@ -722,6 +728,24 @@ lemma transpose_map {β : Type w} {f : α → β} {M : matrix m n α} : Mᵀ.map
 by { ext, refl }
 
 end transpose
+
+section star_ring
+variables [decidable_eq n] {R : Type*} [semiring R] [star_ring R]
+
+/--
+When `R` is a *-(semi)ring, `matrix n n R` becomes a *-(semi)ring with
+the star operation given by taking the conjugate, and the star of each entry.
+-/
+instance : star_ring (matrix n n R) :=
+{ star := λ M, M.transpose.map star,
+  star_star := λ M, by { ext, simp, },
+  star_zero := by simp,
+  star_add := λ M N, by { ext, simp, },
+  star_mul := λ M N, by { ext, simp [mul_apply], }, }
+
+@[simp] lemma star_apply (M : matrix n n R) (i j) : star M i j = star (M j i) := rfl
+
+end star_ring
 
 /-- `M.minor row col` is the matrix obtained by reindexing the rows and the lines of
     `M`, such that `M.minor row col i j = M (row i) (col j)`. Note that the total number

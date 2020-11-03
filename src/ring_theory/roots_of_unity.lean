@@ -373,7 +373,7 @@ section integral_domain
 
 variables {ζ : R}
 
-@[simp] lemma prim_root_zero : primitive_roots 0 R = ∅ :=
+@[simp] lemma primitive_roots_zero : primitive_roots 0 R = ∅ :=
 begin
   rw [← finset.val_eq_zero, ← multiset.subset_zero, ← nth_roots_zero (1 : R), primitive_roots],
     simp only [finset.not_mem_empty, forall_const, forall_prop_of_false, multiset.to_finset_zero,

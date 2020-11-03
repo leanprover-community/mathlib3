@@ -357,7 +357,7 @@ lemma endo_algebra_bracket (M : Type v) [add_comm_group M] [module R M] (f g : m
   ⁅f, g⁆ = f.comp g - g.comp f := rfl
 
 /-- The adjoint action of a Lie algebra on itself. -/
-def Ad : L →ₗ⁅R⁆ module.End R L :=
+def ad : L →ₗ⁅R⁆ module.End R L :=
 { to_fun    := λ x,
   { to_fun    := has_bracket.bracket x,
     map_add'  := by { intros, apply lie_add, },

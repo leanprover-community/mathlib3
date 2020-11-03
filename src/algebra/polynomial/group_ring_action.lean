@@ -11,37 +11,47 @@ import algebra.group_action_hom
 # Group action on rings applied to polynomials
 -/
 
-noncomputable instance [mul_semiring_action M S] : mul_semiring_action M (polynomial S) :=
-{ smul := λ m, map $ mul_semiring_action.to_semiring_hom M S m,
+variables (M : Type*) [monoid M]
+
+namespace polynomial
+
+variables (R : Type*) [semiring R]
+
+noncomputable instance [mul_semiring_action M R] : mul_semiring_action M (polynomial R) :=
+{ smul := λ m, map $ mul_semiring_action.to_semiring_hom M R m,
   one_smul := λ p, by { ext n, erw coeff_map, exact one_smul M (p.coeff n) },
   mul_smul := λ m n p, by { ext i,
-    iterate 3 { rw coeff_map (mul_semiring_action.to_semiring_hom M S _) },
+    iterate 3 { rw coeff_map (mul_semiring_action.to_semiring_hom M R _) },
     exact mul_smul m n (p.coeff i) },
-  smul_add := λ m p q, map_add (mul_semiring_action.to_semiring_hom M S m),
-  smul_zero := λ m, map_zero (mul_semiring_action.to_semiring_hom M S m),
-  smul_one := λ m, map_one (mul_semiring_action.to_semiring_hom M S m),
-  smul_mul := λ m p q, map_mul (mul_semiring_action.to_semiring_hom M S m), }
+  smul_add := λ m p q, map_add (mul_semiring_action.to_semiring_hom M R m),
+  smul_zero := λ m, map_zero (mul_semiring_action.to_semiring_hom M R m),
+  smul_one := λ m, map_one (mul_semiring_action.to_semiring_hom M R m),
+  smul_mul := λ m p q, map_mul (mul_semiring_action.to_semiring_hom M R m), }
 
-noncomputable instance [faithful_mul_semiring_action M S] :
-  faithful_mul_semiring_action M (polynomial S) :=
-{ eq_of_smul_eq_smul' := λ m₁ m₂ h, eq_of_smul_eq_smul S $ λ s, C_inj.1 $
+noncomputable instance [faithful_mul_semiring_action M R] :
+  faithful_mul_semiring_action M (polynomial R) :=
+{ eq_of_smul_eq_smul' := λ m₁ m₂ h, eq_of_smul_eq_smul R $ λ s, C_inj.1 $
     calc  C (m₁ • s)
-        = m₁ • C s : (map_C $ mul_semiring_action.to_semiring_hom M S m₁).symm
+        = m₁ • C s : (map_C $ mul_semiring_action.to_semiring_hom M R m₁).symm
     ... = m₂ • C s : h (C s)
     ... = C (m₂ • s) : map_C _,
-  .. polynomial.mul_semiring_action M S }
+  .. polynomial.mul_semiring_action M R }
 
-variables [mul_semiring_action M S]
+variables {M R}
 
-@[simp] lemma coeff_smul' (m : M) (p : polynomial S) (n : ℕ) :
+variables [mul_semiring_action M R]
+
+@[simp] lemma coeff_smul' (m : M) (p : polynomial R) (n : ℕ) :
   (m • p).coeff n = m • p.coeff n :=
 coeff_map _ _
 
-@[simp] lemma smul_C (m : M) (r : S) : m • C r = C (m • r) :=
+@[simp] lemma smul_C (m : M) (r : R) : m • C r = C (m • r) :=
 map_C _
 
-@[simp] lemma smul_X (m : M) : (m • X : polynomial S) = X :=
+@[simp] lemma smul_X (m : M) : (m • X : polynomial R) = X :=
 map_X _
+
+variables (S : Type*) [comm_semiring S] [mul_semiring_action M S]
 
 theorem smul_eval_smul (m : M) (f : polynomial S) (x : S) :
   (m • f).eval (m • x) = m • f.eval x :=
@@ -50,6 +60,8 @@ polynomial.induction_on f
   (λ f g ihf ihg, by rw [smul_add, eval_add, ihf, ihg, eval_add, smul_add])
   (λ n r ih, by rw [smul_mul', smul_pow, smul_C, smul_X, eval_mul, eval_C, eval_pow, eval_X,
       eval_mul, eval_C, eval_pow, eval_X, smul_mul', smul_pow])
+
+variables (G : Type*) [group G]
 
 theorem eval_smul' [mul_semiring_action G S] (g : G) (f : polynomial S) (x : S) :
   f.eval (g • x) = g • (g⁻¹ • f).eval x :=
@@ -63,13 +75,10 @@ end polynomial
 
 section comm_ring
 
-variables (G : Type u) [group G] [fintype G]
-variables (R : Type v) [comm_ring R] [mul_semiring_action G R]
+variables (G : Type*) [group G] [fintype G]
+variables (R : Type*) [comm_ring R] [mul_semiring_action G R]
 open mul_action
 open_locale classical
-
-noncomputable instance (s : subgroup G) : fintype (quotient_group.quotient s) :=
-quotient.fintype _
 
 /-- the product of `(X - g • x)` over distinct `g • x`. -/
 noncomputable def prod_X_sub_smul (x : R) : polynomial R :=
@@ -98,6 +107,7 @@ by rw [← polynomial.coeff_smul', prod_X_sub_smul.smul]
 end comm_ring
 
 namespace mul_semiring_action_hom
+variables {M}
 variables {P : Type*} [comm_semiring P] [mul_semiring_action M P]
 variables {Q : Type*} [comm_semiring Q] [mul_semiring_action M Q]
 open polynomial

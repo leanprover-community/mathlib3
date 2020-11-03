@@ -148,7 +148,6 @@ instance [linear_order α] : is_strict_order (finset.colex α) (<) := {}
 lemma lt_trichotomy [linear_order α] (A B : finset.colex α) :
   A < B ∨ A = B ∨ B < A :=
 begin
-  classical,
   by_cases h₁ : (A = B),
   { right,
     left,

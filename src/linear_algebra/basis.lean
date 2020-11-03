@@ -152,7 +152,7 @@ begin
   { to_fun := λ x, f x i,
     map_add' := λ _ _, by rw [hadd, pi.add_apply],
     map_smul' := λ _ _, by rw [hsmul, pi.smul_apply] },
-  show (finsupp.leval i).comp hv.repr x = f_i x,
+  show (finsupp.lapply i).comp hv.repr x = f_i x,
   congr' 1,
   refine hv.ext (λ j, _),
   show hv.repr (v j) i = f (v j) i,

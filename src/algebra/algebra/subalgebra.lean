@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
-import algebra.algebra.basic
+import algebra.algebra.operations
 
 /-!
 # Subalgebras over Commutative Semiring
@@ -200,6 +200,18 @@ ext $ λ x, by rw [← mem_to_submodule, ← mem_to_submodule, h]
 
 theorem to_submodule_inj {S U : subalgebra R A} : (S : submodule R A) = U ↔ S = U :=
 ⟨to_submodule_injective, congr_arg _⟩
+
+/-- As submodules, subalgebras are idempotent. -/
+@[simp] theorem mul_self : (S : submodule R A) * (S : submodule R A) = (S : submodule R A) :=
+begin
+  apply le_antisymm,
+  { rw submodule.mul_le,
+    intros y hy z hz,
+    exact mul_mem S hy hz },
+  { intros x hx1,
+    rw ← mul_one x,
+    exact submodule.mul_mem_mul hx1 (one_mem S) }
+end
 
 instance module_to_submodule : semimodule S (S : submodule R A) :=
 { smul := λ x y, ⟨x.1 * y.1, S.mul_mem x.2 y.2⟩,

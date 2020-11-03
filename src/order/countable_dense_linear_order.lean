@@ -78,16 +78,20 @@ instance : preorder (partial_iso α β) := subtype.preorder _
 
 variables {α β}
 
+/-- For each `a`, we can find a `b` in the codomain, such that `a`'s relation to
+the domain of `f` is `b`'s relation to the image of `f`.
+
+Thus, if `a` is not already in `f`, we can extend `f` by sending `a` to `b`.
+-/
 lemma exists_across [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β]
   (f : partial_iso α β) (a : α) :
   ∃ b : β, ∀ (p ∈ f.val), cmp (prod.fst p) a = cmp (prod.snd p) b :=
 begin
   by_cases h : ∃ b, (a, b) ∈ f.val,
   { cases h with b hb, exact ⟨b, λ p hp, f.property _ _ hp hb⟩, },
-  cases exists_between_finsets ((f.val.filter $ λ p : α × β, p.fst < a).image prod.snd)
-                   ((f.val.filter $ λ p : α × β, a < p.fst).image prod.snd) _
-    with b hb,
-  swap,
+  have : ∀ (x ∈ (f.val.filter (λ (p : α × β), p.fst < a)).image prod.snd)
+           (y ∈ (f.val.filter (λ (p : α × β), a < p.fst)).image prod.snd),
+    x < y,
   { intros x hx y hy,
     rw finset.mem_image at hx hy,
     rcases hx with ⟨p, hp1, rfl⟩,
@@ -95,6 +99,7 @@ begin
     rw finset.mem_filter at hp1 hq1,
     rw ←lt_iff_lt_of_cmp_eq_cmp (f.property _ _ hp1.1 hq1.1),
     exact lt_trans hp1.right hq1.right, },
+  cases exists_between_finsets _ _ this with b hb,
   use b,
   rintros ⟨p1, p2⟩ hp,
   have : p1 ≠ a := λ he, h ⟨p2, he ▸ hp⟩,
@@ -116,8 +121,7 @@ def defined_at_left [densely_ordered β] [no_bot_order β] [no_top_order β] [no
   begin
     intro f,
     cases exists_across f a with b a_b,
-    refine ⟨ ⟨insert (a,b) f.val, _⟩,
-      ⟨b, finset.mem_insert_self _ _⟩, finset.subset_insert _ _⟩,
+    refine ⟨⟨insert (a, b) f.val, _⟩, ⟨b, finset.mem_insert_self _ _⟩, finset.subset_insert _ _⟩,
     intros p q hp hq,
     rw finset.mem_insert at hp hq,
     rcases hp with rfl | pf;
@@ -137,7 +141,7 @@ subtype.map (finset.image (equiv.prod_comm _ _)) $ λ f hf p q hp hq,
 (by { rw [←finset.mem_coe, finset.coe_image, equiv.image_eq_preimage] at hq,
   rwa ←finset.mem_coe })
 
-/-- The set of partial isomorphisms defined on `b : β `, together with a proof that any
+/-- The set of partial isomorphisms defined on `b : β`, together with a proof that any
     partial isomorphism can be extended to include `b`. We prove this by symmetry. -/
 def defined_at_right [densely_ordered α] [no_bot_order α] [no_top_order α] [nonempty α]
   (b : β) : cofinal (partial_iso α β) :=
@@ -150,8 +154,7 @@ def defined_at_right [densely_ordered α] [no_bot_order α] [no_top_order α] [n
     split,
     { use a,
       change (a, b) ∈ f'.val.image _,
-      rw [←finset.mem_coe, finset.coe_image, equiv.image_eq_preimage],
-      exact ha },
+      rwa [←finset.mem_coe, finset.coe_image, equiv.image_eq_preimage] },
     { change _ ⊆ f'.val.image _,
       rw [←finset.coe_subset, finset.coe_image, equiv.subset_image],
       change f.val.image _ ⊆ _ at hl,

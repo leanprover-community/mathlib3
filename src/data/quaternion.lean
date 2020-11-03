@@ -47,8 +47,8 @@ are computable.
 quaternion
 -/
 
-/-- Space of quaternions over a type. Implemented as a structure with four fields:
-`re`, `im_i`, `im_j`, and `im_k`. -/
+/-- Quaternion algebra over a type with fixed coefficients $a=i^2$ and $b=j^2$.
+Implemented as a structure with four fields: `re`, `im_i`, `im_j`, and `im_k`. -/
 @[nolint unused_arguments, ext]
 structure quaternion_algebra (R : Type*) (a b : R) :=
 mk {} :: (re : R) (im_i : R) (im_j : R) (im_k : R)

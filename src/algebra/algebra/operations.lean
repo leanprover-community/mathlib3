@@ -287,8 +287,8 @@ lemma le_div_iff {I J K : submodule R A} : I ≤ J / K ↔ ∀ (x ∈ I) (z ∈ 
 lemma le_div_iff_mul_le {I J K : submodule R A} : I ≤ J / K ↔ I * K ≤ J :=
 by rw [le_div_iff, mul_le]
 
-lemma one_le_div {I : submodule R A} :
-  I ≤ (1 : submodule R A) ↔ 1 ≤ 1 / I :=
+@[simp] lemma one_le_one_div {I : submodule R A} :
+  1 ≤ 1 / I ↔ I ≤ (1 : submodule R A) :=
 begin
   split, all_goals {intro hI},
   {rw [le_div_iff_mul_le, one_mul], assumption },

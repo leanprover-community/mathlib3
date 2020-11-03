@@ -357,7 +357,7 @@ lemma endo_algebra_bracket (M : Type v) [add_comm_group M] [module R M] (f g : m
   ⁅f, g⁆ = f.comp g - g.comp f := rfl
 
 /-- The adjoint action of a Lie algebra on itself. -/
-def Ad : L →ₗ⁅R⁆ module.End R L :=
+def ad : L →ₗ⁅R⁆ module.End R L :=
 { to_fun    := λ x,
   { to_fun    := has_bracket.bracket x,
     map_add'  := by { intros, apply lie_add, },
@@ -556,7 +556,7 @@ def lie_module.of_endo_morphism (α : L →ₗ⁅R⁆ module.End R M) : lie_modu
 
 /-- Every Lie algebra is a module over itself. -/
 instance lie_algebra_self_module : lie_module R L L :=
-  lie_module.of_endo_morphism R L L lie_algebra.Ad
+  lie_module.of_endo_morphism R L L lie_algebra.ad
 
 /-- A Lie submodule of a Lie module is a submodule that is closed under the Lie bracket.
 This is a sufficient condition for the subset itself to form a Lie module. -/

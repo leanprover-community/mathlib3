@@ -16,7 +16,7 @@ lemmas and properties relating to it.
 The colex ordering likes to avoid large values - it can be thought of on
 `finset ℕ` as the "binary" ordering. That is, order A based on
 `∑_{i ∈ A} 2^i`.
-It's defined here a slightly more general way, requiring only `has_lt α` in
+It's defined here in a slightly more general way, requiring only `has_lt α` in
 the definition of colex on `finset α`. In the context of the Kruskal-Katona
 theorem, we are interested in particular on how colex behaves for sets of a
 fixed size. If the size is 3, colex on ℕ starts

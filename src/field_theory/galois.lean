@@ -98,11 +98,8 @@ section galois_correspondence
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 variables (H : subgroup (E ≃ₐ[F] E)) (K : intermediate_field F E)
 
-instance tower_top_of_galois [h : is_galois F E] : is_galois K E :=
-begin
-  haveI := h.2,
-  exact ⟨is_separable_tower_top_of_is_separable K h.1, normal.tower_top_of_normal F K E⟩,
-end
+instance is_galois_tower_top_of_is_galois [h : is_galois F E] : is_galois K E :=
+⟨is_separable_tower_top_of_is_separable K h.1, normal.tower_top_of_normal F K E h.2⟩
 
 instance subgroup_action : faithful_mul_semiring_action H E :=
 { smul := λ h x, h x,

@@ -279,6 +279,32 @@ begin
   rw [this, ←lift_unique, w],
 end
 
+instance op_alg : algebra R (free_algebra R X)ᵒᵖ  := sorry
+
+instance : star_ring (free_algebra R X) :=
+{ star := opposite.unop ∘ lift R (opposite.op ∘ ι R),
+  star_involutive := λ x, by {
+    unfold has_star.star,
+    -- suffices : (opposite.unop ∘ lift R (opposite.op ∘ ι R) ∘ opposite.unop ∘ lift R (opposite.op ∘ ι R)) = id,
+    -- exact congr_fun this x,
+    apply opposite.op_injective,
+    simp only [opposite.op_unop, function.comp_app],
+    unfold opposite.op opposite.unop,
+    have : id = (alg_hom.id R (free_algebra R X)).to_fun := rfl,
+    conv in (id ∘ _) {
+      erw this,
+    },
+    -- rw equiv.apply_eq_iff_eq_symm_apply,
+    -- rw ← alg_hom.comp_apply,
+    -- suffices : (opposite.unop ∘ lift R (opposite.op ∘ ι R) ∘ opposite.unop ∘ lift R (opposite.op ∘ ι R)) = id,
+    -- exact congr_fun this x,
+    -- simp,
+    -- have : (lift R ι) ∘ (lift R ι) = ⇑(alg_hom.comp (lift R ι)) := rfl,
+  },
+  star_mul := λ a b, by simp,
+  star_zero := by simp,
+  star_add := λ a b, by simp }
+
 /--
 The free algebra on `X` is "just" the monoid algebra on the free monoid on `X`.
 

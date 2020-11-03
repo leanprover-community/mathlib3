@@ -243,6 +243,15 @@ and elements of `F.obj X`, without any universe switching.
 def yoneda_equiv {X : C} {F : Cᵒᵖ ⥤ Type v₁} : (yoneda.obj X ⟶ F) ≃ F.obj (op X) :=
 (yoneda_sections X F).to_equiv.trans equiv.ulift
 
+lemma yoneda_equiv_nat {X Y : C} {F : Cᵒᵖ ⥤ Type v₁} (f : yoneda.obj X ⟶ F) (g : Y ⟶ X) :
+  F.map g.op (yoneda_equiv f) = yoneda_equiv (yoneda.map g ≫ f) :=
+begin
+  change (f.app (op X) ≫ F.map g.op) (𝟙 X) = f.app (op Y) (𝟙 Y ≫ g),
+  rw ← f.naturality,
+  dsimp,
+  simp,
+end
+
 @[simp]
 lemma yoneda_equiv_apply {X : C} {F : Cᵒᵖ ⥤ Type v₁} (f : yoneda.obj X ⟶ F) :
   yoneda_equiv f = f.app (op X) (𝟙 X) :=

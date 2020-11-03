@@ -387,30 +387,21 @@ def nat_trans_equiv_compatible_family :
     refl,
   end }
 
--- TODO: MOVE ME BEFORE PR
-/--
-We have a type-level equivalence between natural transformations from the yoneda embedding
-and elements of `F.obj X`, without any universe switching.
--/
-def yoneda_equiv {F : Cᵒᵖ ⥤ Type v} : (yoneda.obj X ⟶ F) ≃ F.obj (op X) :=
-(yoneda_sections X F).to_equiv.trans equiv.ulift
-
 /-- (Implementation). A lemma useful to prove `yoneda_condition_iff_sheaf_condition`. -/
 lemma extension_iff_amalgamation (x : S.functor ⟶ P) (g : yoneda.obj X ⟶ P) :
   S.functor_inclusion ≫ g = x ↔ (nat_trans_equiv_compatible_family x).1.is_amalgamation (yoneda_equiv g) :=
 begin
-  dsimp [family_of_elements.is_amalgamation, yoneda_equiv, yoneda_lemma,
-         nat_trans_equiv_compatible_family],
+  change _ ↔ ∀ ⦃Y : C⦄ (f : Y ⟶ X) (h : S f), P.map f.op (yoneda_equiv g) = x.app (op Y) ⟨f, h⟩,
   split,
-  { rintro rfl,
-    intros Y f hf,
-    rw ← functor_to_types.naturality _ _ g,
-    change g.app (op Y) (f ≫ 𝟙 X) = g.app (op Y) f,
-    simp only [comp_id] },
+  { rintro rfl Y f hf,
+    rw yoneda_equiv_nat,
+    dsimp,
+    simp },
   { intro h,
     ext Y ⟨f, hf⟩,
     have : _ = x.app Y _ := h f hf,
-    rw [← this, ← functor_to_types.naturality _ _ g],
+    rw yoneda_equiv_nat at this,
+    rw ← this,
     dsimp,
     simp },
 end

@@ -159,10 +159,9 @@ begin
 end
 
 /-- The converse of `type_equalizer_of_unique`. -/
-lemma unique_of_type_equalizer (t : is_limit (fork.of_ι _ w)) :
-  (∀ (y : Y), g y = h y → ∃! (x : X), f x = y) :=
+lemma unique_of_type_equalizer (t : is_limit (fork.of_ι _ w)) (y : Y) (hy : g y = h y) :
+  ∃! (x : X), f x = y :=
 begin
-  intros y hy,
   let y' : punit ⟶ Y := λ _, y,
   have hy' : y' ≫ g = y' ≫ h := funext (λ _, hy),
   refine ⟨(fork.is_limit.lift' t _ hy').1 ⟨⟩, congr_fun (fork.is_limit.lift' t y' _).2 ⟨⟩, _⟩,

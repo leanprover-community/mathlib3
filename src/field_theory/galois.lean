@@ -98,17 +98,10 @@ section galois_correspondence
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 variables (H : subgroup (E ≃ₐ[F] E)) (K : intermediate_field F E)
 
-instance is_galois_of_tower_top [h : is_galois F E] : is_galois K E :=
+instance tower_top_of_galois [h : is_galois F E] : is_galois K E :=
 begin
-  split,
-  { exact is_separable_tower_top_of_is_separable K h.1 },
-  intros x,
-  cases h.2 x with hx hhx,
-  rw (show (algebra_map F E) = (algebra_map K E).comp (algebra_map F K), by ext;refl) at hhx,
-  exact ⟨is_integral_of_is_scalar_tower x hx, polynomial.splits_of_splits_of_dvd (algebra_map K E)
-    (polynomial.map_ne_zero (minimal_polynomial.ne_zero hx))
-    ((polynomial.splits_map_iff (algebra_map F K) (algebra_map K E)).mpr hhx)
-    (minimal_polynomial.dvd_map_of_is_scalar_tower K hx)⟩,
+  haveI := h.2,
+  exact ⟨is_separable_tower_top_of_is_separable K h.1, normal.tower_top_of_normal F K E⟩,
 end
 
 instance subgroup_action : faithful_mul_semiring_action H E := {

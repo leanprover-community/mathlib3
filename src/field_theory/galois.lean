@@ -104,55 +104,51 @@ begin
   exact ⟨is_separable_tower_top_of_is_separable K h.1, normal.tower_top_of_normal F K E⟩,
 end
 
-instance subgroup_action : faithful_mul_semiring_action H E := {
-  smul := λ h x, h x,
+instance subgroup_action : faithful_mul_semiring_action H E :=
+{ smul := λ h x, h x,
   smul_zero := λ _, alg_equiv.map_zero _,
   smul_add := λ _, alg_equiv.map_add _,
   one_smul := λ _, rfl,
   smul_one := λ _, alg_equiv.map_one _,
   mul_smul := λ _ _ _, rfl,
   smul_mul := λ _, alg_equiv.map_mul _,
-  eq_of_smul_eq_smul' := λ x y z, subtype.ext (alg_equiv.ext z),
-}
+  eq_of_smul_eq_smul' := λ x y z, subtype.ext (alg_equiv.ext z) }
 
 /-- The intermediate_field fixed by a subgroup -/
-def fixed_field : intermediate_field F E := {
-  carrier := mul_action.fixed_points H E,
+def fixed_field : intermediate_field F E :=
+{ carrier := mul_action.fixed_points H E,
   zero_mem' := smul_zero,
   add_mem' := λ _ _ hx hy _, by rw [smul_add, hx, hy],
   neg_mem' := λ _ hx _, by rw [smul_neg, hx],
   one_mem' := smul_one,
   mul_mem' := λ _ _ hx hy _, by rw [smul_mul', hx, hy],
   inv_mem' := λ _ hx _, by rw [smul_inv, hx],
-  algebra_map_mem' := λ _ _, alg_equiv.commutes _ _,
-}
+  algebra_map_mem' := λ _ _, alg_equiv.commutes _ _ }
 
 lemma findim_fixed_field_eq_card [finite_dimensional F E] :
   findim (fixed_field H) E = fintype.card H :=
 fixed_points.findim_eq_card H E
 
 /-- The subgroup fixing an intermediate_field -/
-def fixing_subgroup : subgroup (E ≃ₐ[F] E) := {
-  carrier := λ ϕ, ∀ x : K, ϕ x = x,
+def fixing_subgroup : subgroup (E ≃ₐ[F] E) :=
+{ carrier := λ ϕ, ∀ x : K, ϕ x = x,
   one_mem' := λ _, rfl,
   mul_mem' := λ _ _ hx hy _, (congr_arg _ (hy _)).trans (hx _),
-  inv_mem' := λ _ hx _, (equiv.symm_apply_eq (alg_equiv.to_equiv _)).mpr (hx _).symm,
-}
+  inv_mem' := λ _ hx _, (equiv.symm_apply_eq (alg_equiv.to_equiv _)).mpr (hx _).symm }
 
 lemma le_iff_le : K ≤ fixed_field H ↔ H ≤ fixing_subgroup K :=
 ⟨λ h g hg x, h (subtype.mem x) ⟨g, hg⟩, λ h x hx g, h (subtype.mem g) ⟨x, hx⟩⟩
 
 /-- The fixing_subgroup of `K : intermediate_field F E` is isomorphic to `E ≃ₐ[K] E` -/
-def fixing_subgroup_iso : fixing_subgroup K ≃* (E ≃ₐ[K] E) := {
-  to_fun := λ ϕ, alg_equiv.of_bijective (alg_hom.mk ϕ (alg_equiv.map_one ϕ) (alg_equiv.map_mul ϕ)
+def fixing_subgroup_iso : fixing_subgroup K ≃* (E ≃ₐ[K] E) :=
+{ to_fun := λ ϕ, alg_equiv.of_bijective (alg_hom.mk ϕ (alg_equiv.map_one ϕ) (alg_equiv.map_mul ϕ)
     (alg_equiv.map_zero ϕ) (alg_equiv.map_add ϕ) (ϕ.mem)) (alg_equiv.bijective ϕ),
   inv_fun := λ ϕ, ⟨alg_equiv.of_bijective (alg_hom.mk ϕ (alg_equiv.map_one ϕ) (alg_equiv.map_mul ϕ)
     (alg_equiv.map_zero ϕ) (alg_equiv.map_add ϕ) (λ r, ϕ.commutes (algebra_map F K r)))
       (alg_equiv.bijective ϕ), ϕ.commutes⟩,
   left_inv := λ _, by {ext, refl},
   right_inv := λ _, by {ext, refl},
-  map_mul' := λ _ _, by {ext, refl},
-}
+  map_mul' := λ _ _, by {ext, refl} }
 
 theorem fixing_subgroup_of_fixed_field [finite_dimensional F E] :
   fixing_subgroup (fixed_field H) = H :=
@@ -167,8 +163,8 @@ begin
   exact fintype.card_congr (by refl),
 end
 
-instance alg_instance : algebra K (fixed_field (fixing_subgroup K)) := {
-  smul := λ x y, ⟨x*y, λ ϕ, by rw [smul_mul', (show ϕ • ↑x = ↑x, by exact subtype.mem ϕ x),
+instance alg_instance : algebra K (fixed_field (fixing_subgroup K)) :=
+{ smul := λ x y, ⟨x*y, λ ϕ, by rw [smul_mul', (show ϕ • ↑x = ↑x, by exact subtype.mem ϕ x),
     (show ϕ • ↑y = ↑y, by exact subtype.mem y ϕ)]⟩,
   to_fun := λ x, ⟨x, λ ϕ, subtype.mem ϕ x⟩,
   map_zero' := rfl,
@@ -176,8 +172,7 @@ instance alg_instance : algebra K (fixed_field (fixing_subgroup K)) := {
   map_one' := rfl,
   map_mul' := λ _ _, rfl,
   commutes' := λ _ _, mul_comm _ _,
-  smul_def' := λ _ _, rfl,
-}
+  smul_def' := λ _ _, rfl }
 
 instance tower_instance : is_scalar_tower K (fixed_field (fixing_subgroup K)) E :=
 ⟨λ _ _ _, mul_assoc _ _ _⟩

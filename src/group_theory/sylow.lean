@@ -33,6 +33,9 @@ begin
       ... = a : (subtype.mk.inj (hz₁ ⟨a, mem_orbit_self _⟩)).symm }
 end
 
+-- This instance causes `exact card_quotient_dvd_card _` to timeout.
+local attribute [-instance] quotient_group.quotient.fintype
+
 lemma card_modeq_card_fixed_points [fintype α] [fintype G] [fintype (fixed_points G α)]
   (p : ℕ) {n : ℕ} [hp : fact p.prime] (h : card G = p ^ n) :
   card α ≡ card (fixed_points G α) [MOD p] :=
@@ -51,7 +54,7 @@ begin
         simp only [quotient.eq']; congr)),
   { refine quotient.induction_on' b (λ b _ hb, _),
     have : card (orbit G b) ∣ p ^ n,
-    { rw [← h, fintype.card_congr (orbit_equiv_quotient_stabilizer G b)];
+    { rw [← h, fintype.card_congr (orbit_equiv_quotient_stabilizer G b)],
       exact card_quotient_dvd_card _ },
     rcases (nat.dvd_prime_pow hp).1 this with ⟨k, _, hk⟩,
     have hb' :¬ p ^ 1 ∣ p ^ k,

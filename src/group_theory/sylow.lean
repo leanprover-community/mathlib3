@@ -210,7 +210,7 @@ let ⟨s, hs⟩ := exists_eq_mul_left_of_dvd hdvd in
 have hcard : card (quotient H) = s * p :=
   (nat.mul_left_inj (show card H > 0, from fintype.card_pos_iff.2
       ⟨⟨1, H.one_mem⟩⟩)).1
-    (by rwa [← card_eq_card_quotient_mul_card_subgroup, hH2, hs,
+    (by rwa [← card_eq_card_quotient_mul_card_subgroup H, hH2, hs,
       pow_succ', mul_assoc, mul_comm p]),
 have hm : s * p % p =
   card (quotient (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) % p :=

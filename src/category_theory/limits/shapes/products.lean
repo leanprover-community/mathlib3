@@ -119,7 +119,7 @@ def pi_comparison [has_product f] [has_product (λ b, G.obj (f b))] :
 pi.lift (λ b, G.map (pi.π f b))
 
 @[simp, reassoc]
-lemma pi_comparison_comp_pi [has_product f] [has_product (λ b, G.obj (f b))] (b : β) :
+lemma pi_comparison_comp_π [has_product f] [has_product (λ b, G.obj (f b))] (b : β) :
   pi_comparison G f ≫ pi.π _ b = G.map (pi.π f b) :=
 limit.lift_π _ b
 

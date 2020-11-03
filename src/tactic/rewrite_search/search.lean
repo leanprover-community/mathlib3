@@ -119,8 +119,8 @@ do e ← g.solving_edge,
   path1 ← walk_up_parents g e,
   path2 ← walk_up_parents g v.parent,
   match v.side with
-    | side.L := return (path2.reverse, path1.reverse)
-    | side.R := return (path1.reverse, path2.reverse)
+  | side.L := return (path2.reverse, path1.reverse)
+  | side.R := return (path1.reverse, path2.reverse)
   end
 
 /--

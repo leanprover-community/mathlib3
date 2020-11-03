@@ -21,7 +21,7 @@ Collects rewrite rules, runs a graph search to find a chain of rewrites to prove
 current target, and generates a string explanation for it.
 -/
 private meta def rewrite_search_target (cfg : config) (rws : list rw_rule) :
-tactic string :=
+  tactic string :=
 do t ← tactic.target,
   if t.has_meta_var then
     tactic.fail "rewrite_search is not suitable for goals containing metavariables"

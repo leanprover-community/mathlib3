@@ -681,7 +681,7 @@ end
 
 namespace equalizer
 
-variables {C : Type v} [small_category C] {X : C} (R : presieve X) (S : sieve X) (P : Cᵒᵖ ⥤ Type v)
+variables {C : Type v} [small_category C] (P : Cᵒᵖ ⥤ Type v) {X : C} (R : presieve X) (S : sieve X)
 
 noncomputable theory
 
@@ -694,7 +694,7 @@ def first_obj : Type v :=
 
 /-- Show that `first_obj` is isomorphic to `family_of_elements`. -/
 @[simps]
-def first_obj_eq_family : first_obj R P ≅ R.family_of_elements P :=
+def first_obj_eq_family : first_obj P R ≅ R.family_of_elements P :=
 { hom := λ t Y f hf, pi.π (λ (f : Σ Y, {f : Y ⟶ X // R f}), P.obj (op f.1)) ⟨_, _, hf⟩ t,
   inv := pi.lift (λ f x, x _ f.2.2),
   hom_inv_id' :=
@@ -708,11 +708,14 @@ def first_obj_eq_family : first_obj R P ≅ R.family_of_elements P :=
     apply limits.types.limit.lift_π_apply,
   end }
 
+instance : inhabited (first_obj P (⊥ : presieve X)) :=
+((first_obj_eq_family P _).to_equiv).inhabited
+
 /--
 The left morphism of the fork diagram given in Equation (3) of [MM92], as well as the fork diagram
 of https://stacks.math.columbia.edu/tag/00VM.
 -/
-def fork_map : P.obj (op X) ⟶ first_obj R P :=
+def fork_map : P.obj (op X) ⟶ first_obj P R :=
 pi.lift (λ f, P.map f.2.1.op)
 
 /-!
@@ -729,14 +732,16 @@ def second_obj : Type v :=
 ∏ (λ (f : Σ Y Z (g : Z ⟶ Y), {f' : Y ⟶ X // S f'}), P.obj (op f.2.1))
 
 /-- The map `p` of Equations (3,4) [MM92]. -/
-def first_map : first_obj S P ⟶ second_obj S P :=
+def first_map : first_obj P S ⟶ second_obj P S :=
 pi.lift (λ fg, pi.π _ (⟨_, _, S.downward_closed fg.2.2.2.2 fg.2.2.1⟩ : Σ Y, {f : Y ⟶ X // S f}))
 
+instance : inhabited (second_obj P (⊥ : sieve X)) := ⟨first_map _ _ (default _)⟩
+
 /-- The map `a` of Equations (3,4) [MM92]. -/
-def second_map : first_obj S P ⟶ second_obj S P :=
+def second_map : first_obj P S ⟶ second_obj P S :=
 pi.lift (λ fg, pi.π _ ⟨_, fg.2.2.2⟩ ≫ P.map fg.2.2.1.op)
 
-lemma w : fork_map S P ≫ first_map S P = fork_map S P ≫ second_map S P :=
+lemma w : fork_map P S ≫ first_map P S = fork_map P S ≫ second_map P S :=
 begin
   apply limit.hom_ext,
   rintro ⟨Y, Z, g, f, hf⟩,
@@ -744,11 +749,11 @@ begin
 end
 
 /--
-The family of elements given by `x : first_obj S P` is compatible iff `first_map` and `second_map`
+The family of elements given by `x : first_obj P S` is compatible iff `first_map` and `second_map`
 map it to the same point.
 -/
-lemma compatible_iff (x : first_obj S P) :
-  ((first_obj_eq_family S P).hom x).compatible ↔ first_map S P x = second_map S P x :=
+lemma compatible_iff (x : first_obj P S) :
+  ((first_obj_eq_family P S).hom x).compatible ↔ first_map P S x = second_map P S x :=
 begin
   rw presieve.sieve_compatible_iff,
   split,
@@ -756,17 +761,17 @@ begin
     ext ⟨Y, Z, g, f, hf⟩,
     simpa [first_map, second_map] using t _ g hf },
   { intros t Y Z f g hf,
-    have : (first_map S P ≫ pi.π _ (⟨Y, Z, g, f, hf⟩ : Σ (Y Z : C) (g : Z ⟶ Y), {f' // S f'})) x =
-           (second_map S P ≫ pi.π _ (⟨Y, Z, g, f, hf⟩ : Σ (Y Z : C) (g : Z ⟶ Y), {f' // S f'})) x,
+    have : (first_map P S ≫ pi.π _ (⟨Y, Z, g, f, hf⟩ : Σ (Y Z : C) (g : Z ⟶ Y), {f' // S f'})) x =
+           (second_map P S ≫ pi.π _ (⟨Y, Z, g, f, hf⟩ : Σ (Y Z : C) (g : Z ⟶ Y), {f' // S f'})) x,
     { dsimp, rw t },
     simpa [first_map, second_map] using this }
 end
 
 /-- `P` is a sheaf for `S`, iff the fork given by `w` is an equalizer. -/
 lemma equalizer_sheaf_condition :
-  presieve.is_sheaf_for P S ↔ nonempty (is_limit (fork.of_ι _ (w S P))) :=
+  presieve.is_sheaf_for P S ↔ nonempty (is_limit (fork.of_ι _ (w P S))) :=
 begin
-  rw [← type_equalizer, ← equiv.forall_congr_left (first_obj_eq_family S P).to_equiv.symm],
+  rw [← type_equalizer, ← equiv.forall_congr_left (first_obj_eq_family P S).to_equiv.symm],
   simp_rw ← compatible_iff,
   simp only [inv_hom_id_apply, iso.to_equiv_symm_fun],
   apply ball_congr,
@@ -803,14 +808,16 @@ def second_obj : Type v :=
   P.obj (op (pullback fg.1.2.1 fg.2.2.1)))
 
 /-- The map `pr₀*` of https://stacks.math.columbia.edu/tag/00VL. -/
-def first_map : first_obj R P ⟶ second_obj R P :=
+def first_map : first_obj P R ⟶ second_obj P R :=
 pi.lift (λ fg, pi.π _ _ ≫ P.map pullback.fst.op)
 
+instance : inhabited (second_obj P (⊥ : presieve X)) := ⟨first_map _ _ (default _)⟩
+
 /-- The map `pr₁*` of https://stacks.math.columbia.edu/tag/00VL. -/
-def second_map : first_obj R P ⟶ second_obj R P :=
+def second_map : first_obj P R ⟶ second_obj P R :=
 pi.lift (λ fg, pi.π _ _ ≫ P.map pullback.snd.op)
 
-lemma w : fork_map R P ≫ first_map R P = fork_map R P ≫ second_map R P :=
+lemma w : fork_map P R ≫ first_map P R = fork_map P R ≫ second_map P R :=
 begin
   apply limit.hom_ext,
   rintro ⟨⟨Y, f, hf⟩, ⟨Z, g, hg⟩⟩,
@@ -822,11 +829,11 @@ begin
 end
 
 /--
-The family of elements given by `x : first_obj S P` is compatible iff `first_map` and `second_map`
+The family of elements given by `x : first_obj P S` is compatible iff `first_map` and `second_map`
 map it to the same point.
 -/
-lemma compatible_iff (x : first_obj R P) :
-  ((first_obj_eq_family R P).hom x).compatible ↔ first_map R P x = second_map R P x :=
+lemma compatible_iff (x : first_obj P R) :
+  ((first_obj_eq_family P R).hom x).compatible ↔ first_map P R x = second_map P R x :=
 begin
   rw presieve.pullback_compatible_iff,
   split,
@@ -834,8 +841,8 @@ begin
     ext ⟨⟨Y, f, hf⟩, Z, g, hg⟩,
     simpa [first_map, second_map] using t hf hg },
   { intros t Y Z f g hf hg,
-    have : (first_map R P ≫ pi.π _ (⟨⟨Y, f, hf⟩, Z, g, hg⟩ : (Σ Y, {f : Y ⟶ X // R f}) × (Σ Z, {g : Z ⟶ X // R g}))) x =
-           (second_map R P ≫ pi.π _ (⟨⟨Y, f, hf⟩, Z, g, hg⟩ : (Σ Y, {f : Y ⟶ X // R f}) × (Σ Z, {g : Z ⟶ X // R g}))) x,
+    have : (first_map P R ≫ pi.π _ (⟨⟨Y, f, hf⟩, Z, g, hg⟩ : (Σ Y, {f : Y ⟶ X // R f}) × (Σ Z, {g : Z ⟶ X // R g}))) x =
+           (second_map P R ≫ pi.π _ (⟨⟨Y, f, hf⟩, Z, g, hg⟩ : (Σ Y, {f : Y ⟶ X // R f}) × (Σ Z, {g : Z ⟶ X // R g}))) x,
     { dsimp, rw t },
     simpa [first_map, second_map] using this }
 end
@@ -845,10 +852,10 @@ end
 See https://stacks.math.columbia.edu/tag/00VM.
 -/
 lemma sheaf_condition :
-  R.is_sheaf_for P ↔ nonempty (is_limit (fork.of_ι _ (w R P))) :=
+  R.is_sheaf_for P ↔ nonempty (is_limit (fork.of_ι _ (w P R))) :=
 begin
   rw ← type_equalizer,
-  erw ← equiv.forall_congr_left (first_obj_eq_family R P).to_equiv.symm,
+  erw ← equiv.forall_congr_left (first_obj_eq_family P R).to_equiv.symm,
   simp_rw [← compatible_iff, ← iso.to_equiv_fun, equiv.apply_symm_apply],
   apply ball_congr,
   intros x hx,
@@ -866,5 +873,5 @@ end
 
 end presieve
 end equalizer
-#lint
+
 end category_theory

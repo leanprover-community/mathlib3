@@ -16,7 +16,7 @@ algebraic structures on `ℍ[R]`.
 
 ## Main definitions
 
-* `quaternion_algebra R a b` :
+* `quaternion_algebra R a b`, `ℍ[R, a, b]` :
   [quaternion algebra](https://en.wikipedia.org/wiki/Quaternion_algebra) with coefficients `a`, `b`
 * `quaternion R`, `ℍ[R]` : the space of quaternions, a.k.a. `quaternion_algebra R (-1) (-1)`;
 * `quaternion.norm_sq` : square of the norm of a quaternion;
@@ -31,6 +31,9 @@ We also define the following algebraic structures on `ℍ[R]`:
 
 ## Notation
 
+The following notation is available with `open_locale quaternion`.
+
+* `ℍ[R, c₁, c₂]` : `quaternion_algebra R  c₁ c₂`
 * `ℍ[R]` : quaternions over `R`.
 
 ## Implementation notes
@@ -232,7 +235,7 @@ lemma conj_fixed {R : Type*} [integral_domain R] [char_zero R] {c₁ c₂ : R} {
   conj a = a ↔ a = a.re :=
 by simp [ext_iff, neg_eq_iff_add_eq_zero, add_self_eq_zero]
 
--- Can't use `conj_fixed` trick without additional assumptions
+-- Can't use `rw ← conj_fixed` in the proof without additional assumptions
 
 lemma conj_mul_eq_coe : conj a * a = (conj a * a).re := by ext; simp; ring_exp
 
@@ -247,7 +250,7 @@ lemma conj_sub : (a - b).conj = a.conj - b.conj := (conj : ℍ[R, c₁, c₂] �
 
 open opposite
 
-/-- Quaternion conjugate as a `ring_equiv` to the opposite ring. -/
+/-- Quaternion conjugate as an `alg_equiv` to the opposite ring. -/
 def conj_alg_equiv : ℍ[R, c₁, c₂] ≃ₐ[R] (ℍ[R, c₁, c₂]ᵒᵖ) :=
 { to_fun := op ∘ conj,
   inv_fun := conj ∘ unop,
@@ -426,7 +429,7 @@ lemma mul_conj_eq_coe : a * conj a = (a * conj a).re := a.mul_conj_eq_coe
 
 open opposite
 
-/-- Quaternion conjugate as a `alg_equiv` to the opposite ring. -/
+/-- Quaternion conjugate as an `alg_equiv` to the opposite ring. -/
 def conj_alg_equiv : ℍ[R] ≃ₐ[R] (ℍ[R]ᵒᵖ) := quaternion_algebra.conj_alg_equiv
 
 @[simp] lemma coe_conj_alg_equiv : ⇑(conj_alg_equiv : ℍ[R] ≃ₐ[R] ℍ[R]ᵒᵖ) = op ∘ conj := rfl
@@ -506,8 +509,8 @@ variables [linear_ordered_field R] (a b : ℍ[R])
 instance : division_ring ℍ[R] :=
 { inv := has_inv.inv,
   inv_zero := by rw [has_inv_inv, conj_zero, smul_zero],
-  inv_mul_cancel := λ a ha, by by rw [has_inv_inv, algebra.smul_mul_assoc, conj_mul_self, smul_coe,
-   inv_mul_cancel (norm_sq_ne_zero.2 ha), coe_one],
+  inv_mul_cancel := λ a ha, by rw [has_inv_inv, algebra.smul_mul_assoc, conj_mul_self, smul_coe,
+    inv_mul_cancel (norm_sq_ne_zero.2 ha), coe_one],
   mul_inv_cancel := λ a ha, by rw [has_inv_inv, algebra.mul_smul_comm, self_mul_conj, smul_coe,
     inv_mul_cancel (norm_sq_ne_zero.2 ha), coe_one],
   .. quaternion.domain }

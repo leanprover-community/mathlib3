@@ -17,6 +17,8 @@ In this file we define the following structures on the space `ℍ := ℍ[ℝ]` o
 
 ## Notation
 
+The following notation is available with `open_locale quaternion`:
+
 * `ℍ` : quaternions
 
 ## Tags

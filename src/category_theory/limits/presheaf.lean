@@ -311,41 +311,14 @@ def unique_extension_along_yoneda (L : (Cᵒᵖ ⥤ Type u₁) ⥤ ℰ) (hL : yo
   L ≅ extend_along_yoneda A :=
 nat_iso_of_nat_iso_on_representables _ _ (hL ≪≫ (is_extension_along_yoneda _).symm)
 
-section cartesian_closed
-
-universes v₃ u₃
-variables {D : Type u₃} [category.{u₁} D]
-
-instance [has_finite_products D] [cartesian_closed D] (X : D) :
-  preserves_colimits (prod.functor.obj X) :=
-(exp.adjunction X).left_adjoint_preserves_colimits
-
-instance prod_preserves_colimits [has_finite_products D] [has_colimits D]
-  [∀ (X : D), preserves_colimits (prod.functor.obj X)]
-  (F : C ⥤ D) :
-  preserves_colimits (prod.functor.obj F) :=
-{ preserves_colimits_of_shape := λ J 𝒥, by exactI
-  { preserves_colimit := λ K,
-    { preserves := λ c t,
-      begin
-        apply evaluation_jointly_reflects_colimits,
-        intro k,
-        change is_colimit ((prod.functor.obj F ⋙ (evaluation _ _).obj k).map_cocone c),
-        let := is_colimit_of_preserves ((evaluation C D).obj k ⋙ prod.functor.obj (F.obj k)) t,
-        apply is_colimit.map_cocone_equiv _ this,
-        apply (nat_iso.of_components _ _).symm,
-        { intro G,
-          apply as_iso (prod_comparison ((evaluation C D).obj k) F G) },
-        { intros G G',
-          apply prod_comparison_natural ((evaluation C D).obj k) (𝟙 F) },
-      end } } }
-
-example (L : (Cᵒᵖ ⥤ Type u₁) ⥤ (Cᵒᵖ ⥤ Type u₁)) [preserves_colimits L] :
+/--
+If `L` preserves colimits and `ℰ` has them, then it is a left adjoint. Note this is a (partial)
+converse to `left_adjoint_preserves_colimits`.
+-/
+def is_left_adjoint_of_preserves_colimits (L : (Cᵒᵖ ⥤ Type u₁) ⥤ ℰ) [preserves_colimits L] :
   is_left_adjoint L :=
 { right := restricted_yoneda (yoneda ⋙ L),
   adj := (yoneda_adjunction _).of_nat_iso_left
               (unique_extension_along_yoneda _ L (iso.refl _)).symm }
-
-end cartesian_closed
 
 end category_theory

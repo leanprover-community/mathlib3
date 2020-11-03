@@ -5,6 +5,7 @@ Authors: Kenny Lau
 -/
 import data.opposite
 import algebra.field
+import algebra.algebra.basic
 
 /-!
 # Algebraic operations on `αᵒᵖ`

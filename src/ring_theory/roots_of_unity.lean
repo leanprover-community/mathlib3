@@ -381,7 +381,7 @@ begin
     multiset.zero_subset, nth_roots_zero]
 end
 
-@[simp] lemma prim_root_one : primitive_roots 1 R = {(1 : R)} :=
+@[simp] lemma primitive_root_one : primitive_roots 1 R = {(1 : R)} :=
 begin
   apply finset.eq_singleton_iff_unique_mem.2,
   split,

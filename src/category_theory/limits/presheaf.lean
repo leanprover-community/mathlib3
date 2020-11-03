@@ -3,7 +3,7 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.adjunction
+import category_theory.adjunction.limits
 import category_theory.elements
 import category_theory.limits.functor_category
 import category_theory.limits.preserves.limits
@@ -331,189 +331,20 @@ instance prod_preserves_colimits [has_finite_products D] [has_colimits D]
         apply evaluation_jointly_reflects_colimits,
         intro k,
         change is_colimit ((prod.functor.obj F ⋙ (evaluation _ _).obj k).map_cocone c),
-        let i : (prod.functor.obj F ⋙ (evaluation C D).obj k) ≅ ((evaluation C D).obj k ⋙ prod.functor.obj (F.obj k)),
-          apply nat_iso.of_components _ _,
-          { intro G,
-            apply as_iso (prod_comparison ((evaluation C D).obj k) F G) },
-          { intros G G' z,
-            apply prod_comparison_natural ((evaluation C D).obj k) (𝟙 F) z },
-        let i' : K ⋙ (prod.functor.obj F ⋙ (evaluation C D).obj k) ≅ K ⋙ (evaluation C D).obj k ⋙ prod.functor.obj (F.obj k),
-          apply iso_whisker_left K i,
-        let : is_colimit (((evaluation C D).obj k ⋙ prod.functor.obj (F.obj k)).map_cocone c),
-          apply preserves_colimit.preserves,
-          apply t,
-        apply is_colimit.of_iso_colimit ((is_colimit.precompose_hom_equiv i' _).symm this),
-        apply cocones.ext _ _,
-          apply (as_iso (prod_comparison ((evaluation C D).obj k) F c.X)).symm,
-        intro j,
-        dsimp,
-        rw is_iso.comp_inv_eq,
-        apply (prod_comparison_natural ((evaluation C D).obj k) (𝟙 F) (c.ι.app j)).symm,
+        let := is_colimit_of_preserves ((evaluation C D).obj k ⋙ prod.functor.obj (F.obj k)) t,
+        apply is_colimit.map_cocone_equiv _ this,
+        apply (nat_iso.of_components _ _).symm,
+        { intro G,
+          apply as_iso (prod_comparison ((evaluation C D).obj k) F G) },
+        { intros G G',
+          apply prod_comparison_natural ((evaluation C D).obj k) (𝟙 F) },
       end } } }
 
-@[simps]
-def presheaf_exp (F G : Cᵒᵖ ⥤ Type u₁) : Cᵒᵖ ⥤ Type u₁ :=
-{ obj := λ A, F ⨯ yoneda.obj A.unop ⟶ G,
-  map := λ A B f α, limits.prod.map (𝟙 _) (yoneda.map f.unop) ≫ α }.
-
-def presheaf_exp_representable_hom_equiv (F G : Cᵒᵖ ⥤ Type u₁) (A : C) :
-  (yoneda.obj A ⟶ presheaf_exp F G) ≃ (F ⨯ yoneda.obj A ⟶ G) :=
-(yoneda_sections_small A (presheaf_exp F G)).to_equiv
-
-@[simp]
-lemma yoneda_sections_small_hom_apply (X : C) (F f) :
-  (yoneda_sections_small X F).hom f = f.app _ (𝟙 _) :=
-rfl
-
-@[simp]
-lemma yoneda_sections_small_inv (X : C) (F t) (Y : Cᵒᵖ) (f : Y.unop ⟶ X) :
-  ((yoneda_sections_small X F).inv t).app Y f = F.map f.op t :=
-rfl
-
-lemma presheaf_exp_representable_hom_equiv_symm_natural_A (F G : Cᵒᵖ ⥤ Type u₁)
-  {A B : C} (g : B ⟶ A) (f : F ⨯ yoneda.obj A ⟶ G) :
-  yoneda.map g ≫ (presheaf_exp_representable_hom_equiv F G A).symm f =
-  (presheaf_exp_representable_hom_equiv F G B).symm (limits.prod.map (𝟙 _) (yoneda.map g) ≫ f) :=
-begin
-  ext a h b : 3,
-  simp only [yoneda_map_app, functor_to_types.comp],
-  change ((yoneda_sections_small A (presheaf_exp F G)).inv f).app a (h ≫ g) =
-    (((presheaf_exp_representable_hom_equiv F G B).symm) (limits.prod.map (𝟙 F) (yoneda.map g) ≫ f)).app a h,
-  change ((yoneda_sections_small A (presheaf_exp F G)).inv f).app a (h ≫ g) =
-    (((yoneda_sections_small B (presheaf_exp F G)).inv) (limits.prod.map (𝟙 F) (yoneda.map g) ≫ f)).app a h,
-  rw yoneda_sections_small_inv,
-  rw yoneda_sections_small_inv,
-  simp,
-end
-
-lemma presheaf_exp_representable_hom_equiv_natural_A (F G : Cᵒᵖ ⥤ Type u₁)
-  {A B : C} (g : B ⟶ A) (f) :
-  (presheaf_exp_representable_hom_equiv F G B) (yoneda.map g ≫ f) =
-  (limits.prod.map (𝟙 _) (yoneda.map g) ≫ presheaf_exp_representable_hom_equiv F G A f) :=
-begin
-  rw ← equiv.eq_symm_apply,
-  rw ← presheaf_exp_representable_hom_equiv_symm_natural_A,
-  rw equiv.symm_apply_apply,
-end
-
-instance : has_finite_products (Type u₁) := has_finite_products_of_has_products _
-
--- def type_equiv {X Y Z : Type u₁} : (Z × X ⟶ Y) ≃ (X → (Z → Y)) :=
--- { to_fun := λ f x z, f ⟨z, x⟩,
---   inv_fun := λ f ⟨z, x⟩, f x z,
---   left_inv := λ f, funext (λ ⟨z, x⟩, rfl),
---   right_inv := λ x, rfl }
-
--- def type_equiv' {X Y Z : Type u₁} : (Z ⨯ X ⟶ Y) ≃ (X → (Z → Y)) :=
--- begin
---   apply equiv.trans _ type_equiv,
---   apply iso.hom_congr _ (iso.refl _),
---   apply limit.iso_limit_cone (types.binary_product_limit_cone _ _),
--- end
-
--- lemma type_equiv'_natural {X X' Y Z : Type u₁} (f : X' ⟶ X) (g : Z ⨯ X ⟶ Y) :
---   type_equiv' (limits.prod.map (𝟙 Z) f ≫ g) = f ≫ type_equiv' g :=
--- begin
---   dsimp [type_equiv'],
---   have := types.binary_product_limit_cone Z X,
---   -- ext x' z,
---   -- rw type_equiv',
---   -- dsimp,
---   -- dsimp only [iso.hom_congr],
-
---   -- dsimp [type_equiv'],
---   -- rw comp_id,
---   -- rw comp_id,
---   -- have := limit.iso_limit_cone_inv_π,
-
--- end
-
-instance : cartesian_closed (Type u₁) :=
-{ closed := λ Z,
-  { is_adj :=
-    { right :=
-      begin
-        refine @adjunction.right_adjoint_of_equiv _ _ _ _ (prod.functor.obj Z) _ (λ X Y, type_equiv') _,
-        intros X' X Y f g,
-        dsimp,
-      end,
-      adj :=
-      begin
-        refine @adjunction.adjunction_of_equiv_right _ _ _ _ (prod.functor.obj Z) _ (λ X Y, type_equiv') _,
-      end
-    }
-
-  }
-
-}
-
--- set_option pp.universes true
-
-def presheaf_exp_hom_equiv (F G H : Cᵒᵖ ⥤ Type u₁) : (H ⟶ presheaf_exp F G) ≃ (F ⨯ H ⟶ G) :=
-begin
-  let : is_colimit ((prod.functor.obj F).map_cocone (cocone_of_representable H)),
-    apply preserves_colimit.preserves,
-    apply colimit_of_representable,
-  apply iso.to_equiv,
-  apply ((colimit_of_representable H).hom_iso (presheaf_exp F G)) ≪≫ _ ≪≫ (this.hom_iso G).symm,
-  apply equiv.to_iso,
-  refine ⟨_, _, _, _⟩,
-  { intro f,
-    refine ⟨λ X, presheaf_exp_representable_hom_equiv _ _ _ (f.app X), _⟩,
-    intros X Y g,
-    dsimp,
-    rw ← presheaf_exp_representable_hom_equiv_natural_A,
-    have h₁ := f.naturality g,
-    dsimp at h₁,
-    rw [h₁, comp_id, comp_id] },
-  { intro f,
-    refine ⟨λ X, (presheaf_exp_representable_hom_equiv _ _ _).symm (f.app X), _⟩,
-    intros X Y g,
-    dsimp,
-    have h₁ : limits.prod.map (𝟙 F) (yoneda.map (g.unop : Y.unop.1 ⟶ X.unop.1).unop) ≫ f.app Y = f.app X ≫ 𝟙 G,
-      apply f.naturality g,
-    rw presheaf_exp_representable_hom_equiv_symm_natural_A,
-    rw h₁,
-    dsimp, simp },
-  { intro f,
-    ext : 2,
-    dsimp,
-    simp },
-  { intro f,
-    ext : 2,
-    dsimp,
-    simp }
-end
-
--- calc (H ⟶ presheaf_exp F G) ≃ ((cocone_of_representable H).X ⟶ presheaf_exp F G) : equiv.refl _
---                         ... ≃ (((category_of_elements.π H).left_op ⋙ yoneda) ⟶ (functor.const _).obj (presheaf_exp F G)) : (colimit_of_representable H).hom_iso _
---                         ... ≃ (F ⨯ H ⟶ G) : sorry
--- { to_fun := λ g,
---   begin
-
---   end,
---   inv_fun := λ f,
---   begin
---     let Q : cocone ((category_of_elements.π H).left_op ⋙ yoneda),
---     { refine ⟨presheaf_exp F G, _, _⟩,
---       { intro X,
---         apply (presheaf_exp_representable_hom_equiv F G _).symm _,
---         apply limits.prod.map (𝟙 _) _ ≫ f,
---         apply (cocone_of_representable H).ι.app X },
---       { intros X Y g,
---         dsimp,
---         rw comp_id,
---         rw ← (cocone_of_representable H).w g,
---         dsimp,
---         rw presheaf_exp_representable_hom_equiv_symm_natural_A,
---         rw [prod.map_map_assoc, comp_id] } },
---     apply (colimit_of_representable H).desc Q,
---   end,
-
--- }
--- begin
---   change ((cocone_of_representable H).X ⟶ _) ≃ _,
--- end
+example (L : (Cᵒᵖ ⥤ Type u₁) ⥤ (Cᵒᵖ ⥤ Type u₁)) [preserves_colimits L] :
+  is_left_adjoint L :=
+{ right := restricted_yoneda (yoneda ⋙ L),
+  adj := (yoneda_adjunction _).of_nat_iso_left
+              (unique_extension_along_yoneda _ L (iso.refl _)).symm }
 
 end cartesian_closed
 

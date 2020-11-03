@@ -44,24 +44,20 @@ def star [has_star R] (r : R) : R := has_star.star r
 /--
 Typeclass for a star operation with is involutive.
 -/
-class star_involutive (R : Type u) extends has_star R :=
-(star_star : ∀ r : R, star (star r) = r)
+class has_involutive_star (R : Type u) extends has_star R :=
+(star_involutive : function.involutive star)
 
-@[simp] lemma star_star [star_involutive R] (r : R) : star (star r) = r :=
-star_involutive.star_star _
+@[simp] lemma star_star [has_involutive_star R] (r : R) : star (star r) = r :=
+has_involutive_star.star_involutive _
 
-lemma star_injective [star_involutive R] : function.injective (star : R → R) :=
-begin
-  intros x y h,
-  apply_fun star at h,
-  simpa using h,
-end
+lemma star_injective [has_involutive_star R] : function.injective (star : R → R) :=
+has_involutive_star.star_involutive.injective
 
 /--
 A *-monoid is a monoid `R` with an involutive operations `star`
 so `star (r * s) = star s * star r`.
 -/
-class star_monoid (R : Type u) [monoid R] extends star_involutive R :=
+class star_monoid (R : Type u) [monoid R] extends has_involutive_star R :=
 (star_mul : ∀ r s : R, star (r * s) = star s * star r)
 
 @[simp] lemma star_mul [monoid R] [star_monoid R] (r s : R) : star (r * s) = star s * star r :=
@@ -89,31 +85,25 @@ star_ring.star_zero
 @[simp] lemma star_add [semiring R] [star_ring R] (r s : R) : star (r + s) = star r + star s :=
 star_ring.star_add r s
 
+/-- `star` as an `add_monoid_hom` -/
+def star_add_monoid_hom [semiring R] [star_ring R] : R →+ R :=
+{ to_fun := star, map_zero' := star_zero, map_add' := star_add }
+
 section
 open_locale big_operators
 
-@[simp] lemma star_sum [semiring R] [star_ring R] {α : Type*} [decidable_eq α]
+@[simp] lemma star_sum [semiring R] [star_ring R] {α : Type*}
   (s : finset α) (f : α → R):
   star (∑ x in s, f x) = ∑ x in s, star (f x) :=
-begin
-  apply finset.induction_on s,
-  { simp, },
-  { intros a s nm w,
-    rw [finset.sum_insert nm, finset.sum_insert nm],
-    simp [w], }
-end
+star_add_monoid_hom.map_sum _ _
 
 end
 
 @[simp] lemma star_neg [ring R] [star_ring R] (r : R) : star (-r) = - star r :=
-begin
-  apply (add_left_inj (star r)).1,
-  apply star_injective,
-  simp,
-end
+(star_add_monoid_hom : R →+ R).map_neg _
 
 @[simp] lemma star_sub [ring R] [star_ring R] (r s : R) : star (r - s) = star r - star s :=
-by simp [sub_eq_add_neg]
+(star_add_monoid_hom : R →+ R).map_sub _ _
 
 @[simp] lemma star_bit0 [ring R] [star_ring R] (r : R) : star (bit0 r) = bit0 (star r) :=
 by simp [bit0]
@@ -126,7 +116,7 @@ Any commutative semiring admits the trivial *-structure.
 -/
 def star_ring_of_comm {R : Type*} [comm_semiring R] : star_ring R :=
 { star := id,
-  star_star := by simp,
+  star_involutive := λ x, by simp,
   star_mul := by simp [mul_comm],
   star_zero := by simp,
   star_add := by simp, }
@@ -137,4 +127,3 @@ local attribute [instance] star_ring_of_comm
 @[simp] lemma star_id_of_comm {R : Type*} [comm_semiring R] {x : R} : star x = x := rfl
 
 end
-

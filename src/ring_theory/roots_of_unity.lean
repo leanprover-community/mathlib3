@@ -373,6 +373,24 @@ section integral_domain
 
 variables {ζ : R}
 
+@[simp] lemma prim_root_zero : primitive_roots 0 R = ∅ :=
+begin
+  rw [← finset.val_eq_zero, ← multiset.subset_zero, ← nth_roots_zero (1 : R), primitive_roots],
+    simp only [finset.not_mem_empty, forall_const, forall_prop_of_false, multiset.to_finset_zero,
+    finset.filter_true_of_mem, finset.empty_val, not_false_iff,
+    multiset.zero_subset, nth_roots_zero]
+end
+
+@[simp] lemma prim_root_one : primitive_roots 1 R = {(1 : R)} :=
+begin
+  apply finset.eq_singleton_iff_unique_mem.2,
+  split,
+  { simp only [is_primitive_root.one_right_iff, mem_primitive_roots zero_lt_one] },
+  { intros x hx,
+    rw [mem_primitive_roots zero_lt_one, is_primitive_root.one_right_iff] at hx,
+    exact hx }
+end
+
 lemma neg_one (p : ℕ) [char_p R p] (hp : p ≠ 2) : is_primitive_root (-1 : R) 2 :=
 mk_of_lt (-1 : R) dec_trivial (by simp only [one_pow, neg_square]) $
 begin

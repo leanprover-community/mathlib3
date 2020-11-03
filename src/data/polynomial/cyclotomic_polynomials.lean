@@ -58,33 +58,15 @@ def cyclotomic' (n : ℕ) (R : Type*) [integral_domain R] : polynomial R :=
 ∏ μ in primitive_roots n R, (X - C μ)
 
 /- The zeroth modified cyclotomic polyomial is `1`. -/
-lemma cyclotomic'_zero (R : Type*) [integral_domain R] : cyclotomic' 0 R = 1 :=
-begin
-  rw [cyclotomic'],
-  have prim_root_zero : primitive_roots 0 R = ∅,
-  { rw [← finset.val_eq_zero, ← multiset.subset_zero, ← nth_roots_zero (1 : R), primitive_roots],
-    simp only [finset.not_mem_empty, forall_const, forall_prop_of_false, multiset.to_finset_zero,
-    finset.filter_true_of_mem, finset.empty_val, not_false_iff,
-    multiset.zero_subset, nth_roots_zero] },
-  simp only [prim_root_zero, finset.prod_empty]
-end
+@[simp] lemma cyclotomic'_zero (R : Type*) [integral_domain R] : cyclotomic' 0 R = 1 :=
+by simp only [cyclotomic', finset.prod_empty, is_primitive_root.prim_root_zero]
 
 /- The first modified cyclotomic polyomial is `X - 1`. -/
-lemma cyclotomic'_one (R : Type*) [integral_domain R] : cyclotomic' 1 R = X - 1 :=
-begin
-  rw [cyclotomic'],
-  have prim_root_one : primitive_roots 1 R = {(1 : R)},
-  { apply finset.eq_singleton_iff_unique_mem.2,
-    split,
-    { simp only [is_primitive_root.one_right_iff, mem_primitive_roots zero_lt_one] },
-    { intros x hx,
-      rw [mem_primitive_roots zero_lt_one, is_primitive_root.one_right_iff] at hx,
-      exact hx } },
-  simp only [prim_root_one, finset.prod_singleton, ring_hom.map_one]
-end
+@[simp] lemma cyclotomic'_one (R : Type*) [integral_domain R] : cyclotomic' 1 R = X - 1 :=
+by simp only [cyclotomic', finset.prod_singleton, ring_hom.map_one, is_primitive_root.prim_root_one]
 
 /- The second modified cyclotomic polyomial is `X + 1` if the characteristic of `R` is not `2`. -/
-lemma cyclotomic'_two (R : Type*) [integral_domain R] (p : ℕ) [char_p R p] (hp : p ≠ 2) :
+@[simp] lemma cyclotomic'_two (R : Type*) [integral_domain R] (p : ℕ) [char_p R p] (hp : p ≠ 2) :
   cyclotomic' 2 R = X + 1 :=
 begin
   rw [cyclotomic'],
@@ -112,11 +94,11 @@ unity in `R`. -/
 lemma nat_deg_of_cyclotomic' {ζ : R} {n : ℕ} (h : is_primitive_root ζ n) :
   (cyclotomic' n R).nat_degree = nat.totient n :=
 begin
-  by_cases hzero : n = 0,
+  cases nat.eq_zero_or_pos n with hzero hpos,
   { simp only [hzero, cyclotomic'_zero, nat.totient_zero, nat_degree_one] },
   rw [cyclotomic'],
   rw nat_degree_prod (primitive_roots n R) (λ (z : R), (X - C z)),
-  simp only [is_primitive_root.card_primitive_roots h (nat.pos_of_ne_zero hzero), mul_one,
+  simp only [is_primitive_root.card_primitive_roots h hpos, mul_one,
   nat_degree_X_sub_C,
   nat.cast_id, finset.sum_const, nsmul_eq_mul],
   intros z hz,
@@ -139,7 +121,7 @@ section field
 
 variables {K : Type*} [field K]
 
-/-- If there is a primitive `n`-th root of unity in `K`, then `X ^ n - 1 = ∏ (X - μ)`, where `μ`
+/-- If there is a primitive `n`th root of unity in `K`, then `X ^ n - 1 = ∏ (X - μ)`, where `μ`
 varies over the `n`-th roots of unity. -/
 lemma X_pow_sub_one_eq_prod {ζ : K} {n : ℕ} (hpos : 0 < n) (h : is_primitive_root ζ n) :
   X ^ n - C (1 : K) = ∏ ζ in nth_roots_finset n K, (X - C ζ) :=
@@ -179,8 +161,6 @@ lemma X_pow_sub_one_eq_prod_cycl' {ζ : K} {n : ℕ} (hpos : 0 < n) (h : is_prim
   X ^ n - C (1 : K) = ∏ i in nat.divisors n, cyclotomic' i K :=
 begin
   rw [X_pow_sub_one_eq_prod hpos h],
---  rw ← pnat.to_pnat'_coe hpos at h ⊢,
---  set m := nat.to_pnat' n,
   have rwcyc : ∀ i ∈ nat.divisors n, cyclotomic' i K = ∏ μ in primitive_roots i K, (X - C μ),
   { intros i hi,
     simp only [cyclotomic'] },
@@ -192,8 +172,8 @@ begin
   intros x hx y hy hdiff,
   simp only [nat.mem_divisors, and_true, ne.def, pnat.ne_zero, not_false_iff] at hx hy,
   refine is_primitive_root.disjoint _ _ hdiff,
-  exact @nat.pos_of_mem_divisors n x (nat.mem_divisors.2 hx),
-  exact @nat.pos_of_mem_divisors n y (nat.mem_divisors.2 hy)
+  { exact @nat.pos_of_mem_divisors n x (nat.mem_divisors.2 hx) },
+  { exact @nat.pos_of_mem_divisors n y (nat.mem_divisors.2 hy) }
 end
 
 /-- If there is a primitive `n`-th root of unity in `K`, then `cyclotomic' n K` comes from a
@@ -206,11 +186,10 @@ begin
   revert h ζ,
   apply nat.strong_induction_on n,
   intros k hk z hzeta,
-  by_cases hzero : k = 0,
+  cases nat.eq_zero_or_pos k with hzero hpos,
   { use 1,
     simp only [hzero, cyclotomic'_zero, set.mem_univ, subsemiring.coe_top, eq_self_iff_true,
     map_one, ring_hom.coe_of, and_self], },
-  have hpos := (nat.pos_of_ne_zero hzero),
   by_cases hone : k = 1,
   { use X - 1,
     simp only [hone, cyclotomic'_one K, set.mem_univ, pnat.one_coe, subsemiring.coe_top,
@@ -226,12 +205,11 @@ begin
     have xsmall := (nat.mem_proper_divisors.1 hx).2,
     obtain ⟨d, hd⟩ := (nat.mem_proper_divisors.1 hx).1,
     rw [mul_comm] at hd,
-  refine hk x xsmall (is_primitive_root.pow (nat.pos_of_ne_zero hzero) hzeta hd) },
+  exact hk x xsmall (is_primitive_root.pow hpos hzeta hd) },
   replace Bint := lifts_and_degree_eq_and_monic Bint Bmo,
   obtain ⟨B₁, hB₁, hB₁deg, hB₁mo⟩ := Bint,
   let Q₁ : polynomial ℤ := (X ^ k - 1) /ₘ B₁,
-  have huniq : 0 + B * (cyclotomic' k K) = (X ^ k - 1 :
-  polynomial K) ∧ (0 : polynomial K).degree < B.degree,
+  have huniq : 0 + B * cyclotomic' k K = X ^ k - 1 ∧ (0 : polynomial K).degree < B.degree,
   { split,
     { rw [zero_add, mul_comm, ← C_1, (X_pow_sub_one_eq_prod_cycl' hpos hzeta),
       nat.divisors_eq_proper_divisors_insert_self_of_pos hpos],
@@ -243,7 +221,7 @@ begin
   simp only [lifts, ring_hom.coe_of, ring_hom.mem_srange],
   use Q₁,
   rw [(map_div_by_monic (int.cast_ring_hom K) hB₁mo), hB₁, ← huniq.1],
-  simp only [map_pow, map_X, map_one, map_sub]
+  simp
 end
 
 /-- If `K` is of characteristic `0` and there is a primitive `n`-th root of unity in `K`,
@@ -253,9 +231,7 @@ lemma unique_int_coeff_of_cycl [char_zero K] {ζ : K} {n : ℕ+} (h : is_primiti
 begin
   obtain ⟨P, hP⟩ := int_coeff_of_cycl h,
   rw exists_unique,
-  use P,
-  split,
-  exact hP.1,
+  use [P, hP.1],
   intros Q hQ,
   have mapinj : function.injective (map (int.cast_ring_hom K)),
   { apply map_injective,
@@ -278,11 +254,9 @@ def cyclotomic : ℕ → polynomial ℤ
 lemma cyclotomic_spec (n : ℕ) : map (int.cast_ring_hom ℂ) (cyclotomic n) =
 cyclotomic' n ℂ ∧ (cyclotomic n).degree = (cyclotomic' n ℂ).degree ∧ (cyclotomic n).monic  :=
 begin
-  by_cases hzero : n = 0,
-  { simp only [cyclotomic, cyclotomic'_zero, hzero, degree_one, monic_one, eq_self_iff_true,
-  map_one, and_self] },
-  obtain ⟨k, rfl⟩ := nat.exists_eq_succ_of_ne_zero hzero,
-  rw cyclotomic,
+  cases n with k,
+  { simp only [cyclotomic, degree_one, monic_one, cyclotomic'_zero, eq_self_iff_true,
+  map_one, and_self]},
   exact classical.some_spec (int_coeff_of_cycl (complex.is_primitive_root_exp k.succ
   (nat.succ_ne_zero k)))
 end
@@ -298,11 +272,12 @@ begin
 end
 
 /- The zeroth cyclotomic polyomial is `1`. -/
-lemma cyclotomic_zero : cyclotomic 0 = 1 :=
-by rw cyclotomic
+
+@[simp] lemma cyclotomic_zero : cyclotomic 0 = 1 :=
+by refl
 
 /- The first cyclotomic polyomial is `X - 1`. -/
-lemma cyclotomic_one : cyclotomic 1 = X - 1 :=
+@[simp] lemma cyclotomic_one : cyclotomic 1 = X - 1 :=
 begin
   have hspec : map (int.cast_ring_hom ℂ) (X - 1) = cyclotomic' 1 ℂ,
   { simp only [cyclotomic'_one, pnat.one_coe, map_X, map_one, map_sub] },

@@ -113,7 +113,7 @@ csupr_mem_Inter_Icc_of_mono_decr_Icc (λ i j hij, coe_subset_coe.2 (h hij)) (λ 
 
 lemma csupr_mem_Inter_coe_nat {f : ℕ → subinterval s} (h : ∀ n, f (n + 1) ≤ f n) :
   (⨆ i, (f i).left) ∈ ⋂ i, (f i : set α) :=
-csupr_mem_Inter_Icc_of_mono_decr_Icc_nat (λ i, coe_subset_coe.2 (h i)) (λ i, (f i).nontrivial)⟩
+csupr_mem_Inter_Icc_of_mono_decr_Icc_nat (λ i, coe_subset_coe.2 (h i)) (λ i, (f i).nontrivial)
 
 lemma csupr_mem {f : β → subinterval s} (h : ∀ ⦃i j⦄, i ≤ j → f j ≤ f i) (n : β) :
   (⨆ i, (f i).left) ∈ f n :=
@@ -508,7 +508,7 @@ def fix (hf : box_subadditive f) (hg : box_supadditive g) (I : subinterval s)
 lemma fix_mem_seq (hf : box_subadditive f) (hg : box_supadditive g) (I : subinterval s)
   (hI : c * g I < f I) (n : ℕ) :
   fix hf hg I hI ∈ (seq hf hg I hI n : subinterval s) :=
-csupr_mem_nat (λ n, seq_succ_le _ _ _ _ n) n
+set.subinterval.csupr_mem_nat (λ n, seq_succ_le _ _ _ _ n) n
 
 lemma fix_mem (hf : box_subadditive f) (hg : box_supadditive g) (I : subinterval s)
   (hI : c * g I < f I) :

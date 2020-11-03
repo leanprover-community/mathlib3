@@ -320,7 +320,8 @@ instance [has_finite_products D] [cartesian_closed D] (X : D) :
   preserves_colimits (prod.functor.obj X) :=
 (exp.adjunction X).left_adjoint_preserves_colimits
 
-instance prod_preserves_colimits [has_finite_products D] [cartesian_closed D] [has_colimits D]
+instance prod_preserves_colimits [has_finite_products D] [has_colimits D]
+  [∀ (X : D), preserves_colimits (prod.functor.obj X)]
   (F : C ⥤ D) :
   preserves_colimits (prod.functor.obj F) :=
 { preserves_colimits_of_shape := λ J 𝒥, by exactI
@@ -395,7 +396,7 @@ begin
   rw equiv.symm_apply_apply,
 end
 
--- instance : has_finite_products (Type u₁) := has_finite_products_of_has_products _
+instance : has_finite_products (Type u₁) := has_finite_products_of_has_products _
 
 -- def type_equiv {X Y Z : Type u₁} : (Z × X ⟶ Y) ≃ (X → (Z → Y)) :=
 -- { to_fun := λ f x z, f ⟨z, x⟩,

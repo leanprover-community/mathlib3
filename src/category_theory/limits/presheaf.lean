@@ -3,15 +3,12 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.adjunction.limits
+import category_theory.adjunction
 import category_theory.elements
 import category_theory.limits.functor_category
 import category_theory.limits.preserves.limits
 import category_theory.limits.shapes.terminal
 import category_theory.limits.types
-import category_theory.limits.shapes.types
-import category_theory.closed.cartesian
-import category_theory.conj
 
 /-!
 # Colimit of representables

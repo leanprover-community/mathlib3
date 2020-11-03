@@ -140,7 +140,7 @@ subtype.map (finset.image (equiv.prod_comm _ _)) $ λ f hf p q hp hq,
 /-- The set of partial isomorphisms defined on `b : β `, together with a proof that any
     partial isomorphism can be extended to include `b`. We prove this by symmetry. -/
 def defined_at_right [densely_ordered α] [no_bot_order α] [no_top_order α] [nonempty α]
-(b : β) : cofinal (partial_iso α β) :=
+  (b : β) : cofinal (partial_iso α β) :=
 { carrier := λ f, ∃ a, (a, b) ∈ f.val,
   mem_gt :=
   begin
@@ -165,7 +165,7 @@ variables (α β)
 
 /-- Any countable linear order embeds in any nonempty dense linear order without endpoints. -/
 def embedding_from_countable_to_dense
-[encodable α] [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β] :
+  [encodable α] [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β] :
   α ↪o β :=
 let our_ideal : ideal (partial_iso α β) :=
   ideal_of_cofinals (default _) defined_at_left in
@@ -189,9 +189,9 @@ end
 
 /-- Any two countable dense, nonempty linear orders without endpoints are order isomorphic. --/
 def iso_of_countable_dense
-[encodable α] [densely_ordered α] [no_bot_order α] [no_top_order α] [nonempty α]
-[encodable β] [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β]
-  : α ≃o β :=
+  [encodable α] [densely_ordered α] [no_bot_order α] [no_top_order α] [nonempty α]
+  [encodable β] [densely_ordered β] [no_bot_order β] [no_top_order β] [nonempty β] :
+  α ≃o β :=
 let to_cofinal : α ⊕ β → cofinal (partial_iso α β) :=
   λ p, sum.rec_on p defined_at_left defined_at_right in
 let our_ideal : ideal (partial_iso α β) :=

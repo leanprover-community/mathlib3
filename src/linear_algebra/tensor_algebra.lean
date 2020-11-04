@@ -65,8 +65,8 @@ ring_quot.ring _
 
 instance : star_ring (tensor_algebra R M) := ring_quot.star_ring (rel R M) $ λ a b h, begin
   induction h,
-  { rw star_add, convert rel.add, },
-  { rw star_mul, sorry },
+  { simpa using rel.add, },
+  { simpa [←algebra.commutes] using rel.smul },
 end
 
 variables {M}
@@ -109,6 +109,17 @@ begin
   refl,
 end
 
+@[simp]
+lemma star_ι (m : M) : star (ι R m) = (ι R m) :=
+by {
+  dunfold star has_star.star tensor_algebra.star_ring ring_quot.star_ring ι,
+  simp only [linear_map.coe_mk],
+}
+
+@[simp]
+lemma star_algebra_map (r : R) : star (algebra_map R (free_algebra R X) r) = (algebra_map R _ r) :=
+by simp [star, has_star.star]
+
 attribute [irreducible] tensor_algebra ι lift
 
 @[simp]
@@ -123,5 +134,6 @@ begin
   have : g = lift R h, by rw ←lift_unique,
   rw [this, ←lift_unique, w],
 end
+
 
 end tensor_algebra

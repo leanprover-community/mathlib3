@@ -6,6 +6,7 @@ Author: Scott Morrison, Adam Topaz.
 import algebra.algebra.subalgebra
 import algebra.monoid_algebra
 import linear_algebra
+import algebra.star.algebra
 
 /-!
 # Free Algebras
@@ -337,6 +338,7 @@ begin
   exact of_id a,
 end
 
+
 /-- The star ring formed by reversing the elements of products -/
 instance : star_ring (free_algebra R X) :=
 { star := opposite.unop ∘ lift R (opposite.op ∘ ι R),
@@ -351,7 +353,36 @@ instance : star_ring (free_algebra R X) :=
   star_zero := by simp,
   star_add := λ a b, by simp }
 
-instance [has_star R] : star_algebra R (free_algebra R X) :=
-{ star_smul := λ c a, sorry}
+
+@[simp]
+lemma star_ι (x : X) : star (ι R x) = (ι R x) :=
+by simp [star, has_star.star]
+
+@[simp]
+lemma star_algebra_map (r : R) : star (algebra_map R (free_algebra R X) r) = (algebra_map R _ r) :=
+by simp [star, has_star.star]
+
+def star_hom : free_algebra R X →ₐ[R] (free_algebra R X)ᵒᵖ :=
+{ to_fun := opposite.op ∘ @star (free_algebra R X) _,
+  map_add' := λ x y, by simp,
+  map_mul' := λ x y, by simp,
+  map_one' := by simp,
+  map_zero' := by simp,
+  commutes' := λ r, by simp [star_algebra_map],
+}
+
+-- instance [star_ring R] : star_algebra R (free_algebra R X) :=
+-- { star_smul := λ c a, by {
+--   unfold star has_star.star,
+--   simp only [algebra.smul_def''],
+--   simp only [function.comp_apply],
+--   apply opposite.op_injective,
+--   rw opposite.op_unop,
+--   induction a using free_algebra.induction,
+--   { simp [*], rw ← opposite.op_mul, rw algebra.commutes, rw opposite.op_mul, congr, sorry},
+--   { simp [*], sorry},
+--   { simp [*], sorry},
+--   { simp [*], sorry},
+-- }}
 
 end free_algebra

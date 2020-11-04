@@ -44,7 +44,7 @@ An object `X` is *exponentiable* if `(X × -)` is a left adjoint.
 We define this as being `closed` in the cartesian monoidal structure.
 -/
 abbreviation exponentiable {C : Type u} [category.{v} C] [has_finite_products C] (X : C) :=
-closed X
+monoidal.closed X
 
 /--
 If `X` and `Y` are exponentiable then `X ⨯ Y` is.
@@ -67,14 +67,14 @@ at once, rather than just for this one.
 -/
 def terminal_exponentiable {C : Type u} [category.{v} C] [has_finite_products C] :
   exponentiable ⊤_C :=
-unit_closed
+monoidal.unit_closed
 
 /--
 A category `C` is cartesian closed if it has finite products and every object is exponentiable.
 We define this as `monoidal_closed` with respect to the cartesian monoidal structure.
 -/
 abbreviation cartesian_closed (C : Type u) [category.{v} C] [has_finite_products C] :=
-monoidal_closed C
+monoidal.monoidal_closed C
 
 variables {C : Type u} [category.{v} C] (A B : C) {X X' Y Y' Z : C}
 
@@ -82,30 +82,26 @@ section exp
 variables [has_finite_products C] [exponentiable A]
 
 /-- This is (-)^A. -/
-def exp : C ⥤ C :=
-(@closed.is_adj _ _ _ A _).right
+def exp : C ⥤ C := monoidal.internal_hom_right A
 
 /-- The adjunction between A ⨯ - and (-)^A. -/
-def exp.adjunction : prod.functor.obj A ⊣ exp A :=
-closed.is_adj.adj
+def exp.adjunction : prod.functor.obj A ⊣ exp A := monoidal.internal_hom.adjunction A
 
 /-- The evaluation natural transformation. -/
-def ev : exp A ⋙ prod.functor.obj A ⟶ 𝟭 C :=
-closed.is_adj.adj.counit
+def ev : exp A ⋙ prod.functor.obj A ⟶ 𝟭 C := monoidal.ev A
 
 /-- The coevaluation natural transformation. -/
-def coev : 𝟭 C ⟶ prod.functor.obj A ⋙ exp A :=
-closed.is_adj.adj.unit
+def coev : 𝟭 C ⟶ prod.functor.obj A ⋙ exp A := monoidal.coev A
 
 @[simp, reassoc]
 lemma ev_naturality {X Y : C} (f : X ⟶ Y) :
   limits.prod.map (𝟙 A) ((exp A).map f) ≫ (ev A).app Y = (ev A).app X ≫ f :=
-(ev A).naturality f
+monoidal.ev_naturality A f
 
 @[simp, reassoc]
 lemma coev_naturality {X Y : C} (f : X ⟶ Y) :
   f ≫ (coev A).app Y = (coev A).app X ≫ (exp A).map (limits.prod.map (𝟙 A) f) :=
-(coev A).naturality f
+monoidal.coev_naturality A f
 
 notation A ` ⟹ `:20 B:20 := (exp A).obj B
 notation B ` ^^ `:30 A:30 := (exp A).obj B
@@ -130,11 +126,18 @@ namespace cartesian_closed
 variables [has_finite_products C] [exponentiable A]
 
 /-- Currying in a cartesian closed category. -/
-def curry : (A ⨯ Y ⟶ X) → (Y ⟶ A ⟹ X) :=
-(closed.is_adj.adj.hom_equiv _ _).to_fun
+abbreviation curry : (A ⨯ Y ⟶ X) → (Y ⟶ A ⟹ X) :=
+((exp.adjunction A).hom_equiv _ _)
 /-- Uncurrying in a cartesian closed category. -/
-def uncurry : (Y ⟶ A ⟹ X) → (A ⨯ Y ⟶ X) :=
-(closed.is_adj.adj.hom_equiv _ _).inv_fun
+abbreviation uncurry : (Y ⟶ A ⟹ X) → (A ⨯ Y ⟶ X) :=
+((exp.adjunction A).hom_equiv _ _).symm
+
+@[simp] lemma adj_hom_equiv_apply_eq (f : A ⨯ Y ⟶ X) :
+  (exp.adjunction A).hom_equiv _ _ f = curry f :=
+rfl
+@[simp] lemma adj_hom_equiv_apply_symm_eq (f : Y ⟶ A ⟹ X) :
+  ((exp.adjunction A).hom_equiv _ _).symm f = uncurry f :=
+rfl
 
 end cartesian_closed
 
@@ -164,11 +167,11 @@ adjunction.hom_equiv_naturality_left_symm _ _ _
 
 @[simp]
 lemma uncurry_curry (f : A ⨯ X ⟶ Y) : uncurry (curry f) = f :=
-(closed.is_adj.adj.hom_equiv _ _).left_inv f
+((exp.adjunction A).hom_equiv _ _).left_inv f
 
 @[simp]
 lemma curry_uncurry (f : X ⟶ A⟹Y) : curry (uncurry f) = f :=
-(closed.is_adj.adj.hom_equiv _ _).right_inv f
+((exp.adjunction A).hom_equiv _ _).right_inv f
 
 lemma curry_eq_iff (f : A ⨯ Y ⟶ X) (g : Y ⟶ A ⟹ X) :
   curry f = g ↔ f = uncurry g :=
@@ -191,11 +194,17 @@ by rw [uncurry_eq, prod.map_id_id, id_comp]
 lemma curry_id_eq_coev (A X : C) [exponentiable A] : curry (𝟙 _) = (coev A).app X :=
 by { rw [curry_eq, (exp A).map_id (A ⨯ _)], apply comp_id }
 
-lemma curry_injective : function.injective (curry : (A ⨯ Y ⟶ X) → (Y ⟶ A ⟹ X)) :=
-(closed.is_adj.adj.hom_equiv _ _).injective
+lemma curry.injective : function.injective (curry : (A ⨯ Y ⟶ X) → (Y ⟶ A ⟹ X)) :=
+((exp.adjunction A).hom_equiv _ _).injective
 
-lemma uncurry_injective : function.injective (uncurry : (Y ⟶ A ⟹ X) → (A ⨯ Y ⟶ X)) :=
-(closed.is_adj.adj.hom_equiv _ _).symm.injective
+lemma uncurry.injective : function.injective (uncurry : (Y ⟶ A ⟹ X) → (A ⨯ Y ⟶ X)) :=
+((exp.adjunction A).hom_equiv _ _).symm.injective
+
+lemma curry.injective_iff (f g : A ⨯ Y ⟶ X) : f = g ↔ curry f = curry g :=
+⟨λ t, t ▸ rfl, λ t, curry.injective t⟩
+
+lemma uncurry.injective_iff (f g : Y ⟶ A ⟹ X) : f = g ↔ uncurry f = uncurry g :=
+⟨λ t, t ▸ rfl, λ t, uncurry.injective t⟩
 
 /--
 Show that the exponential of the terminal object is isomorphic to itself, i.e. `X^1 ≅ X`.

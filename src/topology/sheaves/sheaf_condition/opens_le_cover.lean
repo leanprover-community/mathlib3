@@ -137,7 +137,14 @@ instance (V : opens_le_cover U) :
   nonempty (comma (functor.from_punit V) (pairwise_to_opens_le_cover U)) :=
 ⟨{ right := single (V.index), hom := V.hom_to_index }⟩
 
--- this is crazy crazy slow
+/-
+@TODO
+This proof is very slow because of a repeated failing search for an instance
+`preorder (@opens_le_cover X ι U)` at the beginning of each `refine`.
+See discussion at
+<https://github.com/leanprover-community/mathlib/pull/4832/files#r515558103>.
+This requires domain knowledge to fix.
+-/
 /--
 The diagram consisting of the `U i` and `U i ⊓ U j` is cofinal in the diagram
 of all opens contained in some `U i`.

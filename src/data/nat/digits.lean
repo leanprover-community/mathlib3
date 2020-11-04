@@ -606,51 +606,37 @@ meta def eval_aux (eb : expr) (b : ℕ) :
     return (ic, `(@list.cons ℕ %%er %%el),
       `(digits_succ %%eb %%en %%em %%er %%el %%pe %%pr %%p))
 
-/-- Helper function for the `norm_digits` tactic. -/
-meta def eval : expr → ℕ → expr → ℕ → tactic (expr × expr)
-| eb b en 0 := return (`([] : list ℕ), `(nat.digits_zero %%eb))
-| eb 0 en n := do
-  ic ← mk_instance_cache `(ℕ),
-  (_, pn0) ← norm_num.prove_pos ic en,
-  return (`([%%en] : list ℕ), `(@nat.digits_zero_succ' %%en %%pn0))
-| eb 1 en n := do
-  ic ← mk_instance_cache `(ℕ),
-  (_, pn0) ← norm_num.prove_pos ic en,
-  s ← simp_lemmas.add_simp simp_lemmas.mk `list.repeat,
-  (rhs, p2) ← simplify s [] `(list.repeat 1 %%en),
-  p ← mk_eq_trans `(nat.digits_one %%en) p2,
-  return (rhs, p)
-| eb b en n := do
-  ic ← mk_instance_cache `(ℕ),
-  (_, l, p) ← eval_aux eb b en n ic,
-  p ← mk_app ``and.left [p],
-  return (l, p)
-
-end norm_digits
-
-open tactic
-
 /--
 A tactic for normalizing expressions of the form `nat.digits a b = l` where
 `a` and `b` are numerals.
 
 ```
-example : nat.digits 10 123 = [3,2,1] := by norm_digits
+example : nat.digits 10 123 = [3,2,1] := by norm_num
 ```
 -/
-meta def norm_digits : tactic unit :=
-do `(nat.digits %%eb %%en = %%el') ← target,
+@[norm_num] meta def eval : expr → tactic (expr × expr)
+| `(nat.digits %%eb %%en) := do
   b ← expr.to_nat eb,
   n ← expr.to_nat en,
-  (el, p) ← nat.norm_digits.eval eb b en n,
-  unify el el',
-  exact p
+  if n = 0 then return (`([] : list ℕ), `(nat.digits_zero %%eb))
+  else if b = 0 then do
+    ic ← mk_instance_cache `(ℕ),
+    (_, pn0) ← norm_num.prove_pos ic en,
+    return (`([%%en] : list ℕ), `(@nat.digits_zero_succ' %%en %%pn0))
+  else if b = 1 then do
+    ic ← mk_instance_cache `(ℕ),
+    (_, pn0) ← norm_num.prove_pos ic en,
+    s ← simp_lemmas.add_simp simp_lemmas.mk `list.repeat,
+    (rhs, p2) ← simplify s [] `(list.repeat 1 %%en),
+    p ← mk_eq_trans `(nat.digits_one %%en) p2,
+    return (rhs, p)
+  else do
+    ic ← mk_instance_cache `(ℕ),
+    (_, l, p) ← eval_aux eb b en n ic,
+    p ← mk_app ``and.left [p],
+    return (l, p)
+| _ := failed
 
-run_cmd add_interactive [``norm_digits]
+end norm_digits
 
-add_tactic_doc
-{ name        := "norm_digits",
-  category    := doc_category.tactic,
-  decl_names  := [`tactic.interactive.norm_digits],
-  tags        := ["arithmetic", "decision procedure"] }
 end nat

@@ -229,6 +229,8 @@ include rα rβ
 
 instance : has_coe_to_fun (α →+* β) := ⟨_, ring_hom.to_fun⟩
 
+initialize_simps_projections ring_hom (to_fun → apply)
+
 @[simp] lemma to_fun_eq_coe (f : α →+* β) : f.to_fun = f := rfl
 
 @[simp] lemma coe_mk (f : α → β) (h₁ h₂ h₃ h₄) : ⇑(⟨f, h₁, h₂, h₃, h₄⟩ : α →+* β) = f := rfl

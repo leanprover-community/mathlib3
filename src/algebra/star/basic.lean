@@ -64,22 +64,22 @@ class star_monoid (R : Type u) [monoid R] extends has_involutive_star R :=
 @[simp] lemma star_mul [monoid R] [star_monoid R] (r s : R) : star (r * s) = star s * star r :=
 star_monoid.star_mul r s
 
+/-- `star` as an `mul_equiv` from `R` to `Rᵒᵖ` -/
+@[simps apply]
+def star_mul_equiv [monoid R] [star_monoid R] : R ≃* Rᵒᵖ :=
+{ to_fun := λ x, opposite.op (star x),
+  map_mul' := λ x y, (star_mul x y).symm ▸ (opposite.op_mul _ _),
+  ..(has_involutive_star.star_involutive.to_equiv star).trans opposite.equiv_to_opposite}
+
 variables (R)
 
 @[simp] lemma star_one [monoid R] [star_monoid R] : star (1 : R) = 1 :=
 begin
-  have w : ∀ r, (star 1 : R) * r = r,
-  { intro r, apply star_injective, simp, },
-  simpa using w 1,
+  have := congr_arg opposite.unop (star_mul_equiv : R ≃* Rᵒᵖ).map_one,
+  rwa [star_mul_equiv_apply, opposite.unop_op, opposite.unop_one] at this,
 end
 
 variables {R}
-
-/-- `star` as an `mul_equiv` from `R` to `Rᵒᵖ` -/
-def star_mul_equiv [semiring R] [star_monoid R] : R ≃* Rᵒᵖ :=
-{ to_fun := λ x, opposite.op (star x),
-  map_mul' := λ x y, (star_mul x y).symm ▸ (opposite.op_mul _ _),
-  ..(has_involutive_star.star_involutive.to_equiv star).trans opposite.equiv_to_opposite}
 
 /--
 A *-ring `R` is a (semi)ring with an involutive `star` operation which is additive
@@ -87,26 +87,27 @@ which makes `R` with its multiplicative structure into a *-monoid
 (i.e. `star (r * s) = star s * star r`).
 -/
 class star_ring (R : Type u) [semiring R] extends star_monoid R :=
-(star_zero : star 0 = 0)
 (star_add : ∀ r s : R, star (r + s) = star r + star s)
-
-variables (R)
-
-@[simp] lemma star_zero [semiring R] [star_ring R] : star (0 : R) = 0 :=
-star_ring.star_zero
-
-variables {R}
 
 @[simp] lemma star_add [semiring R] [star_ring R] (r s : R) : star (r + s) = star r + star s :=
 star_ring.star_add r s
 
 /-- `star` as an `add_equiv` -/
+@[simps apply]
 def star_add_equiv [semiring R] [star_ring R] : R ≃+ R :=
 { to_fun := star,
   map_add' := star_add,
   ..(has_involutive_star.star_involutive.to_equiv star)}
 
+variables (R)
+
+@[simp] lemma star_zero [semiring R] [star_ring R] : star (0 : R) = 0 :=
+(star_add_equiv : R ≃+ R).map_zero
+
+variables {R}
+
 /-- `star` as an `ring_equiv` from `R` to `Rᵒᵖ` -/
+@[simps apply]
 def star_ring_equiv [semiring R] [star_ring R] : R ≃+* Rᵒᵖ :=
 { to_fun := λ x, opposite.op (star x),
   ..star_add_equiv.trans (opposite.op_add_equiv : R ≃+ Rᵒᵖ),
@@ -141,7 +142,6 @@ def star_ring_of_comm {R : Type*} [comm_semiring R] : star_ring R :=
 { star := id,
   star_involutive := λ x, by simp,
   star_mul := by simp [mul_comm],
-  star_zero := by simp,
   star_add := by simp, }
 
 section

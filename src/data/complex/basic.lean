@@ -188,7 +188,6 @@ instance : star_ring ℂ :=
 { star := λ z, conj z,
   star_involutive := λ z, by simp,
   star_mul := λ r s, by { ext; simp [mul_comm], },
-  star_zero := by simp,
   star_add := by simp, }
 
 /-! ### Norm squared -/

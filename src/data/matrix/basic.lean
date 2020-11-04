@@ -739,7 +739,6 @@ the star operation given by taking the conjugate, and the star of each entry.
 instance : star_ring (matrix n n R) :=
 { star := λ M, M.transpose.map star,
   star_involutive := λ M, by { ext, simp, },
-  star_zero := by simp,
   star_add := λ M N, by { ext, simp, },
   star_mul := λ M N, by { ext, simp [mul_apply], }, }
 

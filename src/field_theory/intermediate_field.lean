@@ -332,11 +332,12 @@ end intermediate_field
 
 /-- If `L/K` is algebraic, the `K`-subalgebras of `L` are all fields.  -/
 def subalgebra_equiv_intermediate_field (alg : algebra.is_algebraic K L) :
-  subalgebra K L ≃ intermediate_field K L :=
+  subalgebra K L ≃o intermediate_field K L :=
 { to_fun := λ S, S.to_intermediate_field (λ x hx, S.inv_mem_of_algebraic (alg (⟨x, hx⟩ : S))),
   inv_fun := λ S, S.to_subalgebra,
   left_inv := λ S, to_subalgebra_to_intermediate_field _ _,
-  right_inv := λ S, to_intermediate_field_to_subalgebra _ _ }
+  right_inv := λ S, to_intermediate_field_to_subalgebra _ _,
+  map_rel_iff' := λ S S', iff.rfl }
 
 @[simp] lemma mem_subalgebra_equiv_intermediate_field (alg : algebra.is_algebraic K L)
   {S : subalgebra K L} {x : L} :

@@ -354,7 +354,7 @@ end
 /-- A sieve induces a presheaf. -/
 @[simps]
 def functor (S : sieve X) : Cᵒᵖ ⥤ Type v :=
-{ obj := λ Y, {g : Y.unop ⟶ X // S.arrows g},
+{ obj := λ Y, {g : Y.unop ⟶ X // S g},
   map := λ Y Z f g, ⟨f.unop ≫ g.1, downward_closed _ g.2 _⟩ }
 
 /--
@@ -375,8 +375,42 @@ lemma nat_trans_of_le_comm {S T : sieve X} (h : S ≤ T) :
 rfl
 
 /-- The presheaf induced by a sieve is a subobject of the yoneda embedding. -/
-instance functor_inclusion_is_mono : mono (functor_inclusion S) :=
+instance functor_inclusion_is_mono : mono S.functor_inclusion :=
 ⟨λ Z f g h, by { ext Y y, apply congr_fun (nat_trans.congr_app h Y) y }⟩
+
+/--
+A natural transformation to a representable functor induces a sieve. This is the left inverse of
+`functor_inclusion`, shown in `sieve_of_functor_inclusion`.
+-/
+-- TODO: Show that when `f` is mono, this is right inverse to `functor_inclusion` up to isomorphism.
+def sieve_of_subfunctor {R} (f : R ⟶ yoneda.obj X) : sieve X :=
+{ arrows := λ Y g, ∃ t, f.app (opposite.op Y) t = g,
+  downward_closed' := λ Y Z _,
+  begin
+    rintro ⟨t, rfl⟩ g,
+    refine ⟨R.map g.op t, _⟩,
+    rw functor_to_types.naturality _ _ f,
+    simp,
+  end }
+
+@[simp]
+lemma sieve_of_subfunctor_apply {R} (f : R ⟶ yoneda.obj X) (g : Y ⟶ X) :
+  sieve_of_subfunctor f g ↔ ∃ t, f.app (opposite.op Y) t = g :=
+iff.rfl
+
+lemma sieve_of_subfunctor_functor_inclusion : sieve_of_subfunctor S.functor_inclusion = S :=
+begin
+  ext,
+  simp only [functor_inclusion_app, sieve_of_subfunctor_apply, subtype.val_eq_coe],
+  split,
+  { rintro ⟨⟨f, hf⟩, rfl⟩,
+    exact hf },
+  { intro hf,
+    exact ⟨⟨_, hf⟩, rfl⟩ }
+end
+
+instance functor_inclusion_top_is_iso : is_iso ((⊤ : sieve X).functor_inclusion) :=
+{ inv := { app := λ Y a, ⟨a, ⟨⟩⟩ } }
 
 end sieve
 end category_theory

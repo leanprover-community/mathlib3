@@ -120,6 +120,13 @@ variables (f g)
 
 @[simp] lemma map_smul (c : R) (x : M) : f (c • x) = c • f x := f.map_smul' c x
 
+@[simp, priority 900]
+lemma map_smul_of_tower {R S : Type*} [semiring S] [has_scalar R S] [has_scalar R M]
+  [semimodule S M] [is_scalar_tower R S M] [has_scalar R M₂] [semimodule S M₂]
+  [is_scalar_tower R S M₂] (f : M →ₗ[S] M₂) (c : R) (x : M) :
+  f (c • x) = c • f x :=
+by simp only [← smul_one_smul S c x, ← smul_one_smul S c (f x), map_smul]
+
 @[simp] lemma map_zero : f 0 = 0 :=
 by rw [← zero_smul R, map_smul f 0 0, zero_smul]
 
@@ -135,6 +142,21 @@ def to_add_monoid_hom : M →+ M₂ :=
 
 @[simp] lemma to_add_monoid_hom_coe :
   (f.to_add_monoid_hom : M → M₂) = f := rfl
+
+variable (R)
+
+/-- If `M` and `M₂` are both `R`-semimodules and `S`-semimodules and `R`-semimodule structures
+are defined by an action of `R` on `S` (formally, we have two scalar towers), then any `S`-linear
+map from `M` to `M₂` is `R`-linear.
+
+See also `linear_map.map_smul_of_tower`. -/
+def restrict_scalars {S : Type*} [has_scalar R S] [semiring S] [semimodule S M] [semimodule S M₂]
+  [is_scalar_tower R S M] [is_scalar_tower R S M₂] (f : M →ₗ[S] M₂) : M →ₗ[R] M₂ :=
+{ to_fun := f,
+  map_add' := f.map_add,
+  map_smul' := f.map_smul_of_tower }
+
+variable {R}
 
 @[simp] lemma map_sum {ι} {t : finset ι} {g : ι → M} :
   f (∑ i in t, g i) = (∑ i in t, f (g i)) :=

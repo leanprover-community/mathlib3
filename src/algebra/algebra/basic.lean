@@ -1086,25 +1086,19 @@ by rw [←(one_smul A m), ←smul_assoc, algebra.smul_def, mul_one, one_smul]
 
 variable {A}
 
-lemma smul_algebra_smul_comm (r : R) (a : A) (m : M) : a • r • m = r • a • m :=
-by rw [algebra_compatible_smul A r (a • m), smul_smul, algebra.commutes, mul_smul,
-  ←algebra_compatible_smul]
+@[priority 100] -- see Note [lower instance priority]
+instance is_scalar_tower.to_smul_comm_class : smul_comm_class R A M :=
+⟨λ r a m, by rw [algebra_compatible_smul A r (a • m), smul_smul, algebra.commutes, mul_smul,
+  ←algebra_compatible_smul]⟩
 
-@[simp] lemma map_smul_eq_smul_map (f : M →ₗ[A] N) (r : R) (m : M) :
-  f (r • m) = r • f m :=
-by rw [algebra_compatible_smul A r m, linear_map.map_smul, ←algebra_compatible_smul A r (f m)]
+@[priority 100] -- see Note [lower instance priority]
+instance is_scalar_tower.to_smul_comm_class' : smul_comm_class A R M :=
+smul_comm_class.symm _ _ _
+
+lemma smul_algebra_smul_comm (r : R) (a : A) (m : M) : a • r • m = r • a • m :=
+smul_comm _ _ _
 
 namespace linear_map
-
-variables (R) {A M N}
-
-/-- The `R`-linear map induced by an `A`-linear map when `A` is an algebra over `R`. -/
-def restrict_scalars (f : M →ₗ[A] N) : M →ₗ[R] N :=
-{ to_fun := f,
-  map_add' := λ x y, f.map_add x y,
-  map_smul' := λ c x, map_smul_eq_smul_map _ _ _ }
-
-variables (R A M N)
 
 instance coe_is_scalar_tower : has_coe (M →ₗ[A] N) (M →ₗ[R] N) :=
 ⟨restrict_scalars R⟩
@@ -1129,52 +1123,6 @@ def lto_fun (R : Type u) (M : Type v) (A : Type w)
 end linear_map
 
 end is_scalar_tower
-
-namespace linear_map
-
-variables (R : Type*) (A : Type*) (M : Type*) (N : Type*)
-variables [comm_semiring R] [semiring A] [algebra R A]
-variables [add_comm_monoid M] [semimodule A M]
-variables [add_comm_monoid N] [semimodule A N] [semimodule R N] [is_scalar_tower R A N]
-
-/--
-For `r : R`, and `f : M →ₗ[A] N` (where `A` is an `R`-algebra) we define
-`(r • f) m = f (r • m)`.
--/
-@[priority 500]
-instance algebra_has_scalar : has_scalar R (M →ₗ[A] N) :=
-{ smul := λ r f,
-  { to_fun := λ v, r • f v,
-    map_add' := λ x y, by simp [smul_add],
-    map_smul' := λ s v, by simp [smul_smul, algebra.commutes, smul_algebra_smul_comm], } }
-
-/-- The `R`-module structure on `A`-linear maps, for `A` an `R`-algebra. -/
-@[priority 500]
-instance algebra_module : semimodule R (M →ₗ[A] N) :=
-{ one_smul := λ f, by { ext v, simp only [(•), coe_mk, one_smul] },
-  mul_smul := λ r r' f, by { ext v, simp only [(•), mul_smul, coe_mk, map_smul_eq_smul_map] },
-  smul_zero := λ r, by { ext v, simp only [(•), coe_mk, zero_apply, smul_zero] },
-  smul_add := λ r f g, by { ext v, simp only [(•), coe_mk, add_apply, smul_add] },
-  zero_smul := λ f, by { ext v, simp only [(•), coe_mk, zero_smul, map_zero, zero_apply] },
-  add_smul := λ r r' f, by { ext v, simp only [(•), add_smul, map_add, coe_mk, add_apply] } }
-
-/-
-Check that two module structures on `M →ₗ[R] N` are defeq.
-
-- On the LHS we have the new instance, defined above, and we feed it `R` as algebra over itself.
-- On the RHS we have the ordinary instance for linear maps between `R`-modules.
- -/
-example [semimodule R M] :
-  @linear_map.algebra_module R R M N _ _ _ _ _ _ _ _ _ =
-  @linear_map.semimodule R M N _ _ _ _ _ := rfl
-
-variables {R A M N}
-
-lemma algebra_module.smul_apply (c : R) (f : M →ₗ[A] N) (m : M) :
-  (c • f) m = (c • (f m) : N) :=
-by simp only [(•), coe_mk, map_smul_eq_smul_map]
-
-end linear_map
 
 section restrict_scalars
 /- In this section, we describe restriction of scalars: if `S` is an algebra over `R`, then
@@ -1301,44 +1249,11 @@ variables (R : Type*) [comm_semiring R] (S : Type*) [semiring S] [algebra R S]
   (V : Type*) [add_comm_monoid V] [semimodule R V]
   (W : Type*) [add_comm_monoid W] [semimodule R W] [semimodule S W] [is_scalar_tower R S W]
 
-/-- The set of `R`-linear maps admits an `S`-action by left multiplication -/
-@[priority 500]
-instance has_scalar_extend_scalars :
-  has_scalar S (V →ₗ[R] W) :=
-{ smul := λ r f,
-  { to_fun := λ v, r • f v,
-    map_add' := by simp [smul_add],
-    map_smul' := λ c x, by rw [map_smul, smul_algebra_smul_comm] } }
-
-/-- The set of `R`-linear maps is an `S`-module-/
-@[priority 500]
-instance module_extend_scalars :
-  semimodule S (V →ₗ[R] W) :=
-{ one_smul := λ f, by { ext v, simp only [(•), coe_mk, one_smul] },
-  mul_smul := λ r r' f, by { ext v, simp only [(•), mul_smul, coe_mk, map_smul_eq_smul_map] },
-  smul_zero := λ r, by { ext v, simp only [(•), coe_mk, zero_apply, smul_zero] },
-  smul_add := λ r f g, by { ext v, simp only [(•), coe_mk, add_apply, smul_add] },
-  zero_smul := λ f, by { ext v, simp only [(•), coe_mk, zero_smul, map_zero, zero_apply] },
-  add_smul := λ r r' f, by { ext v, simp only [(•), add_smul, map_add, coe_mk, add_apply] } }
-
-/-
-Check that two module structures on `V →ₗ[R] W` are defeq.
-
-- On the LHS we have the new instance, defined above, and we feed it `R` as algebra over itself.
-- On the RHS we have the ordinary instance for linear maps between `R`-modules.
- -/
-example : @linear_map.module_extend_scalars R _ R _ _ V _ _ W _ _ _ _ =
-          @linear_map.semimodule R V W _ _ _ _ _ := rfl
-
 instance is_scalar_tower_extend_scalars :
   is_scalar_tower R S (V →ₗ[R] W) :=
 { smul_assoc := λ r s f, by simp only [(•), coe_mk, smul_assoc] }
 
 variables {R S V W}
-
-lemma smul_apply' (c : R) (f : V →ₗ[R] W) (v : V) :
-  (c • f) v = (c • (f v) : W) :=
-by simp only [(•), coe_mk, map_smul_eq_smul_map]
 
 /-- When `f` is a linear map taking values in `S`, then `λb, f b • x` is a linear map. -/
 def smul_algebra_right (f : V →ₗ[R] S) (x : W) : V →ₗ[R] W :=

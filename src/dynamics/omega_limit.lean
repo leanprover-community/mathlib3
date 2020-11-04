@@ -170,6 +170,22 @@ begin
     (λ hy₂, omega_limit_mono_right _ _ (subset_union_right _ _) hy₂) },
 end
 
+lemma omega_limit_eq_Inter : ω f ϕ s = ⋂ u : ↥f.sets, closure (image2 ϕ u s) :=
+bInter_eq_Inter _ _
+
+lemma omega_limit_eq_bInter_inter {v : set τ} (hv : v ∈ f) :
+  ω f ϕ s = ⋂ u ∈ f, closure (image2 ϕ (u ∩ v) s) :=
+subset.antisymm
+  (Inter_subset_Inter2 (λ u, ⟨u ∩ v,
+   Inter_subset_Inter2 (λ hu, ⟨inter_mem_sets hu hv, subset.rfl⟩)⟩))
+  (Inter_subset_Inter (λ u,
+   Inter_subset_Inter (λ hu, closure_mono
+     (image2_subset (inter_subset_left _ _) subset.rfl))))
+
+lemma omega_limit_eq_Inter_inter {v : set τ} (hv : v ∈ f) :
+  ω f ϕ s = ⋂ (u : ↥f.sets), closure (image2 ϕ (u ∩ v) s) :=
+by { rw omega_limit_eq_bInter_inter _ _ _ hv, apply bInter_eq_Inter }
+
 -- ω-limits in compact spaces:
 
 /-- A set is eventually carried into any neighbourhood of its ω-limit:
@@ -201,19 +217,32 @@ begin
 end
 
 /-- The ω-limit of a nonempty set w.r.t. a nontrivial filter is nonempty. -/
-lemma nonempty_omega_limit [compact_space β]
-  {s : set α} (hs : s.nonempty) (hf : ne_bot f) : (ω f ϕ s).nonempty :=
+lemma nonempty_omega_limit
+  {c : set β} (hc₁ : is_compact c) (hc₂ : ∃ v ∈ f, closure (image2 ϕ v s) ⊆ c)
+  (hs : s.nonempty) (hf : ne_bot f) : (ω f ϕ s).nonempty :=
 begin
-  have : ω f ϕ s = ⋂ (u : ↥f.sets), closure (image2 ϕ u s), from bInter_eq_Inter _ _,
-  rw this,
+  rcases hc₂ with ⟨v, hv₁, hv₂⟩,
+  rw omega_limit_eq_Inter_inter _ _ _ hv₁,
   apply is_compact.nonempty_Inter_of_directed_nonempty_compact_closed,
   { rintro ⟨u₁, hu₁⟩ ⟨u₂, hu₂⟩,
     use ⟨u₁ ∩ u₂, inter_mem_sets hu₁ hu₂⟩, split,
-    all_goals { exact closure_mono (image2_subset (by simp) subset.rfl) }},
-  { exact λ u, (nonempty.image2 (hf.nonempty_of_mem u.2) hs).mono subset_closure },
-  { exact λ _, is_closed_closure.compact },
+   all_goals { exact closure_mono (image2_subset
+        (inter_subset_inter_left _ (by simp)) subset.rfl) }},
+  { intro u,
+    have hn : (image2 ϕ (u ∩ v) s).nonempty, from
+      nonempty.image2 (hf.nonempty_of_mem (inter_mem_sets u.prop hv₁)) hs,
+    exact hn.mono subset_closure },
+  { intro _,
+    apply compact_of_is_closed_subset hc₁ is_closed_closure,
+    calc _ ⊆ closure (image2 ϕ v s) : closure_mono (image2_subset
+                                        (inter_subset_right _ _) subset.rfl)
+    ...    ⊆ c : hv₂ },
   { exact λ _, is_closed_closure },
 end
+
+lemma nonempty_omega_limit_of_compact [compact_space β]
+  (hs : s.nonempty) (hf : ne_bot f) : (ω f ϕ s).nonempty :=
+nonempty_omega_limit _ _ _ compact_univ ⟨univ, univ_mem_sets, subset_univ _⟩ hs hf
 
 end omega_limit
 

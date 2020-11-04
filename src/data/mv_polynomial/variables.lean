@@ -640,6 +640,11 @@ begin
     exact ⟨i, (mem_vars _).mpr ⟨d, hd, hi⟩, hj⟩ }
 end
 
+lemma mem_vars_bind₁ (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) {j : τ}
+  (h : j ∈ (bind₁ f φ).vars) :
+  ∃ (i : σ), i ∈ φ.vars ∧ j ∈ (f i).vars :=
+by simpa only [exists_prop, finset.mem_bind, mem_support_iff, ne.def] using vars_bind₁ f φ h
+
 lemma vars_rename (f : σ → τ) (φ : mv_polynomial σ R) :
   (rename f φ).vars ⊆ (φ.vars.image f) :=
 begin
@@ -647,6 +652,10 @@ begin
   simp only [vars, exists_prop, multiset.mem_to_finset, finset.mem_image] at hi ⊢,
   simpa only [multiset.mem_map] using degrees_rename _ _ hi
 end
+
+lemma mem_vars_rename (f : σ → τ) (φ : mv_polynomial σ R) {j : τ} (h : j ∈ (rename f φ).vars) :
+  ∃ (i : σ), i ∈ φ.vars ∧ f i = j :=
+by simpa only [exists_prop, finset.mem_image] using vars_rename f φ h
 
 end eval_vars
 

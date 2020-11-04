@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.const
+import category_theory.discrete_category
 import category_theory.yoneda
 import category_theory.reflects_isomorphisms
 
@@ -84,6 +85,13 @@ structure cone (F : J ⥤ C) :=
 (X : C)
 (π : (const J).obj X ⟶ F)
 
+instance inhabited_cone (F : discrete punit ⥤ C) : inhabited (cone F) :=
+⟨{ X := F.obj punit.star,
+  π :=
+  { app := λ X, match X with
+    | punit.star := 𝟙 _
+    end } }⟩
+
 @[simp, reassoc] lemma cone.w {F : J ⥤ C} (c : cone F) {j j' : J} (f : j ⟶ j') :
   c.π.app j ≫ F.map f = c.π.app j' :=
 by { rw ← (c.π.naturality f), apply id_comp }
@@ -98,6 +106,13 @@ A `c : cocone F` is
 structure cocone (F : J ⥤ C) :=
 (X : C)
 (ι : F ⟶ (const J).obj X)
+
+instance inhabited_cocone (F : discrete punit ⥤ C) : inhabited (cocone F) :=
+⟨{ X := F.obj punit.star,
+  ι :=
+  { app := λ X, match X with
+    | punit.star := 𝟙 _
+    end } }⟩
 
 @[simp, reassoc] lemma cocone.w {F : J ⥤ C} (c : cocone F) {j j' : J} (f : j ⟶ j') :
   F.map f ≫ c.ι.app j' = c.ι.app j :=
@@ -114,6 +129,7 @@ def equiv (F : J ⥤ C) : cone F ≅ Σ X, F.cones.obj X :=
   hom_inv_id' := begin ext, cases x, refl, end,
   inv_hom_id' := begin ext, cases x, refl, end }
 
+/-- A map to the vertex of a cone naturally induces a cone by composition. -/
 @[simp] def extensions (c : cone F) : yoneda.obj c.X ⟶ F.cones :=
 { app := λ X f, (const J).map f ≫ c.π }
 
@@ -142,6 +158,7 @@ def equiv (F : J ⥤ C) : cocone F ≅ Σ X, F.cocones.obj X :=
   hom_inv_id' := begin ext, cases x, refl, end,
   inv_hom_id' := begin ext, cases x, refl, end }
 
+/-- A map from the vertex of a cocone naturally induces a cocone by composition. -/
 @[simp] def extensions (c : cocone F) : coyoneda.obj (op c.X) ⟶ F.cocones :=
 { app := λ X f, c.ι ≫ (const J).map f }
 
@@ -172,6 +189,9 @@ commutes with the cone legs. -/
 
 restate_axiom cone_morphism.w'
 attribute [simp, reassoc] cone_morphism.w
+
+instance inhabited_cone_morphism (A : cone F) : inhabited (cone_morphism A A) :=
+⟨{ hom := 𝟙 _}⟩
 
 /-- The category of cones on a given diagram. -/
 @[simps] instance cone.category : category.{v} (cone F) :=
@@ -335,6 +355,9 @@ which commutes with the cocone legs. -/
 @[ext] structure cocone_morphism (A B : cocone F) :=
 (hom : A.X ⟶ B.X)
 (w'  : ∀ j : J, A.ι.app j ≫ hom = B.ι.app j . obviously)
+
+instance inhabited_cocone_morphism (A : cocone F) : inhabited (cocone_morphism A A) :=
+⟨{ hom := 𝟙 _ }⟩
 
 restate_axiom cocone_morphism.w'
 attribute [simp, reassoc] cocone_morphism.w
@@ -562,6 +585,97 @@ def map_cocone_map_cocone_inv {F : J ⥤ D} (H : D ⥤ C) [is_equivalence H] (c 
 def map_cocone_inv_map_cocone {F : J ⥤ D} (H : D ⥤ C) [is_equivalence H] (c : cocone F) :
   map_cocone_inv H (map_cocone H c) ≅ c :=
 (limits.cocones.functoriality_equivalence F (as_equivalence H)).unit_iso.symm.app c
+
+/-- `functoriality F _ ⋙ postcompose (whisker_left F _)` simplifies to `functoriality F _`. -/
+@[simps {rhs_md:=semireducible}]
+def functoriality_comp_postcompose {H H' : C ⥤ D} (α : H ≅ H') :
+  cones.functoriality F H ⋙ cones.postcompose (whisker_left F α.hom) ≅ cones.functoriality F H' :=
+nat_iso.of_components (λ c, cones.ext (α.app _) (by tidy)) (by tidy)
+
+/--
+For `F : J ⥤ C`, given a cone `c : cone F`, and a natural isomorphism `α : H ≅ H'` for functors
+`H H' : C ⥤ D`, the postcomposition of the cone `H.map_cone` using the isomorphism `α` is
+isomorphic to the cone `H'.map_cone`.
+-/
+@[simps {rhs_md:=semireducible}]
+def postcompose_whisker_left_map_cone {H H' : C ⥤ D} (α : H ≅ H') (c : cone F) :
+  (cones.postcompose (whisker_left F α.hom : _)).obj (H.map_cone c) ≅ H'.map_cone c :=
+(functoriality_comp_postcompose α).app c
+
+/--
+`map_cone` commutes with `postcompose`. In particular, for `F : J ⥤ C`, given a cone `c : cone F`, a
+natural transformation `α : F ⟶ G` and a functor `H : C ⥤ D`, we have two obvious ways of producing
+a cone over `G ⋙ H`, and they are both isomorphic.
+-/
+@[simps {rhs_md:=semireducible}]
+def map_cone_postcompose {α : F ⟶ G} {c} :
+  H.map_cone ((cones.postcompose α).obj c) ≅
+  (cones.postcompose (whisker_right α H : _)).obj (H.map_cone c) :=
+cones.ext (iso.refl _) (by tidy)
+
+/--
+`map_cone` commutes with `postcompose_equivalence`
+-/
+@[simps {rhs_md:=semireducible}]
+def map_cone_postcompose_equivalence_functor {α : F ≅ G} {c} :
+  H.map_cone ((cones.postcompose_equivalence α).functor.obj c) ≅
+    (cones.postcompose_equivalence (iso_whisker_right α H : _)).functor.obj (H.map_cone c) :=
+cones.ext (iso.refl _) (by tidy)
+
+/-- `functoriality F _ ⋙ precompose (whisker_left F _)` simplifies to `functoriality F _`. -/
+@[simps {rhs_md:=semireducible}]
+def functoriality_comp_precompose {H H' : C ⥤ D} (α : H ≅ H') :
+   cocones.functoriality F H ⋙ cocones.precompose (whisker_left F α.inv)
+ ≅ cocones.functoriality F H' :=
+nat_iso.of_components (λ c, cocones.ext (α.app _) (by tidy)) (by tidy)
+
+/--
+For `F : J ⥤ C`, given a cocone `c : cocone F`, and a natural isomorphism `α : H ≅ H'` for functors
+`H H' : C ⥤ D`, the precomposition of the cocone `H.map_cocone` using the isomorphism `α` is
+isomorphic to the cocone `H'.map_cocone`.
+-/
+@[simps {rhs_md:=semireducible}]
+def precompose_whisker_left_map_cocone {H H' : C ⥤ D} (α : H ≅ H') (c : cocone F) :
+  (cocones.precompose (whisker_left F α.inv : _)).obj (H.map_cocone c) ≅ H'.map_cocone c :=
+(functoriality_comp_precompose α).app c
+
+/--
+`map_cocone` commutes with `precompose`. In particular, for `F : J ⥤ C`, given a cocone
+`c : cocone F`, a natural transformation `α : F ⟶ G` and a functor `H : C ⥤ D`, we have two obvious
+ways of producing a cocone over `G ⋙ H`, and they are both isomorphic.
+-/
+@[simps {rhs_md:=semireducible}]
+def map_cocone_precompose {α : F ⟶ G} {c} :
+  H.map_cocone ((cocones.precompose α).obj c) ≅
+  (cocones.precompose (whisker_right α H : _)).obj (H.map_cocone c) :=
+cocones.ext (iso.refl _) (by tidy)
+
+/--
+`map_cocone` commutes with `precompose_equivalence`
+-/
+@[simps {rhs_md:=semireducible}]
+def map_cocone_precompose_equivalence_functor {α : F ≅ G} {c} :
+  H.map_cocone ((cocones.precompose_equivalence α).functor.obj c) ≅
+    (cocones.precompose_equivalence (iso_whisker_right α H : _)).functor.obj (H.map_cocone c) :=
+cocones.ext (iso.refl _) (by tidy)
+
+variables {K : Type v} [small_category K]
+
+/--
+`map_cone` commutes with `whisker`
+-/
+@[simps {rhs_md:=semireducible}]
+def map_cone_whisker {E : K ⥤ J} {c : cone F} :
+  H.map_cone (c.whisker E) ≅ (H.map_cone c).whisker E :=
+cones.ext (iso.refl _) (by tidy)
+
+/--
+`map_cocone` commutes with `whisker`
+-/
+@[simps {rhs_md:=semireducible}]
+def map_cocone_whisker {E : K ⥤ J} {c : cocone F} :
+  H.map_cocone (c.whisker E) ≅ (H.map_cocone c).whisker E :=
+cocones.ext (iso.refl _) (by tidy)
 
 end functor
 

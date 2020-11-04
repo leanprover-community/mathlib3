@@ -476,9 +476,8 @@ by rw [@iff_def (¬ a), @iff_def (¬ b)]; exact and_congr decidable.not_imp_comm
 theorem not_iff_comm : (¬ a ↔ b) ↔ (¬ b ↔ a) := decidable.not_iff_comm
 
 -- See Note [decidable namespace]
-protected theorem decidable.not_iff [decidable b] : ¬ (a ↔ b) ↔ (¬ a ↔ b) :=
-by split; intro h; [split, skip]; intro h'; [by_contra, intro, skip];
-   try { refine h _; simp [*] }; rw [h', not_iff_self] at h; exact h
+protected theorem decidable.not_iff : ∀ [decidable b], ¬ (a ↔ b) ↔ (¬ a ↔ b) :=
+by intro h; cases h; simp only [h, iff_true, iff_false]
 
 theorem not_iff : ¬ (a ↔ b) ↔ (¬ a ↔ b) := decidable.not_iff
 
@@ -636,11 +635,39 @@ variables {α : Sort*} {β : Sort*} {p q : α → Prop} {b : Prop}
 lemma forall_imp (h : ∀ a, p a → q a) : (∀ a, p a) → ∀ a, q a :=
 λ h' a, h a (h' a)
 
+lemma forall₂_congr {p q : α → β → Prop} (h : ∀ a b, p a b ↔ q a b) :
+  (∀ a b, p a b) ↔ (∀ a b, q a b) :=
+forall_congr (λ a, forall_congr (h a))
+
+lemma forall₃_congr {γ : Sort*} {p q : α → β → γ → Prop}
+  (h : ∀ a b c, p a b c ↔ q a b c) :
+  (∀ a b c, p a b c) ↔ (∀ a b c, q a b c) :=
+forall_congr (λ a, forall₂_congr (h a))
+
+lemma forall₄_congr {γ δ : Sort*} {p q : α → β → γ → δ → Prop}
+  (h : ∀ a b c d, p a b c d ↔ q a b c d) :
+  (∀ a b c d, p a b c d) ↔ (∀ a b c d, q a b c d) :=
+forall_congr (λ a, forall₃_congr (h a))
+
 lemma Exists.imp (h : ∀ a, (p a → q a)) (p : ∃ a, p a) : ∃ a, q a := exists_imp_exists h p
 
 lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a))
   (hp : ∃ a, p a) : ∃ b, q b :=
 exists.elim hp (λ a hp', ⟨_, hpq _ hp'⟩)
+
+lemma exists₂_congr {p q : α → β → Prop} (h : ∀ a b, p a b ↔ q a b) :
+  (∃ a b, p a b) ↔ (∃ a b, q a b) :=
+exists_congr (λ a, exists_congr (h a))
+
+lemma exists₃_congr {γ : Sort*} {p q : α → β → γ → Prop}
+  (h : ∀ a b c, p a b c ↔ q a b c) :
+  (∃ a b c, p a b c) ↔ (∃ a b c, q a b c) :=
+exists_congr (λ a, exists₂_congr (h a))
+
+lemma exists₄_congr {γ δ : Sort*} {p q : α → β → γ → δ → Prop}
+  (h : ∀ a b c d, p a b c d ↔ q a b c d) :
+  (∃ a b c d, p a b c d) ↔ (∃ a b c d, q a b c d) :=
+exists_congr (λ a, exists₃_congr (h a))
 
 theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
 ⟨function.swap, function.swap⟩
@@ -1183,5 +1210,10 @@ by { by_cases h : P; simp [h] }
 @[simp] lemma ite_not {α : Sort*} (P : Prop) [decidable P] (x y : α) :
   ite (¬ P) x y = ite P y x :=
 dite_not P (λ _, x) (λ _, y)
+
+lemma ite_and {α} {p q : Prop} [decidable p] [decidable q] {x y : α} :
+  ite (p ∧ q) x y = ite p (ite q x y) y :=
+by { by_cases hp : p; by_cases hq : q; simp [hp, hq] }
+
 
 end ite

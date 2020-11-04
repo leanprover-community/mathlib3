@@ -105,6 +105,9 @@ P.lift ((cones.postcompose α).obj s)
   (α : F ⟶ G) (j : J) : hd.map c α ≫ d.π.app j = c.π.app j ≫ α.app j :=
 fac _ _ _
 
+lemma lift_self {c : cone F} (t : is_limit c) : t.lift c = 𝟙 c.X :=
+(t.uniq _ _ (λ j, id_comp _)).symm
+
 /- Repackaging the definition in terms of cone morphisms. -/
 
 /-- The universal morphism from any other cone to a limit cone. -/
@@ -526,6 +529,10 @@ P.desc ((cocones.precompose α).obj t)
 lemma ι_map {F G : J ⥤ C} {c : cocone F} (hc : is_colimit c) (d : cocone G) (α : F ⟶ G)
   (j : J) : c.ι.app j ≫ is_colimit.map hc d α = α.app j ≫ d.ι.app j :=
 fac _ _ _
+
+@[simp]
+lemma desc_self {t : cocone F} (h : is_colimit t) : h.desc t = 𝟙 t.X :=
+(h.uniq _ _ (λ j, comp_id _)).symm
 
 /- Repackaging the definition in terms of cocone morphisms. -/
 
@@ -1026,9 +1033,13 @@ by { dsimp [limit.iso_limit_cone, is_limit.cone_point_unique_up_to_iso], tidy, }
   (w : ∀ j, f ≫ limit.π F j = f' ≫ limit.π F j) : f = f' :=
 (limit.is_limit F).hom_ext w
 
+@[simp] lemma limit.lift_map {F G : J ⥤ C} [has_limit F] [has_limit G] (c : cone F) (α : F ⟶ G) :
+  limit.lift F c ≫ lim_map α = limit.lift G ((cones.postcompose α).obj c) :=
+by { ext, rw [assoc, lim_map_π, limit.lift_π_assoc, limit.lift_π], refl }
+
 @[simp] lemma limit.lift_cone {F : J ⥤ C} [has_limit F] :
   limit.lift F (limit.cone F) = 𝟙 (limit F) :=
-by { ext, dsimp, simp, }
+(limit.is_limit _).lift_self
 
 /--
 The isomorphism (in `Type`) between
@@ -1142,7 +1153,7 @@ The canonical morphism from the limit of `F` to the limit of `E ⋙ F`.
 def limit.pre : limit F ⟶ limit (E ⋙ F) :=
 limit.lift (E ⋙ F) ((limit.cone F).whisker E)
 
-@[simp] lemma limit.pre_π (k : K) : limit.pre F E ≫ limit.π (E ⋙ F) k = limit.π F (E.obj k) :=
+@[simp, reassoc] lemma limit.pre_π (k : K) : limit.pre F E ≫ limit.π (E ⋙ F) k = limit.π F (E.obj k) :=
 by { erw is_limit.fac, refl }
 
 @[simp] lemma limit.lift_pre (c : cone F) :
@@ -1180,7 +1191,8 @@ The canonical morphism from `G` applied to the limit of `F` to the limit of `F �
 def limit.post : G.obj (limit F) ⟶ limit (F ⋙ G) :=
 limit.lift (F ⋙ G) (G.map_cone (limit.cone F))
 
-@[simp] lemma limit.post_π (j : J) : limit.post F G ≫ limit.π (F ⋙ G) j = G.map (limit.π F j) :=
+@[simp, reassoc] lemma limit.post_π (j : J) :
+  limit.post F G ≫ limit.π (F ⋙ G) j = G.map (limit.π F j) :=
 by { erw is_limit.fac, refl }
 
 @[simp] lemma limit.lift_post (c : cone F) :
@@ -1229,7 +1241,6 @@ section lim_functor
 variables [has_limits_of_shape J C]
 
 section
-local attribute [simp] lim_map
 
 /-- `limit F` is functorial in `F`, when `C` has all limits of shape `J`. -/
 @[simps obj]
@@ -1243,16 +1254,12 @@ end
 
 variables {F} {G : J ⥤ C} (α : F ⟶ G)
 
-@[simp, reassoc] lemma limit.map_π (j : J) : lim.map α ≫ limit.π G j = limit.π F j ≫ α.app j :=
-by apply is_limit.fac
-
-@[simp] lemma limit.lift_map (c : cone F) :
-  limit.lift F c ≫ lim.map α = limit.lift G ((cones.postcompose α).obj c) :=
-by ext; rw [assoc, limit.map_π, ←assoc, limit.lift_π, limit.lift_π]; refl
+-- We generate this manually since `simps` gives it a weird name.
+@[simp] lemma lim_map_eq_lim_map : lim.map α = lim_map α := rfl
 
 lemma limit.map_pre [has_limits_of_shape K C] (E : K ⥤ J) :
   lim.map α ≫ limit.pre G E = limit.pre F E ≫ lim.map (whisker_left E α) :=
-by ext; rw [assoc, limit.pre_π, limit.map_π, assoc, limit.map_π, ←assoc, limit.pre_π]; refl
+by { ext, simp }
 
 lemma limit.map_pre' [has_limits_of_shape K C]
   (F : J ⥤ C) {E₁ E₂ : K ⥤ J} (α : E₁ ⟶ E₂) :
@@ -1265,12 +1272,10 @@ limit.pre F (𝟭 _) = lim.map (functor.left_unitor F).inv := by tidy
 lemma limit.map_post {D : Type u'} [category.{v} D] [has_limits_of_shape J D] (H : C ⥤ D) :
 /- H (limit F) ⟶ H (limit G) ⟶ limit (G ⋙ H) vs
    H (limit F) ⟶ limit (F ⋙ H) ⟶ limit (G ⋙ H) -/
-  H.map (lim.map α) ≫ limit.post G H = limit.post F H ≫ lim.map (whisker_right α H) :=
+  H.map (lim_map α) ≫ limit.post G H = limit.post F H ≫ lim_map (whisker_right α H) :=
 begin
   ext,
-  rw [assoc, limit.post_π, ←H.map_comp, limit.map_π, H.map_comp],
-  rw [assoc, limit.map_π, ←assoc, limit.post_π],
-  refl
+  simp only [whisker_right_app, lim_map_π, assoc, limit.post_π_assoc, limit.post_π, ← H.map_comp],
 end
 
 /--
@@ -1442,7 +1447,7 @@ by { dsimp [colimit.iso_colimit_cocone, is_colimit.cocone_point_unique_up_to_iso
 
 @[simp] lemma colimit.desc_cocone {F : J ⥤ C} [has_colimit F] :
   colimit.desc F (colimit.cocone F) = 𝟙 (colimit F) :=
-by { ext, dsimp, simp, }
+(colimit.is_colimit _).desc_self
 
 /--
 The isomorphism (in `Type`) between

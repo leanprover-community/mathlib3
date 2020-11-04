@@ -312,7 +312,7 @@ not_lt_of_le (dist_triangle_left x y z)
   (lt_of_lt_of_le (add_lt_add h₁ h₂) h)
 
 theorem ball_disjoint_same (h : ε ≤ dist x y / 2) : ball x ε ∩ ball y ε = ∅ :=
-ball_disjoint $ by rwa [← two_mul, ← le_div_iff' (@zero_lt_two ℝ _)]
+ball_disjoint $ by rwa [← two_mul, ← le_div_iff' (@zero_lt_two ℝ _ _)]
 
 theorem ball_subset (h : dist x y ≤ ε₂ - ε₁) : ball x ε₁ ⊆ ball y ε₂ :=
 λ z zx, by rw ← add_sub_cancel'_right ε₁ ε₂; exact
@@ -390,7 +390,7 @@ begin
   refine ⟨λ s, uniformity_basis_dist.mem_iff.trans _⟩,
   split,
   { rintros ⟨ε, ε₀, hε⟩,
-    rcases dense ε₀ with ⟨ε', hε'⟩,
+    rcases exists_between ε₀ with ⟨ε', hε'⟩,
     rcases hf ε' hε'.1 with ⟨i, hi, H⟩,
     exact ⟨i, hi, λ x (hx : _ ≤ _), hε $ lt_of_le_of_lt (le_trans hx H) hε'.2⟩ },
   { exact λ ⟨i, hi, H⟩, ⟨f i, hf₀ i hi, λ x (hx : _ < _), H (le_of_lt hx)⟩ }
@@ -1142,9 +1142,7 @@ begin
     ennreal.to_real (sup univ (λ (b : β), edist (x b) (y b))),
   { assume x y,
     have : sup univ (λ (b : β), edist (x b) (y b)) = ↑(sup univ (λ (b : β), nndist (x b) (y b))),
-    { simp [edist_nndist],
-      refine eq.symm (comp_sup_eq_sup_comp_of_is_total _ _ _),
-      exact (assume x y h, ennreal.coe_le_coe.2 h), refl },
+    { simp [edist_nndist] },
     rw this,
     refl }
 end
@@ -1210,6 +1208,15 @@ open metric
 class proper_space (α : Type u) [metric_space α] : Prop :=
 (compact_ball : ∀x:α, ∀r, is_compact (closed_ball x r))
 
+lemma tendsto_dist_right_cocompact_at_top [proper_space α] (x : α) :
+  tendsto (λ y, dist y x) (cocompact α) at_top :=
+(has_basis_cocompact.tendsto_iff at_top_basis).2 $ λ r hr,
+  ⟨closed_ball x r, proper_space.compact_ball x r, λ y hy, (not_le.1 $ mt mem_closed_ball.2 hy).le⟩
+
+lemma tendsto_dist_left_cocompact_at_top [proper_space α] (x : α) :
+  tendsto (dist x) (cocompact α) at_top :=
+by simpa only [dist_comm] using tendsto_dist_right_cocompact_at_top x
+
 /-- If all closed balls of large enough radius are compact, then the space is proper. Especially
 useful when the lower bound for the radius is 0. -/
 lemma proper_space_of_compact_closed_ball_of_le
@@ -1230,7 +1237,7 @@ end⟩
 /- A compact metric space is proper -/
 @[priority 100] -- see Note [lower instance priority]
 instance proper_of_compact [compact_space α] : proper_space α :=
-⟨assume x r, compact_of_is_closed_subset compact_univ is_closed_ball (subset_univ _)⟩
+⟨assume x r, is_closed_ball.compact⟩
 
 /-- A proper space is locally compact -/
 @[priority 100] -- see Note [lower instance priority]
@@ -1273,35 +1280,27 @@ dense in the whole space. -/
 instance second_countable_of_proper [proper_space α] :
   second_countable_topology α :=
 begin
+  /- It suffices to show that `α` admits a countable dense subset. -/
+  suffices : separable_space α,
+  { resetI, apply emetric.second_countable_of_separable },
+  constructor,
   /- We show that the space admits a countable dense subset. The case where the space is empty
   is special, and trivial. -/
-  have A : (univ : set α) = ∅ → ∃(s : set α), countable s ∧ closure s = (univ : set α) :=
-    assume H, ⟨∅, ⟨by simp, by simp; exact H.symm⟩⟩,
-  have B : (univ : set α).nonempty → ∃(s : set α), countable s ∧ closure s = (univ : set α) :=
-  begin
-    /- When the space is not empty, we take a point `x` in the space, and then a countable set
+  rcases _root_.em (nonempty α) with (⟨⟨x⟩⟩|hα), swap,
+  { exact ⟨∅, countable_empty, λ x, (hα ⟨x⟩).elim⟩ },
+  /- When the space is not empty, we take a point `x` in the space, and then a countable set
     `T r` which is dense in the closed ball `closed_ball x r` for each `r`. Then the set
     `t = ⋃ T n` (where the union is over all integers `n`) is countable, as a countable union
     of countable sets, and dense in the space by construction. -/
-    rintros ⟨x, x_univ⟩,
-    choose T a using show ∀ (r:ℝ), ∃ t ⊆ closed_ball x r, (countable (t : set α) ∧ closed_ball x r = closure t),
+  choose T T_sub T_count T_closure using
+    show ∀ (r:ℝ), ∃ t ⊆ closed_ball x r, (countable (t : set α) ∧ closed_ball x r = closure t),
       from assume r, emetric.countable_closure_of_compact (proper_space.compact_ball _ _),
-    let t := (⋃n:ℕ, T (n : ℝ)),
-    have T₁ : countable t := by finish [countable_Union],
-    have T₂ : closure t ⊆ univ := by simp,
-    have T₃ : univ ⊆ closure t :=
-    begin
-      intros y y_univ,
-      rcases exists_nat_gt (dist y x) with ⟨n, n_large⟩,
-      have h : y ∈ closed_ball x (n : ℝ) := by simp; apply le_of_lt n_large,
-      have h' : closed_ball x (n : ℝ) = closure (T (n : ℝ)) := by finish,
-      have : y ∈ closure (T (n : ℝ)) := by rwa h' at h,
-      show y ∈ closure t, from mem_of_mem_of_subset this (by apply closure_mono; apply subset_Union (λ(n:ℕ), T (n:ℝ))),
-    end,
-    exact ⟨t, ⟨T₁, subset.antisymm T₂ T₃⟩⟩
-  end,
-  haveI : separable_space α := ⟨(eq_empty_or_nonempty univ).elim A B⟩,
-  apply emetric.second_countable_of_separable,
+  use [⋃n:ℕ, T (n : ℝ), countable_Union (λ n, T_count n)],
+  intro y,
+  rcases exists_nat_gt (dist y x) with ⟨n, n_large⟩,
+  have h : y ∈ closed_ball x (n : ℝ) := n_large.le,
+  rw [T_closure] at h,
+  exact closure_mono (subset_Union _ _) h
 end
 
 /-- A finite product of proper spaces is proper. -/
@@ -1332,15 +1331,15 @@ begin
   have I : ∀n:ℕ, (n+1 : ℝ)⁻¹ > 0 := λn, inv_pos.2 (I1 n),
   let t := ⋃n:ℕ, T (n+1)⁻¹ (I n),
   have count_t : countable t := by finish [countable_Union],
-  have clos_t : closure t = univ,
-  { refine subset.antisymm (subset_univ _) (λx xuniv, mem_closure_iff.2 (λε εpos, _)),
+  have dense_t : dense t,
+  { refine (λx, mem_closure_iff.2 (λε εpos, _)),
     rcases exists_nat_gt ε⁻¹ with ⟨n, hn⟩,
     have : ε⁻¹ < n + 1 := lt_of_lt_of_le hn (le_add_of_nonneg_right zero_le_one),
     have nε : ((n:ℝ)+1)⁻¹ < ε := (inv_lt (I1 n) εpos).2 this,
     rcases (T_dense (n+1)⁻¹ (I n)).2 x with ⟨y, yT, Dxy⟩,
     have : y ∈ t := mem_of_mem_of_subset yT (by apply subset_Union (λ (n:ℕ), T (n+1)⁻¹ (I n))),
     exact ⟨y, this, lt_of_le_of_lt Dxy nε⟩ },
-  haveI : separable_space α := ⟨⟨t, ⟨count_t, clos_t⟩⟩⟩,
+  haveI : separable_space α := ⟨⟨t, ⟨count_t, dense_t⟩⟩⟩,
   exact emetric.second_countable_of_separable α
 end
 

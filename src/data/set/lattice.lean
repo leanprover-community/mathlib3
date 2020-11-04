@@ -104,6 +104,9 @@ theorem subset_Inter {t : set β} {s : ι → set β} (h : ∀ i, t ⊆ s i) : t
 -- TODO: should be simpler when sets' order is based on lattices
 @le_infi (set β) _ set.lattice_set _ _ h
 
+theorem subset_Inter_iff {t : set β} {s : ι → set β} : t ⊆ (⋂ i, s i) ↔ ∀ i, t ⊆ s i :=
+@le_infi_iff (set β) _ set.lattice_set _ _
+
 theorem subset_Union : ∀ (s : ι → set β) (i : ι), s i ⊆ (⋃ i, s i) := le_supr
 
 -- This rather trivial consequence is convenient with `apply`,
@@ -207,6 +210,21 @@ assume a₁ b₁ fb₁ a₂ b₂ fb₂,
 let ⟨z, zb₁, zb₂⟩ := hd b₁ b₂,
     ⟨x, xf, xa₁, xa₂⟩ := h z a₁ (zb₁ fb₁) a₂ (zb₂ fb₂) in
 ⟨x, ⟨z, xf⟩, xa₁, xa₂⟩
+
+lemma Union_inter_subset {ι α} {s t : ι → set α} : (⋃ i, s i ∩ t i) ⊆ (⋃ i, s i) ∩ (⋃ i, t i) :=
+by { rintro x ⟨_, ⟨i, rfl⟩, ⟨xs, xt⟩⟩, exact ⟨⟨_, ⟨i, rfl⟩, xs⟩, ⟨_, ⟨i, rfl⟩, xt⟩⟩ }
+
+lemma Union_inter_of_monotone {ι α} [semilattice_sup ι] {s t : ι → set α}
+  (hs : monotone s) (ht : monotone t) : (⋃ i, s i ∩ t i) = (⋃ i, s i) ∩ (⋃ i, t i) :=
+begin
+  ext x, refine ⟨λ hx, Union_inter_subset hx, _⟩,
+  rintro ⟨⟨_, ⟨i, rfl⟩, xs⟩, ⟨_, ⟨j, rfl⟩, xt⟩⟩,
+  exact ⟨_, ⟨i ⊔ j, rfl⟩, ⟨hs le_sup_left xs, ht le_sup_right xt⟩⟩
+end
+
+/-- An equality version of this lemma is `Union_Inter_of_monotone` in `data.set.finite`. -/
+lemma Union_Inter_subset {ι ι' α} {s : ι → ι' → set α} : (⋃ j, ⋂ i, s i j) ⊆ ⋂ i, ⋃ j, s i j :=
+by { rintro x ⟨_, ⟨i, rfl⟩, hx⟩ _ ⟨j, rfl⟩, exact ⟨_, ⟨i, rfl⟩, hx _ ⟨j, rfl⟩⟩ }
 
 /- bounded unions and intersections -/
 
@@ -906,6 +924,27 @@ theorem monotone_prod [preorder α] {f : α → set β} {g : α → set γ}
 assume a b h, prod_mono (hf h) (hg h)
 
 alias monotone_prod ← monotone.set_prod
+
+lemma prod_Union {ι} {s : set α} {t : ι → set β} : s.prod (⋃ i, t i) = ⋃ i, s.prod (t i) :=
+by { ext, simp }
+
+lemma prod_bUnion {ι} {u : set ι} {s : set α} {t : ι → set β} :
+  s.prod (⋃ i ∈ u, t i) = ⋃ i ∈ u, s.prod (t i) :=
+by simp_rw [prod_Union]
+
+lemma prod_sUnion {s : set α} {C : set (set β)} : s.prod (⋃₀ C) = ⋃₀ ((λ t, s.prod t) '' C) :=
+by { simp only [sUnion_eq_bUnion, prod_bUnion, bUnion_image] }
+
+lemma Union_prod {ι} {s : ι → set α} {t : set β} : (⋃ i, s i).prod t = ⋃ i, (s i).prod t :=
+by { ext, simp }
+
+lemma bUnion_prod {ι} {u : set ι} {s : ι → set α} {t : set β} :
+  (⋃ i ∈ u, s i).prod t = ⋃ i ∈ u, (s i).prod t :=
+by simp_rw [Union_prod]
+
+lemma sUnion_prod {C : set (set α)} {t : set β} :
+  (⋃₀ C).prod t = ⋃₀ ((λ s : set α, s.prod t) '' C) :=
+by { simp only [sUnion_eq_bUnion, bUnion_prod, bUnion_image] }
 
 lemma Union_prod_of_monotone [semilattice_sup α] {s : α → set β} {t : α → set γ}
   (hs : monotone s) (ht : monotone t) : (⋃ x, (s x).prod (t x)) = (⋃ x, (s x)).prod (⋃ x, (t x)) :=

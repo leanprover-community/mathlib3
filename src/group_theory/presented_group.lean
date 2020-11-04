@@ -18,7 +18,7 @@ quotient_group.quotient $ subgroup.normal_closure rels
 namespace presented_group
 
 instance (rels : set (free_group α)) : group (presented_group (rels)) :=
-quotient_group.group _
+quotient_group.quotient.group _
 
 /-- `of x` is the canonical map from α to a presented group with generators α. The term x is
 mapped to the equivalence class of the image of x in free_group α. -/
@@ -58,4 +58,7 @@ theorem to_group.unique (g : presented_group rels →* β)
     (λ _, free_group.to_group.unique (g.comp (quotient_group.mk' _)) hg)
 
 end to_group
+
+instance (rels : set (free_group α)) : inhabited (presented_group rels) := ⟨1⟩
+
 end presented_group

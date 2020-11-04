@@ -1218,7 +1218,7 @@ begin
   suffices : is_o (λ p : 𝕜 × 𝕜, (p.1 - p.2) * ((x * x)⁻¹ - (p.1 * p.2)⁻¹))
     (λ (p : 𝕜 × 𝕜), (p.1 - p.2) * 1) (𝓝 (x, x)),
   { refine this.congr' _ (eventually_of_forall $ λ _, mul_one _),
-    refine eventually.mono (mem_nhds_sets (is_open_prod is_open_ne is_open_ne) ⟨hx, hx⟩) _,
+    refine eventually.mono (mem_nhds_sets (is_open_ne.prod is_open_ne) ⟨hx, hx⟩) _,
     rintro ⟨y, z⟩ ⟨hy, hz⟩,
     simp only [mem_set_of_eq] at hy hz, -- hy : y ≠ 0, hz : z ≠ 0
     field_simp [hx, hy, hz], ring, },
@@ -1532,7 +1532,7 @@ lemma has_strict_deriv_at_pow (n : ℕ) (x : 𝕜) :
 begin
   convert (polynomial.C (1 : 𝕜) * (polynomial.X)^n).has_strict_deriv_at x,
   { simp },
-  { rw [polynomial.derivative_monomial], simp }
+  { rw [polynomial.derivative_C_mul_X_pow], simp }
 end
 
 lemma has_deriv_at_pow (n : ℕ) (x : 𝕜) : has_deriv_at (λx, x^n) ((n : 𝕜) * x^(n-1)) x :=
@@ -1727,7 +1727,7 @@ begin
   have C := mem_sup_sets.2 ⟨A, B⟩,
   rw [← nhds_within_union, diff_union_self, nhds_within_union, mem_sup_sets] at C,
   filter_upwards [C.1],
-  simp only [mem_set_of_eq, norm_smul, mem_Iio, normed_field.norm_inv],
+  simp only [norm_smul, mem_Iio, normed_field.norm_inv],
   exact λ _, id
 end
 

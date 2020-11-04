@@ -43,9 +43,7 @@ begin
   symmetry, refine le_antisymm nhds_le_uniformity _,
   by_contra H,
   obtain ⟨V, hV, h⟩ : ∃ V : set (α × α), (∀ x : α, V ∈ 𝓝 (x, x)) ∧ ne_bot (𝓤 α ⊓ 𝓟 Vᶜ),
-  { rw le_iff_forall_inf_principal_compl at H,
-    push_neg at H,
-    simpa only [mem_supr_sets] using H },
+  { simpa [le_iff_forall_inf_principal_compl] using H },
   let F := 𝓤 α ⊓ 𝓟 Vᶜ,
   haveI : ne_bot F := h,
   obtain ⟨⟨x, y⟩, hx⟩ : ∃ (p : α × α), cluster_pt p F :=
@@ -146,11 +144,9 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
         { right,
           rw mem_prod,
           tauto }, },
-      all_goals { simp only [is_open_prod, *] } },
+      all_goals { simp only [is_open.prod, *] } },
     -- So W ○ W ∈ F by definition of F
-    have : W ○ W ∈ F,
-    { dsimp [F],-- Lean has weird elaboration trouble with this line
-      exact mem_lift' W_in },
+    have : W ○ W ∈ F, by simpa only using mem_lift' W_in,
     -- And V₁.prod V₂ ∈ 𝓝 (x, y)
     have hV₁₂ : V₁.prod V₂ ∈ 𝓝 (x, y) := prod_mem_nhds_sets V₁_in V₂_in,
     -- But (x, y) is also a cluster point of F so (V₁.prod V₂) ∩ (W ○ W) ≠ ∅

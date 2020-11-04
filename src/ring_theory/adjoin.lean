@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import ring_theory.polynomial.basic
+import algebra.algebra.subalgebra
 
 /-!
 # Adjoining elements to form subalgebras
@@ -81,6 +82,13 @@ lemma adjoin_image (f : A →ₐ[R] B) (s : set A) :
 le_antisymm (adjoin_le $ set.image_subset _ subset_adjoin) $
 subalgebra.map_le.2 $ adjoin_le $ set.image_subset_iff.1 subset_adjoin
 
+@[simp] lemma adjoin_insert_adjoin (x : A) :
+  adjoin R (insert x ↑(adjoin R s : submodule R A)) = adjoin R (insert x s) :=
+le_antisymm
+  (adjoin_le (set.insert_subset.mpr
+    ⟨subset_adjoin (set.mem_insert _ _), adjoin_mono (set.subset_insert _ _)⟩))
+  (algebra.adjoin_mono (set.insert_subset_insert algebra.subset_adjoin))
+
 end semiring
 
 section comm_semiring
@@ -119,6 +127,9 @@ le_antisymm
     (λ n r ih, by { rw [pow_succ', ← mul_assoc, alg_hom.map_mul,
       polynomial.aeval_def _ polynomial.X, polynomial.eval₂_X],
       exact is_submonoid.mul_mem ih (subset_adjoin rfl) }))
+
+lemma adjoin_singleton_one : adjoin R ({1} : set A) = ⊥ :=
+eq_bot_iff.2 $ adjoin_le $ set.singleton_subset_iff.2 $ subalgebra.one_mem ⊥
 
 theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t) : submodule R A) =
   (adjoin R s) * (adjoin R t) :=
@@ -222,6 +233,16 @@ theorem fg_def {S : subalgebra R A} : S.fg ↔ ∃ t : set A, set.finite t ∧ a
 theorem fg_bot : (⊥ : subalgebra R A).fg :=
 ⟨∅, algebra.adjoin_empty R A⟩
 
+theorem fg_of_fg_to_submodule {S : subalgebra R A} : (S : submodule R A).fg → S.fg :=
+λ ⟨t, ht⟩, ⟨t, le_antisymm
+  (algebra.adjoin_le (λ x hx, show x ∈ (S : submodule R A), from ht ▸ subset_span hx))
+  (λ x (hx : x ∈ (S : submodule R A)), span_le.mpr
+    (λ x hx, algebra.subset_adjoin hx)
+      (show x ∈ span R ↑t, by { rw ht, exact hx }))⟩
+
+theorem fg_of_noetherian [is_noetherian R A] (S : subalgebra R A) : S.fg :=
+fg_of_fg_to_submodule (is_noetherian.noetherian S)
+
 lemma fg_of_submodule_fg (h : (⊤ : submodule R A).fg) : (⊤ : subalgebra R A).fg :=
 let ⟨s, hs⟩ := h in ⟨s, to_submodule_injective $
 by { rw [algebra.coe_top, eq_top_iff, ← hs, span_le], exact algebra.subset_adjoin }⟩
@@ -242,6 +263,19 @@ lemma fg_top (S : subalgebra R A) : (⊤ : subalgebra R S).fg ↔ S.fg :=
 ⟨λ h, by { rw [← S.range_val, ← algebra.map_top], exact fg_map _ _ h },
 λ h, fg_of_fg_map _ S.val subtype.val_injective $ by { rw [algebra.map_top, range_val], exact h }⟩
 
+lemma induction_on_adjoin [is_noetherian R A] (P : subalgebra R A → Prop)
+  (base : P ⊥) (ih : ∀ (S : subalgebra R A) (x : A), P S → P (algebra.adjoin R (insert x S)))
+  (S : subalgebra R A) : P S :=
+begin
+  classical,
+  obtain ⟨t, rfl⟩ := S.fg_of_noetherian,
+  refine finset.induction_on t _ _,
+  { simpa using base },
+  intros x t hxt h,
+  convert ih _ x h using 1,
+  rw [finset.coe_insert, coe_coe, algebra.adjoin_insert_adjoin]
+end
+
 end subalgebra
 
 variables {R : Type u} {A : Type v} {B : Type w}
@@ -260,6 +294,6 @@ mv_polynomial.is_noetherian_ring;
 convert alg_hom.is_noetherian_ring_range _; apply_instance
 
 theorem is_noetherian_ring_closure (s : set R) (hs : s.finite) :
-  is_noetherian_ring (ring.closure s) :=
+  @@is_noetherian_ring (ring.closure s) subset.ring :=
 show is_noetherian_ring (subalgebra_of_is_subring (ring.closure s)), from
 algebra.adjoin_int s ▸ is_noetherian_ring_of_fg (subalgebra.fg_def.2 ⟨s, hs, rfl⟩)

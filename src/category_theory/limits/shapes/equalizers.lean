@@ -156,6 +156,7 @@ by rw [←s.w right, parallel_pair_map_right]
 
 /-- A fork on `f g : X ⟶ Y` is determined by the morphism `ι : P ⟶ X` satisfying `ι ≫ f = ι ≫ g`.
 -/
+@[simps]
 def fork.of_ι {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) : fork f g :=
 { X := P,
   π :=
@@ -170,6 +171,7 @@ def fork.of_ι {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) : fork f g :=
 
 /-- A cofork on `f g : X ⟶ Y` is determined by the morphism `π : Y ⟶ P` satisfying
     `f ≫ π = g ≫ π`. -/
+@[simps]
 def cofork.of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) : cofork f g :=
 { X := P,
   ι :=
@@ -181,15 +183,6 @@ def cofork.of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) : cofork f g :
       { exact w.symm },
       { dsimp, simp, },
     end } }
-
-@[simp] lemma fork.of_ι_app_zero {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) :
-  (fork.of_ι ι w).π.app zero = ι := rfl
-@[simp] lemma fork.of_ι_app_one {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) :
-  (fork.of_ι ι w).π.app one = ι ≫ f := rfl
-@[simp] lemma cofork.of_π_app_zero {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) :
-  (cofork.of_π π w).ι.app zero = f ≫ π := rfl
-@[simp] lemma cofork.of_π_app_one {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) :
-  (cofork.of_π π w).ι.app one = π := rfl
 
 /-- A fork `t` on the parallel pair `f g : X ⟶ Y` consists of two morphisms `t.π.app zero : t.X ⟶ X`
     and `t.π.app one : t.X ⟶ Y`. Of these, only the first one is interesting, and we give it the
@@ -516,7 +509,7 @@ is_iso_limit_cone_parallel_pair_of_eq ((cancel_epi _).1 (fork.condition c)) h
 
 end
 
-instance : has_equalizer f f :=
+instance has_equalizer_of_self : has_equalizer f f :=
 has_limit.mk
 { cone := id_fork rfl,
   is_limit := is_limit_id_fork rfl }
@@ -650,7 +643,7 @@ is_iso_colimit_cocone_parallel_pair_of_eq ((cancel_mono _).1 (cofork.condition c
 
 end
 
-instance : has_coequalizer f f :=
+instance has_coequalizer_of_self : has_coequalizer f f :=
 has_colimit.mk
 { cocone := id_cofork rfl,
   is_colimit := is_colimit_id_cofork rfl }

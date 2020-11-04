@@ -25,9 +25,8 @@ open function
 
 - `order.preimage`, `preorder.lift`: transfer a (pre)order on `β` to an order on `α`
   using a function `f : α → β`.
-- `partial_order.lift`, `linear_order.lift`, `decidable_linear_order.lift`:
-  transfer a partial (resp., linear, decidable linear) order on `β` to a partial
-  (resp., linear, decidable linear) order on `α` using an injective function `f`.
+- `partial_order.lift`, `linear_order.lift`: transfer a partial (resp., linear) order on `β` to a
+  partial (resp., linear) order on `α` using an injective function `f`.
 
 ### Extra classes
 
@@ -116,9 +115,21 @@ begin
   { transitivity, assumption, exact hf _ }
 end
 
-lemma reflect_lt {α β} [linear_order α] [preorder β] {f : α → β} (hf : monotone f)
+lemma monotone.reflect_lt {α β} [linear_order α] [preorder β] {f : α → β} (hf : monotone f)
   {x x' : α} (h : f x < f x') : x < x' :=
 by { rw [← not_le], intro h', apply not_le_of_lt h, exact hf h' }
+
+/-- If `f` is a monotone function from `ℕ` to a preorder such that `y` lies between `f x` and
+  `f (x + 1)`, then `y` doesn't lie in the range of `f`. -/
+lemma monotone.ne_of_lt_of_lt_nat {α} [preorder α] {f : ℕ → α} (hf : monotone f)
+  (x x' : ℕ) {y : α} (h1 : f x < y) (h2 : y < f (x + 1)) : f x' ≠ y :=
+by { rintro rfl, apply (hf.reflect_lt h1).not_le, exact nat.le_of_lt_succ (hf.reflect_lt h2) }
+
+/-- If `f` is a monotone function from `ℤ` to a preorder such that `y` lies between `f x` and
+  `f (x + 1)`, then `y` doesn't lie in the range of `f`. -/
+lemma monotone.ne_of_lt_of_lt_int {α} [preorder α] {f : ℤ → α} (hf : monotone f)
+  (x x' : ℤ) {y : α} (h1 : f x < y) (h2 : y < f (x + 1)) : f x' ≠ y :=
+by { rintro rfl, apply (hf.reflect_lt h1).not_le, exact int.le_of_lt_add_one (hf.reflect_lt h2) }
 
 end monotone
 
@@ -170,12 +181,10 @@ instance (α : Type*) [partial_order α] : partial_order (order_dual α) :=
 { le_antisymm := assume a b hab hba, @le_antisymm α _ a b hba hab, .. order_dual.preorder α }
 
 instance (α : Type*) [linear_order α] : linear_order (order_dual α) :=
-{ le_total := assume a b:α, le_total b a, .. order_dual.partial_order α }
-
-instance (α : Type*) [decidable_linear_order α] : decidable_linear_order (order_dual α) :=
-{ decidable_le := show decidable_rel (λa b:α, b ≤ a), by apply_instance,
+{ le_total := assume a b:α, le_total b a,
+  decidable_le := show decidable_rel (λa b:α, b ≤ a), by apply_instance,
   decidable_lt := show decidable_rel (λa b:α, b < a), by apply_instance,
-  .. order_dual.linear_order α }
+  .. order_dual.partial_order α }
 
 instance : Π [inhabited α], inhabited (order_dual α) := id
 
@@ -358,16 +367,11 @@ def partial_order.lift {α β} [partial_order β] (f : α → β) (inj : injecti
 function `f : α → β`. -/
 def linear_order.lift {α β} [linear_order β] (f : α → β) (inj : injective f) :
   linear_order α :=
-{ le_total := λx y, le_total (f x) (f y), .. partial_order.lift f inj }
-
-/-- Transfer a `decidable_linear_order` on `β` to a `decidable_linear_order` on `α` using
-an injective function `f : α → β`. -/
-def decidable_linear_order.lift {α β} [decidable_linear_order β] (f : α → β) (inj : injective f) :
-  decidable_linear_order α :=
-{ decidable_le := λ x y, show decidable (f x ≤ f y), by apply_instance,
-  decidable_lt := λ x y, show decidable (f x < f y), by apply_instance,
-  decidable_eq := λ x y, decidable_of_iff _ ⟨@inj x y, congr_arg f⟩,
-  .. linear_order.lift f inj }
+{ le_total := λx y, le_total (f x) (f y),
+  decidable_le := λ x y, (infer_instance : decidable (f x ≤ f y)),
+  decidable_lt := λ x y, (infer_instance : decidable (f x < f y)),
+  decidable_eq := λ x y, decidable_of_iff _ inj.eq_iff,
+  .. partial_order.lift f inj }
 
 instance subtype.preorder {α} [preorder α] (p : α → Prop) : preorder (subtype p) :=
 preorder.lift subtype.val
@@ -395,11 +399,11 @@ partial_order.lift subtype.val subtype.val_injective
 instance subtype.linear_order {α} [linear_order α] (p : α → Prop) : linear_order (subtype p) :=
 linear_order.lift subtype.val subtype.val_injective
 
-instance subtype.decidable_linear_order {α} [decidable_linear_order α] (p : α → Prop) :
-  decidable_linear_order (subtype p) :=
-decidable_linear_order.lift subtype.val subtype.val_injective
+lemma subtype.mono_coe [preorder α] (t : set α) : monotone (coe : (subtype t) → α) :=
+λ x y, id
 
-lemma strict_mono_coe [preorder α] (t : set α) : strict_mono (coe : (subtype t) → α) := λ x y, id
+lemma subtype.strict_mono_coe [preorder α] (t : set α) : strict_mono (coe : (subtype t) → α) :=
+λ x y, id
 
 instance prod.has_le (α : Type u) (β : Type v) [has_le α] [has_le β] : has_le (α × β) :=
 ⟨λp q, p.1 ≤ q.1 ∧ p.2 ≤ q.2⟩
@@ -457,18 +461,18 @@ nonempty_subtype.2 (no_bot a)
 class densely_ordered (α : Type u) [preorder α] : Prop :=
 (dense : ∀a₁ a₂:α, a₁ < a₂ → ∃a, a₁ < a ∧ a < a₂)
 
-lemma dense [preorder α] [densely_ordered α] : ∀{a₁ a₂:α}, a₁ < a₂ → ∃a, a₁ < a ∧ a < a₂ :=
+lemma exists_between [preorder α] [densely_ordered α] : ∀{a₁ a₂:α}, a₁ < a₂ → ∃a, a₁ < a ∧ a < a₂ :=
 densely_ordered.dense
 
 instance order_dual.densely_ordered (α : Type u) [preorder α] [densely_ordered α] :
   densely_ordered (order_dual α) :=
-⟨λ a₁ a₂ ha, (@dense α _ _ _ _ ha).imp $ λ a, and.symm⟩
+⟨λ a₁ a₂ ha, (@exists_between α _ _ _ _ ha).imp $ λ a, and.symm⟩
 
 lemma le_of_forall_le_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}
   (h : ∀a₃>a₂, a₁ ≤ a₃) :
   a₁ ≤ a₂ :=
 le_of_not_gt $ assume ha,
-  let ⟨a, ha₁, ha₂⟩ := dense ha in
+  let ⟨a, ha₁, ha₂⟩ := exists_between ha in
   lt_irrefl a $ lt_of_lt_of_le ‹a < a₁› (h _ ‹a₂ < a›)
 
 lemma eq_of_le_of_forall_le_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}
@@ -479,7 +483,7 @@ lemma le_of_forall_ge_of_dense [linear_order α] [densely_ordered α] {a₁ a₂
   (h : ∀a₃<a₁, a₃ ≤ a₂) :
   a₁ ≤ a₂ :=
 le_of_not_gt $ assume ha,
-  let ⟨a, ha₁, ha₂⟩ := dense ha in
+  let ⟨a, ha₁, ha₂⟩ := exists_between ha in
   lt_irrefl a $ lt_of_le_of_lt (h _ ‹a < a₁›) ‹a₂ < a›
 
 lemma eq_of_le_of_forall_ge_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}
@@ -494,11 +498,6 @@ or_iff_not_imp_left.2 $ assume h,
 
 variables {s : β → β → Prop} {t : γ → γ → Prop}
 
-/-- Any `linear_order` is a noncomputable `decidable_linear_order`. This is not marked
-as an instance to avoid a loop. -/
-noncomputable def classical.DLO (α) [LO : linear_order α] : decidable_linear_order α :=
-{ decidable_le := classical.dec_rel _, ..LO }
-
 /-- Type synonym to create an instance of `linear_order` from a
 `partial_order` and `[is_total α (≤)]` -/
 def as_linear_order (α : Type u) := α
@@ -506,7 +505,8 @@ def as_linear_order (α : Type u) := α
 instance {α} [inhabited α] : inhabited (as_linear_order α) :=
 ⟨ (default α : α) ⟩
 
-instance as_linear_order.linear_order {α} [partial_order α] [is_total α (≤)] :
+noncomputable instance as_linear_order.linear_order {α} [partial_order α] [is_total α (≤)] :
   linear_order (as_linear_order α) :=
 { le_total := @total_of α (≤) _,
+  decidable_le := classical.dec_rel _,
   .. (_ : partial_order α) }

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
 import algebra.ring.pi
-import algebra.big_operators
+import algebra.big_operators.basic
 import data.fintype.basic
 import algebra.group.prod
 /-!
@@ -19,28 +19,32 @@ open_locale big_operators
 namespace pi
 
 @[to_additive]
-lemma list_prod_apply {α : Type*} {β : α → Type*} [∀a, monoid (β a)] (a : α) :
-  ∀ (l : list (Πa, β a)), l.prod a = (l.map (λf:Πa, β a, f a)).prod
-| []       := rfl
-| (f :: l) := by simp [mul_apply f l.prod a, list_prod_apply l]
+lemma list_prod_apply {α : Type*} {β : α → Type*} [Πa, monoid (β a)] (a : α) (l : list (Πa, β a)) :
+  l.prod a = (l.map (λf:Πa, β a, f a)).prod :=
+(monoid_hom.apply β a).map_list_prod _
 
 @[to_additive]
 lemma multiset_prod_apply {α : Type*} {β : α → Type*} [∀a, comm_monoid (β a)] (a : α)
   (s : multiset (Πa, β a)) : s.prod a = (s.map (λf:Πa, β a, f a)).prod :=
-quotient.induction_on s $ assume l, begin simp [list_prod_apply a l] end
+(monoid_hom.apply β a).map_multiset_prod _
 
 end pi
 
 @[simp, to_additive]
 lemma finset.prod_apply {α : Type*} {β : α → Type*} {γ} [∀a, comm_monoid (β a)] (a : α)
   (s : finset γ) (g : γ → Πa, β a) : (∏ c in s, g c) a = ∏ c in s, g c a :=
-show (s.val.map g).prod a = (s.val.map (λc, g c a)).prod,
-  by rw [pi.multiset_prod_apply, multiset.map_map]
+(monoid_hom.apply β a).map_prod _ _
 
 @[simp, to_additive]
 lemma fintype.prod_apply {α : Type*} {β : α → Type*} {γ : Type*} [fintype γ]
   [∀a, comm_monoid (β a)] (a : α) (g : γ → Πa, β a) : (∏ c, g c) a = ∏ c, g c a :=
 finset.prod_apply a finset.univ g
+
+@[simp, to_additive]
+lemma monoid_hom.finset_prod_apply {ι M N : Type*} [monoid M] [comm_monoid N] (f : ι → M →* N)
+  (s : finset ι) (a : M) :
+  (∏ i in s, f i) a = ∏ i in s, f i a :=
+(monoid_hom.eval a).map_prod _ _
 
 @[to_additive prod_mk_sum]
 lemma prod_mk_prod {α β γ : Type*} [comm_monoid α] [comm_monoid β] (s : finset γ)

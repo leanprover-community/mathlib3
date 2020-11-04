@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kevin Buzzard
 -/
 import ring_theory.ideal.operations
-import linear_algebra.basis
+import linear_algebra.linear_independent
 import order.order_iso_nat
 
 /-!
@@ -475,10 +475,15 @@ begin
   exact order_embedding.well_founded (ideal.order_embedding_of_surjective f hf).dual H,
 end
 
+section
+local attribute [instance] subset.comm_ring
+
 instance is_noetherian_ring_set_range {R} [comm_ring R] {S} [comm_ring S] (f : R →+* S)
   [is_noetherian_ring R] : is_noetherian_ring (set.range f) :=
 is_noetherian_ring_of_surjective R (set.range f) (f.cod_restrict (set.range f) set.mem_range_self)
   set.surjective_onto_range
+
+end
 
 instance is_noetherian_ring_range {R} [comm_ring R] {S} [comm_ring S] (f : R →+* S)
   [is_noetherian_ring R] : is_noetherian_ring f.range :=

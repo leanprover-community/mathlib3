@@ -8,7 +8,7 @@ Continuous linear functions -- functions between normed vector spaces which are 
 import analysis.normed_space.multilinear
 
 noncomputable theory
-open_locale classical filter big_operators
+open_locale classical big_operators topological_space
 
 open filter (tendsto)
 open metric
@@ -104,21 +104,22 @@ lemma comp {g : F → G}
   is_bounded_linear_map 𝕜 (g ∘ f) :=
 (hg.to_continuous_linear_map.comp hf.to_continuous_linear_map).is_bounded_linear_map
 
-lemma tendsto (x : E) (hf : is_bounded_linear_map 𝕜 f) : f →_{x} (f x) :=
+protected lemma tendsto (x : E) (hf : is_bounded_linear_map 𝕜 f) :
+  tendsto f (𝓝 x) (𝓝 (f x)) :=
 let ⟨hf, M, hMp, hM⟩ := hf in
 tendsto_iff_norm_tendsto_zero.2 $
   squeeze_zero (assume e, norm_nonneg _)
     (assume e,
       calc ∥f e - f x∥ = ∥hf.mk' f (e - x)∥ : by rw (hf.mk' _).map_sub e x; refl
                    ... ≤ M * ∥e - x∥        : hM (e - x))
-    (suffices (λ (e : E), M * ∥e - x∥) →_{x} (M * 0), by simpa,
+    (suffices tendsto (λ (e : E), M * ∥e - x∥) (𝓝 x) (𝓝 (M * 0)), by simpa,
       tendsto_const_nhds.mul (lim_norm _))
 
 lemma continuous (hf : is_bounded_linear_map 𝕜 f) : continuous f :=
 continuous_iff_continuous_at.2 $ λ _, hf.tendsto _
 
 lemma lim_zero_bounded_linear_map (hf : is_bounded_linear_map 𝕜 f) :
-  (f →_{0} 0) :=
+  tendsto f (𝓝 0) (𝓝 0) :=
 (hf.1.mk' _).map_zero ▸ continuous_iff_continuous_at.1 hf.continuous 0
 
 section
@@ -182,7 +183,7 @@ lemma is_bounded_linear_map_prod_multilinear
 continuous multilinear map `f (g m₁, ..., g mₙ)` is a bounded linear operation. -/
 lemma is_bounded_linear_map_continuous_multilinear_map_comp_linear (g : G →L[𝕜] E) :
   is_bounded_linear_map 𝕜 (λ f : continuous_multilinear_map 𝕜 (λ (i : ι), E) F,
-    f.comp_continuous_linear_map 𝕜 E  g) :=
+    f.comp_continuous_linear_map (λ _, g)) :=
 begin
   refine is_linear_map.with_bound ⟨λ f₁ f₂, by { ext m, refl }, λ c f, by { ext m, refl }⟩
     (∥g∥ ^ (fintype.card ι)) (λ f, _),
@@ -279,8 +280,9 @@ lemma is_bounded_bilinear_map_smul :
   bound      := ⟨1, zero_lt_one, λx y, by simp [norm_smul]⟩ }
 
 lemma is_bounded_bilinear_map_smul_algebra {𝕜' : Type*} [normed_field 𝕜']
-  [normed_algebra 𝕜 𝕜'] {E : Type*} [normed_group E] [normed_space 𝕜' E] :
-  is_bounded_bilinear_map 𝕜 (λ (p : 𝕜' × (semimodule.restrict_scalars 𝕜 𝕜' E)), p.1 • p.2) :=
+  [normed_algebra 𝕜 𝕜'] {E : Type*} [normed_group E] [normed_space 𝕜 E] [normed_space 𝕜' E]
+  [is_scalar_tower 𝕜 𝕜' E] :
+  is_bounded_bilinear_map 𝕜 (λ (p : 𝕜' × E), p.1 • p.2) :=
 { add_left   := add_smul,
   smul_left  := λ c x y, by simp [smul_assoc],
   add_right  := smul_add,

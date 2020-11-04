@@ -689,13 +689,14 @@ lemma times_cont_mdiff_within_at.comp {t : set M'} {g : M' → M''} (x : M)
   (st : s ⊆ f ⁻¹' t) : times_cont_mdiff_within_at I I'' n (g ∘ f) s x :=
 begin
   apply times_cont_mdiff_within_at_iff_nat.2 (λ m hm, _),
-  rcases times_cont_mdiff_within_at_iff_times_cont_mdiff_on_nhds.1 (hg.of_le hm) with ⟨v, v_nhds, hv⟩,
-  rcases times_cont_mdiff_within_at_iff_times_cont_mdiff_on_nhds.1 (hf.of_le hm) with ⟨u, u_nhds, hu⟩,
+  rcases times_cont_mdiff_within_at_iff_times_cont_mdiff_on_nhds.1 (hg.of_le hm)
+    with ⟨v, v_nhds, hv⟩,
+  rcases times_cont_mdiff_within_at_iff_times_cont_mdiff_on_nhds.1 (hf.of_le hm)
+    with ⟨u, u_nhds, hu⟩,
   apply times_cont_mdiff_within_at_iff_times_cont_mdiff_on_nhds.2 ⟨_, _, hv.comp' hu⟩,
   apply filter.inter_mem_sets u_nhds,
   suffices h : v ∈ 𝓝[f '' s] (f x),
-  { convert mem_nhds_within_insert (hf.continuous_within_at.preimage_mem_nhds_within' h),
-    rw insert_eq_of_mem,
+  { refine mem_nhds_within_insert.2 ⟨_, hf.continuous_within_at.preimage_mem_nhds_within' h⟩,
     apply mem_of_mem_nhds_within (mem_insert (f x) t) v_nhds },
   apply nhds_within_mono _ _ v_nhds,
   rw image_subset_iff,

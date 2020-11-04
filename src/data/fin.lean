@@ -22,6 +22,9 @@ This file expands on the development in the core library.
   `0`-th element `C (n+1) 0` of an `(n+1)`-tuple, and `Hs n i` defines `(i+1)`-st element
   of `(n+1)`-tuple based on `n`, `i`, and `i`-th element of `n`-tuple.
 * `fin.succ_rec_on` : same as `fin.succ_rec` but `i : fin n` is the first argument;
+* `fin.induction` : Define `C i` by induction on `i : fin (n + 1)`, separating into the
+  `nat`-like base cases of `C 0` and `C (i.succ)`.
+* `fin.induction_on` : same as `fin.induction` but with `i : fin (n + 1)` as the first argument.
 
 ### Casts
 
@@ -233,13 +236,11 @@ by { induction h, simp [ext_iff] }
 instance {n : ℕ} : nontrivial (fin (n + 2)) := ⟨⟨0, 1, dec_trivial⟩⟩
 
 instance {n : ℕ} : linear_order (fin n) :=
-{ le := (≤), lt := (<), ..linear_order.lift (coe : fin n → ℕ) (@fin.eq_of_veq _) }
-
-instance {n : ℕ} : decidable_linear_order (fin n) :=
-{ decidable_le := fin.decidable_le,
+{ le := (≤), lt := (<),
+  decidable_le := fin.decidable_le,
   decidable_lt := fin.decidable_lt,
   decidable_eq := fin.decidable_eq _,
-  ..fin.linear_order }
+ ..linear_order.lift (coe : fin n → ℕ) (@fin.eq_of_veq _) }
 
 lemma exists_iff {p : fin n → Prop} : (∃ i, p i) ↔ ∃ i h, p ⟨i, h⟩ :=
 ⟨λ h, exists.elim h (λ ⟨i, hi⟩ hpi, ⟨i, hi, hpi⟩),
@@ -672,19 +673,53 @@ rfl
   @fin.succ_rec_on (succ n) i.succ C H0 Hs = Hs n i (fin.succ_rec_on i H0 Hs) :=
 by cases i; refl
 
+/--
+Define `C i` by induction on `i : fin (n + 1)` via induction on the underlying `nat` value.
+This function has two arguments: `h0` handles the base case on `C 0`,
+and `hs` defines the inductive step using `C i.cast_succ`.
+-/
+@[elab_as_eliminator] def induction
+  {C : fin (n + 1) → Sort*}
+  (h0 : C 0)
+  (hs : ∀ i : fin n, C i.cast_succ → C i.succ) :
+  Π (i : fin (n + 1)), C i :=
+begin
+  rintro ⟨i, hi⟩,
+  induction i with i IH,
+  { rwa [fin.mk_zero] },
+  { refine hs ⟨i, lt_of_succ_lt_succ hi⟩ _,
+    exact IH (lt_of_succ_lt hi) }
+end
+
+/--
+Define `C i` by induction on `i : fin (n + 1)` via induction on the underlying `nat` value.
+This function has two arguments: `h0` handles the base case on `C 0`,
+and `hs` defines the inductive step using `C i.cast_succ`.
+
+A version of `fin.induction` taking `i : fin (n + 1)` as the first argument.
+-/
+@[elab_as_eliminator] def induction_on (i : fin (n + 1))
+  {C : fin (n + 1) → Sort*}
+  (h0 : C 0)
+  (hs : ∀ i : fin n, C i.cast_succ → C i.succ) : C i :=
+induction h0 hs i
+
 /-- Define `f : Π i : fin n.succ, C i` by separately handling the cases `i = 0` and
 `i = j.succ`, `j : fin n`. -/
 @[elab_as_eliminator] def cases
   {C : fin (succ n) → Sort*} (H0 : C 0) (Hs : Π i : fin n, C (i.succ)) :
-  Π (i : fin (succ n)), C i
-| ⟨0, h⟩ := H0
-| ⟨succ i, h⟩ := Hs ⟨i, lt_of_succ_lt_succ h⟩
+  Π (i : fin (succ n)), C i :=
+induction H0 (λ i _, Hs i)
 
 @[simp] theorem cases_zero {n} {C : fin (succ n) → Sort*} {H0 Hs} : @fin.cases n C H0 Hs 0 = H0 :=
 rfl
 
 @[simp] theorem cases_succ {n} {C : fin (succ n) → Sort*} {H0 Hs} (i : fin n) :
   @fin.cases n C H0 Hs i.succ = Hs i :=
+by cases i; refl
+
+@[simp] theorem cases_succ' {n} {C : fin (succ n) → Sort*} {H0 Hs} {i : ℕ} (h : i + 1 < n + 1) :
+  @fin.cases n C H0 Hs ⟨i.succ, h⟩ = Hs ⟨i, lt_of_succ_lt_succ h⟩ :=
 by cases i; refl
 
 lemma forall_fin_succ {P : fin (n+1) → Prop} :
@@ -799,6 +834,14 @@ end
 lemma comp_tail {α : Type*} {β : Type*} (g : α → β) (q : fin n.succ → α) :
   g ∘ (tail q) = tail (g ∘ q) :=
 by { ext j, simp [tail] }
+
+/-- `fin.append ho u v` appends two vectors of lengths `m` and `n` to produce
+one of length `o = m + n`.  `ho` provides control of definitional equality
+for the vector length. -/
+def append {α : Type*} {o : ℕ} (ho : o = m + n) (u : fin m → α) (v : fin n → α) : fin o → α :=
+λ i, if h : (i : ℕ) < m
+  then u ⟨i, h⟩
+  else v ⟨(i : ℕ) - m, (nat.sub_lt_left_iff_lt_add (le_of_not_lt h)).2 (ho ▸ i.property)⟩
 
 end tuple
 

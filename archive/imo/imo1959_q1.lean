@@ -5,6 +5,7 @@ Authors: Kevin Lacker
 -/
 
 import tactic.ring
+import data.nat.prime
 
 open nat
 
@@ -24,4 +25,4 @@ have h5 : 3 * (14 * n + 3) = 2 * (21 * n + 4) + 1, by ring,
 (nat.dvd_add_right h3).mp (h5 ▸ h4)
 
 theorem imo1959_q1 : ∀ n : ℕ, coprime (21 * n + 4) (14 * n + 3) :=
-assume n, coprime_of_dvd' (calculation n)
+assume n, coprime_of_dvd' $ λ k hp h1 h2, calculation n k h1 h2

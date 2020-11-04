@@ -456,17 +456,18 @@ lemma times_cont_diff_within_at_nat {n : ℕ} :
   has_ftaylor_series_up_to_on n f p u :=
 ⟨λ H, H n (le_refl _), λ ⟨u, hu, p, hp⟩ m hm, ⟨u, hu, p, hp.of_le hm⟩⟩
 
+lemma times_cont_diff_within_at.of_le {m n : with_top ℕ}
+  (h : times_cont_diff_within_at 𝕜 n f s x) (hmn : m ≤ n) :
+  times_cont_diff_within_at 𝕜 m f s x :=
+λ k hk, h k (le_trans hk hmn)
+
+lemma times_cont_diff_within_at_iff_forall_nat_le {n : with_top ℕ} :
+  times_cont_diff_within_at 𝕜 n f s x ↔ ∀ m : ℕ, ↑m ≤ n → times_cont_diff_within_at 𝕜 m f s x :=
+⟨λ H m hm, H.of_le hm, λ H m hm, H m hm _ le_rfl⟩
+
 lemma times_cont_diff_within_at_top :
   times_cont_diff_within_at 𝕜 ∞ f s x ↔ ∀ (n : ℕ), times_cont_diff_within_at 𝕜 n f s x :=
-begin
-  split,
-  { assume H n m hm,
-    rcases H m le_top with ⟨u, hu, p, hp⟩,
-    exact ⟨u, hu, p, hp⟩ },
-  { assume H m hm,
-    rcases H m m (le_refl _) with ⟨u, hu, p, hp⟩,
-    exact ⟨u, hu, p, hp⟩ }
-end
+times_cont_diff_within_at_iff_forall_nat_le.trans $ by simp only [forall_prop_of_true, le_top]
 
 lemma times_cont_diff_within_at.continuous_within_at {n : with_top ℕ}
   (h : times_cont_diff_within_at 𝕜 n f s x) : continuous_within_at f s x :=
@@ -521,11 +522,6 @@ h.mono_of_mem $ hst ▸ self_mem_nhds_within
 lemma times_cont_diff_within_at_congr_nhds {n : with_top ℕ} {t : set E} (hst : 𝓝[s] x = 𝓝[t] x) :
   times_cont_diff_within_at 𝕜 n f s x ↔ times_cont_diff_within_at 𝕜 n f t x :=
 ⟨λ h, h.congr_nhds hst, λ h, h.congr_nhds hst.symm⟩
-
-lemma times_cont_diff_within_at.of_le {m n : with_top ℕ}
-  (h : times_cont_diff_within_at 𝕜 n f s x) (hmn : m ≤ n) :
-  times_cont_diff_within_at 𝕜 m f s x :=
-λ k hk, h k (le_trans hk hmn)
 
 lemma times_cont_diff_within_at_inter' {n : with_top ℕ} (h : t ∈ 𝓝[s] x) :
   times_cont_diff_within_at 𝕜 n f (s ∩ t) x ↔ times_cont_diff_within_at 𝕜 n f s x :=
@@ -633,9 +629,26 @@ begin
   exact insert_eq_of_mem hy
 end
 
+lemma times_cont_diff_on.of_le {m n : with_top ℕ}
+  (h : times_cont_diff_on 𝕜 n f s) (hmn : m ≤ n) :
+  times_cont_diff_on 𝕜 m f s :=
+λ x hx, (h x hx).of_le hmn
+
+lemma times_cont_diff_on_iff_forall_nat_le {n : with_top ℕ} :
+  times_cont_diff_on 𝕜 n f s ↔ ∀ m : ℕ, ↑m ≤ n → times_cont_diff_on 𝕜 m f s :=
+⟨λ H m hm, H.of_le hm, λ H x hx m hm, H m hm x hx m le_rfl⟩
+
 lemma times_cont_diff_on_top :
   times_cont_diff_on 𝕜 ∞ f s ↔ ∀ (n : ℕ), times_cont_diff_on 𝕜 n f s :=
-by { simp [times_cont_diff_on, times_cont_diff_within_at_top], tauto }
+times_cont_diff_on_iff_forall_nat_le.trans $ by simp only [le_top, forall_prop_of_true]
+
+lemma times_cont_diff_on_all_iff_nat :
+  (∀ n, times_cont_diff_on 𝕜 n f s) ↔ (∀ n : ℕ, times_cont_diff_on 𝕜 n f s) :=
+begin
+  refine ⟨λ H n, H n, _⟩,
+  rintro H (_|n),
+  exacts [times_cont_diff_on_top.2 H, H n]
+end
 
 lemma times_cont_diff_on.continuous_on {n : with_top ℕ}
   (h : times_cont_diff_on 𝕜 n f s) : continuous_on f s :=
@@ -659,11 +672,6 @@ lemma times_cont_diff_on.congr_mono {n : with_top ℕ}
   (hf : times_cont_diff_on 𝕜 n f s) (h₁ : ∀ x ∈ s₁, f₁ x = f x) (hs : s₁ ⊆ s) :
   times_cont_diff_on 𝕜 n f₁ s₁ :=
 (hf.mono hs).congr h₁
-
-lemma times_cont_diff_on.of_le {m n : with_top ℕ}
-  (h : times_cont_diff_on 𝕜 n f s) (hmn : m ≤ n) :
-  times_cont_diff_on 𝕜 m f s :=
-λ x hx, (h x hx).of_le hmn
 
 /-- If a function is `C^n` on a set with `n ≥ 1`, then it is differentiable there. -/
 lemma times_cont_diff_on.differentiable_on {n : with_top ℕ}
@@ -1245,7 +1253,7 @@ lemma times_cont_diff_at.continuous_at {n : with_top ℕ}
 by simpa [continuous_within_at_univ] using h.continuous_within_at
 
 /-- If a function is `C^n` with `n ≥ 1` at a point, then it is differentiable there. -/
-lemma times_cont_diff_at.differentiable {n : with_top ℕ}
+lemma times_cont_diff_at.differentiable_at {n : with_top ℕ}
   (h : times_cont_diff_at 𝕜 n f x) (hn : 1 ≤ n) : differentiable_at 𝕜 f x :=
 by simpa [hn, differentiable_within_at_univ] using h.differentiable_within_at
 
@@ -1311,6 +1319,10 @@ h.times_cont_diff_at.times_cont_diff_within_at
 lemma times_cont_diff_top :
   times_cont_diff 𝕜 ∞ f ↔ ∀ (n : ℕ), times_cont_diff 𝕜 n f :=
 by simp [times_cont_diff_on_univ.symm, times_cont_diff_on_top]
+
+lemma times_cont_diff_all_iff_nat :
+  (∀ n, times_cont_diff 𝕜 n f) ↔ (∀ n : ℕ, times_cont_diff 𝕜 n f) :=
+by simp only [← times_cont_diff_on_univ, times_cont_diff_on_all_iff_nat]
 
 lemma times_cont_diff.times_cont_diff_on {n : with_top ℕ}
   (h : times_cont_diff 𝕜 n f) : times_cont_diff_on 𝕜 n f s :=
@@ -2437,6 +2449,11 @@ begin
   exact λ x, (hf x).div (hg x) (h0 x)
 end
 
+lemma times_cont_diff.div_const [complete_space 𝕜] {f : E → 𝕜} {n} {c : 𝕜}
+  (hf : times_cont_diff 𝕜 n f) :
+  times_cont_diff 𝕜 n (λ x, f x / c) :=
+hf.mul times_cont_diff_const
+
 end algebra_inverse
 
 /-! ### Inversion of continuous linear maps between Banach spaces -/
@@ -2696,5 +2713,13 @@ lemma times_cont_diff_on.continuous_on_deriv_of_open {n : with_top ℕ}
   (h : times_cont_diff_on 𝕜 n f₂ s₂) (hs : is_open s₂) (hn : 1 ≤ n) :
   continuous_on (deriv f₂) s₂ :=
 ((times_cont_diff_on_succ_iff_deriv_of_open hs).1 (h.of_le hn)).2.continuous_on
+
+/-- A function is `C^(n + 1)` on a domain with unique derivatives if and only if it is
+differentiable there, and its derivative is `C^n`. -/
+theorem times_cont_diff_succ_iff_deriv {n : ℕ} :
+  times_cont_diff 𝕜 ((n + 1) : ℕ) f₂ ↔
+    differentiable 𝕜 f₂ ∧ times_cont_diff 𝕜 n (deriv f₂) :=
+by simp only [← times_cont_diff_on_univ, times_cont_diff_on_succ_iff_deriv_of_open, is_open_univ,
+  differentiable_on_univ]
 
 end deriv

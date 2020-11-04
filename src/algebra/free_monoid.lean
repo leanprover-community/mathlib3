@@ -5,6 +5,7 @@ Authors: Simon Hudon, Yury Kudryashov
 -/
 import data.equiv.basic
 import data.list.basic
+import algebra.star.basic
 
 /-!
 # Free monoid over a given alphabet
@@ -118,5 +119,10 @@ hom_eq $ λ x, rfl
 @[to_additive]
 lemma map_comp (g : β → γ) (f : α → β) : map (g ∘ f) = (map g).comp (map f) :=
 hom_eq $ λ x, rfl
+
+instance : star_monoid (free_monoid α) :=
+{ star := list.reverse,
+  star_involutive := list.reverse_reverse,
+  star_mul := list.reverse_append, }
 
 end free_monoid

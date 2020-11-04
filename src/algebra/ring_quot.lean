@@ -205,6 +205,22 @@ ring_equiv.of_hom_inv (ring_quot_to_ideal_quotient r) (ideal_quotient_to_ring_qu
 
 end comm_ring
 
+/-- Transfer a star_ring instance through a quotient, if the quotient is invariant to `star` -/
+def star_ring {R : Type u₁} [semiring R] [star_ring R] (r : R → R → Prop) (hr : ∀ {a b}, r a b → r (star a) (star b)) :
+  star_ring (ring_quot r) :=
+{ star := quot.map star (λ a b, begin
+    intro h,
+    induction h,
+    { exact rel.of (hr h_h) },
+    { rw [star_add, star_add], exact rel.add_left h_ih, },
+    { rw [star_mul, star_mul], exact rel.mul_right h_ih, },
+    { rw [star_mul, star_mul], exact rel.mul_left h_ih, },
+  end),
+  star_involutive := by { rintros ⟨⟩, exact congr_arg (quot.mk _) (star_star _), },
+  star_mul := by { rintros ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (star_mul _ _), },
+  star_zero := congr_arg (quot.mk _) (star_zero),
+  star_add := by { rintros ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (star_add _ _), } }
+
 section algebra
 
 variables (S)

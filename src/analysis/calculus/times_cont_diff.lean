@@ -2256,23 +2256,40 @@ lemma times_cont_diff_at.mul {n : with_top ℕ} {f g : E → 𝕜}
   times_cont_diff_at 𝕜 n (λ x, f x * g x) x :=
 by rw [← times_cont_diff_within_at_univ] at *; exact hf.mul hg
 
+/-- The product of two `C^n` functions on a domain is `C^n`. -/
+lemma times_cont_diff_on.mul {n : with_top ℕ} {s : set E} {f g : E → 𝕜}
+  (hf : times_cont_diff_on 𝕜 n f s) (hg : times_cont_diff_on 𝕜 n g s) :
+  times_cont_diff_on 𝕜 n (λ x, f x * g x) s :=
+λ x hx, (hf x hx).mul (hg x hx)
+
 /-- The product of two `C^n`functions is `C^n`. -/
 lemma times_cont_diff.mul {n : with_top ℕ} {f g : E → 𝕜}
   (hf : times_cont_diff 𝕜 n f) (hg : times_cont_diff 𝕜 n g) :
   times_cont_diff 𝕜 n (λ x, f x * g x) :=
 times_cont_diff_mul.comp (hf.prod hg)
 
+lemma times_cont_diff_within_at.div_const {f : E → 𝕜} {n} {c : 𝕜}
+  (hf : times_cont_diff_within_at 𝕜 n f s x) :
+  times_cont_diff_within_at 𝕜 n (λ x, f x / c) s x :=
+hf.mul times_cont_diff_within_at_const
+
+lemma times_cont_diff_at.div_const {f : E → 𝕜} {n} {c : 𝕜} (hf : times_cont_diff_at 𝕜 n f x) :
+  times_cont_diff_at 𝕜 n (λ x, f x / c) x :=
+hf.mul times_cont_diff_at_const
+
+lemma times_cont_diff_on.div_const {f : E → 𝕜} {n} {c : 𝕜} (hf : times_cont_diff_on 𝕜 n f s) :
+  times_cont_diff_on 𝕜 n (λ x, f x / c) s :=
+hf.mul times_cont_diff_on_const
+
+lemma times_cont_diff.div_const {f : E → 𝕜} {n} {c : 𝕜} (hf : times_cont_diff 𝕜 n f) :
+  times_cont_diff 𝕜 n (λ x, f x / c) :=
+hf.mul times_cont_diff_const
+
 lemma times_cont_diff.pow {n : with_top ℕ} {f : E → 𝕜}
   (hf : times_cont_diff 𝕜 n f) :
   ∀ m : ℕ, times_cont_diff 𝕜 n (λ x, (f x) ^ m)
 | 0 := by simpa using times_cont_diff_const
 | (m + 1) := hf.mul (times_cont_diff.pow m)
-
-/-- The product of two `C^n` functions on a domain is `C^n`. -/
-lemma times_cont_diff_on.mul {n : with_top ℕ} {s : set E} {f g : E → 𝕜}
-  (hf : times_cont_diff_on 𝕜 n f s) (hg : times_cont_diff_on 𝕜 n g s) :
-  times_cont_diff_on 𝕜 n (λ x, f x * g x) s :=
-λ x hx, (hf x hx).mul (hg x hx)
 
 /-! ### Scalar multiplication -/
 
@@ -2448,11 +2465,6 @@ begin
   simp only [times_cont_diff_iff_times_cont_diff_at] at *,
   exact λ x, (hf x).div (hg x) (h0 x)
 end
-
-lemma times_cont_diff.div_const [complete_space 𝕜] {f : E → 𝕜} {n} {c : 𝕜}
-  (hf : times_cont_diff 𝕜 n f) :
-  times_cont_diff 𝕜 n (λ x, f x / c) :=
-hf.mul times_cont_diff_const
 
 end algebra_inverse
 

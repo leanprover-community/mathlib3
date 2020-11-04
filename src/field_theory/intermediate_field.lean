@@ -32,12 +32,6 @@ i.e. it is a `subfield L` and a `subalgebra K L`.
 Intermediate fields are defined with a structure extending `subfield` and `subalgebra`.
 A `subalgebra` is closed under all operations except `⁻¹`,
 
-## TODO
-
- * `field.adjoin` currently returns a `subalgebra`, this should become an
-   `intermediate_field`. The lattice structure on `intermediate_field` will
-   follow from the adjunction given by `field.adjoin`.
-
 ## Tags
 intermediate field, field extension
 -/

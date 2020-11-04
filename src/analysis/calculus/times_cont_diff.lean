@@ -2698,3 +2698,57 @@ lemma times_cont_diff_on.continuous_on_deriv_of_open {n : with_top ℕ}
 ((times_cont_diff_on_succ_iff_deriv_of_open hs).1 (h.of_le hn)).2.continuous_on
 
 end deriv
+
+section restrict_scalars
+/-!
+### Restricting from `ℂ` to `ℝ`, or generally from `𝕜'` to `𝕜`
+
+If a function is `n` times continuously differentiable over `ℂ`, then it is `n` times continuously
+differentiable over `ℝ`. In this paragraph, we give variants of this statement, in the general
+situation where `ℂ` and `ℝ` are replaced respectively by `𝕜'` and `𝕜` where `𝕜'` is a normed algebra
+over `𝕜`.
+-/
+
+variables (𝕜) {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+variables [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
+variables [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F]
+variables {p' : E → formal_multilinear_series 𝕜' E F} {n : with_top ℕ}
+
+@[simp] def formal_multilinear_series.restrict_scalars (p : formal_multilinear_series 𝕜' E F) :
+  formal_multilinear_series 𝕜 E F :=
+λ n, (p n).restrict_scalars 𝕜
+
+lemma has_ftaylor_series_up_to_on.restrict_scalars
+  (h : has_ftaylor_series_up_to_on n f p' s) :
+  has_ftaylor_series_up_to_on n f (λ x, (p' x).restrict_scalars 𝕜) s :=
+{ zero_eq := λ x hx, h.zero_eq x hx,
+  fderiv_within :=
+    begin
+      intros m hm x hx,
+      convert ((continuous_multilinear_map.restrict_scalars_linear 𝕜).has_fderiv_at)
+        .comp_has_fderiv_within_at _ ((h.fderiv_within m hm x hx).restrict_scalars 𝕜),
+    end,
+  cont := λ m hm, continuous_multilinear_map.continuous_restrict_scalars.comp_continuous_on
+    (h.cont m hm) }
+
+lemma times_cont_diff_within_at.restrict_scalars (h : times_cont_diff_within_at 𝕜' n f s x) :
+  times_cont_diff_within_at 𝕜 n f s x :=
+begin
+  intros m hm,
+  rcases h m hm with ⟨u, u_mem, p', hp'⟩,
+  exact ⟨u, u_mem, _, hp'.restrict_scalars _⟩
+end
+
+lemma times_cont_diff_on.restrict_scalars (h : times_cont_diff_on 𝕜' n f s) :
+  times_cont_diff_on 𝕜 n f s :=
+λ x hx, (h x hx).restrict_scalars _
+
+lemma times_cont_diff_at.restrict_scalars (h : times_cont_diff_at 𝕜' n f x) :
+  times_cont_diff_at 𝕜 n f x :=
+times_cont_diff_within_at_univ.1 $ h.times_cont_diff_within_at.restrict_scalars _
+
+lemma times_cont_diff.restrict_scalars (h : times_cont_diff 𝕜' n f) :
+  times_cont_diff 𝕜 n f :=
+times_cont_diff_iff_times_cont_diff_at.2 $ λ x, h.times_cont_diff_at.restrict_scalars _
+
+end restrict_scalars

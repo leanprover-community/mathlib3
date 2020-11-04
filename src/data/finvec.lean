@@ -25,21 +25,29 @@ making it easy to reason about things like permuting coordinates.
 -/
 
 /-- A (homogeneous) "vector" of `n` `α`s, implemented as a function from `fin n`.
-The `j`th component of such a vector `x` (where `j : fin n`) is simply `x j`. -/
-def finvec (n : ℕ) (α : Type*) : Type* := fin n → α
+The `j`th component of such a vector `x` (where `j : fin n`) is simply `x j`.
+
+This definition is marked `reducible` because we really want to think of
+`x : finvec n α` as a function, while writing the type as `finvec` in order
+to support `.` notation. In particular, this means instances for `ι → α`
+also match `finvec n α` (with `ι = fin n`). -/
+@[reducible] def finvec (n : ℕ) (α : Type*) : Type* := fin n → α
 
 namespace finvec
 
 variables {α : Type*}
 
+def nil : finvec 0 α :=
+fin_zero_elim
+
 instance : unique (finvec 0 α) :=
-⟨⟨fin_zero_elim⟩, by { intro x, ext i, exact fin_zero_elim i }⟩
+⟨⟨nil⟩, by { intro x, ext i, exact fin_zero_elim i }⟩
 
 /-- Transport a vector across an equality of dimensions.
 This is implemented without using `eq.rec` so that it will reduce
 when evaluated at a constructor `⟨j, h : j < n'⟩` of `fin n'`. -/
 protected def cast {n n' : ℕ} (h : n = n') : finvec n α → finvec n' α :=
-λ x j, x (fin.cast h.symm j)
+λ x j, x (j.cast h.symm)
 
 @[simp] lemma cast_app {n n' : ℕ} {h : n = n'} {x : finvec n α} {j : fin n'} :
   (x.cast h) j = x (j.cast h.symm) :=
@@ -57,7 +65,7 @@ invoked implicitly. Lean maintains a distinction between the two sides of course
 Here, we provide an API which presents `finvec (n+m) α` as though it were
 a structure with two fields `left : finvec n α` and `right : finvec m α`,
 with constructor `append : finvec n α → finvec m α → finvec (n+m) α`, and
-corresponding induction principle `prod_induction`.
+corresponding recursion principle `prod_rec`.
 
 The arguments `n m : ℕ` are implicit throughout this API, to be inferred
 from the argument or result types; this may seem problematic, since a number
@@ -95,13 +103,6 @@ rfl
 @[simp] lemma left_append_right (x : finvec (n + m) α) : x.left ++ x.right = x :=
 append_equiv.symm_apply_apply x
 
-/-- Induction principle for `finvec (n + m) α`,
-imagined as a structure containing its left and right parts. -/
-@[elab_as_eliminator]
-protected lemma prod_induction {C : finvec (n + m) α → Prop}
-  (h : Π (x : finvec n α) (y : finvec m α), C (x ++ y)) (z : finvec (n + m) α) : C z :=
-left_append_right z ▸ h z.left z.right
-
 @[simp] lemma left_append {x : finvec n α} {y : finvec m α} : (x ++ y).left = x :=
 congr_arg prod.fst (append_equiv.apply_symm_apply (x, y) : _)
 
@@ -128,6 +129,18 @@ begin
   exact ⟨rfl, subsingleton.elim _ _⟩
 end
 
+/-- Recursion principle for `finvec (n + m) α`,
+imagined as a structure containing its left and right parts. -/
+@[elab_as_eliminator]
+def prod_rec {C : finvec (n + m) α → Sort*}
+  (h : Π (x : finvec n α) (y : finvec m α), C (x ++ y)) (z : finvec (n + m) α) : C z :=
+by { rw ← left_append_right z, exact h z.left z.right }
+
+lemma prod_rec_beta {C : finvec (n + m) α → Sort*}
+  (h : Π (x : finvec n α) (y : finvec m α), C (x ++ y)) (x : finvec n α) (y : finvec m α) :
+  (x.append y).prod_rec h = h x y :=
+by { apply eq_of_heq, refine (eq_mpr_heq _ _).trans _, rw [left_append, right_append] }
+
 end prod
 
 section snoc
@@ -138,7 +151,7 @@ This section is parallel to the `prod` section but based on the isomorphism α�
 We name the projections `init : finvec (n+1) α → finvec n α`
 (which equals `left` specialized to `m = 1`) and `last : finvec (n+1) α → α`,
 with constructor `snoc : finvec n α → α → finvec (n+1) α` and
-corresponding induction principle `snoc_induction`. -/
+corresponding recursion principle `snoc_rec`. -/
 
 variables {n : ℕ}
 
@@ -171,13 +184,6 @@ rfl
 @[simp] lemma init_snoc_last (x : finvec (n + 1) α) : x.init.snoc x.last = x :=
 snoc_equiv.symm_apply_apply x
 
-/-- Induction principle for `finvec (n + 1) α`,
-imagined as a structure containing its initial part and last coordinate. -/
-@[elab_as_eliminator]
-protected lemma snoc_induction {C : finvec (n + 1) α → Prop}
-  (h : Π (x : finvec n α) (a : α), C (snoc x a)) (z : finvec (n + 1) α) : C z :=
-init_snoc_last z ▸ h z.init z.last
-
 @[simp] lemma init_snoc {x : finvec n α} {a : α} : (x.snoc a).init = x :=
 congr_arg prod.fst (snoc_equiv.apply_symm_apply (x, a) : _)
 
@@ -187,6 +193,18 @@ congr_arg prod.snd (snoc_equiv.apply_symm_apply (x, a) : _)
 lemma snoc.inj_iff {x x' : finvec n α} {a a' : α} :
   x.snoc a = x'.snoc a' ↔ x = x' ∧ a = a' :=
 by simp only [snoc, equiv.apply_eq_iff_eq, prod.mk.inj_iff]
+
+/-- Recursion principle for `finvec (n + 1) α`,
+imagined as a structure containing its initial part and last coordinate. -/
+@[elab_as_eliminator]
+def snoc_rec {C : finvec (n + 1) α → Sort*}
+  (h : Π (x : finvec n α) (a : α), C (snoc x a)) (z : finvec (n + 1) α) : C z :=
+by { rw ← init_snoc_last z, exact h z.init z.last }
+
+lemma snoc_rec_beta {C : finvec (n + 1) α → Sort*}
+  (h : Π (x : finvec n α) (a : α), C (snoc x a)) (x : finvec n α) (a : α) :
+  (x.snoc a).snoc_rec h = h x a :=
+by { apply eq_of_heq, refine (eq_mpr_heq _ _).trans _, rw [init_snoc, last_snoc] }
 
 end snoc
 

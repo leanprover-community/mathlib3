@@ -46,24 +46,12 @@ begin
   dsimp,
   simp_rw [assoc],
   apply and_congr,
-  { apply forall₄_congr,
-    intro A,
-    apply forall_congr,
-    intro A',
-    apply forall_congr,
-    intro B,
-    apply forall_congr,
-    intro f,
-    simp_rw [eq_iff_comp_right_eq] },
-  { apply forall_congr,
-    intro A,
-    apply forall_congr,
-    intro A',
-    apply forall_congr,
-    intro B,
-    apply forall_congr,
-    intro f,
-    rw eq_iff_comp_right_eq }
+  { apply forall₃_congr (λ A A' B, _),
+    apply forall_congr (λ f, _),
+    rw [eq_iff_comp_right_eq] },
+  { apply forall₃_congr (λ A B B', _),
+    apply forall_congr (λ f, _),
+    rw [eq_iff_comp_right_eq] },
 end
 
 def phis3 :=
@@ -72,51 +60,48 @@ def phis3 :=
   (∀ A A' B (f : A ⟶ A') c t, limits.prod.map (fs.map f) (𝟙 _) ≫ q A' B c t = q A B c (t ≫ pre _ f)) ∧
   (∀ A B B' (g : B ⟶ B') c t, q A B c t ≫ fs.map g = q A B' c (t ≫ (exp A).map g)) }
 
-noncomputable def equiv12 (adj : fb ⊣ fs) : phis2 fs ≃ phis3 fb fs :=
+lemma prod_map_uncurry {A A' X Y : C} (g : X ⟶ A⟹Y) (k : A' ⟶ A) :
+  limits.prod.map k (𝟙 _) ≫ cartesian_closed.uncurry g = cartesian_closed.uncurry (g ≫ pre _ k) :=
+begin
+  rw [pre, ← curry_natural_left, uncurry_curry, uncurry_eq],
+  rw prod.map_map_assoc,
+  rw prod.map_map_assoc,
+
+
+
+end
+
+noncomputable def equiv23 (adj : fb ⊣ fs) : phis2 fs ≃ phis3 fb fs :=
 begin
   -- apply equiv.trans _ (equiv.subtype_subtype_equiv_subtype_inter _ _),
   apply equiv.subtype_congr _ _,
-  { apply equiv.Pi_congr_right,
-    intro A,
-    apply equiv.Pi_congr_right,
-    intro B,
-    apply equiv.Pi_congr_right,
-    intro c,
+  { apply equiv.Pi_congr_right (λ A, _),
+    apply equiv.Pi_congr_right (λ B, _),
+    apply equiv.Pi_congr_right (λ c, _),
     apply equiv.arrow_congr,
     { apply (adj.hom_equiv _ _).symm },
     { apply ((exp.adjunction _).hom_equiv _ _).symm } },
   { intro q,
+    dsimp [equiv.Pi_congr_right],
+    simp_rw [equiv.symm_symm],
     apply and_congr,
-    { dsimp [equiv.Pi_congr_right],
-      simp_rw [← uncurry_natural_left, ← uncurry.injective_iff, equiv.symm_symm,
+    { simp_rw [← uncurry_natural_left, ← uncurry.injective_iff,
                adjunction.hom_equiv_naturality_left],
+      apply forall₄_congr (λ A B c c', _),
+      apply forall_congr (λ h, _),
+      symmetry,
+      rw equiv.forall_congr (adj.hom_equiv c' ((exp A).obj B)),
+      intro x,
+      refl },
+    { apply and_congr,
+      { apply forall₃_congr (λ A A' B, _),
+        apply forall₂_congr (λ f c, _),
+        rw equiv.forall_congr (adj.hom_equiv c ((exp A').obj B)),
+        intro t,
 
-
-      split,
-      { intros hq A B c c' h t,
-        dsimp [equiv.Pi_congr_right],
-        rw [← uncurry_natural_left, hq],
-        simp },
-      { intros hq A B c c' h t,
-        specialize hq A B c c' h ((adj.hom_equiv c' ((exp A).obj B)).symm t),
-        dsimp [equiv.Pi_congr_right] at hq,
-        simp only [equiv.symm_symm, adjunction.hom_equiv_naturality_left, equiv.apply_symm_apply] at hq,
-        erw ← (exp.adjunction _).hom_equiv_naturality_left_symm at hq,
-        apply ((exp.adjunction (fs.obj A)).hom_equiv c (fs.obj B)).symm.injective hq } },
-    apply and_congr,
-    { dsimp [equiv.Pi_congr_right],
-      simp only [equiv.symm_symm],
-      -- change _ ↔ ∀ (A A' B : C) (f : A ⟶ A') (c : D) (t : _),
-      --            limits.prod.map _ (𝟙 _) ≫ cartesian_closed.uncurry _ = cartesian_closed.uncurry _,
-
-
-      -- conv_rhs in ( _) {},
-
-    },
-    {
+      }
 
     }
-
   }
 
 end

@@ -117,6 +117,9 @@ adjunction.left_triangle_components (exp.adjunction A)
 @[simp, reassoc] lemma coev_ev : (coev A).app (A⟹B) ≫ (exp A).map ((ev A).app B) = 𝟙 (A⟹B) :=
 adjunction.right_triangle_components (exp.adjunction A)
 
+instance : preserves_colimits (prod.functor.obj A) :=
+(exp.adjunction A).left_adjoint_preserves_colimits
+
 end exp
 
 variables {A}

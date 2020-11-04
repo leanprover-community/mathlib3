@@ -443,6 +443,14 @@ e.to_equiv.image_eq_preimage s
 
 end
 
+/-- An involutive linear map is a linear equivalence. -/
+def of_involutive [semimodule R M] (f : M →ₗ[R] M) (hf : involutive f) : M ≃ₗ[R] M :=
+{ .. f, .. hf.to_equiv f  }
+
+@[simp] lemma coe_of_involutive [semimodule R M] (f : M →ₗ[R] M) (hf : involutive f) :
+  ⇑(of_involutive f hf) = f :=
+rfl
+
 end add_comm_monoid
 
 end linear_equiv

@@ -2714,6 +2714,8 @@ variables [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
 variables [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F]
 variables {p' : E → formal_multilinear_series 𝕜' E F} {n : with_top ℕ}
 
+/-- Reinterpret a formal `𝕜'`-multilinear series as a formal `𝕜`-multilinear series, where `𝕜'` is a
+normed algebra over `𝕜`. -/
 @[simp] def formal_multilinear_series.restrict_scalars (p : formal_multilinear_series 𝕜' E F) :
   formal_multilinear_series 𝕜 E F :=
 λ n, (p n).restrict_scalars 𝕜

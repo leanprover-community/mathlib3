@@ -87,9 +87,9 @@ colimit.desc _ (cofan.mk P p)
 Construct a morphism between categorical products (indexed by the same type)
 from a family of morphisms between the factors.
 -/
-abbreviation pi.map {f g : β → C} [has_products_of_shape β C]
+abbreviation pi.map {f g : β → C} [has_product f] [has_product g]
   (p : Π b, f b ⟶ g b) : ∏ f ⟶ ∏ g :=
-lim.map (discrete.nat_trans p)
+lim_map (discrete.nat_trans p)
 /--
 Construct an isomorphism between categorical products (indexed by the same type)
 from a family of isomorphisms between the factors.
@@ -101,9 +101,9 @@ lim.map_iso (discrete.nat_iso p)
 Construct a morphism between categorical coproducts (indexed by the same type)
 from a family of morphisms between the factors.
 -/
-abbreviation sigma.map {f g : β → C} [has_coproducts_of_shape β C]
+abbreviation sigma.map {f g : β → C} [has_coproduct f] [has_coproduct g]
   (p : Π b, f b ⟶ g b) : ∐ f ⟶ ∐ g :=
-colim.map (discrete.nat_trans p)
+colim_map (discrete.nat_trans p)
 /--
 Construct an isomorphism between categorical coproducts (indexed by the same type)
 from a family of isomorphisms between the factors.
@@ -124,7 +124,7 @@ def pi_comparison [has_product f] [has_product (λ b, G.obj (f b))] :
 pi.lift (λ b, G.map (pi.π f b))
 
 @[simp, reassoc]
-lemma pi_comparison_comp_pi [has_product f] [has_product (λ b, G.obj (f b))] (b : β) :
+lemma pi_comparison_comp_π [has_product f] [has_product (λ b, G.obj (f b))] (b : β) :
   pi_comparison G f ≫ pi.π _ b = G.map (pi.π f b) :=
 limit.lift_π _ b
 

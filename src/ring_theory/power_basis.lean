@@ -212,21 +212,20 @@ begin
   { apply (is_integral_algebra_map_iff hST).mp,
     convert hx,
     apply_instance },
+  have minpoly_eq := minimal_polynomial.eq_of_algebra_map_eq hST hx' hx,
   refine ⟨_, _root_.eq_top_iff.mpr _⟩,
   { have := linear_independent_power_basis hx',
-    rwa minimal_polynomial.eq_of_algebra_map_eq hST hx' hx at this,
+    rwa minpoly_eq at this,
     refl },
   { rintros ⟨y, hy⟩ _,
     have := mem_span_power_basis hx',
-    rw minimal_polynomial.eq_of_algebra_map_eq hST hx' hx at this,
+    rw minpoly_eq at this,
     apply this,
     { rw [adjoin_singleton_eq_range] at hy,
       obtain ⟨f, rfl⟩ := (aeval x).mem_range.mp hy,
       use f,
       ext,
-      change aeval x f = algebra_map _ _ (aeval ((λ (this : adjoin K {x}), this) ⟨x, _⟩) f),
-      rw is_scalar_tower.algebra_map_aeval,
-      refl },
+      exact (is_scalar_tower.algebra_map_aeval K (adjoin K {x}) S ⟨x, _⟩ _).symm },
     { refl } }
 end
 
@@ -239,5 +238,68 @@ noncomputable def adjoin.power_basis [algebra K S] {x : S} (hx : _root_.is_integ
   is_basis := power_basis_is_basis hx }
 
 end algebra
+
+namespace intermediate_field
+
+lemma adjoin_simple.exists_eq_aeval_gen (alg : algebra.is_algebraic K L) {x y : L} (hy : y ∈ K⟮x⟯) :
+  ∃ f : polynomial K, y = aeval x f :=
+begin
+  refine adjoin_induction _ hy _ _ _ _ _ _,
+  { intros x hx,
+    rcases set.mem_singleton_iff.mp hx with rfl,
+    exact ⟨X, (aeval_X _).symm⟩ },
+  { intros x,
+    refine ⟨C x, (aeval_C _ _).symm⟩ },
+  { rintros x y ⟨fx, rfl⟩ ⟨fy, rfl⟩,
+    exact ⟨fx + fy, (ring_hom.map_add _ _ _).symm⟩ },
+  { rintros x ⟨fx, rfl⟩,
+    exact ⟨-fx, (ring_hom.map_neg _ _).symm⟩ },
+  { rintros x ⟨fx, x_eq⟩,
+    by_cases hx0 : x = 0,
+    { rw [hx0, inv_zero],
+      exact ⟨0, (ring_hom.map_zero _).symm⟩ },
+    have hx : is_integral K x := ((is_algebraic_iff_is_integral _).mp (alg x)),
+    rw inv_eq_of_root_of_coeff_zero_ne_zero
+      (minimal_polynomial.aeval hx) (minimal_polynomial.coeff_zero_ne_zero hx hx0),
+    use - (C ((minimal_polynomial hx).coeff 0)⁻¹) * (minimal_polynomial hx).div_X.comp fx,
+    rw aeval_def at x_eq,
+    rw [div_eq_inv_mul, alg_hom.map_mul, alg_hom.map_neg, aeval_C, neg_mul_eq_neg_mul,
+        ring_hom.map_inv, aeval_def, aeval_def, eval₂_comp, ← x_eq] },
+  { rintros x y ⟨fx, rfl⟩ ⟨fy, rfl⟩,
+    exact ⟨fx * fy, (ring_hom.map_mul _ _ _).symm⟩ },
+end
+
+lemma power_basis_is_basis (alg : algebra.is_algebraic K L) {x : L} (hx : _root_.is_integral K x) :
+  is_basis K (λ (i : fin (minimal_polynomial hx).nat_degree), (adjoin_simple.gen K x ^ (i : ℕ))) :=
+begin
+  have hx' : _root_.is_integral K (adjoin_simple.gen K x),
+  { apply (is_integral_algebra_map_iff (algebra_map K⟮x⟯ L).injective).mp,
+    convert hx,
+    apply_instance },
+  have minpoly_eq := minimal_polynomial.eq_of_algebra_map_eq ((algebra_map K⟮x⟯ L).injective) hx' hx,
+  refine ⟨_, _root_.eq_top_iff.mpr _⟩,
+  { have := algebra.linear_independent_power_basis hx',
+    rwa minpoly_eq at this,
+    refl },
+  { rintros ⟨y, hy⟩ _,
+    have := algebra.mem_span_power_basis hx',
+    rw minpoly_eq at this,
+    apply this,
+    { obtain ⟨f, rfl⟩ := adjoin_simple.exists_eq_aeval_gen alg hy,
+      use f,
+      ext,
+      exact (is_scalar_tower.algebra_map_aeval K K⟮x⟯ L (adjoin_simple.gen K x) _).symm },
+    { refl } }
+end
+
+/-- The power basis `1, x, ..., x ^ (d - 1)` for `K⟮x⟯`,
+where `d` is the degree of the minimal polynomial of `x`. -/
+noncomputable def adjoin.power_basis (alg : algebra.is_algebraic K L) {x : L} :
+  power_basis K K⟮x⟯ :=
+{ gen := adjoin_simple.gen K x,
+  dim := (minimal_polynomial ((is_algebraic_iff_is_integral K).mp (alg x))).nat_degree,
+  is_basis := power_basis_is_basis alg _ }
+
+end intermediate_field
 
 #lint

@@ -276,7 +276,8 @@ begin
   { apply (is_integral_algebra_map_iff (algebra_map K⟮x⟯ L).injective).mp,
     convert hx,
     apply_instance },
-  have minpoly_eq := minimal_polynomial.eq_of_algebra_map_eq ((algebra_map K⟮x⟯ L).injective) hx' hx,
+  have minpoly_eq :=
+    minimal_polynomial.eq_of_algebra_map_eq ((algebra_map K⟮x⟯ L).injective) hx' hx,
   refine ⟨_, eq_top_iff.mpr _⟩,
   { have := algebra.linear_independent_power_basis hx',
     rwa minpoly_eq at this,

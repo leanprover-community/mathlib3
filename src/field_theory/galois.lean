@@ -43,7 +43,7 @@ variables (F : Type*) [field F] (E : Type*) [field E] [algebra F E]
 /-- A field extension E/F is galois if it is both separable and normal -/
 @[class] def is_galois : Prop := is_separable F E ∧ normal F E
 
-instance is_galois_of_fixed_field (G : Type*) [group G] [fintype G] [mul_semiring_action G E] :
+instance of_fixed_field (G : Type*) [group G] [fintype G] [mul_semiring_action G E] :
   is_galois (mul_action.fixed_points G E) E :=
 ⟨fixed_points.separable G E, fixed_points.normal G E⟩
 
@@ -98,7 +98,7 @@ section galois_correspondence
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 variables (H : subgroup (E ≃ₐ[F] E)) (K : intermediate_field F E)
 
-instance is_galois_tower_top_of_is_galois [h : is_galois F E] : is_galois K E :=
+instance tower_top_of_galois [h : is_galois F E] : is_galois K E :=
 ⟨is_separable_tower_top_of_is_separable K h.1, normal.tower_top_of_normal F K E h.2⟩
 
 instance subgroup_action : faithful_mul_semiring_action H E :=

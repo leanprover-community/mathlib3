@@ -186,11 +186,8 @@ def ι : X → free_algebra R X := λ m, quot.mk _ m
 
 variables {A : Type*} [semiring A] [algebra R A]
 
-/--
-Given a function `f : X → A` where `A` is an `R`-algebra, `lift R f` is the unique lift
-of `f` to a morphism of `R`-algebras `free_algebra R X → A`.
--/
-def lift (f : X → A) : free_algebra R X →ₐ[R] A :=
+/-- Internal definition used to define `lift` -/
+private def lift_aux (f : X → A) : (free_algebra R X →ₐ[R] A) :=
 { to_fun := λ a, quot.lift_on a (lift_fun _ _ f) $ λ a b h,
   begin
     induction h,
@@ -230,6 +227,31 @@ def lift (f : X → A) : free_algebra R X →ₐ[R] A :=
   map_add' := by { rintros ⟨⟩ ⟨⟩, refl },
   commutes' := by tauto }
 
+/--
+Given a function `f : X → A` where `A` is an `R`-algebra, `lift R f` is the unique lift
+of `f` to a morphism of `R`-algebras `free_algebra R X → A`.
+-/
+def lift : (X → A) ≃ (free_algebra R X →ₐ[R] A) :=
+{ to_fun := lift_aux R,
+  inv_fun := λ F, F ∘ (ι R),
+  left_inv := λ f, by {ext, refl},
+  right_inv := λ F, by {
+    ext x,
+    rcases x,
+    induction x,
+    case pre.of : {
+      change ((F : free_algebra R X → A) ∘ (ι R)) _ = _,
+      refl },
+    case pre.of_scalar : {
+      change algebra_map _ _ x = F (algebra_map _ _ x),
+      rw alg_hom.commutes F x, },
+    case pre.add : a b ha hb {
+      change lift_aux R (F ∘ ι R) (quot.mk _ _ + quot.mk _ _) = F (quot.mk _ _ + quot.mk _ _),
+      rw [alg_hom.map_add, alg_hom.map_add, ha, hb], },
+    case pre.mul : a b ha hb {
+      change lift_aux R (F ∘ ι R) (quot.mk _ _ * quot.mk _ _) = F (quot.mk _ _ * quot.mk _ _),
+      rw [alg_hom.map_mul, alg_hom.map_mul, ha, hb], }, }, }
+
 variables {R X}
 
 @[simp]
@@ -243,22 +265,7 @@ theorem lift_ι_apply (f : X → A) (x) :
 @[simp]
 theorem lift_unique (f : X → A) (g : free_algebra R X →ₐ[R] A) :
   (g : free_algebra R X → A) ∘ (ι R) = f ↔ g = lift R f :=
-begin
-  refine ⟨λ hyp, _, λ hyp, by rw [hyp, ι_comp_lift]⟩,
-  ext,
-  rcases x,
-  induction x,
-  { change ((g : free_algebra R X → A) ∘ (ι R)) _ = _,
-    rw hyp,
-    refl },
-  { exact alg_hom.commutes g x },
-  { change g (quot.mk _ _ + quot.mk _ _) = _,
-    simp only [alg_hom.map_add, *],
-    refl },
-  { change g (quot.mk _ _ * quot.mk _ _) = _,
-    simp only [alg_hom.map_mul, *],
-    refl },
-end
+(lift R).symm_apply_eq
 
 /-!
 At this stage we set the basic definitions as `@[irreducible]`, so from this point onwards one should only use the universal properties of the free algebra, and consider the actual implementation as a quotient of an inductive type as completely hidden.

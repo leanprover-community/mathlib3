@@ -1,6 +1,7 @@
 import category_theory.adjunction.limits
 import category_theory.closed.cartesian
 import category_theory.conj
+import logic.basic
 
 universes v₁ v₂ u₁ u₂
 
@@ -45,7 +46,7 @@ begin
   dsimp,
   simp_rw [assoc],
   apply and_congr,
-  { apply forall_congr,
+  { apply forall₄_congr,
     intro A,
     apply forall_congr,
     intro A',

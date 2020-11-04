@@ -337,6 +337,7 @@ begin
   exact of_id a,
 end
 
+/-- The star ring formed by reversing the elements of products -/
 instance : star_ring (free_algebra R X) :=
 { star := opposite.unop ∘ lift R (opposite.op ∘ ι R),
   star_involutive := λ x, by {
@@ -349,5 +350,8 @@ instance : star_ring (free_algebra R X) :=
   star_mul := λ a b, by simp,
   star_zero := by simp,
   star_add := λ a b, by simp }
+
+instance [has_star R] : star_algebra R (free_algebra R X) :=
+{ star_smul := λ c a, sorry}
 
 end free_algebra

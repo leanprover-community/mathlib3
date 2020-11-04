@@ -63,6 +63,12 @@ namespace tensor_algebra
 instance {S : Type*} [comm_ring S] [semimodule S M] : ring (tensor_algebra S M) :=
 ring_quot.ring _
 
+instance : star_ring (tensor_algebra R M) := ring_quot.star_ring (rel R M) $ λ a b h, begin
+  induction h,
+  { rw star_add, convert rel.add, },
+  { rw star_mul, sorry },
+end
+
 variables {M}
 /--
 The canonical linear map `M →ₗ[R] tensor_algebra R M`.

@@ -52,7 +52,9 @@ localized "notation `ω⁺` := omega_limit at_bot" in omega_limit
 variables [topological_space β]
 variables (f : filter τ) (ϕ : τ → α → β) (s s₁ s₂: set α)
 
--- some elementary properties:
+/-!
+Some elementary properties:
+-/
 
 lemma omega_limit_def : ω f ϕ s = ⋂ u ∈ f, closure (image2 ϕ u s) := rfl
 
@@ -82,8 +84,10 @@ begin
   exact is_closed_closure,
 end
 
--- the next few lemmas are various versions of the property
--- characterising ω-limits:
+/-!
+The next few lemmas are various versions of the property
+characterising ω-limits:
+-/
 
 /-- An element `y` is in the ω-limit set of `s` w.r.t. `f` if the
     preimages of an arbitrary neighbourhood of `y` frequently
@@ -170,6 +174,12 @@ begin
     (λ hy₂, omega_limit_mono_right _ _ (subset_union_right _ _) hy₂) },
 end
 
+/-!
+Different expressions for omega limits, useful for rewrites. In
+particular, one may restrict the intersection to sets in `f` which are
+subsets of some set `v` also in `f`.
+-/
+
 lemma omega_limit_eq_Inter : ω f ϕ s = ⋂ u : ↥f.sets, closure (image2 ϕ u s) :=
 bInter_eq_Inter _ _
 
@@ -186,12 +196,14 @@ lemma omega_limit_eq_Inter_inter {v : set τ} (hv : v ∈ f) :
   ω f ϕ s = ⋂ (u : ↥f.sets), closure (image2 ϕ (u ∩ v) s) :=
 by { rw omega_limit_eq_bInter_inter _ _ _ hv, apply bInter_eq_Inter }
 
--- ω-limits in compact spaces:
+/-!
+ω-limits and Compactness:
+-/
 
 /-- A set is eventually carried into any neighbourhood of its ω-limit:
-    for any neighbourhood v of ω f ϕ s, there exists u ∈ f such that
-    cl (ϕ u s) ⊆ v -/
-lemma eventually_subset_nhd_omega_limit [compact_space β]
+    for any neighbourhood `v` of `ω f ϕ s`, there exists `u ∈ f` such
+    that `cl (ϕ u s) ⊆ v` -/
+lemma eventually_subset_nhd_omega_limit_of_compact [compact_space β]
   {v : set β} (ho : is_open v) (hv : ω f ϕ s ⊆ v) :
   ∃ u ∈ f, closure (image2 ϕ u s) ⊆ v :=
 begin
@@ -283,7 +295,9 @@ end
 
 end flow
 
--- ω-limits of flows by a group:
+/-!
+#### ω-limits of Flows by a Group:
+-/
 namespace flow
 
 variables
@@ -293,6 +307,7 @@ variables
 
 open_locale omega_limit
 
+/-- the ω-limit of a forward image of `s` is the same as the ω-limit of `s`. -/
 lemma omega_limit_fw_image_eq (hf : ∀ t, tendsto (+ t) f f) (t : τ) :
   ω f ϕ (ϕ t '' s) = ω f ϕ s :=
 begin

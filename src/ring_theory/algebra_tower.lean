@@ -232,6 +232,8 @@ namespace subalgebra
 
 open is_scalar_tower
 
+section semiring
+
 variables (R) {S A} [comm_semiring R] [comm_semiring S] [semiring A]
 variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
 
@@ -254,6 +256,23 @@ def of_under {R A B : Type*} [comm_semiring R] [comm_semiring A] [semiring B]
   [algebra S B] [is_scalar_tower R S B] (f : U →ₐ[S] B) : S.under U →ₐ[R] B :=
 { commutes' := λ r, (f.commutes (algebra_map R S r)).trans (algebra_map_apply R S B r).symm,
   .. f }
+
+end semiring
+
+section comm_semiring
+
+variables (R) {S A} [comm_semiring R] [comm_semiring S] [comm_semiring A]
+variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
+
+@[simp] lemma aeval_coe {S : subalgebra R A} {x : S} {p : polynomial R} :
+  polynomial.aeval (x : A) p = polynomial.aeval x p :=
+begin
+  convert (polynomial.hom_eval₂ p (algebra_map R S) (algebra_map S A) x).symm,
+  rw [polynomial.aeval_def, is_scalar_tower.algebra_map_eq R S A],
+  refl
+end
+
+end comm_semiring
 
 end subalgebra
 

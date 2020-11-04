@@ -25,26 +25,26 @@ variables (J J₂ : grothendieck_topology C)
 
 lemma is_sheaf_for_bind (P : Cᵒᵖ ⥤ Type v) (U : sieve X)
   (B : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄, U f → sieve Y)
-  (hU : is_sheaf_for P U)
-  (hB : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : U f), is_sheaf_for P (B hf))
-  (hB' : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : U f) ⦃Z⦄ (g : Z ⟶ Y), is_separated_for P ((B hf).pullback g)) :
-  is_sheaf_for P (sieve.bind U B) :=
+  (hU : presieve.is_sheaf_for P U)
+  (hB : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : U f), presieve.is_sheaf_for P (B hf))
+  (hB' : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (h : U f) ⦃Z⦄ (g : Z ⟶ Y), presieve.is_separated_for P ((B h).pullback g)) :
+  presieve.is_sheaf_for P (sieve.bind U B) :=
 begin
   intros s hs,
-  let y : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : U f), family_of_elements P (B hf) :=
+  let y : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : U f), presieve.family_of_elements P (B hf) :=
     λ Y f hf Z g hg, s _ (presieve.bind_comp _ _ hg),
-  have hy : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : U f), (y hf).consistent,
+  have hy : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : U f), (y hf).compatible,
   { intros Y f H Y₁ Y₂ Z g₁ g₂ f₁ f₂ hf₁ hf₂ comm,
     apply hs,
     apply reassoc_of comm },
-  let t : family_of_elements P U,
+  let t : presieve.family_of_elements P U,
   { intros Y f hf,
     apply (hB hf).amalgamate (y hf) (hy hf) },
-  have ht : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : U f), is_amalgamation_for (y hf) (t f hf),
+  have ht : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : U f), (y hf).is_amalgamation (t f hf),
   { intros Y f hf,
-    apply (hB hf).is_amalgamation_for _ },
-  have hT : t.consistent,
-  { rw is_sieve_consistent_iff,
+    apply (hB hf).is_amalgamation _ },
+  have hT : t.compatible,
+  { rw presieve.sieve_compatible_iff,
     intros Z W f h hf,
     apply (hB (U.downward_closed hf h)).is_separated_for.ext,
     intros Y l hl,
@@ -65,7 +65,7 @@ begin
       simp } },
   refine ⟨hU.amalgamate t hT, _, _⟩,
   { rintro Z _ ⟨Y, f, g, hg, hf, rfl⟩,
-    rw [op_comp, functor_to_types.map_comp_apply, is_sheaf_for.valid_glue _ _ _ hg],
+    rw [op_comp, functor_to_types.map_comp_apply, presieve.is_sheaf_for.valid_glue _ _ _ hg],
     apply ht hg _ hf },
   { intros y hy,
     apply hU.is_separated_for.ext,
@@ -77,15 +77,15 @@ begin
 end
 
 lemma is_sheaf_for_trans (P : Cᵒᵖ ⥤ Type v) (R S : sieve X)
-  (hR : is_sheaf_for P R)
-  (hR' : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : S f), is_separated_for P (R.pullback f))
-  (hS : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : R f), is_sheaf_for P (S.pullback f)) :
-  is_sheaf_for P S :=
+  (hR : presieve.is_sheaf_for P R)
+  (hR' : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : S f), presieve.is_separated_for P (R.pullback f))
+  (hS : Π ⦃Y⦄ ⦃f : Y ⟶ X⦄ (hf : R f), presieve.is_sheaf_for P (S.pullback f)) :
+  presieve.is_sheaf_for P S :=
 begin
   have : (bind ⇑R (λ (Y : C) (f : Y ⟶ X) (hf : R f), pullback f S) : presieve X) ≤ S,
   { rintros Z f ⟨W, f, g, hg, (hf : S _), rfl⟩,
     apply hf },
-  apply is_sheaf_for_subsieve_aux P this,
+  apply presieve.is_sheaf_for_subsieve_aux P this,
   apply is_sheaf_for_bind _ _ _ hR hS,
   { intros Y f hf Z g,
     dsimp,
@@ -107,11 +107,11 @@ end
 
 /-- Construct the finest Grothendieck topology for which the given presheaf is a sheaf. -/
 def finest_topology_single (P : Cᵒᵖ ⥤ Type v) : grothendieck_topology C :=
-{ sieves := λ X S, ∀ Y (f : Y ⟶ X), is_sheaf_for P (S.pullback f),
+{ sieves := λ X S, ∀ Y (f : Y ⟶ X), presieve.is_sheaf_for P (S.pullback f),
   top_mem' := λ X Y f,
   begin
     rw sieve.pullback_top,
-    exact is_sheaf_for_top_sieve P,
+    exact presieve.is_sheaf_for_top_sieve P,
   end,
   pullback_stable' := λ X Y S f hS Z g,
   begin
@@ -135,20 +135,26 @@ def finest_topology (Ps : set (Cᵒᵖ ⥤ Type v)) : grothendieck_topology C :=
 Inf (finest_topology_single '' Ps)
 
 lemma sheaf_for_finest_topology (Ps : set (Cᵒᵖ ⥤ Type v)) :
-  P ∈ Ps → is_sheaf (finest_topology Ps) P :=
+  P ∈ Ps → presieve.is_sheaf (finest_topology Ps) P :=
 begin
   intros h X S hS,
   simpa using hS _ ⟨⟨_, _, ⟨_, h, rfl⟩, rfl⟩, rfl⟩ _ (𝟙 _),
 end
 
 lemma is_finest_topology (Ps : set (Cᵒᵖ ⥤ Type v)) (J : grothendieck_topology C)
-  (hJ : ∀ P ∈ Ps, is_sheaf J P) : J ≤ finest_topology Ps :=
+  (hJ : ∀ P ∈ Ps, presieve.is_sheaf J P) : J ≤ finest_topology Ps :=
 begin
   intros X S hS,
   rintro _ ⟨⟨_, _, ⟨P, hP, rfl⟩, rfl⟩, rfl⟩,
   intros Y f,
   exact hJ P hP (S.pullback f) (J.pullback_stable f hS),
 end
+
+def effective_epimorphic (S : sieve X) : Prop :=
+∀ (Z : C), presieve.is_sheaf_for (yoneda.obj Z) S
+
+def universally_effective_epimorphic (S : sieve X) : Prop :=
+∀ ⦃Y⦄ (f : Y ⟶ X), effective_epimorphic (S.pullback f)
 
 def canonical_topology : grothendieck_topology C :=
 finest_topology (set.range yoneda.obj)

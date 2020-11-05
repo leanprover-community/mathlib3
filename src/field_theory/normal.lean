@@ -57,7 +57,7 @@ section normal_tower
 
 variables (E : Type*) [field E] [algebra F E] [algebra K E] [is_scalar_tower F K E]
 
-instance normal.tower_top_of_normal (h : normal F E) : normal K E :=
+lemma normal.tower_top_of_normal (h : normal F E) : normal K E :=
 begin
   intros x,
   cases h x with hx hhx,

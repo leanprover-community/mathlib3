@@ -6,6 +6,16 @@ Authors: Scott Morrison, Bhavik Mehta
 import category_theory.limits.shapes.products
 import category_theory.limits.preserves.basic
 
+/-!
+# Preserving products
+
+Constructions to relate the notions of preserving products and reflecting products
+to concrete fans.
+
+In particular, we show that `pi_comparison G f` is an isomorphism iff `G` preserves
+the limit of `f`.
+-/
+
 noncomputable theory
 
 universes v u₁ u₂

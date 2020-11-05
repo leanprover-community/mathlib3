@@ -3,8 +3,26 @@ import m4r.tpow algebra.punit_instances m4r.direct_sum_semimodule
 universe u
 section
 variables (R : Type u) [comm_semiring R] (M : Type u) [add_comm_monoid M] [semimodule R M]
+  (N : Type u) [add_comm_monoid N] [semimodule R N]
 open tpow
 open_locale direct_sum
+
+lemma map_sum_tmul {α : Type*} (s : multiset α) (m : α → M) (n : N) :
+  ((multiset.map m s).sum ⊗ₜ[R] n) = (multiset.map (λ a, m a ⊗ₜ[R] n) s).sum :=
+begin
+  induction s using multiset.induction with a s has ih h,
+  refine @eq.trans _ _ 0 _ _ _,
+  sorry, sorry, sorry, sorry
+end
+
+/-lemma tmul_map_sum (m : M) {α : Type*} (s : finset α) (n : α → N) :
+  (m ⊗ₜ[R] (∑ a in s, n a)) = ∑ a in s, m ⊗ₜ[R] n a :=
+begin
+  classical,
+  induction s using finset.induction with a s has ih h,
+  { simp, },
+  { simp [finset.sum_insert has, tmul_add, ih], },
+end-/
 
 def pow_to_alg (n : ℕ) : (tpow R M n) →ₗ[R] (tensor_algebra R M) :=
 tpow.lift R n (tensor_algebra R M) $ tensor_algebra.mk R M
@@ -171,6 +189,19 @@ begin
   exact Ht n y z (hn y),
   intros y z,
   exact Hadd n.succ y z,
+end
+
+lemma exists_sum_of_tpow {n : ℕ} (x : tpow R M n) :
+  ∃ (s : multiset (fin n → M)), multiset.sum (s.map (tpow.mk R M n)) = x :=
+begin
+  refine tpow.induction_on _ _ _ _ _ _ _ x,
+  intros n f,
+  use {f},
+  rw multiset.map_singleton,
+  erw multiset.sum_singleton,
+  rintros n y z ⟨s, h⟩,
+  use multiset.map (λ f, fin.snoc f z) s,
+  sorry, sorry, sorry
 end
 
 variables (m n : ℕ)

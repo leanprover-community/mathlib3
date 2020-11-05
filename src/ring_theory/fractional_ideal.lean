@@ -218,6 +218,13 @@ instance : partial_order (fractional_ideal f) :=
 
 lemma le_iff {I J : fractional_ideal f} : I ≤ J ↔ (∀ x ∈ I, x ∈ J) := iff.refl _
 
+lemma le_coe_iff {I J : fractional_ideal f} : I ≤ J ↔
+  (I : submodule R f.codomain) ≤ (J : submodule R f.codomain) :=
+begin
+sorry,
+end
+
+
 lemma zero_le (I : fractional_ideal f) : 0 ≤ I :=
 begin
   intros x hx,
@@ -663,6 +670,12 @@ noncomputable instance fractional_ideal_has_div :
   has_div (fractional_ideal g) :=
 ⟨ λ I J, if h : J = 0 then 0 else ⟨I.1 / J.1, fractional_div_of_nonzero h⟩ ⟩
 
+lemma div_coe {I : fractional_ideal g} : (↑(1 / I) : submodule R₁ g.codomain) = 1 / (↑I : submodule R₁ g.codomain) :=
+begin
+sorry
+end
+
+
 noncomputable instance : has_inv (fractional_ideal g) := ⟨λ I, 1 / I⟩
 
 lemma inv_eq {I : fractional_ideal g} : I⁻¹ = 1 / I := rfl
@@ -691,14 +704,22 @@ begin
 sorry
 end
 
-lemma le_self_mul_one_div {I : fractional_ideal g} (hI : I ≤ 1) :
+lemma le_self_mul_one_div {I : fractional_ideal g} (hI : I ≤ (1 : fractional_ideal g)) :
   I ≤ I * (1 / I) :=
 begin
-have hI_coe : (↑I : submodule R₁ g.codomain) ≤ 1,
+rw le_coe_iff at hI,
+-- rw coe_one at hI,
+-- rw submodule.one_eq_span at hI,
+-- rw coe_one at hI,
+rw le_coe_iff,
+rw coe_mul I ((1 : fractional_ideal g)/ I),
+rw div_coe,
+-- rw
+apply submodule.le_self_mul_one_div,
+-- exact hI,
+-- have hI_coe : (↑I : submodule R₁ g.codomain) ≤ (1 : submodule R₁ g.codomain),
+-- apply le_coe_iff.mp hI,
 sorry,
-suffices h_incl_coe : (↑I : submodule R₁ g.codomain) ≤ ↑I * (1 / ↑I),
-sorry,
-from submodule.le_self_mul_one_div hI_coe,
 end
 
 lemma le_div_iff_of_nonzero {I J J' : fractional_ideal g} (hJ' : J' ≠ 0) :

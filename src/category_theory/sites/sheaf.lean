@@ -715,10 +715,8 @@ begin
     ext ⟨Y, Z, g, f, hf⟩,
     simpa [first_map, second_map] using t _ g hf },
   { intros t Y Z f g hf,
-    have : (first_map P S ≫ pi.π _ (⟨Y, Z, g, f, hf⟩ : Σ (Y Z : C) (g : Z ⟶ Y), {f' // S f'})) x =
-           (second_map P S ≫ pi.π _ (⟨Y, Z, g, f, hf⟩ : Σ (Y Z : C) (g : Z ⟶ Y), {f' // S f'})) x,
-    { dsimp, rw t },
-    simpa [first_map, second_map] using this }
+    rw types.limit_ext_iff at t,
+    simpa [first_map, second_map] using t ⟨Y, Z, g, f, hf⟩ }
 end
 
 /-- `P` is a sheaf for `S`, iff the fork given by `w` is an equalizer. -/
@@ -796,10 +794,8 @@ begin
     ext ⟨⟨Y, f, hf⟩, Z, g, hg⟩,
     simpa [first_map, second_map] using t hf hg },
   { intros t Y Z f g hf hg,
-    have : (first_map P R ≫ pi.π _ (⟨⟨Y, f, hf⟩, Z, g, hg⟩ : (Σ Y, {f : Y ⟶ X // R f}) × (Σ Z, {g : Z ⟶ X // R g}))) x =
-           (second_map P R ≫ pi.π _ (⟨⟨Y, f, hf⟩, Z, g, hg⟩ : (Σ Y, {f : Y ⟶ X // R f}) × (Σ Z, {g : Z ⟶ X // R g}))) x,
-    { dsimp, rw t },
-    simpa [first_map, second_map] using this }
+    rw types.limit_ext_iff at t,
+    simpa [first_map, second_map] using t ⟨⟨Y, f, hf⟩, Z, g, hg⟩ }
 end
 
 /--

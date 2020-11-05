@@ -78,7 +78,7 @@ def is_fractional (I : submodule R f.codomain) :=
 
   More precisely, let `P` be a localization of `R` at some submonoid `S`,
   then a fractional ideal `I ⊆ P` is an `R`-submodule of `P`,
-  such that there is a nonzero `a : R` with `a I ⊆ R`.
+  such that there is a no nzero `a : R` with `a I ⊆ R`.
 -/
 def fractional_ideal :=
 {I : submodule R f.codomain // is_fractional f I}
@@ -430,6 +430,34 @@ def map_equiv (g : f.codomain ≃ₐ[R] f'.codomain) :
 @[simp] lemma map_equiv_refl :
   map_equiv alg_equiv.refl = ring_equiv.refl (fractional_ideal f) :=
 ring_equiv.ext (λ x, by simp)
+
+lemma fractional_of_fg {I : submodule R f.codomain} (hI : I.fg) :
+  is_fractional f I :=
+begin
+  cases hI with T hT,
+  rcases localization_map.exist_integer_multiples_of_finset f T with ⟨⟨s, hs1⟩, hs⟩,
+  use [s, hs1],
+  intros b hb,
+  rw ←hT at hb,
+  apply span_induction hb,
+  exact hs,
+  {
+    simp,
+    use 0,
+    simp,
+  },
+  {
+    rintros x y hx hy,
+    rw mul_add,
+    apply is_integer_add hx,
+    assumption,
+  },
+  {
+    rintros a x hx,
+    rw algebra.mul_smul_comm,
+    apply is_integer_smul hx,
+  },
+end
 
 /-- `canonical_equiv f f'` is the canonical equivalence between the fractional
 ideals in `f.codomain` and in `f'.codomain` -/

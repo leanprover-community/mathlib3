@@ -5,6 +5,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro, Anne 
 -/
 import algebra.group.hom
 import algebra.module.basic
+import algebra.group_action_hom
 
 /-!
 # Linear maps and linear equivalences
@@ -49,13 +50,15 @@ the notation `M →ₗ[R] M₂`) are bundled versions of such maps. An unbundled
 the predicate `is_linear_map`, but it should be avoided most of the time. -/
 structure linear_map (R : Type u) (M : Type v) (M₂ : Type w)
   [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [semimodule R M] [semimodule R M₂]
-  extends add_hom M M₂ :=
-(map_smul' : ∀ (c : R) x, to_fun (c • x) = c • to_fun x)
+  extends add_hom M M₂, M →[R] M₂
 
 end
 
 /-- The `add_hom` underlying a `linear_map`. -/
 add_decl_doc linear_map.to_add_hom
+
+/-- The `mul_action_hom` underlying a `linear_map`. -/
+add_decl_doc linear_map.to_mul_action_hom
 
 infixr ` →ₗ `:25 := linear_map _
 notation M ` →ₗ[`:25 R:25 `] `:0 M₂:0 := linear_map R M M₂

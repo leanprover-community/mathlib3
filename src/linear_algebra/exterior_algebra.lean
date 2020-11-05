@@ -67,11 +67,8 @@ variables {M}
 
 instance ring {S : Type*} [comm_ring S] [semimodule S M] : ring (exterior_algebra S M) :=
 begin
-  let ret := ring_quot.ring (exterior_algebra.rel S M),
-  -- For some reason, lean can't unify the above with our return type, due to mistmatching
-  -- instance arguments. We have to prove the arguments are equal.
-  rw tensor_algebra.semiring_eq_ring at ret,
-  exact ret,
+  unfold exterior_algebra,
+  convert ring_quot.ring (exterior_algebra.rel S M),
 end
 
 /--
@@ -124,11 +121,10 @@ begin
   refl,
 end
 
-attribute [irreducible] exterior_algebra ι lift
-
--- just to check that our weird ring instance above after making things irreducible
-example {S : Type*} [comm_ring S] [semimodule S M] :
-  (1 : exterior_algebra S M) - (1 : exterior_algebra S M) = 0 := by rw sub_self
+attribute [irreducible] ι lift
+-- Marking `exterior_algebra` irreducible makes our `ring` instances inaccessible.
+-- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/algebra.2Esemiring_to_ring.20breaks.20semimodule.20typeclass.20lookup/near/212580241
+-- For now, we avoid this by not marking it irreducible.
 
 variables {R M}
 

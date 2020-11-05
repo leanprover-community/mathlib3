@@ -90,7 +90,7 @@ def lift : (L →ₗ⁅R⁆ A) ≃ (universal_enveloping_algebra R L →ₐ[R] A
   left_inv := λ f, by { ext, simp [ι, mk_alg_hom], },
   right_inv := λ F, by { ext, simp [ι, mk_alg_hom], } }
 
-@[simp] def lift_symm_apply (F : universal_enveloping_algebra R L →ₐ[R] A) :
+@[simp] lemma lift_symm_apply (F : universal_enveloping_algebra R L →ₐ[R] A) :
   (lift R).symm F = (lie_algebra.of_associative_algebra_hom F).comp (ι R) :=
 rfl
 

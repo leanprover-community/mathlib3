@@ -253,7 +253,7 @@ def lift : (X → A) ≃ (free_algebra R X →ₐ[R] A) :=
       rw [alg_hom.map_mul, alg_hom.map_mul, ha, hb], }, }, }
 
 @[simp]
-def lift_symm_apply (F : free_algebra R X →ₐ[R] A) : (lift R).symm F = F ∘ (ι R) := rfl
+lemma lift_symm_apply (F : free_algebra R X →ₐ[R] A) : (lift R).symm F = F ∘ (ι R) := rfl
 
 variables {R X}
 

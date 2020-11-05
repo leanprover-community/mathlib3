@@ -394,30 +394,16 @@ begin
   change _ ↔ ∀ ⦃Y : C⦄ (f : Y ⟶ X) (h : S f), P.map f.op (yoneda_equiv g) = x.app (op Y) ⟨f, h⟩,
   split,
   { rintro rfl Y f hf,
-    rw yoneda_equiv_nat,
+    rw yoneda_equiv_naturality,
     dsimp,
     simp },
   { intro h,
     ext Y ⟨f, hf⟩,
     have : _ = x.app Y _ := h f hf,
-    rw yoneda_equiv_nat at this,
+    rw yoneda_equiv_naturality at this,
     rw ← this,
     dsimp,
     simp },
-end
-
--- TODO: MOVE ME BEFORE PR
-lemma equiv.exists_unique_congr {α β : Type*} (p : β → Prop) (e : α ≃ β) :
-  (∃! (y : β), p y) ↔ ∃! (x : α), p (e x) :=
-begin
-  split,
-  { rintro ⟨b, hb₁, hb₂⟩,
-    exact ⟨e.symm b, by simpa using hb₁, λ x hx, by simp [←hb₂ (e x) hx]⟩ },
-  { rintro ⟨a, ha₁, ha₂⟩,
-    refine ⟨e a, ha₁, λ y hy, _⟩,
-    rw ← equiv.symm_apply_eq,
-    apply ha₂,
-    simpa using hy },
 end
 
 /--
@@ -434,7 +420,7 @@ begin
   rw subtype.forall,
   apply ball_congr,
   intros x hx,
-  rw ← equiv.exists_unique_congr _ _,
+  rw equiv.exists_unique_congr_left _,
   simp,
 end
 
@@ -647,36 +633,6 @@ end
 
 end presieve
 
--- TODO: move me before PR
-lemma type_equalizer {X Y Z : Type v} (f : X ⟶ Y) (g h : Y ⟶ Z) (w : f ≫ g = f ≫ h) :
-  (∀ (y : Y), g y = h y → ∃! (x : X), f x = y) ↔ nonempty (is_limit (fork.of_ι _ w)) :=
-begin
-  split,
-  { intro t,
-    apply nonempty.intro,
-    apply fork.is_limit.mk',
-    intro s,
-    refine ⟨λ i, _, _, _⟩,
-    { apply classical.some (t (s.ι i) _),
-      apply congr_fun s.condition i },
-    { ext i,
-      apply (classical.some_spec (t (s.ι i) _)).1 },
-    { intros m hm,
-      ext i,
-      apply (classical.some_spec (t (s.ι i) _)).2,
-      apply congr_fun hm i } },
-  { rintro ⟨t⟩ y hy,
-    let y' : punit ⟶ Y := λ _, y,
-    have hy' : y' ≫ g = y' ≫ h := funext (λ _, hy),
-    refine ⟨(fork.is_limit.lift' t _ hy').1 ⟨⟩, congr_fun (fork.is_limit.lift' t y' _).2 ⟨⟩, _⟩,
-    intros x' hx',
-    suffices : (λ (_ : punit), x') = (fork.is_limit.lift' t y' hy').1,
-      rw ← this,
-    apply fork.is_limit.hom_ext t,
-    ext ⟨⟩,
-    apply hx'.trans (congr_fun (fork.is_limit.lift' t _ hy').2 ⟨⟩).symm },
-end
-
 namespace equalizer
 
 variables {C : Type v} [small_category C] (P : Cᵒᵖ ⥤ Type v) {X : C} (R : presieve X) (S : sieve X)
@@ -769,7 +725,8 @@ end
 lemma equalizer_sheaf_condition :
   presieve.is_sheaf_for P S ↔ nonempty (is_limit (fork.of_ι _ (w P S))) :=
 begin
-  rw [← type_equalizer, ← equiv.forall_congr_left (first_obj_eq_family P S).to_equiv.symm],
+  rw [types.type_equalizer_iff_unique,
+      ← equiv.forall_congr_left (first_obj_eq_family P S).to_equiv.symm],
   simp_rw ← compatible_iff,
   simp only [inv_hom_id_apply, iso.to_equiv_symm_fun],
   apply ball_congr,
@@ -852,7 +809,7 @@ See https://stacks.math.columbia.edu/tag/00VM.
 lemma sheaf_condition :
   R.is_sheaf_for P ↔ nonempty (is_limit (fork.of_ι _ (w P R))) :=
 begin
-  rw ← type_equalizer,
+  rw types.type_equalizer_iff_unique,
   erw ← equiv.forall_congr_left (first_obj_eq_family P R).to_equiv.symm,
   simp_rw [← compatible_iff, ← iso.to_equiv_fun, equiv.apply_symm_apply],
   apply ball_congr,

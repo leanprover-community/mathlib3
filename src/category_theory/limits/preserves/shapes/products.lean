@@ -77,6 +77,7 @@ map_is_limit_of_preserves_of_is_limit G f _ (product_is_product _)
 
 variables [has_product (λ (j : J), G.obj (f j))]
 
+/-- If `pi_comparison G f` is an isomorphism, then `G` preserves the limit of `f`. -/
 def preserves_product_of_iso_comparison [i : is_iso (pi_comparison G f)] :
   preserves_limit (discrete.functor f) G :=
 begin

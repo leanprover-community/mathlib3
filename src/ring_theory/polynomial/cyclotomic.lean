@@ -332,9 +332,7 @@ end
 
 /-- The zeroth cyclotomic polyomial is `1`. -/
 @[simp] lemma cyclotomic_zero (R : Type*) [ring R] : cyclotomic 0 R = 1 :=
-begin
-  simp [cyclotomic]
-end
+by simp only [cyclotomic, dif_pos]
 
 /-- The first cyclotomic polyomial is `X - 1`. -/
 @[simp] lemma cyclotomic_one (R : Type*) [ring R] : cyclotomic 1 R = X - 1 :=

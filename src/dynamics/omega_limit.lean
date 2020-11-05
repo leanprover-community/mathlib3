@@ -203,30 +203,65 @@ by { rw omega_limit_eq_bInter_inter _ _ _ hv, apply bInter_eq_Inter }
 /-- A set is eventually carried into any neighbourhood of its ω-limit:
     for any neighbourhood `v` of `ω f ϕ s`, there exists `u ∈ f` such
     that `cl (ϕ u s) ⊆ v` -/
-lemma eventually_subset_nhd_omega_limit_of_compact [compact_space β]
-  {v : set β} (ho : is_open v) (hv : ω f ϕ s ⊆ v) :
-  ∃ u ∈ f, closure (image2 ϕ u s) ⊆ v :=
+lemma eventually_subset_nhd_omega_limit
+  {c : set β} (hc₁ : is_compact c) (hc₂ : ∃ v ∈ f, closure (image2 ϕ v s) ⊆ c)
+  {n : set β} (hn₁ : is_open n) (hn₂ : ω f ϕ s ⊆ n) :
+  ∃ u ∈ f, closure (image2 ϕ u s) ⊆ n :=
 begin
-  let j := λ u, (closure (image2 ϕ u s))ᶜ,
-  have hj₁ : ∀ u ∈ f, is_open (j u),
-   from λ _ _, is_open_compl_iff.mpr is_closed_closure,
-  have hj₂ : vᶜ ⊆ ⋃ u ∈ f, j u,
-   by { rw [compl_subset_comm], simp_rw [compl_Union, compl_compl'], assumption },
-  have hc : is_compact vᶜ, from (is_closed_compl_iff.mpr ho).compact,
-  rcases hc.elim_finite_subcover_image hj₁ hj₂ with ⟨g, hg₁, hg₂, hg₃⟩,
-  let w := ⋂₀ g,
-  have hw₁ : w ∈ f, from sInter_mem_sets_of_finite hg₂ hg₁,
-  have hw₂ : closure (image2 ϕ w s) ⊆ v, begin
-    rw compl_subset_comm at hg₃,
-    simp_rw [compl_Union, compl_compl'] at hg₃,
-    calc closure (image2 ϕ w s)
-        ⊆ ⋂ u ∈ g, closure (image2 ϕ u s) :
-          subset_Inter (λ _, subset_Inter (λ hu, closure_mono
-            (image2_subset (sInter_subset_of_mem hu) subset.rfl)))
-    ... ⊆ v : hg₃,
+  rcases hc₂ with ⟨v, hv₁, hv₂⟩,
+  let k := closure (image2 ϕ v s),
+  have hk : is_compact (k \ n), begin
+    have : is_compact k, from
+      compact_of_is_closed_subset hc₁ is_closed_closure hv₂,
+    apply compact_of_is_closed_subset this _ (diff_subset _ _),
+    rw diff_eq,
+    exact is_closed_inter is_closed_closure (is_closed_compl_iff.mpr hn₁),
   end,
-  exact ⟨_, hw₁, hw₂⟩,
+  let j := λ u, (closure (image2 ϕ (u ∩ v) s))ᶜ,
+  have hj₁ : ∀ u ∈ f, is_open (j u), from
+    λ _ _, (is_open_compl_iff.mpr is_closed_closure),
+  have hj₂ : k \ n ⊆ ⋃ u ∈ f, j u, begin
+    have : (⋃ u ∈ f, j u) = ⋃ (u : ↥f.sets), j u, from bUnion_eq_Union _ _,
+    rw [this, diff_subset_comm, diff_Union],
+    rw omega_limit_eq_Inter_inter _ _ _ hv₁ at hn₂,
+    simp_rw diff_compl,
+    rw ←inter_Inter,
+    exact subset.trans (inter_subset_right _ _) hn₂,
+  end,
+  rcases hk.elim_finite_subcover_image hj₁ hj₂ with ⟨g, hg₁, hg₂, hg₃⟩,
+  let w := (⋂ u ∈ g, u) ∩ v,
+  have hw₂ : w ∈ f, begin
+    apply inter_mem_sets _ hv₁,
+    rw ←sInter_eq_bInter,
+    exact sInter_mem_sets_of_finite hg₂ (λ _ hu, hg₁ hu),
+  end,
+  have hw₃ : k \ n ⊆ (closure (image2 ϕ w s))ᶜ, from
+    calc _ ⊆ _ : hg₃
+    ... ⊆ (closure (image2 ϕ w s))ᶜ :
+    begin
+      rw Union_subset_iff, intro u,
+      rw Union_subset_iff, intro hu,
+      rw compl_subset_compl,
+      apply closure_mono (image2_subset _ subset.rfl),
+      apply inter_subset_inter _ subset.rfl,
+      exact Inter_subset_of_subset u (Inter_subset_of_subset hu subset.rfl),
+    end,
+  have hw₄ : kᶜ ⊆ (closure (image2 ϕ w s))ᶜ, begin
+    rw compl_subset_compl,
+    calc closure (image2 ϕ w s)
+        ⊆ _ : closure_mono (image2_subset (inter_subset_right _ _) subset.rfl)
+  end,
+  have hnc : nᶜ ⊆ (k \ n) ∪ kᶜ, by rw [union_comm, ←inter_subset, diff_eq, inter_comm],
+  have hw : closure (image2 ϕ w s) ⊆ n, from
+    compl_subset_compl.mp (subset.trans hnc (union_subset hw₃ hw₄)),
+  exact ⟨_, hw₂, hw⟩
 end
+
+lemma eventually_subset_nhd_omega_limit_of_compact [compact_space β]
+  {v : set β} (hv₁ : is_open v) (hv₂ : ω f ϕ s ⊆ v) :
+  ∃ u ∈ f, closure (image2 ϕ u s) ⊆ v :=
+eventually_subset_nhd_omega_limit _ _ _
+  compact_univ ⟨univ, univ_mem_sets, subset_univ _⟩ hv₁ hv₂
 
 /-- The ω-limit of a nonempty set w.r.t. a nontrivial filter is nonempty. -/
 lemma nonempty_omega_limit
@@ -317,7 +352,7 @@ begin
     apply omega_limit_fw_image_subset,
     assumption },
   { calc ω f ϕ s
-         ⊆ ω f (λ t₁ x, ϕ (t₁ - t) x) (ϕ t '' s) : 
+         ⊆ ω f (λ t₁ x, ϕ (t₁ - t) x) (ϕ t '' s) :
            Inter_subset_Inter (λ _, Inter_subset_Inter (λ _, closure_mono
            (by { simp_rw [image2_image_right, map_add, add_sub_cancel'_right] })))
     ... ⊆ ω f ϕ (ϕ t '' s) :

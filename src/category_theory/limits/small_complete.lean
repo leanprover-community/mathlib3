@@ -13,6 +13,8 @@ import set_theory.cardinal
 We show that any small category which has all (small) limits is a preorder: In particular, we show
 that if a small category `C` in universe `u` has products of size `u`, then for any `X Y : C`
 there is at most one morphism `X ⟶ Y`.
+Note that in Lean, a preorder category is strictly one where the morphisms are in `Prop`, so
+we instead show that the homsets are subsingleton.
 
 ## References
 
@@ -31,7 +33,12 @@ universe u
 
 variables {C : Type u} [small_category C] [has_products C]
 
-/-- A small category with products is a thin category. -/
+/--
+A small category with products is a thin category.
+
+in Lean, a preorder category is one where the morphisms are in Prop, which is weaker than the usual
+notion of a preorder/thin category which says that each homset is subsingleton; we show the latter.
+-/
 instance {X Y : C} : subsingleton (X ⟶ Y) :=
 ⟨λ r s,
 begin

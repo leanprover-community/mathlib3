@@ -113,7 +113,7 @@ begin
 end
 
 /-- The degree of `cyclotomic' n R` is `totient n` if there is a primitive root of unity in `R`. -/
-lemma deg_of_cyclotomic' {ζ : R} {n : ℕ} (h : is_primitive_root ζ n) :
+lemma degree_cyclotomic' {ζ : R} {n : ℕ} (h : is_primitive_root ζ n) :
   (cyclotomic' n R).degree = nat.totient n :=
 by simp only [degree_eq_nat_degree (cycl'_ne_zero n R), nat_deg_of_cyclotomic' h]
 

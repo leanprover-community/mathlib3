@@ -9,6 +9,7 @@ import ring_theory.discrete_valuation_ring
 import ring_theory.fractional_ideal
 import ring_theory.ideal.over
 import ring_theory.polynomial.rational_root
+import ring_theory.trace
 import set_theory.cardinal
 import tactic
 
@@ -340,14 +341,25 @@ begin
   sorry
 end
 
+instance subalgebra.algebra_left {R A B : Type*} [comm_semiring R] [comm_semiring A]
+  [semiring B] [algebra R A] [algebra A B] (S : subalgebra A B) : algebra R S := sorry
+
+instance intermediate_field.algebra_left {R A B : Type*} [comm_semiring R] [field A]
+  [field B] [algebra R A] [algebra A B] (S : intermediate_field A B) : algebra R S := sorry
+
+lemma integral_closure_le_adjoin [algebra f.codomain L] [algebra R L] [is_scalar_tower R f.codomain L]
+  (s : finset L) :
+  integral_closure R (intermediate_field.adjoin f.codomain (↑s : set L)) ≤
+    algebra.adjoin R (algebra_map (intermediate_field.adjoin f.codomain _) _ '' ↑s) := sorry
+
 /- If L is a finite extension of K, the integral closure of R in L is a Dedekind domain. -/
 def closure_in_field_extension [algebra f.codomain L] [algebra R L] [is_scalar_tower R f.codomain L]
   [finite_dimensional f.codomain L] (h : is_dedekind_domain R) :
   is_dedekind_domain (integral_closure R L) :=
 (is_dedekind_domain_iff _ _ (integral_closure.fraction_map_of_finite_extension L f)).mpr
-⟨sorry,
+⟨_,
  is_noetherian_ring_of_is_noetherian_coe_submodule _ _
-   (is_noetherian_of_submodule_of_noetherian _ _ _ sorry),
+   (is_noetherian_of_submodule_of_noetherian _ _ _ _),
  h.dimension_le_one.integral_closure _ _,
  integral_closure_idem⟩
 

@@ -1258,6 +1258,8 @@ end
 
 #check exists_eq_aeval_gen
 
+-- TODO: `λ x, f x / g x` is not unique here (e.g. if `y = x` then `f` can be minpoly(x) or `0`)
+
 lemma exists_eq_aeval_gen_div_aeval_gen {x y : L} (hy : y ∈ K⟮x⟯) :
   ∃ f g : polynomial K, aeval x g ≠ 0 ∧ y = aeval x f / aeval x g :=
 begin
@@ -1310,6 +1312,8 @@ classical.some (classical.some_spec (exists_eq_aeval_gen_div_aeval_gen hy))
 @[simp] lemma repr_num_div_repr_denom {x y : L} (hy : y ∈ K⟮x⟯) :
   aeval x (repr_num hy) / aeval x (repr_denom hy) = y :=
 (classical.some_spec (classical.some_spec (exists_eq_aeval_gen_div_aeval_gen hy))).2.symm
+
+@[simp] lemma repr_num_zero {x : L} : repr_num (zero_mem _)
 
 noncomputable def intermediate_field.adjoin.lift {K L F : Type*} [field K] [field L] [field F]
   [algebra K L] (x : L) (f : K →+* F) (fx : F) : K⟮x⟯ →+* F :=

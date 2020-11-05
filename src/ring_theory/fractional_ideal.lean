@@ -653,7 +653,7 @@ lemma is_principal_iff (I : fractional_ideal f) :
   λ ⟨x, hx⟩, { principal := ⟨x, trans (congr_arg _ hx) (coe_span_singleton x)⟩ } ⟩
 
 @[simp] lemma span_singleton_zero : span_singleton (0 : f.codomain) = 0 :=
-by { ext, simp [submodule.mem_span_singleton, eq_comm, -singleton_zero] }
+by { ext, simp [submodule.mem_span_singleton, eq_comm] }
 
 lemma span_singleton_eq_zero_iff {y : f.codomain} : span_singleton y = 0 ↔ y = 0 :=
 ⟨ λ h, span_eq_bot.mp (by simpa using congr_arg subtype.val h : span R {y} = ⊥) y (mem_singleton y),
@@ -723,13 +723,12 @@ begin
 end
 
 lemma exists_eq_span_singleton_mul (I : fractional_ideal g) :
-  ∃ (a : K) (aI : ideal R), I = span_singleton a * aI :=
+  ∃ (a : R) (aI : ideal R), a ≠ 0 ∧ I = span_singleton (g.to_map a)⁻¹ * aI :=
 begin
   obtain ⟨a_inv, nonzero, ha⟩ := I.2,
   have nonzero := mem_non_zero_divisors_iff_ne_zero.mp nonzero,
   have map_a_nonzero := mt g.to_map_eq_zero_iff.mp nonzero,
-  use (g.to_map a_inv)⁻¹,
-  use (span_singleton (g.to_map a_inv) * I).1.comap g.lin_coe,
+  use [a_inv, (span_singleton (g.to_map a_inv) * I).1.comap g.lin_coe, nonzero],
   ext,
   refine iff.trans _ mem_singleton_mul.symm,
   split,
@@ -747,15 +746,15 @@ end
 
 instance is_principal {R} [integral_domain R] [is_principal_ideal_ring R] {f : fraction_map R K}
   (I : fractional_ideal f) : (I : submodule R f.codomain).is_principal :=
-⟨ begin
-  obtain ⟨a, aI, ha⟩ := exists_eq_span_singleton_mul I,
-  have := a * f.to_map (generator aI),
-  use a * f.to_map (generator aI),
-  suffices : I = span_singleton (a * f.to_map (generator aI)),
+ begin
+  obtain ⟨a, aI, -, ha⟩ := exists_eq_span_singleton_mul I,
+  have := (f.to_map a)⁻¹ * f.to_map (generator aI),
+  use (f.to_map a)⁻¹ * f.to_map (generator aI),
+  suffices : I = span_singleton ((f.to_map a)⁻¹ * f.to_map (generator aI)),
   { exact congr_arg subtype.val this },
   conv_lhs { rw [ha, ←span_singleton_generator aI] },
   rw [coe_ideal_span_singleton (generator aI), span_singleton_mul_span_singleton]
-end ⟩
+end
 
 end principal_ideal_ring
 

@@ -58,7 +58,8 @@ theorem of_exists_root (H : ∀ p : polynomial k, p.monic → irreducible p → 
   is_alg_closed k :=
 ⟨λ p, or.inr $ λ q hq hqp,
  have irreducible (q * C (leading_coeff q)⁻¹),
-   by { rw ← coe_norm_unit hq.ne_zero, exact irreducible_of_associated associated_normalize hq },
+   by { rw ← coe_norm_unit_of_ne_zero hq.ne_zero,
+        exact irreducible_of_associated associated_normalize hq },
  let ⟨x, hx⟩ := H (q * C (leading_coeff q)⁻¹) (monic_mul_leading_coeff_inv hq.ne_zero) this in
  degree_mul_leading_coeff_inv q hq.ne_zero ▸ degree_eq_one_of_irreducible_of_root this hx⟩
 

@@ -45,22 +45,23 @@ instance : comm_semiring nat :=
   mul_zero       := nat.mul_zero,
   mul_comm       := nat.mul_comm }
 
-instance : decidable_linear_ordered_semiring nat :=
+instance : linear_ordered_semiring nat :=
 { add_left_cancel            := @nat.add_left_cancel,
   add_right_cancel           := @nat.add_right_cancel,
   lt                         := nat.lt,
   add_le_add_left            := @nat.add_le_add_left,
   le_of_add_le_add_left      := @nat.le_of_add_le_add_left,
-  zero_lt_one                := nat.zero_lt_succ 0,
+  zero_le_one                := nat.le_of_lt (nat.zero_lt_succ 0),
   mul_lt_mul_of_pos_left     := @nat.mul_lt_mul_of_pos_left,
   mul_lt_mul_of_pos_right    := @nat.mul_lt_mul_of_pos_right,
   decidable_eq               := nat.decidable_eq,
-  ..nat.comm_semiring, ..nat.decidable_linear_order }
+  exists_pair_ne             := ⟨0, 1, ne_of_lt nat.zero_lt_one⟩,
+  ..nat.comm_semiring, ..nat.linear_order }
 
--- all the fields are already included in the decidable_linear_ordered_semiring instance
-instance : decidable_linear_ordered_cancel_add_comm_monoid ℕ :=
+-- all the fields are already included in the linear_ordered_semiring instance
+instance : linear_ordered_cancel_add_comm_monoid ℕ :=
 { add_left_cancel := @nat.add_left_cancel,
-  ..nat.decidable_linear_ordered_semiring }
+  ..nat.linear_ordered_semiring }
 
 /-! Extra instances to short-circuit type class resolution -/
 instance : add_comm_monoid nat    := by apply_instance
@@ -92,7 +93,7 @@ instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred s] [h : n
 { bot := ⟨nat.find (nonempty_subtype.1 h), nat.find_spec (nonempty_subtype.1 h)⟩,
   bot_le := λ x, nat.find_min' _ x.2,
   ..subtype.linear_order s,
-  ..lattice_of_decidable_linear_order }
+  ..lattice_of_linear_order }
 
 theorem nat.eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : 0 < m) (H : n * m = k * m) : n = k :=
 by rw [mul_comm n m, mul_comm k m] at H; exact nat.eq_of_mul_eq_mul_left Hm H
@@ -194,11 +195,17 @@ eq_zero_of_double_le $ le_trans (nat.mul_le_mul_right _ hb) h
 theorem le_zero_iff {i : ℕ} : i ≤ 0 ↔ i = 0 :=
 ⟨nat.eq_zero_of_le_zero, assume h, h ▸ le_refl i⟩
 
-lemma zero_max {m : nat} : max 0 m = m :=
+lemma zero_max {m : ℕ} : max 0 m = m :=
 max_eq_right (zero_le _)
 
 lemma one_le_of_lt {n m : ℕ} (h : n < m) : 1 ≤ m :=
 lt_of_le_of_lt (nat.zero_le _) h
+
+theorem eq_one_of_mul_eq_one_right {m n : ℕ} (H : m * n = 1) : m = 1 :=
+eq_one_of_dvd_one ⟨n, H.symm⟩
+
+theorem eq_one_of_mul_eq_one_left {m n : ℕ} (H : m * n = 1) : n = 1 :=
+eq_one_of_mul_eq_one_right (by rwa mul_comm)
 
 /-! ### `succ` -/
 
@@ -321,6 +328,12 @@ theorem le_add_one_iff {i j : ℕ} : i ≤ j + 1 ↔ (i ≤ j ∨ i = j + 1) :=
   end,
   or.rec (assume h, le_trans h $ nat.le_add_right _ _) le_of_eq⟩
 
+lemma add_succ_lt_add {a b c d : ℕ} (hab : a < b) (hcd : c < d) : a + c + 1 < b + d :=
+begin
+  rw add_assoc,
+  exact add_lt_add_of_lt_of_le hab (nat.succ_le_iff.2 hcd)
+end
+
 /-! ### `pred` -/
 
 @[simp]
@@ -376,6 +389,10 @@ theorem sub_add_min (n m : ℕ) : n - m + min n m = n :=
 
 protected theorem add_sub_cancel' {n m : ℕ} (h : m ≤ n) : m + (n - m) = n :=
 by rw [add_comm, nat.sub_add_cancel h]
+
+protected theorem sub_add_sub_cancel {a b c : ℕ} (hab : b ≤ a) (hbc : c ≤ b) :
+  (a - b) + (b - c) = a - c :=
+by rw [←nat.add_sub_assoc hbc, ←nat.sub_add_comm hab, nat.add_sub_cancel]
 
 protected theorem sub_eq_of_eq_add (h : k = m + n) : k - m = n :=
 begin rw [h, nat.add_sub_cancel_left] end
@@ -770,6 +787,9 @@ protected lemma div_eq_zero_iff {a b : ℕ} (hb : 0 < b) : a / b = 0 ↔ a < b :
 ⟨λ h, by rw [← mod_add_div a b, h, mul_zero, add_zero]; exact mod_lt _ hb,
   λ h, by rw [← nat.mul_right_inj hb, ← @add_left_cancel_iff _ _ (a % b), mod_add_div,
     mod_eq_of_lt h, mul_zero, add_zero]⟩
+
+protected lemma div_eq_zero {a b : ℕ} (hb : a < b) : a / b = 0 :=
+(nat.div_eq_zero_iff $ (zero_le a).trans_lt hb).mpr hb
 
 lemma eq_zero_of_le_div {a b : ℕ} (hb : 2 ≤ b) (h : a ≤ a / b) : a = 0 :=
 eq_zero_of_mul_le hb $
@@ -1195,6 +1215,19 @@ dvd_trans this hdiv
 
 lemma dvd_of_pow_dvd {p k m : ℕ} (hk : 1 ≤ k) (hpk : p^k ∣ m) : p ∣ m :=
 by rw ←pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
+
+/-- `m` is not divisible by `n` iff it is between `n * k` and `n * (k + 1)` for some `k`. -/
+lemma exists_lt_and_lt_iff_not_dvd (m : ℕ) {n : ℕ} (hn : 0 < n) :
+  (∃ k, n * k < m ∧ m < n * (k + 1)) ↔ ¬ n ∣ m :=
+begin
+  split,
+  { rintro ⟨k, h1k, h2k⟩ ⟨l, rfl⟩, rw [mul_lt_mul_left hn] at h1k h2k,
+    rw [lt_succ_iff, ← not_lt] at h2k, exact h2k h1k },
+  { intro h, rw [dvd_iff_mod_eq_zero, ← ne.def, ← pos_iff_ne_zero] at h,
+    simp only [← mod_add_div m n] {single_pass := tt},
+    refine ⟨m / n, lt_add_of_pos_left _ h, _⟩,
+    rw [add_comm _ 1, left_distrib, mul_one], exact add_lt_add_right (mod_lt _ hn) _ }
+end
 
 /-! ### `find` -/
 section find

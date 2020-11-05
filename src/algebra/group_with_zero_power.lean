@@ -12,21 +12,24 @@ In this file we define integer power functions for groups with an adjoined zero 
 This generalises the integer power function on a division ring.
 -/
 
-@[simp] lemma zero_pow' {M : Type*} [monoid_with_zero M] :
-  ∀ n : ℕ, n ≠ 0 → (0 : M) ^ n = 0
+section zero
+variables {M : Type*} [monoid_with_zero M]
+
+@[simp] lemma zero_pow' : ∀ n : ℕ, n ≠ 0 → (0 : M) ^ n = 0
 | 0     h := absurd rfl h
 | (k+1) h := zero_mul _
 
-@[simp] lemma zero_pow_eq_zero {M : Type*} [monoid_with_zero M] [nontrivial M] {n : ℕ} :
-  (0 : M) ^ n = 0 ↔ 0 < n :=
+lemma ne_zero_pow {a : M} {n : ℕ} (hn : n ≠ 0) : a ^ n ≠ 0 → a ≠ 0 :=
+by { contrapose!, rintro rfl, exact zero_pow' n hn }
+
+@[simp] lemma zero_pow_eq_zero [nontrivial M] {n : ℕ} : (0 : M) ^ n = 0 ↔ 0 < n :=
 begin
   split; intro h,
   { rw [nat.pos_iff_ne_zero], rintro rfl, simpa using h },
   { exact zero_pow' n h.ne.symm }
 end
 
-theorem pow_eq_zero' {M : Type*} [monoid_with_zero M] [no_zero_divisors M]
-  {a : M} {n : ℕ} (H : a ^ n = 0) : a = 0 :=
+theorem pow_eq_zero' [no_zero_divisors M] {a : M} {n : ℕ} (H : a ^ n = 0) : a = 0 :=
 begin
   induction n with n ih,
   { rw pow_zero at H,
@@ -34,9 +37,11 @@ begin
   exact or.cases_on (mul_eq_zero.1 H) id ih
 end
 
-@[field_simps] theorem pow_ne_zero' {M : Type*} [monoid_with_zero M] [no_zero_divisors M]
-  {a : M} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
+@[field_simps]
+theorem pow_ne_zero' [no_zero_divisors M] {a : M} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero' h
+
+end zero
 
 section group_with_zero
 variables {G₀ : Type*} [group_with_zero G₀]
@@ -124,6 +129,18 @@ begin
   { rw [fpow_sub_one ha, ← mul_assoc, ← ihn, ← fpow_sub_one ha, add_sub_assoc] }
 end
 
+lemma fpow_add' {a : G₀} {m n : ℤ} (h : a ≠ 0 ∨ m + n ≠ 0 ∨ m = 0 ∧ n = 0) :
+  a ^ (m + n) = a ^ m * a ^ n :=
+begin
+  by_cases hm : m = 0, { simp [hm] },
+  by_cases hn : n = 0, { simp [hn] },
+  by_cases ha : a = 0,
+  { subst a,
+    simp only [false_or, eq_self_iff_true, not_true, ne.def, hm, hn, false_and, or_false] at h,
+    rw [zero_fpow _ h, zero_fpow _ hm, zero_mul] },
+  { exact fpow_add ha m n }
+end
+
 theorem fpow_one_add {a : G₀} (h : a ≠ 0) (i : ℤ) : a ^ (1 + i) = a * a ^ i :=
 by rw [fpow_add h, fpow_one]
 
@@ -146,6 +163,21 @@ theorem commute.fpow_self (a : G₀) (n : ℤ) : commute (a^n) a := (commute.ref
 theorem commute.self_fpow (a : G₀) (n : ℤ) : commute a (a^n) := (commute.refl a).fpow_right n
 
 theorem commute.fpow_fpow_self (a : G₀) (m n : ℤ) : commute (a^m) (a^n) := (commute.refl a).fpow_fpow m n
+
+theorem fpow_bit0 (a : G₀) (n : ℤ) : a ^ bit0 n = a ^ n * a ^ n :=
+begin
+  apply fpow_add', right,
+  by_cases hn : n = 0,
+  { simp [hn] },
+  { simp [← two_mul, hn, two_ne_zero] }
+end
+
+theorem fpow_bit1 (a : G₀) (n : ℤ) : a ^ bit1 n = a ^ n * a ^ n * a :=
+begin
+  rw [← fpow_bit0, bit1, fpow_add', fpow_one],
+  right, left,
+  apply bit1_ne_zero
+end
 
 theorem fpow_mul (a : G₀) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
 | (m : ℕ) (n : ℕ) := pow_mul _ _ _
@@ -179,6 +211,12 @@ lemma commute.mul_fpow {a b : G₀} (h : commute a b) :
 lemma mul_fpow {G₀ : Type*} [comm_group_with_zero G₀] (a b : G₀) (m : ℤ):
   (a * b) ^ m = (a ^ m) * (b ^ m) :=
 (commute.all a b).mul_fpow m
+
+theorem fpow_bit0' (a : G₀) (n : ℤ) : a ^ bit0 n = (a * a) ^ n :=
+(fpow_bit0 a n).trans ((commute.refl a).mul_fpow n).symm
+
+theorem fpow_bit1' (a : G₀) (n : ℤ) : a ^ bit1 n = (a * a) ^ n * a :=
+by rw [fpow_bit1, (commute.refl a).mul_fpow]
 
 lemma fpow_eq_zero {x : G₀} {n : ℤ} (h : x ^ n = 0) : x = 0 :=
 classical.by_contradiction $ λ hx, fpow_ne_zero_of_ne_zero hx n h

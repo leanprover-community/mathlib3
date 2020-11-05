@@ -596,6 +596,9 @@ by rw coe_int_eq_of_int; refl
 lemma coe_int_num_of_denom_eq_one {q : ℚ} (hq : q.denom = 1) : ↑(q.num) = q :=
 by { conv_rhs { rw [←(@num_denom q), hq] }, rw [coe_int_eq_mk], refl }
 
+lemma denom_eq_one_iff (r : ℚ) : r.denom = 1 ↔ ↑r.num = r :=
+⟨rat.coe_int_num_of_denom_eq_one, λ h, h ▸ rat.coe_int_denom r.num⟩
+
 instance : can_lift ℚ ℤ :=
 ⟨coe, λ q, q.denom = 1, λ q hq, ⟨q.num, coe_int_num_of_denom_eq_one hq⟩⟩
 
@@ -609,7 +612,7 @@ by rw [← int.cast_coe_nat, coe_int_num]
 by rw [← int.cast_coe_nat, coe_int_denom]
 
 -- Will be subsumed by `int.coe_inj` after we have defined
--- `discrete_linear_ordered_field ℚ` (which implies characteristic zero).
+-- `linear_ordered_field ℚ` (which implies characteristic zero).
 lemma coe_int_inj (m n : ℤ) : (m : ℚ) = n ↔ m = n :=
 ⟨λ h, by simpa using congr_arg num h, congr_arg _⟩
 

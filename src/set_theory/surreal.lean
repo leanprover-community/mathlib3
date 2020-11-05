@@ -321,9 +321,10 @@ instance : partial_order surreal :=
 { le_antisymm := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩ h₁ h₂; exact quot.sound ⟨h₁, h₂⟩,
   ..surreal.preorder }
 
-instance : linear_order surreal :=
+noncomputable instance : linear_order surreal :=
 { le_total := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; classical; exact
     or_iff_not_imp_left.2 (λ h, le_of_lt oy ox (pgame.not_le.1 h)),
+  decidable_le := classical.dec_rel _,
   ..surreal.partial_order }
 
 /-- Addition on surreals is inherited from pre-game addition:

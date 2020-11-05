@@ -8,6 +8,8 @@ import tactic.basic
 namespace option
 variables {α : Type*} {β : Type*} {γ : Type*}
 
+lemma coe_def : (coe : α → option α) = some := rfl
+
 lemma some_ne_none (x : α) : some x ≠ none := λ h, option.no_confusion h
 
 @[simp] theorem get_mem : ∀ {o : option α} (h : is_some o), option.get h ∈ o
@@ -25,6 +27,8 @@ theorem get_of_mem {a : α} : ∀ {o : option α} (h : is_some o), a ∈ o → o
 @[simp] lemma get_some (x : α) (h : is_some (some x)) : option.get h = x := rfl
 
 @[simp] lemma get_or_else_some (x y : α) : option.get_or_else (some x) y = x := rfl
+
+@[simp] lemma get_or_else_coe (x y : α) : option.get_or_else ↑x y = x := rfl
 
 lemma get_or_else_of_ne_none {x : option α} (hx : x ≠ none) (y : α) : some (x.get_or_else y) = x :=
 by cases x; [contradiction, rw get_or_else_some]
@@ -192,5 +196,15 @@ function to `a` if it comes from `α`, and return `b` otherwise. -/
 def cases_on' : option α → β → (α → β) → β
 | none     n s := n
 | (some a) n s := s a
+
+@[simp] lemma cases_on'_none (x : β) (f : α → β) : cases_on' none x f = x := rfl
+
+@[simp] lemma cases_on'_some (x : β) (f : α → β) (a : α) : cases_on' (some a) x f = f a := rfl
+
+@[simp] lemma cases_on'_coe (x : β) (f : α → β) (a : α) : cases_on' (a : option α) x f = f a := rfl
+
+@[simp] lemma cases_on'_none_coe (f : option α → β) (o : option α) :
+  cases_on' o (f none) (f ∘ coe) = f o :=
+by cases o; refl
 
 end option

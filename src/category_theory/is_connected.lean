@@ -173,12 +173,19 @@ lemma is_preconnected_induction [is_preconnected J] (Z : J → Sort*)
 /-- j₁ and j₂ are related by `zag` if there is a morphism between them. -/
 @[reducible]
 def zag (j₁ j₂ : J) : Prop := nonempty (j₁ ⟶ j₂) ∨ nonempty (j₂ ⟶ j₁)
+
+lemma zag_symmetric : symmetric (@zag J _) :=
+λ j₂ j₁ h, h.swap
+
 /--
 `j₁` and `j₂` are related by `zigzag` if there is a chain of
 morphisms from `j₁` to `j₂`, with backward morphisms allowed.
 -/
 @[reducible]
 def zigzag : J → J → Prop := relation.refl_trans_gen zag
+
+lemma zigzag_symmetric : symmetric (@zigzag J _) :=
+relation.refl_trans_gen.symmetric zag_symmetric
 
 /-- Any equivalence relation containing (⟶) holds for all pairs of a connected category. -/
 lemma equiv_relation [is_connected J] (r : J → J → Prop) (hr : _root_.equivalence r)
@@ -206,15 +213,15 @@ If any two objects in an nonempty category are related by `zigzag`, the category
 lemma zigzag_is_connected [nonempty J] (h : ∀ (j₁ j₂ : J), zigzag j₁ j₂) : is_connected J :=
 begin
   apply is_connected.of_induct,
-  intros,
+  intros p hp hjp j,
   have: ∀ (j₁ j₂ : J), zigzag j₁ j₂ → (j₁ ∈ p ↔ j₂ ∈ p),
   { introv k,
-    induction k,
+    induction k with _ _ rt_zag zag,
     { refl },
     { rw k_ih,
-      rcases k_a_1 with ⟨⟨_⟩⟩ | ⟨⟨_⟩⟩,
-      apply a_1 k_a_1,
-      apply (a_1 k_a_1).symm } },
+      rcases zag with ⟨⟨_⟩⟩ | ⟨⟨_⟩⟩,
+      apply hjp zag,
+      apply (hjp zag).symm } },
   rwa this j (classical.arbitrary J) (h _ _)
 end
 
@@ -236,9 +243,9 @@ begin
   intros p d k j,
   obtain ⟨l, zags, lst⟩ := h j (classical.arbitrary J),
   apply list.chain.induction p l zags lst _ d,
-  rintros _ _ (⟨⟨_⟩⟩ | ⟨⟨_⟩⟩),
-  { exact (k a).2 },
-  { exact (k a).1 }
+  rintros _ _ (⟨⟨xy⟩⟩ | ⟨⟨yx⟩⟩),
+  { exact (k xy).2 },
+  { exact (k yx).1 }
 end
 
 /-- If `discrete α` is connected, then `α` is (type-)equivalent to `punit`. -/

@@ -476,9 +476,8 @@ by rw [@iff_def (¬ a), @iff_def (¬ b)]; exact and_congr decidable.not_imp_comm
 theorem not_iff_comm : (¬ a ↔ b) ↔ (¬ b ↔ a) := decidable.not_iff_comm
 
 -- See Note [decidable namespace]
-protected theorem decidable.not_iff [decidable b] : ¬ (a ↔ b) ↔ (¬ a ↔ b) :=
-by split; intro h; [split, skip]; intro h'; [by_contra, intro, skip];
-   try { refine h _; simp [*] }; rw [h', not_iff_self] at h; exact h
+protected theorem decidable.not_iff : ∀ [decidable b], ¬ (a ↔ b) ↔ (¬ a ↔ b) :=
+by intro h; cases h; simp only [h, iff_true, iff_false]
 
 theorem not_iff : ¬ (a ↔ b) ↔ (¬ a ↔ b) := decidable.not_iff
 
@@ -1183,5 +1182,10 @@ by { by_cases h : P; simp [h] }
 @[simp] lemma ite_not {α : Sort*} (P : Prop) [decidable P] (x y : α) :
   ite (¬ P) x y = ite P y x :=
 dite_not P (λ _, x) (λ _, y)
+
+lemma ite_and {α} {p q : Prop} [decidable p] [decidable q] {x y : α} :
+  ite (p ∧ q) x y = ite p (ite q x y) y :=
+by { by_cases hp : p; by_cases hq : q; simp [hp, hq] }
+
 
 end ite

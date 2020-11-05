@@ -121,7 +121,7 @@ lt_of_le_of_lt (by simpa) T_lt_one
 
 private lemma T_pow' (n : ℕ) : T ^ (2 ^ n) < 1 := (T_pow (pow_pos (by norm_num) _))
 
-private lemma T_pow_nonneg (n : ℕ) : T ^ n ≥ 0 := pow_nonneg (norm_nonneg _) _
+private lemma T_pow_nonneg (n : ℕ) : 0 ≤ T ^ n := pow_nonneg (norm_nonneg _) _
 
 /-- We will construct a sequence of elements of ℤ_p satisfying successive values of `ih`. -/
 private def ih (n : ℕ) (z : ℤ_[p]) : Prop :=
@@ -267,7 +267,7 @@ calc ∥newton_seq (n+2) - newton_seq (n+1)∥
 
 private lemma newton_seq_dist_aux (n : ℕ) :
   ∀ k : ℕ, ∥newton_seq (n + k) - newton_seq n∥ ≤ ∥F.derivative.eval a∥ * T^(2^n)
-| 0 := begin simp, apply mul_nonneg, {apply norm_nonneg}, {apply T_pow_nonneg} end
+| 0 := by simp [T_pow_nonneg hnorm, mul_nonneg]
 | (k+1) :=
   have 2^n ≤ 2^(n+k),
     by {apply pow_le_pow, norm_num, apply nat.le_add_right},
@@ -424,7 +424,7 @@ include hnorm
 private lemma a_is_soln (ha : F.eval a = 0) :
   F.eval a = 0 ∧ ∥a - a∥ < ∥F.derivative.eval a∥ ∧ ∥F.derivative.eval a∥ = ∥F.derivative.eval a∥ ∧
   ∀ z', F.eval z' = 0 → ∥z' - a∥ < ∥F.derivative.eval a∥ → z' = a :=
-⟨ha, by simp; apply deriv_norm_pos; apply hnorm, rfl, a_soln_is_unique ha⟩
+⟨ha, by simp [deriv_ne_zero hnorm], rfl, a_soln_is_unique ha⟩
 
 lemma hensels_lemma : ∃ z : ℤ_[p], F.eval z = 0 ∧ ∥z - a∥ < ∥F.derivative.eval a∥ ∧
   ∥F.derivative.eval z∥ = ∥F.derivative.eval a∥ ∧

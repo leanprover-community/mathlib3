@@ -59,26 +59,26 @@ omit nN
 instance {G : Type*} [comm_group G] (N : subgroup G) : comm_group (quotient N) :=
 { mul_comm := λ a b, quotient.induction_on₂' a b
     (λ a b, congr_arg mk (mul_comm a b)),
-  ..@quotient_group.group _ _ N N.normal_of_comm }
+  .. @quotient_group.quotient.group _ _ N N.normal_of_comm }
 
 include nN
 
+local notation ` Q ` := quotient N
+
 @[simp, to_additive quotient_add_group.coe_zero]
-lemma coe_one : ((1 : G) : quotient N) = 1 := rfl
+lemma coe_one : ((1 : G) : Q) = 1 := rfl
 
 @[simp, to_additive quotient_add_group.coe_add]
-lemma coe_mul (a b : G) : ((a * b : G) : quotient N) = a * b := rfl
+lemma coe_mul (a b : G) : ((a * b : G) : Q) = a * b := rfl
 
 @[simp, to_additive quotient_add_group.coe_neg]
-lemma coe_inv (a : G) : ((a⁻¹ : G) : quotient N) = a⁻¹ := rfl
+lemma coe_inv (a : G) : ((a⁻¹ : G) : Q) = a⁻¹ := rfl
 
-@[simp] lemma coe_pow (a : G) (n : ℕ) : ((a ^ n : G) : quotient N) = a ^ n :=
+@[simp] lemma coe_pow (a : G) (n : ℕ) : ((a ^ n : G) : Q) = a ^ n :=
 (mk' N).map_pow a n
 
-@[simp] lemma coe_gpow (a : G) (n : ℤ) : ((a ^ n : G) : quotient N) = a ^ n :=
+@[simp] lemma coe_gpow (a : G) (n : ℤ) : ((a ^ n : G) : Q) = a ^ n :=
 (mk' N).map_gpow a n
-
-local notation ` Q ` := quotient N
 
 /-- A group homomorphism `φ : G →* H` with `N ⊆ ker(φ)` descends (i.e. `lift`s) to a
 group homomorphism `G/N →* H`. -/

@@ -27,7 +27,6 @@ by refine
   .. };
 intros; exact subsingleton.elim _ _
 
-
 instance : complete_boolean_algebra punit :=
 by refine
 { le := λ _ _, true,
@@ -52,7 +51,7 @@ by refine
   .. punit.comm_ring, .. punit.complete_boolean_algebra, .. };
 intros; trivial
 
-instance : decidable_linear_ordered_cancel_add_comm_monoid punit :=
+instance : linear_ordered_cancel_add_comm_monoid punit :=
 { add_left_cancel := λ _ _ _ _, subsingleton.elim _ _,
   add_right_cancel := λ _ _ _ _, subsingleton.elim _ _,
   le_of_add_le_add_left := λ _ _ _ _, trivial,

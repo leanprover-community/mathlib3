@@ -25,7 +25,7 @@ begin
   rintro (f : finite (Ioo a b)),
   obtain ⟨m, hm₁, hm₂⟩ : ∃ m ∈ Ioo a b, ∀ x ∈ Ioo a b, ¬x < m,
   { simpa [h] using finset.exists_minimal f.to_finset },
-  obtain ⟨z, hz₁, hz₂⟩ : ∃ z, a < z ∧ z < m := dense hm₁.1,
+  obtain ⟨z, hz₁, hz₂⟩ : ∃ z, a < z ∧ z < m := exists_between hm₁.1,
   exact hm₂ z ⟨hz₁, lt_trans hz₂ hm₁.2⟩ hz₂,
 end
 

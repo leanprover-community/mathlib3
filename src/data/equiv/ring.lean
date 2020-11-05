@@ -37,11 +37,20 @@ variables {R : Type*} {S : Type*} {S' : Type*}
 
 set_option old_structure_cmd true
 
-/- (semi)ring equivalence. -/
+/-- An equivalence between two (semi)rings that preserves the algebraic structure. -/
 structure ring_equiv (R S : Type*) [has_mul R] [has_add R] [has_mul S] [has_add S]
   extends R ≃ S, R ≃* S, R ≃+ S
 
 infix ` ≃+* `:25 := ring_equiv
+
+/-- The "plain" equivalence of types underlying an equivalence of (semi)rings. -/
+add_decl_doc ring_equiv.to_equiv
+
+/-- The equivalence of additive monoids underlying an equivalence of (semi)rings. -/
+add_decl_doc ring_equiv.to_add_equiv
+
+/-- The equivalence of multiplicative monoids underlying an equivalence of (semi)rings. -/
+add_decl_doc ring_equiv.to_mul_equiv
 
 namespace ring_equiv
 
@@ -84,11 +93,18 @@ variable (R)
 
 @[simp] lemma coe_mul_equiv_refl : (ring_equiv.refl R : R ≃* R) = mul_equiv.refl R := rfl
 
+instance : inhabited (R ≃+* R) := ⟨ring_equiv.refl R⟩
+
 variables {R}
 
 /-- The inverse of a ring isomorphism is a ring isomorphism. -/
 @[symm] protected def symm (e : R ≃+* S) : S ≃+* R :=
 { .. e.to_mul_equiv.symm, .. e.to_add_equiv.symm }
+
+/-- See Note [custom simps projection] -/
+def simps.inv_fun (e : R ≃+* S) : S → R := e.symm
+
+initialize_simps_projections ring_equiv (to_fun → apply, inv_fun → symm_apply)
 
 /-- Transitivity of `ring_equiv`. -/
 @[trans] protected def trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') : R ≃+* S' :=
@@ -178,6 +194,9 @@ variables [semiring R] [semiring S] [semiring S']
 /-- Reinterpret a ring equivalence as a ring homomorphism. -/
 def to_ring_hom (e : R ≃+* S) : R →+* S :=
 { .. e.to_mul_equiv.to_monoid_hom, .. e.to_add_equiv.to_add_monoid_hom }
+
+lemma to_ring_hom_injective : function.injective (to_ring_hom : (R ≃+* S) → R →+* S) :=
+λ f g h, ring_equiv.ext (ring_hom.ext_iff.1 h)
 
 instance has_coe_to_ring_hom : has_coe (R ≃+* S) (R →+* S) := ⟨ring_equiv.to_ring_hom⟩
 
@@ -313,6 +332,10 @@ namespace equiv
 
 variables (K : Type*) [division_ring K]
 
+/-- In a division ring `K`, the unit group `units K`
+is equivalent to the subtype of nonzero elements. -/
+-- TODO: this might already exist elsewhere for `group_with_zero`
+-- deduplicate or generalize
 def units_equiv_ne_zero : units K ≃ {a : K | a ≠ 0} :=
 ⟨λ a, ⟨a.1, a.ne_zero⟩, λ a, units.mk0 _ a.2, λ ⟨_, _, _, _⟩, units.ext rfl, λ ⟨_, _⟩, rfl⟩
 

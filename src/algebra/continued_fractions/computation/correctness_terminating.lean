@@ -40,7 +40,7 @@ information about the computation process, refer to `algebra.continued_fraction.
 namespace generalized_continued_fraction
 open generalized_continued_fraction as gcf
 
-variables {K : Type*} [discrete_linear_ordered_field K] {v : K} {n : ℕ}
+variables {K : Type*} [linear_ordered_field K] {v : K} {n : ℕ}
 
 /--
 Given two continuants `pconts` and `conts` and a value `fr`, this function returns

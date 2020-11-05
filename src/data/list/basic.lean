@@ -1402,6 +1402,13 @@ by cases l; refl
 theorem map₂_nil (f : α → β → γ) (l : list α) : map₂ f l [] = [] :=
 by cases l; refl
 
+@[simp] theorem map₂_flip (f : α → β → γ) :
+  ∀ as bs, map₂ (flip f) bs as = map₂ f as bs
+| [] [] := rfl
+| [] (b :: bs) := rfl
+| (a :: as) [] := rfl
+| (a :: as) (b :: bs) := by { simp! [map₂_flip], refl }
+
 /-! ### take, drop -/
 @[simp] theorem take_zero (l : list α) : take 0 l = [] := rfl
 
@@ -1965,7 +1972,41 @@ lemma prod_take_succ :
 lemma length_pos_of_prod_ne_one (L : list α) (h : L.prod ≠ 1) : 0 < L.length :=
 by { cases L, { simp at h, cases h, }, { simp, }, }
 
+lemma prod_update_nth : ∀ (L : list α) (n : ℕ) (a : α),
+  (L.update_nth n a).prod =
+    (L.take n).prod * (if n < L.length then a else 1) * (L.drop (n + 1)).prod
+| (x::xs) 0     a := by simp [update_nth]
+| (x::xs) (i+1) a := by simp [update_nth, prod_update_nth xs i a, mul_assoc]
+| []      _     _ := by simp [update_nth, (nat.zero_le _).not_lt]
+
 end monoid
+
+section group
+variables [group α]
+
+/-- This is the `list.prod` version of `mul_inv_rev` -/
+@[to_additive "This is the `list.sum` version of `add_neg_rev`"]
+lemma prod_inv_reverse : ∀ (L : list α), L.prod⁻¹ = (L.map (λ x, x⁻¹)).reverse.prod
+| [] := by simp
+| (x :: xs) := by simp [prod_inv_reverse xs]
+
+/-- A non-commutative variant of `list.prod_reverse` -/
+@[to_additive "A non-commutative variant of `list.sum_reverse`"]
+lemma prod_reverse_noncomm : ∀ (L : list α), L.reverse.prod = (L.map (λ x, x⁻¹)).prod⁻¹ :=
+by simp [prod_inv_reverse]
+
+end group
+
+section comm_group
+variables [comm_group α]
+
+/-- This is the `list.prod` version of `mul_inv` -/
+@[to_additive "This is the `list.sum` version of `add_neg`"]
+lemma prod_inv : ∀ (L : list α), L.prod⁻¹ = (L.map (λ x, x⁻¹)).prod
+| [] := by simp
+| (x :: xs) := by simp [mul_comm, prod_inv xs]
+
+end comm_group
 
 @[simp]
 lemma sum_take_add_sum_drop [add_monoid α] :
@@ -2000,6 +2041,46 @@ begin
   { push_neg at h,
     simp [take_all_of_le h, take_all_of_le (le_trans h (nat.le_succ _))] }
 end
+
+@[to_additive sum_nonneg]
+lemma one_le_prod_of_one_le [ordered_comm_monoid α] {l : list α} (hl₁ : ∀ x ∈ l, (1 : α) ≤ x) :
+  1 ≤ l.prod :=
+begin
+  induction l with hd tl ih,
+  { simp },
+  rw prod_cons,
+  exact one_le_mul (hl₁ hd (mem_cons_self hd tl)) (ih (λ x h, hl₁ x (mem_cons_of_mem hd h))),
+end
+
+@[to_additive]
+lemma single_le_prod [ordered_comm_monoid α] {l : list α} (hl₁ : ∀ x ∈ l, (1 : α) ≤ x) :
+  ∀ x ∈ l, x ≤ l.prod :=
+begin
+  induction l,
+  { simp },
+  simp_rw [prod_cons, forall_mem_cons] at ⊢ hl₁,
+  split,
+  { exact le_mul_of_one_le_right' (one_le_prod_of_one_le hl₁.2) },
+  { exact λ x H, le_mul_of_one_le_of_le hl₁.1 (l_ih hl₁.right x H) },
+end
+
+@[to_additive all_zero_of_le_zero_le_of_sum_eq_zero]
+lemma all_one_of_le_one_le_of_prod_eq_one [ordered_comm_monoid α]
+  {l : list α} (hl₁ : ∀ x ∈ l, (1 : α) ≤ x) (hl₂ : l.prod = 1) :
+  ∀ x ∈ l, x = (1 : α) :=
+λ x hx, le_antisymm (hl₂ ▸ single_le_prod hl₁ _ hx) (hl₁ x hx)
+
+lemma sum_eq_zero_iff [canonically_ordered_add_monoid α] (l : list α) :
+  l.sum = 0 ↔ ∀ x ∈ l, x = (0 : α) :=
+⟨all_zero_of_le_zero_le_of_sum_eq_zero (λ _ _, zero_le _),
+begin
+  induction l,
+  { simp },
+  { intro h,
+    rw [sum_cons, add_eq_zero_iff],
+    rw forall_mem_cons at h,
+    exact ⟨h.1, l_ih h.2⟩ },
+end⟩
 
 /-- A list with sum not zero must have positive length. -/
 lemma length_pos_of_sum_ne_zero [add_monoid α] (L : list α) (h : L.sum ≠ 0) : 0 < L.length :=
@@ -2055,7 +2136,7 @@ by induction L; [refl, simp only [*, join, map, sum_cons, length_append]]
   length (list.bind l f) = sum (map (length ∘ f) l) :=
 by rw [list.bind, length_join, map_map]
 
-lemma exists_lt_of_sum_lt [decidable_linear_ordered_cancel_add_comm_monoid β] {l : list α}
+lemma exists_lt_of_sum_lt [linear_ordered_cancel_add_comm_monoid β] {l : list α}
   (f g : α → β) (h : (l.map f).sum < (l.map g).sum) : ∃ x ∈ l, f x < g x :=
 begin
   induction l with x l,
@@ -2065,7 +2146,7 @@ begin
     exact lt_of_add_lt_add_left (lt_of_lt_of_le h $ add_le_add_right (le_of_not_gt h') _) }
 end
 
-lemma exists_le_of_sum_le [decidable_linear_ordered_cancel_add_comm_monoid β] {l : list α}
+lemma exists_le_of_sum_le [linear_ordered_cancel_add_comm_monoid β] {l : list α}
   (hl : l ≠ []) (f g : α → β) (h : (l.map f).sum ≤ (l.map g).sum) : ∃ x ∈ l, f x ≤ g x :=
 begin
   cases l with x l,
@@ -2346,9 +2427,6 @@ linear_order_of_STO' (lex (<))
 instance has_le' [linear_order α] : has_le (list α) :=
 preorder.to_has_le _
 
-instance [decidable_linear_order α] : decidable_linear_order (list α) :=
-decidable_linear_order_of_STO' (lex (<))
-
 /-! ### all & any -/
 
 @[simp] theorem all_nil (p : α → bool) : all [] p = tt := rfl
@@ -2449,6 +2527,12 @@ by simp only [pmap_eq_map_attach, mem_map, mem_attach, true_and, subtype.exists]
 by induction l; [refl, simp only [*, pmap, length]]
 
 @[simp] lemma length_attach (L : list α) : L.attach.length = L.length := length_pmap
+
+@[simp] lemma pmap_eq_nil {p : α → Prop} {f : Π a, p a → β}
+  {l H} : pmap f l H = [] ↔ l = [] :=
+by rw [← length_eq_zero, length_pmap, length_eq_zero]
+
+@[simp] lemma attach_eq_nil (l : list α) : l.attach = [] ↔ l = [] := pmap_eq_nil
 
 /-! ### find -/
 
@@ -3971,7 +4055,218 @@ lemma choose_property (hp : ∃ a, a ∈ l ∧ p a) : p (choose p l hp) := (choo
 
 end choose
 
--- A jumble of lost lemmas:
+/-! ### map₂_left' -/
+
+section map₂_left'
+
+-- The definitional equalities for `map₂_left'` can already be used by the
+-- simplifie because `map₂_left'` is marked `@[simp]`.
+
+@[simp] theorem map₂_left'_nil_right (f : α → option β → γ) (as) :
+  map₂_left' f as [] = (as.map (λ a, f a none), []) :=
+by cases as; refl
+
+end map₂_left'
+
+/-! ### map₂_right' -/
+
+section map₂_right'
+
+variables (f : option α → β → γ) (a : α) (as : list α) (b : β) (bs : list β)
+
+@[simp] theorem map₂_right'_nil_left :
+  map₂_right' f [] bs = (bs.map (f none), []) :=
+by cases bs; refl
+
+@[simp] theorem map₂_right'_nil_right  :
+  map₂_right' f as [] = ([], as) :=
+rfl
+
+@[simp] theorem map₂_right'_nil_cons :
+  map₂_right' f [] (b :: bs) = (f none b :: bs.map (f none), []) :=
+rfl
+
+@[simp] theorem map₂_right'_cons_cons :
+  map₂_right' f (a :: as) (b :: bs) =
+    let rec := map₂_right' f as bs in
+    (f (some a) b :: rec.fst, rec.snd) :=
+rfl
+
+end map₂_right'
+
+/-! ### zip_left' -/
+
+section zip_left'
+
+variables (a : α) (as : list α) (b : β) (bs : list β)
+
+@[simp] theorem zip_left'_nil_right :
+  zip_left' as ([] : list β) = (as.map (λ a, (a, none)), []) :=
+by cases as; refl
+
+@[simp] theorem zip_left'_nil_left :
+  zip_left' ([] : list α) bs = ([], bs) :=
+rfl
+
+@[simp] theorem zip_left'_cons_nil :
+  zip_left' (a :: as) ([] : list β) = ((a, none) :: as.map (λ a, (a, none)), []) :=
+rfl
+
+@[simp] theorem zip_left'_cons_cons :
+  zip_left' (a :: as) (b :: bs) =
+    let rec := zip_left' as bs in
+    ((a, some b) :: rec.fst, rec.snd) :=
+rfl
+
+end zip_left'
+
+/-! ### zip_right' -/
+
+section zip_right'
+
+variables (a : α) (as : list α) (b : β) (bs : list β)
+
+@[simp] theorem zip_right'_nil_left :
+  zip_right' ([] : list α) bs = (bs.map (λ b, (none, b)), []) :=
+by cases bs; refl
+
+@[simp] theorem zip_right'_nil_right :
+  zip_right' as ([] : list β) = ([], as) :=
+rfl
+
+@[simp] theorem zip_right'_nil_cons :
+  zip_right' ([] : list α) (b :: bs) = ((none, b) :: bs.map (λ b, (none, b)), []) :=
+rfl
+
+@[simp] theorem zip_right'_cons_cons :
+  zip_right' (a :: as) (b :: bs) =
+    let rec := zip_right' as bs in
+    ((some a, b) :: rec.fst, rec.snd) :=
+rfl
+
+end zip_right'
+
+/-! ### map₂_left -/
+
+section map₂_left
+
+variables (f : α → option β → γ) (as : list α)
+
+-- The definitional equalities for `map₂_left` can already be used by the
+-- simplifier because `map₂_left` is marked `@[simp]`.
+
+@[simp] theorem map₂_left_nil_right :
+  map₂_left f as [] = as.map (λ a, f a none) :=
+by cases as; refl
+
+theorem map₂_left_eq_map₂_left' : ∀ as bs,
+  map₂_left f as bs = (map₂_left' f as bs).fst
+| [] bs := by simp!
+| (a :: as) [] := by simp!
+| (a :: as) (b :: bs) := by simp! [*]
+
+theorem map₂_left_eq_map₂ : ∀ as bs,
+  length as ≤ length bs →
+  map₂_left f as bs = map₂ (λ a b, f a (some b)) as bs
+| [] [] h := by simp!
+| [] (b :: bs) h := by simp!
+| (a :: as) [] h := by { simp at h, contradiction }
+| (a :: as) (b :: bs) h := by { simp at h, simp! [*] }
+
+end map₂_left
+
+/-! ### map₂_right -/
+
+section map₂_right
+
+variables (f : option α → β → γ) (a : α) (as : list α) (b : β) (bs : list β)
+
+@[simp] theorem map₂_right_nil_left :
+  map₂_right f [] bs = bs.map (f none) :=
+by cases bs; refl
+
+@[simp] theorem map₂_right_nil_right :
+  map₂_right f as [] = [] :=
+rfl
+
+@[simp] theorem map₂_right_nil_cons :
+  map₂_right f [] (b :: bs) = f none b :: bs.map (f none) :=
+rfl
+
+@[simp] theorem map₂_right_cons_cons :
+  map₂_right f (a :: as) (b :: bs) = f (some a) b :: map₂_right f as bs :=
+rfl
+
+theorem map₂_right_eq_map₂_right' :
+  map₂_right f as bs = (map₂_right' f as bs).fst :=
+by simp only [map₂_right, map₂_right', map₂_left_eq_map₂_left']
+
+theorem map₂_right_eq_map₂ (h : length bs ≤ length as) :
+  map₂_right f as bs = map₂ (λ a b, f (some a) b) as bs :=
+begin
+  have : (λ a b, flip f a (some b)) = (flip (λ a b, f (some a) b)) := rfl,
+  simp only [map₂_right, map₂_left_eq_map₂, map₂_flip, *]
+end
+
+end map₂_right
+
+/-! ### zip_left -/
+
+section zip_left
+
+variables (a : α) (as : list α) (b : β) (bs : list β)
+
+@[simp] theorem zip_left_nil_right :
+  zip_left as ([] : list β) = as.map (λ a, (a, none)) :=
+by cases as; refl
+
+@[simp] theorem zip_left_nil_left :
+  zip_left ([] : list α) bs = [] :=
+rfl
+
+@[simp] theorem zip_left_cons_nil :
+  zip_left (a :: as) ([] : list β) = (a, none) :: as.map (λ a, (a, none)) :=
+rfl
+
+@[simp] theorem zip_left_cons_cons :
+  zip_left (a :: as) (b :: bs) = (a, some b) :: zip_left as bs :=
+rfl
+
+theorem zip_left_eq_zip_left' :
+  zip_left as bs = (zip_left' as bs).fst :=
+by simp only [zip_left, zip_left', map₂_left_eq_map₂_left']
+
+end zip_left
+
+/-! ### zip_right -/
+
+section zip_right
+
+variables (a : α) (as : list α) (b : β) (bs : list β)
+
+@[simp] theorem zip_right_nil_left :
+  zip_right ([] : list α) bs = bs.map (λ b, (none, b)) :=
+by cases bs; refl
+
+@[simp] theorem zip_right_nil_right :
+  zip_right as ([] : list β) = [] :=
+rfl
+
+@[simp] theorem zip_right_nil_cons :
+  zip_right ([] : list α) (b :: bs) = (none, b) :: bs.map (λ b, (none, b)) :=
+rfl
+
+@[simp] theorem zip_right_cons_cons :
+  zip_right (a :: as) (b :: bs) = (some a, b) :: zip_right as bs :=
+rfl
+
+theorem zip_right_eq_zip_right' :
+  zip_right as bs = (zip_right' as bs).fst :=
+by simp only [zip_right, zip_right', map₂_right_eq_map₂_right']
+
+end zip_right
+
+/-! ### Miscellaneous lemmas -/
 
 theorem ilast'_mem : ∀ a l, @ilast' α a l ∈ a :: l
 | a []     := or.inl rfl

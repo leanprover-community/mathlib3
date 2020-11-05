@@ -46,40 +46,32 @@ variables {D : Type u₂} [category.{v} D]
 variables {J : Type v} [small_category J] {K : J ⥤ C}
 
 /--
-A functor `F` preserves limits of shape `K` (written as `preserves_limit K F`)
+A functor `F` preserves limits of `K` (written as `preserves_limit K F`)
 if `F` maps any limit cone over `K` to a limit cone.
 -/
 class preserves_limit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves : Π {c : cone K}, is_limit c → is_limit (F.map_cone c))
 /--
-A functor `F` preserves colimits of shape `K` (written as `preserves_colimit K F`)
+A functor `F` preserves colimits of `K` (written as `preserves_colimit K F`)
 if `F` maps any colimit cocone over `K` to a colimit cocone.
 -/
 class preserves_colimit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves : Π {c : cocone K}, is_colimit c → is_colimit (F.map_cocone c))
 
-/--
-A functor which preserves limits preserves
-the arbitrary choice of limit provided by `has_limit`, up to isomorphism.
--/
-def preserves_limit_iso (K : J ⥤ C) [has_limit K] (F : C ⥤ D) [has_limit (K ⋙ F)] [preserves_limit K F] :
-  F.obj (limit K) ≅ limit (K ⋙ F) :=
-is_limit.cone_point_unique_up_to_iso (preserves_limit.preserves (limit.is_limit K)) (limit.is_limit (K ⋙ F))
-/--
-A functor which preserves colimits preserves
-the arbitrary choice of colimit provided by `has_colimit` up to isomorphism.
--/
-def preserves_colimit_iso (K : J ⥤ C) [has_colimit K] (F : C ⥤ D) [has_colimit (K ⋙ F)] [preserves_colimit K F] :
-  F.obj (colimit K) ≅ colimit (K ⋙ F) :=
-is_colimit.cocone_point_unique_up_to_iso (preserves_colimit.preserves (colimit.is_colimit K)) (colimit.is_colimit (K ⋙ F))
-
+/-- We say that `F` preserves limits of shape `J` if `F` preserves limits for every diagram
+    `K : J ⥤ C`, i.e., `F` maps limit cones over `K` to limit cones. -/
 class preserves_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves_limit : Π {K : J ⥤ C}, preserves_limit K F)
+/-- We say that `F` preserves colimits of shape `J` if `F` preserves colimits for every diagram
+    `K : J ⥤ C`, i.e., `F` maps colimit cocones over `K` to colimit cocones. -/
 class preserves_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves_colimit : Π {K : J ⥤ C}, preserves_colimit K F)
 
+/-- We say that `F` preserves limits if it sends limit cones over any diagram to limit cones. -/
 class preserves_limits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 (preserves_limits_of_shape : Π {J : Type v} [𝒥 : small_category J], by exactI preserves_limits_of_shape J F)
+/-- We say that `F` preserves colimits if it sends colimit cocones over any diagram to colimit
+    cocones.-/
 class preserves_colimits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 (preserves_colimits_of_shape : Π {J : Type v} [𝒥 : small_category J], by exactI preserves_colimits_of_shape J F)
 
@@ -177,6 +169,23 @@ def preserves_colimit_of_iso {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K
     rw [← F.map_comp],
     simp,
   end }
+
+/--
+A convenience function for `preserves_limit`, which takes the functor as an explicit argument to
+guide typeclass resolution.
+-/
+def is_limit_of_preserves (F : C ⥤ D) {c : cone K} (t : is_limit c) [preserves_limit K F] :
+  is_limit (F.map_cone c) :=
+preserves_limit.preserves t
+
+/--
+A convenience function for `preserves_colimit`, which takes the functor as an explicit argument to
+guide typeclass resolution.
+-/
+def is_colimit_of_preserves (F : C ⥤ D) {c : cocone K} (t : is_colimit c)
+  [preserves_colimit K F] :
+  is_colimit (F.map_cocone c) :=
+preserves_colimit.preserves t
 
 /--
 A functor `F : C ⥤ D` reflects limits for `K : J ⥤ C` if

@@ -3,12 +3,32 @@ Copyright (c) 2020 Scott Morrison, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
-import category_theory.limits.preserves.limits
-import category_theory.limits.shapes
+import category_theory.limits.shapes.products
+import category_theory.limits.preserves.basic
 
-universes v u₁ u₂
+/-!
+# Binary (co)products
+
+We define a category `walking_pair`, which is the index category
+for a binary (co)product diagram. A convenience method `pair X Y`
+constructs the functor from the walking pair, hitting the given objects.
+
+We define `prod X Y` and `coprod X Y` as limits and colimits of such functors.
+
+Typeclasses `has_binary_products` and `has_binary_coproducts` assert the existence
+of (co)limits shaped as walking pairs.
+
+We include lemmas for simplifying equations involving projections and coprojections, and define
+braiding and associating isomorphisms, and the product comparison morphism.
+
+## References
+* [Stacks: Products of pairs](https://stacks.math.columbia.edu/tag/001R)
+* [Stacks: coproducts of pairs](https://stacks.math.columbia.edu/tag/04AN)
+-/
 
 noncomputable theory
+
+universes v u₁ u₂
 
 open category_theory category_theory.category category_theory.limits
 
@@ -16,14 +36,13 @@ variables {C : Type u₁} [category.{v} C]
 variables {D : Type u₂} [category.{v} D]
 variables (G : C ⥤ D)
 
-section preserve_products
+namespace preserves
 
 variables {J : Type v} (f : J → C)
 
 /--
-(Implementation). The map of a fan is a limit iff the fan consisting of the mapped morphisms
-is a limit.
-This essentially lets us commute `fan.mk` with `functor.map_cone`.
+The map of a fan is a limit iff the fan consisting of the mapped morphisms is a limit. This
+essentially lets us commute `fan.mk` with `functor.map_cone`.
 -/
 def fan_map_cone_limit {P : C} (g : Π j, P ⟶ f j) :
   is_limit (G.map_cone (fan.mk P g)) ≃
@@ -58,32 +77,35 @@ map_is_limit_of_preserves_of_is_limit G f _ (product_is_product _)
 
 variables [has_product (λ (j : J), G.obj (f j))]
 
-def product_comparison : G.obj (∏ f) ⟶ ∏ (λ j, G.obj (f j)) :=
-pi.lift (λ j, G.map (pi.π f j))
+/-- If `pi_comparison G f` is an isomorphism, then `G` preserves the limit of `f`. -/
+def preserves_product_of_iso_comparison [i : is_iso (pi_comparison G f)] :
+  preserves_limit (discrete.functor f) G :=
+begin
+  apply preserves_limit_of_preserves_limit_cone (product_is_product f),
+  apply (fan_map_cone_limit _ _ _).symm _,
+  apply is_limit.of_point_iso (limit.is_limit (discrete.functor (λ (j : J), G.obj (f j)))),
+  apply i,
+end
 
-@[simp, reassoc]
-lemma product_comparison_pi (j : J) :
-  product_comparison G f ≫ pi.π _ j = G.map (pi.π f j) :=
-limit.lift_π _ j
-
-@[simp, reassoc]
-lemma map_lift_product_comparison (P : C) (g : Π j, P ⟶ f j) :
-  G.map (pi.lift g) ≫ product_comparison G f = pi.lift (λ j, G.map (g j)) :=
-by { ext, simp [← G.map_comp] }
+variable [preserves_limit (discrete.functor f) G]
 
 /--
 If `G` preserves limits, we have an isomorphism from the image of a product to the product of the
 images.
 -/
-def preserves_products_iso [preserves_limit (discrete.functor f) G] :
-  G.obj (∏ f) ≅ ∏ (λ j, G.obj (f j)) :=
+def preserves_products_iso : G.obj (∏ f) ≅ ∏ (λ j, G.obj (f j)) :=
 is_limit.cone_point_unique_up_to_iso
   (is_limit_of_has_product_of_preserves_limit G f)
   (limit.is_limit _)
 
 @[simp]
-lemma preserves_products_iso_hom [preserves_limit (discrete.functor f) G] :
-  (preserves_products_iso G f).hom = product_comparison G f :=
+lemma preserves_products_iso_hom : (preserves_products_iso G f).hom = pi_comparison G f :=
 rfl
 
-end preserve_products
+instance : is_iso (pi_comparison G f) :=
+begin
+  rw ← preserves_products_iso_hom,
+  apply_instance,
+end
+
+end preserves

@@ -709,7 +709,7 @@ begin
   calc
     c • f (a • x + b • y) ≤ c • (a • f x + b • f y)
       : smul_le_smul_of_nonneg (hf.2 hx hy ha hb hab) hc
-    ... = a • (c • f x) + b • (c • f y) : by simp only [smul_add, smul_comm]
+    ... = a • (c • f x) + b • (c • f y) : by simp only [smul_add, smul_comm c]
 end
 
 lemma concave_on.smul [ordered_semimodule ℝ β] {f : E → β} {c : ℝ} (hc : 0 ≤ c)
@@ -977,7 +977,7 @@ end
 
 lemma finset.center_mass_filter_ne_zero :
   (t.filter (λ i, w i ≠ 0)).center_mass w z = t.center_mass w z :=
-finset.center_mass_subset z (filter_subset _) $ λ i hit hit',
+finset.center_mass_subset z (filter_subset _ _) $ λ i hit hit',
 by simpa only [hit, mem_filter, true_and, ne.def, not_not] using hit'
 
 variable {z}

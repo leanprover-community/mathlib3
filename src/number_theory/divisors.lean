@@ -5,6 +5,7 @@ Authors: Aaron Anderson
 -/
 import algebra.big_operators.order
 import tactic
+import data.nat.prime
 
 /-!
 # Divisor finsets
@@ -358,14 +359,14 @@ lemma prod_divisors_prime_pow {α : Type*} [comm_monoid α] {k p : ℕ} {f : ℕ
 @sum_divisors_prime_pow (additive α) _ _ _ _ h
 
 @[simp]
-lemma filter_dvd_eq_divisors (n : ℕ+) :
-  finset.filter (λ (x : ℕ), x ∣ ↑n) (finset.range (n : ℕ).succ) = (n : ℕ).divisors :=
+lemma filter_dvd_eq_divisors {n : ℕ} (h : n ≠ 0) :
+  finset.filter (λ (x : ℕ), x ∣ n) (finset.range (n : ℕ).succ) = (n : ℕ).divisors :=
 begin
   apply finset.ext,
-  simp only [mem_divisors, mem_filter, mem_range, and_true,
-    and_iff_right_iff_imp, ne.def, pnat.ne_zero, not_false_iff],
+  simp only [h, mem_filter, and_true, and_iff_right_iff_imp, cast_id, mem_range, ne.def,
+  not_false_iff, mem_divisors],
   intros a ha,
-  exact nat.lt_succ_of_le (nat.divisor_le (nat.mem_divisors.2 (and.intro ha (pnat.ne_zero n))))
+  exact nat.lt_succ_of_le (nat.divisor_le (nat.mem_divisors.2 ⟨ha, h⟩))
 end
 
 end nat

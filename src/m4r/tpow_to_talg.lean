@@ -10,9 +10,19 @@ open_locale direct_sum
 lemma map_sum_tmul {α : Type*} (s : multiset α) (m : α → M) (n : N) :
   ((multiset.map m s).sum ⊗ₜ[R] n) = (multiset.map (λ a, m a ⊗ₜ[R] n) s).sum :=
 begin
-  induction s using multiset.induction with a s has ih h,
-  refine @eq.trans _ _ 0 _ _ _,
-  sorry, sorry, sorry, sorry
+  refine multiset.induction _ _ s,
+  rw multiset.map_zero,
+  rw multiset.map_zero,
+  rw multiset.sum_zero,
+  rw tensor_product.zero_tmul,
+  rw multiset.sum_zero,
+  intros a S h,
+  rw multiset.map_cons,
+  rw multiset.map_cons,
+  rw multiset.sum_cons,
+  rw multiset.sum_cons,
+  rw tensor_product.add_tmul,
+  rw h,
 end
 
 /-lemma tmul_map_sum (m : M) {α : Type*} (s : finset α) (n : α → N) :
@@ -201,6 +211,7 @@ begin
   erw multiset.sum_singleton,
   rintros n y z ⟨s, h⟩,
   use multiset.map (λ f, fin.snoc f z) s,
+
   sorry, sorry, sorry
 end
 

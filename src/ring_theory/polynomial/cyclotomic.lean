@@ -98,7 +98,7 @@ lemma cycl'_ne_zero (n : ℕ) (R : Type*) [integral_domain R] : cyclotomic' n R 
 
 /-- The natural degree of `cyclotomic' n R` is `totient n` if there is a primitive root of
 unity in `R`. -/
-lemma nat_deg_of_cyclotomic' {ζ : R} {n : ℕ} (h : is_primitive_root ζ n) :
+lemma nat_degree_cyclotomic' {ζ : R} {n : ℕ} (h : is_primitive_root ζ n) :
   (cyclotomic' n R).nat_degree = nat.totient n :=
 begin
   cases nat.eq_zero_or_pos n with hzero hpos,

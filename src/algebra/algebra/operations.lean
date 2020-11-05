@@ -311,6 +311,13 @@ begin
   exact hn m hm,
 end
 
+lemma div_mul_inv_singleton {d : A} {I : submodule R A} :
+I * 1 / span R {d} = I / span R {d} :=
+begin
+sorry,
+end
+
+
 @[simp] lemma map_div {B : Type*} [comm_ring B] [algebra R B]
   (I J : submodule R A) (h : A ≃ₐ[R] B) :
   (I / J).map h.to_linear_map = I.map h.to_linear_map / J.map h.to_linear_map :=
@@ -327,6 +334,7 @@ begin
     apply h.injective,
     erw [h.map_mul, h.apply_symm_apply, hxz] }
 end
+
 
 end quotient
 

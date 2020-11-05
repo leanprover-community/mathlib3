@@ -3,7 +3,7 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Yury Kudryashov.
 -/
-import linear_algebra.affine_space.midpoint
+import linear_algebra.affine_space.ordered
 import topology.metric_space.isometry
 import topology.instances.real_vector_space
 
@@ -353,3 +353,27 @@ affine_map.mk' f
         continuous_const, hfc.comp, continuous_id])
   (classical.arbitrary P)
   (λ p, by simp)
+
+namespace set
+
+namespace subinterval
+
+omit V V'
+
+lemma size_pi_subbox_midpoint {ι : Type*} [fintype ι] [decidable_eq ι]
+  {s : set (ι → ℝ)} (I : subinterval s) (t : finset ι) :
+  (I.pi_subbox (I.midpoint ℝ) (I.midpoint_mem ℝ) t tᶜ).size = I.size / 2 :=
+begin
+  simp only [size, dist_pi_def, pi_subbox_left, pi_subbox_right, subinterval.midpoint],
+  norm_cast,
+  rw [div_eq_inv_mul, nnreal.mul_finset_sup],
+  congr' with i : 2,
+  push_cast,
+  by_cases hi : i ∈ t,
+  { have : i ∉ tᶜ, by simp [hi], simp [*] },
+  { simp [*] }
+end
+
+end subinterval
+
+end set

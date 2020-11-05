@@ -11,6 +11,7 @@ topological spaces. For example:
 -/
 import topology.metric_space.emetric_space
 import topology.algebra.ordered
+import data.set.intervals.subinterval
 
 open set filter classical topological_space
 noncomputable theory
@@ -1696,3 +1697,6 @@ le_trans (diam_mono ball_subset_closed_ball bounded_closed_ball) (diam_closed_ba
 end diam
 
 end metric
+
+def set.subinterval.size [preorder α] [metric_space α] {s : set α} (I : set.subinterval s) : ℝ :=
+dist I.left I.right

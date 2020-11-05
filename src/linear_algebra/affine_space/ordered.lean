@@ -5,6 +5,7 @@ Author: Yury G. Kudryashov
 -/
 import linear_algebra.affine_space.midpoint
 import algebra.module.ordered
+import data.set.intervals.subinterval
 
 /-!
 # Ordered modules as affine spaces
@@ -352,3 +353,21 @@ lemma line_map_lt_map_iff_slope_lt_slope (hab : a < b) (h₀ : 0 < r) (h₁ : r 
 @map_lt_line_map_iff_slope_lt_slope k (order_dual E) _ _ _ _ _ _ _ _ hab h₀ h₁
 
 end linear_ordered_field
+
+namespace set
+
+namespace subinterval
+
+variables (k)
+
+protected def midpoint [add_comm_group E] [ring k] [semimodule k E]
+  [invertible (2 : k)] [add_torsor E PE] [preorder PE] {s : set PE} (I : subinterval s) : PE :=
+midpoint k I.left I.right
+
+lemma midpoint_mem [ordered_add_comm_group E] [linear_ordered_field k] [semimodule k E]
+  [ordered_semimodule k E] {s : set E} (I : subinterval s) : I.midpoint k ∈ I :=
+⟨left_le_midpoint.2 I.nontrivial, midpoint_le_right.2 I.nontrivial⟩
+
+end subinterval
+
+end set

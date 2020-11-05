@@ -1,4 +1,4 @@
-import linear_algebra.tensor_algebra
+import linear_algebra.tensor_algebra m4r.fin
 
 namespace multilinear_map
 
@@ -17,7 +17,7 @@ def tpow_aux (R : Type u) [comm_semiring R] (M : Type u) [add_comm_monoid M] [se
 | (n+1) := ⟨@tensor_product R _ (tpow_aux n).1 M (tpow_aux n).2.1 _
   (tpow_aux n).2.2 _, ⟨by apply_instance, by apply_instance⟩⟩
 
-instance tpow_acg (R : Type u) [comm_semiring R] (M : Type u)
+instance tpow_acm (R : Type u) [comm_semiring R] (M : Type u)
   [add_comm_monoid M] [semimodule R M] (n : ℕ) :
 add_comm_monoid (tpow_aux R M n).1 := (tpow_aux R M n).2.1
 
@@ -37,6 +37,11 @@ instance tpow_zero_scalar (R : Type u) [comm_semiring R] (M : Type u)
   [add_comm_monoid M] [semimodule R M] :
   has_scalar (tpow_aux R M 0).1 (tensor_algebra R M) :=
   { smul := ((•) : R → tensor_algebra R M → tensor_algebra R M) }
+
+instance tpow_zero_scalar' (R : Type u) [comm_semiring R] (M : Type u)
+  [add_comm_monoid M] [semimodule R M] (n : ℕ) :
+  has_scalar (tpow_aux R M 0).1 (tpow R M n) :=
+  { smul := ((•) : R → tpow R M n → tpow R M n) }
 
 variables {R : Type u} [comm_semiring R] {M : Type u}
   [add_comm_monoid M] [semimodule R M]
@@ -90,8 +95,7 @@ end
 def mk : Π (n : ℕ) (f : fin n → M), tpow R M n
 | 0 _ := (1 : R)
 | (n + 1) f := @tensor_product.mk R _ (tpow R M n) M _ _ _ _
-  (mk n $ λ y, f y) $ f (n + 1)
-
+  (mk n $ λ y, f y) $ f n
 
 def mk' (n : ℕ) : @multilinear_map R (fin n) (λ _, M) (tpow R M n) _ _ _ _ _ _ :=
 { to_fun := mk R M n,
@@ -163,6 +167,8 @@ def lift {M : Type u} [add_comm_monoid M] [semimodule R M] :
 $ lift n _ (@multilinear_map.curry_right _ _ _ _ _ _ h1 _ h2 g)
 
 variables {R M}
+
+
 lemma lift_mk {M : Type u} [add_comm_monoid M] [semimodule R M] (n : ℕ) :
   ∀ {P : Type u} [add_comm_monoid P], by exactI ∀ [semimodule R P],
   by exactI ∀
@@ -183,7 +189,7 @@ begin
   unfreezingI {erw multilinear_map.ext_iff.1 (hn f.curry_right) (λ y : fin n, x y)},
   rw f.curry_right_apply,
   congr,
-  sorry -- annoying fin stuff
+  rw fin.snoc_succ,
 end
 
 lemma lift_mk_apply {M : Type u} [add_comm_monoid M] [semimodule R M] (n : ℕ)
@@ -218,11 +224,9 @@ begin
     unfold mk,
     rw tensor_product.mk_apply,
     congr,
-    specialize H (fin.snoc x z),
     ext,
-    sorry, --more stupid fin stuff
-    sorry, --same
-        }), },
+    rw fin.snoc_mk_apply',
+    rw fin.snoc_mk_apply}), },
   refl,
 end
 

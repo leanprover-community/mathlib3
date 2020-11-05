@@ -146,26 +146,27 @@ instance [Π i, add_comm_group (β i)] : add_comm_group (Π₀ i, β i) :=
 
 /-- Dependent functions with finite support inherit a semiring action from an action on each
 coordinate. -/
-def to_has_scalar {γ : Type w} [semiring γ] [Π i, add_comm_group (β i)] [Π i, semimodule γ (β i)] :
+def to_has_scalar {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, semimodule γ (β i)] :
   has_scalar γ (Π₀ i, β i) :=
 ⟨λc v, v.map_range (λ _, (•) c) (λ _, smul_zero _)⟩
 local attribute [instance] to_has_scalar
 
-@[simp] lemma smul_apply {γ : Type w} [semiring γ] [Π i, add_comm_group (β i)]
+@[simp] lemma smul_apply {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)]
   [Π i, semimodule γ (β i)] {i : ι} {b : γ} {v : Π₀ i, β i} :
   (b • v) i = b • (v i) :=
 map_range_apply
 
 /-- Dependent functions with finite support inherit a semimodule structure from such a structure on
 each coordinate. -/
-def to_semimodule {γ : Type w} [semiring γ] [Π i, add_comm_group (β i)] [Π i, semimodule γ (β i)] :
+def to_semimodule {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, semimodule γ (β i)] :
   semimodule γ (Π₀ i, β i) :=
-semimodule.of_core {
-  smul_add := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, smul_add],
-  add_smul := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, add_smul],
-  one_smul := λ x, ext $ λ i, by simp only [smul_apply, one_smul],
+{ one_smul := λ x, ext $ λ i, by simp only [smul_apply, one_smul],
   mul_smul := λ r s x, ext $ λ i, by simp only [smul_apply, smul_smul],
-  .. (infer_instance : has_scalar γ (Π₀ i, β i)) }
+  smul_add := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, smul_add],
+  smul_zero := λ x, ext $ λ i, by {simp only [smul_apply, smul_zero, zero_apply]},
+  add_smul := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, add_smul],
+  zero_smul := λ x, ext $ λ i, by {simp only [smul_apply, zero_smul, zero_apply]},
+  .. (infer_instance : has_scalar γ (Π₀ i, β i))}
 
 end algebra
 
@@ -427,7 +428,7 @@ instance [Π i, add_group (β i)] {s : finset ι} : is_add_group_hom (@mk ι β 
 
 section
 local attribute [instance] to_semimodule
-variables (γ : Type w) [semiring γ] [Π i, add_comm_group (β i)] [Π i, semimodule γ (β i)]
+variables (γ : Type w) [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, semimodule γ (β i)]
 include γ
 
 @[simp] lemma mk_smul {s : finset ι} {c : γ} (x : Π i : (↑s : set ι), β i.1) :
@@ -606,7 +607,7 @@ by ext i; simp
 
 local attribute [instance] dfinsupp.to_semimodule
 
-lemma support_smul {γ : Type w} [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)]
+lemma support_smul {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, semimodule γ (β i)]
   [Π (i : ι) (x : β i), decidable (x ≠ 0)]
   {b : γ} {v : Π₀ i, β i} : (b • v).support ⊆ v.support :=
 support_map_range

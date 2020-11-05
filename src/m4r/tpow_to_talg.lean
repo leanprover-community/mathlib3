@@ -1,8 +1,10 @@
-import m4r.tpow algebra.punit_instances
+import m4r.tpow algebra.punit_instances m4r.direct_sum_semimodule
 
 universe u
+section
 variables (R : Type u) [comm_semiring R] (M : Type u) [add_comm_monoid M] [semimodule R M]
 open tpow
+open_locale direct_sum
 
 def pow_to_alg (n : ℕ) : (tpow R M n) →ₗ[R] (tensor_algebra R M) :=
 tpow.lift R n (tensor_algebra R M) $ tensor_algebra.mk R M
@@ -128,6 +130,154 @@ begin
   rw alg_hom.map_one,
 end
 
+end
+variables (R : Type u) [comm_ring R] (M : Type u) [add_comm_group M] [module R M]
+open tpow
+open direct_sum2
+
+local attribute [semireducible] tensor_algebra tensor_algebra.lift
+  free_algebra ring_quot.mk_ring_hom ring_quot.mk_alg_hom ring_quot free_algebra.lift
+  tensor_algebra.ι free_algebra.ι
+/-
+instance fd (S : Type u) [comm_semiring S] {P : Type*} {Q : Type*} [add_comm_group P]
+  [add_comm_group Q] [semimodule R P] [semimodule R Q] :
+  add_comm_group (tensor_product R P Q) :=
+by apply_instance
+
+instance tpow_acg : Π (n : ℕ), Σ (h : add_comm_group (tpow_aux R M n).1), @module R (tpow_aux R M n).1 _ h
+| 0 := ⟨by unfold tpow_aux; apply_instance, by apply_instance⟩
+| (n + 1) := ⟨by {unfold tpow_aux, squeeze_simp, exact @tensor_product.add_comm_group R _ (tpow_aux R M n).1 M (tpow_acg n).1 _ (tpow_acg n).2 _}, by apply_instance⟩
+
+instance tpow_semimodule (R : Type u) [comm_semiring R] (M : Type u)
+  [add_comm_monoid M] [semimodule R M] (n : ℕ) :
+semimodule R (tpow_aux R M n).1 := (tpow_aux R M n).2.2
+
+-/
+
+lemma tpow.induction_on (n : ℕ) {C : Π (n : ℕ), tpow R M n → Prop}
+  (H : ∀ n (f : fin n → M), C n (tpow.mk R M n f))
+  (Ht : ∀ n (x : tpow R M n) (y : M), C n x → C n.succ (tensor_product.mk R _ _ x y))
+  (Hadd : ∀ n (x y : tpow R M n), C n x → C n y → C n (x + y))
+  (Hsmul : ∀ n x (c : R), C n x → C n (c • x)) (x : tpow R M n) : C n x :=
+begin
+  induction n with n hn,
+  have h := Hsmul 0 _ x (H 0 (default _)),
+  convert h,
+  rw algebra.id.smul_eq_mul, exact (mul_one _).symm,
+  apply tensor_product.induction_on x,
+  convert Ht n 0 0 (hn 0),
+  rw linear_map.map_zero,
+  intros y z,
+  exact Ht n y z (hn y),
+  intros y z,
+  exact Hadd n.succ y z,
+end
+
+variables (m n : ℕ)
+
+@[reducible] def talg : Type* := direct_sum ℕ (tpow R M)
+
+def lof_add {m n : ℕ} (f : fin m → M) : multilinear_map R (λ x : fin n, M) (talg R M) :=
+{ to_fun := λ g, direct_sum2.lof R ℕ (tpow R M) (m + n) (tpow.mk' R M (m + n) $ fin.append f g),
+  map_add' := λ g i x y, sorry,
+  map_smul' := sorry }
+
+variables (f : fin m → M) (g : fin n → M)
+
+def mul : talg R M →ₗ[R] talg R M →ₗ[R] talg R M :=
+direct_sum2.to_semimodule R ℕ (talg R M →ₗ[R] talg R M) $
+λ m, tpow.lift R m _ $
+{ to_fun := λ x, direct_sum2.to_semimodule R ℕ _ $ λ n, tpow.lift R n _ $
+    lof_add R M x,
+  map_add' := sorry,
+  map_smul' := sorry }
+
+instance : has_mul (talg R M) :=
+⟨λ x, mul R M x⟩
+
+def talg_mk {n : ℕ} (f : fin n → M) : talg R M :=
+direct_sum2.lof R ℕ (tpow R M) n (tpow.mk' _ _ n f)
+
+instance : has_one (talg R M) :=
+⟨direct_sum2.lof R _ _ 0 1⟩
+
+lemma mul_apply {m n : ℕ} (f : fin m → M) (g : fin n → M) :
+  talg_mk R M f * talg_mk R M g = talg_mk R M (fin.append f g) :=
+begin
+  unfold talg_mk,
+  show mul R M _ _ = _,
+  unfold mul,
+  ext, rw to_semimodule_lof,
+  rw tpow.lift_mk_apply,
+  erw to_semimodule_lof,
+  erw tpow.lift_mk_apply,
+  refl,
+end
+
+lemma zero_eq_mk : talg_mk R M (λ i : fin 1, 0) = 0 :=
+begin
+  unfold talg_mk,
+  unfold tpow.mk',
+  show lof R ℕ (tpow R M) 1 (tpow.mk R M 1 (λ _, 0)) = 0,
+  unfold tpow.mk,
+  rw linear_map.map_zero,
+  rw linear_map.map_zero,
+end
+
+lemma one_eq_mk : talg_mk R M (default (fin 0 → M)) = 1 :=
+rfl
+
+lemma of_tensor_eq_mul {n : ℕ} (x : tpow R M n) (y : M) :
+  direct_sum2.of (tpow R M) n.succ (tensor_product.mk _ _ _ x y) =
+    direct_sum2.of (tpow R M) n x * talg_mk _ _ (λ i : fin 1, y) :=
+begin
+  sorry -- hmmm .___.
+end
+
+lemma talg.mul_assoc (x y z : talg R M) : x * y * z = x * (y * z) :=
+sorry
+
+lemma talg.add_mul (x y z : talg R M) : (x + y) * z = x * z + y * z :=
+begin
+  sorry
+end
+
+lemma talg.mul_one (x : talg R M) : x * 1 = x :=
+begin
+  refine direct_sum2.induction_on x _ _ _,
+  rw ←zero_eq_mk, rw ←one_eq_mk,
+  rw mul_apply,
+  rw fin.append_default,
+  intros i y,
+  refine tpow.induction_on R M _ _ _ _ _ y,
+  intros n f,
+  rw ←one_eq_mk,
+  erw mul_apply _ _,
+  rw fin.append_default,
+  refl,
+  intros n a b h,
+  rw of_tensor_eq_mul _ _ a b,
+  rw talg.mul_assoc,
+  rw ←one_eq_mk,
+  rw mul_apply,
+  rw fin.append_default,
+  intros n a b ha hb,
+  show lof R _ (tpow R M) n (a + b) * 1 = lof R _ (tpow R M) n (a + b),
+  rw linear_map.map_add,
+  rw talg.add_mul,
+  erw ha, erw hb, refl,
+  intros n z c h,
+  show lof R _ (tpow R M) n (c • z) * 1 = lof R _ (tpow R M) n (c • z),
+  rw linear_map.map_smul,
+  show c • of _ _ _ * 1 = c • of _ _ _,
+  conv_rhs {rw ←h},
+  sorry,
+  intros a b ha hb,
+  rw talg.add_mul, rw ha, rw hb,
+end
+
+
+
 variables {R M}
 
 local attribute [instance] free_algebra.pre.has_mul
@@ -171,21 +321,15 @@ begin
   exact Hmul _ _ hy hz,
 end
 
-lemma tpow.induction_on (n : ℕ) {C : tpow R M n → Prop}
-  (H : ∀ (i : fin n → M), C $ tpow.mk R M n i)
-  (Hadd : ∀ x y, C x → C y → C (x + y))
-  (Hsmul : ∀ x (c : R), C x → C (c • x)) (x) : C x :=
+lemma mk_succ_eq {n : ℕ} (i : fin n → M) (x : M) :
+  tpow.mk R M n.succ (fin.snoc i x) = tensor_product.mk R _ _ (tpow.mk R M n i) x :=
 begin
-  induction n with n hn,
-  have h := Hsmul _ x (H (default _)),
-  convert h,
-  rw algebra.id.smul_eq_mul, exact (mul_one _).symm,
-  apply tensor_product.induction_on x,
-  have h := Hsmul _ 0 (H 0),
-  rwa zero_smul at h,
-  intros y z, sorry, sorry,
+  unfold tpow.mk, congr,
+  ext y, unfold fin.snoc, split_ifs,
+  simp only [fin.coe_eq_cast_succ, fin.cast_lt_cast_succ], refl,
+  exfalso, apply h, simpa only [fin.coe_eq_cast_succ] using y.2,
+  rw fin.snoc_mk_apply,
 end
-
 
 theorem inj_of_pow_to_alg (n : ℕ) : (pow_to_alg R M n).ker = ⊥ :=
 begin
@@ -201,10 +345,10 @@ begin
   intros y z h,
   rw tensor_product.lift.tmul at h,
   revert h,
-  refine tpow.induction_on n _ _ _ y,
-  intros i h,
+  refine tpow.induction_on _ _ n _ _ _ _ y,
+  intros i f h,
   erw tpow.lift_mk_apply at h,
   rw multilinear_map.curry_right_apply at h,
-  sorry, sorry, sorry, sorry,
+  sorry, sorry, sorry, sorry, sorry,
 end
 

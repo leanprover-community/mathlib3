@@ -48,7 +48,7 @@ by { simp_rw image_subset_iff, exact iff.rfl }
 
 /-- A set `s ⊆ α` is forward-invariant under `ϕ : τ → α → α` if
     `ϕ t s ⊆ s` for all `t ≥ 0`. -/
-def is_fw_invariant [ordered_add_comm_monoid τ]
+def is_fw_invariant [preorder τ] [has_zero τ]
   (ϕ : τ → α → α) (s : set α): Prop := ∀ {t} (ht : 0 ≤ t) (x ∈ s), ϕ t x ∈ s
 
 end invariant

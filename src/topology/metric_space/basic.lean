@@ -1698,5 +1698,6 @@ end diam
 
 end metric
 
-def set.subinterval.size [preorder α] [metric_space α] {s : set α} (I : set.subinterval s) : ℝ :=
+/-- Size of a `set.subinterval`, defined as the distance between its endpoints. -/
+def set.subinterval.size [preorder α] {s : set α} (I : set.subinterval s) : ℝ :=
 dist I.left I.right

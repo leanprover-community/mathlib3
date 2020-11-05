@@ -360,6 +360,7 @@ namespace subinterval
 
 variables (k)
 
+/-- Midpoint of `[I.left, I.right]`. -/
 protected def midpoint [add_comm_group E] [ring k] [semimodule k E]
   [invertible (2 : k)] [add_torsor E PE] [preorder PE] {s : set PE} (I : subinterval s) : PE :=
 midpoint k I.left I.right

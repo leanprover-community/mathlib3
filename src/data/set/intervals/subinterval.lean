@@ -116,6 +116,9 @@ instance : partial_order (subinterval s) :=
 { le_antisymm := λ I₁ I₂ I₁₂ I₂₁, ext _ _ (le_antisymm I₂₁.1 I₁₂.1) (le_antisymm I₁₂.2 I₂₁.2),
   .. subinterval.preorder }
 
+instance [inhabited s] : inhabited (subinterval s) :=
+⟨⟨↑(default s), ↑(default s), le_rfl, by simp⟩⟩
+
 lemma injective_coe : injective (coe : subinterval s → set α) :=
 λ I₁ I₂ h, le_antisymm (coe_subset_coe.1 h.le) (coe_subset_coe.1 h.ge)
 

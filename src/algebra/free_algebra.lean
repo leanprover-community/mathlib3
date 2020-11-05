@@ -252,6 +252,9 @@ def lift : (X → A) ≃ (free_algebra R X →ₐ[R] A) :=
       change lift_aux R (F ∘ ι R) (quot.mk _ _ * quot.mk _ _) = F (quot.mk _ _ * quot.mk _ _),
       rw [alg_hom.map_mul, alg_hom.map_mul, ha, hb], }, }, }
 
+@[simp]
+def lift_symm_apply (F : free_algebra R X →ₐ[R] A) : (lift R).symm F = F ∘ (ι R) := rfl
+
 variables {R X}
 
 @[simp]
@@ -276,14 +279,15 @@ attribute [irreducible] free_algebra ι lift
 
 @[simp]
 theorem lift_comp_ι (g : free_algebra R X →ₐ[R] A) :
-  lift R ((g : free_algebra R X → A) ∘ (ι R)) = g := by {symmetry, rw ←lift_unique}
+  lift R ((g : free_algebra R X → A) ∘ (ι R)) = g :=
+by { rw ←lift_symm_apply, exact (lift R).apply_symm_apply g }
 
 @[ext]
 theorem hom_ext {f g : free_algebra R X →ₐ[R] A}
   (w : ((f : free_algebra R X → A) ∘ (ι R)) = ((g : free_algebra R X → A) ∘ (ι R))) : f = g :=
 begin
-  have : g = lift R ((g : free_algebra R X → A) ∘ (ι R)), by rw ←lift_unique,
-  rw [this, ←lift_unique, w],
+  rw [←lift_symm_apply, ←lift_symm_apply] at w,
+  exact (lift R).symm.injective w,
 end
 
 /--

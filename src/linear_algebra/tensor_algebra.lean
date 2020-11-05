@@ -79,14 +79,19 @@ lemma ring_quot_mk_alg_hom_free_algebra_ι_eq_ι (m : M) :
 Given a linear map `f : M → A` where `A` is an `R`-algebra, `lift R f` is the unique lift
 of `f` to a morphism of `R`-algebras `tensor_algebra R M → A`.
 -/
-def lift {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A) : tensor_algebra R M →ₐ[R] A :=
-ring_quot.lift_alg_hom R (free_algebra.lift R ⇑f) (λ x y h, by induction h; simp [algebra.smul_def])
+@[simps symm_apply]
+def lift {A : Type*} [semiring A] [algebra R A] : (M →ₗ[R] A) ≃ (tensor_algebra R M →ₐ[R] A) :=
+{ to_fun := ring_quot.lift_alg_hom R ∘ λ f,
+    ⟨free_algebra.lift R ⇑f, λ x y (h : rel R M x y), by induction h; simp [algebra.smul_def]⟩,
+  inv_fun := λ F, F.to_linear_map.comp (ι R),
+  left_inv := λ f, by { ext, simp [ι], },
+  right_inv := λ F, by { ext, simp [ι], } }
 
 variables {R}
 
 @[simp]
 theorem ι_comp_lift {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A) :
-  (lift R f).to_linear_map.comp (ι R) = f := by { ext, simp [lift, ι], }
+  (lift R f).to_linear_map.comp (ι R) = f := (lift R).symm_apply_apply f
 
 @[simp]
 theorem lift_ι_apply {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A) (x) :
@@ -95,27 +100,21 @@ theorem lift_ι_apply {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)
 @[simp]
 theorem lift_unique {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)
   (g : tensor_algebra R M →ₐ[R] A) : g.to_linear_map.comp (ι R) = f ↔ g = lift R f :=
-begin
-  refine ⟨λ hyp, _, λ hyp, by rw [hyp, ι_comp_lift]⟩,
-  ext,
-  rw ←hyp,
-  simp [lift],
-  refl,
-end
+(lift R).symm_apply_eq
 
 attribute [irreducible] tensor_algebra ι lift
 
 @[simp]
 theorem lift_comp_ι {A : Type*} [semiring A] [algebra R A] (g : tensor_algebra R M →ₐ[R] A) :
-  lift R (g.to_linear_map.comp (ι R)) = g := by {symmetry, rw ←lift_unique}
+  lift R (g.to_linear_map.comp (ι R)) = g :=
+by { rw ←lift_symm_apply, exact (lift R).apply_symm_apply g }
 
 @[ext]
 theorem hom_ext {A : Type*} [semiring A] [algebra R A] {f g : tensor_algebra R M →ₐ[R] A}
   (w : f.to_linear_map.comp (ι R) = g.to_linear_map.comp (ι R)) : f = g :=
 begin
-  let h := g.to_linear_map.comp (ι R),
-  have : g = lift R h, by rw ←lift_unique,
-  rw [this, ←lift_unique, w],
+  rw [←lift_symm_apply, ←lift_symm_apply] at w,
+  exact (lift R).symm.injective w,
 end
 
 end tensor_algebra

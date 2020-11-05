@@ -2,14 +2,17 @@
 Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
-
-Definitions and properties of gcd, lcm, and coprime.
 -/
 import data.nat.basic
 
+/-!
+# Definitions and properties of `gcd`, `lcm`, and `coprime`
+
+-/
+
 namespace nat
 
-/- gcd -/
+/-! ### `gcd` -/
 
 theorem gcd_dvd (m n : ℕ) : (gcd m n ∣ m) ∧ (gcd m n ∣ n) :=
 gcd.induction m n
@@ -20,13 +23,17 @@ theorem gcd_dvd_left (m n : ℕ) : gcd m n ∣ m := (gcd_dvd m n).left
 
 theorem gcd_dvd_right (m n : ℕ) : gcd m n ∣ n := (gcd_dvd m n).right
 
-theorem gcd_le_left {m} (n) (h : m > 0) : gcd m n ≤ m := le_of_dvd h $ gcd_dvd_left m n
+theorem gcd_le_left {m} (n) (h : 0 < m) : gcd m n ≤ m := le_of_dvd h $ gcd_dvd_left m n
 
-theorem gcd_le_right (m) {n} (h : n > 0) : gcd m n ≤ n := le_of_dvd h $ gcd_dvd_right m n
+theorem gcd_le_right (m) {n} (h : 0 < n) : gcd m n ≤ n := le_of_dvd h $ gcd_dvd_right m n
 
 theorem dvd_gcd {m n k : ℕ} : k ∣ m → k ∣ n → k ∣ gcd m n :=
 gcd.induction m n (λn _ kn, by rw gcd_zero_left; exact kn)
   (λn m mpos IH H1 H2, by rw gcd_rec; exact IH ((dvd_mod_iff H1).2 H2) H1)
+
+theorem dvd_gcd_iff {m n k : ℕ} : k ∣ gcd m n ↔ k ∣ m ∧ k ∣ n :=
+iff.intro (λ h, ⟨dvd_trans h (gcd_dvd m n).left, dvd_trans h (gcd_dvd m n).right⟩)
+          (λ h, dvd_gcd h.left h.right)
 
 theorem gcd_comm (m n : ℕ) : gcd m n = gcd n m :=
 dvd_antisymm
@@ -60,15 +67,15 @@ gcd.induction n k
 theorem gcd_mul_right (m n k : ℕ) : gcd (m * n) (k * n) = gcd m k * n :=
 by rw [mul_comm m n, mul_comm k n, mul_comm (gcd m k) n, gcd_mul_left]
 
-theorem gcd_pos_of_pos_left {m : ℕ} (n : ℕ) (mpos : m > 0) : gcd m n > 0 :=
+theorem gcd_pos_of_pos_left {m : ℕ} (n : ℕ) (mpos : 0 < m) : 0 < gcd m n :=
 pos_of_dvd_of_pos (gcd_dvd_left m n) mpos
 
-theorem gcd_pos_of_pos_right (m : ℕ) {n : ℕ} (npos : n > 0) : gcd m n > 0 :=
+theorem gcd_pos_of_pos_right (m : ℕ) {n : ℕ} (npos : 0 < n) : 0 < gcd m n :=
 pos_of_dvd_of_pos (gcd_dvd_right m n) npos
 
 theorem eq_zero_of_gcd_eq_zero_left {m n : ℕ} (H : gcd m n = 0) : m = 0 :=
 or.elim (eq_zero_or_pos m) id
-  (assume H1 : m > 0, absurd (eq.symm H) (ne_of_lt (gcd_pos_of_pos_left _ H1)))
+  (assume H1 : 0 < m, absurd (eq.symm H) (ne_of_lt (gcd_pos_of_pos_left _ H1)))
 
 theorem eq_zero_of_gcd_eq_zero_right {m n : ℕ} (H : gcd m n = 0) : n = 0 :=
 by rw gcd_comm at H; exact eq_zero_of_gcd_eq_zero_left H
@@ -129,7 +136,7 @@ by rw [gcd_comm, gcd_gcd_self_right_right]
 @[simp] lemma gcd_gcd_self_left_left (m n : ℕ) : gcd (gcd m n) m = gcd m n :=
 by rw [gcd_comm m n, gcd_gcd_self_left_right]
 
-/- lcm -/
+/-! ### `lcm` -/
 
 theorem lcm_comm (m n : ℕ) : lcm m n = lcm n m :=
 by delta lcm; rw [mul_comm, gcd_comm]
@@ -174,23 +181,17 @@ dvd_antisymm
     (dvd.trans (dvd_lcm_left m n) (dvd_lcm_left (lcm m n) k))
     (lcm_dvd (dvd.trans (dvd_lcm_right m n) (dvd_lcm_left (lcm m n) k)) (dvd_lcm_right (lcm m n) k)))
 
-/- coprime -/
+/-!
+### `coprime`
+
+See also `nat.coprime_of_dvd` and `nat.coprime_of_dvd'` to prove `nat.coprime m n`.
+-/
 
 instance (m n : ℕ) : decidable (coprime m n) := by unfold coprime; apply_instance
 
 theorem coprime.gcd_eq_one {m n : ℕ} : coprime m n → gcd m n = 1 := id
 
 theorem coprime.symm {m n : ℕ} : coprime n m → coprime m n := (gcd_comm m n).trans
-
-theorem coprime_of_dvd {m n : ℕ} (H : ∀ k > 1, k ∣ m → ¬ k ∣ n) : coprime m n :=
-or.elim (eq_zero_or_pos (gcd m n))
-  (λg0, by rw [eq_zero_of_gcd_eq_zero_left g0, eq_zero_of_gcd_eq_zero_right g0] at H; exact false.elim
-    (H 2 dec_trivial (dvd_zero _) (dvd_zero _)))
-  (λ(g1 : 1 ≤ _), eq.symm $ (lt_or_eq_of_le g1).resolve_left $ λg2,
-    H _ g2 (gcd_dvd_left _ _) (gcd_dvd_right _ _))
-
-theorem coprime_of_dvd' {m n : ℕ} (H : ∀ k, k ∣ m → k ∣ n → k ∣ 1) : coprime m n :=
-coprime_of_dvd $ λk kl km kn, not_le_of_gt kl $ le_of_dvd zero_lt_one (H k km kn)
 
 theorem coprime.dvd_of_dvd_mul_right {m n k : ℕ} (H1 : coprime k n) (H2 : k ∣ m * n) : k ∣ m :=
 let t := dvd_gcd (dvd_mul_left k m) H2 in
@@ -219,22 +220,22 @@ theorem coprime.gcd_mul_right_cancel_right {k m : ℕ} (n : ℕ) (H : coprime k 
    gcd m (n * k) = gcd m n :=
 by rw [mul_comm n k, H.gcd_mul_left_cancel_right n]
 
-theorem coprime_div_gcd_div_gcd {m n : ℕ} (H : gcd m n > 0) :
+theorem coprime_div_gcd_div_gcd {m n : ℕ} (H : 0 < gcd m n) :
   coprime (m / gcd m n) (n / gcd m n) :=
 by delta coprime; rw [gcd_div (gcd_dvd_left m n) (gcd_dvd_right m n), nat.div_self H]
 
-theorem not_coprime_of_dvd_of_dvd {m n d : ℕ} (dgt1 : d > 1) (Hm : d ∣ m) (Hn : d ∣ n) :
+theorem not_coprime_of_dvd_of_dvd {m n d : ℕ} (dgt1 : 1 < d) (Hm : d ∣ m) (Hn : d ∣ n) :
   ¬ coprime m n :=
 λ (co : gcd m n = 1),
 not_lt_of_ge (le_of_dvd zero_lt_one $ by rw ←co; exact dvd_gcd Hm Hn) dgt1
 
-theorem exists_coprime {m n : ℕ} (H : gcd m n > 0) :
+theorem exists_coprime {m n : ℕ} (H : 0 < gcd m n) :
   ∃ m' n', coprime m' n' ∧ m = m' * gcd m n ∧ n = n' * gcd m n :=
 ⟨_, _, coprime_div_gcd_div_gcd H,
   (nat.div_mul_cancel (gcd_dvd_left m n)).symm,
   (nat.div_mul_cancel (gcd_dvd_right m n)).symm⟩
 
-theorem exists_coprime' {m n : ℕ} (H : gcd m n > 0) :
+theorem exists_coprime' {m n : ℕ} (H : 0 < gcd m n) :
   ∃ g m' n', 0 < g ∧ coprime m' n' ∧ m = m' * g ∧ n = n' * g :=
 let ⟨m', n', h⟩ := exists_coprime H in ⟨_, m', n', H, h⟩
 
@@ -262,6 +263,20 @@ H.coprime_dvd_right (dvd_mul_left _ _)
 theorem coprime.coprime_mul_right_right {k m n : ℕ} (H : coprime m (n * k)) : coprime m n :=
 H.coprime_dvd_right (dvd_mul_right _ _)
 
+theorem coprime.coprime_div_left {m n a : ℕ} (cmn : coprime m n) (dvd : a ∣ m) : coprime (m / a) n :=
+begin
+  by_cases a_split : (a = 0),
+  { subst a_split,
+    rw zero_dvd_iff at dvd,
+    simpa [dvd] using cmn, },
+  { rcases dvd with ⟨k, rfl⟩,
+    rw nat.mul_div_cancel_left _ (nat.pos_of_ne_zero a_split),
+    exact coprime.coprime_mul_left cmn, },
+end
+
+theorem coprime.coprime_div_right {m n a : ℕ} (cmn : coprime m n) (dvd : a ∣ n) : coprime m (n / a) :=
+(coprime.coprime_div_left cmn.symm dvd).symm
+
 lemma coprime_mul_iff_left {k m n : ℕ} : coprime (m * n) k ↔ coprime m k ∧ coprime n k :=
 ⟨λ h, ⟨coprime.coprime_mul_right h, coprime.coprime_mul_left h⟩,
   λ ⟨h, _⟩, by rwa [coprime, coprime.gcd_mul_left_cancel n h]⟩
@@ -287,7 +302,7 @@ theorem coprime_one_left : ∀ n, coprime 1 n := gcd_one_left
 theorem coprime_one_right : ∀ n, coprime n 1 := gcd_one_right
 
 theorem coprime.pow_left {m k : ℕ} (n : ℕ) (H1 : coprime m k) : coprime (m ^ n) k :=
-nat.rec_on n (coprime_one_left _) (λn IH, IH.mul H1)
+nat.rec_on n (coprime_one_left _) (λn IH, H1.mul IH)
 
 theorem coprime.pow_right {m k : ℕ} (n : ℕ) (H1 : coprime k m) : coprime k (m ^ n) :=
 (H1.symm.pow_left n).symm
@@ -322,8 +337,8 @@ case nat.zero {
   have : k = 0 := eq_zero_of_gcd_eq_zero_left h0, subst this,
   have : m = 0 := eq_zero_of_gcd_eq_zero_right h0, subst this,
   exact ⟨⟨⟨0, dvd_refl 0⟩, ⟨n, dvd_refl n⟩⟩, (zero_mul n).symm⟩ },
-case nat.succ : tmp hpos {
-  replace hpos : gcd k m > 0 := hpos.symm ▸ nat.zero_lt_succ _; clear tmp,
+case nat.succ : tmp {
+  have hpos : 0 < gcd k m := h0.symm ▸ nat.zero_lt_succ _; clear h0 tmp,
   have hd : gcd k m * (k / gcd k m) = k := (nat.mul_div_cancel' (gcd_dvd_left k m)),
   refine ⟨⟨⟨gcd k m,  gcd_dvd_right k m⟩, ⟨k / gcd k m, _⟩⟩, hd.symm⟩,
   apply dvd_of_mul_dvd_mul_left hpos,
@@ -358,10 +373,23 @@ begin
   { simp [eq_zero_of_gcd_eq_zero_right g0] },
   rcases exists_coprime' g0 with ⟨g, a', b', g0', co, rfl, rfl⟩,
   rw [mul_pow, mul_pow] at h,
-  replace h := dvd_of_mul_dvd_mul_right (pos_pow_of_pos _ g0') h,
+  replace h := dvd_of_mul_dvd_mul_right (pow_pos g0' _) h,
   have := pow_dvd_pow a' n0,
   rw [pow_one, (co.pow n n).eq_one_of_dvd h] at this,
   simp [eq_one_of_dvd_one this]
+end
+
+lemma gcd_mul_gcd_of_coprime_of_mul_eq_mul {a b c d : ℕ} (cop : c.coprime d) (h : a * b = c * d) :
+  a.gcd c * b.gcd c = c :=
+begin
+  apply dvd_antisymm,
+  { apply nat.coprime.dvd_of_dvd_mul_right (nat.coprime.mul (cop.gcd_left _) (cop.gcd_left _)),
+    rw ← h,
+    apply mul_dvd_mul (gcd_dvd _ _).1 (gcd_dvd _ _).1 },
+  { rw [gcd_comm a _, gcd_comm b _],
+    transitivity c.gcd (a * b),
+    rw [h, gcd_mul_right_right d c],
+    apply gcd_mul_dvd_mul_gcd }
 end
 
 end nat

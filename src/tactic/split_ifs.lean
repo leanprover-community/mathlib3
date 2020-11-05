@@ -5,6 +5,8 @@ Authors: Gabriel Ebner.
 
 Tactic to split if-then-else-expressions.
 -/
+import tactic.hint
+
 open expr tactic
 
 namespace tactic
@@ -26,6 +28,8 @@ let es := if at_.include_goal then tgt::lctx else lctx,
 return $ find_if_cond $ es.foldr app (default expr)
 
 run_cmd mk_simp_attr `split_if_reduction
+run_cmd add_doc_string `simp_attr.split_if_reduction "Simp set for if-then-else statements"
+
 attribute [split_if_reduction] if_pos if_neg dif_pos dif_neg
 
 meta def reduce_ifs_at (at_ : loc) : tactic unit := do
@@ -81,6 +85,14 @@ ite-expression.
 -/
 meta def split_ifs (at_ : parse location) (names : parse with_ident_list) : tactic unit :=
 tactic.split_ifs names at_
+
+add_hint_tactic "split_ifs"
+
+add_tactic_doc
+{ name := "split_ifs",
+  category := doc_category.tactic,
+  decl_names := [``split_ifs],
+  tags := ["case bashing"] }
 
 end interactive
 

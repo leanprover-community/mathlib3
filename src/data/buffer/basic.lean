@@ -5,10 +5,9 @@ Authors: Simon Hudon
 
 Traversable instance for buffers.
 -/
-
-import data.buffer data.array.lemmas
-import category.traversable.instances data.equiv.basic
-       tactic.ext
+import data.buffer
+import data.array.lemmas
+import control.traversable.instances
 
 namespace buffer
 
@@ -16,7 +15,9 @@ open function
 
 variables {α : Type*} {xs : list α}
 
-@[extensionality]
+instance : inhabited (buffer α) := ⟨nil⟩
+
+@[ext]
 lemma ext : ∀ {b₁ b₂ : buffer α}, to_list b₁ = to_list b₂ → b₁ = b₂
 | ⟨n₁, a₁⟩ ⟨n₂, a₂⟩ h := begin
   simp [to_list, to_array] at h,
@@ -41,6 +42,8 @@ lemma append_list_mk_buffer  :
 by ext x : 1; simp [array.to_buffer,to_list,to_list_append_list];
    induction xs; [refl,skip]; simp [to_array]; refl
 
+/-- The natural equivalence between lists and buffers, using
+`list.to_buffer` and `buffer.to_list`. -/
 def list_equiv_buffer (α : Type*) : list α ≃ buffer α :=
 begin
   refine { to_fun := list.to_buffer, inv_fun := buffer.to_list, .. };

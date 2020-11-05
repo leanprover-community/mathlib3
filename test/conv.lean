@@ -54,5 +54,6 @@ end
 
 example (x : ℕ) : 22 + 7 * x + 3 * 8 = 7 * x + 46 :=
 begin
+  simp [add_comm, add_left_comm],
   conv { norm_num, },
 end

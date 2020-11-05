@@ -1,63 +1,84 @@
 /-
 Copyright (c) 2019 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Patrick Massot
+Authors: Keeley Hoek, Patrick Massot
 -/
-
 import tactic.monotonicity
-import order.basic
 
-open tactic interactive (parse) interactive (loc.ns)
-     interactive.types (texpr location) lean.parser (tk)
+namespace tactic
 
-local postfix `?`:9001 := optional
-
-meta def apply_fun_name (e : pexpr) (h : name) (M : option pexpr) : tactic unit :=
+/-- Apply the function `f` given by `e : pexpr` to the local hypothesis `hyp`, which must either be
+of the form `a = b` or `a ≤ b`, replacing the type of `hyp` with `f a = f b` or `f a ≤ f b`. If
+`hyp` names an inequality then a new goal `monotone f` is created, unless the name of a proof of
+this fact is passed as the optional argument `mono_lem`, or the `mono` tactic can prove it.
+-/
+meta def apply_fun_to_hyp (e : pexpr) (mono_lem : option pexpr) (hyp : expr) : tactic unit :=
 do {
-  H ← get_local h,
-  t ← infer_type H,
-  match t with
+  t ← infer_type hyp,
+  prf ← match t with
   | `(%%l = %%r) := do
       ltp ← infer_type l,
       mv ← mk_mvar,
-      to_expr ``(congr_arg (%%e : %%ltp → %%mv) %%H) >>= note h,
-      clear H
+      to_expr ``(congr_arg (%%e : %%ltp → %%mv) %%hyp)
   | `(%%l ≤ %%r) := do
-       if M.is_some then do
-         Hmono ← M >>= tactic.i_to_expr,
-         to_expr ``(%%Hmono %%H) >>= note h >> skip
-       else do {
-         n ← get_unused_name `mono,
-         to_expr ``(monotone %%e) >>= assert n,
-         do { intro_lst [`x, `y, `h], `[dsimp, mono], skip } <|> swap,
-         Hmono ← get_local n,
-         to_expr ``(%%Hmono %%H) >>= note h >> skip },
-       clear H
-  | _ := skip
+       Hmono ← match mono_lem with
+               | some mono_lem :=
+                 tactic.i_to_expr mono_lem
+               | none := do
+                 n ← get_unused_name `mono,
+                 to_expr ``(monotone %%e) >>= assert n,
+                 do { intro_lst [`x, `y, `h], `[dsimp, mono], skip } <|> swap,
+                 get_local n
+               end,
+       to_expr ``(%%Hmono %%hyp)
+  | _ := fail ("failed to apply " ++ to_string e ++ " at " ++ to_string hyp.local_pp_name)
   end,
+  clear hyp,
+  hyp ← note hyp.local_pp_name none prf,
   -- let's try to force β-reduction at `h`
-  try (tactic.interactive.dsimp tt [] [] (loc.ns [h])
-         {eta := false, beta := true})
-} <|> fail ("failed to apply " ++ to_string e ++ " at " ++ to_string h)
+  try $ tactic.dsimp_hyp hyp simp_lemmas.mk [] { eta := false, beta := true }
+}
 
-namespace tactic.interactive
-/-- Apply a function to some local assumptions which are either equalities or
-    inequalities. For instance, if the context contains `h : a = b` and
-    some function `f` then `apply_fun f at h` turns `h` into `h : f a = f b`.
-    When the assumption is an inequality `h : a ≤ b`, a side goal `monotone f`
-    is created, unless this condition is provided using
-    `apply_fun f at h using P` where `P : monotone f`, or the `mono` tactic can
-    prove it. -/
-meta def apply_fun (q : parse texpr) (locs : parse location)
-  (lem : parse (tk "using" *> texpr)?) : tactic unit :=
---do e ← tactic.i_to_expr q,
-   match locs with
-   | (loc.ns l) := do
-      l.mmap' (λ l, match l with
-      | some h :=  apply_fun_name q h lem
-      | none := skip
-      end)
-   | wildcard := do ctx ← local_context,
-                    ctx.mmap' (λ h, apply_fun_name q h.local_pp_name lem)
-   end
-end tactic.interactive
+namespace interactive
+
+setup_tactic_parser
+
+
+/--
+Apply a function to some local assumptions which are either equalities
+or inequalities. For instance, if the context contains `h : a = b` and
+some function `f` then `apply_fun f at h` turns `h` into
+`h : f a = f b`. When the assumption is an inequality `h : a ≤ b`, a side
+goal `monotone f` is created, unless this condition is provided using
+`apply_fun f at h using P` where `P : monotone f`, or the `mono` tactic
+can prove it.
+
+Typical usage is:
+```lean
+open function
+
+example (X Y Z : Type) (f : X → Y) (g : Y → Z) (H : injective $ g ∘ f) :
+  injective f :=
+begin
+  intros x x' h,
+  apply_fun g at h,
+  exact H h
+end
+```
+ -/
+meta def apply_fun (q : parse texpr) (locs : parse location) (lem : parse (tk "using" *> texpr)?)
+  : tactic unit :=
+match locs with
+| (loc.ns l) := l.mmap' $ option.mmap $ λ h, get_local h >>= apply_fun_to_hyp q lem
+| wildcard   := local_context >>= list.mmap' (apply_fun_to_hyp q lem)
+end
+
+add_tactic_doc
+{ name       := "apply_fun",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.apply_fun],
+  tags       := ["context management"] }
+
+end interactive
+
+end tactic

@@ -5,7 +5,9 @@ Author: Mario Carneiro
 
 Coinductive formalization of unbounded computations.
 -/
-import data.stream logic.relator tactic.basic
+import data.stream
+import tactic.basic
+
 universes u v w
 
 /-
@@ -27,7 +29,7 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 /-- `return a` is the computation that immediately terminates with result `a`. -/
 def return (a : α) : computation α := ⟨stream.const (some a), λn a', id⟩
 
-instance : has_coe α (computation α) := ⟨return⟩
+instance : has_coe_t α (computation α) := ⟨return⟩ -- note [use has_coe_t]
 
 /-- `think c` is the computation that delays for one "tick" and then performs
   computation `c`. -/
@@ -54,6 +56,8 @@ def tail (c : computation α) : computation α :=
 /-- `empty α` is the computation that never returns, an infinite sequence of
   `think`s. -/
 def empty (α) : computation α := ⟨stream.const none, λn a', id⟩
+
+instance : inhabited (computation α) := ⟨empty _⟩
 
 /-- `run_for c n` evaluates `c` for `n` steps and returns the result, or `none`
   if it did not terminate after `n` steps. -/
@@ -167,7 +171,7 @@ def rmap (f : β → γ) : α ⊕ β → α ⊕ γ
 | (sum.inr b) := sum.inr (f b)
 attribute [simp] lmap rmap
 
-@[simp] def corec_eq (f : β → α ⊕ β) (b : β) :
+@[simp] lemma corec_eq (f : β → α ⊕ β) (b : β) :
   destruct (corec f b) = rmap (corec f) (f b) :=
 begin
   dsimp [corec, destruct],
@@ -333,7 +337,7 @@ get_eq_of_mem _ $ (thinkN_mem _).2 (get_mem _)
 theorem get_promises : s ~> get s := λ a, get_eq_of_mem _
 
 theorem mem_of_promises {a} (p : s ~> a) : a ∈ s :=
-by unfreezeI; cases h with a' h; rw p h; exact h
+by { casesI h with a' h, rw p h, exact h }
 
 theorem get_eq_of_promises {a} : s ~> a → get s = a :=
 get_eq_of_mem _ ∘ mem_of_promises _
@@ -419,7 +423,7 @@ theorem results_thinkN {s : computation α} {a m} :
 | (n+1) h := results_think (results_thinkN n h)
 
 theorem results_thinkN_ret (a : α) (n) : results (thinkN (return a) n) a n :=
-by have := results_thinkN n (results_ret a); rwa zero_add at this
+by have := results_thinkN n (results_ret a); rwa nat.zero_add at this
 
 @[simp] theorem length_thinkN (s : computation α) [h : terminates s] (n) :
   length (thinkN s n) = length s + n :=
@@ -493,14 +497,15 @@ def join (c : computation (computation α)) : computation α := c >>= id
 @[simp] theorem map_think (f : α → β) : ∀ s, map f (think s) = think (map f s)
 | ⟨s, al⟩ := by apply subtype.eq; dsimp [think, map]; rw stream.map_cons
 
-@[simp] theorem destruct_map (f : α → β) (s) : destruct (map f s) = lmap f (rmap (map f) (destruct s)) :=
+@[simp]
+theorem destruct_map (f : α → β) (s) : destruct (map f s) = lmap f (rmap (map f) (destruct s)) :=
 by apply s.cases_on; intro; simp
 
 @[simp] theorem map_id : ∀ (s : computation α), map id s = s
 | ⟨f, al⟩ := begin
   apply subtype.eq; simp [map, function.comp],
   have e : (@option.rec α (λ_, option α) none some) = id,
-  { funext x, cases x; refl },
+  { ext ⟨⟩; refl },
   simp [e, stream.map_id]
 end
 
@@ -510,7 +515,7 @@ theorem map_comp (f : α → β) (g : β → γ) :
   apply subtype.eq; dsimp [map],
   rw stream.map_map,
   apply congr_arg (λ f : _ → option γ, stream.map f s),
-  funext x, cases x with x; refl
+  ext ⟨⟩; refl
 end
 
 @[simp] theorem ret_bind (a) (f : α → computation β) :
@@ -903,7 +908,7 @@ def lift_rel_aux (R : α → β → Prop)
 | (sum.inr ca) (sum.inr cb) := C ca cb
 attribute [simp] lift_rel_aux
 
-@[simp] def lift_rel_aux.ret_left (R : α → β → Prop)
+@[simp] lemma lift_rel_aux.ret_left (R : α → β → Prop)
   (C : computation α → computation β → Prop) (a cb) :
   lift_rel_aux R C (sum.inl a) (destruct cb) ↔ ∃ {b}, b ∈ cb ∧ R a b :=
 begin
@@ -919,7 +924,7 @@ theorem lift_rel_aux.swap (R : α → β → Prop) (C) (a b) :
   lift_rel_aux (function.swap R) (function.swap C) b a = lift_rel_aux R C a b :=
 by cases a with a ca; cases b with b cb; simp only [lift_rel_aux]
 
-@[simp] def lift_rel_aux.ret_right (R : α → β → Prop)
+@[simp] lemma lift_rel_aux.ret_right (R : α → β → Prop)
   (C : computation α → computation β → Prop) (b ca) :
   lift_rel_aux R C (destruct ca) (sum.inl b) ↔ ∃ {a}, a ∈ ca ∧ R a b :=
 by rw [←lift_rel_aux.swap, lift_rel_aux.ret_left]

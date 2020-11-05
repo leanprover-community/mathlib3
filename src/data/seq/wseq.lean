@@ -3,7 +3,8 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
-import data.seq.seq data.seq.computation data.list.basic data.dlist
+import data.seq.seq
+import data.dlist
 universes u v w
 
 /-
@@ -44,6 +45,8 @@ instance coe_stream : has_coe (stream α) (wseq α) := ⟨of_stream⟩
 
 /-- The empty weak sequence -/
 def nil : wseq α := seq.nil
+
+instance : inhabited (wseq α) := ⟨nil⟩
 
 /-- Prepend an element to a weak sequence -/
 def cons (a : α) : wseq α → wseq α := seq.cons (some a)
@@ -481,7 +484,8 @@ end
 @[simp] theorem flatten_think (c : computation (wseq α)) : flatten c.think = think (flatten c) :=
 seq.destruct_eq_cons $ by simp [flatten, think]
 
-@[simp] theorem destruct_flatten (c : computation (wseq α)) : destruct (flatten c) = c >>= destruct :=
+@[simp]
+theorem destruct_flatten (c : computation (wseq α)) : destruct (flatten c) = c >>= destruct :=
 begin
   refine computation.eq_of_bisim (λc1 c2, c1 = c2 ∨
     ∃ c, c1 = destruct (flatten c) ∧ c2 = computation.bind c destruct) _ (or.inr ⟨c, rfl, rfl⟩),
@@ -551,9 +555,8 @@ by { simp [think, join], unfold functor.map, simp [join, cons, append] }
 theorem destruct_tail (s : wseq α) :
   destruct (tail s) = destruct s >>= tail.aux :=
 begin
-  dsimp [tail], simp, rw [← bind_pure_comp_eq_map, is_lawful_monad.bind_assoc],
-  apply congr_arg, funext o,
-  rcases o with _|⟨a, s⟩;
+  simp [tail], rw [← bind_pure_comp_eq_map, is_lawful_monad.bind_assoc],
+  apply congr_arg, ext1 (_|⟨a, s⟩);
   apply (@pure_bind computation _ _ _ _ _ _).trans _; simp
 end
 
@@ -628,14 +631,17 @@ begin
   contradiction
 end⟩
 
-theorem nth_terminates_le {s : wseq α} {m n} (h : m ≤ n) : terminates (nth s n) → terminates (nth s m) :=
+theorem nth_terminates_le {s : wseq α} {m n} (h : m ≤ n) :
+  terminates (nth s n) → terminates (nth s m) :=
 by induction h with m' h IH; [exact id,
   exact λ T, IH (@head_terminates_of_head_tail_terminates _ _ T)]
 
-theorem head_terminates_of_nth_terminates {s : wseq α} {n} : terminates (nth s n) → terminates (head s) :=
+theorem head_terminates_of_nth_terminates {s : wseq α} {n} :
+  terminates (nth s n) → terminates (head s) :=
 nth_terminates_le (nat.zero_le n)
 
-theorem destruct_terminates_of_nth_terminates {s : wseq α} {n} (T : terminates (nth s n)) : terminates (destruct s) :=
+theorem destruct_terminates_of_nth_terminates {s : wseq α} {n} (T : terminates (nth s n)) :
+  terminates (destruct s) :=
 (head_terminates_iff _).1 $ head_terminates_of_nth_terminates T
 
 theorem mem_rec_on {C : wseq α → Prop} {a s} (M : a ∈ s)
@@ -1000,7 +1006,7 @@ theorem map_comp (f : α → β) (g : β → γ) (s : wseq α) :
 begin
   dsimp [map], rw ←seq.map_comp,
   apply congr_fun, apply congr_arg,
-  funext o, cases o; refl
+  ext ⟨⟩; refl
 end
 
 theorem mem_map (f : α → β) {a : α} {s : wseq α} : a ∈ s → f a ∈ map f s :=
@@ -1048,7 +1054,7 @@ begin
   apply eq_of_bisim (λ c1 c2, ∃ s, c1 = destruct (map f s) ∧
     c2 = computation.map (option.map (prod.map f (map f))) (destruct s)),
   { intros c1 c2 h, cases h with s h, rw [h.left, h.right],
-    apply s.cases_on _ (λ a s, _) (λ s, _); simp; simp,
+    apply s.cases_on _ (λ a s, _) (λ s, _); simp,
     exact ⟨s, rfl, rfl⟩ },
   { exact ⟨s, rfl, rfl⟩ }
 end
@@ -1084,8 +1090,8 @@ begin
   apply eq_of_bisim (λ c1 c2, ∃ s t, c1 = destruct (append s t) ∧
     c2 = (destruct s).bind (destruct_append.aux t)) _ ⟨s, t, rfl, rfl⟩,
   intros c1 c2 h, rcases h with ⟨s, t, h⟩, rw [h.left, h.right],
-  apply s.cases_on _ (λ a s, _) (λ s, _); simp; simp,
-  { apply t.cases_on _ (λ b t, _) (λ t, _); simp; simp,
+  apply s.cases_on _ (λ a s, _) (λ s, _); simp,
+  { apply t.cases_on _ (λ b t, _) (λ t, _); simp,
     { refine ⟨nil, t, _, _⟩; simp } },
   { exact ⟨s, t, rfl, rfl⟩ }
 end
@@ -1102,7 +1108,7 @@ begin
   intros c1 c2 h, exact match c1, c2, h with
   | _, _, (or.inl $ eq.refl c) := by cases c.destruct; simp
   | _, _, or.inr ⟨S, rfl, rfl⟩ := begin
-    apply S.cases_on _ (λ s S, _) (λ S, _); simp; simp,
+    apply S.cases_on _ (λ s S, _) (λ S, _); simp,
     { refine or.inr ⟨S, rfl, rfl⟩ }
   end end
 end
@@ -1226,7 +1232,7 @@ begin
   { exact λ c1 c2 h, match c1, c2, h with
     | ._, ._, ⟨s, rfl, rfl⟩ := begin
       clear h _match,
-      apply s.cases_on _ (λ a s, _) (λ s, _); simp [ret]; simp [ret],
+      apply s.cases_on _ (λ a s, _) (λ s, _); simp [ret],
       { refine ⟨_, ret_mem _, _⟩, simp },
       { exact ⟨s, rfl, rfl⟩ }
     end end },
@@ -1248,9 +1254,9 @@ begin
   intros c1 c2 h,
   exact match c1, c2, h with ._, ._, ⟨s, S, T, rfl, rfl⟩ := begin
     clear _match h h,
-    apply wseq.cases_on s _ (λ a s, _) (λ s, _); simp; simp,
-    { apply wseq.cases_on S _ (λ s S, _) (λ S, _); simp; simp,
-      { apply wseq.cases_on T _ (λ s T, _) (λ T, _); simp; simp,
+    apply wseq.cases_on s _ (λ a s, _) (λ s, _); simp,
+    { apply wseq.cases_on S _ (λ s S, _) (λ S, _); simp,
+      { apply wseq.cases_on T _ (λ s T, _) (λ T, _); simp,
         { refine ⟨s, nil, T, _, _⟩; simp },
         { refine ⟨nil, nil, T, _, _⟩; simp } },
       { exact ⟨s, S, T, rfl, rfl⟩ },
@@ -1277,8 +1283,8 @@ begin
       s2 = append s (join (map (map f) S))),
   { intros s1 s2 h,
     exact match s1, s2, h with ._, ._, ⟨s, S, rfl, rfl⟩ := begin
-      apply wseq.cases_on s _ (λ a s, _) (λ s, _); simp; simp,
-      { apply wseq.cases_on S _ (λ s S, _) (λ S, _); simp; simp,
+      apply wseq.cases_on s _ (λ a s, _) (λ s, _); simp,
+      { apply wseq.cases_on S _ (λ s S, _) (λ S, _); simp,
         { exact ⟨map f s, S, rfl, rfl⟩ },
         { refine ⟨nil, S, _, _⟩; simp } },
       { exact ⟨_, _, rfl, rfl⟩ },
@@ -1303,9 +1309,9 @@ begin
   intros c1 c2 h,
   exact match c1, c2, h with ._, ._, ⟨s, S, SS, rfl, rfl⟩ := begin
     clear _match h h,
-    apply wseq.cases_on s _ (λ a s, _) (λ s, _); simp; simp,
-    { apply wseq.cases_on S _ (λ s S, _) (λ S, _); simp; simp,
-      { apply wseq.cases_on SS _ (λ S SS, _) (λ SS, _); simp; simp,
+    apply wseq.cases_on s _ (λ a s, _) (λ s, _); simp,
+    { apply wseq.cases_on S _ (λ s S, _) (λ S, _); simp,
+      { apply wseq.cases_on SS _ (λ S SS, _) (λ SS, _); simp,
         { refine ⟨nil, S, SS, _, _⟩; simp },
         { refine ⟨nil, nil, SS, _, _⟩; simp } },
       { exact ⟨s, S, SS, rfl, rfl⟩ },

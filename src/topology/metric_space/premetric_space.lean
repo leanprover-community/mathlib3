@@ -4,6 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Premetric spaces.
 
 Author: Sébastien Gouëzel
+-/
+import topology.metric_space.basic
+
+/-!
+# Premetric spaces
 
 Metric spaces are often defined as quotients of spaces endowed with a "distance"
 function satisfying the triangular inequality, but for which `dist x y = 0` does
@@ -12,7 +17,6 @@ not imply x = y. We call such a space a premetric space.
 is canonically a metric space.
 -/
 
-import topology.metric_space.basic tactic.linarith
 noncomputable theory
 
 universes u v

@@ -3,11 +3,10 @@ Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Simon Hudon
 -/
-import tactic.monotonicity tactic.norm_num
-
+import tactic.monotonicity
+import tactic.norm_num
 import algebra.ordered_ring
-
-import data.list.basic
+import data.list.defs
 
 open list tactic tactic.interactive
 
@@ -22,7 +21,10 @@ example
   (h : 3 ≤ (4 : ℤ))
   (h' : 5 ≤ (6 : ℤ))
 : (1 + 3 + 2) - 6 ≤ (4 + 2 + 1 : ℤ) - 5 :=
-by ac_mono
+begin
+  ac_mono,
+  mono,
+end
 
 example
   (h : 3 ≤ (4 : ℤ))
@@ -285,7 +287,7 @@ example (x y z k m n i j : ℕ)
 : (m + x + n + i) * z + k = z * (j + n + m + y) + k :=
 begin
   ac_mono^3,
-  simp [h₁],
+  cc
 end
 
 example (x y z k m n i j : ℕ)
@@ -301,7 +303,7 @@ example (x y z k m n i j : ℕ)
 : (m + x + n + i) * z + k = z * (j + n + m + y) + k :=
 begin
   ac_mono*,
-  simp [h₁],
+  cc,
 end
 
 example (x y : ℕ)
@@ -403,7 +405,7 @@ begin
   exact 3
 end
 
-example {α} [decidable_linear_order α]
+example {α} [linear_order α]
   (a b c d e : α) :
   max a b ≤ e → b ≤ e :=
 by { mono, apply le_max_right }

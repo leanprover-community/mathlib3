@@ -546,7 +546,8 @@ end prod_functor
 section prod_comparison
 variables {C} [has_binary_products C]
 
-variables {D : Type u₂} [category.{v} D]
+universe v₂
+variables {D : Type u₂} [category.{v₂} D]
 variables (F : C ⥤ D) {A A' B B' : C}
 variables [has_binary_product (F.obj A) (F.obj B)] [has_binary_product (F.obj A') (F.obj B')]
 /--

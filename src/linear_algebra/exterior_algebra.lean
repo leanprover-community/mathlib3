@@ -65,11 +65,10 @@ namespace exterior_algebra
 
 variables {M}
 
-instance ring {S : Type*} [comm_ring S] [semimodule S M] : ring (exterior_algebra S M) :=
-begin
-  unfold exterior_algebra,
-  convert ring_quot.ring (exterior_algebra.rel S M),
-end
+-- typeclass resolution times out here, so we give it a hand
+instance {S : Type*} [comm_ring S] [semimodule S M] : ring (exterior_algebra S M) :=
+let i : ring (tensor_algebra S M) := infer_instance in
+@ring_quot.ring (tensor_algebra S M) i (exterior_algebra.rel S M)
 
 /--
 The canonical linear map `M →ₗ[R] exterior_algebra R M`.

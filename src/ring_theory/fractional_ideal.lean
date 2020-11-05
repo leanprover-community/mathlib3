@@ -686,21 +686,19 @@ lemma mem_div_iff_of_nonzero {I J : fractional_ideal g} (h : J ≠ 0) {x} :
   x ∈ I / J ↔ ∀ y ∈ J, x * y ∈ I :=
 by { rw div_nonzero h, exact submodule.mem_div_iff_forall_mul_mem }
 
-lemma div_mul_inv { I J : fractional_ideal g } (h: J ≠ 0) : I / J = I * ((1 : fractional_ideal g) / J) :=
+lemma mul_one_div_le_one {I : fractional_ideal g} : I * (1 / I) ≤ 1 :=
 begin
+sorry
+end
+
+lemma le_self_mul_one_div {I : fractional_ideal g} (hI : I ≤ 1) :
+  I ≤ I * (1 / I) :=
+begin
+have hI_coe : (↑I : submodule R₁ g.codomain) ≤ 1,
 sorry,
--- apply div_eq_mul_one_div I J,
-end
-
-lemma inv_inv {J : fractional_ideal g} (h : J ≠ 0): 1 / (1 / J) = J :=
-begin sorry,
-  -- rw ← inv_eq, rw ← inv_eq, apply inv_inv',
-  -- apply div_div_eq_mul_div (1 : fractional_ideal g) (1 : fractional_ideal g) J,
-end
-
-lemma nonzero_inv_of_nonzero {J : fractional_ideal g} (h : J ≠ 0): (1 / J) ≠ 0 :=
-begin
-  sorry,
+suffices h_incl_coe : (↑I : submodule R₁ g.codomain) ≤ ↑I * (1 / ↑I),
+sorry,
+from submodule.le_self_mul_one_div hI_coe,
 end
 
 lemma le_div_iff_of_nonzero {I J J' : fractional_ideal g} (hJ' : J' ≠ 0) :
@@ -1002,13 +1000,18 @@ begin
   apply exists_eq_span_singleton_mul I,
   cases hhJ with h_nzd hdJ,
   have h_gd : (g.to_map d) ≠ 0,
-  apply mt((ring_hom.injective_iff g.to_map).mp (fraction_map.injective g) d) h_nzd,
+    from mt((ring_hom.injective_iff g.to_map).mp (fraction_map.injective g) d) h_nzd,
+  have h_spand : span_singleton (g.to_map d) ≠ (0 : fractional_ideal g),
+  apply (not_congr span_singleton_eq_zero_iff).mpr, assumption,
   replace hdJ : I * (span_singleton (g.to_map d)) ≤ (J : fractional_ideal g),
-  { have h_spand : span_singleton (g.to_map d) ≠ (0 : fractional_ideal g),
-    { apply (not_congr span_singleton_eq_zero_iff).mpr, from h_gd },
-    have hinvd : I ≤ J / span_singleton (g.to_map d),
-    { rw [div_mul_inv h_spand, ← inv_eq, mul_comm, span_singleton_inv h_gd], from le_of_eq hdJ },
-    apply (le_div_iff_mul_le h_spand).mp, exact hinvd },
+  { have hinvd : I ≤ J / span_singleton (g.to_map d),
+    suffices hinvd_eq : I = J / span_singleton (g.to_map d),
+    { from le_of_eq hinvd_eq },
+    { simp * at *, rw [mul_comm, ← span_singleton_inv h_gd],
+      -- rw ← @division_def _ _ ↑J (span_singleton (g.to_map d))
+          sorry },
+  replace hdJ : I * span_singleton (g.to_map d) ≤ J,
+  apply (le_div_iff_mul_le h_spand).mp, assumption' },
   replace hdJ : (I * span_singleton (g.to_map d)).val ≤ (g.coe_submodule J), from hdJ,
   have h_noeth_dI : is_noetherian R₁ (I * span_singleton (g.to_map d)).val,
   suffices h_noeth_J : is_noetherian R₁ J,

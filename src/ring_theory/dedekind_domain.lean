@@ -261,28 +261,20 @@ lemma inv_of_maximal_not_top (hR : is_dedekind_domain R) (hM : ideal.is_maximal 
 begin sorry,
 end
 
-#check inv_of_maximal_not_top
-
 lemma maximal_ideal_inv_of_dedekind (hR : is_dedekind_domain R) (hM : ideal.is_maximal M) :
   is_unit (M : fractional_ideal f) :=
 begin
   have hnz_M : M ≠ 0, apply (lt_iff_le_and_ne.mp (ideal.bot_lt_of_maximal M hR.1) ).2.symm,
-  have hnz_Mf : (↑M : fractional_ideal f) ≠ (0 : fractional_ideal f),
-  apply fractional_ideal.coe_nonzero_of_nonzero.mp hnz_M,
-  have h_MfinR : ↑M ≤ (1 : fractional_ideal f), apply fractional_ideal.coe_ideal_le_one,
-  have hM_inclMinv : (↑M : fractional_ideal f) ≤ (↑M : fractional_ideal f) * (1 / ↑M : fractional_ideal f),
-  { rw ← fractional_ideal.div_mul_inv,
-    apply (fractional_ideal.le_div_iff_mul_le hnz_Mf).mpr (fractional_ideal.mul_self_le_self h_MfinR),
-    assumption },
+  have hnz_Mf : (↑M : fractional_ideal f) ≠ (⊥ : fractional_ideal f),
+  apply (fractional_ideal.coe_nonzero_of_nonzero _).mp hnz_M, tauto,
+  have h_MfinR : (↑M : fractional_ideal f) ≤ (1 : fractional_ideal f),
+  apply fractional_ideal.coe_ideal_le_one,
+  have hM_inclMinv : (↑M : fractional_ideal f) ≤ (↑M : fractional_ideal f) * (1 / (↑M : fractional_ideal f)),
+  from fractional_ideal.le_self_mul_one_div h_MfinR,
   have h_self : (↑M : fractional_ideal f) ≤ (1 : fractional_ideal f) * ↑M,
   ring, exact le_refl ↑M,
   have hMMinv_inclR : ↑M * (1 / ↑M) ≤ (1 : fractional_ideal f),
-  { rw ← fractional_ideal.inv_inv hnz_Mf at h_self {occs := occurrences.pos [2]},
-    rw ← fractional_ideal.div_mul_inv (fractional_ideal.nonzero_inv_of_nonzero hnz_Mf) at h_self,
-    apply (@fractional_ideal.le_div_iff_mul_le _ _ _ _ _  (↑M : fractional_ideal f)
-      (1 : fractional_ideal f) ((1 : fractional_ideal f) / ↑M : fractional_ideal f)
-      (fractional_ideal.nonzero_inv_of_nonzero hnz_Mf)).mp,
-    assumption },
+    from fractional_ideal.mul_one_div_le_one,
   suffices hprod : ↑M * ((1: fractional_ideal f) / ↑M) = (1 : fractional_ideal f),
   apply is_unit_of_mul_eq_one ↑M ((1 : fractional_ideal f) / ↑M) hprod,
   obtain ⟨I, hI⟩ : ∃ (I : ideal R), ↑I = ↑M * ((1 : fractional_ideal f) / ↑M),

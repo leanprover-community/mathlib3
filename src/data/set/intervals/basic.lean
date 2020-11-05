@@ -328,6 +328,14 @@ lemma Ici_inter_Iio : Ici a ∩ Iio b = Ico a b := rfl
 lemma Ioi_inter_Iic : Ioi a ∩ Iic b = Ioc a b := rfl
 lemma Ioi_inter_Iio : Ioi a ∩ Iio b = Ioo a b := rfl
 
+lemma Icc_of_Ioo (x ∈ Ioo a b) : (x ∈ Icc a b) := Ioo_subset_Icc_self H
+lemma Ico_of_Ioo (x ∈ Ioo a b) : (x ∈ Ico a b) := Ioo_subset_Ico_self H
+lemma Ioc_of_Ioo (x ∈ Ioo a b) : (x ∈ Ioc a b) := Ioo_subset_Ioc_self H
+lemma Icc_of_Ico (x ∈ Ico a b) : (x ∈ Icc a b) := Ico_subset_Icc_self H
+lemma Icc_of_Ioc (x ∈ Ioc a b) : (x ∈ Icc a b) := Ioc_subset_Icc_self H
+lemma Ici_of_Ioi (x ∈ Ioi a) : (x ∈ Ici a) := Ioi_subset_Ici_self H
+lemma Iic_of_Iio (x ∈ Iio a) : (x ∈ Iic a) := Iio_subset_Iic_self H
+
 end intervals
 
 section partial_order

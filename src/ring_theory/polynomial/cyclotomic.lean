@@ -163,15 +163,15 @@ begin
 end
 
 /-- If there is a primitive `n`-th root of unity in `K`, then
-`X ^ n - 1 = ∏ (cyclotomic' i K)`, where `i` divides `n`. -/
-lemma X_pow_sub_one_eq_prod_cyclotomic' {ζ : K} {n : ℕ} (hpos : 0 < n) (h : is_primitive_root ζ n) :
-  X ^ n - 1 = ∏ i in nat.divisors n, cyclotomic' i K :=
+`∏ i in nat.divisors n, cyclotomic' i K = X ^ n - 1`. -/
+lemma prod_cyclotomic'_eq_X_pow_sub_one {ζ : K} {n : ℕ} (hpos : 0 < n) (h : is_primitive_root ζ n) :
+  ∏ i in nat.divisors n, cyclotomic' i K = X ^ n - 1 :=
 begin
   rw [X_pow_sub_one_eq_prod hpos h],
   have rwcyc : ∀ i ∈ nat.divisors n, cyclotomic' i K = ∏ μ in primitive_roots i K, (X - C μ),
   { intros i hi,
     simp only [cyclotomic'] },
-  conv_rhs { apply_congr,
+  conv_lhs { apply_congr,
              skip,
              simp [rwcyc, H] },
   rw ← finset.prod_bind,
@@ -188,7 +188,7 @@ end
 lemma cyclotomic'_eq_X_pow_sub_one_div {ζ : K} {n : ℕ} (hpos: 0 < n) (h : is_primitive_root ζ n) :
   cyclotomic' n K = (X ^ n - 1) /ₘ (∏ i in nat.proper_divisors n, cyclotomic' i K) :=
 begin
-  rw [X_pow_sub_one_eq_prod_cyclotomic' hpos h,
+  rw [←prod_cyclotomic'_eq_X_pow_sub_one hpos h,
   nat.divisors_eq_proper_divisors_insert_self_of_pos hpos,
   finset.prod_insert nat.proper_divisors.not_self_mem],
   have prod_monic : (∏ i in nat.proper_divisors n, cyclotomic' i K).monic,
@@ -239,7 +239,7 @@ begin
   let Q₁ : polynomial ℤ := (X ^ k - 1) /ₘ B₁,
   have huniq : 0 + B * cyclotomic' k K = X ^ k - 1 ∧ (0 : polynomial K).degree < B.degree,
   { split,
-    { rw [zero_add, mul_comm, (X_pow_sub_one_eq_prod_cyclotomic' hpos hzeta),
+    { rw [zero_add, mul_comm, ←(prod_cyclotomic'_eq_X_pow_sub_one hpos hzeta),
       nat.divisors_eq_proper_divisors_insert_self_of_pos hpos],
       simp only [true_and, finset.prod_insert, not_lt, nat.mem_proper_divisors, dvd_refl] },
     rw [degree_zero, bot_lt_iff_ne_bot],
@@ -386,18 +386,18 @@ begin
   exact hdeg
 end
 
-/-- `X ^ n - 1 = ∏ (cyclotomic i)`, where `i` divides `n`. -/
-lemma X_pow_sub_one_eq_prod_cyclotomic {n : ℕ} (hpos : 0 < n) (R : Type*) [comm_ring R] :
-  X ^ n - 1 = ∏ i in nat.divisors n, cyclotomic i R :=
+/-- `∏ i in nat.divisors n, cyclotomic i R = X ^ n - 1`. -/
+lemma prod_cyclotomic_eq_X_pow_sub_one {n : ℕ} (hpos : 0 < n) (R : Type*) [comm_ring R] :
+  ∏ i in nat.divisors n, cyclotomic i R = X ^ n - 1 :=
 begin
-  have integer : X ^ n - 1 = ∏ i in nat.divisors n, cyclotomic i ℤ,
+  have integer : ∏ i in nat.divisors n, cyclotomic i ℤ = X ^ n - 1,
   { have mapinj : function.injective (map (int.cast_ring_hom ℂ)),
     { apply map_injective,
       simp only [int.cast_injective, int.coe_cast_ring_hom] },
     apply mapinj,
     rw map_prod (int.cast_ring_hom ℂ) (λ i, cyclotomic i ℤ),
     simp only [int_cyclotomic_spec, map_pow, nat.cast_id, map_X, map_one, ring_hom.coe_of, map_sub],
-    exact X_pow_sub_one_eq_prod_cyclotomic' hpos
+    exact prod_cyclotomic'_eq_X_pow_sub_one hpos
     (complex.is_primitive_root_exp n (ne_of_lt hpos).symm) },
   have coerc : X ^ n - 1 = map (int.cast_ring_hom R) (X ^ n - 1),
   { simp only [map_pow, map_X, map_one, map_sub] },
@@ -413,7 +413,7 @@ end
 lemma cyclotomic_eq_X_pow_sub_one_div {K : Type*} [field K] {n : ℕ} (hpos: 0 < n) :
   cyclotomic n K = (X ^ n - 1) /ₘ (∏ i in nat.proper_divisors n, cyclotomic i K) :=
 begin
-  rw [X_pow_sub_one_eq_prod_cyclotomic hpos,
+  rw [←prod_cyclotomic_eq_X_pow_sub_one hpos,
   nat.divisors_eq_proper_divisors_insert_self_of_pos hpos,
   finset.prod_insert nat.proper_divisors.not_self_mem],
   have prod_monic : (∏ i in nat.proper_divisors n, cyclotomic i K).monic,

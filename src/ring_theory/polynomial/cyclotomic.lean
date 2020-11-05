@@ -50,7 +50,7 @@ universe u
 
 namespace polynomial
 
-section cyclotmic'
+section cyclotomic'
 
 section integral_domain
 

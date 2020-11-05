@@ -219,11 +219,11 @@ protected lemma continuous (f : M →L[R] M₂) : continuous f := f.2
 theorem coe_injective : function.injective (coe : (M →L[R] M₂) → (M →ₗ[R] M₂)) :=
 by { intros f g H, cases f, cases g, congr' 1, exact H }
 
-theorem coe_fn_injective : function.injective (λ f : M →L[R] M₂, show M → M₂, from f) :=
+theorem injective_coe_fn : function.injective (λ f : M →L[R] M₂, show M → M₂, from f) :=
 linear_map.coe_injective.comp coe_injective
 
 @[ext] theorem ext {f g : M →L[R] M₂} (h : ∀ x, f x = g x) : f = g :=
-coe_fn_injective $ funext h
+injective_coe_fn $ funext h
 
 theorem ext_iff {f g : M →L[R] M₂} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, by rw h, by ext⟩
@@ -283,6 +283,7 @@ end
 
 instance : has_one (M →L[R] M) := ⟨id R M⟩
 
+lemma one_def : (1 : M →L[R] M) = id R M := rfl
 lemma id_apply : id R M x = x := rfl
 @[simp, norm_cast] lemma coe_id : (id R M : M →ₗ[R] M) = linear_map.id := rfl
 @[simp, norm_cast] lemma coe_id' : (id R M : M → M) = _root_.id := rfl
@@ -691,8 +692,8 @@ algebra.of_semimodule' (λ c f, ext $ λ x, rfl) (λ c f, ext $ λ x, f.map_smul
 sending `f` to `λ e, c e • f`. See also `continuous_linear_map.smul_rightL`. -/
 def smul_rightₗ (c : M →L[R] R) : M₂ →ₗ[R] (M →L[R] M₂) :=
 { to_fun := c.smul_right,
-  map_add' := λ x y, by { ext e, simp [smul_add] },
-  map_smul' := λ a x, by { ext e, simp [smul_comm] } }
+  map_add' := λ x y, by { ext e, apply smul_add },
+  map_smul' := λ a x, by { ext e, apply smul_comm } }
 
 end comm_ring
 
@@ -724,6 +725,8 @@ instance : has_coe_to_fun (M ≃L[R] M₂) := ⟨λ _, M → M₂, λ f, f⟩
 @[simp] theorem coe_def_rev (e : M ≃L[R] M₂) : e.to_continuous_linear_map = e := rfl
 
 @[simp] theorem coe_apply (e : M ≃L[R] M₂) (b : M) : (e : M →L[R] M₂) b = e b := rfl
+
+@[simp] lemma coe_to_linear_equiv (f : M ≃L[R] M₂) : ⇑f.to_linear_equiv = f := rfl
 
 @[norm_cast] lemma coe_coe (e : M ≃L[R] M₂) : ((e : M →L[R] M₂) : M → M₂) = e := rfl
 

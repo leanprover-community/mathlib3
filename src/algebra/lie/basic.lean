@@ -306,15 +306,17 @@ instance : lie_ring (⨁ i, L i) :=
   add_lie  := λ x y z, by { ext, simp only [zip_with_apply, add_apply, add_lie], },
   lie_add  := λ x y z, by { ext, simp only [zip_with_apply, add_apply, lie_add], },
   lie_self := λ x, by { ext, simp only [zip_with_apply, add_apply, lie_self, zero_apply], },
-  jacobi   := λ x y z, by { ext, simp only [zip_with_apply, add_apply, lie_ring.jacobi, zero_apply], },
+  jacobi   := λ x y z, by { ext, simp only [
+    zip_with_apply, add_apply, lie_ring.jacobi, zero_apply], },
   ..(infer_instance : add_comm_group _) }
 
 @[simp] lemma bracket_apply {x y : (⨁ i, L i)} {i : ι} :
-  ⁅x, y⁆ i = ⁅x i, y i⁆ := zip_with_apply
+  ⁅x, y⁆ i = ⁅x i, y i⁆ := zip_with_apply _ _ x y i
 
 /-- The direct sum of Lie algebras carries a natural Lie algebra structure. -/
 instance : lie_algebra R (⨁ i, L i) :=
-{ lie_smul := λ c x y, by { ext, simp only [zip_with_apply, smul_apply, bracket_apply, lie_smul], },
+{ lie_smul := λ c x y, by { ext, simp only [
+    zip_with_apply, direct_sum.smul_apply, bracket_apply, lie_smul] },
   ..(infer_instance : module R _) }
 
 end direct_sum
@@ -341,8 +343,8 @@ def of_associative_algebra_hom {R : Type u} {A : Type v} {B : Type w}
      by simp only [lie_ring.of_associative_ring_bracket, alg_hom.map_sub, alg_hom.map_mul],
   ..f.to_linear_map, }
 
-@[simp] lemma of_associative_algebra_hom_id {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A] :
-  of_associative_algebra_hom (alg_hom.id R A) = 1 := rfl
+@[simp] lemma of_associative_algebra_hom_id {R : Type u} {A : Type v}
+  [comm_ring R] [ring A] [algebra R A] : of_associative_algebra_hom (alg_hom.id R A) = 1 := rfl
 
 @[simp] lemma of_associative_algebra_hom_comp {R : Type u} {A : Type v} {B : Type w} {C : Type w₁}
   [comm_ring R] [ring A] [ring B] [ring C] [algebra R A] [algebra R B] [algebra R C]
@@ -355,7 +357,7 @@ lemma endo_algebra_bracket (M : Type v) [add_comm_group M] [module R M] (f g : m
   ⁅f, g⁆ = f.comp g - g.comp f := rfl
 
 /-- The adjoint action of a Lie algebra on itself. -/
-def Ad : L →ₗ⁅R⁆ module.End R L :=
+def ad : L →ₗ⁅R⁆ module.End R L :=
 { to_fun    := λ x,
   { to_fun    := has_bracket.bracket x,
     map_add'  := by { intros, apply lie_add, },
@@ -554,7 +556,7 @@ def lie_module.of_endo_morphism (α : L →ₗ⁅R⁆ module.End R M) : lie_modu
 
 /-- Every Lie algebra is a module over itself. -/
 instance lie_algebra_self_module : lie_module R L L :=
-  lie_module.of_endo_morphism R L L lie_algebra.Ad
+  lie_module.of_endo_morphism R L L lie_algebra.ad
 
 /-- A Lie submodule of a Lie module is a submodule that is closed under the Lie bracket.
 This is a sufficient condition for the subset itself to form a Lie module. -/

@@ -149,7 +149,7 @@ begin
   { to_fun := λ x, f x i,
     map_add' := λ _ _, by rw [hadd, pi.add_apply],
     map_smul' := λ _ _, by rw [hsmul, pi.smul_apply] },
-  show (finsupp.leval i).comp hv.repr x = f_i x,
+  show (finsupp.lapply i).comp hv.repr x = f_i x,
   congr' 1,
   refine hv.ext (λ j, _),
   show hv.repr (v j) i = f (v j) i,
@@ -272,7 +272,7 @@ def equiv_of_is_basis' {v : ι → M} {v' : ι' → M'} (f : M → M') (g : M' �
   (equiv_of_is_basis hv hv' e).trans (equiv_of_is_basis hv' hv'' f) =
   equiv_of_is_basis hv hv'' (e.trans f) :=
 begin
-  apply linear_equiv.eq_of_linear_map_eq,
+  apply linear_equiv.injective_to_linear_map,
   apply hv.ext,
   intros i,
   simp [equiv_of_is_basis]
@@ -281,7 +281,7 @@ end
 @[simp] lemma equiv_of_is_basis_refl :
   equiv_of_is_basis hv hv (equiv.refl ι) = linear_equiv.refl R M :=
 begin
-  apply linear_equiv.eq_of_linear_map_eq,
+  apply linear_equiv.injective_to_linear_map,
   apply hv.ext,
   intros i,
   simp [equiv_of_is_basis]

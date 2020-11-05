@@ -835,26 +835,7 @@ theorem cmp_compares : ∀ a b : nonote, (cmp a b).compares a b
   exact subtype.mk_eq_mk.2 this
 end
 
-instance : linear_order nonote :=
-{ le_antisymm := λ a b, match cmp a b, cmp_compares a b with
-    | ordering.lt, h, h₁, h₂ := (not_lt_of_le h₂).elim h
-    | ordering.eq, h, h₁, h₂ := h
-    | ordering.gt, h, h₁, h₂ := (not_lt_of_le h₁).elim h
-    end,
-  le_total := λ a b, match cmp a b, cmp_compares a b with
-    | ordering.lt, h := or.inl (le_of_lt h)
-    | ordering.eq, h := or.inl (le_of_eq h)
-    | ordering.gt, h := or.inr (le_of_lt h)
-    end,
-  ..nonote.preorder }
-
-instance decidable_lt : @decidable_rel nonote (<)
-| a b := decidable_of_iff _ (cmp_compares a b).eq_lt
-
-instance : decidable_linear_order nonote :=
-{ decidable_le := λ a b, decidable_of_iff _ not_lt,
-  decidable_lt := nonote.decidable_lt,
-  ..nonote.linear_order }
+instance : linear_order nonote := linear_order_of_compares cmp cmp_compares
 
 /-- Asserts that `repr a < ω ^ repr b`. Used in `nonote.rec_on` -/
 def below (a b : nonote) : Prop := NF_below a.1 (repr b)

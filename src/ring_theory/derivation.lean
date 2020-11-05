@@ -110,10 +110,7 @@ instance derivation.Rsemimodule : semimodule R (derivation R A M) :=
 @[simp] lemma Rsmul_apply : (r • D) a = r • D a := rfl
 
 instance : semimodule A (derivation R A M) :=
-{ smul := λ a D, ⟨⟨λ b, a • D b,
-    λ a1 a2, by rw [D.map_add, smul_add],
-    λ a1 a2, by rw [D.map_smul, smul_algebra_smul_comm]⟩,
-    λ b c, by { dsimp, simp only [smul_add, leibniz, smul_comm, add_comm] }⟩,
+{ smul := λ a D, ⟨a • D, λ b c, by { dsimp, simp only [smul_add, leibniz, smul_comm a, add_comm] }⟩,
   mul_smul := λ a1 a2 D, ext $ λ b, mul_smul _ _ _,
   one_smul := λ D, ext $ λ b, one_smul A _,
   smul_add := λ a D1 D2, ext $ λ b, smul_add _ _ _,
@@ -198,7 +195,7 @@ variables [is_scalar_tower R A M] [is_scalar_tower R A N]
 def comp_der (f : M →ₗ[A] N) (D : derivation R A M) : derivation R A N :=
 { to_fun := λ a, f (D a),
   map_add' := λ a1 a2, by rw [D.map_add, f.map_add],
-  map_smul' := λ r a, by rw [derivation.map_smul, map_smul_eq_smul_map],
+  map_smul' := λ r a, by rw [derivation.map_smul, map_smul_of_tower],
   leibniz' := λ a b, by simp only [derivation.leibniz, linear_map.map_smul, linear_map.map_add, add_comm] }
 
 @[simp] lemma comp_der_apply (f : M →ₗ[A] N) (D : derivation R A M) (a : A) :

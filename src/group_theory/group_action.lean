@@ -21,15 +21,26 @@ infixr ` • `:73 := has_scalar.smul
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
 
+/-- A typeclass mixin saying that two actions on the same space commute. -/
+class smul_comm_class (M N α : Type*) [has_scalar M α] [has_scalar N α] : Prop :=
+(smul_comm : ∀ (m : M) (n : N) (a : α), m • n • a = n • m • a)
+
+export mul_action (mul_smul) smul_comm_class (smul_comm)
+
+/-- Commutativity of actions is a symmetric relation. This lemma can't be an instance because this
+would cause a loop in the instance search graph. -/
+lemma smul_comm_class.symm (M N α : Type*) [has_scalar M α] [has_scalar N α]
+  [smul_comm_class M N α] : smul_comm_class N M α :=
+⟨λ a' a b, (smul_comm a a' b).symm⟩
+
+instance smul_comm_class_self (M α : Type*) [comm_monoid M] [mul_action M α] :
+  smul_comm_class M M α :=
+⟨λ a a' b, by rw [← mul_smul, mul_comm, mul_smul]⟩
+
 section
 variables [monoid α] [mul_action α β]
 
-theorem mul_smul (a₁ a₂ : α) (b : β) : (a₁ * a₂) • b = a₁ • a₂ • b := mul_action.mul_smul _ _ _
-
 lemma smul_smul (a₁ a₂ : α) (b : β) : a₁ • a₂ • b = (a₁ * a₂) • b := (mul_smul _ _ _).symm
-
-lemma smul_comm {α : Type u} {β : Type v} [comm_monoid α] [mul_action α β] (a₁ a₂ : α) (b : β) :
-  a₁ • a₂ • b = a₂ • a₁ • b := by rw [←mul_smul, ←mul_smul, mul_comm]
 
 variable (α)
 @[simp] theorem one_smul (b : β) : (1 : α) • b = b := mul_action.one_smul _
@@ -43,6 +54,24 @@ by rw [smul_smul, u.inv_mul, one_smul]
 @[simp] lemma units.smul_inv_smul (u : units α) (x : β) :
   (u:α) • (↑u⁻¹:α) • x = x :=
 by rw [smul_smul, u.mul_inv, one_smul]
+
+/-- If a monoid `α` acts on `β`, then each `u : units α` defines a permutation of `β`. -/
+def units.smul_perm_hom : units α →* equiv.perm β :=
+{ to_fun := λ u, ⟨λ x, (u:α) • x, λ x, (↑u⁻¹:α) • x, u.inv_smul_smul, u.smul_inv_smul⟩,
+  map_one' := equiv.ext $ one_smul α,
+  map_mul' := λ u₁ u₂, equiv.ext $ mul_smul (u₁:α) u₂ }
+
+@[simp] lemma units.smul_left_cancel (u : units α) {x y : β} :
+  (u:α) • x = (u:α) • y ↔ x = y :=
+u.smul_perm_hom.apply_eq_iff_eq
+
+lemma units.smul_eq_iff_eq_inv_smul (u : units α) {x y : β} :
+  (u:α) • x = y ↔ x = (↑u⁻¹:α) • y :=
+u.smul_perm_hom.apply_eq_iff_eq_symm_apply
+
+lemma is_unit.smul_left_cancel {a : α} (ha : is_unit a) {x y : β} :
+  a • x = a • y ↔ x = y :=
+let ⟨u, hu⟩ := ha in hu ▸ u.smul_left_cancel
 
 /-- Pullback a multiplicative action along an injective map respecting `•`. -/
 protected def function.injective.mul_action [has_scalar α γ] (f : γ → β)
@@ -92,18 +121,21 @@ end
 
 section compatible_scalar
 
-variables (R M N : Type*) [has_scalar R M] [has_scalar M N] [has_scalar R N]
+/-- An instance of `is_scalar_tower M N α` states that the multiplicative
+action of `M` on `α` is determined by the multiplicative actions of `M` on `N`
+and `N` on `α`. -/
+class is_scalar_tower (M N α : Type*) [has_scalar M N] [has_scalar N α] [has_scalar M α] : Prop :=
+(smul_assoc : ∀ (x : M) (y : N) (z : α), (x • y) • z = x • (y • z))
 
-/-- An instance of `is_scalar_tower R M N` states that the multiplicative
-action of `R` on `N` is determined by the multiplicative actions of `R` on `M`
-and `M` on `N`. -/
-class is_scalar_tower : Prop :=
-(smul_assoc : ∀ (x : R) (y : M) (z : N), (x • y) • z = x • (y • z))
+@[simp] lemma smul_assoc {M N} [has_scalar M N] [has_scalar N α] [has_scalar M α]
+  [is_scalar_tower M N α] (x : M) (y : N) (z : α) :
+  (x • y) • z = x • y • z :=
+is_scalar_tower.smul_assoc x y z
 
-variables {R M N}
-
-@[simp] lemma smul_assoc [is_scalar_tower R M N] (x : R) (y : M) (z : N) :
-  (x • y) • z = x • y • z := is_scalar_tower.smul_assoc x y z
+@[simp] lemma smul_one_smul {M} (N) [monoid N] [has_scalar M N] [mul_action N α] [has_scalar M α]
+  [is_scalar_tower M N α] (x : M) (y : α) :
+  (x • (1 : N)) • y = x • y :=
+by rw [smul_assoc, one_smul]
 
 end compatible_scalar
 
@@ -248,16 +280,10 @@ def stabilizer (b : β) : subgroup α :=
 variable (β)
 
 /-- Given an action of a group `α` on a set `β`, each `g : α` defines a permutation of `β`. -/
-def to_perm (g : α) : equiv.perm β :=
-{ to_fun := (•) g,
-  inv_fun := (•) g⁻¹,
-  left_inv := inv_smul_smul g,
-  right_inv := smul_inv_smul g }
+def to_perm : α →* equiv.perm β :=
+units.smul_perm_hom.comp to_units.to_monoid_hom
 
 variables {α} {β}
-
-instance : is_group_hom (to_perm α β) :=
-{ map_mul := λ x y, equiv.ext (λ a, mul_action.mul_smul x y a) }
 
 protected lemma bijective (g : α) : bijective (λ b : β, g • b) :=
 (to_perm α β g).bijective
@@ -306,7 +332,7 @@ quotient.lift_on' y (λ y, quotient_group.mk ((x : α) * y))
   (λ a b (hab : _ ∈ H), quotient_group.eq.2
     (by rwa [mul_inv_rev, ← mul_assoc, mul_assoc (a⁻¹), inv_mul_self, mul_one]))
 
-instance (H : subgroup α) : mul_action α (quotient H) :=
+instance quotient (H : subgroup α) : mul_action α (quotient H) :=
 { smul := mul_left_cosets H,
   one_smul := λ a, quotient.induction_on' a (λ a, quotient_group.eq.2
     (by simp [subgroup.one_mem])),

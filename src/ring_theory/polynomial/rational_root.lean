@@ -74,7 +74,7 @@ begin
     { obtain ⟨u, hu⟩ := (f.is_unit_denom_of_num_eq_zero hr).pow p.nat_degree,
       rw ←hu at this,
       exact units.dvd_mul_right.mp this },
-    { refine dvd_of_dvd_mul_left_of_no_prime_of_factor hr _ this,
+    { refine dvd_of_dvd_mul_left_of_no_prime_factors hr _ this,
       intros q dvd_num dvd_denom_pow hq,
       apply hq.not_unit,
       exact f.num_denom_reduced r dvd_num (hq.dvd_of_dvd_pow dvd_denom_pow) } },
@@ -93,7 +93,7 @@ theorem denom_dvd_of_is_root {p : polynomial A} {r : f.codomain} (hr : aeval r p
   (f.denom r : A) ∣ p.leading_coeff :=
 begin
   suffices : (f.denom r : A) ∣ p.leading_coeff * f.num r ^ p.nat_degree,
-  { refine dvd_of_dvd_mul_left_of_no_prime_of_factor
+  { refine dvd_of_dvd_mul_left_of_no_prime_factors
       (mem_non_zero_divisors_iff_ne_zero.mp (f.denom r).2) _ this,
     intros q dvd_denom dvd_num_pow hq,
     apply hq.not_unit,

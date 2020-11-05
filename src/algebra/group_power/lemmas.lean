@@ -184,8 +184,8 @@ calc n •ℤ a = n •ℤ a + 0 : (add_zero _).symm
 
 end ordered_add_comm_group
 
-section decidable_linear_ordered_add_comm_group
-variable [decidable_linear_ordered_add_comm_group A]
+section linear_ordered_add_comm_group
+variable [linear_ordered_add_comm_group A]
 
 theorem gsmul_le_gsmul_iff {a : A} {n m : ℤ} (ha : 0 < a) : n •ℤ a ≤ m •ℤ a ↔ n ≤ m :=
 begin
@@ -215,7 +215,7 @@ begin
   exact lt_irrefl _ (lt_of_le_of_lt (nsmul_le_nsmul (le_of_lt ha) $ not_lt.mp H) h)
 end
 
-end decidable_linear_ordered_add_comm_group
+end linear_ordered_add_comm_group
 
 @[simp] lemma with_bot.coe_nsmul [add_monoid A] (a : A) (n : ℕ) :
   ((nsmul n a : A) : with_bot A) = nsmul n a :=
@@ -372,6 +372,11 @@ by conv {to_lhs, rw ← nat.mod_add_div n 2}; rw [pow_add, pow_mul, units_pow_tw
 @[simp] lemma nat_abs_pow_two (x : ℤ) : (x.nat_abs ^ 2 : ℤ) = x ^ 2 :=
 by rw [pow_two, int.nat_abs_mul_self', pow_two]
 
+lemma abs_le_self_pow_two (a : ℤ) : (int.nat_abs a : ℤ) ≤ a ^ 2 :=
+by { rw [← int.nat_abs_pow_two a, pow_two], norm_cast, apply nat.le_mul_self }
+
+lemma le_self_pow_two (b : ℤ) : b ≤ b ^ 2 := le_trans (le_nat_abs) (abs_le_self_pow_two _)
+
 end int
 
 variables (M G A)
@@ -436,7 +441,7 @@ lemma monoid_hom.apply_mnat [monoid M] (f : multiplicative ℕ →* M) (n : mult
   f n = (f (multiplicative.of_add 1)) ^ n.to_add :=
 by rw [← powers_hom_symm_apply, ← powers_hom_apply, equiv.apply_symm_apply]
 
-lemma monoid_hom.ext_mnat [monoid M] ⦃f g : multiplicative ℕ →* M⦄
+@[ext] lemma monoid_hom.ext_mnat [monoid M] ⦃f g : multiplicative ℕ →* M⦄
   (h : f (multiplicative.of_add 1) = g (multiplicative.of_add 1)) : f = g :=
 monoid_hom.ext $ λ n, by rw [f.apply_mnat, g.apply_mnat, h]
 
@@ -444,7 +449,7 @@ lemma monoid_hom.apply_mint [group M] (f : multiplicative ℤ →* M) (n : multi
   f n = (f (multiplicative.of_add 1)) ^ n.to_add :=
 by rw [← gpowers_hom_symm_apply, ← gpowers_hom_apply, equiv.apply_symm_apply]
 
-lemma monoid_hom.ext_mint [group M] ⦃f g : multiplicative ℤ →* M⦄
+@[ext] lemma monoid_hom.ext_mint [group M] ⦃f g : multiplicative ℤ →* M⦄
   (h : f (multiplicative.of_add 1) = g (multiplicative.of_add 1)) : f = g :=
 monoid_hom.ext $ λ n, by rw [f.apply_mint, g.apply_mint, h]
 

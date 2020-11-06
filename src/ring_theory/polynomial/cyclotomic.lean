@@ -94,7 +94,7 @@ monic_prod_of_monic _ _ $ λ z hz, monic_X_sub_C _
 
 /-- `cyclotomic' n R` is different from `0`. -/
 lemma cyclotomic'_ne_zero (n : ℕ) (R : Type*) [integral_domain R] : cyclotomic' n R ≠ 0 :=
-  monic.ne_zero (cyclotomic'.monic n R)
+(cyclotomic'.monic n R).ne_zero
 
 /-- The natural degree of `cyclotomic' n R` is `totient n` if there is a primitive root of
 unity in `R`. -/

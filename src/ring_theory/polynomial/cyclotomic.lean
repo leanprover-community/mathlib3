@@ -381,7 +381,7 @@ lemma nat_degree_cyclotomic (n : ℕ) (R : Type*) [ring R] [nontrivial R] :
   (cyclotomic n R).nat_degree = nat.totient n :=
 begin
   have hdeg := degree_cyclotomic n R,
-  rw degree_eq_nat_degree (cycl_ne_zero n R) at hdeg,
+  rw degree_eq_nat_degree (cyclotomic_ne_zero n R) at hdeg,
   norm_cast at hdeg,
   exact hdeg
 end

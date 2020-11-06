@@ -12,7 +12,6 @@ import ring_theory.discrete_valuation_ring
 import ring_theory.fractional_ideal
 import ring_theory.ideal.over
 import ring_theory.polynomial.rational_root
-import ring_theory.trace
 import set_theory.cardinal
 import tactic
 

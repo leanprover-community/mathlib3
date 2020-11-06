@@ -477,16 +477,16 @@ hp.is_unit_iff_is_unit_map_of_injective f.injective
 open localization_map
 
 lemma is_unit_or_eq_zero_of_is_unit_integer_normalization_prim_part
-  {p : polynomial K} (h0 : p ≠ 0) (h : is_unit (@integer_normalization _ _ _ _ _ f p).prim_part) :
+  {p : polynomial K} (h0 : p ≠ 0) (h : is_unit (f.integer_normalization p).prim_part) :
   is_unit p :=
 begin
   rcases is_unit_iff.1 h with ⟨_, ⟨u, rfl⟩, hu⟩,
   obtain ⟨⟨c, c0⟩, hc⟩ := @integer_normalization_map_to_map _ _ _ _ _ f p,
   rw [algebra.smul_def, ← C_eq_algebra_map, subtype.coe_mk] at hc,
   apply is_unit_of_mul_is_unit_right,
-  rw [← hc, (@integer_normalization _ _ _ _ _ f p).eq_C_content_mul_prim_part, ← hu,
+  rw [← hc, (f.integer_normalization p).eq_C_content_mul_prim_part, ← hu,
     ← ring_hom.map_mul, is_unit_iff],
-  refine ⟨f.to_map ((@integer_normalization _ _ _ _ _ f p).content * ↑u),
+  refine ⟨f.to_map ((f.integer_normalization p).content * ↑u),
     is_unit_iff_ne_zero.2 (λ con, _), by simp⟩,
   replace con := (ring_hom.injective_iff f.to_map).1 f.injective _ con,
   rw [mul_eq_zero, content_eq_zero_iff, fraction_map.integer_normalization_eq_zero_iff] at con,

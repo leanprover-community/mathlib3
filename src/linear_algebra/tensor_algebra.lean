@@ -109,16 +109,24 @@ begin
   refl,
 end
 
-@[simp]
-lemma star_ι (m : M) : star (ι R m) = (ι R m) :=
-by {
-  dunfold star has_star.star tensor_algebra.star_ring ring_quot.star_ring ι,
-  simp only [linear_map.coe_mk],
-}
+section
+
+-- We can't show these propagate through the quotient if we don't have the quotient
+local attribute [semireducible] ring_quot ring_quot.mk_ring_hom ring_quot.mk_alg_hom
 
 @[simp]
-lemma star_algebra_map (r : R) : star (algebra_map R (free_algebra R X) r) = (algebra_map R _ r) :=
-by simp [star, has_star.star]
+lemma star_algebra_map (r : R) : star (algebra_map R (tensor_algebra R M) r) = (algebra_map R _ r) :=
+congr_arg (quot.mk _) (free_algebra.star_algebra_map R M r)
+
+@[simp]
+lemma star_ι (m : M) : star (ι R m) = (ι R m) :=
+congr_arg (quot.mk _) (free_algebra.star_ι R M m)
+
+end
+
+def star_hom : tensor_algebra R M ≃ₐ[R] (tensor_algebra R M)ᵒᵖ :=
+{ commutes' := λ r, by simp [star_algebra_map],
+  ..star_ring_equiv,}
 
 attribute [irreducible] tensor_algebra ι lift
 

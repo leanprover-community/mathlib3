@@ -350,7 +350,6 @@ instance : star_ring (free_algebra R X) :=
     induction x using free_algebra.induction; simp [*],
   },
   star_mul := λ a b, by simp,
-  star_zero := by simp,
   star_add := λ a b, by simp }
 
 
@@ -362,14 +361,9 @@ by simp [star, has_star.star]
 lemma star_algebra_map (r : R) : star (algebra_map R (free_algebra R X) r) = (algebra_map R _ r) :=
 by simp [star, has_star.star]
 
-def star_hom : free_algebra R X →ₐ[R] (free_algebra R X)ᵒᵖ :=
-{ to_fun := opposite.op ∘ @star (free_algebra R X) _,
-  map_add' := λ x y, by simp,
-  map_mul' := λ x y, by simp,
-  map_one' := by simp,
-  map_zero' := by simp,
-  commutes' := λ r, by simp [star_algebra_map],
-}
+def star_hom : free_algebra R X ≃ₐ[R] (free_algebra R X)ᵒᵖ :=
+{ commutes' := λ r, by simp [star_algebra_map],
+  ..star_ring_equiv}
 
 -- instance [star_ring R] : star_algebra R (free_algebra R X) :=
 -- { star_smul := λ c a, by {

@@ -206,7 +206,8 @@ ring_equiv.of_hom_inv (ring_quot_to_ideal_quotient r) (ideal_quotient_to_ring_qu
 end comm_ring
 
 /-- Transfer a star_ring instance through a quotient, if the quotient is invariant to `star` -/
-def star_ring {R : Type u₁} [semiring R] [star_ring R] (r : R → R → Prop) (hr : ∀ {a b}, r a b → r (star a) (star b)) :
+def star_ring {R : Type u₁} [semiring R] [star_ring R] (r : R → R → Prop)
+  (hr : ∀ {a b}, r a b → r (star a) (star b)) :
   star_ring (ring_quot r) :=
 { star := quot.map star (λ a b, begin
     intro h,
@@ -218,7 +219,6 @@ def star_ring {R : Type u₁} [semiring R] [star_ring R] (r : R → R → Prop) 
   end),
   star_involutive := by { rintros ⟨⟩, exact congr_arg (quot.mk _) (star_star _), },
   star_mul := by { rintros ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (star_mul _ _), },
-  star_zero := congr_arg (quot.mk _) (star_zero),
   star_add := by { rintros ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (star_add _ _), } }
 
 section algebra
@@ -293,6 +293,21 @@ by { ext, simp [h], }
 lemma eq_lift_alg_hom_comp_mk_alg_hom {s : A → A → Prop} (f : ring_quot s →ₐ[S] B) :
   f = lift_alg_hom S (f.comp (mk_alg_hom S s)) (λ x y h, by { dsimp, erw mk_alg_hom_rel S h, }) :=
 by { ext, simp, }
+
+def star_ring_algebra_map [_root_.star_ring A] (s : A → A → Prop)
+  (hr : ∀ {a b : A}, s a b → s (star a) (star b))
+  (ha : ∀ {r : S}, star (algebra_map S A r) = algebra_map S A r)
+  (r : S) :
+  let i := star_ring s @hr in by exactI
+  star (algebra_map S (ring_quot s) r) = (algebra_map S (ring_quot s) r) :=
+begin
+  dunfold star has_star.star ring_quot.star_ring,
+  generalize h : (algebra_map S _ r) = z,
+  simp only,
+  rcases z,
+  apply congr_arg (quot.mk _) _,
+  convert ha,
+end
 
 end algebra
 

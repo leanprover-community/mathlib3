@@ -240,26 +240,6 @@ begin
   assumption,
 end
 
-open_locale classical -- to deal with union of two finsets!
-
-universes u v
-
-variables (B : Type u) [semiring B]
-variables (M : Type v) [add_comm_monoid M] [semimodule B M]
-
-open submodule
-
-lemma submodule.mem_span_finite_of_mem_span (S : set M) (x : M) (hx : x ∈ span B S) :
-  ∃ T : set M, T ⊆ S ∧ T.finite ∧ x ∈ span B T :=
-begin
-  use {x},
-  split,
-  {
-    sorry,
-  },
-  sorry,
-end
-
 lemma noeth : is_dedekind_domain_inv A -> is_noetherian_ring A :=
 begin
   rintros h,
@@ -286,29 +266,42 @@ begin
   rw ext' at h',
   specialize h' 1,
   have h'' := h'.2 one_mem_one,
-  unfold has_mul.mul at h'',
-  revert h'',
-  apply mem_supr_of_mem,
-  have f' := submodule.exists_finset_of_mem_supr h',
-  have g' : s ≤ 1,
+  let q : submodule A (localization_map.codomain (fraction_ring.of A)) := (s : fractional_ideal (fraction_ring.of A)),
+  let q' : submodule A (localization_map.codomain (fraction_ring.of A)) := (s : fractional_ideal (fraction_ring.of A))⁻¹.val,
+  change (1 : localization_map.codomain (fraction_ring.of A)) ∈ q * q' at h'',
+  rw <-submodule.span_eq (q * q') at h'',
+  suffices f : ∃ (T : set (localization_map.codomain (fraction_ring.of A))) (T' : set (localization_map.codomain (fraction_ring.of A))), T ⊆ q ∧ T.finite ∧ T' ⊆ q' ∧ T'.finite ∧ (1 : localization_map.codomain (fraction_ring.of A)) ∈ submodule.span A (T * T'),
   {
+    rcases f with ⟨T, T', hT, h1, hT', h2, h3⟩,
+    have g := fraction_map.injective (fraction_ring.of A),
+    apply submodule.fg_of_fg_map _,
+    rw linear_map.ker_eq_bot,
+    swap 6,
+    refine localization_map.lin_coe (fraction_ring.of A),
+    exact g,
+    change q.fg,
+    unfold submodule.fg,
+    split,
+    swap,
+    use set.finite.to_finset h1,
+    simp,
+    ext,
+    split,
+    {
+      have f'' := submodule.span_mono hT,
+      swap,
+      exact A,
+      rw submodule.span_eq at f'',
+      apply iff.rfl.1 f'',
+    },
+    rintros f,
+    rw <-set.finite.coe_to_finset h1 at h3,
+    let S := set.finite.to_finset (set.finite.mul h1 h2),
+
+    change (1 : localization_map.codomain (fraction_ring.of A)) ∈ submodule.span A (S : set (localization_map.codomain (fraction_ring.of A))),
+    rw mem_span_finset at h3,
     sorry,
   },
-  --have f' : comap _ ((s : fractional_ideal(fraction_ring.of A)) * (s : fractional_ideal(fraction_ring.of A))⁻¹) = comap _ (1 : fractional_ideal(fraction_ring.of A)),
-  rw subtype.ext_iff at h',
-  have f' := submodule.fg_map g,
-  swap 5,
-  refine localization_map.lin_coe f,
-  rw coe_one at h',
-  rw <-h' at f',
-  simp at h',
---  have f' := submodule.fg_map 1 f,
- -- rw submodule.fg_map _ 1 at f,
-  --rw subtype.ext_iff at h',
-  rw coe_mul at h',
-
-  rw <-h' at f,
-
   sorry,
 end
 

@@ -5,6 +5,7 @@ Authors: Anne Baanen
 -/
 import ring_theory.localization
 import ring_theory.principal_ideal_domain
+import algebra.algebra.operations
 
 /-!
 # Fractional ideals
@@ -790,3 +791,79 @@ end principal_ideal_ring
 end fractional_ideal
 
 end ring
+
+open_locale classical -- to deal with union of two finsets!
+
+universes u v
+
+variables (B : Type u) [semiring B]
+variables (M : Type v) [add_comm_monoid M] [semimodule B M]
+
+open submodule
+
+lemma submodule.mem_span_finite_of_mem_span (S : set M) (x : M) (hx : x ∈ span B S) :
+  ∃ T : set M, T ⊆ S ∧ T.finite ∧ x ∈ span B T :=
+begin
+  apply span_induction hx;
+  clear hx x,
+  {
+    rintros x hx,
+    use {x},
+    split,
+    {
+      rw set.singleton_subset_iff,
+      assumption,
+    },
+    simp,
+    apply submodule.mem_span_singleton_self,
+  },
+  {
+    use ⊥,
+    simp,
+  },
+  {
+    rintros x y hx hy,
+    rcases hx with ⟨X, hX, hx⟩,
+    rcases hy with ⟨Y, hY, hy⟩,
+    use X ∪ Y,
+    split,
+    {
+      have hS := set.union_subset_union hX hY,
+      rw set.union_self S at hS,
+      assumption,
+    },
+    split,
+    {
+      refine set.finite.union _ _,
+      cases hx,
+      assumption,
+      cases hy,
+      assumption,
+    },
+    rw span_union X Y,
+    rw mem_sup,
+    use x,
+    split,
+    cases hx,
+    assumption,
+    use y,
+    split,
+    cases hy,
+    assumption,
+    refl,
+  },
+  rintros a x h,
+  rcases h with ⟨T, hT, h1, h2⟩,
+  use T,
+  split,
+  assumption,
+  split,
+  assumption,
+  refine smul_mem _ _ h2,
+end
+
+lemma submodule.mem_span_mul_finite_of_mem_span_mul [comm_semiring B] [semiring M] [algebra B M] (S : set M) (S' : set M) (x : M) (hx : x ∈ span B S * span B S') :
+  ∃ T : set M, T ⊆ S ∧ T.finite ∧ ∃ T' : set M, T' ⊆ S' ∧ T'.finite ∧ x ∈ span B T * span B T' :=
+begin
+  sorry,
+end

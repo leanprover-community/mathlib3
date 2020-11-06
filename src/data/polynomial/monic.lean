@@ -157,6 +157,8 @@ lemma nat_degree_mul [nontrivial R] {p q : polynomial R} (hp : p.monic) (hq : q.
 (p * q).nat_degree = p.nat_degree + q.nat_degree :=
 by { apply nat_degree_mul', rw [hp.leading_coeff, hq.leading_coeff], simp }
 
+set_option profiler true
+
 lemma next_coeff_mul {p q : polynomial R} (hp : monic p) (hq : monic q) :
 next_coeff (p * q) = next_coeff p + next_coeff q :=
 begin
@@ -171,41 +173,28 @@ begin
   set dp := p.nat_degree, set dq := q.nat_degree,
   rw coeff_mul,
   have : {(dp, dq - 1), (dp - 1, dq)} ⊆ nat.antidiagonal (dp + dq - 1),
-  { rw insert_subset, split,
-    work_on_goal 0 { rw [nat.mem_antidiagonal, nat.add_sub_assoc] },
-    work_on_goal 1 { simp only [singleton_subset_iff, nat.mem_antidiagonal],
-      apply nat.sub_add_eq_add_sub },
-    all_goals { apply nat.succ_le_of_lt, apply nat.pos_of_ne_zero, assumption } },
-  rw ← sum_subset this,
+  { simp only [insert_subset, singleton_subset_iff, nat.mem_antidiagonal],
+    split,
+    { rw nat.add_sub_assoc, exact nat.pos_of_ne_zero hq0 },
+    { apply nat.sub_add_eq_add_sub, exact nat.pos_of_ne_zero hp0 } },
+  rw ← sum_subset this; clear this,
   { rw [sum_insert, sum_singleton],
     { rw [coeff_nat_degree hp, coeff_nat_degree hq, mul_one, one_mul, add_comm] },
-    { simp only [not_and, prod.mk.inj_iff, mem_singleton], revert hp0, omega manual } },
-  clear this,
+    { simp only [not_and, prod.mk.inj_iff, mem_singleton], revert hp0; omega manual } },
   simp only [prod.forall, mem_insert, prod.mk.inj_iff, nat.mem_antidiagonal, mem_singleton],
-  push_neg,
-  rintros i j h1 ⟨h2, h3⟩,
-  suffices : p.coeff i = 0 ∨ q.coeff j = 0, { cases this; simp only [this, mul_zero, zero_mul] },
-  suffices : dp < i ∨ dq < j, cases this,
-  { left,  exact coeff_eq_zero_of_nat_degree_lt this },
-  { right, exact coeff_eq_zero_of_nat_degree_lt this },
-  by_cases h : dp < i, { left, exact h },
-  push_neg at h, right,
+  push_neg, rintros i j h1 ⟨h2, h3⟩,
+  suffices : p.coeff i = 0 ∨ q.coeff j = 0,
+  { exact mul_eq_zero_of_ne_zero_imp_eq_zero this.resolve_left },
+  suffices : dp < i ∨ dq < j, { apply this.imp _ _; exact coeff_eq_zero_of_nat_degree_lt },
+  rw or_iff_not_imp_left, push_neg, intro h,
   have aux1 : i ≠ dp,
   { intro hi, subst i,
-    apply h2 rfl,
     rw nat.add_sub_assoc (nat.pos_of_ne_zero hq0) at h1,
-    exact nat.add_left_cancel h1 },
+    exact h2 rfl (nat.add_left_cancel h1) },
   rw nat.sub_add_comm (nat.pos_of_ne_zero hp0) at h1,
-  have aux2 : i ≠ dp - 1,
-  { intro hi, subst i,
-    apply h3 rfl,
-    exact nat.add_left_cancel h1 },
-  clear h2 h3 hp0 hq0,
-  have aux3 : i < dp - 1, { revert h aux1 aux2, omega manual },
-  contrapose! h1, clear h aux1 aux2,
-  apply ne_of_lt,
-  revert aux3 h1,
-  omega manual
+  have aux2 : i ≠ dp - 1, { rintro rfl, exact h3 rfl (nat.add_left_cancel h1) },
+  have aux3 : i < dp - 1, { revert h aux1 aux2; omega manual },
+  revert aux3 h1; omega manual
 end
 
 lemma next_coeff_prod

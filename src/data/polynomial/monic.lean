@@ -157,8 +157,6 @@ lemma nat_degree_mul [nontrivial R] {p q : polynomial R} (hp : p.monic) (hq : q.
 (p * q).nat_degree = p.nat_degree + q.nat_degree :=
 by { apply nat_degree_mul', rw [hp.leading_coeff, hq.leading_coeff], simp }
 
-set_option profiler true
-
 lemma next_coeff_mul {p q : polynomial R} (hp : monic p) (hq : monic q) :
 next_coeff (p * q) = next_coeff p + next_coeff q :=
 begin

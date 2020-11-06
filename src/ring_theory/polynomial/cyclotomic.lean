@@ -290,7 +290,7 @@ end
 
 /-- `cyclotomic n R` comes from `cyclotomic n ℤ`. -/
 lemma map_cyclotomic_int (n : ℕ) (R : Type*) [ring R] :
-  cyclotomic n R = map (int.cast_ring_hom R) (cyclotomic n ℤ) :=
+  map (int.cast_ring_hom R) (cyclotomic n ℤ) = cyclotomic n R :=
 begin
   by_cases hzero : n = 0,
   { simp only [hzero, cyclotomic, dif_pos, map_one] },
@@ -321,7 +321,7 @@ end
 @[simp] lemma map_cyclotomic (n : ℕ) {R S : Type*} [ring R] [ring S] (f : R →+* S) :
   map f (cyclotomic n R) = cyclotomic n S :=
 begin
-  rw [cyclotomic_from_int_cyclotomic n R, cyclotomic_from_int_cyclotomic n S],
+  rw [←map_cyclotomic_int n R, ←map_cyclotomic_int n S],
   ext i,
   simp only [coeff_map, ring_hom.eq_int_cast, ring_hom.map_int_cast]
 end
@@ -336,7 +336,7 @@ begin
   have hspec : map (int.cast_ring_hom ℂ) (X - 1) = cyclotomic' 1 ℂ,
   { simp only [cyclotomic'_one, pnat.one_coe, map_X, map_one, map_sub] },
   symmetry,
-  rw [cyclotomic_from_int_cyclotomic, ←(int_cyclotomic_unique hspec)],
+  rw [←map_cyclotomic_int, ←(int_cyclotomic_unique hspec)],
   simp only [map_X, map_one, map_sub]
 end
 
@@ -346,14 +346,14 @@ begin
   have hspec : map (int.cast_ring_hom ℂ) (X + 1) = cyclotomic' 2 ℂ,
   { simp only [cyclotomic'_two ℂ 0 two_ne_zero.symm, map_add, map_X, map_one] },
   symmetry,
-  rw [cyclotomic_from_int_cyclotomic, ←(int_cyclotomic_unique hspec)],
+  rw [←map_cyclotomic_int, ←(int_cyclotomic_unique hspec)],
   simp only [map_add, map_X, map_one]
 end
 
 /-- `cyclotomic n` is monic. -/
 lemma cyclotomic.monic (n : ℕ) (R : Type*) [ring R] : (cyclotomic n R).monic :=
 begin
-  rw cyclotomic_from_int_cyclotomic,
+  rw ←map_cyclotomic_int,
   apply monic_map,
   exact (int_cyclotomic_spec n).2.2
 end
@@ -366,7 +366,7 @@ monic.ne_zero (cyclotomic.monic n R)
 lemma degree_cyclotomic (n : ℕ) (R : Type*) [ring R] [nontrivial R] :
   (cyclotomic n R).degree = nat.totient n :=
 begin
-  rw cyclotomic_from_int_cyclotomic,
+  rw ←map_cyclotomic_int,
   rw degree_map_eq_of_leading_coeff_ne_zero (int.cast_ring_hom R) _,
   { cases n with k,
     { simp only [cyclotomic, degree_one, dif_pos, nat.totient_zero, with_top.coe_zero]},
@@ -403,7 +403,7 @@ begin
   { simp only [map_pow, map_X, map_one, map_sub] },
   have h : ∀ i ∈ n.divisors, cyclotomic i R = map (int.cast_ring_hom R) (cyclotomic i ℤ),
   { intros i hi,
-    exact cyclotomic_from_int_cyclotomic i R },
+    exact (map_cyclotomic_int i R).symm },
   rw [finset.prod_congr (refl n.divisors) h, coerc, ←map_prod (int.cast_ring_hom R)
   (λ i, cyclotomic i ℤ), integer]
 end

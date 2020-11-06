@@ -12,11 +12,6 @@ import data.set.intervals.infinite
 import topology.algebra.polynomial
 import analysis.calculus.mean_value
 
-open_locale big_operators
-open polynomial real set finset
-
-namespace real
-
 /-!
 # Liouville's theorem
 
@@ -24,11 +19,15 @@ This file contains the proof of Liouville's theorem stating that all Liouville n
 transcendental.
 -/
 
+open_locale big_operators
+open polynomial real set finset
+
+namespace real
+
 /--
 A Liouville number `x` is a number such that for every natural number `n`, there exists `a, b ∈ ℤ`
 such that `0 < |x - a/b| < 1/bⁿ`. We can assume without loss of generality that `1 < b`.
 -/
-
 def is_liouville (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ,
   1 < b ∧ 0 < abs (x - a / b) ∧ abs (x - a / b) < 1 / b ^ n
 
@@ -88,7 +87,8 @@ begin
   exact abs_pos_iff.2 h_not_root.2
 end
 
-lemma exists_forall_ge_of_polynomial_deriv (α : ℝ) (f : polynomial ℝ) (h_f_deg : 0 < f.nat_degree) (h_α_root : f.eval α = 0) :
+lemma exists_forall_ge_of_polynomial_deriv (α : ℝ) (f : polynomial ℝ)
+  (h_f_deg : 0 < f.nat_degree) (h_α_root : f.eval α = 0) :
   ∃ M : ℝ, 0 < M ∧ ∀ (y : ℝ), abs (y - α) ≤ 1 → abs (eval y f.derivative) ≤ M :=
 begin
   have h_f_nonzero : f ≠ 0 := ne_zero_of_nat_degree_gt h_f_deg,
@@ -96,7 +96,8 @@ begin
     begin rw set.nonempty, use α, rw set.mem_Icc, split; linarith end
     (continuous_abs.comp f.derivative.continuous_eval).continuous_on,
   replace hM : ∀ (y : ℝ), y ∈ Icc (α - 1) (α + 1) →
-    abs (eval y f.derivative) ≤ abs (eval x_max f.derivative), { simpa only [function.comp_app abs] },
+    abs (eval y f.derivative) ≤ abs (eval x_max f.derivative),
+    { simpa only [function.comp_app abs] },
   set M := abs (f.derivative.eval x_max),
   use M,
   split,
@@ -337,7 +338,7 @@ begin
               refine mul_le_mul (le_refl _) _
                 (fpow_nonneg_of_nonneg (show (0 : ℝ) ≤ 2, by linarith) _)
                 (show (0 : ℝ) ≤ b, by { norm_cast, exact bot_le }),
-              { rw [int.coe_nat_succ, add_sub_cancel, fpow_coe_nat, fpow_coe_nat],-- n0_simp only [int.coe_nat_succ, add_sub_cancel, fpow_coe_nat],
+              { rw [int.coe_nat_succ, add_sub_cancel, fpow_coe_nat, fpow_coe_nat],
                 apply pow_le_pow_of_le_left (show (0 : ℝ) ≤ 2, by linarith),
                 norm_cast, linarith },
               repeat { apply fpow_pos_of_pos, norm_cast, assumption <|> linarith }

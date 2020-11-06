@@ -8,6 +8,14 @@ import category_theory.limits.preserves.functor_category
 import category_theory.limits.shapes.types
 import category_theory.closed.cartesian
 
+/-!
+# Cartesian closure of Type
+
+Show that `Type u₁` is cartesian closed, and `C ⥤ Type u₁` is cartesian closed for `C` a small
+category in `Type u₁`.
+Note this implies that the category of presheaves on a small category `C` is cartesian closed.
+-/
+
 namespace category_theory
 
 noncomputable theory
@@ -86,7 +94,7 @@ instance : cartesian_closed (Type v₁) :=
 { closed := λ X, { is_adj := adjunction.left_adjoint_of_nat_iso (same_prod.app X) } }
 
 -- As above
-instance {C : Type v₁} [small_category C] : has_finite_products (C ⥤ Type v₁) :=
+instance {C : Type v₁} [category C] : has_finite_products (C ⥤ Type v₁) :=
 has_finite_products_of_has_products _
 
 instance {C : Type v₁} [small_category C] : cartesian_closed (C ⥤ Type v₁) :=

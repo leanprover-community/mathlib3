@@ -305,8 +305,9 @@ end intermediate_field
 
 namespace adjoin_root
 
-lemma power_basis_is_basis {f : polynomial K} (hf : f ≠ 0) :
-  is_basis K (λ (i : fin f.nat_degree), (root f ^ (i : ℕ))) :=
+variables {f : polynomial K}
+
+lemma power_basis_is_basis (hf : f ≠ 0) : is_basis K (λ (i : fin f.nat_degree), (root f ^ i.val)) :=
 begin
   set f' := f * C (f.leading_coeff⁻¹) with f'_def,
   have hC : f.leading_coeff ≠ 0,
@@ -348,10 +349,19 @@ end
 
 /-- The power basis `1, root f, ..., root f ^ (d - 1)` for `adjoin_root f`,
 where `f` is an irreducible polynomial over a field of degree `d`. -/
-noncomputable def power_basis {f : polynomial K} (hf : f ≠ 0) :
+noncomputable def power_basis (hf : f ≠ 0) :
   power_basis K (adjoin_root f) :=
 { gen := root f,
   dim := f.nat_degree,
   is_basis := power_basis_is_basis hf }
+
+lemma finite_dimensional (hf : f ≠ 0) : finite_dimensional K (adjoin_root f) :=
+finite_dimensional.of_fintype_basis (power_basis hf).is_basis
+
+lemma findim (hf : f ≠ 0) : finite_dimensional.findim K (adjoin_root f) = f.nat_degree :=
+begin
+  rw [finite_dimensional.findim_eq_card_basis (power_basis hf).is_basis, fintype.card_fin],
+  refl,
+end
 
 end adjoin_root

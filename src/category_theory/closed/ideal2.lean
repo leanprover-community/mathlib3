@@ -73,14 +73,32 @@ begin
   simp only [functor.id_map, iso.inv_hom_id_assoc],
 end
 
-variables [has_finite_products C] [cartesian_closed C]
+variables (i) [has_finite_products C] [cartesian_closed C]
 
 /--
-The subcategory `D` of `C` expressed as in inclusion functor is an *exponential ideal* if
+The subcategory `D` of `C` expressed as an inclusion functor is an *exponential ideal* if
 `B ∈ D` implies `B^A ∈ D` for all `A`.
 -/
 class exponential_ideal :=
 (exp_closed : ∀ {B}, in_subcategory i B → ∀ A, in_subcategory i (A ⟹ B))
+
+@[derive category]
+def subterminals (C : Type u₁) [category.{v₁} C] [has_terminal C] :=
+{A : C // mono (terminal.from A)}
+
+def subterminal_inclusion : subterminals C ⥤ C := full_subcategory_inclusion _
+
+instance : exponential_ideal (subterminal_inclusion : _ ⥤ C) :=
+{ exp_closed := λ B hB A,
+  begin
+    rcases hB with ⟨⟨B', hB'⟩, ⟨(iB : B' ≅ _)⟩⟩,
+    refine ⟨⟨B ^^ A, ⟨_⟩⟩, ⟨iso.refl _⟩⟩,
+    introsI Z g h eq,
+    apply uncurry_injective,
+    rw ← cancel_mono iB.inv,
+    rw ← cancel_mono (terminal.from B'),
+    ext,
+  end }
 
 -- def witness_in (A : C) [in_subcategory i A] : D := in_subcategory.witness.{v₁} i A
 -- def witness_iso (A : C) [in_subcategory i A] : i.obj (witness_in i A) ≅ A := in_subcategory.iso.

@@ -409,18 +409,18 @@ begin
 end
 
 /-- We have
-`cyclotomic n K = (X ^ k - 1) /ₘ (∏ i in nat.proper_divisors k, cyclotomic i K)`. -/
-lemma cyclotomic_eq_X_pow_sub_one_div {K : Type*} [field K] {n : ℕ} (hpos: 0 < n) :
-  cyclotomic n K = (X ^ n - 1) /ₘ (∏ i in nat.proper_divisors n, cyclotomic i K) :=
+`cyclotomic n R = (X ^ k - 1) /ₘ (∏ i in nat.proper_divisors k, cyclotomic i K)`. -/
+lemma cyclotomic_eq_X_pow_sub_one_div {R : Type*} [comm_ring R] [nontrivial R] {n : ℕ}
+  (hpos: 0 < n) : cyclotomic n R = (X ^ n - 1) /ₘ (∏ i in nat.proper_divisors n, cyclotomic i R) :=
 begin
   rw [←prod_cyclotomic_eq_X_pow_sub_one hpos,
   nat.divisors_eq_proper_divisors_insert_self_of_pos hpos,
   finset.prod_insert nat.proper_divisors.not_self_mem],
-  have prod_monic : (∏ i in nat.proper_divisors n, cyclotomic i K).monic,
+  have prod_monic : (∏ i in nat.proper_divisors n, cyclotomic i R).monic,
   { apply monic_prod_of_monic,
     intros i hi,
-    exact cyclotomic.monic i K },
-  rw (div_mod_by_monic_unique (cyclotomic n K) 0 prod_monic _).1,
+    exact cyclotomic.monic i R },
+  rw (div_mod_by_monic_unique (cyclotomic n R) 0 prod_monic _).1,
   simp only [degree_zero, zero_add],
   split,
   { rw mul_comm },
@@ -443,8 +443,8 @@ begin
     obtain ⟨d, hd⟩ := (nat.mem_proper_divisors.1 hi).1,
     rw mul_comm at hd,
     exact hk i (nat.mem_proper_divisors.1 hi).2 (is_primitive_root.pow hpos hz hd) },
-  rw [cyclotomic_eq_X_pow_sub_one_div hpos, cyclotomic'_eq_X_pow_sub_one_div hpos hz,
-  finset.prod_congr (refl k.proper_divisors) h]
+  rw [@cyclotomic_eq_X_pow_sub_one_div _ _ (field.to_nontrivial K) _ hpos,
+  cyclotomic'_eq_X_pow_sub_one_div hpos hz, finset.prod_congr (refl k.proper_divisors) h]
 end
 
 end cyclotomic

@@ -160,9 +160,7 @@ by { apply nat_degree_mul', rw [hp.leading_coeff, hq.leading_coeff], simp }
 lemma next_coeff_mul {p q : polynomial R} (hp : monic p) (hq : monic q) :
 next_coeff (p * q) = next_coeff p + next_coeff q :=
 begin
-  classical,
-  obtain _H|_H := subsingleton_or_nontrivial R; resetI,
-  { exact subsingleton.elim _ _ },
+  nontriviality,
   dsimp only [next_coeff],
   simp only [monic.nat_degree_mul hp hq, add_eq_zero_iff, degree_eq_zero_iff_eq_one, hp, hq],
   by_cases hp0 : p = 1; by_cases hq0 : q = 1;
@@ -181,7 +179,7 @@ begin
   rw ← sum_subset this,
   { rw [sum_insert, sum_singleton],
     { rw [coeff_nat_degree hp, coeff_nat_degree hq, mul_one, one_mul, add_comm] },
-    { simp only [not_and, prod.mk.inj_iff, mem_singleton], intro h, omega } },
+    { simp only [not_and, prod.mk.inj_iff, mem_singleton], revert hp0, omega manual } },
   clear this,
   simp only [prod.forall, mem_insert, prod.mk.inj_iff, nat.mem_antidiagonal, mem_singleton],
   push_neg,
@@ -203,10 +201,11 @@ begin
     apply h3 rfl,
     exact nat.add_left_cancel h1 },
   clear h2 h3 hp0 hq0,
-  have aux3 : i < dp - 1, { omega },
+  have aux3 : i < dp - 1, { revert h aux1 aux2, omega manual },
   contrapose! h1, clear h aux1 aux2,
   apply ne_of_lt,
-  omega,
+  revert aux3 h1,
+  omega manual
 end
 
 lemma next_coeff_prod

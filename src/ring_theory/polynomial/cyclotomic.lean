@@ -432,7 +432,7 @@ end
 /-- If there is a primitive `n`-th root of unity in `K`, then
 `cyclotomic n K = ∏ μ in primitive_roots n R, (X - C μ)`. In particular,
 `cyclotomic n K = cyclotomic' n K` -/
-lemma cyclotomic_eq_prod_X_sub_primitive_root' {K : Type*} [field K] {ζ : K} {n : ℕ}
+lemma cyclotomic_eq_prod_X_sub_primitive_roots {K : Type*} [field K] {ζ : K} {n : ℕ}
 (h : is_primitive_root ζ n) : cyclotomic n K = ∏ μ in primitive_roots n K, (X - C μ) :=
 begin
   rw ←cyclotomic',

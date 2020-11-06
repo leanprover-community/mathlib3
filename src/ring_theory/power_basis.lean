@@ -305,31 +305,40 @@ end intermediate_field
 
 namespace adjoin_root
 
-lemma power_basis_is_basis {f : polynomial K} (f_irr : irreducible f) :
+lemma power_basis_is_basis {f : polynomial K} (hf : f ≠ 0) :
   is_basis K (λ (i : fin f.nat_degree), (root f ^ (i : ℕ))) :=
 begin
   set f' := f * C (f.leading_coeff⁻¹) with f'_def,
   have hC : f.leading_coeff ≠ 0,
-  { simpa only [ne.def, C_eq_zero, inv_eq_zero, leading_coeff_eq_zero] using f_irr.ne_zero},
+  { simpa only [ne.def, C_eq_zero, inv_eq_zero, leading_coeff_eq_zero] using hf},
   have deg_f' : f'.nat_degree = f.nat_degree,
-  { rw [nat_degree_mul f_irr.ne_zero (mt _ hC), nat_degree_C, add_zero],
+  { rw [nat_degree_mul hf (mt _ hC), nat_degree_C, add_zero],
     simp },
-  have f'_monic : monic f' := monic_mul_leading_coeff_inv f_irr.ne_zero,
-  have f'_irr : irreducible f',
-  { apply irreducible_of_associated _ f_irr,
-    refine ⟨⟨C f.leading_coeff⁻¹, C f.leading_coeff, _, _⟩, _⟩;
-      simp only [← C.map_mul, mul_inv_cancel hC, inv_mul_cancel hC, C.map_one, units.coe_mk] },
+  have f'_monic : monic f' := monic_mul_leading_coeff_inv hf,
   have aeval_f' : aeval (root f) f' = 0,
   { rw [f'_def, alg_hom.map_mul, aeval_eq, mk_self, zero_mul] },
   have hx : is_integral K (root f) := ⟨f', f'_monic, aeval_f'⟩,
-  have minpoly_eq : minimal_polynomial hx = f' :=
-    (minimal_polynomial.unique' hx f'_irr aeval_f' f'_monic).symm,
+  have minpoly_eq : f' = minimal_polynomial hx,
+  { apply minimal_polynomial.unique hx f'_monic aeval_f',
+    intros q q_monic q_aeval,
+    rw [degree_eq_nat_degree f'_monic.ne_zero, degree_eq_nat_degree q_monic.ne_zero],
+    rw [with_bot.coe_le_coe, deg_f'],
+    apply nat_degree_le_of_dvd,
+    { rw [←ideal.mem_span_singleton, ←ideal.quotient.eq_zero_iff_mem],
+      change mk f q = 0,
+      have commutes : (lift (algebra_map K (adjoin_root f)) (root f) q_aeval).comp (mk q) = mk f,
+      { ext,
+        { simp only [mk_C, lift_of, algebra_map_eq, function.comp_app, ring_hom.coe_comp], refl },
+        { simp only [mk_X, lift_root, function.comp_app, ring_hom.coe_comp] } },
+      rw ← commutes,
+      simp only [mk_self, ring_hom.map_zero, function.comp_app, ring_hom.coe_comp] },
+    { exact q_monic.ne_zero } },
   refine ⟨_, eq_top_iff.mpr _⟩,
   { have := algebra.linear_independent_power_basis hx,
-    rwa [minpoly_eq, deg_f'] at this },
+    rwa [←minpoly_eq, deg_f'] at this },
   { rintros y -,
     have := algebra.mem_span_power_basis hx,
-    rw [minpoly_eq, deg_f'] at this,
+    rw [←minpoly_eq, deg_f'] at this,
     apply this,
     obtain ⟨g⟩ := y,
     use g,
@@ -339,10 +348,10 @@ end
 
 /-- The power basis `1, root f, ..., root f ^ (d - 1)` for `adjoin_root f`,
 where `f` is an irreducible polynomial over a field of degree `d`. -/
-noncomputable def power_basis {f : polynomial K} (f_irr : irreducible f) :
+noncomputable def power_basis {f : polynomial K} (hf : f ≠ 0) :
   power_basis K (adjoin_root f) :=
 { gen := root f,
   dim := f.nat_degree,
-  is_basis := power_basis_is_basis f_irr }
+  is_basis := power_basis_is_basis hf }
 
 end adjoin_root

@@ -714,50 +714,12 @@ variables {I J : fractional_ideal g} [ J ≠ 0 ]
 
 
 
-lemma div_coe {I : fractional_ideal g} : (↑(1 / I) : submodule R₁ g.codomain) =
+lemma div_coe {I : fractional_ideal g} (hI : I ≠ 0): (↑(1 / I) : submodule R₁ g.codomain) =
   1 / (↑I : submodule R₁ g.codomain) :=
-begin sorry,
-  -- ext, split,
-  -- cases I, intros x y hy,
-  -- rw mem_coe_to_submodule at x,
-  -- dsimp at x,
-  -- -- rw coe_mk at x,
-  -- -- have hx : x ∈ I_val,
-
-  -- { rw mem_coe_to_submodule,
-
-
-  -- }
-
-
-
-  -- ext,
-  -- rw ← val_eq_coe,
-  -- rw ← val_eq_coe, simp * at *,
-  -- convert (subtype.ext_iff_val).mp,
-  -- apply rfl,
-  -- rw ← coe_mk (1 / I).val, simp * at *,-- at hx,
-  -- split,
-  -- { intros hx a ha,
-  --   -- rw ← coe_mk (1 / I).val at hx,
-  --   -- rw ← mem_coe_to_submodule at hx,
-  --   -- rw ← val_eq_coe at hx,
-  --   -- rw ← mem_coe_to_submodule at hx,?
-  --   -- rw submodule.mem_div_iff_forall_mul_mem at hx,
-  --   apply (@submodule.mem_div_iff_forall_mul_mem _ _ _ _ _ x 1 I.1).mpr,
-  --   swap, exact ha,
-  --   intros y hy,
-  --   simp * at *, sorry,
-  --   },
-  -- { intros hx,
-  --   rw submodule.mem_div_iff_forall_mul_mem at hx,
-  --   rw ← mem_coe_to_submodule,
-  --   rw ← val_eq_coe,
-  --   rw submodule.mem_div_iff_forall_mul_mem,
-  --   sorry,
-  -- }
-  -- -- rw mem_coe_to_submodule,
-  -- -- sorry,
+begin
+  unfold has_div.div, split_ifs, swap,
+  simp only [coe_zero, zero_eq_bot, coe_mk, val_eq_coe, coe_one'],
+  tauto,
 end
 
 
@@ -785,16 +747,26 @@ by { rw div_nonzero h, exact submodule.mem_div_iff_forall_mul_mem }
 
 lemma mul_one_div_le_one {I : fractional_ideal g} : I * (1 / I) ≤ 1 :=
 begin
-  rw [← coe_le_coe, coe_mul, div_coe, coe_one'],
-  apply submodule.mul_one_div_le_one,
+  by_cases hI : I = 0,
+  { rw [hI, div_zero],
+    ring,
+    rw [← coe_le_coe, coe_zero],
+    simp only [bot_le] },
+  { rw [← coe_le_coe, coe_mul, div_coe hI, coe_one'],
+    apply submodule.mul_one_div_le_one },
 end
 
 lemma le_self_mul_one_div {I : fractional_ideal g} (hI : I ≤ (1 : fractional_ideal g)) :
   I ≤ I * (1 / I) :=
 begin
-rwa [← coe_le_coe, coe_one'] at hI,
-rw [← coe_le_coe, coe_mul I ((1 : fractional_ideal g)/ I), div_coe],
-apply_rules submodule.le_self_mul_one_div,
+  by_cases hI_nz : I = 0,
+  { rw [hI_nz, div_zero],
+    ring,
+    rw [← coe_le_coe, coe_zero],
+    simp only [bot_le] },
+  { rwa [← coe_le_coe, coe_one'] at hI,
+    rw [← coe_le_coe, coe_mul I ((1 : fractional_ideal g)/ I), div_coe hI_nz],
+    apply_rules submodule.le_self_mul_one_div },
 end
 
 lemma le_div_iff_of_nonzero {I J J' : fractional_ideal g} (hJ' : J' ≠ 0) :

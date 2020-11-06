@@ -433,7 +433,8 @@ end
 `cyclotomic n K = ∏ μ in primitive_roots n R, (X - C μ)`. In particular,
 `cyclotomic n K = cyclotomic' n K` -/
 lemma cyclotomic_eq_prod_X_sub_primitive_roots {K : Type*} [field K] {ζ : K} {n : ℕ}
-(h : is_primitive_root ζ n) : cyclotomic n K = ∏ μ in primitive_roots n K, (X - C μ) :=
+  (h : is_primitive_root ζ n) :
+  cyclotomic n K = ∏ μ in primitive_roots n K, (X - C μ) :=
 begin
   rw ←cyclotomic',
   revert h ζ,

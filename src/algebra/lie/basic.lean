@@ -43,14 +43,14 @@ lie bracket, ring commutator, jacobi identity, lie ring, lie algebra
 universes u v w w₁
 
 /-- A binary operation, intended use in Lie algebras and similar structures. -/
-class has_bracket (L : Type v) := (bracket : L → L → L)
+class has_bracket (L : Type v) (M : Type w) := (bracket : L → M → M)
 
 notation `⁅`x`,` y`⁆` := has_bracket.bracket x y
 
 /-- An Abelian Lie algebra is one in which all brackets vanish. Arguably this class belongs in the
 `has_bracket` namespace but it seems much more user-friendly to compromise slightly and put it in
 the `lie_algebra` namespace. -/
-class lie_algebra.is_abelian (L : Type v) [has_bracket L] [has_zero L] : Prop :=
+class lie_algebra.is_abelian (L : Type v) [has_bracket L L] [has_zero L] : Prop :=
 (abelian : ∀ (x y : L), ⁅x, y⁆ = 0)
 
 namespace ring_commutator
@@ -60,7 +60,7 @@ variables {A : Type v} [ring A]
 /-- The bracket operation for rings is the ring commutator, which captures the extent to which a
 ring is commutative. It is identically zero exactly when the ring is commutative. -/
 @[priority 100]
-instance : has_bracket A :=
+instance : has_bracket A A :=
 { bracket := λ x y, x*y - y*x }
 
 lemma commutator (x y : A) : ⁅x, y⁆ = x*y - y*x := rfl
@@ -69,7 +69,7 @@ end ring_commutator
 
 /-- A Lie ring is an additive group with compatible product, known as the bracket, satisfying the
 Jacobi identity. The bracket is not associative unless it is identically zero. -/
-@[protect_proj] class lie_ring (L : Type v) extends add_comm_group L, has_bracket L :=
+@[protect_proj] class lie_ring (L : Type v) extends add_comm_group L, has_bracket L L :=
 (add_lie : ∀ (x y z : L), ⁅x + y, z⁆ = ⁅x, z⁆ + ⁅y, z⁆)
 (lie_add : ∀ (x y z : L), ⁅z, x + y⁆ = ⁅z, x⁆ + ⁅z, y⁆)
 (lie_self : ∀ (x : L), ⁅x, x⁆ = 0)
@@ -94,14 +94,14 @@ begin
 end
 
 @[simp] lemma lie_zero (x : L) :
-  ⁅x, 0⁆ = 0 :=
+  ⁅x, (0 : L)⁆ = 0 :=
 begin
-  have H : ⁅x, 0⁆ + ⁅x, 0⁆ = ⁅x, 0⁆ + 0 := by { rw ←lie_add, simp, },
+  have H : ⁅x, (0 : L)⁆ + ⁅x, 0⁆ = ⁅x, 0⁆ + 0 := by { rw ←lie_add, simp, },
   exact add_left_cancel H,
 end
 
 @[simp] lemma zero_lie (x : L) :
-  ⁅0, x⁆ = 0 := by { rw [←lie_skew, lie_zero], simp, }
+  ⁅(0 : L), x⁆ = 0 := by { rw [←lie_skew, lie_zero], simp, }
 
 @[simp] lemma neg_lie (x y : L) :
   ⁅-x, y⁆ = -⁅x, y⁆ := by { rw [←sub_eq_zero_iff_eq, sub_neg_eq_add, ←add_lie], simp, }
@@ -111,7 +111,7 @@ end
 
 @[simp] lemma gsmul_lie (x y : L) (n : ℤ) :
   ⁅n • x, y⁆ = n • ⁅x, y⁆ :=
-add_monoid_hom.map_gsmul ⟨λ x, ⁅x, y⁆, zero_lie y, λ _ _, add_lie _ _ _⟩ _ _
+add_monoid_hom.map_gsmul ⟨λ (x : L), ⁅x, y⁆, zero_lie y, λ _ _, add_lie _ _ _⟩ _ _
 
 @[simp] lemma lie_gsmul (x y : L) (n : ℤ) :
   ⁅x, n • y⁆ = n • ⁅x, y⁆ :=
@@ -432,7 +432,7 @@ instance lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) :
   x ∈ (L' : submodule R L) ↔ x ∈ L' := iff.rfl
 
 @[simp, norm_cast] lemma lie_subalgebra.coe_bracket (L' : lie_subalgebra R L) (x y : L') :
-  (↑⁅x, y⁆ : L) = ⁅↑x, ↑y⁆ := rfl
+  (↑⁅x, y⁆ : L) = ⁅(↑x : L), ↑y⁆ := rfl
 
 @[ext] lemma lie_subalgebra.ext (L₁' L₂' : lie_subalgebra R L) (h : ∀ x, x ∈ L₁' ↔ x ∈ L₂') :
   L₁' = L₂' :=
@@ -468,7 +468,7 @@ def lie_algebra.morphism.range (f : L →ₗ⁅R⁆ L₂) : lie_subalgebra R L�
   ..f.to_linear_map.range }
 
 @[simp] lemma lie_algebra.morphism.range_bracket (f : L →ₗ⁅R⁆ L₂) (x y : f.range) :
-  (↑⁅x, y⁆ : L₂) = ⁅↑x, ↑y⁆ := rfl
+  (↑⁅x, y⁆ : L₂) = ⁅(↑x : L₂), ↑y⁆ := rfl
 
 /-- The image of a Lie subalgebra under a Lie algebra morphism is a Lie subalgebra of the
 codomain. -/
@@ -661,7 +661,7 @@ instance lie_quotient_lie_module : lie_module R L N.quotient :=
                             repeat { rw lie_quotient_action_apply, }, rw lie_act, refl, },
   ..quotient.lie_quotient_action, }
 
-instance lie_quotient_has_bracket : has_bracket (quotient I) := ⟨by {
+instance lie_quotient_has_bracket : has_bracket (quotient I) (quotient I) := ⟨by {
   intros x y,
   apply quotient.lift_on₂' x y (λ x' y', mk ⁅x', y'⁆),
   intros x₁ x₂ y₁ y₂ h₁ h₂,
@@ -673,7 +673,7 @@ instance lie_quotient_has_bracket : has_bracket (quotient I) := ⟨by {
   { apply lie_mem_left R L I (x₁ - y₁) y₂ h₁, }, }⟩
 
 @[simp] lemma mk_bracket (x y : L) :
-  (mk ⁅x, y⁆ : quotient I) = ⁅mk x, mk y⁆ := rfl
+  (mk ⁅x, y⁆ : quotient I) = ⁅(mk x : quotient I), mk y⁆ := rfl
 
 instance lie_quotient_lie_ring : lie_ring (quotient I) :=
 { add_lie  := by { intros x' y' z', apply quotient.induction_on₃' x' y' z', intros x y z,

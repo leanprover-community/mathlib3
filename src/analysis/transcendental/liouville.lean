@@ -71,8 +71,7 @@ begin
             by ring,
     { -- proof of (1)
       conv_lhs { rw [eval_map, as_sum_support f, eval₂_finset_sum] },
-      simp only [coeff_map, eval₂_X_pow, div_pow, eval₂_mul, eval₂_C],
-      congr },
+      congr, funext, simp only [ring_hom.eq_int_cast, eval₂_monomial] },
     { -- proof of (2)
       intros i hi,
       suffices : (b ^ f.nat_degree : ℝ) = b ^ (f.nat_degree - i) * b ^ i,
@@ -84,11 +83,11 @@ begin
   rw [h_eq₁, h_cast_eq, abs_mul, abs_of_pos h_pos, le_mul_iff_one_le_right h_pos],
   rw [h_eq₁, mul_ne_zero_iff, h_cast_eq] at h_not_root,
   norm_cast at ⊢ h_not_root,
-  exact abs_pos_iff.2 h_not_root.2
+  exact abs_pos.mpr h_not_root.2
 end
 
 lemma exists_forall_ge_of_polynomial_deriv (α : ℝ) (f : polynomial ℝ)
-  (h_f_deg : 0 < f.nat_degree) (h_α_root : f.eval α = 0) :
+  (h_f_deg : 0 < f.nat_degree) :
   ∃ M : ℝ, 0 < M ∧ ∀ (y : ℝ), abs (y - α) ≤ 1 → abs (eval y f.derivative) ≤ M :=
 begin
   have h_f_nonzero : f ≠ 0 := ne_zero_of_nat_degree_gt h_f_deg,
@@ -118,48 +117,62 @@ begin
   exact hM y hy'
 end
 
-lemma lemma2 (α : ℝ) (f : polynomial ℝ) (h_f_nonzero : f ≠ 0)
-  (h_α_root : f.eval α = 0) (M : ℝ) (hM : 0 < M) :
-  ∃ B : ℝ, 0 < B ∧ B ≤ 1 / M ∧ B ≤ 1
-  ∧ ∀ x (hr : abs (α - x) < B) (hn : x ≠ α), f.eval x ≠ 0 :=
+lemma non_root_interval_of_polynomial (α : ℝ) (f : polynomial ℝ) (h_f_nonzero : f ≠ 0) :
+  ∃ B : ℝ, 0 < B ∧ ∀ x (hr : abs (α - x) < B) (hn : x ≠ α), f.eval x ≠ 0 :=
 begin
-  set f_roots' := f.roots.to_finset.erase α,
-  set distances' := insert (1/M) (insert (1 : ℝ) (f_roots'.image (λ x, abs (α - x)))),
-  have h_nonempty: distances'.nonempty,
-   { use 1 / M, -- why does this 'use' take so long?
+  set f_roots := f.roots.to_finset.erase α,
+  set distances := insert (1 : ℝ) (f_roots.image (λ x, abs (α - x))),
+  have h_nonempty: distances.nonempty,
+   { use 1, -- why does this 'use' take so long?
      simp only [true_or, eq_self_iff_true, finset.mem_insert] },
-  set B := distances'.min' h_nonempty with hB,
-  have h_allpos : ∀ x : ℝ, x ∈ distances' → 0 < x,
-  { intros x hx, rw [finset.mem_insert, finset.mem_insert] at hx,
-    rcases hx with hx | hx | hx,
-    { rw hx, simp only [one_div, gt_iff_lt, inv_pos], exact hM },
+  set B := distances.min' h_nonempty with hB,
+  have h_allpos : ∀ x : ℝ, x ∈ distances → 0 < x,
+  { intros x hx, rw [finset.mem_insert] at hx,
+    rcases hx with hx | hx,
     { rw hx, exact zero_lt_one },
     { rcases finset.mem_image.mp hx with ⟨α₀, ⟨h, hα₀⟩⟩,
       rw [finset.mem_erase] at h,
-      rw [←hα₀, abs_pos_iff, sub_ne_zero], exact h.1.symm } },
+      rw [←hα₀, abs_pos, sub_ne_zero], exact h.1.symm }},
   use B,
-  split,
-  { exact hB.symm ▸ h_allpos (min' distances' h_nonempty) (min'_mem distances' h_nonempty) },
-  split,
-  { apply finset.min'_le distances' (1/M) (mem_insert_self _ _) },
-  split,
-  { apply finset.min'_le distances' 1, rw [finset.mem_insert, finset.mem_insert],
-    right, left, refl },
-  { intros x hx hxα,
-    have hab₂ : x ∉ f.roots.to_finset,
-    { intro h,
-      have h₁ : x ∈ f_roots', { rw [finset.mem_erase], exact ⟨hxα, h⟩ },
-      have h₂ : abs (α - x) ∈ distances',
-      { rw [finset.mem_insert, finset.mem_insert, finset.mem_image], right, right,
-        exact ⟨x, ⟨h₁, rfl⟩⟩ },
-      have h₃ := finset.min'_le distances' (abs (α - x)) h₂,
-      erw ←hB at h₃, linarith only [lt_of_lt_of_le hx h₃] },
-    rwa [multiset.mem_to_finset, mem_roots h_f_nonzero, is_root.def] at hab₂ }
+  apply and.intro (h_allpos B (distances.min'_mem h_nonempty)),
+  intros x hx hxα,
+  have hab₂ : x ∉ f.roots.to_finset,
+  { intro h,
+    have h₁ : x ∈ f_roots, { rw [finset.mem_erase], exact ⟨hxα, h⟩ },
+    have h₂ : abs (α - x) ∈ distances,
+    { rw [finset.mem_insert, finset.mem_image], right, exact ⟨x, ⟨h₁, rfl⟩⟩ },
+    have h₃ := finset.min'_le distances (abs (α - x)) h₂,
+    erw ←hB at h₃, linarith only [lt_of_lt_of_le hx h₃] },
+  rwa [multiset.mem_to_finset, mem_roots h_f_nonzero, is_root.def] at hab₂
 end
 
-lemma lemma3 (α : ℝ) (hα : irrational α) (f : polynomial ℝ)
-  (h_f_deg : 1 < f.nat_degree) (h_α_root : f.eval α = 0)
-  (x : ℝ) (h : f.eval x ≠ 0) :
+lemma non_root_small_interval_of_polynomial (α : ℝ) (f : polynomial ℝ) (h_f_nonzero : f ≠ 0)
+  (M : ℝ) (hM : 0 < M) :
+  ∃ B : ℝ, 0 < B ∧ B ≤ 1 / M ∧ B ≤ 1
+  ∧ ∀ x (hr : abs (α - x) < B) (hn : x ≠ α), f.eval x ≠ 0 :=
+begin
+  obtain ⟨B0, ⟨h_B0_pos, h_B0_root⟩⟩ := non_root_interval_of_polynomial α f h_f_nonzero,
+  have h1M : 0 < 1 / M := one_div_pos.mpr hM,
+  have hB1 : ∃ B1 : ℝ, 0 < B1 ∧ B1 ≤ 1 / M ∧ B1 ≤ B0,
+  { cases le_or_gt (1 / M) B0,
+    { use 1 / M, tauto },
+    { use B0, apply and.intro h_B0_pos, split, linarith, refl }},
+  obtain ⟨B1, ⟨hB11, hB12, hB13⟩⟩ := hB1,
+  have hB : ∃ B : ℝ, 0 < B ∧ B ≤ 1 / M ∧ B ≤ 1 ∧ B ≤ B0,
+  { cases le_or_gt 1 B1,
+    { use 1, split, linarith, split, linarith, split, linarith, linarith },
+    { use B1, split, linarith, split, exact hB12, split, linarith, exact hB13 }},
+  obtain ⟨B, ⟨hB1, hB2, hB3, hB4⟩⟩ := hB,
+  use B,
+  apply and.intro hB1,
+  apply and.intro hB2,
+  apply and.intro hB3,
+  intros x hx,
+  apply h_B0_root x,
+  linarith
+end
+
+lemma lemma3 (α : ℝ) (f : polynomial ℝ) (h_α_root : f.eval α = 0) (x : ℝ) (h : f.eval x ≠ 0) :
   ∃ x₀, α - x = - ((f.eval x) / (f.derivative.eval x₀))
     ∧ f.derivative.eval x₀ ≠ 0
     ∧ abs (α - x₀) < abs (α - x)
@@ -227,8 +240,9 @@ begin
       exact h
     end,
   obtain ⟨M, ⟨h_m_pos, h_max⟩⟩ :=
-    exists_forall_ge_of_polynomial_deriv α fR (nat.lt_of_succ_lt h_fR_deg) h_α_root,
-  obtain ⟨B, ⟨hB_pos, hB_M, hB_one, hB_root⟩⟩ := lemma2 α fR h_f_nonzero h_α_root M h_m_pos,
+    exists_forall_ge_of_polynomial_deriv α fR (nat.lt_of_succ_lt h_fR_deg),
+  obtain ⟨B, ⟨hB_pos, hB_M, hB_one, hB_root⟩⟩ :=
+    non_root_small_interval_of_polynomial α fR h_f_nonzero M h_m_pos,
   -- Then `B/2` satisfies all the requirement.
   use (B / 2),
   have hB₂ : 0 < B / 2 := half_pos hB_pos,
@@ -243,7 +257,7 @@ begin
   have hb₂ : abs (α - a / b) < B := lt_of_le_of_lt hb₁ (by linarith),
   have hab₁ : α ≠ a/b := (irrational_iff_ne_rational _).mp hα a b,
   have hab₂ : fR.eval (a/b) ≠ 0 := hB_root _ hb₂ hab₁.symm,
-  obtain ⟨x₀, hx₀⟩ := lemma3 α hα fR h_fR_deg h_α_root ((a : ℝ) / b) hab₂,
+  obtain ⟨x₀, hx₀⟩ := lemma3 α fR h_α_root ((a : ℝ) / b) hab₂,
   apply lt_irrefl (B / 2 / b ^ f.nat_degree),
   calc
         B / 2 / b ^ f.nat_degree
@@ -255,12 +269,12 @@ begin
         rw ge_iff_le,
         exact div_le_div (abs_nonneg _)
           (abs_eval_rat_ge_one_div_denom_pow_n f a b h_b_pos hab₂)
-          (abs_pos_of_ne_zero hx₀.2.1) (le_refl _)
+          (abs_pos.mpr hx₀.2.1) (le_refl _)
       end
   ... ≥ 1 / b ^ f.nat_degree / M :
       begin
         rw ge_iff_le,
-        refine div_le_div _ (le_refl _) (abs_pos_of_ne_zero hx₀.2.1) _,
+        refine div_le_div _ (le_refl _) (abs_pos.mpr hx₀.2.1) _,
         { rw one_div_nonneg, apply pow_nonneg, norm_cast, exact le_of_lt h_b_pos },
         { refine h_max x₀ _, rw abs_sub,
           apply le_trans (le_of_lt hx₀.2.2.1) (le_trans (le_of_lt hb₂) hB_one) }
@@ -361,11 +375,9 @@ theorem transcendental_of_is_liouville {x : ℝ} (liouville_x : is_liouville x) 
 begin
   have h_irr_x : irrational x := irrational_of_is_liouville liouville_x,
   rintros ⟨f : polynomial ℤ, h_f_nonzero, h_root⟩,
-  replace h_root : (f.map (algebra_map ℤ ℝ)).eval x = 0,
-  { rw aeval_def at h_root, rwa [eval_map] },
-  have h_root' : (f.map (algebra_map ℤ ℝ)).is_root x, { rwa is_root.def },
-  have h_f_deg : 1 < f.nat_degree := nat_degree_gt_one_of_irrational_root x f h_irr_x h_f_nonzero
-    h_root',
+  have h_f_deg : 1 < f.nat_degree :=
+    one_lt_nat_degree_of_irrational_root x f h_irr_x h_f_nonzero h_root,
+  replace h_root : (f.map (algebra_map ℤ ℝ)).eval x = 0, { rw aeval_def at h_root, rwa [eval_map] },
   obtain ⟨A, hA, h⟩ := exists_pos_real_of_irrational_root x h_irr_x f h_f_deg h_root,
   have h_pow_big_enough : ∃ (r : ℕ), 1 / A ≤ 2 ^ r,
   { rcases pow_unbounded_of_one_lt (1 / A) (lt_add_one 1) with ⟨n, hn⟩,

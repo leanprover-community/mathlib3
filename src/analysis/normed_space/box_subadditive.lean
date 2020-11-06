@@ -23,7 +23,7 @@ the two subboxes `I ∩ (Iic c)` and `I ∩ (Ici c)` is greater than or equal/eq
 to its value on `I`.
 
 The main result of this file is theorem `box_subadditive_on.eq_zero_of_forall_is_o_prod`. It says
-that a `box_subadditive_on`function `f` which is `o(volume I)` near each point of `s` is equal to
+that a `box_subadditive_on` function `f` which is `o(volume I)` near each point of `s` is equal to
 zero on any subinterval of `s`.
 -/
 

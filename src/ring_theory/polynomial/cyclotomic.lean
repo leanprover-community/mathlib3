@@ -359,7 +359,7 @@ begin
 end
 
 /-- `cyclotomic n R` is different from `0`. -/
-lemma cycl_ne_zero (n : ℕ) (R : Type*) [ring R] [nontrivial R] : cyclotomic n R ≠ 0 :=
+lemma cyclotomic_ne_zero (n : ℕ) (R : Type*) [ring R] [nontrivial R] : cyclotomic n R ≠ 0 :=
 monic.ne_zero (cyclotomic.monic n R)
 
 /-- The degree of `cyclotomic n` is `totient n`. -/

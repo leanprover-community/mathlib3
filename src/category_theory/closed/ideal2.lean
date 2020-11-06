@@ -91,13 +91,12 @@ def subterminal_inclusion : subterminals C ⥤ C := full_subcategory_inclusion _
 instance : exponential_ideal (subterminal_inclusion : _ ⥤ C) :=
 { exp_closed := λ B hB A,
   begin
-    rcases hB with ⟨⟨B', hB'⟩, ⟨(iB : B' ≅ _)⟩⟩,
+    rcases hB with ⟨⟨B', hB'⟩, ⟨iB⟩⟩,
     refine ⟨⟨B ^^ A, ⟨_⟩⟩, ⟨iso.refl _⟩⟩,
     introsI Z g h eq,
     apply uncurry_injective,
-    rw ← cancel_mono iB.inv,
-    rw ← cancel_mono (terminal.from B'),
-    ext,
+    rw [← cancel_mono iB.inv, ← cancel_mono (terminal.from B')],
+    apply subsingleton.elim,
   end }
 
 -- def witness_in (A : C) [in_subcategory i A] : D := in_subcategory.witness.{v₁} i A

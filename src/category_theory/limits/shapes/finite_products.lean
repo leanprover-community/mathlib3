@@ -37,7 +37,7 @@ lemma has_finite_products_of_has_finite_limits [has_finite_limits C] : has_finit
 /--
 If a category has all products then in particular it has finite products.
 -/
-instance has_finite_products_of_has_products [has_products C] : has_finite_products C :=
+lemma has_finite_products_of_has_products [has_products C] : has_finite_products C :=
 by { dsimp [has_finite_products], apply_instance }
 
 /--

@@ -308,14 +308,29 @@ def unique_extension_along_yoneda (L : (Cᵒᵖ ⥤ Type u₁) ⥤ ℰ) (hL : yo
   L ≅ extend_along_yoneda A :=
 nat_iso_of_nat_iso_on_representables _ _ (hL ≪≫ (is_extension_along_yoneda _).symm)
 
-/--
-If `L` preserves colimits and `ℰ` has them, then it is a left adjoint. Note this is a (partial)
-converse to `left_adjoint_preserves_colimits`.
--/
-def is_left_adjoint_of_preserves_colimits (L : (Cᵒᵖ ⥤ Type u₁) ⥤ ℰ) [preserves_colimits L] :
+-- /--
+-- If `L` preserves colimits and `ℰ` has them, then it is a left adjoint. Note this is a (partial)
+-- converse to `left_adjoint_preserves_colimits`.
+-- -/
+-- def is_left_adjoint_of_preserves_colimits (L : (Cᵒᵖ ⥤ Type u₁) ⥤ ℰ) [preserves_colimits L] :
+--   is_left_adjoint L :=
+-- { right := restricted_yoneda (yoneda ⋙ L),
+--   adj := (yoneda_adjunction _).of_nat_iso_left
+--               (unique_extension_along_yoneda _ L (iso.refl _)).symm }
+
+def is_left_adjoint_of_preserves_colimits (L : (C ⥤ Type u₁) ⥤ ℰ) [preserves_colimits L] :
   is_left_adjoint L :=
-{ right := restricted_yoneda (yoneda ⋙ L),
-  adj := (yoneda_adjunction _).of_nat_iso_left
-              (unique_extension_along_yoneda _ L (iso.refl _)).symm }
+begin
+  have := op_op_equivalence C,
+  have : (Cᵒᵖᵒᵖ ⥤ Type u₁) ≌ (C ⥤ Type u₁),
+
+  -- let L' : (Cᵒᵖᵒᵖ ⥤ Type u₁) ⥤ ℰ,
+  --   apply _ ⋙ L,
+  --   apply (whiskering_left _ _ _).obj this.inverse,
+
+end
+-- { right := restricted_yoneda (yoneda ⋙ L),
+--   adj := (yoneda_adjunction _).of_nat_iso_left
+--               (unique_extension_along_yoneda _ L (iso.refl _)).symm }
 
 end category_theory

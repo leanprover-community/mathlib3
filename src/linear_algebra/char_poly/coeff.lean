@@ -85,7 +85,8 @@ by { rw fintype.card_eq_zero_iff at h, suffices : M = 1, { simp [this] }, ext, t
 theorem char_poly_degree_eq_dim [nontrivial R] (M : matrix n n R) :
 (char_poly M).degree = fintype.card n :=
 begin
-  by_cases fintype.card n = 0, rw h, unfold char_poly, rw det_of_card_zero, simpa,
+  by_cases fintype.card n = 0,
+  { rw h, unfold char_poly, rw det_of_card_zero, {simp}, {assumption} },
   rw ← sub_add_cancel (char_poly M) (∏ (i : n), (X - C (M i i))),
   have h1 : (∏ (i : n), (X - C (M i i))).degree = fintype.card n,
   { rw degree_eq_iff_nat_degree_eq_of_pos, swap, apply nat.pos_of_ne_zero h,
@@ -104,7 +105,7 @@ lemma char_poly_monic (M : matrix n n R) :
   monic (char_poly M) :=
 begin
   nontriviality,
-  by_cases fintype.card n = 0, rw [char_poly, det_of_card_zero h], apply monic_one,
+  by_cases fintype.card n = 0, {rw [char_poly, det_of_card_zero h], apply monic_one},
   have mon : (∏ (i : n), (X - C (M i i))).monic,
   { apply monic_prod_of_monic univ (λ i : n, (X - C (M i i))), simp [monic_X_sub_C], },
   rw ← sub_add_cancel (∏ (i : n), (X - C (M i i))) (char_poly M) at mon,

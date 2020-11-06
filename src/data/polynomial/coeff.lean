@@ -48,7 +48,7 @@ by { rw [mem_support_to_fun, not_not], refl, }
 variable (R)
 /-- The nth coefficient, as a linear map. -/
 def lcoeff (n : ℕ) : polynomial R →ₗ[R] R :=
-finsupp.leval n
+finsupp.lapply n
 variable {R}
 
 @[simp] lemma lcoeff_apply (n : ℕ) (f : polynomial R) : lcoeff R n f = coeff f n := rfl

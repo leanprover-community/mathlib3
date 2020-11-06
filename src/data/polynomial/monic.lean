@@ -178,7 +178,7 @@ begin
   rw ← sum_subset this; clear this,
   { rw [sum_insert, sum_singleton],
     { rw [coeff_nat_degree hp, coeff_nat_degree hq, mul_one, one_mul, add_comm] },
-    { simp only [not_and, prod.mk.inj_iff, mem_singleton], revert hp0; omega manual } },
+    { simp only [not_and, prod.mk.inj_iff, mem_singleton], revert hp0, omega manual } },
   simp only [prod.forall, mem_insert, prod.mk.inj_iff, nat.mem_antidiagonal, mem_singleton],
   push_neg, rintros i j h1 ⟨h2, h3⟩,
   suffices : p.coeff i = 0 ∨ q.coeff j = 0,
@@ -191,8 +191,8 @@ begin
     exact h2 rfl (nat.add_left_cancel h1) },
   rw nat.sub_add_comm (nat.pos_of_ne_zero hp0) at h1,
   have aux2 : i ≠ dp - 1, { rintro rfl, exact h3 rfl (nat.add_left_cancel h1) },
-  have aux3 : i < dp - 1, { revert h aux1 aux2; omega manual },
-  revert aux3 h1; omega manual
+  have aux3 : i < dp - 1, { revert h aux1 aux2, omega manual },
+  revert aux3 h1, omega manual
 end
 
 lemma next_coeff_prod

@@ -289,7 +289,7 @@ begin
 end
 
 /-- `cyclotomic n R` comes from `cyclotomic n ℤ`. -/
-lemma cyclotomic_from_int_cyclotomic (n : ℕ) (R : Type*) [ring R] :
+lemma map_cyclotomic_int (n : ℕ) (R : Type*) [ring R] :
   cyclotomic n R = map (int.cast_ring_hom R) (cyclotomic n ℤ) :=
 begin
   by_cases hzero : n = 0,

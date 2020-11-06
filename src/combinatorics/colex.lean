@@ -16,7 +16,7 @@ lemmas and properties relating to it.
 The colex ordering likes to avoid large values - it can be thought of on
 `finset ℕ` as the "binary" ordering. That is, order A based on
 `∑_{i ∈ A} 2^i`.
-It's defined here a slightly more general way, requiring only `has_lt α` in
+It's defined here in a slightly more general way, requiring only `has_lt α` in
 the definition of colex on `finset α`. In the context of the Kruskal-Katona
 theorem, we are interested in particular on how colex behaves for sets of a
 fixed size. If the size is 3, colex on ℕ starts
@@ -113,7 +113,7 @@ end
 
 /-- A special case of `colex_hom` which is sometimes useful. -/
 lemma colex_hom_fin {n : ℕ} (A B : finset (fin n)) :
-  A.image subtype.val <ᶜ B.image subtype.val ↔ A <ᶜ B :=
+  A.image λ n, (n : ℕ) <ᶜ B.image subtype.val ↔ A <ᶜ B :=
 colex.hom (λ x y k, k) _ _
 
 instance [has_lt α] : is_irrefl (finset.colex α) (<) :=
@@ -148,7 +148,6 @@ instance [linear_order α] : is_strict_order (finset.colex α) (<) := {}
 lemma lt_trichotomy [linear_order α] (A B : finset.colex α) :
   A < B ∨ A = B ∨ B < A :=
 begin
-  classical,
   by_cases h₁ : (A = B),
   { right,
     left,

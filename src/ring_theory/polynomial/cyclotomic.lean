@@ -318,7 +318,7 @@ begin
 end
 
 /-- The definition of `cyclotomic n R` commutes with any ring homomorphism. -/
-lemma map_cyclotomic (n : ℕ) {R S : Type*} [ring R] [ring S] (f : R →+* S) :
+@[simp] lemma map_cyclotomic (n : ℕ) {R S : Type*} [ring R] [ring S] (f : R →+* S) :
   map f (cyclotomic n R) = cyclotomic n S :=
 begin
   rw [cyclotomic_from_int_cyclotomic n R, cyclotomic_from_int_cyclotomic n S],

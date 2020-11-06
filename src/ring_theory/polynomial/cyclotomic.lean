@@ -429,10 +429,13 @@ begin
   exact monic.ne_zero prod_monic (degree_eq_bot.1 h)
 end
 
-/-- If there is a primitive `n`-th root of unity in `K`, then `cyclotomic n K = cyclotomic' n K`. -/
-lemma cyclotomic_eq_cyclotomic' {K : Type*} [field K] {ζ : K} {n : ℕ} (h : is_primitive_root ζ n) :
-  cyclotomic n K = cyclotomic' n K :=
+/-- If there is a primitive `n`-th root of unity in `K`, then
+`cyclotomic n K = ∏ μ in primitive_roots n R, (X - C μ)`. In particular,
+`cyclotomic n K = cyclotomic' n K` -/
+lemma cyclotomic_eq_prod_X_sub_primitive_root' {K : Type*} [field K] {ζ : K} {n : ℕ} (h : is_primitive_root ζ n) :
+  cyclotomic n K = ∏ μ in primitive_roots n K, (X - C μ) :=
 begin
+  rw ←cyclotomic',
   revert h ζ,
   apply nat.strong_induction_on n,
   intros k hk z hz,

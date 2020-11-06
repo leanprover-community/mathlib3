@@ -150,21 +150,27 @@ def preserves_limit_of_preserves_limit_cone {F : C ⥤ D} {t : cone K}
   (h : is_limit t) (hF : is_limit (F.map_cone t)) : preserves_limit K F :=
 ⟨λ t' h', is_limit.of_iso_limit hF (functor.map_iso _ (is_limit.unique_up_to_iso h h'))⟩
 
-/-- Transfer preservation of limits along a natural isomorphism in the shape. -/
-def preserves_limit_of_iso {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K₂) [preserves_limit K₁ F] :
-  preserves_limit K₂ F :=
+/-- Transfer preservation of limits along a natural isomorphism in the diagram. -/
+def preserves_limit_of_iso_diagram {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K₂)
+  [preserves_limit K₁ F] : preserves_limit K₂ F :=
 { preserves := λ c t,
   begin
-    have t' := is_limit.of_right_adjoint (cones.postcompose_equivalence h).inverse t,
-    let hF := iso_whisker_right h F,
-    have := is_limit.of_right_adjoint (cones.postcompose_equivalence hF).functor
-              (preserves_limit.preserves t'),
-    apply is_limit.of_iso_limit this,
-    refine cones.ext (iso.refl _) (λ j, _),
-    dsimp,
-    rw [← F.map_comp],
-    simp,
+    have := is_limit.postcompose_hom_equiv,
+    -- have t' := is_limit.of_right_adjoint (cones.postcompose_equivalence h).inverse t,
+    -- let hF := iso_whisker_right h F,
+    -- have := is_limit.of_right_adjoint (cones.postcompose_equivalence hF).functor
+    --           (preserves_limit.preserves t'),
+    -- apply is_limit.of_iso_limit this,
+    -- refine cones.ext (iso.refl _) (λ j, _),
+    -- dsimp,
+    -- rw [← F.map_comp],
+    -- simp,
   end }
+
+/-- Transfer preservation of limits along a natural isomorphism in the functor. -/
+def preserves_limit_of_nat_iso (K : J ⥤ C) {F G : C ⥤ D} (h : F ≅ G) [preserves_limit K F] :
+  preserves_limit K G :=
+{ preserves := λ c t, is_limit.map_cone_equiv h (preserves_limit.preserves t) }
 
 /-- If F preserves one colimit cocone for the diagram K,
   then it preserves any colimit cocone for K. -/

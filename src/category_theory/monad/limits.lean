@@ -259,16 +259,25 @@ instance comp_comparison_has_limit
 monad.has_limit_of_comp_forget_has_limit (F ⋙ monad.comparison R)
 
 /-- Any monadic functor creates limits. -/
-lemma monadic_creates_limits (F : J ⥤ D) (R : D ⥤ C) [monadic_right_adjoint R] [has_limit (F ⋙ R)] :
-  has_limit F :=
-adjunction.has_limit_of_comp_equivalence _ (monad.comparison R)
+lemma monadic_creates_limits (R : D ⥤ C) [monadic_right_adjoint R] :
+  creates_limits R :=
+begin
+  have : R ≅ monad.comparison R ⋙ monad.forget _,
+    apply (monad.comparison_forget R).symm,
+
+  -- let := monad.comparison R,
+
+  -- have := creates_limits_comp,
+end
+--   has_limit F :=
+-- adjunction.has_limit_of_comp_equivalence _ (monad.comparison R)
 
 section
 
-/-- If C has limits then any reflective subcategory has limits -/
-lemma has_limits_of_reflective (R : D ⥤ C) [has_limits C] [reflective R] : has_limits D :=
-{ has_limits_of_shape := λ J 𝒥, by exactI
-  { has_limit := λ F, monadic_creates_limits F R } }
+-- /-- If C has limits then any reflective subcategory has limits -/
+-- lemma has_limits_of_reflective (R : D ⥤ C) [has_limits C] [reflective R] : has_limits D :=
+-- { has_limits_of_shape := λ J 𝒥, by exactI
+--   { has_limit := λ F, monadic_creates_limits F R } }
 
 end
 end category_theory

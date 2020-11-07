@@ -67,13 +67,6 @@ def is_limit_of_has_equalizer_of_preserves_limit
 map_is_limit_of_preserves_of_is_limit G _ (equalizer_is_equalizer f g)
 
 variables [has_equalizer (G.map f) (G.map g)]
-/--
-The comparison morphism from the map of an equalizer to the equalizer in the target category.
-This is an isomorphism if and only if `G` preserves the equalizer of `(f,g)`, shown in
-`preserves_equalizer` and `preserves_equalizers_iso`.
--/
-def equalizer_comparison : G.obj (equalizer f g) ⟶ equalizer (G.map f) (G.map g) :=
-equalizer.lift (G.map (equalizer.ι _ _)) (by simp only [←G.map_comp, equalizer.condition])
 
 /--
 If the equalizer comparison map for `G` at `(f,g)` is an isomorphism, then `G` preserves the

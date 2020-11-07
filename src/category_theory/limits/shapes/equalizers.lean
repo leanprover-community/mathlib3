@@ -51,7 +51,7 @@ namespace category_theory.limits
 
 local attribute [tidy] tactic.case_bash
 
-universes v u
+universes v u u₂
 
 /-- The type of objects for the diagram indexing a (co)equalizer. -/
 @[derive decidable_eq, derive inhabited] inductive walking_parallel_pair : Type v
@@ -662,6 +662,48 @@ rfl
 @[simp] lemma coequalizer.iso_target_of_self_inv :
   (coequalizer.iso_target_of_self f).inv = coequalizer.π f f :=
 rfl
+
+section comparison
+
+variables {D : Type u₂} [category.{v} D] (G : C ⥤ D)
+
+-- TODO: show this is an iso iff `G` preserves the equalizer of `f,g`.
+/-- The comparison morphism for the equalizer of `f,g`. -/
+def equalizer_comparison [has_equalizer f g] [has_equalizer (G.map f) (G.map g)] :
+  G.obj (equalizer f g) ⟶ equalizer (G.map f) (G.map g) :=
+equalizer.lift (G.map (equalizer.ι _ _)) (by simp only [←G.map_comp, equalizer.condition])
+
+@[simp, reassoc]
+lemma equalizer_comparison_comp_π [has_equalizer f g] [has_equalizer (G.map f) (G.map g)] :
+  equalizer_comparison f g G ≫ equalizer.ι (G.map f) (G.map g) = G.map (equalizer.ι f g) :=
+equalizer.lift_ι _ _
+
+@[simp, reassoc]
+lemma map_lift_equalizer_comparison [has_equalizer f g] [has_equalizer (G.map f) (G.map g)]
+  {Z : C} {h : Z ⟶ X} (w : h ≫ f = h ≫ g) :
+    G.map (equalizer.lift h w) ≫ equalizer_comparison f g G =
+      equalizer.lift (G.map h) (by simp only [←G.map_comp, w]) :=
+by { ext, simp [← G.map_comp] }
+
+-- TODO: show this is an iso iff G preserves the coproduct of f.
+/-- The comparison morphism for the coequalizer of `f,g`. -/
+def coequalizer_comparison [has_coequalizer f g] [has_coequalizer (G.map f) (G.map g)] :
+  coequalizer (G.map f) (G.map g) ⟶ G.obj (coequalizer f g) :=
+coequalizer.desc (G.map (coequalizer.π _ _)) (by simp only [←G.map_comp, coequalizer.condition])
+
+@[simp, reassoc]
+lemma ι_comp_coequalizer_comparison [has_coequalizer f g] [has_coequalizer (G.map f) (G.map g)] :
+  coequalizer.π _ _ ≫ coequalizer_comparison f g G = G.map (coequalizer.π _ _) :=
+coequalizer.π_desc _ _
+
+@[simp, reassoc]
+lemma coequalizer_comparison_map_desc [has_coequalizer f g] [has_coequalizer (G.map f) (G.map g)]
+  {Z : C} {h : Y ⟶ Z} (w : f ≫ h = g ≫ h) :
+  coequalizer_comparison f g G ≫ G.map (coequalizer.desc h w) =
+    coequalizer.desc (G.map h) (by simp only [←G.map_comp, w]) :=
+by { ext, simp [← G.map_comp] }
+
+end comparison
 
 variables (C)
 

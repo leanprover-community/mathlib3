@@ -88,6 +88,18 @@ lemma colex.le_def [has_lt α] (A B : finset α) :
   A ≤ᶜ B ↔ A <ᶜ B ∨ A = B :=
 iff.rfl
 
+/-- If everything in A is less than k, we can bound the sum of powers. -/
+-- TODO: This might belong somewhere else.
+lemma binary_sum_nat {k : ℕ} {A : finset ℕ} (h₁ : ∀ {x}, x ∈ A → x < k) :
+  A.sum (pow 2) < 2^k :=
+begin
+  apply lt_of_le_of_lt (sum_le_sum_of_subset (λ t, mem_range.2 ∘ h₁)),
+  have z := geom_sum_mul_add 1 k,
+  rw [geom_series, mul_one, one_add_one_eq_two] at z,
+  rw ← z,
+  apply nat.lt_succ_self,
+end
+
 namespace colex
 
 /-- Strictly monotone functions preserve the colex ordering. -/
@@ -232,18 +244,6 @@ begin
   apply lt_of_lt_of_le (h₂ k ‹_›) a,
 end
 
-/-- If everything in A is less than k, we can bound the sum of powers. -/
--- TODO: This might belong somewhere else.
-lemma binary_sum_nat {k : ℕ} {A : finset ℕ} (h₁ : ∀ {x}, x ∈ A → x < k) :
-  A.sum (pow 2) < 2^k :=
-begin
-  apply lt_of_le_of_lt (sum_le_sum_of_subset (λ t, mem_range.2 ∘ h₁)),
-  have z := geom_sum_mul_add 1 k,
-  rw [geom_series, mul_one, one_add_one_eq_two] at z,
-  rw ← z,
-  apply nat.lt_succ_self,
-end
-
 /-- Colex doesn't care if you remove the other set -/
 lemma lt_iff_sdiff_lt_sdiff [has_lt α] [decidable_eq α] (A B : finset α) :
   A <ᶜ B ↔ A \ B <ᶜ B \ A :=
@@ -269,7 +269,7 @@ lemma lt_iff_sum_pow_two_lt (A B : finset ℕ) : A.sum (pow 2) < B.sum (pow 2) �
 begin
   have z : ∀ (A B : finset ℕ), A <ᶜ B → A.sum (pow 2) < B.sum (pow 2),
   { intros A B,
-    rw [colex_ignores_sdiff, colex.lt_def],
+    rw [lt_iff_sdiff_lt_sdiff, colex.lt_def],
     rintro ⟨k, z, kA, kB⟩,
     rw ← sdiff_union_inter A B,
     conv_rhs { rw ← sdiff_union_inter B A },

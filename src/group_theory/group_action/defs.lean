@@ -114,15 +114,6 @@ by split_ifs; refl
 
 end ite
 
-section compatible_scalar
-
-@[simp] lemma smul_one_smul {M} (N) [monoid N] [has_scalar M N] [mul_action N α] [has_scalar M α]
-  [is_scalar_tower M N α] (x : M) (y : α) :
-  (x • (1 : N)) • y = x • y :=
-by rw [smul_assoc, one_smul]
-
-end compatible_scalar
-
 namespace mul_action
 
 variables (α) [monoid α]
@@ -167,6 +158,15 @@ def mul_action.comp_hom [monoid γ] (g : γ →* α) :
 end mul_action
 
 end
+
+section compatible_scalar
+
+@[simp] lemma smul_one_smul {M} (N) [monoid N] [has_scalar M N] [mul_action N α] [has_scalar M α]
+  [is_scalar_tower M N α] (x : M) (y : α) :
+  (x • (1 : N)) • y = x • y :=
+by rw [smul_assoc, one_smul]
+
+end compatible_scalar
 
 /-- Typeclass for multiplicative actions on additive structures. This generalizes group modules. -/
 class distrib_mul_action (α : Type u) (β : Type v) [monoid α] [add_monoid β]

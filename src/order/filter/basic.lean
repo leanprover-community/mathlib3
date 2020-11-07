@@ -2328,3 +2328,8 @@ open_locale filter
 lemma set.eq_on.eventually_eq {α β} {s : set α} {f g : α → β} (h : eq_on f g s) :
   f =ᶠ[𝓟 s] g :=
 h
+
+lemma set.eq_on.eventually_eq_of_mem {α β} {s : set α} {l : filter α} {f g : α → β}
+  (h : eq_on f g s) (hl : s ∈ l) :
+  f =ᶠ[l] g :=
+h.eventually_eq.filter_mono $ filter.le_principal_iff.2 hl

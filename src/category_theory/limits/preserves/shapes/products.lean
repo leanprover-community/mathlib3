@@ -7,23 +7,13 @@ import category_theory.limits.shapes.products
 import category_theory.limits.preserves.basic
 
 /-!
-# Binary (co)products
+# Preserving products
 
-We define a category `walking_pair`, which is the index category
-for a binary (co)product diagram. A convenience method `pair X Y`
-constructs the functor from the walking pair, hitting the given objects.
+Constructions to relate the notions of preserving products and reflecting products
+to concrete fans.
 
-We define `prod X Y` and `coprod X Y` as limits and colimits of such functors.
-
-Typeclasses `has_binary_products` and `has_binary_coproducts` assert the existence
-of (co)limits shaped as walking pairs.
-
-We include lemmas for simplifying equations involving projections and coprojections, and define
-braiding and associating isomorphisms, and the product comparison morphism.
-
-## References
-* [Stacks: Products of pairs](https://stacks.math.columbia.edu/tag/001R)
-* [Stacks: coproducts of pairs](https://stacks.math.columbia.edu/tag/04AN)
+In particular, we show that `pi_comparison G f` is an isomorphism iff `G` preserves
+the limit of `f`.
 -/
 
 noncomputable theory

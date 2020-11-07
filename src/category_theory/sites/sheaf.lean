@@ -389,7 +389,8 @@ def nat_trans_equiv_compatible_family :
 
 /-- (Implementation). A lemma useful to prove `yoneda_condition_iff_sheaf_condition`. -/
 lemma extension_iff_amalgamation (x : S.functor ⟶ P) (g : yoneda.obj X ⟶ P) :
-  S.functor_inclusion ≫ g = x ↔ (nat_trans_equiv_compatible_family x).1.is_amalgamation (yoneda_equiv g) :=
+  S.functor_inclusion ≫ g = x ↔
+  (nat_trans_equiv_compatible_family x).1.is_amalgamation (yoneda_equiv g) :=
 begin
   change _ ↔ ∀ ⦃Y : C⦄ (f : Y ⟶ X) (h : S f), P.map f.op (yoneda_equiv g) = x.app (op Y) ⟨f, h⟩,
   split,
@@ -426,7 +427,8 @@ end
 
 /-- `P` is a sheaf for `R` iff it is separated for `R` and there exists an amalgamation. -/
 lemma separated_for_and_exists_amalgamation_iff_sheaf_for :
-  is_separated_for P R ∧ (∀ (x : family_of_elements P R), x.compatible → ∃ t, x.is_amalgamation t) ↔ is_sheaf_for P R :=
+  is_separated_for P R ∧ (∀ (x : family_of_elements P R), x.compatible → ∃ t, x.is_amalgamation t) ↔
+  is_sheaf_for P R :=
 begin
   rw [is_separated_for, ←forall_and_distrib],
   apply forall_congr,

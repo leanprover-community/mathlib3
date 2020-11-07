@@ -168,7 +168,8 @@ begin
   linarith
 end
 
-lemma exists_deriv_eq_slope_of_polynomial_root (α : ℝ) (f : polynomial ℝ) (h_α_root : f.eval α = 0) (x : ℝ) (h : f.eval x ≠ 0) :
+lemma exists_deriv_eq_slope_of_polynomial_root (α : ℝ) (f : polynomial ℝ) (h_α_root : f.eval α = 0)
+  (x : ℝ) (h : f.eval x ≠ 0) :
   ∃ x₀, α - x = - ((f.eval x) / (f.derivative.eval x₀))
     ∧ f.derivative.eval x₀ ≠ 0
     ∧ abs (α - x₀) < abs (α - x)

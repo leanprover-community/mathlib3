@@ -30,6 +30,12 @@ The main definitions are in the `adjoin_root` namespace.
 * `lift (i : R →+* S) (x : S) (h : f.eval₂ i x = 0) : (adjoin_root f) →+* S`, the ring
   homomorphism from R[X]/(f) to S extending `i : R →+* S` and sending `X` to `x`.
 
+* `lift_hom (x : S) (hfx : aeval x f = 0) : adjoin_root f →ₐ[R] S`, the algebra
+  homomorphism from R[X]/(f) to S extending `algebra_map R S` and sending `X` to `x`
+
+* `equiv : (adjoin_root f →ₐ[F] E) ≃ {x // x ∈ (f.map (algebra_map F E)).roots}` a
+  bijection between algebra homomorphisms from `adjoin_root` and roots of `f` in `S`
+
 -/
 noncomputable theory
 open_locale classical

@@ -22,6 +22,9 @@ element to a ring/field.
 * `power_basis R A`: a structure containing an `x` and an `n` such that
 `1, x, ..., x^n` is a basis for the `R`-algebra `A` (viewed as an `R`-module).
 
+* `findim (hf : f ≠ 0) : finite_dimensional.findim K (adjoin_root f) = f.nat_degree`,
+  the dimension of `adjoin_root f` equals the degree of `f`
+
 ## Implementation notes
 
 Throughout this file, `R`, `S`, ... are `comm_ring`s, `A`, `B`, ... are

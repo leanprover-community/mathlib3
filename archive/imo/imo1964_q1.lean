@@ -19,7 +19,7 @@ integers which are a multiple of 3.
 -/
 
 /-!
-## intermediate lemmas
+## Intermediate lemmas
 -/
 
 open nat.modeq

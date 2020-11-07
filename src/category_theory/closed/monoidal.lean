@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.monoidal.category
 import category_theory.adjunction.basic
+import category_theory.adjunction.opposites
 
 /-!
 # Closed monoidal categories
@@ -22,8 +23,10 @@ namespace monoidal
 
 open category monoidal_category
 
+variables {C : Type u} [category.{v} C] [monoidal_category.{v} C]
+
 /-- An object `X` is (left) closed if `(X ⊗ -)` is a left adjoint. -/
-class closed {C : Type u} [category.{v} C] [monoidal_category.{v} C] (X : C) :=
+class closed (X : C) :=
 (is_adj : is_left_adjoint (tensor_left X))
 
 /-- A monoidal category `C` is (left) monoidal closed if every object is (left) closed. -/
@@ -32,8 +35,6 @@ class monoidal_closed (C : Type u) [category.{v} C] [monoidal_category.{v} C] :=
 
 attribute [instance, priority 100] monoidal_closed.closed
 
-variables {C : Type u} [category.{v} C] [monoidal_category.{v} C]
-
 /--
 The unit object is always closed.
 This isn't an instance because most of the time we'll prove closedness for all objects at once,
@@ -41,15 +42,10 @@ rather than just for this one.
 -/
 def unit_closed : closed (𝟙_ C) :=
 { is_adj :=
-  { right := 𝟭 C,
-    adj := adjunction.mk_of_hom_equiv
-    { hom_equiv := λ X _,
-      { to_fun := λ a, (left_unitor X).inv ≫ a,
-        inv_fun := λ a, (left_unitor X).hom ≫ a,
-        left_inv := by tidy,
-        right_inv := by tidy },
-      hom_equiv_naturality_left_symm' := λ X' X Y f g,
-      by { dsimp, rw left_unitor_naturality_assoc } } } }
+  begin
+    apply adjunction.left_adjoint_of_nat_iso (left_unitor_nat_iso _).symm,
+    exact functor.left_adjoint_of_equivalence,
+  end }
 
 /--
 If `X` and `Y` are exponentiable then `X ⊗ Y` is.
@@ -116,9 +112,11 @@ rfl
   ((internal_hom.adjunction A).hom_equiv _ _).symm f = uncurry f :=
 rfl
 
-def hom_one_iso_id : internal_hom_right (𝟙_ C) ≅ 𝟭 C :=
-begin
-end
+def hom_one_iso_id [closed (𝟙_ C)] : internal_hom_right (𝟙_ C) ≅ 𝟭 C :=
+adjunction.nat_iso_of_left_adjoint_nat_iso
+  (internal_hom.adjunction (𝟙_ C))
+  adjunction.id
+  (left_unitor_nat_iso C)
 
 section pre
 

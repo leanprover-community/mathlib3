@@ -714,8 +714,8 @@ variables {I J : fractional_ideal g} [ J ≠ 0 ]
 
 
 
-lemma div_coe {I : fractional_ideal g} (hI : I ≠ 0): (↑(1 / I) : submodule R₁ g.codomain) =
-  1 / (↑I : submodule R₁ g.codomain) :=
+lemma div_coe {I J : fractional_ideal g} (hJ : J ≠ 0): (↑(I / J) : submodule R₁ g.codomain) =
+  ↑I / (↑J : submodule R₁ g.codomain) :=
 begin
   unfold has_div.div, split_ifs, swap,
   simp only [coe_zero, zero_eq_bot, coe_mk, val_eq_coe, coe_one'],
@@ -757,12 +757,15 @@ end
 lemma le_self_mul_one_div {I : fractional_ideal g} (hI : I ≤ (1 : fractional_ideal g)) :
   I ≤ I * (1 / I) :=
 begin
+  -- sorry,
   by_cases hI_nz : I = 0,
-  { rw [hI_nz, div_zero],
-    ring, from zero_le 0 },
+  { rw [hI_nz, div_zero, mul_zero], from zero_le 0 },
   { rwa [← coe_le_coe, coe_one'] at hI,
     rw [← coe_le_coe, coe_mul I ((1 : fractional_ideal g)/ I), div_coe hI_nz],
-    apply_rules submodule.le_self_mul_one_div },
+    have h_fI : I.val ≤ 1, by rwa ← val_eq_coe at hI,
+    rw [← val_eq_coe, coe_one'],
+    apply submodule.le_self_mul_one_div h_fI,
+  },
 end
 
 lemma le_div_iff_of_nonzero {I J J' : fractional_ideal g} (hJ' : J' ≠ 0) :
@@ -1015,21 +1018,26 @@ lemma inv_principal (I : fractional_ideal g) [submodule.is_principal (I : submod
 I⁻¹.is_principal_iff.mpr ⟨_, (right_inverse_eq _ _ (mul_generator_self_inv I h)).symm⟩
 
 lemma mul_inv_span_singleton (J: fractional_ideal g) (d : g.codomain)
-  (h : d ≠ 0) : J * (1 / span_singleton d) = J / span_singleton d :=
+  (hd : d ≠ 0) : J * (1 / span_singleton d) = J / span_singleton d :=
 begin
+  have h_spand : (span_singleton d) ≠ 0, from (not_congr span_singleton_eq_zero_iff).mpr hd,
   suffices h : (J * (span_singleton d)⁻¹ ≤ J / (span_singleton d)) ∧ (J / (span_singleton d) ≤ J * (span_singleton d)⁻¹),
   { cases h with h_r h_l, apply le_antisymm,
     rw [inv_eq] at *, assumption' },
   split,
   { rw le_div_iff_mul_le,
     assoc_rewrite mul_comm (span_singleton d)⁻¹ (span_singleton d),
-    rw span_singleton_inv h, assoc_rewrite span_singleton_mul_span_singleton,
-    rw [mul_inv_cancel h, span_singleton_one],
-    simp only [mul_one], tauto,
-    apply (not_congr span_singleton_eq_zero_iff).mpr h },
-  {sorry,
-
-  }
+    rw span_singleton_inv hd, assoc_rewrite span_singleton_mul_span_singleton,
+    rw [mul_inv_cancel hd, span_singleton_one],
+    simp only [mul_one], tauto, assumption },
+  { intros x hx,
+    rw [val_eq_coe, div_coe h_spand, submodule.mem_div_iff_forall_mul_mem] at hx,
+    specialize hx d (mem_span_singleton_self d),
+    have h_xd : x = (x * d) * d⁻¹, assoc_rewrite [mul_inv_cancel hd, mul_one],
+    rw [val_eq_coe, coe_mul, inv_eq, h_xd],
+    apply submodule.mul_mem_mul, exact hx,
+    rw [← inv_eq, span_singleton_inv hd],
+    apply (mem_span_singleton_self d⁻¹) },
 end
 
 lemma exists_eq_span_singleton_mul (I : fractional_ideal g) :

@@ -7,6 +7,10 @@ import group_theory.group_action.defs
 import group_theory.group_action.group
 import group_theory.coset
 
+/-!
+# Basic properties of group actions
+-/
+
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 

@@ -157,7 +157,8 @@ end mul_action
 end
 
 /-- Typeclass for multiplicative actions on additive structures. This generalizes group modules. -/
-class distrib_mul_action (α : Type u) (β : Type v) [monoid α] [add_monoid β] extends mul_action α β :=
+class distrib_mul_action (α : Type u) (β : Type v) [monoid α] [add_monoid β]
+  extends mul_action α β :=
 (smul_add : ∀(r : α) (x y : β), r • (x + y) = r • x + r • y)
 (smul_zero : ∀(r : α), r • (0 : β) = 0)
 

@@ -32,6 +32,10 @@ open category limits
 variables {C : Type u} [category.{v} C]
 variables [has_finite_products C] [cartesian_closed C]
 
+/--
+If a cartesian closed category has an initial object which is isomorphic to the terminal object,
+then each homset has exactly one element.
+-/
 def unique_homset_of_initial_iso_terminal [has_initial C] (i : ⊥_ C ≅ ⊤_ C) (X Y : C) :
   unique (X ⟶ Y) :=
 equiv.unique $
@@ -42,6 +46,7 @@ calc (X ⟶ Y) ≃ (X ⨯ ⊤_ C ⟶ Y) : iso.hom_congr (prod.right_unitor _).sy
 local attribute [instance] has_zero_object.has_zero
 local attribute [instance] has_zero_object.unique_to has_zero_object.unique_from
 
+/-- If a cartesian closed category has a zero object, each homset has exactly one element. -/
 def unique_homset_of_zero [has_zero_object C] (X Y : C) :
   unique (X ⟶ Y) :=
 begin
@@ -53,6 +58,10 @@ end
 
 local attribute [instance] unique_homset_of_zero
 
+/--
+A cartesian closed category with a zero object is equivalent to the category with one object and
+one morphism.
+-/
 def equiv_punit [has_zero_object C] : C ≌ discrete punit :=
 equivalence.mk
   (functor.star C)

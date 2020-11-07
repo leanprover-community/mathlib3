@@ -75,7 +75,7 @@ by rw [mul_comm a, mul_comm b]; exact modeq_mul_left c h
 theorem modeq_mul (h₁ : a ≡ b [MOD n]) (h₂ : c ≡ d [MOD n]) : a * c ≡ b * d [MOD n] :=
 (modeq_mul_left _ h₂).trans (modeq_mul_right _ h₁)
 
-theorem modeq_pow {m : ℕ} (h : a ≡ b [MOD n]) : a ^ m ≡ b ^ m [MOD n] :=
+theorem modeq_pow (m : ℕ) (h : a ≡ b [MOD n]) : a ^ m ≡ b ^ m [MOD n] :=
 begin
   induction m with d hd, refl,
   rw [pow_succ, pow_succ],

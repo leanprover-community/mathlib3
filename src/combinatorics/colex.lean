@@ -245,7 +245,7 @@ begin
 end
 
 /-- Colex doesn't care if you remove the other set -/
-lemma colex_ignores_sdiff [has_lt α] [decidable_eq α] (A B : finset α) :
+lemma lt_iff_sdiff_lt_sdiff [has_lt α] [decidable_eq α] (A B : finset α) :
   A <ᶜ B ↔ A \ B <ᶜ B \ A :=
 begin
   rw [colex.lt_def, colex.lt_def],

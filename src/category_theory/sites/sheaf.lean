@@ -426,7 +426,7 @@ begin
 end
 
 /-- `P` is a sheaf for `R` iff it is separated for `R` and there exists an amalgamation. -/
-lemma separated_for_and_exists_amalgamation_iff_sheaf_for :
+lemma is_separated_for_and_exists_is_amalgamation_iff_sheaf_for :
   is_separated_for P R ∧ (∀ (x : family_of_elements P R), x.compatible → ∃ t, x.is_amalgamation t) ↔
   is_sheaf_for P R :=
 begin

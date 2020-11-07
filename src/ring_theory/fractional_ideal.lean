@@ -757,15 +757,13 @@ end
 lemma le_self_mul_one_div {I : fractional_ideal g} (hI : I ≤ (1 : fractional_ideal g)) :
   I ≤ I * (1 / I) :=
 begin
-  -- sorry,
   by_cases hI_nz : I = 0,
   { rw [hI_nz, div_zero, mul_zero], from zero_le 0 },
   { rwa [← coe_le_coe, coe_one'] at hI,
     rw [← coe_le_coe, coe_mul I ((1 : fractional_ideal g)/ I), div_coe hI_nz],
     have h_fI : I.val ≤ 1, by rwa ← val_eq_coe at hI,
     rw [← val_eq_coe, coe_one'],
-    apply submodule.le_self_mul_one_div h_fI,
-  },
+    apply submodule.le_self_mul_one_div h_fI },
 end
 
 lemma le_div_iff_of_nonzero {I J J' : fractional_ideal g} (hJ' : J' ≠ 0) :
@@ -1021,7 +1019,8 @@ lemma mul_inv_span_singleton (J: fractional_ideal g) (d : g.codomain)
   (hd : d ≠ 0) : J * (1 / span_singleton d) = J / span_singleton d :=
 begin
   have h_spand : (span_singleton d) ≠ 0, from (not_congr span_singleton_eq_zero_iff).mpr hd,
-  suffices h : (J * (span_singleton d)⁻¹ ≤ J / (span_singleton d)) ∧ (J / (span_singleton d) ≤ J * (span_singleton d)⁻¹),
+  suffices h : (J * (span_singleton d)⁻¹ ≤ J / (span_singleton d)) ∧
+     (J / (span_singleton d) ≤ J * (span_singleton d)⁻¹),
   { cases h with h_r h_l, apply le_antisymm,
     rw [inv_eq] at *, assumption' },
   split,

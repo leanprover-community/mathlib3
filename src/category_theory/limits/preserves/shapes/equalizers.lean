@@ -1,14 +1,24 @@
 /-
-Copyright (c) 2020 Scott Morrison, Bhavik Mehta. All rights reserved.
+Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison, Bhavik Mehta
+Authors: Bhavik Mehta
 -/
 import category_theory.limits.preserves.limits
 import category_theory.limits.shapes
 
-universes v u₁ u₂
+/-!
+# Preserving equalizers
+
+Constructions to relate the notions of preserving equalizers and reflecting equalizers
+to concrete forks.
+
+In particular, we show that `equalizer_comparison G f` is an isomorphism iff `G` preserves
+the limit of `f`.
+-/
 
 noncomputable theory
+
+universes v u₁ u₂
 
 open category_theory category_theory.category category_theory.limits
 
@@ -16,7 +26,7 @@ variables {C : Type u₁} [category.{v} C]
 variables {D : Type u₂} [category.{v} D]
 variables (G : C ⥤ D)
 
-namespace fork
+namespace preserves
 
 open category_theory.limits.walking_parallel_pair
 
@@ -69,7 +79,7 @@ equalizer.lift (G.map (equalizer.ι _ _)) (by simp only [←G.map_comp, equalize
 If the equalizer comparison map for `G` at `(f,g)` is an isomorphism, then `G` preserves the
 equalizer of `(f,g)`.
 -/
-def preserves_equalizer [i : is_iso (equalizer_comparison G f g)] :
+def preserves_equalizer_of_iso_comparison [i : is_iso (equalizer_comparison G f g)] :
   preserves_limit (parallel_pair f g) G :=
 begin
   apply preserves_limit_of_preserves_limit_cone (equalizer_is_equalizer f g),
@@ -78,18 +88,26 @@ begin
   apply i,
 end
 
+variables [preserves_limit (parallel_pair f g) G]
 /--
 If `G` preserves the equalizer of `(f,g)`, then the equalizer comparison map for `G` at `(f,g)` is
 an isomorphism.
 -/
-def preserves_equalizers_iso [preserves_limit (parallel_pair f g) G] :
+def preserves_equalizers_iso :
   G.obj (equalizer f g) ≅ equalizer (G.map f) (G.map g) :=
 is_limit.cone_point_unique_up_to_iso
   (is_limit_of_has_equalizer_of_preserves_limit G f g)
   (limit.is_limit _)
 
-lemma preserves_equalizers_iso_hom [preserves_limit (parallel_pair f g) G] :
+@[simp]
+lemma preserves_equalizers_iso_hom :
   (preserves_equalizers_iso G f g).hom = equalizer_comparison G f g :=
 rfl
 
-end fork
+instance : is_iso (equalizer_comparison G f g) :=
+begin
+  rw ← preserves_equalizers_iso_hom,
+  apply_instance
+end
+
+end preserves

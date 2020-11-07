@@ -113,7 +113,7 @@ end
 
 /-- A special case of `colex_hom` which is sometimes useful. -/
 lemma colex_hom_fin {n : ℕ} (A B : finset (fin n)) :
-  A.image λ n, (n : ℕ) <ᶜ B.image subtype.val ↔ A <ᶜ B :=
+  A.image (λ n, (n : ℕ)) <ᶜ B.image (λ n, (n : ℕ)) ↔ A <ᶜ B :=
 colex.hom (λ x y k, k) _ _
 
 instance [has_lt α] : is_irrefl (finset.colex α) (<) :=

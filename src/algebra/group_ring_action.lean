@@ -149,13 +149,3 @@ instance is_invariant_subring.to_mul_semiring_action : mul_semiring_action M S :
   smul_mul := λ m s₁ s₂, subtype.eq $ smul_mul' m s₁ s₂ }
 
 end ring
-
-section comm_ring
-
-variables (G : Type u) [group G] [fintype G]
-open_locale classical
-
-noncomputable instance (s : subgroup G) : fintype (quotient_group.quotient s) :=
-quotient.fintype _
-
-end comm_ring

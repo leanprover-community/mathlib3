@@ -376,6 +376,21 @@ def preserves_limits_of_reflects_of_preserves [preserves_limits (F ⋙ G)] [refl
 { preserves_limits_of_shape := λ J 𝒥₁,
     by exactI preserves_limits_of_shape_of_reflects_of_preserves F G }
 
+/-- Transfer reflection of a limit along a natural isomorphism in the functor. -/
+def reflects_limit_of_nat_iso (K : J ⥤ C) {F G : C ⥤ D} (h : F ≅ G) [reflects_limit K F] :
+  reflects_limit K G :=
+{ reflects := λ c t, reflects_limit.reflects (is_limit.map_cone_equiv h.symm t) }
+
+/-- Transfer reflection of limits of shape along a natural isomorphism in the functor. -/
+def reflects_limits_of_shape_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [reflects_limits_of_shape J F] :
+  reflects_limits_of_shape J G :=
+{ reflects_limit := λ K, reflects_limit_of_nat_iso K h }
+
+/-- Transfer reflection of limits along a natural isomorphism in the functor. -/
+def reflects_limits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [reflects_limits F] :
+  reflects_limits G :=
+{ reflects_limits_of_shape := λ J 𝒥₁, by exactI reflects_limits_of_shape_of_nat_iso h }
+
 /-- If `F ⋙ G` preserves colimits for `K`, and `G` reflects colimits for `K ⋙ F`,
 then `F` preserves colimits for `K`. -/
 def preserves_colimit_of_reflects_of_preserves [preserves_colimit K (F ⋙ G)]
@@ -399,6 +414,21 @@ def preserves_colimits_of_reflects_of_preserves [preserves_colimits (F ⋙ G)]
   [reflects_colimits G] : preserves_colimits F :=
 { preserves_colimits_of_shape := λ J 𝒥₁,
     by exactI preserves_colimits_of_shape_of_reflects_of_preserves F G }
+
+/-- Transfer reflection of a colimit along a natural isomorphism in the functor. -/
+def reflects_colimit_of_nat_iso (K : J ⥤ C) {F G : C ⥤ D} (h : F ≅ G) [reflects_colimit K F] :
+  reflects_colimit K G :=
+{ reflects := λ c t, reflects_colimit.reflects (is_colimit.map_cocone_equiv h.symm t) }
+
+/-- Transfer reflection of colimits of shape along a natural isomorphism in the functor. -/
+def reflects_colimits_of_shape_of_nat_iso {F G : C ⥤ D} (h : F ≅ G)
+  [reflects_colimits_of_shape J F] : reflects_colimits_of_shape J G :=
+{ reflects_colimit := λ K, reflects_colimit_of_nat_iso K h }
+
+/-- Transfer reflection of colimits along a natural isomorphism in the functor. -/
+def reflects_colimits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [reflects_colimits F] :
+  reflects_colimits G :=
+{ reflects_colimits_of_shape := λ J 𝒥₁, by exactI reflects_colimits_of_shape_of_nat_iso h }
 
 end
 

@@ -16,6 +16,8 @@ satisfying certain closure conditions.
 We show that a pretopology generates a genuine Grothendieck topology, and every topology has
 a maximal pretopology which generates it.
 
+The pretopology associated to a topological space is defined in `spaces.lean`.
+
 ## Todo
 
 Define sheaves on a pretopology, and show they are the same as the sheaves for the topology
@@ -37,7 +39,7 @@ noncomputable theory
 
 namespace category_theory
 
-open category_theory category limits arrows_with_codomain
+open category_theory category limits presieve
 
 variables {C : Type u} [category.{v} C] [has_pullbacks C]
 
@@ -47,13 +49,13 @@ category.
 This is not the same as the arrow set of `sieve.pullback`, but there is a relation between them
 in `pullback_arrows_comm`.
 -/
-def pullback_arrows {X Y : C} (f : Y ⟶ X) (S : arrows_with_codomain X) :
-  arrows_with_codomain Y :=
+def pullback_arrows {X Y : C} (f : Y ⟶ X) (S : presieve X) :
+  presieve Y :=
 λ Z g, ∃ Z' (h : Z' ⟶ X), S h ∧ ∃ (H : Z = pullback h f),
   eq_to_hom H ≫ pullback.snd = g
 
 lemma pullback_arrows_comm {X Y : C} (f : Y ⟶ X)
-  (R : arrows_with_codomain X) :
+  (R : presieve X) :
   sieve.generate (pullback_arrows f R) = (sieve.generate R).pullback f :=
 begin
   ext Z g,
@@ -66,14 +68,14 @@ begin
 end
 
 lemma pullback_singleton {X Y Z : C} (f : Y ⟶ X) (g : Z ⟶ X) :
- ∃ (W : C) (k : W ⟶ Y), pullback_arrows f (singleton_arrow g) = singleton_arrow k :=
+ ∃ (W : C) (k : W ⟶ Y), pullback_arrows f (singleton g) = singleton k :=
 begin
   refine ⟨pullback (eq_to_hom (eq.refl _) ≫ g) f, pullback.snd, _⟩,
   ext W k,
   split,
   { rintro ⟨W, k, ⟨rfl, rfl⟩, rfl, rfl⟩,
     rw [eq_to_hom_refl (pullback (eq_to_hom (eq.refl W) ≫ g) f) (eq.refl _), id_comp],
-    apply singleton_arrow_self },
+    apply singleton_self },
   { rintro ⟨rfl, rfl⟩,
     exact ⟨_, _, by simp, _, rfl⟩ }
 end
@@ -99,11 +101,11 @@ a basis for a topology.
 -/
 @[ext]
 structure pretopology :=
-(coverings : Π (X : C), set (arrows_with_codomain X))
-(has_isos : ∀ ⦃X Y⦄ (f : Y ⟶ X) [is_iso f], arrows_with_codomain.singleton_arrow f ∈ coverings X)
+(coverings : Π (X : C), set (presieve X))
+(has_isos : ∀ ⦃X Y⦄ (f : Y ⟶ X) [is_iso f], presieve.singleton f ∈ coverings X)
 (pullbacks : ∀ ⦃X Y⦄ (f : Y ⟶ X) S, S ∈ coverings X → pullback_arrows f S ∈ coverings Y)
-(transitive : ∀ ⦃X : C⦄ (S : arrows_with_codomain X)
-               (Ti : Π ⦃Y⦄ (f : Y ⟶ X), S f → arrows_with_codomain Y), S ∈ coverings X →
+(transitive : ∀ ⦃X : C⦄ (S : presieve X)
+               (Ti : Π ⦃Y⦄ (f : Y ⟶ X), S f → presieve Y), S ∈ coverings X →
                (∀ ⦃Y⦄ f (H : S f), Ti f H ∈ coverings Y) → S.bind Ti ∈ coverings X)
 
 namespace pretopology
@@ -135,8 +137,8 @@ A pretopology `K` can be completed to a Grothendieck topology `J` by declaring a
 See https://stacks.math.columbia.edu/tag/00ZC, or [MM92] Chapter III, Section 2, Equation (2).
 -/
 def to_grothendieck (K : pretopology C) : grothendieck_topology C :=
-{ sieves := λ X S, ∃ R ∈ K X, R ≤ (S : arrows_with_codomain _),
-  top_mem' := λ X, ⟨arrows_with_codomain.singleton_arrow (𝟙 _), K.has_isos _, λ _ _ _, ⟨⟩⟩,
+{ sieves := λ X S, ∃ R ∈ K X, R ≤ (S : presieve _),
+  top_mem' := λ X, ⟨presieve.singleton (𝟙 _), K.has_isos _, λ _ _ _, ⟨⟩⟩,
   pullback_stable' := λ X Y S g,
   begin
     rintro ⟨R, hR, RS⟩,
@@ -155,7 +157,7 @@ def to_grothendieck (K : pretopology C) : grothendieck_topology C :=
   end }
 
 lemma mem_to_grothendieck (K : pretopology C) (X S) :
-  S ∈ to_grothendieck C K X ↔ ∃ R ∈ K X, R ≤ (S : arrows_with_codomain X) :=
+  S ∈ to_grothendieck C K X ↔ ∃ R ∈ K X, R ≤ (S : presieve X) :=
 iff.rfl
 
 /--
@@ -165,12 +167,7 @@ See [MM92] Chapter III, Section 2, Equations (3,4).
 -/
 def of_grothendieck (J : grothendieck_topology C) : pretopology C :=
 { coverings := λ X R, sieve.generate R ∈ J X,
-  has_isos := λ X Y f i,
-  begin
-    apply J.covering_of_eq_top,
-    rw [← sieve.id_mem_iff_eq_top],
-    exactI ⟨_, inv f, f, by simp⟩,
-  end,
+  has_isos := λ X Y f i, by exactI J.covering_of_eq_top (by simp),
   pullbacks := λ X Y f R hR,
   begin
     rw [set.mem_def, pullback_arrows_comm],
@@ -195,14 +192,12 @@ def gi : galois_insertion (to_grothendieck C) (of_grothendieck C) :=
   begin
     split,
     { intros h X R hR,
-      apply h,
-      refine ⟨_, hR, _⟩,
-      apply sieve.gi_generate.gc.le_u_l },
+      exact h _ ⟨_, hR, sieve.le_generate R⟩ },
     { rintro h X S ⟨R, hR, RS⟩,
       apply J.superset_covering _ (h _ hR),
       rwa sieve.gi_generate.gc }
   end,
-  le_l_u := λ J X S hS, ⟨S, J.superset_covering (sieve.gi_generate.gc.le_u_l _) hS, le_refl _⟩,
+  le_l_u := λ J X S hS, ⟨S, J.superset_covering S.le_generate hS, le_refl _⟩,
   choice := λ x hx, to_grothendieck C x,
   choice_eq := λ _ _, rfl }
 
@@ -213,7 +208,7 @@ also known as the indiscrete, coarse, or chaotic topology.
 See https://stacks.math.columbia.edu/tag/07GE
 -/
 def trivial : pretopology C :=
-{ coverings := λ X S, ∃ Y (f : Y ⟶ X) (h : is_iso f), S = arrows_with_codomain.singleton_arrow f,
+{ coverings := λ X S, ∃ Y (f : Y ⟶ X) (h : is_iso f), S = presieve.singleton f,
   has_isos := λ X Y f i, ⟨_, _, i, rfl⟩,
   pullbacks := λ X Y f S,
   begin
@@ -222,8 +217,7 @@ def trivial : pretopology C :=
     refine ⟨pullback (eq_to_hom (eq.refl _) ≫ g) f, pullback.snd, _, _⟩,
     { refine ⟨pullback.lift (f ≫ inv g) (𝟙 _) (by simp), _, _⟩,
       { apply pullback.hom_ext,
-        { rw [assoc, pullback.lift_fst],
-          rw ← pullback.condition_assoc,
+        { rw [assoc, pullback.lift_fst, ← pullback.condition_assoc],
           simp },
         { simp } },
       { simp } },
@@ -232,14 +226,14 @@ def trivial : pretopology C :=
     split,
     { rintro ⟨W, k, ⟨rfl, rfl⟩, rfl, rfl⟩,
       rw [eq_to_hom_refl (pullback (eq_to_hom (eq.refl W) ≫ g) f) (eq.refl _), id_comp],
-      apply singleton_arrow_self },
+      apply singleton_self },
     { rintro ⟨rfl, rfl⟩,
       exact ⟨_, _, by simp, _, rfl⟩ },
   end,
   transitive :=
   begin
     rintro X S Ti ⟨Z, g, i, rfl⟩ hS,
-    rcases hS g (singleton_arrow_self g) with ⟨Y, f, i, hTi⟩,
+    rcases hS g (singleton_self g) with ⟨Y, f, i, hTi⟩,
     refine ⟨_, f ≫ g, _, _⟩,
     { resetI,
       apply_instance },
@@ -250,11 +244,11 @@ def trivial : pretopology C :=
       rw hTi at hh,
       rcases hh with ⟨rfl, rfl⟩,
       simp only [id_comp, eq_to_hom_refl],
-      apply singleton_arrow_self (f ≫ g) },
+      apply singleton_self (f ≫ g) },
     { rintro ⟨rfl, rfl⟩,
-      refine ⟨_, f, g, singleton_arrow_self _, _, by simp⟩,
+      refine ⟨_, f, g, singleton_self _, _, by simp⟩,
       rw hTi,
-      apply singleton_arrow_self }
+      apply singleton_self }
   end }
 
 instance : order_bot (pretopology C) :=

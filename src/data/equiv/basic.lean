@@ -238,6 +238,9 @@ def equiv_congr {δ} (ab : α ≃ β) (cd : γ ≃ δ) : (α ≃ γ) ≃ (β ≃
 def perm_congr {α : Type*} {β : Type*} (e : α ≃ β) : perm α ≃ perm β :=
 equiv_congr e e
 
+@[simp] lemma perm_congr_apply {α β : Type*} (e : α ≃ β) (p : equiv.perm α) (x) :
+e.perm_congr p x = e (p (e.symm x)) := rfl
+
 protected lemma image_eq_preimage {α β} (e : α ≃ β) (s : set α) : e '' s = e.symm ⁻¹' s :=
 set.ext $ assume x, set.mem_image_iff_of_inverse e.left_inv e.right_inv
 
@@ -408,6 +411,32 @@ rfl
 lemma conj_comp (e : α ≃ β) (f₁ f₂ : α → α) :
   e.conj (f₁ ∘ f₂) = (e.conj f₁) ∘ (e.conj f₂) :=
 by apply arrow_congr_comp
+
+section binary_op
+
+variables {α₁ β₁ : Type*} (e : α₁ ≃ β₁) (f : α₁ → α₁ → α₁)
+
+lemma semiconj_conj (f : α₁ → α₁) : semiconj e f (e.conj f) := λ x, by simp
+
+lemma semiconj₂_conj : semiconj₂ e f (e.arrow_congr e.conj f) := λ x y, by simp
+
+instance [is_associative α₁ f] :
+  is_associative β₁ (e.arrow_congr (e.arrow_congr e) f) :=
+(e.semiconj₂_conj f).is_associative_right e.surjective
+
+instance [is_idempotent α₁ f] :
+  is_idempotent β₁ (e.arrow_congr (e.arrow_congr e) f) :=
+(e.semiconj₂_conj f).is_idempotent_right e.surjective
+
+instance [is_left_cancel α₁ f] :
+  is_left_cancel β₁ (e.arrow_congr (e.arrow_congr e) f) :=
+⟨e.surjective.forall₃.2 $ λ x y z, by simpa using @is_left_cancel.left_cancel _ f _ x y z⟩
+
+instance [is_right_cancel α₁ f] :
+  is_right_cancel β₁ (e.arrow_congr (e.arrow_congr e) f) :=
+⟨e.surjective.forall₃.2 $ λ x y z, by simpa using @is_right_cancel.right_cancel _ f _ x y z⟩
+
+end binary_op
 
 /-- `punit` sorts in any two universes are equivalent. -/
 def punit_equiv_punit : punit.{v} ≃ punit.{w} :=
@@ -1513,6 +1542,24 @@ def set_value (f : α ≃ β) (a : α) (b : β) : α ≃ β :=
 by { dsimp [set_value], simp [swap_apply_left] }
 
 end swap
+
+protected lemma exists_unique_congr {p : α → Prop} {q : β → Prop} (f : α ≃ β)
+  (h : ∀{x}, p x ↔ q (f x)) : (∃! x, p x) ↔ ∃! y, q y :=
+begin
+  split,
+  { rintro ⟨a, ha₁, ha₂⟩,
+    exact ⟨f a, h.1 ha₁, λ b hb, f.symm_apply_eq.1 (ha₂ (f.symm b) (h.2 (by simpa using hb)))⟩ },
+  { rintro ⟨b, hb₁, hb₂⟩,
+    exact ⟨f.symm b, h.2 (by simpa using hb₁), λ y hy, (eq_symm_apply f).2 (hb₂ _ (h.1 hy))⟩ }
+end
+
+protected lemma exists_unique_congr_left' {p : α → Prop} (f : α ≃ β) :
+  (∃! x, p x) ↔ (∃! y, p (f.symm y)) :=
+equiv.exists_unique_congr f (λx, by simp)
+
+protected lemma exists_unique_congr_left {p : β → Prop} (f : α ≃ β) :
+  (∃! x, p (f x)) ↔ (∃! y, p y) :=
+(equiv.exists_unique_congr_left' f.symm).symm
 
 protected lemma forall_congr {p : α → Prop} {q : β → Prop} (f : α ≃ β)
   (h : ∀{x}, p x ↔ q (f x)) : (∀x, p x) ↔ (∀y, q y) :=

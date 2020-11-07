@@ -179,6 +179,10 @@ def is_primitive (p : polynomial R) : Prop := p.content = 1
 lemma is_primitive_one : is_primitive (1 : polynomial R) :=
 by rw [is_primitive, ← C_1, content_C, normalize_one]
 
+lemma monic.is_primitive {p : polynomial R} (hp : p.monic) : p.is_primitive :=
+by rw [is_primitive, content_eq_gcd_leading_coeff_content_erase_lead,
+  hp.leading_coeff, gcd_one_left]
+
 lemma is_primitive.ne_zero {p : polynomial R} (hp : p.is_primitive) : p ≠ 0 :=
 begin
   rintro rfl,
@@ -420,7 +424,8 @@ begin
     exact mul_dvd_mul (ring_hom.map_dvd C h.1) h.2 }
 end
 
-instance : gcd_monoid (polynomial R) :=
+@[priority 100]
+instance gcd_monoid : gcd_monoid (polynomial R) :=
 gcd_monoid_of_exists_lcm $ λ p q, begin
   rcases exists_primitive_lcm_of_is_primitive p.is_primitive_prim_part q.is_primitive_prim_part
     with ⟨r, rprim, hr⟩,

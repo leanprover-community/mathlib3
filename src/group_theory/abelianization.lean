@@ -37,7 +37,7 @@ instance : comm_group (abelianization G) :=
     use b⁻¹, use a⁻¹,
     group,
   end,
-.. quotient_group.group _ }
+.. quotient_group.quotient.group _ }
 
 instance : inhabited (abelianization G) := ⟨1⟩
 

@@ -195,11 +195,17 @@ eq_zero_of_double_le $ le_trans (nat.mul_le_mul_right _ hb) h
 theorem le_zero_iff {i : ℕ} : i ≤ 0 ↔ i = 0 :=
 ⟨nat.eq_zero_of_le_zero, assume h, h ▸ le_refl i⟩
 
-lemma zero_max {m : nat} : max 0 m = m :=
+lemma zero_max {m : ℕ} : max 0 m = m :=
 max_eq_right (zero_le _)
 
 lemma one_le_of_lt {n m : ℕ} (h : n < m) : 1 ≤ m :=
 lt_of_le_of_lt (nat.zero_le _) h
+
+theorem eq_one_of_mul_eq_one_right {m n : ℕ} (H : m * n = 1) : m = 1 :=
+eq_one_of_dvd_one ⟨n, H.symm⟩
+
+theorem eq_one_of_mul_eq_one_left {m n : ℕ} (H : m * n = 1) : n = 1 :=
+eq_one_of_mul_eq_one_right (by rwa mul_comm)
 
 /-! ### `succ` -/
 

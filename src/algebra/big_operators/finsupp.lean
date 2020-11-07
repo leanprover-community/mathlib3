@@ -21,7 +21,7 @@ variables {α : Type u} {ι : Type v} {β : Type w} [add_comm_monoid β]
 variables {s : finset α} {f : α → (ι →₀ β)} (i : ι)
 
 theorem finset.sum_apply' : (∑ k in s, f k) i = ∑ k in s, f k i :=
-(s.sum_hom $ finsupp.eval_add_hom i).symm
+(s.sum_hom $ finsupp.apply_add_hom i).symm
 
 variables {γ : Type u₁} {δ : Type v₁} [add_comm_monoid δ]
 variables (g : ι →₀ β) (k : ι → β → γ → δ) (x : γ)

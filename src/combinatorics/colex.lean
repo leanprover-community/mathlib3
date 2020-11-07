@@ -89,7 +89,6 @@ lemma colex.le_def [has_lt α] (A B : finset α) :
 iff.rfl
 
 /-- If everything in A is less than k, we can bound the sum of powers. -/
--- TODO: This might belong somewhere else.
 lemma binary_sum_nat {k : ℕ} {A : finset ℕ} (h₁ : ∀ {x}, x ∈ A → x < k) :
   A.sum (pow 2) < 2^k :=
 begin

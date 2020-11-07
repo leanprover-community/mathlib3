@@ -46,8 +46,8 @@ begin
   rw [abs_of_nonneg, inv_eq_one_div, div_lt_div_iff, one_mul, mul_lt_iff_lt_one_left]
     at h_abs_sub_small,
   { norm_cast at h_abs_sub_small,
-    simp only [(by linarith : a' = 0), int.cast_zero, zero_div, abs_zero] at h_abs_sub_pos,
-    linarith },
+    rw [(by linarith : a' = 0), int.cast_zero, zero_div, abs_zero] at h_abs_sub_pos,
+    revert h_abs_sub_pos, simp only [forall_prop_of_false, not_lt] },
   repeat { apply div_nonneg <|> norm_cast <|> linarith <|> assumption }
 end
 
@@ -156,23 +156,19 @@ begin
   have hB1 : ∃ B1 : ℝ, 0 < B1 ∧ B1 ≤ 1 / M ∧ B1 ≤ B0,
   { cases le_or_gt (1 / M) B0,
     { use 1 / M, tauto },
-    { use B0, apply and.intro h_B0_pos, split, linarith, refl }},
+    { use B0, exact ⟨h_B0_pos, ⟨le_of_lt h, le_refl B0⟩⟩ }},
   obtain ⟨B1, ⟨hB11, hB12, hB13⟩⟩ := hB1,
   have hB : ∃ B : ℝ, 0 < B ∧ B ≤ 1 / M ∧ B ≤ 1 ∧ B ≤ B0,
   { cases le_or_gt 1 B1,
-    { use 1, split, linarith, split, linarith, split, linarith, linarith },
-    { use B1, split, linarith, split, exact hB12, split, linarith, exact hB13 }},
+    { use 1, split, norm_num, split, linarith, split, norm_num, linarith },
+    { use B1, exact ⟨hB11, ⟨hB12, ⟨le_of_lt h, hB13⟩⟩⟩ }},
   obtain ⟨B, ⟨hB1, hB2, hB3, hB4⟩⟩ := hB,
   use B,
-  apply and.intro hB1,
-  apply and.intro hB2,
-  apply and.intro hB3,
-  intros x hx,
-  apply h_B0_root x,
+  refine ⟨hB1, ⟨hB2, ⟨hB3, λ (x : ℝ) (hx : abs (α - x) < B), h_B0_root x _ ⟩⟩⟩,
   linarith
 end
 
-lemma lemma3 (α : ℝ) (f : polynomial ℝ) (h_α_root : f.eval α = 0) (x : ℝ) (h : f.eval x ≠ 0) :
+lemma exists_deriv_eq_slope_of_polynomial_root (α : ℝ) (f : polynomial ℝ) (h_α_root : f.eval α = 0) (x : ℝ) (h : f.eval x ≠ 0) :
   ∃ x₀, α - x = - ((f.eval x) / (f.derivative.eval x₀))
     ∧ f.derivative.eval x₀ ≠ 0
     ∧ abs (α - x₀) < abs (α - x)
@@ -235,9 +231,7 @@ begin
   have h_fR_deg : 1 < fR.nat_degree, { rwa nat_degree_map', exact int.cast_injective },
   have h_f_nonzero : fR ≠ 0 := λ h, (ne_zero_of_nat_degree_gt h_fR_deg)
     begin
-      ext m, rw polynomial.ext_iff at h, specialize h m,
-      simp only [coeff_map, int.cast_eq_zero, ring_hom.eq_int_cast, coeff_zero] at ⊢ h,
-      exact h
+      ext m, rw polynomial.ext_iff at h, specialize h m, exact h
     end,
   obtain ⟨M, ⟨h_m_pos, h_max⟩⟩ :=
     exists_forall_ge_of_polynomial_deriv α fR (nat.lt_of_succ_lt h_fR_deg),
@@ -257,7 +251,7 @@ begin
   have hb₂ : abs (α - a / b) < B := lt_of_le_of_lt hb₁ (by linarith),
   have hab₁ : α ≠ a/b := (irrational_iff_ne_rational _).mp hα a b,
   have hab₂ : fR.eval (a/b) ≠ 0 := hB_root _ hb₂ hab₁.symm,
-  obtain ⟨x₀, hx₀⟩ := lemma3 α fR h_α_root ((a : ℝ) / b) hab₂,
+  obtain ⟨x₀, hx₀⟩ := exists_deriv_eq_slope_of_polynomial_root α fR h_α_root ((a : ℝ) / b) hab₂,
   apply lt_irrefl (B / 2 / b ^ f.nat_degree),
   calc
         B / 2 / b ^ f.nat_degree
@@ -306,7 +300,7 @@ begin
       rw hrid at h,
       exact not_liouville_zero h },
     { specialize this (-a) (-b) (neg_pos.mpr b_lt),
-      simp only [ne.def, int.cast_neg, neg_div_neg_eq] at this ⊢, exact this }},
+      rw [int.cast_neg, int.cast_neg, neg_div_neg_eq] at this, exact this }},
   { intros a b h_b_pos h_rid,
     lift b to ℕ using le_of_lt h_b_pos,
     rw ←coe_coe at h_rid,
@@ -367,7 +361,7 @@ begin
               repeat { apply pow_pos <|> apply pow_nonneg, linarith }
             end
         ... = 1 : by { rw div_self, apply fpow_ne_zero_of_ne_zero, linarith } ) },
-    repeat { norm_cast, assumption <|> linarith } }
+    repeat { norm_cast, assumption <|> linarith }}
 end
 
 theorem transcendental_of_is_liouville {x : ℝ} (liouville_x : is_liouville x) :
@@ -381,10 +375,10 @@ begin
   obtain ⟨A, hA, h⟩ := exists_pos_real_of_irrational_root x h_irr_x f h_f_deg h_root,
   have h_pow_big_enough : ∃ (r : ℕ), 1 / A ≤ 2 ^ r,
   { rcases pow_unbounded_of_one_lt (1 / A) (lt_add_one 1) with ⟨n, hn⟩,
-    exact ⟨n, le_of_lt hn⟩, },
+    exact ⟨n, le_of_lt hn⟩ },
   obtain ⟨r, hr⟩ := h_pow_big_enough,
   have hr' : 1 / (2 ^ r) ≤ A,
-  { rw [div_le_iff, mul_comm, ←div_le_iff], repeat { assumption <|> apply pow_pos <|> linarith } },
+  { rw [div_le_iff, mul_comm, ←div_le_iff], repeat { assumption <|> apply pow_pos <|> linarith }},
   obtain ⟨a, b, h_b_gt_1, h_abs_sub_pos, h_abs_sub_small⟩ := liouville_x (r + f.nat_degree),
   specialize h a b (by linarith),
   exact lt_irrefl _
@@ -397,7 +391,7 @@ begin
           refine mul_le_mul _ (le_refl _) _ _,
           { rw [div_le_div_iff, one_mul, one_mul],
             refine pow_le_pow_of_le_left _ _ r,
-            repeat { norm_cast, linarith <|> apply pow_nonneg <|> apply pow_pos } },
+            repeat { norm_cast, linarith <|> apply pow_nonneg <|> apply pow_pos }},
           repeat { rw one_div_nonneg, apply pow_nonneg, norm_cast, linarith }
         end
     ... ≤ A * (1 / b ^ f.nat_degree) :

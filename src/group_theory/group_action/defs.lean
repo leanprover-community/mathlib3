@@ -152,6 +152,15 @@ variables {α β}
 @[simp] lemma to_fun_apply (x : α) (y : β) : mul_action.to_fun α β y x = x • y :=
 rfl
 
+variable (β)
+
+/-- An action of `α` on `β` and a monoid homomorphism `γ → α` induce an action of `γ` on `β`. -/
+def mul_action.comp_hom [monoid γ] (g : γ →* α) :
+  mul_action γ β :=
+{ smul := λ x b, (g x) • b,
+  one_smul := by simp [g.map_one, mul_action.one_smul],
+  mul_smul := by simp [g.map_mul, mul_action.mul_smul] }
+
 end mul_action
 
 end
@@ -204,13 +213,6 @@ variable {β}
 
 @[simp] lemma const_smul_hom_apply (r : α) (x : β) :
   const_smul_hom β r x = r • x := rfl
-
-/-- An action of `α` on `β` and a monoid homomorphism `γ → α` induce an action of `γ` on `β`. -/
-def mul_action.comp_hom [monoid γ] (g : γ →* α) :
-  mul_action γ β :=
-{ smul := λ x b, (g x) • b,
-  one_smul := by simp [g.map_one, mul_action.one_smul],
-  mul_smul := by simp [g.map_mul, mul_action.mul_smul] }
 
 end
 

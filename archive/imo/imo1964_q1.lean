@@ -45,7 +45,7 @@ begin
 end
 
 /-!
-## the question
+## The question
 -/
 
 def problem_predicate (n : ℕ) : Prop := 7 ∣ 2 ^ n - 1

@@ -79,6 +79,23 @@ attribute [instance, priority 100] -- see Note [lower instance priority]
   preserves_limits_of_shape.preserves_limit preserves_limits.preserves_limits_of_shape
   preserves_colimits_of_shape.preserves_colimit preserves_colimits.preserves_colimits_of_shape
 
+/--
+A convenience function for `preserves_limit`, which takes the functor as an explicit argument to
+guide typeclass resolution.
+-/
+def is_limit_of_preserves (F : C ⥤ D) {c : cone K} (t : is_limit c) [preserves_limit K F] :
+  is_limit (F.map_cone c) :=
+preserves_limit.preserves t
+
+/--
+A convenience function for `preserves_colimit`, which takes the functor as an explicit argument to
+guide typeclass resolution.
+-/
+def is_colimit_of_preserves (F : C ⥤ D) {c : cocone K} (t : is_colimit c)
+  [preserves_colimit K F] :
+  is_colimit (F.map_cocone c) :=
+preserves_colimit.preserves t
+
 instance preserves_limit_subsingleton (K : J ⥤ C) (F : C ⥤ D) : subsingleton (preserves_limit K F) :=
 by split; rintros ⟨a⟩ ⟨b⟩; congr
 instance preserves_colimit_subsingleton (K : J ⥤ C) (F : C ⥤ D) : subsingleton (preserves_colimit K F) :=
@@ -150,21 +167,31 @@ def preserves_limit_of_preserves_limit_cone {F : C ⥤ D} {t : cone K}
   (h : is_limit t) (hF : is_limit (F.map_cone t)) : preserves_limit K F :=
 ⟨λ t' h', is_limit.of_iso_limit hF (functor.map_iso _ (is_limit.unique_up_to_iso h h'))⟩
 
-/-- Transfer preservation of limits along a natural isomorphism in the shape. -/
-def preserves_limit_of_iso {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K₂) [preserves_limit K₁ F] :
-  preserves_limit K₂ F :=
+/-- Transfer preservation of limits along a natural isomorphism in the diagram. -/
+def preserves_limit_of_iso_diagram {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K₂)
+  [preserves_limit K₁ F] : preserves_limit K₂ F :=
 { preserves := λ c t,
   begin
-    have t' := is_limit.of_right_adjoint (cones.postcompose_equivalence h).inverse t,
-    let hF := iso_whisker_right h F,
-    have := is_limit.of_right_adjoint (cones.postcompose_equivalence hF).functor
-              (preserves_limit.preserves t'),
-    apply is_limit.of_iso_limit this,
-    refine cones.ext (iso.refl _) (λ j, _),
-    dsimp,
-    rw [← F.map_comp],
-    simp,
+    apply is_limit.postcompose_inv_equiv (iso_whisker_right h F : _) _ _,
+    have := (is_limit.postcompose_inv_equiv h c).symm t,
+    apply is_limit.of_iso_limit (is_limit_of_preserves F this),
+    refine cones.ext (iso.refl _) (λ j, by tidy),
   end }
+
+/-- Transfer preservation of a limit along a natural isomorphism in the functor. -/
+def preserves_limit_of_nat_iso (K : J ⥤ C) {F G : C ⥤ D} (h : F ≅ G) [preserves_limit K F] :
+  preserves_limit K G :=
+{ preserves := λ c t, is_limit.map_cone_equiv h (preserves_limit.preserves t) }
+
+/-- Transfer preservation of limits of shape along a natural isomorphism in the functor. -/
+def preserves_limits_of_shape_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [preserves_limits_of_shape J F] :
+  preserves_limits_of_shape J G :=
+{ preserves_limit := λ K, preserves_limit_of_nat_iso K h }
+
+/-- Transfer preservation of limits along a natural isomorphism in the functor. -/
+def preserves_limits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [preserves_limits F] :
+  preserves_limits G :=
+{ preserves_limits_of_shape := λ J 𝒥₁, by exactI preserves_limits_of_shape_of_nat_iso h }
 
 /-- If F preserves one colimit cocone for the diagram K,
   then it preserves any colimit cocone for K. -/
@@ -173,37 +200,30 @@ def preserves_colimit_of_preserves_colimit_cocone {F : C ⥤ D} {t : cocone K}
 ⟨λ t' h', is_colimit.of_iso_colimit hF (functor.map_iso _ (is_colimit.unique_up_to_iso h h'))⟩
 
 /-- Transfer preservation of colimits along a natural isomorphism in the shape. -/
-def preserves_colimit_of_iso {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K₂) [preserves_colimit K₁ F] :
-  preserves_colimit K₂ F :=
+def preserves_colimit_of_iso_diagram {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K₂)
+  [preserves_colimit K₁ F] : preserves_colimit K₂ F :=
 { preserves := λ c t,
   begin
-    have t' := is_colimit.of_left_adjoint (cocones.precompose_equivalence h).functor t,
-    let hF := iso_whisker_right h F,
-    have := is_colimit.of_left_adjoint (cocones.precompose_equivalence hF).inverse
-              (preserves_colimit.preserves t'),
-    apply is_colimit.of_iso_colimit this,
-    refine cocones.ext (iso.refl _) (λ j, _),
-    dsimp,
-    rw [← F.map_comp],
-    simp,
+    apply is_colimit.precompose_hom_equiv (iso_whisker_right h F : _) _ _,
+    have := (is_colimit.precompose_hom_equiv h c).symm t,
+    apply is_colimit.of_iso_colimit (is_colimit_of_preserves F this),
+    refine cocones.ext (iso.refl _) (λ j, by tidy),
   end }
 
-/--
-A convenience function for `preserves_limit`, which takes the functor as an explicit argument to
-guide typeclass resolution.
--/
-def is_limit_of_preserves (F : C ⥤ D) {c : cone K} (t : is_limit c) [preserves_limit K F] :
-  is_limit (F.map_cone c) :=
-preserves_limit.preserves t
+/-- Transfer preservation of a colimit along a natural isomorphism in the functor. -/
+def preserves_colimit_of_nat_iso (K : J ⥤ C) {F G : C ⥤ D} (h : F ≅ G) [preserves_colimit K F] :
+  preserves_colimit K G :=
+{ preserves := λ c t, is_colimit.map_cocone_equiv h (preserves_colimit.preserves t) }
 
-/--
-A convenience function for `preserves_colimit`, which takes the functor as an explicit argument to
-guide typeclass resolution.
--/
-def is_colimit_of_preserves (F : C ⥤ D) {c : cocone K} (t : is_colimit c)
-  [preserves_colimit K F] :
-  is_colimit (F.map_cocone c) :=
-preserves_colimit.preserves t
+/-- Transfer preservation of colimits of shape along a natural isomorphism in the functor. -/
+def preserves_colimits_of_shape_of_nat_iso {F G : C ⥤ D} (h : F ≅ G)
+  [preserves_colimits_of_shape J F] : preserves_colimits_of_shape J G :=
+{ preserves_colimit := λ K, preserves_colimit_of_nat_iso K h }
+
+/-- Transfer preservation of colimits along a natural isomorphism in the functor. -/
+def preserves_colimits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [preserves_colimits F] :
+  preserves_colimits G :=
+{ preserves_colimits_of_shape := λ J 𝒥₁, by exactI preserves_colimits_of_shape_of_nat_iso h }
 
 /--
 A functor `F : C ⥤ D` reflects limits for `K : J ⥤ C` if

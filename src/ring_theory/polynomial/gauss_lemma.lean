@@ -12,10 +12,10 @@ import ring_theory.int.basic
 Gauss's Lemma is one of a few results pertaining to irreducibility of primitive polynomials.
 
 ## Main Results
- - `polynomial.content_mul`:
-  If `p q : polynomial R`, then `(p * q).content = p.content * q.content`.
  - `polynomial.is_primitive.irreducible_iff_irreducible_map_fraction_map`:
   A primitive polynomial is irreducible iff it is irreducible in a fraction field.
+ - `is_primitive.int.irreducible_iff_irreducible_map_cast`:
+  A primitive polynomial over `ℤ` is irreducible iff it is irreducible over `ℚ`.
 
 -/
 

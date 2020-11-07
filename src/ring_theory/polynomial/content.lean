@@ -9,10 +9,10 @@ import data.polynomial.erase_lead
 import data.polynomial.cancel_leads
 
 /-!
-# Gauss's Lemma, and GCD structures on polynomials
+# GCD structures on polynomials
 
-Gauss's Lemma is one of a few results pertaining to `gcd`s and irreducibility in polynomials over
-GCD domains.
+Definitions and basic results about polynomials over GCD domains, particularly their contents
+and primitive polynomials.
 
 ## Main Definitions
 Let `p : polynomial R`.
@@ -22,8 +22,8 @@ Let `p : polynomial R`.
 ## Main Results
  - `polynomial.content_mul`:
   If `p q : polynomial R`, then `(p * q).content = p.content * q.content`.
- - `polynomial.is_primitive.irreducible_iff_irreducible_map_fraction_map`:
-  A primitive polynomial is irreducible iff it is irreducible in a fraction field.
+ - `polynomial.gcd_monoid`:
+  The polynomial ring of a GCD domain is itself a GCD domain.
 
 -/
 

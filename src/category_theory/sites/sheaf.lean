@@ -447,7 +447,7 @@ lemma is_separated_for.is_sheaf_for (t : is_separated_for P R) :
   (∀ (x : family_of_elements P R), x.compatible → ∃ t, x.is_amalgamation t) →
   is_sheaf_for P R :=
 begin
-  rw ← separated_for_and_exists_amalgamation_iff_sheaf_for,
+  rw ← is_separated_for_and_exists_is_amalgamation_iff_sheaf_for,
   apply and.intro t,
 end
 
@@ -470,14 +470,14 @@ t.is_amalgamation hx f Hf
 
 /-- If `P` is a sheaf for `R`, it is separated for `R`. -/
 lemma is_sheaf_for.is_separated_for : is_sheaf_for P R → is_separated_for P R :=
-λ q, (separated_for_and_exists_amalgamation_iff_sheaf_for.2 q).1
+λ q, (is_separated_for_and_exists_is_amalgamation_iff_sheaf_for.2 q).1
 
 /-- C2.1.3 in [Elephant] -/
 lemma is_sheaf_for_iff_generate :
   is_sheaf_for P R ↔ is_sheaf_for P (generate R) :=
 begin
-  rw ← separated_for_and_exists_amalgamation_iff_sheaf_for,
-  rw ← separated_for_and_exists_amalgamation_iff_sheaf_for,
+  rw ← is_separated_for_and_exists_is_amalgamation_iff_sheaf_for,
+  rw ← is_separated_for_and_exists_is_amalgamation_iff_sheaf_for,
   rw ← is_separated_for_iff_generate,
   apply and_congr (iff.refl _),
   split,
@@ -553,7 +553,7 @@ lemma is_sheaf_for_subsieve_aux (P : Cᵒᵖ ⥤ Type v) {S : sieve X} {R : pres
   (trans : ∀ ⦃Y⦄ ⦃f : Y ⟶ X⦄, R f → is_separated_for P (S.pullback f)) :
   is_sheaf_for P R :=
 begin
-  rw ← separated_for_and_exists_amalgamation_iff_sheaf_for,
+  rw ← is_separated_for_and_exists_is_amalgamation_iff_sheaf_for,
   refine ⟨_, _⟩,
   { intros x t₁ t₂ ht₁ ht₂,
     exact hS.is_separated_for _ _ _ (is_amalgamation_restrict h x t₁ ht₁)

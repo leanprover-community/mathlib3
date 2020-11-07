@@ -720,6 +720,60 @@ lemma reindex_transpose (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m n R) :
   (reindex eₘ eₙ M)ᵀ = (reindex eₙ eₘ Mᵀ) :=
 rfl
 
+/-- `simp` version of `det_reindex_self`
+
+`det_reindex_self` is not a good simp lemma because `reindex_apply` fires before.
+So we have this lemma to continue from there. -/
+@[simp]
+lemma det_reindex_self' [decidable_eq m] [decidable_eq n] [comm_ring R]
+  (e : m ≃ n) (A : matrix m m R) :
+  det (λ i j, A (e.symm i) (e.symm j)) = det A :=
+begin
+  unfold det,
+  apply finset.sum_bij' (λ σ _, equiv.perm_congr e.symm σ) _ _ (λ σ _, equiv.perm_congr e σ),
+  { intros σ _, ext, simp only [equiv.symm_symm, equiv.perm_congr_apply, equiv.apply_symm_apply] },
+  { intros σ _, ext, simp only [equiv.symm_symm, equiv.perm_congr_apply, equiv.symm_apply_apply] },
+  { intros σ _, apply finset.mem_univ },
+  { intros σ _, apply finset.mem_univ },
+  intros σ _,
+  simp_rw [equiv.perm_congr_apply, equiv.symm_symm],
+  congr,
+  { convert (equiv.perm.sign_perm_congr e.symm σ).symm },
+  apply finset.prod_bij' (λ i _, e.symm i) _ _ (λ i _, e i),
+  { intros, simp_rw equiv.apply_symm_apply },
+  { intros, simp_rw equiv.symm_apply_apply },
+  { intros, apply finset.mem_univ },
+  { intros, apply finset.mem_univ },
+  { intros, simp_rw equiv.apply_symm_apply },
+end
+
+/-- Reindexing both indices along the same equivalence preserves the determinant.
+
+For the `simp` version of this lemma, see `det_reindex_self'`.
+-/
+lemma det_reindex_self [decidable_eq m] [decidable_eq n] [comm_ring R]
+  (e : m ≃ n) (A : matrix m m R) :
+  det (reindex e e A) = det A :=
+det_reindex_self' e A
+
+/-- Reindexing both indices along the same equivalence preserves the determinant.
+
+For the `simp` version of this lemma, see `det_reindex_self'`.
+-/
+lemma det_reindex_linear_equiv_self [decidable_eq m] [decidable_eq n] [comm_ring R]
+  (e : m ≃ n) (A : matrix m m R) :
+  det (reindex_linear_equiv e e A) = det A :=
+det_reindex_self' e A
+
+/-- Reindexing both indices along the same equivalence preserves the determinant.
+
+For the `simp` version of this lemma, see `det_reindex_self'`.
+-/
+lemma det_reindex_alg_equiv [decidable_eq m] [decidable_eq n] [comm_ring R]
+  (e : m ≃ n) (A : matrix m m R) :
+  det (reindex_alg_equiv e A) = det A :=
+det_reindex_self' e A
+
 end reindexing
 
 end matrix

@@ -30,11 +30,6 @@ The main definitions are in the `adjoin_root` namespace.
 * `lift (i : R →+* S) (x : S) (h : f.eval₂ i x = 0) : (adjoin_root f) →+* S`, the ring
   homomorphism from R[X]/(f) to S extending `i : R →+* S` and sending `X` to `x`.
 
-* `degree_lt_linear_equiv (f : polynomial K) (hf : f ≠ 0)`, a isomorphism
-  `degree_lt K (f.nat_degree) ≃ₗ[K] adjoin_root f`, which is used to prove:
-
-* `findim (f : polynomial K) (hf : f ≠ 0) : findim K (adjoin_root f) = f.nat_degree`
-
 -/
 noncomputable theory
 open_locale classical

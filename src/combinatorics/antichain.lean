@@ -3,14 +3,8 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Alena Gusakov
 -/
-
 import data.finset
 import data.fintype.basic
-
-open finset
-
-variable {α : Type*}
-variable {r : ℕ}
 
 /-!
 # Antichains
@@ -24,6 +18,11 @@ We define antichains, and a proposition asserting that a set is a set of r-sets.
 * `all_sized` is a proposition that
 
 -/
+
+open finset
+
+variable {α : Type*}
+variable {r : ℕ}
 
 /--
 A family of sets is an antichain if no set is a subset of another. For example,

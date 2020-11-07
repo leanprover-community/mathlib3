@@ -11,6 +11,7 @@ import category_theory.monoidal.of_has_finite_products
 import category_theory.adjunction
 import category_theory.epi_mono
 
+#exit
 /-!
 # Cartesian closed categories
 
@@ -53,12 +54,7 @@ prove all objects are exponential uniformly.
 -/
 def binary_product_exponentiable {C : Type u} [category.{v} C] [has_finite_products C] {X Y : C}
   (hX : exponentiable X) (hY : exponentiable Y) : exponentiable (X ⨯ Y) :=
-{ is_adj :=
-  begin
-    haveI := hX.is_adj,
-    haveI := hY.is_adj,
-    exact adjunction.left_adjoint_of_nat_iso (monoidal_category.tensor_left_tensor _ _).symm
-  end }
+monoidal.tensor_closed hX hY
 
 /--
 The terminal object is always exponentiable.
@@ -103,7 +99,6 @@ lemma coev_naturality {X Y : C} (f : X ⟶ Y) :
   f ≫ (coev A).app Y = (coev A).app X ≫ (exp A).map (limits.prod.map (𝟙 A) f) :=
 monoidal.coev_naturality A f
 
-notation A ` ⟹ `:20 B:20 := (exp A).obj B
 notation B ` ^^ `:30 A:30 := (exp A).obj B
 
 @[simp, reassoc] lemma ev_coev :

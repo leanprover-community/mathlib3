@@ -34,12 +34,45 @@ attribute [instance, priority 100] monoidal_closed.closed
 
 variables {C : Type u} [category.{v} C] [monoidal_category.{v} C]
 
+/--
+The unit object is always closed.
+This isn't an instance because most of the time we'll prove closedness for all objects at once,
+rather than just for this one.
+-/
+def unit_closed : closed (𝟙_ C) :=
+{ is_adj :=
+  { right := 𝟭 C,
+    adj := adjunction.mk_of_hom_equiv
+    { hom_equiv := λ X _,
+      { to_fun := λ a, (left_unitor X).inv ≫ a,
+        inv_fun := λ a, (left_unitor X).hom ≫ a,
+        left_inv := by tidy,
+        right_inv := by tidy },
+      hom_equiv_naturality_left_symm' := λ X' X Y f g,
+      by { dsimp, rw left_unitor_naturality_assoc } } } }
+
+/--
+If `X` and `Y` are exponentiable then `X ⊗ Y` is.
+This isn't an instance because it's not usually how we want to construct exponentials, we'll usually
+prove all objects are exponential uniformly.
+-/
+def tensor_closed {X Y : C}
+  (hX : closed X) (hY : closed Y) : closed (X ⊗ Y) :=
+{ is_adj :=
+  begin
+    haveI := hX.is_adj,
+    haveI := hY.is_adj,
+    exact adjunction.left_adjoint_of_nat_iso (monoidal_category.tensor_left_tensor _ _).symm
+  end }
+
 variables (A : C) [closed A]
 
-/-- This is the functor `X ↦ [A, X]`. -/
+/-- This is the functor `X ↦ (A ⟹ X)`, sometimes written `X ↦ [A, X]`. -/
 def internal_hom_right : C ⥤ C := (@closed.is_adj _ _ _ A _).right
 
-/-- The adjunction between A ⨯ - and (-)^A. -/
+notation A ` ⟹ `:20 B:20 := (monoidal.internal_hom_right A).obj B
+
+/-- The adjunction between A ⨯ - and (A ⟹ -). -/
 def internal_hom.adjunction : tensor_left A ⊣ internal_hom_right A := closed.is_adj.adj
 
 /-- The evaluation natural transformation. -/
@@ -60,22 +93,38 @@ lemma coev_naturality {X Y : C} (f : X ⟶ Y) :
   f ≫ (coev A).app Y = (coev A).app X ≫ (internal_hom_right A).map (𝟙 A ⊗ f) :=
 (coev A).naturality f
 
-/--
-The unit object is always closed.
-This isn't an instance because most of the time we'll prove closedness for all objects at once,
-rather than just for this one.
--/
-def unit_closed {C : Type u} [category.{v} C] [monoidal_category.{v} C] : closed (𝟙_ C) :=
-{ is_adj :=
-  { right := 𝟭 C,
-    adj := adjunction.mk_of_hom_equiv
-    { hom_equiv := λ X _,
-      { to_fun := λ a, (left_unitor X).inv ≫ a,
-        inv_fun := λ a, (left_unitor X).hom ≫ a,
-        left_inv := by tidy,
-        right_inv := by tidy },
-      hom_equiv_naturality_left_symm' := λ X' X Y f g,
-      by { dsimp, rw left_unitor_naturality_assoc } } } }
+@[simp, reassoc] lemma ev_coev {B : C} :
+  (𝟙 A ⊗ ((coev A).app B)) ≫ (ev A).app (A ⊗ B) = 𝟙 (A ⊗ B) :=
+adjunction.left_triangle_components (internal_hom.adjunction A)
+
+@[simp, reassoc] lemma coev_ev {B : C} :
+  (coev A).app (A⟹B) ≫ (internal_hom_right A).map ((ev A).app B) = 𝟙 (A⟹B) :=
+adjunction.right_triangle_components (internal_hom.adjunction A)
+
+variables {A} {X Y : C}
+
+def currying : (A ⊗ Y ⟶ X) ≃ (Y ⟶ A ⟹ X) :=
+(internal_hom.adjunction A).hom_equiv Y X
+
+abbreviation curry : (A ⊗ Y ⟶ X) → (Y ⟶ A ⟹ X) := currying
+abbreviation uncurry : (Y ⟶ A ⟹ X) → (A ⊗ Y ⟶ X) := currying.symm
+
+@[simp] lemma adj_hom_equiv_apply_eq (f : A ⊗ Y ⟶ X) :
+  (internal_hom.adjunction A).hom_equiv Y X f = curry f :=
+rfl
+@[simp] lemma adj_hom_equiv_apply_symm_eq (f : Y ⟶ A ⟹ X) :
+  ((internal_hom.adjunction A).hom_equiv _ _).symm f = uncurry f :=
+rfl
+
+def hom_one_iso_id : internal_hom_right (𝟙_ C) ≅ 𝟭 C :=
+begin
+end
+
+section pre
+
+end pre
+#exit
+
 
 end monoidal
 end category_theory

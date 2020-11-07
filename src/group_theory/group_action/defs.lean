@@ -11,13 +11,18 @@ import logic.embedding
 /-!
 # Definitions of group actions
 
-This file defines a heirarchy of group actions:
+This file defines a heirarchy of group action type-classes:
 
 * `has_scalar α β`
 * `mul_action α β`
 * `distrib_mul_action α β`
 
 The hierarchy is extended further by `semimodule`, defined elsewhere.
+
+Also provided are type-classes regarding the interaction of different group actions,
+
+* `smul_comm_class M N α`
+* `is_scalar_tower M N α`
 
 ## Notation
 
@@ -60,6 +65,16 @@ instance smul_comm_class_self (M α : Type*) [comm_monoid M] [mul_action M α] :
   smul_comm_class M M α :=
 ⟨λ a a' b, by rw [← mul_smul, mul_comm, mul_smul]⟩
 
+/-- An instance of `is_scalar_tower M N α` states that the multiplicative
+action of `M` on `α` is determined by the multiplicative actions of `M` on `N`
+and `N` on `α`. -/
+class is_scalar_tower (M N α : Type*) [has_scalar M N] [has_scalar N α] [has_scalar M α] : Prop :=
+(smul_assoc : ∀ (x : M) (y : N) (z : α), (x • y) • z = x • (y • z))
+
+@[simp] lemma smul_assoc {M N} [has_scalar M N] [has_scalar N α] [has_scalar M α]
+  [is_scalar_tower M N α] (x : M) (y : N) (z : α) :
+  (x • y) • z = x • y • z :=
+is_scalar_tower.smul_assoc x y z
 
 section
 variables [monoid α] [mul_action α β]
@@ -99,19 +114,7 @@ by split_ifs; refl
 
 end ite
 
-
 section compatible_scalar
-
-/-- An instance of `is_scalar_tower M N α` states that the multiplicative
-action of `M` on `α` is determined by the multiplicative actions of `M` on `N`
-and `N` on `α`. -/
-class is_scalar_tower (M N α : Type*) [has_scalar M N] [has_scalar N α] [has_scalar M α] : Prop :=
-(smul_assoc : ∀ (x : M) (y : N) (z : α), (x • y) • z = x • (y • z))
-
-@[simp] lemma smul_assoc {M N} [has_scalar M N] [has_scalar N α] [has_scalar M α]
-  [is_scalar_tower M N α] (x : M) (y : N) (z : α) :
-  (x • y) • z = x • y • z :=
-is_scalar_tower.smul_assoc x y z
 
 @[simp] lemma smul_one_smul {M} (N) [monoid N] [has_scalar M N] [mul_action N α] [has_scalar M α]
   [is_scalar_tower M N α] (x : M) (y : α) :

@@ -13,8 +13,16 @@ variable {α : Type*}
 variable {r : ℕ}
 
 /-!
+# Antichains
+
 Basic definitions for finite sets which are useful for combinatorics.
 We define antichains, and a proposition asserting that a set is a set of r-sets.
+
+## Main definitions
+
+* `antichain` is a family of sets where no set is a subset of another.
+* `all_sized` is a proposition that
+
 -/
 
 /--
@@ -23,9 +31,21 @@ A family of sets is an antichain if no set is a subset of another. For example,
 -/
 def antichain (𝒜 : finset (finset α)) : Prop := ∀ A ∈ 𝒜, ∀ B ∈ 𝒜, A ≠ B → ¬(A ⊆ B)
 
-/-- `all_sized A r` states that every set in A has size r. -/
+/-- `all_sized 𝒜 r` states that every set in 𝒜 has size r. -/
 @[reducible]
-def all_sized (A : finset (finset α)) (r : ℕ) : Prop := ∀ x ∈ A, card x = r
+def all_sized (𝒜 : finset (finset α)) (r : ℕ) : Prop := ∀ A ∈ 𝒜, card A = r
+
+lemma antichain_of_all_sized {𝒜 : finset (finset α)} {r : ℕ} (a : all_sized 𝒜 r) :
+  antichain 𝒜 :=
+begin
+  intros A h1 B h2 h3,
+  have h4 : card A = card B,
+  { rw a A h1,
+    rw a B h2},
+  contrapose! h3,
+  convert eq_of_subset_of_card_le h3 _,
+  rw h4,
+end
 
 /--
 All sets in the union have size `r` iff both sets individually have this
@@ -43,7 +63,6 @@ begin
     all_goals {rw all_sized, intros, apply p, rw mem_union, tauto} },
 end
 
-/-- A couple of useful lemmas on fintypes -/
 
 lemma mem_powerset_len_iff_card [fintype α] {r : ℕ} : ∀ (x : finset α),
   x ∈ powerset_len r (fintype.elems α) ↔ card x = r :=

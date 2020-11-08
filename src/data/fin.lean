@@ -1050,9 +1050,26 @@ begin
   convert (cons_succ _ _ _).symm
 end
 
-@[simp] lemma insert_nth_zero' {α : Type*} (x : α) (p : fin n → α) :
-  @insert_nth _ (λ _, α) 0 x p = cons x p :=
+@[simp] lemma insert_nth_zero' (x : β) (p : fin n → β) :
+  @insert_nth _ (λ _, β) 0 x p = cons x p :=
 by simp [insert_nth_zero]
+
+lemma insert_nth_last (x : α (last n)) (p : Π j : fin n, α ((last n).succ_above j)) :
+  insert_nth (last n) x p =
+    snoc (λ j, _root_.cast (congr_arg α (congr_fun succ_above_last j)) (p j)) x :=
+begin
+  refine insert_nth_eq_iff.2 ⟨by simp, _⟩,
+  ext j,
+  apply eq_of_heq,
+  transitivity snoc (λ j, _root_.cast (congr_arg α (congr_fun succ_above_last j)) (p j)) x j.cast_succ,
+  { rw [snoc_cast_succ], exact (cast_heq _ _).symm },
+  { apply congr_arg_heq,
+    rw [succ_above_last] }
+end
+
+@[simp] lemma insert_nth_last' (x : β) (p : fin n → β) :
+  @insert_nth _ (λ _, β) (last n) x p = snoc p x :=
+by simp [insert_nth_last]
 
 end insert_nth
 

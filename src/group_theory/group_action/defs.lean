@@ -116,7 +116,7 @@ end ite
 
 namespace mul_action
 
-variables (α) [monoid α]
+variables (α)
 
 /-- The regular action of a monoid on itself by left multiplication. -/
 def regular : mul_action α α :=
@@ -149,7 +149,7 @@ rfl
 variable (β)
 
 /-- An action of `α` on `β` and a monoid homomorphism `γ → α` induce an action of `γ` on `β`. -/
-def mul_action.comp_hom [monoid γ] (g : γ →* α) :
+def comp_hom [monoid γ] (g : γ →* α) :
   mul_action γ β :=
 { smul := λ x b, (g x) • b,
   one_smul := by simp [g.map_one, mul_action.one_smul],

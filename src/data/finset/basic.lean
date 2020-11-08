@@ -64,20 +64,20 @@ multiset.decidable_mem _ _
 /-! ### set coercion -/
 
 /-- Convert a finset to a set in the natural way. -/
-instance : has_lift (finset α) (set α) := ⟨λ s, {x | x ∈ s}⟩
+instance : has_coe_t (finset α) (set α) := ⟨λ s, {x | x ∈ s}⟩
 
-@[simp, norm_cast] lemma mem_coe {a : α} {s : finset α} : a ∈ (↑s : set α) ↔ a ∈ s := iff.rfl
+@[simp, norm_cast] lemma mem_coe {a : α} {s : finset α} : a ∈ (s : set α) ↔ a ∈ s := iff.rfl
 
-@[simp] lemma set_of_mem {α} {s : finset α} : {a | a ∈ s} = ↑s := rfl
+@[simp] lemma set_of_mem {α} {s : finset α} : {a | a ∈ s} = s := rfl
 
-@[simp] lemma coe_mem {s : finset α} (x : (↑s : set α)) : ↑x ∈ s := x.2
+@[simp] lemma coe_mem {s : finset α} (x : (s : set α)) : ↑x ∈ s := x.2
 
-@[simp] lemma mk_coe {s : finset α} (x : (↑s : set α)) {h} :
-  (⟨↑x, h⟩ : (↑s : set α)) = x :=
-by { apply subtype.eq, refl, }
+@[simp] lemma mk_coe {s : finset α} (x : (s : set α)) {h} :
+  (⟨x, h⟩ : (s : set α)) = x :=
+subtype.coe_eta _ _
 
 instance decidable_mem' [decidable_eq α] (a : α) (s : finset α) :
-  decidable (a ∈ (↑s : set α)) := s.decidable_mem _
+  decidable (a ∈ (s : set α)) := s.decidable_mem _
 
 /-! ### extensionality -/
 theorem ext_iff {s₁ s₂ : finset α} : s₁ = s₂ ↔ ∀ a, a ∈ s₁ ↔ a ∈ s₂ :=
@@ -87,7 +87,7 @@ val_inj.symm.trans $ nodup_ext s₁.2 s₂.2
 theorem ext {s₁ s₂ : finset α} : (∀ a, a ∈ s₁ ↔ a ∈ s₂) → s₁ = s₂ :=
 ext_iff.2
 
-@[simp, norm_cast] theorem coe_inj {s₁ s₂ : finset α} : (↑s₁ : set α) = ↑s₂ ↔ s₁ = s₂ :=
+@[simp, norm_cast] theorem coe_inj {s₁ s₂ : finset α} : (s₁ : set α) = s₂ ↔ s₁ = s₂ :=
 set.ext_iff.trans ext_iff.symm
 
 lemma coe_injective {α} : function.injective (coe : finset α → set α) :=
@@ -119,7 +119,7 @@ ext $ λ a, ⟨@H₁ a, @H₂ a⟩
 theorem subset_iff {s₁ s₂ : finset α} : s₁ ⊆ s₂ ↔ ∀ ⦃x⦄, x ∈ s₁ → x ∈ s₂ := iff.rfl
 
 @[simp, norm_cast] theorem coe_subset {s₁ s₂ : finset α} :
-  (↑s₁ : set α) ⊆ ↑s₂ ↔ s₁ ⊆ s₂ := iff.rfl
+  (s₁ : set α) ⊆ s₂ ↔ s₁ ⊆ s₂ := iff.rfl
 
 @[simp] theorem val_le_iff {s₁ s₂ : finset α} : s₁.1 ≤ s₂.1 ↔ s₁ ⊆ s₂ := le_iff_subset s₁.2
 
@@ -138,8 +138,8 @@ le_antisymm_iff
 @[simp] theorem le_iff_subset {s₁ s₂ : finset α} : s₁ ≤ s₂ ↔ s₁ ⊆ s₂ := iff.rfl
 @[simp] theorem lt_iff_ssubset {s₁ s₂ : finset α} : s₁ < s₂ ↔ s₁ ⊂ s₂ := iff.rfl
 
-@[simp, norm_cast] lemma coe_ssubset {s₁ s₂ : finset α} : (↑s₁ : set α) ⊂ ↑s₂ ↔ s₁ ⊂ s₂ :=
-show (↑s₁ : set α) ⊂ ↑s₂ ↔ s₁ ⊆ s₂ ∧ ¬s₂ ⊆ s₁,
+@[simp, norm_cast] lemma coe_ssubset {s₁ s₂ : finset α} : (s₁ : set α) ⊂ s₂ ↔ s₁ ⊂ s₂ :=
+show (s₁ : set α) ⊂ s₂ ↔ s₁ ⊆ s₂ ∧ ¬s₂ ⊆ s₁,
   by simp only [set.ssubset_def, finset.coe_subset]
 
 @[simp] theorem val_lt_iff {s₁ s₂ : finset α} : s₁.1 < s₂.1 ↔ s₁ ⊂ s₂ :=
@@ -155,7 +155,7 @@ in theorem assumptions instead of `∃ x, x ∈ s` or `s ≠ ∅` as it gives ac
 to the dot notation. -/
 protected def nonempty (s : finset α) : Prop := ∃ x:α, x ∈ s
 
-@[simp, norm_cast] lemma coe_nonempty {s : finset α} : (↑s:set α).nonempty ↔ s.nonempty := iff.rfl
+@[simp, norm_cast] lemma coe_nonempty {s : finset α} : (s:set α).nonempty ↔ s.nonempty := iff.rfl
 
 lemma nonempty.bex {s : finset α} (h : s.nonempty) : ∃ x:α, x ∈ s := h
 
@@ -207,7 +207,7 @@ theorem nonempty_iff_ne_empty {s : finset α} : s.nonempty ↔ s ≠ ∅ :=
 theorem eq_empty_or_nonempty (s : finset α) : s = ∅ ∨ s.nonempty :=
 classical.by_cases or.inl (λ h, or.inr (nonempty_of_ne_empty h))
 
-@[simp] lemma coe_empty : ↑(∅ : finset α) = (∅ : set α) := rfl
+@[simp] lemma coe_empty : ((∅ : finset α) : set α) = ∅ := rfl
 
 /-- A `finset` for an empty type is empty. -/
 lemma eq_empty_of_not_nonempty (h : ¬ nonempty α) (s : finset α) : s = ∅ :=
@@ -236,7 +236,8 @@ theorem singleton_nonempty (a : α) : ({a} : finset α).nonempty := ⟨a, mem_si
 
 @[simp] theorem singleton_ne_empty (a : α) : ({a} : finset α) ≠ ∅ := (singleton_nonempty a).ne_empty
 
-@[simp] lemma coe_singleton (a : α) : ↑({a} : finset α) = ({a} : set α) := by { ext, simp }
+@[simp, norm_cast] lemma coe_singleton (a : α) : (({a} : finset α) : set α) = {a} :=
+by { ext, simp }
 
 lemma eq_singleton_iff_unique_mem {s : finset α} {a : α} :
   s = {a} ↔ a ∈ s ∧ ∀ x ∈ s, x = a :=
@@ -324,7 +325,7 @@ theorem mem_of_mem_insert_of_ne {a b : α} {s : finset α} (h : b ∈ insert a s
 ext $ λ a, by simp
 
 @[simp, norm_cast] lemma coe_insert (a : α) (s : finset α) :
-  ↑(insert a s) = (insert a ↑s : set α) :=
+  ↑(insert a s) = (insert a s : set α) :=
 set.ext $ λ x, by simp only [mem_coe, mem_insert, set.mem_insert_iff]
 
 instance : is_lawful_singleton α (finset α) := ⟨λ a, by { ext, simp }⟩
@@ -364,7 +365,7 @@ theorem insert_subset_insert (a : α) {s t : finset α} (h : s ⊆ t) : insert a
 insert_subset.2 ⟨mem_insert_self _ _, subset.trans h (subset_insert _ _)⟩
 
 lemma ssubset_iff {s t : finset α} : s ⊂ t ↔ (∃a ∉ s, insert a s ⊆ t) :=
-by exact_mod_cast @set.ssubset_iff_insert α ↑s ↑t
+by exact_mod_cast @set.ssubset_iff_insert α s t
 
 lemma ssubset_insert {s : finset α} {a : α} (h : a ∉ s) : s ⊂ insert a s :=
 ssubset_iff.mpr ⟨a, h, subset.refl _⟩
@@ -432,7 +433,7 @@ theorem not_mem_union {a : α} {s₁ s₂ : finset α} : a ∉ s₁ ∪ s₂ ↔
 by rw [mem_union, not_or_distrib]
 
 @[simp, norm_cast]
-lemma coe_union (s₁ s₂ : finset α) : ↑(s₁ ∪ s₂) = (↑s₁ ∪ ↑s₂ : set α) := set.ext $ λ x, mem_union
+lemma coe_union (s₁ s₂ : finset α) : ↑(s₁ ∪ s₂) = (s₁ ∪ s₂ : set α) := set.ext $ λ x, mem_union
 
 theorem union_subset {s₁ s₂ s₃ : finset α} (h₁ : s₁ ⊆ s₃) (h₂ : s₂ ⊆ s₃) : s₁ ∪ s₂ ⊆ s₃ :=
 val_le_iff.1 (ndunion_le.2 ⟨h₁, val_le_iff.2 h₂⟩)
@@ -538,7 +539,7 @@ theorem subset_inter {s₁ s₂ s₃ : finset α} : s₁ ⊆ s₂ → s₁ ⊆ s
 by simp only [subset_iff, mem_inter] {contextual:=tt}; intros; split; trivial
 
 @[simp, norm_cast]
-lemma coe_inter (s₁ s₂ : finset α) : ↑(s₁ ∩ s₂) = (↑s₁ ∩ ↑s₂ : set α) := set.ext $ λ _, mem_inter
+lemma coe_inter (s₁ s₂ : finset α) : ↑(s₁ ∩ s₂) = (s₁ ∩ s₂ : set α) := set.ext $ λ _, mem_inter
 
 @[simp] theorem union_inter_cancel_left {s t : finset α} : (s ∪ t) ∩ s = s :=
 by rw [← coe_inj, coe_inter, coe_union, set.union_inter_cancel_left]
@@ -697,7 +698,7 @@ val_le_iff.1 $ erase_le_erase _ $ val_le_iff.2 h
 
 theorem erase_subset (a : α) (s : finset α) : erase s a ⊆ s := erase_subset _ _
 
-@[simp, norm_cast] lemma coe_erase (a : α) (s : finset α) : ↑(erase s a) = (↑s \ {a} : set α) :=
+@[simp, norm_cast] lemma coe_erase (a : α) (s : finset α) : ↑(erase s a) = (s \ {a} : set α) :=
 set.ext $ λ _, mem_erase.trans $ by rw [and_comm, set.mem_diff, set.mem_singleton_iff]; refl
 
 lemma erase_ssubset {a : α} {s : finset α} (h : a ∈ s) : s.erase a ⊂ s :=
@@ -776,7 +777,7 @@ theorem sdiff_subset_self {s₁ s₂ : finset α} : s₁ \ s₂ ⊆ s₁ :=
 suffices s₁ \ s₂ ⊆ s₁ \ ∅, by simpa [sdiff_empty] using this,
 sdiff_subset_sdiff (subset.refl _) (empty_subset _)
 
-@[simp, norm_cast] lemma coe_sdiff (s₁ s₂ : finset α) : ↑(s₁ \ s₂) = (↑s₁ \ ↑s₂ : set α) :=
+@[simp, norm_cast] lemma coe_sdiff (s₁ s₂ : finset α) : ↑(s₁ \ s₂) = (s₁ \ s₂ : set α) :=
 set.ext $ λ _, mem_sdiff
 
 @[simp] theorem union_sdiff_self_eq_union {s t : finset α} : s ∪ (t \ s) = s ∪ t :=
@@ -805,14 +806,14 @@ lemma insert_sdiff_of_not_mem (s : finset α) {t : finset α} {x : α} (h : x �
   (insert x s) \ t = insert x (s \ t) :=
 begin
   rw [← coe_inj, coe_insert, coe_sdiff, coe_sdiff, coe_insert],
-  exact set.insert_diff_of_not_mem ↑s h
+  exact set.insert_diff_of_not_mem s h
 end
 
 lemma insert_sdiff_of_mem (s : finset α) {t : finset α} {x : α} (h : x ∈ t) :
   (insert x s) \ t = s \ t :=
 begin
   rw [← coe_inj, coe_sdiff, coe_sdiff, coe_insert],
-  exact set.insert_diff_of_mem ↑s h
+  exact set.insert_diff_of_mem s h
 end
 
 @[simp] lemma insert_sdiff_insert (s t : finset α) (x : α) :
@@ -887,8 +888,8 @@ by { ext i, simp [piecewise] }
 
 variable [∀j, decidable (j ∈ s)]
 
-@[norm_cast] lemma piecewise_coe [∀j, decidable (j ∈ (↑s : set α))] :
-  (↑s : set α).piecewise f g = s.piecewise f g :=
+@[norm_cast] lemma piecewise_coe [∀j, decidable (j ∈ (s : set α))] :
+  (s : set α).piecewise f g = s.piecewise f g :=
 by { ext, congr }
 
 @[simp, priority 980]

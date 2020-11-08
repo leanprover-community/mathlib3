@@ -315,6 +315,15 @@ theorem min_le_padic_val_rat_add {q r : ℚ}
   (λ h, by rw [min_eq_right h, add_comm]; exact le_padic_val_rat_add_of_le _ hr hq
     (by rwa add_comm) h)
 
+open_locale big_operators
+
+theorem padic_val_rat_sum_pos_of_pos {n : ℕ} (hn : 0 < n) {F : ℕ → ℚ}
+  (hF : ∀ i, i < n → 0 < padic_val_rat p (F i)) : 0 < padic_val_rat p (∑ i in finset.range n, F i) :=
+begin
+  sorry
+end
+
+
 end padic_val_rat
 
 namespace padic_val_nat

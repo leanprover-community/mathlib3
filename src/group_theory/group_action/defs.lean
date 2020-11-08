@@ -124,8 +124,6 @@ def regular : mul_action α α :=
   one_smul := λ a, one_mul a,
   mul_smul := λ a₁ a₂ a₃, mul_assoc _ _ _, }
 
-variables [mul_action α β]
-
 section regular
 
 local attribute [instance] regular

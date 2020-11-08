@@ -232,7 +232,7 @@ theorem mem_singleton_self (a : α) : a ∈ ({a} : finset α) := or.inl rfl
 theorem singleton_inj {a b : α} : ({a} : finset α) = {b} ↔ a = b :=
 ⟨λ h, mem_singleton.1 (h ▸ mem_singleton_self _), congr_arg _⟩
 
-theorem singleton_nonempty (a : α) : ({a} : finset α).nonempty := ⟨a, mem_singleton_self a⟩
+@[simp] theorem singleton_nonempty (a : α) : ({a} : finset α).nonempty := ⟨a, mem_singleton_self a⟩
 
 @[simp] theorem singleton_ne_empty (a : α) : ({a} : finset α) ≠ ∅ := (singleton_nonempty a).ne_empty
 
@@ -347,8 +347,11 @@ end
 @[simp] theorem insert_idem (a : α) (s : finset α) : insert a (insert a s) = insert a s :=
 ext $ λ x, by simp only [mem_insert, or.assoc.symm, or_self]
 
+@[simp] theorem insert_nonempty (a : α) (s : finset α) : (insert a s).nonempty :=
+⟨a, mem_insert_self a s⟩
+
 @[simp] theorem insert_ne_empty (a : α) (s : finset α) : insert a s ≠ ∅ :=
-ne_empty_of_mem (mem_insert_self a s)
+(insert_nonempty a s).ne_empty
 
 lemma ne_insert_of_not_mem (s t : finset α) {a : α} (h : a ∉ s) :
   s ≠ insert a t :=

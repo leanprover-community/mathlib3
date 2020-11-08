@@ -236,7 +236,8 @@ begin
   apply generate_from_le,
   rintros _ ⟨s, i, hi, rfl⟩,
   refine is_measurable_pi i.countable_to_set (λ a ha, is_open.is_measurable _),
-  rw [hinst], exact generate_open.basic _ (hi a ha)
+  rw [hinst], 
+  exact generate_open.basic _ (hi a ha)
 end
 
 instance prod.opens_measurable_space [second_countable_topology α] [second_countable_topology β] :

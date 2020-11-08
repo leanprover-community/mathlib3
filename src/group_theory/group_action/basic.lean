@@ -94,16 +94,7 @@ def stabilizer (b : β) : subgroup α :=
   ..stabilizer.submonoid α b
 }
 
-variable (β)
-
-/-- Given an action of a group `α` on a set `β`, each `g : α` defines a permutation of `β`. -/
-def to_perm : α →* equiv.perm β :=
-units.smul_perm_hom.comp to_units.to_monoid_hom
-
 variables {α} {β}
-
-protected lemma bijective (g : α) : bijective (λ b : β, g • b) :=
-(to_perm α β g).bijective
 
 lemma orbit_eq_iff {a b : β} :
    orbit α a = orbit α b ↔ a ∈ orbit α b:=

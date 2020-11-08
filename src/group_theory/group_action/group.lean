@@ -94,6 +94,17 @@ begin
   {rw inv_smul_smul},
 end
 
+variables (α) (β)
+
+/-- Given an action of a group `α` on a set `β`, each `g : α` defines a permutation of `β`. -/
+def mul_action.to_perm : α →* equiv.perm β :=
+units.smul_perm_hom.comp to_units.to_monoid_hom
+
+variables {β}
+
+protected lemma mul_action.bijective (g : α) : function.bijective (λ b : β, g • b) :=
+(mul_action.to_perm α β g).bijective
+
 end group
 
 end mul_action

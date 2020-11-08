@@ -53,6 +53,7 @@ We define the following operations:
 * `init` : the beginning of an `n+1` tuple, i.e., its first `n` entries;
 * `snoc` : adding an element at the end of an `n`-tuple, to get an `n+1`-tuple. The name `snoc`
   comes from `cons` (i.e., adding an element to the left of a tuple) read in reverse order.
+* `insert_nth` : insert an element to a tuple at a given position.
 * `find p` : returns the first index `n` where `p n` is satisfied, and `none` if it is never
   satisfied.
 
@@ -1008,6 +1009,8 @@ section insert_nth
 
 variables {α : fin (n+1) → Type u} {β : Type v}
 
+/-- Insert an element into a tuple at a given position. For `i = 0` see `fin.cons`,
+for `i = fin.last n` see `fin.snoc`. -/
 def insert_nth (i : fin (n + 1)) (x : α i) (p : Π j : fin n, α (i.succ_above j))
   (j : fin (n + 1)) : α j :=
 if h : j = i

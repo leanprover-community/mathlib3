@@ -221,6 +221,24 @@ instance opens_measurable_space.to_measurable_singleton_class [t1_space α] :
   measurable_singleton_class α :=
 ⟨λ x, is_closed_singleton.is_measurable⟩
 
+instance pi.opens_measurable_space {ι : Type*} {π : ι → Type*} [fintype ι]
+  [t' : Π i, topological_space (π i)]
+  [Π i, measurable_space (π i)] [∀ i, second_countable_topology (π i)]
+  [∀ i, opens_measurable_space (π i)] :
+  opens_measurable_space (Π i, π i) :=
+begin
+  refine ⟨_⟩,
+  choose g hc he ho hu hinst using λ i, is_open_generated_countable_inter (π i),
+  have : Pi.topological_space =
+    generate_from {t | ∃(s:Πa, set (π a)) (i : finset ι), (∀a∈i, s a ∈ g a) ∧ t = pi ↑i s},
+  { rw [funext hinst, pi_generate_from_eq] },
+  rw [borel_eq_generate_from_of_subbasis this],
+  apply generate_from_le,
+  rintros _ ⟨s, i, hi, rfl⟩,
+  refine is_measurable_pi i.countable_to_set (λ a ha, is_open.is_measurable _),
+  rw [hinst], exact generate_open.basic _ (hi a ha)
+end
+
 instance prod.opens_measurable_space [second_countable_topology α] [second_countable_topology β] :
   opens_measurable_space (α × β) :=
 begin
@@ -392,6 +410,16 @@ variables [topological_space α] [measurable_space α] [borel_space α]
   [topological_space γ] [measurable_space γ] [borel_space γ]
   [measurable_space δ]
 
+lemma pi_le_borel_pi {ι : Type*} {π : ι → Type*} [Π i, topological_space (π i)]
+  [Π i, measurable_space (π i)] [∀ i, borel_space (π i)] :
+  measurable_space.pi ≤ borel (Π i, π i) :=
+begin
+  have : ‹Π i, measurable_space (π i)› = λ i, borel (π i) :=
+    funext (λ i, borel_space.measurable_eq),
+  rw [this],
+  exact supr_le (λ i, comap_le_iff_le_map.2 $ (continuous_apply i).borel_measurable)
+end
+
 lemma prod_le_borel_prod : prod.measurable_space ≤ borel (α × β) :=
 begin
   rw [‹borel_space α›.measurable_eq, ‹borel_space β›.measurable_eq],
@@ -399,6 +427,13 @@ begin
   { exact comap_le_iff_le_map.mpr continuous_fst.borel_measurable },
   { exact comap_le_iff_le_map.mpr continuous_snd.borel_measurable }
 end
+
+instance pi.borel_space {ι : Type*} {π : ι → Type*} [fintype ι]
+  [t' : Π i, topological_space (π i)]
+  [Π i, measurable_space (π i)] [∀ i, second_countable_topology (π i)]
+  [∀ i, borel_space (π i)] :
+  borel_space (Π i, π i) :=
+⟨le_antisymm pi_le_borel_pi opens_measurable_space.borel_le⟩
 
 instance prod.borel_space [second_countable_topology α] [second_countable_topology β] :
   borel_space (α × β) :=

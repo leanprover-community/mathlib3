@@ -382,7 +382,7 @@ by rw [← set.range_smul_range, submodule.span_smul hb.2, ← submodule.restric
 theorem is_basis.smul_repr
   {ι ι' : Type*} {b : ι → S} {c : ι' → A}
   (hb : is_basis R b) (hc : is_basis S c) (x : A) (ij : ι × ι') :
-  (hb.smul hc).repr x ij = hb.repr (hc.repr x ij.2) ij.1 :=
+  (hb.smul hc).repr _ x ij = hb.repr _ (hc.repr _ x ij.2) ij.1 :=
 begin
   apply (hb.smul hc).repr_apply_eq,
   { intros x y, ext, simp only [linear_map.map_add, add_apply, pi.add_apply] },
@@ -403,7 +403,7 @@ end
 theorem is_basis.smul_repr_mk
   {ι ι' : Type*} {b : ι → S} {c : ι' → A}
   (hb : is_basis R b) (hc : is_basis S c) (x : A) (i : ι) (j : ι') :
-  (hb.smul hc).repr x (i, j) = hb.repr (hc.repr x j) i :=
+  (hb.smul hc).repr _ x (i, j) = hb.repr _ (hc.repr _ x j) i :=
 by simp [is_basis.smul_repr]
 
 end ring

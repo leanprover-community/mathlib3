@@ -59,15 +59,15 @@ theorem is_basis.le_span {v : ι → V} {J : set V} (hv : is_basis K v)
 begin
   cases le_or_lt cardinal.omega (cardinal.mk J) with oJ oJ,
   { have := cardinal.mk_range_eq_of_injective (linear_independent.injective hv.1),
-    let S : J → set ι := λ j, ↑(is_basis.repr hv j).support,
+    let S : J → set ι := λ j, ↑(hv.repr v j).support,
     let S' : J → set V := λ j, v '' S j,
     have hs : range v ⊆ ⋃ j, S' j,
     { intros b hb,
       rcases mem_range.1 hb with ⟨i, hi⟩,
-      have : span K J ≤ comap hv.repr (finsupp.supported K K (⋃ j, S j)) :=
+      have : span K J ≤ comap (hv.repr v) (finsupp.supported K K (⋃ j, S j)) :=
         span_le.2 (λ j hj x hx, ⟨_, ⟨⟨j, hj⟩, rfl⟩, hx⟩),
       rw hJ at this,
-      replace : hv.repr (v i) ∈ (finsupp.supported K K (⋃ j, S j)) := this trivial,
+      replace : hv.repr v (v i) ∈ (finsupp.supported K K (⋃ j, S j)) := this trivial,
       rw [hv.repr_eq_single, finsupp.mem_supported,
         finsupp.support_single_ne_zero one_ne_zero] at this,
       { subst b,

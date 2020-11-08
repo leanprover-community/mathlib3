@@ -85,7 +85,7 @@ include de h
 /-- The linear map from a vector space equipped with basis to its dual vector space,
 taking basis elements to corresponding dual basis elements. -/
 def to_dual : V →ₗ[K] module.dual K V :=
-h.constr $ λ v, h.constr $ λ w, if w = v then 1 else 0
+h.constr B $ λ v, h.constr B $ λ w, if w = v then 1 else 0
 
 variable {B}
 
@@ -114,10 +114,10 @@ begin
   { rw finsupp.not_mem_support_iff.mp h }
 end
 
-lemma to_dual_apply_left (v : V) (i : ι) : h.to_dual B v (B i) = h.repr v i :=
+lemma to_dual_apply_left (v : V) (i : ι) : h.to_dual B v (B i) = h.repr B v i :=
 by rw [← h.to_dual_total_left, h.total_repr]
 
-lemma to_dual_apply_right (i : ι) (v : V) : h.to_dual B (B i) v = h.repr v i :=
+lemma to_dual_apply_right (i : ι) (v : V) : h.to_dual B (B i) v = h.repr B v i :=
 by rw [← h.to_dual_total_right, h.total_repr]
 
 variable (B)
@@ -137,19 +137,19 @@ def eval_finsupp_at (i : ι) : (ι →₀ K) →ₗ[K] K :=
 include h
 
 /-- `h.coord_fun i` sends vectors to their `i`'th coordinate with respect to the basis `h`. -/
-def coord_fun (i : ι) : (V →ₗ[K] K) := linear_map.comp (eval_finsupp_at i) h.repr
+def coord_fun (i : ι) : (V →ₗ[K] K) := (eval_finsupp_at i).comp $ h.repr B
 
-lemma coord_fun_eq_repr (v : V) (i : ι) : h.coord_fun i v = h.repr v i := rfl
+lemma coord_fun_eq_repr (v : V) (i : ι) : h.coord_fun i v = h.repr B v i := rfl
 
 include de
 
 -- TODO: this lemma should be called something like `to_dual_flip_apply`
 lemma to_dual_swap_eq_to_dual (v w : V) : h.to_dual_flip B v w = h.to_dual B w v := rfl
 
-lemma to_dual_eq_repr (v : V) (i : ι) : h.to_dual B v (B i) = h.repr v i :=
+lemma to_dual_eq_repr (v : V) (i : ι) : h.to_dual B v (B i) = h.repr B v i :=
 h.to_dual_apply_left v i
 
-lemma to_dual_eq_equiv_fun [fintype ι] (v : V) (i : ι) : h.to_dual B v (B i) = h.equiv_fun v i :=
+lemma to_dual_eq_equiv_fun [fintype ι] (v : V) (i : ι) : h.to_dual B v (B i) = h.equiv_fun B v i :=
 by rw [h.equiv_fun_apply, to_dual_eq_repr]
 
 lemma to_dual_inj (v : V) (a : h.to_dual B v = 0) : v = 0 :=
@@ -212,14 +212,14 @@ begin
 end
 
 lemma dual_basis_repr [fintype ι] (l : dual K V) (i : ι) :
-  h.dual_basis_is_basis.repr l i = l (B i) :=
+  h.dual_basis_is_basis.repr _ l i = l (B i) :=
 by rw [← total_dual_basis h, is_basis.total_repr h.dual_basis_is_basis l ]
 
 lemma dual_basis_equiv_fun [fintype ι] (l : dual K V) (i : ι) :
-  h.dual_basis_is_basis.equiv_fun l i = l (B i) :=
+  h.dual_basis_is_basis.equiv_fun _ l i = l (B i) :=
 by rw [is_basis.equiv_fun_apply, dual_basis_repr]
 
-lemma dual_basis_apply [fintype ι] (i : ι) (v : V) : h.dual_basis i v = h.equiv_fun v i :=
+lemma dual_basis_apply [fintype ι] (i : ι) (v : V) : h.dual_basis i v = h.equiv_fun B v i :=
 h.to_dual_apply_right i v
 
 @[simp] lemma to_dual_to_dual [fintype ι] :

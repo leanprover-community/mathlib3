@@ -23,12 +23,12 @@ vector space and `ι : Type*` is an arbitrary indexing type.
 * `is_basis R v` states that the vector family `v` is a basis, i.e. it is linearly independent and
   spans the entire space.
 
-* `is_basis.repr hv x` is the basis version of `linear_independent.repr hv x`. It returns the
+* `is_basis.repr v hv x` is the basis version of `linear_independent.repr hv x`. It returns the
   linear combination representing `x : M` on a basis `v` of `M` (using classical choice).
   The argument `hv` must be a proof that `is_basis R v`. `is_basis.repr hv` is given as a linear
   map as well.
 
-* `is_basis.constr hv f` constructs a linear map `M₁ →ₗ[R] M₂` given the values `f : ι → M₂` at the
+* `is_basis.constr v hv f` constructs a linear map `M₁ →ₗ[R] M₂` given the values `f : ι → M₂` at the
   basis `v : ι → M₁`, given `hv : is_basis R v`.
 
 ## Main statements
@@ -92,45 +92,49 @@ lemma is_basis.injective [nontrivial R] (hv : is_basis R v) : injective v :=
 lemma is_basis.range (hv : is_basis R v) : is_basis R (λ x, x : range v → M) :=
 ⟨hv.1.to_subtype_range, by { convert hv.2, ext i, exact ⟨λ ⟨p, hp⟩, hp ▸ p.2, λ hi, ⟨⟨i, hi⟩, rfl⟩⟩ }⟩
 
+variable (v)
+
 /-- Given a basis, any vector can be written as a linear combination of the basis vectors. They are
 given by this linear map. This is one direction of `module_equiv_finsupp`. -/
 def is_basis.repr : M →ₗ (ι →₀ R) :=
 (hv.1.repr).comp (linear_map.id.cod_restrict _ hv.mem_span)
 
-lemma is_basis.total_repr (x) : finsupp.total ι M R v (hv.repr x) = x :=
+variable {v}
+
+lemma is_basis.total_repr (x) : finsupp.total ι M R v (hv.repr v x) = x :=
 hv.1.total_repr ⟨x, _⟩
 
-lemma is_basis.total_comp_repr : (finsupp.total ι M R v).comp hv.repr = linear_map.id :=
+lemma is_basis.total_comp_repr : (finsupp.total ι M R v).comp (hv.repr v) = linear_map.id :=
 linear_map.ext hv.total_repr
 
 lemma is_basis.ext {f g : M →ₗ[R] M'} (hv : is_basis R v) (h : ∀i, f (v i) = g (v i)) : f = g :=
 linear_map.ext_on_range hv.2 h
 
-lemma is_basis.repr_ker : hv.repr.ker = ⊥ :=
+lemma is_basis.repr_ker : (hv.repr v).ker = ⊥ :=
 linear_map.ker_eq_bot.2 $ left_inverse.injective hv.total_repr
 
-lemma is_basis.repr_range : hv.repr.range = finsupp.supported R R univ :=
+lemma is_basis.repr_range : (hv.repr v).range = finsupp.supported R R univ :=
 by rw [is_basis.repr, linear_map.range, submodule.map_comp,
   linear_map.map_cod_restrict, submodule.map_id, comap_top, map_top, hv.1.repr_range,
   finsupp.supported_univ]
 
 lemma is_basis.repr_total (x : ι →₀ R) (hx : x ∈ finsupp.supported R R (univ : set ι)) :
-  hv.repr (finsupp.total ι M R v x) = x :=
+  hv.repr v (finsupp.total ι M R v x) = x :=
 begin
   rw [← hv.repr_range, linear_map.mem_range] at hx,
   cases hx with w hw,
   rw [← hw, hv.total_repr],
 end
 
-lemma is_basis.repr_eq_single {i} : hv.repr (v i) = finsupp.single i 1 :=
+lemma is_basis.repr_eq_single {i} : hv.repr v (v i) = finsupp.single i 1 :=
 by apply hv.1.repr_eq_single; simp
 
 @[simp]
-lemma is_basis.repr_self_apply (i j : ι) : hv.repr (v i) j = if i = j then 1 else 0 :=
+lemma is_basis.repr_self_apply (i j : ι) : hv.repr v (v i) j = if i = j then 1 else 0 :=
 by rw [hv.repr_eq_single, finsupp.single_apply]
 
 lemma is_basis.repr_eq_iff {f : M →ₗ[R] (ι →₀ R)} :
-  hv.repr = f ↔ ∀ i, f (v i) = finsupp.single i 1 :=
+  hv.repr v = f ↔ ∀ i, f (v i) = finsupp.single i 1 :=
 begin
   split,
   { rintros rfl i,
@@ -143,25 +147,25 @@ end
 lemma is_basis.repr_apply_eq {f : M → ι → R}
   (hadd : ∀ x y, f (x + y) = f x + f y) (hsmul : ∀ (c : R) (x : M), f (c • x) = c • f x)
   (f_eq : ∀ i, f (v i) = finsupp.single i 1) (x : M) (i : ι) :
-  hv.repr x i = f x i :=
+  hv.repr v x i = f x i :=
 begin
   let f_i : M →ₗ[R] R :=
   { to_fun := λ x, f x i,
     map_add' := λ _ _, by rw [hadd, pi.add_apply],
     map_smul' := λ _ _, by rw [hsmul, pi.smul_apply] },
-  show (finsupp.lapply i).comp hv.repr x = f_i x,
+  show (finsupp.lapply i).comp (hv.repr v) x = f_i x,
   congr' 1,
   refine hv.ext (λ j, _),
-  show hv.repr (v j) i = f (v j) i,
+  show hv.repr v (v j) i = f (v j) i,
   rw [hv.repr_eq_single, f_eq]
 end
 
 lemma is_basis.range_repr_self (i : ι) :
-  hv.range.repr (v i) = finsupp.single ⟨v i, mem_range_self i⟩ 1 :=
+  (hv.range.repr _) (v i) = finsupp.single ⟨v i, mem_range_self i⟩ 1 :=
 hv.1.to_subtype_range.repr_eq_single _ _ rfl
 
 @[simp] lemma is_basis.range_repr (i : ι) :
-  hv.range.repr x ⟨v i, mem_range_self i⟩ = hv.repr x i :=
+  hv.range.repr coe x ⟨v i, mem_range_self i⟩ = hv.repr v x i :=
 begin
   by_cases H : (0 : R) = 1,
   { exact eq_of_zero_eq_one H _ _ },
@@ -180,71 +184,79 @@ begin
     simp [hv.range_repr_self, finsupp.single_apply, hv.injective] }
 end
 
+variable (v)
+
 /-- Construct a linear map given the value at the basis. -/
 def is_basis.constr (f : ι → M') : M →ₗ[R] M' :=
-(finsupp.total M' M' R id).comp $ (finsupp.lmap_domain R R f).comp hv.repr
+(finsupp.total M' M' R id).comp $ (finsupp.lmap_domain R R f).comp $ hv.repr v
+
+variable {v}
 
 theorem is_basis.constr_apply (f : ι → M') (x : M) :
-  (hv.constr f : M → M') x = (hv.repr x).sum (λb a, a • f b) :=
+  hv.constr v f x = (hv.repr v x).sum (λb a, a • f b) :=
 by dsimp [is_basis.constr] ;
    rw [finsupp.total_apply, finsupp.sum_map_domain_index]; simp [add_smul]
 
 @[simp] lemma constr_basis {f : ι → M'} {i : ι} (hv : is_basis R v) :
-  (hv.constr f : M → M') (v i) = f i :=
+  hv.constr v f (v i) = f i :=
 by simp [is_basis.constr_apply, hv.repr_eq_single, finsupp.sum_single_index]
 
 lemma constr_eq {g : ι → M'} {f : M →ₗ[R] M'} (hv : is_basis R v)
-  (h : ∀i, g i = f (v i)) : hv.constr g = f :=
+  (h : ∀i, g i = f (v i)) : hv.constr v g = f :=
 hv.ext $ λ i, (constr_basis hv).trans (h i)
 
-lemma constr_self (f : M →ₗ[R] M') : hv.constr (λ i, f (v i)) = f :=
+lemma constr_self (f : M →ₗ[R] M') : hv.constr v (λ i, f (v i)) = f :=
 constr_eq hv $ λ x, rfl
 
-lemma constr_zero (hv : is_basis R v) : hv.constr (λi, (0 : M')) = 0 :=
+lemma constr_zero (hv : is_basis R v) : hv.constr v (λi, (0 : M')) = 0 :=
 constr_eq hv $ λ x, rfl
 
 lemma constr_add {g f : ι → M'} (hv : is_basis R v) :
-  hv.constr (λi, f i + g i) = hv.constr f + hv.constr g :=
+  hv.constr v (λi, f i + g i) = hv.constr v f + hv.constr v g :=
 constr_eq hv $ λ b, by simp
 
-lemma constr_neg {f : ι → M'} (hv : is_basis R v) : hv.constr (λi, - f i) = - hv.constr f :=
+lemma constr_neg {f : ι → M'} (hv : is_basis R v) : hv.constr v (λi, - f i) = - hv.constr v f :=
 constr_eq hv $ λ b, by simp
 
 lemma constr_sub {g f : ι → M'} (hs : is_basis R v) :
-  hv.constr (λi, f i - g i) = hs.constr f - hs.constr g :=
+  hv.constr v (λi, f i - g i) = hs.constr v f - hs.constr v g :=
 by simp [sub_eq_add_neg, constr_add, constr_neg]
 
 -- this only works on functions if `R` is a commutative ring
 lemma constr_smul {ι R M} [comm_ring R] [add_comm_group M] [module R M]
   {v : ι → R} {f : ι → M} {a : R} (hv : is_basis R v) :
-  hv.constr (λb, a • f b) = a • hv.constr f :=
+  hv.constr v (λb, a • f b) = a • hv.constr v f :=
 constr_eq hv $ by simp [constr_basis hv] {contextual := tt}
 
 lemma constr_range [nonempty ι] (hv : is_basis R v) {f : ι  → M'} :
-  (hv.constr f).range = span R (range f) :=
+  (hv.constr v f).range = span R (range f) :=
 by rw [is_basis.constr, linear_map.range_comp, linear_map.range_comp, is_basis.repr_range,
     finsupp.lmap_domain_supported, ←set.image_univ, ←finsupp.span_eq_map_total, image_id]
+
+variable (v)
 
 /-- Canonical equivalence between a module and the linear combinations of basis vectors. -/
 def module_equiv_finsupp (hv : is_basis R v) : M ≃ₗ[R] ι →₀ R :=
 (hv.1.total_equiv.trans (linear_equiv.of_top _ hv.2)).symm
 
+variable {v}
+
 @[simp] theorem module_equiv_finsupp_apply_basis (hv : is_basis R v) (i : ι) :
-  module_equiv_finsupp hv (v i) = finsupp.single i 1 :=
+  module_equiv_finsupp v hv (v i) = finsupp.single i 1 :=
 (linear_equiv.symm_apply_eq _).2 $ by simp [linear_independent.total_equiv]
 
 /-- Isomorphism between the two modules, given two modules `M` and `M'` with respective bases
 `v` and `v'` and a bijection between the indexing sets of the two bases. -/
 def equiv_of_is_basis {v : ι → M} {v' : ι' → M'} (hv : is_basis R v) (hv' : is_basis R v')
   (e : ι ≃ ι') : M ≃ₗ[R] M' :=
-{ inv_fun := hv'.constr (v ∘ e.symm),
-  left_inv := have (hv'.constr (v ∘ e.symm)).comp (hv.constr (v' ∘ e)) = linear_map.id,
+{ inv_fun := hv'.constr v' (v ∘ e.symm),
+  left_inv := have (hv'.constr v' (v ∘ e.symm)).comp (hv.constr v (v' ∘ e)) = linear_map.id,
       from hv.ext $ by simp,
     λ x, congr_arg (λ h : M →ₗ[R] M, h x) this,
-  right_inv := have (hv.constr (v' ∘ e)).comp (hv'.constr (v ∘ e.symm)) = linear_map.id,
+  right_inv := have (hv.constr v (v' ∘ e)).comp (hv'.constr v' (v ∘ e.symm)) = linear_map.id,
       from hv'.ext $ by simp,
     λ y, congr_arg (λ h : M' →ₗ[R] M', h y) this,
-  ..hv.constr (v' ∘ e) }
+  .. hv.constr v (v' ∘ e) }
 
 /-- Isomorphism between the two modules, given two modules `M` and `M'` with respective bases
 `v` and `v'` and a bijection between the two bases. -/
@@ -252,19 +264,19 @@ def equiv_of_is_basis' {v : ι → M} {v' : ι' → M'} (f : M → M') (g : M' �
   (hv : is_basis R v) (hv' : is_basis R v')
   (hf : ∀i, f (v i) ∈ range v') (hg : ∀i, g (v' i) ∈ range v)
   (hgf : ∀i, g (f (v i)) = v i) (hfg : ∀i, f (g (v' i)) = v' i) :
-  M ≃ₗ M' :=
-{ inv_fun := hv'.constr (g ∘ v'),
+  M ≃ₗ[R] M' :=
+{ inv_fun := hv'.constr v' (g ∘ v'),
   left_inv :=
-    have (hv'.constr (g ∘ v')).comp (hv.constr (f ∘ v)) = linear_map.id,
+    have (hv'.constr v' (g ∘ v')).comp (hv.constr v (f ∘ v)) = linear_map.id,
     from hv.ext $ λ i, exists.elim (hf i)
       (λ i' hi', by simp [constr_basis, hi'.symm]; rw [hi', hgf]),
     λ x, congr_arg (λ h:M →ₗ[R] M, h x) this,
   right_inv :=
-    have (hv.constr (f ∘ v)).comp (hv'.constr (g ∘ v')) = linear_map.id,
+    have (hv.constr v (f ∘ v)).comp (hv'.constr v' (g ∘ v')) = linear_map.id,
     from hv'.ext $ λ i', exists.elim (hg i')
       (λ i hi, by simp [constr_basis, hi.symm]; rw [hi, hfg]),
     λ y, congr_arg (λ h:M' →ₗ[R] M', h y) this,
-  ..hv.constr (f ∘ v) }
+  ..hv.constr v (f ∘ v) }
 
 @[simp] lemma equiv_of_is_basis_comp {ι'' : Type*} {v : ι → M} {v' : ι' → M'} {v'' : ι'' → M''}
   (hv : is_basis R v) (hv' : is_basis R v') (hv'' : is_basis R v'')
@@ -363,30 +375,32 @@ begin
 end
 
 open fintype
-variables [fintype ι] (h : is_basis R v)
+variables [fintype ι] (v) (h : is_basis R v)
 
 /-- A module over `R` with a finite basis is linearly equivalent to functions from its basis to `R`.
 -/
 def is_basis.equiv_fun : M ≃ₗ[R] (ι → R) :=
-linear_equiv.trans (module_equiv_finsupp h)
+linear_equiv.trans (module_equiv_finsupp v h)
   { to_fun := finsupp.to_fun,
     map_add' := λ x y, by ext; exact finsupp.add_apply,
     map_smul' := λ x y, by ext; exact finsupp.smul_apply,
     ..finsupp.equiv_fun_on_fintype }
 
+variable {v}
+
 /-- A module over a finite ring that admits a finite basis is finite. -/
 def module.fintype_of_fintype [fintype R] : fintype M :=
-fintype.of_equiv _ h.equiv_fun.to_equiv.symm
+fintype.of_equiv _ (h.equiv_fun v).to_equiv.symm
 
 theorem module.card_fintype [fintype R] [fintype M] :
   card M = (card R) ^ (card ι) :=
-calc card M = card (ι → R)    : card_congr h.equiv_fun.to_equiv
+calc card M = card (ι → R)    : card_congr (h.equiv_fun v).to_equiv
         ... = card R ^ card ι : card_fun
 
 /-- Given a basis `v` indexed by `ι`, the canonical linear equivalence between `ι → R` and `M` maps
 a function `x : ι → R` to the linear combination `∑_i x i • v i`. -/
 @[simp] lemma is_basis.equiv_fun_symm_apply (x : ι → R) :
-  h.equiv_fun.symm x = ∑ i, x i • v i :=
+  (h.equiv_fun v).symm x = ∑ i, x i • v i :=
 begin
   change finsupp.sum
       ((finsupp.equiv_fun_on_fintype.symm : (ι → R) ≃ (ι →₀ R)) x) (λ (i : ι) (a : R), a • v i)
@@ -397,20 +411,20 @@ begin
   by_cases H : x i = 0; simp [H]
 end
 
-lemma is_basis.equiv_fun_apply (u : M) : h.equiv_fun u = h.repr u := rfl
+lemma is_basis.equiv_fun_apply (u : M) : h.equiv_fun v u = h.repr v u := rfl
 
-lemma is_basis.equiv_fun_total (u : M) : ∑ i, h.equiv_fun u i • v i = u:=
+lemma is_basis.equiv_fun_total (u : M) : ∑ i, h.equiv_fun v u i • v i = u:=
 begin
   conv_rhs { rw ← h.total_repr u },
   simp [finsupp.total_apply, finsupp.sum_fintype, h.equiv_fun_apply]
 end
 
 @[simp]
-lemma is_basis.equiv_fun_self (i j : ι) : h.equiv_fun (v i) j = if i = j then 1 else 0 :=
+lemma is_basis.equiv_fun_self (i j : ι) : h.equiv_fun v (v i) j = if i = j then 1 else 0 :=
 by { rw [h.equiv_fun_apply, h.repr_self_apply] }
 
 @[simp] theorem is_basis.constr_apply_fintype (f : ι → M') (x : M) :
-  (h.constr f : M → M') x = ∑ i, (h.equiv_fun x i) • f i :=
+  (h.constr v f : M → M') x = ∑ i, (h.equiv_fun v x i) • f i :=
 by simp [h.constr_apply, h.equiv_fun_apply, finsupp.sum_fintype]
 
 end module
@@ -468,7 +482,7 @@ begin
     rwa subtype.range_coe at h₁ },
   rcases exists_subset_is_basis this with ⟨C, BC, hC⟩,
   haveI : inhabited V := ⟨0⟩,
-  use hC.constr (C.restrict (inv_fun f)),
+  use hC.constr _ (C.restrict (inv_fun f)),
   refine hB.ext (λ b, _),
   rw image_subset_iff at BC,
   have : f b = (⟨f b, BC b.2⟩ : C) := rfl,
@@ -486,7 +500,7 @@ lemma linear_map.exists_right_inverse_of_surjective (f : V →ₗ[K] V')
 begin
   rcases exists_is_basis K V' with ⟨C, hC⟩,
   haveI : inhabited V := ⟨0⟩,
-  use hC.constr (C.restrict (inv_fun f)),
+  use hC.constr _ (C.restrict (inv_fun f)),
   refine hC.ext (λ c, _),
   simp [constr_basis hC, right_inverse_inv_fun (linear_map.range_eq_top.1 hf_surj) c]
 end
@@ -566,6 +580,17 @@ begin
   apply supr_range_std_basis
 end
 
+@[simp] lemma std_basis_repr (s : Πj, ιs j → (Ms j)) (hs : ∀j, is_basis R (s j)) (f : Π j, Ms j)
+  (js : Σ j, ιs j) :
+  (is_basis_std_basis s hs).repr _ f js = (hs js.1).repr _ (f js.1) js.2 :=
+begin
+  refine (is_basis_std_basis s hs).repr_apply_eq _ _ _ _ _; try { intros; ext; simp },
+  rintro ⟨i₁, i₂⟩, ext ⟨x₁, x₂⟩,
+  by_cases h₁ : x₁ = i₁,
+  { subst x₁, simp [std_basis_apply, finsupp.single_apply] },
+  { simp [std_basis_apply, h₁, ne.symm h₁, finsupp.single_apply] }
+end
+
 section
 variables (R η)
 
@@ -576,11 +601,18 @@ lemma is_basis_fun₀ : is_basis R
   (assume i, @is_basis_singleton_one _ _ _ _)
 
 lemma is_basis_fun : is_basis R (λ i, std_basis R (λi:η, R) i 1) :=
+by convert (is_basis_fun₀ R η).comp ((equiv.sigma_equiv_prod _ _).trans (equiv.prod_punit η)).symm
+  (equiv.bijective _)
+
+@[simp] lemma fun_basis_repr_apply (f : η → R) (i : η) :
+  (is_basis_fun R η).repr _ f i = f i :=
 begin
-  apply (is_basis_fun₀ R η).comp (λ i, ⟨i, punit.star⟩),
-  apply bijective_iff_has_inverse.2,
-  use sigma.fst,
-  simp [function.left_inverse, function.right_inverse]
+  refine is_basis.repr_apply_eq _ _ _ _ _ _; try { intros; ext; simp },
+  clear i, intro i,
+  ext j,
+  by_cases hj : j = i,
+  { subst j, simp },
+  { simp [std_basis_apply, finsupp.single_apply, hj, ne.symm hj] },
 end
 
 end

@@ -175,7 +175,7 @@ variables {v₁ : n → M₁} (hv₁ : is_basis R v₁) {v₂ : m → M₂} (hv�
 /-- Given bases of two modules `M₁` and `M₂` over a commutative ring `R`, we get a linear
 equivalence between linear maps `M₁ →ₗ M₂` and matrices over `R` indexed by the bases. -/
 def linear_map.to_matrix : (M₁ →ₗ[R] M₂) ≃ₗ[R] matrix m n R :=
-linear_equiv.trans (linear_equiv.arrow_congr hv₁.equiv_fun hv₂.equiv_fun) linear_map.to_matrix'
+((hv₁.equiv_fun _).arrow_congr (hv₂.equiv_fun _)).trans linear_map.to_matrix'
 
 /-- Given bases of two modules `M₁` and `M₂` over a commutative ring `R`, we get a linear
 equivalence between matrices over `R` indexed by the bases and linear maps `M₁ →ₗ M₂`. -/
@@ -199,7 +199,7 @@ by rw [← matrix.to_lin_symm, linear_equiv.apply_symm_apply]
 by rw [← matrix.to_lin_symm, linear_equiv.symm_apply_apply]
 
 lemma linear_map.to_matrix_apply (f : M₁ →ₗ[R] M₂) (i : m) (j : n) :
-  linear_map.to_matrix hv₁ hv₂ f i j = hv₂.equiv_fun (f (v₁ j)) i :=
+  linear_map.to_matrix hv₁ hv₂ f i j = hv₂.equiv_fun _ (f (v₁ j)) i :=
 begin
   rw [linear_map.to_matrix, linear_equiv.trans_apply, linear_map.to_matrix'_apply,
       linear_equiv.arrow_congr_apply, is_basis.equiv_fun_symm_apply, finset.sum_eq_single j,
@@ -212,12 +212,12 @@ begin
 end
 
 lemma linear_map.to_matrix_apply' (f : M₁ →ₗ[R] M₂) (i : m) (j : n) :
-  linear_map.to_matrix hv₁ hv₂ f i j = hv₂.repr (f (v₁ j)) i :=
+  linear_map.to_matrix hv₁ hv₂ f i j = hv₂.repr _ (f (v₁ j)) i :=
 linear_map.to_matrix_apply hv₁ hv₂ f i j
 
 lemma matrix.to_lin_apply (M : matrix m n R) (v : M₁) :
-  matrix.to_lin hv₁ hv₂ M v = ∑ j, M.mul_vec (hv₁.equiv_fun v) j • v₂ j :=
-show hv₂.equiv_fun.symm (matrix.to_lin' M (hv₁.equiv_fun v)) = _,
+  matrix.to_lin hv₁ hv₂ M v = ∑ j, M.mul_vec (hv₁.equiv_fun _ v) j • v₂ j :=
+show (hv₂.equiv_fun _).symm (matrix.to_lin' M (hv₁.equiv_fun _ _)) = _,
 by rw [matrix.to_lin'_apply, hv₂.equiv_fun_symm_apply]
 
 @[simp] lemma matrix.to_lin_self (M : matrix m n R) (i : n) :
@@ -248,7 +248,7 @@ lemma linear_map.to_matrix_comp [decidable_eq m] (f : M₂ →ₗ[R] M₃) (g : 
   linear_map.to_matrix hv₁ hv₃ (f.comp g) =
   linear_map.to_matrix hv₂ hv₃ f ⬝ linear_map.to_matrix hv₁ hv₂ g :=
 by simp_rw [linear_map.to_matrix, linear_equiv.trans_apply,
-            linear_equiv.arrow_congr_comp _ hv₂.equiv_fun, linear_map.to_matrix'_comp]
+            linear_equiv.arrow_congr_comp _ (hv₂.equiv_fun _), linear_map.to_matrix'_comp]
 
 lemma linear_map.to_matrix_mul (f g : M₁ →ₗ[R] M₁) :
   linear_map.to_matrix hv₁ hv₁ (f * g) =
@@ -278,17 +278,17 @@ open function matrix
 /-- From a basis `e : ι → M` and a family of vectors `v : ι' → M`, make the matrix whose columns
 are the vectors `v i` written in the basis `e`. -/
 def is_basis.to_matrix {e : ι → M} (he : is_basis R e) (v : ι' → M) : matrix ι ι' R :=
-λ i j, he.equiv_fun (v j) i
+λ i j, he.equiv_fun e (v j) i
 
 variables {e : ι → M} (he : is_basis R e) (v : ι' → M) (i : ι) (j : ι')
 
 namespace is_basis
 
-lemma to_matrix_apply : he.to_matrix v i j = he.equiv_fun (v j) i :=
+lemma to_matrix_apply : he.to_matrix v i j = he.equiv_fun e (v j) i :=
 rfl
 
 lemma to_matrix_eq_to_matrix_constr [decidable_eq ι] (v : ι → M) :
-  he.to_matrix v = linear_map.to_matrix he he (he.constr v) :=
+  he.to_matrix v = linear_map.to_matrix he he (he.constr e v) :=
 by { ext, simp [is_basis.to_matrix_apply, linear_map.to_matrix_apply] }
 
 @[simp] lemma to_matrix_self [decidable_eq ι] : he.to_matrix e = 1 :=
@@ -299,7 +299,7 @@ begin
 end
 
 lemma to_matrix_update [decidable_eq ι'] (x : M) :
-  he.to_matrix (function.update v j x) = matrix.update_column (he.to_matrix v) j (he.repr x) :=
+  he.to_matrix (function.update v j x) = matrix.update_column (he.to_matrix v) j (he.repr e x) :=
 begin
   ext i' k,
   rw [is_basis.to_matrix, matrix.update_column_apply, he.to_matrix_apply],
@@ -343,8 +343,8 @@ def to_matrix_equiv {e : ι → M} (he : is_basis R e) : (ι → M) ≃ₗ[R] ma
   right_inv := begin
     intros x,
     ext k l,
-    simp [he.to_matrix_apply, he.equiv_fun.map_sum, he.equiv_fun.map_smul,
-          fintype.sum_apply k (λ i, x i l • he.equiv_fun (e i)),
+    simp [he.to_matrix_apply, (he.equiv_fun _).map_sum, (he.equiv_fun e).map_smul,
+          fintype.sum_apply k (λ i, x i l • he.equiv_fun e (e i)),
           he.equiv_fun_self]
   end }
 
@@ -852,6 +852,11 @@ from ⟨finset.univ.image b,
   by { rw [finset.coe_image, finset.coe_univ, set.image_univ], exact hb.range }⟩,
 by { rw [trace, dif_pos this, ← trace_aux_def], congr' 1, apply trace_aux_eq }
 
+theorem trace_eq_sum (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
+  {ι : Type w} [fintype ι] [decidable_eq ι] {b : ι → M} (hb : is_basis R b) (f : M →ₗ[R] M) :
+  trace R M f = ∑ i, hb.repr _ (f $ b i) i :=
+by simp [trace_eq_matrix_trace R hb f, matrix.trace_diag, to_matrix_apply']
+
 theorem trace_mul_comm (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
   (f g : M →ₗ[R] M) : trace R M (f * g) = trace R M (g * f) :=
 if H : ∃ s : finset M, is_basis R (λ x, x : (↑s : set M) → M) then let ⟨s, hb⟩ := H in
@@ -917,4 +922,4 @@ square matrices. -/
 def alg_equiv_matrix {R : Type v} {M : Type w} {n : Type*} [fintype n]
   [comm_ring R] [add_comm_group M] [module R M] [decidable_eq n] {b : n → M} (h : is_basis R b) :
   module.End R M ≃ₐ[R] matrix n n R :=
-h.equiv_fun.alg_conj.trans alg_equiv_matrix'
+(h.equiv_fun _).alg_conj.trans alg_equiv_matrix'

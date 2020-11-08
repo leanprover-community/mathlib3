@@ -14,8 +14,6 @@ instance : fact (nat.prime 1979) := by norm_num
 
 open finset
 
---example (k : Type) [comm_ring k] (a b : k) : k := a - b
-
 namespace imo1979q1
 
 -- some constants
@@ -61,21 +59,16 @@ lemma lemma1 : b - a = c :=
     }
     ... = ∑ (x : ℕ) in filter even (range 1320), 2 / x : by rw sum_filter
     ... = ∑ (x : ℕ) in map double (range 660), (2 : ℚ) / x : by {
-      -- extract_goal, -- problem not observed
       apply sum_congr, swap, simp,
       apply finset.subset.antisymm,
-      { --extract_goal, -- problem not observed
-        intros x hx,
+      { intros x hx,
         rw mem_filter at hx,
         rcases hx with ⟨hx1, m, rfl⟩,
         rw mem_map,
-        --extract_goal, -- problem not observed
-        -- uncommenting this times out
-        -- use m,                          -- << timeout
-         existsi m, -- works fine
-         existsi _, refl,
-         rw mem_range at hx1 ⊢,
-         linarith },
+        use m,
+        existsi _, refl,
+        rw mem_range at hx1 ⊢,
+        linarith },
       { intros x hx,
         rw mem_filter,
         rw mem_map at hx,
@@ -217,7 +210,7 @@ begin
 end
 
 
-lemma lemma5 : ∀ n ∈ range 330, 1 = padic_val_rat 1979 ((1 / (n + 660) + 1 / (1319 - n)) : ℚ) :=
+lemma lemma5 : ∀ n ∈ range 330, padic_val_rat 1979 ((1 / (n + 660) + 1 / (1319 - n)) : ℚ) = 1 :=
 begin
   intros n hn,
   rw mem_range at hn,
@@ -257,9 +250,37 @@ begin
   intro h,
   unfold e f at h,
   rw ← sum_add_distrib at h,
-
-
-  sorry
+  rcases nat.zero_or_one_le p with (rfl | hp),
+    simp,
+  suffices : 0 < padic_val_rat 1979 p,
+  { rw ← padic_val_rat_of_nat at this,
+    have h2 : 0 < padic_val_nat 1979 p,
+      assumption_mod_cast,
+    exact dvd_of_one_le_padic_val_nat h2 },
+  have hp' : (p : ℚ) ≠ 0,
+  { intro hp2,
+    have hp3 : p = 0,
+    assumption_mod_cast,
+    subst hp3,
+    exact lt_irrefl 0 (lt_of_lt_of_le zero_lt_one hp) },
+  have hq' : (q : ℚ) ≠ 0,
+  { intro hq2,
+    have hq3 : q = 0,
+    assumption_mod_cast,
+    subst hq3,
+    exact lt_irrefl 0 hq },
+  suffices : 0 < padic_val_rat 1979 (p / q),
+  { rw [padic_val_rat.div 1979 hp' hq', ← padic_val_rat_of_nat _ q] at this,
+    apply lt_of_lt_of_le this,
+    apply sub_le_self,
+    norm_cast, simp },
+  rw h,
+  apply padic_val_rat.sum_pos_of_pos,
+  { intros i hi,
+    rw lemma5 i (mem_range.2 hi),
+    exact zero_lt_one },
+  { rw ← h,
+    exact div_ne_zero hp' hq' }
 end
 
 end imo1979q1

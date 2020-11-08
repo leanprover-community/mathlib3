@@ -994,6 +994,14 @@ mem_sets_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Icc_self
 
 section pi
 
+/-!
+### Intervals in `Π i, π i` belong to `𝓝 x`
+
+For each leamma `pi_Ixx_mem_nhds` we add a non-dependent version `pi_Ixx_mem_nhds'` because
+sometimes Lean fails to unify different instances while trying to apply the dependent version to,
+e.g., `ι → ℝ`.
+-/
+
 variables {ι : Type*} {π : ι → Type*} [fintype ι] [Π i, linear_order (π i)]
   [Π i, topological_space (π i)] [∀ i, order_topology (π i)] {a b x : Π i, π i} {a' b' x' : ι → α}
 

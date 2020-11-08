@@ -100,7 +100,7 @@ variables (α) (β)
 def mul_action.to_perm : α →* equiv.perm β :=
 units.smul_perm_hom.comp to_units.to_monoid_hom
 
-variables {β}
+variables {α} {β}
 
 protected lemma mul_action.bijective (g : α) : function.bijective (λ b : β, g • b) :=
 (mul_action.to_perm α β g).bijective

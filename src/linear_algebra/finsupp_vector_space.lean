@@ -71,7 +71,7 @@ variables [comm_ring R] [add_comm_group M] [module R M] [add_comm_group N] [modu
 lemma is_basis.tensor_product {b : ι → M} (hb : is_basis R b) {c : κ → N} (hc : is_basis R c) :
   is_basis R (λ i : ι × κ, b i.1 ⊗ₜ[R] c i.2) :=
 by { convert linear_equiv.is_basis is_basis_single_one
-  ((tensor_product.congr (module_equiv_finsupp hb) (module_equiv_finsupp hc)).trans $
+  ((tensor_product.congr (module_equiv_finsupp b hb) (module_equiv_finsupp c hc)).trans $
     (finsupp_tensor_finsupp _ _ _ _ _).trans $
     lcongr (equiv.refl _) (tensor_product.lid R R)).symm,
   ext ⟨i, k⟩, rw [function.comp_apply, linear_equiv.eq_symm_apply], simp }
@@ -123,9 +123,9 @@ begin
   rw [←cardinal.lift_inj.1 hm.mk_eq_dim, ←cardinal.lift_inj.1 hm'.mk_eq_dim] at h,
   rcases quotient.exact h with ⟨e⟩,
   let e := (equiv.ulift.symm.trans e).trans equiv.ulift,
-  exact ⟨((module_equiv_finsupp hm).trans
+  exact ⟨((module_equiv_finsupp _ hm).trans
       (finsupp.dom_lcongr e)).trans
-      (module_equiv_finsupp hm').symm⟩,
+      (module_equiv_finsupp _ hm').symm⟩,
 end
 
 /-- Two `K`-vector spaces are equivalent if their dimension is the same. -/
@@ -184,7 +184,7 @@ begin
   have : nonempty (fintype s),
   { rwa [← cardinal.lt_omega_iff_fintype, cardinal.lift_inj.1 hs.mk_eq_dim] },
   cases this with hsf, letI := hsf,
-  calc cardinal.mk V = cardinal.mk (s →₀ K) : quotient.sound ⟨(module_equiv_finsupp hs).to_equiv⟩
+  calc cardinal.mk V = cardinal.mk (s →₀ K) : quotient.sound ⟨(module_equiv_finsupp _ hs).to_equiv⟩
     ... = cardinal.mk (s → K) : quotient.sound ⟨finsupp.equiv_fun_on_fintype⟩
     ... = _ : by rw [← cardinal.lift_inj.1 hs.mk_eq_dim, cardinal.power_def]
 end

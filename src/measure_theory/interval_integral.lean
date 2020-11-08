@@ -6,6 +6,7 @@ Author: Yury G. Kudryashov
 import measure_theory.set_integral
 import measure_theory.lebesgue_measure
 import analysis.calculus.deriv
+import analysis.calculus.mean_value
 
 /-!
 # Integral over an interval
@@ -478,7 +479,7 @@ begin
   { rw [Ioc_eq_empty hab, empty_union] at hf,
     simp [integral_of_ge hab, Ioc_eq_empty hab, integral_nonneg_of_ae hf] }
 end
-  
+
 lemma integral_pos_iff_support_of_nonneg_ae {f : ℝ → ℝ} {a b : ℝ}
   (hf : 0 ≤ᵐ[volume] f) (hfi : interval_integrable f volume a b) :
   0 < ∫ x in a..b, f x ↔ a < b ∧ 0 < volume (function.support f ∩ Ioc a b) :=
@@ -1190,5 +1191,73 @@ lemma deriv_within_integral_left (hf : interval_integrable f volume a b)
   (hs : unique_diff_within_at ℝ s a . unique_diff_within_at_Ici_Iic_univ) :
   deriv_within (λ u, ∫ x in u..b, f x) s a = -f a :=
 (integral_has_deriv_within_at_left hf ha).deriv_within hs
+
+
+/-- Theorems pertaining to FTC-2. -/
+
+theorem constant_of_right_deriv_zero (hcont : continuous_on f (Icc a b))
+  (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at f 0 (Ioi x) x) :
+  ∀ x ∈ Icc a b, f x = f a :=
+by simpa only [zero_mul, norm_le_zero_iff, sub_eq_zero] using
+  λ x hx, norm_image_sub_le_of_norm_deriv_right_le_segment
+    hcont hderiv (λ y hy, by rw norm_le_zero_iff) x hx
+
+theorem constant_of_deriv_zero (hdiff : differentiable_on ℝ f (Icc a b))
+  (hderiv : ∀ x ∈ Ico a b, deriv_within f (Icc a b) x = 0) :
+  ∀ x ∈ Icc a b, f x = f a :=
+begin
+  have H : ∀ x ∈ Ico a b, ∥deriv_within f (Icc a b) x∥ ≤ 0 :=
+    by simpa only [norm_le_zero_iff] using λ x hx, hderiv x hx,
+  simpa only [zero_mul, norm_le_zero_iff, sub_eq_zero] using
+    λ x hx, norm_image_sub_le_of_norm_deriv_le_segment hdiff H x hx,
+end
+
+variables {f' g : ℝ → E} {x : ℝ}
+
+theorem eq_of_right_deriv_eq
+  (derivf : has_deriv_within_at f (f' x) (Ici x) x)
+  (derivg : has_deriv_within_at g (f' x) (Ici x) x)
+  (fcont : continuous_on f (Icc a b)) (gcont : continuous_on g (Icc a b))
+  (hi : f a = g a) :
+  ∀ y ∈ Icc a b, f y = g y :=
+begin
+  have H : ∀ x ∈ Ico a b, has_deriv_within_at (f - g) 0 (Ioi x) x := sorry,
+  --have hderiv := derivf.sub derivg, simp [sub_self] at hderiv,
+  --have hsorry : (has_deriv_within_at (f-g) 0 (Ici x) x) ↔ (has_deriv_within_at (f-g) 0 (Ioi x) x),
+    --sorry,
+  --rw hsorry at hderiv,
+  simpa only [zero_mul, sub_eq_zero.mpr hi, norm_le_zero_iff, sub_eq_zero] using
+    λ y hy, norm_image_sub_le_of_norm_deriv_right_le_segment
+      (fcont.sub gcont) H (λ z hz, by rw norm_le_zero_iff) y hy,
+end
+
+theorem eq_of_deriv_eq (hu : ∀ s : set ℝ, ∀ c ∈ s, unique_diff_within_at ℝ s c)
+  (fdiff : differentiable_on ℝ f (Icc a b)) (derivf : ∀ x ∈ Ico a b, deriv_within f (Icc a b) x = 0)
+  (gdiff : differentiable_on ℝ g (Icc a b)) (derivg : ∀ x ∈ Ico a b, deriv_within g (Icc a b) x = 0)
+  (hi : f a = g a) :
+  ∀ y ∈ Icc a b, f y = g y :=
+begin
+  have H : ∀ y ∈ Ico a b, ∥deriv_within (f - g) (Icc a b) y∥ ≤ 0,
+  { intros y hy,
+    have hf : differentiable_within_at ℝ f (Icc a b) y :=
+      by simpa only [differentiable_on] using fdiff y (Ico_subset_Icc_self hy),
+    have hg : differentiable_within_at ℝ g (Icc a b) y :=
+      by simpa only [differentiable_on] using gdiff y (Ico_subset_Icc_self hy),
+    simpa only [derivf y hy, deriv_within.neg (hu _ _ (Ico_subset_Icc_self hy)) hg, derivg y hy,
+      add_zero, neg_zero, norm_le_zero_iff] using deriv_within_add (hu _ _ (Ico_subset_Icc_self hy))
+        hf (by simpa only [differentiable_on] using (gdiff y (Ico_subset_Icc_self hy)).neg) },
+  simpa only [zero_mul, sub_eq_zero.mpr hi, norm_le_zero_iff, sub_eq_zero] using
+    λ y hy, norm_image_sub_le_of_norm_deriv_le_segment (fdiff.sub gdiff) H y hy,
+end
+
+theorem has_deriv_within_at_right_integrable (hx : x ∈ Ico a b)
+  (contf : continuous_on f (Icc a b)) (derivf : has_deriv_within_at f (f' x) (Ici x) x)
+  (contf' : continuous_within_at f' (Ioi x) x) (intgf' : interval_integrable f' volume a x) :
+  ∫ y in a..x, f' y = f x - f a :=
+by rw [eq_of_right_deriv_eq derivf
+        ((integral_has_deriv_within_at_right intgf' contf').const_add (f a))
+          contf sorry (by simp) x (Ico_subset_Icc_self hx), add_sub_cancel']
+-- Missing piece: `continuous_on (f a + ∫ x in a..u, f' x) (Icc a b)`
+
 
 end interval_integral

@@ -853,7 +853,7 @@ from ⟨finset.univ.image b,
 by { rw [trace, dif_pos this, ← trace_aux_def], congr' 1, apply trace_aux_eq }
 
 theorem trace_eq_sum (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
-  {ι : Type w} [fintype ι] [decidable_eq ι] {b : ι → M} (hb : is_basis R b) (f : M →ₗ[R] M) :
+  {ι : Type w} [fintype ι] {b : ι → M} (hb : is_basis R b) (f : M →ₗ[R] M) :
   trace R M f = ∑ i, hb.repr _ (f $ b i) i :=
 by simp [trace_eq_matrix_trace R hb f, matrix.trace_diag, to_matrix_apply']
 

@@ -383,12 +383,9 @@ begin
     (adjoin_root.power_basis_is_basis (minimal_polynomial.ne_zero hx)) ϕ },
   ext y,
   haveI : fact (is_integral K x) := hx,
-  rw [function.comp_app, fin.val_eq_coe, alg_equiv.to_linear_equiv_apply],
-  rw alg_equiv.map_pow,
+  rw [function.comp_app, fin.val_eq_coe, alg_equiv.to_linear_equiv_apply, alg_equiv.map_pow],
   rw intermediate_field.adjoin_root_equiv_adjoin_simple_of_root,
 end
-
-#check
 
 /-- The power basis `1, x, ..., x ^ (d - 1)` for `K⟮x⟯`,
 where `d` is the degree of the minimal polynomial of `x`. -/

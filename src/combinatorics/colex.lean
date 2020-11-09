@@ -232,7 +232,7 @@ end
 /--
 If A is before B in colex, and everything in B is small, then everything in A is small.
 -/
-lemma max_colex [linear_order α] {A B : finset α} (t : α) (h₁ : A <ᶜ B) (h₂ : ∀ x ∈ B, x < t) :
+lemma forall_lt_of_colex_lt_of_forall_lt [linear_order α] {A B : finset α} (t : α) (h₁ : A <ᶜ B) (h₂ : ∀ x ∈ B, x < t) :
   ∀ x ∈ A, x < t :=
 begin
   rw colex.lt_def at h₁,

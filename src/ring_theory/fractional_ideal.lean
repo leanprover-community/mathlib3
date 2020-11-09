@@ -294,6 +294,8 @@ lemma mul_left_mono (I : fractional_ideal f) : monotone ((*) I) :=
 lemma mul_right_mono (I : fractional_ideal f) : monotone (λ J, J * I) :=
 λ J J' h, mul_le.mpr (λ x hx y hy, mul_mem_mul (h hx) hy)
 
+lemma mem_coe' (I : fractional_ideal f) (x : f.codomain) : x ∈ (I : submodule R f.codomain) ↔ x ∈ I := iff.rfl
+
 instance add_comm_monoid : add_comm_monoid (fractional_ideal f) :=
 { add_assoc := λ I J K, sup_assoc,
   add_comm := λ I J, sup_comm,
@@ -811,10 +813,9 @@ begin
     use {x},
     split,
     {
-      rw set.singleton_subset_iff,
-      assumption,
+      rwa set.singleton_subset_iff, --or simp
     },
-    simp,
+    split, simp,
     apply submodule.mem_span_singleton_self,
   },
   {
@@ -822,48 +823,28 @@ begin
     simp,
   },
   {
-    rintros x y hx hy,
-    rcases hx with ⟨X, hX, hx⟩,
-    rcases hy with ⟨Y, hY, hy⟩,
+    rintros x y ⟨X, hX, hxf, hxX⟩ ⟨Y, hY, hyf, hyY⟩,
     use X ∪ Y,
     split,
     {
-      have hS := set.union_subset_union hX hY,
-      rw set.union_self S at hS,
-      assumption,
+      exact set.union_subset hX hY,
     },
     split,
     {
-      refine set.finite.union _ _,
-      cases hx,
-      assumption,
-      cases hy,
-      assumption,
+      refine set.finite.union hxf hyf,
     },
     rw span_union X Y,
     rw mem_sup,
-    use x,
-    split,
-    cases hx,
-    assumption,
-    use y,
-    split,
-    cases hy,
-    assumption,
-    refl,
+    use [x, hxX, y, hyY],
   },
-  rintros a x h,
-  rcases h with ⟨T, hT, h1, h2⟩,
-  use T,
-  split,
-  assumption,
-  split,
-  assumption,
+  rintros a x ⟨T, hT, h1, h2⟩,
+  use [T, hT, h1],
   refine smul_mem _ _ h2,
 end
 
-lemma submodule.mem_span_mul_finite_of_mem_span_mul [comm_semiring B] [semiring M] [algebra B M] (S : set M) (S' : set M) (x : M) (hx : x ∈ span B S * span B S') :
-  ∃ T : set M, T ⊆ S ∧ T.finite ∧ ∃ T' : set M, T' ⊆ S' ∧ T'.finite ∧ x ∈ span B T * span B T' :=
+lemma submodule.mem_span_mul_finite_of_mem_span_mul (B M : Type*) [comm_semiring B] [semiring M]
+[algebra B M] (S : set M) (S' : set M) (x : M) (hx : x ∈ span B S * span B S') :
+  ∃ (T : set M) (T' : set M), T ⊆ S ∧ T.finite ∧ T' ⊆ S' ∧ T'.finite ∧ x ∈ span B T * span B T' :=
 begin
   sorry,
 end

@@ -389,22 +389,10 @@ If `F` and `G` are naturally isomorphic, then `F.map_cone c` being a limit impli
 -/
 def map_cone_equiv {D : Type u'} [category.{v} D] {K : J ⥤ C} {F G : C ⥤ D} (h : F ≅ G) {c : cone K}
   (t : is_limit (F.map_cone c)) : is_limit (G.map_cone c) :=
-{ lift := λ s, t.map s (iso_whisker_left K h).inv ≫ h.hom.app c.X,
-  fac' := λ s j,
-  begin
-    erw [assoc, ← h.hom.naturality (c.π.app j), t.map_π_assoc s (iso_whisker_left K h).inv j],
-    dsimp,
-    simp,
-  end,
-  uniq' := λ s m J,
-  begin
-    rw ← cancel_mono (h.inv.app c.X),
-    apply t.hom_ext,
-    intro j,
-    rw [assoc, assoc, assoc, h.hom_inv_id_app_assoc],
-    erw [← h.inv.naturality (c.π.app j), reassoc_of (J j)],
-    apply (t.map_π s (iso_whisker_left K h).inv j).symm,
-  end }
+begin
+  apply postcompose_inv_equiv (iso_whisker_left K h : _) (G.map_cone c) _,
+  apply t.of_iso_limit (postcompose_whisker_left_map_cone h.symm c).symm,
+end
 
 /--
 A cone is a limit cone exactly if
@@ -810,6 +798,17 @@ def of_faithful {t : cocone F} {D : Type u'} [category.{v} D] (G : C ⥤ D) [fai
   end }
 
 /--
+If `F` and `G` are naturally isomorphic, then `F.map_cone c` being a colimit implies
+`G.map_cone c` is also a colimit.
+-/
+def map_cocone_equiv {D : Type u'} [category.{v} D] {K : J ⥤ C} {F G : C ⥤ D} (h : F ≅ G)
+  {c : cocone K} (t : is_colimit (F.map_cocone c)) : is_colimit (G.map_cocone c) :=
+begin
+  apply is_colimit.of_iso_colimit _ (precompose_whisker_left_map_cocone h c),
+  apply (precompose_inv_equiv (iso_whisker_left K h : _) _).symm t,
+end
+
+/--
 A cocone is a colimit cocone exactly if
 there is a unique cocone morphism from any other cocone.
 -/
@@ -1033,6 +1032,10 @@ by { dsimp [limit.iso_limit_cone, is_limit.cone_point_unique_up_to_iso], tidy, }
   (w : ∀ j, f ≫ limit.π F j = f' ≫ limit.π F j) : f = f' :=
 (limit.is_limit F).hom_ext w
 
+@[simp] lemma limit.lift_map {F G : J ⥤ C} [has_limit F] [has_limit G] (c : cone F) (α : F ⟶ G) :
+  limit.lift F c ≫ lim_map α = limit.lift G ((cones.postcompose α).obj c) :=
+by { ext, rw [assoc, lim_map_π, limit.lift_π_assoc, limit.lift_π], refl }
+
 @[simp] lemma limit.lift_cone {F : J ⥤ C} [has_limit F] :
   limit.lift F (limit.cone F) = 𝟙 (limit F) :=
 (limit.is_limit _).lift_self
@@ -1149,7 +1152,7 @@ The canonical morphism from the limit of `F` to the limit of `E ⋙ F`.
 def limit.pre : limit F ⟶ limit (E ⋙ F) :=
 limit.lift (E ⋙ F) ((limit.cone F).whisker E)
 
-@[simp] lemma limit.pre_π (k : K) : limit.pre F E ≫ limit.π (E ⋙ F) k = limit.π F (E.obj k) :=
+@[simp, reassoc] lemma limit.pre_π (k : K) : limit.pre F E ≫ limit.π (E ⋙ F) k = limit.π F (E.obj k) :=
 by { erw is_limit.fac, refl }
 
 @[simp] lemma limit.lift_pre (c : cone F) :
@@ -1187,7 +1190,8 @@ The canonical morphism from `G` applied to the limit of `F` to the limit of `F �
 def limit.post : G.obj (limit F) ⟶ limit (F ⋙ G) :=
 limit.lift (F ⋙ G) (G.map_cone (limit.cone F))
 
-@[simp] lemma limit.post_π (j : J) : limit.post F G ≫ limit.π (F ⋙ G) j = G.map (limit.π F j) :=
+@[simp, reassoc] lemma limit.post_π (j : J) :
+  limit.post F G ≫ limit.π (F ⋙ G) j = G.map (limit.π F j) :=
 by { erw is_limit.fac, refl }
 
 @[simp] lemma limit.lift_post (c : cone F) :
@@ -1236,7 +1240,6 @@ section lim_functor
 variables [has_limits_of_shape J C]
 
 section
-local attribute [simp] lim_map
 
 /-- `limit F` is functorial in `F`, when `C` has all limits of shape `J`. -/
 @[simps obj]
@@ -1250,16 +1253,12 @@ end
 
 variables {F} {G : J ⥤ C} (α : F ⟶ G)
 
-@[simp, reassoc] lemma limit.map_π (j : J) : lim.map α ≫ limit.π G j = limit.π F j ≫ α.app j :=
-by apply is_limit.fac
-
-@[simp] lemma limit.lift_map (c : cone F) :
-  limit.lift F c ≫ lim.map α = limit.lift G ((cones.postcompose α).obj c) :=
-by ext; rw [assoc, limit.map_π, ←assoc, limit.lift_π, limit.lift_π]; refl
+-- We generate this manually since `simps` gives it a weird name.
+@[simp] lemma lim_map_eq_lim_map : lim.map α = lim_map α := rfl
 
 lemma limit.map_pre [has_limits_of_shape K C] (E : K ⥤ J) :
   lim.map α ≫ limit.pre G E = limit.pre F E ≫ lim.map (whisker_left E α) :=
-by ext; rw [assoc, limit.pre_π, limit.map_π, assoc, limit.map_π, ←assoc, limit.pre_π]; refl
+by { ext, simp }
 
 lemma limit.map_pre' [has_limits_of_shape K C]
   (F : J ⥤ C) {E₁ E₂ : K ⥤ J} (α : E₁ ⟶ E₂) :
@@ -1272,12 +1271,10 @@ limit.pre F (𝟭 _) = lim.map (functor.left_unitor F).inv := by tidy
 lemma limit.map_post {D : Type u'} [category.{v} D] [has_limits_of_shape J D] (H : C ⥤ D) :
 /- H (limit F) ⟶ H (limit G) ⟶ limit (G ⋙ H) vs
    H (limit F) ⟶ limit (F ⋙ H) ⟶ limit (G ⋙ H) -/
-  H.map (lim.map α) ≫ limit.post G H = limit.post F H ≫ lim.map (whisker_right α H) :=
+  H.map (lim_map α) ≫ limit.post G H = limit.post F H ≫ lim_map (whisker_right α H) :=
 begin
   ext,
-  rw [assoc, limit.post_π, ←H.map_comp, limit.map_π, H.map_comp],
-  rw [assoc, limit.map_π, ←assoc, limit.post_π],
-  refl
+  simp only [whisker_right_app, lim_map_π, assoc, limit.post_π_assoc, limit.post_π, ← H.map_comp],
 end
 
 /--

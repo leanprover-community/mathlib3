@@ -128,3 +128,72 @@ begin
   refine ⟨⟨_, x_integral⟩, ⟨_, y_integral⟩, _, rfl⟩,
   exact λ h, a_ne_zero (inj _ (subtype.ext_iff_val.mp h))
 end
+section field
+
+variables {K L : Type*} [field K] [field L] [algebra K L] (A : subalgebra K L)
+
+lemma inv_eq_of_aeval_div_X_ne_zero {x : L} {p : polynomial K}
+  (aeval_ne : aeval x (div_X p) ≠ 0) :
+  x⁻¹ = aeval x (div_X p) / (aeval x p - algebra_map _ _ (p.coeff 0)) :=
+begin
+  rw [inv_eq_iff, inv_div, div_eq_iff, sub_eq_iff_eq_add, mul_comm],
+  conv_lhs { rw ← div_X_mul_X_add p },
+  rw [alg_hom.map_add, alg_hom.map_mul, aeval_X, aeval_C],
+  exact aeval_ne
+end
+
+lemma inv_eq_of_root_of_coeff_zero_ne_zero {x : L} {p : polynomial K}
+  (aeval_eq : aeval x p = 0) (coeff_zero_ne : p.coeff 0 ≠ 0) :
+  x⁻¹ = - (aeval x (div_X p) / algebra_map _ _ (p.coeff 0)) :=
+begin
+  convert inv_eq_of_aeval_div_X_ne_zero (mt (λ h, (algebra_map K L).injective _) coeff_zero_ne),
+  { rw [aeval_eq, zero_sub, div_neg] },
+  rw ring_hom.map_zero,
+  convert aeval_eq,
+  conv_rhs { rw ← div_X_mul_X_add p },
+  rw [alg_hom.map_add, alg_hom.map_mul, h, zero_mul, zero_add, aeval_C]
+end
+
+lemma subalgebra.inv_mem_of_root_of_coeff_zero_ne_zero {x : A} {p : polynomial K}
+  (aeval_eq : aeval x p = 0) (coeff_zero_ne : p.coeff 0 ≠ 0) : (x⁻¹ : L) ∈ A :=
+begin
+  have : (x⁻¹ : L) = aeval x (div_X p) / (aeval x p - algebra_map _ _ (p.coeff 0)),
+  { rw [aeval_eq, submodule.coe_zero, zero_sub, div_neg],
+    convert inv_eq_of_root_of_coeff_zero_ne_zero _ coeff_zero_ne,
+    { rw subalgebra.aeval_coe },
+    { simpa using aeval_eq } },
+  rw [this, div_eq_mul_inv, aeval_eq, submodule.coe_zero, zero_sub, ← ring_hom.map_neg,
+      ← ring_hom.map_inv],
+  exact A.mul_mem (aeval x p.div_X).2 (A.algebra_map_mem _),
+end
+
+lemma subalgebra.inv_mem_of_algebraic {x : A} (hx : is_algebraic K (x : L)) : (x⁻¹ : L) ∈ A :=
+begin
+  obtain ⟨p, ne_zero, aeval_eq⟩ := hx,
+  replace aeval_eq : aeval x p = 0,
+  { rw ← submodule.coe_eq_zero,
+    convert aeval_eq,
+    exact is_scalar_tower.algebra_map_aeval K A L _ _ },
+  revert ne_zero aeval_eq,
+  refine p.rec_on_horner _ _ _,
+  { intro h,
+    contradiction },
+  { intros p a hp ha ih ne_zero aeval_eq,
+    refine A.inv_mem_of_root_of_coeff_zero_ne_zero aeval_eq _,
+    rwa [coeff_add, hp, zero_add, coeff_C, if_pos rfl] },
+  { intros p hp ih ne_zero aeval_eq,
+    rw [alg_hom.map_mul, aeval_X, mul_eq_zero] at aeval_eq,
+    cases aeval_eq with aeval_eq x_eq,
+    { exact ih hp aeval_eq },
+    { rw [x_eq, submodule.coe_zero, inv_zero],
+      exact A.zero_mem } }
+end
+
+/-- In an algebraic extension L/K, an intermediate subalgebra is a field. -/
+lemma subalgebra.is_field_of_algebraic (hKL : algebra.is_algebraic K L) : is_field A :=
+{ mul_inv_cancel := λ a ha, ⟨
+        ⟨a⁻¹, A.inv_mem_of_algebraic (hKL a)⟩,
+        subtype.ext (mul_inv_cancel (mt submodule.coe_eq_zero.mp ha))⟩,
+  .. subalgebra.integral_domain A }
+
+end field

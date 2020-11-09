@@ -350,9 +350,10 @@ theorem diagonal_mul_diagonal' [decidable_eq n] (d₁ d₂ : n → α) :
   diagonal d₁ * diagonal d₂ = diagonal (λ i, d₁ i * d₂ i) :=
 diagonal_mul_diagonal _ _
 
+@[simp]
 lemma map_mul {L : matrix m n α} {M : matrix n o α}
   {β : Type w} [semiring β] {f : α →+* β} :
-(L ⬝ M).map f = L.map f ⬝ M.map f :=
+  (L ⬝ M).map f = L.map f ⬝ M.map f :=
 by { ext, simp [mul_apply, ring_hom.map_sum], }
 
 /-- A version of `one_map` where `f` is a ring hom. -/
@@ -452,13 +453,6 @@ def ring_hom.map_matrix [decidable_eq m] [semiring α] {β : Type w} [semiring �
   (f : α →+* β) (M : matrix m m α) : f.map_matrix M = M.map f := rfl
 
 open_locale matrix
-
-/-- Specialize `ring_hom.map_mul` to use `matrix.mul` instead of `has_mul.mul`. -/
-@[simp]
-lemma ring_hom.map_matrix.map_mul [decidable_eq m] [semiring α] {β : Type w} [semiring β]
-  (f : α →+* β) (M N : matrix m m α) :
-  f.map_matrix (M ⬝ N) = f.map_matrix M ⬝ f.map_matrix N :=
-ring_hom.map_mul _ _ _
 
 namespace matrix
 

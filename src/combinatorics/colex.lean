@@ -123,7 +123,7 @@ begin
 end
 
 /-- A special case of `colex_hom` which is sometimes useful. -/
-lemma colex_hom_fin {n : ℕ} (A B : finset (fin n)) :
+@[simp] lemma hom_fin {n : ℕ} (A B : finset (fin n)) :
   A.image (λ n, (n : ℕ)) <ᶜ B.image (λ n, (n : ℕ)) ↔ A <ᶜ B :=
 colex.hom (λ x y k, k) _ _
 
@@ -274,7 +274,7 @@ begin
     conv_rhs { rw ← sdiff_union_inter B A },
     rw [sum_union (disjoint_sdiff_inter _ _), sum_union (disjoint_sdiff_inter _ _),
         inter_comm, add_lt_add_iff_right],
-    apply lt_of_lt_of_le (@binary_sum_nat k (A \ B) _),
+    apply lt_of_lt_of_le (@nat.sum_pow_two_lt k (A \ B) _),
     { apply single_le_sum (λ _ _, nat.zero_le _) kB },
     intros x hx,
     apply lt_of_le_of_ne (le_of_not_lt (λ kx, _)),

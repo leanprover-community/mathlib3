@@ -29,7 +29,9 @@ Through this process, the graph is made up of two connected components; one comp
 expressions that are equivalent to the left hand side, and one component contains expressions
 that are equivalent to the right hand side. The algorithm completes when we discover an
 edge that connects the two components, creating a path of rewrites that connects the
-left hand side and right hand side of the graph.
+left hand side and right hand side of the graph. For more detail, see Keeley's report at
+https://hoek.io/res/2018.s2.lean.report.pdf, although note that the edit distance mechanism
+described is currently not implemented, only plain breadth-first search.
 
 This algorithm is generally superior to one that only expands nodes starting from a single
 side, because it is replacing one tree of depth `2d` with two trees of depth `d`. This is

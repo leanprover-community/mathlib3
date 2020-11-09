@@ -252,7 +252,7 @@ def lift : (X → A) ≃ (free_algebra R X →ₐ[R] A) :=
       change lift_aux R (F ∘ ι R) (quot.mk _ _ * quot.mk _ _) = F (quot.mk _ _ * quot.mk _ _),
       rw [alg_hom.map_mul, alg_hom.map_mul, ha, hb], }, }, }
 
-@[simp] lemma lift_aux_eq (f : X → A) : lift_aux f = lift f := rfl
+@[simp] lemma lift_aux_eq (f : X → A) : lift_aux R f = lift R f := rfl
 
 @[simp]
 lemma lift_symm_apply (F : free_algebra R X →ₐ[R] A) : (lift R).symm F = F ∘ (ι R) := rfl

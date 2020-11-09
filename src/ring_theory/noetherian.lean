@@ -316,7 +316,7 @@ theorem is_noetherian_iff_well_founded
   is_noetherian R M ↔ well_founded ((>) : submodule R M → submodule R M → Prop) :=
 ⟨λ h, begin
   apply rel_embedding.well_founded_iff_no_descending_seq.2,
-  swap, { apply is_strict_order.swap },z
+  swap, { apply is_strict_order.swap },
   rintro ⟨⟨N, hN⟩⟩,
   let Q := ⨆ n, N n,
   resetI,

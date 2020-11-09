@@ -147,13 +147,13 @@ identity. Forgetting the scalar multiplication, every Lie algebra is a Lie ring.
 class lie_algebra (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] extends semimodule R L :=
 (lie_smul : ∀ (t : R) (x y : L), ⁅x, t • y⁆ = t • ⁅x, y⁆)
 
-@[simp] lemma lie_smul  (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] [lie_algebra R L]
+lemma lie_smul (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] [lie_algebra R L]
   (t : R) (x y : L) : ⁅x, t • y⁆ = t • ⁅x, y⁆ :=
   lie_algebra.lie_smul t x y
 
-@[simp] lemma smul_lie (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] [lie_algebra R L]
+lemma smul_lie (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] [lie_algebra R L]
   (t : R) (x y : L) : ⁅t • x, y⁆ = t • ⁅x, y⁆ :=
-  by { rw [←lie_skew, ←lie_skew x y], simp [-lie_skew], }
+  by { rw [←lie_skew, ←lie_skew x y], simp [-lie_skew, lie_smul], }
 
 namespace lie_algebra
 
@@ -376,7 +376,7 @@ def ad : L →ₗ⁅R⁆ module.End R L :=
     map_add'  := by { intros, apply lie_add, },
     map_smul' := by { intros, apply lie_smul, } },
   map_add'  := by { intros, ext, simp, },
-  map_smul' := by { intros, ext, simp, },
+  map_smul' := by { intros, ext, apply smul_lie, },
   map_lie   := by {
     intros x y, ext z,
     rw endo_algebra_bracket,

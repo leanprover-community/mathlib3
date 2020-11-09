@@ -540,7 +540,8 @@ begin
     let Jx := M + span R {x},
     let Jy := M + span R {y},
     have hJ_xy : Jx ∉ Ω ∧ Jy ∉ Ω, sorry,
-    have h_primesJx :
+    have h_primeJx : prime Jx, sorry,
+    have h_primeJy : prime Jy, sorry,
 
    sorry, }
 end

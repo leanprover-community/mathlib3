@@ -9,7 +9,7 @@ import algebra.big_operators.basic
 import data.equiv.ring
 
 /-!
-# star_monoid, star_ring
+# Star monoids and star rings
 
 We introduce the basic algebraic notions of star monoids, and star rings.
 Star algebras are introduced in `algebra.algebra.star`.

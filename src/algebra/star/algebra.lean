@@ -7,7 +7,7 @@ import algebra.algebra.basic
 import algebra.star.basic
 
 /-!
-# star_algebra
+# Star algebras
 
 Introduces the notion of a star algebra over a star ring.
 -/

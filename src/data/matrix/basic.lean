@@ -396,6 +396,18 @@ map_zero f.map_zero
   (0 : matrix n n α).map f = 0 :=
 map_zero f.map_zero
 
+/-- A version of `map_zero` where `f` is a `linear_map`. -/
+@[simp] lemma linear_map_map_zero
+  {β : Type w} [add_comm_monoid β] [semimodule R α] [semimodule R β] (f : α →ₗ[R] β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `linear_equiv`. -/
+@[simp] lemma linear_equiv_map_zero
+  {β : Type w} [add_comm_monoid β] [semimodule R α] [semimodule R β] (f : α ≃ₗ[R] β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
 /-- A version of `map_zero` where `f` is a `ring_hom`. -/
 @[simp] lemma ring_hom_map_zero
   {β : Type w} [semiring β] (f : α →+* β) :
@@ -466,7 +478,7 @@ open_locale matrix
 
 /-- Specialize `ring_hom.map_mul` to use `matrix.mul` instead of `has_mul.mul`. -/
 @[simp]
-lemma map_matrix.map_mul [decidable_eq m] [semiring α] {β : Type w} [semiring β]
+lemma ring_hom.map_matrix.map_mul [decidable_eq m] [semiring α] {β : Type w} [semiring β]
   (f : α →+* β) (M N : matrix m m α) :
   f.map_matrix (M ⬝ N) = f.map_matrix M ⬝ f.map_matrix N :=
 ring_hom.map_mul _ _ _

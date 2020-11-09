@@ -33,7 +33,7 @@ Together, these two result prove the Galois correspondence
 noncomputable theory
 open_locale classical
 
-open finite_dimensional
+open finite_dimensional alg_equiv
 
 namespace galois
 
@@ -54,8 +54,8 @@ instance aut : group (E ≃ₐ[F] E) :=
   one := 1,
   one_mul := λ ϕ, by {ext, refl},
   mul_one := λ ϕ, by {ext, refl},
-  inv := alg_equiv.symm,
-  mul_left_inv := λ ϕ, by {ext, exact alg_equiv.symm_apply_apply ϕ a} }
+  inv := symm,
+  mul_left_inv := λ ϕ, by {ext, exact symm_apply_apply ϕ a} }
 
 lemma is_galois_implies_card_aut_eq_findim [finite_dimensional F E] [h : is_galois F E] :
   fintype.card (E ≃ₐ[F] E) = findim F E :=
@@ -81,18 +81,17 @@ begin
   rw [←hα, intermediate_field.adjoin.findim H2],
   rw ← intermediate_field.alg_hom_adjoin_integral F H2 h_separable h_splits,
   apply fintype.card_congr,
-  symmetry,
-  apply equiv.trans (alg_equiv_equiv_alg_hom F F⟮α⟯).symm,
-  symmetry,
-  rw hα,
-  change (E ≃ₐ[F] E) ≃
-    ((⊤ : intermediate_field F E).to_subalgebra ≃ₐ[F] (⊤ : intermediate_field F E).to_subalgebra),
-  rw intermediate_field.top_to_subalgebra,
-  exact
-  { to_fun := λ ϕ, (algebra.top_equiv).trans (alg_equiv.trans ϕ (algebra.top_equiv).symm),
-    inv_fun := λ ϕ, (algebra.top_equiv).symm.trans (alg_equiv.trans ϕ (algebra.top_equiv)),
-    left_inv := λ _, by { ext, simp only [alg_equiv.apply_symm_apply, alg_equiv.trans_apply] },
-    right_inv := λ _, by { ext, simp only [alg_equiv.symm_apply_apply, alg_equiv.trans_apply] } },
+  transitivity (F⟮α⟯ ≃ₐ[F] F⟮α⟯),
+  { rw hα,
+    change (E ≃ₐ[F] E) ≃ ((⊤ : intermediate_field F E).to_subalgebra ≃ₐ[F]
+      (⊤ : intermediate_field F E).to_subalgebra),
+    rw intermediate_field.top_to_subalgebra,
+    exact
+    { to_fun := λ ϕ, (algebra.top_equiv).trans (trans ϕ (algebra.top_equiv).symm),
+      inv_fun := λ ϕ, (algebra.top_equiv).symm.trans (trans ϕ (algebra.top_equiv)),
+      left_inv := λ _, by { ext, simp only [apply_symm_apply, trans_apply] },
+      right_inv := λ _, by { ext, simp only [symm_apply_apply, trans_apply] } } },
+  { exact alg_equiv_equiv_alg_hom F F⟮α⟯ },
 end
 
 end
@@ -107,13 +106,13 @@ instance tower_top_of_galois [h : is_galois F E] : is_galois K E :=
 
 instance subgroup_action : faithful_mul_semiring_action H E :=
 { smul := λ h x, h x,
-  smul_zero := λ _, alg_equiv.map_zero _,
-  smul_add := λ _, alg_equiv.map_add _,
+  smul_zero := λ _, map_zero _,
+  smul_add := λ _, map_add _,
   one_smul := λ _, rfl,
-  smul_one := λ _, alg_equiv.map_one _,
+  smul_one := λ _, map_one _,
   mul_smul := λ _ _ _, rfl,
-  smul_mul := λ _, alg_equiv.map_mul _,
-  eq_of_smul_eq_smul' := λ x y z, subtype.ext (alg_equiv.ext z) }
+  smul_mul := λ _, map_mul _,
+  eq_of_smul_eq_smul' := λ x y z, subtype.ext (ext z) }
 
 /-- The intermediate_field fixed by a subgroup -/
 def fixed_field : intermediate_field F E :=
@@ -124,7 +123,7 @@ def fixed_field : intermediate_field F E :=
   one_mem' := smul_one,
   mul_mem' := λ _ _ hx hy _, by rw [smul_mul', hx, hy],
   inv_mem' := λ _ hx _, by rw [smul_inv, hx],
-  algebra_map_mem' := λ _ _, alg_equiv.commutes _ _ }
+  algebra_map_mem' := λ _ _, commutes _ _ }
 
 lemma findim_fixed_field_eq_card [finite_dimensional F E] :
   findim (fixed_field H) E = fintype.card H :=
@@ -135,18 +134,18 @@ def fixing_subgroup : subgroup (E ≃ₐ[F] E) :=
 { carrier := λ ϕ, ∀ x : K, ϕ x = x,
   one_mem' := λ _, rfl,
   mul_mem' := λ _ _ hx hy _, (congr_arg _ (hy _)).trans (hx _),
-  inv_mem' := λ _ hx _, (equiv.symm_apply_eq (alg_equiv.to_equiv _)).mpr (hx _).symm }
+  inv_mem' := λ _ hx _, (equiv.symm_apply_eq (to_equiv _)).mpr (hx _).symm }
 
 lemma le_iff_le : K ≤ fixed_field H ↔ H ≤ fixing_subgroup K :=
 ⟨λ h g hg x, h (subtype.mem x) ⟨g, hg⟩, λ h x hx g, h (subtype.mem g) ⟨x, hx⟩⟩
 
 /-- The fixing_subgroup of `K : intermediate_field F E` is isomorphic to `E ≃ₐ[K] E` -/
 def fixing_subgroup_iso : fixing_subgroup K ≃* (E ≃ₐ[K] E) :=
-{ to_fun := λ ϕ, alg_equiv.of_bijective (alg_hom.mk ϕ (alg_equiv.map_one ϕ) (alg_equiv.map_mul ϕ)
-    (alg_equiv.map_zero ϕ) (alg_equiv.map_add ϕ) (ϕ.mem)) (alg_equiv.bijective ϕ),
-  inv_fun := λ ϕ, ⟨alg_equiv.of_bijective (alg_hom.mk ϕ (alg_equiv.map_one ϕ) (alg_equiv.map_mul ϕ)
-    (alg_equiv.map_zero ϕ) (alg_equiv.map_add ϕ) (λ r, ϕ.commutes (algebra_map F K r)))
-      (alg_equiv.bijective ϕ), ϕ.commutes⟩,
+{ to_fun := λ ϕ, of_bijective (alg_hom.mk ϕ (map_one ϕ) (map_mul ϕ)
+    (map_zero ϕ) (map_add ϕ) (ϕ.mem)) (bijective ϕ),
+  inv_fun := λ ϕ, ⟨of_bijective (alg_hom.mk ϕ (ϕ.map_one) (ϕ.map_mul)
+    (ϕ.map_zero) (ϕ.map_add) (λ r, ϕ.commutes (algebra_map F K r)))
+      (ϕ.bijective), ϕ.commutes⟩,
   left_inv := λ _, by {ext, refl},
   right_inv := λ _, by {ext, refl},
   map_mul' := λ _ _, by {ext, refl} }

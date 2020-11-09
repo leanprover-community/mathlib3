@@ -433,7 +433,7 @@ begin
   exact swap1.trans swap2,
 end
 
-noncomputable lemma fintype_of_alg_hom_adjoin_integral (h : is_integral F α) :
+noncomputable def fintype_of_alg_hom_adjoin_integral (h : is_integral F α) :
   fintype (F⟮α⟯ →ₐ[F] K) :=
 fintype.of_equiv _ (alg_hom_adjoin_integral_equiv F h).symm
 

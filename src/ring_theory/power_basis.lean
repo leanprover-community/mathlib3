@@ -365,3 +365,37 @@ begin
 end
 
 end adjoin_root
+
+namespace intermediate_field
+
+lemma power_basis_is_basis' {x : L} (hx : is_integral K x) :
+  is_basis K (λ (i : fin (minimal_polynomial hx).nat_degree), (adjoin_simple.gen K x ^ (i : ℕ))) :=
+begin
+  let ϕ := (@adjoin_root_equiv_adjoin_simple K _ _ _ _ _ hx).to_linear_equiv,
+  have key : ϕ (adjoin_root.root (minimal_polynomial hx)) = adjoin_simple.gen K x,
+  { haveI : fact (is_integral K x) := hx,
+    exact intermediate_field.adjoin_root_equiv_adjoin_simple_of_root K x },
+  suffices : ϕ ∘ (λ (i : fin (minimal_polynomial hx).nat_degree),
+    adjoin_root.root (minimal_polynomial hx) ^ (i.val)) =
+      (λ (i : fin (minimal_polynomial hx).nat_degree),
+        (adjoin_simple.gen K x) ^ ↑i),
+  { rw ←this, exact linear_equiv.is_basis
+    (adjoin_root.power_basis_is_basis (minimal_polynomial.ne_zero hx)) ϕ },
+  ext y,
+  haveI : fact (is_integral K x) := hx,
+  rw [function.comp_app, fin.val_eq_coe, alg_equiv.to_linear_equiv_apply],
+  rw alg_equiv.map_pow,
+  rw intermediate_field.adjoin_root_equiv_adjoin_simple_of_root,
+end
+
+#check
+
+/-- The power basis `1, x, ..., x ^ (d - 1)` for `K⟮x⟯`,
+where `d` is the degree of the minimal polynomial of `x`. -/
+noncomputable def adjoin.power_basis' (alg : algebra.is_algebraic K L) {x : L} :
+  power_basis K K⟮x⟯ :=
+{ gen := adjoin_simple.gen K x,
+  dim := (minimal_polynomial ((is_algebraic_iff_is_integral K).mp (alg x))).nat_degree,
+  is_basis := power_basis_is_basis alg _ }
+
+end intermediate_field

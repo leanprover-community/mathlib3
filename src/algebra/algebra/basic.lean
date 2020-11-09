@@ -669,6 +669,8 @@ instance has_coe_to_alg_hom : has_coe (A₁ ≃ₐ[R] A₂) (A₁ →ₐ[R] A₂
 @[simp, norm_cast] lemma coe_alg_hom : ((e : A₁ →ₐ[R] A₂) : A₁ → A₂) = e :=
 rfl
 
+@[simp] lemma map_pow : ∀ (x : A₁) (n : ℕ), e (x ^ n) = (e x) ^ n := e.to_alg_hom.map_pow
+
 lemma injective : function.injective e := e.to_equiv.injective
 
 lemma surjective : function.surjective e := e.to_equiv.surjective

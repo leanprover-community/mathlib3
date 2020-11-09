@@ -211,6 +211,7 @@ begin
 end
 
 instance [linear_order α] : is_strict_weak_order (finset.colex α) (<) := {}
+
 instance [linear_order α] : is_strict_total_order (finset.colex α) (<) := {}
 
 /-- Colex is an extension of the base ordering on α. -/

@@ -519,7 +519,7 @@ variables {R : Type*} [comm_ring R] [is_noetherian_ring R] [decidable_eq (prime_
 
 /-In a noetherian ring, every ideal contains a product of prime ideals
 ([Samuel, § 3.3, Lemma 3])-/
-lemma prime_product (I : ideal R) : ∃ (Z : finset (prime_spectrum R)),
+lemma prime_product [nontrivial R] (I : ideal R) : ∃ (Z : finset (prime_spectrum R)),
   ∏ p in Z, (p.val : ideal R) ≤ I :=
 begin
   let P := λ J, ∀ (Y : finset (prime_spectrum R)), ¬ ∏ p in Y, (p.val : ideal R) ≤ J,
@@ -548,7 +548,18 @@ begin
       replace h_absM : M ∉ Ω,
       simp only [h_absM, mem_set_of_eq, not_false_iff],
       tauto },
-    have h_not_topM : M ≠ ⊤, sorry,
+    have h_not_topM : M ≠ ⊤,
+    { suffices h_top : ¬ P ⊤,
+      { have h_PM' : P M, from h_PM,
+        apply mt (congr_arg P),
+        tauto },
+      { rw not_forall,
+        obtain ⟨Ξ, hΞ⟩ : ∃ (Ξ : ideal R), Ξ.is_maximal,
+        apply_rules @ideal.exists_maximal _ _ _,
+        let pΞ : (prime_spectrum R) := ⟨Ξ, ideal.is_maximal.is_prime hΞ⟩,
+        existsi ({ pΞ } : finset (prime_spectrum R)),
+        rw [not_not, finset.prod_singleton, subtype.val_eq_coe, subtype.coe_mk],
+        simp only [le_top] } },
     obtain ⟨x, y, hx, hy, h_xy⟩ : ∃ (x y : R), x ∉ M ∧ y ∉ M ∧ x * y ∈ M,
     { rw [ideal.is_prime, not_and] at h_not_prM,
       specialize h_not_prM h_not_topM,

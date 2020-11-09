@@ -359,6 +359,25 @@ by { ext, simp [mul_apply, ring_hom.map_sum], }
   (1 : matrix n n α).map f = 1 :=
 one_map f.map_zero f.map_one
 
+/-- A version of `one_map` where `f` is a `ring_equiv`. -/
+@[simp] lemma ring_equiv_map_one [decidable_eq n]
+  {β : Type w} [semiring β] (f : α ≃+* β) :
+  (1 : matrix n n α).map f = 1 :=
+one_map f.map_zero f.map_one
+
+/-- A version of `one_map` where `f` is an `alg_hom`. -/
+@[simp] lemma alg_hom_map_one [decidable_eq n]
+  {β : Type w} [semiring β] [semimodule R α] [semimodule R β] (f : α →ₐ[R] β) :
+  (1 : matrix n n α).map f = 1 :=
+one_map f.map_zero f.map_one
+
+/-- A version of `one_map` where `f` is an `alg_equiv`. -/
+@[simp] lemma alg_equiv_map_one [decidable_eq n]
+  {β : Type w} [semiring β] [semimodule R α] [semimodule R β] (f : α ≃ₐ[R] β) :
+  (1 : matrix n n α).map f = 1 :=
+one_map f.map_zero f.map_one
+
+
 /-- A version of `map_zero` where `f` is a `zero_hom`. -/
 @[simp] lemma zero_hom_map_zero
   {β : Type w} [has_zero β] (f : zero_hom α β) :

@@ -331,10 +331,10 @@ noncomputable def adjoin.power_basis {x : L} (hx : is_integral K x) :
   dim := (minimal_polynomial hx).nat_degree,
   is_basis := power_basis_is_basis hx }
 
-lemma finite_dimensional {x : L} (hx : is_integral K x) : finite_dimensional K K⟮x⟯ :=
+lemma adjoin.finite_dimensional {x : L} (hx : is_integral K x) : finite_dimensional K K⟮x⟯ :=
 finite_dimensional.of_fintype_basis (adjoin.power_basis hx).is_basis
 
-lemma findim {x : L} (hx : is_integral K x) :
+lemma adjoin.findim {x : L} (hx : is_integral K x) :
   finite_dimensional.findim K K⟮x⟯ = (minimal_polynomial hx).nat_degree :=
 begin
   rw [finite_dimensional.findim_eq_card_basis (adjoin.power_basis hx).is_basis, fintype.card_fin],

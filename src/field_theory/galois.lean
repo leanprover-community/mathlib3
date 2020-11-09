@@ -78,10 +78,8 @@ begin
     rw (show algebra_map F (⊤ : intermediate_field F E) = map.comp (algebra_map F E),
       by { ext, refl }),
     exact polynomial.splits_comp_of_splits (algebra_map F E) map h_splits },
-  rw [←hα, linear_equiv.findim_eq
-    (@intermediate_field.adjoin_root_equiv_adjoin_simple F _ _ _ _ α H2).symm.to_linear_equiv,
-    adjoin_root.findim (minimal_polynomial.ne_zero _),
-    ←@intermediate_field.alg_hom_adjoin_integral F _ _ _ _ α H2 _ _ _ h_separable h_splits],
+  rw [←hα, intermediate_field.adjoin.findim H2],
+  rw ← @intermediate_field.alg_hom_adjoin_integral F _ _ _ _ α H2 _ _ _ h_separable h_splits,
   apply fintype.card_congr,
   symmetry,
   apply equiv.trans (alg_equiv_equiv_alg_hom F F⟮α⟯).symm,

@@ -351,9 +351,9 @@ end monoid
 
 end set
 
-section
-
 open set
+
+section
 
 variables {α : Type*} {β : Type*}
 
@@ -410,3 +410,18 @@ lemma mul_card_le [has_mul α] {s t : finset α} : (s * t).card ≤ s.card * t.c
 by { convert finset.card_image_le, rw [finset.card_product, mul_comm] }
 
 end finset
+
+/-! Some lemmas about pointwise multiplication and submonoids. Ideally we put these in
+  `group_theory.submonoid.basic`, but currently we cannot because that file is imported by this. -/
+namespace submonoid
+
+variables {M : Type*} [monoid M]
+
+lemma mul_subset {s t : set M} {S : submonoid M} (hs : s ⊆ S) (ht : t ⊆ S) : s * t ⊆ S :=
+by { rintro _ ⟨p, q, hp, hq, rfl⟩, exact submonoid.mul_mem _ (hs hp) (ht hq) }
+
+lemma mul_subset_closure {s t u : set M} (hs : s ⊆ u) (ht : t ⊆ u) :
+  s * t ⊆ submonoid.closure u :=
+mul_subset (subset.trans hs submonoid.subset_closure) (subset.trans ht submonoid.subset_closure)
+
+end submonoid

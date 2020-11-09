@@ -793,6 +793,14 @@ begin
   sorry
 end
 
+-- TODO: define `ordered_semifield` and put such an instance on the fractional ideals.
+noncomputable instance [is_dedekind_domain R] : comm_group_with_zero (fractional_ideal f) :=
+{ inv := λ I, 1 / I,
+  inv_zero := fractional_ideal.div_zero,
+  mul_inv_cancel := λ I hI, fractional_ideal_invertible_of_dedekind _ (by apply_instance) I,
+  .. fractional_ideal.nontrivial,
+  .. fractional_ideal.comm_semiring }
+
 instance subalgebra.algebra_left {R A B : Type*} [comm_semiring R] [comm_semiring A]
   [semiring B] [algebra R A] [algebra A B] (S : subalgebra A B) : algebra R S := sorry
 

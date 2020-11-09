@@ -6,6 +6,8 @@ Authors: Thomas Browning and Patrick Lutz
 
 import field_theory.tower
 import field_theory.intermediate_field
+import field_theory.minimal_polynomial
+import ring_theory.adjoin_root
 
 /-!
 # Adjoining Elements to Fields
@@ -341,6 +343,52 @@ subsingleton_of_bot_eq_top (bot_eq_top_of_findim_adjoin_le_one h)
 
 end adjoin_dim
 end adjoin_subalgebra_lattice
+
+section adjoin_integral_element
+
+variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (α : E)
+variables [h : fact (is_integral F α)]
+variables {K : Type*} [field K] [algebra F K]
+
+lemma min_poly_eval_gen_eq_zero :
+  (minimal_polynomial h).eval₂ (algebra_map F F⟮α⟯) (adjoin_simple.gen F α) = 0 :=
+begin
+  have comp : algebra_map F E = (algebra_map F⟮α⟯ E).comp (algebra_map F F⟮α⟯) := by { ext, refl },
+  have hom_eval := polynomial.hom_eval₂ (minimal_polynomial h)
+    (algebra_map F F⟮α⟯) (algebra_map F⟮α⟯ E) (adjoin_simple.gen F α),
+  rw [←comp, adjoin_simple.algebra_map_gen, ←polynomial.aeval_def, ←polynomial.aeval_def,
+    minimal_polynomial.aeval h] at hom_eval,
+  ext,
+  exact hom_eval,
+end
+
+/-- algebra isomorphism between `adjoin_root` and `F⟮α⟯` -/
+noncomputable def adjoin_root_equiv_adjoin_simple : adjoin_root (minimal_polynomial h) ≃ₐ[F] F⟮α⟯ :=
+alg_equiv.of_bijective (alg_hom.mk (adjoin_root.lift (algebra_map F F⟮α⟯)
+  (adjoin_simple.gen F α) (@min_poly_eval_gen_eq_zero F  _ _ _ _ α h)) (ring_hom.map_one _)
+  (λ x y, ring_hom.map_mul _ x y) (ring_hom.map_zero _) (λ x y, ring_hom.map_add _ x y)
+  (by { exact λ _, adjoin_root.lift_of })) (begin
+    set f := adjoin_root.lift _ _ (min_poly_eval_gen_eq_zero F α),
+    haveI := minimal_polynomial.irreducible h,
+    split,
+    { exact ring_hom.injective f },
+    { suffices : F⟮α⟯.to_subfield ≤ ring_hom.field_range ((F⟮α⟯.to_subfield.subtype).comp f),
+      { exact λ x, Exists.cases_on (this (subtype.mem x)) (λ y hy, ⟨y, subtype.ext hy.2⟩) },
+      exact subfield.closure_le.mpr (set.union_subset (λ x hx, Exists.cases_on hx (λ y hy, ⟨y,
+        ⟨subfield.mem_top y, by { rw [ring_hom.comp_apply, adjoin_root.lift_of], exact hy }⟩⟩))
+        (set.singleton_subset_iff.mpr ⟨adjoin_root.root (minimal_polynomial h),
+        ⟨subfield.mem_top (adjoin_root.root (minimal_polynomial h)),
+        by { rw [ring_hom.comp_apply, adjoin_root.lift_root], refl }⟩⟩)) } end)
+
+lemma adjoin_root_equiv_adjoin_simple_of_root : adjoin_root_equiv_adjoin_simple F α
+  (adjoin_root.root (minimal_polynomial h)) = adjoin_simple.gen F α :=
+begin
+  refine adjoin_root.lift_root,
+  { exact minimal_polynomial h },
+  { exact @min_poly_eval_gen_eq_zero F  _ _ _ _ α h }
+end
+
+end adjoin_integral_element
 
 section induction
 

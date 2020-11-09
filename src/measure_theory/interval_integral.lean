@@ -1240,12 +1240,12 @@ begin
   have H : ∀ y ∈ Ico a b, ∥deriv_within (f - g) (Icc a b) y∥ ≤ 0,
   { intros y hy,
     have hf : differentiable_within_at ℝ f (Icc a b) y :=
-      by simpa only [differentiable_on] using fdiff y (Ico_subset_Icc_self hy),
+      by simpa only [differentiable_on] using fdiff y (mem_Icc_of_Ico hy),
     have hg : differentiable_within_at ℝ g (Icc a b) y :=
-      by simpa only [differentiable_on] using gdiff y (Ico_subset_Icc_self hy),
-    simpa only [derivf y hy, deriv_within.neg (hu _ _ (Ico_subset_Icc_self hy)) hg, derivg y hy,
-      add_zero, neg_zero, norm_le_zero_iff] using deriv_within_add (hu _ _ (Ico_subset_Icc_self hy))
-        hf (by simpa only [differentiable_on] using (gdiff y (Ico_subset_Icc_self hy)).neg) },
+      by simpa only [differentiable_on] using gdiff y (mem_Icc_of_Ico hy),
+    simpa only [derivf y hy, deriv_within.neg (hu _ _ (mem_Icc_of_Ico hy)) hg, derivg y hy,
+      add_zero, neg_zero, norm_le_zero_iff] using deriv_within_add (hu _ _ (mem_Icc_of_Ico hy)) hf
+        (by simpa only [differentiable_on] using (gdiff y (mem_Icc_of_Ico hy)).neg) },
   simpa only [zero_mul, sub_eq_zero.mpr hi, norm_le_zero_iff, sub_eq_zero] using
     λ y hy, norm_image_sub_le_of_norm_deriv_le_segment (fdiff.sub gdiff) H y hy,
 end
@@ -1256,7 +1256,7 @@ theorem has_deriv_within_at_right_integrable (hx : x ∈ Ico a b)
   ∫ y in a..x, f' y = f x - f a :=
 by rw [eq_of_right_deriv_eq derivf
         ((integral_has_deriv_within_at_right intgf' contf').const_add (f a))
-          contf sorry (by simp) x (Ico_subset_Icc_self hx), add_sub_cancel']
+          contf sorry (by simp) x (mem_Icc_of_Ico hx), add_sub_cancel']
 -- Missing piece: `continuous_on (f a + ∫ x in a..u, f' x) (Icc a b)`
 
 

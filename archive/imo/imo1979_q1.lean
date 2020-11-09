@@ -166,25 +166,6 @@ begin
   { apply Ico.disjoint_consecutive }
 end
 
-lemma nat.zero_or_one_le (n : ℕ) : n = 0 ∨ 1 ≤ n :=
-begin
-  cases n,
-    left, refl,
-  right, exact le_add_left (le_refl 1),
-end
-
-lemma nat.le_mul_of_one_le_right {a : ℕ} (b : ℕ) : 1 ≤ a → b ≤ b * a :=
-le_mul_of_one_le_right (nat.zero_le _)
-
---set_option trace.linarith true
-lemma nat.not_dvd_of_pos_of_lt {a b : ℕ} (h1 : 0 < b) (h2 : b < a) : ¬ a ∣ b :=
-begin
-  rintros ⟨c, rfl⟩,
-  rcases nat.zero_or_one_le c with (rfl | hc),
-  { exact lt_irrefl 0 h1 },
-  { exact not_lt.2 (nat.le_mul_of_one_le_right _ hc) h2 },
-end
-
 lemma easy1 {n : ℕ} (hn : n < 330) : padic_val_rat 1979 (n + 660) = 0 :=
 begin
   rw (show (n : ℚ) + 660 = (n + 660 : ℕ), by norm_num),
@@ -250,7 +231,7 @@ begin
   intro h,
   unfold e f at h,
   rw ← sum_add_distrib at h,
-  rcases nat.zero_or_one_le p with (rfl | hp),
+  rcases nat.eq_zero_or_pos p with (rfl | hp),
     simp,
   suffices : 0 < padic_val_rat 1979 p,
   { rw ← padic_val_rat_of_nat at this,
@@ -262,7 +243,7 @@ begin
     have hp3 : p = 0,
     assumption_mod_cast,
     subst hp3,
-    exact lt_irrefl 0 (lt_of_lt_of_le zero_lt_one hp) },
+    exact lt_irrefl 0 hp },
   have hq' : (q : ℚ) ≠ 0,
   { intro hq2,
     have hq3 : q = 0,

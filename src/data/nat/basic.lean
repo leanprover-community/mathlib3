@@ -882,6 +882,14 @@ nat.dvd_add_right (dvd_refl m)
   m ∣ n + m ↔ m ∣ n :=
 nat.dvd_add_left (dvd_refl m)
 
+lemma not_dvd_of_pos_of_lt {a b : ℕ} (h1 : 0 < b) (h2 : b < a) : ¬ a ∣ b :=
+begin
+  rintros ⟨c, rfl⟩,
+  rcases eq_zero_or_pos c with (rfl | hc),
+  { exact lt_irrefl 0 h1 },
+  { exact not_lt.2 (le_mul_of_pos_right hc) h2 },
+end
+
 protected theorem mul_dvd_mul_iff_left {a b c : ℕ} (ha : 0 < a) : a * b ∣ a * c ↔ b ∣ c :=
 exists_congr $ λ d, by rw [mul_assoc, nat.mul_right_inj ha]
 

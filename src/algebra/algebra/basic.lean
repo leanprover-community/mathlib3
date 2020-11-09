@@ -825,12 +825,12 @@ one_map f.map_zero f.map_one
 one_map f.map_zero f.map_one
 
 /-- A version of `matrix.zero_map` where `f` is an `alg_hom`. -/
-@[simp] lemma alg_hom_map_zero [decidable_eq n]
+@[simp] lemma alg_hom_map_zero
   (f : A₁ →ₐ[R] A₂) : (0 : matrix n n A₁).map f = 0 :=
 map_zero f.map_zero
 
 /-- A version of `matrix.zero_map` where `f` is an `alg_equiv`. -/
-@[simp] lemma alg_equiv_map_zero [decidable_eq n]
+@[simp] lemma alg_equiv_map_zero
   (f : A₁ ≃ₐ[R] A₂) : (0 : matrix n n A₁).map f = 0 :=
 map_zero f.map_zero
 

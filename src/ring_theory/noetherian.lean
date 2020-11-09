@@ -7,6 +7,7 @@ import ring_theory.ideal.operations
 import linear_algebra.linear_independent
 import order.order_iso_nat
 import algebraic_geometry.prime_spectrum
+import data.multiset.finset_ops
 
 /-!
 # Noetherian rings and modules
@@ -512,7 +513,9 @@ end submodule
 
 namespace primes
 
-variables {R : Type*} [comm_ring R] [is_noetherian_ring R]
+variables {R : Type*} [comm_ring R] [is_noetherian_ring R] [decidable_eq (prime_spectrum R)]
+
+-- variables {α : Type*} [decidable_eq α]
 
 /-In a noetherian ring, every ideal contains a product of prime ideals
 ([Samuel, § 3.3, Lemma 3])-/
@@ -529,21 +532,19 @@ begin
     rw not_forall_not at hP,
     cases hP with Z hZ,
     use Z, exact hZ },
-  { have hM : ∃ (M : ideal R) (H: M ∈ Ω), ∀ (J : ideal R), J ∈ Ω → M ≤ J → J = M,
-    apply (set_has_maximal_iff_noetherian).mpr _inst_2 Ω, sorry,
-    rcases hM with ⟨M, ⟨h_PM,h_maxM⟩⟩,
+  { obtain ⟨M, ⟨h_PM,h_maxM⟩⟩ : ∃ (M : ideal R) (H: M ∈ Ω), ∀ (J : ideal R), J ∈ Ω → M ≤ J → J = M,
+    apply (set_has_maximal_iff_noetherian).mpr _inst_2 Ω, apply nonempty_empty,l-- hΩ,
     have h_prM : ¬ prime M, sorry,
     obtain ⟨x, y, hx, hy, h_xy⟩ : ∃ (x y : R), x ∉ M ∧ y ∉ M ∧ x * y ∈ M, sorry,
-    --  have h_xy : ∃ (x y : R), x ∉ M ∧ y ∉ M ∧ x * y ∈ M, sorry,
-    --  cases h_xy with x h2,
-    --  cases  h2 with y h3,
     let Jx := M + span R {x},
     let Jy := M + span R {y},
     have hJ_xy : Jx ∉ Ω ∧ Jy ∉ Ω, sorry,
-    have h_primeJx : prime Jx, sorry,
-    have h_primeJy : prime Jy, sorry,
-
-   sorry, }
+    obtain ⟨Wx, h_Wx⟩ : ∃ (Wx : finset (prime_spectrum R)), ∏ p in Wx, (p.val) ≤ Jx, sorry,
+    obtain ⟨Wy, h_Wy⟩ : ∃ (Wy : finset (prime_spectrum R)), ∏ p in Wy, (p.val) ≤ Jy, sorry,
+    let W := Wx ∪ Wy,
+    by_contradiction,
+    have h_abs : ∏ p in W, (p.val) ≤ I, sorry,
+    finish },
 end
 
 lemma prime_product_domain (hR : is_integral_domain R) (I : ideal R) : ∃ (A : finset (prime_spectrum R)),

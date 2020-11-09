@@ -1301,6 +1301,7 @@ instance totally_separated_space.totally_disconnected_space (α : Type u) [topol
 ⟨is_totally_disconnected_of_is_totally_separated $
   totally_separated_space.is_totally_separated_univ α⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance totally_separated_space.of_discrete
   (α : Type*) [topological_space α] [discrete_topology α] : totally_separated_space α :=
 ⟨λ a _ b _ h, ⟨{b}ᶜ, {b}, is_open_discrete _, is_open_discrete _, by simpa⟩⟩

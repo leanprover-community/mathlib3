@@ -1,8 +1,41 @@
+/-
+Copyright (c) 2020 Kevin Buzzard. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kevin Buzzard
+-/
+
 import tactic
 import algebra.big_operators.ring
 import data.nat.parity
 import data.finset.intervals
 import data.padics.padic_norm
+
+/-!
+# IMO 1979 Q1
+
+Let `p` and `q` be positive integers such that
+
+`p/q=1-1/2+1/3-1/4+...-1/1318+1/1319`
+
+Prove that `p` is a multiple of 1979.
+
+## The solution
+
+The proof we formalise is the following. Rewrite the sum as
+`1+1/2+1/3+...+1/1319 - 2*(1/2+1/4+1/6+...+1/1318)=1/660+1/661+...+1/1319
+and now re-arranging as (1/660+1/1319)+(1/661+1/1318)+... we see that
+the numerator of each fraction is 1979 and the denominator is coprime to 1979
+(note that 1979 is prime). Hence the 1979-adic valuation of each fraction is positive,
+and thus the 1979-adic valuation of the sum is also positive.
+
+## Remarks on the formalisation
+
+The p-adic valuation function on ℚ is ℤ-valued and hence has v(0)=0 (rather than +∞);
+we thus had to occasionally deal with funny edge cases which aren't there mathematically.
+In retrospect it might have been easier to work with p-adic norms, which are ℚ-valued
+and don't have this problem.
+-/
+
 
 open_locale big_operators
 
@@ -25,6 +58,8 @@ namespace imo1979q1
 @[reducible] def f : ℚ := ∑ n in range 330, 1 / (1319 - n)
 
 /-
+  The goal is equivalent to showing that the 1979-adic valuation of a is positive.
+
   We start with some lemmas:
 
   Lemma 1 : b - a = c

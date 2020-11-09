@@ -224,7 +224,7 @@ begin
   simp,
 end
 
-lemma one_coe : ((1 : fractional_ideal (fraction_ring.of A)) : submodule A (localization_map.codomain (fraction_ring.of A))) = (1 : submodule A (localization_map.codomain (fraction_ring.of A))) :=
+lemma one_coe : ((1 : fractional_ideal (fraction_ring.of A)) : submodule A (localization_map.codomain (fraction_ring.of A))) = submodule.span A {1} :=
 begin
   sorry,
 end
@@ -322,23 +322,20 @@ begin
       rwa mul_one (submodule.span A T) at f3,
     },
     rw submodule.one_eq_span,
-    apply submodule.span_mono,
-    transitivity ((q' * q) : set (localization_map.codomain (fraction_ring.of A))),
-    {
-      suffices f2 : {x} ⊆ (q : set (localization_map.codomain (fraction_ring.of A))),
-      apply set.mul_subset_mul hT' f2,
-      simp,
-      assumption,
-    },
-    clear h2 h p,
-    change ↑(q' * q) ⊆ {1},
-
-    rw <-submodule.span_eq q,
-    rw <-submodule.span_eq q',
-    rw submodule.span_mul_span A,
-    apply submodule.span_mono,
-    --rw [hq, hq', mul_comm, val_eq_coe, val_eq_coe, <-coe_mul, hf],
-    --sorry,
+    have f2 : {x} ⊆ (q : set (localization_map.codomain (fraction_ring.of A))),
+    simp,
+    assumption,
+    have f3 := submodule.span_mono f2,
+    rw submodule.span_eq at f3,
+    have h1T' := submodule.span_mono hT',
+    rw submodule.span_eq at h1T',
+    have f' := submodule.mul_le_mul h1T' f3,
+    rw submodule.span_mul_span at f',
+    rw [hq, hq', val_eq_coe, val_eq_coe, <-coe_mul] at f',
+    rw mul_comm at hf,
+    rw hf at f',
+    convert f',
+    rw one_coe A,
   },
   apply submodule.mem_span_mul_finite_of_mem_span_mul,
   --(localization_map.codomain (fraction_ring.of A)) (q : set (localization_map.codomain (fraction_ring.of A))) (q' : set (localization_map.codomain (fraction_ring.of A))) 1 _,

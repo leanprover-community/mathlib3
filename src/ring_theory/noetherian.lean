@@ -529,18 +529,18 @@ begin
     rw not_forall_not at hP,
     cases hP with Z hZ,
     use Z, exact hZ },
-  {have hM : ∃ (M : ideal R) (H: M ∈ Ω), ∀ (J : ideal R), J ∈ Ω → M ≤ J → J = M,
+  { have hM : ∃ (M : ideal R) (H: M ∈ Ω), ∀ (J : ideal R), J ∈ Ω → M ≤ J → J = M,
     apply (set_has_maximal_iff_noetherian).mpr _inst_2 Ω, sorry,
-   rcases hM with ⟨M, ⟨h_PM,h_maxM⟩⟩,
-   have h_prM : ¬ prime M, sorry,
-   obtain ⟨x, y, hx, hy, h_xy⟩ : ∃ (x y : R), x ∉ M ∧ y ∉ M ∧ x * y ∈ M, sorry,
-  --  have h_xy : ∃ (x y : R), x ∉ M ∧ y ∉ M ∧ x * y ∈ M, sorry,
-  --  cases h_xy with x h2,
-  --  cases  h2 with y h3,
-   let Jx := M + span R {x},
-   let Jy := M + span R {y},
-   have hJ_xy : Jx ∉ Ω ∧ Jy ∉ Ω, sorry,
-
+    rcases hM with ⟨M, ⟨h_PM,h_maxM⟩⟩,
+    have h_prM : ¬ prime M, sorry,
+    obtain ⟨x, y, hx, hy, h_xy⟩ : ∃ (x y : R), x ∉ M ∧ y ∉ M ∧ x * y ∈ M, sorry,
+    --  have h_xy : ∃ (x y : R), x ∉ M ∧ y ∉ M ∧ x * y ∈ M, sorry,
+    --  cases h_xy with x h2,
+    --  cases  h2 with y h3,
+    let Jx := M + span R {x},
+    let Jy := M + span R {y},
+    have hJ_xy : Jx ∉ Ω ∧ Jy ∉ Ω, sorry,
+    have h_primesJx :
 
    sorry, }
 end

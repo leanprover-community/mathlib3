@@ -267,7 +267,7 @@ begin
 end
 
 /-- For subsets of ℕ, we can show that colex is equivalent to binary. -/
-lemma lt_iff_sum_pow_two_lt (A B : finset ℕ) : A.sum (pow 2) < B.sum (pow 2) ↔ A <ᶜ B :=
+lemma sum_pow_two_lt_iff_lt (A B : finset ℕ) : A.sum (pow 2) < B.sum (pow 2) ↔ A <ᶜ B :=
 begin
   have z : ∀ (A B : finset ℕ), A <ᶜ B → A.sum (pow 2) < B.sum (pow 2),
   { intros A B,

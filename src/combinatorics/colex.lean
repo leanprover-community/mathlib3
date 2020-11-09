@@ -152,6 +152,7 @@ lemma le_trans [linear_order α] (a b c : finset.colex α) :
 λ AB BC, AB.elim (λ k, BC.elim (λ t, or.inl (lt_trans k t)) (λ t, t ▸ AB)) (λ k, k.symm ▸ BC)
 
 instance [linear_order α] : is_trans (finset.colex α) (<) := ⟨λ _ _ _, colex.lt_trans⟩
+
 instance [linear_order α] : is_asymm (finset.colex α) (<) := by apply_instance
 
 instance [linear_order α] : is_strict_order (finset.colex α) (<) := {}

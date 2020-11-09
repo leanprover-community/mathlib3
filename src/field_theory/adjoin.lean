@@ -346,11 +346,10 @@ end adjoin_subalgebra_lattice
 
 section adjoin_integral_element
 
-variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (α : E)
-variables [h : fact (is_integral F α)]
+variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] {α : E}
 variables {K : Type*} [field K] [algebra F K]
 
-lemma min_poly_eval_gen_eq_zero :
+lemma min_poly_eval_gen_eq_zero (h : is_integral F α) :
   (minimal_polynomial h).eval₂ (algebra_map F F⟮α⟯) (adjoin_simple.gen F α) = 0 :=
 begin
   have comp : algebra_map F E = (algebra_map F⟮α⟯ E).comp (algebra_map F F⟮α⟯) := by { ext, refl },
@@ -363,12 +362,13 @@ begin
 end
 
 /-- algebra isomorphism between `adjoin_root` and `F⟮α⟯` -/
-noncomputable def adjoin_root_equiv_adjoin_simple : adjoin_root (minimal_polynomial h) ≃ₐ[F] F⟮α⟯ :=
+noncomputable def adjoin_root_equiv_adjoin (h : is_integral F α) :
+  adjoin_root (minimal_polynomial h) ≃ₐ[F] F⟮α⟯ :=
 alg_equiv.of_bijective (alg_hom.mk (adjoin_root.lift (algebra_map F F⟮α⟯)
   (adjoin_simple.gen F α) (@min_poly_eval_gen_eq_zero F  _ _ _ _ α h)) (ring_hom.map_one _)
   (λ x y, ring_hom.map_mul _ x y) (ring_hom.map_zero _) (λ x y, ring_hom.map_add _ x y)
   (by { exact λ _, adjoin_root.lift_of })) (begin
-    set f := adjoin_root.lift _ _ (min_poly_eval_gen_eq_zero F α),
+    set f := adjoin_root.lift _ _ (min_poly_eval_gen_eq_zero F h),
     haveI := minimal_polynomial.irreducible h,
     split,
     { exact ring_hom.injective f },
@@ -380,12 +380,12 @@ alg_equiv.of_bijective (alg_hom.mk (adjoin_root.lift (algebra_map F F⟮α⟯)
         ⟨subfield.mem_top (adjoin_root.root (minimal_polynomial h)),
         by { rw [ring_hom.comp_apply, adjoin_root.lift_root], refl }⟩⟩)) } end)
 
-lemma adjoin_root_equiv_adjoin_simple_of_root : adjoin_root_equiv_adjoin_simple F α
+lemma adjoin_root_equiv_adjoin_of_root (h : is_integral F α) : adjoin_root_equiv_adjoin F h
   (adjoin_root.root (minimal_polynomial h)) = adjoin_simple.gen F α :=
 begin
   refine adjoin_root.lift_root,
   { exact minimal_polynomial h },
-  { exact @min_poly_eval_gen_eq_zero F  _ _ _ _ α h }
+  { exact min_poly_eval_gen_eq_zero F h }
 end
 
 end adjoin_integral_element

@@ -152,6 +152,7 @@ lemma le_trans [linear_order α] (a b c : finset.colex α) :
 λ AB BC, AB.elim (λ k, BC.elim (λ t, or.inl (lt_trans k t)) (λ t, t ▸ AB)) (λ k, k.symm ▸ BC)
 
 instance [linear_order α] : is_trans (finset.colex α) (<) := ⟨λ _ _ _, colex.lt_trans⟩
+
 instance [linear_order α] : is_asymm (finset.colex α) (<) := by apply_instance
 
 instance [linear_order α] : is_strict_order (finset.colex α) (<) := {}
@@ -203,13 +204,14 @@ instance [linear_order α] : is_incomp_trans (finset.colex α) (<) :=
 begin
   constructor,
   rintros A B C ⟨nAB, nBA⟩ ⟨nBC, nCB⟩,
-  have: A = B := ((lt_trichotomy A B).resolve_left nAB).resolve_right nBA,
-  have: B = C := ((lt_trichotomy B C).resolve_left nBC).resolve_right nCB,
+  have : A = B := ((lt_trichotomy A B).resolve_left nAB).resolve_right nBA,
+  have : B = C := ((lt_trichotomy B C).resolve_left nBC).resolve_right nCB,
   rw [‹A = B›, ‹B = C›, and_self],
   apply irrefl
 end
 
 instance [linear_order α] : is_strict_weak_order (finset.colex α) (<) := {}
+
 instance [linear_order α] : is_strict_total_order (finset.colex α) (<) := {}
 
 /-- Colex is an extension of the base ordering on α. -/
@@ -230,7 +232,7 @@ end
 /--
 If A is before B in colex, and everything in B is small, then everything in A is small.
 -/
-lemma max_colex [linear_order α] {A B : finset α} (t : α) (h₁ : A <ᶜ B) (h₂ : ∀ x ∈ B, x < t) :
+lemma forall_lt_of_colex_lt_of_forall_lt [linear_order α] {A B : finset α} (t : α) (h₁ : A <ᶜ B) (h₂ : ∀ x ∈ B, x < t) :
   ∀ x ∈ A, x < t :=
 begin
   rw colex.lt_def at h₁,

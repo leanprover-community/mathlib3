@@ -204,8 +204,8 @@ instance [linear_order α] : is_incomp_trans (finset.colex α) (<) :=
 begin
   constructor,
   rintros A B C ⟨nAB, nBA⟩ ⟨nBC, nCB⟩,
-  have: A = B := ((lt_trichotomy A B).resolve_left nAB).resolve_right nBA,
-  have: B = C := ((lt_trichotomy B C).resolve_left nBC).resolve_right nCB,
+  have : A = B := ((lt_trichotomy A B).resolve_left nAB).resolve_right nBA,
+  have : B = C := ((lt_trichotomy B C).resolve_left nBC).resolve_right nCB,
   rw [‹A = B›, ‹B = C›, and_self],
   apply irrefl
 end

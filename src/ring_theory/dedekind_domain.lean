@@ -252,47 +252,26 @@ begin
   assumption,
 end
 
-lemma noeth : is_dedekind_domain_inv A -> is_noetherian_ring A :=
+lemma noeth_two (s : submodule A A) (h2 : (s : fractional_ideal (fraction_ring.of A)) * (s : fractional_ideal (fraction_ring.of A))⁻¹ = 1)
+  (q : submodule A (localization_map.codomain (fraction_ring.of A))) ( hq : q = (s : fractional_ideal (fraction_ring.of A)).val)
+      (q' : submodule A (localization_map.codomain (fraction_ring.of A))) (hq' : q' = (s : fractional_ideal (fraction_ring.of A))⁻¹.val) :
+     (∃ (T T' : set (localization_map.codomain (fraction_ring.of A))),
+        T ⊆ ↑q ∧
+          T.finite ∧
+            T' ⊆ ↑q' ∧ T'.finite ∧ (1 : localization_map.codomain (fraction_ring.of A)) ∈ submodule.span A (T * T')) →
+     s.fg :=
 begin
-  rintros ⟨h1, h2⟩,
-  split,
-  rintros s,
-  specialize h2 s,
-  by_cases s = ⊥,
-  {
-    rw h,
-    apply submodule.fg_bot,
-  },
-  let p : ideal A := s,
-  change p ≠ ⊥ at h,
-  rw coe_ne_bot A at h,
-  have h' := h2 h,
-  have hf := h2 h,
-  rw ext' at h',
-  specialize h' 1,
-  have h'' := h'.2 one_mem_one,
-  set q : submodule A (localization_map.codomain (fraction_ring.of A)) :=
-    (s : fractional_ideal (fraction_ring.of A)).val with hq,
-  set q' : submodule A (localization_map.codomain (fraction_ring.of A)) :=
-    (s : fractional_ideal (fraction_ring.of A))⁻¹.val with hq',
-  rw [← mem_coe', coe_mul, ← val_eq_coe, ← val_eq_coe, <-submodule.span_eq (q * q')] at h'',
-  suffices f : ∃ (T : set (localization_map.codomain (fraction_ring.of A)))
-    (T' : set (localization_map.codomain (fraction_ring.of A))),
-    T ⊆ q ∧ T.finite ∧ T' ⊆ q' ∧ T'.finite ∧
-      (1 : localization_map.codomain (fraction_ring.of A)) ∈ submodule.span A (T * T'),
-  {
-    rcases f with ⟨T, T', hT, h1, hT', h2, h3⟩,
+  rintros ⟨T, T', hT, h1, hT', h2, h3⟩,
     have g := fraction_map.injective (fraction_ring.of A),
     apply submodule.fg_of_fg_map _,
     rw linear_map.ker_eq_bot,
     swap 6,
     refine localization_map.lin_coe (fraction_ring.of A),
     exact g,
-   -- change q.fg,
     split,
     swap,
     use set.finite.to_finset h1,
-    simp,
+    simp only [set.finite.coe_to_finset],
     ext,
     split,
     {
@@ -300,7 +279,8 @@ begin
       swap,
       exact A,
       rw submodule.span_eq at f'',
-      apply iff.rfl.1 f'',
+      --apply iff.rfl.1 f'',
+      sorry,
     },
     rintros f,
     have g'' := submodule.mem_span_singleton_self x,
@@ -323,8 +303,9 @@ begin
     },
     rw submodule.one_eq_span,
     have f2 : {x} ⊆ (q : set (localization_map.codomain (fraction_ring.of A))),
-    simp,
-    assumption,
+    simp only [submodule.mem_coe, set.singleton_subset_iff],
+    --assumption,
+    sorry,
     have f3 := submodule.span_mono f2,
     rw submodule.span_eq at f3,
     have h1T' := submodule.span_mono hT',
@@ -332,14 +313,49 @@ begin
     have f' := submodule.mul_le_mul h1T' f3,
     rw submodule.span_mul_span at f',
     rw [hq, hq', val_eq_coe, val_eq_coe, <-coe_mul] at f',
-    rw mul_comm at hf,
+    suffices hf : (s : fractional_ideal (fraction_ring.of A))⁻¹ * (s : fractional_ideal (fraction_ring.of A)) = 1,
     rw hf at f',
     convert f',
     rw one_coe A,
-  },
-  apply submodule.mem_span_mul_finite_of_mem_span_mul,
-  --(localization_map.codomain (fraction_ring.of A)) (q : set (localization_map.codomain (fraction_ring.of A))) (q' : set (localization_map.codomain (fraction_ring.of A))) 1 _,
-  sorry,
+    rw mul_comm _ _,
+    assumption,
+end
+
+lemma coe_neq_bot (s : submodule A A) (h : s ≠ ⊥) : (s : fractional_ideal (fraction_ring.of A)) ≠ ⊥ :=
+begin
+  let p : ideal A := s,
+  change p ≠ ⊥ at h,
+  rw coe_ne_bot A at h,
+  exact h,
+end
+
+lemma noeth : is_dedekind_domain_inv A -> is_noetherian_ring A :=
+begin
+  rintros ⟨h1, h2⟩,
+  split,
+  rintros s,
+  specialize h2 s,
+  by_cases s = ⊥,
+  {
+    rw h,
+    apply submodule.fg_bot, },
+  have h := coe_neq_bot A s h,
+  have h' := h2 h,
+  have hf := h2 h,
+  rw ext' at h',
+  specialize h' 1,
+  have h'' := h'.2 one_mem_one,
+  set q : submodule A (localization_map.codomain (fraction_ring.of A)) :=
+    (s : fractional_ideal (fraction_ring.of A)).val with hq,
+  set q' : submodule A (localization_map.codomain (fraction_ring.of A)) :=
+    (s : fractional_ideal (fraction_ring.of A))⁻¹.val with hq',
+  rw [← mem_coe', coe_mul, ← val_eq_coe, ← val_eq_coe, <-submodule.span_eq (q * q')] at h'',
+  apply noeth_two A s hf,
+  exact hq,
+  exact hq',
+  simp at h'',
+  rw [<-submodule.span_eq q, <-submodule.span_eq q'] at h'',
+  --use submodule.mem_span_mul_finite_of_mem_span_mul A _ _ _ 1 h'',
 end
 
 #exit

@@ -34,21 +34,20 @@ include hp
 variable (p)
 
 /-- `witt_mul_n p n` is the family of polynomials that computes
-the coefficients of `x * n` in terms of
-the coefficients of the Witt vector `x`. -/
+the coefficients of `x * n` in terms of the coefficients of the Witt vector `x`. -/
 noncomputable
 def witt_mul_n : ℕ → ℕ → mv_polynomial ℕ ℤ
-| 0     := λ k, 0
+| 0     := 0
 | (n+1) := λ k, bind₁ (function.uncurry $ ![(witt_mul_n n), X]) (witt_add p k)
 
 variable {p}
 
 lemma mul_n_coeff (n : ℕ) (x : 𝕎 R) (k : ℕ) :
-  (x * n).coeff k = aeval (λ i, x.coeff i) (witt_mul_n p n k) :=
+  (x * n).coeff k = aeval x.coeff (witt_mul_n p n k) :=
 begin
   induction n with n ih generalizing k,
   { simp only [nat.nat_zero_eq_zero, nat.cast_zero, mul_zero,
-      zero_coeff, witt_mul_n, alg_hom.map_zero], },
+      zero_coeff, witt_mul_n, alg_hom.map_zero, pi.zero_apply], },
   { rw [witt_mul_n, nat.succ_eq_add_one, nat.cast_add, nat.cast_one, mul_add, mul_one,
       aeval_bind₁, add_coeff],
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
@@ -68,9 +67,7 @@ variables (p)
   bind₁ (witt_mul_n p n) (witt_polynomial p ℤ k) = n * witt_polynomial p ℤ k :=
 begin
   induction n with n ih,
-  { -- we need `bind₁_zero_left` which is defeq to `aeval_zero`
-    simp only [witt_mul_n, bind₁, aeval_zero', int.cast_zero, ring_hom.eq_int_cast, nat.cast_zero,
-      zero_mul, constant_coeff_witt_polynomial], },
+  { simp only [witt_mul_n, nat.cast_zero, zero_mul, bind₁_zero_witt_polynomial] },
   { rw [witt_mul_n, ← bind₁_bind₁, witt_add, witt_structure_int_prop],
     simp only [alg_hom.map_add, nat.cast_succ, bind₁_X_right],
     rw [add_mul, one_mul, bind₁_rename, bind₁_rename],

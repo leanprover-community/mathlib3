@@ -166,6 +166,15 @@ def left_rel [group α] (s : subgroup α) : setoid α :=
   If `s` is a normal subgroup, `quotient s` is a group -/
 def quotient [group α] (s : subgroup α) : Type* := quotient (left_rel s)
 
+section
+
+open_locale classical
+
+noncomputable instance [group α] [fintype α] (s : subgroup α) : fintype (quotient_group.quotient s) :=
+quotient.fintype _
+
+end
+
 end quotient_group
 
 namespace quotient_add_group

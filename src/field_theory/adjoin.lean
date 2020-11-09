@@ -433,16 +433,18 @@ begin
   exact swap1.trans swap2,
 end
 
-noncomputable instance (h : is_integral F α) : fintype (F⟮α⟯ →ₐ[F] K) :=
-  fintype.of_equiv _ (alg_hom_adjoin_integral_equiv F h).symm
+noncomputable lemma fintype_of_alg_hom_adjoin_integral (h : is_integral F α) :
+  fintype (F⟮α⟯ →ₐ[F] K) :=
+fintype.of_equiv _ (alg_hom_adjoin_integral_equiv F h).symm
 
 lemma alg_hom_adjoin_integral (h : is_integral F α) (h_sep : (minimal_polynomial h).separable)
   (h_splits : (minimal_polynomial h).splits (algebra_map F K)) :
-  fintype.card (F⟮α⟯ →ₐ[F] K) = (minimal_polynomial h).nat_degree :=
+  @fintype.card (F⟮α⟯ →ₐ[F] K) (fintype_of_alg_hom_adjoin_integral F h) =
+  (minimal_polynomial h).nat_degree :=
 begin
   let s := ((minimal_polynomial h).map (algebra_map F K)).roots.to_finset,
   have H := λ x, multiset.mem_to_finset,
-  rw [fintype.card_congr (alg_hom_adjoin_integral_equiv F α), fintype.card_of_subtype s H,
+  rw [fintype.card_congr (alg_hom_adjoin_integral_equiv F h), fintype.card_of_subtype s H,
       polynomial.nat_degree_eq_card_roots h_splits, multiset.to_finset_card_of_nodup],
   exact polynomial.nodup_roots ((polynomial.separable_map (algebra_map F K)).mpr h_sep),
 end

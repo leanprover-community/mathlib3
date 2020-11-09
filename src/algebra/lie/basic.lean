@@ -41,7 +41,13 @@ lie bracket, ring commutator, jacobi identity, lie ring, lie algebra
 
 universes u v w w₁
 
-/-- A binary operation, intended use in Lie algebras and similar structures. -/
+/-- The has_bracket class has two intended uses:
+
+  1. for the product `⁅x, y⁆` of two elements `x`, `y` in a Lie algebra
+     (analogous to `has_mul` in the associative setting),
+
+  2. for the action `⁅x, m⁆` of an element `x` of a Lie algebra on an element `m` in one of its
+     modules (analogous to `has_scalar` in the associative setting). -/
 class has_bracket (L : Type v) (M : Type w) := (bracket : L → M → M)
 
 notation `⁅`x`,` y`⁆` := has_bracket.bracket x y

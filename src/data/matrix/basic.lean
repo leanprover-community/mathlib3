@@ -5,7 +5,9 @@ Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
 -/
 import algebra.big_operators.pi
 import algebra.module.pi
+import algebra.module.linear_map
 import algebra.big_operators.ring
+import data.equiv.ring
 import data.fintype.card
 
 /-!
@@ -365,19 +367,6 @@ one_map f.map_zero f.map_one
   (1 : matrix n n α).map f = 1 :=
 one_map f.map_zero f.map_one
 
-/-- A version of `one_map` where `f` is an `alg_hom`. -/
-@[simp] lemma alg_hom_map_one [decidable_eq n]
-  {β : Type w} [semiring β] [semimodule R α] [semimodule R β] (f : α →ₐ[R] β) :
-  (1 : matrix n n α).map f = 1 :=
-one_map f.map_zero f.map_one
-
-/-- A version of `one_map` where `f` is an `alg_equiv`. -/
-@[simp] lemma alg_equiv_map_one [decidable_eq n]
-  {β : Type w} [semiring β] [semimodule R α] [semimodule R β] (f : α ≃ₐ[R] β) :
-  (1 : matrix n n α).map f = 1 :=
-one_map f.map_zero f.map_one
-
-
 /-- A version of `map_zero` where `f` is a `zero_hom`. -/
 @[simp] lemma zero_hom_map_zero
   {β : Type w} [has_zero β] (f : zero_hom α β) :
@@ -397,13 +386,13 @@ map_zero f.map_zero
 map_zero f.map_zero
 
 /-- A version of `map_zero` where `f` is a `linear_map`. -/
-@[simp] lemma linear_map_map_zero
+@[simp] lemma linear_map_map_zero {R : Type*} [semiring R]
   {β : Type w} [add_comm_monoid β] [semimodule R α] [semimodule R β] (f : α →ₗ[R] β) :
   (0 : matrix n n α).map f = 0 :=
 map_zero f.map_zero
 
 /-- A version of `map_zero` where `f` is a `linear_equiv`. -/
-@[simp] lemma linear_equiv_map_zero
+@[simp] lemma linear_equiv_map_zero {R : Type*} [semiring R]
   {β : Type w} [add_comm_monoid β] [semimodule R α] [semimodule R β] (f : α ≃ₗ[R] β) :
   (0 : matrix n n α).map f = 0 :=
 map_zero f.map_zero
@@ -417,18 +406,6 @@ map_zero f.map_zero
 /-- A version of `map_zero` where `f` is a `ring_equiv`. -/
 @[simp] lemma ring_equiv_map_zero
   {β : Type w} [semiring β] (f : α ≃+* β) :
-  (0 : matrix n n α).map f = 0 :=
-map_zero f.map_zero
-
-/-- A version of `map_zero` where `f` is a `alg_hom`. -/
-@[simp] lemma alg_hom_map_zero
-  {β : Type w} [semiring β] [semimodule R α] [semimodule R β] (f : α →ₐ[R] β) :
-  (0 : matrix n n α).map f = 0 :=
-map_zero f.map_zero
-
-/-- A version of `map_zero` where `f` is a `alg_equiv`. -/
-@[simp] lemma alg_equiv_map_zero
-  {β : Type w} [semiring β] [semimodule R α] [semimodule R β] (f : α ≃ₐ[R] β) :
   (0 : matrix n n α).map f = 0 :=
 map_zero f.map_zero
 

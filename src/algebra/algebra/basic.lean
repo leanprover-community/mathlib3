@@ -800,6 +800,44 @@ end division_ring
 
 end alg_equiv
 
+namespace matrix
+
+/-! ### `matrix` section
+
+Specialize `matrix.one_map` and `matrix.zero_map` to `alg_hom` and `alg_equiv`.
+TODO: there should be a way to avoid restating these for each `foo_hom`.
+-/
+
+variables {R A₁ A₂ n : Type*} [fintype n]
+
+section semiring
+
+variables [comm_semiring R] [semiring A₁] [algebra R A₁] [semiring A₂] [algebra R A₂]
+
+/-- A version of `matrix.one_map` where `f` is an `alg_hom`. -/
+@[simp] lemma alg_hom_map_one [decidable_eq n]
+  (f : A₁ →ₐ[R] A₂) : (1 : matrix n n A₁).map f = 1 :=
+one_map f.map_zero f.map_one
+
+/-- A version of `matrix.one_map` where `f` is an `alg_equiv`. -/
+@[simp] lemma alg_equiv_map_one [decidable_eq n]
+  (f : A₁ ≃ₐ[R] A₂) : (1 : matrix n n A₁).map f = 1 :=
+one_map f.map_zero f.map_one
+
+/-- A version of `matrix.zero_map` where `f` is an `alg_hom`. -/
+@[simp] lemma alg_hom_map_zero [decidable_eq n]
+  (f : A₁ →ₐ[R] A₂) : (0 : matrix n n A₁).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `matrix.zero_map` where `f` is an `alg_equiv`. -/
+@[simp] lemma alg_equiv_map_zero [decidable_eq n]
+  (f : A₁ ≃ₐ[R] A₂) : (0 : matrix n n A₁).map f = 0 :=
+map_zero f.map_zero
+
+end semiring
+
+end matrix
+
 namespace algebra
 
 variables (R : Type u) (S : Type v) (A : Type w)

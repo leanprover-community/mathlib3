@@ -25,9 +25,9 @@ fixed size. If the size is 3, colex on ℕ starts
 ## Main statements
 * `colex_hom`: strictly monotone functions preserve colex
 * Colex order properties - linearity, decidability and so on.
-* `max_colex`: if A < B in colex, and everything in B is < t, then everything
-  in A is < t. This confirms the idea that an enumeration under colex will
-  exhaust all sets using elements < t before allowing t to be included.
+* `forall_lt_of_colex_lt_of_forall_lt`: if A < B in colex, and everything in B is < t,
+  then everything in A is < t. This confirms the idea that an enumeration under colex
+  will exhaust all sets using elements < t before allowing t to be included.
 * `binary_iff`: colex for α = ℕ is the same as binary
   (this also proves binary expansions are unique)
 

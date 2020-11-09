@@ -307,20 +307,18 @@ namespace intermediate_field
 lemma power_basis_is_basis {x : L} (hx : is_integral K x) :
   is_basis K (λ (i : fin (minimal_polynomial hx).nat_degree), (adjoin_simple.gen K x ^ (i : ℕ))) :=
 begin
-  let ϕ := (@adjoin_root_equiv_adjoin_simple K _ _ _ _ _ hx).to_linear_equiv,
+  let ϕ := (adjoin_root_equiv_adjoin K hx).to_linear_equiv,
   have key : ϕ (adjoin_root.root (minimal_polynomial hx)) = adjoin_simple.gen K x,
-  { haveI : fact (is_integral K x) := hx,
-    exact intermediate_field.adjoin_root_equiv_adjoin_simple_of_root K x },
+  { exact intermediate_field.adjoin_root_equiv_adjoin_of_root K hx },
   suffices : ϕ ∘ (λ (i : fin (minimal_polynomial hx).nat_degree),
     adjoin_root.root (minimal_polynomial hx) ^ (i.val)) =
       (λ (i : fin (minimal_polynomial hx).nat_degree),
         (adjoin_simple.gen K x) ^ ↑i),
-  { rw ←this, exact linear_equiv.is_basis
+  { rw ← this, exact linear_equiv.is_basis
     (adjoin_root.power_basis_is_basis (minimal_polynomial.ne_zero hx)) ϕ },
   ext y,
-  haveI : fact (is_integral K x) := hx,
   rw [function.comp_app, fin.val_eq_coe, alg_equiv.to_linear_equiv_apply, alg_equiv.map_pow],
-  rw intermediate_field.adjoin_root_equiv_adjoin_simple_of_root,
+  rw intermediate_field.adjoin_root_equiv_adjoin_of_root K hx,
 end
 
 /-- The power basis `1, x, ..., x ^ (d - 1)` for `K⟮x⟯`,

@@ -24,8 +24,6 @@ namespace witt_vector
 variables {p : ℕ} {R : Type*} [hp : fact p.prime] [comm_ring R]
 local notation `𝕎` := witt_vector p -- type as `\bbW`
 
-local attribute [semireducible] witt_vector
-
 open mv_polynomial
 noncomputable theory
 

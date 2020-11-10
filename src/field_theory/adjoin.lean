@@ -380,8 +380,9 @@ alg_equiv.of_bijective (alg_hom.mk (adjoin_root.lift (algebra_map F F⟮α⟯)
         ⟨subfield.mem_top (adjoin_root.root (minimal_polynomial h)),
         by { rw [ring_hom.comp_apply, adjoin_root.lift_root], refl }⟩⟩)) } end)
 
-lemma adjoin_root_equiv_adjoin_of_root (h : is_integral F α) : adjoin_root_equiv_adjoin F h
-  (adjoin_root.root (minimal_polynomial h)) = adjoin_simple.gen F α :=
+lemma adjoin_root_equiv_adjoin_apply_root (h : is_integral F α) :
+  adjoin_root_equiv_adjoin F h (adjoin_root.root (minimal_polynomial h)) =
+    adjoin_simple.gen F α :=
 begin
   refine adjoin_root.lift_root,
   { exact minimal_polynomial h },

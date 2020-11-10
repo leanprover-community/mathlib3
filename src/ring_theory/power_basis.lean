@@ -60,9 +60,11 @@ structure power_basis (R S : Type*) [comm_ring R] [ring S] [algebra R S] :=
 namespace power_basis
 
 /-- Cannot be an instance because `power_basis` cannot be a class. -/
-lemma finite_dimensional [algebra K S]
-  (pb : power_basis K S) : finite_dimensional K S :=
+lemma finite_dimensional [algebra K S] (pb : power_basis K S) : finite_dimensional K S :=
 finite_dimensional.of_fintype_basis pb.is_basis
+
+lemma findim [algebra K S] (pb : power_basis K S) : finite_dimensional.findim K S = pb.dim :=
+by rw [finite_dimensional.findim_eq_card_basis pb.is_basis, fintype.card_fin]
 
 /-- TODO: this mixes `polynomial` and `finsupp`, we should hide this behind a
 new function `polynomial.of_finsupp`. -/
@@ -251,8 +253,7 @@ begin
   set f' := f * C (f.leading_coeff⁻¹) with f'_def,
   have deg_f' : f'.nat_degree = f.nat_degree,
   { rw [nat_degree_mul hf, nat_degree_C, add_zero],
-    rw [ne.def, C_eq_zero, inv_eq_zero, leading_coeff_eq_zero],
-    exact hf },
+    { rwa [ne.def, C_eq_zero, inv_eq_zero, leading_coeff_eq_zero] } },
   have f'_monic : monic f' := monic_mul_leading_coeff_inv hf,
   have aeval_f' : aeval (root f) f' = 0,
   { rw [f'_def, alg_hom.map_mul, aeval_eq, mk_self, zero_mul] },
@@ -264,8 +265,8 @@ begin
     { ext,
       { simp only [ring_hom.comp_apply, mk_C, lift_of], refl },
       { simp only [ring_hom.comp_apply, mk_X, lift_root] } },
-    rw [degree_eq_nat_degree f'_monic.ne_zero, degree_eq_nat_degree q_monic.ne_zero],
-    rw [with_bot.coe_le_coe, deg_f'],
+    rw [degree_eq_nat_degree f'_monic.ne_zero, degree_eq_nat_degree q_monic.ne_zero,
+        with_bot.coe_le_coe, deg_f'],
     apply nat_degree_le_of_dvd,
     { rw [←ideal.mem_span_singleton, ←ideal.quotient.eq_zero_iff_mem],
       change mk f q = 0,
@@ -309,7 +310,7 @@ lemma power_basis_is_basis {x : L} (hx : is_integral K x) :
 begin
   let ϕ := (adjoin_root_equiv_adjoin K hx).to_linear_equiv,
   have key : ϕ (adjoin_root.root (minimal_polynomial hx)) = adjoin_simple.gen K x,
-  { exact intermediate_field.adjoin_root_equiv_adjoin_of_root K hx },
+  { exact intermediate_field.adjoin_root_equiv_adjoin_apply_root K hx },
   suffices : ϕ ∘ (λ (i : fin (minimal_polynomial hx).nat_degree),
     adjoin_root.root (minimal_polynomial hx) ^ (i.val)) =
       (λ (i : fin (minimal_polynomial hx).nat_degree),
@@ -318,7 +319,7 @@ begin
     (adjoin_root.power_basis_is_basis (minimal_polynomial.ne_zero hx)) ϕ },
   ext y,
   rw [function.comp_app, fin.val_eq_coe, alg_equiv.to_linear_equiv_apply, alg_equiv.map_pow],
-  rw intermediate_field.adjoin_root_equiv_adjoin_of_root K hx,
+  rw intermediate_field.adjoin_root_equiv_adjoin_apply_root K hx,
 end
 
 /-- The power basis `1, x, ..., x ^ (d - 1)` for `K⟮x⟯`,
@@ -330,12 +331,12 @@ noncomputable def adjoin.power_basis {x : L} (hx : is_integral K x) :
   is_basis := power_basis_is_basis hx }
 
 lemma adjoin.finite_dimensional {x : L} (hx : is_integral K x) : finite_dimensional K K⟮x⟯ :=
-finite_dimensional.of_fintype_basis (adjoin.power_basis hx).is_basis
+power_basis.finite_dimensional (adjoin.power_basis hx)
 
 lemma adjoin.findim {x : L} (hx : is_integral K x) :
   finite_dimensional.findim K K⟮x⟯ = (minimal_polynomial hx).nat_degree :=
 begin
-  rw [finite_dimensional.findim_eq_card_basis (adjoin.power_basis hx).is_basis, fintype.card_fin],
+  rw power_basis.findim (adjoin.power_basis hx),
   refl,
 end
 

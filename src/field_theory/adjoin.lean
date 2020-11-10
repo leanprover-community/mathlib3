@@ -349,16 +349,13 @@ section adjoin_integral_element
 variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] {α : E}
 variables {K : Type*} [field K] [algebra F K]
 
-lemma min_poly_eval_gen_eq_zero (h : is_integral F α) :
-  (minimal_polynomial h).eval₂ (algebra_map F F⟮α⟯) (adjoin_simple.gen F α) = 0 :=
+lemma aeval_gen_minimal_polynomial (h : is_integral F α) :
+  polynomial.aeval (adjoin_simple.gen F α) (minimal_polynomial h)  = 0 :=
 begin
-  have comp : algebra_map F E = (algebra_map F⟮α⟯ E).comp (algebra_map F F⟮α⟯) := by { ext, refl },
-  have hom_eval := polynomial.hom_eval₂ (minimal_polynomial h)
-    (algebra_map F F⟮α⟯) (algebra_map F⟮α⟯ E) (adjoin_simple.gen F α),
-  rw [←comp, adjoin_simple.algebra_map_gen, ←polynomial.aeval_def, ←polynomial.aeval_def,
-    minimal_polynomial.aeval h] at hom_eval,
   ext,
-  exact hom_eval,
+  convert minimal_polynomial.aeval h,
+  conv in (polynomial.aeval α) { rw [← adjoin_simple.algebra_map_gen F α] },
+  exact is_scalar_tower.algebra_map_aeval F F⟮α⟯ E _ _
 end
 
 /-- algebra isomorphism between `adjoin_root` and `F⟮α⟯` -/

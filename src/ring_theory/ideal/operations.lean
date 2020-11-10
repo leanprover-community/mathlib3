@@ -433,6 +433,9 @@ have is_prime m, from ⟨by rintro rfl; rw radical_top at hrm; exact hrm trivial
     refine m.add_mem (m.mul_mem_right hpm) (m.add_mem (m.mul_mem_left hfm) (m.mul_mem_left hxym))⟩⟩,
 hrm $ this.radical.symm ▸ (Inf_le ⟨him, this⟩ : Inf {J : ideal R | I ≤ J ∧ is_prime J} ≤ m) hr
 
+lemma radical_bot_of_integral_domain {R : Type u} [integral_domain R] : radical (⊥ : ideal R) = ⊥ :=
+eq_bot_iff.2 (λ x hx, hx.rec_on (λ n hn, pow_eq_zero hn))
+
 instance : comm_semiring (ideal R) := submodule.comm_semiring
 
 @[simp] lemma add_eq_sup : I + J = I ⊔ J := rfl
@@ -922,13 +925,46 @@ begin
     refine ⟨hJ' ▸ map_mono hJ.left, hJ' ▸ map_is_prime_of_surjective hf (le_trans h hJ.left)⟩ },
 end
 
+lemma is_maximal_iff_bot_quotient_is_maximal (I : ideal R) :
+  I.is_maximal ↔ (⊥ : ideal I.quotient).is_maximal :=
+⟨λ hI, @bot_is_maximal _ (@quotient.field _ _ I hI), λ hI, (@mk_ker _ _ I) ▸
+  @comap_is_maximal_of_surjective _ _ _ _ (quotient.mk I) ⊥ quotient.mk_surjective hI⟩
+
 section quotient_algebra
 
-/-- The ring hom `R/f⁻¹(I) →+* S/I` induced by a ring hom `f : R →+* S` -/
+/-- The ring hom `R/J →+* S/I` induced by a ring hom `f : R →+* S` with `J ≤ f⁻¹(I)` -/
 def quotient_map {I : ideal R} (J : ideal S) (f : R →+* S) (hIJ : I ≤ J.comap f) :
   I.quotient →+* J.quotient :=
 (quotient.lift I ((quotient.mk J).comp f) (λ _ ha,
   by simpa [function.comp_app, ring_hom.coe_comp, quotient.eq_zero_iff_mem] using hIJ ha))
+
+@[simp]
+lemma quotient_map_mk {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.comap f}
+  {x : R} : (quotient_map I f H) (quotient.mk J x) = (quotient.mk I) (f x) :=
+quotient.lift_mk J _ _
+
+/-- If we take `J = I.comap f` then `quotient_map` is injective -/
+lemma quotient_map_injective {I : ideal S} {f : R →+* S} :
+  function.injective (quotient_map I f le_rfl) :=
+begin
+  refine (quotient_map I f le_rfl).injective_iff.2 (λ a ha, _),
+  obtain ⟨r, rfl⟩ := quotient.mk_surjective a,
+  rw quotient_map_mk at ha,
+  rwa quotient.eq_zero_iff_mem at ha ⊢
+end
+
+/-- Commutativity of a square is preserved when taking quotients by an ideal -/
+lemma comp_quotient_map_eq_of_comp_eq {R' S' : Type*} [comm_ring R'] [comm_ring S']
+  {f : R →+* S} {f' : R' →+* S'} {g : R →+* R'} {g' : S →+* S'} (hfg : f'.comp g = g'.comp f)
+  (I : ideal S') : (quotient_map I g' le_rfl).comp (quotient_map (I.comap g') f le_rfl) =
+    (quotient_map I f' le_rfl).comp (quotient_map (I.comap f') g
+      (le_of_eq (trans (comap_comap f g') (hfg ▸ (comap_comap g f'))))) :=
+begin
+  refine ring_hom.ext (λ a, _),
+  obtain ⟨r, rfl⟩ := quotient.mk_surjective a,
+  simp only [ring_hom.comp_apply, quotient_map_mk],
+  exact congr_arg (quotient.mk I) (trans (g'.comp_apply f r).symm (hfg ▸ (f'.comp_apply g r))),
+end
 
 variables {I : ideal R} {J: ideal S} [algebra R S]
 

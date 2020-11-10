@@ -153,6 +153,11 @@ lemma is_maximal_of_is_integral_of_is_maximal_comap
   λ J I_lt_J, let ⟨I_le_J, x, hxJ, hxI⟩ := lt_iff_le_and_exists.mp I_lt_J
   in comap_eq_top_iff.mp (hI.2 _ (comap_lt_comap_of_integral_mem_sdiff I_le_J ⟨hxJ, hxI⟩ (hRS x))) ⟩
 
+lemma is_maximal_of_is_integral_of_is_maximal_comap' {R S : Type*} [comm_ring R] [integral_domain S]
+  (f : R →+* S) (hf : f.is_integral) (I : ideal S) [hI' : I.is_prime]
+  (hI : is_maximal (I.comap f)) : is_maximal I :=
+@is_maximal_of_is_integral_of_is_maximal_comap R _ S _ f.to_algebra hf I hI' hI
+
 lemma is_maximal_comap_of_is_integral_of_is_maximal (hRS : algebra.is_integral R S)
   (I : ideal S) [hI : I.is_maximal] : is_maximal (I.comap (algebra_map R S)) :=
 begin
@@ -161,6 +166,10 @@ begin
   exact is_field_of_is_integral_of_is_field (is_integral_quotient_of_is_integral hRS)
     algebra_map_quotient_injective (by rwa ← quotient.maximal_ideal_iff_is_field_quotient),
 end
+
+lemma is_maximal_comap_of_is_integral_of_is_maximal' {R S : Type*} [comm_ring R] [integral_domain S]
+  (f : R →+* S) (hf : f.is_integral) (I : ideal S) (hI : I.is_maximal) : is_maximal (I.comap f) :=
+@is_maximal_comap_of_is_integral_of_is_maximal R _ S _ f.to_algebra hf I hI
 
 lemma integral_closure.comap_ne_bot [nontrivial R] {I : ideal (integral_closure R S)}
   (I_ne_bot : I ≠ ⊥) : I.comap (algebra_map R (integral_closure R S)) ≠ ⊥ :=

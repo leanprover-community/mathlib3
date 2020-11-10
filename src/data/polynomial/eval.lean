@@ -86,6 +86,10 @@ begin
   convert (@finsupp.mul_sum _ _ _ _ _ (g s) p (λ i a, (g a * x ^ i))).symm,
 end
 
+@[simp] lemma eval₂_C_X : eval₂ C X p = p :=
+polynomial.induction_on' p (λ p q hp hq, by simp [hp, hq])
+  (λ n x, by rw [eval₂_monomial, monomial_eq_smul_X, C_mul'])
+
 instance eval₂.is_add_monoid_hom : is_add_monoid_hom (eval₂ f x) :=
 { map_zero := eval₂_zero _ _, map_add := λ _ _, eval₂_add _ _ }
 
@@ -359,9 +363,13 @@ begin
   { intros n r, simp, }
 end
 
-lemma map_injective (hf : function.injective f): function.injective (map f) :=
+lemma map_injective (hf : function.injective f) : function.injective (map f) :=
 λ p q h, ext $ λ m, hf $ by rw [← coeff_map f, ← coeff_map f, h]
 
+lemma map_surjective (hf : function.surjective f) : (function.surjective (map f)) :=
+λ p, polynomial.induction_on' p
+(λ p q hp hq, let ⟨p', hp'⟩ := hp in let ⟨q', hq'⟩ := hq in ⟨p' + q', by rw [map_add f, hp', hq']⟩)
+(λ n s, let ⟨r, hr⟩ := hf s in ⟨monomial n r, by rw [map_monomial f, hr]⟩)
 
 variables {f}
 
@@ -403,6 +411,12 @@ instance map.is_semiring_hom : is_semiring_hom (map f) :=
   map_one := eval₂_one _ _,
   map_add := λ _ _, eval₂_add _ _,
   map_mul := λ _ _, map_mul f, }
+
+/-- `polynomial.map` as a `ring_hom` -/
+def map_ring_hom (f : R →+* S) : polynomial R →+* polynomial S :=
+ring_hom.of (map f)
+
+@[simp] lemma coe_map_ring_hom (f : R →+* S) : ⇑(map_ring_hom f) = map f := rfl
 
 lemma map_list_prod (L : list (polynomial R)) : L.prod.map f = (L.map $ map f).prod :=
 eq.symm $ list.prod_hom _ (monoid_hom.of (map f))

@@ -65,6 +65,11 @@ namespace exterior_algebra
 
 variables {M}
 
+-- typeclass resolution times out here, so we give it a hand
+instance {S : Type*} [comm_ring S] [semimodule S M] : ring (exterior_algebra S M) :=
+let i : ring (tensor_algebra S M) := infer_instance in
+@ring_quot.ring (tensor_algebra S M) i (exterior_algebra.rel S M)
+
 /--
 The canonical linear map `M →ₗ[R] exterior_algebra R M`.
 -/
@@ -115,7 +120,10 @@ begin
   refl,
 end
 
-attribute [irreducible] exterior_algebra ι lift
+attribute [irreducible] ι lift
+-- Marking `exterior_algebra` irreducible makes our `ring` instances inaccessible.
+-- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/algebra.2Esemiring_to_ring.20breaks.20semimodule.20typeclass.20lookup/near/212580241
+-- For now, we avoid this by not marking it irreducible.
 
 variables {R M}
 

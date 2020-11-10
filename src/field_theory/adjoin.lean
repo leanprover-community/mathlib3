@@ -431,6 +431,7 @@ begin
   exact swap1.trans swap2,
 end
 
+/-- Fintype of algebra homomorphism `F⟮α⟯ →ₐ[F] K` -/
 noncomputable def fintype_of_alg_hom_adjoin_integral (h : is_integral F α) :
   fintype (F⟮α⟯ →ₐ[F] K) :=
 fintype.of_equiv _ (alg_hom_adjoin_integral_equiv F h).symm

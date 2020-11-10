@@ -365,7 +365,7 @@ alg_equiv.of_bijective (alg_hom.mk (adjoin_root.lift (algebra_map F F⟮α⟯)
   (adjoin_simple.gen F α) (aeval_gen_minimal_polynomial F h)) (ring_hom.map_one _)
   (λ x y, ring_hom.map_mul _ x y) (ring_hom.map_zero _) (λ x y, ring_hom.map_add _ x y)
   (by { exact λ _, adjoin_root.lift_of })) (begin
-    set f := adjoin_root.lift _ _ (min_poly_eval_gen_eq_zero F h),
+    set f := adjoin_root.lift _ _ (aeval_gen_minimal_polynomial F h),
     haveI := minimal_polynomial.irreducible h,
     split,
     { exact ring_hom.injective f },
@@ -383,7 +383,7 @@ lemma adjoin_root_equiv_adjoin_apply_root (h : is_integral F α) :
 begin
   refine adjoin_root.lift_root,
   { exact minimal_polynomial h },
-  { exact min_poly_eval_gen_eq_zero F h }
+  { exact aeval_gen_minimal_polynomial F h }
 end
 
 end adjoin_integral_element

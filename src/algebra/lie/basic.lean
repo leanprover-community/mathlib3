@@ -662,7 +662,7 @@ instance lie_submodule_act (α : has_bracket L M) [lie_module R α] (N : lie_sub
 
 instance lie_submodule_lie_module
   (α : has_bracket L M) [lie_module R α] (N : lie_submodule R α) :
-  @lie_module R L N _ _ _ _ _ infer_instance :=
+  lie_module R (lie_submodule_act R α N) :=
 { add_lie  := by { intros x y m, apply set_coe.ext, exact lie_module.add_lie R x y m, },
   lie_add  := by { intros x m n, apply set_coe.ext, exact lie_module.lie_add R x m n, },
   lie_smul := by { intros t x y, apply set_coe.ext, exact lie_module.lie_smul t x y, },

@@ -1543,6 +1543,24 @@ by { dsimp [set_value], simp [swap_apply_left] }
 
 end swap
 
+protected lemma exists_unique_congr {p : α → Prop} {q : β → Prop} (f : α ≃ β)
+  (h : ∀{x}, p x ↔ q (f x)) : (∃! x, p x) ↔ ∃! y, q y :=
+begin
+  split,
+  { rintro ⟨a, ha₁, ha₂⟩,
+    exact ⟨f a, h.1 ha₁, λ b hb, f.symm_apply_eq.1 (ha₂ (f.symm b) (h.2 (by simpa using hb)))⟩ },
+  { rintro ⟨b, hb₁, hb₂⟩,
+    exact ⟨f.symm b, h.2 (by simpa using hb₁), λ y hy, (eq_symm_apply f).2 (hb₂ _ (h.1 hy))⟩ }
+end
+
+protected lemma exists_unique_congr_left' {p : α → Prop} (f : α ≃ β) :
+  (∃! x, p x) ↔ (∃! y, p (f.symm y)) :=
+equiv.exists_unique_congr f (λx, by simp)
+
+protected lemma exists_unique_congr_left {p : β → Prop} (f : α ≃ β) :
+  (∃! x, p (f x)) ↔ (∃! y, p y) :=
+(equiv.exists_unique_congr_left' f.symm).symm
+
 protected lemma forall_congr {p : α → Prop} {q : β → Prop} (f : α ≃ β)
   (h : ∀{x}, p x ↔ q (f x)) : (∀x, p x) ↔ (∀y, q y) :=
 begin

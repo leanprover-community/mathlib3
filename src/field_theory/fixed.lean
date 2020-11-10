@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import algebra.group_action_hom
+import algebra.polynomial.group_ring_action
 import deprecated.subfield
 import field_theory.normal
 import field_theory.separable

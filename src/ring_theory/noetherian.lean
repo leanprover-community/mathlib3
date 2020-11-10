@@ -517,12 +517,14 @@ variables {R : Type*} [comm_ring R] [is_noetherian_ring R] [decidable_eq (prime_
 
 -- variables {α : Type*} [decidable_eq α]
 
-/-In a noetherian ring, every ideal contains a product of prime ideals
+  /-In a noetherian ring, every ideal contains a product of prime ideals
 ([Samuel, § 3.3, Lemma 3])-/
-lemma prime_product [nontrivial R] (I : ideal R) : ∃ (Z : finset (prime_spectrum R)),
-  ∏ p in Z, (p.val : ideal R) ≤ I :=
+-- lemma prime_product [nontrivial R] (I : ideal R) : ∃ (Z : finset (prime_spectrum R)),
+--   ∏ p in Z, (p.val : ideal R) ≤ I :=
+lemma prime_product [nontrivial R] (I : ideal R) : ∃ (Z : multiset (prime_spectrum R)),
+  multiset.prod (Z.map subtype.val) ≤ I :=
 begin
-  let P := λ J, ∀ (Y : finset (prime_spectrum R)), ¬ ∏ p in Y, (p.val : ideal R) ≤ J,
+  let P := λ J, ∀ (Y : multiset (prime_spectrum R)), ¬ multiset.prod (Y.map subtype.val) ≤ J,
   let Ω := {J : ideal R | P J },
   by_cases hΩ : Ω = ∅,
   { have hP : ∀ J, ¬ P J,
@@ -541,10 +543,11 @@ begin
       have h_absM : ¬ P M,
       intros P_of_M,
       specialize P_of_M {⟨M, hM⟩},
-      rw [finset.prod_singleton, subtype.val_eq_coe, subtype.coe_mk, le_iff_lt_or_eq,
-        not_or_distrib] at P_of_M,
+      rw [multiset.singleton_eq_singleton, multiset.map_cons,
+        multiset.map_zero, multiset.prod_singleton] at P_of_M,
+      rw [subtype.val_eq_coe, subtype.coe_mk, le_iff_lt_or_eq, not_or_distrib] at P_of_M,
       replace P_of_M : ¬ M = M, from P_of_M.right,
-      tauto,
+      from (ne_self_iff_false M).mp P_of_M,
       replace h_absM : M ∉ Ω,
       simp only [h_absM, mem_set_of_eq, not_false_iff],
       tauto },
@@ -557,8 +560,9 @@ begin
         obtain ⟨Ξ, hΞ⟩ : ∃ (Ξ : ideal R), Ξ.is_maximal,
         apply_rules @ideal.exists_maximal _ _ _,
         let pΞ : (prime_spectrum R) := ⟨Ξ, ideal.is_maximal.is_prime hΞ⟩,
-        existsi ({ pΞ } : finset (prime_spectrum R)),
-        rw [not_not, finset.prod_singleton, subtype.val_eq_coe, subtype.coe_mk],
+        existsi ({ pΞ } : multiset (prime_spectrum R)),
+        rw [not_not, multiset.singleton_eq_singleton, multiset.map_cons, multiset.map_zero,
+          multiset.prod_singleton],
         simp only [le_top] } },
     obtain ⟨x, y, hx, hy, h_xy⟩ : ∃ (x y : R), x ∉ M ∧ y ∉ M ∧ x * y ∈ M,
     { rw [ideal.is_prime, not_and] at h_not_prM,
@@ -571,14 +575,39 @@ begin
       finish },
     let Jx := M + span R {x},
     let Jy := M + span R {y},
-    have hJ_xy : Jx ∉ Ω ∧ Jy ∉ Ω, sorry,
-    obtain ⟨Wx, h_Wx⟩ : ∃ (Wx : finset (prime_spectrum R)), ∏ p in Wx, (p.val) ≤ Jx, sorry,
-    obtain ⟨Wy, h_Wy⟩ : ∃ (Wy : finset (prime_spectrum R)), ∏ p in Wy, (p.val) ≤ Jy, sorry,
+    have hJ_xy : Jx ∉ Ω ∧ Jy ∉ Ω,
+    { have incl : ∀ (z : R), M ≤ M + span R {z},
+      { intro z, from le_sup_left },
+      have belong : ∀ (z : R), z ∈ M + span R {z},
+      { intro z, apply submodule.mem_sup.mpr,
+          use (0 : R),
+          split, from zero_mem M,
+          use z, split ,
+          from submodule.mem_span_singleton_self z, from zero_add z },
+      split, all_goals {by_contradiction},
+      { have abs_x : Jx = M, from h_maxM Jx h (incl x),
+        rw ← abs_x at hx, tauto },
+      { have abs_y : Jy = M, from h_maxM Jy h (incl y),
+        rw ← abs_y at hy, tauto } },
+    obtain ⟨Wx, h_Wx⟩ : ∃ (Wx : multiset (prime_spectrum R)), multiset.prod (Wx.map subtype.val) ≤ Jx,
+    { have Jx_P : ¬ P Jx, simp [*, mem_set_of_eq, not_forall] at *,
+      dsimp [P] at Jx_P, from not_forall_not.mp Jx_P },
+    obtain ⟨Wy, h_Wy⟩ : ∃ (Wy : multiset (prime_spectrum R)), multiset.prod (Wy.map subtype.val) ≤ Jy,
+    { have Jy_P : ¬ P Jy, simp [*, mem_set_of_eq, not_forall] at *,
+      dsimp [P] at Jy_P, from not_forall_not.mp Jy_P },
     let W := Wx ∪ Wy,
     by_contradiction,
-    have h_abs : ∏ p in W, (p.val) ≤ I, sorry,
-    finish },
+    have h_abs :multiset.prod (W.map subtype.val) ≤ I,
+    {sorry,
+
+     },
+    rw not_exists at h,
+    specialize h W,
+    apply absurd h_abs h },
 end
+
+-- multiset.prod (Z.map subtype.val)
+
 
 lemma prime_product_domain (hR : is_integral_domain R) (I : ideal R) : ∃ (A : finset (prime_spectrum R)),
   ∏ p in A, (p.val : ideal R) ≠ 0 ∧ ∏ p in A, (p.val : ideal R) ≤ I :=

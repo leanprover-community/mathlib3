@@ -417,9 +417,11 @@ namespace submonoid
 
 variables {M : Type*} [monoid M]
 
+@[to_additive]
 lemma mul_subset {s t : set M} {S : submonoid M} (hs : s ⊆ S) (ht : t ⊆ S) : s * t ⊆ S :=
 by { rintro _ ⟨p, q, hp, hq, rfl⟩, exact submonoid.mul_mem _ (hs hp) (ht hq) }
 
+@[to_additive]
 lemma mul_subset_closure {s t u : set M} (hs : s ⊆ u) (ht : t ⊆ u) :
   s * t ⊆ submonoid.closure u :=
 mul_subset (subset.trans hs submonoid.subset_closure) (subset.trans ht submonoid.subset_closure)

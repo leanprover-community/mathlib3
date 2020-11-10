@@ -355,6 +355,7 @@ lemma map_mul {L : matrix m n α} {M : matrix n o α}
   {β : Type w} [semiring β] {f : α →+* β} :
   (L ⬝ M).map f = L.map f ⬝ M.map f :=
 by { ext, simp [mul_apply, ring_hom.map_sum], }
+
 -- TODO: there should be a way to avoid restating these for each `foo_hom`. 
 /-- A version of `one_map` where `f` is a ring hom. -/
 @[simp] lemma ring_hom_map_one [decidable_eq n]

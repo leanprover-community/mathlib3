@@ -265,7 +265,10 @@ At this stage we set the basic definitions as `@[irreducible]`, so from this poi
 
 Of course, one still has the option to locally make these definitions `semireducible` if so desired, and Lean is still willing in some circumstances to do unification based on the underlying definition.
 -/
-attribute [irreducible] free_algebra ι lift
+attribute [irreducible] ι lift
+-- Marking `free_algebra` irreducible makes `ring` instances inaccessible on quotients.
+-- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/algebra.2Esemiring_to_ring.20breaks.20semimodule.20typeclass.20lookup/near/212580241
+-- For now, we avoid this by not marking it irreducible.
 
 @[simp]
 theorem lift_comp_ι (g : free_algebra R X →ₐ[R] A) :

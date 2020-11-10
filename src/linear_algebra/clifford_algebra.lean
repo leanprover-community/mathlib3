@@ -66,7 +66,7 @@ end clifford_algebra
 /--
 The Clifford algebra of an `R`-module `M` equipped with a quadratic_form `Q`.
 -/
-@[derive [inhabited, semiring, algebra R]]
+@[derive [inhabited, ring, algebra R]]
 def clifford_algebra := ring_quot (clifford_algebra.rel Q)
 
 namespace clifford_algebra

@@ -155,20 +155,13 @@ begin
   rw [alg_hom.map_add, alg_hom.map_mul, h, zero_mul, zero_add, aeval_C]
 end
 
-@[simp] lemma aeval_coe {x : A} {p : polynomial K} : aeval (x : L) p = aeval x p :=
-begin
-  convert (hom_eval₂ p (algebra_map K A) (algebra_map A L) x).symm,
-  rw [aeval_def, is_scalar_tower.algebra_map_eq K A L],
-  refl
-end
-
 lemma subalgebra.inv_mem_of_root_of_coeff_zero_ne_zero {x : A} {p : polynomial K}
   (aeval_eq : aeval x p = 0) (coeff_zero_ne : p.coeff 0 ≠ 0) : (x⁻¹ : L) ∈ A :=
 begin
   have : (x⁻¹ : L) = aeval x (div_X p) / (aeval x p - algebra_map _ _ (p.coeff 0)),
   { rw [aeval_eq, submodule.coe_zero, zero_sub, div_neg],
     convert inv_eq_of_root_of_coeff_zero_ne_zero _ coeff_zero_ne,
-    { rw aeval_coe },
+    { rw subalgebra.aeval_coe },
     { simpa using aeval_eq } },
   rw [this, div_eq_mul_inv, aeval_eq, submodule.coe_zero, zero_sub, ← ring_hom.map_neg,
       ← ring_hom.map_inv],
@@ -179,7 +172,9 @@ lemma subalgebra.inv_mem_of_algebraic {x : A} (hx : is_algebraic K (x : L)) : (x
 begin
   obtain ⟨p, ne_zero, aeval_eq⟩ := hx,
   replace aeval_eq : aeval x p = 0,
-  { rw [← submodule.coe_eq_zero, ← aeval_subalgebra_coe, aeval_eq] },
+  { rw ← submodule.coe_eq_zero,
+    convert aeval_eq,
+    exact is_scalar_tower.algebra_map_aeval K A L _ _ },
   revert ne_zero aeval_eq,
   refine p.rec_on_horner _ _ _,
   { intro h,
@@ -196,10 +191,10 @@ begin
 end
 
 /-- In an algebraic extension L/K, an intermediate subalgebra is a field. -/
-def subalgebra.field_of_algebraic (hKL : algebra.is_algebraic K L) : field A :=
-{ inv := λ x, ⟨x⁻¹, A.inv_mem_of_algebraic (hKL x)⟩,
-  inv_zero := subtype.ext inv_zero,
-  mul_inv_cancel := λ a ha, subtype.ext (mul_inv_cancel (mt submodule.coe_eq_zero.mp ha)),
-  ..subalgebra.integral_domain A }
+lemma subalgebra.is_field_of_algebraic (hKL : algebra.is_algebraic K L) : is_field A :=
+{ mul_inv_cancel := λ a ha, ⟨
+        ⟨a⁻¹, A.inv_mem_of_algebraic (hKL a)⟩,
+        subtype.ext (mul_inv_cancel (mt submodule.coe_eq_zero.mp ha))⟩,
+  .. subalgebra.integral_domain A }
 
 end field

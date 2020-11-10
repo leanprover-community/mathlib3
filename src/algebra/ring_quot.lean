@@ -280,6 +280,6 @@ by { ext, simp, }
 
 end algebra
 
-attribute [irreducible] ring_quot mk_ring_hom mk_alg_hom lift lift_alg_hom
+attribute [irreducible] mk_ring_hom mk_alg_hom lift lift_alg_hom
 
 end ring_quot

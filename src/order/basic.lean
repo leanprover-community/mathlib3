@@ -320,6 +320,10 @@ instance pi.preorder {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] 
   le_refl  := assume a i, le_refl (a i),
   le_trans := assume a b c h₁ h₂ i, le_trans (h₁ i) (h₂ i) }
 
+lemma pi.le_def {ι : Type u} {α : ι → Type v} [∀i, preorder (α i)] {x y : Π i, α i} :
+  x ≤ y ↔ ∀ i, x i ≤ y i :=
+iff.rfl
+
 instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀i, partial_order (α i)] :
   partial_order (Πi, α i) :=
 { le_antisymm := λf g h1 h2, funext (λb, le_antisymm (h1 b) (h2 b)),
@@ -399,7 +403,11 @@ partial_order.lift subtype.val subtype.val_injective
 instance subtype.linear_order {α} [linear_order α] (p : α → Prop) : linear_order (subtype p) :=
 linear_order.lift subtype.val subtype.val_injective
 
-lemma strict_mono_coe [preorder α] (t : set α) : strict_mono (coe : (subtype t) → α) := λ x y, id
+lemma subtype.mono_coe [preorder α] (t : set α) : monotone (coe : (subtype t) → α) :=
+λ x y, id
+
+lemma subtype.strict_mono_coe [preorder α] (t : set α) : strict_mono (coe : (subtype t) → α) :=
+λ x y, id
 
 instance prod.has_le (α : Type u) (β : Type v) [has_le α] [has_le β] : has_le (α × β) :=
 ⟨λp q, p.1 ≤ q.1 ∧ p.2 ≤ q.2⟩

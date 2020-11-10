@@ -365,7 +365,7 @@ by simp only [← image_smul, image_eta, zero_smul, h.image_const, singleton_zer
 
 lemma mem_inv_smul_set_iff [field α] [mul_action α β] {a : α} (ha : a ≠ 0) (A : set β) (x : β) :
   x ∈ a⁻¹ • A ↔ a • x ∈ A :=
-by simp only [← image_smul, mem_image, inv_smul_eq_iff ha, exists_eq_right]
+by simp only [← image_smul, mem_image, inv_smul_eq_iff' ha, exists_eq_right]
 
 lemma mem_smul_set_iff_inv_smul_mem [field α] [mul_action α β] {a : α} (ha : a ≠ 0) (A : set β)
   (x : β) : x ∈ a • A ↔ a⁻¹ • x ∈ A :=

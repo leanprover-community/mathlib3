@@ -52,7 +52,7 @@ instance limit_lax_monoidal : lax_monoidal (λ F : J ⥤ C, limit F) :=
   begin
     ext, dsimp,
     simp only [limit.lift_π, cones.postcompose_obj_π, monoidal.tensor_hom_app, limit.lift_map,
-      nat_trans.comp_app, category.assoc, ←tensor_comp, limit.map_π],
+      nat_trans.comp_app, category.assoc, ←tensor_comp, lim_map_π],
   end,
   associativity' := λ X Y Z,
   begin

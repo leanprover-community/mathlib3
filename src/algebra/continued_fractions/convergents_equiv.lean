@@ -296,11 +296,10 @@ begin
       -- first compute the convergent of the squashed gcf
       have : g'.convergents (n' + 1)
            = ((pb + a / b) * pA' + pa * ppA') / ((pb + a / b) * pB' + pa * ppB'),
-      { have : g'.s.nth n' = some ⟨pa, pb + a / b⟩,
-        { simpa only [squash_nth_gcf] using
-            (squash_seq_nth_of_not_terminated s_n'th_eq s_nth_eq) },
+      { have : g'.s.nth n' = some ⟨pa, pb + a / b⟩ :=
+          squash_seq_nth_of_not_terminated s_n'th_eq s_nth_eq,
         rw [convergent_eq_conts_a_div_conts_b,
-          (continuants_recurrence_aux this n'th_conts_aux_eq'.symm succ_n'th_conts_aux_eq'.symm)], },
+          continuants_recurrence_aux this n'th_conts_aux_eq'.symm succ_n'th_conts_aux_eq'.symm], },
       rw this,
       -- then compute the convergent of the original gcf by recursively unfolding the continuants
       -- computation twice
@@ -311,7 +310,7 @@ begin
           continuants_aux_recurrence s_n'th_eq n'th_conts_aux_eq.symm succ_n'th_conts_aux_eq.symm,
         -- and a second time
         rw [convergent_eq_conts_a_div_conts_b,
-          (continuants_recurrence_aux s_nth_eq succ_n'th_conts_aux_eq.symm this)] },
+          continuants_recurrence_aux s_nth_eq succ_n'th_conts_aux_eq.symm this] },
       rw this,
       suffices : ((pb + a / b) * pA + pa * ppA) / ((pb + a / b) * pB + pa * ppB)
                = (b * (pb * pA + pa * ppA) + a * pA) / (b * (pb * pB + pa * ppB) + a * pB),

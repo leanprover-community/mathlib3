@@ -93,30 +93,20 @@ lemma lemma1 : b - a = c :=
       }
     }
     ... = ∑ (x : ℕ) in filter even (range 1320), 2 / x : by rw sum_filter
-    ... = ∑ (x : ℕ) in map double (range 660), (2 : ℚ) / x : by {
-      apply sum_congr, swap, simp,
-      apply finset.subset.antisymm,
-      { intros x hx,
-        rw mem_filter at hx,
-        rcases hx with ⟨hx1, m, rfl⟩,
-        rw mem_map,
-        use m,
-        existsi _, refl,
-        rw mem_range at hx1 ⊢,
+    ... = ∑ (x : ℕ) in map double (range 660), 2 / x : by {
+      apply sum_congr _ (λ _ _, rfl),
+      ext x,
+      rw [mem_filter, mem_map],
+      split,
+      { rintro ⟨ha, a, rfl⟩,
+        refine ⟨a, _, rfl⟩,
+        rw mem_range at ha ⊢,
         linarith },
-      { intros x hx,
-        rw mem_filter,
-        rw mem_map at hx,
-        rcases hx with ⟨a, ha, rfl⟩,
-        split,
-        { rw mem_range at ha ⊢,
-          change 2 * a < 1320,
-          linarith },
-        { existsi a,
-          refl
-        }
-      }
-    }
+      { rintro ⟨a, ha, rfl⟩,
+        refine ⟨_, a, rfl⟩,
+        rw mem_range at ha ⊢,
+        change 2 * a < 1320,
+        linarith } }
     ... = c : by {
       rw sum_map (range 660) double (λ n, (2 : ℚ) / n),
       apply sum_congr, refl, -- is there a better way?

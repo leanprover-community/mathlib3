@@ -328,7 +328,7 @@ Data structures:
   Trees:
     tree: 'tree'
     red-black tree: 'rbtree'
-    W type: 'W'
+    W type: 'W_type'
 
 Logic and computation:
   Computability:

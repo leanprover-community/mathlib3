@@ -87,7 +87,7 @@ begin
   have := search_up_to_start,
   iterate 82 {
     replace := search_up_to_step this (by norm_num1; refl) (by norm_num1; refl)
-      (by norm_digits; refl) dec_trivial },
+      (by norm_num1; refl) dec_trivial },
   exact search_up_to_end this
 end
 
@@ -100,4 +100,3 @@ by rcases spn with (rfl | rfl); norm_num [problem_predicate, sum_of_squares]
 
 theorem imo1960_q1 (n : ℕ) : problem_predicate n ↔ solution_predicate n :=
 ⟨right_direction, left_direction n⟩
-

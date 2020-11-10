@@ -77,6 +77,25 @@ omit adj
 instance is_equivalence_preserves_colimits (E : C ⥤ D) [is_equivalence E] : preserves_colimits E :=
 left_adjoint_preserves_colimits E.adjunction
 
+@[priority 100] -- see Note [lower instance priority]
+instance is_equivalence_reflects_colimits (E : D ⥤ C) [is_equivalence E] : reflects_colimits E :=
+{ reflects_colimits_of_shape := λ J 𝒥, by exactI
+  { reflects_colimit := λ K,
+    { reflects := λ c t,
+      begin
+        have l := (is_colimit_of_preserves E.inv t).map_cocone_equiv E.fun_inv_id,
+        refine (((is_colimit.precompose_inv_equiv K.right_unitor _).symm) l).of_iso_colimit _,
+        tidy,
+      end } } }
+
+@[priority 100] -- see Note [lower instance priority]
+instance is_equivalence_creates_colimits (H : D ⥤ C) [is_equivalence H] : creates_colimits H :=
+{ creates_colimits_of_shape := λ J 𝒥, by exactI
+  { creates_colimit := λ F,
+    { lifts := λ c t,
+      { lifted_cocone := H.map_cocone_inv c,
+        valid_lift := H.map_cocone_map_cocone_inv c } } } }
+
 -- verify the preserve_colimits instance works as expected:
 example (E : C ⥤ D) [is_equivalence E]
   (c : cocone K) (h : is_colimit c) : is_colimit (E.map_cocone c) :=
@@ -159,12 +178,9 @@ instance is_equivalence_reflects_limits (E : D ⥤ C) [is_equivalence E] : refle
   { reflects_limit := λ K,
     { reflects := λ c t,
       begin
-        have l: is_limit (E.inv.map_cone (E.map_cone c)) := preserves_limit.preserves t,
-        convert is_limit.map_cone_equiv E.fun_inv_id l,
-        { rw functor.comp_id },
-        { cases c,
-          cases c_π,
-          congr; rw functor.comp_id }
+        have := (is_limit_of_preserves E.inv t).map_cone_equiv E.fun_inv_id,
+        refine (((is_limit.postcompose_hom_equiv K.left_unitor _).symm) this).of_iso_limit _,
+        tidy,
       end } } }
 
 @[priority 100] -- see Note [lower instance priority]

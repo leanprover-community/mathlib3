@@ -21,15 +21,26 @@ infixr ` • `:73 := has_scalar.smul
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
 
+/-- A typeclass mixin saying that two actions on the same space commute. -/
+class smul_comm_class (M N α : Type*) [has_scalar M α] [has_scalar N α] : Prop :=
+(smul_comm : ∀ (m : M) (n : N) (a : α), m • n • a = n • m • a)
+
+export mul_action (mul_smul) smul_comm_class (smul_comm)
+
+/-- Commutativity of actions is a symmetric relation. This lemma can't be an instance because this
+would cause a loop in the instance search graph. -/
+lemma smul_comm_class.symm (M N α : Type*) [has_scalar M α] [has_scalar N α]
+  [smul_comm_class M N α] : smul_comm_class N M α :=
+⟨λ a' a b, (smul_comm a a' b).symm⟩
+
+instance smul_comm_class_self (M α : Type*) [comm_monoid M] [mul_action M α] :
+  smul_comm_class M M α :=
+⟨λ a a' b, by rw [← mul_smul, mul_comm, mul_smul]⟩
+
 section
 variables [monoid α] [mul_action α β]
 
-theorem mul_smul (a₁ a₂ : α) (b : β) : (a₁ * a₂) • b = a₁ • a₂ • b := mul_action.mul_smul _ _ _
-
 lemma smul_smul (a₁ a₂ : α) (b : β) : a₁ • a₂ • b = (a₁ * a₂) • b := (mul_smul _ _ _).symm
-
-lemma smul_comm {α : Type u} {β : Type v} [comm_monoid α] [mul_action α β] (a₁ a₂ : α) (b : β) :
-  a₁ • a₂ • b = a₂ • a₁ • b := by rw [←mul_smul, ←mul_smul, mul_comm]
 
 variable (α)
 @[simp] theorem one_smul (b : β) : (1 : α) • b = b := mul_action.one_smul _
@@ -90,10 +101,10 @@ lemma inv_smul_smul' {c : G} (hc : c ≠ 0) (x : β) : c⁻¹ • c • x = x :=
 lemma smul_inv_smul' {c : G} (hc : c ≠ 0) (x : β) : c • c⁻¹ • x = x :=
 (units.mk0 c hc).smul_inv_smul x
 
-lemma inv_smul_eq_iff {a : G} (ha : a ≠ 0) {x y : β} : a⁻¹ • x = y ↔ x = a • y :=
+lemma inv_smul_eq_iff' {a : G} (ha : a ≠ 0) {x y : β} : a⁻¹ • x = y ↔ x = a • y :=
 by { split; intro h, rw [← h, smul_inv_smul' ha], rw [h, inv_smul_smul' ha] }
 
-lemma eq_inv_smul_iff {a : G} (ha : a ≠ 0) {x y : β} : x = a⁻¹ • y ↔ a • x = y :=
+lemma eq_inv_smul_iff' {a : G} (ha : a ≠ 0) {x y : β} : x = a⁻¹ • y ↔ a • x = y :=
 by { split; intro h, rw [h, smul_inv_smul' ha], rw [← h, inv_smul_smul' ha] }
 
 end gwz
@@ -110,18 +121,21 @@ end
 
 section compatible_scalar
 
-variables (R M N : Type*) [has_scalar R M] [has_scalar M N] [has_scalar R N]
+/-- An instance of `is_scalar_tower M N α` states that the multiplicative
+action of `M` on `α` is determined by the multiplicative actions of `M` on `N`
+and `N` on `α`. -/
+class is_scalar_tower (M N α : Type*) [has_scalar M N] [has_scalar N α] [has_scalar M α] : Prop :=
+(smul_assoc : ∀ (x : M) (y : N) (z : α), (x • y) • z = x • (y • z))
 
-/-- An instance of `is_scalar_tower R M N` states that the multiplicative
-action of `R` on `N` is determined by the multiplicative actions of `R` on `M`
-and `M` on `N`. -/
-class is_scalar_tower : Prop :=
-(smul_assoc : ∀ (x : R) (y : M) (z : N), (x • y) • z = x • (y • z))
+@[simp] lemma smul_assoc {M N} [has_scalar M N] [has_scalar N α] [has_scalar M α]
+  [is_scalar_tower M N α] (x : M) (y : N) (z : α) :
+  (x • y) • z = x • y • z :=
+is_scalar_tower.smul_assoc x y z
 
-variables {R M N}
-
-@[simp] lemma smul_assoc [is_scalar_tower R M N] (x : R) (y : M) (z : N) :
-  (x • y) • z = x • y • z := is_scalar_tower.smul_assoc x y z
+@[simp] lemma smul_one_smul {M} (N) [monoid N] [has_scalar M N] [mul_action N α] [has_scalar M α]
+  [is_scalar_tower M N α] (x : M) (y : α) :
+  (x • (1 : N)) • y = x • y :=
+by rw [smul_assoc, one_smul]
 
 end compatible_scalar
 
@@ -226,11 +240,9 @@ rfl
 
 end mul_action
 
-namespace mul_action
-variables [group α] [mul_action α β]
 
 section
-open mul_action quotient_group
+variables [group α] [mul_action α β]
 
 @[simp] lemma inv_smul_smul (c : α) (x : β) : c⁻¹ • c • x = x :=
 (to_units c).inv_smul_smul x
@@ -254,6 +266,7 @@ begin
   {rw inv_smul_smul},
 end
 
+namespace mul_action
 variable (α)
 
 /-- The stabilizer of an element under an action, i.e. what sends the element to itself.
@@ -351,7 +364,7 @@ quotient.induction_on' g' $ λ _, mul_smul _ _ _
 
 theorem injective_of_quotient_stabilizer : function.injective (of_quotient_stabilizer α x) :=
 λ y₁ y₂, quotient.induction_on₂' y₁ y₂ $ λ g₁ g₂ (H : g₁ • x = g₂ • x), quotient.sound' $
-show (g₁⁻¹ * g₂) • x = x, by rw [mul_smul, ← H, mul_action.inv_smul_smul]
+show (g₁⁻¹ * g₂) • x = x, by rw [mul_smul, ← H, inv_smul_smul]
 
 /-- Orbit-stabilizer theorem. -/
 noncomputable def orbit_equiv_quotient_stabilizer (b : β) :
@@ -365,9 +378,9 @@ equiv.symm $ equiv.of_bijective
   ((orbit_equiv_quotient_stabilizer α b).symm a : β) = a • b :=
 rfl
 
-end
-
 end mul_action
+
+end
 
 /-- Typeclass for multiplicative actions on additive structures. This generalizes group modules. -/
 class distrib_mul_action (α : Type u) (β : Type v) [monoid α] [add_monoid β] extends mul_action α β :=

@@ -39,13 +39,9 @@ and don't have this problem.
 
 open_locale big_operators
 
-open finset
-
-open nat
+open finset nat
 
 instance : fact (nat.prime 1979) := by norm_num
-
-open finset
 
 namespace imo1979q1
 

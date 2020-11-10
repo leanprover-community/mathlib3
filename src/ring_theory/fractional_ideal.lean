@@ -842,9 +842,78 @@ begin
   refine smul_mem _ _ h2,
 end
 
+lemma mem_span_set (x : M) (S : set M) (hx : x ∈ S) : x ∈ span B S :=
+begin
+  suffices f : S ⊆ span B S,
+  apply iff.rfl.1 f hx,
+  apply subset_span,
+end
+
 lemma submodule.mem_span_mul_finite_of_mem_span_mul (B M : Type*) [comm_semiring B] [semiring M]
 [algebra B M] (S : set M) (S' : set M) (x : M) (hx : x ∈ span B S * span B S') :
-  ∃ (T : set M) (T' : set M), T ⊆ S ∧ T.finite ∧ T' ⊆ S' ∧ T'.finite ∧ x ∈ span B T * span B T' :=
+  ∃ (T : set M) (T' : set M), T ⊆ S ∧ T.finite ∧ T' ⊆ S' ∧ T'.finite ∧ x ∈ span B (T * T') :=
 begin
-  sorry,
+  rw span_mul_span at hx,
+  have h := submodule.mem_span_finite_of_mem_span _ _ _ _ hx,
+  rcases h with ⟨U, hU, h, fx⟩,
+  apply span_induction fx,
+  {
+    rintros x hx,
+    have hU' := set.mem_of_subset_of_mem hU hx,
+    rw set.mem_mul at hU',
+    rcases hU' with ⟨y, z, hy, hz, h'⟩,
+    have hy' := mem_span_set B _ _ _ hy,
+    have hz' := mem_span_set B _ _ _ hz,
+    have h := submodule.mem_span_finite_of_mem_span _ _ _ _ hy',
+    rcases h with ⟨T, hT, h1, fy⟩,
+    have h := submodule.mem_span_finite_of_mem_span _ _ _ _ hz',
+    rcases h with ⟨T', hT', h2, fz⟩,
+    use [T, T'],
+    split,
+    assumption,
+    split,
+    assumption,
+    split,
+    assumption,
+    split,
+    assumption,
+    rw <-h',
+    rw <-span_mul_span,
+    apply mul_mem_mul fy fz,
+  },
+  {
+    use [⊥, ⊥],
+    simp,
+  },
+  {
+    rintros x y ⟨T, T', hT, fT, hT', fT', h1⟩ ⟨U, U', hU, fU, hU', fU', h2⟩,
+    use [T ∪ U, T' ∪ U'],
+    split,
+    apply set.union_subset hT hU,
+    split,
+    refine set.finite.union fT fU,
+    split,
+    apply set.union_subset hT' hU',
+    split,
+    refine set.finite.union fT' fU',
+    suffices f : x + y ∈ span B ((T * T') ∪ (U * U')),
+    {
+    have f' : ((T * T') ∪ (U * U')) ⊆ ((T ∪ U) * (T' ∪ U')),
+    simp,
+    have f1T : T ⊆ T ∪ U := by simp,
+    have f1T' : T' ⊆ T' ∪ U' := by simp,
+    have f1U : U ⊆ T ∪ U := by simp,
+    have f1U' : U' ⊆ T' ∪ U' := by simp,
+    split,
+    apply set.mul_subset_mul f1T f1T',
+    apply set.mul_subset_mul f1U f1U',
+    apply span_mono f' f,
+    },
+    rw span_union (T * T') (U * U'),
+    rw mem_sup,
+    use [x, h1, y, h2],
+  },
+  rintros a x ⟨T, T', h1, hT, h2, hT', h⟩,
+  use [T, T', h1, hT, h2, hT'],
+  refine smul_mem _ _ h,
 end

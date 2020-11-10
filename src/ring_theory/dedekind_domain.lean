@@ -226,7 +226,28 @@ end
 
 lemma one_coe : ((1 : fractional_ideal (fraction_ring.of A)) : submodule A (localization_map.codomain (fraction_ring.of A))) = submodule.span A {1} :=
 begin
-  sorry,
+  ext,
+  split,
+  {
+    rintros hx,
+    rw submodule.mem_span_singleton,
+    change x ∈ (1 : fractional_ideal(fraction_ring.of A)) at hx,
+    rw mem_one_iff at hx,
+    rcases hx with ⟨y, hy⟩,
+    use y,
+    rw <-hy,
+    rw <-algebra.algebra_map_eq_smul_one y,
+    simp,
+  },
+  rintros hx,
+  change x ∈ (1 : fractional_ideal(fraction_ring.of A)),
+  rw mem_one_iff,
+  rw submodule.mem_span_singleton at hx,
+  rcases hx with ⟨y, hy⟩,
+  use y,
+  rw <-hy,
+  rw <-algebra.algebra_map_eq_smul_one y,
+  simp,
 end
 
 lemma ideal_le_iff_frac_ideal_le (I J : ideal A) : I ≤ J ↔ (I : fractional_ideal (fraction_ring.of A)) ≤ (J : fractional_ideal (fraction_ring.of A)) :=
@@ -279,8 +300,15 @@ begin
       swap,
       exact A,
       rw submodule.span_eq at f'',
+      simp only [localization_map.lin_coe_apply, submodule.mem_map],
+      rintros gx,
+      have g' := f'' gx,
+      rw [hq, val_eq_coe] at g',
+      change x ∈ (s : fractional_ideal(fraction_ring.of A)) at g',
+      rw mem_coe at g',
+      rcases g' with ⟨y, hy, g''⟩,
+      use [y, hy, g''],
       --apply iff.rfl.1 f'',
-      sorry,
     },
     rintros f,
     have g'' := submodule.mem_span_singleton_self x,
@@ -303,9 +331,16 @@ begin
     },
     rw submodule.one_eq_span,
     have f2 : {x} ⊆ (q : set (localization_map.codomain (fraction_ring.of A))),
-    simp only [submodule.mem_coe, set.singleton_subset_iff],
+    {
+      simp only [submodule.mem_coe, set.singleton_subset_iff],
+      simp at f,
+      rw [hq, val_eq_coe],
+      change x ∈ (s : fractional_ideal(fraction_ring.of A)),
+      rw mem_coe,
+      rcases f with ⟨y, hy, g''⟩,
+      use [y, hy, g''],
     --assumption,
-    sorry,
+    },
     have f3 := submodule.span_mono f2,
     rw submodule.span_eq at f3,
     have h1T' := submodule.span_mono hT',
@@ -355,10 +390,9 @@ begin
   exact hq',
   simp at h'',
   rw [<-submodule.span_eq q, <-submodule.span_eq q'] at h'',
-  --use submodule.mem_span_mul_finite_of_mem_span_mul A _ _ _ 1 h'',
+  apply submodule.mem_span_mul_finite_of_mem_span_mul A _ _ _ 1 h'',
 end
 
-#exit
 lemma fg_is_frac_ideal (I : submodule A (localization_map.codomain (fraction_ring.of A))) : I.fg -> is_fractional (fraction_ring.of A) I :=
 fractional_of_fg
 
@@ -613,29 +647,25 @@ begin
   assumption,
 end
 
-theorem tp : is_dedekind_domain_inv A <-> is_dedekind_domain A :=
+theorem tp : is_dedekind_domain_inv A -> is_dedekind_domain A :=
 begin
+  rintros h,
   split,
   {
-    rintros h,
-    split,
-    {
-      apply h.1,
-    },
-    {
-      apply noeth,
-      assumption,
-    },
-    {
-      apply dim_le_one,
-      assumption,
-    },
-    {
-      apply int_close,
-      assumption,
-    },
+    apply h.1,
   },
-  sorry,
+  {
+    apply noeth,
+    assumption,
+  },
+  {
+    apply dim_le_one,
+    assumption,
+  },
+  {
+    apply int_close,
+    assumption,
+  },
 end
 
 end

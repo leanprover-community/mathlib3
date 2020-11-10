@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning and Patrick Lutz
 -/
 
-import field_theory.tower
 import field_theory.intermediate_field
 import field_theory.splitting_field
 import field_theory.fixed
@@ -358,9 +357,6 @@ lemma subsingleton_of_findim_adjoin_eq_one (h : ∀ x : E, findim F F⟮x⟯ = 1
   subsingleton (intermediate_field F E) :=
 subsingleton_of_bot_eq_top (bot_eq_top_of_findim_adjoin_eq_one h)
 
-instance [finite_dimensional F E] (K : intermediate_field F E) : finite_dimensional F K :=
-  finite_dimensional.finite_dimensional_submodule (K.to_subalgebra.to_submodule)
-
 /-- If `F⟮x⟯` has dimension `≤1` over `F` for every `x ∈ E` then `F = E`. -/
 lemma bot_eq_top_of_findim_adjoin_le_one [finite_dimensional F E]
   (h : ∀ x : E, findim F F⟮x⟯ ≤ 1) : (⊥ : intermediate_field F E) = ⊤ :=
@@ -378,10 +374,10 @@ end adjoin_intermediate_field_lattice
 
 section adjoin_integral_element
 
-variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (α : E)
-variables [h : fact (is_integral F α)]
+variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] {α : E}
+variables {K : Type*} [field K] [algebra F K]
 
-lemma min_poly_eval_gen_eq_zero :
+lemma min_poly_eval_gen_eq_zero (h : is_integral F α) :
   (minimal_polynomial h).eval₂ (algebra_map F F⟮α⟯) (adjoin_simple.gen F α) = 0 :=
 begin
   have comp : algebra_map F E = (algebra_map F⟮α⟯ E).comp (algebra_map F F⟮α⟯) := by { ext, refl },
@@ -394,12 +390,13 @@ begin
 end
 
 /-- algebra isomorphism between `adjoin_root` and `F⟮α⟯` -/
-noncomputable def adjoin_root_equiv_adjoin_simple : adjoin_root (minimal_polynomial h) ≃ₐ[F] F⟮α⟯ :=
+noncomputable def adjoin_root_equiv_adjoin (h : is_integral F α) :
+  adjoin_root (minimal_polynomial h) ≃ₐ[F] F⟮α⟯ :=
 alg_equiv.of_bijective (alg_hom.mk (adjoin_root.lift (algebra_map F F⟮α⟯)
   (adjoin_simple.gen F α) (@min_poly_eval_gen_eq_zero F  _ _ _ _ α h)) (ring_hom.map_one _)
   (λ x y, ring_hom.map_mul _ x y) (ring_hom.map_zero _) (λ x y, ring_hom.map_add _ x y)
   (by { exact λ _, adjoin_root.lift_of })) (begin
-    set f := adjoin_root.lift _ _ (min_poly_eval_gen_eq_zero F α),
+    set f := adjoin_root.lift _ _ (min_poly_eval_gen_eq_zero F h),
     haveI := minimal_polynomial.irreducible h,
     split,
     { exact ring_hom.injective f },
@@ -411,48 +408,46 @@ alg_equiv.of_bijective (alg_hom.mk (adjoin_root.lift (algebra_map F F⟮α⟯)
         ⟨subfield.mem_top (adjoin_root.root (minimal_polynomial h)),
         by { rw [ring_hom.comp_apply, adjoin_root.lift_root], refl }⟩⟩)) } end)
 
-instance finite_dimensional_adjoin_integral [h : fact (is_integral F α)] :
-  finite_dimensional F F⟮α⟯ :=
+lemma adjoin_root_equiv_adjoin_of_root (h : is_integral F α) : adjoin_root_equiv_adjoin F h
+  (adjoin_root.root (minimal_polynomial h)) = adjoin_simple.gen F α :=
 begin
-  haveI := minimal_polynomial.irreducible h,
-  haveI := adjoin_root.finite_dimensional (minimal_polynomial h) (minimal_polynomial.ne_zero h),
-  exact linear_equiv.finite_dimensional (adjoin_root_equiv_adjoin_simple F α).to_linear_equiv,
+  refine adjoin_root.lift_root,
+  { exact minimal_polynomial h },
+  { exact min_poly_eval_gen_eq_zero F h }
 end
 
-lemma findim_adjoin_integral [h : fact (is_integral F α)] :
-  findim F F⟮α⟯ = (minimal_polynomial h).nat_degree :=
+/-- Algebra homomorphism `F⟮α⟯ →ₐ[F] K` are in bijection with the set of roots
+of `minimal_polynomial α` in `K`. -/
+noncomputable def alg_hom_adjoin_integral_equiv (h : is_integral F α) :
+  (F⟮α⟯ →ₐ[F] K) ≃ {x // x ∈ ((minimal_polynomial h).map (algebra_map F K)).roots} :=
 begin
-  haveI := minimal_polynomial.irreducible h,
-  haveI := adjoin_root.finite_dimensional (minimal_polynomial h) (minimal_polynomial.ne_zero h),
-  have key1 := linear_equiv.findim_eq (adjoin_root_equiv_adjoin_simple F α).to_linear_equiv,
-  have key2 := adjoin_root.findim (minimal_polynomial h) (minimal_polynomial.ne_zero h),
-  exact eq.trans key1.symm key2,
-end
-
-lemma alg_hom_adjoin_integral (h_sep : (minimal_polynomial h).separable)
-  (h_splits : (minimal_polynomial h).splits (algebra_map F F⟮α⟯)) :
-  fintype.card (F⟮α⟯ →ₐ[F] F⟮α⟯) = (minimal_polynomial h).nat_degree :=
-begin
-  have ϕ := adjoin_root_equiv_adjoin_simple F α,
-  have swap1 : (F⟮α⟯ →ₐ[F] F⟮α⟯) ≃
-    (adjoin_root (minimal_polynomial h) →ₐ[F] F⟮α⟯) :=
+  have ϕ := adjoin_root_equiv_adjoin F h,
+  have swap1 : (F⟮α⟯ →ₐ[F] K) ≃ (adjoin_root (minimal_polynomial h) →ₐ[F] K) :=
   { to_fun := λ f, f.comp (ϕ.to_alg_hom),
     inv_fun := λ f, f.comp (ϕ.symm.to_alg_hom),
     left_inv := λ _, by { ext, simp only [alg_equiv.coe_alg_hom,
       alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply, alg_equiv.apply_symm_apply]},
     right_inv := λ _, by { ext, simp only [alg_equiv.symm_apply_apply,
       alg_equiv.coe_alg_hom, alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply] } },
-  have swap2 := adjoin_root.equiv F F⟮α⟯ (minimal_polynomial h) (minimal_polynomial.ne_zero h),
-  rw [fintype.card_congr (swap1.trans swap2), polynomial.nat_degree_eq_card_roots h_splits,
-      fintype.card_coe, multiset.to_finset_card_of_nodup],
-  exact polynomial.nodup_roots ((polynomial.separable_map (algebra_map F F⟮α⟯)).mpr h_sep),
+  have swap2 := adjoin_root.equiv F K (minimal_polynomial h) (minimal_polynomial.ne_zero h),
+  exact swap1.trans swap2,
 end
 
-lemma alg_equiv_adjoin_integral (h_separable : (minimal_polynomial h).separable)
-  (h_splits : (minimal_polynomial h).splits (algebra_map F F⟮α⟯)) :
-  fintype.card (F⟮α⟯ ≃ₐ[F] F⟮α⟯) = (minimal_polynomial h).nat_degree :=
-eq.trans (fintype.card_congr (alg_equiv_equiv_alg_hom F F⟮α⟯))
-  (@alg_hom_adjoin_integral F _ _ _ _ α h h_separable h_splits)
+noncomputable def fintype_of_alg_hom_adjoin_integral (h : is_integral F α) :
+  fintype (F⟮α⟯ →ₐ[F] K) :=
+fintype.of_equiv _ (alg_hom_adjoin_integral_equiv F h).symm
+
+lemma alg_hom_adjoin_integral (h : is_integral F α) (h_sep : (minimal_polynomial h).separable)
+  (h_splits : (minimal_polynomial h).splits (algebra_map F K)) :
+  @fintype.card (F⟮α⟯ →ₐ[F] K) (fintype_of_alg_hom_adjoin_integral F h) =
+  (minimal_polynomial h).nat_degree :=
+begin
+  let s := ((minimal_polynomial h).map (algebra_map F K)).roots.to_finset,
+  have H := λ x, multiset.mem_to_finset,
+  rw [fintype.card_congr (alg_hom_adjoin_integral_equiv F h), fintype.card_of_subtype s H,
+      polynomial.nat_degree_eq_card_roots h_splits, multiset.to_finset_card_of_nodup],
+  exact polynomial.nodup_roots ((polynomial.separable_map (algebra_map F K)).mpr h_sep),
+end
 
 end adjoin_integral_element
 

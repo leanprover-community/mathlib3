@@ -416,7 +416,7 @@ def alg_equiv.adjoin_singleton_equiv_adjoin_root_minimal_polynomial
   algebra.adjoin F ({x} : set R) ≃ₐ[F] adjoin_root (minimal_polynomial hx) :=
 alg_equiv.symm $ alg_equiv.of_bijective
   (alg_hom.cod_restrict
-    (adjoin_root.alg_hom _ x $ minimal_polynomial.aeval hx) _
+    (adjoin_root.lift_hom _ x $ minimal_polynomial.aeval hx) _
     (λ p, adjoin_root.induction_on _ p $ λ p,
       (algebra.adjoin_singleton_eq_range F x).symm ▸ (polynomial.aeval _).mem_range.mpr ⟨p, rfl⟩))
   ⟨(alg_hom.injective_cod_restrict _ _ _).2 $ (alg_hom.injective_iff _).2 $ λ p,
@@ -456,7 +456,7 @@ begin
     { rw ← is_scalar_tower.algebra_map_eq, exact H2 },
     { rw [← is_scalar_tower.aeval_apply, minimal_polynomial.aeval H1] } },
   obtain ⟨y, hy⟩ := polynomial.exists_root_of_splits _ H6 (minimal_polynomial.degree_ne_zero H5),
-  exact ⟨subalgebra.of_under _ _ $ (adjoin_root.alg_hom (minimal_polynomial H5) y hy).comp $
+  exact ⟨subalgebra.of_under _ _ $ (adjoin_root.lift_hom (minimal_polynomial H5) y hy).comp $
     alg_equiv.adjoin_singleton_equiv_adjoin_root_minimal_polynomial _ _ H5⟩
 end
 

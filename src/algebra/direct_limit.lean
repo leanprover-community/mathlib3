@@ -348,7 +348,7 @@ section
 open_locale classical
 open polynomial
 
-variables (f' : Π i j, i ≤ j → G i →+* G j)
+variables {f' : Π i j, i ≤ j → G i →+* G j}
 
 theorem polynomial.exists_of [nonempty ι] (q : polynomial (direct_limit G (λ i j h, f' i j h))) :
   ∃ i p, polynomial.map (of G (λ i j h, f' i j h) i) p = q :=

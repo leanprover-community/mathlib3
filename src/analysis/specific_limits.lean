@@ -90,7 +90,7 @@ lemma uniformity_basis_dist_pow_of_lt_1 {α : Type*} [metric_space α]
   {r : ℝ} (h₀ : 0 < r) (h₁ : r < 1) :
   (𝓤 α).has_basis (λ k : ℕ, true) (λ k, {p : α × α | dist p.1 p.2 < r ^ k}) :=
 metric.mk_uniformity_basis (λ i _, pow_pos h₀ _) $ λ ε ε0,
-  (exists_pow_lt_of_lt_1 ε0 h₀.le h₁).imp $ λ k hk, ⟨trivial, hk.le⟩
+  (exists_pow_lt_of_lt_one ε0 h₁).imp $ λ k hk, ⟨trivial, hk.le⟩
 
 lemma geom_lt {u : ℕ → ℝ} {k : ℝ} (hk : 0 < k) {n : ℕ} (h : ∀ m ≤ n, k*u m < u (m + 1)) :
   k^(n + 1) *u 0 < u (n + 1) :=

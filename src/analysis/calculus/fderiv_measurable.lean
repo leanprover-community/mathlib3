@@ -36,7 +36,7 @@ differentiability set is measurable.
 To prove the claim, there are two inclusions. One is trivial: if the function is differentiable
 at `x`, then `x` belongs to `D` (just take `L` to be the derivative, and use that the
 differentiability exactly says that the map is well approximated by `L`). This is proved in
-`mem_A_of_differentiable` and `differentiable_subset_B`.
+`mem_A_of_differentiable` and `differentiable_subset_D`.
 
 For the other direction, the difficulty is that `L` in the union may depend on `ε, r, s`. The key
 point is that, in fact, it doesn't depend too much on them. First, if `x` belongs both to
@@ -54,8 +54,8 @@ It follows that the different approximating linear maps that show up form a Cauc
 `ε` tends to `0`. When the target space is complete, this sequence converges, to a limit `f'`.
 With the same kind of arguments, one checks that `f` is differentiable with derivative `f'`.
 
-To show that the derivative itself is differentiable, add in the definition of `B` and `D` a set
-`K` of continuous linear maps to which `L` should belong. Then, when `K` is closed, the set `D K`
+To show that the derivative itself is measurable, add in the definition of `B` and `D` a set
+`K` of continuous linear maps to which `L` should belong. Then, when `K` is complete, the set `D K`
 is exactly the set of points where `f` is differentiable with a derivative in `K`.
 -/
 
@@ -82,7 +82,7 @@ def B (f : E → F) (K : set (E →L[𝕜] F)) (r s ε : ℝ) : set E :=
 ⋃ (L ∈ K), (A f L r ε) ∩ (A f L s ε)
 
 /-- The set `D f K` is a complicated set constructed using countable intersections and unions. Its
-main use is that, when `K` is closed, it is exactly the set of points where `f` is differentiable,
+main use is that, when `K` is complete, it is exactly the set of points where `f` is differentiable,
 with a derivative in `K`. -/
 def D (f : E → F) (K : set (E →L[𝕜] F)) : set E :=
 ⋂ (e : ℕ), ⋃ (n : ℕ), ⋂ (p ≥ n) (q ≥ n), B f K ((1/2) ^ p) ((1/2) ^ q) ((1/2) ^ e)
@@ -202,8 +202,8 @@ begin
 end
 
 /-- Hard inclusion: at a point in `D f K`, the function `f` has a derivative, in `K`. -/
-lemma D_subset_differentiable [complete_space F]:
-  D f K ⊆ {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ closure K} :=
+lemma D_subset_differentiable {K : set (E →L[𝕜] F)} (hK : is_complete K) :
+  D f K ⊆ {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ K} :=
 begin
   have P : ∀ {n : ℕ}, (0 : ℝ) < (1/2) ^ n := pow_pos (by norm_num),
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
@@ -218,7 +218,7 @@ begin
     simp only [mem_Inter, ge_iff_le] at hn,
     rcases mem_Union.1 (hn p hp q hq) with ⟨L, hL⟩,
     exact ⟨L, mem_Union.1 hL⟩, },
-  /- Recast the assumptions: for each `e`, there exist `n e` and linear maps `L e p q`
+  /- Recast the assumptions: for each `e`, there exist `n e` and linear maps `L e p q` in `K`
   such that, for `p, q ≥ n e`, then `f` is well approximated by `L e p q` at scale `2 ^ (-p)` and
   `2 ^ (-q)`, with an error `2 ^ (-e)`. -/
   choose! n L hn using this,
@@ -229,7 +229,7 @@ begin
   have : cauchy_seq L0,
   { rw cauchy_seq_iff',
     assume ε εpos,
-    obtain ⟨e, he⟩ : ∃ (e : ℕ), (1/2) ^ e < ε / (12 * ∥c∥):=
+    obtain ⟨e, he⟩ : ∃ (e : ℕ), (1/2) ^ e < ε / (12 * ∥c∥) :=
       exists_nat_pow_lt (div_pos εpos (mul_pos (by norm_num) cpos)) (by norm_num),
     use e,
     set δ : ℝ := (1/2) ^ e with hδ,
@@ -239,9 +239,9 @@ begin
     have δ'le : δ' ≤ δ := pow_le_pow_of_le_one (by norm_num) (by norm_num) he',
     let p := max (n e) (n e'),
     /- To show that `L0 e` and `L0 e'` are close, argue that `L0 e` is close to `L e (n e) p`
-    (where `p` is large enough), as both approach `f` at scale `2 ^(- n e)`. And `L e (n e) p`
-    is close to `L e' (n e') p` as both approach `f` at scale `2 ^ (-p)`. And `L e' (n e') p` is
-    close to `L0 e'` as both approach `f` at scale `2 ^ (- n e')`. -/
+    (where `p` is large enough), as both approximate `f` at scale `2 ^(- n e)`. And `L e (n e) p`
+    is close to `L e' (n e') p` as both approximate `f` at scale `2 ^ (-p)`. And `L e' (n e') p` is
+    close to `L0 e'` as both approximate `f` at scale `2 ^ (- n e')`. -/
     have J1 : ∥L0 e - L e (n e) p∥ ≤ 4 * ∥c∥ * δ,
     { have I1 : x ∈ A f (L0 e) ((1 / 2) ^ (n e)) δ :=
         (hn e (n e) (n e) (le_refl _) (le_refl _)).2.1,
@@ -276,20 +276,15 @@ begin
       ... = ε :
         by { field_simp [(by norm_num : (12 : ℝ) ≠ 0), ne_of_gt cpos], ring } },
   /- As it is Cauchy, the sequence `L0` converges, to a limit `f'`.-/
-  obtain ⟨f', hf'⟩ : ∃ f' : E →L[𝕜] F, tendsto L0 at_top (𝓝 f') :=
-    cauchy_seq_tendsto_of_complete this,
-  have f'K : f' ∈ closure K,
-  { apply mem_closure_of_tendsto hf',
-    apply eventually_of_forall (λ e, _),
-    exact (hn e (n e) (n e) (le_refl _) (le_refl _)).1 },
+  obtain ⟨f', f'K, hf'⟩ : ∃ f' ∈ K, tendsto L0 at_top (𝓝 f') :=
+    cauchy_seq_tendsto_of_is_complete hK (λ e, (hn e (n e) (n e) (le_refl _) (le_refl _)).1) this,
   /- We will show that `f` has derivative `f'` at `x`. -/
   have : has_fderiv_at f f' x,
   { simp only [has_fderiv_at_iff_is_o_nhds_zero, is_o_iff],
     /- to get an approximation with a precision `ε`, we will use `L0 e` for large enough (but fixed)
     `e`, and then argue that it works as an approximation at any scale `2 ^ (-k)` as it is close to
     `L e (n e) k` which, by definition, is a good approximation at scale `k`. Both linear maps are
-    close as they are close on a shell of size `2 ^ (-n e)`, by definition.
-    -/
+    close as they are close on a shell of size `2 ^ (-n e)`, by definition. -/
     assume ε εpos,
     have pos : 0 < 8 + 8 * ∥c∥ :=
       add_pos_of_pos_of_nonneg (by norm_num) (mul_nonneg (by norm_num) (norm_nonneg _)),
@@ -372,23 +367,19 @@ begin
   exact ⟨this.differentiable_at, f'K⟩
 end
 
-theorem differentiable_eq_D [complete_space F] (hK : is_closed K) :
+theorem differentiable_eq_D (hK : is_complete K) :
   {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ K} = D f K :=
-begin
-  apply subset.antisymm (differentiable_subset_D _),
-  conv_rhs { rw hK.closure_eq.symm },
-  exact D_subset_differentiable _
-end
+subset.antisymm (differentiable_subset_D _) (D_subset_differentiable hK)
 
 end fderiv_measurable_aux
 
 open fderiv_measurable_aux
 
-/-- The set of differentiability points of a function taking values in a complete space, with
-derivative in a given closed set, is Borel-measurable. -/
-theorem is_measurable_differentiable_of_is_closed
-  [complete_space F] [measurable_space E] [opens_measurable_space E]
-  (f : E → F) {K : set (E →L[𝕜] F)} (hK : is_closed K):
+/-- The set of differentiability points of a function, with derivative in a given complete set,
+is Borel-measurable. -/
+theorem is_measurable_differentiable_of_is_complete
+  [measurable_space E] [opens_measurable_space E]
+  (f : E → F) {K : set (E →L[𝕜] F)} (hK : is_complete K) :
   is_measurable {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ K} :=
 begin
   rw differentiable_eq_D K hK,
@@ -402,13 +393,13 @@ begin
   apply is_open_B
 end
 
-/-- The set of differentiability points of a function taking values in a complete space, with
-derivative in a given closed set, is Borel-measurable. -/
+/-- The set of differentiability points of a function taking values in a complete space is
+Borel-measurable. -/
 theorem is_measurable_differentiable
   [complete_space F] [measurable_space E] [opens_measurable_space E] (f : E → F) :
   is_measurable {x | differentiable_at 𝕜 f x} :=
 begin
-  have : is_closed (univ : set (E →L[𝕜] F)) := is_closed_univ,
-  convert is_measurable_differentiable_of_is_closed f this,
+  have : is_complete (univ : set (E →L[𝕜] F)) := complete_univ,
+  convert is_measurable_differentiable_of_is_complete f this,
   simp
 end

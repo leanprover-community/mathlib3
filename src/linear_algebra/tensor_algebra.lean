@@ -61,7 +61,7 @@ def tensor_algebra := ring_quot (tensor_algebra.rel R M)
 namespace tensor_algebra
 
 instance {S : Type*} [comm_ring S] [semimodule S M] : ring (tensor_algebra S M) :=
-ring_quot.ring _
+ring_quot.ring (rel S M)
 
 variables {M}
 /--
@@ -103,7 +103,10 @@ begin
   refl,
 end
 
-attribute [irreducible] tensor_algebra ι lift
+-- Marking `tensor_algebra` irreducible makes `ring` instances inaccessible on quotients.
+-- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/algebra.2Esemiring_to_ring.20breaks.20semimodule.20typeclass.20lookup/near/212580241
+-- For now, we avoid this by not marking it irreducible.
+attribute [irreducible] ι lift
 
 @[simp]
 theorem lift_comp_ι {A : Type*} [semiring A] [algebra R A] (g : tensor_algebra R M →ₐ[R] A) :

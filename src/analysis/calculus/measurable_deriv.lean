@@ -1,5 +1,26 @@
+/-
+Copyright (c) 2020 Yury Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Yury Kudryashov
+-/
 import analysis.calculus.deriv
 import measure_theory.borel_space
+
+/-!
+# Derivative is measurable
+
+In this file we prove that the derivative of any function with complete codomain is a measurable
+function. Namely, we prove:
+
+* `is_measurable_set_of_differentiable_at`: the set `{x | differentiable_at 𝕜 f x}` is measurable;
+* `measurable_fderiv`: the function `fderiv 𝕜 f` is measurable;
+* `measurable_fderiv_apply`: for a fixed vector `y`, the function `λ x, fderiv 𝕜 f x y` is measurable;
+* `measurable_deriv`: the function `deriv f` is measurable.
+
+## Tags
+
+derivative, measurable function, Borel σ-algebra
+-/
 
 noncomputable theory
 
@@ -39,6 +60,10 @@ end continuous_linear_map
 variables {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜] [normed_group E] [normed_space 𝕜 E]
   [normed_group F] [normed_space 𝕜 F] {f : E → F} {f' g' : E →L[𝕜] F} {x : E} {r R ε : ℝ}
 
+/-- A function `f` has an approximate derivative `f'` in the shell `r ≤ dist y x < R` with accuracy
+`ε` if for each `y` in this shell we have `∥f y - f x - f' (y - x)∥ ≤ ε * ∥y - x∥`.
+
+This is an auxiliary definition for the proof of measurability of `fderiv 𝕜 f`. -/
 def has_approx_fderiv_at_in_shell (f : E → F) (f' : E →L[𝕜] F) (x : E) (r R ε : ℝ) :=
 ∀ y, r ≤ dist y x → dist y x < R → ∥f y - f x - f' (y - x)∥ ≤ ε * ∥y - x∥
 

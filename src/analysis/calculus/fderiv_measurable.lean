@@ -250,80 +250,77 @@ begin
   such that, for `p, q ≥ n e`, then `f` is well approximated by `L e p q` at scale `2 ^ (-p)` and
   `2 ^ (-q)`, with an error `2 ^ (-e)`. -/
   choose! n L hn using this,
-  /- We will show that all the `L e p q` are close to each other when `e` is large enough. For
-  definiteness, use `L0 e = L e (n e) (n e)`, to have a single sequence. We claim that this is
-  a Cauchy sequence. -/
+  /- All the operators `L e p q` that show up are close to each other. To prove this, we argue
+    that `L e p q` is close to `L e p r` (where `r` is large enough), as both approximate `f` at
+    scale `2 ^(- p)`. And `L e p r` is close to `L e' p' r` as both approximate `f` at scale
+    `2 ^ (- r)`. And `L e' p' r` is close to `L e' p' q'` as both approximate `f` at scale
+    `2 ^ (- p')`. -/
+  have M : ∀ e p q e' p' q', n e ≤ p → n e ≤ q → n e' ≤ p' → n e' ≤ q' → e ≤ e' →
+    ∥L e p q - L e' p' q'∥ ≤ 12 * ∥c∥ * (1/2) ^ e,
+  { assume e p q e' p' q' hp hq hp' hq' he',
+    let r := max (n e) (n e'),
+    have I : ((1:ℝ)/2)^e' ≤ (1/2)^e := pow_le_pow_of_le_one (by norm_num) (by norm_num) he',
+    have J1 : ∥L e p q - L e p r∥ ≤ 4 * ∥c∥ * (1/2)^e,
+    { have I1 : x ∈ A f (L e p q) ((1 / 2) ^ p) ((1/2)^e) :=
+        (hn e p q hp hq).2.1,
+      have I2 : x ∈ A f (L e p r) ((1 / 2) ^ p) ((1/2)^e) :=
+        (hn e p r hp (le_max_left _ _)).2.1,
+      exact norm_sub_le_of_mem_A hc P P I1 I2 },
+    have J2 : ∥L e p r - L e' p' r∥ ≤ 4 * ∥c∥ * (1/2)^e,
+    { have I1 : x ∈ A f (L e p r) ((1 / 2) ^ r) ((1/2)^e) :=
+        (hn e p r hp (le_max_left _ _)).2.2,
+      have I2 : x ∈ A f (L e' p' r) ((1 / 2) ^ r) ((1/2)^e') :=
+        (hn e' p' r hp' (le_max_right _ _)).2.2,
+      exact norm_sub_le_of_mem_A hc P P I1 (A_mono _ _ I I2) },
+    have J3 : ∥L e' p' r - L e' p' q'∥ ≤ 4 * ∥c∥ * (1/2)^e,
+    { have I1 : x ∈ A f (L e' p' r) ((1 / 2) ^ p') ((1/2)^e') :=
+        (hn e' p' r hp' (le_max_right _ _)).2.1,
+      have I2 : x ∈ A f (L e' p' q') ((1 / 2) ^ p') ((1/2)^e') :=
+        (hn e' p' q' hp' hq').2.1,
+      exact norm_sub_le_of_mem_A hc P P (A_mono _ _ I I1) (A_mono _ _ I I2) },
+    calc ∥L e p q - L e' p' q'∥
+          = ∥(L e p q - L e p r) + (L e p r - L e' p' r) + (L e' p' r - L e' p' q')∥ :
+        by { congr' 1, abel }
+      ... ≤ ∥L e p q - L e p r∥ + ∥L e p r - L e' p' r∥ + ∥L e' p' r - L e' p' q'∥ :
+        le_trans (norm_add_le _ _) (add_le_add_right (norm_add_le _ _) _)
+      ... ≤ 4 * ∥c∥ * (1/2)^e + 4 * ∥c∥ * (1/2)^e + 4 * ∥c∥ * (1/2)^e :
+        by apply_rules [add_le_add]
+      ... = 12 * ∥c∥ * (1/2)^e : by ring },
+  /- For definiteness, use `L0 e = L e (n e) (n e)`, to have a single sequence. We claim that this
+  is a Cauchy sequence. -/
   let L0 : ℕ → (E →L[𝕜] F) := λ e, L e (n e) (n e),
   have : cauchy_seq L0,
   { rw cauchy_seq_iff',
     assume ε εpos,
     obtain ⟨e, he⟩ : ∃ (e : ℕ), (1/2) ^ e < ε / (12 * ∥c∥) :=
       exists_pow_lt_of_lt_one (div_pos εpos (mul_pos (by norm_num) cpos)) (by norm_num),
-    use e,
-    set δ : ℝ := (1/2) ^ e with hδ,
-    assume e' he',
-    rw [ge_iff_le] at he',
-    set δ' : ℝ := (1/2) ^ e' with hδ',
-    have δ'le : δ' ≤ δ := pow_le_pow_of_le_one (by norm_num) (by norm_num) he',
-    let p := max (n e) (n e'),
-    /- To show that `L0 e` and `L0 e'` are close, argue that `L0 e` is close to `L e (n e) p`
-    (where `p` is large enough), as both approximate `f` at scale `2 ^(- n e)`. And `L e (n e) p`
-    is close to `L e' (n e') p` as both approximate `f` at scale `2 ^ (-p)`. And `L e' (n e') p` is
-    close to `L0 e'` as both approximate `f` at scale `2 ^ (- n e')`. -/
-    have J1 : ∥L0 e - L e (n e) p∥ ≤ 4 * ∥c∥ * δ,
-    { have I1 : x ∈ A f (L0 e) ((1 / 2) ^ (n e)) δ :=
-        (hn e (n e) (n e) (le_refl _) (le_refl _)).2.1,
-      have I2 : x ∈ A f (L e (n e) p) ((1 / 2) ^ (n e)) δ :=
-        (hn e (n e) p (le_refl _) (le_max_left _ _)).2.1,
-      exact norm_sub_le_of_mem_A hc P P I1 I2 },
-    have J2 : ∥L e' (n e') p - L0 e'∥ ≤ 4 * ∥c∥ * δ,
-    { have I1 : x ∈ A f (L0 e') ((1 / 2) ^ (n e')) δ' :=
-        (hn e' (n e') (n e') (le_refl _) (le_refl _)).2.1,
-      have I2 : x ∈ A f (L e' (n e') p) ((1 / 2) ^ (n e')) δ' :=
-        (hn e' (n e') p (le_refl _) (le_max_right _ _)).2.1,
-      exact norm_sub_le_of_mem_A hc P P
-        (A_mono _ _ δ'le I2) (A_mono _ _ δ'le I1) },
-    have J3 : ∥L e (n e) p - L e' (n e') p∥ ≤ 4 * ∥c∥ * δ,
-    { have I1 : x ∈ A f (L e (n e) p) ((1 / 2) ^ p) δ :=
-        (hn e (n e) p (le_refl _) (le_max_left _ _)).2.2,
-      have I2 : x ∈ A f (L e' (n e') p) ((1 / 2) ^ p) δ' :=
-        (hn e' (n e') p (le_refl _) (le_max_right _ _)).2.2,
-      exact norm_sub_le_of_mem_A hc P P I1 (A_mono _ _ δ'le I2) },
+    refine ⟨e, λ e' he', _⟩,
     rw [dist_comm, dist_eq_norm],
-    calc
-      ∥L0 e - L0 e'∥
-          = ∥(L0 e - L e (n e) p) + (L e (n e) p - L e' (n e') p) + (L e' (n e') p - L0 e')∥ :
-        by { congr' 1, abel }
-      ... ≤ ∥L0 e - L e (n e) p∥ + ∥L e (n e) p - L e' (n e') p∥ + ∥L e' (n e') p - L0 e'∥ :
-        le_trans (norm_add_le _ _) (add_le_add_right (norm_add_le _ _) _)
-      ... ≤ 4 * ∥c∥ * δ + 4 * ∥c∥ * δ + 4 * ∥c∥ * δ :
-        by apply_rules [add_le_add]
-      ... = 12 * ∥c∥ * δ : by ring
+    calc ∥L0 e - L0 e'∥
+          ≤ 12 * ∥c∥ * (1/2)^e : M _ _ _ _ _ _ (le_refl _) (le_refl _) (le_refl _) (le_refl _) he'
       ... < 12 * ∥c∥ * (ε / (12 * ∥c∥)) :
         mul_lt_mul' (le_refl _) he (le_of_lt P) (mul_pos (by norm_num) cpos)
-      ... = ε :
-        by { field_simp [(by norm_num : (12 : ℝ) ≠ 0), ne_of_gt cpos], ring } },
+      ... = ε : by { field_simp [(by norm_num : (12 : ℝ) ≠ 0), ne_of_gt cpos], ring } },
   /- As it is Cauchy, the sequence `L0` converges, to a limit `f'` in `K`.-/
   obtain ⟨f', f'K, hf'⟩ : ∃ f' ∈ K, tendsto L0 at_top (𝓝 f') :=
     cauchy_seq_tendsto_of_is_complete hK (λ e, (hn e (n e) (n e) (le_refl _) (le_refl _)).1) this,
+  have Lf' : ∀ e p, n e ≤ p → ∥L e (n e) p - f'∥ ≤ 12 * ∥c∥ * (1/2)^e,
+  { assume e p hp,
+    apply le_of_tendsto (tendsto_const_nhds.sub hf').norm,
+    rw eventually_at_top,
+    exact ⟨e, λ e' he', M _ _ _ _ _ _ (le_refl _) hp (le_refl _) (le_refl _) he'⟩ },
   /- Let us show that `f` has derivative `f'` at `x`. -/
   have : has_fderiv_at f f' x,
   { simp only [has_fderiv_at_iff_is_o_nhds_zero, is_o_iff],
-    /- to get an approximation with a precision `ε`, we will use `L0 e` for large enough (but fixed)
-    `e`, and then argue that it works as an approximation at any scale `2 ^ (-k)` as it is close to
-    `L e (n e) k` which, by definition, is a good approximation at scale `k`. Both linear maps are
-    close as they are close on a shell of size `2 ^ (-n e)`, by definition. -/
+    /- to get an approximation with a precision `ε`, we will replace `f` with `L e (n e) m` for
+    some large enough `e` (yielding a small error by uniform approximation). As one can vary `m`,
+    this makes it possible to cover all scales, and thus to obtain a good linear approximation in
+    the whole ball of radius `(1/2)^(n e)`. -/
     assume ε εpos,
-    have pos : 0 < 8 + 8 * ∥c∥ :=
+    have pos : 0 < 4 + 12 * ∥c∥ :=
       add_pos_of_pos_of_nonneg (by norm_num) (mul_nonneg (by norm_num) (norm_nonneg _)),
-    obtain ⟨e, he⟩ : ∃ (e : ℕ), ∥L0 e - f'∥ < ε / 2 ∧ (1 / 2) ^ e < ε / (8 + 8 * ∥c∥) :=
-    begin
-      have E₁ := (tendsto_order.1 (tendsto_iff_norm_tendsto_zero.1 hf')).2 (ε/2) (half_pos εpos),
-      have : tendsto (λ (n : ℕ), ((1 : ℝ)/2)^n) at_top (𝓝 0) :=
-        tendsto_pow_at_top_nhds_0_of_lt_1 (by norm_num) (by norm_num),
-      have E₂ := (tendsto_order.1 this).2 _ (div_pos εpos pos),
-      exact (E₁.and E₂).exists
-    end,
+    obtain ⟨e, he⟩ : ∃ (e : ℕ), (1 / 2) ^ e < ε / (4 + 12 * ∥c∥) :=
+      exists_pow_lt_of_lt_one (div_pos εpos pos) (by norm_num),
     rw eventually_nhds_iff_ball,
     refine ⟨(1/2) ^ (n e + 1), P, λ y hy, _⟩,
     -- We need to show that `f (x + y) - f x - f' y` is small. For this, we will work at scale
@@ -362,34 +359,20 @@ begin
       ... = 4 * (1/2) ^ e * (1/2) ^ (m + 2) : by { field_simp, ring_exp }
       ... ≤ 4 * (1/2) ^ e * ∥y∥ :
         mul_le_mul_of_nonneg_left (le_of_lt hk) (mul_nonneg (by norm_num) (le_of_lt P)),
-    -- The operator `L e (n e) m` is close to `L0`, as they are close on a shell of
-    -- scale `2 ^ (- n e)`.
-    have J3 : ∥L e (n e) m - L0 e∥ ≤ 4 * ∥c∥ * (1/2)^e,
-    { have I1 : x ∈ A f (L0 e) ((1 / 2) ^ (n e)) ((1/2)^e) :=
-        (hn e (n e) (n e) (le_refl _) (le_refl _)).2.1,
-      have I2 : x ∈ A f (L e (n e) m) ((1 / 2) ^ (n e)) ((1/2)^e) :=
-        (hn e (n e) m (le_refl _) m_ge).2.1,
-      exact norm_sub_le_of_mem_A hc P P I2 I1, },
-    -- combine all the previous estimates to see that `f (x + y) - f x - f' y` is small.
+    -- use the previous estimates to see that `f (x + y) - f x - f' y` is small.
     calc ∥f (x + y) - f x - f' y∥
-    = ∥(f (x + y) - f x - L e (n e) m y) + (L e (n e) m - L0 e) y + (L0 e - f') y∥ :
+        = ∥(f (x + y) - f x - L e (n e) m y) + (L e (n e) m - f') y∥ :
       by { congr' 1, simp, abel }
-    ... ≤ ∥f (x + y) - f x - L e (n e) m y∥ + ∥(L e (n e) m - L0 e) y∥ + ∥(L0 e - f') y∥ :
-      le_trans (norm_add_le _ _) (add_le_add_right (norm_add_le _ _) _)
-    ... ≤ 4 * (1/2) ^ e * ∥y∥ + 4 * ∥c∥ * (1/2) ^ e * ∥y∥ + (ε / 2) * ∥y∥ :
-      begin
-        apply add_le_add (add_le_add J2 _) _,
-        { exact le_trans (le_op_norm _ _) (mul_le_mul_of_nonneg_right J3 (norm_nonneg _)) },
-        { exact le_trans (le_op_norm _ _) (mul_le_mul_of_nonneg_right he.1.le (norm_nonneg _)) }
-      end
-    ... = (4 + 4 * ∥c∥) * ∥y∥ * (1/2) ^ e + (ε / 2) * ∥y∥ : by ring
-    ... ≤ (4 + 4 * ∥c∥) * ∥y∥ * (ε / (8 + 8 * ∥c∥)) + (ε / 2) * ∥y∥ :
-      begin
-        apply add_le_add_right,
-        apply mul_le_mul_of_nonneg_left (le_of_lt he.2),
-        exact mul_nonneg (add_nonneg (by norm_num) (mul_nonneg (by norm_num) (norm_nonneg _)))
-          (norm_nonneg _)
-      end
+    ... ≤ ∥f (x + y) - f x - L e (n e) m y∥ + ∥(L e (n e) m - f') y∥ :
+      norm_add_le _ _
+    ... ≤ 4 * (1/2) ^ e * ∥y∥ + 12 * ∥c∥ * (1/2) ^ e * ∥y∥ :
+      add_le_add J2
+        (le_trans (le_op_norm _ _) (mul_le_mul_of_nonneg_right (Lf' _ _ m_ge) (norm_nonneg _)))
+    ... = (4 + 12 * ∥c∥) * ∥y∥ * (1/2) ^ e : by ring
+    ... ≤ (4 + 12 * ∥c∥) * ∥y∥ * (ε / (4 + 12 * ∥c∥)) :
+      mul_le_mul_of_nonneg_left he.le
+        (mul_nonneg (add_nonneg (by norm_num) (mul_nonneg (by norm_num) (norm_nonneg _)))
+          (norm_nonneg _))
     ... = ε * ∥y∥ : by { field_simp [ne_of_gt pos], ring } },
   rw ← this.fderiv at f'K,
   exact ⟨this.differentiable_at, f'K⟩

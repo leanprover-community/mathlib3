@@ -1,19 +1,23 @@
 /-
 Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sébastien Gouëzel
+Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 
-import analysis.calculus.fderiv
+import analysis.calculus.deriv
 import measure_theory.borel_space
 
 /-!
-# Measurability of the derivative
+# Derivative is measurable
 
-Consider a function between `𝕜`-vector spaces, where the target space is complete. We prove that
-the set of its differentiability points is Borel-measurable, in `is_measurable_differentiable`.
-We also show that the derivative itself (defined to be `0` where the function is not differentiable)
-is measurable.
+In this file we prove that the derivative of any function with complete codomain is a measurable
+function. Namely, we prove:
+
+* `is_measurable_set_of_differentiable_at`: the set `{x | differentiable_at 𝕜 f x}` is measurable;
+* `measurable_fderiv`: the function `fderiv 𝕜 f` is measurable;
+* `measurable_fderiv_apply`: for a fixed vector `y`, the function `λ x, fderiv 𝕜 f x y`
+  is measurable;
+* `measurable_deriv`: the function `deriv f` is measurable.
 
 ## Implementation
 
@@ -59,13 +63,46 @@ To show that the derivative itself is measurable, add in the definition of `B` a
 is exactly the set of points where `f` is differentiable with a derivative in `K`.
 -/
 
+noncomputable theory
+
+open set metric asymptotics filter continuous_linear_map
+open topological_space (second_countable_topology)
+open_locale topological_space
+
+namespace continuous_linear_map
+
+variables {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜]
+  [normed_group E] [normed_space 𝕜 E] [normed_group F] [normed_space 𝕜 F]
+
+instance : measurable_space (E →L[𝕜] F) := borel _
+
+instance : borel_space (E →L[𝕜] F) := ⟨rfl⟩
+
+lemma measurable_apply [measurable_space F] [borel_space F] (x : E) :
+  measurable (λ f : E →L[𝕜] F, f x) :=
+(apply 𝕜 F x).continuous.measurable
+
+lemma measurable_apply' [measurable_space E] [opens_measurable_space E]
+  [measurable_space F] [borel_space F] :
+  measurable (λ (x : E) (f : E →L[𝕜] F), f x) :=
+measurable_pi_lambda _ $ λ f, f.measurable
+
+lemma measurable_apply₂ [measurable_space E] [opens_measurable_space E]
+  [second_countable_topology E] [second_countable_topology (E →L[𝕜] F)]
+  [measurable_space F] [borel_space F] :
+  measurable (λ p : (E →L[𝕜] F) × E, p.1 p.2) :=
+is_bounded_bilinear_map_apply.continuous.measurable
+
+lemma measurable_coe [measurable_space F] [borel_space F] :
+  measurable (λ (f : E →L[𝕜] F) (x : E), f x) :=
+measurable_pi_lambda _ measurable_apply
+
+end continuous_linear_map
+
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
 variables {f : E → F} (K : set (E →L[𝕜] F))
-
-open set metric asymptotics filter continuous_linear_map
-open_locale topological_space
 
 namespace fderiv_measurable_aux
 
@@ -149,7 +186,7 @@ begin
     (mul_nonneg (mul_nonneg (by norm_num : (0 : ℝ) ≤ 4) (norm_nonneg _)) (le_of_lt hε)),
   assume y,
   by_cases hy : y = 0, { simp [hy] },
-  rcases rescale_to_shell hc (half_pos hr) hy with ⟨d, d_pos, dy_le, le_dy, dinv⟩,
+  rcases rescale_to_shell hc (half_pos hr) hy with ⟨d, d_pos, dy_lt, lt_dy, dinv⟩,
   have M : ∥(L₁ - L₂) (d • y)∥ ≤ 2 * ε * r := calc
     ∥(L₁ - L₂) (d • y)∥
         = ∥(f (x + d • y) - f x - L₂ ((x + d • y) - x))
@@ -161,10 +198,10 @@ begin
         apply add_le_add,
         { apply le_of_mem_A h₂,
           { simp only [le_of_lt (half_pos hr), mem_closed_ball, dist_self] },
-          { simp only [dist_eq_norm, add_sub_cancel', mem_closed_ball, dy_le] } },
+          { simp only [dist_eq_norm, add_sub_cancel', mem_closed_ball, dy_lt.le], } },
         { apply le_of_mem_A h₁,
           { simp only [le_of_lt (half_pos hr), mem_closed_ball, dist_self] },
-          { simp only [dist_eq_norm, add_sub_cancel', mem_closed_ball, dy_le] } },
+          { simp only [dist_eq_norm, add_sub_cancel', mem_closed_ball, dy_lt.le] } },
       end
     ... = 2 * ε * r : by ring,
   calc ∥(L₁ - L₂) y∥
@@ -190,7 +227,7 @@ begin
   have : (0 : ℝ) < (1/2) ^ e, by { apply pow_pos, norm_num },
   rcases mem_A_of_differentiable this hx.1 with ⟨R, R_pos, hR⟩,
   obtain ⟨n, hn⟩ : ∃ (n : ℕ), (1/2) ^ n < R :=
-    exists_nat_pow_lt R_pos (by norm_num : (1 : ℝ)/2 < 1),
+    exists_pow_lt_of_lt_one R_pos (by norm_num : (1 : ℝ)/2 < 1),
   apply mem_Union.2 ⟨n, _⟩,
   simp only [mem_Inter],
   assume p hp q hq,
@@ -230,7 +267,7 @@ begin
   { rw cauchy_seq_iff',
     assume ε εpos,
     obtain ⟨e, he⟩ : ∃ (e : ℕ), (1/2) ^ e < ε / (12 * ∥c∥) :=
-      exists_nat_pow_lt (div_pos εpos (mul_pos (by norm_num) cpos)) (by norm_num),
+      exists_pow_lt_of_lt_one (div_pos εpos (mul_pos (by norm_num) cpos)) (by norm_num),
     use e,
     set δ : ℝ := (1/2) ^ e with hδ,
     assume e' he',
@@ -375,11 +412,28 @@ end fderiv_measurable_aux
 
 open fderiv_measurable_aux
 
+lemma fderiv_mem_iff {f : E → F} {s : set (E →L[𝕜] F)} {x : E} :
+  fderiv 𝕜 f x ∈ s ↔ (differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ s) ∨
+    (0 : E →L[𝕜] F) ∈ s ∧ ¬differentiable_at 𝕜 f x :=
+begin
+  split,
+  { intro hfx,
+    by_cases hx : differentiable_at 𝕜 f x,
+    { exact or.inl ⟨hx, hfx⟩ },
+    { rw [fderiv_zero_of_not_differentiable_at hx] at hfx,
+      exact or.inr ⟨hfx, hx⟩ } },
+  { rintro (⟨hf, hf'⟩|⟨h₀, hx⟩),
+    { exact hf' },
+    { rwa [fderiv_zero_of_not_differentiable_at hx] } }
+end
+
+variables [measurable_space E] [opens_measurable_space E]
+variables (𝕜 f)
+
 /-- The set of differentiability points of a function, with derivative in a given complete set,
 is Borel-measurable. -/
-theorem is_measurable_differentiable_of_is_complete
-  [measurable_space E] [opens_measurable_space E]
-  (f : E → F) {K : set (E →L[𝕜] F)} (hK : is_complete K) :
+theorem is_measurable_set_of_differentiable_at_of_is_complete
+  {K : set (E →L[𝕜] F)} (hK : is_complete K) :
   is_measurable {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ K} :=
 begin
   rw differentiable_eq_D K hK,
@@ -393,13 +447,35 @@ begin
   apply is_open_B
 end
 
+variable [complete_space F]
+
 /-- The set of differentiability points of a function taking values in a complete space is
 Borel-measurable. -/
-theorem is_measurable_differentiable
-  [complete_space F] [measurable_space E] [opens_measurable_space E] (f : E → F) :
+theorem is_measurable_set_of_differentiable_at :
   is_measurable {x | differentiable_at 𝕜 f x} :=
 begin
   have : is_complete (univ : set (E →L[𝕜] F)) := complete_univ,
-  convert is_measurable_differentiable_of_is_complete f this,
+  convert is_measurable_set_of_differentiable_at_of_is_complete 𝕜 f this,
   simp
 end
+
+lemma measurable_fderiv : measurable (fderiv 𝕜 f) :=
+begin
+  refine measurable_of_is_closed (λ s hs, _),
+  have : fderiv 𝕜 f ⁻¹' s = {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ s} ∪
+    {x | (0 : E →L[𝕜] F) ∈ s} ∩ {x | ¬differentiable_at 𝕜 f x} :=
+    set.ext (λ x, mem_preimage.trans fderiv_mem_iff),
+  rw this,
+  exact (is_measurable_set_of_differentiable_at_of_is_complete _ _ hs.is_complete).union
+    ((is_measurable.const _).inter (is_measurable_set_of_differentiable_at _ _).compl)
+end
+
+lemma measurable_fderiv_apply_const [measurable_space F] [borel_space F] (y : E) :
+  measurable (λ x, fderiv 𝕜 f x y) :=
+(continuous_linear_map.measurable_apply y).comp (measurable_fderiv 𝕜 f)
+
+variable {𝕜}
+
+lemma measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜] [measurable_space F]
+  [borel_space F] (f : 𝕜 → F) : measurable (deriv f) :=
+by simpa only [fderiv_deriv] using measurable_fderiv_apply_const 𝕜 f 1

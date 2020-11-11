@@ -86,8 +86,8 @@ structure mul_hom (M : Type*) (N : Type*) [has_mul M] [has_mul N] :=
 @[to_additive]
 structure monoid_hom (M : Type*) (N : Type*) [monoid M] [monoid N] extends one_hom M N, mul_hom M N
 
-attribute [nolint doc_blame] monoid_hom.to_mul_hom
-attribute [nolint doc_blame] monoid_hom.to_one_hom
+attribute [nolint doc_blame, to_additive] monoid_hom.to_mul_hom
+attribute [nolint doc_blame, to_additive] monoid_hom.to_one_hom
 
 infixr ` →* `:25 := monoid_hom
 

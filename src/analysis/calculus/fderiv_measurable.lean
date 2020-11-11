@@ -4,15 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 
-import analysis.calculus.fderiv measure_theory.borel_space
+import analysis.calculus.fderiv
+import measure_theory.borel_space
 
 /-!
 # Measurability of the derivative
 
 Consider a function between `𝕜`-vector spaces, where the target space is complete. We prove that
 the set of its differentiability points is Borel-measurable, in `is_measurable_differentiable`.
-
-TODO: show that the derivative itself (defined to be `0` where the function is not differentiable)
+We also show that the derivative itself (defined to be `0` where the function is not differentiable)
 is measurable.
 
 ## Implementation
@@ -25,7 +25,7 @@ we require that at two possibly different scales `r` and `s`, the function is we
 the linear map.
 
 We claim that the differentiability set of `f` is exactly
-`⋂ ε > 0, ⋃ δ > 0, ⋂ r, s < δ, ⋃ L, B (L, r, s, ε)`.
+`D = ⋂ ε > 0, ⋃ δ > 0, ⋂ r, s < δ, ⋃ L, B (L, r, s, ε)`.
 In other words, for any `ε > 0`, there is a size such that, for any two scales below this size, the
 function is well approximated by a linear map, common to the two scales.
 
@@ -34,7 +34,7 @@ unions to countable ones (using real numbers of the form `2 ^ (-n)`), it follows
 differentiability set is measurable.
 
 To prove the claim, there are two inclusions. One is trivial: if the function is differentiable
-at `x`, then `x` belongs to the above set (just take `L` to be the derivative, and use that the
+at `x`, then `x` belongs to `D` (just take `L` to be the derivative, and use that the
 differentiability exactly says that the map is well approximated by `L`). This is proved in
 `mem_A_of_differentiable` and `differentiable_subset_B`.
 
@@ -45,7 +45,7 @@ point is that, in fact, it doesn't depend too much on them. First, if `x` belong
 that `x` belongs to `A (L, r, ε)` and to `A (L', r', ε')`, one deduces that `L` is close
 to `L'` by arguing as follows. Consider another scale `s` smaller than `r` and `r'`. Take a linear
 map `L₁` that approximates `f` around `x` both at scales `r` and `s` w.r.t. `ε` (it exists as
-`x` belongs to our set). Take also `L₂` that approximates `f` around `x` both at scales `r'` and `s`
+`x` belongs to `D`). Take also `L₂` that approximates `f` around `x` both at scales `r'` and `s`
 w.r.t. `ε'`. Then `L₁` is close to `L` (as they are close on a shell of radius `r`), and `L₂` is
 close to `L₁` (as they are close on a shell of radius `s`), and `L'` is close to `L₂` (as they are
 close on a shell of radius `r'`). It follows that `L` is close to `L'`, as we claimed.
@@ -53,12 +53,16 @@ close on a shell of radius `r'`). It follows that `L` is close to `L'`, as we cl
 It follows that the different approximating linear maps that show up form a Cauchy sequence when
 `ε` tends to `0`. When the target space is complete, this sequence converges, to a limit `f'`.
 With the same kind of arguments, one checks that `f` is differentiable with derivative `f'`.
+
+To show that the derivative itself is differentiable, add in the definition of `B` and `D` a set
+`K` of continuous linear maps to which `L` should belong. Then, when `K` is closed, the set `D K`
+is exactly the set of points where `f` is differentiable with a derivative in `K`.
 -/
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
-variable (f : E → F)
+variables {f : E → F} (K : set (E →L[𝕜] F))
 
 open set metric asymptotics filter continuous_linear_map
 open_locale topological_space
@@ -68,8 +72,20 @@ namespace fderiv_measurable_aux
 /-- The set `A f L r ε` is the set of points `x` around which the function `f` is well approximated
 at scale `r` by the linear map `L`, up to an error `ε`. We tweak the definition to make sure that
 this is an open set.-/
-def A (L : E →L[𝕜] F) (r ε : ℝ) : set E :=
+def A (f : E → F) (L : E →L[𝕜] F) (r ε : ℝ) : set E :=
 {x | ∃ r' ∈ Ioc (r/2) r, ∀ y z ∈ ball x r', ∥f z - f y - L (z-y)∥ ≤ ε * r}
+
+/-- The set `B f K r s ε` is the set of points `x` around which there exists a continuous linear map
+`L` belonging to `K` (a given set of continuous linear maps) that approximates well the
+function `f` (up to an error `ε`), simultaneously at scales `r` and `s`. -/
+def B (f : E → F) (K : set (E →L[𝕜] F)) (r s ε : ℝ) : set E :=
+⋃ (L ∈ K), (A f L r ε) ∩ (A f L s ε)
+
+/-- The set `D f K` is a complicated set constructed using countable intersections and unions. Its
+main use is that, when `K` is closed, it is exactly the set of points where `f` is differentiable,
+with a derivative in `K`. -/
+def D (f : E → F) (K : set (E →L[𝕜] F)) : set E :=
+⋂ (e : ℕ), ⋃ (n : ℕ), ⋂ (p ≥ n) (q ≥ n), B f K ((1/2) ^ p) ((1/2) ^ q) ((1/2) ^ e)
 
 lemma A_mono (L : E →L[𝕜] F) (r : ℝ) {ε δ : ℝ} (h : ε ≤ δ) :
   A f L r ε ⊆ A f L r δ :=
@@ -81,7 +97,6 @@ begin
   linarith [mem_ball.1 hy, r'r.2, @dist_nonneg _ _ y x],
 end
 
-variable {f}
 lemma le_of_mem_A {r ε : ℝ} {L : E →L[𝕜] F} {x : E} (hx : x ∈ A f L r ε)
   {y z : E} (hy : y ∈ closed_ball x (r/2)) (hz : z ∈ closed_ball x (r/2)) :
   ∥f z - f y - L (z-y)∥ ≤ ε * r :=
@@ -90,7 +105,6 @@ begin
   exact hr' _ _ (lt_of_le_of_lt (mem_closed_ball.1 hy) r'mem.1)
     (lt_of_le_of_lt (mem_closed_ball.1 hz) r'mem.1)
 end
-variable (f)
 
 lemma is_open_A (L : E →L[𝕜] F) (r ε : ℝ) : is_open (A f L r ε) :=
 begin
@@ -103,8 +117,6 @@ begin
   assume y z hy hz,
   exact hr' y z (B hy) (B hz)
 end
-
-variable {f}
 
 lemma mem_A_of_differentiable {ε : ℝ} (hε : 0 < ε) {x : E} (hx : differentiable_at 𝕜 f x) :
   ∃ R > 0, ∀ r ∈ Ioo (0 : ℝ) R, x ∈ A f (fderiv 𝕜 f x) r ε :=
@@ -165,57 +177,47 @@ begin
     by { field_simp [ne_of_gt hr], ring }
 end
 
-variables (𝕜 f)
-
-
-/-- The set `B 𝕜 f r s ε` is the set of points `x` around which there exists a continuous linear map
-`L` that approximates well the function `f` (up to an error `ε`), simultaneously at scales
-`r` and `s`. -/
-def B (r s ε : ℝ) : set E := ⋃ (L : E →L[𝕜] F), (A f L r ε) ∩ (A f L s ε)
-
-lemma is_open_B (r s ε : ℝ) : is_open (B 𝕜 f r s ε) :=
+lemma is_open_B (K : set (E →L[𝕜] F)) (r s ε : ℝ) : is_open (B f K r s ε) :=
 by simp [B, is_open_Union, is_open_inter, is_open_A]
 
-/-- Easy inclusion: a differentiability point is included in an explicit set defined in terms
-of `B` with countable operations. -/
-lemma differentiable_subset_B :
-  {x | differentiable_at 𝕜 f x} ⊆
-    ⋂ (e : ℕ), ⋃ (n : ℕ), ⋂ (p ≥ n) (q ≥ n), B 𝕜 f ((1/2) ^ p) ((1/2) ^ q) ((1/2) ^ e) :=
+/-- Easy inclusion: a differentiability point with derivative in `K` is included in `D f K`. -/
+lemma differentiable_subset_D :
+  {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ K} ⊆ D f K :=
 begin
   assume x hx,
-  rw mem_Inter,
+  rw [D, mem_Inter],
   assume e,
   have : (0 : ℝ) < (1/2) ^ e, by { apply pow_pos, norm_num },
-  rcases mem_A_of_differentiable this hx with ⟨R, R_pos, hR⟩,
+  rcases mem_A_of_differentiable this hx.1 with ⟨R, R_pos, hR⟩,
   obtain ⟨n, hn⟩ : ∃ (n : ℕ), (1/2) ^ n < R :=
     exists_nat_pow_lt R_pos (by norm_num : (1 : ℝ)/2 < 1),
   apply mem_Union.2 ⟨n, _⟩,
   simp only [mem_Inter],
   assume p hp q hq,
   apply mem_Union.2 ⟨fderiv 𝕜 f x, _⟩,
+  simp only [hx.right, mem_inter_eq, Union_pos],
   split;
   { refine hR _ ⟨pow_pos (by norm_num) _, lt_of_le_of_lt _ hn⟩,
     exact pow_le_pow_of_le_one (by norm_num) (by norm_num) (by assumption) }
 end
 
-/-- Hard inclusion: if a point belongs to an explicit set defined in terms of `B` with countable
-operations, then the function `f` is differentiable there. -/
-lemma B_subset_differentiable [complete_space F]:
-  (⋂ (e : ℕ), ⋃ (n : ℕ), ⋂ (p ≥ n) (q ≥ n), B 𝕜 f ((1/2) ^ p) ((1/2) ^ q) ((1/2) ^ e))
-    ⊆ {x | differentiable_at 𝕜 f x} :=
+/-- Hard inclusion: at a point in `D f K`, the function `f` has a derivative, in `K`. -/
+lemma D_subset_differentiable [complete_space F]:
+  D f K ⊆ {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ closure K} :=
 begin
   have P : ∀ {n : ℕ}, (0 : ℝ) < (1/2) ^ n := pow_pos (by norm_num),
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   have cpos : 0 < ∥c∥ := lt_trans zero_lt_one hc,
   assume x hx,
-  have : ∀ (e : ℕ), ∃ (n : ℕ), ∀ p q, n ≤ p → n ≤ q → ∃ (L : E →L[𝕜] F),
+  have : ∀ (e : ℕ), ∃ (n : ℕ), ∀ p q, n ≤ p → n ≤ q → ∃ L ∈ K,
     x ∈ A f L ((1/2) ^ p) ((1/2) ^ e) ∩ A f L ((1/2) ^ q) ((1/2) ^ e),
   { assume e,
     have := mem_Inter.1 hx e,
     rcases mem_Union.1 this with ⟨n, hn⟩,
     refine ⟨n, λ p q hp hq, _⟩,
     simp only [mem_Inter, ge_iff_le] at hn,
-    exact mem_Union.1 (hn p hp q hq), },
+    rcases mem_Union.1 (hn p hp q hq) with ⟨L, hL⟩,
+    exact ⟨L, mem_Union.1 hL⟩, },
   /- Recast the assumptions: for each `e`, there exist `n e` and linear maps `L e p q`
   such that, for `p, q ≥ n e`, then `f` is well approximated by `L e p q` at scale `2 ^ (-p)` and
   `2 ^ (-q)`, with an error `2 ^ (-e)`. -/
@@ -242,23 +244,23 @@ begin
     close to `L0 e'` as both approach `f` at scale `2 ^ (- n e')`. -/
     have J1 : ∥L0 e - L e (n e) p∥ ≤ 4 * ∥c∥ * δ,
     { have I1 : x ∈ A f (L0 e) ((1 / 2) ^ (n e)) δ :=
-        (hn e (n e) (n e) (le_refl _) (le_refl _)).1,
+        (hn e (n e) (n e) (le_refl _) (le_refl _)).2.1,
       have I2 : x ∈ A f (L e (n e) p) ((1 / 2) ^ (n e)) δ :=
-        (hn e (n e) p (le_refl _) (le_max_left _ _)).1,
+        (hn e (n e) p (le_refl _) (le_max_left _ _)).2.1,
       exact norm_sub_le_of_mem_A hc P P I1 I2 },
     have J2 : ∥L e' (n e') p - L0 e'∥ ≤ 4 * ∥c∥ * δ,
     { have I1 : x ∈ A f (L0 e') ((1 / 2) ^ (n e')) δ' :=
-        (hn e' (n e') (n e') (le_refl _) (le_refl _)).1,
+        (hn e' (n e') (n e') (le_refl _) (le_refl _)).2.1,
       have I2 : x ∈ A f (L e' (n e') p) ((1 / 2) ^ (n e')) δ' :=
-        (hn e' (n e') p (le_refl _) (le_max_right _ _)).1,
+        (hn e' (n e') p (le_refl _) (le_max_right _ _)).2.1,
       exact norm_sub_le_of_mem_A hc P P
-        (A_mono _ _ _ δ'le I2) (A_mono _ _ _ δ'le I1) },
+        (A_mono _ _ δ'le I2) (A_mono _ _ δ'le I1) },
     have J3 : ∥L e (n e) p - L e' (n e') p∥ ≤ 4 * ∥c∥ * δ,
     { have I1 : x ∈ A f (L e (n e) p) ((1 / 2) ^ p) δ :=
-        (hn e (n e) p (le_refl _) (le_max_left _ _)).2,
+        (hn e (n e) p (le_refl _) (le_max_left _ _)).2.2,
       have I2 : x ∈ A f (L e' (n e') p) ((1 / 2) ^ p) δ' :=
-        (hn e' (n e') p (le_refl _) (le_max_right _ _)).2,
-      exact norm_sub_le_of_mem_A hc P P I1 (A_mono _ _ _ δ'le I2) },
+        (hn e' (n e') p (le_refl _) (le_max_right _ _)).2.2,
+      exact norm_sub_le_of_mem_A hc P P I1 (A_mono _ _ δ'le I2) },
     rw [dist_comm, dist_eq_norm],
     calc
       ∥L0 e - L0 e'∥
@@ -276,6 +278,10 @@ begin
   /- As it is Cauchy, the sequence `L0` converges, to a limit `f'`.-/
   obtain ⟨f', hf'⟩ : ∃ f' : E →L[𝕜] F, tendsto L0 at_top (𝓝 f') :=
     cauchy_seq_tendsto_of_complete this,
+  have f'K : f' ∈ closure K,
+  { apply mem_closure_of_tendsto hf',
+    apply eventually_of_forall (λ e, _),
+    exact (hn e (n e) (n e) (le_refl _) (le_refl _)).1 },
   /- We will show that `f` has derivative `f'` at `x`. -/
   have : has_fderiv_at f f' x,
   { simp only [has_fderiv_at_iff_is_o_nhds_zero, is_o_iff],
@@ -320,7 +326,7 @@ begin
     -- `f` is well approximated by `L e (n e) k` at the relevant scale
     -- (in fact, we use `m = k - 1` instead of `k` because of the precise definition of `A`).
     have J1 : ∥f (x + y) - f x - L e (n e) m ((x + y) - x)∥ ≤ (1/2) ^ e * (1/2) ^ m,
-    { apply le_of_mem_A (hn e (n e) m (le_refl _) m_ge).2,
+    { apply le_of_mem_A (hn e (n e) m (le_refl _) m_ge).2.2,
       { simp only [mem_closed_ball, dist_self],
         exact div_nonneg (le_of_lt P) (zero_le_two) },
       { simp [dist_eq_norm],
@@ -337,9 +343,9 @@ begin
     -- scale `2 ^ (- n e)`.
     have J3 : ∥L e (n e) m - L0 e∥ ≤ 4 * ∥c∥ * (1/2)^e,
     { have I1 : x ∈ A f (L0 e) ((1 / 2) ^ (n e)) ((1/2)^e) :=
-        (hn e (n e) (n e) (le_refl _) (le_refl _)).1,
+        (hn e (n e) (n e) (le_refl _) (le_refl _)).2.1,
       have I2 : x ∈ A f (L e (n e) m) ((1 / 2) ^ (n e)) ((1/2)^e) :=
-        (hn e (n e) m (le_refl _) m_ge).1,
+        (hn e (n e) m (le_refl _) m_ge).2.1,
       exact norm_sub_le_of_mem_A hc P P I2 I1, },
     -- combine all the previous estimates to see that `f (x + y) - f x - f' y` is small.
     calc ∥f (x + y) - f x - f' y∥
@@ -362,25 +368,30 @@ begin
           (norm_nonneg _)
       end
     ... = ε * ∥y∥ : by { field_simp [ne_of_gt pos], ring } },
-  exact this.differentiable_at,
+  rw ← this.fderiv at f'K,
+  exact ⟨this.differentiable_at, f'K⟩
 end
 
-theorem differentiable_eq_B [complete_space F] :
-  {x | differentiable_at 𝕜 f x} =
-  ⋂ (e : ℕ), ⋃ (n : ℕ), ⋂ (p ≥ n) (q ≥ n), B 𝕜 f ((1/2) ^ p) ((1/2) ^ q) ((1/2) ^ e) :=
-subset.antisymm (differentiable_subset_B _ _) (B_subset_differentiable _ _)
+theorem differentiable_eq_D [complete_space F] (hK : is_closed K) :
+  {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ K} = D f K :=
+begin
+  apply subset.antisymm (differentiable_subset_D _),
+  conv_rhs { rw hK.closure_eq.symm },
+  exact D_subset_differentiable _
+end
 
 end fderiv_measurable_aux
 
 open fderiv_measurable_aux
 
-/-- The set of differentiability points of a function taking values in a complete space is
-Borel-measurable. -/
-theorem is_measurable_differentiable
-  [complete_space F] [measurable_space E] [opens_measurable_space E] :
-  is_measurable {x | differentiable_at 𝕜 f x} :=
+/-- The set of differentiability points of a function taking values in a complete space, with
+derivative in a given closed set, is Borel-measurable. -/
+theorem is_measurable_differentiable_of_is_closed
+  [complete_space F] [measurable_space E] [opens_measurable_space E]
+  (f : E → F) {K : set (E →L[𝕜] F)} (hK : is_closed K):
+  is_measurable {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ K} :=
 begin
-  rw differentiable_eq_B,
+  rw differentiable_eq_D K hK,
   refine is_measurable.Inter (λ e, _),
   refine is_measurable.Union (λ n, _),
   refine is_measurable.Inter (λ p, _),
@@ -389,4 +400,15 @@ begin
   refine is_measurable.Inter_Prop (λ hq, _),
   apply is_open.is_measurable,
   apply is_open_B
+end
+
+/-- The set of differentiability points of a function taking values in a complete space, with
+derivative in a given closed set, is Borel-measurable. -/
+theorem is_measurable_differentiable
+  [complete_space F] [measurable_space E] [opens_measurable_space E] (f : E → F) :
+  is_measurable {x | differentiable_at 𝕜 f x} :=
+begin
+  have : is_closed (univ : set (E →L[𝕜] F)) := is_closed_univ,
+  convert is_measurable_differentiable_of_is_closed f this,
+  simp
 end

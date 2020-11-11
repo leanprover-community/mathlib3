@@ -33,8 +33,13 @@ variables {R : Type*}
 def squarefree [monoid R] (r : R) : Prop := ∀ x : R, x * x ∣ r → is_unit x
 
 @[simp]
+lemma is_unit.squarefree [comm_monoid R] {x : R} (h : is_unit x) :
+  squarefree x :=
+λ y hdvd, is_unit_of_mul_is_unit_left (is_unit_of_dvd_unit hdvd h)
+
+@[simp]
 lemma squarefree_one [comm_monoid R] : squarefree (1 : R) :=
-λ x h, is_unit_of_dvd_one _ (dvd_of_mul_left_dvd h)
+is_unit_one.squarefree
 
 @[simp]
 lemma not_squarefree_zero [monoid_with_zero R] [nontrivial R] : ¬ squarefree (0 : R) :=
@@ -42,6 +47,27 @@ begin
   rw [squarefree, not_forall],
   exact ⟨0, not_imp.2 (by simp)⟩,
 end
+
+@[simp]
+lemma irreducible.squarefree [comm_monoid R] {x : R} (h : irreducible x) :
+  squarefree x :=
+begin
+  rintros y ⟨z, hz⟩,
+  rw mul_assoc at hz,
+  rcases h.2 _ _ hz with hu | hu,
+  { exact hu },
+  { apply is_unit_of_mul_is_unit_left hu },
+end
+
+@[simp]
+lemma prime.squarefree [comm_cancel_monoid_with_zero R] {x : R} (h : prime x) :
+  squarefree x :=
+(irreducible_of_prime h).squarefree
+
+lemma squarefree_of_dvd_of_squarefree [comm_monoid R]
+  {x y : R} (hdvd : x ∣ y) (hsq : squarefree y) :
+  squarefree x :=
+λ a h, hsq _ (dvd.trans h hdvd)
 
 namespace multiplicity
 variables [comm_monoid R] [decidable_rel (has_dvd.dvd : R → R → Prop)]

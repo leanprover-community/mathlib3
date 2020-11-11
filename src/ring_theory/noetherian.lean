@@ -566,11 +566,9 @@ begin
   { have incl : ∀ (z : R), M ≤ M + span R {z},
     { intro z, from le_sup_left },
     have belong : ∀ (z : R), z ∈ M + span R {z},
-    { intro z, apply submodule.mem_sup.mpr,
-      use (0 : R),
-      split, from zero_mem M,
-      use z, split ,
-      from submodule.mem_span_singleton_self z, from zero_add z },
+    { intro z,
+      apply submodule.mem_sup_right,
+      apply submodule.mem_span_singleton_self z },
     split, all_goals {by_contradiction},
     { have abs_x : Jx = M, from h_maxM Jx h (incl x),
       rw ← abs_x at hx, tauto },
@@ -604,10 +602,10 @@ begin
 end
 
 
-lemma prime_product_domain (hR : is_integral_domain R) (I : ideal R) : ∃ (A : finset (prime_spectrum R)),
-  ∏ p in A, (p.val : ideal R) ≠ 0 ∧ ∏ p in A, (p.val : ideal R) ≤ I :=
-begin
-  sorry,
-end
+-- lemma prime_product_domain (hR : is_integral_domain R) (I : ideal R) : ∃ (A : finset (prime_spectrum R)),
+--   ∏ p in A, (p.val : ideal R) ≠ 0 ∧ ∏ p in A, (p.val : ideal R) ≤ I :=
+-- begin
+--   sorry,
+-- end
 
 end primes

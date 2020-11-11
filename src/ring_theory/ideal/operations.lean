@@ -527,7 +527,8 @@ suffices (I : set R) ⊆ f a ∪ f b ∪ (⋃ i ∈ (↑s : set ι), f i) → I 
       (set.subset_union_left _ _) (set.subset_union_left _ _)) $
     λ h, or.cases_on h (λ h, set.subset.trans h $ set.subset.trans
       (set.subset_union_right _ _) (set.subset_union_left _ _)) $
-    λ ⟨i, his, hi⟩, by refine (set.subset.trans hi $ set.subset.trans _ $ set.subset_union_right _ _);
+    λ ⟨i, his, hi⟩, by refine (set.subset.trans hi $ set.subset.trans _ $
+        set.subset_union_right _ _);
       exact set.subset_bUnion_of_mem (finset.mem_coe.2 his)⟩,
 begin
   generalize hn : s.card = n, intros h,
@@ -541,10 +542,9 @@ begin
   unfreezingI { rcases hn with ⟨i, t, hit, rfl, hn⟩ },
   replace hp : is_prime (f i) ∧ ∀ x ∈ t, is_prime (f x) := (t.forall_mem_insert _ _).1 hp,
   by_cases Ht : ∃ j ∈ t, f j ≤ f i,
-  { rcases Ht with ⟨j, hjt, hfji⟩,
-    have : ∃ u, j ∉ u ∧ insert j u = t,
+  { obtain ⟨j, hjt, hfji⟩ : ∃ j ∈ t, f j ≤ f i := Ht,
+    obtain ⟨u, hju, rfl⟩ : ∃ u, j ∉ u ∧ insert j u = t,
     { exact ⟨t.erase j, t.not_mem_erase j, finset.insert_erase hjt⟩ },
-    rcases this with ⟨u, hju, rfl⟩,
     have hp' : ∀ k ∈ insert i u, is_prime (f k),
     { rw finset.forall_mem_insert at hp ⊢, exact ⟨hp.1, hp.2.2⟩ },
     have hiu : i ∉ u := mt finset.mem_insert_of_mem hit,

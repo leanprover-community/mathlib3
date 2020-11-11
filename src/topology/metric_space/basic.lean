@@ -565,9 +565,13 @@ nhds_basis_uniformity uniformity_basis_dist
 theorem mem_nhds_iff : s ∈ 𝓝 x ↔ ∃ε>0, ball x ε ⊆ s :=
 nhds_basis_ball.mem_iff
 
+theorem eventually_nhds_iff {p : α → Prop} :
+  (∀ᶠ y in 𝓝 x, p y) ↔ ∃ε>0, ∀ ⦃y⦄, dist y x < ε → p y :=
+mem_nhds_iff
+
 lemma eventually_nhds_iff_ball {p : α → Prop} :
-  (∀ᶠ y in 𝓝 x, p y) ↔ ∃ ε > 0, ∀ y ∈ ball x ε, p y :=
-mem_nhds_iff.trans $ by simp only [subset_def, exists_prop, mem_set_of_eq]
+  (∀ᶠ y in 𝓝 x, p y) ↔ ∃ ε>0, ∀ y ∈ ball x ε, p y :=
+mem_nhds_iff
 
 theorem nhds_basis_closed_ball : (𝓝 x).has_basis (λ ε:ℝ, 0 < ε) (closed_ball x) :=
 nhds_basis_uniformity uniformity_basis_dist_le

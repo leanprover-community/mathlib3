@@ -1,5 +1,53 @@
+/-
+Copyright (c) 2020 Anatole Dedecker. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Anatole Dedecker
+-/
 import analysis.asymptotics
 import analysis.normed_space.ordered
+
+/-!
+# Asymptotic equivalence
+
+In this file, we define the relation `is_equivalent u v l`, which means that `u-v` is little o of
+`v` along the filter `l`.
+
+Unlike `is_[oO]` relations, this one requires `u` and `v` to have the same codomaine `β`. While the
+definition only requires `β` to be a `normed_group`, most interesting properties require it to be a
+`normed_field`.
+
+## Notations
+
+We introduce the notation `u ~[l] v := is_equivalent u v l`, which you can use by opening the
+`asymptotics` locale.
+
+## Main results
+
+If `β` is a `normed_group` :
+
+- `_ ~[l] _` is an equivalence relation
+- Equivalent statements for `u ~[l] (λ _, c)` :
+  - If `c ≠ 0`, this is true iff `tendsto u l (𝓝 c)` (see `is_equivalent_const_iff_tendsto`)
+  - For `c = 0`, this is true iff `u =ᶠ[l] 0` (see `is_equivalent_zero_iff_eventually_zero`)
+
+If `β` is a `normed_field` :
+
+- Alternative characterization of the relation (see `is_equivalent_iff_exists_eq_mul`) :
+
+  `u ~[l] v ↔ ∃ (φ : α → β) (hφ : tendsto φ l (𝓝 1)), u =ᶠ[l] φ * v`
+
+- Provided some non-vanishing hypothesis, this can be seen as `u ~[l] v ↔ tendsto (u/v) l (𝓝 1)`
+  (see `is_equivalent_iff_tendsto_one`)
+- For any constant `c`, `u ~[l] v` implies `tendsto u l (𝓝 c) ↔ tendsto v l (𝓝 c)`
+  (see `is_equivalent.tendsto_nhds_iff`)
+- `*` and `/` are compatible with `_ ~[l] _` (see `is_equivalent.mul` and `is_equivalent.div`)
+
+If `β` is a `normed_linear_ordered_field` :
+
+- If `u ~[l] v`, we have `tendsto u l at_top ↔ tendsto v l at_top`
+  (see `is_equivalent.tendsto_at_top_iff`)
+
+-/
 
 namespace asymptotics
 
@@ -10,6 +58,8 @@ section normed_group
 
 variables {α β : Type*} [normed_group β]
 
+/-- Two functions `u` and `v` are said to be asymptotically equivalent along a filter `l` when
+    `u x - v x = o(v x)` as x converges along `l`. -/
 def is_equivalent (u v : α → β) (l : filter α) := is_o (u - v) v l
 
 localized "notation u ` ~[`:50 l:50 `] `:0 v:50 := is_equivalent u v l" in asymptotics
@@ -61,7 +111,7 @@ begin
   convert this; ext; simp [sub_eq_add_neg]
 end
 
-lemma is_equivalent.tendsto_const {c : β} (hu : u ~[l] (λ _, c)) : filter.tendsto u l (𝓝 c) :=
+lemma is_equivalent.tendsto_const {c : β} (hu : u ~[l] (λ _, c)) : tendsto u l (𝓝 c) :=
 begin
   rcases (em $ c = 0) with ⟨rfl, h⟩,
   { exact (tendsto_congr' $ is_equivalent_zero_iff_eventually_zero.mp hu).mpr tendsto_const_nhds },
@@ -92,6 +142,32 @@ end
 lemma is_equivalent.exists_mul_eq (huv : u ~[l] v) :
   ∃ (φ : α → β) (hφ : tendsto φ l (𝓝 1)), u =ᶠ[l] φ * v :=
 is_equivalent_iff_exists_mul_eq.mp huv
+
+lemma is_equivalent_of_tendsto_one (hz : ∀ᶠ x in l, v x = 0 → u x = 0)
+  (huv : tendsto (u/v) l (𝓝 1)) : u ~[l] v :=
+begin
+  rw is_equivalent_iff_exists_mul_eq,
+  refine ⟨u/v, huv, hz.mono $ λ x hz', (div_mul_cancel_of_imp hz').symm⟩,
+end
+
+lemma is_equivalent_of_tendsto_one' (hz : ∀ x, v x = 0 → u x = 0) (huv : tendsto (u/v) l (𝓝 1)) :
+  u ~[l] v :=
+is_equivalent_of_tendsto_one (eventually_of_forall hz) huv
+
+lemma is_equivalent_iff_tendsto_one (hz : ∀ᶠ x in l, v x ≠ 0) :
+  u ~[l] v ↔ tendsto (u/v) l (𝓝 1) :=
+begin
+  split,
+  { intro hequiv,
+    have := hequiv.is_o.tendsto_0,
+    simp only [pi.sub_apply, sub_div] at this,
+    have key : tendsto (λ x, v x / v x) l (𝓝 1),
+    { exact (tendsto_congr' $ hz.mono $ λ x hnz, @div_self _ _ (v x) hnz).mpr tendsto_const_nhds },
+    convert this.add key,
+    { ext, simp },
+    { norm_num } },
+  { exact is_equivalent_of_tendsto_one (hz.mono $ λ x hnvz hz, (hnvz hz).elim) }
+end
 
 lemma is_equivalent.tendsto_nhds {c : β} (huv : u ~[l] v) (hv : tendsto u l (𝓝 c)) :
   tendsto v l (𝓝 c) :=

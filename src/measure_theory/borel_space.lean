@@ -5,6 +5,8 @@ Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import measure_theory.measure_space
 import analysis.normed_space.finite_dimension
+import topology.G_delta
+
 /-!
 # Borel (measurable) space
 
@@ -172,6 +174,16 @@ lemma is_open.is_measurable (h : is_open s) : is_measurable s :=
 opens_measurable_space.borel_le _ $ generate_measurable.basic _ h
 
 lemma is_measurable_interior : is_measurable (interior s) := is_open_interior.is_measurable
+
+lemma is_Gδ.is_measurable (h : is_Gδ s) : is_measurable s :=
+begin
+  rcases h with ⟨S, hSo, hSc, rfl⟩,
+  exact is_measurable.sInter hSc (λ t ht, (hSo t ht).is_measurable)
+end
+
+lemma is_measurable_set_of_continuous_at {β} [emetric_space β] (f : α → β) :
+  is_measurable {x | continuous_at f x} :=
+(is_Gδ_set_of_continuous_at f).is_measurable
 
 lemma is_closed.is_measurable (h : is_closed s) : is_measurable s :=
 h.is_measurable.of_compl

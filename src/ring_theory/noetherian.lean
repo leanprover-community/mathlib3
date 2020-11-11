@@ -515,6 +515,7 @@ namespace primes
 
 variables {R : Type*} [comm_ring R] [is_noetherian_ring R] [decidable_eq (prime_spectrum R)]
 
+
   /-In a noetherian ring, every ideal contains a product of prime ideals
 ([Samuel, § 3.3, Lemma 3])-/
 lemma prime_product [nontrivial R] (I : ideal R) : ∃ (Z : multiset (prime_spectrum R)),
@@ -601,16 +602,13 @@ begin
   apply absurd h_PM h_absM,
 end
 
-lemma foo {α : Type*} {a b : α} : ¬ a ≠  b ↔ a=b :=
-not_not
-
-
   /-In a noetherian domain ring, every non-zero ideal contains a non-zero product of prime ideals
 ([Samuel, § 3.3, Lemma 3])-/
-lemma integral_prime_product [nontrivial R] [integral_domain R] (I : ideal R) (h_nzI: I ≠ 0): ∃ (Z : multiset (prime_spectrum R)),
-  multiset.prod (Z.map subtype.val) ≤ I ∧ multiset.prod (Z.map subtype.val) ≠ 0 :=
+lemma integral_nonzero_prime_product_of_nonzero [nontrivial R] (hR : integral_domain R) (I : ideal R)
+ (h_nzI: I ≠ 0): ∃ (Z : multiset (prime_spectrum R)),
+ multiset.prod (Z.map subtype.val) ≤ I ∧ multiset.prod (Z.map subtype.val) ≠ 0 :=
 begin
-  let P := λ J, ∀ (Y : multiset (prime_spectrum R)), multiset.prod (Y.map subtype.val) ≠ 0 → ¬ multiset.prod (Y.map subtype.val) ≤ J,
+  let P := λ J, ∀ (Y : multiset (prime_spectrum R)) (hY : multiset.prod (Y.map subtype.val) ≠ 0), ¬ multiset.prod (Y.map subtype.val) ≤ J,
   let Ω := {J : ideal R | P J ∧ J ≠ 0},
   by_contradiction h_abs,
   replace h_abs : Ω ≠ ∅,
@@ -623,11 +621,15 @@ begin
     rw [not_and, ne.def, not_not] at h_abs,
     apply mt h_abs hY,
     exact h_nzI },
-  obtain ⟨M, ⟨h_PM, h_maxM⟩⟩ : ∃ (M : ideal R) (H: M ∈ Ω), ∀ (J : ideal R), J ∈ Ω → M ≤ J → J = M,
-  { apply (set_has_maximal_iff_noetherian).mpr _inst_2 Ω,
-    apply ne_empty_iff_nonempty.mp,
-    assumption },
-  replace h_PM : P M, from h_PM,
+  obtain ⟨M, ⟨h_ΩM, h_maxM⟩⟩ : ∃ (M : ideal R) (H: M ∈ Ω), ∀ (J : ideal R), J ∈ Ω → M ≤ J → J = M,
+  { --apply (@set_has_maximal_iff_noetherian R R _ _ _ Ω h_abs).mpr,
+    sorry,
+    -- apply set_has_maximal_iff_noetherian.mpr _inst_2 Ω,
+    -- apply ne_empty_iff_nonempty.mp,
+    -- assumption
+    },
+  have h_PM : P M, exact h_ΩM.left,
+  have h_nzM : M ≠ 0, exact h_ΩM.right,
   have h_not_prM : ¬ M.is_prime,
   { by_contradiction hM,
     specialize h_PM {⟨M, hM⟩},
@@ -635,7 +637,7 @@ begin
       multiset.map_zero, multiset.prod_singleton] at h_PM,
     rw [subtype.val_eq_coe, subtype.coe_mk, le_iff_lt_or_eq,
       not_or_distrib, eq_self_iff_true, not_true] at h_PM,
-    exact h_PM.right },
+    exact and.right(h_PM h_nzM) },
   have h_not_topM : M ≠ ⊤,
   { suffices h_top : ¬ P ⊤,
     { apply mt (congr_arg P), tauto },
@@ -643,9 +645,14 @@ begin
       obtain ⟨Ξ, hΞ⟩ : ∃ (Ξ : ideal R), Ξ.is_maximal,
       apply_rules @ideal.exists_maximal _ _ _,
       let pΞ : (prime_spectrum R) := ⟨Ξ, ideal.is_maximal.is_prime hΞ⟩,
+      have h_nzΞ : Ξ ≠ 0,
+      { suffices h_fR : ¬ is_field R, sorry,
+        sorry,
+        },
       existsi ({ pΞ } : multiset (prime_spectrum R)),
-      rw [not_not, multiset.singleton_eq_singleton, multiset.map_cons,
-        multiset.map_zero, multiset.prod_singleton],
+      rw [multiset.singleton_eq_singleton, multiset.map_cons,
+        multiset.map_zero, multiset.prod_singleton, not_imp, not_not],
+      split, exact h_nzΞ,
       simp only [le_top] } },
   obtain ⟨x, y, hx, hy, h_xy⟩ : ∃ (x y : R), x ∉ M ∧ y ∉ M ∧ x * y ∈ M,
   { rw [ideal.is_prime, not_and] at h_not_prM,
@@ -654,7 +661,10 @@ begin
     cases h_not_prM with x hx,
     rw not_forall at hx,
     cases hx with y hxy,
-    use [x, y], finish },
+    use [x, y],
+    rw [push_neg.not_implies_eq, not_or_distrib] at hxy,
+    simp [hxy], sorry,
+     },
   let Jx := M + span R {x},
   let Jy := M + span R {y},
   have hJ_xy : Jx ∉ Ω ∧ Jy ∉ Ω,

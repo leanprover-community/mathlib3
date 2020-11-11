@@ -476,16 +476,17 @@ theorem is_prime.inf_le {I J P : ideal R} (hp : is_prime P) :
 ⟨λ h, hp.mul_le.1 $ le_trans mul_le_inf h,
 λ h, or.cases_on h (le_trans inf_le_left) (le_trans inf_le_right)⟩
 
-theorem is_prime.prod_le {s : finset ι} {f : ι → ideal R} {P : ideal R} (hp : is_prime P) (hne: s.nonempty) :
+theorem is_prime.prod_le {s : finset ι} {f : ι → ideal R} {P : ideal R}
+  (hp : is_prime P) (hne: s.nonempty) :
   s.prod f ≤ P ↔ ∃ i ∈ s, f i ≤ P :=
 suffices s.prod f ≤ P → ∃ i ∈ s, f i ≤ P,
   from ⟨this, λ ⟨i, his, hip⟩, le_trans prod_le_inf $ le_trans (finset.inf_le his) hip⟩,
 begin
   classical,
-  rcases hne.bex with ⟨b, hb⟩,
-  have : ∃ t, b ∉ t ∧ s = insert b t := ⟨s.erase b, s.not_mem_erase b, (finset.insert_erase hb).symm⟩,
-  rcases this with ⟨t, hat, rfl⟩,
-  revert hat,
+  obtain ⟨b, hb⟩ : ∃ b, b ∈ s := hne.bex,
+  obtain ⟨t, hbt, rfl⟩ : ∃ t, b ∉ t ∧ s = insert b t,
+  from ⟨s.erase b, s.not_mem_erase b, (finset.insert_erase hb).symm⟩,
+  revert hbt,
   refine t.induction_on _ _,
   { simp only [finset.not_mem_empty, insert_emptyc_eq, exists_prop, finset.prod_singleton,
       imp_self, exists_eq_left, not_false_iff, finset.mem_singleton] },
@@ -499,10 +500,7 @@ begin
   rw finset.insert.comm,
   cases h,
   { exact ⟨a, finset.mem_insert_self a _, h⟩ },
-  have : b ∉ s,
-  { contrapose! hbs,
-    exact finset.mem_insert_of_mem hbs },
-  rcases ih this h with ⟨i, hi, ih⟩,
+  obtain ⟨i, hi, ih⟩ : ∃ i ∈ insert b s, f i ≤ P := ih (mt finset.mem_insert_of_mem hbs) h,
   exact ⟨i, finset.mem_insert_of_mem hi, ih⟩
 end
 

@@ -538,6 +538,11 @@ lemma dvd_iff_is_root : (X - C a) ∣ p ↔ is_root p a :=
 lemma mod_by_monic_X (p : polynomial R) : p %ₘ X = C (p.eval 0) :=
 by rw [← mod_by_monic_X_sub_C_eq_C_eval, C_0, sub_zero]
 
+lemma eval₂_mod_by_monic_eq_self_of_root [comm_ring S] {f : R →+* S}
+  {p q : polynomial R} (hq : q.monic) {x : S} (hx : q.eval₂ f x = 0) :
+  (p %ₘ q).eval₂ f x = p.eval₂ f x :=
+by rw [mod_by_monic_eq_sub_mul_div p hq, eval₂_sub, eval₂_mul, hx, zero_mul, sub_zero]
+
 section multiplicity
 /-- An algorithm for deciding polynomial divisibility.
 The algorithm is "compute `p %ₘ q` and compare to `0`". `

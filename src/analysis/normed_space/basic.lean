@@ -194,6 +194,22 @@ calc ∥v∥ = ∥u - (u - v)∥ : by abel
 lemma ball_0_eq (ε : ℝ) : ball (0:α) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
 
+lemma mem_ball_iff_norm {g h : α} {r : ℝ} :
+  h ∈ ball g r ↔ ∥h - g∥ < r :=
+by rw [mem_ball, dist_eq_norm]
+
+lemma mem_ball_iff_norm' {g h : α} {r : ℝ} :
+  h ∈ ball g r ↔ ∥g - h∥ < r :=
+by rw [mem_ball', dist_eq_norm]
+
+lemma mem_closed_ball_iff_norm {g h : α} {r : ℝ} :
+  h ∈ closed_ball g r ↔ ∥h - g∥ ≤ r :=
+by rw [mem_closed_ball, dist_eq_norm]
+
+lemma mem_closed_ball_iff_norm' {g h : α} {r : ℝ} :
+  h ∈ closed_ball g r ↔ ∥g - h∥ ≤ r :=
+by rw [mem_closed_ball', dist_eq_norm]
+
 lemma norm_le_of_mem_closed_ball {g h : α} {r : ℝ} (H : h ∈ closed_ball g r) :
   ∥h∥ ≤ ∥g∥ + r :=
 calc

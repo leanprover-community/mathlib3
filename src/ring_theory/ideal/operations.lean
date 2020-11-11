@@ -505,7 +505,7 @@ begin
 end
 
 theorem is_prime.inf_le' {s : finset ι} {f : ι → ideal R} {P : ideal R} (hp : is_prime P)
-  (hsne: s.nonempty):
+  (hsne: s.nonempty) :
   s.inf f ≤ P ↔ ∃ i ∈ s, f i ≤ P :=
 ⟨λ h, (hp.prod_le hsne).1 $ le_trans prod_le_inf h,
   λ ⟨i, his, hip⟩, le_trans (finset.inf_le his) hip⟩

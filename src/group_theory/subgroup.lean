@@ -747,6 +747,9 @@ end normal
 @[priority 100, to_additive]
 instance bot_normal : normal (⊥ : subgroup G) := ⟨by simp⟩
 
+@[priority 100, to_additive]
+instance top_normal : normal (⊤ : subgroup G) := ⟨by simp⟩
+
 variable (G)
 /-- The center of a group `G` is the set of elements that commute with everything in `G` -/
 @[to_additive "The center of a group `G` is the set of elements that commute with everything in `G`"]

@@ -86,8 +86,8 @@ structure mul_hom (M : Type*) (N : Type*) [has_mul M] [has_mul N] :=
 @[to_additive]
 structure monoid_hom (M : Type*) (N : Type*) [monoid M] [monoid N] extends one_hom M N, mul_hom M N
 
-attribute [nolint doc_blame] monoid_hom.to_mul_hom
-attribute [nolint doc_blame] monoid_hom.to_one_hom
+attribute [nolint doc_blame, to_additive] monoid_hom.to_mul_hom
+attribute [nolint doc_blame, to_additive] monoid_hom.to_one_hom
 
 infixr ` →* `:25 := monoid_hom
 
@@ -129,6 +129,13 @@ lemma mul_hom.coe_mk [has_mul M] [has_mul N]
 @[simp, to_additive]
 lemma monoid_hom.coe_mk [monoid M] [monoid N]
   (f : M → N) (h1 hmul) : ⇑(monoid_hom.mk f h1 hmul) = f := rfl
+
+@[simp, to_additive]
+lemma monoid_hom.to_one_hom_coe [monoid M] [monoid N] (f : M →* N) :
+  (f.to_one_hom : M → N) = f := rfl
+@[simp, to_additive]
+lemma monoid_hom.to_mul_hom_coe [monoid M] [monoid N] (f : M →* N) :
+  (f.to_mul_hom : M → N) = f := rfl
 
 @[to_additive]
 theorem one_hom.congr_fun [has_one M] [has_one N]

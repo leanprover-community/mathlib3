@@ -88,11 +88,10 @@ variable (α)
 variables [group α] [mul_action α β]
 
 /-- The stabilizer of an element under an action, i.e. what sends the element to itself.
-A subgroup.-/
+A subgroup. -/
 def stabilizer (b : β) : subgroup α :=
 { inv_mem' := λ a (ha : a • b = b), show a⁻¹ • b = b, by rw [inv_smul_eq_iff, ha]
-  ..stabilizer.submonoid α b
-}
+  ..stabilizer.submonoid α b }
 
 variables {α} {β}
 
@@ -147,7 +146,7 @@ instance quotient (H : subgroup α) : mul_action α (quotient H) :=
   mul_smul := λ x y a, quotient.induction_on' a (λ a, quotient_group.eq.2
     (by simp [mul_inv_rev, subgroup.one_mem, mul_assoc])) }
 
-instance mul_left_cosets_comp_subtype_val (H I : subgroup α)  :
+instance mul_left_cosets_comp_subtype_val (H I : subgroup α) :
   mul_action I (quotient H) :=
 mul_action.comp_hom (quotient H) (subgroup.subtype I)
 

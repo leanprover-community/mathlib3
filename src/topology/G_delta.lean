@@ -23,7 +23,8 @@ In this file we define `Gδ` sets and prove their basic properties.
 
 ## Main results
 
-We prove that finite or countable intersections of Gδ sets is a Gδ set. We also prove that the continuity set of a function from a topological space to an (e)metric space is a Gδ set.
+We prove that finite or countable intersections of Gδ sets is a Gδ set. We also prove that the
+continuity set of a function from a topological space to an (e)metric space is a Gδ set.
 
 ## Tags
 
@@ -72,8 +73,8 @@ end
 lemma is_Gδ_Inter [encodable ι]  {s : ι → set α} (hs : ∀ i, is_Gδ (s i)) : is_Gδ (⋂ i, s i) :=
 is_Gδ_sInter (forall_range_iff.2 hs) $ countable_range s
 
-lemma is_Gδ_bInter {s : set ι} (hs : countable s) {t : Π i ∈ s, set α} (ht : ∀ i ∈ s, is_Gδ (t i ‹_›)) :
-  is_Gδ (⋂ i ∈ s, t i ‹_›) :=
+lemma is_Gδ_bInter {s : set ι} (hs : countable s) {t : Π i ∈ s, set α}
+  (ht : ∀ i ∈ s, is_Gδ (t i ‹_›)) : is_Gδ (⋂ i ∈ s, t i ‹_›) :=
 begin
   rw [bInter_eq_Inter],
   haveI := hs.to_encodable,

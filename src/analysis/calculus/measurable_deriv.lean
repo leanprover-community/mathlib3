@@ -187,46 +187,64 @@ end
 lemma set_of_has_fderiv_at_mem_set_eq {a : 𝕜} (ha : ∥a∥ < 1) (h₀ : a ≠ 0)
   {t : set (E →L[𝕜] F)} (ht : is_complete t) :
   {x | ∃ f' ∈ t, has_fderiv_at f f' x} =
-    ⋂ k : ℕ, ⋃ n : ℕ, ⋂ m : ℕ,
+    ⋂ k : ℕ, ⋃ n : ℕ, ⋂ m : ℕ, {x | continuous_at f x} ∩
       ⋃ (r : ℚ) (hr : (0 : ℝ) < r ∧ ↑r < ∥a∥^m) (R : ℚ) (hR : ∥a∥^n < R)
           (ε : ℚ) (hε : (0 : ℝ) < ε ∧ (ε : ℝ) < 1 / 2 ^ k),
         {x | ∃ f' ∈ t, has_approx_fderiv_at_in_shell f f' x r R ε} :=
 begin
   have h₀' : 0 < ∥a∥ := norm_pos_iff.2 h₀,
   ext x : 1,
-  simp only [mem_set_of_eq, mem_Inter, mem_Union],
+  simp only [mem_set_of_eq, mem_Inter, mem_Union, mem_inter_iff],
   split,
   { rintros ⟨f', hf't, hf'⟩ k,
     rcases exists_rat_btwn (one_div_pos.2 (pow_pos (@zero_lt_two ℝ _ _) k)) with ⟨ε, hε⟩,
     rcases hf'.has_approx_fderiv_at_in_shell hε.1 with ⟨R₀, hR₀⟩,
-    rcases exists_pow_lt_of_lt_1 (norm_nonneg a) ha hR₀.fst with ⟨n, hn⟩,
+    rcases exists_pow_lt_of_lt_1 hR₀.fst (norm_nonneg a) ha with ⟨n, hn⟩,
     rcases exists_rat_btwn hn with ⟨R, hR⟩,
     refine ⟨n, λ m, _⟩,
     rcases exists_rat_btwn (pow_pos h₀' m) with ⟨r, hr⟩,
-    exact ⟨r, hr, R, hR.1, ε, hε, f', hf't, hR₀.snd _ hR.2 _⟩ },
+    exact ⟨hf'.continuous_at, r, hr, R, hR.1, ε, hε, f', hf't, hR₀.snd _ hR.2 _⟩ },
   { intro H,
-    choose n r hr R hR ε hε f' Hf't Hf' using H,
+    choose n hc r hr R hR ε hε f' Hf't Hf' using H,
     refine has_fderiv_at_of_forall_shell ha h₀ ht (λ k, ⟨n k, λ m, ⟨f' k m, Hf't _ _, _⟩⟩),
     exact (Hf' k m).mono (hr _ _).2.le (hR _ _).le (hε _ _).2.le }
 end
 
-lemma is_measurable_set_of_has_fderiv_at_mem_set [measurable_space E] [opens_measurable_space E]
-  {t : set (E →L[𝕜] F)} (ht : is_complete t) :
+lemma fderiv_mem_iff {f : E → F} {s : set (E →L[𝕜] F)} {x : E} :
+  fderiv 𝕜 f x ∈ s ↔ (∃ f' ∈ s, has_fderiv_at f f' x) ∨
+    (0 : E →L[𝕜] F) ∈ s ∧ ¬differentiable_at 𝕜 f x :=
+begin
+  split,
+  { intro hfx,
+    by_cases hx : differentiable_at 𝕜 f x,
+    { exact or.inl ⟨fderiv 𝕜 f x, hfx, hx.has_fderiv_at⟩ },
+    { rw [fderiv_zero_of_not_differentiable_at hx] at hfx,
+      exact or.inr ⟨hfx, hx⟩ } },
+  { rintro (⟨f', hf's, hf'⟩|⟨h₀, hx⟩),
+    { rwa hf'.fderiv },
+    { rwa [fderiv_zero_of_not_differentiable_at hx] } }
+end
+
+variables [measurable_space E] [opens_measurable_space E] (𝕜 f)
+
+lemma is_measurable_set_of_has_fderiv_at_mem_set {t : set (E →L[𝕜] F)} (ht : is_complete t) :
   is_measurable {x : E | ∃ f' ∈ t, has_fderiv_at f f' x} :=
 begin
   rcases normed_field.exists_norm_lt_one 𝕜 with ⟨a, h₀', ha⟩,
   have h₀ : a ≠ 0 := norm_pos_iff.1 h₀',
   rw [set_of_has_fderiv_at_mem_set_eq ha h₀ ht],
   refine is_measurable.Inter (λ k, is_measurable.Union $ λ n, is_measurable.Inter $
-    λ m, is_open.is_measurable $ is_open_iff_mem_nhds.2 $ λ x hx, _),
-  simp only [mem_Union] at hx,
-  rcases hx with ⟨r, hr, R, hR, ε, hε, f', hf't, hf'⟩,
+    λ m, _),
+  rw [← inter_interior_eq_of_forall_mem_nhds],
+  show is_measurable _,
+    from (is_measurable_set_of_continuous_at _).inter is_open_interior.is_measurable,
+  simp only [mem_set_of_eq, mem_inter_eq, mem_Union, ← set_of_exists],
+  rintros x ⟨hfc, r, hr, R, hR, ε, hε, f', hf't, hf'⟩,
   rcases exists_rat_btwn hr.2 with ⟨r', hr'⟩,
   rcases exists_rat_btwn hR with ⟨R', hR'⟩,
   rcases exists_rat_btwn hε.2 with ⟨ε', hε'⟩,
   suffices : ∀ᶠ x' in 𝓝 x, has_approx_fderiv_at_in_shell f f' x' r' R' ε',
-  { simp only [← set_of_exists],
-    exact this.mono (λ x' hx', ⟨r', ⟨hr.1.trans hr'.1, hr'.2⟩, R', hR'.1,
+  { exact this.mono (λ x' hx', ⟨r', ⟨hr.1.trans hr'.1, hr'.2⟩, R', hR'.1,
       ε', ⟨hε.1.trans hε'.1, hε'.2⟩, f', hf't, hx'⟩) },
   have hr'_subset : ∀ᶠ x' in 𝓝 x, ∀ y, ↑r' ≤ dist y x' → ↑r ≤ dist y x,
   { refine metric.eventually_nhds_iff.2 ⟨r' - r, sub_pos.2 hr'.1, λ x' hx' y hy, _⟩,
@@ -236,9 +254,61 @@ begin
   have hR'_subset : ∀ᶠ x' in 𝓝 x, ∀ y, dist y x' < R' → dist y x < R :=
     metric.eventually_nhds_iff.2 ⟨R - R', sub_pos.2 hR'.2, λ x' hx' y hy,
       metric.ball_subset hx'.le hy⟩,
+  rcases exists_between hε'.1 with ⟨ε'', hεε'', hε''ε'⟩,
+  have hε''0 : 0 < ε'' := hε.1.trans hεε'',
+  suffices : ∀ᶠ x' in 𝓝 x, ∀ y, ↑r' ≤ dist y x' → dist y x' < R' →
+    ∥f y - f x' - f' (y - x')∥ ≤ ε'' * ∥y - x∥,
+  { have H : 0 < (↑ε' - ε'') * r' / ε'' :=
+      div_pos (mul_pos (sub_pos.2 hε''ε') (hr.1.trans hr'.1)) hε''0,
+    filter_upwards [this, metric.ball_mem_nhds _ H],
+    intros x' H₁ H₂ y hyr hyR,
+    calc _ ≤ ε'' * ∥y - x∥ : H₁ y hyr hyR
+    ... = ε'' * dist y x : by rw dist_eq_norm
+    ... ≤ ε'' * (dist y x' + dist x' x) :
+      mul_le_mul_of_nonneg_left (dist_triangle _ _ _) hε''0.le
+    ... ≤ ↑ε' * dist y x' : _
+    ... = ↑ε' * ∥y - x'∥ : by rw dist_eq_norm,
+    rw [mul_add, ← le_sub_iff_add_le', ← sub_mul, ← le_div_iff' hε''0],
+    refine (le_of_lt $ metric.mem_ball.1 H₂).trans _,
+    exact (div_le_div_right hε''0).2 (mul_le_mul_of_nonneg_left hyr (sub_nonneg.2 hε''ε'.le)) },
+  clear hε''ε' hε' ε',
+  have : continuous_at (λ x', f x' - f' x') x := hfc.sub f'.continuous.continuous_at,
+  rw [continuous_at, tendsto_iff_norm_tendsto_zero] at this,
+  filter_upwards [hr'_subset, hR'_subset,
+    this.eventually (gt_mem_nhds $ mul_pos (sub_pos.2 hεε'') hr.1)],
+  intros x' hr_impl hR_impl hlt y hyr' hyR,
+  have hyr : ↑r ≤ dist y x := hr_impl _ hyr',
+  calc ∥f y - f x' - f' (y - x')∥ = ∥(f y - f x - f' (y - x)) - (f x' - f' x' - (f x - f' x))∥ :
+    by { simp only [f'.map_sub], congr' 1, abel }
+  ... ≤ ∥f y - f x - f' (y - x)∥ + ∥f x' - f' x' - (f x - f' x)∥ : norm_sub_le _ _
+  ... ≤ ↑ε * ∥y - x∥ + (ε'' - ε) * r : add_le_add (hf' y hyr (hR_impl _ hyR)) hlt.le
+  ... ≤ ε'' * ∥y - x∥ : _,
+  rw [← le_sub_iff_add_le', ← sub_mul],
+  exact mul_le_mul_of_nonneg_left (by rwa ← dist_eq_norm) (sub_nonneg.2 hεε''.le)
 end
-  
-/-  
-  (hf : ∀ k : ℕ, ∃ n : ℕ, ∀ m : ℕ,
-    ∃ f' ∈ t, has_approx_fderiv_at_in_shell f f' x (∥a∥^m) (∥a∥^n) (1 / 2 ^ k)) :
-  ∃ f' ∈ t, has_fderiv_at f f' x :=-/
+
+variable [complete_space F]
+
+lemma is_measurable_set_of_differentiable_at : is_measurable {x : E | differentiable_at 𝕜 f x} :=
+by simpa [differentiable_at] using is_measurable_set_of_has_fderiv_at_mem_set 𝕜 f complete_univ
+
+lemma measurable_fderiv : measurable (fderiv 𝕜 f) :=
+begin
+  refine measurable_of_is_closed (λ s hs, _),
+  have : fderiv 𝕜 f ⁻¹' s = {x | ∃ f' ∈ s, has_fderiv_at f f' x} ∪
+    {x | (0 : E →L[𝕜] F) ∈ s} ∩ {x | ¬differentiable_at 𝕜 f x} :=
+    set.ext (λ x, mem_preimage.trans fderiv_mem_iff),
+  rw this,
+  exact (is_measurable_set_of_has_fderiv_at_mem_set _ _ hs.is_complete).union
+    ((is_measurable.const _).inter (is_measurable_set_of_differentiable_at _ _).compl)
+end
+
+lemma measurable_fderiv_apply_const [measurable_space F] [borel_space F] (y : E) :
+  measurable (λ x, fderiv 𝕜 f x y) :=
+(continuous_linear_map.measurable_apply y).comp (measurable_fderiv 𝕜 f)
+
+variable {𝕜}
+
+lemma measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜] [measurable_space F]
+  [borel_space F] (f : 𝕜 → F) : measurable (deriv f) :=
+by simpa only [fderiv_deriv] using measurable_fderiv_apply_const 𝕜 f 1

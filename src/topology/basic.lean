@@ -725,6 +725,13 @@ theorem is_open_iff_ultrafilter {s : set α} :
   is_open s ↔ (∀ (x ∈ s) (l : filter α), is_ultrafilter l → l ≤ 𝓝 x → s ∈ l) :=
 by simp_rw [is_open_iff_mem_nhds, @mem_iff_ultrafilter _ (𝓝 _)]
 
+/-- If `t` is a neighborhood of each point `x ∈ s ∩ t`, then `s ∩ interior t = s ∩ t`.
+This lemma is useful to represent `s ∩ t` as an intersection of `s` with an open set. -/
+theorem inter_interior_eq_of_forall_mem_nhds {s t : set α} (h : ∀ x ∈ s ∩ t, t ∈ 𝓝 x) :
+  s ∩ interior t = s ∩ t :=
+set.ext $ λ x, and_congr_right $ λ hs,
+  ⟨λ ht, interior_subset ht, λ ht, mem_interior_iff_mem_nhds.2 $ h _ ⟨hs, ht⟩⟩
+
 lemma mem_closure_iff_frequently {s : set α} {a : α} : a ∈ closure s ↔ ∃ᶠ x in 𝓝 a, x ∈ s :=
 by rw [filter.frequently, filter.eventually, ← mem_interior_iff_mem_nhds,
   closure_eq_compl_interior_compl]; refl

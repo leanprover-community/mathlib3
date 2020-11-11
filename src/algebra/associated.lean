@@ -251,8 +251,7 @@ lemma associated_pow_pow [comm_monoid α] {a b : α} {n : ℕ} (h : a ~ᵤ b) :
   a ^ n ~ᵤ b ^ n :=
 begin
   induction n with n ih, { simp [h] },
-  rw [pow_succ, pow_succ],
-  apply associated_mul_mul h ih,
+  convert associated_mul_mul h ih,
 end
 
 lemma dvd_of_associated [monoid α] {a b : α} : a ~ᵤ b → a ∣ b := λ ⟨u, hu⟩, ⟨u, hu.symm⟩

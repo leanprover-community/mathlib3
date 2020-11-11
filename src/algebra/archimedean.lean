@@ -110,10 +110,12 @@ end linear_ordered_ring
 
 section linear_ordered_field
 
+variables [linear_ordered_field α]
+
 /-- Every positive x is between two successive integer powers of
 another y greater than one. This is the same as `exists_int_pow_near'`,
 but with ≤ and < the other way around. -/
-lemma exists_int_pow_near [linear_ordered_field α] [archimedean α]
+lemma exists_int_pow_near [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
   ∃ n : ℤ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
 by classical; exact
@@ -131,7 +133,7 @@ let ⟨n, hn₁, hn₂⟩ := int.exists_greatest_of_bdd hb he in
 /-- Every positive x is between two successive integer powers of
 another y greater than one. This is the same as `exists_int_pow_near`,
 but with ≤ and < the other way around. -/
-lemma exists_int_pow_near' [linear_ordered_field α] [archimedean α]
+lemma exists_int_pow_near' [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
   ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1) :=
 let ⟨m, hle, hlt⟩ := exists_int_pow_near (inv_pos.2 hx) hy in
@@ -141,7 +143,13 @@ by rwa [fpow_neg, inv_lt (fpow_pos_of_pos hyp _) hx],
 by rwa [neg_add, neg_add_cancel_right, fpow_neg,
         le_inv hx (fpow_pos_of_pos hyp _)]⟩
 
-variables [linear_ordered_field α] [floor_ring α]
+lemma exists_pow_lt_of_lt_1 [archimedean α] {x y : α} (hx : 0 < x) (h₀ : 0 ≤ y) (h₁ : y < 1) :
+  ∃ n : ℕ, y ^ n < x :=
+h₀.eq_or_lt.elim (λ hy, hy ▸ ⟨1, by rwa pow_one⟩) $ λ h₀,
+  (pow_unbounded_of_one_lt x⁻¹ (one_lt_inv h₀ h₁)).imp $ λ n hn,
+  by rwa [inv_pow', inv_lt_inv hx (pow_pos h₀ _)] at hn
+
+variables [floor_ring α]
 
 lemma sub_floor_div_mul_nonneg (x : α) {y : α} (hy : 0 < y) :
   0 ≤ x - ⌊x / y⌋ * y :=

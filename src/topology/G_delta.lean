@@ -110,7 +110,7 @@ lemma is_Gδ_set_of_continuous_at_of_countably_generated_uniformity
 begin
   rcases hU.exists_antimono_subbasis uniformity_has_basis_open_symmetric with ⟨U, hUo, hU⟩,
   simp only [uniform.continuous_at_iff_prod, nhds_prod_eq],
-  simp only [ (nhds_basis_opens _).prod_self.tendsto_iff hU.to_has_basis, forall_prop_of_true,
+  simp only [(nhds_basis_opens _).prod_self.tendsto_iff hU.to_has_basis, forall_prop_of_true,
     set_of_forall, id],
   refine is_Gδ_Inter (λ k, is_open.is_Gδ $ is_open_iff_mem_nhds.2 $ λ x, _),
   rintros ⟨s, ⟨hsx, hso⟩, hsU⟩,

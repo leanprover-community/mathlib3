@@ -101,10 +101,10 @@ lemma inv_smul_smul' {c : G} (hc : c ≠ 0) (x : β) : c⁻¹ • c • x = x :=
 lemma smul_inv_smul' {c : G} (hc : c ≠ 0) (x : β) : c • c⁻¹ • x = x :=
 (units.mk0 c hc).smul_inv_smul x
 
-lemma inv_smul_eq_iff {a : G} (ha : a ≠ 0) {x y : β} : a⁻¹ • x = y ↔ x = a • y :=
+lemma inv_smul_eq_iff' {a : G} (ha : a ≠ 0) {x y : β} : a⁻¹ • x = y ↔ x = a • y :=
 by { split; intro h, rw [← h, smul_inv_smul' ha], rw [h, inv_smul_smul' ha] }
 
-lemma eq_inv_smul_iff {a : G} (ha : a ≠ 0) {x y : β} : x = a⁻¹ • y ↔ a • x = y :=
+lemma eq_inv_smul_iff' {a : G} (ha : a ≠ 0) {x y : β} : x = a⁻¹ • y ↔ a • x = y :=
 by { split; intro h, rw [h, smul_inv_smul' ha], rw [← h, inv_smul_smul' ha] }
 
 end gwz
@@ -240,11 +240,9 @@ rfl
 
 end mul_action
 
-namespace mul_action
-variables [group α] [mul_action α β]
 
 section
-open mul_action quotient_group
+variables [group α] [mul_action α β]
 
 @[simp] lemma inv_smul_smul (c : α) (x : β) : c⁻¹ • c • x = x :=
 (to_units c).inv_smul_smul x
@@ -268,6 +266,7 @@ begin
   {rw inv_smul_smul},
 end
 
+namespace mul_action
 variable (α)
 
 /-- The stabilizer of an element under an action, i.e. what sends the element to itself.
@@ -365,7 +364,7 @@ quotient.induction_on' g' $ λ _, mul_smul _ _ _
 
 theorem injective_of_quotient_stabilizer : function.injective (of_quotient_stabilizer α x) :=
 λ y₁ y₂, quotient.induction_on₂' y₁ y₂ $ λ g₁ g₂ (H : g₁ • x = g₂ • x), quotient.sound' $
-show (g₁⁻¹ * g₂) • x = x, by rw [mul_smul, ← H, mul_action.inv_smul_smul]
+show (g₁⁻¹ * g₂) • x = x, by rw [mul_smul, ← H, inv_smul_smul]
 
 /-- Orbit-stabilizer theorem. -/
 noncomputable def orbit_equiv_quotient_stabilizer (b : β) :
@@ -379,9 +378,9 @@ equiv.symm $ equiv.of_bijective
   ((orbit_equiv_quotient_stabilizer α b).symm a : β) = a • b :=
 rfl
 
-end
-
 end mul_action
+
+end
 
 /-- Typeclass for multiplicative actions on additive structures. This generalizes group modules. -/
 class distrib_mul_action (α : Type u) (β : Type v) [monoid α] [add_monoid β] extends mul_action α β :=

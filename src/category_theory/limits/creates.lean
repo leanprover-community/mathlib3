@@ -382,14 +382,38 @@ section comp
 variables {E : Type u₃} [ℰ : category.{v} E]
 variables (F : C ⥤ D) (G : D ⥤ E)
 
-instance comp_creates_limit [i₁ : creates_limit K F] [i₂ : creates_limit (K ⋙ F) G] :
+instance comp_creates_limit [creates_limit K F] [creates_limit (K ⋙ F) G] :
   creates_limit K (F ⋙ G) :=
 { lifts := λ c t,
   { lifted_cone := lift_limit (lifted_limit_is_limit t),
     valid_lift := (cones.functoriality (K ⋙ F) G).map_iso
       (lifted_limit_maps_to_original (lifted_limit_is_limit t)) ≪≫
-      (lifted_limit_maps_to_original t),
-  } }
+      (lifted_limit_maps_to_original t) } }
+
+instance comp_creates_limits_of_shape [creates_limits_of_shape J F] [creates_limits_of_shape J G] :
+  creates_limits_of_shape J (F ⋙ G) :=
+{ creates_limit := infer_instance }
+
+instance comp_creates_limits [creates_limits F] [creates_limits G] :
+  creates_limits (F ⋙ G) :=
+{ creates_limits_of_shape := infer_instance }
+
+instance comp_creates_colimit [creates_colimit K F] [creates_colimit (K ⋙ F) G] :
+  creates_colimit K (F ⋙ G) :=
+{ lifts := λ c t,
+  { lifted_cocone := lift_colimit (lifted_colimit_is_colimit t),
+    valid_lift := (cocones.functoriality (K ⋙ F) G).map_iso
+      (lifted_colimit_maps_to_original (lifted_colimit_is_colimit t)) ≪≫
+      (lifted_colimit_maps_to_original t) } }
+
+instance comp_creates_colimits_of_shape
+  [creates_colimits_of_shape J F] [creates_colimits_of_shape J G] :
+  creates_colimits_of_shape J (F ⋙ G) :=
+{ creates_colimit := infer_instance }
+
+instance comp_creates_colimits [creates_colimits F] [creates_colimits G] :
+  creates_colimits (F ⋙ G) :=
+{ creates_colimits_of_shape := infer_instance }
 
 end comp
 

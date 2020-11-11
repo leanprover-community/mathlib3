@@ -53,12 +53,10 @@ inductive rel : tensor_algebra R L → tensor_algebra R L → Prop
 end universal_enveloping_algebra
 
 /-- The universal enveloping algebra of a Lie algebra. -/
-@[derive [inhabited, semiring, algebra R]]
+@[derive [inhabited, ring, algebra R]]
 def universal_enveloping_algebra := ring_quot (universal_enveloping_algebra.rel R L)
 
 namespace universal_enveloping_algebra
-
-instance : ring (universal_enveloping_algebra R L) := algebra.semiring_to_ring R
 
 /-- The quotient map from the tensor algebra to the universal enveloping algebra as a morphism of
 associative algebras. -/

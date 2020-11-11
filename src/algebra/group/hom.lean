@@ -130,6 +130,13 @@ lemma mul_hom.coe_mk [has_mul M] [has_mul N]
 lemma monoid_hom.coe_mk [monoid M] [monoid N]
   (f : M → N) (h1 hmul) : ⇑(monoid_hom.mk f h1 hmul) = f := rfl
 
+@[simp, to_additive]
+lemma monoid_hom.to_one_hom_coe [monoid M] [monoid N] (f : M →* N) :
+  (f.to_one_hom : M → N) = f := rfl
+@[simp, to_additive]
+lemma monoid_hom.to_mul_hom_coe [monoid M] [monoid N] (f : M →* N) :
+  (f.to_mul_hom : M → N) = f := rfl
+
 @[to_additive]
 theorem one_hom.congr_fun [has_one M] [has_one N]
   {f g : one_hom M N} (h : f = g) (x : M) : f x = g x :=

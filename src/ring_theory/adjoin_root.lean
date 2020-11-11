@@ -66,6 +66,9 @@ instance : decidable_eq (adjoin_root f) := classical.dec_eq _
 /-- Ring homomorphism from `R[x]` to `adjoin_root f` sending `X` to the `root`. -/
 def mk : polynomial R →+* adjoin_root f := ideal.quotient.mk _
 
+@[simp] lemma mk_eq_mk (p q : polynomial R) : mk f p = mk f q ↔ f ∣ p - q :=
+ideal.quotient.eq.trans mem_span_singleton
+
 @[elab_as_eliminator]
 theorem induction_on {C : adjoin_root f → Prop} (x : adjoin_root f)
   (ih : ∀ p : polynomial R, C (mk f p)) : C x :=
@@ -138,6 +141,9 @@ variables (f) [algebra R S]
 a root of `f` in `S`. -/
 def lift_hom (x : S) (hfx : aeval x f = 0) : adjoin_root f →ₐ[R] S :=
 { commutes' := λ r, show lift _ _ hfx r = _, from lift_of, .. lift (algebra_map R S) x hfx }
+
+@[simp] lemma lift_hom_apply (x : S) (hfx : aeval x f = 0) :
+  (lift_hom f x hfx : adjoin_root f → S) = lift (algebra_map R S) x hfx := rfl
 
 @[simp] lemma coe_lift_hom (x : S) (hfx : aeval x f = 0) :
   (lift_hom f x hfx : adjoin_root f →+* S) = lift (algebra_map R S) x hfx := rfl

@@ -70,6 +70,10 @@ begin
   rw [aeval_def, eval₂_add, eval₂_X, eval₂_C]
 end
 
+/--A minimal polynomial is nonzero.-/
+lemma ne_zero [nontrivial α] : (minimal_polynomial hx) ≠ 0 :=
+ne_zero_of_monic (monic hx)
+
 end ring
 
 section field
@@ -78,10 +82,6 @@ variables [field α]
 section ring
 variables [ring β] [algebra α β]
 variables {x : β} (hx : is_integral α x)
-
-/--A minimal polynomial is nonzero.-/
-lemma ne_zero : (minimal_polynomial hx) ≠ 0 :=
-ne_zero_of_monic (monic hx)
 
 /--If an element x is a root of a nonzero polynomial p,
 then the degree of p is at least the degree of the minimal polynomial of x.-/

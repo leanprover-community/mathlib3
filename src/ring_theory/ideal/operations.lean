@@ -251,7 +251,7 @@ noncomputable def quotient_inf_ring_equiv_pi_quotient [fintype ι] (f : ι → i
 end chinese_remainder
 
 section mul_and_radical
-variables {R : Type u} [comm_ring R]
+variables {R : Type u} {ι : Type*} [comm_ring R]
 variables {I J K L: ideal R}
 
 instance : has_mul (ideal R) := ⟨(•)⟩
@@ -304,6 +304,15 @@ by { unfold span, rw [submodule.span_mul_span, set.singleton_mul_singleton],}
 
 theorem mul_le_inf : I * J ≤ I ⊓ J :=
 mul_le.2 $ λ r hri s hsj, ⟨I.mul_mem_right hri, J.mul_mem_left hsj⟩
+
+theorem prod_le_inf {s : finset ι} {f : ι → ideal R} : s.prod f ≤ s.inf f :=
+begin
+  classical, refine s.induction_on _ _,
+  { rw [finset.prod_empty, finset.inf_empty], exact le_top },
+  intros a s has ih,
+  rw [finset.prod_insert has, finset.inf_insert],
+  exact le_trans mul_le_inf (inf_le_inf (le_refl _) ih)
+end
 
 theorem mul_eq_inf_of_coprime (h : I ⊔ J = ⊤) : I * J = I ⊓ J :=
 le_antisymm mul_le_inf $ λ r ⟨hri, hrj⟩,
@@ -466,17 +475,6 @@ theorem is_prime.inf_le {I J P : ideal R} (hp : is_prime P) :
   I ⊓ J ≤ P ↔ I ≤ P ∨ J ≤ P :=
 ⟨λ h, hp.mul_le.1 $ le_trans mul_le_inf h,
 λ h, or.cases_on h (le_trans inf_le_left) (le_trans inf_le_right)⟩
-
-variables {ι : Type v}
-
-theorem prod_le_inf {s : finset ι} {f : ι → ideal R} : s.prod f ≤ s.inf f :=
-begin
-  classical, refine s.induction_on _ _,
-  { rw [finset.prod_empty, finset.inf_empty], exact le_top },
-  intros a s has ih,
-  rw [finset.prod_insert has, finset.inf_insert],
-  exact le_trans mul_le_inf (inf_le_inf (le_refl _) ih)
-end
 
 theorem is_prime.prod_le {s : finset ι} {f : ι → ideal R} {P : ideal R} (hp : is_prime P) (hne: s.nonempty) :
   s.prod f ≤ P ↔ ∃ i ∈ s, f i ≤ P :=

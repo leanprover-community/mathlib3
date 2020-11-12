@@ -325,7 +325,7 @@ def mul : talg R M →ₗ[R] talg R M →ₗ[R] talg R M :=
 direct_sum2.to_semimodule R ℕ (talg R M →ₗ[R] talg R M) $
 λ m, tpow.lift R m _ $
   { to_fun := λ x, direct_sum2.to_semimodule R ℕ _ (λ n, tpow.lift R n _ (lof_add R M x)),
-    map_add' := sorry,/-λ f i g j, by {
+    map_add' := λ f i g j, by {
       ext x k,
       rw linear_map.add_apply,
       refine direct_sum2.induction_on x _ _ _,
@@ -349,9 +349,9 @@ direct_sum2.to_semimodule R ℕ (talg R M →ₗ[R] talg R M) $
       simp only [dfinsupp.add_apply],
       rw hy, rw hz,
       simp only [dfinsupp.add_apply],
-      abel, },-/
+      abel, },
     map_smul' := λ f i r x, by
-      {sorry/-ext y k,
+      {ext y k,
       rw linear_map.smul_apply,
       refine direct_sum2.induction_on y _ _ _,
       simp only [linear_map.map_zero, smul_zero],
@@ -372,7 +372,7 @@ direct_sum2.to_semimodule R ℕ (talg R M →ₗ[R] talg R M) $
       simp only [linear_map.map_add],
       simp only [dfinsupp.add_apply],
       rw ha, rw hb,
-      rw smul_add, simp only [dfinsupp.smul_apply, dfinsupp.add_apply],-/
+      rw smul_add, simp only [dfinsupp.smul_apply, dfinsupp.add_apply],
       } }
 
 instance talg.has_mul : has_mul (talg R M) :=

@@ -494,12 +494,14 @@ lemma closure_induction {p : G → Prop} {x} (h : x ∈ closure k)
 attribute [elab_as_eliminator] subgroup.closure_induction add_subgroup.closure_induction
 
 /-- An induction principle on elements of the subtype `subgroup.closure`.
-If `p` holds for `1` and all elements of `k`, and is preserved under multiplication and inverse, then `p` holds for all elements `x : closure k`.
+If `p` holds for `1` and all elements of `k`, and is preserved under multiplication and inverse,
+then `p` holds for all elements `x : closure k`.
 
 The difference with `subgroup.closure_induction` is that this acts on the subtype.
 -/
 @[to_additive "An induction principle on elements of the subtype `add_subgroup.closure`.
-If `p` holds for `0` and all elements of `k`, and is preserved under addition and negation, then `p` holds for all elements `x : closure k`.
+If `p` holds for `0` and all elements of `k`, and is preserved under addition and negation,
+then `p` holds for all elements `x : closure k`.
 
 The difference with `add_subgroup.closure_induction` is that this acts on the subtype."]
 lemma closure_induction' (k : set G) {p : closure k → Prop}

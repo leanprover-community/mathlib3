@@ -47,7 +47,8 @@ group.
 * `rack.opp` gives the rack with the action replaced by its inverse.
 
 ## Main statements
-* `rack.envel_group` is universal (`to_envel_group.univ` and `to_envel_group.univ_uniq`)
+* `rack.envel_group` is left adjoint to `quandle.conj` (`to_envel_group.map`).
+  The universality statements are `to_envel_group.univ` and `to_envel_group.univ_uniq`.
 
 ## Notation
 
@@ -584,6 +585,7 @@ end to_envel_group.map_aux
 
 /--
 Given a map from a rack to a group, lift it to being a map from the enveloping group.
+More precisely, the `envel_group` functor is left adjoint to `quandle.conj`.
 -/
 def to_envel_group.map {R : Type*} [rack R] {G : Type*} [group G] :
   (R →◃ quandle.conj G) ≃ (envel_group R →* G) :=

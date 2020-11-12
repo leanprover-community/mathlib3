@@ -289,7 +289,7 @@ pb.constr_pow_gen hy
 pb.constr_pow_aeval hy f
 
 /-- `pb.equiv pb' h` is an equivalence of algebras with the same power basis. -/
-noncomputable def equiv [nontrivial S] [nontrivial S'] [algebra A S']
+noncomputable def equiv [nontrivial S] [nontrivial S']
   (pb : power_basis A S) (pb' : power_basis A S')
   (h : minimal_polynomial pb.is_integral_gen = minimal_polynomial pb'.is_integral_gen) :
   S ≃ₐ[A] S' :=
@@ -300,7 +300,7 @@ alg_equiv.of_alg_hom
   (by { ext x, obtain ⟨f, hf, rfl⟩ := pb.exists_eq_aeval x, simp })
 
 @[simp]
-lemma equiv_aeval [nontrivial S] [nontrivial S'] [algebra A S']
+lemma equiv_aeval [nontrivial S] [nontrivial S']
   (pb : power_basis A S) (pb' : power_basis A S')
   (h : minimal_polynomial pb.is_integral_gen = minimal_polynomial pb'.is_integral_gen)
   (f : polynomial A) :
@@ -308,7 +308,7 @@ lemma equiv_aeval [nontrivial S] [nontrivial S'] [algebra A S']
 pb.lift_aeval _ (h.symm ▸ minimal_polynomial.aeval _) _
 
 @[simp]
-lemma equiv_gen [nontrivial S] [nontrivial S'] [algebra A S']
+lemma equiv_gen [nontrivial S] [nontrivial S']
   (pb : power_basis A S) (pb' : power_basis A S')
   (h : minimal_polynomial pb.is_integral_gen = minimal_polynomial pb'.is_integral_gen) :
   pb.equiv pb' h pb.gen = pb'.gen :=
@@ -317,7 +317,7 @@ pb.lift_gen _ (h.symm ▸ minimal_polynomial.aeval _)
 local attribute [irreducible] power_basis.lift
 
 @[simp]
-lemma equiv_symm [nontrivial S] [nontrivial S'] [algebra A S']
+lemma equiv_symm [nontrivial S] [nontrivial S']
   (pb : power_basis A S) (pb' : power_basis A S')
   (h : minimal_polynomial pb.is_integral_gen = minimal_polynomial pb'.is_integral_gen) :
   (pb.equiv pb' h).symm = pb'.equiv pb h.symm :=

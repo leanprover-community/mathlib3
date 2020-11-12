@@ -418,18 +418,16 @@ end
 of `minimal_polynomial α` in `K`. -/
 noncomputable def alg_hom_adjoin_integral_equiv (h : is_integral F α) :
   (F⟮α⟯ →ₐ[F] K) ≃ {x // x ∈ ((minimal_polynomial h).map (algebra_map F K)).roots} :=
-begin
-  have ϕ := adjoin_root_equiv_adjoin F h,
-  have swap1 : (F⟮α⟯ →ₐ[F] K) ≃ (adjoin_root (minimal_polynomial h) →ₐ[F] K) :=
-  { to_fun := λ f, f.comp (ϕ.to_alg_hom),
-    inv_fun := λ f, f.comp (ϕ.symm.to_alg_hom),
+let ϕ := adjoin_root_equiv_adjoin F h,
+  swap1 : (F⟮α⟯ →ₐ[F] K) ≃ (adjoin_root (minimal_polynomial h) →ₐ[F] K) :=
+  { to_fun := λ f, f.comp ϕ.to_alg_hom,
+    inv_fun := λ f, f.comp ϕ.symm.to_alg_hom,
     left_inv := λ _, by { ext, simp only [alg_equiv.coe_alg_hom,
       alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply, alg_equiv.apply_symm_apply]},
     right_inv := λ _, by { ext, simp only [alg_equiv.symm_apply_apply,
       alg_equiv.coe_alg_hom, alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply] } },
-  have swap2 := adjoin_root.equiv F K (minimal_polynomial h) (minimal_polynomial.ne_zero h),
-  exact swap1.trans swap2,
-end
+  swap2 := adjoin_root.equiv F K (minimal_polynomial h) (minimal_polynomial.ne_zero h) in
+swap1.trans swap2
 
 /-- Fintype of algebra homomorphism `F⟮α⟯ →ₐ[F] K` -/
 noncomputable def fintype_of_alg_hom_adjoin_integral (h : is_integral F α) :

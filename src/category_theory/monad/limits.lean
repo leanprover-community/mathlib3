@@ -245,7 +245,7 @@ has_colimit_of_created D (forget T)
 
 end monad
 
-variables {C : Type u₁} [category.{v₁} C] {D : Type u₁} [category.{v₁} D]
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₁} D]
 variables {J : Type v₁} [small_category J]
 
 instance comp_comparison_forget_has_limit

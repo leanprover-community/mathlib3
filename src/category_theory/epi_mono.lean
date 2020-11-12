@@ -151,12 +151,14 @@ section
 variables {D : Type u₂} [category.{v₂} D]
 
 /-- Split monomorphisms are also absolute monomorphisms. -/
-instance {X Y : C} (f : X ⟶ Y) [split_mono f] (F : C ⥤ D) : split_mono (F.map f) :=
+instance split_mono_map_of_split_mono {X Y : C} (f : X ⟶ Y) [split_mono f] (F : C ⥤ D) :
+  split_mono (F.map f) :=
 { retraction := F.map (retraction f),
   id' := by { rw [←functor.map_comp, split_mono.id, functor.map_id], } }
 
 /-- Split epimorphisms are also absolute epimorphisms. -/
-instance {X Y : C} (f : X ⟶ Y) [split_epi f] (F : C ⥤ D) : split_epi (F.map f) :=
+instance split_epi_map_of_split_epi {X Y : C} (f : X ⟶ Y) [split_epi f] (F : C ⥤ D) :
+  split_epi (F.map f) :=
 { section_ := F.map (section_ f),
   id' := by { rw [←functor.map_comp, split_epi.id, functor.map_id], } }
 end

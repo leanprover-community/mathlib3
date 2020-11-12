@@ -1,7 +1,7 @@
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.constructions.preserve_binary_products
 import category_theory.adjunction
-import category_theory.monad.adjunction
+import category_theory.monad.limits
 import category_theory.adjunction.fully_faithful
 import category_theory.closed.cartesian
 
@@ -13,7 +13,9 @@ namespace category_theory
 
 open limits category
 
-variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₁} D] {i : D ⥤ C}
+section subcat
+
+variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₂} D] {i : D ⥤ C}
 
 def coyoneda.ext {X Y : C} (p : Π {Z : C}, (X ⟶ Z) ≃ (Y ⟶ Z))
   (n : Π {Z Z' : C} (f : Z ⟶ Z') (g : X ⟶ Z), p (g ≫ f) = p g ≫ f) : X ≅ Y :=
@@ -35,7 +37,12 @@ def in_subcategory.witness {A : C} (h : in_subcategory i A) : D := h.some
 def in_subcategory.get_iso {A : C} (h : in_subcategory i A) : i.obj (h.witness) ≅ A :=
 classical.choice h.some_spec
 
-lemma inclusion_is_in (B : D) : in_subcategory i (i.obj B) := ⟨B, ⟨iso.refl _⟩⟩
+/-- Being in the subcategory is a "hygenic" property: it is preserved under isomorphism. -/
+lemma in_subcategory_of_iso {A A' : C} (h' : A ≅ A') (hA : in_subcategory i A) :
+  in_subcategory i A' :=
+hA.imp (λ B, nonempty.map (≪≫ h'))
+
+lemma inclusion_is_in (i : D ⥤ C) (B : D) : in_subcategory i (i.obj B) := ⟨B, ⟨iso.refl _⟩⟩
 
 lemma hom_comp_eq_id {X Y : C} (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} : g ≫ f = 𝟙 X ↔ f = inv g :=
 iso.hom_comp_eq_id (as_iso g)
@@ -73,14 +80,75 @@ begin
   simp only [functor.id_map, iso.inv_hom_id_assoc],
 end
 
+def in_subcategory_of_unit_is_iso [reflective i] (A : C)
+  [is_iso ((adjunction.of_right_adjoint i).unit.app A)] : in_subcategory i A :=
+begin
+  refine ⟨(left_adjoint i).obj A, ⟨_⟩⟩,
+  apply (as_iso ((adjunction.of_right_adjoint i).unit.app A)).symm,
+end
+
+def in_subcategory_of_unit_split_mono [reflective i] {A : C}
+  [split_mono ((adjunction.of_right_adjoint i).unit.app A)] : in_subcategory i A :=
+begin
+  let ir := adjunction.of_right_adjoint i,
+  let η : 𝟭 C ⟶ left_adjoint i ⋙ i := ir.unit,
+  haveI : is_iso (η.app (i.obj ((left_adjoint i).obj A))) := (inclusion_is_in _ _).unit_iso,
+  have : epi (η.app A),
+    apply epi_of_epi (retraction (η.app A)) _,
+    have : retraction _ ≫ η.app A = _ := η.naturality (retraction (η.app A)),
+    rw this,
+    apply epi_comp (η.app (i.obj ((left_adjoint i).obj A))) _,
+    apply split_epi.epi _,
+    apply_instance,
+  resetI,
+  haveI := is_iso_of_epi_of_split_mono (η.app A),
+  exact in_subcategory_of_unit_is_iso A,
+end
+
+end subcat
+
+section ideal
+
+variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₂} D] {i : D ⥤ C}
 variables (i) [has_finite_products C] [cartesian_closed C]
 
 /--
 The subcategory `D` of `C` expressed as an inclusion functor is an *exponential ideal* if
 `B ∈ D` implies `B^A ∈ D` for all `A`.
 -/
-class exponential_ideal :=
+class exponential_ideal : Prop :=
 (exp_closed : ∀ {B}, in_subcategory i B → ∀ A, in_subcategory i (A ⟹ B))
+
+def exponential_ideal_reflective (A : C) [reflective i] [exponential_ideal i] :
+  i ⋙ exp A ⋙ left_adjoint i ⋙ i ≅ i ⋙ exp A :=
+begin
+  symmetry,
+  apply nat_iso.of_components _ _,
+  { intro X,
+    haveI : is_iso ((adjunction.of_right_adjoint i).unit.app (i.obj X ^^ A)) :=
+      in_subcategory.unit_iso
+        (exponential_ideal.exp_closed (inclusion_is_in i X) A),
+    apply as_iso ((adjunction.of_right_adjoint i).unit.app (i.obj X ^^ A)) },
+  { simp }
+end
+
+def exponential_ideal.mk' (h : ∀ (B : D) (A : C), in_subcategory i (A ⟹ i.obj B)) :
+  exponential_ideal i :=
+⟨λ B hB A,
+begin
+  rcases hB with ⟨B', ⟨iB'⟩⟩,
+  apply in_subcategory_of_iso _ (h B' A),
+  apply (exp A).map_iso iB',
+end⟩
+
+def exponential_ideal.mk_of_iso [reflective i]
+  (h : Π (A : C), i ⋙ exp A ⋙ left_adjoint i ⋙ i ≅ i ⋙ exp A) :
+  exponential_ideal i :=
+begin
+  apply exponential_ideal.mk',
+  intros B A,
+  exact ⟨_, ⟨(h A).app B⟩⟩,
+end
 
 @[derive category]
 def subterminals (C : Type u₁) [category.{v₁} C] [has_terminal C] :=
@@ -89,15 +157,88 @@ def subterminals (C : Type u₁) [category.{v₁} C] [has_terminal C] :=
 def subterminal_inclusion : subterminals C ⥤ C := full_subcategory_inclusion _
 
 instance : exponential_ideal (subterminal_inclusion : _ ⥤ C) :=
-{ exp_closed := λ B hB A,
-  begin
-    rcases hB with ⟨⟨B', hB'⟩, ⟨iB⟩⟩,
-    refine ⟨⟨B ^^ A, ⟨_⟩⟩, ⟨iso.refl _⟩⟩,
-    introsI Z g h eq,
-    apply uncurry_injective,
-    rw [← cancel_mono iB.inv, ← cancel_mono (terminal.from B')],
-    apply subsingleton.elim,
-  end }
+begin
+  apply exponential_ideal.mk',
+  rintros ⟨B, hB'⟩ A,
+  refine ⟨⟨B ^^ A, ⟨_⟩⟩, ⟨iso.refl _⟩⟩,
+  introsI Z g h eq,
+  apply uncurry_injective,
+  rw [← cancel_mono (terminal.from B)],
+  apply subsingleton.elim,
+end
+
+end ideal
+
+section
+
+variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₁} D]
+variables (i : D ⥤ C) [has_finite_products C] [cartesian_closed C]
+
+def reflective_products [reflective i] : has_finite_products D :=
+λ J 𝒥₁ 𝒥₂,
+{ has_limit := λ F, by exactI monadic_creates_limits _ i }
+
+local attribute [instance] reflective_products
+
+/--
+If `i` witnesses that `D` is a reflective subcategory and an exponential ideal, then `D` is
+itself cartesian closed.
+-/
+instance reflective_cc [reflective i] [exponential_ideal i] : cartesian_closed D :=
+{ closed := λ B,
+  { is_adj :=
+    { right := i ⋙ exp (i.obj B) ⋙ left_adjoint i,
+      adj :=
+      begin
+        apply adjunction.restrict_fully_faithful i i (exp.adjunction (i.obj B)),
+        { symmetry,
+          apply nat_iso.of_components _ _,
+          { intro X,
+            haveI := adjunction.right_adjoint_preserves_limits (adjunction.of_right_adjoint i),
+            apply as_iso (prod_comparison i B X) },
+          { intros X Y f,
+            dsimp,
+            rw prod_comparison_natural,
+            simp, } },
+        { apply (exponential_ideal_reflective i _).symm }
+      end } } }
+
+/-- If the reflector preserves binary products, the subcategory is an exponential ideal. -/
+def ideal_of_binary_products [reflective i]
+  [preserves_limits_of_shape (discrete walking_pair) (left_adjoint i)] :
+  exponential_ideal i :=
+begin
+  let ir := adjunction.of_right_adjoint i,
+  let L : C ⥤ D := left_adjoint i,
+  let η : 𝟭 C ⟶ L ⋙ i := ir.unit,
+  let ε : i ⋙ L ⟶ 𝟭 D := ir.counit,
+  apply exponential_ideal.mk',
+  intros B A,
+  let q : i.obj (L.obj (i.obj B ^^ A)) ⟶ i.obj B ^^ A,
+    apply cartesian_closed.curry,
+    apply ir.hom_equiv _ _ _,
+    apply _ ≫ (ir.hom_equiv _ _).symm ((ev A).app (i.obj B)),
+    refine prod_comparison L A _ ≫ limits.prod.map (𝟙 _) (ε.app _) ≫ inv (prod_comparison _ _ _),
+  have : η.app (i.obj B ^^ A) ≫ q = 𝟙 (i.obj B ^^ A),
+    rw ← curry_natural_left,
+    rw curry_eq_iff,
+    rw uncurry_id_eq_ev,
+    erw ← ir.hom_equiv_naturality_left,
+    rw ir.hom_equiv_apply_eq,
+    change L.map _ ≫ _ ≫ _ = _,
+    rw [assoc, assoc],
+    erw prod_comparison_natural_assoc,
+    rw [limits.prod.map_map_assoc, L.map_id, id_comp],
+    rw ir.left_triangle_components,
+    erw prod.map_id_id,
+    rw id_comp,
+    erw is_iso.hom_inv_id_assoc,
+    refl,
+  haveI : split_mono (η.app (i.obj B ^^ A)) := ⟨_, this⟩,
+  apply in_subcategory_of_unit_split_mono,
+end
+
+end
 
 -- def witness_in (A : C) [in_subcategory i A] : D := in_subcategory.witness.{v₁} i A
 -- def witness_iso (A : C) [in_subcategory i A] : i.obj (witness_in i A) ≅ A := in_subcategory.iso.

@@ -1065,6 +1065,20 @@ begin
     { simp [coe_rpow_of_ne_zero h, h] } }
 end
 
+lemma rpow_eq_top_of_nonneg (x : ennreal) {p : ℝ} (hp0 : 0 ≤ p) : x ^ p = ⊤ → x = ⊤ :=
+begin
+  rw ennreal.rpow_eq_top_iff,
+  intro h, cases h,
+  { exfalso, rw lt_iff_not_ge at h, exact h.right hp0, },
+  { exact h.left, },
+end
+
+lemma rpow_ne_top_of_nonneg {x : ennreal} {p : ℝ} (hp0 : 0 ≤ p) (h : x ≠ ⊤) : x ^ p ≠ ⊤ :=
+mt (ennreal.rpow_eq_top_of_nonneg x hp0) h
+
+lemma rpow_lt_top_of_nonneg {x : ennreal} {p : ℝ} (hp0 : 0 ≤ p) (h : x ≠ ⊤) : x ^ p < ⊤ :=
+ennreal.lt_top_iff_ne_top.mpr (ennreal.rpow_ne_top_of_nonneg hp0 h)
+
 lemma rpow_add {x : ennreal} (y z : ℝ) (hx : x ≠ 0) (h'x : x ≠ ⊤) : x ^ (y + z) = x ^ y * x ^ z :=
 begin
   cases x, { exact (h'x rfl).elim },

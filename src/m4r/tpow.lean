@@ -95,12 +95,45 @@ end
 def mk : Π (n : ℕ) (f : fin n → M), tpow R M n
 | 0 _ := (1 : R)
 | (n + 1) f := @tensor_product.mk R _ (tpow R M n) M _ _ _ _
-  (mk n $ λ y, f y) $ f n
+  (mk n $ fin.init f) $ f n
 
 def mk' (n : ℕ) : @multilinear_map R (fin n) (λ _, M) (tpow R M n) _ _ _ _ _ _ :=
 { to_fun := mk R M n,
-  map_add' := λ f m x y, sorry,
-  map_smul' := sorry }
+  map_add' := λ f m x y,
+    by {induction n with n hn,
+    exact fin.elim0 m,
+    unfold mk,
+    cases classical.em (m = n),
+    rw h,
+    simp only [function.update_same],
+    rw linear_map.map_add,
+    simp only [fin.init_update_last'],
+    have Hn := hn (fin.init f) ⟨m, fin.succ_lt_of_ne m $ (λ hnot, h $ fin.ext $ by rwa fin.coe_nat_fin_succ)⟩,
+    rw [fin.init_update, fin.init_update, fin.init_update] at Hn,
+    rw Hn, rw linear_map.map_add,
+    rw linear_map.add_apply,
+    repeat {rw function.update_noteq},
+    all_goals {try {exact (ne.symm h)}},
+    all_goals {exact (λ hnot, h $ fin.ext $ by rwa fin.coe_nat_fin_succ)}},
+  map_smul' := λ f m c x,
+    by {induction n with n hn,
+    exact fin.elim0 m,
+    unfold mk,
+    cases classical.em (m = n),
+    rw h,
+    simp only [function.update_same],
+    rw linear_map.map_smul,
+    congr' 4,
+    rw fin.init_update_last',
+    rw fin.init_update_last',
+    have Hn := hn (fin.init f) ⟨m, fin.succ_lt_of_ne m $ (λ hnot, h $ fin.ext $ by rwa fin.coe_nat_fin_succ)⟩,
+    rw fin.init_update at Hn, rw fin.init_update at Hn,
+    rw Hn,
+    rw linear_map.map_smul,
+    rw linear_map.smul_apply,
+    repeat {rw function.update_noteq},
+    all_goals {exact (ne.symm h)},
+    } }
 
 variables {R M}
 lemma mk'_apply (n : ℕ) (x) : mk' R M n x = mk R M n x := rfl
@@ -137,9 +170,9 @@ begin
 end
 
 variables (R M)
-def fin0_to_multilinear (f : (fin 0 → M) → R) :
+def fin0_to_multilinear (f : R) :
   @multilinear_map R (fin 0) (λ _, M) R _ _ _ _ _ _ :=
-{ to_fun := f,
+{ to_fun := λ _, f,
   map_add' := λ x y a b, fin.elim0 y,
   map_smul' := λ x y, fin.elim0 y }
 
@@ -186,7 +219,7 @@ begin
   show tensor_product.lift _ (tensor_product.mk _ _ _ _ _) = _,
   rw tensor_product.mk_apply,
   rw tensor_product.lift.tmul,
-  unfreezingI {erw multilinear_map.ext_iff.1 (hn f.curry_right) (λ y : fin n, x y)},
+  unfreezingI {erw multilinear_map.ext_iff.1 (hn f.curry_right) (fin.init x)},
   rw f.curry_right_apply,
   congr,
   rw fin.snoc_succ,
@@ -225,9 +258,20 @@ begin
     rw tensor_product.mk_apply,
     congr,
     ext,
-    rw fin.snoc_mk_apply',
+    rw fin.init_snoc,
     rw fin.snoc_mk_apply}), },
   refl,
+end
+
+
+lemma mk_snoc {n : ℕ} (f : fin n → M) (z : M) :
+  tpow.mk R M n.succ (fin.snoc f z) = tensor_product.mk _ _ _ (tpow.mk R M n f) z :=
+begin
+  unfold tpow.mk,
+  rw fin.snoc_mk_apply,
+  congr,
+  ext,
+  rw fin.init_snoc,
 end
 
 end tpow

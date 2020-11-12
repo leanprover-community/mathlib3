@@ -5,8 +5,8 @@ Authors: Mario Carneiro, Sean Leather
 
 Functions on lists of sigma types.
 -/
+import data.list.enum
 import data.list.perm
-import data.list.range
 import data.sigma
 
 universes u v

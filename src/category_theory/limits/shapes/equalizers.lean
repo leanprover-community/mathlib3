@@ -685,7 +685,7 @@ lemma map_lift_equalizer_comparison [has_equalizer f g] [has_equalizer (G.map f)
       equalizer.lift (G.map h) (by simp only [←G.map_comp, w]) :=
 by { ext, simp [← G.map_comp] }
 
--- TODO: show this is an iso iff G preserves the coproduct of f.
+-- TODO: show this is an iso iff G preserves the coequalizer of `f,g`.
 /-- The comparison morphism for the coequalizer of `f,g`. -/
 def coequalizer_comparison [has_coequalizer f g] [has_coequalizer (G.map f) (G.map g)] :
   coequalizer (G.map f) (G.map g) ⟶ G.obj (coequalizer f g) :=

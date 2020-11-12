@@ -437,7 +437,7 @@ fintype.of_equiv _ (alg_hom_adjoin_integral_equiv F h).symm
 lemma card_alg_hom_adjoin_integral (h : is_integral F α) (h_sep : (minimal_polynomial h).separable)
   (h_splits : (minimal_polynomial h).splits (algebra_map F K)) :
   @fintype.card (F⟮α⟯ →ₐ[F] K) (fintype_of_alg_hom_adjoin_integral F h) =
-  (minimal_polynomial h).nat_degree :=
+    (minimal_polynomial h).nat_degree :=
 begin
   let s := ((minimal_polynomial h).map (algebra_map F K)).roots.to_finset,
   have H := λ x, multiset.mem_to_finset,

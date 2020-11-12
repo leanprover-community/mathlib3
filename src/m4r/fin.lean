@@ -216,9 +216,16 @@ end
 lemma append_default : append f (default (fin 0 → α)) = f :=
 rfl
 
-lemma default_append (i : fin m) :
+lemma append_default_apply (i : fin m) :
   append f (default (fin 0 → α)) i = f i :=
 rfl
+
+lemma default_append (i : fin m) :
+  append (default (fin 0 → α)) f ⟨i, by cases i; linarith⟩ = f i :=
+begin
+  sorry,
+end
+
 
 lemma append_one {x : α} :
   append f (λ i : fin 1, x) = fin.snoc f x := rfl

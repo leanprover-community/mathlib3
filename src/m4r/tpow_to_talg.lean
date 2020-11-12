@@ -297,6 +297,15 @@ begin
   refl,
 end
 
+lemma map_sum' {N : Type*} [add_comm_monoid N] [semimodule R N]
+  (f : M →ₗ[R] N) {t : multiset M} :
+  f t.sum = (t.map f).sum :=
+begin
+  erw f.to_add_monoid_hom.map_multiset_sum,
+  refl,
+end
+
+
 lemma tpow.ext {n : ℕ} (f g : tpow R M n →ₗ[R] N) (H : ∀ x : fin n → M, f (tpow.mk' _ _ _ x) = g (tpow.mk' _ _ _ x)) :
   f = g :=
 begin
@@ -316,7 +325,7 @@ def mul : talg R M →ₗ[R] talg R M →ₗ[R] talg R M :=
 direct_sum2.to_semimodule R ℕ (talg R M →ₗ[R] talg R M) $
 λ m, tpow.lift R m _ $
   { to_fun := λ x, direct_sum2.to_semimodule R ℕ _ (λ n, tpow.lift R n _ (lof_add R M x)),
-    map_add' := λ f i g j, by {
+    map_add' := sorry,/-λ f i g j, by {
       ext x k,
       rw linear_map.add_apply,
       refine direct_sum2.induction_on x _ _ _,
@@ -340,9 +349,9 @@ direct_sum2.to_semimodule R ℕ (talg R M →ₗ[R] talg R M) $
       simp only [dfinsupp.add_apply],
       rw hy, rw hz,
       simp only [dfinsupp.add_apply],
-      abel, },
+      abel, },-/
     map_smul' := λ f i r x, by
-      {ext y k,
+      {sorry/-ext y k,
       rw linear_map.smul_apply,
       refine direct_sum2.induction_on y _ _ _,
       simp only [linear_map.map_zero, smul_zero],
@@ -363,8 +372,8 @@ direct_sum2.to_semimodule R ℕ (talg R M →ₗ[R] talg R M) $
       simp only [linear_map.map_add],
       simp only [dfinsupp.add_apply],
       rw ha, rw hb,
-      rw smul_add, simp only [dfinsupp.smul_apply, dfinsupp.add_apply],
-      } }.
+      rw smul_add, simp only [dfinsupp.smul_apply, dfinsupp.add_apply],-/
+      } }
 
 instance talg.has_mul : has_mul (talg R M) :=
 ⟨λ x, mul R M x⟩
@@ -413,24 +422,34 @@ linear_map.map_add _ _ _
 lemma talg.add_mul (x y z : talg R M) : (x + y) * z = x * z + y * z :=
 linear_map.map_add₂ _ _ _ _
 
+lemma talg.mul_sum (s : multiset (talg R M)) (x : talg R M) :
+  x * s.sum = (s.map (mul _ _ x)).sum :=
+map_sum' _ _ _
+
+lemma linear_map.map_sum₂ {P : Type*} [add_comm_monoid P] [semimodule R P]
+  (f : M →ₗ[R] N →ₗ[R] P) (s : multiset M) :
+  f s.sum = (s.map f).sum :=
+map_sum' _ _ _
+
+lemma talg.sum_mul (s : multiset (talg R M)) (x : talg R M) :
+  s.sum * x = (s.map (λ y, y * x)).sum :=
+begin
+  show mul _ _ s.sum x = (s.map (λ y, mul _ _ y x)).sum,
+  rw linear_map.map_sum₂,
+  sorry,
+end
+
+
 lemma talg.mul_assoc (x y z : talg R M) : x * y * z = x * (y * z) :=
 begin
   show mul _ _ (mul _ _ x y) z = mul _ _ x (mul _ _ y z),
   sorry,
 end
 
-instance talg.monoid : monoid (talg R M) :=
-{ mul_assoc := talg.mul_assoc _ _,
-  one := 1,
-  one_mul := sorry,
-  mul_one := sorry, ..talg.has_mul _ _ }
+lemma talg.smul_assoc (r : R) (x y : talg R M) :
+  (r • x) * y = r • (x * y) :=
+linear_map.map_smul₂ _ _ _ _
 
-instance : semiring (talg R M) :=
-{ zero_mul := talg.zero_mul _ _,
-  mul_zero := talg.mul_zero _ _,
-  left_distrib := sorry,
-  right_distrib := sorry, ..direct_sum2.add_comm_monoid, ..talg.monoid _ _ }
-/-
 lemma talg.mul_one (x : talg R M) : x * 1 = x :=
 begin
   refine direct_sum2.induction_on x _ _ _,
@@ -438,33 +457,59 @@ begin
   rw mul_apply,
   rw fin.append_default,
   intros i y,
-  refine tpow.induction_on R M _ _ _ _ _ y,
-  intros n f,
+  show direct_sum2.lof R ℕ (tpow R M) _ _ * 1 = direct_sum2.lof R ℕ (tpow R M) _ _,
+  rcases exists_sum_of_tpow _ _ y with ⟨s, rfl⟩,
+  rw map_sum,
+  rw talg.sum_mul,
+  rw multiset.map_map,
+  congr' 2, ext y j,
+  simp only [function.comp_app, dfinsupp.smul_apply, map_smul_eq_smul_map],
   rw ←one_eq_mk,
-  erw mul_apply _ _,
-  rw fin.append_default,
+  rw talg.smul_assoc,
+  erw mul_apply,
   refl,
-  intros n a b h,
-  rw of_tensor_eq_mul _ _ a b,
-  rw talg.mul_assoc,
-  rw ←one_eq_mk,
-  rw mul_apply,
-  rw fin.append_default,
-  intros n a b ha hb,
-  show lof R _ (tpow R M) n (a + b) * 1 = lof R _ (tpow R M) n (a + b),
-  rw linear_map.map_add,
+  intros x y hx hy,
   rw talg.add_mul,
-  erw ha, erw hb, refl,
-  intros n z c h,
-  show lof R _ (tpow R M) n (c • z) * 1 = lof R _ (tpow R M) n (c • z),
-  rw linear_map.map_smul,
-  show c • of _ _ _ * 1 = c • of _ _ _,
-  conv_rhs {rw ←h},
-  sorry,
-  intros a b ha hb,
-  rw talg.add_mul, rw ha, rw hb,
+  rw hx, rw hy,
 end
--/
+
+lemma talg.one_mul (x : talg R M) : 1 * x = x :=
+begin
+  refine direct_sum2.induction_on x _ _ _,
+  rw ←zero_eq_mk, rw ←one_eq_mk,
+  rw mul_apply,
+  refl,
+  intros i y,
+  show 1 * direct_sum2.lof R ℕ (tpow R M) _ _ = direct_sum2.lof R ℕ (tpow R M) _ _,
+  rcases exists_sum_of_tpow _ _ y with ⟨s, rfl⟩,
+  rw map_sum,
+  rw talg.mul_sum,
+  rw multiset.map_map,
+  congr' 2, ext y j,
+  simp only [function.comp_app, dfinsupp.smul_apply, map_smul_eq_smul_map],
+  rw ←one_eq_mk,
+  congr,
+  show talg_mk R M _ * talg_mk R M y.2 = _,
+  rw mul_apply,
+  sorry, --annoying fin stuff
+  intros x y hx hy,
+  rw talg.mul_add,
+  rw hx, rw hy,
+end
+
+instance talg.monoid : monoid (talg R M) :=
+{ mul_assoc := talg.mul_assoc _ _,
+  one := 1,
+  one_mul := talg.one_mul _ _,
+  mul_one := talg.mul_one _ _, ..talg.has_mul _ _ }
+
+instance : semiring (talg R M) :=
+{ zero_mul := talg.zero_mul _ _,
+  mul_zero := talg.mul_zero _ _,
+  left_distrib := talg.mul_add R M,
+  right_distrib := talg.add_mul R M, ..direct_sum2.add_comm_monoid, ..talg.monoid _ _ }
+
+
 
 
 variables {R M}

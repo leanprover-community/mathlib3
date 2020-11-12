@@ -77,7 +77,7 @@ theorem modeq_mul (h₁ : a ≡ b [MOD n]) (h₂ : c ≡ d [MOD n]) : a * c ≡ 
 
 theorem modeq_pow (m : ℕ) (h : a ≡ b [MOD n]) : a ^ m ≡ b ^ m [MOD n] :=
 begin
-  induction m with d hd, refl,
+  induction m with d hd, {refl},
   rw [pow_succ, pow_succ],
   exact modeq_mul h hd,
 end

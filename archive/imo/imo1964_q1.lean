@@ -27,7 +27,7 @@ open nat.modeq
 lemma two_pow_three_mul_mod_seven (m : ℕ) : 2 ^ (3 * m) ≡ 1 [MOD 7] :=
 begin
   rw pow_mul,
-  have h : 8 ≡ 1 [MOD 7] := modeq_of_dvd (by {use -1, norm_num } ),
+  have h : 8 ≡ 1 [MOD 7] := modeq_of_dvd (by {use -1, norm_num }),
   convert modeq_pow _ h,
   simp,
 end

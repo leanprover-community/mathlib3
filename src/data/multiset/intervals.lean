@@ -17,58 +17,55 @@ open list
 
 /-! ### Ico -/
 
-/-- `Ico n m` is the multiset lifted from the list `Ico n m`, e.g. the set `{n, n+1, ..., m-1}`. -/
-def Ico (n m : ℕ) : multiset ℕ := Ico n m
+/-- `Ico n m` is the multiset lifted from the list `Ico n m`, i.e. the set `{n, n+1, ..., m-1}`. -/
+def Ico {α : Type*} [has_enum α] (b t : α) : multiset α := list.Ico b t
 
 namespace Ico
 
-theorem map_add (n m k : ℕ) : (Ico n m).map ((+) k) = Ico (n + k) (m + k) :=
-congr_arg coe $ list.map_add_Ico_ℕ k n m
+variables {α : Type*} [linear_order α] [has_lawful_enum α]
 
-theorem map_sub (n m k : ℕ) (h : k ≤ n) : (Ico n m).map (λ x, x - k) = Ico (n - k) (m - k) :=
-congr_arg coe $ list.Ico.map_sub _ _ _ h
+theorem map_add_ℕ (n m k : ℕ) : (Ico n m).map ((+) k) = Ico (k + n) (k + m) :=
+congr_arg coe $ map_add_Ico_ℕ k n m
 
-theorem zero_bot (n : ℕ) : Ico 0 n = range n :=
-congr_arg coe $ list.Ico.zero_bot _
+theorem map_sub_ℕ (n m k : ℕ) (h : k ≤ n) : (Ico n m).map (λ x, x - k) = Ico (n - k) (m - k) :=
+congr_arg coe $ map_sub_Ico_ℕ k n m h
 
-@[simp] theorem card (n m : ℕ) : (Ico n m).card = m - n :=
-list.Ico.length _ _
+@[simp] theorem card_ℕ (n m : ℕ) : (Ico n m).card = m - n :=
+length_Ico _ _
 
-theorem nodup (n m : ℕ) : nodup (Ico n m) := Ico.nodup _ _
+theorem nodup (n m : α) : nodup (Ico n m) :=
+nodup_Ico _ _
 
-@[simp] theorem mem {n m l : ℕ} : l ∈ Ico n m ↔ n ≤ l ∧ l < m :=
-list.Ico.mem
+@[simp] theorem mem {n m l : α} : l ∈ Ico n m ↔ n ≤ l ∧ l < m :=
+mem_Ico
 
-theorem eq_zero_of_le {n m : ℕ} (h : m ≤ n) : Ico n m = 0 :=
-congr_arg coe $ list.Ico.eq_nil_of_le h
+@[simp] theorem eq_zero {n m : α} : Ico n m = 0 ↔ m ≤ n :=
+(coe_eq_zero _).trans list.Ico_eq_nil
 
-@[simp] theorem self_eq_zero {n : ℕ} : Ico n n = 0 :=
-eq_zero_of_le $ le_refl n
+@[simp] theorem self_eq_zero {n : α} : Ico n n = 0 :=
+congr_arg coe $ Ico_self
 
-@[simp] theorem eq_zero_iff {n m : ℕ} : Ico n m = 0 ↔ m ≤ n :=
-iff.trans (coe_eq_zero _) list.Ico.eq_empty_iff
-
-lemma add_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :
+lemma Ico_append_Ico {n m l : α} (hnm : n ≤ m) (hml : m ≤ l) :
   Ico n m + Ico m l = Ico n l :=
-congr_arg coe $ list.Ico.append_consecutive hnm hml
+congr_arg coe $ Ico_append_Ico hnm hml
 
-@[simp] lemma inter_consecutive (n m l : ℕ) : Ico n m ∩ Ico m l = 0 :=
-congr_arg coe $ list.Ico.bag_inter_consecutive n m l
+@[simp] lemma inter_consecutive (n m l : α) : Ico n m ∩ Ico m l = 0 :=
+congr_arg coe $ list.Ico_bag_inter_Ico_consecutive n m l
 
-@[simp] theorem succ_singleton {n : ℕ} : Ico n (n+1) = {n} :=
-congr_arg coe $ list.Ico.succ_singleton
+@[simp] theorem succ_self (n : ℕ) : Ico n (n+1) = {n} :=
+congr_arg coe $ list.Ico_succ_self n
 
-theorem succ_top {n m : ℕ} (h : n ≤ m) : Ico n (m + 1) = m ::ₘ Ico n m :=
-by rw [Ico, list.Ico.succ_top h, ← coe_add, add_comm]; refl
+theorem succ_right {n m : ℕ} (h : n ≤ m) : Ico n (m + 1) = m ::ₘ Ico n m :=
+by { rw [Ico, list.Ico_succ_right' h, ← coe_add, add_comm], refl }
 
 theorem eq_cons {n m : ℕ} (h : n < m) : Ico n m = n ::ₘ Ico (n + 1) m :=
-congr_arg coe $ list.Ico.eq_cons h
+congr_arg coe $ list.Ico_eq_cons h
 
 @[simp] theorem pred_singleton {m : ℕ} (h : 0 < m) : Ico (m - 1) m = {m - 1} :=
-congr_arg coe $ list.Ico.pred_singleton h
+congr_arg coe $ list.Ico_pred_self h
 
-@[simp] theorem not_mem_top {n m : ℕ} : m ∉ Ico n m :=
-list.Ico.not_mem_top
+@[simp] theorem top_not_mem {n m : α} : m ∉ Ico n m :=
+list.top_not_mem_Ico n m
 
 lemma filter_lt_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, x < l) = Ico n m :=
 congr_arg coe $ list.Ico.filter_lt_of_top_le hml
@@ -85,44 +82,54 @@ congr_arg coe $ list.Ico.filter_lt_of_ge hlm
 @[simp] lemma filter_lt (n m l : ℕ) : (Ico n m).filter (λ x, x < l) = Ico n (min m l) :=
 congr_arg coe $ list.Ico.filter_lt n m l
 
-lemma filter_le_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, l ≤ x) = Ico n m :=
-congr_arg coe $ list.Ico.filter_le_of_le_bot hln
+lemma le_filter_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, l ≤ x) = Ico n m :=
+congr_arg coe $ list.Ico.le_filter_of_le_bot hln
 
-lemma filter_le_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, l ≤ x) = ∅ :=
-congr_arg coe $ list.Ico.filter_le_of_top_le hml
+lemma le_filter_le_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, l ≤ x) = ∅ :=
+congr_arg coe $ list.Ico.le_filter_of_top_le hml
 
-lemma filter_le_of_le {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter (λ x, l ≤ x) = Ico l m :=
-congr_arg coe $ list.Ico.filter_le_of_le hnl
+lemma le_filter_of_le {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter (λ x, l ≤ x) = Ico l m :=
+congr_arg coe $ list.Ico.le_filter_of_le hnl
 
-@[simp] lemma filter_le (n m l : ℕ) : (Ico n m).filter (λ x, l ≤ x) = Ico (max n l) m :=
-congr_arg coe $ list.Ico.filter_le n m l
+@[simp] lemma le_filter (n m l : ℕ) : (Ico n m).filter (λ x, l ≤ x) = Ico (max n l) m :=
+congr_arg coe $ list.Ico.le_filter n m l
+
+theorem subset_Ico {b t b' t' : α} (h : b < t) :
+  Ico b t ⊆ Ico b' t' ↔ b' ≤ b ∧ t ≤ t' :=
+coe_subset.trans (list.Ico_subset_Ico h)
+
+theorem le_Ico {b t b' t' : α} (h : b < t) :
+  Ico b t ≤ Ico b' t' ↔ b' ≤ b ∧ t ≤ t' :=
+(le_iff_subset (nodup b t)).trans (subset_Ico h)
 
 end Ico
 
-/- range -/
+section Ico_zero
 
-/-- `range n` is the multiset lifted from the list `range n`,
-that is, the set `{0, 1, ..., n-1}`. -/
-def range (n : ℕ) : multiset ℕ := range n
+open nat
 
-@[simp] theorem range_zero : range 0 = 0 := rfl
+@[simp] theorem Ico_zero_succ (n : ℕ) : Ico 0 (succ n) = n ::ₘ Ico 0 n :=
+Ico.succ_right (nat.zero_le _)
 
-@[simp] theorem range_succ (n : ℕ) : range (succ n) = n ::ₘ range n :=
-by rw [range, range_concat, ← coe_add, add_comm]; refl
+@[simp] theorem card_Ico_zero (n : ℕ) : card (Ico 0 n) = n :=
+Ico.card_ℕ _ _
 
-@[simp] theorem card_range (n : ℕ) : card (range n) = n := length_range _
+@[simp] lemma Ico_zero_subset_Ico_zero {m n : ℕ} : Ico 0 m ⊆ Ico 0 n ↔ m ≤ n :=
+if h : m = 0 then by simp [h]
+else (Ico.subset_Ico (nat.pos_of_ne_zero h)).trans (by simp)
 
-theorem range_subset {m n : ℕ} : range m ⊆ range n ↔ m ≤ n := range_subset
+@[simp] theorem mem_Ico_zero {m n : ℕ} : m ∈ Ico 0 n ↔ m < n :=
+by simp [mem_Ico]
 
-@[simp] theorem mem_range {m n : ℕ} : m ∈ range n ↔ m < n := mem_range
+@[simp] theorem not_mem_Ico_zero_self {n : ℕ} : n ∉ Ico 0 n :=
+top_not_mem_Ico _ _
 
-@[simp] theorem not_mem_range_self {n : ℕ} : n ∉ range n := not_mem_range_self
+theorem self_mem_Ico_zero_succ (n : ℕ) : n ∈ Ico 0 (n + 1) :=
+mem_Ico_zero.mpr (lt_add_one n)
 
-theorem self_mem_range_succ (n : ℕ) : n ∈ range (n + 1) := list.self_mem_range_succ n
+theorem Ico_zero_le_Ico_zero {m n : ℕ} : Ico 0 m ≤ Ico 0 n ↔ m ≤ n :=
+(le_iff_subset (Ico.nodup _ _)).trans Ico_zero_subset_Ico_zero
 
-theorem nodup_range (n : ℕ) : nodup (range n) := nodup_range _
-
-theorem range_le {m n : ℕ} : range m ≤ range n ↔ m ≤ n :=
-(le_iff_subset (nodup_range _)).trans range_subset
+end Ico_zero
 
 end multiset

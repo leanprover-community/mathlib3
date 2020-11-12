@@ -338,6 +338,25 @@ def subtype : S →* M := ⟨coe, rfl, λ _ _, rfl⟩
 
 @[simp, to_additive] theorem coe_subtype : ⇑S.subtype = coe := rfl
 
+/-- Like `submonoid.closure_induction`, but acts on the subtype. -/
+@[to_additive "Like `add_submonoid.closure_induction`, but acts on the subtype."]
+lemma closure_induction' (s : set M) {p : submonoid.closure s → Prop}
+  (Hs : ∀ x (h : x ∈ s), p ⟨x, submonoid.subset_closure h⟩)
+  (H1 : p 1)
+  (Hmul : ∀ x y, p x → p y → p (x * y))
+  (x : submonoid.closure s) :
+  p x :=
+subtype.rec_on x $ λ x hx, begin
+  refine exists.elim _ (λ (hx : x ∈ submonoid.closure s) (hc : p ⟨x, hx⟩), hc),
+  exact submonoid.closure_induction hx
+    (λ x hx, ⟨submonoid.subset_closure hx, Hs x hx⟩)
+    ⟨submonoid.one_mem _, H1⟩
+    (λ x y hx hy, exists.elim hx $ λ hx' hx, exists.elim hy $ λ hy' hy,
+      ⟨submonoid.mul_mem _ hx' hy', Hmul _ _ hx hy⟩),
+end
+
+attribute [elab_as_eliminator] submonoid.closure_induction' add_submonoid.closure_induction'
+
 /-- Given `submonoid`s `s`, `t` of monoids `M`, `N` respectively, `s × t` as a submonoid
 of `M × N`. -/
 @[to_additive prod "Given `add_submonoid`s `s`, `t` of `add_monoid`s `A`, `B` respectively, `s × t`

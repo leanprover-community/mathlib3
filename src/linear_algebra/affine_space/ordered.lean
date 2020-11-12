@@ -207,12 +207,9 @@ left_le_line_map_iff_le $ inv_pos.2 zero_lt_two
 
 lemma line_map_le_left_iff_le (h : 0 < r) : line_map a b r ≤ a ↔ b ≤ a :=
 @left_le_line_map_iff_le k (order_dual E) _ _ _ _ _ _ _ h
-<<<<<<< HEAD
-=======
 
 @[simp] lemma midpoint_le_left : midpoint k a b ≤ a ↔ b ≤ a :=
 line_map_le_left_iff_le $ inv_pos.2 zero_lt_two
->>>>>>> master
 
 lemma line_map_le_right_iff_le (h : r < 1) : line_map a b r ≤ b ↔ a ≤ b :=
 iff.trans (by rw line_map_apply_one) (line_map_le_line_map_iff_of_lt h)
@@ -222,12 +219,9 @@ line_map_le_right_iff_le $ inv_lt_one one_lt_two
 
 lemma right_le_line_map_iff_le (h : r < 1) : b ≤ line_map a b r ↔ b ≤ a :=
 @line_map_le_right_iff_le k (order_dual E) _ _ _ _ _ _ _ h
-<<<<<<< HEAD
-=======
 
 @[simp] lemma right_le_midpoint : b ≤ midpoint k a b ↔ b ≤ a :=
 right_le_line_map_iff_le $ inv_lt_one one_lt_two
->>>>>>> master
 
 end
 

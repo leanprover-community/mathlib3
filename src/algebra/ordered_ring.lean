@@ -837,17 +837,8 @@ instance linear_ordered_comm_ring.to_integral_domain [s : linear_ordered_comm_ri
 { ..linear_ordered_ring.to_domain, ..s }
 
 @[priority 100] -- see Note [lower instance priority]
-<<<<<<< HEAD
-instance decidable_linear_ordered_comm_ring.to_decidable_linear_ordered_semiring [d : decidable_linear_ordered_comm_ring α] :
-   decidable_linear_ordered_semiring α :=
--- One might hope that `{ ..linear_ordered_ring.to_linear_ordered_semiring, ..d }`
--- achieved the same result here.
--- Unfortunately with that definition we see mismatched `preorder ℝ` instances in
--- `topology.metric_space.basic`.
-=======
 instance linear_ordered_comm_ring.to_linear_ordered_semiring [d : linear_ordered_comm_ring α] :
    linear_ordered_semiring α :=
->>>>>>> master
 let s : linear_ordered_semiring α := @linear_ordered_ring.to_linear_ordered_semiring α _ in
 { zero_mul                   := @linear_ordered_semiring.zero_mul α s,
   mul_zero                   := @linear_ordered_semiring.mul_zero α s,
@@ -969,17 +960,9 @@ decidable non-negativity into a `linear_ordered_comm_ring` -/
 def to_linear_ordered_comm_ring
   [decidable_pred (@nonneg α _)]
   [comm : @is_commutative α (*)]
-<<<<<<< HEAD
-  : decidable_linear_ordered_comm_ring α :=
-{ decidable_le := by apply_instance,
-  decidable_lt := by apply_instance,
-  mul_comm := is_commutative.comm,
-  ..@linear_nonneg_ring.to_linear_ordered_ring α _ }
-=======
   : linear_ordered_comm_ring α :=
 { mul_comm := is_commutative.comm,
   ..@linear_nonneg_ring.to_linear_ordered_ring _ _ _ }
->>>>>>> master
 
 end linear_nonneg_ring
 

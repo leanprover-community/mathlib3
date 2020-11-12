@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
 import data.multiset.powerset
-import data.multiset.enum
 
 /-!
 # The `nodup` predicate for multisets without duplicate elements.
@@ -135,8 +134,6 @@ theorem nodup_filter_map (f : α → option β) {s : multiset α}
   nodup s → nodup (filter_map f s) :=
 quot.induction_on s $ λ l, nodup_filter_map H
 
-theorem nodup_range (n : ℕ) : nodup (range n) := nodup_range _
-
 theorem nodup_inter_left [decidable_eq α] {s : multiset α} (t) : nodup s → nodup (s ∩ t) :=
 nodup_of_le $ inter_le_left _ _
 
@@ -174,9 +171,6 @@ quotient.induction_on₂ s t $ λ l₁ l₂ d₁ d₂, quotient.eq.trans $ perm_
 
 theorem le_iff_subset {s t : multiset α} : nodup s → (s ≤ t ↔ s ⊆ t) :=
 quotient.induction_on₂ s t $ λ l₁ l₂ d, ⟨subset_of_le, subperm_of_subset_nodup d⟩
-
-theorem range_le {m n : ℕ} : range m ≤ range n ↔ m ≤ n :=
-(le_iff_subset (nodup_range _)).trans range_subset
 
 theorem mem_sub_of_nodup [decidable_eq α] {a : α} {s t : multiset α} (d : nodup s) :
   a ∈ s - t ↔ a ∈ s ∧ a ∉ t :=

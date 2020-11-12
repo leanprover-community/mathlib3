@@ -493,23 +493,30 @@ lemma closure_induction {p : G → Prop} {x} (h : x ∈ closure k)
 
 attribute [elab_as_eliminator] subgroup.closure_induction add_subgroup.closure_induction
 
-/-- Like `subgroup.closure_induction`, but acts on the subtype. -/
-@[to_additive "Like `add_subgroup.closure_induction`, but acts on the subtype."]
-lemma closure_induction' (k : set G) {p : subgroup.closure k → Prop}
-  (Hk : ∀ x (h : x ∈ k), p ⟨x, subgroup.subset_closure h⟩)
+/-- An induction principle on elements of the subtype `subgroup.closure`.
+If `p` holds for `1` and all elements of `k`, and is preserved under multiplication and inverse, then `p` holds for all elements `x : closure k`.
+
+The difference with `subgroup.closure_induction` is that this acts on the subtype.
+-/
+@[to_additive "An induction principle on elements of the subtype `add_subgroup.closure`.
+If `p` holds for `0` and all elements of `k`, and is preserved under addition and negation, then `p` holds for all elements `x : closure k`.
+
+The difference with `add_subgroup.closure_induction` is that this acts on the subtype."]
+lemma closure_induction' (k : set G) {p : closure k → Prop}
+  (Hk : ∀ x (h : x ∈ k), p ⟨x, subset_closure h⟩)
   (H1 : p 1)
   (Hmul : ∀ x y, p x → p y → p (x * y))
   (Hinv : ∀ x, p x → p x⁻¹)
-  (x : subgroup.closure k) :
+  (x : closure k) :
   p x :=
 subtype.rec_on x $ λ x hx, begin
-  refine exists.elim _ (λ (hx : x ∈ subgroup.closure k) (hc : p ⟨x, hx⟩), hc),
-  exact subgroup.closure_induction hx
-    (λ x hx, ⟨subgroup.subset_closure hx, Hk x hx⟩)
-    ⟨subgroup.one_mem _, H1⟩
+  refine exists.elim _ (λ (hx : x ∈ closure k) (hc : p ⟨x, hx⟩), hc),
+  exact closure_induction hx
+    (λ x hx, ⟨subset_closure hx, Hk x hx⟩)
+    ⟨one_mem _, H1⟩
     (λ x y hx hy, exists.elim hx $ λ hx' hx, exists.elim hy $ λ hy' hy,
-      ⟨subgroup.mul_mem _ hx' hy', Hmul _ _ hx hy⟩)
-    (λ x hx, exists.elim hx $ λ hx' hx, ⟨subgroup.inv_mem _ hx', Hinv _ hx⟩),
+      ⟨mul_mem _ hx' hy', Hmul _ _ hx hy⟩)
+    (λ x hx, exists.elim hx $ λ hx' hx, ⟨inv_mem _ hx', Hinv _ hx⟩),
 end
 
 attribute [elab_as_eliminator] subgroup.closure_induction' add_subgroup.closure_induction'

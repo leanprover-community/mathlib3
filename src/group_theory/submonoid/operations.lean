@@ -338,8 +338,14 @@ def subtype : S →* M := ⟨coe, rfl, λ _ _, rfl⟩
 
 @[simp, to_additive] theorem coe_subtype : ⇑S.subtype = coe := rfl
 
-/-- Like `submonoid.closure_induction`, but acts on the subtype. -/
-@[to_additive "Like `add_submonoid.closure_induction`, but acts on the subtype."]
+/-- An induction principle on elements of the type `submonoid.closure s`.
+If `p` holds for `1` and all elements of `s`, and is preserved under multiplication, then `p` holds for all elements of the closure of `s`.
+
+The difference with `submonoid.closure_induction` is that this acts on the subtype.
+-/
+@[to_additive "An induction principle on elements of the type `add_submonoid.closure s`.
+If `p` holds for `0` and all elements of `s`, and is preserved under addition, then `p` holds for all elements of the closure of `s`.
+The difference with `add_submonoid.closure_induction` is that this acts on the subtype."]
 lemma closure_induction' (s : set M) {p : submonoid.closure s → Prop}
   (Hs : ∀ x (h : x ∈ s), p ⟨x, submonoid.subset_closure h⟩)
   (H1 : p 1)

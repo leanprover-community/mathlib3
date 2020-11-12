@@ -772,28 +772,13 @@ lemma nat_degree_X_sub_C_le {r : R} : (X - C r).nat_degree ≤ 1 :=
 nat_degree_le_iff_degree_le.2 $ le_trans (degree_sub_le _ _) $ max_le degree_X_le $
 le_trans degree_C_le $ with_bot.coe_le_coe.2 zero_le_one
 
-lemma degree_sum_le_max {ι : Type*} {s : finset ι} (p : ι → polynomial R) :
-  degree (s.sum p) ≤ s.fold (⊔) ⊥ (λ i, degree (p i)) :=
-begin
-  classical,
-  refine s.induction_on _ _,
-  { simp },
-  intros a s ha ih,
-  calc  ((insert a s).sum p).degree
-      = (p a + s.sum p).degree : by rw finset.sum_insert ha
-  ... ≤ max (p a).degree (s.sum p).degree : degree_add_le _ _
-  ... ≤ max (p a).degree (s.fold (⊔) ⊥ (λ i, degree (p i))) : max_le_max (refl _) ih
-  ... = (insert a s).fold (⊔) ⊥ (λ i, degree (p i)) :
-    by rw [finset.fold_insert ha, with_bot.sup_eq_max]
-end
-
 lemma degree_sum_fin_lt {n : ℕ} (f : fin n → R) :
   degree (∑ i : fin n, C (f i) * X ^ (i : ℕ)) < n :=
 begin
   haveI : is_commutative (with_bot ℕ) max := ⟨max_comm⟩,
   haveI : is_associative (with_bot ℕ) max := ⟨max_assoc⟩,
   calc  (∑ i, C (f i) * X ^ (i : ℕ)).degree
-      ≤ finset.univ.fold (⊔) ⊥ (λ i, (C (f i) * X ^ (i : ℕ)).degree) : degree_sum_le_max _
+      ≤ finset.univ.fold (⊔) ⊥ (λ i, (C (f i) * X ^ (i : ℕ)).degree) : degree_sum_le _ _
   ... = finset.univ.fold max ⊥ (λ i, (C (f i) * X ^ (i : ℕ)).degree) :
     (@finset.fold_hom _ _ _ (⊔) _ _ _ ⊥ finset.univ _ _ _ id (with_bot.sup_eq_max)).symm
   ... < n : (finset.fold_max_lt (n : with_bot ℕ)).mpr ⟨with_bot.bot_lt_some _, _⟩,

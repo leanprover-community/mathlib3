@@ -3,8 +3,8 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.limits.preserves.limits
-import category_theory.limits.shapes
+import category_theory.limits.shapes.equalizers
+import category_theory.limits.preserves.basic
 
 /-!
 # Preserving equalizers
@@ -27,8 +27,6 @@ variables {D : Type u₂} [category.{v} D]
 variables (G : C ⥤ D)
 
 namespace preserves
-
-open category_theory.limits.walking_parallel_pair
 
 variables {X Y Z : C} {f g : X ⟶ Y} {h : Z ⟶ X} (w : h ≫ f = h ≫ g)
 

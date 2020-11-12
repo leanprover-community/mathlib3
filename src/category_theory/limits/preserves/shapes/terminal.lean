@@ -58,15 +58,6 @@ def is_limit_of_has_terminal_of_preserves_limit [has_terminal C]
 map_is_limit_of_preserves_of_is_limit G (⊤_ C) terminal_is_terminal
 
 /--
-The comparison morphism from the image of a terminal object to the terminal in the target category.
-This is an isomorphism if and only if `G` preserves terminal objects, shown in `preserves_terminal`
-and `preserves_terminal_iso`.
--/
-def terminal_comparison [has_terminal C] [has_terminal D] :
-  G.obj (⊤_ C) ⟶ ⊤_ D :=
-terminal.from _
-
-/--
 If the terminal comparison map for `G` is an isomorphism, then `G` preserves terminal objects.
 -/
 def preserves_terminal_of_iso_comparison [has_terminal C] [has_terminal D]

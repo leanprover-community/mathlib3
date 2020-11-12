@@ -817,7 +817,8 @@ such that multiplication with a positive number and addition are monotone. -/
 class linear_ordered_comm_ring (α : Type u) extends linear_ordered_ring α, comm_monoid α
 
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_comm_ring.to_ordered_comm_ring [d : linear_ordered_comm_ring α] : ordered_comm_ring α :=
+instance linear_ordered_comm_ring.to_ordered_comm_ring [d : linear_ordered_comm_ring α] :
+  ordered_comm_ring α :=
 -- One might hope that `{ ..linear_ordered_ring.to_linear_ordered_semiring, ..d }`
 -- achieved the same result here.
 -- Unfortunately with that definition we see mismatched instances in `algebra.star.chsh`.

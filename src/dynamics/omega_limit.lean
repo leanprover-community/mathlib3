@@ -37,7 +37,7 @@ open set function filter
 
 section omega_limit
 
-variables {τ : Type*} {α : Type*} {β : Type*}
+variables {τ : Type*} {α : Type*} {β : Type*} {ι : Type*}
 
 /-- The ω-limit of a set `s` under `ϕ` with respect to a filter `f` is
     ⋂ u ∈ f, cl (ϕ u s). -/
@@ -141,6 +141,10 @@ begin
   simp_rw [mem_omega_limit_iff_frequently, l],
 end
 
+/-!
+Set operations and omega limits:
+-/
+
 lemma omega_limit_inter : ω f ϕ (s₁ ∩ s₂) ⊆ ω f ϕ s₁ ∩ ω f ϕ s₂ :=
 begin
   unfold omega_limit,
@@ -151,6 +155,10 @@ begin
       ⊆ closure (_ ∩ _)       : closure_mono image2_inter_subset_right
   ... ⊆ closure _ ∩ closure _ : closure_inter_subset_inter_closure _ _,
 end
+
+lemma omega_limit_Inter (p : ι → set α) : ω f ϕ (⋂ i, p i) ⊆ ⋂ i, ω f ϕ (p i) :=
+by { rw subset_Inter_iff,
+     exact λ i, omega_limit_mono_right _ _ (Inter_subset _ _)}
 
 lemma omega_limit_union : ω f ϕ (s₁ ∪ s₂) = ω f ϕ s₁ ∪ ω f ϕ s₂ :=
 begin
@@ -174,6 +182,10 @@ begin
     (λ hy₂, omega_limit_mono_right _ _ (subset_union_right _ _) hy₂) },
 end
 
+lemma omega_limit_Union (p : ι → set α) : (⋃ i, ω f ϕ (p i)) ⊆ ω f ϕ ⋃ i, p i :=
+by { rw Union_subset_iff,
+     exact λ i, omega_limit_mono_right _ _ (subset_Union _ _)}
+
 /-!
 Different expressions for omega limits, useful for rewrites. In
 particular, one may restrict the intersection to sets in `f` which are
@@ -195,6 +207,15 @@ subset.antisymm
 lemma omega_limit_eq_Inter_inter {v : set τ} (hv : v ∈ f) :
   ω f ϕ s = ⋂ (u : ↥f.sets), closure (image2 ϕ (u ∩ v) s) :=
 by { rw omega_limit_eq_bInter_inter _ _ _ hv, apply bInter_eq_Inter }
+
+lemma omega_limit_subset_closure_fw_image {u : set τ} (hu : u ∈ f) :
+  ω f ϕ s ⊆ closure (image2 ϕ u s) :=
+begin
+  rw omega_limit_eq_Inter,
+  intros _ hx,
+  rw mem_Inter at hx,
+  exact hx ⟨u, hu⟩,
+end
 
 /-!
 ω-limits and Compactness:
@@ -358,6 +379,36 @@ begin
     ... ⊆ ω f ϕ (ϕ t '' s) :
           omega_limit_subset_of_tendsto _ _
           (by { simp_rw sub_eq_add_neg, exact hf (-t) })},
+end
+
+lemma omega_limit_omega_limit (hf : ∀ t, tendsto (+ t) f f) :
+  ω f ϕ (ω f ϕ s) ⊆ ω f ϕ s :=
+begin
+  intros _ h,
+  simp_rw [mem_omega_limit_iff_frequently₂, frequently_iff] at h,
+  simp_rw [mem_omega_limit_iff_frequently₂, frequently_iff],
+  rintro n hn u hu,
+  rcases mem_nhds_sets_iff.mp hn with ⟨o, ho₁, ho₂, ho₃⟩,
+  rcases h o (mem_nhds_sets ho₂ ho₃) hu with ⟨t, ht₁, ht₂⟩,
+  have l₁ : (ω f ϕ s ∩ o).nonempty, from
+    nonempty.mono (inter_subset_inter_left _
+      ((is_invariant_iff_image _ _).mp (is_invariant_omega_limit _ _ _ hf) _)) ht₂,
+  have l₂ : ((closure (image2 ϕ u s)) ∩ o).nonempty,
+  begin
+    rcases l₁ with ⟨b, hb₁, hb₂⟩,
+    use b, split,
+    { calc b ∈ _ : hb₁
+         ... ⊆ _ : omega_limit_subset_closure_fw_image _ _ _ hu },
+    { exact hb₂ },
+  end,
+  have l₃ : (image2 ϕ u s ∩ o).nonempty,
+  begin
+    rcases l₂ with ⟨b, hb₁, hb₂⟩,
+    rw inter_comm,
+    exact mem_closure_iff_nhds.mp hb₁ o (mem_nhds_sets ho₂ hb₂)
+  end,
+  rcases l₃ with ⟨ϕra, ⟨_, _, hr, ha, hϕra⟩, ho⟩,
+  exact ⟨_, hr, ϕra, ⟨_, ha, hϕra⟩, ho₁ ho⟩,
 end
 
 end flow

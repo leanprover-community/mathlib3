@@ -6,6 +6,7 @@ Author: Yury Kudryashov
 import algebra.group.type_tags
 import algebra.group.units_hom
 import algebra.ring.basic
+import data.equiv.mul_add
 
 /-!
 # Unbundled monoid and group homomorphisms (deprecated)
@@ -16,7 +17,7 @@ because Lean 3 often fails to coerce a bundled homomorphism to a function.
 
 ## main definitions
 
-monoid_hom, is_monoid_hom (deprecated), is_group_hom (deprecated)
+is_monoid_hom (deprecated), is_group_hom (deprecated)
 
 ## implementation notes
 
@@ -124,6 +125,22 @@ instance (f : M →* N) : is_monoid_hom (f : M → N) :=
 
 end monoid_hom
 
+namespace mul_equiv
+
+variables {M : Type*} {N : Type*} [monoid M] [monoid N]
+
+/-- A multiplicative isomorphism preserves multiplication (deprecated). -/
+@[to_additive]
+instance (h : M ≃* N) : is_mul_hom h := ⟨h.map_mul⟩
+
+/-- A multiplicative bijection between two monoids is a monoid hom
+  (deprecated -- use to_monoid_hom). -/
+@[to_additive]
+instance {M N} [monoid M] [monoid N] (h : M ≃* N) : is_monoid_hom h :=
+⟨h.map_one⟩
+
+end mul_equiv
+
 namespace is_monoid_hom
 variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
 
@@ -180,6 +197,10 @@ class is_group_hom [group α] [group β] (f : α → β) extends is_mul_hom f : 
 instance monoid_hom.is_group_hom {G H : Type*} {_ : group G} {_ : group H} (f : G →* H) :
   is_group_hom (f : G → H) :=
 { map_mul := f.map_mul }
+
+@[to_additive]
+instance mul_equiv.is_group_hom {G H : Type*} {_ : group G} {_ : group H} (h : G ≃* H) :
+  is_group_hom h := { map_mul := h.map_mul }
 
 /-- Construct `is_group_hom` from its only hypothesis. The default constructor tries to get
 `is_mul_hom` from class instances, and this makes some proofs fail. -/

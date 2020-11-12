@@ -181,6 +181,9 @@ instance : has_coe (L₁ →ₗ⁅R⁆ L₂) (L₁ →ₗ[R] L₂) := ⟨morphis
 /-- see Note [function coercion] -/
 instance : has_coe_to_fun (L₁ →ₗ⁅R⁆ L₂) := ⟨_, morphism.to_fun⟩
 
+@[simp] lemma coe_mk (f : L₁ → L₂) (h₁ h₂ h₃) :
+  ((⟨f, h₁, h₂, h₃⟩ : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) = f := rfl
+
 @[simp, norm_cast] lemma coe_to_linear_map (f : L₁ →ₗ⁅R⁆ L₂) : ((f : L₁ →ₗ[R] L₂) : L₁ → L₂) = f :=
 rfl
 
@@ -194,19 +197,26 @@ instance : has_one (L₁ →ₗ⁅R⁆ L₁) := ⟨{ map_lie := by simp, ..(1 : 
 
 instance : inhabited (L₁ →ₗ⁅R⁆ L₂) := ⟨0⟩
 
+lemma morphism.coe_injective : function.injective (λ f : L₁ →ₗ⁅R⁆ L₂, show L₁ → L₂, from f) :=
+by rintro ⟨f, _⟩ ⟨g, _⟩ ⟨h⟩; congr
+
 @[ext] lemma morphism.ext {f g : L₁ →ₗ⁅R⁆ L₂} (h : ∀ x, f x = g x) : f = g :=
-begin
-  cases f, cases g, simp only,
-  ext, apply h,
-end
+morphism.coe_injective $ funext h
+
+lemma morphism.ext_iff {f g : L₁ →ₗ⁅R⁆ L₂} : f = g ↔ ∀ x, f x = g x :=
+⟨by { rintro rfl x, refl }, morphism.ext⟩
 
 /-- The composition of morphisms is a morphism. -/
 def morphism.comp (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) : L₁ →ₗ⁅R⁆ L₃ :=
 { map_lie := λ x y, by { change f (g ⁅x, y⁆) = ⁅f (g x), f (g y)⁆, rw [map_lie, map_lie], },
   ..linear_map.comp f.to_linear_map g.to_linear_map }
 
-lemma morphism.comp_apply (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) (x : L₁) :
+@[simp] lemma morphism.comp_apply (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) (x : L₁) :
   f.comp g x = f (g x) := rfl
+
+@[norm_cast]
+lemma morphism.comp_coe (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) :
+  (f : L₂ → L₃) ∘ (g : L₁ → L₂) = f.comp g := rfl
 
 /-- The inverse of a bijective morphism is a morphism. -/
 def morphism.inverse (f : L₁ →ₗ⁅R⁆ L₂) (g : L₂ → L₁)
@@ -306,15 +316,17 @@ instance : lie_ring (⨁ i, L i) :=
   add_lie  := λ x y z, by { ext, simp only [zip_with_apply, add_apply, add_lie], },
   lie_add  := λ x y z, by { ext, simp only [zip_with_apply, add_apply, lie_add], },
   lie_self := λ x, by { ext, simp only [zip_with_apply, add_apply, lie_self, zero_apply], },
-  jacobi   := λ x y z, by { ext, simp only [zip_with_apply, add_apply, lie_ring.jacobi, zero_apply], },
+  jacobi   := λ x y z, by { ext, simp only [
+    zip_with_apply, add_apply, lie_ring.jacobi, zero_apply], },
   ..(infer_instance : add_comm_group _) }
 
 @[simp] lemma bracket_apply {x y : (⨁ i, L i)} {i : ι} :
-  ⁅x, y⁆ i = ⁅x i, y i⁆ := zip_with_apply
+  ⁅x, y⁆ i = ⁅x i, y i⁆ := zip_with_apply _ _ x y i
 
 /-- The direct sum of Lie algebras carries a natural Lie algebra structure. -/
 instance : lie_algebra R (⨁ i, L i) :=
-{ lie_smul := λ c x y, by { ext, simp only [zip_with_apply, smul_apply, bracket_apply, lie_smul], },
+{ lie_smul := λ c x y, by { ext, simp only [
+    zip_with_apply, direct_sum.smul_apply, bracket_apply, lie_smul] },
   ..(infer_instance : module R _) }
 
 end direct_sum
@@ -341,8 +353,12 @@ def of_associative_algebra_hom {R : Type u} {A : Type v} {B : Type w}
      by simp only [lie_ring.of_associative_ring_bracket, alg_hom.map_sub, alg_hom.map_mul],
   ..f.to_linear_map, }
 
-@[simp] lemma of_associative_algebra_hom_id {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebra R A] :
-  of_associative_algebra_hom (alg_hom.id R A) = 1 := rfl
+@[simp] lemma of_associative_algebra_hom_id {R : Type u} {A : Type v}
+  [comm_ring R] [ring A] [algebra R A] : of_associative_algebra_hom (alg_hom.id R A) = 1 := rfl
+
+@[simp] lemma of_associative_algebra_hom_apply {R : Type u} {A : Type v} {B : Type w}
+  [comm_ring R] [ring A] [ring B] [algebra R A] [algebra R B] (f : A →ₐ[R] B) (x : A) :
+  of_associative_algebra_hom f x = f x := rfl
 
 @[simp] lemma of_associative_algebra_hom_comp {R : Type u} {A : Type v} {B : Type w} {C : Type w₁}
   [comm_ring R] [ring A] [ring B] [ring C] [algebra R A] [algebra R B] [algebra R C]
@@ -355,7 +371,7 @@ lemma endo_algebra_bracket (M : Type v) [add_comm_group M] [module R M] (f g : m
   ⁅f, g⁆ = f.comp g - g.comp f := rfl
 
 /-- The adjoint action of a Lie algebra on itself. -/
-def Ad : L →ₗ⁅R⁆ module.End R L :=
+def ad : L →ₗ⁅R⁆ module.End R L :=
 { to_fun    := λ x,
   { to_fun    := has_bracket.bracket x,
     map_add'  := by { intros, apply lie_add, },
@@ -554,7 +570,7 @@ def lie_module.of_endo_morphism (α : L →ₗ⁅R⁆ module.End R M) : lie_modu
 
 /-- Every Lie algebra is a module over itself. -/
 instance lie_algebra_self_module : lie_module R L L :=
-  lie_module.of_endo_morphism R L L lie_algebra.Ad
+  lie_module.of_endo_morphism R L L lie_algebra.ad
 
 /-- A Lie submodule of a Lie module is a submodule that is closed under the Lie bracket.
 This is a sufficient condition for the subset itself to form a Lie module. -/

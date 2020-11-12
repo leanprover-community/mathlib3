@@ -6,7 +6,7 @@ Authors: Kenny Lau
 Direct sum of modules over commutative rings, indexed by a discrete type.
 -/
 import algebra.direct_sum
-import linear_algebra.basic
+import linear_algebra.dfinsupp
 
 /-!
 # Direct sum of modules over commutative rings, indexed by a discrete type.
@@ -28,7 +28,7 @@ universes u v w u₁
 
 variables (R : Type u) [semiring R]
 variables (ι : Type v) [dec_ι : decidable_eq ι] (M : ι → Type w)
-variables [Π i, add_comm_group (M i)] [Π i, semimodule R (M i)]
+variables [Π i, add_comm_monoid (M i)] [Π i, semimodule R (M i)]
 include R
 
 namespace direct_sum
@@ -36,18 +36,21 @@ open_locale direct_sum
 
 variables {R ι M}
 
-instance : semimodule R (⨁ i, M i) := dfinsupp.to_semimodule
+instance : semimodule R (⨁ i, M i) := dfinsupp.semimodule
+
+lemma smul_apply (b : R) (v : ⨁ i, M i) (i : ι) :
+  (b • v) i = b • (v i) := dfinsupp.smul_apply _ _ _
 
 include dec_ι
 
 variables R ι M
 /-- Create the direct sum given a family `M` of `R` semimodules indexed over `ι`. -/
 def lmk : Π s : finset ι, (Π i : (↑s : set ι), M i.val) →ₗ[R] (⨁ i, M i) :=
-dfinsupp.lmk M R
+dfinsupp.lmk
 
 /-- Inclusion of each component into the direct sum. -/
 def lof : Π i : ι, M i →ₗ[R] (⨁ i, M i) :=
-dfinsupp.lsingle M R
+dfinsupp.lsingle
 variables {ι M}
 
 lemma single_eq_lof (i : ι) (b : M i) :
@@ -61,38 +64,37 @@ theorem mk_smul (s : finset ι) (c : R) (x) : mk M s (c • x) = c • mk M s x 
 theorem of_smul (i : ι) (c : R) (x) : of M i (c • x) = c • of M i x :=
 (lof R ι M i).map_smul c x
 
-variables {N : Type u₁} [add_comm_group N] [semimodule R N]
+variables {R}
+lemma support_smul [Π (i : ι) (x : M i), decidable (x ≠ 0)]
+  (c : R) (v : ⨁ i, M i) : (c • v).support ⊆ v.support := dfinsupp.support_smul _ _
+
+variables {N : Type u₁} [add_comm_monoid N] [semimodule R N]
 variables (φ : Π i, M i →ₗ[R] N)
 
-variables (ι N φ)
+variables (R ι N φ)
 /-- The linear map constructed using the universal property of the coproduct. -/
 def to_module : (⨁ i, M i) →ₗ[R] N :=
-{ to_fun := to_group (λ i, φ i),
-  map_add' := to_group_add _,
-  map_smul' := λ c x, direct_sum.induction_on x
-    (by rw [smul_zero, to_group_zero, smul_zero])
-    (λ i x, by rw [← of_smul, to_group_of, to_group_of, (φ i).map_smul c x])
-    (λ x y ihx ihy, by rw [smul_add, to_group_add, ihx, ihy, to_group_add, smul_add]) }
+dfinsupp.lsum φ
 
 variables {ι N φ}
 
 /-- The map constructed using the universal property gives back the original maps when
 restricted to each component. -/
 @[simp] lemma to_module_lof (i) (x : M i) : to_module R ι N φ (lof R ι M i x) = φ i x :=
-to_group_of (λ i, φ i) i x
+to_add_monoid_of (λ i, (φ i).to_add_monoid_hom) i x
 
 variables (ψ : (⨁ i, M i) →ₗ[R] N)
 
 /-- Every linear map from a direct sum agrees with the one obtained by applying
 the universal property to each of its components. -/
 theorem to_module.unique (f : ⨁ i, M i) : ψ f = to_module R ι N (λ i, ψ.comp $ lof R ι M i) f :=
-to_group.unique ψ f
+to_add_monoid.unique ψ.to_add_monoid_hom f
 
 variables {ψ} {ψ' : (⨁ i, M i) →ₗ[R] N}
 
 theorem to_module.ext (H : ∀ i, ψ.comp (lof R ι M i) = ψ'.comp (lof R ι M i)) (f : ⨁ i, M i) :
   ψ f = ψ' f :=
-by rw [to_module.unique R ψ, to_module.unique R ψ', funext H]
+by rw dfinsupp.lhom_ext' H
 
 /--
 The inclusion of a subset of the direct summands
@@ -100,23 +102,21 @@ into a larger subset of the direct summands, as a linear map.
 -/
 def lset_to_set (S T : set ι) (H : S ⊆ T) :
   (⨁ (i : S), M i) →ₗ (⨁ (i : T), M i) :=
-to_module R _ _ $ λ i, lof R T (M ∘ @subtype.val _ T) ⟨i.1, H i.2⟩
+to_module R _ _ $ λ i, lof R T (λ (i : subtype T), M i) ⟨i, H i.prop⟩
 
 omit dec_ι
 
-/-- The natural linear equivalence between `⨁ _ : punit, M` and `M`. -/
--- TODO: generalize this to arbitrary index type `ι` with `unique ι`
-protected def lid (M : Type v) [add_comm_group M] [semimodule R M] :
-  (⨁ (_ : punit), M) ≃ₗ M :=
-{ .. direct_sum.id M,
-  .. to_module R punit M (λ i, linear_map.id) }
+/-- The natural linear equivalence between `⨁ _ : ι, M` and `M` when `unique ι`. -/
+protected def lid (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [semimodule R M]
+  [unique ι] :
+  (⨁ (_ : ι), M) ≃ₗ M :=
+{ .. direct_sum.id M ι,
+  .. to_module R ι M (λ i, linear_map.id) }
 
 variables (ι M)
 /-- The projection map onto one component, as a linear map. -/
 def component (i : ι) : (⨁ i, M i) →ₗ[R] M i :=
-{ to_fun := λ f, f i,
-  map_add' := λ _ _, dfinsupp.add_apply,
-  map_smul' := λ _ _, dfinsupp.smul_apply }
+dfinsupp.lapply i
 
 variables {ι M}
 
@@ -134,7 +134,7 @@ lemma ext_iff {f g : ⨁ i, M i} : f = g ↔
 include dec_ι
 
 @[simp] lemma lof_apply (i : ι) (b : M i) : ((lof R ι M i) b) i = b :=
-by rw [lof, dfinsupp.lsingle_apply, dfinsupp.single_apply, dif_pos rfl]
+dfinsupp.single_eq_same
 
 @[simp] lemma component.lof_self (i : ι) (b : M i) :
   component R ι M i ((lof R ι M i) b) = b :=

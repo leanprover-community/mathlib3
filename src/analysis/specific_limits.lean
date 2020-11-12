@@ -16,7 +16,7 @@ import tactic.ring_exp
 noncomputable theory
 open classical function filter finset metric
 
-open_locale classical topological_space nat big_operators
+open_locale classical topological_space nat big_operators uniformity
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 
@@ -85,6 +85,12 @@ by_cases
       from tendsto_inv_at_top_zero.comp
         (tendsto_pow_at_top_at_top_of_one_lt $ one_lt_inv (lt_of_le_of_ne h₁ this.symm) h₂),
     tendsto.congr' (univ_mem_sets' $ by simp *) this)
+
+lemma uniformity_basis_dist_pow_of_lt_1 {α : Type*} [metric_space α]
+  {r : ℝ} (h₀ : 0 < r) (h₁ : r < 1) :
+  (𝓤 α).has_basis (λ k : ℕ, true) (λ k, {p : α × α | dist p.1 p.2 < r ^ k}) :=
+metric.mk_uniformity_basis (λ i _, pow_pos h₀ _) $ λ ε ε0,
+  (exists_pow_lt_of_lt_one ε0 h₁).imp $ λ k hk, ⟨trivial, hk.le⟩
 
 lemma geom_lt {u : ℕ → ℝ} {k : ℝ} (hk : 0 < k) {n : ℕ} (h : ∀ m ≤ n, k*u m < u (m + 1)) :
   k^(n + 1) *u 0 < u (n + 1) :=
@@ -584,72 +590,3 @@ tendsto_of_tendsto_of_tendsto_of_le_of_le'
     { refine mul_nonneg _ (inv_nonneg.mpr _); norm_cast; linarith },
     { refine (div_le_one $ by exact_mod_cast hn).mpr _, norm_cast, linarith }
   end
-
-/-!
-### Harmonic series
-
-Here we define the harmonic series and prove some basic lemmas about it,
-leading to a proof of its divergence to +∞ -/
-
-/-- The harmonic series `1 + 1/2 + 1/3 + ... + 1/n`-/
-def harmonic_series (n : ℕ) : ℝ :=
-∑ i in range n, 1/(i+1 : ℝ)
-
-lemma mono_harmonic : monotone harmonic_series :=
-begin
-  intros p q hpq,
-  apply sum_le_sum_of_subset_of_nonneg,
-  rwa range_subset,
-  intros x h _,
-  exact le_of_lt nat.one_div_pos_of_nat,
-end
-
-lemma half_le_harmonic_double_sub_harmonic (n : ℕ) (hn : 0 < n) :
-  1/2 ≤ harmonic_series (2*n) - harmonic_series n :=
-begin
-  suffices : harmonic_series n + 1 / 2 ≤ harmonic_series (n + n),
-  { rw two_mul,
-    linarith },
-  have : harmonic_series n + ∑ k in Ico n (n + n), 1/(k + 1 : ℝ) = harmonic_series (n + n) :=
-    sum_range_add_sum_Ico _ (show n ≤ n+n, by linarith),
-  rw [← this,  add_le_add_iff_left],
-  have : ∑ k in Ico n (n + n), 1/(n+n : ℝ) = 1/2,
-  { have : (n : ℝ) + n ≠ 0,
-    { norm_cast, linarith },
-    rw [sum_const, Ico.card],
-    field_simp [this],
-    ring },
-  rw ← this,
-  apply sum_le_sum,
-  intros x hx,
-  rw one_div_le_one_div,
-  { exact_mod_cast nat.succ_le_of_lt (Ico.mem.mp hx).2 },
-  { norm_cast, linarith },
-  { exact_mod_cast nat.zero_lt_succ x }
-end
-
-lemma self_div_two_le_harmonic_two_pow (n : ℕ) : (n / 2 : ℝ) ≤ harmonic_series (2^n) :=
-begin
-  induction n with n hn,
-  unfold harmonic_series,
-  simp only [one_div, nat.cast_zero, zero_div, nat.cast_succ, sum_singleton,
-    inv_one, zero_add, pow_zero, range_one, zero_le_one],
-  have : harmonic_series (2^n) + 1 / 2 ≤ harmonic_series (2^(n+1)),
-  { have := half_le_harmonic_double_sub_harmonic (2^n) (by {apply pow_pos, linarith}),
-    rw [nat.mul_comm, ← pow_succ'] at this,
-    linarith },
-  apply le_trans _ this,
-  rw (show (n.succ / 2 : ℝ) = (n/2 : ℝ) + (1/2), by field_simp),
-  linarith,
-end
-
-/-- The harmonic series diverges to +∞ -/
-theorem harmonic_tendsto_at_top : tendsto harmonic_series at_top at_top :=
-begin
-  suffices : tendsto (λ n : ℕ, harmonic_series (2^n)) at_top at_top, by
-  { exact tendsto_at_top_of_monotone_of_subseq mono_harmonic this },
-  apply tendsto_at_top_mono self_div_two_le_harmonic_two_pow,
-  apply tendsto_at_top_div,
-  norm_num,
-  exact tendsto_coe_nat_at_top_at_top
-end

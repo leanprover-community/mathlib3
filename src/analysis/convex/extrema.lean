@@ -16,7 +16,11 @@ a global minimum, and likewise for concave functions.
 
 variables {E β: Type*} [add_comm_group E] [topological_space E]
   [module ℝ E] [topological_add_group E] [topological_vector_space ℝ E]
+<<<<<<< HEAD
   [decidable_linear_ordered_add_comm_group β] [semimodule ℝ β] [ordered_semimodule ℝ β]
+=======
+  [linear_ordered_add_comm_group β] [semimodule ℝ β] [ordered_semimodule ℝ β]
+>>>>>>> master
   {s : set E}
 
 open set filter

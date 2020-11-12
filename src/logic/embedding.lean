@@ -24,6 +24,8 @@ infixr ` ↪ `:25 := embedding
 
 instance {α : Sort u} {β : Sort v} : has_coe_to_fun (α ↪ β) := ⟨_, embedding.to_fun⟩
 
+initialize_simps_projections embedding (to_fun → apply)
+
 end function
 
 /-- Convert an `α ≃ β` to `α ↪ β`. -/
@@ -164,12 +166,12 @@ section sigma
 variables {α α' : Type*} {β : α → Type*} {β' : α' → Type*}
 
 /-- `sigma.mk` as an `function.embedding`. -/
-@[simps to_fun] def sigma_mk (a : α) : β a ↪ Σ x, β x :=
+@[simps apply] def sigma_mk (a : α) : β a ↪ Σ x, β x :=
 ⟨sigma.mk a, sigma_mk_injective⟩
 
 /-- If `f : α ↪ α'` is an embedding and `g : Π a, β α ↪ β' (f α)` is a family
 of embeddings, then `sigma.map f g` is an embedding. -/
-@[simps to_fun] def sigma_map (f : α ↪ α') (g : Π a, β a ↪ β' (f a)) :
+@[simps apply] def sigma_map (f : α ↪ α') (g : Π a, β a ↪ β' (f a)) :
   (Σ a, β a) ↪ Σ a', β' a' :=
 ⟨sigma.map f (λ a, g a), f.injective.sigma_map (λ a, (g a).injective)⟩
 
@@ -199,7 +201,7 @@ protected def subtype_map {α β} {p : α → Prop} {q : β → Prop} (f : α �
 open set
 
 /-- `set.image` as an embedding `set α ↪ set β`. -/
-@[simps to_fun] protected def image {α β} (f : α ↪ β) : set α ↪ set β :=
+@[simps apply] protected def image {α β} (f : α ↪ β) : set α ↪ set β :=
 ⟨image f, f.2.image_injective⟩
 
 end embedding
@@ -219,7 +221,7 @@ end equiv
 namespace set
 
 /-- The injection map is an embedding between subsets. -/
-@[simps to_fun] def embedding_of_subset {α} (s t : set α) (h : s ⊆ t) : s ↪ t :=
+@[simps apply] def embedding_of_subset {α} (s t : set α) (h : s ⊆ t) : s ↪ t :=
 ⟨λ x, ⟨x.1, h x.2⟩, λ ⟨x, hx⟩ ⟨y, hy⟩ h, by { congr, injection h }⟩
 
 end set

@@ -132,7 +132,7 @@ structure inner_product_space.core
 (inner     : F → F → 𝕜)
 (conj_sym  : ∀ x y, conj (inner y x) = inner x y)
 (nonneg_im : ∀ x, im (inner x x) = 0)
-(nonneg_re : ∀ x, re (inner x x) ≥ 0)
+(nonneg_re : ∀ x, 0 ≤ re (inner x x))
 (definite  : ∀ x, inner x x = 0 → x = 0)
 (add_left  : ∀ x y z, inner (x + y) z = inner x z + inner y z)
 (smul_left : ∀ x y r, inner (r • x) y = (conj r) * inner x y)
@@ -920,7 +920,7 @@ norms, has absolute value 1 if and only if they are nonzero and one is
 a multiple of the other. One form of equality case for Cauchy-Schwarz. -/
 lemma abs_real_inner_div_norm_mul_norm_eq_one_iff (x y : F) :
   absR (⟪x, y⟫_ℝ / (∥x∥ * ∥y∥)) = 1 ↔ (x ≠ 0 ∧ ∃ (r : ℝ), r ≠ 0 ∧ y = r • x) :=
-by { simpa using abs_inner_div_norm_mul_norm_eq_one_iff x y, assumption }
+by simpa using abs_inner_div_norm_mul_norm_eq_one_iff x y
 
 /--
 If the inner product of two vectors is equal to the product of their norms, then the two vectors
@@ -1111,7 +1111,7 @@ def inner_product_space.is_R_or_C_to_real : inner_product_space ℝ E :=
     simp [this, inner_smul_left, smul_coe_mul_ax],
   end,
   ..has_inner.is_R_or_C_to_real 𝕜,
-  ..normed_space.restrict_scalars' ℝ 𝕜 E }
+  ..normed_space.restrict_scalars ℝ 𝕜 E }
 
 omit 𝕜
 
@@ -1353,7 +1353,9 @@ theorem exists_norm_eq_infi_of_complete_subspace (K : subspace 𝕜 E)
   (h : is_complete (↑K : set E)) : ∀ u : E, ∃ v ∈ K, ∥u - v∥ = ⨅ w : (K : set E), ∥u - w∥ :=
 begin
   letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜,
-  let K' : subspace ℝ E := K.restrict_scalars ℝ,
+  letI : module ℝ E := restrict_scalars.semimodule ℝ 𝕜 E,
+  letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
+  let K' : subspace ℝ E := submodule.restrict_scalars ℝ K,
   exact exists_norm_eq_infi_of_complete_convex ⟨0, K'.zero_mem⟩ h K'.convex
 end
 
@@ -1410,6 +1412,8 @@ theorem norm_eq_infi_iff_inner_eq_zero (K : subspace 𝕜 E) {u : E} {v : E}
   (hv : v ∈ K) : ∥u - v∥ = (⨅ w : (↑K : set E), ∥u - w∥) ↔ ∀ w ∈ K, ⟪u - v, w⟫ = 0 :=
 begin
   letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜,
+  letI : module ℝ E := restrict_scalars.semimodule ℝ 𝕜 E,
+  letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
   let K' : subspace ℝ E := K.restrict_scalars ℝ,
   split,
   { assume H,

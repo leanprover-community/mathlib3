@@ -29,11 +29,6 @@ as `map_mul`; a separate constructor `monoid_hom.mk'` will construct
 group homs (i.e. monoid homs between groups) given only a proof
 that multiplication is preserved,
 
-Throughout the `monoid_hom` section implicit `{}` brackets are often used instead of type class `[]`
-brackets.  This is done when the instances can be inferred because they are implicit arguments to
-the type `monoid_hom`.  When they can be inferred from the type it is faster to use this method than
-to use type class inference.
-
 ## Tags
 
 is_group_hom, is_monoid_hom, monoid_hom
@@ -101,6 +96,11 @@ class is_monoid_hom [monoid α] [monoid β] (f : α → β) extends is_mul_hom f
 (map_one [] : f 1 = 1)
 
 namespace monoid_hom
+
+/-!
+Throughout this section, some `monoid` arguments are specified with `{}` instead of `[]`.
+See note [implicit instance arguments].
+-/
 variables {M : Type*} {N : Type*} {P : Type*} [mM : monoid M] [mN : monoid N] {mP : monoid P}
 variables {G : Type*} {H : Type*} [group G] [comm_group H]
 
@@ -269,7 +269,8 @@ end
 end ring_hom
 
 /-- Inversion is a group homomorphism if the group is commutative. -/
-@[instance, to_additive]
+@[instance, to_additive neg.is_add_group_hom 
+"Negation is an `add_group` homomorphism if the `add_group` is commutative."]
 lemma inv.is_group_hom [comm_group α] : is_group_hom (has_inv.inv : α → α) :=
 { map_mul := mul_inv }
 

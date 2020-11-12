@@ -6,7 +6,7 @@ Authors: Alexander Bentkamp, Yury Kudriashov
 import data.set.intervals.ord_connected
 import data.set.intervals.image_preimage
 import data.complex.module
-import linear_algebra.affine_space.basic
+import linear_algebra.affine_space.affine_map
 import algebra.module.ordered
 
 
@@ -488,8 +488,12 @@ def concave_on (s : set E) (f : E → β) : Prop :=
 variables [ordered_semimodule ℝ β]
 
 /-- A function f is concave iff -f is convex -/
+<<<<<<< HEAD
 @[simp] lemma neg_convex_on_iff {γ : Type*} [ordered_add_comm_group γ]
   [semimodule ℝ γ] [ordered_semimodule ℝ γ]
+=======
+@[simp] lemma neg_convex_on_iff {γ : Type*} [ordered_add_comm_group γ] [semimodule ℝ γ]
+>>>>>>> master
   (s : set E) (f : E → γ) : convex_on s (-f) ↔ concave_on s f :=
 begin
   split,
@@ -507,8 +511,12 @@ begin
 end
 
 /-- A function f is concave iff -f is convex -/
+<<<<<<< HEAD
 @[simp] lemma neg_concave_on_iff {γ : Type*} [ordered_add_comm_group γ]
   [semimodule ℝ γ] [ordered_semimodule ℝ γ]
+=======
+@[simp] lemma neg_concave_on_iff {γ : Type*} [ordered_add_comm_group γ] [semimodule ℝ γ]
+>>>>>>> master
   (s : set E) (f : E → γ) : concave_on s (-f) ↔ convex_on s f:=
 by rw [← neg_convex_on_iff s (-f), neg_neg f]
 
@@ -705,24 +713,33 @@ lemma concave_on.add {f g : E → β} (hf : concave_on s f) (hg : concave_on s g
   concave_on s (λx, f x + g x) :=
 @convex_on.add _ _ _ _ (order_dual β) _ _ _ f g hf hg
 
-lemma convex_on.smul {f : E → β} {c : ℝ} (hc : 0 ≤ c) (hf : convex_on s f) :
-  convex_on s (λx, c • f x) :=
+lemma convex_on.smul [ordered_semimodule ℝ β] {f : E → β} {c : ℝ} (hc : 0 ≤ c)
+  (hf : convex_on s f) : convex_on s (λx, c • f x) :=
 begin
   apply and.intro hf.1,
   intros x y hx hy a b ha hb hab,
   calc
     c • f (a • x + b • y) ≤ c • (a • f x + b • f y)
       : smul_le_smul_of_nonneg (hf.2 hx hy ha hb hab) hc
-    ... = a • (c • f x) + b • (c • f y) : by simp only [smul_add, smul_comm]
+    ... = a • (c • f x) + b • (c • f y) : by simp only [smul_add, smul_comm c]
 end
 
+<<<<<<< HEAD
 lemma concave_on.smul {f : E → β} {c : ℝ} (hc : 0 ≤ c) (hf : concave_on s f) :
   concave_on s (λx, c • f x) :=
+=======
+lemma concave_on.smul [ordered_semimodule ℝ β] {f : E → β} {c : ℝ} (hc : 0 ≤ c)
+  (hf : concave_on s f) : concave_on s (λx, c • f x) :=
+>>>>>>> master
 @convex_on.smul _ _ _ _ (order_dual β) _ _ _ f c hc hf
 
 /-- A convex function on a segment is upper-bounded by the max of its endpoints. -/
 lemma convex_on.le_on_segment' {γ : Type*}
+<<<<<<< HEAD
   [decidable_linear_ordered_add_comm_group γ] [semimodule ℝ γ] [ordered_semimodule ℝ γ]
+=======
+  [linear_ordered_add_comm_group γ] [semimodule ℝ γ] [ordered_semimodule ℝ γ]
+>>>>>>> master
   {f : E → γ} {x y : E} {a b : ℝ}
   (hf : convex_on s f) (hx : x ∈ s) (hy : y ∈ s) (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
   f (a • x + b • y) ≤ max (f x) (f y) :=
@@ -734,7 +751,11 @@ calc
 
 /-- A concave function on a segment is lower-bounded by the min of its endpoints. -/
 lemma concave_on.le_on_segment' {γ : Type*}
+<<<<<<< HEAD
   [decidable_linear_ordered_add_comm_group γ] [semimodule ℝ γ] [ordered_semimodule ℝ γ]
+=======
+  [linear_ordered_add_comm_group γ] [semimodule ℝ γ] [ordered_semimodule ℝ γ]
+>>>>>>> master
   {f : E → γ} {x y : E} {a b : ℝ}
   (hf : concave_on s f) (hx : x ∈ s) (hy : y ∈ s) (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
   min (f x) (f y) ≤ f (a • x + b • y) :=
@@ -742,7 +763,11 @@ lemma concave_on.le_on_segment' {γ : Type*}
 
 /-- A convex function on a segment is upper-bounded by the max of its endpoints. -/
 lemma convex_on.le_on_segment {γ : Type*}
+<<<<<<< HEAD
   [decidable_linear_ordered_add_comm_group γ] [semimodule ℝ γ] [ordered_semimodule ℝ γ]
+=======
+  [linear_ordered_add_comm_group γ] [semimodule ℝ γ] [ordered_semimodule ℝ γ]
+>>>>>>> master
   {f : E → γ} (hf : convex_on s f) {x y z : E}
   (hx : x ∈ s) (hy : y ∈ s) (hz : z ∈ [x, y]) :
   f z ≤ max (f x) (f y) :=
@@ -750,13 +775,18 @@ let ⟨a, b, ha, hb, hab, hz⟩ := hz in hz ▸ hf.le_on_segment' hx hy ha hb ha
 
 /-- A concave function on a segment is lower-bounded by the min of its endpoints. -/
 lemma concave_on.le_on_segment {γ : Type*}
+<<<<<<< HEAD
   [decidable_linear_ordered_add_comm_group γ] [semimodule ℝ γ] [ordered_semimodule ℝ γ]
+=======
+  [linear_ordered_add_comm_group γ] [semimodule ℝ γ] [ordered_semimodule ℝ γ]
+>>>>>>> master
   {f : E → γ} (hf : concave_on s f) {x y z : E}
   (hx : x ∈ s) (hy : y ∈ s) (hz : z ∈ [x, y]) :
     min (f x) (f y) ≤ f z :=
 @convex_on.le_on_segment _ _ _ _ (order_dual γ) _ _ _ f hf x y z hx hy hz
 
-lemma convex_on.convex_le {f : E → β} (hf : convex_on s f) (r : β) : convex {x ∈ s | f x ≤ r} :=
+lemma convex_on.convex_le [ordered_semimodule ℝ β] {f : E → β} (hf : convex_on s f) (r : β) :
+  convex {x ∈ s | f x ≤ r} :=
 convex_iff_segment_subset.2 $ λ x y hx hy z hz,
 begin
   refine ⟨hf.1.segment_subset hx.1 hy.1 hz,_⟩,
@@ -770,10 +800,17 @@ begin
                     ... ≤ r                         : by simp [←add_smul, hzazb]
 end
 
+<<<<<<< HEAD
 lemma concave_on.concave_le {f : E → β} (hf : concave_on s f) (r : β) : convex {x ∈ s | r ≤ f x} :=
   @convex_on.convex_le _ _ _ _ (order_dual β) _ _ _ f hf r
 
 
+=======
+lemma concave_on.concave_le [ordered_semimodule ℝ β] {f : E → β} (hf : concave_on s f) (r : β) :
+  convex {x ∈ s | r ≤ f x} :=
+@convex_on.convex_le _ _ _ _ (order_dual β) _ _ _ f hf r
+
+>>>>>>> master
 lemma convex_on.convex_lt {γ : Type*} [ordered_cancel_add_comm_monoid γ]
   [semimodule ℝ γ] [ordered_semimodule ℝ γ]
   {f : E → γ} (hf : convex_on s f) (r : γ) : convex {x ∈ s | f x < r} :=
@@ -980,7 +1017,7 @@ end
 
 lemma finset.center_mass_filter_ne_zero :
   (t.filter (λ i, w i ≠ 0)).center_mass w z = t.center_mass w z :=
-finset.center_mass_subset z (filter_subset _) $ λ i hit hit',
+finset.center_mass_subset z (filter_subset _ _) $ λ i hit hit',
 by simpa only [hit, mem_filter, true_and, ne.def, not_not] using hit'
 
 variable {z}

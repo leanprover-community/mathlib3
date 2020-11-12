@@ -28,6 +28,18 @@ meta class has_variable_names (α : Sort u) : Type :=
 (other_names : list name)
 
 
+namespace has_variable_names
+
+/--
+`names α` returns the names associated with the type `α`. The returned list is
+guaranteed to be nonempty.
+-/
+meta def names {α} [has_variable_names α] : list name :=
+first_name α :: other_names α
+
+end has_variable_names
+
+
 namespace tactic
 
 /--
@@ -41,11 +53,8 @@ typical_variable_names `(ℕ) = [`n, `m, `o]
 -/
 meta def typical_variable_names (t : expr) : tactic (list name) :=
 (do
-  first_name ← to_expr ``(has_variable_names.first_name %%t),
-  n ← eval_expr name first_name,
-  other_names ← to_expr ``(has_variable_names.other_names %%t),
-  ns ← eval_expr (list name) other_names,
-  pure $ n :: ns)
+  names ← to_expr ``(has_variable_names.names %%t),
+  eval_expr (list name) names)
 <|> fail! "typical_variable_names: unable to get typical variable names for type {t}"
 
 end tactic

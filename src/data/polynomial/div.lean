@@ -100,7 +100,7 @@ calc (div_X p).degree < (div_X p * X + C (p.coeff 0)).degree :
               (by rw [zero_le_degree_iff, ne.def, div_X_eq_zero_iff];
                 exact λ h0, h (h0.symm ▸ degree_C_le))
               (le_refl _),
-    by rw [add_comm, degree_add_eq_of_degree_lt this];
+    by rw [degree_add_eq_left_of_degree_lt this];
       exact degree_lt_degree_mul_X hXp0
 ... = p.degree : by rw div_X_mul_X_add
 
@@ -364,7 +364,7 @@ have hmod : degree (p %ₘ q) < degree (q * (p /ₘ q)) :=
       degree_eq_nat_degree hdiv0, ← with_bot.coe_add, with_bot.coe_le_coe];
     exact nat.le_add_right _ _,
 calc degree q + degree (p /ₘ q) = degree (q * (p /ₘ q)) : eq.symm (degree_mul' hlc)
-... = degree (p %ₘ q + q * (p /ₘ q)) : (degree_add_eq_of_degree_lt hmod).symm
+... = degree (p %ₘ q + q * (p /ₘ q)) : (degree_add_eq_right_of_degree_lt hmod).symm
 ... = _ : congr_arg _ (mod_by_monic_add_div _ hq)
 
 lemma degree_div_by_monic_le (p q : polynomial R) : degree (p /ₘ q) ≤ degree p :=

@@ -447,23 +447,25 @@ begin
     exact mul_X_pow_eq_zero ‹_›, },
 end
 
-lemma degree_add_eq_of_degree_lt (h : degree p < degree q) : degree (p + q) = degree q :=
-le_antisymm (max_eq_right_of_lt h ▸ degree_add_le _ _) $ degree_le_degree $
+lemma degree_add_eq_left_of_degree_lt (h : degree q < degree p) : degree (p + q) = degree p :=
+le_antisymm (max_eq_left_of_lt h ▸ degree_add_le _ _) $ degree_le_degree $
   begin
-    rw [coeff_add, coeff_nat_degree_eq_zero_of_degree_lt h, zero_add],
+    rw [coeff_add, coeff_nat_degree_eq_zero_of_degree_lt h, add_zero],
     exact mt leading_coeff_eq_zero.1 (ne_zero_of_degree_gt h)
   end
 
+lemma degree_add_eq_right_of_degree_lt (h : degree p < degree q) : degree (p + q) = degree q :=
+by rw [add_comm, degree_add_eq_left_of_degree_lt h]
 
 lemma degree_add_C (hp : 0 < degree p) : degree (p + C a) = degree p :=
-add_comm (C a) p ▸ degree_add_eq_of_degree_lt $ lt_of_le_of_lt degree_C_le hp
+add_comm (C a) p ▸ degree_add_eq_right_of_degree_lt $ lt_of_le_of_lt degree_C_le hp
 
 lemma degree_add_eq_of_leading_coeff_add_ne_zero (h : leading_coeff p + leading_coeff q ≠ 0) :
   degree (p + q) = max p.degree q.degree :=
 le_antisymm (degree_add_le _ _) $
   match lt_trichotomy (degree p) (degree q) with
   | or.inl hlt :=
-    by rw [degree_add_eq_of_degree_lt hlt, max_eq_right_of_lt hlt]; exact le_refl _
+    by rw [degree_add_eq_right_of_degree_lt hlt, max_eq_right_of_lt hlt]; exact le_refl _
   | or.inr (or.inl heq) :=
     le_of_not_gt $
       assume hlt : max (degree p) (degree q) > degree (p + q),
@@ -474,7 +476,7 @@ le_antisymm (degree_add_le _ _) $
         exact coeff_nat_degree_eq_zero_of_degree_lt hlt
       end
   | or.inr (or.inr hlt) :=
-    by rw [add_comm, degree_add_eq_of_degree_lt hlt, max_eq_left_of_lt hlt]; exact le_refl _
+    by rw [degree_add_eq_left_of_degree_lt hlt, max_eq_left_of_lt hlt]; exact le_refl _
   end
 
 lemma degree_erase_le (p : polynomial R) (n : ℕ) : degree (p.erase n) ≤ degree p :=
@@ -553,7 +555,7 @@ by { haveI := nontrivial.of_polynomial_ne hne, exact hp.ne_zero }
 lemma leading_coeff_add_of_degree_lt (h : degree p < degree q) :
   leading_coeff (p + q) = leading_coeff q :=
 have coeff p (nat_degree q) = 0, from coeff_nat_degree_eq_zero_of_degree_lt h,
-by simp only [leading_coeff, nat_degree_eq_of_degree_eq (degree_add_eq_of_degree_lt h),
+by simp only [leading_coeff, nat_degree_eq_of_degree_eq (degree_add_eq_right_of_degree_lt h),
   this, coeff_add, zero_add]
 
 lemma leading_coeff_add_of_degree_eq (h : degree p = degree q)
@@ -804,18 +806,23 @@ begin
   ... < n : with_bot.some_lt_some.mpr hi,
 end
 
+lemma degree_sub_eq_left_of_degree_lt (h : degree q < degree p) : degree (p - q) = degree p :=
+by { rw ← degree_neg q at h, rw [sub_eq_add_neg, degree_add_eq_left_of_degree_lt h] }
+
+lemma degree_sub_eq_right_of_degree_lt (h : degree p < degree q) : degree (p - q) = degree q :=
+by { rw ← degree_neg q at h, rw [sub_eq_add_neg, degree_add_eq_right_of_degree_lt h, degree_neg] }
+
 end ring
 
 section nonzero_ring
 variables [nontrivial R] [ring R]
 
 @[simp] lemma degree_X_sub_C (a : R) : degree (X - C a) = 1 :=
-begin
-  rw [sub_eq_add_neg, add_comm, ← @degree_X R],
-  by_cases ha : a = 0,
-  { simp only [ha, C_0, neg_zero, zero_add] },
-  exact degree_add_eq_of_degree_lt (by rw [degree_X, degree_neg, degree_C ha]; exact dec_trivial)
-end
+have degree (C a) < degree (X : polynomial R),
+from calc degree (C a) ≤ 0 : degree_C_le
+                   ... < 1 : with_bot.some_lt_some.mpr zero_lt_one
+                   ... = degree X : degree_X.symm,
+by rw [degree_sub_eq_left_of_degree_lt this, degree_X]
 
 @[simp] lemma nat_degree_X_sub_C (x : R) : (X - C x).nat_degree = 1 :=
 nat_degree_eq_of_degree_eq_some $ degree_X_sub_C x
@@ -826,11 +833,11 @@ by simp [next_coeff_of_pos_nat_degree]
 
 lemma degree_X_pow_sub_C {n : ℕ} (hn : 0 < n) (a : R) :
   degree ((X : polynomial R) ^ n - C a) = n :=
-have degree (-C a) < degree ((X : polynomial R) ^ n),
-  from calc degree (-C a) ≤ 0 : by rw degree_neg; exact degree_C_le
+have degree (C a) < degree ((X : polynomial R) ^ n),
+  from calc degree (C a) ≤ 0 : degree_C_le
   ... < degree ((X : polynomial R) ^ n) : by rwa [degree_X_pow];
     exact with_bot.coe_lt_coe.2 hn,
-by rw [sub_eq_add_neg, add_comm, degree_add_eq_of_degree_lt this, degree_X_pow]
+by rw [degree_sub_eq_left_of_degree_lt this, degree_X_pow]
 
 lemma X_pow_sub_C_ne_zero {n : ℕ} (hn : 0 < n) (a : R) :
   (X : polynomial R) ^ n - C a ≠ 0 :=

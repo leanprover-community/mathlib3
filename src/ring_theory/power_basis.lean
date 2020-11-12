@@ -150,13 +150,10 @@ X ^ pb.dim -
 lemma nat_degree_minpoly_gen (pb : power_basis A S) :
   nat_degree (minpoly_gen pb) = pb.dim :=
 begin
-  rw [minpoly_gen, sub_eq_add_neg],
+  unfold minpoly_gen,
   apply nat_degree_eq_of_degree_eq_some,
-  -- TODO: find a good lemma to encapsulate the next three lines
-  rw [add_comm, ← @degree_X_pow A _ _ pb.dim],
-  apply degree_add_eq_of_degree_lt,
-  rw [degree_neg, @degree_X_pow A _ _ pb.dim],
-  exact degree_sum_fin_lt _
+  rw degree_sub_eq_left_of_degree_lt; rw degree_X_pow,
+  apply degree_sum_fin_lt
 end
 
 lemma minpoly_gen_monic (pb : power_basis A S) : monic (minpoly_gen pb) :=

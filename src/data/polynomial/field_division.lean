@@ -175,8 +175,8 @@ lemma degree_add_div (hq0 : q ≠ 0) (hpq : degree q ≤ degree p) :
 have degree (p % q) < degree (q * (p / q)) :=
   calc degree (p % q) < degree q : euclidean_domain.mod_lt _ hq0
   ... ≤ _ : degree_le_mul_left _ (mt (div_eq_zero_iff hq0).1 (not_lt_of_ge hpq)),
-by conv {to_rhs, rw [← euclidean_domain.div_add_mod p q, add_comm,
-    degree_add_eq_of_degree_lt this, degree_mul]}
+by conv_rhs { rw [← euclidean_domain.div_add_mod p q,
+    degree_add_eq_left_of_degree_lt this, degree_mul] }
 
 lemma degree_div_le (p q : polynomial R) : degree (p / q) ≤ degree p :=
 if hq : q = 0 then by simp [hq]

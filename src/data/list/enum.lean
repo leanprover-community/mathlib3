@@ -51,6 +51,10 @@ Edge cases (assuming `has_lawful_enum α`):
 def list.Icc [has_le α] [@decidable_rel α (≤)] : list α :=
 if b ≤ t then list.Ico b t ++ [t] else []
 
+lemma list.Ico_append_top [has_le α] [@decidable_rel α (≤)] (h : b ≤ t) :
+  list.Ico b t ++ [t] = list.Icc b t :=
+(if_pos h).symm
+
 /-- `list.Ioo b t` is a list of the values between `b` (exclusive) and `t` (inclusive).
 
 Edge cases (assuming `has_lawful_enum α`):
@@ -75,6 +79,9 @@ variables {α β : Type*} [linear_order α] [linear_order β] [has_lawful_enum �
 
 lemma sorted_Ico (b t : α) : sorted (<) (Ico b t) := has_lawful_enum.sorted_Ico b t
 
+lemma sorted_le_Ico (b t : α) : sorted (≤) (Ico b t) :=
+pairwise.imp (λ a b, le_of_lt) (sorted_Ico b t)
+
 lemma nodup_Ico (b t : α) : nodup (Ico b t) :=
 pairwise.imp (λ a b, ne_of_lt) (sorted_Ico b t)
 
@@ -90,6 +97,9 @@ begin
     exact (mem_Ico.mp hx).2 },
   { exact sorted_nil }
 end
+
+lemma sorted_le_Icc (b t : α) [@decidable_rel α (≤)] : sorted (≤) (Icc b t) :=
+pairwise.imp (λ a b, le_of_lt) (sorted_Icc b t)
 
 lemma nodup_Icc (b t : α) [@decidable_rel α (≤)] : nodup (Icc b t) :=
 pairwise.imp (λ a b, ne_of_lt) (sorted_Icc b t)
@@ -111,10 +121,13 @@ lemma pairwise_tail {r : α → α → Prop} : ∀ {l : list α} (h : pairwise r
 | [] h := pairwise.nil
 | (x :: xs) h := (pairwise_cons.mp h).2
 
-lemma sorted_Ioo (b t : α) [@decidable_rel α (<)] : sorted (<) (Ioo b t) :=
+lemma sorted_Ioo (b t : α) : sorted (<) (Ioo b t) :=
 pairwise_tail (sorted_Ico b t)
 
-lemma nodup_Ioo (b t : α) [@decidable_rel α (≤)] : nodup (Ioo b t) :=
+lemma sorted_le_Ioo (b t : α) : sorted (≤) (Ioo b t) :=
+pairwise.imp (λ a b, le_of_lt) (sorted_Ioo b t)
+
+lemma nodup_Ioo (b t : α) : nodup (Ioo b t) :=
 pairwise.imp (λ a b, ne_of_lt) (sorted_Ioo b t)
 
 lemma mem_tail_of_nodup {x : α} : ∀ {l : list α} (hl : l.nodup), x ∈ l.tail ↔ x ∉ l.nth 0 ∧ x ∈ l
@@ -123,13 +136,8 @@ lemma mem_tail_of_nodup {x : α} : ∀ {l : list α} (hl : l.nodup), x ∈ l.tai
 by { simp only [tail, nth, option.mem_def, mem_cons_iff, eq_comm,
     and_or_distrib_left, not_and_self, false_or],
   refine ⟨λ h, ⟨_, h⟩, λ h, h.2⟩,
-  library_search }
-
-@[simp] lemma mem_Ioo {x b t : α} [@decidable_rel α (≤)] : x ∈ Ioo b t ↔ b < x ∧ x < t :=
-begin
-  unfold Ioo,
-  rw mem_tail_of_nodup (nodup_Ico b t),
-end
+  cases hl with _ _ y_ne,
+  exact (y_ne _ h).symm }
 
 lemma Ico_unique_iff {b t : α} {l : list α}  :
   l = Ico b t ↔ sorted (<) l ∧ ∀ x, x ∈ l ↔ b ≤ x ∧ x < t :=
@@ -145,6 +153,21 @@ theorem Ico_unique {b t : α} {l : list α}
   (hs : sorted (<) l) (hm : ∀ x, x ∈ l ↔ b ≤ x ∧ x < t) :
   l = Ico b t :=
 Ico_unique_iff.mpr ⟨hs, hm⟩
+
+lemma Icc_unique_iff {b t : α} {l : list α}  :
+  l = Icc b t ↔ sorted (<) l ∧ ∀ x, x ∈ l ↔ b ≤ x ∧ x ≤ t :=
+⟨λ h, h.symm ▸ ⟨h.symm ▸ sorted_Icc b t, λ x, mem_Icc⟩,
+ λ ⟨hs, hm⟩, eq_of_sorted_of_perm
+    ((perm_ext (pairwise.imp (λ _ _ h, ne_of_lt h) hs) (nodup_Icc b t)).mpr
+      (by simpa only [mem_Icc]))
+  hs
+  (sorted_Icc b t)⟩
+
+/-- The properties in `has_lawful_enum` uniquely specify `Icc b t`. -/
+theorem Icc_unique {b t : α} {l : list α}
+  (hs : sorted (<) l) (hm : ∀ x, x ∈ l ↔ b ≤ x ∧ x ≤ t) :
+  l = Icc b t :=
+Icc_unique_iff.mpr ⟨hs, hm⟩
 
 lemma bot_le_of_mem_Ico {x b t : α} (h : x ∈ Ico b t) : b ≤ x := (mem_Ico.mp h).1
 
@@ -178,6 +201,18 @@ eq_nil_iff_forall_not_mem.trans
 
 @[simp] lemma Ico_self {b : α} : Ico b b = [] :=
 Ico_eq_nil.mpr le_rfl
+
+@[simp] lemma Icc_self {b : α} : Icc b b = [b] :=
+by rw [← Ico_append_top _ _ (le_refl b), Ico_self, nil_append]
+
+@[simp] lemma length_Ico_pos_iff {b t : α} :
+  0 < length (Ico b t) ↔ b < t :=
+begin
+  refine ⟨λ h, _, λ h, length_pos_of_mem (bot_mem_Ico.mpr h)⟩,
+  obtain ⟨x, hx⟩ := exists_mem_of_length_pos h,
+  calc b ≤ x : bot_le_of_mem_Ico hx
+     ... < t : lt_top_of_mem_Ico hx
+end
 
 lemma exists_le_mem_Ico_of_lt {x b t : α} (hbt : b < t) (hxt : x < t) :
   ∃ y ∈ Ico b t, x ≤ y :=
@@ -238,12 +273,28 @@ begin
   exact lt_of_le_of_lt (le_top_of_mem_Icc x_mem) (ht y y_mem)
 end
 
+lemma sorted_Ico_append_Icc {b t b' t' : α} (h : t ≤ b') :
+  sorted (<) (Ico b t ++ Icc b' t') :=
+sorted_Ico_append (sorted_Icc b' t') (λ y hy, le_trans h (bot_le_of_mem_Icc hy))
+
 @[simp] lemma Ico_append_Ico {b m t : α} (hbm : b ≤ m) (hmt : m ≤ t) :
   Ico b m ++ Ico m t = Ico b t :=
 Ico_unique (sorted_Ico_append_Ico le_rfl) (λ x, by
   { simp only [mem_append, mem_Ico], split,
     { rintro (⟨hbx, hxm⟩ | ⟨hmx, hxt⟩),
       { exact ⟨hbx, lt_of_lt_of_le hxm hmt⟩ },
+      { exact ⟨le_trans hbm hmx, hxt⟩ } },
+    { rintro ⟨hbx, hbt⟩,
+      cases le_or_lt m x with hmx hxm,
+      { exact or.inr ⟨hmx, hbt⟩ },
+      { exact or.inl ⟨hbx, hxm⟩ } } })
+
+@[simp] lemma Ico_append_Icc {b m t : α} (hbm : b ≤ m) (hmt : m ≤ t) :
+  Ico b m ++ Icc m t = Icc b t :=
+Icc_unique (sorted_Ico_append_Icc le_rfl) (λ x, by
+  { simp only [mem_append, mem_Ico, mem_Icc], split,
+    { rintro (⟨hbx, hxm⟩ | ⟨hmx, hxt⟩),
+      { exact ⟨hbx, le_trans (le_of_lt hxm) hmt⟩ },
       { exact ⟨le_trans hbm hmx, hxt⟩ } },
     { rintro ⟨hbx, hbt⟩,
       cases le_or_lt m x with hmx hxm,
@@ -310,6 +361,60 @@ end
   list.bag_inter (Ico b m) (Ico m t) = [] :=
 (bag_inter_nil_iff_inter_nil _ _).2 (Ico_inter_Ico_consecutive b m t)
 
+@[simp] lemma Ico_nth_le_zero {b t : α} (h : 0 < (Ico b t).length) :
+  (Ico b t).nth_le 0 h = b :=
+begin
+  refine le_antisymm _ (bot_le_of_mem_Ico (nth_le_mem _ _ _)),
+  have h' := length_Ico_pos_iff.mp h,
+  obtain ⟨i, i_lt, eq_b⟩ := nth_le_of_mem (bot_mem_Ico.mpr h'),
+  conv_rhs { rw ← eq_b },
+  exact nth_le_of_sorted_of_le (sorted_le_Ico b t) (nat.zero_le i),
+end
+
+lemma mem_Ico_nth_zero {b t x : α} : x ∈ (Ico b t).nth 0 ↔ x = b ∧ b < t :=
+begin
+  set y := (Ico b t).nth 0 with ← hy,
+  revert hy,
+  refine @option.cases_on _ (λ y, (Ico b t).nth 0 = y → (x ∈ y ↔ x = b ∧ b < t)) y _ _,
+  { intros h,
+    rw [nth_eq_none_iff, nat.le_zero_iff, length_eq_zero, Ico_eq_nil] at h,
+    simp only [h, false_iff, not_and, not_lt, option.not_mem_none, forall_true_iff] },
+  { intros y h,
+    rw [option.mem_def, option.some_inj],
+    obtain ⟨len_pos, rfl⟩ := nth_eq_some.mp h,
+    simp only [Ico_nth_le_zero, length_Ico_pos_iff.mp len_pos, and_true, eq_comm] },
+end
+
+@[simp] lemma mem_Ioo {x b t : α} : x ∈ Ioo b t ↔ b < x ∧ x < t :=
+begin
+  unfold Ioo,
+  rw [mem_tail_of_nodup (nodup_Ico b t), mem_Ico_nth_zero, mem_Ico, not_and],
+  split,
+  { rintros ⟨ne, le, lt⟩,
+    exact ⟨lt_of_le_of_ne le (λ h, ne h.symm (lt_of_le_of_lt le lt)), lt⟩ },
+  { rintros ⟨b_lt_x, x_lt_t⟩,
+    refine ⟨_, le_of_lt b_lt_x, x_lt_t⟩,
+    rintro rfl,
+    have := lt_asymm b_lt_x,
+    contradiction }
+end
+
+lemma bot_lt_of_mem_Ioo {x b t : α} (h : x ∈ Ioo b t) : b < x := (mem_Ioo.mp h).1
+
+lemma lt_top_of_mem_Ioo {x b t : α} (h : x ∈ Ioo b t) : x < t := (mem_Ioo.mp h).2
+
+lemma Icc_append_Ioo {b m t : α} (b_le_m : b ≤ m) (m_lt_t : m < t) :
+  Icc b m ++ Ioo m t = Ico b t :=
+Ico_unique (sorted_Icc_append_iff.mpr ⟨sorted_Ioo _ _, or.inr (λ x hx, bot_lt_of_mem_Ioo hx)⟩)
+  (λ x, mem_append.trans ⟨λ h, h.elim
+      (λ hx, ⟨bot_le_of_mem_Icc hx, lt_of_le_of_lt (le_top_of_mem_Icc hx) m_lt_t⟩)
+      (λ hx, ⟨le_trans b_le_m (le_of_lt (bot_lt_of_mem_Ioo hx)), lt_top_of_mem_Ioo hx⟩),
+    λ ⟨b_le, lt_t⟩, if h : x ≤ m
+      then or.inl (mem_Icc.mpr ⟨b_le, h⟩)
+      else or.inr (mem_Ioo.mpr ⟨lt_of_not_ge h, lt_t⟩)⟩)
+
+namespace Ico
+
 lemma filter_lt_of_top_le [decidable_rel ((<) : α → α → Prop)] {n m l : α} (hml : m ≤ l) :
   (Ico n m).filter (λ x, x < l) = Ico n m :=
 filter_eq_self.2 $ assume k hk, lt_of_lt_of_le (mem_Ico.1 hk).2 hml
@@ -327,7 +432,7 @@ begin
   { rw [Ico_eq_nil.mpr hln, filter_lt_of_le_bot hln] }
 end
 
-@[simp] lemma filter_lt {α : Type*} [decidable_linear_order α] [has_lawful_enum α] (n m l : α) :
+@[simp] lemma filter_lt (n m l : α) :
   (Ico n m).filter (λ x, x < l) = Ico n (min m l) :=
 begin
   cases le_total m l with hml hlm,
@@ -335,37 +440,50 @@ begin
   { rw [min_eq_right hlm, filter_lt_of_ge hlm] }
 end
 
-lemma filter_le_of_le_bot [decidable_rel ((≤) : α → α → Prop)] {n m l : α} (hln : l ≤ n) :
+lemma le_filter_of_le_bot [decidable_rel ((≤) : α → α → Prop)] {n m l : α} (hln : l ≤ n) :
   (Ico n m).filter (λ x, l ≤ x) = Ico n m :=
 filter_eq_self.2 $ assume k hk, le_trans hln (mem_Ico.1 hk).1
 
-lemma filter_le_of_top_le [decidable_rel ((≤) : α → α → Prop)] {n m l : α} (hml : m ≤ l) :
+lemma le_filter_of_top_le [decidable_rel ((≤) : α → α → Prop)] {n m l : α} (hml : m ≤ l) :
   (Ico n m).filter (λ x, l ≤ x) = [] :=
 filter_eq_nil.2 $ assume k hk, not_le_of_gt (lt_of_lt_of_le (mem_Ico.1 hk).2 hml)
 
-lemma filter_le_of_le [decidable_rel ((≤) : α → α → Prop)] {n m l : α} (hnl : n ≤ l) :
+lemma le_filter_of_le [decidable_rel ((≤) : α → α → Prop)] {n m l : α} (hnl : n ≤ l) :
   (Ico n m).filter (λ x, l ≤ x) = Ico l m :=
 begin
   cases le_total l m with hlm hml,
   { rw [← Ico_append_Ico hnl hlm, filter_append,
-      filter_le_of_top_le (le_refl l), filter_le_of_le_bot (le_refl l), nil_append] },
-  { rw [Ico_eq_nil.mpr hml, filter_le_of_top_le hml] }
+        le_filter_of_top_le (le_refl l), le_filter_of_le_bot (le_refl l), nil_append] },
+  { rw [Ico_eq_nil.mpr hml, le_filter_of_top_le hml] }
 end
 
-@[simp] lemma filter_le {α : Type*} [decidable_linear_order α] [has_lawful_enum α] (n m l : α) :
+@[simp] lemma le_filter (n m l : α) :
   (Ico n m).filter (λ x, l ≤ x) = Ico (max n l) m :=
 begin
   cases le_total n l with hnl hln,
-  { rw [max_eq_right hnl, filter_le_of_le hnl] },
-  { rw [max_eq_left hln, filter_le_of_le_bot hln] }
+  { rw [max_eq_right hnl, le_filter_of_le hnl] },
+  { rw [max_eq_left hln, le_filter_of_le_bot hln] }
 end
 
-@[simp] lemma filter_le_of_bot {α : Type*} [decidable_linear_order α] [has_lawful_enum α] {n m : α}
+lemma filter_le_of_top_le {n m l : α} (hml : m ≤ l) :
+  (Ico n m).filter (λ x, x ≤ l) = Ico n m :=
+filter_eq_self.2 $ assume k hk, le_trans (le_of_lt (mem_Ico.1 hk).2) hml
+
+lemma filter_le_of_le_bot {n m l : α} (hln : l < n) :
+  (Ico n m).filter (λ x, x ≤ l) = [] :=
+filter_eq_nil.2 $ assume k hk, not_le_of_lt $ lt_of_lt_of_le hln $ (mem_Ico.1 hk).1
+
+lemma filter_le_of_gt {n m l : α} (hlm : l < m) :
+  (Ico n m).filter (λ x, x ≤ l) = Icc n l :=
+Icc_unique ((pairwise_filter _).mpr (pairwise.imp (λ _ _ h _ _, h) (sorted_Ico n m)))
+  (λ x, mem_filter.trans ⟨λ ⟨hx, hxl⟩, ⟨bot_le_of_mem_Ico hx, hxl⟩,
+    λ ⟨hnx, hxl⟩, ⟨mem_Ico.mpr ⟨hnx, lt_of_le_of_lt hxl hlm⟩, hxl⟩⟩)
+
+@[simp] lemma filter_le_of_bot {n m : α}
   (hnm : n < m) : (Ico n m).filter (λ x, x ≤ n) = [n] :=
-begin
-  rw ← Icc_append_Ioo
-  sorry
-end
+by rwa [Ico.filter_le_of_gt, Icc_self]
+
+end Ico
 
 /--
 For any `n a b : α`, one of the following holds:
@@ -380,7 +498,7 @@ begin
   { right,
     by_cases h₂ : n ∈ Ico a b,
     { right, exact h₂ },
-    { left,  simp only [Ico.mem, not_and, not_lt] at *, exact h₂ h₁ }}
+    { left,  simp only [mem_Ico, not_and, not_lt] at *, exact h₂ h₁ } }
 end
 
 end list
@@ -394,8 +512,8 @@ variables {α : Type*}
 open list
 
 /-- If `z - x` exists when `x + y ≤ z`, then `((+) x)` maps `Ico`s to `Ico`s. -/
-lemma decidable_linear_ordered_cancel_add_comm_monoid.map_add_list_Ico
-  [decidable_linear_ordered_cancel_add_comm_monoid α] [has_lawful_enum α]
+lemma linear_ordered_cancel_add_comm_monoid.map_add_list_Ico
+  [linear_ordered_cancel_add_comm_monoid α] [has_lawful_enum α]
   (h : ∀ (x y z : α), x + y ≤ z → ∃ z', x + z' = z) (x b t : α) :
   map ((+) x) (Ico b t) = Ico (x + b) (x + t) :=
 map_Ico_eq_Ico ((+) x) (λ a b h, add_lt_add_left h _)
@@ -404,10 +522,10 @@ map_Ico_eq_Ico ((+) x) (λ a b h, add_lt_add_left h _)
 
 /-- `((+) x)` maps `Ico`s to `Ico`s. -/
 @[simp]
-lemma decidable_linear_ordered_add_comm_group.map_add_list_Ico
-  [decidable_linear_ordered_add_comm_group α] [has_lawful_enum α] (x b t : α) :
+lemma linear_ordered_add_comm_group.map_add_list_Ico
+  [linear_ordered_add_comm_group α] [has_lawful_enum α] (x b t : α) :
   map ((+) x) (Ico b t) = Ico (x + b) (x + t) :=
-decidable_linear_ordered_cancel_add_comm_monoid.map_add_list_Ico
+linear_ordered_cancel_add_comm_monoid.map_add_list_Ico
   (λ x y z _, ⟨z - x, add_sub_cancel'_right _ _⟩) _ _ _
 
 end ordered_monoid
@@ -485,7 +603,7 @@ theorem map_add_Ico'_ℕ (a) : ∀ s n : ℕ, map ((+) a) (Ico'_ℕ s n) = Ico'_
 
 @[simp]
 lemma map_add_Ico_ℕ (x b t : ℕ) : map ((+) x) (Ico b t) = Ico (x + b) (x + t) :=
-decidable_linear_ordered_cancel_add_comm_monoid.map_add_list_Ico
+linear_ordered_cancel_add_comm_monoid.map_add_list_Ico
   (λ x y z h, ⟨z - x, nat.add_sub_cancel' (le_trans (nat.le_add_right _ _) h)⟩) _ _ _
 
 lemma map_add_Ico_ℕ' (x b t : ℕ) : map ((+) x) (Ico b t) = Ico (b + x) (t + x) :=
@@ -588,7 +706,7 @@ end
 lemma filter_lt_of_succ_bot {n m : ℕ} (hnm : n < m) : (Ico n m).filter (λ x, x < n + 1) = [n] :=
 begin
   have r : min m (n + 1) = n + 1 := (@inf_eq_right _ _ m (n + 1)).mpr hnm,
-  simp [filter_lt n m (n + 1), r],
+  simp [Ico.filter_lt n m (n + 1), r],
 end
 
 section iota

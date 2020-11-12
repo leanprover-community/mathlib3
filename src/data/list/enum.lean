@@ -684,6 +684,14 @@ theorem Ico_succ_right {b t : ℕ} (h : b ≤ t) : Ico b (t + 1) = b :: Ico (b +
 by { conv_lhs { rw [← nat.add_sub_cancel' h, add_assoc, ← Ico'_ℕ_eq_Ico, Ico'_ℕ_succ] },
 rw [Ico'_ℕ_eq_Ico, succ_add, nat.add_sub_cancel' h] }
 
+theorem Ico_succ_right' {b t : ℕ} (h : b ≤ t) : Ico b (t + 1) = Ico b t ++ [t] :=
+begin
+  rw Ico_append_top _ _ h,
+  apply Icc_unique (sorted_Ico _ _),
+  intro x,
+  rw [mem_Ico, nat.lt_succ_iff]
+end
+
 theorem Ico_eq_cons {b t : ℕ} (h : b < t) : Ico b t = b :: Ico (b + 1) t :=
 by { cases t, { cases h }, exact Ico_succ_right (nat.lt_succ_iff.mp h) }
 

@@ -98,7 +98,7 @@ instance : has_coe (fractional_ideal f) (submodule R f.codomain) := ⟨λ I, I.v
 
 @[simp] lemma val_eq_coe (I : fractional_ideal f) : I.val = I := rfl
 
-@[simp] lemma coe_mk (I : submodule R f.codomain) (hI : is_fractional f I) :
+@[simp, norm_cast] lemma coe_mk (I : submodule R f.codomain) (hI : is_fractional f I) :
   (subtype.mk I hI : submodule R f.codomain) = I := rfl
 
 instance : has_mem P (fractional_ideal f) := ⟨λ x I, x ∈ (I : submodule R f.codomain)⟩
@@ -141,7 +141,7 @@ instance coe_to_fractional_ideal : has_coe (ideal R) (fractional_ideal f) :=
 ⟨ λ I, ⟨f.coe_submodule I, fractional_of_subset_one _ $ λ x ⟨y, hy, h⟩,
   submodule.mem_span_singleton.2 ⟨y, by rw ←h; exact mul_one _⟩⟩ ⟩
 
-@[simp] lemma coe_coe_ideal (I : ideal R) :
+@[simp, norm_cast] lemma coe_coe_ideal (I : ideal R) :
   ((I : fractional_ideal f) : submodule R f.codomain) = f.coe_submodule I := rfl
 
 @[simp] lemma mem_coe_ideal {x : f.codomain} {I : ideal R} :
@@ -157,10 +157,10 @@ instance : has_zero (fractional_ideal f) := ⟨(0 : ideal R)⟩
     by simp [x'_eq_x.symm, x'_eq_zero]),
   (λ hx, ⟨0, rfl, by simp [hx]⟩) ⟩
 
-@[simp] lemma coe_zero : ↑(0 : fractional_ideal f) = (⊥ : submodule R f.codomain) :=
+@[simp, norm_cast] lemma coe_zero : ↑(0 : fractional_ideal f) = (⊥ : submodule R f.codomain) :=
 submodule.ext $ λ _, mem_zero_iff
 
-@[simp] lemma coe_to_fractional_ideal_bot : ((⊥ : ideal R) : fractional_ideal f) = 0 :=
+@[simp, norm_cast] lemma coe_to_fractional_ideal_bot : ((⊥ : ideal R) : fractional_ideal f) = 0 :=
 rfl
 
 @[simp] lemma exists_mem_to_map_eq {x : R} {I : ideal R} (h : S ≤ non_zero_divisors R) :
@@ -315,7 +315,7 @@ instance : has_add (fractional_ideal f) := ⟨(⊔)⟩
 @[simp]
 lemma sup_eq_add (I J : fractional_ideal f) : I ⊔ J = I + J := rfl
 
-@[simp]
+@[simp, norm_cast]
 lemma coe_add (I J : fractional_ideal f) : (↑(I + J) : submodule R f.codomain) = I + J := rfl
 
 lemma fractional_mul (I J : fractional_ideal f) : is_fractional f (I.1 * J.1) :=
@@ -361,7 +361,7 @@ instance : has_mul (fractional_ideal f) := ⟨λ I J, mul I J⟩
 
 @[simp] lemma mul_eq_mul (I J : fractional_ideal f) : mul I J = I * J := rfl
 
-@[simp]
+@[simp, norm_cast]
 lemma coe_mul (I J : fractional_ideal f) : (↑(I * J) : submodule R f.codomain) = I * J := rfl
 
 lemma mul_left_mono (I : fractional_ideal f) : monotone ((*) I) :=
@@ -505,7 +505,7 @@ def map (g : f.codomain →ₐ[R] f'.codomain) :
   fractional_ideal f → fractional_ideal f' :=
 λ I, ⟨submodule.map g.to_linear_map I.1, fractional_map g I⟩
 
-@[simp] lemma coe_map (g : f.codomain →ₐ[R] f'.codomain) (I : fractional_ideal f) :
+@[simp, norm_cast] lemma coe_map (g : f.codomain →ₐ[R] f'.codomain) (I : fractional_ideal f) :
   ↑(map g I) = submodule.map g.to_linear_map I := rfl
 
 @[simp] lemma mem_map {I : fractional_ideal f} {g : f.codomain →ₐ[R] f'.codomain}
@@ -521,7 +521,7 @@ ext (submodule.map_id I.1)
   I.map (g'.comp g) = (I.map g).map g' :=
 ext (submodule.map_comp g.to_linear_map g'.to_linear_map I.1)
 
-@[simp] lemma map_coe_ideal (I : ideal R) :
+@[simp, norm_cast] lemma map_coe_ideal (I : ideal R) :
   (I : fractional_ideal f).map g = I :=
 begin
   ext x,
@@ -534,7 +534,7 @@ begin
 end
 
 @[simp] lemma map_one :
-(1 : fractional_ideal f).map g = 1 :=
+  (1 : fractional_ideal f).map g = 1 :=
 map_coe_ideal g 1
 
 @[simp] lemma map_zero :

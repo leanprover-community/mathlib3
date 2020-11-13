@@ -20,8 +20,8 @@ This file describes the type of measurable functions with finite seminorm
 
 ## Notation
 
-* `snorm' f ` : `(∫⁻ a, (nnnorm (f a))^(p : ℝ) ∂μ) ^ (1/p)` for `f : α → β`
-* `snorm f`   : `(∫⁻ a, (nnnorm (f.val a))^(p : ℝ) ∂μ) ^ (1/p)` for `f : ℒp α β (1≤p) μ`
+* `snorm' f p μ` : `(∫⁻ a, (nnnorm (f a))^(p : ℝ) ∂μ) ^ (1/p)` for `f : α → β`
+* `snorm f`      : `(∫⁻ a, (nnnorm (f.val a))^(p : ℝ) ∂μ) ^ (1/p)` for `f : ℒp α β (1≤p) μ`
 
 -/
 
@@ -32,7 +32,7 @@ variables {α β γ : Type*} [measurable_space α] [measurable_space β] [normed
   [normed_group γ]
 
 /-- The property 'f belongs to ℒp for measure μ and real p' -/
-def in_ℒp (p : ℝ) (μ : measure α) (f : α → β) : Prop :=
+def mem_ℒp (p : ℝ) (μ : measure α) (f : α → β) : Prop :=
 measurable f ∧ ∫⁻ a, (nnnorm (f a)) ^ p ∂μ < ⊤
 
 /-- The type of measurable functions `α → β` with finite p-seminorm for measure `μ`, for `1 ≤ p` -/
@@ -48,7 +48,7 @@ variables {p : ℝ} {hp1 : 1 ≤ p} {μ : measure α}
 protected lemma ℒp.eq : ∀ {f g : ℒp α β hp1 μ}, f.val = g.val → f = g
 | ⟨x, h11, h12, h14⟩ ⟨.(x), h21, h22, h23⟩ rfl := rfl
 
-protected lemma ℒp.in_ℒp (f : ℒp α β hp1 μ) : in_ℒp p μ f.val :=
+protected lemma ℒp.mem_ℒp (f : ℒp α β hp1 μ) : mem_ℒp p μ f.val :=
 begin
   split,
   exact f.measurable,
@@ -56,19 +56,19 @@ begin
 end
 
 /-- Build an element of ℒp from a function with the in_ℒp property -/
-def ℒp.mk_of_in_ℒp (hp1 : 1 ≤ p) {f : α → β} (h : in_ℒp p μ f) : ℒp α β hp1 μ :=
+def ℒp.mk_of_mem_ℒp (hp1 : 1 ≤ p) {f : α → β} (h : mem_ℒp p μ f) : ℒp α β hp1 μ :=
 ⟨f, h.left, h.right, hp1⟩
 
-lemma ℒp.mk_of_in_ℒp_in_ℒp_eq_self (f : ℒp α β hp1 μ) : ℒp.mk_of_in_ℒp hp1 f.in_ℒp = f :=
+lemma ℒp.mk_of_mem_ℒp_mem_ℒp_eq_self (f : ℒp α β hp1 μ) : ℒp.mk_of_mem_ℒp hp1 f.mem_ℒp = f :=
 begin
   refine ℒp.eq _, refl,
 end
 
-lemma in_ℒp_one_iff_integrable :
-  ∀ f : α → β, in_ℒp 1 μ f ↔ integrable f μ :=
+lemma mem_ℒp_one_iff_integrable :
+  ∀ f : α → β, mem_ℒp 1 μ f ↔ integrable f μ :=
 begin
   intro f,
-  unfold integrable, unfold has_finite_integral, unfold in_ℒp,
+  unfold integrable, unfold has_finite_integral, unfold mem_ℒp,
   simp only [ennreal.rpow_one, nnreal.coe_one],
 end
 
@@ -82,7 +82,7 @@ begin
   exact ennreal.zero_rpow_of_pos hp0_lt,
 end
 
-lemma zero_in_ℒp (hp0_lt : 0 < p): in_ℒp p μ (0 : α → β) :=
+lemma zero_mem_ℒp (hp0_lt : 0 < p): mem_ℒp p μ (0 : α → β) :=
 begin
   split,
   exact measurable_zero,
@@ -91,7 +91,7 @@ end
 
 /-- The zero function is the 0 in ℒp -/
 protected def ℒp.zero : ℒp α β hp1 μ :=
-ℒp.mk_of_in_ℒp hp1 (zero_in_ℒp (lt_of_lt_of_le zero_lt_one hp1))
+ℒp.mk_of_mem_ℒp hp1 (zero_mem_ℒp (lt_of_lt_of_le zero_lt_one hp1))
 
 instance : has_zero (ℒp α β hp1 μ) := ⟨ℒp.zero⟩
 
@@ -115,7 +115,7 @@ def snorm (f : ℒp α β hp1 μ) : ennreal := (∫⁻ a, (nnnorm (f.val a))^(p 
 
 lemma snorm_eq_snorm' (f : ℒp α β hp1 μ) : snorm f = snorm' f.val p μ := rfl
 
-lemma snorm'_lt_top {f : α → β} (hp0 : 0 ≤ p) (hfp : in_ℒp p μ f) : snorm' f p μ < ⊤ :=
+lemma snorm'_lt_top {f : α → β} (hp0 : 0 ≤ p) (hfp : mem_ℒp p μ f) : snorm' f p μ < ⊤ :=
 begin
   unfold snorm',
   refine ennreal.rpow_lt_top_of_nonneg _ (ne_of_lt hfp.right),
@@ -123,11 +123,11 @@ begin
   exact hp0,
 end
 
-lemma snorm'_ne_top {f : α → β} (hp0 : 0 ≤ p) (hfp : in_ℒp p μ f) : snorm' f p μ ≠ ⊤ :=
+lemma snorm'_ne_top {f : α → β} (hp0 : 0 ≤ p) (hfp : mem_ℒp p μ f) : snorm' f p μ ≠ ⊤ :=
 ne_of_lt (snorm'_lt_top hp0 hfp)
 
 lemma snorm_lt_top {f : ℒp α β hp1 μ} : snorm f < ⊤ :=
-by {rw snorm_eq_snorm', exact snorm'_lt_top (le_trans zero_le_one f.one_le_p) f.in_ℒp, }
+by {rw snorm_eq_snorm', exact snorm'_lt_top (le_trans zero_le_one f.one_le_p) f.mem_ℒp, }
 
 lemma snorm_ne_top {f : ℒp α β hp1 μ} : snorm f ≠ ⊤ := ne_of_lt snorm_lt_top
 

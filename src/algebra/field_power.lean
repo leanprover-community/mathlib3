@@ -12,7 +12,7 @@ universe u
 
 @[simp] lemma ring_hom.map_fpow {K L : Type*} [division_ring K] [division_ring L] (f : K →+* L) :
   ∀ (a : K) (n : ℤ), f (a ^ n) = f a ^ n :=
-f.to_monoid_hom.map_fpow f.map_zero
+f.to_monoid_with_zero_hom.map_fpow
 
 @[simp] lemma neg_fpow_bit0 {K : Type*} [division_ring K] (x : K) (n : ℤ) :
   (-x) ^ (bit0 n) = x ^ bit0 n :=

@@ -79,7 +79,7 @@ begin
       by { ext, refl }),
     exact polynomial.splits_comp_of_splits (algebra_map F E) map h_splits },
   rw [←hα, intermediate_field.adjoin.findim H2],
-  rw ← intermediate_field.alg_hom_adjoin_integral F H2 h_separable h_splits,
+  rw ← intermediate_field.card_alg_hom_adjoin_integral F H2 h_separable h_splits,
   apply fintype.card_congr,
   transitivity (F⟮α⟯ ≃ₐ[F] F⟮α⟯),
   { rw hα,

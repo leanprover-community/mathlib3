@@ -606,12 +606,12 @@ lemma max_div_div_right_of_nonpos {c : α} (hc : c ≤ 0) (a b : α) :
 eq.symm $ @monotone.map_min α (order_dual α) _ _ _ _ _ (λ x y, div_le_div_of_nonpos_of_le hc)
 
 lemma abs_div (a b : α) : abs (a / b) = abs a / abs b :=
-(abs_hom : α →* α).map_div abs_zero a b
+(abs_hom : monoid_with_zero_hom α α).map_div a b
 
 lemma abs_one_div (a : α) : abs (1 / a) = 1 / abs a :=
-by rw [abs_div, abs_of_nonneg (zero_le_one : 1 ≥ (0 : α))]
+by rw [abs_div, abs_one]
 
 lemma abs_inv (a : α) : abs a⁻¹ = (abs a)⁻¹ :=
-by rw [inv_eq_one_div, abs_one_div, inv_eq_one_div]
+(abs_hom : monoid_with_zero_hom α α).map_inv' a
 
 end linear_ordered_field

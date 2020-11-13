@@ -1079,97 +1079,51 @@ variables {K : Type*} [field K] {g : fraction_map R₁ K}
 
 local attribute [instance] classical.prop_decidable
 
-/-- Every fractional ideal of a noetherian integral domain is finitely generated, or noetherian-/
-lemma fg_of_noetherian (hR : is_noetherian_ring R₁) (I : fractional_ideal g) : (is_noetherian R₁ I) :=
+lemma is_noetherian_zero : is_noetherian R₁ (0 : fractional_ideal g) :=
+is_noetherian_submodule.mpr (λ I (hI : I ≤ (0 : fractional_ideal g)),
+  by { rw coe_zero at hI, rw le_bot_iff.mp hI, exact fg_bot })
+
+lemma is_noetherian_iff {I : fractional_ideal g} :
+  is_noetherian R₁ I ↔ ∀ J ≤ I, (J : submodule R₁ g.codomain).fg :=
+is_noetherian_submodule.trans ⟨λ h J hJ, h _ hJ, λ h J hJ, h ⟨J, is_fractional_of_le hJ⟩ hJ⟩
+
+lemma is_noetherian_coe_to_fractional_ideal [is_noetherian_ring R₁] (I : ideal R₁) :
+  is_noetherian R₁ (I : fractional_ideal g) :=
 begin
-  obtain ⟨d, J, hhJ⟩ : ∃ (d : R₁), ∃ (J : ideal R₁), d ≠ 0 ∧ I = span_singleton (g.to_map d)⁻¹ * J,
-  apply exists_eq_span_singleton_mul I,
-  cases hhJ with h_nzd hdJ,
-  have h_gd : (g.to_map d) ≠ 0,
-    from mt((ring_hom.injective_iff g.to_map).mp (fraction_map.injective g) d) h_nzd,
-  have h_spand : span_singleton (g.to_map d) ≠ (0 : fractional_ideal g),
-  apply (not_congr span_singleton_eq_zero_iff).mpr h_gd,
-  replace hdJ : I * (span_singleton (g.to_map d)) ≤ (J : fractional_ideal g),
-  { have hinvd : I ≤ J / span_singleton (g.to_map d),
-    suffices hinvd_eq : I = J / span_singleton (g.to_map d),
-    { from le_of_eq hinvd_eq },
-    { rw [hdJ, mul_comm, ← span_singleton_inv h_gd, inv_eq],
-      apply mul_inv_span_singleton ↑J (g.to_map d) h_gd },
-  replace hdJ : I * span_singleton (g.to_map d) ≤ J,
-  apply (le_div_iff_mul_le h_spand).mp, assumption' },
-  replace hdJ : (I * span_singleton (g.to_map d)).val ≤ (g.coe_submodule J), from hdJ,
-  have h_noeth_dI : is_noetherian R₁ (I * span_singleton (g.to_map d)).val,
-  suffices h_noeth_J : is_noetherian R₁ J,
-  { have h_noeth_coeJ : is_noetherian R₁ (g.coe_submodule J),
-    let res_g := linear_map.dom_restrict g.lin_coe J,
-    let g_of_J := linear_map.range_restrict res_g,
-    have h_im_g : res_g.range = (J : fractional_ideal g),
-    { ext, rw linear_map.mem_range, split,
-      all_goals { intro hx },
-      { rcases hx with ⟨⟨z, hz⟩, gz⟩,
-          use z, exact ⟨hz, gz⟩, },
-        { rcases hx with ⟨z, ⟨hz, gz⟩⟩,
-          use z, exacts [hz, gz] } },
-    rw coe_coe_ideal J at h_im_g, rw ← h_im_g,
-    have mem_im_g : ∀ c : J, res_g c ∈ (J : fractional_ideal g),
-    { intros c,
-      rw mem_coe_ideal,
-      use c, split,
-      rcases c with ⟨cR, cJ⟩,
-      exact cJ, apply rfl },
-    have surj_g : g_of_J.range = ⊤,
-    simp [linear_map.range_range_restrict],
-    apply @is_noetherian_of_surjective R₁ J res_g.range _ _ _ _ _ g_of_J surj_g h_noeth_J,
-    apply is_noetherian_of_fg_of_noetherian,
-    rw is_noetherian_submodule at h_noeth_coeJ,
-    specialize h_noeth_coeJ (I * (span_singleton (g.to_map d)).val),
-    simp only [val_eq_coe, coe_span_singleton, coe_mul, ne.def] at *,
-    exact h_noeth_coeJ hdJ },
-  { apply is_noetherian_of_submodule_of_noetherian R₁ R₁ J, exact hR },
-  let α : I → g.codomain := λ x, x * g.to_map d,
-  let ψ₀ : I →ₗ[R₁] g.codomain := ⟨α, _, _⟩,
-  have h_injψ₀  : ψ₀.ker = ⊥,
-  { ext, split, repeat {intro hx},
-    { ext,
-      replace hx : ψ₀ x = 0,
-      apply (linear_map.mem_ker).mp hx,
-      replace hx : x.1 * (g.to_map d) = 0,
-      { simp only [linear_map.mem_ker, coe_span_singleton, coe_mul, eq_self_iff_true,
-          linear_map.coe_mk, or_false, ne.def, subtype.val_eq_coe, mul_eq_zero, coe_eq_zero] at *,
-        exact hx },
-      replace hx : x.1 = 0 ∨ (g.to_map d) = 0, apply (mul_eq_zero).mp hx,
-      apply or.resolve_right hx h_gd, },
-    { simp only [linear_map.mem_ker, mem_bot, linear_map.map_zero] at *,
-      convert linear_map.map_zero ψ₀ } },
-  have ψ : I.val ≃ₗ[R₁] ψ₀.range, apply linear_equiv.of_injective ψ₀ h_injψ₀,
-  let φ := linear_equiv.symm ψ,
-  have h_ψrange : ψ₀.range = (I * span_singleton (g.to_map d)).val,
-  { ext, split, repeat { intro hx },
-    { rcases hx with ⟨⟨a, ha⟩, -, h_ψa⟩,
-      dsimp [ψ₀, α] at h_ψa,
-      rw ← h_ψa,
-      apply mul_mem_mul,
-      exact ha,
-      apply mem_span_singleton_self },
-    { have h_xd : x * (g.to_map d)⁻¹ ∈ I,
-      rw val_eq_coe at hx,
-      replace hx : x * (g.to_map d)⁻¹ ∈ I * fractional_ideal.span_singleton (g.to_map d) *
-        fractional_ideal.span_singleton (g.to_map d)⁻¹,
-      apply mul_mem_mul, exact hx,
-      apply mem_span_singleton_self,
-      assoc_rewrite span_singleton_mul_span_singleton (g.to_map d) (g.to_map d)⁻¹ at hx,
-      rw [group_with_zero.mul_inv_cancel, span_singleton_one, mul_one] at hx,
-      exact hx, exact h_gd,
-      use x * (g.to_map d)⁻¹, apply h_xd,
-      split, simp only [top_coe],
-      { dsimp [ψ₀, α],
-        simp only [*, ne.def, not_false_iff, inv_mul_cancel_right'] } } },
-  have h_ImψNoeth : is_noetherian R₁ ψ₀.range, rw ← h_ψrange at h_noeth_dI, exact h_noeth_dI,
-  apply @is_noetherian_of_linear_equiv R₁ ψ₀.range I.val _ _ _ _ _ φ h_ImψNoeth,
-  repeat { dsimp [α], intros x y },
-  { apply right_distrib },
-  { apply algebra.smul_mul_assoc },
-  end
+  rw is_noetherian_iff,
+  intros J hJ,
+  obtain ⟨J, rfl⟩ := le_one_iff_exists_coe_ideal.mp (le_trans hJ coe_ideal_le_one),
+  exact fg_map (is_noetherian.noetherian J),
+end
+
+lemma is_noetherian_span_singleton_to_map_inv_mul (x : R₁) {I : fractional_ideal g}
+  (hI : is_noetherian R₁ I) :
+  is_noetherian R₁ (span_singleton (g.to_map x)⁻¹ * I : fractional_ideal g) :=
+begin
+  by_cases hx : x = 0,
+  { rw [hx, g.to_map.map_zero, _root_.inv_zero, span_singleton_zero, zero_mul],
+    exact is_noetherian_zero },
+  have h_gx : g.to_map x ≠ 0,
+    from mt (g.to_map.injective_iff.mp (fraction_map.injective g) x) hx,
+  have h_spanx : span_singleton (g.to_map x) ≠ (0 : fractional_ideal g),
+    from span_singleton_ne_zero_iff.mpr h_gx,
+
+  rw is_noetherian_iff at ⊢ hI,
+  intros J hJ,
+  rw [← div_span_singleton, le_div_iff_mul_le h_spanx] at hJ,
+  obtain ⟨s, hs⟩ := hI _ hJ,
+  use s * {(g.to_map x)⁻¹},
+  rw [finset.coe_mul, finset.coe_singleton, ← span_mul_span, hs, ← coe_span_singleton, ← coe_mul,
+      mul_assoc, span_singleton_mul_span_singleton, mul_inv_cancel h_gx, span_singleton_one, mul_one],
+end
+
+/-- Every fractional ideal of a noetherian integral domain is noetherian. -/
+lemma is_noetherian [is_noetherian_ring R₁] (I : fractional_ideal g) : is_noetherian R₁ I :=
+begin
+  obtain ⟨d, J, h_nzd, rfl⟩ := exists_eq_span_singleton_mul I,
+  apply is_noetherian_span_singleton_to_map_inv_mul,
+  apply is_noetherian_coe_to_fractional_ideal,
+end
 
 end fractional_ideal
 

@@ -1113,7 +1113,8 @@ begin
   obtain ⟨s, hs⟩ := hI _ hJ,
   use s * {(g.to_map x)⁻¹},
   rw [finset.coe_mul, finset.coe_singleton, ← span_mul_span, hs, ← coe_span_singleton, ← coe_mul,
-      mul_assoc, span_singleton_mul_span_singleton, mul_inv_cancel h_gx, span_singleton_one, mul_one],
+      mul_assoc, span_singleton_mul_span_singleton, mul_inv_cancel h_gx,
+      span_singleton_one, mul_one],
 end
 
 /-- Every fractional ideal of a noetherian integral domain is noetherian. -/

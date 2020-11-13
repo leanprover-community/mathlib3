@@ -6,6 +6,7 @@ Authors: Johan Commelin
 import logic.nontrivial
 import algebra.group.units_hom
 import algebra.group.inj_surj
+import algebra.group_with_zero.defs
 
 /-!
 # Groups with an adjoined zero element
@@ -22,8 +23,9 @@ Examples are:
 
 ## Main definitions
 
-* `group_with_zero`
-* `comm_group_with_zero`
+Various lemmas about `group_with_zero` and `comm_group_with_zero`.
+To reduce import dependencies, the type-classes themselves are in
+`algebra.group_with_zero.defs`.
 
 ## Implementation details
 
@@ -44,22 +46,10 @@ division-free."
 
 section
 
-/-- Typeclass for expressing that a type `M₀` with multiplication and a zero satisfies
-`0 * a = 0` and `a * 0 = 0` for all `a : M₀`. -/
-@[protect_proj, ancestor has_mul has_zero]
-class mul_zero_class (M₀ : Type*) extends has_mul M₀, has_zero M₀ :=
-(zero_mul : ∀ a : M₀, 0 * a = 0)
-(mul_zero : ∀ a : M₀, a * 0 = 0)
-
 section mul_zero_class
 
 variables [mul_zero_class M₀] {a b : M₀}
 
-@[ematch, simp] lemma zero_mul (a : M₀) : 0 * a = 0 :=
-mul_zero_class.zero_mul a
-
-@[ematch, simp] lemma mul_zero (a : M₀) : a * 0 = 0 :=
-mul_zero_class.mul_zero a
 
 /-- Pullback a `mul_zero_class` instance along an injective function. -/
 protected def function.injective.mul_zero_class [has_mul M₀'] [has_zero M₀'] (f : M₀' → M₀)
@@ -95,13 +85,6 @@ lemma mul_eq_zero_of_ne_zero_imp_eq_zero {a b : M₀} (h : a ≠ 0 → b = 0) :
 if ha : a = 0 then by rw [ha, zero_mul] else by rw [h ha, mul_zero]
 
 end mul_zero_class
-
-/-- Predicate typeclass for expressing that `a * b = 0` implies `a = 0` or `b = 0`
-for all `a` and `b` of type `G₀`. -/
-class no_zero_divisors (M₀ : Type*) [has_mul M₀] [has_zero M₀] : Prop :=
-(eq_zero_or_eq_zero_of_mul_eq_zero : ∀ {a b : M₀}, a * b = 0 → a = 0 ∨ b = 0)
-
-export no_zero_divisors (eq_zero_or_eq_zero_of_mul_eq_zero)
 
 /-- Pushforward a `no_zero_divisors` instance along an injective function. -/
 protected lemma function.injective.no_zero_divisors [has_mul M₀] [has_zero M₀]
@@ -157,16 +140,6 @@ end
 
 end
 
-/-- A type `M` is a “monoid with zero” if it is a monoid with zero element, and `0` is left
-and right absorbing. -/
-@[protect_proj] class monoid_with_zero (M₀ : Type*) extends monoid M₀, mul_zero_class M₀.
-
-/-- A type `M` is a `cancel_monoid_with_zero` if it is a monoid with zero element, `0` is left
-and right absorbing, and left/right multiplication by a non-zero element is injective. -/
-@[protect_proj] class cancel_monoid_with_zero (M₀ : Type*) extends monoid_with_zero M₀ :=
-(mul_left_cancel_of_ne_zero : ∀ {a b c : M₀}, a ≠ 0 → a * b = a * c → b = c)
-(mul_right_cancel_of_ne_zero : ∀ {a b c : M₀}, b ≠ 0 → a * b = c * b → a = c)
-
 section
 
 variables [monoid_with_zero M₀] [nontrivial M₀] {a b : M₀}
@@ -202,33 +175,6 @@ protected lemma pullback_nonzero [has_zero M₀'] [has_one M₀']
 ⟨⟨0, 1, mt (congr_arg f) $ by { rw [zero, one], exact zero_ne_one }⟩⟩
 
 end
-
-/-- A type `M` is a commutative “monoid with zero” if it is a commutative monoid with zero
-element, and `0` is left and right absorbing. -/
-@[protect_proj]
-class comm_monoid_with_zero (M₀ : Type*) extends comm_monoid M₀, monoid_with_zero M₀.
-
-/-- A type `M` is a `comm_cancel_monoid_with_zero` if it is a commutative monoid with zero element,
- `0` is left and right absorbing,
-  and left/right multiplication by a non-zero element is injective. -/
-@[protect_proj] class comm_cancel_monoid_with_zero (M₀ : Type*) extends
-  comm_monoid_with_zero M₀, cancel_monoid_with_zero M₀.
-
-/-- A type `G₀` is a “group with zero” if it is a monoid with zero element (distinct from `1`)
-such that every nonzero element is invertible.
-The type is required to come with an “inverse” function, and the inverse of `0` must be `0`.
-
-Examples include division rings and the ordered monoids that are the
-target of valuations in general valuation theory.-/
-class group_with_zero (G₀ : Type*) extends monoid_with_zero G₀, has_inv G₀, nontrivial G₀ :=
-(inv_zero : (0 : G₀)⁻¹ = 0)
-(mul_inv_cancel : ∀ a:G₀, a ≠ 0 → a * a⁻¹ = 1)
-
-/-- A type `G₀` is a commutative “group with zero”
-if it is a commutative monoid with zero element (distinct from `1`)
-such that every nonzero element is invertible.
-The type is required to come with an “inverse” function, and the inverse of `0` must be `0`. -/
-class comm_group_with_zero (G₀ : Type*) extends comm_monoid_with_zero G₀, group_with_zero G₀.
 
 /-- The division operation on a group with zero element. -/
 @[priority 100] -- see Note [lower instance priority]
@@ -346,12 +292,6 @@ instance comm_cancel_monoid_with_zero.no_zero_divisors : no_zero_divisors M₀ :
 ⟨λ a b ab0, by { by_cases a = 0, { left, exact h }, right,
   apply cancel_monoid_with_zero.mul_left_cancel_of_ne_zero h, rw [ab0, mul_zero], }⟩
 
-lemma mul_left_cancel' (ha : a ≠ 0) (h : a * b = a * c) : b = c :=
-cancel_monoid_with_zero.mul_left_cancel_of_ne_zero ha h
-
-lemma mul_right_cancel' (hb : b ≠ 0) (h : a * b = c * b) : a = c :=
-cancel_monoid_with_zero.mul_right_cancel_of_ne_zero hb h
-
 lemma mul_left_inj' (hc : c ≠ 0) : a * c = b * c ↔ a = b := ⟨mul_right_cancel' hc, λ h, h ▸ rfl⟩
 
 lemma mul_right_inj' (ha : a ≠ 0) : a * b = a * c ↔ b = c := ⟨mul_left_cancel' ha, λ h, h ▸ rfl⟩
@@ -391,12 +331,6 @@ variables [group_with_zero G₀]
 lemma div_eq_mul_inv {a b : G₀} : a / b = a * b⁻¹ := rfl
 
 alias div_eq_mul_inv ← division_def
-
-@[simp] lemma inv_zero : (0 : G₀)⁻¹ = 0 :=
-group_with_zero.inv_zero
-
-@[simp] lemma mul_inv_cancel {a : G₀} (h : a ≠ 0) : a * a⁻¹ = 1 :=
-group_with_zero.mul_inv_cancel a h
 
 /-- Pullback a `group_with_zero` class along an injective function. -/
 protected def function.injective.group_with_zero [has_zero G₀'] [has_mul G₀'] [has_one G₀']
@@ -941,47 +875,41 @@ hac.mul_left hbc.inv_left'
 
 end commute
 
-namespace monoid_hom
+namespace monoid_with_zero_hom
 
 variables [group_with_zero G₀] [group_with_zero G₀'] [monoid_with_zero M₀] [nontrivial M₀]
 
 section monoid_with_zero
 
-variables (f : G₀ →* M₀) (h0 : f 0 = 0) {a : G₀}
-
-include h0
+variables (f : monoid_with_zero_hom G₀ M₀) {a : G₀}
 
 lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
-⟨λ hfa ha, hfa $ ha.symm ▸ h0, λ ha, ((is_unit.mk0 a ha).map f).ne_zero⟩
+⟨λ hfa ha, hfa $ ha.symm ▸ f.map_zero, λ ha, ((is_unit.mk0 a ha).map f.to_monoid_hom).ne_zero⟩
 
 lemma map_eq_zero : f a = 0 ↔ a = 0 :=
-by { classical, exact not_iff_not.1 (f.map_ne_zero h0) }
+by { classical, exact not_iff_not.1 f.map_ne_zero }
 
 end monoid_with_zero
 
 section group_with_zero
 
-variables (f : G₀ →* G₀') (h0 : f 0 = 0) (a b : G₀)
-
-include h0
+variables (f : monoid_with_zero_hom G₀ G₀') (a b : G₀)
 
 /-- A monoid homomorphism between groups with zeros sending `0` to `0` sends `a⁻¹` to `(f a)⁻¹`. -/
 lemma map_inv' : f a⁻¹ = (f a)⁻¹ :=
 begin
-  classical, by_cases h : a = 0, by simp [h, h0],
+  classical, by_cases h : a = 0, by simp [h],
   apply eq_inv_of_mul_left_eq_one,
   rw [← f.map_mul, inv_mul_cancel h, f.map_one]
 end
 
 lemma map_div : f (a / b) = f a / f b :=
-(f.map_mul _ _).trans $ _root_.congr_arg _ $ f.map_inv' h0 b
-
-omit h0
-
-@[simp] lemma map_units_inv {M G₀ : Type*} [monoid M] [group_with_zero G₀]
-  (f : M →* G₀) (u : units M) : f ↑u⁻¹ = (f u)⁻¹ :=
-by rw [← units.coe_map, ← units.coe_map, ← units.coe_inv', map_inv]
+(f.map_mul _ _).trans $ _root_.congr_arg _ $ f.map_inv' b
 
 end group_with_zero
 
-end monoid_hom
+end monoid_with_zero_hom
+
+@[simp] lemma monoid_hom.map_units_inv {M G₀ : Type*} [monoid M] [group_with_zero G₀]
+  (f : M →* G₀) (u : units M) : f ↑u⁻¹ = (f u)⁻¹ :=
+by rw [← units.coe_map, ← units.coe_map, ← units.coe_inv', monoid_hom.map_inv]

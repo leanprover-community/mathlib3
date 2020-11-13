@@ -202,9 +202,13 @@ end add_monoid_hom
 
 /-- Bundled semiring homomorphisms; use this for bundled ring homomorphisms too. -/
 structure ring_hom (α : Type*) (β : Type*) [semiring α] [semiring β]
-  extends monoid_hom α β, add_monoid_hom α β
+  extends monoid_hom α β, add_monoid_hom α β, monoid_with_zero_hom α β
 
 infixr ` →+* `:25 := ring_hom
+
+/-- Reinterpret a ring homomorphism `f : R →+* S` as a `monoid_with_zero_hom R S`.
+The `simp`-normal form is `(f : monoid_with_zero_hom R S)`. -/
+add_decl_doc ring_hom.to_monoid_with_zero_hom
 
 /-- Reinterpret a ring homomorphism `f : R →+* S` as a monoid homomorphism `R →* S`.
 The `simp`-normal form is `(f : R →* S)`. -/

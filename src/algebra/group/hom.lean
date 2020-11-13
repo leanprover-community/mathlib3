@@ -17,6 +17,15 @@ additive) monoids or groups.
 We also define coercion to a function, and  usual operations: composition, identity homomorphism,
 pointwise multiplication and pointwise inversion.
 
+This file also defines the lesser-used (and notation-less) homomorphism types which are used as
+building blocks for other homomorphisms:
+
+* `zero_hom`
+* `one_hom`
+* `add_hom`
+* `mul_hom`
+* `monoid_with_zero_hom`
+
 ## Notations
 
 * `→*` for bundled monoid homs (also use for group homs)
@@ -551,6 +560,8 @@ instance [has_one M] [has_one N] : inhabited (one_hom M N) := ⟨1⟩
 instance [has_mul M] [monoid N] : inhabited (mul_hom M N) := ⟨1⟩
 @[to_additive]
 instance [monoid M] [monoid N] : inhabited (M →* N) := ⟨1⟩
+-- unlike the other homs, `monoid_with_zero_hom` does not have a `1` or `0`
+instance [monoid_with_zero M] : inhabited (monoid_with_zero_hom M M) := ⟨monoid_with_zero_hom.id M⟩
 
 namespace monoid_hom
 variables [mM : monoid M] [mN : monoid N] [mP : monoid P]

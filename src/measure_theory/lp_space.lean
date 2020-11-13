@@ -64,7 +64,7 @@ begin
   refine ℒp.eq _, refl,
 end
 
-lemma is_in_ℒp_one_iff_integrable :
+lemma in_ℒp_one_iff_integrable :
   ∀ f : α → β, in_ℒp 1 μ f ↔ integrable f μ :=
 begin
   intro f,

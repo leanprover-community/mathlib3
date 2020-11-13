@@ -1,5 +1,5 @@
 import tactic.ring_exp
-import algebra.group_with_zero_power
+import algebra.group_with_zero.power
 
 universes u
 

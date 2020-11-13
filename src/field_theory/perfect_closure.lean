@@ -5,7 +5,7 @@ Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.char_p
 import data.equiv.ring
-import algebra.group_with_zero_power
+import algebra.group_with_zero.power
 import algebra.iterate_hom
 
 /-!

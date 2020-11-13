@@ -6,7 +6,7 @@ Authors: Kenny Lau, Johan Commelin, Patrick Massot
 
 import algebra.ordered_group
 import algebra.group_with_zero
-import algebra.group_with_zero_power
+import algebra.group_with_zero.power
 
 /-!
 # Linearly ordered commutative groups with a zero element adjoined

@@ -5,7 +5,7 @@ Authors: Robert Y. Lewis
 
 Integer power operation on fields.
 -/
-import algebra.group_with_zero_power
+import algebra.group_with_zero.power
 import tactic.linarith
 
 universe u

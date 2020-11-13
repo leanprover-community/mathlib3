@@ -5,7 +5,7 @@ Author: Paul van Wamelen.
 -/
 import algebra.field
 import ring_theory.int.basic
-import algebra.group_with_zero_power
+import algebra.group_with_zero.power
 import tactic.ring
 import tactic.ring_exp
 

@@ -5,6 +5,7 @@ Authors: Anatole Dedecker
 -/
 import analysis.asymptotics
 import analysis.normed_space.ordered
+import analysis.normed_space.bounded_linear_maps
 
 /-!
 # Asymptotic equivalence
@@ -88,13 +89,7 @@ end
 (h.is_o.trans_is_O h.is_O_symm).symm
 
 @[trans] lemma is_equivalent.trans (huv : u ~[l] v) (hvw : v ~[l] w) : u ~[l] w :=
-begin
-  rw is_equivalent,
-  convert (huv.is_o.trans_is_O hvw.is_O).add hvw.is_o,
-  ext,
-  repeat {rw pi.sub_apply},
-  abel
-end
+(huv.is_o.trans_is_O hvw.is_O).triangle hvw.is_o
 
 lemma is_equivalent_zero_iff_eventually_zero : u ~[l] 0 ↔ u =ᶠ[l] 0 :=
 begin
@@ -117,6 +112,21 @@ begin
   { exact (tendsto_congr' $ is_equivalent_zero_iff_eventually_zero.mp hu).mpr tendsto_const_nhds },
   { exact (is_equivalent_const_iff_tendsto h).mp hu }
 end
+
+lemma is_equivalent.tendsto_nhds {c : β} (huv : u ~[l] v) (hu : tendsto u l (𝓝 c)) :
+  tendsto v l (𝓝 c) :=
+begin
+  by_cases h : c = 0,
+  { rw [h, ← is_o_one_iff ℝ] at *,
+    convert (huv.symm.is_o.trans hu).add hu,
+    simp },
+  { change _ ≠ _ at h,
+    rw ← is_equivalent_const_iff_tendsto h at hu ⊢,
+    exact huv.symm.trans hu }
+end
+
+lemma is_equivalent.tendsto_nhds_iff {c : β} (huv : u ~[l] v) :
+  tendsto u l (𝓝 c) ↔ tendsto v l (𝓝 c) := ⟨huv.tendsto_nhds, huv.symm.tendsto_nhds⟩
 
 end normed_group
 
@@ -168,17 +178,6 @@ begin
     { norm_num } },
   { exact is_equivalent_of_tendsto_one (hz.mono $ λ x hnvz hz, (hnvz hz).elim) }
 end
-
-lemma is_equivalent.tendsto_nhds {c : β} (huv : u ~[l] v) (hv : tendsto u l (𝓝 c)) :
-  tendsto v l (𝓝 c) :=
-begin
-  rw ← one_mul c,
-  rcases huv.symm.exists_mul_eq with ⟨φ, hφ, h⟩,
-  exact (tendsto_congr' h.symm).mp (hφ.mul hv)
-end
-
-lemma is_equivalent.tendsto_nhds_iff {c : β} (huv : u ~[l] v) :
-  tendsto u l (𝓝 c) ↔ tendsto v l (𝓝 c) := ⟨huv.tendsto_nhds, huv.symm.tendsto_nhds⟩
 
 lemma is_equivalent.mul (htu : t ~[l] u) (hvw : v ~[l] w) : t * v ~[l] u * w :=
 begin

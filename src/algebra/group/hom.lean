@@ -87,7 +87,8 @@ structure mul_hom (M : Type*) (N : Type*) [has_mul M] [has_mul N] :=
 @[to_additive]
 structure monoid_hom (M : Type*) (N : Type*) [monoid M] [monoid N] extends one_hom M N, mul_hom M N
 
-/-- Bundled monoid with zero homomorphisms; use this for bundled group with zero homomorphisms too. -/
+/-- Bundled monoid with zero homomorphisms; use this for bundled group with zero homomorphisms
+too. -/
 structure monoid_with_zero_hom (M : Type*) (N : Type*) [monoid_with_zero M] [monoid_with_zero N]
   extends zero_hom M N, monoid_hom M N
 
@@ -154,7 +155,8 @@ lemma monoid_hom.to_one_hom_coe [monoid M] [monoid N] (f : M →* N) :
 lemma monoid_hom.to_mul_hom_coe [monoid M] [monoid N] (f : M →* N) :
   (f.to_mul_hom : M → N) = f := rfl
 @[simp]
-lemma monoid_with_zero_hom.to_zero_hom_coe [monoid_with_zero M] [monoid_with_zero N] (f : monoid_with_zero_hom M N) :
+lemma monoid_with_zero_hom.to_zero_hom_coe [monoid_with_zero M] [monoid_with_zero N]
+  (f : monoid_with_zero_hom M N) :
   (f.to_zero_hom : M → N) = f := rfl
 @[simp]
 lemma monoid_with_zero_hom.to_monoid_hom_coe [monoid_with_zero M] [monoid_with_zero N]
@@ -439,7 +441,8 @@ lemma monoid_with_zero_hom.cancel_left
   [monoid_with_zero M] [monoid_with_zero N] [monoid_with_zero P]
   {g : monoid_with_zero_hom N P} {f₁ f₂ : monoid_with_zero_hom M N} (hg : function.injective g) :
   g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
-⟨λ h, monoid_with_zero_hom.ext $ λ x, hg $ by rw [← monoid_with_zero_hom.comp_apply, h, monoid_with_zero_hom.comp_apply],
+⟨λ h, monoid_with_zero_hom.ext $ λ x, hg $ by rw [
+        ← monoid_with_zero_hom.comp_apply, h, monoid_with_zero_hom.comp_apply],
  λ h, h ▸ rfl⟩
 
 @[simp, to_additive] lemma one_hom.comp_id [has_one M] [has_one N]

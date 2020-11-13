@@ -132,19 +132,9 @@ begin
   exact set.mem_range_self b',
 end
 
-@[irreducible]
-def mk_fractional (I : ideal R) : fractional_ideal f :=
-⟨f.coe_submodule I, fractional_of_subset_one _ $ λ x ⟨y, hy, h⟩,
-  submodule.mem_span_singleton.2 ⟨y, by rw ←h; exact mul_one _⟩⟩
-
-local attribute [semireducible] mk_fractional
-
 instance coe_to_fractional_ideal : has_coe (ideal R) (fractional_ideal f) :=
 ⟨ λ I, ⟨f.coe_submodule I, fractional_of_subset_one _ $ λ x ⟨y, hy, h⟩,
   submodule.mem_span_singleton.2 ⟨y, by rw ←h; exact mul_one _⟩⟩ ⟩
-
-@[simp]
-lemma mk_fractional_eq_coe (I : ideal R) : mk_fractional I = (I : fractional_ideal f) := rfl
 
 @[simp] lemma coe_coe_ideal (I : ideal R) :
   ((I : fractional_ideal f) : submodule R f.codomain) = f.coe_submodule I := rfl

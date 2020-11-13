@@ -24,6 +24,9 @@ to form the Dirichlet ring.
  * `σ k` is the arithmetic function such that `σ k x = ∑ y in divisors x, y ^ k` for `0 < x`.
  * `pow k` is the arithmetic function such that `pow k x = x ^ k` for `0 < x`.
  * `id` is the identity arithmetic function on `ℕ`.
+ * `ω n` is the number of distinct prime factors of `n`.
+ * `Ω n` is the number of prime factors of `n` with multiplicity.
+ * `μ` is the Möbius function.
 
 ## Notation
 The arithmetic functions `ζ` and `σ` have Greek letter names, which are localized notation in

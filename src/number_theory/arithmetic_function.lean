@@ -5,6 +5,7 @@ Authors: Aaron Anderson
 -/
 import algebra.big_operators.ring
 import number_theory.divisors
+import algebra.squarefree
 
 /-!
 # Arithmetic Functions and Dirichlet Convolution
@@ -528,6 +529,47 @@ lemma is_multiplicative_sigma {k : ℕ} :
 begin
   rw [← zeta_mul_pow_eq_sigma],
   apply ((is_multiplicative_zeta).mul is_multiplicative_pow)
+end
+
+/-- `Ω n` is the number of prime factors of `n`. -/
+def card_factors : arithmetic_function ℕ :=
+⟨λ n, n.factors.length, rfl⟩
+
+localized "notation `Ω` := card_factors" in arithmetic_function
+
+@[simp]
+lemma card_factors_one : Ω 1 = 0 := rfl
+
+/-- `ω n` is the number of distinct prime factors of `n`. -/
+def card_distinct_factors : arithmetic_function ℕ :=
+⟨λ n, n.factors.erase_dup.length, rfl⟩
+
+localized "notation `ω` := card_distinct_factors" in arithmetic_function
+
+/-- `μ` is the Möbius function. If `n` is squarefree with an even number of distinct prime factors,
+  `μ n = 1`. If `n` is squarefree with an odd number of distinct prime factors, `μ n = -1`.
+  If `n` is not squarefree, `μ n = 0`. -/
+def moebius : arithmetic_function ℤ :=
+⟨λ n, if squarefree n then (-1) ^ (card_factors n) else 0, by simp⟩
+
+localized "notation `μ` := moebius" in arithmetic_function
+
+@[simp]
+lemma moebius_apply_of_squarefree {n : ℕ} (h : squarefree n): μ n = (-1) ^ (card_factors n) :=
+if_pos h
+
+@[simp]
+lemma moebius_eq_zero_of_not_squarefree {n : ℕ} (h : ¬ squarefree n): μ n = 0 := if_neg h
+
+lemma moebius_ne_zero_iff_squarefree {n : ℕ} : μ n ≠ 0 ↔ squarefree n :=
+begin
+  refine ⟨_, λ h, _⟩,
+  { contrapose!,
+    intro h,
+    exact if_neg h },
+  { rw moebius_apply_of_squarefree h,
+    apply pow_ne_zero,
+    simp }
 end
 
 end special_functions

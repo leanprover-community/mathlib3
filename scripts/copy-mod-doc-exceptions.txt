@@ -103,9 +103,9 @@ src/algebra/group_action_hom.lean : line 269 : ERR_LIN : Line has more than 100 
 src/algebra/group_power/basic.lean : line 414 : ERR_LIN : Line has more than 100 characters
 src/algebra/group_power/basic.lean : line 501 : ERR_LIN : Line has more than 100 characters
 src/algebra/group_power/lemmas.lean : line 536 : ERR_LIN : Line has more than 100 characters
-src/algebra/group_with_zero.lean : line 295 : ERR_LIN : Line has more than 100 characters
-src/algebra/group_with_zero.lean : line 316 : ERR_LIN : Line has more than 100 characters
-src/algebra/group_with_zero_power.lean : line 165 : ERR_LIN : Line has more than 100 characters
+src/algebra/group_with_zero/basic.lean : line 295 : ERR_LIN : Line has more than 100 characters
+src/algebra/group_with_zero/basic.lean : line 316 : ERR_LIN : Line has more than 100 characters
+src/algebra/group_with_zero/power.lean : line 165 : ERR_LIN : Line has more than 100 characters
 src/algebra/invertible.lean : line 216 : ERR_LIN : Line has more than 100 characters
 src/algebra/invertible.lean : line 224 : ERR_LIN : Line has more than 100 characters
 src/algebra/invertible.lean : line 233 : ERR_LIN : Line has more than 100 characters

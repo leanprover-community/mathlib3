@@ -160,6 +160,11 @@ lemma to_map_injective : injective (@localization_map.to_map _ _ M S _) :=
 the localization map from `R` to `S`. -/
 def is_integer (a : S) : Prop := a ∈ set.range f.to_map
 
+-- TODO: define a subalgebra of `is_integer`s
+lemma is_integer_zero : f.is_integer 0 := ⟨0, f.to_map.map_zero⟩
+
+lemma is_integer_one : f.is_integer 1 := ⟨1, f.to_map.map_one⟩
+
 variables {f}
 
 lemma is_integer_add {a b} (ha : f.is_integer a) (hb : f.is_integer b) :

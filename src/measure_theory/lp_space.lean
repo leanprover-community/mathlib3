@@ -129,7 +129,7 @@ ne_of_lt (snorm'_lt_top hp0 hfp)
 lemma snorm_lt_top {f : ℒp α β hp1 μ} : snorm f < ⊤ :=
 by {rw snorm_eq_snorm', exact snorm'_lt_top (le_trans zero_le_one f.one_le_p) f.in_ℒp, }
 
-lemma snorm_ne_top (f : ℒp α β hp1 μ) : snorm f ≠ ⊤ := ne_of_lt snorm_lt_top
+lemma snorm_ne_top {f : ℒp α β hp1 μ} : snorm f ≠ ⊤ := ne_of_lt snorm_lt_top
 
 lemma snorm_zero : snorm (0 : ℒp α β hp1 μ) = 0 :=
 begin

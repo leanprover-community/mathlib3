@@ -61,6 +61,10 @@ With the same kind of arguments, one checks that `f` is differentiable with deri
 To show that the derivative itself is measurable, add in the definition of `B` and `D` a set
 `K` of continuous linear maps to which `L` should belong. Then, when `K` is complete, the set `D K`
 is exactly the set of points where `f` is differentiable with a derivative in `K`.
+
+## Tags
+
+derivative, measurable function, Borel σ-algebra
 -/
 
 noncomputable theory
@@ -136,7 +140,7 @@ begin
   exact hr' y z (B hy) (B hz)
 end
 
-lemma is_open_B (K : set (E →L[𝕜] F)) (r s ε : ℝ) : is_open (B f K r s ε) :=
+lemma is_open_B {K : set (E →L[𝕜] F)} {r s ε : ℝ} : is_open (B f K r s ε) :=
 by simp [B, is_open_Union, is_open_inter, is_open_A]
 
 lemma A_mono (L : E →L[𝕜] F) (r : ℝ) {ε δ : ℝ} (h : ε ≤ δ) :
@@ -185,8 +189,9 @@ lemma norm_sub_le_of_mem_A {c : 𝕜} (hc : 1 < ∥c∥)
   {r ε : ℝ} (hε : 0 < ε) (hr : 0 < r) {x : E} {L₁ L₂ : E →L[𝕜] F}
   (h₁ : x ∈ A f L₁ r ε) (h₂ : x ∈ A f L₂ r ε) : ∥L₁ - L₂∥ ≤ 4 * ∥c∥ * ε :=
 begin
-  apply op_norm_le_of_shell (half_pos hr)
-    (mul_nonneg (mul_nonneg (by norm_num : (0 : ℝ) ≤ 4) (norm_nonneg _)) (le_of_lt hε)) hc,
+  have : 0 ≤ 4 * ∥c∥ * ε :=
+    mul_nonneg (mul_nonneg (by norm_num : (0 : ℝ) ≤ 4) (norm_nonneg _)) hε.le,
+  apply op_norm_le_of_shell (half_pos hr) this hc,
   assume y ley ylt,
   rw [div_div_eq_div_mul,
       div_le_iff' (mul_pos (by norm_num : (0 : ℝ) < 2) (zero_lt_one.trans hc))] at ley,
@@ -219,12 +224,8 @@ begin
   rcases mem_A_of_differentiable this hx.1 with ⟨R, R_pos, hR⟩,
   obtain ⟨n, hn⟩ : ∃ (n : ℕ), (1/2) ^ n < R :=
     exists_pow_lt_of_lt_one R_pos (by norm_num : (1 : ℝ)/2 < 1),
-  apply mem_Union.2 ⟨n, _⟩,
-  simp only [mem_Inter],
-  assume p hp q hq,
-  apply mem_Union.2 ⟨fderiv 𝕜 f x, _⟩,
-  simp only [hx.right, mem_inter_eq, Union_pos],
-  split;
+  simp only [mem_Union, mem_Inter, B, mem_inter_eq],
+  refine ⟨n, λ p hp q hq, ⟨fderiv 𝕜 f x, hx.2, ⟨_, _⟩⟩⟩;
   { refine hR _ ⟨pow_pos (by norm_num) _, lt_of_le_of_lt _ hn⟩,
     exact pow_le_pow_of_le_one (by norm_num) (by norm_num) (by assumption) }
 end
@@ -386,21 +387,6 @@ end fderiv_measurable_aux
 
 open fderiv_measurable_aux
 
-lemma fderiv_mem_iff {f : E → F} {s : set (E →L[𝕜] F)} {x : E} :
-  fderiv 𝕜 f x ∈ s ↔ (differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ s) ∨
-    (0 : E →L[𝕜] F) ∈ s ∧ ¬differentiable_at 𝕜 f x :=
-begin
-  split,
-  { intro hfx,
-    by_cases hx : differentiable_at 𝕜 f x,
-    { exact or.inl ⟨hx, hfx⟩ },
-    { rw [fderiv_zero_of_not_differentiable_at hx] at hfx,
-      exact or.inr ⟨hfx, hx⟩ } },
-  { rintro (⟨hf, hf'⟩|⟨h₀, hx⟩),
-    { exact hf' },
-    { rwa [fderiv_zero_of_not_differentiable_at hx] } }
-end
-
 variables [measurable_space E] [opens_measurable_space E]
 variables (𝕜 f)
 
@@ -409,17 +395,8 @@ is Borel-measurable. -/
 theorem is_measurable_set_of_differentiable_at_of_is_complete
   {K : set (E →L[𝕜] F)} (hK : is_complete K) :
   is_measurable {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ K} :=
-begin
-  rw differentiable_set_eq_D K hK,
-  refine is_measurable.Inter (λ e, _),
-  refine is_measurable.Union (λ n, _),
-  refine is_measurable.Inter (λ p, _),
-  refine is_measurable.Inter_Prop (λ hp, _),
-  refine is_measurable.Inter (λ q, _),
-  refine is_measurable.Inter_Prop (λ hq, _),
-  apply is_open.is_measurable,
-  apply is_open_B
-end
+by simp [differentiable_set_eq_D K hK, D, is_open_B.is_measurable, is_measurable.Inter_Prop,
+         is_measurable.Inter, is_measurable.Union]
 
 variable [complete_space F]
 

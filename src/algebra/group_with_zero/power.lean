@@ -266,5 +266,5 @@ end
 lemma monoid_with_zero_hom.map_fpow {G₀ G₀' : Type*} [group_with_zero G₀] [group_with_zero G₀']
   (f : monoid_with_zero_hom G₀ G₀') (x : G₀) :
   ∀ n : ℤ, f (x ^ n) = f x ^ n
-| (n : ℕ) := f.map_pow x n
-| -[1+n] := (f.map_inv' _).trans $ congr_arg _ $ f.map_pow x _
+| (n : ℕ) := f.to_monoid_hom.map_pow x n
+| -[1+n] := (f.map_inv' _).trans $ congr_arg _ $ f.to_monoid_hom.map_pow x _

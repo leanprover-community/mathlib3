@@ -1639,6 +1639,9 @@ meta def mk_comp (v : expr) : expr → tactic expr
      t ← infer_type e,
      mk_mapp ``id [t]
 
+/-- Given two expressions `e₀` and `e₁`, return the expression `` `(%%e₀ ↔ %%e₁)``. -/
+meta def mk_iff (e₀ : expr) (e₁ : expr) : expr := `(%%e₀ ↔ %%e₁)
+
 /--
 From a lemma of the shape `∀ x, f (g x) = h x`
 derive an auxiliary lemma of the form `f ∘ g = h`

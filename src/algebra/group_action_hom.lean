@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.group_ring_action
+import group_theory.group_action
 
 /-!
 # Equivariant homomorphisms
@@ -254,27 +255,6 @@ ext $ λ x, by rw [comp_apply, id_apply]
 
 @[simp] lemma comp_id (f : R →+*[M] S) : f.comp (mul_semiring_action_hom.id M) = f :=
 ext $ λ x, by rw [comp_apply, id_apply]
-
-variables {P : Type*} [comm_semiring P] [mul_semiring_action M P]
-variables {Q : Type*} [comm_semiring Q] [mul_semiring_action M Q]
-open polynomial
-
-/-- An equivariant map induces an equivariant map on polynomials. -/
-protected noncomputable def polynomial (g : P →+*[M] Q) : polynomial P →+*[M] polynomial Q :=
-{ to_fun := map g,
-  map_smul' := λ m p, polynomial.induction_on p
-    (λ b, by rw [smul_C, map_C, coe_fn_coe, g.map_smul, map_C, coe_fn_coe, smul_C])
-    (λ p q ihp ihq, by rw [smul_add, polynomial.map_add, ihp, ihq, polynomial.map_add, smul_add])
-    (λ n b ih, by rw [smul_mul', smul_C, smul_pow, smul_X, polynomial.map_mul, map_C,
-        polynomial.map_pow, map_X, coe_fn_coe, g.map_smul, polynomial.map_mul, map_C,
-        polynomial.map_pow, map_X, smul_mul', smul_C, smul_pow, smul_X, coe_fn_coe]),
-  map_zero' := polynomial.map_zero g,
-  map_add' := λ p q, polynomial.map_add g,
-  map_one' := polynomial.map_one g,
-  map_mul' := λ p q, polynomial.map_mul g }
-
-@[simp] theorem coe_polynomial (g : P →+*[M] Q) : (g.polynomial : polynomial P → polynomial Q) = map g :=
-rfl
 
 end mul_semiring_action_hom
 

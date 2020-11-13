@@ -16,7 +16,7 @@ This file describes the type of measurable functions with finite seminorm
 
 * `ℒp α β hp1 μ` : the type of measurable functions `α → β` with finite p-seminorm for
                       measure `μ`, for `hp1 : 1 ≤ p`,
-* `in_ℒp p μ f`  : the property 'f belongs to ℒp for measure μ' and real p.
+* `mem_ℒp p μ f` : the property 'f belongs to ℒp for measure μ' and real p.
 
 ## Notation
 

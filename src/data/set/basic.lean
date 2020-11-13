@@ -86,7 +86,7 @@ namespace set
 variable {α : Type*}
 
 instance : has_le (set α) := ⟨(⊆)⟩
-instance : has_lt (set α) := ⟨λ s t, s ≤ t ∧ ¬t ≤ s⟩
+instance : has_lt (set α) := ⟨λ s t, s ≤ t ∧ ¬t ≤ s⟩  -- `⊂` is not defined until further down
 
 instance {α : Type*} : boolean_algebra (set α) :=
 { sup := (∪),
@@ -99,10 +99,12 @@ instance {α : Type*} : boolean_algebra (set α) :=
   sdiff := (\),
   .. (infer_instance : boolean_algebra (α → Prop)) }
 
+@[simp] lemma top_eq_univ : (⊤ : set α) = univ := rfl
 @[simp] lemma bot_eq_empty : (⊥ : set α) = ∅ := rfl
 @[simp] lemma sup_eq_union (s t : set α) : s ⊔ t = s ∪ t := rfl
 @[simp] lemma inf_eq_inter (s t : set α) : s ⊓ t = s ∩ t := rfl
 @[simp] lemma le_eq_subset (s t : set α) : s ≤ t = (s ⊆ t) := rfl
+/-! `set.lt_eq_ssubset` is defined further down -/
 
 /-- Coercion from a set to the corresponding subtype. -/
 instance {α : Type*} : has_coe_to_sort (set α) := ⟨_, λ s, {x // x ∈ s}⟩

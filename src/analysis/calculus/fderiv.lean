@@ -454,7 +454,7 @@ as this statement is empty. -/
 lemma has_fderiv_within_at_of_not_mem_closure (h : x ∉ closure s) :
   has_fderiv_within_at f f' s x :=
 begin
-  simp [mem_closure_iff_nhds_within_ne_bot, ne_bot] at h,
+  simp only [mem_closure_iff_nhds_within_ne_bot, ne_bot, ne.def, not_not] at h,
   simp [has_fderiv_within_at, has_fderiv_at_filter, h, is_o, is_O_with],
 end
 

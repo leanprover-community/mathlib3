@@ -672,6 +672,8 @@ instance has_coe_to_alg_hom : has_coe (A₁ ≃ₐ[R] A₂) (A₁ →ₐ[R] A₂
 @[simp, norm_cast] lemma coe_alg_hom : ((e : A₁ →ₐ[R] A₂) : A₁ → A₂) = e :=
 rfl
 
+@[simp] lemma map_pow : ∀ (x : A₁) (n : ℕ), e (x ^ n) = (e x) ^ n := e.to_alg_hom.map_pow
+
 lemma injective : function.injective e := e.to_equiv.injective
 
 lemma surjective : function.surjective e := e.to_equiv.surjective
@@ -819,6 +821,44 @@ e.to_alg_hom.map_div x y
 end division_ring
 
 end alg_equiv
+
+namespace matrix
+
+/-! ### `matrix` section
+
+Specialize `matrix.one_map` and `matrix.zero_map` to `alg_hom` and `alg_equiv`.
+TODO: there should be a way to avoid restating these for each `foo_hom`.
+-/
+
+variables {R A₁ A₂ n : Type*} [fintype n]
+
+section semiring
+
+variables [comm_semiring R] [semiring A₁] [algebra R A₁] [semiring A₂] [algebra R A₂]
+
+/-- A version of `matrix.one_map` where `f` is an `alg_hom`. -/
+@[simp] lemma alg_hom_map_one [decidable_eq n]
+  (f : A₁ →ₐ[R] A₂) : (1 : matrix n n A₁).map f = 1 :=
+one_map f.map_zero f.map_one
+
+/-- A version of `matrix.one_map` where `f` is an `alg_equiv`. -/
+@[simp] lemma alg_equiv_map_one [decidable_eq n]
+  (f : A₁ ≃ₐ[R] A₂) : (1 : matrix n n A₁).map f = 1 :=
+one_map f.map_zero f.map_one
+
+/-- A version of `matrix.zero_map` where `f` is an `alg_hom`. -/
+@[simp] lemma alg_hom_map_zero
+  (f : A₁ →ₐ[R] A₂) : (0 : matrix n n A₁).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `matrix.zero_map` where `f` is an `alg_equiv`. -/
+@[simp] lemma alg_equiv_map_zero
+  (f : A₁ ≃ₐ[R] A₂) : (0 : matrix n n A₁).map f = 0 :=
+map_zero f.map_zero
+
+end semiring
+
+end matrix
 
 namespace algebra
 

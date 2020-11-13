@@ -625,7 +625,6 @@ by { erw [mem_canonical_equiv_apply, canonical_equiv, map_equiv_symm, map_equiv,
   canonical_equiv f f' (canonical_equiv f' f I) = I :=
 by rw [←canonical_equiv_symm, ring_equiv.symm_apply_apply]
 
-
 end semiring
 
 section fraction_map
@@ -700,7 +699,7 @@ begin
   obtain ⟨y', hy'⟩ := hJ y mem_J,
   use (aI * y'),
   split,
-  { apply (non_zero_divisors _).mul_mem haI (mem_non_zero_divisors_iff_ne_zero.mpr _),
+  { apply (non_zero_divisors R₁).mul_mem haI (mem_non_zero_divisors_iff_ne_zero.mpr _),
     intro y'_eq_zero,
     have : g.to_map aJ * y = 0 := by rw [←hy', y'_eq_zero, g.to_map.map_zero],
     obtain aJ_zero | y_zero := mul_eq_zero.mp this,
@@ -1128,5 +1127,3 @@ end
 end fractional_ideal
 
 end ring
-
-#lint

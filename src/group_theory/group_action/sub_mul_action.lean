@@ -40,6 +40,14 @@ instance : has_coe_t (sub_mul_action R M) (set M) := ⟨λ s, s.carrier⟩
 instance : has_mem M (sub_mul_action R M) := ⟨λ x p, x ∈ (p : set M)⟩
 instance : has_coe_to_sort (sub_mul_action R M) := ⟨_, λ p, {x : M // x ∈ p}⟩
 
+instance : has_top (sub_mul_action R M) :=
+⟨{ carrier := set.univ, smul_mem' := λ _ _ _, set.mem_univ _ }⟩
+
+instance : has_bot (sub_mul_action R M) :=
+⟨{ carrier := ∅, smul_mem' := λ c, set.not_mem_empty}⟩
+
+instance : inhabited (sub_mul_action R M) := ⟨⊥⟩
+
 variables (p q : sub_mul_action R M)
 
 @[simp, norm_cast] theorem coe_sort_coe : ↥(p : set M) = p := rfl

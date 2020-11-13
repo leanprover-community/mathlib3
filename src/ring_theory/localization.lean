@@ -959,6 +959,12 @@ lemma map_smul (x : f.codomain) (z : R) :
 show f.map hy k (f.to_map z * x) = k.to_map (g z) * f.map hy k x,
 by rw [ring_hom.map_mul, map_eq]
 
+lemma is_noetherian_ring (h : is_noetherian_ring R) : is_noetherian_ring f.codomain :=
+begin
+  rw [is_noetherian_ring, is_noetherian_iff_well_founded] at h ⊢,
+  exact order_embedding.well_founded (f.order_embedding.dual) h
+end
+
 end localization_map
 
 namespace localization
@@ -1075,8 +1081,8 @@ begin
   exact hM c.2 a hc,
 end
 
-protected lemma to_map_ne_zero_of_mem_non_zero_divisors {M : submonoid A} (f : localization_map M S)
-  (hM : M ≤ non_zero_divisors A) (x : non_zero_divisors A) : f.to_map x ≠ 0 :=
+protected lemma to_map_ne_zero_of_mem_non_zero_divisors [nontrivial R] (f : localization_map M S)
+  (hM : M ≤ non_zero_divisors R) (x : non_zero_divisors R) : f.to_map x ≠ 0 :=
 map_ne_zero_of_mem_non_zero_divisors (f.injective hM)
 
 /-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of
@@ -1173,8 +1179,8 @@ protected theorem injective [comm_ring K] (φ : fraction_map R K) :
   function.injective φ.to_map :=
 φ.injective (le_of_eq rfl)
 
-protected lemma to_map_ne_zero_of_mem_non_zero_divisors [comm_ring K] (φ : fraction_map A K)
-  (x : non_zero_divisors A) : φ.to_map x ≠ 0 :=
+protected lemma to_map_ne_zero_of_mem_non_zero_divisors [nontrivial R] [comm_ring K]
+  (φ : fraction_map R K) (x : non_zero_divisors R) : φ.to_map x ≠ 0 :=
 φ.to_map_ne_zero_of_mem_non_zero_divisors (le_of_eq rfl) x
 
 /-- A `comm_ring` `K` which is the localization of an integral domain `R` at `R - {0}` is an
@@ -1474,7 +1480,7 @@ end is_integral
 
 namespace integral_closure
 
-variables {L : Type*} [field K] [field L] {f : fraction_map A K}
+variables {L : Type*} [field K] [field L] (f : fraction_map A K)
 
 open algebra
 
@@ -1492,6 +1498,8 @@ def fraction_map_of_algebraic [algebra A L] (alg : is_algebraic A L)
   (λ x y, ⟨ λ (h : x.1 = y.1), ⟨1, by simpa using subtype.ext_iff_val.mpr h⟩,
             λ ⟨c, hc⟩, congr_arg (algebra_map _ L)
               (mul_right_cancel' (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc) ⟩)
+
+variables {K} (L)
 
 /-- If the field `L` is a finite extension of the fraction field of the integral domain `A`,
 the integral closure of `A` in `L` has fraction field `L`. -/
@@ -1534,5 +1542,8 @@ type and `K`. -/
 noncomputable def alg_equiv_of_quotient {K : Type*} [field K] (f : fraction_map A K) :
   fraction_ring A ≃ₐ[A] f.codomain :=
 localization.alg_equiv_of_quotient f
+
+instance : algebra A (fraction_ring A) :=
+(of A).to_map.to_algebra
 
 end fraction_ring

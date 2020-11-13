@@ -26,4 +26,18 @@ def box_line_integral (i : fin 2) (a b : fin 2 → ℝ) : ℝ :=
 
 /-- The function `box_line_integral` is additive over rectangles. -/
 lemma is_box_additive_line_integral (i : fin 2) : box_additive_on (box_line_integral hu i) univ :=
-sorry
+begin
+  rw box_additive_on,
+  intros,
+  rw box_line_integral,
+  rw box_line_integral,
+  rw box_line_integral,
+  rw segment_parametrized_integral,
+  rw segment_parametrized_integral,
+  rw segment_parametrized_integral,
+  rw segment_parametrized_integral,
+  rw segment_parametrized_integral,
+  rw segment_parametrized_integral,
+
+  sorry,
+end

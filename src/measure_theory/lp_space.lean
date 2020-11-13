@@ -102,7 +102,7 @@ end ℒp_space_definition
 
 noncomputable theory
 
-namespace ℒp
+namespace ℒp_space
 variables {α β γ: Type*} [measurable_space α] [measurable_space β] [normed_group β]
   [normed_group γ]
   {p : ℝ} {hp1 : 1 ≤ p} {μ : measure α}
@@ -144,4 +144,4 @@ begin
   rw [one_div, inv_pos], exact hp0_lt,
 end
 
-end ℒp
+end ℒp_space

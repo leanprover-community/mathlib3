@@ -133,4 +133,8 @@ begin
   simp,
 end
 
+instance : decidable_pred (squarefree : ℕ → Prop)
+| 0 := is_false not_squarefree_zero
+| (n + 1) := decidable_of_iff _ (squarefree_iff_nodup_factors (nat.succ_ne_zero n)).symm
+
 end nat

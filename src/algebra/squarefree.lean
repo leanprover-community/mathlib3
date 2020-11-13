@@ -5,6 +5,7 @@ Authors: Aaron Anderson
 -/
 import ring_theory.unique_factorization_domain
 import ring_theory.int.basic
+import number_theory.divisors
 
 /-!
 # Squarefree elements of monoids
@@ -132,5 +133,12 @@ begin
   rw [unique_factorization_monoid.squarefree_iff_nodup_factors h0, nat.factors_eq],
   simp,
 end
+
+instance : decidable_pred (squarefree : ℕ → Prop)
+| 0 := is_false not_squarefree_zero
+| (n + 1) := decidable_of_iff _ (squarefree_iff_nodup_factors (nat.succ_ne_zero n)).symm
+
+lemma divisors_filter_squarefree {n : ℕ} (h0 : n ≠ 0) :
+  (n.divisors.filter squarefree).val =
 
 end nat

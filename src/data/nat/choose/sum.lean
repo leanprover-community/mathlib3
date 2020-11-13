@@ -97,3 +97,43 @@ begin
 end
 
 end nat
+
+theorem int.alternating_sum_range_choose {n : ℕ} :
+  ∑ m in range (n + 1), ((-1) ^ m * ↑(choose n m) : ℤ) = if n = 0 then 1 else 0 :=
+begin
+  cases n, { simp },
+  have h := add_pow (-1 : ℤ) 1 n.succ,
+  simp only [one_pow, mul_one, add_left_neg, int.nat_cast_eq_coe_nat] at h,
+  rw [← h, zero_pow (nat.succ_pos n), if_neg (nat.succ_ne_zero n)],
+end
+
+namespace finset
+
+theorem sum_powerset_apply_card {α β : Type*} [add_comm_monoid α] (f : ℕ → α) {x : finset β} :
+  ∑ m in x.powerset, f m.card = ∑ m in range (x.card + 1), (x.card.choose m) •ℕ f m :=
+begin
+  transitivity ∑ m in range (x.card + 1), ∑ j in x.powerset.filter (λ z, z.card = m), f j.card,
+  rw sum_fiberwise_of_maps_to,
+  { intros y hy,
+    rw [mem_range, nat.lt_succ_iff],
+    rw mem_powerset at hy,
+    exact card_le_of_subset hy },
+  apply sum_congr rfl,
+  intros y hy,
+  rw [← card_powerset_len, ← sum_const],
+  apply sum_congr powerset_len_eq_filter.symm,
+  intros z hz,
+  rw (mem_powerset_len.1 hz).2,
+end
+
+theorem sum_powerset_neg_one_pow_card {α : Type*} [decidable_eq α] (x : finset α) :
+  ∑ m in x.powerset, (-1 : ℤ) ^ m.card = if x = ∅ then 1 else 0 :=
+begin
+  rw sum_powerset_apply_card,
+  simp only [nsmul_eq_mul', ← card_eq_zero],
+  convert int.alternating_sum_range_choose,
+  ext,
+  simp,
+end
+
+end finset

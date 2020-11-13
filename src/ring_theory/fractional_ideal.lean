@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 import ring_theory.localization
-import ring_theory.principal_ideal_domain
 import ring_theory.noetherian
+import ring_theory.principal_ideal_domain
 
 /-!
 # Fractional ideals

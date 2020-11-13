@@ -140,5 +140,18 @@ instance : decidable_pred (squarefree : ℕ → Prop)
 
 lemma divisors_filter_squarefree {n : ℕ} (h0 : n ≠ 0) :
   (n.divisors.filter squarefree).val =
+    (unique_factorization_monoid.factors n).to_finset.powerset.val.map (λ x, x.prod id) :=
+begin
+  rw [to_finset_powerset, to_finset_val],
+end
+
+open_locale big_operators
+
+lemma sum_divisors_filter_squarefree {n : ℕ} (h0 : n ≠ 0)
+  {α : Type*} [add_comm_monoid α] {f : ℕ → α} :
+  ∑ i in (n.divisors.filter squarefree), f i =
+    ∑ i in (unique_factorization_monoid.factors n).to_finset.powerset, f (i.prod id) :=
+by rw [finset.sum_eq_multiset_sum, divisors_filter_squarefree h0, multiset.map_map,
+    finset.sum_eq_multiset_sum]
 
 end nat

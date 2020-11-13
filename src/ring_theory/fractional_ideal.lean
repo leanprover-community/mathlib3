@@ -214,7 +214,7 @@ lemma coe_one_eq_coe_submodule_one :
   ↑(1 : fractional_ideal f) = f.coe_submodule (1 : ideal R) :=
 rfl
 
-@[simp] lemma coe_one :
+@[simp, norm_cast] lemma coe_one :
   (↑(1 : fractional_ideal f) : submodule R f.codomain) = 1 :=
 begin
   simp only [coe_one_eq_coe_submodule_one, ideal.one_eq_top],

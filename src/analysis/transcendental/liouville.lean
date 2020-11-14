@@ -247,8 +247,7 @@ begin
   have hab₂ : fR.eval (a/b) ≠ 0 := hB_root _ hb₂ hab₁.symm,
   obtain ⟨x₀, hx₀⟩ := exists_deriv_eq_slope_of_polynomial_root α fR h_α_root ((a : ℝ) / b) hab₂,
   apply lt_irrefl (B / 2 / b ^ f.nat_degree),
-  calc
-        B / 2 / b ^ f.nat_degree
+  calc  B / 2 / b ^ f.nat_degree
       ≥ abs (α - ↑a / ↑b) : ge_iff_le.2 h_abs_lt
   ... = abs (fR.eval (a / b) / fR.derivative.eval x₀) : by rw [hx₀.1, abs_neg]
   ... = abs (fR.eval (a / b)) / abs (fR.derivative.eval x₀) : by rw abs_div

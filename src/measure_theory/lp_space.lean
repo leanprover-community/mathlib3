@@ -19,7 +19,8 @@ This file describes properties of measurable functions with finite seminorm
 
 ## Notation
 
-* `snorm f p μ` : `(∫⁻ a, (nnnorm (f a))^(p : ℝ) ∂μ) ^ (1/p)` for `f : α → β`
+* `snorm f p μ` : `(∫⁻ a, (nnnorm (f a)) ^ p ∂μ) ^ (1/p)` for `f : α → F`, where `α` is a
+  measurable space and `F` is a normed group.
 
 -/
 
@@ -29,21 +30,22 @@ noncomputable theory
 
 namespace ℒp_space
 
-variables {α β γ: Type*} [measurable_space α] {μ : measure α}
-  [measurable_space β] [normed_group β]
-  [normed_group γ]
+variables {α E F: Type*} [measurable_space α] {μ : measure α}
+  [measurable_space E] [normed_group E]
+  [normed_group F]
   {p : ℝ}
 
 section ℒp_space_definition
 
-/-- The property that f belongs to ℒp for measure μ and real p -/
-def mem_ℒp (f : α → β) (p : ℝ) (μ : measure α) : Prop :=
+/-- The property that `f:α→E` is measurable and `∫⁻ a, (nnnorm (f a)) ^ p ∂μ` is finite -/
+def mem_ℒp (f : α → E) (p : ℝ) (μ : measure α) : Prop :=
 measurable f ∧ ∫⁻ a, (nnnorm (f a)) ^ p ∂μ < ⊤
 
-/-- seminorm on ℒp -/
-def snorm (f : α → γ) (p : ℝ) (μ : measure α) : ennreal := (∫⁻ a, (nnnorm (f a))^p ∂μ) ^ (1/p)
+/-- `(∫⁻ a, (nnnorm (f a))^p ∂μ) ^ (1/p)`, which is a seminorm on the space of measurable
+functions for which this quantity is finite -/
+def snorm (f : α → F) (p : ℝ) (μ : measure α) : ennreal := (∫⁻ a, (nnnorm (f a))^p ∂μ) ^ (1/p)
 
-lemma lintegral_rpow_nnnorm_eq_rpow_snorm {f : α → γ} (hp0_lt : 0 < p) :
+lemma lintegral_rpow_nnnorm_eq_rpow_snorm {f : α → F} (hp0_lt : 0 < p) :
   ∫⁻ a, (nnnorm (f a)) ^ p ∂μ = (snorm f p μ) ^ p :=
 begin
   unfold snorm,
@@ -53,7 +55,7 @@ end
 
 end ℒp_space_definition
 
-lemma mem_ℒp_one_iff_integrable : ∀ f : α → β, mem_ℒp f 1 μ ↔ integrable f μ :=
+lemma mem_ℒp_one_iff_integrable : ∀ f : α → E, mem_ℒp f 1 μ ↔ integrable f μ :=
 begin
   intro f,
   unfold integrable, unfold has_finite_integral, unfold mem_ℒp,
@@ -62,7 +64,7 @@ end
 
 section top
 
-lemma snorm_lt_top {f : α → β} (hp0 : 0 ≤ p) (hfp : mem_ℒp f p μ) : snorm f p μ < ⊤ :=
+lemma snorm_lt_top {f : α → E} (hp0 : 0 ≤ p) (hfp : mem_ℒp f p μ) : snorm f p μ < ⊤ :=
 begin
   unfold snorm,
   refine ennreal.rpow_lt_top_of_nonneg _ (ne_of_lt hfp.right),
@@ -70,10 +72,10 @@ begin
   exact hp0,
 end
 
-lemma snorm_ne_top {f : α → β} (hp0 : 0 ≤ p) (hfp : mem_ℒp f p μ) : snorm f p μ ≠ ⊤ :=
+lemma snorm_ne_top {f : α → E} (hp0 : 0 ≤ p) (hfp : mem_ℒp f p μ) : snorm f p μ ≠ ⊤ :=
 ne_of_lt (snorm_lt_top hp0 hfp)
 
-lemma lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top {f : α → γ} (hp0_lt : 0 < p)
+lemma lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top {f : α → F} (hp0_lt : 0 < p)
   (hfp : snorm f p μ < ⊤) :
   ∫⁻ a, (nnnorm (f a)) ^ p ∂μ < ⊤ :=
 begin
@@ -81,7 +83,7 @@ begin
   exact ennreal.rpow_lt_top_of_nonneg (le_of_lt hp0_lt) (ne_of_lt hfp),
 end
 
-lemma mem_ℒp_of_snorm_lt_top {f : α → β} (hp0_lt : 0 < p) (hfm : measurable f)
+lemma mem_ℒp_of_snorm_lt_top {f : α → E} (hp0_lt : 0 < p) (hfm : measurable f)
   (hfp : snorm f p μ < ⊤) :
   mem_ℒp f p μ :=
 begin
@@ -94,7 +96,7 @@ end top
 
 section zero
 
-lemma lintegral_rpow_nnnorm_zero (hp0_lt : 0 < p) : ∫⁻ a, (nnnorm ((0 : α → γ) a))^p ∂μ = 0 :=
+lemma lintegral_rpow_nnnorm_zero (hp0_lt : 0 < p) : ∫⁻ a, (nnnorm ((0 : α → F) a))^p ∂μ = 0 :=
 begin
   simp_rw pi.zero_apply,
   rw [nnnorm_zero, lintegral_const, mul_eq_zero],
@@ -102,16 +104,16 @@ begin
   exact ennreal.zero_rpow_of_pos hp0_lt,
 end
 
-lemma zero_mem_ℒp (hp0_lt : 0 < p): mem_ℒp (0 : α → β) p μ :=
+lemma zero_mem_ℒp (hp0_lt : 0 < p): mem_ℒp (0 : α → E) p μ :=
 begin
   split,
   exact measurable_zero,
   exact lt_of_le_of_lt (le_of_eq (lintegral_rpow_nnnorm_zero hp0_lt)) with_top.zero_lt_top,
 end
 
-lemma snorm_zero (hp0_lt : 0 < p): snorm (0 : α → γ) p μ = 0 :=
+lemma snorm_zero (hp0_lt : 0 < p): snorm (0 : α → F) p μ = 0 :=
 begin
-  have h : ∫⁻ a, (nnnorm ((0 : α → γ) a))^(p : ℝ) ∂μ = 0,
+  have h : ∫⁻ a, (nnnorm ((0 : α → F) a))^(p : ℝ) ∂μ = 0,
   from lintegral_rpow_nnnorm_zero hp0_lt,
   unfold snorm,
   rw [h, ennreal.rpow_eq_zero_iff],

@@ -400,5 +400,14 @@ begin
   simp only [mulzero, zero_add]
 end
 
+lemma roots_normalize_eq_roots (hzero : p ≠ 0) :
+  (normalize p).roots = p.roots :=
+begin
+  have hcoeff : p.leading_coeff ≠ 0,
+  { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
+  rw [normalize_apply, mul_comm, coe_norm_unit_of_ne_zero hzero,
+    roots_C_mul _ (inv_ne_zero hcoeff)],
+end
+
 end field
 end polynomial

@@ -368,17 +368,12 @@ lemma C_leading_coeff_mul_prod_multiset_X_sub_C {p : polynomial α} (hzero : p �
 begin
   have hcoeff : p.leading_coeff ≠ 0,
   { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
-  have sameroots : p.roots = (normalize p).roots,
-  { rw [normalize_apply, mul_comm, coe_norm_unit_of_ne_zero hzero,
-        roots_C_mul _ (inv_ne_zero hcoeff)] },
+  have sameroots := roots_normalize_eq_roots hzero,
   have hrootsnorm : (normalize p).roots.card = (normalize p).nat_degree,
-  { rw [← sameroots, normalize_apply, mul_comm, coe_norm_unit_of_ne_zero hzero],
-    have hCzero : C (p.leading_coeff)⁻¹ ≠ 0,
-    { rw [ne.def, C_eq_zero], exact (inv_ne_zero hcoeff) },
-    simp only [nat_degree_C, zero_add, nat_degree_mul hCzero hzero],
-    exact hroots },
+  { rw [sameroots, normalize_apply, nat_degree_mul hzero (units.ne_zero _), hroots, coe_norm_unit,
+      nat_degree_C, add_zero], },
   have hprod := prod_multiset_X_sub_C_of_monic_of_roots_card_eq (monic_normalize hzero) hrootsnorm,
-  rw [← sameroots, normalize_apply, coe_norm_unit_of_ne_zero hzero] at hprod,
+  rw [sameroots, normalize_apply, coe_norm_unit_of_ne_zero hzero] at hprod,
   calc (C p.leading_coeff) * (multiset.map (λ (a : α), X - C a) p.roots).prod
       = p * C ((p.leading_coeff)⁻¹ * p.leading_coeff) : by rw [hprod, mul_comm, mul_assoc, ← C_mul]
   ... = p * C 1 : by field_simp [hcoeff]

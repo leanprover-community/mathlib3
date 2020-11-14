@@ -8,7 +8,7 @@ import algebra.pointwise
 import analysis.normed_space.basic
 
 /-!
-# Seminorms and local convexity
+# Seminorms and Local Convexity
 
 This file introduces the following notions, defined for a vector space
 over a normed field:
@@ -22,17 +22,22 @@ We prove related properties.
 
 ## TODO
 
-Define and show equivalence of two notions of local convexity
-for a t.v.s. over ℝ or ℂ: that it has a local base of balanced convex
-absorbent sets, and that it carries the initial topology induced by a
-family of seminorms.
+Define and show equivalence of two notions of local convexity for a
+topological vector space over ℝ or ℂ: that it has a local base of
+balanced convex absorbent sets, and that it carries the initial
+topology induced by a family of seminorms.
 
 ## References
 * [H. H. Schaefer, *Topological Vector Spaces*][schaefer1966]
 -/
 
--- subset properties : absorbent and balanced sets in a vector space
--- over a nondiscrete normed field
+/-!
+### Subset Properties
+
+Absorbent and balanced sets in a vector space over a
+nondiscrete normed field.
+-/
+
 section
 
 variables
@@ -67,7 +72,9 @@ begin
   { rw ←norm_pos_iff, calc 0 < 1 : zero_lt_one ... ≤ ∥a∥ : ha, }
 end
 
--- balanced and absorbing sets in a t.v.s:
+/-!
+Properties of balanced and absorbing sets in a topological vector space:
+-/
 variables [topological_space E] [topological_vector_space 𝕜 E]
 
 /-- Every neighbourhood of the origin is absorbent. -/
@@ -133,11 +140,13 @@ end
 
 end
 
+/-!
+### Seminorms
+-/
 
 /-- A seminorm on a vector space over a normed field is a function to
 the reals that is positive semidefinite, positive homogeneous, and
 subadditive. -/
-
 structure seminorm (𝕜 : Type*) (E : Type*)
   [normed_field 𝕜] [add_comm_group E] [vector_space 𝕜 E] :=
 (to_fun    : E → ℝ)

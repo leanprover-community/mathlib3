@@ -26,7 +26,7 @@ variable {r : ℕ}
 
 /--
 A family of sets is an antichain if no set is a subset of another. For example,
-{{1}, {4,6,7}, {2,4,5,6}} is an antichain.
+`{{1}, {4,6,7}, {2,4,5,6}}` is an antichain.
 -/
 def antichain (𝒜 : finset (finset α)) : Prop := ∀ A ∈ 𝒜, ∀ B ∈ 𝒜, A ≠ B → ¬(A ⊆ B)
 

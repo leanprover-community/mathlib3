@@ -215,6 +215,20 @@ instance [linear_order α] : is_strict_weak_order (finset.colex α) (<) := {}
 
 instance [linear_order α] : is_strict_total_order (finset.colex α) (<) := {}
 
+-- {r} <ᶜ s iff s contains an element greater than r
+lemma singleton_lt_iff_mem_gt [linear_order α] {r : α} {s : finset α}:
+  ({r} : finset α) <ᶜ s ↔ ∃ x ∈ s, r < x :=
+begin
+  sorry,
+end
+
+-- s <ᶜ {r} iff all elements of s are less than r.
+lemma lt_singleton_iff_mem_lt [linear_order α] {r : α} {s : finset α}:
+  s <ᶜ {r} ↔ ∀ x ∈ s, x < r :=
+begin
+  sorry,
+end
+
 /-- Colex is an extension of the base ordering on α. -/
 lemma singleton_lt_iff_lt [linear_order α] {r s : α} :
   ({r} : finset α) <ᶜ {s} ↔ r < s :=
@@ -248,23 +262,23 @@ begin
 end
 
 /-- Colex doesn't care if you remove the other set -/
-lemma lt_iff_sdiff_lt_sdiff [has_lt α] [decidable_eq α] (A B : finset α) :
-  A <ᶜ B ↔ A \ B <ᶜ B \ A :=
+@[simp] lemma sdiff_lt_sdiff_iff_lt [has_lt α] [decidable_eq α] (A B : finset α) :
+  A \ B <ᶜ B \ A ↔ A <ᶜ B :=
 begin
   rw [colex.lt_def, colex.lt_def],
   apply exists_congr,
   intro k,
   simp only [mem_sdiff, not_and, not_not],
   split,
-  { rintro ⟨z, kA, kB⟩,
-    refine ⟨_, λ _, kB, kB, kA⟩,
-    intros x hx,
-    rw z hx },
   { rintro ⟨z, kAB, kB, kA⟩,
     refine ⟨_, kA, kB⟩,
     { intros x hx,
       specialize z hx,
-      tauto } }
+      tauto } },
+  { rintro ⟨z, kA, kB⟩,
+    refine ⟨_, λ _, kB, kB, kA⟩,
+    intros x hx,
+    rw z hx },
 end
 
 /-- For subsets of ℕ, we can show that colex is equivalent to binary. -/

@@ -59,15 +59,15 @@ by simp only [integrable, has_finite_integral, mem_ℒp, ennreal.rpow_one, nnrea
 
 section top
 
-lemma snorm_lt_top {f : α → E} (hp0 : 0 ≤ p) (hfp : mem_ℒp f p μ) : snorm f p μ < ⊤ :=
+lemma mem_ℒp.snorm_lt_top {f : α → E} (hp0 : 0 ≤ p) (hfp : mem_ℒp f p μ) : snorm f p μ < ⊤ :=
 begin
   refine ennreal.rpow_lt_top_of_nonneg _ (ne_of_lt hfp.right),
   rw [one_div, inv_nonneg],
   exact hp0,
 end
 
-lemma snorm_ne_top {f : α → E} (hp0 : 0 ≤ p) (hfp : mem_ℒp f p μ) : snorm f p μ ≠ ⊤ :=
-ne_of_lt (snorm_lt_top hp0 hfp)
+lemma mem_ℒp.snorm_ne_top {f : α → E} (hp0 : 0 ≤ p) (hfp : mem_ℒp f p μ) : snorm f p μ ≠ ⊤ :=
+ne_of_lt (hfp.snorm_lt_top hp0)
 
 lemma lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top {f : α → F} (hp0_lt : 0 < p)
   (hfp : snorm f p μ < ⊤) :

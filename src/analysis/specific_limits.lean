@@ -16,7 +16,7 @@ import tactic.ring_exp
 noncomputable theory
 open classical function filter finset metric
 
-open_locale classical topological_space nat big_operators
+open_locale classical topological_space nat big_operators uniformity
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 
@@ -85,6 +85,12 @@ by_cases
       from tendsto_inv_at_top_zero.comp
         (tendsto_pow_at_top_at_top_of_one_lt $ one_lt_inv (lt_of_le_of_ne h₁ this.symm) h₂),
     tendsto.congr' (univ_mem_sets' $ by simp *) this)
+
+lemma uniformity_basis_dist_pow_of_lt_1 {α : Type*} [metric_space α]
+  {r : ℝ} (h₀ : 0 < r) (h₁ : r < 1) :
+  (𝓤 α).has_basis (λ k : ℕ, true) (λ k, {p : α × α | dist p.1 p.2 < r ^ k}) :=
+metric.mk_uniformity_basis (λ i _, pow_pos h₀ _) $ λ ε ε0,
+  (exists_pow_lt_of_lt_one ε0 h₁).imp $ λ k hk, ⟨trivial, hk.le⟩
 
 lemma geom_lt {u : ℕ → ℝ} {k : ℝ} (hk : 0 < k) {n : ℕ} (h : ∀ m ≤ n, k*u m < u (m + 1)) :
   k^(n + 1) *u 0 < u (n + 1) :=

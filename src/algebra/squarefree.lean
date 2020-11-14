@@ -138,6 +138,7 @@ instance : decidable_pred (squarefree : ℕ → Prop)
 | 0 := is_false not_squarefree_zero
 | (n + 1) := decidable_of_iff _ (squarefree_iff_nodup_factors (nat.succ_ne_zero n)).symm
 
+<<<<<<< HEAD
 open unique_factorization_monoid
 
 lemma divisors_filter_squarefree {n : ℕ} (h0 : n ≠ 0) :
@@ -197,4 +198,6 @@ lemma sum_divisors_filter_squarefree {n : ℕ} (h0 : n ≠ 0)
 by rw [finset.sum_eq_multiset_sum, divisors_filter_squarefree h0, multiset.map_map,
     finset.sum_eq_multiset_sum]
 
+=======
+>>>>>>> origin/moebius_def
 end nat

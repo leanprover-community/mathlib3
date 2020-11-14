@@ -24,6 +24,9 @@ to form the Dirichlet ring.
  * `σ k` is the arithmetic function such that `σ k x = ∑ y in divisors x, y ^ k` for `0 < x`.
  * `pow k` is the arithmetic function such that `pow k x = x ^ k` for `0 < x`.
  * `id` is the identity arithmetic function on `ℕ`.
+ * `ω n` is the number of distinct prime factors of `n`.
+ * `Ω n` is the number of prime factors of `n` with multiplicity.
+ * `μ` is the Möbius function.
 
 ## Notation
 The arithmetic functions `ζ` and `σ` have Greek letter names, which are localized notation in
@@ -275,9 +278,9 @@ theorem mul_zeta_apply [semiring R] {f : arithmetic_function R} {x : ℕ} :
   (f * ζ) x = ∑ i in divisors x, f i :=
 begin
   apply opposite.op_injective,
-  rw [← opposite.coe_op_add_hom, add_monoid_hom.map_sum],
-  convert @zeta_mul_apply Rᵒᵖ _ { to_fun := opposite.op_add_hom ∘ f, map_zero' := by simp} x,
-  rw [mul_apply, mul_apply, add_monoid_hom.map_sum],
+  rw [op_sum],
+  convert @zeta_mul_apply Rᵒᵖ _ { to_fun := opposite.op ∘ f, map_zero' := by simp} x,
+  rw [mul_apply, mul_apply, op_sum],
   conv_lhs { rw ← map_swap_divisors_antidiagonal, },
   rw sum_map,
   apply sum_congr rfl,
@@ -285,8 +288,7 @@ begin
   by_cases h1 : y.fst = 0,
   { simp [function.comp_apply, h1] },
   { simp only [h1, mul_one, one_mul, prod.fst_swap, function.embedding.coe_fn_mk, prod.snd_swap,
-    if_false, zeta_apply, opposite.coe_op_add_hom],
-    refl }
+      if_false, zeta_apply, zero_hom.coe_mk] }
 end
 
 end zeta

@@ -286,7 +286,7 @@ lemma sum_pow_two_lt_iff_lt (A B : finset ℕ) : A.sum (pow 2) < B.sum (pow 2) �
 begin
   have z : ∀ (A B : finset ℕ), A <ᶜ B → A.sum (pow 2) < B.sum (pow 2),
   { intros A B,
-    rw [lt_iff_sdiff_lt_sdiff, colex.lt_def],
+    rw [← sdiff_lt_sdiff_iff_lt, colex.lt_def],
     rintro ⟨k, z, kA, kB⟩,
     rw ← sdiff_union_inter A B,
     conv_rhs { rw ← sdiff_union_inter B A },

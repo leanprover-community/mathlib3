@@ -122,7 +122,7 @@ lemma non_root_interval_of_polynomial (α : ℝ) (f : polynomial ℝ) (h_f_nonze
 begin
   set f_roots := f.roots.to_finset.erase α,
   set distances := insert (1 : ℝ) (f_roots.image (λ x, abs (α - x))),
-  have h_nonempty: distances.nonempty := ⟨1, finset.mem_insert_self _ _⟩,
+  have h_nonempty : distances.nonempty := ⟨1, finset.mem_insert_self _ _⟩,
   set B := distances.min' h_nonempty with hB,
   have h_allpos : ∀ x : ℝ, x ∈ distances → 0 < x,
   { intros x hx, rw [finset.mem_insert, finset.mem_image] at hx,

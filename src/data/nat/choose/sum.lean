@@ -140,9 +140,14 @@ begin
   simp,
 end
 
-theorem sum_powerset_neg_one_pow_card_of_nonempty {α : Type*} [decidable_eq α] {x : finset α}
+theorem sum_powerset_neg_one_pow_card_of_nonempty {α : Type*} {x : finset α}
   (h0 : x.nonempty) :
   ∑ m in x.powerset, (-1 : ℤ) ^ m.card = 0 :=
-by rw [sum_powerset_neg_one_pow_card, if_neg (finset.nonempty_iff_ne_empty.1 h0)]
+begin
+  classical,
+  rw [sum_powerset_neg_one_pow_card, if_neg],
+  rw [← ne.def, ← nonempty_iff_ne_empty],
+  apply h0,
+end
 
 end finset

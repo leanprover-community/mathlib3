@@ -400,7 +400,7 @@ begin
   simp only [mulzero, zero_add]
 end
 
-lemma roots_normalize_eq_roots (hzero : p ≠ 0) :
+lemma roots_normalize (hzero : p ≠ 0) :
   (normalize p).roots = p.roots :=
 begin
   have hcoeff : p.leading_coeff ≠ 0,

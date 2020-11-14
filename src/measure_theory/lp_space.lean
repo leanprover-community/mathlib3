@@ -43,6 +43,14 @@ measurable f ∧ ∫⁻ a, (nnnorm (f a)) ^ p ∂μ < ⊤
 /-- seminorm on ℒp -/
 def snorm (f : α → γ) (p : ℝ) (μ : measure α) : ennreal := (∫⁻ a, (nnnorm (f a))^p ∂μ) ^ (1/p)
 
+lemma lintegral_rpow_nnnorm_eq_rpow_snorm {f : α → γ} (hp0_lt : 0 < p) :
+  ∫⁻ a, (nnnorm (f a)) ^ p ∂μ = (snorm f p μ) ^ p :=
+begin
+  unfold snorm,
+  rw [←ennreal.rpow_mul, one_div, inv_mul_cancel, ennreal.rpow_one],
+  symmetry, exact ne_of_lt hp0_lt,
+end
+
 end ℒp_space_definition
 
 lemma mem_ℒp_one_iff_integrable : ∀ f : α → β, mem_ℒp f 1 μ ↔ integrable f μ :=
@@ -69,18 +77,8 @@ lemma lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top {f : α → γ} (hp0_lt : 0 <
   (hfp : snorm f p μ < ⊤) :
   ∫⁻ a, (nnnorm (f a)) ^ p ∂μ < ⊤ :=
 begin
-  have h_top_eq : ⊤ ^ (1/p) = ⊤,
-  { rw ennreal.rpow_eq_top_iff, right, split,
-    refl,
-    simp only [one_div, inv_pos],
-    exact hp0_lt, },
-  rw ←h_top_eq at hfp,
-  unfold snorm at hfp,
-  have h_snorm_rpow : ((∫⁻ (a : α), ↑(nnnorm (f a)) ^ p ∂μ) ^ (1 / p))^p < (⊤ ^ (1 / p))^p,
-  { exact ennreal.rpow_lt_rpow hfp hp0_lt, },
-  rw [←ennreal.rpow_mul, ←ennreal.rpow_mul] at h_snorm_rpow,
-  simp_rw [one_div, inv_mul_cancel (ne_of_lt hp0_lt).symm, ennreal.rpow_one] at h_snorm_rpow,
-  exact h_snorm_rpow,
+  rw lintegral_rpow_nnnorm_eq_rpow_snorm hp0_lt,
+  exact ennreal.rpow_lt_top_of_nonneg (le_of_lt hp0_lt) (ne_of_lt hfp),
 end
 
 lemma mem_ℒp_of_snorm_lt_top {f : α → β} (hp0_lt : 0 < p) (hfm : measurable f)

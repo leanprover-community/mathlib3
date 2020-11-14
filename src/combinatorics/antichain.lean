@@ -71,7 +71,7 @@ lemma powerset_len_iff_all_sized [fintype α] {𝒜 : finset (finset α)} :
   all_sized 𝒜 r ↔ 𝒜 ⊆ powerset_len r (fintype.elems α) :=
 by rw all_sized; apply forall_congr _; intro A; rw mem_powerset_len_iff_card
 
-lemma number_of_fixed_size [fintype α] {𝒜 : finset (finset α)} (h : all_sized 𝒜 r) :
+lemma card_le_of_all_sized [fintype α] {𝒜 : finset (finset α)} (h : all_sized 𝒜 r) :
   card 𝒜 ≤ nat.choose (fintype.card α) r :=
 begin
   rw [fintype.card, ← card_powerset_len],

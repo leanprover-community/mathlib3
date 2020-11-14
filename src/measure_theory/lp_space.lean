@@ -14,7 +14,7 @@ This file describes properties of measurable functions with finite seminorm
 
 ## Main definitions
 
-* `mem_ℒp p μ f` : the function `f` has finite p-seminorm for measure `μ`, for `p:ℝ` such that
+* `mem_ℒp f p μ` : the function `f` has finite p-seminorm for measure `μ`, for `p:ℝ` such that
                   `hp1 : 1 ≤ p`,
 
 ## Notation
@@ -37,7 +37,7 @@ variables {α β γ: Type*} [measurable_space α] {μ : measure α}
 section ℒp_space_definition
 
 /-- The property that f belongs to ℒp for measure μ and real p -/
-def mem_ℒp (p : ℝ) (μ : measure α) (f : α → β) : Prop :=
+def mem_ℒp (f : α → β) (p : ℝ) (μ : measure α) : Prop :=
 measurable f ∧ ∫⁻ a, (nnnorm (f a)) ^ p ∂μ < ⊤
 
 /-- seminorm on ℒp -/
@@ -45,7 +45,7 @@ def snorm (f : α → γ) (p : ℝ) (μ : measure α) : ennreal := (∫⁻ a, (n
 
 end ℒp_space_definition
 
-lemma mem_ℒp_one_iff_integrable : ∀ f : α → β, mem_ℒp 1 μ f ↔ integrable f μ :=
+lemma mem_ℒp_one_iff_integrable : ∀ f : α → β, mem_ℒp f 1 μ ↔ integrable f μ :=
 begin
   intro f,
   unfold integrable, unfold has_finite_integral, unfold mem_ℒp,
@@ -54,7 +54,7 @@ end
 
 section top
 
-lemma snorm_lt_top {f : α → β} (hp0 : 0 ≤ p) (hfp : mem_ℒp p μ f) : snorm f p μ < ⊤ :=
+lemma snorm_lt_top {f : α → β} (hp0 : 0 ≤ p) (hfp : mem_ℒp f p μ) : snorm f p μ < ⊤ :=
 begin
   unfold snorm,
   refine ennreal.rpow_lt_top_of_nonneg _ (ne_of_lt hfp.right),
@@ -62,7 +62,7 @@ begin
   exact hp0,
 end
 
-lemma snorm_ne_top {f : α → β} (hp0 : 0 ≤ p) (hfp : mem_ℒp p μ f) : snorm f p μ ≠ ⊤ :=
+lemma snorm_ne_top {f : α → β} (hp0 : 0 ≤ p) (hfp : mem_ℒp f p μ) : snorm f p μ ≠ ⊤ :=
 ne_of_lt (snorm_lt_top hp0 hfp)
 
 lemma lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top {f : α → β} (hp0_lt : 0 < p)
@@ -86,7 +86,7 @@ end
 
 lemma mem_ℒp_of_snorm_lt_top {f : α → β} (hp0_lt : 0 < p) (hfm : measurable f)
   (hfp : snorm f p μ < ⊤) :
-  mem_ℒp p μ f :=
+  mem_ℒp f p μ :=
 begin
   split,
   exact hfm,
@@ -105,7 +105,7 @@ begin
   exact ennreal.zero_rpow_of_pos hp0_lt,
 end
 
-lemma zero_mem_ℒp (hp0_lt : 0 < p): mem_ℒp p μ (0 : α → β) :=
+lemma zero_mem_ℒp (hp0_lt : 0 < p): mem_ℒp (0 : α → β) p μ :=
 begin
   split,
   exact measurable_zero,

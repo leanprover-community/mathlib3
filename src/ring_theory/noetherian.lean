@@ -43,6 +43,7 @@ is proved in `ring_theory.polynomial`.
 ## References
 
 * [M. F. Atiyah and I. G. Macdonald, *Introduction to commutative algebra*][atiyah-macdonald]
+* [P. Samuel, *Théorie algébrique des nombres*][samuel]
 
 ## Tags
 
@@ -516,7 +517,7 @@ namespace primes
 variables {R : Type*} [comm_ring R] [is_noetherian_ring R] [nontrivial R] [decidable_eq (prime_spectrum R)]
 
   /-In a noetherian ring, every ideal contains a product of prime ideals
-([Samuel, § 3.3, Lemma 3])-/
+([samuel, § 3.3, Lemma 3])-/
 lemma prime_product (I : ideal R) : ∃ (Z : multiset (prime_spectrum R)),
   multiset.prod (Z.map subtype.val) ≤ I :=
 begin
@@ -601,23 +602,22 @@ begin
   apply absurd h_PM h_absM,
 end
 
-end primes
+  /-In a noetherian integral domain which is not a field, every non-zero ideal contains a non-zero
+  product of prime ideals; in a field, the whole ring is a non-zero ideal containing only 0 as product
+  or prime ideals ([samuel, § 3.3, Lemma 3])-/
 
-namespace integral
-  /-In a noetherian integral domain, every non-zero ideal contains a non-zero product of prime ideals
-([Samuel, § 3.3, Lemma 3])-/
-
-variables {R : Type*} [comm_ring R] [is_noetherian_ring R] [decidable_eq (prime_spectrum R)]
+variables {A : Type*} [integral_domain A] [is_noetherian_ring A] [decidable_eq (prime_spectrum A)]
 
 
-lemma integral_nonzero_prime_product_of_nonzero (hR : is_integral_domain R)
- (I : ideal R) (h_nzI: ⊥ < I): ∃ (Z : multiset (prime_spectrum R)),
- multiset.prod (Z.map subtype.val) ≤ I ∧ multiset.prod (Z.map subtype.val) ≠ 0 :=
+lemma integral_nonzero_prime_product_of_nonzero (h_fA : ¬ is_field A) (I : ideal A) (h_nzI: ⊥ < I):
+  ∃ (Z : multiset (prime_spectrum A)), multiset.prod (Z.map subtype.val) ≤ I ∧
+  multiset.prod (Z.map subtype.val) ≠ 0 :=
 begin
-  have hR_nont : nontrivial R, sorry,
+  have hA_nont : nontrivial A,
+  apply is_integral_domain.to_nontrivial (integral_domain.to_is_integral_domain A),
   by_cases h_topI : I < ⊤,
-  { let P := λ J, ∀ (Y : multiset (prime_spectrum R)) (hY : multiset.prod (Y.map subtype.val) ≠ 0), ¬ multiset.prod (Y.map subtype.val) ≤ J,
-    let Ω := {J : ideal R | P J ∧ J ≠ 0},
+  { let P := λ J, ∀ (Y : multiset (prime_spectrum A)) (hY : multiset.prod (Y.map subtype.val) ≠ 0), ¬ multiset.prod (Y.map subtype.val) ≤ J,
+    let Ω := {J : ideal A | P J ∧ J ≠ 0},
     by_contradiction h_abs,
     replace h_abs : Ω ≠ ∅,
     { rw ne_empty_iff_nonempty,
@@ -629,8 +629,8 @@ begin
       rw [not_and, ne.def, not_not] at h_abs,
       apply mt h_abs hY,
       exact (ne_of_lt (h_nzI)).symm, },
-    obtain ⟨M, ⟨⟨h_PM, h_nzM⟩, h_maxM⟩⟩ : ∃ (M : ideal R) (H: M ∈ Ω), ∀ (J : ideal R), J ∈ Ω → M ≤ J → J = M,
-    { apply set_has_maximal_iff_noetherian.mpr _inst_2 Ω,
+    obtain ⟨M, ⟨⟨h_PM, h_nzM⟩, h_maxM⟩⟩ : ∃ (M : ideal A) (H: M ∈ Ω), ∀ (J : ideal A), J ∈ Ω → M ≤ J → J = M,
+    { apply set_has_maximal_iff_noetherian.mpr _inst_6 Ω,
       apply ne_empty_iff_nonempty.mp,
       assumption },
     have h_not_prM : ¬ M.is_prime,
@@ -645,22 +645,16 @@ begin
     { suffices h_top : ¬ P ⊤,
       { apply mt (congr_arg P), tauto },
       { rw not_forall,
-        obtain ⟨Ξ, hΞ⟩ : ∃ (Ξ : ideal R), Ξ.is_maximal,
+        obtain ⟨Ξ, hΞ⟩ : ∃ (Ξ : ideal A), Ξ.is_maximal,
         apply_rules @ideal.exists_maximal _ _ _,
-        let pΞ : (prime_spectrum R) := ⟨Ξ, ideal.is_maximal.is_prime hΞ⟩,
+        let pΞ : (prime_spectrum A) := ⟨Ξ, ideal.is_maximal.is_prime hΞ⟩,
         have h_nzΞ : 0 ≠ Ξ,
-        { suffices h_fR : ¬@is_field R (@comm_ring.to_ring R _inst_1),
-          apply ne_of_lt (@ideal.bot_lt_of_maximal R _inst_1 hR_nont Ξ hΞ h_fR),
-          apply (ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top).mpr,
-          use I,
-          split,
-          exacts [h_nzI, h_topI, hR_nont] },
-        existsi ({ pΞ } : multiset (prime_spectrum R)),
+        apply ne_of_lt (@ideal.bot_lt_of_maximal A _ hA_nont Ξ hΞ h_fA),
+        use ({ pΞ } : multiset (prime_spectrum A)),
         rw [multiset.singleton_eq_singleton, multiset.map_cons,
           multiset.map_zero, multiset.prod_singleton, not_imp, not_not],
-        split, exact h_nzΞ.symm,
-        simp only [le_top] } },
-    obtain ⟨x, y, hx, hy, h_xy⟩ : ∃ (x y : R), x ∉ M ∧ y ∉ M ∧ x * y ∈ M,
+        exact and.intro h_nzΞ.symm (order_top.le_top pΞ.val) }},
+    obtain ⟨x, y, hx, hy, h_xy⟩ : ∃ (x y : A), x ∉ M ∧ y ∉ M ∧ x * y ∈ M,
     { rw [ideal.is_prime, not_and] at h_not_prM,
       specialize h_not_prM h_not_topM,
       rw not_forall at h_not_prM,
@@ -669,14 +663,16 @@ begin
       cases hx with y hxy,
       use [x, y],
       finish },
-    have incl : ∀ (z : R), M ≤ M + span R {z},
+    have incl : ∀ (z : A), M ≤ M + span A {z},
       { intro z, from le_sup_left },
-    let Jx := M + span R {x},
-    have h_nzJx : Jx ≠ 0, sorry,
-    let Jy := M + span R {y},
-    have h_nzJy : Jy ≠ 0, sorry,
+    let Jx := M + span A {x},
+    have h_nzJx : Jx ≠ ⊥,
+    apply ne_bot_of_le_ne_bot h_nzM (incl x),
+    let Jy := M + span A {y},
+    have h_nzJy : Jy ≠ ⊥,
+    apply ne_bot_of_le_ne_bot h_nzM (incl y),
     have hJ_xy : ¬ P Jx ∧ ¬ P Jy,
-    { have belong : ∀ (z : R), z ∈ M + span R {z},
+    { have belong : ∀ (z : A), z ∈ M + span A {z},
       { intro z,
         apply submodule.mem_sup_right,
         apply submodule.mem_span_singleton_self z },
@@ -693,10 +689,7 @@ begin
         from h_maxM Jy h_Ωy (incl y),
         rw ← abs_y at hy,
         apply absurd (belong y) hy }, },
-    -- obtain ⟨ZM, h_ZM, h_nzZM⟩ : ∃ (ZM : multiset (prime_spectrum R)), multiset.prod (ZM.map subtype.val) ≤ M
-    --   ∧ multiset.prod (ZM.map subtype.val) ≠ 0,
-    -- sorry,
-    obtain ⟨Wx, h_Wx⟩ : ∃ (Wx : multiset (prime_spectrum R)), multiset.prod (Wx.map subtype.val) ≤ Jx
+    obtain ⟨Wx, h_Wx⟩ : ∃ (Wx : multiset (prime_spectrum A)), multiset.prod (Wx.map subtype.val) ≤ Jx
       ∧ multiset.prod (Wx.map subtype.val) ≠ 0,
     { have Jx_P : ¬ P Jx, exact hJ_xy.left,
       dsimp [P] at Jx_P,
@@ -704,7 +697,7 @@ begin
       rcases Jx_P with ⟨Wx, imp_Wx⟩,
       rw [not_imp, not_not] at imp_Wx,
       use Wx, exact imp_Wx.swap },
-    obtain ⟨Wy, h_Wy⟩ : ∃ (Wy : multiset (prime_spectrum R)), multiset.prod (Wy.map subtype.val) ≤ Jy
+    obtain ⟨Wy, h_Wy⟩ : ∃ (Wy : multiset (prime_spectrum A)), multiset.prod (Wy.map subtype.val) ≤ Jy
       ∧ multiset.prod (Wy.map subtype.val) ≠ 0,
     { have Jy_P : ¬ P Jy, exact hJ_xy.right,
       dsimp [P] at Jy_P,
@@ -719,42 +712,41 @@ begin
         { suffices h_JM : Jx * Jy ≤ M, from le_trans h_JJ h_JM,
           { dsimp only *,
             rw add_mul,
-            have this : M * (M + span R {y}) ≤ M, from ideal.mul_le_right,
+            have this : M * (M + span A {y}) ≤ M, from ideal.mul_le_right,
             apply sup_le this,
             rw mul_add,
-            replace this : span R {x} * M ≤ M, from ideal.mul_le_left,
+            replace this : span A {x} * M ≤ M, from ideal.mul_le_left,
             apply sup_le this,
             rw [span_mul_span, singleton_mul_singleton, span_singleton_le_iff_mem],
             exact h_xy } },
         { rw [multiset.map_add, multiset.prod_add],
           apply submodule.mul_le_mul h_Wx.left h_Wy.left }, },
       { rw [multiset.map_add, multiset.prod_add, zero_eq_bot, ne.def],
-        -- have h_vel : ¬ ((multiset.map subtype.val Wx).prod = ⊥ ∨ (multiset.map subtype.val Wy).prod = ⊥),
-        -- sorry,
-        -- have h_prod : ¬ (multiset.map subtype.val Wx).prod * (multiset.map subtype.val Wy).prod = ⊥,
-        have hR_int : integral_domain R, sorry,
-        have A : ideal R, sorry,
-        have B : ideal R, sorry,
-        have htemp : ¬ (A = ⊥ ∨ B = ⊥), sorry,
-        have hAB : ¬ A * B = ⊥, sorry,
-        -- apply (not_iff_not_of_iff (@ideal.mul_eq_bot R hR_int A B).mpr htemp,
-        -- let Qx := (multiset.map subtype.val Wx).prod,
-        -- let Qy := (multiset.map subtype.val Wy).prod,
-        -- simp [*, ideal.mul_eq_bot] at *,
-        -- have mul_int : (multiset.map subtype.val Wx).prod * (multiset.map subtype.val Wy).prod = ⊥
-        --   ↔ (multiset.map subtype.val Wx).prod = ⊥ ∨ (multiset.map subtype.val Wy).prod = ⊥,
-        -- apply @ideal.mul_eq_bot R _ (multiset.map subtype.val Wx).prod (multiset.map subtype.val Wx).prod,
-        sorry, }, },
+        have this : ¬ (multiset.prod (Wx.map subtype.val) = ⊥ ∨ multiset.prod (Wy.map subtype.val) = ⊥),
+        { rw [not_or_distrib, ← zero_eq_bot],
+          exact and.intro h_Wx.right h_Wy.right },
+        apply (not_iff_not_of_iff (ideal.mul_eq_bot)).mpr this } },
     have h_absM : ¬ P M,
-    { dsimp only [P], sorry,
-      -- rw not_forall_not,
-      -- use W, exact h_W
-      },
+    { dsimp only [P],
+      rw not_forall,
+      use W,
+      rw not_imp,
+      exact and.intro h_W.right (not_not.mpr h_W.left) },
     apply absurd h_PM h_absM },
-  {sorry},
+  { replace h_topI : I = ⊤,
+    { rw [lt_iff_le_not_le, not_and_not_right] at h_topI,
+      rw eq_top_iff,
+      apply h_topI (order_top.le_top I) },
+    obtain ⟨p_id, h_nzp, h_pp⟩ : ∃ (p : ideal A), p ≠ 0 ∧ p.is_prime,
+    apply ring.not_is_field_iff_exists_prime.mp h_fA,
+    let p : (prime_spectrum A) := ⟨p_id, h_pp⟩,
+    use ({ p } : multiset (prime_spectrum A)),
+    rw [multiset.singleton_eq_singleton, multiset.map_cons,
+          multiset.map_zero, multiset.prod_singleton, h_topI],
+    exact and.intro (order_top.le_top p.val) h_nzp },
 end
 
 
 
 
-end integral
+end primes

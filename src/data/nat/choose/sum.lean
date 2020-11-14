@@ -126,7 +126,7 @@ begin
   rw (mem_powerset_len.1 hz).2,
 end
 
-theorem sum_powerset_neg_one_pow_card {α : Type*} [decidable_eq α] (x : finset α) :
+theorem sum_powerset_neg_one_pow_card {α : Type*} [decidable_eq α] {x : finset α} :
   ∑ m in x.powerset, (-1 : ℤ) ^ m.card = if x = ∅ then 1 else 0 :=
 begin
   rw sum_powerset_apply_card,

@@ -98,27 +98,3 @@ by { ext, simp [mem_powerset_len] }
 
 end powerset_len
 end finset
-
-namespace multiset
-
-lemma to_finset_powerset (s : multiset α) [decidable_eq α] :
-  s.to_finset.powerset = (s.powerset.map to_finset).to_finset :=
-begin
-  ext a,
-  simp only [mem_powerset, finset.mem_powerset, mem_map, mem_to_finset],
-  split; intro h,
-  { use a.val,
-    split,
-    { rw ← finset.val_le_iff at h,
-      apply le_trans h,
-      rw to_finset_val,
-      apply erase_dup_le },
-    { rw ← to_finset_eq a.nodup,
-      apply finset.eq_of_veq,
-      refl } },
-  { rcases h with ⟨b, bs, rfl⟩,
-    rw to_finset_subset,
-    apply subset_of_le bs }
-end
-
-end multiset

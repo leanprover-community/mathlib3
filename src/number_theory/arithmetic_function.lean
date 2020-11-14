@@ -593,13 +593,14 @@ begin
   cases x, simp,
   rw [mul_zeta_apply, one_apply_ne (ne_of_gt (succ_lt_succ (nat.succ_pos _)))],
   rw ← sum_filter_ne_zero,
-  --simp only [moebius_ne_zero_iff_squarefree],
-  apply eq.trans _ (foo (factors x).to_finset),
-  rw finset.sum_eq_multiset_sum,
-  swap,
-  apply moebius_apply_of_squarefree,
-  have h := mem_filter,
-  rw ← foo (factors x).to_finset,
+  simp only [moebius_ne_zero_iff_squarefree],
+  transitivity,
+  convert (sum_divisors_filter_squarefree (nat.succ_ne_zero _)),
+  apply eq.trans (eq.trans (sum_congr rfl _) sum_powerset_neg_one_pow_card),
+  { sorry },
+  apply_instance,
+  intros y hy,
+  rw if_pos,
 end
 
 end special_functions

@@ -125,6 +125,14 @@ end
 
 end unique_factorization_monoid
 
+--move this
+lemma multiset.prod_dvd_prod {α : Type*} [comm_monoid α] {x y : multiset α} (h : x ≤ y) :
+  x.prod ∣ y.prod :=
+begin
+  rcases multiset.le_iff_exists_add.1 h with ⟨z, rfl⟩,
+  simp,
+end
+
 namespace nat
 
 lemma squarefree_iff_nodup_factors {n : ℕ} (h0 : n ≠ 0) :
@@ -138,11 +146,54 @@ instance : decidable_pred (squarefree : ℕ → Prop)
 | 0 := is_false not_squarefree_zero
 | (n + 1) := decidable_of_iff _ (squarefree_iff_nodup_factors (nat.succ_ne_zero n)).symm
 
+open unique_factorization_monoid
+
 lemma divisors_filter_squarefree {n : ℕ} (h0 : n ≠ 0) :
   (n.divisors.filter squarefree).val =
-    (unique_factorization_monoid.factors n).to_finset.powerset.val.map (λ x, x.prod id) :=
+    (unique_factorization_monoid.factors n).to_finset.powerset.val.map (λ x, x.val.prod) :=
 begin
-  rw [to_finset_powerset, to_finset_val],
+  rw multiset.nodup_ext (finset.nodup _) (multiset.nodup_map_on _ (finset.nodup _)),
+  { intro a,
+    simp only [multiset.mem_filter, id.def, multiset.mem_map, finset.filter_val, ← finset.mem_def,
+      mem_divisors],
+    split,
+    { rintro ⟨⟨an, h0⟩, hsq⟩,
+      use (unique_factorization_monoid.factors a).to_finset,
+      simp only [id.def, finset.mem_powerset],
+      rcases an with ⟨b, rfl⟩,
+      rw mul_ne_zero_iff at h0,
+      rw unique_factorization_monoid.squarefree_iff_nodup_factors h0.1 at hsq,
+      rw [multiset.to_finset_subset, multiset.to_finset_val, multiset.erase_dup_eq_self.2 hsq,
+        ← associated_iff_eq, factors_mul h0.1 h0.2],
+      exact ⟨multiset.subset_of_le (multiset.le_add_right _ _), factors_prod h0.1⟩ },
+    { rintro ⟨s, hs, rfl⟩,
+      rw [finset.mem_powerset, ← finset.val_le_iff, multiset.to_finset_val] at hs,
+      have hs0 : s.val.prod ≠ 0,
+      { rw [ne.def, multiset.prod_eq_zero_iff],
+        simp only [exists_prop, id.def, exists_eq_right],
+        intro con,
+        apply not_irreducible_zero (irreducible_of_factor 0
+            (multiset.mem_erase_dup.1 (multiset.mem_of_le hs con))) },
+      rw [dvd_iff_dvd_of_rel_right (factors_prod h0).symm],
+      refine ⟨⟨multiset.prod_dvd_prod (le_trans hs (multiset.erase_dup_le _)), h0⟩, _⟩,
+      have h := unique_factorization_monoid.factors_unique irreducible_of_factor
+        (λ x hx, irreducible_of_factor x (multiset.mem_of_le
+          (le_trans hs (multiset.erase_dup_le _)) hx)) (factors_prod hs0),
+      rw [associated_eq_eq, multiset.rel_eq] at h,
+      rw [unique_factorization_monoid.squarefree_iff_nodup_factors hs0, h],
+      apply s.nodup } },
+  { intros x hx y hy h,
+    rw [← finset.val_inj, ← multiset.rel_eq, ← associated_eq_eq],
+    rw [← finset.mem_def, finset.mem_powerset] at hx hy,
+    apply unique_factorization_monoid.factors_unique _ _ (associated_iff_eq.2 h),
+    { intros z hz,
+      apply irreducible_of_factor z,
+      rw ← multiset.mem_to_finset,
+      apply hx hz },
+    { intros z hz,
+      apply irreducible_of_factor z,
+      rw ← multiset.mem_to_finset,
+      apply hy hz } }
 end
 
 open_locale big_operators
@@ -150,7 +201,7 @@ open_locale big_operators
 lemma sum_divisors_filter_squarefree {n : ℕ} (h0 : n ≠ 0)
   {α : Type*} [add_comm_monoid α] {f : ℕ → α} :
   ∑ i in (n.divisors.filter squarefree), f i =
-    ∑ i in (unique_factorization_monoid.factors n).to_finset.powerset, f (i.prod id) :=
+    ∑ i in (unique_factorization_monoid.factors n).to_finset.powerset, f (i.val.prod) :=
 by rw [finset.sum_eq_multiset_sum, divisors_filter_squarefree h0, multiset.map_map,
     finset.sum_eq_multiset_sum]
 

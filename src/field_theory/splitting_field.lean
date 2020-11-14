@@ -362,22 +362,23 @@ end
 
 /-- A polynomial `p` that has as much roots as its degree
 can be written `p = p.leading_coeff * ∏(X - a)`, for `a` in `p.roots`. -/
-lemma C_leading_coeff_mul_prod_multiset_X_sub_C {p : polynomial α} (hzero : p ≠ 0)
+lemma C_leading_coeff_mul_prod_multiset_X_sub_C {p : polynomial α}
   (hroots : p.roots.card = p.nat_degree) :
   (C p.leading_coeff) * (multiset.map (λ (a : α), X - C a) p.roots).prod = p :=
 begin
-  have hcoeff : p.leading_coeff ≠ 0,
-  { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
-  have sameroots := roots_normalize hzero,
-  have hrootsnorm : (normalize p).roots.card = (normalize p).nat_degree,
-  { rw [sameroots, normalize_apply, nat_degree_mul hzero (units.ne_zero _), hroots, coe_norm_unit,
-      nat_degree_C, add_zero], },
-  have hprod := prod_multiset_X_sub_C_of_monic_of_roots_card_eq (monic_normalize hzero) hrootsnorm,
-  rw [sameroots, normalize_apply, coe_norm_unit_of_ne_zero hzero] at hprod,
-  calc (C p.leading_coeff) * (multiset.map (λ (a : α), X - C a) p.roots).prod
-      = p * C ((p.leading_coeff)⁻¹ * p.leading_coeff) : by rw [hprod, mul_comm, mul_assoc, ← C_mul]
-  ... = p * C 1 : by field_simp [hcoeff]
-  ... = p : by simp only [mul_one, ring_hom.map_one]
+  by_cases hzero : p = 0,
+  { rw [hzero, leading_coeff_zero, ring_hom.map_zero, zero_mul], },
+  { have hcoeff : p.leading_coeff ≠ 0,
+    { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
+    have hrootsnorm : (normalize p).roots.card = (normalize p).nat_degree,
+    { rw [roots_normalize, normalize_apply, nat_degree_mul hzero (units.ne_zero _), hroots, coe_norm_unit,
+        nat_degree_C, add_zero], },
+    have hprod := prod_multiset_X_sub_C_of_monic_of_roots_card_eq (monic_normalize hzero) hrootsnorm,
+    rw [roots_normalize, normalize_apply, coe_norm_unit_of_ne_zero hzero] at hprod,
+    calc (C p.leading_coeff) * (multiset.map (λ (a : α), X - C a) p.roots).prod
+        = p * C ((p.leading_coeff)⁻¹ * p.leading_coeff) : by rw [hprod, mul_comm, mul_assoc, ← C_mul]
+    ... = p * C 1 : by field_simp [hcoeff]
+    ... = p : by simp only [mul_one, ring_hom.map_one], },
 end
 
 /-- A polynomial splits if and only if it has as much roots as its degree. -/

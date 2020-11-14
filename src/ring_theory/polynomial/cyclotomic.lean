@@ -156,9 +156,9 @@ lemma X_pow_sub_one_splits {ζ : K} {n : ℕ} (h : is_primitive_root ζ n) :
   splits (ring_hom.id K) (X ^ n - C (1 : K)) :=
 begin
   by_cases hzero : n = 0,
-  { simp only [hzero, ring_hom.map_one, splits_zero, pow_zero, sub_self] },
-  apply (splits_iff_card_roots (X_pow_sub_C_ne_zero (nat.pos_of_ne_zero hzero) (1 : K))).2,
-  rw [← nth_roots, is_primitive_root.card_nth_roots h, nat_degree_X_pow_sub_C],
+  { simp only [hzero, ring_hom.map_one, splits_zero, pow_zero, sub_self] }
+  rw [splits_iff_card_roots, ← nth_roots, is_primitive_root.card_nth_roots h,
+    nat_degree_X_pow_sub_C],
   exact nat.pos_of_ne_zero hzero
 end
 

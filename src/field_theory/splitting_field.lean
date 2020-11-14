@@ -382,7 +382,7 @@ begin
 end
 
 /-- A polynomial splits if and only if it has as much roots as its degree. -/
-lemma splits_iff_card_roots {p : polynomial α} (hzero : p ≠ 0) :
+lemma splits_iff_card_roots {p : polynomial α} :
   splits (ring_hom.id α) p ↔ p.roots.card = p.nat_degree :=
 begin
   split,
@@ -391,7 +391,7 @@ begin
     apply (splits_iff_exists_multiset (ring_hom.id α)).2,
     use p.roots,
     simp only [ring_hom.id_apply, map_id],
-    exact (C_leading_coeff_mul_prod_multiset_X_sub_C hzero hroots).symm },
+    exact (C_leading_coeff_mul_prod_multiset_X_sub_C hroots).symm },
 end
 
 end splits

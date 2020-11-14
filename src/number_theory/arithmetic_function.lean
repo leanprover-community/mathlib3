@@ -600,6 +600,7 @@ begin
   { rcases h with h | h; simp [h] }
 end
 
+/-- Moebius Inversion -/
 lemma moebius_mul_zeta_eq_one : μ * ζ = 1 :=
 begin
   ext x,
@@ -636,6 +637,9 @@ begin
   rw ← h at con,
   exact not_irreducible_zero (irreducible_of_factor 0 con),
 end
+
+lemma zeta_mul_moebius_eq_one : ζ * μ = 1 :=
+by rw [mul_comm, moebius_mul_zeta_eq_one]
 
 end special_functions
 end arithmetic_function

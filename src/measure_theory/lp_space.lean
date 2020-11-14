@@ -61,7 +61,6 @@ section top
 
 lemma snorm_lt_top {f : α → E} (hp0 : 0 ≤ p) (hfp : mem_ℒp f p μ) : snorm f p μ < ⊤ :=
 begin
-  unfold snorm,
   refine ennreal.rpow_lt_top_of_nonneg _ (ne_of_lt hfp.right),
   rw [one_div, inv_nonneg],
   exact hp0,

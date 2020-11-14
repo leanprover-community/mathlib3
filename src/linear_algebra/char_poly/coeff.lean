@@ -5,7 +5,7 @@ Author: Aaron Anderson, Jalex Stark.
 -/
 
 import data.matrix.char_p
-import linear_algebra.char_poly
+import linear_algebra.char_poly.basic
 import linear_algebra.matrix
 import ring_theory.polynomial.basic
 import algebra.polynomial.big_operators

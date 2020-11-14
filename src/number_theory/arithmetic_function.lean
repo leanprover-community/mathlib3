@@ -539,6 +539,11 @@ def card_factors : arithmetic_function ℕ :=
 localized "notation `Ω` := card_factors" in arithmetic_function
 
 @[simp]
+lemma card_factors_apply {n : ℕ} :
+  Ω n = (unique_factorization_monoid.factors n).card :=
+by { rw [nat.factors_eq, multiset.coe_card], refl }
+
+@[simp]
 lemma card_factors_one : Ω 1 = 0 := rfl
 
 /-- `ω n` is the number of distinct prime factors of `n`. -/
@@ -546,6 +551,15 @@ def card_distinct_factors : arithmetic_function ℕ :=
 ⟨λ n, n.factors.erase_dup.length, rfl⟩
 
 localized "notation `ω` := card_distinct_factors" in arithmetic_function
+
+@[simp]
+lemma card_distinct_factors_apply {n : ℕ} :
+  ω n = (unique_factorization_monoid.factors n).to_finset.card :=
+begin
+  rw [nat.factors_eq, finset.card, multiset.to_finset_val,
+  multiset.coe_erase_dup, multiset.coe_card],
+  refl
+end
 
 /-- `μ` is the Möbius function. If `n` is squarefree with an even number of distinct prime factors,
   `μ n = 1`. If `n` is squarefree with an odd number of distinct prime factors, `μ n = -1`.
@@ -597,10 +611,30 @@ begin
   transitivity,
   convert (sum_divisors_filter_squarefree (nat.succ_ne_zero _)),
   apply eq.trans (eq.trans (sum_congr rfl _) sum_powerset_neg_one_pow_card),
-  { sorry },
+  { rw if_neg,
+    rw [multiset.to_finset_eq_empty, multiset.eq_zero_iff_forall_not_mem, not_forall],
+    rcases wf_dvd_monoid.exists_irreducible_factor _ (nat.succ_ne_zero _) with ⟨i, hi⟩,
+    { rcases unique_factorization_monoid.exists_mem_factors_of_dvd (nat.succ_ne_zero _) hi.1 hi.2
+        with ⟨j, hj, hj2⟩,
+      use j },
+    rw nat.is_unit_iff,
+    omega },
   apply_instance,
   intros y hy,
-  rw if_pos,
+  rw [finset.mem_powerset, ← finset.val_le_iff, multiset.to_finset_val] at hy,
+  have h : unique_factorization_monoid.factors y.val.prod = y.val,
+  { apply factors_multiset_prod_of_irreducible,
+    intros z hz,
+    apply irreducible_of_factor _ (multiset.subset_of_le
+      (le_trans hy (multiset.erase_dup_le _)) hz) },
+  rw [if_pos],
+  { rw [card_factors_apply, h, finset.card] },
+  rw [unique_factorization_monoid.squarefree_iff_nodup_factors, h],
+  { apply y.nodup },
+  rw [ne.def, multiset.prod_eq_zero_iff],
+  intro con,
+  rw ← h at con,
+  exact not_irreducible_zero (irreducible_of_factor 0 con),
 end
 
 end special_functions

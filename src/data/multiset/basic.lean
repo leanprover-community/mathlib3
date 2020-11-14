@@ -848,6 +848,13 @@ quotient.induction_on s $ λ l,
 lemma dvd_prod [comm_monoid α] {a : α} {s : multiset α} : a ∈ s → a ∣ s.prod :=
 quotient.induction_on s (λ l a h, by simpa using list.dvd_prod h) a
 
+lemma prod_dvd_prod {α : Type*} [comm_monoid α] {x y : multiset α} (h : x ≤ y) :
+  x.prod ∣ y.prod :=
+begin
+  rcases multiset.le_iff_exists_add.1 h with ⟨z, rfl⟩,
+  simp,
+end
+
 theorem prod_eq_zero_iff [comm_cancel_monoid_with_zero α] [nontrivial α]
   {s : multiset α} :
   s.prod = 0 ↔ (0 : α) ∈ s :=

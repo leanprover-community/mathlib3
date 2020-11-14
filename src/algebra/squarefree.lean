@@ -125,14 +125,6 @@ end
 
 end unique_factorization_monoid
 
---move this
-lemma multiset.prod_dvd_prod {α : Type*} [comm_monoid α] {x y : multiset α} (h : x ≤ y) :
-  x.prod ∣ y.prod :=
-begin
-  rcases multiset.le_iff_exists_add.1 h with ⟨z, rfl⟩,
-  simp,
-end
-
 namespace nat
 
 lemma squarefree_iff_nodup_factors {n : ℕ} (h0 : n ≠ 0) :

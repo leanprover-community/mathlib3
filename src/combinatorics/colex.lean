@@ -248,8 +248,8 @@ begin
 end
 
 /-- Colex doesn't care if you remove the other set -/
-lemma lt_iff_sdiff_lt_sdiff [has_lt α] [decidable_eq α] (A B : finset α) :
-  A <ᶜ B ↔ A \ B <ᶜ B \ A :=
+@[simp] lemma sdiff_lt_sdiff_iff_lt [has_lt α] [decidable_eq α] (A B : finset α) :
+  A \ B <ᶜ B \ A ↔ A <ᶜ B :=
 begin
   rw [colex.lt_def, colex.lt_def],
   apply exists_congr,

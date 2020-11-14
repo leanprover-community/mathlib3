@@ -599,6 +599,16 @@ by rw sqrt_eq_rpow; exact continuous_rpow_of_pos (λa, by norm_num) continuous_i
 
 end sqrt
 
+lemma measurable_rpow {p : ℝ} (hp0 : 0 < p) : measurable (λ a : ℝ, a ^ p) :=
+begin
+  have h : continuous (λ a : ℝ, a ^ p),
+  { change continuous (λ a : ℝ, (id a) ^ ((λ a : ℝ, p) a)),
+    refine real.continuous_rpow _ continuous_id continuous_const,
+    intro a, right,
+    exact hp0, },
+  exact continuous.measurable h,
+end
+
 end real
 
 section differentiability
@@ -945,6 +955,16 @@ begin
   { exact ((continuous_subtype_val.comp continuous_fst).prod_mk continuous_snd).continuous_at }
 end
 
+lemma measurable_rpow {p : ℝ} (hp0 : 0 < p) : measurable (λ a : nnreal, a ^ p) :=
+begin
+  have h_rw : (λ (a : nnreal), a ^ p) = (λ (a : nnreal), nnreal.of_real(↑a ^ p)),
+  { ext1 a, rw ←nnreal.coe_rpow, rw nnreal.of_real_coe, },
+  rw h_rw,
+  refine measurable.nnreal_of_real _,
+  change measurable ((λ a : ℝ, a ^ p) ∘ (λ a : nnreal, ↑a)),
+  exact measurable.comp (real.measurable_rpow hp0) (nnreal.measurable_coe),
+end
+
 end nnreal
 
 open filter
@@ -1068,7 +1088,8 @@ end
 lemma rpow_eq_top_of_nonneg (x : ennreal) {p : ℝ} (hp0 : 0 ≤ p) : x ^ p = ⊤ → x = ⊤ :=
 begin
   rw ennreal.rpow_eq_top_iff,
-  intro h, cases h,
+  intro h,
+  cases h,
   { exfalso, rw lt_iff_not_ge at h, exact h.right hp0, },
   { exact h.left, },
 end
@@ -1336,6 +1357,13 @@ begin
   { simp [H] },
   { cases x, { simp [H, ne_of_gt] },
     simp [coe_rpow_of_nonneg _ (le_of_lt H)] }
+end
+
+lemma measurable_rpow_coe {p : ℝ} (hp0 : 0 < p) :
+  measurable (λ a : nnreal, (a : ennreal) ^ p) :=
+begin
+  simp_rw ennreal.coe_rpow_of_nonneg _ (le_of_lt hp0),
+  exact measurable.ennreal_coe (nnreal.measurable_rpow hp0),
 end
 
 end ennreal

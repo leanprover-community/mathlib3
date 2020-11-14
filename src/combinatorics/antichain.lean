@@ -9,6 +9,7 @@ import data.fintype.basic
 /-!
 # Antichains
 
+Investigating the structure of the lattice of subsets of a finite set
 Basic definitions for finite sets which are useful for combinatorics.
 We define antichains, and a proposition asserting that a set is a set of r-sets.
 

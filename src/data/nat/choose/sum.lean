@@ -107,6 +107,10 @@ begin
   rw [← h, zero_pow (nat.succ_pos n), if_neg (nat.succ_ne_zero n)],
 end
 
+theorem int.alternating_sum_range_choose_of_ne {n : ℕ} (h0 : n ≠ 0) :
+  ∑ m in range (n + 1), ((-1) ^ m * ↑(choose n m) : ℤ) = 0 :=
+by rw [int.alternating_sum_range_choose, if_neg h0]
+
 namespace finset
 
 theorem sum_powerset_apply_card {α β : Type*} [add_comm_monoid α] (f : ℕ → α) {x : finset β} :
@@ -135,5 +139,10 @@ begin
   ext,
   simp,
 end
+
+theorem sum_powerset_neg_one_pow_card_of_nonempty {α : Type*} [decidable_eq α] {x : finset α}
+  (h0 : x ≠ ∅) :
+  ∑ m in x.powerset, (-1 : ℤ) ^ m.card = 0 :=
+by rw [sum_powerset_neg_one_pow_card, if_neg h0]
 
 end finset

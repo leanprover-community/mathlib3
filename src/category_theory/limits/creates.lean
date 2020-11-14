@@ -319,6 +319,54 @@ instance preserves_colimits_of_creates_colimits_and_has_colimits (F : C ⥤ D) [
 { preserves_colimits_of_shape := λ J 𝒥,
   by exactI category_theory.preserves_colimit_of_shape_of_creates_colimits_of_shape_and_has_colimits_of_shape F }
 
+/-- If `F` creates the limit of `K` and `F ≅ G`, then `G` creates the limit of `K`. -/
+def creates_limit_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [creates_limit K F] :
+  creates_limit K G :=
+{ lifts := λ c t,
+  { lifted_cone :=
+      lift_limit ((is_limit.postcompose_inv_equiv (iso_whisker_left K h : _) c).symm t),
+    valid_lift :=
+    begin
+      refine (is_limit.map_cone_equiv h _).unique_up_to_iso t,
+      apply is_limit.of_iso_limit _ ((lifted_limit_maps_to_original _).symm),
+      apply (is_limit.postcompose_inv_equiv _ _).symm t,
+    end },
+  to_reflects_limit := reflects_limit_of_nat_iso _ h }
+
+/-- If `F` creates limits of shape `J` and `F ≅ G`, then `G` creates limits of shape `J`. -/
+def creates_limits_of_shape_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [creates_limits_of_shape J F] :
+  creates_limits_of_shape J G :=
+{ creates_limit := λ K, creates_limit_of_nat_iso h }
+
+/-- If `F` creates limits and `F ≅ G`, then `G` creates limits. -/
+def creates_limits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [creates_limits F] :
+  creates_limits G :=
+{ creates_limits_of_shape := λ J 𝒥₁, by exactI creates_limits_of_shape_of_nat_iso h }
+
+/-- If `F` creates the colimit of `K` and `F ≅ G`, then `G` creates the colimit of `K`. -/
+def creates_colimit_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [creates_colimit K F] :
+  creates_colimit K G :=
+{ lifts := λ c t,
+  { lifted_cocone :=
+      lift_colimit ((is_colimit.precompose_hom_equiv (iso_whisker_left K h : _) c).symm t),
+    valid_lift :=
+    begin
+      refine (is_colimit.map_cocone_equiv h _).unique_up_to_iso t,
+      apply is_colimit.of_iso_colimit _ ((lifted_colimit_maps_to_original _).symm),
+      apply (is_colimit.precompose_hom_equiv _ _).symm t,
+    end },
+  to_reflects_colimit := reflects_colimit_of_nat_iso _ h }
+
+/-- If `F` creates colimits of shape `J` and `F ≅ G`, then `G` creates colimits of shape `J`. -/
+def creates_colimits_of_shape_of_nat_iso {F G : C ⥤ D} (h : F ≅ G)
+  [creates_colimits_of_shape J F] : creates_colimits_of_shape J G :=
+{ creates_colimit := λ K, creates_colimit_of_nat_iso h }
+
+/-- If `F` creates colimits and `F ≅ G`, then `G` creates colimits. -/
+def creates_colimits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [creates_colimits F] :
+  creates_colimits G :=
+{ creates_colimits_of_shape := λ J 𝒥₁, by exactI creates_colimits_of_shape_of_nat_iso h }
+
 -- For the inhabited linter later.
 /-- If F creates the limit of K, any cone lifts to a limit. -/
 def lifts_to_limit_of_creates (K : J ⥤ C) (F : C ⥤ D)

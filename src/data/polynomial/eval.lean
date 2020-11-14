@@ -188,6 +188,14 @@ lemma eval₂_eq_sum_range :
   p.eval₂ f x = ∑ i in finset.range (p.nat_degree + 1), f (p.coeff i) * x^i :=
 trans (congr_arg _ p.as_sum_range) (trans (eval₂_finset_sum f _ _ x) (congr_arg _ (by simp)))
 
+lemma eval₂_eq_sum_range' (f : R →+* S) {p : polynomial R} {n : ℕ} (hn : p.nat_degree < n) (x : S) :
+  eval₂ f x p = ∑ i in finset.range n, f (p.coeff i) * x ^ i :=
+begin
+  rw [eval₂_eq_sum, p.sum_over_range' _ _ hn],
+  intro i,
+  rw [f.map_zero, zero_mul]
+end
+
 end eval₂
 
 section eval

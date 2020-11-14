@@ -489,7 +489,7 @@ begin
         { rw one_div_le_one_div,
           { apply pow_le_pow,
             { norm_num },
-            { exact nat.add_factorial_le_factorial_add _ _ }},
+            { exact nat.add_factorial_le_factorial_add _ _ (nat.succ_ne_zero _) }},
           repeat { apply pow_pos, norm_num }},
         { rw one_div_nonneg, apply pow_nonneg, norm_num },
         { rw [div_pow, one_pow, one_div_le_one_div],

@@ -368,7 +368,7 @@ lemma C_leading_coeff_mul_prod_multiset_X_sub_C {p : polynomial α} (hzero : p �
 begin
   have hcoeff : p.leading_coeff ≠ 0,
   { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
-  have sameroots := roots_normalize_eq_roots hzero,
+  have sameroots := roots_normalize hzero,
   have hrootsnorm : (normalize p).roots.card = (normalize p).nat_degree,
   { rw [sameroots, normalize_apply, nat_degree_mul hzero (units.ne_zero _), hroots, coe_norm_unit,
       nat_degree_C, add_zero], },

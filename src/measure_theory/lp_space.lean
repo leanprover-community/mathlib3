@@ -52,6 +52,8 @@ begin
   simp only [ennreal.rpow_one, nnreal.coe_one],
 end
 
+section top
+
 lemma snorm_lt_top {f : α → β} (hp0 : 0 ≤ p) (hfp : mem_ℒp p μ f) : snorm f p μ < ⊤ :=
 begin
   unfold snorm,
@@ -62,6 +64,38 @@ end
 
 lemma snorm_ne_top {f : α → β} (hp0 : 0 ≤ p) (hfp : mem_ℒp p μ f) : snorm f p μ ≠ ⊤ :=
 ne_of_lt (snorm_lt_top hp0 hfp)
+
+lemma lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top {f : α → β} (hp0_lt : 0 < p)
+  (hfp : snorm f p μ < ⊤) :
+  ∫⁻ a, (nnnorm (f a)) ^ p ∂μ < ⊤ :=
+begin
+  have h_top_eq : (⊤ : ennreal) = ⊤ ^ (1/p),
+  { symmetry, rw ennreal.rpow_eq_top_iff, right, split,
+    refl,
+    simp only [one_div, inv_pos], exact hp0_lt, },
+  rw h_top_eq at hfp,
+  unfold snorm at hfp,
+  have h_seminorm_rpow : ((∫⁻ (a : α), ↑(nnnorm (f a)) ^ p ∂μ) ^ (1 / p))^p < (⊤ ^ (1 / p))^p,
+  { exact ennreal.rpow_lt_rpow hfp hp0_lt, },
+  rw [←ennreal.rpow_mul, ←ennreal.rpow_mul] at h_seminorm_rpow,
+  simp_rw one_div at h_seminorm_rpow,
+  simp_rw inv_mul_cancel (ne_of_lt hp0_lt).symm at h_seminorm_rpow,
+  simp_rw ennreal.rpow_one at h_seminorm_rpow,
+  exact h_seminorm_rpow,
+end
+
+lemma mem_ℒp_of_snorm_lt_top {f : α → β} (hp0_lt : 0 < p) (hfm : measurable f)
+  (hfp : snorm f p μ < ⊤) :
+  mem_ℒp p μ f :=
+begin
+  split,
+  exact hfm,
+  exact lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top hp0_lt hfp,
+end
+
+end top
+
+section zero
 
 lemma lintegral_rpow_nnnorm_zero (hp0_lt : 0 < p) : ∫⁻ a, (nnnorm ((0 : α → γ) a))^p ∂μ = 0 :=
 begin
@@ -89,5 +123,7 @@ begin
   refl,
   rw [one_div, inv_pos], exact hp0_lt,
 end
+
+end zero
 
 end ℒp_space

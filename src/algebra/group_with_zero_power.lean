@@ -239,6 +239,10 @@ theorem one_div_fpow {a : G₀} (n : ℤ) :
   (1 / a) ^ n = 1 / a ^ n :=
 by simp only [one_div, inv_fpow]
 
+@[simp] lemma inv_fpow' {a : G₀} (n : ℤ) :
+  (a ⁻¹) ^ n = a ^ (-n) :=
+by { rw [inv_fpow, ← fpow_neg_one, ← fpow_mul], simp }
+
 end int_pow
 
 section

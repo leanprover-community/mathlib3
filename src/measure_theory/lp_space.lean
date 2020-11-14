@@ -9,8 +9,8 @@ import analysis.special_functions.pow
 /-!
 # ℒp space
 
-This file describes properties of measurable functions with finite seminorm
-`(∫⁻ a, (nnnorm (f a))^(p : ℝ) ∂μ) ^ (1/p)` for `p:ℝ` with `1 ≤ p`.
+This file describes properties of measurable functions with finite seminorm `(∫ ∥f a∥^p ∂μ) ^ (1/p)`
+for `p:ℝ` with `1 ≤ p`.
 
 ## Main definitions
 
@@ -19,8 +19,8 @@ This file describes properties of measurable functions with finite seminorm
 
 ## Notation
 
-* `snorm f p μ` : `(∫⁻ a, (nnnorm (f a)) ^ p ∂μ) ^ (1/p)` for `f : α → F`, where `α` is a
-  measurable space and `F` is a normed group.
+* `snorm f p μ` : `(∫ ∥f a∥^p ∂μ) ^ (1/p)` for `f : α → F`, where `α` is a  measurable space and
+                  `F` is a normed group.
 
 -/
 
@@ -37,12 +37,12 @@ variables {α E F : Type*} [measurable_space α] {μ : measure α}
 
 section ℒp_space_definition
 
-/-- The property that `f:α→E` is measurable and `∫⁻ a, (nnnorm (f a)) ^ p ∂μ` is finite -/
+/-- The property that `f:α→E` is measurable and `∫ ∥f a∥^p ∂μ` is finite -/
 def mem_ℒp (f : α → E) (p : ℝ) (μ : measure α) : Prop :=
 measurable f ∧ ∫⁻ a, (nnnorm (f a)) ^ p ∂μ < ⊤
 
-/-- `(∫⁻ a, (nnnorm (f a))^p ∂μ) ^ (1/p)`, which is a seminorm on the space of measurable
-functions for which this quantity is finite -/
+/-- `(∫ ∥f a∥^p ∂μ) ^ (1/p)`, which is a seminorm on the space of measurable functions for which
+this quantity is finite -/
 def snorm (f : α → F) (p : ℝ) (μ : measure α) : ennreal := (∫⁻ a, (nnnorm (f a))^p ∂μ) ^ (1/p)
 
 lemma lintegral_rpow_nnnorm_eq_rpow_snorm {f : α → F} (hp0_lt : 0 < p) :

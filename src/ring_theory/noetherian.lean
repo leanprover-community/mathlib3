@@ -514,7 +514,7 @@ end submodule
 
 namespace primes
 
-variables {R : Type*} [comm_ring R] [is_noetherian_ring R] [nontrivial R] [decidable_eq (prime_spectrum R)]
+variables {R : Type*} [comm_ring R] [is_noetherian_ring R] [nontrivial R] --[decidable_eq (prime_spectrum R)]
 
   /-In a noetherian ring, every ideal contains a product of prime ideals
 ([samuel, § 3.3, Lemma 3])-/
@@ -604,9 +604,9 @@ end
 
   /-In a noetherian integral domain which is not a field, every non-zero ideal contains a non-zero
   product of prime ideals; in a field, the whole ring is a non-zero ideal containing only 0 as product
-  or prime ideals ([samuel, § 3.3, Lemma 3])-/
-
-variables {A : Type*} [integral_domain A] [is_noetherian_ring A] [decidable_eq (prime_spectrum A)]
+  or prime ideals ([samuel, § 3.3, Lemma 3])
+-/
+variables {A : Type*} [integral_domain A] [is_noetherian_ring A]
 
 
 lemma integral_nonzero_prime_product_of_nonzero (h_fA : ¬ is_field A) (I : ideal A) (h_nzI: ⊥ < I):
@@ -628,9 +628,10 @@ begin
       specialize h_abs Y,
       rw [not_and, ne.def, not_not] at h_abs,
       apply mt h_abs hY,
-      exact (ne_of_lt (h_nzI)).symm, },
-    obtain ⟨M, ⟨⟨h_PM, h_nzM⟩, h_maxM⟩⟩ : ∃ (M : ideal A) (H: M ∈ Ω), ∀ (J : ideal A), J ∈ Ω → M ≤ J → J = M,
-    { apply set_has_maximal_iff_noetherian.mpr _inst_6 Ω,
+      exact (ne_of_lt (h_nzI)).symm },
+    obtain ⟨M, ⟨⟨h_PM, h_nzM⟩, h_maxM⟩⟩ : ∃ (M : ideal A) (H: M ∈ Ω),
+      ∀ (J : ideal A), J ∈ Ω → M ≤ J → J = M,
+    { apply set_has_maximal_iff_noetherian.mpr _inst_5 Ω,
       apply ne_empty_iff_nonempty.mp,
       assumption },
     have h_not_prM : ¬ M.is_prime,
@@ -662,7 +663,8 @@ begin
       rw not_forall at hx,
       cases hx with y hxy,
       use [x, y],
-      finish },
+      rw [not_imp, not_or_distrib, and_comm, and_assoc] at hxy,
+      exact hxy },
     have incl : ∀ (z : A), M ≤ M + span A {z},
       { intro z, from le_sup_left },
     let Jx := M + span A {x},
@@ -688,9 +690,9 @@ begin
         have abs_y : Jy = M,
         from h_maxM Jy h_Ωy (incl y),
         rw ← abs_y at hy,
-        apply absurd (belong y) hy }, },
-    obtain ⟨Wx, h_Wx⟩ : ∃ (Wx : multiset (prime_spectrum A)), multiset.prod (Wx.map subtype.val) ≤ Jx
-      ∧ multiset.prod (Wx.map subtype.val) ≠ 0,
+        apply absurd (belong y) hy } },
+    obtain ⟨Wx, h_Wx⟩ : ∃ (Wx : multiset (prime_spectrum A)), multiset.prod (Wx.map subtype.val) ≤ Jx ∧
+      multiset.prod (Wx.map subtype.val) ≠ 0,
     { have Jx_P : ¬ P Jx, exact hJ_xy.left,
       dsimp [P] at Jx_P,
       rw not_forall at Jx_P,
@@ -745,8 +747,6 @@ begin
           multiset.map_zero, multiset.prod_singleton, h_topI],
     exact and.intro (order_top.le_top p.val) h_nzp },
 end
-
-
 
 
 end primes

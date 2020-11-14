@@ -65,7 +65,7 @@ end
 lemma snorm_ne_top {f : α → β} (hp0 : 0 ≤ p) (hfp : mem_ℒp f p μ) : snorm f p μ ≠ ⊤ :=
 ne_of_lt (snorm_lt_top hp0 hfp)
 
-lemma lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top {f : α → β} (hp0_lt : 0 < p)
+lemma lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top {f : α → γ} (hp0_lt : 0 < p)
   (hfp : snorm f p μ < ⊤) :
   ∫⁻ a, (nnnorm (f a)) ^ p ∂μ < ⊤ :=
 begin

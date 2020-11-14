@@ -76,16 +76,16 @@ end ring_commutator
 Jacobi identity. The bracket is not associative unless it is identically zero. -/
 @[protect_proj] class lie_ring (L : Type v) extends add_comm_group L, has_bracket L L :=
 (add_lie : ∀ (x y z : L), ⁅x + y, z⁆ = ⁅x, z⁆ + ⁅y, z⁆)
-(lie_add : ∀ (x y z : L), ⁅z, x + y⁆ = ⁅z, x⁆ + ⁅z, y⁆)
+(lie_add : ∀ (x y z : L), ⁅x, y + z⁆ = ⁅x, y⁆ + ⁅x, z⁆)
 (lie_self : ∀ (x : L), ⁅x, x⁆ = 0)
-(jacobi : ∀ (x y z : L), ⁅x, ⁅y, z⁆⁆ + ⁅y, ⁅z, x⁆⁆ + ⁅z, ⁅x, y⁆⁆ = 0)
+(lie_lie : ∀ (x y z : L), ⁅⁅x, y⁆, z⁆ = ⁅x, ⁅y, z⁆⁆ - ⁅y, ⁅x, z⁆⁆)
 
 section lie_ring
 
 variables {L : Type v} [lie_ring L]
 
 @[simp] lemma add_lie (x y z : L) : ⁅x + y, z⁆ = ⁅x, z⁆ + ⁅y, z⁆ := lie_ring.add_lie x y z
-@[simp] lemma lie_add (x y z : L) : ⁅z, x + y⁆ = ⁅z, x⁆ + ⁅z, y⁆ := lie_ring.lie_add x y z
+@[simp] lemma lie_add (x y z : L) : ⁅x, y + z⁆ = ⁅x, y⁆ + ⁅x, z⁆ := lie_ring.lie_add x y z
 @[simp] lemma lie_self (x : L) : ⁅x, x⁆ = 0 := lie_ring.lie_self x
 
 @[simp] lemma lie_skew (x y : L) :
@@ -125,6 +125,12 @@ begin
   unfold has_scalar.smul, rw gsmul_neg,
 end
 
+lemma jacobi (x y z : L) : ⁅x, ⁅y, z⁆⁆ + ⁅y, ⁅z, x⁆⁆ + ⁅z, ⁅x, y⁆⁆ = 0 :=
+begin
+  have h : ⁅z,⁅y,x⁆⁆ = -⁅z,⁅x,y⁆⁆, { rw ← lie_neg, congr, rw lie_skew, },
+  rw [←lie_skew, lie_ring.lie_lie, h], abel,
+end
+
 /-- An associative ring gives rise to a Lie ring by taking the bracket to be the ring commutator. -/
 @[priority 100]
 instance lie_ring.of_associative_ring (A : Type v) [ring A] : lie_ring A :=
@@ -133,7 +139,7 @@ instance lie_ring.of_associative_ring (A : Type v) [ring A] : lie_ring A :=
   lie_add  := by simp only [ring_commutator.commutator, right_distrib, left_distrib, sub_eq_add_neg,
     add_comm, add_left_comm, forall_const, eq_self_iff_true, neg_add_rev],
   lie_self := by simp only [ring_commutator.commutator, forall_const, sub_self],
-  jacobi   := λ x y z, by { repeat {rw ring_commutator.commutator}, noncomm_ring, } }
+  lie_lie  := λ x y z, by { repeat {rw ring_commutator.commutator}, noncomm_ring, } }
 
 lemma lie_ring.of_associative_ring_bracket (A : Type v) [ring A] (x y : A) :
   ⁅x, y⁆ = x*y - y*x := rfl
@@ -321,8 +327,8 @@ instance : lie_ring (⨁ i, L i) :=
   add_lie  := λ x y z, by { ext, simp only [zip_with_apply, add_apply, add_lie], },
   lie_add  := λ x y z, by { ext, simp only [zip_with_apply, add_apply, lie_add], },
   lie_self := λ x, by { ext, simp only [zip_with_apply, add_apply, lie_self, zero_apply], },
-  jacobi   := λ x y z, by { ext, simp only [
-    zip_with_apply, add_apply, lie_ring.jacobi, zero_apply], },
+  lie_lie  := λ x y z, by { ext, simp only [direct_sum.sub_apply,
+    zip_with_apply, add_apply, lie_ring.lie_lie, zero_apply], },
   ..(infer_instance : add_comm_group _) }
 
 @[simp] lemma bracket_apply {x y : (⨁ i, L i)} {i : ι} :
@@ -375,21 +381,6 @@ module endomorphisms. We state a lemma and give a definition concerning them. -/
 lemma endo_algebra_bracket (M : Type v) [add_comm_group M] [module R M] (f g : module.End R M) :
   ⁅f, g⁆ = f.comp g - g.comp f := rfl
 
-/-- The adjoint action of a Lie algebra on itself. -/
-def ad : L →ₗ⁅R⁆ module.End R L :=
-{ to_fun    := λ x,
-  { to_fun    := has_bracket.bracket x,
-    map_add'  := by { intros, apply lie_add, },
-    map_smul' := by { intros, apply lie_smul, } },
-  map_add'  := by { intros, ext, simp, },
-  map_smul' := by { intros, ext, apply smul_lie, },
-  map_lie   := by {
-    intros x y, ext z,
-    rw endo_algebra_bracket,
-    suffices : ⁅⁅x, y⁆, z⁆ = ⁅x, ⁅y, z⁆⁆ + ⁅⁅x, z⁆, y⁆, by simpa [sub_eq_add_neg],
-    rw [eq_comm, ←lie_skew ⁅x, y⁆ z, ←lie_skew ⁅x, z⁆ y, ←lie_skew x z, lie_neg, neg_neg,
-        ←sub_eq_zero_iff_eq, sub_neg_eq_add, lie_ring.jacobi], } }
-
 end lie_algebra
 
 section lie_subalgebra
@@ -423,7 +414,7 @@ instance lie_subalgebra_lie_ring (L' : lie_subalgebra R L) : lie_ring L' :=
   lie_add  := by { intros, apply set_coe.ext, apply lie_add, },
   add_lie  := by { intros, apply set_coe.ext, apply add_lie, },
   lie_self := by { intros, apply set_coe.ext, apply lie_self, },
-  jacobi   := by { intros, apply set_coe.ext, apply lie_ring.jacobi, } }
+  lie_lie  := by { intros, apply set_coe.ext, apply lie_ring.lie_lie, } }
 
 /-- A Lie subalgebra forms a new Lie algebra. -/
 instance lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) :
@@ -549,144 +540,132 @@ end lie_algebra
 
 section lie_module
 
-variables (R : Type u) {L : Type v} {M  : Type w}
+variables (R : Type u) (L : Type v) (M  : Type w)
 variables [comm_ring R] [lie_ring L] [lie_algebra R L] [add_comm_group M] [module R M]
+
+class lie_ring_module extends has_bracket L M :=
+(add_lie : ∀ (x y : L) (m : M), ⁅x + y, m⁆ = ⁅x, m⁆ + ⁅y, m⁆)
+(lie_add : ∀ (x : L) (m n : M), ⁅x, m + n⁆ = ⁅x, m⁆ + ⁅x, n⁆)
+(lie_lie : ∀ (x y : L) (m : M), ⁅⁅x, y⁆, m⁆ = ⁅x, ⁅y, m⁆⁆ - ⁅y, ⁅x, m⁆⁆)
 
 /-- A Lie module is a module over a commutative ring, together with a linear action of a Lie
 algebra on this module, such that the Lie bracket acts as the commutator of endomorphisms. -/
-class lie_module (α : has_bracket L M) :=
-(add_lie : ∀ (x y : L) (m : M), ⁅x + y, m⁆ = ⁅x, m⁆ + ⁅y, m⁆)
-(lie_add : ∀ (x : L) (m n : M), ⁅x, m + n⁆ = ⁅x, m⁆ + ⁅x, n⁆)
+class lie_module [lie_ring_module L M] :=
 (smul_lie : ∀ (t : R) (x : L) (m : M), ⁅t • x, m⁆ = t • ⁅x, m⁆)
 (lie_smul : ∀ (t : R) (x : L) (m : M), ⁅x, t • m⁆ = t • ⁅x, m⁆)
-(lie_lie : ∀ (x y : L) (m : M), ⁅⁅x, y⁆, m⁆ = ⁅x, ⁅y, m⁆⁆ - ⁅y, ⁅x, m⁆⁆)
 
 @[simp] lemma lie_module_add_lie
-  (α : has_bracket L M) [lie_module R α] (x y : L) (m : M) :
+  [lie_ring_module L M] [lie_module R L M] (x y : L) (m : M) :
   ⁅x + y, m⁆ = ⁅x, m⁆ + ⁅y, m⁆ :=
-lie_module.add_lie R x y m
+lie_ring_module.add_lie x y m
 
 @[simp] lemma lie_module_lie_add
-  (α : has_bracket L M) [lie_module R α] (x : L) (m n : M) :
+  [lie_ring_module L M] [lie_module R L M]  (x : L) (m n : M) :
   ⁅x, m + n⁆ = ⁅x, m⁆ + ⁅x, n⁆ :=
-lie_module.lie_add R x m n
+lie_ring_module.lie_add x m n
 
 @[simp] lemma lie_module_smul_lie
-  (α : has_bracket L M) [lie_module R α] (t : R) (x : L) (m : M) :
+  [lie_ring_module L M] [lie_module R L M]  (t : R) (x : L) (m : M) :
   ⁅t • x, m⁆ = t • ⁅x, m⁆ :=
 lie_module.smul_lie t x m
 
 @[simp] lemma lie_module_lie_smul
-  (α : has_bracket L M) [lie_module R α] (t : R) (x : L) (m : M) :
+  [lie_ring_module L M] [lie_module R L M]  (t : R) (x : L) (m : M) :
   ⁅x, t • m⁆ = t • ⁅x, m⁆ :=
 lie_module.lie_smul t x m
 
 @[simp] lemma lie_lie
-  (α : has_bracket L M) [lie_module R α] (x y : L) (m : M) :
+  [lie_ring_module L M] [lie_module R L M]  (x y : L) (m : M) :
   ⁅⁅x, y⁆, m⁆ = ⁅x, ⁅y, m⁆⁆ - ⁅y, ⁅x, m⁆⁆ :=
-lie_module.lie_lie R x y m
+lie_ring_module.lie_lie x y m
 
 @[simp] lemma lie_module_zero_lie
-  (α : has_bracket L M) [lie_module R α] (x : L) :
+  [lie_ring_module L M] [lie_module R L M]  (x : L) :
   ⁅x, 0⁆ = (0 : M) :=
-(add_monoid_hom.mk' _ (lie_module.lie_add R x)).map_zero
+(add_monoid_hom.mk' _ (lie_ring_module.lie_add x)).map_zero
 
 @[simp] lemma lie_module_lie_zero
-  (α : has_bracket L M) [lie_module R α] (m : M) :
+  [lie_ring_module L M] [lie_module R L M] (m : M) :
   ⁅(0 : L), m⁆ = 0 :=
 begin
   refine (add_monoid_hom.mk' (λ (x : L), ⁅x, m⁆) _).map_zero,
-  simp [lie_module_add_lie R α],
+  simp [lie_module_add_lie R L M],
 end
 
-/-- A Lie algebra morphism into the endomorphism algebra of a module yields a bracket action on
-that module. -/
-def lie_module.of_endo_morphism_bracket (α : L →ₗ⁅R⁆ module.End R M) : has_bracket L M :=
-⟨λ x m, α x m⟩
+instance lie_ring_self_module : lie_ring_module L L :=
+{ ..(infer_instance : lie_ring L) }
 
-@[simp] lemma lie_module.of_endo_morphism_bracket_apply
-  (α : L →ₗ⁅R⁆ module.End R M) (x : L) (m : M) :
-  @has_bracket.bracket _ _ (lie_module.of_endo_morphism_bracket R α) x m = α x m :=
-rfl
-
-/-- The bracket action of a Lie algebra on a module, obtained from a Lie morphism into its
-endomorphism algebra, provides a Lie module structure. -/
-def lie_module.of_endo_morphism (α : L →ₗ⁅R⁆ module.End R M) :
-  lie_module R (lie_module.of_endo_morphism_bracket R α) :=
-{ add_lie  := λ x y m, show (α : L →ₗ[R] module.End R M) _ _ = _, by {rw linear_map.map_add, refl, },
-  lie_add  := λ x m n, show (α : L →ₗ[R] module.End R M) _ _ = _, by {rw linear_map.map_add, refl, },
-  smul_lie := λ t x m, show (α : L →ₗ[R] module.End R M) _ _ = _, by {rw linear_map.map_smul, refl,},
-  lie_smul := λ t x m, show (α : L →ₗ[R] module.End R M) _ _ = _, by {rw linear_map.map_smul, refl,},
-  lie_lie  := λ x y m, by
-    { simp only [lie_module.of_endo_morphism_bracket_apply, lie_algebra.map_lie,
-                 lie_algebra.endo_algebra_bracket, linear_map.sub_apply, linear_map.comp_apply], } }
+/-- Every Lie algebra is a module over itself. -/
+instance lie_algebra_self_module : lie_module R L L :=
+{ smul_lie := by apply smul_lie,
+  lie_smul := by apply lie_smul, }
 
 /-- A Lie module yields a Lie algebra morphism into the linear endomorphisms of the module. -/
-def lie_module.to_endo_morphism (α : has_bracket L M) [lie_module R α] :
+def lie_module.to_endo_morphism [lie_ring_module L M] [lie_module R L M] :
   L →ₗ⁅R⁆ module.End R M :=
 { to_fun    := λ x,
   { to_fun    := λ m, ⁅x, m⁆,
-    map_add'  := λ m n, lie_module.lie_add R x m n,
+    map_add'  := λ m n, lie_ring_module.lie_add x m n,
     map_smul' := λ t m, lie_module.lie_smul t x m, },
-  map_add'  := λ x y, by { ext m, apply lie_module_add_lie R α, },
+  map_add'  := λ x y, by { ext m, apply lie_ring_module.add_lie, },
   map_smul' := λ t x, by { ext m, exact lie_module.smul_lie t x m, },
-  map_lie   := λ x y, by { ext m, apply lie_lie R α, }, }
+  map_lie   := λ x y, by { ext m, apply lie_lie R L M, }, }
 
-/-- Every Lie algebra is a module over itself. -/
-instance lie_algebra_self_module : lie_module R (@lie_ring.to_has_bracket L _) :=
-{ ..lie_module.of_endo_morphism R lie_algebra.ad }
+/-- The adjoint action of a Lie algebra on itself. -/
+def ad : L →ₗ⁅R⁆ module.End R L := lie_module.to_endo_morphism R L L
+
+lemma ad_apply (x y : L) : ad R L x y = ⁅x, y⁆ := rfl
 
 /-- A Lie submodule of a Lie module is a submodule that is closed under the Lie bracket.
 This is a sufficient condition for the subset itself to form a Lie module. -/
-structure lie_submodule (α : has_bracket L M) [lie_module R α] extends submodule R M :=
+structure lie_submodule [lie_ring_module L M] [lie_module R L M] extends submodule R M :=
 (lie_mem : ∀ {x : L} {m : M}, m ∈ carrier → ⁅x, m⁆ ∈ carrier)
 
 /-- The zero module is a Lie submodule of any Lie module. -/
-instance (α : has_bracket L M) [lie_module R α] : has_zero (lie_submodule R α) :=
-⟨{ lie_mem := λ x m h, by { rw ((submodule.mem_bot R).1 h), apply lie_module_zero_lie R α, },
+instance [lie_ring_module L M] [lie_module R L M] : has_zero (lie_submodule R L M) :=
+⟨{ lie_mem := λ x m h, by { rw ((submodule.mem_bot R).1 h), apply lie_module_zero_lie R, },
    ..(0 : submodule R M)}⟩
 
-instance (α : has_bracket L M) [lie_module R α] : inhabited (lie_submodule R α) := ⟨0⟩
+instance [lie_ring_module L M] [lie_module R L M] : inhabited (lie_submodule R L M) := ⟨0⟩
 
-instance lie_submodule_coe_submodule (α : has_bracket L M) [lie_module R α] :
-  has_coe (lie_submodule R α) (submodule R M) :=
+instance lie_submodule_coe_submodule  [lie_ring_module L M] [lie_module R L M] :
+  has_coe (lie_submodule R L M) (submodule R M) :=
 ⟨lie_submodule.to_submodule⟩
 
-instance lie_submodule_has_mem (α : has_bracket L M) [lie_module R α] :
-  has_mem M (lie_submodule R α) :=
+instance lie_submodule_has_mem  [lie_ring_module L M] [lie_module R L M] :
+  has_mem M (lie_submodule R L M) :=
 ⟨λ x N, x ∈ (N : set M)⟩
 
-instance lie_submodule_act (α : has_bracket L M) [lie_module R α] (N : lie_submodule R α) :
-  has_bracket L N :=
-⟨λ (x : L) (m : N), ⟨⁅x, m.val⁆, N.lie_mem m.property⟩⟩
+instance lie_submodule_act [lie_ring_module L M] [lie_module R L M] (N : lie_submodule R L M) :
+  lie_ring_module L N :=
+{ bracket := λ (x : L) (m : N), ⟨⁅x, m.val⁆, N.lie_mem m.property⟩,
+  add_lie := by { intros x y m, apply set_coe.ext, exact lie_ring_module.add_lie x y m, },
+  lie_add := by { intros x m n, apply set_coe.ext, exact lie_ring_module.lie_add x m n, },
+  lie_lie := by { intros x y m, apply set_coe.ext, exact lie_lie R L M x y m, }, }
 
 instance lie_submodule_lie_module
-  (α : has_bracket L M) [lie_module R α] (N : lie_submodule R α) :
-  lie_module R (lie_submodule_act R α N) :=
-{ add_lie  := by { intros x y m, apply set_coe.ext, exact lie_module.add_lie R x y m, },
-  lie_add  := by { intros x m n, apply set_coe.ext, exact lie_module.lie_add R x m n, },
-  lie_smul := by { intros t x y, apply set_coe.ext, exact lie_module.lie_smul t x y, },
-  smul_lie := by { intros t x y, apply set_coe.ext, exact lie_module.smul_lie t x y, },
-  lie_lie  := by { intros x y m, apply set_coe.ext, exact lie_module.lie_lie R x y m, } }
+  [lie_ring_module L M] [lie_module R L M] (N : lie_submodule R L M) : lie_module R L N :=
+{ lie_smul := by { intros t x y, apply set_coe.ext, exact lie_module.lie_smul t x y, },
+  smul_lie := by { intros t x y, apply set_coe.ext, exact lie_module.smul_lie t x y, }, }
 
 /-- A Lie module is irreducible if its only non-trivial Lie submodule is itself. -/
-class lie_module.is_irreducible (α : has_bracket L M) [lie_module R α] : Prop :=
-(irreducible : ∀ (M' : lie_submodule R α), (∃ (m : M'), m ≠ 0) → (∀ (m : M), m ∈ M'))
+class lie_module.is_irreducible [lie_ring_module L M] [lie_module R L M] : Prop :=
+(irreducible : ∀ (M' : lie_submodule R L M), (∃ (m : M'), m ≠ 0) → (∀ (m : M), m ∈ M'))
 
 /-- A Lie algebra is simple if it is irreducible as a Lie module over itself via the adjoint
 action, and it is non-Abelian. -/
 class lie_algebra.is_simple : Prop :=
-(simple : lie_module.is_irreducible R (@lie_ring.to_has_bracket L _) ∧ ¬lie_algebra.is_abelian L)
+(simple : lie_module.is_irreducible R L L ∧ ¬lie_algebra.is_abelian L)
 
 variables (L)
 
 /-- An ideal of a Lie algebra is a Lie submodule of the Lie algebra as a Lie module over itself. -/
-abbreviation lie_ideal := lie_submodule R (@lie_ring.to_has_bracket L _)
+abbreviation lie_ideal := lie_submodule R L L
 
 lemma lie_mem_right (I : lie_ideal R L) (x y : L) (h : y ∈ I) : ⁅x, y⁆ ∈ I := I.lie_mem h
 
-lemma lie_mem_left (I : lie_ideal R L) (x y : L) (h : x ∈ I) : ⁅x, y⁆ ∈ I := by {
-  rw [←lie_skew, ←neg_lie], apply lie_mem_right, assumption, }
+lemma lie_mem_left (I : lie_ideal R L) (x y : L) (h : x ∈ I) : ⁅x, y⁆ ∈ I :=
+ by { rw [←lie_skew, ←neg_lie], apply lie_mem_right, assumption, }
 
 /-- An ideal of a Lie algebra is a Lie subalgebra. -/
 def lie_ideal_subalgebra (I : lie_ideal R L) : lie_subalgebra R L :=
@@ -699,8 +678,8 @@ namespace lie_submodule
 
 variables {R : Type u} {L : Type v} {M : Type v}
 variables [comm_ring R] [lie_ring L] [lie_algebra R L] [add_comm_group M] [module R M]
-variables {α : has_bracket L M} [lie_module R α]
-variables (N : lie_submodule R α) (I : lie_ideal R L)
+variables [lie_ring_module L M] [lie_module R L M]
+variables (N : lie_submodule R L M) (I : lie_ideal R L)
 
 /-- The quotient of a Lie module by a Lie submodule. It is a Lie module. -/
 abbreviation quotient := N.to_submodule.quotient
@@ -719,7 +698,7 @@ lemma is_quotient_mk (m : M) :
 /-- Given a Lie module `M` over a Lie algebra `L`, together with a Lie submodule `N ⊆ M`, there
 is a natural linear map from `L` to the endomorphisms of `M` leaving `N` invariant. -/
 def lie_submodule_invariant : L →ₗ[R] submodule.compatible_maps N.to_submodule N.to_submodule :=
-  linear_map.cod_restrict _ (lie_module.to_endo_morphism R α) N.lie_mem
+  linear_map.cod_restrict _ (lie_module.to_endo_morphism R L M) N.lie_mem
 
 variables (N)
 
@@ -728,16 +707,26 @@ is a natural Lie algebra morphism from `L` to the linear endomorphism of the quo
 def action_as_endo_map : L →ₗ⁅R⁆ module.End R N.quotient :=
 { map_lie := λ x y, by { ext n, apply quotient.induction_on' n, intros m,
                          change mk ⁅⁅x, y⁆, m⁆ = mk (⁅x, ⁅y, m⁆⁆ - ⁅y, ⁅x, m⁆⁆),
-                         rw lie_module.lie_lie R x y m, apply_instance, },
+                         congr, exact lie_lie R L M x y m, },
   ..linear_map.comp (submodule.mapq_linear (N : submodule R M) ↑N) lie_submodule_invariant }
 
 /-- Given a Lie module `M` over a Lie algebra `L`, together with a Lie submodule `N ⊆ M`, there is
 a natural bracket action of `L` on the quotient `M/N`. -/
 def action_as_endo_map_bracket : has_bracket L N.quotient := ⟨λ x n, action_as_endo_map N x n⟩
 
+instance lie_quotient_lie_ring_module : lie_ring_module L N.quotient :=
+{ bracket := λ x n, (action_as_endo_map N : L →ₗ[R] module.End R N.quotient) x n,
+  add_lie := λ x y n, by { simp only [linear_map.map_add, linear_map.add_apply], },
+  lie_add := λ x m n, by { simp only [linear_map.map_add, linear_map.add_apply], },
+  lie_lie := λ x y m, by
+  { change action_as_endo_map _ _ _ = _, simp only [lie_algebra.map_lie], refl, } }
+
 /-- The quotient of a Lie module by a Lie submodule, is a Lie module. -/
-instance lie_quotient_lie_module : lie_module R (action_as_endo_map_bracket N) :=
-lie_module.of_endo_morphism R (action_as_endo_map N)
+instance lie_quotient_lie_module : lie_module R L N.quotient :=
+{ smul_lie := λ t x m, show (_ : L →ₗ[R] module.End R N.quotient) _ _ = _,
+  { simp only [linear_map.map_smul], refl, },
+  lie_smul := λ x t m, show (_ : L →ₗ[R] module.End R N.quotient) _ _ = _,
+  { simp only [linear_map.map_smul], refl, }, }
 
 instance lie_quotient_has_bracket : has_bracket (quotient I) (quotient I) := ⟨by {
   intros x y,
@@ -767,11 +756,11 @@ instance lie_quotient_lie_ring : lie_ring (quotient I) :=
   lie_self := by { intros x', apply quotient.induction_on' x', intros x,
                    rw [is_quotient_mk, ←mk_bracket],
                    apply congr_arg, apply lie_self, },
-  jacobi   := by { intros x' y' z', apply quotient.induction_on₃' x' y' z', intros x y z,
+  lie_lie  := by { intros x' y' z', apply quotient.induction_on₃' x' y' z', intros x y z,
                    repeat { rw is_quotient_mk <|>
                             rw ←mk_bracket <|>
                             rw ←submodule.quotient.mk_add, },
-                   apply congr_arg, apply lie_ring.jacobi, } }
+                   apply congr_arg, apply lie_ring.lie_lie, } }
 
 instance lie_quotient_lie_algebra : lie_algebra R (quotient I) :=
 { lie_smul := by { intros t x' y', apply quotient.induction_on₂' x' y', intros x y,

@@ -48,19 +48,14 @@ def snorm (f : α → F) (p : ℝ) (μ : measure α) : ennreal := (∫⁻ a, (nn
 lemma lintegral_rpow_nnnorm_eq_rpow_snorm {f : α → F} (hp0_lt : 0 < p) :
   ∫⁻ a, (nnnorm (f a)) ^ p ∂μ = (snorm f p μ) ^ p :=
 begin
-  unfold snorm,
-  rw [←ennreal.rpow_mul, one_div, inv_mul_cancel, ennreal.rpow_one],
-  symmetry, exact ne_of_lt hp0_lt,
+  rw [snorm, ←ennreal.rpow_mul, one_div, inv_mul_cancel, ennreal.rpow_one],
+  exact (ne_of_lt hp0_lt).symm,
 end
 
 end ℒp_space_definition
 
-lemma mem_ℒp_one_iff_integrable : ∀ f : α → E, mem_ℒp f 1 μ ↔ integrable f μ :=
-begin
-  intro f,
-  unfold integrable, unfold has_finite_integral, unfold mem_ℒp,
-  simp only [ennreal.rpow_one, nnreal.coe_one],
-end
+lemma mem_ℒp_one_iff_integrable {f : α → E} : mem_ℒp f 1 μ ↔ integrable f μ :=
+by simp only [integrable, has_finite_integral, mem_ℒp, ennreal.rpow_one, nnreal.coe_one]
 
 section top
 
@@ -86,42 +81,21 @@ end
 lemma mem_ℒp_of_snorm_lt_top {f : α → E} (hp0_lt : 0 < p) (hfm : measurable f)
   (hfp : snorm f p μ < ⊤) :
   mem_ℒp f p μ :=
-begin
-  split,
-  exact hfm,
-  exact lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top hp0_lt hfp,
-end
+⟨hfm, lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top hp0_lt hfp⟩
 
 end top
 
 section zero
 
 lemma lintegral_rpow_nnnorm_zero (hp0_lt : 0 < p) : ∫⁻ a, (nnnorm ((0 : α → F) a))^p ∂μ = 0 :=
-begin
-  simp_rw pi.zero_apply,
-  rw [nnnorm_zero, lintegral_const, mul_eq_zero],
-  left,
-  exact ennreal.zero_rpow_of_pos hp0_lt,
-end
+by simp [hp0_lt]
 
 lemma zero_mem_ℒp (hp0_lt : 0 < p): mem_ℒp (0 : α → E) p μ :=
-begin
-  split,
-  exact measurable_zero,
-  exact lt_of_le_of_lt (le_of_eq (lintegral_rpow_nnnorm_zero hp0_lt)) with_top.zero_lt_top,
-end
+⟨measurable_zero,
+  lt_of_le_of_lt (le_of_eq (lintegral_rpow_nnnorm_zero hp0_lt)) with_top.zero_lt_top⟩
 
-lemma snorm_zero (hp0_lt : 0 < p): snorm (0 : α → F) p μ = 0 :=
-begin
-  have h : ∫⁻ a, (nnnorm ((0 : α → F) a))^(p : ℝ) ∂μ = 0,
-  from lintegral_rpow_nnnorm_zero hp0_lt,
-  unfold snorm,
-  rw [h, ennreal.rpow_eq_zero_iff],
-  left,
-  split,
-  refl,
-  rw [one_div, inv_pos], exact hp0_lt,
-end
+@[simp] lemma snorm_zero (hp0_lt : 0 < p): snorm (0 : α → F) p μ = 0 :=
+by simp [snorm, hp0_lt]
 
 end zero
 

@@ -94,7 +94,7 @@ lemma zero_mem_ℒp (hp0_lt : 0 < p): mem_ℒp (0 : α → E) p μ :=
 ⟨measurable_zero,
   lt_of_le_of_lt (le_of_eq (lintegral_rpow_nnnorm_zero hp0_lt)) with_top.zero_lt_top⟩
 
-@[simp] lemma snorm_zero (hp0_lt : 0 < p): snorm (0 : α → F) p μ = 0 :=
+@[simp] lemma snorm_zero (hp0_lt : 0 < p) : snorm (0 : α → F) p μ = 0 :=
 by simp [snorm, hp0_lt]
 
 end zero

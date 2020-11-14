@@ -30,7 +30,7 @@ noncomputable theory
 
 namespace ℒp_space
 
-variables {α E F: Type*} [measurable_space α] {μ : measure α}
+variables {α E F : Type*} [measurable_space α] {μ : measure α}
   [measurable_space E] [normed_group E]
   [normed_group F]
   {p : ℝ}
@@ -86,7 +86,7 @@ end top
 
 section zero
 
-lemma zero_mem_ℒp (hp0_lt : 0 < p): mem_ℒp (0 : α → E) p μ :=
+lemma zero_mem_ℒp (hp0_lt : 0 < p) : mem_ℒp (0 : α → E) p μ :=
 ⟨measurable_zero, by simp [hp0_lt]⟩
 
 @[simp] lemma snorm_zero (hp0_lt : 0 < p) : snorm (0 : α → F) p μ = 0 :=

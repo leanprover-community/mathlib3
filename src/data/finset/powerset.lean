@@ -9,10 +9,10 @@ import data.finset.basic
 # The powerset of a finset
 -/
 
-variables {α : Type*}
-
 namespace finset
 open multiset
+
+variables {α : Type*}
 
 /-! ### powerset -/
 section powerset

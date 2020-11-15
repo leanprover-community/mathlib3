@@ -259,7 +259,7 @@ instance comp_comparison_has_limit
 monad.has_limit_of_comp_forget_has_limit (F ⋙ monad.comparison R)
 
 /-- Any monadic functor creates limits. -/
-instance monadic_creates_limits (R : D ⥤ C) [monadic_right_adjoint R] :
+def monadic_creates_limits (R : D ⥤ C) [monadic_right_adjoint R] :
   creates_limits R :=
 creates_limits_of_nat_iso (monad.comparison_forget R)
 

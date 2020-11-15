@@ -605,9 +605,6 @@ section measurability_real
 
 lemma real.measurable_rpow : measurable (λ p : ℝ × ℝ, p.1 ^ p.2) :=
 begin
-  have h_compl : {p : ℝ × ℝ | p.1 ≠ 0} = {p : ℝ × ℝ | p.1 = 0}ᶜ,
-  { ext,
-    rw [set.mem_compl_iff, set.mem_set_of_eq, set.nmem_set_of_eq], },
   have h_prod : {p : ℝ × ℝ | p.1 = 0} = set.prod {(0:ℝ)} set.univ,
   { ext,
     rw [set.mem_set_of_eq, set.mem_prod, set.mem_singleton_iff],
@@ -617,7 +614,7 @@ begin
     simp, },
   refine measurable_of_measurable_union_cover {p : ℝ × ℝ | p.1 = 0} {p : ℝ × ℝ | p.1 ≠ 0} h_meas
     h_meas.compl _ _ _,
-  { rw [h_compl, set.union_compl_self], },
+  { intro x, simp [em (x.fst = 0)], },
   { have h_eq_ite : (λ a : {p : ℝ × ℝ | p.fst = 0}, (a:ℝ×ℝ).fst ^ (a:ℝ×ℝ).snd) =
       λ a : {p : ℝ × ℝ | p.fst = 0}, ite ((a:ℝ×ℝ).snd = 0) 1 0,
     { ext1 a,
@@ -651,7 +648,7 @@ begin
     change continuous_at (λ (p : ℝ × ℝ), p.fst ^ p.snd) x.val,
     have h_x : x.val = (x.val.fst, x.val.snd), by simp,
     rw h_x,
-    refine real.continuous_at_rpow_of_ne_zero x.prop _, },
+    exact real.continuous_at_rpow_of_ne_zero x.prop _, },
 end
 
 lemma measurable.rpow {α} [measurable_space α] {f g : α → ℝ} (hf : measurable f)

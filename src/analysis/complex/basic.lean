@@ -190,3 +190,34 @@ begin
 end
 
 end real_deriv_of_complex
+
+section differentiable_re
+open complex
+
+/-! Differentiability of the real and imaginary part functions. -/
+
+lemma has_fderiv_at_re (x : ℂ) : has_fderiv_at re continuous_linear_map.re x :=
+continuous_linear_map.re.has_fderiv_at
+
+lemma differentiable_re : differentiable ℝ re :=
+continuous_linear_map.re.differentiable
+
+lemma deriv_re {x : ℂ} : fderiv ℝ re x = continuous_linear_map.re :=
+(has_fderiv_at_re x).fderiv
+
+@[simp] lemma deriv_re' : fderiv ℝ re = λ _, continuous_linear_map.re :=
+funext $ λ _, deriv_re
+
+lemma has_fderiv_at_im (x : ℂ) : has_fderiv_at im continuous_linear_map.im x :=
+continuous_linear_map.im.has_fderiv_at
+
+lemma differentiable_im : differentiable ℝ im :=
+continuous_linear_map.im.differentiable
+
+lemma deriv_im {x : ℂ} : fderiv ℝ im x = continuous_linear_map.im :=
+(has_fderiv_at_im x).fderiv
+
+@[simp] lemma deriv_im' : fderiv ℝ im = λ _, continuous_linear_map.im :=
+funext $ λ _, deriv_im
+
+end differentiable_re

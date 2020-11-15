@@ -287,7 +287,7 @@ section
 
 /-- If C has limits then any reflective subcategory has limits. -/
 lemma has_limits_of_reflective (R : D ⥤ C) [has_limits C] [reflective R] : has_limits D :=
-{ has_limits_of_shape := λ J 𝒥, by exactI
+{ has_limits_of_shape := λ J 𝒥, by have := monadic_creates_limits R; exactI
   { has_limit := λ F, has_limit_of_created F R } }
 
 end

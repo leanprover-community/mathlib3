@@ -41,7 +41,8 @@ Note this is (mathematically) a special case of the statement that
 "if limits commute with colimits in `D`, then they do as well in `C ⥤ D`"
 but the story in Lean is a bit more complex, and this statement isn't directly a special case.
 That is, even with a formalised proof of the general statement, there would still need to be some
-work to convert to this veresion (namely, the natural isomorphism given below).
+work to convert to this version: namely, the natural isomorphism
+`(evaluation C D).obj k ⋙ prod.functor.obj (F.obj k) ≅ prod.functor.obj F ⋙ (evaluation C D).obj k`
 -/
 def functor_category.prod_preserves_colimits [has_binary_products D] [has_colimits D]
   [∀ (X : D), preserves_colimits (prod.functor.obj X)]
@@ -51,8 +52,7 @@ def functor_category.prod_preserves_colimits [has_binary_products D] [has_colimi
   { preserves_colimit := λ K,
     { preserves := λ c t,
       begin
-        apply evaluation_jointly_reflects_colimits,
-        intro k,
+        apply evaluation_jointly_reflects_colimits _ (λ k, _),
         change is_colimit ((prod.functor.obj F ⋙ (evaluation _ _).obj k).map_cocone c),
         let := is_colimit_of_preserves ((evaluation C D).obj k ⋙ prod.functor.obj (F.obj k)) t,
         apply is_colimit.map_cocone_equiv _ this,

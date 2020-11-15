@@ -158,7 +158,7 @@ begin
     refine aunit _,
     rw h₁,
     exact is_unit_one },
-    have degbzero : 0 < (b * C a.leading_coeff).degree,
+  have degbzero : 0 < (b * C a.leading_coeff).degree,
   { apply nat_degree_pos_iff_degree_pos.1,
     apply nat.pos_of_ne_zero,
     intro h,

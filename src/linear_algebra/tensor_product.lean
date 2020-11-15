@@ -37,7 +37,8 @@ namespace linear_map
 variables {R : Type*} [comm_semiring R]
 variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
 
-variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q] [add_comm_monoid S]
+variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q]
+  [add_comm_monoid S]
 variables [semimodule R M] [semimodule R N] [semimodule R P] [semimodule R Q] [semimodule R S]
 include R
 
@@ -152,7 +153,8 @@ section semiring
 variables {R : Type*} [comm_semiring R]
 variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
 
-variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q] [add_comm_monoid S]
+variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q]
+  [add_comm_monoid S]
 variables [semimodule R M] [semimodule R N] [semimodule R P] [semimodule R Q] [semimodule R S]
 include R
 
@@ -589,8 +591,8 @@ by { ext1, simp only [lift.tmul, map_tmul, linear_map.compl₂_apply, linear_map
 
 end
 
-/-- If M and P are linearly equivalent and N and Q are linearly equivalent
-then M ⊗ N and P ⊗ Q are linearly equivalent. -/
+/-- If `M` and `P` are linearly equivalent and `N` and `Q` are linearly equivalent
+then `M ⊗ N` and `P ⊗ Q` are linearly equivalent. -/
 def congr (f : M ≃ₗ[R] P) (g : N ≃ₗ[R] Q) : M ⊗ N ≃ₗ[R] P ⊗ Q :=
 linear_equiv.of_linear (map f g) (map f.symm g.symm)
   (ext $ λ m n, by simp; simp only [linear_equiv.apply_symm_apply])
@@ -711,7 +713,8 @@ section ring
 variables {R : Type*} [comm_ring R]
 variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
 
-variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q] [add_comm_group S]
+variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q]
+  [add_comm_group S]
 variables [module R M] [module R N] [module R P] [module R Q] [module R S]
 
 namespace tensor_product

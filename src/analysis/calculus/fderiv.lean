@@ -454,7 +454,7 @@ as this statement is empty. -/
 lemma has_fderiv_within_at_of_not_mem_closure (h : x ∉ closure s) :
   has_fderiv_within_at f f' s x :=
 begin
-  simp [mem_closure_iff_nhds_within_ne_bot, ne_bot] at h,
+  simp only [mem_closure_iff_nhds_within_ne_bot, ne_bot, ne.def, not_not] at h,
   simp [has_fderiv_within_at, has_fderiv_at_filter, h, is_o, is_O_with],
 end
 
@@ -561,6 +561,21 @@ lemma fderiv_within_eq_fderiv (hs : unique_diff_within_at 𝕜 s x) (h : differe
 begin
   rw ← fderiv_within_univ,
   exact fderiv_within_subset (subset_univ _) hs h.differentiable_within_at
+end
+
+lemma fderiv_mem_iff {f : E → F} {s : set (E →L[𝕜] F)} {x : E} :
+  fderiv 𝕜 f x ∈ s ↔ (differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ s) ∨
+    (0 : E →L[𝕜] F) ∈ s ∧ ¬differentiable_at 𝕜 f x :=
+begin
+  split,
+  { intro hfx,
+    by_cases hx : differentiable_at 𝕜 f x,
+    { exact or.inl ⟨hx, hfx⟩ },
+    { rw [fderiv_zero_of_not_differentiable_at hx] at hfx,
+      exact or.inr ⟨hfx, hx⟩ } },
+  { rintro (⟨hf, hf'⟩|⟨h₀, hx⟩),
+    { exact hf' },
+    { rwa [fderiv_zero_of_not_differentiable_at hx] } }
 end
 
 end fderiv_properties
@@ -2165,7 +2180,7 @@ lemma fderiv_const_mul (hc : differentiable_at 𝕜 c x) (d : 𝕜) :
 end mul
 
 section algebra_inverse
-variables {R :Type*} [normed_ring R] [normed_algebra 𝕜 R] [complete_space R]
+variables {R : Type*} [normed_ring R] [normed_algebra 𝕜 R] [complete_space R]
 open normed_ring continuous_linear_map ring
 
 /-- At an invertible element `x` of a normed algebra `R`, the Fréchet derivative of the inversion

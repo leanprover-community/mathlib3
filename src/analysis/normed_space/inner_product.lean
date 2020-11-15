@@ -132,7 +132,7 @@ structure inner_product_space.core
 (inner     : F → F → 𝕜)
 (conj_sym  : ∀ x y, conj (inner y x) = inner x y)
 (nonneg_im : ∀ x, im (inner x x) = 0)
-(nonneg_re : ∀ x, re (inner x x) ≥ 0)
+(nonneg_re : ∀ x, 0 ≤ re (inner x x))
 (definite  : ∀ x, inner x x = 0 → x = 0)
 (add_left  : ∀ x y z, inner (x + y) z = inner x z + inner y z)
 (smul_left : ∀ x y r, inner (r • x) y = (conj r) * inner x y)
@@ -920,7 +920,7 @@ norms, has absolute value 1 if and only if they are nonzero and one is
 a multiple of the other. One form of equality case for Cauchy-Schwarz. -/
 lemma abs_real_inner_div_norm_mul_norm_eq_one_iff (x y : F) :
   absR (⟪x, y⟫_ℝ / (∥x∥ * ∥y∥)) = 1 ↔ (x ≠ 0 ∧ ∃ (r : ℝ), r ≠ 0 ∧ y = r • x) :=
-by { simpa using abs_inner_div_norm_mul_norm_eq_one_iff x y, assumption }
+by simpa using abs_inner_div_norm_mul_norm_eq_one_iff x y
 
 /--
 If the inner product of two vectors is equal to the product of their norms, then the two vectors

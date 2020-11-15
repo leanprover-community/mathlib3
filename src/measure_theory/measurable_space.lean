@@ -350,19 +350,14 @@ iff.refl _
 
 theorem is_measurable_Sup {ms : set (measurable_space α)} {s : set α} :
   @is_measurable _ (Sup ms) s ↔
-    generate_measurable (⋃₀ (measurable_space.is_measurable' '' ms)) s :=
+    generate_measurable {s : set α | ∃ m ∈ ms, @is_measurable _ m s} s :=
 begin
-  change @is_measurable' _ (generate_from _) _ ↔ _,
-  dsimp [generate_from],
-  rw (show (⨆ (b : measurable_space α) (H : b ∈ ms), set_of (@is_measurable _ b)) =
-    (⋃₀ (is_measurable' '' ms)),
-  { ext,
-    simp only [exists_prop, mem_Union, sUnion_image, mem_set_of_eq],
-    refl, })
+  change @is_measurable' _ (generate_from $ ⋃ m ∈ ms, _) _ ↔ _,
+  simp [generate_from, ← set_of_exists]
 end
 
 theorem is_measurable_supr {ι} {m : ι → measurable_space α} {s : set α} :
-  @is_measurable _ (supr m) s ↔ generate_measurable (⋃ i, (m i).is_measurable') s :=
+  @is_measurable _ (supr m) s ↔ generate_measurable {s : set α | ∃ i, @is_measurable _ (m i) s} s :=
 begin
   convert @is_measurable_Sup _ (range m) s,
   simp,
@@ -712,6 +707,14 @@ measurable.of_comap_le $ le_supr _ a
 lemma measurable_pi_lambda (f : α → Π a, π a) (hf : ∀ a, measurable (λ c, f c a)) :
   measurable f :=
 measurable.of_le_map $ supr_le $ assume a, measurable_space.comap_le_iff_le_map.2 (hf a)
+
+lemma is_measurable_pi {s : set δ} {t : Π i : δ, set (π i)} (hs : countable s)
+  (ht : ∀ i ∈ s, is_measurable (t i)) :
+  is_measurable (s.pi t) :=
+begin
+  rw [pi_def],
+  exact is_measurable.bInter hs (λ i hi, measurable_pi_apply _ (ht i hi))
+end
 
 end pi
 

@@ -12,7 +12,7 @@ import topology.metric_space.basic
 
 Metric spaces are often defined as quotients of spaces endowed with a "distance"
 function satisfying the triangular inequality, but for which `dist x y = 0` does
-not imply x = y. We call such a space a premetric space.
+not imply `x = y`. We call such a space a premetric space.
 `dist x y = 0` defines an equivalence relation, and the quotient
 is canonically a metric space.
 -/
@@ -56,7 +56,7 @@ end
 
 local attribute [instance] dist_setoid
 
-/-- The canonical quotient of a premetric space, identifying points at distance 0. -/
+/-- The canonical quotient of a premetric space, identifying points at distance `0`. -/
 @[reducible] definition metric_quot (α : Type u) [premetric_space α] : Type* :=
 quotient (premetric.dist_setoid α)
 

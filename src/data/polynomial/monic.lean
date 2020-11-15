@@ -30,7 +30,7 @@ variables [semiring R] {p q r : polynomial R}
 lemma monic.as_sum {p : polynomial R} (hp : p.monic) :
   p = X^(p.nat_degree) + (∑ i in finset.range p.nat_degree, C (p.coeff i) * X^i) :=
 begin
-  conv_lhs { rw [p.as_sum_range, finset.sum_range_succ] },
+  conv_lhs { rw [p.as_sum_range_C_mul_X_pow, finset.sum_range_succ] },
   suffices : C (p.coeff p.nat_degree) = 1,
   { rw [this, one_mul] },
   exact congr_arg C hp
@@ -92,6 +92,14 @@ lemma monic_pow (hp : monic p) : ∀ (n : ℕ), monic (p ^ n)
 | 0     := monic_one
 | (n+1) := monic_mul hp (monic_pow n)
 
+lemma monic_add_of_left {p q : polynomial R} (hp : monic p) (hpq : degree q < degree p) :
+  monic (p + q) :=
+by rwa [monic, add_comm, leading_coeff_add_of_degree_lt hpq]
+
+lemma monic_add_of_right {p q : polynomial R} (hq : monic q) (hpq : degree p < degree q) :
+  monic (p + q) :=
+by rwa [monic, leading_coeff_add_of_degree_lt hpq]
+
 end semiring
 
 section comm_semiring
@@ -143,7 +151,7 @@ lemma coeff_nat_degree {p : polynomial R} (hp : p.monic) : p.coeff (p.nat_degree
 
 @[simp]
 lemma degree_eq_zero_iff_eq_one {p : polynomial R} (hp : p.monic) :
-p.nat_degree = 0 ↔ p = 1 :=
+  p.nat_degree = 0 ↔ p = 1 :=
 begin
   split; intro h,
   swap, { rw h, exact nat_degree_one },
@@ -158,40 +166,37 @@ lemma nat_degree_mul [nontrivial R] {p q : polynomial R} (hp : p.monic) (hq : q.
 by { apply nat_degree_mul', rw [hp.leading_coeff, hq.leading_coeff], simp }
 
 lemma next_coeff_mul {p q : polynomial R} (hp : monic p) (hq : monic q) :
-next_coeff (p * q) = next_coeff p + next_coeff q :=
+  next_coeff (p * q) = next_coeff p + next_coeff q :=
 begin
   classical,
-  by_cases h : nontrivial R, swap,
-  { rw nontrivial_iff at h, push_neg at h, apply h, },
-  haveI := h, clear h,
-  have := monic.nat_degree_mul hp hq,
-  dsimp only [next_coeff], rw this,
-  simp only [hp, hq, degree_eq_zero_iff_eq_one, add_eq_zero_iff], clear this,
-  split_ifs; try { tauto <|> simp [h_1, h_2] },
-  rename h_1 hp0, rename h_2 hq0, clear h,
-  rw ← degree_eq_zero_iff_eq_one at hp0 hq0, assumption',
-  -- we've reduced to the case where the degrees dp and dq are nonzero
+  nontriviality R,
+  simp only [next_coeff, monic.nat_degree_mul hp hq],
+  simp only [hp, hq, degree_eq_zero_iff_eq_one, add_eq_zero_iff],
   set dp := p.nat_degree, set dq := q.nat_degree,
+  suffices : p ≠ 1 → q ≠ 1 → (p * q).coeff (dp + dq - 1) = p.coeff (dp - 1) + q.coeff (dq - 1),
+  { by_cases hp0 : p = 1; by_cases hq0 : q = 1; simp [dp, dq, hp0, hq0, this] },
+  intros hp0 hq0,
+  replace hp0 : dp ≠ 0 := mt hp.degree_eq_zero_iff_eq_one.1 hp0,
+  replace hq0 : dq ≠ 0 := mt hq.degree_eq_zero_iff_eq_one.1 hq0,
   rw coeff_mul,
-  have : {(dp, dq - 1), (dp - 1, dq)} ⊆ nat.antidiagonal (dp + dq - 1),
-  { rw insert_subset, split,
-    work_on_goal 0 { rw [nat.mem_antidiagonal, nat.add_sub_assoc] },
-    work_on_goal 1 { simp only [singleton_subset_iff, nat.mem_antidiagonal],
-      apply nat.sub_add_eq_add_sub },
-    all_goals { apply nat.succ_le_of_lt, apply nat.pos_of_ne_zero, assumption } },
-  rw ← sum_subset this,
-  { rw [sum_insert, sum_singleton], iterate 2 { rw coeff_nat_degree }, ring, assumption',
-    suffices : dp ≠ dp - 1, { rw mem_singleton, simp [this] }, omega }, clear this,
-  intros x hx hx1,
-  simp only [nat.mem_antidiagonal] at hx, simp only [mem_insert, mem_singleton] at hx1,
-  suffices : p.coeff x.fst = 0 ∨ q.coeff x.snd = 0, cases this; simp [this],
-  suffices : dp < x.fst ∨ dq < x.snd, cases this,
-  { left,  apply coeff_eq_zero_of_nat_degree_lt, assumption },
-  { right, apply coeff_eq_zero_of_nat_degree_lt, assumption },
-  by_cases h : dp < x.fst, { left, exact h }, push_neg at h, right,
-  have : x.fst ≠ dp - 1, { contrapose! hx1, right, ext, assumption, dsimp only, omega },
-  have : x.fst ≠ dp,     { contrapose! hx1, left,  ext, assumption, dsimp only, omega },
-  omega,
+  have : {(dp - 1, dq), (dp, dq - 1)} ⊆ nat.antidiagonal (dp + dq - 1),
+  { suffices : dp - 1 + dq = dp + dq - 1 ∧ dp + (dq - 1) = dp + dq - 1,
+      by simpa [insert_subset, singleton_subset_iff],
+    omega },
+  rw [← sum_subset this, sum_pair],
+  { simp [hp, hq] },
+  { suffices : dp - 1 ≠ dp, from mt (congr_arg prod.fst) this,
+    omega },
+  { rintros ⟨x, y⟩ hx hx1,
+    simp only [nat.mem_antidiagonal] at hx,
+    simp only [mem_insert, mem_singleton] at hx1,
+    contrapose! hx1,
+    have hxp : x ≤ dp, from le_nat_degree_of_ne_zero (left_ne_zero_of_mul hx1),
+    have hyq : y ≤ dq, from le_nat_degree_of_ne_zero (right_ne_zero_of_mul hx1),
+    have : dq - 1 ≤ y, omega,
+    by_cases hy : y = dq,
+    { subst y, left, congr, omega },
+    { have : y = dq - 1, by omega, subst y, right, congr, omega } }
 end
 
 lemma next_coeff_prod

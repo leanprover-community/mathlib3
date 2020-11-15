@@ -45,7 +45,7 @@ instance : comm_semiring nat :=
   mul_zero       := nat.mul_zero,
   mul_comm       := nat.mul_comm }
 
-instance : decidable_linear_ordered_semiring nat :=
+instance : linear_ordered_semiring nat :=
 { add_left_cancel            := @nat.add_left_cancel,
   add_right_cancel           := @nat.add_right_cancel,
   lt                         := nat.lt,
@@ -56,12 +56,12 @@ instance : decidable_linear_ordered_semiring nat :=
   mul_lt_mul_of_pos_right    := @nat.mul_lt_mul_of_pos_right,
   decidable_eq               := nat.decidable_eq,
   exists_pair_ne             := ⟨0, 1, ne_of_lt nat.zero_lt_one⟩,
-  ..nat.comm_semiring, ..nat.decidable_linear_order }
+  ..nat.comm_semiring, ..nat.linear_order }
 
--- all the fields are already included in the decidable_linear_ordered_semiring instance
-instance : decidable_linear_ordered_cancel_add_comm_monoid ℕ :=
+-- all the fields are already included in the linear_ordered_semiring instance
+instance : linear_ordered_cancel_add_comm_monoid ℕ :=
 { add_left_cancel := @nat.add_left_cancel,
-  ..nat.decidable_linear_ordered_semiring }
+  ..nat.linear_ordered_semiring }
 
 /-! Extra instances to short-circuit type class resolution -/
 instance : add_comm_monoid nat    := by apply_instance
@@ -93,7 +93,7 @@ instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred s] [h : n
 { bot := ⟨nat.find (nonempty_subtype.1 h), nat.find_spec (nonempty_subtype.1 h)⟩,
   bot_le := λ x, nat.find_min' _ x.2,
   ..subtype.linear_order s,
-  ..lattice_of_decidable_linear_order }
+  ..lattice_of_linear_order }
 
 theorem nat.eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : 0 < m) (H : n * m = k * m) : n = k :=
 by rw [mul_comm n m, mul_comm k m] at H; exact nat.eq_of_mul_eq_mul_left Hm H
@@ -116,8 +116,8 @@ lt_trans zero_lt_one h
 
 end facts
 
-namespace nat
 variables {m n k : ℕ}
+namespace nat
 
 /-!
 ### Recursion and `set.range`
@@ -195,11 +195,17 @@ eq_zero_of_double_le $ le_trans (nat.mul_le_mul_right _ hb) h
 theorem le_zero_iff {i : ℕ} : i ≤ 0 ↔ i = 0 :=
 ⟨nat.eq_zero_of_le_zero, assume h, h ▸ le_refl i⟩
 
-lemma zero_max {m : nat} : max 0 m = m :=
+lemma zero_max {m : ℕ} : max 0 m = m :=
 max_eq_right (zero_le _)
 
 lemma one_le_of_lt {n m : ℕ} (h : n < m) : 1 ≤ m :=
 lt_of_le_of_lt (nat.zero_le _) h
+
+theorem eq_one_of_mul_eq_one_right {m n : ℕ} (H : m * n = 1) : m = 1 :=
+eq_one_of_dvd_one ⟨n, H.symm⟩
+
+theorem eq_one_of_mul_eq_one_left {m n : ℕ} (H : m * n = 1) : n = 1 :=
+eq_one_of_mul_eq_one_right (by rwa mul_comm)
 
 /-! ### `succ` -/
 
@@ -1129,6 +1135,14 @@ strict_mono.injective (pow_right_strict_mono k)
 
 lemma pow_left_strict_mono {m : ℕ} (k : 1 ≤ m) : strict_mono (λ (x : ℕ), x^m) :=
 λ _ _ h, pow_lt_pow_of_lt_left h k
+
+end nat
+
+lemma strict_mono.nat_pow {n : ℕ} (hn : 1 ≤ n) {f : ℕ → ℕ} (hf : strict_mono f) :
+  strict_mono (λ m, (f m) ^ n) :=
+(nat.pow_left_strict_mono hn).comp hf
+
+namespace nat
 
 lemma pow_le_iff_le_left {m x y : ℕ} (k : 1 ≤ m) : x^m ≤ y^m ↔ x ≤ y :=
 strict_mono.le_iff_le (pow_left_strict_mono k)

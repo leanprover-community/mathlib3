@@ -943,11 +943,8 @@ theorem has_deriv_within_at.scomp {t : set 𝕜}
   (hg : has_deriv_within_at g g' t (h x))
   (hh : has_deriv_within_at h h' s x) (hst : s ⊆ h ⁻¹' t) :
   has_deriv_within_at (g ∘ h) (h' • g') s x :=
-begin
-  apply has_deriv_at_filter.scomp _ (has_deriv_at_filter.mono hg _) hh,
-  calc map h (𝓝[s] x) ≤ 𝓝[h '' s] (h x) : hh.continuous_within_at.tendsto_nhds_within_image
-                  ... ≤ 𝓝[t] (h x)      : nhds_within_mono _ (image_subset_iff.mpr hst)
-end
+has_deriv_at_filter.scomp _ (has_deriv_at_filter.mono hg $
+  hh.continuous_within_at.tendsto_nhds_within hst) hh
 
 /-- The chain rule. -/
 theorem has_deriv_at.scomp
@@ -984,6 +981,31 @@ begin
   apply has_deriv_at.deriv,
   exact has_deriv_at.scomp x hg.has_deriv_at hh.has_deriv_at
 end
+
+/-! ### Derivative of the composition of a scalar and vector functions -/
+
+theorem has_deriv_at_filter.comp_has_fderiv_at_filter {f : E → 𝕜} {f' : E →L[𝕜] 𝕜} (x)
+  {L : filter E} (hh₁ : has_deriv_at_filter h₁ h₁' (f x) (L.map f))
+  (hf : has_fderiv_at_filter f f' x L) :
+  has_fderiv_at_filter (h₁ ∘ f) (h₁' • f') x L :=
+by { convert has_fderiv_at_filter.comp x hh₁ hf, ext x, simp [mul_comm] }
+
+theorem has_deriv_at.comp_has_fderiv_at {f : E → 𝕜} {f' : E →L[𝕜] 𝕜} (x)
+  (hh₁ : has_deriv_at h₁ h₁' (f x)) (hf : has_fderiv_at f f' x) :
+  has_fderiv_at (h₁ ∘ f) (h₁' • f') x :=
+(hh₁.mono hf.continuous_at).comp_has_fderiv_at_filter x hf
+
+theorem has_deriv_at.comp_has_fderiv_within_at {f : E → 𝕜} {f' : E →L[𝕜] 𝕜} {s} (x)
+  (hh₁ : has_deriv_at h₁ h₁' (f x)) (hf : has_fderiv_within_at f f' s x) :
+  has_fderiv_within_at (h₁ ∘ f) (h₁' • f') s x :=
+(hh₁.mono hf.continuous_within_at).comp_has_fderiv_at_filter x hf
+
+theorem has_deriv_within_at.comp_has_fderiv_within_at {f : E → 𝕜} {f' : E →L[𝕜] 𝕜} {s t} (x)
+  (hh₁ : has_deriv_within_at h₁ h₁' t (f x)) (hf : has_fderiv_within_at f f' s x)
+  (hst : maps_to f s t) :
+  has_fderiv_within_at (h₁ ∘ f) (h₁' • f') s x :=
+(has_deriv_at_filter.mono hh₁ $
+  hf.continuous_within_at.tendsto_nhds_within hst).comp_has_fderiv_at_filter x hf
 
 /-! ### Derivative of the composition of two scalar functions -/
 
@@ -1532,7 +1554,7 @@ lemma has_strict_deriv_at_pow (n : ℕ) (x : 𝕜) :
 begin
   convert (polynomial.C (1 : 𝕜) * (polynomial.X)^n).has_strict_deriv_at x,
   { simp },
-  { rw [polynomial.derivative_monomial], simp }
+  { rw [polynomial.derivative_C_mul_X_pow], simp }
 end
 
 lemma has_deriv_at_pow (n : ℕ) (x : 𝕜) : has_deriv_at (λx, x^n) ((n : 𝕜) * x^(n-1)) x :=

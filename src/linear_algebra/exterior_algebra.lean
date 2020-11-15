@@ -65,6 +65,11 @@ namespace exterior_algebra
 
 variables {M}
 
+-- typeclass resolution times out here, so we give it a hand
+instance {S : Type*} [comm_ring S] [semimodule S M] : ring (exterior_algebra S M) :=
+let i : ring (tensor_algebra S M) := infer_instance in
+@ring_quot.ring (tensor_algebra S M) i (exterior_algebra.rel S M)
+
 /--
 The canonical linear map `M →ₗ[R] exterior_algebra R M`.
 -/
@@ -81,62 +86,74 @@ begin
   erw [←alg_hom.map_mul, ring_quot.mk_alg_hom_rel R (rel.of m), alg_hom.map_zero _],
 end
 
-variables (R) {A : Type*} [semiring A] [algebra R A]
-
-/--
-Given a linear map `f : M →ₗ[R] A` into an `R`-algebra `A`, which satisfies the condition:
-`cond : ∀ m : M, f m * f m = 0`, this is the canonical lift of `f` to a morphism of `R`-algebras
-from `exterior_algebra R M` to `A`.
--/
-def lift (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = 0) : exterior_algebra R M →ₐ[R] A :=
-ring_quot.lift_alg_hom R (tensor_algebra.lift R f)
-  (λ x y h, by {
-    induction h,
-    rw [alg_hom.map_zero, alg_hom.map_mul, tensor_algebra.lift_ι_apply, cond] })
-
-@[simp]
-theorem ι_comp_lift (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = 0) :
-  (lift R f cond).to_linear_map.comp (ι R) = f :=
-by { ext, simp [lift, ι] }
-
-@[simp]
-theorem lift_ι_apply (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = 0) (x) :
-  lift R f cond (ι R x) = f x :=
-by simp [lift, ι]
-
-@[simp]
-theorem lift_unique (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = 0)
-  (g : exterior_algebra R M →ₐ[R] A) : g.to_linear_map.comp (ι R) = f ↔ g = lift R f cond :=
-begin
-  refine ⟨_, λ hyp, by rw [hyp, ι_comp_lift]⟩,
-  rintro rfl,
-  ext,
-  simp [lift],
-  refl,
-end
-
-attribute [irreducible] exterior_algebra ι lift
-
-variables {R M}
+variables {A : Type*} [semiring A] [algebra R A]
 
 @[simp]
 theorem comp_ι_square_zero (g : exterior_algebra R M →ₐ[R] A)
   (m : M) : g (ι R m) * g (ι R m) = 0 :=
 by rw [←alg_hom.map_mul, ι_square_zero, alg_hom.map_zero]
 
+variables (R)
+
+/--
+Given a linear map `f : M →ₗ[R] A` into an `R`-algebra `A`, which satisfies the condition:
+`cond : ∀ m : M, f m * f m = 0`, this is the canonical lift of `f` to a morphism of `R`-algebras
+from `exterior_algebra R M` to `A`.
+-/
+@[simps symm_apply]
+def lift : {f : M →ₗ[R] A // ∀ m, f m * f m = 0} ≃ (exterior_algebra R M →ₐ[R] A) :=
+{ to_fun := λ f,
+  ring_quot.lift_alg_hom R ⟨tensor_algebra.lift R (f : M →ₗ[R] A),
+    λ x y (h : rel R M x y), by {
+      induction h,
+      rw [alg_hom.map_zero, alg_hom.map_mul, tensor_algebra.lift_ι_apply, f.prop] }⟩,
+  inv_fun := λ F, ⟨F.to_linear_map.comp (ι R), λ m, by rw [
+    linear_map.comp_apply, alg_hom.to_linear_map_apply, comp_ι_square_zero]⟩,
+  left_inv := λ f, by { ext, simp [ι] },
+  right_inv := λ F, by { ext, simp [ι] } }
+
+@[simp]
+theorem ι_comp_lift (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = 0) :
+  (lift R ⟨f, cond⟩).to_linear_map.comp (ι R) = f :=
+(subtype.mk_eq_mk.mp $ (lift R).symm_apply_apply ⟨f, cond⟩)
+
+@[simp]
+theorem lift_ι_apply (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = 0) (x) :
+  lift R ⟨f, cond⟩ (ι R x) = f x :=
+(linear_map.ext_iff.mp $ ι_comp_lift R f cond) x
+
+@[simp]
+theorem lift_unique (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = 0)
+  (g : exterior_algebra R M →ₐ[R] A) : g.to_linear_map.comp (ι R) = f ↔ g = lift R ⟨f, cond⟩ :=
+begin
+  convert (lift R).symm_apply_eq,
+  rw lift_symm_apply,
+  simp only,
+end
+
+attribute [irreducible] ι lift
+-- Marking `exterior_algebra` irreducible makes our `ring` instances inaccessible.
+-- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/algebra.2Esemiring_to_ring.20breaks.20semimodule.20typeclass.20lookup/near/212580241
+-- For now, we avoid this by not marking it irreducible.
+
+variables {R M}
+
 @[simp]
 theorem lift_comp_ι (g : exterior_algebra R M →ₐ[R] A) :
-  lift R (g.to_linear_map.comp (ι R)) (comp_ι_square_zero _) = g :=
-by { symmetry, rw ←lift_unique, }
+  lift R ⟨g.to_linear_map.comp (ι R), comp_ι_square_zero _⟩ = g :=
+begin
+  convert (lift R).apply_symm_apply g,
+  rw lift_symm_apply,
+  refl,
+end
 
 @[ext]
-theorem hom_ext {f g : exterior_algebra R M →ₐ[R] A} :
-  f.to_linear_map.comp (ι R) = g.to_linear_map.comp (ι R) → f = g :=
+theorem hom_ext {f g : exterior_algebra R M →ₐ[R] A}
+  (h : f.to_linear_map.comp (ι R) = g.to_linear_map.comp (ι R)) : f = g :=
 begin
-  intro hyp,
-  let h := g.to_linear_map.comp (ι R),
-  have : g = lift R h (comp_ι_square_zero _), by rw ←lift_unique,
-  rw [this, ←lift_unique, hyp],
+  apply (lift R).symm.injective,
+  rw [lift_symm_apply, lift_symm_apply],
+  simp only [h],
 end
 
 end exterior_algebra

@@ -705,10 +705,9 @@ match this with
 end
 
 /-- Entourages are neighborhoods of the diagonal. -/
-lemma nhds_le_uniformity : (⨆ x : α, 𝓝 (x, x)) ≤ 𝓤 α :=
+lemma nhds_le_uniformity (x : α) : 𝓝 (x, x) ≤ 𝓤 α :=
 begin
-  apply supr_le _,
-  intros x V V_in,
+  intros V V_in,
   rcases comp_symm_mem_uniformity_sets V_in with ⟨w, w_in, w_symm, w_sub⟩,
   have : (ball x w).prod (ball x w) ∈ 𝓝 (x, x),
   { rw nhds_prod_eq,
@@ -717,6 +716,10 @@ begin
   rintros ⟨u, v⟩ ⟨u_in, v_in⟩,
   exact w_sub (mem_comp_of_mem_ball w_symm u_in v_in)
 end
+
+/-- Entourages are neighborhoods of the diagonal. -/
+lemma supr_nhds_le_uniformity : (⨆ x : α, 𝓝 (x, x)) ≤ 𝓤 α :=
+supr_le nhds_le_uniformity
 
 /-!
 ### Closure and interior in uniform spaces
@@ -1426,6 +1429,11 @@ by rw [continuous_at, tendsto_nhds_right]
 theorem continuous_at_iff'_left [topological_space β] {f : β → α} {b : β} :
   continuous_at f b ↔ tendsto (λ x, (f x, f b)) (𝓝 b) (𝓤 α) :=
 by rw [continuous_at, tendsto_nhds_left]
+
+theorem continuous_at_iff_prod [topological_space β] {f : β → α} {b : β} :
+  continuous_at f b ↔ tendsto (λ x : β × β, (f x.1, f x.2)) (𝓝 (b, b)) (𝓤 α) :=
+⟨λ H, le_trans (H.prod_map' H) (nhds_le_uniformity _),
+  λ H, continuous_at_iff'_left.2 $ H.comp $ tendsto_id.prod_mk_nhds tendsto_const_nhds⟩
 
 theorem continuous_within_at_iff'_right [topological_space β] {f : β → α} {b : β} {s : set β} :
   continuous_within_at f s b ↔ tendsto (λ x, (f b, f x)) (𝓝[s] b) (𝓤 α) :=

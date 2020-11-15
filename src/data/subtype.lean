@@ -5,11 +5,17 @@ Author: Johannes Hölzl
 -/
 import tactic.lint
 import tactic.ext
+import tactic.simps
 
 open function
 
 namespace subtype
-variables {α : Sort*} {β : Sort*} {γ : Sort*} {p : α → Prop}
+variables {α : Sort*} {β : Sort*} {γ : Sort*} {p : α → Prop} {q : α → Prop}
+
+/-- See Note [custom simps projection] -/
+def simps.val (x : subtype p) : α := x
+
+initialize_simps_projections subtype (val → coe)
 
 /-- A version of `x.property` or `x.2` where `p` is syntactically applied to the coercion of `x`
   instead of `x.1`. A similar result is `subtype.mem` in `data.set.basic`. -/
@@ -36,6 +42,10 @@ protected theorem forall' {q : ∀x, p x → Prop} :
 
 lemma ext_iff {a1 a2 : {x // p x}} : a1 = a2 ↔ (a1 : α) = (a2 : α) :=
 ⟨congr_arg _, subtype.ext⟩
+
+lemma heq_iff_coe_eq (h : ∀ x, p x ↔ q x) {a1 : {x // p x}} {a2 : {x // q x}} :
+  a1 == a2 ↔ (a1 : α) = (a2 : α) :=
+eq.rec (λ a2', heq_iff_eq.trans ext_iff) (funext $ λ x, propext (h x)) a2
 
 lemma ext_val {a1 a2 : {x // p x}} : a1.1 = a2.1 → a1 = a2 :=
 subtype.ext
@@ -73,7 +83,7 @@ lemma restrict_injective {α β} {f : α → β} (p : α → Prop) (h : injectiv
 h.comp coe_injective
 
 /-- Defining a map into a subtype, this can be seen as an "coinduction principle" of `subtype`-/
-def coind {α β} (f : α → β) {p : β → Prop} (h : ∀a, p (f a)) : α → subtype p :=
+@[simps] def coind {α β} (f : α → β) {p : β → Prop} (h : ∀a, p (f a)) : α → subtype p :=
 λ a, ⟨f a, h a⟩
 
 theorem coind_injective {α β} {f : α → β} {p : β → Prop} (h : ∀a, p (f a))
@@ -81,7 +91,7 @@ theorem coind_injective {α β} {f : α → β} {p : β → Prop} (h : ∀a, p (
 λ x y hxy, hf $ by apply congr_arg subtype.val hxy
 
 /-- Restriction of a function to a function on subtypes. -/
-def map {p : α → Prop} {q : β → Prop} (f : α → β) (h : ∀a, p a → q (f a)) :
+@[simps] def map {p : α → Prop} {q : β → Prop} (f : α → β) (h : ∀a, p a → q (f a)) :
   subtype p → subtype q :=
 λ x, ⟨f x, h x x.prop⟩
 

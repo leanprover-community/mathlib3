@@ -17,7 +17,8 @@ Let `R` be a commutative ring (or semiring) and aet `A` be an `R`-algebra.
 * `1 : submodule R A`       : the R-submodule R of the R-algebra A
 * `has_mul (submodule R A)` : multiplication of two sub-R-modules M and N of A is defined to be
                               the smallest submodule containing all the products `m * n`.
-* `has_div (submodule R A)` : `I / J` is defined to be the submodule consisting of all `a : A` such that `a • J ⊆ I`
+* `has_div (submodule R A)` : `I / J` is defined to be the submodule consisting of all `a : A` such
+                              that `a • J ⊆ I`
 
 It is proved that `submodule R A` is a semiring, and also an algebra over `set A`.
 
@@ -189,7 +190,8 @@ begin
     apply mul_subset_mul }
 end
 
-/-- `span` is a semiring homomorphism (recall multiplication is pointwise multiplication of subsets on either side). -/
+/-- `span` is a semiring homomorphism (recall multiplication is pointwise multiplication of subsets
+on either side). -/
 def span.ring_hom : set_semiring A →+* submodule R A :=
 { to_fun := submodule.span R,
   map_zero' := span_empty,
@@ -284,6 +286,30 @@ lemma le_div_iff {I J K : submodule R A} : I ≤ J / K ↔ ∀ (x ∈ I) (z ∈ 
 
 lemma le_div_iff_mul_le {I J K : submodule R A} : I ≤ J / K ↔ I * K ≤ J :=
 by rw [le_div_iff, mul_le]
+
+@[simp] lemma one_le_one_div {I : submodule R A} :
+  1 ≤ 1 / I ↔ I ≤ 1 :=
+begin
+  split, all_goals {intro hI},
+  {rwa [le_div_iff_mul_le, one_mul] at hI},
+  {rwa [le_div_iff_mul_le, one_mul]},
+end
+
+lemma le_self_mul_one_div {I : submodule R A} (hI : I ≤ 1) :
+  I ≤ I * (1 / I) :=
+begin
+  rw [← mul_one I] {occs := occurrences.pos [1]},
+  apply mul_le_mul_right (one_le_one_div.mpr hI),
+end
+
+lemma mul_one_div_le_one {I : submodule R A} : I * (1 / I) ≤ 1 :=
+begin
+  rw submodule.mul_le,
+  intros m hm n hn,
+  rw [submodule.mem_div_iff_forall_mul_mem] at hn,
+  rw mul_comm,
+  exact hn m hm,
+end
 
 @[simp] lemma map_div {B : Type*} [comm_ring B] [algebra R B]
   (I J : submodule R A) (h : A ≃ₐ[R] B) :

@@ -79,6 +79,23 @@ attribute [instance, priority 100] -- see Note [lower instance priority]
   preserves_limits_of_shape.preserves_limit preserves_limits.preserves_limits_of_shape
   preserves_colimits_of_shape.preserves_colimit preserves_colimits.preserves_colimits_of_shape
 
+/--
+A convenience function for `preserves_limit`, which takes the functor as an explicit argument to
+guide typeclass resolution.
+-/
+def is_limit_of_preserves (F : C ⥤ D) {c : cone K} (t : is_limit c) [preserves_limit K F] :
+  is_limit (F.map_cone c) :=
+preserves_limit.preserves t
+
+/--
+A convenience function for `preserves_colimit`, which takes the functor as an explicit argument to
+guide typeclass resolution.
+-/
+def is_colimit_of_preserves (F : C ⥤ D) {c : cocone K} (t : is_colimit c)
+  [preserves_colimit K F] :
+  is_colimit (F.map_cocone c) :=
+preserves_colimit.preserves t
+
 instance preserves_limit_subsingleton (K : J ⥤ C) (F : C ⥤ D) : subsingleton (preserves_limit K F) :=
 by split; rintros ⟨a⟩ ⟨b⟩; congr
 instance preserves_colimit_subsingleton (K : J ⥤ C) (F : C ⥤ D) : subsingleton (preserves_colimit K F) :=
@@ -120,9 +137,27 @@ instance comp_preserves_limit [preserves_limit K F] [preserves_limit (K ⋙ F) G
   preserves_limit K (F ⋙ G) :=
 ⟨λ c h, preserves_limit.preserves (preserves_limit.preserves h)⟩
 
+instance comp_preserves_limits_of_shape
+  [preserves_limits_of_shape J F] [preserves_limits_of_shape J G] :
+  preserves_limits_of_shape J (F ⋙ G) :=
+{ preserves_limit := λ K, infer_instance }
+
+instance comp_preserves_limits [preserves_limits F] [preserves_limits G] :
+  preserves_limits (F ⋙ G) :=
+{ preserves_limits_of_shape := λ J 𝒥₁, infer_instance }
+
 instance comp_preserves_colimit [preserves_colimit K F] [preserves_colimit (K ⋙ F) G] :
   preserves_colimit K (F ⋙ G) :=
 ⟨λ c h, preserves_colimit.preserves (preserves_colimit.preserves h)⟩
+
+instance comp_preserves_colimits_of_shape
+  [preserves_colimits_of_shape J F] [preserves_colimits_of_shape J G] :
+  preserves_colimits_of_shape J (F ⋙ G) :=
+{ preserves_colimit := λ K, infer_instance }
+
+instance comp_preserves_colimits [preserves_colimits F] [preserves_colimits G] :
+  preserves_colimits (F ⋙ G) :=
+{ preserves_colimits_of_shape := λ J 𝒥₁, infer_instance }
 
 end
 
@@ -132,21 +167,31 @@ def preserves_limit_of_preserves_limit_cone {F : C ⥤ D} {t : cone K}
   (h : is_limit t) (hF : is_limit (F.map_cone t)) : preserves_limit K F :=
 ⟨λ t' h', is_limit.of_iso_limit hF (functor.map_iso _ (is_limit.unique_up_to_iso h h'))⟩
 
-/-- Transfer preservation of limits along a natural isomorphism in the shape. -/
-def preserves_limit_of_iso {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K₂) [preserves_limit K₁ F] :
-  preserves_limit K₂ F :=
+/-- Transfer preservation of limits along a natural isomorphism in the diagram. -/
+def preserves_limit_of_iso_diagram {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K₂)
+  [preserves_limit K₁ F] : preserves_limit K₂ F :=
 { preserves := λ c t,
   begin
-    have t' := is_limit.of_right_adjoint (cones.postcompose_equivalence h).inverse t,
-    let hF := iso_whisker_right h F,
-    have := is_limit.of_right_adjoint (cones.postcompose_equivalence hF).functor
-              (preserves_limit.preserves t'),
-    apply is_limit.of_iso_limit this,
-    refine cones.ext (iso.refl _) (λ j, _),
-    dsimp,
-    rw [← F.map_comp],
-    simp,
+    apply is_limit.postcompose_inv_equiv (iso_whisker_right h F : _) _ _,
+    have := (is_limit.postcompose_inv_equiv h c).symm t,
+    apply is_limit.of_iso_limit (is_limit_of_preserves F this),
+    refine cones.ext (iso.refl _) (λ j, by tidy),
   end }
+
+/-- Transfer preservation of a limit along a natural isomorphism in the functor. -/
+def preserves_limit_of_nat_iso (K : J ⥤ C) {F G : C ⥤ D} (h : F ≅ G) [preserves_limit K F] :
+  preserves_limit K G :=
+{ preserves := λ c t, is_limit.map_cone_equiv h (preserves_limit.preserves t) }
+
+/-- Transfer preservation of limits of shape along a natural isomorphism in the functor. -/
+def preserves_limits_of_shape_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [preserves_limits_of_shape J F] :
+  preserves_limits_of_shape J G :=
+{ preserves_limit := λ K, preserves_limit_of_nat_iso K h }
+
+/-- Transfer preservation of limits along a natural isomorphism in the functor. -/
+def preserves_limits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [preserves_limits F] :
+  preserves_limits G :=
+{ preserves_limits_of_shape := λ J 𝒥₁, by exactI preserves_limits_of_shape_of_nat_iso h }
 
 /-- If F preserves one colimit cocone for the diagram K,
   then it preserves any colimit cocone for K. -/
@@ -155,20 +200,30 @@ def preserves_colimit_of_preserves_colimit_cocone {F : C ⥤ D} {t : cocone K}
 ⟨λ t' h', is_colimit.of_iso_colimit hF (functor.map_iso _ (is_colimit.unique_up_to_iso h h'))⟩
 
 /-- Transfer preservation of colimits along a natural isomorphism in the shape. -/
-def preserves_colimit_of_iso {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K₂) [preserves_colimit K₁ F] :
-  preserves_colimit K₂ F :=
+def preserves_colimit_of_iso_diagram {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K₂)
+  [preserves_colimit K₁ F] : preserves_colimit K₂ F :=
 { preserves := λ c t,
   begin
-    have t' := is_colimit.of_left_adjoint (cocones.precompose_equivalence h).functor t,
-    let hF := iso_whisker_right h F,
-    have := is_colimit.of_left_adjoint (cocones.precompose_equivalence hF).inverse
-              (preserves_colimit.preserves t'),
-    apply is_colimit.of_iso_colimit this,
-    refine cocones.ext (iso.refl _) (λ j, _),
-    dsimp,
-    rw [← F.map_comp],
-    simp,
+    apply is_colimit.precompose_hom_equiv (iso_whisker_right h F : _) _ _,
+    have := (is_colimit.precompose_hom_equiv h c).symm t,
+    apply is_colimit.of_iso_colimit (is_colimit_of_preserves F this),
+    refine cocones.ext (iso.refl _) (λ j, by tidy),
   end }
+
+/-- Transfer preservation of a colimit along a natural isomorphism in the functor. -/
+def preserves_colimit_of_nat_iso (K : J ⥤ C) {F G : C ⥤ D} (h : F ≅ G) [preserves_colimit K F] :
+  preserves_colimit K G :=
+{ preserves := λ c t, is_colimit.map_cocone_equiv h (preserves_colimit.preserves t) }
+
+/-- Transfer preservation of colimits of shape along a natural isomorphism in the functor. -/
+def preserves_colimits_of_shape_of_nat_iso {F G : C ⥤ D} (h : F ≅ G)
+  [preserves_colimits_of_shape J F] : preserves_colimits_of_shape J G :=
+{ preserves_colimit := λ K, preserves_colimit_of_nat_iso K h }
+
+/-- Transfer preservation of colimits along a natural isomorphism in the functor. -/
+def preserves_colimits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [preserves_colimits F] :
+  preserves_colimits G :=
+{ preserves_colimits_of_shape := λ J 𝒥₁, by exactI preserves_colimits_of_shape_of_nat_iso h }
 
 /--
 A functor `F : C ⥤ D` reflects limits for `K : J ⥤ C` if
@@ -220,6 +275,23 @@ Note that we do not assume a priori that `D` actually has any colimits.
 -/
 class reflects_colimits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 (reflects_colimits_of_shape : Π {J : Type v} {𝒥 : small_category J}, by exactI reflects_colimits_of_shape J F)
+
+/--
+A convenience function for `reflects_limit`, which takes the functor as an explicit argument to
+guide typeclass resolution.
+-/
+def is_limit_of_reflects (F : C ⥤ D) {c : cone K} (t : is_limit (F.map_cone c))
+  [reflects_limit K F] : is_limit c :=
+reflects_limit.reflects t
+
+/--
+A convenience function for `reflects_colimit`, which takes the functor as an explicit argument to
+guide typeclass resolution.
+-/
+def is_colimit_of_reflects (F : C ⥤ D) {c : cocone K} (t : is_colimit (F.map_cocone c))
+  [reflects_colimit K F] :
+  is_colimit c :=
+reflects_colimit.reflects t
 
 instance reflects_limit_subsingleton (K : J ⥤ C) (F : C ⥤ D) : subsingleton (reflects_limit K F) :=
 by split; rintros ⟨a⟩ ⟨b⟩; congr
@@ -278,9 +350,27 @@ instance comp_reflects_limit [reflects_limit K F] [reflects_limit (K ⋙ F) G] :
   reflects_limit K (F ⋙ G) :=
 ⟨λ c h, reflects_limit.reflects (reflects_limit.reflects h)⟩
 
+instance comp_reflects_limits_of_shape
+  [reflects_limits_of_shape J F] [reflects_limits_of_shape J G] :
+  reflects_limits_of_shape J (F ⋙ G) :=
+{ reflects_limit := λ K, infer_instance }
+
+instance comp_reflects_limits [reflects_limits F] [reflects_limits G] :
+  reflects_limits (F ⋙ G) :=
+{ reflects_limits_of_shape := λ J 𝒥₁, infer_instance }
+
 instance comp_reflects_colimit [reflects_colimit K F] [reflects_colimit (K ⋙ F) G] :
   reflects_colimit K (F ⋙ G) :=
 ⟨λ c h, reflects_colimit.reflects (reflects_colimit.reflects h)⟩
+
+instance comp_reflects_colimits_of_shape
+  [reflects_colimits_of_shape J F] [reflects_colimits_of_shape J G] :
+  reflects_colimits_of_shape J (F ⋙ G) :=
+{ reflects_colimit := λ K, infer_instance }
+
+instance comp_reflects_colimits [reflects_colimits F] [reflects_colimits G] :
+  reflects_colimits (F ⋙ G) :=
+{ reflects_colimits_of_shape := λ J 𝒥₁, infer_instance }
 
 /-- If `F ⋙ G` preserves limits for `K`, and `G` reflects limits for `K ⋙ F`,
 then `F` preserves limits for `K`. -/
@@ -288,10 +378,38 @@ def preserves_limit_of_reflects_of_preserves [preserves_limit K (F ⋙ G)]
   [reflects_limit (K ⋙ F) G] : preserves_limit K F :=
 ⟨λ c h,
  begin
-  apply @reflects_limit.reflects _ _ _ _ _ _ _ G,
-  change limits.is_limit ((F ⋙ G).map_cone c),
-  exact preserves_limit.preserves h
+  apply is_limit_of_reflects G,
+  apply is_limit_of_preserves (F ⋙ G) h,
  end⟩
+
+/--
+If `F ⋙ G` preserves limits of shape `J` and `G` reflects limits of shape `J`, then `F` preserves
+limits of shape `J`.
+-/
+def preserves_limits_of_shape_of_reflects_of_preserves [preserves_limits_of_shape J (F ⋙ G)]
+  [reflects_limits_of_shape J G] : preserves_limits_of_shape J F :=
+{ preserves_limit := λ K, preserves_limit_of_reflects_of_preserves F G }
+
+/-- If `F ⋙ G` preserves limits and `G` reflects limits, then `F` preserves limits. -/
+def preserves_limits_of_reflects_of_preserves [preserves_limits (F ⋙ G)] [reflects_limits G] :
+  preserves_limits F :=
+{ preserves_limits_of_shape := λ J 𝒥₁,
+    by exactI preserves_limits_of_shape_of_reflects_of_preserves F G }
+    
+/-- Transfer reflection of a limit along a natural isomorphism in the functor. -/
+def reflects_limit_of_nat_iso (K : J ⥤ C) {F G : C ⥤ D} (h : F ≅ G) [reflects_limit K F] :
+  reflects_limit K G :=
+{ reflects := λ c t, reflects_limit.reflects (is_limit.map_cone_equiv h.symm t) }
+
+/-- Transfer reflection of limits of shape along a natural isomorphism in the functor. -/
+def reflects_limits_of_shape_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [reflects_limits_of_shape J F] :
+  reflects_limits_of_shape J G :=
+{ reflects_limit := λ K, reflects_limit_of_nat_iso K h }
+
+/-- Transfer reflection of limits along a natural isomorphism in the functor. -/
+def reflects_limits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [reflects_limits F] :
+  reflects_limits G :=
+{ reflects_limits_of_shape := λ J 𝒥₁, by exactI reflects_limits_of_shape_of_nat_iso h }
 
 /-- If `F ⋙ G` preserves colimits for `K`, and `G` reflects colimits for `K ⋙ F`,
 then `F` preserves colimits for `K`. -/
@@ -299,11 +417,38 @@ def preserves_colimit_of_reflects_of_preserves [preserves_colimit K (F ⋙ G)]
   [reflects_colimit (K ⋙ F) G] : preserves_colimit K F :=
 ⟨λ c h,
  begin
-  apply @reflects_colimit.reflects _ _ _ _ _ _ _ G,
-  change limits.is_colimit ((F ⋙ G).map_cocone c),
-  exact preserves_colimit.preserves h
+  apply is_colimit_of_reflects G,
+  apply is_colimit_of_preserves (F ⋙ G) h,
  end⟩
 
+/--
+If `F ⋙ G` preserves colimits of shape `J` and `G` reflects colimits of shape `J`, then `F`
+preserves colimits of shape `J`.
+-/
+def preserves_colimits_of_shape_of_reflects_of_preserves [preserves_colimits_of_shape J (F ⋙ G)]
+  [reflects_colimits_of_shape J G] : preserves_colimits_of_shape J F :=
+{ preserves_colimit := λ K, preserves_colimit_of_reflects_of_preserves F G }
+
+/-- If `F ⋙ G` preserves colimits and `G` reflects colimits, then `F` preserves colimits. -/
+def preserves_colimits_of_reflects_of_preserves [preserves_colimits (F ⋙ G)]
+  [reflects_colimits G] : preserves_colimits F :=
+{ preserves_colimits_of_shape := λ J 𝒥₁,
+    by exactI preserves_colimits_of_shape_of_reflects_of_preserves F G }
+
+/-- Transfer reflection of a colimit along a natural isomorphism in the functor. -/
+def reflects_colimit_of_nat_iso (K : J ⥤ C) {F G : C ⥤ D} (h : F ≅ G) [reflects_colimit K F] :
+  reflects_colimit K G :=
+{ reflects := λ c t, reflects_colimit.reflects (is_colimit.map_cocone_equiv h.symm t) }
+
+/-- Transfer reflection of colimits of shape along a natural isomorphism in the functor. -/
+def reflects_colimits_of_shape_of_nat_iso {F G : C ⥤ D} (h : F ≅ G)
+  [reflects_colimits_of_shape J F] : reflects_colimits_of_shape J G :=
+{ reflects_colimit := λ K, reflects_colimit_of_nat_iso K h }
+
+/-- Transfer reflection of colimits along a natural isomorphism in the functor. -/
+def reflects_colimits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [reflects_colimits F] :
+  reflects_colimits G :=
+{ reflects_colimits_of_shape := λ J 𝒥₁, by exactI reflects_colimits_of_shape_of_nat_iso h }
 
 end
 

@@ -631,7 +631,6 @@ begin
     intro con,
     rw ← h at con,
     exact not_irreducible_zero (irreducible_of_factor 0 con) },
-  { apply_instance },
   { rw finset.nonempty,
     rcases wf_dvd_monoid.exists_irreducible_factor _ (nat.succ_ne_zero _) with ⟨i, hi⟩,
     { rcases exists_mem_factors_of_dvd (nat.succ_ne_zero _) hi.1 hi.2 with ⟨j, hj, hj2⟩,

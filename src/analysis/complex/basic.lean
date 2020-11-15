@@ -196,28 +196,59 @@ open complex
 
 /-! Differentiability of the real and imaginary part functions. -/
 
-lemma has_fderiv_at_re (x : ℂ) : has_fderiv_at re continuous_linear_map.re x :=
+lemma has_fderiv_at_re {x : ℂ} : has_fderiv_at re continuous_linear_map.re x :=
 continuous_linear_map.re.has_fderiv_at
 
 lemma differentiable_re : differentiable ℝ re :=
 continuous_linear_map.re.differentiable
 
 lemma deriv_re {x : ℂ} : fderiv ℝ re x = continuous_linear_map.re :=
-(has_fderiv_at_re x).fderiv
+has_fderiv_at_re.fderiv
 
 @[simp] lemma deriv_re' : fderiv ℝ re = λ _, continuous_linear_map.re :=
 funext $ λ _, deriv_re
 
-lemma has_fderiv_at_im (x : ℂ) : has_fderiv_at im continuous_linear_map.im x :=
+lemma has_fderiv_at_im {x : ℂ} : has_fderiv_at im continuous_linear_map.im x :=
 continuous_linear_map.im.has_fderiv_at
 
 lemma differentiable_im : differentiable ℝ im :=
 continuous_linear_map.im.differentiable
 
 lemma deriv_im {x : ℂ} : fderiv ℝ im x = continuous_linear_map.im :=
-(has_fderiv_at_im x).fderiv
+has_fderiv_at_im.fderiv
 
 @[simp] lemma deriv_im' : fderiv ℝ im = λ _, continuous_linear_map.im :=
 funext $ λ _, deriv_im
 
 end differentiable_re
+
+section cauchy_riemann
+open complex
+
+/-- First Cauchy-Riemann equation: for a complex-differentiable function `f`, the `x`-derivative of
+`re ∘ f` is equal to the `y`-derivative of `im ∘ f`. -/
+lemma fderiv_re_comp_eq_fderiv_im_comp (f : ℂ → ℂ) (z : ℂ) (hz : differentiable_at ℂ f z) :
+  fderiv ℝ (re ∘ f) z 1 = fderiv ℝ (im ∘ f ) z I :=
+begin
+  have hz' := hz.has_fderiv_at.restrict_scalars ℝ,
+  have hI : I = I • 1 := by simp,
+  simp only [continuous_linear_map.coe_comp', continuous_linear_map.restrict_scalars_coe_eq_coe',
+     function.comp_app, (has_fderiv_at_re.comp z hz').fderiv, (has_fderiv_at_im.comp z hz').fderiv],
+  rw [hI, continuous_linear_map.map_smul],
+  simp
+end
+
+/-- Second Cauchy-Riemann equation: for a complex-differentiable function `f`, the `x`-derivative of
+`im ∘ f` is equal to the negative of the `y`-derivative of `re ∘ f`. -/
+lemma fderiv_re_comp_eq_neg_fderiv_im_comp (f : ℂ → ℂ) (z : ℂ) (hz : differentiable_at ℂ f z) :
+  fderiv ℝ (re ∘ f) z I = - fderiv ℝ (im ∘ f ) z 1 :=
+begin
+  have hz' := hz.has_fderiv_at.restrict_scalars ℝ,
+  have hI : I = I • 1 := by simp,
+  simp only [continuous_linear_map.coe_comp', continuous_linear_map.restrict_scalars_coe_eq_coe',
+     function.comp_app, (has_fderiv_at_re.comp z hz').fderiv, (has_fderiv_at_im.comp z hz').fderiv],
+  rw [hI, continuous_linear_map.map_smul],
+  simp
+end
+
+end cauchy_riemann

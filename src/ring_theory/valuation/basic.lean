@@ -153,7 +153,7 @@ v.to_monoid_with_zero_hom.map_inv' x
 lemma map_units_inv (x : units R) : v (x⁻¹ : units R) = (v x)⁻¹ :=
 v.to_monoid_with_zero_hom.to_monoid_hom.map_units_inv x
 
-@[simp] theorem unit_map_eq (u : units R) :
+theorem unit_map_eq (u : units R) :
   (units.map (v : R →* Γ₀) u : Γ₀) = v u := rfl
 
 @[simp] lemma map_neg (x : R) : v (-x) = v x :=

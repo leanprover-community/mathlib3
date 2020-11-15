@@ -334,6 +334,12 @@ begin
   exact add_lt_add_of_lt_of_le hab (nat.succ_le_iff.2 hcd)
 end
 
+lemma add_left_injective (a : ℕ) : function.injective (λ x, x + a) :=
+λ _ _, add_right_cancel
+
+lemma add_right_injective (a : ℕ) : function.injective (λ x, a + x) :=
+λ _ _, add_left_cancel
+
 /-! ### `pred` -/
 
 @[simp]
@@ -585,6 +591,12 @@ protected theorem mul_left_inj {a b c : ℕ} (ha : 0 < a) : b * a = c * a ↔ b 
 
 protected theorem mul_right_inj {a b c : ℕ} (ha : 0 < a) : a * b = a * c ↔ b = c :=
 ⟨nat.eq_of_mul_eq_mul_left ha, λ e, e ▸ rfl⟩
+
+lemma mul_left_injective {a : ℕ} (ha : 0 < a) : function.injective (λ x, x * a) :=
+λ _ _, eq_of_mul_eq_mul_right ha
+
+lemma mul_right_injective {a : ℕ} (ha : 0 < a) : function.injective (λ x, a * x) :=
+λ _ _, eq_of_mul_eq_mul_left ha
 
 lemma mul_right_eq_self_iff {a b : ℕ} (ha : 0 < a) : a * b = a ↔ b = 1 :=
 suffices a * b = a * 1 ↔ b = 1, by rwa mul_one at this,

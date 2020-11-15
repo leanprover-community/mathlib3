@@ -85,9 +85,7 @@ lemma lemma1 : b - a = c :=
         suffices : (1 : ℚ) + (-1)^x = 0,
           rw this, simp,
         rw ← h8,
-        simp [pow_add, pow_mul],
-      }
-    }
+        simp [pow_add, pow_mul], } }
     ... = ∑ (x : ℕ) in filter even (range 1320), 2 / x : by rw sum_filter
     ... = ∑ (x : ℕ) in map double (range 660), 2 / x : by {
       apply sum_congr _ (λ _ _, rfl),

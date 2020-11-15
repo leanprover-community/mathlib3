@@ -24,8 +24,7 @@ open is_R_or_C
 
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {F : Type*} [normed_group F] [normed_space 𝕜 F]
 local notation `𝓚` := @is_R_or_C.of_real 𝕜 _
-
--- set_option pp.all true
+local notation `abs𝕜` := @is_R_or_C.abs 𝕜 _
 
 /-- Extend `fr : F →ₗ[ℝ] ℝ` to `F →ₗ[𝕜] 𝕜` in a way that will also be continuous and have its norm
 bounded by `∥fr∥` if `fr` is continuous. -/
@@ -62,8 +61,6 @@ begin
         ← mul_assoc, algebra.id.smul_eq_mul, algebra.id.smul_eq_mul] },
   exact { to_fun := fc, map_add' := add, map_smul' := smul_𝕜 }
 end
-
-local notation `abs𝕜` := @is_R_or_C.abs 𝕜 _
 
 /-- The norm of the extension is bounded by `∥fr∥`. -/
 lemma norm_bound (fr : (restrict_scalars ℝ 𝕜 F) →L[ℝ] ℝ) (x : F) :

@@ -113,17 +113,17 @@ section coes
 
 -- Allow downcasting to be automatic
 @[to_additive]
-instance monoid_hom.has_coe_to_one_hom {mM : monoid M} {mN : monoid N} : has_coe (M →* N) (one_hom M N) :=
-⟨monoid_hom.to_one_hom⟩
+instance monoid_hom.has_coe_to_one_hom {mM : monoid M} {mN : monoid N} :
+  has_coe (M →* N) (one_hom M N) := ⟨monoid_hom.to_one_hom⟩
 @[to_additive]
-instance monoid_hom.has_coe_to_mul_hom {mM : monoid M} {mN : monoid N} : has_coe (M →* N) (mul_hom M N) :=
-⟨monoid_hom.to_mul_hom⟩
-instance monoid_with_zero_hom.has_coe_to_monoid_hom {mM : monoid_with_zero M} {mN : monoid_with_zero N} :
-  has_coe (monoid_with_zero_hom M N) (M →* N) :=
-⟨monoid_with_zero_hom.to_monoid_hom⟩
-instance monoid_with_zero_hom.has_coe_to_zero_hom {mM : monoid_with_zero M} {mN : monoid_with_zero N} :
-  has_coe (monoid_with_zero_hom M N) (zero_hom M N) :=
-⟨monoid_with_zero_hom.to_zero_hom⟩
+instance monoid_hom.has_coe_to_mul_hom {mM : monoid M} {mN : monoid N} :
+  has_coe (M →* N) (mul_hom M N) := ⟨monoid_hom.to_mul_hom⟩
+instance monoid_with_zero_hom.has_coe_to_monoid_hom
+  {mM : monoid_with_zero M} {mN : monoid_with_zero N} :
+  has_coe (monoid_with_zero_hom M N) (M →* N) := ⟨monoid_with_zero_hom.to_monoid_hom⟩
+instance monoid_with_zero_hom.has_coe_to_zero_hom
+  {mM : monoid_with_zero M} {mN : monoid_with_zero N} :
+  has_coe (monoid_with_zero_hom M N) (zero_hom M N) := ⟨monoid_with_zero_hom.to_zero_hom⟩
 
 -- But simplify to explicit downcasting
 @[simp, to_additive]

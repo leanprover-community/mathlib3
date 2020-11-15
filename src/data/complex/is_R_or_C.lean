@@ -55,6 +55,9 @@ local postfix `†`:100 := @is_R_or_C.conj K _
 lemma of_real_alg : ∀ x : ℝ, 𝓚 x = x • (1 : K) :=
 λ x, by rw [←mul_one (𝓚 x), smul_coe_mul_ax]
 
+lemma algebra_map_eq_of_real (x : ℝ) : algebra_map ℝ K x = of_real x :=
+by rw [of_real_alg, algebra.algebra_map_eq_smul_one]
+
 @[simp] lemma re_add_im (z : K) : 𝓚 (re z) + 𝓚 (im z) * I = z := is_R_or_C.re_add_im_ax z
 @[simp] lemma of_real_re : ∀ r : ℝ, re (𝓚 r) = r := is_R_or_C.of_real_re_ax
 @[simp] lemma of_real_im : ∀ r : ℝ, im (𝓚 r) = 0 := is_R_or_C.of_real_im_ax
@@ -130,6 +133,11 @@ lemma smul_re' : ∀ (r : ℝ) (z : K), re (r • z) = r * (re z) :=
 λ r z, by { rw [smul_coe_mul_ax], apply smul_re }
 lemma smul_im' : ∀ (r : ℝ) (z : K), im (r • z) = r * (im z) :=
 λ r z, by { rw [smul_coe_mul_ax], apply smul_im }
+
+noncomputable def re_lm : K →ₗ[ℝ] ℝ :=
+{ map_smul' := smul_re',  .. re }
+
+@[simp] lemma re_lm_coe : (re_lm : K → ℝ) = re := rfl
 
 /-! ### The imaginary unit, `I` -/
 
@@ -502,6 +510,20 @@ begin
   refine ⟨by simp [of_real_re, mul_re, conj_re, conj_im, norm_sq],_⟩,
   simp [of_real_im, mul_im, conj_im, conj_re, mul_comm],
 end
+
+noncomputable def re_clm : K →L[ℝ] ℝ :=
+re_lm.mk_continuous 1 $ by { simp only [norm_eq_abs, re_lm_coe, one_mul], exact abs_re_le_abs }
+
+@[simp] lemma norm_re_clm : ∥(re_clm : K →L[ℝ] ℝ)∥ = 1 :=
+begin
+  apply le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _),
+  convert continuous_linear_map.ratio_le_op_norm _ (1 : K),
+  simp,
+end
+
+@[simp, norm_cast] lemma re_clm_coe : ((re_clm : K →L[ℝ] ℝ) : K →ₗ[ℝ] ℝ) = re_lm := rfl
+
+@[simp] lemma re_clm_apply : ((re_clm : K →L[ℝ] ℝ) : K → ℝ) = re := rfl
 
 /-! ### Cauchy sequences -/
 

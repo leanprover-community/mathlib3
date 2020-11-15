@@ -6,16 +6,17 @@ Authors: Yury Kudryashov, Heather Macbeth
 import analysis.normed_space.operator_norm
 import analysis.normed_space.extend
 import analysis.convex.cone
+import data.complex.is_R_or_C
 
 /-!
 # Hahn-Banach theorem
 
 In this file we prove a version of Hahn-Banach theorem for continuous linear
-functions on normed spaces over `ℝ` and `ℂ`.
+functions on normed spaces over `ℝ` and `𝕜`.
 
 In order to state and prove its corollaries uniformly, we introduce a typeclass
 `has_exists_extension_norm_eq` for a field, requiring that a strong version of the
-Hahn-Banach theorem holds over this field, and provide instances for `ℝ` and `ℂ`.
+Hahn-Banach theorem holds over this field, and provide instances for `ℝ` and `𝕜`.
 
 In this setting, `exists_dual_vector` states that, for any nonzero `x`, there exists a continuous
 linear form `g` of norm `1` with `g x = ∥x∥` (where the norm has to be interpreted as an element
@@ -29,7 +30,7 @@ universes u v
 A field where the Hahn-Banach theorem for continuous linear functions holds. This allows stating
 theorems that depend on it uniformly over such fields.
 
-In particular, this is satisfied by `ℝ` and `ℂ`.
+In particular, this is satisfied by `ℝ` and `𝕜`.
 -/
 class has_exists_extension_norm_eq (𝕜 : Type v) [nondiscrete_normed_field 𝕜] : Prop :=
 (exists_extension_norm_eq :
@@ -43,7 +44,7 @@ class has_exists_extension_norm_eq (𝕜 : Type v) [nondiscrete_normed_field �
 The norm of `x` as an element of `𝕜` (a normed algebra over `ℝ`). This is needed in particular to
 state equalities of the form `g x = norm' 𝕜 x` when `g` is a linear function.
 
-For the concrete cases of `ℝ` and `ℂ`, this is just `∥x∥` and `↑∥x∥`, respectively.
+For the concrete cases of `ℝ` and `𝕜`, this is just `∥x∥` and `↑∥x∥`, respectively.
 -/
 noncomputable def norm' (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜]
   {E : Type*} [normed_group E] (x : E) : 𝕜 :=
@@ -87,59 +88,74 @@ instance real_has_exists_extension_norm_eq : has_exists_extension_norm_eq ℝ :=
 
 end real
 
-section complex
-variables {F : Type*} [normed_group F] [normed_space ℂ F]
+namespace is_R_or_C
 
--- TODO: generalize away from `ℝ` and `ℂ`
+
+variables {𝕜 : Type*} [is_R_or_C 𝕜] {F : Type*} [normed_group F] [normed_space 𝕜 F]
+
+-- TODO: generalize away from `ℝ` and `𝕜`
 
 -- Inlining the following two definitions causes a type mismatch between
--- subspace ℝ (semimodule.restrict_scalars ℝ ℂ F) and subspace ℂ F.
-/-- Restrict a `ℂ`-subspace to an `ℝ`-subspace. -/
-noncomputable def subspace.restrict_scalars (p : subspace ℂ F) :
+-- subspace ℝ (semimodule.restrict_scalars ℝ 𝕜 F) and subspace 𝕜 F.
+/-- Restrict a `𝕜`-subspace to an `ℝ`-subspace. -/
+
+/-
+noncomputable def subspace.restrict_scalars (p : subspace 𝕜 F) :
   subspace ℝ F := p.restrict_scalars ℝ
 
-private lemma apply_real (p : subspace ℂ F) (f' : p →L[ℝ] ℝ) :
+private lemma apply_real (p : subspace 𝕜 F) (f' : p →L[ℝ] ℝ) :
   ∃ g : F →L[ℝ] ℝ, (∀ x : p.restrict_scalars, g x = f' x) ∧ ∥g∥ = ∥f'∥ :=
   exists_extension_norm_eq (submodule.restrict_scalars ℝ p) f'
+-/
+-- open complex
 
-open complex
+-- /-- Hahn-Banach theorem for continuous linear functions over `𝕜`. -/
 
-/-- Hahn-Banach theorem for continuous linear functions over `ℂ`. -/
-theorem complex.exists_extension_norm_eq (p : subspace ℂ F) (f : p →L[ℂ] ℂ) :
-  ∃ g : F →L[ℂ] ℂ, (∀ x : p, g x = f x) ∧ ∥g∥ = ∥f∥ :=
+
+theorem exists_extension_norm_eq (p : subspace 𝕜 F) (f : p →L[𝕜] 𝕜) :
+  ∃ g : F →L[𝕜] 𝕜, (∀ x : p, g x = f x) ∧ ∥g∥ = ∥f∥ :=
 begin
+  letI : module ℝ F := restrict_scalars.semimodule ℝ 𝕜 F,
+  letI : is_scalar_tower ℝ 𝕜 F := restrict_scalars.is_scalar_tower _ _ _,
+  letI : normed_space ℝ F := normed_space.restrict_scalars _ 𝕜 _,
+  letI : normed_space ℝ p := (by apply_instance : normed_space ℝ (submodule.restrict_scalars ℝ p)),
   -- Let `fr: p →L[ℝ] ℝ` be the real part of `f`.
-  let fr := continuous_linear_map.re.comp (f.restrict_scalars ℝ),
-  have fr_apply : ∀ x, fr x = (f x).re := λ x, rfl,
-
-  -- Use the real version to get a norm-preserving extension of `fr`, which we'll call `g: F →L[ℝ] ℝ`.
-  rcases apply_real p fr with ⟨g, ⟨hextends, hnormeq⟩⟩,
-
-  -- Now `g` can be extended to the `F →L[ℂ] ℂ` we need.
-  use g.extend_to_ℂ,
-
+  let fr := re_clm.comp (f.restrict_scalars ℝ),
+  have fr_apply : ∀ x, fr x = re (f x) := λ x, rfl,
+  -- Use the real version to get a norm-preserving extension of `fr`, which
+  -- we'll call `g: F →L[ℝ] ℝ`.
+  rcases exists_extension_norm_eq p' fr with ⟨g, ⟨hextends, hnormeq⟩⟩,
+  -- Now `g` can be extended to the `F →L[𝕜] 𝕜` we need.
+  use g.extend_to_𝕜,
   -- It is an extension of `f`.
-  have h : ∀ x : p, g.extend_to_ℂ x = f x,
-  { intros,
-    change (⟨g x, -g ((I • x) : p)⟩ : ℂ) = f x,
-    ext; dsimp only; rw [hextends, fr_apply],
-    rw [continuous_linear_map.map_smul, algebra.id.smul_eq_mul, mul_re, I_re, I_im],
-    ring },
+  have h : ∀ x : p, g.extend_to_𝕜 x = f x,
+  { assume x,
+    apply ext,
+    dsimp [continuous_linear_map.extend_to_𝕜],
+    -- change (⟨g x, -g ((I • x) : p)⟩ : 𝕜) = f x,
+    -- ext; dsimp only; rw [hextends, fr_apply],
+    --rw [continuous_linear_map.map_smul, algebra.id.smul_eq_mul, mul_re, I_re, I_im],
+    -- ring
 
+    },
+
+end
+
+#exit
   refine ⟨h, _⟩,
 
   -- And we derive the equality of the norms by bounding on both sides.
   refine le_antisymm _ _,
-  { calc ∥g.extend_to_ℂ∥
-        ≤ ∥g∥ : g.extend_to_ℂ.op_norm_le_bound g.op_norm_nonneg (norm_bound _)
+  { calc ∥g.extend_to_𝕜∥
+        ≤ ∥g∥ : g.extend_to_𝕜.op_norm_le_bound g.op_norm_nonneg (norm_bound _)
     ... = ∥fr∥ : hnormeq
     ... ≤ ∥continuous_linear_map.re∥ * ∥f∥ : continuous_linear_map.op_norm_comp_le _ _
     ... = ∥f∥ : by rw [complex.continuous_linear_map.re_norm, one_mul] },
 
-  { exact f.op_norm_le_bound g.extend_to_ℂ.op_norm_nonneg (λ x, h x ▸ g.extend_to_ℂ.le_op_norm x) },
+  { exact f.op_norm_le_bound g.extend_to_𝕜.op_norm_nonneg (λ x, h x ▸ g.extend_to_𝕜.le_op_norm x) },
 end
 
-instance complex_has_exists_extension_norm_eq : has_exists_extension_norm_eq ℂ :=
+instance complex_has_exists_extension_norm_eq : has_exists_extension_norm_eq 𝕜 :=
 ⟨by { intros, apply complex.exists_extension_norm_eq }⟩
 
 end complex

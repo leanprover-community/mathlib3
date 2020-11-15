@@ -102,8 +102,7 @@ lemma irreducible : irreducible (minimal_polynomial hx) :=
 begin
   cases irreducible_or_factor (minimal_polynomial hx) (not_is_unit hx) with hirr hred,
   { exact hirr },
-  obtain ⟨a, hred⟩ := hred,
-  obtain ⟨b, hred⟩ := hred,
+  obtain ⟨a, b, hred⟩ := hred,
   have coeff_prod : a.leading_coeff * b.leading_coeff = 1,
   { rw [←monic.def.1 (monic hx), ←hred.2.2],
     simp only [leading_coeff_mul] },

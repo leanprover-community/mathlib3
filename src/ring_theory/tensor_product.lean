@@ -209,10 +209,10 @@ variables [add_comm_monoid P] [semimodule R P]
 
 def assoc : ((M ⊗[A] N) ⊗[R] P) ≃ₗ[A] (M ⊗[A] (N ⊗[R] P)) :=
 linear_equiv.of_linear
-  (uncurry' R A _ _ _ $ uncurry A _ _ _ $ comp (lcurry' _ _ _ _ _) $ mk A M (N ⊗[R] P))
-  (uncurry A _ _ _ $ comp (uncurry' _ _ _ _ _) $ curry $ mk' R A _ _)
-  (mk_compr₂_inj $ linear_map.ext $ λ x, ext $ λ y z, rfl)
-  (curry'_inj $ ext $ λ x y, linear_map.ext $ λ z, rfl)
+  (lift' $ uncurry A _ _ _ $ comp (lcurry' R A _ _ _) $ mk A M (N ⊗[R] P))
+  (uncurry A _ _ _ $ comp (uncurry' R A _ _ _) $ by apply curry; exact (mk' R A _ _))
+  (by apply mk_compr₂_inj; ext; refl)
+  (by apply curry'_inj; ext; refl)
 
 end comm_semiring
 
@@ -262,7 +262,7 @@ by { ext, simp only [base_change_eq_ltensor, zero_apply, ltensor_zero] }
 
 @[simp] lemma base_change_smul (r : R) :
   (r • f).base_change A = r • (f.base_change A) :=
-by { ext a m, simp only [base_change_tmul, smul_apply, tmul_smul], refl }
+by { ext a m, simp only [base_change_tmul, smul_apply, tmul_smul] }
 
 end semiring
 

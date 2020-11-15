@@ -461,6 +461,22 @@ begin
   exact add_lt_add_right h 1,
 end
 
+/-- Adding zero on the right to a `k : fin (n + 1)` is equal to `k`. -/
+@[simp] lemma add_zero {n : ℕ} {k : fin (n + 1)} : k + 0 = k :=
+by simp [eq_iff_veq, add_def, mod_eq_of_lt (is_lt k)]
+
+/-- Adding zero on the left to a `k : fin (n + 1)` is equal to `k`. -/
+@[simp] lemma zero_add {n : ℕ} {k : fin (n + 1)} : (0 : fin (n + 1)) + k = k :=
+by simp [eq_iff_veq, add_def, mod_eq_of_lt (is_lt k)]
+
+/-- Multiplying by one on the right to a `k : fin (n + 2)` is equal to `k`. -/
+@[simp] lemma mul_one {n : ℕ} {k : fin (n + 2)} : k * 1 = k :=
+by simp [eq_iff_veq, mul_def, mod_eq_of_lt (is_lt k)]
+
+/-- Multiplying by one on the left to a `k : fin (n + 2)` is equal to `k`. -/
+@[simp] lemma one_mul {n : ℕ} {k : fin (n + 2)} : (1 : fin (n + 2)) * k = k :=
+by simp [eq_iff_veq, mul_def, mod_eq_of_lt (is_lt k)]
+
 /-- `min n m` as an element of `fin (m + 1)` -/
 def clamp (n m : ℕ) : fin (m + 1) := of_nat $ min n m
 

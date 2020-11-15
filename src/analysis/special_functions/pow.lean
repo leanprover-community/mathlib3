@@ -1027,7 +1027,8 @@ section measurability_nnreal
 lemma nnreal.measurable_rpow : measurable (λ p : nnreal × ℝ, p.1 ^ p.2) :=
 begin
   have h_rw : (λ p : nnreal × ℝ, p.1 ^ p.2) = (λ p : nnreal × ℝ, nnreal.of_real(↑(p.1) ^ p.2)),
-  { ext1 a, rw ←nnreal.coe_rpow, rw nnreal.of_real_coe, },
+  { ext1 a,
+    rw [←nnreal.coe_rpow, nnreal.of_real_coe], },
   rw h_rw,
   exact (measurable_fst.nnreal_coe.rpow measurable_snd).nnreal_of_real,
 end
@@ -1043,7 +1044,8 @@ end
 lemma nnreal.measurable_rpow_const {y : ℝ} : measurable (λ a : nnreal, a ^ y) :=
 begin
   have h_rw : (λ (a : nnreal), a ^ y) = (λ (a : nnreal), nnreal.of_real(↑a ^ y)),
-  { ext1 a, rw ←nnreal.coe_rpow, rw nnreal.of_real_coe, },
+  { ext1 a,
+    rw [←nnreal.coe_rpow, nnreal.of_real_coe], },
   rw h_rw,
   exact nnreal.measurable_coe.rpow_const.nnreal_of_real,
 end

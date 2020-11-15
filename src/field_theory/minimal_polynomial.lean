@@ -102,9 +102,9 @@ lemma irreducible : irreducible (minimal_polynomial hx) :=
 begin
   cases irreducible_or_factor (minimal_polynomial hx) (not_is_unit hx) with hirr hred,
   { exact hirr },
-  obtain ⟨a, b, hred⟩ := hred,
+  obtain ⟨a, b, ha_nunit, hb_nunit, hab_eq⟩ := hred,
   have coeff_prod : a.leading_coeff * b.leading_coeff = 1,
-  { rw [←monic.def.1 (monic hx), ←hred.2.2],
+  { rw [←monic.def.1 (monic hx), ←hab_eq],
     simp only [leading_coeff_mul] },
   have hamonic : (a * C b.leading_coeff).monic,
   { rw monic.def,
@@ -117,7 +117,7 @@ begin
       = a * b * (C a.leading_coeff * C b.leading_coeff) : by ring
       ...  = a * b * (C (a.leading_coeff * b.leading_coeff)) : by simp only [ring_hom.map_mul]
       ...  = a * b : by rw [coeff_prod, C_1, mul_one]
-      ...  =  minimal_polynomial hx : by rw [←hred.2.2] },
+      ...  =  minimal_polynomial hx : by rw [←hab_eq] },
   have hzero : (polynomial.aeval x (a * C b.leading_coeff) = 0)
   ∨ (polynomial.aeval x (b * C a.leading_coeff) = 0),
   { have hzero := aeval hx,
@@ -137,7 +137,7 @@ begin
   { intro h,
     obtain ⟨d, hd⟩ := is_unit_iff_exists_inv.1 h,
     rw [mul_assoc] at hd,
-    refine hred.1 _,
+    refine ha_nunit _,
     rw is_unit_iff_exists_inv,
     use (C b.leading_coeff * d),
     exact hd },
@@ -145,7 +145,7 @@ begin
   { intro h,
     obtain ⟨d, hd⟩ := is_unit_iff_exists_inv.1 h,
     rw [mul_assoc] at hd,
-    refine hred.2.1 _,
+    refine hb_nunit _,
     rw is_unit_iff_exists_inv,
     use (C a.leading_coeff * d),
     exact hd },

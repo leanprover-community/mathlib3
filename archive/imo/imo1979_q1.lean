@@ -22,8 +22,8 @@ Prove that `p` is a multiple of 1979.
 ## The solution
 
 The proof we formalise is the following. Rewrite the sum as
-`1+1/2+1/3+...+1/1319 - 2*(1/2+1/4+1/6+...+1/1318)=1/660+1/661+...+1/1319
-and now re-arranging as (1/660+1/1319)+(1/661+1/1318)+... we see that
+`1+1/2+1/3+...+1/1319 - 2*(1/2+1/4+1/6+...+1/1318)=1/660+1/661+...+1/1319`
+and now re-arranging as `(1/660+1/1319)+(1/661+1/1318)+...` we see that
 the numerator of each fraction is 1979 and the denominator is coprime to 1979
 (note that 1979 is prime). Hence the 1979-adic valuation of each fraction is positive,
 and thus the 1979-adic valuation of the sum is also positive.

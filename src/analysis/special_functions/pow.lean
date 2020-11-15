@@ -1043,7 +1043,7 @@ end
 
 lemma nnreal.measurable_rpow_const {y : ℝ} : measurable (λ a : nnreal, a ^ y) :=
 begin
-  have h_rw : (λ (a : nnreal), a ^ y) = (λ (a : nnreal), nnreal.of_real(↑a ^ y)),
+  have h_rw : (λ a : nnreal, a ^ y) = (λ a : nnreal, nnreal.of_real(↑a ^ y)),
   { ext1 a,
     rw [←nnreal.coe_rpow, nnreal.of_real_coe], },
   rw h_rw,

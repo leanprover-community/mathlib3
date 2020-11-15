@@ -134,6 +134,7 @@ lemma smul_re' : ∀ (r : ℝ) (z : K), re (r • z) = r * (re z) :=
 lemma smul_im' : ∀ (r : ℝ) (z : K), im (r • z) = r * (im z) :=
 λ r z, by { rw [smul_coe_mul_ax], apply smul_im }
 
+/-- The real part in a `is_R_or_C` field, as a linear map. -/
 noncomputable def re_lm : K →ₗ[ℝ] ℝ :=
 { map_smul' := smul_re',  .. re }
 
@@ -511,6 +512,7 @@ begin
   simp [of_real_im, mul_im, conj_im, conj_re, mul_comm],
 end
 
+/-- The real part in a `is_R_or_C` field, as a continuous linear map. -/
 noncomputable def re_clm : K →L[ℝ] ℝ :=
 re_lm.mk_continuous 1 $ by { simp only [norm_eq_abs, re_lm_coe, one_mul], exact abs_re_le_abs }
 

@@ -5,8 +5,10 @@ Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
 -/
 import algebra.big_operators.pi
 import algebra.module.pi
+import algebra.module.linear_map
 import algebra.big_operators.ring
 import algebra.star.basic
+import data.equiv.ring
 import data.fintype.card
 
 /-!
@@ -354,10 +356,66 @@ theorem diagonal_mul_diagonal' [decidable_eq n] (d₁ d₂ : n → α) :
   diagonal d₁ * diagonal d₂ = diagonal (λ i, d₁ i * d₂ i) :=
 diagonal_mul_diagonal _ _
 
+@[simp]
 lemma map_mul {L : matrix m n α} {M : matrix n o α}
   {β : Type w} [semiring β] {f : α →+* β} :
-(L ⬝ M).map f = L.map f ⬝ M.map f :=
+  (L ⬝ M).map f = L.map f ⬝ M.map f :=
 by { ext, simp [mul_apply, ring_hom.map_sum], }
+
+-- TODO: there should be a way to avoid restating these for each `foo_hom`. 
+/-- A version of `one_map` where `f` is a ring hom. -/
+@[simp] lemma ring_hom_map_one [decidable_eq n]
+  {β : Type w} [semiring β] (f : α →+* β) :
+  (1 : matrix n n α).map f = 1 :=
+one_map f.map_zero f.map_one
+
+/-- A version of `one_map` where `f` is a `ring_equiv`. -/
+@[simp] lemma ring_equiv_map_one [decidable_eq n]
+  {β : Type w} [semiring β] (f : α ≃+* β) :
+  (1 : matrix n n α).map f = 1 :=
+one_map f.map_zero f.map_one
+
+/-- A version of `map_zero` where `f` is a `zero_hom`. -/
+@[simp] lemma zero_hom_map_zero
+  {β : Type w} [has_zero β] (f : zero_hom α β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `add_monoid_hom`. -/
+@[simp] lemma add_monoid_hom_map_zero
+  {β : Type w} [add_monoid β] (f : α →+ β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `add_equiv`. -/
+@[simp] lemma add_equiv_map_zero
+  {β : Type w} [add_monoid β] (f : α ≃+ β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `linear_map`. -/
+@[simp] lemma linear_map_map_zero {R : Type*} [semiring R]
+  {β : Type w} [add_comm_monoid β] [semimodule R α] [semimodule R β] (f : α →ₗ[R] β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `linear_equiv`. -/
+@[simp] lemma linear_equiv_map_zero {R : Type*} [semiring R]
+  {β : Type w} [add_comm_monoid β] [semimodule R α] [semimodule R β] (f : α ≃ₗ[R] β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `ring_hom`. -/
+@[simp] lemma ring_hom_map_zero
+  {β : Type w} [semiring β] (f : α →+* β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `ring_equiv`. -/
+@[simp] lemma ring_equiv_map_zero
+  {β : Type w} [semiring β] (f : α ≃+* β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
 
 lemma is_add_monoid_hom_mul_left (M : matrix l m α) :
   is_add_monoid_hom (λ x : matrix m n α, M ⬝ x) :=

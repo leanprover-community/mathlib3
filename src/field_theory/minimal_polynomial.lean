@@ -59,6 +59,10 @@ lemma min {p : polynomial α} (pmonic : p.monic) (hp : polynomial.aeval x p = 0)
   degree (minimal_polynomial hx) ≤ degree p :=
 le_of_not_lt $ well_founded.not_lt_min degree_lt_wf _ hx ⟨pmonic, hp⟩
 
+/-- A minimal polynomial is nonzero. -/
+lemma ne_zero [nontrivial α] : (minimal_polynomial hx) ≠ 0 :=
+ne_zero_of_monic (monic hx)
+
 end ring
 
 section field
@@ -67,10 +71,6 @@ variables [field α]
 section ring
 variables [ring β] [algebra α β]
 variables {x : β} (hx : is_integral α x)
-
-/--A minimal polynomial is nonzero.-/
-lemma ne_zero : (minimal_polynomial hx) ≠ 0 :=
-ne_zero_of_monic (monic hx)
 
 /--If an element x is a root of a nonzero polynomial p,
 then the degree of p is at least the degree of the minimal polynomial of x.-/

@@ -604,6 +604,11 @@ lemma is_open_set_pi [∀a, topological_space (π a)] {i : set ι} {s : Πa, set
   (hi : finite i) (hs : ∀a∈i, is_open (s a)) : is_open (pi i s) :=
 by rw [pi_def]; exact (is_open_bInter hi $ assume a ha, continuous_apply a _ $ hs a ha)
 
+lemma set_pi_mem_nhds [Π a, topological_space (π a)] {i : set ι} {s : Π a, set (π a)}
+  {x : Π a, π a} (hi : finite i) (hs : ∀ a ∈ i, s a ∈ 𝓝 (x a)) :
+  pi i s ∈ 𝓝 x :=
+by { rw [pi_def], exact Inter_mem_sets hi (λ a ha, (continuous_apply a).continuous_at (hs a ha)) }
+
 lemma pi_eq_generate_from [∀a, topological_space (π a)] :
   Pi.topological_space =
   generate_from {g | ∃(s:Πa, set (π a)) (i : finset ι), (∀a∈i, is_open (s a)) ∧ g = pi ↑i s} :=

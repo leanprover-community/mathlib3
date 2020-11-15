@@ -65,7 +65,7 @@ end
 
 local notation `abs𝕜` := @is_R_or_C.abs 𝕜 _
 
-/-- The norm of the extension is bounded by ∥fr∥. -/
+/-- The norm of the extension is bounded by `∥fr∥`. -/
 lemma norm_bound (fr : (restrict_scalars ℝ 𝕜 F) →L[ℝ] ℝ) (x : F) :
   ∥fr.to_linear_map.extend_to_𝕜 x∥ ≤ ∥fr∥ * ∥x∥ :=
 begin

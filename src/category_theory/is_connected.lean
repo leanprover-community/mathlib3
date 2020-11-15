@@ -385,8 +385,13 @@ begin
   { apply relation.refl_trans_gen.refl },
 end
 
-def forward : (Σ j, component J j) ⥤ J :=
-desc (λ i, { obj := λ (k : component J i), k.val, map := λ k l f, f })
+@[derive category]
+def decomposed := Σ j, component J j
+
+def inclusion (j) : component J j ⥤ decomposed J := incl _
+
+def forward : decomposed J ⥤ J :=
+desc (λ i, include_component _ _)
 
 instance : full (forward J) :=
 { preimage :=
@@ -424,7 +429,7 @@ instance : ess_surj (forward J) :=
 -- This gives that any category is equivalent to a disjoint union of connected categories.
 instance : is_equivalence (forward J) := equivalence.equivalence_of_fully_faithfully_ess_surj _
 
-def thingy (H F : (Σ j, component J j) ⥤ C) :
+def thingy (H F : decomposed J ⥤ C) :
   (H ⟶ F) ≅ Π j, (incl j ⋙ H ⟶ incl j ⋙ F) :=
 { hom := λ α j, whisker_left _ α,
   inv := λ k,

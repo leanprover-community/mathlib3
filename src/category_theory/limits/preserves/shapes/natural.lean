@@ -6,6 +6,7 @@ Authors: Bhavik Mehta
 import category_theory.limits.shapes
 import category_theory.is_connected
 import category_theory.limits.preserves.shapes.binary_products
+import category_theory.limits.preserves.shapes.products
 import category_theory.limits.preserves.shapes.terminal
 
 /-!
@@ -95,6 +96,98 @@ def preserves_of_shape_of_natural_iso (θ : Π (K : J ⥤ C), G.obj (limit K) �
 
 end preserves_connected
 
+namespace preserves_product
+
+variables {K : Type v}
+variables [has_products_of_shape K C]
+variables [preserves_limit (functor.empty _) G]
+
+open_locale classical
+
+def fixed (k : K) (X : C) {T : C} (hT : is_terminal T) :
+  ∏ (λ (k' : K), if k' = k then X else T) ≅ X :=
+{ hom :=
+  begin
+    apply pi.π (λ (k' : K), if k' = k then X else T) k ≫ _,
+    apply eq_to_hom,
+    simp,
+  end,
+  inv := pi.lift (λ k', if h : k' = k then eq_to_hom (by simp [h]) else hT.from X ≫ eq_to_hom (by simp [h])),
+  hom_inv_id' :=
+  begin
+    ext,
+    simp only [limit.lift_π, assoc, id_comp, fan.mk_π_app],
+    by_cases (j = k),
+    { cases h,
+      simp },
+    { simp only [h, if_true, eq_self_iff_true, if_false, dif_neg, not_false_iff],
+      rw [← assoc, ← assoc, ← is_iso.comp_is_iso_eq],
+      apply hT.hom_ext }
+  end }
+
+variables [has_products_of_shape K D] [has_terminal C] [has_terminal D]
+
+def preserves_pair_of_natural_isomorphism {X Y : C} (s : Π (f : K → C), G.obj (∏ f) ≅ ∏ (G.obj ∘ f))
+  (w : ∀ {f g : K → C} (α : Π k, f k ⟶ g k), (s f).hom ≫ pi.map (λ k, G.map (α k) : _) = G.map (pi.map α) ≫ (s g).hom)
+  (f : K → C) :
+  preserves_limit (discrete.functor f) G :=
+begin
+  refine preserves_limit_of_preserves_limit_cone (product_is_product _) _,
+  apply (preserves_pi.fan_map_cone_limit _ _ _).symm _,
+  -- This isomorphism is the main idea of the proof: we use an isomorphism which is (in general)
+  -- not the identity isomorphism, but it gives nice naturality
+  let s_ : Π (k : K), G.obj (f k) ≅ G.obj (f k),
+  { intro k,
+    apply G.map_iso (fixed k (f k) terminal_is_terminal).symm ≪≫ s _ ≪≫ _,
+    apply _ ≪≫ fixed k (G.obj (f k)) (preserves_terminal.is_limit_of_has_terminal_of_preserves_limit G),
+    apply pi.map_iso,
+    intro k',
+    apply eq_to_iso (apply_ite G.obj _ _ _) },
+  have hs₁ : ∀ (k : K), (s f).hom ≫ pi.π _ k = G.map (pi.π _ k) ≫ (s_ k).hom,
+  { intro k,
+    let α : Π k', f k' ⟶ (if k' = k then f k else ⊤_ C),
+    { intro k',
+      refine (if h : k' = k then _ else _),
+      { apply eq_to_hom,
+        simp [h] },
+      { apply terminal.from (f k') ≫ eq_to_hom _,
+        simp [h] } },
+    have q : α k = eq_to_hom _ := dif_pos rfl,
+    have := w α =≫ pi.π _ k,
+    simp only [discrete.nat_trans_app, lim_map_π, assoc] at this,
+    conv at this {to_lhs, congr, skip, congr, skip, rw [q, eq_to_hom_map] },
+    rw [← assoc, ← is_iso.comp_is_iso_eq] at this,
+    rw this,
+    clear this,
+    rw [assoc, assoc],
+    change _ = G.map _ ≫ G.map _ ≫ _ ≫ lim_map _ ≫ _,
+    rw ← G.map_comp_assoc,
+    congr' 2,
+    { change _ = _ ≫ (fixed _ _ _).inv,
+      rw iso.eq_comp_inv,
+      change lim_map _ ≫ limit.π _ _ ≫ _ = _,
+      rw lim_map_π_assoc,
+      change pi.π f k ≫ α k ≫ _ = _,
+      rw [q, eq_to_hom_trans, eq_to_hom_refl, comp_id] },
+    { change pi.π _ _ ≫ _ = lim_map _ ≫ _ ≫ _,
+      rw lim_map_π_assoc,
+      simpa } },
+  dsimp,
+  refine is_limit.of_iso_limit
+            ((is_limit.postcompose_inv_equiv _ _).symm
+              (product_is_product (G.obj ∘ f))) _,
+  { apply discrete.nat_iso,
+    apply s_ },
+  { symmetry,
+    refine cones.ext (s f) _,
+    intro k,
+    change G.map _ = (s f).hom ≫ pi.π _ _ ≫ (s_ k).inv,
+    rw [← assoc, iso.eq_comp_inv],
+    apply (hs₁ k).symm }
+end
+
+end preserves_product
+
 namespace preserves_pair
 
 variables [has_finite_products C] [has_finite_products D]
@@ -169,4 +262,87 @@ begin
 end
 
 end preserves_pair
+
+section general
+
+variables [has_terminal C] {J : Type v} [small_category J]
+variables (K : decomposed J ⥤ C)
+-- open_locale classical
+
+@[simps]
+def assemble_cone
+  (γ : Π (j : connected_components J), cone (inclusion J j ⋙ K : component J j ⥤ C))
+  (c : fan (λ j, (γ j).X)) :
+  cone K :=
+{ X := c.X,
+  π :=
+  { app :=
+    begin
+      rintro ⟨j₁, j₂⟩,
+      apply c.π.app j₁ ≫ (γ j₁).π.app j₂,
+    end,
+    naturality' :=
+    begin
+      rintro ⟨j₁, X⟩ ⟨_, _⟩ ⟨_, _, Y, f⟩,
+      change 𝟙 c.X ≫ c.π.app _ ≫ _ = (c.π.app _ ≫ _) ≫ _,
+      rw [id_comp, assoc, ← (γ j₁).w f],
+      refl,
+    end } }
+
+-- Prop 4.2 of the paper
+-- I used a different proof since this one seemed more direct to do: it proves the exact same thing.
+def assemble_limit
+  (γ : Π (j : connected_components J), cone (inclusion J j ⋙ K : component J j ⥤ C))
+  (hγ : Π (j : connected_components J), is_limit (γ j))
+  (c : fan (λ j, (γ j).X))
+  (hc : is_limit c) :
+  is_limit (assemble_cone K γ c) :=
+{ lift := λ s,
+  begin
+    apply hc.lift (fan.mk _ (λ j, _)),
+    apply (hγ j).lift ⟨_, λ X, _, _⟩,
+    apply s.π.app ⟨j, X⟩,
+    rintro X Y f,
+    change 𝟙 s.X ≫ _ = _ ≫ K.map _,
+    rw [id_comp, s.w],
+  end,
+  fac' :=
+  begin
+    rintro s ⟨j, X⟩,
+    change _ ≫ _ ≫ _ = _,
+    rw [hc.fac_assoc, fan.mk_π_app, (hγ j).fac],
+  end,
+  uniq' :=
+  begin
+    intros s m w,
+    apply hc.hom_ext,
+    intro j,
+    rw [hc.fac, fan.mk_π_app],
+    apply (hγ j).hom_ext,
+    intro X,
+    rw (hγ j).fac,
+    change (_ ≫ _) ≫ _ = s.π.app _,
+    rw [assoc],
+    apply w ⟨j, X⟩,
+  end }
+
+-- begin
+--   let i : yoneda.obj c.X ≅ K.cones,
+--   { apply nat_iso.of_components _ _,
+--     { intro X,
+
+--       -- have := thingy J ((functor.const _).obj c.X) K,
+
+
+
+--     }
+
+--   }
+-- end
+
+-- def plus_obj (j : connected_components J) : (component J j ⥤ C) → (Σ j, component J j) ⥤ C :=
+-- λ H, desc (λ k, if h : j = k then sorry ⋙ H else (functor.const _).obj (⊤_ C))
+
+end general
+
 end category_theory

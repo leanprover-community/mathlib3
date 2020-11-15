@@ -64,10 +64,20 @@ lemma comp_id : ∀ (X Y : Σ i, C i) (f : X ⟶ Y), f ≫ 𝟙 Y = f
     simp,
   end
 
-instance : category (Σ i, C i) :=
+instance sigma : category (Σ i, C i) :=
 { id_comp' := id_comp,
   comp_id' := comp_id,
   assoc' := assoc }
+
+/--
+This provides some assistance to typeclass search in a common situation,
+which otherwise fails. (Without this `category_theory.pi.has_limit_of_has_limit_comp_eval` fails.)
+-/
+abbreviation sigma' {I : Type v₁} (C : I → Type u₁) [Π i, category.{v₁} (C i)] :
+  category.{max v₁ u₁} (Σ i, C i) :=
+category_theory.sigma_hom.sigma
+
+attribute [instance] pi'
 
 end sigma_hom
 
@@ -91,6 +101,12 @@ end sigma_hom
 def incl (i : I) : C i ⥤ Σ i, C i :=
 { obj := λ X, ⟨i, X⟩,
   map := λ X Y f, sigma_hom.matched _ _ _ f }
+
+instance (i : I) : full (incl i : C i ⥤ Σ i, C i) :=
+{ preimage := λ X Y ⟨_, _, _, f⟩, f,
+  witness' := λ X Y ⟨_, _, _, f⟩, rfl }.
+
+instance (i : I) : faithful (incl i : C i ⥤ Σ i, C i) := {}.
 
 section
 variables {D : Type u₂} [category.{v₂} D] (F : Π i, C i ⥤ D)

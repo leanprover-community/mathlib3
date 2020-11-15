@@ -156,20 +156,11 @@ v.to_monoid_with_zero_hom.to_monoid_hom.map_units_inv x
 @[simp] theorem unit_map_eq (u : units R) :
   (units.map (v : R →* Γ₀) u : Γ₀) = v u := rfl
 
-theorem map_neg_one : v (-1) = 1 :=
-begin
-  apply eq_one_of_pow_eq_one (nat.succ_ne_zero 1) (_ : _ ^ 2 = _),
-  rw [pow_two, ← v.map_mul, neg_one_mul, neg_neg, v.map_one],
-end
-
 @[simp] lemma map_neg (x : R) : v (-x) = v x :=
-calc v (-x) = v (-1 * x)   : by rw [neg_one_mul]
-        ... = v (-1) * v x : map_mul _ _ _
-        ... = v x          : by rw [v.map_neg_one, one_mul]
+v.to_monoid_with_zero_hom.to_monoid_hom.map_neg x
 
 lemma map_sub_swap (x y : R) : v (x - y) = v (y - x) :=
-calc v (x - y) = v (-(y - x)) : by rw show x - y = -(y-x), by abel
-           ... = _ : map_neg _ _
+v.to_monoid_with_zero_hom.to_monoid_hom.map_sub_swap x y
 
 lemma map_sub_le_max (x y : R) : v (x - y) ≤ max (v x) (v y) :=
 calc v (x - y) = v (x + -y)         : by rw [sub_eq_add_neg]
@@ -202,9 +193,9 @@ end
 /-- A ring homomorphism S → R induces a map valuation R Γ₀ → valuation S Γ₀ -/
 def comap {S : Type*} [ring S] (f : S →+* R) (v : valuation R Γ₀) :
   valuation S Γ₀ :=
-by refine_struct { to_fun := v ∘ f, .. }; intros;
-  simp only [comp_app, map_one, map_mul, map_zero, map_add,
-             f.map_one, f.map_mul, f.map_zero, f.map_add]
+{ to_fun := v ∘ f, 
+  map_add' := λ x y, by simp only [comp_app, map_add, f.map_add],
+  .. v.to_monoid_with_zero_hom.comp f.to_monoid_with_zero_hom, }
 
 @[simp] lemma comap_id : v.comap (ring_hom.id R) = v := ext $ λ r, rfl
 

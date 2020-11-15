@@ -20,13 +20,14 @@ universes v u₁ u₂
 
 noncomputable theory
 
-open category_theory category_theory.category category_theory.limits
+namespace category_theory
+open category limits
 
 variables {C : Type u₁} [category.{v} C]
 variables {D : Type u₂} [category.{v} D]
 variables (G : C ⥤ D)
 
-namespace preserves
+namespace preserves_terminal
 
 variables (X : C)
 
@@ -69,16 +70,21 @@ begin
   apply i,
 end
 
-variables [preserves_limit (functor.empty C) G]
+variables [has_terminal C] [has_terminal D] [preserves_limit (functor.empty C) G]
 
 /-- If `G` preserves terminal objects, then the terminal comparison map for `G` an isomorphism. -/
-def preserves_terminal_iso [has_terminal C] [has_terminal D] :
-  G.obj (⊤_ C) ≅ ⊤_ D :=
+def iso : G.obj (⊤_ C) ≅ ⊤_ D :=
 (is_limit_of_has_terminal_of_preserves_limit G).cone_point_unique_up_to_iso (limit.is_limit _)
 
 @[simp]
-lemma preserves_terminal_iso_hom [has_terminal C] [has_terminal D] :
-  (preserves_terminal_iso G).hom = terminal_comparison G :=
+lemma iso_hom : (preserves_terminal.iso G).hom = terminal_comparison G :=
 rfl
 
-end preserves
+instance : is_iso (terminal_comparison G) :=
+begin
+  rw ← iso_hom,
+  apply_instance,
+end
+
+end preserves_terminal
+end category_theory

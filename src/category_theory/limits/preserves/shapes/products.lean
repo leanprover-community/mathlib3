@@ -20,13 +20,14 @@ noncomputable theory
 
 universes v u₁ u₂
 
-open category_theory category_theory.category category_theory.limits
+namespace category_theory
+open category limits
 
 variables {C : Type u₁} [category.{v} C]
 variables {D : Type u₂} [category.{v} D]
 variables (G : C ⥤ D)
 
-namespace preserves
+namespace preserves_pi
 
 variables {J : Type v} (f : J → C)
 
@@ -68,7 +69,7 @@ map_is_limit_of_preserves_of_is_limit G f _ (product_is_product _)
 variables [has_product (λ (j : J), G.obj (f j))]
 
 /-- If `pi_comparison G f` is an isomorphism, then `G` preserves the limit of `f`. -/
-def preserves_product_of_iso_comparison [i : is_iso (pi_comparison G f)] :
+def of_iso_comparison [i : is_iso (pi_comparison G f)] :
   preserves_limit (discrete.functor f) G :=
 begin
   apply preserves_limit_of_preserves_limit_cone (product_is_product f),
@@ -83,19 +84,20 @@ variable [preserves_limit (discrete.functor f) G]
 If `G` preserves limits, we have an isomorphism from the image of a product to the product of the
 images.
 -/
-def preserves_products_iso : G.obj (∏ f) ≅ ∏ (λ j, G.obj (f j)) :=
+def iso : G.obj (∏ f) ≅ ∏ (λ j, G.obj (f j)) :=
 is_limit.cone_point_unique_up_to_iso
   (is_limit_of_has_product_of_preserves_limit G f)
   (limit.is_limit _)
 
 @[simp]
-lemma preserves_products_iso_hom : (preserves_products_iso G f).hom = pi_comparison G f :=
+lemma iso_hom : (preserves_pi.iso G f).hom = pi_comparison G f :=
 rfl
 
 instance : is_iso (pi_comparison G f) :=
 begin
-  rw ← preserves_products_iso_hom,
+  rw ← preserves_pi.iso_hom,
   apply_instance,
 end
 
-end preserves
+end preserves_pi
+end category_theory

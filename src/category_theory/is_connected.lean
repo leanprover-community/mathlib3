@@ -5,6 +5,8 @@ Authors: Bhavik Mehta
 -/
 import data.list.chain
 import category_theory.punit
+import category_theory.sigma.basic
+import category_theory.full_subcategory
 
 /-!
 # Connected category
@@ -39,7 +41,7 @@ connected limit. That is, any limit of shape `J` where `J` is a connected
 category is preserved by the functor `(X × -)`. This appears in `category_theory.limits.connected`.
 -/
 
-universes v₁ v₂ u₁ u₂
+universes v₁ v₂ v₃ u₁ u₂
 
 noncomputable theory
 
@@ -50,8 +52,8 @@ namespace category_theory
 /--
 A possibly empty category for which every functor to a discrete category is constant.
 -/
-class is_preconnected (J : Type v₂) [category.{v₁} J] : Prop :=
-(iso_constant : Π {α : Type v₂} (F : J ⥤ discrete α) (j : J),
+class is_preconnected (J : Type u₁) [category.{v₁} J] : Prop :=
+(iso_constant : Π {α : Type u₁} (F : J ⥤ discrete α) (j : J),
   nonempty (F ≅ (functor.const J).obj (F.obj j)))
 
 /--
@@ -66,18 +68,19 @@ This allows us to show that the functor X ⨯ - preserves connected limits.
 
 See https://stacks.math.columbia.edu/tag/002S
 -/
-class is_connected (J : Type v₂) [category.{v₁} J] extends is_preconnected J : Prop :=
+class is_connected (J : Type u₂) [category.{v₁} J] extends is_preconnected J : Prop :=
 [is_nonempty : nonempty J]
 
 attribute [instance, priority 100] is_connected.is_nonempty
 
-variables {J : Type v₂} [category.{v₁} J]
+variables {J : Type u₁} [category.{v₁} J]
+variables {K : Type u₂} [category.{v₂} K]
 
 /--
 If `J` is connected, any functor `F : J ⥤ discrete α` is isomorphic to
 the constant functor with value `F.obj j` (for any choice of `j`).
 -/
-def iso_constant [is_preconnected J] {α : Type v₂} (F : J ⥤ discrete α) (j : J) :
+def iso_constant [is_preconnected J] {α : Type u₁} (F : J ⥤ discrete α) (j : J) :
   F ≅ (functor.const J).obj (F.obj j) :=
   (is_preconnected.iso_constant F j).some
 
@@ -86,7 +89,7 @@ If J is connected, any functor to a discrete category is constant on objects.
 The converse is given in `is_connected.of_any_functor_const_on_obj`.
 -/
 lemma any_functor_const_on_obj [is_preconnected J]
-  {α : Type v₂} (F : J ⥤ discrete α) (j j' : J) :
+  {α : Type u₁} (F : J ⥤ discrete α) (j j' : J) :
   F.obj j = F.obj j' :=
 ((iso_constant F j').hom.app j).down.1
 
@@ -95,7 +98,7 @@ If any functor to a discrete category is constant on objects, J is connected.
 The converse of `any_functor_const_on_obj`.
 -/
 lemma is_connected.of_any_functor_const_on_obj [nonempty J]
-  (h : ∀ {α : Type v₂} (F : J ⥤ discrete α), ∀ (j j' : J), F.obj j = F.obj j') :
+  (h : ∀ {α : Type u₁} (F : J ⥤ discrete α), ∀ (j j' : J), F.obj j = F.obj j') :
   is_connected J :=
 { iso_constant := λ α F j',
   ⟨nat_iso.of_components (λ j, eq_to_iso (h F j j')) (λ _ _ _, subsingleton.elim _ _)⟩ }
@@ -107,7 +110,7 @@ This can be thought of as a local-to-global property.
 
 The converse is shown in `is_connected.of_constant_of_preserves_morphisms`
 -/
-lemma constant_of_preserves_morphisms [is_preconnected J] {α : Type v₂} (F : J → α)
+lemma constant_of_preserves_morphisms [is_preconnected J] {α : Type u₁} (F : J → α)
   (h : ∀ (j₁ j₂ : J) (f : j₁ ⟶ j₂), F j₁ = F j₂) (j j' : J) :
   F j = F j' :=
 any_functor_const_on_obj { obj := F, map := λ _ _ f, eq_to_hom (h _ _ f) } j j'
@@ -120,7 +123,7 @@ This can be thought of as a local-to-global property.
 The converse of `constant_of_preserves_morphisms`.
 -/
 lemma is_connected.of_constant_of_preserves_morphisms [nonempty J]
-  (h : ∀ {α : Type v₂} (F : J → α), (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), F j₁ = F j₂) → (∀ j j' : J, F j = F j')) :
+  (h : ∀ {α : Type u₁} (F : J → α), (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), F j₁ = F j₂) → (∀ j j' : J, F j = F j')) :
   is_connected J :=
 is_connected.of_any_functor_const_on_obj (λ _ F, h F.obj (λ _ _ f, (F.map f).down.1))
 
@@ -187,6 +190,33 @@ def zigzag : J → J → Prop := relation.refl_trans_gen zag
 lemma zigzag_symmetric : symmetric (@zigzag J _) :=
 relation.refl_trans_gen.symmetric zag_symmetric
 
+lemma zigzag_equivalence : _root_.equivalence (@zigzag J _) :=
+(mk_equivalence _
+    relation.reflexive_refl_trans_gen
+    zigzag_symmetric
+    relation.transitive_refl_trans_gen)
+
+def zigzag.setoid (J : Type u₂) [category.{v₁} J] : setoid J :=
+{ r := zigzag,
+  iseqv := zigzag_equivalence }
+
+lemma zigzag_obj_of_zigzag (F : J ⥤ K) {j₁ j₂ : J} (h : zigzag j₁ j₂) :
+  zigzag (F.obj j₁) (F.obj j₂) :=
+begin
+  refine relation.refl_trans_gen_lift _ _ h,
+  intros j k,
+  exact or.imp (nonempty.map (λ f, F.map f)) (nonempty.map (λ f, F.map f))
+end
+
+lemma zag_of_zag_obj (F : J ⥤ K) [full F] {j₁ j₂ : J} (h : zag (F.obj j₁) (F.obj j₂)) :
+  zag j₁ j₂ :=
+begin
+  apply or.imp _ _ h,
+  apply nonempty.map _,
+  apply F.preimage,
+  apply nonempty.map _,
+  apply F.preimage,
+end
 /-- Any equivalence relation containing (⟶) holds for all pairs of a connected category. -/
 lemma equiv_relation [is_connected J] (r : J → J → Prop) (hr : _root_.equivalence r)
   (h : ∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), r j₁ j₂) :
@@ -200,11 +230,7 @@ end
 
 /-- In a connected category, any two objects are related by `zigzag`. -/
 lemma is_connected_zigzag [is_connected J] (j₁ j₂ : J) : zigzag j₁ j₂ :=
-equiv_relation _
-  (mk_equivalence _
-    relation.reflexive_refl_trans_gen
-    (relation.refl_trans_gen.symmetric (λ _ _ _, by rwa [zag, or_comm]))
-    relation.transitive_refl_trans_gen)
+equiv_relation _ zigzag_equivalence
   (λ _ _ f, relation.refl_trans_gen.single (or.inl (nonempty.intro f))) _ _
 
 /--
@@ -256,7 +282,7 @@ discrete.equiv_of_equivalence
     unit_iso := by { exact (iso_constant _ (classical.arbitrary _)), },
     counit_iso := functor.punit_ext _ _ }
 
-variables {C : Type u₂} [category.{v₂} C]
+variables {C : Type u₂} [category.{u₁} C]
 
 /--
 For objects `X Y : C`, any natural transformation `α : const X ⟶ const Y` from a connected
@@ -270,5 +296,147 @@ lemma nat_trans_from_is_connected [is_preconnected J] {X Y : C}
   (X ⟶ Y)
   (λ j, α.app j)
   (λ _ _ f, (by { have := α.naturality f, erw [id_comp, comp_id] at this, exact this.symm }))
+
+instance [nonempty J] : faithful (functor.const J : C ⥤ _) :=
+{ map_injective' := λ X Y f g e, nat_trans.congr_app e (classical.arbitrary J) }
+
+instance [is_connected J] : full (functor.const J : C ⥤ _) :=
+{ preimage := λ X Y f, f.app (classical.arbitrary J),
+  witness' := λ X Y f,
+  begin
+    ext j,
+    apply nat_trans_from_is_connected f (classical.arbitrary J) j,
+  end }
+
+variable (J)
+
+def connected_components : Type u₁ := quotient (zigzag.setoid J)
+
+@[derive category]
+def component (j : connected_components J) : Type u₁ := {k : J // quotient.mk' k = j}
+
+@[derive [full, faithful]]
+def include_component (j) : component J j ⥤ J :=
+full_subcategory_inclusion _
+
+instance (j) : nonempty (component J j) :=
+begin
+  apply quotient.induction_on' j,
+  intro k,
+  refine ⟨⟨k, rfl⟩⟩,
+end
+
+lemma list.last_map {α β : Type*} (l : list α) (f : α → β) (hl : l ≠ []) :
+  (l.map f).last (mt list.eq_nil_of_map_eq_nil hl) = f (l.last hl) :=
+begin
+  induction l generalizing hl,
+  { exfalso, apply hl, refl },
+  { cases l_tl,
+    { simp },
+    { simpa using l_ih } }
+end
+
+lemma list.last_pmap {α β : Type*} (p : α → Prop) (f : Π a, p a → β)
+  (l : list α) (hl₁ : ∀ a ∈ l, p a) (hl₂ : l ≠ []) :
+  (l.pmap f hl₁).last (mt list.pmap_eq_nil.1 hl₂) = f (l.last hl₂) (hl₁ _ (list.last_mem hl₂)) :=
+begin
+  induction l generalizing hl₁ hl₂,
+  { exfalso, apply hl₂, refl },
+  { cases l_tl,
+    { simp },
+    { apply l_ih } }
+end
+
+instance (j) : is_connected (component J j) :=
+begin
+  apply zigzag_is_connected,
+  rintro ⟨j₁, hj₁⟩ ⟨j₂, rfl⟩,
+  have h₁₂ : zigzag j₁ j₂ := quotient.exact' hj₁,
+  rcases list.exists_chain_of_relation_refl_trans_gen h₁₂ with ⟨l, hl₁, hl₂⟩,
+  let f : Π x, zigzag x j₂ → component J (quotient.mk' j₂) :=
+    λ x h, subtype.mk x (quotient.sound' h),
+  have hf : ∀ (a : J), a ∈ l → zigzag a j₂,
+  { intros i hi,
+    apply list.chain.induction' (λ t, zigzag t j₂) _ hl₁ hl₂ _ _ _ (or.inr hi),
+    { intros j k, apply relation.refl_trans_gen.head },
+    { apply relation.refl_trans_gen.refl } },
+  let l' : list (component J (quotient.mk' j₂)),
+  { exact l.pmap f hf, },
+  have : list.chain zigzag (⟨j₁, hj₁⟩ : component J _) l',
+  { induction l generalizing hl₁ hl₂ j₁ hf,
+    { apply list.chain.nil },
+    { have hl₃ := list.chain_cons.1 hl₁,
+      apply list.chain.cons,
+      { apply relation.refl_trans_gen.single,
+        refine zag_of_zag_obj (include_component J _) _,
+        apply hl₃.1 },
+      { refine l_ih _ _ _ hl₃.2 _ _,
+        { apply relation.refl_trans_gen.head (zag_symmetric hl₃.1) h₁₂ },
+        { rwa list.last_cons_cons at hl₂ } } } },
+  apply list.chain.induction (λ t, zigzag t (⟨j₂, rfl⟩ : component J _)) _ this _ _ _,
+  { refine ⟨_, rfl⟩ },
+  { have h : ∀ (a : J), a ∈ j₁ :: l → zigzag a j₂,
+    { simpa [h₁₂] using hf },
+    change (list.pmap f (j₁ :: l) h).last _ = _,
+    erw list.last_pmap _ _ _ _ (list.cons_ne_nil _ _),
+    apply subtype.ext,
+    apply hl₂ },
+  { intros _ _, apply relation.refl_trans_gen.trans },
+  { apply relation.refl_trans_gen.refl },
+end
+
+def forward : (Σ j, component J j) ⥤ J :=
+desc (λ i, { obj := λ (k : component J i), k.val, map := λ k l f, f })
+
+instance : full (forward J) :=
+{ preimage :=
+  begin
+    rintro ⟨j', X, hX⟩ ⟨k', Y, hY⟩ f,
+    dsimp [forward] at f,
+    have : j' = k',
+      rw [← hX, ← hY, quotient.eq'],
+      exact relation.refl_trans_gen.single (or.inl ⟨f⟩),
+    subst this,
+    refine sigma_hom.matched _ _ _ f,
+  end,
+  witness' :=
+  begin
+    rintro ⟨j', X, hX⟩ ⟨_, Y, rfl⟩ f,
+    have : quotient.mk' Y = j',
+    { rw [← hX, quotient.eq'],
+      exact relation.refl_trans_gen.single (or.inr ⟨f⟩) },
+    subst this,
+    refl,
+  end }
+
+instance : faithful (forward J) :=
+{ map_injective' :=
+  begin
+    rintro ⟨_, j, rfl⟩ ⟨_, k, hY⟩ ⟨_, _, _, f⟩ ⟨_, _, _, g⟩ e,
+    change f = g at e,
+    subst e,
+  end }
+
+instance : ess_surj (forward J) :=
+{ obj_preimage := λ j, ⟨_, j, rfl⟩,
+  iso' := λ j, iso.refl _ }
+
+-- This gives that any category is equivalent to a disjoint union of connected categories.
+instance : is_equivalence (forward J) := equivalence.equivalence_of_fully_faithfully_ess_surj _
+
+def thingy (H F : (Σ j, component J j) ⥤ C) :
+  (H ⟶ F) ≅ Π j, (incl j ⋙ H ⟶ incl j ⋙ F) :=
+{ hom := λ α j, whisker_left _ α,
+  inv := λ k,
+  { app :=
+    begin
+      rintro ⟨j, X⟩,
+      apply (k j).app X,
+    end,
+    naturality' :=
+    begin
+      rintro ⟨j, X⟩ ⟨_, _⟩ ⟨_, _, Y, f⟩,
+      apply (k j).naturality,
+    end } }
 
 end category_theory

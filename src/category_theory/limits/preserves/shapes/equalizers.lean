@@ -26,7 +26,7 @@ variables {C : Type u₁} [category.{v} C]
 variables {D : Type u₂} [category.{v} D]
 variables (G : C ⥤ D)
 
-namespace preserves
+namespace preserves_equalizer
 
 variables {X Y Z : C} {f g : X ⟶ Y} {h : Z ⟶ X} (w : h ≫ f = h ≫ g)
 
@@ -70,7 +70,7 @@ variables [has_equalizer (G.map f) (G.map g)]
 If the equalizer comparison map for `G` at `(f,g)` is an isomorphism, then `G` preserves the
 equalizer of `(f,g)`.
 -/
-def preserves_equalizer_of_iso_comparison [i : is_iso (equalizer_comparison f g G)] :
+def of_iso_comparison [i : is_iso (equalizer_comparison f g G)] :
   preserves_limit (parallel_pair f g) G :=
 begin
   apply preserves_limit_of_preserves_limit_cone (equalizer_is_equalizer f g),
@@ -84,21 +84,21 @@ variables [preserves_limit (parallel_pair f g) G]
 If `G` preserves the equalizer of `(f,g)`, then the equalizer comparison map for `G` at `(f,g)` is
 an isomorphism.
 -/
-def preserves_equalizers_iso :
+def iso :
   G.obj (equalizer f g) ≅ equalizer (G.map f) (G.map g) :=
 is_limit.cone_point_unique_up_to_iso
   (is_limit_of_has_equalizer_of_preserves_limit G f g)
   (limit.is_limit _)
 
 @[simp]
-lemma preserves_equalizers_iso_hom :
-  (preserves_equalizers_iso G f g).hom = equalizer_comparison f g G :=
+lemma iso_hom :
+  (preserves_equalizer.iso G f g).hom = equalizer_comparison f g G :=
 rfl
 
 instance : is_iso (equalizer_comparison f g G) :=
 begin
-  rw ← preserves_equalizers_iso_hom,
+  rw ← preserves_equalizer.iso_hom,
   apply_instance
 end
 
-end preserves
+end preserves_equalizer

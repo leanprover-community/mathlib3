@@ -65,6 +65,132 @@ ne_zero_of_monic (monic hx)
 
 end ring
 
+section integral_domain
+
+variables [integral_domain α]
+
+section ring
+
+variables [ring β] [algebra α β] [nontrivial β]
+variables {x : β} (hx : is_integral α x)
+
+/--The degree of a minimal polynomial is nonzero.-/
+lemma degree_ne_zero : degree (minimal_polynomial hx) ≠ 0 :=
+begin
+  assume deg_eq_zero,
+  have ndeg_eq_zero : nat_degree (minimal_polynomial hx) = 0,
+  { simpa using congr_arg nat_degree (eq_C_of_degree_eq_zero deg_eq_zero) },
+  have eq_one : minimal_polynomial hx = 1,
+  { rw eq_C_of_degree_eq_zero deg_eq_zero, convert C_1,
+    simpa [ndeg_eq_zero.symm] using (monic hx).leading_coeff },
+  simpa [eq_one, aeval_def] using aeval hx
+end
+
+/--A minimal polynomial is not a unit.-/
+lemma not_is_unit : ¬ is_unit (minimal_polynomial hx) :=
+assume H, degree_ne_zero hx $ degree_eq_zero_of_is_unit H
+
+end ring
+
+section domain
+
+variables [domain β] [algebra α β]
+variables {x : β} (hx : is_integral α x)
+
+/--A minimal polynomial is irreducible.-/
+lemma irreducible : irreducible (minimal_polynomial hx) :=
+begin
+  cases irreducible_or_factor (minimal_polynomial hx) (not_is_unit hx) with hirr hred,
+  { exact hirr },
+  obtain ⟨a, hred⟩ := hred,
+  obtain ⟨b, hred⟩ := hred,
+  have coeff_prod : a.leading_coeff * b.leading_coeff = 1,
+  { rw [←monic.def.1 (monic hx), ←hred.2.2],
+    simp only [leading_coeff_mul] },
+  have hamonic : (a * C b.leading_coeff).monic,
+  { rw monic.def,
+    simp only [coeff_prod, leading_coeff_mul, leading_coeff_C] },
+  have hbmonic : (b * C a.leading_coeff).monic,
+  { rw [monic.def, mul_comm],
+    simp only [coeff_prod, leading_coeff_mul, leading_coeff_C] },
+  have prod : (a * C b.leading_coeff) * (b * C a.leading_coeff) = minimal_polynomial hx,
+  { calc a * C b.leading_coeff * (b * C a.leading_coeff)
+      = a * b * (C a.leading_coeff * C b.leading_coeff) : by ring
+      ...  = a * b * (C (a.leading_coeff * b.leading_coeff)) : by simp only [ring_hom.map_mul]
+      ...  = a * b : by rw [coeff_prod, C_1, mul_one]
+      ...  =  minimal_polynomial hx : by rw [←hred.2.2] },
+  have hzero : (polynomial.aeval x (a * C b.leading_coeff) = 0)
+  ∨ (polynomial.aeval x (b * C a.leading_coeff) = 0),
+  { have hzero := aeval hx,
+    rw [←prod, aeval_mul, mul_eq_zero] at hzero,
+    exact hzero },
+  have hzeroa : a * C b.leading_coeff ≠ 0,
+  { intro h,
+    rw h at prod,
+    simp only [zero_mul] at prod,
+    exact ne_zero hx prod.symm },
+  have hzerob : b * C a.leading_coeff ≠ 0,
+  { intro h,
+    rw h at prod,
+    simp only [mul_zero] at prod,
+    exact ne_zero hx prod.symm },
+  have aunit : ¬is_unit (a * C b.leading_coeff),
+  { intro h,
+    obtain ⟨d, hd⟩ := is_unit_iff_exists_inv.1 h,
+    rw [mul_assoc] at hd,
+    refine hred.1 _,
+    rw is_unit_iff_exists_inv,
+    use (C b.leading_coeff * d),
+    exact hd },
+  have bunit : ¬is_unit (b * C a.leading_coeff),
+  { intro h,
+    obtain ⟨d, hd⟩ := is_unit_iff_exists_inv.1 h,
+    rw [mul_assoc] at hd,
+    refine hred.2.1 _,
+    rw is_unit_iff_exists_inv,
+    use (C a.leading_coeff * d),
+    exact hd },
+  have degazero : 0 < (a * C b.leading_coeff).degree,
+  { apply nat_degree_pos_iff_degree_pos.1,
+    apply nat.pos_of_ne_zero,
+    intro h,
+    have h₁ := eq_C_of_nat_degree_eq_zero h,
+    rw [←h, ←leading_coeff, monic.def.1 hamonic, C_1] at h₁,
+    refine aunit _,
+    rw h₁,
+    exact is_unit_one },
+    have degbzero : 0 < (b * C a.leading_coeff).degree,
+  { apply nat_degree_pos_iff_degree_pos.1,
+    apply nat.pos_of_ne_zero,
+    intro h,
+    have h₁ := eq_C_of_nat_degree_eq_zero h,
+    rw [←h, ←leading_coeff, monic.def.1 hbmonic, C_1] at h₁,
+    refine bunit _,
+    rw h₁,
+    exact is_unit_one },
+  have degalt : (a * C b.leading_coeff).degree < (minimal_polynomial hx).degree,
+  { rw [←prod, @degree_mul α _ _ (b * C a.leading_coeff), degree_eq_nat_degree hzeroa,
+    degree_eq_nat_degree hzerob],
+    norm_cast,
+    refine lt_add_of_pos_right (a * C b.leading_coeff).nat_degree _,
+    exact nat_degree_pos_iff_degree_pos.2 degbzero },
+  have degblt : (b * C a.leading_coeff).degree < (minimal_polynomial hx).degree,
+  { rw [←prod, @degree_mul α _ (a * C b.leading_coeff) _, degree_eq_nat_degree hzerob,
+    degree_eq_nat_degree hzeroa],
+    norm_cast,
+    refine lt_add_of_pos_left (b * C a.leading_coeff).nat_degree _,
+    exact nat_degree_pos_iff_degree_pos.2 degazero },
+  cases hzero with ha hb,
+  { exfalso,
+    exact not_lt_of_ge (minimal_polynomial.min hx hamonic ha) degalt },
+  { exfalso,
+    exact not_lt_of_ge (minimal_polynomial.min hx hbmonic hb) degblt }
+end
+
+end domain
+
+end integral_domain
+
 section field
 variables [field α]
 
@@ -117,22 +243,6 @@ lemma dvd_map_of_is_scalar_tower {α γ : Type*} (β : Type*) [comm_ring α] [fi
 by { apply minimal_polynomial.dvd, rw [← is_scalar_tower.aeval_apply, minimal_polynomial.aeval] }
 
 variables [nontrivial β]
-
-/--The degree of a minimal polynomial is nonzero.-/
-lemma degree_ne_zero : degree (minimal_polynomial hx) ≠ 0 :=
-begin
-  assume deg_eq_zero,
-  have ndeg_eq_zero : nat_degree (minimal_polynomial hx) = 0,
-  { simpa using congr_arg nat_degree (eq_C_of_degree_eq_zero deg_eq_zero) },
-  have eq_one : minimal_polynomial hx = 1,
-  { rw eq_C_of_degree_eq_zero deg_eq_zero, convert C_1,
-    simpa [ndeg_eq_zero.symm] using (monic hx).leading_coeff },
-  simpa [eq_one, aeval_def] using aeval hx
-end
-
-/--A minimal polynomial is not a unit.-/
-lemma not_is_unit : ¬ is_unit (minimal_polynomial hx) :=
-assume H, degree_ne_zero hx $ degree_eq_zero_of_is_unit H
 
 /--The degree of a minimal polynomial is positive.-/
 lemma degree_pos : 0 < degree (minimal_polynomial hx) :=
@@ -188,10 +298,6 @@ begin
   replace : polynomial.aeval x p = 0 ∨ polynomial.aeval x q = 0 := by simpa,
   exact or.imp (dvd hx) (dvd hx) this
 end
-
-/--A minimal polynomial is irreducible.-/
-lemma irreducible : irreducible (minimal_polynomial hx) :=
-irreducible_of_prime (prime hx)
 
 /--If L/K is a field extension and an element y of K is a root of the minimal polynomial
 of an element x ∈ L, then y maps to x under the field embedding.-/

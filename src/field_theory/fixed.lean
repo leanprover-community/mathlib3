@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import algebra.group_action_hom
+import algebra.polynomial.group_ring_action
 import deprecated.subfield
 import field_theory.normal
 import field_theory.separable
@@ -231,6 +231,11 @@ noncomputable instance alg_hom.fintype (K : Type u) (V : Type v)
   fintype (V →ₐ[K] V) :=
 classical.choice $ cardinal.lt_omega_iff_fintype.1 $
 lt_of_le_of_lt (cardinal_mk_alg_hom K V) (cardinal.nat_lt_omega _)
+
+noncomputable instance alg_equiv.fintype (K : Type u) (V : Type v)
+  [field K] [field V] [algebra K V] [finite_dimensional K V] :
+  fintype (V ≃ₐ[K] V) :=
+fintype.of_equiv (V →ₐ[K] V) (alg_equiv_equiv_alg_hom K V).symm
 
 lemma findim_alg_hom (K : Type u) (V : Type v)
   [field K] [field V] [algebra K V] [finite_dimensional K V] :

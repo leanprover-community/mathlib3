@@ -35,11 +35,6 @@ The constructor for a `ring_hom` between semirings needs a proof of `map_zero`, 
 `map_add` as well as `map_mul`; a separate constructor `ring_hom.mk'` will construct ring homs
 between rings from monoid homs given only a proof that addition is preserved.
 
-Throughout the section on `ring_hom` implicit `{}` brackets are often used instead
-of type class `[]` brackets. This is done when the instances can be inferred because they are
-implicit arguments to the type `ring_hom`. When they can be inferred from the type it is faster
-to use this method than to use type class inference.
-
 ## Tags
 
 `ring_hom`, `semiring_hom`, `semiring`, `comm_semiring`, `ring`, `comm_ring`, `domain`,
@@ -223,6 +218,10 @@ namespace ring_hom
 
 section coe
 
+/-!
+Throughout this section, some `semiring` arguments are specified with `{}` instead of `[]`.
+See note [implicit instance arguments].
+-/
 variables {rα : semiring α} {rβ : semiring β}
 
 include rα rβ

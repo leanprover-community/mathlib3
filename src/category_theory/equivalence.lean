@@ -270,7 +270,27 @@ by { dsimp [inv_fun_id_assoc], tidy }
   (inv_fun_id_assoc e F).inv.app X = F.map (e.counit_inv.app X) :=
 by { dsimp [inv_fun_id_assoc], tidy }
 
-
+/-- If `C` is equivalent to `D`, then `C ⥤ E` is equivalent to `D ⥤ E`. -/
+@[simps {rhs_md:=semireducible}]
+def congr_left (e : C ≌ D) : (C ⥤ E) ≌ (D ⥤ E) :=
+equivalence.mk
+  ((whiskering_left _ _ _).obj e.inverse)
+  ((whiskering_left _ _ _).obj e.functor)
+  (nat_iso.of_components (λ F, (e.fun_inv_id_assoc F).symm) (by tidy))
+  (nat_iso.of_components (λ F, e.inv_fun_id_assoc F) (by tidy))
+  
+/-- If `C` is equivalent to `D`, then `E ⥤ C` is equivalent to `E ⥤ D`. -/
+@[simps {rhs_md:=semireducible}]
+def congr_right (e : C ≌ D) : (E ⥤ C) ≌ (E ⥤ D) :=
+equivalence.mk
+  ((whiskering_right _ _ _).obj e.functor)
+  ((whiskering_right _ _ _).obj e.inverse)
+  (nat_iso.of_components
+    (λ F, F.right_unitor.symm ≪≫ iso_whisker_left F e.unit_iso ≪≫ functor.associator _ _ _)
+    (by tidy))
+  (nat_iso.of_components
+    (λ F, functor.associator _ _ _ ≪≫ iso_whisker_left F e.counit_iso ≪≫ F.right_unitor)
+    (by tidy))
 
 section cancellation_lemmas
 variables (e : C ≌ D)

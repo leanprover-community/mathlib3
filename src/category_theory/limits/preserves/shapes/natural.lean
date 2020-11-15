@@ -326,22 +326,66 @@ def assemble_limit
     apply w ⟨j, X⟩,
   end }
 
--- begin
---   let i : yoneda.obj c.X ≅ K.cones,
---   { apply nat_iso.of_components _ _,
---     { intro X,
+open_locale classical
 
---       -- have := thingy J ((functor.const _).obj c.X) K,
+def right (j) : (decomposed J ⥤ C) ⥤ component J j ⥤ C :=
+(whiskering_left _ _ _).obj (inclusion _ _)
 
 
 
---     }
+-- def plus_obj (j : connected_components J) : (component J j ⥤ C) → decomposed J ⥤ C :=
+-- λ H, desc (λ k, if h : k = j then eq_to_functor J h ⋙ H else (functor.const _).obj (⊤_ C))
+
+-- def plus (j : connected_components J) : (component J j ⥤ C) ⥤ decomposed J ⥤ C :=
+-- { obj := plus_obj j,
+--   map := λ X Y f,
+--   begin
+--     apply joining,
+--     intro i,
+--     refine ⟨_, _⟩,
+--     { intro k,
+--       refine (dite (i = j) _ _),
+--       { intro h,
+--         dsimp [plus_obj],
+--         rw dif_pos h,
+--         rw dif_pos h,
+--         subst h,
+--         apply f.app k },
+--       { intro h,
+--         dsimp [plus_obj],
+--         rw dif_neg h,
+--         rw dif_neg h,
+--         apply (𝟙 _) } },
+--     intros i₁ i₂ g,
+--     split_ifs,
+--     { subst h,
+--       dsimp [plus_obj, desc, desc_map],
+--       change functor.map _ _ ≫ _ = _,
+--       dsimp,
+
+--     },
+--   end
+
+-- }
+
+-- def equivalate (j : connected_components J) (G : decomposed J ⥤ C) (H : component J j ⥤ C) :
+--   (inclusion _ _ ⋙ G ⟶ H) ≃ (G ⟶ plus_obj j H) :=
+-- { to_fun := λ f,
+--   { app :=
+--     begin
+--       rintro ⟨k, X⟩,
+--       refine dite (k = j) (λ h, _) _,
+
+--       dsimp [plus_obj],
+
+--     end,
+--     naturality' := sorry
 
 --   }
--- end
 
--- def plus_obj (j : connected_components J) : (component J j ⥤ C) → (Σ j, component J j) ⥤ C :=
--- λ H, desc (λ k, if h : j = k then sorry ⋙ H else (functor.const _).obj (⊤_ C))
+-- }
+
+-- def plus := adjunction.left_adjoint_of_equiv _ _
 
 end general
 

@@ -143,6 +143,20 @@ def desc_hom_ext (q₁ q₂ : (Σ i, C i) ⥤ D) (h : Π i, incl i ⋙ q₁ ≅ 
   q₁ ≅ q₂ :=
 desc_uniq (λ i, incl i ⋙ q₂) q₁ h ≪≫ (desc_uniq _ _ (λ i, iso.refl _)).symm
 
+@[simps]
+def joining (F G : (Σ i, C i) ⥤ D) (h : Π (i : I), incl i ⋙ F ⟶ incl i ⋙ G): F ⟶ G :=
+{ app :=
+  begin
+    rintro ⟨j, X⟩,
+    apply (h j).app X,
+  end,
+  naturality' :=
+  begin
+    rintro ⟨j, X⟩ ⟨_, _⟩ ⟨_, _, Y, f⟩,
+    apply (h j).naturality,
+  end }
+
+
 end
 
 section

@@ -326,6 +326,9 @@ begin
   refine ⟨⟨k, rfl⟩⟩,
 end
 
+def eq_to_functor : ∀ {j k}, j = k → component J j ⥤ component J k
+| _ _ (eq.refl _) := 𝟭 _
+
 lemma list.last_map {α β : Type*} (l : list α) (f : α → β) (hl : l ≠ []) :
   (l.map f).last (mt list.eq_nil_of_map_eq_nil hl) = f (l.last hl) :=
 begin
@@ -432,16 +435,6 @@ instance : is_equivalence (forward J) := equivalence.equivalence_of_fully_faithf
 def thingy (H F : decomposed J ⥤ C) :
   (H ⟶ F) ≅ Π j, (incl j ⋙ H ⟶ incl j ⋙ F) :=
 { hom := λ α j, whisker_left _ α,
-  inv := λ k,
-  { app :=
-    begin
-      rintro ⟨j, X⟩,
-      apply (k j).app X,
-    end,
-    naturality' :=
-    begin
-      rintro ⟨j, X⟩ ⟨_, _⟩ ⟨_, _, Y, f⟩,
-      apply (k j).naturality,
-    end } }
+  inv := joining _ _ }
 
 end category_theory

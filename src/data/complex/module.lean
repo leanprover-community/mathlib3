@@ -74,10 +74,6 @@ instance module.real_complex_tower (E : Type*) [add_comm_group E] [module ℂ E]
   is_scalar_tower ℝ ℂ E :=
 restrict_scalars.is_scalar_tower ℝ ℂ E
 
-instance (E : Type*) [add_comm_group E] [module ℝ E]
-  (F : Type*) [add_comm_group F] [module ℂ F] : module ℂ (E →ₗ[ℝ] F) :=
-linear_map.module_extend_scalars _ _ _ _
-
 @[priority 100]
 instance finite_dimensional.complex_to_real (E : Type*) [add_comm_group E] [module ℂ E]
   [finite_dimensional ℂ E] : finite_dimensional ℝ E :=

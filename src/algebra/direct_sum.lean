@@ -102,7 +102,7 @@ def to_add_monoid : (⨁ i, β i) →+ γ :=
 (dfinsupp.lift_add_hom φ)
 
 @[simp] lemma to_add_monoid_of (i) (x : β i) : to_add_monoid φ (of β i x) = φ i x :=
-by simp [to_add_monoid, of]
+dfinsupp.lift_add_hom_apply_single φ i x
 
 variables (ψ : (⨁ i, β i) →+ γ)
 

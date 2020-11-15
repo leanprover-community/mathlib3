@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import analysis.specific_limits
 import order.filter.countable_Inter
+import topology.G_delta
 
 /-!
 # Baire theorem
@@ -30,74 +31,6 @@ open_locale classical topological_space filter
 open filter encodable set
 
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
-
-section is_Gδ
-variable [topological_space α]
-
-/-- A Gδ set is a countable intersection of open sets. -/
-def is_Gδ (s : set α) : Prop :=
-  ∃T : set (set α), (∀t ∈ T, is_open t) ∧ countable T ∧ s = (⋂₀ T)
-
-/-- An open set is a Gδ set. -/
-lemma is_open.is_Gδ {s : set α} (h : is_open s) : is_Gδ s :=
-⟨{s}, by simp [h], countable_singleton _, (set.sInter_singleton _).symm⟩
-
-lemma is_Gδ_univ : is_Gδ (univ : set α) := is_open_univ.is_Gδ
-
-lemma is_Gδ_bInter_of_open {I : set ι} (hI : countable I) {f : ι → set α}
-  (hf : ∀i ∈ I, is_open (f i)) : is_Gδ (⋂i∈I, f i) :=
-⟨f '' I, by rwa ball_image_iff, hI.image _, by rw sInter_image⟩
-
-lemma is_Gδ_Inter_of_open [encodable ι] {f : ι → set α}
-  (hf : ∀i, is_open (f i)) : is_Gδ (⋂i, f i) :=
-⟨range f, by rwa forall_range_iff, countable_range _, by rw sInter_range⟩
-
-/-- A countable intersection of Gδ sets is a Gδ set. -/
-lemma is_Gδ_sInter {S : set (set α)} (h : ∀s∈S, is_Gδ s) (hS : countable S) : is_Gδ (⋂₀ S) :=
-begin
-  choose T hT using h,
-  refine ⟨_, _, _, (sInter_bUnion (λ s hs, (hT s hs).2.2)).symm⟩,
-  { simp only [mem_Union],
-    rintros t ⟨s, hs, tTs⟩,
-    exact (hT s hs).1 t tTs },
-  { exact hS.bUnion (λs hs, (hT s hs).2.1) },
-end
-
-lemma is_Gδ_Inter [encodable ι]  {s : ι → set α} (hs : ∀ i, is_Gδ (s i)) : is_Gδ (⋂ i, s i) :=
-is_Gδ_sInter (forall_range_iff.2 hs) $ countable_range s
-
-lemma is_Gδ_bInter {s : set ι} (hs : countable s) {t : Π i ∈ s, set α} (ht : ∀ i ∈ s, is_Gδ (t i ‹_›)) :
-  is_Gδ (⋂ i ∈ s, t i ‹_›) :=
-begin
-  rw [bInter_eq_Inter],
-  haveI := hs.to_encodable,
-  exact is_Gδ_Inter (λ x, ht x x.2)
-end
-
-lemma is_Gδ.inter {s t : set α} (hs : is_Gδ s) (ht : is_Gδ t) : is_Gδ (s ∩ t) :=
-by { rw inter_eq_Inter, exact is_Gδ_Inter (bool.forall_bool.2 ⟨ht, hs⟩) }
-
-/-- The union of two Gδ sets is a Gδ set. -/
-lemma is_Gδ.union {s t : set α} (hs : is_Gδ s) (ht : is_Gδ t) : is_Gδ (s ∪ t) :=
-begin
-  rcases hs with ⟨S, Sopen, Scount, rfl⟩,
-  rcases ht with ⟨T, Topen, Tcount, rfl⟩,
-  rw [sInter_union_sInter],
-  apply is_Gδ_bInter_of_open (countable_prod Scount Tcount),
-  rintros ⟨a, b⟩ hab,
-  exact is_open_union (Sopen a hab.1) (Topen b hab.2)
-end
-
-end is_Gδ
-
-/-- A set `s` is called *residual* if it includes a dense `Gδ` set. If `α` is a Baire space
-(e.g., a complete metric space), then residual sets form a filter, see `mem_residual`.
-
- For technical reasons we define the filter `residual` in any topological space
- but in a non-Baire space it is not useful because it may contain some non-residual
- sets. -/
-def residual (α : Type*) [topological_space α] : filter α :=
-⨅ t (ht : is_Gδ t) (ht' : dense t), 𝓟 t
 
 section Baire_theorem
 open emetric ennreal

@@ -355,7 +355,7 @@ begin
     refine or_iff_not_imp_left.mpr _,
     { intro h,
       use p.pred_above m h,
-      simp only [eq_self_iff_true, fin.succ_above_descend, and_self] } },
+      simp only [eq_self_iff_true, fin.succ_above_pred_above, and_self] } },
   { rw fin.succ_above_last,
     exact fin.univ_cast_succ n }
 end
@@ -798,7 +798,7 @@ if h : ∃ a, β a then ⟨{⟨h.fst, h.snd⟩}, λ ⟨_, _⟩, by simp⟩ else 
 instance set.fintype [fintype α] : fintype (set α) :=
 ⟨(@finset.univ α _).powerset.map ⟨coe, coe_injective⟩, λ s, begin
   classical, refine mem_map.2 ⟨finset.univ.filter s, mem_powerset.2 (subset_univ _), _⟩,
-  apply (coe_filter _).trans, rw [coe_univ, set.sep_univ], refl
+  apply (coe_filter _ _).trans, rw [coe_univ, set.sep_univ], refl
 end⟩
 
 instance pfun_fintype (p : Prop) [decidable p] (α : p → Type*)
